@@ -16,6 +16,9 @@ return {
 	SpectatorCommanderSelfD = {
 		delay = 1,
 	},
+	PlayerEliminated = {
+		delay = 1,
+	},
 	ComHeavyDamage = {
 		delay = 12,
 	},

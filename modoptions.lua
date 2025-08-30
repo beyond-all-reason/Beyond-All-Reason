@@ -150,9 +150,9 @@ local options = {
         def     = "default",
         section = "options_main",
         items   = {
-            { key = "short",  name = "Short",  desc = "3 rounds of 5 minutes." },
-            { key = "default", name = "Default", desc = "3 rounds of 8 minutes." },
-            { key = "long",   name = "Long",   desc = "3 rounds of 12 minutes." },
+            { key = "short",  name = "3 Rounds, 18 Minutes",  desc = "3 rounds of 6 minutes." },
+            { key = "default", name = "5 Rounds, 30 Minutes(Default)", desc = "5 rounds of 6 minutes" },
+            { key = "long",   name = "7 Rounds, 42 Minutes",   desc = "7 rounds of 6 minutes." },
         }
     },
 

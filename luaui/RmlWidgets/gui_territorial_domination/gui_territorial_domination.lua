@@ -7,7 +7,7 @@ local widget = widget
 function widget:GetInfo()
 	return {
 		name = "Territorial Domination Score Display",
-		desc = "Displays score bars for territorial domination game mode below the minimap",
+		desc = "Displays score bars for territorial domination game mode",
 		author = "Mupersega",
 		date = "2025",
 		license = "GNU GPL, v2 or later",
@@ -15,7 +15,8 @@ function widget:GetInfo()
 		enabled = true,
 	}
 end
-
+--commander self-destructed notification
+--need to change the way modoptions work or at least the modoption descriptions
 local modOptions = Spring.GetModOptions()
 if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) then
 	return false
@@ -28,7 +29,6 @@ end
 local MODEL_NAME = "territorial_score_model"
 local RML_PATH = "luaui/RmlWidgets/gui_territorial_domination/gui_territorial_domination.rml"
 
-local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetAllyTeamList = Spring.GetAllyTeamList
@@ -39,7 +39,6 @@ local spI18N = Spring.I18N
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local spGetTeamInfo = Spring.GetTeamInfo
 
-local SCREEN_HEIGHT = 1080
 local BACKGROUND_COLOR_ALPHA = 204
 local DEFAULT_POINTS_CAP = 100
 local PROJECTED_COLOR_ALPHA = 100
@@ -61,6 +60,10 @@ local POPUP_FADE_OUT_DURATION = 0.5
 local TIME_ZERO_STRING = "0:00"
 local GAIA_ALLY_TEAM_ID = select(6, spGetTeamInfo(spGetGaiaTeamID()))
 local DANGER_INITIAL_DURATION = 8
+local NON_SPECTATOR_LEFT = 1720
+local NON_SPECTATOR_TOP = 44
+local SPECTATOR_LEFT = 1605
+local SPECTATOR_TOP = 44
 
 local widgetState = {
 	document = nil,
@@ -70,7 +73,6 @@ local widgetState = {
 	lastTimeUpdateTime = 0,
 	lastScoreUpdateTime = 0,
 	allyTeamData = {},
-	lastMinimapGeometry = { 0, 0, 0, 0 },
 	scoreElements = {},
 	displayedTeamIds = {},
 	hiddenByLobby = false,
@@ -126,21 +128,16 @@ local function isPlayerInFirstPlace()
 end
 
 local function calculateUILayout()
-	local minimapPosX, minimapPosY, minimapSizeX, minimapSizeY = spGetMiniMapGeometry()
-	local last = widgetState.lastMinimapGeometry
-	if minimapPosX == last[1] and minimapPosY == last[2] and minimapSizeX == last[3] and minimapSizeY == last[4] then
-		return
-	end
-	last[1], last[2], last[3], last[4] = minimapPosX, minimapPosY, minimapSizeX, minimapSizeY
-
-	local left = minimapPosX
-	local top = SCREEN_HEIGHT - minimapPosY
-
 	if widgetState.document then
 		local rootElement = widgetState.document:GetElementById("td-root") or
 		widgetState.document:GetElementById("score-container")
 		if rootElement then
-			rootElement:SetAttribute("style", string.format("left: %dpx; top: %dpx;", left, top))
+			local isSpectating = select(1, spGetSpectatingState())
+			if isSpectating then
+				rootElement:SetAttribute("style", string.format("left: %dpx; top: %dpx;", SPECTATOR_LEFT, SPECTATOR_TOP))
+			else
+				rootElement:SetAttribute("style", string.format("left: %dpx; top: %dpx;", NON_SPECTATOR_LEFT, NON_SPECTATOR_TOP))
+			end
 		end
 	end
 end
@@ -464,9 +461,8 @@ local function updateHeaderVisibility()
 	local maxRoundsParam = (widgetState.dmHandle and widgetState.dmHandle.maxRounds) or DEFAULT_MAX_ROUNDS
 	local inOvertime = currentRoundParam > maxRoundsParam
 	local dataModel = widgetState.dmHandle
-	local showZeroSecond = dataModel and ((dataModel.timeRemainingSeconds or 0) < 1)
-	local hasTimeInfo = timeElement.inner_rml and
-	(timeElement.inner_rml ~= TIME_ZERO_STRING or inOvertime or showZeroSecond)
+	local timeSecs = (dataModel and dataModel.timeRemainingSeconds) or 0
+	local hasTimeInfo = timeElement.inner_rml and (timeSecs > 0 or inOvertime)
 
 	headerElement:SetClass("hidden", not (hasRoundInfo or hasTimeInfo))
 	roundElement:SetClass("hidden", not hasRoundInfo)
@@ -835,7 +831,7 @@ function widget:Initialize()
 	widgetState.document = document
 
 	document:ReloadStyleSheet()
-	if not widgetState.hiddenByLobby then
+	if not widgetState.hiddenByLobby and Spring.GetGameSeconds() > 0 then
 		document:Show()
 		widgetState.isDocumentVisible = true
 	end
@@ -846,8 +842,10 @@ function widget:Initialize()
 	widgetState.lastTimeUpdateTime = Spring.GetGameSeconds()
 
 	calculateUILayout()
-	updateDataModel()
-	updateCountdownColor()
+	if Spring.GetGameSeconds() > 0 then
+		updateDataModel()
+		updateCountdownColor()
+	end
 	updateHeaderVisibility()
 
 	return true
@@ -913,7 +911,7 @@ function widget:Update()
 
 	local shouldFullUpdate = currentTime - widgetState.lastUpdateTime >= UPDATE_INTERVAL
 
-	if shouldFullUpdate or shouldUpdateScores or shouldUpdateTime then
+	if (currentTime > 0) and (shouldFullUpdate or shouldUpdateScores or shouldUpdateTime) then
 		local pointsCap = spGetGameRulesParam("territorialDominationPointsCap") or DEFAULT_POINTS_CAP
 		if pointsCap and pointsCap > 0 then
 			if widgetState.document and not widgetState.hiddenByLobby and not widgetState.isDocumentVisible then
@@ -954,6 +952,9 @@ function widget:Update()
 end
 
 function widget:DrawScreen()
+	if Spring.GetGameSeconds() <= 0 then
+		return
+	end
 	if widgetState.document and widgetState.isDocumentVisible then
 		widgetState.rmlContext:Render()
 	end

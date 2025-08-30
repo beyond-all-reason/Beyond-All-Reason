@@ -19,15 +19,15 @@ if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_ena
 local territorialDominationConfig = {
 	short = {
 		maxRounds = 3,
-		minutesPerRound = 5,
+		minutesPerRound = 6,
 	},
 	default = {
 		maxRounds = 5,
-		minutesPerRound = 5,
+		minutesPerRound = 6,
 	},
 	long = {
 		maxRounds = 7,
-		minutesPerRound = 5,
+		minutesPerRound = 6,
 	},
 }
 
@@ -395,6 +395,7 @@ local function defeatAlly(allyID)
 			local x, y, z = spGetUnitPosition(unitID)
 			spSpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
 			spPlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
+			Spring.SetUnitRulesParam(unitID, "gameModeCommanderEliminated", 1)
 			GG.ComSpawnDefoliate(x, y, z)
 		end
 	end

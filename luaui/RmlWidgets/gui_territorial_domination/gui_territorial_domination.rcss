@@ -12,6 +12,8 @@
 	width: 200px;
 	padding: 4px;
 	border-radius: 6px;
+	left: 1605px;
+	top: 44px;
 }
 
 .td-scores {
@@ -72,8 +74,9 @@
 
 .header-info {
 	display: flex;
-    margin-bottom: 2px;
+	margin-bottom: 2px;
 	justify-content: space-between;
+	flex-direction: row-reverse;
 	align-items: center;
 	flex-shrink: 0;
 }
@@ -87,6 +90,7 @@
 	font-family: Exo 2;
 	font-size: 16px;
 	font-effect: outline(2px black);
+	text-align: right;
 }
 
 .round-display.hidden {
@@ -99,6 +103,7 @@
 	font-family: Exo 2;
 	font-size: 16px;
 	font-effect: outline(2px black);
+	text-align: right;
 }
 
 .time-display.hidden { display: none; }
@@ -123,8 +128,8 @@
 }
 .td-text.current { font-size: 15px; }
 .td-text.projected { font-size: 15px; }
-.td-text.current { left: 2px; }
-.td-text.projected { right: 2px; }
+.td-text.current { left: 2px; right: auto; text-align: left; }
+.td-text.projected { right: 2px; left: auto; text-align: right; }
 
 .td-danger {
 	position: absolute;

@@ -274,7 +274,8 @@ else
 				for ct, player in pairs (players) do
 					if tostring(player) then
 						if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
-
+						elseif Spring.GetUnitRulesParam(unitID, "gameModeCommanderEliminated") then
+							BroadcastEvent("NotificationEvent", "PlayerEliminated", tostring(player), true)
 						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < Spring.GetGameFrame()) then
 							BroadcastEvent("NotificationEvent", "SpectatorCommanderSelfD", tostring(player), true)
 						else
@@ -286,7 +287,8 @@ else
 				for ct, player in pairs (players) do
 					if tostring(player) then
 						if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
-
+						elseif Spring.GetUnitRulesParam(unitID, "gameModeCommanderEliminated") then
+							BroadcastEvent("NotificationEvent", "PlayerEliminated", tostring(player), true)
 						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < Spring.GetGameFrame()) then
 							BroadcastEvent("NotificationEvent", "SpectatorCommanderSelfD", tostring(player), true)
 						else
