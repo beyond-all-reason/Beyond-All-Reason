@@ -132,7 +132,7 @@ local options = {
     --temporary, uncomment the added deathmode entry and delete entries related to temp_enable_territorial_domination once beta is over.
     {
         key     = "temp_enable_territorial_domination",
-        name    = "Territorial Domination V0.1",
+        name    = "Territorial Domination V0.2",
         desc    = "Enable experimental Territorial Domination gamemode",
         hidden  = true,
         type    = "bool",
@@ -150,9 +150,9 @@ local options = {
         def     = "default",
         section = "options_main",
         items   = {
-            { key = "short",  name = "Short",  desc = "6 minutes grace period, 18 minute until the maximum territory is required" },
-            { key = "default", name = "Default", desc = "6 minutes grace period, 24 minute until the maximum territory is required" },
-            { key = "long",   name = "Long",   desc = "6 minutes grace period, 36 minute until the maximum territory is required" },
+            { key = "short",  name = "Short",  desc = "3 rounds of 5 minutes." },
+            { key = "default", name = "Default", desc = "3 rounds of 8 minutes." },
+            { key = "long",   name = "Long",   desc = "3 rounds of 12 minutes." },
         }
     },
 
