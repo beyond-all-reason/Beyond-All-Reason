@@ -76,11 +76,11 @@ local function initializePrecomputedData()
   end
 
   for unitDefID, unitDef in pairs(UnitDefs) do
-    local isEco = unitDef.metalMake > 0 or unitDef.energyMake > 0 or unitDef.extractsMetal > 0 or
-                  unitDef.energyUpkeep < 0 or (unitDef.customParams and unitDef.customParams.metal_extractor)
+    local isEco =
+      unitDef.metalMake > 0 or unitDef.energyMake > 0 or unitDef.extractsMetal > 0 or unitDef.energyUpkeep < 0 or
+      (unitDef.customParams and unitDef.customParams.metal_extractor)
     local isCommander = unitDef.customParams and unitDef.customParams.iscommander
     if (isEco and not unitDef.canMove) or isCommander then
-
       local ecoScore = 0
 
       -- Metal/Energy production
@@ -108,8 +108,10 @@ local function initializePrecomputedData()
         ecoScore = ecoScore + unitDef.tidalGenerator * 15
       end
 
-      if unitDef.customParams and unitDef.customParams.energyconv_capacity and
-        tonumber(unitDef.customParams.energyconv_capacity) > 0 then
+      if
+        unitDef.customParams and unitDef.customParams.energyconv_capacity and
+          tonumber(unitDef.customParams.energyconv_capacity) > 0
+       then
         ecoScore = ecoScore + tonumber(unitDef.customParams.energyconv_capacity) / 3
       end
 
@@ -117,7 +119,8 @@ local function initializePrecomputedData()
         unitDefEcoValues[unitDefID] = ecoScore
       end
 
-      local techLevel = unitDef.customParams and unitDef.customParams.techlevel and tonumber(unitDef.customParams.techlevel) or 1
+      local techLevel =
+        unitDef.customParams and unitDef.customParams.techlevel and tonumber(unitDef.customParams.techlevel) or 1
 
       if techLevel > 1 then
         unitDefTechLevels[unitDefID] = techLevel
@@ -162,9 +165,7 @@ function PveTargeting.Initialize(teamID, allyTeamID, options)
 
   local weights = getEffectiveWeights(Spring.GetModOptions(), options.gadgetWeights)
 
-  Spring.Echo(
-    'Initializing PveTargeting with weights: ' .. Json.encode(weights)
-  )
+  Spring.Echo('Initializing PveTargeting with weights: ' .. Json.encode(weights))
 
   return {
     teamID = teamID,
@@ -178,7 +179,8 @@ function PveTargeting.Initialize(teamID, allyTeamID, options)
     numTilesZ = numTilesZ,
     lastUpdateFrame = 0,
     scoreCache = {},
-    scoreCacheValidUntil = 0
+    scoreCacheValidUntil = 0,
+    damageTilesLastCleanupFrame = 0
   }
 end
 
@@ -200,18 +202,23 @@ local function invalidateScoreCache(context)
 end
 
 -- Update area-based damage statistics for efficiency scoring
-function PveTargeting.UpdateDamageStats(context, damageDealt, damageTaken, targetPos)
+function PveTargeting.UpdateDamageStats(context, damageDealt, damageTaken, targetPos, options)
   -- Only update area-based damage stats if position is provided
   if targetPos and targetPos.x and targetPos.z then
     local tileX, tileZ = worldToTile(targetPos.x, targetPos.z, context.tileSize)
     local tileKey = getTileKey(tileX, tileZ)
+    local currentFrame = Spring.GetGameFrame()
+
+    options = options or {}
+    local unitDefID = options.unitDefID
 
     if not context.damageAreaStats[tileKey] then
       context.damageAreaStats[tileKey] = {
         damageDealt = 0,
         damageTaken = 0,
         efficiency = 1.0,
-        lastUpdate = Spring.GetGameFrame()
+        lastUpdate = currentFrame,
+        unitDefModifiers = {}
       }
     end
 
@@ -219,14 +226,40 @@ function PveTargeting.UpdateDamageStats(context, damageDealt, damageTaken, targe
     areaStats.damageDealt = areaStats.damageDealt + damageDealt
     areaStats.damageTaken = areaStats.damageTaken + damageTaken
 
-    -- Calculate area efficiency
+    -- Calculate general area efficiency
     if areaStats.damageTaken > 0 then
       areaStats.efficiency = areaStats.damageDealt / areaStats.damageTaken
     else
       areaStats.efficiency = areaStats.damageDealt > 0 and 2.0 or 1.0
     end
 
-    areaStats.lastUpdate = Spring.GetGameFrame()
+    areaStats.lastUpdate = currentFrame
+
+    -- Update unitDefID-specific stats if provided
+    if unitDefID then
+      if not areaStats.unitDefModifiers[unitDefID] then
+        areaStats.unitDefModifiers[unitDefID] = {
+          damageDealt = 0,
+          damageTaken = 0,
+          efficiency = 1.0,
+          lastUpdate = currentFrame,
+          weight = 0.7 -- How much unitDefID matters vs general
+        }
+      end
+
+      local unitDefStats = areaStats.unitDefModifiers[unitDefID]
+      unitDefStats.damageDealt = unitDefStats.damageDealt + damageDealt
+      unitDefStats.damageTaken = unitDefStats.damageTaken + damageTaken
+
+      -- Calculate unitDefID-specific efficiency
+      if unitDefStats.damageTaken > 0 then
+        unitDefStats.efficiency = unitDefStats.damageDealt / unitDefStats.damageTaken
+      else
+        unitDefStats.efficiency = unitDefStats.damageDealt > 0 and 2.0 or 1.0
+      end
+
+      unitDefStats.lastUpdate = currentFrame
+    end
   end
 end
 
@@ -285,7 +318,7 @@ local function calculateRawTechLevel(target)
 end
 
 -- Calculate area-based damage efficiency score for a target's position
-local function calculateDamageEfficiencyAreaRawValue(context, target)
+local function calculateDamageEfficiencyAreaRawValue(context, target, unitDefID)
   if not target.x or not target.z then
     return 0.0 -- Default score if no position
   end
@@ -298,8 +331,24 @@ local function calculateDamageEfficiencyAreaRawValue(context, target)
     return 0.5 -- Default neutral score for unexplored areas
   end
 
+  -- Start with general tile efficiency
+  local generalEfficiency = areaStats.efficiency
+
+  -- If we have unitDefID-specific data, blend it with general data
+  if unitDefID and areaStats.unitDefModifiers and areaStats.unitDefModifiers[unitDefID] then
+    local unitDefStats = areaStats.unitDefModifiers[unitDefID]
+    local weight = unitDefStats.weight or 0.7
+
+    -- Blend specific efficiency with general efficiency
+    -- Higher weight = more influence from specific data
+    local specificEfficiency = unitDefStats.efficiency
+    local blendedEfficiency = (weight * specificEfficiency) + ((1 - weight) * generalEfficiency)
+
+    return math.max(0.0, math.min(2.0, blendedEfficiency)) -- Clamp to reasonable range
+  end
+
   -- Higher efficiency = higher score (we want to target areas where we're winning)
-  return areaStats.efficiency
+  return generalEfficiency
 end
 
 -- Calculate even player spread score (lower = better spread)
@@ -397,25 +446,6 @@ local function calculateTargetScores(
   return candidates, total
 end
 
--- Efficiently shuffle weighted candidates while preserving weights
-local function shuffleWeightedCandidates(weightedCandidates)
-  local shuffled = {}
-  local n = #weightedCandidates
-
-  -- Copy the array
-  for i = 1, n do
-    shuffled[i] = weightedCandidates[i]
-  end
-
-  -- Fisher-Yates shuffle
-  for i = n, 2, -1 do
-    local j = math.random(i)
-    shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
-  end
-
-  return shuffled
-end
-
 -- Get cached targets and scores or calculate new ones if cache is expired
 local function getCachedTargetsAndScores(context, weights)
   local currentFrame = Spring.GetGameFrame()
@@ -444,7 +474,7 @@ local function getCachedTargetsAndScores(context, weights)
     minTechLevel = math.min(minTechLevel, rawTechLevel)
     maxTechLevel = math.max(maxTechLevel, rawTechLevel)
 
-    -- Damage efficiency areas
+    -- Damage efficiency areas, main non-unitdefid specific
     local rawDamageEfficiencyAreaValue = calculateDamageEfficiencyAreaRawValue(context, target)
     minDamageEfficiencyArea = math.min(minDamageEfficiencyArea, rawDamageEfficiencyAreaValue)
     maxDamageEfficiencyArea = math.max(maxDamageEfficiencyArea, rawDamageEfficiencyAreaValue)
@@ -541,6 +571,15 @@ end
 function PveTargeting.GetRandomTarget(context, options)
   options = options or {}
   local weights = options.weights or context.weights
+  local unitDefID = options.unitDefID
+
+  -- Periodic automatic cleanup of old damage efficiency data (every 5 minutes)
+  local currentFrame = Spring.GetGameFrame()
+  local cleanupIntervalFrames = 5 * 60 * Game.gameSpeed
+  if currentFrame - context.damageTilesLastCleanupFrame > cleanupIntervalFrames then
+    context.damageTilesLastCleanupFrame = currentFrame
+    PveTargeting.CleanupDamageStats(context)
+  end
 
   -- Get cached targets and scores (only recalculates if cache expired)
   local weightedCandidates, total = getCachedTargetsAndScores(context, weights)
@@ -559,6 +598,37 @@ function PveTargeting.GetRandomTarget(context, options)
   end
   if totalWeight == 0 then
     return weightedCandidates[math.random(#weightedCandidates)]
+  end
+
+  if unitDefID and weights.damageEfficiencyAreas > 0.001 then
+    -- Only recalculate damage efficiency scores with unitDefID-specific data
+    local newTotal = 0
+    local cache = context.scoreCache
+
+    for _, candidate in pairs(weightedCandidates) do
+      -- Rebuild total score using cached scores for other factors + new damage efficiency
+      local originalDamageScore = normalize(candidate.rawValues.damageEfficiencyArea, cache.minDamageEfficiencyArea, cache.maxDamageEfficiencyArea)
+      originalDamageScore = (originalDamageScore and originalDamageScore == originalDamageScore) and originalDamageScore or 0.5
+
+      -- Get unitDefID-specific damage efficiency (only thing that changes)
+      local unitDefSpecificEfficiency = calculateDamageEfficiencyAreaRawValue(context, candidate, unitDefID)
+      local normalizedEfficiency =
+        normalize(unitDefSpecificEfficiency, cache.minDamageEfficiencyArea, cache.maxDamageEfficiencyArea)
+
+      -- Validate the new damage efficiency score
+      normalizedEfficiency =
+        (normalizedEfficiency and normalizedEfficiency == normalizedEfficiency) and normalizedEfficiency or 0.5
+
+      -- Calculate new total by replacing just the damage efficiency component
+      local totalScore = candidate.totalScore - (weights.damageEfficiencyAreas * originalDamageScore) + (weights.damageEfficiencyAreas * normalizedEfficiency)
+
+      totalScore = (totalScore and totalScore == totalScore) and totalScore or 0.5
+      newTotal = newTotal + totalScore
+      candidate.cumulative = newTotal
+      candidate.totalScore = totalScore
+    end
+
+    total = newTotal
   end
 
   if total == 0 then
@@ -646,15 +716,95 @@ function PveTargeting.ExportDamageStatsToGameRules(context)
   for key, stats in pairs(context.damageAreaStats) do
     local tileX, tileZ = string.match(key, '([^,]+),([^,]+)')
     if tileX and tileZ then
-      exportStats[key] = {
+      local tileData = {
         x = tonumber(tileX) * context.tileSize + context.tileSize / 2,
         z = tonumber(tileZ) * context.tileSize + context.tileSize / 2,
         tileSize = context.tileSize,
         damageDealt = stats.damageDealt,
         damageTaken = stats.damageTaken,
         efficiency = stats.efficiency,
-        lastUpdate = stats.lastUpdate
+        lastUpdate = stats.lastUpdate,
+        unitDefModifiers = {}
       }
+
+      -- Process unitDefID-specific modifiers
+      if stats.unitDefModifiers then
+        local unitEfficiencies = {} -- For sorting top/bottom performers
+
+        for unitDefID, unitStats in pairs(stats.unitDefModifiers) do
+          local unitDef = UnitDefs[unitDefID]
+          if unitDef then
+            local unitName = unitDef.translatedHumanName or unitDef.name or unitDefID
+
+            tileData.unitDefModifiers[unitName] = {
+              damageDealt = unitStats.damageDealt,
+              damageTaken = unitStats.damageTaken,
+              efficiency = unitStats.efficiency,
+              lastUpdate = unitStats.lastUpdate,
+              weight = unitStats.weight
+            }
+
+            -- Collect for top/bottom ranking (only if there's meaningful data)
+            if unitStats.damageDealt > 0 or unitStats.damageTaken > 0 then
+              table.insert(unitEfficiencies, {
+                name = unitName,
+                efficiency = unitStats.efficiency,
+                damageDealt = unitStats.damageDealt,
+                damageTaken = unitStats.damageTaken
+              })
+            end
+          end
+        end
+
+        -- Sort by efficiency (high to low)
+        table.sort(unitEfficiencies, function(a, b)
+          return a.efficiency > b.efficiency
+        end)
+
+        -- Get top 3 and bottom 3 performers
+        tileData.top3Units = {}
+        tileData.bottom3Units = {}
+
+        local numUnits = #unitEfficiencies
+        if numUnits > 0 then
+          -- Top 3 (best efficiency)
+          for i = 1, math.min(3, numUnits) do
+            tileData.top3Units[i] = {
+              name = unitEfficiencies[i].name,
+              efficiency = unitEfficiencies[i].efficiency,
+              damageDealt = unitEfficiencies[i].damageDealt,
+              damageTaken = unitEfficiencies[i].damageTaken
+            }
+          end
+
+          -- Bottom 3 (worst efficiency) - only if we have more than 3 units
+          if numUnits > 3 then
+            local bottomStart = math.max(1, numUnits - 2) -- Last 3 units
+            local bottomIdx = 1
+            for i = numUnits, bottomStart, -1 do
+              tileData.bottom3Units[bottomIdx] = {
+                name = unitEfficiencies[i].name,
+                efficiency = unitEfficiencies[i].efficiency,
+                damageDealt = unitEfficiencies[i].damageDealt,
+                damageTaken = unitEfficiencies[i].damageTaken
+              }
+              bottomIdx = bottomIdx + 1
+            end
+          elseif numUnits <= 3 then
+            -- If we have 3 or fewer units, bottom3 is just the reverse of top3
+            for i = numUnits, 1, -1 do
+              table.insert(tileData.bottom3Units, {
+                name = unitEfficiencies[i].name,
+                efficiency = unitEfficiencies[i].efficiency,
+                damageDealt = unitEfficiencies[i].damageDealt,
+                damageTaken = unitEfficiencies[i].damageTaken
+              })
+            end
+          end
+        end
+      end
+
+      exportStats[key] = tileData
     end
   end
 
@@ -666,6 +816,47 @@ function PveTargeting.ExportDamageStatsToGameRules(context)
   end
 
   return true
+end
+
+-- Clean up old/unused damage efficiency data to manage memory
+function PveTargeting.CleanupDamageStats(context, maxAge)
+  maxAge = maxAge or (300 * Game.gameSpeed) -- Default 5 minutes
+  local currentFrame = Spring.GetGameFrame()
+  local cleanedCount = 0
+
+  for tileKey, areaStats in pairs(context.damageAreaStats) do
+    -- Clean up old unitDefID-specific modifiers
+    if areaStats.unitDefModifiers then
+      for unitDefID, unitDefStats in pairs(areaStats.unitDefModifiers) do
+        if currentFrame - unitDefStats.lastUpdate > maxAge then
+          areaStats.unitDefModifiers[unitDefID] = nil
+          cleanedCount = cleanedCount + 1
+        end
+      end
+    end
+
+    -- Clean up entire tile if it's old and has no specific modifiers
+    if currentFrame - areaStats.lastUpdate > maxAge * 2 then
+      local hasModifiers = false
+      if areaStats.unitDefModifiers then
+        for _ in pairs(areaStats.unitDefModifiers) do
+          hasModifiers = true
+          break
+        end
+      end
+
+      if not hasModifiers then
+        context.damageAreaStats[tileKey] = nil
+        cleanedCount = cleanedCount + 1
+      end
+    end
+  end
+
+  if cleanedCount > 0 then
+    invalidateScoreCache(context)
+  end
+
+  return cleanedCount
 end
 
 -- Manually invalidate score cache (useful for external systems)
@@ -687,7 +878,7 @@ local function calculateDistance(pos1, pos2)
   local dx = pos1.x - pos2.x
   local dy = pos1.y - pos2.y
   local dz = pos1.z - pos2.z
-  -- math.diag exists in the BAR repository, so we use it here
+  ---@diagnostic disable-next-line: undefined-field
   return math.diag(dx, dy, dz)
 end
 

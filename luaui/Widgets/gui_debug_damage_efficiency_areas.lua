@@ -20,6 +20,8 @@ local config = {
   textScale = 200.0, -- Scale of the text labels (much larger for visibility)
   showDamageValues = true, -- Whether to show damage dealt/taken values
   showEfficiency = true, -- Whether to show efficiency values
+  showTopUnits = true, -- Whether to show top 3 performing units
+  showBottomUnits = true, -- Whether to show bottom 3 performing units (can be verbose)
   opacity = 0.7 -- Overall opacity of the visualization
 }
 
@@ -120,10 +122,7 @@ local function updateDamageAreas()
     damageAreas = {}
     return
   end
-  
-  damageAreas = areas
-  
-  damageAreas = areas
+  damageAreas = type(areas) == 'table' and areas or {}
 end
 
 local function getEfficiencyColor(efficiency)
@@ -150,8 +149,8 @@ local function createTileVertices(x, z, tileSize, color)
   -- Check if tile is within map bounds
   local mapSizeX = Game.mapSizeX
   local mapSizeZ = Game.mapSizeZ
-  
-  if x - halfSize < 0 or x + halfSize > mapSizeX or 
+
+  if x - halfSize < 0 or x + halfSize > mapSizeX or
      z - halfSize < 0 or z + halfSize > mapSizeZ then
     -- Tile is outside map bounds, return empty vertices
     return {}
@@ -228,10 +227,10 @@ local function updateVBO()
       local halfSize = (area.tileSize or config.tileSize) / 2
       local mapSizeX = Game.mapSizeX
       local mapSizeZ = Game.mapSizeZ
-      
-      if area.x - halfSize >= 0 and area.x + halfSize <= mapSizeX and 
+
+      if area.x - halfSize >= 0 and area.x + halfSize <= mapSizeX and
          area.z - halfSize >= 0 and area.z + halfSize <= mapSizeZ then
-        
+
         local color = getEfficiencyColor(area.efficiency)
         local tileVertices = createTileVertices(area.x, area.z, area.tileSize or config.tileSize, color)
         for _, vertex in ipairs(tileVertices) do
@@ -269,7 +268,7 @@ local function updateVBO()
 end
 
 local function drawTextLabels()
-  if not config.showDamageValues and not config.showEfficiency then
+  if not config.showDamageValues and not config.showEfficiency and not config.showTopUnits and not config.showBottomUnits then
     return
   end
 
@@ -278,9 +277,7 @@ local function drawTextLabels()
     if area.x and area.z and area.efficiency then
       -- Use the same height as the tiles for consistent positioning
       local terrainHeight = (Spring.GetGroundHeight(area.x, area.z) or 0) + 15
-      
 
-      
       local text = ''
       if config.showEfficiency then
         text = string.format('E:%.2f', area.efficiency)
@@ -292,13 +289,39 @@ local function drawTextLabels()
         text = text .. string.format('D:%d\nT:%d', area.damageDealt or 0, area.damageTaken or 0)
       end
 
+      -- Add top performing units
+      if config.showTopUnits and area.top3Units and area.top3Units['1'] then
+        if text ~= '' then
+          text = text .. '\n'
+        end
+        text = text .. 'TOP:'
+        for i, unit in pairs(area.top3Units) do
+          if tonumber(i) <= 3 then -- Limit to top 3
+            text = text .. string.format('\n%s:%.2f', unit.name, unit.efficiency)
+          end
+        end
+      end
+
+      -- Add bottom performing units
+      if config.showBottomUnits and area.bottom3Units and area.bottom3Units['1'] then
+        if text ~= '' then
+          text = text .. '\n'
+        end
+        text = text .. 'BOT:'
+        for i, unit in pairs(area.bottom3Units) do
+          if tonumber(i) <= 3 then -- Limit to bottom 3
+            text = text .. string.format('\n%s:%.2f', unit.name, unit.efficiency)
+          end
+        end
+      end
+
       if text ~= '' then
         -- Set explicit text color to ensure visibility
         gl.Color(1.0, 1.0, 1.0, 0.7)
          gl.PushMatrix()
-         gl.Translate(area.x, terrainHeight, area.z) -- Position much higher above the tile
+         gl.Translate(area.x-88, terrainHeight, area.z-82) -- Position much higher above the tile
          gl.Rotate(-90, 1, 0, 0) -- Lay flat
-         gl.Text(text, 0, 0, 22, 'o')
+         gl.Text(text, 0, 0, 12, 'o')
          gl.PopMatrix()
         gl.Color(1.0, 1.0, 1.0, 1.0) -- Reset color
         textCount = textCount + 1
@@ -321,6 +344,16 @@ function widget:Initialize()
         config[key] = value
       end
     end
+  end
+
+  -- Convenience functions for common toggles
+  WG['damageEfficiencyAreas'].toggleTopUnits = function()
+    config.showTopUnits = not config.showTopUnits
+    Spring.Echo("Damage efficiency top units display: " .. (config.showTopUnits and "ON" or "OFF"))
+  end
+  WG['damageEfficiencyAreas'].toggleBottomUnits = function()
+    config.showBottomUnits = not config.showBottomUnits
+    Spring.Echo("Damage efficiency bottom units display: " .. (config.showBottomUnits and "ON" or "OFF"))
   end
 end
 

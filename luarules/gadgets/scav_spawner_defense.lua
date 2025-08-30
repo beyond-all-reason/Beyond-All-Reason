@@ -273,16 +273,6 @@ if gadgetHandler:IsSyncedCode() then
 	-- Utility
 	--
 
-	function SetToList(set)
-		local list = {}
-		local count = 0
-		for k in pairs(set) do
-			count = count + 1
-			list[count] = k
-		end
-		return list
-	end
-
 	function SetCount(set)
 		if set.count then
 			return set.count
@@ -301,10 +291,10 @@ if gadgetHandler:IsSyncedCode() then
 		return { x = x, y = y, z = z }
 	end
 
-	function getRandomEnemyPos()
+	function getRandomEnemyPos(unitDefID)
 
 		if useEcoTargeting and targetingContext then
-			local targetPos = PveTargeting.GetRandomTargetPosition(targetingContext)
+			local targetPos = PveTargeting.GetRandomTargetPosition(targetingContext, {unitDefID = unitDefID})
 
 			if targetPos and targetPos.target then
 				return {x = targetPos.x, y = targetPos.y, z = targetPos.z}, targetPos.target.unitID
@@ -571,23 +561,24 @@ if gadgetHandler:IsSyncedCode() then
 					if ValidUnitID(unitID) and not GetUnitIsDead(unitID) and not GetUnitNeutral(unitID) then
 						-- Spring.Echo("GiveOrderToUnit #" .. i)
 						if not unitCowardCooldown[unitID] then
-							if config.scavBehaviours.ALWAYSMOVE[Spring.GetUnitDefID(unitID)] then
-								local pos = getRandomEnemyPos()
+							local unitDefID = Spring.GetUnitDefID(unitID)
+							if config.scavBehaviours.ALWAYSMOVE[unitDefID] then
+								local pos = getRandomEnemyPos(unitDefID)
 								Spring.GiveOrderToUnit(unitID, CMD.MOVE, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256)} , {"shift"})
-							elseif config.scavBehaviours.ALWAYSFIGHT[Spring.GetUnitDefID(unitID)] then
-								local pos = getRandomEnemyPos()
+							elseif config.scavBehaviours.ALWAYSFIGHT[unitDefID] then
+								local pos = getRandomEnemyPos(unitDefID)
 								Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256)} , {"shift"})
 							elseif role == "assault" or role == "artillery" then
 								Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
 							elseif role == "raid" then
 								Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
 							elseif role == "aircraft" then
-								local pos = getRandomEnemyPos()
+								local pos = getRandomEnemyPos(unitDefID)
 								Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256)} , {})
 							elseif role == "kamikaze" then
 								Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
 							elseif role == "healer" then
-								local pos = getRandomEnemyPos()
+								local pos = getRandomEnemyPos(unitDefID)
 								Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, {})
 								if math.random() < 0.75 then
 									Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 20000} , {"shift"})
@@ -611,7 +602,25 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function refreshSquad(squadID) -- Get new target for a squad
-		local pos, pickedTarget = getRandomEnemyPos()
+		local units = squadsTable[squadID].squadUnits
+		local squadDefIDCounts = {}
+		for i = 1, #units do
+			if units[i] then
+				local unitDefID = Spring.GetUnitDefID(units[i])
+				if unitDefID then
+					squadDefIDCounts[unitDefID] = (squadDefIDCounts[unitDefID] or 0) + 1
+				end
+			end
+		end
+		local mostCommonDefID = nil
+		local mostCommonCount = 0
+		for unitDefID, count in pairs(squadDefIDCounts) do
+			if count > mostCommonCount then
+				mostCommonCount = count
+				mostCommonDefID = unitDefID
+			end
+		end
+		local pos, pickedTarget = getRandomEnemyPos(mostCommonDefID)
 		--Spring.Echo(pos.x, pos.y, pos.z, pickedTarget)
 		unitTargetPool[squadID] = pickedTarget
 		squadsTable[squadID].target = pos
@@ -1794,17 +1803,18 @@ if gadgetHandler:IsSyncedCode() then
 
 		if useEcoTargeting and targetingContext then
 			local scavengersUnitID = attackerTeam == scavTeamID and attackerID or (unitTeam == scavTeamID and unitID or nil)
-			if scavengersUnitID and unitSquadTable[scavengersUnitID] and squadsTable[unitSquadTable[scavengersUnitID]] then
+			local scavengersUnitDefID = scavengersUnitID and Spring.GetUnitDefID(scavengersUnitID) or nil
+			if scavengersUnitID and scavengersUnitDefID and unitSquadTable[scavengersUnitID] and squadsTable[unitSquadTable[scavengersUnitID]] then
 				local target = squadsTable[unitSquadTable[scavengersUnitID]].target
 				if target then
 					local targetHealth, _, _, _, _ = Spring.GetUnitHealth(unitID)
 					local clampedDamage = math.max(0, math.min(damage, targetHealth))
 					if attackerTeam == scavTeamID and unitTeam ~= scavTeamID then
-						-- Scav damaged enemy - count as damage dealt
-						PveTargeting.UpdateDamageStats(targetingContext, clampedDamage, 0, target)
+						-- Scav damaged enemy - count as damage dealt, use attacker's unitDefID
+						PveTargeting.UpdateDamageStats(targetingContext, clampedDamage, 0, target, {unitDefID = scavengersUnitDefID})
 					elseif unitTeam == scavTeamID and attackerTeam ~= scavTeamID and attackerTeam ~= gaiaTeamID then
-						-- Enemy damaged scav - count as damage taken
-						PveTargeting.UpdateDamageStats(targetingContext, 0, clampedDamage, target)
+						-- Enemy damaged scav - count as damage taken, use damaged unit's unitDefID
+						PveTargeting.UpdateDamageStats(targetingContext, 0, clampedDamage, target, {unitDefID = scavengersUnitDefID})
 					end
 				end
 			end
@@ -2258,7 +2268,7 @@ if gadgetHandler:IsSyncedCode() then
 								refreshSquad(squadID)
 							end
 						else
-							local pos = getRandomEnemyPos()
+							local pos = getRandomEnemyPos(Spring.GetUnitDefID(scavs[i]))
 							Spring.GiveOrderToUnit(scavs[i], CMD.STOP, {}, {})
 							if Spring.GetUnitDefID(scavs[i]) and config.scavBehaviours.HEALER[Spring.GetUnitDefID(scavs[i])] then
 								if math.random() < 0.75 then
