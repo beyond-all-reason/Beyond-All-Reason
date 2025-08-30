@@ -151,7 +151,7 @@ function PveTargeting.Initialize(teamID, allyTeamID, options)
   -- Get map dimensions for tile-based calculations
   local mapSizeX = Game.mapSizeX
   local mapSizeZ = Game.mapSizeZ
-  -- 192 is the size of 4 afus next to each other. A regularly occurring value/multiple in buildings and maps. 192*2 might be too large.
+  -- 192 is the size of 4 afus next to each other. Aligns nicely with grids on full metal plate for debugging.
   local tileSize = 192
 
   -- Calculate grid dimensions (number of tiles in each direction)
