@@ -29,7 +29,7 @@ return {
 		script = "Units/ARMSFIG.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericAir",
-		sightdistance = 230,
+		sightdistance = 430,
 		speed = 310.79999,
 		speedtofront = 0.07,
 		turnradius = 64,

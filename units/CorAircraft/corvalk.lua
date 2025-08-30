@@ -25,7 +25,7 @@ return {
 		script = "Units/CORVALK.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 260,
+		sightdistance = 430,
 		speed = 198,
 		transportcapacity = 1,
 		transportmass = 750,
