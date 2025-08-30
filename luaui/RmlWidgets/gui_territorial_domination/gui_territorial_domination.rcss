@@ -9,7 +9,7 @@
 	height: auto;
 	overflow: visible;
 	box-sizing: border-box;
-	width: 175px;
+	width: 200px;
 	padding: 4px;
 	border-radius: 6px;
 }
@@ -40,7 +40,7 @@
 	border-width: 0px;
 }
 
-.td-bar__track.selected { border-width: 2px; border-color: #ffffff; }
+.td-bar__track.selected { border-width: 1px; border-color:rgba(148, 148, 148); }
 
 .td-bar__track.halo { box-shadow: 0 0 8px 2px rgba(255,255,255,0.6); }
 

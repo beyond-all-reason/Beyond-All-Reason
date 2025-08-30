@@ -60,6 +60,10 @@ local SECONDS_PER_MINUTE = 60
 local COUNTDOWN_ALERT_THRESHOLD = 60
 local COUNTDOWN_WARNING_THRESHOLD = 10
 local ROUND_END_POPUP_DELAY = 3
+local DEFAULT_MAX_ROUNDS = 7
+local DISPLAY_LIMIT = 6
+local POPUP_FADE_OUT_DURATION = 0.5
+local TIME_ZERO_STRING = "0:00"
 local GAIA_ALLY_TEAM_ID = select(6, spGetTeamInfo(spGetGaiaTeamID()))
 
 local widgetState = {
@@ -69,13 +73,9 @@ local widgetState = {
 	lastUpdateTime = 0,
 	lastTimeUpdateTime = 0,
 	lastScoreUpdateTime = 0,
-	updateInterval = UPDATE_INTERVAL,
-	timeUpdateInterval = TIME_UPDATE_INTERVAL,
-	scoreUpdateInterval = SCORE_UPDATE_INTERVAL,
 	allyTeamData = {},
 	lastMinimapGeometry = { 0, 0, 0, 0 },
 	scoreElements = {},
-	scoreElementsByTeamId = {},
 	displayedTeamIds = {},
 	hiddenByLobby = false,
 	isDocumentVisible = false,
@@ -83,18 +83,11 @@ local widgetState = {
 	popupState = {
 		isVisible = false,
 		showTime = 0,
-		roundNumber = 0,
-		isFinalRound = false,
-		playerIsFirst = false,
-		isSpectating = false,
 		fadeOutStartTime = nil,
 	},
 	cachedData = {
 		allyTeams = {},
 		roundInfo = {},
-		lastUpdateHash = "",
-		lastScoreHash = "",
-		lastRoundHash = "",
 		lastTimeHash = "",
 	},
 }
@@ -103,9 +96,10 @@ local initialModel = {
 	allyTeams = {},
 	currentRound = 0,
 	roundEndTime = 0,
+	maxRounds = 0,
 	pointsCap = 0,
 	prevHighestScore = 0,
-	timeRemaining = "0:00",
+	timeRemaining = TIME_ZERO_STRING,
 	roundDisplayText = "",
 	timeRemainingSeconds = 0,
 	isCountdownWarning = false,
@@ -136,14 +130,11 @@ end
 
 local function calculateUILayout()
 	local minimapPosX, minimapPosY, minimapSizeX, minimapSizeY = spGetMiniMapGeometry()
-	local currentGeometry = { minimapPosX, minimapPosY, minimapSizeX, minimapSizeY }
-	if currentGeometry[1] == widgetState.lastMinimapGeometry[1]
-		and currentGeometry[2] == widgetState.lastMinimapGeometry[2]
-		and currentGeometry[3] == widgetState.lastMinimapGeometry[3]
-		and currentGeometry[4] == widgetState.lastMinimapGeometry[4] then
+	local last = widgetState.lastMinimapGeometry
+	if minimapPosX == last[1] and minimapPosY == last[2] and minimapSizeX == last[3] and minimapSizeY == last[4] then
 		return
 	end
-	widgetState.lastMinimapGeometry = currentGeometry
+	last[1], last[2], last[3], last[4] = minimapPosX, minimapPosY, minimapSizeX, minimapSizeY
 
 	local left = minimapPosX
 	local top = SCREEN_HEIGHT - minimapPosY
@@ -226,7 +217,6 @@ local fillColor = string.format("rgba(%d, %d, %d, %d)",
 		dangerOverlay = dangerOverlay,
 		lastFillWidth = nil,
 		lastProjectedWidth = nil,
-		lastSelectionStyle = nil,
 		lastScoreText = nil,
 		lastProjectedText = nil,
 	}
@@ -308,7 +298,7 @@ local function showRoundEndPopup(roundNumber, isFinalRound)
 			popupText = spI18N('ui.territorialDomination.roundOverPopup.defeat')
 		end
 	elseif roundNumber > 0 then
-		local maxRounds = spGetGameRulesParam("territorialDominationMaxRounds") or 7
+		local maxRounds = (widgetState.dmHandle and widgetState.dmHandle.maxRounds) or DEFAULT_MAX_ROUNDS
 		if roundNumber == maxRounds then
 			popupText = spI18N('ui.territorialDomination.roundOverPopup.finalRound')
 		else
@@ -324,10 +314,6 @@ local function showRoundEndPopup(roundNumber, isFinalRound)
 	
 	widgetState.popupState.isVisible = true
 	widgetState.popupState.showTime = os.clock()
-	widgetState.popupState.roundNumber = roundNumber
-	widgetState.popupState.isFinalRound = isFinalRound
-	widgetState.popupState.playerIsFirst = isPlayerInFirstPlace()
-	widgetState.popupState.isSpectating = spGetSpectatingState()
 end
 
 local function completePopupFadeOut()
@@ -400,7 +386,7 @@ local function updateRoundInfo()
 	local prevHighestScore = spGetGameRulesParam("territorialDominationPrevHighestScore") or 0
 
 	local currentRound = spGetGameRulesParam("territorialDominationCurrentRound") or 0
-	local maxRounds = spGetGameRulesParam("territorialDominationMaxRounds") or 7
+	local maxRounds = spGetGameRulesParam("territorialDominationMaxRounds") or DEFAULT_MAX_ROUNDS
 
 	local highestPlayerCombinedScore = 0
 	if widgetState.allyTeamData and #widgetState.allyTeamData > 0 then
@@ -410,7 +396,7 @@ local function updateRoundInfo()
 
 	local pointsCap = math.max(gameRulesPointsCap, highestPlayerCombinedScore)
 
-	local timeString = "0:00"
+	local timeString = TIME_ZERO_STRING
 	local timeRemainingSeconds = 0
 	local isCountdownWarning = false
 	
@@ -428,7 +414,7 @@ local function updateRoundInfo()
 	if roundEndTime > 0 then
 		timeRemainingSeconds = math.max(0, roundEndTime - Spring.GetGameSeconds())
 		timeString = string.format("%d:%02d", math.floor(timeRemainingSeconds / SECONDS_PER_MINUTE), math.floor(timeRemainingSeconds % SECONDS_PER_MINUTE))
-		if timeRemainingSeconds < 1 then timeString = "0:00" end
+		if timeRemainingSeconds < 1 then timeString = TIME_ZERO_STRING end
 	end
 	
 	if currentRound > maxRounds then
@@ -442,6 +428,7 @@ local function updateRoundInfo()
 	return {
 		currentRound = currentRound,
 		roundEndTime = roundEndTime,
+		maxRounds = maxRounds,
 		pointsCap = pointsCap,
 		prevHighestScore = prevHighestScore,
 		timeRemaining = timeString,
@@ -462,11 +449,11 @@ local function updateHeaderVisibility()
 	
 	local hasRoundInfo = roundElement.inner_rml and roundElement.inner_rml ~= ""
 	local currentRoundParam = spGetGameRulesParam("territorialDominationCurrentRound") or 0
-	local maxRoundsParam = spGetGameRulesParam("territorialDominationMaxRounds") or 7
+	local maxRoundsParam = (widgetState.dmHandle and widgetState.dmHandle.maxRounds) or DEFAULT_MAX_ROUNDS
 	local inOvertime = currentRoundParam > maxRoundsParam
-	local dm = widgetState.dmHandle
-	local showZeroSecond = dm and ((dm.timeRemainingSeconds or 0) < 1)
-	local hasTimeInfo = timeElement.inner_rml and (timeElement.inner_rml ~= "0:00" or inOvertime or showZeroSecond)
+	local dataModel = widgetState.dmHandle
+	local showZeroSecond = dataModel and ((dataModel.timeRemainingSeconds or 0) < 1)
+	local hasTimeInfo = timeElement.inner_rml and (timeElement.inner_rml ~= TIME_ZERO_STRING or inOvertime or showZeroSecond)
 	
 	-- Only toggle the 'hidden' class; do not overwrite other classes like 'warning'/'pulsing'
 	headerElement:SetClass("hidden", not (hasRoundInfo or hasTimeInfo))
@@ -481,9 +468,9 @@ local function updatePlayerRank()
 	local myAllyTeamID = Spring.GetMyAllyTeamID()
 	local myRank = nil
 	for i = 1, #widgetState.allyTeamData do
-		local t = widgetState.allyTeamData[i]
-		if t.allyTeamID == myAllyTeamID then
-			myRank = spGetTeamRulesParam(t.firstTeamID, "territorialDominationDisplayRank") or t.rank or 1
+		local team = widgetState.allyTeamData[i]
+		if team.allyTeamID == myAllyTeamID then
+			myRank = spGetTeamRulesParam(team.firstTeamID, "territorialDominationDisplayRank") or team.rank or 1
 			break
 		end
 	end
@@ -496,9 +483,9 @@ local function updateCountdownColor()
 	local timeDisplayElement = widgetState.document:GetElementById("time-display")
 	if not timeDisplayElement then return end
 	
-	local dm = widgetState.dmHandle
-	if dm and dm.isCountdownWarning then
-		local timeRemaining = dm.timeRemainingSeconds or 0
+	local dataModel = widgetState.dmHandle
+	if dataModel and dataModel.isCountdownWarning then
+		local timeRemaining = dataModel.timeRemainingSeconds or 0
 		local isAlert = timeRemaining <= COUNTDOWN_ALERT_THRESHOLD
 		local isWarning = timeRemaining <= COUNTDOWN_WARNING_THRESHOLD
 		timeDisplayElement:SetClass("warning", isAlert)
@@ -516,7 +503,7 @@ local function getDisplayedTeams()
 	if not allyTeams or #allyTeams == 0 then return {} end
 	local displayed = {}
 	local used = {}
-	local limit = math.min(#allyTeams, 6)
+	local limit = math.min(#allyTeams, DISPLAY_LIMIT)
 	local myAllyTeamID = Spring.GetMyAllyTeamID()
 	local myIndex
 	for i = 1, #allyTeams do
@@ -536,10 +523,10 @@ local function getDisplayedTeams()
 	if myIndex == 1 then
 		for i = 2, #allyTeams do
 			if #displayed >= limit then break end
-			local at = allyTeams[i]
-			if not used[at.allyTeamID] then
-				displayed[#displayed + 1] = at
-				used[at.allyTeamID] = true
+			local allyTeamInfo = allyTeams[i]
+			if not used[allyTeamInfo.allyTeamID] then
+				displayed[#displayed + 1] = allyTeamInfo
+				used[allyTeamInfo.allyTeamID] = true
 			end
 		end
 		return displayed
@@ -560,10 +547,10 @@ local function getDisplayedTeams()
 	if startAbove < 2 then startAbove = 2 end
 	for i = startAbove, myIndex - 1 do
 		if #displayed >= limit then break end
-		local at = allyTeams[i]
-		if at and not used[at.allyTeamID] then
-			displayed[#displayed + 1] = at
-			used[at.allyTeamID] = true
+		local allyTeamInfo = allyTeams[i]
+		if allyTeamInfo and not used[allyTeamInfo.allyTeamID] then
+			displayed[#displayed + 1] = allyTeamInfo
+			used[allyTeamInfo.allyTeamID] = true
 		end
 	end
 	if #displayed < limit and not used[allyTeams[myIndex].allyTeamID] then
@@ -573,19 +560,19 @@ local function getDisplayedTeams()
 	local endBelow = math.min(#allyTeams, myIndex + belowTake)
 	for i = myIndex + 1, endBelow do
 		if #displayed >= limit then break end
-		local at = allyTeams[i]
-		if at and not used[at.allyTeamID] then
-			displayed[#displayed + 1] = at
-			used[at.allyTeamID] = true
+		local allyTeamInfo = allyTeams[i]
+		if allyTeamInfo and not used[allyTeamInfo.allyTeamID] then
+			displayed[#displayed + 1] = allyTeamInfo
+			used[allyTeamInfo.allyTeamID] = true
 		end
 	end
 	if #displayed < limit then
 		for i = 2, #allyTeams do
 			if #displayed >= limit then break end
-			local at = allyTeams[i]
-			if not used[at.allyTeamID] then
-				displayed[#displayed + 1] = at
-				used[at.allyTeamID] = true
+			local allyTeamInfo = allyTeams[i]
+			if not used[allyTeamInfo.allyTeamID] then
+				displayed[#displayed + 1] = allyTeamInfo
+				used[allyTeamInfo.allyTeamID] = true
 			end
 		end
 	end
@@ -595,7 +582,7 @@ end
 local function updateScoreBarVisuals()
 	if not widgetState.document then return end
 
-	local dm = widgetState.dmHandle
+	local dataModel = widgetState.dmHandle
 	local allyTeams = getDisplayedTeams()
 	local columnsContainer = widgetState.document:GetElementById("td-scores") or widgetState.document:GetElementById("score-columns")
 	if not columnsContainer then return end
@@ -604,30 +591,28 @@ local function updateScoreBarVisuals()
 	if numTeams == 0 then return end
 
 	-- Determine whether to rebuild (any set or order change) to avoid engine instability from re-append operations
-	local oldIds = widgetState.displayedTeamIds
-	local newIds = {}
-	for i = 1, numTeams do newIds[i] = allyTeams[i].allyTeamID end
+	local oldAllyTeamIds = widgetState.displayedTeamIds
+	local newAllyTeamIds = {}
+	for i = 1, numTeams do newAllyTeamIds[i] = allyTeams[i].allyTeamID end
 
-	local identicalOrder = (#oldIds == #newIds)
+	local identicalOrder = (#oldAllyTeamIds == #newAllyTeamIds)
 	if identicalOrder then
-		for i = 1, #newIds do if oldIds[i] ~= newIds[i] then identicalOrder = false break end end
+		for i = 1, #newAllyTeamIds do if oldAllyTeamIds[i] ~= newAllyTeamIds[i] then identicalOrder = false break end end
 	end
 
 	if not identicalOrder then
 		columnsContainer.inner_rml = ""
 		widgetState.scoreElements = {}
-		widgetState.scoreElementsByTeamId = {}
-		for i = 1, #newIds do
-			local id = newIds[i]
-			local at
-			for j = 1, #allyTeams do if allyTeams[j].allyTeamID == id then at = allyTeams[j] break end end
-			if at then
-				local el = createScoreBarElement(columnsContainer, at, i)
-				widgetState.scoreElements[i] = el
-				widgetState.scoreElementsByTeamId[id] = el
+		for i = 1, #newAllyTeamIds do
+			local id = newAllyTeamIds[i]
+			local allyTeamInfo
+			for j = 1, #allyTeams do if allyTeams[j].allyTeamID == id then allyTeamInfo = allyTeams[j] break end end
+			if allyTeamInfo then
+				local elements = createScoreBarElement(columnsContainer, allyTeamInfo, i)
+				widgetState.scoreElements[i] = elements
 			end
 		end
-		widgetState.displayedTeamIds = newIds
+		widgetState.displayedTeamIds = newAllyTeamIds
 
 	end
 
@@ -635,10 +620,10 @@ local function updateScoreBarVisuals()
 		local scoreBarElements = widgetState.scoreElements[i]
 		if scoreBarElements then
 			local projectedWidth = "0%"
-			if dm.pointsCap > 0 then
+			if dataModel.pointsCap > 0 then
 				local totalProjected = allyTeam.score + allyTeam.projectedPoints
 				projectedWidth = string.format("%.1f%%",
-					math.min(PERCENTAGE_MULTIPLIER, (totalProjected / dm.pointsCap) * PERCENTAGE_MULTIPLIER))
+					math.min(PERCENTAGE_MULTIPLIER, (totalProjected / dataModel.pointsCap) * PERCENTAGE_MULTIPLIER))
 			end
 
 			if scoreBarElements.lastProjectedWidth ~= projectedWidth then
@@ -647,9 +632,9 @@ local function updateScoreBarVisuals()
 			end
 
 			local fillWidth = "0%"
-			if dm.pointsCap > 0 then
+			if dataModel.pointsCap > 0 then
 				fillWidth = string.format("%.1f%%",
-					math.min(PERCENTAGE_MULTIPLIER, (allyTeam.score / dm.pointsCap) * PERCENTAGE_MULTIPLIER))
+					math.min(PERCENTAGE_MULTIPLIER, (allyTeam.score / dataModel.pointsCap) * PERCENTAGE_MULTIPLIER))
 			end
 
 			if scoreBarElements.lastFillWidth ~= fillWidth then
@@ -674,7 +659,8 @@ local function updateScoreBarVisuals()
 
 			-- draw white border on selected ally only
 			if scoreBarElements.trackElement and scoreBarElements.container then
-				local isPlayersTeam = allyTeam.allyTeamID == Spring.GetMyAllyTeamID()
+				local myAllyTeamID = Spring.GetMyAllyTeamID()
+				local isPlayersTeam = allyTeam.allyTeamID == myAllyTeamID
 				local desiredClass = isPlayersTeam and "td-bar__track selected" or "td-bar__track"
 				if scoreBarElements.trackElement.class_name ~= desiredClass then
 					scoreBarElements.trackElement.class_name = desiredClass
@@ -682,7 +668,7 @@ local function updateScoreBarVisuals()
 			end
 
 			if scoreBarElements.dangerOverlay then
-				local prevHighest = dm.prevHighestScore or 0
+				local prevHighest = dataModel.prevHighestScore or 0
 				local combinedScore = (allyTeam.score or 0) + (allyTeam.projectedPoints or 0)
 				local eliminated = false
 				if allyTeam.firstTeamID then
@@ -711,9 +697,6 @@ local function resetCache()
 	widgetState.cachedData = {
 		allyTeams = {},
 		roundInfo = {},
-		lastUpdateHash = "",
-		lastScoreHash = "",
-		lastRoundHash = "",
 		lastTimeHash = "",
 	}
 end
@@ -723,31 +706,32 @@ local function updateDataModel()
 
 	local allyTeams = updateAllyTeamData()
 	local roundInfo = updateRoundInfo()
-	local dm = widgetState.dmHandle
+	local dataModel = widgetState.dmHandle
 
-	local previousRound = dm.currentRound or 0
-	local previousTimeRemaining = dm.timeRemainingSeconds or 0
+	local previousRound = dataModel.currentRound or 0
+	local previousTimeRemaining = dataModel.timeRemainingSeconds or 0
 
 	local scoresChanged = hasDataChanged(allyTeams, widgetState.cachedData, "allyTeams")
 	local roundChanged = hasDataChanged(roundInfo, widgetState.cachedData, "roundInfo")
 	local timeChanged = hasDataChanged(math.floor(roundInfo.timeRemainingSeconds or 0), widgetState.cachedData, "lastTimeHash")
 
-	if roundChanged and (dm.currentRound or 0) ~= roundInfo.currentRound then
+	if roundChanged and (dataModel.currentRound or 0) ~= roundInfo.currentRound then
 		resetCache()
 		scoresChanged = true
 		roundChanged = true
 	end
 
 	if scoresChanged or roundChanged then
-		dm.allyTeams = allyTeams
-		dm.currentRound = roundInfo.currentRound
-		dm.roundEndTime = roundInfo.roundEndTime
-		dm.pointsCap = roundInfo.pointsCap
-		dm.prevHighestScore = roundInfo.prevHighestScore
-		dm.timeRemaining = roundInfo.timeRemaining
-		dm.roundDisplayText = roundInfo.roundDisplayText
-		dm.timeRemainingSeconds = roundInfo.timeRemainingSeconds
-		dm.isCountdownWarning = roundInfo.isCountdownWarning
+		dataModel.allyTeams = allyTeams
+		dataModel.currentRound = roundInfo.currentRound
+		dataModel.roundEndTime = roundInfo.roundEndTime
+		dataModel.maxRounds = roundInfo.maxRounds
+		dataModel.pointsCap = roundInfo.pointsCap
+		dataModel.prevHighestScore = roundInfo.prevHighestScore
+		dataModel.timeRemaining = roundInfo.timeRemaining
+		dataModel.roundDisplayText = roundInfo.roundDisplayText
+		dataModel.timeRemainingSeconds = roundInfo.timeRemainingSeconds
+		dataModel.isCountdownWarning = roundInfo.isCountdownWarning
 	end
 
 	calculateUILayout()
@@ -863,16 +847,16 @@ function widget:Update()
 			hideRoundEndPopup()
 		end
 	elseif widgetState.popupState.fadeOutStartTime then
-		if currentOSClock - widgetState.popupState.fadeOutStartTime >= 0.5 then
+		if currentOSClock - widgetState.popupState.fadeOutStartTime >= POPUP_FADE_OUT_DURATION then
 			completePopupFadeOut()
 		end
 	end
 	
-	local shouldUpdateScores = currentTime - widgetState.lastScoreUpdateTime >= widgetState.scoreUpdateInterval
-	
-	local shouldUpdateTime = currentTime - widgetState.lastTimeUpdateTime >= widgetState.timeUpdateInterval
-	
-	local shouldFullUpdate = currentTime - widgetState.lastUpdateTime >= widgetState.updateInterval
+	local shouldUpdateScores = currentTime - widgetState.lastScoreUpdateTime >= SCORE_UPDATE_INTERVAL
+
+	local shouldUpdateTime = currentTime - widgetState.lastTimeUpdateTime >= TIME_UPDATE_INTERVAL
+
+	local shouldFullUpdate = currentTime - widgetState.lastUpdateTime >= UPDATE_INTERVAL
 
 	-- no halo debounce
 	
@@ -916,11 +900,8 @@ function widget:Update()
 end
 
 function widget:DrawScreen()
-	if widgetState.document then
-		local pointsCap = spGetGameRulesParam("territorialDominationPointsCap") or DEFAULT_POINTS_CAP
-		if pointsCap and pointsCap > 0 then
-			widgetState.rmlContext:Render()
-		end
+	if widgetState.document and widgetState.isDocumentVisible then
+		widgetState.rmlContext:Render()
 	end
 end
 
