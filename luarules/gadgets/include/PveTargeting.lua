@@ -291,28 +291,39 @@ local function calculateEvenSpreadRawValue(context, target)
   -- Find minimum target count across all players
   local minCount = math.huge
   local totalCount = 0
+  local playerCount = 0
   for teamID, count in pairs(context.playerTargetCounts) do
     minCount = math.min(minCount, count)
     totalCount = totalCount + count
+    playerCount = playerCount + 1
   end
 
-  if totalCount == 0 then
-    return 1 / #context.playerTargetCounts
+  -- Handle edge cases to prevent division by zero and infinite values
+  if totalCount == 0 or playerCount == 0 then
+    return 0.5 -- Neutral score when no targeting data exists
   end
 
   local currentCount = context.playerTargetCounts[target.teamID]
   local spread = 1.0 - ((currentCount - minCount) / totalCount)
 
-  return spread
+  -- Clamp to valid range to prevent infinite values
+  return math.max(0.0, math.min(1.0, spread))
 end
 
 local function normalize(value, min, max)
-  return (value - min) / (max - min)
+  -- Prevent division by zero when min == max
+  if max == min then
+    return 0.5 -- Neutral score when all values are the same
+  end
+
+  -- Clamp value to valid range and normalize
+  local clampedValue = math.max(min, math.min(max, value))
+  return (clampedValue - min) / (max - min)
 end
 
 -- Calculate combined score for a target
 local function calculateTargetScores(
-  targetRawValues,
+  candidates,
   weights,
   minEcoValue,
   maxEcoValue,
@@ -322,25 +333,49 @@ local function calculateTargetScores(
   maxDamageEfficiencyArea,
   minEvenSpreadScore,
   maxEvenSpreadScore)
-  local weightedCandidates = {}
+
+  -- local weightedCandidates = {}
   local total = 0
 
-  for targetID, targetRawValue in pairs(targetRawValues) do
-    local ecoScore = normalize(targetRawValue.eco, minEcoValue, maxEcoValue)
-    local techScore = normalize(targetRawValue.tech, minTechLevel, maxTechLevel)
+  for _, candidate in pairs(candidates) do
+    local ecoScore = normalize(candidate.rawValues.eco, minEcoValue, maxEcoValue)
+    local techScore = normalize(candidate.rawValues.tech, minTechLevel, maxTechLevel)
     local damageAreaScore =
-      normalize(targetRawValue.damageEfficiencyArea, minDamageEfficiencyArea, maxDamageEfficiencyArea)
-    local spreadScore = normalize(targetRawValue.evenSpread, minEvenSpreadScore, maxEvenSpreadScore)
+      normalize(candidate.rawValues.damageEfficiencyArea, minDamageEfficiencyArea, maxDamageEfficiencyArea)
+    local spreadScore = normalize(candidate.rawValues.evenSpread, minEvenSpreadScore, maxEvenSpreadScore)
+
+    -- Validate scores and replace NaN/infinite values with safe defaults
+    if not ecoScore or ecoScore ~= ecoScore or ecoScore == math.huge or ecoScore == -math.huge then
+      ecoScore = 0.5
+    end
+    if not techScore or techScore ~= techScore or techScore == math.huge or techScore == -math.huge then
+      techScore = 0.5
+    end
+    if not damageAreaScore or damageAreaScore ~= damageAreaScore or damageAreaScore == math.huge or damageAreaScore == -math.huge then
+      damageAreaScore = 0.5
+    end
+    if not spreadScore or spreadScore ~= spreadScore or spreadScore == math.huge or spreadScore == -math.huge then
+      spreadScore = 0.5
+    end
 
     local totalScore =
       weights.eco * ecoScore + weights.tech * techScore + weights.damageEfficiencyAreas * damageAreaScore +
       weights.evenPlayerSpread * spreadScore
 
+    -- Validate total score
+    if not totalScore or totalScore ~= totalScore or totalScore == math.huge or totalScore == -math.huge then
+      totalScore = 0.5
+    end
+
     total = total + totalScore
-    table.insert(weightedCandidates, {target = targetID, cumulative = total})
+    candidate.cumulative = total
+    candidate.totalScore = totalScore
+    candidate.partScores = {eco = ecoScore, tech = techScore, damageEfficiencyArea = damageAreaScore, evenSpread = spreadScore}
+    candidate.name = candidate.unitDef.name
+    candidate.unitDef = nil
   end
 
-  return weightedCandidates, total
+  return candidates, total
 end
 
 -- Efficiently shuffle weighted candidates while preserving weights
@@ -377,8 +412,6 @@ local function getCachedScores(context, candidates, weights)
   local minDamageEfficiencyArea, maxDamageEfficiencyArea = math.huge, 0
   local minEvenSpreadScore, maxEvenSpreadScore = math.huge, 0
 
-  local targetRawValues = {}
-
   for _, target in ipairs(candidates) do
     -- Eco values
     local rawEcoValue = calculateRawEcoValue(target)
@@ -400,11 +433,11 @@ local function getCachedScores(context, candidates, weights)
     minEvenSpreadScore = math.min(minEvenSpreadScore, rawEvenSpreadValue)
     maxEvenSpreadScore = math.max(maxEvenSpreadScore, rawEvenSpreadValue)
 
-    targetRawValues[target.unitID] = {
+    target.rawValues = {
       eco = rawEcoValue,
       tech = rawTechLevel,
       damageEfficiencyArea = rawDamageEfficiencyAreaValue,
-      evenSpread = rawEvenSpreadValue
+      evenSpread = rawEvenSpreadValue,
     }
   end
 
@@ -422,9 +455,34 @@ local function getCachedScores(context, candidates, weights)
     minEvenSpreadScore = 0
   end
 
+  -- Ensure max values are valid and greater than min values to prevent division by zero
+  if maxEcoValue <= minEcoValue then
+    maxEcoValue = minEcoValue + 1
+  end
+  if maxTechLevel <= minTechLevel then
+    maxTechLevel = minTechLevel + 1
+  end
+  if maxDamageEfficiencyArea <= minDamageEfficiencyArea then
+    maxDamageEfficiencyArea = minDamageEfficiencyArea + 1
+  end
+  if maxEvenSpreadScore <= minEvenSpreadScore then
+    maxEvenSpreadScore = minEvenSpreadScore + 1
+  end
+
+  -- Additional safety check: validate that all values are finite
+  if not (minEcoValue and maxEcoValue and minTechLevel and maxTechLevel and 
+          minDamageEfficiencyArea and maxDamageEfficiencyArea and 
+          minEvenSpreadScore and maxEvenSpreadScore) then
+    Spring.Echo("PveTargeting: Invalid min/max values detected, using fallback ranges")
+    minEcoValue, maxEcoValue = 0, 1
+    minTechLevel, maxTechLevel = 1, 2
+    minDamageEfficiencyArea, maxDamageEfficiencyArea = 0, 1
+    minEvenSpreadScore, maxEvenSpreadScore = 0, 1
+  end
+
   local weightedCandidates, total =
     calculateTargetScores(
-    targetRawValues,
+    candidates,
     weights,
     minEcoValue,
     maxEcoValue,
@@ -435,8 +493,6 @@ local function getCachedScores(context, candidates, weights)
     minEvenSpreadScore,
     maxEvenSpreadScore
   )
-
-  weightedCandidates = shuffleWeightedCandidates(weightedCandidates)
 
   -- Cache the results
   context.scoreCache = {
@@ -513,15 +569,15 @@ function PveTargeting.GetRandomTarget(context, options)
   local r = math.random() * total
   for i = 1, #weightedCandidates do
     if r <= weightedCandidates[i].cumulative then
-      local selectedTarget = weightedCandidates[i].target
+      local selectedCandidate = weightedCandidates[i]
 
       -- Update target count for even spread tracking
-      if not context.playerTargetCounts[selectedTarget.teamID] then
-        context.playerTargetCounts[selectedTarget.teamID] = 0
+      if not context.playerTargetCounts[selectedCandidate.teamID] then
+        context.playerTargetCounts[selectedCandidate.teamID] = 0
       end
-      context.playerTargetCounts[selectedTarget.teamID] = context.playerTargetCounts[selectedTarget.teamID] + 1
+      context.playerTargetCounts[selectedCandidate.teamID] = context.playerTargetCounts[selectedCandidate.teamID] + 1
 
-      return selectedTarget
+      return selectedCandidate
     end
   end
 
