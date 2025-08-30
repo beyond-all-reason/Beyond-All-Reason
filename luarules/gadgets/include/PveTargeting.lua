@@ -128,13 +128,6 @@ local function initializePrecomputedData()
   end
 
   precomputedDataInitialized = true
-
-  -- Count target candidate unit types
-  local count = 0
-  for _ in pairs(targetCandidateUnitDefs) do
-    count = count + 1
-  end
-
 end
 
 -- Initialize targeting system
