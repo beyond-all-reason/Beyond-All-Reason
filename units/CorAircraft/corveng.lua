@@ -28,7 +28,7 @@ return {
 		script = "Units/CORVENG.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericAir",
-		sightdistance = 210,
+		sightdistance = 430,
 		speed = 297.60001,
 		speedtofront = 0.063,
 		turnradius = 64,

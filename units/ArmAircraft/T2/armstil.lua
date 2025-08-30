@@ -32,7 +32,7 @@ return {
 		script = "Units/ARMSTIL.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 390,
+		sightdistance = 430,
 		speed = 300,
 		speedtofront = 0.06125,
 		stealth = true,
