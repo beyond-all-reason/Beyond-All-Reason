@@ -204,10 +204,10 @@ if gadgetHandler:IsSyncedCode() then
 		* unitRandom is set to 0 for temporarily disabling it until it is tested.
 	--]]
 	local scavTargetingWeights = {
-		damageEfficiencyAreas = 0.15,
+		damageEfficiencyAreas = 0.3,
 		eco = 0.9,
 		evenPlayerSpread = 0.2,
-		tech = 0.5,
+		tech = 0.15,
 		unitRandom = 0,
 	}
 

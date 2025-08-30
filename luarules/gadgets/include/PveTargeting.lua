@@ -55,15 +55,6 @@ local function getEffectiveWeights(modoptions, gadgetOverride)
         end
       end
     end
-
-    -- Also apply the random factor to unitRandom for position-based randomness
-    local randomValue = modoptions.scav_targeting_random
-    if randomValue ~= nil and randomValue ~= '' then
-      local numValue = tonumber(randomValue)
-      if numValue then
-        weights.unitRandom = math.max(0, math.min(1, numValue))
-      end
-    end
   end
 
   return weights
@@ -75,6 +66,8 @@ local function initializePrecomputedData()
     return
   end
 
+  local metalToEnergyValue = 60
+
   for unitDefID, unitDef in pairs(UnitDefs) do
     local isEco =
       unitDef.metalMake > 0 or unitDef.energyMake > 0 or unitDef.extractsMetal > 0 or unitDef.energyUpkeep < 0 or
@@ -85,11 +78,11 @@ local function initializePrecomputedData()
 
       -- Metal/Energy production
       if unitDef.metalMake and unitDef.metalMake > 0 then
-        ecoScore = ecoScore + unitDef.metalMake * 60
+        ecoScore = ecoScore + unitDef.metalMake * metalToEnergyValue
       end
 
       if unitDef.extractsMetal and unitDef.extractsMetal > 0 then
-        ecoScore = ecoScore + unitDef.extractsMetal * 60
+        ecoScore = ecoScore + unitDef.extractsMetal * metalToEnergyValue
       end
 
       if unitDef.energyMake and unitDef.energyMake > 0 then
@@ -112,7 +105,9 @@ local function initializePrecomputedData()
         unitDef.customParams and unitDef.customParams.energyconv_capacity and
           tonumber(unitDef.customParams.energyconv_capacity) > 0
        then
-        ecoScore = ecoScore + tonumber(unitDef.customParams.energyconv_capacity) / 3
+        local eff = unitDef.customParams.energyconv_efficiency and tonumber(unitDef.customParams.energyconv_efficiency) or 0.017
+        -- metalToEnergyValue for factoring the energy drain
+        ecoScore = ecoScore + (tonumber(unitDef.customParams.energyconv_capacity) * eff * metalToEnergyValue / 2)
       end
 
       if ecoScore > 0 then
@@ -358,25 +353,25 @@ local function calculateEvenSpreadRawValue(context, target)
   end
 
   -- Find minimum target count across all players
-  local minCount = math.huge
   local totalCount = 0
   local playerCount = 0
-  for teamID, count in pairs(context.playerTargetCounts) do
-    minCount = math.min(minCount, count)
+  for _, count in pairs(context.playerTargetCounts) do
     totalCount = totalCount + count
     playerCount = playerCount + 1
   end
 
   -- Handle edge cases to prevent division by zero and infinite values
   if totalCount == 0 or playerCount == 0 then
-    return 0.5 -- Neutral score when no targeting data exists
+    return playerCount > 0 and 1 / playerCount or 0.5
   end
 
-  local currentCount = context.playerTargetCounts[target.teamID]
-  local spread = 1.0 - ((currentCount - minCount) / totalCount)
+  local average = totalCount / playerCount
 
-  -- Clamp to valid range to prevent infinite values
-  return math.max(0.0, math.min(1.0, spread))
+  local makeUpRatio = 1 / (context.playerTargetCounts[target.teamID] / average)
+
+---@diagnostic disable-next-line: undefined-field
+  makeUpRatio = math.clamp(makeUpRatio, 0.01, 20)
+  return makeUpRatio
 end
 
 local function normalize(value, min, max)
@@ -451,8 +446,8 @@ local function getCachedTargetsAndScores(context, weights)
   local currentFrame = Spring.GetGameFrame()
 
   -- Check if we have valid cached scores
-  if currentFrame < context.scoreCacheValidUntil and context.scoreCache.weightedCandidates and context.scoreCache.total then
-    return context.scoreCache.weightedCandidates, context.scoreCache.total
+  if currentFrame < context.scoreCacheValidUntil and context.scoreCache.candidates and context.scoreCache.total then
+    return context.scoreCache.candidates, context.scoreCache.total
   end
 
   local candidates = getPotentialTargets(context)
@@ -465,22 +460,22 @@ local function getCachedTargetsAndScores(context, weights)
 
   for _, target in ipairs(candidates) do
     -- Eco values
-    local rawEcoValue = calculateRawEcoValue(target)
+    local rawEcoValue = weights.eco == 0 and 0 or calculateRawEcoValue(target)
     minEcoValue = math.min(minEcoValue, rawEcoValue)
     maxEcoValue = math.max(maxEcoValue, rawEcoValue)
 
     -- Tech levels
-    local rawTechLevel = calculateRawTechLevel(target)
+    local rawTechLevel = weights.tech == 0 and 0 or calculateRawTechLevel(target)
     minTechLevel = math.min(minTechLevel, rawTechLevel)
     maxTechLevel = math.max(maxTechLevel, rawTechLevel)
 
     -- Damage efficiency areas, main non-unitdefid specific
-    local rawDamageEfficiencyAreaValue = calculateDamageEfficiencyAreaRawValue(context, target)
+    local rawDamageEfficiencyAreaValue = weights.damageEfficiencyAreas == 0 and 0 or calculateDamageEfficiencyAreaRawValue(context, target)
     minDamageEfficiencyArea = math.min(minDamageEfficiencyArea, rawDamageEfficiencyAreaValue)
     maxDamageEfficiencyArea = math.max(maxDamageEfficiencyArea, rawDamageEfficiencyAreaValue)
 
     -- Even player spread scores
-    local rawEvenSpreadValue = calculateEvenSpreadRawValue(context, target)
+    local rawEvenSpreadValue = weights.evenPlayerSpread == 0 and 0 or calculateEvenSpreadRawValue(context, target)
     minEvenSpreadScore = math.min(minEvenSpreadScore, rawEvenSpreadValue)
     maxEvenSpreadScore = math.max(maxEvenSpreadScore, rawEvenSpreadValue)
 
@@ -549,7 +544,7 @@ local function getCachedTargetsAndScores(context, weights)
 
   -- Cache the results
   context.scoreCache = {
-    candidates = candidates,
+    candidates = weightedCandidates,
     weights = weights,
     minEcoValue = minEcoValue,
     maxEcoValue = maxEcoValue,
@@ -567,6 +562,15 @@ local function getCachedTargetsAndScores(context, weights)
   return weightedCandidates, total
 end
 
+local function trackTargetsSent(context, target)
+  -- Update target count for even spread tracking
+  if not context.playerTargetCounts[target.teamID] then
+    context.playerTargetCounts[target.teamID] = 0
+  end
+  context.playerTargetCounts[target.teamID] = context.playerTargetCounts[target.teamID] + 1
+  return target
+end
+
 -- Get a weighted random target
 function PveTargeting.GetRandomTarget(context, options)
   options = options or {}
@@ -582,12 +586,12 @@ function PveTargeting.GetRandomTarget(context, options)
   end
 
   -- Get cached targets and scores (only recalculates if cache expired)
-  local weightedCandidates, total = getCachedTargetsAndScores(context, weights)
-  if not weightedCandidates or #weightedCandidates == 0 then
+  local candidates, total = getCachedTargetsAndScores(context, weights)
+  if not candidates or #candidates == 0 then
     return nil
   end
 
-  if #weightedCandidates == 0 then
+  if #candidates == 0 then
     return nil
   end
 
@@ -597,15 +601,15 @@ function PveTargeting.GetRandomTarget(context, options)
     totalWeight = totalWeight + weight
   end
   if totalWeight == 0 then
-    return weightedCandidates[math.random(#weightedCandidates)]
+    return trackTargetsSent(context, candidates[math.random(#candidates)])
   end
 
-  if unitDefID and weights.damageEfficiencyAreas > 0.001 then
+  if unitDefID and weights.damageEfficiencyAreasand and weights.damageEfficiencyAreas ~= 0 then
     -- Only recalculate damage efficiency scores with unitDefID-specific data
     local newTotal = 0
     local cache = context.scoreCache
 
-    for _, candidate in pairs(weightedCandidates) do
+    for _, candidate in pairs(candidates) do
       -- Rebuild total score using cached scores for other factors + new damage efficiency
       local originalDamageScore = normalize(candidate.rawValues.damageEfficiencyArea, cache.minDamageEfficiencyArea, cache.maxDamageEfficiencyArea)
       originalDamageScore = (originalDamageScore and originalDamageScore == originalDamageScore) and originalDamageScore or 0.5
@@ -632,27 +636,20 @@ function PveTargeting.GetRandomTarget(context, options)
   end
 
   if total == 0 then
-    return weightedCandidates[math.random(#weightedCandidates)]
+    return trackTargetsSent(context, candidates[math.random(#candidates)])
   end
 
   -- Pick a random point on the total score range
   local r = math.random() * total
-  for i = 1, #weightedCandidates do
-    if r <= weightedCandidates[i].cumulative then
-      local selectedCandidate = weightedCandidates[i]
-
-      -- Update target count for even spread tracking
-      if not context.playerTargetCounts[selectedCandidate.teamID] then
-        context.playerTargetCounts[selectedCandidate.teamID] = 0
-      end
-      context.playerTargetCounts[selectedCandidate.teamID] = context.playerTargetCounts[selectedCandidate.teamID] + 1
-
-      return selectedCandidate
+  for i = 1, #candidates do
+    if r <= candidates[i].cumulative then
+      local selectedCandidate = candidates[i]
+      return trackTargetsSent(context, selectedCandidate)
     end
   end
 
   -- Fallback
-  return weightedCandidates[#weightedCandidates]
+  return trackTargetsSent(context, candidates[#candidates])
 end
 
 -- Get a random position near a target or general area
@@ -836,7 +833,7 @@ function PveTargeting.CleanupDamageStats(context, maxAge)
     end
 
     -- Clean up entire tile if it's old and has no specific modifiers
-    if currentFrame - areaStats.lastUpdate > maxAge * 2 then
+    if currentFrame - areaStats.lastUpdate > maxAge * 4 then -- 20 minutes
       local hasModifiers = false
       if areaStats.unitDefModifiers then
         for _ in pairs(areaStats.unitDefModifiers) do
@@ -1079,7 +1076,7 @@ function PveTargeting.RedistributeSquadTargets(squadData, options)
   )
 
   -- Enhance assignments with metadata
-  for squadID, assignment in pairs(assignments) do
+  for _, assignment in pairs(assignments) do
     local metadata = targetMetadata[assignment.targetID]
     if metadata then
       assignment.metadata = metadata
@@ -1092,7 +1089,7 @@ end
 -- Get optimized unit assignments for a list of units and potential targets
 -- @param context: PveTargeting context object
 -- @param units: table of units with position data
--- @param options: optional configuration {maxDistance, targetType, etc.}
+-- @param options: optional configuration {maxDistance, etc.}
 -- @return: table mapping unitID -> target assignment
 function PveTargeting.GetOptimizedAssignments(context, units, options)
   options = options or {}
@@ -1103,26 +1100,6 @@ function PveTargeting.GetOptimizedAssignments(context, units, options)
 
   -- Get potential targets using existing targeting system
   local potentialTargets = getPotentialTargets(context)
-
-  -- Filter targets by type if specified
-  if options.targetType then
-    local filtered = {}
-    for _, target in ipairs(potentialTargets) do
-      local unitDef = target.unitDef
-      if options.targetType == 'mobile' and unitDef.canMove then
-        table.insert(filtered, target)
-      elseif options.targetType == 'structure' and not unitDef.canMove then
-        table.insert(filtered, target)
-      elseif options.targetType == 'factory' and unitDef.isFactory then
-        table.insert(filtered, target)
-      elseif
-        options.targetType == 'eco' and (unitDef.metalMake > 0 or unitDef.energyMake > 0 or unitDef.extractsMetal > 0)
-       then
-        table.insert(filtered, target)
-      end
-    end
-    potentialTargets = filtered
-  end
 
   if #potentialTargets == 0 then
     return {}
