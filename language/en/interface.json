@@ -732,7 +732,8 @@
 			},
 			"danger": "DANGER",
 			"defeated": "DEFEATED",
-			"rank": "Rank %{rank}"
+			"rank": "#%{rank}",
+			"eliminationBelow": "Elimination Below %{value}"
 		},
 		"loadScreen": {
 			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly.",

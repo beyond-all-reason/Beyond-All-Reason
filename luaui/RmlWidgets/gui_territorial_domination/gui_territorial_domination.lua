@@ -101,6 +101,7 @@ local widgetState = {
 	lastGameTime = 0,
 	updateCounter = 0,
 	lastTimeRemainingSeconds = 0,
+	lastHaloUpdateTime = 0,
 }
 
 local initialModel = {
@@ -193,12 +194,12 @@ local function createScoreBarElement(parentDiv, allyTeam)
 	local currentScoreText = document:CreateElement("div")
 	currentScoreText.class_name = "td-text current"
 	currentScoreText.id = "current-score-" .. tostring(allyTeam.allyTeamID)
-	currentScoreText.inner_rml = tostring(allyTeam.score)
+	currentScoreText.inner_rml = tostring((allyTeam.score or 0) + (allyTeam.projectedPoints or 0))
 
 	local projectedScoreText = document:CreateElement("div")
 	projectedScoreText.class_name = "td-text projected"
 	projectedScoreText.id = "projected-score-" .. tostring(allyTeam.allyTeamID)
-	projectedScoreText.inner_rml = "+" .. tostring(allyTeam.projectedPoints)
+	projectedScoreText.inner_rml = spI18N('ui.territorialDomination.rank', { rank = allyTeam.rank })
 
 	local dangerOverlay = document:CreateElement("div")
 	dangerOverlay.class_name = "td-danger"
@@ -262,7 +263,8 @@ local function createTeamOrderHash(allyTeams)
 	local hash = ""
 	for i = 1, math.min(#allyTeams, 8) do
 		local team = allyTeams[i]
-		hash = hash .. tostring(team.allyTeamID) .. ":" .. tostring(team.score) .. "|"
+		local total = (team.score or 0) + (team.projectedPoints or 0)
+		hash = hash .. tostring(team.allyTeamID) .. ":" .. tostring(total) .. "|"
 	end
 	return hash
 end
@@ -388,11 +390,8 @@ local function updateAllyTeamData()
 	end
 
 	table.sort(validAllyTeams, function(a, b)
-		if a.rank ~= b.rank then
-			return a.rank < b.rank
-		end
-		local aCombinedScore = a.score + a.projectedPoints
-		local bCombinedScore = b.score + b.projectedPoints
+		local aCombinedScore = (a.score or 0) + (a.projectedPoints or 0)
+		local bCombinedScore = (b.score or 0) + (b.projectedPoints or 0)
 		if aCombinedScore ~= bCombinedScore then
 			return aCombinedScore > bCombinedScore
 		end
@@ -500,6 +499,28 @@ local function updateCountdownColor()
 	timeDisplayElement:SetAttribute("style", "")
 end
 
+local function updateHaloSelection()
+	-- Update halo selection independently and more frequently
+	local allyTeams = widgetState.allyTeamData
+	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	
+	if not allyTeams or #allyTeams == 0 then return end
+	
+	for i, allyTeam in ipairs(allyTeams) do
+		local scoreBarElements = widgetState.scoreElements[i]
+		if scoreBarElements and scoreBarElements.trackElement then
+			local isSelectedTeam = (myAllyTeamID and allyTeam.allyTeamID == myAllyTeamID)
+			local currentHaloClass = scoreBarElements.trackElement.class_name
+			local shouldHaveHalo = isSelectedTeam and "td-bar__track selected" or "td-bar__track"
+			
+			if currentHaloClass ~= shouldHaveHalo then
+				scoreBarElements.trackElement.class_name = shouldHaveHalo
+				scoreBarElements.lastTrackClass = shouldHaveHalo
+			end
+		end
+	end
+end
+
 local function getDisplayedTeams()
 	local allyTeams = widgetState.allyTeamData
 	if not allyTeams or #allyTeams == 0 then return {} end
@@ -519,8 +540,10 @@ local function getDisplayedTeams()
 	end
 
 	local function sortByScoreDesc(a, b)
-		if (a.score or 0) ~= (b.score or 0) then
-			return (a.score or 0) > (b.score or 0)
+		local at = (a.score or 0) + (a.projectedPoints or 0)
+		local bt = (b.score or 0) + (b.projectedPoints or 0)
+		if at ~= bt then
+			return at > bt
 		end
 		return a.allyTeamID < b.allyTeamID
 	end
@@ -529,6 +552,7 @@ local function getDisplayedTeams()
 	if #deadTeams > 1 then table.sort(deadTeams, sortByScoreDesc) end
 
 	local displayed = {}
+	-- Fill with top teams up to the limit
 	for i = 1, math.min(#livingTeams, limit) do
 		displayed[#displayed + 1] = livingTeams[i]
 	end
@@ -540,14 +564,8 @@ local function getDisplayedTeams()
 		end
 	end
 
-	local function containsAlly(list, allyTeamID)
-		for i = 1, #list do 
-			if list[i].allyTeamID == allyTeamID then return true end 
-		end
-		return false
-	end
-
-	if myAllyTeamID and not containsAlly(displayed, myAllyTeamID) then
+	-- Only provision the last position for the player's team if they would otherwise be outside the display bounds
+	if myAllyTeamID then
 		local myTeam
 		for i = 1, #allyTeams do
 			if allyTeams[i].allyTeamID == myAllyTeamID then
@@ -557,10 +575,23 @@ local function getDisplayedTeams()
 		end
 		
 		if myTeam then
-			if #displayed < limit then
+			-- Check if my team is already in the displayed list
+			local myTeamInDisplay = false
+			for i = 1, #displayed do
+				if displayed[i].allyTeamID == myAllyTeamID then
+					myTeamInDisplay = true
+					break
+				end
+			end
+			
+			-- Only add my team to the last position if they're not already visible
+			if not myTeamInDisplay then
+				-- Remove the last team to make room
+				if #displayed >= limit then
+					table.remove(displayed, #displayed)
+				end
+				-- Add my team to the last position
 				displayed[#displayed + 1] = myTeam
-			else
-				displayed[#displayed] = myTeam
 			end
 		end
 	end
@@ -605,22 +636,27 @@ local function updateScoreBarVisuals()
 		end
 	end
 
-	local insertedSpacer = false
 	local existingSpacer = widgetState.document:GetElementById("rank-spacer")
 	if existingSpacer then
 		columnsContainer:RemoveChild(existingSpacer)
 	end
 
+	local knockoutThreshold = dataModel.prevHighestScore or 0
+	local spacerInserted = false
+
 	for i, allyTeam in ipairs(allyTeams) do
 		local scoreBarElements = widgetState.scoreElements[i]
 		if scoreBarElements then
-			if not insertedSpacer and myScoreRank and myScoreRank > DISPLAY_LIMIT and allyTeam.allyTeamID == myAllyTeamID then
+			local totalForTeam = (allyTeam.score or 0) + (allyTeam.projectedPoints or 0)
+			
+			-- Insert knockout header before the first team that's below the threshold
+			if not spacerInserted and knockoutThreshold > 0 and totalForTeam < knockoutThreshold then
 				local spacer = widgetState.document:CreateElement("div")
 				spacer.class_name = "td-rank-spacer"
 				spacer.id = "rank-spacer"
-				spacer.inner_rml = spI18N('ui.territorialDomination.rank', { rank = myScoreRank })
+				spacer.inner_rml = spI18N('ui.territorialDomination.eliminationBelow', { value = knockoutThreshold })
 				columnsContainer:InsertBefore(spacer, scoreBarElements.container)
-				insertedSpacer = true
+				spacerInserted = true
 			end
 
 			local projectedWidth = "0%"
@@ -642,16 +678,13 @@ local function updateScoreBarVisuals()
 			scoreBarElements.fillElement:SetAttribute("style", "width: " .. fillWidth)
 			scoreBarElements.lastFillWidth = fillWidth
 
-			scoreBarElements.currentScoreElement.inner_rml = tostring(allyTeam.score)
-			scoreBarElements.lastScoreText = tostring(allyTeam.score)
+			scoreBarElements.currentScoreElement.inner_rml = tostring((allyTeam.score or 0) + (allyTeam.projectedPoints or 0))
+			scoreBarElements.lastScoreText = tostring((allyTeam.score or 0) + (allyTeam.projectedPoints or 0))
 			
-			scoreBarElements.projectedScoreElement.inner_rml = "+" .. tostring(allyTeam.projectedPoints)
-			scoreBarElements.lastProjectedText = "+" .. tostring(allyTeam.projectedPoints)
+			scoreBarElements.projectedScoreElement.inner_rml = spI18N('ui.territorialDomination.rank', { rank = allyTeam.rank or 1 })
+			scoreBarElements.lastProjectedText = spI18N('ui.territorialDomination.rank', { rank = allyTeam.rank or 1 })
 
-			local isPlayersTeam = allyTeam.allyTeamID == myAllyTeamID
-			local desiredClass = isPlayersTeam and "td-bar__track selected" or "td-bar__track"
-			scoreBarElements.trackElement.class_name = desiredClass
-			scoreBarElements.lastTrackClass = desiredClass
+					-- Halo selection is now handled separately in updateHaloSelection() for faster updates
 
 			local prevHighest = dataModel.prevHighestScore or 0
 			local combinedScore = (allyTeam.score or 0) + (allyTeam.projectedPoints or 0)
@@ -670,14 +703,7 @@ local function updateScoreBarVisuals()
 			end
 			
 			local shouldShowDanger = (not eliminated) and prevHighest > 0 and combinedScore < prevHighest
-			local isPlayersTeamDanger = (allyTeam.allyTeamID == myAllyTeamID)
-			local state = widgetState.dangerStates[allyTeam.allyTeamID]
 			
-			if not state then
-				state = { wasInDanger = false, initialActive = false, initialEndTime = 0 }
-				widgetState.dangerStates[allyTeam.allyTeamID] = state
-			end
-
 			if eliminated then
 				local classBase = "td-danger visible defeated"
 				scoreBarElements.dangerOverlay.class_name = classBase
@@ -691,49 +717,17 @@ local function updateScoreBarVisuals()
 					scoreBarElements.dangerInitialOverlay.class_name = "td-danger-initial"
 					scoreBarElements.lastDangerInitialClass = "td-danger-initial"
 				end
-				state.wasInDanger = false
-				state.initialActive = false
-				state.initialEndTime = 0
+				
+				-- Reset danger state
+				if widgetState.dangerStates[allyTeam.allyTeamID] then
+					widgetState.dangerStates[allyTeam.allyTeamID] = { wasInDanger = false, initialActive = false, initialEndTime = 0 }
+				end
 				scoreBarElements.lastEliminated = true
 			elseif shouldShowDanger then
-				local classBase = "td-danger visible"
-				scoreBarElements.dangerOverlay.class_name = classBase
-				scoreBarElements.lastDangerClass = classBase
+				-- Show danger by making only the score red instead of blinking text
+				scoreBarElements.currentScoreElement:SetClass("danger", true)
 				
-				local desiredText = spI18N('ui.territorialDomination.danger')
-				scoreBarElements.dangerOverlay.inner_rml = desiredText
-				scoreBarElements.lastDangerText = desiredText
-				
-				if scoreBarElements.dangerInitialOverlay then
-					if isPlayersTeamDanger then
-						if not state.wasInDanger then
-							local initClass = "td-danger-initial visible"
-							scoreBarElements.dangerInitialOverlay.class_name = initClass
-							scoreBarElements.lastDangerInitialClass = initClass
-							
-							local desiredInitText = spI18N('ui.territorialDomination.danger')
-							scoreBarElements.dangerInitialOverlay.inner_rml = desiredInitText
-							
-							state.initialActive = true
-							state.initialEndTime = os.clock() + DANGER_INITIAL_DURATION
-							state.wasInDanger = true
-						else
-							if state.initialActive and os.clock() >= state.initialEndTime then
-								scoreBarElements.dangerInitialOverlay.class_name = "td-danger-initial"
-								scoreBarElements.lastDangerInitialClass = "td-danger-initial"
-								state.initialActive = false
-							end
-						end
-					else
-						scoreBarElements.dangerInitialOverlay.class_name = "td-danger-initial"
-						scoreBarElements.lastDangerInitialClass = "td-danger-initial"
-						state.wasInDanger = true
-						state.initialActive = false
-						state.initialEndTime = 0
-					end
-				end
-				scoreBarElements.lastEliminated = false
-			else
+				-- Hide danger overlays
 				scoreBarElements.dangerOverlay.class_name = "td-danger"
 				scoreBarElements.lastDangerClass = "td-danger"
 				
@@ -741,12 +735,32 @@ local function updateScoreBarVisuals()
 					scoreBarElements.dangerInitialOverlay.class_name = "td-danger-initial"
 					scoreBarElements.lastDangerInitialClass = "td-danger-initial"
 				end
-				state.wasInDanger = false
-				state.initialActive = false
-				state.initialEndTime = 0
+				
+				scoreBarElements.lastEliminated = false
+			else
+				-- Normal state - remove danger styling
+				scoreBarElements.currentScoreElement:SetClass("danger", false)
+				
+				scoreBarElements.dangerOverlay.class_name = "td-danger"
+				scoreBarElements.lastDangerClass = "td-danger"
+				
+				if scoreBarElements.dangerInitialOverlay then
+					scoreBarElements.dangerInitialOverlay.class_name = "td-danger-initial"
+					scoreBarElements.lastDangerInitialClass = "td-danger-initial"
+				end
+				
 				scoreBarElements.lastEliminated = false
 			end
 		end
+	end
+	
+	-- Always display the knockout threshold header after all scorebars
+	if knockoutThreshold > 0 and not spacerInserted then
+		local spacer = widgetState.document:CreateElement("div")
+		spacer.class_name = "td-rank-spacer"
+		spacer.id = "rank-spacer"
+		spacer.inner_rml = spI18N('ui.territorialDomination.eliminationBelow', { value = knockoutThreshold })
+		columnsContainer:AppendChild(spacer)
 	end
 end
 
@@ -989,6 +1003,12 @@ function widget:Update()
 	if shouldSkipUpdate() then return end
 
 	widgetState.updateCounter = widgetState.updateCounter + 1
+	
+	-- Update halo selection every second using os.clock for consistent timing
+	if currentOSClock - (widgetState.lastHaloUpdateTime or 0) >= 1.0 then
+		updateHaloSelection()
+		widgetState.lastHaloUpdateTime = currentOSClock
+	end
 	
 	if shouldFullUpdate() or shouldUpdateScores() then
 		updateDataModel()

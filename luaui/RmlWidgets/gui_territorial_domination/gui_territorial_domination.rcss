@@ -75,7 +75,7 @@
 
 .header-info {
 	display: flex;
-	margin-top: 2px;
+	margin-top: 0px;
 	justify-content: space-between;
 	flex-direction: row-reverse;
 	align-items: center;
@@ -125,10 +125,14 @@
 	pointer-events: none;
 	font-effect: outline(1.5px black);
 }
-.td-text.current { font-size: 15px; }
-.td-text.projected { font-size: 15px; }
+.td-text.current { font-size: 16px; }
+.td-text.projected { font-size: 16px; }
 .td-text.current { left: 2px; right: auto; text-align: left; }
 .td-text.projected { right: 2px; left: auto; text-align: right; }
+
+.td-text.danger {
+	color: #ff0000;
+}
 
 .td-danger {
 	position: absolute;
