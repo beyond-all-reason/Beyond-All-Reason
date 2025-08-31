@@ -10,7 +10,8 @@
 	overflow: visible;
 	box-sizing: border-box;
 	width: 200px;
-	padding: 4px;
+	padding: 6px;
+	padding-top: 10px;
 	border-radius: 6px;
 	left: 1605px;
 	top: 44px;
@@ -74,7 +75,7 @@
 
 .header-info {
 	display: flex;
-	margin-bottom: 2px;
+	margin-top: 2px;
 	justify-content: space-between;
 	flex-direction: row-reverse;
 	align-items: center;
@@ -86,10 +87,9 @@
 
 .round-display {
 	color: #ffffff;
-	font-weight: bold;
 	font-family: Exo 2;
-	font-size: 16px;
-	font-effect: outline(2px black);
+	font-size: 24px;
+	font-effect: outline(1px black);
 	text-align: right;
 }
 
@@ -99,10 +99,9 @@
 
 .time-display {
 	color: #ffffff;
-	font-weight: bold;
 	font-family: Exo 2;
-	font-size: 16px;
-	font-effect: outline(2px black);
+	font-size: 24px;
+	font-effect: outline(1px black);
 	text-align: right;
 }
 
