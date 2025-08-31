@@ -68,8 +68,9 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	if name == "armmoho" or name == "armuwmme"
 	or name == "cormoho" or name == "coruwmme"
 	then
-		uDef.metalcost = uDef.metalcost + 120
-		uDef.energycost = uDef.energycost + 1620
+		uDef.metalcost = math.ceil(uDef.metalcost * 0.12) * 10
+		uDef.energycost = math.ceil(uDef.energycost * 0.012) * 100
+		uDef.buildtime = math.ceil(uDef.buildtime * 0.0012) * 1000 
 	end
 
 	if name == "armamsub" or name == "coramsub" then
