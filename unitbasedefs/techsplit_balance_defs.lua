@@ -1,40 +1,8 @@
 local function techsplit_balanceTweaks(name, uDef)
 	-- Cortex T1
-	if name == "corthud" then
-		uDef.metalcost = 280
-		uDef.energycost = 2300
-		uDef.buildtime = 4200
-		uDef.health = 2200
+	if name == "corthud" then 
 		uDef.speed = 54
-		uDef.maxacc = 0.14
-		uDef.maxdec = 0.8
-		uDef.weapondefs.arm_ham = {
-			areaofeffect = 51,
-			avoidfeature = false,
-			craterareaofeffect = 0,
-			craterboost = 0,
-			cratermult = 0,
-			edgeeffectiveness = 0.15,
-			explosiongenerator = "custom:genericshellexplosion-small",
-			gravityaffected = "true",
-			impulsefactor = 0.9,
-			name = "PlasmaCannon",
-			noselfdamage = true,
-			predictboost = 0.6,
-			range = 330,
-			reloadtime = 2.5,
-			soundhit = "xplomed3",
-			soundhitwet = "splshbig",
-			soundstart = "cannon1",
-			stages = 12,
-			turret = true,
-			weapontype = "Cannon",
-			weaponvelocity = 286,
-			damage = {
-				default = 300,
-				vtol = 60,
-			},
-		}
+		uDef.weapondefs.arm_ham.range = 320
 	end
 
 	if name == "armwar" then
@@ -55,17 +23,21 @@ local function techsplit_balanceTweaks(name, uDef)
 	end
 
 	if name == "armhlt" then
+		uDef.health = 4640
 		uDef.metalcost = 535
 		uDef.energycost = 5700
 		uDef.buildtime = 13700
 		uDef.weapondefs.arm_laserh1.range = 750
+		uDef.weapondefs.arm_laserh1.reloadtime = 2.9
 	end
 
 	if name == "corhlt" then
+		uDef.health = 4640
 		uDef.metalcost = 580
 		uDef.energycost = 5700
 		uDef.buildtime = 13800
 		uDef.weapondefs.cor_laserh1.range = 750
+		uDef.weapondefs.cor_laserh1.reloadtime = 1.8
 	end
 
 	if name == "armpw" then
@@ -75,34 +47,32 @@ local function techsplit_balanceTweaks(name, uDef)
 
 	if name == "armart" then
 		uDef.speed = 70
-		uDef.metalcost = 270
-		uDef.energycost = 4400
-		uDef.buildtime = 6000
 		uDef.turnrate = 210
 		uDef.maxacc = 0.018
 		uDef.maxdec = 0.081
+		uDef.weapondefs.tawf113_weapon.accuracy = 150
 		uDef.weapondefs.tawf113_weapon.range = 830
 		uDef.weapondefs.tawf113_weapon.damage = {
-			default = 364,
-			subs = 122,
-			vtol = 40,
+			default = 182,
+			subs = 61,
+			vtol = 20,
 		}
+		uDef.weapons[1].maxangledif = 30
 	end
 
 	if name == "corwolv" then
 		uDef.speed = 70
-		uDef.metalcost = 340
-		uDef.energycost = 5000
-		uDef.buildtime = 7100
 		uDef.turnrate = 250
 		uDef.maxacc = 0.015
 		uDef.maxdec = 0.0675
-		uDef.weapondefs.corwolv_gun.range = 805
+		uDef.weapondefs.corwolv_gun.accuracy = 150
+		uDef.weapondefs.corwolv_gun.range = 850
 		uDef.weapondefs.corwolv_gun.damage = {
-			default = 775,
-			subs = 195,
-			vtol = 78,
+			default = 375,
+			subs = 95,
+			vtol = 38,
 		}
+		uDef.weapons[1].maxangledif = 30
 	end
 
 	if name == "armham" then
@@ -113,14 +83,14 @@ local function techsplit_balanceTweaks(name, uDef)
 			craterboost = 0,
 			cratermult = 0,
 			edgeeffectiveness = 0.15,
-			explosiongenerator = "custom:genericshellexplosion-small",
+			explosiongenerator = "custom:laserhit-emp",
 			gravityaffected = "true",
 			impulsefactor = 0.128,
 			paralyzer = true,
-			paralyzetime = 2,
+			paralyzetime = 1,
 			name = "Light g2g EMP cannon (low trajectory)",
 			noselfdamage = true,
-			predictboost = 0.4,
+			predictboost = 0.6,
 			range = 380,
 			reloadtime = 1.73333,
 			rgbcolor = "0.7 0.7 1",
@@ -135,19 +105,21 @@ local function techsplit_balanceTweaks(name, uDef)
 			},
 		}
 		uDef.weapons[1] = {
-				def = "ARM_HAM",
-				onlytargetcategory = "EMPABLE",
-			}
+			def = "ARM_HAM",
+			onlytargetcategory = "EMPABLE",
+		}
 	end
 
 	if name == "armmart" then
 		uDef.metalcost = 400
+		uDef.energycost = 5500
+		uDef.buildtime = 7500
 		uDef.speed = 47
 		uDef.turnrate = 120
-		
+		uDef.maxacc = 0.005
 		uDef.health = 750
 		uDef.weapondefs.arm_artillery = {
-			accuracy = 600,
+			accuracy = 75,
 			areaofeffect = 60,
 			avoidfeature = false,
 			cegtag = "arty-medium",
@@ -157,7 +129,7 @@ local function techsplit_balanceTweaks(name, uDef)
 			explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 			gravityaffected = "true",
 			mygravity = 0.12,
-			hightrajectory = true,
+			hightrajectory = 1,
 			impulsefactor = 0.123,
 			name = "Long-range g2g plasma cannon",
 			noselfdamage = true,
@@ -176,7 +148,85 @@ local function techsplit_balanceTweaks(name, uDef)
 				vtol = 49,
 			},
 		}
-		uDef.weapons[1].maxangledif = 90
+		uDef.weapons[1].maxangledif = 30
+	end
+
+	if name == "cormart" then
+		uDef.metalcost = 600
+		uDef.energycost = 6600
+		uDef.buildtime = 6500
+		uDef.speed = 45
+		uDef.turnrate = 100
+		uDef.maxacc = 0.005
+		uDef.weapondefs.cor_artillery = {
+			accuracy = 75,
+			areaofeffect = 144,
+			avoidfeature = false,
+			cegtag = "arty-heavy",
+			craterboost = 0,
+			cratermult = 0,
+			edgeeffectiveness = 0.65,
+			explosiongenerator = "custom:genericshellexplosion-large-bomb",
+			gravityaffected = "true",
+			mygravity = 0.1,
+			hightrajectory = 1,
+			impulsefactor = 0.123,
+			name = "PlasmaCannon",
+			noselfdamage = true,
+			range = 1050,
+			reloadtime = 5,
+			soundhit = "xplomed4",
+			soundhitwet = "splsmed",
+			soundstart = "cannhvy2",
+			turret = true,
+			weapontype = "Cannon",
+			weaponvelocity = 349.5354,
+			damage = {
+				default = 1200,
+				subs = 400,
+				vtol = 120,
+			},
+		}
+		uDef.weapons[1].maxangledif = 30
+	end
+
+	if name == "armfido" then
+		uDef.speed = 74
+		uDef.weapondefs.bfido.range = 500
+		uDef.weapondefs.bfido.weaponvelocity = 400
+	end
+
+	if name == "cormort" then
+		uDef.health = 800
+		uDef.speed = 51
+		uDef.weapondefs.cor_mort.range = 650
+	end
+
+	if name == "corhrk" then
+		uDef.turnrate = 600
+		uDef.weapondefs.corhrk_rocket.range = 900
+		uDef.weapondefs.corhrk_rocket.weaponvelocity = 600
+		uDef.weapondefs.corhrk_rocket.flighttime = 22
+		uDef.weapondefs.corhrk_rocket.reloadtime = 0.4
+		uDef.weapondefs.corhrk_rocket.turnrate = 30000
+		uDef.weapondefs.corhrk_rocket.weapontimer = 4
+		uDef.weapondefs.corhrk_rocket.stockpile = true
+		uDef.weapondefs.corhrk_rocket.stockpiletime = 8
+		uDef.weapondefs.corhrk_rocket.customparams.stockpilelimit = 2
+		uDef.weapons[1].maxangledif = 60
+		uDef.weapons[1].maindir = "0 0 1"
+	end
+
+	if name == "armsptk" then
+		uDef.health = 450
+		uDef.turnrate = 600
+		uDef.weapondefs.adv_rocket.range = 775
+		uDef.weapondefs.adv_rocket.trajectoryheight = 1
+		uDef.weapondefs.adv_rocket.customparams.overrange_distance = 800
+		uDef.weapondefs.adv_rocket.weapontimer = 8
+		uDef.weapondefs.adv_rocket.flighttime  = 4
+		uDef.weapons[1].maxangledif = 30
+		uDef.weapons[1].maindir = "0 0 1"
 	end
 
 	if name == "corshiva" then
@@ -194,6 +244,44 @@ local function techsplit_balanceTweaks(name, uDef)
 			onlytargetcategory = "SURFACE",
 		}
 	end
+
+	if name == "corban" then
+		uDef.speed = 69
+		uDef.turnrate = 500
+		uDef.weapondefs.banisher.areaofeffect = 220
+		uDef.weapondefs.banisher.range = 400
+		uDef.weapondefs.banisher.damage = {
+			default = 1320,
+			subs = 660
+		}
+	end
+
+	if name == "armcroc" then
+		uDef.turnrate = 270
+	end
+
+	if name == "correap" then 
+		uDef.speed = 76
+		uDef.turnrate = 250
+		uDef.weapondefs.cor_reap.areaofeffect = 92
+		uDef.weapondefs.cor_reap.damage = {
+			default = 150,
+			vtol = 48,
+		}
+		uDef.weapondefs.cor_reap.range = 305
+	end
+
+	if name == "armanac" then
+		uDef.speed = 79
+		uDef.weapondefs.armanac_weapon.areaofeffect = 52
+		uDef.weapondefs.armanac_weapon.damage = {
+			default = 185,
+			vtol = 55,
+		}
+		uDef.weapondefs.armanac_weapon.weaponvelocity = 500
+		uDef.weapondefs.armanac_weapon.range = 295
+	end
+
 
 	return uDef
 end

@@ -2737,7 +2737,7 @@ if Spring.GetModOptions().techsplit then
 	unitGrids["corca"] = {
 		{
 			{ "cormex", "corsolar", "corwin", "", },   -- mex, solar, wind, adv. solar
-			{ "cormakr", "", "corexp", },                 -- T1 converter, geo, exploiter, (tidal)
+			{ "cormakr", "corgeo", "corexp", },                 -- T1 converter, geo, exploiter, (tidal)
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
@@ -2752,7 +2752,7 @@ if Spring.GetModOptions().techsplit then
 		},
 		{
 			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "coralab", },                      -- nano, T2 lab
+			{ "cornanotc", "coravp", },                      -- nano, T2 lab
 			{ "", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	}

@@ -1903,18 +1903,18 @@ function UnitDef_Post(name, uDef)
 
 		elseif name == "armalab" then
 			uDef.buildoptions = {
-			[1] = "armack",
-			[2] = "armfido",
-			[3] = "armaak",
-			[4] = "armzeus",
-			[5] = "armmav",
-			[6] = "armamph",
-			[7] = "armspid",
-			[8] = "armfast",
-			[9] = "armvader",
-			[10] = "armmark",
-			[11] = "armsptk",
-			[12] = "armspy",
+				[1] = "armack",
+				[2] = "armfido",
+				[3] = "armaak",
+				[4] = "armzeus",
+				[5] = "armmav",
+				[6] = "armamph",
+				[7] = "armspid",
+				[8] = "armfast",
+				[9] = "armvader",
+				[10] = "armmark",
+				[11] = "armsptk",
+				[12] = "armspy",
 			}
 
 		elseif name == "legalab" then
@@ -1934,17 +1934,17 @@ function UnitDef_Post(name, uDef)
 
 		elseif name == "armavp" then
 			uDef.buildoptions = {
-			[1] = "armacv",
-			[2] = "armch",
-			[3] = "armcroc",
-			[4] = "armlatnk",
-			[5] = "armah",
-			[6] = "armmart",
-			[7] = "armseer",
-			[8] = "armmh",
-			[9] = "armanac",
-			[10] = "armsh",
-			[11] = "armgremlin"
+				[1] = "armacv",
+				[2] = "armch",
+				[3] = "armcroc",
+				[4] = "armlatnk",
+				[5] = "armah",
+				[6] = "armmart",
+				[7] = "armseer",
+				[8] = "armmh",
+				[9] = "armanac",
+				[10] = "armsh",
+				[11] = "armgremlin"
 			}
 		
 		elseif name == "coravp" then
@@ -2036,6 +2036,11 @@ function UnitDef_Post(name, uDef)
 				[21] = "corjamt",
 				[22] = "corsy",
 				[23] = "corexp",
+				[24] = "corgeo",
+				[25] = "corhllt",
+				[26] = "corhlt",
+				[27] = "cormaw",
+				[28] = "cormadsam"
 			}
 
 		elseif name == "legck" then
@@ -2392,13 +2397,13 @@ function UnitDef_Post(name, uDef)
 			uDef.customparams.buildinggrounddecalsizey = 13
 			uDef.featuredefs.dead["object"] = "Units/armaaplat_dead.s3o"
 			uDef.buildoptions = {
-			[1] = "armaca",
-			[2] = "armseap",			
-			[3] = "armsb",
-			[4] = "armsfig",
-			[5] = "armsehak",
-			[6] = "armsaber",
-			[7] = "armhvytrans"
+				[1] = "armaca",
+				[2] = "armseap",			
+				[3] = "armsb",
+				[4] = "armsfig",
+				[5] = "armsehak",
+				[6] = "armsaber",
+				[7] = "armhvytrans"
 			}
 			uDef.sfxtypes = {
 				explosiongenerators = {
@@ -2433,13 +2438,13 @@ function UnitDef_Post(name, uDef)
 			uDef.objectname = "Units/CORAAPLAT.s3o"
 			uDef.script = "Units/CORHAAP.cob"
 			uDef.buildoptions = {
-			[1] = "coraca",
-			[2] = "corhunt",
-			[3] = "corcut",
-			[4] = "corsb",
-			[5] = "corseap",
-			[6] = "corsfig",
-			[7] = "corhvytrans",
+				[1] = "coraca",
+				[2] = "corhunt",
+				[3] = "corcut",
+				[4] = "corsb",
+				[5] = "corseap",
+				[6] = "corsfig",
+				[7] = "corhvytrans",
 			}
 			uDef.featuredefs.dead["object"] = "Units/coraaplat_dead.s3o"
 			uDef.customparams.buildinggrounddecaltype = "decals/coraap_aoplane.dds"
@@ -2767,10 +2772,9 @@ function UnitDef_Post(name, uDef)
 				[26] = "armvp",
 				[27] = "armlab",
 				[28] = "armap",
-				[29] = "armhaapuw",
-				[30] = "armferret",
-				[31] = "armcir",
-				[32] = "armsd",
+				[29] = "armferret",
+				[30] = "armcir",
+				[31] = "armsd",
 			}
 
 		elseif name == "coracsub" then
@@ -2926,28 +2930,25 @@ function UnitDef_Post(name, uDef)
 				[13] = "armgmm",
 				[14] = "armhavp",
 				[15] = "armlab",
-				[16] = "armalab",
-				[17] = "armsd",
-				[18] = "armmakr",
-				[19] = "armestor",
-				[20] = "armmstor",
-				[21] = "armageo",
-				[22] = "armckfus",
-				[23] = "armdl",
-				[24] = "armdf",
-				[25] = "armvp",
-				[26] = "armsy",
-				[27] = "armap",
-				[28] = "armhaapuw",
-				[29] = "armavp",
-				[30] = "armasy",
-				[31] = "armnanotc",
-				[32] = "armhasy",
-				[33] = "armtl",
-				[34] = "armason",
-				[35] = "armdrag",
-				[36] = "armfdrag",
-				[37] = "armuwmme",
+				[16] = "armsd",
+				[17] = "armmakr",
+				[18] = "armestor",
+				[19] = "armmstor",
+				[20] = "armageo",
+				[21] = "armckfus",
+				[22] = "armdl",
+				[23] = "armdf",
+				[24] = "armvp",
+				[25] = "armsy",
+				[26] = "armap",
+				[27] = "armavp",
+				[28] = "armasy",
+				[29] = "armhasy",
+				[30] = "armtl",
+				[31] = "armason",
+				[32] = "armdrag",
+				[33] = "armfdrag",
+				[34] = "armuwmme",
 			}
 
 		elseif name == "corch" then
@@ -2976,13 +2977,13 @@ function UnitDef_Post(name, uDef)
 				[22] = "cordrag",
 				[23] = "corfdrag",
 				[24] = "corason",
-				[22] = "corlab",
-				[23] = "corap",
-				[24] = "corsy",
-				[25] = "coralab",
-				[26] = "corhaapuw",
-				[27] = "corasy",
-				[28] = "cornanotc",
+				[25] = "corlab",
+				[26] = "corap",
+				[27] = "corsy",
+				[28] = "corasy",
+				[29] = "corhlt",
+				[30] = "cortl",
+				[31] = "corhasy"
 			}
 
 		elseif name == "leghc" then 
