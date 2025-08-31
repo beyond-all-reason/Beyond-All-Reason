@@ -18,13 +18,9 @@ end
 --commander self-destructed notification
 --need to change the way modoptions work or at least the modoption descriptions
 local modOptions = Spring.GetModOptions()
-if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) then
-	return false
-end
+if modOptions.deathmode ~= "territorial_domination" then return false end
 
-if Spring.Utilities.Gametype.IsRaptors() or Spring.Utilities.Gametype.IsScavengers() then
-	return false
-end
+if Spring.Utilities.Gametype.IsRaptors() or Spring.Utilities.Gametype.IsScavengers() then return false end
 
 local MODEL_NAME = "territorial_score_model"
 local RML_PATH = "luaui/RmlWidgets/gui_territorial_domination/gui_territorial_domination.rml"

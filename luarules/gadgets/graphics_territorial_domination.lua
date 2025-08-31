@@ -13,7 +13,7 @@ end
 
 local modOptions = Spring.GetModOptions()
 local isSynced = gadgetHandler:IsSyncedCode()
-if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) or isSynced then return false end
+if modOptions.deathmode ~= "territorial_domination" or isSynced then return false end
 
 if Spring.Utilities.Gametype.IsRaptors() or Spring.Utilities.Gametype.IsScavengers() then
 	return false

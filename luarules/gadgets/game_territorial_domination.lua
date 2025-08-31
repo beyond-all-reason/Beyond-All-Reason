@@ -11,27 +11,30 @@ function gadget:GetInfo()
 	}
 end
 
--- if top allyID is defeated through conventional means, it fucks up the ranking and the declaring of victors in both overtime and elimination scenarios
 local modOptions = Spring.GetModOptions()
 local isSynced = gadgetHandler:IsSyncedCode()
-if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) or not isSynced then return false end
+if modOptions.deathmode ~= "territorial_domination" or not isSynced then return false end
 
 local territorialDominationConfig = {
-	short = {
+	["18-Minutes"] = {
 		maxRounds = 3,
 		minutesPerRound = 6,
 	},
-	default = {
+	["24-Minutes"] = {
+		maxRounds = 4,
+		minutesPerRound = 6,
+	},
+	["30-Minutes"] = {
 		maxRounds = 5,
 		minutesPerRound = 6,
 	},
-	long = {
+	["42-Minutes"] = {
 		maxRounds = 7,
 		minutesPerRound = 6,
-	},
+	}
 }
 
-local config = territorialDominationConfig[modOptions.territorial_domination_config] or territorialDominationConfig.default
+local config = territorialDominationConfig[modOptions.territorial_domination_config] or territorialDominationConfig["30-Minutes"]
 local MAX_ROUNDS = config.maxRounds
 local ROUND_SECONDS = 60 * config.minutesPerRound
 local DEBUGMODE = false
