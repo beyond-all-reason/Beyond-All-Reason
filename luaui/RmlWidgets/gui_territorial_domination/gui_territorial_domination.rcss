@@ -2,7 +2,7 @@
 	position: absolute;
 	display: flex;
 	flex-direction: column;
-	background-color: rgba(0, 0, 0, 100);
+	background-color: rgba(0, 0, 0, 255);
 	z-index: 1000;
 	pointer-events: none;
 	font-family: Exo 2;
