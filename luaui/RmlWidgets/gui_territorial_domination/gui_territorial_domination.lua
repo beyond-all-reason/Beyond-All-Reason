@@ -52,9 +52,9 @@ local ROUND_END_POPUP_DELAY = 3
 local POPUP_FADE_OUT_DURATION = 0.5
 local DANGER_INITIAL_DURATION = 8
 
-local UPDATE_INTERVAL = 0.1
-local TIME_UPDATE_INTERVAL = 0.5
-local SCORE_UPDATE_INTERVAL = 1.0
+local UPDATE_INTERVAL = 0.5
+local TIME_UPDATE_INTERVAL = 1.0
+local SCORE_UPDATE_INTERVAL = 2.0
 
 local NON_SPECTATOR_LEFT = 1720
 local NON_SPECTATOR_TOP = 44
@@ -89,6 +89,19 @@ local widgetState = {
 		roundInfo = {},
 		lastTimeHash = "",
 	},
+	lastSpectatingState = nil,
+	lastPointsCap = 0,
+	lastRoundEndTime = 0,
+	lastCurrentRound = 0,
+	lastMaxRounds = 0,
+	lastTimeRemaining = "",
+	lastRoundDisplayText = "",
+	lastCountdownWarning = false,
+	lastAllyTeamCount = 0,
+	lastTeamOrderHash = "",
+	lastGameTime = 0,
+	updateCounter = 0,
+	lastTimeRemainingSeconds = 0,
 }
 
 local initialModel = {
@@ -135,6 +148,9 @@ local function calculateUILayout()
 	if not rootElement then return end
 	
 	local isSpectating = select(1, spGetSpectatingState())
+	if isSpectating == widgetState.lastSpectatingState then return end
+	
+	widgetState.lastSpectatingState = isSpectating
 	local left, top = isSpectating and SPECTATOR_LEFT or NON_SPECTATOR_LEFT,
 		isSpectating and SPECTATOR_TOP or NON_SPECTATOR_TOP
 	
@@ -163,8 +179,7 @@ local function createScoreBarElement(parentDiv, allyTeam)
 		b = math.floor(allyTeam.color.b * DARK_COLOR_MULTIPLIER * COLOR_MULTIPLIER),
 		a = BACKGROUND_COLOR_ALPHA
 	}
-	backgroundDiv:SetAttribute("style", string.format("background-color: rgba(%d, %d, %d, %d)",
-		darkColor.r, darkColor.g, darkColor.b, darkColor.a))
+	backgroundDiv:SetAttribute("style", "background-color: rgba(" .. darkColor.r .. "," .. darkColor.g .. "," .. darkColor.b .. "," .. darkColor.a .. ")")
 
 	local projectedDiv = document:CreateElement("div")
 	projectedDiv.class_name = "td-bar__projected"
@@ -220,36 +235,37 @@ local function createScoreBarElement(parentDiv, allyTeam)
 		lastProjectedWidth = nil,
 		lastScoreText = nil,
 		lastProjectedText = nil,
+		lastTrackClass = nil,
+		lastDangerClass = nil,
+		lastDangerText = nil,
+		lastDangerInitialClass = nil,
+		lastEliminated = nil,
 	}
 end
 
 local function createDataHash(data)
 	if type(data) == "table" then
 		local hash = ""
-		local isArray = (#data > 0)
-		if isArray then
-			for i = 1, #data do
-				hash = hash .. createDataHash(data[i])
-			end
-		else
-			local keys = {}
-			for k in pairs(data) do
-				keys[#keys + 1] = k
-			end
-			table.sort(keys, function(a, b) return tostring(a) < tostring(b) end)
-			for i = 1, #keys do
-				local k = keys[i]
-				local v = data[k]
-				if type(v) == "table" then
-					hash = hash .. tostring(k) .. createDataHash(v)
-				else
-					hash = hash .. tostring(k) .. tostring(v)
+		if #data > 0 then
+			for i = 1, math.min(#data, 10) do
+				local item = data[i]
+				if type(item) == "table" and item.score and item.projectedPoints then
+					hash = hash .. tostring(item.score) .. ":" .. tostring(item.projectedPoints) .. "|"
 				end
 			end
 		end
 		return hash
 	end
 	return tostring(data)
+end
+
+local function createTeamOrderHash(allyTeams)
+	local hash = ""
+	for i = 1, math.min(#allyTeams, 8) do
+		local team = allyTeams[i]
+		hash = hash .. tostring(team.allyTeamID) .. ":" .. tostring(team.score) .. "|"
+	end
+	return hash
 end
 
 local function hasDataChanged(newData, cacheTable, cacheKey)
@@ -338,34 +354,37 @@ local function updateAllyTeamData()
 
 	for i = 1, #allyTeamList do
 		local allyTeamID = allyTeamList[i]
-		local teamList = spGetTeamList(allyTeamID)
-
-		if teamList and #teamList > 0 and allyTeamID ~= GAIA_ALLY_TEAM_ID then
-			local firstTeamID = teamList[1]
-			local score = spGetTeamRulesParam(firstTeamID, "territorialDominationScore") or 0
-			local projectedPoints = spGetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0
-			
-			local hasAliveTeam = false
-			for j = 1, #teamList do
-				local _, _, isDead = spGetTeamInfo(teamList[j])
-				if not isDead then
-					hasAliveTeam = true
-					break
+		if allyTeamID == GAIA_ALLY_TEAM_ID then 
+			-- Skip GAIA team
+		else
+			local teamList = spGetTeamList(allyTeamID)
+			if teamList and #teamList > 0 then
+				local firstTeamID = teamList[1]
+				local score = spGetTeamRulesParam(firstTeamID, "territorialDominationScore") or 0
+				local projectedPoints = spGetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0
+				
+				local hasAliveTeam = false
+				for j = 1, #teamList do
+					local _, _, isDead = spGetTeamInfo(teamList[j])
+					if not isDead then
+						hasAliveTeam = true
+						break
+					end
 				end
-			end
 
-			table.insert(validAllyTeams, {
-				name = spI18N('ui.territorialDomination.team.ally', { allyNumber = allyTeamID + 1 }),
-				allyTeamID = allyTeamID,
-				firstTeamID = firstTeamID,
-				score = score,
-				projectedPoints = projectedPoints,
-				color = getAllyTeamColor(allyTeamID),
-				rank = spGetTeamRulesParam(firstTeamID, "territorialDominationDisplayRank") or 1,
-				teamCount = #teamList,
-				isAlive = hasAliveTeam,
-				teamList = teamList,
-			})
+				table.insert(validAllyTeams, {
+					name = spI18N('ui.territorialDomination.team.ally', { allyNumber = allyTeamID + 1 }),
+					allyTeamID = allyTeamID,
+					firstTeamID = firstTeamID,
+					score = score,
+					projectedPoints = projectedPoints,
+					color = getAllyTeamColor(allyTeamID),
+					rank = spGetTeamRulesParam(firstTeamID, "territorialDominationDisplayRank") or 1,
+					teamCount = #teamList,
+					isAlive = hasAliveTeam,
+					teamList = teamList,
+				})
+			end
 		end
 	end
 
@@ -562,30 +581,19 @@ local function updateScoreBarVisuals()
 	local numTeams = #allyTeams
 	if numTeams == 0 then return end
 
-	local oldAllyTeamIds = widgetState.displayedTeamIds
-	local newAllyTeamIds = {}
-	for i = 1, numTeams do 
-		newAllyTeamIds[i] = allyTeams[i].allyTeamID 
+	local newTeamOrderHash = createTeamOrderHash(allyTeams)
+	if newTeamOrderHash == widgetState.lastTeamOrderHash and #allyTeams == widgetState.lastAllyTeamCount then
+		return
 	end
 
-	local identicalOrder = (#oldAllyTeamIds == #newAllyTeamIds)
-	if identicalOrder then
-		for i = 1, #newAllyTeamIds do 
-			if oldAllyTeamIds[i] ~= newAllyTeamIds[i] then
-				identicalOrder = false
-				break
-			end 
-		end
-	end
+	widgetState.lastTeamOrderHash = newTeamOrderHash
+	widgetState.lastAllyTeamCount = #allyTeams
 
-	if not identicalOrder then
-		columnsContainer.inner_rml = ""
-		widgetState.scoreElements = {}
-		for i = 1, #allyTeams do
-			local elements = createScoreBarElement(columnsContainer, allyTeams[i])
-			widgetState.scoreElements[i] = elements
-		end
-		widgetState.displayedTeamIds = newAllyTeamIds
+	columnsContainer.inner_rml = ""
+	widgetState.scoreElements = {}
+	for i = 1, #allyTeams do
+		local elements = createScoreBarElement(columnsContainer, allyTeams[i])
+		widgetState.scoreElements[i] = elements
 	end
 
 	local myAllyTeamID = Spring.GetMyAllyTeamID()
@@ -623,10 +631,8 @@ local function updateScoreBarVisuals()
 					math.min(PERCENTAGE_MULTIPLIER, (totalProjected / dataModel.pointsCap) * PERCENTAGE_MULTIPLIER))
 			end
 
-			if scoreBarElements.lastProjectedWidth ~= projectedWidth then
-				scoreBarElements.projectedElement:SetAttribute("style", "width: " .. projectedWidth)
-				scoreBarElements.lastProjectedWidth = projectedWidth
-			end
+			scoreBarElements.projectedElement:SetAttribute("style", "width: " .. projectedWidth)
+			scoreBarElements.lastProjectedWidth = projectedWidth
 
 			local fillWidth = "0%"
 			if dataModel.pointsCap > 0 then
@@ -634,28 +640,19 @@ local function updateScoreBarVisuals()
 					math.min(PERCENTAGE_MULTIPLIER, (allyTeam.score / dataModel.pointsCap) * PERCENTAGE_MULTIPLIER))
 			end
 
-			if scoreBarElements.lastFillWidth ~= fillWidth then
-				scoreBarElements.fillElement:SetAttribute("style", "width: " .. fillWidth)
-				scoreBarElements.lastFillWidth = fillWidth
-			end
+			scoreBarElements.fillElement:SetAttribute("style", "width: " .. fillWidth)
+			scoreBarElements.lastFillWidth = fillWidth
 
-			local newScoreText = tostring(allyTeam.score)
-			if scoreBarElements.lastScoreText ~= newScoreText then
-				scoreBarElements.currentScoreElement.inner_rml = newScoreText
-				scoreBarElements.lastScoreText = newScoreText
-			end
+			scoreBarElements.currentScoreElement.inner_rml = tostring(allyTeam.score)
+			scoreBarElements.lastScoreText = tostring(allyTeam.score)
 			
-			local newProjectedText = "+" .. tostring(allyTeam.projectedPoints)
-			if scoreBarElements.lastProjectedText ~= newProjectedText then
-				scoreBarElements.projectedScoreElement.inner_rml = newProjectedText
-				scoreBarElements.lastProjectedText = newProjectedText
-			end
+			scoreBarElements.projectedScoreElement.inner_rml = "+" .. tostring(allyTeam.projectedPoints)
+			scoreBarElements.lastProjectedText = "+" .. tostring(allyTeam.projectedPoints)
 
 			local isPlayersTeam = allyTeam.allyTeamID == myAllyTeamID
 			local desiredClass = isPlayersTeam and "td-bar__track selected" or "td-bar__track"
-			if scoreBarElements.trackElement.class_name ~= desiredClass then
-				scoreBarElements.trackElement.class_name = desiredClass
-			end
+			scoreBarElements.trackElement.class_name = desiredClass
+			scoreBarElements.lastTrackClass = desiredClass
 
 			local prevHighest = dataModel.prevHighestScore or 0
 			local combinedScore = (allyTeam.score or 0) + (allyTeam.projectedPoints or 0)
@@ -684,70 +681,71 @@ local function updateScoreBarVisuals()
 
 			if eliminated then
 				local classBase = "td-danger visible defeated"
-				if scoreBarElements.dangerOverlay.class_name ~= classBase then
-					scoreBarElements.dangerOverlay.class_name = classBase
-				end
+				scoreBarElements.dangerOverlay.class_name = classBase
+				scoreBarElements.lastDangerClass = classBase
+				
 				local defeatedText = spI18N('ui.territorialDomination.defeated')
-				if scoreBarElements.dangerOverlay.inner_rml ~= defeatedText then
-					scoreBarElements.dangerOverlay.inner_rml = defeatedText
-				end
-				if scoreBarElements.dangerInitialOverlay and scoreBarElements.dangerInitialOverlay.class_name ~= "td-danger-initial" then
+				scoreBarElements.dangerOverlay.inner_rml = defeatedText
+				scoreBarElements.lastDangerText = defeatedText
+				
+				if scoreBarElements.dangerInitialOverlay then
 					scoreBarElements.dangerInitialOverlay.class_name = "td-danger-initial"
+					scoreBarElements.lastDangerInitialClass = "td-danger-initial"
 				end
 				state.wasInDanger = false
 				state.initialActive = false
 				state.initialEndTime = 0
+				scoreBarElements.lastEliminated = true
 			elseif shouldShowDanger then
 				local classBase = "td-danger visible"
-				if scoreBarElements.dangerOverlay.class_name ~= classBase then
-					scoreBarElements.dangerOverlay.class_name = classBase
-				end
+				scoreBarElements.dangerOverlay.class_name = classBase
+				scoreBarElements.lastDangerClass = classBase
+				
 				local desiredText = spI18N('ui.territorialDomination.danger')
-				if scoreBarElements.dangerOverlay.inner_rml ~= desiredText then
-					scoreBarElements.dangerOverlay.inner_rml = desiredText
-				end
+				scoreBarElements.dangerOverlay.inner_rml = desiredText
+				scoreBarElements.lastDangerText = desiredText
 				
 				if scoreBarElements.dangerInitialOverlay then
 					if isPlayersTeamDanger then
 						if not state.wasInDanger then
 							local initClass = "td-danger-initial visible"
-							if scoreBarElements.dangerInitialOverlay.class_name ~= initClass then
-								scoreBarElements.dangerInitialOverlay.class_name = initClass
-							end
+							scoreBarElements.dangerInitialOverlay.class_name = initClass
+							scoreBarElements.lastDangerInitialClass = initClass
+							
 							local desiredInitText = spI18N('ui.territorialDomination.danger')
-							if scoreBarElements.dangerInitialOverlay.inner_rml ~= desiredInitText then
-								scoreBarElements.dangerInitialOverlay.inner_rml = desiredInitText
-							end
+							scoreBarElements.dangerInitialOverlay.inner_rml = desiredInitText
+							
 							state.initialActive = true
 							state.initialEndTime = os.clock() + DANGER_INITIAL_DURATION
 							state.wasInDanger = true
 						else
 							if state.initialActive and os.clock() >= state.initialEndTime then
-								if scoreBarElements.dangerInitialOverlay.class_name ~= "td-danger-initial" then
-									scoreBarElements.dangerInitialOverlay.class_name = "td-danger-initial"
-								end
+								scoreBarElements.dangerInitialOverlay.class_name = "td-danger-initial"
+								scoreBarElements.lastDangerInitialClass = "td-danger-initial"
 								state.initialActive = false
 							end
 						end
 					else
-						if scoreBarElements.dangerInitialOverlay.class_name ~= "td-danger-initial" then
-							scoreBarElements.dangerInitialOverlay.class_name = "td-danger-initial"
-						end
+						scoreBarElements.dangerInitialOverlay.class_name = "td-danger-initial"
+						scoreBarElements.lastDangerInitialClass = "td-danger-initial"
 						state.wasInDanger = true
 						state.initialActive = false
 						state.initialEndTime = 0
 					end
 				end
+				scoreBarElements.lastEliminated = false
 			else
-				if scoreBarElements.dangerOverlay.class_name ~= "td-danger" then
-					scoreBarElements.dangerOverlay.class_name = "td-danger"
-				end
-				if scoreBarElements.dangerInitialOverlay and scoreBarElements.dangerInitialOverlay.class_name ~= "td-danger-initial" then
+				scoreBarElements.dangerOverlay.class_name = "td-danger"
+				scoreBarElements.lastDangerClass = "td-danger"
+				
+				if scoreBarElements.dangerInitialOverlay then
 					scoreBarElements.dangerInitialOverlay.class_name = "td-danger-initial"
+					scoreBarElements.lastDangerInitialClass = "td-danger-initial"
 				end
 				state.wasInDanger = false
 				state.initialActive = false
 				state.initialEndTime = 0
+				scoreBarElements.lastEliminated = false
 			end
 		end
 	end
@@ -759,11 +757,73 @@ local function resetCache()
 		roundInfo = {},
 		lastTimeHash = "",
 	}
+	widgetState.lastTeamOrderHash = ""
+	widgetState.lastAllyTeamCount = 0
+end
+
+local function shouldSkipUpdate()
+	local currentTime = Spring.GetGameSeconds()
+	
+	if currentTime <= 0 then return true end
+	if not widgetState.document or widgetState.hiddenByLobby or not widgetState.isDocumentVisible then return true end
+	
+	local pointsCap = spGetGameRulesParam("territorialDominationPointsCap") or DEFAULT_POINTS_CAP
+	if pointsCap <= 0 then return true end
+	
+	if currentTime == widgetState.lastGameTime then return true end
+	
+	widgetState.lastGameTime = currentTime
+	return false
+end
+
+local function shouldUpdateScores()
+	local currentTime = Spring.GetGameSeconds()
+	return currentTime - widgetState.lastScoreUpdateTime >= SCORE_UPDATE_INTERVAL
+end
+
+local function shouldUpdateTime()
+	local currentTime = Spring.GetGameSeconds()
+	local roundEndTime = spGetGameRulesParam("territorialDominationRoundEndTimestamp") or 0
+	
+	if roundEndTime <= 0 then return false end
+	
+	local timeRemaining = math.max(0, roundEndTime - currentTime)
+	local currentDisplayedSeconds = math.floor(timeRemaining)
+	local lastDisplayedSeconds = math.floor(widgetState.lastTimeRemainingSeconds or 0)
+	
+	return currentDisplayedSeconds ~= lastDisplayedSeconds
+end
+
+local function shouldFullUpdate()
+	local currentTime = Spring.GetGameSeconds()
+	return currentTime - widgetState.lastUpdateTime >= UPDATE_INTERVAL
+end
+
+local function checkDocumentVisibility()
+	local pointsCap = spGetGameRulesParam("territorialDominationPointsCap") or DEFAULT_POINTS_CAP
+	
+	if pointsCap ~= widgetState.lastPointsCap then
+		widgetState.lastPointsCap = pointsCap
+		
+		if pointsCap and pointsCap > 0 then
+			if widgetState.document and not widgetState.hiddenByLobby and not widgetState.isDocumentVisible then
+				widgetState.document:Show()
+				widgetState.isDocumentVisible = true
+			end
+		else
+			if widgetState.document and widgetState.isDocumentVisible then
+				widgetState.document:Hide()
+				widgetState.isDocumentVisible = false
+			end
+		end
+	end
 end
 
 local function updateDataModel()
 	if not widgetState.dmHandle then return end
 
+	checkDocumentVisibility()
+	
 	local allyTeams = updateAllyTeamData()
 	local roundInfo = updateRoundInfo()
 	local dataModel = widgetState.dmHandle
@@ -814,6 +874,23 @@ local function updateDataModel()
 		elseif previousRound ~= roundInfo.currentRound and previousRound > 0 then
 			showRoundEndPopup(roundInfo.currentRound, false)
 		end
+	end
+end
+
+local function updateTimeOnly()
+	if not widgetState.document then return end
+	
+	local roundInfo = updateRoundInfo()
+	local timeChanged = hasDataChanged(math.floor(roundInfo.timeRemainingSeconds or 0), widgetState.cachedData, "lastTimeHash")
+	
+	if timeChanged and widgetState.dmHandle then
+		widgetState.dmHandle.timeRemainingSeconds = roundInfo.timeRemainingSeconds
+		widgetState.dmHandle.isCountdownWarning = roundInfo.isCountdownWarning
+		widgetState.dmHandle.timeRemaining = roundInfo.timeRemaining
+		updateCountdownColor()
+		
+		-- Store the last displayed seconds for smooth countdown
+		widgetState.lastTimeRemainingSeconds = roundInfo.timeRemainingSeconds
 	end
 end
 
@@ -910,56 +987,22 @@ function widget:Update()
 		end
 	end
 
-	local shouldUpdateScores = currentTime - widgetState.lastScoreUpdateTime >= SCORE_UPDATE_INTERVAL
-	local shouldUpdateTime = currentTime - widgetState.lastTimeUpdateTime >= TIME_UPDATE_INTERVAL
-	local shouldFullUpdate = currentTime - widgetState.lastUpdateTime >= UPDATE_INTERVAL
+	if shouldSkipUpdate() then return end
 
-	if (currentTime > 0) and (shouldFullUpdate or shouldUpdateScores or shouldUpdateTime) then
-		local pointsCap = spGetGameRulesParam("territorialDominationPointsCap") or DEFAULT_POINTS_CAP
-		
-		if pointsCap and pointsCap > 0 then
-			if widgetState.document and not widgetState.hiddenByLobby and not widgetState.isDocumentVisible then
-				widgetState.document:Show()
-				widgetState.isDocumentVisible = true
-			end
-
-			if widgetState.document then
-				if shouldFullUpdate or shouldUpdateScores then
-					updateDataModel()
-					widgetState.lastScoreUpdateTime = currentTime
-				elseif shouldUpdateTime then
-					local roundInfo = updateRoundInfo()
-					local timeChanged = hasDataChanged(math.floor(roundInfo.timeRemainingSeconds or 0),
-						widgetState.cachedData, "lastTimeHash")
-					if timeChanged and widgetState.document then
-						if widgetState.dmHandle then
-							widgetState.dmHandle.timeRemainingSeconds = roundInfo.timeRemainingSeconds
-							widgetState.dmHandle.isCountdownWarning = roundInfo.isCountdownWarning
-							widgetState.dmHandle.timeRemaining = roundInfo.timeRemaining
-						end
-						updateCountdownColor()
-					end
-					widgetState.lastTimeUpdateTime = currentTime
-				end
-			end
-
-			if shouldFullUpdate then
-				widgetState.lastUpdateTime = currentTime
-			end
-		else
-			if widgetState.document and widgetState.isDocumentVisible then
-				widgetState.document:Hide()
-				widgetState.isDocumentVisible = false
-			end
-		end
+	widgetState.updateCounter = widgetState.updateCounter + 1
+	
+	if shouldFullUpdate() or shouldUpdateScores() then
+		updateDataModel()
+		widgetState.lastScoreUpdateTime = currentTime
+		widgetState.lastUpdateTime = currentTime
+	elseif shouldUpdateTime() then
+		updateTimeOnly()
+		widgetState.lastTimeUpdateTime = currentTime
 	end
 end
 
 function widget:DrawScreen()
 	if Spring.GetGameSeconds() <= 0 then
 		return
-	end
-	if widgetState.document and widgetState.isDocumentVisible then
-		widgetState.rmlContext:Render()
 	end
 end
