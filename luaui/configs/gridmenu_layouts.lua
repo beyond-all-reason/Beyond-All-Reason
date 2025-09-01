@@ -216,9 +216,9 @@ local labGrids = {
 	-- Split Tier Labs
 
 	corhalab = {
-		"corhack", "cordecom", "cordemon", "corspec",
-		"corcat", "corsumo", "corshiva", "corsktl",
-		"", "", "corkarg", "", 
+		"corhack", "cordecom", "corpyro", "corspec",
+		"", "corshiva", "corsumo", "corsktl",
+		"", "", "coraak", "", 
 	},
 
 	armhalab = {
@@ -264,9 +264,9 @@ local labGrids = {
 	},
 
 	corhasy = {
-		"corhacs", "", "corsok", "corantiship",              
-		"corblackhy", "corbats", "corshiva", "",              
-		"corssub", "corparrow", "corarch", "",              
+		"corhacs", "", "corfship", "corantiship",              
+		"cormship", "corblackhy", "corbats", "",              
+		"corssub", "corsok", "corarch", "",              
 	},
 
 	armhavp = {
@@ -276,9 +276,9 @@ local labGrids = {
 	},
 
 	corhavp = {
-		"corhacv", "", "corsok", "coreter",
+		"corhacv", "", "corsala", "coreter",
 		"cortrem", "corgol", "corparrow", "",
-		"cormabm", "", "corsent", "corvroc",
+		"cormabm", "corsok", "corsent", "corvroc",
 	},
 
 	leghavp = {

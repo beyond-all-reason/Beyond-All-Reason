@@ -71,12 +71,13 @@ return {
 			[29] = "armap",
 			[30] = "armsy",
 			[31] = "armsd",
+			[32] = "armshltx",
 		},
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBots/T2",
-			techlevel = 2,
+			techlevel = 3,
 			unitgroup = "buildert2",
 		},
 		featuredefs = {

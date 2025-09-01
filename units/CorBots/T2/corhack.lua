@@ -68,13 +68,14 @@ return {
 				[28] = "corsy",
 				[29] = "corap",
 				[30] = "corvp",
-				[31] = "corlab"
+				[31] = "corlab",
+				[32] = "corgant"
 		},
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBots/T2",
-			techlevel = 2,
+			techlevel = 3,
 			unitgroup = "buildert2",
 		},
 		featuredefs = {

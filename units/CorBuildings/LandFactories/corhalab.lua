@@ -20,7 +20,7 @@ return {
 		maxdec = 0,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		metalcost = 8000,
+		metalcost = 4900,
 		metalstorage = 800,
 		objectname = "Units/CORGANT.s3o",
 		script = "Units/CORGANT.cob",
@@ -31,15 +31,14 @@ return {
 		workertime = 1200,
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo",
 		buildoptions = {
-			[1] = "corkarg",
+			[1] = "coraak",
 			[2] = "corshiva",
-			[3] = "corcat",
-			[4] = "cordemon",
-			[5] = "corhack",
-			[6] = "corsumo",
-			[7] = "cordecom",
-			[8] = "corsktl",
-			[9] = "corspec"
+			[3] = "corpyro",
+			[4] = "corhack",
+			[5] = "corsumo",
+			[6] = "cordecom",
+			[7] = "corsktl",
+			[8] = "corspec"
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,

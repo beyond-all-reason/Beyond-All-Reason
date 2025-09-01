@@ -63,7 +63,8 @@ return {
 			[32] = "corsy",
 			[33] = "corint",
 			[34] = "corsilo",
-			[35] = "corbuzz"
+			[35] = "corbuzz",
+			[36] = "corgantuw"
 		},
 		customparams = {
 			minesweeper = 600,

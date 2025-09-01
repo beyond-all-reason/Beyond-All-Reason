@@ -18,7 +18,7 @@ return {
 		maxdec = 0,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		metalcost = 7800,
+		metalcost = 4700,
 		metalstorage = 800,
 		objectname = "Units/CORHAAP.s3o",
 		radardistance = 750,

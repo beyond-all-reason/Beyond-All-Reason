@@ -20,7 +20,7 @@ return {
 		maxdec = 0,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		metalcost = 8100,
+		metalcost = 4900,
 		metalstorage = 800,
 		objectname = "Units/CORHAVP.s3o",
 		script = "Units/CORAMSUB.cob",
@@ -40,6 +40,7 @@ return {
 			[7] = "coreter",
 			[8] = "corsok",
 			[9] = "corparrow",
+			[10] = "corsala"
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
