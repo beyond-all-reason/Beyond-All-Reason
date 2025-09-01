@@ -41,7 +41,7 @@ local function techsplit_balanceTweaks(name, uDef)
 	end
 
 	if name == "armart" then
-		uDef.speed = 70
+		uDef.speed = 65
 		uDef.turnrate = 210
 		uDef.maxacc = 0.018
 		uDef.maxdec = 0.081
@@ -56,7 +56,7 @@ local function techsplit_balanceTweaks(name, uDef)
 	end
 
 	if name == "corwolv" then
-		uDef.speed = 70
+		uDef.speed = 62
 		uDef.turnrate = 250
 		uDef.maxacc = 0.015
 		uDef.maxdec = 0.0675
