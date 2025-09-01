@@ -1399,11 +1399,16 @@ local options = {
         def  	= false,
     },
 
+
+
+    -- Hidden Tests
+	
     {
         key     = "techsplit",
         name    = "Tech Split",
         desc    = "Adds a new tier between T1 and T2 for bots and vehicles",
         type    = "bool",
+        hidden  = true,
         section = "options_experimental",
         def     = false,
     },
@@ -1413,21 +1418,10 @@ local options = {
         name    = "Tech Split Balance Test",
         desc    = "Adjusts the balance of units in the proposed tech split.",
         type    = "bool",
+        hidden  = true,
         section = "options_experimental",
         def     = false,
     },
-
-    -- Hidden Tests
-	
-	{
-        key   	= "splittiers",
-        name   	= "Split T2",
-        desc   	= "Splits T2 into two tiers moving experimental to T4.",
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
-        hidden 	= true,
-	},
 
     {
         key 	= "lategame_rebalance",

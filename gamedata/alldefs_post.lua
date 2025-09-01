@@ -2280,7 +2280,6 @@ function UnitDef_Post(name, uDef)
 				[22] = "cormaw",
 				[23] = "coruwgeo",
 				[24] = "corjuno",
-
 			}
 
 		elseif name == "armacsub" then
@@ -2342,8 +2341,6 @@ function UnitDef_Post(name, uDef)
 				[24] = "corsy",
 				[25] = "corasy",
 			}
-		
-
 		end
 
 		-- T4
@@ -2422,6 +2419,34 @@ function UnitDef_Post(name, uDef)
 			uDef.customparams.techlevel = 2
 		end
 
+		-------------------------------
+		-- T3 mobile jammers have radar
+
+		if name == "armaser" or name == "corspec" 
+		or name == "armjam" or name == "coreter"
+		then
+			uDef.metalcost = uDef.metalcost + 100
+			uDef.energycost = uDef.energycost + 1250
+			uDef.buildtime = uDef.buildtime + 3800
+			uDef.radardistance = 2500
+			uDef.sightdistance = 1000
+		end
+
+		if name == "armantiship" or name == "corantiship" then
+			uDef.radardistancejam = 450
+		end
+
+		----------------------------
+		-- T2 ship jammers get radar
+
+		if name == "armsjam" or name == "corsjam" then
+			uDef.metalcost = uDef.metalcost + 90
+			uDef.energycost = uDef.energycost + 1050
+			uDef.buildtime = uDef.buildtime + 3000
+			uDef.radarDistance = 2200
+			uDef.sightdistance = 900
+		end
+		
 		-----------------------------
     	-- Correct Tier for Announcer
 

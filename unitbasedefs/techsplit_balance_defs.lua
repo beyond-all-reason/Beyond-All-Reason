@@ -189,10 +189,47 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.weapons[1].maindir = "0 0 1"
 	end
 
+	if name == "armmerl" then
+		uDef.weapondefs.armtruck_rocket.reloadtime = 0.3
+		uDef.weapondefs.armtruck_rocket.stockpile = true
+		uDef.weapondefs.armtruck_rocket.stockpiletime = 18
+		uDef.weapondefs.armtruck_rocket.customparams = {
+			stockpilelimit = 3,
+		}
+	end
+
+	if name == "corvroc" then
+		uDef.weapondefs.cortruck_rocket.reloadtime = 0.3
+		uDef.weapondefs.cortruck_rocket.stockpile = true
+		uDef.weapondefs.cortruck_rocket.stockpiletime = 16
+		uDef.weapondefs.cortruck_rocket.customparams = {
+			stockpilelimit = 3,
+		}
+	end
+
+	if name == "armmship" then
+		uDef.weapondefs.missile.reloadtime = 0.3
+		uDef.weapondefs.missile.stockpile = true
+		uDef.weapondefs.missile.stockpiletime = 6
+		uDef.weapondefs.missile.customparams = {
+			stockpilelimit = 3,
+		}
+	end
+
+	if name == "cormship" then
+		uDef.weapondefs.rocket.reloadtime = 0.3
+		uDef.weapondefs.rocket.stockpile = true
+		uDef.weapondefs.rocket.stockpiletime = 8
+		uDef.weapondefs.rocket.customparams = {
+			stockpilelimit = 3,
+		}
+	end
+
 	if name == "corshiva" then
 		uDef.canmanualfire = true
+		uDef.weapondefs.shiva_rocket.damage.default = 1500
 		uDef.weapondefs.shiva_rocket.stockpile = true
-		uDef.weapondefs.shiva_rocket.stockpiletime = 28
+		uDef.weapondefs.shiva_rocket.stockpiletime = 14
 		uDef.weapondefs.shiva_rocket.commandfire = true
 		uDef.weapondefs.shiva_rocket.areaofeffect = 180
 		uDef.weapondefs.shiva_rocket.customparams = {
