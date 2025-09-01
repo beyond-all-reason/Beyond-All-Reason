@@ -260,18 +260,17 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.weapondefs.armcl_missile.canattackground = true
 		uDef.weapondefs.armcl_missile.cegtag = "missiletrailmedium-starburst"
 		uDef.weapondefs.armcl_missile.commandfire = true
-		uDef.weapondefs.armcl_missile.damage = {
-			default = 300
-		}
 		uDef.weapondefs.armcl_missile.range = 650
 		uDef.weapondefs.armcl_missile.reloadtime = 0.3
 		uDef.weapondefs.armcl_missile.stockpile = true
 		uDef.weapondefs.armcl_missile.stockpiletime = 8.5
 		uDef.weapondefs.armcl_missile.texture2 = "null"
-		uDef.weapondefs.armcl_missile.trajectoryheight = 0.45
-		uDef.weapondefs.armcl_missile.tracks = false
+		uDef.weapondefs.armcl_missile.trajectoryheight = 0.5
 		uDef.weapondefs.armcl_missile.customparams = {
 			stockpilelimit = 3,
+		}
+		uDef.weapondefs.armcl_missile.damage = {
+			default = 250
 		}
 		uDef.weapons[2] = {
 			def = "ARMCL_MISSILE",
