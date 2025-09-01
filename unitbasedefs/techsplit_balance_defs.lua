@@ -269,6 +269,7 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.weapondefs.armcl_missile.stockpiletime = 8.5
 		uDef.weapondefs.armcl_missile.texture2 = "null"
 		uDef.weapondefs.armcl_missile.trajectoryheight = 0.45
+		uDef.weapondefs.armcl_missile.tracks = false
 		uDef.weapondefs.armcl_missile.customparams = {
 			stockpilelimit = 3,
 		}
