@@ -35,12 +35,12 @@ Activate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	
-	move door1 to x-axis [-17.0] speed [34];
-	move door2 to x-axis [17.0] speed [34];
+	move door1 to x-axis [-17.0] speed [17];
+	move door2 to x-axis [17.0] speed [17];
 	wait-for-move door2 along x-axis;
 	
-	move crane1 to x-axis [21.0] speed [84];
-	move crane2 to x-axis [21.0] speed [84];
+	move crane1 to x-axis [21.0] speed [42];
+	move crane2 to x-axis [21.0] speed [42];
 	wait-for-move crane1 along x-axis;
 	FACTORY_OPEN_BUILD;
 }
