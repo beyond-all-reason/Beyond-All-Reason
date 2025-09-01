@@ -2617,10 +2617,6 @@ function UnitDef_Post(name, uDef)
 		-- T2 air labs have sea variants
 		-- Made by hover cons and enhanced ship cons 
 		-- Enhanced ships given seaplanes instead of static AA
-
-		
-
-		
 	end
 
 	if modOptions.techsplit_balance == true then

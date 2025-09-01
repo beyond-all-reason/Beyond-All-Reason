@@ -307,8 +307,8 @@ local function techsplit_balanceTweaks(name, uDef)
 			subs = 356,
 			vtol = 98,
 		}
-		uDef.weapondefs.reloadtime = 4
-		uDef.weapondefs.range = 700
+		uDef.weapondefs.cor_gol.reloadtime = 4
+		uDef.weapondefs.cor_gol.range = 700
 	end
 
 	return uDef
