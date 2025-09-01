@@ -179,7 +179,8 @@ local function techsplit_balanceTweaks(name, uDef)
 	end
 
 	if name == "armsptk" then
-		uDef.speed = 
+		uDef.metalcost = 500
+		uDef.speed = 43
 		uDef.health = 450
 		uDef.turnrate = 600
 		uDef.weapondefs.adv_rocket.range = 775
