@@ -1380,30 +1380,6 @@ local options = {
     },
 
     -- Hidden Tests
-
-	{
-        key   	= "splittiers",
-        name   	= "Split T2",
-        desc   	= "Splits T2 into two tiers moving experimental to T4.",
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
-        hidden 	= true,
-	},
-
-    {
-        key    	= "shieldsrework",
-        name   	= "Shields Rework v2.0",
-        desc   	= "Shields block plasma. Overkill damage is absorbed. Shield is down for the duration required to recharge the overkill damage at normal energy cost.",
-        type   	= "bool",
-        hidden 	= false,
-        section = "options_experimental",
-        def  	= false,
-    },
-
-
-
-    -- Hidden Tests
 	
     {
         key     = "techsplit",
@@ -1425,6 +1401,16 @@ local options = {
         def     = false,
     },
 
+    {
+        key    	= "shieldsrework",
+        name   	= "Shields Rework v2.0",
+        desc   	= "Shields block plasma. Overkill damage is absorbed. Shield is down for the duration required to recharge the overkill damage at normal energy cost.",
+        type   	= "bool",
+        hidden 	= false,
+        section = "options_experimental",
+        def  	= false,
+    },
+    
     {
         key 	= "lategame_rebalance",
         name 	= "Lategame Rebalance",
