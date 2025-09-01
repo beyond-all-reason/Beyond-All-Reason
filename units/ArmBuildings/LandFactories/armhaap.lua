@@ -19,7 +19,7 @@ return {
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
-		metalcost = 7700,
+		metalcost = 4600,
 		metalstorage = 800,
 		maxwaterdepth = 0,
 		objectname = "Units/ARMHAAP.s3o",

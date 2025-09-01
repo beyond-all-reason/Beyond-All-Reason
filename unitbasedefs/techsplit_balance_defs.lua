@@ -40,11 +40,6 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.weapondefs.cor_laserh1.reloadtime = 1.8
 	end
 
-	if name == "armpw" then
-		uDef.speed = 90
-		uDef.health = 300
-	end
-
 	if name == "armart" then
 		uDef.speed = 70
 		uDef.turnrate = 210
@@ -73,41 +68,6 @@ local function techsplit_balanceTweaks(name, uDef)
 			vtol = 38,
 		}
 		uDef.weapons[1].maxangledif = 30
-	end
-
-	if name == "armham" then
-		uDef.weapondefs.arm_ham = {
-			areaofeffect = 36,
-			avoidfeature = false,
-			craterareaofeffect = 0,
-			craterboost = 0,
-			cratermult = 0,
-			edgeeffectiveness = 0.15,
-			explosiongenerator = "custom:laserhit-emp",
-			gravityaffected = "true",
-			impulsefactor = 0.128,
-			paralyzer = true,
-			paralyzetime = 1,
-			name = "Light g2g EMP cannon (low trajectory)",
-			noselfdamage = true,
-			predictboost = 0.6,
-			range = 380,
-			reloadtime = 1.73333,
-			rgbcolor = "0.7 0.7 1",
-			soundhit = "xplomed3",
-			soundhitwet = "splshbig",
-			soundstart = "cannon1",
-			turret = true,
-			weapontype = "Cannon",
-			weaponvelocity = 500,
-			damage = {
-				default = 315,
-			},
-		}
-		uDef.weapons[1] = {
-			def = "ARM_HAM",
-			onlytargetcategory = "EMPABLE",
-		}
 	end
 
 	if name == "armmart" then
@@ -257,7 +217,28 @@ local function techsplit_balanceTweaks(name, uDef)
 	end
 
 	if name == "armcroc" then
+		uDef.canmanualfire = true
 		uDef.turnrate = 270
+		uDef.weapondefs.armcl_missile.areaofeffect = 60
+		uDef.weapondefs.armcl_missile.canattackground = true
+		uDef.weapondefs.armcl_missile.cegtag = "missiletrailmedium-starburst"
+		uDef.weapondefs.armcl_missile.commandfire = true
+		uDef.weapondefs.armcl_missile.damage = {
+			default = 300
+		}
+		uDef.weapondefs.armcl_missile.range = 650
+		uDef.weapondefs.armcl_missile.reloadtime = 0.3
+		uDef.weapondefs.armcl_missile.stockpile = true
+		uDef.weapondefs.armcl_missile.stockpiletime = 8.5
+		uDef.weapondefs.armcl_missile.texture2 = "null"
+		uDef.weapondefs.armcl_missile.trajectoryheight = 0.45
+		uDef.weapondefs.armcl_missile.customparams = {
+			stockpilelimit = 3,
+		}
+		uDef.weapons[2] = {
+			def = "ARMCL_MISSILE",
+			onlytargetcategory = "SURFACE",
+		}
 	end
 
 	if name == "correap" then 

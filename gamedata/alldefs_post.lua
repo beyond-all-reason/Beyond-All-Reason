@@ -2346,6 +2346,38 @@ function UnitDef_Post(name, uDef)
 
 		end
 
+		-- T4
+		if name == "armshltx" then
+			uDef.footprintx = 15
+			uDef.footprintz = 15
+			uDef.collisionvolumescales = "225 150 205"
+			uDef.yardmap = "ooooooooooooooo ooooooooooooooo ooooooooooooooo ooooooooooooooo ooooooooooooooo ooooooooooooooo ooooooooooooooo eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee"
+			uDef.objectname = "Units/ARMSHLTXBIG.s3o"
+			uDef.script = "Units/techsplit/ARMSHLTXBIG.cob"
+			uDef.featuredefs.armshlt_dead.object = "Units/armshltxbig_dead.s3o"
+			uDef.featuredefs.armshlt_dead.footprintx = 11
+			uDef.featuredefs.armshlt_dead.footprintz = 11
+			uDef.featuredefs.armshlt_dead.collisionvolumescales = "155 95 180"
+			uDef.customparams.techlevel = 4
+			uDef.customparams.buildinggrounddecalsizex = 18
+			uDef.customparams.buildinggrounddecalsizez = 18
+		end 
+
+		if name == "corgant" then
+			uDef.footprintx = 15
+			uDef.footprintz = 15
+			uDef.collisionvolumescales = "245 135 245"
+			uDef.yardmap = "oooooooooooooo ooooooooooooooo ooooooooooooooo ooooooooooooooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo"
+			uDef.objectname = "Units/CORGANTBIG.s3o"
+			uDef.script = "Units/techsplit/CORGANTBIG.cob"
+			uDef.featuredefs.dead.object = "Units/corgant_dead.s3o"
+			uDef.featuredefs.dead.footprintx = 15
+			uDef.featuredefs.dead.footprintz = 15
+			uDef.featuredefs.dead.collisionvolumescales = "145 90 160"
+			uDef.customparams.techlevel = 4
+			uDef.customparams.buildinggrounddecalsizex = 18
+			uDef.customparams.buildinggrounddecalsizez = 18
+		end
 
 		-- T2 mexes 
 		if name == "armmoho" or name == "cormoho" or name == "coruwmme" or name == "armuwmme" or name == "legmoho"

@@ -19,7 +19,7 @@ return {
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
-		metalcost = 8100,
+		metalcost = 5000,
 		metalstorage = 800,
 		minwaterdepth = 30,
 		objectname = "Units/ARMHASY.s3o",
@@ -37,9 +37,10 @@ return {
 			[3] = "armbats",
 			[4] = "armepoch",
 			[5] = "armantiship",
-			[6] = "armmar",
+			[6] = "armlship",
 			[7] = "armlun",
-			[8] = "armaas"
+			[8] = "armaas",
+			[9] = "armmship",
 		},
 		customparams = {
 			model_author = "FireStorm",

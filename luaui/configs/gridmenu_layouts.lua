@@ -223,8 +223,8 @@ local labGrids = {
 
 	armhalab = {
 		"armhack", "armdecom", "armmar", "armaser",
-		"armvang", "armfboy", "armraz", "armsnipe",
-		"armscab", "", "", "",
+		"armsnipe", "armfboy", "armzeus", "armspy",
+		"armscab", "", "armaak", "",
 	},
 
 	leghalab = {
@@ -258,9 +258,9 @@ local labGrids = {
 	},
 
 	armhasy = {
-		"armhacs", "", "armlun", "armantiship",              
-		"armepoch", "armbats", "", "",              
-		"armserp", "armmar", "armaas", "",              
+		"armhacs", "", "armlship", "armantiship",              
+		"armmship", "armepoch", "armbats", "",              
+		"armserp", "armlun", "armaas", "",              
 	},
 
 	corhasy = {
@@ -270,9 +270,9 @@ local labGrids = {
 	},
 
 	armhavp = {
-		"armhacv", "", "armlun", "armjam",
-		"armmanni", "armthor", "armbull", "armgremlin",
-		"", "", "armyork", "armmerl",
+		"armhacv", "", "armlatnk", "armjam",
+		"armmanni", "armmerl", "armbull", "armgremlin",
+		"", "armlun", "armyork", "",
 	},
 
 	corhavp = {
