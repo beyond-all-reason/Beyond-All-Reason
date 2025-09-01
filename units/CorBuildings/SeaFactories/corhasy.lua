@@ -19,7 +19,7 @@ return {
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
-		metalcost = 8200,
+		metalcost = 5000,
 		metalstorage = 800,
 		minwaterdepth = 30,
 		objectname = "Units/CORHASY.s3o",
