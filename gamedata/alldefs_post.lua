@@ -2430,9 +2430,9 @@ function UnitDef_Post(name, uDef)
 		if name == "armtarg" or name == "cortarg"
 		or name == "armfatf" or name == "corfatf"
 		then
-			uDef.radardistance = 3000
-			uDef.sightdistance = 2000
-			uDef.radardistancejam = 600
+			uDef.radardistance = 5000
+			uDef.sightdistance = 1200
+			uDef.radardistancejam = 900
 		end
 		
 		-----------------------------
