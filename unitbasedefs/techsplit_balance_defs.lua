@@ -158,6 +158,7 @@ local function techsplit_balanceTweaks(name, uDef)
 
 	if name == "cormort" then
 		uDef.health = 800
+		uDef.metalcost = 325
 		uDef.speed = 51
 		uDef.weapondefs.cor_mort.range = 650
 	end
