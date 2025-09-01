@@ -127,7 +127,7 @@ return {
 				rgbcolor2 = "0.9 1 0.9",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundstart = "lasrhvy3short",
+				soundstart = "lasrhvy3",
 				soundtrigger = 1,
 				thickness = 4.6,
 				tolerance = 10000,
@@ -144,7 +144,7 @@ return {
 				impactonly = 1,
 				name = "Laserroar",
 				noselfdamage = true,
-				soundhitdry = "laserroar",
+				soundhitdry = "",
 				soundhitdryvolume = 17,
 				weapontype = "Cannon",
 				customparams = {

@@ -531,7 +531,7 @@ local unitGrids = {
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
-			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, air repair pad
+			{ "armfrad", "armfdrag", "armdrag", "" },    -- 
 			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
 		},
 		{
@@ -553,7 +553,7 @@ local unitGrids = {
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
-			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, air repair pad
+			{ "armfrad", "armfdrag", "armdrag", "" },    -- 
 			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
 		},
 		{
@@ -575,7 +575,7 @@ local unitGrids = {
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
-			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, air repair pad
+			{ "armfrad", "armfdrag", "armdrag", "" },    -- 
 			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
 		},
 		{
@@ -597,7 +597,7 @@ local unitGrids = {
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
-			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, air repair pad
+			{ "armfrad", "armfdrag", "armdrag", "" },    -- 
 			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
 		},
 		{
@@ -619,7 +619,7 @@ local unitGrids = {
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
-			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, air repair pad
+			{ "armfrad", "armfdrag", "armdrag", "" },    --  
 			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
 		},
 		{
@@ -641,7 +641,7 @@ local unitGrids = {
 		},
 		{
 			{ "armarad", "armeyes", "armfort", "armjamt" },     -- adv radar, camera, t2 wall, cloak jammer
-			{ "armfrad", "armfdrag", "armdrag", "armasp" },    -- intrusion counter, decoy fusion, air repair pad
+			{ "armfrad", "armfdrag", "armdrag", "" },    -- 
 			{ "armjuno", "armmine1", "armmine2", "armmine3", },-- juno, Lmine, Mmine, Hmine
 		},
 		{
@@ -751,7 +751,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },  -- adv radar, camera, t2wall, adv jammer
-			{ "corfrad", "corfdrag", "cordrag", "corasp" },     --floating radar, floating dragteeth, drag teeth, air repair pad
+			{ "corfrad", "corfdrag", "cordrag", "" },     --floating radar, floating dragteeth, drag teeth, 
 			{ "corjuno", },                                     -- juno
 		},
 		{
@@ -773,7 +773,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },  -- adv radar, camera, t2wall, adv jammer
-			{ "corfrad", "corfdrag", "cordrag", "corasp" },     --floating radar, floating dragteeth, drag teeth, air repair pad
+			{ "corfrad", "corfdrag", "cordrag", "" },     --floating radar, floating dragteeth, drag teeth, 
 			{ "corjuno", },                                     -- juno
 		},
 		{
@@ -795,7 +795,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },  -- adv radar, camera, t2wall, adv jammer
-			{ "corfrad", "corfdrag", "cordrag", "corasp" },     --floating radar, floating dragteeth, drag teeth, air repair pad
+			{ "corfrad", "corfdrag", "cordrag", "" },     --floating radar, floating dragteeth, drag teeth, 
 			{ "corjuno", },                                     -- juno
 		},
 		{
@@ -817,7 +817,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },  -- adv radar, camera, t2wall, adv jammer
-			{ "corfrad", "corfdrag", "cordrag", "corasp" },     --floating radar, floating dragteeth, drag teeth, air repair pad
+			{ "corfrad", "corfdrag", "cordrag", "" },     --floating radar, floating dragteeth, drag teeth, 
 			{ "corjuno", },                                     -- juno
 		},
 		{
@@ -839,7 +839,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },  -- adv radar, camera, t2wall, adv jammer
-			{ "corfrad", "corfdrag", "cordrag", "corasp" },     --floating radar, floating dragteeth, drag teeth, air repair pad
+			{ "corfrad", "corfdrag", "cordrag", "" },     --floating radar, floating dragteeth, drag teeth, 
 			{ "corjuno", },                                     -- juno
 		},
 		{
@@ -861,7 +861,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "coreyes", "corfort", "corshroud", },  -- adv radar, camera, t2wall, adv jammer
-			{ "corfrad", "corfdrag", "cordrag", "corasp" },     --floating radar, floating dragteeth, drag teeth, air repair pad
+			{ "corfrad", "corfdrag", "cordrag", "" },     --floating radar, floating dragteeth, drag teeth, 
 			{ "corjuno", },                                     -- juno
 		},
 		{
@@ -951,7 +951,7 @@ local unitGrids = {
 		},
 		{
 			{ "legavrad", "legeyes", "legforti", "legavjam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "legfrad", "legfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "legfrad", "legfdrag", "legdrag", ""},    -- floating radar, sharks teeth, dragons teeth, 
 			{ "legjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
@@ -973,7 +973,7 @@ local unitGrids = {
 		},
 		{
 			{ "legavrad", "legeyes", "legforti", "legavjam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "legfrad", "legfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "legfrad", "legfdrag", "legdrag", ""},    -- floating radar, sharks teeth, dragons teeth, 
 			{ "legjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
@@ -995,7 +995,7 @@ local unitGrids = {
 		},
 		{
 			{ "legavrad", "legeyes", "legforti", "legajam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "legfrad", "legfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "legfrad", "legfdrag", "legdrag", ""},    -- floating radar, sharks teeth, dragons teeth, 
 			{ "legjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
@@ -1017,7 +1017,7 @@ local unitGrids = {
 		},
 		{
 			{ "legavrad", "legeyes", "legforti", "legavjam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "legfrad", "legfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "legfrad", "legfdrag", "legdrag", ""},    -- floating radar, sharks teeth, dragons teeth, 
 			{ "legjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
@@ -1039,7 +1039,7 @@ local unitGrids = {
 		},
 		{
 			{ "legavrad", "legeyes", "legforti", "legavjam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "legfrad", "legfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "legfrad", "legfdrag", "legdrag", ""},    -- floating radar, sharks teeth, dragons teeth, 
 			{ "legjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
@@ -1061,7 +1061,7 @@ local unitGrids = {
 		},
 		{
 			{ "legavrad", "legeyes", "legforti", "legavjam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "legfrad", "legfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "legfrad", "legfdrag", "legdrag", ""},    -- floating radar, sharks teeth, dragons teeth, 
 			{ "legjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
@@ -1083,7 +1083,7 @@ local unitGrids = {
 		},
 		{
 			{ "legavrad", "legeyes", "legforti", "legavjam", }, -- radar bot, perimeter camera, t2 wall, jammer bot
-			{ "legfrad", "legfdrag", "legdrag", "corasp"},    -- floating radar, sharks teeth, dragons teeth, air repair pad
+			{ "legfrad", "legfdrag", "legdrag", ""},    -- floating radar, sharks teeth, dragons teeth, 
 			{ "legjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
@@ -1151,7 +1151,7 @@ local unitGrids = {
 		},
 		{
 			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "", "", "corasp", "corfasp" },                  -- air repair pad, floating air repair pad
+			{ "", "", "", "" },                  --  
 			{ "legjuno", },                                   -- juno
 		},
 		{
@@ -1220,7 +1220,7 @@ local unitGrids = {
 		},
 		{
 			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "", "", "corasp", "corfasp" },                  -- air repair pad, floating air repair pad
+			{ "", "", "", "" },                  --  
 			{ "legjuno", },                                   -- juno
 		},
 		{
@@ -1243,7 +1243,7 @@ local unitGrids = {
 		},
 		{
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "", "", "armasp", "armfasp" },                  -- air repair pad, floating air repair pad
+			{ "", "", "", "" },                  --  
 			{ "armjuno", }									  -- juno
 		},
 		{
@@ -1266,7 +1266,7 @@ local unitGrids = {
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "", "", "corasp", "corfasp" },                  -- air repair pad, floating air repair pad
+			{ "", "", "", "" },                  --  
 			{ "corjuno", }									  -- juno
 		},
 		{
@@ -1288,7 +1288,7 @@ local unitGrids = {
 		},
 		{
 			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "", "", "corasp", "corfasp" },                  -- air repair pad, floating air repair pad
+			{ "", "", "", "" },                  --  
 			{ "legjuno", },                                   -- juno
 		},
 		{
@@ -1311,7 +1311,7 @@ local unitGrids = {
 		},
 		{
 			{ "armfrad", "armeyes","armfdrag", },             -- floating radar, perimeter camera, shark's teeth
-			{ "", "armdrag", "armasp", "armfasp"},                        	      -- dragon's teeth
+			{ "", "armdrag", "", ""},                        	      -- dragon's teeth
 		},
 		{
 			{ "armsy", "armvp", "armap", "armlab", },         -- shipyard, veh lab, air lab, bot lab
@@ -1333,7 +1333,7 @@ local unitGrids = {
 		},
 		{
 			{ "corfrad", "coreyes", "corfdrag", },            -- floating radar, perimeter camera, shark's teeth
-			{ "", "cordrag", "corasp", "corfasp" },           -- dragon's teeth
+			{ "", "cordrag", "", "" },           -- dragon's teeth
 		},
 		{
 			{ "corsy", "corvp", "corap", "corlab",  },        -- shipyard, vehicle lab, air lab, bot lab
@@ -1426,7 +1426,7 @@ local unitGrids = {
 		},
 		{
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armfrad", "armfdrag", "armasp", "armfasp" },                       -- floating radar, shark's teeth
+			{ "armfrad", "armfdrag", "", "" },                       -- floating radar, shark's teeth
 			{ "armjuno", },                                   -- juno
 		},
 		{
@@ -1449,7 +1449,7 @@ local unitGrids = {
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corfrad", "corfdrag", "corasp", "corfasp" },                       -- floating radar, shark's teeth
+			{ "corfrad", "corfdrag", "", "" },                       -- floating radar, shark's teeth
 			{ "corjuno", },                                   -- juno
 		},
 		{
@@ -1543,7 +1543,7 @@ local unitGrids = {
 		},
 		{
 			{ "armarad", "armtarg", "armfort", "armveil" },     -- adv radar, targeting facility, wall, adv jammer
-			{ "armsd", "armdf", "armasp" },                     -- intrusion counter, decoy fusion, air repair pad
+			{ "armsd", "armdf", "" },                     -- intrusion counter, decoy fusion, 
 			{ "armgate", },                                     -- shield
 		},
 		{
@@ -1566,7 +1566,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "", "corasp" },                          -- intrusion counter, air repair pad
+			{ "corsd", "", "" },                          -- intrusion counter, 
 			{ "corgate", },                                     -- anti-nuke, shield
 		},
 		{
@@ -1589,7 +1589,7 @@ local unitGrids = {
 		},
 		{
 			{ "legarad", "legtarg", "legforti", "legajam", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "legsd", "", "corasp", },               -- intrusion counter, air repair pad, floating air repair pad
+			{ "legsd", "", "", },               -- intrusion counter,  
 			{ "legdeflector", },                                     -- anti-nuke, shield
 		},
 		{
@@ -1613,7 +1613,7 @@ local unitGrids = {
 		},
 		{
 			{ "armarad", "armtarg", "armfort", "armveil",  },   -- adv radar, targeting facility, wall, adv jammer
-			{ "armsd", "armdf", "armasp" },                     -- intrusion counter, decoy fusion, air repair pad
+			{ "armsd", "armdf", "" },                     -- intrusion counter, decoy fusion, 
 			{ "armgate", },                                     -- shield
 		},
 		{
@@ -1636,7 +1636,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "", "corasp" },                          -- intrusion counter, air repair pad
+			{ "corsd", "", "" },                          -- intrusion counter, 
 			{ "corgate", },                                     -- anti-nuke, shield
 		},
 		{
@@ -1659,7 +1659,7 @@ local unitGrids = {
 		},
 		{
 			{ "legarad", "legtarg", "legforti", "legajam", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "legsd", "", "corasp", },               -- intrusion counter, air repair pad, floating air repair pad
+			{ "legsd", "", "", },               -- intrusion counter,  
 			{ "legdeflector", },                                     -- anti-nuke, shield
 		},
 		{
@@ -1682,9 +1682,9 @@ local unitGrids = {
 			{ "armbrtha", "armsilo", "armvulc", },              -- LRPC, ICBM, lolcannon
 		},
 		{
-			{ "armtarg", "armsd", "armfort", "" },     -- adv radar, targeting facility, wall, adv jammer
-			{ "", "armdf", "" },                     -- intrusion counter, decoy fusion, air repair pad
-			{ "armgate", },                                     -- shield
+			{ "armarad", "armtarg", "armfort", "armveil",  },    -- adv radar, targeting facility, wall, adv jammer
+			{ "armsd", "armdf", "", "" },           -- intrusion counter, decoy fusion,  
+			{ "armgate", },                                      -- shield
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },                                      -- T1 lab,
@@ -1706,7 +1706,7 @@ local unitGrids = {
 		},
 		{
 			{ "corarad", "cortarg", "corfort", "corshroud" },   -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "", "corasp", "corfasp" },               -- intrusion counter, air repair pad, floating air repair pad
+			{ "corsd", "", "", "" },               -- intrusion counter,  
 			{ "corgate", },                                     -- anti-nuke, shield
 		},
 		{
@@ -1728,7 +1728,7 @@ local unitGrids = {
 		},
 		{
 			{ "legarad", "legtarg", "legforti", "legajam", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "legsd", "", "corasp", "corfasp" },               -- intrusion counter, air repair pad, floating air repair pad
+			{ "legsd", "", "", "", },               -- intrusion counter,  
 			{ "legdeflector", },                                     -- anti-nuke, shield
 		},
 		{
@@ -1752,7 +1752,7 @@ local unitGrids = {
 		},
 		{
 			{ "armason", "armfatf" },                		   -- adv sonar, floating targeting facility
-			{ "", "", "", "armfasp" },                         -- Floating air repair pad
+			{ "", "", "", "" },                         -- 
 			{ },                                               --
 		},
 		{
@@ -1775,7 +1775,7 @@ local unitGrids = {
 		},
 		{
 			{ "corason", "corfatf",  },                         -- adv sonar, floating targeting facility
-			{ "", "", "", "corfasp" },                          -- Floating air repair pad
+			{ "", "", "", "" },                          -- 
 		},
 		{
 			{ "corsy", },                                      -- T1 shipyard
@@ -2243,7 +2243,7 @@ local unitGrids = {
 		},
 		{
 			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "", "", "corasp", "corfasp" },                  -- air repair pad, floating air repair pad
+			{ "", "", "", "" },                  --  
 			{ "legjuno", },                                   -- juno
 		},
 		{

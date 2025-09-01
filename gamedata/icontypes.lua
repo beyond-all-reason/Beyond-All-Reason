@@ -2295,6 +2295,10 @@ local icontypes = {
 		bitmap = "icons/t3_solinvictus.png",
 		size = 3.46499968
 	},
+	legeheatraymech_old = {
+		bitmap = "icons/t3_solinvictus.png",
+		size = 3.46499968
+	},
 	legelrpcmech = {
 		bitmap = "icons/t3_bot_clusterarty.png",
 		size = 2.75

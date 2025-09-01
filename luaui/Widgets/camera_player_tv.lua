@@ -364,6 +364,7 @@ function widget:PlayerChanged(playerID)
 		end
 	end
 	local name = spGetPlayerInfo(playerID, false)
+	name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 	if select(4, Spring.GetTeamInfo(myTeamID,false)) then	-- is AI?
 		local _, _, _, aiName = Spring.GetAIInfo(myTeamID)
 		local niceName = Spring.GetGameRulesParam('ainame_' .. myTeamID)
@@ -563,6 +564,7 @@ local function drawContent()
 					lockPlayerID = WG.lockcamera.GetPlayerID()
 				end
 				local name, _, spec, teamID, _, _, _, _, _ = spGetPlayerInfo(myTeamPlayerID, false)
+				name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(myTeamPlayerID)) or name
 				if select(4, Spring.GetTeamInfo(myTeamID,false)) then	-- is AI?
 					local _, _, _, aiName = Spring.GetAIInfo(myTeamID)
 					local niceName = Spring.GetGameRulesParam('ainame_' .. myTeamID)

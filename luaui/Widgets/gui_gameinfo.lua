@@ -102,7 +102,8 @@ for key, value in pairs(modoptions) do
 			changedModoptions[key] = tostring(value)
 		else
 			if string.find(key, 'tweakdefs') then
-				changedModoptions[key] = '\n' .. string.base64Decode(value)
+				local decodeSuccess, postsFuncStr = pcall(string.base64Decode, value)
+				changedModoptions[key] = '\n' .. (decodeSuccess and postsFuncStr or '\255\255\100\100 - '..Spring.I18N('ui.gameInfo.decodefailed').. ' - ')
 			else
 				local success, tweaks = pcall(Spring.Utilities.CustomKeyToUsefulTable, value)
 				if success and type(tweaks) == "table" then
@@ -317,8 +318,8 @@ function widget:DrawScreen()
 		-- draw the panel
 		glCallList(mainDList)
 		if WG['guishader'] then
-			if backgroundGuishader ~= nil then
-				glDeleteList(backgroundGuishader)
+			if backgroundGuishader then
+				backgroundGuishader = glDeleteList(backgroundGuishader)
 			end
 			backgroundGuishader = glCreateList(function()
 				-- background
@@ -336,8 +337,11 @@ function widget:DrawScreen()
 		end
 
 	else
-		if WG['guishader'] then
-			WG['guishader'].DeleteDlist('gameinfo')
+		if backgroundGuishader then
+			if WG['guishader'] then
+				WG['guishader'].RemoveDlist('gameinfo')
+			end
+			backgroundGuishader = glDeleteList(backgroundGuishader)
 		end
 	end
 end
@@ -512,7 +516,10 @@ function widget:Shutdown()
 		mainDList = nil
 	end
 	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('gameinfo')
+		WG['guishader'].RemoveDlist('gameinfo')
+	end
+	if backgroundGuishader then
+		glDeleteList(backgroundGuishader)
 	end
 end
 
