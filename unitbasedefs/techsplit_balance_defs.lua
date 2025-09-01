@@ -171,15 +171,15 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.weapondefs.corhrk_rocket.reloadtime = 0.4
 		uDef.weapondefs.corhrk_rocket.turnrate = 30000
 		uDef.weapondefs.corhrk_rocket.weapontimer = 4
-		uDef.weapondefs.corhrk_rocket.stockpile = true
-		uDef.weapondefs.corhrk_rocket.stockpiletime = 8
-		uDef.weapondefs.corhrk_rocket.customparams.stockpilelimit = 2
+		--uDef.weapondefs.corhrk_rocket.stockpile = true
+		--uDef.weapondefs.corhrk_rocket.stockpiletime = 8
+		--uDef.weapondefs.corhrk_rocket.customparams.stockpilelimit = 2
 		uDef.weapons[1].maxangledif = 60
 		uDef.weapons[1].maindir = "0 0 1"
 	end
 
 	if name == "armsptk" then
-		uDef.metalcost = 600
+		uDef.speed = 
 		uDef.health = 450
 		uDef.turnrate = 600
 		uDef.weapondefs.adv_rocket.range = 775
@@ -191,6 +191,7 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.weapons[1].maindir = "0 0 1"
 	end
 
+--[[ Stockpiling Vertical Rockets
 	if name == "armmerl" then
 		uDef.weapondefs.armtruck_rocket.reloadtime = 0.3
 		uDef.weapondefs.armtruck_rocket.stockpile = true
@@ -243,40 +244,25 @@ local function techsplit_balanceTweaks(name, uDef)
 			onlytargetcategory = "SURFACE",
 		}
 	end
+--]]
 
 	if name == "corban" then
 		uDef.speed = 69
 		uDef.turnrate = 500
-		uDef.weapondefs.banisher.areaofeffect = 220
+		uDef.weapondefs.banisher.areaofeffect = 180
 		uDef.weapondefs.banisher.range = 400
-		uDef.weapondefs.banisher.damage = {
-			default = 1320,
-			subs = 660
-		}
 	end
 
 	if name == "armcroc" then
-		uDef.canmanualfire = true
 		uDef.turnrate = 270
-		uDef.weapondefs.armcl_missile.areaofeffect = 60
-		uDef.weapondefs.armcl_missile.canattackground = true
-		uDef.weapondefs.armcl_missile.cegtag = "missiletrailmedium-starburst"
-		uDef.weapondefs.armcl_missile.commandfire = true
-		uDef.weapondefs.armcl_missile.range = 650
-		uDef.weapondefs.armcl_missile.reloadtime = 0.3
-		uDef.weapondefs.armcl_missile.stockpile = true
-		uDef.weapondefs.armcl_missile.stockpiletime = 8.5
-		uDef.weapondefs.armcl_missile.texture2 = "null"
-		uDef.weapondefs.armcl_missile.trajectoryheight = 0.5
-		uDef.weapondefs.armcl_missile.customparams = {
-			stockpilelimit = 3,
-		}
-		uDef.weapondefs.armcl_missile.damage = {
-			default = 250
+		uDef.weapondefs.arm_triton.reloadtime = 1.5
+		uDef.weapondefs.arm_triton.damage = {
+			default = 250,
+			subs = 111,
+			vtol = 44
 		}
 		uDef.weapons[2] = {
-			def = "ARMCL_MISSILE",
-			onlytargetcategory = "SURFACE",
+			def = "",
 		}
 	end
 
@@ -291,17 +277,38 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.weapondefs.cor_reap.range = 305
 	end
 
-	if name == "armanac" then
-		uDef.speed = 79
-		uDef.weapondefs.armanac_weapon.areaofeffect = 52
-		uDef.weapondefs.armanac_weapon.damage = {
-			default = 185,
-			vtol = 55,
+	if name == "armbull" then
+		uDef.health = 6000
+		uDef.metalcost = 1100
+		uDef.weapondefs.arm_bull.range = 400
+		uDef.weapondefs.arm_bull.damage = {
+			default = 600,
+			subs = 222,
+			vtol = 67
 		}
-		uDef.weapondefs.armanac_weapon.weaponvelocity = 500
-		uDef.weapondefs.armanac_weapon.range = 295
+		uDef.weapondefs.arm_bull.reloadtime = 2
+		uDef.weapondefs.arm_bull.areaofeffect = 96
 	end
 
+	if name == "corsumo" then
+		uDef.weapondefs.corsumo_weapon.range = 750
+		uDef.weapondefs.corsumo_weapon.damage = {
+			default = 700,
+			vtol = 165,
+		}
+		uDef.weapondefs.corsumo_weapon.reloadtime = 1
+	end
+
+	if name == "corgol" then 
+		uDef.speed = 37
+		uDef.weapondefs.cor_gol.damage = {
+			default = 1600,
+			subs = 356,
+			vtol = 98,
+		}
+		uDef.weapondefs.reloadtime = 4
+		uDef.weapondefs.range = 700
+	end
 
 	return uDef
 end
