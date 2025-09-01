@@ -2423,6 +2423,17 @@ function UnitDef_Post(name, uDef)
 			uDef.radarDistance = 2200
 			uDef.sightdistance = 900
 		end
+
+		-----------------------------------
+		-- Pinpointers are T3 radar/jammers
+
+		if name == "armtarg" or name == "cortarg"
+		or name == "armfatf" or name == "corfatf"
+		then
+			uDef.radardistance = 3000
+			uDef.sightdistance = 2000
+			uDef.radardistancejam = 600
+		end
 		
 		-----------------------------
     	-- Correct Tier for Announcer
