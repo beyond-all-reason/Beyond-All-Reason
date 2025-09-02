@@ -27,7 +27,7 @@ end
 
 ------------------------unsynced------------------------
 local newStaticUnitList = {}            --Static Units made within last replay frame (that have movement of 0).             [udid,teamID,posX,posZ,]
-local newMobileUnitList = {}            --Mobile units made within last replay frame (that have movemen >0).                [udid,teamID,posX,posZ,]
+local newMobileUnitList = {}            --Mobile units made within last replay frame (that have movement >0).               [udid,teamID,posX,posZ,]
 local destroyedUnitList = {}            --All units that died/removed within last replay Frame                              [udid,teamID]
 local movedMobileUnitList = {}          --Mobile living units that moved within last replay Frame (inc new mobile units)    [posX,poxZ]
 local transferedUnitList = {}           --All living units that changed teamID (inc capture), within last frame.            [original teamID, New TeamID]
@@ -45,7 +45,8 @@ local replayFrame = 1                   --Saved frame number for replay. Default
 local frameLengthModifierThreshold = 100--Once this number of frames is reached, the time between frames can be increased so as to limit total stored frames.
 local replayFrameLength = 300           --Length in frames. starts at 300 (= 10 seconds). Dynamic length based on length of game
 local gameEnded = false
-local spamDisabled = false
+local spamDisabled = 0                  -- 0 -> off, 1 -> new T1 mobile units positions untracked, 2 -> all new units not tracked, 3 -> No units, including existing, are tracked 
+local unitLimit = {850,1000,1500,1750}  --unitlimits for trigging which units are included in position update (to avoid chance of lagging).{All units, no new T1, No new units, stop all tracking}
 
 ---Excludable units---                    
 local spamUnits = {}                    --mobile t1 units. Skips position update on these when there are too many units on map.
@@ -99,8 +100,10 @@ local function CheckForSkippables(allyTeamID, unitDefID, checkSpam, checkTrackin
         skippable = true
     elseif checkTracking and doNotTrackUnits[unitDefID] then
         skippable = true
-    elseif checkSpam and spamDisabled and spamUnits[unitDefID] then
-                skippable = true
+    elseif checkSpam and spamDisabled == 1 and spamUnits[unitDefID] then
+        skippable = true
+    elseif checkSpam and spamDisabled == 2 then
+        skippable = true
     end 
 
     return skippable
@@ -194,21 +197,21 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportId, transportTe
     end
 end
 
-local function gbug() --xxx remove, just for debugging
-    Spring.Echo("Gadget Bug Excluded:")
-    for i, _ in pairs(excludeUnits) do
-        Spring.Echo(UnitDefs[i].translatedHumanName, UnitDefs[i].name)
-    end
-    Spring.Echo("Gadget Bug spamUnits:")
-    for i, _ in pairs(spamUnits) do
-        Spring.Echo(UnitDefs[i].translatedHumanName, UnitDefs[i].name)
-    end
-    Spring.Echo("Gadget Bug true checker:", Script.LuaUI("Influence"),not gameEnded)
-end
+-- local function gbug() --xxx remove, just for debugging
+    -- Spring.Echo("Gadget Bug Excluded:")
+    -- for i, _ in pairs(excludeUnits) do
+    --     Spring.Echo(UnitDefs[i].translatedHumanName, UnitDefs[i].name)
+    -- end
+    -- Spring.Echo("Gadget Bug spamUnits:")
+    -- for i, _ in pairs(spamUnits) do
+    --     Spring.Echo(UnitDefs[i].translatedHumanName, UnitDefs[i].name)
+    -- end
+    -- Spring.Echo("Gadget Bug true checker:", Script.LuaUI("Influence"),not gameEnded)
+-- end
 
 function gadget:Initialize()
-    gadgetHandler:AddChatAction('bug', gbug) --xxx remove, debugging only
-    gadgetHandler:AddChatAction('allow', MakeListsAvalibleToWidgets) --xxx remove, debugging only
+    -- gadgetHandler:AddChatAction('bug', gbug) --xxx remove, debugging only
+    -- gadgetHandler:AddChatAction('allow', MakeListsAvalibleToWidgets) --xxx remove, debugging only
     CacheTeams()
     PrimeNextReplayFrame()
 end
@@ -217,14 +220,20 @@ function gadget:GameFrame(gf)
     if gf % replayFrameLength == 0 then --record every 10 seconds, dynamic depending on total game length
         if Script.LuaUI("Influence") and not gameEnded then --record only if companion widget is running and loaded
             recorder = true
-            UpdateExistingMobileUnitLists()
-            UpdateNewMobileUnitListPosition()
+            if spamDisabled < 3 then
+                UpdateExistingMobileUnitLists()
+                UpdateNewMobileUnitListPosition()
+            end
             replayFrame = replayFrame + 1
             PrimeNextReplayFrame()
-            if mobileTrackingCount > 1000 then --ignore T1 spam if tracking too many mobile units, reenable if lower threshhold is met
-                spamDisabled = true
-            elseif mobileTrackingCount < 500 then
-                spamDisabled = false
+            if mobileTrackingCount > unitLimit[4] then -- don't position update on any (existing or new) mobile units
+                spamDisabled = 3
+            elseif mobileTrackingCount > unitLimit[3] then --don't position update on (new) mobile units
+                spamDisabled = 2
+            elseif mobileTrackingCount > unitLimit[2] then --dont position update on (new) T1 spam only
+                spamDisabled = 1
+            elseif mobileTrackingCount < unitLimit[1] then --position update on all mobile units
+                spamDisabled = 0
             end
             if replayFrame % frameLengthModifierThreshold == 0 then --every [120] frames we will double the interval that a snapshot is taken, and half the next interval this is run. This will make stop the replay list getting too large in v long games.
                 replayFrameLength = replayFrameLength * 2
