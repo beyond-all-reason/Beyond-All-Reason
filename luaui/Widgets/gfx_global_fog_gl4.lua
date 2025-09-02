@@ -118,8 +118,6 @@ local shaderConfig = {
 	HSY = hsy,
 }
 
---- RMLUI STUFF
---- 
 
 local document
 widget.rmlContext = nil
@@ -128,8 +126,28 @@ local eventCallback = function(ev, ...) Spring.Echo('orig function says', ...) e
 
 local dm_handle
 
---- 
---- ----
+
+-- Helper: Convert #RRGGBB to vec4 (r,g,b,a)
+local function hexToVec4(hex, alpha)
+	hex = hex:gsub("#","")
+	if #hex ~= 6 then return {1,1,1,alpha or 1} end
+	local r = tonumber(hex:sub(1,2),16) or 255
+	local g = tonumber(hex:sub(3,4),16) or 255
+	local b = tonumber(hex:sub(5,6),16) or 255
+	return {r/255, g/255, b/255, alpha or 1}
+end
+
+-- Callback for color picker changes
+function onFogColorChange(uniformName, hexColor)
+	-- Use current alpha from fogUniforms if available
+	local current = fogUniforms[uniformName]
+	local alpha = (type(current)=="table" and current[4]) or 1
+	local vec4 = hexToVec4(hexColor, alpha)
+	fogUniforms[uniformName] = vec4
+	Spring.Echo("Fog color updated:", uniformName, vec4[1], vec4[2], vec4[3], vec4[4])
+	-- If you have a SetFogParams function, call it:
+	if WG and WG.SetFogParams then WG.SetFogParams(uniformName, vec4) end
+end
 
 -- THIS IS UNIFIED BETWEEN FOG SHADER AND COMBINE SHADER
 local definesSlidersParamsList = {
@@ -370,7 +388,7 @@ local function makeFogTexture()
 		wrap_t = GL.CLAMP_TO_EDGE,
 		fbo = true,
 		format = GL_R32F,
-    })
+	})
 	Spring.Echo(string.format("MakeFogTexture: vsx=%d, vsy=%d, hsx=%d, hsy=%d, HALFSHIFT=%d", vsx, vsy, hsx, hsy, shaderConfig.HALFSHIFT))
 	
 end
@@ -491,13 +509,20 @@ function widget:Initialize()
 	end
   
 	shadowShader  =  LuaShader.CheckShaderUpdates(shadowMinifierShaderSourceCache)
-  	if (shadowShader == nil) then
+	if (shadowShader == nil) then
 	
 		widgetHandler:RemoveWidget()
 		goodbye("[Global Fog::shadowShader] shadowShader compilation failed")
 		return false
 	end
 	WG['SetFogParams'] = SetFogParams
+
+	-- Register RML event callback for color pickers
+	if RmlUi and widget.rmlContext then
+		widget.rmlContext:RegisterEventCallback("onFogColorChange", function(ev, uniformName, hexColor)
+			onFogColorChange(uniformName, hexColor)
+		end)
+	end
 	
 	if WG['flowui_gl4'] then 
 		Spring.Echo(" WG[flowui_gl4] detected")
@@ -623,6 +648,7 @@ function widget:Initialize()
 	local fogUniformSlidersDiv = document:GetElementById('foguniformsliders')
 
 	for i, uniformSlider in ipairs(uniformSliderParamsList) do 
+		--if true then return end 
 		local defaultType = type(fogUniforms[uniformSlider.name])
 		local defaultValues
 		if defaultType == "table" then 
@@ -807,9 +833,9 @@ function widget:DrawWorld()
 	gl.Culling(GL.FRONT) -- cause our tris are reversed in plane vbo
 	
   if shaderConfig.MINISHADOWS == 1 then 
-    shadowShader:Activate()
-    gl.RenderToTexture(shadowTexture, minifyShadowToTextureFunc)
-    shadowShader:Deactivate()
+	shadowShader:Activate()
+	gl.RenderToTexture(shadowTexture, minifyShadowToTextureFunc)
+	shadowShader:Deactivate()
   end
   gl.Texture(0, "$map_gbuffer_zvaltex")
 	gl.Texture(1, "$model_gbuffer_zvaltex")
@@ -820,9 +846,9 @@ function widget:DrawWorld()
 		gl.Texture(3, "$info") --$info:los
 	end
   if shaderConfig.MINISHADOWS ==1 then 
-    gl.Texture(4, shadowTexture)
+	gl.Texture(4, shadowTexture)
   else
-    gl.Texture(4, "$shadow")
+	gl.Texture(4, "$shadow")
 	end
   gl.Texture(5, noisetex3dcube)
 
@@ -874,7 +900,7 @@ function widget:DrawWorld()
 	
 	for i = 0, 9 do gl.Texture(i, false) end 
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- reset GL state
-  	gl.DepthMask(false) --"BK OpenGL state resets", reset to default state
+	gl.DepthMask(false) --"BK OpenGL state resets", reset to default state
 end
 
 local function DumpShaderSource(srccache)

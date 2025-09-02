@@ -40,18 +40,33 @@
             </div>
             
         </div> -->
-        <div class="element">
-            <h6>
-            <div id = "fogsliders", style="display: flex; flex-direction: column; gap: 0.1em;">
+        <div class="element" style="display: flex; flex-direction: row; gap: 1em; align-items: flex-start;">
+            
+                <h6>
+            <div id="fogsliders" style="display: flex; flex-direction: column; gap: 0.1em;"></div>
+            
+                </h6>
+            <div>
+                <h6>
+                <div id="foguniformsliders" style="display: flex; flex-direction: column; gap: 0.1em;"></div>
+                <!-- Color pickers for fogUniforms -->
+                </h6>
+                <div id="fogcolorpickers" style="display: flex; flex-direction: column; gap: 0.2em; margin-top: 0.5em;">
+                    <label for="heightFogColor">Height Fog Color:</label>
+                    <input type="color" id="heightFogColor" name="heightFogColor"
+                        data-event-input="onFogColorChange('heightFogColor', this.value)" />
+                    <label for="cloudGlobalColor">Cloud Global Color:</label>
+                    <input type="color" id="cloudGlobalColor" name="cloudGlobalColor"
+                        data-event-input="onFogColorChange('cloudGlobalColor', this.value)" />
+                    <label for="distanceFogColor">Distance Fog Color:</label>
+                    <input type="color" id="distanceFogColor" name="distanceFogColor"
+                        data-event-input="onFogColorChange('distanceFogColor', this.value)" />
+                    <label for="shadowedColor">Shadowed Color:</label>
+                    <input type="color" id="shadowedColor" name="shadowedColor"
+                        data-event-input="onFogColorChange('shadowedColor', this.value)" />
+                </div>
             </div>
-            </h6>
-        </div>  
-        <div class="element">
-            <h6>
-            <div id = "foguniformsliders", style="display: flex; flex-direction: column; gap: 0.1em;">
-            </div>
-            </h6>
-        </div>  
+        </div>
         <div class="element">
             <h6> FOG BUTTONS</h6>
             
