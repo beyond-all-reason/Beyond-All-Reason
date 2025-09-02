@@ -19,6 +19,15 @@
 	--},
 
 ----------------------------------------------------------------------------------
+
+---See MoveDef::SpeedModClass, ParseSpeedModClass.
+local SPEED_CLASS = Game and Game.speedModClasses or {
+	Tank  = 0,
+	KBot  = 1,
+	Hover = 2,
+	Ship  = 3,
+}
+
 local moveDatas = {
 					--all arm and core commanders and their decoys
 	COMMANDERBOT = {
@@ -381,7 +390,7 @@ local moveDatas = {
 		footprintz = 4,
 		maxslope = 255,
 		maxwaterslope = 255,
-		speedmodclass = 2, -- hover
+		speedmodclass = SPEED_CLASS.Hover,
 	},
 	-- raptor_land_swarmer_heal_t1_v1 raptor_land_swarmer_basic_t4_v2 raptor_land_swarmer_spectre_t4_v1 raptor_land_swarmer_basic_t4_v1 raptor_land_swarmer_emp_t2_v1 raptor_land_swarmer_basic_t1_v1 raptor_land_kamikaze_emp_t2_v1 raptor_land_spiker_basic_t4_v1
 	--raptor_land_kamikaze_emp_t4_v1 raptor_land_spiker_basic_t2_v1 raptor_land_swarmer_basic_t3_v2 raptor_land_swarmer_basic_t3_v1 raptor_land_swarmer_basic_t3_v3 raptor_land_swarmer_basic_t2_v4 raptor_land_swarmer_basic_t2_v3 raptor_land_swarmer_basic_t2_v2 raptor_land_swarmer_basic_t2_v1 raptor_land_swarmer_brood_t3_v1 raptor_land_swarmer_brood_t4_v1
@@ -397,7 +406,7 @@ local moveDatas = {
 		maxslope = 36,
 		slopeMod = 18,
 		maxwaterslope = 255,
-		speedmodclass = 2, -- hover
+		speedmodclass = SPEED_CLASS.Hover,
 	},
 	-- raptor_land_assault_emp_t2_v1 raptoracidassualt raptor_land_assault_basic_t2_v1 raptor_land_assault_basic_t2_v3 raptor_land_swarmer_basic_t2_v2 raptor_land_assault_spectre_t2_v1
 	RAPTORBIGHOVER = {
@@ -410,7 +419,7 @@ local moveDatas = {
 		maxslope = 36,
 		slopeMod = 18,
 		maxwaterslope = 255,
-		speedmodclass = 2, -- hover
+		speedmodclass = SPEED_CLASS.Hover,
 	},
 	-- raptor_land_assault_spectre_t4_v1 raptora2 raptor_land_assault_basic_t4_v2
 	RAPTORBIG2HOVER = {
@@ -423,7 +432,7 @@ local moveDatas = {
 		maxslope = 36,
 		slopeMod = 18,
 		maxwaterslope = 255,
-		speedmodclass = 2, -- hover
+		speedmodclass = SPEED_CLASS.Hover,
 	},
 	-- raptor_allterrain_swarmer_basic_t2_v1 raptor_allterrain_swarmer_basic_t4_v1 raptor_allterrain_swarmer_basic_t3_v1 raptor_allterrain_swarmer_acid_t2_v1 raptor_allterrain_swarmer_fire_t2_v1 raptor_6legged_I raptoreletricalallterrain
 	RAPTORALLTERRAINHOVER = {
@@ -434,7 +443,7 @@ local moveDatas = {
 		maxslope = 255,
 		maxwaterdepth = 5000,
 		maxwaterslope = 50,
-		speedmodclass = 2, -- hover
+		speedmodclass = SPEED_CLASS.Hover,
 	},
 	-- raptor_allterrain_arty_basic_t2_v1 raptor_allterrain_arty_acid_t2_v1 raptor_allterrain_arty_acid_t4_v1 raptor_allterrain_arty_emp_t2_v1 raptor_allterrain_arty_emp_t4_v1 raptor_allterrain_arty_brood_t2_v1 raptoracidalllterrrainassual
 	--raptor_allterrain_swarmer_emp_t2_v1assualt raptor_allterrain_assault_basic_t2_v1 raptoraallterraina1 raptoraallterrain1c raptoraallterrain1b
@@ -446,7 +455,7 @@ local moveDatas = {
 		maxslope = 255,
 		maxwaterdepth = 5000,
 		maxwaterslope = 50,
-		speedmodclass = 2, -- hover
+		speedmodclass = SPEED_CLASS.Hover,
 	},
 	-- raptor_allterrain_arty_basic_t4_v1 raptor_allterrain_arty_brood_t4_v1 raptorapexallterrainassualt raptorapexallterrainassualtb
 	RAPTORALLTERRAINBIG2HOVER = {
@@ -457,7 +466,7 @@ local moveDatas = {
 		maxslope = 255,
 		maxwaterdepth = 5000,
 		maxwaterslope = 50,
-		speedmodclass = 2, -- hover
+		speedmodclass = SPEED_CLASS.Hover,
 	},
 
 
@@ -498,7 +507,7 @@ local moveDatas = {
 		footprintz = 2,
 		--maxwaterdepth = 22,
 		maxwaterslope = 255,
-		speedModClass = 2,
+		speedmodclass = SPEED_CLASS.Hover,
 	},
 	-- armpwt4 corakt4 armmeatball armassimilator armlunchbox
 	EPICBOT = {
@@ -509,7 +518,7 @@ local moveDatas = {
 		maxslope = 36,
 		maxwaterdepth = 9999,
 		maxwaterslope = 50,
-		speedModClass = 1,
+		speedmodclass = SPEED_CLASS.KBot,
 	},
 	-- corgolt4 armrattet4
 	EPICVEH = {
@@ -521,7 +530,7 @@ local moveDatas = {
 		slopeMod = 18,
 		maxwaterdepth = 9999,
 		maxwaterslope = 50,
-		speedModClass = 0,
+		speedmodclass = SPEED_CLASS.Tank,
 	},
 
 
@@ -534,7 +543,7 @@ local moveDatas = {
 		minwaterdepth = 12,
 		maxwaterdepth = 9999,
 		maxwaterslope = 255,
-		speedModClass = 3,
+		speedmodclass = SPEED_CLASS.Ship,
 	},
 	-- armvadert4 armsptkt4 corkargenetht4
 	EPICALLTERRAIN = {
@@ -545,7 +554,7 @@ local moveDatas = {
 		maxslope = 255,
 		maxwaterdepth = 9999,
 		maxwaterslope = 255,
-		speedModClass = 1,
+		speedmodclass = SPEED_CLASS.KBot,
 	},
 	-- armserpt3
 	EPICSUBMARINE = {
@@ -555,7 +564,7 @@ local moveDatas = {
 		maxwaterdepth = 9999,
 		crushstrength = 9999,
 		subMarine = 1,
-		speedModClass = 3,
+		speedmodclass = SPEED_CLASS.Ship,
 	},
 }
 
