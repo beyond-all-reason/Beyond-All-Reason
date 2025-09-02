@@ -20,6 +20,15 @@
 
 ----------------------------------------------------------------------------------
 
+local DEPTH = {
+	NONE       = 0,
+	SHALLOW    = 10, -- add unit size tolerances to this value
+	SUBMERGED  = 15,
+	AMPHIBIOUS = 5000,
+	MAXIMUM    = 9999, -- aribitrary limit
+	DEFAULT    = 1000000,
+}
+
 ---`maxSlope` is multiplied by 1.5 at load, so 60 degrees is its actual "maximum",
 -- so has default value 15 * 1.5 = 22.5 for hovers and 90 for bots/vehicles/ships.
 local SLOPE = {
@@ -45,7 +54,7 @@ local moveDatas = {
 	COMMANDERBOT = {
 		crushstrength = 50,
 		depthModParams = {
-			minHeight = 0,
+			minHeight = DEPTH.NONE,
 			maxScale = 1.5,
 			quadraticCoeff = (9.9/22090)/2,
 			linearCoeff = (0.1/470)/2,
@@ -54,18 +63,18 @@ local moveDatas = {
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = SLOPE.MODERATE,
-		maxwaterdepth = 5000,
+		maxwaterdepth = DEPTH.AMPHIBIOUS,
 		maxwaterslope = SLOPE.STEEP,
 	},
 
 	--corroach corsktl armvader
 	ABOTBOMB2 = {
 	 	crushstrength = 50,
-	 	depthmod = 0,
+	 	depthmod = DEPTH.NONE,
 	 	footprintx = 2,
 	 	footprintz = 2,
 	 	maxslope = SLOPE.MODERATE,
-	 	maxwaterdepth = 5000,
+	 	maxwaterdepth = DEPTH.AMPHIBIOUS,
 	 	maxwaterslope = SLOPE.STEEP,
 	 	depthModParams = {
 	 		constantCoeff = 1.5,
@@ -75,23 +84,23 @@ local moveDatas = {
 	--critter_crab raptor_land_spiker_basic_t2_v1 cormando raptor_land_spiker_basic_t4_v1 armaak corcrash raptorems2_spectre armjeth coramph coraak
 	ABOT2 = {
 		crushstrength = 50,
-		depthmod = 0,
+		depthmod = DEPTH.NONE,
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = SLOPE.MODERATE,
-		maxwaterdepth = 5000,
+		maxwaterdepth = DEPTH.AMPHIBIOUS,
 		maxwaterslope = SLOPE.STEEP,
 	},
 
 	-- corgarp armbeaver armmar corparrow armprow corseal corsala cormuskrat armcroc armpincer corintr legassistdrone_land corassistdrone armassistdrone legotter corphantom
 	ATANK3 = {
 		crushstrength = 30,
-		depthmod = 0,
+		depthmod = DEPTH.NONE,
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = SLOPE.MODERATE,
 		slopeMod = SLOPE.MINIMUM,
-		maxwaterdepth = 5000,
+		maxwaterdepth = DEPTH.AMPHIBIOUS,
 		maxwaterslope = SLOPE.EXTREME,
 	},
 
@@ -101,14 +110,14 @@ local moveDatas = {
 		crushstrength = 9,
 		footprintx = 3,
 		footprintz = 3,
-		minwaterdepth = 8,
+		minwaterdepth = DEPTH.SHALLOW - 2,
 	},
 	--armmls armroy armaas corrsub corroy armship coracsub armserp  corpship  corarch
 	BOAT4 = {
 		crushstrength = 9,
 		footprintx = 4,
 		footprintz = 4,
-		minwaterdepth = 8,
+		minwaterdepth = DEPTH.SHALLOW - 2,
 	},
 	-- cruisers / missile ships / transport ships
 	-- armtship cormship corcrus armmship cortship armcrus
@@ -116,7 +125,7 @@ local moveDatas = {
 		crushstrength = 16,
 		footprintx = 5,
 		footprintz = 5,
-		minwaterdepth = 10,
+		minwaterdepth = DEPTH.SHALLOW,
 	},
 
 	-- armcarry armdronecarry armepoch corblackhy armbats corbats corcarry cordronecarry corsentinel armtrident coresuppt3
@@ -124,7 +133,7 @@ local moveDatas = {
 		crushstrength = 252,
 		footprintx = 9,
 		footprintz = 9,
-		minwaterdepth = 15,
+		minwaterdepth = DEPTH.SUBMERGED,
 	},
 
 
@@ -132,7 +141,7 @@ local moveDatas = {
 	UBOAT4 = {
 		footprintx = 4,
 		footprintz = 4,
-		minwaterdepth = 15,
+		minwaterdepth = DEPTH.SUBMERGED,
 		crushstrength = 5,
 		subMarine = 1,
 	},
@@ -193,7 +202,7 @@ local moveDatas = {
 		footprintz = 2,
 		maxslope = SLOPE.MINIMUM,
 		slopeMod = SLOPE.MINIMUM,
-		maxwaterdepth = 22,
+		maxwaterdepth = DEPTH.SHALLOW + 12,
 		depthModParams = {
 			minHeight = 4,
 			linearCoeff = 0.03,
@@ -208,7 +217,7 @@ local moveDatas = {
 		footprintz = 3,
 		maxslope = SLOPE.MINIMUM,
 		slopeMod = SLOPE.MINIMUM,
-		maxwaterdepth = 22,
+		maxwaterdepth = DEPTH.SHALLOW + 12,
 		depthModParams = {
 			minHeight = 4,
 			linearCoeff = 0.03,
@@ -223,7 +232,7 @@ local moveDatas = {
 		footprintz = 3,
 		maxslope = SLOPE.MINIMUM,
 		slopeMod = 25,
-		maxwaterdepth = 22,
+		maxwaterdepth = DEPTH.SHALLOW + 12,
 		depthModParams = {
 			minHeight = 4,
 			linearCoeff = 0.03,
@@ -237,7 +246,7 @@ local moveDatas = {
 		footprintz = 4,
 		maxslope = SLOPE.MINIMUM,
 		slopeMod = SLOPE.MODERATE,
-		maxwaterdepth = 22,
+		maxwaterdepth = DEPTH.SHALLOW + 12,
 		depthModParams = {
 			minHeight = 4,
 			linearCoeff = 0.03,
@@ -251,7 +260,7 @@ local moveDatas = {
 		footprintz = 7,
 		maxslope = SLOPE.MILD,
 		slopeMod = 42,
-		maxwaterdepth = 24,
+		maxwaterdepth = DEPTH.SHALLOW + 14,
 		depthModParams = {
 			minHeight = 4,
 			linearCoeff = 0.03,
@@ -266,7 +275,7 @@ local moveDatas = {
 		footprintx = 2,
 		footprintz = 2,
 		maxslope = SLOPE.MODERATE,
-		maxwaterdepth = 5,
+		maxwaterdepth = DEPTH.SHALLOW * 0.5,
 		depthModParams = {
 			minHeight = 4,
 			linearCoeff = 0.03,
@@ -280,7 +289,7 @@ local moveDatas = {
 		footprintx = 2,
 		footprintz = 2,
 		maxslope = SLOPE.MODERATE,
-		maxwaterdepth = 22,
+		maxwaterdepth = DEPTH.SHALLOW + 12,
 		depthModParams = {
 			minHeight = 4,
 			linearCoeff = 0.03,
@@ -293,7 +302,7 @@ local moveDatas = {
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = SLOPE.MODERATE,
-		maxwaterdepth = 22,
+		maxwaterdepth = DEPTH.SHALLOW + 12,
 		depthModParams = {
 			minHeight = 4,
 			linearCoeff = 0.03,
@@ -307,7 +316,7 @@ local moveDatas = {
 		footprintx = 4,
 		footprintz = 4,
 		maxslope = SLOPE.MODERATE,
-		maxwaterdepth = 22,
+		maxwaterdepth = DEPTH.SHALLOW + 12,
 		depthModParams = {
 			minHeight = 4,
 			linearCoeff = 0.03,
@@ -321,7 +330,7 @@ local moveDatas = {
 		footprintx = 4,
 		footprintz = 4,
 		maxslope = SLOPE.MODERATE,
-		maxwaterdepth = 26,
+		maxwaterdepth = DEPTH.SHALLOW + 16,
 		depthModParams = {
 			minHeight = 4,
 			linearCoeff = 0.03,
@@ -331,11 +340,11 @@ local moveDatas = {
 	-- corshiva armmar armbanth legjav
 	HABOT5 = {
 		crushstrength = 252,
-		depthmod = 0,
+		depthmod = DEPTH.NONE,
 		footprintx = 5,
 		footprintz = 5,
 		maxslope = SLOPE.MODERATE,
-		maxwaterdepth = 5000,
+		maxwaterdepth = DEPTH.AMPHIBIOUS,
 		maxwaterslope = SLOPE.EXTREME,
 	},
 	-- armvang corkarg corthermite
@@ -344,7 +353,7 @@ local moveDatas = {
 		footprintx = 6,
 		footprintz = 6,
 		maxslope = SLOPE.EXTREME,
-		maxwaterdepth = 22,
+		maxwaterdepth = DEPTH.SHALLOW + 12,
 		depthModParams = {
 			minHeight = 4,
 			linearCoeff = 0.03,
@@ -354,11 +363,11 @@ local moveDatas = {
 	-- corkorg legeheatraymech
 	VBOT6 = {
 		crushstrength = 1400,
-		depthmod = 0,
+		depthmod = DEPTH.NONE,
 		footprintx = 6,
 		footprintz = 6,
 		maxslope = SLOPE.MODERATE,
-		maxwaterdepth = 5000,
+		maxwaterdepth = DEPTH.AMPHIBIOUS,
 		maxwaterslope = SLOPE.MODERATE,
 	},
 	-- corjugg
@@ -367,7 +376,7 @@ local moveDatas = {
 		footprintx = 7,
 		footprintz = 7,
 		maxslope = SLOPE.MODERATE,
-		maxwaterdepth = 30,
+		maxwaterdepth = DEPTH.SHALLOW + 20,
 		depthModParams = {
 			minHeight = 4,
 			linearCoeff = 0.03,
@@ -381,8 +390,8 @@ local moveDatas = {
 		crushstrength = 15,
 		footprintx = 3,
 		footprintz = 3,
-		maxwaterdepth = 22,
-		depthmod = 0,
+		maxwaterdepth = DEPTH.SHALLOW + 12,
+		depthmod = DEPTH.NONE,
 		depthModParams = {
 			minHeight = 4,
 			linearCoeff = 0.03,
@@ -397,7 +406,7 @@ local moveDatas = {
 		badslope = SLOPE.MILD,
 		badwaterslope = SLOPE.MAXIMUM,
 		crushstrength = 99999,
-		depthmod = 0,
+		depthmod = DEPTH.NONE,
 		footprintx = 4,
 		footprintz = 4,
 		maxslope = SLOPE.MAXIMUM,
@@ -412,7 +421,7 @@ local moveDatas = {
 		badslope = SLOPE.MILD,
 		badwaterslope = SLOPE.MAXIMUM,
 		crushstrength = 25,
-		depthmod = 0,
+		depthmod = DEPTH.NONE,
 		footprintx = 2,
 		footprintz = 2,
 		maxslope = SLOPE.MODERATE,
@@ -425,7 +434,7 @@ local moveDatas = {
 		badslope = SLOPE.MILD,
 		badwaterslope = SLOPE.MAXIMUM,
 		crushstrength = 250,
-		depthmod = 0,
+		depthmod = DEPTH.NONE,
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = SLOPE.MODERATE,
@@ -438,7 +447,7 @@ local moveDatas = {
 		badslope = SLOPE.MILD,
 		badwaterslope = SLOPE.MAXIMUM,
 		crushstrength = 1500,
-		depthmod = 0,
+		depthmod = DEPTH.NONE,
 		footprintx = 4,
 		footprintz = 4,
 		maxslope = SLOPE.MODERATE,
@@ -449,11 +458,11 @@ local moveDatas = {
 	-- raptor_allterrain_swarmer_basic_t2_v1 raptor_allterrain_swarmer_basic_t4_v1 raptor_allterrain_swarmer_basic_t3_v1 raptor_allterrain_swarmer_acid_t2_v1 raptor_allterrain_swarmer_fire_t2_v1 raptor_6legged_I raptoreletricalallterrain
 	RAPTORALLTERRAINHOVER = {
 		crushstrength = 50,
-		depthmod = 0,
+		depthmod = DEPTH.NONE,
 		footprintx = 2,
 		footprintz = 2,
 		maxslope = SLOPE.MAXIMUM,
-		maxwaterdepth = 5000,
+		maxwaterdepth = DEPTH.AMPHIBIOUS,
 		maxwaterslope = SLOPE.STEEP,
 		speedmodclass = SPEED_CLASS.Hover,
 	},
@@ -461,22 +470,22 @@ local moveDatas = {
 	--raptor_allterrain_swarmer_emp_t2_v1assualt raptor_allterrain_assault_basic_t2_v1 raptoraallterraina1 raptoraallterrain1c raptoraallterrain1b
 	RAPTORALLTERRAINBIGHOVER = {
 		crushstrength = 250,
-		depthmod = 0,
+		depthmod = DEPTH.NONE,
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = SLOPE.MAXIMUM,
-		maxwaterdepth = 5000,
+		maxwaterdepth = DEPTH.AMPHIBIOUS,
 		maxwaterslope = SLOPE.STEEP,
 		speedmodclass = SPEED_CLASS.Hover,
 	},
 	-- raptor_allterrain_arty_basic_t4_v1 raptor_allterrain_arty_brood_t4_v1 raptorapexallterrainassualt raptorapexallterrainassualtb
 	RAPTORALLTERRAINBIG2HOVER = {
 		crushstrength = 250,
-		depthmod = 0,
+		depthmod = DEPTH.NONE,
 		footprintx = 4,
 		footprintz = 4,
 		maxslope = SLOPE.MAXIMUM,
-		maxwaterdepth = 5000,
+		maxwaterdepth = DEPTH.AMPHIBIOUS,
 		maxwaterslope = SLOPE.STEEP,
 		speedmodclass = SPEED_CLASS.Hover,
 	},
@@ -488,7 +497,7 @@ local moveDatas = {
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = SLOPE.MINIMUM,
-		maxwaterdepth = 0,
+		maxwaterdepth = DEPTH.NONE,
 	},
 
 	-- armcomboss corcomboss
@@ -504,7 +513,7 @@ local moveDatas = {
 		footprintx = 8,
 		footprintz = 8,
 		maxslope = SLOPE.EXTREME,
-		maxwaterdepth = 99999,
+		maxwaterdepth = DEPTH.MAXIMUM,
 		maxwaterslope = SLOPE.EXTREME,
 	},
 
@@ -523,23 +532,23 @@ local moveDatas = {
 	-- armpwt4 corakt4 armmeatball armassimilator armlunchbox
 	EPICBOT = {
 		crushstrength = 9999,
-		depthmod = 0,
+		depthmod = DEPTH.NONE,
 		footprintx = 4,
 		footprintz = 4,
 		maxslope = SLOPE.MODERATE,
-		maxwaterdepth = 9999,
+		maxwaterdepth = DEPTH.MAXIMUM,
 		maxwaterslope = SLOPE.STEEP,
 		speedmodclass = SPEED_CLASS.KBot,
 	},
 	-- corgolt4 armrattet4
 	EPICVEH = {
 		crushstrength = 9999,
-		depthmod = 0,
+		depthmod = DEPTH.NONE,
 		footprintx = 5,
 		footprintz = 5,
 		maxslope = SLOPE.MODERATE,
 		slopeMod = SLOPE.MINIMUM,
-		maxwaterdepth = 9999,
+		maxwaterdepth = DEPTH.MAXIMUM,
 		maxwaterslope = SLOPE.STEEP,
 		speedmodclass = SPEED_CLASS.Tank,
 	},
@@ -551,19 +560,19 @@ local moveDatas = {
 		footprintx = 5,
 		footprintz = 5,
 		maxslope = SLOPE.MAXIMUM,
-		minwaterdepth = 12,
-		maxwaterdepth = 9999,
+		minwaterdepth = DEPTH.SHALLOW + 2,
+		maxwaterdepth = DEPTH.MAXIMUM,
 		maxwaterslope = SLOPE.MAXIMUM,
 		speedmodclass = SPEED_CLASS.Ship,
 	},
 	-- armvadert4 armsptkt4 corkargenetht4
 	EPICALLTERRAIN = {
 		crushstrength = 9999,
-		depthmod = 0,
+		depthmod = DEPTH.NONE,
 		footprintx = 5,
 		footprintz = 5,
 		maxslope = SLOPE.MAXIMUM,
-		maxwaterdepth = 9999,
+		maxwaterdepth = DEPTH.MAXIMUM,
 		maxwaterslope = SLOPE.MAXIMUM,
 		speedmodclass = SPEED_CLASS.KBot,
 	},
@@ -571,8 +580,8 @@ local moveDatas = {
 	EPICSUBMARINE = {
 		footprintx = 5,
 		footprintz = 5,
-		minwaterdepth = 15,
-		maxwaterdepth = 9999,
+		minwaterdepth = DEPTH.SUBMERGED,
+		maxwaterdepth = DEPTH.MAXIMUM,
 		crushstrength = 9999,
 		subMarine = 1,
 		speedmodclass = SPEED_CLASS.Ship,
