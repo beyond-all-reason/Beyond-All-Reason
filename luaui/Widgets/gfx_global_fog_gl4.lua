@@ -203,6 +203,22 @@ local fogUniforms = {
 
 	}
 	
+local uniformSliderParamsList = {
+	{name = 'distanceFogColor', default = fogUniforms.distanceFogColor, min = 0, max = 2, digits = 3, tooltip =  'distanceFogColor, alpha is density multiplier'},
+	{name = 'shadowedColor', default = fogUniforms.shadowedColor, min = 0, max = 2, digits = 3, tooltip =  'shadowedColor, Color of the shadowed areas, ideally black, alpha is strength'},
+	{name = 'heightFogColor', default = fogUniforms.heightFogColor, min = 0, max = 2, digits = 3, tooltip =  'heightFogColor, alpha is the ABSOLUTE MAXIMUM FOG'},
+	{name = 'heightFogTop', default = fogUniforms.heightFogTop, min = math.floor(minHeight), max = math.floor(maxHeight * 2), digits = 0, tooltip =  'heightFogTop, in elmos'},
+	{name = 'heightFogBottom', default = fogUniforms.heightFogBottom, min = math.floor(minHeight), max = math.floor(maxHeight), digits = 0, tooltip =  'heightFogBottom, in elmos'},
+	{name = 'scavengerPlane', default = fogUniforms.scavengerPlane, min = 0, max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'Where the scavenger cloud is'},
+
+	{name = 'cloudVolumeMin', default = fogUniforms.cloudVolumeMin, min = 0,max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'Start of the cloud volume'},
+	{name = 'cloudVolumeMax', default = fogUniforms.cloudVolumeMax, min = 0, max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'End of the cloud volume'},
+
+	{name = 'cloudGlobalColor', default = fogUniforms.cloudGlobalColor, min = 0, max = 2, digits = 3, tooltip =  'cloudGlobalColor, alpha is the ABSOLUTE MAXIMUM FOG'},
+	{name = 'cloudDensity', default = fogUniforms.cloudDensity, min = 0.000, max = 0.1, digits = 3, tooltip =  'How dense the clouds are'},
+	{name = 'noiseLFParams', default = fogUniforms.noiseLFParams, min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: threshold, 3-4 unused'},
+	{name = 'noiseHFParams', default = fogUniforms.noiseHFParams, min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: Perturb, 3: SpeedX, 4: SpeedZ'},
+}
 
 local fogUniformSliders = {
 	windowtitle = "Fog Uniforms",
@@ -215,22 +231,7 @@ local fogUniformSliders = {
 	height = 20,
 	sliderheight = 20,
 	valuetarget = fogUniforms,
-	sliderParamsList = {
-		{name = 'distanceFogColor', min = 0, max = 2, digits = 3, tooltip =  'distanceFogColor, alpha is density multiplier'},
-		{name = 'shadowedColor', min = 0, max = 2, digits = 3, tooltip =  'shadowedColor, Color of the shadowed areas, ideally black, alpha is strength'},
-		{name = 'heightFogColor', min = 0, max = 2, digits = 3, tooltip =  'heightFogColor, alpha is the ABSOLUTE MAXIMUM FOG'},
-		{name = 'heightFogTop', min = math.floor(minHeight), max = math.floor(maxHeight * 2), digits = 0, tooltip =  'heightFogTop, in elmos'},
-		{name = 'heightFogBottom', min = math.floor(minHeight), max = math.floor(maxHeight), digits = 0, tooltip =  'heightFogBottom, in elmos'},
-		{name = 'scavengerPlane', min = 0, max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'Where the scavenger cloud is'},
-	
-		{name = 'cloudVolumeMin', min = 0,max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'Start of the cloud volume'},
-		{name = 'cloudVolumeMax', min = 0, max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'End of the cloud volume'},
-		
-		{name = 'cloudGlobalColor', min = 0, max = 2, digits = 3, tooltip =  'cloudGlobalColor, alpha is the ABSOLUTE MAXIMUM FOG'},
-		{name = 'cloudDensity', min = 0.000, max = 0.1, digits = 3, tooltip =  'How dense the clouds are'},
-		{name = 'noiseLFParams', min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: threshold, 3-4 unused'},
-		{name = 'noiseHFParams', min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: Perturb, 3: SpeedX, 4: SpeedZ'},
-	},
+	sliderParamsList = uniformSliderParamsList,
 	callbackfunc = nil
 }
 
@@ -406,7 +407,7 @@ local function initGL4()
 end
 
 local function SetFogParams(paramname, paramvalue, paramIndex)
-	Spring.Echo("SetFogParams",paramname, paramvalue)
+	Spring.Echo("SetFogParams",paramname, paramvalue, paramIndex)
 	if fogUniforms[paramname] then
 		if paramIndex then 
 			fogUniforms[paramname][paramIndex] = paramvalue
@@ -573,24 +574,18 @@ function widget:Initialize()
 		end
 	end
 	
-	document = widget.rmlContext:LoadDocument("LuaUi/Widgets/rml_widget_assets/simple_demo.rml", widget)
+	document = widget.rmlContext:LoadDocument("LuaUi/Widgets/rml_widget_assets/global_fog.rml", widget)
 
-	
 	local slidersDiv = document:GetElementById('fogsliders')
 	for i, definesSlider in ipairs(definesSlidersParamsList) do 
 		--	{name = 'HALFSHIFT', default = 1, min = 0, max = 1, digits = 0, tooltip = 'If the resolution is half, perform a half-pixel shifting'},
 
 		--[[	
 		Range type
-
-		min = number (CN)
-			For the range type, defines the value at the lowest (left or top) end of the slider.
-		max = number (CN)
-			For the range type, defines the value at the highest (right or bottom) end of the slider.
-		step = number (CN)
-			For the range type, defines the increment that the slider will move by.
-		orientation = cdata (CI)
-			For the range type, specifies if it is a vertical or horizontal slider. Values can be horizontal or vertical. 
+		min = number (CN) For the range type, defines the value at the lowest (left or top) end of the slider.
+		max = number (CN) For the range type, defines the value at the highest (right or bottom) end of the slider.
+		step = number (CN) For the range type, defines the increment that the slider will move by.
+		orientation = cdata (CI) For the range type, specifies if it is a vertical or horizontal slider. Values can be horizontal or vertical.
 		]]--
 
 		local sliderElement = document:CreateElement('label')
@@ -618,17 +613,64 @@ function widget:Initialize()
 				return
 			end
 			local value = newvalue or tonumber(slider.attributes.value)
-			-- Spring.Echo("slider changed", slider.id, slider.min, slider.max, slider.step, value)
-			-- local element = document:GetElementById(slider.id)
 			-- Spring.Echo("element changed", element.id, element.min, element.max, element.step, element.value)
-			-- Spring.Echo(element:GetAttribute("min"))
-			-- Spring.Echo(element:GetAttribute("value"))
 			shaderDefinesChangedCallback(slider.id, value, nil, nil)
 		end) --data-event-onChange =" callshaderDefinesChangedCallback(\'%s\')"
 
 		slidersDiv:AppendChild(sliderElement)
 	end 
- 
+
+	local fogUniformSlidersDiv = document:GetElementById('foguniformsliders')
+
+	for i, uniformSlider in ipairs(uniformSliderParamsList) do 
+		local defaultType = type(fogUniforms[uniformSlider.name])
+		local defaultValues
+		if defaultType == "table" then 
+			defaultValues = fogUniforms[uniformSlider.name]
+		else
+			defaultValues = {fogUniforms[uniformSlider.name]}
+		end
+
+
+		for j, v in ipairs(defaultValues) do 
+			local defaultvalue = v or 0.0 
+
+				
+			local sliderElement = document:CreateElement('label')
+			-- How to right align a div?
+			local maxstring = string.format('%.' .. uniformSlider.digits .. 'f', uniformSlider.max)
+			local maxstringPadded = string.format('%5s', maxstring):gsub(' ', '&#x2007;')
+
+
+			local sliderhtmlstring = string.format('<div class="code" style="text-align: right;"> %s-%d %f <input type="range" id="%s"  min="%f" max="%f" step="%f" value="%f" /> %s </div> ', 
+				uniformSlider.name,j,uniformSlider.min, uniformSlider.name,  uniformSlider.min, uniformSlider.max, math.pow(10, -1 * uniformSlider.digits) , defaultvalue,maxstringPadded)
+			sliderElement.inner_rml = sliderhtmlstring
+			-- Add the lister:
+			sliderElement:AddEventListener('change', function(event)
+				--Spring.Echo(event, event.target_element, event.parameters)
+				local newvalue = nil 
+
+				-- The eventproxy userdata object contains the new value, otherwise you can only get the previous value :D 
+				if event and event.parameters and event.parameters.value then 
+					newvalue = tonumber(event.parameters.value)
+				end
+
+				-- https://mikke89.github.io/RmlUiDoc/pages/lua_manual/api_reference.html#Element
+				local slider = event.target_element
+				if slider.attributes.value == newvalue then 
+					Spring.Echo("Slider value did not change", slider.id, slider.attributes.value, newvalue)
+					return
+				end
+				local value = newvalue or tonumber(slider.attributes.value)
+				-- Spring.Echo("element changed", element.id, element.min, element.max, element.step, element.value)
+				local paramIndex = (defaultType == "table") and j or nil
+				SetFogParams(slider.id, value, paramIndex)
+			end) --data-event-onChange =" callshaderDefinesChangedCallback(\'%s\')"
+
+			fogUniformSlidersDiv:AppendChild(sliderElement) 
+		end
+	end
+
 	document:ReloadStyleSheet()  
 	document:Show()
 
@@ -863,16 +905,30 @@ if autoreload then
 				shaderSourceCache.updateFlag = nil
 				lastfps = newfps
 			end
+			
+
+			local hasprintf = false
+			if groundFogShader.DrawPrintf then 
+				groundFogShader.DrawPrintf() 
+				hasprintf = true
+			end
+			if combineShader.DrawPrintf then 
+				combineShader.DrawPrintf(nil,nil, -70) 
+				hasprintf = true
+			end
+
+
 			local fogdrawus = (1000/newfps - 1000/initfps)
 			local fogdrawlast = (1000/lastfps - 1000/initfps)
 			if fogdrawlast == 0 then fogdrawlast = 0.001 end
-			gl.Text(string.format("Fog draw time = %.3f ms, previous = %.3f ms", fogdrawus, fogdrawlast),  vsx - 600,  100, 16, "d")
-			gl.Text(string.format("%.3f delta ms (%.1f%%) \n%.3f ms total draw time\nNo fog FPS = %d", fogdrawus-fogdrawlast, 100*fogdrawus/fogdrawlast , 1000/newfps, initfps ),  vsx - 600,  80, 16, "d")
+			local debugline = string.format("Fog draw time = %.3f ms, previous = %.3f ms", fogdrawus, fogdrawlast)
+			if hasprintf then 
+				debugline = debugline .. " (printf ON)"
+			end
+			local percentChange = 100*fogdrawus/fogdrawlast - 100.0
+			debugline = debugline .. "\n" ..  string.format("%.3f delta ms (%.1f%%) since last recompilation \n%.3f ms total draw time\nNo fog FPS = %d, current FPS =%d", fogdrawus-fogdrawlast, percentChange , 1000/newfps, initfps, newfps )
+			gl.Text(debugline,  vsx - 800,  80, 16, "d")
 
-
-	
-			if groundFogShader.DrawPrintf then groundFogShader.DrawPrintf() end
-			if combineShader.DrawPrintf then combineShader.DrawPrintf(nil,nil, -70) end
 	
 
 	end

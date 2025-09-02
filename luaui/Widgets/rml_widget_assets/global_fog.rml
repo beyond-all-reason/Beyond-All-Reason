@@ -47,6 +47,12 @@
             </h6>
         </div>  
         <div class="element">
+            <h6>
+            <div id = "foguniformsliders", style="display: flex; flex-direction: column; gap: 0.1em;">
+            </div>
+            </h6>
+        </div>  
+        <div class="element">
             <h6> FOG BUTTONS</h6>
             
             <div id = "fogbuttons", style="display: flex">
