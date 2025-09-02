@@ -50,6 +50,7 @@ return {
 		waterline = 0,
 		workertime = 1000,
 		customparams = {
+			advancedradar = "0.5",
 			model_author = "Odin",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorShips/T2",
