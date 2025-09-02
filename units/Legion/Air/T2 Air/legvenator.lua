@@ -29,7 +29,7 @@ return {
 		script = "Units/legvenator.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericAir",
-		sightdistance = 250,
+		sightdistance = 430,
 		speedtofront = 0.06475,
 		stealth = true,
 		turnradius = 90,
