@@ -633,11 +633,11 @@ local options = {
     {
         key		= "raptor_queen_count",
         name	= "Raptor Queen Count",
-        desc	= "(Range: 1 - 20). Number of queens that will spawn.",
+        desc	= "(Range: 1 - 100). Number of queens that will spawn.",
         type	= "number",
         def		= 1,
         min		= 1,
-        max		= 20,
+        max		= 100,
         step	= 1,
         section	= "raptor_defense_options",
     },
