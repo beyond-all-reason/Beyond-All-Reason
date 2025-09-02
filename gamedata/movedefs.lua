@@ -1,24 +1,26 @@
 ----------------------------------------------------------------------------------
---README
---for organizational purposes all unit deffs must be added to thge movedeff name.
--- formatted as such
---
-	-- armfav/corfav                   <-- add unitdeffname here for the below movedeff type
-	--TANK1 = {
-	--	crushstrength = 10,
-	--	footprintx = 2,
-	--	footprintz = 2,
-	--	maxslope = 18,
-	--	slopeMod = 18,
-	--	maxwaterdepth = 22,
-	--	depthModParams = {
-	--		minHeight = 4,
-	--		linearCoeff = 0.03,
-	--		maxValue = 0.7,
-	--	}
-	--},
+-- README
+-- For organizational purposes all unit deffs must be added to thge movedeff name.
+-- Formatted as such:
+
+-- -- armfav corfav        <-- add internal names above for the below movedef type
+-- TANK1 = {
+--    crushstrength = 10,
+--    footprintx = 1,      <-- footprint size must match moveDef name
+--    footprintz = 1,      <-- and must be square
+--    maxslope = 18,
+--    slopeMod = 18,
+--    maxwaterdepth = 22,
+--    depthModParams = {
+--        minHeight = 4,
+--        linearCoeff = 0.03,
+--        maxValue = 0.7,
+--    }
+-- },
 
 ----------------------------------------------------------------------------------
+-- REFERENCE VALUES
+-- These are for readability more than correctness, really.
 
 local CRUSH = {
 	NONE    = 0,
@@ -62,8 +64,11 @@ local SPEED_CLASS = Game and Game.speedModClasses or {
 	Ship  = 3,
 }
 
+----------------------------------------------------------------------------------
+-- MOVE DEFS
+
 local moveDatas = {
-					--all arm and core commanders and their decoys
+	--all arm and core commanders and their decoys
 	COMMANDERBOT = {
 		crushstrength = CRUSH.LARGE,
 		depthModParams = {
@@ -72,7 +77,7 @@ local moveDatas = {
 			quadraticCoeff = (9.9/22090)/2,
 			linearCoeff = (0.1/470)/2,
 			constantCoeff = 1,
-			},
+		},
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = SLOPE.MODERATE,
@@ -117,7 +122,6 @@ local moveDatas = {
 		maxwaterslope = SLOPE.EXTREME,
 	},
 
-
 	-- corcs armsjam corpt armdecade armtorps corshark critter_goldfish armcs correcl armrecl  corsupp  corsjam cormls armpt
 	BOAT3 = {
 		crushstrength = CRUSH.LIGHT - 1,
@@ -140,7 +144,6 @@ local moveDatas = {
 		footprintz = 5,
 		minwaterdepth = DEPTH.SHALLOW,
 	},
-
 	-- armcarry armdronecarry armepoch corblackhy armbats corbats corcarry cordronecarry corsentinel armtrident coresuppt3
 	BOAT8 = {
 		crushstrength = CRUSH.HEAVY + 2,
@@ -148,7 +151,6 @@ local moveDatas = {
 		footprintz = 9,
 		minwaterdepth = DEPTH.SUBMERGED,
 	},
-
 
 	--critter_goldfish coracsub armacsub armserp corrsub armsubk correcl corshark corsub
 	UBOAT4 = {
@@ -158,7 +160,6 @@ local moveDatas = {
 		crushstrength = CRUSH.TINY,
 		subMarine = 1,
 	},
-
 
 	--corsh armah armch armsh
 	HOVER2 = {
@@ -183,7 +184,6 @@ local moveDatas = {
 		slopeMod = 25,
 		maxwaterslope = SLOPE.MAXIMUM,
 	},
-
 	-- armlun corsok armthover corthovr lootboxgold lootboxplatinum
 	HHOVER4 = {
 		badslope = SLOPE.MILD,
@@ -195,7 +195,6 @@ local moveDatas = {
 		slopeMod = SLOPE.MINIMUM,
 		maxwaterslope = SLOPE.MAXIMUM,
 	},
-
 	-- armamph
 	HOVER5 = {
 		badslope = SLOPE.MODERATE,
@@ -220,7 +219,7 @@ local moveDatas = {
 			minHeight = 4,
 			linearCoeff = 0.03,
 			maxValue = 0.7,
-		}
+		},
 	},
 	-- armjam corraid armjanus armsam armstump corwolv legcv corsent coreter corcv  cormist legrail legacv armacv armgremlin armmlv
 	--armcv armart coracv corlevlr leggat legbar armseer armmart armyork corforge cormabm legvcarry corvrad cormart
@@ -235,7 +234,7 @@ local moveDatas = {
 			minHeight = 4,
 			linearCoeff = 0.03,
 			maxValue = 0.7,
-		}
+		},
 	},
 
 	--corprinter corvac corvacct correap corftiger armbull legsco corvoc armmerl
@@ -250,7 +249,7 @@ local moveDatas = {
 			minHeight = 4,
 			linearCoeff = 0.03,
 			maxValue = 0.7,
-		}
+		},
 	},
 	-- corgol leginf corban cortrem armmanni armmerl legkeres legmed corsiegebreaker
 	HTANK4 = {
@@ -264,7 +263,7 @@ local moveDatas = {
 			minHeight = 4,
 			linearCoeff = 0.03,
 			maxValue = 0.7,
-		}
+		},
 	},
 	-- armthor
 	HTANK5 = {
@@ -278,7 +277,7 @@ local moveDatas = {
 			minHeight = 4,
 			linearCoeff = 0.03,
 			maxValue = 0.7,
-		}
+		},
 	},
 
 	--armflea critter_ant dice critter_penguinbro critter_penguin critter_duck xmasballs chip
@@ -293,9 +292,8 @@ local moveDatas = {
 			minHeight = 4,
 			linearCoeff = 0.03,
 			maxValue = 0.7,
-		}
+		},
 	},
-
 	--cornecro leggob legkark armpw armfark armrectr corak corfast corspy leglob armspy 
 	BOT3 = {
 		crushstrength = CRUSH.SMALL - 3,
@@ -307,7 +305,7 @@ local moveDatas = {
 			minHeight = 4,
 			linearCoeff = 0.03,
 			maxValue = 0.7,
-		}
+		},
 	},
 	--  armfido leggstr corhrk armmav armfast armzeus
 	BOT4 = {
@@ -320,7 +318,7 @@ local moveDatas = {
 			minHeight = 4,
 			linearCoeff = 0.03,
 			maxValue = 0.7,
-		}
+		},
 	},
 	-- this movedeff dies when seperation distance is a current feature in bar
 	-- corhrk
@@ -334,7 +332,7 @@ local moveDatas = {
 			minHeight = 4,
 			linearCoeff = 0.03,
 			maxValue = 0.7,
-		}
+		},
 	},
 
 	-- armraz legpede corcat leginc armfboy corsumo legmech cordemon
@@ -348,7 +346,7 @@ local moveDatas = {
 			minHeight = 4,
 			linearCoeff = 0.03,
 			maxValue = 0.7,
-		}
+		},
 	},
 	-- corshiva armmar armbanth legjav
 	HABOT5 = {
@@ -371,7 +369,7 @@ local moveDatas = {
 			minHeight = 4,
 			linearCoeff = 0.03,
 			maxValue = 0.7,
-		}
+		},
 	},
 	-- corkorg legeheatraymech
 	VBOT6 = {
@@ -394,10 +392,8 @@ local moveDatas = {
 			minHeight = 4,
 			linearCoeff = 0.03,
 			maxValue = 0.7,
-		}
+		},
 	},
-
-
 	-- legsrail armscab armsptk cortermite armspid pbr_cube  dbg_sphere_fullmetal _dbgsphere leginfestor
 	TBOT3 = {
 		crushstrength = CRUSH.SMALL - 3,
@@ -409,7 +405,7 @@ local moveDatas = {
 			minHeight = 4,
 			linearCoeff = 0.03,
 			maxValue = 0.7,
-		}
+		},
 	},
 
 	--Raptor Movedefs
@@ -503,7 +499,6 @@ local moveDatas = {
 		speedmodclass = SPEED_CLASS.Hover,
 	},
 
-
 	-- leghive armnanotc cornanotc cornanotcplat  raptor_worm_green raptor_turret_acid_t2_v1 raptor_turret_meteor_t4_v1
 	NANO = {
 		crushstrength = CRUSH.NONE,
@@ -529,8 +524,6 @@ local moveDatas = {
 		maxwaterdepth = DEPTH.MAXIMUM,
 		maxwaterslope = SLOPE.EXTREME,
 	},
-
-
 	-- scavmist  scavmistxl scavmisstxxl
 	SCAVMIST = {
 		badwaterslope = SLOPE.MAXIMUM,
@@ -538,11 +531,10 @@ local moveDatas = {
 		crushstrength = CRUSH.NONE,
 		footprintx = 2,
 		footprintz = 2,
-		--maxwaterdepth = 22,
-		maxwaterslope = 255,
 		maxwaterslope = SLOPE.MAXIMUM,
 		speedmodclass = SPEED_CLASS.Hover,
 	},
+
 	-- armpwt4 corakt4 armmeatball armassimilator armlunchbox
 	EPICBOT = {
 		crushstrength = CRUSH.MASSIVE,
@@ -566,8 +558,6 @@ local moveDatas = {
 		maxwaterslope = SLOPE.STEEP,
 		speedmodclass = SPEED_CLASS.Tank,
 	},
-
-
 	-- corslrpc armdecadet3 armptt2 armpshipt3
 	EPICSHIP = {
 		crushstrength = CRUSH.MASSIVE,
