@@ -391,7 +391,7 @@ local moveDatas = {
 		footprint = 4,
 		maxslope = SLOPE.MAXIMUM,
 		maxwaterslope = SLOPE.MAXIMUM,
-		speedmodclass = SPEED_CLASS.Hover,
+		speedModClass = SPEED_CLASS.Hover,
 	},
 	-- raptor_land_swarmer_heal_t1_v1 raptor_land_swarmer_basic_t4_v2 raptor_land_swarmer_spectre_t4_v1 raptor_land_swarmer_basic_t4_v1 raptor_land_swarmer_emp_t2_v1 raptor_land_swarmer_basic_t1_v1 raptor_land_kamikaze_emp_t2_v1 raptor_land_spiker_basic_t4_v1
 	--raptor_land_kamikaze_emp_t4_v1 raptor_land_spiker_basic_t2_v1 raptor_land_swarmer_basic_t3_v2 raptor_land_swarmer_basic_t3_v1 raptor_land_swarmer_basic_t3_v3 raptor_land_swarmer_basic_t2_v4 raptor_land_swarmer_basic_t2_v3 raptor_land_swarmer_basic_t2_v2 raptor_land_swarmer_basic_t2_v1 raptor_land_swarmer_brood_t3_v1 raptor_land_swarmer_brood_t4_v1
@@ -406,7 +406,7 @@ local moveDatas = {
 		maxslope = SLOPE.DIFFICULT,
 		slopeMod = SLOPE_MOD.MODERATE,
 		maxwaterslope = SLOPE.MAXIMUM,
-		speedmodclass = SPEED_CLASS.Hover,
+		speedModClass = SPEED_CLASS.Hover,
 	},
 	-- raptor_land_assault_emp_t2_v1 raptoracidassualt raptor_land_assault_basic_t2_v1 raptor_land_assault_basic_t2_v3 raptor_land_swarmer_basic_t2_v2 raptor_land_assault_spectre_t2_v1
 	RAPTORBIGHOVER = {
@@ -418,7 +418,7 @@ local moveDatas = {
 		maxslope = SLOPE.DIFFICULT,
 		slopeMod = SLOPE_MOD.MODERATE,
 		maxwaterslope = SLOPE.MAXIMUM,
-		speedmodclass = SPEED_CLASS.Hover,
+		speedModClass = SPEED_CLASS.Hover,
 	},
 	-- raptor_land_assault_spectre_t4_v1 raptora2 raptor_land_assault_basic_t4_v2
 	RAPTORBIG2HOVER = {
@@ -430,7 +430,7 @@ local moveDatas = {
 		maxslope = SLOPE.DIFFICULT,
 		slopeMod = SLOPE_MOD.MODERATE,
 		maxwaterslope = SLOPE.MAXIMUM,
-		speedmodclass = SPEED_CLASS.Hover,
+		speedModClass = SPEED_CLASS.Hover,
 	},
 	-- raptor_allterrain_swarmer_basic_t2_v1 raptor_allterrain_swarmer_basic_t4_v1 raptor_allterrain_swarmer_basic_t3_v1 raptor_allterrain_swarmer_acid_t2_v1 raptor_allterrain_swarmer_fire_t2_v1 raptor_6legged_I raptoreletricalallterrain
 	RAPTORALLTERRAINHOVER = {
@@ -440,7 +440,7 @@ local moveDatas = {
 		maxslope = SLOPE.MAXIMUM,
 		maxwaterdepth = DEPTH.AMPHIBIOUS,
 		maxwaterslope = SLOPE.EXTREME,
-		speedmodclass = SPEED_CLASS.Hover,
+		speedModClass = SPEED_CLASS.Hover,
 	},
 	-- raptor_allterrain_arty_basic_t2_v1 raptor_allterrain_arty_acid_t2_v1 raptor_allterrain_arty_acid_t4_v1 raptor_allterrain_arty_emp_t2_v1 raptor_allterrain_arty_emp_t4_v1 raptor_allterrain_arty_brood_t2_v1 raptoracidalllterrrainassual
 	--raptor_allterrain_swarmer_emp_t2_v1assualt raptor_allterrain_assault_basic_t2_v1 raptoraallterraina1 raptoraallterrain1c raptoraallterrain1b
@@ -451,7 +451,7 @@ local moveDatas = {
 		maxslope = SLOPE.MAXIMUM,
 		maxwaterdepth = DEPTH.AMPHIBIOUS,
 		maxwaterslope = SLOPE.EXTREME,
-		speedmodclass = SPEED_CLASS.Hover,
+		speedModClass = SPEED_CLASS.Hover,
 	},
 	-- raptor_allterrain_arty_basic_t4_v1 raptor_allterrain_arty_brood_t4_v1 raptorapexallterrainassualt raptorapexallterrainassualtb
 	RAPTORALLTERRAINBIG2HOVER = {
@@ -461,7 +461,7 @@ local moveDatas = {
 		maxslope = SLOPE.MAXIMUM,
 		maxwaterdepth = DEPTH.AMPHIBIOUS,
 		maxwaterslope = SLOPE.EXTREME,
-		speedmodclass = SPEED_CLASS.Hover,
+		speedModClass = SPEED_CLASS.Hover,
 	},
 
 	-- leghive armnanotc cornanotc cornanotcplat  raptor_worm_green raptor_turret_acid_t2_v1 raptor_turret_meteor_t4_v1
@@ -494,7 +494,7 @@ local moveDatas = {
 		crushstrength = CRUSH.NONE,
 		footprint = 2,
 		maxwaterslope = SLOPE.MAXIMUM,
-		speedmodclass = SPEED_CLASS.Hover,
+		speedModClass = SPEED_CLASS.Hover,
 	},
 
 	-- armpwt4 corakt4 armmeatball armassimilator armlunchbox
@@ -505,7 +505,7 @@ local moveDatas = {
 		maxslope = SLOPE.DIFFICULT,
 		maxwaterdepth = DEPTH.MAXIMUM,
 		maxwaterslope = SLOPE.EXTREME,
-		speedmodclass = SPEED_CLASS.KBot,
+		speedModClass = SPEED_CLASS.KBot,
 	},
 	-- corgolt4 armrattet4
 	EPICVEH = {
@@ -516,7 +516,7 @@ local moveDatas = {
 		slopeMod = SLOPE_MOD.MODERATE,
 		maxwaterdepth = DEPTH.MAXIMUM,
 		maxwaterslope = SLOPE.EXTREME,
-		speedmodclass = SPEED_CLASS.Tank,
+		speedModClass = SPEED_CLASS.Tank,
 	},
 	-- corslrpc armdecadet3 armptt2 armpshipt3
 	EPICSHIP = {
@@ -526,7 +526,7 @@ local moveDatas = {
 		minwaterdepth = DEPTH.SHALLOW + 2,
 		maxwaterdepth = DEPTH.MAXIMUM,
 		maxwaterslope = SLOPE.MAXIMUM,
-		speedmodclass = SPEED_CLASS.Ship,
+		speedModClass = SPEED_CLASS.Ship,
 	},
 	-- armvadert4 armsptkt4 corkargenetht4
 	EPICALLTERRAIN = {
@@ -536,7 +536,7 @@ local moveDatas = {
 		maxslope = SLOPE.MAXIMUM,
 		maxwaterdepth = DEPTH.MAXIMUM,
 		maxwaterslope = SLOPE.MAXIMUM,
-		speedmodclass = SPEED_CLASS.KBot,
+		speedModClass = SPEED_CLASS.KBot,
 	},
 	-- armserpt3
 	EPICSUBMARINE = {
@@ -545,7 +545,7 @@ local moveDatas = {
 		maxwaterdepth = DEPTH.MAXIMUM,
 		crushstrength = CRUSH.MASSIVE,
 		subMarine = 1,
-		speedmodclass = SPEED_CLASS.Ship,
+		speedModClass = SPEED_CLASS.Ship,
 	},
 }
 
@@ -568,7 +568,7 @@ for moveName, moveData in pairs(moveDatas) do
 
 	if moveData.maxslope then
 		if type(moveName) == "string" and moveName:find("BOT") then
-			moveData.slopemod = SLOPE_MOD.MINIMUM
+			moveData.slopeMod = SLOPE_MOD.MINIMUM
 		end
 		---`maxSlope` is multiplied by 1.5 at load, so 60 degrees is its actual "maximum",
 		-- so has default value 15 * 1.5 = 22.5 for hovers and 90 for bots/vehicles/ships.
