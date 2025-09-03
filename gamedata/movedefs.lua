@@ -63,12 +63,7 @@ local SLOPE_MOD = {
 }
 
 ---See MoveDef::SpeedModClass, ParseSpeedModClass.
-local SPEED_CLASS = Game and Game.speedModClasses or {
-	Tank  = 0,
-	KBot  = 1,
-	Hover = 2,
-	Ship  = 3,
-}
+local SPEED_CLASS = Game.speedModClasses
 
 ----------------------------------------------------------------------------------
 -- MOVE DEFS
