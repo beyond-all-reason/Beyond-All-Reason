@@ -12,6 +12,8 @@ function widget:GetInfo()
 	}
 end
 
+local halfpi = math.pi / 2
+
 local function cameraFlipHandler()
 	local camState = Spring.GetCameraState()
 
@@ -41,13 +43,25 @@ local function cameraFlipHandler()
 	In other words, the cardinal lock behavior is asymmetrical with regards to the cardinal
 	directions, and the asymmetry is mirrored around 0.0f.
 
+	Notably, behavior around 0.0f is also unusual. All values between (-0.3) * halfpi and
+	(0.3) * halfpi will cardinally lock to 0. This requires special handling when ry is
+	between -0.1 and 0.1 * halfpi.
+
 	Feel free to investigate and/or fix `static float GetRotationWithCardinalLock(float rot)` in
 	`SpringController.cpp`.
 	]]
+
+	local cardinalLock = Spring.GetConfigInt("CamSpringLockCardinalDirections")
+	local lockCorrection = 0
+	if cardinalLock == 1 and math.abs(camState.ry) < 0.1 * halfpi then
+		-- Edge case around 0.0f: values with absolute value less than 0.1 * halfpi
+		-- should be corrected so that they have absolute value between 0.1 and 0.3 * halfpi.
+		lockCorrection = 0.1 * halfpi
+	end
 	if camState.ry > 0 then
-		camState.ry = camState.ry + math.pi
+		camState.ry = camState.ry + math.pi + lockCorrection
 	else
-		camState.ry = camState.ry - math.pi
+		camState.ry = camState.ry - math.pi - lockCorrection
 	end
 
 	Spring.SetCameraState(camState, 0)
