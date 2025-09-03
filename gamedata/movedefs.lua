@@ -610,7 +610,7 @@ for moveName, moveData in pairs(moveDatas) do
 	moveData.allowTerrainCollisions = false
 
 	if moveData.maxslope then
-		if moveName and string.find(moveName, "BOT") then
+		if type(moveName) == "string" and moveName:find("BOT") then
 			moveData.slopemod = SLOPE_MOD.MINIMUM
 		end
 		---`maxSlope` is multiplied by 1.5 at load, so 60 degrees is its actual "maximum",
@@ -618,7 +618,16 @@ for moveName, moveData in pairs(moveDatas) do
 		moveData.maxslope = moveData.maxslope / 1.5
 	end
 
-	defs[#defs + 1] = moveData
+	if type(moveName) == "string" then
+		local accept = false
+		accept = accept or (moveName:gmatch("%d+$") == tostring(moveData.footprintx))
+		accept = accept or ((moveName:gmatch("SCAV") or moveName:gmatch("RAPTOR") or moveName:gmatch("EPIC")) ~= nil)
+		accept = accept or (moveName == "COMMANDERBOT" or moveName == "NANO")
+		accept = accept and (moveData.footprintx == moveData.footprintz)
+		if accept then
+			defs[#defs + 1] = moveData
+		end
+	end
 end
 
 return defs
