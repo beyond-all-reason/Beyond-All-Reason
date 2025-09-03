@@ -120,9 +120,19 @@ local parameters = {
 
 	[actionTypes.DespawnUnits] = {
 		[1] = {
-			name = 'unit',
+			name = 'name',
 			required = true,
 			type = 'string',
+		},
+		[2] = {
+			name = 'selfDescruct',
+			required = false,
+			type = 'boolean',
+		},
+		[3] = {
+			name = 'reclaimed',
+			required = false,
+			type = 'boolean',
 		},
 	},
 	[actionTypes.SpawnWeapons] = {},

@@ -32,10 +32,14 @@ end
 
 ----------------------------------------------------------------
 
-local function despawnUnits(units)
-	for _, id in ipairs(units) do
-		Spring.DestroyUnit(id)
+local function despawnUnits(name, selfDescruct, reclaimed)
+    local unitIDs = trackedUnits[name]
+	local quantity = #unitIDs
+	for i = quantity, 1, -1 do
+		Spring.DestroyUnit(unitIDs[i], selfDescruct, reclaimed)
 	end
+	trackedUnits[name] = nil
+	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Despawned "..#unitIDs.." units named "..name.." : "..table.toString(trackedUnits))
 end
 
 ----------------------------------------------------------------
