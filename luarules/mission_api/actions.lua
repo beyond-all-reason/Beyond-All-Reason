@@ -14,20 +14,20 @@ local function issueOrders(units, orders)
 end
 
 local function spawnUnits(name, unitDefName, quantity, position, facing, construction)
-	if quantity == 0 then return end
+	if quantity <= 0 then return end
 
 	position.y = position.y or Spring.GetGroundHeight(position.x, position.z)
 
 	if not trackedUnits[name] then trackedUnits[name] = {} end
 
 	for i = 1, quantity do
-		local unitID = Spring.CreateUnit(unitDefName, position.x, position.y, position.z, facing.value, 0, construction)
-
+		local unitID = Spring.CreateUnit(unitDefName, position.x, position.y, position.z, facing, 0, construction)
 		if unitID and name then
 			trackedUnits[name][#trackedUnits[name] + 1] = unitID
 			trackedUnits[unitID] = name
 		end
 	end
+	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Spawned "..quantity.."x "..unitDefName.." named "..name.." : "..table.toString(trackedUnits))
 end
 
 ----------------------------------------------------------------
