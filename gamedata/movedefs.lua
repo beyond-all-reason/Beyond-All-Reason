@@ -21,6 +21,8 @@
 -- REFERENCE VALUES
 -- These are for readability more than correctness, really.
 
+local SPEED_CLASS = Game.speedModClasses
+
 local CRUSH = {
 	NONE    = 0,
 	TINY    = 5,
@@ -61,12 +63,22 @@ local SLOPE_MOD = {
 	MAXIMUM   = 4000,
 }
 
----See MoveDef::SpeedModClass, ParseSpeedModClass.
-local SPEED_CLASS = Game.speedModClasses
-
 ----------------------------------------------------------------------------------
 -- MOVE DEFS
 
+---@class MoveDefData
+---@field footprint integer equal to both `footprintx` and `footprintz`
+---@field crushstrength integer [0, 1e6) mass equivalent for crushing and collisions
+---@field maxslope number? [0, 90] degrees
+---@field slopeMod number? [4, 4000] unitless
+---@field minwaterdepth integer? [-1e6, 1e6]
+---@field maxwaterdepth integer? [0, 1e6]
+---@field maxwaterslope integer? [0, 90] degrees; does nothing
+---@field badwaterslope integer? [0, 90] degrees; does nothing
+---@field depthModParams table?
+---@field speedModClass integer?
+
+---@type table<string, MoveDefData>
 local moveDatas = {
 	--all arm and core commanders and their decoys
 	COMMANDERBOT = {
@@ -552,38 +564,76 @@ local moveDatas = {
 --------------------------------------------------------------------------------
 -- Final processing / array format
 --------------------------------------------------------------------------------
-local defs = {}
 
-for moveName, moveData in pairs(moveDatas) do
-	moveData.heatmapping = true
-	moveData.name = moveName
-	moveData.allowRawMovement = true
-	moveData.allowTerrainCollisions = false
+---@class MoveDefCreate
+---@field name string
+---@field heatmapping boolean
+---@field allowRawMovement boolean
+---@field allowTerrainCollisions boolean
+---@field footprintx integer
+---@field footprintz integer
+---@field crushstrength integer [0, 1e6) mass equivalence for crushing and collisions
+---@field maxslope number? [0, 90] degrees
+---@field slopeMod number? [4, 4000] unitless, derived
+---@field minwaterdepth integer? [-1e6, 1e6]
+---@field maxwaterdepth integer? [0, 1e6]
+---@field maxwaterslope integer? [0, 90] degrees; does nothing
+---@field depthModParams table?
+---@field speedModClass integer?
 
-	if moveData.footprint then
-		moveData.footprintx = moveData.footprint
-		moveData.footprintz = moveData.footprint
-		moveData.footprint = nil
-	end
-
-	if moveData.maxslope then
-		if type(moveName) == "string" and moveName:find("BOT") then
-			moveData.slopeMod = SLOPE_MOD.MINIMUM
+---@param moveDef MoveDefCreate
+local function setMaxSlope(moveDef)
+	if moveDef.maxslope then
+		if type(moveDef.name) == "string" and moveDef.name:find("BOT") then
+			moveDef.slopeMod = SLOPE_MOD.MINIMUM
 		end
 		---`maxSlope` is multiplied by 1.5 at load, so 60 degrees is its actual "maximum",
 		-- so has default value 15 * 1.5 = 22.5 for hovers and 90 for bots/vehicles/ships.
-		moveData.maxslope = moveData.maxslope / 1.5
+		moveDef.maxslope = moveDef.maxslope / 1.5
 	end
+end
 
-	if type(moveName) == "string" then
-		local accept = false
-		accept = accept or (moveName:gmatch("%d+$") == tostring(moveData.footprintx))
-		accept = accept or ((moveName:gmatch("SCAV") or moveName:gmatch("RAPTOR") or moveName:gmatch("EPIC")) ~= nil)
-		accept = accept or (moveName == "COMMANDERBOT" or moveName == "NANO")
-		accept = accept and (moveData.footprintx == moveData.footprintz)
-		if accept then
-			defs[#defs + 1] = moveData
-		end
+---@param moveDef MoveDefCreate
+local function validate(moveDef)
+	local name = moveDef.name
+	if type(name) ~= "string" then
+		return false
+	elseif name:gmatch("%d+$") ~= tostring(moveDef.footprintx) then
+		return false
+	elseif name == "COMMANDERBOT" or name == "NANO" then
+		return true
+	elseif name:gmatch("SCAV") or name:gmatch("RAPTOR") or name:gmatch("EPIC") then
+		return true
+	end
+	return false
+end
+
+local defs = {}
+
+for moveName, moveData in pairs(moveDatas) do
+	---@type MoveDefCreate
+	local moveDef = {
+		name                   = moveName,
+		crushstrength          = moveData.crushstrength,
+		footprintx             = moveData.footprint,
+		footprintz             = moveData.footprint,
+		allowRawMovement       = true,
+		allowTerrainCollisions = false,
+		heatmapping            = true,
+		--
+		depthModParams         = moveData.depthModParams,
+		maxslope               = moveData.maxslope,
+		maxwaterdepth          = moveData.maxwaterdepth,
+		maxwaterslope          = moveData.maxwaterslope,
+		minwaterdepth          = moveData.minwaterdepth,
+		slopeMod               = moveData.slopeMod,
+		speedModClass          = moveData.speedModClass,
+	}
+
+	setMaxSlope(moveDef)
+
+	if validate(moveDef) then
+		defs[#defs + 1] = moveDef
 	end
 end
 
