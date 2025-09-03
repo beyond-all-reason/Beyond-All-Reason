@@ -110,7 +110,7 @@ local moveDatas = {
 	},
 
 	--critter_crab raptor_land_spiker_basic_t2_v1 cormando raptor_land_spiker_basic_t4_v1 armaak corcrash raptorems2_spectre armjeth coramph coraak
-	ABOT2 = {
+	ABOT3 = {
 		crushstrength = CRUSH.LARGE,
 		depthmod = DEPTH.NONE,
 		footprint = 3,
@@ -150,7 +150,7 @@ local moveDatas = {
 		minwaterdepth = DEPTH.SHALLOW,
 	},
 	-- armcarry armdronecarry armepoch corblackhy armbats corbats corcarry cordronecarry corsentinel armtrident coresuppt3
-	BOAT8 = {
+	BOAT9 = {
 		crushstrength = CRUSH.HEAVY + 2,
 		footprint = 9,
 		minwaterdepth = DEPTH.SUBMERGED,
@@ -196,7 +196,7 @@ local moveDatas = {
 		maxwaterslope = SLOPE.MAXIMUM,
 	},
 	-- armamph
-	HOVER5 = {
+	HOVERAMPH2 = {
 		badslope = SLOPE.DIFFICULT,
 		badwaterslope = SLOPE.MAXIMUM,
 		crushstrength = CRUSH.MEDIUM,
@@ -261,7 +261,7 @@ local moveDatas = {
 		},
 	},
 	-- armthor
-	HTANK5 = {
+	HTANK7 = {
 		crushstrength = CRUSH.HUGE,
 		footprint = 7,
 		maxslope = SLOPE.MODERATE,
@@ -276,7 +276,7 @@ local moveDatas = {
 
 	--armflea critter_ant dice critter_penguinbro critter_penguin critter_duck xmasballs chip
 	-- make a suggestion thread critterh
-	BOT1 = {
+	BOTTINY2 = {
 		crushstrength = CRUSH.TINY,
 		footprint = 2,
 		maxslope = SLOPE.DIFFICULT,
@@ -288,7 +288,7 @@ local moveDatas = {
 		},
 	},
 	--cornecro leggob legkark armpw armfark armrectr corak corfast corspy leglob armspy 
-	BOT3 = {
+	BOT2 = {
 		crushstrength = CRUSH.SMALL - 3,
 		footprint = 2,
 		maxslope = SLOPE.DIFFICULT,
@@ -300,7 +300,7 @@ local moveDatas = {
 		},
 	},
 	--  armfido leggstr corhrk armmav armfast armzeus
-	BOT4 = {
+	BOT3 = {
 		crushstrength = CRUSH.MEDIUM,
 		footprint = 3,
 		maxslope = SLOPE.DIFFICULT,
@@ -347,7 +347,7 @@ local moveDatas = {
 		maxwaterslope = SLOPE.MAXIMUM,
 	},
 	-- armvang corkarg corthermite
-	HTBOT4 = {
+	HTBOT6 = {
 		crushstrength = CRUSH.HEAVY + 2,
 		footprint = 6,
 		maxslope = SLOPE.MAXIMUM,
