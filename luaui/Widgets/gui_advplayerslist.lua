@@ -121,6 +121,7 @@ local math_isInRect = math.isInRect
 
 local RectRound, UiElement, elementCorner, UiSelectHighlight
 local bgpadding = 3
+local backgroundOffsetLeft = 0
 
 local specOffset = 256
 
@@ -210,6 +211,8 @@ local updateRate = 0.8
 local updateFastRate = 0.15 -- only updates resources
 local lastTakeMsg = -120
 local hoverPlayerlist = false
+local CONTENT_OFFSET_LIMIT = 60
+local alliedTeamIDCoordinates = {}
 
 local updateRateMult = 1	-- goes up when more players	auto adjusts in UpdatePlayerResources()
 local updateFastRateMult = 1	-- goes up when more players	auto adjusts in UpdatePlayerResources()
@@ -949,6 +952,22 @@ function widget:Initialize()
 				break
 			end
 		end
+	end
+	WG['advplayerlist_api'].GetBackgroundOffsetLeft = function()
+		return backgroundOffsetLeft
+	end
+	WG['advplayerlist_api'].GetAlliedTeamIDCoordinates = function()
+		return alliedTeamIDCoordinates
+	end
+	WG['advplayerlist_api'].SetBackgroundOffsetLeft = function(value)
+		backgroundOffsetLeft = value
+		if Background then
+			Background = gl_DeleteList(Background)
+		end
+		if BackgroundGuishader then
+			BackgroundGuishader = gl_DeleteList(BackgroundGuishader)
+		end
+		forceMainListRefresh = true
 	end
 
 	widgetHandler:AddAction("speclist", speclistCmd, nil, 't')
@@ -1769,7 +1788,12 @@ function doCreateLists(onlyMainList, onlyMainList2, onlyMainList3)
 	if useRenderToTexture and not mainList2Tex then
 		onlyMainList2 = true
 	end
+	
+	local originalWidgetPosX = widgetPosX
+	local contentOffsetLeft = math.min(backgroundOffsetLeft, CONTENT_OFFSET_LIMIT)
+	widgetPosX = widgetPosX - contentOffsetLeft
     CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
+	widgetPosX = originalWidgetPosX
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1779,7 +1803,7 @@ end
 function CreateBackground()
     local margin = backgroundMargin
 
-    local BLcornerX = widgetPosX - margin
+    local BLcornerX = widgetPosX - margin - backgroundOffsetLeft
     local BLcornerY = widgetPosY - margin
     local TRcornerX = widgetPosX + widgetWidth + margin
     local TRcornerY = widgetPosY + widgetHeight - 1 + margin
@@ -2895,11 +2919,22 @@ function DrawID(teamID, posY, dark, dead)
         spacer = " "
     end
     local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25)) * math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
+    local x = m_ID.posX + widgetPosX + (4.5*playerScale)
+    local y = posY + (5.3*playerScale)
+    
     font:Begin(useRenderToTexture)
 	font:SetTextColor(0.7, 0.7, 0.7, 1)
 	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
-    font:Print(spacer .. teamID, m_ID.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "on")
+    font:Print(spacer .. teamID, x, y, fontsize, "on")
     font:End()
+    
+    local allyID = select(6, Spring.GetTeamInfo(teamID, false))
+    if allyID then
+        if not alliedTeamIDCoordinates[allyID] then
+            alliedTeamIDCoordinates[allyID] = {}
+        end
+        alliedTeamIDCoordinates[allyID][teamID] = {x = x, y = y}
+    end
 end
 
 function DrawSkill(skill, posY, dark)

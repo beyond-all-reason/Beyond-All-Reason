@@ -945,6 +945,12 @@ function widget:Initialize()
 	end
 	updateHeaderVisibility()
 
+	Spring.Echo("farts: gui_territorial_domination: initialize")
+	if WG['advplayerlist_api'] and WG['advplayerlist_api'].SetBackgroundOffsetLeft then
+		Spring.Echo("farts: gui_territorial_domination: SetBackgroundOffsetLeft", 500)
+		WG['advplayerlist_api'].SetBackgroundOffsetLeft(200)
+	end
+
 	return true
 end
 
@@ -1008,6 +1014,15 @@ function widget:Update()
 	if currentOSClock - (widgetState.lastHaloUpdateTime or 0) >= 1.0 then
 		updateHaloSelection()
 		widgetState.lastHaloUpdateTime = currentOSClock
+	end
+	
+	-- Echo allied team ID coordinates every 5 seconds
+	if currentOSClock - (widgetState.lastCoordinateEchoTime or 0) >= 5.0 then
+		if WG['advplayerlist_api'] and WG['advplayerlist_api'].GetAlliedTeamIDCoordinates then
+			local coordinates = WG['advplayerlist_api'].GetAlliedTeamIDCoordinates()
+			Spring.Echo("Allied Team ID Coordinates:", coordinates)
+		end
+		widgetState.lastCoordinateEchoTime = currentOSClock
 	end
 	
 	if shouldFullUpdate() or shouldUpdateScores() then
