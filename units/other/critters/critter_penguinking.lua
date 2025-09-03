@@ -30,7 +30,7 @@ return {
 		maxslope = 45,
 		speed = 25.5,
 		maxwaterdepth = 22,
-		movementclass = "BOT1",
+		movementclass = "BOTTINY2",
 		movestate = -1,
 		noautofire = false,
 		nochasecategory = "MOBILE ",
