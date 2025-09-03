@@ -152,15 +152,14 @@ function widget:GameFrame(n)
 	for _, unitID in ipairs(visibleUnits) do
 		local passengerDefID = Spring.GetUnitDefID(unitID)
 		if not cantBeTransported[passengerDefID] and not Spring.IsUnitIcon(unitID) then
-			local passengerXSize = unitXSize[passengerDefID] / springFootprintScale
+			local passengerFootprintX = unitXSize[passengerDefID] / springFootprintScale
 			local canBePickedUp = false
 			for transDefID, _ in pairs(activeTransportDefs) do
 				local transDef = transDefs[transDefID]
 				local transMassLimit = transDef[1]
 				local transportSizeLimit = transDef[3]
 
-				-- transportSizeLimit: The size of units that the transport can pick up, in terms of the passengers footprintX.
-				if unitMass[passengerDefID] <= transMassLimit and passengerXSize <= transportSizeLimit then
+				if unitMass[passengerDefID] <= transMassLimit and passengerFootprintX <= transportSizeLimit then
 					canBePickedUp = true
 					break
 				end
@@ -169,8 +168,8 @@ function widget:GameFrame(n)
 			if canBePickedUp then
 				local x, y, z = Spring.GetUnitBasePosition(unitID)
 				if x then
-					-- we have to scale up passengerXSize otherwise indicator would be under the unit instead of around it
-					unitsToDraw[unitID] = { pos = { x, y, z }, size = (passengerXSize * indicatorSizeMultiplier) }
+					-- we have to scale up passengerFootprintX otherwise indicator would be under the unit instead of around it
+					unitsToDraw[unitID] = { pos = { x, y, z }, size = (passengerFootprintX * indicatorSizeMultiplier) }
 				end
 			end
 		end
