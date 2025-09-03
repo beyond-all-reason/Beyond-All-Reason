@@ -585,12 +585,12 @@ local function validate(moveDef)
 	local name = moveDef.name
 	if type(name) ~= "string" then
 		return false
-	elseif name:gmatch("%d+$") ~= tostring(moveDef.footprintx) then
-		return false
 	elseif name == "COMMANDERBOT" or name == "NANO" then
 		return true
 	elseif name:gmatch("SCAV") or name:gmatch("RAPTOR") or name:gmatch("EPIC") then
 		return true
+	elseif name:gmatch("%d+$") ~= tostring(moveDef.footprintx) then
+		return false
 	end
 	return false
 end
