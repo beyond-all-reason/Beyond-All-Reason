@@ -311,19 +311,6 @@ local moveDatas = {
 			maxValue = 0.7,
 		},
 	},
-	-- this movedeff dies when seperation distance is a current feature in bar
-	-- corhrk
-	BOT5 = {
-		crushstrength = CRUSH.MEDIUM,
-		footprint = 4,
-		maxslope = SLOPE.DIFFICULT,
-		maxwaterdepth = DEPTH.SHALLOW + 12,
-		depthModParams = {
-			minHeight = 4,
-			linearCoeff = 0.03,
-			maxValue = 0.7,
-		},
-	},
 
 	-- armraz legpede corcat leginc armfboy corsumo legmech cordemon
 	HBOT4 = {
