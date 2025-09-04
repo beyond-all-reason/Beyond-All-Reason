@@ -101,6 +101,7 @@ local depthModCrawlingBombs = {
 ---@field slopeMod number? [4, 4000] unitless
 ---@field minwaterdepth integer? [-1e6, 1e6]
 ---@field maxwaterdepth integer? [0, 1e6]
+---@field subMarine boolean?
 ---@field maxwaterslope integer? [0, 90] degrees; does nothing
 ---@field badwaterslope integer? [0, 90] degrees; does nothing
 ---@field depthMod number? shorthand for DepthModParams.linearCoeff
@@ -181,7 +182,7 @@ local moveDatas = {
 		footprint = 4,
 		minwaterdepth = DEPTH.SUBMERGED,
 		crushstrength = CRUSH.TINY,
-		subMarine = 1,
+		subMarine = true,
 	},
 
 	--corsh armah armch armsh
@@ -501,7 +502,7 @@ local moveDatas = {
 		minwaterdepth = DEPTH.SUBMERGED,
 		maxwaterdepth = DEPTH.MAXIMUM,
 		crushstrength = CRUSH.MASSIVE,
-		subMarine = 1,
+		subMarine = true,
 		speedModClass = SPEED_CLASS.Ship,
 	},
 }
