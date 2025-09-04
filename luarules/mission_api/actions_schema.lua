@@ -66,7 +66,7 @@ local parameters = {
 	-- Orders
 	[actionTypes.IssueOrders] = {
 		[1] = {
-			name = 'unit',
+			name = 'name',
 			required = true,
 			type = 'string'
 		},
@@ -97,12 +97,12 @@ local parameters = {
 			type = 'string',
 		},
 		[3] = {
-			name = 'quantity',
-			required = false,
-			type = 'number',
+			name = 'teamID',
+			required = true,
+			type = 'number'
 		},
 		[4] = {
-			name = 'position',
+			name = 'positions',
 			required = true,
 			type = 'table'
 		},
@@ -114,15 +114,25 @@ local parameters = {
 		[6] = {
 			name = 'construction',
 			required = false,
-			type = 'bool'
+			type = 'boolean'
 		}
 	},
 
 	[actionTypes.DespawnUnits] = {
 		[1] = {
-			name = 'unit',
+			name = 'name',
 			required = true,
 			type = 'string',
+		},
+		[2] = {
+			name = 'selfDescruct',
+			required = false,
+			type = 'boolean',
+		},
+		[3] = {
+			name = 'reclaimed',
+			required = false,
+			type = 'boolean',
 		},
 	},
 	[actionTypes.SpawnWeapons] = {},
