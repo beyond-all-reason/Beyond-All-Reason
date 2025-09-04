@@ -84,8 +84,8 @@ local depthModGeneric = {
 ---@type DepthModParams
 local depthModCommanders = {
 	maxScale       = 1.5,
-	quadraticCoeff = (9.9/22090)/2,
-	linearCoeff    = (0.1/470)/2,
+	quadraticCoeff = (9.9 / 22090) / 2,
+	linearCoeff    = (0.1 / 470) / 2,
 }
 
 ---@type DepthModParams
@@ -122,12 +122,12 @@ local moveDatas = {
 
 	--corroach corsktl armvader
 	ABOTBOMB2 = {
-	 	crushstrength = CRUSH.LARGE,
-	 	footprint = 2,
-	 	maxslope = SLOPE.DIFFICULT,
-	 	maxwaterdepth = DEPTH.AMPHIBIOUS,
-	 	maxwaterslope = SLOPE.EXTREME,
-	 	depthModParams = depthModCrawlingBombs,
+		crushstrength = CRUSH.LARGE,
+		footprint = 2,
+		maxslope = SLOPE.DIFFICULT,
+		maxwaterdepth = DEPTH.AMPHIBIOUS,
+		maxwaterslope = SLOPE.EXTREME,
+		depthModParams = depthModCrawlingBombs,
 	},
 
 	--critter_crab raptor_land_spiker_basic_t2_v1 cormando raptor_land_spiker_basic_t4_v1 armaak corcrash raptorems2_spectre armjeth coramph coraak
@@ -284,7 +284,7 @@ local moveDatas = {
 		maxwaterdepth = DEPTH.SHALLOW * 0.5,
 		depthModParams = depthModGeneric,
 	},
-	--cornecro leggob legkark armpw armfark armrectr corak corfast corspy leglob armspy 
+	--cornecro leggob legkark armpw armfark armrectr corak corfast corspy leglob armspy
 	BOT2 = {
 		crushstrength = CRUSH.SMALL - 3,
 		footprint = 2,
