@@ -2353,27 +2353,16 @@ function UnitDef_Post(name, uDef)
 			uDef.customparams.buildinggrounddecalsizez = 18
 		end
 
-		-- T2 mexes 
-		if name == "armmoho" or name == "cormoho" or name == "coruwmme" or name == "armuwmme" or name == "legmoho"
-		then
-			uDef.energyupkeep = 60
-			uDef.metalcost = math.ceil(uDef.metalcost * .15) * 10
-			uDef.energycost = math.ceil(uDef.energycost * .015) * 100
-			uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100
-
-		elseif name == "cormexp" then 
-			uDef.energyupkeep = 60
-
 		-- remove hovers from com
-		elseif name == "corcom" or name == "legcom" or name == "armcom" then
+		if name == "corcom" or name == "legcom" or name == "armcom" then
 			uDef.buildoptions[26] = ""
 			uDef.buildoptions[27] = ""
 
 		-- T2 labs are priced as t1.5 but require more BP
-		elseif name == "armaap" or name == "armhaapuw" or name == "armasy" or name == "armalab" or name == "armavp"
-		or name == "coraap" or name == "corhaapuw" or name == "corasy" or name == "coralab" or name == "coravp"
-		or name == "legaap" or name == "leghaapuw" or name == "legasy" or name == "legalab" or name == "legavp"
-		then 
+		elseif name == "armaap" or name == "armasy" or name == "armalab" or name == "armavp"
+		or name == "coraap"  or name == "corasy" or name == "coralab" or name == "coravp"
+		or name == "legaap" or name == "legasy" or name == "legalab" or name == "legavp"
+		then
 			uDef.metalcost = uDef.metalcost - 1300
 			uDef.energycost = uDef.energycost - 5000
 			uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100
