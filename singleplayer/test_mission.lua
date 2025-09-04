@@ -2,63 +2,66 @@ local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
 
 local triggers = {
-	testTime = {
-		type = triggerTypes.TimeElapsed,
-		settings = {
-			repeating = false,
-		},
-		parameters = {
-			gameFrame = 150,
-			interval = 60,
-		},
-		actions = { 'helloWorld' },
-	},
 
-	spawnHero = {
+	spawnConBots = {
 		type = triggerTypes.TimeElapsed,
 		settings = {
-			repeating = false,
+			repeating = true,
 		},
 		parameters = {
 			gameFrame = 1,
-			interval = 180,
+			interval = 280,
 		},
-		actions = { 'spawnHero', 'moveHero' },
+		actions = { 'spawnConBots', 'moveConBots' },
 	},
 
-	despawnHero = {
+	despawnConBotsAsKilled = {
 		type = triggerTypes.TimeElapsed,
 		settings = {
 			repeating = false,
 		},
 		parameters = {
 			gameFrame = 200,
-			interval = 180,
 		},
-		actions = { 'despawnHero' },
+		actions = { 'despawnConBotsAsKilled', 'messageBotsKilled' },
+	},
+
+	despawnConBotsSelfD = {
+		type = triggerTypes.TimeElapsed,
+		settings = {
+			repeating = false,
+		},
+		parameters = {
+			gameFrame = 480,
+		},
+		actions = { 'despawnConBotsSelfD', 'messageBotsSelfD' },
+	},
+
+	despawnConBotsReclaimed = {
+		type = triggerTypes.TimeElapsed,
+		settings = {
+			repeating = false,
+		},
+		parameters = {
+			gameFrame = 760,
+		},
+		actions = { 'despawnConBotsReclaimed', 'messageBotsReclaimed' },
 	},
 
 	gameEnd = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 260,
+			gameFrame = 900,
 		},
 		actions = { 'gameEnd' },
 	},
 }
 
 local actions = {
-	helloWorld = {
-		type = actionTypes.SendMessage,
-		parameters = {
-			message = "Hello World",
-		},
-	},
-
-	spawnHero = {
+	spawnConBots = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			name = 'hero',
+			name = 'con-bots',
             unitDefName = 'corck',
 			teamID = 0,
 			positions = {{ x = 1800, z = 1600 }, { x = 1900, z = 1600 }},
@@ -66,23 +69,62 @@ local actions = {
 		},
 	},
 
-	moveHero = {
+	moveConBots = {
 		type = actionTypes.IssueOrders,
 		parameters = {
-			name = 'hero',
+			name = 'con-bots',
 			orders = {
 				{ CMD.MOVE, { 1850, 0, 1500 }, CMD.OPT_SHIFT },
-				{ CMD.PATROL, { 1850, 0, 1800 }, CMD.OPT_SHIFT },
+				{ CMD.MOVE, { 1850, 0, 1800 }, CMD.OPT_SHIFT },
 			},
 		},
 	},
 
-	despawnHero = {
+	despawnConBotsAsKilled = {
 		type = actionTypes.DespawnUnits,
 		parameters = {
-			name = 'hero',
+			name = 'con-bots',
             selfDescruct = false,
 			reclaimed = false
+		},
+	},
+
+	messageBotsKilled = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Let's kill those bots.",
+		},
+	},
+
+	despawnConBotsSelfD = {
+		type = actionTypes.DespawnUnits,
+		parameters = {
+			name = 'con-bots',
+            selfDescruct = true,
+			reclaimed = false
+		},
+	},
+
+	messageBotsSelfD = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "They blow themselves up!",
+		},
+	},
+
+	despawnConBotsReclaimed = {
+		type = actionTypes.DespawnUnits,
+		parameters = {
+			name = 'con-bots',
+            selfDescruct = false,
+			reclaimed = true
+		},
+	},
+
+	messageBotsReclaimed = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "These just vanish...",
 		},
 	},
 
