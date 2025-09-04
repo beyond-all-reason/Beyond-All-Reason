@@ -117,7 +117,7 @@ AimPrimary(heading, pitch)
 	signal SIGNAL_AIM;
 	set-signal-mask SIGNAL_AIM;
 	
-	turn aimy1 to y-axis heading speed <250>;
+	turn aimy1 to y-axis heading speed <550>;
 	turn aimx1 to x-axis 0 - pitch speed <240>;
 	if (get ABS(last_primary_heading - heading)> <20>)
 	{
