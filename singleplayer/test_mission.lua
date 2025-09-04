@@ -23,7 +23,7 @@ local triggers = {
 			gameFrame = 1,
 			interval = 180,
 		},
-		actions = { 'spawnHero' },
+		actions = { 'spawnHero', 'moveHero' },
 	},
 
 	despawnHero = {
@@ -32,7 +32,7 @@ local triggers = {
 			repeating = false,
 		},
 		parameters = {
-			gameFrame = 160,
+			gameFrame = 200,
 			interval = 180,
 		},
 		actions = { 'despawnHero' },
@@ -41,7 +41,7 @@ local triggers = {
 	gameEnd = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 210,
+			gameFrame = 260,
 		},
 		actions = { 'gameEnd' },
 	},
@@ -63,6 +63,17 @@ local actions = {
 			teamID = 0,
 			positions = {{ x = 1800, z = 1600 }, { x = 1900, z = 1600 }},
 			facing = 'n',
+		},
+	},
+
+	moveHero = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			name = 'hero',
+			orders = {
+				{ CMD.MOVE, { 1850, 0, 1500 }, CMD.OPT_SHIFT },
+				{ CMD.PATROL, { 1850, 0, 1800 }, CMD.OPT_SHIFT },
+			},
 		},
 	},
 

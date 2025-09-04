@@ -9,8 +9,11 @@ local function disableTrigger(triggerID)
 	triggers[triggerID].settings.active = false
 end
 
-local function issueOrders(units, orders)
-	Spring.GiveOrderArrayToUnitArray(units, orders)
+local function issueOrders(name, orders)
+    if not trackedUnits[name] or #trackedUnits[name] == 0 then return end
+
+	Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Ordering units named "..name.." with IDs "..table.toString(trackedUnits[name]).." : "..table.toString(orders))
+	Spring.GiveOrderArrayToUnitArray(trackedUnits[name], orders)
 end
 
 local function spawnUnits(name, unitDefName, teamID, positions, facing, construction)

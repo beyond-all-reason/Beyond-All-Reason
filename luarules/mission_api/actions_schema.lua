@@ -66,7 +66,7 @@ local parameters = {
 	-- Orders
 	[actionTypes.IssueOrders] = {
 		[1] = {
-			name = 'unit',
+			name = 'name',
 			required = true,
 			type = 'string'
 		},
@@ -114,7 +114,7 @@ local parameters = {
 		[6] = {
 			name = 'construction',
 			required = false,
-			type = 'bool'
+			type = 'boolean'
 		}
 	},
 
