@@ -32,7 +32,7 @@ local triggers = {
 			repeating = false,
 		},
 		parameters = {
-			gameFrame = 90,
+			gameFrame = 160,
 			interval = 180,
 		},
 		actions = { 'despawnHero' },
@@ -59,9 +59,9 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			name = 'hero',
-			unitDefName = 'corck',
-			position = { x = 200, z = 200 },
-			quantity = 2,
+            unitDefName = 'corck',
+			teamID = 0,
+			positions = {{ x = 1800, z = 1600 }, { x = 1900, z = 1600 }},
 			facing = 'n',
 		},
 	},

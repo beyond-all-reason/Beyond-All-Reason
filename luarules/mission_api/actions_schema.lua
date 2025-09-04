@@ -97,12 +97,12 @@ local parameters = {
 			type = 'string',
 		},
 		[3] = {
-			name = 'quantity',
-			required = false,
-			type = 'number',
+			name = 'teamID',
+			required = true,
+			type = 'number'
 		},
 		[4] = {
-			name = 'position',
+			name = 'positions',
 			required = true,
 			type = 'table'
 		},
