@@ -1379,6 +1379,16 @@ local options = {
         def  	= false,
     },
 
+    {
+        key 	= "proposed_unit_reworks",
+        name 	= "Proposed Unit Reworks",
+        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.",
+        type 	= "bool",
+        --hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
+
     -- Hidden Tests
 
 	{
@@ -1460,16 +1470,6 @@ local options = {
         hidden 	= true,
         section = "options_experimental",
         def  	= false,
-    },
-
-    {
-        key 	= "proposed_unit_reworks",
-        name 	= "Proposed Unit Reworks",
-        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.",
-        type 	= "bool",
-        hidden 	= true,
-        section = "options_experimental",
-        def 	= false,
     },
 
     {
