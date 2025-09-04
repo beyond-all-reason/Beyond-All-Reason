@@ -7,7 +7,7 @@
 -- TANK1 = {
 --    crushstrength = 10,
 --    footprint = 1,       <-- footprint size must match moveDef name
---    maxslope = 18,
+--    maxslope = 18,           (or be one of our special moveDef names)
 --    slopeMod = 18,
 --    maxwaterdepth = 22,
 --    depthModParams = {
@@ -94,6 +94,7 @@ local depthModCrawlingBombs = {
 	linearCoeff = 0,
 }
 
+-- TODO: Random capitalization. Pick one and use it.
 ---@class MoveDefData
 ---@field footprint integer equal to both `footprintx` and `footprintz`
 ---@field crushstrength integer [0, 1e6) mass equivalent for crushing and collisions
