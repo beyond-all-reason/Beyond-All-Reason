@@ -31,6 +31,9 @@ local widgetScale = (0.80 + (vsx * vsy / 6000000))
 local font
 local currentLayout
 local screenmode
+local metalmode
+
+local mapCommands = { height = "ShowElevation", pathTraversability = "ShowPathTraversability"}
 
 local heightKey, metalKey, pathKey
 
@@ -54,7 +57,7 @@ end
 local function updateKeys()
 	currentLayout = spGetConfigString("KeyboardLayout", "qwerty")
 	screenModeOverviewTable.keyset = getActionHotkey("toggleoverview")
-	metalKey = getActionHotkey("showmetalmap")
+	metalKey = getActionHotkey("showinfometal")
 	heightKey = getActionHotkey("showelevation")
 	pathKey = getActionHotkey("showpathtraversability")
 end
@@ -67,6 +70,7 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
+	metalmode = WG.metalView
 	widget:ViewResize()
 end
 
@@ -80,10 +84,19 @@ function widget:DrawScreen()
 	end
 
 	local newScreenmode = spGetMapDrawMode()
-	local screenmodeChanged = newScreenmode ~= screenmode
-	screenmode = newScreenmode
 
-	if (screenmode ~= 'normal' and screenmode ~= 'los') or st.name == 'ov' then
+	local screenmodeChanged = newScreenmode ~= screenmode
+	local metalmodeChanged = WG.metalView ~= metalmode
+
+	if screenmodeChanged and mapCommands[newScreenmode] and WG.metalView then
+		Spring.SendCommands("showinfometal 0")
+	elseif metalmodeChanged and mapCommands[screenmode] and WG.metalView then
+		Spring.SendCommands(mapCommands[screenmode])
+	end
+	screenmode = newScreenmode
+	metalmode = WG.metalView
+
+	if WG.metalView or (screenmode ~= 'normal' and screenmode ~= 'los') or st.name == 'ov' then
 		if (screenmodeChanged) then updateKeys() end
 
 		local description, title = '', ''
@@ -100,7 +113,7 @@ function widget:DrawScreen()
 		elseif screenmode == 'pathTraversability' then
 			title = i18n('ui.screenMode.pathingTitle')
 			description = i18n('ui.screenMode.pathing', { keyset = pathKey })
-		elseif screenmode == 'metal' then
+		elseif WG.metalView then
 			title = i18n('ui.screenMode.resourcesTitle')
 			description = i18n('ui.screenMode.resources', { keyset = metalKey })
 		end
