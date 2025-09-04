@@ -1085,6 +1085,13 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	)
 end
 
+
+function widget:VisibleExplosionBatch(dataSize, dataStride, data)
+	for i=1, dataSize, dataStride do
+		widget:VisibleExplosion(data[i], data[i+1], data[i+2], data[i+3], data[i+4])
+	end
+end
+
 local UnitScriptDecalsNames = {
 	['corkorg'] = {
 		[1] = {

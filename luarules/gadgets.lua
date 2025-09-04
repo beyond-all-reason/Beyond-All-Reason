@@ -115,6 +115,7 @@ local callInLists = {
 	"PlayerRemoved",
 
 	"GameFrame",
+	"GameFramePost",
 	"GamePaused",
 
 	"ViewResize",  -- FIXME ?
@@ -1160,6 +1161,18 @@ function gadgetHandler:GameFrame(frameNum)
 	for _, g in ipairs(self.GameFrameList) do
 		tracy.ZoneBeginN("G:GameFrame:" .. g.ghInfo.name)
 		g:GameFrame(frameNum)
+		tracy.ZoneEnd()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function gadgetHandler:GameFramePost(frameNum)
+	frameNum = frameNum or Spring.GetGameFrame()
+	tracy.ZoneBeginN("G:GameFramePost")
+	for _, g in ipairs(self.GameFramePostList) do
+		tracy.ZoneBeginN("G:GameFramePost:" .. g.ghInfo.name)
+		g:GameFramePost(frameNum)
 		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
