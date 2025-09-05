@@ -157,10 +157,13 @@ local function initializeCommander(commanderID, teamID, startingMetal, startingE
 	local startMetal = startingMetal or 0
 	local startEnergy = startingEnergy or 0
 	
+	local availableMetal = math.min(currentMetal, startMetal)
+	local availableEnergy = math.min(currentEnergy, startEnergy)
+	local juice = availableMetal + (availableEnergy / ENERGY_VALUE_CONVERSION_DIVISOR)
+	
 	commanderMetaList[commanderID] = {
 		teamID = teamID,
-		availableMetal = math.min(currentMetal, startMetal),
-		availableEnergy = math.min(currentEnergy, startEnergy),
+		juice = juice,
 		lastCommandCheck = 0,
 		factoryMade = false,
 		thingsMade = {windmill = 0, mex = 0, converter = 0, solar = 0, tidal = 0}
@@ -182,18 +185,14 @@ local function buildStructureDirectly(commanderID, cmd)
 	
 	local metalCost = unitDef.metalCost or 0
 	local energyCost = unitDef.energyCost or 0
-	local convertedEnergyCost = energyCost / ENERGY_VALUE_CONVERSION_DIVISOR
+	local juiceCost = metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
 	
-	if commanderData.availableMetal <= 0 and commanderData.availableEnergy <= 0 then
+	if commanderData.juice <= 0 or juiceCost <= 0 then
 		return false, nil
 	end
 	
-	local affordableMetal = math.min(commanderData.availableMetal, metalCost)
-	local affordableEnergy = math.min(commanderData.availableEnergy, convertedEnergyCost)
-	
-	local metalProgress = metalCost > 0 and affordableMetal / metalCost or 1
-	local energyProgress = convertedEnergyCost > 0 and affordableEnergy / convertedEnergyCost or 1
-	local buildProgress = math.min(metalProgress, energyProgress)
+	local affordableJuice = math.min(commanderData.juice, juiceCost)
+	local buildProgress = affordableJuice / juiceCost
 	
 	if buildProgress <= 0 then
 		return false, nil
@@ -206,8 +205,7 @@ local function buildStructureDirectly(commanderID, cmd)
 	local currentHealth = math.ceil(maxHealth * buildProgress)
 	spSetUnitHealth(unitID, {build = buildProgress, health = currentHealth})
 	
-	commanderData.availableMetal = commanderData.availableMetal - affordableMetal
-	commanderData.availableEnergy = commanderData.availableEnergy - affordableEnergy
+	commanderData.juice = commanderData.juice - affordableJuice
 	
 	Spring.SpawnCEG("quickstart-spawn-pulse-large", buildX, buildY + 10, buildZ)
 	
@@ -240,11 +238,11 @@ local function isCommanderInRange(commanderID, targetX, targetZ)
 end
 
 local function hasResourcesLeft(commanderData)
-	return commanderData.availableMetal > 0 and commanderData.availableEnergy > 0
+	return commanderData.juice > 0
 end
 
 local function canAffordAnyPartialBuild(commanderData)
-	return commanderData.availableMetal > 0 or commanderData.availableEnergy > 0
+	return commanderData.juice > 0
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
