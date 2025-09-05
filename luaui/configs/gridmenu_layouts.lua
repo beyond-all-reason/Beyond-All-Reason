@@ -1687,9 +1687,9 @@ local unitGrids = {
 			{ "armgate", },                                      -- shield
 		},
 		{
-			{ "armlab", "armvp", "armap", "armsy", },                                      -- T1 lab,
-			{ "armalab", "armavp", "armaap", "armasy",},                         -- T3 lab, T2 lab
-			{ "armhalab", "armhhavp", "armhaap", "armhasy" },                                                --
+			{ "armap", },                                       -- T1 lab,
+			{ "armshltx", "armaap", },                          -- T3 lab, T2 lab
+			{ "armplat", },                                     -- seaplane lab (aircon only)                                              --
 		}
 	},
 
