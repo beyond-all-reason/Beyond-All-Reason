@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "modes": [
+    {
+      "key": "no_sharing",
+      "name": "No Sharing",
+      "desc": "Disable all sharing; apply a 30% tax; lock most controls.",
+      "allowRanked": true,
+      "options": {
+        "unit_sharing_mode": {
+          "value": "disabled",
+          "locked": true,
+          "bounds": {
+            "items": ["disabled"]
+          }
+        },
+        "tax_resource_sharing_amount": {
+          "value": 0.30,
+          "locked": true,
+          "bounds": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "player_metal_send_threshold": {
+          "value": 0,
+          "locked": true,
+          "bounds": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "disable_assist_ally_construction": {
+          "value": true,
+          "locked": true
+        }
+      }
+    },
+    {
+      "key": "limited_sharing",
+      "name": "Limited Sharing",
+      "desc": "Allow T2 constructor trades, otherwise restrict; 30% tax; 440m threshold.",
+      "allowRanked": true,
+      "options": {
+        "unit_sharing_mode": {
+          "value": "t2cons",
+          "locked": true,
+          "bounds": {
+            "items": ["t2cons"]
+          }
+        },
+        "tax_resource_sharing_amount": {
+          "value": 0.30,
+          "locked": false,
+          "bounds": {
+            "min": 0,
+            "max": 0.6,
+            "step": 0.01
+          }
+        },
+        "player_metal_send_threshold": {
+          "value": 440,
+          "locked": false,
+          "bounds": {
+            "min": 200,
+            "max": 1000,
+            "step": 10
+          }
+        },
+        "disable_assist_ally_construction": {
+          "value": true,
+          "locked": true
+        }
+      }
+    },
+    {
+      "key": "enabled",
+      "name": "Enabled",
+      "desc": "All sharing on with fixed defaults.",
+      "allowRanked": true,
+      "options": {
+        "unit_sharing_mode": {
+          "value": "enabled",
+          "locked": true,
+          "bounds": {
+            "items": ["enabled"]
+          }
+        },
+        "tax_resource_sharing_amount": {
+          "value": 0.0,
+          "locked": true,
+          "bounds": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "player_metal_send_threshold": {
+          "value": 0,
+          "locked": true,
+          "ui": "hidden"
+        },
+        "disable_assist_ally_construction": {
+          "value": false,
+          "locked": true
+        }
+      }
+    },
+    {
+      "key": "customize",
+      "name": "Customize",
+      "desc": "Choose your own settings.",
+      "allowRanked": false,
+      "options": {
+        "unit_sharing_mode": {
+          "locked": false
+        },
+        "tax_resource_sharing_amount": {
+          "locked": false
+        },
+        "player_metal_send_threshold": {
+          "value": 0,
+          "locked": false
+        },
+        "disable_assist_ally_construction": {
+          "locked": false
+        }
+      }
+    }
+  ]
+}

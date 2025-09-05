@@ -82,6 +82,20 @@ local function tablelength(T)
 	return count
 end
 
+---@type UnitSharing
+local sharing = VFS.Include("common/unit_sharing.lua")
+local unitSharingMode = sharing.getUnitSharingMode()
+
+local function isT2Constructor(unitDef)
+	return sharing.isT2ConstructorDef(unitDef)
+end
+
+local function countShareableSelection()
+	local selectedUnits = GetSelectedUnits()
+	local shareable, unshareable, total = sharing.countUnshareable(selectedUnits, unitSharingMode)
+	return shareable, total, unshareable
+end
+
 local function getSecondPart(offset)
 	local result = secondPart + (offset or 0)
 	return result - floor(result)
@@ -323,6 +337,20 @@ end
 
 function widget:CommandNotify(cmdID, cmdParams, _)
 	if cmdID == cmdQuickShareToTargetId then
+		if unitSharingMode == "disabled" then
+			Spring.Echo(sharing.blockMessage(nil, unitSharingMode))
+			return true
+		end
+		if unitSharingMode == "t2cons" then
+			local t2count, total, unshareable = countShareableSelection()
+			if total > 0 and t2count == 0 then
+				Spring.Echo(sharing.blockMessage(unshareable, unitSharingMode))
+				return true
+			end
+			if unshareable > 0 then
+				Spring.Echo(sharing.blockMessage(unshareable, unitSharingMode))
+			end
+		end
 		local targetTeamID
 		if #cmdParams ~= 1 and #cmdParams ~= 3 then
 			return true
@@ -353,7 +381,9 @@ function widget:CommandsChanged()
 	end
 
 	local selectedUnits = GetSelectedUnits()
-	if #selectedUnits > 0 then
+	local allow = sharing.shouldShowShareButton(selectedUnits, unitSharingMode)
+
+	if allow then
 		local customCommands = widgetHandler.customCommands
 		customCommands[#customCommands + 1] = {
 			id = cmdQuickShareToTargetId,

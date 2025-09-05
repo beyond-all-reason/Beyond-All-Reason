@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://beyondallreason.info/schemas/sharingoptions.json",
+  "title": "Sharing Options Configuration Schema",
+  "description": "Schema for validating sharing mode configurations in Beyond All Reason",
+  "type": "object",
+  "required": ["version", "modes"],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Schema version for compatibility tracking"
+    },
+    "modes": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Array of sharing modes",
+      "items": {
+        "type": "object",
+        "required": ["key", "name", "desc"],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z_][a-z0-9_]*$",
+            "description": "Unique identifier for the mode (snake_case)"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "Display name for the mode"
+          },
+          "desc": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Description of what this mode does"
+          },
+          "allowRanked": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether this mode allows ranked games"
+          },
+          "options": {
+            "type": "object",
+            "description": "Modoption overrides for this mode",
+            "patternProperties": {
+              "^[a-z_][a-z0-9_]*$": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "oneOf": [
+                      {"type": "string"},
+                      {"type": "number"},
+                      {"type": "boolean"}
+                    ],
+                    "description": "Value to set for this option"
+                  },
+                  "locked": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether this option should be read-only"
+                  },
+                  "ui": {
+                    "type": "string",
+                    "enum": ["visible", "hidden"],
+                    "description": "UI visibility for this option"
+                  },
+                  "bounds": {
+                    "type": "object",
+                    "description": "Mode-specific bounds that must be within global modoption bounds",
+                    "properties": {
+                      "min": {
+                        "type": "number",
+                        "description": "Minimum value (for number options)"
+                      },
+                      "max": {
+                        "type": "number",
+                        "description": "Maximum value (for number options)"
+                      },
+                      "step": {
+                        "type": "number",
+                        "minimum": 0,
+                        "description": "Step size (for number options)"
+                      },
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "minItems": 1,
+                        "description": "Allowed items subset (for list options)"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
