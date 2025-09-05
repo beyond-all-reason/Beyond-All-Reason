@@ -1672,8 +1672,8 @@ local unitGrids = {
 	--T2 air cons
 	armaca = {
 		{
-			{ "armmoho", "armckfus", "armafus", "", },             -- moho, fusion, afus, safe geo
-			{ "armmmkr", "armageo", "", "" },                     -- T2 converter, T2 geo, cloaked fusion
+			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
+			{ "armmmkr", "armageo", "armckfus", "armshockwave" },      -- T2 converter, T2 geo, cloaked fusion
 			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
