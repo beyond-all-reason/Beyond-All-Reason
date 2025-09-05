@@ -78,17 +78,39 @@ local commanderNonLabOptions = {
 	}
 }
 
+local landBuildQuotas = {
+	mex = 4,
+	windmill = 4,
+	converter = 2,
+	solar = 4,
+}
+
 local randomBuildOptionWeights = {
 	windmill = 0.25,
 	mex = 0.25,
 	converter = 0.1,
 	solar = 0.25,
-	tidal = 0.1,
+	tidal = 0.5,
 }
 
 local commanderSeaLabs = {
-	armcom = { armsy = 0.8, armfhp = 0.2}
+	armcom = { armsy = 0.8, armfhp = 0.2},
+	corcom = { corsy = 0.8, corfhp = 0.2},
+	legcom = { legsy = 0.8, legfhp = 0.2},
 }
+
+local factoryOptions = {}
+for commanderName, landLabs in pairs(commanderLandLabs) do
+	for unitName, _ in pairs(landLabs.labs) do
+		factoryOptions[unitName] = true
+	end
+end
+for commanderName, seaLabs in pairs(commanderSeaLabs) do
+	for unitName, _ in pairs(seaLabs) do
+		factoryOptions[unitName] = true
+	end
+end
+
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local ENERGY_VALUE_CONVERSION_DIVISOR = 10
@@ -123,6 +145,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitCosts[unitDefID] = calculateUnitCost(unitDef)
 end
 
+
+
 local function initializeCommander(commanderID, teamID, startingMetal, startingEnergy)
 	if not Spring.ValidUnitID(commanderID) or Spring.GetUnitIsDead(commanderID) then
 		return
@@ -137,7 +161,9 @@ local function initializeCommander(commanderID, teamID, startingMetal, startingE
 		teamID = teamID,
 		availableMetal = math.min(currentMetal, startMetal),
 		availableEnergy = math.min(currentEnergy, startEnergy),
-		lastCommandCheck = 0
+		lastCommandCheck = 0,
+		factoryMade = false,
+		thingsMade = {windmill = 0, mex = 0, converter = 0, solar = 0, tidal = 0}
 	}
 	
 	Spring.SetTeamResource(teamID, "metal", math.max(0, currentMetal - startMetal))
