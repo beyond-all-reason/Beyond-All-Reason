@@ -52,7 +52,7 @@ local function cameraFlipHandler()
 	local cardinalLock = Spring.GetConfigInt("CamSpringLockCardinalDirections")
 	local lockCorrection = 0
 	if cardinalLock == 1 and math.abs(camState.ry) < 0.1 * halfpi then
-		-- Edge case around 0.0f: cameare ry's with absolute value less than 0.1 * halfpi
+		-- Edge case around 0.0f: camera ry's with absolute value less than 0.1 * halfpi
 		-- require a small increase in rotation magnitude so that they work with the cardinal locking formula.
 		lockCorrection = 0.1 * halfpi
 	end
