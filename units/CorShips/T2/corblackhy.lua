@@ -22,7 +22,7 @@ return {
 		maxdec = 0.00809,
 		metalcost = 21000,
 		minwaterdepth = 15,
-		movementclass = "BOAT8",
+		movementclass = "BOAT9",
 		movestate = 0,
 		objectname = "Units/CORBLACKHY.s3o",
 		radardistance = 1510,

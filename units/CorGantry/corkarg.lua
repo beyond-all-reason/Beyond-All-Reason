@@ -21,7 +21,7 @@ return {
 		maxslope = 160,
 		maxwaterdepth = 12,
 		metalcost = 2500,
-		movementclass = "HTBOT4",
+		movementclass = "HTBOT6",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORKARG.s3o",
 		script = "Units/CORKARG.COB",
