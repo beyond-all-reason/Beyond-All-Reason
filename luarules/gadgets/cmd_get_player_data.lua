@@ -58,6 +58,11 @@ else
 	local userconfigComplete, queueScreenshot, queueScreenShotHeight, queueScreenShotHeightBatch, queueScreenShotH, queueScreenShotHmax, queueScreenShotStep
 	local queueScreenShotWidth, queueScreenshotGameframe, queueScreenShotPixels, queueScreenShotBroadcastChars, queueScreenShotCharsPerBroadcast, pixels
 
+	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerName,_,_,_,_,_,_,_,_,_,accountInfo = Spring.GetPlayerInfo(myPlayerID)
+	local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+	local authorized = SYNCED.permissions.playerdata[accountID]
+
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("SendToWG", SendToWG)
 	end
@@ -73,13 +78,12 @@ else
 	end
 
 	function gadget:GotChatMsg(msg, player)
-		local myPlayerName, _, mySpec = Spring.GetPlayerInfo(player, false)
-		if not SYNCED.permissions.playerdata[myPlayerName] then
+		if not authorized then
 			return
 		end
 		if string.sub(msg, 1, 9) == "getconfig" then
 			local playerName = string.sub(msg, 11)
-			if playerName == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)) then
+			if playerName == myPlayerName then
 				local data = VFS.LoadFile("LuaUI/Config/BAR.lua")
 				if data then
 					data = string.sub(data, 1, 200000)
@@ -89,7 +93,7 @@ else
 			end
 		elseif string.sub(msg, 1, 10) == "getinfolog" then
 			local playerName = string.sub(msg, 12)
-			if playerName == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)) then
+			if playerName == myPlayerName then
 				local userconfig
 				local data = ''
 				local skipline = false
@@ -151,7 +155,7 @@ else
 				queueScreenShotHeightBatch = 5
 				playerName = string.sub(msg, 17)
 			end
-			if playerName == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)) then
+			if playerName == myPlayerName then
 				local vsx, vsy = Spring.GetViewGeometry()
 				queueScreenshot = true
 				queueScreenshotGameframe = Spring.GetGameFrame()
@@ -225,8 +229,8 @@ else
 	end
 
 	function SendToWG(_, msg)
-		local myPlayerName, _, mySpec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-		if Script.LuaUI("PlayerDataBroadcast") and (mySpec or myPlayerName == 'Player' or string.sub(msg, 1, 1) == '1') and SYNCED.permissions.playerdata[myPlayerName] then
+		local _, _, mySpec = Spring.GetPlayerInfo(myPlayerID, false)
+		if Script.LuaUI("PlayerDataBroadcast") and (mySpec or myPlayerName == 'Player' or string.sub(msg, 1, 1) == '1') and authorized then
 			Script.LuaUI.PlayerDataBroadcast(myPlayerName, string.sub(msg, 2))
 		end
 	end

@@ -114,7 +114,7 @@ local isTeamSavingMetal = function(_) return false end
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_PRIORITY)
 	updateTeamList()
-	
+
 	for _, teamID in ipairs(teamList) do
 		-- Distribute initial update frames. They will drift on their own afterward.
 		local gameFrame = Spring.GetGameFrame()
@@ -133,17 +133,6 @@ function gadget:Initialize()
 			spSetUnitBuildSpeed(unitID, currentBuildSpeed[unitID]) -- needed for luarules reloads
 		end
     end
-
-	-- huge apologies for intruding on this gadget, but players have requested ability to put everything on hold to buy t2 as soon as possible (Unit Market)
-	if (Spring.GetModOptions().unit_market) then
-		isTeamSavingMetal = function(teamID)
-			local isAiTeam = select(4,spGetTeamInfo(teamID))
-			if not isAiTeam then
-				return (GG.isTeamSaving and GG.isTeamSaving(teamID)) or false
-			end
-			return false
-		end
-	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, teamID)

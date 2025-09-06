@@ -152,6 +152,7 @@ local lastStorageValue = { metal = -1, energy = -1 }
 local lastStorageText = { metal = '', energy = '' }
 local lastWarning = { metal = nil, energy = nil }
 local lastValueWidth = { metal = -1, energy = -1 }
+local lastResbarValueWidth = { metal = 1, energy = 1 }
 local prevShowButtons = showButtons
 
 
@@ -650,7 +651,8 @@ local function updateResbarText(res, force)
 end
 
 local function drawResbarValue(res)
-	-- Text: current
+	local value = short(smoothedResources[res][1])
+	lastResbarValueWidth[res] = font2:GetTextWidth(value) * resbarDrawinfo[res].textCurrent[4]
 	font2:Begin(useRenderToTexture)
 	if res == 'metal' then
 		font2:SetTextColor(0.95, 0.95, 0.95, 1)
@@ -658,7 +660,7 @@ local function drawResbarValue(res)
 		font2:SetTextColor(1, 1, 0.74, 1)
 	end
 	font2:SetOutlineColor(0, 0, 0, 1)
-	font2:Print(short(smoothedResources[res][1]), resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+	font2:Print(value, resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
 	font2:End()
 end
 
@@ -1334,9 +1336,9 @@ local function drawResBars()
 			res = 'metal'
 			if updateRes[res][1] then
 				scissors[#scissors+1] = {
-					(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(resbarDrawinfo[res].textCurrent[4]*3),
+					(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(lastResbarValueWidth[res]*0.75),
 					(topbarArea[4]-topbarArea[2])*0.48,
-					resbarDrawinfo[res].textCurrent[4]*6,
+					resbarDrawinfo[res].textCurrent[4]+lastResbarValueWidth[res],
 					topbarArea[4]-topbarArea[2]
 				}
 			end
@@ -1359,9 +1361,9 @@ local function drawResBars()
 			res = 'energy'
 			if updateRes[res][1] then
 				scissors[#scissors+1] = {
-					(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(resbarDrawinfo[res].textCurrent[4]*3),
+					(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(lastResbarValueWidth[res]*0.75),
 					(topbarArea[4]-topbarArea[2])*0.48,
-					resbarDrawinfo[res].textCurrent[4]*6,
+					resbarDrawinfo[res].textCurrent[4]+lastResbarValueWidth[res],
 					topbarArea[4]-topbarArea[2]
 				}
 			end
@@ -1740,9 +1742,9 @@ function widget:DrawScreen()
 	end
 
 	-- current wind
-	if gameFrame > 0 and minWind+maxWind >= 0.5 then
+	if gameFrame > 0 and (minWind+maxWind >= 0.5 or refreshUi) then
 		if useRenderToTexture then
-			if currentWind ~= prevWind then
+			if currentWind ~= prevWind or refreshUi then
 				prevWind = currentWind
 
 				gl.R2tHelper.RenderToTexture(uiTex,

@@ -771,6 +771,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 1] = "legsrailt4" -- Epic Arquebus
 			uDef.buildoptions[numBuildoptions + 2] = "leggobt3" -- Epic Goblin
 			uDef.buildoptions[numBuildoptions + 3] = "legpede" -- Mukade - Heavy Multi Weapon Centipede
+			uDef.buildoptions[numBuildoptions + 4] = "legeheatraymech_old" -- Old Sol Invictus - Quad Heatray Mech
 		end
 	end
 
@@ -823,28 +824,6 @@ function UnitDef_Post(name, uDef)
 			uDef.maxacc = uDef.speed * 0.00166
 			uDef.maxdec = uDef.speed * 0.00166
 		elseif uDef.canfly then
-			if modOptions.air_rework == true then
-				uDef.speed = uDef.speed * 0.65
-				uDef.health = uDef.health * 1.5
-
-				uDef.maxacc = 1
-				uDef.maxdec = 1
-				uDef.usesmoothmesh = true
-
-				-- flightmodel
-				uDef.maxaileron = 0.025
-				uDef.maxbank = 0.65
-				uDef.maxelevator = 0.025
-				uDef.maxpitch = 0.75
-				uDef.maxrudder = 0.18
-				uDef.wingangle = 0.06593
-				uDef.wingdrag = 0.02
-				uDef.turnradius = 64
-				uDef.turnrate = 50
-				uDef.speedtofront = 0.06
-				uDef.cruisealtitude = 220
-				--uDef.attackrunlength = 32
-			else
 				uDef.maxacc = 1
 				uDef.maxdec = 0.25
 				uDef.usesmoothmesh = true
@@ -860,9 +839,7 @@ function UnitDef_Post(name, uDef)
 				uDef.turnradius = 64
 				uDef.turnrate = 1600
 				uDef.speedtofront = 0.01
-				uDef.cruisealtitude = 220
 				--uDef.attackrunlength = 32
-			end
 		end
 	end
 
@@ -2374,6 +2351,9 @@ function WeaponDef_Post(name, wDef)
 		end
 		if wDef.weapontype == "StarburstLauncher" and wDef.weapontimer then
 			wDef.weapontimer = wDef.weapontimer + (wDef.weapontimer * ((rangeMult - 1) * 0.4))
+		end
+		if wDef.customparams and wDef.customparams.overrange_distance then
+			wDef.customparams.overrange_distance = wDef.customparams.overrange_distance * rangeMult
 		end
 	end
 
