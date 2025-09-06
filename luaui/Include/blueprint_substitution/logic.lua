@@ -100,7 +100,7 @@ function BlueprintSubLogic.getSideFromUnitName(unitName)
     if unitName == 'dummycom' then
 	    -- special exception for dummycom when player is still 'random' faction, will
 	    -- behave as arm and be converted later
-	    return BlueprintSubLogic.SIDES.ARM
+	    return BlueprintSubLogic.SIDES.ARMADA
     end
     local lowerName = unitName:lower()
     for side, prefix in pairs(BlueprintSubLogic.SIDES) do
