@@ -39,6 +39,7 @@ local mathDiag = math.diag
 local mathRandom = math.random
 local mathCos = math.cos
 local mathSin = math.sin
+local random = math.random
 
 local unitDefNames = UnitDefNames
 
@@ -125,27 +126,15 @@ local teamsToBoost = {}
 local commanderMetaList = {}
 local nonPlayerTeams = {}
 local boostableCommanders = {}
-local unitCosts = {}
 local queueCommanderCreation = {}
 local partiallyBuiltStructures = {}
-
-
-local function calculateUnitCost(unitDef)
-	local metalCost = unitDef.metalCost or 0
-	local energyCost = unitDef.energyCost or 0
-	return metalCost + energyCost / 60
-end
-
 
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams and unitDef.customParams.iscommander then
 		boostableCommanders[unitDefID] = true
 	end
-	unitCosts[unitDefID] = calculateUnitCost(unitDef)
 end
-
-
 
 local function initializeCommander(commanderID, teamID, startingMetal, startingEnergy)
 	if not Spring.ValidUnitID(commanderID) or Spring.GetUnitIsDead(commanderID) then
@@ -173,21 +162,20 @@ local function initializeCommander(commanderID, teamID, startingMetal, startingE
 	Spring.SetTeamResource(teamID, "energy", math.max(0, currentEnergy - startEnergy))
 end
 
-local function buildStructureDirectly(commanderID, cmd)
-	local buildDefID = -cmd.id
-	local buildX, buildY, buildZ = cmd.params[1], cmd.params[2], cmd.params[3]
-	local commanderData = commanderMetaList[commanderID]
-	
-	if not commanderData then return false, nil end
-	
-	local unitDef = UnitDefs[buildDefID]
-	if not unitDef then return false, nil end
+local function calculateJuiceCost(unitDefID)
+	local unitDef = UnitDefs[unitDefID]
+	if not unitDef then
+		return 0
+	end
 	
 	local metalCost = unitDef.metalCost or 0
 	local energyCost = unitDef.energyCost or 0
-	local juiceCost = metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
-	
-	if commanderData.juice <= 0 or juiceCost <= 0 then
+	return metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
+end
+
+local function deductJuiceAndCreateUnit(commanderData, unitDefID, buildX, buildY, buildZ, facing, teamID, commanderID)
+	local juiceCost = calculateJuiceCost(unitDefID)
+	if juiceCost <= 0 or commanderData.juice <= 0 then
 		return false, nil
 	end
 	
@@ -198,8 +186,11 @@ local function buildStructureDirectly(commanderID, cmd)
 		return false, nil
 	end
 	
-	local unitID = spCreateUnit(unitDef.name, buildX, buildY, buildZ, 0, commanderData.teamID)
-	if not unitID then return false, nil end
+	local unitDef = UnitDefs[unitDefID]
+	local unitID = spCreateUnit(unitDef.name, buildX, buildY, buildZ, facing, teamID)
+	if not unitID then
+		return false, nil
+	end
 	
 	local maxHealth = unitDef.health
 	local currentHealth = math.ceil(maxHealth * buildProgress)
@@ -213,11 +204,26 @@ local function buildStructureDirectly(commanderID, cmd)
 		partiallyBuiltStructures[unitID] = {
 			commanderID = commanderID,
 			buildProgress = buildProgress,
-			originalCommand = cmd
+			originalCommand = nil
 		}
 	end
 	
 	return buildProgress >= 1, unitID
+end
+
+local function tryToBuildCommand(commanderID, cmd)
+	local buildDefID = -cmd.id
+	local buildX, buildY, buildZ = cmd.params[1], cmd.params[2], cmd.params[3]
+	local commanderData = commanderMetaList[commanderID]
+	
+	if not commanderData then return false, nil end
+	
+	local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, buildDefID, buildX, buildY, buildZ, 0, commanderData.teamID, commanderID)
+	if unitID and partiallyBuiltStructures[unitID] then
+		partiallyBuiltStructures[unitID].originalCommand = cmd
+	end
+	
+	return fullyBuilt, unitID
 end
 
 local function isBuildCommand(cmdID)
@@ -245,6 +251,122 @@ local function canAffordAnyPartialBuild(commanderData)
 	return commanderData.juice > 0
 end
 
+local function isMetalExtractor(unitDefID)
+	local unitDef = UnitDefs[unitDefID]
+	return unitDef and unitDef.extractsMetal and unitDef.extractsMetal > 0
+end
+
+local function findClosestMetalSpot(x, z)
+	if not GG or not GG["resource_spot_finder"] or not GG["resource_spot_finder"].metalSpotsList then
+		return nil
+	end
+	
+	local metalSpots = GG["resource_spot_finder"].metalSpotsList
+	if not metalSpots or #metalSpots == 0 then
+		return nil
+	end
+	
+	local closestSpot = nil
+	local closestDistance = math.huge
+	
+	for i = 1, #metalSpots do
+		local spot = metalSpots[i]
+		local distance = math.sqrt((spot.x - x)^2 + (spot.z - z)^2)
+		if distance < closestDistance then
+			closestDistance = distance
+			closestSpot = spot
+		end
+	end
+	
+	return closestSpot
+end
+
+local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, commanderData, commanderID)
+	Spring.Echo("findBuildLocationAndCreateUnit")
+	if not commanderData or commanderData.juice <= 0 then
+		return false
+	end
+	
+	local buildX, buildY, buildZ = x, y, z
+	local facing = 0
+	
+	if isMetalExtractor(unitDefID) then
+		local metalSpot = findClosestMetalSpot(x, z)
+		if metalSpot then
+			buildX = metalSpot.x
+			buildY = metalSpot.y
+			buildZ = metalSpot.z
+			Spring.Echo("Found metal spot at", buildX, buildY, buildZ)
+		else
+			Spring.Echo("No metal spot found, using random placement")
+		end
+	end
+	
+	local buildTest = Spring.TestBuildOrder(unitDefID, buildX, buildY, buildZ, 0)
+	if buildTest > 0 then
+		local mapCenterX = Game.mapSizeX / 2
+		local mapCenterZ = Game.mapSizeZ / 2
+		local directionX = mapCenterX - buildX
+		local directionZ = mapCenterZ - buildZ
+		facing = math.floor((math.atan2(directionZ, directionX) * 32768 / math.pi) + 0.5)
+		
+		local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, unitDefID, buildX, buildY, buildZ, facing, teamID, commanderID)
+		if unitID then
+			return unitID
+		end
+	end
+	
+	if not isMetalExtractor(unitDefID) then
+		local searchRadius = 200
+		local maxAttempts = 25
+		
+		for attempt = 1, maxAttempts do
+			local randomAngle = mathRandom() * 2 * math.pi
+			local randomDistance = mathRandom() * searchRadius
+			local searchX = x + mathCos(randomAngle) * randomDistance
+			local searchZ = z + mathSin(randomAngle) * randomDistance
+			local searchY = spGetGroundHeight(searchX, searchZ)
+			Spring.Echo("searchX", searchX, "searchY", searchY, "searchZ", searchZ)
+			
+			local buildTest = Spring.TestBuildOrder(unitDefID, searchX, searchY, searchZ, 0)
+			if buildTest > 0 then
+				local mapCenterX = Game.mapSizeX / 2
+				local mapCenterZ = Game.mapSizeZ / 2
+				local directionX = mapCenterX - searchX
+				local directionZ = mapCenterZ - searchZ
+				facing = math.floor((math.atan2(directionZ, directionX) * 32768 / math.pi) + 0.5)
+				
+				local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, unitDefID, searchX, searchY, searchZ, facing, teamID, commanderID)
+				if unitID then
+					return unitID
+				end
+			end
+		end
+	end
+	
+	return false
+end
+
+local function processCommanderCommands(commanderID, commanderData)
+	if teamsToBoost[commanderData.teamID] and canAffordAnyPartialBuild(commanderData) then
+		local commands = spGetUnitCommands(commanderID, ALL_COMMANDS)
+		if next(commands) then
+			for i, cmd in ipairs(commands) do
+				local buildsiteX, buildsiteZ = cmd.params[1], cmd.params[3]
+				if isBuildCommand(cmd.id) and isCommanderInRange(commanderID, buildsiteX, buildsiteZ) then
+					local fullyBuilt, unitID = tryToBuildCommand(commanderID, cmd)
+					if fullyBuilt then
+						spGiveOrderToUnit(commanderID, CMD.REMOVE, {i}, 0)
+					end
+					if not unitID then
+						break
+					end
+				end
+			end
+		end
+	end
+end
+
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if boostableCommanders[unitDefID] then
 		teamsToBoost[unitTeam] = true
@@ -265,26 +387,39 @@ function gadget:GameFrame(frame)
 	if frame % UPDATE_FRAMES ~= 0 then return end
 
 	for commanderID, commanderData in pairs(commanderMetaList) do
-		if teamsToBoost[commanderData.teamID] and canAffordAnyPartialBuild(commanderData) then
-			local commands = spGetUnitCommands(commanderID, ALL_COMMANDS)
-			if next(commands) then
-				for i, cmd in ipairs(commands) do
-					local buildsiteX, buildsiteZ = cmd.params[1], cmd.params[3]
-					if isBuildCommand(cmd.id) and isCommanderInRange(commanderID, buildsiteX, buildsiteZ) then
-						local fullyBuilt, unitID = buildStructureDirectly(commanderID, cmd)
-						if fullyBuilt then
-							spGiveOrderToUnit(commanderID, CMD.REMOVE, {i}, 0)
-						end
-						if not unitID then
-							break
+		local commanderData = commanderMetaList[commanderID]
+
+		processCommanderCommands(commanderID, commanderData)
+
+		if commanderData.juice > 0 then
+			Spring.Echo("commanderData.juice > 0")
+			local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
+			local commanderDefID = spGetUnitDefID(commanderID)
+			local commanderName = UnitDefs[commanderDefID].name
+			local nonLabOptions = commanderNonLabOptions[commanderName]
+			
+			if nonLabOptions then
+				for optionName, count in pairs(commanderData.thingsMade) do
+					Spring.Echo("optionName", optionName, "count", count)
+					local weight = randomBuildOptionWeights[optionName]
+					if random() > weight then
+						Spring.Echo("random() > weight")
+						local trueName = nonLabOptions[optionName]
+						if trueName then
+							local unitDefID = unitDefNames[trueName] and unitDefNames[trueName].id
+							if unitDefID then
+								findBuildLocationAndCreateUnit(commanderX, commanderY, commanderZ, unitDefID, commanderData.teamID, commanderData, commanderID)
+							end
 						end
 					end
 				end
 			end
+		else
+			--remove unit?
 		end
 	end
 
-	for unitID, structureData in pairs(partiallyBuiltStructures) do
+	for unitID, structureData in pairs(partiallyBuiltStructures) do --zzz this complexity is no longer needed because we only need to issue repair command once
 		if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) then
 			local commanderID = structureData.commanderID
 			if commanderMetaList[commanderID] and teamsToBoost[commanderMetaList[commanderID].teamID] then
