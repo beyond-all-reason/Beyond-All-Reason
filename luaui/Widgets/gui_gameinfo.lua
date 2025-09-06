@@ -103,8 +103,8 @@ for key, value in pairs(modoptions) do
 		else
 			if string.find(key, 'tweakdefs') then
 				changedModoptions[key] = '\n' .. string.base64Decode(value)
-			else
-				local success, tweaks = pcall(Spring.Utilities.CustomKeyToUsefulTable, value)
+			else -- thus is must be tweakunits
+				local success, tweaks = pcall(Spring.Utilities.SafeLuaTableParser, value)
 				if success and type(tweaks) == "table" then
 					local text = ''
 					for name, ud in pairs(tweaks) do
