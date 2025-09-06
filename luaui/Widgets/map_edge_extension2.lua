@@ -26,7 +26,7 @@ local fogEffect = true
 local mapBorderStyle = 'texture'	-- either 'texture' or 'cutaway'
 
 local gridSize = 32
-local gridSizeDeferred = 2*gridSize
+local gridSizeDeferred = gridSize -- this could be half size, but half size screws with Global Fog, as deferred buffer wont match the forward buffer
 
 local hasBadCulling = false
 
@@ -769,7 +769,6 @@ local function UpdateMirrorParams()
 	end
 	if #mirrorParams > 0 then
 		
-		terrainInstanceVBODeferred:Upload(mirrorParams)
 		
 		-- EXTREMELY IMPORTANT: 
 		-- Add a blank, non-mirrored or offset one to the forward pass for the edge seams
@@ -778,6 +777,9 @@ local function UpdateMirrorParams()
 		mirrorParams[#mirrorParams + 1] = 0
 		mirrorParams[#mirrorParams + 1] = 0
 		terrainInstanceVBO:Upload(mirrorParams)
+
+		-- Also add to the deferred pass
+		terrainInstanceVBODeferred:Upload(mirrorParams)
 	end
 end
 
@@ -830,8 +832,7 @@ function widget:DrawGroundDeferred()
 	--gl.RunQuery(q, function()
 		--terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, #mirrorParams / 4)
 		--planeVAO:DrawElements(GL.TRIANGLES, 1000, 0, 8 ,0)
-		-- draw one less element as that is unmirrored one for the seam
-		planeVAO:DrawElements(GL.TRIANGLES, nil, 0, math.max(0, (#mirrorParams / 4)-1) )
+		planeVAO:DrawElements(GL.TRIANGLES, nil, 0, math.max(0, (#mirrorParams / 4)) )
 	--end)
 	mapExtensionShaderDeferred:Deactivate()
 	gl.Texture(0, false)
