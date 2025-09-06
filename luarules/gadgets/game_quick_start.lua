@@ -51,13 +51,13 @@ local unitDefNames = UnitDefNames
 
 local commanderLandLabs = {
 	armcom = {
-		labs = { armlab = 0.4, armvp = 0.4, armap = 0.5 }
+		labs = { armlab = 0.4, armvp = 0.3, armap = 0.2 }
 	},
 	corcom = {
-		labs = { corlab = 0.4, corvp = 0.4, corap = 0.5 }
+		labs = { corlab = 0.4, corvp = 0.3, corap = 0.2 }
 	},
 	legcom = {
-		labs = { leglab = 0.4, legvp = 0.4, legap = 0.5 }
+		labs = { leglab = 0.4, legvp = 0.3, legap = 0.2 }
 	}
 }
 
@@ -157,16 +157,28 @@ local function initializeCommander(commanderID, teamID, startingMetal, startingE
 	local availableEnergy = math.min(currentEnergy, startEnergy)
 	local juice = availableMetal + BONUS_METAL + ((availableEnergy + BONUS_ENERGY) / ENERGY_VALUE_CONVERSION_DIVISOR)
 	
+	-- Check if this is a human team using PowerLib
+	local isHuman = false
+	if GG and GG.PowerLib and GG.PowerLib.HumanTeams then
+		isHuman = GG.PowerLib.HumanTeams[teamID] == true
+	end
+	
 	commanderMetaList[commanderID] = {
 		teamID = teamID,
 		juice = juice,
 		lastCommandCheck = 0,
 		factoryMade = false,
-		thingsMade = {windmill = 0, mex = 0, converter = 0, solar = 0, tidal = 0, factory = 0}
+		thingsMade = {windmill = 0, mex = 0, converter = 0, solar = 0, tidal = 0, factory = 0},
+		isWaiting = false,
+		isHuman = isHuman
 	}
 	
 	-- Initialize empty build queue
 	buildQueues[commanderID] = {}
+	
+	-- Issue wait command to commander
+	spGiveOrderToUnit(commanderID, CMD.WAIT, {}, 0)
+	commanderMetaList[commanderID].isWaiting = true
 	
 	Spring.SetTeamResource(teamID, "metal", math.max(0, currentMetal - startMetal))
 	Spring.SetTeamResource(teamID, "energy", math.max(0, currentEnergy - startEnergy))
@@ -296,6 +308,55 @@ local function canAffordAnyPartialBuild(commanderData)
 	return commanderData.juice > 0
 end
 
+local function hasFactoryInQueue(commanderID)
+	local commands = spGetUnitCommands(commanderID, ALL_COMMANDS)
+	for i, cmd in ipairs(commands) do
+		if isBuildCommand(cmd.id) then
+			local buildDefID = -cmd.id
+			local unitDef = UnitDefs[buildDefID]
+			if unitDef and factoryOptions[unitDef.name] then
+				return true, cmd
+			end
+		end
+	end
+	return false, nil
+end
+
+local function selectWeightedRandom(weightedOptions)
+	local totalWeight = 0
+	for _, weight in pairs(weightedOptions) do
+		totalWeight = totalWeight + weight
+	end
+	
+	if totalWeight <= 0 then
+		return nil
+	end
+	
+	local randomValue = math.random() * totalWeight
+	local currentWeight = 0
+	
+	for optionName, weight in pairs(weightedOptions) do
+		currentWeight = currentWeight + weight
+		if randomValue <= currentWeight then
+			return optionName
+		end
+	end
+	
+	-- Fallback to first option if something goes wrong
+	for optionName, _ in pairs(weightedOptions) do
+		return optionName
+	end
+	
+	return nil
+end
+
+
+local function convertDirectionToFacing(directionX, directionZ)
+	local angle = math.atan2(directionZ, directionX)
+	local normalizedAngle = (angle + math.pi) / (2 * math.pi)
+	local facing = math.floor(normalizedAngle * 4 + 0.5) % 4
+	return facing
+end
 
 local function snapToGrid(x, z, unitDefID)
 	local unitDef = UnitDefs[unitDefID]
@@ -391,11 +452,11 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 					local buildX, buildY, buildZ = spot.x, spot.y, spot.z
 					local buildTest = Spring.TestBuildOrder(unitDefID, buildX, buildY, buildZ, 0)
 					if buildTest > 0 then
-						local mapCenterX = Game.mapSizeX / 2
-						local mapCenterZ = Game.mapSizeZ / 2
-						local directionX = mapCenterX - buildX
-						local directionZ = mapCenterZ - buildZ
-						local facing = math.floor((math.atan2(directionZ, directionX) * 32768 / math.pi) + 0.5)
+					local mapCenterX = Game.mapSizeX / 2
+					local mapCenterZ = Game.mapSizeZ / 2
+					local directionX = mapCenterX - buildX
+					local directionZ = mapCenterZ - buildZ
+					local facing = convertDirectionToFacing(directionX, directionZ)
 						
 						local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, unitDefID, buildX, buildY, buildZ, facing, teamID, commanderID)
 						if unitID then
@@ -490,7 +551,7 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 			if buildTest > 0 then
 				local directionX = mapCenterX - snappedX
 				local directionZ = mapCenterZ - snappedZ
-				local facing = math.floor((math.atan2(directionZ, directionX) * 32768 / math.pi) + 0.5)
+				local facing = convertDirectionToFacing(directionX, directionZ)
 				
 				local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, unitDefID, snappedX, searchY, snappedZ, facing, teamID, commanderID)
 				if unitID then
@@ -584,25 +645,40 @@ local function createRandomBuildQueue(commanderID, commanderData)
 	end
 	
 	-- Second pass: Add random structures for overflow (once quotas are met)
-	local allStructures = {}
-	for optionName, trueName in pairs(nonLabOptions) do
-		local unitDefID = unitDefNames[trueName] and unitDefNames[trueName].id
-		if unitDefID then
-			table.insert(allStructures, {
-				unitDefID = unitDefID,
-				optionName = optionName,
-				trueName = trueName,
-				isQuotaItem = false
-			})
+	local hasFactoryInCommanderQueue = hasFactoryInQueue(commanderID)
+	
+	-- Create weighted options for random selection
+	local weightedOptions = {}
+	for optionName, weight in pairs(randomBuildOptionWeights) do
+		local trueName = nonLabOptions[optionName]
+		if trueName then
+			local unitDefID = unitDefNames[trueName] and unitDefNames[trueName].id
+			if unitDefID then
+				-- Skip factories if commander already has a factory in queue
+				local isFactory = factoryOptions[trueName]
+				if not (isFactory and hasFactoryInCommanderQueue) then
+					weightedOptions[optionName] = weight
+				end
+			end
 		end
 	end
 	
-	-- Add some random overflow structures
-	local overflowCount = math.min(10, #allStructures) -- Add up to 10 random structures
+	-- Add weighted random overflow structures
+	local overflowCount = math.min(10, 20) -- Add up to 10 random structures
 	for i = 1, overflowCount do
-		local randomIndex = math.random(#allStructures)
-		local randomStructure = allStructures[randomIndex]
-		table.insert(buildQueue, randomStructure)
+		local selectedOption = selectWeightedRandom(weightedOptions)
+		if selectedOption then
+			local trueName = nonLabOptions[selectedOption]
+			local unitDefID = unitDefNames[trueName] and unitDefNames[trueName].id
+			if unitDefID then
+				table.insert(buildQueue, {
+					unitDefID = unitDefID,
+					optionName = selectedOption,
+					trueName = trueName,
+					isQuotaItem = false
+				})
+			end
+		end
 	end
 	
 	buildQueues[commanderID] = buildQueue
@@ -622,30 +698,13 @@ local function processFactoryRequirement(commanderID, commanderData)
 		return
 	end
 	
-	local commands = spGetUnitCommands(commanderID, ALL_COMMANDS)
-	local factoryInQueue = false
-	local factoryCommand = nil
-	
-	for i, cmd in ipairs(commands) do
-		if isBuildCommand(cmd.id) then
-			local buildDefID = -cmd.id
-			local unitDef = UnitDefs[buildDefID]
-			if unitDef and factoryOptions[unitDef.name] then
-				factoryInQueue = true
-				factoryCommand = cmd
-				break
-			end
-		end
-	end
+	-- Check if commander already has a factory in queue
+	local factoryInQueue, factoryCommand = hasFactoryInQueue(commanderID)
 	
 	if factoryInQueue and factoryCommand then
-		local buildDefID = -factoryCommand.id
-		local buildX, buildY, buildZ = factoryCommand.params[1], factoryCommand.params[2], factoryCommand.params[3]
-		local fullyBuilt, unitID = createFactoryForFree(buildDefID, buildX, buildY, buildZ, 0, commanderData.teamID, commanderData)
-		if fullyBuilt then
-			commanderData.factoryMade = true
-			spGiveOrderToUnit(commanderID, CMD.REMOVE, {1}, 0)
-		end
+		-- Factory is already in queue, it will be handled by processCommanderCommands
+		-- No need to do anything here
+		return
 	else
 		local availableFactories = {}
 		
@@ -674,32 +733,65 @@ local function processFactoryRequirement(commanderID, commanderData)
 		end
 		
 		if #availableFactories > 0 then
-			-- Sort factories by probability (highest first) for fallback
-			local sortedFactories = {}
-			for _, factory in ipairs(availableFactories) do
-				local probability = 0
-				if landLabs and landLabs.labs[factory.name] then
-					probability = landLabs.labs[factory.name]
-				elseif seaLabs and seaLabs[factory.name] then
-					probability = seaLabs[factory.name]
-				end
-				table.insert(sortedFactories, {
-					factory = factory,
-					probability = probability
-				})
-			end
-			
-			table.sort(sortedFactories, function(a, b) return a.probability > b.probability end)
-			
-			-- Try random factory first, then fallback to highest probability
 			local factoryOrder = {}
-			local randomIndex = math.random(#availableFactories)
-			table.insert(factoryOrder, availableFactories[randomIndex])
 			
-			-- Add remaining factories in probability order (excluding the random one)
-			for _, sortedFactory in ipairs(sortedFactories) do
-				if sortedFactory.factory ~= availableFactories[randomIndex] then
-					table.insert(factoryOrder, sortedFactory.factory)
+			if commanderData.isHuman then
+				-- For human players, prioritize the first entry (corlab, armlab, leglab)
+				local firstFactory = nil
+				if landLabs and landLabs.labs then
+					-- Get the first lab from the commander's land labs
+					for labName, _ in pairs(landLabs.labs) do
+						-- Find the corresponding factory in availableFactories
+						for _, factory in ipairs(availableFactories) do
+							if factory.name == labName then
+								firstFactory = factory
+								break
+							end
+						end
+						if firstFactory then
+							break
+						end
+					end
+				end
+				
+				if firstFactory then
+					table.insert(factoryOrder, firstFactory)
+				end
+				
+				-- Add remaining factories in random order
+				for _, factory in ipairs(availableFactories) do
+					if factory ~= firstFactory then
+						table.insert(factoryOrder, factory)
+					end
+				end
+			else
+				-- For non-human players, use the current random selection logic
+				-- Sort factories by probability (highest first) for fallback
+				local sortedFactories = {}
+				for _, factory in ipairs(availableFactories) do
+					local probability = 0
+					if landLabs and landLabs.labs[factory.name] then
+						probability = landLabs.labs[factory.name]
+					elseif seaLabs and seaLabs[factory.name] then
+						probability = seaLabs[factory.name]
+					end
+					table.insert(sortedFactories, {
+						factory = factory,
+						probability = probability
+					})
+				end
+				
+				table.sort(sortedFactories, function(a, b) return a.probability > b.probability end)
+				
+				-- Try random factory first, then fallback to highest probability
+				local randomIndex = math.random(#availableFactories)
+				table.insert(factoryOrder, availableFactories[randomIndex])
+				
+				-- Add remaining factories in probability order (excluding the random one)
+				for _, sortedFactory in ipairs(sortedFactories) do
+					if sortedFactory.factory ~= availableFactories[randomIndex] then
+						table.insert(factoryOrder, sortedFactory.factory)
+					end
 				end
 			end
 			
@@ -772,7 +864,7 @@ local function processFactoryRequirement(commanderID, commanderData)
 						if buildTest > 0 then
 							local directionX = mapCenterX - snappedX
 							local directionZ = mapCenterZ - snappedZ
-							local facing = math.floor((math.atan2(directionZ, directionX) * 32768 / math.pi) + 0.5)
+							local facing = convertDirectionToFacing(directionX, directionZ)
 							
 							local fullyBuilt, unitID = createFactoryForFree(factory.unitDefID, snappedX, searchY, snappedZ, facing, commanderData.teamID, commanderData)
 							if fullyBuilt then
@@ -798,12 +890,33 @@ local function processCommanderCommands(commanderID, commanderData)
 			for i, cmd in ipairs(commands) do
 				local buildsiteX, buildsiteZ = cmd.params[1], cmd.params[3]
 				if isBuildCommand(cmd.id) and isCommanderInRange(commanderID, buildsiteX, buildsiteZ) then
-					local fullyBuilt, unitID = tryToBuildCommand(commanderID, cmd)
-					if fullyBuilt then
-						spGiveOrderToUnit(commanderID, CMD.REMOVE, {i}, 0)
-					end
-					if not unitID then
-						break
+					local buildDefID = -cmd.id
+					local unitDef = UnitDefs[buildDefID]
+					local isFactory = unitDef and factoryOptions[unitDef.name]
+					
+					if isFactory then
+						-- Handle factory commands specially - build for free and mark as factory made
+						local buildX, buildY, buildZ = cmd.params[1], cmd.params[2], cmd.params[3]
+						local mapCenterX = Game.mapSizeX / 2
+						local mapCenterZ = Game.mapSizeZ / 2
+						local directionX = mapCenterX - buildX
+						local directionZ = mapCenterZ - buildZ
+						local facing = convertDirectionToFacing(directionX, directionZ)
+						
+						local fullyBuilt, unitID = createFactoryForFree(buildDefID, buildX, buildY, buildZ, facing, commanderData.teamID, commanderData)
+						if fullyBuilt then
+							commanderData.factoryMade = true
+							spGiveOrderToUnit(commanderID, CMD.REMOVE, {i}, 0)
+						end
+					else
+						-- Handle non-factory commands normally
+						local fullyBuilt, unitID = tryToBuildCommand(commanderID, cmd)
+						if fullyBuilt then
+							spGiveOrderToUnit(commanderID, CMD.REMOVE, {i}, 0)
+						end
+						if not unitID then
+							break
+						end
 					end
 				end
 			end
@@ -880,8 +993,11 @@ function gadget:GameFrame(frame)
 		-- PRIORITY 3: Build factories last (after MEX and other structures are done)
 		processFactoryRequirement(commanderID, commanderData)
 		
-		if commanderData.juice <= 0 then
-			--remove unit?
+		-- Check if juice is depleted and remove wait command if needed
+		if commanderData.juice <= 0 and commanderData.isWaiting then
+			-- Remove wait command to allow commander to resume normal behavior
+			spGiveOrderToUnit(commanderID, CMD.WAIT, {}, CMD.OPT_RIGHT)
+			commanderData.isWaiting = false
 		end
 	end
 
