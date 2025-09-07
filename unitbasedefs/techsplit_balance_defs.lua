@@ -168,7 +168,7 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.weapondefs.corhrk_rocket.range = 900
 		uDef.weapondefs.corhrk_rocket.weaponvelocity = 600
 		uDef.weapondefs.corhrk_rocket.flighttime = 22
-		uDef.weapondefs.corhrk_rocket.reloadtime = 0.4
+		uDef.weapondefs.corhrk_rocket.reloadtime = 8
 		uDef.weapondefs.corhrk_rocket.turnrate = 30000
 		uDef.weapondefs.corhrk_rocket.weapontimer = 4
 		uDef.weapons[1].maxangledif = 60
