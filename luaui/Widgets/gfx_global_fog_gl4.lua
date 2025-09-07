@@ -76,8 +76,27 @@ local GL_R32F = 0x822E
 				-- 
 
 -- TODO 20250822
-	-- [ ] RMLUI Sliders are 1 update late always 
+	-- [x] RMLUI Sliders are 1 update late always 
 	-- [ ] Combine shader sample neighbour texels with texelgather
+	-- [x] Fix map edge extension
+	-- [ ] Add uniform sliders 
+	-- [ ] Better grouping for individual effects:
+		-- Global
+		-- Ground fog + self-shadowing
+		-- Height Fog 
+		-- Underwater shadow absorbtion 
+		-- Cloud layer 
+		-- Cloud shadows 
+		-- Distance fog 
+		-- ScavCloud
+	-- [ ] Better control over defines vs uniforms
+	-- [ ] Add save and load config buttons 
+	-- [ ] Try to add tooltips?
+	-- [ ] Prep all work for correct blending order to the compositing pass 
+	-- [ ] Add dynamic api to control params
+	-- [ ] Fix wind noise looping
+
+
 
 ------------- Literature and Reading: ---
 -- blue noise sampling:  https://blog.demofox.org/2020/05/10/ray-marching-fog-with-blue-noise/
@@ -92,20 +111,6 @@ local GL_R32F = 0x822E
 local vsx, vsy = Spring.GetViewGeometry()
 local hsx, hsy
 
-local sliderStack = {}
-
-local function AddSlider(name, minval, maxval, step)
-end
-
-local function DrawSliders() -- origin is bottom left
-	local mx,my,left = Spring.GetMouseStat()
-	for i, slider in ipairs(sliderStack) do 
-		gl.Color(1,1,1,1)
-		gl.Text()
-		gl.Rect()
-	end
-end
-
 local minHeight, maxHeight = Spring.GetGroundExtremes()
 
 local shaderConfig = {
@@ -118,13 +123,12 @@ local shaderConfig = {
 	HSY = hsy,
 }
 
-
 local document
 widget.rmlContext = nil
 
 local eventCallback = function(ev, ...) Spring.Echo('orig function says', ...) end;
 
-local dm_handle
+local dataModelHandle
 
 
 -- Helper: Convert #RRGGBB to vec4 (r,g,b,a)
@@ -149,43 +153,54 @@ function onFogColorChange(uniformName, hexColor)
 	if WG and WG.SetFogParams then WG.SetFogParams(uniformName, vec4) end
 end
 
+local paramGroups = {
+	global = "Global Parameters", 
+	ground = "Ground Fog Parameters", 
+	underwater = "Underwater Fog Parameters",
+	cloud = "Cloud Layer Parameters",
+	cloudshadows = "Cloud Shadow Parameters",
+	height = "Height Fog Parameters",
+	distance = "Distance Fog Parameters",
+	scavenger = "Scavenger Cloud Parameters",
+}
+
 -- THIS IS UNIFIED BETWEEN FOG SHADER AND COMBINE SHADER
 local definesSlidersParamsList = {
-	{name = 'RESOLUTION', default = 1, min = 1, max = 8, digits = 0, tooltip = 'Fog resolution divider, 1 = full resolution, 2 = half'},
+	{name = 'RESOLUTION', default = 1, min = 1, max = 8, digits = 0, tooltip = 'Fog resolution divider, 1 = full resolution, 2 = half', group = "global"},
 	--{name = 'MINISHADOWS', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Wether to draw a downsampled shadow sampler'},
-	{name = 'OFFSETX', default = 0, min = -4, max = 4, digits = 0, tooltip = 'OFFSETX'},
-	{name = 'OFFSETY', default = 0, min = -4, max = 4, digits = 0, tooltip = 'OFFSETY'},
-	{name = 'HALFSHIFT', default = 1, min = 0, max = 1, digits = 0, tooltip = 'If the resolution is half, perform a half-pixel shifting'},
+	{name = 'OFFSETX', default = 0, min = -4, max = 4, digits = 0, tooltip = 'OFFSETX', group = "global"},
+	{name = 'OFFSETY', default = 0, min = -4, max = 4, digits = 0, tooltip = 'OFFSETY', group = "global"},
+	{name = 'HALFSHIFT', default = 1, min = 0, max = 1, digits = 0, tooltip = 'If the resolution is half, perform a half-pixel shifting', group = "global"},
 	--{name = 'RAYTRACING', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Use any raytracing, 1 = yes, 0 = no'},
-	{name = 'HEIGHTNOISESTEPS', default = 8, min = 0, max = 32, digits = 0, tooltip =  'How many times to sample shadows'},
-	{name = 'HEIGHTSHADOWSTEPS', default = 12, min = 0, max = 32, digits = 0, tooltip =  'How many times to sample shadows for pure height-based fog'},
-	{name = 'UNDERWATERSHADOWSTEPS', default = (minHeight < -20) and 8 or 0, min = 0, max = 64, digits = 0, tooltip =  'How many times to sample shadows for underwater scattering'},
-	{name = 'HEIGHTSHADOWQUAD', default = 2, min = 0, max = 2, digits = 0, tooltip =  'How to Quad sample height-based fog'},
-	{name = 'SHADOWSAMPLER', default = 1, min = 0, max = 3, digits = 0, tooltip =  '0 use texture fetch, 1 use sampler fetch, 2 use texelfetch'},
+	{name = 'HEIGHTNOISESTEPS', default = 8, min = 0, max = 32, digits = 0, tooltip =  'How many times to sample shadows', group = "ground"},
+	{name = 'HEIGHTSHADOWSTEPS', default = 12, min = 0, max = 32, digits = 0, tooltip =  'How many times to sample shadows for pure height-based fog', group = "ground"},
+	{name = 'UNDERWATERSHADOWSTEPS', default = (minHeight < -20) and 8 or 0, min = 0, max = 64, digits = 0, tooltip =  'How many times to sample shadows for underwater scattering' , group = "underwater"},
+	{name = 'HEIGHTSHADOWQUAD', default = 2, min = 0, max = 2, digits = 0, tooltip =  'How to Quad sample height-based fog', group = "ground"},
+	{name = 'SHADOWSAMPLER', default = 1, min = 0, max = 3, digits = 0, tooltip =  '0 use texture fetch, 1 use sampler fetch, 2 use texelfetch', group = "global"},
 	--{name = 'BLUENOISESTRENGTH', default = 1.1, min = 0, max = 1.1, digits = 1, tooltip =  'Amount of blue noise added to shadow sampling'},
-	{name = 'TEXTURESAMPLER', default = 1, min = 0, max = 6, digits = 0,  tooltip = '0:None 1=Packed3D 2=Tex2D 3=Tex2D 4=FBM 5=Value3D 6=SimplexPerlin'},
-	{name = 'QUADNOISEFETCHING', default = 1, min = 0, max = 1, digits = 0,  tooltip = 'Enable Quad Message Passing [0 or 1]'},
-	{name = 'WEIGHTFACTOR', default = 0.56, min = 0, max = 1, digits = 2,  tooltip = 'Squared weight for each texel in PQM'},
-	{name = 'CLOUDSTEPS',default = 16, min = 0, max = 64, digits = 0, tooltip = 'How many Cloud samples to take, 0 to disable clouds'},
-	{name = 'NOISESCALE', default = 0.3, min = 0.001, max = 0.999, digits = 3, tooltip = 'The tiling frequency of noise'},
-	{name = 'NOISETHRESHOLD', default = 0, min = -1, max = 1, digits = 2, tooltip =  'The 0 level of noise'},
-	{name = 'CLOUDSHADOWS', default = 8, min = 0, max = 16, digits = 0, tooltip = 'How many rays to cast in the direction of the sun for shadows'},
-	{name = 'USEMINIMAP', default = 0, min = 0, max = 1, digits = 0, tooltip = '0 or 1 to use the minimap for back-scatter'},
-	{name = 'FULLALPHA',default = 0, min = 0, max = 1, digits = 0, tooltip = 'Show ONLY fog'},
-	{name = 'USEDDS', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Use DDS compressed version of packedNoise. Most important when using very high frequencies of LF noise (reduces cache pressure)'},
-	{name = 'USELOS', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Use the LOS map at all, 1 = yes, 0 = no'},
-	{name = 'LOSREDUCEFOG', default = 0, min = 0, max = 1, digits = 2, tooltip = 'How much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los'},
-	{name = 'LOSFOGUNDISCOVERED', default = 1.0, min = 0, max = 1, digits= 2, tooltip = 'This specifies how much more fog there should be where the map has not yet been discovered ever (0 is none, 1 is a lot)'},
-	{name = 'WINDSTRENGTH', default = 0.01, min = 0, max = 0.1, digits = 2, tooltip = 'Speed multiplier for wind'},
-	{name = 'RISERATE', default = 0.025, min = 0.00, max = 0.2, digits = 3, tooltip = 'Rate at which cloud noise rises, in elmos per frame'},
+	{name = 'TEXTURESAMPLER', default = 1, min = 0, max = 6, digits = 0,  tooltip = '0:None 1=Packed3D 2=Tex2D 3=Tex2D 4=FBM 5=Value3D 6=SimplexPerlin', group = "global"},
+	{name = 'QUADNOISEFETCHING', default = 1, min = 0, max = 1, digits = 0,  tooltip = 'Enable Quad Message Passing [0 or 1]', group = "global"},
+	{name = 'WEIGHTFACTOR', default = 0.56, min = 0, max = 1, digits = 2,  tooltip = 'Squared weight for each texel in PQM', group = "global"},
+	{name = 'CLOUDSTEPS',default = 16, min = 0, max = 64, digits = 0, tooltip = 'How many Cloud samples to take, 0 to disable clouds', group = "cloud"},
+	{name = 'NOISESCALE', default = 0.3, min = 0.001, max = 0.999, digits = 3, tooltip = 'The tiling frequency of noise', group = "global"},
+	{name = 'NOISETHRESHOLD', default = 0, min = -1, max = 1, digits = 2, tooltip =  'The 0 level of noise', group = "global"},
+	{name = 'CLOUDSHADOWS', default = 8, min = 0, max = 16, digits = 0, tooltip = 'How many rays to cast in the direction of the sun for shadows', group = "cloudshadows"},
+	{name = 'USEMINIMAP', default = 0, min = 0, max = 1, digits = 0, tooltip = '0 or 1 to use the minimap for back-scatter', group = "global"},
+	{name = 'FULLALPHA',default = 0, min = 0, max = 1, digits = 0, tooltip = 'Show ONLY fog', group = "global"},
+	{name = 'USEDDS', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Use DDS compressed version of packedNoise. Most important when using very high frequencies of LF noise (reduces cache pressure)', group = "global"},
+	{name = 'USELOS', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Use the LOS map at all, 1 = yes, 0 = no', group = "global"},
+	{name = 'LOSREDUCEFOG', default = 0, min = 0, max = 1, digits = 2, tooltip = 'How much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los', group = "global"},
+	{name = 'LOSFOGUNDISCOVERED', default = 1.0, min = 0, max = 1, digits= 2, tooltip = 'This specifies how much more fog there should be where the map has not yet been discovered ever (0 is none, 1 is a lot)', group = "global"},
+	{name = 'WINDSTRENGTH', default = 0.01, min = 0, max = 0.1, digits = 2, tooltip = 'Speed multiplier for wind', group = "global"},
+	{name = 'RISERATE', default = 0.025, min = 0.00, max = 0.2, digits = 3, tooltip = 'Rate at which cloud noise rises, in elmos per frame', group = "global"},
 	--{name = 'HEIGHTDENSITY', default = 2, min = 1, max = 10, digits = 2, tooltip = 'How quickly height fog reaches its max density'},
-	{name = 'SUNCHROMASHIFT', default = 0.2,  min = -0.5, max = 1, digits = 2, tooltip = 'How much colors are shifted towards sun'},
-	{name = 'MINIMAPSCATTER', default = 0.1, min = -0.5, max = 0.5, digits = 2, tooltip = 'How much the minimap color sdditively back-scatters into fog color, 0 is off'},
-	{name = 'EASEGLOBAL', default = 2, min = 1, max = 50, digits = 2, tooltip = 'How much to reduce global fog close to camera'},
-	{name = 'EASEHEIGHT', default = 1, min = 0.0, max = 5, digits = 2, tooltip = 'How much to reduce height-based fog close to camera'},
-	{name = 'COMBINESHADER', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Run the combine shader if RESOLUTION > 1'},
-	{name = 'ENABLED', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Dont do anything'},
-	
+	{name = 'SUNCHROMASHIFT', default = 0.2,  min = -0.5, max = 1, digits = 2, tooltip = 'How much colors are shifted towards sun', group = "global"},
+	{name = 'MINIMAPSCATTER', default = 0.1, min = -0.5, max = 0.5, digits = 2, tooltip = 'How much the minimap color sdditively back-scatters into fog color, 0 is off', group = "global"},
+	{name = 'EASEGLOBAL', default = 2, min = 1, max = 50, digits = 2, tooltip = 'How much to reduce global fog close to camera', group = "global"},
+	{name = 'EASEHEIGHT', default = 1, min = 0.0, max = 5, digits = 2, tooltip = 'How much to reduce height-based fog close to camera', group = "global"},
+	{name = 'COMBINESHADER', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Run the combine shader if RESOLUTION > 1', group = "global"},
+	{name = 'ENABLED', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Dont do anything', group = "global"},
+
 }
 
 for i, shaderDefine in ipairs(definesSlidersParamsList) do 
@@ -222,20 +237,20 @@ local fogUniforms = {
 	}
 	
 local uniformSliderParamsList = {
-	{name = 'distanceFogColor', default = fogUniforms.distanceFogColor, min = 0, max = 2, digits = 3, tooltip =  'distanceFogColor, alpha is density multiplier'},
-	{name = 'shadowedColor', default = fogUniforms.shadowedColor, min = 0, max = 2, digits = 3, tooltip =  'shadowedColor, Color of the shadowed areas, ideally black, alpha is strength'},
-	{name = 'heightFogColor', default = fogUniforms.heightFogColor, min = 0, max = 2, digits = 3, tooltip =  'heightFogColor, alpha is the ABSOLUTE MAXIMUM FOG'},
-	{name = 'heightFogTop', default = fogUniforms.heightFogTop, min = math.floor(minHeight), max = math.floor(maxHeight * 2), digits = 0, tooltip =  'heightFogTop, in elmos'},
-	{name = 'heightFogBottom', default = fogUniforms.heightFogBottom, min = math.floor(minHeight), max = math.floor(maxHeight), digits = 0, tooltip =  'heightFogBottom, in elmos'},
-	{name = 'scavengerPlane', default = fogUniforms.scavengerPlane, min = 0, max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'Where the scavenger cloud is'},
+	{name = 'distanceFogColor', default = fogUniforms.distanceFogColor, min = 0, max = 2, digits = 3, tooltip =  'distanceFogColor, alpha is density multiplier', group = "distance"},
+	{name = 'shadowedColor', default = fogUniforms.shadowedColor, min = 0, max = 2, digits = 3, tooltip =  'shadowedColor, Color of the shadowed areas, ideally black, alpha is strength', group = "shadow"},
+	{name = 'heightFogColor', default = fogUniforms.heightFogColor, min = 0, max = 2, digits = 3, tooltip =  'heightFogColor, alpha is the ABSOLUTE MAXIMUM FOG', group = "height"},
+	{name = 'heightFogTop', default = fogUniforms.heightFogTop, min = math.floor(minHeight), max = math.floor(maxHeight * 2), digits = 0, tooltip =  'heightFogTop, in elmos', group = "height"},
+	{name = 'heightFogBottom', default = fogUniforms.heightFogBottom, min = math.floor(minHeight), max = math.floor(maxHeight), digits = 0, tooltip =  'heightFogBottom, in elmos', group = "height"},
+	{name = 'scavengerPlane', default = fogUniforms.scavengerPlane, min = 0, max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'Where the scavenger cloud is', group = "scavenger"},
 
-	{name = 'cloudVolumeMin', default = fogUniforms.cloudVolumeMin, min = 0,max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'Start of the cloud volume'},
-	{name = 'cloudVolumeMax', default = fogUniforms.cloudVolumeMax, min = 0, max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'End of the cloud volume'},
+	{name = 'cloudVolumeMin', default = fogUniforms.cloudVolumeMin, min = 0,max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'Start of the cloud volume', group = "cloud"},
+	{name = 'cloudVolumeMax', default = fogUniforms.cloudVolumeMax, min = 0, max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'End of the cloud volume', group = "cloud"},
 
-	{name = 'cloudGlobalColor', default = fogUniforms.cloudGlobalColor, min = 0, max = 2, digits = 3, tooltip =  'cloudGlobalColor, alpha is the ABSOLUTE MAXIMUM FOG'},
-	{name = 'cloudDensity', default = fogUniforms.cloudDensity, min = 0.000, max = 0.1, digits = 3, tooltip =  'How dense the clouds are'},
-	{name = 'noiseLFParams', default = fogUniforms.noiseLFParams, min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: threshold, 3-4 unused'},
-	{name = 'noiseHFParams', default = fogUniforms.noiseHFParams, min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: Perturb, 3: SpeedX, 4: SpeedZ'},
+	{name = 'cloudGlobalColor', default = fogUniforms.cloudGlobalColor, min = 0, max = 2, digits = 3, tooltip =  'cloudGlobalColor, alpha is the ABSOLUTE MAXIMUM FOG', group = "cloud"},
+	{name = 'cloudDensity', default = fogUniforms.cloudDensity, min = 0.000, max = 0.1, digits = 3, tooltip =  'How dense the clouds are', group = "cloud"},
+	{name = 'noiseLFParams', default = fogUniforms.noiseLFParams, min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: threshold, 3-4 unused', group = "cloud"},
+	{name = 'noiseHFParams', default = fogUniforms.noiseHFParams, min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: Perturb, 3: SpeedX, 4: SpeedZ', group = "cloud"},
 }
 
 local fogUniformSliders = {
@@ -281,7 +296,7 @@ local packedNoise =  "LuaUI/images/noisetextures/worley3_256x128x64_RBGA_LONG." 
 
 
 local fogPlaneVAO 
-local resolution = 64
+local resolution = 4  -- number of quads on each edge of fog plane
 local groundFogShader
 
 local combineShader
@@ -341,8 +356,8 @@ local combineShaderSourceCache = {
 		vssrcpath = vsSrcPathCombine,
 		fssrcpath = fsSrcPathCombine,
 		--gssrcpath = gsSrcPath,
-		uniformInt = { mapDepths = 0, modelDepths = 1,  fogbase = 2, distortion = 3},
-		uniformFloat = { gameframe = 0, distortionlevel = 0, resolution = 2},
+		uniformInt = { mapDepths = 0, modelDepths = 1,  fogbase = 2},
+		uniformFloat = { gameframe = 0, resolution = 2},
 		shaderName = "Global Fog Combine GL4",
 		shaderConfig = shaderConfig,
 	}
@@ -402,8 +417,8 @@ widget:ViewResize()
 
 local function initGL4()
 	-- init the VBO
-	local planeVBO, numVertices = gl.InstanceVBOTable.makePlaneVBO(1,1,Game.mapSizeX/resolution,Game.mapSizeZ/resolution)
-	local planeIndexVBO, numIndices =  gl.InstanceVBOTable.makePlaneIndexVBO(Game.mapSizeX/resolution,Game.mapSizeZ/resolution)
+	local planeVBO, numVertices = gl.InstanceVBOTable.makePlaneVBO(1,1,resolution,resolution)
+	local planeIndexVBO, numIndices =  gl.InstanceVBOTable.makePlaneIndexVBO(resolution,resolution)
 	local quadVBO,numVertices = gl.InstanceVBOTable.makeRectVBO(-1,0,1,-1,0,1,1,0)
 	quadVAO = gl.GetVAO()
 	quadVAO:AttachVertexBuffer(quadVBO)
@@ -472,7 +487,7 @@ local shadowMinifierShaderSourceCache = {
 		fssrcpath = "LuaUI/Shaders/shadow_downsample.frag.glsl",
 		--gssrcpath = gsSrcPath,
 		uniformInt = { shadowTex = 0},
-		uniformFloat = { gameframe = 0, distortionlevel = 0, resolution = 2},
+		uniformFloat = { gameframe = 0, resolution = 2},
 		shaderName = "shadowMinifierShader",
 		shaderConfig = {VSX = vsx, VSY = vsy, HSX = hsx, HSY = hsy}
 }
@@ -493,9 +508,10 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
+	widget:ViewResize() -- create textures first
+
 	if initGL4() == false then return end
 	
-	widget:ViewResize()
 	
 	-- https://github.com/libretro/common-shaders/blob/master/include/quad-pixel-communication.h
 	-- Getting neighbouring pixel info!
@@ -549,7 +565,7 @@ function widget:Initialize()
 
 				-- use the DataModel handle to set values
 		-- only keys declared at the DataModel's creation can be used
-		dm_handle = widget.rmlContext:OpenDataModel("data_model_test", {
+		dataModelHandle = widget.rmlContext:OpenDataModel("data_model_test", {
 			exampleValue = 'Changes when clicked',
 			-- Functions inside a DataModel cannot be changed later
 			-- so instead a function variable external to the DataModel is called and _that_ can be changed
@@ -586,7 +602,7 @@ function widget:Initialize()
 		eventCallback = function (ev, ...)
 			Spring.Echo(ev.parameters.mouse_x, ev.parameters.mouse_y, ev.parameters.button, ...)
 			local options = {"ow", "oof!", "stop that!", "clicking go brrrr"}
-			dm_handle.exampleValue = options[math.random(1, 4)]
+			dataModelHandle.exampleValue = options[math.random(1, 4)]
 
 			local textureElement = document:GetElementById('101')
 			textureElement.style.color = "red"
@@ -606,11 +622,11 @@ function widget:Initialize()
 		--	{name = 'HALFSHIFT', default = 1, min = 0, max = 1, digits = 0, tooltip = 'If the resolution is half, perform a half-pixel shifting'},
 
 		--[[	
-		Range type
-		min = number (CN) For the range type, defines the value at the lowest (left or top) end of the slider.
-		max = number (CN) For the range type, defines the value at the highest (right or bottom) end of the slider.
-		step = number (CN) For the range type, defines the increment that the slider will move by.
-		orientation = cdata (CI) For the range type, specifies if it is a vertical or horizontal slider. Values can be horizontal or vertical.
+			Range type
+			min = number (CN) For the range type, defines the value at the lowest (left or top) end of the slider.
+			max = number (CN) For the range type, defines the value at the highest (right or bottom) end of the slider.
+			step = number (CN) For the range type, defines the increment that the slider will move by.
+			orientation = cdata (CI) For the range type, specifies if it is a vertical or horizontal slider. Values can be horizontal or vertical.
 		]]--
 
 		local sliderElement = document:CreateElement('label')
@@ -889,9 +905,7 @@ function widget:DrawWorld()
 		gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
 		combineShader:Activate()
 		combineShader:SetUniformFloat("resolution", shaderConfig.RESOLUTION)
-		--combineShader:SetUniformFloat("distortionlevel", 0.0001) -- 0.001
 		gl.Texture(2, fogTexture)
-		gl.Texture(3, distortiontex)
 		--gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
 		combineRectVAO:DrawArrays(GL.TRIANGLES)
 		combineShader:Deactivate()

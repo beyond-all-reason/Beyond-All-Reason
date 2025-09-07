@@ -5,9 +5,7 @@
 uniform sampler2D mapDepths;
 uniform sampler2D modelDepths;
 uniform sampler2D fogbase;
-uniform sampler2D distortion;
 uniform float gameframe;
-uniform float distortionlevel;
 uniform float resolution = 2.0;
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -173,7 +171,7 @@ void main(void) {
 		float modelpercent = quadGatherMean(ismodel); // [0-1] depending on #model fragments in quad
 		float discontinuity = step(32,abs(dx) + abs(dy)); // 0 or 1 if we have any discontinuity here or in immediate neighbours. (NOTE THAT THIS IS NOT QUAD LEVEL, as diagonal is not taken into account!)
 		
-		printf(modelpercent);
+		//printf(modelpercent);
 		
 		vec2 fogUVLocal = sampleUVs.zw;
 		// the quadshift vector points outward from each quad pixel, exactly to the center of the halfsize pixel
@@ -188,7 +186,7 @@ void main(void) {
 			}
 		}
 		// Define our "base" fog UV coords, these are the UV coordinates that are not at precise halfsize texel centers, but interpolated at about 0.75 close to nearest halfsize texel
-		printf(discontinuity);
+		//printf(discontinuity);
 	
 		vec4 fogSampleLocal = texture(fogbase, fogUVLocal); 
 
