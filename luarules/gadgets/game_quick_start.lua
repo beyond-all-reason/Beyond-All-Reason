@@ -411,70 +411,36 @@ local function createRandomBuildQueue(commanderID, commanderData)
 	local commanderDefID = spGetUnitDefID(commanderID)
 	local commanderName = UnitDefs[commanderDefID].name
 	local nonLabOptions = commanderNonLabOptions[commanderName]
-	
-	if not nonLabOptions then
-		return
-	end
+	if not nonLabOptions then return end
 	
 	local buildQueue = {}
+	local unitDefIDs = {}
+	local isFactoryFlags = {}
+	
+	for optionName, trueName in pairs(nonLabOptions) do
+		unitDefIDs[optionName] = unitDefNames[trueName].id
+		isFactoryFlags[optionName] = factoryOptions[trueName]
+	end
 	
 	local mexQuota = landBuildQuotas.mex or 0
-	if mexQuota > 0 then
-		local trueName = nonLabOptions.mex
-		if trueName then
-			local unitDefID = unitDefNames[trueName] and unitDefNames[trueName].id
-			if unitDefID then
-				local shouldAddMex = true
-				
-				if not isMetalMap then
-					if not metalSpotsList or #metalSpotsList == 0 then
-						shouldAddMex = false
-					end
-				end
-				
-				if shouldAddMex then
-					local alreadyMade = commanderData.thingsMade.mex or 0
-					local stillNeeded = math.max(0, mexQuota - alreadyMade)
-					
-					for i = 1, stillNeeded do
-						table.insert(buildQueue, {
-							unitDefID = unitDefID,
-							optionName = "mex",
-							trueName = trueName,
-							isQuotaItem = true
-						})
-					end
-				end
-			end
+	if mexQuota > 0 and (isMetalMap or (metalSpotsList and #metalSpotsList > 0)) then
+		local unitDefID = unitDefIDs.mex
+		local alreadyMade = commanderData.thingsMade.mex or 0
+		local stillNeeded = math.max(0, mexQuota - alreadyMade)
+		for i = 1, stillNeeded do
+			table.insert(buildQueue, unitDefID)
 		end
 	end
 	
 	for optionName, quota in pairs(landBuildQuotas) do
-		if optionName ~= "mex" then
-			local trueName = nonLabOptions[optionName]
-			if trueName and quota > 0 then
-				local unitDefID = unitDefNames[trueName] and unitDefNames[trueName].id
-				local actualUnitName = trueName
-				
-				if unitDefID then
-					local weight = randomBuildOptionWeights[optionName] or 0
-					if weight > 0 then
-						local adjustedQuota = quota
-						if optionName == "solar" and isGoodWind then
-							adjustedQuota = SOLAR_QUOTA_WHEN_GOOD_WIND
-						end
-						local alreadyMade = commanderData.thingsMade[optionName] or 0
-						local stillNeeded = math.max(0, adjustedQuota - alreadyMade)
-						
-						for i = 1, stillNeeded do
-							table.insert(buildQueue, {
-								unitDefID = unitDefID,
-								optionName = optionName,
-								trueName = actualUnitName,
-								isQuotaItem = true
-							})
-						end
-					end
+		if optionName ~= "mex" and quota > 0 then
+			local unitDefID = unitDefIDs[optionName]
+			local weight = randomBuildOptionWeights[optionName] or 0
+			if weight > 0 then
+				local alreadyMade = commanderData.thingsMade[optionName] or 0
+				local stillNeeded = math.max(0, quota - alreadyMade)
+				for i = 1, stillNeeded do
+					table.insert(buildQueue, unitDefID)
 				end
 			end
 		end
@@ -490,16 +456,8 @@ local function createRandomBuildQueue(commanderID, commanderData)
 	
 	local weightedOptions = {}
 	for optionName, weight in pairs(randomBuildOptionWeights) do
-		local trueName = nonLabOptions[optionName]
-		if trueName then
-			local unitDefID = unitDefNames[trueName] and unitDefNames[trueName].id
-			
-			if unitDefID then
-				local isFactory = factoryOptions[trueName]
-				if not (isFactory and commanderData.hasFactoryInQueue) then
-					weightedOptions[optionName] = weight
-				end
-			end
+		if not (isFactoryFlags[optionName] and commanderData.hasFactoryInQueue) then
+			weightedOptions[optionName] = weight
 		end
 	end
 	
@@ -507,91 +465,38 @@ local function createRandomBuildQueue(commanderID, commanderData)
 	for i = 1, overflowCount do
 		local selectedOption = selectWeightedRandom(weightedOptions)
 		if selectedOption then
-			local trueName = nonLabOptions[selectedOption]
-			local unitDefID = unitDefNames[trueName] and unitDefNames[trueName].id
-			local actualUnitName = trueName
-			
-			if unitDefID then
-				table.insert(buildQueue, {
-					unitDefID = unitDefID,
-					optionName = selectedOption,
-					trueName = actualUnitName,
-					isQuotaItem = false
-				})
-			end
+			local unitDefID = unitDefIDs[selectedOption]
+			table.insert(buildQueue, unitDefID)
 		end
 	end
-	
 	buildQueues[commanderID] = buildQueue
 end
 
-local function processFactoryRequirement(commanderID, commanderData)
-	if not factoryRequired or commanderData.factoryMade then
-		return
+local function buildAvailableFactories(labsUsed)
+	local factories = {}
+	for factoryName, _ in pairs(labsUsed) do
+		local unitDefID = unitDefNames[factoryName].id
+		table.insert(factories, {unitDefID = unitDefID, name = factoryName})
 	end
-	
-	local commanderDefID = spGetUnitDefID(commanderID)
-	local commanderName = UnitDefs[commanderDefID].name
-	local landLabs = commanderLandLabs[commanderName]
-	local seaLabs = commanderSeaLabs[commanderName]
-	
-	if commanderData.hasFactoryInQueue then
-		return
-	end
-	local availableFactories = {}
-	
-	if commanderData.isInWater then
-		for factoryName, _ in pairs(seaLabs) do
-			local unitDefID = unitDefNames[factoryName].id
-			table.insert(availableFactories, {
-				unitDefID = unitDefID,
-				name = factoryName
-			})
-		end
-	else
-		for factoryName, _ in pairs(landLabs.labs) do
-			local unitDefID = unitDefNames[factoryName].id
-			table.insert(availableFactories, {
-				unitDefID = unitDefID,
-				name = factoryName
-			})
-		end
-	end
+	return factories
+end
 
+local function buildFactoryOrder(commanderData, availableFactories, labsUsed)
 	local factoryOrder = {}
-	
 	if commanderData.isHuman then
 		local firstFactory = nil
-		if commanderData.isInWater then
-			for labName, _ in pairs(seaLabs) do
-				for _, factory in ipairs(availableFactories) do
-					if factory.name == labName then
-						firstFactory = factory
-						break
-					end
-				end
-				if firstFactory then
+		for labName, _ in pairs(labsUsed) do
+			for _, factory in ipairs(availableFactories) do
+				if factory.name == labName then
+					firstFactory = factory
 					break
 				end
 			end
-		else
-			for labName, _ in pairs(landLabs.labs) do
-				for _, factory in ipairs(availableFactories) do
-					if factory.name == labName then
-						firstFactory = factory
-						break
-					end
-				end
-				if firstFactory then
-					break
-				end
-			end
+			if firstFactory then break end
 		end
-		
 		if firstFactory then
 			table.insert(factoryOrder, firstFactory)
 		end
-		
 		for _, factory in ipairs(availableFactories) do
 			if factory ~= firstFactory then
 				table.insert(factoryOrder, factory)
@@ -600,81 +505,79 @@ local function processFactoryRequirement(commanderID, commanderData)
 	else
 		local sortedFactories = {}
 		for _, factory in ipairs(availableFactories) do
-			local probability = 0
-			if commanderData.isInWater then
-				probability = seaLabs[factory.name]
-			else
-				probability = landLabs.labs[factory.name]
-			end
-			table.insert(sortedFactories, {
-				factory = factory,
-				probability = probability
-			})
+			local probability = labsUsed[factory.name] or 0
+			table.insert(sortedFactories, {factory = factory, probability = probability})
 		end
-		
 		table.sort(sortedFactories, function(a, b) return a.probability > b.probability end)
-		
 		local randomIndex = math.random(#availableFactories)
 		table.insert(factoryOrder, availableFactories[randomIndex])
-		
 		for _, sortedFactory in ipairs(sortedFactories) do
 			if sortedFactory.factory ~= availableFactories[randomIndex] then
 				table.insert(factoryOrder, sortedFactory.factory)
 			end
 		end
 	end
-	
-	local chunksWithDistance = {}
-	for _, chunkData in ipairs(commanderData.chunksWithDistance) do
+	return factoryOrder
+end
+
+local function filterFactoryChunks(chunks)
+	local result = {}
+	for _, chunkData in ipairs(chunks) do
 		if chunkData.preferredUsage == "factory" then
-			table.insert(chunksWithDistance, chunkData)
+			table.insert(result, chunkData)
 		end
 	end
-	
+	return result
+end
+
+local function generatePositionsSortedByDistanceToPoint(chunkData, targetX, targetZ)
+	local positions = {}
+	for searchX = chunkData.chunkStartX, chunkData.chunkEndX, GRID_SPACING do
+		for searchZ = chunkData.chunkStartZ, chunkData.chunkEndZ, GRID_SPACING do
+			table.insert(positions, {x = searchX, z = searchZ})
+		end
+	end
+	table.sort(positions, function(a, b)
+		local distA = math.distance2dSquared(a.x, a.z, targetX, targetZ)
+		local distB = math.distance2dSquared(b.x, b.z, targetX, targetZ)
+		return distA < distB
+	end)
+	return positions
+end
+
+local function processFactoryRequirement(commanderID, commanderData)
+	if not factoryRequired or commanderData.factoryMade then
+		return
+	end
+	local commanderDefID = spGetUnitDefID(commanderID)
+	local commanderName = UnitDefs[commanderDefID].name
+	local landLabs = commanderLandLabs[commanderName]
+	local seaLabs = commanderSeaLabs[commanderName]
+	if commanderData.hasFactoryInQueue then
+		return
+	end
+	local labsUsed = commanderData.isInWater and seaLabs or landLabs.labs
+	local availableFactories = buildAvailableFactories(labsUsed)
+	local factoryOrder = buildFactoryOrder(commanderData, availableFactories, labsUsed)
+	local chunksWithDistance = filterFactoryChunks(commanderData.chunksWithDistance)
 	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
-	
-	local factoryBuilt = false
 	for _, factory in ipairs(factoryOrder) do
-		if factoryBuilt then break end
-		
-		
 		for _, chunkData in ipairs(chunksWithDistance) do
-			if factoryBuilt then break end
-			
-			local positions = {}
-			for searchX = chunkData.chunkStartX, chunkData.chunkEndX, GRID_SPACING do
-				for searchZ = chunkData.chunkStartZ, chunkData.chunkEndZ, GRID_SPACING do
-					table.insert(positions, {x = searchX, z = searchZ})
-				end
-			end
-			
-			table.sort(positions, function(a, b)
-				local distA = math.distance2dSquared(a.x, a.z, commanderX, commanderZ)
-				local distB = math.distance2dSquared(b.x, b.z, commanderX, commanderZ)
-				return distA < distB
-			end)
-			
+			local positions = generatePositionsSortedByDistanceToPoint(chunkData, commanderX, commanderZ)
 			for _, pos in ipairs(positions) do
 				local searchY = spGetGroundHeight(pos.x, pos.z)
 				local snappedX, snappedY, snappedZ = Spring.Pos2BuildPos(factory.unitDefID, pos.x, searchY, pos.z)
-				
-				if snappedX then
-					local buildTest = Spring.TestBuildOrder(factory.unitDefID, snappedX, snappedY, snappedZ, 0)
-					if buildTest > 0 then
-						local facing = commanderData.defaultFacing or 0
-						
-						local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, factory.unitDefID, snappedX, snappedY, snappedZ, facing, commanderData.teamID, commanderID, true)
-						if fullyBuilt then
-							commanderData.factoryMade = true
-							factoryBuilt = true
-							break
-						end
+				if snappedX and Spring.TestBuildOrder(factory.unitDefID, snappedX, snappedY, snappedZ, 0) > 0 then
+					local facing = commanderData.defaultFacing or 0
+					local fullyBuilt = deductJuiceAndCreateUnit(commanderData, factory.unitDefID, snappedX, snappedY, snappedZ, facing, commanderData.teamID, commanderID, true)
+					if fullyBuilt then
+						commanderData.factoryMade = true
+						return
 					end
 				end
 			end
 		end
 	end
-	
 end
 
 local function processCommanderCommands(commanderID, commanderData, commanderX, commanderZ)
@@ -749,36 +652,20 @@ function gadget:GameFrame(frame)
 
 		processCommanderCommands(commanderID, commanderData, commanderX, commanderZ)
 
-		if not buildQueues[commanderID] or #buildQueues[commanderID] == 0 then
-			createRandomBuildQueue(commanderID, commanderData)
-		end
-
-		while commanderData.juice > 0 and #buildQueues[commanderID] > 0 do
-			local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
-			local buildItem = buildQueues[commanderID][1]
+		while commanderData.juice > 0 do
+			if #buildQueues[commanderID] == 0 then
+				createRandomBuildQueue(commanderID, commanderData)
+			end
 			
-			if buildItem then
-				local unitID = findBuildLocationAndCreateUnit(commanderX, commanderY, commanderZ, buildItem.unitDefID, commanderData.teamID, commanderData, commanderID)
-				if unitID then
-					table.remove(buildQueues[commanderID], 1)
-					
-					local hasQuotaItems = false
-					for _, item in ipairs(buildQueues[commanderID]) do
-						if item.isQuotaItem then
-							hasQuotaItems = true
-							break
-						end
-					end
-					
-					if not hasQuotaItems and commanderData.juice > 0 then
-						createRandomBuildQueue(commanderID, commanderData)
-					end
-				else
-					table.remove(buildQueues[commanderID], 1)
-				end
-			else
+			if #buildQueues[commanderID] == 0 then
 				break
 			end
+			
+			local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
+			local unitDefID = buildQueues[commanderID][1]
+			table.remove(buildQueues[commanderID], 1)
+			
+			local unitID = findBuildLocationAndCreateUnit(commanderX, commanderY, commanderZ, unitDefID, commanderData.teamID, commanderData, commanderID)
 		end
 
 		processFactoryRequirement(commanderID, commanderData)
@@ -834,6 +721,7 @@ function gadget:Initialize()
 	
 	if isGoodWind then
 		randomBuildOptionWeights.solar = randomBuildOptionWeights.solar * SOLAR_PENALTY_MULTIPLIER
+		landBuildQuotas.solar = SOLAR_QUOTA_WHEN_GOOD_WIND
 	end
 	local frame = Spring.GetGameFrame()
 
@@ -863,7 +751,4 @@ function gadget:Initialize()
 	if raptorTeamID then
 		nonPlayerTeams[raptorTeamID] = true
 	end
-end
-
-function gadget:Shutdown()
 end
