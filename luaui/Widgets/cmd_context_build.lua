@@ -65,7 +65,7 @@ local unitlist = {
 	{'armlab','armsy'},
 	{'corlab','corsy'},
 	{'armdl','armtl'},
-	{'cortl','cortl'},
+	{'cordl','cortl'},
 	{'armnanotc','armnanotcplat'},
 	{'cornanotc','cornanotcplat'},
 	{'armvp','armamsub'},
