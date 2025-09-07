@@ -12,11 +12,11 @@ end
 local function issueOrders(name, orders)
     if not trackedUnits[name] or #trackedUnits[name] == 0 then return end
 
-	Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Ordering units named "..name.." with IDs "..table.toString(trackedUnits[name]).." : "..table.toString(orders))
 	Spring.GiveOrderArrayToUnitArray(trackedUnits[name], orders)
+	Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Ordered units named "..name.." with IDs "..table.toString(trackedUnits[name]).." : "..table.toString(orders))
 end
 
-local function spawnUnits(name, unitDefName, teamID, positions, facing, construction)
+local function spawnUnits(name, unitDefName, teamID, positions, facing, construction, alert)
     if #positions == 0 then return end
 
 	if not trackedUnits[name] then trackedUnits[name] = {} end
@@ -28,17 +28,20 @@ local function spawnUnits(name, unitDefName, teamID, positions, facing, construc
 			trackedUnits[name][#trackedUnits[name] + 1] = unitID
 			trackedUnits[unitID] = name
 		end
+		if alert then
+			Spring.TransferUnit(unitID, teamID, given)
+		end
 	end
 	Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Spawned "..#positions.."x "..unitDefName.." named "..name.." : "..table.toString(trackedUnits))
 end
 
 ----------------------------------------------------------------
 
-local function despawnUnits(name, selfDescruct, reclaimed)
+local function despawnUnits(name, selfDestruct, reclaimed)
     local unitIDs = trackedUnits[name]
 	local quantity = #unitIDs
 	for i = quantity, 1, -1 do
-		Spring.DestroyUnit(unitIDs[i], selfDescruct, reclaimed)
+		Spring.DestroyUnit(unitIDs[i], selfDestruct, reclaimed)
 	end
 	trackedUnits[name] = nil
 	Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Despawned "..#unitIDs.." units named "..name.." : "..table.toString(trackedUnits))

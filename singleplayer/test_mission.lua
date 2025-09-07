@@ -17,9 +17,6 @@ local triggers = {
 
 	despawnConBotsAsKilled = {
 		type = triggerTypes.TimeElapsed,
-		settings = {
-			repeating = false,
-		},
 		parameters = {
 			gameFrame = 200,
 		},
@@ -28,9 +25,6 @@ local triggers = {
 
 	despawnConBotsSelfD = {
 		type = triggerTypes.TimeElapsed,
-		settings = {
-			repeating = false,
-		},
 		parameters = {
 			gameFrame = 480,
 		},
@@ -39,9 +33,6 @@ local triggers = {
 
 	despawnConBotsReclaimed = {
 		type = triggerTypes.TimeElapsed,
-		settings = {
-			repeating = false,
-		},
 		parameters = {
 			gameFrame = 760,
 		},
@@ -66,6 +57,7 @@ local actions = {
 			teamID = 0,
 			positions = {{ x = 1800, z = 1600 }, { x = 1900, z = 1600 }},
 			facing = 'n',
+			alert = true,
 		},
 	},
 
@@ -84,7 +76,7 @@ local actions = {
 		type = actionTypes.DespawnUnits,
 		parameters = {
 			name = 'con-bots',
-            selfDescruct = false,
+			selfDestruct = false,
 			reclaimed = false
 		},
 	},
@@ -100,7 +92,7 @@ local actions = {
 		type = actionTypes.DespawnUnits,
 		parameters = {
 			name = 'con-bots',
-            selfDescruct = true,
+			selfDestruct = true,
 			reclaimed = false
 		},
 	},
@@ -116,7 +108,7 @@ local actions = {
 		type = actionTypes.DespawnUnits,
 		parameters = {
 			name = 'con-bots',
-            selfDescruct = false,
+			selfDestruct = false,
 			reclaimed = true
 		},
 	},

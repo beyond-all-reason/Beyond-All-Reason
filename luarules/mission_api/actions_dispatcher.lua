@@ -5,7 +5,7 @@ local types = GG['MissionAPI'].ActionTypes
 local actions = GG['MissionAPI'].Actions
 
 local typeMapping = {
--- Since the names are all the same, could we ditch this mapping and do it dynamically intead?
+-- TODO: Since the names are all the same, could we ditch this mapping and do it dynamically instead?
 	[types.EnableTrigger] = actionFunctions.EnableTrigger,
 	[types.DisableTrigger] = actionFunctions.DisableTrigger,
 	[types.IssueOrders] = actionFunctions.IssueOrders,

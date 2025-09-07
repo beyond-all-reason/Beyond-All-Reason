@@ -115,6 +115,11 @@ local parameters = {
 			name = 'construction',
 			required = false,
 			type = 'boolean'
+		},
+		[7] = {
+			name = 'alert',
+			required = false,
+			type = 'boolean'
 		}
 	},
 
@@ -125,7 +130,7 @@ local parameters = {
 			type = 'string',
 		},
 		[2] = {
-			name = 'selfDescruct',
+			name = 'selfDestruct',
 			required = false,
 			type = 'boolean',
 		},
