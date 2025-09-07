@@ -237,20 +237,20 @@ local fogUniforms = {
 	}
 	
 local uniformSliderParamsList = {
-	{name = 'distanceFogColor', default = fogUniforms.distanceFogColor, min = 0, max = 2, digits = 3, tooltip =  'distanceFogColor, alpha is density multiplier', group = "distance"},
-	{name = 'shadowedColor', default = fogUniforms.shadowedColor, min = 0, max = 2, digits = 3, tooltip =  'shadowedColor, Color of the shadowed areas, ideally black, alpha is strength', group = "shadow"},
-	{name = 'heightFogColor', default = fogUniforms.heightFogColor, min = 0, max = 2, digits = 3, tooltip =  'heightFogColor, alpha is the ABSOLUTE MAXIMUM FOG', group = "height"},
+	{name = 'distanceFogColor', default = fogUniforms.distanceFogColor, min = 0, max = 2, digits = 3, tooltip =  'distanceFogColor, alpha is density multiplier', group = "distance", membernames = {'r','g','b','a'}},
+	{name = 'shadowedColor', default = fogUniforms.shadowedColor, min = 0, max = 2, digits = 3, tooltip =  'shadowedColor, Color of the shadowed areas, ideally black, alpha is strength', group = "shadow", membernames = {'r','g','b','a'}},
+	{name = 'heightFogColor', default = fogUniforms.heightFogColor, min = 0, max = 2, digits = 3, tooltip =  'heightFogColor, alpha is the ABSOLUTE MAXIMUM FOG', group = "height", membernames = {'r','g','b','a'}},
 	{name = 'heightFogTop', default = fogUniforms.heightFogTop, min = math.floor(minHeight), max = math.floor(maxHeight * 2), digits = 0, tooltip =  'heightFogTop, in elmos', group = "height"},
 	{name = 'heightFogBottom', default = fogUniforms.heightFogBottom, min = math.floor(minHeight), max = math.floor(maxHeight), digits = 0, tooltip =  'heightFogBottom, in elmos', group = "height"},
-	{name = 'scavengerPlane', default = fogUniforms.scavengerPlane, min = 0, max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'Where the scavenger cloud is', group = "scavenger"},
+	{name = 'scavengerPlane', default = fogUniforms.scavengerPlane, min = 0, max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'Where the scavenger cloud is', group = "scavenger", membernames = {'minx','maxx','minz','maxz'}},
 
-	{name = 'cloudVolumeMin', default = fogUniforms.cloudVolumeMin, min = 0,max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'Start of the cloud volume', group = "cloud"},
-	{name = 'cloudVolumeMax', default = fogUniforms.cloudVolumeMax, min = 0, max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'End of the cloud volume', group = "cloud"},
+	{name = 'cloudVolumeMin', default = fogUniforms.cloudVolumeMin, min = 0,max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'Start of the cloud volume', group = "cloud", membernames = {'x','y','z','NONE'}},
+	{name = 'cloudVolumeMax', default = fogUniforms.cloudVolumeMax, min = 0, max = math.max(Game.mapSizeX, Game.mapSizeZ), digits = 0, tooltip =  'End of the cloud volume', group = "cloud", membernames = {'x','y','z','edge'}},
 
-	{name = 'cloudGlobalColor', default = fogUniforms.cloudGlobalColor, min = 0, max = 2, digits = 3, tooltip =  'cloudGlobalColor, alpha is the ABSOLUTE MAXIMUM FOG', group = "cloud"},
-	{name = 'cloudDensity', default = fogUniforms.cloudDensity, min = 0.000, max = 0.1, digits = 3, tooltip =  'How dense the clouds are', group = "cloud"},
-	{name = 'noiseLFParams', default = fogUniforms.noiseLFParams, min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: threshold, 3-4 unused', group = "cloud"},
-	{name = 'noiseHFParams', default = fogUniforms.noiseHFParams, min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: Perturb, 3: SpeedX, 4: SpeedZ', group = "cloud"},
+	{name = 'cloudGlobalColor', default = fogUniforms.cloudGlobalColor, min = 0, max = 2, digits = 3, tooltip =  'cloudGlobalColor, alpha is the ABSOLUTE MAXIMUM FOG', group = "cloud", membernames = {'r','g','b','a'}},
+	{name = 'cloudDensity', default = fogUniforms.cloudDensity, min = 0.000, max = 0.1, digits = 3, tooltip =  'How dense the clouds are', group = "cloud" },
+	{name = 'noiseLFParams', default = fogUniforms.noiseLFParams, min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: threshold, 3-4 unused', group = "cloud", membernames = {'hfscale','hfbias','lfscale','lfbias'}},
+	{name = 'noiseHFParams', default = fogUniforms.noiseHFParams, min = -1, max = 5, digits = 3, tooltip =  '1:Frequency, 2: Perturb, 3: SpeedX, 4: SpeedZ', group = "cloud", membernames = {'hfscale','perturb','speedx','speedz'}},
 }
 
 local fogUniformSliders = {
@@ -617,101 +617,96 @@ function widget:Initialize()
 	
 	document = widget.rmlContext:LoadDocument("LuaUi/Widgets/rml_widget_assets/global_fog.rml", widget)
 
-	local slidersDiv = document:GetElementById('fogsliders')
-	for i, definesSlider in ipairs(definesSlidersParamsList) do 
-		--	{name = 'HALFSHIFT', default = 1, min = 0, max = 1, digits = 0, tooltip = 'If the resolution is half, perform a half-pixel shifting'},
-
-		--[[	
-			Range type
-			min = number (CN) For the range type, defines the value at the lowest (left or top) end of the slider.
-			max = number (CN) For the range type, defines the value at the highest (right or bottom) end of the slider.
-			step = number (CN) For the range type, defines the increment that the slider will move by.
-			orientation = cdata (CI) For the range type, specifies if it is a vertical or horizontal slider. Values can be horizontal or vertical.
-		]]--
-
+		-- Function to create slider elements with event listeners
+	local function createSliderElement(sliderConfig, eventCallback)
 		local sliderElement = document:CreateElement('label')
-		-- How to right align a div?
-		local maxstring = string.format('%.' .. definesSlider.digits .. 'f', definesSlider.max)
+		
+		-- Format the max value string with proper padding
+		local maxstring = string.format('%.' .. sliderConfig.digits .. 'f', sliderConfig.max)
 		local maxstringPadded = string.format('%5s', maxstring):gsub(' ', '&#x2007;')
-
-		local sliderhtmlstring = string.format('<div class="code" style="text-align: right;"> %s %f <input type="range" id="%s"  min="%f" max="%f" step="%f" value="%f" /> %s </div> ', 
-			definesSlider.name,definesSlider.min, definesSlider.name,  definesSlider.min, definesSlider.max, math.pow(10, -1 * definesSlider.digits) , definesSlider.default,maxstringPadded)
+		
+		local sliderhtmlstring = string.format(
+			'<div class="code" style="text-align: right;"> %s %f <input type="range" id="%s" min="%f" max="%f" step="%f" value="%f" /> %s </div>',
+			sliderConfig.displayName or sliderConfig.name,
+			sliderConfig.min,
+			sliderConfig.name,
+			sliderConfig.min,
+			sliderConfig.max,
+			math.pow(10, -1 * sliderConfig.digits),
+			sliderConfig.value,
+			maxstringPadded
+		)
+		
 		sliderElement.inner_rml = sliderhtmlstring
-		-- Add the lister:
+		
+		-- Add the event listener
 		sliderElement:AddEventListener('change', function(event)
-			--Spring.Echo(event, event.target_element, event.parameters)
-			local newvalue = nil 
-
-			-- The eventproxy userdata object contains the new value, otherwise you can only get the previous value :D 
-			if event and event.parameters and event.parameters.value then 
+			local newvalue = nil
+			
+			-- Get new value from event parameters
+			if event and event.parameters and event.parameters.value then
 				newvalue = tonumber(event.parameters.value)
 			end
-
-			-- https://mikke89.github.io/RmlUiDoc/pages/lua_manual/api_reference.html#Element
+			
 			local slider = event.target_element
-			if slider.attributes.value == newvalue then 
+			if slider.attributes.value == newvalue then
 				Spring.Echo("Slider value did not change", slider.id, slider.attributes.value, newvalue)
 				return
 			end
+			
 			local value = newvalue or tonumber(slider.attributes.value)
-			-- Spring.Echo("element changed", element.id, element.min, element.max, element.step, element.value)
-			shaderDefinesChangedCallback(slider.id, value, nil, nil)
-		end) --data-event-onChange =" callshaderDefinesChangedCallback(\'%s\')"
+			eventCallback(slider.id, value, sliderConfig.paramIndex, slider.attributes.value)
+		end)
+		
+		return sliderElement
+	end
 
-		slidersDiv:AppendChild(sliderElement)
-	end 
+	local slidersDiv = document:GetElementById('fogsliders')
+    for i, definesSlider in ipairs(definesSlidersParamsList) do
+        local sliderConfig = {
+            name = definesSlider.name,
+            min = definesSlider.min,
+            max = definesSlider.max,
+            digits = definesSlider.digits,
+            value = definesSlider.default
+        }
+        
+        local sliderElement = createSliderElement(sliderConfig, shaderDefinesChangedCallback)
+        slidersDiv:AppendChild(sliderElement)
+    end
+
 
 	local fogUniformSlidersDiv = document:GetElementById('foguniformsliders')
 
-	for i, uniformSlider in ipairs(uniformSliderParamsList) do 
-		--if true then return end 
-		local defaultType = type(fogUniforms[uniformSlider.name])
-		local defaultValues
-		if defaultType == "table" then 
-			defaultValues = fogUniforms[uniformSlider.name]
-		else
-			defaultValues = {fogUniforms[uniformSlider.name]}
-		end
+    for i, uniformSlider in ipairs(uniformSliderParamsList) do
+        local defaultType = type(fogUniforms[uniformSlider.name])
+        local defaultValues
+        if defaultType == "table" then
+            defaultValues = fogUniforms[uniformSlider.name]
+        else
+            defaultValues = {fogUniforms[uniformSlider.name]}
+        end
 
-
-		for j, v in ipairs(defaultValues) do 
-			local defaultvalue = v or 0.0 
-
-				
-			local sliderElement = document:CreateElement('label')
-			-- How to right align a div?
-			local maxstring = string.format('%.' .. uniformSlider.digits .. 'f', uniformSlider.max)
-			local maxstringPadded = string.format('%5s', maxstring):gsub(' ', '&#x2007;')
-
-
-			local sliderhtmlstring = string.format('<div class="code" style="text-align: right;"> %s-%d %f <input type="range" id="%s"  min="%f" max="%f" step="%f" value="%f" /> %s </div> ', 
-				uniformSlider.name,j,uniformSlider.min, uniformSlider.name,  uniformSlider.min, uniformSlider.max, math.pow(10, -1 * uniformSlider.digits) , defaultvalue,maxstringPadded)
-			sliderElement.inner_rml = sliderhtmlstring
-			-- Add the lister:
-			sliderElement:AddEventListener('change', function(event)
-				--Spring.Echo(event, event.target_element, event.parameters)
-				local newvalue = nil 
-
-				-- The eventproxy userdata object contains the new value, otherwise you can only get the previous value :D 
-				if event and event.parameters and event.parameters.value then 
-					newvalue = tonumber(event.parameters.value)
-				end
-
-				-- https://mikke89.github.io/RmlUiDoc/pages/lua_manual/api_reference.html#Element
-				local slider = event.target_element
-				if slider.attributes.value == newvalue then 
-					Spring.Echo("Slider value did not change", slider.id, slider.attributes.value, newvalue)
-					return
-				end
-				local value = newvalue or tonumber(slider.attributes.value)
-				-- Spring.Echo("element changed", element.id, element.min, element.max, element.step, element.value)
-				local paramIndex = (defaultType == "table") and j or nil
-				SetFogParams(slider.id, value, paramIndex)
-			end) --data-event-onChange =" callshaderDefinesChangedCallback(\'%s\')"
-
-			fogUniformSlidersDiv:AppendChild(sliderElement) 
-		end
-	end
+        for j, v in ipairs(defaultValues) do
+            local defaultvalue = v or 0.0
+            
+            local sliderConfig = {
+                name = uniformSlider.name,
+                displayName = uniformSlider.name .. '.' .. (uniformSlider.membernames and uniformSlider.membernames[j] or ""),
+                min = uniformSlider.min,
+                max = uniformSlider.max,
+                digits = uniformSlider.digits,
+                value = defaultvalue,
+                paramIndex = (defaultType == "table") and j or nil
+            }
+            
+            local sliderElement = createSliderElement(sliderConfig, function(sliderId, value, paramIndex, oldValue)
+                SetFogParams(sliderId, value, paramIndex)
+            end)
+            
+            fogUniformSlidersDiv:AppendChild(sliderElement)
+        end
+    end
 
 	document:ReloadStyleSheet()  
 	document:Show()
