@@ -41,11 +41,13 @@ local mathCos = math.cos
 local mathSin = math.sin
 local random = math.random
 
-local BONUS_METAL = 450 -- the amount of metal produced during a normal build order up to the 1:30 mark.
-local BONUS_ENERGY = 2500 -- the amount of energy produced during a normal build order up to the 1:30 mark.
-local MEX_MAX_DISTANCE = 500 -- maximum distance metal extractors will search for metal spots on non-metal maps
+local BONUS_METAL = 450
+local BONUS_ENERGY = 2500
+local MEX_MAX_DISTANCE = 500
+local SOLAR_PENALTY_MULTIPLIER = 0.5
 
 local factoryRequired = true
+local isGoodWind = false
 
 local unitDefNames = UnitDefNames
 
@@ -92,13 +94,16 @@ local landBuildQuotas = {
 	solar = 4,
 }
 
-local randomBuildOptionWeights = {
+local baseBuildOptionWeights = {
 	windmill = 0.25,
 	mex = 0.25,
 	converter = 0.1,
 	solar = 0.25,
 	tidal = 0.5,
 }
+
+local randomBuildOptionWeights = {}
+
 
 local commanderSeaLabs = {
 	armcom = { armsy = 0.8, armfhp = 0.2},
@@ -134,7 +139,7 @@ local nonPlayerTeams = {}
 local boostableCommanders = {}
 local queueCommanderCreation = {}
 local partiallyBuiltStructures = {}
-local buildQueues = {} -- Random build queues for each commander
+local buildQueues = {}
 
 
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -157,7 +162,6 @@ local function initializeCommander(commanderID, teamID, startingMetal, startingE
 	local availableEnergy = math.min(currentEnergy, startEnergy)
 	local juice = availableMetal + BONUS_METAL + ((availableEnergy + BONUS_ENERGY) / ENERGY_VALUE_CONVERSION_DIVISOR)
 	
-	-- Check if this is a human team using PowerLib
 	local isHuman = false
 	if GG and GG.PowerLib and GG.PowerLib.HumanTeams then
 		isHuman = GG.PowerLib.HumanTeams[teamID] == true
@@ -173,10 +177,8 @@ local function initializeCommander(commanderID, teamID, startingMetal, startingE
 		isHuman = isHuman
 	}
 	
-	-- Initialize empty build queue
 	buildQueues[commanderID] = {}
 	
-	-- Issue wait command to commander
 	spGiveOrderToUnit(commanderID, CMD.WAIT, {}, 0)
 	commanderMetaList[commanderID].isWaiting = true
 	
@@ -220,7 +222,6 @@ local function deductJuiceAndCreateUnit(commanderData, unitDefID, buildX, buildY
 	
 	commanderData.juice = commanderData.juice - affordableJuice
 	
-	-- Track the type of structure built
 	local unitName = unitDef.name
 	local commanderDefID = spGetUnitDefID(commanderID)
 	local commanderName = UnitDefs[commanderDefID].name
@@ -255,10 +256,8 @@ local function createFactoryForFree(unitDefID, buildX, buildY, buildZ, facing, t
 		return false, nil
 	end
 	
-	-- Build completely for free
 	spSetUnitHealth(unitID, {build = 1, health = unitDef.health})
 	
-	-- Track the factory in tallies
 	if commanderData then
 		commanderData.thingsMade.factory = commanderData.thingsMade.factory + 1
 	end
@@ -342,7 +341,6 @@ local function selectWeightedRandom(weightedOptions)
 		end
 	end
 	
-	-- Fallback to first option if something goes wrong
 	for optionName, _ in pairs(weightedOptions) do
 		return optionName
 	end
@@ -372,14 +370,12 @@ local function snapToGrid(x, z, unitDefID)
 	
 	local snappedX, snappedZ = x, z
 	
-	-- Snap X coordinate
 	if math.floor(xSize / 16) % 2 > 0 then
 		snappedX = math.floor(x / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE
 	else
 		snappedX = math.floor((x + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE
 	end
 	
-	-- Snap Z coordinate
 	if math.floor(zSize / 16) % 2 > 0 then
 		snappedZ = math.floor(z / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE
 	else
@@ -394,14 +390,12 @@ local function generateCenterSkewedPositions(chunkStartX, chunkEndX, chunkStartZ
 	local chunkCenterX = (chunkStartX + chunkEndX) / 2
 	local chunkCenterZ = (chunkStartZ + chunkEndZ) / 2
 	
-	-- Generate all grid positions
 	for searchX = chunkStartX, chunkEndX, gridSpacing do
 		for searchZ = chunkStartZ, chunkEndZ, gridSpacing do
 			table.insert(positions, {x = searchX, z = searchZ})
 		end
 	end
 	
-	-- Sort by distance from chunk center (closest first)
 	table.sort(positions, function(a, b)
 		local distA = math.sqrt((a.x - chunkCenterX)^2 + (a.z - chunkCenterZ)^2)
 		local distB = math.sqrt((b.x - chunkCenterX)^2 + (b.z - chunkCenterZ)^2)
@@ -416,21 +410,15 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 		return false
 	end
 	
-	-- Check if this is a metal map
 	local isMetalMap = GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].isMetalMap
 	
-	-- Check if this is a metal extractor
 	local unitDef = UnitDefs[unitDefID]
 	local isMetalExtractor = unitDef and unitDef.extractsMetal and unitDef.extractsMetal > 0
 	
-	-- On metal maps, metal extractors can be built anywhere (like other structures)
-	-- On non-metal maps, metal extractors MUST be built on metal spots or not at all
 	if isMetalExtractor and not isMetalMap then
-		-- Use metal spot snapping for non-metal maps - NO FALLBACK to grid placement
 		if GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList then
 			local metalSpots = GG["resource_spot_finder"].metalSpotsList
 			if metalSpots and #metalSpots > 0 then
-				-- Sort metal spots by distance from commander position
 				local spotsWithDistance = {}
 				for i = 1, #metalSpots do
 					local spot = metalSpots[i]
@@ -443,10 +431,8 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 					end
 				end
 				
-				-- Sort by distance (closest first)
 				table.sort(spotsWithDistance, function(a, b) return a.distance < b.distance end)
 				
-				-- Try each metal spot in order of distance
 				for _, spotData in ipairs(spotsWithDistance) do
 					local spot = spotData.spot
 					local buildX, buildY, buildZ = spot.x, spot.y, spot.z
@@ -467,51 +453,41 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 			end
 		end
 		
-		-- If we reach here, no valid metal spots were found for metal extractor on non-metal map
-		-- Return false to skip building this metal extractor entirely
 		return false
 	end
 	
-	-- Grid-based systematic placement for all structures (including metal extractors on metal maps)
 	local maxDistance = 250
-	local chunkSize = (maxDistance * 2) / 3 -- Divide into 3x3 grid
-	local gridSpacing = 32 -- Grid spacing for systematic placement
+	local chunkSize = (maxDistance * 2) / 3
+	local gridSpacing = 32
 	
-	-- Check if this is an energy converter
 	local unitDef = UnitDefs[unitDefID]
 	local isConverter = unitDef and (unitDef.name == "armmakr" or unitDef.name == "legeconv")
 	
 	local mapCenterX = Game.mapSizeX / 2
 	local mapCenterZ = Game.mapSizeZ / 2
 	
-	-- Calculate all possible chunks with their distances from map center
 	local allChunks = {}
 	if isConverter then
-		-- Energy converters use all 8 chunks (3x3), excluding the middle one (chunk 5)
 		allChunks = {
-			{1, 1}, {2, 1}, {3, 1}, -- Top row
-			{1, 2}, {3, 2}, -- Middle row (excluding center)
-			{1, 3}, {2, 3}, {3, 3}  -- Bottom row
+			{1, 1}, {2, 1}, {3, 1},
+			{1, 2}, {3, 2},
+			{1, 3}, {2, 3}, {3, 3}
 		}
 	else
-		-- Other structures use 7 chunks (3x3), excluding the middle one (chunk 5) and the farthest chunk (reserved for converters)
 		allChunks = {
-			{1, 1}, {2, 1}, -- Top row (excluding top-right for converters)
-			{1, 2}, {3, 2}, -- Middle row (excluding center)
-			{1, 3}, {2, 3}, {3, 3}  -- Bottom row
+			{1, 1}, {2, 1},
+			{1, 2}, {3, 2},
+			{1, 3}, {2, 3}, {3, 3}
 		}
 	end
 	
-	-- Calculate distance from map center for each chunk and sort by distance (farthest first)
 	local chunksWithDistance = {}
 	for i, chunk in ipairs(allChunks) do
 		local chunkX, chunkZ = chunk[1], chunk[2]
 		
-		-- Calculate chunk center
 		local chunkCenterX = x - maxDistance + (chunkX - 0.5) * chunkSize
 		local chunkCenterZ = z - maxDistance + (chunkZ - 0.5) * chunkSize
 		
-		-- Calculate distance from map center
 		local distanceFromMapCenter = math.sqrt((chunkCenterX - mapCenterX)^2 + (chunkCenterZ - mapCenterZ)^2)
 		
 		table.insert(chunksWithDistance, {
@@ -520,30 +496,23 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 		})
 	end
 	
-	-- Sort by distance (farthest first)
 	table.sort(chunksWithDistance, function(a, b) return a.distance > b.distance end)
 	
-	-- For non-converters, skip the farthest chunk (reserved for converters)
 	if not isConverter and #chunksWithDistance > 1 then
-		table.remove(chunksWithDistance, 1) -- Remove the farthest chunk
+		table.remove(chunksWithDistance, 1)
 	end
 	
-	-- Try each chunk in order of distance from map center
 	for _, chunkData in ipairs(chunksWithDistance) do
 		local chunkX, chunkZ = chunkData.chunk[1], chunkData.chunk[2]
 		
-		-- Calculate chunk boundaries
 		local chunkStartX = x - maxDistance + (chunkX - 1) * chunkSize
 		local chunkEndX = x - maxDistance + chunkX * chunkSize
 		local chunkStartZ = z - maxDistance + (chunkZ - 1) * chunkSize
 		local chunkEndZ = z - maxDistance + chunkZ * chunkSize
 		
-		-- Generate center-skewed positions for this chunk
 		local positions = generateCenterSkewedPositions(chunkStartX, chunkEndX, chunkStartZ, chunkEndZ, gridSpacing)
 		
-		-- Try each position in order of distance from chunk center
 		for _, pos in ipairs(positions) do
-			-- Snap to proper grid
 			local snappedX, snappedZ = snapToGrid(pos.x, pos.z, unitDefID)
 			local searchY = spGetGroundHeight(snappedX, snappedZ)
 			
@@ -564,6 +533,7 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 	return false
 end
 
+
 local function createRandomBuildQueue(commanderID, commanderData)
 	local commanderDefID = spGetUnitDefID(commanderID)
 	local commanderName = UnitDefs[commanderDefID].name
@@ -575,19 +545,16 @@ local function createRandomBuildQueue(commanderID, commanderData)
 	
 	local buildQueue = {}
 	
-	-- First pass: Add metal extractors FIRST (highest priority)
 	local mexQuota = landBuildQuotas.mex or 0
 	if mexQuota > 0 then
 		local trueName = nonLabOptions.mex
 		if trueName then
 			local unitDefID = unitDefNames[trueName] and unitDefNames[trueName].id
 			if unitDefID then
-				-- Check if this is a non-metal map and if metal spots are available
 				local isMetalMap = GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].isMetalMap
 				local shouldAddMex = true
 				
 				if not isMetalMap then
-					-- On non-metal maps, only add metal extractors if metal spots are available
 					if not GG or not GG["resource_spot_finder"] or not GG["resource_spot_finder"].metalSpotsList or #GG["resource_spot_finder"].metalSpotsList == 0 then
 						shouldAddMex = false
 					end
@@ -597,7 +564,6 @@ local function createRandomBuildQueue(commanderID, commanderData)
 					local alreadyMade = commanderData.thingsMade.mex or 0
 					local stillNeeded = math.max(0, mexQuota - alreadyMade)
 					
-					-- Always try to build full quota - let the building logic handle spot availability
 					for i = 1, stillNeeded do
 						table.insert(buildQueue, {
 							unitDefID = unitDefID,
@@ -611,31 +577,31 @@ local function createRandomBuildQueue(commanderID, commanderData)
 		end
 	end
 	
-	-- Second pass: Add other structures to meet quotas (excluding metal extractors)
 	for optionName, quota in pairs(landBuildQuotas) do
-		if optionName ~= "mex" then -- Skip metal extractors as they're already added
+		if optionName ~= "mex" then
 			local trueName = nonLabOptions[optionName]
 			if trueName and quota > 0 then
 				local unitDefID = unitDefNames[trueName] and unitDefNames[trueName].id
 				if unitDefID then
-					local alreadyMade = commanderData.thingsMade[optionName] or 0
-					local stillNeeded = math.max(0, quota - alreadyMade)
-					
-					-- Add only what's still needed to meet quota
-					for i = 1, stillNeeded do
-						table.insert(buildQueue, {
-							unitDefID = unitDefID,
-							optionName = optionName,
-							trueName = trueName,
-							isQuotaItem = true
-						})
+					local weight = randomBuildOptionWeights[optionName] or 0
+					if weight > 0 then
+						local alreadyMade = commanderData.thingsMade[optionName] or 0
+						local stillNeeded = math.max(0, quota - alreadyMade)
+						
+						for i = 1, stillNeeded do
+							table.insert(buildQueue, {
+								unitDefID = unitDefID,
+								optionName = optionName,
+								trueName = trueName,
+								isQuotaItem = true
+							})
+						end
 					end
 				end
 			end
 		end
 	end
 	
-	-- Shuffle only the non-metal-extractor quota items
 	local nonMexStartIndex = (landBuildQuotas.mex or 0) + 1
 	if nonMexStartIndex <= #buildQueue then
 		for i = #buildQueue, nonMexStartIndex + 1, -1 do
@@ -644,17 +610,14 @@ local function createRandomBuildQueue(commanderID, commanderData)
 		end
 	end
 	
-	-- Second pass: Add random structures for overflow (once quotas are met)
 	local hasFactoryInCommanderQueue = hasFactoryInQueue(commanderID)
 	
-	-- Create weighted options for random selection
 	local weightedOptions = {}
 	for optionName, weight in pairs(randomBuildOptionWeights) do
 		local trueName = nonLabOptions[optionName]
 		if trueName then
 			local unitDefID = unitDefNames[trueName] and unitDefNames[trueName].id
 			if unitDefID then
-				-- Skip factories if commander already has a factory in queue
 				local isFactory = factoryOptions[trueName]
 				if not (isFactory and hasFactoryInCommanderQueue) then
 					weightedOptions[optionName] = weight
@@ -663,8 +626,7 @@ local function createRandomBuildQueue(commanderID, commanderData)
 		end
 	end
 	
-	-- Add weighted random overflow structures
-	local overflowCount = math.min(10, 20) -- Add up to 10 random structures
+	local overflowCount = math.min(10, 20)
 	for i = 1, overflowCount do
 		local selectedOption = selectWeightedRandom(weightedOptions)
 		if selectedOption then
@@ -698,12 +660,9 @@ local function processFactoryRequirement(commanderID, commanderData)
 		return
 	end
 	
-	-- Check if commander already has a factory in queue
 	local factoryInQueue, factoryCommand = hasFactoryInQueue(commanderID)
 	
 	if factoryInQueue and factoryCommand then
-		-- Factory is already in queue, it will be handled by processCommanderCommands
-		-- No need to do anything here
 		return
 	else
 		local availableFactories = {}
@@ -736,12 +695,9 @@ local function processFactoryRequirement(commanderID, commanderData)
 			local factoryOrder = {}
 			
 			if commanderData.isHuman then
-				-- For human players, prioritize the first entry (corlab, armlab, leglab)
 				local firstFactory = nil
 				if landLabs and landLabs.labs then
-					-- Get the first lab from the commander's land labs
 					for labName, _ in pairs(landLabs.labs) do
-						-- Find the corresponding factory in availableFactories
 						for _, factory in ipairs(availableFactories) do
 							if factory.name == labName then
 								firstFactory = factory
@@ -758,15 +714,12 @@ local function processFactoryRequirement(commanderID, commanderData)
 					table.insert(factoryOrder, firstFactory)
 				end
 				
-				-- Add remaining factories in random order
 				for _, factory in ipairs(availableFactories) do
 					if factory ~= firstFactory then
 						table.insert(factoryOrder, factory)
 					end
 				end
 			else
-				-- For non-human players, use the current random selection logic
-				-- Sort factories by probability (highest first) for fallback
 				local sortedFactories = {}
 				for _, factory in ipairs(availableFactories) do
 					local probability = 0
@@ -783,11 +736,9 @@ local function processFactoryRequirement(commanderID, commanderData)
 				
 				table.sort(sortedFactories, function(a, b) return a.probability > b.probability end)
 				
-				-- Try random factory first, then fallback to highest probability
 				local randomIndex = math.random(#availableFactories)
 				table.insert(factoryOrder, availableFactories[randomIndex])
 				
-				-- Add remaining factories in probability order (excluding the random one)
 				for _, sortedFactory in ipairs(sortedFactories) do
 					if sortedFactory.factory ~= availableFactories[randomIndex] then
 						table.insert(factoryOrder, sortedFactory.factory)
@@ -824,13 +775,11 @@ local function processFactoryRequirement(commanderID, commanderData)
 			
 			table.sort(chunksWithDistance, function(a, b) return a.distance < b.distance end)
 			
-			-- Try each factory type until one succeeds
 			local factoryBuilt = false
 			for _, factory in ipairs(factoryOrder) do
 				if factoryBuilt then break end
 				
 				
-				-- Try each chunk in order of distance from map center
 				for _, chunkData in ipairs(chunksWithDistance) do
 					if factoryBuilt then break end
 					
@@ -840,7 +789,6 @@ local function processFactoryRequirement(commanderID, commanderData)
 					local chunkStartZ = commanderZ - maxDistance + (chunkZ - 1) * chunkSize
 					local chunkEndZ = commanderZ - maxDistance + chunkZ * chunkSize
 					
-					-- Generate all positions in this chunk
 					local positions = {}
 					for searchX = chunkStartX, chunkEndX, gridSpacing do
 						for searchZ = chunkStartZ, chunkEndZ, gridSpacing do
@@ -848,14 +796,12 @@ local function processFactoryRequirement(commanderID, commanderData)
 						end
 					end
 					
-					-- Sort by distance from commander (closest first)
 					table.sort(positions, function(a, b)
 						local distA = math.sqrt((a.x - commanderX)^2 + (a.z - commanderZ)^2)
 						local distB = math.sqrt((b.x - commanderX)^2 + (b.z - commanderZ)^2)
 						return distA < distB
 					end)
 					
-					-- Try each position in order of distance from commander
 					for _, pos in ipairs(positions) do
 						local snappedX, snappedZ = snapToGrid(pos.x, pos.z, factory.unitDefID)
 						local searchY = spGetGroundHeight(snappedX, snappedZ)
@@ -895,7 +841,6 @@ local function processCommanderCommands(commanderID, commanderData)
 					local isFactory = unitDef and factoryOptions[unitDef.name]
 					
 					if isFactory then
-						-- Handle factory commands specially - build for free and mark as factory made
 						local buildX, buildY, buildZ = cmd.params[1], cmd.params[2], cmd.params[3]
 						local mapCenterX = Game.mapSizeX / 2
 						local mapCenterZ = Game.mapSizeZ / 2
@@ -909,7 +854,6 @@ local function processCommanderCommands(commanderID, commanderData)
 							spGiveOrderToUnit(commanderID, CMD.REMOVE, {i}, 0)
 						end
 					else
-						-- Handle non-factory commands normally
 						local fullyBuilt, unitID = tryToBuildCommand(commanderID, cmd)
 						if fullyBuilt then
 							spGiveOrderToUnit(commanderID, CMD.REMOVE, {i}, 0)
@@ -948,27 +892,21 @@ function gadget:GameFrame(frame)
 	for commanderID, commanderData in pairs(commanderMetaList) do
 		local commanderData = commanderMetaList[commanderID]
 
-		-- PRIORITY 1: Process commander's command queue first (intercept existing commands)
 		processCommanderCommands(commanderID, commanderData)
 
-		-- PRIORITY 2: Build metal extractors first (highest priority for resource income)
-		-- Create build queue if it doesn't exist
 		if not buildQueues[commanderID] or #buildQueues[commanderID] == 0 then
 			createRandomBuildQueue(commanderID, commanderData)
 		end
 
-		-- Build structures from the queue sequentially (MEX first, then other structures)
 		while commanderData.juice > 0 and #buildQueues[commanderID] > 0 do
 			local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
-			local buildItem = buildQueues[commanderID][1] -- Get first item from queue
+			local buildItem = buildQueues[commanderID][1]
 			
 			if buildItem then
 				local unitID = findBuildLocationAndCreateUnit(commanderX, commanderY, commanderZ, buildItem.unitDefID, commanderData.teamID, commanderData, commanderID)
 				if unitID then
-					-- Successfully built, remove from queue
 					table.remove(buildQueues[commanderID], 1)
 					
-					-- Check if we just finished all quota items and need to regenerate queue
 					local hasQuotaItems = false
 					for _, item in ipairs(buildQueues[commanderID]) do
 						if item.isQuotaItem then
@@ -977,12 +915,10 @@ function gadget:GameFrame(frame)
 						end
 					end
 					
-					-- If no more quota items and still have juice, regenerate queue for overflow
 					if not hasQuotaItems and commanderData.juice > 0 then
 						createRandomBuildQueue(commanderID, commanderData)
 					end
 				else
-					-- Failed to build, remove from queue to prevent infinite loop
 					table.remove(buildQueues[commanderID], 1)
 				end
 			else
@@ -990,12 +926,9 @@ function gadget:GameFrame(frame)
 			end
 		end
 
-		-- PRIORITY 3: Build factories last (after MEX and other structures are done)
 		processFactoryRequirement(commanderID, commanderData)
 		
-		-- Check if juice is depleted and remove wait command if needed
 		if commanderData.juice <= 0 and commanderData.isWaiting then
-			-- Remove wait command to allow commander to resume normal behavior
 			spGiveOrderToUnit(commanderID, CMD.WAIT, {}, CMD.OPT_RIGHT)
 			commanderData.isWaiting = false
 		end
@@ -1046,6 +979,30 @@ function gadget:UnitDestroyed(unitID)
 end
 
 function gadget:Initialize()
+	local minWind = Game.windMin
+	local maxWind = Game.windMax
+	
+	local avgWind = {[0]={[1]="0.8",[2]="1.5",[3]="2.2",[4]="3.0",[5]="3.7",[6]="4.5",[7]="5.2",[8]="6.0",[9]="6.7",[10]="7.5",[11]="8.2",[12]="9.0",[13]="9.7",[14]="10.4",[15]="11.2",[16]="11.9",[17]="12.7",[18]="13.4",[19]="14.2",[20]="14.9",[21]="15.7",[22]="16.4",[23]="17.2",[24]="17.9",[25]="18.6",[26]="19.2",[27]="19.6",[28]="20.0",[29]="20.4",[30]="20.7",},[1]={[2]="1.6",[3]="2.3",[4]="3.0",[5]="3.8",[6]="4.5",[7]="5.2",[8]="6.0",[9]="6.7",[10]="7.5",[11]="8.2",[12]="9.0",[13]="9.7",[14]="10.4",[15]="11.2",[16]="11.9",[17]="12.7",[18]="13.4",[19]="14.2",[20]="14.9",[21]="15.7",[22]="16.4",[23]="17.2",[24]="17.9",[25]="18.6",[26]="19.2",[27]="19.6",[28]="20.0",[29]="20.4",[30]="20.7",},[2]={[3]="2.6",[4]="3.2",[5]="3.9",[6]="4.6",[7]="5.3",[8]="6.0",[9]="6.8",[10]="7.5",[11]="8.2",[12]="9.0",[13]="9.7",[14]="10.5",[15]="11.2",[16]="12.0",[17]="12.7",[18]="13.4",[19]="14.2",[20]="14.9",[21]="15.7",[22]="16.4",[23]="17.2",[24]="17.9",[25]="18.6",[26]="19.2",[27]="19.6",[28]="20.0",[29]="20.4",[30]="20.7",},[3]={[4]="3.6",[5]="4.2",[6]="4.8",[7]="5.5",[8]="6.2",[9]="6.9",[10]="7.6",[11]="8.3",[12]="9.0",[13]="9.8",[14]="10.5",[15]="11.2",[16]="12.0",[17]="12.7",[18]="13.5",[19]="14.2",[20]="15.0",[21]="15.7",[22]="16.4",[23]="17.2",[24]="17.9",[25]="18.7",[26]="19.2",[27]="19.7",[28]="20.0",[29]="20.4",[30]="20.7",},[4]={[5]="4.6",[6]="5.2",[7]="5.8",[8]="6.4",[9]="7.1",[10]="7.8",[11]="8.5",[12]="9.2",[13]="9.9",[14]="10.6",[15]="11.3",[16]="12.1",[17]="12.8",[18]="13.5",[19]="14.3",[20]="15.0",[21]="15.7",[22]="16.5",[23]="17.2",[24]="18.0",[25]="18.7",[26]="19.2",[27]="19.7",[28]="20.1",[29]="20.4",[30]="20.7",},[5]={[6]="5.5",[7]="6.1",[8]="6.8",[9]="7.4",[10]="8.0",[11]="8.7",[12]="9.4",[13]="10.1",[14]="10.8",[15]="11.5",[16]="12.2",[17]="12.9",[18]="13.6",[19]="14.4",[20]="15.1",[21]="15.8",[22]="16.5",[23]="17.3",[24]="18.0",[25]="18.8",[26]="19.3",[27]="19.7",[28]="20.1",[29]="20.4",[30]="20.7",},[6]={[7]="6.5",[8]="7.1",[9]="7.7",[10]="8.4",[11]="9.0",[12]="9.7",[13]="10.3",[14]="11.0",[15]="11.7",[16]="12.4",[17]="13.1",[18]="13.8",[19]="14.5",[20]="15.2",[21]="15.9",[22]="16.7",[23]="17.4",[24]="18.1",[25]="18.8",[26]="19.4",[27]="19.8",[28]="20.2",[29]="20.5",[30]="20.8",},[7]={[8]="7.5",[9]="8.1",[10]="8.7",[11]="9.3",[12]="10.0",[13]="10.6",[14]="11.3",[15]="11.9",[16]="12.6",[17]="13.3",[18]="14.0",[19]="14.7",[20]="15.4",[21]="16.1",[22]="16.8",[23]="17.5",[24]="18.2",[25]="19.0",[26]="19.5",[27]="19.9",[28]="20.3",[29]="20.6",[30]="20.9",},[8]={[9]="8.5",[10]="9.1",[11]="9.7",[12]="10.3",[13]="11.0",[14]="11.6",[15]="12.2",[16]="12.9",[17]="13.6",[18]="14.2",[19]="14.9",[20]="15.6",[21]="16.3",[22]="17.0",[23]="17.7",[24]="18.4",[25]="19.1",[26]="19.6",[27]="20.0",[28]="20.4",[29]="20.7",[30]="21.0",},[9]={[10]="9.5",[11]="10.1",[12]="10.7",[13]="11.3",[14]="11.9",[15]="12.6",[16]="13.2",[17]="13.8",[18]="14.5",[19]="15.2",[20]="15.8",[21]="16.5",[22]="17.2",[23]="17.9",[24]="18.6",[25]="19.3",[26]="19.8",[27]="20.2",[28]="20.5",[29]="20.8",[30]="21.1",},[10]={[11]="10.5",[12]="11.1",[13]="11.7",[14]="12.3",[15]="12.9",[16]="13.5",[17]="14.2",[18]="14.8",[19]="15.4",[20]="16.1",[21]="16.8",[22]="17.4",[23]="18.1",[24]="18.8",[25]="19.5",[26]="20.0",[27]="20.4",[28]="20.7",[29]="21.0",[30]="21.2",},[11]={[12]="11.5",[13]="12.1",[14]="12.7",[15]="13.3",[16]="13.9",[17]="14.5",[18]="15.1",[19]="15.8",[20]="16.4",[21]="17.1",[22]="17.7",[23]="18.4",[24]="19.1",[25]="19.7",[26]="20.2",[27]="20.6",[28]="20.9",[29]="21.2",[30]="21.4",},[12]={[13]="12.5",[14]="13.1",[15]="13.6",[16]="14.2",[17]="14.9",[18]="15.5",[19]="16.1",[20]="16.7",[21]="17.4",[22]="18.0",[23]="18.7",[24]="19.3",[25]="20.0",[26]="20.4",[27]="20.8",[28]="21.1",[29]="21.4",[30]="21.6",},[13]={[14]="13.5",[15]="14.1",[16]="14.6",[17]="15.2",[18]="15.8",[19]="16.5",[20]="17.1",[21]="17.7",[22]="18.4",[23]="19.0",[24]="19.6",[25]="20.3",[26]="20.7",[27]="21.1",[28]="21.4",[29]="21.6",[30]="21.8",},[14]={[15]="14.5",[16]="15.0",[17]="15.6",[18]="16.2",[19]="16.8",[20]="17.4",[21]="18.1",[22]="18.7",[23]="19.3",[24]="20.0",[25]="20.6",[26]="21.0",[27]="21.3",[28]="21.6",[29]="21.8",[30]="22.0",},[15]={[16]="15.5",[17]="16.0",[18]="16.6",[19]="17.2",[20]="17.8",[21]="18.4",[22]="19.0",[23]="19.6",[24]="20.3",[25]="20.9",[26]="21.3",[27]="21.6",[28]="21.9",[29]="22.1",[30]="22.3",},[16]={[17]="16.5",[18]="17.0",[19]="17.6",[20]="18.2",[21]="18.8",[22]="19.4",[23]="20.0",[24]="20.6",[25]="21.3",[26]="21.7",[27]="21.9",[28]="22.2",[29]="22.4",[30]="22.5",},[17]={[18]="17.5",[19]="18.0",[20]="18.6",[21]="19.2",[22]="19.8",[23]="20.4",[24]="21.0",[25]="21.6",[26]="22.0",[27]="22.3",[28]="22.5",[29]="22.7",[30]="22.8",},[18]={[19]="18.5",[20]="19.0",[21]="19.6",[22]="20.2",[23]="20.8",[24]="21.4",[25]="22.0",[26]="22.4",[27]="22.6",[28]="22.8",[29]="23.0",[30]="23.1",},[19]={[20]="19.5",[21]="20.0",[22]="20.6",[23]="21.2",[24]="21.8",[25]="22.4",[26]="22.7",[27]="22.9",[28]="23.1",[29]="23.2",[30]="23.4",},[20]={[21]="20.4",[22]="21.0",[23]="21.6",[24]="22.2",[25]="22.8",[26]="23.1",[27]="23.3",[28]="23.4",[29]="23.6",[30]="23.7",},[21]={[22]="21.4",[23]="22.0",[24]="22.6",[25]="23.2",[26]="23.5",[27]="23.6",[28]="23.8",[29]="23.9",[30]="24.0",},[22]={[23]="22.4",[24]="23.0",[25]="23.6",[26]="23.8",[27]="24.0",[28]="24.1",[29]="24.2",[30]="24.2",},[23]={[24]="23.4",[25]="24.0",[26]="24.2",[27]="24.4",[28]="24.4",[29]="24.5",[30]="24.5",},[24]={[25]="24.4",[26]="24.6",[27]="24.7",[28]="24.7",[29]="24.8",[30]="24.8",},}
+	
+	local averageWind
+	if avgWind[minWind] and avgWind[minWind][maxWind] then
+		averageWind = tonumber(avgWind[minWind][maxWind])
+	else
+		averageWind = math.max(minWind, maxWind * 0.75)
+	end
+	
+	isGoodWind = averageWind > 7
+	
+	for optionName, baseWeight in pairs(baseBuildOptionWeights) do
+		if optionName == "windmill" and not isGoodWind then
+			randomBuildOptionWeights[optionName] = 0
+		elseif optionName == "solar" and isGoodWind then
+			randomBuildOptionWeights[optionName] = baseWeight * SOLAR_PENALTY_MULTIPLIER
+		else
+			randomBuildOptionWeights[optionName] = baseWeight
+		end
+	end
+	Spring.Echo("test1 isGoodWind:", tostring(isGoodWind), "averageWind:", tostring(averageWind), "minWind:", tostring(minWind), "maxWind:", tostring(maxWind), "randomBuildOptionWeights:", randomBuildOptionWeights)
 	local frame = Spring.GetGameFrame()
 
 	if frame > 1 then
