@@ -4,8 +4,8 @@ return {
 		activatewhenbuilt = true,
 		maxdec = 0.02757,
 		buildangle = 16384,
-		energycost = 8000,
-		metalcost = 760,
+		energycost = 9000,
+		metalcost = 860,
 		buildpic = "legtriariusdrone.DDS",
 		buildtime = 11500,
 		canmove = true,
@@ -125,6 +125,7 @@ return {
 				impulsefactor = 0,
 				intensity = 5,
 				laserflaresize = 6,
+				leadlimit = 0,
 				name = "Medium Sweepfire Heatray",
 				noselfdamage = true,
 				predictboost = 1,
@@ -143,7 +144,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1200,
 				damage = {
-					commanders = 205,
+					--commanders = 205,
 					default = 410,
 					vtol = 110,
 				},
@@ -164,12 +165,16 @@ return {
 				impulsefactor = 0.123,
 				name = "Dual Ballistic Drone Control Matrix",
 				noselfdamage = true,
+				metalpershot = 15,
+				energypershot = 500,
 				range = 1000,
 				reloadtime = 2.5,
 				size = 0,
 				soundhit = "",
 				soundhitwet = "",
 				soundstart = "",
+				stockpile = true,
+				stockpiletime = 20,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 360,
@@ -180,7 +185,7 @@ return {
 					carried_unit = "legdrone",     --Name of the unit spawned by this carrier unit.
 					engagementrange = 1000,
 					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 8, 				--Spawnrate roughly in seconds.
+					spawnrate = 20, 				--Spawnrate roughly in seconds.
 					maxunits = 2,				--Will spawn units until this amount has been reached.
 					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
@@ -194,6 +199,10 @@ return {
 					dockingHelperSpeed = 5,
 					dockingpieces = "7 9",
 					dockingradius = 80,			--The range at which the units snap to the carrier unit when docking.
+					stockpilelimit = 2,
+					stockpilemetal = 15,
+					stockpileenergy = 500,
+					dronesusestockpile = true,
 				}
 			},
 
