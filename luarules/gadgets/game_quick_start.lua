@@ -30,7 +30,6 @@ local spSetUnitHealth = Spring.SetUnitHealth
 local spValidUnitID = Spring.ValidUnitID
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetUnitIsDead = Spring.GetUnitIsDead
-local mathDiag = math.diag
 
 local BONUS_METAL = 450
 local BONUS_ENERGY = 2500
@@ -161,7 +160,7 @@ local function generateChunksTable(centerX, centerZ)
 		local chunkX, chunkZ = chunk[1], chunk[2]
 		local chunkCenterX = centerX - maxDistance + (chunkX - 0.5) * chunkSize
 		local chunkCenterZ = centerZ - maxDistance + (chunkZ - 0.5) * chunkSize
-		local distanceFromMapCenter = (chunkCenterX - MAP_CENTER_X)^2 + (chunkCenterZ - MAP_CENTER_Z)^2
+		local distanceFromMapCenter = math.distance2dSquared(chunkCenterX, chunkCenterZ, MAP_CENTER_X, MAP_CENTER_Z)
 		
 		table.insert(chunksWithDistance, {
 			chunk = chunk,
@@ -299,7 +298,7 @@ local function isBuildCommand(cmdID)
 end
 
 local function isCommanderInRange(commanderX, commanderZ, targetX, targetZ)
-	local distance = mathDiag(commanderX - targetX, commanderZ - targetZ)
+	local distance = math.distance2d(commanderX, commanderZ, targetX, targetZ)
 	return distance <= COMMAND_STEAL_RANGE
 end
 
@@ -322,59 +321,6 @@ local function selectWeightedRandom(weightedOptions)
 	return nil
 end
 
-local function isConverterUnit(unitDef)
-	if not unitDef or not unitDef.name then
-		return false
-	end
-	local unitName = string.lower(unitDef.name)
-	if string.find(unitName, "mmkr", 1, true) then
-		return true
-	end
-	if string.find(unitName, "makr", 1, true) then
-		return true
-	end
-	if string.find(unitName, "econv", 1, true) then
-		return true
-	end
-	if unitName == "armuwmmm" then
-		return true
-	end
-	if unitName == "armfmkr" or unitName == "corfmkr" then
-		return true
-	end
-	return false
-end
-
-
-local function snapToGrid(x, z, unitDefID)
-	local unitDef = UnitDefs[unitDefID]
-	if not unitDef then
-		return x, z
-	end
-	
-	local SQUARE_SIZE = 8
-	local BUILD_SQUARE_SIZE = SQUARE_SIZE * 2
-	
-	local xSize = SQUARE_SIZE * unitDef.xsize
-	local zSize = SQUARE_SIZE * unitDef.zsize
-	
-	local snappedX, snappedZ = x, z
-	
-	if math.floor(xSize / 16) % 2 > 0 then
-		snappedX = math.floor(x / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE
-	else
-		snappedX = math.floor((x + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE
-	end
-	
-	if math.floor(zSize / 16) % 2 > 0 then
-		snappedZ = math.floor(z / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE
-	else
-		snappedZ = math.floor((z + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE
-	end
-	
-	return snappedX, snappedZ
-end
-
 local function generateCenterSkewedPositions(chunkStartX, chunkEndX, chunkStartZ, chunkEndZ, gridSpacing)
 	local positions = {}
 	local chunkCenterX = (chunkStartX + chunkEndX) / 2
@@ -382,18 +328,18 @@ local function generateCenterSkewedPositions(chunkStartX, chunkEndX, chunkStartZ
 	
 	for searchX = chunkStartX, chunkEndX, gridSpacing do
 		for searchZ = chunkStartZ, chunkEndZ, gridSpacing do
-			local distance = (searchX - chunkCenterX)^2 + (searchZ - chunkCenterZ)^2
-			table.insert(positions, {x = searchX, z = searchZ, distance = distance})
+			table.insert(positions, {x = searchX, z = searchZ})
 		end
 	end
 	
-	table.sort(positions, function(a, b)
-		return a.distance < b.distance
-	end)
+		table.sort(positions, function(a, b)
+			local distA = math.distance2dSquared(a.x, a.z, chunkCenterX, chunkCenterZ)
+			local distB = math.distance2dSquared(b.x, b.z, chunkCenterX, chunkCenterZ)
+			return distA < distB
+		end)
 	
 	return positions
 end
-
 
 local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, commanderData, commanderID)
 	if not commanderData or commanderData.juice <= 0 then
@@ -412,7 +358,7 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 				local spotsWithDistance = {}
 				for i = 1, #metalSpots do
 					local spot = metalSpots[i]
-					local distanceSquared = (spot.x - x)^2 + (spot.z - z)^2
+					local distanceSquared = math.distance2dSquared(spot.x, spot.z, x, z)
 					if distanceSquared <= AUTO_MEX_MAX_DISTANCE * AUTO_MEX_MAX_DISTANCE then
 						table.insert(spotsWithDistance, {
 							spot = spot,
@@ -443,7 +389,11 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 	end
 	
 	local unitDef = UnitDefs[unitDefID]
-	local isConverter = isConverterUnit(unitDef)
+	local unitName = unitDef and unitDef.name
+	local commanderDefID = spGetUnitDefID(commanderID)
+	local commanderName = UnitDefs[commanderDefID].name
+	local nonLabOptions = commanderNonLabOptions[commanderName]
+	local isConverter = (nonLabOptions and nonLabOptions.converter == unitName)
 	
 	local chunksWithDistance = {}
 	if isConverter then
@@ -468,16 +418,18 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 		local positions = generateCenterSkewedPositions(chunkData.chunkStartX, chunkData.chunkEndX, chunkData.chunkStartZ, chunkData.chunkEndZ, gridSpacing)
 		
 		for _, pos in ipairs(positions) do
-			local snappedX, snappedZ = snapToGrid(pos.x, pos.z, unitDefID)
-			local searchY = spGetGroundHeight(snappedX, snappedZ)
+			local searchY = spGetGroundHeight(pos.x, pos.z)
+			local snappedX, snappedY, snappedZ = Spring.Pos2BuildPos(unitDefID, pos.x, searchY, pos.z)
 			
-			local buildTest = Spring.TestBuildOrder(unitDefID, snappedX, searchY, snappedZ, 0)
-			if buildTest > 0 then
-				local facing = commanderData.defaultFacing or 0
-				
-				local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, unitDefID, snappedX, searchY, snappedZ, facing, teamID, commanderID, false)
-				if unitID then
-					return unitID
+			if snappedX then
+				local buildTest = Spring.TestBuildOrder(unitDefID, snappedX, snappedY, snappedZ, 0)
+				if buildTest > 0 then
+					local facing = commanderData.defaultFacing or 0
+					
+					local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, unitDefID, snappedX, snappedY, snappedZ, facing, teamID, commanderID, false)
+					if unitID then
+						return unitID
+					end
 				end
 			end
 		end
@@ -486,8 +438,6 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 	
 	return false
 end
-
-
 
 local function createRandomBuildQueue(commanderID, commanderData)
 	local commanderDefID = spGetUnitDefID(commanderID)
@@ -733,24 +683,26 @@ local function processFactoryRequirement(commanderID, commanderData)
 			end
 			
 			table.sort(positions, function(a, b)
-				local distA = (a.x - commanderX)^2 + (a.z - commanderZ)^2
-				local distB = (b.x - commanderX)^2 + (b.z - commanderZ)^2
+				local distA = math.distance2dSquared(a.x, a.z, commanderX, commanderZ)
+				local distB = math.distance2dSquared(b.x, b.z, commanderX, commanderZ)
 				return distA < distB
 			end)
 			
 			for _, pos in ipairs(positions) do
-				local snappedX, snappedZ = snapToGrid(pos.x, pos.z, factory.unitDefID)
-				local searchY = spGetGroundHeight(snappedX, snappedZ)
+				local searchY = spGetGroundHeight(pos.x, pos.z)
+				local snappedX, snappedY, snappedZ = Spring.Pos2BuildPos(factory.unitDefID, pos.x, searchY, pos.z)
 				
-				local buildTest = Spring.TestBuildOrder(factory.unitDefID, snappedX, searchY, snappedZ, 0)
-				if buildTest > 0 then
-					local facing = commanderData.defaultFacing or 0
-					
-					local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, factory.unitDefID, snappedX, searchY, snappedZ, facing, commanderData.teamID, commanderID, true)
-					if fullyBuilt then
-						commanderData.factoryMade = true
-						factoryBuilt = true
-						break
+				if snappedX then
+					local buildTest = Spring.TestBuildOrder(factory.unitDefID, snappedX, snappedY, snappedZ, 0)
+					if buildTest > 0 then
+						local facing = commanderData.defaultFacing or 0
+						
+						local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, factory.unitDefID, snappedX, snappedY, snappedZ, facing, commanderData.teamID, commanderID, true)
+						if fullyBuilt then
+							commanderData.factoryMade = true
+							factoryBuilt = true
+							break
+						end
 					end
 				end
 			end
