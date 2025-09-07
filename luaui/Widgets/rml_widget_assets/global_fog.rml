@@ -41,17 +41,16 @@
             
         </div> -->
         <div class="element" style="display: flex; flex-direction: row; gap: 1em; align-items: flex-start;">
+            <!-- All Parameters Grouped by Category -->
+            <div style="display: flex; flex-direction: column; gap: 1em;">
+                <h5>Fog Parameters</h5>
+                <div id="fogparameters-grouped" style="display: flex; flex-direction: column; gap: 0.5em;"></div>
+            </div>
             
-                <h6>
-            <div id="fogsliders" style="display: flex; flex-direction: column; gap: 0.1em;"></div>
-            
-                </h6>
-            <div>
-                <h6>
-                <div id="foguniformsliders" style="display: flex; flex-direction: column; gap: 0.1em;"></div>
-                <!-- Color pickers for fogUniforms -->
-                </h6>
-                <div id="fogcolorpickers" style="display: flex; flex-direction: column; gap: 0.2em; margin-top: 0.5em;">
+            <!-- Color pickers for fogUniforms -->
+            <div style="display: flex; flex-direction: column; gap: 1em;">
+                <div id="fogcolorpickers" style="display: flex; flex-direction: column; gap: 0.2em;">
+                    <h6>Color Parameters</h6>
                     <label for="heightFogColor">Height Fog Color:</label>
                     <input type="color" id="heightFogColor" name="heightFogColor"
                         data-event-input="onFogColorChange('heightFogColor', this.value)" />

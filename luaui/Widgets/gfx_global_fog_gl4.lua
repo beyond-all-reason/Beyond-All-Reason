@@ -162,6 +162,7 @@ local paramGroups = {
 	height = "Height Fog Parameters",
 	distance = "Distance Fog Parameters",
 	scavenger = "Scavenger Cloud Parameters",
+	shadow = "Shadow Parameters",
 }
 
 -- THIS IS UNIFIED BETWEEN FOG SHADER AND COMBINE SHADER
@@ -661,52 +662,174 @@ function widget:Initialize()
 		return sliderElement
 	end
 
-	local slidersDiv = document:GetElementById('fogsliders')
-    for i, definesSlider in ipairs(definesSlidersParamsList) do
-        local sliderConfig = {
-            name = definesSlider.name,
-            min = definesSlider.min,
-            max = definesSlider.max,
-            digits = definesSlider.digits,
-            value = definesSlider.default
-        }
-        
-        local sliderElement = createSliderElement(sliderConfig, shaderDefinesChangedCallback)
-        slidersDiv:AppendChild(sliderElement)
-    end
+	-- Group all sliders by their group property, combining defines and uniforms
+	local function createAllGroupedSliders()
+		local parentDiv = document:GetElementById('fogparameters-grouped')
+		if not parentDiv then
+			Spring.Echo("Error: Could not find parent element fogparameters-grouped")
+			return
+		end
+		
+		-- Collect all sliders from both lists
+		local allSliders = {}
+		
+		-- Add defines sliders
+		for i, slider in ipairs(definesSlidersParamsList) do
+			table.insert(allSliders, {
+				type = "define",
+				config = slider,
+				eventCallback = shaderDefinesChangedCallback
+			})
+		end
+		
+		-- Add uniform sliders  
+		for i, slider in ipairs(uniformSliderParamsList) do
+			table.insert(allSliders, {
+				type = "uniform", 
+				config = slider,
+				eventCallback = function(sliderId, value, paramIndex, oldValue)
+					SetFogParams(sliderId, value, paramIndex)
+				end
+			})
+		end
+		
+		-- Group sliders by their group property
+		local sliderGroups = {}
+		for i, sliderData in ipairs(allSliders) do
+			local group = sliderData.config.group or "ungrouped"
+			if not sliderGroups[group] then
+				sliderGroups[group] = {}
+			end
+			table.insert(sliderGroups[group], sliderData)
+		end
+		
+		-- Create group sections in a consistent order
+		local groupOrder = {"global", "ground", "height", "cloud", "cloudshadows", "distance", "underwater", "shadow", "scavenger"}
+		
+		for _, groupKey in ipairs(groupOrder) do
+			local groupSliders = sliderGroups[groupKey]
+			if groupSliders and #groupSliders > 0 then
+				local groupName = paramGroups[groupKey] or (groupKey:gsub("^%l", string.upper) .. " Parameters")
+				
+				-- Create group container
+				local groupDiv = document:CreateElement('div')
+				groupDiv.style.display = "flex"
+				groupDiv.style["flex-direction"] = "column"
+				groupDiv.style.gap = "0.2em"
+				groupDiv.style.padding = "0.5em"
+				groupDiv.style.border = "1px solid rgba(255,255,255,0.2)"
+				groupDiv.style["border-radius"] = "4px"
+				groupDiv.style["background-color"] = "rgba(0,0,0,0.1)"
+				
+				-- Create group header
+				local groupHeader = document:CreateElement('h6')
+				groupHeader.inner_rml = groupName
+				groupHeader.style.margin = "0 0 0.3em 0"
+				groupHeader.style.color = "#FFD700"
+				groupDiv:AppendChild(groupHeader)
+				
+				-- Add sliders to this group
+				for _, sliderData in ipairs(groupSliders) do
+					if sliderData.type == "define" then
+						-- Handle defines sliders
+						local config = {
+							name = sliderData.config.name,
+							min = sliderData.config.min,
+							max = sliderData.config.max,
+							digits = sliderData.config.digits,
+							value = sliderData.config.default
+						}
+						local sliderElement = createSliderElement(config, sliderData.eventCallback)
+						groupDiv:AppendChild(sliderElement)
+					else
+						-- Handle uniform sliders (more complex logic for multi-component values)
+						local defaultType = type(fogUniforms[sliderData.config.name])
+						local defaultValues
+						if defaultType == "table" then
+							defaultValues = fogUniforms[sliderData.config.name]
+						else
+							defaultValues = {fogUniforms[sliderData.config.name]}
+						end
 
+						for j, v in ipairs(defaultValues) do
+							local defaultvalue = v or 0.0
+							
+							local config = {
+								name = sliderData.config.name,
+								displayName = sliderData.config.name .. '.' .. (sliderData.config.membernames and sliderData.config.membernames[j] or ""),
+								min = sliderData.config.min,
+								max = sliderData.config.max,
+								digits = sliderData.config.digits,
+								value = defaultvalue,
+								paramIndex = (defaultType == "table") and j or nil
+							}
+							
+							local sliderElement = createSliderElement(config, sliderData.eventCallback)
+							groupDiv:AppendChild(sliderElement)
+						end
+					end
+				end
+				
+				parentDiv:AppendChild(groupDiv)
+			end
+		end
+		
+		-- Handle any remaining ungrouped sliders
+		local ungroupedSliders = sliderGroups["ungrouped"]
+		if ungroupedSliders and #ungroupedSliders > 0 then
+			local groupDiv = document:CreateElement('div')
+			groupDiv.style.display = "flex"
+			groupDiv.style["flex-direction"] = "column"
+			groupDiv.style.gap = "0.2em"
+			groupDiv.style.padding = "0.5em"
+			groupDiv.style.border = "1px solid rgba(255,255,255,0.2)"
+			groupDiv.style["border-radius"] = "4px"
+			groupDiv.style["background-color"] = "rgba(0,0,0,0.1)"
+			
+			local groupHeader = document:CreateElement('h6')
+			groupHeader.inner_rml = "Other Parameters"
+			groupHeader.style.margin = "0 0 0.3em 0"
+			groupHeader.style.color = "#FFD700"
+			groupDiv:AppendChild(groupHeader)
+			
+			for _, sliderData in ipairs(ungroupedSliders) do
+				if sliderData.type == "define" then
+					local config = {
+						name = sliderData.config.name,
+						min = sliderData.config.min,
+						max = sliderData.config.max,
+						digits = sliderData.config.digits,
+						value = sliderData.config.default
+					}
+					local sliderElement = createSliderElement(config, sliderData.eventCallback)
+					groupDiv:AppendChild(sliderElement)
+				else
+					local defaultType = type(fogUniforms[sliderData.config.name])
+					local defaultValues = defaultType == "table" and fogUniforms[sliderData.config.name] or {fogUniforms[sliderData.config.name]}
 
-	local fogUniformSlidersDiv = document:GetElementById('foguniformsliders')
+					for j, v in ipairs(defaultValues) do
+						local config = {
+							name = sliderData.config.name,
+							displayName = sliderData.config.name .. '.' .. (sliderData.config.membernames and sliderData.config.membernames[j] or ""),
+							min = sliderData.config.min,
+							max = sliderData.config.max,
+							digits = sliderData.config.digits,
+							value = v or 0.0,
+							paramIndex = (defaultType == "table") and j or nil
+						}
+						
+						local sliderElement = createSliderElement(config, sliderData.eventCallback)
+						groupDiv:AppendChild(sliderElement)
+					end
+				end
+			end
+			
+			parentDiv:AppendChild(groupDiv)
+		end
+	end
 
-    for i, uniformSlider in ipairs(uniformSliderParamsList) do
-        local defaultType = type(fogUniforms[uniformSlider.name])
-        local defaultValues
-        if defaultType == "table" then
-            defaultValues = fogUniforms[uniformSlider.name]
-        else
-            defaultValues = {fogUniforms[uniformSlider.name]}
-        end
-
-        for j, v in ipairs(defaultValues) do
-            local defaultvalue = v or 0.0
-            
-            local sliderConfig = {
-                name = uniformSlider.name,
-                displayName = uniformSlider.name .. '.' .. (uniformSlider.membernames and uniformSlider.membernames[j] or ""),
-                min = uniformSlider.min,
-                max = uniformSlider.max,
-                digits = uniformSlider.digits,
-                value = defaultvalue,
-                paramIndex = (defaultType == "table") and j or nil
-            }
-            
-            local sliderElement = createSliderElement(sliderConfig, function(sliderId, value, paramIndex, oldValue)
-                SetFogParams(sliderId, value, paramIndex)
-            end)
-            
-            fogUniformSlidersDiv:AppendChild(sliderElement)
-        end
-    end
+	-- Create all grouped sliders
+	createAllGroupedSliders()
 
 	document:ReloadStyleSheet()  
 	document:Show()
