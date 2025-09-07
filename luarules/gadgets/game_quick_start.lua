@@ -41,6 +41,9 @@ local SOLAR_QUOTA_WHEN_GOOD_WIND = 2
 
 local factoryRequired = true
 local isGoodWind = false
+local isMetalMap = false
+local metalSpotsList = nil
+local GRID_SPACING = 32
 
 local unitDefNames = UnitDefNames
 
@@ -342,99 +345,64 @@ local function generateCenterSkewedPositions(chunkStartX, chunkEndX, chunkStartZ
 end
 
 local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, commanderData, commanderID)
-	if not commanderData or commanderData.juice <= 0 then
-		return false
-	end
-	
-	local isMetalMap = GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].isMetalMap
-	
 	local unitDef = UnitDefs[unitDefID]
 	local isMetalExtractor = unitDef and unitDef.extractsMetal and unitDef.extractsMetal > 0
 	
-	if isMetalExtractor and not isMetalMap then
-		if GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList then
-			local metalSpots = GG["resource_spot_finder"].metalSpotsList
-			if metalSpots and #metalSpots > 0 then
-				local spotsWithDistance = {}
-				for i = 1, #metalSpots do
-					local spot = metalSpots[i]
-					local distanceSquared = math.distance2dSquared(spot.x, spot.z, x, z)
-					if distanceSquared <= AUTO_MEX_MAX_DISTANCE * AUTO_MEX_MAX_DISTANCE then
-						table.insert(spotsWithDistance, {
-							spot = spot,
-							distance = distanceSquared
-						})
-					end
-				end
-				
-				table.sort(spotsWithDistance, function(a, b) return a.distance < b.distance end)
-				
-				for _, spotData in ipairs(spotsWithDistance) do
-					local spot = spotData.spot
-					local buildX, buildY, buildZ = spot.x, spot.y, spot.z
-				local buildTest = Spring.TestBuildOrder(unitDefID, buildX, buildY, buildZ, 0)
-				if buildTest > 0 then
-					local facing = commanderData.defaultFacing or 0
-					
-					local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, unitDefID, buildX, buildY, buildZ, facing, teamID, commanderID, false)
-						if unitID then
-							return unitID
-						end
-					end
-				end
+	if isMetalExtractor and not isMetalMap and metalSpotsList and #metalSpotsList > 0 then
+		local spotsWithDistance = {}
+		for i = 1, #metalSpotsList do
+			local spot = metalSpotsList[i]
+			local distanceSquared = math.distance2dSquared(spot.x, spot.z, x, z)
+			if distanceSquared <= AUTO_MEX_MAX_DISTANCE * AUTO_MEX_MAX_DISTANCE then
+				table.insert(spotsWithDistance, {spot = spot, distance = distanceSquared})
 			end
 		end
 		
+		table.sort(spotsWithDistance, function(a, b) return a.distance < b.distance end)
+		
+		for _, spotData in ipairs(spotsWithDistance) do
+			local spot = spotData.spot
+			if Spring.TestBuildOrder(unitDefID, spot.x, spot.y, spot.z, 0) > 0 then
+				local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, unitDefID, spot.x, spot.y, spot.z, commanderData.defaultFacing or 0, teamID, commanderID, false)
+				if unitID then
+					return unitID
+				end
+			end
+		end
 		return false
 	end
 	
-	local unitDef = UnitDefs[unitDefID]
-	local unitName = unitDef and unitDef.name
-	local commanderDefID = spGetUnitDefID(commanderID)
-	local commanderName = UnitDefs[commanderDefID].name
+	local commanderName = UnitDefs[spGetUnitDefID(commanderID)].name
 	local nonLabOptions = commanderNonLabOptions[commanderName]
-	local isConverter = (nonLabOptions and nonLabOptions.converter == unitName)
+	local isConverter = nonLabOptions and nonLabOptions.converter == (unitDef and unitDef.name)
 	
 	local chunksWithDistance = {}
-	if isConverter then
-		for _, chunkData in ipairs(commanderData.chunksWithDistance) do
-			if chunkData.preferredUsage == "converter" then
-				table.insert(chunksWithDistance, chunkData)
-			end
+	local targetUsage = isConverter and "converter" or "else"
+	for _, chunkData in ipairs(commanderData.chunksWithDistance) do
+		if chunkData.preferredUsage == targetUsage then
+			table.insert(chunksWithDistance, chunkData)
 		end
-	else
-		local elseChunks = {}
-		for _, chunkData in ipairs(commanderData.chunksWithDistance) do
-			if chunkData.preferredUsage == "else" then
-				table.insert(elseChunks, chunkData)
-			end
-		end
-		table.sort(elseChunks, function(a, b) return a.distance > b.distance end)
-		chunksWithDistance = elseChunks
 	end
-	local gridSpacing = 32
+	
+	if not isConverter then
+		table.sort(chunksWithDistance, function(a, b) return a.distance > b.distance end)
+	end
 	
 	for _, chunkData in ipairs(chunksWithDistance) do
-		local positions = generateCenterSkewedPositions(chunkData.chunkStartX, chunkData.chunkEndX, chunkData.chunkStartZ, chunkData.chunkEndZ, gridSpacing)
+		local positions = generateCenterSkewedPositions(chunkData.chunkStartX, chunkData.chunkEndX, chunkData.chunkStartZ, chunkData.chunkEndZ, GRID_SPACING)
 		
 		for _, pos in ipairs(positions) do
 			local searchY = spGetGroundHeight(pos.x, pos.z)
 			local snappedX, snappedY, snappedZ = Spring.Pos2BuildPos(unitDefID, pos.x, searchY, pos.z)
 			
-			if snappedX then
-				local buildTest = Spring.TestBuildOrder(unitDefID, snappedX, snappedY, snappedZ, 0)
-				if buildTest > 0 then
-					local facing = commanderData.defaultFacing or 0
-					
-					local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, unitDefID, snappedX, snappedY, snappedZ, facing, teamID, commanderID, false)
-					if unitID then
-						return unitID
-					end
+			if snappedX and Spring.TestBuildOrder(unitDefID, snappedX, snappedY, snappedZ, 0) > 0 then
+				local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, unitDefID, snappedX, snappedY, snappedZ, commanderData.defaultFacing or 0, teamID, commanderID, false)
+				if unitID then
+					return unitID
 				end
 			end
 		end
 	end
-	
 	
 	return false
 end
@@ -456,11 +424,10 @@ local function createRandomBuildQueue(commanderID, commanderData)
 		if trueName then
 			local unitDefID = unitDefNames[trueName] and unitDefNames[trueName].id
 			if unitDefID then
-				local isMetalMap = GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].isMetalMap
 				local shouldAddMex = true
 				
 				if not isMetalMap then
-					if not GG or not GG["resource_spot_finder"] or not GG["resource_spot_finder"].metalSpotsList or #GG["resource_spot_finder"].metalSpotsList == 0 then
+					if not metalSpotsList or #metalSpotsList == 0 then
 						shouldAddMex = false
 					end
 				end
@@ -663,7 +630,6 @@ local function processFactoryRequirement(commanderID, commanderData)
 			table.insert(chunksWithDistance, chunkData)
 		end
 	end
-	local gridSpacing = 32
 	
 	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
 	
@@ -676,8 +642,8 @@ local function processFactoryRequirement(commanderID, commanderData)
 			if factoryBuilt then break end
 			
 			local positions = {}
-			for searchX = chunkData.chunkStartX, chunkData.chunkEndX, gridSpacing do
-				for searchZ = chunkData.chunkStartZ, chunkData.chunkEndZ, gridSpacing do
+			for searchX = chunkData.chunkStartX, chunkData.chunkEndX, GRID_SPACING do
+				for searchZ = chunkData.chunkStartZ, chunkData.chunkEndZ, GRID_SPACING do
 					table.insert(positions, {x = searchX, z = searchZ})
 				end
 			end
@@ -853,6 +819,9 @@ function gadget:Initialize()
 	end
 	
 	isGoodWind = averageWind > 7
+	
+	isMetalMap = GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].isMetalMap
+	metalSpotsList = GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList
 	
 	randomBuildOptionWeights = {}
 	for optionName, baseWeight in pairs(baseBuildOptionWeights) do
