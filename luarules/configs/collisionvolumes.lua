@@ -252,8 +252,8 @@ pieceCollisionVolume['cortermite'] = {
 
 
 pieceCollisionVolume['correap'] = {
-	['0']={36,20,46,0,3.5,0,2,1},
-	['3']={24,14,24,0,1.875,1.5,2,1},
+	['1']={35,20,46,0,1,0,2,1},
+	['9']={19,14,20,0,2,0,2,1},
 }
 pieceCollisionVolume['corlevlr'] = {
 	['0']={31,17,31,0,3.5,0,2,1},
