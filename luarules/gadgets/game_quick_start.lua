@@ -116,7 +116,7 @@ local ENERGY_VALUE_CONVERSION_DIVISOR = 10
 local COMMAND_STEAL_RANGE = 700
 local ALL_COMMANDS = -1
 local UPDATE_FRAMES = Game.gameSpeed
-local PREGAME_DELAY_FRAMES = 91
+local PREGAME_DELAY_FRAMES = 61 --after gui_pregame_build.lua is loaded
 local MAP_CENTER_X = Game.mapSizeX / 2
 local MAP_CENTER_Z = Game.mapSizeZ / 2
 
@@ -233,9 +233,9 @@ local function initializeCommander(commanderID, teamID)
 		nonLabOptions = nonLabOptions,
 		buildQuotas = {
 			mex = 4,
-			windmill = isInWater and 0 or 4,
-			converter = 2,
-			solar = isGoodWind and SOLAR_QUOTA_WHEN_GOOD_WIND or 4,
+			windmill = isInWater and 0 or (isGoodWind and 4 or 0),
+			converter = isInWater and 0 or 2,
+			solar = isInWater and 0 or (isGoodWind and 1 or 4),
 			tidal = isInWater and 6 or 0,
 			floatingConverter = isInWater and 2 or 0,
 		}
@@ -355,6 +355,7 @@ local function attemptBuildAtLocation(x, y, z, unitDefID, teamID, commanderData,
 				end
 			end
 		end
+		return false
 	end
 	
 	local nonLabOptions = commanderData.nonLabOptions
@@ -413,7 +414,8 @@ local function generateRandomBuildQueue(commanderID, commanderData)
 		end
 	end
 	
-	local nonMexStartIndex = (commanderData.buildQuotas.mex or 0) + 1
+	local mexCount = commanderData.buildQuotas.mex or 0
+	local nonMexStartIndex = mexCount + 1
 	if nonMexStartIndex <= #buildQueue then
 		for i = #buildQueue, nonMexStartIndex + 1, -1 do
 			local j = math.random(nonMexStartIndex, i)
@@ -584,8 +586,6 @@ function gadget:GameFrame(frame)
 		end
 
 		executeQueuedBuildCommands(commanderID, commanderData, commanderX, commanderZ)
-		ensureFactoryBuilt(commanderID, commanderData)
-
 		while commanderData.juice > 0 do
 			if #buildQueues[commanderID] == 0 then
 				generateRandomBuildQueue(commanderID, commanderData)
@@ -613,6 +613,7 @@ function gadget:GameFrame(frame)
 				local success = attemptBuildAtLocation(commanderX, commanderY, commanderZ, unitDefID, commanderData.teamID, commanderData, commanderID)
 			end
 		end
+		ensureFactoryBuilt(commanderID, commanderData)
 	end
 
 
