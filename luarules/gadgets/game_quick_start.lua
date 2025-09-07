@@ -329,8 +329,7 @@ end
 
 local function convertDirectionToFacing(directionX, directionZ)
 	local angle = math.atan2(directionX, -directionZ)
-	local facing = math.floor((angle / (math.pi / 2)) + 0.5) % 4
-	Spring.Echo("convertDirectionToFacing", directionX, directionZ, "angle:", angle, "facing:", facing)
+	local facing = (math.floor((angle / (math.pi / 2)) + 0.5) + 2) % 4
 	return facing
 end
 
