@@ -34,8 +34,11 @@ local mathDiag = math.diag
 
 local BONUS_METAL = 450
 local BONUS_ENERGY = 2500
-local MEX_MAX_DISTANCE = 500
-local SOLAR_PENALTY_MULTIPLIER = 0.5
+local QUICK_START_COST_METAL = 800
+local QUICK_START_COST_ENERGY = 400
+local AUTO_MEX_MAX_DISTANCE = 500
+local SOLAR_PENALTY_MULTIPLIER = 0.25
+local SOLAR_QUOTA_WHEN_GOOD_WIND = 2
 
 local factoryRequired = true
 local isGoodWind = false
@@ -44,13 +47,13 @@ local unitDefNames = UnitDefNames
 
 local commanderLandLabs = {
 	armcom = {
-		labs = { armlab = 0.4, armvp = 0.3, armap = 0.2 }
+		labs = { armlab = 0.3, armvp = 0.3, armap = 0.1 }
 	},
 	corcom = {
-		labs = { corlab = 0.4, corvp = 0.3, corap = 0.2 }
+		labs = { corlab = 0.3, corvp = 0.3, corap = 0.1 }
 	},
 	legcom = {
-		labs = { leglab = 0.4, legvp = 0.3, legap = 0.2 }
+		labs = { leglab = 0.3, legvp = 0.3, legap = 0.1 }
 	}
 }
 
@@ -86,7 +89,7 @@ local landBuildQuotas = {
 }
 
 local baseBuildOptionWeights = {
-	windmill = 0.25,
+	windmill = 0.3,
 	mex = 0.25,
 	converter = 0.1,
 	solar = 0.25,
@@ -138,6 +141,48 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
+local function generateChunksTable(centerX, centerZ)
+	local maxDistance = 250
+	local chunkSize = (maxDistance * 2) / 3
+	
+	local allChunks = {
+		{1, 1}, {2, 1}, {3, 1},
+		{1, 2}, {3, 2},
+		{1, 3}, {2, 3}, {3, 3}
+	}
+	
+	local chunksWithDistance = {}
+	for i, chunk in ipairs(allChunks) do
+		local chunkX, chunkZ = chunk[1], chunk[2]
+		local chunkCenterX = centerX - maxDistance + (chunkX - 0.5) * chunkSize
+		local chunkCenterZ = centerZ - maxDistance + (chunkZ - 0.5) * chunkSize
+		local distanceFromMapCenter = (chunkCenterX - MAP_CENTER_X)^2 + (chunkCenterZ - MAP_CENTER_Z)^2
+		
+		table.insert(chunksWithDistance, {
+			chunk = chunk,
+			distance = distanceFromMapCenter,
+			chunkStartX = centerX - maxDistance + (chunkX - 1) * chunkSize,
+			chunkEndX = centerX - maxDistance + chunkX * chunkSize,
+			chunkStartZ = centerZ - maxDistance + (chunkZ - 1) * chunkSize,
+			chunkEndZ = centerZ - maxDistance + chunkZ * chunkSize
+		})
+	end
+	
+	table.sort(chunksWithDistance, function(a, b) return a.distance < b.distance end)
+	
+	for i, chunkData in ipairs(chunksWithDistance) do
+		if i == 1 then
+			chunkData.preferredUsage = "factory"
+		elseif i == #chunksWithDistance then
+			chunkData.preferredUsage = "converter"
+		else
+			chunkData.preferredUsage = "else"
+		end
+	end
+	
+	return chunksWithDistance, maxDistance, chunkSize
+end
+
 local function initializeCommander(commanderID, teamID, startingMetal, startingEnergy)
 	if not Spring.ValidUnitID(commanderID) or Spring.GetUnitIsDead(commanderID) then
 		return
@@ -145,17 +190,21 @@ local function initializeCommander(commanderID, teamID, startingMetal, startingE
 	
 	local currentMetal = spGetTeamResources(teamID, "metal") or 0
 	local currentEnergy = spGetTeamResources(teamID, "energy") or 0
-	local startMetal = startingMetal or 0
-	local startEnergy = startingEnergy or 0
-	
-	local availableMetal = math.min(currentMetal, startMetal)
-	local availableEnergy = math.min(currentEnergy, startEnergy)
-	local juice = availableMetal + BONUS_METAL + (availableEnergy + BONUS_ENERGY) / ENERGY_VALUE_CONVERSION_DIVISOR
+
+	local juice = QUICK_START_COST_METAL + BONUS_METAL + (QUICK_START_COST_ENERGY + BONUS_ENERGY) / ENERGY_VALUE_CONVERSION_DIVISOR
 	
 	local isHuman = false
 	if GG and GG.PowerLib and GG.PowerLib.HumanTeams then
 		isHuman = GG.PowerLib.HumanTeams[teamID] == true
 	end
+	
+	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
+	local directionX = MAP_CENTER_X - commanderX
+	local directionZ = MAP_CENTER_Z - commanderZ
+	local angle = math.atan2(directionX, directionZ)
+	local defaultFacing = math.floor((angle / (math.pi / 2)) + 0.5) % 4
+	
+	local chunksWithDistance, maxDistance, chunkSize = generateChunksTable(commanderX, commanderZ)
 	
 	commanderMetaList[commanderID] = {
 		teamID = teamID,
@@ -164,7 +213,11 @@ local function initializeCommander(commanderID, teamID, startingMetal, startingE
 		factoryMade = false,
 		thingsMade = {windmill = 0, mex = 0, converter = 0, solar = 0, tidal = 0, factory = 0},
 		isWaiting = false,
-		isHuman = isHuman
+		isHuman = isHuman,
+		defaultFacing = defaultFacing,
+		chunksWithDistance = chunksWithDistance,
+		maxDistance = maxDistance,
+		chunkSize = chunkSize
 	}
 	
 	buildQueues[commanderID] = {}
@@ -172,8 +225,8 @@ local function initializeCommander(commanderID, teamID, startingMetal, startingE
 	spGiveOrderToUnit(commanderID, CMD.WAIT, {}, 0)
 	commanderMetaList[commanderID].isWaiting = true
 	
-	Spring.SetTeamResource(teamID, "metal", math.max(0, currentMetal - startMetal))
-	Spring.SetTeamResource(teamID, "energy", math.max(0, currentEnergy - startEnergy))
+	Spring.SetTeamResource(teamID, "metal", math.max(0, currentMetal - QUICK_START_COST_METAL))
+	Spring.SetTeamResource(teamID, "energy", math.max(0, currentEnergy - QUICK_START_COST_ENERGY))
 end
 
 local function calculateJuiceCost(unitDefID)
@@ -260,7 +313,8 @@ local function tryToBuildCommand(commanderID, cmd)
 	
 	if not commanderData then return false, nil end
 	
-	local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, buildDefID, buildX, buildY, buildZ, 0, commanderData.teamID, commanderID)
+	local facing = commanderData.defaultFacing or 0
+	local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, buildDefID, buildX, buildY, buildZ, facing, commanderData.teamID, commanderID)
 	if unitID and partiallyBuiltStructures[unitID] then
 		partiallyBuiltStructures[unitID].originalCommand = cmd
 	end
@@ -327,27 +381,29 @@ local function selectWeightedRandom(weightedOptions)
 end
 
 
-local function convertDirectionToFacing(directionX, directionZ)
-	local angle = math.atan2(directionX, -directionZ)
-	local facing = (math.floor((angle / (math.pi / 2)) + 0.5) + 2) % 4
-	return facing
+local function isConverterUnit(unitDef)
+	if not unitDef or not unitDef.name then
+		return false
+	end
+	local unitName = string.lower(unitDef.name)
+	if string.find(unitName, "mmkr", 1, true) then
+		return true
+	end
+	if string.find(unitName, "makr", 1, true) then
+		return true
+	end
+	if string.find(unitName, "econv", 1, true) then
+		return true
+	end
+	if unitName == "armuwmmm" then
+		return true
+	end
+	if unitName == "armfmkr" or unitName == "corfmkr" then
+		return true
+	end
+	return false
 end
 
-local function getLabFacingTowardsEnemy(unitID, buildX, buildZ)
-	local nearestEnemyID = Spring.GetUnitNearestEnemy(unitID, 999999, false)
-	if nearestEnemyID and Spring.ValidUnitID(nearestEnemyID) then
-		local enemyX, enemyY, enemyZ = Spring.GetUnitPosition(nearestEnemyID)
-		if enemyX then
-			local directionX = enemyX - buildX
-			local directionZ = enemyZ - buildZ
-			return convertDirectionToFacing(directionX, directionZ)
-		end
-	end
-	
-	local directionX = MAP_CENTER_X - buildX
-	local directionZ = MAP_CENTER_Z - buildZ
-	return convertDirectionToFacing(directionX, directionZ)
-end
 
 local function snapToGrid(x, z, unitDefID)
 	local unitDef = UnitDefs[unitDefID]
@@ -397,6 +453,7 @@ local function generateCenterSkewedPositions(chunkStartX, chunkEndX, chunkStartZ
 	return positions
 end
 
+
 local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, commanderData, commanderID)
 	if not commanderData or commanderData.juice <= 0 then
 		return false
@@ -415,7 +472,7 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 				for i = 1, #metalSpots do
 					local spot = metalSpots[i]
 					local distanceSquared = (spot.x - x)^2 + (spot.z - z)^2
-					if distanceSquared <= MEX_MAX_DISTANCE * MEX_MAX_DISTANCE then
+					if distanceSquared <= AUTO_MEX_MAX_DISTANCE * AUTO_MEX_MAX_DISTANCE then
 						table.insert(spotsWithDistance, {
 							spot = spot,
 							distance = distanceSquared
@@ -430,7 +487,7 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 					local buildX, buildY, buildZ = spot.x, spot.y, spot.z
 				local buildTest = Spring.TestBuildOrder(unitDefID, buildX, buildY, buildZ, 0)
 				if buildTest > 0 then
-					local facing = getLabFacingTowardsEnemy(commanderID, buildX, buildZ)
+					local facing = commanderData.defaultFacing or 0
 					
 					local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, unitDefID, buildX, buildY, buildZ, facing, teamID, commanderID)
 						if unitID then
@@ -444,59 +501,32 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 		return false
 	end
 	
-	local maxDistance = 250
-	local chunkSize = (maxDistance * 2) / 3
-	local gridSpacing = 32
-	
 	local unitDef = UnitDefs[unitDefID]
-	local isConverter = unitDef and (unitDef.name == "armmakr" or unitDef.name == "legeconv")
-	
-	
-	local allChunks = {}
-	if isConverter then
-		allChunks = {
-			{1, 1}, {2, 1}, {3, 1},
-			{1, 2}, {3, 2},
-			{1, 3}, {2, 3}, {3, 3}
-		}
-	else
-		allChunks = {
-			{1, 1}, {2, 1},
-			{1, 2}, {3, 2},
-			{1, 3}, {2, 3}, {3, 3}
-		}
-	end
+	local isConverter = isConverterUnit(unitDef)
 	
 	local chunksWithDistance = {}
-	for i, chunk in ipairs(allChunks) do
-		local chunkX, chunkZ = chunk[1], chunk[2]
-		
-		local chunkCenterX = x - maxDistance + (chunkX - 0.5) * chunkSize
-		local chunkCenterZ = z - maxDistance + (chunkZ - 0.5) * chunkSize
-		
-		local distanceFromMapCenter = (chunkCenterX - MAP_CENTER_X)^2 + (chunkCenterZ - MAP_CENTER_Z)^2
-		
-		table.insert(chunksWithDistance, {
-			chunk = chunk,
-			distance = distanceFromMapCenter
-		})
+	if isConverter then
+		for _, chunkData in ipairs(commanderData.chunksWithDistance) do
+			if chunkData.preferredUsage == "converter" then
+				table.insert(chunksWithDistance, chunkData)
+			end
+		end
+	else
+		local elseChunks = {}
+		for _, chunkData in ipairs(commanderData.chunksWithDistance) do
+			if chunkData.preferredUsage == "else" then
+				table.insert(elseChunks, chunkData)
+			end
+		end
+		table.sort(elseChunks, function(a, b) return a.distance > b.distance end)
+		chunksWithDistance = elseChunks
 	end
-	
-	table.sort(chunksWithDistance, function(a, b) return a.distance > b.distance end)
-	
-	if not isConverter and #chunksWithDistance > 1 then
-		table.remove(chunksWithDistance, 1)
-	end
+	local maxDistance = commanderData.maxDistance
+	local chunkSize = commanderData.chunkSize
+	local gridSpacing = 32
 	
 	for _, chunkData in ipairs(chunksWithDistance) do
-		local chunkX, chunkZ = chunkData.chunk[1], chunkData.chunk[2]
-		
-		local chunkStartX = x - maxDistance + (chunkX - 1) * chunkSize
-		local chunkEndX = x - maxDistance + chunkX * chunkSize
-		local chunkStartZ = z - maxDistance + (chunkZ - 1) * chunkSize
-		local chunkEndZ = z - maxDistance + chunkZ * chunkSize
-		
-		local positions = generateCenterSkewedPositions(chunkStartX, chunkEndX, chunkStartZ, chunkEndZ, gridSpacing)
+		local positions = generateCenterSkewedPositions(chunkData.chunkStartX, chunkData.chunkEndX, chunkData.chunkStartZ, chunkData.chunkEndZ, gridSpacing)
 		
 		for _, pos in ipairs(positions) do
 			local snappedX, snappedZ = snapToGrid(pos.x, pos.z, unitDefID)
@@ -504,7 +534,7 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 			
 			local buildTest = Spring.TestBuildOrder(unitDefID, snappedX, searchY, snappedZ, 0)
 			if buildTest > 0 then
-				local facing = getLabFacingTowardsEnemy(commanderID, snappedX, snappedZ)
+				local facing = commanderData.defaultFacing or 0
 				
 				local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, unitDefID, snappedX, searchY, snappedZ, facing, teamID, commanderID)
 				if unitID then
@@ -569,8 +599,12 @@ local function createRandomBuildQueue(commanderID, commanderData)
 				if unitDefID then
 					local weight = randomBuildOptionWeights[optionName] or 0
 					if weight > 0 then
+						local adjustedQuota = quota
+						if optionName == "solar" and isGoodWind then
+							adjustedQuota = SOLAR_QUOTA_WHEN_GOOD_WIND
+						end
 						local alreadyMade = commanderData.thingsMade[optionName] or 0
-						local stillNeeded = math.max(0, quota - alreadyMade)
+						local stillNeeded = math.max(0, adjustedQuota - alreadyMade)
 						
 						for i = 1, stillNeeded do
 							table.insert(buildQueue, {
@@ -640,171 +674,143 @@ local function processFactoryRequirement(commanderID, commanderData)
 	local landLabs = commanderLandLabs[commanderName]
 	local seaLabs = commanderSeaLabs[commanderName]
 	
-	if not landLabs and not seaLabs then
-		return
-	end
-	
 	local factoryInQueue, factoryCommand = hasFactoryInQueue(commanderID)
 	
 	if factoryInQueue and factoryCommand then
 		return
-	else
-		local availableFactories = {}
-		
-		if landLabs then
-			for factoryName, _ in pairs(landLabs.labs) do
-				local unitDefID = unitDefNames[factoryName] and unitDefNames[factoryName].id
-				if unitDefID then
-					table.insert(availableFactories, {
-						unitDefID = unitDefID,
-						name = factoryName
-					})
-				end
-			end
-		end
-		
-		if seaLabs then
-			for factoryName, _ in pairs(seaLabs) do
-				local unitDefID = unitDefNames[factoryName] and unitDefNames[factoryName].id
-				if unitDefID then
-					table.insert(availableFactories, {
-						unitDefID = unitDefID,
-						name = factoryName
-					})
-				end
-			end
-		end
-		
-		if #availableFactories > 0 then
-			local factoryOrder = {}
-			
-			if commanderData.isHuman then
-				local firstFactory = nil
-				if landLabs and landLabs.labs then
-					for labName, _ in pairs(landLabs.labs) do
-						for _, factory in ipairs(availableFactories) do
-							if factory.name == labName then
-								firstFactory = factory
-								break
-							end
-						end
-						if firstFactory then
-							break
-						end
-					end
-				end
-				
-				if firstFactory then
-					table.insert(factoryOrder, firstFactory)
-				end
-				
-				for _, factory in ipairs(availableFactories) do
-					if factory ~= firstFactory then
-						table.insert(factoryOrder, factory)
-					end
-				end
-			else
-				local sortedFactories = {}
-				for _, factory in ipairs(availableFactories) do
-					local probability = 0
-					if landLabs and landLabs.labs[factory.name] then
-						probability = landLabs.labs[factory.name]
-					elseif seaLabs and seaLabs[factory.name] then
-						probability = seaLabs[factory.name]
-					end
-					table.insert(sortedFactories, {
-						factory = factory,
-						probability = probability
-					})
-				end
-				
-				table.sort(sortedFactories, function(a, b) return a.probability > b.probability end)
-				
-				local randomIndex = math.random(#availableFactories)
-				table.insert(factoryOrder, availableFactories[randomIndex])
-				
-				for _, sortedFactory in ipairs(sortedFactories) do
-					if sortedFactory.factory ~= availableFactories[randomIndex] then
-						table.insert(factoryOrder, sortedFactory.factory)
-					end
-				end
-			end
-			
-			local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
-			
-			local maxDistance = 250
-			local chunkSize = (maxDistance * 2) / 3
-			local gridSpacing = 32
-			
-			local allChunks = {
-				{1, 1}, {2, 1}, {3, 1},
-				{1, 2}, {3, 2},
-				{1, 3}, {2, 3}, {3, 3}
-			}
-			
-			local chunksWithDistance = {}
-			for i, chunk in ipairs(allChunks) do
-				local chunkX, chunkZ = chunk[1], chunk[2]
-				local chunkCenterX = commanderX - maxDistance + (chunkX - 0.5) * chunkSize
-				local chunkCenterZ = commanderZ - maxDistance + (chunkZ - 0.5) * chunkSize
-				local distanceFromMapCenter = (chunkCenterX - MAP_CENTER_X)^2 + (chunkCenterZ - MAP_CENTER_Z)^2
-				
-				table.insert(chunksWithDistance, {
-					chunk = chunk,
-					distance = distanceFromMapCenter
+	end
+	local availableFactories = {}
+	
+	if landLabs then
+		for factoryName, _ in pairs(landLabs.labs) do
+			local unitDefID = unitDefNames[factoryName] and unitDefNames[factoryName].id
+			if unitDefID then
+				table.insert(availableFactories, {
+					unitDefID = unitDefID,
+					name = factoryName
 				})
 			end
-			
-			table.sort(chunksWithDistance, function(a, b) return a.distance < b.distance end)
-			
-			local factoryBuilt = false
-			for _, factory in ipairs(factoryOrder) do
-				if factoryBuilt then break end
-				
-				
-				for _, chunkData in ipairs(chunksWithDistance) do
-					if factoryBuilt then break end
-					
-					local chunkX, chunkZ = chunkData.chunk[1], chunkData.chunk[2]
-					local chunkStartX = commanderX - maxDistance + (chunkX - 1) * chunkSize
-					local chunkEndX = commanderX - maxDistance + chunkX * chunkSize
-					local chunkStartZ = commanderZ - maxDistance + (chunkZ - 1) * chunkSize
-					local chunkEndZ = commanderZ - maxDistance + chunkZ * chunkSize
-					
-					local positions = {}
-					for searchX = chunkStartX, chunkEndX, gridSpacing do
-						for searchZ = chunkStartZ, chunkEndZ, gridSpacing do
-							table.insert(positions, {x = searchX, z = searchZ})
-						end
+		end
+	end
+	
+	if seaLabs then
+		for factoryName, _ in pairs(seaLabs) do
+			local unitDefID = unitDefNames[factoryName] and unitDefNames[factoryName].id
+			if unitDefID then
+				table.insert(availableFactories, {
+					unitDefID = unitDefID,
+					name = factoryName
+				})
+			end
+		end
+	end
+
+	local factoryOrder = {}
+	
+	if commanderData.isHuman then
+		local firstFactory = nil
+		if landLabs and landLabs.labs then
+			for labName, _ in pairs(landLabs.labs) do
+				for _, factory in ipairs(availableFactories) do
+					if factory.name == labName then
+						firstFactory = factory
+						break
 					end
-					
-					table.sort(positions, function(a, b)
-						local distA = (a.x - commanderX)^2 + (a.z - commanderZ)^2
-						local distB = (b.x - commanderX)^2 + (b.z - commanderZ)^2
-						return distA < distB
-					end)
-					
-					for _, pos in ipairs(positions) do
-						local snappedX, snappedZ = snapToGrid(pos.x, pos.z, factory.unitDefID)
-						local searchY = spGetGroundHeight(snappedX, snappedZ)
-						
-						local buildTest = Spring.TestBuildOrder(factory.unitDefID, snappedX, searchY, snappedZ, 0)
-						if buildTest > 0 then
-							local facing = getLabFacingTowardsEnemy(commanderID, snappedX, snappedZ)
-							
-							local fullyBuilt, unitID = createFactoryForFree(factory.unitDefID, snappedX, searchY, snappedZ, facing, commanderData.teamID, commanderData)
-							if fullyBuilt then
-								commanderData.factoryMade = true
-								factoryBuilt = true
-								break
-							end
-						end
-					end
+				end
+				if firstFactory then
+					break
+				end
+			end
+		end
+		
+		if firstFactory then
+			table.insert(factoryOrder, firstFactory)
+		end
+		
+		for _, factory in ipairs(availableFactories) do
+			if factory ~= firstFactory then
+				table.insert(factoryOrder, factory)
+			end
+		end
+	else
+		local sortedFactories = {}
+		for _, factory in ipairs(availableFactories) do
+			local probability = 0
+			if landLabs and landLabs.labs[factory.name] then
+				probability = landLabs.labs[factory.name]
+			elseif seaLabs and seaLabs[factory.name] then
+				probability = seaLabs[factory.name]
+			end
+			table.insert(sortedFactories, {
+				factory = factory,
+				probability = probability
+			})
+		end
+		
+		table.sort(sortedFactories, function(a, b) return a.probability > b.probability end)
+		
+		local randomIndex = math.random(#availableFactories)
+		table.insert(factoryOrder, availableFactories[randomIndex])
+		
+		for _, sortedFactory in ipairs(sortedFactories) do
+			if sortedFactory.factory ~= availableFactories[randomIndex] then
+				table.insert(factoryOrder, sortedFactory.factory)
+			end
+		end
+	end
+	
+	local chunksWithDistance = {}
+	for _, chunkData in ipairs(commanderData.chunksWithDistance) do
+		if chunkData.preferredUsage == "factory" then
+			table.insert(chunksWithDistance, chunkData)
+		end
+	end
+	local maxDistance = commanderData.maxDistance
+	local chunkSize = commanderData.chunkSize
+	local gridSpacing = 32
+	
+	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
+	
+	local factoryBuilt = false
+	for _, factory in ipairs(factoryOrder) do
+		if factoryBuilt then break end
+		
+		
+		for _, chunkData in ipairs(chunksWithDistance) do
+			if factoryBuilt then break end
+			
+			local positions = {}
+			for searchX = chunkData.chunkStartX, chunkData.chunkEndX, gridSpacing do
+				for searchZ = chunkData.chunkStartZ, chunkData.chunkEndZ, gridSpacing do
+					table.insert(positions, {x = searchX, z = searchZ})
 				end
 			end
 			
+			table.sort(positions, function(a, b)
+				local distA = (a.x - commanderX)^2 + (a.z - commanderZ)^2
+				local distB = (b.x - commanderX)^2 + (b.z - commanderZ)^2
+				return distA < distB
+			end)
+			
+			for _, pos in ipairs(positions) do
+				local snappedX, snappedZ = snapToGrid(pos.x, pos.z, factory.unitDefID)
+				local searchY = spGetGroundHeight(snappedX, snappedZ)
+				
+				local buildTest = Spring.TestBuildOrder(factory.unitDefID, snappedX, searchY, snappedZ, 0)
+				if buildTest > 0 then
+					local facing = commanderData.defaultFacing or 0
+					
+					local fullyBuilt, unitID = createFactoryForFree(factory.unitDefID, snappedX, searchY, snappedZ, facing, commanderData.teamID, commanderData)
+					if fullyBuilt then
+						commanderData.factoryMade = true
+						factoryBuilt = true
+						break
+					end
+				end
+			end
 		end
 	end
+	
 end
 
 local function processCommanderCommands(commanderID, commanderData)
@@ -820,7 +826,7 @@ local function processCommanderCommands(commanderID, commanderData)
 					
 					if isFactory then
 						local buildX, buildY, buildZ = cmd.params[1], cmd.params[2], cmd.params[3]
-						local facing = getLabFacingTowardsEnemy(commanderID, buildX, buildZ)
+						local facing = commanderData.defaultFacing or 0
 						
 						local fullyBuilt, unitID = createFactoryForFree(buildDefID, buildX, buildY, buildZ, facing, commanderData.teamID, commanderData)
 						if fullyBuilt then
@@ -967,14 +973,17 @@ function gadget:Initialize()
 	
 	isGoodWind = averageWind > 7
 	
+	randomBuildOptionWeights = {}
 	for optionName, baseWeight in pairs(baseBuildOptionWeights) do
-		if optionName == "windmill" and not isGoodWind then
-			randomBuildOptionWeights[optionName] = 0
-		elseif optionName == "solar" and isGoodWind then
-			randomBuildOptionWeights[optionName] = baseWeight * SOLAR_PENALTY_MULTIPLIER
-		else
-			randomBuildOptionWeights[optionName] = baseWeight
-		end
+		randomBuildOptionWeights[optionName] = baseWeight
+	end
+	
+	if not isGoodWind then
+		randomBuildOptionWeights.windmill = 0
+	end
+	
+	if isGoodWind then
+		randomBuildOptionWeights.solar = randomBuildOptionWeights.solar * SOLAR_PENALTY_MULTIPLIER
 	end
 	local frame = Spring.GetGameFrame()
 
