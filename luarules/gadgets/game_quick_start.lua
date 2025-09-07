@@ -24,22 +24,13 @@ local spGetTeamResources = Spring.GetTeamResources
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitPosition = Spring.GetUnitPosition
 local spCreateUnit = Spring.CreateUnit
-local spDestroyUnit = Spring.DestroyUnit
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetUnitCommands = Spring.GetUnitCommands
-local spSetUnitNoSelect = Spring.SetUnitNoSelect
 local spSetUnitHealth = Spring.SetUnitHealth
-local spGetUnitHealth = Spring.GetUnitHealth
-local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local spValidUnitID = Spring.ValidUnitID
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local mathDiag = math.diag
-local mathRandom = math.random
-local mathCos = math.cos
-local mathSin = math.sin
-local random = math.random
 
 local BONUS_METAL = 450
 local BONUS_ENERGY = 2500
@@ -74,8 +65,8 @@ local commanderNonLabOptions = {
 	corcom = {
 		windmill = "corwin",
 		mex = "cormex",
-		converter = "armmakr",
-		solar = "armsolar",
+		converter = "cormakr",
+		solar = "corsolar",
 		tidal = "cortide",
 	},
 	legcom = {
@@ -123,15 +114,14 @@ for commanderName, seaLabs in pairs(commanderSeaLabs) do
 	end
 end
 
-local gaiaTeamID = Spring.GetGaiaTeamID()
-
 local ENERGY_VALUE_CONVERSION_DIVISOR = 10
 local COMMAND_STEAL_RANGE = 700
 local FALLBACK_RESOURCES = 1000
 local ALL_COMMANDS = -1
 local UPDATE_FRAMES = Game.gameSpeed
 local PREGAME_DELAY_FRAMES = 91
-local PRIVATE = { private = true }
+local MAP_CENTER_X = Game.mapSizeX / 2
+local MAP_CENTER_Z = Game.mapSizeZ / 2
 
 local teamsToBoost = {}
 local commanderMetaList = {}
@@ -160,7 +150,7 @@ local function initializeCommander(commanderID, teamID, startingMetal, startingE
 	
 	local availableMetal = math.min(currentMetal, startMetal)
 	local availableEnergy = math.min(currentEnergy, startEnergy)
-	local juice = availableMetal + BONUS_METAL + ((availableEnergy + BONUS_ENERGY) / ENERGY_VALUE_CONVERSION_DIVISOR)
+	local juice = availableMetal + BONUS_METAL + (availableEnergy + BONUS_ENERGY) / ENERGY_VALUE_CONVERSION_DIVISOR
 	
 	local isHuman = false
 	if GG and GG.PowerLib and GG.PowerLib.HumanTeams then
@@ -205,10 +195,6 @@ local function deductJuiceAndCreateUnit(commanderData, unitDefID, buildX, buildY
 	
 	local affordableJuice = math.min(commanderData.juice, juiceCost)
 	local buildProgress = affordableJuice / juiceCost
-	
-	if buildProgress <= 0 then
-		return false, nil
-	end
 	
 	local unitDef = UnitDefs[unitDefID]
 	local unitID = spCreateUnit(unitDef.name, buildX, buildY, buildZ, facing, teamID)
@@ -303,10 +289,6 @@ local function hasResourcesLeft(commanderData)
 	return commanderData.juice > 0
 end
 
-local function canAffordAnyPartialBuild(commanderData)
-	return commanderData.juice > 0
-end
-
 local function hasFactoryInQueue(commanderID)
 	local commands = spGetUnitCommands(commanderID, ALL_COMMANDS)
 	for i, cmd in ipairs(commands) do
@@ -341,19 +323,31 @@ local function selectWeightedRandom(weightedOptions)
 		end
 	end
 	
-	for optionName, _ in pairs(weightedOptions) do
-		return optionName
-	end
-	
 	return nil
 end
 
 
 local function convertDirectionToFacing(directionX, directionZ)
-	local angle = math.atan2(directionZ, directionX)
-	local normalizedAngle = (angle + math.pi) / (2 * math.pi)
-	local facing = math.floor(normalizedAngle * 4 + 0.5) % 4
+	local angle = math.atan2(directionX, -directionZ)
+	local facing = math.floor((angle / (math.pi / 2)) + 0.5) % 4
+	Spring.Echo("convertDirectionToFacing", directionX, directionZ, "angle:", angle, "facing:", facing)
 	return facing
+end
+
+local function getLabFacingTowardsEnemy(unitID, buildX, buildZ)
+	local nearestEnemyID = Spring.GetUnitNearestEnemy(unitID, 999999, false)
+	if nearestEnemyID and Spring.ValidUnitID(nearestEnemyID) then
+		local enemyX, enemyY, enemyZ = Spring.GetUnitPosition(nearestEnemyID)
+		if enemyX then
+			local directionX = enemyX - buildX
+			local directionZ = enemyZ - buildZ
+			return convertDirectionToFacing(directionX, directionZ)
+		end
+	end
+	
+	local directionX = MAP_CENTER_X - buildX
+	local directionZ = MAP_CENTER_Z - buildZ
+	return convertDirectionToFacing(directionX, directionZ)
 end
 
 local function snapToGrid(x, z, unitDefID)
@@ -392,14 +386,13 @@ local function generateCenterSkewedPositions(chunkStartX, chunkEndX, chunkStartZ
 	
 	for searchX = chunkStartX, chunkEndX, gridSpacing do
 		for searchZ = chunkStartZ, chunkEndZ, gridSpacing do
-			table.insert(positions, {x = searchX, z = searchZ})
+			local distance = (searchX - chunkCenterX)^2 + (searchZ - chunkCenterZ)^2
+			table.insert(positions, {x = searchX, z = searchZ, distance = distance})
 		end
 	end
 	
 	table.sort(positions, function(a, b)
-		local distA = math.sqrt((a.x - chunkCenterX)^2 + (a.z - chunkCenterZ)^2)
-		local distB = math.sqrt((b.x - chunkCenterX)^2 + (b.z - chunkCenterZ)^2)
-		return distA < distB
+		return a.distance < b.distance
 	end)
 	
 	return positions
@@ -422,11 +415,11 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 				local spotsWithDistance = {}
 				for i = 1, #metalSpots do
 					local spot = metalSpots[i]
-					local distance = math.sqrt((spot.x - x)^2 + (spot.z - z)^2)
-					if distance <= MEX_MAX_DISTANCE then
+					local distanceSquared = (spot.x - x)^2 + (spot.z - z)^2
+					if distanceSquared <= MEX_MAX_DISTANCE * MEX_MAX_DISTANCE then
 						table.insert(spotsWithDistance, {
 							spot = spot,
-							distance = distance
+							distance = distanceSquared
 						})
 					end
 				end
@@ -436,15 +429,11 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 				for _, spotData in ipairs(spotsWithDistance) do
 					local spot = spotData.spot
 					local buildX, buildY, buildZ = spot.x, spot.y, spot.z
-					local buildTest = Spring.TestBuildOrder(unitDefID, buildX, buildY, buildZ, 0)
-					if buildTest > 0 then
-					local mapCenterX = Game.mapSizeX / 2
-					local mapCenterZ = Game.mapSizeZ / 2
-					local directionX = mapCenterX - buildX
-					local directionZ = mapCenterZ - buildZ
-					local facing = convertDirectionToFacing(directionX, directionZ)
-						
-						local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, unitDefID, buildX, buildY, buildZ, facing, teamID, commanderID)
+				local buildTest = Spring.TestBuildOrder(unitDefID, buildX, buildY, buildZ, 0)
+				if buildTest > 0 then
+					local facing = getLabFacingTowardsEnemy(commanderID, buildX, buildZ)
+					
+					local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, unitDefID, buildX, buildY, buildZ, facing, teamID, commanderID)
 						if unitID then
 							return unitID
 						end
@@ -463,8 +452,6 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 	local unitDef = UnitDefs[unitDefID]
 	local isConverter = unitDef and (unitDef.name == "armmakr" or unitDef.name == "legeconv")
 	
-	local mapCenterX = Game.mapSizeX / 2
-	local mapCenterZ = Game.mapSizeZ / 2
 	
 	local allChunks = {}
 	if isConverter then
@@ -488,7 +475,7 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 		local chunkCenterX = x - maxDistance + (chunkX - 0.5) * chunkSize
 		local chunkCenterZ = z - maxDistance + (chunkZ - 0.5) * chunkSize
 		
-		local distanceFromMapCenter = math.sqrt((chunkCenterX - mapCenterX)^2 + (chunkCenterZ - mapCenterZ)^2)
+		local distanceFromMapCenter = (chunkCenterX - MAP_CENTER_X)^2 + (chunkCenterZ - MAP_CENTER_Z)^2
 		
 		table.insert(chunksWithDistance, {
 			chunk = chunk,
@@ -518,9 +505,7 @@ local function findBuildLocationAndCreateUnit(x, y, z, unitDefID, teamID, comman
 			
 			local buildTest = Spring.TestBuildOrder(unitDefID, snappedX, searchY, snappedZ, 0)
 			if buildTest > 0 then
-				local directionX = mapCenterX - snappedX
-				local directionZ = mapCenterZ - snappedZ
-				local facing = convertDirectionToFacing(directionX, directionZ)
+				local facing = getLabFacingTowardsEnemy(commanderID, snappedX, snappedZ)
 				
 				local fullyBuilt, unitID = deductJuiceAndCreateUnit(commanderData, unitDefID, snappedX, searchY, snappedZ, facing, teamID, commanderID)
 				if unitID then
@@ -626,7 +611,7 @@ local function createRandomBuildQueue(commanderID, commanderData)
 		end
 	end
 	
-	local overflowCount = math.min(10, 20)
+	local overflowCount = 10
 	for i = 1, overflowCount do
 		local selectedOption = selectWeightedRandom(weightedOptions)
 		if selectedOption then
@@ -747,8 +732,6 @@ local function processFactoryRequirement(commanderID, commanderData)
 			end
 			
 			local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
-			local mapCenterX = Game.mapSizeX / 2
-			local mapCenterZ = Game.mapSizeZ / 2
 			
 			local maxDistance = 250
 			local chunkSize = (maxDistance * 2) / 3
@@ -765,7 +748,7 @@ local function processFactoryRequirement(commanderID, commanderData)
 				local chunkX, chunkZ = chunk[1], chunk[2]
 				local chunkCenterX = commanderX - maxDistance + (chunkX - 0.5) * chunkSize
 				local chunkCenterZ = commanderZ - maxDistance + (chunkZ - 0.5) * chunkSize
-				local distanceFromMapCenter = math.sqrt((chunkCenterX - mapCenterX)^2 + (chunkCenterZ - mapCenterZ)^2)
+				local distanceFromMapCenter = (chunkCenterX - MAP_CENTER_X)^2 + (chunkCenterZ - MAP_CENTER_Z)^2
 				
 				table.insert(chunksWithDistance, {
 					chunk = chunk,
@@ -797,8 +780,8 @@ local function processFactoryRequirement(commanderID, commanderData)
 					end
 					
 					table.sort(positions, function(a, b)
-						local distA = math.sqrt((a.x - commanderX)^2 + (a.z - commanderZ)^2)
-						local distB = math.sqrt((b.x - commanderX)^2 + (b.z - commanderZ)^2)
+						local distA = (a.x - commanderX)^2 + (a.z - commanderZ)^2
+						local distB = (b.x - commanderX)^2 + (b.z - commanderZ)^2
 						return distA < distB
 					end)
 					
@@ -808,9 +791,7 @@ local function processFactoryRequirement(commanderID, commanderData)
 						
 						local buildTest = Spring.TestBuildOrder(factory.unitDefID, snappedX, searchY, snappedZ, 0)
 						if buildTest > 0 then
-							local directionX = mapCenterX - snappedX
-							local directionZ = mapCenterZ - snappedZ
-							local facing = convertDirectionToFacing(directionX, directionZ)
+							local facing = getLabFacingTowardsEnemy(commanderID, snappedX, snappedZ)
 							
 							local fullyBuilt, unitID = createFactoryForFree(factory.unitDefID, snappedX, searchY, snappedZ, facing, commanderData.teamID, commanderData)
 							if fullyBuilt then
@@ -823,14 +804,12 @@ local function processFactoryRequirement(commanderID, commanderData)
 				end
 			end
 			
-			if not factoryBuilt then
-			end
 		end
 	end
 end
 
 local function processCommanderCommands(commanderID, commanderData)
-	if teamsToBoost[commanderData.teamID] and canAffordAnyPartialBuild(commanderData) then
+	if teamsToBoost[commanderData.teamID] and hasResourcesLeft(commanderData) then
 		local commands = spGetUnitCommands(commanderID, ALL_COMMANDS)
 		if next(commands) then
 			for i, cmd in ipairs(commands) do
@@ -842,11 +821,7 @@ local function processCommanderCommands(commanderID, commanderData)
 					
 					if isFactory then
 						local buildX, buildY, buildZ = cmd.params[1], cmd.params[2], cmd.params[3]
-						local mapCenterX = Game.mapSizeX / 2
-						local mapCenterZ = Game.mapSizeZ / 2
-						local directionX = mapCenterX - buildX
-						local directionZ = mapCenterZ - buildZ
-						local facing = convertDirectionToFacing(directionX, directionZ)
+						local facing = getLabFacingTowardsEnemy(commanderID, buildX, buildZ)
 						
 						local fullyBuilt, unitID = createFactoryForFree(buildDefID, buildX, buildY, buildZ, facing, commanderData.teamID, commanderData)
 						if fullyBuilt then
@@ -1002,7 +977,6 @@ function gadget:Initialize()
 			randomBuildOptionWeights[optionName] = baseWeight
 		end
 	end
-	Spring.Echo("test1 isGoodWind:", tostring(isGoodWind), "averageWind:", tostring(averageWind), "minWind:", tostring(minWind), "maxWind:", tostring(maxWind), "randomBuildOptionWeights:", randomBuildOptionWeights)
 	local frame = Spring.GetGameFrame()
 
 	if frame > 1 then
