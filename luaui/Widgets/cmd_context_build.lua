@@ -110,7 +110,7 @@ local legionUnitlist = {
 	--{'leglab','corsy'},--soon(tm)
 	{'leghive', 'legfhive'},
 	--{'cornanotc','cornanotcplat'},
-	{'legvp','legamsub'},
+	{'legvp','legamphlab'},
 	--{'corap','corplat'},
 	--{'corasp','corfasp'},
 	--{'corgeo','coruwgeo'},
