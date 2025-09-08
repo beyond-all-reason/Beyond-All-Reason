@@ -162,14 +162,15 @@ local function customWobble(unitID,driftTime,wobbleRadiusFraction)
 
 		-- rotates the wobble/error vector
 		local rotAngle = goldenStep*goldenAngle
-		local newposErrorVectorx = unitWobble[unitID].posErrorVectorx * mCos(rotAngle) - unitWobble[unitID].posErrorVectorz * mSin(rotAngle)
-		local newposErrorVectorz = unitWobble[unitID].posErrorVectorx * mSin(rotAngle) + unitWobble[unitID].posErrorVectorz * mCos(rotAngle)
+		local unitWobbleTable = unitWobble[unitID]
+		local newposErrorVectorx = unitWobbleTable.posErrorVectorx * mCos(rotAngle) - unitWobbleTable.posErrorVectorz * mSin(rotAngle)
+		local newposErrorVectorz = unitWobbleTable.posErrorVectorx * mSin(rotAngle) + unitWobbleTable.posErrorVectorz * mCos(rotAngle)
 
 		-- set up drift vector
-		local posErrorDeltax = (newposErrorVectorx - unitWobble[unitID].posErrorVectorx)/driftTime
-		local posErrorDeltaz = (newposErrorVectorz - unitWobble[unitID].posErrorVectorz)/driftTime
+		local posErrorDeltax = (newposErrorVectorx - unitWobbleTable.posErrorVectorx)/driftTime
+		local posErrorDeltaz = (newposErrorVectorz - unitWobbleTable.posErrorVectorz)/driftTime
 
-		spSetUnitPosErrorParams(unitID,unitWobble[unitID].posErrorVectorx,0,unitWobble[unitID].posErrorVectorz,posErrorDeltax,0,posErrorDeltaz,1+driftTime/15)
+		spSetUnitPosErrorParams(unitID,unitWobbleTable.posErrorVectorx,0,unitWobbleTable.posErrorVectorz,posErrorDeltax,0,posErrorDeltaz,1+driftTime/15)
 		-- Please note, final parameter of SetUnitPosErrorParams is in number of slowUpdates, 15 frame intervals.
 		-- and 1+ because engine checks as "if ((--nextPosErrorUpdate) > 0)"
 
