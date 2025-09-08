@@ -19,7 +19,7 @@ return {
 		maxdec = 0.6486,
 		maxslope = 14,
 		metalcost = 260,
-		movementclass = "HOVERAMPH2",
+		movementclass = "AHOVER2",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMAMPH.s3o",
 		script = "Units/ARMAMPH.cob",

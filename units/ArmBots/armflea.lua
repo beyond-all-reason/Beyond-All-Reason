@@ -20,7 +20,7 @@ return {
 		maxslope = 255,
 		maxwaterdepth = 16,
 		metalcost = 21,
-		movementclass = "BOTTINY2",
+		movementclass = "SBOT2",
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMFLEA.s3o",
