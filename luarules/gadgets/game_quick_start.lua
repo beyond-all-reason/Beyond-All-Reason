@@ -14,10 +14,13 @@ local isSynced = gadgetHandler:IsSyncedCode()
 local modOptions = Spring.GetModOptions()
 if not isSynced then return false end
 
-local shouldRunGadget = modOptions.quick_start == "enabled" or
+local shouldRunGadget = modOptions.quick_start == "enabled" or "labs_required" or 
 	(modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
 
 if not shouldRunGadget then return false end
+
+--todo
+--when factory is not required, specifically not-human players should have a factory made for them.
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetTeamResources = Spring.GetTeamResources
@@ -33,6 +36,9 @@ local spGetUnitIsDead = Spring.GetUnitIsDead
 local spTestBuildOrder = Spring.TestBuildOrder
 local spPos2BuildPos = Spring.Pos2BuildPos
 local spSetTeamResource = Spring.SetTeamResource
+ local spSetTeamRulesParam = Spring.SetTeamRulesParam
+local spGetTeamRulesParam = Spring.GetTeamRulesParam
+local spSetGameRulesParam = Spring.SetGameRulesParam
 local spSpawnCEG = Spring.SpawnCEG
 local spGetGameFrame = Spring.GetGameFrame
 local spGetAllUnits = Spring.GetAllUnits
@@ -43,9 +49,8 @@ local QUICK_START_COST_METAL = 800
 local QUICK_START_COST_ENERGY = 400
 local AUTO_MEX_MAX_DISTANCE = 500
 local SOLAR_PENALTY_MULTIPLIER = 0.25
-local SOLAR_QUOTA_WHEN_GOOD_WIND = 2
 
-local factoryRequired = true
+local factoryRequired = modOptions.quick_start == "labs_required"
 local isGoodWind = false
 local isMetalMap = false
 local metalSpotsList = nil
@@ -119,6 +124,11 @@ local UPDATE_FRAMES = Game.gameSpeed
 local PREGAME_DELAY_FRAMES = 61 --after gui_pregame_build.lua is loaded
 local MAP_CENTER_X = Game.mapSizeX / 2
 local MAP_CENTER_Z = Game.mapSizeZ / 2
+
+local TEAM_RULES_TOTAL_KEY = "quickStartJuiceTotal"
+local TEAM_RULES_REMAINING_KEY = "quickStartJuiceRemaining"
+local TEAM_RULES_FACTORY_PLACED_KEY = "quickStartFactoryPlaced"
+local GAME_RULES_BASE_KEY = "quickStartJuiceBase"
 
 local commanderMetaList = {}
 local boostableCommanders = {}
@@ -200,6 +210,14 @@ local function initializeCommander(commanderID, teamID)
 	local currentEnergy = spGetTeamResources(teamID, "energy") or 0
 
 	local juice = QUICK_START_COST_METAL + BONUS_METAL + (QUICK_START_COST_ENERGY + BONUS_ENERGY) / ENERGY_VALUE_CONVERSION_DIVISOR
+
+	spSetGameRulesParam(GAME_RULES_BASE_KEY, juice)
+	local currentTotal = spGetTeamRulesParam(teamID, TEAM_RULES_TOTAL_KEY) or 0
+	local currentRemaining = spGetTeamRulesParam(teamID, TEAM_RULES_REMAINING_KEY) or 0
+	local newTotal = currentTotal + juice
+	local newRemaining = currentRemaining + juice
+	spSetTeamRulesParam(teamID, TEAM_RULES_TOTAL_KEY, newTotal)
+	spSetTeamRulesParam(teamID, TEAM_RULES_REMAINING_KEY, newRemaining)
 	
 	local isHuman = false
 	if GG and GG.PowerLib and GG.PowerLib.HumanTeams then
@@ -276,12 +294,15 @@ local function deductJuiceAndCreateUnit(commanderData, unitDefID, buildX, buildY
 		buildProgress = affordableJuice / juiceCost
 		spSetUnitHealth(unitID, {build = buildProgress, health = math.ceil(unitDef.health * buildProgress)})
 		commanderData.juice = commanderData.juice - affordableJuice
+		local remaining = spGetTeamRulesParam(teamID, TEAM_RULES_REMAINING_KEY) or 0
+		spSetTeamRulesParam(teamID, TEAM_RULES_REMAINING_KEY, math.max(0, remaining - affordableJuice))
 	end
 	
 	local nonLabOptions = commanderData.nonLabOptions
 	local isFactory = unitDef.isFactory
 	
 	if isFactory then
+		spSetTeamRulesParam(teamID, TEAM_RULES_FACTORY_PLACED_KEY, 1)
 		commanderData.thingsMade.factory = commanderData.thingsMade.factory + 1
 	else
 		for optionName, trueName in pairs(nonLabOptions) do
@@ -671,6 +692,10 @@ function gadget:Initialize()
 	end
 	local frame = spGetGameFrame()
 
+
+	-- publish juice base immediately for UI to consume
+	local immediateJuice = QUICK_START_COST_METAL + BONUS_METAL + (QUICK_START_COST_ENERGY + BONUS_ENERGY) / ENERGY_VALUE_CONVERSION_DIVISOR
+	spSetGameRulesParam(GAME_RULES_BASE_KEY, immediateJuice)
 
 	if frame > 1 then
 		local allUnits = spGetAllUnits()

@@ -1260,6 +1260,7 @@ local options = {
         section = "options_extra",
         items 	= {
             { key = "default", 	name = "Default" },
+            { key = "labs_required", name = "Enabled: Labs Required" },
             { key = "enabled", name = "Enabled" },
             { key = "disabled", name = "Disabled" },
         }
