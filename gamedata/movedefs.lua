@@ -1,21 +1,14 @@
 ----------------------------------------------------------------------------------
 -- README
--- For organizational purposes all unit deffs must be added to thge movedeff name.
--- Formatted as such:
-
--- -- armfav corfav        <-- add internal names above for the below movedef type
--- TANK1 = {
---    crushstrength = 10,
---    footprint = 1,       <-- footprint size must match moveDef name
---    maxslope = 18,           (or be one of our special moveDef names)
---    slopeMod = 18,
---    maxwaterdepth = 22,
---    depthModParams = {
---        minHeight = 4,
---        linearCoeff = 0.03,
---        maxValue = 0.7,
---    }
--- },
+-- 1. Format all movedefs consistently, as below, including a list of unit names.
+-- 2. Strongly prefer reference values, or reference values with offsets (+/-X).
+-- 3. Use consistent moveDef names, as below:
+--  > DEFNAME := [Special][Weight class][Mobility]Category[Footprint]
+--  > Special := COMMANDER: Commanders | EPIC: T4+ | (RAPTOR|SCAV): Non-player faction
+--  > Weight class := S: Small | M: Medium | H: Heavy
+--  > Mobility := A: Amphibious | T: All-Terrain | U: Underwater | V: Upright
+--  > Category :=  BOT: Bots | BOAT: Ships | HOVER: Hovers | TANK: Vehicles
+--  > Footprint := 1–10: Footprint size
 
 ----------------------------------------------------------------------------------
 -- REFERENCE VALUES
@@ -218,7 +211,7 @@ local moveDatas = {
 		maxwaterslope = SLOPE.MAXIMUM,
 	},
 	-- armamph
-	HOVERAMPH2 = {
+	AHOVER2 = {
 		badslope = SLOPE.DIFFICULT,
 		badwaterslope = SLOPE.MAXIMUM,
 		crushstrength = CRUSH.MEDIUM,
@@ -278,7 +271,7 @@ local moveDatas = {
 
 	--armflea critter_ant dice critter_penguinbro critter_penguin critter_duck xmasballs chip
 	-- make a suggestion thread critterh
-	BOTTINY2 = {
+	SBOT2 = {
 		crushstrength = CRUSH.TINY,
 		footprint = 2,
 		maxslope = SLOPE.DIFFICULT,

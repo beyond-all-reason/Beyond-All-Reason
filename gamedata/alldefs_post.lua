@@ -910,7 +910,7 @@ function UnitDef_Post(name, uDef)
 		HOVER2 = true,
 		HOVER3 = true,
 		HHOVER4 = true,
-		HOVERAMPH2 = true
+		AHOVER2 = true
 	}
 
 	local shipList = {
