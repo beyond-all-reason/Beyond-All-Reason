@@ -1,0 +1,32 @@
+<rml>
+<head>
+    <link type="text/rcss" href="gui_quick_start.rcss" />
+</head>
+<body>
+    <div id="qs-root" class="qs-root">
+        <div class="qs-header">Instant Build Resources</div>
+
+        <div id="qs-panel" class="qs-panel">
+            <div class="qs-panel-content">
+                <div id="qs-juice-section" class="qs-juice">
+                    <div class="qs-juice__track">
+                        <div id="juice-bar-fill" class="qs-juice__fill"></div>
+                    </div>
+                    <div class="qs-juice__text">
+                        <span id="juice-remaining">0</span>
+                        <span> / </span>
+                        <span id="juice-total">0</span>
+                    </div>
+                </div>
+                <div id="free-factory-section" class="free-factory">
+                    <div id="free-factory-text">Place Free Factory</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="qs-bottom-text" class="qs-bottom-text">any remaining starting resources will be allocated into structures on your behalf.</div>
+    </div>
+</body>
+</rml>
+
+
