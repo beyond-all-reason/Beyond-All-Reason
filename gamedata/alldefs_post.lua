@@ -2391,6 +2391,18 @@ function UnitDef_Post(name, uDef)
 			uDef.customparams.techlevel = 2
 		end
 
+		----------------------------------------------
+		-- T2 mexes upkeep increased, health decreased
+		if name == "armmoho" or name == "cormoho" or name == "armuwmme" or name == "coruwmme"
+		then
+			uDef.energyupkeep = 40
+			uDef.health = uDef.health - 1200
+		elseif name == "cormexp" then
+			uDef.energyupkeep = 40
+		end
+
+		
+
 		-------------------------------
 		-- T3 mobile jammers have radar
 
