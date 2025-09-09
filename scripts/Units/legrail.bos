@@ -12,6 +12,8 @@ static-var  restore_delay, wpn1_lasthead, shotcount, fired1, fired2, aiming, old
 #define SIGNAL_IDLE 8 
 #define SIGNAL_SHOOT1 16
 
+#define BASEPIECE base
+#define HITSPEED <45.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 5
 #define MAXTILT 250
@@ -29,13 +31,14 @@ Create()
 	//hide flare;
 	restore_delay = 3000;
 	shotcount = 0;
+	wpn1_lasthead = 1000000;
 	fired1 = 0;
 	fired2 = 0;
 	aiming = 0;
 	oldheading = get HEADING;
-	SLEEP_UNTIL_UNITFINISHED;
 	call-script TB_Init();
 	start-script Steering();
+	SLEEP_UNTIL_UNITFINISHED;
 }
 
 Steering(heading, steery, currentSpeed)
