@@ -13,13 +13,17 @@ local function techsplit_balanceTweaks(name, uDef)
 	if name == "corstorm" then
 		uDef.speed = 45
 		uDef.weapondefs.cor_bot_rocket.range = 600
-		uDef.health = 590
+		uDef.weapondefs.cor_bot_rocket.reloadtime = 4.8
+		uDef.weapondefs.cor_bot_rocket.damage.default = 198
+		uDef.health = 385
 	end
 
 	if name == "armrock" then
 		uDef.speed = 50
 		uDef.weapondefs.arm_bot_rocket.range = 575
-		uDef.health = 575
+		uDef.weapondefs.arm_bot_rocket.reloadtime = 4.6
+		uDef.weapondefs.arm_bot_rocket.damage.default = 190
+		uDef.health = 390
 	end
 
 	if name == "armhlt" then
@@ -29,6 +33,11 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.buildtime = 13700
 		uDef.weapondefs.arm_laserh1.range = 750
 		uDef.weapondefs.arm_laserh1.reloadtime = 2.9
+		uDef.weapondefs.arm_laserh1.damage = {
+			commanders = 801,
+			default = 534,
+			vtol = 48,
+		}
 	end
 
 	if name == "corhlt" then
@@ -38,6 +47,11 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.buildtime = 13800
 		uDef.weapondefs.cor_laserh1.range = 750
 		uDef.weapondefs.cor_laserh1.reloadtime = 1.8
+		uDef.weapondefs.cor_laserh1.damage = {
+			commanders = 540,
+			default = 360,
+			vtol = 41,
+		}
 	end
 
 	if name == "armart" then
@@ -185,7 +199,7 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.weapondefs.adv_rocket.customparams.overrange_distance = 800
 		uDef.weapondefs.adv_rocket.weapontimer = 8
 		uDef.weapondefs.adv_rocket.flighttime  = 4
-		uDef.weapons[1].maxangledif = 30
+		uDef.weapons[1].maxangledif = 45
 		uDef.weapons[1].maindir = "0 0 1"
 	end
 
@@ -272,6 +286,60 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.weapondefs.cor_gol.reloadtime = 4
 		uDef.weapondefs.cor_gol.range = 700
 	end
+
+	if name == "armguard" then 
+		uDef.health = 6000
+		uDef.metalcost = 800
+		uDef.energycost = 8000
+		uDef.buildtime = 16000
+		uDef.weapondefs.areaofeffect = 150
+		uDef.weapondefs.plasma.range = 1000
+		uDef.weapondefs.plasma.reloadtime = 2.3
+		uDef.weapondefs.plasma.weaponvelocity = 550 
+		uDef.weapondefs.plasma.damage = {
+			default = 140,
+			subs = 70,
+			vtol = 42,
+		}
+		uDef.weapondefs.plasma_high.areaofeffect = 150
+		uDef.weapondefs.plasma_high.range = 1000
+		uDef.weapondefs.plasma_high.reloadtime = 2.3
+		uDef.weapondefs.plasma_high.weaponvelocity = 700
+		uDef.weapondefs.plasma_high.damage = {
+			default = 140,
+			subs = 70,
+			vtol = 42,
+		}
+	end
+
+	if name == "corpun" then
+		uDef.health = 6400
+		uDef.metalcost = 870
+		uDef.energycost = 8700
+		uDef.buildtime = 16400
+		uDef.weapondefs.plasma.range = 1020
+		uDef.weapondefs.plasma.reloadtime = 2.3
+		uDef.weapondefs.plasma.weaponvelocity = 550
+		uDef.weapondefs.plasma.damage = {
+			default = 163,
+			lboats = 163,
+			subs = 21,
+			vtol = 22,
+		}
+		uDef.weapondefs.plasma_high.range = 1020
+		uDef.weapondefs.plasma_high.reloadtime = 2.3
+		uDef.weapondefs.plasma_high.weaponvelocity = 700
+		uDef.weapondefs.plasma_high.damage = {
+			default = 163,
+			lboats = 163,
+			subs = 21,
+			vtol = 22,
+		}
+	end
+
+
+
+
 
 	return uDef
 end

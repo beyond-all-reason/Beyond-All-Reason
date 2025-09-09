@@ -1516,7 +1516,8 @@ function UnitDef_Post(name, uDef)
 				[26] = "armferret",
 				[27] = "armclaw",
 				[28] = "armjuno",
-				[29] = "armadvsol"
+				[29] = "armadvsol",
+				[30] = "armguard"
 			}
 
 		elseif name == "corck" then
@@ -1546,7 +1547,8 @@ function UnitDef_Post(name, uDef)
 				[26] = "corhlt",
 				[27] = "cormaw",
 				[28] = "cormadsam",
-				[29] = "coradvsol"
+				[29] = "coradvsol",
+				[30] = "corpun"
 			}
 
 		elseif name == "legck" then
@@ -1635,24 +1637,24 @@ function UnitDef_Post(name, uDef)
 
 		elseif name == "legack" then
 			uDef.buildoptions = {
-			[1] = "legadvsol",
-			[2] = "legmext15",
-			[3] = "legdtr",
-			[4] = "legmg",
-			[5] = "legrhapsis",
-			[6] = "leglupara",
-			[7] = "legjuno",
-			[8] = "leghive",
-			[9] = "legfus",
-			[10] = "legarad",
-			[11] = "legajam",
-			[12] = "legsd",
-			[13] = "leglab",
-			[14] = "legalab",
-			[15] = "leghalab",
-			[16] = "legcluster",
-			[17] = "legeconv"
-		}
+				[1] = "legadvsol",
+				[2] = "legmext15",
+				[3] = "legdtr",
+				[4] = "legmg",
+				[5] = "legrhapsis",
+				[6] = "leglupara",
+				[7] = "legjuno",
+				[8] = "leghive",
+				[9] = "legfus",
+				[10] = "legarad",
+				[11] = "legajam",
+				[12] = "legsd",
+				[13] = "leglab",
+				[14] = "legalab",
+				[15] = "leghalab",
+				[16] = "legcluster",
+				[17] = "legeconv"
+			}
 
 		elseif name == "armcv" then
 			uDef.buildoptions = {
@@ -1682,7 +1684,8 @@ function UnitDef_Post(name, uDef)
 				[26] = "armferret",
 				[27] = "armclaw",
 				[28] = "armjuno",
-				[29] = "armadvsol"
+				[29] = "armadvsol",
+				[30] = "armguard"
 			}
 
 		elseif name == "armbeaver" then
@@ -1706,20 +1709,21 @@ function UnitDef_Post(name, uDef)
 				[17] = "armrl",
 				[18] = "armdl",
 				[19] = "armjamt",
-				[22] = "armsy",
-				[23] = "armtide",
-				[24] = "armfmkr",
-				[25] = "armasy",
-				[26] = "armfrt",
-				[27] = "armtl",
-				[28] = "armgeo",
-				[29] = "armbeamer",
-				[30] = "armhlt",
-				[31] = "armferret",
-				[32] = "armclaw",
-				[33] = "armjuno",
-				[34] = "armfrad",
-				[35] = "armadvsol"
+				[20] = "armsy",
+				[21] = "armtide",
+				[22] = "armfmkr",
+				[23] = "armasy",
+				[24] = "armfrt",
+				[25] = "armtl",
+				[26] = "armgeo",
+				[27] = "armbeamer",
+				[27] = "armhlt",
+				[28] = "armferret",
+				[29] = "armclaw",
+				[30] = "armjuno",
+				[31] = "armfrad",
+				[32] = "armadvsol",
+				[33] = "armguard"
 			}
 
 		elseif name == "corcv" then
@@ -1749,7 +1753,8 @@ function UnitDef_Post(name, uDef)
 				[26] = "corhlt",
 				[27] = "cormaw",
 				[28] = "cormadsam",
-				[29] = "coradvsol"
+				[29] = "coradvsol",
+				[30] = "corpun"
 			}
 
 		elseif name == "cormuskrat" then
@@ -1760,34 +1765,31 @@ function UnitDef_Post(name, uDef)
 				[4] = "corestor",
 				[5] = "cormex",
 				[6] = "cormakr",
-				[10] = "corlab",
-				[11] = "coravp",
-				[12] = "corvp",
-				[13] = "corap",
-				[14] = "cornanotc",
-				[15] = "coreyes",
-				[16] = "cordrag",
-				[17] = "corllt",
-				[18] = "corrl",
-				[19] = "corrad",
-				[20] = "cordl",
-				[21] = "corjamt",
-				[22] = "corsy",
-				[23] = "corexp",
-				[24] = "corgeo",
-				[25] = "corhllt",
-				[26] = "corhlt",
-				[27] = "cormaw",
-				[28] = "cormadsam",
-				[29] = "corfrad",
-				[30] = "cortide",
-				[31] = "corasy",
-				[32] = "cortl",
-				[33] = "cortl",
-				[34] = "corfrad",
-				[35] = "cortide",
-				[36] = "corasy",
-				[37] = "coradvsol"
+				[7] = "corlab",
+				[8] = "coravp",
+				[9] = "corvp",
+				[10] = "corap",
+				[11] = "cornanotc",
+				[12] = "coreyes",
+				[13] = "cordrag",
+				[14] = "corllt",
+				[15] = "corrl",
+				[16] = "corrad",
+				[17] = "cordl",
+				[18] = "corjamt",
+				[19] = "corsy",
+				[20] = "corexp",
+				[21] = "corgeo",
+				[22] = "corhllt",
+				[23] = "corhlt",
+				[24] = "cormaw",
+				[25] = "cormadsam",
+				[26] = "corfrad",
+				[27] = "cortide",
+				[28] = "corasy",
+				[29] = "cortl",
+				[30] = "coradvsol",
+				[31] = "corpun"
 			}
 
 		elseif name == "legcv" then
@@ -2038,7 +2040,8 @@ function UnitDef_Post(name, uDef)
 				[24] = "armferret",
 				[25] = "armclaw",
 				[26] = "armjuno",
-				[27] = "armadvsol"
+				[27] = "armadvsol",
+				[30] = "armguard"
 			}
 
 
@@ -2069,7 +2072,8 @@ function UnitDef_Post(name, uDef)
 				[26] = "corhlt",
 				[27] = "cormaw",
 				[28] = "cormadsam",
-				[29] = "coradvsol"
+				[29] = "coradvsol",
+				[30] = "corpun"
 			}
 
 		elseif name == "armaca" then
@@ -2229,6 +2233,7 @@ function UnitDef_Post(name, uDef)
 				[22] = "armclaw",
 				[23] = "armferret",
 				[24] = "armjuno",
+				[25] = "armguard",
 			}
 
 		elseif name == "corcs" then
@@ -2257,6 +2262,7 @@ function UnitDef_Post(name, uDef)
 				[22] = "cormaw",
 				[23] = "coruwgeo",
 				[24] = "corjuno",
+				[30] = "corpun"
 			}
 
 		elseif name == "armacsub" then
@@ -2515,6 +2521,7 @@ function UnitDef_Post(name, uDef)
 				[32] = "armdrag",
 				[33] = "armfdrag",
 				[34] = "armuwmme",
+				[35] = "armguard"
 			}
 
 		elseif name == "corch" then
@@ -2549,10 +2556,11 @@ function UnitDef_Post(name, uDef)
 				[28] = "corasy",
 				[29] = "corhlt",
 				[30] = "cortl",
-				[31] = "corhasy"
+				[31] = "corhasy",
+				[32] = "corpun"
 			}
 
-		elseif name == "leghc" then 
+		elseif name == "legch" then 
 			uDef.buildoptions = {
 			[1] = "legsolar",
 			[2] = "legadvsol",
