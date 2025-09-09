@@ -2393,12 +2393,16 @@ function UnitDef_Post(name, uDef)
 
 		----------------------------------------------
 		-- T2 mexes upkeep increased, health decreased
-		if name == "armmoho" or name == "cormoho" or name == "armuwmme" or name == "coruwmme"
+		if name == "armmoho"or name == "armuwmme" 
 		then
-			uDef.energyupkeep = 40
+			uDef.energyupkeep = 48
 			uDef.health = uDef.health - 1200
+		elseif name == "cormoho" or name == "coruwmme" 
+		then
+			uDef.energyupkeep = 48
+			uDef.health = uDef.health - 1500
 		elseif name == "cormexp" then
-			uDef.energyupkeep = 40
+			uDef.energyupkeep = 48
 		end
 
 		
