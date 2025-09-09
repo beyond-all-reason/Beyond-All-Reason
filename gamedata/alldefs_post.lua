@@ -2400,7 +2400,7 @@ function UnitDef_Post(name, uDef)
 		elseif name == "cormoho" or name == "coruwmme" 
 		then
 			uDef.energyupkeep = 48
-			uDef.health = uDef.health - 1500
+			uDef.health = uDef.health - 1700
 		elseif name == "cormexp" then
 			uDef.energyupkeep = 48
 		end
