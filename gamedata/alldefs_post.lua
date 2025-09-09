@@ -1577,6 +1577,7 @@ function UnitDef_Post(name, uDef)
 			}
 
 		elseif name == "armack" then
+			uDef.mass = 2700
 			uDef.buildoptions = {
 				[1] = "armadvsol",
 				[2] = "armmoho",
@@ -1608,6 +1609,7 @@ function UnitDef_Post(name, uDef)
 			}
 
 		elseif name == "corack" then
+			uDef.mass = 2700
 			uDef.buildoptions = {
 				[1] = "coradvsol",
 				[2] = "cormoho",
@@ -1636,6 +1638,7 @@ function UnitDef_Post(name, uDef)
 			}
 
 		elseif name == "legack" then
+			uDef.mass = 2700
 			uDef.buildoptions = {
 				[1] = "legadvsol",
 				[2] = "legmext15",
@@ -1818,6 +1821,7 @@ function UnitDef_Post(name, uDef)
 			}
 		
 		elseif name == "armacv" then
+			uDef.mass = 2700
 			uDef.buildoptions = {
 				[1] = "armadvsol",
 				[2] = "armmoho",
@@ -1849,6 +1853,7 @@ function UnitDef_Post(name, uDef)
 			}
 		
 		elseif name == "coracv" then
+			uDef.mass = 2700
 			uDef.buildoptions = {
 				[1] = "coradvsol",
 				[2] = "cormoho",
@@ -1877,6 +1882,7 @@ function UnitDef_Post(name, uDef)
 			}
 		
 		elseif name == "legacv" then
+			uDef.mass = 2700
 			uDef.buildoptions = {
 				[1] = "legadvsol",
 				[2] = "legmext15",
@@ -2266,6 +2272,7 @@ function UnitDef_Post(name, uDef)
 			}
 
 		elseif name == "armacsub" then
+			uDef.mass = 2700
 			uDef.buildoptions = {
 				[1] = "armtide",
 				[2] = "armuwageo",
@@ -2297,6 +2304,7 @@ function UnitDef_Post(name, uDef)
 			}
 
 		elseif name == "coracsub" then
+			uDef.mass = 2700
 			uDef.buildoptions = {
 				[1] = "cortide",
 				[2] = "coruwmme",
@@ -2383,8 +2391,9 @@ function UnitDef_Post(name, uDef)
 			uDef.buildtime = math.ceil(uDef.buildtime * 0.008) * 100
 		
 		-- Hover cons are priced as t2
-		elseif name == "armhc" or name == "corhc" or name == "leghc"
+		elseif name == "armch" or name == "corch" or name == "legch"
 		then
+			uDef.mass = 2700
 			uDef.metalcost = uDef.metalcost * 2
 			uDef.energycost = uDef.energycost * 2
 			uDef.buildtime = uDef.buildtime * 2
