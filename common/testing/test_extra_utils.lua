@@ -52,7 +52,7 @@ local function endTest()
 	print("levelHeightMap in endTest is" .. type(levelHeightMap))
 	print("autoHeightMap in endTest is" .. type(autoHeightMap))
 	print("levelHeightMap directCall" .. tostring(levelHeightMap))
-
+    print("autoHeightMap is :" .. tostring(autoHeightMap))
 
 	if autoHeightMap then
 		levelHeightMap()
