@@ -17,6 +17,7 @@ return {
 		health = 2460,
 		idleautoheal = 5,
 		idletime = 1800,
+		mass = 2700,
 		maxacc = 0.04059,
 		maxdec = 0.04059,
 		metalcost = 570,
