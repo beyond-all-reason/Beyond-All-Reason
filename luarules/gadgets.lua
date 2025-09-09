@@ -115,6 +115,7 @@ local callInLists = {
 	"PlayerRemoved",
 
 	"GameFrame",
+	"GameFramePost",
 	"GamePaused",
 
 	"ViewResize",  -- FIXME ?
@@ -1164,6 +1165,12 @@ function gadgetHandler:GameFrame(frameNum)
 	end
 	tracy.ZoneEnd()
 	return
+end
+
+function gadgetHandler:GameFramePost(frameNum)
+	for _, g in r_ipairs(self.GameFramePostList) do
+		g:GameFramePost(frameNum)
+	end
 end
 
 function gadgetHandler:GamePaused(playerID, paused)
