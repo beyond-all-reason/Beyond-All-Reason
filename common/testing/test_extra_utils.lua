@@ -10,6 +10,7 @@ local function setAutoHeightMap(enable)
 end
 
 local function levelHeightMap(level)
+	print("levelHeightMap at level:" .. tostring(level))
 	local prevLevel = currentLevel
 	if level == nil then level = 10 end
 	if prevLevel == level then return end
@@ -35,6 +36,7 @@ end
 -- Internal methods
 
 local function startTests()
+	print("autoHeightMap :" .. tostring(autoHeightMap))
 	if autoHeightMap then
 		levelHeightMap()
 	end
@@ -47,6 +49,11 @@ local function endTests()
 end
 
 local function endTest()
+	print("levelHeightMap in endTest is" .. type(levelHeightMap))
+	print("autoHeightMap in endTest is" .. type(autoHeightMap))
+	print("levelHeightMap directCall" .. tostring(levelHeightMap))
+
+
 	if autoHeightMap then
 		levelHeightMap()
 	else
