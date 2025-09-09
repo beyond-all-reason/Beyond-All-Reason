@@ -1,15 +1,9 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, tracks, armor, aimy1, turret, aimx1, sleeve, barrel, flare;
+piece  base, btrack, fltrack, frtrack, aimpoint, armor, turret, sleeve, lrail, rrail, flare;
 
-static-var  restore_delay, wpn1_lasthead, shotcount, fired1, fired2, aiming;
-
-#define TB_BASE base 
-#define TB_TURNRATE <15.0> 
-#define TB_TILT_X <0.1>
-#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
-#include "../tilt_bank_mobileunit.h"
+static-var  restore_delay, wpn1_lasthead, shotcount, fired1, fired2, aiming, oldheading;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -18,35 +12,48 @@ static-var  restore_delay, wpn1_lasthead, shotcount, fired1, fired2, aiming;
 #define SIGNAL_IDLE 8 
 #define SIGNAL_SHOOT1 16
 
-#define BASEPIECE base
-#define HITSPEED <55.0>
 //how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 4
-#define MAXTILT 100
+#define UNITSIZE 5
+#define MAXTILT 250
+#define RECOIL_POWER 90000
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-RockUnit(anglex, anglez)
-{
-	turn base to x-axis anglex speed <50.005495>;
-	turn base to z-axis <0> - anglez speed <50.005495>;
-	wait-for-turn base around z-axis;
-	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
-	return (0);
-}
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.15>
+#define TB_BANK_Z <0.10> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
 Create()
 {
-	hide flare;
+	//hide flare;
 	restore_delay = 3000;
 	shotcount = 0;
 	fired1 = 0;
 	fired2 = 0;
 	aiming = 0;
-	call-script TB_Init();
+	oldheading = get HEADING;
 	SLEEP_UNTIL_UNITFINISHED;
+	call-script TB_Init();
+	start-script Steering();
 }
 
+Steering(heading, steery, currentSpeed)
+{
+	while(1)
+	{
+		heading = get HEADING;
+		steery = (heading - oldheading)*2;
+		
+		turn fltrack to y-axis steery speed <120>;
+		turn frtrack to y-axis steery speed <120>;
+
+		sleep 66;
+		oldheading = heading;
+	}
+}
+
+// Some magic added by sethdgamre
 ResetFire()
 {
 	signal SIGNAL_SHOOT1;
@@ -68,6 +75,13 @@ ResetAiming()
 	aiming = 0;
 }
 
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+	return (0);
+}
+// End of Magic
+
 StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
@@ -81,12 +95,6 @@ StopMoving()
 	STOP_TILTBANK;
 }
 
-SetMaxReloadTime(Func_Var_1)
-{
-	restore_delay = Func_Var_1 * 2;
-	return (0);
-}
-
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
@@ -95,10 +103,11 @@ ExecuteRestoreAfterDelay()
     }
 	fired1 = 0;
 	fired2 = 0;
-	turn aimy1 to y-axis <0> speed <50>;
-	turn aimx1 to x-axis <0> speed <50>;
+	turn turret to y-axis <0> speed <50>;
+	turn sleeve to x-axis <0> speed <50>;
 	wpn1_lasthead = 1000000;
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -106,6 +115,7 @@ SetStunned(State)
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
+
 RestoreAfterDelay()
 {
 	set-signal-mask SIGNAL_AIM1;
@@ -119,13 +129,13 @@ AimPrimary(heading, pitch)
 	set-signal-mask SIGNAL_AIM1;
 	start-script ResetAiming();
 	if (heading < <105> AND heading > <-105>){
-		turn aimy1 to y-axis heading speed <120>;
-		turn aimx1 to x-axis <0.000000> - pitch speed <120>;
+		turn turret to y-axis heading speed <120>;
+		turn sleeve to x-axis <0.000000> - pitch speed <120>;
 		if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))
 		{
 			wpn1_lasthead = 1000000;
-			wait-for-turn aimy1 around y-axis;
-			wait-for-turn aimx1 around x-axis;
+			wait-for-turn turret around y-axis;
+			wait-for-turn sleeve around x-axis;
 		}
 		wpn1_lasthead = heading;
 		start-script RestoreAfterDelay();
@@ -145,13 +155,13 @@ AimSecondary(heading, pitch)
 	{
 		return (0);
 	}
-	turn aimy1 to y-axis heading speed <120>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <120>;
+	turn turret to y-axis heading speed <120>;
+	turn sleeve to x-axis <0.000000> - pitch speed <120>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))
 	{
 		wpn1_lasthead = 1000000;
-		wait-for-turn aimy1 around y-axis;
-		wait-for-turn aimx1 around x-axis;
+		wait-for-turn turret around y-axis;
+		wait-for-turn sleeve around x-axis;
 	}
 	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
@@ -169,11 +179,15 @@ FirePrimary()
  	emit-sfx 1024 + 0 from flare;
 	call-script lua_UnitScriptLight(1, shotcount);
 	
- 	move barrel to z-axis [-6] now;
-	turn sleeve to x-axis <-10> now;
-	
-	turn sleeve to x-axis <0> speed <30.0>;
- 	move barrel to z-axis [0] speed [2.5];
+ 	move lrail to z-axis [-4] now;
+ 	move rrail to z-axis [-4] now;
+ 	move lrail to x-axis [-1] now;
+ 	move rrail to x-axis [1] now;
+	sleep 300;
+ 	move lrail to z-axis [0] speed [2.5];
+ 	move rrail to z-axis [0] speed [2.5];
+ 	move lrail to x-axis [0] speed [2.5];
+ 	move rrail to x-axis [0] speed [2.5];
 }
 
 FireSecondary()
@@ -183,11 +197,15 @@ FireSecondary()
  	emit-sfx 1024 + 0 from flare;
 	call-script lua_UnitScriptLight(1, shotcount);
 	
- 	move barrel to z-axis [-6] now;
-	turn sleeve to x-axis <-10> now;
-	
-	turn sleeve to x-axis <0> speed <30.0>;
- 	move barrel to z-axis [0] speed [2.5];
+ 	move lrail to z-axis [-6] now;
+ 	move rrail to z-axis [-6] now;
+ 	move lrail to x-axis [-1] now;
+ 	move rrail to x-axis [1] now;
+	sleep 300;
+ 	move lrail to z-axis [0] speed [2.5];
+ 	move rrail to z-axis [0] speed [2.5];
+ 	move lrail to x-axis [0] speed [2.5];
+ 	move rrail to x-axis [0] speed [2.5];
 }
 
 lua_UnitScriptLight(lightIndex, count)
@@ -197,12 +215,12 @@ lua_UnitScriptLight(lightIndex, count)
 
 AimFromPrimary(piecenum)
 {
-	piecenum = aimx1;
+	piecenum = aimpoint;
 }
 
 AimFromSecondary(piecenum)
 {
-	piecenum = aimx1;
+	piecenum = aimpoint;
 }
 
 QueryPrimary(piecenum)
@@ -228,7 +246,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode sleeve type BITMAPONLY | NOHEATCLOUD;
-		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rrail type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -237,7 +255,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type FALL | NOHEATCLOUD;
-		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rrail type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -246,13 +264,13 @@ Killed(severity, corpsetype)
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode barrel type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode rrail type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rrail type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
