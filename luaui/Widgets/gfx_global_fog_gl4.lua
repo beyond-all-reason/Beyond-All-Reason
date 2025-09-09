@@ -715,11 +715,13 @@ function widget:Initialize()
 				local groupDiv = document:CreateElement('div')
 				groupDiv.style.display = "flex"
 				groupDiv.style["flex-direction"] = "column"
-				groupDiv.style.gap = "0.2em"
-				groupDiv.style.padding = "0.5em"
+				groupDiv.style.gap = "0.01em"
+				groupDiv.style.padding = "0.1em"
 				groupDiv.style.border = "1px solid rgba(255,255,255,0.2)"
 				groupDiv.style["border-radius"] = "4px"
 				groupDiv.style["background-color"] = "rgba(0,0,0,0.1)"
+
+ 
 				
 				-- Create group header
 				local groupHeader = document:CreateElement('h6')
@@ -823,7 +825,7 @@ function widget:Initialize()
 					end
 				end
 			end
-			
+		
 			parentDiv:AppendChild(groupDiv)
 		end
 	end

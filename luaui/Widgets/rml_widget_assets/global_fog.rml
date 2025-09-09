@@ -44,26 +44,9 @@
             <!-- All Parameters Grouped by Category -->
             <div style="display: flex; flex-direction: column; gap: 1em;">
                 <h5>Fog Parameters</h5>
+                <h6>
                 <div id="fogparameters-grouped" style="display: flex; flex-direction: column; gap: 0.5em;"></div>
-            </div>
-            
-            <!-- Color pickers for fogUniforms -->
-            <div style="display: flex; flex-direction: column; gap: 1em;">
-                <div id="fogcolorpickers" style="display: flex; flex-direction: column; gap: 0.2em;">
-                    <h6>Color Parameters</h6>
-                    <label for="heightFogColor">Height Fog Color:</label>
-                    <input type="color" id="heightFogColor" name="heightFogColor"
-                        data-event-input="onFogColorChange('heightFogColor', this.value)" />
-                    <label for="cloudGlobalColor">Cloud Global Color:</label>
-                    <input type="color" id="cloudGlobalColor" name="cloudGlobalColor"
-                        data-event-input="onFogColorChange('cloudGlobalColor', this.value)" />
-                    <label for="distanceFogColor">Distance Fog Color:</label>
-                    <input type="color" id="distanceFogColor" name="distanceFogColor"
-                        data-event-input="onFogColorChange('distanceFogColor', this.value)" />
-                    <label for="shadowedColor">Shadowed Color:</label>
-                    <input type="color" id="shadowedColor" name="shadowedColor"
-                        data-event-input="onFogColorChange('shadowedColor', this.value)" />
-                </div>
+                </h6>
             </div>
         </div>
         <div class="element">
