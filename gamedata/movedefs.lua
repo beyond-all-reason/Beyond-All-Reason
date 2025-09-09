@@ -534,14 +534,15 @@ local function setMaxSlope(moveDef)
 	end
 end
 
+-- Skip other moveDef validation for special names that ignore the footprint requirement.
+local validName = { "^COMMANDER", "^NANO$", "^EPIC", "^RAPTOR", "^SCAV" }
+
 ---@param moveDef MoveDefCreate
 local function validate(moveDef)
 	local name = moveDef.name
 	if type(name) ~= "string" then
 		return false
-	elseif name == "COMMANDERBOT" or name == "NANO" then
-		return true
-	elseif name:gmatch("SCAV") or name:gmatch("RAPTOR") or name:gmatch("EPIC") then
+	elseif table.any(validName, function(v) return name:match(v) end) then
 		return true
 	elseif name:gmatch("%d+$") ~= tostring(moveDef.footprintx) then
 		return false
