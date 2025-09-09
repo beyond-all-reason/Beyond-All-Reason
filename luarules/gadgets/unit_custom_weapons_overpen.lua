@@ -281,6 +281,7 @@ local function exhaust(projectileID, collision)
 	if cx then
 		Spring.SetProjectileMoveControl(projectileID, true)
 		Spring.SetProjectilePosition(projectileID, cx, cy, cz)
+		Spring.SetProjectileVelocity(projectileID, 0, 0, 0) -- Messes up smoke trails.
 	end
 	projectiles[projectileID] = nil
 	spDeleteProjectile(projectileID)
