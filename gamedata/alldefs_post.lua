@@ -2500,7 +2500,6 @@ function UnitDef_Post(name, uDef)
 			[16] = "legcluster",
 			[17] = "legeconv"
 		}
-
 		end		
 
 		-----------------------------------------

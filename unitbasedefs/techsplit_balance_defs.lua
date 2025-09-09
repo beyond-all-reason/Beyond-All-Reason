@@ -287,12 +287,12 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.weapondefs.cor_gol.range = 700
 	end
 
-	if name == "armguard" then 
+		if name == "armguard" then 
 		uDef.health = 6000
 		uDef.metalcost = 800
 		uDef.energycost = 8000
 		uDef.buildtime = 16000
-		uDef.weapondefs.areaofeffect = 150
+		uDef.weapondefs.plasma.areaofeffect = 150
 		uDef.weapondefs.plasma.range = 1000
 		uDef.weapondefs.plasma.reloadtime = 2.3
 		uDef.weapondefs.plasma.weaponvelocity = 550 
@@ -317,6 +317,7 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.metalcost = 870
 		uDef.energycost = 8700
 		uDef.buildtime = 16400
+		uDef.weapondefs.plasma.areaofeffect = 180
 		uDef.weapondefs.plasma.range = 1020
 		uDef.weapondefs.plasma.reloadtime = 2.3
 		uDef.weapondefs.plasma.weaponvelocity = 550
@@ -326,6 +327,7 @@ local function techsplit_balanceTweaks(name, uDef)
 			subs = 21,
 			vtol = 22,
 		}
+		uDef.weapondefs.plasma_high.areaofeffect = 180
 		uDef.weapondefs.plasma_high.range = 1020
 		uDef.weapondefs.plasma_high.reloadtime = 2.3
 		uDef.weapondefs.plasma_high.weaponvelocity = 700
