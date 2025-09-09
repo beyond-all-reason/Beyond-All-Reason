@@ -40,13 +40,41 @@
             </div>
             
         </div> -->
-        <div class="element" style="display: flex; flex-direction: row; gap: 1em; align-items: flex-start;">
+        <div class="element" style="display: flex; flex-direction: row; gap: 1.0em; align-items: flex-start;">
             <!-- All Parameters Grouped by Category -->
-            <div style="display: flex; flex-direction: column; gap: 1em;">
-                <h5>Fog Parameters</h5>
-                <h6>
-                <div id="fogparameters-grouped" style="display: flex; flex-direction: column; gap: 0.5em;"></div>
-                </h6>
+            
+            <div id="fogsliders_col1" style="display: flex; flex-direction: column; gap: 0.1em;">
+                <div style="display: flex; flex-direction: column; gap: 0em;">
+                    <h6 style="margin: 0.25em 0; color: #FFD700;">Global Parameters</h6>
+                    <div id="fogparameters-global" style="display: flex; flex-direction: column; gap: 0.0em;"> </div>
+                    
+                    <h6 style="margin: 0.25em 0; color: #FFD700;">Ground Fog Parameters</h6>
+                    <div id="fogparameters-ground" style="display: flex; flex-direction: column; gap: 0.0em;"> </div>
+                    
+                    <h6 style="margin: 0.25em 0; color: #FFD700;">Height Fog Parameters</h6>
+                    <div id="fogparameters-height" style="display: flex; flex-direction: column; gap: 0.0em;"> </div>
+                    
+                    <h6 style="margin: 0.25em 0; color: #FFD700;">Other Parameters</h6>
+                    <div id="fogparameters-other" style="display: flex; flex-direction: column; gap: 0.0em;"> </div>
+                </div>
+            </div>
+            <div id="fogsliders_col2" style="display: flex; flex-direction: column; gap: 0.0em;">
+                <div style="display: flex; flex-direction: column; gap: 0em;">
+                    <h6 style="margin: 0.25em 0; color: #FFD700;">Cloud Layer Parameters</h6>
+                    <div id="fogparameters-cloud" style="display: flex; flex-direction: column; gap: -0.2em;"> </div>
+                    
+                    <h6 style="margin: 0.25em 0; color: #FFD700;">Cloud Shadow Parameters</h6>
+                    <div id="fogparameters-cloudshadows" style="display: flex; flex-direction: column; gap: 0.0em;"> </div>
+                    
+                    <h6 style="margin: 0.25em 0; color: #FFD700;">Distance Fog Parameters</h6>
+                    <div id="fogparameters-distance" style="display: flex; flex-direction: column; gap: 0.0em;"> </div>
+                    
+                    <h6 style="margin: 0.25em 0; color: #FFD700;">Scavenger Cloud Parameters</h6>
+                    <div id="fogparameters-scavenger" style="display: flex; flex-direction: column; gap: 0.0em;"> </div>
+                    
+                    <h6 style="margin: 0.25em 0; color: #FFD700;">Shadow Parameters</h6>
+                    <div id="fogparameters-shadow" style="display: flex; flex-direction: column; gap: 0.0em;"> </div>
+                </div>
             </div>
         </div>
         <div class="element">

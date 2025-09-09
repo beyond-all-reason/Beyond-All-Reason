@@ -627,7 +627,7 @@ function widget:Initialize()
 		local maxstringPadded = string.format('%5s', maxstring):gsub(' ', '&#x2007;')
 		
 		local sliderhtmlstring = string.format(
-			'<div class="code" style="text-align: right;"> %s %f <input type="range" id="%s" min="%f" max="%f" step="%f" value="%f" /> %s </div>',
+			'<h6><div class="code" style="text-align: right;"> %s %f <input type="range" id="%s" min="%f" max="%f" step="%f" value="%f" /> %s </div></h6>',
 			sliderConfig.displayName or sliderConfig.name,
 			sliderConfig.min,
 			sliderConfig.name,
@@ -664,12 +664,6 @@ function widget:Initialize()
 
 	-- Group all sliders by their group property, combining defines and uniforms
 	local function createAllGroupedSliders()
-		local parentDiv = document:GetElementById('fogparameters-grouped')
-		if not parentDiv then
-			Spring.Echo("Error: Could not find parent element fogparameters-grouped")
-			return
-		end
-		
 		-- Collect all sliders from both lists
 		local allSliders = {}
 		
@@ -696,140 +690,72 @@ function widget:Initialize()
 		-- Group sliders by their group property
 		local sliderGroups = {}
 		for i, sliderData in ipairs(allSliders) do
-			local group = sliderData.config.group or "ungrouped"
+			local group = sliderData.config.group or "other"
 			if not sliderGroups[group] then
 				sliderGroups[group] = {}
 			end
 			table.insert(sliderGroups[group], sliderData)
 		end
 		
-		-- Create group sections in a consistent order
-		local groupOrder = {"global", "ground", "height", "cloud", "cloudshadows", "distance", "underwater", "shadow", "scavenger"}
+		-- Create group sections and place them in appropriate divs
+		local groupOrder = {"global", "ground", "height", "other", "cloud", "cloudshadows", "distance", "underwater", "shadow", "scavenger"}
 		
 		for _, groupKey in ipairs(groupOrder) do
 			local groupSliders = sliderGroups[groupKey]
 			if groupSliders and #groupSliders > 0 then
-				local groupName = paramGroups[groupKey] or (groupKey:gsub("^%l", string.upper) .. " Parameters")
+				-- Map underwater to other since there's no underwater div in RML
+				local divId = "fogparameters-" .. (groupKey == "underwater" and "other" or groupKey)
+				local parentDiv = document:GetElementById(divId)
 				
-				-- Create group container
-				local groupDiv = document:CreateElement('div')
-				groupDiv.style.display = "flex"
-				groupDiv.style["flex-direction"] = "column"
-				groupDiv.style.gap = "0.01em"
-				groupDiv.style.padding = "0.1em"
-				groupDiv.style.border = "1px solid rgba(255,255,255,0.2)"
-				groupDiv.style["border-radius"] = "4px"
-				groupDiv.style["background-color"] = "rgba(0,0,0,0.1)"
-
- 
-				
-				-- Create group header
-				local groupHeader = document:CreateElement('h6')
-				groupHeader.inner_rml = groupName
-				groupHeader.style.margin = "0 0 0.3em 0"
-				groupHeader.style.color = "#FFD700"
-				groupDiv:AppendChild(groupHeader)
-				
-				-- Add sliders to this group
-				for _, sliderData in ipairs(groupSliders) do
-					if sliderData.type == "define" then
-						-- Handle defines sliders
-						local config = {
-							name = sliderData.config.name,
-							min = sliderData.config.min,
-							max = sliderData.config.max,
-							digits = sliderData.config.digits,
-							value = sliderData.config.default
-						}
-						local sliderElement = createSliderElement(config, sliderData.eventCallback)
-						groupDiv:AppendChild(sliderElement)
-					else
-						-- Handle uniform sliders (more complex logic for multi-component values)
-						local defaultType = type(fogUniforms[sliderData.config.name])
-						local defaultValues
-						if defaultType == "table" then
-							defaultValues = fogUniforms[sliderData.config.name]
-						else
-							defaultValues = {fogUniforms[sliderData.config.name]}
-						end
-
-						for j, v in ipairs(defaultValues) do
-							local defaultvalue = v or 0.0
-							
+				if not parentDiv then
+					Spring.Echo("Warning: Could not find parent element " .. divId .. " for group " .. groupKey)
+				else
+					-- Add sliders directly to the group div (no additional container or header needed)
+					for _, sliderData in ipairs(groupSliders) do
+						if sliderData.type == "define" then
+							-- Handle defines sliders
 							local config = {
 								name = sliderData.config.name,
-								displayName = sliderData.config.name .. '.' .. (sliderData.config.membernames and sliderData.config.membernames[j] or ""),
 								min = sliderData.config.min,
 								max = sliderData.config.max,
 								digits = sliderData.config.digits,
-								value = defaultvalue,
-								paramIndex = (defaultType == "table") and j or nil
+								value = sliderData.config.default
 							}
-							
 							local sliderElement = createSliderElement(config, sliderData.eventCallback)
-							groupDiv:AppendChild(sliderElement)
+							parentDiv:AppendChild(sliderElement)
+						else
+							-- Handle uniform sliders (more complex logic for multi-component values)
+							local defaultType = type(fogUniforms[sliderData.config.name])
+							local defaultValues
+							if defaultType == "table" then
+								defaultValues = fogUniforms[sliderData.config.name]
+							else
+								defaultValues = {fogUniforms[sliderData.config.name]}
+							end
+
+							for j, v in ipairs(defaultValues) do
+								local defaultvalue = v or 0.0
+								
+								local config = {
+									name = sliderData.config.name,
+									displayName = sliderData.config.name .. '.' .. (sliderData.config.membernames and sliderData.config.membernames[j] or ""),
+									min = sliderData.config.min,
+									max = sliderData.config.max,
+									digits = sliderData.config.digits,
+									value = defaultvalue,
+									paramIndex = (defaultType == "table") and j or nil
+								}
+								
+								local sliderElement = createSliderElement(config, sliderData.eventCallback)
+								parentDiv:AppendChild(sliderElement)
+							end
 						end
 					end
 				end
-				
-				parentDiv:AppendChild(groupDiv)
 			end
-		end
-		
-		-- Handle any remaining ungrouped sliders
-		local ungroupedSliders = sliderGroups["ungrouped"]
-		if ungroupedSliders and #ungroupedSliders > 0 then
-			local groupDiv = document:CreateElement('div')
-			groupDiv.style.display = "flex"
-			groupDiv.style["flex-direction"] = "column"
-			groupDiv.style.gap = "0.2em"
-			groupDiv.style.padding = "0.5em"
-			groupDiv.style.border = "1px solid rgba(255,255,255,0.2)"
-			groupDiv.style["border-radius"] = "4px"
-			groupDiv.style["background-color"] = "rgba(0,0,0,0.1)"
-			
-			local groupHeader = document:CreateElement('h6')
-			groupHeader.inner_rml = "Other Parameters"
-			groupHeader.style.margin = "0 0 0.3em 0"
-			groupHeader.style.color = "#FFD700"
-			groupDiv:AppendChild(groupHeader)
-			
-			for _, sliderData in ipairs(ungroupedSliders) do
-				if sliderData.type == "define" then
-					local config = {
-						name = sliderData.config.name,
-						min = sliderData.config.min,
-						max = sliderData.config.max,
-						digits = sliderData.config.digits,
-						value = sliderData.config.default
-					}
-					local sliderElement = createSliderElement(config, sliderData.eventCallback)
-					groupDiv:AppendChild(sliderElement)
-				else
-					local defaultType = type(fogUniforms[sliderData.config.name])
-					local defaultValues = defaultType == "table" and fogUniforms[sliderData.config.name] or {fogUniforms[sliderData.config.name]}
-
-					for j, v in ipairs(defaultValues) do
-						local config = {
-							name = sliderData.config.name,
-							displayName = sliderData.config.name .. '.' .. (sliderData.config.membernames and sliderData.config.membernames[j] or ""),
-							min = sliderData.config.min,
-							max = sliderData.config.max,
-							digits = sliderData.config.digits,
-							value = v or 0.0,
-							paramIndex = (defaultType == "table") and j or nil
-						}
-						
-						local sliderElement = createSliderElement(config, sliderData.eventCallback)
-						groupDiv:AppendChild(sliderElement)
-					end
-				end
-			end
-		
-			parentDiv:AppendChild(groupDiv)
 		end
 	end
-
+  
 	-- Create all grouped sliders
 	createAllGroupedSliders()
 
