@@ -33,7 +33,7 @@ local CANCEL_DIST_SQUARED = (Game.squareSize * Game.footprintScale + 1) ^ 2 -- s
 -- extreme performance issues by parsing all of those commands. So we skip units recently touched.
 local recentUnits = {}
 local updateTime = 0
-local releaseTime = 0
+local gameTime = 0
 -- Regardless of the preference above, we don't need to go any lower than the double-click speed.
 safeguardDuration = math.max(safeguardDuration, Spring.GetConfigInt("DoubleClickTime", 200) / 1000)
 
@@ -43,14 +43,13 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 local function clearRecentUnits()
-	-- Clear about 50% of units per pass:
-	updateTime = safeguardDuration * 0.5
-	local release = releaseTime - safeguardDuration
-	for i, seconds in pairs(recentUnits) do
+	local release = gameTime - safeguardDuration
+	for unitID, seconds in pairs(recentUnits) do
 		if seconds <= release then
-			recentUnits[i] = nil
+			recentUnits[unitID] = nil
 		end
 	end
+	updateTime = safeguardDuration * 0.5
 end
 
 -- Non-exhaustively determines whether the engine will cancel a command.
@@ -99,17 +98,15 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	if not cmdOpts.shift or not validUnit[unitDefID] or recentUnits[unitID] then
 		return
 	else
-		recentUnits[unitID] = releaseTime
+		recentUnits[unitID] = gameTime
 		removeCommands(unitID, cmdID, cmdParams)
 	end
 end
 
 function widget:Update(dt)
-	releaseTime = releaseTime + dt
+	gameTime = gameTime + dt
 	updateTime = updateTime - dt
-	if updateTime > 0 then
-		return
-	else
+	if updateTime <= 0 then
 		clearRecentUnits()
 	end
 end
