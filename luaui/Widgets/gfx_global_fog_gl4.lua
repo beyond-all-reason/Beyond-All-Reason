@@ -95,6 +95,7 @@ local GL_R32F = 0x822E
 	-- [ ] Prep all work for correct blending order to the compositing pass 
 	-- [ ] Add dynamic api to control params
 	-- [ ] Fix wind noise looping
+	-- [x] Spacing of sliders is too much
 
 
 
@@ -627,7 +628,7 @@ function widget:Initialize()
 		local maxstringPadded = string.format('%5s', maxstring):gsub(' ', '&#x2007;')
 		
 		local sliderhtmlstring = string.format(
-			'<h6><div class="code" style="text-align: right;"> %s %f <input type="range" id="%s" min="%f" max="%f" step="%f" value="%f" /> %s </div></h6>',
+			'<h6><div class="code" style="text-align: right; padding: 0; line-height: 0.9;" > %s %f <input type="range" id="%s" min="%f" max="%f" step="%f" value="%f" /> %s </div></h6>', 
 			sliderConfig.displayName or sliderConfig.name,
 			sliderConfig.min,
 			sliderConfig.name,
@@ -636,7 +637,7 @@ function widget:Initialize()
 			math.pow(10, -1 * sliderConfig.digits),
 			sliderConfig.value,
 			maxstringPadded
-		)
+		) 
 		
 		sliderElement.inner_rml = sliderhtmlstring
 		

@@ -60,10 +60,10 @@
             </div>
             <div id="fogsliders_col2" style="display: flex; flex-direction: column; gap: 0.0em;">
                 <div style="display: flex; flex-direction: column; gap: 0em;">
-                    <h6 style="margin: 0.25em 0; color: #FFD700;">Cloud Layer Parameters</h6>
+                    <h6 style="margin: 0.1em 0; color: #FFD700;">Cloud Layer Parameters</h6>
                     <div id="fogparameters-cloud" style="display: flex; flex-direction: column; gap: -0.2em;"> </div>
                     
-                    <h6 style="margin: 0.25em 0; color: #FFD700;">Cloud Shadow Parameters</h6>
+                    <h6 style="margin: 0.1em 0; color: #FFD700;">Cloud Shadow Parameters</h6>
                     <div id="fogparameters-cloudshadows" style="display: flex; flex-direction: column; gap: 0.0em;"> </div>
                     
                     <h6 style="margin: 0.25em 0; color: #FFD700;">Distance Fog Parameters</h6>
