@@ -67,7 +67,6 @@
 				"tooManyConverters2Tooltip": "Прекратите строить Преобразователи Энергии и увеличьте её производство."
 			}
 		},
-
 		"playersList": {
 			"spectators": "Наблюдатели %{amount}",
 			"enemies": "Противники %{amount}",
@@ -460,6 +459,16 @@
 				"pauseKey": "/pause",
 				"pause": "Пауза"
 			}
+		},
+		"ignore": {
+			"unknown": "неизвестный accountID",
+			"ignored": "%{name} (%{accountID}) добавлен в список игнора",
+			"unignored": " %{name} (%{accountID}) был убран из списка игнора"
+		},
+		"playernames": {
+			"notfound": "Не удалось найти игрока: %{param}",
+			"setalias": "Для игрока %{name} (%{accountID}) был установлен псевдоним: %{alias}",
+			"removealias": "Очищен псевдоним для игрока %{name} (%{accountID})"
 		},
 		"chat": {
 			"scroll": "%{textColor}Нажмите %{highlightColor}CTRL %{textColor}+ %{highlightColor}SHIFT %{textColor} для активации режима просмотра/прокрутки чата",
@@ -1232,6 +1241,10 @@
 				"screenedgemovedynamic": "переменная скорость",
 				"screenedgemovedynamic_descr": "Уменьшение скорости прокрутки в зависимости от расстояния до края.",
 				"camera": "Камера",
+				"enableintrocamera": "Вступительная Камера",
+				"enableintrocamera_descr": "Включает сглаженную анимацию вступления",
+				"camerapreserveangleonstart": "Сохранять Угол Наклона",
+				"camerapreserveangleonstart_descr": "Запоминать пользовательский угол наклона камеры между матчами",
 				"camerashake": "тряска",
 				"camerashake_descr": "Настройка интенсивности дрожания камеры при взрывах",
 				"smoothingmode": "Режим сглаживания",
