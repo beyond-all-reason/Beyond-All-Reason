@@ -666,22 +666,22 @@ end
 
 local borderMargin = 40
 local cachedCameraPosDir = {0, 0, 0, 0, 0, 0}
-local function UpdateMirrorParams()
-	local function Distance2(x1, y1, z1, x2, y2, z2)
-		local dx, dy, dz = x1 - x2, y1 - y2, z1 - z2
-		return dx*dx + dy*dy + dz*dz
-	end
+local function Distance2(x1, y1, z1, x2, y2, z2)
+	local dx, dy, dz = x1 - x2, y1 - y2, z1 - z2
+	return dx*dx + dy*dy + dz*dz
+end
 
-	-- presumes normalized vectors
-	local function DotProduct(x1, y1, z1, x2, y2, z2)
-		return x1*x2 + y1*y2 + z1*z2
-	end
+-- presumes normalized vectors
+local function DotProduct(x1, y1, z1, x2, y2, z2)
+	return x1*x2 + y1*y2 + z1*z2
+end
+local function UpdateMirrorParams()
+
 
 	local cpX, cpY, cpZ = Spring.GetCameraPosition()
 	local cdX, cdY, cdZ = Spring.GetCameraDirection()
 
 	local checkInView = false
-
 	if Distance2(cpX, cpY, cpZ, cachedCameraPosDir[1], cachedCameraPosDir[2], cachedCameraPosDir[3]) > 900 then
 		checkInView = true
 		cachedCameraPosDir[1] = cpX
@@ -701,10 +701,11 @@ local function UpdateMirrorParams()
 	end
 
 	local minY, maxY = Spring.GetGroundExtremes()
+	local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 
 	mirrorParams = {} 
 	-- spIsAABBInView params are copied from map_edge_extension.lua
-	if spIsAABBInView(-Game.mapSizeX, minY, -Game.mapSizeZ, borderMargin, maxY, borderMargin) then
+	if spIsAABBInView(-mapSizeX, minY, -mapSizeZ, borderMargin, maxY, borderMargin) then
 		--TL {1, 1, -1, -1}
 		mirrorParams[#mirrorParams + 1] =  1
 		mirrorParams[#mirrorParams + 1] =  1
@@ -712,7 +713,7 @@ local function UpdateMirrorParams()
 		mirrorParams[#mirrorParams + 1] = -1
 	end
 
-	if spIsAABBInView(-Game.mapSizeX, minY, -borderMargin, 0, maxY, Game.mapSizeZ) then
+	if spIsAABBInView(-mapSizeX, minY, -borderMargin, 0, maxY, mapSizeZ) then
 		--ML {1, 0, -1,  0}
 		mirrorParams[#mirrorParams + 1] =  1
 		mirrorParams[#mirrorParams + 1] =  0
@@ -720,7 +721,7 @@ local function UpdateMirrorParams()
 		mirrorParams[#mirrorParams + 1] =  0
 	end
 
-	if spIsAABBInView(-Game.mapSizeX, minY, Game.mapSizeZ - borderMargin, borderMargin, maxY, Game.mapSizeZ * 2) then
+	if spIsAABBInView(-mapSizeX, minY, mapSizeZ - borderMargin, borderMargin, maxY, mapSizeZ * 2) then
 		--BL {1, 1, -1,  1}
 		mirrorParams[#mirrorParams + 1] =  1
 		mirrorParams[#mirrorParams + 1] =  1
@@ -728,7 +729,7 @@ local function UpdateMirrorParams()
 		mirrorParams[#mirrorParams + 1] =  1
 	end
 
-	if spIsAABBInView(-borderMargin, minY, -Game.mapSizeZ, Game.mapSizeX + borderMargin, maxY, borderMargin) then
+	if spIsAABBInView(-borderMargin, minY, -mapSizeZ, mapSizeX + borderMargin, maxY, borderMargin) then
 		--TM {0, 1,  0, -1}
 		mirrorParams[#mirrorParams + 1] =  0
 		mirrorParams[#mirrorParams + 1] =  1
@@ -736,7 +737,7 @@ local function UpdateMirrorParams()
 		mirrorParams[#mirrorParams + 1] = -1
 	end
 
-	if spIsAABBInView(-borderMargin, minY, Game.mapSizeZ * 2, Game.mapSizeX + borderMargin, maxY, Game.mapSizeZ - borderMargin) then
+	if spIsAABBInView(-borderMargin, minY, mapSizeZ * 2, mapSizeX + borderMargin, maxY, mapSizeZ - borderMargin) then
 		--BM {0, 1,  0,  1}
 		mirrorParams[#mirrorParams + 1] =  0
 		mirrorParams[#mirrorParams + 1] =  1
@@ -744,7 +745,7 @@ local function UpdateMirrorParams()
 		mirrorParams[#mirrorParams + 1] =  1
 	end
 
-	if spIsAABBInView(Game.mapSizeX - borderMargin, minY, -Game.mapSizeZ, Game.mapSizeX * 2, maxY, borderMargin) then
+	if spIsAABBInView(mapSizeX - borderMargin, minY, -mapSizeZ, mapSizeX * 2, maxY, borderMargin) then
 		--TR {1, 1,  1, -1}
 		mirrorParams[#mirrorParams + 1] =  1
 		mirrorParams[#mirrorParams + 1] =  1
@@ -752,7 +753,7 @@ local function UpdateMirrorParams()
 		mirrorParams[#mirrorParams + 1] = -1
 	end
 
-	if spIsAABBInView(Game.mapSizeX - borderMargin, minY, -borderMargin, Game.mapSizeX * 2, maxY, Game.mapSizeZ) then
+	if spIsAABBInView(mapSizeX - borderMargin, minY, -borderMargin, mapSizeX * 2, maxY, mapSizeZ) then
 		--MR {1, 0,  1,  0}
 		mirrorParams[#mirrorParams + 1] =  1
 		mirrorParams[#mirrorParams + 1] =  0
@@ -760,7 +761,7 @@ local function UpdateMirrorParams()
 		mirrorParams[#mirrorParams + 1] =  0
 	end
 
-	if spIsAABBInView(Game.mapSizeX - borderMargin, minY, Game.mapSizeZ - borderMargin, Game.mapSizeX * 2, maxY, Game.mapSizeZ * 2) then
+	if spIsAABBInView(mapSizeX - borderMargin, minY, mapSizeZ - borderMargin, mapSizeX * 2, maxY, mapSizeZ * 2) then
 		--BR {1, 1,  1,  1}
 		mirrorParams[#mirrorParams + 1] =  1
 		mirrorParams[#mirrorParams + 1] =  1
