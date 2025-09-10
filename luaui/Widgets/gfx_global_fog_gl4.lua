@@ -95,6 +95,7 @@ local GL_R32F = 0x822E
 	-- [ ] Prep all work for correct blending order to the compositing pass 
 	-- [ ] Add dynamic api to control params
 	-- [ ] Fix wind noise looping
+	-- [ ] Bottom / top of cloud layer too sharp when viewed horizontally 
 	-- [x] Spacing of sliders is too much
 
 
@@ -452,6 +453,215 @@ local function SetFogParams(paramname, paramvalue, paramIndex)
 	end
 end
 
+-- Save/Load configuration functions
+local function getCurrentConfig()
+	local config = {
+		shaderConfig = {},
+		fogUniforms = {}
+	}
+	
+	-- Copy current shader config values
+	for _, param in ipairs(definesSlidersParamsList) do
+		config.shaderConfig[param.name] = shaderConfig[param.name]
+	end
+	
+	-- Copy current fog uniform values
+	for _, param in ipairs(uniformSliderParamsList) do
+		local value = fogUniforms[param.name]
+		if type(value) == "table" then
+			config.fogUniforms[param.name] = {}
+			for i, v in ipairs(value) do
+				config.fogUniforms[param.name][i] = v
+			end
+		else
+			config.fogUniforms[param.name] = value
+		end
+	end
+	
+	return config
+end
+local function getAvailableConfigs()
+	local mapName = Game.mapName or "UnknownMap"
+	mapName = mapName:gsub("[^%w%-_]", "_")
+	
+	local configDir = "LuaUI/Config/GlobalFog/"
+	
+	local files = VFS.DirList(configDir, "*.lua")
+	local configs = {}
+	
+	for _, filepath in ipairs(files) do
+		local filename = filepath:match("([^/]+)$")
+		if filename and filename:match("FogConfig_" .. mapName .. "_") then
+			-- Extract timestamp from filename
+			local timestamp = filename:match("FogConfig_" .. mapName .. "_(.+)%.lua")
+			if timestamp then
+				table.insert(configs, {
+					filename = filename,
+					filepath = filepath,
+					timestamp = timestamp,
+					displayName = timestamp:gsub("_", " ")
+				})
+			end
+		end
+	end
+	
+	-- Sort by timestamp (newest first)
+	table.sort(configs, function(a, b) return a.timestamp > b.timestamp end)
+	
+	return configs
+end
+
+local function refreshConfigDropdown()
+	if not document then return end
+	
+	local dropdown = document:GetElementById("configDropdown")
+	if not dropdown then return end
+	
+	-- Clear existing options
+	dropdown.inner_rml = ""
+	
+	-- Add default option
+	local defaultOption = document:CreateElement("option")
+	defaultOption.inner_rml = "Select config to load..."
+	defaultOption.attributes.value = ""
+	dropdown:AppendChild(defaultOption)
+	
+	-- Add available configs
+	local configs = getAvailableConfigs()
+	for _, config in ipairs(configs) do
+		local option = document:CreateElement("option")
+		option.inner_rml = config.displayName
+		option.attributes.value = config.filepath
+		dropdown:AppendChild(option)
+	end
+end
+local function saveConfig()
+	local mapName = Game.mapName or "UnknownMap"
+	-- Clean map name for filename
+	mapName = mapName:gsub("[^%w%-_]", "_")
+	
+	local timestamp = os.date("%Y%m%d_%H%M%S")
+	local filename = string.format("FogConfig_%s_%s.lua", mapName, timestamp)
+	local configDir = "LuaUI/Config/GlobalFog/"
+	local fullPath = configDir .. filename
+	
+	-- Ensure directory exists
+	Spring.CreateDir(configDir)
+	
+	local config = getCurrentConfig()
+	
+	-- Generate Lua code for the config
+	local function serializeTable(t, indent)
+		indent = indent or 0
+		local tabs = string.rep("\t", indent)
+		local result = "{\n"
+		for k, v in pairs(t) do
+			local key = type(k) == "string" and k or "[" .. tostring(k) .. "]"
+			if type(v) == "table" then
+				result = result .. tabs .. "\t" .. key .. " = " .. serializeTable(v, indent + 1) .. ",\n"
+			elseif type(v) == "string" then
+				result = result .. tabs .. "\t" .. key .. " = " .. string.format("%q", v) .. ",\n"
+			else
+				result = result .. tabs .. "\t" .. key .. " = " .. tostring(v) .. ",\n"
+			end
+		end
+		result = result .. tabs .. "}"
+		return result
+	end
+	
+	local configStr = "-- Global Fog Configuration\n"
+	configStr = configStr .. "-- Generated on " .. os.date() .. "\n"
+	configStr = configStr .. "-- Map: " .. (Game.mapName or "Unknown") .. "\n\n"
+	configStr = configStr .. "return " .. serializeTable(config) .. "\n"
+	
+	-- Write the file
+	local file = io.open(fullPath, "w")
+	if file then
+		file:write(configStr)
+		file:close()
+		Spring.Echo("Fog config saved to: " .. fullPath)
+		refreshConfigDropdown()
+		return true
+	else
+		Spring.Echo("Error: Could not save fog config to " .. fullPath)
+		return false
+	end
+end
+
+
+local function updateUIFromConfig()
+	-- Update all sliders with current config values
+	for _, param in ipairs(definesSlidersParamsList) do
+		local element = document:GetElementById(param.name)
+		if element then
+			element.attributes.value = tostring(shaderConfig[param.name])
+		end
+	end
+	
+	for _, param in ipairs(uniformSliderParamsList) do
+		local value = fogUniforms[param.name]
+		if type(value) == "table" then
+			for i, v in ipairs(value) do
+				local elementName = param.name
+				local element = document:GetElementById(elementName)
+				if element then
+					element.attributes.value = tostring(v)
+				end
+			end
+		else
+			local element = document:GetElementById(param.name)
+			if element then
+				element.attributes.value = tostring(value)
+			end
+		end
+	end
+end
+
+
+
+local function loadConfig(filepath)
+	if not VFS.FileExists(filepath) then
+		Spring.Echo("Error: Config file does not exist: " .. filepath)
+		return false
+	end
+	
+	local configData = VFS.Include(filepath)
+	if not configData then
+		Spring.Echo("Error: Could not load config from " .. filepath)
+		return false
+	end
+	
+	-- Apply shader config
+	if configData.shaderConfig then
+		for key, value in pairs(configData.shaderConfig) do
+			if shaderConfig[key] ~= nil then
+				shaderConfig[key] = value
+			end
+		end
+		-- Trigger shader recompilation if needed
+		shaderSourceCache.forceupdate = true
+		combineShaderSourceCache.forceupdate = true
+	end
+	
+	-- Apply fog uniforms
+	if configData.fogUniforms then
+		for key, value in pairs(configData.fogUniforms) do
+			if fogUniforms[key] ~= nil then
+				fogUniforms[key] = value
+			end
+		end
+	end
+	
+	Spring.Echo("Fog config loaded from: " .. filepath)
+	
+	-- Update UI sliders with new values
+	if document then
+		updateUIFromConfig()
+	end
+	
+	return true
+end
+
 local combineShaderTriggers = {RESOLUTION = true, HALFSHIFT = true, OFFSETX = true, OFFSETY = true}
 local function shaderDefinesChangedCallback(name, value, index, oldvalue)
 	Spring.Echo(string.format("shaderDefinesChangedCallback() name=%s, value=%s, shaderConfig[%s]=%s", tostring(name), tostring(value), tostring(name), tostring(shaderConfig[name])))
@@ -760,6 +970,36 @@ function widget:Initialize()
 	-- Create all grouped sliders
 	createAllGroupedSliders()
 
+	-- Create save and load buttons
+	local buttonsDiv = document:GetElementById("fogbuttons")
+	if buttonsDiv then
+		-- Save Config Button
+		local saveButton = document:CreateElement('button')
+		saveButton.inner_rml = "Save Config"
+		saveButton:AddEventListener('click', function(event)
+			saveConfig()
+		end)
+		buttonsDiv:AppendChild(saveButton)
+		
+		-- Load Config Dropdown
+		local loadLabel = document:CreateElement('label')
+		loadLabel.inner_rml = "Load Config: "
+		buttonsDiv:AppendChild(loadLabel)
+		
+		local configDropdown = document:CreateElement('select')
+		configDropdown.id = "configDropdown"
+		configDropdown:AddEventListener('change', function(event)
+			local selectedPath = event.target_element.attributes.value
+			if selectedPath and selectedPath ~= "" then
+				loadConfig(selectedPath)
+			end
+		end)
+		buttonsDiv:AppendChild(configDropdown)
+		
+		-- Initialize dropdown with available configs
+		refreshConfigDropdown()
+	end
+
 	document:ReloadStyleSheet()  
 	document:Show()
 
@@ -981,6 +1221,28 @@ function widget:TextCommand(cmd)
 		Spring.Echo("Dumping shaders")
 		DumpShaderSource(combineShaderSourceCache)
 		DumpShaderSource(shaderSourceCache)
+	elseif string.find(cmd, "fogsaveconfig", nil, true) then
+		Spring.Echo("Saving fog config...")
+		saveConfig()
+	elseif string.find(cmd, "foglistconfigs", nil, true) then
+		Spring.Echo("Available fog configs:")
+		local configs = getAvailableConfigs()
+		for i, config in ipairs(configs) do
+			Spring.Echo(i .. ": " .. config.displayName .. " (" .. config.filepath .. ")")
+		end
+	elseif string.find(cmd, "fogloadconfig ", nil, true) then
+		local index = tonumber(cmd:match("fogloadconfig (%d+)"))
+		if index then
+			local configs = getAvailableConfigs()
+			if configs[index] then
+				Spring.Echo("Loading config: " .. configs[index].displayName)
+				loadConfig(configs[index].filepath)
+			else
+				Spring.Echo("Invalid config index. Use /foglistconfigs to see available configs.")
+			end
+		else
+			Spring.Echo("Usage: /fogloadconfig <index>")
+		end
 	end
 end
 

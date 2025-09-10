@@ -78,9 +78,9 @@
             </div>
         </div>
         <div class="element">
-            <h6> FOG BUTTONS</h6>
+            <h6>FOG BUTTONS</h6>
             
-            <div id = "fogbuttons", style="display: flex">
+            <div id="fogbuttons" style="display: flex; gap: 1em; align-items: center;">
             </div>
         </div>  
         <div id="target" style="display: flex;"></div>
