@@ -2,7 +2,7 @@ local function techsplit_balanceTweaks(name, uDef)
 	-- Cortex T1
 	if name == "corthud" then 
 		uDef.speed = 54
-		uDef.weapondefs.arm_ham.range = 320
+		uDef.weapondefs.arm_ham.range = 300
 	end
 
 	if name == "armwar" then
