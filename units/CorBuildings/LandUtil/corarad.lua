@@ -33,7 +33,7 @@ return {
 		sightemitheight = 87,
 		yardmap = "oooo",
 		customparams = {
-			advancedradarwobblereduction = 0.875,
+			advancedradarwobbleratio = 0.125,
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecalsizey = 4,

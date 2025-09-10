@@ -17,32 +17,15 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
--- Golden Ratio/Angle magic
--- This is my overengineered solution to prevent statistical "runs"
--- of identical wobble locations that occur with standard use of RNG.
--- We choose the next location of the wobble based on the Golden Angle, the "most irrational" number
--- To remove any clockwise rotation bias, on each wobble advance a random number of Golden Angle "steps", from a small set of possible "steps", the set selected to:
--- A. Average to approximately 180 degree rotation per wobble
--- B. Rotate more than 90 degrees per step
--- https://github.com/beyond-all-reason/Beyond-All-Reason/pull/5693#discussion_r2296246178
-local goldenAngle = (2-(1 + math.sqrt(5))/2)*math.pi*2
-local goldenSteps = {1,4,7,9,12,14} 
-
--- hyperparameter for wobble drift time for seismic dots, in slowUpdates (15 frame increments)
--- 4 seems like reasonable minimum (2 second drift time), any faster looks weird to me.
--- 15 is the drift time of standard radar wobble. Seismic is desired to wobble as fast or faster than radar, so this is a reasonable max drift time.  
-local minRandDriftTime = 4
-local maxRandDriftTime = 15
-
--- How long a seismic dot should last after last seismic ping, in frames
--- (after target leaves seismic range or stops moving)
-local seismicDotTime = 2 * Game.gameSpeed
-
 local mRandom = math.random
 local mSqrt = math.sqrt
+local mFloor = math.floor
 local mCos = math.cos
 local mSin = math.sin
 local mMax = math.max
+local mMin = math.min
+
+local unitCounter = 0
 
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -52,57 +35,61 @@ local spSetUnitLosState = Spring.SetUnitLosState
 local spSetUnitLosMask = Spring.SetUnitLosMask
 local spGetGameFrame = Spring.GetGameFrame
 local spSetUnitPosErrorParams = Spring.SetUnitPosErrorParams
+local spGetUnitPosErrorParams = Spring.GetUnitPosErrorParams
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spSetUnitSeismicSignature = Spring.SetUnitSeismicSignature
+local scriptDelayByFrames = Script.DelayByFrames
 
-local allyteamlist = Spring.GetAllyTeamList()
-
-local restoreUnitLOS = {} -- list of units to hand off los control back to engine after X frames
-
-local advancedRadars = {} -- table to hold all advanced radars currently in the game, partitioned by allyTeam
-for key, values in pairs(allyteamlist) do
-	advancedRadars[values] = {} 
+-- Golden Ratio/Angle magic
+-- This is my overengineered solution to prevent statistical "runs"
+-- of identical wobble locations that occur with standard use of RNG.
+-- We choose the next location of the wobble based on the Golden Angle, the "most irrational" number
+-- To remove any clockwise rotation bias, on each wobble advance a random number of Golden Angle "steps", from a small set of possible "steps", the set selected to:
+-- A. Average to approximately 180 degree rotation per wobble
+-- B. Rotate more than 90 degrees per step
+-- https://github.com/beyond-all-reason/Beyond-All-Reason/pull/5693#discussion_r2296246178
+local goldenAngle = (2-(1 + math.sqrt(5))/2)*math.pi*2
+local goldenSteps = {1,4,7,9,12,14}
+-- cache sin and cos calcs for wobble rotation
+local mathSinCache = {}
+for ix = 1, #goldenSteps do
+    mathSinCache[ix] = mSin(goldenSteps[ix]*goldenAngle)
+end
+local mathCosCache = {}
+for ix = 1, #goldenSteps do
+    mathCosCache[ix] = mCos(goldenSteps[ix]*goldenAngle)
 end
 
-local inBasicRadar = {} -- table to hold units currently in basic radar, partitioned by allyTeam
-local basicRadarUpdateRate = 3 * Game.gameSpeed
-for key, values in pairs(allyteamlist) do
-	inBasicRadar[values] = {}
-	for i=0,basicRadarUpdateRate-1 do
-		inBasicRadar[values][i] = {} -- segment the table into #basicRadarUpdateRate slices
-		-- improves performace by only iterating over a fraction of the units in radar each frame
-	end
-end
+-- hyperparameter for wobble drift time for seismic dots, in slowUpdates (15 frame increments)
+-- 4 seems like reasonable minimum (2 second drift time), any faster looks weird to me.
+-- 15 is the drift time of standard radar wobble. Seismic is desired to wobble as fast or faster than radar, so this is a reasonable max drift time.  
+local minRandDriftTime = 4
+local maxRandDriftTime = 4 --15
 
-local inAdvancedRadar = {} -- table to hold units currently in advanced radar, partitioned by allyTeam
-local advancedRadarUpdateRate = 6 * Game.gameSpeed
-for key, values in pairs(allyteamlist) do
-	inAdvancedRadar[values] = {}
-	for i=0,advancedRadarUpdateRate-1 do
-		inAdvancedRadar[values][i] = {} -- segment the table into #advancedRadarUpdateRate slices
-		-- improves performace by only iterating over a fraction of the units in radar each frame
-	end
-end
+-- How long a seismic dot should last after last seismic ping, in frames
+-- (after target leaves seismic range or stops moving)
+local seismicDotTime = 2 * Game.gameSpeed
 
-local unitInBasicRadar = {} -- table to lookup if allyTeam is seeing unitID in basic radar
-for key, values in pairs(allyteamlist) do 
-	unitInBasicRadar[values] = {} 
-end
+-- controls how often units search for advanced radars while in enemy radar
+local basicRadarUpdateRate = 2 * Game.gameSpeed
 
-local unitInAdvancedRadar = {} -- table to lookup if allyTeam is seeing unitID in advanced radar
-for key, values in pairs(allyteamlist) do 
-	unitInAdvancedRadar[values] = {} 
-end
+-- controls drift time of radar dots in advanced radar, and when to re-check for advanced radars
+local advancedRadarUpdateRate = 7.5 * Game.gameSpeed
 
+-- individual unit value caches
 local unitSpeeds = {}
-local unitWobble = {}
+local unitAllyTeamCache = {}
+local unitInEnemyRadar = {}
+local unitInSeismic = {}
+local unitPendingWobble = {}
+local advancedRadars = {}
 
---cache UnitDefs at start
+-- cache UnitDefs at start
 local unitDefSpeeds = {}
 local unitDefSeismicSignature = {}
 local unitDefRadarEmitHeight = {}
 local unitDefRadarRadius = {}
-local unitDefWobbleReduction = {}
+local unitDefWobbleRatio = {}
 local unitDefIsHover = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 
@@ -110,10 +97,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitDefSeismicSignature[unitDefID] = UnitDefs[unitDefID].seismicSignature
 
 	if UnitDefs[unitDefID].customParams then
-		if UnitDefs[unitDefID].customParams.advancedradarwobblereduction ~= nil then
+		if UnitDefs[unitDefID].customParams.advancedradarwobbleratio ~= nil then
 			unitDefRadarEmitHeight[unitDefID] = UnitDefs[unitDefID].radarEmitHeight
 			unitDefRadarRadius[unitDefID] = mMax(UnitDefs[unitDefID].radarRadius,UnitDefs[unitDefID].sonarRadius)
-			unitDefWobbleReduction[unitDefID] = UnitDefs[unitDefID].customParams.advancedradarwobblereduction
+			unitDefWobbleRatio[unitDefID] = UnitDefs[unitDefID].customParams.advancedradarwobbleratio
 		end
 	end
 
@@ -123,108 +110,180 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 
 end
 
-local function customWobble(unitID,driftTime,wobbleRadiusFraction)
+-- Spring.X caches, as it is expected these functions may be called on the same unitID many times in 1 sim frame
+local unitIsStunnedCache = {}
+local function spGetUnitIsStunnedCache(unitID)
+	if unitIsStunnedCache[unitID] == nil then
+		unitIsStunnedCache[unitID] = spGetUnitIsStunned(unitID)
+	end
+	return unitIsStunnedCache[unitID]
+end
 
-	if wobbleRadiusFraction == 0 then
-		spSetUnitPosErrorParams(unitID,0,0,0,0,0,0,1+driftTime/15)
-		-- Please note, final parameter of SetUnitPosErrorParams is in number of slowUpdates, 15 frame intervals.
-		-- and 1+ because engine checks as `if ((--nextPosErrorUpdate) > 0)`
+local unitPositionCache = {}
+local function spGetUnitPositionCache(unitID)
+	if unitPositionCache[unitID] == nil then
+		unitPositionCache[unitID] = {spGetUnitPosition(unitID, true)}
+	end
+	return unpack(unitPositionCache[unitID])	
+end
+
+local function tableLen(table) -- Because Lua is dumb and determining the number of entries of a table requires looping over it
+	local count = 0
+	for _ in pairs(table) do count = count + 1 end
+	return count
+end
+
+-- If I understand CGame::SimFrame() correctly,
+-- First, UpdatePreFrame events happens
+-- then script.DelayByFrames functions happen, immediately before eventHandler.GameFrame [gadget:GameFrame] happens
+-- then rest of synced game logic happens [Which makes the below callins happen]
+-- then GameFramePost happens
+local function customWobble(unitID)
+	-- So, SetUnitPosErrorParams is on a *Per Unit* basis, and *every* team in the game sees the same radar dot position.
+	-- [Technically, the same radar dot Angle, and the distance from true unit center is scaled based on the number of pinpointers on the team]
+	-- Which means, we cannot show "low wobble" to team A and "high wobble" to team C at the same time.
+	-- Therefore, until deeper engine changes are made, the "radar wobble" of a unit will be based on the "best" radar of all enemy teams that is painting the unit
+	-- So, a unit on team B in advanced radar via Team A, but in seismic in Team C, will exhibit low wobble to *both* teams
+	-- Should only be seen in FFA and other formats with more than 2 teams.
+
+	-- first, check if the unit is in any enemy radar
+	if (unitInEnemyRadar[unitID] == nil) then
 		return 0
 	end
 
-	if unitWobble[unitID] == nil then
-		unitWobble[unitID] = {}
+	if (tableLen(unitInEnemyRadar[unitID]) == 0) then
+		-- do NOT spin up a scriptDelayByFrames. When unit re-enters radar a new customWobble will be spun up
+		return 0
 	end
 
-	if unitWobble[unitID].wobbleRadiusFraction ~= wobbleRadiusFraction then
-		-- Create initial wobble location
-		local posErrorVectorx = mRandom()*2 - 1
-		local posErrorVectorz = mRandom()*2 - 1
-		local mag = mSqrt(posErrorVectorx^2 + posErrorVectorz^2)
-		unitWobble[unitID].posErrorVectorx = posErrorVectorx*wobbleRadiusFraction/mag
-		unitWobble[unitID].posErrorVectorz = posErrorVectorz*wobbleRadiusFraction/mag
-		-- Please note, posErrorVector is in fraction of current team radar error radius (96 by engine and BAR default)
-		unitWobble[unitID].wobbletime = spGetGameFrame()
-		unitWobble[unitID].wobbleRadiusFraction = wobbleRadiusFraction
+	-- then, check if this is the "correct" customWobble function to run.
+	-- Currently, there is no way to "signal-kill" a pending DelayByFrames function, so we want to make sure only one customWobble is spun up for each unit
+	if unitPendingWobble[unitID] ~= spGetGameFrame() then
+		return 0
 	end
 
-	if unitWobble[unitID].wobbletime <= spGetGameFrame() then
+	-- then, determine if the unit is in enemy advanced radar
+	local unitAllyTeam = unitAllyTeamCache[unitID]
+	local unitPointX, unitPointY, unitPointZ = spGetUnitPosition(unitID) -- use basepoint as radar "paints" the ground
+	local wobbleRadiusFraction = 1
 
-		if driftTime == 0 then -- avoid divide by zero errors by setting a random drift time
-			driftTime = mRandom(minRandDriftTime,maxRandDriftTime)*15 -- randomly set time of wobble drift, in frames
+	Spring.Echo("checking arads")
+	for advancedRadar, tableValues in pairs(advancedRadars) do
+		local a,b,c,d,e = Spring.GetUnitHealth (advancedRadar)
+		Spring.Echo(a,b,c,d,e)
+		local stunned_or_inbuild = spGetUnitIsStunnedCache(advancedRadar)
+		Spring.Echo("stunned_or_inbuild",stunned_or_inbuild)
+		if (stunned_or_inbuild == false and unitAllyTeam ~= unitAllyTeamCache[advancedRadar]) then
+			Spring.Echo("checking arad dist")
+			-- check if the unit is within cylinder distance of the radar
+			local basePointX, basePointY, basePointZ, midPointX, midPointY, midPointZ = spGetUnitPositionCache(advancedRadar)
+			local dist2Dsq = (basePointX-unitPointX)^2 + (basePointZ-unitPointZ)^2
+			if ((tableValues.radarRadius+unitSpeeds[unitID])^2 >= dist2Dsq) then
+				Spring.Echo("checking arad ray")
+				-- +unitspeed on radarRadius to help catch units just walking into radar range, it seems unitspeed is accounted for when determining when to trigger UnitEnteredRadar
+				local raylength,_,_,_ = spTraceRayGroundBetweenPositions(basePointX, midPointY+tableValues.radarEmitHeight, basePointZ, unitPointX, unitPointY + 5, unitPointZ, false)
+				-- use midPointY to match engine, `const float losHeight  = std::max(unit->midPos.y + emitHeight, 0.0f);`
+				-- +5 on unitPointY to match engine `constexpr float LOS_BONUS_HEIGHT = 5.0f;`
+				if raylength == nil then -- returns nil if no ground collision detected
+					Spring.Echo("wobbleRatio",tableValues.wobbleRatio)
+					wobbleRadiusFraction = mMax(0.0000152587890625,mMin(wobbleRadiusFraction,tableValues.wobbleRatio))
+					-- arbitrary declare smallest possible wobbleRadiusFraction = 1/2^16 [so that a zero-vector is not created]
+				end
+			end
 		end
+	end
 
-		unitWobble[unitID].wobbletime = spGetGameFrame() + driftTime
+	if (wobbleRadiusFraction == 1 and tableLen(unitInSeismic[unitID]) == 0) then
+		-- Case no fancy wobble, just let engine use default behavior
+		local delay = mMax(basicRadarUpdateRate,mFloor(225*unitCounter/32000)) -- if there are more units, increase delay for searching for adv radar (from 2 seconds up to 7.5 seconds), for performace reasons
+		unitPendingWobble[unitID] = spGetGameFrame() + delay
+		scriptDelayByFrames(delay,customWobble,unitID)
+		return 0
+	end
 
-		local basePointX, basePointY, basePointZ = spGetUnitPosition(unitID)
+	local driftTime = advancedRadarUpdateRate
+	if (wobbleRadiusFraction == 1 and tableLen(unitInSeismic[unitID]) > 0) then
+		driftTime = mRandom(minRandDriftTime,maxRandDriftTime)*15 -- randomly set time of seismic wobble drift, in frames
+	end
 
-		local goldenStep = goldenSteps[mRandom(#goldenSteps)]
+	-- rotates the wobble/error vector
+	local posErrorVectorx,_,posErrorVectorz,_,_,_,_ = spGetUnitPosErrorParams(unitID)
+	if (posErrorVectorx == 0 and posErrorVectorz == 0) then
+		posErrorVectorx = 0.0000152587890625 -- *slim* chance the current error vector of the unit is zero, so make it non-zero so it can be rotated
+	end
+	local mag = wobbleRadiusFraction/mSqrt(posErrorVectorx^2 + posErrorVectorz^2)
+	local goldenStep = mRandom(#goldenSteps)
+	local newposErrorVectorx = (posErrorVectorx * mathCosCache[goldenStep] - posErrorVectorz * mathSinCache[goldenStep]) * mag
+	local newposErrorVectorz = (posErrorVectorx * mathSinCache[goldenStep] + posErrorVectorz * mathCosCache[goldenStep]) * mag
 
-		-- rotates the wobble/error vector
-		local rotAngle = goldenStep*goldenAngle
-		local unitWobbleTable = unitWobble[unitID]
-		local newposErrorVectorx = unitWobbleTable.posErrorVectorx * mCos(rotAngle) - unitWobbleTable.posErrorVectorz * mSin(rotAngle)
-		local newposErrorVectorz = unitWobbleTable.posErrorVectorx * mSin(rotAngle) + unitWobbleTable.posErrorVectorz * mCos(rotAngle)
+	-- set up drift vector
+	local posErrorDeltax = (newposErrorVectorx - posErrorVectorx)/driftTime
+	local posErrorDeltaz = (newposErrorVectorz - posErrorVectorz)/driftTime
 
-		-- set up drift vector
-		local posErrorDeltax = (newposErrorVectorx - unitWobbleTable.posErrorVectorx)/driftTime
-		local posErrorDeltaz = (newposErrorVectorz - unitWobbleTable.posErrorVectorz)/driftTime
+	spSetUnitPosErrorParams(unitID,posErrorVectorx,0,posErrorVectorz,posErrorDeltax,0,posErrorDeltaz,1+driftTime/15)
+	-- Please note, final parameter of SetUnitPosErrorParams is in number of slowUpdates, 15 frame intervals.
+	-- and 1+ because engine checks as "if ((--nextPosErrorUpdate) > 0)"
 
-		spSetUnitPosErrorParams(unitID,unitWobbleTable.posErrorVectorx,0,unitWobbleTable.posErrorVectorz,posErrorDeltax,0,posErrorDeltaz,1+driftTime/15)
-		-- Please note, final parameter of SetUnitPosErrorParams is in number of slowUpdates, 15 frame intervals.
-		-- and 1+ because engine checks as "if ((--nextPosErrorUpdate) > 0)"
+	unitPendingWobble[unitID] = spGetGameFrame() + driftTime
+	scriptDelayByFrames(driftTime,customWobble,unitID)
+	return 0
+end
 
-		unitWobble[unitID].posErrorVectorx = newposErrorVectorx
-		unitWobble[unitID].posErrorVectorz = newposErrorVectorz
-
+local function restoreEngineRadarControl(unitID,allyteam)
+	if unitInSeismic[unitID][allyteam] == spGetGameFrame() then
+		spSetUnitLosMask(unitID,allyteam,0) -- returns unit los states to engine control, seismicDotTime after last seismic ping
+		unitInSeismic[unitID][allyteam] = nil
 	end
 end
 
 function gadget:UnitSeismicPing(x,y,z,strength,allyteam,unitID,unitDefID)
 
-	if (allyteam ~= spGetUnitAllyTeam(unitID)) and (spIsUnitInRadar(unitID,allyteam) == false) then
-		-- only run if the unit is being seen by a different allyTeam, and is not in radar.
+	if ((allyteam ~= unitAllyTeamCache[unitID]) and (spIsUnitInRadar(unitID,allyteam) == false))then
+		if (unitInSeismic[unitID][allyteam] == nil) then -- no need to repeatedly set UnitLosState and UnitLosMask on every ping
+			unitInSeismic[unitID][allyteam] = spGetGameFrame() + seismicDotTime
 
-		if (restoreUnitLOS[unitID]==nil) then -- no need to repeatedly set UnitLosState and UnitLosMask on every ping
+			-- These trigger gadget:UnitEnteredRadar immedately, which will spin up an instance of customWobble if it is not already running
+			-- so unitInSeismic needs to be set already
 			spSetUnitLosState(unitID,allyteam,2) -- makes unit unconditionally show up as a radar dot, bitmask
 			spSetUnitLosMask(unitID,allyteam,2) -- stops engine from overwriting SetUnitLosState, bitmask
-			restoreUnitLOS[unitID] = {}
 		end
-		restoreUnitLOS[unitID][allyteam] = spGetGameFrame() + seismicDotTime
-		customWobble(unitID,0,1)
+		unitInSeismic[unitID][allyteam] = spGetGameFrame() + seismicDotTime
+		scriptDelayByFrames(seismicDotTime,restoreEngineRadarControl,unitID,allyteam)
 	end
+
 end
 
 function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 
-	-- save unit speed on a quick reference local table, when unit is created
-	unitSpeeds[unitID] = UnitDefs[unitDefID].speed
+	Spring.Echo('MetaUnitAdded',unitDefWobbleRatio[unitDefID],unitID)
+	unitCounter = unitCounter + 1
+	unitPendingWobble[unitID] = 0
+	unitInEnemyRadar[unitID] = {}
+	unitInSeismic[unitID] = {}
+	unitAllyTeamCache[unitID] = spGetUnitAllyTeam(unitID)
+	unitSpeeds[unitID] = unitDefSpeeds[unitDefID]
 
 	-- if the unit is an advanced radar, save it to the local table
-	if unitDefWobbleReduction[unitDefID] then
-		local allyTeam = spGetUnitAllyTeam(unitID)
-		advancedRadars[allyTeam][unitID] = {}
-		advancedRadars[allyTeam][unitID].radarEmitHeight = unitDefRadarEmitHeight[unitDefID]
-		advancedRadars[allyTeam][unitID].radarRadius = unitDefRadarRadius[unitDefID]
-		advancedRadars[allyTeam][unitID].wobblereduction = unitDefWobbleReduction[unitDefID]
+	if unitDefWobbleRatio[unitDefID] then
+		advancedRadars[unitID] = {}
+		advancedRadars[unitID].radarEmitHeight = unitDefRadarEmitHeight[unitDefID]
+		advancedRadars[unitID].radarRadius = unitDefRadarRadius[unitDefID]
+		advancedRadars[unitID].wobbleRatio = unitDefWobbleRatio[unitDefID]
 	end
 
 end
 
 function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	-- MetaUnitAdded is run AFTER MetaUnitRemoved
 
-	-- remove dead/shared advanced radars from the local table
-	advancedRadars[spGetUnitAllyTeam(unitID)][unitID] = nil
-
-	-- remove dead units from the InRadar lists
-	-- MetaUnitAdded is run AFTER MetaUnitRemoved, so if unit is just shared or captured, these values should be un-nilled soon
-	for key, values in pairs(allyteamlist) do
-		unitInAdvancedRadar[values][unitID] = nil
-		unitInBasicRadar[values][unitID] = nil
-	end
-
+	Spring.Echo('MetaUnitRemoved',unitDefWobbleRatio[unitDefID],unitID)
+	unitCounter = unitCounter - 1
+	unitPendingWobble[unitID] = nil
+	unitInEnemyRadar[unitID] = nil
+	unitInSeismic[unitID] = nil
+	unitAllyTeamCache[unitID] = nil
 	unitSpeeds[unitID] = nil
-	unitWobble[unitID] = nil
+	advancedRadars[unitID] = nil
 
 end
 
@@ -250,111 +309,33 @@ function gadget:UnitLeftWater(unitID, unitDefID, unitTeam)
 	end
 end
 
-local function advancedRadarCheck(unitID,allyTeam)
-	-- this function determines if a specific unit can be seen by the advanced radars of the allyTeam
-	local basePointX, basePointY, basePointZ
-	local unitPointX, unitPointY, unitPointZ
-	local advancedRadarFreeLineOfFire = false
-	local wobblereduction = 0
-
-	for advancedRadar, tableValues in pairs(advancedRadars[allyTeam]) do -- loop over every aradar on the allyTeam
-		local stunned_or_inbuild = spGetUnitIsStunned(advancedRadar) 
-		if stunned_or_inbuild == false then
-			advancedRadarFreeLineOfFire = false
-			local radarEmitHeight = tableValues.radarEmitHeight
-			local radarRadius = tableValues.radarRadius
-
-			-- check if the unit is within cylinder distance of the radar
-			local basePointX, basePointY, basePointZ, midPointX, midPointY, midPointZ  = spGetUnitPosition(advancedRadar,true)
-			local unitPointX, unitPointY, unitPointZ = spGetUnitPosition(unitID) -- use basepoint as radar "paints" the ground
-			local dist2Dsq = (basePointX-unitPointX)^2 + (basePointZ-unitPointZ)^2
-
-			-- check if the radar can see the unit without being obstructed by terrain
-			local raylength,_,_,_ = spTraceRayGroundBetweenPositions(basePointX, midPointY+radarEmitHeight, basePointZ, unitPointX, unitPointY + 1, unitPointZ, false)
-			-- use midPointY to match engine, `const float losHeight  = std::max(unit->midPos.y + emitHeight, 0.0f);`
-			-- +1 on unitPointY to prevent false ground collision positives at the terminal point.
-			if raylength == nil then -- returns nil if no ground collision detected
-				advancedRadarFreeLineOfFire = ((radarRadius+unitSpeeds[unitID])^2 >= dist2Dsq)
-			end
-			-- +unitspeed on radarRadius to help catch units just walking into radar range, it seems unitspeed is accounted for when determining when to trigger UnitEnteredRadar
-
-			if advancedRadarFreeLineOfFire == true then 
-				wobblereduction = mMax(wobblereduction,tableValues.wobblereduction) -- use best wobblereduction of all advanced radars in range
-			end
-		end
-	end
-
-	if wobblereduction>0 then
-
-		if restoreUnitLOS[unitID] == nil then -- don't call customWobble if recently seismic pinged, customWobble will be called after unit LOS control is restored to engine
-			customWobble(unitID,advancedRadarUpdateRate,1-wobblereduction)
-		end
-
-		local framecycle = spGetGameFrame()%advancedRadarUpdateRate
-
-		inAdvancedRadar[allyTeam][framecycle][unitID] = true -- check this unit on next framecycle if it is still seen by an advanced radar
-		unitInAdvancedRadar[allyTeam][unitID] = framecycle -- lookup table for when a unit is scheduled to check for advanced radars again. Checked later to prevent a unit from being double scheduled
-		unitInBasicRadar[allyTeam][unitID] = nil -- effectively remove unit from the faster updating InBasicRadar list.
-
-	else
-		local framecycle = spGetGameFrame()%basicRadarUpdateRate
-		inBasicRadar[allyTeam][framecycle][unitID] = true -- check this unit on next framecycle if it is still seen by an advanced radar
-		unitInBasicRadar[allyTeam][unitID] = framecycle -- lookup table for when a unit is scheduled to check for advanced radars again. Checked later to prevent a unit from being double scheduled
-		unitInAdvancedRadar[allyTeam][unitID] = nil -- effectively remove unit from the slower updating InAdvancedRadar list.
-	end
-end
-
 function gadget:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
 
-	advancedRadarCheck(unitID,allyTeam) -- figure out if the unit entered a T1 or T2 radar range
+	Spring.Echo("UnitEnteredRadar")
+	if (unitAllyTeamCache[unitID] ~= allyTeam) then
+		unitInEnemyRadar[unitID][allyTeam] = true
+		Spring.Echo(tableLen(unitInEnemyRadar[unitID]))
+		if tableLen(unitInEnemyRadar[unitID]) == 1 then
+			unitPendingWobble[unitID] = spGetGameFrame()
+			customWobble(unitID) -- spin up the customWobble function
+		end
+	end
 
 end
 
 function gadget:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
-	-- effectively remove unit from the InRadar lists
-	unitInAdvancedRadar[allyTeam][unitID] = nil
-	unitInBasicRadar[allyTeam][unitID] = nil
 
-end
-
--- If I understand CGame::SimFrame() correctly,
--- First, UpdatePreFrame events happens
--- Then eventHandler.GameFrame [gadget:GameFrame] happens
--- Then rest of synced game logic happens [Which makes the abovecallins happen]
--- So, should be safe to assume gadget:GameFrame runs at start of sim frame
-function gadget:GameFrame(nn)
-
-	local advancedRadarUpdateFrame = (nn)%advancedRadarUpdateRate
-	local basicRadarUpdateFrame = (nn)%basicRadarUpdateRate
-
-	for key, allyTeam in pairs(allyteamlist) do
-
-		--check units in inAdvancedRadar scheduled to be re-checked on this frame
-		for unitID, value in pairs(inAdvancedRadar[allyTeam][advancedRadarUpdateFrame]) do
-			inAdvancedRadar[allyTeam][advancedRadarUpdateFrame][unitID] = nil
-			if unitInAdvancedRadar[allyTeam][unitID] == advancedRadarUpdateFrame then -- if unit is actually scheduled to check for advanced radars again, and not a stale schedule, do the check.
-				advancedRadarCheck(unitID,allyTeam)
-			end
-		end
-
-		--check units in inBasicRadar scheduled to be re-checked on this frame
-		for unitID, value in pairs(inBasicRadar[allyTeam][basicRadarUpdateFrame]) do
-			inBasicRadar[allyTeam][basicRadarUpdateFrame][unitID] = nil
-			if unitInBasicRadar[allyTeam][unitID] == basicRadarUpdateFrame then -- if unit is actually scheduled to check for advanced radars again, and not a stale schedule, do the check.
-				advancedRadarCheck(unitID,allyTeam)
-			end
-		end
-	end
-
-	-- TODO (if performance is an issue): slice restoreUnitLOS like inBasicRadar, so restoretime <= nn is not checked every frame for every unit in seismic range
-	for unitID, allyteams in pairs(restoreUnitLOS) do -- check units that seismic pinged, to determine if enough time has passed to hand off radar control back to engine
-		for allyteam, restoretime in pairs(allyteams) do
-			if restoretime <= nn then
-				spSetUnitLosMask(unitID,allyteam,0) -- returns unit los states to engine control
-				restoreUnitLOS[unitID] = nil
-				advancedRadarCheck(unitID,allyteam) -- check for advanced radars
-			end
-		end
+	Spring.Echo("UnitLeftRadar")
+	if (unitAllyTeamCache[unitID] ~= allyTeam) then
+		unitInEnemyRadar[unitID][allyTeam] = nil
+		Spring.Echo(tableLen(unitInEnemyRadar[unitID]))
 	end
 end
 
+function gadget:GameFramePost(nn)
+
+	-- clear Spring.X caches at end of sim frame
+	unitIsStunnedCache = {}
+	unitPositionCache = {}
+
+end
