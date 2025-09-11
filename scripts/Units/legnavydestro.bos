@@ -52,7 +52,7 @@ Create()
 	// hide flarea2;
 	// hide flareb;
 	//gun_1 = 0;
-    move base to y-axis [1.5] now;
+    move base to y-axis [2.5] now;
 	restore_delay = 3000;
 	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;

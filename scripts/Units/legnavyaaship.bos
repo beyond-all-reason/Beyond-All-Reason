@@ -1,0 +1,296 @@
+
+#include "../recoil_common_includes.h"
+
+piece
+leftBarrelPitchPivot,
+leftBarrelSpinPivot,
+leftBarrelFlare1,
+leftBarrelFlare2,
+leftBarrelFlare3,
+leftMissileTurretHeadingPivot,
+rightBarrelPitchPivot,
+rightBarrelSpinPivot,
+rightBarrelFlare1,
+rightBarrelFlare2,
+rightBarrelFlare3,
+rightMissileTurretHeadingPivot,
+base,
+dishA,
+dishA1,
+dishA2,
+dishA3,
+radarConnector1,
+radarAimingStrut,
+radarStrut,
+legnavyaaship,
+wake1,
+wake2;
+		
+static-var  gun_1, restore_delay, aimDir, oldHead;
+static-var  BarrelCount;
+static-var  Stunned;
+
+// Signal definitions
+#define SIGNAL_AIM1 256
+
+#define RB_MASS 23
+#define RB_LENGTH 6
+#define RB_WIDTH 3
+#define RB_PITCH_SPEED 100
+#define RB_PITCH_ACCELERATION 20
+#define RB_ROLL_ACCELERATION 8
+#define RB_WAKE_PIECE wake1
+#define RB_WAKE_CEG 1024 + 1
+#define RB_IDLE_KICK 10000
+
+#define RB_BOWSPLASH_PIECE wake2
+#define RB_BOWSPLASH_CEG 1024 + 2
+
+#define RB_ROCKUNIT 20
+
+#include "../bar_ships_common.h"
+
+Create()
+{
+    turn radarAimingStrut to z-axis <20> now;
+    turn dishA1 to x-axis <-25> now;
+	turn dishA1 to z-axis <-33> now;
+	turn dishA1 to y-axis <73.300000> now;
+	turn dishA2 to x-axis <25> now;
+	turn dishA2 to z-axis <-33> now;
+	turn dishA2 to y-axis <-73.300000> now;
+	turn dishA3 to z-axis <90> now;
+    //hide blink; //need to add this flare
+
+	gun_1 = 0;
+	restore_delay = 3000;
+	BarrelCount = 0;
+	start-script InitRockBoat();
+	SLEEP_UNTIL_UNITFINISHED;
+    start-script activateDish();
+    start-script ExecuteRestoreAfterDelay();
+	start-script BoatPhysics();
+}
+
+activateDish(){
+    turn dishA1 to x-axis <0> speed <40>;
+	turn dishA1 to y-axis <0> speed <40>;
+	turn dishA1 to z-axis <0> speed <40>;
+
+	turn dishA2 to x-axis <0> speed <40>;
+	turn dishA2 to y-axis <0> speed <40>;
+	turn dishA2 to z-axis <0> speed <40>;
+
+	turn dishA3 to z-axis <0> speed <40>;
+    spin radarStrut around y-axis speed <30>;
+	spin dishA around x-axis speed <-40>;
+
+    while( TRUE )
+	{
+	    if (!Stunned) {
+		    //emit-sfx 1024 + 0 from blink; //need this flare
+		}
+		sleep 2500;
+	}
+	sleep 50;
+	start-script activateDish();
+}
+
+deactivateDish(){
+	turn dishA1 to x-axis <-25> speed <40>;
+	turn dishA1 to z-axis <-33> speed <40>;
+	turn dishA1 to y-axis <73.300000> speed <40>;
+
+	turn dishA2 to x-axis <25> speed <40>;
+	turn dishA2 to z-axis <-33> speed <40>;
+	turn dishA2 to y-axis <-73.300000> speed <40>;
+
+	turn dishA3 to z-axis <90> speed <40>;
+	stop-spin dishA around x-axis decelerate <1>;
+	stop-spin radarStrut around y-axis decelerate <1>;
+}
+
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 2;
+}
+
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	BarrelCount = 0;
+	turn leftMissileTurretHeadingPivot to y-axis <0.0> speed <60.0>;
+	turn rightMissileTurretHeadingPivot to y-axis <0.0> speed <60.0>;
+    wait-for-turn rightMissileTurretHeadingPivot around y-axis;
+    wait-for-turn leftMissileTurretHeadingPivot around y-axis;
+	turn leftBarrelPitchPivot to x-axis <-40.0> speed <30.500000>;
+	turn rightBarrelPitchPivot to x-axis <-40.0> speed <30.500000>;
+    spin leftMissileTurretHeadingPivot around y-axis speed <30> accelerate <2>;
+	spin rightMissileTurretHeadingPivot around y-axis speed <-30> accelerate <2>;
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+        start-script deactivateDish();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	set-signal-mask 0;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+StartMoving(reversing)
+{
+
+}
+
+StopMoving()
+{
+
+}
+
+AimWeapon1(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn leftMissileTurretHeadingPivot to y-axis heading speed <180.0>;
+	turn rightMissileTurretHeadingPivot to y-axis heading speed <180.0>;
+	turn leftBarrelPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <90>;
+	turn rightBarrelPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <90>;
+	wait-for-turn leftMissileTurretHeadingPivot around y-axis;
+	wait-for-turn rightMissileTurretHeadingPivot around y-axis;
+	wait-for-turn leftBarrelPitchPivot around x-axis;
+	wait-for-turn rightBarrelPitchPivot around x-axis;
+	aimDir = heading;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+Shot1()
+{
+	BarrelCount = BarrelCount + 1;
+	if( gun_1 == 0 )
+	{
+		if( BarrelCount == 1 )
+		{
+			emit-sfx 1024 + 0 from leftBarrelFlare1;
+			spin leftBarrelSpinPivot around z-axis speed <360>;
+		}
+		if( BarrelCount == 2 )
+		{
+			emit-sfx 1024 + 0 from leftBarrelFlare2;
+		}
+		if( BarrelCount == 3 )
+		{
+			emit-sfx 1024 + 0 from leftBarrelFlare3;
+			stop-spin leftBarrelSpinPivot around z-axis decelerate <2>;
+			BarrelCount = 0;
+		}
+	}
+	if( gun_1 == 1 )
+	{
+		if( BarrelCount == 1 )
+		{
+			emit-sfx 1024 + 0 from rightBarrelFlare1;
+			spin rightBarrelSpinPivot around z-axis speed <360>;
+		}
+		if( BarrelCount == 2 )
+		{
+			emit-sfx 1024 + 0 from rightBarrelFlare2;
+		}
+		if( BarrelCount == 3 )
+		{
+			emit-sfx 1024 + 0 from rightBarrelFlare3;
+			stop-spin rightBarrelSpinPivot around z-axis decelerate <2>;
+			BarrelCount = 0;
+		}
+	}
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	if( gun_1 == 0 )
+	{
+		pieceIndex = leftBarrelPitchPivot;
+	}
+	if( gun_1 == 1 )
+	{
+		pieceIndex = rightBarrelPitchPivot;
+	}
+}
+
+QueryWeapon1(pieceIndex)
+{
+	if( gun_1 == 0 )
+	{
+		if( BarrelCount == 0 )
+		{
+			pieceIndex = leftBarrelFlare1;
+		}
+		if( BarrelCount == 1 )
+		{
+			pieceIndex = leftBarrelFlare2;
+		}
+		if( BarrelCount == 2 )
+		{
+			pieceIndex = leftBarrelFlare3;
+		}
+	}
+	if( gun_1 == 1 )
+	{
+		if( BarrelCount == 0 )
+		{
+			pieceIndex = rightBarrelFlare1;
+		}
+		if( BarrelCount == 1 )
+		{
+			pieceIndex = rightBarrelFlare2;
+		}
+		if( BarrelCount == 2 )
+		{
+			pieceIndex = rightBarrelFlare3;
+		}
+	}
+}
+
+FireWeapon1(pieceIndex)
+{
+	sleep 300;
+	gun_1 = !gun_1;
+	return(1);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode leftBarrelPitchPivot type BITMAPONLY | BITMAP1 | NOHEATCLOUD;
+		explode rightBarrelPitchPivot type BITMAPONLY | BITMAP1 | NOHEATCLOUD;
+		explode base type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
+		explode radarStrut type BITMAPONLY | BITMAP1 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode leftBarrelPitchPivot type FALL | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode rightBarrelPitchPivot type FALL | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode base type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
+		explode radarStrut type FALL | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode leftBarrelPitchPivot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode rightBarrelPitchPivot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode base type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
+	explode radarStrut type FALL | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	return corpsetype;
+}
