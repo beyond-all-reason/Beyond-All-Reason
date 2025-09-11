@@ -21,8 +21,11 @@
     </head>
     <body data-model="data_model_test">
         <handle move_target="#document">
-            <div class="element">
-                <h5 style="margin: 0.25em">FOG SLIDERS (Click and Drag to Move)</h5>
+            <div class="element" id="topbar">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h5 style="margin: 0.25em">FOG SLIDERS (Click and Drag to Move)</h5>
+                    <button id="toggleSliders" style="margin: 0.25em; padding: 0.2em 0.5em;">▼</button>
+                </div>
             </div>
         </handle>
         <!-- <div class="element">
@@ -40,7 +43,7 @@
             </div>
             
         </div> -->
-        <div class="element" style="display: flex; flex-direction: row; gap: 1.0em; align-items: flex-start;">
+        <div class="element" id="sliders" style="display: flex; flex-direction: row; gap: 1.0em; align-items: flex-start;">
             <!-- All Parameters Grouped by Category -->
             
             <div id="fogsliders_col1" style="display: flex; flex-direction: column; gap: 0.1em;">
@@ -77,7 +80,7 @@
                 </div>
             </div>
         </div>
-        <div class="element">
+        <div class="element" id="buttons">
             <h6>FOG BUTTONS</h6>
             
             <div id="fogbuttons" style="display: flex; gap: 1em; align-items: center;">

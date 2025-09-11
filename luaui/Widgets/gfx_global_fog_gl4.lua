@@ -91,7 +91,9 @@ local GL_R32F = 0x822E
 		-- ScavCloud
 	-- [ ] Better control over defines vs uniforms
 	-- [ ] Add save and load config buttons 
+		-- [ ] Load does not load ... 
 	-- [ ] Try to add tooltips?
+	-- [ ] Minimize the rml window
 	-- [ ] Prep all work for correct blending order to the compositing pass 
 	-- [ ] Add dynamic api to control params
 	-- [ ] Fix wind noise looping
@@ -484,13 +486,13 @@ local function getAvailableConfigs()
 	local mapName = Game.mapName or "UnknownMap"
 	mapName = mapName:gsub("[^%w%-_]", "_")
 	
-	local configDir = "LuaUI/Config/GlobalFog/"
+	local configDir = "LuaUI\\Config\\GlobalFog\\"
 	
 	local files = VFS.DirList(configDir, "*.lua")
 	local configs = {}
 	
 	for _, filepath in ipairs(files) do
-		local filename = filepath:match("([^/]+)$")
+		local filename = filepath:match("([^\\]+)$")
 		if filename and filename:match("FogConfig_" .. mapName .. "_") then
 			-- Extract timestamp from filename
 			local timestamp = filename:match("FogConfig_" .. mapName .. "_(.+)%.lua")
@@ -499,7 +501,7 @@ local function getAvailableConfigs()
 					filename = filename,
 					filepath = filepath,
 					timestamp = timestamp,
-					displayName = timestamp:gsub("_", " ")
+					displayName = filename  -- Just use the filename without directory path
 				})
 			end
 		end
@@ -523,13 +525,14 @@ local function refreshConfigDropdown()
 	-- Add default option
 	local defaultOption = document:CreateElement("option")
 	defaultOption.inner_rml = "Select config to load..."
-	defaultOption.attributes.value = ""
+	defaultOption.attributes.value = "Select config to load..."
 	dropdown:AppendChild(defaultOption)
 	
 	-- Add available configs
 	local configs = getAvailableConfigs()
 	for _, config in ipairs(configs) do
 		local option = document:CreateElement("option")
+		Spring.Echo("Adding config option:", config.displayName, config.filepath)
 		option.inner_rml = config.displayName
 		option.attributes.value = config.filepath
 		dropdown:AppendChild(option)
@@ -630,7 +633,7 @@ local function loadConfig(filepath)
 		Spring.Echo("Error: Could not load config from " .. filepath)
 		return false
 	end
-	
+	Spring.Echo("Loaded config data from " .. filepath)
 	-- Apply shader config
 	if configData.shaderConfig then
 		for key, value in pairs(configData.shaderConfig) do
@@ -646,6 +649,7 @@ local function loadConfig(filepath)
 	-- Apply fog uniforms
 	if configData.fogUniforms then
 		for key, value in pairs(configData.fogUniforms) do
+			Spring.Echo("Loading fog uniform:", key, value)
 			if fogUniforms[key] ~= nil then
 				fogUniforms[key] = value
 			end
@@ -975,7 +979,7 @@ function widget:Initialize()
 	if buttonsDiv then
 		-- Save Config Button
 		local saveButton = document:CreateElement('button')
-		saveButton.inner_rml = "Save Config"
+		saveButton.inner_rml = "Save "
 		saveButton:AddEventListener('click', function(event)
 			saveConfig()
 		end)
@@ -983,13 +987,18 @@ function widget:Initialize()
 		
 		-- Load Config Dropdown
 		local loadLabel = document:CreateElement('label')
-		loadLabel.inner_rml = "Load Config: "
+		loadLabel.inner_rml = "Load"
 		buttonsDiv:AppendChild(loadLabel)
 		
 		local configDropdown = document:CreateElement('select')
 		configDropdown.id = "configDropdown"
+		configDropdown.style.width = "100%"  -- Expand to fill available horizontal space
 		configDropdown:AddEventListener('change', function(event)
-			local selectedPath = event.target_element.attributes.value
+			Spring.Echo("Config selected:", event.parameters.value)
+			for k,v in pairs(event.parameters) do
+				Spring.Echo(" attr:", k, v)
+			end
+			local selectedPath = event.parameters.value
 			if selectedPath and selectedPath ~= "" then
 				loadConfig(selectedPath)
 			end
@@ -1002,6 +1011,26 @@ function widget:Initialize()
 
 	document:ReloadStyleSheet()  
 	document:Show()
+
+	local slidersVisible = true
+
+	-- Get the toggle button and sliders div
+	local toggleButton = document:GetElementById("toggleSliders")
+	local slidersDiv = document:GetElementById("sliders")
+
+	if toggleButton and slidersDiv then
+		toggleButton:AddEventListener('click', function(event)
+			slidersVisible = not slidersVisible
+			
+			if slidersVisible then
+				slidersDiv.style.display = "flex"
+				toggleButton.inner_rml = "Hide"
+			else
+				slidersDiv.style.display = "none"
+				toggleButton.inner_rml = "Show"
+			end
+		end)
+	end
 
 	 
 	if vsx % 4 ~= 0 or vsy % 4 ~= 0 then
