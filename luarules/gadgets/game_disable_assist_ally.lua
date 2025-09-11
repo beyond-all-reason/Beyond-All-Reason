@@ -19,7 +19,15 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local allowAssist = not Spring.GetModOptions().disable_assist_ally_construction
+local sharingModeUtils = VFS.Include("common/sharing_mode_utils.lua")
+local KEYS = VFS.Include("common/sharing_modoption_keys.lua")
+
+-- Check if this gadget should run based on selected sharing mode
+if not sharingModeUtils.shouldGadgetRun(KEYS.DISABLE_ASSIST_ALLY_CONSTRUCTION) then
+	return false
+end
+
+local allowAssist = not Spring.GetModOptions()[KEYS.DISABLE_ASSIST_ALLY_CONSTRUCTION]
 
 if allowAssist then
 	return false

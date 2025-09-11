@@ -18,7 +18,16 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
-if Spring.GetModOptions().tax_resource_sharing_amount == 0 then
+
+local sharingModeUtils = VFS.Include("common/sharing_mode_utils.lua")
+local KEYS = VFS.Include("common/sharing_modoption_keys.lua")
+
+-- Check if this gadget should run based on selected sharing mode
+if not sharingModeUtils.shouldGadgetRun(KEYS.TAX_RESOURCE_SHARING_AMOUNT) then
+	return false
+end
+
+if Spring.GetModOptions()[KEYS.TAX_RESOURCE_SHARING_AMOUNT] == 0 then
 	return false
 end
 
@@ -28,18 +37,37 @@ local spGetTeamUnitCount = Spring.GetTeamUnitCount
 local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 / #Spring.GetTeamList()))
 
 local sharingTax = Spring.GetModOptions().tax_resource_sharing_amount
+local metalTaxThreshold = Spring.GetModOptions().player_metal_send_threshold or 0 -- Use standardized key
+
+local Tax = VFS.Include('common/luaUtilities/resource_share_tax.lua')
+
+-- Table to store cumulative metal sent per sender team
+local cumulativeMetalSent = {}
+
+----------------------------------------------------------------
+-- Initialization
+----------------------------------------------------------------
+
+function gadget:Initialize()
+	-- Initialize cumulative tracking for all potential senders
+	local teamList = Spring.GetTeamList()
+	for _, senderID in ipairs(teamList) do
+		cumulativeMetalSent[senderID] = 0
+		-- Expose baseline values for UI
+		Spring.SetTeamRulesParam(senderID, "metal_share_cumulative_sent", 0)
+		Spring.SetTeamRulesParam(senderID, "metal_share_threshold", metalTaxThreshold)
+		Spring.SetTeamRulesParam(senderID, "resource_share_tax_rate", sharingTax)
+	end
+end
 
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
 
-
-
 function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType, amount)
-
 	-- Spring uses 'm' and 'e' instead of the full names that we need, so we need to convert the resourceType
 	-- We also check for 'metal' or 'energy' incase Spring decides to use those in a later version
-	local resourceName
+	local resourceName -- This variable will hold the standardized name
 	if (resourceType == 'm') or (resourceType == 'metal') then
 		resourceName = 'metal'
 	elseif (resourceType == 'e') or (resourceType == 'energy') then
@@ -56,26 +84,38 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 	-- rShare is the share slider setting, don't exceed their share slider max when sharing
 	local maxShare = rStor * rShare - rCur
 
-	local taxedAmount = math.min((1-sharingTax)*amount, maxShare)
-	local totalAmount = taxedAmount / (1-sharingTax)
-	local transferTax = totalAmount * sharingTax
+	-- Prevent negative maxShare
+	maxShare = math.max(0, maxShare)
 
-	Spring.SetTeamResource(receiverTeamId, resourceName, rCur+taxedAmount)
+	local transferAmount = math.min(amount, maxShare)
+
+	local currentCumulative = cumulativeMetalSent[senderTeamId] or 0
+	local breakdown = Tax.computeTransfer(resourceName, transferAmount, sharingTax, metalTaxThreshold, currentCumulative)
+	local actualSentAmount = breakdown.actualSent
+	local actualReceivedAmount = breakdown.actualReceived
+
+	-- Ensure we don't send more than originally intended due to tax calculation edge cases / maxShare limit
+	actualSentAmount = math.min(actualSentAmount, amount) 
+	actualReceivedAmount = math.min(actualReceivedAmount, transferAmount)
+
+	-- Perform the transfer
+	Spring.SetTeamResource(receiverTeamId, resourceName, rCur + actualReceivedAmount)
 	local sCur, _, _, _, _, _ = Spring.GetTeamResources(senderTeamId, resourceName)
-	Spring.SetTeamResource(senderTeamId, resourceName, sCur-totalAmount)
+	Spring.SetTeamResource(senderTeamId, resourceName, sCur - actualSentAmount)
 
-	-- Block the original transfer
-	return false
-end
-
-function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-	local unitCount = spGetTeamUnitCount(newTeam)
-	if capture or spIsCheatingEnabled() or unitCount < gameMaxUnits then
-		return true
+	-- Update cumulative total *after* successful transfer (only for metal)
+	if resourceName == 'metal' and metalTaxThreshold > 0 then
+		local updatedCumulative = breakdown.newCumulative or (currentCumulative + actualSentAmount)
+		cumulativeMetalSent[senderTeamId] = updatedCumulative
+		Spring.SetTeamRulesParam(senderTeamId, "metal_share_cumulative_sent", updatedCumulative)
 	end
+
+	-- Keep threshold and tax rate exposed (in case of dynamic joins)
+	Spring.SetTeamRulesParam(senderTeamId, "metal_share_threshold", metalTaxThreshold)
+	Spring.SetTeamRulesParam(senderTeamId, "resource_share_tax_rate", sharingTax)
+
 	return false
 end
-
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 	-- Disallow reclaiming allied units for metal
