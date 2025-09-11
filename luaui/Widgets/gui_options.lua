@@ -423,11 +423,21 @@ local function clearChatInput()
 	init()
 end
 
+-- only called when show = false
 local function cancelChatInput()
 	local doReinit = inputText ~= ''
 	backgroundGuishader = glDeleteList(backgroundGuishader)
 	if WG['guishader'] then
+		WG['guishader'].RemoveDlist('options')
 		WG['guishader'].RemoveRect('optionsinput')
+		if selectOptionsList then
+			WG['guishader'].RemoveScreenRect('options_select')
+			WG['guishader'].RemoveScreenRect('options_select_options')
+			WG['guishader'].removeRenderDlist(selectOptionsList)
+		end
+	end
+	if selectOptionsList then
+		selectOptionsList = glDeleteList(selectOptionsList)
 	end
 	widgetHandler.textOwner = nil	--widgetHandler:DisownText()
 	if doReinit then
@@ -1161,14 +1171,13 @@ function widget:DrawScreen()
 			sliderValueChanged = nil
 		end
 
-		if selectOptionsList then
+		if not showSelectOptions and selectOptionsList then
 			if WG['guishader'] then
 				WG['guishader'].RemoveScreenRect('options_select')
 				WG['guishader'].RemoveScreenRect('options_select_options')
 				WG['guishader'].removeRenderDlist(selectOptionsList)
 			end
-			glDeleteList(selectOptionsList)
-			selectOptionsList = nil
+			selectOptionsList = glDeleteList(selectOptionsList)
 		end
 
 		if (show or showOnceMore) and windowList then
@@ -1350,7 +1359,12 @@ function widget:DrawScreen()
 				for i, option in pairs(options[showSelectOptions].options) do
 					maxWidth = math.max(maxWidth, font:GetTextWidth(option .. '   ') * fontSize)
 				end
-
+				if selectOptionsList then
+					if WG['guishader'] then
+						WG['guishader'].removeRenderDlist(selectOptionsList)
+					end
+					glDeleteList(selectOptionsList)
+				end
 				selectOptionsList = glCreateList(function()
 					local borderSize = math.max(1, math.floor(vsy / 900))
 					RectRound(optionButtons[showSelectOptions][1] - borderSize, yPos - oHeight - oPadding - borderSize, optionButtons[showSelectOptions][1] + maxWidth + borderSize, optionButtons[showSelectOptions][2] + borderSize, (optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]) * 0.1, 1, 1, 1, 1, { 0, 0, 0, 0.25 }, { 0, 0, 0, 0.25 })
@@ -6880,7 +6894,9 @@ function widget:Shutdown()
 		WG['guishader'].RemoveRect('optionsinput')
 		WG['guishader'].RemoveScreenRect('options_select')
 		WG['guishader'].RemoveScreenRect('options_select_options')
-		WG['guishader'].removeRenderDlist(selectOptionsList)
+		if selectOptionsList then
+			WG['guishader'].removeRenderDlist(selectOptionsList)
+		end
 	end
 	if selectOptionsList then
 		glDeleteList(selectOptionsList)
