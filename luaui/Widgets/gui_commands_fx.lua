@@ -34,6 +34,7 @@ local CMD_RESURRECT = CMD.RESURRECT -- icon unit feature or area
 -- local CMD_SET_TARGET = GameCMD.UNIT_SET_TARGET -- custom command, doesn't go through UnitCommand
 local CMD_UNLOAD_UNIT = CMD.UNLOAD_UNIT -- icon map
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS -- icon  unit or area
+local CMD_TRANSPORT_TO = CMD.TRANSPORT_TO -- icon map
 local BUILD = -1
 
 local diag = math.diag
@@ -201,6 +202,11 @@ local CONFIG = {
 		colour = { 1.0, 0.8, 0.0, 0.25 },
 	},
 	[CMD_UNLOAD_UNITS] = {
+		sizeMult = 1,
+		endSize = 0.2,
+		colour = { 1.0, 0.8, 0.0, 0.25 },
+	},
+	[CMD_TRANSPORT_TO] = {
 		sizeMult = 1,
 		endSize = 0.2,
 		colour = { 1.0, 0.8, 0.0, 0.25 },
