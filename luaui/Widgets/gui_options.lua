@@ -1111,7 +1111,7 @@ function widget:RecvLuaMsg(msg, playerID)
 				pauseGameWhenSingleplayerExecuted = chobbyInterface
 			end
 			if not chobbyInterface then
-				Spring.SetConfigInt('VSync', Spring.GetConfigInt("VSyncGame", -1))
+				Spring.SetConfigInt('VSync', Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1))
 			end
 		end
 	end
@@ -6020,7 +6020,7 @@ function init()
 		detectWater()
 
 		-- set vsync
-		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
+		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1))
 	end
 	if not waterDetected then
 		Spring.SendCommands("water 0")
