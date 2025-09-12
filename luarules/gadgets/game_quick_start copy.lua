@@ -183,6 +183,56 @@ local function getBuildInstanceID(unitDefID, x, y)
 	return unitDefID .. "_" .. x .. "_" .. y
 end
 
+local function initializeCommanderWithQuickStartResources(commanderID, teamID)
+	if not spValidUnitID(commanderID) or spGetUnitIsDead(commanderID) then
+		return
+	end
+	
+	local currentMetal = spGetTeamResources(teamID, "metal") or 0
+	local currentEnergy = spGetTeamResources(teamID, "energy") or 0
+	local juice = QUICK_START_COST_METAL + BONUS_METAL + (QUICK_START_COST_ENERGY + BONUS_ENERGY) / ENERGY_VALUE_CONVERSION_DIVISOR
+	spSetGameRulesParam(GAME_RULES_BASE_KEY, juice)
+	
+	local isHuman = false
+	if GG and GG.PowerLib and GG.PowerLib.HumanTeams then
+		isHuman = GG.PowerLib.HumanTeams[teamID] == true
+	end
+	
+	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
+	local directionX = MAP_CENTER_X - commanderX
+	local directionZ = MAP_CENTER_Z - commanderZ
+	local angle = math.atan2(directionX, directionZ)
+	local defaultFacing = math.floor((angle / (math.pi / 2)) + 0.5) % 4
+
+	local commanderDefID = spGetUnitDefID(commanderID)
+	local commanderName = UnitDefs[commanderDefID].name
+	local isInWater = commanderY < 0
+
+	commanders[commanderID] = {
+		teamID = teamID,
+		juice = juice,
+		factoryMade = false,
+		thingsMade = {windmill = 0, mex = 0, converter = 0, solar = 0, tidal = 0, floatingConverter = 0, factory = 0},
+		isHuman = isHuman,
+		defaultFacing = defaultFacing,
+		isInWater = isInWater,
+		hasFactoryInQueue = false,
+		commanderName = commanderName,
+		nonLabOptions = commanderNonLabOptions[commanderName],
+		buildQuotas = {
+			mex = 4,
+			windmill = isInWater and 0 or (isGoodWind and 4 or 0),
+			converter = isInWater and 0 or 2,
+			solar = isInWater and 0 or (isGoodWind and 1 or 4),
+			tidal = isInWater and 6 or 0,
+			floatingConverter = isInWater and 2 or 0,
+		}
+	}
+	
+	spSetTeamResource(teamID, "metal", math.max(0, currentMetal - QUICK_START_COST_METAL))
+	spSetTeamResource(teamID, "energy", math.max(0, currentEnergy - QUICK_START_COST_ENERGY))
+end
+
 local function getCommanderBuildQueue(commanderID)
 	local spawnQueue = {}
 	local comData = commanders[commanderID]
@@ -422,16 +472,40 @@ local function addFactoryBuild(commanderID)
 			end
 		end
 	end
+
+	local buildX, buildZ = getBuildSpace(commanderID, "factory", {{comData.spawnX, comData.spawnZ}}, nil)
+	if not buildX then return end
+	table.insert(comData.spawnQueue, 1, {id = unitDefNames[selectedFactory].id, x = buildX, z = buildZ, facing = comData.defaultFacing or 0})
+end
+
+local function selectRandomOptionByWeight(weightedOptions)
+	local totalWeight = 0
+	for _, weight in pairs(weightedOptions) do
+		totalWeight = totalWeight + weight
+	end
 	
-	local factoryNode = comData.baseNodes.factory
+	local randomValue = math.random() * totalWeight
+	local currentWeight = 0
+	
+	for optionName, weight in pairs(weightedOptions) do
+		currentWeight = currentWeight + weight
+		if randomValue <= currentWeight then
+			return optionName
+		end
+	end
+	
+	return nil
+end
 
-	getBuildSpace(commanderID, "factory", {{comData.spawnX, comData.spawnZ}}, nil)
-	local buildDefID = unitDefNames[selectedFactory].id
-	local buildX = factoryNode.x
-	local buildZ = factoryNode.z
-	local facing = comData.defaultFacing or 0
-
-	table.insert(comData.spawnQueue, 1, {id = buildDefID, x = buildX, z = buildZ, facing = facing})
+local function generateBuildCommands(commanderID)
+	local comData = commanders[commanderID]
+	local com
+	for i = 1, 10 do
+		local option = selectRandomOptionByWeight(baseBuildOptionWeights)
+		if option then
+			table.insert(comData.spawnQueue, 1, {id = unitDefNames[option].id, x = comData.spawnX, z = comData.spawnZ, facing = comData.defaultFacing or 0})
+		end
+	end
 end
 
 local function tryToSpawnBuild(commanderID, buildDefID, buildX, buildZ, facing)
@@ -472,6 +546,7 @@ function gadget:GameFrame(frame)
 	if not initialized and frame > PREGAME_DELAY_FRAMES then
 		initialized = true
 		running = true
+		initializeCommanderWithQuickStartResources()
 		for commanderID, comData in pairs(commanders) do
 			comData.spawnX, comData.spawnY, comData.spawnZ = spGetUnitPosition(commanderID)
 			comData.spawnQueue = getCommanderBuildQueue(commanderID) --returns list of build order items. Must be scrubbed of things out of range.
