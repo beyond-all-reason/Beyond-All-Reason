@@ -1168,9 +1168,14 @@ function gadgetHandler:GameFrame(frameNum)
 end
 
 function gadgetHandler:GameFramePost(frameNum)
+	callinDepth = 1 -- See notes on GameFrame.
+	tracy.ZoneBeginN("G:GameFramePost")
 	for _, g in r_ipairs(self.GameFramePostList) do
+		tracy.ZoneBeginN("G:GameFramePost:" .. g.ghInfo.name)
 		g:GameFramePost(frameNum)
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 end
 
 function gadgetHandler:GamePaused(playerID, paused)
