@@ -18,6 +18,7 @@ local DonatorAINames = {
     "Anteep", --$40
     "badosu",
     "BiFuriousGeorge",
+    "Blickter", --$50
     "bobc7",
     "BoT0x",
     "Canyoudigit84",
