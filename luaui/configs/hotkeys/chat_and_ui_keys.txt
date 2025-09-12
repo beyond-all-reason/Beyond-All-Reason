@@ -12,7 +12,12 @@ bind                esc  customgameinfo_close
 bind                esc  buildmenu_pregame_deselect
 bind      Alt+backspace  fullscreen
 
-// common selectbox keys
+
+// common widget modifiers
+//_
+
+//   selectbox
+//___
 bind           Any+sc_z  selectbox_same     // select only units that share type with current selection modifier | Smart Select Widget
 bind          Any+space  selectbox_idle     // select only idle units modifier | Smart Select Widget
 bind          Any+shift  selectbox_append   // append to selection modifier | Smart Select Widget
@@ -24,9 +29,29 @@ bind          Any+space  selectloop         // activate select shape | Loop Sele
 bind           Any+ctrl  selectloop_invert  // select units not present in current selection modifier | Loop Select Widget
 bind          Any+shift  selectloop_add     // add to selection modifier | Loop Select Widget
 
+//   buildsplit
+//___
 bind          Any+space  buildsplit         // activate build split mode (distribute orders between selected builders) | Build Split Widget
 
-// commandinsert keys
+//   show
+//___
+
+//     blast
+//_____
+
+// NOTE: Dumbass engine derps because when meta == space it does meta+shift+space
+// (adds the modifier)
+// See: https://github.com/beyond-all-reason/RecoilEngine/pull/1074
+bind any+space show blast next_queued_building
+bind meta+sc_x show blast selected
+
+//     orders
+//_____
+bind any+space show orders
+
+
+//   commandinsert
+//___
 bind          Any+space  commandinsert prepend_between // prepend command into the queue between 2 commands close to cursor
 // bind          Any+space  commandinsert prepend_queue // prepend command into a separate prepend queue until key released
 
