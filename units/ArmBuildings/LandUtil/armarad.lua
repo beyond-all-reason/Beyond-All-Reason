@@ -34,6 +34,7 @@ return {
 		usepiececollisionvolumes = 0,
 		yardmap = "oooo",
 		customparams = {
+			advancedradarwobblereduction = 0.875,
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 3.6,
 			buildinggrounddecalsizey = 3.6,
