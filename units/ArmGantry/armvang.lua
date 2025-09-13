@@ -22,7 +22,7 @@ return {
 		maxslope = 17,
 		maxwaterdepth = 0,
 		metalcost = 3300,
-		movementclass = "HTBOT4",
+		movementclass = "HTBOT6",
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMVANG.s3o",
