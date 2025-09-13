@@ -32,7 +32,7 @@ local spPos2BuildPos = Spring.Pos2BuildPos
 local spSpawnCEG = Spring.SpawnCEG
 
 local FACTORY_DISCOUNT_MULTIPLIER = 0.90
-local FACTORY_DISCOUNT = 0
+local FACTORY_DISCOUNT = math.huge
 local BONUS_METAL = 450
 local BONUS_ENERGY = 2500
 local QUICK_START_COST_METAL = 800
@@ -50,7 +50,6 @@ local MAP_CENTER_Z = Game.mapSizeZ / 2
 local TEAM_RULES_FACTORY_PLACED_KEY = "quickStartFactoryPlaced"
 local GAME_RULES_BASE_KEY = "quickStartJuiceBase"
 
-local factoryRequired = modOptions.quick_start == "labs_required"
 local isGoodWind = false
 local isMetalMap = false
 local metalSpotsList = nil
@@ -70,28 +69,29 @@ local unitDefNames = UnitDefNames
 local optionDefIDToTypes = {}
 local factoryDiscounts = {}
 
-
-local commanderLandLabs = {
-	armcom = {
-		labs = { armlab = 0.3, armvp = 0.3, armap = 0.1 }
-	},
-	corcom = {
-		labs = { corlab = 0.3, corvp = 0.3, corap = 0.1 }
-	},
-	legcom = {
-		labs = { leglab = 0.3, legvp = 0.3, legap = 0.1 }
-	}
-}
-
-local commanderSeaLabs = {
-	armcom = { armsy = 1 },
-	corcom = { corsy = 1 },
-	legcom = { legsy = 1 },
+local discountableFactories = {
+	armlab = true,
+	armvp = true,
+	armap = true,
+	armsy = true,
+	armhp = true,
+	armfhp = true,
+	corlab = true,
+	corvp = true,
+	corap = true,
+	corsy = true,
+	corhp = true,
+	corfhp = true,
+	leglab = true,
+	legvp = true,
+	legap = true,
+	legsy = true,
+	leghp = true,
+	legfhp = true,
 }
 
 local commanderNonLabOptions = {
 	armcom = { 
-		defaultFactory = "armlab",
 		windmill = "armwin", --zzz need to store the types on the com
 		mex = "armmex",
 		converter = "armmakr",
@@ -100,7 +100,6 @@ local commanderNonLabOptions = {
 		floatingConverter = "armfmkr",
 	},
 	corcom = {
-		defaultFactory = "corlab",
 		windmill = "corwin",
 		mex = "cormex",
 		converter = "cormakr",
@@ -109,7 +108,6 @@ local commanderNonLabOptions = {
 		floatingConverter = "corfmkr",
 	},
 	legcom = {
-		defaultFactory = "leglab",
 		windmill = "legwin",
 		mex = "legmex",
 		converter = "legeconv",
@@ -120,7 +118,6 @@ local commanderNonLabOptions = {
 }
 
 local optionsToNodeType = {
-	defaultFactory = "factory",
 	windmill = "other",
 	mex = "other",
 	converter = "converters",
@@ -130,20 +127,11 @@ local optionsToNodeType = {
 }
 
 
-local commanderAllLabs = {}
-for commanderName, landData in pairs(commanderLandLabs) do
-	commanderAllLabs[commanderName] = {}
-	for labName, weight in pairs(landData.labs) do
-		commanderAllLabs[commanderName][labName] = weight
-	end
-	for labName, weight in pairs(commanderSeaLabs[commanderName]) do
-		commanderAllLabs[commanderName][labName] = weight
-	end
-end
 for unitDefID, unitDef in pairs(unitDefs) do
 	--compile juice costs for all unit defs
 	local metalCost, energyCost = unitDef.metalCost or 1, unitDef.energyCost or 1
 	defJuices[unitDefID] = 	metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
+	Spring.Echo(unitDef.name, defJuices[unitDefID])
 
 	--for metal extractor detection
 	if unitDef.extractsMetal > 0 then
@@ -154,12 +142,11 @@ for unitDefID, unitDef in pairs(unitDefs) do
 		boostableCommanders[unitDefID] = true
 	end
 end
-for commanderName, labs in pairs(commanderAllLabs) do
-	if unitDefNames[commanderName] then
-	for labName, weight in pairs(labs) do
-		local unitDefID = unitDefNames[labName].id
-		FACTORY_DISCOUNT = math.min(FACTORY_DISCOUNT, defJuices[unitDefID] * FACTORY_DISCOUNT_MULTIPLIER)
-		end
+for name, _ in pairs(discountableFactories) do
+	if unitDefNames[name] then
+	local labJuice = defJuices[unitDefNames[name].id]
+		FACTORY_DISCOUNT = math.min(FACTORY_DISCOUNT, labJuice * FACTORY_DISCOUNT_MULTIPLIER)
+		Spring.Echo(name, "factoryDiscount:", FACTORY_DISCOUNT)
 	end
 end
 for commanderName, nonLabOptions in pairs(commanderNonLabOptions) do
@@ -184,6 +171,8 @@ local function initializeCommander(commanderID, teamID)
 	local juice = QUICK_START_COST_METAL + BONUS_METAL + (QUICK_START_COST_ENERGY + BONUS_ENERGY) / ENERGY_VALUE_CONVERSION_DIVISOR
 	Spring.SetGameRulesParam(GAME_RULES_BASE_KEY, juice)
 	
+	factoryDiscounts[teamID] = false
+
 	local isHuman = false
 	if GG and GG.PowerLib and GG.PowerLib.HumanTeams then
 		isHuman = GG.PowerLib.HumanTeams[teamID] == true
@@ -206,18 +195,13 @@ local function initializeCommander(commanderID, teamID)
 	commanders[commanderID] = {
 		teamID = teamID,
 		juice = juice,
-		factoryMade = false,
 		thingsMade = {windmill = 0, mex = 0, converter = 0, solar = 0, tidal = 0, floatingConverter = 0, factory = 0},
 		isHuman = isHuman,
 		defaultFacing = defaultFacing,
 		isInWater = isInWater,
-		hasFactoryInQueue = false,
 		commanderName = commanderName,
 		buildDefs = buildDefs,
 		buildPlots = {
-			factory = {
-				originX = commanderX, originZ = commanderZ, indexX = 0, indexZ = 0, skipDirection = "x"
-			},
 			converters = {
 				originX = commanderX, originZ = commanderZ, indexX = 0, indexZ = 0, skipDirection = "x"
 			},
@@ -353,7 +337,6 @@ local function getBuildSpace(commanderID, option, noGoZones, testParams)
 						else
 							plotData.indexX = pos.offsetX
 							plotData.indexZ = pos.offsetZ
-							Spring.Echo("DEBOOG: position success snappedX", snappedX, "snappedZ", snappedZ)
 							return snappedX, snappedZ
 						end
 					end
@@ -392,7 +375,7 @@ local function generateBaseNodes(commanderID)
 	local validNodes = {}
 	
 	for i, node in ipairs(baseNodes) do
-		local testResult = getBuildSpace(commanderID, "defaultFactory", {{x = comData.spawnX, z = comData.spawnZ, distance = 100}}, {originX = node.x, originZ = node.z, maxDistance = BUILD_SPACING * 2})
+		local testResult = getBuildSpace(commanderID, "windmill", {{x = comData.spawnX, z = comData.spawnZ, distance = 100}}, {originX = node.x, originZ = node.z, maxDistance = BUILD_SPACING * 2})
 		if testResult >= 5 then
 			local distanceToCenter = math.distance2d(node.x, node.z, MAP_CENTER_X, MAP_CENTER_Z)
 			node.distanceToCenter = distanceToCenter
@@ -402,26 +385,10 @@ local function generateBaseNodes(commanderID)
 	end
 	
 	if #validNodes < 3 then
-		Spring.Echo("DEBOOG: generateBaseNodes - not enough valid nodes:", #validNodes)
 		return
 	end
 	
-	local factoryNode = nil
-	local closestDistance = math.huge
-	
-	for i, node in ipairs(validNodes) do
-		if node.distanceToCenter < closestDistance then
-			closestDistance = node.distanceToCenter
-			factoryNode = node
-		end
-	end
-	
-	local remainingNodes = {}
-	for i, node in ipairs(validNodes) do
-		if node ~= factoryNode then
-			table.insert(remainingNodes, node)
-		end
-	end
+	local remainingNodes = validNodes
 	
 	local bestPair = nil
 	local bestPairScore = 0
@@ -476,13 +443,11 @@ local function generateBaseNodes(commanderID)
 		end
 	end
 
-	if not bestPair or not factoryNode then 
-		Spring.Echo("DEBOOG: generateBaseNodes - no best pair or factory node. bestPair:", bestPair, "factoryNode:", factoryNode)
+	if not bestPair then 
 		return 
 	end
 
 	local result = { 
-		factory = factoryNode,
 		other = bestPair[1],
 		converters = bestPair[2]
 	}
@@ -548,39 +513,6 @@ local function filterOverlappingMexes() --zzz untested
 	end
 end
 
-local function addFactoryBuild(commanderID)
-	local comData = commanders[commanderID]
-	local commanderName = comData.commanderName
-	local availableOptions = commanderAllLabs[commanderName]
-	local selectedFactory = "armlab"
-	
-	if availableOptions then
-		local totalWeight = 0
-		local weightedOptions = {}
-		
-		for labName, weight in pairs(availableOptions) do
-			totalWeight = totalWeight + weight
-			table.insert(weightedOptions, {name = labName, weight = weight})
-		end
-		
-		if totalWeight > 0 then
-			local randomValue = math.random() * totalWeight
-			local currentWeight = 0
-			
-			for _, option in ipairs(weightedOptions) do
-				currentWeight = currentWeight + option.weight
-				if randomValue <= currentWeight then
-					selectedFactory = option.name
-					break
-				end
-			end
-		end
-	end
-
-	local buildX, buildZ = getBuildSpace(commanderID, "defaultFactory", {{x = comData.spawnX, z = comData.spawnZ, distance = 100}}, nil)
-	if not buildX then return end
-	table.insert(comData.spawnQueue, 1, {id = unitDefNames[selectedFactory].id, x = buildX, z = buildZ, facing = comData.defaultFacing or 0})
-end
 
 local function generateBuildCommands(commanderID)
 	local comData = commanders[commanderID]
@@ -624,7 +556,7 @@ end
 
 local function tryToSpawnBuild(commanderID, buildDefID, buildX, buildZ, facing)
 	local unitDef, comData, buildProgress = unitDefs[buildDefID], commanders[commanderID], 0
-	local discount = factoryRequired and not comData.factoryMade and FACTORY_DISCOUNT or 0
+	local discount = unitDef.isFactory and FACTORY_DISCOUNT or 0
 	local juiceCost = defJuices[buildDefID] - discount
 	if juiceCost > comData.juice then return false, nil end
 
@@ -641,7 +573,7 @@ local function tryToSpawnBuild(commanderID, buildDefID, buildX, buildZ, facing)
 	
 	if unitDef.isFactory then
 		Spring.SetTeamRulesParam(comData.teamID, TEAM_RULES_FACTORY_PLACED_KEY, 1)
-		comData.thingsMade.factory = comData.thingsMade.factory + 1
+		comData.thingsMade.factory = (comData.thingsMade.factory or 0) + 1
 	else
 		local optionName = optionDefIDToTypes[buildDefID]
 		if optionName then
@@ -680,10 +612,8 @@ function gadget:GameFrame(frame)
 			comData.baseNodes = generateBaseNodes(commanderID)
 			if not comData.baseNodes then
 				Spring.Echo("DEBOOG: generateBaseNodes returned nil for commander", commanderID)
-				comData.baseNodes = {factory = {x = comData.spawnX, z = comData.spawnZ}}
+				comData.baseNodes = {other = {x = comData.spawnX, z = comData.spawnZ}, converters = {x = comData.spawnX, z = comData.spawnZ}}
 			else
-				comData.buildPlots.factory.originX = comData.baseNodes.factory.x
-				comData.buildPlots.factory.originZ = comData.baseNodes.factory.z
 				comData.buildPlots.other.originX = comData.baseNodes.other.x
 				comData.buildPlots.other.originZ = comData.baseNodes.other.z
 				comData.buildPlots.converters.originX = comData.baseNodes.converters.x
@@ -707,9 +637,6 @@ function gadget:GameFrame(frame)
 				for i, build in ipairs(comData.spawnQueue) do
 					local nogoZones = {}
 					table.insert(nogoZones, {x = comData.spawnX, z = comData.spawnZ, distance = 100})
-					if comData.baseNodes and comData.baseNodes.factory then
-						table.insert(nogoZones, {x = comData.baseNodes.factory.x, z = comData.baseNodes.factory.z, distance = 100})
-					end
 					
 					local optionType = optionDefIDToTypes[build.id]
 					if optionType ~= "mex" then
@@ -736,9 +663,6 @@ function gadget:GameFrame(frame)
 		end
 		for commanderID, comData in pairs (commanders) do
 			if comData.juice > 0 then
-				if not comData.isHuman and not comData.factoryBuilt then
-					addFactoryBuild(commanderID)
-				end
 				generateBuildCommands(commanderID)
 			end
 			if #comData.spawnQueue > 0 then
@@ -750,8 +674,9 @@ function gadget:GameFrame(frame)
 		end
 	end
 
-	local allDiscountsUsed = true
+	local allDiscountsUsed = false
 	if frame % UPDATE_FRAMES == 0 then
+		allDiscountsUsed = true
 		for teamID, used in pairs(factoryDiscounts) do
 			if not used then
 				allDiscountsUsed = false
@@ -760,6 +685,7 @@ function gadget:GameFrame(frame)
 		end
 	end
 	if initialized and allDiscountsUsed and not running then
+		Spring.Echo("removeGadget", initialized, allDiscountsUsed, running)
 		gadgetHandler:RemoveGadget()
 	end
 end
@@ -773,7 +699,9 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if boostableCommanders[unitDefID] then
 		queuedCommanders[unitID] = unitTeam
 	end
-	if factoryRequired and not factoryDiscounts[unitTeam] and unitDefs[unitDefID].isFactory and commanders[builderID] then
+
+	if not factoryDiscounts[unitTeam] and discountableFactories[unitDefs[unitDefID].name] and commanders[builderID] then
+		Spring.Echo("factory built", unitID, unitTeam)
 		factoryDiscounts[unitTeam] = true
 		Spring.SetTeamRulesParam(unitTeam, TEAM_RULES_FACTORY_PLACED_KEY, 1)
 		
