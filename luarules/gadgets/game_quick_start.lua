@@ -46,7 +46,6 @@ local UPDATE_FRAMES = Game.gameSpeed
 local PREGAME_DELAY_FRAMES = 61 --after gui_pregame_build.lua is loaded
 local MAP_CENTER_X = Game.mapSizeX / 2
 local MAP_CENTER_Z = Game.mapSizeZ / 2
-local TEST_NOGO_DISTANCE = 100
 
 local TEAM_RULES_FACTORY_PLACED_KEY = "quickStartFactoryPlaced"
 local GAME_RULES_BASE_KEY = "quickStartJuiceBase"
@@ -55,8 +54,8 @@ local factoryRequired = modOptions.quick_start == "labs_required"
 local isGoodWind = false
 local isMetalMap = false
 local metalSpotsList = nil
-local BUILD_SPACING = 64
-local SKIP_STEP = 4
+local BUILD_SPACING = 48
+local SKIP_STEP = 3
 local running = false
 local initialized = false
 
@@ -229,7 +228,8 @@ local function initializeCommander(commanderID, teamID)
 		buildQuotas = { 
 		mex = 4, windmill = isInWater and 0 or (isGoodWind and 4 or 0), converter = isInWater and 0 or 2, 
 		solar = isInWater and 0 or (isGoodWind and 1 or 4), tidal = isInWater and 6 or 0, floatingConverter = isInWater and 2 or 0 
-		}
+		},
+		nearbyMexes = {}
 	}
 	
 	Spring.SetTeamResource(teamID, "metal", math.max(0, currentMetal - QUICK_START_COST_METAL))
@@ -274,9 +274,7 @@ local function getBuildSpace(commanderID, option, noGoZones, testParams)
 		indexZ = testParams.indexZ or 0
 		skipDirection = testParams.skipDirection or plotData.skipDirection
 		maxOffset = testParams.maxDistance or MAX_SPACE_DISTANCE
-		Spring.Echo("DEBOOG: testParams.maxDistance", testParams.maxDistance, "MAX_SPACE_DISTANCE", MAX_SPACE_DISTANCE, "maxOffset", maxOffset)
 	else
-		Spring.Echo("DEBOOG: non test", "nodeType", nodeType, "plotData", plotData, "option", option, "noGoZones", noGoZones)
 		originX, originZ, indexX, indexZ = plotData.originX, plotData.originZ, plotData.indexX, plotData.indexZ
 		skipDirection = plotData.skipDirection
 		maxOffset = MAX_SPACE_DISTANCE
@@ -302,48 +300,61 @@ local function getBuildSpace(commanderID, option, noGoZones, testParams)
 		end
 	end
 	
+	local gridPositions = {}
 	for offsetX = -maxOffset, maxOffset, BUILD_SPACING do
 		local absOffsetX = math.abs(offsetX)
 		if absOffsetX > maxOffset then
 			break
 		end
-			for offsetZ = -maxOffset, maxOffset, BUILD_SPACING do
-				if not testParams or not (offsetX < indexX or (offsetX == indexX and offsetZ < indexZ)) then
-				local shouldSkip = false
-				if skipDirection == "x" then
-					local columnIndex = (offsetZ + maxOffset) / BUILD_SPACING
-					shouldSkip = (columnIndex % SKIP_STEP) == 0
-				elseif skipDirection == "z" then
-					local rowIndex = (offsetX + maxOffset) / BUILD_SPACING
-					shouldSkip = (rowIndex % SKIP_STEP) == 0
+		for offsetZ = -maxOffset, maxOffset, BUILD_SPACING do
+			local testX = originX + offsetX
+			local testZ = originZ + offsetZ
+			local distanceToOrigin = math.distance2d(testX, testZ, originX, originZ)
+			table.insert(gridPositions, {
+				offsetX = offsetX,
+				offsetZ = offsetZ,
+				testX = testX,
+				testZ = testZ,
+				distance = distanceToOrigin
+			})
+		end
+	end
+	
+	table.sort(gridPositions, function(a, b) return a.distance < b.distance end)
+	
+	for _, pos in ipairs(gridPositions) do
+		if not testParams or not (pos.offsetX < indexX or (pos.offsetX == indexX and pos.offsetZ < indexZ)) then
+			local shouldSkip = false
+			if skipDirection == "x" then
+				local columnIndex = (pos.offsetZ + maxOffset) / BUILD_SPACING
+				shouldSkip = (columnIndex % SKIP_STEP) == 0
+			elseif skipDirection == "z" then
+				local rowIndex = (pos.offsetX + maxOffset) / BUILD_SPACING
+				shouldSkip = (rowIndex % SKIP_STEP) == 0
+			end
+			
+			if not shouldSkip then
+				local tooCloseToNoGo = false
+				for _, noGoZone in ipairs(noGoZones) do
+					local distance = math.distance2d(pos.testX, pos.testZ, noGoZone.x, noGoZone.z)
+					if distance <= noGoZone.distance then
+						tooCloseToNoGo = true
+						break
+					end
 				end
 				
-				if not shouldSkip then
-					local testX = originX + offsetX
-					local testZ = originZ + offsetZ
-					
-					local tooCloseToNoGo = false
-					for _, noGoZone in ipairs(noGoZones) do
-						local distance = math.distance2d(testX, testZ, noGoZone.x, noGoZone.z)
-						if distance <= TEST_NOGO_DISTANCE then
-							tooCloseToNoGo = true
-							break
-						end
-					end
-					
-					if not tooCloseToNoGo then
-						local searchY = spGetGroundHeight(testX, testZ)
-						local snappedX, snappedY, snappedZ = spPos2BuildPos(buildDefID, testX, searchY, testZ)
-						local validPlot = snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, 0) > 0
-						if validPlot then
-							if testParams then
-								testSuccesses = testSuccesses + 1
-							else
-								plotData.indexX = offsetX
-								plotData.indexZ = offsetZ
-								Spring.Echo("DEBOOG: position success snappedX", snappedX, "snappedZ", snappedZ)
-								return snappedX, snappedZ
-							end
+				if not tooCloseToNoGo then
+					local searchY = spGetGroundHeight(pos.testX, pos.testZ)
+					local snappedX, snappedY, snappedZ = spPos2BuildPos(buildDefID, pos.testX, searchY, pos.testZ)
+					local validPlot = snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, 0) > 0
+					if validPlot then
+						if testParams then
+							testSuccesses = testSuccesses + 1
+						else
+							plotData.indexX = pos.offsetX
+							plotData.indexZ = pos.offsetZ
+							Spring.Echo("DEBOOG: position success snappedX", snappedX, "snappedZ", snappedZ)
+							return snappedX, snappedZ
 						end
 					end
 				end
@@ -378,56 +389,70 @@ local function generateBaseNodes(commanderID)
 		}
 	end
 	
-	local maxDistance = 0
-	local minDistance = math.huge
-	local goodNodes = {}
+	local validNodes = {}
 	
 	for i, node in ipairs(baseNodes) do
-		local testResult = getBuildSpace(commanderID, "defaultFactory", {{x = comData.spawnX, z = comData.spawnZ}}, {originX = node.x, originZ = node.z, maxDistance = BUILD_SPACING * 2})
-		Spring.Echo("DEBOOG: testResult", testResult, "node.isBad", node.isBad)
-		if testResult < 5 then
-			node.isBad = true
-		else
+		local testResult = getBuildSpace(commanderID, "defaultFactory", {{x = comData.spawnX, z = comData.spawnZ, distance = 100}}, {originX = node.x, originZ = node.z, maxDistance = BUILD_SPACING * 2})
+		if testResult >= 5 then
 			local distanceToCenter = math.distance2d(node.x, node.z, MAP_CENTER_X, MAP_CENTER_Z)
 			node.distanceToCenter = distanceToCenter
-			maxDistance = math.max(maxDistance, distanceToCenter)
-			minDistance = math.min(minDistance, distanceToCenter)
-			table.insert(goodNodes, node)
+			node.score = testResult
+			table.insert(validNodes, node)
 		end
-		Spring.Echo("DEBOOG: testResult", testResult, "node.isBad", node.isBad)
 	end
 	
-	if #goodNodes < 2 then
+	if #validNodes < 3 then
+		Spring.Echo("DEBOOG: generateBaseNodes - not enough valid nodes:", #validNodes)
 		return
 	end
 	
-	local highestWeight = 0
-	local factoryNodeIndex = 0
+	local factoryNode = nil
+	local closestDistance = math.huge
 	
-	for i, node in ipairs(goodNodes) do
-		node.distanceWeight = 1 - (0.25 * (node.distanceToCenter - minDistance) / (maxDistance - minDistance))
-		
-		if node.distanceWeight > highestWeight then
-			highestWeight = node.distanceWeight
-			factoryNodeIndex = i
+	for i, node in ipairs(validNodes) do
+		if node.distanceToCenter < closestDistance then
+			closestDistance = node.distanceToCenter
+			factoryNode = node
 		end
-		
-		local testResult = getBuildSpace(commanderID, "defaultFactory", {}, {originX = node.x, originZ = node.z, maxDistance = MAX_SPACE_DISTANCE})
-		node.score = testResult * node.distanceWeight
 	end
 	
-	local factoryNode = nil
-	if factoryNodeIndex > 0 then
-		factoryNode = goodNodes[factoryNodeIndex]
-		table.remove(goodNodes, factoryNodeIndex)
+	local remainingNodes = {}
+	for i, node in ipairs(validNodes) do
+		if node ~= factoryNode then
+			table.insert(remainingNodes, node)
+		end
 	end
 	
 	local bestPair = nil
 	local bestPairScore = 0
-	for i = 1, #goodNodes - 1 do
-		for j = i + 1, #goodNodes do
-			local node1 = goodNodes[i]
-			local node2 = goodNodes[j]
+	
+	-- First try to find adjacent nodes (they should be next to each other in the circle)
+	for i = 1, #remainingNodes do
+		local node1 = remainingNodes[i]
+		local nextIndex = (i % #remainingNodes) + 1
+		local node2 = remainingNodes[nextIndex]
+		
+		-- Check if these nodes are actually adjacent in the original circle
+		local node1OriginalIndex = nil
+		local node2OriginalIndex = nil
+		
+		for j, originalNode in ipairs(baseNodes) do
+			if originalNode.x == node1.x and originalNode.z == node1.z then
+				node1OriginalIndex = j
+			end
+			if originalNode.x == node2.x and originalNode.z == node2.z then
+				node2OriginalIndex = j
+			end
+		end
+		
+		-- Check if nodes are adjacent in the original 8-node circle
+		local isAdjacent = false
+		if node1OriginalIndex and node2OriginalIndex then
+			local diff = math.abs(node1OriginalIndex - node2OriginalIndex)
+			isAdjacent = diff == 1 or diff == 7 -- adjacent in 8-node circle
+		end
+		
+		if isAdjacent then
 			local pairScore = node1.score + node2.score
 			if pairScore > bestPairScore then
 				bestPairScore = pairScore
@@ -435,18 +460,59 @@ local function generateBaseNodes(commanderID)
 			end
 		end
 	end
-
-	if not bestPair or not factoryNode then return end
-
-	local result = { factory = factoryNode }
-	if bestPair[1].score > bestPair[2].score then
-		result.other = bestPair[1]
-		result.converters = bestPair[2]
-	else
-		result.other = bestPair[2]
-		result.converters = bestPair[1]
+	
+	-- If no adjacent pair found, fall back to best scoring pair
+	if not bestPair then
+		for i = 1, #remainingNodes - 1 do
+			for j = i + 1, #remainingNodes do
+				local node1 = remainingNodes[i]
+				local node2 = remainingNodes[j]
+				local pairScore = node1.score + node2.score
+				if pairScore > bestPairScore then
+					bestPairScore = pairScore
+					bestPair = {node1, node2}
+				end
+			end
+		end
 	end
+
+	if not bestPair or not factoryNode then 
+		Spring.Echo("DEBOOG: generateBaseNodes - no best pair or factory node. bestPair:", bestPair, "factoryNode:", factoryNode)
+		return 
+	end
+
+	local result = { 
+		factory = factoryNode,
+		other = bestPair[1],
+		converters = bestPair[2]
+	}
 	return result
+end
+
+local function populateNearbyMexes(commanderID)
+	local comData = commanders[commanderID]
+	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
+	
+	comData.nearbyMexes = {}
+	
+	if not isMetalMap or not metalSpotsList then
+		return
+	end
+	
+	for i = 1, #metalSpotsList do
+		local metalSpot = metalSpotsList[i]
+		if metalSpot then
+			local distance = math.distance2d(metalSpot.x, metalSpot.z, commanderX, commanderZ)
+			if distance <= INSTANT_BUILD_RANGE then
+				table.insert(comData.nearbyMexes, {
+					x = metalSpot.x,
+					y = metalSpot.y,
+					z = metalSpot.z,
+					distance = distance
+				})
+			end
+		end
+	end
 end
 
 local function filterOverlappingMexes() --zzz untested
@@ -511,7 +577,7 @@ local function addFactoryBuild(commanderID)
 		end
 	end
 
-	local buildX, buildZ = getBuildSpace(commanderID, "defaultFactory", {{x = comData.spawnX, z = comData.spawnZ}}, nil)
+	local buildX, buildZ = getBuildSpace(commanderID, "defaultFactory", {{x = comData.spawnX, z = comData.spawnZ, distance = 100}}, nil)
 	if not buildX then return end
 	table.insert(comData.spawnQueue, 1, {id = unitDefNames[selectedFactory].id, x = buildX, z = buildZ, facing = comData.defaultFacing or 0})
 end
@@ -544,26 +610,14 @@ local function generateBuildCommands(commanderID)
 				currentWeight = currentWeight + option.weight
 				if randomValue <= currentWeight then
 					selectedOption = option.name
-					Spring.Echo("buildQuota option", option.name)
 					break
 				end
 			end
 		end
 		
-		local nogoZones = {}
-		table.insert(nogoZones, {x = comData.spawnX, z = comData.spawnZ})
-		if comData.baseNodes.factory then
-			table.insert(nogoZones, {x = comData.baseNodes.factory.x, z = comData.baseNodes.factory.z})
-		end
 		tryCount = tryCount + 1
 		if selectedOption then
-			local buildX, buildZ = getBuildSpace(commanderID, selectedOption, nogoZones, nil)
-			if not buildX then
-				comData.buildQuotas[selectedOption] = 0
-				return
-			else
-				table.insert(comData.spawnQueue, 1, {id = comData.buildDefs[selectedOption]})
-			end
+			table.insert(comData.spawnQueue, 1, {id = comData.buildDefs[selectedOption]})
 		end
 	end
 end
@@ -614,6 +668,7 @@ function gadget:GameFrame(frame)
 		queuedCommanders = nil
 		for commanderID, comData in pairs(commanders) do
 			comData.spawnX, comData.spawnY, comData.spawnZ = spGetUnitPosition(commanderID)
+			populateNearbyMexes(commanderID)
 			comData.spawnQueue = getCommanderBuildQueue(commanderID) --returns list of build order items. Must be scrubbed of things out of range.
 			for i, build in ipairs(comData.spawnQueue) do
 				if math.distance2d(build.x, build.z, comData.spawnX, comData.spawnZ) > INSTANT_BUILD_RANGE then
@@ -623,7 +678,17 @@ function gadget:GameFrame(frame)
 				end
 			end
 			comData.baseNodes = generateBaseNodes(commanderID)
-			Spring.Echo("DEBOOG: baseNodes", comData.baseNodes)
+			if not comData.baseNodes then
+				Spring.Echo("DEBOOG: generateBaseNodes returned nil for commander", commanderID)
+				comData.baseNodes = {factory = {x = comData.spawnX, z = comData.spawnZ}}
+			else
+				comData.buildPlots.factory.originX = comData.baseNodes.factory.x
+				comData.buildPlots.factory.originZ = comData.baseNodes.factory.z
+				comData.buildPlots.other.originX = comData.baseNodes.other.x
+				comData.buildPlots.other.originZ = comData.baseNodes.other.z
+				comData.buildPlots.converters.originX = comData.baseNodes.converters.x
+				comData.buildPlots.converters.originZ = comData.baseNodes.converters.z
+			end
 		end
 		filterOverlappingMexes()
 	end
@@ -641,21 +706,30 @@ function gadget:GameFrame(frame)
 			for commanderID, comData in pairs (commanders) do
 				for i, build in ipairs(comData.spawnQueue) do
 					local nogoZones = {}
-					table.insert(nogoZones, {x = comData.spawnX, z = comData.spawnZ})
-					if comData.baseNodes.factory then
-						table.insert(nogoZones, {x = comData.baseNodes.factory.x, z = comData.baseNodes.factory.z})
+					table.insert(nogoZones, {x = comData.spawnX, z = comData.spawnZ, distance = 100})
+					if comData.baseNodes and comData.baseNodes.factory then
+						table.insert(nogoZones, {x = comData.baseNodes.factory.x, z = comData.baseNodes.factory.z, distance = 100})
 					end
+					
 					local optionType = optionDefIDToTypes[build.id]
+					if optionType ~= "mex" then
+						for _, mex in ipairs(comData.nearbyMexes) do
+							table.insert(nogoZones, {x = mex.x, z = mex.z, distance = BUILD_SPACING})
+						end
+					end
+					
 					local buildX, buildZ = build.x, build.z
 					if not buildX or not buildZ then
 						buildX, buildZ = getBuildSpace(commanderID, optionType, nogoZones, nil)
 					end
 					local facing = build.facing or comData.defaultFacing or 0
 					Spring.Echo("DEBOOG: buildX", buildX, "buildZ", buildZ, "facing", facing)
-					local fullyBuilt = tryToSpawnBuild(commanderID, build.id, buildX, buildZ, facing)
-					if fullyBuilt then
-						table.remove(comData.spawnQueue, 1)
-						loop = true
+					if buildX and buildZ then
+						local fullyBuilt = tryToSpawnBuild(commanderID, build.id, buildX, buildZ, facing)
+						if fullyBuilt then
+							table.remove(comData.spawnQueue, 1)
+							loop = true
+						end
 					end
 				end
 			end
