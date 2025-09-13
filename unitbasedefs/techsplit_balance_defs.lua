@@ -114,7 +114,7 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.maxacc = 0.005
 		uDef.weapondefs.cor_artillery = {
 			accuracy = 75,
-			areaofeffect = 144,
+			areaofeffect = 75,
 			avoidfeature = false,
 			cegtag = "arty-heavy",
 			craterboost = 0,
@@ -188,6 +188,7 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.weapondefs.shiva_gun.range = 475
 		uDef.weapondefs.shiva_gun.areaofeffect = 180
 		uDef.weapondefs.shiva_gun.weaponvelocity = 372
+		uDef.weapondefs.shiva_rocket.areaofeffect = 96
 		uDef.weapondefs.shiva_rocket.range = 900
 		uDef.weapondefs.shiva_rocket.reloadtime = 14
 		uDef.weapondefs.shiva_rocket.damage.default = 1500
@@ -195,6 +196,7 @@ local function techsplit_balanceTweaks(name, uDef)
 
 	if name == "armmar" then
 		uDef.health = 3920
+		uDef.weapondefs.armmech_cannon.areaofeffect = 48
 		uDef.weapondefs.armmech_cannon.range = 275
 		uDef.weapondefs.armmech_cannon.reloadtime = 1.25
 		uDef.weapondefs.armmech_cannon.damage = {
