@@ -30,7 +30,7 @@ return {
 		script = "Units/legstronghold.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
-		sightdistance = 260,
+		sightdistance = 430,
 		transportcapacity = 1,
 		transportsize = 4,
 		transportunloadmethod = 0,
