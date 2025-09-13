@@ -2,15 +2,20 @@ include("keysym.h.lua")
 
 local widget = widget ---@type Widget
 
+-- This widget exposes the following actions:
+--
+--   bind <key> show blast selected -> show blast radius of selected units
+--   bind <key> show blast next_queued_building -> show blast radius of current selected building to be built
+
 function widget:GetInfo()
 	return {
-		name      = "Blast Radius",
-		desc      = "Displays blast radius while placing buildings (META)\nand of selected units (META+X)",
-		author    = "very_bad_soldier",
-		date      = "April 7, 2009",
-		license   = "GNU GPL v2",
-		layer     = 0,
-		enabled   = true
+		name = "Blast Radius",
+		desc = "Displays blast radius",
+		author = "very_bad_soldier",
+		date = "April 7, 2009",
+		license = "GNU GPL v2",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -22,7 +27,7 @@ local blastAlphaValue = 0.5
 --------------------------------------------------------------------------------
 local blastColor = { 1.0, 0.0, 0.0 }
 local expBlastAlphaValue = 1.0
-local expBlastColor = { 1.0, 0.0, 0.0}
+local expBlastColor = { 1.0, 0.0, 0.0 }
 local explodeTag = "deathExplosion"
 local selfdTag = "selfDExplosion"
 local aoeTag = "damageAreaOfEffect"
@@ -34,43 +39,60 @@ local expCycleTime = 0.5
 
 -------------------------------------------------------------------------------
 
-local udefTab				= UnitDefs
-local weapNamTab			= WeaponDefNames
-local weapTab				= WeaponDefs
+local udefTab = UnitDefs
+local weapNamTab = WeaponDefNames
+local weapTab = WeaponDefs
 
-local spGetKeyState         = Spring.GetKeyState
-local spGetModKeyState      = Spring.GetModKeyState
-local spGetUnitDefID        = Spring.GetUnitDefID
-local spGetUnitPosition     = Spring.GetUnitPosition
-local spGetGameSeconds      = Spring.GetGameSeconds
-local spGetActiveCommand 	= Spring.GetActiveCommand
-local spGetMouseState       = Spring.GetMouseState
-local spTraceScreenRay      = Spring.TraceScreenRay
-local spEcho                = Spring.Echo
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetGameSeconds = Spring.GetGameSeconds
+local spGetActiveCommand = Spring.GetActiveCommand
+local spGetMouseState = Spring.GetMouseState
+local spTraceScreenRay = Spring.TraceScreenRay
 
-local glColor               = gl.Color
-local glLineWidth           = gl.LineWidth
-local glDepthTest           = gl.DepthTest
-local glTexture             = gl.Texture
-local glDrawGroundCircle    = gl.DrawGroundCircle
-local glPopMatrix           = gl.PopMatrix
-local glPushMatrix          = gl.PushMatrix
-local glTranslate           = gl.Translate
-local glBillboard           = gl.Billboard
+local glColor = gl.Color
+local glLineWidth = gl.LineWidth
+local glDepthTest = gl.DepthTest
+local glTexture = gl.Texture
+local glDrawGroundCircle = gl.DrawGroundCircle
+local glPopMatrix = gl.PopMatrix
+local glPushMatrix = gl.PushMatrix
+local glTranslate = gl.Translate
+local glBillboard = gl.Billboard
 
-local sqrt					= math.sqrt
-local lower                 = string.lower
+local sqrt = math.sqrt
+local lower = string.lower
 
 local font, chobbyInterface
+local showBuildings
+local showSelected
 
 -----------------------------------------------------------------------------------
 
+-- local function handleSetModifier(cmd, extra, args, data, isRepeat, isRelease, actions)
+local function handleSetModifier(_, _, args, data)
+	if args[1] ~= "blast" then
+		return
+	end
+
+	data = data or {}
+
+	if args[2] == "buildings" then
+		showBuildings = data[1]
+	elseif args[2] == "selected" then
+		showSelected = data[1]
+	end
+end
+
 function widget:Initialize()
 	widget:ViewResize()
+
+	widgetHandler:AddAction("show", handleSetModifier, { true }, "p")
+	widgetHandler:AddAction("show", handleSetModifier, { false }, "r")
 end
 
 function widget:ViewResize()
-	font = WG['fonts'].getFont(1, 1.5)
+	font = WG["fonts"].getFont(1, 1.5)
 end
 
 local selectedUnits = Spring.GetSelectedUnits()
@@ -78,23 +100,27 @@ function widget:SelectionChanged(sel)
 	selectedUnits = sel
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+-- function widget:RecvLuaMsg(msg, playerID)
+function widget:RecvLuaMsg(msg)
+	if msg:sub(1, 18) == "LobbyOverlayActive" then
+		chobbyInterface = (msg:sub(1, 19) == "LobbyOverlayActive1")
 	end
 end
 
 function widget:DrawWorld()
-	if chobbyInterface then return end
-	DrawBuildMenuBlastRange()
-
-	--hardcoded: meta + X
-	local keyPressed = spGetKeyState( KEYSYMS.X )
-	local alt,ctrl,meta,shift = spGetModKeyState()
-
-	if (meta and keyPressed) then
-		DrawBlastRadiusSelectedUnits()
+	if chobbyInterface then
+		return
 	end
+
+	if showBuildings then
+		DrawBuildMenuBlastRange()
+	end
+
+	if not showSelected then
+		return
+	end
+
+	DrawBlastRadiusSelectedUnits()
 
 	ResetGl()
 end
@@ -122,34 +148,36 @@ function ChangeBlastColor()
 
 	if not selfdCycleDir then
 		blastColor[2] = blastColor[2] - addValueSelf
-		if blastColor[2] < 0 then blastColor[2] = 0 end
+		if blastColor[2] < 0 then
+			blastColor[2] = 0
+		end
 	else
 		blastColor[2] = blastColor[2] + addValueSelf
-		if blastColor[2] > 1 then blastColor[2] = 1 end
+		if blastColor[2] > 1 then
+			blastColor[2] = 1
+		end
 	end
 
 	if not expCycleDir then
 		expBlastColor[2] = expBlastColor[2] - addValueExp
-		if expBlastColor[2] < 0 then expBlastColor[2] = 0 end
+		if expBlastColor[2] < 0 then
+			expBlastColor[2] = 0
+		end
 	else
 		expBlastColor[2] = expBlastColor[2] + addValueExp
-		if expBlastColor[2] > 1 then expBlastColor[2] = 1 end
+		if expBlastColor[2] > 1 then
+			expBlastColor[2] = 1
+		end
 	end
 
 	lastColorChangeTime = time
 end
 
 function DrawBuildMenuBlastRange()
-
 	--check if build command
 	local _, cmd_id, cmd_type, _ = spGetActiveCommand()
-	if not cmd_id or cmd_type ~= 20 then
-		return
-	end
 
-	--check if META is pressed
-	local _,_,meta,_ = spGetModKeyState()
-	if not meta then --and keyPressed) then
+	if not cmd_id or cmd_type ~= CMDTYPE.ICON_BUILDING then
 		return
 	end
 
@@ -166,18 +194,20 @@ function DrawBuildMenuBlastRange()
 	local mx, my = spGetMouseState()
 	local _, coords = spTraceScreenRay(mx, my, true, true)
 
-	if not coords then return end
+	if not coords then
+		return
+	end
 
 	local centerX = coords[1]
 	local centerZ = coords[3]
 
-	centerX, _, centerZ = Spring.Pos2BuildPos( unitDefID, centerX, 0, centerZ )
+	centerX, _, centerZ = Spring.Pos2BuildPos(unitDefID, centerX, 0, centerZ)
 
-    glLineWidth(blastLineWidth)
-	glColor( expBlastColor[1], expBlastColor[2], expBlastColor[3], blastAlphaValue )
+	glLineWidth(blastLineWidth)
+	glColor(expBlastColor[1], expBlastColor[2], expBlastColor[3], blastAlphaValue)
 
 	--draw static ground circle
-	glDrawGroundCircle(centerX, 0, centerZ, blastRadius, blastCircleDivs )
+	glDrawGroundCircle(centerX, 0, centerZ, blastRadius, blastCircleDivs)
 
 	--tidy up
 	glLineWidth(1)
@@ -187,8 +217,8 @@ function DrawBuildMenuBlastRange()
 	ChangeBlastColor()
 end
 
-function DrawUnitBlastRadius( unitID )
-	local unitDefID =  spGetUnitDefID(unitID)
+function DrawUnitBlastRadius(unitID)
+	local unitDefID = spGetUnitDefID(unitID)
 	local udef = udefTab[unitDefID]
 
 	local x, y, z = spGetUnitPosition(unitID)
@@ -203,14 +233,14 @@ function DrawUnitBlastRadius( unitID )
 		local blastDamage = weapTab[blastId].damages[0]
 		local deathblastDamage = weapTab[deathBlasId].damages[0]
 
-		local height = Spring.GetGroundHeight(x,z)
+		local height = Spring.GetGroundHeight(x, z)
 
 		glLineWidth(blastLineWidth)
-		glColor( blastColor[1], blastColor[2], blastColor[3], blastAlphaValue)
-		glDrawGroundCircle( x,y,z, blastRadius, blastCircleDivs )
+		glColor(blastColor[1], blastColor[2], blastColor[3], blastAlphaValue)
+		glDrawGroundCircle(x, y, z, blastRadius, blastCircleDivs)
 
 		glPushMatrix()
-		glTranslate(x - ( blastRadius / 1.5 ), height , z  + ( blastRadius / 1.5 ) )
+		glTranslate(x - (blastRadius / 1.5), height, z + (blastRadius / 1.5))
 		glBillboard()
 		local text = "SELF-D"
 		if deathblastRadius == blastRadius then
@@ -218,17 +248,17 @@ function DrawUnitBlastRadius( unitID )
 		end
 
 		font:Begin()
-		font:Print( text, 0.0, 0.0, sqrt(blastRadius) , "")
+		font:Print(text, 0.0, 0.0, sqrt(blastRadius), "")
 		glPopMatrix()
 
 		if deathblastRadius ~= blastRadius then
-			glColor( expBlastColor[1], expBlastColor[2], expBlastColor[3], expBlastAlphaValue)
-			glDrawGroundCircle( x,y,z, deathblastRadius, blastCircleDivs )
+			glColor(expBlastColor[1], expBlastColor[2], expBlastColor[3], expBlastAlphaValue)
+			glDrawGroundCircle(x, y, z, deathblastRadius, blastCircleDivs)
 
 			glPushMatrix()
-			glTranslate(x - ( deathblastRadius / 1.6 ), height , z  + ( deathblastRadius / 1.6) )
+			glTranslate(x - (deathblastRadius / 1.6), height, z + (deathblastRadius / 1.6))
 			glBillboard()
-			font:Print("EXPLODE" , 0.0, 0.0, sqrt(deathblastRadius), "cn")
+			font:Print("EXPLODE", 0.0, 0.0, sqrt(deathblastRadius), "cn")
 			glPopMatrix()
 		end
 		font:End()
@@ -238,17 +268,9 @@ end
 function DrawBlastRadiusSelectedUnits()
 	glLineWidth(blastLineWidth)
 
-	local deathBlasId
-	local blastId
-	local blastRadius
-	local blastDamage
-	local deathblastRadius
-	local deathblastDamage
-	local text
-
-	for i=1,#selectedUnits do
+	for i = 1, #selectedUnits do
 		local unitID = selectedUnits[i]
-		DrawUnitBlastRadius( unitID )
+		DrawUnitBlastRadius(unitID)
 	end
 
 	ChangeBlastColor()
@@ -256,24 +278,8 @@ end
 
 --Commons
 function ResetGl()
-	glColor( { 1.0, 1.0, 1.0, 1.0 } )
-	glLineWidth( 1.0 )
+	glColor({ 1.0, 1.0, 1.0, 1.0 })
+	glLineWidth(1.0)
 	glDepthTest(false)
 	glTexture(false)
-end
-
-function printDebug( value )
-	if ( debug ) then
-		if ( type( value ) == "boolean" ) then
-			if ( value == true ) then spEcho( "true" )
-				else spEcho("false") end
-		elseif ( type(value ) == "table" ) then
-			spEcho("Dumping table:")
-			for key,val in pairs(value) do
-				spEcho(key,val)
-			end
-		else
-			spEcho( value )
-		end
-	end
 end
