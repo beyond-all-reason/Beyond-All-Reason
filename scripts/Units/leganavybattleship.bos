@@ -89,7 +89,7 @@ frontflare2,
 backflare2,
 backflare1;
 
-static-var justCreated;
+static-var justCreated, whichBarrel;
 static-var  gun_2;
 static-var reloading_barrel_1, reloading_barrel_2;
 static-var deltaheading, newchassisheading, chassisheading, restore_position, aimDir1;
@@ -1261,6 +1261,95 @@ Wake()
     }
 }
 
+FiringMode(){
+	while(TRUE){
+		if (isInWater){
+			move  barrel1C to z-axis [5.76] speed [5.76];
+			move  barrel1A to z-axis [5.76] speed [5.76];
+			move  barrel1D to z-axis [5.76] speed [5.76];
+			move  barrel1B to z-axis [5.76] speed [5.76];
+			move  barrel2C to z-axis [5.76] speed [5.76];
+			move  barrel2A to z-axis [5.76] speed [5.76];
+			move  barrel2D to z-axis [5.76] speed [5.76];
+			move  barrel2B to z-axis [5.76] speed [5.76];
+			move  barrel3C to z-axis [5.76] speed [5.76];
+			move  barrel3A to z-axis [5.76] speed [5.76];
+			move  barrel3D to z-axis [5.76] speed [5.76];
+			move  barrel3B to z-axis [5.76] speed [5.76];
+			wait-for-move barrel3B along z-axis;
+			move  barrel1A to y-axis [-1.44] speed [1.44];
+			move  barrel1B to y-axis [-1.44] speed [1.44];
+			move  barrel2A to y-axis [-1.44] speed [1.44];
+			move  barrel2B to y-axis [-1.44] speed [1.44];
+			move  barrel3A to y-axis [-1.44] speed [1.44];
+			move  barrel3B to y-axis [-1.44] speed [1.44];
+			move  barrel1C to y-axis [1.44] speed [1.44];
+			move  barrel1D to y-axis [1.44] speed [1.44];
+			move  barrel2C to y-axis [1.44] speed [1.44];
+			move  barrel2D to y-axis [1.44] speed [1.44];
+			move  barrel3C to y-axis [1.44] speed [1.44];
+			move  barrel3D to y-axis [1.44] speed [1.44];
+
+			move barrel1A to x-axis [-1.44] speed [1.44];
+			move barrel1C to x-axis [-1.44] speed [1.44];
+			move barrel2A to x-axis [-1.44] speed [1.44];
+			move barrel2C to x-axis [-1.44] speed [1.44];
+			move barrel3A to x-axis [-1.44] speed [1.44];
+			move barrel3C to x-axis [-1.44] speed [1.44];
+			move barrel1B to x-axis [1.44] speed [1.44];
+			move barrel1D to x-axis [1.44] speed [1.44];
+			move barrel2B to x-axis [1.44] speed [1.44];
+			move barrel2D to x-axis [1.44] speed [1.44];
+			move barrel3B to x-axis [1.44] speed [1.44];
+			move barrel3D to x-axis [1.44] speed [1.44];
+			sleep 10;
+		}
+		else{
+			move  barrel1A to y-axis [0] speed [1.44];
+			move  barrel1B to y-axis [0] speed [1.44];
+			move  barrel2A to y-axis [0] speed [1.44];
+			move  barrel2B to y-axis [0] speed [1.44];
+			move  barrel3A to y-axis [0] speed [1.44];
+			move  barrel3B to y-axis [0] speed [1.44];
+			move  barrel1C to y-axis [0] speed [1.44];
+			move  barrel1D to y-axis [0] speed [1.44];
+			move  barrel2C to y-axis [0] speed [1.44];
+			move  barrel2D to y-axis [0] speed [1.44];
+			move  barrel3C to y-axis [0] speed [1.44];
+			move  barrel3D to y-axis [0] speed [1.44];
+
+			move barrel1A to x-axis [0] speed [1.44];
+			move barrel1C to x-axis [0] speed [1.44];
+			move barrel2A to x-axis [0] speed [1.44];
+			move barrel2C to x-axis [0] speed [1.44];
+			move barrel3A to x-axis [0] speed [1.44];
+			move barrel3C to x-axis [0] speed [1.44];
+			move barrel1B to x-axis [0] speed [1.44];
+			move barrel1D to x-axis [0] speed [1.44];
+			move barrel2B to x-axis [0] speed [1.44];
+			move barrel2D to x-axis [0] speed [1.44];
+			move barrel3B to x-axis [0] speed [1.44];
+			move barrel3D to x-axis [0] speed [1.44];
+			wait-for-move barrel3D along x-axis;
+
+			move  barrel1C to z-axis [0] speed [5.76];
+			move  barrel1A to z-axis [0] speed [5.76];
+			move  barrel1D to z-axis [0] speed [5.76];
+			move  barrel1B to z-axis [0] speed [5.76];
+			move  barrel2C to z-axis [0] speed [5.76];
+			move  barrel2A to z-axis [0] speed [5.76];
+			move  barrel2D to z-axis [0] speed [5.76];
+			move  barrel2B to z-axis [0] speed [5.76];
+			move  barrel3C to z-axis [0] speed [5.76];
+			move  barrel3A to z-axis [0] speed [5.76];
+			move  barrel3D to z-axis [0] speed [5.76];
+			move  barrel3B to z-axis [0] speed [5.76];
+			sleep 10;
+		}
+
+	}
+}
+
 Create()
 {
 	gun_2 = 1;
@@ -1278,11 +1367,13 @@ Create()
 	isInWater = 1;
 	isMoving = FALSE;
 	animSpeed = 5;
+	whichBarrel = 0;
 
 	restore_delay = 3000;	
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script UnitSpeed();
 	start-script Movement();
+	start-script FiringMode();
 
 	if (isInWater){
 		call-script Close();
@@ -1315,40 +1406,171 @@ AimWeapon1(heading, pitch)
 	set-signal-mask SIGNAL_AIM1;
 	aimDir1 = heading;
 
-	//We can do this any time
-	restore_position = 0;
-	turn turretPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <30.0>;
-	start-script RestoreAfterDelay();
+	if(isInWater){
+		//We can do this any time
+		restore_position = 0;
+		turn turretPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <30.0>;
+		start-script RestoreAfterDelay();
 
-	// let AimControl know what to aim at
-	aimy1target = heading;
-	while ( TRUE )
-	{
-		// condition 1, is aim good?
-		aimy1delta = aimy1target - aimy1position ; 	
-		if (get ABS(aimy1delta) < AIMY1_PRECISION) {
-			return (1); 
+		// let AimControl know what to aim at
+		aimy1target = heading;
+		while ( TRUE )
+		{
+			// condition 1, is aim good?
+			aimy1delta = aimy1target - aimy1position ; 	
+			if (get ABS(aimy1delta) < AIMY1_PRECISION) {
+				return (1); 
+			}
+			sleep 1;
 		}
-		sleep 1;
 	}
+	else{
+		return (0);
+	}
+
 }
 
 FireWeapon1()
 {
+	if(isInWater){
+		RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+	}
+	else{
+		return (0);
+	}
 
-	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+}
 
+Shot1(zero){
+	if(whichBarrel == 0){
+		move barrel1 to z-axis [-10] now;
+		emit-sfx 1024 from flare1b;
+		sleep 100;
+		move barrel1 to z-axis [0] speed [10];
+
+		whichBarrel = 1;
+		//return(1);
+	}
+	else if(whichBarrel == 1){
+		move barrel2 to z-axis [-10] now;
+		emit-sfx 1024 from flare2b;
+		sleep 100;
+		move barrel2 to z-axis [0] speed [10];
+
+		whichBarrel = 2;
+		//return(1);
+	}
+	else if(whichBarrel == 2){
+		move barrel3 to z-axis [-10] now;
+		emit-sfx 1024 from flare3b;
+		sleep 100;	
+		move barrel3 to z-axis [0] speed [10];
+	
+		whichBarrel = 0;
+	}
 }
 
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = turretPitchPivot;
+	pieceIndex = turret;
 }
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = flare2;
+	if(whichBarrel == 0){
+		pieceIndex = flare1b;
+	}
+	if(whichBarrel == 1){
+		pieceIndex = flare2b;
+	}
+	if(whichBarrel == 2){
+		pieceIndex = flare3b;
+	}
+}
+
+///////// riot cannon mode
+
+AimWeapon2(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	aimDir1 = heading;
+
+	if(!isInWater){
+		//We can do this any time
+		restore_position = 0;
+		turn turretPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <30.0>;
+		start-script RestoreAfterDelay();
+
+		// let AimControl know what to aim at
+		aimy1target = heading;
+		while ( TRUE )
+		{
+			// condition 1, is aim good?
+			aimy1delta = aimy1target - aimy1position ; 	
+			if (get ABS(aimy1delta) < AIMY1_PRECISION) {
+				return (1); 
+			}
+			sleep 1;
+		}
+	}
+	else{
+		return (0);
+	}
+}
+
+FireWeapon2()
+{
+	if(!isInWater){
+		RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+	}
+	else{
+		return (0);
+	}
+
+}
+
+Shot2(zero){
+	if(whichBarrel == 0){
+		move barrel1 to z-axis [-10] now;
+		emit-sfx 1024 from flare1;
+		sleep 100;
+		move barrel1 to z-axis [0] speed [10];
+		whichBarrel = 1;
+	}
+	else if(whichBarrel == 1){
+		move barrel2 to z-axis [-10] now;
+		emit-sfx 1024 from flare2;
+		sleep 100;
+		move barrel2 to z-axis [0] speed [10];
+		whichBarrel = 2;
+	}
+	else if(whichBarrel == 2){
+		move barrel3 to z-axis [-10] now;
+		emit-sfx 1024 from flare3;
+		sleep 100;	
+		move barrel3 to z-axis [0] speed [10];
+		whichBarrel = 0;
+	}
+}
+
+AimFromWeapon2(pieceIndex)
+{
+	pieceIndex = turret;
+}
+
+QueryWeapon2(pieceIndex)
+{
+	if(whichBarrel == 0){
+		pieceIndex = flare1;
+	}
+	if(whichBarrel == 1){
+		pieceIndex = flare2;
+	}
+	if(whichBarrel == 2){
+		pieceIndex = flare3;
+	}
 }
 
 

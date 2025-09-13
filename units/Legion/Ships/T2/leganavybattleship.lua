@@ -103,7 +103,7 @@ return {
 			},
 		},
 		weapondefs = {
-			burst_plasma = {
+			burst_plasma_t2 = {
 				burstrate = 0.2,
 				burst = 3,
 				sprayangle = 600,
@@ -137,6 +137,46 @@ return {
 					default = 70,
 					vtol = 20,
 				},
+			},
+			riot_cannon_t2 = {
+				burstrate = 0.2,
+				burst = 3,
+				fireTolerance = 7000,
+				tolerance = 7000,
+				areaofeffect = 144,
+				avoidfeature = false,
+				burnblow = true,
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0.9,
+				explosiongenerator = "custom:genericshellexplosion-large",
+				impulsefactor = 2.5,
+				name = "Medium Blast Riot Cannon",
+				noselfdamage = true,
+				range = 300,
+				reloadtime = 2.0,
+				soundhit = "corlevlrhit",
+				soundhitwet = "splsmed",
+				soundstart = "largegun",
+				soundhitvolume = 12.0,
+				soundstartvolume = 14.0,
+				separation = 2.0,
+				nogap = false,
+				size = 4,
+				sizeDecay = 0.07,
+				stages = 10,
+				alphaDecay = 0.10,
+				turret = true,
+				weapontype = "Cannon",
+				weaponvelocity = 700,
+				damage = {
+					default = 210,
+					subs = 90,
+					vtol = 35,
+				},
+				customparams = {
+					--exclude_preaim = true
+				}
 			},
 			-- cor_batslaser = {
 			-- 	areaofeffect = 8,
@@ -179,18 +219,18 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "burst_plasma",
+				def = "burst_plasma_t2",
 				onlytargetcategory = "SURFACE",
 				fastautoretargeting = true,
 				burstControlWhenOutOfArc = 2,
 			},
-			-- [2] = {
-			-- 	badtargetcategory = "VTOL",
-			-- 	def = "COR_BATS",
-			-- 	fastautoretargeting = true,
-			-- 	onlytargetcategory = "SURFACE",
-			-- 	slaveto = 1,
-			-- },
+			[2] = {
+				def = "riot_cannon_t2",
+				fastautoretargeting = true,
+				onlytargetcategory = "SURFACE",
+				burstControlWhenOutOfArc = 2,
+				--slaveto = 1,
+			},
 			-- [3] = {
 			-- 	badtargetcategory = "VTOL",
 			-- 	def = "COR_BATS",
