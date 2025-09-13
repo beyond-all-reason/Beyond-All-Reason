@@ -1,6 +1,6 @@
 function gadget:GetInfo()
 	return {
-		name = "Quick Start",
+		name = "Quick Start v2",
 		desc = "Instantly builds structures using starting resources until they are expended",
 		author = "SethDGamre", 
 		date = "July 2025",
@@ -9,6 +9,10 @@ function gadget:GetInfo()
 		enabled = true
 	}
 end
+
+--[[ todo
+-- need to implement water-based factory sel
+]]
 
 local isSynced = gadgetHandler:IsSyncedCode()
 local modOptions = Spring.GetModOptions()
@@ -19,44 +23,54 @@ local shouldRunGadget = modOptions.quick_start == "enabled" or "labs_required" o
 
 if not shouldRunGadget then return false end
 
---todo
---when factory is not required, specifically not-human players should have a factory made for them.
-
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetTeamResources = Spring.GetTeamResources
-local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitPosition = Spring.GetUnitPosition
 local spCreateUnit = Spring.CreateUnit
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitCommands = Spring.GetUnitCommands
-local spSetUnitHealth = Spring.SetUnitHealth
-local spValidUnitID = Spring.ValidUnitID
 local spGetGroundHeight = Spring.GetGroundHeight
-local spGetUnitIsDead = Spring.GetUnitIsDead
 local spTestBuildOrder = Spring.TestBuildOrder
 local spPos2BuildPos = Spring.Pos2BuildPos
-local spSetTeamResource = Spring.SetTeamResource
- local spSetTeamRulesParam = Spring.SetTeamRulesParam
-local spGetTeamRulesParam = Spring.GetTeamRulesParam
-local spSetGameRulesParam = Spring.SetGameRulesParam
 local spSpawnCEG = Spring.SpawnCEG
-local spGetGameFrame = Spring.GetGameFrame
-local spGetAllUnits = Spring.GetAllUnits
 
+local FACTORY_DISCOUNT_MULTIPLIER = 0.90
+local FACTORY_DISCOUNT = 0
 local BONUS_METAL = 450
 local BONUS_ENERGY = 2500
 local QUICK_START_COST_METAL = 800
 local QUICK_START_COST_ENERGY = 400
 local AUTO_MEX_MAX_DISTANCE = 500
-local SOLAR_PENALTY_MULTIPLIER = 0.25
+local ENERGY_VALUE_CONVERSION_DIVISOR = 10
+local INSTANT_BUILD_RANGE = 700
+local MAX_SPACE_DISTANCE = INSTANT_BUILD_RANGE / 2
+local ALL_COMMANDS = -1
+local UPDATE_FRAMES = Game.gameSpeed
+local PREGAME_DELAY_FRAMES = 61 --after gui_pregame_build.lua is loaded
+local MAP_CENTER_X = Game.mapSizeX / 2
+local MAP_CENTER_Z = Game.mapSizeZ / 2
+local TEST_NOGO_DISTANCE = 100
+
+local TEAM_RULES_FACTORY_PLACED_KEY = "quickStartFactoryPlaced"
+local GAME_RULES_BASE_KEY = "quickStartJuiceBase"
 
 local factoryRequired = modOptions.quick_start == "labs_required"
 local isGoodWind = false
 local isMetalMap = false
 local metalSpotsList = nil
-local GRID_SPACING = 32
+local BUILD_SPACING = 32
+local SKIP_STEP = 3
+local running = false
+local initialized = false
 
+local boostableCommanders = {} --zzz unpopulated
+local queuedCommanders = {}
+local commanders = {}
+local defJuices = {}
+local mexOverlapCheckTable = {}
+local mexDefs = {}
+local unitDefs = UnitDefs
 local unitDefNames = UnitDefNames
+local optionDefIDToTypes = {}
+local factoryDiscounts = {}
+
 
 local commanderLandLabs = {
 	armcom = {
@@ -70,9 +84,16 @@ local commanderLandLabs = {
 	}
 }
 
+local commanderSeaLabs = {
+	armcom = { armsy = 1 },
+	corcom = { corsy = 1 },
+	legcom = { legsy = 1 },
+}
+
 local commanderNonLabOptions = {
 	armcom = { 
-		windmill = "armwin",
+		defaultFactory = "armlab",
+		windmill = "armwin", --zzz need to store the types on the com
 		mex = "armmex",
 		converter = "armmakr",
 		solar = "armsolar",
@@ -80,6 +101,7 @@ local commanderNonLabOptions = {
 		floatingConverter = "armfmkr",
 	},
 	corcom = {
+		defaultFactory = "corlab",
 		windmill = "corwin",
 		mex = "cormex",
 		converter = "cormakr",
@@ -88,6 +110,7 @@ local commanderNonLabOptions = {
 		floatingConverter = "corfmkr",
 	},
 	legcom = {
+		defaultFactory = "leglab",
 		windmill = "legwin",
 		mex = "legmex",
 		converter = "legeconv",
@@ -97,127 +120,73 @@ local commanderNonLabOptions = {
 	}
 }
 
-
-local baseBuildOptionWeights = {
-	windmill = 0.3,
-	mex = 0.25,
-	converter = 0.1,
-	floatingConverter = 0.1,
-	solar = 0.25,
-	tidal = 0.5,
-}
-
-local randomBuildOptionWeights = {}
-
-
-local commanderSeaLabs = {
-	armcom = { armsy = 1 },
-	corcom = { corsy = 1 },
-	legcom = { legsy = 1 },
+local optionsToNodeType = {
+	defaultFactory = "factory",
+	windmill = "other",
+	mex = "other",
+	converter = "converters",
+	solar = "other",
+	tidal = "other",
+	floatingConverter = "converters",
 }
 
 
-local ENERGY_VALUE_CONVERSION_DIVISOR = 10
-local COMMAND_STEAL_RANGE = 700
-local ALL_COMMANDS = -1
-local UPDATE_FRAMES = Game.gameSpeed
-local PREGAME_DELAY_FRAMES = 61 --after gui_pregame_build.lua is loaded
-local MAP_CENTER_X = Game.mapSizeX / 2
-local MAP_CENTER_Z = Game.mapSizeZ / 2
+local commanderAllLabs = {}
+for commanderName, landData in pairs(commanderLandLabs) do
+	commanderAllLabs[commanderName] = {}
+	for labName, weight in pairs(landData.labs) do
+		commanderAllLabs[commanderName][labName] = weight
+	end
+	for labName, weight in pairs(commanderSeaLabs[commanderName]) do
+		commanderAllLabs[commanderName][labName] = weight
+	end
+end
+for unitDefID, unitDef in pairs(unitDefs) do
+	--compile juice costs for all unit defs
+	local metalCost, energyCost = unitDef.metalCost or 1, unitDef.energyCost or 1
+	defJuices[unitDefID] = 	metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
 
-local TEAM_RULES_TOTAL_KEY = "quickStartJuiceTotal"
-local TEAM_RULES_REMAINING_KEY = "quickStartJuiceRemaining"
-local TEAM_RULES_FACTORY_PLACED_KEY = "quickStartFactoryPlaced"
-local GAME_RULES_BASE_KEY = "quickStartJuiceBase"
+	--for metal extractor detection
+	if unitDef.extractsMetal > 0 then
+		mexDefs[unitDefID] = true
+	end
 
-local commanderMetaList = {}
-local boostableCommanders = {}
-local queueCommanderCreation = {}
-local buildQueues = {}
-
-
-for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams and unitDef.customParams.iscommander then
 		boostableCommanders[unitDefID] = true
 	end
 end
-
-local function generateChunksTable(centerX, centerZ)
-	local maxDistance = 250
-	local chunkSize = (maxDistance * 2) / 3
-	
-	local allChunks = {
-		{1, 1}, {2, 1}, {3, 1},
-		{1, 2}, {3, 2},
-		{1, 3}, {2, 3}, {3, 3}
-	}
-	
-	local chunksWithDistance = {}
-	for i, chunk in ipairs(allChunks) do
-		local chunkX, chunkZ = chunk[1], chunk[2]
-		local chunkCenterX = centerX - maxDistance + (chunkX - 0.5) * chunkSize
-		local chunkCenterZ = centerZ - maxDistance + (chunkZ - 0.5) * chunkSize
-		local distanceFromMapCenter = math.distance2dSquared(chunkCenterX, chunkCenterZ, MAP_CENTER_X, MAP_CENTER_Z)
-		
-		table.insert(chunksWithDistance, {
-			chunk = chunk,
-			distance = distanceFromMapCenter,
-			chunkStartX = centerX - maxDistance + (chunkX - 1) * chunkSize,
-			chunkEndX = centerX - maxDistance + chunkX * chunkSize,
-			chunkStartZ = centerZ - maxDistance + (chunkZ - 1) * chunkSize,
-			chunkEndZ = centerZ - maxDistance + chunkZ * chunkSize
-		})
-	end
-	
-	table.sort(chunksWithDistance, function(a, b) return a.distance < b.distance end)
-	
-	for i, chunkData in ipairs(chunksWithDistance) do
-		if i == 1 then
-			chunkData.preferredUsage = "factory"
-		elseif i == #chunksWithDistance then
-			chunkData.preferredUsage = "converter"
-		else
-			chunkData.preferredUsage = "else"
+for commanderName, labs in pairs(commanderAllLabs) do
+	if unitDefNames[commanderName] then
+	for labName, weight in pairs(labs) do
+		local unitDefID = unitDefNames[labName].id
+		FACTORY_DISCOUNT = math.min(FACTORY_DISCOUNT, defJuices[unitDefID] * FACTORY_DISCOUNT_MULTIPLIER)
 		end
 	end
-	
-	return chunksWithDistance
+end
+for commanderName, nonLabOptions in pairs(commanderNonLabOptions) do
+	Spring.Echo("commanderName", commanderName)
+	if unitDefNames[commanderName] then
+		for optionName, trueName in pairs(nonLabOptions) do
+			Spring.Echo("optionName", optionName, "trueName", trueName, "commanderName", commanderName, "unitDefID", unitDefNames[trueName])
+			Spring.Echo("name", trueName, "id", unitDefNames[trueName].id)
+			optionDefIDToTypes[unitDefNames[trueName].id] = optionName
+		end
+	end
 end
 
-local function generateChunkPositionsSorted(chunkData, targetX, targetZ)
-	local positions = {}
-	for searchX = chunkData.chunkStartX, chunkData.chunkEndX, GRID_SPACING do
-		for searchZ = chunkData.chunkStartZ, chunkData.chunkEndZ, GRID_SPACING do
-			table.insert(positions, {x = searchX, z = searchZ})
-		end
-	end
-	local cx = targetX or (chunkData.chunkStartX + chunkData.chunkEndX) / 2
-	local cz = targetZ or (chunkData.chunkStartZ + chunkData.chunkEndZ) / 2
-	table.sort(positions, function(a, b)
-		local distA = math.distance2dSquared(a.x, a.z, cx, cz)
-		local distB = math.distance2dSquared(b.x, b.z, cx, cz)
-		return distA < distB
-	end)
-	return positions
+local function isBuildCommand(cmdID)
+	return cmdID < 0
+end
+
+local function getBuildInstanceID(unitDefID, x, y)
+	return unitDefID .. "_" .. x .. "_" .. y
 end
 
 local function initializeCommander(commanderID, teamID)
-	if not spValidUnitID(commanderID) or spGetUnitIsDead(commanderID) then
-		return
-	end
-	
-	local currentMetal = spGetTeamResources(teamID, "metal") or 0
-	local currentEnergy = spGetTeamResources(teamID, "energy") or 0
-
+	local currentMetal = Spring.GetTeamResources(teamID, "metal") or 0
+	local currentEnergy = Spring.GetTeamResources(teamID, "energy") or 0
 	local juice = QUICK_START_COST_METAL + BONUS_METAL + (QUICK_START_COST_ENERGY + BONUS_ENERGY) / ENERGY_VALUE_CONVERSION_DIVISOR
-
-	spSetGameRulesParam(GAME_RULES_BASE_KEY, juice)
-	local currentTotal = spGetTeamRulesParam(teamID, TEAM_RULES_TOTAL_KEY) or 0
-	local currentRemaining = spGetTeamRulesParam(teamID, TEAM_RULES_REMAINING_KEY) or 0
-	local newTotal = currentTotal + juice
-	local newRemaining = currentRemaining + juice
-	spSetTeamRulesParam(teamID, TEAM_RULES_TOTAL_KEY, newTotal)
-	spSetTeamRulesParam(teamID, TEAM_RULES_REMAINING_KEY, newRemaining)
+	Spring.SetGameRulesParam(GAME_RULES_BASE_KEY, juice)
 	
 	local isHuman = false
 	if GG and GG.PowerLib and GG.PowerLib.HumanTeams then
@@ -229,432 +198,471 @@ local function initializeCommander(commanderID, teamID)
 	local directionZ = MAP_CENTER_Z - commanderZ
 	local angle = math.atan2(directionX, directionZ)
 	local defaultFacing = math.floor((angle / (math.pi / 2)) + 0.5) % 4
-	
-	local chunksWithDistance = generateChunksTable(commanderX, commanderZ)
 
-	local commanderDefID = spGetUnitDefID(commanderID)
+	local commanderDefID = Spring.GetUnitDefID(commanderID)
 	local commanderName = UnitDefs[commanderDefID].name
-	local nonLabOptions = commanderNonLabOptions[commanderName]
-	local isInWater = commanderY < 0	
+	local isInWater = commanderY < 0
+	local buildDefs = {}
+	for optionName, trueName in pairs(commanderNonLabOptions[commanderName]) do
+		buildDefs[optionName] = unitDefNames[trueName].id
+	end
 
-	commanderMetaList[commanderID] = {
+	commanders[commanderID] = {
 		teamID = teamID,
 		juice = juice,
 		factoryMade = false,
 		thingsMade = {windmill = 0, mex = 0, converter = 0, solar = 0, tidal = 0, floatingConverter = 0, factory = 0},
 		isHuman = isHuman,
 		defaultFacing = defaultFacing,
-		chunksWithDistance = chunksWithDistance,
 		isInWater = isInWater,
 		hasFactoryInQueue = false,
 		commanderName = commanderName,
-		nonLabOptions = nonLabOptions,
-		buildQuotas = {
-			mex = 4,
-			windmill = isInWater and 0 or (isGoodWind and 4 or 0),
-			converter = isInWater and 0 or 2,
-			solar = isInWater and 0 or (isGoodWind and 1 or 4),
-			tidal = isInWater and 6 or 0,
-			floatingConverter = isInWater and 2 or 0,
+		buildDefs = buildDefs,
+		buildPlots = {
+			factory = {
+				originX = commanderX, originZ = commanderZ, indexX = 0, indexZ = 0, skipDirection = "x"
+			},
+			converters = {
+				originX = commanderX, originZ = commanderZ, indexX = 0, indexZ = 0, skipDirection = "x"
+			},
+			other = {
+				originX = commanderX, originZ = commanderZ, indexX = 0, indexZ = 0, skipDirection = "x"
+			}
+		},
+		buildQuotas = { 
+		mex = 4, windmill = isInWater and 0 or (isGoodWind and 4 or 0), converter = isInWater and 0 or 2, 
+		solar = isInWater and 0 or (isGoodWind and 1 or 4), tidal = isInWater and 6 or 0, floatingConverter = isInWater and 2 or 0 
 		}
 	}
 	
-	buildQueues[commanderID] = {}
-	
-	spSetTeamResource(teamID, "metal", math.max(0, currentMetal - QUICK_START_COST_METAL))
-	spSetTeamResource(teamID, "energy", math.max(0, currentEnergy - QUICK_START_COST_ENERGY))
+	Spring.SetTeamResource(teamID, "metal", math.max(0, currentMetal - QUICK_START_COST_METAL))
+	Spring.SetTeamResource(teamID, "energy", math.max(0, currentEnergy - QUICK_START_COST_ENERGY))
 end
 
-local function calculateJuiceCost(unitDefID)
-	local unitDef = UnitDefs[unitDefID]
-	
-	local metalCost = unitDef.metalCost or 0
-	local energyCost = unitDef.energyCost or 0
-	return metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
+local function getCommanderBuildQueue(commanderID)
+	local spawnQueue = {}
+	local comData = commanders[commanderID]
+	local commands = spGetUnitCommands(commanderID, ALL_COMMANDS)
+	local juiceCost = 0
+	for i, cmd in ipairs(commands) do
+		if isBuildCommand(cmd.id) then --is a build command
+		local spawnParams = {id = -cmd.id, x = cmd.params[1], y = cmd.params[2], z = cmd.params[3], facing = cmd.params[4] or 1}
+			if  math.distance2d(comData.spawnX, comData.spawnZ, spawnParams.x, spawnParams.z) <= INSTANT_BUILD_RANGE then
+				table.insert(spawnQueue, spawnParams)
+				local juiceCost = juiceCost + defJuices[cmd.id] --zzz we gonna factor the discount in factories with an isFactory check in this calculation, and only update the usage of the discount if the build is actually successful.
+				if juiceCost > comData.juice then
+					return spawnQueue
+				end
+			end
+		end
+	end
+	return spawnQueue
 end
 
-local function deductJuiceAndCreateUnit(commanderData, unitDefID, buildX, buildY, buildZ, facing, teamID, commanderID, isFree)
-	if commanderData.juice <= 0 and not isFree then
-		return false, nil
+local function getBuildSpace(commanderID, option, noGoZones, testDistance)
+	local noGoZones = noGoZones or {}
+	local testSuccesses = 0
+	local optionType = optionsToNodeType[option]
+	local plotData = commanders[commanderID].buildPlots[optionType]
+	local buildDefID = commanders[commanderID].buildDefs[option]
+	local originX, originZ, indexX, indexZ = plotData.originX, plotData.originZ, plotData.indexX, plotData.indexZ
+	local skipDirection = plotData.skipDirection
+	local maxOffset = math.max(math.abs(indexX), math.abs(indexZ)) * BUILD_SPACING
+
+	local spotsWithDistance = {}
+	if not isMetalMap and option == "mex" then
+		for i = 1, #metalSpotsList do
+				local metalSpot = metalSpotsList[i]
+				local distance = math.distance2d(metalSpot.x, metalSpot.z, originX, originZ)
+				if distance <= AUTO_MEX_MAX_DISTANCE then
+					table.insert(spotsWithDistance, {x = metalSpot.x, z = metalSpot.z, distance = distance})
+				end
+			end
+			if spotsWithDistance[1] then
+				table.sort(spotsWithDistance, function(a, b) return a.distance < b.distance end)
+				return spotsWithDistance[1].x, spotsWithDistance[1].z
+			else
+				return nil, nil
+			end
+		elseif option == "mex" then
+		
 	end
 	
-	local unitDef = UnitDefs[unitDefID]
-	local unitID = spCreateUnit(unitDef.name, buildX, buildY, buildZ, facing, teamID)
-	if not unitID then
-		return false, nil
+	for offsetX = -maxOffset, maxOffset, BUILD_SPACING do
+		local absOffsetX = math.abs(offsetX)
+		if absOffsetX > MAX_SPACE_DISTANCE or (testDistance and absOffsetX > testDistance) then
+			break
+		end
+			for offsetZ = -maxOffset, maxOffset, BUILD_SPACING do
+				if not (offsetX < indexX or (offsetX == indexX and offsetZ < indexZ)) then
+				local shouldSkip = false
+				if skipDirection == "x" then
+					local columnIndex = (offsetZ + maxOffset) / BUILD_SPACING
+					shouldSkip = (columnIndex % SKIP_STEP) == 0
+				elseif skipDirection == "z" then
+					local rowIndex = (offsetX + maxOffset) / BUILD_SPACING
+					shouldSkip = (rowIndex % SKIP_STEP) == 0
+				end
+				
+				if not shouldSkip then
+					local testX = originX + offsetX
+					local testZ = originZ + offsetZ
+					
+					local tooCloseToNoGo = false
+					for _, noGoZone in ipairs(noGoZones) do
+						local distance = math.distance2d(testX, testZ, noGoZone.x, noGoZone.z)
+						if distance <= TEST_NOGO_DISTANCE then
+							tooCloseToNoGo = true
+							break
+						end
+					end
+					
+					if not tooCloseToNoGo then
+						local searchY = spGetGroundHeight(testX, testZ)
+						local snappedX, snappedY, snappedZ = spPos2BuildPos(buildDefID, testX, searchY, testZ)
+						local validPlot = snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, 0) > 0
+						if validPlot then
+							if testDistance then
+								testSuccesses = testSuccesses + 1
+							else
+								plotData.indexX = offsetX
+								plotData.indexZ = offsetZ
+								return snappedX, snappedZ
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+
+	if testDistance then
+		return testSuccesses, nil
+	end
+	return nil, nil
+end
+
+local function generateBaseNodes(commanderID)
+	local baseNodes = {}
+	local comData = commanders[commanderID]
+	local spawnX, spawnZ = comData.spawnX, comData.spawnZ
+	local radialDistance = INSTANT_BUILD_RANGE / 2
+	
+	local angleIncrement = 2 * math.pi / 8
+	for i = 0, 7 do
+		local angle = i * angleIncrement
+		local nodeX = spawnX + radialDistance * math.cos(angle)
+		local nodeZ = spawnZ + radialDistance * math.sin(angle)
+		
+		baseNodes[i + 1] = {
+			x = nodeX,
+			z = nodeZ,
+			isBad = false,
+			distanceWeight = 0,
+			score = 0
+		}
 	end
 	
-	local buildProgress
-	if isFree then
-		buildProgress = 1
-		spSetUnitHealth(unitID, {build = 1, health = unitDef.health})
+	local maxDistance = 0
+	local minDistance = math.huge
+	local goodNodes = {}
+	
+	for i, node in ipairs(baseNodes) do
+		local testResult = getBuildSpace(commanderID, "factory", {}, BUILD_SPACING)
+		if testResult < 8 then
+			node.isBad = true
+		else
+			local distanceToCenter = math.distance2d(node.x, node.z, MAP_CENTER_X, MAP_CENTER_Z)
+			node.distanceToCenter = distanceToCenter
+			maxDistance = math.max(maxDistance, distanceToCenter)
+			minDistance = math.min(minDistance, distanceToCenter)
+			table.insert(goodNodes, node)
+		end
+	end
+	
+	if #goodNodes < 2 then
+		return
+	end
+	
+	local highestWeight = 0
+	local factoryNodeIndex = 0
+	
+	for i, node in ipairs(goodNodes) do
+		node.distanceWeight = 1 - (0.25 * (node.distanceToCenter - minDistance) / (maxDistance - minDistance))
+		
+		if node.distanceWeight > highestWeight then
+			highestWeight = node.distanceWeight
+			factoryNodeIndex = i
+		end
+		
+		local testResult = getBuildSpace(commanderID, "factory", {}, MAX_SPACE_DISTANCE)
+		node.score = testResult * node.distanceWeight
+	end
+	
+	local factoryNode = nil
+	if factoryNodeIndex > 0 then
+		factoryNode = goodNodes[factoryNodeIndex]
+		table.remove(goodNodes, factoryNodeIndex)
+	end
+	
+	local bestPair = nil
+	local bestPairScore = 0
+	for i = 1, #goodNodes - 1 do
+		for j = i + 1, #goodNodes do
+			local node1 = goodNodes[i]
+			local node2 = goodNodes[j]
+			local pairScore = node1.score + node2.score
+			if pairScore > bestPairScore then
+				bestPairScore = pairScore
+				bestPair = {node1, node2}
+			end
+		end
+	end
+
+	if not bestPair or not factoryNode then return end
+
+	local result = { factory = factoryNode }
+	if bestPair[1].score > bestPair[2].score then
+		result.other = bestPair[1]
+		result.converters = bestPair[2]
 	else
-		local juiceCost = calculateJuiceCost(unitDefID)
-		local affordableJuice = math.min(commanderData.juice, juiceCost)
-		buildProgress = affordableJuice / juiceCost
-		spSetUnitHealth(unitID, {build = buildProgress, health = math.ceil(unitDef.health * buildProgress)})
-		commanderData.juice = commanderData.juice - affordableJuice
-		local remaining = spGetTeamRulesParam(teamID, TEAM_RULES_REMAINING_KEY) or 0
-		spSetTeamRulesParam(teamID, TEAM_RULES_REMAINING_KEY, math.max(0, remaining - affordableJuice))
+		result.other = bestPair[2]
+		result.converters = bestPair[1]
 	end
+	return result
+end
+
+local function filterOverlappingMexes() --zzz untested
+	local mexesToRemove = {}
 	
-	local nonLabOptions = commanderData.nonLabOptions
-	local isFactory = unitDef.isFactory
-	
-	if isFactory then
-		spSetTeamRulesParam(teamID, TEAM_RULES_FACTORY_PLACED_KEY, 1)
-		commanderData.thingsMade.factory = commanderData.thingsMade.factory + 1
-	else
-		for optionName, trueName in pairs(nonLabOptions) do
-			if trueName == unitDef.name then
-				commanderData.thingsMade[optionName] = (commanderData.thingsMade[optionName] or 0) + 1
-				break
+	for mexKey1, mexData1 in pairs(mexOverlapCheckTable) do
+		local commanderID1, x1, z1 = mexData1[1], mexData1[2], mexData1[3]
+		local comData1 = commanders[commanderID1]
+		local distanceToCommander1 = math.distance2d(x1, z1, comData1.spawnX, comData1.spawnZ)
+		
+		for mexKey2, mexData2 in pairs(mexOverlapCheckTable) do
+			if mexKey1 ~= mexKey2 then
+				local x2, z2 = mexData2[2], mexData2[3]
+				local distanceBetweenMexes = math.distance2d(x1, z1, x2, z2)
+				
+				if distanceBetweenMexes <= 32 then
+					local commanderID2 = mexData2[1]
+					local comData2 = commanders[commanderID2]
+					local distanceToCommander2 = math.distance2d(x2, z2, comData2.spawnX, comData2.spawnZ)
+					
+					if distanceToCommander1 < distanceToCommander2 then
+						mexesToRemove[mexKey1] = true
+					else
+						mexesToRemove[mexKey2] = true
+					end
+				end
 			end
 		end
 	end
 	
-	spSpawnCEG("quickstart-spawn-pulse-large", buildX, buildY + 10, buildZ)
+	for mexKey, _ in pairs(mexesToRemove) do
+		mexOverlapCheckTable[mexKey] = nil
+	end
+end
+
+local function addFactoryBuild(commanderID)
+	local comData = commanders[commanderID]
+	local commanderName = comData.commanderName
+	local availableOptions = commanderAllLabs[commanderName]
+	local selectedFactory = "armlab"
 	
+	if availableOptions then
+		local totalWeight = 0
+		local weightedOptions = {}
+		
+		for labName, weight in pairs(availableOptions) do
+			totalWeight = totalWeight + weight
+			table.insert(weightedOptions, {name = labName, weight = weight})
+		end
+		
+		if totalWeight > 0 then
+			local randomValue = math.random() * totalWeight
+			local currentWeight = 0
+			
+			for _, option in ipairs(weightedOptions) do
+				currentWeight = currentWeight + option.weight
+				if randomValue <= currentWeight then
+					selectedFactory = option.name
+					break
+				end
+			end
+		end
+	end
+
+	local buildX, buildZ = getBuildSpace(commanderID, "factory", {{comData.spawnX, comData.spawnZ}}, nil)
+	if not buildX then return end
+	table.insert(comData.spawnQueue, 1, {id = unitDefNames[selectedFactory].id, x = buildX, z = buildZ, facing = comData.defaultFacing or 0})
+end
+
+	local function generateBuildCommands(commanderID)
+	local comData = commanders[commanderID]
+	local totalJuice = 0
+	local tryCount = 0
+	while comData.juice > totalJuice and tryCount < 50 do
+
+		local selectedOption = nil
+		local weightedOptions = {}
+		local totalWeight = 0
+		
+		for optionName, quota in pairs(comData.buildQuotas) do
+			local currentCount = comData.thingsMade[optionName] or 0
+			local remainingQuota = quota - currentCount
+			
+			if remainingQuota > 0 then
+				table.insert(weightedOptions, {name = optionName, weight = remainingQuota})
+				totalWeight = totalWeight + remainingQuota
+			end
+		end
+		
+		if totalWeight > 0 then
+			local randomValue = math.random() * totalWeight
+			local currentWeight = 0
+			
+			for _, option in ipairs(weightedOptions) do
+				currentWeight = currentWeight + option.weight
+				if randomValue <= currentWeight then
+					selectedOption = option.name
+					break
+				end
+			end
+		end
+		
+		local nogoZones = {}
+		table.insert(nogoZones, {comData.spawnX, comData.spawnZ})
+		if comData.baseNodes.factory then
+			table.insert(nogoZones, {comData.baseNodes.factory.x, comData.baseNodes.factory.z})
+		end
+		tryCount = tryCount + 1
+		if selectedOption then
+			local buildX, buildZ = getBuildSpace(commanderID, selectedOption, {{comData.spawnX, comData.spawnZ}, }, nil)
+			if not buildX then
+				comData.buildQuotas[selectedOption] = 0
+				return
+			else
+				table.insert(comData.spawnQueue, 1, {id = comData.buildDefs[selectedOption], x = buildX, z = buildZ, facing = comData.defaultFacing or 0})
+			end
+		end
+	end
+end
+
+local function tryToSpawnBuild(commanderID, buildDefID, buildX, buildZ, facing)
+	local unitDef, comData, buildProgress = unitDefs[buildDefID], commanders[commanderID], 0
+	local discount = factoryRequired and not comData.factoryMade and FACTORY_DISCOUNT or 0
+	local juiceCost = defJuices[buildDefID] - discount
+	if juiceCost > comData.juice then return false, nil end
+
+	local unitID = spCreateUnit(unitDef.name, buildX, spGetGroundHeight(buildX, buildZ), buildZ, facing, comData.teamID)
+	if not unitID then
+		return false, nil
+	end
+
+	local affordableJuice = math.min(comData.juice, juiceCost)
+	buildProgress = affordableJuice / juiceCost
+	Spring.SetUnitHealth(unitID, {build = buildProgress, health = math.ceil(unitDef.health * buildProgress)})
+	comData.juice = comData.juice - affordableJuice
+	
+	if unitDef.isFactory then
+		Spring.SetTeamRulesParam(comData.teamID, TEAM_RULES_FACTORY_PLACED_KEY, 1)
+		comData.thingsMade.factory = comData.thingsMade.factory + 1
+	else
+		local optionName = optionDefIDToTypes[buildDefID]
+		if optionName then
+			comData.thingsMade[optionName] = (comData.thingsMade[optionName] or 0) + 1
+		end
+	end
+	
+	spSpawnCEG("quickstart-spawn-pulse-large", buildX, buildY + 10, buildZ)
 	if buildProgress < 1 then
-		spGiveOrderToUnit(commanderID, CMD.INSERT, {0, CMD.REPAIR, CMD.OPT_SHIFT, unitID}, CMD.OPT_ALT)
+		Spring.GiveOrderToUnit(commanderID, CMD.INSERT, {0, CMD.REPAIR, CMD.OPT_SHIFT, unitID}, CMD.OPT_ALT)
 	end
 	
 	return buildProgress >= 1
 end
 
-local function isBuildCommand(cmdID)
-	if not cmdID then return false end
-	return cmdID < 0
-end
-
-local function isCommanderInRange(commanderX, commanderZ, targetX, targetZ)
-	local distance = math.distance2d(commanderX, commanderZ, targetX, targetZ)
-	return distance <= COMMAND_STEAL_RANGE
-end
-
-local function selectWeightedRandom(weightedOptions)
-	local totalWeight = 0
-	for _, weight in pairs(weightedOptions) do
-		totalWeight = totalWeight + weight
-	end
-	
-	local randomValue = math.random() * totalWeight
-	local currentWeight = 0
-	
-	for optionName, weight in pairs(weightedOptions) do
-		currentWeight = currentWeight + weight
-		if randomValue <= currentWeight then
-			return optionName
-		end
-	end
-	
-	return nil
-end
-
-local function attemptBuildAtLocation(x, y, z, unitDefID, teamID, commanderData, commanderID)
-	local unitDef = UnitDefs[unitDefID]
-	local isMetalExtractor = unitDef and unitDef.extractsMetal and unitDef.extractsMetal > 0
-	
-	if isMetalExtractor and not isMetalMap and metalSpotsList and #metalSpotsList > 0 then
-		local spotsWithDistance = {}
-		for i = 1, #metalSpotsList do
-			local spot = metalSpotsList[i]
-			local distanceSquared = math.distance2dSquared(spot.x, spot.z, x, z)
-			if distanceSquared <= AUTO_MEX_MAX_DISTANCE * AUTO_MEX_MAX_DISTANCE then
-				table.insert(spotsWithDistance, {spot = spot, distance = distanceSquared})
-			end
-		end
-		
-		table.sort(spotsWithDistance, function(a, b) return a.distance < b.distance end)
-		
-		for _, spotData in ipairs(spotsWithDistance) do
-			local spot = spotData.spot
-			if spTestBuildOrder(unitDefID, spot.x, spot.y, spot.z, 0) > 0 then
-				local fullyBuilt = deductJuiceAndCreateUnit(commanderData, unitDefID, spot.x, spot.y, spot.z, commanderData.defaultFacing or 0, teamID, commanderID, false)
-				if fullyBuilt then
-					return true
-				end
-			end
-		end
-		return false
-	end
-	
-	local nonLabOptions = commanderData.nonLabOptions
-	local isConverter = nonLabOptions and nonLabOptions.converter == (unitDef and unitDef.name)
-	
-	local chunksWithDistance = {}
-	local targetUsage = isConverter and "converter" or "else"
-	for _, chunkData in ipairs(commanderData.chunksWithDistance) do
-		if chunkData.preferredUsage == targetUsage then
-			table.insert(chunksWithDistance, chunkData)
-		end
-	end
-	
-	if not isConverter then
-		table.sort(chunksWithDistance, function(a, b) return a.distance > b.distance end)
-	end
-	
-	for _, chunkData in ipairs(chunksWithDistance) do
-		local positions = generateChunkPositionsSorted(chunkData)
-		
-		for _, pos in ipairs(positions) do
-			local searchY = spGetGroundHeight(pos.x, pos.z)
-			local snappedX, snappedY, snappedZ = spPos2BuildPos(unitDefID, pos.x, searchY, pos.z)
-			
-			if snappedX and spTestBuildOrder(unitDefID, snappedX, snappedY, snappedZ, 0) > 0 then
-				local fullyBuilt = deductJuiceAndCreateUnit(commanderData, unitDefID, snappedX, snappedY, snappedZ, commanderData.defaultFacing or 0, teamID, commanderID, false)
-				if fullyBuilt then
-					return true
-				end
-			end
-		end
-	end
-end
-
-local function generateRandomBuildQueue(commanderID, commanderData)
-	local buildQueue = {}
-	
-	if commanderData.buildQuotas.mex > 0 and (isMetalMap or (metalSpotsList and #metalSpotsList > 0)) then
-		local alreadyMade = commanderData.thingsMade.mex or 0
-		local stillNeeded = math.max(0, commanderData.buildQuotas.mex - alreadyMade)
-		for i = 1, stillNeeded do
-			table.insert(buildQueue, "mex")
-		end
-	end
-	
-	for optionName, quota in pairs(commanderData.buildQuotas) do
-		if optionName ~= "mex" and quota > 0 then
-			local weight = randomBuildOptionWeights[optionName] or 0
-			if weight > 0 then
-				local alreadyMade = commanderData.thingsMade[optionName] or 0
-				local stillNeeded = math.max(0, quota - alreadyMade)
-				for i = 1, stillNeeded do
-					table.insert(buildQueue, optionName)
-				end
-			end
-		end
-	end
-	
-	local mexCount = commanderData.buildQuotas.mex or 0
-	local nonMexStartIndex = mexCount + 1
-	if nonMexStartIndex <= #buildQueue then
-		for i = #buildQueue, nonMexStartIndex + 1, -1 do
-			local j = math.random(nonMexStartIndex, i)
-			buildQueue[i], buildQueue[j] = buildQueue[j], buildQueue[i]
-		end
-	end
-
-	local overflowCount = 10
-	for i = 1, overflowCount do
-		local selectedOption = selectWeightedRandom(randomBuildOptionWeights)
-		if selectedOption then
-			table.insert(buildQueue, selectedOption)
-		end
-	end
-	buildQueues[commanderID] = buildQueue
-end
-
-local function buildFactoryOrder(commanderData, availableFactories, labsUsed)
-	local factoryOrder = {}
-	if commanderData.isHuman then
-		local firstFactory = nil
-		for labName, _ in pairs(labsUsed) do
-			for _, factory in ipairs(availableFactories) do
-				if factory.name == labName then
-					firstFactory = factory
-					break
-				end
-			end
-			if firstFactory then break end
-		end
-		if firstFactory then
-			table.insert(factoryOrder, firstFactory)
-		end
-		for _, factory in ipairs(availableFactories) do
-			if factory ~= firstFactory then
-				table.insert(factoryOrder, factory)
-			end
-		end
-	else
-		local sortedFactories = {}
-		for _, factory in ipairs(availableFactories) do
-			local probability = labsUsed[factory.name] or 0
-			table.insert(sortedFactories, {factory = factory, probability = probability})
-		end
-		table.sort(sortedFactories, function(a, b) return a.probability > b.probability end)
-		local randomIndex = math.random(#availableFactories)
-		table.insert(factoryOrder, availableFactories[randomIndex])
-		for _, sortedFactory in ipairs(sortedFactories) do
-			if sortedFactory.factory ~= availableFactories[randomIndex] then
-				table.insert(factoryOrder, sortedFactory.factory)
-			end
-		end
-	end
-	return factoryOrder
-end
-
-local function filterFactoryChunks(chunks)
-	local result = {}
-	for _, chunkData in ipairs(chunks) do
-		if chunkData.preferredUsage == "factory" then
-			table.insert(result, chunkData)
-		end
-	end
-	return result
-end
-
-local function ensureFactoryBuilt(commanderID, commanderData)
-	if not factoryRequired or commanderData.factoryMade then
-		return
-	end
-	local landLabs = commanderLandLabs[commanderData.commanderName]
-	local seaLabs = commanderSeaLabs[commanderData.commanderName]
-	if commanderData.hasFactoryInQueue then
-		return
-	end
-	local labsUsed = commanderData.isInWater and seaLabs or landLabs.labs
-	local availableFactories = {}
-	for factoryName, _ in pairs(labsUsed) do
-		local unitDefID = unitDefNames[factoryName].id
-		table.insert(availableFactories, {unitDefID = unitDefID, name = factoryName})
-	end
-	local factoryOrder = buildFactoryOrder(commanderData, availableFactories, labsUsed)
-	local chunksWithDistance = filterFactoryChunks(commanderData.chunksWithDistance)
-	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
-	for _, factory in ipairs(factoryOrder) do
-		for _, chunkData in ipairs(chunksWithDistance) do
-			local positions = generateChunkPositionsSorted(chunkData, commanderX, commanderZ)
-			for _, pos in ipairs(positions) do
-				local searchY = spGetGroundHeight(pos.x, pos.z)
-				local snappedX, snappedY, snappedZ = spPos2BuildPos(factory.unitDefID, pos.x, searchY, pos.z)
-				if spTestBuildOrder(factory.unitDefID, snappedX, snappedY, snappedZ, 0) > 0 then
-					local facing = commanderData.defaultFacing or 0
-					local isFree = factoryRequired and not commanderData.factoryMade
-					local fullyBuilt = deductJuiceAndCreateUnit(commanderData, factory.unitDefID, snappedX, snappedY, snappedZ, facing, commanderData.teamID, commanderID, isFree)
-					if fullyBuilt then
-						commanderData.factoryMade = true
-						return
-					end
-				end
-			end
-		end
-	end
-end
-
-local function executeQueuedBuildCommands(commanderID, commanderData, commanderX, commanderZ)
-	commanderData.hasFactoryInQueue = false
-	
-	if commanderData.juice > 0 then
-		local commands = spGetUnitCommands(commanderID, ALL_COMMANDS)
-		if next(commands) then
-			for i, cmd in ipairs(commands) do
-				local buildsiteX, buildsiteZ = cmd.params[1], cmd.params[3]
-				if isBuildCommand(cmd.id) and isCommanderInRange(commanderX, commanderZ, buildsiteX, buildsiteZ) then
-					local buildDefID = -cmd.id
-					local unitDef = UnitDefs[buildDefID]
-					local isFactory = unitDef and unitDef.isFactory
-					
-					local buildX, buildY, buildZ = cmd.params[1], cmd.params[2], cmd.params[3]
-					local facing = commanderData.defaultFacing or 0
-					
-					local isFree = false
-					if isFactory then
-						commanderData.hasFactoryInQueue = true
-						isFree = factoryRequired and not commanderData.factoryMade
-					end
-					
-					local fullyBuilt = deductJuiceAndCreateUnit(commanderData, buildDefID, buildX, buildY, buildZ, facing, commanderData.teamID, commanderID, isFree)
-					if fullyBuilt then
-						if isFactory then
-							commanderData.factoryMade = true
-						end
-						spGiveOrderToUnit(commanderID, CMD.REMOVE, {i}, 0)
-					elseif not isFactory then
-						break
-					end
-				end
-				if commanderData.juice <= 0 then
-					break
-				end
-			end
-		end
-	end
-end
-
-function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if boostableCommanders[unitDefID] then
-		queueCommanderCreation[unitID] = unitTeam
-	end
-end
-
-local initialized = false
 function gadget:GameFrame(frame)
 	if not initialized and frame > PREGAME_DELAY_FRAMES then
-		for unitID, teamID in pairs(queueCommanderCreation) do
-			initializeCommander(unitID, teamID)
-		end
-		queueCommanderCreation = {}
 		initialized = true
+		running = true
+		for commanderID, teamID in pairs(queuedCommanders) do
+			initializeCommander(commanderID, teamID)
+		end
+		queuedCommanders = nil
+		for commanderID, comData in pairs(commanders) do
+			comData.spawnX, comData.spawnY, comData.spawnZ = spGetUnitPosition(commanderID)
+			comData.spawnQueue = getCommanderBuildQueue(commanderID) --returns list of build order items. Must be scrubbed of things out of range.
+			for i, build in ipairs(comData.spawnQueue) do
+				if math.distance2d(build.x, build.z, comData.spawnX, comData.spawnZ) > INSTANT_BUILD_RANGE then
+					table.remove(comData.spawnQueue, i)
+				elseif mexDefs[build.id] then
+					mexOverlapCheckTable[getBuildInstanceID(build.id, build.x, build.z)] = {commanderID, build.x, build.z}
+				end
+			end
+			comData.baseNodes = generateBaseNodes(commanderID)
+		end
+		filterOverlappingMexes()
 	end
 
-	if frame % UPDATE_FRAMES ~= 0 then return end
-
-	for commanderID, commanderData in pairs(commanderMetaList) do
-		
-		local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
-		if commanderX then
-			commanderData.isInWater = commanderY < 0
-		end
-
-		executeQueuedBuildCommands(commanderID, commanderData, commanderX, commanderZ)
-		while commanderData.juice > 0 do
-			if #buildQueues[commanderID] == 0 then
-				generateRandomBuildQueue(commanderID, commanderData)
+	while running do
+		local allQueuesEmpty = true
+		for commanderID, comData in pairs (commanders) do
+			for i, build in ipairs(comData.spawnQueue) do
+				local fullyBuilt = tryToSpawnBuild(commanderID, build.id, build.x, build.z, build.facing)
+				if fullyBuilt then
+					table.remove(comData.spawnQueue, 1)
+				end
 			end
-			
-			if #buildQueues[commanderID] == 0 then
+			if comData.juice > 0 then
+				if not comData.isHuman and not comData.factoryBuilt then
+					addFactoryBuild(commanderID)
+				end
+				generateBuildCommands(commanderID)
+			end
+			if #comData.spawnQueue > 0 then
+				allQueuesEmpty = false
+			end
+		end
+		if allQueuesEmpty then
+			running = false
+		end
+	end
+
+	local allDiscountsUsed = true
+	if frame % UPDATE_FRAMES == 0 then
+		for teamID, used in pairs(factoryDiscounts) do
+			if not used then
+				allDiscountsUsed = false
 				break
 			end
-			
-			local queueItem = buildQueues[commanderID][1]
-			table.remove(buildQueues[commanderID], 1)
-			
-			local unitDefID
-			if type(queueItem) == "string" then
-				local commanderDefID = spGetUnitDefID(commanderID)
-				local commanderName = UnitDefs[commanderDefID].name
-				local nonLabOptions = commanderNonLabOptions[commanderName]
-				local trueName = nonLabOptions[queueItem]
-				unitDefID = trueName and unitDefNames[trueName].id
-			else
-				unitDefID = queueItem
-			end
-			
-			if unitDefID then
-				local success = attemptBuildAtLocation(commanderX, commanderY, commanderZ, unitDefID, commanderData.teamID, commanderData, commanderID)
-			end
-		end
-		ensureFactoryBuilt(commanderID, commanderData)
-	end
-
-
-	local allResourcesExhausted = true
-	for commanderID, commanderData in pairs(commanderMetaList) do
-		if commanderData.juice > 0 then
-			allResourcesExhausted = false
-			break
 		end
 	end
-
-	if initialized and allResourcesExhausted then
+	if initialized and allDiscountsUsed and not running then
 		gadgetHandler:RemoveGadget()
 	end
 end
 
 function gadget:UnitDestroyed(unitID)
-	if commanderMetaList[unitID] then
-		commanderMetaList[unitID] = nil
-		buildQueues[unitID] = nil
+	commanders[unitID] = nil
+end
+
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	if boostableCommanders[unitDefID] then
+		queuedCommanders[unitID] = unitTeam
+	end
+	if factoryRequired and not factoryDiscounts[unitTeam] and unitDefs[unitDefID].isFactory and commanders[builderID] then
+		factoryDiscounts[unitTeam] = true
+		Spring.SetTeamRulesParam(unitTeam, TEAM_RULES_FACTORY_PLACED_KEY, 1)
+		
+		local unitDef = unitDefs[unitDefID]
+		local fullJuiceCost = defJuices[unitDefID]
+		local buildProgress = FACTORY_DISCOUNT / fullJuiceCost
+
+		Spring.SetUnitHealth(unitID, {build = buildProgress, health = math.ceil(unitDef.health * buildProgress)})
 	end
 end
 
@@ -678,30 +686,17 @@ function gadget:Initialize()
 	isMetalMap = GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].isMetalMap
 	metalSpotsList = GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList
 	
-	randomBuildOptionWeights = {}
-	for optionName, baseWeight in pairs(baseBuildOptionWeights) do
-		randomBuildOptionWeights[optionName] = baseWeight
-	end
-	
-	if not isGoodWind then
-		randomBuildOptionWeights.windmill = 0
-	end
-	
-	if isGoodWind then
-		randomBuildOptionWeights.solar = randomBuildOptionWeights.solar * SOLAR_PENALTY_MULTIPLIER
-	end
-	local frame = spGetGameFrame()
-
+	local frame = Spring.GetGameFrame()
 
 	-- publish juice base immediately for UI to consume
 	local immediateJuice = QUICK_START_COST_METAL + BONUS_METAL + (QUICK_START_COST_ENERGY + BONUS_ENERGY) / ENERGY_VALUE_CONVERSION_DIVISOR
-	spSetGameRulesParam(GAME_RULES_BASE_KEY, immediateJuice)
+	Spring.SetGameRulesParam(GAME_RULES_BASE_KEY, immediateJuice)
 
 	if frame > 1 then
-		local allUnits = spGetAllUnits()
+		local allUnits = Spring.GetAllUnits()
 		for _, unitID in ipairs(allUnits) do
-			local unitDefinitionID = spGetUnitDefID(unitID)
-			local unitTeam = spGetUnitTeam(unitID)
+			local unitDefinitionID = Spring.GetUnitDefID(unitID)
+			local unitTeam = Spring.GetUnitTeam(unitID)
 			if boostableCommanders[unitDefinitionID] then
 				initializeCommander(unitID, unitTeam)
 			end
