@@ -92,35 +92,15 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.turnrate = 120
 		uDef.maxacc = 0.005
 		uDef.health = 750
-		uDef.weapondefs.arm_artillery = {
-			accuracy = 75,
-			areaofeffect = 60,
-			avoidfeature = false,
-			cegtag = "arty-medium",
-			craterboost = 0,
-			cratermult = 0,
-			edgeeffectiveness = 0.65,
-			explosiongenerator = "custom:genericshellexplosion-medium-bomb",
-			gravityaffected = "true",
-			mygravity = 0.12,
-			hightrajectory = 1,
-			impulsefactor = 0.123,
-			name = "Long-range g2g plasma cannon",
-			noselfdamage = true,
-			predictboost = 0.0,
-			range = 1140,
-			reloadtime = 3.05,
-			soundhit = "xplomed4",
-			soundhitwet = "splsmed",
-			soundstart = "cannhvy2",
-			turret = true,
-			weapontype = "Cannon",
-			weaponvelocity = 355.28,
-			damage = {
-				default = 488,
-				subs = 122,
-				vtol = 49,
-			},
+		uDef.weapondefs.arm_artillery.accuracy = 75
+		uDef.weapondefs.arm_artillery.areaofeffect = 60
+		uDef.weapondefs.arm_artillery.hightrajectory = 1
+		uDef.weapondefs.arm_artillery.range = 1140
+		uDef.weapondefs.arm_artillery.reloadtime = 3.05
+		uDef.weapondefs.arm_artillery.damage = {
+			default = 488,
+			subs = 122,
+			vtol = 49,
 		}
 		uDef.weapons[1].maxangledif = 30
 	end
