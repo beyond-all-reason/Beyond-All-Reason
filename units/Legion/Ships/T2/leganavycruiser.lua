@@ -33,7 +33,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 265.5,
-		waterline = 10,
+		waterline = 0,
 		customparams = {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",

@@ -3,8 +3,8 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
     return {
         name      = "Land Speed Multiplier",
-        desc      = "Speeds up or slows down units based on whether they are on land or water. Takes water traversal speed as the supplied default maxSpeed, applies multiplier to desired land speed.",
-        author    = "ZephyrSkies, with help from [BONELESS]/qscrew/efrec",
+        desc      = "Speeds up or slows down units on land compared to their default water speed.",
+        author    = "ZephyrSkies, with a lot of help from [BONELESS]/qscrew/efrec",
         date      = "2025-09-14",
         license   = "GNU GPL, v2 or later",
         layer     = 0,
@@ -12,77 +12,87 @@ function gadget:GetInfo()
     }
 end
 
--- units need to have the following customparams set for this to work properly:
--- slowsonland (boolean)
--- landspeedfactor (double)
+-- units need to have the following customparam set for this to work properly:
+-- landspeedfactor (number, e.g. 0.5 = half speed on land, 1 = no change, 2 = double speed)
 
 if not gadgetHandler:IsSyncedCode() then return false end
 
 if gadgetHandler:IsSyncedCode() then
 
     ---------------------------------------------------------------------------------------------
-    -- Array/Value Initialisation ---------------------------------------------------------------
+    -- Setup and Data Storage -------------------------------------------------------------------
 
-        local unitDefsToSlow = {}
-        local unitSpeeds = {}
-        local unitFactors = {}
-        local SMC = Spring.MoveCtrl
+    local unitDefsWithFactor = {}  -- unitDefID -> factor
+    local unitBaseStats = {}       -- unitID -> {speed, turnRate, accRate, decRate}
+    local SMC = Spring.MoveCtrl
 
     ---------------------------------------------------------------------------------------------
-    -- Applicable Units Selected ----------------------------------------------------------------
+    -- store which units are affected -----------------------------------------------------------
 
-    -- handle which UnitDefs are affected early
+    -- this runs once when the gadget is loaded, checks units which have landspeedfactor, only runs once and only these units are then affected
     for defID, ud in pairs(UnitDefs) do
         local cp = ud.customParams or {}
-        if cp.slowonland == "true" then
-            local factor = tonumber(cp.landspeedfactor) or 0.5 -- setting default to half-speed slow or else things get freaky
-            unitDefsToSlow[defID] = factor
+        if cp.landspeedfactor then
+            local factor = tonumber(cp.landspeedfactor)
+            if factor then
+                unitDefsWithFactor[defID] = factor
+            end
         end
     end
 
     ---------------------------------------------------------------------------------------------
-    -- Local Functions --------------------------------------------------------------------------
+    -- Helper Function --------------------------------------------------------------------------
 
-    -- stores the max possible speed and desired speed in two seperate spring variables, applies new speeds when commands are given and appropriate events happen related to water
-    local function ApplySpeed(unitID, newSpeed)
-        if not SMC.SetGroundMoveTypeData then return end
-        SMC.SetGroundMoveTypeData(
-            unitID, {maxSpeed = newSpeed, maxWantedSpeed = newSpeed}
-        )
+    -- uses maxSpeed and wantedMaxSpeed to make adjustments, grabs other variables too now
+    local function ApplySpeed(unitID, stats, factor)
+        SMC.SetGroundMoveTypeData(unitID, {
+            maxSpeed       = stats.speed   * factor,
+            maxWantedSpeed = stats.speed   * factor,
+            turnRate       = stats.turn    * factor,
+            accRate        = stats.acc     * factor,
+            decRate        = stats.dec     * factor,
+        })
     end
 
-    --  when unit's created, grabs the speed and multplier factor, and sets it to max speed. 
-    --      Worth adjusting later to ensure that it doesn't accidentally set a unit to go off at max speed over land?
+    ---------------------------------------------------------------------------------------------
+    -- Engine Callins ---------------------------------------------------------------------------
+
+    -- store the base movement values
     function gadget:UnitCreated(unitID, unitDefID, teamID)
-        local factor = unitDefsToSlow[unitDefID]
+        local factor = unitDefsWithFactor[unitDefID]
         if factor then
             local ud = UnitDefs[unitDefID]
-            unitSpeeds[unitID] = ud.speed
-            unitFactors[unitID] = factor
-            ApplySpeed(unitID, ud.speed) -- start with full speed
+            unitBaseStats[unitID] = {
+                speed = ud.speed,
+                turn  = ud.turnRate,
+                acc   = ud.maxAcc,
+                dec   = ud.maxDec,
+            }
+            -- Default to water speed when first created (safe assumption).
+            ApplySpeed(unitID, unitBaseStats[unitID], 1)
         end
     end
 
-    -- if it enters the water, goes full speed
+    -- allows units to go at full speed in water
     function gadget:UnitEnteredWater(unitID, unitDefID, teamID)
-        if unitSpeeds[unitID] then
-            ApplySpeed(unitID, unitSpeeds[unitID])
+        local stats = unitBaseStats[unitID]
+        if stats then
+            ApplySpeed(unitID, stats, 1)
         end
     end
 
-    -- if it exits water, goes the mupltiplied speed factor
+    -- slows unit down on land
     function gadget:UnitLeftWater(unitID, unitDefID, teamID)
-        local base = unitSpeeds[unitID]
-        local factor = unitFactors[unitID]
-        if base and factor then
-            ApplySpeed(unitID, base * factor)
+        local stats = unitBaseStats[unitID]
+        local factor = unitDefsWithFactor[unitDefID]
+        if stats and factor then
+            ApplySpeed(unitID, stats, factor)
         end
     end
 
-    -- to ensure that the unit speed and factor values are properly discarded in case a unit is revived and the unitID is used again, can cause shenanigans otherwise
+    -- clear stored values in case unitID is used again
     function gadget:UnitDestroyed(unitID, unitDefID, teamID)
-        unitSpeeds[unitID] = nil
-        unitFactors[unitID] = nil
+        unitBaseStats[unitID] = nil
     end
 
 end
