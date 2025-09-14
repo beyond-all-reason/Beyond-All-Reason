@@ -39,6 +39,8 @@ return {
 			subfolder = "Legion/Ships/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
+			slowonland = "true",
+			landspeedfactor = "0.5",
 		},
 		featuredefs = {
 			dead = {
