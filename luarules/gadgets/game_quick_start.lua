@@ -37,11 +37,11 @@ local BONUS_METAL = 450
 local BONUS_ENERGY = 2500
 local QUICK_START_COST_METAL = 800
 local QUICK_START_COST_ENERGY = 400
-local AUTO_MEX_MAX_DISTANCE = 500
 local ENERGY_VALUE_CONVERSION_DIVISOR = 10
-local INSTANT_BUILD_RANGE = 700
-local NODE_GRID_MAX_SIZE = INSTANT_BUILD_RANGE
-local MAX_SPACE_DISTANCE = NODE_GRID_MAX_SIZE
+local NODE_GRID_SORT_DISTANCE = 500
+local INSTANT_BUILD_RANGE = 600
+local CONVERTER_GRID_DISTANCE = 200
+ 
 local ALL_COMMANDS = -1
 local UPDATE_FRAMES = Game.gameSpeed
 local PREGAME_DELAY_FRAMES = 61 --after gui_pregame_build.lua is loaded
@@ -66,6 +66,7 @@ local unitDefs = UnitDefs
 local unitDefNames = UnitDefNames
 local optionDefIDToTypes = {}
 local factoryDiscounts = {}
+local allTeamsList = {}
 
 local discountableFactories = {
 	armap = true, armfhp = true, armhp = true, armlab = true, armsy = true, armvp = true,
@@ -109,22 +110,26 @@ local optionsToNodeType = {
 	floatingConverter = "converters",
 }
 
-local function getSkipDirectionForNode(nodeX, nodeZ)
-	local dx = MAP_CENTER_X - nodeX
-	local dz = MAP_CENTER_Z - nodeZ
-	if math.abs(dx) >= math.abs(dz) then
-		return "x"
-	end
-	return "z"
-end
-
-local function generateNodeGrid(commanderID, originX, originZ, buildDefID, skipDirection)
+local function generateLocalGrid(commanderID)
 	local comData = commanders[commanderID]
-	local maxOffset = MAX_SPACE_DISTANCE
+	local originX, originZ = comData.spawnX, comData.spawnZ
+	local buildDefID
+	if comData.isInWater then
+		buildDefID = comData.buildDefs and comData.buildDefs.tidal or nil
+	else
+		buildDefID = comData.buildDefs and comData.buildDefs.windmill or nil
+	end
+	if not buildDefID then
+		return {}
+	end
+	local dx = MAP_CENTER_X - originX
+	local dz = MAP_CENTER_Z - originZ
+	local skipDirection = math.abs(dx) >= math.abs(dz) and "x" or "z"
+	local maxOffset = INSTANT_BUILD_RANGE
 	local gridList = {}
 	local used = {}
 	local noGoZones = {}
-	table.insert(noGoZones, {x = comData.spawnX, z = comData.spawnZ, distance = 100})
+	table.insert(noGoZones, {x = originX, z = originZ, distance = 100})
 	if comData.nearbyMexes then
 		for i = 1, #comData.nearbyMexes do
 			local mex = comData.nearbyMexes[i]
@@ -132,22 +137,19 @@ local function generateNodeGrid(commanderID, originX, originZ, buildDefID, skipD
 		end
 	end
 	for offsetX = -maxOffset, maxOffset, BUILD_SPACING do
-		if math.abs(offsetX) > maxOffset then
-			break
-		end
 		for offsetZ = -maxOffset, maxOffset, BUILD_SPACING do
 			local shouldSkip = false
 			if skipDirection == "x" then
 				local columnIndex = (offsetZ + maxOffset) / BUILD_SPACING
 				shouldSkip = (columnIndex % SKIP_STEP) == 0
-			elseif skipDirection == "z" then
+			else
 				local rowIndex = (offsetX + maxOffset) / BUILD_SPACING
 				shouldSkip = (rowIndex % SKIP_STEP) == 0
 			end
 			if not shouldSkip then
 				local testX = originX + offsetX
 				local testZ = originZ + offsetZ
-				if math.distance2d(testX, testZ, comData.spawnX, comData.spawnZ) <= INSTANT_BUILD_RANGE then
+				if math.distance2d(testX, testZ, originX, originZ) <= INSTANT_BUILD_RANGE then
 					local tooClose = false
 					for i = 1, #noGoZones do
 						local g = noGoZones[i]
@@ -163,7 +165,7 @@ local function generateNodeGrid(commanderID, originX, originZ, buildDefID, skipD
 							local key = tostring(snappedX) .. "_" .. tostring(snappedZ)
 							if not used[key] then
 								used[key] = true
-								table.insert(gridList, {x = snappedX, z = snappedZ, d = math.distance2d(snappedX, snappedZ, originX, originZ)})
+								table.insert(gridList, {x = snappedX, z = snappedZ})
 							end
 						end
 					end
@@ -171,7 +173,6 @@ local function generateNodeGrid(commanderID, originX, originZ, buildDefID, skipD
 			end
 		end
 	end
-	table.sort(gridList, function(a, b) return a.d < b.d end)
 	return gridList
 end
 
@@ -229,60 +230,6 @@ local function applyBuildProgressToUnit(unitID, unitDef, affordableJuice, fullJu
 	return buildProgress
 end
 
-local function initializeCommander(commanderID, teamID)
-	local currentMetal = Spring.GetTeamResources(teamID, "metal") or 0
-	local currentEnergy = Spring.GetTeamResources(teamID, "energy") or 0
-	local juice = QUICK_START_COST_METAL + BONUS_METAL + (QUICK_START_COST_ENERGY + BONUS_ENERGY) / ENERGY_VALUE_CONVERSION_DIVISOR
-	
-	factoryDiscounts[teamID] = false
-
-	local isHuman = false
-	if GG and GG.PowerLib and GG.PowerLib.HumanTeams then
-		isHuman = GG.PowerLib.HumanTeams[teamID] == true
-	end
-	
-	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
-	local directionX = MAP_CENTER_X - commanderX
-	local directionZ = MAP_CENTER_Z - commanderZ
-	local angle = math.atan2(directionX, directionZ)
-	local defaultFacing = math.floor((angle / (math.pi / 2)) + 0.5) % 4
-
-	local commanderDefID = Spring.GetUnitDefID(commanderID)
-	local commanderName = UnitDefs[commanderDefID].name
-	local isInWater = commanderY < 0
-	local buildDefs = {}
-	for optionName, trueName in pairs(commanderNonLabOptions[commanderName]) do
-		buildDefs[optionName] = unitDefNames[trueName].id
-	end
-
-	commanders[commanderID] = {
-		teamID = teamID,
-		juice = juice,
-		thingsMade = {windmill = 0, mex = 0, converter = 0, solar = 0, tidal = 0, floatingConverter = 0, factory = 0},
-		isHuman = isHuman,
-		defaultFacing = defaultFacing,
-		isInWater = isInWater,
-		commanderName = commanderName,
-		buildDefs = buildDefs,
-		buildPlots = {
-			converters = {
-				originX = commanderX, originZ = commanderZ, indexX = 0, indexZ = 0, skipDirection = "x"
-			},
-			other = {
-				originX = commanderX, originZ = commanderZ, indexX = 0, indexZ = 0, skipDirection = "x"
-			}
-		},
-		gridLists = { other = {}, converters = {} },
-		buildQuotas = { 
-		mex = 4, windmill = isInWater and 0 or (isGoodWind and 4 or 0), converter = isInWater and 0 or 2, 
-		solar = isInWater and 0 or (isGoodWind and 1 or 4), tidal = isInWater and 5 or 0, floatingConverter = isInWater and 1 or 0 
-		},
-		nearbyMexes = {}
-	}
-	
-	Spring.SetTeamResource(teamID, "metal", math.max(0, currentMetal - QUICK_START_COST_METAL))
-	Spring.SetTeamResource(teamID, "energy", math.max(0, currentEnergy - QUICK_START_COST_ENERGY))
-end
 
 local function getCommanderBuildQueue(commanderID)
 	local spawnQueue = {}
@@ -365,59 +312,98 @@ local function getBuildSpace(commanderID, option)
 	end
 end
 
-local function calculatePairScore(node1, node2)
-	local baseScore = node1.score + node2.score
-	local centerX = (node1.x + node2.x) / 2
-	local centerZ = (node1.z + node2.z) / 2
-	local distanceFromCenter = math.distance2d(centerX, centerZ, MAP_CENTER_X, MAP_CENTER_Z)
-	local maxDistance = math.distance2d(0, 0, MAP_CENTER_X, MAP_CENTER_Z)
-	local distanceRatio = math.min(distanceFromCenter / maxDistance, 1.0)
-	local biasMultiplier = 0.2 + (0.8 * distanceRatio)
-	return baseScore * biasMultiplier
-end
-
-local function generateBaseNodes(commanderID)
-	local baseNodes = {}
+local function generateBaseNodesFromLocalGrid(commanderID, localGrid)
 	local comData = commanders[commanderID]
 	local spawnX, spawnZ = comData.spawnX, comData.spawnZ
-	local radialDistance = INSTANT_BUILD_RANGE / 2
-	local buildDefID
-	if comData.isInWater then
-		buildDefID = comData.buildDefs and comData.buildDefs.tidal or nil
-	else
-		buildDefID = comData.buildDefs and comData.buildDefs.windmill or nil
-	end
-	if not buildDefID then
-		return
-	end
+	local nodes = {}
 	local angleIncrement = 2 * math.pi / 8
 	for i = 0, 7 do
 		local angle = i * angleIncrement
-		local nodeX = spawnX + radialDistance * math.cos(angle)
-		local nodeZ = spawnZ + radialDistance * math.sin(angle)
-		local skipDirection = getSkipDirectionForNode(nodeX, nodeZ)
-		local grid = generateNodeGrid(commanderID, nodeX, nodeZ, buildDefID, skipDirection)
-		if #grid > 0 then
-			table.insert(baseNodes, {x = nodeX, z = nodeZ, grid = grid, score = #grid})
+		local nodeX = spawnX + (INSTANT_BUILD_RANGE / 2) * math.cos(angle)
+		local nodeZ = spawnZ + (INSTANT_BUILD_RANGE / 2) * math.sin(angle)
+		nodes[i + 1] = {x = nodeX, z = nodeZ, index = i + 1, grid = {}, score = 0}
+	end
+	local totalValid = #localGrid
+	for i = 1, #nodes do
+		local node = nodes[i]
+		for j = 1, totalValid do
+			local p = localGrid[j]
+			if math.distance2d(p.x, p.z, node.x, node.z) <= NODE_GRID_SORT_DISTANCE then
+				table.insert(node.grid, {x = p.x, z = p.z})
+			end
+		end
+		node.score = #node.grid
+		node.distanceFromCenter = math.distance2d(node.x, node.z, MAP_CENTER_X, MAP_CENTER_Z)
+		node.goodEnough = node.score >= math.ceil(totalValid * 0.25)
+	end
+	local nodesByDistance = {}
+	for i = 1, #nodes do
+		nodesByDistance[i] = nodes[i]
+	end
+	table.sort(nodesByDistance, function(a, b) return a.distanceFromCenter > b.distanceFromCenter end)
+	local selectedPair = nil
+	for i = 1, #nodesByDistance do
+		local node = nodesByDistance[i]
+		if node.goodEnough then
+			local leftIndex = ((node.index + 6) % 8) + 1
+			local rightIndex = (node.index % 8) + 1
+			if nodes[leftIndex].goodEnough then
+				selectedPair = {nodes[leftIndex], node}
+				break
+			end
+			if nodes[rightIndex].goodEnough then
+				selectedPair = {node, nodes[rightIndex]}
+				break
+			end
 		end
 	end
-	if #baseNodes < 2 then
-		return
-	end
-	local bestPair = nil
-	local bestPairScore = 0
-	for i = 1, #baseNodes do
-		local nextIndex = (i % #baseNodes) + 1
-		local node1 = baseNodes[i]
-		local node2 = baseNodes[nextIndex]
-		local pairScore = calculatePairScore(node1, node2)
-		if pairScore > bestPairScore then
-			bestPairScore = pairScore
-			bestPair = {node1, node2}
+	if not selectedPair then
+		local bestScore = -1
+		for i = 1, 8 do
+			local j = (i % 8) + 1
+			local s = nodes[i].score + nodes[j].score
+			if s > bestScore then
+				bestScore = s
+				selectedPair = {nodes[i], nodes[j]}
+			end
 		end
 	end
-	local result = {other = bestPair[1], converters = bestPair[2]}
-	return result
+	if not selectedPair then
+		return {other = {x = spawnX, z = spawnZ, grid = {}}, converters = {x = spawnX, z = spawnZ, grid = {}}}
+	end
+	local nodeA = selectedPair[1]
+	local nodeB = selectedPair[2]
+	local converterNode = nodeA.score <= nodeB.score and nodeA or nodeB
+	local otherNode = converterNode == nodeA and nodeB or nodeA
+	local filteredConverter = {}
+	for i = 1, #converterNode.grid do
+		local p = converterNode.grid[i]
+		if math.distance2d(p.x, p.z, converterNode.x, converterNode.z) <= CONVERTER_GRID_DISTANCE then
+			table.insert(filteredConverter, p)
+		end
+	end
+	local converterKeys = {}
+	for i = 1, #filteredConverter do
+		local k = tostring(filteredConverter[i].x) .. "_" .. tostring(filteredConverter[i].z)
+		converterKeys[k] = true
+	end
+	local filteredOther = {}
+	for i = 1, #otherNode.grid do
+		local p = otherNode.grid[i]
+		local k = tostring(p.x) .. "_" .. tostring(p.z)
+		if not converterKeys[k] then
+			table.insert(filteredOther, p)
+		end
+	end
+	for i = 1, #filteredConverter do
+		filteredConverter[i].d = math.distance2d(filteredConverter[i].x, filteredConverter[i].z, converterNode.x, converterNode.z)
+	end
+	for i = 1, #filteredOther do
+		filteredOther[i].d = math.distance2d(filteredOther[i].x, filteredOther[i].z, otherNode.x, otherNode.z)
+	end
+	table.sort(filteredConverter, function(a, b) return a.d < b.d end)
+	table.sort(filteredOther, function(a, b) return a.d < b.d end)
+	return {other = {x = otherNode.x, z = otherNode.z, grid = filteredOther}, converters = {x = converterNode.x, z = converterNode.z, grid = filteredConverter}}
 end
 
 local function populateNearbyMexes(commanderID)
@@ -446,6 +432,73 @@ local function populateNearbyMexes(commanderID)
 	if #comData.nearbyMexes > 1 then
 		table.sort(comData.nearbyMexes, function(a, b) return a.distance < b.distance end)
 	end
+end
+
+local function initializeCommander(commanderID, teamID)
+	local currentMetal = Spring.GetTeamResources(teamID, "metal") or 0
+	local currentEnergy = Spring.GetTeamResources(teamID, "energy") or 0
+	local juice = QUICK_START_COST_METAL + BONUS_METAL + (QUICK_START_COST_ENERGY + BONUS_ENERGY) / ENERGY_VALUE_CONVERSION_DIVISOR
+	
+	factoryDiscounts[teamID] = false
+
+	local isHuman = false
+	if GG and GG.PowerLib and GG.PowerLib.HumanTeams then
+		isHuman = GG.PowerLib.HumanTeams[teamID] == true
+	end
+	
+	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
+	local directionX = MAP_CENTER_X - commanderX
+	local directionZ = MAP_CENTER_Z - commanderZ
+	local angle = math.atan2(directionX, directionZ)
+	local defaultFacing = math.floor((angle / (math.pi / 2)) + 0.5) % 4
+
+	local commanderDefID = Spring.GetUnitDefID(commanderID)
+	local commanderName = UnitDefs[commanderDefID].name
+	local isInWater = commanderY < 0
+	local buildDefs = {}
+	for optionName, trueName in pairs(commanderNonLabOptions[commanderName]) do
+		buildDefs[optionName] = unitDefNames[trueName].id
+	end
+
+	commanders[commanderID] = {
+		teamID = teamID,
+		juice = juice,
+		thingsMade = {windmill = 0, mex = 0, converter = 0, solar = 0, tidal = 0, floatingConverter = 0, factory = 0},
+		isHuman = isHuman,
+		defaultFacing = defaultFacing,
+		isInWater = isInWater,
+		commanderName = commanderName,
+		buildDefs = buildDefs,
+		gridLists = { other = {}, converters = {} },
+		buildQuotas = { 
+		mex = 4, windmill = isInWater and 0 or (isGoodWind and 4 or 0), converter = (isMetalMap or isInWater) and 0 or 2,
+		solar = isInWater and 0 or (isGoodWind and 1 or 4), tidal = isInWater and 5 or 0, floatingConverter = isInWater and 1 or 0
+		},
+		nearbyMexes = {}
+	}
+	
+	Spring.SetTeamResource(teamID, "metal", math.max(0, currentMetal - QUICK_START_COST_METAL))
+	Spring.SetTeamResource(teamID, "energy", math.max(0, currentEnergy - QUICK_START_COST_ENERGY))
+	
+	local comData = commanders[commanderID]
+	comData.spawnX, comData.spawnY, comData.spawnZ = spGetUnitPosition(commanderID)
+	populateNearbyMexes(commanderID)
+	comData.spawnQueue = getCommanderBuildQueue(commanderID)
+	for i, build in ipairs(comData.spawnQueue) do
+		if math.distance2d(build.x, build.z, comData.spawnX, comData.spawnZ) > INSTANT_BUILD_RANGE then
+			table.remove(comData.spawnQueue, i)
+		elseif mexDefs[build.id] then
+			mexOverlapCheckTable[getBuildInstanceID(build.id, build.x, build.z)] = {commanderID, build.x, build.z}
+		end
+	end
+	local localGrid = generateLocalGrid(commanderID)
+	comData.baseNodes = generateBaseNodesFromLocalGrid(commanderID, localGrid)
+	if not comData.baseNodes then
+		comData.baseNodes = {other = {x = comData.spawnX, z = comData.spawnZ, grid = {}}, converters = {x = comData.spawnX, z = comData.spawnZ, grid = {}}}
+	end
+	
+	comData.gridLists.other = comData.baseNodes.other.grid or {}
+	comData.gridLists.converters = comData.baseNodes.converters.grid or {}
 end
 
 local function filterOverlappingMexes() --zzz untested
@@ -543,11 +596,6 @@ local function generateBuildCommands(commanderID)
 		
 		tryCount = tryCount + 1
 	end
-	
-	Spring.Echo("Quick Start Debug - Commander Team " .. comData.teamID .. " build commands generated:")
-	for optionName, count in pairs(comData.thingsMade) do
-		Spring.Echo("  " .. optionName .. ": " .. count)
-	end
 end
 
 local function tryToSpawnBuild(commanderID, buildDefID, buildX, buildZ, facing)
@@ -583,37 +631,33 @@ end
 local tryCount = 0
 function gadget:GameFrame(frame)
 	if not initialized and frame > PREGAME_DELAY_FRAMES then
-		initialized = true
-		running = true
-		for commanderID, teamID in pairs(queuedCommanders) do
+		if #allTeamsList == 0 then
+			allTeamsList = Spring.GetTeamList()
+		end
+		
+		local modulo = frame % #allTeamsList
+		local teamID = allTeamsList[modulo + 1]  -- Lua arrays are 1-indexed
+		local commanderID = queuedCommanders[teamID]
+		
+		if commanderID then
 			initializeCommander(commanderID, teamID)
+			queuedCommanders[teamID] = nil
 		end
-		queuedCommanders = nil
-		for commanderID, comData in pairs(commanders) do
-			comData.spawnX, comData.spawnY, comData.spawnZ = spGetUnitPosition(commanderID)
-			populateNearbyMexes(commanderID)
-			comData.spawnQueue = getCommanderBuildQueue(commanderID) --returns list of build order items. Must be scrubbed of things out of range.
-			for i, build in ipairs(comData.spawnQueue) do
-				if math.distance2d(build.x, build.z, comData.spawnX, comData.spawnZ) > INSTANT_BUILD_RANGE then
-					table.remove(comData.spawnQueue, i)
-				elseif mexDefs[build.id] then
-					mexOverlapCheckTable[getBuildInstanceID(build.id, build.x, build.z)] = {commanderID, build.x, build.z}
-				end
-			end
-			comData.baseNodes = generateBaseNodes(commanderID)
-			if not comData.baseNodes then
-				comData.baseNodes = {other = {x = comData.spawnX, z = comData.spawnZ, grid = {}}, converters = {x = comData.spawnX, z = comData.spawnZ, grid = {}}}
-			end
-			comData.buildPlots.other.originX = comData.baseNodes.other.x
-			comData.buildPlots.other.originZ = comData.baseNodes.other.z
-			comData.buildPlots.converters.originX = comData.baseNodes.converters.x
-			comData.buildPlots.converters.originZ = comData.baseNodes.converters.z
-			comData.gridLists.other = comData.baseNodes.other.grid or {}
-			comData.gridLists.converters = comData.baseNodes.converters.grid or {}
+		
+		-- Check if all commanders are initialized
+		local allInitialized = true
+		for teamID, commanderID in pairs(queuedCommanders) do
+			allInitialized = false
+			break
 		end
-		filterOverlappingMexes()
-	end
 
+		if allInitialized then
+			initialized = true
+			running = true
+			filterOverlappingMexes()
+		end
+	end
+	
 	while running and frame > PREGAME_DELAY_FRAMES + 1 do
 		tryCount = tryCount + 1
 		if tryCount > 20 then
@@ -641,11 +685,6 @@ function gadget:GameFrame(frame)
 						end
 						table.remove(comData.spawnQueue, 1)
 					end
-				end
-				Spring.Echo("Quick Start Debug - Commander Team try count", tryCount, comData.teamID)
-				for i, build in ipairs(comData.spawnQueue) do
-					local unitDef = unitDefs[build.id]
-					Spring.Echo(unitDef.name)
 				end
 			end
 		end
@@ -685,7 +724,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if boostableCommanders[unitDefID] then
-		queuedCommanders[unitID] = unitTeam
+		queuedCommanders[unitTeam] = unitID
 	end
 
 	local unitDef = unitDefs[unitDefID]
@@ -704,8 +743,8 @@ end
 function gadget:Initialize()
 	local minWind = Game.windMin
 	local maxWind = Game.windMax
-	local teams = Spring.GetTeamList()
-	for _, teamID in ipairs(teams) do
+	local allTeamsList = Spring.GetTeamList()
+	for _, teamID in ipairs(allTeamsList) do
 		Spring.SetTeamRulesParam(teamID, "quickStartFactoryDiscountUsed", 0)
 	end
 	
