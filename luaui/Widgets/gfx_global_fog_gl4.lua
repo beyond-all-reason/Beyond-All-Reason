@@ -238,7 +238,6 @@ local fogUniforms = {
 		0.2, -- SpeedX
 		0.2, -- SpeedZ
 		},
-
 	}
 	
 local uniformSliderParamsList = {
@@ -413,7 +412,6 @@ local function makeFogTexture()
 	
 end
 
-
 function widget:ViewResize()
 	makeFogTexture()
 end
@@ -454,148 +452,7 @@ local function SetFogParams(paramname, paramvalue, paramIndex)
 		end
 	end
 end
-local function inspectUserdata(obj, name)
-    name = name or "object"
-    Spring.Echo("Inspecting " .. name .. ":")
-    Spring.Echo("  Type:", type(obj))
-    Spring.Echo("  Tostring:", tostring(obj))
-    
-    -- Try to access common methods/properties
-    local commonProps = {"id", "tag_name", "inner_rml", "style", "attributes", "parent_node", "first_child"}
-    for _, prop in ipairs(commonProps) do
-        local success, result = pcall(function() return obj[prop] end)
-        if success and result ~= nil then
-            Spring.Echo("  " .. prop .. ":", tostring(result))
-        end
-    end
-    
-    -- Check metatable
-    local mt = getmetatable(obj)
-    if mt then
-        Spring.Echo("  Has metatable with keys:")
-        for key, _ in pairs(mt) do
-            Spring.Echo("    " .. tostring(key))
-        end
-    end
-end
 
-local function recursiveInspect(obj, name, visited, depth)
-    name = name or "object"
-    visited = visited or {}
-    depth = depth or 0
-    
-    -- Prevent infinite recursion and limit depth
-    if depth > 5 or visited[obj] then
-        Spring.Echo(string.rep("  ", depth) .. name .. ": [CIRCULAR REFERENCE OR MAX DEPTH]")
-        return
-    end
-    
-    visited[obj] = true
-    local indent = string.rep("  - ", depth)
-    
-    Spring.Echo(indent .. "=== " .. name .. " ===")
-    Spring.Echo(indent .. "Type: " .. type(obj))
-    Spring.Echo(indent .. "Tostring: " .. tostring(obj))
-    
-    -- Handle different types
-    if type(obj) == "table" then
-        Spring.Echo(indent .. "Table contents:")
-        for key, value in pairs(obj) do
-            local keyStr = tostring(key)
-            local valueStr = tostring(value)
-            local valueType = type(value)
-            
-            if valueType == "table" or valueType == "userdata" then
-                Spring.Echo(indent .. "  " .. keyStr .. ": " .. valueType .. " " .. valueStr)
-                if depth < 3 then -- Recurse into nested objects
-                    recursiveInspect(value, keyStr, visited, depth + 1)
-                end
-            elseif valueType == "function" then
-                Spring.Echo(indent .. "  " .. keyStr .. ": function")
-            else
-                Spring.Echo(indent .. "  " .. keyStr .. ": " .. valueStr)
-            end
-        end
-    elseif type(obj) == "userdata" then
-        -- Try common RMLUI properties
-        local commonProps = {
-            "id", "tag_name", "inner_rml", "style", "attributes", 
-            "parent_node", "first_child", "next_sibling", "class_name",
-            "scroll_left", "scroll_top", "client_width", "client_height"
-        }
-        
-        Spring.Echo(indent .. "Userdata properties:")
-        for _, prop in ipairs(commonProps) do
-            local success, result = pcall(function() return obj[prop] end)
-            if success and result ~= nil then
-                local resultType = type(result)
-                if resultType == "userdata" or resultType == "table" then
-                    Spring.Echo(indent .. "  " .. prop .. ": " .. resultType .. " " .. tostring(result))
-                    if depth < 2 then -- Limited recursion for userdata
-                        recursiveInspect(result, prop, visited, depth + 1)
-                    end
-                else
-                    Spring.Echo(indent .. "  " .. prop .. ": " .. tostring(result))
-                end
-            end
-        end
-        
-        -- Try to inspect style object if it exists
-        local success, style = pcall(function() return obj.style end)
-        if success and style then
-            Spring.Echo(indent .. "Style object:")
-            local commonStyles = {
-                "width", "height", "display", "position", "color", 
-                "background-color", "margin", "padding", "border"
-            }
-            for _, styleProp in ipairs(commonStyles) do
-                local styleSuccess, styleValue = pcall(function() return style[styleProp] end)
-                if styleSuccess and styleValue then
-                    Spring.Echo(indent .. "    " .. styleProp .. ": " .. tostring(styleValue))
-                end
-            end
-        end
-        
-        -- Try to inspect attributes if they exist
-        local attrSuccess, attributes = pcall(function() return obj.attributes end)
-        if attrSuccess and attributes then
-            Spring.Echo(indent .. "Attributes:")
-            if type(attributes) == "table" then
-                for attr, value in pairs(attributes) do
-                    Spring.Echo(indent .. "    " .. tostring(attr) .. ": " .. tostring(value))
-                end
-            else
-                Spring.Echo(indent .. "    [Unable to iterate attributes]")
-            end
-        end
-    end
-    
-    -- Check metatable
-    local mt = getmetatable(obj)
-    if mt then
-        Spring.Echo(indent .. "Metatable:")
-        if type(mt) == "table" then
-            for key, value in pairs(mt) do
-                local keyStr = tostring(key)
-                local valueType = type(value)
-                if valueType == "function" then
-                    Spring.Echo(indent .. "  " .. keyStr .. ": function")
-                elseif valueType == "table" or valueType == "userdata" then
-                    Spring.Echo(indent .. "  " .. keyStr .. ": " .. valueType .. " " .. tostring(value))
-                    if depth < 2 and keyStr ~= "__index" then -- Avoid deep recursion on __index
-                        recursiveInspect(value, "mt." .. keyStr, visited, depth + 1)
-                    end
-                else
-                    Spring.Echo(indent .. "  " .. keyStr .. ": " .. tostring(value))
-                end
-            end
-        else
-            Spring.Echo(indent .. "  [Non-table metatable]: " .. tostring(mt))
-        end
-    end 
-    
-    visited[obj] = nil -- Clean up for potential reuse
-end
 -- Save/Load configuration functions
 local function getCurrentConfig()
 	local config = {
@@ -1014,8 +871,7 @@ function widget:Initialize()
 		-- Add the event listener
 		sliderElement:AddEventListener('change', function(event)
 			local newvalue = nil
-			
-			recursiveInspect(event.parameters, "sliderElement change event")
+		
 			-- Get new value from event parameters
 			if event and event.parameters and event.parameters.value then
 				newvalue = tonumber(event.parameters.value)
