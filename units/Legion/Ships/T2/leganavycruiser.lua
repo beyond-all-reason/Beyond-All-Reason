@@ -33,7 +33,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 265.5,
-		waterline = 0,
+		waterline = 10,
 		customparams = {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
@@ -140,7 +140,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 969,
 				damage = {
-					default = 60,
+					default = 50,
 					vtol = 25,
 				},
 			},

@@ -80,11 +80,21 @@ ExecuteRestoreAfterDelay()
 	turn mainTurretHeadingPivot to y-axis <0.0> speed <45.0>;
 	turn mainGun1 to x-axis <0.0> speed <50.0>;
 }
+ExecuteRestoreAfterDelay2()
+{
+    if (Stunned) {
+        return (1);
+    }
+	set-signal-mask 0;
+    //turn frontTurretHeadingPivot to y-axis <0.0> speed <45.0>;
+    //turn dcTurret to x-axis <0.0> speed <50.0>;
+}
 SetStunned(State)
 {
     Stunned = State;
 	if (!Stunned) {
 	    start-script ExecuteRestoreAfterDelay();
+        start-script ExecuteRestoreAfterDelay2();
 	}
 }
 RestoreAfterDelay()
@@ -92,14 +102,19 @@ RestoreAfterDelay()
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
-
-RestoreDeckWeapon()
+RestoreAfterDelay2()
 {
-	sleep 3000;
-	set-signal-mask 0;
-	turn frontTurretHeadingPivot to y-axis <0.0> speed <45.0>;
-	turn dcTurret to x-axis <0.0> speed <50.0>;
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay2();
 }
+
+// RestoreDeckWeapon()
+// {
+// 	sleep 3000;
+// 	set-signal-mask 0;
+// 	turn frontTurretHeadingPivot to y-axis <0.0> speed <45.0>;
+// 	turn dcTurret to x-axis <0.0> speed <50.0>;
+// }
 
 StartMoving(reversing)
 {
@@ -111,54 +126,7 @@ StopMoving()
 
 }
 
-AimWeapon2(heading, pitch)
-{
-	signal SIGNAL_AIM2;
-	set-signal-mask SIGNAL_AIM2;
-	aimDir2 = heading;
-    turn frontTurretHeadingPivot to y-axis heading speed <300.0>;
-    turn dcTurret to x-axis <0.0> - pitch speed <200.0>;
-    wait-for-turn frontTurretHeadingPivot around y-axis;
-    wait-for-turn dcTurret around x-axis;
-	start-script RestoreDeckWeapon();
-	return (1);
-}
-
-FireWeapon2()
-{
-	sleep 100;
-	RB_RECOILBOAT(aimDir2, RB_RECOIL_ENERGY_2);
-}
-
-AimFromWeapon2(pieceIndex)
-{
-	pieceIndex = dcTurret;
-}
-
-QueryWeapon2(pieceIndex)
-{
-	pieceIndex = dcFlare;
-}
-
-// AimWeapon3(heading, pitch)
-// {
-// 	return (1);
-// }
-
-// FireWeapon3()
-// {
-// }
-
-// AimFromWeapon3(pieceIndex)
-// {
-// 	pieceIndex = base;
-// }
-
-// QueryWeapon3(pieceIndex)
-// {
-// 	pieceIndex = base;
-// }
-
+//shotgun
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
@@ -166,6 +134,10 @@ AimWeapon1(heading, pitch)
 	aimDir1  = heading;
 	turn mainTurretHeadingPivot to y-axis heading speed <90.0>;
 	turn mainGun1 to x-axis <0.0> - pitch speed <100.0>;
+
+    turn frontTurretHeadingPivot to y-axis heading speed <300.0>; //temporary measure as heading never seems properly supplied to the dc turret
+    turn dcTurret to x-axis <0.0> - pitch speed <200.0>;
+
 	wait-for-turn mainTurretHeadingPivot around y-axis;
 	wait-for-turn mainGun1 around x-axis;
 	start-script RestoreAfterDelay();
@@ -193,6 +165,36 @@ QueryWeapon1(pieceIndex)
 	if (gun_1 == 1){
         pieceIndex = mainFlare2;
     }
+}
+
+// dc turret
+AimWeapon2(heading, pitch)
+{
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	aimDir2 = heading;
+    // turn frontTurretHeadingPivot to y-axis heading speed <300.0>;
+    // turn dcTurret to x-axis <0.0> - pitch speed <200.0>;
+    // wait-for-turn frontTurretHeadingPivot around y-axis;
+    // wait-for-turn dcTurret around x-axis;
+	start-script RestoreAfterDelay2();
+	return (1);
+}
+
+FireWeapon2()
+{
+	sleep 100;
+	RB_RECOILBOAT(aimDir2, RB_RECOIL_ENERGY_2);
+}
+
+AimFromWeapon2(pieceIndex)
+{
+	pieceIndex = mainGun1;
+}
+
+QueryWeapon2(pieceIndex)
+{
+	pieceIndex = dcFlare;
 }
 
 
