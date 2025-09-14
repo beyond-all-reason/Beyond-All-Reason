@@ -53,10 +53,11 @@ local GAME_RULES_BASE_KEY = "quickStartJuiceBase"
 local isGoodWind = false
 local isMetalMap = false
 local metalSpotsList = nil
-local BUILD_SPACING = 48
+local BUILD_SPACING = 64
 local SKIP_STEP = 3
 local running = false
 local initialized = false
+local testCount = 0
 
 local boostableCommanders = {} --zzz unpopulated
 local queuedCommanders = {}
@@ -70,24 +71,9 @@ local optionDefIDToTypes = {}
 local factoryDiscounts = {}
 
 local discountableFactories = {
-	armlab = true,
-	armvp = true,
-	armap = true,
-	armsy = true,
-	armhp = true,
-	armfhp = true,
-	corlab = true,
-	corvp = true,
-	corap = true,
-	corsy = true,
-	corhp = true,
-	corfhp = true,
-	leglab = true,
-	legvp = true,
-	legap = true,
-	legsy = true,
-	leghp = true,
-	legfhp = true,
+	armap = true, armfhp = true, armhp = true, armlab = true, armsy = true, armvp = true,
+	corap = true, corfhp = true, corhp = true, corlab = true, corsy = true, corvp = true,
+	legap = true, legfhp = true, leghp = true, leglab = true, legsy = true, legvp = true,
 }
 
 local commanderNonLabOptions = {
@@ -126,12 +112,77 @@ local optionsToNodeType = {
 	floatingConverter = "converters",
 }
 
+local function getSkipDirectionForNode(nodeX, nodeZ)
+	local dx = MAP_CENTER_X - nodeX
+	local dz = MAP_CENTER_Z - nodeZ
+	if math.abs(dx) >= math.abs(dz) then
+		return "x"
+	end
+	return "z"
+end
+
+local function generateNodeGrid(commanderID, originX, originZ, buildDefID, skipDirection)
+	local comData = commanders[commanderID]
+	local maxOffset = MAX_SPACE_DISTANCE
+	local gridList = {}
+	local used = {}
+	local noGoZones = {}
+	table.insert(noGoZones, {x = comData.spawnX, z = comData.spawnZ, distance = 100})
+	if comData.nearbyMexes then
+		for i = 1, #comData.nearbyMexes do
+			local mex = comData.nearbyMexes[i]
+			table.insert(noGoZones, {x = mex.x, z = mex.z, distance = BUILD_SPACING})
+		end
+	end
+	for offsetX = -maxOffset, maxOffset, BUILD_SPACING do
+		if math.abs(offsetX) > maxOffset then
+			break
+		end
+		for offsetZ = -maxOffset, maxOffset, BUILD_SPACING do
+			local shouldSkip = false
+			if skipDirection == "x" then
+				local columnIndex = (offsetZ + maxOffset) / BUILD_SPACING
+				shouldSkip = (columnIndex % SKIP_STEP) == 0
+			elseif skipDirection == "z" then
+				local rowIndex = (offsetX + maxOffset) / BUILD_SPACING
+				shouldSkip = (rowIndex % SKIP_STEP) == 0
+			end
+			if not shouldSkip then
+				local testX = originX + offsetX
+				local testZ = originZ + offsetZ
+				if math.distance2d(testX, testZ, comData.spawnX, comData.spawnZ) <= INSTANT_BUILD_RANGE then
+					local tooClose = false
+					for i = 1, #noGoZones do
+						local g = noGoZones[i]
+						if math.distance2d(testX, testZ, g.x, g.z) <= g.distance then
+							tooClose = true
+							break
+						end
+					end
+					if not tooClose then
+						local searchY = spGetGroundHeight(testX, testZ)
+						local snappedX, snappedY, snappedZ = spPos2BuildPos(buildDefID, testX, searchY, testZ)
+						if snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, 0) > 0 then
+							local key = tostring(snappedX) .. "_" .. tostring(snappedZ)
+							if not used[key] then
+								used[key] = true
+								table.insert(gridList, {x = snappedX, z = snappedZ, d = math.distance2d(snappedX, snappedZ, originX, originZ)})
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	table.sort(gridList, function(a, b) return a.d < b.d end)
+	return gridList
+end
+
 
 for unitDefID, unitDef in pairs(unitDefs) do
 	--compile juice costs for all unit defs
 	local metalCost, energyCost = unitDef.metalCost or 1, unitDef.energyCost or 1
 	defJuices[unitDefID] = 	metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
-	Spring.Echo(unitDef.name, defJuices[unitDefID])
 
 	--for metal extractor detection
 	if unitDef.extractsMetal > 0 then
@@ -209,6 +260,7 @@ local function initializeCommander(commanderID, teamID)
 				originX = commanderX, originZ = commanderZ, indexX = 0, indexZ = 0, skipDirection = "x"
 			}
 		},
+		gridLists = { other = {}, converters = {} },
 		buildQuotas = { 
 		mex = 4, windmill = isInWater and 0 or (isGoodWind and 4 or 0), converter = isInWater and 0 or 2, 
 		solar = isInWater and 0 or (isGoodWind and 1 or 4), tidal = isInWater and 6 or 0, floatingConverter = isInWater and 2 or 0 
@@ -224,14 +276,19 @@ local function getCommanderBuildQueue(commanderID)
 	local spawnQueue = {}
 	local comData = commanders[commanderID]
 	local commands = spGetUnitCommands(commanderID, ALL_COMMANDS)
-	local juiceCost = 0
+	local totalJuiceCost = 0
 	for i, cmd in ipairs(commands) do
 		if isBuildCommand(cmd.id) then --is a build command
 		local spawnParams = {id = -cmd.id, x = cmd.params[1], y = cmd.params[2], z = cmd.params[3], facing = cmd.params[4] or 1}
 			if  math.distance2d(comData.spawnX, comData.spawnZ, spawnParams.x, spawnParams.z) <= INSTANT_BUILD_RANGE then
 				table.insert(spawnQueue, spawnParams)
-				local juiceCost = juiceCost + defJuices[cmd.id] --zzz we gonna factor the discount in factories with an isFactory check in this calculation, and only update the usage of the discount if the build is actually successful.
-				if juiceCost > comData.juice then
+				local unitDefID = -cmd.id
+				local juiceCost = defJuices[unitDefID] or 0
+				if discountableFactories[unitDefID] and not factoryDiscounts[comData.teamID] then
+					juiceCost = math.min(juiceCost - FACTORY_DISCOUNT, 0)
+				end
+				local totalJuiceCost = totalJuiceCost + juiceCost --zzz we gonna factor the discount in factories with an isFactory check in this calculation, and only update the usage of the discount if the build is actually successful.
+				if totalJuiceCost > comData.juice then
 					return spawnQueue
 				end
 			end
@@ -241,114 +298,47 @@ local function getCommanderBuildQueue(commanderID)
 end
 
 local function getBuildSpace(commanderID, option, noGoZones, testParams)
-	local noGoZones = noGoZones or {}
-	local testSuccesses = 0
-	local nodeType = optionsToNodeType[option]
-	local plotData = commanders[commanderID].buildPlots[nodeType]
-	local buildDefID = commanders[commanderID].buildDefs[option]
-	
-	local originX, originZ, indexX, indexZ
-	local skipDirection
-	local maxOffset
-	
-	if testParams then
-		originX = testParams.originX or plotData.originX
-		originZ = testParams.originZ or plotData.originZ
-		indexX = testParams.indexX or 0
-		indexZ = testParams.indexZ or 0
-		skipDirection = testParams.skipDirection or plotData.skipDirection
-		maxOffset = testParams.maxDistance or MAX_SPACE_DISTANCE
-	else
-		originX, originZ, indexX, indexZ = plotData.originX, plotData.originZ, plotData.indexX, plotData.indexZ
-		skipDirection = plotData.skipDirection
-		maxOffset = MAX_SPACE_DISTANCE
+	local comData = commanders[commanderID]
+	if not comData then
+		return nil, nil
 	end
-
-	local spotsWithDistance = {}
-	if not isMetalMap and option == "mex" then
-		for i = 1, #metalSpotsList do
-			local metalSpot = metalSpotsList[i]
-			if metalSpot then
-				local distance = math.distance2d(metalSpot.x, metalSpot.z, originX, originZ)
-				local metalSpotX, metalSpotY, metalSpotZ = Spring.Pos2BuildPos(buildDefID, metalSpot.x, metalSpot.y, metalSpot.z, 0)
-				if distance <= AUTO_MEX_MAX_DISTANCE  and spTestBuildOrder(buildDefID, metalSpotX, metalSpotY, metalSpotZ, 0) > 0 then
-					table.insert(spotsWithDistance, {x = metalSpot.x, z = metalSpot.z, distance = distance})
-				end
-			end
-		end
-		if spotsWithDistance[1] then
-			table.sort(spotsWithDistance, function(a, b) return a.distance < b.distance end)
-			return spotsWithDistance[1].x, spotsWithDistance[1].z
+	
+	Spring.Echo("Quick Start Debug - Getting build space for:", option)
+	if option == "mex" and not isMetalMap then
+		if comData.nearbyMexes and #comData.nearbyMexes > 0 then
+			local mexSpot = comData.nearbyMexes[1]
+			Spring.Echo("Quick Start Debug - Using nearby mex:", mexSpot.x, mexSpot.z)
+			table.remove(comData.nearbyMexes, 1)
+			return mexSpot.x, mexSpot.z
 		else
+			comData.buildQuotas.mex = 0
 			return nil, nil
 		end
-	end
-	
-	local gridPositions = {}
-	for offsetX = -maxOffset, maxOffset, BUILD_SPACING do
-		local absOffsetX = math.abs(offsetX)
-		if absOffsetX > maxOffset then
-			break
+	else
+		local nodeType = optionsToNodeType[option] or "other"
+		local gridList = comData.gridLists[nodeType] or {}
+		
+		if #gridList == 0 then
+			return nil, nil
 		end
-		for offsetZ = -maxOffset, maxOffset, BUILD_SPACING do
-			local testX = originX + offsetX
-			local testZ = originZ + offsetZ
-			local distanceToOrigin = math.distance2d(testX, testZ, originX, originZ)
-			table.insert(gridPositions, {
-				offsetX = offsetX,
-				offsetZ = offsetZ,
-				testX = testX,
-				testZ = testZ,
-				distance = distanceToOrigin
-			})
-		end
+		
+		local candidate = gridList[1]
+		table.remove(gridList, 1)
+		comData.gridLists[nodeType] = gridList
+		
+		return candidate.x, candidate.z
 	end
-	
-	table.sort(gridPositions, function(a, b) return a.distance < b.distance end)
-	
-	for _, pos in ipairs(gridPositions) do
-		if not testParams or not (pos.offsetX < indexX or (pos.offsetX == indexX and pos.offsetZ < indexZ)) then
-			local shouldSkip = false
-			if skipDirection == "x" then
-				local columnIndex = (pos.offsetZ + maxOffset) / BUILD_SPACING
-				shouldSkip = (columnIndex % SKIP_STEP) == 0
-			elseif skipDirection == "z" then
-				local rowIndex = (pos.offsetX + maxOffset) / BUILD_SPACING
-				shouldSkip = (rowIndex % SKIP_STEP) == 0
-			end
-			
-			if not shouldSkip then
-				local tooCloseToNoGo = false
-				for _, noGoZone in ipairs(noGoZones) do
-					local distance = math.distance2d(pos.testX, pos.testZ, noGoZone.x, noGoZone.z)
-					if distance <= noGoZone.distance then
-						tooCloseToNoGo = true
-						break
-					end
-				end
-				
-				if not tooCloseToNoGo then
-					local searchY = spGetGroundHeight(pos.testX, pos.testZ)
-					local snappedX, snappedY, snappedZ = spPos2BuildPos(buildDefID, pos.testX, searchY, pos.testZ)
-					local validPlot = snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, 0) > 0
-					if validPlot then
-						if testParams then
-							testSuccesses = testSuccesses + 1
-						else
-							plotData.indexX = pos.offsetX
-							plotData.indexZ = pos.offsetZ
-							return snappedX, snappedZ
-						end
-					end
-				end
-			end
-		end
-	end
+end
 
-	if testParams then
-		return testSuccesses, nil
-	end
-	return nil, nil
+local function calculatePairScore(node1, node2)
+	local baseScore = node1.score + node2.score
+	local centerX = (node1.x + node2.x) / 2
+	local centerZ = (node1.z + node2.z) / 2
+	local distanceFromCenter = math.distance2d(centerX, centerZ, MAP_CENTER_X, MAP_CENTER_Z)
+	local maxDistance = math.distance2d(0, 0, MAP_CENTER_X, MAP_CENTER_Z)
+	local distanceRatio = math.min(distanceFromCenter / maxDistance, 1.0)
+	local biasMultiplier = 0.1 + (0.9 * distanceRatio)
+	return baseScore * biasMultiplier
 end
 
 local function generateBaseNodes(commanderID)
@@ -356,111 +346,48 @@ local function generateBaseNodes(commanderID)
 	local comData = commanders[commanderID]
 	local spawnX, spawnZ = comData.spawnX, comData.spawnZ
 	local radialDistance = INSTANT_BUILD_RANGE / 2
-	
+	local buildDefID = comData.buildDefs and comData.buildDefs.windmill or nil
+	if not buildDefID then
+		return
+	end
 	local angleIncrement = 2 * math.pi / 8
 	for i = 0, 7 do
 		local angle = i * angleIncrement
 		local nodeX = spawnX + radialDistance * math.cos(angle)
 		local nodeZ = spawnZ + radialDistance * math.sin(angle)
-		
-		baseNodes[i + 1] = {
-			x = nodeX,
-			z = nodeZ,
-			isBad = false,
-			distanceWeight = 0,
-			score = 0
-		}
-	end
-	
-	local validNodes = {}
-	
-	for i, node in ipairs(baseNodes) do
-		local testResult = getBuildSpace(commanderID, "windmill", {{x = comData.spawnX, z = comData.spawnZ, distance = 100}}, {originX = node.x, originZ = node.z, maxDistance = BUILD_SPACING * 2})
-		if testResult >= 5 then
-			local distanceToCenter = math.distance2d(node.x, node.z, MAP_CENTER_X, MAP_CENTER_Z)
-			node.distanceToCenter = distanceToCenter
-			node.score = testResult
-			table.insert(validNodes, node)
+		local skipDirection = getSkipDirectionForNode(nodeX, nodeZ)
+		local grid = generateNodeGrid(commanderID, nodeX, nodeZ, buildDefID, skipDirection)
+		if #grid > 0 then
+			table.insert(baseNodes, {x = nodeX, z = nodeZ, grid = grid, score = #grid})
 		end
 	end
-	
-	if #validNodes < 3 then
+	if #baseNodes < 3 then
 		return
 	end
-	
-	local remainingNodes = validNodes
-	
 	local bestPair = nil
 	local bestPairScore = 0
-	
-	-- First try to find adjacent nodes (they should be next to each other in the circle)
-	for i = 1, #remainingNodes do
-		local node1 = remainingNodes[i]
-		local nextIndex = (i % #remainingNodes) + 1
-		local node2 = remainingNodes[nextIndex]
-		
-		-- Check if these nodes are actually adjacent in the original circle
-		local node1OriginalIndex = nil
-		local node2OriginalIndex = nil
-		
-		for j, originalNode in ipairs(baseNodes) do
-			if originalNode.x == node1.x and originalNode.z == node1.z then
-				node1OriginalIndex = j
-			end
-			if originalNode.x == node2.x and originalNode.z == node2.z then
-				node2OriginalIndex = j
-			end
-		end
-		
-		-- Check if nodes are adjacent in the original 8-node circle
-		local isAdjacent = false
-		if node1OriginalIndex and node2OriginalIndex then
-			local diff = math.abs(node1OriginalIndex - node2OriginalIndex)
-			isAdjacent = diff == 1 or diff == 7 -- adjacent in 8-node circle
-		end
-		
-		if isAdjacent then
-			local pairScore = node1.score + node2.score
-			if pairScore > bestPairScore then
-				bestPairScore = pairScore
-				bestPair = {node1, node2}
-			end
+	for i = 1, #baseNodes do
+		local nextIndex = (i % #baseNodes) + 1
+		local node1 = baseNodes[i]
+		local node2 = baseNodes[nextIndex]
+		local pairScore = calculatePairScore(node1, node2)
+		if pairScore > bestPairScore then
+			bestPairScore = pairScore
+			bestPair = {node1, node2}
 		end
 	end
-	
-	-- If no adjacent pair found, fall back to best scoring pair
-	if not bestPair then
-		for i = 1, #remainingNodes - 1 do
-			for j = i + 1, #remainingNodes do
-				local node1 = remainingNodes[i]
-				local node2 = remainingNodes[j]
-				local pairScore = node1.score + node2.score
-				if pairScore > bestPairScore then
-					bestPairScore = pairScore
-					bestPair = {node1, node2}
-				end
-			end
-		end
-	end
-
-	if not bestPair then 
-		return 
-	end
-
-	local result = { 
-		other = bestPair[1],
-		converters = bestPair[2]
-	}
+	local result = {other = bestPair[1], converters = bestPair[2]}
 	return result
 end
 
 local function populateNearbyMexes(commanderID)
 	local comData = commanders[commanderID]
-	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
+	local commanderX, commanderY, commanderZ = comData.spawnX, comData.spawnY, comData.spawnZ
 	
 	comData.nearbyMexes = {}
-	
-	if not isMetalMap or not metalSpotsList then
+	Spring.Echo("Quick Start Debug - isMetalMap:", isMetalMap, metalSpotsList)
+	if isMetalMap or not metalSpotsList then
+		Spring.Echo("Quick Start Debug - No nearby mexes")
 		return
 	end
 	
@@ -478,6 +405,10 @@ local function populateNearbyMexes(commanderID)
 			end
 		end
 	end
+	if #comData.nearbyMexes > 1 then
+		table.sort(comData.nearbyMexes, function(a, b) return a.distance < b.distance end)
+	end
+	Spring.Echo("Quick Start Debug - Nearby mexes:", #comData.nearbyMexes)
 end
 
 local function filterOverlappingMexes() --zzz untested
@@ -552,6 +483,11 @@ local function generateBuildCommands(commanderID)
 			table.insert(comData.spawnQueue, 1, {id = comData.buildDefs[selectedOption]})
 		end
 	end
+	
+	Spring.Echo("Quick Start Debug - Commander " .. commanderID .. " build commands generated:")
+	for optionName, count in pairs(comData.thingsMade) do
+		Spring.Echo("  " .. optionName .. ": " .. count)
+	end
 end
 
 local function tryToSpawnBuild(commanderID, buildDefID, buildX, buildZ, facing)
@@ -611,14 +547,14 @@ function gadget:GameFrame(frame)
 			end
 			comData.baseNodes = generateBaseNodes(commanderID)
 			if not comData.baseNodes then
-				Spring.Echo("DEBOOG: generateBaseNodes returned nil for commander", commanderID)
-				comData.baseNodes = {other = {x = comData.spawnX, z = comData.spawnZ}, converters = {x = comData.spawnX, z = comData.spawnZ}}
-			else
-				comData.buildPlots.other.originX = comData.baseNodes.other.x
-				comData.buildPlots.other.originZ = comData.baseNodes.other.z
-				comData.buildPlots.converters.originX = comData.baseNodes.converters.x
-				comData.buildPlots.converters.originZ = comData.baseNodes.converters.z
+				comData.baseNodes = {other = {x = comData.spawnX, z = comData.spawnZ, grid = {}}, converters = {x = comData.spawnX, z = comData.spawnZ, grid = {}}}
 			end
+			comData.buildPlots.other.originX = comData.baseNodes.other.x
+			comData.buildPlots.other.originZ = comData.baseNodes.other.z
+			comData.buildPlots.converters.originX = comData.baseNodes.converters.x
+			comData.buildPlots.converters.originZ = comData.baseNodes.converters.z
+			comData.gridLists.other = comData.baseNodes.other.grid or {}
+			comData.gridLists.converters = comData.baseNodes.converters.grid or {}
 		end
 		filterOverlappingMexes()
 	end
@@ -634,7 +570,8 @@ function gadget:GameFrame(frame)
 		while loop do
 			loop = false
 			for commanderID, comData in pairs (commanders) do
-				for i, build in ipairs(comData.spawnQueue) do
+				if comData.spawnQueue then
+					for i, build in ipairs(comData.spawnQueue) do
 					local nogoZones = {}
 					table.insert(nogoZones, {x = comData.spawnX, z = comData.spawnZ, distance = 100})
 					
@@ -644,13 +581,26 @@ function gadget:GameFrame(frame)
 							table.insert(nogoZones, {x = mex.x, z = mex.z, distance = BUILD_SPACING})
 						end
 					end
-					
 					local buildX, buildZ = build.x, build.z
 					if not buildX or not buildZ then
-						buildX, buildZ = getBuildSpace(commanderID, optionType, nogoZones, nil)
+						if optionType == "mex" then
+							buildX, buildZ = getBuildSpace(commanderID, optionType)
+						else
+							local gridList = comData.gridLists[optionsToNodeType[optionType] or "other"] or {}
+							while #gridList > 0 do
+								local candidate = gridList[1]
+								local y = spGetGroundHeight(candidate.x, candidate.z)
+								if spTestBuildOrder(build.id, candidate.x, y, candidate.z, 0) > 0 then
+									buildX, buildZ = candidate.x, candidate.z
+									break
+								else
+									table.remove(gridList, 1)
+								end
+							end
+							comData.gridLists[optionsToNodeType[optionType] or "other"] = gridList
+						end
 					end
 					local facing = build.facing or comData.defaultFacing or 0
-					Spring.Echo("DEBOOG: buildX", buildX, "buildZ", buildZ, "facing", facing)
 					if buildX and buildZ then
 						local fullyBuilt = tryToSpawnBuild(commanderID, build.id, buildX, buildZ, facing)
 						if fullyBuilt then
@@ -659,13 +609,14 @@ function gadget:GameFrame(frame)
 						end
 					end
 				end
+				end
 			end
 		end
 		for commanderID, comData in pairs (commanders) do
 			if comData.juice > 0 then
 				generateBuildCommands(commanderID)
 			end
-			if #comData.spawnQueue > 0 then
+			if comData.spawnQueue and #comData.spawnQueue > 0 then
 				allQueuesEmpty = false
 			end
 		end
@@ -701,7 +652,6 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 
 	if not factoryDiscounts[unitTeam] and discountableFactories[unitDefs[unitDefID].name] and commanders[builderID] then
-		Spring.Echo("factory built", unitID, unitTeam)
 		factoryDiscounts[unitTeam] = true
 		Spring.SetTeamRulesParam(unitTeam, TEAM_RULES_FACTORY_PLACED_KEY, 1)
 		
@@ -710,6 +660,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		local buildProgress = FACTORY_DISCOUNT / fullJuiceCost
 
 		Spring.SetUnitHealth(unitID, {build = buildProgress, health = math.ceil(unitDef.health * buildProgress)})
+		local x, y, z = spGetUnitPosition(unitID)
+		spSpawnCEG("quickstart-spawn-pulse-large", x, y + 10, z)
 	end
 end
 
