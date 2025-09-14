@@ -40,7 +40,8 @@ local QUICK_START_COST_ENERGY = 400
 local AUTO_MEX_MAX_DISTANCE = 500
 local ENERGY_VALUE_CONVERSION_DIVISOR = 10
 local INSTANT_BUILD_RANGE = 700
-local MAX_SPACE_DISTANCE = INSTANT_BUILD_RANGE / 2
+local NODE_GRID_MAX_SIZE = INSTANT_BUILD_RANGE
+local MAX_SPACE_DISTANCE = NODE_GRID_MAX_SIZE
 local ALL_COMMANDS = -1
 local UPDATE_FRAMES = Game.gameSpeed
 local PREGAME_DELAY_FRAMES = 61 --after gui_pregame_build.lua is loaded
@@ -57,7 +58,6 @@ local BUILD_SPACING = 64
 local SKIP_STEP = 3
 local running = false
 local initialized = false
-local testCount = 0
 
 local boostableCommanders = {} --zzz unpopulated
 local queuedCommanders = {}
@@ -197,7 +197,6 @@ for name, _ in pairs(discountableFactories) do
 	if unitDefNames[name] then
 	local labJuice = defJuices[unitDefNames[name].id]
 		FACTORY_DISCOUNT = math.min(FACTORY_DISCOUNT, labJuice * FACTORY_DISCOUNT_MULTIPLIER)
-		Spring.Echo(name, "factoryDiscount:", FACTORY_DISCOUNT)
 	end
 end
 for commanderName, nonLabOptions in pairs(commanderNonLabOptions) do
@@ -214,6 +213,17 @@ end
 
 local function getBuildInstanceID(unitDefID, x, y)
 	return unitDefID .. "_" .. x .. "_" .. y
+end
+
+local function getFactoryDiscount(unitDef, teamID, builderID)
+	if unitDef.isFactory and not factoryDiscounts[teamID] and discountableFactories[unitDef.name] then
+		if builderID and commanders[builderID] then
+			return FACTORY_DISCOUNT
+		elseif not builderID then
+			return FACTORY_DISCOUNT
+		end
+	end
+	return 0
 end
 
 local function initializeCommander(commanderID, teamID)
@@ -263,7 +273,7 @@ local function initializeCommander(commanderID, teamID)
 		gridLists = { other = {}, converters = {} },
 		buildQuotas = { 
 		mex = 4, windmill = isInWater and 0 or (isGoodWind and 4 or 0), converter = isInWater and 0 or 2, 
-		solar = isInWater and 0 or (isGoodWind and 1 or 4), tidal = isInWater and 6 or 0, floatingConverter = isInWater and 2 or 0 
+		solar = isInWater and 0 or (isGoodWind and 1 or 4), tidal = isInWater and 5 or 0, floatingConverter = isInWater and 1 or 0 
 		},
 		nearbyMexes = {}
 	}
@@ -303,11 +313,9 @@ local function getBuildSpace(commanderID, option, noGoZones, testParams)
 		return nil, nil
 	end
 	
-	Spring.Echo("Quick Start Debug - Getting build space for:", option)
 	if option == "mex" and not isMetalMap then
 		if comData.nearbyMexes and #comData.nearbyMexes > 0 then
 			local mexSpot = comData.nearbyMexes[1]
-			Spring.Echo("Quick Start Debug - Using nearby mex:", mexSpot.x, mexSpot.z)
 			table.remove(comData.nearbyMexes, 1)
 			return mexSpot.x, mexSpot.z
 		else
@@ -337,7 +345,7 @@ local function calculatePairScore(node1, node2)
 	local distanceFromCenter = math.distance2d(centerX, centerZ, MAP_CENTER_X, MAP_CENTER_Z)
 	local maxDistance = math.distance2d(0, 0, MAP_CENTER_X, MAP_CENTER_Z)
 	local distanceRatio = math.min(distanceFromCenter / maxDistance, 1.0)
-	local biasMultiplier = 0.1 + (0.9 * distanceRatio)
+	local biasMultiplier = 0.2 + (0.8 * distanceRatio)
 	return baseScore * biasMultiplier
 end
 
@@ -346,7 +354,12 @@ local function generateBaseNodes(commanderID)
 	local comData = commanders[commanderID]
 	local spawnX, spawnZ = comData.spawnX, comData.spawnZ
 	local radialDistance = INSTANT_BUILD_RANGE / 2
-	local buildDefID = comData.buildDefs and comData.buildDefs.windmill or nil
+	local buildDefID
+	if comData.isInWater then
+		buildDefID = comData.buildDefs and comData.buildDefs.tidal or nil
+	else
+		buildDefID = comData.buildDefs and comData.buildDefs.windmill or nil
+	end
 	if not buildDefID then
 		return
 	end
@@ -361,7 +374,7 @@ local function generateBaseNodes(commanderID)
 			table.insert(baseNodes, {x = nodeX, z = nodeZ, grid = grid, score = #grid})
 		end
 	end
-	if #baseNodes < 3 then
+	if #baseNodes < 2 then
 		return
 	end
 	local bestPair = nil
@@ -385,9 +398,7 @@ local function populateNearbyMexes(commanderID)
 	local commanderX, commanderY, commanderZ = comData.spawnX, comData.spawnY, comData.spawnZ
 	
 	comData.nearbyMexes = {}
-	Spring.Echo("Quick Start Debug - isMetalMap:", isMetalMap, metalSpotsList)
 	if isMetalMap or not metalSpotsList then
-		Spring.Echo("Quick Start Debug - No nearby mexes")
 		return
 	end
 	
@@ -408,7 +419,6 @@ local function populateNearbyMexes(commanderID)
 	if #comData.nearbyMexes > 1 then
 		table.sort(comData.nearbyMexes, function(a, b) return a.distance < b.distance end)
 	end
-	Spring.Echo("Quick Start Debug - Nearby mexes:", #comData.nearbyMexes)
 end
 
 local function filterOverlappingMexes() --zzz untested
@@ -447,9 +457,9 @@ end
 
 local function generateBuildCommands(commanderID)
 	local comData = commanders[commanderID]
-	local totalJuice = 0
+	local totalJuiceUsed = 0
 	local tryCount = 0
-	while comData.juice > totalJuice and tryCount < 50 do
+	while comData.juice > totalJuiceUsed and tryCount < 50 do
 
 		local selectedOption = nil
 		local weightedOptions = {}
@@ -458,20 +468,19 @@ local function generateBuildCommands(commanderID)
 		for optionName, quota in pairs(comData.buildQuotas) do
 			local currentCount = comData.thingsMade[optionName] or 0
 			local remainingQuota = quota - currentCount
+			local weight = remainingQuota > 0 and remainingQuota or quota
 			
-			if remainingQuota > 0 then
-				table.insert(weightedOptions, {name = optionName, weight = remainingQuota})
-				totalWeight = totalWeight + remainingQuota
-			end
+			table.insert(weightedOptions, {name = optionName, weight = weight})
+			totalWeight = totalWeight + weight
 		end
 		
 		if totalWeight > 0 then
-			local randomValue = math.random() * totalWeight
+			local deterministicValue = (tryCount + commanderID) % totalWeight
 			local currentWeight = 0
 			
 			for _, option in ipairs(weightedOptions) do
 				currentWeight = currentWeight + option.weight
-				if randomValue <= currentWeight then
+				if deterministicValue < currentWeight then
 					selectedOption = option.name
 					break
 				end
@@ -480,11 +489,16 @@ local function generateBuildCommands(commanderID)
 		
 		tryCount = tryCount + 1
 		if selectedOption then
-			table.insert(comData.spawnQueue, 1, {id = comData.buildDefs[selectedOption]})
+			local buildDefID = comData.buildDefs[selectedOption]
+			local unitDef = unitDefs[buildDefID]
+			local discount = getFactoryDiscount(unitDef, comData.teamID, commanderID)
+			local juiceCost = defJuices[buildDefID] - discount
+			table.insert(comData.spawnQueue, 1, {id = buildDefID})
+			totalJuiceUsed = totalJuiceUsed + juiceCost
 		end
 	end
 	
-	Spring.Echo("Quick Start Debug - Commander " .. commanderID .. " build commands generated:")
+	Spring.Echo("Quick Start Debug - Commander Team " .. comData.teamID .. " build commands generated:")
 	for optionName, count in pairs(comData.thingsMade) do
 		Spring.Echo("  " .. optionName .. ": " .. count)
 	end
@@ -492,9 +506,9 @@ end
 
 local function tryToSpawnBuild(commanderID, buildDefID, buildX, buildZ, facing)
 	local unitDef, comData, buildProgress = unitDefs[buildDefID], commanders[commanderID], 0
-	local discount = unitDef.isFactory and FACTORY_DISCOUNT or 0
+	local discount = getFactoryDiscount(unitDef, comData.teamID, commanderID)
 	local juiceCost = defJuices[buildDefID] - discount
-	if juiceCost > comData.juice then return false, nil end
+	if comData.juice <= 0 then return false end
 
 	local buildY = spGetGroundHeight(buildX, buildZ)
 	local unitID = spCreateUnit(unitDef.name, buildX, buildY, buildZ, facing, comData.teamID)
@@ -572,43 +586,20 @@ function gadget:GameFrame(frame)
 			for commanderID, comData in pairs (commanders) do
 				if comData.spawnQueue then
 					for i, build in ipairs(comData.spawnQueue) do
-					local nogoZones = {}
-					table.insert(nogoZones, {x = comData.spawnX, z = comData.spawnZ, distance = 100})
-					
-					local optionType = optionDefIDToTypes[build.id]
-					if optionType ~= "mex" then
-						for _, mex in ipairs(comData.nearbyMexes) do
-							table.insert(nogoZones, {x = mex.x, z = mex.z, distance = BUILD_SPACING})
-						end
-					end
-					local buildX, buildZ = build.x, build.z
-					if not buildX or not buildZ then
-						if optionType == "mex" then
+						local optionType = optionDefIDToTypes[build.id]
+						local buildX, buildZ = build.x, build.z
+						if not buildX or not buildZ then
 							buildX, buildZ = getBuildSpace(commanderID, optionType)
-						else
-							local gridList = comData.gridLists[optionsToNodeType[optionType] or "other"] or {}
-							while #gridList > 0 do
-								local candidate = gridList[1]
-								local y = spGetGroundHeight(candidate.x, candidate.z)
-								if spTestBuildOrder(build.id, candidate.x, y, candidate.z, 0) > 0 then
-									buildX, buildZ = candidate.x, candidate.z
-									break
-								else
-									table.remove(gridList, 1)
-								end
+						end
+						local facing = build.facing or comData.defaultFacing or 0
+						if buildX and buildZ then
+							local fullyBuilt = tryToSpawnBuild(commanderID, build.id, buildX, buildZ, facing)
+							if fullyBuilt then
+								table.remove(comData.spawnQueue, 1)
+								loop = true
 							end
-							comData.gridLists[optionsToNodeType[optionType] or "other"] = gridList
 						end
 					end
-					local facing = build.facing or comData.defaultFacing or 0
-					if buildX and buildZ then
-						local fullyBuilt = tryToSpawnBuild(commanderID, build.id, buildX, buildZ, facing)
-						if fullyBuilt then
-							table.remove(comData.spawnQueue, 1)
-							loop = true
-						end
-					end
-				end
 				end
 			end
 		end
@@ -636,7 +627,6 @@ function gadget:GameFrame(frame)
 		end
 	end
 	if initialized and allDiscountsUsed and not running then
-		Spring.Echo("removeGadget", initialized, allDiscountsUsed, running)
 		gadgetHandler:RemoveGadget()
 	end
 end
@@ -651,13 +641,14 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		queuedCommanders[unitID] = unitTeam
 	end
 
-	if not factoryDiscounts[unitTeam] and discountableFactories[unitDefs[unitDefID].name] and commanders[builderID] then
+	local unitDef = unitDefs[unitDefID]
+	local discount = getFactoryDiscount(unitDef, unitTeam, builderID)
+	if discount > 0 then
 		factoryDiscounts[unitTeam] = true
 		Spring.SetTeamRulesParam(unitTeam, TEAM_RULES_FACTORY_PLACED_KEY, 1)
 		
-		local unitDef = unitDefs[unitDefID]
 		local fullJuiceCost = defJuices[unitDefID]
-		local buildProgress = FACTORY_DISCOUNT / fullJuiceCost
+		local buildProgress = discount / fullJuiceCost
 
 		Spring.SetUnitHealth(unitID, {build = buildProgress, health = math.ceil(unitDef.health * buildProgress)})
 		local x, y, z = spGetUnitPosition(unitID)
