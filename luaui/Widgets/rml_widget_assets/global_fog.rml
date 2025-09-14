@@ -24,7 +24,7 @@
             <div class="element" id="topbar">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h5 style="margin: 0.25em">FOG SLIDERS (Click and Drag to Move)</h5>
-                    <button id="toggleSliders" style="margin: 0.25em; padding: 0.2em 0.5em;">▼</button>
+                    <button id="toggleSliders" style="margin: 0.25em; padding: 0.2em 0.5em;">Hide</button>
                 </div>
             </div>
         </handle>

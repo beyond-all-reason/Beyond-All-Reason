@@ -454,7 +454,148 @@ local function SetFogParams(paramname, paramvalue, paramIndex)
 		end
 	end
 end
+local function inspectUserdata(obj, name)
+    name = name or "object"
+    Spring.Echo("Inspecting " .. name .. ":")
+    Spring.Echo("  Type:", type(obj))
+    Spring.Echo("  Tostring:", tostring(obj))
+    
+    -- Try to access common methods/properties
+    local commonProps = {"id", "tag_name", "inner_rml", "style", "attributes", "parent_node", "first_child"}
+    for _, prop in ipairs(commonProps) do
+        local success, result = pcall(function() return obj[prop] end)
+        if success and result ~= nil then
+            Spring.Echo("  " .. prop .. ":", tostring(result))
+        end
+    end
+    
+    -- Check metatable
+    local mt = getmetatable(obj)
+    if mt then
+        Spring.Echo("  Has metatable with keys:")
+        for key, _ in pairs(mt) do
+            Spring.Echo("    " .. tostring(key))
+        end
+    end
+end
 
+local function recursiveInspect(obj, name, visited, depth)
+    name = name or "object"
+    visited = visited or {}
+    depth = depth or 0
+    
+    -- Prevent infinite recursion and limit depth
+    if depth > 5 or visited[obj] then
+        Spring.Echo(string.rep("  ", depth) .. name .. ": [CIRCULAR REFERENCE OR MAX DEPTH]")
+        return
+    end
+    
+    visited[obj] = true
+    local indent = string.rep("  - ", depth)
+    
+    Spring.Echo(indent .. "=== " .. name .. " ===")
+    Spring.Echo(indent .. "Type: " .. type(obj))
+    Spring.Echo(indent .. "Tostring: " .. tostring(obj))
+    
+    -- Handle different types
+    if type(obj) == "table" then
+        Spring.Echo(indent .. "Table contents:")
+        for key, value in pairs(obj) do
+            local keyStr = tostring(key)
+            local valueStr = tostring(value)
+            local valueType = type(value)
+            
+            if valueType == "table" or valueType == "userdata" then
+                Spring.Echo(indent .. "  " .. keyStr .. ": " .. valueType .. " " .. valueStr)
+                if depth < 3 then -- Recurse into nested objects
+                    recursiveInspect(value, keyStr, visited, depth + 1)
+                end
+            elseif valueType == "function" then
+                Spring.Echo(indent .. "  " .. keyStr .. ": function")
+            else
+                Spring.Echo(indent .. "  " .. keyStr .. ": " .. valueStr)
+            end
+        end
+    elseif type(obj) == "userdata" then
+        -- Try common RMLUI properties
+        local commonProps = {
+            "id", "tag_name", "inner_rml", "style", "attributes", 
+            "parent_node", "first_child", "next_sibling", "class_name",
+            "scroll_left", "scroll_top", "client_width", "client_height"
+        }
+        
+        Spring.Echo(indent .. "Userdata properties:")
+        for _, prop in ipairs(commonProps) do
+            local success, result = pcall(function() return obj[prop] end)
+            if success and result ~= nil then
+                local resultType = type(result)
+                if resultType == "userdata" or resultType == "table" then
+                    Spring.Echo(indent .. "  " .. prop .. ": " .. resultType .. " " .. tostring(result))
+                    if depth < 2 then -- Limited recursion for userdata
+                        recursiveInspect(result, prop, visited, depth + 1)
+                    end
+                else
+                    Spring.Echo(indent .. "  " .. prop .. ": " .. tostring(result))
+                end
+            end
+        end
+        
+        -- Try to inspect style object if it exists
+        local success, style = pcall(function() return obj.style end)
+        if success and style then
+            Spring.Echo(indent .. "Style object:")
+            local commonStyles = {
+                "width", "height", "display", "position", "color", 
+                "background-color", "margin", "padding", "border"
+            }
+            for _, styleProp in ipairs(commonStyles) do
+                local styleSuccess, styleValue = pcall(function() return style[styleProp] end)
+                if styleSuccess and styleValue then
+                    Spring.Echo(indent .. "    " .. styleProp .. ": " .. tostring(styleValue))
+                end
+            end
+        end
+        
+        -- Try to inspect attributes if they exist
+        local attrSuccess, attributes = pcall(function() return obj.attributes end)
+        if attrSuccess and attributes then
+            Spring.Echo(indent .. "Attributes:")
+            if type(attributes) == "table" then
+                for attr, value in pairs(attributes) do
+                    Spring.Echo(indent .. "    " .. tostring(attr) .. ": " .. tostring(value))
+                end
+            else
+                Spring.Echo(indent .. "    [Unable to iterate attributes]")
+            end
+        end
+    end
+    
+    -- Check metatable
+    local mt = getmetatable(obj)
+    if mt then
+        Spring.Echo(indent .. "Metatable:")
+        if type(mt) == "table" then
+            for key, value in pairs(mt) do
+                local keyStr = tostring(key)
+                local valueType = type(value)
+                if valueType == "function" then
+                    Spring.Echo(indent .. "  " .. keyStr .. ": function")
+                elseif valueType == "table" or valueType == "userdata" then
+                    Spring.Echo(indent .. "  " .. keyStr .. ": " .. valueType .. " " .. tostring(value))
+                    if depth < 2 and keyStr ~= "__index" then -- Avoid deep recursion on __index
+                        recursiveInspect(value, "mt." .. keyStr, visited, depth + 1)
+                    end
+                else
+                    Spring.Echo(indent .. "  " .. keyStr .. ": " .. tostring(value))
+                end
+            end
+        else
+            Spring.Echo(indent .. "  [Non-table metatable]: " .. tostring(mt))
+        end
+    end 
+    
+    visited[obj] = nil -- Clean up for potential reuse
+end
 -- Save/Load configuration functions
 local function getCurrentConfig()
 	local config = {
@@ -489,6 +630,8 @@ local function getAvailableConfigs()
 	local configDir = "LuaUI\\Config\\GlobalFog\\"
 	
 	local files = VFS.DirList(configDir, "*.lua")
+	-- Sort files in reversed order:
+	table.sort(files, function(a, b) return a > b end)
 	local configs = {}
 	
 	for _, filepath in ipairs(files) do
@@ -513,31 +656,18 @@ local function getAvailableConfigs()
 	return configs
 end
 
-local function refreshConfigDropdown()
-	if not document then return end
-	
-	local dropdown = document:GetElementById("configDropdown")
-	if not dropdown then return end
-	
-	-- Clear existing options
-	dropdown.inner_rml = ""
-	
-	-- Add default option
-	local defaultOption = document:CreateElement("option")
-	defaultOption.inner_rml = "Select config to load..."
-	defaultOption.attributes.value = "Select config to load..."
-	dropdown:AppendChild(defaultOption)
-	
-	-- Add available configs
-	local configs = getAvailableConfigs()
-	for _, config in ipairs(configs) do
-		local option = document:CreateElement("option")
-		Spring.Echo("Adding config option:", config.displayName, config.filepath)
-		option.inner_rml = config.displayName
-		option.attributes.value = config.filepath
-		dropdown:AppendChild(option)
+local function AddElementToDropDown(dropdown, optionText, optionValue, optionID)
+	if not dropdown or not optionText or not optionValue then return end
+	local option = document:CreateElement("option")
+	option:SetAttribute("value", optionValue)
+	option.inner_rml = optionText
+	if optionID then
+		option.id = optionID
 	end
+	dropdown:AppendChild(option)
 end
+
+
 local function saveConfig()
 	local mapName = Game.mapName or "UnknownMap"
 	-- Clean map name for filename
@@ -583,7 +713,7 @@ local function saveConfig()
 		file:write(configStr)
 		file:close()
 		Spring.Echo("Fog config saved to: " .. fullPath)
-		refreshConfigDropdown()
+		AddElementToDropDown(document:GetElementById("configDropdown"), filename, fullPath)
 		return true
 	else
 		Spring.Echo("Error: Could not save fog config to " .. fullPath)
@@ -665,6 +795,32 @@ local function loadConfig(filepath)
 	
 	return true
 end
+
+local function createConfigDropDown(document, elementID)
+	if not document then return end
+	
+	local configDropdown = document:CreateElement('select')
+	configDropdown.id = "configDropdown"
+	-- Clear existing options
+	--configDropdown.inner_rml = ""
+	
+	-- Add default option
+	AddElementToDropDown(configDropdown, "Select config to load...", "Select config to load...")
+	
+	-- Add available configs
+	local configs = getAvailableConfigs()
+	for _, config in ipairs(configs) do
+		AddElementToDropDown(configDropdown, config.displayName, config.filepath)
+	end
+	configDropdown:AddEventListener('change', function(event)
+			--Spring.Echo("current_element", event.current_element.id)
+			--Spring.Echo("target_element", event.target_element.id)
+			Spring.Echo("Chose config file to load:", event.parameters.value)
+			loadConfig(event.parameters.value)
+		end )
+	return configDropdown
+end
+
 
 local combineShaderTriggers = {RESOLUTION = true, HALFSHIFT = true, OFFSETX = true, OFFSETY = true}
 local function shaderDefinesChangedCallback(name, value, index, oldvalue)
@@ -859,6 +1015,7 @@ function widget:Initialize()
 		sliderElement:AddEventListener('change', function(event)
 			local newvalue = nil
 			
+			recursiveInspect(event.parameters, "sliderElement change event")
 			-- Get new value from event parameters
 			if event and event.parameters and event.parameters.value then
 				newvalue = tonumber(event.parameters.value)
@@ -987,26 +1144,14 @@ function widget:Initialize()
 		
 		-- Load Config Dropdown
 		local loadLabel = document:CreateElement('label')
-		loadLabel.inner_rml = "Load"
+		loadLabel.inner_rml = "Load:"
 		buttonsDiv:AppendChild(loadLabel)
 		
-		local configDropdown = document:CreateElement('select')
-		configDropdown.id = "configDropdown"
-		configDropdown.style.width = "100%"  -- Expand to fill available horizontal space
-		configDropdown:AddEventListener('change', function(event)
-			Spring.Echo("Config selected:", event.parameters.value)
-			for k,v in pairs(event.parameters) do
-				Spring.Echo(" attr:", k, v)
-			end
-			local selectedPath = event.parameters.value
-			if selectedPath and selectedPath ~= "" then
-				loadConfig(selectedPath)
-			end
-		end)
+		local configDropdown = createConfigDropDown(document, "configDropdown")	
+		configDropdown.style.width = "100%"
 		buttonsDiv:AppendChild(configDropdown)
-		
-		-- Initialize dropdown with available configs
-		refreshConfigDropdown()
+
+
 	end
 
 	document:ReloadStyleSheet()  
