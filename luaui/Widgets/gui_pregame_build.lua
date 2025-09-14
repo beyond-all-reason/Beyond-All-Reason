@@ -70,6 +70,11 @@ local FORCE_SHOW_REASON = "gui_pregame_build"
 local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
 
+	-- Communicate selected unit to quick start UI via WG
+	if preGamestartPlayer then
+		WG["pregame-unit-selected"] = uDefID or -1
+	end
+
 	if WG["buildinggrid"] ~= nil and WG["buildinggrid"].setForceShow ~= nil then
 		WG["buildinggrid"].setForceShow(FORCE_SHOW_REASON, uDefID ~= nil, uDefID)
 	end
@@ -140,7 +145,7 @@ local function convertBuildQueueFaction(previousFactionSide, currentFactionSide)
 	local result = SubLogic.processBuildQueueSubstitution(buildQueue, previousFactionSide, currentFactionSide)
 	
 	if result.substitutionFailed then
-		Spring.Echo(string.format("[gui_pregame_build] %s", result.summaryMessage))
+		-- removed debug echo
 	end
 end
 
@@ -159,7 +164,7 @@ local function handleSelectedBuildingConversion(currentSelDefID, prevFactionSide
 		end
 		local newUnitDef = UnitDefs[newSelDefID]
 		local successMsg = "[Pregame Build] Selected item converted to " .. (newUnitDef and (newUnitDef.humanName or newUnitDef.name) or ("UnitDefID " .. tostring(newSelDefID)))
-		Spring.Echo(successMsg)
+		-- removed debug echo
 	else
 		if prevFactionSide ~= currentFactionSide then
 			local originalUnitDef = UnitDefs[currentSelDefID]

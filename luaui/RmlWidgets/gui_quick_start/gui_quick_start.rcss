@@ -95,13 +95,27 @@
 	background-color: #00ff00;
 	border-radius: 4px;
 	box-sizing: border-box;
+	z-index: 1;
+}
+
+.qs-juice__projected {
+	position: absolute;
+	left: 0;
+	top: 0;
+	height: 100%;
+	width: 0%;
+	background-color:rgb(0, 126, 0);
+	border-radius: 4px;
+	box-sizing: border-box;
+	pointer-events: none;
+	z-index: 2;
 }
 
 .qs-juice__text {
 	display: none;
 }
 
-.free-factory {
+.discounted-factory {
 	margin-top: 4px;
 	color: #ffffff;
 	font-size: 20px;
@@ -109,9 +123,18 @@
 	font-effect: outline(1px black);
 }
 
-.free-factory.placed {
+.discounted-factory.placed {
 	opacity: 0.6;
 	color: #aaaaaa;
+}
+
+.discounted-factory.discount-used {
+	color: #00ff00;
+}
+
+.discounted-factory.placed.discount-used {
+	color: #00aa00;
+	opacity: 0.8;
 }
     
 

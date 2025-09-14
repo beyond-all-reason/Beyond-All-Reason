@@ -11,6 +11,7 @@
                 <div id="qs-juice-section" class="qs-juice">
                     <div class="qs-juice__track">
                         <div id="juice-bar-fill" class="qs-juice__fill"></div>
+                        <div id="juice-bar-projected" class="qs-juice__projected"></div>
                     </div>
                     <div class="qs-juice__text">
                         <span id="juice-remaining">0</span>
@@ -18,8 +19,8 @@
                         <span id="juice-total">0</span>
                     </div>
                 </div>
-                <div id="free-factory-section" class="free-factory">
-                    <div id="free-factory-text">Place Free Factory</div>
+                <div id="factory-section" class="discounted-factory">
+                    <div id="factory-text">Place Discounted Factory</div>
                 </div>
             </div>
         </div>
@@ -28,5 +29,3 @@
     </div>
 </body>
 </rml>
-
-
