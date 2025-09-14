@@ -47,6 +47,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecaltype = "decals/cornanotc_aoplane.dds",
 			model_author = "Beherith",
+			radarwobble = "none",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBuildings/SeaUtil",
 			unitgroup = "builder",

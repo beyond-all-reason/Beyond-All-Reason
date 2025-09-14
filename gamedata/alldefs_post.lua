@@ -1165,6 +1165,30 @@ function UnitDef_Post(name, uDef)
 
 	end
 
+	--Sensor rework
+	if modOptions.sensor_rework == true then
+		-- set non-zero seismicsignature on units that seismic should detect
+		if ((uDef.canfly == nil) and (string.find(name,"critter") == nil)) then
+			if uDef.minwaterdepth == nil then
+				uDef.seismicsignature = 0.01 -- seems to be small enough to make the texture not appear
+			elseif (uDef.minwaterdepth > 0) then -- exclude boats
+				uDef.seismicsignature = 0
+			else
+				uDef.seismicsignature = 0.01
+			end
+		end
+
+		-- remove pinpointers from buildoptions
+		if not (uDef.buildoptions == nil) then
+			for ix, bo in pairs(uDef.buildoptions) do
+				if not (UnitDefs[bo] == nil) then
+					if UnitDefs[bo].istargetingupgrade then
+						uDef.buildoptions[ix] = nil
+					end
+				end
+			end
+		end
+	end
 
 	--Air rework
 	if modOptions.air_rework == true then

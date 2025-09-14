@@ -115,6 +115,7 @@ local callInLists = {
 	"PlayerRemoved",
 
 	"GameFrame",
+	"GameFramePost",
 	"GamePaused",
 
 	"ViewResize",  -- FIXME ?
@@ -266,9 +267,11 @@ local callInLists = {
 	-- FIXME: NOT IN BASE
 	"UnitCommand",
 	"UnitEnteredWater",
+	"UnitEnteredUnderwater",
 	"UnitEnteredAir",
 	"UnitLeftWater",
 	"UnitLeftAir",
+	"UnitLeftUnderwater",
 
 	"UnsyncedHeightMapUpdate"
 }
@@ -1166,6 +1169,12 @@ function gadgetHandler:GameFrame(frameNum)
 	return
 end
 
+function gadgetHandler:GameFramePost(frameNum)
+	for _, g in r_ipairs(self.GameFramePostList) do
+		g:GameFramePost(frameNum)
+	end
+end
+
 function gadgetHandler:GamePaused(playerID, paused)
 	for _, g in ipairs(self.GamePausedList) do
 		g:GamePaused(playerID, paused)
@@ -1888,6 +1897,20 @@ end
 function gadgetHandler:UnitLeftWater(unitID, unitDefID, unitTeam)
 	for _, g in ipairs(self.UnitLeftWaterList) do
 		g:UnitLeftWater(unitID, unitDefID, unitTeam)
+	end
+	return
+end
+
+function gadgetHandler:UnitEnteredUnderwater(unitID, unitDefID, unitTeam)
+	for _, g in ipairs(self.UnitEnteredUnderwaterList) do
+		g:UnitEnteredUnderwater(unitID, unitDefID, unitTeam)
+	end
+	return
+end
+
+function gadgetHandler:UnitLeftUnderwater(unitID, unitDefID, unitTeam)
+	for _, g in ipairs(self.UnitLeftUnderwaterList) do
+		g:UnitLeftUnderwater(unitID, unitDefID, unitTeam)
 	end
 	return
 end

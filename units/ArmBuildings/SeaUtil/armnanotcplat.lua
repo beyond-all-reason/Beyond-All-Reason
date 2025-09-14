@@ -47,6 +47,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecaltype = "decals/armnanotc_aoplane.dds",
 			model_author = "Beherith",
+			radarwobble = "none",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBuildings/SeaUtil",
 			unitgroup = "builder",

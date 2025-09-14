@@ -49,6 +49,7 @@ return {
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = "builder",
 			model_author = "Tharsis",
+			radarwobble = "none",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBuildings/SeaUtil",
 		},
