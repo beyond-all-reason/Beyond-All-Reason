@@ -44,6 +44,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecaltype = "decals/cornanotc_aoplane.dds",
 			model_author = "Mr Bob",
+			radarwobble = "none",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBuildings/LandUtil",
 			unitgroup = "builder",
