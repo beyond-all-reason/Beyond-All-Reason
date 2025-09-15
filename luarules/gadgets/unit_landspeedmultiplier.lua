@@ -17,91 +17,86 @@ end
 
 if not gadgetHandler:IsSyncedCode() then return false end
 
-if gadgetHandler:IsSyncedCode() then
+local unitDefsWithFactor = {}  -- unitDefID -> factor
+local unitBaseStats = {}       -- unitID -> {speed, turnRate, accRate, decRate}
 
-    ---------------------------------------------------------------------------------------------
-    -- Setup and Data Storage -------------------------------------------------------------------
+local unitDefsWithFactor = {}  -- unitDefID -> factor
+local unitDefMoveData = {}     -- unitDefID -> {speed, turnRate, accRate, decRate}
+local unitBaseStats = {}       -- unitID -> reference to unitDefMoveData
 
-    local unitDefsWithFactor = {}  -- unitDefID -> factor
-    local unitBaseStats = {}       -- unitID -> {speed, turnRate, accRate, decRate}
-    local SMC = Spring.MoveCtrl
+local SMC = Spring.MoveCtrl
 
-    ---------------------------------------------------------------------------------------------
-    -- store which units are affected -----------------------------------------------------------
 
-    -- this runs once when the gadget is loaded, checks units which have landspeedfactor, only runs once and only these units are then affected
-    for defID, ud in pairs(UnitDefs) do
-        local cp = ud.customParams or {}
-        if cp.landspeedfactor then
-            local factor = tonumber(cp.landspeedfactor)
-            if factor then
-                unitDefsWithFactor[defID] = factor
-            end
-        end
+for defID, ud in pairs(UnitDefs) do
+    local cp = ud.customParams
+    if cp.landspeedfactor then
+        local factor = tonumber(cp.landspeedfactor)
+        unitDefsWithFactor[defID] = factor
+
+        -- cache base stats for this unitDefID only once
+        unitDefMoveData[defID] = {
+            speed = ud.speed,
+            turn  = ud.turnRate,
+            acc   = ud.maxAcc,
+            dec   = ud.maxDec,
+        }
     end
-
-    ---------------------------------------------------------------------------------------------
-    -- Helper Function --------------------------------------------------------------------------
-
-    -- uses maxSpeed and wantedMaxSpeed to make adjustments, grabs other variables too now
-    local function ApplySpeed(unitID, stats, factor)
-        SMC.SetGroundMoveTypeData(unitID, {
-            maxSpeed       = stats.speed   * factor,
-            maxWantedSpeed = stats.speed   * factor,
-            turnRate       = stats.turn    * factor,
-            accRate        = stats.acc     * factor,
-            decRate        = stats.dec     * factor,
-        })
-    end
-
-    ---------------------------------------------------------------------------------------------
-    -- Engine Callins ---------------------------------------------------------------------------
-
-    -- store the base movement values
-    function gadget:UnitCreated(unitID, unitDefID, teamID)
-        local factor = unitDefsWithFactor[unitDefID]
-        if factor then
-            local ud = UnitDefs[unitDefID]
-            unitBaseStats[unitID] = {
-                speed = ud.speed,
-                turn  = ud.turnRate,
-                acc   = ud.maxAcc,
-                dec   = ud.maxDec,
-            }
-
-            -- get unit position and ground height
-            local x, y, z = Spring.GetUnitPosition(unitID)
-            local groundHeight = Spring.GetGroundHeight(x, z)
-
-            -- if in water, default speed, if on land, speed up or slow down immediately
-            if groundHeight < 0 then
-                ApplySpeed(unitID, unitBaseStats[unitID], 1)
-            else
-                ApplySpeed(unitID, unitBaseStats[unitID], factor)
-            end
-        end
-    end
-
-    -- allows units to go at full speed in water
-    function gadget:UnitEnteredWater(unitID, unitDefID, teamID)
-        local stats = unitBaseStats[unitID]
-        if stats then
-            ApplySpeed(unitID, stats, 1)
-        end
-    end
-
-    -- slows unit down on land
-    function gadget:UnitLeftWater(unitID, unitDefID, teamID)
-        local stats = unitBaseStats[unitID]
-        local factor = unitDefsWithFactor[unitDefID]
-        if stats and factor then
-            ApplySpeed(unitID, stats, factor)
-        end
-    end
-
-    -- clear stored values in case unitID is used again
-    function gadget:UnitDestroyed(unitID, unitDefID, teamID)
-        unitBaseStats[unitID] = nil
-    end
-
 end
+
+
+
+---------------------------------------------------------------------------------------------
+-- Helper Function --------------------------------------------------------------------------
+
+-- uses maxSpeed and wantedMaxSpeed to multiply a unit's base moveType data (speed, turn, acceleration) by a coefficient
+local function ApplySpeed(unitID, stats, factor)
+    SMC.SetGroundMoveTypeData(unitID, {
+        maxSpeed       = stats.speed   * factor,
+        maxWantedSpeed = stats.speed   * factor,
+        turnRate       = stats.turn    * factor,
+        accRate        = stats.acc     * factor,
+        decRate        = stats.dec     * factor,
+    })
+end
+
+---------------------------------------------------------------------------------------------
+-- Engine Callins ---------------------------------------------------------------------------
+
+function gadget:UnitCreated(unitID, unitDefID, teamID)
+    local factor = unitDefsWithFactor[unitDefID]
+    if factor then
+        -- reuse cached move data
+        unitBaseStats[unitID] = unitDefMoveData[unitDefID]
+
+        local x, y, z = Spring.GetUnitPosition(unitID)
+        local isInWater = Spring.GetGroundHeight(x, z) < Spring.GetWaterPlaneLevel()
+
+        -- if in water, default speed, if on land, speed up or slow down immediately
+        if isInWater then
+            ApplySpeed(unitID, unitBaseStats[unitID], 1)
+        else
+            ApplySpeed(unitID, unitBaseStats[unitID], factor)
+        end
+
+    end
+end
+
+function gadget:UnitEnteredWater(unitID, unitDefID, teamID)
+    local stats = unitBaseStats[unitID]
+    if stats then
+        ApplySpeed(unitID, stats, 1)
+    end
+end
+
+function gadget:UnitLeftWater(unitID, unitDefID, teamID)
+    local stats = unitBaseStats[unitID]
+    local factor = unitDefsWithFactor[unitDefID]
+    if stats and factor then
+        ApplySpeed(unitID, stats, factor)
+    end
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, teamID)
+    unitBaseStats[unitID] = nil
+end
+
