@@ -68,8 +68,17 @@ if gadgetHandler:IsSyncedCode() then
                 acc   = ud.maxAcc,
                 dec   = ud.maxDec,
             }
-            -- Default to water speed when first created (safe assumption).
-            ApplySpeed(unitID, unitBaseStats[unitID], 1)
+
+            -- get unit position and ground height
+            local x, y, z = Spring.GetUnitPosition(unitID)
+            local groundHeight = Spring.GetGroundHeight(x, z)
+
+            -- if in water, default speed, if on land, speed up or slow down immediately
+            if groundHeight < 0 then
+                ApplySpeed(unitID, unitBaseStats[unitID], 1)
+            else
+                ApplySpeed(unitID, unitBaseStats[unitID], factor)
+            end
         end
     end
 
