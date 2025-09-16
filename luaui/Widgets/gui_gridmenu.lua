@@ -1070,12 +1070,14 @@ local function setPregameBlueprint(uDefID)
 	end
 end
 
-local function queueUnit(uDefID, opts)
+local function queueUnit(uDefID, opts, quantity)
 	local sel = spGetSelectedUnitsSorted()
 	for unitDefID, unitIds in pairs(sel) do
 		if units.isFactory[unitDefID] then
 			for _, uid in ipairs(unitIds) do
-				spGiveOrderToUnit(uid, -uDefID, {}, opts)
+				for _ = 1,quantity,1 do
+					spGiveOrderToUnit(uid, -uDefID, {}, opts)
+				end
 			end
 		end
 	end
@@ -1142,15 +1144,16 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
 	if builderIsFactory then
-		if WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt then
-			local quantity = 1
-			if shift then
-				quantity = modKeyMultiplier.keyPress.shift
-			end
+		local quantity = 1
+		if shift then
+			quantity = modKeyMultiplier.keyPress.shift
+		end
 
-			if ctrl then
-				quantity = quantity * modKeyMultiplier.keyPress.ctrl
-			end
+		if ctrl then
+			quantity = quantity * modKeyMultiplier.keyPress.ctrl
+		end
+
+		if WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt then
 			updateQuotaNumber(uDefID,quantity)
 			return true
 		else
@@ -1160,22 +1163,28 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 
 			local opts
 
-			if ctrl then
+			if quantity < 0 then
+				quantity = quantity * -1
 				opts = { "right" }
 				Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
 			else
 				opts = { "left" }
 				Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
-			end
 
+				--if quantity is divisible by 20 or 5 like most sane people will set it as then use engine logic for better performance
+				if opts ~= { "right" } and math.fmod(quantity,20) == 0 then
+					opts = { "left","ctrl" }
+					quantity = quantity / 20
+				elseif opts ~= { "right" } and math.fmod(quantity,5) == 0 then
+					opts = { "left","shift" }
+					quantity = quantity / 5
+				end
+			end
 			if alt then
 				table.insert(opts, "alt")
 			end
-			if shift then
-				table.insert(opts, "shift")
-			end
 
-			queueUnit(uDefID, opts)
+			queueUnit(uDefID, opts, quantity)
 
 			return true
 		end
@@ -1343,6 +1352,32 @@ function widget:Initialize()
 	end
 	WG["gridmenu"].clearCategory = function()
 		clearCategory()
+	end
+
+	WG["gridmenu"].getCtrlClickModifier = function()
+		return modKeyMultiplier.click.ctrl
+	end
+	WG["gridmenu"].setCtrlClickModifier = function(value)
+		modKeyMultiplier.click.ctrl = value
+	end
+	WG["gridmenu"].getShiftClickModifier = function()
+		return modKeyMultiplier.click.shift
+	end
+	WG["gridmenu"].setShiftClickModifier = function(value)
+		modKeyMultiplier.click.shift = value
+	end
+
+	WG["gridmenu"].getCtrlKeyModifier = function()
+		return modKeyMultiplier.keyPress.ctrl
+	end
+	WG["gridmenu"].setCtrlKeyModifier = function(value)
+		modKeyMultiplier.keyPress.ctrl = value
+	end
+	WG["gridmenu"].getShiftKeyModifier = function()
+		return modKeyMultiplier.keyPress.shift
+	end
+	WG["gridmenu"].setShiftKeyModifier = function(value)
+		modKeyMultiplier.keyPress.shift = value
 	end
 
 	WG["buildmenu"].getGroups = function()
@@ -2798,6 +2833,10 @@ function widget:GetConfigData()
 		stickToBottom = stickToBottom,
 		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
 		alwaysShow = alwaysShow,
+		ctrlClickModifier = modKeyMultiplier.click.ctrl,
+		shiftClickModifier = modKeyMultiplier.click.shift,
+		ctrlKeyModifier = modKeyMultiplier.keyPress.ctrl,
+		shiftKeyModifier = modKeyMultiplier.keyPress.shift,
 	}
 end
 
@@ -2825,6 +2864,18 @@ function widget:SetConfigData(data)
 	end
 	if data.alwaysShow ~= nil then
 		alwaysShow = data.alwaysShow
+	end
+	if data.ctrlClickModifier ~= nil then
+		modKeyMultiplier.click.ctrl = data.ctrlClickModifier
+	end
+	if data.shiftClickModifier ~= nil then
+		modKeyMultiplier.click.shift = data.shiftClickModifier
+	end
+	if data.ctrlKeyModifier ~= nil then
+		modKeyMultiplier.keyPress.ctrl = data.ctrlKeyModifier
+	end
+	if data.shiftKeyModifier ~= nil then
+		modKeyMultiplier.keyPress.shift = data.shiftKeyModifier
 	end
 end
 
