@@ -1,0 +1,216 @@
+
+#include "../recoil_common_includes.h"
+
+piece
+base,
+rightMissileTurretHeadingPivot,
+rightBarrelPitchPivot,
+rightBarrelSpinPivot,
+rightBarrelFlare1,
+rightBarrelFlare2,
+rightBarrelFlare3,
+riotCannonStrut,
+riotcannonPitchPivot,
+riotCannon,
+riotCannonFlare,
+riotCannonHeadingPivot,
+bow,
+wake;
+		
+static-var  restore_delay, whichBarrel;
+
+// Signal definitions
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+
+
+#define RB_MASS 30
+#define RB_LENGTH 7
+#define RB_WIDTH 3
+#define RB_PITCH_SPEED 100
+#define RB_PITCH_ACCELERATION 20
+#define RB_ROLL_ACCELERATION 8
+#define RB_ROCKUNIT 5
+#define RB_WAKE_PIECE wake
+#define RB_WAKE_CEG 1024 + 2
+#define RB_BOWSPLASH_PIECE bow
+#define RB_BOWSPLASH_CEG 1024 + 3
+#define RB_IDLE_KICK 10000
+
+#include "../bar_ships_common.h"
+
+
+Create()
+{
+    whichBarrel = 0;
+	restore_delay = 3000;
+    turn rightBarrelPitchPivot to x-axis <-35> now;
+    spin rightMissileTurretHeadingPivot around y-axis speed <30> accelerate <1>;
+	start-script InitRockBoat();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script BoatPhysics();
+}
+
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 2;
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	set-signal-mask 0;
+	turn riotCannonHeadingPivot to y-axis <0.0> speed <180.0>;
+	turn riotcannonPitchPivot to x-axis <0.0> speed <90.0>;
+}
+ExecuteRestoreAfterDelay2()
+{
+    if (Stunned) {
+        return (1);
+    }
+	set-signal-mask 0;
+	//turn rightMissileTurretHeadingPivot to y-axis <0.0> speed <180.0>;
+	turn rightBarrelPitchPivot to x-axis <-35.0> speed <90.0>;
+    spin rightMissileTurretHeadingPivot around y-axis speed <30> accelerate <1>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+RestoreAfterDelay2()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay2();
+}
+
+StartMoving(reversing)
+{
+}
+
+StopMoving()
+{
+}
+
+AimWeapon1(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn riotCannonHeadingPivot to y-axis heading speed <150.0>;
+	turn riotcannonPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <150.0>;
+	wait-for-turn riotCannonHeadingPivot around y-axis;
+	wait-for-turn riotcannonPitchPivot around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+
+FireWeapon1()
+{
+	emit-sfx 1024 + 0 from riotCannonFlare;
+    move riotCannon to z-axis [-5] now;
+    sleep 10;
+    move riotCannon to z-axis [0] speed [5];
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = riotCannon;
+}
+
+QueryWeapon1(pieceIndex)
+{
+	pieceIndex = riotCannonFlare;
+}
+
+AimWeapon2(heading, pitch)
+{
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+    stop-spin rightMissileTurretHeadingPivot around y-axis;
+	turn rightMissileTurretHeadingPivot to y-axis heading speed <300.0>;
+	turn rightBarrelPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <300.0>;
+	wait-for-turn rightMissileTurretHeadingPivot around y-axis;
+	wait-for-turn rightBarrelPitchPivot around x-axis;
+	start-script RestoreAfterDelay2();
+	return (1);
+}
+
+FireWeapon2()
+{
+
+}
+
+Shot2(zero){
+    if( whichBarrel == 0 )
+    {
+        emit-sfx 1024 + 1 from rightBarrelFlare1;
+        spin rightBarrelSpinPivot around z-axis speed <360>;
+    }
+    if( whichBarrel == 1 )
+    {
+        emit-sfx 1024 + 1 from rightBarrelFlare2;
+    }
+    if( whichBarrel == 2 )
+    {
+        emit-sfx 1024 + 1 from rightBarrelFlare3;
+        stop-spin rightBarrelSpinPivot around z-axis decelerate <2>;
+        whichBarrel = 0;
+    }
+}
+
+AimFromWeapon2(pieceIndex)
+{
+	pieceIndex = rightBarrelPitchPivot;
+}
+
+QueryWeapon2(pieceIndex)
+{
+    if( whichBarrel == 0 )
+    {
+        pieceIndex = rightBarrelFlare1;
+    }
+    if( whichBarrel == 1 )
+    {
+        pieceIndex = rightBarrelFlare2;
+    }
+    if( whichBarrel == 2 )
+    {
+        pieceIndex = rightBarrelFlare3;
+    }
+}
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		// explode sleeve type BITMAPONLY | BITMAP1 | NOHEATCLOUD;
+		// explode turret type BITMAPONLY | BITMAP1 | NOHEATCLOUD;
+		// explode wake2 type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		// explode sleeve type FALL | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		// explode wake2 type FALL | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	// explode sleeve type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	// explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	// explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	return corpsetype;
+}
