@@ -3041,14 +3041,14 @@ function init()
 		  end,
 		},
 
-		{ id = "gridmenu_ctrlclickmodifier", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_ctrlclickmodifier'), type = "slider", min = -20, max = 100, step = 5, value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getCtrlClickModifier ~= nil and WG['gridmenu'].getCtrlClickModifier()), description = Spring.I18N('ui.settings.option.gridmenu_ctrlclickmodifier_descr'),
+		{ id = "gridmenu_ctrlclickmodifier", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_ctrlclickmodifier'), type = "slider", min = 5, max = 100, step = 5, value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getCtrlClickModifier ~= nil and WG['gridmenu'].getCtrlClickModifier()), description = Spring.I18N('ui.settings.option.gridmenu_ctrlclickmodifier_descr'),
 		  onload = function()
 		  end,
 		  onchange = function(_, value)
 			  saveOptionValue('Grid menu', 'gridmenu', 'setCtrlClickModifier', { 'ctrlClickModifier' }, value)
 		  end,
 		},
-		{ id = "gridmenu_shiftclickmodifier", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_shiftclickmodifier'), type = "slider", min = -20, max = 100, step = 5, value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getShiftClickModifier ~= nil and WG['gridmenu'].getShiftClickModifier()), description = Spring.I18N('ui.settings.option.gridmenu_shiftclickmodifier_descr'),
+		{ id = "gridmenu_shiftclickmodifier", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_shiftclickmodifier'), type = "slider", min = 5, max = 100, step = 5, value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getShiftClickModifier ~= nil and WG['gridmenu'].getShiftClickModifier()), description = Spring.I18N('ui.settings.option.gridmenu_shiftclickmodifier_descr'),
 		  onload = function()
 		  end,
 		  onchange = function(_, value)
