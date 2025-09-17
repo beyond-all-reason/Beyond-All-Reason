@@ -1111,7 +1111,7 @@ function widget:RecvLuaMsg(msg, playerID)
 				pauseGameWhenSingleplayerExecuted = chobbyInterface
 			end
 			if not chobbyInterface then
-				Spring.SetConfigInt('VSync', Spring.GetConfigInt("VSyncGame", -1))
+				Spring.SetConfigInt('VSync', Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1))
 			end
 		end
 	end
@@ -2244,9 +2244,9 @@ function init()
 		{ id = "vsync", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.vsync'),  type = "select", options = { Spring.I18N('ui.settings.option.select_off'), Spring.I18N('ui.settings.option.select_enabled'), Spring.I18N('ui.settings.option.select_adaptive')}, value = 2, description = Spring.I18N('ui.settings.option.vsync_descr'),
 		  onload = function(i)
 			  local vsync = Spring.GetConfigInt("VSyncGame", -1)
-			  if vsync == 1 then
+			  if vsync > 0 then
 			  	options[i].value = 2
-			  elseif vsync == -1 then
+			  elseif vsync < 0 then
 			  	options[i].value = 3
 			  else
 				options[i].value = 1
@@ -2255,14 +2255,24 @@ function init()
 		  onchange = function(i, value)
 			  local vsync = 0
 			  if value == 2 then
-				  vsync = 1
+				  vsync = Spring.GetConfigInt("VSyncFraction", 1)
 			  elseif value == 3 then
-				  vsync = -1
+				  vsync = -Spring.GetConfigInt("VSyncFraction", 1)
 			  end
 			  Spring.SetConfigInt("VSync", vsync)
 			  Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
 		  end,
 		},
+		{ id = "vsync_fraction", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.vsync_fraction'), min = 1, max = 4, step = 1, type = "slider", value = Spring.GetConfigInt("VSyncFraction", 1), description = Spring.I18N('ui.settings.option.vsync_fraction_descr'),
+		  onchange = function(i, value)
+			Spring.SetConfigInt("VSyncFraction", value)
+			local vsync = Spring.GetConfigInt("VSyncGame", -1)
+			if vsync ~= 0 then
+				Spring.SetConfigInt("VSync", vsync*value)
+			end
+		  end,
+		},
+
 		{ id = "limitoffscreenfps", group = "gfx", category = types.advanced, widget = "Limit idle FPS", name = Spring.I18N('ui.settings.option.limitoffscreenfps'), type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = Spring.I18N('ui.settings.option.limitoffscreenfps_descr') },
 		{ id = "limitidlefps", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.limitidlefps'), type = "bool", value = (Spring.GetConfigInt("LimitIdleFps", 0) == 1), description = Spring.I18N('ui.settings.option.limitidlefps_descr'),
 		  onchange = function(i, value)
@@ -6010,7 +6020,7 @@ function init()
 		detectWater()
 
 		-- set vsync
-		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
+		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1))
 	end
 	if not waterDetected then
 		Spring.SendCommands("water 0")
