@@ -209,7 +209,7 @@ local function lavaModGen(modOptions)
 		end
 	else 
 		local lowRhythm = {modOptions.map_lavalowlevel, 7.5, modOptions.map_lavalowdwell} --Falls faster: 450 elmo/min
-		local highRhythm = {modOptions.map_lavahighlevel, 4.5, modOptions.map_lavahighdwell} --Rises slower: 270 emlo/min
+		local highRhythm = {modOptions.map_lavahighlevel, 4.5, modOptions.map_lavahighdwell} --Rises slower: 270 elmo/min
 		if modOptions.map_lavatidemode == "lavastartlow" then
 			tideRhythm = {lowRhythm, highRhythm}
 		elseif modOptions.map_lavatidemode == "lavastarthigh" then
