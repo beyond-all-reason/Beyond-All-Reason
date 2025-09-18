@@ -115,13 +115,12 @@ return {
 		},
 		weapondefs = {
 			arm_artillery = {
-				accuracy = 600,
 				areaofeffect = 120,
 				avoidfeature = false,
 				cegtag = "arty-medium",
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.65,
+				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
@@ -134,8 +133,7 @@ return {
 				soundstart = "cannhvy2",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 355.28159,
-				damage = {
+				weaponvelocity = 355,
 					default = 260,
 					subs = 65,
 					vtol = 26,

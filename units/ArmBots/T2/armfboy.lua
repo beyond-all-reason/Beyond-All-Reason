@@ -108,7 +108,7 @@ return {
 				craterareaofeffect = 240,
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.85,
+				edgeeffectiveness = 0.15,
 				energypershot = 0,
 				explosiongenerator = "custom:genericshellexplosion-large-aoe",
 				gravityaffected = "true",
@@ -122,7 +122,7 @@ return {
 				soundstart = "BERTHA1",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 307.40851,
+				weaponvelocity = 307,
 				damage = {
 					default = 800,
 					subs = 100,
