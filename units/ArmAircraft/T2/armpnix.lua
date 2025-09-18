@@ -30,7 +30,7 @@ return {
 		script = "Units/ARMPNIX.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
-		sightdistance = 260,
+		sightdistance = 430,
 		speed = 258,
 		speedtofront = 0.063,
 		turnradius = 64,

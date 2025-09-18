@@ -131,6 +131,7 @@ local convertedUnitsNames = {
 	['legaskirmtank'] = 5,
 	['legaheattank'] = 3,
 	['legeheatraymech'] = 1,
+	['legeheatraymech_old'] = 1,
 	['legbunk'] = 3,
 	['legrwall'] = 4,
 	['legjav'] = 1,

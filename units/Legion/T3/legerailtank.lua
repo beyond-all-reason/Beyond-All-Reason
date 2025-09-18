@@ -161,16 +161,15 @@ return {
 			[1] = {
 				def = "T3_RAIL_ACCELERATOR",
 				onlytargetcategory = "NOTSUB",
-				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				def = "T3_RAIL_ACCELERATOR",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSUB",
 				slaveTo = 1,
 			},
 			[3] = {
 				def = "T3_RAIL_ACCELERATOR",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSUB",
 				slaveTo = 1,
 			},
 		},

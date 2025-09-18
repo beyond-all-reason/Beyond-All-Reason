@@ -382,13 +382,13 @@ local LandUnitsList = {
 			--Cortex
 			["corshiva_scav"] = 4,
 			["corkarg_scav"] = 4,
-			["legeallterrainmech_scav"] = 4,
 			["corthermite"] = 4,
 			["corsok_scav"] = 2,
 			--Legion
 			["legpede_scav"] = 1,
 			["legkeres_scav"] = 4,
-			["legeshotgunmech_scav"] = 2,
+			["legeallterrainmech_scav"] = 4,
+			["legerailtank_scav"] = 2,
 			["legbunk_scav"] = 2,
 			["legehovertank_scav"] = 2,
 		},
@@ -406,8 +406,10 @@ local LandUnitsList = {
 			["corgolt4_scav"] = 2,
 			--Legion
 			["leegmech_scav"] = 2,
-			["legerailtank_scav"] = 3,
-			["legeheatraymech_scav"] = 2,
+			["legeshotgunmech_scav"] = 3,
+			["legerailtank_scav"] = 4,
+			["legeheatraymech_scav"] = 1,
+			["legeheatraymech_old_scav"] = 3,
 			["legelrpcmech_scav"] = 3,
 		},
 	},
