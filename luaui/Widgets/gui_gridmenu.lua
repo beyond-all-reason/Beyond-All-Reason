@@ -1171,13 +1171,20 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 				opts = { "left" }
 				Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 
-				--if quantity is divisible by 20 or 5 like most sane people will set it as then use engine logic for better performance
-				if opts ~= { "right" } and math.fmod(quantity,20) == 0 then
+				--if quantity is more than 20 or more than 5 then use engine logic for better performance (fewer for loops inside queueUnit())
+				if opts ~= { "right" } and not alt and quantity >= 20 then
 					opts = { "left","ctrl" }
-					quantity = quantity / 20
-				elseif opts ~= { "right" } and math.fmod(quantity,5) == 0 then
+					quantity2 = math.floor(quantity / 20)
+					queueUnit(uDefID, opts, quantity2)
+					quantity = math.fmod(quantity,20)
+					opts = { "left" }
+				end
+				if opts ~= { "right" } and not alt and quantity >= 5 then
 					opts = { "left","shift" }
-					quantity = quantity / 5
+					quantity2 = math.floor(quantity / 5)
+					queueUnit(uDefID, opts, quantity2)
+					quantity = math.fmod(quantity,5)
+					opts = { "left" }
 				end
 			end
 			if alt then
