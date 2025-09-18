@@ -21,7 +21,7 @@ return {
 		maxslope = 16,
 		maxwaterdepth = 0,
 		metalcost = 99,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		movestate = 0,
 		objectname = "Units/CORVOYR.s3o",
 		onoffable = false,

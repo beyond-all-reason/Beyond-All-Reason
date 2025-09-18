@@ -32,7 +32,7 @@ return {
 		maxslope = 20,
 		speed = 60.0,
 		mincloakdistance = 50,
-		movementclass = "ABOT2",
+		movementclass = "ABOT3",
 		nochasecategory = "VTOL",
 		objectname = "scavs/cormandot4.s3o",
 		radardistance = 900,
