@@ -31,6 +31,9 @@ local MODEL_NAME = "quick_start_model"
 local RML_PATH = "luaui/RmlWidgets/gui_quick_start/gui_quick_start.rml"
 
 local ENERGY_VALUE_CONVERSION_DIVISOR = 10
+local MAX_QUEUE_HASH_ITEMS = 50
+local DEFAULT_INSTANT_BUILD_RANGE = 600
+
 
 local widgetState = {
 	rmlContext = nil,
@@ -38,9 +41,7 @@ local widgetState = {
 	document = nil,
 	lastUpdate = 0,
 	updateInterval = 0.2,
-	showBar = false,
 	lastQueueHash = "",
-	isPaused = false,
 	isDocumentVisible = true,
 	hiddenByLobby = false,
 	juiceBarElements = {
@@ -57,29 +58,56 @@ local initialModel = {
 	juiceProjected = 0,
 	juiceProjectedPercent = 0,
 	showBar = false,
-	factoryQueued = false,
 	factoryDiscountUsed = false,
-	factoryDiscountText = "",
-	factoryDiscountTextClass = "qs-factory-text",
-	quickStart = {
-		preGameResources = "",
-		remainingResourcesWarning = "",
-		placeDiscountedFactory = "",
-	},
 }
 
 local function calculateJuiceCost(unitDefID)
-	local uDef = UnitDefs[unitDefID]
-	if not uDef then return 0 end
-	local metalCost = uDef.metalCost or 0
-	local energyCost = uDef.energyCost or 0
+	local unitDef = UnitDefs[unitDefID]
+	if not unitDef then return 0 end
+	local metalCost = unitDef.metalCost or 0
+	local energyCost = unitDef.energyCost or 0
 	return metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
+end
+
+local function calculateJuiceWithDiscount(unitDefID, factoryDiscountAmount, shouldApplyDiscount, isFirstFactory)
+	local unitDef = UnitDefs[unitDefID]
+	if not unitDef then return 0 end
+	
+	local metalCost = unitDef.metalCost or 0
+	local energyCost = unitDef.energyCost or 0
+	local juiceCost = metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
+	
+	if unitDef.isFactory and isFirstFactory and shouldApplyDiscount then
+		return math.max(0, juiceCost - factoryDiscountAmount)
+	end
+	return juiceCost
+end
+
+local function isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, instantBuildRange)
+	local distance = math.distance2d(commanderX, commanderZ, buildX, buildZ)
+	return distance <= instantBuildRange
+end
+
+local function getGameRulesParams(myTeamID)
+	return {
+		juiceTotal = spGetGameRulesParam("quickStartJuiceBase") or 0,
+		factoryDiscountAmount = spGetGameRulesParam("quickStartFactoryDiscountAmount") or 0,
+		factoryDiscountUsed = spGetTeamRulesParam(myTeamID, "quickStartFactoryDiscountUsed") or 0,
+		instantBuildRange = spGetGameRulesParam("overridePregameBuildDistance") or DEFAULT_INSTANT_BUILD_RANGE,
+	}
+end
+
+local function updateUIElementText(document, elementId, text)
+	local element = document:GetElementById(elementId)
+	if element then
+		element.inner_rml = text
+	end
 end
 
 local function hashQueue(queue)
 	if not queue or #queue == 0 then return "" end
 	local h = ""
-	for i = 1, math.min(#queue, 50) do
+	for i = 1, math.min(#queue, MAX_QUEUE_HASH_ITEMS) do
 		local q = queue[i]
 		h = h .. tostring(q[1]) .. ":" .. tostring(q[2]) .. ":" .. tostring(q[4]) .. ":" .. tostring(q[5]) .. "|"
 	end
@@ -87,9 +115,8 @@ local function hashQueue(queue)
 end
 
 local function createJuiceBarElements()
-	if not widgetState.document then 
-		Spring.Echo("Quick Start: No document found")
-		return 
+	if not widgetState.document then
+		return
 	end
 	
 	local fillElement = widgetState.document:GetElementById("qs-juice-fill")
@@ -98,18 +125,12 @@ local function createJuiceBarElements()
 	if fillElement and projectedElement then
 		widgetState.juiceBarElements.fillElement = fillElement
 		widgetState.juiceBarElements.projectedElement = projectedElement
-		Spring.Echo("Quick Start: Juice bar elements created successfully")
-	else
-		Spring.Echo("Quick Start: Failed to find juice bar elements")
 	end
 end
 
 local function computeProjectedUsage()
-	local myTeamID = spGetMyTeamID()
-	local juiceTotal = spGetGameRulesParam("quickStartJuiceBase") or 0
-	local factoryDiscountAmount = spGetGameRulesParam("quickStartFactoryDiscountAmount") or 0
-	local factoryDiscountUsed = spGetTeamRulesParam(myTeamID, "quickStartFactoryDiscountUsed") or 0
-	local instantBuildRange = spGetGameRulesParam("overridePregameBuildDistance") or 600
+	local myTeamID = spGetMyTeamID() or 0
+	local gameRules = getGameRulesParams(myTeamID)
 	local pregame = WG and WG["pregame-build"] and WG["pregame-build"].getBuildQueue and WG["pregame-build"].getBuildQueue() or {}
 	local pregameUnitSelected = WG["pregame-unit-selected"] or -1
 
@@ -126,29 +147,15 @@ local function computeProjectedUsage()
 		for i = 1, #pregame do
 			local item = pregame[i]
 			local defID = item[1]
-			if defID and defID > 0 then
-				local uDef = UnitDefs[defID]
-				if uDef then
-					local buildX, buildZ = item[2], item[4]
-					local distance = math.distance2d(commanderX, commanderZ, buildX, buildZ)
+			if defID and defID > 0 and UnitDefs[defID] then
+				local buildX, buildZ = item[2], item[4]
+				
+				if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
+					local juiceCost = calculateJuiceWithDiscount(defID, gameRules.factoryDiscountAmount, shouldApplyDiscount, not firstFactoryPlaced)
+					juiceUsed = juiceUsed + juiceCost
 					
-					if distance <= instantBuildRange then
-						local juiceCost = calculateJuiceCost(defID)
-						
-						if uDef.isFactory then
-							if not firstFactoryPlaced then
-								firstFactoryPlaced = true
-								if shouldApplyDiscount then
-									juiceUsed = juiceUsed + math.max(0, juiceCost - factoryDiscountAmount)
-								else
-									juiceUsed = juiceUsed + juiceCost
-								end
-							else
-								juiceUsed = juiceUsed + juiceCost
-							end
-						else
-							juiceUsed = juiceUsed + juiceCost
-						end
+					if UnitDefs[defID].isFactory and not firstFactoryPlaced then
+						firstFactoryPlaced = true
 					end
 				end
 			end
@@ -156,46 +163,32 @@ local function computeProjectedUsage()
 	end
 
 	local juiceProjected = 0
-	if pregameUnitSelected and pregameUnitSelected > 0 then
+	if pregameUnitSelected and pregameUnitSelected > 0 and UnitDefs[pregameUnitSelected] then
 		local uDef = UnitDefs[pregameUnitSelected]
-		if uDef then
-			local mx, my = Spring.GetMouseState()
-			local _, pos = Spring.TraceScreenRay(mx, my, true, false, false, uDef.modCategories and uDef.modCategories.underwater)
-			if pos then
-				local buildFacing = Spring.GetBuildFacing()
-				local bx, by, bz = Spring.Pos2BuildPos(pregameUnitSelected, pos[1], pos[2], pos[3], buildFacing)
-				local distance = math.distance2d(commanderX, commanderZ, bx, bz)
-				
-				if distance <= instantBuildRange then
-					local juiceCost = calculateJuiceCost(pregameUnitSelected)
-					
-					if uDef.isFactory and not firstFactoryPlaced then
-						if shouldApplyDiscount then
-							juiceProjected = math.max(0, juiceCost - factoryDiscountAmount)
-						else
-							juiceProjected = juiceCost
-						end
-					else
-						juiceProjected = juiceCost
-					end
-				end
+		local mx, my = Spring.GetMouseState()
+		local _, pos = Spring.TraceScreenRay(mx, my, true, false, false, uDef.modCategories and uDef.modCategories.underwater)
+		if pos then
+			local buildFacing = Spring.GetBuildFacing()
+			local bx, by, bz = Spring.Pos2BuildPos(pregameUnitSelected, pos[1], pos[2], pos[3], buildFacing)
+			
+			if isWithinBuildRange(commanderX, commanderZ, bx, bz, gameRules.instantBuildRange) then
+				juiceProjected = calculateJuiceWithDiscount(pregameUnitSelected, gameRules.factoryDiscountAmount, shouldApplyDiscount, not firstFactoryPlaced)
 			end
 		end
 	end
 
-	local juiceRemaining = math.max(0, juiceTotal - juiceUsed)
-	local percent = juiceTotal > 0 and math.max(0, math.min(100, (juiceRemaining / juiceTotal) * 100)) or 0
-	local projectedPercent = juiceTotal > 0 and math.max(0, math.min(100, (juiceProjected / juiceTotal) * 100)) or 0
+	local juiceRemaining = math.max(0, gameRules.juiceTotal - juiceUsed)
+	local percent = gameRules.juiceTotal > 0 and math.max(0, math.min(100, (juiceRemaining / gameRules.juiceTotal) * 100)) or 0
+	local projectedPercent = gameRules.juiceTotal > 0 and math.max(0, math.min(100, (juiceProjected / gameRules.juiceTotal) * 100)) or 0
 
 	return {
-		juiceTotal = juiceTotal,
+		juiceTotal = gameRules.juiceTotal,
 		juiceUsed = juiceUsed,
 		juiceRemaining = juiceRemaining,
 		juicePercent = percent,
 		juiceProjected = juiceProjected,
 		juiceProjectedPercent = projectedPercent,
-		factoryQueued = false,
-		factoryDiscountUsed = factoryDiscountUsed == 1,
+		factoryDiscountUsed = gameRules.factoryDiscountUsed == 1,
 	}
 end
 
@@ -211,14 +204,9 @@ local function updateDataModel(force)
 	widgetState.lastUpdate = os.clock()
 
 	local modelUpdate = computeProjectedUsage()
-	widgetState.dmHandle.juiceTotal = modelUpdate.juiceTotal
-	widgetState.dmHandle.juiceUsed = modelUpdate.juiceUsed
-	widgetState.dmHandle.juiceRemaining = modelUpdate.juiceRemaining
-	widgetState.dmHandle.juicePercent = modelUpdate.juicePercent
-	widgetState.dmHandle.juiceProjected = modelUpdate.juiceProjected
-	widgetState.dmHandle.juiceProjectedPercent = modelUpdate.juiceProjectedPercent
-	widgetState.dmHandle.factoryQueued = modelUpdate.factoryQueued
-	widgetState.dmHandle.factoryDiscountUsed = modelUpdate.factoryDiscountUsed
+	for key, value in pairs(modelUpdate) do
+		widgetState.dmHandle[key] = value
+	end
 
 	if widgetState.document then
 		local juicePercent = widgetState.dmHandle.juicePercent or 0
@@ -234,63 +222,40 @@ local function updateDataModel(force)
 			widgetState.juiceBarElements.projectedElement:SetAttribute("style", style)
 		end
 
-		local juiceRemaining = widgetState.document:GetElementById("qs-juice-remaining")
-		local juiceTotal = widgetState.document:GetElementById("qs-juice-total")
-		
-		if juiceRemaining then juiceRemaining.inner_rml = tostring(math.floor(widgetState.dmHandle.juiceRemaining or 0)) end
-		if juiceTotal then juiceTotal.inner_rml = tostring(math.floor(widgetState.dmHandle.juiceTotal or 0)) end
-
+		updateUIElementText(widgetState.document, "qs-juice-remaining", tostring(math.floor(widgetState.dmHandle.juiceRemaining or 0)))
+		updateUIElementText(widgetState.document, "qs-juice-total", tostring(math.floor(widgetState.dmHandle.juiceTotal or 0)))
 	end
 end
 
 function widget:Initialize()
-	Spring.Echo("Quick Start: Initializing widget")
-	
 	widgetState.rmlContext = RmlUi.GetContext("shared")
-	if not widgetState.rmlContext then 
-		Spring.Echo("Quick Start: Failed to get RML context")
-		return false 
+	if not widgetState.rmlContext then
+		return false
 	end
 
 	local dm = widgetState.rmlContext:OpenDataModel(MODEL_NAME, initialModel, self)
-	if not dm then 
-		Spring.Echo("Quick Start: Failed to open data model")
-		return false 
+	if not dm then
+		return false
 	end
 	widgetState.dmHandle = dm
 
-	widgetState.showBar = true
-	widgetState.dmHandle.showBar = widgetState.showBar
-
+	widgetState.dmHandle.showBar = true
 
 	local document = widgetState.rmlContext:LoadDocument(RML_PATH)
 	if not document then
-		Spring.Echo("Quick Start: Failed to load document")
 		widget:Shutdown()
 		return false
 	end
 	widgetState.document = document
 	document:Show()
-	Spring.Echo("Quick Start: Document loaded and shown")
 
-	local juiceHeader = document:GetElementById("qs-juice-header")
-	local warningText = document:GetElementById("qs-warning-text")
-	local factoryText = document:GetElementById("qs-factory-text")
-	
-	if juiceHeader then
-		juiceHeader.inner_rml = spI18N('ui.quickStart.preGameResources')
-	end
-	if warningText then
-		warningText.inner_rml = spI18N('ui.quickStart.remainingResourcesWarning')
-	end
-	if factoryText then
-		factoryText.inner_rml = spI18N('ui.quickStart.placeDiscountedFactory')
-	end
+	updateUIElementText(document, "qs-juice-header", spI18N('ui.quickStart.preGameResources'))
+	updateUIElementText(document, "qs-warning-text", spI18N('ui.quickStart.remainingResourcesWarning'))
+	updateUIElementText(document, "qs-factory-text", spI18N('ui.quickStart.placeDiscountedFactory'))
 
 	createJuiceBarElements()
 
 	updateDataModel(true)
-	Spring.Echo("Quick Start: Widget initialized successfully")
 	return true
 end
 
