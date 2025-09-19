@@ -37,6 +37,7 @@ local INSTANT_BUILD_RANGE = 600 -- how far things will be be instantly built for
 -------------------------------------------------------------------------
 
 local ALL_COMMANDS = -1
+local BUILD_ORDER_FREE = 2
 local BUILD_SPACING = 64
 local CONVERTER_GRID_DISTANCE = 200
 local ENERGY_VALUE_CONVERSION_DIVISOR = 10
@@ -138,7 +139,7 @@ local function generateLocalGrid(commanderID)
 					if not tooClose then
 						local searchY = spGetGroundHeight(testX, testZ)
 						local snappedX, snappedY, snappedZ = spPos2BuildPos(buildDefID, testX, searchY, testZ)
-						if snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, 0) > 0 then
+						if snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, 0) == BUILD_ORDER_FREE then
 							local key = tostring(snappedX) .. "_" .. tostring(snappedZ)
 							if not used[key] then
 								used[key] = true
@@ -240,7 +241,7 @@ local function refreshAvailableMexSpots(commanderID)
 			local mexSpot = comData.nearbyMexes[i]
 			local buildY = spGetGroundHeight(mexSpot.x, mexSpot.z)
 			local snappedX, snappedY, snappedZ = spPos2BuildPos(mexDefID, mexSpot.x, buildY, mexSpot.z)
-			if snappedX and spTestBuildOrder(mexDefID, snappedX, snappedY, snappedZ, 0) > 0 then
+			if snappedX and spTestBuildOrder(mexDefID, snappedX, snappedY, snappedZ, 0) == BUILD_ORDER_FREE then
 				table.insert(availableMexes, mexSpot)
 			end
 		end
@@ -559,8 +560,12 @@ local function tryToSpawnBuild(commanderID, buildDefID, buildX, buildZ, facing)
 	local discount = getFactoryDiscount(unitDef, comData.teamID, commanderID)
 	local juiceCost = defJuices[buildDefID] - discount
 	if comData.juice <= 0 then return false end
-
 	local buildY = spGetGroundHeight(buildX, buildZ)
+
+	if spTestBuildOrder(buildDefID, buildX, buildY, buildZ, facing) ~= BUILD_ORDER_FREE then
+		return false
+	end
+	
 	local unitID = spCreateUnit(unitDef.name, buildX, buildY, buildZ, facing, comData.teamID)
 	if not unitID then
 		return false, nil
