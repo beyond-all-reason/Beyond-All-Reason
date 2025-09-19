@@ -63,7 +63,7 @@ local initialModel = {
 	factoryQueued = false,
 	factoryDiscountUsed = false,
 	factoryDiscountText = "",
-	factoryDiscountTextClass = "discounted-factory",
+	factoryDiscountTextClass = "qs-factory-text",
 }
 
 local function calculateJuiceCost(unitDefID)
@@ -85,15 +85,20 @@ local function hashQueue(queue)
 end
 
 local function createJuiceBarElements()
-	if not widgetState.document then return end
+	if not widgetState.document then 
+		Spring.Echo("Quick Start: No document found")
+		return 
+	end
 	
-	local fillElement = widgetState.document:GetElementById("juice-bar-fill")
-	local projectedElement = widgetState.document:GetElementById("juice-bar-projected")
+	local fillElement = widgetState.document:GetElementById("qs-juice-fill")
+	local projectedElement = widgetState.document:GetElementById("qs-juice-projected")
 	
 	if fillElement and projectedElement then
 		widgetState.juiceBarElements.fillElement = fillElement
 		widgetState.juiceBarElements.projectedElement = projectedElement
+		Spring.Echo("Quick Start: Juice bar elements created successfully")
 	else
+		Spring.Echo("Quick Start: Failed to find juice bar elements")
 	end
 end
 
@@ -116,19 +121,20 @@ local function computeProjectedUsage()
 			if defID and defID > 0 then
 				local uDef = UnitDefs[defID]
 				if uDef then
+					local juiceCost = calculateJuiceCost(defID)
+					
 					if uDef.isFactory then
 						if not factoryPlaced then
 							factoryPlaced = true
 							firstFactoryPlaced = true
 							-- First factory gets discount applied
-							local baseCost = calculateJuiceCost(defID)
-							juiceUsed = juiceUsed + math.max(0, baseCost - factoryDiscountAmount)
+							juiceUsed = juiceUsed + math.max(0, juiceCost - factoryDiscountAmount)
 						else
 							-- Subsequent factories pay full cost
-							juiceUsed = juiceUsed + calculateJuiceCost(defID)
+							juiceUsed = juiceUsed + juiceCost
 						end
 					else
-						juiceUsed = juiceUsed + calculateJuiceCost(defID)
+						juiceUsed = juiceUsed + juiceCost
 					end
 				end
 			end
@@ -140,13 +146,14 @@ local function computeProjectedUsage()
 	if pregameUnitSelected and pregameUnitSelected > 0 then
 		local uDef = UnitDefs[pregameUnitSelected]
 		if uDef then
+			local juiceCost = calculateJuiceCost(pregameUnitSelected)
+			
 			if uDef.isFactory and not factoryPlaced then
 				-- First factory gets discount
-				local baseCost = calculateJuiceCost(pregameUnitSelected)
-				juiceProjected = math.max(0, baseCost - factoryDiscountAmount)
+				juiceProjected = math.max(0, juiceCost - factoryDiscountAmount)
 			else
 				-- Regular unit or subsequent factory
-				juiceProjected = calculateJuiceCost(pregameUnitSelected)
+				juiceProjected = juiceCost
 			end
 		end
 	end
@@ -154,8 +161,6 @@ local function computeProjectedUsage()
 	local juiceRemaining = math.max(0, juiceTotal - juiceUsed)
 	local percent = juiceTotal > 0 and math.max(0, math.min(100, (juiceRemaining / juiceTotal) * 100)) or 0
 	local projectedPercent = juiceTotal > 0 and math.max(0, math.min(100, (juiceProjected / juiceTotal) * 100)) or 0
-
-
 
 	return {
 		juiceTotal = juiceTotal,
@@ -193,85 +198,87 @@ local function updateDataModel(force)
 	widgetState.dmHandle.factoryDiscountUsed = modelUpdate.factoryDiscountUsed
 
 	if widgetState.document then
-		local juiceSection = widgetState.document:GetElementById("qs-juice-section")
-		if juiceSection then
-			juiceSection:SetClass("hidden", not widgetState.showBar)
-		end
-		
-		local factorySection = widgetState.document:GetElementById("factory-section")
-		if factorySection then
-			factorySection:SetClass("hidden", false)
-		end
 		-- Update juice bar fill (remaining percentage)
-		local remainingPercent = widgetState.dmHandle.juicePercent or 0
+		local juicePercent = widgetState.dmHandle.juicePercent or 0
 		if widgetState.juiceBarElements.fillElement then
-			widgetState.juiceBarElements.fillElement:SetAttribute("style", "width: " .. string.format("%.1f%%", remainingPercent))
+			widgetState.juiceBarElements.fillElement:SetAttribute("style", "width: " .. string.format("%.1f%%", juicePercent))
 		end
 
-		-- Update juice bar projected as a right-aligned overlay inside remaining segment
+		-- Update juice bar projected
 		if widgetState.juiceBarElements.projectedElement then
-			local projectedPercent = widgetState.dmHandle.juiceProjectedPercent or 0
-			local overlayWidth = math.min(projectedPercent, remainingPercent)
-			local overlayLeft = math.max(0, remainingPercent - overlayWidth)
+			local juiceProjectedPercent = widgetState.dmHandle.juiceProjectedPercent or 0
+			local overlayWidth = math.min(juiceProjectedPercent, juicePercent)
+			local overlayLeft = math.max(0, juicePercent - overlayWidth)
 			local style = string.format("left: %.1f%%; width: %.1f%%;", overlayLeft, overlayWidth)
 			widgetState.juiceBarElements.projectedElement:SetAttribute("style", style)
 		end
-		local jr = widgetState.document:GetElementById("juice-remaining")
-		local jt = widgetState.document:GetElementById("juice-total")
-		if jr then jr.inner_rml = tostring(math.floor(widgetState.dmHandle.juiceRemaining or 0)) end
-		if jt then jt.inner_rml = tostring(math.floor(widgetState.dmHandle.juiceTotal or 0)) end
-		local factoryText = widgetState.document:GetElementById("factory-text")
-		local factorySection = widgetState.document:GetElementById("factory-section")
-		if factoryText and factorySection then
+
+		-- Update text displays
+		local juiceRemaining = widgetState.document:GetElementById("qs-juice-remaining")
+		local juiceTotal = widgetState.document:GetElementById("qs-juice-total")
+		
+		if juiceRemaining then juiceRemaining.inner_rml = tostring(math.floor(widgetState.dmHandle.juiceRemaining or 0)) end
+		if juiceTotal then juiceTotal.inner_rml = tostring(math.floor(widgetState.dmHandle.juiceTotal or 0)) end
+
+		-- Update factory text
+		local factoryText = widgetState.document:GetElementById("qs-factory-text")
+		if factoryText then
 			local have = modelUpdate.factoryPlaced
 			local discountUsed = modelUpdate.factoryDiscountUsed
 			
 			if have then
 				if discountUsed then
 					factoryText.inner_rml = spI18N('ui.quickStart.factoryPlaced')
-					factorySection:SetClass("placed", true)
-					factorySection:SetClass("discount-used", true)
+					factoryText:SetClass("placed", true)
+					factoryText:SetClass("discount-used", true)
 				else
 					factoryText.inner_rml = spI18N('ui.quickStart.factoryPlacedNoDiscount')
-					factorySection:SetClass("placed", true)
-					factorySection:SetClass("discount-used", false)
+					factoryText:SetClass("placed", true)
+					factoryText:SetClass("discount-used", false)
 				end
 			else
 				factoryText.inner_rml = spI18N('ui.quickStart.placeDiscountedFactory')
-				factorySection:SetClass("placed", false)
-				factorySection:SetClass("discount-used", false)
+				factoryText:SetClass("placed", false)
+				factoryText:SetClass("discount-used", false)
 			end
 		end
 	end
 end
 
 function widget:Initialize()
+	Spring.Echo("Quick Start: Initializing widget")
+	
 	widgetState.rmlContext = RmlUi.GetContext("shared")
 	if not widgetState.rmlContext then 
+		Spring.Echo("Quick Start: Failed to get RML context")
 		return false 
 	end
 
 	local dm = widgetState.rmlContext:OpenDataModel(MODEL_NAME, initialModel, self)
 	if not dm then 
+		Spring.Echo("Quick Start: Failed to open data model")
 		return false 
 	end
 	widgetState.dmHandle = dm
 
-	widgetState.showBar = (modOptions and modOptions.quick_start == "labs_required")
+	widgetState.showBar = true
 	widgetState.dmHandle.showBar = widgetState.showBar
 
 	local document = widgetState.rmlContext:LoadDocument(RML_PATH)
 	if not document then
+		Spring.Echo("Quick Start: Failed to load document")
 		widget:Shutdown()
 		return false
 	end
 	widgetState.document = document
 	document:Show()
+	Spring.Echo("Quick Start: Document loaded and shown")
 
 	-- Create juice bar element references
 	createJuiceBarElements()
 
 	updateDataModel(true)
+	Spring.Echo("Quick Start: Widget initialized successfully")
 	return true
 end
 
@@ -318,5 +325,3 @@ function widget:RecvLuaMsg(msg, playerID)
 		end
 	end
 end
-
-
