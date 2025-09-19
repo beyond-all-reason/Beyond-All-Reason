@@ -109,11 +109,18 @@ local function computeProjectedUsage()
 	local juiceTotal = spGetGameRulesParam("quickStartJuiceBase") or 0
 	local factoryDiscountAmount = spGetGameRulesParam("quickStartFactoryDiscountAmount") or 0
 	local factoryDiscountUsed = spGetTeamRulesParam(myTeamID, "quickStartFactoryDiscountUsed") or 0
+	local instantBuildRange = spGetGameRulesParam("overridePregameBuildDistance") or 600
 	local pregame = WG and WG["pregame-build"] and WG["pregame-build"].getBuildQueue and WG["pregame-build"].getBuildQueue() or {}
 	local pregameUnitSelected = WG["pregame-unit-selected"] or -1
 
 	local juiceUsed = 0
 	local firstFactoryPlaced = false
+	local shouldApplyDiscount = modOptions.quick_start == "factory_discount"
+	
+	local commanderX, commanderY, commanderZ = Spring.GetTeamStartPosition(myTeamID)
+	if not commanderX or not commanderZ then
+		commanderX, commanderY, commanderZ = 0, 0, 0
+	end
 
 	if pregame and #pregame > 0 then
 		for i = 1, #pregame do
@@ -122,17 +129,26 @@ local function computeProjectedUsage()
 			if defID and defID > 0 then
 				local uDef = UnitDefs[defID]
 				if uDef then
-					local juiceCost = calculateJuiceCost(defID)
+					local buildX, buildZ = item[2], item[4]
+					local distance = math.distance2d(commanderX, commanderZ, buildX, buildZ)
 					
-					if uDef.isFactory then
-						if not firstFactoryPlaced then
-							firstFactoryPlaced = true
-							juiceUsed = juiceUsed + math.max(0, juiceCost - factoryDiscountAmount)
+					if distance <= instantBuildRange then
+						local juiceCost = calculateJuiceCost(defID)
+						
+						if uDef.isFactory then
+							if not firstFactoryPlaced then
+								firstFactoryPlaced = true
+								if shouldApplyDiscount then
+									juiceUsed = juiceUsed + math.max(0, juiceCost - factoryDiscountAmount)
+								else
+									juiceUsed = juiceUsed + juiceCost
+								end
+							else
+								juiceUsed = juiceUsed + juiceCost
+							end
 						else
 							juiceUsed = juiceUsed + juiceCost
 						end
-					else
-						juiceUsed = juiceUsed + juiceCost
 					end
 				end
 			end
@@ -143,12 +159,26 @@ local function computeProjectedUsage()
 	if pregameUnitSelected and pregameUnitSelected > 0 then
 		local uDef = UnitDefs[pregameUnitSelected]
 		if uDef then
-			local juiceCost = calculateJuiceCost(pregameUnitSelected)
-			
-			if uDef.isFactory and not firstFactoryPlaced then
-				juiceProjected = math.max(0, juiceCost - factoryDiscountAmount)
-			else
-				juiceProjected = juiceCost
+			local mx, my = Spring.GetMouseState()
+			local _, pos = Spring.TraceScreenRay(mx, my, true, false, false, uDef.modCategories and uDef.modCategories.underwater)
+			if pos then
+				local buildFacing = Spring.GetBuildFacing()
+				local bx, by, bz = Spring.Pos2BuildPos(pregameUnitSelected, pos[1], pos[2], pos[3], buildFacing)
+				local distance = math.distance2d(commanderX, commanderZ, bx, bz)
+				
+				if distance <= instantBuildRange then
+					local juiceCost = calculateJuiceCost(pregameUnitSelected)
+					
+					if uDef.isFactory and not firstFactoryPlaced then
+						if shouldApplyDiscount then
+							juiceProjected = math.max(0, juiceCost - factoryDiscountAmount)
+						else
+							juiceProjected = juiceCost
+						end
+					else
+						juiceProjected = juiceCost
+					end
+				end
 			end
 		end
 	end

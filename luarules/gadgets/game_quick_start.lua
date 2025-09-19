@@ -167,7 +167,7 @@ local function generateLocalGrid(commanderID)
 end
 
 for unitDefID, unitDef in pairs(unitDefs) do
-	local metalCost, energyCost = unitDef.metalCost or 1, unitDef.energyCost or 1
+	local metalCost, energyCost = unitDef.metalCost or 0, unitDef.energyCost or 0
 	defJuices[unitDefID] = metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
 	if unitDef.extractsMetal > 0 then
 		mexDefs[unitDefID] = true
@@ -203,6 +203,7 @@ local function getFactoryDiscount(unitDef, teamID, builderID)
 	if factoryDiscounts[teamID] then return 0 end
 	if discountableFactories[unitDef.name] ~= true then return 0 end
 	if builderID and not commanders[builderID] then return 0 end
+	if modOptions.quick_start ~= "factory_discount" then return 0 end
 	return FACTORY_DISCOUNT
 end
 
@@ -431,8 +432,9 @@ end
 local function initializeCommander(commanderID, teamID)
 	local currentMetal = Spring.GetTeamResources(teamID, "metal") or 0
 	local currentEnergy = Spring.GetTeamResources(teamID, "energy") or 0
-	local juice = QUICK_START_COST_METAL + BONUS_METAL +
-	(QUICK_START_COST_ENERGY + BONUS_ENERGY) / ENERGY_VALUE_CONVERSION_DIVISOR
+	local bonusMetal, bonusEnergy = getBonusResources()
+	local juice = QUICK_START_COST_METAL + bonusMetal +
+	(QUICK_START_COST_ENERGY + bonusEnergy) / ENERGY_VALUE_CONVERSION_DIVISOR
 
 	factoryDiscounts[teamID] = false
 
