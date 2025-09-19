@@ -15,7 +15,7 @@ local isSynced = gadgetHandler:IsSyncedCode()
 local modOptions = Spring.GetModOptions()
 if not isSynced then return false end
 
-local shouldRunGadget = modOptions.quick_start == "enabled" or "labs_required" or 
+local shouldRunGadget = modOptions.quick_start == "enabled" or "factory_discount" or 
 	(modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
 
 if not shouldRunGadget then return false end
@@ -69,7 +69,7 @@ local buildQueues = {}
 
 
 
-local factoryRequired = modOptions.quick_start == "labs_required"
+local factoryRequired = modOptions.quick_start == "factory_discount"
 local isGoodWind = false
 local isMetalMap = false
 local metalSpotsList = nil

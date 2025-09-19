@@ -18,7 +18,7 @@ end
 
 local modOptions = Spring.GetModOptions()
 
-if not modOptions or (modOptions.quick_start ~= "enabled" and modOptions.quick_start ~= "labs_required" and modOptions.quick_start ~= "default") then
+if not modOptions or (modOptions.quick_start ~= "enabled" and modOptions.quick_start ~= "factory_discount" and modOptions.quick_start ~= "default") then
 	return false
 end
 

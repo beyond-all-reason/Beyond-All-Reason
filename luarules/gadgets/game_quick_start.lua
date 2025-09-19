@@ -16,7 +16,7 @@ local modOptions = Spring.GetModOptions()
 if not isSynced then return false end
 local shouldRunGadget = modOptions and modOptions.quick_start and (
 	modOptions.quick_start == "enabled" or
-	modOptions.quick_start == "labs_required" or
+	modOptions.quick_start == "factory_discount" or
 	(modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
 )
 if not shouldRunGadget then return false end
@@ -31,6 +31,21 @@ local BONUS_METAL = 450                  --bonus metal added directly into the "
 local FACTORY_DISCOUNT_MULTIPLIER = 0.90 -- The factory discount will be the juice cost of the cheapest listed factory multiplied by this value.
 
 local INSTANT_BUILD_RANGE = 600          -- how far things will be be instantly built for the commander.
+
+local quickStartAmountConfig = {
+	small = {
+		bonusMetal = 225,
+		bonusEnergy = 1250,
+	},
+	normal = {
+		bonusMetal = 450,
+		bonusEnergy = 2500,
+	},
+	large = {
+		bonusMetal = 675,
+		bonusEnergy = 3750,
+	},
+}
 -------------------------------------------------------------------------
 
 local ALL_COMMANDS = -1
@@ -84,6 +99,12 @@ local queuedCommanders = {}
 local function getQuotas(isMetalMap, isInWater, isGoodWind)
 	return config.quotas[isMetalMap and "metalMap" or "nonMetalMap"][isInWater and "water" or "land"]
 	[isGoodWind and "goodWind" or "noWind"]
+end
+
+local function getBonusResources()
+	local quickStartAmount = modOptions.quick_start_amount or "normal"
+	local config = quickStartAmountConfig[quickStartAmount] or quickStartAmountConfig.normal
+	return config.bonusMetal, config.bonusEnergy
 end
 
 local function generateLocalGrid(commanderID)
@@ -720,8 +741,9 @@ function gadget:Initialize()
 	metalSpotsList = GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList
 
 	local frame = Spring.GetGameFrame()
-	local immediateJuice = QUICK_START_COST_METAL + BONUS_METAL +
-	(QUICK_START_COST_ENERGY + BONUS_ENERGY) / ENERGY_VALUE_CONVERSION_DIVISOR
+	local bonusMetal, bonusEnergy = getBonusResources()
+	local immediateJuice = QUICK_START_COST_METAL + bonusMetal +
+	(QUICK_START_COST_ENERGY + bonusEnergy) / ENERGY_VALUE_CONVERSION_DIVISOR
 	Spring.SetGameRulesParam("quickStartJuiceBase", immediateJuice)
 	Spring.SetGameRulesParam("quickStartFactoryDiscountAmount", FACTORY_DISCOUNT)
 	Spring.SetGameRulesParam("overridePregameBuildDistance", INSTANT_BUILD_RANGE)

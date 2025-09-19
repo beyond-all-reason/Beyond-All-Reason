@@ -1254,15 +1254,31 @@ local options = {
     {
         key 	= "quick_start",
         name 	= "Quick Start",
-        desc   	= "Commanders instantly build structures until starting resources expire or they wander too far from their spawn point.",
+        desc   	= "Each player gets pre-game resources to spend on structures to be instantly spawned at the beginning of the game.",
+        type 	= "list",
+        def 	= "default",
+        section = "options_extra",
+        unlock = {"quick_start_amount"},
+        items 	= {
+            { key = "default", 	name = "Default", lock = {"quick_start_amount"} },
+            { key = "factory_discount", name = "Enabled: Discounted First Factory", desc = "The commander's first factory is discounted whether built before or during the game.", unlock = {"quick_start_amount"} },
+            { key = "enabled", name = "Enabled", unlock = {"quick_start_amount"} },
+            { key = "disabled", name = "Disabled", lock = {"quick_start_amount"} },
+        }
+    },
+
+    {
+        key 	= "quick_start_amount",
+        name 	= "Quick Start Extent",
+        desc   	= "How much pre-game resources you have to spend on pre-queuing structures.",
         type 	= "list",
         def 	= "default",
         section = "options_extra",
         items 	= {
             { key = "default", 	name = "Default" },
-            { key = "labs_required", name = "Enabled: Labs Required" },
-            { key = "enabled", name = "Enabled" },
-            { key = "disabled", name = "Disabled" },
+            { key = "small", 	name = "Small" },
+            { key = "normal", 	name = "Normal" },
+            { key = "large", 	name = "Large" },
         }
     },
 
