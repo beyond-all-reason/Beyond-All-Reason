@@ -41,6 +41,7 @@ local ENERGY_VALUE_CONVERSION_DIVISOR = 10
 local NODE_GRID_SORT_DISTANCE = 500
 local INSTANT_BUILD_RANGE = 600
 local CONVERTER_GRID_DISTANCE = 200
+local NEGATIVITY_BACKSTOP = 1000000
  
 local ALL_COMMANDS = -1
 local UPDATE_FRAMES = Game.gameSpeed
@@ -73,6 +74,15 @@ local discountableFactories = {
 	corap = true, corfhp = true, corhp = true, corlab = true, corsy = true, corvp = true,
 	legap = true, legfhp = true, leghp = true, leglab = true, legsy = true, legvp = true,
 }
+
+local buildQuotaConfigs = VFS.Include('LuaRules/Configs/quick_start_build_defs.lua')
+
+local function getQuotas(isMetalMap, isInWater, isGoodWind)
+	local metalMapKey = isMetalMap and "metalMap" or "nonMetalMap"
+	local waterKey = isInWater and "water" or "land"
+	local windKey = isGoodWind and "goodWind" or "noWind"
+	return buildQuotaConfigs[metalMapKey][waterKey][windKey]
+end
 
 local commanderNonLabOptions = {
 	armcom = { 
@@ -230,7 +240,6 @@ local function applyBuildProgressToUnit(unitID, unitDef, affordableJuice, fullJu
 	return buildProgress
 end
 
-
 local function getCommanderBuildQueue(commanderID)
 	local spawnQueue = {}
 	local comData = commanders[commanderID]
@@ -278,7 +287,8 @@ local function refreshAvailableMexSpots(commanderID)
 	end
 	
 	comData.nearbyMexes = availableMexes
-	comData.buildQuotas.mex = #availableMexes
+	local quotas = getQuotas(isMetalMap, comData.isInWater, isGoodWind)
+	comData.buildWeights.mex = #availableMexes > 0 and #availableMexes / quotas.mex or 0
 end
 
 local function getBuildSpace(commanderID, option)
@@ -293,7 +303,7 @@ local function getBuildSpace(commanderID, option)
 			table.remove(comData.nearbyMexes, 1)
 			return mexSpot.x, mexSpot.z
 		else
-			comData.buildQuotas.mex = 0
+			comData.buildWeights.mex = 0
 			return nil, nil
 		end
 	else
@@ -460,6 +470,22 @@ local function initializeCommander(commanderID, teamID)
 		buildDefs[optionName] = unitDefNames[trueName].id
 	end
 
+	local commanderBuildQuotas = getQuotas(isMetalMap, isInWater, isGoodWind)
+	
+	local totalQuota = 0
+	for optionName, quota in pairs(commanderBuildQuotas) do
+		totalQuota = totalQuota + quota
+	end
+	
+	local buildWeights = {}
+	for optionName, quota in pairs(commanderBuildQuotas) do
+		if quota == 0 then
+			buildWeights[optionName] = -math.huge
+		else
+			buildWeights[optionName] = quota / totalQuota
+		end
+	end
+
 	commanders[commanderID] = {
 		teamID = teamID,
 		juice = juice,
@@ -470,10 +496,8 @@ local function initializeCommander(commanderID, teamID)
 		commanderName = commanderName,
 		buildDefs = buildDefs,
 		gridLists = { other = {}, converters = {} },
-		buildQuotas = { 
-		mex = 4, windmill = isInWater and 0 or (isGoodWind and 4 or 0), converter = (isMetalMap or isInWater) and 0 or 2,
-		solar = isInWater and 0 or (isGoodWind and 1 or 4), tidal = isInWater and 5 or 0, floatingConverter = isInWater and 1 or 0
-		},
+		buildWeights = buildWeights,
+		currentBuildWeights = buildWeights,
 		nearbyMexes = {}
 	}
 	
@@ -534,47 +558,43 @@ local function filterOverlappingMexes() --zzz untested
 	end
 end
 
-
 local function generateBuildCommands(commanderID)
 	local comData = commanders[commanderID]
 	local totalJuiceUsed = 0
 	local tryCount = 0
-	
+	local maxMexes = isMetalMap and math.huge or #comData.nearbyMexes
+	local mexCount = 0
+	local weightedOptions = table.copy(comData.buildWeights)
 	refreshAvailableMexSpots(commanderID)
 	
-	local interleavedQueue = {}
-	local totalWeight = 0
-	
-	for optionName, quota in pairs(comData.buildQuotas) do
+	Spring.Echo("teamID", comData.teamID, "generatingBuildCommands", comData.juice)
+
+	for optionName, weight in pairs(weightedOptions) do
 		local currentCount = comData.thingsMade[optionName] or 0
-		local remainingQuota = quota - currentCount
-		local weight = remainingQuota > 0 and remainingQuota or quota
-		
-		if weight > 0 then
-			table.insert(interleavedQueue, {
-				name = optionName,
-				weight = weight,
-				nextSelectionTime = 0,
-				selectionInterval = 1.0 / weight
-			})
-			totalWeight = totalWeight + weight
-		end
+		local delayIntervals = currentCount * comData.buildWeights[optionName]
+		weightedOptions[optionName] = weight - delayIntervals
 	end
-	
-	while comData.juice > totalJuiceUsed and tryCount < 50 and #interleavedQueue > 0 do
+
+	while totalJuiceUsed < comData.juice and tryCount < 50 do
 		local selectedOption = nil
-		local earliestTime = math.huge
-		local selectedIndex = 1
+		local bestWeight = -math.huge
 		
-		for i, option in ipairs(interleavedQueue) do
-			if option.nextSelectionTime < earliestTime then
-				earliestTime = option.nextSelectionTime
-				selectedOption = option.name
-				selectedIndex = i
+		for optionName, weight in pairs(weightedOptions) do
+			weightedOptions[optionName] = weight + comData.buildWeights[optionName]
+			if weight > bestWeight and not (optionName == "mex" and mexCount >= maxMexes) then
+				if optionName == "mex" then
+					Spring.Echo("teamID", comData.teamID, "mexCount", mexCount, "maxMexes", maxMexes)
+				end
+				bestWeight = weight
+				selectedOption = optionName
 			end
 		end
 		
 		if selectedOption then
+			weightedOptions[selectedOption] = comData.buildWeights[selectedOption]
+			if selectedOption == "mex" then
+				mexCount = mexCount + 1
+			end
 			local buildDefID = comData.buildDefs[selectedOption]
 			local unitDef = unitDefs[buildDefID]
 			local discount = getFactoryDiscount(unitDef, comData.teamID, commanderID)
@@ -582,18 +602,8 @@ local function generateBuildCommands(commanderID)
 			
 			table.insert(comData.spawnQueue, 1, {id = buildDefID})
 			totalJuiceUsed = totalJuiceUsed + juiceCost
-			
-			interleavedQueue[selectedIndex].nextSelectionTime = interleavedQueue[selectedIndex].nextSelectionTime + interleavedQueue[selectedIndex].selectionInterval
-			
-			local currentCount = comData.thingsMade[selectedOption] or 0
-			comData.thingsMade[selectedOption] = currentCount + 1
-			
-			local quota = comData.buildQuotas[selectedOption]
-			if comData.thingsMade[selectedOption] >= quota then
-				table.remove(interleavedQueue, selectedIndex)
-			end
 		end
-		
+		Spring.Echo("teamID", comData.teamID, "totalJuiceUsed", totalJuiceUsed, "comData.juice", comData.juice, "tryCount", tryCount, "selectedOption", selectedOption)
 		tryCount = tryCount + 1
 	end
 end
@@ -683,14 +693,13 @@ function gadget:GameFrame(frame)
 								loop = true
 							end
 						end
-						table.remove(comData.spawnQueue, 1)
 					end
 				end
+				comData.spawnQueue = {}
 			end
 		end
 		for commanderID, comData in pairs (commanders) do
 			if comData.juice > 0 then
-				comData.spawnQueue = {}
 				generateBuildCommands(commanderID)
 			end
 			if comData.spawnQueue and #comData.spawnQueue > 0 then
