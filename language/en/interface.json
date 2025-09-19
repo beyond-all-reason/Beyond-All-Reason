@@ -1771,7 +1771,9 @@
 		"quickStart": {
 			"placeDiscountedFactory": "Place Discounted Factory",
 			"factoryPlaced": "Factory Placed (Discount Used)",
-			"factoryPlacedNoDiscount": "Factory Placed (No Discount)"
+			"factoryPlacedNoDiscount": "Factory Placed (No Discount)",
+			"preGameResources": "Pre-Game Resources",
+			"remainingResourcesWarning": "Any remaining starting resources will be allocated into structures on your behalf."
 		}
 	}
 }

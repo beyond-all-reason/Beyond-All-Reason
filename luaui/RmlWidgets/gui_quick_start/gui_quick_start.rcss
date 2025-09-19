@@ -32,33 +32,33 @@
 	justify-content: flex-start;
 	align-items: flex-start;
 	padding-left: 30.2%;
-	padding-top: -5px;
+	padding-top: 0px;
 	box-sizing: border-box;
 }
 
 .qs-juice-container {
 	background-color: rgba(50, 50, 50, 255);
 	border-radius: 6px;
-	padding: 8px;
+	padding: 7px;
 	box-sizing: border-box;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	margin-top: -5px;
 }
 
 .qs-juice-header {
 	color: #ffffff;
 	font-size: 17px;
-	font-weight: bold;
-	font-effect: outline(1px black);
-	margin-bottom: 1px;
-	pointer-events: none;
 	text-align: center;
+	pointer-events: none;
+	margin-bottom: 4px;
+	text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .qs-juice-bar {
 	position: relative;
-	width: 594px;
+	width: 598px;
 	height: 11px;
 	background-color: rgba(0, 0, 0, 0.9);
 	border-width: 2px;
@@ -75,8 +75,8 @@
 	left: 0px;
 	width: 100%;
 	height: 100%;
-	background-color: rgba(0, 50, 0, 0.3);
-	z-index: 3;
+	background-color: rgba(0, 50, 0, 255);
+	z-index: 1;
 }
 
 .qs-juice-fill {
@@ -86,7 +86,7 @@
 	height: 100%;
 	width: 50%;
 	background-color: #00ff00;
-	z-index: 3;
+	z-index: 1;
 	box-sizing: border-box;
 }
 
@@ -113,16 +113,15 @@
 	top: 50%;
 	transform: translate(-50%, -50%);
 	color: #ffffff;
-	font-size: 24px;
-	font-weight: bold;
+	font-size: 20px;
 	text-align: center;
-	font-effect: outline(2px black);
+	font-effect: outline(1px black);
 	pointer-events: none;
 	z-index: 1000;
 	background-color: rgba(0, 0, 0, 0.7);
-	padding: 15px 30px;
-	border-radius: 8px;
-	border-width: 2px;
+	padding: 10px 20px;
+	border-radius: 6px;
+	border-width: 1px;
 	border-color: rgba(255, 255, 255, 0.3);
 	box-sizing: border-box;
 }
@@ -161,7 +160,6 @@
 
 .qs-factory-text.placed.discount-used {
 	color: #00aa00;
-	opacity: 0.8;
 }
     
 

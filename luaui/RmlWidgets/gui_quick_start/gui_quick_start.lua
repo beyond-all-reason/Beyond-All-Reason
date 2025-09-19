@@ -64,6 +64,11 @@ local initialModel = {
 	factoryDiscountUsed = false,
 	factoryDiscountText = "",
 	factoryDiscountTextClass = "qs-factory-text",
+	quickStart = {
+		preGameResources = "",
+		remainingResourcesWarning = "",
+		placeDiscountedFactory = "",
+	},
 }
 
 local function calculateJuiceCost(unitDefID)
@@ -264,6 +269,8 @@ function widget:Initialize()
 	widgetState.showBar = true
 	widgetState.dmHandle.showBar = widgetState.showBar
 
+	-- Set up internationalized text will be done after document loads
+
 	local document = widgetState.rmlContext:LoadDocument(RML_PATH)
 	if not document then
 		Spring.Echo("Quick Start: Failed to load document")
@@ -273,6 +280,21 @@ function widget:Initialize()
 	widgetState.document = document
 	document:Show()
 	Spring.Echo("Quick Start: Document loaded and shown")
+
+	-- Set up internationalized text
+	local juiceHeader = document:GetElementById("qs-juice-header")
+	local warningText = document:GetElementById("qs-warning-text")
+	local factoryText = document:GetElementById("qs-factory-text")
+	
+	if juiceHeader then
+		juiceHeader.inner_rml = spI18N('ui.quickStart.preGameResources')
+	end
+	if warningText then
+		warningText.inner_rml = spI18N('ui.quickStart.remainingResourcesWarning')
+	end
+	if factoryText then
+		factoryText.inner_rml = spI18N('ui.quickStart.placeDiscountedFactory')
+	end
 
 	-- Create juice bar element references
 	createJuiceBarElements()

@@ -7,28 +7,26 @@
         <!-- Single juice bar overlay -->
         <div id="qs-juice-overlay" class="qs-juice-overlay">
             <div id="qs-juice-container" class="qs-juice-container">
-                <div id="qs-juice-header" class="qs-juice-header">Pre-Game Resources</div>
-                <div id="qs-juice-bar" class="qs-juice-bar">
-                    <div id="qs-juice-track" class="qs-juice-track"></div>
-                    <div id="qs-juice-fill" class="qs-juice-fill"></div>
-                    <div id="qs-juice-projected" class="qs-juice-projected"></div>
-                    <div class="qs-juice-text">
-                        <span id="qs-juice-remaining">0</span>
-                        <span> / </span>
-                        <span id="qs-juice-total">0</span>
-                    </div>
-                </div>
+                <div id="qs-juice-header" class="qs-juice-header"></div>
+               <div id="qs-juice-bar" class="qs-juice-bar">
+                   <div id="qs-juice-track" class="qs-juice-track"></div>
+                   <div id="qs-juice-fill" class="qs-juice-fill"></div>
+                   <div id="qs-juice-projected" class="qs-juice-projected"></div>
+                   <div class="qs-juice-text">
+                       <span id="qs-juice-remaining">0</span>
+                       <span> / </span>
+                       <span id="qs-juice-total">0</span>
+                   </div>
+               </div>
             </div>
         </div>
 
         <!-- Centered warning text -->
-        <div id="qs-warning-text" class="qs-warning-text">
-            Any remaining starting resources will be allocated into structures on your behalf.
-        </div>
+        <div id="qs-warning-text" class="qs-warning-text"></div>
 
         <!-- Factory section -->
         <div id="qs-factory-section" class="qs-factory-section">
-            <div id="qs-factory-text" class="qs-factory-text">Place Discounted Factory</div>
+            <div id="qs-factory-text" class="qs-factory-text"></div>
         </div>
     </div>
 </body>
