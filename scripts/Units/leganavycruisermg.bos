@@ -1,0 +1,256 @@
+
+#include "../recoil_common_includes.h"
+
+piece
+base,
+// mgPitchPivot,
+// mainPin1,
+// mainPump1,
+// mainPin2,
+// mainPump2,
+mainTurretHeadingPivot,
+strut,
+mgPitchPivot,
+rbarrel,
+lbarrel,
+flarer,
+flarel,
+frontTurretHeadingPivot,
+frontTurretStrut,
+dcTurret,
+// mainFlare1,
+// mainFlare2,
+dcBarrel,
+dcFlare,
+wake,
+bow;
+
+static-var  restore_delay, gun_2, gun_1, aimDir1, aimDir2, whichBarrel;
+
+// Signal definitions
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
+
+
+#define RB_MASS 40
+#define RB_LENGTH 8
+#define RB_WIDTH 3
+#define RB_PITCH_ACCELERATION 10
+#define RB_ROLL_ACCELERATION 8
+#define RB_WAKE_CEG 1024 + 0
+#define RB_RECOIL_ENERGY_1 700
+#define RB_RECOIL_ENERGY_2 250
+#define RB_BOWSPLASH_PIECE wake
+#define RB_WAKE_PIECE bow
+#define RB_BOWSPLASH_CEG 1024 + 1
+
+#include "../bar_ships_common.h"
+
+
+Create()
+{
+	// hide bow;
+	// hide aftflare;
+	// hide foreflare;
+	// hide wake;
+	// hide flare2;
+	// hide flare1;
+	// hide chrgflare;
+	// hide flare1;
+	// hide flare2;
+	// hide foreflare;
+	// hide aftflare;
+	gun_1 = 0;
+	gun_2 = 0;
+	restore_delay = 3000;
+	start-script InitRockBoat();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script BoatPhysics();
+}
+
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 2;
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	set-signal-mask 0;
+	turn mainTurretHeadingPivot to y-axis <0.0> speed <45.0>;
+	turn mgPitchPivot to x-axis <0.0> speed <50.0>;
+    stop-spin rbarrel around z-axis decelerate <10>;
+    stop-spin lbarrel around z-axis decelerate <10>;
+}
+ExecuteRestoreAfterDelay2()
+{
+    if (Stunned) {
+        return (1);
+    }
+	set-signal-mask 0;
+    //turn frontTurretHeadingPivot to y-axis <0.0> speed <45.0>;
+    //turn dcTurret to x-axis <0.0> speed <50.0>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+        start-script ExecuteRestoreAfterDelay2();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+RestoreAfterDelay2()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay2();
+}
+
+// RestoreDeckWeapon()
+// {
+// 	sleep 3000;
+// 	set-signal-mask 0;
+// 	turn frontTurretHeadingPivot to y-axis <0.0> speed <45.0>;
+// 	turn dcTurret to x-axis <0.0> speed <50.0>;
+// }
+
+StartMoving(reversing)
+{
+
+}
+
+StopMoving()
+{
+
+}
+
+//shotgun
+AimWeapon1(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	aimDir1  = heading;
+	turn mainTurretHeadingPivot to y-axis heading speed <90.0>;
+	turn mgPitchPivot to x-axis <0.0> - pitch speed <100.0>;
+
+    turn frontTurretHeadingPivot to y-axis heading speed <300.0>; //temporary measure as heading never seems properly supplied to the dc turret
+    turn dcTurret to x-axis <0.0> - pitch speed <200.0>;
+
+	wait-for-turn mainTurretHeadingPivot around y-axis;
+	wait-for-turn mgPitchPivot around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon1()
+{
+	//gun_1 = !gun_1;	
+	sleep 100;
+	//call-script RecoilRockBoat(aimDir3, RB_RECOIL_ENERGY_3);
+    spin rbarrel around z-axis speed <900>  accelerate <50>;
+    spin lbarrel around z-axis speed <-900> accelerate <50>;
+    //sleep 10;
+	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+}
+
+Shot1(zero){
+    gun_1 = !gun_1;
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = mgPitchPivot;
+}
+
+QueryWeapon1(pieceIndex)
+{
+	if (gun_1 == 0){
+        pieceIndex = flarer;
+    }
+	if (gun_1 == 1){
+        pieceIndex = flarel;
+    }
+}
+
+// dc turret
+AimWeapon2(heading, pitch)
+{
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	aimDir2 = heading;
+    // turn frontTurretHeadingPivot to y-axis heading speed <300.0>;
+    // turn dcTurret to x-axis <0.0> - pitch speed <200.0>;
+    // wait-for-turn frontTurretHeadingPivot around y-axis;
+    // wait-for-turn dcTurret around x-axis;
+	start-script RestoreAfterDelay2();
+	return (1);
+}
+
+FireWeapon2()
+{
+	sleep 100;
+	RB_RECOILBOAT(aimDir2, RB_RECOIL_ENERGY_2);
+}
+
+AimFromWeapon2(pieceIndex)
+{
+	pieceIndex = mgPitchPivot;
+}
+
+QueryWeapon2(pieceIndex)
+{
+	pieceIndex = dcFlare;
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode turret type BITMAPONLY | NOHEATCLOUD;
+		// explode sleeve type BITMAPONLY | NOHEATCLOUD;
+		// explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode foreturret type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode turret type FALL | NOHEATCLOUD;
+		// explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode barrel2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode barrel1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		// explode barrel2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode foreturret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode barrel1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		// explode barrel2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode foreturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}
