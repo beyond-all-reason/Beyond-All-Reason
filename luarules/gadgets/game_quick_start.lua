@@ -21,17 +21,16 @@ local shouldRunGadget = modOptions and modOptions.quick_start and (
 )
 if not shouldRunGadget then return false end
 
+local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" or 
+	(modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
+
 ----------------------------Configuration----------------------------------------
-local QUICK_START_COST_ENERGY = 400      --will be deducted from commander's energy upon start.
-local BONUS_ENERGY = 2500                --bonus energy added directly into the "juice" pool, free of charge.
-
-local QUICK_START_COST_METAL = 800       --will be deducted from commander's metal upon start.
-local BONUS_METAL = 450                  --bonus metal added directly into the "juice" pool, free of charge.
-
 local FACTORY_DISCOUNT_MULTIPLIER = 0.90 -- The factory discount will be the juice cost of the cheapest listed factory multiplied by this value.
 
 local INSTANT_BUILD_RANGE = 600          -- how far things will be be instantly built for the commander.
 
+local QUICK_START_COST_ENERGY = 400      --will be deducted from commander's energy upon start.
+local QUICK_START_COST_METAL = 800       --will be deducted from commander's metal upon start.
 local quickStartAmountConfig = {
 	small = {
 		bonusMetal = 225,
@@ -61,7 +60,7 @@ local PREGAME_DELAY_FRAMES = 61 --after gui_pregame_build.lua is loaded
 local SKIP_STEP = 3
 local UPDATE_FRAMES = Game.gameSpeed
 local BASE_NODE_COUNT = 8
-local MEX_OVERLAP_DISTANCE = 32
+local MEX_OVERLAP_DISTANCE = Game.extractorRadius + Game.metalMapSquareSize
 local SAFETY_COUNT = 15
 
 local spCreateUnit = Spring.CreateUnit
@@ -203,7 +202,7 @@ local function getFactoryDiscount(unitDef, teamID, builderID)
 	if factoryDiscounts[teamID] then return 0 end
 	if discountableFactories[unitDef.name] ~= true then return 0 end
 	if builderID and not commanders[builderID] then return 0 end
-	if modOptions.quick_start ~= "factory_discount" then return 0 end
+	if not shouldApplyFactoryDiscount then return 0 end
 	return FACTORY_DISCOUNT
 end
 
@@ -256,7 +255,19 @@ local function refreshAvailableMexSpots(commanderID)
 			local buildY = spGetGroundHeight(mexSpot.x, mexSpot.z)
 			local snappedX, snappedY, snappedZ = spPos2BuildPos(mexDefID, mexSpot.x, buildY, mexSpot.z)
 			if snappedX and spTestBuildOrder(mexDefID, snappedX, snappedY, snappedZ, 0) == BUILD_ORDER_FREE then
-				table.insert(availableMexes, mexSpot)
+				-- Check for existing MEX units within MEX_OVERLAP_DISTANCE
+				local existingUnits = Spring.GetUnitsInCylinder(mexSpot.x, mexSpot.z, MEX_OVERLAP_DISTANCE)
+				local hasExistingMex = false
+				for j = 1, #existingUnits do
+					local unitDefID = Spring.GetUnitDefID(existingUnits[j])
+					if mexDefs[unitDefID] then
+						hasExistingMex = true
+						break
+					end
+				end
+				if not hasExistingMex then
+					table.insert(availableMexes, mexSpot)
+				end
 			end
 		end
 	end

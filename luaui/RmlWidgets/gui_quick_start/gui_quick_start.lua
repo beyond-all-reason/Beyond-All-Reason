@@ -18,9 +18,20 @@ end
 
 local modOptions = Spring.GetModOptions()
 
-if not modOptions or (modOptions.quick_start ~= "enabled" and modOptions.quick_start ~= "factory_discount" and modOptions.quick_start ~= "default") then
+if not modOptions or not modOptions.quick_start then
 	return false
 end
+
+local shouldRunWidget = modOptions.quick_start == "enabled" or
+	modOptions.quick_start == "factory_discount" or
+	(modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
+
+if not shouldRunWidget then
+	return false
+end
+
+local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" or 
+	(modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
 
 local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
@@ -128,7 +139,7 @@ local function computeProjectedUsage()
 
 	local juiceUsed = 0
 	local firstFactoryPlaced = false
-	local shouldApplyDiscount = modOptions.quick_start == "factory_discount"
+	local shouldApplyDiscount = shouldApplyFactoryDiscount
 
 	local commanderX, commanderY, commanderZ = Spring.GetTeamStartPosition(myTeamID)
 	if not commanderX or not commanderZ then
