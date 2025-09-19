@@ -34,7 +34,6 @@ local ENERGY_VALUE_CONVERSION_DIVISOR = 10
 local MAX_QUEUE_HASH_ITEMS = 50
 local DEFAULT_INSTANT_BUILD_RANGE = 600
 
-
 local widgetState = {
 	rmlContext = nil,
 	dmHandle = nil,
@@ -61,22 +60,14 @@ local initialModel = {
 	factoryDiscountUsed = false,
 }
 
-local function calculateJuiceCost(unitDefID)
-	local unitDef = UnitDefs[unitDefID]
-	if not unitDef then return 0 end
-	local metalCost = unitDef.metalCost or 0
-	local energyCost = unitDef.energyCost or 0
-	return metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
-end
-
 local function calculateJuiceWithDiscount(unitDefID, factoryDiscountAmount, shouldApplyDiscount, isFirstFactory)
 	local unitDef = UnitDefs[unitDefID]
 	if not unitDef then return 0 end
-	
+
 	local metalCost = unitDef.metalCost or 0
 	local energyCost = unitDef.energyCost or 0
 	local juiceCost = metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
-	
+
 	if unitDef.isFactory and isFirstFactory and shouldApplyDiscount then
 		return math.max(0, juiceCost - factoryDiscountAmount)
 	end
@@ -106,22 +97,22 @@ end
 
 local function hashQueue(queue)
 	if not queue or #queue == 0 then return "" end
-	local h = ""
+	local hash = ""
 	for i = 1, math.min(#queue, MAX_QUEUE_HASH_ITEMS) do
 		local q = queue[i]
-		h = h .. tostring(q[1]) .. ":" .. tostring(q[2]) .. ":" .. tostring(q[4]) .. ":" .. tostring(q[5]) .. "|"
+		hash = hash .. tostring(q[1]) .. ":" .. tostring(q[2]) .. ":" .. tostring(q[4]) .. ":" .. tostring(q[5]) .. "|"
 	end
-	return h
+	return hash
 end
 
 local function createJuiceBarElements()
 	if not widgetState.document then
 		return
 	end
-	
+
 	local fillElement = widgetState.document:GetElementById("qs-juice-fill")
 	local projectedElement = widgetState.document:GetElementById("qs-juice-projected")
-	
+
 	if fillElement and projectedElement then
 		widgetState.juiceBarElements.fillElement = fillElement
 		widgetState.juiceBarElements.projectedElement = projectedElement
@@ -131,13 +122,14 @@ end
 local function computeProjectedUsage()
 	local myTeamID = spGetMyTeamID() or 0
 	local gameRules = getGameRulesParams(myTeamID)
-	local pregame = WG and WG["pregame-build"] and WG["pregame-build"].getBuildQueue and WG["pregame-build"].getBuildQueue() or {}
+	local pregame = WG and WG["pregame-build"] and WG["pregame-build"].getBuildQueue and
+	WG["pregame-build"].getBuildQueue() or {}
 	local pregameUnitSelected = WG["pregame-unit-selected"] or -1
 
 	local juiceUsed = 0
 	local firstFactoryPlaced = false
 	local shouldApplyDiscount = modOptions.quick_start == "factory_discount"
-	
+
 	local commanderX, commanderY, commanderZ = Spring.GetTeamStartPosition(myTeamID)
 	if not commanderX or not commanderZ then
 		commanderX, commanderY, commanderZ = 0, 0, 0
@@ -149,11 +141,12 @@ local function computeProjectedUsage()
 			local defID = item[1]
 			if defID and defID > 0 and UnitDefs[defID] then
 				local buildX, buildZ = item[2], item[4]
-				
+
 				if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
-					local juiceCost = calculateJuiceWithDiscount(defID, gameRules.factoryDiscountAmount, shouldApplyDiscount, not firstFactoryPlaced)
+					local juiceCost = calculateJuiceWithDiscount(defID, gameRules.factoryDiscountAmount,
+						shouldApplyDiscount, not firstFactoryPlaced)
 					juiceUsed = juiceUsed + juiceCost
-					
+
 					if UnitDefs[defID].isFactory and not firstFactoryPlaced then
 						firstFactoryPlaced = true
 					end
@@ -166,20 +159,24 @@ local function computeProjectedUsage()
 	if pregameUnitSelected and pregameUnitSelected > 0 and UnitDefs[pregameUnitSelected] then
 		local uDef = UnitDefs[pregameUnitSelected]
 		local mx, my = Spring.GetMouseState()
-		local _, pos = Spring.TraceScreenRay(mx, my, true, false, false, uDef.modCategories and uDef.modCategories.underwater)
+		local _, pos = Spring.TraceScreenRay(mx, my, true, false, false,
+			uDef.modCategories and uDef.modCategories.underwater)
 		if pos then
 			local buildFacing = Spring.GetBuildFacing()
 			local bx, by, bz = Spring.Pos2BuildPos(pregameUnitSelected, pos[1], pos[2], pos[3], buildFacing)
-			
+
 			if isWithinBuildRange(commanderX, commanderZ, bx, bz, gameRules.instantBuildRange) then
-				juiceProjected = calculateJuiceWithDiscount(pregameUnitSelected, gameRules.factoryDiscountAmount, shouldApplyDiscount, not firstFactoryPlaced)
+				juiceProjected = calculateJuiceWithDiscount(pregameUnitSelected, gameRules.factoryDiscountAmount,
+					shouldApplyDiscount, not firstFactoryPlaced)
 			end
 		end
 	end
 
 	local juiceRemaining = math.max(0, gameRules.juiceTotal - juiceUsed)
-	local percent = gameRules.juiceTotal > 0 and math.max(0, math.min(100, (juiceRemaining / gameRules.juiceTotal) * 100)) or 0
-	local projectedPercent = gameRules.juiceTotal > 0 and math.max(0, math.min(100, (juiceProjected / gameRules.juiceTotal) * 100)) or 0
+	local percent = gameRules.juiceTotal > 0 and
+	math.max(0, math.min(100, (juiceRemaining / gameRules.juiceTotal) * 100)) or 0
+	local projectedPercent = gameRules.juiceTotal > 0 and
+	math.max(0, math.min(100, (juiceProjected / gameRules.juiceTotal) * 100)) or 0
 
 	return {
 		juiceTotal = gameRules.juiceTotal,
@@ -195,7 +192,8 @@ end
 local function updateDataModel(force)
 	if not widgetState.dmHandle then return end
 
-	local queue = WG and WG["pregame-build"] and WG["pregame-build"].getBuildQueue and WG["pregame-build"].getBuildQueue() or {}
+	local queue = WG and WG["pregame-build"] and WG["pregame-build"].getBuildQueue and
+	WG["pregame-build"].getBuildQueue() or {}
 	local newHash = hashQueue(queue)
 	if not force and widgetState.lastQueueHash == newHash and (os.clock() - widgetState.lastUpdate) < widgetState.updateInterval then
 		return
@@ -211,7 +209,8 @@ local function updateDataModel(force)
 	if widgetState.document then
 		local juicePercent = widgetState.dmHandle.juicePercent or 0
 		if widgetState.juiceBarElements.fillElement then
-			widgetState.juiceBarElements.fillElement:SetAttribute("style", "width: " .. string.format("%.1f%%", juicePercent))
+			widgetState.juiceBarElements.fillElement:SetAttribute("style",
+				"width: " .. string.format("%.1f%%", juicePercent))
 		end
 
 		if widgetState.juiceBarElements.projectedElement then
@@ -222,8 +221,10 @@ local function updateDataModel(force)
 			widgetState.juiceBarElements.projectedElement:SetAttribute("style", style)
 		end
 
-		updateUIElementText(widgetState.document, "qs-juice-remaining", tostring(math.floor(widgetState.dmHandle.juiceRemaining or 0)))
-		updateUIElementText(widgetState.document, "qs-juice-total", tostring(math.floor(widgetState.dmHandle.juiceTotal or 0)))
+		updateUIElementText(widgetState.document, "qs-juice-remaining",
+			tostring(math.floor(widgetState.dmHandle.juiceRemaining or 0)))
+		updateUIElementText(widgetState.document, "qs-juice-total",
+			tostring(math.floor(widgetState.dmHandle.juiceTotal or 0)))
 	end
 end
 
