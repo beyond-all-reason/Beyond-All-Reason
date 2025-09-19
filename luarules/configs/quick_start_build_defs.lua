@@ -55,8 +55,8 @@ local quickStartConfig = {
 				["goodWind"] = {mex = 3, windmill = 4, converter = 2, solar = 1, tidal = 0, floatingConverter = 0}
 			},
 			["water"] = {
-				["noWind"] = {mex = 3, windmill = 0, converter = 0, solar = 0, tidal = 5, floatingConverter = 1},
-				["goodWind"] = {mex = 3, windmill = 0, converter = 0, solar = 0, tidal = 5, floatingConverter = 1}
+				["noWind"] = {mex = 3, windmill = 0, converter = 0, solar = 0, tidal = 5, floatingConverter = 2},
+				["goodWind"] = {mex = 3, windmill = 0, converter = 0, solar = 0, tidal = 5, floatingConverter = 2}
 			}
 		}
 	}
