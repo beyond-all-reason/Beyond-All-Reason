@@ -255,7 +255,6 @@ local function refreshAvailableMexSpots(commanderID)
 			local buildY = spGetGroundHeight(mexSpot.x, mexSpot.z)
 			local snappedX, snappedY, snappedZ = spPos2BuildPos(mexDefID, mexSpot.x, buildY, mexSpot.z)
 			if snappedX and spTestBuildOrder(mexDefID, snappedX, snappedY, snappedZ, 0) == BUILD_ORDER_FREE then
-				-- Check for existing MEX units within MEX_OVERLAP_DISTANCE
 				local existingUnits = Spring.GetUnitsInCylinder(mexSpot.x, mexSpot.z, MEX_OVERLAP_DISTANCE)
 				local hasExistingMex = false
 				for j = 1, #existingUnits do
