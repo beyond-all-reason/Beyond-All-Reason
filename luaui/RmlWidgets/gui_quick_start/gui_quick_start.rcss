@@ -35,29 +35,48 @@
 .qs-juice-container {
 	background-color: rgba(50, 50, 50, 255);
 	border-radius: 6px;
+	border-width: 1px;
+	border-color: rgba(30, 30, 30, 255);
 	padding: 7px;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	margin-top: -5px;
+	decorator: image("/luaui/images/stripes-small.png" repeat);
+	image-color: rgba(40, 40, 40, 230);
+	position: relative;
+}
+
+.qs-juice-gradient-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	border-radius: 6px;
+	decorator: vertical-gradient( #525151 #000000 );
+	opacity: 0.6;
+	z-index: 1;
+	pointer-events: none;
 }
 
 .qs-juice-header {
 	font-size: 17px;
+	font-weight: bold;
 	margin-bottom: 4px;
-	text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+	font-effect: outline(1px black);
+	position: relative;
+	z-index: 2;
 }
 
 .qs-juice-bar {
 	position: relative;
 	width: 598px;
-	height: 11px;
-	background-color: rgba(0, 0, 0, 0.9);
-	border-width: 2px;
-	border-color: rgba(0, 255, 0, 0.8);
+	height: 8px;
+	background-color: rgba(0, 0, 0, 230);
 	border-radius: 6px;
 	overflow: hidden;
-	z-index: 10001;
+	z-index: 2;
 }
 
 .qs-juice-track {
@@ -65,7 +84,7 @@
 	width: 100%;
 	height: 100%;
 	background-color: rgba(0, 50, 0, 255);
-	z-index: 1;
+	z-index: 0;
 }
 
 .qs-juice-fill {
@@ -73,6 +92,7 @@
 	height: 100%;
 	width: 50%;
 	background-color: #00ff00;
+	decorator: vertical-gradient( #00ff00 #006600 );
 	z-index: 1;
 }
 
@@ -81,6 +101,7 @@
 	height: 100%;
 	width: 0%;
 	background-color: #00cc00;
+	decorator: vertical-gradient( #00cc00 #004400 );
 	z-index: 2;
 }
 

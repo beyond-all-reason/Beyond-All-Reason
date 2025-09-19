@@ -6,6 +6,7 @@
     <div id="qs-root" class="qs-root">
         <div id="qs-juice-overlay" class="qs-juice-overlay">
             <div id="qs-juice-container" class="qs-juice-container">
+                <div id="qs-juice-gradient-overlay" class="qs-juice-gradient-overlay"></div>
                 <div id="qs-juice-header" class="qs-juice-header"></div>
                 <div id="qs-juice-bar" class="qs-juice-bar">
                     <div id="qs-juice-track" class="qs-juice-track"></div>
