@@ -29,6 +29,147 @@ local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
 
+-- ========= helpers =========
+local function unameByDef(defID)
+    local ud = defID and UnitDefs[defID]
+    return (ud and ud.name) or ("def:" .. tostring(defID))
+end
+
+local function uname(unitID)
+    local defID = GetUnitDefID(unitID)
+    return string.format("%s#%d", unameByDef(defID), unitID or -1)
+end
+
+function gf()
+	return tostring(GameFrame())
+end
+
+-- Pretty, cycle-safe table -> string for debugging.
+local function debug_tostring(value, opts, _depth, _seen)
+    opts = opts or {}
+    local indentStr = opts.indent or "  "
+    local maxDepth = opts.maxDepth or 3
+    local sortKeys = (opts.sortKeys ~= false)
+    local maxItems = opts.maxItems or 200
+    local showMeta = opts.showMetatable or false
+    local compact = opts.compact or false
+    local showFuncs = (opts.showFunctions ~= false)
+
+    _depth = _depth or 0
+    _seen = _seen or {}
+
+    local t = type(value)
+    if t == "nil" or t == "number" or t == "boolean" then
+        return tostring(value)
+    elseif t == "string" then
+        return string.format("%q", value)
+    elseif t ~= "table" then
+        if showFuncs or t ~= "function" then
+            return string.format("<%s:%s>", t, tostring(value))
+        else
+            return "<function>"
+        end
+    end
+
+    if _seen[value] then
+        return string.format("<ref#%d>", _seen[value].id)
+    end
+    if _depth >= maxDepth then
+        return "<table ...>"
+    end
+
+    local id = 1 + (function()
+        local c = 0
+        for _ in pairs(_seen) do c = c + 1 end
+        return c
+    end)()
+    _seen[value] = { id = id }
+
+    local function indent(n)
+        return compact and "" or string.rep(indentStr, n)
+    end
+
+    -- detect array
+    local arrMax, count = 0, 0
+    for k, _ in pairs(value) do
+        count = count + 1
+        if type(k) == "number" and k > 0 and math.floor(k) == k then
+            if k > arrMax then arrMax = k end
+        end
+    end
+    local isArray = true
+    local seenCount = 0
+    for i = 1, arrMax do
+        if value[i] == nil then isArray = false break end
+        seenCount = seenCount + 1
+    end
+    if seenCount ~= count then isArray = false end
+
+    if isArray then
+        local items = {}
+        for i = 1, arrMax do
+            if #items >= maxItems then
+                items[#items + 1] = "...(truncated)"
+                break
+            end
+            items[#items + 1] = debug_tostring(value[i], opts, _depth + 1, _seen)
+        end
+        if compact then
+            return "{" .. table.concat(items, ",") .. "}"
+        else
+            local pad = indent(_depth + 1)
+            return "{"
+                .. (#items > 0 and ("\n" .. pad .. table.concat(items, ",\n" .. pad) .. "\n" .. indent(_depth)) or "")
+                .. "}"
+        end
+    else
+        local keys = {}
+        for k in pairs(value) do keys[#keys + 1] = k end
+        if sortKeys then
+            table.sort(keys, function(a, b)
+                local ta, tb = type(a), type(b)
+                if ta == tb then
+                    if ta == "string" or ta == "number" then
+                        return a < b
+                    end
+                    return tostring(a) < tostring(b)
+                end
+                return ta < tb
+            end)
+        end
+        local pieces, emitted = {}, 0
+        for _, k in ipairs(keys) do
+            emitted = emitted + 1
+            if emitted > maxItems then
+                pieces[#pieces + 1] = compact and "...(truncated)" or (indent(_depth + 1) .. "...(truncated)")
+                break
+            end
+            local v = value[k]
+            local kv
+            if type(k) == "string" and k:match("^[_%a][_%w]*$") then
+                kv = string.format("%s = %s", k, debug_tostring(v, opts, _depth + 1, _seen))
+            else
+                kv = string.format("[%s] = %s", debug_tostring(k, opts, _depth + 1, _seen), debug_tostring(v, opts, _depth + 1, _seen))
+            end
+            if compact then pieces[#pieces + 1] = kv else pieces[#pieces + 1] = indent(_depth + 1) .. kv end
+        end
+        if showMeta then
+            local mt = getmetatable(value)
+            if mt then
+                local mtStr = debug_tostring(mt, opts, _depth + 1, _seen)
+                local line = compact and ("<metatable>=" .. mtStr) or (indent(_depth + 1) .. "<metatable> = " .. mtStr)
+                pieces[#pieces + 1] = line
+            end
+        end
+        if compact then
+            return "{" .. table.concat(pieces, ",") .. "}"
+        else
+            local inner = table.concat(pieces, ",\n")
+            return inner == "" and "{}" or ("{\n" .. inner .. "\n" .. indent(_depth) .. "}")
+        end
+    end
+end
+
 local CMDTYPE_ICON_MAP = CMDTYPE.ICON_MAP
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
@@ -144,15 +285,15 @@ local function canTransportWithReason(transportID, transportDefID, unitID, unitD
 		return false, ""
 	end
 
-	local q = GetUnitCommands(transportID, 5) or {}
-	if #q > 0 then
-		for i = 1, #q do
-			if q[i].id == CMD_WAIT then
-				return false, ""
-			end
-		end
-		return false, ""
-	end
+	-- local q = GetUnitCommands(transportID, 5) or {}
+	-- if #q > 0 then
+	-- 	for i = 1, #q do
+	-- 		if q[i].id == CMD_TRANSPORT_WHO then
+	-- 			return true, ""
+	-- 		end
+	-- 	end
+	-- 	return false, ""
+	-- end
 
 	return true, ""
 end
@@ -287,6 +428,8 @@ function widget:Initialize()
 	Spring.SetCustomCommandDrawData(CMD_TRANSPORT_TO, "transto", {1,1,1,1}) 
 	Spring.AssignMouseCursor("transwho", "cursortransport")
 	Spring.SetCustomCommandDrawData(CMD_TRANSPORT_WHO, "transwho", {1,1,1,1}) 
+
+	-- WG.on_custom_formations_command_given = on_custom_formations_command_given
 end
 
 function widget:PlayerChanged(playerID)
@@ -318,6 +461,18 @@ function widget:UnitIdle(unitID, unitDefID, unitTeam)
 	busyTransport[unitID] = nil
 end
 
+function widget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	local transportDefID = GetUnitDefID(transportID)
+	if transportTeam ~= myTeamID then
+			return
+		end
+		if not isTransportDef[transportDefID] then
+			return
+		end
+		Echo(f("finished transporting unit, unit unloaded"))
+		busyTransport[transportID] = nil
+end
+
 function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	knownTransports[unitID] = nil
 	busyTransport[unitID] = nil
@@ -333,25 +488,41 @@ function widget:CommandsChanged()
 		return
 	end
 	local addCustom = false
+	local addTransportCustom = false
 	for i = 1, #selected do
 		local defID = GetUnitDefID(selected[i])
 		if defID and (isTransportableDef[defID] or isNanoDef[defID] or isFactoryDef[defID]) then
 			addCustom = true
-			break
 		end
 		if defID and (isTransportDef[defID]) then
-			cc[#cc + 1] = CMD_TRANSPORT_WHO
+			addTransportCustom = true
 		end
 	end
 	if addCustom then
 		cc[#cc + 1] = CMD_TRANSPORT_TO_DESC
 	end
+	if addTransportCustom then
+		cc[#cc + 1] = CMD_TRANSPORT_WHO_DESC
+	end
 end
 
-function giveTransportWhoCommandsToUnits(unitIDArray, transportID)
+function giveTransportWhoCommandsToUnits(unitIDArray, transportIDArray)
+	local orderArray = {}
 	for index, unitID in ipairs(unitIDArray) do
 		if isTransportableDef[GetUnitDefID(unitID)] then
-			GiveOrderToUnit(transportID, CMD_TRANSPORT_WHO, {unitID}, "shift")
+			-- GiveOrderToUnit(transportID, CMD_TRANSPORT_WHO, {unitID}, {CMD.OPT_SHIFT})
+			table.insert(orderArray, {CMD.GUARD, {unitID}, {CMD.OPT_SHIFT}})
+			-- table.insert(orderArray, {CMD_INSERT, {0, CMD.GUARD, CMD.OPT_SHIFT, unitID},{"alt"}})
+			-- CMD_INSERT, {0, CMD_LOAD_UNITS,CMD.OPT_SHIFT,unitID},{"alt"}
+		end
+	end
+	if #orderArray > 0 then
+		Echo(f("giving transport who command, transports: %s, units: %s", debug_tostring(transportIDArray), debug_tostring(unitIDArray)))
+		for index, trans in ipairs(transportIDArray) do
+			-- Spring.GiveOrderArrayToUnitArray({trans}, orderArray, {CMD.OPT_SHIFT})
+			for index, unit in ipairs(unitIDArray) do
+				GiveOrderToUnit(trans, CMD_TRANSPORT_WHO, {unit}, {"shift"})
+			end
 		end
 	end
 end
@@ -360,16 +531,57 @@ function widget:CommandNotify(cmdID, params, opts)
 	-- local commandQueue = GetUnitCommands(unitID, -1) or {}
 	local selected = Spring.GetSelectedUnits()
 	if cmdID == CMD_TRANSPORT_TO then
-		for index, transportID in ipairs(selected) do
-			if isTransportDef[GetUnitDefID(transportID)] then
-				giveTransportWhoCommandsToUnits(selected, transportID)
-			end
-		end
 		if #selected > 1 then
 			return true
 		end
 	end
 	return false
+end
+
+--this comes from custom formations 2
+--seem to be the same as CommandNotify, but from custom formations 2
+function widget:UnitCommandNotify(uID, cmdID, cmdParams, cmdOpts)
+	-- if cmdID == CMD_TRANSPORT_TO then
+	-- 	local selected = Spring.GetSelectedUnits()
+	-- 	local selectedTransports = {}
+	-- 	for index, transportID in ipairs(selected) do
+	-- 		if isTransportDef[GetUnitDefID(transportID)] then
+	-- 			table.insert(selectedTransports, transportID)			
+	-- 		end
+	-- 	end
+	-- 	if #selectedTransports>0 then
+	-- 		giveTransportWhoCommandsToUnits({uID},selectedTransports)
+	-- 	end
+	-- end
+end
+
+--this comes from custom formations 2 (added by the PR that also added this widget)
+--its called before custom formations 2 gives orders
+function widget:OrderGivenToUnitsArr(uArr, oArr) 
+	local transport_to_command_found = false
+	for index, order in ipairs(oArr) do
+		cmdID = order[1]
+		params = order[2]
+		options = order[3]
+
+		if cmdID == CMD_TRANSPORT_TO then
+			transport_to_command_found = true
+		end
+	end
+	if transport_to_command_found then
+		local selected = Spring.GetSelectedUnits()
+		local transports = {}
+		local transportables = {}
+		for index, pair in ipairs(selected) do
+			if isTransportDef[GetUnitDefID(pair)] then
+				table.insert(transports, pair)
+			end
+			if isTransportableDef[GetUnitDefID(pair)] then
+				table.insert(transportables, pair)
+			end
+		end
+		giveTransportWhoCommandsToUnits(transportables, transports)
+	end
 end
 
 function widget:Update(dt)
@@ -433,6 +645,12 @@ local function handleTransportToUnitCommand(unitID, unitDefID, unitTeam, cmdID, 
 end
 
 function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+	if cmdID == CMD_UNLOAD_UNITS then
+		if unitTeam == myTeamID and not isTransportDef[unitDefID] then
+			Echo(f("finished transporting unit, cmd done"))
+		busyTransport[unitID] = nil
+		end
+	end
 	handleTransportToUnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag, false)
 end
 
@@ -450,7 +668,12 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	end
 end
 
+function on_custom_formations_command_given(executingUnits)
+	
+end
+
 function widget:Shutdown()
 	busyTransport = {}
 	pendingRequests = {}
+	WG.on_custom_formations_command_given = nil
 end

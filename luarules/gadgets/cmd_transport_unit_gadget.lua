@@ -115,15 +115,16 @@ function gadget:CommandFallback(unitID, unitDefID, unitTeam, cmdID, cmdParams, c
         end
     end
     if cmdID == CMD_TRANSPORT_WHO then
-        if #cmdParams == 1 then
-            --is icon_unit
-            --if the unit the command was targeting is lifted, then we consider this command done
-            if loadedUnits[cmdParams[1]]then
-                return true, true
-            else
-                return true, false
-            end
-        end
+        return true, false
+        -- if #cmdParams == 1 then
+        --     --is icon_unit
+        --     --if the unit the command was targeting is lifted, then we consider this command done
+        --     if loadedUnits[cmdParams[1]]then
+        --         return true, true
+        --     else
+        --         return true, false
+        --     end
+        -- end
     end
 end
 

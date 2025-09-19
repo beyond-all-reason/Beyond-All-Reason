@@ -386,6 +386,13 @@ local function GiveNotifyingOrderToUnit(uArr, oArr, uID, cmdID, cmdParams, cmdOp
     return
 end
 
+local function NotifyOrderGivenToUnits(uArr, oArr)
+    for _, w in ipairs(widgetHandler.widgets) do
+        if w.OrderGivenToUnitsArr then
+            w:OrderGivenToUnitsArr(uArr, oArr)
+        end
+    end
+end
 
 function widget:SelectionChanged(sel)
     selectedUnits = sel
@@ -658,6 +665,7 @@ function widget:MouseRelease(mx, my, mButton)
                         local orderPos = orderPair[2]
                         GiveNotifyingOrderToUnit(unitArr, orderArr, orderPair[1], CMD_INSERT, {0, usingCmd, cmdOpts.coded, orderPos[1], orderPos[2], orderPos[3]}, altOpts)
                         if (i == #orders and #unitArr > 0) or #unitArr >= 100 then
+                            NotifyOrderGivenToUnits(unitArr, orderArr)
                             Spring.GiveOrderArrayToUnitArray(unitArr, orderArr, true)
                             unitArr = {}
                             orderArr = {}
@@ -668,6 +676,7 @@ function widget:MouseRelease(mx, my, mButton)
                         local orderPair = orders[i]
                         GiveNotifyingOrderToUnit(unitArr, orderArr, orderPair[1], usingCmd, orderPair[2], cmdOpts)
                         if (i == #orders and #unitArr > 0) or #unitArr >= 100 then
+                            NotifyOrderGivenToUnits(unitArr, orderArr)
                             Spring.GiveOrderArrayToUnitArray(unitArr, orderArr, true)
                             unitArr = {}
                             orderArr = {}
