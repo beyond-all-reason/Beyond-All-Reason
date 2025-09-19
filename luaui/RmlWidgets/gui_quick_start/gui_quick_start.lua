@@ -145,7 +145,7 @@ local function computeProjectedUsage()
 		if uDef then
 			local juiceCost = calculateJuiceCost(pregameUnitSelected)
 			
-			if uDef.isFactory and not factoryPlaced then
+			if uDef.isFactory and not firstFactoryPlaced then
 				juiceProjected = math.max(0, juiceCost - factoryDiscountAmount)
 			else
 				juiceProjected = juiceCost
