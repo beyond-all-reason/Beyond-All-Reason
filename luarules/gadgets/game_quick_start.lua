@@ -12,8 +12,8 @@ end
 
 local isSynced = gadgetHandler:IsSyncedCode()
 local modOptions = Spring.GetModOptions()
-if not isSynced then return false end
 
+if not isSynced then return false end
 local shouldRunGadget = false
 if modOptions and modOptions.quick_start then
 	if modOptions.quick_start == "enabled" or modOptions.quick_start == "labs_required" then
@@ -22,56 +22,63 @@ if modOptions and modOptions.quick_start then
 		shouldRunGadget = true
 	end
 end
-
 if not shouldRunGadget then return false end
 
-local spGetUnitPosition = Spring.GetUnitPosition
-local spCreateUnit = Spring.CreateUnit
-local spGetUnitCommands = Spring.GetUnitCommands
-local spGetGroundHeight = Spring.GetGroundHeight
-local spTestBuildOrder = Spring.TestBuildOrder
-local spPos2BuildPos = Spring.Pos2BuildPos
-local spSpawnCEG = Spring.SpawnCEG
+----------------------------Config----------------------------------------
+local QUICK_START_COST_ENERGY = 400 --will be deducted from commander's energy upon start.
+local BONUS_ENERGY = 2500 --bonus energy added directly into the "juice" pool, free of charge.
 
-local FACTORY_DISCOUNT_MULTIPLIER = 0.90
-local FACTORY_DISCOUNT = math.huge
-local BONUS_METAL = 450
-local BONUS_ENERGY = 2500
-local QUICK_START_COST_METAL = 800
-local QUICK_START_COST_ENERGY = 400
-local ENERGY_VALUE_CONVERSION_DIVISOR = 10
-local NODE_GRID_SORT_DISTANCE = 500
-local INSTANT_BUILD_RANGE = 600
-local CONVERTER_GRID_DISTANCE = 200
+local QUICK_START_COST_METAL = 800 --will be deducted from commander's metal upon start.
+local BONUS_METAL = 450 --bonus metal added directly into the "juice" pool, free of charge.
+
+local FACTORY_DISCOUNT_MULTIPLIER = 0.90 -- The factory discount will be the juice cost of the cheapest listed factory multiplied by this value.
+
+local INSTANT_BUILD_RANGE = 600 -- how far things will be be instantly built for the commander.
+-------------------------------------------------------------------------
 
 local ALL_COMMANDS = -1
-local UPDATE_FRAMES = Game.gameSpeed
-local PREGAME_DELAY_FRAMES = 61 --after gui_pregame_build.lua is loaded
+local BUILD_SPACING = 64
+local CONVERTER_GRID_DISTANCE = 200
+local ENERGY_VALUE_CONVERSION_DIVISOR = 10
+local FACTORY_DISCOUNT = math.huge
 local MAP_CENTER_X = Game.mapSizeX / 2
 local MAP_CENTER_Z = Game.mapSizeZ / 2
+local NODE_GRID_SORT_DISTANCE = 500
+local PREGAME_DELAY_FRAMES = 61 --after gui_pregame_build.lua is loaded
+local SKIP_STEP = 3
+local UPDATE_FRAMES = Game.gameSpeed
 
+local spCreateUnit = Spring.CreateUnit
+local spGetGroundHeight = Spring.GetGroundHeight
+local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitPosition = Spring.GetUnitPosition
+local spPos2BuildPos = Spring.Pos2BuildPos
+local spSpawnCEG = Spring.SpawnCEG
+local spTestBuildOrder = Spring.TestBuildOrder
+
+local config = VFS.Include('LuaRules/Configs/quick_start_build_defs.lua')
+local commanderNonLabOptions = config.commanderNonLabOptions
+local discountableFactories = config.discountableFactories
+local optionsToNodeType = config.optionsToNodeType
+local unitDefs = UnitDefs
+local unitDefNames = UnitDefNames
+
+local gameFrameTryCount = 0
+local initialized = false
 local isGoodWind = false
 local isMetalMap = false
 local metalSpotsList = nil
-local BUILD_SPACING = 64
-local SKIP_STEP = 3
 local running = false
-local initialized = false
 
-local boostableCommanders = {} --zzz unpopulated
-local queuedCommanders = {}
+local allTeamsList = {}
+local boostableCommanders = {}
 local commanders = {}
 local defJuices = {}
-local mexOverlapCheckTable = {}
-local mexDefs = {}
-local unitDefs = UnitDefs
-local unitDefNames = UnitDefNames
-local optionDefIDToTypes = {}
 local factoryDiscounts = {}
-local allTeamsList = {}
-
-local config = VFS.Include('LuaRules/Configs/quick_start_build_defs.lua')
-local discountableFactories = config.discountableFactories
+local mexDefs = {}
+local mexOverlapCheckTable = {}
+local optionDefIDToTypes = {}
+local queuedCommanders = {}
 
 local function getQuotas(isMetalMap, isInWater, isGoodWind)
 	local metalMapKey = isMetalMap and "metalMap" or "nonMetalMap"
@@ -79,10 +86,6 @@ local function getQuotas(isMetalMap, isInWater, isGoodWind)
 	local windKey = isGoodWind and "goodWind" or "noWind"
 	return config.quotas[metalMapKey][waterKey][windKey]
 end
-
-local commanderNonLabOptions = config.commanderNonLabOptions
-
-local optionsToNodeType = config.optionsToNodeType
 
 local function generateLocalGrid(commanderID)
 	local comData = commanders[commanderID]
@@ -153,11 +156,9 @@ end
 for unitDefID, unitDef in pairs(unitDefs) do
 	local metalCost, energyCost = unitDef.metalCost or 1, unitDef.energyCost or 1
 	defJuices[unitDefID] = 	metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
-
 	if unitDef.extractsMetal > 0 then
 		mexDefs[unitDefID] = true
 	end
-
 	if unitDef.customParams and unitDef.customParams.iscommander then
 		boostableCommanders[unitDefID] = true
 	end
@@ -204,7 +205,7 @@ local function getCommanderBuildQueue(commanderID)
 	local commands = spGetUnitCommands(commanderID, ALL_COMMANDS)
 	local totalJuiceCost = 0
 	for i, cmd in ipairs(commands) do
-		if isBuildCommand(cmd.id) then --is a build command
+		if isBuildCommand(cmd.id) then
 		local spawnParams = {id = -cmd.id, x = cmd.params[1], y = cmd.params[2], z = cmd.params[3], facing = cmd.params[4] or 1}
 			if  math.distance2d(comData.spawnX, comData.spawnZ, spawnParams.x, spawnParams.z) <= INSTANT_BUILD_RANGE then
 				table.insert(spawnQueue, spawnParams)
@@ -214,7 +215,7 @@ local function getCommanderBuildQueue(commanderID)
 				if unitDef and unitDef.isFactory and discountableFactories[unitDef.name] and not factoryDiscounts[comData.teamID] then
 					juiceCost = math.max(juiceCost - FACTORY_DISCOUNT, 0)
 				end
-				totalJuiceCost = totalJuiceCost + juiceCost --zzz we gonna factor the discount in factories with an isFactory check in this calculation, and only update the usage of the discount if the build is actually successful.
+				totalJuiceCost = totalJuiceCost + juiceCost
 				if totalJuiceCost > comData.juice then
 					return spawnQueue
 				end
@@ -476,7 +477,7 @@ local function initializeCommander(commanderID, teamID)
 	comData.gridLists.converters = comData.baseNodes.converters.grid or {}
 end
 
-local function filterOverlappingMexes() --zzz untested
+local function filterOverlappingMexes()
 	local mexesToRemove = {}
 
 	for mexKey1, mexData1 in pairs(mexOverlapCheckTable) do
@@ -582,7 +583,6 @@ local function tryToSpawnBuild(commanderID, buildDefID, buildX, buildZ, facing)
 	return buildProgress >= 1
 end
 
-local gameFrameTryCount = 0
 function gadget:GameFrame(frame)
 	if not initialized and frame > PREGAME_DELAY_FRAMES then
 		if #allTeamsList == 0 then
@@ -709,15 +709,14 @@ function gadget:Initialize()
 	end
 
 	isGoodWind = averageWind > 7
-
 	isMetalMap = GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].isMetalMap
 	metalSpotsList = GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList
 
 	local frame = Spring.GetGameFrame()
-
 	local immediateJuice = QUICK_START_COST_METAL + BONUS_METAL + (QUICK_START_COST_ENERGY + BONUS_ENERGY) / ENERGY_VALUE_CONVERSION_DIVISOR
 	Spring.SetGameRulesParam("quickStartJuiceBase", immediateJuice)
 	Spring.SetGameRulesParam("quickStartFactoryDiscountAmount", FACTORY_DISCOUNT)
+	Spring.SetGameRulesParam("overridePregameBuildDistance", INSTANT_BUILD_RANGE)
 
 	if frame > 1 then
 		local allUnits = Spring.GetAllUnits()

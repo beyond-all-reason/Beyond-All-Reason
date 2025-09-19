@@ -480,7 +480,10 @@ function widget:DrawWorld()
 
 		-- Draw start units build radius
 		gl.Color(buildDistanceColor)
-		gl.DrawGroundCircle(sx, sy, sz, UnitDefs[startDefID].buildDistance, 40)
+		local buildDistance = Spring.GetGameRulesParam("overridePregameBuildDistance") or UnitDefs[startDefID].buildDistance
+		if buildDistance then
+			gl.DrawGroundCircle(sx, sy, sz, buildDistance, 40)
+		end
 	end
 
 	-- Check for faction change
