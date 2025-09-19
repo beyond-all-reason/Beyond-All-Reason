@@ -18,7 +18,6 @@ end
 
 local modOptions = Spring.GetModOptions()
 
--- Only enable if quick_start is active
 if not modOptions or (modOptions.quick_start ~= "enabled" and modOptions.quick_start ~= "labs_required" and modOptions.quick_start ~= "default") then
 	return false
 end
@@ -26,7 +25,6 @@ end
 local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetMyTeamID = Spring.GetMyTeamID
-local spGetGameSeconds = Spring.GetGameSeconds
 local spI18N = Spring.I18N
 
 local MODEL_NAME = "quick_start_model"
@@ -59,7 +57,6 @@ local initialModel = {
 	juiceProjected = 0,
 	juiceProjectedPercent = 0,
 	showBar = false,
-	factoryPlaced = false,
 	factoryQueued = false,
 	factoryDiscountUsed = false,
 	factoryDiscountText = "",
@@ -116,7 +113,6 @@ local function computeProjectedUsage()
 	local pregameUnitSelected = WG["pregame-unit-selected"] or -1
 
 	local juiceUsed = 0
-	local factoryPlaced = false
 	local firstFactoryPlaced = false
 
 	if pregame and #pregame > 0 then
@@ -129,13 +125,10 @@ local function computeProjectedUsage()
 					local juiceCost = calculateJuiceCost(defID)
 					
 					if uDef.isFactory then
-						if not factoryPlaced then
-							factoryPlaced = true
+						if not firstFactoryPlaced then
 							firstFactoryPlaced = true
-							-- First factory gets discount applied
 							juiceUsed = juiceUsed + math.max(0, juiceCost - factoryDiscountAmount)
 						else
-							-- Subsequent factories pay full cost
 							juiceUsed = juiceUsed + juiceCost
 						end
 					else
@@ -146,7 +139,6 @@ local function computeProjectedUsage()
 		end
 	end
 
-	-- Calculate projected cost for selected unit
 	local juiceProjected = 0
 	if pregameUnitSelected and pregameUnitSelected > 0 then
 		local uDef = UnitDefs[pregameUnitSelected]
@@ -154,10 +146,8 @@ local function computeProjectedUsage()
 			local juiceCost = calculateJuiceCost(pregameUnitSelected)
 			
 			if uDef.isFactory and not factoryPlaced then
-				-- First factory gets discount
 				juiceProjected = math.max(0, juiceCost - factoryDiscountAmount)
 			else
-				-- Regular unit or subsequent factory
 				juiceProjected = juiceCost
 			end
 		end
@@ -174,7 +164,6 @@ local function computeProjectedUsage()
 		juicePercent = percent,
 		juiceProjected = juiceProjected,
 		juiceProjectedPercent = projectedPercent,
-		factoryPlaced = factoryPlaced,
 		factoryQueued = false,
 		factoryDiscountUsed = factoryDiscountUsed == 1,
 	}
@@ -198,18 +187,15 @@ local function updateDataModel(force)
 	widgetState.dmHandle.juicePercent = modelUpdate.juicePercent
 	widgetState.dmHandle.juiceProjected = modelUpdate.juiceProjected
 	widgetState.dmHandle.juiceProjectedPercent = modelUpdate.juiceProjectedPercent
-	widgetState.dmHandle.factoryPlaced = modelUpdate.factoryPlaced
 	widgetState.dmHandle.factoryQueued = modelUpdate.factoryQueued
 	widgetState.dmHandle.factoryDiscountUsed = modelUpdate.factoryDiscountUsed
 
 	if widgetState.document then
-		-- Update juice bar fill (remaining percentage)
 		local juicePercent = widgetState.dmHandle.juicePercent or 0
 		if widgetState.juiceBarElements.fillElement then
 			widgetState.juiceBarElements.fillElement:SetAttribute("style", "width: " .. string.format("%.1f%%", juicePercent))
 		end
 
-		-- Update juice bar projected
 		if widgetState.juiceBarElements.projectedElement then
 			local juiceProjectedPercent = widgetState.dmHandle.juiceProjectedPercent or 0
 			local overlayWidth = math.min(juiceProjectedPercent, juicePercent)
@@ -218,35 +204,12 @@ local function updateDataModel(force)
 			widgetState.juiceBarElements.projectedElement:SetAttribute("style", style)
 		end
 
-		-- Update text displays
 		local juiceRemaining = widgetState.document:GetElementById("qs-juice-remaining")
 		local juiceTotal = widgetState.document:GetElementById("qs-juice-total")
 		
 		if juiceRemaining then juiceRemaining.inner_rml = tostring(math.floor(widgetState.dmHandle.juiceRemaining or 0)) end
 		if juiceTotal then juiceTotal.inner_rml = tostring(math.floor(widgetState.dmHandle.juiceTotal or 0)) end
 
-		-- Update factory text
-		local factoryText = widgetState.document:GetElementById("qs-factory-text")
-		if factoryText then
-			local have = modelUpdate.factoryPlaced
-			local discountUsed = modelUpdate.factoryDiscountUsed
-			
-			if have then
-				if discountUsed then
-					factoryText.inner_rml = spI18N('ui.quickStart.factoryPlaced')
-					factoryText:SetClass("placed", true)
-					factoryText:SetClass("discount-used", true)
-				else
-					factoryText.inner_rml = spI18N('ui.quickStart.factoryPlacedNoDiscount')
-					factoryText:SetClass("placed", true)
-					factoryText:SetClass("discount-used", false)
-				end
-			else
-				factoryText.inner_rml = spI18N('ui.quickStart.placeDiscountedFactory')
-				factoryText:SetClass("placed", false)
-				factoryText:SetClass("discount-used", false)
-			end
-		end
 	end
 end
 
@@ -269,7 +232,6 @@ function widget:Initialize()
 	widgetState.showBar = true
 	widgetState.dmHandle.showBar = widgetState.showBar
 
-	-- Set up internationalized text will be done after document loads
 
 	local document = widgetState.rmlContext:LoadDocument(RML_PATH)
 	if not document then
@@ -281,7 +243,6 @@ function widget:Initialize()
 	document:Show()
 	Spring.Echo("Quick Start: Document loaded and shown")
 
-	-- Set up internationalized text
 	local juiceHeader = document:GetElementById("qs-juice-header")
 	local warningText = document:GetElementById("qs-warning-text")
 	local factoryText = document:GetElementById("qs-factory-text")
@@ -296,7 +257,6 @@ function widget:Initialize()
 		factoryText.inner_rml = spI18N('ui.quickStart.placeDiscountedFactory')
 	end
 
-	-- Create juice bar element references
 	createJuiceBarElements()
 
 	updateDataModel(true)
@@ -319,7 +279,6 @@ end
 function widget:Update()
 	local gameFrame = Spring.GetGameFrame()
 	if gameFrame > 0 then
-		-- UI is pregame-focused; remove widget after game starts
 		widgetHandler:RemoveWidget(self)
 		return
 	end
@@ -328,7 +287,6 @@ end
 
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 19) == 'LobbyOverlayActive0' then
-		-- Game unpaused - show widget
 		if widgetState.document then
 			if not widgetState.isDocumentVisible then
 				widgetState.document:Show()
@@ -337,7 +295,6 @@ function widget:RecvLuaMsg(msg, playerID)
 			widgetState.hiddenByLobby = false
 		end
 	elseif msg:sub(1, 19) == 'LobbyOverlayActive1' then
-		-- Game paused - hide widget
 		if widgetState.document then
 			if widgetState.isDocumentVisible then
 				widgetState.document:Hide()

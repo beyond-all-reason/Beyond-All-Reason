@@ -1769,11 +1769,9 @@
 			"shareTo": "Share to: %{playerColor}%{player}"
 		},
 		"quickStart": {
-			"placeDiscountedFactory": "Place Discounted Factory",
-			"factoryPlaced": "Factory Placed (Discount Used)",
-			"factoryPlacedNoDiscount": "Factory Placed (No Discount)",
+			"placeDiscountedFactory": "First factory is discounted",
 			"preGameResources": "Pre-Game Resources",
-			"remainingResourcesWarning": "Any remaining starting resources will be allocated into structures on your behalf."
+			"remainingResourcesWarning": "Left over pre-game resources will be allocated into structures on your behalf"
 		}
 	}
 }
