@@ -78,13 +78,14 @@ local function getAvgPositionOfValidBuilders(units, constructorIds, buildingId)
 	return { x = tX / builderCount, z = tZ / builderCount }
 end
 
-
 ---Get all mex spots in an area
 ---@param x number
 ---@param z number
 ---@param radius number
+---@return table Array of spots within the specified area
 local function getSpotsInArea(x, z, radius)
 	local validSpots = {}
+
 	for i = 1, #metalSpots do
 		local spot = metalSpots[i]
 		local dist = math.distance2dSquared(x, z, spot.x, spot.z)
@@ -152,13 +153,17 @@ function widget:CommandNotify(id, params, options)
 	end
 
 	local cmdX, _, cmdZ, cmdRadius = params[1], params[2], params[3], params[4]
+	local _, _, _, shift = Spring.GetModKeyState()
 	local spots = getSpotsInArea(cmdX, cmdZ, cmdRadius)
+	local SkipAlliedUpgradeWidget = WG['skip_allied_upgrade'] ---@type SkipAlliedUpgradeWidget
+	if SkipAlliedUpgradeWidget then
+		spots = SkipAlliedUpgradeWidget.filterOutAlliedSpots(spots, mexBuildings)
+	end
 
 	if not selectedMex then
 		selectedMex = WG['resource_spot_builder'].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
 	end
 
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local cmds = getCmdsForValidSpots(spots, shift)
 	local sortedCmds = calculateCmdOrder(cmds, spots)
 
