@@ -145,7 +145,7 @@ local function convertBuildQueueFaction(previousFactionSide, currentFactionSide)
 	local result = SubLogic.processBuildQueueSubstitution(buildQueue, previousFactionSide, currentFactionSide)
 	
 	if result.substitutionFailed then
-		-- removed debug echo
+		Spring.Echo(string.format("[gui_pregame_build] %s", result.summaryMessage))
 	end
 end
 
@@ -164,7 +164,7 @@ local function handleSelectedBuildingConversion(currentSelDefID, prevFactionSide
 		end
 		local newUnitDef = UnitDefs[newSelDefID]
 		local successMsg = "[Pregame Build] Selected item converted to " .. (newUnitDef and (newUnitDef.humanName or newUnitDef.name) or ("UnitDefID " .. tostring(newSelDefID)))
-		-- removed debug echo
+		Spring.Echo(successMsg)
 	else
 		if prevFactionSide ~= currentFactionSide then
 			local originalUnitDef = UnitDefs[currentSelDefID]
