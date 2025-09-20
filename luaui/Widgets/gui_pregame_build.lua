@@ -443,6 +443,8 @@ function widget:DrawWorld()
 		return
 	end
 
+	local getBuildQueueAlphaValues = WG["getBuildQueueAlphaValues"]
+
 	-- draw pregame build queue
 	local buildDistanceColor = { 0.3, 1.0, 0.3, 0.6 }
 	local buildLinesColor = { 0.3, 1.0, 0.3, 0.6 }
@@ -510,10 +512,9 @@ function widget:DrawWorld()
         prevStartDefID = startDefID
 	end
 
-	-- Get alpha values for all buildings from quick start widget
 	local alphaResults = { queueAlphas = {}, selectedAlpha = 0.5 }
-	if WG["quick-start-affordability"] and WG["quick-start-affordability"].getBuildQueueAlphaValues then
-		alphaResults = WG["quick-start-affordability"].getBuildQueueAlphaValues(buildQueue, selBuildData)
+	if getBuildQueueAlphaValues then
+		alphaResults = getBuildQueueAlphaValues(buildQueue, selBuildData)
 	end
 
 	-- Draw all the buildings

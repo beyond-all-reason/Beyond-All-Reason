@@ -44,6 +44,8 @@ local RML_PATH = "luaui/RmlWidgets/gui_quick_start/gui_quick_start.rml"
 local ENERGY_VALUE_CONVERSION_DIVISOR = 10
 local MAX_QUEUE_HASH_ITEMS = 50
 local DEFAULT_INSTANT_BUILD_RANGE = 600
+local ALPHA_AFFORDABLE = 1.0
+local ALPHA_UNAFFORDABLE = 0.5
 
 local widgetState = {
 	rmlContext = nil,
@@ -239,59 +241,13 @@ local function updateDataModel(force)
 	end
 end
 
-local function checkBuildQueueAffordability(buildQueue)
-	local myTeamID = spGetMyTeamID() or 0
-	local gameRules = getGameRulesParams(myTeamID)
-	local affordabilityResults = {}
-	
-	local juiceRemaining = gameRules.juiceTotal
-	local firstFactoryPlaced = false
-	local shouldApplyDiscount = shouldApplyFactoryDiscount
-	
-	local commanderX, commanderY, commanderZ = Spring.GetTeamStartPosition(myTeamID)
-	if not commanderX or not commanderZ then
-		commanderX, commanderY, commanderZ = 0, 0, 0
-	end
-	
-	if not buildQueue or #buildQueue == 0 then
-		return affordabilityResults
-	end
-	
-	for i = 1, #buildQueue do
-		local item = buildQueue[i]
-		local defID = item[1]
-		local isAffordable = false
-		
-		if defID and defID > 0 and UnitDefs[defID] then
-			local buildX, buildZ = item[2], item[4]
-			
-			if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
-				local juiceCost = calculateJuiceWithDiscount(defID, gameRules.factoryDiscountAmount,
-					shouldApplyDiscount, not firstFactoryPlaced)
-				
-				if juiceRemaining >= juiceCost then
-					isAffordable = true
-					juiceRemaining = juiceRemaining - juiceCost
-					
-					if UnitDefs[defID].isFactory and not firstFactoryPlaced then
-						firstFactoryPlaced = true
-					end
-				end
-			end
-		end
-		
-		affordabilityResults[i] = isAffordable
-	end
-	
-	return affordabilityResults
-end
 
 local function getBuildQueueAlphaValues(buildQueue, selectedBuildData)
 	local myTeamID = spGetMyTeamID() or 0
 	local gameRules = getGameRulesParams(myTeamID)
 	local alphaResults = {
 		queueAlphas = {},
-		selectedAlpha = 1.0
+		selectedAlpha = ALPHA_AFFORDABLE
 	}
 	
 	local juiceRemaining = gameRules.juiceTotal
@@ -303,12 +259,11 @@ local function getBuildQueueAlphaValues(buildQueue, selectedBuildData)
 		commanderX, commanderY, commanderZ = 0, 0, 0
 	end
 	
-	-- Process build queue
 	if buildQueue and #buildQueue > 0 then
 		for i = 1, #buildQueue do
 			local item = buildQueue[i]
 			local defID = item[1]
-			local alpha = 0.3 -- Default to translucent
+			local alpha = ALPHA_UNAFFORDABLE
 			
 			if defID and defID > 0 and UnitDefs[defID] then
 				local buildX, buildZ = item[2], item[4]
@@ -318,7 +273,7 @@ local function getBuildQueueAlphaValues(buildQueue, selectedBuildData)
 						shouldApplyDiscount, not firstFactoryPlaced)
 					
 					if juiceRemaining >= juiceCost then
-						alpha = 1.0 -- Fully opaque if affordable
+						alpha = ALPHA_AFFORDABLE
 						juiceRemaining = juiceRemaining - juiceCost
 						
 						if UnitDefs[defID].isFactory and not firstFactoryPlaced then
@@ -332,7 +287,6 @@ local function getBuildQueueAlphaValues(buildQueue, selectedBuildData)
 		end
 	end
 	
-	-- Process selected building if provided
 	if selectedBuildData and selectedBuildData[1] and selectedBuildData[1] > 0 then
 		local defID = selectedBuildData[1]
 		local buildX, buildZ = selectedBuildData[2], selectedBuildData[4]
@@ -342,12 +296,12 @@ local function getBuildQueueAlphaValues(buildQueue, selectedBuildData)
 				shouldApplyDiscount, not firstFactoryPlaced)
 			
 			if juiceRemaining >= juiceCost then
-				alphaResults.selectedAlpha = 1.0 -- Fully opaque if affordable
+				alphaResults.selectedAlpha = ALPHA_AFFORDABLE
 			else
-				alphaResults.selectedAlpha = 0.3 -- Translucent if not affordable
+				alphaResults.selectedAlpha = ALPHA_UNAFFORDABLE
 			end
 		else
-			alphaResults.selectedAlpha = 0.3 -- Translucent if out of range
+			alphaResults.selectedAlpha = ALPHA_UNAFFORDABLE
 		end
 	end
 	
@@ -382,29 +336,22 @@ function widget:Initialize()
 
 	createJuiceBarElements()
 
-	-- Hide resource bars in topbar when quick start is active
 	if WG['topbar'] and WG['topbar'].setResourceBarsVisible then
 		WG['topbar'].setResourceBarsVisible(false)
 	end
 
-	-- Expose affordability checking functions to other widgets
-	WG["quick-start-affordability"] = {
-		checkBuildQueueAffordability = checkBuildQueueAffordability,
-		getBuildQueueAlphaValues = getBuildQueueAlphaValues
-	}
+	WG["getBuildQueueAlphaValues"] = getBuildQueueAlphaValues
 
 	updateDataModel(true)
 	return true
 end
 
 function widget:Shutdown()
-	-- Restore resource bars in topbar when quick start is shut down
 	if WG['topbar'] and WG['topbar'].setResourceBarsVisible then
 		WG['topbar'].setResourceBarsVisible(true)
 	end
 
-	-- Clean up WG function
-	WG["quick-start-affordability"] = nil
+	WG["getBuildQueueAlphaValues"] = nil
 
 	if widgetState.rmlContext and widgetState.dmHandle then
 		widgetState.rmlContext:RemoveDataModel(MODEL_NAME)
@@ -420,7 +367,6 @@ end
 function widget:Update()
 	local gameFrame = Spring.GetGameFrame()
 	if gameFrame > 0 then
-		-- Restore resource bars before removing widget
 		if WG['topbar'] and WG['topbar'].setResourceBarsVisible then
 			WG['topbar'].setResourceBarsVisible(true)
 		end
