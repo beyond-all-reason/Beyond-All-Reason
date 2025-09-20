@@ -459,7 +459,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if isFactory[builderID] then
-		isNewUnit[unitID] = Spring.GetGameFrame() + frameBuildImmunity
+		isNewUnit[unitID] = frameNumber + frameBuildImmunity
 	end
 end
 
