@@ -91,7 +91,6 @@ local commanders = {}
 local defJuices = {}
 local factoryDiscounts = {}
 local mexDefs = {}
-local mexOverlapCheckTable = {}
 local optionDefIDToTypes = {}
 local queuedCommanders = {}
 
@@ -193,9 +192,6 @@ local function isBuildCommand(cmdID)
 	return cmdID < 0
 end
 
-local function getBuildInstanceID(unitDefID, x, y)
-	return unitDefID .. "_" .. x .. "_" .. y
-end
 
 local function getFactoryDiscount(unitDef, teamID, builderID)
 	if not unitDef.isFactory then return 0 end
@@ -282,16 +278,7 @@ local function getBuildSpace(commanderID, option)
 		return nil, nil
 	end
 
-	if option == "mex" and not isMetalMap then
-		if comData.nearbyMexes and #comData.nearbyMexes > 0 then
-			local mexSpot = comData.nearbyMexes[1]
-			table.remove(comData.nearbyMexes, 1)
-			return mexSpot.x, mexSpot.z
-		else
-			comData.buildWeights.mex = 0
-			return nil, nil
-		end
-	else
+	if option ~= "mex" or isMetalMap then
 		local nodeType = optionsToNodeType[option] or "other"
 		local gridList = comData.gridLists[nodeType] or {}
 
@@ -501,8 +488,6 @@ local function initializeCommander(commanderID, teamID)
 		local build = comData.spawnQueue[i]
 		if math.distance2d(build.x, build.z, comData.spawnX, comData.spawnZ) > INSTANT_BUILD_RANGE then
 			table.remove(comData.spawnQueue, i)
-		elseif mexDefs[build.id] then
-			mexOverlapCheckTable[getBuildInstanceID(build.id, build.x, build.z)] = { commanderID, build.x, build.z }
 		end
 	end
 	local localGrid = generateLocalGrid(commanderID)
@@ -515,38 +500,6 @@ local function initializeCommander(commanderID, teamID)
 	comData.gridLists.converters = comData.baseNodes.converters.grid or {}
 end
 
-local function filterOverlappingMexes()
-	local mexesToRemove = {}
-
-	for mexKey1, mexData1 in pairs(mexOverlapCheckTable) do
-		local commanderID1, x1, z1 = mexData1[1], mexData1[2], mexData1[3]
-		local comData1 = commanders[commanderID1]
-		local distanceToCommander1 = math.distance2d(x1, z1, comData1.spawnX, comData1.spawnZ)
-
-		for mexKey2, mexData2 in pairs(mexOverlapCheckTable) do
-			if mexKey1 ~= mexKey2 then
-				local x2, z2 = mexData2[2], mexData2[3]
-				local distanceBetweenMexes = math.distance2d(x1, z1, x2, z2)
-
-				if distanceBetweenMexes <= MEX_OVERLAP_DISTANCE then
-					local commanderID2 = mexData2[1]
-					local comData2 = commanders[commanderID2]
-					local distanceToCommander2 = math.distance2d(x2, z2, comData2.spawnX, comData2.spawnZ)
-
-					if distanceToCommander1 < distanceToCommander2 then
-						mexesToRemove[mexKey1] = true
-					else
-						mexesToRemove[mexKey2] = true
-					end
-				end
-			end
-		end
-	end
-
-	for mexKey, _ in pairs(mexesToRemove) do
-		mexOverlapCheckTable[mexKey] = nil
-	end
-end
 
 local function generateBuildCommands(commanderID)
 	local comData = commanders[commanderID]
@@ -626,6 +579,68 @@ local function tryToSpawnBuild(commanderID, buildDefID, buildX, buildZ, facing)
 	return buildProgress >= 1
 end
 
+local function assignMexSpots()
+	local mexHashes = {}
+	local removalList = {}
+	for commanderID, comData in pairs(commanders) do
+		removalList[commanderID] = {}
+		for i, spawnData in ipairs(comData.spawnQueue) do
+			local optionType = optionDefIDToTypes[spawnData.id]
+			if optionType == "mex" then
+				local mexSpotHash = nil
+				local assignedMexSpot = nil
+				if spawnData.x then
+					for _, spotData in ipairs(comData.nearbyMexes) do
+						if math.distance2d(spawnData.x, spawnData.z, spotData.x, spotData.z) <= MEX_OVERLAP_DISTANCE then
+							mexSpotHash = spotData.x .. "_" .. spotData.z
+							assignedMexSpot = spotData
+							break
+						end
+					end
+				else
+					if comData.nearbyMexes and #comData.nearbyMexes > 0 then
+						assignedMexSpot = comData.nearbyMexes[1]
+						table.remove(comData.nearbyMexes, 1)
+						mexSpotHash = assignedMexSpot.x .. "_" .. assignedMexSpot.z
+					end
+				end
+				if mexSpotHash and assignedMexSpot then
+					local buildX = spawnData.x or assignedMexSpot.x
+					local buildZ = spawnData.z or assignedMexSpot.z
+					local distance = math.distance2d(buildX, buildZ, comData.spawnX, comData.spawnZ)
+					if mexHashes[mexSpotHash] then
+						if distance < mexHashes[mexSpotHash].distance then
+							local oldData = mexHashes[mexSpotHash]
+
+							table.insert(removalList[oldData.commanderID], oldData.index)
+							mexHashes[mexSpotHash] = {commanderID = commanderID, index = i, distance = distance}
+							spawnData.x, spawnData.z = assignedMexSpot.x, assignedMexSpot.z
+						else
+							table.insert(removalList[commanderID], i)
+						end
+					else
+						mexHashes[mexSpotHash] = {commanderID = commanderID, index = i, distance = distance}
+						spawnData.x, spawnData.z = assignedMexSpot.x, assignedMexSpot.z
+					end
+				else
+					table.insert(removalList[commanderID], i)
+				end
+			end
+		end
+		comData.buildWeights.mex = math.max(0, #comData.nearbyMexes)
+	end
+
+	for commanderID, indicesToRemove in pairs(removalList) do
+		if #indicesToRemove > 0 then
+			table.sort(indicesToRemove, function(a, b) return a > b end)
+			local comData = commanders[commanderID]
+			for _, index in ipairs(indicesToRemove) do
+				table.remove(comData.spawnQueue, index)
+			end
+		end
+	end
+end
+
 function gadget:GameFrame(frame)
 	if not initialized and frame > PREGAME_DELAY_FRAMES then
 		if #allTeamsList == 0 then
@@ -646,7 +661,6 @@ function gadget:GameFrame(frame)
 		if allInitialized then
 			initialized = true
 			running = true
-			filterOverlappingMexes()
 		end
 	end
 
@@ -656,32 +670,32 @@ function gadget:GameFrame(frame)
 			running = false
 			break
 		end
-		local function processSpawnQueues()
-			local loop = true
-			while loop do
-				loop = false
-				for commanderID, comData in pairs(commanders) do
-					if comData.spawnQueue then
-						for i, build in ipairs(comData.spawnQueue) do
-							local optionType = optionDefIDToTypes[build.id]
-							local buildX, buildZ = build.x, build.z
-							if not buildX or not buildZ then
-								buildX, buildZ = getBuildSpace(commanderID, optionType)
-							end
-							local facing = build.facing or comData.defaultFacing or 0
-							if buildX and buildZ then
-								local fullyBuilt = tryToSpawnBuild(commanderID, build.id, buildX, buildZ, facing)
-								if fullyBuilt then
-									loop = true
-								end
+		local loop = true
+		while loop do
+			loop = false
+			if not isMetalMap then
+				assignMexSpots()
+			end
+			for commanderID, comData in pairs(commanders) do
+				if comData.spawnQueue then
+					for i, build in ipairs(comData.spawnQueue) do
+						local optionType = optionDefIDToTypes[build.id]
+						local buildX, buildZ = build.x, build.z
+						if not buildX or not buildZ then
+							buildX, buildZ = getBuildSpace(commanderID, optionType)
+						end
+						local facing = build.facing or comData.defaultFacing or 0
+						if buildX and buildZ then
+							local fullyBuilt = tryToSpawnBuild(commanderID, build.id, buildX, buildZ, facing)
+							if fullyBuilt then
+								loop = true
 							end
 						end
 					end
-					comData.spawnQueue = {}
 				end
+				comData.spawnQueue = {}
 			end
 		end
-		processSpawnQueues()
 		local allQueuesEmpty = true
 		for commanderID, comData in pairs(commanders) do
 			if comData.juice > 0 then
