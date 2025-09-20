@@ -68,6 +68,7 @@ return {
 			[30] = "armsy",
 			[31] = "armsd",
 			[32] = "armshltx",
+			[33] = "armnanotc",
 		},
 		customparams = {
 			model_author = "Flaka",

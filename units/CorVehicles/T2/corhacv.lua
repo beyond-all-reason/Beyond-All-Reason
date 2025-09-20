@@ -75,7 +75,8 @@ return {
 			[29] = "corap",
 			[30] = "corsy",
 			[31] = "corvp",
-			[32] = "corgant"
+			[32] = "corgant",
+			[33] = "cornanotc"
 		},
 		customparams = {
 			model_author = "MASHUP, Itanthias, name inspired by Themitri",
