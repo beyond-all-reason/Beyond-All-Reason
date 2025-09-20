@@ -51,6 +51,7 @@ out vec4 fragColor;
 float frequency;
 
 #if 1 // These are globally useful helpers
+	// UNUSED, returns 0 for in shadow, 1 for not in shadow, has various options for what kind of shadow sampling should be used. 
 	float shadowAtWorldPos(vec3 worldPos){
 			vec4 shadowVertexPos = shadowView * vec4(worldPos,1.0);
 			shadowVertexPos.xy += vec2(0.5);
@@ -80,7 +81,9 @@ float frequency;
 				return clamp((linearShad -  linearSamp ) * 2, 0,1);
 			#endif
 	}
-	float losLevelAtWorldPos(vec3 worldPos){ // this returns 0 for not in los, 1 for in los, -100 for never seen
+
+	// UNUSED, returns 0 for not in los, 1 for in los, -100 for never seen
+	float losLevelAtWorldPos(vec3 worldPos){ 
 		vec2 losUV = clamp(worldPos.xz, vec2(0.0), mapSize.xy ) / mapSize.xy;
 		vec4 infoTexSample = texture(infoTex, losUV);
 		if (infoTexSample.r > 0.2) 
@@ -90,11 +93,12 @@ float frequency;
 			return (LOSFOGUNDISCOVERED) * (-100) * (0.2 - infoTexSample.r);
 	}
 
+	// UNUSED fast, filthy 2D random function. Not good for much
 	float rand(vec2 co){
 		return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 	}
 	
-	// returns the linear distance to the closest edge of the map in 3d
+	// UNUSED returns the linear distance to the closest edge of the map in 3d
 	float linearDistanceMap(vec3 worldpos){
 		vec3 worldMax = vec3(float(MAPSIZEX), float(MAPSIZEY),float(MAPSIZEZ));
 		vec3 minDist = max(-1 * worldpos, worldpos - worldMax);
@@ -102,7 +106,7 @@ float frequency;
 		return max(minDist.x, max(minDist.y, minDist.z));
 	}
 
-	// returns the linear distance to the closest edge of the map, in elmos
+	// UNUSED returns the linear distance to the closest edge of the map, in elmos
 	vec2 linearDistanceMapXZ(vec2 worldpos){
 		vec2 worldMax = vec2(float(MAPSIZEX), float(MAPSIZEZ));
 		vec2 minDist = max(-1 * worldpos, worldpos - worldMax);
@@ -778,7 +782,7 @@ vec2 quadVector = vec2(0); // REQUIRED, contains the [-1,1] mappings
 // one-hot encoding of thread ID
 //vec4 threadMask = vec4(0); // contains the thread ID in one-hot
 
-vec4 selfWeights = vec4(WEIGHTFACTOR*WEIGHTFACTOR, WEIGHTFACTOR*(1.0-WEIGHTFACTOR), WEIGHTFACTOR*(1.0-WEIGHTFACTOR), (1.0-WEIGHTFACTOR)*(1.0-WEIGHTFACTOR)); // F*F, F*(1.0-F), F*(1.0-F), (1-F)*(1-F)
+const vec4 selfWeights = vec4(WEIGHTFACTOR*WEIGHTFACTOR, WEIGHTFACTOR*(1.0-WEIGHTFACTOR), WEIGHTFACTOR*(1.0-WEIGHTFACTOR), (1.0-WEIGHTFACTOR)*(1.0-WEIGHTFACTOR)); // F*F, F*(1.0-F), F*(1.0-F), (1-F)*(1-F)
 #define selfWeightFactor 0.07
 //vec4 selfWeights = vec4(0.25) + vec4(selfWeightFactor, selfWeightFactor/ -3.0, selfWeightFactor/ -3.0, selfWeightFactor/-3.0);
 
@@ -954,6 +958,7 @@ vec2 quadGatherWeighted2D(vec2 myvalue){
 			);
 }
 
+// Sorts an unsorted vec4 from the quad threads into a sorted vec4, 
 vec4 quadGatherSortFloat(vec4 unsorted){ // this could really use modification into a threadmask matrix!
 	vec4 threadMask =  step(vec4(quadVector.xy,0,0),vec4( 0,0,quadVector.xy));
 	vec4 sorted = vec4(0.0);
@@ -984,7 +989,7 @@ vec4 debugQuad(vec2 qv){
 
 
 
-// Use this to sample 4 octaves on any noise you want, and return the sum of its octaves
+// UNUSED Use this to sample 4 octaves on any noise you want, and return the sum of its octaves
 float fastQuadFBM3D(vec3 Pos, vec4 frequencies, vec4 weights, vec2 screenCoords){
 	vec2 quad_vector = fract(floor(screenCoords) * 0.5) * 4.0 - 1.0;
 	vec4 threadMask = quadGetThreadMask(quad_vector);
@@ -993,7 +998,7 @@ float fastQuadFBM3D(vec3 Pos, vec4 frequencies, vec4 weights, vec2 screenCoords)
 	return dot(vec4(1.0),  quadGather(noise, quad_vector));
 }
 
-// Fast single channel texture lookup
+// UNUSED Fast single channel texture lookup
 float fastQuadTexture3DLookupSum(sampler3D ttt, vec3 Pos, vec3 stepsize, vec4 weights, vec2 screenCoords){ 
 	vec2 quad_vector = fract(floor(screenCoords) * 0.5) * 4.0 - 1.0;
 	vec4 threadMask =  quadGetThreadMask(quad_vector);
@@ -1003,7 +1008,7 @@ float fastQuadTexture3DLookupSum(sampler3D ttt, vec3 Pos, vec3 stepsize, vec4 we
 	return dot(vec4(1.0), quadGather(noise, quad_vector));
 }
 
-// Fast single channel texture lookup
+// UNUSED Fast single channel texture lookup
 float fastQuadTexture2DLookupSum(sampler2D t, vec2 Pos, vec2 stepsize, vec4 weights, vec2 screenCoords){ 
 	vec2 quad_vector = fract(floor(screenCoords) * 0.5) * 4.0 - 1.0;
 	vec4 threadMask =  quadGetThreadMask(quad_vector);
@@ -1013,7 +1018,7 @@ float fastQuadTexture2DLookupSum(sampler2D t, vec2 Pos, vec2 stepsize, vec4 weig
 	return dot(quadGather(noise, quad_vector), vec4(1.0));
 }
 
-// Fast single channel texture lookup
+// UNUSED Fast single channel texture lookup
 float fastQuadTexture2DLookupInd(sampler2D t, vec2 Pos, vec2 stepsize, vec4 weights, vec2 screenCoords){ 
 	vec2 quad_vector = fract(floor(screenCoords) * 0.5) * 4.0 - 1.0;
 	vec4 threadMask =  quadGetThreadMask(quad_vector);
@@ -1055,23 +1060,11 @@ float fastQuadTexture2DLookupInd(sampler2D t, vec2 Pos, vec2 stepsize, vec4 weig
 //https://pbr-book.org/3ed-2018/contents
 
 
-
 ////------------------------------GLOBAL NOISE SAMPLING FUNCTIONS ---------------------------------
 
 // static vars:
 vec3 noiseOffset;
 // everything that has to do with initializing the actual noise stuff 
-vec2 initNoise(){
-	return vec2(0,0);
-}
-
-vec2 hfnoisesampler(){
-	return vec2(0,0);
-}
-
-vec2 sampleWorldNoise(){
-	return vec2(0,0);
-}
 
 void WorldToNoiseSpace(in vec3 wp, out vec3 lf, out vec3 hf){
 	lf = wp * NOISESCALE1024 * noiseLFParams.x;
@@ -1146,8 +1139,7 @@ float BeersPowder(float d, float k){
 	return BeersLaw(d,k) * PowderLaw(d,k);
 }
 
-//https://github.com/erickTornero/realtime-volumetric-cloudscapes/blob/master/shaders/RayMarching2.glsl
-
+// UNUSED https://github.com/erickTornero/realtime-volumetric-cloudscapes/blob/master/shaders/RayMarching2.glsl
 float HenyeyGreenstein(in vec3 inLightVector, in vec3 inViewVector, in float g){
     // Cos of angle
     float cos_angle = dot(normalize(inLightVector), normalize(inViewVector));
@@ -1156,7 +1148,7 @@ float HenyeyGreenstein(in vec3 inLightVector, in vec3 inViewVector, in float g){
     return (1.0 - g * g)/(pow(1.0 + g * g - 2.0 * g * cos_angle, 1.50) * 4 * 3.14159265);
 }
 
-// ** Define the total energy 
+// UNUSED, Define the total energy 
 float GetLightEnergy(float density, float probRain, float henyeyGreensteinFactor){
     float beer_laws = exp( -density * probRain);
     float powdered_sugar = 1.0 - exp( -2.0 * density);
