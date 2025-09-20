@@ -9,7 +9,7 @@ function gadget:GetInfo()
 		date	= 'June 2017',
 		license	= 'GNU GPL, v2 or later',
 		layer	= 1,
-		enabled	= false
+		enabled	= Spring.GetTeamList()-1 > 64
 	}
 end
 
