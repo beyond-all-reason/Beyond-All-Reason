@@ -19,7 +19,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	or name == "coraap" or name == "coralab" or name == "corasy" or name == "coravp"
 	then
 		uDef.metalcost = uDef.metalcost - 300
-		uDef.buildtime = uDef.buildtime * 2
+		uDef.buildtime = uDef.buildtime * 1.5
 		uDef.workertime = uDef.workertime * 2
 	end
 
@@ -68,7 +68,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	if name == "armmoho" or name == "armuwmme"
 	or name == "cormoho" or name == "coruwmme"
 	then
-		uDef.metalcost = math.ceil(uDef.metalcost * 0.12) * 10
+		--uDef.metalcost = math.ceil(uDef.metalcost * 0.12) * 10
 		uDef.energycost = math.ceil(uDef.energycost * 0.012) * 100
 		uDef.buildtime = math.ceil(uDef.buildtime * 0.0012) * 1000 
 	end
@@ -85,6 +85,30 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.workertime = 1800
 	end
 
+	if name == "corgol" then
+		uDef.speed = 37
+		uDef.weapondefs.cor_gol.reloadtime = 3.5
+	end
+	if name == "armfboy" then
+		uDef.weapondefs.arm_fatboy_notalaser.edgeeffectiveness = 0.15
+	end
+	if name == "armmart" then
+		uDef.weapondefs.arm_artillery.edgeeffectiveness = 0.15
+		uDef.weapondefs.arm_artillery.accuracy = 0
+	end
+	if name == "cormart" then
+		uDef.weapondefs.cor_artillery.edgeeffectiveness = 0.15
+		uDef.weapondefs.cor_artillery.accuracy = 0
+	end
+
+	if name == "cormort" then
+		uDef.energycost = 2800
+		uDef.metalcost = 400
+	end
+
+	if name == "armrectr" or name == "cornecro" or name == "armconsul" or name == "armfark" or name == "corfast" then
+		uDef.metalcost = math.ceil(uDef.metalcost * 1.1 / 5) * 5
+	end
 	return uDef
 end
 
