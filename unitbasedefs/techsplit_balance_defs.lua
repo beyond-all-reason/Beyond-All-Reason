@@ -66,7 +66,7 @@ local function techsplit_balanceTweaks(name, uDef)
 			subs = 61,
 			vtol = 20,
 		}
-		uDef.weapons[1].maxangledif = 30
+		uDef.weapons[1].maxangledif = 120
 	end
 
 	if name == "corwolv" then
@@ -81,7 +81,7 @@ local function techsplit_balanceTweaks(name, uDef)
 			subs = 95,
 			vtol = 38,
 		}
-		uDef.weapons[1].maxangledif = 30
+		uDef.weapons[1].maxangledif = 120
 	end
 
 	if name == "armmart" then
@@ -102,7 +102,7 @@ local function techsplit_balanceTweaks(name, uDef)
 			subs = 122,
 			vtol = 49,
 		}
-		uDef.weapons[1].maxangledif = 30
+		uDef.weapons[1].maxangledif = 120
 	end
 
 	if name == "cormart" then
@@ -141,7 +141,7 @@ local function techsplit_balanceTweaks(name, uDef)
 				vtol = 120,
 			},
 		}
-		uDef.weapons[1].maxangledif = 30
+		uDef.weapons[1].maxangledif = 120
 	end
 
 	if name == "armfido" then
@@ -165,7 +165,7 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.weapondefs.corhrk_rocket.reloadtime = 8
 		uDef.weapondefs.corhrk_rocket.turnrate = 30000
 		uDef.weapondefs.corhrk_rocket.weapontimer = 4
-		uDef.weapons[1].maxangledif = 60
+		uDef.weapons[1].maxangledif = 150
 		uDef.weapons[1].maindir = "0 0 1"
 	end
 
@@ -179,7 +179,7 @@ local function techsplit_balanceTweaks(name, uDef)
 		uDef.weapondefs.adv_rocket.customparams.overrange_distance = 800
 		uDef.weapondefs.adv_rocket.weapontimer = 8
 		uDef.weapondefs.adv_rocket.flighttime  = 4
-		uDef.weapons[1].maxangledif = 45
+		uDef.weapons[1].maxangledif = 150
 		uDef.weapons[1].maindir = "0 0 1"
 	end
 
