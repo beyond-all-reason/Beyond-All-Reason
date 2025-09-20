@@ -28,21 +28,7 @@
                 </div>
             </div>
         </handle>
-        <!-- <div class="element">
-            <span>Below me is a flexbox</span>
-            <div style="display: flex">
-     
-                <div
-                        class="element"
-                        data-event-mousedown="exampleEventHook('event param example')"
-                        style="cursor: pointer"
-                >
-                    Click me for log spam<br/>
-                    Inserted value: {{exampleValue}}
-                </div>
-            </div>
-            
-        </div> -->
+
         <div class="element" id="sliders" style="display: flex; flex-direction: row; gap: 1.0em; align-items: flex-start;">
             <!-- All Parameters Grouped by Category -->
             
@@ -87,24 +73,6 @@
             </div>
         </div>  
         <div id="target" style="display: flex;"></div>
-<!--         <div class="element">
-            <h4 class="element" style="margin: 0.1em">Custom &lt;texture&gt; Element Demo</h4>
-            <div>&lt;texture src="^101"&gt;</div>
-            <texture src="^101"/>
 
-
-            <div>&lt;texture src="#101" style="border-radius: 50px" rect=(changes on mouse over/out)&gt;</div>
-
-            <texture
-                id="101"
-                src="#101"
-                style="border-radius: 50px; height: 256px; width: 256px"
-                data-event-mouseover="my_rect = '10 10 236 236'"
-                data-event-mouseout="my_rect = ''"
-                data-attr-rect="my_rect"
-            />
-
-            <div>{{context_name_list}}</div>
-        </div> -->
     </body>
 </rml>
