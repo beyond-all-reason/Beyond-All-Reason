@@ -84,6 +84,10 @@ local timedDamageWeapons = {}
 local unitDamageImmunity = {}
 local featDamageImmunity = {}
 
+local isFactory = {}
+local isNewUnit = {}
+local frameBuildImmunity = math.floor(gameSpeed * 0.1 + 0.5)
+
 local aliveExplosions = {}
 local frameExplosions = {}
 local frameNumber = 0
@@ -233,7 +237,9 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         local unitsInRange = spGetUnitsInSphere(area.x, area.y, area.z, area.range)
         for j = 1, #unitsInRange do
             local unitID = unitsInRange[j]
-            if not unitDamageImmunity[spGetUnitDefID(unitID)][area.resistance] then
+            if unitDamageImmunity[spGetUnitDefID(unitID)][area.resistance] == nil
+				and isNewUnit[unitID] == nil
+			then
                 local damageTaken = unitDamageTaken[unitID]
                 if not damageTaken then
                     damageTaken = 0
@@ -329,6 +335,9 @@ function gadget:Initialize()
             timedDamageWeapons[WeaponDefNames[unitDef.deathExplosion].id] = params
             timedDamageWeapons[WeaponDefNames[unitDef.selfDExplosion].id] = params
         end
+		if unitDef.isFactory then
+			isFactory[unitDefID] = true
+		end
     end
 
     -- This simplifies writing tweakdefs to modify area_on[x]_range for balance,
@@ -395,6 +404,15 @@ function gadget:Initialize()
         end
     end
 
+	isNewUnit = {}
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		-- Close enough is good enough:
+		local beingBuilt, progress = Spring.GetUnitIsBeingBuilt(unitID)
+		if beingBuilt and progress <= 0.01 then
+			isNewUnit[unitID] = true
+		end
+	end
+
     if next(timedDamageWeapons) then
         for weaponDefID in pairs(timedDamageWeapons) do
             Script.SetWatchExplosion(weaponDefID, true)
@@ -431,6 +449,18 @@ function gadget:GameFrame(frame)
 
     frameExplosions = frameAreas
     frameNumber = frame
+
+	for unitID, expire in next, isNewUnit do
+		if expire >= frame then
+			isNewUnit[unitID] = nil
+		end
+	end
+end
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	if isFactory[builderID] then
+		isNewUnit[unitID] = Spring.GetGameFrame() + frameBuildImmunity
+	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
@@ -438,6 +468,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		unitDamageTaken[unitID] = nil
         removeFromArrays(unitDamageReset, unitID)
     end
+	isNewUnit[unitID] = nil
 end
 
 function gadget:FeatureDestroyed(featureID, allyTeam)
