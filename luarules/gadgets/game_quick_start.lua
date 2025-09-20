@@ -24,8 +24,6 @@ if not shouldRunGadget then return false end
 local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" or 
 	(modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
 
---Todo
---mexes aren't removed from commander build queue, original coordinate placement isn't being used
 
 ----------------------------Configuration----------------------------------------
 local FACTORY_DISCOUNT_MULTIPLIER = 0.90 -- The factory discount will be the juice cost of the cheapest listed factory multiplied by this value.
@@ -213,15 +211,19 @@ end
 
 local function getCommanderBuildQueue(commanderID)
 	local spawnQueue = {}
+	local commandsToRemove = {}
 	local comData = commanders[commanderID]
 	local commands = spGetUnitCommands(commanderID, ALL_COMMANDS)
 	local totalJuiceCost = 0
 	for i, cmd in ipairs(commands) do
 		if isBuildCommand(cmd.id) then
 			local spawnParams = { id = -cmd.id, x = cmd.params[1], y = cmd.params[2], z = cmd.params[3], facing = cmd
-			.params[4] or 1 }
+			.params[4] or 1, cmdTag = cmd.tag }
 			if math.distance2d(comData.spawnX, comData.spawnZ, spawnParams.x, spawnParams.z) <= INSTANT_BUILD_RANGE then
 				table.insert(spawnQueue, spawnParams)
+				if cmd.tag then
+					table.insert(commandsToRemove, cmd.tag)
+				end
 				local unitDefID = -cmd.id
 				local unitDef = unitDefs[unitDefID]
 				local juiceCost = defJuices[unitDefID] or 0
@@ -230,11 +232,13 @@ local function getCommanderBuildQueue(commanderID)
 				end
 				totalJuiceCost = totalJuiceCost + juiceCost
 				if totalJuiceCost > comData.juice then
+					comData.commandsToRemove = commandsToRemove
 					return spawnQueue
 				end
 			end
 		end
 	end
+	comData.commandsToRemove = commandsToRemove
 	return spawnQueue
 end
 
@@ -549,6 +553,17 @@ local function generateBuildCommands(commanderID)
 	end
 end
 
+
+local function removeCommanderCommands(commanderID)
+	local comData = commanders[commanderID]
+	if comData and comData.commandsToRemove and #comData.commandsToRemove > 0 then
+		for _, cmdTag in ipairs(comData.commandsToRemove) do
+			Spring.GiveOrderToUnit(commanderID, CMD.REMOVE, { cmdTag }, {})
+		end
+		comData.commandsToRemove = {}
+	end
+end
+
 local function tryToSpawnBuild(commanderID, buildDefID, buildX, buildZ, facing)
 	local unitDef, comData, buildProgress = unitDefs[buildDefID], commanders[commanderID], 0
 	local discount = getFactoryDiscount(unitDef, comData.teamID, commanderID)
@@ -589,45 +604,40 @@ local function assignMexSpots()
 		removalList[commanderID] = {}
 		for i, spawnData in ipairs(comData.spawnQueue) do
 			local optionType = optionDefIDToTypes[spawnData.id]
-			if optionType == "mex" then
-				local mexSpotHash = nil
-				local assignedMexSpot = nil
-				if spawnData.x then
-					for _, spotData in ipairs(comData.nearbyMexes) do
-						if math.distance2d(spawnData.x, spawnData.z, spotData.x, spotData.z) <= MEX_OVERLAP_DISTANCE then
-							mexSpotHash = spotData.x .. "_" .. spotData.z
-							assignedMexSpot = spotData
-							break
+				if optionType == "mex" then
+					local mexSpotHash = nil
+					local assignedMexSpot = nil
+					if spawnData.x then
+						assignedMexSpot = { x = spawnData.x, z = spawnData.z }
+						mexSpotHash = spawnData.x .. "_" .. spawnData.z
+					else
+						if comData.nearbyMexes and #comData.nearbyMexes > 0 then
+							assignedMexSpot = comData.nearbyMexes[1]
+							table.remove(comData.nearbyMexes, 1)
+							mexSpotHash = assignedMexSpot.x .. "_" .. assignedMexSpot.z
 						end
 					end
-				else
-					if comData.nearbyMexes and #comData.nearbyMexes > 0 then
-						assignedMexSpot = comData.nearbyMexes[1]
-						table.remove(comData.nearbyMexes, 1)
-						mexSpotHash = assignedMexSpot.x .. "_" .. assignedMexSpot.z
-					end
-				end
-				if mexSpotHash and assignedMexSpot then
-					local buildX = spawnData.x or assignedMexSpot.x
-					local buildZ = spawnData.z or assignedMexSpot.z
-					local distance = math.distance2d(buildX, buildZ, comData.spawnX, comData.spawnZ)
-					if mexHashes[mexSpotHash] then
-						if distance < mexHashes[mexSpotHash].distance then
-							local oldData = mexHashes[mexSpotHash]
+					if mexSpotHash and assignedMexSpot then
+						local buildX = assignedMexSpot.x
+						local buildZ = assignedMexSpot.z
+						local distance = math.distance2d(buildX, buildZ, comData.spawnX, comData.spawnZ)
+						if mexHashes[mexSpotHash] then
+							if distance < mexHashes[mexSpotHash].distance then
+								local oldData = mexHashes[mexSpotHash]
 
-							table.insert(removalList[oldData.commanderID], oldData.index)
+								table.insert(removalList[oldData.commanderID], oldData.index)
+								mexHashes[mexSpotHash] = {commanderID = commanderID, index = i, distance = distance}
+								spawnData.x, spawnData.z = assignedMexSpot.x, assignedMexSpot.z
+							else
+								table.insert(removalList[commanderID], i)
+							end
+						else
 							mexHashes[mexSpotHash] = {commanderID = commanderID, index = i, distance = distance}
 							spawnData.x, spawnData.z = assignedMexSpot.x, assignedMexSpot.z
-						else
-							table.insert(removalList[commanderID], i)
 						end
 					else
-						mexHashes[mexSpotHash] = {commanderID = commanderID, index = i, distance = distance}
-						spawnData.x, spawnData.z = assignedMexSpot.x, assignedMexSpot.z
+						table.insert(removalList[commanderID], i)
 					end
-				else
-					table.insert(removalList[commanderID], i)
-				end
 			end
 		end
 		comData.buildWeights.mex = math.max(0, #comData.nearbyMexes)
@@ -697,6 +707,7 @@ function gadget:GameFrame(frame)
 					end
 				end
 				comData.spawnQueue = {}
+				removeCommanderCommands(commanderID)
 			end
 		end
 		local allQueuesEmpty = true
