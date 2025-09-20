@@ -11,19 +11,17 @@ local function techsplit_balanceTweaks(name, uDef)
 	end
 
 	if name == "corstorm" then
-		uDef.speed = 45
+		uDef.speed = 42
 		uDef.weapondefs.cor_bot_rocket.range = 600
-		uDef.weapondefs.cor_bot_rocket.reloadtime = 4.8
-		uDef.weapondefs.cor_bot_rocket.damage.default = 198
-		uDef.health = 385
+		uDef.weapondefs.cor_bot_rocket.reloadtime = 5.5
+		uDef.health = 250
 	end
 
 	if name == "armrock" then
-		uDef.speed = 50
+		uDef.speed = 48
 		uDef.weapondefs.arm_bot_rocket.range = 575
-		uDef.weapondefs.arm_bot_rocket.reloadtime = 4.6
-		uDef.weapondefs.arm_bot_rocket.damage.default = 190
-		uDef.health = 390
+		uDef.weapondefs.arm_bot_rocket.reloadtime = 5.4
+		uDef.health = 240
 	end
 
 	if name == "armhlt" then
