@@ -267,11 +267,21 @@ function widget:Initialize()
 
 	createJuiceBarElements()
 
+	-- Hide resource bars in topbar when quick start is active
+	if WG['topbar'] and WG['topbar'].setResourceBarsVisible then
+		WG['topbar'].setResourceBarsVisible(false)
+	end
+
 	updateDataModel(true)
 	return true
 end
 
 function widget:Shutdown()
+	-- Restore resource bars in topbar when quick start is shut down
+	if WG['topbar'] and WG['topbar'].setResourceBarsVisible then
+		WG['topbar'].setResourceBarsVisible(true)
+	end
+
 	if widgetState.rmlContext and widgetState.dmHandle then
 		widgetState.rmlContext:RemoveDataModel(MODEL_NAME)
 		widgetState.dmHandle = nil
@@ -286,6 +296,10 @@ end
 function widget:Update()
 	local gameFrame = Spring.GetGameFrame()
 	if gameFrame > 0 then
+		-- Restore resource bars before removing widget
+		if WG['topbar'] and WG['topbar'].setResourceBarsVisible then
+			WG['topbar'].setResourceBarsVisible(true)
+		end
 		widgetHandler:RemoveWidget(self)
 		return
 	end

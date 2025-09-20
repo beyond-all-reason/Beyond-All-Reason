@@ -33,17 +33,17 @@
 }
 
 .qs-juice-container {
-	background-color: rgba(50, 50, 50, 255);
+	background-color: rgba(50, 50, 50, 60);
 	border-radius: 6px;
 	border-width: 1.5px;
-	border-color: rgba(30, 30, 30, 255);
+	border-color: rgba(30, 30, 30, 150);
 	padding: 7px;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	margin-top: -5px;
 	decorator: image("/luaui/images/stripes-small.png" repeat);
-	image-color: rgba(40, 40, 40, 230);
+	image-color: rgba(40, 40, 40, 60);
 	position: relative;
 }
 
