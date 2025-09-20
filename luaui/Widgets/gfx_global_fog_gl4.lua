@@ -160,13 +160,13 @@ end
 local paramGroups = {
 	global = "Global Parameters", 
 	ground = "Ground Fog Parameters", 
-	underwater = "Underwater Fog Parameters",
+	underwater = "Underwater Shadows Parameters",
 	cloud = "Cloud Layer Parameters",
 	cloudshadows = "Cloud Shadow Parameters",
 	height = "Height Fog Parameters",
 	distance = "Distance Fog Parameters",
 	scavenger = "Scavenger Cloud Parameters",
-	shadow = "Shadow Parameters",
+	shadow = "Shadow Parameters", 
 }
 
 -- THIS IS UNIFIED BETWEEN FOG SHADER AND COMBINE SHADER
@@ -179,7 +179,8 @@ local definesSlidersParamsList = {
 	--{name = 'RAYTRACING', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Use any raytracing, 1 = yes, 0 = no'},
 	{name = 'HEIGHTNOISESTEPS', default = 8, min = 0, max = 32, digits = 0, tooltip =  'How many times to sample shadows', group = "ground"},
 	{name = 'HEIGHTSHADOWSTEPS', default = 12, min = 0, max = 32, digits = 0, tooltip =  'How many times to sample shadows for pure height-based fog', group = "ground"},
-	{name = 'UNDERWATERSHADOWSTEPS', default = (minHeight < -20) and 8 or 0, min = 0, max = 64, digits = 0, tooltip =  'How many times to sample shadows for underwater scattering' , group = "underwater"},
+	{name = 'UWSHADOWSTEPS', default = (minHeight < -20) and 8 or 0, min = 0, max = 64, digits = 0, tooltip =  'How many times to sample shadows for underwater scattering' , group = "underwater"},
+	{name = 'UWCAUSTICS', default = 2, min = 0, max = 8, digits = 1, tooltip =  'How strongly caustics should distort underwater shadows' , group = "underwater"},
 	{name = 'HEIGHTSHADOWQUAD', default = 2, min = 0, max = 2, digits = 0, tooltip =  'How to Quad sample height-based fog', group = "ground"},
 	{name = 'SHADOWSAMPLER', default = 1, min = 0, max = 3, digits = 0, tooltip =  '0 use texture fetch, 1 use sampler fetch, 2 use texelfetch', group = "global"},
 	--{name = 'BLUENOISESTRENGTH', default = 1.1, min = 0, max = 1.1, digits = 1, tooltip =  'Amount of blue noise added to shadow sampling'},
@@ -932,7 +933,7 @@ function widget:Initialize()
 			local groupSliders = sliderGroups[groupKey]
 			if groupSliders and #groupSliders > 0 then
 				-- Map underwater to other since there's no underwater div in RML
-				local divId = "fogparameters-" .. (groupKey == "underwater" and "other" or groupKey)
+				local divId = "fogparameters-" .. (groupKey or "other")
 				local parentDiv = document:GetElementById(divId)
 				
 				if not parentDiv then

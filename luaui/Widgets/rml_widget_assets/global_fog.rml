@@ -43,6 +43,9 @@
                     <h6 style="margin: 0.25em 0; color: #FFD700;">Height Fog Parameters</h6>
                     <div id="fogparameters-height" style="display: flex; flex-direction: column; gap: 0.0em;"> </div>
                     
+                    <h6 style="margin: 0.25em 0; color: #FFD700;">Underwater Shadows Parameters</h6>
+                    <div id="fogparameters-underwater" style="display: flex; flex-direction: column; gap: 0.0em;"> </div>
+                    
                     <h6 style="margin: 0.25em 0; color: #FFD700;">Other Parameters</h6>
                     <div id="fogparameters-other" style="display: flex; flex-direction: column; gap: 0.0em;"> </div>
                 </div>

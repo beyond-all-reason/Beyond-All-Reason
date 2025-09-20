@@ -1273,7 +1273,7 @@ void main(void)
 // ----------------- END DISTANCE-BASED FOG ------------------------------
 	
 	
-	// ----------------- BEGIN HEIGHT-BASED FOG -------------------------------
+// ----------------- BEGIN HEIGHT-BASED FOG -------------------------------
 	#line 33600
 	vec4 heightBasedFogColor = vec4(0);
 	// If raystart is above the fog plane height
@@ -1394,26 +1394,34 @@ void main(void)
 
 
 
-	// ----------------- END HEIGHT-BASED FOG -------------------------------
+// ----------------- END HEIGHT-BASED FOG -------------------------------
 	
 	// ----------------- BEGIN UNDERWATER SHADOW RAYS -------------------------------
 	#line 33800
 
 	vec4 uwShadowRays = vec4(0,0,0,0);
-	#if UNDERWATERSHADOWSTEPS > 0
+	#if UWSHADOWSTEPS > 0
 		if (rayLength > 0.01 && trueMapWorldPos.y < 0) {
 			// Draw these back to front
 			// Each shadow sample costs on average, 0.5 FPS at 1080p and half resolution
 			// Indeed, stepping in shadow space is much faster, and possible due to the linear transformation of it. 
 			// Now to also handle clipping within shadow space as not to get out of hand!
 			// NEEDS SHADOWSAMPLER == 1 
-			vec4 shadStart = WorldToShadowSpace(trueMapWorldPos); 
+
+			// Attempt to emulate some caustics offset: 
+			vec3 causticsOffset = Value3D_Deriv(vec3(gl_FragCoord.x,  1, gl_FragCoord.y) * 0.1 + noiseOffset + time * 0.1).rgb; // 0-1
+			causticsOffset = causticsOffset * UWCAUSTICS / RESOLUTION; // -10 to +10
+
+			vec4 shadStart = WorldToShadowSpace(trueMapWorldPos + causticsOffset); 
 			vec4 shadEnd   = WorldToShadowSpace(mapWorldPos.xyz);
-			vec4 shadStep  = (shadEnd - shadStart) / UNDERWATERSHADOWSTEPS; // points toward camera
+			vec4 shadStep  = (shadEnd - shadStart) / UWSHADOWSTEPS; // points toward camera
 
 			shadStart += (thisQuadOffset + blueNoiseSample.x * 0.25) * shadStep;
+			
 
-			for (uint i = 0; i < UNDERWATERSHADOWSTEPS ; i++){
+			
+			//fragColor.rgba = vec4(vec3(causticsOffset),1.0); return;
+			for (uint i = 0; i < UWSHADOWSTEPS ; i++){
 				uwShadowRays.w += textureProj(shadowTex, shadStart, -2).r; // 1 for lit, 0 
 				shadStart += shadStep;
 			}
@@ -1422,7 +1430,7 @@ void main(void)
 			// Special sauce PQM
 			uwShadowRays.w = quadGatherWeighted(uwShadowRays.w);
 			// Discount by # rays
-			uwShadowRays.w /= UNDERWATERSHADOWSTEPS;
+			uwShadowRays.w /= UWSHADOWSTEPS;
 			// half it a little bit:
 			uwShadowRays.a = (1.0 - uwShadowRays.w) ;
 			// This was Floris's idea, to add a bit of additional surface shadow
