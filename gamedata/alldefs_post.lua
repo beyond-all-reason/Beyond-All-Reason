@@ -2382,9 +2382,9 @@ function UnitDef_Post(name, uDef)
 			uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100
 		
 		-- T2 cons are priced as t1.5
-		elseif name == "armack" or name == "armacv" or name == "armaca" or name == "armcs"
-		or name == "corack" or name == "coracv" or name == "coraca" or name == "corcs"
-		or name == "legack" or name == "legacv" or name == "legaca" or name == "legcs"
+		elseif name == "armack" or name == "armacv" or name == "armaca" or name == "armacsub"
+		or name == "corack" or name == "coracv" or name == "coraca" or name == "coracsub"
+		or name == "legack" or name == "legacv" or name == "legaca" or name == "legacsub"
 		then
 			uDef.metalcost = uDef.metalcost - 200
 			uDef.energycost = uDef.energycost - 2000
