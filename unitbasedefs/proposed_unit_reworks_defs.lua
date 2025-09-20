@@ -109,6 +109,10 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.metalcost = math.ceil(uDef.metalcost * 1.1 / 5) * 5
 	end
 
+	if name == "armspy" or name == "corspy" then
+		uDef.buildtime = 12000
+	end
+
 	return uDef
 end
 
