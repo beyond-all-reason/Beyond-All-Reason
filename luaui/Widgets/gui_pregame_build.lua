@@ -70,6 +70,11 @@ local FORCE_SHOW_REASON = "gui_pregame_build"
 local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
 
+	-- Communicate selected unit to quick start UI via WG
+	if preGamestartPlayer then
+		WG["pregame-unit-selected"] = uDefID or -1
+	end
+
 	if WG["buildinggrid"] ~= nil and WG["buildinggrid"].setForceShow ~= nil then
 		WG["buildinggrid"].setForceShow(FORCE_SHOW_REASON, uDefID ~= nil, uDefID)
 	end
@@ -475,7 +480,10 @@ function widget:DrawWorld()
 
 		-- Draw start units build radius
 		gl.Color(buildDistanceColor)
-		gl.DrawGroundCircle(sx, sy, sz, UnitDefs[startDefID].buildDistance, 40)
+		local buildDistance = Spring.GetGameRulesParam("overridePregameBuildDistance") or UnitDefs[startDefID].buildDistance
+		if buildDistance then
+			gl.DrawGroundCircle(sx, sy, sz, buildDistance, 40)
+		end
 	end
 
 	-- Check for faction change
@@ -563,7 +571,7 @@ function widget:GameFrame(n)
 	end
 
 	-- handle the pregame build queue
-	if not (n <= 90 and n > 1) then
+	if not (n <= 60 and n > 1) then
 		return
 	end
 

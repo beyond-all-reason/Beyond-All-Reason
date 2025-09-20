@@ -1775,6 +1775,11 @@
 		"quickShareToTarget": {
 			"noTarget": "No target selected",
 			"shareTo": "Share to: %{playerColor}%{player}"
+		},
+		"quickStart": {
+			"placeDiscountedFactory": "First factory is discounted",
+			"preGameResources": "Pre-Game Resources",
+			"remainingResourcesWarning": "Left over pre-game resources will be allocated into structures"
 		}
 	}
 }

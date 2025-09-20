@@ -1,0 +1,29 @@
+<rml>
+<head>
+    <link type="text/rcss" href="gui_quick_start.rcss" />
+</head>
+<body>
+    <div id="qs-root" class="qs-root">
+        <div id="qs-juice-overlay" class="qs-juice-overlay">
+            <div id="qs-juice-container" class="qs-juice-container">
+                <div id="qs-juice-gradient-overlay" class="qs-juice-gradient-overlay"></div>
+                <div id="qs-juice-header" class="qs-juice-header"></div>
+                <div id="qs-juice-bar" class="qs-juice-bar">
+                    <div id="qs-juice-track" class="qs-juice-track"></div>
+                    <div id="qs-juice-fill" class="qs-juice-fill"></div>
+                    <div id="qs-juice-projected" class="qs-juice-projected"></div>
+                    <div class="qs-juice-text">
+                        <span id="qs-juice-remaining">0</span>
+                        <span> / </span>
+                        <span id="qs-juice-total">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="qs-warning-text" class="qs-warning-text"></div>
+        <div id="qs-factory-section" class="qs-factory-section">
+            <div id="qs-factory-text" class="qs-factory-text"></div>
+        </div>
+    </div>
+</body>
+</rml>
