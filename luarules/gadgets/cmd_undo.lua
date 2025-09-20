@@ -13,7 +13,7 @@ function gadget:GetInfo()
 	}
 end
 
-if Spring.GetTeamList()-1 <= 64 then
+if #Spring.GetTeamList()-1 <= 64 then
 	return
 end
 
