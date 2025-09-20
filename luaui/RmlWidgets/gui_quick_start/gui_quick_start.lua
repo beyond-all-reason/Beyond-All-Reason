@@ -239,6 +239,121 @@ local function updateDataModel(force)
 	end
 end
 
+local function checkBuildQueueAffordability(buildQueue)
+	local myTeamID = spGetMyTeamID() or 0
+	local gameRules = getGameRulesParams(myTeamID)
+	local affordabilityResults = {}
+	
+	local juiceRemaining = gameRules.juiceTotal
+	local firstFactoryPlaced = false
+	local shouldApplyDiscount = shouldApplyFactoryDiscount
+	
+	local commanderX, commanderY, commanderZ = Spring.GetTeamStartPosition(myTeamID)
+	if not commanderX or not commanderZ then
+		commanderX, commanderY, commanderZ = 0, 0, 0
+	end
+	
+	if not buildQueue or #buildQueue == 0 then
+		return affordabilityResults
+	end
+	
+	for i = 1, #buildQueue do
+		local item = buildQueue[i]
+		local defID = item[1]
+		local isAffordable = false
+		
+		if defID and defID > 0 and UnitDefs[defID] then
+			local buildX, buildZ = item[2], item[4]
+			
+			if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
+				local juiceCost = calculateJuiceWithDiscount(defID, gameRules.factoryDiscountAmount,
+					shouldApplyDiscount, not firstFactoryPlaced)
+				
+				if juiceRemaining >= juiceCost then
+					isAffordable = true
+					juiceRemaining = juiceRemaining - juiceCost
+					
+					if UnitDefs[defID].isFactory and not firstFactoryPlaced then
+						firstFactoryPlaced = true
+					end
+				end
+			end
+		end
+		
+		affordabilityResults[i] = isAffordable
+	end
+	
+	return affordabilityResults
+end
+
+local function getBuildQueueAlphaValues(buildQueue, selectedBuildData)
+	local myTeamID = spGetMyTeamID() or 0
+	local gameRules = getGameRulesParams(myTeamID)
+	local alphaResults = {
+		queueAlphas = {},
+		selectedAlpha = 1.0
+	}
+	
+	local juiceRemaining = gameRules.juiceTotal
+	local firstFactoryPlaced = false
+	local shouldApplyDiscount = shouldApplyFactoryDiscount
+	
+	local commanderX, commanderY, commanderZ = Spring.GetTeamStartPosition(myTeamID)
+	if not commanderX or not commanderZ then
+		commanderX, commanderY, commanderZ = 0, 0, 0
+	end
+	
+	-- Process build queue
+	if buildQueue and #buildQueue > 0 then
+		for i = 1, #buildQueue do
+			local item = buildQueue[i]
+			local defID = item[1]
+			local alpha = 0.3 -- Default to translucent
+			
+			if defID and defID > 0 and UnitDefs[defID] then
+				local buildX, buildZ = item[2], item[4]
+				
+				if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
+					local juiceCost = calculateJuiceWithDiscount(defID, gameRules.factoryDiscountAmount,
+						shouldApplyDiscount, not firstFactoryPlaced)
+					
+					if juiceRemaining >= juiceCost then
+						alpha = 1.0 -- Fully opaque if affordable
+						juiceRemaining = juiceRemaining - juiceCost
+						
+						if UnitDefs[defID].isFactory and not firstFactoryPlaced then
+							firstFactoryPlaced = true
+						end
+					end
+				end
+			end
+			
+			alphaResults.queueAlphas[i] = alpha
+		end
+	end
+	
+	-- Process selected building if provided
+	if selectedBuildData and selectedBuildData[1] and selectedBuildData[1] > 0 then
+		local defID = selectedBuildData[1]
+		local buildX, buildZ = selectedBuildData[2], selectedBuildData[4]
+		
+		if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
+			local juiceCost = calculateJuiceWithDiscount(defID, gameRules.factoryDiscountAmount,
+				shouldApplyDiscount, not firstFactoryPlaced)
+			
+			if juiceRemaining >= juiceCost then
+				alphaResults.selectedAlpha = 1.0 -- Fully opaque if affordable
+			else
+				alphaResults.selectedAlpha = 0.3 -- Translucent if not affordable
+			end
+		else
+			alphaResults.selectedAlpha = 0.3 -- Translucent if out of range
+		end
+	end
+	
+	return alphaResults
+end
+
 function widget:Initialize()
 	widgetState.rmlContext = RmlUi.GetContext("shared")
 	if not widgetState.rmlContext then
@@ -272,6 +387,12 @@ function widget:Initialize()
 		WG['topbar'].setResourceBarsVisible(false)
 	end
 
+	-- Expose affordability checking functions to other widgets
+	WG["quick-start-affordability"] = {
+		checkBuildQueueAffordability = checkBuildQueueAffordability,
+		getBuildQueueAlphaValues = getBuildQueueAlphaValues
+	}
+
 	updateDataModel(true)
 	return true
 end
@@ -281,6 +402,9 @@ function widget:Shutdown()
 	if WG['topbar'] and WG['topbar'].setResourceBarsVisible then
 		WG['topbar'].setResourceBarsVisible(true)
 	end
+
+	-- Clean up WG function
+	WG["quick-start-affordability"] = nil
 
 	if widgetState.rmlContext and widgetState.dmHandle then
 		widgetState.rmlContext:RemoveDataModel(MODEL_NAME)

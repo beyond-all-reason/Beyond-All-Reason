@@ -251,15 +251,15 @@ local function removeUnitShape(id)
 	end
 end
 
-local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID)
+local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID, alpha)
 	if unitshapes[id] then
 		removeUnitShape(id)
 	end
-	unitshapes[id] = WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, 1, teamID, nil, nil)
+	unitshapes[id] = WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha or 1, teamID, nil, nil, nil)
 	return unitshapes[id]
 end
 
-local function DrawBuilding(buildData, borderColor, drawRanges)
+local function DrawBuilding(buildData, borderColor, drawRanges, alpha)
 	local bDefID, bx, by, bz, facing = buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]
 	local bw, bh = GetBuildingDimensions(bDefID, facing)
 
@@ -296,7 +296,7 @@ local function DrawBuilding(buildData, borderColor, drawRanges)
 			.. buildData[4]
 			.. "_"
 			.. buildData[5]
-		addUnitShape(id, buildData[1], buildData[2], buildData[3], buildData[4], buildData[5] * (math.pi / 2), myTeamID)
+		addUnitShape(id, buildData[1], buildData[2], buildData[3], buildData[4], buildData[5] * (math.pi / 2), myTeamID, alpha)
 	end
 end
 
@@ -510,16 +510,24 @@ function widget:DrawWorld()
         prevStartDefID = startDefID
 	end
 
+	-- Get alpha values for all buildings from quick start widget
+	local alphaResults = { queueAlphas = {}, selectedAlpha = 0.5 }
+	if WG["quick-start-affordability"] and WG["quick-start-affordability"].getBuildQueueAlphaValues then
+		alphaResults = WG["quick-start-affordability"].getBuildQueueAlphaValues(buildQueue, selBuildData)
+	end
+
 	-- Draw all the buildings
 	local queueLineVerts = startChosen and { { v = { sx, sy, sz } } } or {}
 	for b = 1, #buildQueue do
 		local buildData = buildQueue[b]
 
 		if buildData[1] > 0 then
+			local alpha = alphaResults.queueAlphas[b] or 0.5
+
 			if selBuildData and DoBuildingsClash(selBuildData, buildData) then
-				DrawBuilding(buildData, borderClashColor)
+				DrawBuilding(buildData, borderClashColor, false, alpha)
 			else
-				DrawBuilding(buildData, borderNormalColor)
+				DrawBuilding(buildData, borderNormalColor, false, alpha)
 			end
 		end
 
@@ -534,6 +542,8 @@ function widget:DrawWorld()
 
 	-- Draw selected building
 	if selBuildData then
+		local selectedAlpha = alphaResults.selectedAlpha or 0.5
+		
 		-- mmm, convoluted logic. Pregame handling is hell
 		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
 		local testOrder = spTestBuildOrder(
@@ -545,15 +555,15 @@ function widget:DrawWorld()
 		) ~= 0
 		if not isMex then
 			local color = testOrder and borderValidColor or borderInvalidColor
-			DrawBuilding(selBuildData, color, true)
+			DrawBuilding(selBuildData, color, true, selectedAlpha)
 		elseif isMex then
 			if WG.ExtractorSnap.position or metalMap then
-				DrawBuilding(selBuildData, borderValidColor, true)
+				DrawBuilding(selBuildData, borderValidColor, true, selectedAlpha)
 			else
-				DrawBuilding(selBuildData, borderInvalidColor, true)
+				DrawBuilding(selBuildData, borderInvalidColor, true, selectedAlpha)
 			end
 		else
-			DrawBuilding(selBuildData, borderValidColor, true)
+			DrawBuilding(selBuildData, borderValidColor, true, selectedAlpha)
 		end
 	end
 
