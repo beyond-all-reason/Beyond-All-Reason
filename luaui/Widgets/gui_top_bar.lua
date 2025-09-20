@@ -134,6 +134,7 @@ local widgetScale = (0.80 + (vsx * vsy / 6000000))
 local xPos = math_floor(vsx * relXpos)
 local showButtons = true
 local autoHideButtons = false
+local showResourceBars = true
 local widgetSpaceMargin, bgpadding, RectRound, TexturedRectRound, UiElement, UiButton, UiSliderKnob
 local updateRes = { metal = {false,false,false,false}, energy = {false,false,false,false} }
 
@@ -507,6 +508,10 @@ local function drawResbarStorage(res)
 end
 
 local function updateResbarText(res, force)
+	if not showResourceBars then
+		return
+	end
+	
 	-- used to flashing resbar area (tinting)
 	if not dlistResbar[res][4] or force then
 		if dlistResbar[res][4] then
@@ -645,6 +650,10 @@ local function drawResbarValue(res)
 end
 
 local function updateResbar(res)
+	if not showResourceBars then
+		return
+	end
+	
 	local area = resbarArea[res]
 
 	if dlistResbar[res][1] then
@@ -795,6 +804,10 @@ local function updateResbar(res)
 end
 
 local function updateResbarValues(res, update)
+	if not showResourceBars then
+		return
+	end
+	
 	if update then
 		local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2] -- only read values if update is needed
 		local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1] -- only read values if update is needed
@@ -1193,6 +1206,10 @@ function widget:Update(dt)
 end
 
 local function drawResBars()
+	if not showResourceBars then
+		return
+	end
+	
 	glPushMatrix()
 
 	local update = false
@@ -1230,12 +1247,20 @@ local function drawResBars()
 		if dlistResValuesBar[res] then
 			glCallList(dlistResValuesBar[res]) -- res bar
 		end
-		glCallList(dlistResbar[res][2]) -- sliders
+		if dlistResbar[res][2] then
+			glCallList(dlistResbar[res][2]) -- sliders
+		end
 
 		if not useRenderToTexture then
-			glCallList(dlistResValues[res])	-- res bar value
-			glCallList(dlistResbar[res][6]) -- storage
-			glCallList(dlistResbar[res][3]) -- pull, expense, income
+			if dlistResValues[res] then
+				glCallList(dlistResValues[res])	-- res bar value
+			end
+			if dlistResbar[res][6] then
+				glCallList(dlistResbar[res][6]) -- storage
+			end
+			if dlistResbar[res][3] then
+				glCallList(dlistResbar[res][3]) -- pull, expense, income
+			end
 		end
 		if showOverflowTooltip[res] and dlistResbar[res][7] then glCallList(dlistResbar[res][7]) end -- overflow warning
 	end
@@ -1269,13 +1294,23 @@ local function drawResBars()
 		if dlistResValuesBar[res] then
 			glCallList(dlistResValuesBar[res]) -- res bar
 		end
-		glCallList(dlistEnergyGlow)
-		glCallList(dlistResbar[res][2]) -- sliders
+		if dlistEnergyGlow then
+			glCallList(dlistEnergyGlow)
+		end
+		if dlistResbar[res][2] then
+			glCallList(dlistResbar[res][2]) -- sliders
+		end
 
 		if not useRenderToTexture then
-			glCallList(dlistResValues[res])	-- res bar value
-			glCallList(dlistResbar[res][6]) -- storage
-			glCallList(dlistResbar[res][3]) -- pull, expense, income
+			if dlistResValues[res] then
+				glCallList(dlistResValues[res])	-- res bar value
+			end
+			if dlistResbar[res][6] then
+				glCallList(dlistResbar[res][6]) -- storage
+			end
+			if dlistResbar[res][3] then
+				glCallList(dlistResbar[res][3]) -- pull, expense, income
+			end
 		end
 		if showOverflowTooltip[res] and dlistResbar[res][7] then glCallList(dlistResbar[res][7]) end -- overflow warning
 	end
@@ -1522,11 +1557,13 @@ local function drawQuitScreen()
 end
 
 local function drawUiBackground()
-	if resbarArea.energy[1] then
-		UiElement(resbarArea.energy[1], resbarArea.energy[2], resbarArea.energy[3], resbarArea.energy[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
-	end
-	if resbarArea.metal[1] then
-		UiElement(resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
+	if showResourceBars then
+		if resbarArea.energy[1] then
+			UiElement(resbarArea.energy[1], resbarArea.energy[2], resbarArea.energy[3], resbarArea.energy[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
+		end
+		if resbarArea.metal[1] then
+			UiElement(resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
+		end
 	end
 	if comsArea[1] then
 		UiElement(comsArea[1], comsArea[2], comsArea[3], comsArea[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
@@ -1546,7 +1583,7 @@ local function drawUi()
 	if showButtons and dlistButtons then
 		glCallList(dlistButtons)
 	end
-	if dlistResbar.energy and dlistResbar.energy[1] then
+	if showResourceBars and dlistResbar.energy and dlistResbar.energy[1] then
 		glCallList(dlistResbar.energy[1])
 		glCallList(dlistResbar.metal[1])
 	end
@@ -2159,6 +2196,15 @@ function widget:Initialize()
 	WG['topbar'].updateTopBarEnergy = function(value)
 		draggingConversionIndicatorValue = value
 		updateResbar('energy')
+	end
+
+	WG['topbar'].setResourceBarsVisible = function(visible)
+		showResourceBars = visible
+		refreshUi = true
+	end
+
+	WG['topbar'].getResourceBarsVisible = function()
+		return showResourceBars
 	end
 
 	updateAvgWind()
