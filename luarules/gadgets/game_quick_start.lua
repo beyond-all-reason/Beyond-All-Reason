@@ -24,6 +24,9 @@ if not shouldRunGadget then return false end
 local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" or 
 	(modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
 
+--Todo
+--mexes aren't removed from commander build queue, original coordinate placement isn't being used
+
 ----------------------------Configuration----------------------------------------
 local FACTORY_DISCOUNT_MULTIPLIER = 0.90 -- The factory discount will be the juice cost of the cheapest listed factory multiplied by this value.
 

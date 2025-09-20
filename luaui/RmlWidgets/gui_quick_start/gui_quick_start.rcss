@@ -69,6 +69,30 @@
 	z-index: 2;
 }
 
+.qs-juice-percentage-left {
+	position: absolute;
+	left: 95px;
+	bottom: 18px;
+	font-size: 16px;
+	font-weight: bold;
+	color:rgb(255, 255, 255);
+	font-effect: outline(1px black);
+	text-align: center;
+	z-index: 3;
+}
+
+.qs-juice-percentage-right {
+	position: absolute;
+	right: 95px;
+	bottom: 18px;
+	font-size: 16px;
+	font-weight: bold;
+	color:rgb(255, 255, 255);
+	font-effect: outline(1px black);
+	text-align: center;
+	z-index: 3;
+}
+
 .qs-juice-bar {
 	position: relative;
 	width: 598px;

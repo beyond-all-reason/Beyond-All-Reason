@@ -238,6 +238,15 @@ local function updateDataModel(force)
 			tostring(math.floor(widgetState.dmHandle.juiceRemaining or 0)))
 		updateUIElementText(widgetState.document, "qs-juice-total",
 			tostring(math.floor(widgetState.dmHandle.juiceTotal or 0)))
+		updateUIElementText(widgetState.document, "qs-juice-remaining-percent",
+			string.format("%.1f", widgetState.dmHandle.juicePercent or 0) .. "%")
+		local projectedPercent = widgetState.dmHandle.juiceProjectedPercent or 0
+		if projectedPercent > 0 then
+			updateUIElementText(widgetState.document, "qs-juice-cost-percent",
+				"-" .. string.format("%.1f", projectedPercent) .. "%")
+		else
+			updateUIElementText(widgetState.document, "qs-juice-cost-percent", "")
+		end
 	end
 end
 
