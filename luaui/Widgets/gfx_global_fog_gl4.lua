@@ -201,7 +201,7 @@ local definesSlidersParamsList = {
 	--{name = 'HEIGHTDENSITY', default = 2, min = 1, max = 10, digits = 2, tooltip = 'How quickly height fog reaches its max density'},
 	{name = 'SUNCHROMASHIFT', default = 0.2,  min = -0.5, max = 1, digits = 2, tooltip = 'How much colors are shifted towards sun', group = "global"},
 	{name = 'MINIMAPSCATTER', default = 0.1, min = -0.5, max = 0.5, digits = 2, tooltip = 'How much the minimap color sdditively back-scatters into fog color, 0 is off', group = "global"},
-	{name = 'EASEGLOBAL', default = 2, min = 1, max = 50, digits = 2, tooltip = 'How much to reduce global fog close to camera', group = "global"},
+	{name = 'DISTANCEFOGPOWER', default = 4, min = 0, max = 10, digits = 2, tooltip = 'How strongly distance fog should come in', group = "distance"},
 	{name = 'EASEHEIGHT', default = 1, min = 0.0, max = 5, digits = 2, tooltip = 'How much to reduce height-based fog close to camera', group = "global"},
 	{name = 'COMBINESHADER', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Run the combine shader if RESOLUTION > 1', group = "global"},
 	{name = 'ENABLED', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Dont do anything', group = "global"},
@@ -300,7 +300,7 @@ local packedNoise =  "LuaUI/images/noisetextures/worley3_256x128x64_RBGA_LONG." 
 
 
 local fogPlaneVAO 
-local resolution = 4  -- number of quads on each edge of fog plane
+local resolution = 4  -- number of quads on each edge of fog plane. No point in making this higher at the moment
 local groundFogShader
 
 local combineShader
@@ -1018,6 +1018,7 @@ function widget:Initialize()
 	-- Get the toggle button and sliders div
 	local toggleButton = document:GetElementById("toggleSliders")
 	local slidersDiv = document:GetElementById("sliders")
+	local buttonsDiv = document:GetElementById("buttons")
 
 	if toggleButton and slidersDiv then
 		toggleButton:AddEventListener('click', function(event)
@@ -1025,9 +1026,11 @@ function widget:Initialize()
 			
 			if slidersVisible then
 				slidersDiv.style.display = "flex"
+				buttonsDiv.style.display = "flex"
 				toggleButton.inner_rml = "Hide"
 			else
 				slidersDiv.style.display = "none"
+				buttonsDiv.style.display = "none"
 				toggleButton.inner_rml = "Show"
 			end
 		end)

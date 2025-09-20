@@ -123,12 +123,12 @@ float frequency;
 		return realdist;
 	}
 	// This will bound within the min/max values, with feathering along the w coordinates of CloudVolume
-	float CloudVoumeWeight(vec2 worldpos){
+	float CloudVolumeWeight(vec2 worldpos){
 		vec2 cloudDist = max(vec2(0), max(cloudVolumeMin.xz - worldpos, worldpos - cloudVolumeMax.xz));
 		float cloudEdgeDistanceWeight = sqrt(dot(cloudDist, cloudDist));
 		cloudEdgeDistanceWeight = ((cloudVolumeMax.w + 1) - cloudEdgeDistanceWeight)/(1 +cloudVolumeMax.w);
-		cloudEdgeDistanceWeight = clamp(cloudEdgeDistanceWeight,0,1);
-		cloudEdgeDistanceWeight = sqrt(cloudEdgeDistanceWeight);
+		//cloudEdgeDistanceWeight = clamp(cloudEdgeDistanceWeight,0,1);
+		cloudEdgeDistanceWeight = smoothstep(0.0, 1.0, cloudEdgeDistanceWeight);
 		return cloudEdgeDistanceWeight;
 	}
 	
@@ -1034,7 +1034,7 @@ float fastQuadTexture2DLookupInd(sampler2D t, vec2 Pos, vec2 stepsize, vec4 weig
 ////-----------------------------STATIC DEFINES-----------------
 // These defines were empirically determined to be the kind that its not worth touching
 
-#define BLUENOISESTRENGTH 1.1
+#define BLUENOISESTRENGTH 1.0
 #define NOISESKEW vec3(0.21, 0.32, 0.26)
 //#define NOISESKEW vec3(0.0, 0.1, 0.0)
 #define NOISESCALE1024 NOISESCALE/1024.0
@@ -1175,9 +1175,10 @@ vec4 WorldToShadowSpace(vec3 worldPos){
 		//return clamp(textureProj(shadowTex, shadowVertexPos), 0.0, 1.0);
 }
 
-////----------------------------------------------------------------
+////0000000000000000000000000000000000000000000000000000000000000000
 ////------------------------------MAIN------------------------------
-////----------------------------------------------------------------
+////0000000000000000000000000000000000000000000000000000000000000000
+
 
 #line 33000
 void main(void)
@@ -1188,59 +1189,54 @@ void main(void)
 	
 	// ----------------- BEGIN UNIVERSAL PART ------------------------------ 
 	#if 1 
-	#line 33200
-	quadVector = quadGetQuadVector(gl_FragCoord.xy);
+		#line 33200
+		quadVector = quadGetQuadVector(gl_FragCoord.xy);
 
-	//fragColor.rgba = debugQuad(quadVector);return;
-	// Note that the offsets are not in ascending order. This has the fun side effect of being bluer in noise
-	float thisQuadOffset = dot (quadGetThreadMask(quadVector), vec4(0.5, 0.25, 0.0, 0.75)); 
+		//fragColor.rgba = debugQuad(quadVector);return;
+		// Note that the offsets are not in ascending order. This has the fun side effect of being bluer in noise
+		float thisQuadOffset = dot (quadGetThreadMask(quadVector), vec4(0.5, 0.25, 0.0, 0.75)); 
 
-	// ---------- Calculate the UV coordinates of the depth textures ---------
-  
-	#if (RESOLUTION == 2)
-		// Exploit hardware linear sampling in best case
-		vec2 screenUV = sampleUVs.zw;
-		// The following clamp is needed cause the UV's of gbuffers arent clamped for some reason
-		screenUV = clamp(screenUV, vec2(0.5/VSX, 0.5/VSY), vec2(1.0 - 0.5/VSY,1.0 - 0.5/VSY));
-	#else
-		vec2 screenUV = gl_FragCoord.xy * RESOLUTION / viewGeometry.xy;
-	#endif
-
-
-
-	// clamp the UV's of deferred buffer fetches as they are not edge repeats.
-	//screenUV = clamp(screenUV, vec2(0.5/VSX, 0.5/VSY), vec2(1.0) - vec2(0.5/VSX, 0.5/VSY));
-
-	// Sample the depth buffers, and choose whichever is closer to the screen (TexelFetch is no better in perf)
-	float mapdepth = texture(mapDepths, screenUV).x; 
-	float modeldepth = texture(modelDepths, screenUV).x;
-
-	#if 0
-		// This is the debugging yellow row that should be present in bottom left
-		if (any(lessThan(abs(gl_FragCoord.xy - 2.5) ,vec2( 0.5)))) {
-			fragColor.rgba = vec4(1,1,0,1); return;
-		}
-		// This is the debug grid
-		if (any(lessThan(fract(gl_FragCoord.xy / 64.0) ,vec2( 1.0/64.0)))) {
-			fragColor.rgba = vec4(0,step( modeldepth, 0.9999),0,1); return;
-		}
-	#endif
-	mapdepth = min(mapdepth, modeldepth);
-
-
-	// Transform screen-space depth to world-space position
-	vec4 mapWorldPos =  vec4( vec3(screenUV.xy * 2.0 - 1.0, mapdepth),  1.0);
-	mapWorldPos = cameraViewProjInv * mapWorldPos;
-	mapWorldPos.xyz = mapWorldPos.xyz / mapWorldPos.w; // YAAAY this works!
-
-	vec3 trueMapWorldPos = mapWorldPos.xyz;
+		// ---------- Calculate the UV coordinates of the depth textures ---------
 	
-	// if mapworldpos is below 0, then pull it back to waterlevel
-	vec3 mapFromCam = mapWorldPos.xyz - camPos;
-	if (mapWorldPos.y < 0){
-		float abovewaterfraction = camPos.y / abs(mapFromCam.y);
-		mapWorldPos.xyz = (mapFromCam.xyz * abovewaterfraction) + camPos;
-	}
+		#if (RESOLUTION == 2)
+			// Exploit hardware linear sampling in best case
+			vec2 screenUV = sampleUVs.zw;
+			// The following clamp is needed cause the UV's of gbuffers arent clamped for some reason
+			screenUV = clamp(screenUV, vec2(0.5/VSX, 0.5/VSY), vec2(1.0 - 0.5/VSY,1.0 - 0.5/VSY));
+		#else
+			vec2 screenUV = gl_FragCoord.xy * RESOLUTION / viewGeometry.xy;
+		#endif
+
+		// Sample the depth buffers, and choose whichever is closer to the screen (TexelFetch is no better in perf)
+		float mapdepth = texture(mapDepths, screenUV).x; 
+		float modeldepth = texture(modelDepths, screenUV).x;
+
+		#if 0
+			// This is the debugging yellow row that should be present in bottom left
+			if (any(lessThan(abs(gl_FragCoord.xy - 2.5) ,vec2( 0.5)))) {
+				fragColor.rgba = vec4(1,1,0,1); return;
+			}
+			// This is the debug grid
+			if (any(lessThan(fract(gl_FragCoord.xy / 64.0) ,vec2( 1.0/64.0)))) {
+				fragColor.rgba = vec4(0,step( modeldepth, 0.9999),0,1); return;
+			}
+		#endif
+		mapdepth = min(mapdepth, modeldepth);
+
+
+		// Transform screen-space depth to world-space position
+		vec4 mapWorldPos =  vec4( vec3(screenUV.xy * 2.0 - 1.0, mapdepth),  1.0);
+		mapWorldPos = cameraViewProjInv * mapWorldPos;
+		mapWorldPos.xyz = mapWorldPos.xyz / mapWorldPos.w; // YAAAY this works!
+
+		vec3 trueMapWorldPos = mapWorldPos.xyz;
+		
+		// if mapworldpos is below 0, then pull it back to waterlevel
+		vec3 mapFromCam = mapWorldPos.xyz - camPos;
+		if (mapWorldPos.y < 0){
+			float abovewaterfraction = camPos.y / abs(mapFromCam.y);
+			mapWorldPos.xyz = (mapFromCam.xyz * abovewaterfraction) + camPos;
+		}
 	#endif 
 	
 	// rayStart is the distant point through fog 
@@ -1251,35 +1247,31 @@ void main(void)
 	
 	float lengthMapFromCam = length(mapFromCam);
 	
+	// ----------------- NOISE UNIVERSAL PART ------------------------------
 	vec2 blueNoiseSample = textureLod(blueNoise64,gl_FragCoord.xy/64, 0).xy * BLUENOISESTRENGTH;
 	
-	
 	float noiseScale = NOISESCALE;
-	//time = fract(time/16384) * 16384; 
-	// this must be moved to lua side
 	// we must ensure that this is rolled over, especially the time part at units of 1
 	noiseOffset = vec3(windFractFull.x,  time * RISERATE, windFractFull.y ) * NOISESCALE1024;
 	noiseOffset.y = fract(noiseOffset.y); // time can only be rolled over here
 
 	// ----------------- END UNIVERSAL PART -------------------------------
 	
-	// ----------------- BEGIN DISTANCE-BASED FOG ------------------------------
-		#line 33400
-		// calculate the distance fog density
-		float distanceFogAmount = lengthMapFromCam;
-		
-		// Modulate distance fog density with angle of ray compared to sky?
-		vec3 camToMapNorm = mapFromCam / lengthMapFromCam;
-		float rayUpness = 1.0;
-		if (camToMapNorm.y > 0) {
-			rayUpness = pow(1.0 - camToMapNorm.y, 8.0);
-			distanceFogAmount *= rayUpness;
-		}
-		float distanceFogAmountExp = exp(-1 * distanceFogAmount * 0.0005 * distanceFogColor.a);
-		// power easing distance fog
-		distanceFogAmountExp =  pow(1.0 - distanceFogAmountExp, EASEGLOBAL);
-		//fragColor.rgba = vec4(distanceFogColor.rgb, distanceFogAmountExp);	return; // OUTPUT DISTANCE-BASED FOG
-	// ----------------- END DISTANCE-BASED FOG ------------------------------
+// ----------------- BEGIN DISTANCE-BASED FOG ------------------------------
+	#line 33400
+	// Modulate distance fog density with angle of ray compared to sky?
+	vec3 camToMapNorm = mapFromCam / lengthMapFromCam;
+	float rayUpness = 1.0;
+	if (camToMapNorm.y > 0) {
+		rayUpness = pow(1.0 - camToMapNorm.y, 8.0);
+	}
+	float distanceFogAmountAlpha = exp(-1 * 0.0005 * lengthMapFromCam * rayUpness * distanceFogColor.a);
+	// Use a large power here to ease the transition for almost no fog close up. Looks way better in general
+	distanceFogAmountAlpha =  pow(1.0 - distanceFogAmountAlpha, DISTANCEFOGPOWER);
+
+	//Uncomment to test output distance fog:
+	//fragColor.rgba = vec4(distanceFogColor.rgb * distanceFogAmountAlpha, distanceFogAmountAlpha);	return; 
+// ----------------- END DISTANCE-BASED FOG ------------------------------
 	
 	
 	// ----------------- BEGIN HEIGHT-BASED FOG -------------------------------
@@ -1474,29 +1466,17 @@ void main(void)
 	vec3 cloudRayEnd   = camPos + nearDist * cloudRayDir; // Near point
 	vec3 cloudRayStart = camPos + farDist  * cloudRayDir; // Far Point
 
-	lengthMapFromCam = length(camPos - mapWorldPos.xyz);
 	if (farDist > lengthMapFromCam) cloudRayStart = mapWorldPos.xyz; // map is closer than back of cloud box
 	if (nearDist < 0) cloudRayEnd = camPos; // we are in the box
 	if (nearDist > lengthMapFromCam) cloudRayEnd = mapWorldPos.xyz; // the map is closer than the front of the cloud box
 	
 	if (step(nearDist, farDist) * step(0.0,farDist) < 0.5) cloudRayStart = cloudRayEnd; // cant remember what clipping this solves
-	/*
-	float cloudEdgeDistanceWeight = dot(max(vec3(0),vec3( 
-		CloudVoumeWeight((cloudRayStart.xz + cloudRayEnd.xz) * 0.5),
-		CloudVoumeWeight((cloudRayStart.xz ) ),
-		CloudVoumeWeight((cloudRayEnd.xz) ))),
-		vec3(0.33))	;
-	*/
 
-	float cloudEdgeDistanceWeight =	CloudVoumeWeight((cloudRayStart.xz + cloudRayEnd.xz) * 0.5);
-	cloudEdgeDistanceWeight = smoothstep(0.0,1.0,cloudEdgeDistanceWeight);
+
+	float cloudEdgeDistanceWeight =	CloudVolumeWeight((cloudRayStart.xz + cloudRayEnd.xz) * 0.5);
+	//cloudEdgeDistanceWeight = smoothstep(0.0,1.0,cloudEdgeDistanceWeight);
 	//printf(cloudEdgeDistanceWeight);
-	//vec3 rayStartFromBox = abs(cloudRayEnd - cloudBoxCenter) - cloudBoxSize;
-	//float rayStartDistFromBox = length(max(rayStartFromBox,0.0)) + min(max(cloudBoxSize.x,max(cloudBoxSize.y,cloudBoxSize.z)),0.0);
-	//fragColor.rgba = vec4 (fract((cloudRayEnd + 0.5) /1024), step(nearDist, farDist) * step(0.0,farDist));
-	//fragColor.rgba = vec4 (fract((vec3(cloudRayStart) + 0.5) /256), step(nearDist, farDist) * step(0.0,farDist));
-	//fragColor.rgba = vec4(fract((cloudRayStart - cloudRayEnd) + 0.5) /1024, length(cloudRayStart - cloudRayEnd) * 0.1); return;
-	
+
 	float cloudRayLength = length(cloudRayStart-cloudRayEnd);
 	if (cloudEdgeDistanceWeight <= 0) cloudRayLength = 0;
 
@@ -1591,7 +1571,7 @@ void main(void)
 				float cloudTopDistanceMultiplier = (cloudVolumeMax.y - cloudShadowRayGroundPos.y) / sunDir.y;
 				vec3 cloudShadowRayEndStep = cloudShadowRayGroundPos + sunDir.xyz * cloudTopDistanceMultiplier;
 				
-				float cloudShadowEdgeDistanceWeight = CloudVoumeWeight((cloudShadowRayStartPos.xz + cloudShadowRayEndStep.xz) * 0.5);
+				float cloudShadowEdgeDistanceWeight = CloudVolumeWeight((cloudShadowRayStartPos.xz + cloudShadowRayEndStep.xz) * 0.5);
 
 				if (cloudShadowEdgeDistanceWeight > 0){
 
@@ -1674,8 +1654,8 @@ void main(void)
 	}
 
 	// 5. Blend distanceFogColor.rgba
-	outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - distanceFogAmountExp);
-	outColor.rgb = mix(outColor.rgb, distanceFogColor.rgb, distanceFogAmountExp);
+	outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - distanceFogAmountAlpha);
+	outColor.rgb = mix(outColor.rgb, distanceFogColor.rgb, distanceFogAmountAlpha);
 
 	//outColor *= 1.5 - outColor.a * 0.5; 
 
