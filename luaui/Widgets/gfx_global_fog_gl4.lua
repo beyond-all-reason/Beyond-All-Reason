@@ -1303,10 +1303,12 @@ if autoreload then
 			local fogdrawus = (1000/newfps - 1000/initfps)
 			local fogdrawlast = (1000/lastfps - 1000/initfps)
 			if fogdrawlast == 0 then fogdrawlast = 0.001 end
-			local debugline = string.format("Fog draw time = %.3f ms, previous = %.3f ms", fogdrawus, fogdrawlast)
+			local debugline = ""
 			if hasprintf then 
-				debugline = debugline .. " (printf ON)"
+				debugline = debugline .. "PRINTF IS ON, PERF NUMBERS MEAN NOTHING!\n"
 			end
+			debugline = debugline .. string.format("Fog draw time = %.3f ms, previous = %.3f ms", fogdrawus, fogdrawlast)
+
 			local percentChange = 100*fogdrawus/fogdrawlast - 100.0
 			debugline = debugline .. "\n" ..  string.format("%.3f delta ms (%.1f%%) since last recompilation \n%.3f ms total draw time\nNo fog FPS = %d, current FPS =%d", fogdrawus-fogdrawlast, percentChange , 1000/newfps, initfps, newfps )
 			gl.Text(debugline,  vsx - 800,  80, 16, "d")

@@ -1268,7 +1268,6 @@ void main(void)
 	float distanceFogAmountAlpha = exp(-1 * 0.0005 * lengthMapFromCam * rayUpness * distanceFogColor.a);
 	// Use a large power here to ease the transition for almost no fog close up. Looks way better in general
 	distanceFogAmountAlpha =  pow(1.0 - distanceFogAmountAlpha, DISTANCEFOGPOWER);
-
 	//Uncomment to test output distance fog:
 	//fragColor.rgba = vec4(distanceFogColor.rgb * distanceFogAmountAlpha, distanceFogAmountAlpha);	return; 
 // ----------------- END DISTANCE-BASED FOG ------------------------------
