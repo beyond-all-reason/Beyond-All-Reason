@@ -1771,7 +1771,7 @@
 		"quickStart": {
 			"placeDiscountedFactory": "First factory is discounted",
 			"preGameResources": "Pre-Game Resources",
-			"remainingResourcesWarning": "Use Pre-Game Resources to instantly spawn structures within range"
+			"remainingResourcesWarning": "Pre-Game Resources will be to instantly spawn structures within range"
 		}
 	}
 }
