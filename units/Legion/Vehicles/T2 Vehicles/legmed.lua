@@ -136,9 +136,10 @@ return {
 				turnrate = 22500,
 				tracks = true,
 				weaponacceleration = 250,
-				weapontimer = 1,
+				weapontimer = 0,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
+				startvelocity = 250,
 				burst = 6,
 				burstrate = 0.25,
 				damage = {
@@ -148,6 +149,7 @@ return {
 				customparams = {
 					projectile_destruction_method = "descend",
 					overrange_distance = 1093,
+					speceffect = "retarget",
 				},
 			},
 			laser = {
@@ -191,12 +193,16 @@ return {
 				maindir = "0 0 1",
 				maxangledif = 270,
 				onlytargetcategory = "SURFACE",
+				fastautoretargeting = true,
+				fastquerypointupdate = true,
 			},
 			[2] = {
 				def = "LEGMED_MISSILE",
 				maindir = "0 0 1",
 				maxangledif = 270,
 				onlytargetcategory = "SURFACE",
+				fastautoretargeting = true,
+				fastquerypointupdate = true,
 				slaveto = 1,
 			},
 		},
