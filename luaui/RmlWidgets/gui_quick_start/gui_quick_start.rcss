@@ -18,7 +18,7 @@
 	display: none;
 }
 
-.qs-juice-overlay {
+.qs-metergy-overlay {
 	position: absolute;
 	left: 0px;
 	top: 0px;
@@ -32,7 +32,7 @@
 	padding-top: 0px;
 }
 
-.qs-juice-container {
+.qs-metergy-container {
 	background-color: rgba(50, 50, 50, 60);
 	border-radius: 6px;
 	border-width: 1.5px;
@@ -49,7 +49,7 @@
 	position: relative;
 }
 
-.qs-juice-gradient-overlay {
+.qs-metergy-gradient-overlay {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -62,7 +62,7 @@
 	pointer-events: none;
 }
 
-.qs-juice-header {
+.qs-metergy-header {
 	font-size: 17px;
 	font-weight: bold;
 	margin-bottom: 0px;
@@ -71,13 +71,13 @@
 	z-index: 2;
 }
 
-.qs-juice-row {
+.qs-metergy-row {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 }
 
-.qs-juice-metal-icon {
+.qs-metergy-metal-icon {
 	width: 32px;
 	height: 32px;
 	z-index: 3;
@@ -91,7 +91,7 @@
 	margin: 0px;
 }
 
-.qs-juice-value-left {
+.qs-metergy-value-left {
 	font-size: 16px;
 	font-weight: bold;
 	color: rgb(255, 255, 255);
@@ -137,7 +137,7 @@
 }
 
 
-.qs-juice-bar {
+.qs-metergy-bar {
 	position: relative;
 	width: 519px;
 	height: 8px;
@@ -151,7 +151,7 @@
 	z-index: 2;
 }
 
-.qs-juice-track {
+.qs-metergy-track {
 	position: absolute;
 	width: 100%;
 	height: 100%;
@@ -159,7 +159,7 @@
 	z-index: 0;
 }
 
-.qs-juice-fill {
+.qs-metergy-fill {
 	position: absolute;
 	height: 100%;
 	width: 50%;
@@ -168,7 +168,7 @@
 	z-index: 1;
 }
 
-.qs-juice-projected {
+.qs-metergy-projected {
 	position: absolute;
 	height: 100%;
 	width: 0%;
@@ -177,7 +177,7 @@
 	z-index: 2;
 }
 
-.qs-juice-text {
+.qs-metergy-text {
 	display: none;
 }
 

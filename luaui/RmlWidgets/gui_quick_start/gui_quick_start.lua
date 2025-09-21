@@ -47,7 +47,7 @@ local DEFAULT_INSTANT_BUILD_RANGE = 600
 local ALPHA_AFFORDABLE = 1.0
 local ALPHA_UNAFFORDABLE = 0.5
 
-local function calculateJuiceCost(metalCost, energyCost)
+local function calculateMetergyCost(metalCost, energyCost)
 	return metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
 end
 
@@ -60,22 +60,22 @@ local widgetState = {
 	lastQueueHash = "",
 	isDocumentVisible = true,
 	hiddenByLobby = false,
-	juiceBarElements = {
+	metergyBarElements = {
 		fillElement = nil,
 		projectedElement = nil,
 	},
-	lastJuiceRemaining = 0,
+	lastMetergyRemaining = 0,
 	deductionElements = {},
 	currentDeductionIndex = 1,
 }
 
 local initialModel = {
-	juiceTotal = 0,
-	juiceUsed = 0,
-	juiceRemaining = 0,
-	juicePercent = 0,
-	juiceProjected = 0,
-	juiceProjectedPercent = 0,
+	metergyTotal = 0,
+	metergyUsed = 0,
+	metergyRemaining = 0,
+	metergyPercent = 0,
+	metergyProjected = 0,
+	metergyProjectedPercent = 0,
 	showBar = false,
 	factoryDiscountUsed = false,
 	deductionAmount1 = "", --we have multiple to allow multiple deduction animations to play simultaneously.
@@ -85,18 +85,18 @@ local initialModel = {
 	deductionAmount5 = "",
 }
 
-local function calculateJuiceWithDiscount(unitDefID, factoryDiscountAmount, shouldApplyDiscount, isFirstFactory)
+local function calculateMetergyWithDiscount(unitDefID, factoryDiscountAmount, shouldApplyDiscount, isFirstFactory)
 	local unitDef = UnitDefs[unitDefID]
 	if not unitDef then return 0 end
 
 	local metalCost = unitDef.metalCost or 0
 	local energyCost = unitDef.energyCost or 0
-	local juiceCost = calculateJuiceCost(metalCost, energyCost)
+	local metergyCost = calculateMetergyCost(metalCost, energyCost)
 
 	if unitDef.isFactory and isFirstFactory and shouldApplyDiscount then
-		return math.max(0, juiceCost - factoryDiscountAmount)
+		return math.max(0, metergyCost - factoryDiscountAmount)
 	end
-	return juiceCost
+	return metergyCost
 end
 
 local function isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, instantBuildRange)
@@ -106,7 +106,7 @@ end
 
 local function getGameRulesParams(myTeamID)
 	return {
-		juiceTotal = spGetGameRulesParam("quickStartJuiceBase") or 0,
+		metergyTotal = spGetGameRulesParam("quickStartMetergyBase") or 0,
 		factoryDiscountAmount = spGetGameRulesParam("quickStartFactoryDiscountAmount") or 0,
 		factoryDiscountUsed = spGetTeamRulesParam(myTeamID, "quickStartFactoryDiscountUsed") or 0,
 		instantBuildRange = spGetGameRulesParam("overridePregameBuildDistance") or DEFAULT_INSTANT_BUILD_RANGE,
@@ -155,17 +155,17 @@ local function hashQueue(queue)
 	return hash
 end
 
-local function createJuiceBarElements()
+local function createMetergyBarElements()
 	if not widgetState.document then
 		return
 	end
 
-	local fillElement = widgetState.document:GetElementById("qs-juice-fill")
-	local projectedElement = widgetState.document:GetElementById("qs-juice-projected")
+	local fillElement = widgetState.document:GetElementById("qs-metergy-fill")
+	local projectedElement = widgetState.document:GetElementById("qs-metergy-projected")
 
 	if fillElement and projectedElement then
-		widgetState.juiceBarElements.fillElement = fillElement
-		widgetState.juiceBarElements.projectedElement = projectedElement
+		widgetState.metergyBarElements.fillElement = fillElement
+		widgetState.metergyBarElements.projectedElement = projectedElement
 	end
 	
 	for i = 1, 5 do
@@ -183,7 +183,7 @@ local function computeProjectedUsage()
 	WG["pregame-build"].getBuildQueue() or {}
 	local pregameUnitSelected = WG["pregame-unit-selected"] or -1
 
-	local juiceUsed = 0
+	local metergyUsed = 0
 	local firstFactoryPlaced = false
 	local shouldApplyDiscount = shouldApplyFactoryDiscount
 
@@ -200,9 +200,9 @@ local function computeProjectedUsage()
 				local buildX, buildZ = item[2], item[4]
 
 				if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
-					local juiceCost = calculateJuiceWithDiscount(defID, gameRules.factoryDiscountAmount,
+					local metergyCost = calculateMetergyWithDiscount(defID, gameRules.factoryDiscountAmount,
 						shouldApplyDiscount, not firstFactoryPlaced)
-					juiceUsed = juiceUsed + juiceCost
+					metergyUsed = metergyUsed + metergyCost
 
 					if UnitDefs[defID].isFactory and not firstFactoryPlaced then
 						firstFactoryPlaced = true
@@ -212,7 +212,7 @@ local function computeProjectedUsage()
 		end
 	end
 
-	local juiceProjected = 0
+	local metergyProjected = 0
 	if pregameUnitSelected and pregameUnitSelected > 0 and UnitDefs[pregameUnitSelected] then
 		local uDef = UnitDefs[pregameUnitSelected]
 		local mx, my = Spring.GetMouseState()
@@ -223,25 +223,25 @@ local function computeProjectedUsage()
 			local bx, by, bz = Spring.Pos2BuildPos(pregameUnitSelected, pos[1], pos[2], pos[3], buildFacing)
 
 			if isWithinBuildRange(commanderX, commanderZ, bx, bz, gameRules.instantBuildRange) then
-				juiceProjected = calculateJuiceWithDiscount(pregameUnitSelected, gameRules.factoryDiscountAmount,
+				metergyProjected = calculateMetergyWithDiscount(pregameUnitSelected, gameRules.factoryDiscountAmount,
 					shouldApplyDiscount, not firstFactoryPlaced)
 			end
 		end
 	end
 
-	local juiceRemaining = math.max(0, gameRules.juiceTotal - juiceUsed)
-	local percent = gameRules.juiceTotal > 0 and
-	math.max(0, math.min(100, (juiceRemaining / gameRules.juiceTotal) * 100)) or 0
-	local projectedPercent = gameRules.juiceTotal > 0 and
-	math.max(0, math.min(100, (juiceProjected / gameRules.juiceTotal) * 100)) or 0
+	local metergyRemaining = math.max(0, gameRules.metergyTotal - metergyUsed)
+	local percent = gameRules.metergyTotal > 0 and
+	math.max(0, math.min(100, (metergyRemaining / gameRules.metergyTotal) * 100)) or 0
+	local projectedPercent = gameRules.metergyTotal > 0 and
+	math.max(0, math.min(100, (metergyProjected / gameRules.metergyTotal) * 100)) or 0
 
 	return {
-		juiceTotal = gameRules.juiceTotal,
-		juiceUsed = juiceUsed,
-		juiceRemaining = juiceRemaining,
-		juicePercent = percent,
-		juiceProjected = juiceProjected,
-		juiceProjectedPercent = projectedPercent,
+		metergyTotal = gameRules.metergyTotal,
+		metergyUsed = metergyUsed,
+		metergyRemaining = metergyRemaining,
+		metergyPercent = percent,
+		metergyProjected = metergyProjected,
+		metergyProjectedPercent = projectedPercent,
 		factoryDiscountUsed = gameRules.factoryDiscountUsed == 1,
 	}
 end
@@ -259,40 +259,40 @@ local function updateDataModel(force)
 	widgetState.lastUpdate = os.clock()
 
 	local modelUpdate = computeProjectedUsage()
-	local currentJuiceRemaining = modelUpdate.juiceRemaining or 0
+	local currentMetergyRemaining = modelUpdate.metergyRemaining or 0
 	
-	if widgetState.lastJuiceRemaining > currentJuiceRemaining then
-		local deductionAmount = widgetState.lastJuiceRemaining - currentJuiceRemaining
+	if widgetState.lastMetergyRemaining > currentMetergyRemaining then
+		local deductionAmount = widgetState.lastMetergyRemaining - currentMetergyRemaining
 		showDeductionAnimation(deductionAmount)
 	end
 	
-	widgetState.lastJuiceRemaining = currentJuiceRemaining
+	widgetState.lastMetergyRemaining = currentMetergyRemaining
 	
 	for key, value in pairs(modelUpdate) do
 		widgetState.dmHandle[key] = value
 	end
 
 	if widgetState.document then
-		local juicePercent = widgetState.dmHandle.juicePercent or 0
-		if widgetState.juiceBarElements.fillElement then
-			widgetState.juiceBarElements.fillElement:SetAttribute("style",
-				"width: " .. string.format("%.1f%%", juicePercent))
+		local metergyPercent = widgetState.dmHandle.metergyPercent or 0
+		if widgetState.metergyBarElements.fillElement then
+			widgetState.metergyBarElements.fillElement:SetAttribute("style",
+				"width: " .. string.format("%.1f%%", metergyPercent))
 		end
 
-		if widgetState.juiceBarElements.projectedElement then
-			local juiceProjectedPercent = widgetState.dmHandle.juiceProjectedPercent or 0
-			local overlayWidth = math.min(juiceProjectedPercent, juicePercent)
-			local overlayLeft = math.max(0, juicePercent - overlayWidth)
+		if widgetState.metergyBarElements.projectedElement then
+			local metergyProjectedPercent = widgetState.dmHandle.metergyProjectedPercent or 0
+			local overlayWidth = math.min(metergyProjectedPercent, metergyPercent)
+			local overlayLeft = math.max(0, metergyPercent - overlayWidth)
 			local style = string.format("left: %.1f%%; width: %.1f%%;", overlayLeft, overlayWidth)
-			widgetState.juiceBarElements.projectedElement:SetAttribute("style", style)
+			widgetState.metergyBarElements.projectedElement:SetAttribute("style", style)
 		end
 
-		updateUIElementText(widgetState.document, "qs-juice-remaining",
-			tostring(math.floor(widgetState.dmHandle.juiceRemaining or 0)))
-		updateUIElementText(widgetState.document, "qs-juice-total",
-			tostring(math.floor(widgetState.dmHandle.juiceTotal or 0)))
-		updateUIElementText(widgetState.document, "qs-juice-value-left",
-			tostring(math.floor(widgetState.dmHandle.juiceRemaining or 0)))
+		updateUIElementText(widgetState.document, "qs-metergy-remaining",
+			tostring(math.floor(widgetState.dmHandle.metergyRemaining or 0)))
+		updateUIElementText(widgetState.document, "qs-metergy-total",
+			tostring(math.floor(widgetState.dmHandle.metergyTotal or 0)))
+		updateUIElementText(widgetState.document, "qs-metergy-value-left",
+			tostring(math.floor(widgetState.dmHandle.metergyRemaining or 0)))
 	end
 end
 
@@ -305,7 +305,7 @@ local function getBuildQueueAlphaValues(buildQueue, selectedBuildData)
 		selectedAlpha = ALPHA_AFFORDABLE
 	}
 	
-	local juiceRemaining = gameRules.juiceTotal
+	local metergyRemaining = gameRules.metergyTotal
 	local firstFactoryPlaced = false
 	local shouldApplyDiscount = shouldApplyFactoryDiscount
 	
@@ -324,12 +324,12 @@ local function getBuildQueueAlphaValues(buildQueue, selectedBuildData)
 				local buildX, buildZ = item[2], item[4]
 				
 				if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
-					local juiceCost = calculateJuiceWithDiscount(defID, gameRules.factoryDiscountAmount,
+					local metergyCost = calculateMetergyWithDiscount(defID, gameRules.factoryDiscountAmount,
 						shouldApplyDiscount, not firstFactoryPlaced)
 					
-					if juiceRemaining >= juiceCost then
+					if metergyRemaining >= metergyCost then
 						alpha = ALPHA_AFFORDABLE
-						juiceRemaining = juiceRemaining - juiceCost
+						metergyRemaining = metergyRemaining - metergyCost
 						
 						if UnitDefs[defID].isFactory and not firstFactoryPlaced then
 							firstFactoryPlaced = true
@@ -347,10 +347,10 @@ local function getBuildQueueAlphaValues(buildQueue, selectedBuildData)
 		local buildX, buildZ = selectedBuildData[2], selectedBuildData[4]
 		
 		if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
-			local juiceCost = calculateJuiceWithDiscount(defID, gameRules.factoryDiscountAmount,
+			local metergyCost = calculateMetergyWithDiscount(defID, gameRules.factoryDiscountAmount,
 				shouldApplyDiscount, not firstFactoryPlaced)
 			
-			if juiceRemaining >= juiceCost then
+			if metergyRemaining >= metergyCost then
 				alphaResults.selectedAlpha = ALPHA_AFFORDABLE
 			else
 				alphaResults.selectedAlpha = ALPHA_UNAFFORDABLE
@@ -385,11 +385,11 @@ function widget:Initialize()
 	widgetState.document = document
 	document:Show()
 
-	updateUIElementText(document, "qs-juice-header", spI18N('ui.quickStart.preGameResources'))
+	updateUIElementText(document, "qs-metergy-header", spI18N('ui.quickStart.preGameResources'))
 	updateUIElementText(document, "qs-warning-text", spI18N('ui.quickStart.remainingResourcesWarning'))
 	updateUIElementText(document, "qs-factory-text", spI18N('ui.quickStart.placeDiscountedFactory'))
 
-	createJuiceBarElements()
+	createMetergyBarElements()
 
 	if WG['topbar'] and WG['topbar'].setResourceBarsVisible then
 		WG['topbar'].setResourceBarsVisible(false)
@@ -406,11 +406,11 @@ function widget:Initialize()
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		local metalCost = unitDef.metalCost or 0
 		local energyCost = unitDef.energyCost or 0
-		WG["buildMenuCostOverride"][unitDefID] = calculateJuiceCost(metalCost, energyCost)
+		WG["buildMenuCostOverride"][unitDefID] = calculateMetergyCost(metalCost, energyCost)
 	end
 
 	updateDataModel(true)
-	widgetState.lastJuiceRemaining = widgetState.dmHandle.juiceRemaining or 0
+	widgetState.lastMetergyRemaining = widgetState.dmHandle.metergyRemaining or 0
 	return true
 end
 

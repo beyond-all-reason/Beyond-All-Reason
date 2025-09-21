@@ -4,26 +4,26 @@
 </head>
 <body data-model="quick_start_model">
     <div id="qs-root" class="qs-root">
-        <div id="qs-juice-overlay" class="qs-juice-overlay">
-            <div id="qs-juice-container" class="qs-juice-container">
-                <div id="qs-juice-gradient-overlay" class="qs-juice-gradient-overlay"></div>
-                <div id="qs-juice-header" class="qs-juice-header"></div>
-                <div class="qs-juice-row">
-                    <img id="qs-juice-metal-icon" class="qs-juice-metal-icon" src="/luaui/images/flowui_gl4/metalenergy.png" width="32" height="32" />
-                    <div id="qs-juice-value-left" class="qs-juice-value-left">0</div>
+        <div id="qs-metergy-overlay" class="qs-metergy-overlay">
+            <div id="qs-metergy-container" class="qs-metergy-container">
+                <div id="qs-metergy-gradient-overlay" class="qs-metergy-gradient-overlay"></div>
+                <div id="qs-metergy-header" class="qs-metergy-header"></div>
+                <div class="qs-metergy-row">
+                    <img id="qs-metergy-metal-icon" class="qs-metergy-metal-icon" src="/luaui/images/flowui_gl4/metalenergy.png" width="32" height="32" />
+                    <div id="qs-metergy-value-left" class="qs-metergy-value-left">0</div>
                     <div id="qs-deduction-amount-1" class="qs-deduction-amount-1">{{deductionAmount1}}</div>
                     <div id="qs-deduction-amount-2" class="qs-deduction-amount-2">{{deductionAmount2}}</div>
                     <div id="qs-deduction-amount-3" class="qs-deduction-amount-3">{{deductionAmount3}}</div>
                     <div id="qs-deduction-amount-4" class="qs-deduction-amount-4">{{deductionAmount4}}</div>
                     <div id="qs-deduction-amount-5" class="qs-deduction-amount-5">{{deductionAmount5}}</div>
-                    <div id="qs-juice-bar" class="qs-juice-bar">
-                        <div id="qs-juice-track" class="qs-juice-track"></div>
-                        <div id="qs-juice-fill" class="qs-juice-fill"></div>
-                        <div id="qs-juice-projected" class="qs-juice-projected"></div>
-                        <div class="qs-juice-text">
-                            <span id="qs-juice-remaining">0</span>
+                    <div id="qs-metergy-bar" class="qs-metergy-bar">
+                        <div id="qs-metergy-track" class="qs-metergy-track"></div>
+                        <div id="qs-metergy-fill" class="qs-metergy-fill"></div>
+                        <div id="qs-metergy-projected" class="qs-metergy-projected"></div>
+                        <div class="qs-metergy-text">
+                            <span id="qs-metergy-remaining">0</span>
                             <span> / </span>
-                            <span id="qs-juice-total">0</span>
+                            <span id="qs-metergy-total">0</span>
                         </div>
                     </div>
                 </div>
