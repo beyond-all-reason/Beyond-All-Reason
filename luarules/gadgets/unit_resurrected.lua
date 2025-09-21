@@ -12,6 +12,8 @@ function gadget:GetInfo()
     }
 end
 
+local CMD_WAIT = CMD.WAIT
+
 if (gadgetHandler:IsSyncedCode()) then
 
     local canResurrect = {}
@@ -26,6 +28,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		if builderID and canResurrect[Spring.GetUnitDefID(builderID)] then
 			if not Spring.Utilities.Gametype.IsScavengers() then
 				Spring.SetUnitRulesParam(unitID, "resurrected", 1, {inlos=true})
+				Spring.GiveOrderToUnit(unitID, CMD_WAIT, {}, 0)
 			end
 			Spring.SetUnitHealth(unitID, Spring.GetUnitHealth(unitID) * 0.05)
 		end
