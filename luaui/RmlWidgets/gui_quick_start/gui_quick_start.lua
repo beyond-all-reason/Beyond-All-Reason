@@ -47,6 +47,10 @@ local DEFAULT_INSTANT_BUILD_RANGE = 600
 local ALPHA_AFFORDABLE = 1.0
 local ALPHA_UNAFFORDABLE = 0.5
 
+local function calculateJuiceCost(metalCost, energyCost)
+	return metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
+end
+
 local widgetState = {
 	rmlContext = nil,
 	dmHandle = nil,
@@ -87,7 +91,7 @@ local function calculateJuiceWithDiscount(unitDefID, factoryDiscountAmount, shou
 
 	local metalCost = unitDef.metalCost or 0
 	local energyCost = unitDef.energyCost or 0
-	local juiceCost = metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
+	local juiceCost = calculateJuiceCost(metalCost, energyCost)
 
 	if unitDef.isFactory and isFirstFactory and shouldApplyDiscount then
 		return math.max(0, juiceCost - factoryDiscountAmount)
@@ -392,6 +396,18 @@ function widget:Initialize()
 	end
 
 	WG["getBuildQueueAlphaValues"] = getBuildQueueAlphaValues
+	
+	WG["buildMenuCostOverride"] = {}
+	WG["buildMenuCostOverrideColors"] = {
+		allowed = "\255\100\255\100",
+		blocked = "\255\100\200\100"
+	}
+	
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local metalCost = unitDef.metalCost or 0
+		local energyCost = unitDef.energyCost or 0
+		WG["buildMenuCostOverride"][unitDefID] = calculateJuiceCost(metalCost, energyCost)
+	end
 
 	updateDataModel(true)
 	widgetState.lastJuiceRemaining = widgetState.dmHandle.juiceRemaining or 0
@@ -404,6 +420,16 @@ function widget:Shutdown()
 	end
 
 	WG["getBuildQueueAlphaValues"] = nil
+	
+	WG["buildMenuCostOverride"] = nil
+	WG["buildMenuCostOverrideColors"] = nil
+
+	if WG['buildmenu'] and WG['buildmenu'].forceRefresh then
+		WG['buildmenu'].forceRefresh()
+	end
+	if WG['gridmenu'] and WG['gridmenu'].forceRefresh then
+		WG['gridmenu'].forceRefresh()
+	end
 
 	if widgetState.rmlContext and widgetState.dmHandle then
 		widgetState.rmlContext:RemoveDataModel(MODEL_NAME)

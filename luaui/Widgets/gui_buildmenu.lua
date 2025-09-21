@@ -70,6 +70,9 @@ local math_isInRect = math.isInRect
 local buildmenuShows = false
 local refreshBuildmenu = true
 
+local costOverrides = nil
+local costOverrideColors = nil
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -477,6 +480,9 @@ function widget:Update(dt)
 	if sec > 0.33 then
 		sec = 0
 		checkGuishader()
+		
+		costOverrides = WG and WG["buildMenuCostOverride"]
+		costOverrideColors = WG and WG["buildMenuCostOverrideColors"]
 		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
 			widget:ViewResize()
 			doUpdate = true
@@ -568,20 +574,38 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 
 	-- price
 	if showPrice then
-		local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
-		local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
 		local function AddSpaces(price)
 			if price >= 1000 then
 				return string.format("%s %03d", AddSpaces(math_floor(price / 1000)), price % 1000)
 			end
 			return price
 		end
-		local metalPrice = AddSpaces(units.unitMetalCost[uDefID])
-		local energyPrice = AddSpaces(units.unitEnergyCost[uDefID])
-		local metalPriceText = metalColor .. metalPrice
-		local energyPriceText = energyColor .. energyPrice
-		font2:Print(metalPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
-		font2:Print(energyPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
+		
+		local overrideCost = 0
+		local showOverride = false
+		if costOverrides and costOverrides[uDefID] then
+			overrideCost = costOverrides[uDefID]
+			showOverride = true
+		end
+		
+		if showOverride then
+			local costColor = "\255\100\255\100"
+			if costOverrideColors then
+				costColor = disabled and costOverrideColors.blocked or costOverrideColors.allowed
+			end
+			local costPrice = AddSpaces(math.floor(overrideCost))
+			local costPriceText = costColor .. costPrice
+			font2:Print(costPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
+		else
+			local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
+			local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
+			local metalPrice = AddSpaces(units.unitMetalCost[uDefID])
+			local energyPrice = AddSpaces(units.unitEnergyCost[uDefID])
+			local metalPriceText = metalColor .. metalPrice
+			local energyPriceText = energyColor .. energyPrice
+			font2:Print(metalPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
+			font2:Print(energyPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
+		end
 	end
 
 	-- factory queue number
@@ -1443,6 +1467,11 @@ function widget:Initialize()
 	end
 	WG['buildmenu'].getIsShowing = function()
 		return buildmenuShows
+	end
+	WG['buildmenu'].forceRefresh = function()
+		costOverrides = WG and WG["buildMenuCostOverride"]
+		costOverrideColors = WG and WG["buildMenuCostOverrideColors"]
+		clear()
 	end
 end
 
