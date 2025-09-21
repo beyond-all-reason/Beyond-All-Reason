@@ -100,8 +100,8 @@
 	z-index: 3;
 	position: absolute;
 	top: 18px;
-	margin-left: 28px;
-	margin-right: 8px;
+	left: 28px;
+	width: 46px;
 }
 
 [class^="qs-deduction-amount-"] {
