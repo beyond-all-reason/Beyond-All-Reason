@@ -4,8 +4,6 @@ Spring.Echo("Lava Mapname", mapName)
 local MAP_CONFIG_PATH = "mapconfig/lava.lua"
 local GAME_CONFIG_DIR = "common/configs/LavaMaps/"
 
-local base64 = VFS.Include("common/luaUtilities/base64.lua")
-
 local voidWaterMap = false
 
 local success, mapinfo = pcall(VFS.Include, "mapinfo.lua") -- load mapinfo.lua confs
