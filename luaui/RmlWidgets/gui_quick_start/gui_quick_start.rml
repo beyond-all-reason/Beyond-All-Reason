@@ -8,16 +8,23 @@
             <div id="qs-juice-container" class="qs-juice-container">
                 <div id="qs-juice-gradient-overlay" class="qs-juice-gradient-overlay"></div>
                 <div id="qs-juice-header" class="qs-juice-header"></div>
-                <div id="qs-juice-remaining-percent" class="qs-juice-percentage-left">0%</div>
-                <div id="qs-juice-cost-percent" class="qs-juice-percentage-right">0%</div>
-                <div id="qs-juice-bar" class="qs-juice-bar">
-                    <div id="qs-juice-track" class="qs-juice-track"></div>
-                    <div id="qs-juice-fill" class="qs-juice-fill"></div>
-                    <div id="qs-juice-projected" class="qs-juice-projected"></div>
-                    <div class="qs-juice-text">
-                        <span id="qs-juice-remaining">0</span>
-                        <span> / </span>
-                        <span id="qs-juice-total">0</span>
+                <div class="qs-juice-row">
+                    <img id="qs-juice-metal-icon" class="qs-juice-metal-icon" src="/luaui/images/flowui_gl4/metalenergy.png" width="32" height="32" />
+                    <div id="qs-juice-value-left" class="qs-juice-value-left">0</div>
+                    <div id="qs-deduction-amount-1" class="qs-deduction-amount-1">{{deductionAmount1}}</div>
+                    <div id="qs-deduction-amount-2" class="qs-deduction-amount-2">{{deductionAmount2}}</div>
+                    <div id="qs-deduction-amount-3" class="qs-deduction-amount-3">{{deductionAmount3}}</div>
+                    <div id="qs-deduction-amount-4" class="qs-deduction-amount-4">{{deductionAmount4}}</div>
+                    <div id="qs-deduction-amount-5" class="qs-deduction-amount-5">{{deductionAmount5}}</div>
+                    <div id="qs-juice-bar" class="qs-juice-bar">
+                        <div id="qs-juice-track" class="qs-juice-track"></div>
+                        <div id="qs-juice-fill" class="qs-juice-fill"></div>
+                        <div id="qs-juice-projected" class="qs-juice-projected"></div>
+                        <div class="qs-juice-text">
+                            <span id="qs-juice-remaining">0</span>
+                            <span> / </span>
+                            <span id="qs-juice-total">0</span>
+                        </div>
                     </div>
                 </div>
             </div>

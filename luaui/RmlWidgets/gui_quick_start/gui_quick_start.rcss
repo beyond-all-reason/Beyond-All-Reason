@@ -37,10 +37,12 @@
 	border-radius: 6px;
 	border-width: 1.5px;
 	border-color: rgba(30, 30, 30, 150);
-	padding: 7px;
+	padding: 3.5px;
+	margin-bottom: 7px;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	justify-content: center;
 	margin-top: -5px;
 	decorator: image("/luaui/images/stripes-small.png" repeat);
 	image-color: rgba(40, 40, 40, 60);
@@ -63,40 +65,86 @@
 .qs-juice-header {
 	font-size: 17px;
 	font-weight: bold;
-	margin-bottom: 4px;
+	margin-bottom: 0px;
 	font-effect: outline(1px black);
 	position: relative;
 	z-index: 2;
 }
 
-.qs-juice-percentage-left {
-	position: absolute;
-	left: 95px;
-	bottom: 18px;
-	font-size: 16px;
-	font-weight: bold;
-	color:rgb(255, 255, 255);
-	font-effect: outline(1px black);
-	text-align: center;
-	z-index: 3;
+.qs-juice-row {
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
-.qs-juice-percentage-right {
+.qs-juice-metal-icon {
+	width: 32px;
+	height: 32px;
+	z-index: 3;
 	position: absolute;
-	right: 95px;
-	bottom: 18px;
+	left: 3px;
+	top: 28px;
+	transform: translateY(-50%);
+	background: none;
+	border: none;
+	padding: 0px;
+	margin: 0px;
+}
+
+.qs-juice-value-left {
 	font-size: 16px;
 	font-weight: bold;
-	color:rgb(255, 255, 255);
+	color: rgb(255, 255, 255);
 	font-effect: outline(1px black);
 	text-align: center;
 	z-index: 3;
+	position: absolute;
+	top: 18px;
+	margin-left: 28px;
+	margin-right: 8px;
 }
+
+[class^="qs-deduction-amount-"] {
+	font-size: 14px;
+	font-weight: bold;
+	color: rgb(255, 0, 0);
+	font-effect: outline(1px black);
+	text-align: center;
+	z-index: 4;
+	position: absolute;
+	top: 30px;
+	left: 50px;
+	transform: translateX(-50%);
+	pointer-events: none;
+	opacity: 0.0;
+}
+
+[class^="qs-deduction-amount-"].animate {
+	animation: 1.5s linear 1 deduction-drift;
+}
+
+@keyframes deduction-drift {
+	1% {
+		top: 30px;
+		opacity: 1.0;
+		font-size: 14px;
+	}
+	100% {
+		top: 100px;
+		opacity: 0.0;
+		font-size: 24px;
+	}
+}
+
 
 .qs-juice-bar {
 	position: relative;
-	width: 598px;
+	width: 519px;
 	height: 8px;
+	margin-top: 2px;
+	margin-right: 8px;
+	margin-left: 74px;
+	margin-bottom: 8px;
 	background-color: rgba(0, 0, 0, 230);
 	border-radius: 6px;
 	overflow: hidden;

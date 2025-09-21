@@ -60,6 +60,9 @@ local widgetState = {
 		fillElement = nil,
 		projectedElement = nil,
 	},
+	lastJuiceRemaining = 0,
+	deductionElements = {},
+	currentDeductionIndex = 1,
 }
 
 local initialModel = {
@@ -71,6 +74,11 @@ local initialModel = {
 	juiceProjectedPercent = 0,
 	showBar = false,
 	factoryDiscountUsed = false,
+	deductionAmount1 = "", --we have multiple to allow multiple deduction animations to play simultaneously.
+	deductionAmount2 = "",
+	deductionAmount3 = "",
+	deductionAmount4 = "",
+	deductionAmount5 = "",
 }
 
 local function calculateJuiceWithDiscount(unitDefID, factoryDiscountAmount, shouldApplyDiscount, isFirstFactory)
@@ -108,6 +116,31 @@ local function updateUIElementText(document, elementId, text)
 	end
 end
 
+
+local function showDeductionAnimation(deductionAmount)
+	local currentIndex = widgetState.currentDeductionIndex
+	local deductionElement = widgetState.deductionElements[currentIndex]
+	
+	if not deductionElement then
+		return
+	end
+	
+	local nextIndex = currentIndex % 5 + 1
+	local nextElement = widgetState.deductionElements[nextIndex]
+	
+	if nextElement then
+		nextElement:SetClass("animate", false) -- we have to remove the animate class on a different frame than we add it, otherwise it doesn't play.
+	end
+	
+	local modelKey = "deductionAmount" .. currentIndex
+	widgetState.dmHandle[modelKey] = "-" .. tostring(math.floor(deductionAmount))
+	
+	deductionElement:SetClass("animate", true)
+	
+	widgetState.currentDeductionIndex = nextIndex
+end
+
+
 local function hashQueue(queue)
 	if not queue or #queue == 0 then return "" end
 	local hash = ""
@@ -129,6 +162,13 @@ local function createJuiceBarElements()
 	if fillElement and projectedElement then
 		widgetState.juiceBarElements.fillElement = fillElement
 		widgetState.juiceBarElements.projectedElement = projectedElement
+	end
+	
+	for i = 1, 5 do
+		local deductionElement = widgetState.document:GetElementById("qs-deduction-amount-" .. i)
+		if deductionElement then
+			widgetState.deductionElements[i] = deductionElement
+		end
 	end
 end
 
@@ -215,6 +255,15 @@ local function updateDataModel(force)
 	widgetState.lastUpdate = os.clock()
 
 	local modelUpdate = computeProjectedUsage()
+	local currentJuiceRemaining = modelUpdate.juiceRemaining or 0
+	
+	if widgetState.lastJuiceRemaining > currentJuiceRemaining then
+		local deductionAmount = widgetState.lastJuiceRemaining - currentJuiceRemaining
+		showDeductionAnimation(deductionAmount)
+	end
+	
+	widgetState.lastJuiceRemaining = currentJuiceRemaining
+	
 	for key, value in pairs(modelUpdate) do
 		widgetState.dmHandle[key] = value
 	end
@@ -238,15 +287,8 @@ local function updateDataModel(force)
 			tostring(math.floor(widgetState.dmHandle.juiceRemaining or 0)))
 		updateUIElementText(widgetState.document, "qs-juice-total",
 			tostring(math.floor(widgetState.dmHandle.juiceTotal or 0)))
-		updateUIElementText(widgetState.document, "qs-juice-remaining-percent",
-			string.format("%.1f", widgetState.dmHandle.juicePercent or 0) .. "%")
-		local projectedPercent = widgetState.dmHandle.juiceProjectedPercent or 0
-		if projectedPercent > 0 then
-			updateUIElementText(widgetState.document, "qs-juice-cost-percent",
-				"-" .. string.format("%.1f", projectedPercent) .. "%")
-		else
-			updateUIElementText(widgetState.document, "qs-juice-cost-percent", "")
-		end
+		updateUIElementText(widgetState.document, "qs-juice-value-left",
+			tostring(math.floor(widgetState.dmHandle.juiceRemaining or 0)))
 	end
 end
 
@@ -352,6 +394,7 @@ function widget:Initialize()
 	WG["getBuildQueueAlphaValues"] = getBuildQueueAlphaValues
 
 	updateDataModel(true)
+	widgetState.lastJuiceRemaining = widgetState.dmHandle.juiceRemaining or 0
 	return true
 end
 
