@@ -97,7 +97,7 @@ local queuedCommanders = {}
 
 local function getQuotas(isMetalMap, isInWater, isGoodWind)
 	return config.quotas[isMetalMap and "metalMap" or "nonMetalMap"][isInWater and "water" or "land"]
-	[isGoodWind and "goodWind" or "noWind"]
+	[isGoodWind and "goodWind" or "badWind"]
 end
 
 local function getBonusResources()
