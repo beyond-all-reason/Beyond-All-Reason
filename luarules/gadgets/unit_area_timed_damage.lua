@@ -86,7 +86,7 @@ local featDamageImmunity = {}
 
 local isFactory = {}
 local isNewUnit = {}
-local frameBuildImmunity = math.floor(gameSpeed * 0.1 + 0.5)
+local frameBuildImmunity = math.round(gameSpeed * 0.1)
 
 local aliveExplosions = {}
 local frameExplosions = {}
