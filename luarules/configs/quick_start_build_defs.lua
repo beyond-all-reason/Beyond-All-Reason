@@ -27,7 +27,7 @@ local quickStartConfig = {
 			converter = "legeconv",
 			solar = "legsolar",
 			tidal = "legtide",
-			floatingConverter = "legfconv",
+			floatingConverter = "legfeconv",
 		}
 	},
 	optionsToNodeType = {
