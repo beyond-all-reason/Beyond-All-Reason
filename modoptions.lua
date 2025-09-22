@@ -1275,10 +1275,10 @@ local options = {
         def 	= "default",
         section = "options_extra",
         items 	= {
-            { key = "default", 	name = "Default" },
-            { key = "small", 	name = "Small" },
-            { key = "normal", 	name = "Normal" },
-            { key = "large", 	name = "Large" },
+            { key = "default", 	name = "Default", desc = "Uses the default amount based on game mode" },
+            { key = "small", 	name = "Small", desc = "1000 Quick-Start resources" },
+            { key = "normal", 	name = "Normal", desc = "1500 Quick-Start resources" },
+            { key = "large", 	name = "Large", desc = "2250 Quick-Start resources" },
         }
     },
 

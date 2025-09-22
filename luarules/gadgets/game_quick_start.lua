@@ -33,18 +33,9 @@ local INSTANT_BUILD_RANGE = 600          -- how far things will be be instantly 
 local QUICK_START_COST_ENERGY = 400      --will be deducted from commander's energy upon start.
 local QUICK_START_COST_METAL = 800       --will be deducted from commander's metal upon start.
 local quickStartAmountConfig = {
-	small = {
-		bonusMetal = 225,
-		bonusEnergy = 1250,
-	},
-	normal = {
-		bonusMetal = 450,
-		bonusEnergy = 2500,
-	},
-	large = {
-		bonusMetal = 675,
-		bonusEnergy = 3750,
-	},
+	small = 1000,
+	normal = 1500,
+	large = 2250,
 }
 -------------------------------------------------------------------------
 
@@ -98,12 +89,6 @@ local queuedCommanders = {}
 local function getQuotas(isMetalMap, isInWater, isGoodWind)
 	return config.quotas[isMetalMap and "metalMap" or "nonMetalMap"][isInWater and "water" or "land"]
 	[isGoodWind and "goodWind" or "badWind"]
-end
-
-local function getBonusResources()
-	local quickStartAmount = modOptions.quick_start_amount or "normal"
-	local config = quickStartAmountConfig[quickStartAmount] or quickStartAmountConfig.normal
-	return config.bonusMetal, config.bonusEnergy
 end
 
 local function generateLocalGrid(commanderID)
@@ -436,9 +421,8 @@ end
 local function initializeCommander(commanderID, teamID)
 	local currentMetal = Spring.GetTeamResources(teamID, "metal") or 0
 	local currentEnergy = Spring.GetTeamResources(teamID, "energy") or 0
-	local bonusMetal, bonusEnergy = getBonusResources()
-	local metergy = QUICK_START_COST_METAL + bonusMetal +
-	(QUICK_START_COST_ENERGY + bonusEnergy) / ENERGY_VALUE_CONVERSION_DIVISOR
+	local quickStartAmount = modOptions.quick_start_amount or "normal"
+	local metergy = quickStartAmountConfig[quickStartAmount] or quickStartAmountConfig.normal
 
 	factoryDiscounts[teamID] = false
 
@@ -781,9 +765,8 @@ function gadget:Initialize()
 	metalSpotsList = GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList
 
 	local frame = Spring.GetGameFrame()
-	local bonusMetal, bonusEnergy = getBonusResources()
-	local immediateMetergy = QUICK_START_COST_METAL + bonusMetal +
-	(QUICK_START_COST_ENERGY + bonusEnergy) / ENERGY_VALUE_CONVERSION_DIVISOR
+	local quickStartAmount = modOptions.quick_start_amount or "normal"
+	local immediateMetergy = quickStartAmountConfig[quickStartAmount] or quickStartAmountConfig.normal
 	Spring.SetGameRulesParam("quickStartMetergyBase", immediateMetergy)
 	Spring.SetGameRulesParam("quickStartFactoryDiscountAmount", FACTORY_DISCOUNT)
 	Spring.SetGameRulesParam("overridePregameBuildDistance", INSTANT_BUILD_RANGE)
