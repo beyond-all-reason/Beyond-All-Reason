@@ -404,29 +404,31 @@ function gadget:Initialize()
         end
     end
 
-	isNewUnit = {}
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		-- Close enough is good enough:
-		local beingBuilt, progress = Spring.GetUnitIsBeingBuilt(unitID)
-		if beingBuilt and progress <= 0.01 then
-			isNewUnit[unitID] = true
-		end
-	end
-
     if next(timedDamageWeapons) then
         for weaponDefID in pairs(timedDamageWeapons) do
             Script.SetWatchExplosion(weaponDefID, true)
         end
-        aliveExplosions = {}
+
+		aliveExplosions = {}
         for ii = 1, frameInterval do
             aliveExplosions[ii] = {}
         end
-        frameNumber = Spring.GetGameFrame()
+		frameNumber = Spring.GetGameFrame()
         frameExplosions = aliveExplosions[1 + (frameNumber % frameInterval)]
         for frame = frameNumber - 1, frameNumber + gameSpeed do
             unitDamageReset[frame] = {}
             featDamageReset[frame] = {}
         end
+
+		isNewUnit = {}
+		for _, unitID in ipairs(Spring.GetAllUnits()) do
+			local beingBuilt, progress = Spring.GetUnitIsBeingBuilt(unitID)
+			if beingBuilt and progress <= 0.01 then
+				-- Close enough is good enough:
+				local framesRemaining = frameBuildImmunity * (1 - 0.5 * progress / 0.01)
+				isNewUnit[unitID] = frameNumber + math.max(1, framesRemaining)
+			end
+		end
     else
         Spring.Log(gadget:GetInfo().name, LOG.INFO, "No timed areas found. Removing gadget.")
         gadgetHandler:RemoveGadget(self)
@@ -450,7 +452,7 @@ function gadget:GameFrame(frame)
     frameExplosions = frameAreas
     frameNumber = frame
 
-	for unitID, expire in next, isNewUnit do
+	for unitID, expire in pairs(isNewUnit) do
 		if expire >= frame then
 			isNewUnit[unitID] = nil
 		end
