@@ -122,31 +122,8 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 	loadedUnits[unitID] = nil
 end
 
--- function gadget:UnitCreated(unitID, unitDefID, _)
--- 	if isTransportDef[unitDefID] then
--- 		CMD_AUTO_TRANSPORT_DESC.params[1] = 0
--- 		Spring.InsertUnitCmdDesc(unitID, CMD_AUTO_TRANSPORT_DESC)
--- 	end
--- end
-
---[[
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-	-- accepts: CMD_QUOTA_BUILD_TOGGLE
-	if isTransportDef[unitDefID] then
-        local cmdDescID = Spring.FindUnitCmdDesc(unitID, CMD_AUTO_TRANSPORT)
-        if cmdDescID then
-            CMD_AUTO_TRANSPORT_DESC.params[1] = cmdParams[1]
-            Spring.EditUnitCmdDesc(unitID, cmdDescID, {params = CMD_AUTO_TRANSPORT_DESC.params})
-        end
-		return false  -- command was used
-	end
-	return true  -- command was not used
-end
-]]
-
 function gadget:Initialize()
 	buildDefCaches()
-	-- gadgetHandler:RegisterAllowCommand(CMD_AUTO_TRANSPORT)
 	for _, unitID in ipairs(Spring.GetAllUnits()) do -- handle /luarules reload
 		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 	end
