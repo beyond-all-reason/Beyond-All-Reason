@@ -128,6 +128,7 @@ local convertedUnitsNames = {
 	['legafigdef'] = 5,
 	['legvenator'] = 5,
     ['legmed'] = 5,
+	['legemissiletank'] = 5,
 	['legaskirmtank'] = 5,
 	['legaheattank'] = 3,
 	['legeheatraymech'] = 1,

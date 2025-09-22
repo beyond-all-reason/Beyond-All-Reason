@@ -295,6 +295,7 @@ local unitOrderTable = {
 	['corshiva']       		= 007050,
 	['legkeres']	   		= 007051,
 	['legerailtank']   		= 007052,
+	['legemissiletank']   			= 007053,
 	['legpede']        		= 007055,
 	['armthor']        		= 007060,
 	['legeshotgunmech']		= 007065,
