@@ -47,7 +47,6 @@ return {
 			subfolder = "legvehicles/T2",
 			techlevel = 2,
 			enabled_on_no_sea_maps = true,
-			landspeedfactor = 0.1,
 		},
 		featuredefs = {
 			dead = {
