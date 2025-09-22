@@ -122,12 +122,12 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 	loadedUnits[unitID] = nil
 end
 
-function gadget:UnitCreated(unitID, unitDefID, _)
-	if isTransportDef[unitDefID] then
-		CMD_AUTO_TRANSPORT_DESC.params[1] = 0
-		Spring.InsertUnitCmdDesc(unitID, CMD_AUTO_TRANSPORT_DESC)
-	end
-end
+-- function gadget:UnitCreated(unitID, unitDefID, _)
+-- 	if isTransportDef[unitDefID] then
+-- 		CMD_AUTO_TRANSPORT_DESC.params[1] = 0
+-- 		Spring.InsertUnitCmdDesc(unitID, CMD_AUTO_TRANSPORT_DESC)
+-- 	end
+-- end
 
 --[[
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)

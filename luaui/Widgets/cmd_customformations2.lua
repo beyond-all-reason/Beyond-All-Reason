@@ -249,8 +249,9 @@ local function CanUnitExecute(uID, cmdID)
     end
     local ud = UnitDefs[spGetUnitDefID(uID)]
 	local grounded = not ud.canFly
+    local isFactory = ud.isFactory
 	local notCantBeTransported = (ud.cantBeTransported == nil) or (ud.cantBeTransported == false)
-    if cmdID == CMD_TRANSPORT_TO and grounded and notCantBeTransported then
+    if cmdID == CMD_TRANSPORT_TO and (grounded and notCantBeTransported) or isFactory then
         return true
     end
     return (spFindUnitCmdDesc(uID, cmdID) ~= nil)

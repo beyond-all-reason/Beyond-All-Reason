@@ -252,6 +252,8 @@ local myTeamID = nil
 
 local isFactoryDef = {}
 local isNanoDef = {}
+local isBuildingDef = {}
+local isCanMoveDef = {}
 local isTransportDef = {}
 local transportClass = {}
 local transportCapacityMass = {}
@@ -264,7 +266,9 @@ local unitXsize = {}
 
 local knownTransports = setmetatable({}, { __mode = "k" })
 local busyTransport = {}
+--since threads cant yield, we use this to solve requests in the next update
 local pendingRequests = {}
+--keeps track of which transport is handling which transportee
 local transport_jobs = {}
 
 local UPDATE_PERIOD = 0.25
@@ -309,7 +313,7 @@ local function buildDefCaches()
 
 		local movable = (ud.speed or 0) > 0
 		local grounded = not ud.canFly
-		local notBuilding = not ud.isBuilding
+		local building = ud.isBuilding
 		local notCantBeTransported = (ud.cantBeTransported == nil) or (ud.cantBeTransported == false)
 		local isNano = ud.isBuilder and not ud.canMove and not ud.isFactory
 		local isFactory = ud.isFactory
@@ -324,6 +328,12 @@ local function buildDefCaches()
 		if isFactory then
 			isFactoryDef[defID] = true
 			isTransportableDef[defID] = true
+		end
+		if building then
+			isBuildingDef[defID] = true
+		end
+		if movable then
+			isCanMoveDef[defID] = true
 		end
 
 		unitMass[defID] = ud.mass or 0
@@ -460,7 +470,7 @@ local function issuePickupAndDrop(transportID, unitID, target)
 			GiveOrderToUnit(transportID, CMD_MOVE, { cmd.params[1], cmd.params[2], cmd.params[3] }, { "shift" })
 		end
 	end
-	GiveOrderToUnit(transportID, CMD_MOVE, { ux, uy, uz }, { "shift" })
+	-- GiveOrderToUnit(transportID, CMD_MOVE, { ux, uy, uz }, { "shift" })
 end
 
 local function reloadBindings() end
@@ -508,10 +518,6 @@ end
 
 function widget:MetaUnitRemoved(unitID, unitDefID, teamID)
 	knownTransports[unitID] = nil
-	-- busyTransport[unitID] = nil
-	-- if pendingRequests[unitID] then
-	-- 	pendingRequests[unitID] = nil
-	-- end
 	local i = does_unitHaveTransportJob(unitID)
 	if i then
 		remove_transport_job(i)
@@ -544,7 +550,7 @@ function widget:CommandNotify(cmdID, params, opts)
 	--else both left and right click give the command, which is not how it works with the rest of commands handled by customFormations2
 	if cmdID == CMD_TRANSPORT_TO then
 		if #selected > 1 then
-			return true
+			-- return true
 		end
 	end
 
@@ -591,41 +597,36 @@ function widget:Update(dt)
 
 	for index, pair in pairs(pendingRequests) do
 		local transporteeID = pair.transporteeID
+		local transporteeDefID = spGetUnitDefID(transporteeID)
 		local params = pair.params
 		local tID, cls = solveTransportee(transporteeID, params)
-		pendingRequests[index] = nil
+		if tID and isValidAndMine(tID) then
+			Ed("!ts:solvingTransportee picked %s for %s %s", uname(tID), uname(transporteeID), gf())
+			pendingRequests[index] = nil
+			local tx, ty, tz = spGetUnitPosition(tID)
+			busyTransport[tID] = true
+			transport_jobs[transporteeID] = {
+				transport = tID,
+				transportee = transporteeID,
+				target = params,
+				pos = { ux, uy, uz },
+				tpos = { tx, ty, tz },
+			}
+			issuePickupAndDrop(tID, transporteeID, params)
+		else
+			if MOVE_IF_NONE_FOUND and isCanMoveDef[transporteeDefID] then
+				pendingRequests[index] = nil
+				local queue = spGetUnitCommands(transporteeID, -1)
+				transportee_skip_transport_to(transporteeID)
+				E("!ts:move_if_none_found moving and removing from pendingRequests %s", uname(transporteeID))
+			else
+				E("!ts:no transport found for %s, keeping in pendingRequests", uname(transporteeID))
+			end
+		end
 	end
-
-	-- for unitID, req in pairs(pendingRequests) do
-	-- 	local cmdID, opts, tag = spGetUnitCurrentCommand(unitID, count)
-	-- 	local commandQueue = spGetUnitCommands(unitID, -1)
-	-- 	if not isValidAndMine(unitID) then
-	-- 		pendingRequests[unitID] = nil
-	-- 	elseif cmdID ~= CMD_TRANSPORT_TO and #commandQueue > 0 then
-	-- 		pendingRequests[unitID] = nil
-	-- 	else
-	-- 		local ux, uy, uz = spGetUnitPosition(unitID)
-	-- 		local tID, cls = pickBestTransport(unitID, ux, uz, req.unitDefID)
-	-- 		if tID and isValidAndMine(tID) then
-	-- 			busyTransport[tID] = true
-	-- 			local target = { req[1], req[2], req[3] }
-	-- 			issuePickupAndDrop(tID, unitID, target)
-	-- 			pendingRequests[unitID] = nil
-	-- 		end
-	-- 	end
-	-- end
-
-	-- for index, pair in pairs(transport_jobs) do
-	-- 	local transportID = pair.transport
-	-- 	local target = pair.target
-	-- 	if not isValidAndMine(transportID) then
-	-- 		remove_transport_job(index)
-	-- 	else
-	-- 	end
-	-- end
 end
 
-function remove_transport_job(index)
+function remove_transport_job(index, gracefull)
 	E("%s !ts:removingTransportJob: %s", gf(), debug_tostring(transport_jobs[index]))
 	local transport = transport_jobs[index].transport
 	if isValidAndMine(transport) and RETURN_TO_START_POS then
@@ -633,41 +634,55 @@ function remove_transport_job(index)
 		GiveOrderToUnit(transport, CMD_MOVE, tpos, 0)
 		-- GiveOrderToUnit(transport, CMD_STOP, {}, 0)
 	end
-	if isValidAndMine(transport_jobs[index].transportee) and MOVE_IF_NONE_FOUND then
-		local queue = spGetUnitCommands(transport_jobs[index].transportee, -1)
-		if queue[1] and queue[1].id == CMD_TRANSPORT_TO then
-			local params = queue[1].params
-			local target = { params[1], params[2], params[3] }
-			GiveOrderToUnit(transport_jobs[index].transportee, CMD_MOVE, target, 0)
-		end
+	local transportee = transport_jobs[index].transportee
+	if isValidAndMine(transportee) and MOVE_IF_NONE_FOUND and not gracefull then
+		transportee_skip_transport_to(transportee)
 	end
 	busyTransport[transport] = nil
 	transport_jobs[index] = nil
 end
 
--- function solveTransport(transportID)
--- 	if not isValidAndMine(transportID) then
--- 		return
--- 	end
--- 	if busyTransport[transportID] then
--- 		return
--- 	end
--- 	local tDefID = spGetUnitDefID(transportID)
--- 	if not tDefID or not isTransportDef[tDefID] then
--- 		return
--- 	end
+function transportee_skip_transport_to(unitID)
+	local queue = spGetUnitCommands(unitID, -1)
+	if queue[1] and queue[1].id == CMD_TRANSPORT_TO then
+		local params = queue[1].params
+		local target = { params[1], params[2], params[3] }
+		local newOrders = {}
+		local skip = true
+		for index, command in ipairs(queue) do
+			if skip and command.id == CMD_TRANSPORT_TO then
+			--skip
+			else
+				skip = false
+				table.insert(newOrders, { command.id, command.params, command.options })
+			end
+		end
+		GiveOrderToUnit(unitID, CMD_MOVE, target, 0)
+		Spring.GiveOrderArrayToUnit(unitID, newOrders)
+	end
+end
 
--- 	for _, unitID in ipairs(spGetTeamUnits(myTeamID)) do
--- 		local uDefID = spGetUnitDefID(unitID)
--- 		if uDefID and isTransportableDef[uDefID] and canTransportWithReason(transportID, tDefID, unitID, uDefID) then
--- 			local queue = spGetUnitCommands(unitID, 1)
--- 			if queue[1] and queue[1].id == CMD_TRANSPORT_TO then
--- 				local params = queue[1].params
--- 				transport_jobs[unitID] = { transport = transportID, target = params }
--- 				issuePickupAndDrop(transportID, unitID, params)
--- 				return
+-- function transportee_skip_transport_to(unitID)
+-- 	local queue = spGetUnitCommands(transportee, -1)
+-- 	if queue[1] and queue[1].id == CMD_TRANSPORT_TO then
+-- 		local params = queue[1].params
+-- 		local target = { params[1], params[2], params[3] }
+-- 		local newOrders = {}
+-- 		-- GiveOrderToUnit(transportee, CMD_MOVE, target, 0)
+-- 		local chain = true
+
+-- 		for index, command in ipairs(queue) do
+-- 			if chain then
+-- 				if command.id ~= CMD_TRANSPORT_TO then
+-- 					chain = false
+-- 				end
+-- 			else
+-- 				-- GiveOrderToUnit(transportee, pair.id, pair.params or {}, pair.options or {})
+-- 				table.insert(newOrders, { command.id, command.params, command.options })
 -- 			end
 -- 		end
+
+-- 		Spring.GiveOrderArrayToUnit(transportee, newOrders)
 -- 	end
 -- end
 
@@ -684,6 +699,10 @@ function solveTransportee(transporteeID, params)
 	if not uDefID or not isTransportableDef[uDefID] then
 		return
 	end
+	if does_unitHaveTransportJob(transporteeID) then
+		E("!ts:solvingTransportee already has a job %s", gf())
+		return
+	end
 	local queue = spGetUnitCommands(transporteeID, 1)
 	--we yielded last time, so we need to get these again
 	if not (queue[1] and queue[1].id == CMD_TRANSPORT_TO) then
@@ -693,42 +712,13 @@ function solveTransportee(transporteeID, params)
 	local params = queue[1].params
 	local ux, uy, uz = spGetUnitPosition(transporteeID)
 	local tID, cls = pickBestTransport(transporteeID, ux, uz, uDefID)
-	if tID and isValidAndMine(tID) then
-		Ed("!ts:solvingTransportee picked %s for %s %s", uname(tID), uname(transporteeID), gf())
-		local tx, ty, tz = spGetUnitPosition(tID)
-		busyTransport[tID] = true
-		transport_jobs[transporteeID] = {
-			transport = tID,
-			transportee = transporteeID,
-			target = params,
-			pos = { ux, uy, uz },
-			tpos = { tx, ty, tz },
-		}
-		issuePickupAndDrop(tID, transporteeID, params)
-		return
-	end
-	E("!ts:solvingTransportee no transport found %s", gf())
-	if MOVE_IF_NONE_FOUND then
-		local queue = spGetUnitCommands(transporteeID, -1)
-		if queue[1] and queue[1].id == CMD_TRANSPORT_TO then
-			local params = queue[1].params
-			local target = { params[1], params[2], params[3] }
-			GiveOrderToUnit(transporteeID, CMD_MOVE, target, 0)
-		end
-	else
-		Echo("NO BEHAVOIOUR FOR WHEN MOVE_IF_NONE_FOUND IS FALSE YET")
-	end
+	-- E("!ts:solvingTransportee no transport found %s", gf())
 	return tID, cls
 end
 
--- function solveAllTransports()
--- 	for transportID in pairs(knownTransports) do
--- 		solveTransport(transportID)
--- 	end
--- end
-
 local function handleTransportToUnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag, bypass)
 	local commandQueue = spGetUnitCommands(unitID, -1)
+	local currentCmd, options = spGetUnitCurrentCommand(unitID)
 
 	if not unitTeam or not AreTeamsAllied(unitTeam, myTeamID) then
 		return
@@ -757,6 +747,10 @@ local function handleTransportToUnitCommand(unitID, unitDefID, unitTeam, cmdID, 
 
 	-- pendingRequests[unitID] = { x, y, z, requestedGF = GameFrame(), unitDefID = unitDefID }
 	--we need to yield, otherwise the commands will not be in the queue and the rest of the logic will fail
+	if isFactoryDef[unitDefID] then
+		E("!ts:handleTransportToUnitCommand ignoring factory %s %s", uname(unitID), gf())
+		return
+	end
 	local tID, cls = pend_solveTransportee(unitID, cmdParams)
 
 	local t = unitRequestedType(unitDefID)
@@ -770,20 +764,63 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	if not unitTeam or not AreTeamsAllied(unitTeam, myTeamID) then
 		return
 	end
-	if cmdID == CMD_TRANSPORT_TO then
-		local commandQueue = spGetUnitCommands(unitID, -1)
+	local currentCmd, options = spGetUnitCurrentCommand(unitID)
+	local commandQueue = spGetUnitCommands(unitID, -1)
+	if cmdID == CMD_TRANSPORT_TO and isTransportableDef[unitDefID] then
+		--haha if statement goes brrrrr, since unitCommand is called when ever a unit accepts a command, we need to check the queue
 		if
-			commandQueue[1]
-			and not (
-				commandQueue[1].id == CMD_MOVE
-				or commandQueue[1].id == CMD_FIGHT
-				or commandQueue[1].id == CMD_WAIT
+			(
+				commandQueue[1] --this one is here so when a unit has currently a move command, and a transportto is added after it, it will not be ignored and the unit wont just keep going forwards
+				and not (
+					commandQueue[1].id == CMD_MOVE
+					or commandQueue[1].id == CMD_FIGHT
+					or commandQueue[1].id == CMD.PATROL
+					or commandQueue[1].id == CMD_WAIT
+				)
+
 			)
+			or (currentCmd and (currentCmd == CMD_WAIT and cmdOpts.shift)) --this on is here so if a unit currently has a wait command, it wont handle it if its being shift
 		then
 			return
 		else
+			E("!ts:UnitCommand got transportto %s %s", uname(unitID), gf())
 			handleTransportToUnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag, true)
 		end
+		-- if currentCmd and currentCmd ~= CMD_TRANSPORT_TO then
+		-- 	return
+		-- else
+		-- 	E("!ts:UnitCommand got transportto %s %s", uname(unitID), gf())
+		-- 	handleTransportToUnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag, true)
+		-- end
+	end
+	if
+		cmdID == CMD_WAIT
+		and currentCmd
+		and currentCmd == CMD_WAIT
+		and commandQueue[2]
+		and commandQueue[2].id == CMD_TRANSPORT_TO
+	then
+		E("!ts:UnitCommand got wait before transportto %s %s", uname(unitID), gf())
+		handleTransportToUnitCommand(
+			unitID,
+			unitDefID,
+			unitTeam,
+			commandQueue[2].id,
+			commandQueue[2].params,
+			commandQueue[2].options,
+			cmdTag,
+			true
+		)
+	end
+	if cmdID == CMD_WAIT and currentCmd and currentCmd == CMD_WAIT then
+		E("command at 0: %s", debug_tostring(commandQueue[2]))
+	end
+end
+
+function widget:UnitUnloaded(uID, uDefID, teamID, transportID)
+	local i = does_unitHaveTransportJob(transportID)
+	if i then
+		remove_transport_job(i, true)
 	end
 end
 
