@@ -86,7 +86,6 @@ local featDamageImmunity = {}
 
 local isFactory = {}
 local isNewUnit = {}
-local frameBuildImmunity = math.round(gameSpeed * 0.1)
 
 local aliveExplosions = {}
 local frameExplosions = {}
@@ -425,7 +424,7 @@ function gadget:Initialize()
 			local beingBuilt, progress = Spring.GetUnitIsBeingBuilt(unitID)
 			if beingBuilt and progress <= 0.01 then
 				-- Close enough is good enough:
-				local framesRemaining = frameBuildImmunity * (1 - 0.5 * progress / 0.01)
+				local framesRemaining = frameInterval * (1 - 0.5 * progress / 0.01)
 				isNewUnit[unitID] = frameNumber + math.max(1, framesRemaining)
 			end
 		end
@@ -461,7 +460,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if isFactory[builderID] then
-		isNewUnit[unitID] = frameNumber + frameBuildImmunity
+		isNewUnit[unitID] = frameNumber + frameInterval
 	end
 end
 
