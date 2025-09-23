@@ -35,7 +35,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.792,
-		turnrate = 180,
+		turnrate = 220,
 		customparams = {
 			unitgroup = 'weapon',
 			model_author = "ZephyrSkies, EnderRobo",
