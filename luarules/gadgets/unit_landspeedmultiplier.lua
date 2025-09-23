@@ -13,19 +13,20 @@ function gadget:GetInfo()
 end
 
 -- units need to have the following customparam set for this to work properly:
--- landspeedfactor (number, e.g. 0.5 = half speed on land, 1 = no change, 2 = double speed)
+-- terrainspeedfactor (number, e.g. 0.5 = half speed on land, 1 = no change, 2 = double speed)
 
 if not gadgetHandler:IsSyncedCode() then return false end
 
 local spSetGroundMoveTypeData = Spring.MoveCtrl.SetGroundMoveTypeData
+local spMoveCtrlEnabled = Spring.MoveCtrl.IsEnabled
 
 local unitDefData = {}   -- unitDefID -> {factor, speed, turn, acc, dec}
 
 for defID, ud in pairs(UnitDefs) do
     local cp = ud.customParams
-    if tonumber(cp.landspeedfactor) and tonumber(cp.landspeedfactor) ~= 1 then
+    if tonumber(cp.terrainspeedfactor) and tonumber(cp.terrainspeedfactor) ~= 1 and (not ud.canFly and not ud.isAirUnit) then
         unitDefData[defID] = {
-            factor = tonumber(cp.landspeedfactor),
+            factor = tonumber(cp.terrainspeedfactor),
             speed  = ud.speed,
             turn   = ud.turnRate,
             acc    = ud.maxAcc,
@@ -42,10 +43,13 @@ end
 -- multiple wanted speeds, constraints, and coefficients, as per efrec/BONELESS/qscrew
 -- Current implementation is local only.
 local function applySpeed(unitID, stats, factor)
+
+    if spMoveCtrlEnabled(unitID) then return end
+    
     local speedFactor = factor
     local accelFactor = factor * 0.75 + 0.25
     local decelFactor = factor * 0.75 + 0.25
-    local turnFactor = factor * 0.5 + 0.5
+    local turnFactor =  factor * 0.5 + 0.5
 
     spSetGroundMoveTypeData(unitID, {
 		maxSpeed       = stats.speed * speedFactor,
