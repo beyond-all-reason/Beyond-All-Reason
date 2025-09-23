@@ -2,9 +2,9 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
     return {
-        name      = "Land Speed Multiplier",
+        name      = "Water Speed Multiplier",
         desc      = "Speeds up or slows down units on water compared to their default land speed.",
-        author    = "ZephyrSkies, with extensive help from [BONELESS]/qscrew/efrec",
+        author    = "ZephyrSkies",
         date      = "2025-09-14",
         license   = "GNU GPL, v2 or later",
         layer     = 0,
@@ -13,7 +13,7 @@ function gadget:GetInfo()
 end
 
 -- units need to have the following customparam set for this to work properly:
--- terrainspeedfactor (number, e.g. 0.5 = half speed on land, 1 = no change, 2 = double speed)
+-- waterspeedfactor (number, e.g. 0.5 = half speed on water, 1 = no change, 2 = double speed)
 
 if not gadgetHandler:IsSyncedCode() then return false end
 
@@ -24,9 +24,9 @@ local unitDefData = {}   -- unitDefID -> {factor, speed, turn, acc, dec}
 
 for defID, ud in pairs(UnitDefs) do
     local cp = ud.customParams
-    if tonumber(cp.terrainspeedfactor) and tonumber(cp.terrainspeedfactor) ~= 1 and (not ud.canFly and not ud.isAirUnit) then
+    if tonumber(cp.waterspeedfactor) and tonumber(cp.waterspeedfactor) ~= 1 and (not ud.canFly and not ud.isAirUnit) then
         unitDefData[defID] = {
-            factor = tonumber(cp.terrainspeedfactor),
+            factor = tonumber(cp.waterspeedfactor),
             speed  = ud.speed,
             turn   = ud.turnRate,
             acc    = ud.maxAcc,
@@ -49,7 +49,7 @@ local function applySpeed(unitID, stats, factor)
     local speedFactor = factor
     local accelFactor = factor * 0.75 + 0.25
     local decelFactor = factor * 0.75 + 0.25
-    local turnFactor =  factor * 0.5 + 0.5
+    local turnFactor  = factor * 0.5 + 0.5
 
     spSetGroundMoveTypeData(unitID, {
 		maxSpeed       = stats.speed * speedFactor,
@@ -60,8 +60,11 @@ local function applySpeed(unitID, stats, factor)
     })
 end
 
----------------------------------------------------------------------------------------------
--- Engine Callins ---------------------------------------------------------------------------
+function gadget:Initialize()
+    if not next(unitDefData) then
+        widgetHandler:RemoveWidget()
+    end
+end
 
 function gadget:UnitCreated(unitID, unitDefID, teamID)
     local data = unitDefData[unitDefID]
