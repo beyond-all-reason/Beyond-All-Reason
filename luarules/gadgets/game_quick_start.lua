@@ -28,7 +28,8 @@ local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" 
 ----------------------------Configuration----------------------------------------
 local FACTORY_DISCOUNT_MULTIPLIER = 0.90 -- The factory discount will be the metergy cost of the cheapest listed factory multiplied by this value.
 
-local INSTANT_BUILD_RANGE = 600          -- how far things will be be instantly built for the commander.
+-- how far things will be be instantly built for the commander.
+local INSTANT_BUILD_RANGE = modOptions.override_quick_start_range > 0 and modOptions.override_quick_start_range or 600
 
 local QUICK_START_COST_ENERGY = 400      --will be deducted from commander's energy upon start.
 local QUICK_START_COST_METAL = 800       --will be deducted from commander's metal upon start.
@@ -37,6 +38,7 @@ local quickStartAmountConfig = {
 	normal = 1500,
 	large = 2250,
 }
+
 -------------------------------------------------------------------------
 
 local ALL_COMMANDS = -1
@@ -421,8 +423,7 @@ end
 local function initializeCommander(commanderID, teamID)
 	local currentMetal = Spring.GetTeamResources(teamID, "metal") or 0
 	local currentEnergy = Spring.GetTeamResources(teamID, "energy") or 0
-	local quickStartAmount = modOptions.quick_start_amount or "normal"
-	local metergy = quickStartAmountConfig[quickStartAmount] or quickStartAmountConfig.normal
+	local metergy = modOptions.override_quick_start_resources > 0 and modOptions.override_quick_start_resources or quickStartAmountConfig[modOptions.quick_start_amount or "normal"]
 
 	factoryDiscounts[teamID] = false
 
@@ -767,7 +768,9 @@ function gadget:Initialize()
 	local frame = Spring.GetGameFrame()
 	local quickStartAmount = modOptions.quick_start_amount or "normal"
 	local immediateMetergy = quickStartAmountConfig[quickStartAmount] or quickStartAmountConfig.normal
-	Spring.SetGameRulesParam("quickStartMetergyBase", immediateMetergy)
+	
+	local finalMetergy = modOptions.override_quick_start_resources > 0 and modOptions.override_quick_start_resources or immediateMetergy
+	Spring.SetGameRulesParam("quickStartMetergyBase", finalMetergy)
 	Spring.SetGameRulesParam("quickStartFactoryDiscountAmount", FACTORY_DISCOUNT)
 	Spring.SetGameRulesParam("overridePregameBuildDistance", INSTANT_BUILD_RANGE)
 
