@@ -16,8 +16,8 @@ return {
 		health = 11100,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxacc = 0.01427,
-		maxdec = 0.01427,
+		maxacc = 0.009,
+		maxdec = 0.009,
 		metalcost = 3400,
 		minwaterdepth = 15,
 		movementclass = "HOVER3",
@@ -28,7 +28,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongenericSelfD",
 		sightdistance = 600,
-		speed = 53.1,
+		speed = 22,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 177,
@@ -39,7 +39,7 @@ return {
 			subfolder = "Legion/Ships/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			landspeedfactor = "0.5",
+			waterspeedfactor = "2.0",
 		},
 		featuredefs = {
 			dead = {
