@@ -23,7 +23,7 @@ return {
 		maxdec = 0.01104,
 		metalcost = 20000,
 		minwaterdepth = 15,
-		movementclass = "BOAT8",
+		movementclass = "BOAT9",
 		movestate = 0,
 		objectname = "Units/ARMEPOCH.s3o",
 		radardistance = 1530,

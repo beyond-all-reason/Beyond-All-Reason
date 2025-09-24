@@ -19,7 +19,7 @@ return {
 		maxslope = 14,
 		maxwaterdepth = 12,
 		metalcost = 120,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMROCK.s3o",

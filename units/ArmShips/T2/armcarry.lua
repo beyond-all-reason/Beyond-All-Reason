@@ -31,7 +31,7 @@ return {
 		maxdec = 0.01722,
 		metalcost = 1400,
 		minwaterdepth = 15,
-		movementclass = "BOAT8",
+		movementclass = "BOAT9",
 		movestate = 0,
 		nochasecategory = "ALL",
 		objectname = "Units/ARMCARRY.s3o",

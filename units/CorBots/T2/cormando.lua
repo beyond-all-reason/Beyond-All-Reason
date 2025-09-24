@@ -28,7 +28,7 @@ return {
 		maxdec = 1.725,
 		maxslope = 20,
 		metalcost = 1200,
-		movementclass = "ABOT2",
+		movementclass = "ABOT3",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORMANDO.s3o",
 		radardistance = 900,
