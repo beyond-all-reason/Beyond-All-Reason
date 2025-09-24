@@ -18,7 +18,7 @@
 	display: none;
 }
 
-.qs-metergy-overlay {
+.qs-budget-overlay {
 	position: absolute;
 	left: 0px;
 	top: 0px;
@@ -32,7 +32,7 @@
 	padding-top: 0px;
 }
 
-.qs-metergy-container {
+.qs-budget-container {
 	background-color: rgba(50, 50, 50, 60);
 	border-radius: 6px;
 	border-width: 1.5px;
@@ -49,7 +49,7 @@
 	position: relative;
 }
 
-.qs-metergy-gradient-overlay {
+.qs-budget-gradient-overlay {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -62,7 +62,7 @@
 	pointer-events: none;
 }
 
-.qs-metergy-header {
+.qs-budget-header {
 	font-size: 17px;
 	font-weight: bold;
 	margin-bottom: 0px;
@@ -71,13 +71,13 @@
 	z-index: 2;
 }
 
-.qs-metergy-row {
+.qs-budget-row {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 }
 
-.qs-metergy-metal-icon {
+.qs-budget-metal-icon {
 	width: 32px;
 	height: 32px;
 	z-index: 3;
@@ -91,7 +91,7 @@
 	margin: 0px;
 }
 
-.qs-metergy-value-left {
+.qs-budget-value-left {
 	font-size: 16px;
 	font-weight: bold;
 	color: rgb(255, 255, 255);
@@ -137,7 +137,7 @@
 }
 
 
-.qs-metergy-bar {
+.qs-budget-bar {
 	position: relative;
 	width: 519px;
 	height: 8px;
@@ -151,7 +151,7 @@
 	z-index: 2;
 }
 
-.qs-metergy-track {
+.qs-budget-track {
 	position: absolute;
 	width: 100%;
 	height: 100%;
@@ -159,7 +159,7 @@
 	z-index: 0;
 }
 
-.qs-metergy-fill {
+.qs-budget-fill {
 	position: absolute;
 	height: 100%;
 	width: 50%;
@@ -168,7 +168,7 @@
 	z-index: 1;
 }
 
-.qs-metergy-projected {
+.qs-budget-projected {
 	position: absolute;
 	height: 100%;
 	width: 0%;
@@ -177,7 +177,7 @@
 	z-index: 2;
 }
 
-.qs-metergy-text {
+.qs-budget-text {
 	display: none;
 }
 

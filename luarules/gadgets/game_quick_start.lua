@@ -26,7 +26,7 @@ local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" 
 
 
 ----------------------------Configuration----------------------------------------
-local FACTORY_DISCOUNT_MULTIPLIER = 0.90 -- The factory discount will be the metergy cost of the cheapest listed factory multiplied by this value.
+local FACTORY_DISCOUNT_MULTIPLIER = 0.90 -- The factory discount will be the budget cost of the cheapest listed factory multiplied by this value.
 
 -- how far things will be be instantly built for the commander.
 local INSTANT_BUILD_RANGE = modOptions.override_quick_start_range > 0 and modOptions.override_quick_start_range or 600
@@ -164,8 +164,8 @@ for unitDefID, unitDef in pairs(unitDefs) do
 end
 for name, _ in pairs(discountableFactories) do
 	if unitDefNames[name] then
-		local labMetergy = defMetergies[unitDefNames[name].id]
-		FACTORY_DISCOUNT = math.min(FACTORY_DISCOUNT, labMetergy * FACTORY_DISCOUNT_MULTIPLIER)
+		local labBudget = defMetergies[unitDefNames[name].id]
+		FACTORY_DISCOUNT = math.min(FACTORY_DISCOUNT, labBudget * FACTORY_DISCOUNT_MULTIPLIER)
 	end
 end
 for commanderName, nonLabOptions in pairs(commanderNonLabOptions) do
@@ -190,8 +190,8 @@ local function getFactoryDiscount(unitDef, teamID, builderID)
 	return FACTORY_DISCOUNT
 end
 
-local function applyBuildProgressToUnit(unitID, unitDef, affordableMetergy, fullMetergyCost)
-	local buildProgress = affordableMetergy / fullMetergyCost
+local function applyBuildProgressToUnit(unitID, unitDef, affordableBudget, fullBudgetCost)
+	local buildProgress = affordableBudget / fullBudgetCost
 	Spring.SetUnitHealth(unitID, { build = buildProgress, health = math.ceil(unitDef.health * buildProgress) })
 	return buildProgress
 end
@@ -201,7 +201,7 @@ local function getCommanderBuildQueue(commanderID)
 	local commandsToRemove = {}
 	local comData = commanders[commanderID]
 	local commands = spGetUnitCommands(commanderID, ALL_COMMANDS)
-	local totalMetergyCost = 0
+	local totalBudgetCost = 0
 	for i, cmd in ipairs(commands) do
 		if isBuildCommand(cmd.id) then
 			local spawnParams = { id = -cmd.id, x = cmd.params[1], y = cmd.params[2], z = cmd.params[3], facing = cmd
@@ -213,12 +213,12 @@ local function getCommanderBuildQueue(commanderID)
 				end
 				local unitDefID = -cmd.id
 				local unitDef = unitDefs[unitDefID]
-				local metergyCost = defMetergies[unitDefID] or 0
+				local budgetCost = defMetergies[unitDefID] or 0
 				if unitDef and unitDef.isFactory and discountableFactories[unitDef.name] and not factoryDiscounts[comData.teamID] then
-					metergyCost = math.max(metergyCost - FACTORY_DISCOUNT, 0)
+					budgetCost = math.max(budgetCost - FACTORY_DISCOUNT, 0)
 				end
-				totalMetergyCost = totalMetergyCost + metergyCost
-				if totalMetergyCost > comData.metergy then
+				totalBudgetCost = totalBudgetCost + budgetCost
+				if totalBudgetCost > comData.budget then
 					comData.commandsToRemove = commandsToRemove
 					return spawnQueue
 				end
@@ -423,7 +423,7 @@ end
 local function initializeCommander(commanderID, teamID)
 	local currentMetal = Spring.GetTeamResources(teamID, "metal") or 0
 	local currentEnergy = Spring.GetTeamResources(teamID, "energy") or 0
-	local metergy = modOptions.override_quick_start_resources > 0 and modOptions.override_quick_start_resources or quickStartAmountConfig[modOptions.quick_start_amount or "normal"]
+	local budget = (modOptions.override_quick_start_resources and modOptions.override_quick_start_resources > 0) and modOptions.override_quick_start_resources or quickStartAmountConfig[modOptions.quick_start_amount == "default" and "normal" or modOptions.quick_start_amount]
 
 	factoryDiscounts[teamID] = false
 
@@ -459,7 +459,7 @@ local function initializeCommander(commanderID, teamID)
 
 	commanders[commanderID] = {
 		teamID = teamID,
-		metergy = metergy,
+		budget = budget,
 		thingsMade = { windmill = 0, mex = 0, converter = 0, solar = 0, tidal = 0, floatingConverter = 0 },
 		defaultFacing = defaultFacing,
 		isInWater = isInWater,
@@ -495,7 +495,7 @@ end
 
 local function generateBuildCommands(commanderID)
 	local comData = commanders[commanderID]
-	local totalMetergyUsed = 0
+	local totalBudgetUsed = 0
 	local tryCount = 0
 	local maxMexes = isMetalMap and math.huge or #comData.nearbyMexes
 	local mexCount = 0
@@ -508,7 +508,7 @@ local function generateBuildCommands(commanderID)
 		weightedOptions[optionName] = weight - delayIntervals
 	end
 
-	while totalMetergyUsed < comData.metergy and tryCount < SAFETY_COUNT do
+	while totalBudgetUsed < comData.budget and tryCount < SAFETY_COUNT do
 		local selectedOption = nil
 		local bestWeight = -math.huge
 
@@ -529,10 +529,10 @@ local function generateBuildCommands(commanderID)
 			local buildDefID = comData.buildDefs[selectedOption]
 			local unitDef = unitDefs[buildDefID]
 			local discount = getFactoryDiscount(unitDef, comData.teamID, commanderID)
-			local metergyCost = defMetergies[buildDefID] - discount
+			local budgetCost = defMetergies[buildDefID] - discount
 
 			table.insert(comData.spawnQueue, 1, { id = buildDefID })
-			totalMetergyUsed = totalMetergyUsed + metergyCost
+			totalBudgetUsed = totalBudgetUsed + budgetCost
 		end
 		tryCount = tryCount + 1
 	end
@@ -552,8 +552,8 @@ end
 local function tryToSpawnBuild(commanderID, buildDefID, buildX, buildZ, facing)
 	local unitDef, comData, buildProgress = unitDefs[buildDefID], commanders[commanderID], 0
 	local discount = getFactoryDiscount(unitDef, comData.teamID, commanderID)
-	local metergyCost = defMetergies[buildDefID] - discount
-	if comData.metergy <= 0 then return false end
+	local budgetCost = defMetergies[buildDefID] - discount
+	if comData.budget <= 0 then return false end
 	local buildY = spGetGroundHeight(buildX, buildZ)
 
 	if spTestBuildOrder(buildDefID, buildX, buildY, buildZ, facing) ~= BUILD_ORDER_FREE then
@@ -565,9 +565,9 @@ local function tryToSpawnBuild(commanderID, buildDefID, buildX, buildZ, facing)
 		return false, nil
 	end
 
-	local affordableMetergy = math.min(comData.metergy, metergyCost)
-	buildProgress = applyBuildProgressToUnit(unitID, unitDef, affordableMetergy, metergyCost)
-	comData.metergy = comData.metergy - affordableMetergy
+	local affordableBudget = math.min(comData.budget, budgetCost)
+	buildProgress = applyBuildProgressToUnit(unitID, unitDef, affordableBudget, budgetCost)
+	comData.budget = comData.budget - affordableBudget
 
 	local optionName = optionDefIDToTypes[buildDefID]
 	if optionName then
@@ -697,7 +697,7 @@ function gadget:GameFrame(frame)
 		end
 		local allQueuesEmpty = true
 		for commanderID, comData in pairs(commanders) do
-			if comData.metergy > 0 then
+			if comData.budget > 0 then
 				generateBuildCommands(commanderID)
 			end
 			if comData.spawnQueue and #comData.spawnQueue > 0 then
@@ -739,8 +739,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		factoryDiscounts[unitTeam] = true
 		Spring.SetTeamRulesParam(unitTeam, "quickStartFactoryDiscountUsed", 1)
 
-		local fullMetergyCost = defMetergies[unitDefID]
-		local buildProgress = applyBuildProgressToUnit(unitID, unitDef, discount, fullMetergyCost)
+		local fullBudgetCost = defMetergies[unitDefID]
+		local buildProgress = applyBuildProgressToUnit(unitID, unitDef, discount, fullBudgetCost)
 		local x, y, z = spGetUnitPosition(unitID)
 		spSpawnCEG("quickstart-spawn-pulse-large", x, y + 10, z)
 	end
@@ -767,10 +767,10 @@ function gadget:Initialize()
 
 	local frame = Spring.GetGameFrame()
 	local quickStartAmount = modOptions.quick_start_amount or "normal"
-	local immediateMetergy = quickStartAmountConfig[quickStartAmount] or quickStartAmountConfig.normal
+	local immediateBudget = quickStartAmountConfig[quickStartAmount] or quickStartAmountConfig.normal
 	
-	local finalMetergy = modOptions.override_quick_start_resources > 0 and modOptions.override_quick_start_resources or immediateMetergy
-	Spring.SetGameRulesParam("quickStartMetergyBase", finalMetergy)
+	local finalBudget = modOptions.override_quick_start_resources > 0 and modOptions.override_quick_start_resources or immediateBudget
+	Spring.SetGameRulesParam("quickStartBudgetBase", finalBudget)
 	Spring.SetGameRulesParam("quickStartFactoryDiscountAmount", FACTORY_DISCOUNT)
 	Spring.SetGameRulesParam("overridePregameBuildDistance", INSTANT_BUILD_RANGE)
 
