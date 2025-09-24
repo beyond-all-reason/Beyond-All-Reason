@@ -50,6 +50,8 @@ local function applySpeed(unitID, stats, factor)
     local accelFactor = factor * 0.75 + 0.25
     local decelFactor = factor * 0.75 + 0.25
     local turnFactor  = factor * 0.5 + 0.5
+    --these factor effectiveness values for the given unit stats were chosen arbitrarily for the best mechanical feel and balance, 
+    --as well as to avoid strange jerky visuals
 
     spSetGroundMoveTypeData(unitID, {
 		maxSpeed       = stats.speed * speedFactor,
