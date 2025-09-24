@@ -116,6 +116,7 @@
 			"lrpcDetected": "Long Range Plasma Cannon(s) (LRPC) detected",
 			"empSiloDetected": "EMP missile silo detected",
 			"tacticalNukeSiloDetected": "Tactical Missile Launcher detected",
+			"longRangeNapalmLauncherDetected": "Long Range Napalm Launcher detected",
 			"nuclearSiloDetected": "Nuclear silo detected",
 			"nuclearBomberDetected": "Nuclear bomber detected",
 			"behemothDetected": "Behemoth detected",
