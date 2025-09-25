@@ -1771,7 +1771,7 @@
 		"quickStart": {
 			"placeDiscountedFactory": "First factory is discounted",
 			"preGameResources": "Base Budget",
-			"remainingResourcesWarning": "Base Budget will be to instantly spawn structures within range"
+			"remainingResourcesWarning": "Use the Base Budget to instantly spawn structures within range"
 		}
 	}
 }
