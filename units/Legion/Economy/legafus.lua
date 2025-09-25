@@ -28,6 +28,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "advancedFusionExplosionSelfd",
 		sightdistance = 273,
+		yardmap = "oooooooooooooooooooooooooooooooooooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 10,

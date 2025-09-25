@@ -152,6 +152,7 @@ local lastStorageValue = { metal = -1, energy = -1 }
 local lastStorageText = { metal = '', energy = '' }
 local lastWarning = { metal = nil, energy = nil }
 local lastValueWidth = { metal = -1, energy = -1 }
+local lastResbarValueWidth = { metal = 1, energy = 1 }
 local prevShowButtons = showButtons
 
 
@@ -259,16 +260,34 @@ function widget:ViewResize()
 	init()
 end
 
+-- --- OPTIMIZATION: Memoized short() function to reduce string allocations.
+local shortCache = {}
+local shortCacheCount = 0
 local function short(n, f)
-	if f == nil then f = 0 end
-
-	if n > 9999999 then
-		return sformat("%." .. f .. "fm", n / 1000000)
-	elseif n > 9999 then
-		return sformat("%." .. f .. "fk", n / 1000)
-	else
-		return sformat("%." .. f .. "f", n)
+	f = f or 0
+	local key = n .. ':' .. f
+	if shortCache[key] then
+		return shortCache[key]
 	end
+
+	local result
+	if n > 9999999 then
+		result = sformat("%." .. f .. "fm", n / 1000000)
+	elseif n > 9999 then
+		result = sformat("%." .. f .. "fk", n / 1000)
+	else
+		result = sformat("%." .. f .. "f", n)
+	end
+
+	-- Safety net to prevent the cache from growing indefinitely over a very long game.
+	if shortCacheCount > 500 then
+		shortCache = {}
+		shortCacheCount = 0
+	end
+
+	shortCache[key] = result
+	shortCacheCount = shortCacheCount + 1
+	return result
 end
 
 local function updateButtons()
@@ -632,7 +651,8 @@ local function updateResbarText(res, force)
 end
 
 local function drawResbarValue(res)
-	-- Text: current
+	local value = short(smoothedResources[res][1])
+	lastResbarValueWidth[res] = font2:GetTextWidth(value) * resbarDrawinfo[res].textCurrent[4]
 	font2:Begin(useRenderToTexture)
 	if res == 'metal' then
 		font2:SetTextColor(0.95, 0.95, 0.95, 1)
@@ -640,7 +660,7 @@ local function drawResbarValue(res)
 		font2:SetTextColor(1, 1, 0.74, 1)
 	end
 	font2:SetOutlineColor(0, 0, 0, 1)
-	font2:Print(short(smoothedResources[res][1]), resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+	font2:Print(value, resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
 	font2:End()
 end
 
@@ -1192,6 +1212,35 @@ function widget:Update(dt)
 	end
 end
 
+-- --- OPTIMIZATION: Pre-defined function for RenderToTexture to avoid creating a closure.
+local function renderResbarText()
+	gl.Translate(-1, -1, 0)
+	gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+	gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+
+	local res = 'metal'
+	drawResbarValue(res)
+	if updateRes[res][2] then
+		updateRes[res][2] = false
+		drawResbarPullIncome(res)
+	end
+	if updateRes[res][3] then
+		updateRes[res][3] = false
+		drawResbarStorage(res)
+	end
+
+	res = 'energy'
+	drawResbarValue(res)
+	if updateRes[res][2] then
+		updateRes[res][2] = false
+		drawResbarPullIncome(res)
+	end
+	if updateRes[res][3] then
+		updateRes[res][3] = false
+		drawResbarStorage(res)
+	end
+end
+
 local function drawResBars()
 	glPushMatrix()
 
@@ -1287,9 +1336,9 @@ local function drawResBars()
 			res = 'metal'
 			if updateRes[res][1] then
 				scissors[#scissors+1] = {
-					(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(resbarDrawinfo[res].textCurrent[4]*3),
+					(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(lastResbarValueWidth[res]*0.75),
 					(topbarArea[4]-topbarArea[2])*0.48,
-					resbarDrawinfo[res].textCurrent[4]*6,
+					resbarDrawinfo[res].textCurrent[4]+lastResbarValueWidth[res],
 					topbarArea[4]-topbarArea[2]
 				}
 			end
@@ -1312,9 +1361,9 @@ local function drawResBars()
 			res = 'energy'
 			if updateRes[res][1] then
 				scissors[#scissors+1] = {
-					(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(resbarDrawinfo[res].textCurrent[4]*3),
+					(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(lastResbarValueWidth[res]*0.75),
 					(topbarArea[4]-topbarArea[2])*0.48,
-					resbarDrawinfo[res].textCurrent[4]*6,
+					resbarDrawinfo[res].textCurrent[4]+lastResbarValueWidth[res],
 					topbarArea[4]-topbarArea[2]
 				}
 			end
@@ -1335,36 +1384,7 @@ local function drawResBars()
 				}
 			end
 
-			gl.R2tHelper.RenderToTexture(uiTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-					gl.Translate(-topbarArea[1], -topbarArea[2], 0)
-
-					res = 'metal'
-					drawResbarValue(res)
-					if updateRes[res][2] then
-						updateRes[res][2] = false
-						drawResbarPullIncome(res)
-					end
-					if updateRes[res][3] then
-						updateRes[res][3] = false
-						drawResbarStorage(res)
-					end
-
-					res = 'energy'
-					drawResbarValue(res)
-					if updateRes[res][2] then
-						updateRes[res][2] = false
-						drawResbarPullIncome(res)
-					end
-					if updateRes[res][3] then
-						updateRes[res][3] = false
-						drawResbarStorage(res)
-					end
-				end,
-				useRenderToTexture, scissors
-			)
+			gl.R2tHelper.RenderToTexture(uiTex, renderResbarText, useRenderToTexture, scissors)
 		end
 	end
 end
@@ -1577,6 +1597,46 @@ local function drawUi()
 	end
 end
 
+-- --- OPTIMIZATION: Pre-defined functions for RenderToTexture to avoid creating closures.
+local function renderUiBackground()
+	gl.Translate(-1, -1, 0)
+	gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+	gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+	drawUiBackground()
+end
+
+local function renderUi()
+	gl.Translate(-1, -1, 0)
+	gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+	gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+	drawUi()
+end
+
+local function renderWindText()
+    gl.Translate(-1, -1, 0)
+    gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+    gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+
+    local fontSize = (height / 2.66) * widgetScale
+    font2:Begin(useRenderToTexture)
+    font2:SetOutlineColor(0,0,0,1)
+    font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Wind speed text
+    font2:End()
+end
+
+local function renderComCounter()
+    gl.Translate(-1, -1, 0)
+    gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+    gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+
+    if allyComs == 1 and (gameFrame % 12 < 6) then
+        glColor(1, 0.6, 0, 0.45)
+    else
+        glColor(1, 1, 1, 0.22)
+    end
+    glCallList(dlistComs)
+end
+
 function widget:DrawScreen()
 	now = os.clock()
 
@@ -1605,26 +1665,10 @@ function widget:DrawScreen()
 			})
 
 			if uiBgTex then
-				gl.R2tHelper.RenderToTexture(uiBgTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-						gl.Translate(-topbarArea[1], -topbarArea[2], 0)
-						drawUiBackground()
-					end,
-					useRenderToTexture
-				)
+				gl.R2tHelper.RenderToTexture(uiBgTex, renderUiBackground, useRenderToTexture)
 			end
 			if uiTex then
-				gl.R2tHelper.RenderToTexture(uiTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-						gl.Translate(-topbarArea[1], -topbarArea[2], 0)
-						drawUi()
-					end,
-					useRenderToTexture
-				)
+				gl.R2tHelper.RenderToTexture(uiTex, renderUi, useRenderToTexture)
 			end
 
 			if WG['guishader'] then
@@ -1698,23 +1742,13 @@ function widget:DrawScreen()
 	end
 
 	-- current wind
-	if gameFrame > 0 and minWind+maxWind >= 0.5 then
+	if gameFrame > 0 and (minWind+maxWind >= 0.5 or refreshUi) then
 		if useRenderToTexture then
-			if currentWind ~= prevWind then
+			if currentWind ~= prevWind or refreshUi then
 				prevWind = currentWind
 
 				gl.R2tHelper.RenderToTexture(uiTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-						gl.Translate(-topbarArea[1], -topbarArea[2], 0)
-
-						local fontSize = (height / 2.66) * widgetScale
-						font2:Begin(useRenderToTexture)
-						font2:SetOutlineColor(0,0,0,1)
-						font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Wind speed text
-						font2:End()
-					end,
+					renderWindText,
 					useRenderToTexture,
 					{windArea[1]-topbarArea[1], (topbarArea[4]-topbarArea[2])*0.33, windArea[3]-windArea[1], (topbarArea[4]-topbarArea[2])*0.4}
 				)
@@ -1734,18 +1768,7 @@ function widget:DrawScreen()
 				comsDlistUpdate = nil
 
 				gl.R2tHelper.RenderToTexture(uiTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-						gl.Translate(-topbarArea[1], -topbarArea[2], 0)
-
-						if allyComs == 1 and (gameFrame % 12 < 6) then
-							glColor(1, 0.6, 0, 0.45)
-						else
-							glColor(1, 1, 1, 0.22)
-						end
-						glCallList(dlistComs)
-					end,
+					renderComCounter,
 					useRenderToTexture,
 					{comsArea[1]-topbarArea[1], 0, comsArea[3]-comsArea[1], (topbarArea[4]-topbarArea[2])}
 				)

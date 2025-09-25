@@ -181,7 +181,7 @@ end
 -- in case we forget to save it once again
 Spring.SetConfigInt("version", version)
 
-Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
+Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1))
 
 -- Configure sane keychain settings, this is to provide a standard experience
 -- for users that is acceptable

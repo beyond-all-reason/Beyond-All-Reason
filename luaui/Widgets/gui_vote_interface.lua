@@ -47,7 +47,6 @@ local voteEndTime, voteEndText
 
 local eligibleToVote = false
 
-local eligiblePlayers = {}
 local votesRequired, votesEligible
 local votesCountYes = 0
 local votesCountNo = 0
@@ -57,7 +56,7 @@ local voteStartTime
 local function isTeamPlayer(playerName)
 	local players = Spring.GetPlayerList()
 	for _, pID in ipairs(players) do
-		local name, _, spec, teamID, allyTeamID = Spring.GetPlayerInfo(pID, false)
+		local name, _, _, _, allyTeamID = Spring.GetPlayerInfo(pID, false)
 		if name == playerName then
 			if allyTeamID == myAllyTeamID then
 				return true
@@ -72,7 +71,6 @@ local function CloseVote()
 	voteEndText = nil
 	voteStartTime = nil
 	if voteDlist then
-		eligiblePlayers = {}
 		votesRequired = nil
 		votesEligible = nil
 		votesCountYes = 0
@@ -436,6 +434,7 @@ function widget:AddConsoleLine(lines, priority)
 						local players = Spring.GetPlayerList()
 						for _, pID in ipairs(players) do
 							local name, _, spec, teamID, allyTeamID = Spring.GetPlayerInfo(pID, false)
+							name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(pID)) or name
 							local pos = sfind(title, ' '..name..' ', nil, true)
 							if pos then
 								title = ssub(title, 1, pos-1).. colourNames(teamID) ..' '.. name ..' '.. titlecolor .. ssub(title, pos + string.len(' '..name..' '))
@@ -445,7 +444,6 @@ function widget:AddConsoleLine(lines, priority)
 					end
 
 					if not isResignVote or isResignVoteMyTeam then
-						eligiblePlayers = {}
 						votesRequired = nil
 						votesEligible = nil
 						votesCountYes = 0

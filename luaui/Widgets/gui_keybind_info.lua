@@ -438,7 +438,10 @@ function widget:Shutdown()
 		keybinds = nil
 	end
 	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('keybindinfo')
+		WG['guishader'].RemoveDlist('keybindinfo')
+	end
+	if backgroundGuishader ~= nil then
+		glDeleteList(backgroundGuishader)
 	end
 end
 
