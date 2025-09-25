@@ -85,8 +85,8 @@
 	left: 3px;
 	top: 28px;
 	transform: translateY(-50%);
-	background: none;
-	border: none;
+	background-color: transparent;
+	border-width: 0;
 	padding: 0px;
 	margin: 0px;
 }
