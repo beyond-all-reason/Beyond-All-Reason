@@ -17,11 +17,13 @@ if not isSynced then return false end
 local shouldRunGadget = modOptions and modOptions.quick_start and (
 	modOptions.quick_start == "enabled" or
 	modOptions.quick_start == "factory_discount" or
+	modOptions.quick_start == "factory_discount_only" or
 	(modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
 )
 if not shouldRunGadget then return false end
 
 local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" or 
+	modOptions.quick_start == "factory_discount_only" or
 	(modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
 
 
@@ -83,7 +85,7 @@ local allTeamsList = {}
 local boostableCommanders = {}
 local commanders = {}
 local defMetergies = {}
-local factoryDiscounts = {}
+local commanderFactoryDiscounts = {}
 local mexDefs = {}
 local optionDefIDToTypes = {}
 local queuedCommanders = {}
@@ -183,9 +185,9 @@ end
 
 local function getFactoryDiscount(unitDef, teamID, builderID)
 	if not unitDef.isFactory then return 0 end
-	if factoryDiscounts[teamID] then return 0 end
+	if commanderFactoryDiscounts[builderID] then return 0 end
 	if discountableFactories[unitDef.name] ~= true then return 0 end
-	if builderID and not commanders[builderID] then return 0 end
+	if modOptions.quick_start ~= "factory_discount_only" and builderID and not commanders[builderID] then return 0 end
 	if not shouldApplyFactoryDiscount then return 0 end
 	return FACTORY_DISCOUNT
 end
@@ -214,7 +216,7 @@ local function getCommanderBuildQueue(commanderID)
 				local unitDefID = -cmd.id
 				local unitDef = unitDefs[unitDefID]
 				local budgetCost = defMetergies[unitDefID] or 0
-				if unitDef and unitDef.isFactory and discountableFactories[unitDef.name] and not factoryDiscounts[comData.teamID] then
+				if unitDef and unitDef.isFactory and discountableFactories[unitDef.name] and not commanderFactoryDiscounts[commanderID] then
 					budgetCost = math.max(budgetCost - FACTORY_DISCOUNT, 0)
 				end
 				totalBudgetCost = totalBudgetCost + budgetCost
@@ -421,11 +423,16 @@ local function populateNearbyMexes(commanderID)
 end
 
 local function initializeCommander(commanderID, teamID)
+	if modOptions.quick_start == "factory_discount_only" then
+		commanderFactoryDiscounts[commanderID] = false
+		return
+	end
+
 	local currentMetal = Spring.GetTeamResources(teamID, "metal") or 0
 	local currentEnergy = Spring.GetTeamResources(teamID, "energy") or 0
 	local budget = (modOptions.override_quick_start_resources and modOptions.override_quick_start_resources > 0) and modOptions.override_quick_start_resources or quickStartAmountConfig[modOptions.quick_start_amount == "default" and "normal" or modOptions.quick_start_amount]
 
-	factoryDiscounts[teamID] = false
+	commanderFactoryDiscounts[commanderID] = false
 
 	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
 	local directionX = MAP_CENTER_X - commanderX
@@ -569,6 +576,10 @@ local function tryToSpawnBuild(commanderID, buildDefID, buildX, buildZ, facing)
 	buildProgress = applyBuildProgressToUnit(unitID, unitDef, affordableBudget, budgetCost)
 	comData.budget = comData.budget - affordableBudget
 
+	if unitDef.isFactory and discountableFactories[unitDef.name] and discount > 0 then
+		commanderFactoryDiscounts[commanderID] = true
+	end
+
 	local optionName = optionDefIDToTypes[buildDefID]
 	if optionName then
 		comData.thingsMade[optionName] = (comData.thingsMade[optionName] or 0) + 1
@@ -668,7 +679,7 @@ function gadget:GameFrame(frame)
 			running = false
 			break
 		end
-		local loop = true
+		local loop = modOptions.quick_start ~= "factory_discount_only"
 		while loop do
 			loop = false
 			if not isMetalMap then
@@ -712,7 +723,7 @@ function gadget:GameFrame(frame)
 	local allDiscountsUsed = false
 	if frame % UPDATE_FRAMES == 0 then
 		allDiscountsUsed = true
-		for teamID, used in pairs(factoryDiscounts) do
+		for commanderID, used in pairs(commanderFactoryDiscounts) do
 			if not used then
 				allDiscountsUsed = false
 				break
@@ -726,6 +737,7 @@ end
 
 function gadget:UnitDestroyed(unitID)
 	commanders[unitID] = nil
+	commanderFactoryDiscounts[unitID] = nil
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
@@ -736,7 +748,9 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local unitDef = unitDefs[unitDefID]
 	local discount = getFactoryDiscount(unitDef, unitTeam, builderID)
 	if discount > 0 then
-		factoryDiscounts[unitTeam] = true
+		if builderID then
+			commanderFactoryDiscounts[builderID] = true
+		end
 		Spring.SetTeamRulesParam(unitTeam, "quickStartFactoryDiscountUsed", 1)
 
 		local fullBudgetCost = defMetergies[unitDefID]
@@ -772,7 +786,9 @@ function gadget:Initialize()
 	local finalBudget = modOptions.override_quick_start_resources > 0 and modOptions.override_quick_start_resources or immediateBudget
 	Spring.SetGameRulesParam("quickStartBudgetBase", finalBudget)
 	Spring.SetGameRulesParam("quickStartFactoryDiscountAmount", FACTORY_DISCOUNT)
-	Spring.SetGameRulesParam("overridePregameBuildDistance", INSTANT_BUILD_RANGE)
+	if modOptions.quick_start ~= "factory_discount_only" then
+		Spring.SetGameRulesParam("overridePregameBuildDistance", INSTANT_BUILD_RANGE)
+	end
 
 	if frame > 1 then
 		local allUnits = Spring.GetAllUnits()

@@ -1261,8 +1261,9 @@ local options = {
         unlock = {"quick_start_amount"},
         items 	= {
             { key = "default", 	name = "Default", lock = {"quick_start_amount"} },
-            { key = "factory_discount", name = "Enabled: Discounted First Factory", desc = "The commander's first factory is discounted whether built before or during the game.", unlock = {"quick_start_amount"} },
             { key = "enabled", name = "Enabled", unlock = {"quick_start_amount"} },
+            { key = "factory_discount", name = "Enabled: Discounted First Factory", desc = "The commander's first factory is discounted whether built before or during the game.", unlock = {"quick_start_amount"} },
+            { key = "factory_discount_only", name = "Factory Discount Only", desc = "No base budget resources, only factory discount", unlock = {"quick_start_amount"} },
             { key = "disabled", name = "Disabled", lock = {"quick_start_amount"} },
         }
     },
@@ -1276,9 +1277,9 @@ local options = {
         section = "options_extra",
         items 	= {
             { key = "default", 	name = "Default", desc = "Uses the default amount based on game mode" },
-            { key = "small", 	name = "Small", desc = "1000 Quick-Start resources" },
-            { key = "normal", 	name = "Normal", desc = "1500 Quick-Start resources" },
-            { key = "large", 	name = "Large", desc = "2250 Quick-Start resources" },
+            { key = "small", 	name = "Small", desc = "1000 Base Budget" },
+            { key = "normal", 	name = "Normal", desc = "1500 Base Budget" },
+            { key = "large", 	name = "Large", desc = "2250 Base Budget" },
         }
     },
 
