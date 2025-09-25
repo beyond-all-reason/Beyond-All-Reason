@@ -129,6 +129,7 @@ end
 local unitsOfInterestNames = {
 	armemp = 'EmpSiloDetected',
 	cortron = 'TacticalNukeSiloDetected',
+	legperdition = "LongRangeNapalmLauncherDetected",
 	armsilo = 'NuclearSiloDetected',
 	corsilo = 'NuclearSiloDetected',
 	corint = 'LrpcDetected',
