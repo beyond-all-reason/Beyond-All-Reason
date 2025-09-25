@@ -255,6 +255,8 @@ local function updateDataModel(force)
 	if not force and widgetState.lastQueueHash == newHash and (os.clock() - widgetState.lastUpdate) < widgetState.updateInterval then
 		return
 	end
+	
+	local queueChanged = widgetState.lastQueueHash ~= newHash
 	widgetState.lastQueueHash = newHash
 	widgetState.lastUpdate = os.clock()
 
@@ -264,6 +266,9 @@ local function updateDataModel(force)
 	if widgetState.lastBudgetRemaining > currentBudgetRemaining then
 		local deductionAmount = widgetState.lastBudgetRemaining - currentBudgetRemaining
 		showDeductionAnimation(deductionAmount)
+		Spring.PlaySoundFile("beep6", 1.0, "ui")
+	elseif queueChanged and widgetState.lastBudgetRemaining == currentBudgetRemaining and #queue > 0 then
+		Spring.PlaySoundFile("cmd-build", 1.0, "ui")
 	end
 	
 	widgetState.lastBudgetRemaining = currentBudgetRemaining
