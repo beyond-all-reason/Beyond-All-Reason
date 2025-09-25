@@ -18,7 +18,8 @@ local vsx, vsy = Spring.GetViewGeometry()
 
 local uiScale = (0.7 + (vsx * vsy / 6500000))
 local myPlayerID = Spring.GetMyPlayerID()
-local _, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
+local myPlayerName, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
+myPlayerName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(myPlayerID)) or myPlayerName
 local isFFA = Spring.Utilities.Gametype.IsFFA()
 local isReplay = Spring.IsReplay()
 

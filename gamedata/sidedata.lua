@@ -12,11 +12,11 @@ end
 local sideOptions = {
     {
         name = "Armada",
-        startunit = SIDES.ARM .. 'com',
+        startunit = SIDES.ARMADA .. 'com',
     },
     {
         name = "Cortex",
-        startunit = SIDES.CORE .. 'com',
+        startunit = SIDES.CORTEX .. 'com',
     },
     {
         name = "Random",

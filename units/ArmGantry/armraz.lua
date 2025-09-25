@@ -144,7 +144,7 @@ return {
 				weaponvelocity = 920,
 				damage = {
 					default = 116,
-					vtol = 58,
+					vtol = 22,
 				},
 			},
 		},
@@ -155,6 +155,7 @@ return {
 				comment = "seems to have 40 deg burst limit arc limit w the burstcontrolwhenoutofarc = 2, fastautoretargeting, compounding",
 				def = "MECH_RAPIDLASER",
 				fastautoretargeting = true,
+				fastquerypointupdate = true,
 				onlytargetcategory = "NOTSUB",
 			},
 		},
