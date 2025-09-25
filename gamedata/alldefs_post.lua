@@ -1838,7 +1838,7 @@ function UnitDef_Post(name, uDef)
 				[13] = "armgmm",
 				[14] = "armhavp",
 				[15] = "armlab",
-				[16] = "armalab",
+				[16] = "armavp",
 				[17] = "armsd",
 				[18] = "armmakr",
 				[19] = "armestor",
