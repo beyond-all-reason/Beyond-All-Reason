@@ -757,7 +757,7 @@ end
 
 -- expose armor defs to custom params
 for unitName, unitDef in pairs (DEFS.unitDefs) do
-	if unitDef.customparams.armordef then
+	if unitDef.customparams and unitDef.customparams.armordef then
 		local defCategory = armorDefs[unitDef.customparams.armordef]
 		if defCategory then
 			clearArmorDef(unitName)
