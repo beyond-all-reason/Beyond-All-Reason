@@ -365,7 +365,6 @@ if gadgetHandler:IsSyncedCode() then
 		-- register allowcommand callin
 		gadgetHandler:RegisterAllowCommand(CMD_STOP)
 		gadgetHandler:RegisterAllowCommand(CMD_DGUN)
-		gadgetHandler:RegisterAllowCommand(CMD.INSERT)
 		gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGET_NO_GROUND)
 		gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGET)
 		gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGET_RECTANGLE)
@@ -592,7 +591,6 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.ZoneEnd()
 	end
 
-	local waitingForInsertRemoval = {}
 	local function pauseTargetting(unitID)
 		if unitTargets[unitID] and not pausedTargets[unitID] then
 			pausedTargets[unitID] = unitTargets[unitID]
@@ -614,13 +612,9 @@ if gadgetHandler:IsSyncedCode() then
 				pausedTargets[unitID] = nil
 			end
 		else
-			local activeCommandIsDgun = spGetUnitCommandCount(unitID) ~= 0 and spGetUnitCommands(unitID, 1)[1].id == CMD_DGUN
+			local activeCommandIsDgun = spGetUnitCurrentCommand(unitID) == CMD_DGUN
 			if pausedTargets[unitID] and not activeCommandIsDgun then
-				if waitingForInsertRemoval[unitID] then
-					waitingForInsertRemoval[unitID] = nil
-				else
-					unpauseTargetting(unitID)
-				end
+				unpauseTargetting(unitID)
 			elseif not pausedTargets[unitID] and activeCommandIsDgun then
 				pauseTargetting(unitID)
 			end
@@ -643,9 +637,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			elseif cmdID == CMD_DGUN then
 				pauseTargetting(unitID)
-			elseif (cmdID == CMD.INSERT and cmdParams[2] == CMD_DGUN) then
-				pauseTargetting(unitID)
-				waitingForInsertRemoval[unitID] = true
 			end
 		end
 		--tracy.ZoneEnd()
