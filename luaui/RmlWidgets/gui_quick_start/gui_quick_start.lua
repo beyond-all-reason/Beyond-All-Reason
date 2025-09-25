@@ -268,6 +268,14 @@ local function updateDataModel(force)
 	
 	widgetState.lastBudgetRemaining = currentBudgetRemaining
 	
+	local hasUnallocatedBudget = currentBudgetRemaining > 0
+	if WG['pregameui'] and WG['pregameui'].setReadyBlocked then
+		WG['pregameui'].setReadyBlocked(hasUnallocatedBudget, hasUnallocatedBudget and "ui.quickStart.unallocatedBudget" or nil)
+	end
+	if WG['pregameui_draft'] and WG['pregameui_draft'].setReadyBlocked then
+		WG['pregameui_draft'].setReadyBlocked(hasUnallocatedBudget, hasUnallocatedBudget and "ui.quickStart.unallocatedBudget" or nil)
+	end
+	
 	for key, value in pairs(modelUpdate) do
 		widgetState.dmHandle[key] = value
 	end
@@ -423,6 +431,13 @@ function widget:Shutdown()
 	
 	WG["buildMenuCostOverride"] = nil
 	WG["buildMenuCostOverrideColors"] = nil
+	
+	if WG['pregameui'] and WG['pregameui'].setReadyBlocked then
+		WG['pregameui'].setReadyBlocked(false)
+	end
+	if WG['pregameui_draft'] and WG['pregameui_draft'].setReadyBlocked then
+		WG['pregameui_draft'].setReadyBlocked(false)
+	end
 
 	if WG['buildmenu'] and WG['buildmenu'].forceRefresh then
 		WG['buildmenu'].forceRefresh()

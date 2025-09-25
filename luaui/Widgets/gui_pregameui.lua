@@ -55,6 +55,8 @@ local buttonText = ''
 local buttonDrawn = false
 local lockText = ''
 local locked = false
+local isReadyBlocked = false
+local readyBlockedReasons = {}
 
 local UiElement, UiButton, elementPadding, uiPadding
 
@@ -81,7 +83,11 @@ local function createButton()
 	local color = { 0.15, 0.15, 0.15 }
 	if not mySpec then
 		if not locked then
-			color = readyButtonColor
+			if isReadyBlocked then
+				color = { 0.3, 0.3, 0.3 }
+			else
+				color = readyButtonColor
+			end
 		else
 			color = unreadyButtonColor
 		end
@@ -204,7 +210,9 @@ function widget:MousePress(sx, sy)
 				if not readied then
 					if not mySpec then
 						if not readied then
-							if startPointChosen then
+							if isReadyBlocked then
+								return true
+							elseif startPointChosen then
 								pressedReady = true
 								readied = true
 								Spring.SendLuaRulesMsg("ready_to_start_game")
@@ -294,6 +302,19 @@ function widget:Initialize()
 
 	widget:ViewResize(vsx, vsy)
 	checkStartPointChosen()
+	
+	WG['pregameui'] = {}
+	WG['pregameui'].setReadyBlocked = function(blocked, reason)
+		if blocked and reason then
+			readyBlockedReasons[reason] = true
+		elseif not blocked and reason then
+			readyBlockedReasons[reason] = nil
+		elseif not blocked then
+			readyBlockedReasons = {}
+		end
+		isReadyBlocked = next(readyBlockedReasons) ~= nil
+		createButton()
+	end
 end
 
 function widget:DrawScreen()
@@ -370,18 +391,33 @@ function widget:DrawScreen()
 		if x > buttonRect[1] and x < buttonRect[3] and y > buttonRect[2] and y < buttonRect[4] then
 			gl.CallList(buttonHoverList)
 			colorString = "\255\210\210\210"
+			
+			if isReadyBlocked and WG['tooltip'] then
+				local tooltipText = ""
+				for reason, _ in pairs(readyBlockedReasons) do
+					if tooltipText ~= "" then
+						tooltipText = tooltipText .. "\n"
+					end
+					tooltipText = tooltipText .. Spring.I18N(reason)
+				end
+				WG['tooltip'].ShowTooltip('pregameui', tooltipText)
+			end
 		else
 			gl.CallList(buttonList)
 			timer2 = timer2 + Spring.GetLastUpdateSeconds()
 			if mySpec then
 				colorString = offeredAsSub and "\255\255\255\225" or "\255\222\222\222"
 			else
-				colorString = os.clock() % 0.75 <= 0.375 and "\255\255\255\255" or "\255\222\222\222"
+				if isReadyBlocked then
+					colorString = "\255\150\150\150"
+				else
+					colorString = os.clock() % 0.75 <= 0.375 and "\255\255\255\255" or "\255\222\222\222"
+				end
 			end
 			if readied then
 				colorString = "\255\222\222\222"
 			end
-			if blinkButton and not readied and os.clock() % 0.75 <= 0.375 then
+			if blinkButton and not readied and not isReadyBlocked and os.clock() % 0.75 <= 0.375 then
 				local mult = 1.33
 				UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { readyButtonColor[1]*0.55*mult, readyButtonColor[2]*0.55*mult, readyButtonColor[3]*0.55*mult, 1 }, { readyButtonColor[1]*mult, readyButtonColor[2]*mult, readyButtonColor[3]*mult, 1 })
 			end
@@ -442,4 +478,6 @@ function widget:Shutdown()
 			removeUnitShape(id)
 		end
 	end
+	WG['pregameui'] = nil
 end
+
