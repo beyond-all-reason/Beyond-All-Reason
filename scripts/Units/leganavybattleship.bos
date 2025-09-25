@@ -85,12 +85,12 @@ piece
 
 static-var justCreated, whichBarrel;
 static-var  gun_2;
-static-var reloading_barrel_1, reloading_barrel_2;
+static-var reloading_barrel_1, reloading_barrel_2, last_primary_heading2, last_primary_heading3;
 static-var deltaheading, newchassisheading, chassisheading, restore_position, aimDir1;
 // Signal definitions
 #define SIGNAL_AIM1	256
-// #define SIGNAL_AIM2 512
-// #define SIGNAL_AIM3 1024
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3 1024
 // #define SIGNAL_AIM4 2048
 #define SIGNAL_MOVE 1
 
@@ -116,15 +116,15 @@ static-var deltaheading, newchassisheading, chassisheading, restore_position, ai
 // Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 // adjustments by Itanthias
 #define MAX_AIMY1_VELOCITY <2.20>
-#define AIMY1_ACCELERATION <0.13>
+#define AIMY1_ACCELERATION <0.3>
 #define AIMY1_SNAP_TOLERANCE <0.5>
-#define AIMY1_PRECISION <1.2>
+#define AIMY1_PRECISION <10>
 #define AIMY1_RESTORE_SPEED <1.0>
 
 static-var aimy1delta, timetozero, deceleratethreshold;
 static-var aimy1velocity, aimy1target, aimy1position, gameFrame;
 static-var  Stunned;
-static-var  isMoving, isAiming, inWaterForm, gun_3,
+static-var  isMoving, isAiming, inWaterForm,
             restore_delay, isInWater, wpn1_lasthead, wpn3_lasthead;
 
 /////////////////////////////////////////////////////////////// WALK CYCLE
@@ -1214,6 +1214,8 @@ ExecuteRestoreAfterDelay()
     }
 
 	restore_position = 1;
+	last_primary_heading2 = -1000000;
+	last_primary_heading3 = -1000000;
 	turn mainTurretHeadingPivot to y-axis <0> speed <30>;
     turn mainTurretPitchPivot to x-axis <0> speed <30>;
 	move base to z-axis [0] speed [100];
@@ -1316,8 +1318,8 @@ AimControl()
 }
 
 Movement() {
-    while (TRUE) {
-        isInWater = get IN_WATER;
+	while (TRUE) {
+		isInWater = ((get GROUND_WATER_HEIGHT(get UNIT_XZ)) <-270000);
         // Handle water transition
         if (!inWaterForm) {
             if (isInWater == 1) {
@@ -1526,7 +1528,8 @@ Create()
 	isMoving = FALSE;
 	animSpeed = 6;
 	whichBarrel = 0;
-
+	last_primary_heading2 = -1000000;
+	last_primary_heading3 = -1000000;
 	turn rearTurretHeadingPivot to y-axis <-180> now;
 
 
@@ -1740,6 +1743,73 @@ QueryWeapon2(pieceIndex)
 	}
 }
 
+AimWeapon3(heading, pitch)
+{
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	turn frontGunStrut to y-axis heading speed <120.0>;
+	turn frontTurretPitchPivot to x-axis <0.0> - pitch speed <25.0>;
+	if (get ABS(last_primary_heading2 - heading)> <20>)
+	{
+		// seems to take 3 frames for wait-for-turn to process
+		wait-for-turn frontGunStrut around y-axis;
+		wait-for-turn frontTurretPitchPivot around x-axis;
+	}
+	last_primary_heading2 = heading;
+	return (1);
+}
+
+FireWeapon3()
+{
+	emit-sfx 1024 + 0 from frontShotgunFlare;
+	move frontShotgunBarrel to z-axis [-2.0] speed [500.0];
+	sleep 100;
+	move frontShotgunBarrel to z-axis [0.0] speed [3.0];
+}
+
+AimFromWeapon3(pieceIndex)
+{
+	pieceIndex = frontGunStrut;
+}
+
+QueryWeapon3(pieceIndex)
+{
+	pieceIndex = frontShotgunFlare;
+}
+
+AimWeapon4(heading, pitch)
+{
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
+	turn rearGunStrut to y-axis <180> + heading speed <120.0>;
+	turn rearTurretPitchPivot to x-axis <0.0> - pitch speed <25.0>;
+	if (get ABS(last_primary_heading3 - heading)> <20>)
+	{
+		// seems to take 3 frames for wait-for-turn to process
+		wait-for-turn rearGunStrut around y-axis;
+		wait-for-turn rearTurretPitchPivot around x-axis;
+	}
+	last_primary_heading3 = heading;
+	return (1);
+}
+
+FireWeapon4()
+{
+	emit-sfx 1024 + 0 from rearShotgunFlare;
+	move rearShotgunBarrel to z-axis [-2.0] speed [500.0];
+	sleep 100;
+	move rearShotgunBarrel to z-axis [0.0] speed [3.0];
+}
+
+AimFromWeapon4(pieceIndex)
+{
+	pieceIndex = rearGunStrut;
+}
+
+QueryWeapon4(pieceIndex)
+{
+	pieceIndex = rearShotgunFlare;
+}
 
 Killed(severity, corpsetype)
 {
