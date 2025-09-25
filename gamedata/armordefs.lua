@@ -747,11 +747,20 @@ end
 
 table.mergeInPlace(armorDefs, scavArmorDefs)
 
+local function clearArmorDef(unitDefName)
+	for _, category in pairs(armorDefs) do
+		if table.removeFirst(category, unitDefName) then
+			return
+		end
+	end
+end
+
 -- expose armor defs to custom params
 for unitName, unitDef in pairs (DEFS.unitDefs) do
 	if unitDef.customparams.armordef then
 		local defCategory = armorDefs[unitDef.customparams.armordef]
 		if defCategory then
+			clearArmorDef(unitName)
 			defCategory[#defCategory+1] = unitName
 		end
 	end
