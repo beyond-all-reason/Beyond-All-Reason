@@ -1270,7 +1270,7 @@ local options = {
 
     {
         key 	= "quick_start_amount",
-        name 	= "Quick Start Extent",
+        name 	= "Quick Start Base Budget",
         desc   	= "How much pre-game resources you have to spend on pre-queuing structures.",
         type 	= "list",
         def 	= "default",
