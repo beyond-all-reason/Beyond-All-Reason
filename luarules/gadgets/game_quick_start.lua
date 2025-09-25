@@ -47,6 +47,7 @@ local ALL_COMMANDS = -1
 local BUILD_ORDER_FREE = 2
 local BUILD_SPACING = 64
 local CONVERTER_GRID_DISTANCE = 200
+local BASE_GENERATION_RANGE = 600
 local ENERGY_VALUE_CONVERSION_DIVISOR = 10
 local FACTORY_DISCOUNT = math.huge
 local MAP_CENTER_X = Game.mapSizeX / 2
@@ -110,7 +111,7 @@ local function generateLocalGrid(commanderID)
 	local dx = MAP_CENTER_X - originX
 	local dz = MAP_CENTER_Z - originZ
 	local skipDirection = math.abs(dx) >= math.abs(dz) and "x" or "z"
-	local maxOffset = INSTANT_BUILD_RANGE
+	local maxOffset = BASE_GENERATION_RANGE
 	local gridList = {}
 	local used = {}
 	local noGoZones = {}
@@ -127,7 +128,7 @@ local function generateLocalGrid(commanderID)
 			if (index / BUILD_SPACING) % SKIP_STEP ~= 0 then
 				local testX = originX + offsetX
 				local testZ = originZ + offsetZ
-				if math.distance2d(testX, testZ, originX, originZ) <= INSTANT_BUILD_RANGE then
+				if math.distance2d(testX, testZ, originX, originZ) <= BASE_GENERATION_RANGE then
 					local tooClose = false
 					for i = 1, #noGoZones do
 						local g = noGoZones[i]
@@ -295,8 +296,8 @@ local function createBaseNodes(spawnX, spawnZ)
 	local angleIncrement = 2 * math.pi / BASE_NODE_COUNT
 	for i = 0, BASE_NODE_COUNT - 1 do
 		local angle = i * angleIncrement
-		local nodeX = spawnX + (INSTANT_BUILD_RANGE / 2) * math.cos(angle)
-		local nodeZ = spawnZ + (INSTANT_BUILD_RANGE / 2) * math.sin(angle)
+		local nodeX = spawnX + (BASE_GENERATION_RANGE / 2) * math.cos(angle)
+		local nodeZ = spawnZ + (BASE_GENERATION_RANGE / 2) * math.sin(angle)
 		nodes[i + 1] = { x = nodeX, z = nodeZ, index = i + 1, grid = {}, score = 0 }
 	end
 	return nodes
