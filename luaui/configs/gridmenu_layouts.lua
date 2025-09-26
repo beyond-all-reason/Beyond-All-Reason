@@ -2641,7 +2641,7 @@ if Spring.GetModOptions().techsplit then
 			{ "", "armhaap" },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	}
-`
+
 	unitGrids["armacsub"] = {
 		{
 			{ "armuwmme", "armtide", "armuwfus", },                       -- uw moho, uw fusion,
