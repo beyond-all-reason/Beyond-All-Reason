@@ -14,8 +14,9 @@ local function techsplitTweaks(name, uDef)
             [11] = "corvoyr",
             [12] = "corroach",
         }
+    end
 
-    elseif name == "armalab" then
+    if name == "armalab" then
         uDef.buildoptions = {
             [1] = "armack",
             [2] = "armfido",
@@ -30,23 +31,9 @@ local function techsplitTweaks(name, uDef)
             [11] = "armsptk",
             [12] = "armspy",
         }
+    end
 
-    elseif name == "legalab" then
-        uDef.buildoptions = {
-            [1] = "legack",
-            [2] = "legadvaabot",
-            [3] = "legstr",
-            [4] = "legshot",
-            [5] = "leginfestor",
-            [6] = "legamph",
-            [7] = "legsnapper",
-            [8] = "legbart",
-            [9] = "leghrk",
-            [10] = "legaspy",
-
-        }
-
-    elseif name == "armavp" then
+    if name == "armavp" then
         uDef.buildoptions = {
             [1] = "armacv",
             [2] = "armch",
@@ -60,8 +47,9 @@ local function techsplitTweaks(name, uDef)
             [10] = "armsh",
             [11] = "armgremlin"
         }
-    
-    elseif name == "coravp" then
+    end
+
+    if name == "coravp" then
         uDef.buildoptions = {
             [1] = "corch",
             [2] = "coracv",
@@ -76,24 +64,9 @@ local function techsplitTweaks(name, uDef)
             [11] = "corvrad",
             [12] = "corban"
         }
+    end
 
-    elseif name == "legavp" then
-        uDef.buildoptions = {
-            [1] = "legacv",
-            [2] = "legch",
-            [3] = "legcar",
-            [4] = "legmlv",
-            [5] = "legmrv",
-            [6] = "legfloat",
-            [7] = "legaskirmtank",
-            [8] = "legamcluster",
-            [9] = "legvcarry",
-            [10] = "legner",
-            [11] = "legmh",
-            [12] = "legah"
-        }
-
-    elseif name == "armck" then
+    if name == "armck" then
         uDef.buildoptions = {
             [1] = "armsolar",
             [2] = "armwin",
@@ -124,8 +97,9 @@ local function techsplitTweaks(name, uDef)
             [29] = "armadvsol",
             [30] = "armguard"
         }
+    end
 
-    elseif name == "corck" then
+    if name == "corck" then
         uDef.buildoptions = {
             [1] = "corsolar",
             [2] = "corwin",
@@ -155,33 +129,9 @@ local function techsplitTweaks(name, uDef)
             [29] = "coradvsol",
             [30] = "corpun"
         }
+    end
 
-    elseif name == "legck" then
-        uDef.buildoptions = {
-            [1]  = "legsolar",
-            [2]  = "legwin",
-            [3]  = "leggeo",
-            [4]  = "legmstor",
-            [5]  = "legestor",
-            [6]  = "legmex",
-            [7]  = "legeconv",
-            [9]  = "leglab",
-            [10] = "legalab",
-            [11] = "legvp",
-            [12] = "legap",
-            [13] = "leghp",
-            [14] = "legnanotc",
-            [15] = "legeyes",
-            [16] = "legrad",
-            [17] = "legdrag",
-            [18] = "leglht",
-            [20] = "legrl",
-            [21] = "legctl",
-            [22] = "legjam",
-            [23] = "corsy",
-        }
-
-    elseif name == "armack" then
+    if name == "armack" then
         uDef.buildoptions = {
             [1] = "armadvsol",
             [2] = "armmoho",
@@ -212,8 +162,9 @@ local function techsplitTweaks(name, uDef)
             [27] = "armap",
             [28] = "armnanotc",
         }
+    end
 
-    elseif name == "corack" then
+    if name == "corack" then
         uDef.buildoptions = {
             [1] = "coradvsol",
             [2] = "cormoho",
@@ -241,29 +192,9 @@ local function techsplitTweaks(name, uDef)
             [24] = "corsy",
             [25] = "cornanotc",
         }
+    end
 
-    elseif name == "legack" then
-        uDef.buildoptions = {
-            [1] = "legadvsol",
-            [2] = "legmext15",
-            [3] = "legdtr",
-            [4] = "legmg",
-            [5] = "legrhapsis",
-            [6] = "leglupara",
-            [7] = "legjuno",
-            [8] = "leghive",
-            [9] = "legfus",
-            [10] = "legarad",
-            [11] = "legajam",
-            [12] = "legsd",
-            [13] = "leglab",
-            [14] = "legalab",
-            [15] = "leghalab",
-            [16] = "legcluster",
-            [17] = "legeconv"
-        }
-
-    elseif name == "armcv" then
+    if name == "armcv" then
         uDef.buildoptions = {
             [1] = "armsolar",
             [2] = "armwin",
@@ -294,8 +225,9 @@ local function techsplitTweaks(name, uDef)
             [29] = "armadvsol",
             [30] = "armguard"
         }
+    end
 
-    elseif name == "armbeaver" then
+    if name == "armbeaver" then
         uDef.buildoptions = {
             [1] = "armsolar",
             [2] = "armwin",
@@ -332,8 +264,9 @@ local function techsplitTweaks(name, uDef)
             [33] = "armadvsol",
             [34] = "armguard"
         }
+    end
 
-    elseif name == "corcv" then
+    if name == "corcv" then
         uDef.buildoptions = {
             [1] = "corsolar",
             [2] = "corwin",
@@ -363,8 +296,9 @@ local function techsplitTweaks(name, uDef)
             [29] = "coradvsol",
             [30] = "corpun"
         }
+    end
 
-    elseif name == "cormuskrat" then
+    if name == "cormuskrat" then
         uDef.buildoptions = {
             [1] = "corsolar",
             [2] = "corwin",
@@ -398,33 +332,9 @@ local function techsplitTweaks(name, uDef)
             [30] = "coradvsol",
             [31] = "corpun"
         }
+    end
 
-    elseif name == "legcv" then
-        uDef.buildoptions = {
-            [1] = "legsolar",
-            [2] = "legwin",
-            [3] = "leggeo",
-            [4] = "legmstor",
-            [5] = "legestor",
-            [6] = "legmex",
-            [7] = "legeconv",
-            [8] = "leglab",
-            [9] = "legavp",
-            [10] = "legvp",
-            [11] = "legap",
-            [12] = "leghp",
-            [13] = "legnanotc",
-            [14] = "legeyes",
-            [15] = "legrad",
-            [16] = "legdrag",
-            [17] = "leglht",
-            [18] = "legrl",
-            [19] = "legctl",
-            [20] = "legjam",
-            [21] = "corsy",
-        }
-    
-    elseif name == "armacv" then
+    if name == "armacv" then
         uDef.buildoptions = {
             [1] = "armadvsol",
             [2] = "armmoho",
@@ -455,8 +365,9 @@ local function techsplitTweaks(name, uDef)
             [27] = "armap",
             [28] = "armnanotc",
         }
-    
-    elseif name == "coracv" then
+    end
+
+    if name == "coracv" then
         uDef.buildoptions = {
             [1] = "coradvsol",
             [2] = "cormoho",
@@ -483,27 +394,6 @@ local function techsplitTweaks(name, uDef)
             [23] = "corap",
             [24] = "corsy",
             [25] = "cornanotc",
-        }
-    
-    elseif name == "legacv" then
-        uDef.buildoptions = {
-            [1] = "legadvsol",
-            [2] = "legmext15",
-            [3] = "legdtr",
-            [4] = "legmg",
-            [5] = "legrhapsis",
-            [6] = "leglupara",
-            [7] = "legjuno",
-            [8] = "leghive",
-            [9] = "legfus",
-            [10] = "legarad",
-            [11] = "legajam",
-            [12] = "legsd",
-            [13] = "leghavp",
-            [14] = "legavp",
-            [15] = "legvp",
-            [16] = "legcluster",
-            [17] = "legeconv"
         }
     end
 
@@ -556,8 +446,9 @@ local function techsplitTweaks(name, uDef)
                 [1] = "seaplsl1",
             },
         }
+    end
 
-    elseif name == "coraap" then
+    if name == "coraap" then
         uDef.buildpic = "CORHAAP.DDS"
         uDef.objectname = "Units/CORAAPLAT.s3o"
         uDef.script = "Units/CORHAAP.cob"
@@ -598,30 +489,33 @@ local function techsplitTweaks(name, uDef)
                 [1] = "seaplsl2",
             },
         }
+    end
 
-    elseif name == "armap" then
+    if name == "armap" then
         uDef.buildoptions = {
-        [1] = "armca",
-        [2] = "armpeep",
-        [3] = "armfig",
-        [4] = "armthund",
-        [5] = "armatlas",
-        [6] = "armkam",
+            [1] = "armca",
+            [2] = "armpeep",
+            [3] = "armfig",
+            [4] = "armthund",
+            [5] = "armatlas",
+            [6] = "armkam",
         }
+    end
 
-    elseif name == "corap" then
+    if name == "corap" then
         uDef.buildoptions = {
-        [1] = "corca",
-        [2] = "corfink",
-        [3] = "corveng",
-        [4] = "corshad",
-        [5] = "corvalk",
-        [6] = "corbw",
-    }
+            [1] = "corca",
+            [2] = "corfink",
+            [3] = "corveng",
+            [4] = "corshad",
+            [5] = "corvalk",
+            [6] = "corbw",
+        }
+    end
 
     -- Air Cons
 
-    elseif name == "armca" then
+    if name == "armca" then
         uDef.buildoptions = {
             [1] = "armsolar",
             [2] = "armwin",
@@ -653,8 +547,9 @@ local function techsplitTweaks(name, uDef)
             [30] = "armguard",
             [31] = "armnanotc",
         }
+    end
 
-    elseif name == "corca" then	
+    if name == "corca" then
         uDef.buildoptions = {
             [1] = "corsolar",
             [2] = "corwin",
@@ -685,8 +580,9 @@ local function techsplitTweaks(name, uDef)
             [30] = "corpun",
             [31] = "cornanotc",
         }
+    end
 
-    elseif name == "armaca" then
+    if name == "armaca" then
         uDef.buildpic = "ARMCSA.DDS"
         uDef.objectname = "Units/ARMCSA.s3o"
         uDef.script = "units/ARMCSA.cob"
@@ -720,8 +616,9 @@ local function techsplitTweaks(name, uDef)
             [27] = "armap",
             [28] = "armnanotc",
         }
-    
-    elseif name == "coraca" then
+    end
+
+    if name == "coraca" then
         uDef.buildpic = "CORCSA.DDS"
         uDef.objectname = "Units/CORCSA.s3o"
         uDef.script = "units/CORCSA.cob"
@@ -752,31 +649,6 @@ local function techsplitTweaks(name, uDef)
             [24] = "corsy",
             [25] = "cornanotc",
         }
-
-    elseif name == "legca" then
-        uDef.buildoptions = {
-            [1] = "legsolar",
-            [2] = "legwin",
-            [3] = "leggeo",
-            [4] = "legmstor",
-            [5] = "legestor",
-            [6] = "legmex",
-            [7] = "legeconv",
-            [8] = "legaap",
-            [9] = "leglab",
-            [10] = "legvp",
-            [11] = "legap",
-            [12] = "leghp",
-            [13] = "legnanotc",
-            [14] = "legeyes",
-            [15] = "legrad",
-            [16] = "legdrag",
-            [17] = "leglht",
-            [18] = "legrl",
-            [19] = "legctl",
-            [20] = "legjam",
-            [21] = "corsy",
-        }
     end
     
     ------------
@@ -784,7 +656,12 @@ local function techsplitTweaks(name, uDef)
 
     -- Sea Labs
 
+	if name == "armhasy" or name == "corhasy" then
+		uDef.metalcost = uDef.metalcost - 1200
+	end
+
     if name == "armasy" then
+        uDef.metalcost = uDef.metalcost + 400
         uDef.buildoptions = {
             [1] = "armacsub",
             [2] = "armmship",
@@ -801,6 +678,7 @@ local function techsplitTweaks(name, uDef)
         }
 
     elseif name == "corasy" then
+        uDef.metalcost = uDef.metalcost + 400
         uDef.buildoptions = {		
             [1] = "coracsub",
             [2] = "corcrus",
@@ -940,7 +818,7 @@ local function techsplitTweaks(name, uDef)
         }
     end
 
-    -- T4
+    -- T3 Gantries
     if name == "armshltx" then
         uDef.footprintx = 15
         uDef.footprintz = 15
@@ -952,7 +830,6 @@ local function techsplitTweaks(name, uDef)
         uDef.featuredefs.armshlt_dead.footprintx = 11
         uDef.featuredefs.armshlt_dead.footprintz = 11
         uDef.featuredefs.armshlt_dead.collisionvolumescales = "155 95 180"
-        uDef.customparams.techlevel = 4
         uDef.customparams.buildinggrounddecalsizex = 18
         uDef.customparams.buildinggrounddecalsizez = 18
     end 
@@ -968,20 +845,18 @@ local function techsplitTweaks(name, uDef)
         uDef.featuredefs.dead.footprintx = 15
         uDef.featuredefs.dead.footprintz = 15
         uDef.featuredefs.dead.collisionvolumescales = "145 90 160"
-        uDef.customparams.techlevel = 4
         uDef.customparams.buildinggrounddecalsizex = 18
         uDef.customparams.buildinggrounddecalsizez = 18
     end
 
     -- remove hovers from com
-    if name == "corcom" or name == "legcom" or name == "armcom" then
+    if name == "corcom" or name == "armcom" then
         uDef.buildoptions[26] = ""
         uDef.buildoptions[27] = ""
 
     -- T2 labs are priced as t1.5 but require more BP
     elseif name == "armaap" or name == "armasy" or name == "armalab" or name == "armavp"
     or name == "coraap"  or name == "corasy" or name == "coralab" or name == "coravp"
-    or name == "legaap" or name == "legasy" or name == "legalab" or name == "legavp"
     then
         uDef.metalcost = uDef.metalcost - 1300
         uDef.energycost = uDef.energycost - 5000
@@ -990,14 +865,13 @@ local function techsplitTweaks(name, uDef)
     -- T2 cons are priced as t1.5
     elseif name == "armack" or name == "armacv" or name == "armaca" or name == "armacsub"
     or name == "corack" or name == "coracv" or name == "coraca" or name == "coracsub"
-    or name == "legack" or name == "legacv" or name == "legaca" or name == "legacsub"
     then
         uDef.metalcost = uDef.metalcost - 200
         uDef.energycost = uDef.energycost - 2000
         uDef.buildtime = math.ceil(uDef.buildtime * 0.008) * 100
     
     -- Hover cons are priced as t2
-    elseif name == "armhc" or name == "corhc" or name == "leghc"
+    elseif name == "armch" or name == "corch"
     then
         uDef.metalcost = uDef.metalcost * 2
         uDef.energycost = uDef.energycost * 2
@@ -1076,40 +950,12 @@ local function techsplitTweaks(name, uDef)
     or name == "corape" or name == "corhurc" or name == "cortitan" or name == "corvamp" or name == "corseah" or name == "corawac" or name == "corcrwh"
     then
         uDef.customparams.techlevel = 3
-    end
-
-    --------------------------
-    -- Legion Air Placeholders
-
-    if name == "legaca" then
-        uDef.buildoptions = {
-            [1] = "legadvsol",
-            [2] = "legmext15",
-            [3] = "legdtr",
-            [4] = "legmg",
-            [5] = "legrhapsis",
-            [6] = "leglupara",
-            [7] = "legjuno",
-            [8] = "leghive",
-            [9] = "legfus",
-            [10] = "legarad",
-            [11] = "legajam",
-            [12] = "legsd",
-            [13] = "legap",
-            [14] = "legaap",
-            [15] = "leghaap",
-            [16] = "legcluster",
-            [17] = "legeconv"
-        }
     end		
+
 
     -----------------------------------------
     -- Hovers, Sea Planes and Amphibious Labs
-    
 
-    -- Hover labs removed
-        
-    -- hover cons
     if name == "armch" then
         uDef.buildoptions = {
             [1] = "armadvsol",
@@ -1184,56 +1030,6 @@ local function techsplitTweaks(name, uDef)
             [30] = "cortl",
             [31] = "corhasy",
             [32] = "corpun"
-        }
-
-    elseif name == "legch" then 
-        uDef.buildoptions = {
-            [1] = "legsolar",
-            [2] = "legadvsol",
-            [3] = "legwin",
-            [4] = "leggeo",
-            [5] = "legmstor",
-            [6] = "legestor",
-            [7] = "legmex",
-            [8] = "",
-            [9] = "legeconv",
-            [10] = "",
-            [11] = "",
-            [12] = "",
-            [13] = "leghp",
-            [14] = "leghavp",
-            [15] = "legnanotc",
-            [16] = "legnanotcplat",
-            [17] = "legeyes",
-            [18] = "legrad",
-            [19] = "legdrag",
-            [20] = "legdtr",
-            [21] = "leglht",
-            [22] = "legmg",
-            [23] = "legcluster",
-            [24] = "legrl",
-            [25] = "legrhapsis",
-            [26] = "leglupara",
-            [27] = "legjuno",
-            [28] = "legctl",
-            [29] = "legjam",
-            [30] = "legfhp",
-            [31] = "legamphlab",
-            [32] = "legplat",
-            [33] = "",
-            [34] = "legtide",
-            [35] = "legfeconv",
-            [36] = "leguwmstore",
-            [37] = "leguwestore",
-            [38] = "legfdrag",
-            [39] = "legfrad",
-            [40] = "legfmg",
-            [41] = "legfrl",
-            [42] = "legtl",
-            [43] = "leguwgeo",
-            [44] = "leghasy",
-            [45] = "leghive",
-            [46] = "legfhive",
         }
     end
     -- Seaplane Platforms removed, become T2 air labs. 
@@ -1490,14 +1286,6 @@ local function techsplitTweaks(name, uDef)
 		}
 	end
 
-	if name == "armasy" or name == "corasy" then
-		uDef.metalcost = uDef.metalcost + 400
-	end
-
-	if name == "armhasy" or name == "corhasy" then
-		uDef.metalcost = uDef.metalcost - 1200
-	end
-
     --Tech Split Hotfixes 3
     
     if name == "armhack" or name == "armhacv" or name == "armhaca" then
@@ -1621,6 +1409,8 @@ local function techsplitTweaks(name, uDef)
         uDef.health = 3600
         uDef.weapondefs.vipersabot.range = 480
     end
+
+    return uDef
 end
 
 return {
