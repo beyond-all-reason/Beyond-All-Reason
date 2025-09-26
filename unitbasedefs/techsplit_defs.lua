@@ -1512,7 +1512,7 @@ local function techsplitTweaks(name, uDef)
         uDef.buildoptions[40] = "cornanotc"
     end
 
-    if name == "coracs" or name == "corhacs" then
+    if name == "corhacs" then
         uDef.buildoptions[41] = "cornanotcplat"
     end
 
