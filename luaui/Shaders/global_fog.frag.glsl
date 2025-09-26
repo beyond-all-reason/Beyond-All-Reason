@@ -1398,7 +1398,7 @@ void main(void)
 
 	float uwShadowAlpha = 0.0;
 	#if UWSHADOWSTEPS > 0
-		if (rayLength > 0.01 && trueMapWorldPos.y < 0) {
+		if (trueMapWorldPos.y < 0) {
 			float uwShadowTransparency = 0.0;
 			// Draw these back to front
 			// Each shadow sample costs on average, 0.5 FPS at 1080p and half resolution
