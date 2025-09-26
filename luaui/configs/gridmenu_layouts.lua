@@ -2557,7 +2557,7 @@ if Spring.GetModOptions().techsplit then
 			{ "armestor", "armmstor", "", "", },
 		},
 		{
-			{ "armbeamer", "armhlt", "armclaw", "armguard", },
+			{ "armbeamer", "armhlt", "armpb", "armguard", },
 			{ "armferret", "armcir", "", "", },
 			{ "armdl", "armjuno", "", "", },
 		},
@@ -2580,7 +2580,7 @@ if Spring.GetModOptions().techsplit then
 			{ "armestor", "armmstor", "", "", },
 		},
 		{
-			{ "armbeamer", "armhlt", "armclaw", "armguard", },
+			{ "armbeamer", "armhlt", "armpb", "armguard", },
 			{ "armferret", "armcir", "", "", },
 			{ "armdl", "armjuno", "", "", },
 		},
@@ -2603,7 +2603,7 @@ if Spring.GetModOptions().techsplit then
 			{ "armestor", "armmstor", "", "", },
 		},
 		{
-			{ "armbeamer", "armhlt", "armclaw", "armguard", },
+			{ "armbeamer", "armhlt", "armpb", "armguard", },
 			{ "armferret", "armcir", "", "", },
 			{ "armdl", "armtl", "armjuno", "", },
 		},
@@ -2626,7 +2626,7 @@ if Spring.GetModOptions().techsplit then
 			{ "armestor", "armmstor", "", "", },
 		},
 		{
-			{ "armbeamer", "armhlt", "armclaw", "armguard", },
+			{ "armbeamer", "armhlt", "armpb", "armguard", },
 			{ "armferret", "armcir", "", "", },
 			{ "armdl", "armjuno", "", "", },
 		},
@@ -2651,7 +2651,7 @@ if Spring.GetModOptions().techsplit then
 		{
 			{ "armatl", "armfhlt", "armkraken", },                        -- adv torp launcher, floating heavy platform
 			{ "armfrt", "armferret", "armcir", },                                   -- floating flak
-			{"armclaw", "armguard",},                                               --
+			{"armpb", "armguard",},                                               --
 		},
 		{
 			{ "armason", "armfdrag", },                		   -- adv sonar, floating targeting facility
@@ -2788,7 +2788,7 @@ if Spring.GetModOptions().techsplit then
 			{"corestor","cormstor","","",},
 		},
 		{
-			{"corhllt","corhlt","cormaw","corpun",},
+			{"corhllt","corhlt","corvipe","corpun",},
 			{"cormadsam","corerad","","",},
 			{"cordl","corjuno","","",},
 		},
@@ -2811,7 +2811,7 @@ if Spring.GetModOptions().techsplit then
 			{"corestor","cormstor","","",},
 		},
 		{
-			{"corhllt","corhlt","cormaw","corpun",},
+			{"corhllt","corhlt","corvipe","corpun",},
 			{"cormadsam","corerad","","",},
 			{"cordl","corjuno","","",},
 		},
@@ -2834,7 +2834,7 @@ if Spring.GetModOptions().techsplit then
 			{"corestor","cormstor","","",},
 		},
 		{
-			{"corhllt","corhlt","cormaw","corpun",},
+			{"corhllt","corhlt","corvipe","corpun",},
 			{"cormadsam","corerad","","",},
 			{"cordl","cortl","corjuno","",},
 		},
@@ -2857,7 +2857,7 @@ if Spring.GetModOptions().techsplit then
 			{"corestor","cormstor","","",},
 		},
 		{
-			{"corhllt","corhlt","cormaw","corpun",},
+			{"corhllt","corhlt","corvipe","corpun",},
 			{"cormadsam","corerad","","",},
 			{"cordl","corjuno","","",},
 		},
@@ -2882,7 +2882,7 @@ if Spring.GetModOptions().techsplit then
 		{
 			{ "coratl", "corfhlt", },                         -- adv torp launcher, floating heavy platform
 			{ "corfrl", "cormadsam", "corerad", },                                    -- floating flak
-			{ "corpun", "" },                                               --
+			{ "corpun", "corvipe" },                                               --
 		},
 		{
 			{ "corason", "corfdrag", "corarad", "corshroud", },                         -- adv sonar, floating targeting facility
