@@ -66,7 +66,8 @@ return {
 				[29] = "corsy",
 				[30] = "corvp",
 				[31] = "corap",
-				[32] = "corgant"
+				[32] = "corgant",
+				[33] = "cornanotc",
 		},
 		customparams = {
 			model_author = "Beherith",

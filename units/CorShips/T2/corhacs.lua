@@ -17,6 +17,7 @@ return {
 		health = 2600,
 		idleautoheal = 5,
 		idletime = 1800,
+		mass = 2700,
 		maxacc = 0.03446,
 		maxdec = 0.03446,
 		metalcost = 590,
@@ -64,7 +65,8 @@ return {
 			[33] = "corint",
 			[34] = "corsilo",
 			[35] = "corbuzz",
-			[36] = "corgantuw"
+			[36] = "corgantuw",
+			[37] = "cornanotcplat"
 		},
 		customparams = {
 			minesweeper = 600,

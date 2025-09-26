@@ -19,6 +19,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
+		mass = 2700,
 		maxacc = 0.07029,
 		maxdec = 0.14059,
 		maxslope = 18,
@@ -74,6 +75,7 @@ return {
 			[30] = "armsy",
 			[31] = "armsd",
 			[32] = "armshltx",
+			[35] = "armnanotc"
 		},
 		customparams = {
 			model_author = "FireStorm",
