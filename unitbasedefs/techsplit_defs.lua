@@ -660,6 +660,14 @@ local function techsplitTweaks(name, uDef)
 		uDef.metalcost = uDef.metalcost - 1200
 	end
 
+    if name == "armsy" then
+        uDef.buildoptions[8] = "armbeaver"
+    end
+
+    if name == "corsy" then
+        uDef.buildoptions[8] = "cormuskrat"
+    end
+
     if name == "armasy" then
         uDef.metalcost = uDef.metalcost + 400
         uDef.buildoptions = {
@@ -1402,12 +1410,17 @@ local function techsplitTweaks(name, uDef)
 	end
 
     if name == "armpb" then
-        uDef.weapondefs.armpb_weapon.range = 480
+        uDef.health = 3360
+        uDef.weapondefs.armpb_weapon.range = 500
+        uDef.weapondefs.armpb_weapon.reloadtime = 1.2
     end
 
     if name == "corvipe" then
         uDef.health = 3600
+        uDef.weapondefs.vipersabot.areaofeffect = 96
+        uDef.weapondefs.vipersabot.edgeeffectiveness = 0.8
         uDef.weapondefs.vipersabot.range = 480
+        uDef.weapondefs.vipersabot.reloadtime = 3
     end
 
     return uDef
