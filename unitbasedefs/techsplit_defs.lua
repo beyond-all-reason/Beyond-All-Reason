@@ -1298,18 +1298,22 @@ local function techsplitTweaks(name, uDef)
     
     if name == "armhack" or name == "armhacv" or name == "armhaca" then
         uDef.buildoptions[40] = "armnanotc" 
+        uDef.workertime = 400
     end
 
     if name == "armhacs" then
         uDef.buildoptions[41] = "armnanotcplat"
+        uDef.workertime = 400
     end
 
     if name == "corhack" or name == "corhacv" or name == "corhaca" then
         uDef.buildoptions[40] = "cornanotc"
+        uDef.workertime = 400
     end
 
     if name == "corhacs" then
         uDef.buildoptions[41] = "cornanotcplat"
+        uDef.workertime = 400
     end
 
 	if name == "correap" then 
