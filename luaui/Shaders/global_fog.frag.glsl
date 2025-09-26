@@ -1194,7 +1194,7 @@ void main(void)
 
 		//fragColor.rgba = debugQuad(quadVector);return;
 		// Note that the offsets are not in ascending order. This has the fun side effect of being bluer in noise
-		float thisQuadOffset = dot (quadGetThreadMask(quadVector), vec4(0.5, 0.25, 0.0, 0.75)); 
+		float thisQuadOffset = dot (quadGetThreadMask(quadVector), vec4(0.5, 0.25, 0.0, 0.75));  // = vec4(0.5, 0.25, 0.0, 0.75)
 
 		// ---------- Calculate the UV coordinates of the depth textures ---------
 	
@@ -1396,9 +1396,10 @@ void main(void)
 	// ----------------- BEGIN UNDERWATER SHADOW RAYS -------------------------------
 	#line 33800
 
-	vec4 uwShadowRays = vec4(0,0,0,0);
+	float uwShadowAlpha = 0.0;
 	#if UWSHADOWSTEPS > 0
 		if (rayLength > 0.01 && trueMapWorldPos.y < 0) {
+			float uwShadowTransparency = 0.0;
 			// Draw these back to front
 			// Each shadow sample costs on average, 0.5 FPS at 1080p and half resolution
 			// Indeed, stepping in shadow space is much faster, and possible due to the linear transformation of it. 
@@ -1415,29 +1416,27 @@ void main(void)
 
 			shadStart += (thisQuadOffset + blueNoiseSample.x * 0.25) * shadStep;
 			
-
-			
 			//fragColor.rgba = vec4(vec3(causticsOffset),1.0); return;
 			for (uint i = 0; i < UWSHADOWSTEPS ; i++){
-				uwShadowRays.w += textureProj(shadowTex, shadStart, -2).r; // 1 for lit, 0 
+				uwShadowTransparency += textureProj(shadowTex, shadStart, -2).r; // 1 for lit, 0 
 				shadStart += shadStep;
 			}
 			// This was Floris's idea, to add a bit of additional surface shadow
 			float lastunderwatershadow = quadGatherWeighted(textureProj(shadowTex, shadEnd, -2).r);
 			// Special sauce PQM
-			uwShadowRays.w = quadGatherWeighted(uwShadowRays.w);
+			uwShadowTransparency = quadGatherWeighted(uwShadowTransparency);
 			// Discount by # rays
-			uwShadowRays.w /= UWSHADOWSTEPS;
+			uwShadowTransparency /= UWSHADOWSTEPS;
 			// half it a little bit:
-			uwShadowRays.a = (1.0 - uwShadowRays.w) ;
+			uwShadowAlpha = (1.0 - uwShadowTransparency) ;
 			// This was Floris's idea, to add a bit of additional surface shadow
-			uwShadowRays.a += 0.3 * (1.0 - lastunderwatershadow);
+			uwShadowAlpha += 0.3 * (1.0 - lastunderwatershadow);
 			// modulate density up to shallowdepth:
-			uwShadowRays.a *= smoothstep(0, 20, -1 * trueMapWorldPos.y);
-			uwShadowRays.a = clamp(uwShadowRays.a, 0, 1) * shadowedColor.a;
+			uwShadowAlpha *= smoothstep(0, 20, -1 * trueMapWorldPos.y);
+			uwShadowAlpha = clamp(uwShadowAlpha, 0, 1) * shadowedColor.a;
 		}
 		// Debug underwater shadow rays:
-		//fragColor.rgba = vec4(vec3(uwShadowRays.rgb),uwShadowRays.a * 2); return;	
+		//fragColor.rgba = vec4(vec3(shadowedColor.rgb),uwShadowAlpha * 2); return;	
 	#endif
 	// ----------------- END UNDERWATER SHADOW RAYS -------------------------------
 
@@ -1622,10 +1621,10 @@ void main(void)
 
 	// ----------------- BEGIN COMPOSITING ---------------------
 	vec4 outColor = vec4(0.0);
-	// 1. Blend uwShadowRays.rgba
-	outColor.a = outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - uwShadowRays.a);
+	// 1. Blend uwShadowAlpha
+	outColor.a = outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - uwShadowAlpha);
 
-	outColor.rgb = outColor.rgb * (1.0 - uwShadowRays.a) + shadowedColor.rgb * uwShadowRays.a;
+	outColor.rgb = outColor.rgb * (1.0 - uwShadowAlpha) + shadowedColor.rgb * uwShadowAlpha;
 
 	// 2. Blend cloudShadowColor.rgba
 	outColor.a = outColor.a = 1.0 -  (1.0 - outColor.a) * (1.0 - cloudShadowColor.a);
@@ -1680,43 +1679,7 @@ void main(void)
 
 
 	// ----------------- END COMPOSITING   ---------------------
-
-	// -----------------
-	// Composite uwShadorRays with cloudBlendRGBT
-	fragColor = vec4(0.0);
-
-	// we need to *subtract darken* the uwshadowed bit.
-	fragColor.rgb = cloudBlendRGBT.rgb;
-	fragColor.rgb -= cloudBlendRGBT.rgb * (sqrt(uwShadowRays.a + cloudShadowColor.a)) *( 1.0 - cloudBlendRGBT.a);
 	
-	//fragColor.a = clamp( alpha + cloudShadowColor.a * (1.0 - alpha) ,0, 1);
-	fragColor.a = clamp( cloudBlendRGBT.a + (uwShadowRays.a + cloudShadowColor.a ) * (1.0 - cloudBlendRGBT.a) ,0, 1);
-	
-
-	//fragColor.rgb = cloudBlendRGBT.rgb; * min(1.0, (1.0 - uwShadowRays.a) ) ;
-	//fragColor.a = alpha + uwShadowRays.a * (1.0 - alpha);
-	
-	//fragColor.rgba = vec4(cloudBlendRGBT.rgb, alpha);
-	
-	//fragColor.rgb *= alpha;
-	//fragColor.g = fract(fragColor.g * 10);
-	//fragColor.a = alpha;
-	//vec4 debugtransp = vec4 (alpha, alpha, alpha, 1.0);
-	vec4 debugtransp = vec4 (1,1,1, cloudBlendRGBT.a);
-	//fragColor.rgba = debugtransp;
-	//fragColor.rgb = cloudColor.rgb;
-	//fragColor.rgb *= 2.0;
-	//fragColor.a = heightBasedFogExp; 
-	//fragColor.a = 1.0 - exp(-1 * myfog * 0.1);
-	
-	// Blend the UW rays:
-	//fragColor.rgb = mix(fragColor.rgb, uwShadowRays.rgb,uwShadowRays.a );
-
-	vec4 dbgQuad = debugQuad(quadVector);
-	//fragColor.a *=(1.0 - dbgQuad.b);
-
-	
-
 	return;
 	
 	fragColor.rgb = fragColor.rgb * debugQuad(quadVector).rgb * 0.5;
