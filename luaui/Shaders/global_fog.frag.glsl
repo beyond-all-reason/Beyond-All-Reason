@@ -1308,10 +1308,7 @@ void main(void)
 	// ----------------- BEGIN HEIGHT-BASED FOG AND SHADOWING -------------------------------
 	#line 33700
 	#if (HEIGHTSHADOWSTEPS > 0) || (HEIGHTNOISESTEPS > 0)
-		float inmapness = 0;// max( linearDistanceMap(rayEnd), linearDistanceMap(rayStart));
-		//fragColor.rgba = vec4(vec3( fract(inmapness * 0.01)),1.0);
-		//return;
-		if (quadGatherSumFloat(rayLength) > 0.01 && inmapness < 512.0) {
+		if (quadGatherSumFloat(rayLength) > 0.01 ) {
 
 			#if (HEIGHTSHADOWSTEPS > 0)
 				// Ray Coords for shadow-space
@@ -1563,9 +1560,6 @@ void main(void)
 		if (mapdepth < 0.9998 ){ // No cloud shadows on distant areas
 				// TODO: also clip to within cloudvolume
 					
-				// this was used to prevent secondary shadowing, might want to think about it...
-				//float shadowRayStart = shadowAtWorldPos(rayStart + sunDir.xyz * 1); 
-				
 				vec3 cloudShadowRayGroundPos = trueMapWorldPos.xyz;
 
 				// adjust rayEnd to point from rayStart to the sun direction!

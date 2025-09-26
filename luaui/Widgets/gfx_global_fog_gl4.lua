@@ -79,8 +79,8 @@ local GL_R32F = 0x822E
 	-- [x] RMLUI Sliders are 1 update late always 
 	-- [ ] Combine shader sample neighbour texels with texelgather
 	-- [x] Fix map edge extension
-	-- [ ] Add uniform sliders 
-	-- [ ] Better grouping for individual effects:
+	-- [x] Add uniform sliders 
+	-- [x] Better grouping for individual effects:
 		-- Global
 		-- Ground fog + self-shadowing
 		-- Height Fog 
@@ -93,7 +93,7 @@ local GL_R32F = 0x822E
 	-- [ ] Add save and load config buttons 
 		-- [ ] Load does not load ... 
 	-- [ ] Try to add tooltips?
-	-- [ ] Minimize the rml window
+	-- [x] Minimize the rml window
 	-- [ ] Prep all work for correct blending order to the compositing pass 
 	-- [ ] Add dynamic api to control params
 	-- [ ] Fix wind noise looping
