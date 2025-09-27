@@ -70,6 +70,11 @@ local FORCE_SHOW_REASON = "gui_pregame_build"
 local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
 
+	-- Communicate selected unit to quick start UI via WG
+	if preGamestartPlayer then
+		WG["pregame-unit-selected"] = uDefID or -1
+	end
+
 	if WG["buildinggrid"] ~= nil and WG["buildinggrid"].setForceShow ~= nil then
 		WG["buildinggrid"].setForceShow(FORCE_SHOW_REASON, uDefID ~= nil, uDefID)
 	end
@@ -246,15 +251,15 @@ local function removeUnitShape(id)
 	end
 end
 
-local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID)
+local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID, alpha)
 	if unitshapes[id] then
 		removeUnitShape(id)
 	end
-	unitshapes[id] = WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, 1, teamID, nil, nil)
+	unitshapes[id] = WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha or 1, teamID, nil, nil, nil)
 	return unitshapes[id]
 end
 
-local function DrawBuilding(buildData, borderColor, drawRanges)
+local function DrawBuilding(buildData, borderColor, drawRanges, alpha)
 	local bDefID, bx, by, bz, facing = buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]
 	local bw, bh = GetBuildingDimensions(bDefID, facing)
 
@@ -291,7 +296,7 @@ local function DrawBuilding(buildData, borderColor, drawRanges)
 			.. buildData[4]
 			.. "_"
 			.. buildData[5]
-		addUnitShape(id, buildData[1], buildData[2], buildData[3], buildData[4], buildData[5] * (math.pi / 2), myTeamID)
+		addUnitShape(id, buildData[1], buildData[2], buildData[3], buildData[4], buildData[5] * (math.pi / 2), myTeamID, alpha)
 	end
 end
 
@@ -438,6 +443,8 @@ function widget:DrawWorld()
 		return
 	end
 
+	local getBuildQueueAlphaValues = WG["getBuildQueueAlphaValues"]
+
 	-- draw pregame build queue
 	local buildDistanceColor = { 0.3, 1.0, 0.3, 0.6 }
 	local buildLinesColor = { 0.3, 1.0, 0.3, 0.6 }
@@ -475,7 +482,10 @@ function widget:DrawWorld()
 
 		-- Draw start units build radius
 		gl.Color(buildDistanceColor)
-		gl.DrawGroundCircle(sx, sy, sz, UnitDefs[startDefID].buildDistance, 40)
+		local buildDistance = Spring.GetGameRulesParam("overridePregameBuildDistance") or UnitDefs[startDefID].buildDistance
+		if buildDistance then
+			gl.DrawGroundCircle(sx, sy, sz, buildDistance, 40)
+		end
 	end
 
 	-- Check for faction change
@@ -502,16 +512,23 @@ function widget:DrawWorld()
         prevStartDefID = startDefID
 	end
 
+	local alphaResults = { queueAlphas = {}, selectedAlpha = 0.5 }
+	if getBuildQueueAlphaValues then
+		alphaResults = getBuildQueueAlphaValues(buildQueue, selBuildData)
+	end
+
 	-- Draw all the buildings
 	local queueLineVerts = startChosen and { { v = { sx, sy, sz } } } or {}
 	for b = 1, #buildQueue do
 		local buildData = buildQueue[b]
 
 		if buildData[1] > 0 then
+			local alpha = alphaResults.queueAlphas[b] or 0.5
+
 			if selBuildData and DoBuildingsClash(selBuildData, buildData) then
-				DrawBuilding(buildData, borderClashColor)
+				DrawBuilding(buildData, borderClashColor, false, alpha)
 			else
-				DrawBuilding(buildData, borderNormalColor)
+				DrawBuilding(buildData, borderNormalColor, false, alpha)
 			end
 		end
 
@@ -526,6 +543,8 @@ function widget:DrawWorld()
 
 	-- Draw selected building
 	if selBuildData then
+		local selectedAlpha = alphaResults.selectedAlpha or 0.5
+		
 		-- mmm, convoluted logic. Pregame handling is hell
 		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
 		local testOrder = spTestBuildOrder(
@@ -537,15 +556,15 @@ function widget:DrawWorld()
 		) ~= 0
 		if not isMex then
 			local color = testOrder and borderValidColor or borderInvalidColor
-			DrawBuilding(selBuildData, color, true)
+			DrawBuilding(selBuildData, color, true, selectedAlpha)
 		elseif isMex then
 			if WG.ExtractorSnap.position or metalMap then
-				DrawBuilding(selBuildData, borderValidColor, true)
+				DrawBuilding(selBuildData, borderValidColor, true, selectedAlpha)
 			else
-				DrawBuilding(selBuildData, borderInvalidColor, true)
+				DrawBuilding(selBuildData, borderInvalidColor, true, selectedAlpha)
 			end
 		else
-			DrawBuilding(selBuildData, borderValidColor, true)
+			DrawBuilding(selBuildData, borderValidColor, true, selectedAlpha)
 		end
 	end
 
@@ -563,7 +582,7 @@ function widget:GameFrame(n)
 	end
 
 	-- handle the pregame build queue
-	if not (n <= 90 and n > 1) then
+	if not (n <= 60 and n > 1) then
 		return
 	end
 

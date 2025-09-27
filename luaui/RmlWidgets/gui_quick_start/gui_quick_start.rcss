@@ -1,0 +1,239 @@
+.qs-root {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: 1920px;
+	height: 1080px;
+	z-index: 10000;
+	font-family: Exo 2;
+	pointer-events: none;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: center;
+}
+
+.hidden {
+	display: none;
+}
+
+.qs-budget-overlay {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: flex-start;
+	padding-left: 30.2%;
+	padding-top: 0px;
+}
+
+.qs-budget-container {
+	background-color: rgba(50, 50, 50, 60);
+	border-radius: 6px;
+	border-width: 1.5px;
+	border-color: rgba(30, 30, 30, 150);
+	padding: 3.5px;
+	margin-bottom: 7px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	margin-top: -5px;
+	decorator: image("/luaui/images/stripes-small.png" repeat);
+	image-color: rgba(40, 40, 40, 60);
+	position: relative;
+}
+
+.qs-budget-gradient-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	border-radius: 6px;
+	decorator: vertical-gradient( #525151 #000000 );
+	opacity: 0.6;
+	z-index: 1;
+	pointer-events: none;
+}
+
+.qs-budget-header {
+	font-size: 17px;
+	font-weight: bold;
+	margin-bottom: 0px;
+	font-effect: outline(1px black);
+	position: relative;
+	z-index: 2;
+}
+
+.qs-budget-row {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.qs-budget-metal-icon {
+	width: 32px;
+	height: 32px;
+	z-index: 3;
+	position: absolute;
+	left: 3px;
+	top: 28px;
+	transform: translateY(-50%);
+	background-color: transparent;
+	border-width: 0;
+	padding: 0px;
+	margin: 0px;
+}
+
+.qs-budget-value-left {
+	font-size: 16px;
+	font-weight: bold;
+	color: rgb(255, 255, 255);
+	font-effect: outline(1px black);
+	text-align: center;
+	z-index: 3;
+	position: absolute;
+	top: 18px;
+	left: 28px;
+	width: 46px;
+}
+
+[class^="qs-deduction-amount-"] {
+	font-size: 14px;
+	font-weight: bold;
+	color: rgb(255, 0, 0);
+	font-effect: outline(1px black);
+	text-align: center;
+	z-index: 4;
+	position: absolute;
+	top: 30px;
+	left: 50px;
+	transform: translateX(-50%);
+	pointer-events: none;
+	opacity: 0.0;
+}
+
+[class^="qs-deduction-amount-"].animate {
+	animation: 1.5s linear 1 deduction-drift;
+}
+
+@keyframes deduction-drift {
+	1% {
+		top: 30px;
+		opacity: 1.0;
+		font-size: 14px;
+	}
+	100% {
+		top: 100px;
+		opacity: 0.0;
+		font-size: 24px;
+	}
+}
+
+
+.qs-budget-bar {
+	position: relative;
+	width: 519px;
+	height: 8px;
+	margin-top: 2px;
+	margin-right: 8px;
+	margin-left: 74px;
+	margin-bottom: 8px;
+	background-color: rgba(0, 0, 0, 230);
+	border-radius: 6px;
+	overflow: hidden;
+	z-index: 2;
+}
+
+.qs-budget-track {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 50, 0, 255);
+	z-index: 0;
+}
+
+.qs-budget-fill {
+	position: absolute;
+	height: 100%;
+	width: 50%;
+	background-color: #00ff00;
+	decorator: vertical-gradient( #00ff00 #006600 );
+	z-index: 1;
+}
+
+.qs-budget-projected {
+	position: absolute;
+	height: 100%;
+	width: 0%;
+	background-color: #00cc00;
+	decorator: vertical-gradient( #00cc00 #004400 );
+	z-index: 2;
+}
+
+.qs-budget-text {
+	display: none;
+}
+
+.qs-warning-text {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	font-size: 30px;
+	font-effect: outline(1px black);
+	z-index: 1000;
+	background-color: rgba(0, 0, 0, 0.7);
+	padding: 10px 20px;
+	border-radius: 6px;
+	border-width: 1px;
+	border-color: rgba(255, 255, 255, 0.3);
+	opacity: 0;
+	animation: 10s 5s cubic-in-out 1 fade-in-out;
+}
+
+.qs-factory-section {
+	position: absolute;
+	left: 50%;
+	top: 56%;
+	transform: translate(-50%, -50%);
+	z-index: 1000;
+}
+
+.qs-factory-text {
+	font-size: 30px;
+	font-effect: outline(1px black);
+	background-color: rgba(0, 0, 0, 0.7);
+	padding: 10px 20px;
+	border-radius: 6px;
+	border-width: 1px;
+	border-color: rgba(255, 255, 255, 0.3);
+	opacity: 0;
+	animation: 9s 6s cubic-in-out 1 fade-in-out;
+}
+
+.qs-factory-text.placed {
+	opacity: 0.6;
+	color: #aaaaaa;
+}
+
+.qs-factory-text.discount-used {
+	color: #00ff00;
+}
+
+.qs-factory-text.placed.discount-used {
+	color: #00aa00;
+}
+
+@keyframes fade-in-out {
+	0% { opacity: 0; }
+	10% { opacity: 1; }
+	80% { opacity: 1; }
+	100% { opacity: 0; }
+}
