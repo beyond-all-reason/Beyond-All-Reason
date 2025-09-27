@@ -132,6 +132,22 @@ float frequency;
 		return cloudEdgeDistanceWeight;
 	}
 	
+	// Signed distance to a rounded axis-aligned box defined by corners cornerA and cornerB.
+	// cornerA, cornerB: opposite corners of the box (order doesn’t matter)
+	// roundingRadius: uniform edge/face rounding radius
+	float sdRoundedBoxFromCorners(vec3 point, vec3 boxMin, vec3 boxMax, float roundingRadius)
+	{
+		// Compute center and half extents
+		vec3 boxCenter = 0.5 * (boxMin + boxMax);
+		vec3 halfSize  = 0.5 * (boxMax - boxMin);
+
+		// Rounded box distance
+		vec3 offset = abs(point - boxCenter) - (halfSize - vec3(roundingRadius));
+		return length(max(offset, 0.0)) 
+			+ min(max(offset.x, max(offset.y, offset.z)), 0.0) 
+			- roundingRadius;
+	}
+
 
 #endif
 
