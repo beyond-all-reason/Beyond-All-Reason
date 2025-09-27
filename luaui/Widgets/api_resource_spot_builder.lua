@@ -137,7 +137,8 @@ local function spotHasExtractorQueued(spot, builders)
 
 	else
 		for i=1, #builders do
-			local hasOrder = checkQueue(Spring.GetUnitCommands(builders[i], 100))
+			-- GetUnitCommands returns nil if enemy unit is selected (with godmode on)
+			local hasOrder = checkQueue(Spring.GetUnitCommands(builders[i], 100) or {})
 			if hasOrder then
 				return true
 			end
@@ -232,12 +233,13 @@ local function extractorCanBeBuiltOnSpot(spot, extractorId)
 end
 
 
----Finds the nearest unoccupied resource spot from the provided list
+---Finds the nearest unoccupied resource spot from the provided list, with an optional check for queued extractors.
 ---@param x number
 ---@param z number
 ---@param spotsIn table
 ---@param extractor table unitDefID
-local function findNearestValidSpotForExtractor(x, z, spotsIn, extractor)
+---@param checkQueued boolean
+local function findNearestValidSpotForExtractor(x, z, spotsIn, extractor, checkQueued)
 	-- sort spots by distance
 	local spots = table.copy(spotsIn)
 	table.sort(spots, function(a, b)
@@ -247,12 +249,18 @@ local function findNearestValidSpotForExtractor(x, z, spotsIn, extractor)
 		local spot = spots[i]
 		local existingExtractor = spotHasExtractor(spot)
 		local hasExtractorQueued = spotHasExtractorQueued(spot)
-		if not existingExtractor and not hasExtractorQueued then
+
+		if checkQueued and not existingExtractor and not hasExtractorQueued then
 			return spot
 		end
 
-		local canBeBuilt = extractorCanBeBuiltOnSpot(spot, extractor)
-		if canBeBuilt and not hasExtractorQueued then
+		local isUnoccupied = not existingExtractor
+		local canBeBuiltOn = extractorCanBeBuiltOnSpot(spot, extractor)
+		local notQueued = not hasExtractorQueued
+
+		local isValidSpot = (isUnoccupied or canBeBuiltOn) and (not checkQueued or notQueued)
+
+		if isValidSpot then
 			return spot
 		end
 	end
@@ -300,7 +308,8 @@ local function sortBuilders(units, constructorIds, buildingId, shift)
 	end
 
 	local function hasExistingGuardOrder(uid)
-		local queue = Spring.GetUnitCommands(uid, 10)
+		-- GetUnitCommands returns nil if enemy unit is selected (with godmode on)
+		local queue = Spring.GetUnitCommands(uid, 10) or {}
 		for i = 1, #queue do
 			local cmd = queue[i]
 			if cmd.id == CMD_GUARD and (cmd.params and cmd.params[1] and isMainBuilderOfId(cmd.params[1])) then
@@ -478,15 +487,17 @@ function widget:Initialize()
 		widget:UnitCreated(id, spGetUnitDefID(id))
 	end
 
-	--make interfaces available to other widgets:
-	WG['resource_spot_builder'] = { }
-	WG['resource_spot_builder'].ExtractorCanBeBuiltOnSpot = extractorCanBeBuiltOnSpot
-	WG['resource_spot_builder'].ExtractorCanBeUpgraded = extractorCanBeUpgraded
-	WG['resource_spot_builder'].FindNearestValidSpotForExtractor = findNearestValidSpotForExtractor
-	WG['resource_spot_builder'].PreviewExtractorCommand = PreviewExtractorCommand
-	WG['resource_spot_builder'].ApplyPreviewCmds = ApplyPreviewCmds
-	WG['resource_spot_builder'].SpotHasExtractorQueued = spotHasExtractorQueued
-	WG['resource_spot_builder'].GetBestExtractorFromBuilders = getBestExtractorFromBuilders
+	-- make interfaces available to other widgets:
+	local ResourceSpotBuilderApi = {}
+	ResourceSpotBuilderApi.ExtractorCanBeBuiltOnSpot = extractorCanBeBuiltOnSpot
+	ResourceSpotBuilderApi.ExtractorCanBeUpgraded = extractorCanBeUpgraded
+	ResourceSpotBuilderApi.FindNearestValidSpotForExtractor = findNearestValidSpotForExtractor
+	ResourceSpotBuilderApi.PreviewExtractorCommand = PreviewExtractorCommand
+	ResourceSpotBuilderApi.ApplyPreviewCmds = ApplyPreviewCmds
+	ResourceSpotBuilderApi.SpotHasExtractorQueued = spotHasExtractorQueued
+	ResourceSpotBuilderApi.GetBestExtractorFromBuilders = getBestExtractorFromBuilders
+
+	WG['resource_spot_builder'] = ResourceSpotBuilderApi
 
 	----------------------------------------------
 	-- builders and buildings - MEX

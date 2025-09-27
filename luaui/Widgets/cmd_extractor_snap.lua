@@ -124,8 +124,9 @@ local function clashesWithBuildQueue(uid, pos)
 		end
 	else
 		for i = 1, #units do
+			-- GetUnitCommands returns nil if enemy unit is selected (with godmode on)
 			local queue = Spring.GetUnitCommands(units[i], 100) or {}
-			for j=1, #queue do
+			for j = 1, #queue do
 				local command = queue[j]
 				local id = command.id and command.id or command[1]
 				if id < 0 then
@@ -202,9 +203,6 @@ function widget:Update()
 		return
 	end
 
-	-- get nearest unoccupied spot, we have to separate shift behavior for pregame reasons here
-	local nearestSpot
-
 	local isMetalExtractor = selectedMex ~= nil
 	local spotsToSearch = isMetalExtractor and metalSpots or geoSpots
 	local selectedExtractor = isMetalExtractor and selectedMex or selectedGeo
@@ -214,16 +212,13 @@ function widget:Update()
 		spotsToSearch = WG['skip_allied_upgrade'].filterOutAlliedSpots(spotsToSearch, buildingsToCheck)
 	end
 
-	if shift then
-		nearestSpot = WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, spotsToSearch, selectedExtractor)
-	else
-		nearestSpot = math.getClosestPosition(x, z, spotsToSearch)
-	end
+	local shouldFilterOutQueuedUpSpots = shift
+	local nearestSpot = WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, spotsToSearch, selectedExtractor, shouldFilterOutQueuedUpSpots)
+
 	if not nearestSpot then
 		clear()
 		return
 	end
-
 
 	buildCmd = {}
 	local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(pos, buildingId, nearestSpot)
@@ -232,7 +227,7 @@ function widget:Update()
 		WG.ExtractorSnap.position = targetPos -- used by prospector and pregame queue
 
 		local dist = math.distance3dSquared(cursorPos.x, cursorPos.y, cursorPos.z, targetPos.x, targetPos.y, targetPos.z)
-		if(dist < 1) then
+		if (dist < 1) then
 			clear()
 			WG.ExtractorSnap.position = targetPos --bit of a hack, this still needs to be set during pregame
 			return
@@ -256,7 +251,7 @@ function widget:Update()
 	if WG.DrawUnitShapeGL4 then
 		if unitShape then
 			if not activeUnitShape and WG.DrawUnitShapeGL4 then
-				activeUnitShape = WG.DrawUnitShapeGL4(unitShape[1], unitShape[2], unitShape[3], unitShape[4], unitShape[5] * (math.pi/2), 0.66, unitShape[6], 0.15, 0.3)
+				activeUnitShape = WG.DrawUnitShapeGL4(unitShape[1], unitShape[2], unitShape[3], unitShape[4], unitShape[5] * (math.pi / 2), 0.66, unitShape[6], 0.15, 0.3)
 			end
 		elseif activeUnitShape then
 			clearGhostBuild()
@@ -317,9 +312,7 @@ end
 
 
 function widget:DrawWorld()
-	if not WG.DrawUnitShapeGL4
-	or not targetPos
-	or not cursorPos then
+	if not WG.DrawUnitShapeGL4 or not targetPos or not cursorPos then
 		return
 	end
 
