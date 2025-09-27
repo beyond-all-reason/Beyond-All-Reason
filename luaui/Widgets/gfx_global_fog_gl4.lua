@@ -171,42 +171,50 @@ local paramGroups = {
 
 -- THIS IS UNIFIED BETWEEN FOG SHADER AND COMBINE SHADER
 local definesSlidersParamsList = {
+--global
 	{name = 'RESOLUTION', default = 1, min = 1, max = 8, digits = 0, tooltip = 'Fog resolution divider, 1 = full resolution, 2 = half', group = "global"},
 	--{name = 'MINISHADOWS', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Wether to draw a downsampled shadow sampler'},
 	{name = 'OFFSETX', default = 0, min = -4, max = 4, digits = 0, tooltip = 'OFFSETX', group = "global"},
 	{name = 'OFFSETY', default = 0, min = -4, max = 4, digits = 0, tooltip = 'OFFSETY', group = "global"},
 	{name = 'HALFSHIFT', default = 1, min = 0, max = 1, digits = 0, tooltip = 'If the resolution is half, perform a half-pixel shifting', group = "global"},
-	--{name = 'RAYTRACING', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Use any raytracing, 1 = yes, 0 = no'},
-	{name = 'HEIGHTNOISESTEPS', default = 8, min = 0, max = 32, digits = 0, tooltip =  'How many times to sample shadows', group = "ground"},
-	{name = 'HEIGHTSHADOWSTEPS', default = 12, min = 0, max = 32, digits = 0, tooltip =  'How many times to sample shadows for pure height-based fog', group = "ground"},
-	{name = 'UWSHADOWSTEPS', default = (minHeight < -20) and 8 or 0, min = 0, max = 64, digits = 0, tooltip =  'How many times to sample shadows for underwater scattering' , group = "underwater"},
-	{name = 'UWCAUSTICS', default = 2, min = 0, max = 8, digits = 1, tooltip =  'How strongly caustics should distort underwater shadows' , group = "underwater"},
-	{name = 'HEIGHTSHADOWQUAD', default = 2, min = 0, max = 2, digits = 0, tooltip =  'How to Quad sample height-based fog', group = "ground"},
-	{name = 'SHADOWSAMPLER', default = 1, min = 0, max = 3, digits = 0, tooltip =  '0 use texture fetch, 1 use sampler fetch, 2 use texelfetch', group = "global"},
-	--{name = 'BLUENOISESTRENGTH', default = 1.1, min = 0, max = 1.1, digits = 1, tooltip =  'Amount of blue noise added to shadow sampling'},
-	{name = 'TEXTURESAMPLER', default = 1, min = 0, max = 6, digits = 0,  tooltip = '0:None 1=Packed3D 2=Tex2D 3=Tex2D 4=FBM 5=Value3D 6=SimplexPerlin', group = "global"},
-	{name = 'QUADNOISEFETCHING', default = 1, min = 0, max = 1, digits = 0,  tooltip = 'Enable Quad Message Passing [0 or 1]', group = "global"},
 	{name = 'WEIGHTFACTOR', default = 0.56, min = 0, max = 1, digits = 2,  tooltip = 'Squared weight for each texel in PQM', group = "global"},
-	{name = 'CLOUDSTEPS',default = 16, min = 0, max = 64, digits = 0, tooltip = 'How many Cloud samples to take, 0 to disable clouds', group = "cloud"},
+	{name = 'QUADNOISEFETCHING', default = 1, min = 0, max = 1, digits = 0,  tooltip = 'Enable Quad Message Passing [0 or 1]', group = "global"},
 	{name = 'NOISESCALE', default = 0.3, min = 0.001, max = 0.999, digits = 3, tooltip = 'The tiling frequency of noise', group = "global"},
-	{name = 'NOISETHRESHOLD', default = 0, min = -1, max = 1, digits = 2, tooltip =  'The 0 level of noise', group = "global"},
-	{name = 'CLOUDSHADOWS', default = 8, min = 0, max = 16, digits = 0, tooltip = 'How many rays to cast in the direction of the sun for shadows', group = "cloudshadows"},
-	{name = 'USEMINIMAP', default = 0, min = 0, max = 1, digits = 0, tooltip = '0 or 1 to use the minimap for back-scatter', group = "global"},
-	{name = 'FULLALPHA',default = 0, min = 0, max = 1, digits = 0, tooltip = 'Show ONLY fog', group = "global"},
+	{name = 'SHADOWSAMPLER', default = 1, min = 0, max = 3, digits = 0, tooltip =  '0 use texture fetch, 1 use sampler fetch, 2 use texelfetch', group = "global"},
+	{name = 'TEXTURESAMPLER', default = 1, min = 0, max = 6, digits = 0,  tooltip = '0:None 1=Packed3D 2=Tex2D 3=Tex2D 4=FBM 5=Value3D 6=SimplexPerlin', group = "global"},
 	{name = 'USEDDS', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Use DDS compressed version of packedNoise. Most important when using very high frequencies of LF noise (reduces cache pressure)', group = "global"},
 	{name = 'USELOS', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Use the LOS map at all, 1 = yes, 0 = no', group = "global"},
 	{name = 'LOSREDUCEFOG', default = 0, min = 0, max = 1, digits = 2, tooltip = 'How much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los', group = "global"},
 	{name = 'LOSFOGUNDISCOVERED', default = 1.0, min = 0, max = 1, digits= 2, tooltip = 'This specifies how much more fog there should be where the map has not yet been discovered ever (0 is none, 1 is a lot)', group = "global"},
+	{name = 'USEMINIMAP', default = 0, min = 0, max = 1, digits = 0, tooltip = '0 or 1 to use the minimap for back-scatter', group = "global"},
+	-- global debug	
+	{name = 'MINIMAPSCATTER', default = 0.1, min = -0.5, max = 0.5, digits = 2, tooltip = 'How much the minimap color sdditively back-scatters into fog color, 0 is off', group = "global"},
+	{name = 'FULLALPHA',default = 0, min = 0, max = 1, digits = 0, tooltip = 'Show ONLY fog', group = "global"},
+	{name = 'COMBINESHADER', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Run the combine shader if RESOLUTION > 1', group = "global"},
+	{name = 'ENABLED', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Dont do anything', group = "global"},
+	-- ground	
+	{name = 'HEIGHTNOISESTEPS', default = 8, min = 0, max = 32, digits = 0, tooltip =  'How many times to sample ground fog noise', group = "ground"},
+	{name = 'HEIGHTSHADOWSTEPS', default = 12, min = 0, max = 32, digits = 0, tooltip =  'How many times to sample shadows for pure height-based fog', group = "ground"},
+	
+-- shadow
+	{name = 'HEIGHTSHADOWQUAD', default = 2, min = 0, max = 2, digits = 0, tooltip =  'How to Quad sample height-based fog', group = "shadow"},
+	
+	-- underwater	
+	{name = 'UWSHADOWSTEPS', default = (minHeight < -20) and 8 or 0, min = 0, max = 64, digits = 0, tooltip =  'How many times to sample shadows for underwater scattering' , group = "underwater"},
+	{name = 'UWCAUSTICS', default = 2, min = 0, max = 8, digits = 1, tooltip =  'How strongly caustics should distort underwater shadows' , group = "underwater"},
+	--{name = 'BLUENOISESTRENGTH', default = 1.1, min = 0, max = 1.1, digits = 1, tooltip =  'Amount of blue noise added to shadow sampling'},
+--cloudss	
+	{name = 'CLOUDSTEPS',default = 16, min = 0, max = 64, digits = 0, tooltip = 'How many Cloud samples to take, 0 to disable clouds', group = "cloud"},
+	{name = 'NOISETHRESHOLD', default = 0, min = -1, max = 1, digits = 2, tooltip =  'The 0 level of noise', group = "global"},
+--cloudshadows
+	{name = 'CLOUDSHADOWS', default = 8, min = 0, max = 16, digits = 0, tooltip = 'How many rays to cast in the direction of the sun for shadows', group = "cloudshadows"},
 	{name = 'WINDSTRENGTH', default = 0.01, min = 0, max = 0.1, digits = 2, tooltip = 'Speed multiplier for wind', group = "global"},
 	{name = 'RISERATE', default = 0.025, min = 0.00, max = 0.2, digits = 3, tooltip = 'Rate at which cloud noise rises, in elmos per frame', group = "global"},
 	--{name = 'HEIGHTDENSITY', default = 2, min = 1, max = 10, digits = 2, tooltip = 'How quickly height fog reaches its max density'},
 	{name = 'SUNCHROMASHIFT', default = 0.2,  min = -0.5, max = 1, digits = 2, tooltip = 'How much colors are shifted towards sun', group = "global"},
-	{name = 'MINIMAPSCATTER', default = 0.1, min = -0.5, max = 0.5, digits = 2, tooltip = 'How much the minimap color sdditively back-scatters into fog color, 0 is off', group = "global"},
 	{name = 'DISTANCEFOGPOWER', default = 4, min = 0, max = 10, digits = 2, tooltip = 'How strongly distance fog should come in', group = "distance"},
 	{name = 'EASEHEIGHT', default = 1, min = 0.0, max = 5, digits = 2, tooltip = 'How much to reduce height-based fog close to camera', group = "global"},
-	{name = 'COMBINESHADER', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Run the combine shader if RESOLUTION > 1', group = "global"},
-	{name = 'ENABLED', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Dont do anything', group = "global"},
-
+		
 }
 
 for i, shaderDefine in ipairs(definesSlidersParamsList) do 
