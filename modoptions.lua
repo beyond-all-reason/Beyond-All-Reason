@@ -1250,11 +1250,12 @@ local options = {
         section = "options_extra",
         unlock = {"quick_start_amount"},
         items 	= {
-            { key = "default", 	name = "Default", lock = {"quick_start_amount"} },
-            { key = "enabled", name = "Enabled", unlock = {"quick_start_amount"} },
-            { key = "factory_discount", name = "Enabled: Discounted First Factory", desc = "The commander's first factory is discounted whether built before or during the game.", unlock = {"quick_start_amount"} },
-            { key = "factory_discount_only", name = "First Factory Discount Only", desc = "No base budget, only first factory discount" },
-            { key = "disabled", name = "Disabled", lock = {"quick_start_amount"} },
+            { key = "default", 	name = "Default", lock = {"quick_start_amount"}, desc = "Default settings for game modes." },
+            { key = "enabled", name = "Enabled", unlock = {"quick_start_amount"}, desc = "Quick Start alone, deducts 400 energy and 800 metal from starting resources." },
+            { key = "factory_discount", name = "Enabled: Discounted First Factory", desc = 
+            "Quick Start The commander's first factory is discounted at any time. Deducts 400 energy and 800 metal from starting resources.", unlock = {"quick_start_amount"} },
+            { key = "factory_discount_only", name = "First Factory Discount Only", desc = "No base budget, only first factory discount. No deduction from starting resources.", unlock = {"quick_start_amount"} },
+            { key = "disabled", name = "Disabled", desc = "Disabled quick start for all game modes.", lock = {"quick_start_amount"} },
         }
     },
 
