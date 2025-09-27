@@ -59,6 +59,7 @@ local UPDATE_FRAMES = Game.gameSpeed
 local BASE_NODE_COUNT = 8
 local MEX_OVERLAP_DISTANCE = Game.extractorRadius + Game.metalMapSquareSize
 local SAFETY_COUNT = 15
+local BUILT_ENOUGH_FOR_FULL = 0.9
 
 local spCreateUnit = Spring.CreateUnit
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -195,6 +196,9 @@ end
 
 local function applyBuildProgressToUnit(unitID, unitDef, affordableBudget, fullBudgetCost)
 	local buildProgress = affordableBudget / fullBudgetCost
+	if buildProgress > BUILT_ENOUGH_FOR_FULL then --to account for tiny, necessary inaccuracy between widget and gadget
+		buildProgress = 1
+	end
 	Spring.SetUnitHealth(unitID, { build = buildProgress, health = math.ceil(unitDef.health * buildProgress) })
 	return buildProgress
 end
