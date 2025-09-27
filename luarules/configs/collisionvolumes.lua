@@ -365,6 +365,11 @@ pieceCollisionVolume['legcar'] = {
 	['4']={14,12,20,0,-2,-6,2,1},
 }
 
+pieceCollisionVolume['legemissiletank'] = {
+	['0']={52,34,88,0,0,-4,2,1},
+	['1']={9,40,19,0,45,-2,2,1},
+}
+
 pieceCollisionVolume['legmed'] = {
 	['0']={48,31,69,0,0,0,2,1},
 	['1']={7,25,15,0,35,-5,2,1},
