@@ -1046,8 +1046,6 @@ local function techsplitTweaks(name, uDef)
     -- Enhanced ships given seaplanes instead of static AA
     -- Tech Split Balance
 	if name == "corthud" then 
-		uDef.metalcost = 280
-		uDef.health = 1800
 		uDef.speed = 54
 		uDef.weapondefs.arm_ham.range = 300
 		uDef.weapondefs.arm_ham.predictboost = 0.8
