@@ -419,16 +419,35 @@ function widget:Initialize()
 
 	WG["getBuildQueueAlphaValues"] = getBuildQueueAlphaValues
 	
-	WG["buildMenuCostOverride"] = {}
-	WG["buildMenuCostOverrideColors"] = {
-		allowed = "\255\100\255\100",
-		blocked = "\255\100\200\100"
-	}
-	
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		local metalCost = unitDef.metalCost or 0
 		local energyCost = unitDef.energyCost or 0
-		WG["buildMenuCostOverride"][unitDefID] = calculateBudgetCost(metalCost, energyCost)
+		local budgetCost = calculateBudgetCost(metalCost, energyCost)
+		
+		if WG['buildmenu'] and WG['buildmenu'].setCostOverride then
+			WG['buildmenu'].setCostOverride(unitDefID, {
+				top = {
+					disabled = true,
+				},
+				bottom = {
+					value = budgetCost,
+					color = "\255\100\255\100",
+					colorDisabled = "\255\100\200\100"
+				}
+			})
+		end
+		if WG['gridmenu'] and WG['gridmenu'].setCostOverride then
+			WG['gridmenu'].setCostOverride(unitDefID, {
+				top = {
+					disabled = true,
+				},
+				bottom = {
+					value = budgetCost,
+					color = "\255\100\255\100",
+					colorDisabled = "\255\100\200\100"
+				}
+			})
+		end
 	end
 
 	updateDataModel(true)
@@ -443,8 +462,12 @@ function widget:Shutdown()
 
 	WG["getBuildQueueAlphaValues"] = nil
 	
-	WG["buildMenuCostOverride"] = nil
-	WG["buildMenuCostOverrideColors"] = nil
+	if WG['buildmenu'] and WG['buildmenu'].clearCostOverrides then
+		WG['buildmenu'].clearCostOverrides()
+	end
+	if WG['gridmenu'] and WG['gridmenu'].clearCostOverrides then
+		WG['gridmenu'].clearCostOverrides()
+	end
 	
 	if WG['pregameui'] and WG['pregameui'].removeReadyCondition then
 		WG['pregameui'].removeReadyCondition(QUICK_START_CONDITION_KEY)

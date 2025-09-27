@@ -85,8 +85,7 @@ local math_isInRect = math.isInRect
 local buildmenuShows = false
 local refreshBuildmenu = true
 
-local costOverrides = nil
-local costOverrideColors = nil
+local costOverrides = {}
 --[[ MODIFICATION START ]]
 -- New state variables for the robust update system
 local selectionUpdateCountdown = 0  -- The debouncer timer, for selection changes only
@@ -640,8 +639,6 @@ function widget:Update(dt)
 		sec = 0
 		checkGuishader()
 		
-		costOverrides = WG and WG["buildMenuCostOverride"]
-		costOverrideColors = WG and WG["buildMenuCostOverrideColors"]
 		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
 			widget:ViewResize()
 		end
@@ -739,21 +736,39 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 			return price
 		end
 		
-		local overrideCost = 0
-		local showOverride = false
-		if costOverrides and costOverrides[uDefID] then
-			overrideCost = costOverrides[uDefID]
-			showOverride = true
-		end
+		local costOverride = costOverrides and costOverrides[uDefID]
 		
-		if showOverride then
-			local costColor = "\255\100\255\100"
-			if costOverrideColors then
-				costColor = disabled and costOverrideColors.blocked or costOverrideColors.allowed
+		if costOverride then
+			local topValue = costOverride.top and costOverride.top.value or units.unitMetalCost[uDefID]
+			local bottomValue = costOverride.bottom and costOverride.bottom.value or units.unitEnergyCost[uDefID]
+			
+			if costOverride.top and not costOverride.top.disabled then
+				local costColor = costOverride.top.color or "\255\100\255\100"
+				if disabled then
+					costColor = costOverride.top.colorDisabled or "\255\100\200\100"
+				end
+				local costPrice = AddSpaces(math.floor(topValue))
+				local costPriceText = costColor .. costPrice
+				font2:Print(costPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
+			elseif not costOverride.top or costOverride.top.disabled then
+				local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
+				local metalPrice = AddSpaces(units.unitMetalCost[uDefID])
+				font2:Print(metalColor .. metalPrice, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
 			end
-			local costPrice = AddSpaces(math.floor(overrideCost))
-			local costPriceText = costColor .. costPrice
-			font2:Print(costPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
+			
+			if costOverride.bottom and not costOverride.bottom.disabled then
+				local costColor = costOverride.bottom.color or "\255\255\255\000"
+				if disabled then
+					costColor = costOverride.bottom.colorDisabled or "\255\135\135\135"
+				end
+				local costPrice = AddSpaces(math.floor(bottomValue))
+				local costPriceText = costColor .. costPrice
+				font2:Print(costPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
+			elseif not costOverride.bottom or costOverride.bottom.disabled then
+				local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
+				local energyPrice = AddSpaces(units.unitEnergyCost[uDefID])
+				font2:Print(energyColor .. energyPrice, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
+			end
 		else
 			local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
 			local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
@@ -1546,9 +1561,20 @@ function widget:Initialize()
 	WG['buildmenu'].getIsShowing = function()
 		return buildmenuShows
 	end
-	WG['buildmenu'].forceRefresh = function()
-		costOverrides = WG and WG["buildMenuCostOverride"]
-		costOverrideColors = WG and WG["buildMenuCostOverrideColors"]
+	WG['buildmenu'].setCostOverride = function(unitDefID, costData)
+		if unitDefID and costData then
+			costOverrides[unitDefID] = costData
+			clear()
+		end
+	end
+	WG['buildmenu'].clearCostOverrides = function(unitDefID)
+		if unitDefID then
+			costOverrides[unitDefID] = nil
+		else
+			for defID in pairs(costOverrides) do
+				costOverrides[defID] = nil
+			end
+		end
 		clear()
 	end
 end

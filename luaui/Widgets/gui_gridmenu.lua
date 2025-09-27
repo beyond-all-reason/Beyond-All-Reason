@@ -156,8 +156,7 @@ local activeBuilder, activeBuilderID, builderIsFactory
 local buildmenuShows = false
 local hoveredRect = false
 
-local costOverrides = nil
-local costOverrideColors = nil
+local costOverrides = {}
 
 -------------------------------------------------------------------------------
 --- KEYBIND VALUES
@@ -1399,9 +1398,21 @@ function widget:Initialize()
 	WG["buildmenu"].getIsShowing = function()
 		return buildmenuShows
 	end
-	WG["gridmenu"].forceRefresh = function()
-		costOverrides = WG and WG["buildMenuCostOverride"]
-		costOverrideColors = WG and WG["buildMenuCostOverrideColors"]
+	WG["gridmenu"].setCostOverride = function(unitDefID, costData)
+		if unitDefID and costData then
+			costOverrides[unitDefID] = costData
+			redraw = true
+			refreshCommands()
+		end
+	end
+	WG["gridmenu"].clearCostOverrides = function(unitDefID)
+		if unitDefID then
+			costOverrides[unitDefID] = nil
+		else
+			for defID in pairs(costOverrides) do
+				costOverrides[defID] = nil
+			end
+		end
 		redraw = true
 		refreshCommands()
 	end
@@ -1632,8 +1643,6 @@ function widget:Update(dt)
 		sec = 0
 		checkGuishader()
 		
-		costOverrides = WG and WG["buildMenuCostOverride"]
-		costOverrideColors = WG and WG["buildMenuCostOverrideColors"]
 		if WG["minimap"] and minimapHeight ~= WG["minimap"].getHeight() then
 			widget:ViewResize()
 
@@ -1950,27 +1959,63 @@ local function drawCell(rect)
 
 	-- price
 	if metalPrice then
-		local overrideCost = 0
-		local showOverride = false
-		if costOverrides and costOverrides[uid] then
-			overrideCost = costOverrides[uid]
-			showOverride = true
-		end
+		local costOverride = costOverrides and costOverrides[uid]
 		
-		if showOverride then
-			local costColor = "\255\100\255\100"
-			if costOverrideColors then
-				costColor = disabled and costOverrideColors.blocked or costOverrideColors.allowed
+		if costOverride then
+			local topValue = costOverride.top and costOverride.top.value or metalPrice
+			local bottomValue = costOverride.bottom and costOverride.bottom.value or energyPrice
+			
+			if costOverride.top and not costOverride.top.disabled then
+				local costColor = costOverride.top.color or "\255\100\255\100"
+				if disabled then
+					costColor = costOverride.top.colorDisabled or "\255\100\200\100"
+				end
+				local costPrice = formatPrice(math.floor(topValue))
+				local costPriceText = costColor .. costPrice
+				font2:Print(
+					costPriceText,
+					rect.xEnd - cellPadding - (cellInnerSize * 0.048),
+					rect.y + cellPadding + (priceFontSize * 1.35),
+					priceFontSize,
+					"ro"
+				)
+			elseif not costOverride.top or costOverride.top.disabled then
+				local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
+				local metalPriceText = metalColor .. metalPrice
+				font2:Print(
+					metalPriceText,
+					rect.xEnd - cellPadding - (cellInnerSize * 0.048),
+					rect.y + cellPadding + (priceFontSize * 1.35),
+					priceFontSize,
+					"ro"
+				)
 			end
-			local costPrice = formatPrice(math.floor(overrideCost))
-			local costPriceText = costColor .. costPrice
-			font2:Print(
-				costPriceText,
-				rect.xEnd - cellPadding - (cellInnerSize * 0.048),
-				rect.y + cellPadding + (priceFontSize * 0.35),
-				priceFontSize,
-				"ro"
-			)
+			
+			if costOverride.bottom and not costOverride.bottom.disabled then
+				local costColor = costOverride.bottom.color or "\255\255\255\000"
+				if disabled then
+					costColor = costOverride.bottom.colorDisabled or "\255\135\135\135"
+				end
+				local costPrice = formatPrice(math.floor(bottomValue))
+				local costPriceText = costColor .. costPrice
+				font2:Print(
+					costPriceText,
+					rect.xEnd - cellPadding - (cellInnerSize * 0.048),
+					rect.y + cellPadding + (priceFontSize * 0.35),
+					priceFontSize,
+					"ro"
+				)
+			elseif not costOverride.bottom or costOverride.bottom.disabled then
+				local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
+				local energyPriceText = energyColor .. energyPrice
+				font2:Print(
+					energyPriceText,
+					rect.xEnd - cellPadding - (cellInnerSize * 0.048),
+					rect.y + cellPadding + (priceFontSize * 0.35),
+					priceFontSize,
+					"ro"
+				)
+			end
 		else
 			local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
 			local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
