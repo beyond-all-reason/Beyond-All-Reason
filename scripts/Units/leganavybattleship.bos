@@ -1615,7 +1615,7 @@ Shot1(zero){
 	if(whichBarrel == 0){
 		move barrel1 to z-axis [-10] now;
 		emit-sfx 1024 from flare1;
-		sleep 100;
+		sleep 1;
 		move barrel1 to z-axis [0] speed [10];
 
 		whichBarrel = 1;
@@ -1624,7 +1624,7 @@ Shot1(zero){
 	else if(whichBarrel == 1){
 		move barrel2 to z-axis [-10] now;
 		emit-sfx 1024 from flare2;
-		sleep 100;
+		sleep 1;
 		move barrel2 to z-axis [0] speed [10];
 
 		whichBarrel = 2;
@@ -1633,7 +1633,7 @@ Shot1(zero){
 	else if(whichBarrel == 2){
 		move barrel3 to z-axis [-10] now;
 		emit-sfx 1024 from flare3;
-		sleep 100;	
+		sleep 1;	
 		move barrel3 to z-axis [0] speed [10];
 	
 		whichBarrel = 0;
@@ -1694,6 +1694,13 @@ FireWeapon2()
 {
 	if(!isInWater){
 		RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+		move barrel1 to z-axis [-5] now;
+		move barrel2 to z-axis [-5] now;
+		move barrel3 to z-axis [-5] now;
+		sleep 100;
+		move barrel1 to z-axis [0] speed [10];
+		move barrel2 to z-axis [0] speed [10];
+		move barrel3 to z-axis [0] speed [10];
 	}
 	else{
 		return (0);
@@ -1703,24 +1710,24 @@ FireWeapon2()
 
 Shot2(zero){
 	if(whichBarrel == 0){
-		move barrel1 to z-axis [-10] now;
+		// move barrel1 to z-axis [-10] now;
 		emit-sfx 1024 from flare1b;
-		sleep 100;
-		move barrel1 to z-axis [0] speed [10];
+		// sleep 1;
+		// move barrel1 to z-axis [0] speed [10];
 		whichBarrel = 1;
 	}
 	else if(whichBarrel == 1){
-		move barrel2 to z-axis [-10] now;
+		// move barrel2 to z-axis [-10] now;
 		emit-sfx 1024 from flare2b;
-		sleep 100;
-		move barrel2 to z-axis [0] speed [10];
+		// sleep 1;
+		// move barrel2 to z-axis [0] speed [10];
 		whichBarrel = 2;
 	}
 	else if(whichBarrel == 2){
-		move barrel3 to z-axis [-10] now;
+		// move barrel3 to z-axis [-10] now;
 		emit-sfx 1024 from flare3b;
-		sleep 100;	
-		move barrel3 to z-axis [0] speed [10];
+		// sleep 1;	
+		// move barrel3 to z-axis [0] speed [10];
 		whichBarrel = 0;
 	}
 }

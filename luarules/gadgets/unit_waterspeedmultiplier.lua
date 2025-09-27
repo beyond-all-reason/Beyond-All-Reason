@@ -62,7 +62,7 @@ end
 
 function gadget:Initialize()
     if not next(unitDefData) then
-        widgetHandler:RemoveWidget()
+        gadgetHandler:RemoveGadget()
     end
 end
 

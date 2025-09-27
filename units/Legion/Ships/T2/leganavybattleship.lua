@@ -106,10 +106,11 @@ return {
 		},
 		weapondefs = {
 			burst_plasma_t2 = {
-				burstrate = 0.2,
-				burst = 3,
+				-- burstrate = 0.066,
+				-- burst = 3,
+				projectiles = 3,
 				--accuracy = 600,
-				areaofeffect = 100,
+				areaofeffect = 200,
 				avoidfeature = false,
 				craterboost = 0,
 				cratermult = 0,
@@ -124,7 +125,7 @@ return {
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy1",
-				sprayangle = 500,
+				sprayangle = 750,
 				tolerance = 5000,
 				turret = true,
 				weapontype = "Cannon",
@@ -135,7 +136,7 @@ return {
 				},
 			},
 			land_burst_plasma_t2 = {
-				burstrate = 0.2,
+				burstrate = 0.066,
 				burst = 3,
 				accuracy = 350,
 				areaofeffect = 140,
