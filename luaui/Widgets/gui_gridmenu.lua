@@ -1398,6 +1398,37 @@ function widget:Initialize()
 	WG["buildmenu"].getIsShowing = function()
 		return buildmenuShows
 	end
+	--[[
+	setCostOverride(unitDefID, costData)
+	Override the cost display for a specific unit in the grid menu
+	
+	Parameters:
+	  unitDefID (number) - The unit definition ID to override costs for
+	  costData (table) - Cost override configuration table with optional properties:
+	    top (table) - Override for the top cost line (metal cost)
+	      value (number, optional) - Custom cost value (defaults to unit's metal cost)
+	      color (string, optional) - Color code for enabled state (defaults to green)
+	      colorDisabled (string, optional) - Color code for disabled state (defaults to dimmed green)
+	      disabled (boolean, optional) - If true, hides the top cost line completely
+	    bottom (table) - Override for the bottom cost line (energy cost)
+	      value (number, optional) - Custom cost value (defaults to unit's energy cost)
+	      color (string, optional) - Color code for enabled state (defaults to yellow)
+	      colorDisabled (string, optional) - Color code for disabled state (defaults to dimmed yellow)
+	      disabled (boolean, optional) - If true, hides the bottom cost line completely
+	
+	Examples:
+	  -- Hide metal cost, show custom energy cost
+	  WG["gridmenu"].setCostOverride(unitDefID, {
+	    top = { disabled = true },
+	    bottom = { value = 100, color = "\255\100\255\100" }
+	  })
+	  
+	  -- Change colors only, keep default values
+	  WG["gridmenu"].setCostOverride(unitDefID, {
+	    top = { color = "\255\255\000\000" },
+	    bottom = { color = "\255\000\255\000" }
+	  })
+	--]]
 	WG["gridmenu"].setCostOverride = function(unitDefID, costData)
 		if unitDefID and costData then
 			costOverrides[unitDefID] = costData
@@ -1405,6 +1436,18 @@ function widget:Initialize()
 			refreshCommands()
 		end
 	end
+	--[[
+	clearCostOverrides(unitDefID)
+	Clear cost overrides for a specific unit or all units
+	
+	Parameters:
+	  unitDefID (number, optional) - The unit definition ID to clear overrides for.
+	                                 If nil or not provided, clears all cost overrides.
+	
+	Examples:
+	  WG["gridmenu"].clearCostOverrides(unitDefID)  -- Clear specific unit
+	  WG["gridmenu"].clearCostOverrides()           -- Clear all units
+	--]]
 	WG["gridmenu"].clearCostOverrides = function(unitDefID)
 		if unitDefID then
 			costOverrides[unitDefID] = nil
