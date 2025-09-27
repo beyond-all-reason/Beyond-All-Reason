@@ -750,7 +750,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 				local costPrice = AddSpaces(math.floor(topValue))
 				local costPriceText = costColor .. costPrice
 				font2:Print(costPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
-			elseif not costOverride.top or costOverride.top.disabled then
+			elseif not costOverride.top then
 				local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
 				local metalPrice = AddSpaces(units.unitMetalCost[uDefID])
 				font2:Print(metalColor .. metalPrice, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
@@ -764,7 +764,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 				local costPrice = AddSpaces(math.floor(bottomValue))
 				local costPriceText = costColor .. costPrice
 				font2:Print(costPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
-			elseif not costOverride.bottom or costOverride.bottom.disabled then
+			elseif not costOverride.bottom then
 				local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
 				local energyPrice = AddSpaces(units.unitEnergyCost[uDefID])
 				font2:Print(energyColor .. energyPrice, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")

@@ -1979,7 +1979,7 @@ local function drawCell(rect)
 					priceFontSize,
 					"ro"
 				)
-			elseif not costOverride.top or costOverride.top.disabled then
+			elseif not costOverride.top then
 				local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
 				local metalPriceText = metalColor .. metalPrice
 				font2:Print(
@@ -2005,7 +2005,7 @@ local function drawCell(rect)
 					priceFontSize,
 					"ro"
 				)
-			elseif not costOverride.bottom or costOverride.bottom.disabled then
+			elseif not costOverride.bottom then
 				local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
 				local energyPriceText = energyColor .. energyPrice
 				font2:Print(

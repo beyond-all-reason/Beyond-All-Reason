@@ -476,13 +476,6 @@ function widget:Shutdown()
 		WG['pregameui_draft'].removeReadyCondition(QUICK_START_CONDITION_KEY)
 	end
 
-	if WG['buildmenu'] and WG['buildmenu'].forceRefresh then
-		WG['buildmenu'].forceRefresh()
-	end
-	if WG['gridmenu'] and WG['gridmenu'].forceRefresh then
-		WG['gridmenu'].forceRefresh()
-	end
-
 	if widgetState.rmlContext and widgetState.dmHandle then
 		widgetState.rmlContext:RemoveDataModel(MODEL_NAME)
 		widgetState.dmHandle = nil
