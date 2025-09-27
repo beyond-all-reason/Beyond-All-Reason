@@ -7,18 +7,18 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
     return {
         name = "RML Widget Starter",
-        desc = "Comprehensive starter template demonstrating RmlUi widget best practices and common patterns.",
+        desc = "Rml Starter template demonstrating RmlUi widget best practices and common patterns.",
         author = "Mupersega",
         date = "2025",
         license = "GNU GPL, v2 or later",
         layer = -1000000,
-        enabled = true, -- Set to true to enable the widget by default
+        enabled = true,
     }
 end
 
 -- Constants
-local WIDGET_NAME = "RML Starter"
-local MODEL_NAME = "starter_model"
+local WIDGET_ID = "rml_starter"
+local MODEL_NAME = "rml_starter_model"
 local RML_PATH = "luaui/rmlwidgets/rml_starter/rml_starter.rml"
 
 -- Widget state
@@ -39,18 +39,15 @@ local init_model = {
     },
     
     -- Tab system state (controlled by data binding)
-    activeTab = "base-widget-structure", -- Start empty for landing page.
+    activeTab = "", -- Start empty for landing page.
 
     -- All tabs
     tabs = {
         { id = "getting-started", label = "Getting Started" },
-        { id = "base-widget-structure", label = "Base Widget Structure" },
+        { id = "base-widget-conventions", label = "Base Widget Conventions" },
+        { id = "widget-positioning", label = "Widget Positioning" },
         { id = "data-binding", label = "Data Binding" },
-        { id = "event-handling", label = "Event Handling" },
-        { id = "debugging", label = "Debugging" },
-        { id = "examples", label = "Examples" },
-        { id = "performance", label = "Performance" },
-        { id = "best-practices", label = "Best Practices" },
+        { id = "styling", label = "Styling" },
         { id = "tools", label = "Tools" },
     },
 
@@ -59,36 +56,42 @@ local init_model = {
     
     -- Debug mode toggle
     debugMode = false,
+    
+    -- Data binding demo variables
+    playerName = "Commander",
+    metalCount = 250,
+    gamePaused = false,
 }
 
 -- Widget lifecycle functions
 function widget:Initialize()
-
+    if widget.GetInfo().enabled == false then
+        Spring.Echo(WIDGET_ID .. ": Widget is disabled by default. Enable it in the widget settings to use.")
+        return false
+    end
     -- Initialize the widget
-    Spring.Echo(WIDGET_NAME .. ": Initializing widget...")
+    Spring.Echo(WIDGET_ID .. ": Initializing widget...")
     
     -- Get the shared RML context
     widget.rmlContext = RmlUi.GetContext("shared")
     if not widget.rmlContext then
-        Spring.Echo(WIDGET_NAME .. ": ERROR - Failed to get RML context")
+        Spring.Echo(WIDGET_ID .. ": ERROR - Failed to get RML context")
         return false
     end
 
     -- Create and bind the data model
     dm_handle = widget.rmlContext:OpenDataModel(MODEL_NAME, init_model)
     if not dm_handle then
-        Spring.Echo(WIDGET_NAME .. ": ERROR - Failed to create data model '" .. MODEL_NAME .. "'")
+        Spring.Echo(WIDGET_ID .. ": ERROR - Failed to create data model '" .. MODEL_NAME .. "'")
         return false
     end
-    
-    -- Set up data model change listeners
-    
-    Spring.Echo(WIDGET_NAME .. ": Data model created successfully")
+
+    Spring.Echo(WIDGET_ID .. ": Data model created successfully")
 
     -- Load the RML document
     document = widget.rmlContext:LoadDocument(RML_PATH, widget)
     if not document then
-        Spring.Echo(WIDGET_NAME .. ": ERROR - Failed to load document: " .. RML_PATH)
+        Spring.Echo(WIDGET_ID .. ": ERROR - Failed to load document: " .. RML_PATH)
         widget:Shutdown()
         return false
     end
@@ -97,13 +100,13 @@ function widget:Initialize()
     document:ReloadStyleSheet()
     document:Show()
     
-    Spring.Echo(WIDGET_NAME .. ": Widget initialized successfully")
+    Spring.Echo(WIDGET_ID .. ": Widget initialized successfully")
     
     return true
 end
 
 function widget:Shutdown()
-    Spring.Echo(WIDGET_NAME .. ": Shutting down widget...")
+    Spring.Echo(WIDGET_ID .. ": Shutting down widget...")
     
     -- Clean up data model
     if widget.rmlContext and dm_handle then
@@ -118,12 +121,12 @@ function widget:Shutdown()
     end
     
     widget.rmlContext = nil
-    Spring.Echo(WIDGET_NAME .. ": Shutdown complete")
+    Spring.Echo(WIDGET_ID .. ": Shutdown complete")
 end
 
 -- Development helper function for hot reloading
 function widget:Reload(event)
-    Spring.Echo(WIDGET_NAME .. ": Reloading widget (event: " .. tostring(event) .. ")")
+    Spring.Echo(WIDGET_ID .. ": Reloading widget (event: " .. tostring(event) .. ")")
     widget:Shutdown()
     widget:Initialize()
 end
@@ -132,7 +135,7 @@ end
 function widget:UpdateCurrentTime()
     if dm_handle then
         dm_handle.currentTime = os.date("%H:%M:%S")
-        Spring.Echo(WIDGET_NAME .. ": Updated current time to: " .. dm_handle.currentTime)
+        Spring.Echo(WIDGET_ID .. ": Updated current time to: " .. dm_handle.currentTime)
     end
 end
 
@@ -140,7 +143,7 @@ end
 function widget:UpdateMessage(newMessage)
     if dm_handle then
         dm_handle.message = newMessage
-        Spring.Echo(WIDGET_NAME .. ": Message updated to: " .. newMessage)
+        Spring.Echo(WIDGET_ID .. ": Message updated to: " .. newMessage)
     end
 end
 
@@ -148,7 +151,7 @@ end
 function widget:AddTestItem(name, value)
     if dm_handle and dm_handle.testArray then
         table.insert(dm_handle.testArray, { name = name, value = value })
-        Spring.Echo(WIDGET_NAME .. ": Added item: " .. name)
+        Spring.Echo(WIDGET_ID .. ": Added item: " .. name)
     end
 end
 
@@ -159,10 +162,32 @@ function widget:ToggleDebugger()
         
         if dm_handle.debugMode then
             RmlUi.SetDebugContext('shared')
-            Spring.Echo(WIDGET_NAME .. ": RmlUi debugger enabled")
+            Spring.Echo(WIDGET_ID .. ": RmlUi debugger enabled")
         else
             RmlUi.SetDebugContext(nil)
-            Spring.Echo(WIDGET_NAME .. ": RmlUi debugger disabled")
+            Spring.Echo(WIDGET_ID .. ": RmlUi debugger disabled")
         end
+    end
+end
+
+-- Data binding demo functions
+function widget:AddMetal()
+    if dm_handle then
+        dm_handle.metalCount = dm_handle.metalCount + 100
+        Spring.Echo(WIDGET_ID .. ": Added 100 metal, total: " .. dm_handle.metalCount)
+    end
+end
+
+function widget:SubtractMetal()
+    if dm_handle then
+        dm_handle.metalCount = math.max(0, dm_handle.metalCount - 50)
+        Spring.Echo(WIDGET_ID .. ": Subtracted 50 metal, total: " .. dm_handle.metalCount)
+    end
+end
+
+function widget:ClearMetal()
+    if dm_handle then
+        dm_handle.metalCount = 0
+        Spring.Echo(WIDGET_ID .. ": Cleared metal, total: " .. dm_handle.metalCount)
     end
 end
