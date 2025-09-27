@@ -1614,6 +1614,8 @@
 				"smartselect_includebuildings_descr": "When rectangle-drag-selecting an area, include building units too?\n\nDisabled: non-mobile units will be excluded (hold Shift to override)\nNote: Construction Turrets will always be selected",
 				"smartselect_includebuilders": "include builders (if above is off)",
 				"smartselect_includebuilders_descr": "When rectangle-drag-selecting an area, exclude builder units (hold Shift to override)",
+				"skip_allied_upgrade": "Upgrade only own buildings",
+				"skip_allied_upgrade_descr": "Sets default behaviour when upgrading metal extractors/geothermal plants. When true, allied buildings will be ignored. You can bind toggle_allied_upgrade action to a key to override this behaviour.",
 				"onlyfighterspatrol": "Only fighters patrol",
 				"onlyfighterspatrol_descr": "Only fighters obey a factory's patrol route after leaving airlab.",
 				"fightersfly": "Set fighters on Fly mode",
