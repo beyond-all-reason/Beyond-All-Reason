@@ -69,9 +69,11 @@ local slowingPerType = { -- Whether the projectile loses velocity, as well.
 local abs  = math.abs
 local max  = math.max
 local min  = math.min
-local sqrt = math.sqrt
+local diag = math.diag
 
 local spGetFeatureHealth       = Spring.GetFeatureHealth
+local spGetFeaturePosition     = Spring.GetFeaturePosition
+local spGetFeatureRadius       = Spring.GetFeatureRadius
 local spGetGroundHeight        = Spring.GetGroundHeight
 local spGetProjectileDirection = Spring.GetProjectileDirection
 local spGetProjectilePosition  = Spring.GetProjectilePosition
@@ -81,10 +83,15 @@ local spGetUnitIsDead          = Spring.GetUnitIsDead
 local spGetUnitPosition        = Spring.GetUnitPosition
 local spGetUnitRadius          = Spring.GetUnitRadius
 local spGetWaterLevel          = Spring.GetWaterLevel
+
+local spSetFeatureHealth       = Spring.SetFeatureHealth
+local spSetProjectilePosition  = Spring.SetProjectilePosition
 local spSetProjectileVelocity  = Spring.SetProjectileVelocity
+local spSetProjectileMoveCtrl  = Spring.SetProjectileMoveControl
 
 local spAddUnitDamage          = Spring.AddUnitDamage
 local spDeleteProjectile       = Spring.DeleteProjectile
+local spDestroyFeature         = Spring.DestroyFeature
 local spValidFeatureID         = Spring.ValidFeatureID
 
 local armorDefault = Game.armorTypes.default
@@ -153,36 +160,60 @@ local function loadPenetratorWeaponDefs()
 end
 
 ---Projectiles with noexplode can move after colliding, so we infer an impact location.
----The hit can be a glance, so find the nearest point, not a line/sphere intersection.
----Slow explosion speeds can delay us until after position and direction are knowable.
+-- The hit can be a glance, so find the nearest point, not a line/sphere intersection.
+---@param px number projectile position (after impact) `xyz`
+---@param py number
+---@param pz number
+---@param dx number projectile direction `xyz`
+---@param dy number
+---@param dz number
+---@param mx number unit midpoint (after impact) `xyz`
+---@param my number
+---@param mz number
+---@param radius number unit radius
+---@return number hitX inferred impact position `xyz`
+---@return number hitY
+---@return number hitZ
+local function inferHitPosition(px, py, pz, dx, dy, dz, mx, my, mz, radius)
+	local vx, vy, vz = mx - px, my - py, mz - pz
+	local d = min(0, dx * vx + dy * vy + dz * vz)
+	local ix, iy, iz = px + d * dx, py + d * dy, pz + d * dz -- ray exiting sphere
+	local distance = diag(ix - mx, iy - my, mz - mz)
+
+	if distance <= radius then
+		d = d - (radius - distance)
+		return px + d * dx, py + d * dy, pz + d * dz -- ray entering sphere
+	else
+		local nx, ny, nz = (ix - mx) / distance, (iy - my) / distance, (iz - mz) / distance
+		return mx + nx * radius, my + ny * radius, mz + nz * radius -- ray nearest approach
+	end
+end
+
+---Reconstruct the hit location of a penetrator vs. a target model's spherical radius.
+---@param projectileID integer
+---@param targetID integer
+---@param isUnit boolean
+---@return number? hitX
+---@return number? hitY
+---@return number? hitZ
 local function getCollisionPosition(projectileID, targetID, isUnit)
 	local px, py, pz = spGetProjectilePosition(projectileID)
-	local dx, dy, dz = spGetProjectileDirection(projectileID)
-	local mx, my, mz, radius, _
-	if targetID then
+	-- Slow explosion speed might delay us until projectile/target info is lost:
+	if px then
+		local dx, dy, dz = spGetProjectileDirection(projectileID)
+		local mx, my, mz, radius, _
 		if isUnit then
 			_, _, _, mx, my, mz = spGetUnitPosition(targetID, true)
 			radius = spGetUnitRadius(targetID)
 		else
-			_, _, _, mx, my, mz = Spring.GetFeaturePosition(targetID, true)
-			radius = Spring.GetFeatureRadius(targetID)
+			_, _, _, mx, my, mz = spGetFeaturePosition(targetID, true)
+			radius = spGetFeatureRadius(targetID)
+		end
+		if mx then
+			---@diagnostic disable-next-line: param-type-mismatch -- non-nil
+			return inferHitPosition(px, py, pz, dx, dy, dz, mx, my, mz, radius)
 		end
 	end
-	if px and mx then -- Nearest point on a line/ray to the surface of a sphere:
-		local t = min(0, dx * (mx - px) + dy * (my - py) + dz * (mz - pz))
-		local d = sqrt((px + t*dx - mx)^2 + (py + t*dy - my)^2 + (pz + t*dz - mz)^2) - radius
-		if radius + d ~= 0 then
-			local radiusNorm = radius / (radius + d)
-			px = mx + (px + t*dx - mx) * radiusNorm
-			py = my + (py + t*dy - my) * radiusNorm
-			pz = mz + (pz + t*dz - mz) * radiusNorm
-		else -- The ray passes through the midpoint.
-			px = mx - dx * radius
-			py = my - dy * radius
-			pz = mz - dz * radius
-		end
-	end
-	return px, py, pz
 end
 
 local function addPenetratorProjectile(projectileID, ownerID, params)
@@ -227,7 +258,7 @@ do
 		return a.distanceSquared < b.distanceSquared
 	end
 
-	sortPenetratorCollisions = function (collisions, projectileID, penetrator)
+	sortPenetratorCollisions = function(collisions, projectileID, penetrator)
 		for index = 1, #collisions do
 			local collision = collisions[index]
 			local distanceSquared, cx, cy, cz
@@ -236,6 +267,7 @@ do
 					cx, cy, cz = collision.hitX, collision.hitY, collision.hitZ
 				else
 					cx, cy, cz = getCollisionPosition(projectileID, collision.targetID, collision.isUnit)
+					collision.hitX, collision.hitY, collision.hitZ = cx, cy, cz
 				end
 			end
 			if cx then
@@ -248,6 +280,26 @@ do
 		end
 		table.sort(collisions, sortByDistanceSquared)
 	end
+end
+
+---Due to our time-travel shenanigans, move the projectile backwards (remove its momentum?)
+-- and delete it only after that. This may help to correct projectile visuals. Not sure.
+local function exhaust(projectileID, collision)
+	local cx, cy, cz
+	if not collision.hitX then
+		if collision.targetID then
+			cx, cy, cz = getCollisionPosition(projectileID, collision.targetID, collision.isUnit)
+		end
+	else
+		cx, cy, cz = collision.hitX, collision.hitY, collision.hitZ
+	end
+	if cx then
+		spSetProjectileMoveCtrl(projectileID, true)
+		spSetProjectilePosition(projectileID, cx, cy, cz)
+		spSetProjectileVelocity(projectileID, 0, 0, 0) -- Messes up smoke trails.
+	end
+	projectiles[projectileID] = nil
+	spDeleteProjectile(projectileID)
 end
 
 ---Generic damage against shields using the default engine shields.
@@ -292,7 +344,7 @@ function gadget:Initialize()
 	end
 end
 
-function gadget:GameFrame(gameFrame)
+function gadget:GameFramePost(gameFrame)
 	-- Remove `or addShieldDamage` when shieldsrework is adopted.
 	local addShieldDamage = GG.AddShieldDamage or addShieldDamage
 	local setVelocityControl = GG.SetVelocityControl
@@ -301,20 +353,19 @@ function gadget:GameFrame(gameFrame)
 		projectileHits[projectileID] = nil
 
 		local collisions = penetrator.collisions
-
 		if #collisions > 1 then
 			sortPenetratorCollisions(collisions, projectileID, penetrator)
 		end
 
-		local exhausted = false
+		local collision
 		local speedRatio = 1
 
 		for index = 1, #collisions do
-			local collision = collisions[index]
+			collision = collisions[1]
 			local targetID = collision.targetID
 
 			if not targetID then
-				exhausted = true
+				speedRatio = 0
 			elseif collision.shieldID then
 				if spGetUnitIsDead(targetID) == false then
 					local weapon = penetrator.params
@@ -323,7 +374,7 @@ function gadget:GameFrame(gameFrame)
 					local deleted, damage = addShieldDamage(targetID, collision.shieldID, damageToShields * damageLeftBefore, weapon.weaponID, projectileID)
 					local damageLeftAfter = damageLeftBefore - damage / damageToShields - weapon.penalty
 					if deleted or damageToShields * damageLeftAfter < 1 then
-						exhausted = true
+						speedRatio = 0
 					elseif weapon.falloff then
 						if weapon.slowing then
 							speedRatio = speedRatio * (1 + inertiaModifier * damageLeftAfter) / (1 + inertiaModifier * damageLeftBefore)
@@ -359,7 +410,7 @@ function gadget:GameFrame(gameFrame)
 						end
 					else
 						impulse = impulse * (1 + inertiaModifier) / (1 + inertiaModifier * damageLeftBefore)
-						exhausted = true
+						speedRatio = 0
 					end
 
 					if collision.isUnit then
@@ -379,22 +430,21 @@ function gadget:GameFrame(gameFrame)
 						-- so apply damage only with no impulse. They also must be destroyed manually:
 						local health = collision.health - damage
 						if health > 1 then
-							Spring.SetFeatureHealth(targetID, health)
+							spSetFeatureHealth(targetID, health)
 						else
-							Spring.DestroyFeature(targetID)
+							spDestroyFeature(targetID)
 						end
 					end
 				end
 			end
 
-			if exhausted then
+			if speedRatio == 0 then
 				break
 			end
 		end
 
-		if exhausted then
-			projectiles[projectileID] = nil
-			spDeleteProjectile(projectileID)
+		if speedRatio == 0 then
+			exhaust(projectileID, collision)
 		else
 			penetrator.collisions = {}
 			if speedRatio < 1 then
