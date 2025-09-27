@@ -12,7 +12,7 @@ function widget:GetInfo()
         date = "2025",
         license = "GNU GPL, v2 or later",
         layer = -1000000,
-        enabled = true,
+        enabled = false,
     }
 end
 
@@ -65,10 +65,6 @@ local init_model = {
 
 -- Widget lifecycle functions
 function widget:Initialize()
-    if widget.GetInfo().enabled == false then
-        Spring.Echo(WIDGET_ID .. ": Widget is disabled by default. Enable it in the widget settings to use.")
-        return false
-    end
     -- Initialize the widget
     Spring.Echo(WIDGET_ID .. ": Initializing widget...")
     
