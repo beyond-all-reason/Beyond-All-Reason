@@ -2461,18 +2461,35 @@ function widget:MousePress(x, y, button)
 								pickBlueprint(unitDefID)
 							end
 						elseif builderIsFactory and spGetCmdDescIndex(-unitDefID) then
-							if not (WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt) then
+							local function decreaseQuota()
+								local amount = modKeyMultiplier.click.right
+								if ctrl then amount = amount * modKeyMultiplier.click.ctrl end
+								if shift then amount = amount * modKeyMultiplier.click.shift end
+								updateQuotaNumber(unitDefID, amount)
+							end
+
+							local function decreaseQueue()
 								Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
 								setActiveCommand(spGetCmdDescIndex(-unitDefID), 3, false, true)
+							end
+
+							local isQuotaMode = WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt
+							local queueCount = tonumber(cellRect.opts.queuenr or 0)
+							local quotas = WG.Quotas and WG.Quotas.getQuotas()
+							local currentQuota = (quotas and quotas[activeBuilderID] and quotas[activeBuilderID][unitDefID]) or 0
+
+							if isQuotaMode then
+								if currentQuota > 0 then
+									decreaseQuota()
+								else
+									decreaseQueue()
+								end
 							else
-								local amount = modKeyMultiplier.click.right
-								if ctrl then
-									amount = amount * modKeyMultiplier.click.ctrl
+								if queueCount > 0 then
+									decreaseQueue()
+								else
+									decreaseQuota()
 								end
-								if shift then
-									amount = amount * modKeyMultiplier.click.shift
-								end
-								updateQuotaNumber(unitDefID, amount)
 							end
 						end
 
