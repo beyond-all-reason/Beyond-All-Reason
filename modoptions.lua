@@ -633,11 +633,11 @@ local options = {
     {
         key		= "raptor_queen_count",
         name	= "Raptor Queen Count",
-        desc	= "(Range: 1 - 20). Number of queens that will spawn.",
+        desc	= "(Range: 1 - 100). Number of queens that will spawn.",
         type	= "number",
         def		= 1,
         min		= 1,
-        max		= 20,
+        max		= 100,
         step	= 1,
         section	= "raptor_defense_options",
     },
@@ -1380,16 +1380,26 @@ local options = {
     },
 
     -- Hidden Tests
-
-	{
-        key   	= "splittiers",
-        name   	= "Split T2",
-        desc   	= "Splits T2 into two tiers moving experimental to T4.",
-        type   	= "bool",
+	
+    {
+        key     = "techsplit",
+        name    = "Tech Split",
+        desc    = "Adds a new tier between T1 and T2 for bots and vehicles",
+        type    = "bool",
+        hidden  = true,
         section = "options_experimental",
-        def  	= false,
-        hidden 	= true,
-	},
+        def     = false,
+    },
+
+    {
+        key     = "techsplit_balance",
+        name    = "Tech Split Balance Test",
+        desc    = "Adjusts the balance of units in the proposed tech split.",
+        type    = "bool",
+        hidden  = true,
+        section = "options_experimental",
+        def     = false,
+    },
 
     {
         key    	= "shieldsrework",
@@ -1400,7 +1410,7 @@ local options = {
         section = "options_experimental",
         def  	= false,
     },
-
+    
     {
         key 	= "lategame_rebalance",
         name 	= "Lategame Rebalance",
@@ -1465,9 +1475,9 @@ local options = {
     {
         key 	= "proposed_unit_reworks",
         name 	= "Proposed Unit Reworks",
-        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.",
+        desc 	= "Modoption used to test balance changes that are being considered for the base game.",
         type 	= "bool",
-        hidden 	= true,
+        --hidden 	= true,
         section = "options_experimental",
         def 	= false,
     },

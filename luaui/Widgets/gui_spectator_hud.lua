@@ -1304,8 +1304,16 @@ local function updateTextTextures()
 	updateStatsTexture()
 end
 
-local function createMetricDisplayLists()
+local function deleteMetricDisplayLists()
+	for _,metricDisplayList in ipairs(metricDisplayLists) do
+		gl.DeleteList(metricDisplayList)
+	end
 	metricDisplayLists = {}
+	displayListsChanged = true
+end
+
+local function createMetricDisplayLists()
+	deleteMetricDisplayLists()
 
 	local left = widgetDimensions.left
 	local right = widgetDimensions.right
@@ -1325,12 +1333,7 @@ local function createMetricDisplayLists()
 		end)
 		table.insert(metricDisplayLists, newDisplayList)
 	end
-end
-
-local function deleteMetricDisplayLists()
-	for _,metricDisplayList in ipairs(metricDisplayLists) do
-		gl.DeleteList(metricDisplayList)
-	end
+	displayListsChanged = true
 end
 
 local function createKnobVertices(vertexMatrix, left, bottom, right, top, cornerRadius, cornerTriangleAmount)
@@ -1934,6 +1937,14 @@ function widget:Shutdown()
 	if shader then
 		shader:Finalize()
 	end
+	if guishaderDlist then
+		if WG['guishader'] then
+			WG['guishader'].DeleteDlist('spechud')
+		else
+			gl.DeleteList(guishaderDlist)
+		end
+		guishaderDlist = nil
+	end
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -2075,7 +2086,7 @@ function widget:Update(dt)
 end
 
 function widget:DrawGenesis()
-	if (not widgetEnabled) or (not haveFullView) then
+	if not widgetEnabled or not haveFullView then
 		return
 	end
 
@@ -2086,8 +2097,27 @@ function widget:DrawGenesis()
 end
 
 function widget:DrawScreen()
-	if (not widgetEnabled) or (not haveFullView) then
+
+	if not widgetEnabled or not haveFullView then
+		if WG['guishader'] and guishaderDlist then
+			WG['guishader'].DeleteDlist('spechud')
+			guishaderDlist = nil
+		end
 		return
+	end
+
+	if WG['guishader'] and (displayListsChanged or not guishaderDlist) then
+		if guishaderDlist then
+			gl.DeleteList(guishaderDlist)
+			guishaderDlist = nil
+		end
+		guishaderDlist = gl.CreateList(function ()
+			for _, metricDisplayList in ipairs(metricDisplayLists) do
+				gl.CallList(metricDisplayList)
+			end
+		end)
+		WG['guishader'].InsertDlist(guishaderDlist, 'spechud')
+		displayListsChanged = nil
 	end
 
 	for _, metricDisplayList in ipairs(metricDisplayLists) do

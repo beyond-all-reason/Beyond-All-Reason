@@ -60,6 +60,7 @@ local convertedUnitsNames = {
 	['armcrus'] = 5,
 	['corsala'] = 6,
 	['corsiegebreaker'] = 5,
+	['legerailtank'] = 9,
 
 	-- the following units get a faster reaimtime to counteract their turret acceleration
 	['armthor'] = 4,
@@ -130,6 +131,7 @@ local convertedUnitsNames = {
 	['legaskirmtank'] = 5,
 	['legaheattank'] = 3,
 	['legeheatraymech'] = 1,
+	['legeheatraymech_old'] = 1,
 	['legbunk'] = 3,
 	['legrwall'] = 4,
 	['legjav'] = 1,

@@ -274,7 +274,10 @@ function widget:Shutdown()
 	glDeleteList(textDisplayList)
 	glDeleteList(backgroundDisplayList)
 	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('teamstats_window')
+		WG['guishader'].RemoveDlist('teamstats_window')
+	end
+	if backgroundGuishader ~= nil then
+		glDeleteList(backgroundGuishader)
 	end
 end
 
@@ -558,7 +561,7 @@ end
 function widget:DrawScreen()
 	if not guiData.mainPanel.visible then
 		if WG['guishader'] then
-			WG['guishader'].DeleteDlist('teamstats_window')
+			WG['guishader'].RemoveDlist('teamstats_window')
 		end
 		return
 	end

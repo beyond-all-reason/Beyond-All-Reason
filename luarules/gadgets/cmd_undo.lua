@@ -9,8 +9,12 @@ function gadget:GetInfo()
 		date	= 'June 2017',
 		license	= 'GNU GPL, v2 or later',
 		layer	= 1,
-		enabled	= false
+		enabled	= true
 	}
+end
+
+if #Spring.GetTeamList()-1 <= 64 then
+	return
 end
 
 -- usage: /luarules undo #teamid #maxSecondsAgo (#receivingteamid)
@@ -206,7 +210,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 		if safeguardedUnits[unitDefID] and attackerTeam and Spring.AreTeamsAllied(unitTeam, attackerTeam) then
 			if dgunDef[weaponID] or weaponUnitSelfd[weaponID] or not Spring.GetUnitNearestEnemy(unitID, 1000) then
-				local _, playerID, _, victimIsAi = Spring.GetTeamInfo(attackerTeam, false)
+				local _, playerID, _, victimIsAi = Spring.GetTeamInfo(unitTeam, false)
 				local name = Spring.GetPlayerInfo(playerID,false)
 				if victimIsAi and Spring.GetGameRulesParam('ainame_' .. unitTeam) then
 					name = Spring.GetGameRulesParam('ainame_' .. unitTeam)..' (AI)'

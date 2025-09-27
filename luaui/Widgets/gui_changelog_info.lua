@@ -320,7 +320,7 @@ function widget:DrawScreen()
 			end
 		end
 	elseif dlistcreated and WG['guishader'] then
-		WG['guishader'].DeleteDlist('changelog')
+		WG['guishader'].RemoveDlist('changelog')
 		dlistcreated = nil
 	end
 end
@@ -470,7 +470,10 @@ function widget:Shutdown()
 		changelogList = nil
 	end
 	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('changelog')
+		WG['guishader'].RemoveDlist('changelog')
+	end
+	if backgroundGuishader ~= nil then
+		glDeleteList(backgroundGuishader)
 	end
 end
 
