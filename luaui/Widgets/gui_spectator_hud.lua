@@ -204,6 +204,7 @@ local settings = {
 	-- this table is used only when widgetConfig is set to custom
 	metricsEnabled = {},
 	oneTimeEcostatsEnableDone = false,
+	isCommanderArmy = true,
 }
 
 local metricKeys = {
@@ -269,6 +270,7 @@ end
 
 local function buildUnitDefs()
 	local function isCommander(unitDefID, unitDef)
+		--Spring.Echo('hue', unitDef.customParams.iscommander) ty badosu
 		return unitDef.customParams.iscommander
 	end
 
@@ -285,8 +287,13 @@ local function buildUnitDefs()
 	end
 
 	local function isArmyUnit(unitDefID, unitDef)
-		-- anything with a least one weapon and speed above zero is considered an army unit
-		return unitDef.weapons and (#unitDef.weapons > 0) and unitDef.speed and (unitDef.speed > 0)
+		--Spring.Echo("Spectator HUD", settings)
+		--Spring.Log("Spectator HUD", LOG.WARNING, (isCommander(unitDefID, unitDef))) 
+		-- anything with a least one weapon and speed above zero is considered an army unit	
+		-- if isCommanderArmy is false, we ignore commander units for determining army
+		if (settings.isCommanderArmy == true) then return unitDef.weapons and (#unitDef.weapons > 0) and unitDef.speed and (unitDef.speed > 0)
+		else return (not isCommander(unitDefID, unitDef)) and unitDef.weapons and (#unitDef.weapons > 0) and unitDef.speed and (unitDef.speed > 0)
+		end
 	end
 
 	local function isDefenseUnit(unitDefID, unitDef)
@@ -341,6 +348,10 @@ local function buildUnitDefs()
 	end
 end
 
+local function deleteUnitDefs()
+	unitDefsToTrack = {}
+end
+
 local function addToUnitCache(teamID, unitID, unitDefID)
 	local function addToUnitCacheInternal(cache, teamID, unitID, value)
 		if unitCache[teamID][cache] then
@@ -385,6 +396,10 @@ local function addToUnitCache(teamID, unitID, unitDefID)
 		addToUnitCacheInternal("economyBuildings", teamID, unitID,
 					   unitDefsToTrack.economyBuildingDefs[unitDefID])
 	end
+end
+
+local function deleteUnitCache()
+	unitCache = {}
 end
 
 local function removeFromUnitCache(teamID, unitID, unitDefID)
@@ -684,6 +699,8 @@ local function buildMetricsEnabled()
 			end
 		elseif settings.widgetConfig >= metric.configLevel then
 			addMetric = true
+		elseif settings.isCommanderArmy then
+			addMetric = false
 		end
 
 		if addMetric then
@@ -1864,6 +1881,8 @@ local function init()
 end
 
 local function deInit()
+	deleteUnitDefs()
+	deleteUnitCache()
 	deleteMetricDisplayLists()
 	deleteKnobVAO()
 	deleteTextures()
@@ -1893,6 +1912,15 @@ function widget:Initialize()
 	end
 	WG["spectator_hud"].setWidgetSize = function(value)
 		settings.widgetScale = value
+		reInit()
+	end
+
+	WG["spectator_hud"].getIsCommanderArmy = function()
+		return settings.isCommanderArmy
+	end
+
+	WG["spectator_hud"].setIsCommanderArmy = function(value)
+		settings.isCommanderArmy = value
 		reInit()
 	end
 
@@ -2143,6 +2171,8 @@ function widget:GetConfigData()
 		result.metricsEnabled[metric] = settings.metricsEnabled[metric]
 	end
 
+	result.isCommanderArmy = settings.isCommanderArmy
+
 	return result
 end
 
@@ -2152,6 +2182,9 @@ function widget:SetConfigData(data)
 	end
 	if data.widgetConfig then
 		settings.widgetConfig = data.widgetConfig
+	end
+	if data.isCommanderArmy then
+		settings.isCommanderArmy = data.isCommanderArmy
 	end
 	if data.oneTimeEcostatsEnableDone then
 		settings.oneTimeEcostatsEnableDone = data.oneTimeEcostatsEnableDone
