@@ -1151,6 +1151,7 @@ local function techsplitTweaks(name, uDef)
 		uDef.weapondefs.arm_artillery.hightrajectory = 1
 		uDef.weapondefs.arm_artillery.range = 1050
 		uDef.weapondefs.arm_artillery.reloadtime = 3.05
+        uDef.weapondefs.arm_artillery.weaponvelocity = 500
 		uDef.weapondefs.arm_artillery.damage = {
 			default = 488,
 			subs = 163,
