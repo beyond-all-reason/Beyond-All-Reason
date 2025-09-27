@@ -40,6 +40,7 @@ local spI18N = Spring.I18N
 
 local MODEL_NAME = "quick_start_model"
 local RML_PATH = "luaui/RmlWidgets/gui_quick_start/gui_quick_start.rml"
+local QUICK_START_CONDITION_KEY = "quickStartUnallocatedBudget"
 
 local ENERGY_VALUE_CONVERSION_DIVISOR = 10
 local MAX_QUEUE_HASH_ITEMS = 50
@@ -274,11 +275,19 @@ local function updateDataModel(force)
 	widgetState.lastBudgetRemaining = currentBudgetRemaining
 	
 	local hasUnallocatedBudget = currentBudgetRemaining > 0
-	if WG['pregameui'] and WG['pregameui'].setReadyBlocked then
-		WG['pregameui'].setReadyBlocked(hasUnallocatedBudget, hasUnallocatedBudget and "ui.quickStart.unallocatedBudget" or nil)
+	if WG['pregameui'] and WG['pregameui'].addReadyCondition and WG['pregameui'].removeReadyCondition then
+		if hasUnallocatedBudget then
+			WG['pregameui'].addReadyCondition(QUICK_START_CONDITION_KEY, "ui.quickStart.unallocatedBudget")
+		else
+			WG['pregameui'].removeReadyCondition(QUICK_START_CONDITION_KEY)
+		end
 	end
-	if WG['pregameui_draft'] and WG['pregameui_draft'].setReadyBlocked then
-		WG['pregameui_draft'].setReadyBlocked(hasUnallocatedBudget, hasUnallocatedBudget and "ui.quickStart.unallocatedBudget" or nil)
+	if WG['pregameui_draft'] and WG['pregameui_draft'].addReadyCondition and WG['pregameui_draft'].removeReadyCondition then
+		if hasUnallocatedBudget then
+			WG['pregameui_draft'].addReadyCondition(QUICK_START_CONDITION_KEY, "ui.quickStart.unallocatedBudget")
+		else
+			WG['pregameui_draft'].removeReadyCondition(QUICK_START_CONDITION_KEY)
+		end
 	end
 	
 	for key, value in pairs(modelUpdate) do
@@ -437,11 +446,11 @@ function widget:Shutdown()
 	WG["buildMenuCostOverride"] = nil
 	WG["buildMenuCostOverrideColors"] = nil
 	
-	if WG['pregameui'] and WG['pregameui'].setReadyBlocked then
-		WG['pregameui'].setReadyBlocked(false)
+	if WG['pregameui'] and WG['pregameui'].removeReadyCondition then
+		WG['pregameui'].removeReadyCondition(QUICK_START_CONDITION_KEY)
 	end
-	if WG['pregameui_draft'] and WG['pregameui_draft'].setReadyBlocked then
-		WG['pregameui_draft'].setReadyBlocked(false)
+	if WG['pregameui_draft'] and WG['pregameui_draft'].removeReadyCondition then
+		WG['pregameui_draft'].removeReadyCondition(QUICK_START_CONDITION_KEY)
 	end
 
 	if WG['buildmenu'] and WG['buildmenu'].forceRefresh then

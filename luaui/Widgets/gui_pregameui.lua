@@ -57,7 +57,25 @@ local buttonDrawn = false
 local lockText = ''
 local locked = false
 local isReadyBlocked = false
-local readyBlockedReasons = {}
+local readyBlockedConditions = {}
+local cachedTooltipText = ""
+
+local function updateReadyTooltip()
+	if not next(readyBlockedConditions) then
+		isReadyBlocked = false
+		cachedTooltipText = ""
+		for conditionKey, description in pairs(readyBlockedConditions) do
+			if description ~= nil then
+				if cachedTooltipText ~= "" then
+					cachedTooltipText = cachedTooltipText .. "\n"
+				end
+				cachedTooltipText = cachedTooltipText .. Spring.I18N(description)
+			end
+		end
+	else
+		cachedTooltipText = ""
+	end
+end
 
 local UiElement, UiButton, elementPadding, uiPadding
 
@@ -305,15 +323,25 @@ function widget:Initialize()
 	checkStartPointChosen()
 	
 	WG['pregameui'] = {}
-	WG['pregameui'].setReadyBlocked = function(blocked, reason)
-		if blocked and reason then
-			readyBlockedReasons[reason] = true
-		elseif not blocked and reason then
-			readyBlockedReasons[reason] = nil
-		elseif not blocked then
-			readyBlockedReasons = {}
+	WG['pregameui'].addReadyCondition = function(conditionKey, description)
+		if conditionKey and description then
+			readyBlockedConditions[conditionKey] = description
+			isReadyBlocked = true
+			updateReadyTooltip()
+			createButton()
 		end
-		isReadyBlocked = next(readyBlockedReasons) ~= nil
+	end
+	WG['pregameui'].removeReadyCondition = function(conditionKey)
+		if conditionKey and readyBlockedConditions[conditionKey] then
+			readyBlockedConditions[conditionKey] = nil
+			updateReadyTooltip()
+			createButton()
+		end
+	end
+	WG['pregameui'].clearAllReadyConditions = function()
+		readyBlockedConditions = {}
+		isReadyBlocked = false
+		updateReadyTooltip()
 		createButton()
 	end
 end
@@ -394,14 +422,7 @@ function widget:DrawScreen()
 			colorString = "\255\210\210\210"
 			
 			if isReadyBlocked and WG['tooltip'] then
-				local tooltipText = ""
-				for reason, _ in pairs(readyBlockedReasons) do
-					if tooltipText ~= "" then
-						tooltipText = tooltipText .. "\n"
-					end
-					tooltipText = tooltipText .. Spring.I18N(reason)
-				end
-				WG['tooltip'].ShowTooltip('pregameui', tooltipText)
+				WG['tooltip'].ShowTooltip('pregameui', cachedTooltipText)
 			end
 		else
 			gl.CallList(buttonList)

@@ -63,7 +63,34 @@ local locked = false
 local showLockButton = true
 local buttonDrawn = false
 local isReadyBlocked = false
-local readyBlockedReasons = {}
+local readyBlockedConditions = {}
+local cachedTooltipText = ""
+
+local function hasActiveConditions()
+	for k, v in pairs(readyBlockedConditions) do
+		if v ~= nil then
+			return true
+		end
+	end
+	return false
+end
+
+local function updateTooltip()
+	isReadyBlocked = hasActiveConditions()
+	if isReadyBlocked then
+		cachedTooltipText = ""
+		for conditionKey, description in pairs(readyBlockedConditions) do
+			if description ~= nil then
+				if cachedTooltipText ~= "" then
+					cachedTooltipText = cachedTooltipText .. "\n"
+				end
+				cachedTooltipText = cachedTooltipText .. Spring.I18N(description)
+			end
+		end
+	else
+		cachedTooltipText = ""
+	end
+end
 
 local RectRound, UiElement, UiButton, elementPadding, uiPadding
 
@@ -614,14 +641,7 @@ local function drawButton()
 			colorString = "\255\210\210\210"
 			
 			if isReadyBlocked and WG['tooltip'] then
-				local tooltipText = ""
-				for reason, _ in pairs(readyBlockedReasons) do
-					if tooltipText ~= "" then
-						tooltipText = tooltipText .. "\n"
-					end
-					tooltipText = tooltipText .. Spring.I18N(reason)
-				end
-				WG['tooltip'].ShowTooltip('pregameui', tooltipText)
+				WG['tooltip'].ShowTooltip('pregameui', cachedTooltipText)
 			end
 		else
 			glCallList(buttonList)
@@ -889,15 +909,21 @@ function widget:Initialize()
 	end
 	
 	WG['pregameui_draft'] = {}
-	WG['pregameui_draft'].setReadyBlocked = function(blocked, reason)
-		if blocked and reason then
-			readyBlockedReasons[reason] = true
-		elseif not blocked and reason then
-			readyBlockedReasons[reason] = nil
-		elseif not blocked then
-			readyBlockedReasons = {}
+	WG['pregameui_draft'].addReadyCondition = function(conditionKey, description)
+		if conditionKey and description then
+			readyBlockedConditions[conditionKey] = description
+			updateTooltip()
 		end
-		isReadyBlocked = next(readyBlockedReasons) ~= nil
+	end
+	WG['pregameui_draft'].removeReadyCondition = function(conditionKey)
+		if conditionKey and readyBlockedConditions[conditionKey] then
+			readyBlockedConditions[conditionKey] = nil
+			updateTooltip()
+		end
+	end
+	WG['pregameui_draft'].clearAllReadyConditions = function()
+		readyBlockedConditions = {}
+		updateTooltip()
 	end
 end
 
