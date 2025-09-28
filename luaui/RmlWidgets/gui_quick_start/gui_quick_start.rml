@@ -19,6 +19,7 @@
                     <div id="qs-budget-bar" class="qs-budget-bar">
                         <div id="qs-budget-fill" class="qs-budget-fill"></div>
                         <div id="qs-budget-projected" class="qs-budget-projected"></div>
+                        <div id="qs-projected-budget-text" class="qs-projected-budget-text">{{projectedBudgetText}}</div>
                     </div>
                 </div>
             </div>

@@ -143,7 +143,7 @@
 	margin-bottom: 8px;
 	background-color: rgba(0, 0, 0, 230);
 	border-radius: 6px;
-	overflow: hidden;
+	overflow: visible;
 	z-index: 2;
 }
 
@@ -163,6 +163,22 @@
 	background-color: #a300c4;
 	decorator: vertical-gradient( #a300c4 #290031);
 	z-index: 2;
+}
+
+.qs-projected-budget-text {
+	position: absolute;
+	top: 30%;
+	left: 0%;
+	font-size: 16px;
+	font-weight: bold;
+	color: rgb(255, 0, 0);
+	font-effect: outline(1px black);
+	text-align: center;
+	transform: translateY(-50%) translateX(-50%);
+	z-index: 10;
+	pointer-events: none;
+	opacity: 0;
+	white-space: nowrap;
 }
 
 .qs-warning-text {
