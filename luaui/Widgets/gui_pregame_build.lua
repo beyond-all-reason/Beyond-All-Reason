@@ -17,14 +17,6 @@ end
 
 local spTestBuildOrder = Spring.TestBuildOrder
 
-local ALPHA_SPAWNED = 1.0
-local ALPHA_DEFAULT = 0.5
-
-local BORDER_COLOR_SPAWNED = { 1.0, 0.0, 1.0, 0.7 }
-local BORDER_COLOR_NORMAL = { 0.3, 1.0, 0.3, 0.5 }
-local BORDER_COLOR_CLASH = { 0.7, 0.3, 0.3, 1.0 }
-local BORDER_COLOR_INVALID = { 1.0, 0.0, 0.0, 1.0 }
-
 local buildQueue = {}
 local selBuildQueueDefID
 local facingMap = { south = 0, east = 1, north = 2, west = 3 }
@@ -452,9 +444,17 @@ function widget:DrawWorld()
 	end
 
 	-- draw pregame build queue
+	local ALPHA_SPAWNED = 1.0
+	local ALPHA_DEFAULT = 0.5
+
+	local BORDER_COLOR_SPAWNED = { 1.0, 0.0, 1.0, 0.7 }
+	local BORDER_COLOR_NORMAL = { 0.3, 1.0, 0.3, 0.5 }
+	local BORDER_COLOR_CLASH = { 0.7, 0.3, 0.3, 1.0 }
+	local BORDER_COLOR_INVALID = { 1.0, 0.0, 0.0, 1.0 }
+	local BORDER_COLOR_VALID = { 0.0, 1.0, 0.0, 1.0 }
+
 	local buildDistanceColor = { 0.3, 1.0, 0.3, 0.6 }
 	local buildLinesColor = { 0.3, 1.0, 0.3, 0.6 }
-	local borderValidColor = { 0.0, 1.0, 0.0, 1.0 }
 
 	gl.LineWidth(1.49)
 
@@ -578,17 +578,17 @@ function widget:DrawWorld()
 			selBuildData[5]
 		) ~= 0
 		if not isMex then
-			local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or borderValidColor) or BORDER_COLOR_INVALID
+			local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID) or BORDER_COLOR_INVALID
 			DrawBuilding(selBuildData, color, true, selectedAlpha)
 		elseif isMex then
 			if WG.ExtractorSnap.position or metalMap then
-				local color = isSelectedSpawned and BORDER_COLOR_SPAWNED or borderValidColor
+				local color = isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID
 				DrawBuilding(selBuildData, color, true, selectedAlpha)
 			else
 				DrawBuilding(selBuildData, BORDER_COLOR_INVALID, true, selectedAlpha)
 			end
 		else
-			local color = isSelectedSpawned and BORDER_COLOR_SPAWNED or borderValidColor
+			local color = isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID
 			DrawBuilding(selBuildData, color, true, selectedAlpha)
 		end
 	end
