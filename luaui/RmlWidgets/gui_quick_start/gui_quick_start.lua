@@ -212,19 +212,20 @@ local function computeProjectedUsage()
 		local uDef = UnitDefs[pregameUnitSelected]
 		local mx, my = Spring.GetMouseState()
 		
-		if mx ~= widgetState.lastMousePos[1] or my ~= widgetState.lastMousePos[2] then
+		local mouseMoved = mx ~= widgetState.lastMousePos[1] or my ~= widgetState.lastMousePos[2]
+		if mouseMoved then
 			widgetState.lastMousePos[1] = mx
 			widgetState.lastMousePos[2] = my
-			
-			local _, pos = Spring.TraceScreenRay(mx, my, true, false, false,
-				uDef.modCategories and uDef.modCategories.underwater)
-			if pos then
-				local buildFacing = Spring.GetBuildFacing()
-				local bx, by, bz = Spring.Pos2BuildPos(pregameUnitSelected, pos[1], pos[2], pos[3], buildFacing)
+		end
+		
+		local _, pos = Spring.TraceScreenRay(mx, my, true, false, false,
+			uDef.modCategories and uDef.modCategories.underwater)
+		if pos then
+			local buildFacing = Spring.GetBuildFacing()
+			local bx, by, bz = Spring.Pos2BuildPos(pregameUnitSelected, pos[1], pos[2], pos[3], buildFacing)
 
-				if isWithinBuildRange(commanderX, commanderZ, bx, bz, gameRules.instantBuildRange) then
-					budgetProjected = calculateBudgetForItem(pregameUnitSelected, gameRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
-				end
+			if isWithinBuildRange(commanderX, commanderZ, bx, bz, gameRules.instantBuildRange) then
+				budgetProjected = calculateBudgetForItem(pregameUnitSelected, gameRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
 			end
 		end
 	end
