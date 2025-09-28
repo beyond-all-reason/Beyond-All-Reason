@@ -17,14 +17,8 @@
                     <div id="qs-deduction-amount-4" class="qs-deduction-amount-4">{{deductionAmount4}}</div>
                     <div id="qs-deduction-amount-5" class="qs-deduction-amount-5">{{deductionAmount5}}</div>
                     <div id="qs-budget-bar" class="qs-budget-bar">
-                        <div id="qs-budget-track" class="qs-budget-track"></div>
                         <div id="qs-budget-fill" class="qs-budget-fill"></div>
                         <div id="qs-budget-projected" class="qs-budget-projected"></div>
-                        <div class="qs-budget-text">
-                            <span id="qs-budget-remaining">0</span>
-                            <span> / </span>
-                            <span id="qs-budget-total">0</span>
-                        </div>
                     </div>
                 </div>
             </div>

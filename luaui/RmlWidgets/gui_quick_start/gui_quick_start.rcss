@@ -14,10 +14,6 @@
 	align-items: center;
 }
 
-.hidden {
-	display: none;
-}
-
 .qs-budget-overlay {
 	position: absolute;
 	left: 0px;
@@ -151,14 +147,6 @@
 	z-index: 2;
 }
 
-.qs-budget-track {
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	background-color: ( #290031 );
-	z-index: 0;
-}
-
 .qs-budget-fill {
 	position: absolute;
 	height: 100%;
@@ -175,10 +163,6 @@
 	background-color: #a300c4;
 	decorator: vertical-gradient( #a300c4 #290031);
 	z-index: 2;
-}
-
-.qs-budget-text {
-	display: none;
 }
 
 .qs-warning-text {

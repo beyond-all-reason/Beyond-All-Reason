@@ -44,11 +44,8 @@ local QUICK_START_CONDITION_KEY = "quickStartUnallocatedBudget"
 
 local ENERGY_VALUE_CONVERSION_DIVISOR = 10
 local DEFAULT_INSTANT_BUILD_RANGE = 600
-local ALPHA_AFFORDABLE = 1.0
-local ALPHA_UNAFFORDABLE = 0.5
 
 local cachedGameRules = {}
-local cachedTeamRules = {}
 local lastRulesUpdate = 0
 local RULES_CACHE_DURATION = 0.1
 
@@ -63,8 +60,6 @@ local widgetState = {
 	lastUpdate = 0,
 	updateInterval = 0.15,
 	lastQueueLength = 0,
-	isDocumentVisible = true,
-	hiddenByLobby = false,
 	budgetBarElements = {
 		fillElement = nil,
 		projectedElement = nil,
@@ -82,8 +77,6 @@ local initialModel = {
 	budgetPercent = 0,
 	budgetProjected = 0,
 	budgetProjectedPercent = 0,
-	showBar = false,
-	factoryDiscountUsed = false,
 	deductionAmount1 = "", --we have multiple to allow multiple deduction animations to play simultaneously.
 	deductionAmount2 = "",
 	deductionAmount3 = "",
@@ -116,10 +109,9 @@ local function getCachedGameRules(myTeamID)
 		cachedGameRules.budgetTotal = spGetGameRulesParam("quickStartBudgetBase") or 0
 		cachedGameRules.factoryDiscountAmount = spGetGameRulesParam("quickStartFactoryDiscountAmount") or 0
 		cachedGameRules.instantBuildRange = spGetGameRulesParam("overridePregameBuildDistance") or DEFAULT_INSTANT_BUILD_RANGE
-		cachedTeamRules.factoryDiscountUsed = spGetTeamRulesParam(myTeamID, "quickStartFactoryDiscountUsed") or 0
 		lastRulesUpdate = currentTime
 	end
-	return cachedGameRules, cachedTeamRules
+	return cachedGameRules
 end
 
 local function updateUIElementText(document, elementId, text)
@@ -176,7 +168,7 @@ local function createBudgetBarElements()
 	end
 end
 
-local function calculateBudgetForItem(unitDefID, gameRules, teamRules, shouldApplyDiscount, isFirstFactory)
+local function calculateBudgetForItem(unitDefID, gameRules, shouldApplyDiscount, isFirstFactory)
 	if not unitDefID or unitDefID <= 0 or not UnitDefs[unitDefID] then
 		return 0
 	end
@@ -190,7 +182,7 @@ end
 
 local function computeProjectedUsage()
 	local myTeamID = spGetMyTeamID() or 0
-	local gameRules, teamRules = getCachedGameRules(myTeamID)
+	local gameRules = getCachedGameRules(myTeamID)
 	local pregame = WG and WG["pregame-build"] and WG["pregame-build"].getBuildQueue and
 		WG["pregame-build"].getBuildQueue() or {}
 	local pregameUnitSelected = WG["pregame-unit-selected"] or -1
@@ -206,7 +198,7 @@ local function computeProjectedUsage()
 			local buildX, buildZ = item[2], item[4]
 
 			if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
-				local budgetCost = calculateBudgetForItem(defID, gameRules, teamRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
+				local budgetCost = calculateBudgetForItem(defID, gameRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
 				budgetUsed = budgetUsed + budgetCost
 
 				if UnitDefs[defID] and UnitDefs[defID].isFactory and not firstFactoryPlaced then
@@ -232,7 +224,7 @@ local function computeProjectedUsage()
 				local bx, by, bz = Spring.Pos2BuildPos(pregameUnitSelected, pos[1], pos[2], pos[3], buildFacing)
 
 				if isWithinBuildRange(commanderX, commanderZ, bx, bz, gameRules.instantBuildRange) then
-					budgetProjected = calculateBudgetForItem(pregameUnitSelected, gameRules, teamRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
+					budgetProjected = calculateBudgetForItem(pregameUnitSelected, gameRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
 				end
 			end
 		end
@@ -249,7 +241,6 @@ local function computeProjectedUsage()
 		budgetPercent = budgetPercent,
 		budgetProjected = budgetProjected,
 		budgetProjectedPercent = projectedPercent,
-		factoryDiscountUsed = teamRules.factoryDiscountUsed == 1,
 	}
 end
 
@@ -331,8 +322,6 @@ local function updateDataModel(forceUpdate)
 			widgetState.budgetBarElements.projectedElement:SetAttribute("style", style)
 		end
 
-		updateUIElementText(widgetState.document, "qs-budget-remaining", tostring(budgetRemaining))
-		updateUIElementText(widgetState.document, "qs-budget-total", tostring(budgetTotal))
 		updateUIElementText(widgetState.document, "qs-budget-value-left", tostring(budgetRemaining))
 	end
 end
@@ -340,7 +329,7 @@ end
 
 local function getBuildQueueSpawnStatus(buildQueue, selectedBuildData)
 	local myTeamID = spGetMyTeamID() or 0
-	local gameRules, teamRules = getCachedGameRules(myTeamID)
+	local gameRules = getCachedGameRules(myTeamID)
 	local spawnResults = {
 		queueSpawned = {},
 		selectedSpawned = false
@@ -360,7 +349,7 @@ local function getBuildQueueSpawnStatus(buildQueue, selectedBuildData)
 				local buildX, buildZ = queueItem[2], queueItem[4]
 				
 				if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
-					local budgetCost = calculateBudgetForItem(unitDefID, gameRules, teamRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
+					local budgetCost = calculateBudgetForItem(unitDefID, gameRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
 					
 					if remainingBudget >= budgetCost then
 						isSpawned = true
@@ -381,7 +370,7 @@ local function getBuildQueueSpawnStatus(buildQueue, selectedBuildData)
 		local buildX, buildZ = selectedBuildData[2], selectedBuildData[4]
 		
 		if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
-			local budgetCost = calculateBudgetForItem(unitDefID, gameRules, teamRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
+			local budgetCost = calculateBudgetForItem(unitDefID, gameRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
 			spawnResults.selectedSpawned = remainingBudget >= budgetCost
 		else
 			spawnResults.selectedSpawned = false
@@ -403,7 +392,6 @@ function widget:Initialize()
 	end
 	widgetState.dmHandle = dm
 
-	widgetState.dmHandle.showBar = true
 
 	local document = widgetState.rmlContext:LoadDocument(RML_PATH)
 	if not document then
@@ -505,16 +493,8 @@ function widget:RecvLuaMsg(message, playerID)
 	if not document then return end
 	
 	if message:sub(1, 19) == 'LobbyOverlayActive0' then
-		if not widgetState.isDocumentVisible then
-			document:Show()
-			widgetState.isDocumentVisible = true
-		end
-		widgetState.hiddenByLobby = false
+		document:Show()
 	elseif message:sub(1, 19) == 'LobbyOverlayActive1' then
-		if widgetState.isDocumentVisible then
-			document:Hide()
-			widgetState.isDocumentVisible = false
-		end
-		widgetState.hiddenByLobby = true
+		document:Hide()
 	end
 end

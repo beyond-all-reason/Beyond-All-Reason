@@ -452,9 +452,8 @@ function widget:DrawWorld()
 	local BORDER_COLOR_CLASH = { 0.7, 0.3, 0.3, 1.0 }
 	local BORDER_COLOR_INVALID = { 1.0, 0.0, 0.0, 1.0 }
 	local BORDER_COLOR_VALID = { 0.0, 1.0, 0.0, 1.0 }
-
-	local buildDistanceColor = { 0.3, 1.0, 0.3, 0.6 }
-	local buildLinesColor = { 0.3, 1.0, 0.3, 0.6 }
+	local BUILD_DISTANCE_COLOR = { 0.3, 1.0, 0.3, 0.6 }
+	local BUILD_LINES_COLOR = { 0.3, 1.0, 0.3, 0.6 }
 
 	gl.LineWidth(1.49)
 
@@ -484,7 +483,7 @@ function widget:DrawWorld()
 		sy = Spring.GetGroundHeight(sx, sz)
 
 		-- Draw start units build radius
-		gl.Color(buildDistanceColor)
+		gl.Color(BUILD_DISTANCE_COLOR)
 		local buildDistance = Spring.GetGameRulesParam("overridePregameBuildDistance") or UnitDefs[startDefID].buildDistance
 		if buildDistance then
 			gl.DrawGroundCircle(sx, sy, sz, buildDistance, 40)
@@ -558,7 +557,7 @@ function widget:DrawWorld()
 	end
 
 	-- Draw queue lines
-	gl.Color(buildLinesColor)
+	gl.Color(BUILD_LINES_COLOR)
 	gl.LineStipple("springdefault")
 	gl.Shape(GL.LINE_STRIP, queueLineVerts)
 	gl.LineStipple(false)
