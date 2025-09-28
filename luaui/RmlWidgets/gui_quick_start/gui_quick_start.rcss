@@ -163,8 +163,8 @@
 	position: absolute;
 	height: 100%;
 	width: 50%;
-	background-color: #00ff00;
-	decorator: vertical-gradient( #00ff00 #006600 );
+	background-color: #00ffff;
+	decorator: vertical-gradient( #00ffff #006666 );
 	z-index: 1;
 }
 
@@ -172,8 +172,8 @@
 	position: absolute;
 	height: 100%;
 	width: 0%;
-	background-color: #00cc00;
-	decorator: vertical-gradient( #00cc00 #004400 );
+	background-color: #00cccc;
+	decorator: vertical-gradient( #00cccc #004444 );
 	z-index: 2;
 }
 
@@ -224,11 +224,11 @@
 }
 
 .qs-factory-text.discount-used {
-	color: #00ff00;
+	color: #00ffff;
 }
 
 .qs-factory-text.placed.discount-used {
-	color: #00aa00;
+	color: #00aaaa;
 }
 
 @keyframes fade-in-out {

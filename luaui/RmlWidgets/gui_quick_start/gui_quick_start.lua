@@ -437,8 +437,8 @@ function widget:Initialize()
 			top = { disabled = true },
 			bottom = {
 				value = budgetCost,
-				color = "\255\100\255\100",
-				colorDisabled = "\255\100\200\100"
+				color = "\255\0\255\255",
+				colorDisabled = "\255\0\200\200"
 			}
 		}
 		

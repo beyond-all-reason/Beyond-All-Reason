@@ -20,6 +20,9 @@ local spTestBuildOrder = Spring.TestBuildOrder
 local ALPHA_SPAWNED = 1.0
 local ALPHA_DEFAULT = 0.5
 
+local BORDER_COLOR_SPAWNED = { 0.0, 1.0, 1.0, 0.5 } -- Teal for spawned buildings
+local BORDER_COLOR_NORMAL = { 0.3, 1.0, 0.3, 0.5 } -- Green for normal buildings
+
 local buildQueue = {}
 local selBuildQueueDefID
 local facingMap = { south = 0, east = 1, north = 2, west = 3 }
@@ -449,7 +452,6 @@ function widget:DrawWorld()
 	-- draw pregame build queue
 	local buildDistanceColor = { 0.3, 1.0, 0.3, 0.6 }
 	local buildLinesColor = { 0.3, 1.0, 0.3, 0.6 }
-	local borderNormalColor = { 0.3, 1.0, 0.3, 0.5 }
 	local borderClashColor = { 0.7, 0.3, 0.3, 1.0 }
 	local borderValidColor = { 0.0, 1.0, 0.0, 1.0 }
 	local borderInvalidColor = { 1.0, 0.0, 0.0, 1.0 }
@@ -538,11 +540,13 @@ function widget:DrawWorld()
 
 		if buildData[1] > 0 then
 			local alpha = alphaResults.queueAlphas[b] or 0.5
+			local isSpawned = alpha >= ALPHA_SPAWNED
+			local borderColor = isSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_NORMAL
 
 			if selBuildData and DoBuildingsClash(selBuildData, buildData) then
 				DrawBuilding(buildData, borderClashColor, false, alpha)
 			else
-				DrawBuilding(buildData, borderNormalColor, false, alpha)
+				DrawBuilding(buildData, borderColor, false, alpha)
 			end
 			
 			if alpha < ALPHA_SPAWNED then
@@ -562,6 +566,7 @@ function widget:DrawWorld()
 	-- Draw selected building
 	if selBuildData then
 		local selectedAlpha = alphaResults.selectedAlpha or ALPHA_DEFAULT
+		local isSelectedSpawned = selectedAlpha >= ALPHA_SPAWNED
 		
 		-- mmm, convoluted logic. Pregame handling is hell
 		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
@@ -573,16 +578,18 @@ function widget:DrawWorld()
 			selBuildData[5]
 		) ~= 0
 		if not isMex then
-			local color = testOrder and borderValidColor or borderInvalidColor
+			local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or borderValidColor) or borderInvalidColor
 			DrawBuilding(selBuildData, color, true, selectedAlpha)
 		elseif isMex then
 			if WG.ExtractorSnap.position or metalMap then
-				DrawBuilding(selBuildData, borderValidColor, true, selectedAlpha)
+				local color = isSelectedSpawned and BORDER_COLOR_SPAWNED or borderValidColor
+				DrawBuilding(selBuildData, color, true, selectedAlpha)
 			else
 				DrawBuilding(selBuildData, borderInvalidColor, true, selectedAlpha)
 			end
 		else
-			DrawBuilding(selBuildData, borderValidColor, true, selectedAlpha)
+			local color = isSelectedSpawned and BORDER_COLOR_SPAWNED or borderValidColor
+			DrawBuilding(selBuildData, color, true, selectedAlpha)
 		end
 	end
 
