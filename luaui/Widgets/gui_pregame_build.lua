@@ -20,8 +20,10 @@ local spTestBuildOrder = Spring.TestBuildOrder
 local ALPHA_SPAWNED = 1.0
 local ALPHA_DEFAULT = 0.5
 
-local BORDER_COLOR_SPAWNED = { 0.0, 1.0, 1.0, 0.5 } -- Teal for spawned buildings
-local BORDER_COLOR_NORMAL = { 0.3, 1.0, 0.3, 0.5 } -- Green for normal buildings
+local BORDER_COLOR_SPAWNED = { 1.0, 0.0, 1.0, 0.5 }
+local BORDER_COLOR_NORMAL = { 0.3, 1.0, 0.3, 0.5 }
+local BORDER_COLOR_CLASH = { 0.7, 0.3, 0.3, 1.0 }
+local BORDER_COLOR_INVALID = { 1.0, 0.0, 0.0, 1.0 }
 
 local buildQueue = {}
 local selBuildQueueDefID
@@ -452,9 +454,7 @@ function widget:DrawWorld()
 	-- draw pregame build queue
 	local buildDistanceColor = { 0.3, 1.0, 0.3, 0.6 }
 	local buildLinesColor = { 0.3, 1.0, 0.3, 0.6 }
-	local borderClashColor = { 0.7, 0.3, 0.3, 1.0 }
 	local borderValidColor = { 0.0, 1.0, 0.0, 1.0 }
-	local borderInvalidColor = { 1.0, 0.0, 0.0, 1.0 }
 
 	gl.LineWidth(1.49)
 
@@ -544,7 +544,7 @@ function widget:DrawWorld()
 			local borderColor = isSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_NORMAL
 
 			if selBuildData and DoBuildingsClash(selBuildData, buildData) then
-				DrawBuilding(buildData, borderClashColor, false, alpha)
+				DrawBuilding(buildData, BORDER_COLOR_CLASH, false, alpha)
 			else
 				DrawBuilding(buildData, borderColor, false, alpha)
 			end
@@ -578,14 +578,14 @@ function widget:DrawWorld()
 			selBuildData[5]
 		) ~= 0
 		if not isMex then
-			local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or borderValidColor) or borderInvalidColor
+			local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or borderValidColor) or BORDER_COLOR_INVALID
 			DrawBuilding(selBuildData, color, true, selectedAlpha)
 		elseif isMex then
 			if WG.ExtractorSnap.position or metalMap then
 				local color = isSelectedSpawned and BORDER_COLOR_SPAWNED or borderValidColor
 				DrawBuilding(selBuildData, color, true, selectedAlpha)
 			else
-				DrawBuilding(selBuildData, borderInvalidColor, true, selectedAlpha)
+				DrawBuilding(selBuildData, BORDER_COLOR_INVALID, true, selectedAlpha)
 			end
 		else
 			local color = isSelectedSpawned and BORDER_COLOR_SPAWNED or borderValidColor
