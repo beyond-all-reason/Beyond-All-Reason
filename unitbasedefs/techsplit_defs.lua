@@ -602,7 +602,7 @@ local function techsplitTweaks(name, uDef)
             [13] = "armgmm",
             [14] = "armhaap",
             [15] = "armlab",
-            [16] = "armalab",
+            [16] = "armaap",
             [17] = "armsd",
             [18] = "armmakr",
             [19] = "armestor",
@@ -823,6 +823,9 @@ local function techsplitTweaks(name, uDef)
             [24] = "corsy",
             [25] = "corasy",
             [26] = "cornanotcplat",
+            [27] = "corfdoom",
+            [28] = "cormadsam",
+            [29] = "corerad",
         }
     end
 

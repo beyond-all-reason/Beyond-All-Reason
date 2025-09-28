@@ -70,7 +70,8 @@ return {
 				[29] = "corap",
 				[30] = "corvp",
 				[31] = "corlab",
-				[32] = "corgant"
+				[32] = "corgant",
+				[33] = "corsd"
 		},
 		customparams = {
 			model_author = "Beherith",
