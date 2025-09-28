@@ -270,7 +270,6 @@ end
 
 local function buildUnitDefs()
 	local function isCommander(unitDefID, unitDef)
-		--Spring.Echo('hue', unitDef.customParams.iscommander) ty badosu
 		return unitDef.customParams.iscommander
 	end
 
@@ -287,13 +286,10 @@ local function buildUnitDefs()
 	end
 
 	local function isArmyUnit(unitDefID, unitDef)
-		--Spring.Echo("Spectator HUD", settings)
-		--Spring.Log("Spectator HUD", LOG.WARNING, (isCommander(unitDefID, unitDef))) 
 		-- anything with a least one weapon and speed above zero is considered an army unit	
 		-- if isCommanderArmy is false, we ignore commander units for determining army
-		if (settings.isCommanderArmy == true) then return unitDef.weapons and (#unitDef.weapons > 0) and unitDef.speed and (unitDef.speed > 0)
-		else return (not isCommander(unitDefID, unitDef)) and unitDef.weapons and (#unitDef.weapons > 0) and unitDef.speed and (unitDef.speed > 0)
-		end
+		local isArmyUnit = #unitDef.weapons > 0 and unitDef.speed > 0
+		return isArmyUnit and (settings.isCommanderArmy or not isCommander(unitDefId, unitDef))
 	end
 
 	local function isDefenseUnit(unitDefID, unitDef)
