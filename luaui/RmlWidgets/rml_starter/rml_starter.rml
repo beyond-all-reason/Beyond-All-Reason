@@ -12,8 +12,6 @@
         <link rel="stylesheet" href="../palette-armada.rcss" type="text/rcss" />
         <!-- <link rel="stylesheet" href="../palette-legion.rcss" type="text/rcss" /> -->
         <link rel="stylesheet" href="rml_starter.rcss" type="text/rcss" />
-        <style>
-        </style>
     </head>
 
     <body id="rml-starter-widget">

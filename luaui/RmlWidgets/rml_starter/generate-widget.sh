@@ -160,15 +160,15 @@ cat > "$WIDGET_DIR/${WIDGET_NAME}.rml" << 'EOF'
     <link rel="stylesheet" href="../palette-base.rcss" type="text/rcss" />
     <link rel="stylesheet" href="WIDGET_NAME_PLACEHOLDER.rcss" type="text/rcss" />
 </head>
-<body id="my_widget-widget">
-    <div id="widget-container" data-model="my_widget_model" class="bg-black-semi-alpha">
+<body id="WIDGET_NAME_PLACEHOLDER-widget">
+    <div id="widget-container" data-model="WIDGET_NAME_PLACEHOLDER_model" class="bg-black-semi-alpha">
         <!-- Small floating debug buttons -->
         <div class="debug-controls">
             <button class="debug-btn text-dark text-sm font-bold bg-primary" onclick="widget:Reload()" title="Reload Widget">reload</button>
             <button class="debug-btn text-dark text-sm font-bold bg-primary" onclick="widget:ToggleDebugger()" title="Toggle Debugger">debug</button>
         </div>
         
-        <h1 class="text-white">my_widget</h1>
+        <h1 class="text-white">WIDGET_NAME_PLACEHOLDER</h1>
         
         <div class="content mt-4 flex flex-col gap-6">
             <p class="text-white">{{message}}</p>

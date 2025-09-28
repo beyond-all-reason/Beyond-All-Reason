@@ -11,7 +11,7 @@ function widget:GetInfo()
         author = "Mupersega",
         date = "2025",
         license = "GNU GPL, v2 or later",
-        layer = -1000000,
+        layer = -10000,
         enabled = false,
     }
 end
