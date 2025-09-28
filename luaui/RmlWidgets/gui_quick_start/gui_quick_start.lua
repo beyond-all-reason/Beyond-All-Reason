@@ -339,12 +339,12 @@ local function updateDataModel(forceUpdate)
 end
 
 
-local function getBuildQueueAlphaValues(buildQueue, selectedBuildData)
+local function getBuildQueueSpawnStatus(buildQueue, selectedBuildData)
 	local myTeamID = spGetMyTeamID() or 0
 	local gameRules, teamRules = getCachedGameRules(myTeamID)
-	local alphaResults = {
-		queueAlphas = {},
-		selectedAlpha = ALPHA_AFFORDABLE
+	local spawnResults = {
+		queueSpawned = {},
+		selectedSpawned = false
 	}
 	
 	local remainingBudget = gameRules.budgetTotal
@@ -355,7 +355,7 @@ local function getBuildQueueAlphaValues(buildQueue, selectedBuildData)
 		for i = 1, #buildQueue do
 			local queueItem = buildQueue[i]
 			local unitDefID = queueItem[1]
-			local alpha = ALPHA_UNAFFORDABLE
+			local isSpawned = false
 			
 			if unitDefID and unitDefID > 0 and UnitDefs[unitDefID] then
 				local buildX, buildZ = queueItem[2], queueItem[4]
@@ -364,7 +364,7 @@ local function getBuildQueueAlphaValues(buildQueue, selectedBuildData)
 					local budgetCost = calculateBudgetForItem(unitDefID, gameRules, teamRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
 					
 					if remainingBudget >= budgetCost then
-						alpha = ALPHA_AFFORDABLE
+						isSpawned = true
 						remainingBudget = remainingBudget - budgetCost
 						
 						if UnitDefs[unitDefID].isFactory and not firstFactoryPlaced then
@@ -374,28 +374,22 @@ local function getBuildQueueAlphaValues(buildQueue, selectedBuildData)
 				end
 			end
 			
-			alphaResults.queueAlphas[i] = alpha
+			spawnResults.queueSpawned[i] = isSpawned
 		end
 	end
-	
 	if selectedBuildData and selectedBuildData[1] and selectedBuildData[1] > 0 then
 		local unitDefID = selectedBuildData[1]
 		local buildX, buildZ = selectedBuildData[2], selectedBuildData[4]
 		
 		if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
 			local budgetCost = calculateBudgetForItem(unitDefID, gameRules, teamRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
-			
-			if remainingBudget >= budgetCost then
-				alphaResults.selectedAlpha = ALPHA_AFFORDABLE
-			else
-				alphaResults.selectedAlpha = ALPHA_UNAFFORDABLE
-			end
+			spawnResults.selectedSpawned = remainingBudget >= budgetCost
 		else
-			alphaResults.selectedAlpha = ALPHA_UNAFFORDABLE
+			spawnResults.selectedSpawned = false
 		end
 	end
 	
-	return alphaResults
+	return spawnResults
 end
 
 function widget:Initialize()
@@ -430,7 +424,7 @@ function widget:Initialize()
 		WG['topbar'].setResourceBarsVisible(false)
 	end
 
-	WG["getBuildQueueAlphaValues"] = getBuildQueueAlphaValues
+	WG["getBuildQueueSpawnStatus"] = getBuildQueueSpawnStatus
 	
 	local buildMenu = WG['buildmenu']
 	local gridMenu = WG['gridmenu']
@@ -467,7 +461,7 @@ function widget:Shutdown()
 		WG['topbar'].setResourceBarsVisible(true)
 	end
 
-	WG["getBuildQueueAlphaValues"] = nil
+	WG["getBuildQueueSpawnStatus"] = nil
 	
 	if WG['buildmenu'] and WG['buildmenu'].clearCostOverrides then
 		WG['buildmenu'].clearCostOverrides()

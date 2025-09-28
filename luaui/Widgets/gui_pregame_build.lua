@@ -17,6 +17,9 @@ end
 
 local spTestBuildOrder = Spring.TestBuildOrder
 
+local ALPHA_SPAWNED = 1.0
+local ALPHA_DEFAULT = 0.5
+
 local buildQueue = {}
 local selBuildQueueDefID
 local facingMap = { south = 0, east = 1, north = 2, west = 3 }
@@ -443,8 +446,6 @@ function widget:DrawWorld()
 		return
 	end
 
-	local getBuildQueueAlphaValues = WG["getBuildQueueAlphaValues"]
-
 	-- draw pregame build queue
 	local buildDistanceColor = { 0.3, 1.0, 0.3, 0.6 }
 	local buildLinesColor = { 0.3, 1.0, 0.3, 0.6 }
@@ -512,9 +513,22 @@ function widget:DrawWorld()
         prevStartDefID = startDefID
 	end
 
-	local alphaResults = { queueAlphas = {}, selectedAlpha = 0.5 }
-	if getBuildQueueAlphaValues then
-		alphaResults = getBuildQueueAlphaValues(buildQueue, selBuildData)
+	local alphaResults = { queueAlphas = {}, selectedAlpha = ALPHA_DEFAULT }
+	
+	local getBuildQueueSpawnStatus = WG["getBuildQueueSpawnStatus"]
+	if getBuildQueueSpawnStatus then
+		local spawnStatus = getBuildQueueSpawnStatus(buildQueue, selBuildData)
+		
+		for i = 1, #buildQueue do
+			local isSpawned = spawnStatus.queueSpawned[i] or false
+			alphaResults.queueAlphas[i] = isSpawned and ALPHA_SPAWNED or ALPHA_DEFAULT
+		end
+		
+		alphaResults.selectedAlpha = spawnStatus.selectedSpawned and ALPHA_SPAWNED or ALPHA_DEFAULT
+	else
+		for i = 1, #buildQueue do
+			alphaResults.queueAlphas[i] = ALPHA_DEFAULT
+		end
 	end
 
 	-- Draw all the buildings
@@ -530,9 +544,13 @@ function widget:DrawWorld()
 			else
 				DrawBuilding(buildData, borderNormalColor, false, alpha)
 			end
+			
+			if alpha < ALPHA_SPAWNED then
+				queueLineVerts[#queueLineVerts + 1] = { v = { buildData[2], buildData[3], buildData[4] } }
+			end
+		else
+			queueLineVerts[#queueLineVerts + 1] = { v = { buildData[2], buildData[3], buildData[4] } }
 		end
-
-		queueLineVerts[#queueLineVerts + 1] = { v = { buildData[2], buildData[3], buildData[4] } }
 	end
 
 	-- Draw queue lines
@@ -543,7 +561,7 @@ function widget:DrawWorld()
 
 	-- Draw selected building
 	if selBuildData then
-		local selectedAlpha = alphaResults.selectedAlpha or 0.5
+		local selectedAlpha = alphaResults.selectedAlpha or ALPHA_DEFAULT
 		
 		-- mmm, convoluted logic. Pregame handling is hell
 		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
