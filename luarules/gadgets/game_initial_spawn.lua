@@ -52,7 +52,7 @@ if gadgetHandler:IsSyncedCode() then
 		local modoptions = Spring.GetModOptions()
 		local factionlimiter = tonumber(modoptions.factionlimiter) or 0
 		if factionlimiter > 0 then
-			local legcomDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
+			local legcomDefID = modoptions.experimentallegionfaction and UnitDefNames.legcom and UnitDefNames.legcom.id
 			local armcomDefID = UnitDefNames.armcom and UnitDefNames.armcom.id
 			local corcomDefID = UnitDefNames.corcom and UnitDefNames.corcom.id
 			local ARM_MASK = 2^0
@@ -130,7 +130,7 @@ if gadgetHandler:IsSyncedCode() then
 			if corcomDefID then
 				validStartUnits[#validStartUnits+1] = corcomDefID
 			end
-			local legcomDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
+			local legcomDefID = modoptions.experimentallegionfaction and UnitDefNames.legcom and UnitDefNames.legcom.id
 			if legcomDefID then
 				validStartUnits[#validStartUnits+1] = legcomDefID
 			end
@@ -463,6 +463,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local startUnitList = {}
+	local startUnitBlocking = {}
 	local function spawnStartUnit(teamID, x, z)
 		local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 		local luaAI = Spring.GetTeamLuaAI(teamID)
@@ -498,6 +499,8 @@ if gadgetHandler:IsSyncedCode() then
 					local paralyzemult = 3 * 0.025 -- 3 seconds of paralyze
 					local paralyzedamage = (umaxhealth - uparalyze) + (umaxhealth * paralyzemult)
 					Spring.SetUnitHealth(unitID, { paralyze = paralyzedamage })
+					startUnitBlocking[unitID] = { Spring.GetUnitBlocking(unitID) }
+					Spring.SetUnitBlocking(unitID, false, false, false, false, false, false, false)
 				end
 			end
 		end
@@ -602,6 +605,10 @@ if gadgetHandler:IsSyncedCode() then
                     Spring.MoveCtrl.Disable(unitID)
                     Spring.SetUnitNoDraw(unitID, false)
                     Spring.SetUnitHealth(unitID, { paralyze = 0 })
+					local unitBlocking = startUnitBlocking[unitID]
+					if unitBlocking then
+						Spring.SetUnitBlocking(unitID, unpack(unitBlocking))
+					end
                 end
             end
 		end

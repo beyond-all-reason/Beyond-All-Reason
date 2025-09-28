@@ -104,6 +104,7 @@ return {
 			arm_fatboy_notalaser = {
 				areaofeffect = 240,
 				avoidfeature = false,
+				cegtag = "Heavy-Plasma",
 				craterareaofeffect = 240,
 				craterboost = 0,
 				cratermult = 0,

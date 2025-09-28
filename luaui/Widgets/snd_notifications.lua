@@ -129,18 +129,21 @@ end
 local unitsOfInterestNames = {
 	armemp = 'EmpSiloDetected',
 	cortron = 'TacticalNukeSiloDetected',
+	legperdition = "LongRangeNapalmLauncherDetected",
 	armsilo = 'NuclearSiloDetected',
 	corsilo = 'NuclearSiloDetected',
 	corint = 'LrpcDetected',
 	armbrtha = 'LrpcDetected',
 	leglrpc = 'LrpcDetected',
-	corbuzz = 'LrpcDetected',
-	armvulc = 'LrpcDetected',
-	legstarfall = 'LrpcDetected',
+	corbuzz = 'CalamityDetected',
+	armvulc = 'RagnarokDetected',
+	legstarfall = 'StarfallDetected',
 	armliche = 'NuclearBomberDetected',
 	corjugg = 'BehemothDetected',
 	corkorg = 'JuggernautDetected',
 	armbanth = 'TitanDetected',
+	armthor = "ThorDetected",
+	legeheatraymech = 'SolinvictusDetected',
 	armepoch = 'FlagshipDetected',
 	corblackhy = 'FlagshipDetected',
 	armthovr = 'TransportDetected',
@@ -157,6 +160,7 @@ local unitsOfInterestNames = {
 	legstronghold = 'AirTransportDetected',
 	armtship = 'SeaTransportDetected',
 	cortship = 'SeaTransportDetected',
+	legelrpcmech = 'AstraeusDetected',
 }
 -- convert unitname -> unitDefID
 local unitsOfInterest = {}
@@ -214,8 +218,19 @@ local doTutorialMode = tutorialMode
 local tutorialPlayed = {}        -- store the number of times a tutorial event has played across games
 local tutorialPlayedThisGame = {}    -- log that a tutorial event has played this game
 
-local vulcanDefID = UnitDefNames['armvulc'].id
-local buzzsawDefID = UnitDefNames['corbuzz'].id
+local unitIsReadyTab = {
+	{ UnitDefNames['armvulc'].id, 												'RagnarokIsReady' },
+	{ UnitDefNames['armbanth'].id, 												'TitanIsReady' },
+	{ UnitDefNames['armepoch'].id, 												'FlagshipIsReady' },
+	{ UnitDefNames['armthor'].id, 												'ThorIsReady' },
+	{ UnitDefNames['corbuzz'].id, 												'CalamityIsReady' },
+	{ UnitDefNames['corkorg'].id, 												'JuggernautIsReady' },
+	{ UnitDefNames['corjugg'].id, 												'BehemothIsReady' },
+	{ UnitDefNames['corblackhy'].id, 											'FlagshipIsReady' },
+	{ UnitDefNames['legstarfall'] and UnitDefNames['legstarfall'].id, 			'StarfallIsReady' },
+	{ UnitDefNames['legelrpcmech'] and UnitDefNames['legelrpcmech'].id, 		'AstraeusIsReady' },
+	{ UnitDefNames['legeheatraymech'] and UnitDefNames['legeheatraymech'].id, 	'SolinvictusIsReady' },
+}
 
 local isFactoryAir = { [UnitDefNames['armap'].id] = true, [UnitDefNames['corap'].id] = true }
 local isFactorySeaplanes = { [UnitDefNames['armplat'].id] = true, [UnitDefNames['corplat'].id] = true }
@@ -235,11 +250,14 @@ local hasMadeT2 = false
 local isCommander = {}
 local isBuilder = {}
 local isMex = {}
+local isRadar = {}
 local isEnergyProducer = {}
 local isWind = {}
 local isAircraft = {}
 local isT2 = {}
+local isT2mobile = {}
 local isT3mobile = {}
+local isT4mobile = {}
 local isMine = {}
 for udefID, def in ipairs(UnitDefs) do
 	if not string.find(def.name, 'critter') and not string.find(def.name, 'raptor') and (not def.modCategories or not def.modCategories.object) then
@@ -250,8 +268,14 @@ for udefID, def in ipairs(UnitDefs) do
 			if def.customParams.techlevel == '2' and not (def.customParams.iscommander or def.customParams.isscavcommander) then
 				isT2[udefID] = true
 			end
+			if def.customParams.techlevel == '2' and not (def.customParams.iscommander or def.customParams.isscavcommander or def.isBuilding) then
+				isT2mobile[udefID] = true
+			end
 			if def.customParams.techlevel == '3' and not def.isBuilding then
 				isT3mobile[udefID] = true
+			end
+			if def.customParams.techlevel == '4' and not def.isBuilding then
+				isT4mobile[udefID] = true --there are no units with this techlevel assigned, need to see which ones
 			end
 		end
 		if def.modCategories.mine then
@@ -268,6 +292,9 @@ for udefID, def in ipairs(UnitDefs) do
 		end
 		if def.extractsMetal > 0 then
 			isMex[udefID] = true
+		end
+		if def.isBuilding and def.radarDistance > 1900 then
+			isRadar[udefID] = true
 		end
 		if def.energyMake > 10 then
 			isEnergyProducer[udefID] = def.energyMake
@@ -449,8 +476,18 @@ function widget:GameFrame(gf)
 			if e_income >= 50 and m_income >= 4 then
 				queueTutorialNotification('BuildFactory')
 			end
+			if e_income >= 125 and m_income >= 8 and gameframe > 600 then
+				queueTutorialNotification('BuildRadar')
+			end
 			if not hasMadeT2 and e_income >= 600 and m_income >= 12 then
 				queueTutorialNotification('ReadyForTech2')
+			end
+			if hasMadeT2 then
+				-- FIXME
+				--local udefIDTemp = spGetUnitDefID(unitID)
+				--if isT2[udefIDTemp] then
+				--	queueNotification('BuildIntrusionCounterMeasure')
+				--end
 			end
 		end
 
@@ -479,6 +516,12 @@ function widget:GameFrame(gf)
 				--QueueNotification('IdleBuilder')
 				idleBuilder[unitID] = nil    -- do not repeat
 			end
+		end
+
+		-- max units check
+		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		if currentUnits >= maxUnits then
+			queueNotification('MaxUnitsReached')
 		end
 	end
 
@@ -513,13 +556,20 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			end
 		end
 
-		if unitDefID == vulcanDefID then
-			queueNotification('RagnarokIsReady')
-		elseif unitDefID == buzzsawDefID then
-			queueNotification('CalamityIsReady')
+		for index,tab in pairs(unitIsReadyTab) do -- Play Unit Is Ready notifs based on the table's content
+			if unitDefID == tab[1] then
+				queueNotification(tab[2])
+				break
+			end
+		end
+		
+
+		if isT2mobile[unitDefID] then
+			queueNotification('Tech2UnitReady')
 		elseif isT3mobile[unitDefID] then
 			queueNotification('Tech3UnitReady')
-
+		elseif isT4mobile[unitDefID] then
+			queueNotification('Tech4UnitReady')
 		elseif doTutorialMode then
 			if isFactoryAir[unitDefID] then
 				queueTutorialNotification('FactoryAir')
@@ -534,6 +584,14 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			elseif isFactoryShip[unitDefID] then
 				queueTutorialNotification('FactoryShips')
 			end
+		end
+	else
+		if isT2mobile[unitDefID] then
+			queueNotification('Tech2TeamReached')
+		elseif isT3mobile[unitDefID] then
+			queueNotification('Tech3TeamReached')
+		elseif isT4mobile[unitDefID] then
+			queueNotification('Tech4TeamReached')
 		end
 	end
 end
@@ -552,14 +610,18 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 	local udefID = spGetUnitDefID(unitID)
 
 	-- single detection events below
+	queueNotification('EnemyDetected')
 	if isAircraft[udefID] then
-		queueNotification('AircraftSpotted')
+		queueNotification('AircraftDetected')
 	end
-	if isT2[udefID] then
-		queueNotification('T2Detected')
+	if isT2mobile[udefID] then
+		queueNotification('Tech2UnitDetected')
 	end
 	if isT3mobile[udefID] then
-		queueNotification('T3Detected')
+		queueNotification('Tech3UnitDetected')
+	end
+	if isT4mobile[udefID] then
+		queueNotification('Tech4UnitDetected')
 	end
 	if isMine[udefID] then
 		-- ignore when far away
@@ -581,7 +643,8 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
 		end
-		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
+		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		if currentUnits >= maxUnits then
 			queueNotification('MaxUnitsReached')
 		end
 	end
@@ -592,7 +655,8 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
 		end
-		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
+		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		if currentUnits >= maxUnits then
 			queueNotification('MaxUnitsReached')
 		end
 	end
@@ -603,7 +667,8 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 		return
 	end
 	if unitTeam == myTeamID then
-		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
+		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		if currentUnits >= maxUnits then
 			queueNotification('MaxUnitsReached')
 		end
 
@@ -619,6 +684,10 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 		end
 
 		if tutorialMode then
+			if doTutorialMode and isRadar[unitDefID] and not tutorialPlayedThisGame['BuildRadar'] then
+				tutorialPlayed['BuildRadar'] = tutorialPlayLimit
+			end
+
 			if e_income < 2000 and m_income < 50 then
 				if isFactoryAir[unitDefID] then
 					numFactoryAir = numFactoryAir + 1

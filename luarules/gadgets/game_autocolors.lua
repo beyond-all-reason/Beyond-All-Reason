@@ -535,10 +535,15 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 		or (#Spring.GetTeamList(allyTeamCount-1) == 1 and not ffaColors[allyTeamCount])
 	then
 		local color = hex2RGB(ffaColors[allyTeamID+1] or '#333333')
-		local maxIterations =  1 + math.floor((#teamList-1) / #ffaColors)
-		local brightnessVariation = (0.7 - ((1 / #Spring.GetTeamList(allyTeamID)) * dimmingCount[allyTeamID])) * 255
-		brightnessVariation = brightnessVariation * math.min((#Spring.GetTeamList(allyTeamID) * 0.8)-1, 1)	-- dont change brightness too much in tiny teams
+		local maxIterations =  math.floor((#teamList-1) / #ffaColors)
+		local brightnessVariation = (0.6 - ((1 / #Spring.GetTeamList(allyTeamID)) * dimmingCount[allyTeamID])) * 255
+		brightnessVariation = brightnessVariation * math.min((#Spring.GetTeamList(allyTeamID) * 0.7)-1, 1)	-- dont change brightness too much in tiny teams
 		local maxColorVariation = (120 / math.max(1, allyTeamCount-1))
+		if #Spring.GetTeamList(allyTeamID) == 1 then
+			brightnessVariation = 0
+			maxColorVariation = 0
+		end
+
 		if maxIterations > 1 then
 			local iteration = 1 + math.floor((allyTeamID+1)/(#ffaColors))
 			local ffaColor = (allyTeamID+1) - (#ffaColors*(iteration-1)) + 1
