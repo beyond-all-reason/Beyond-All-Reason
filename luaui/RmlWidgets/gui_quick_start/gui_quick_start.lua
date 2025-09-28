@@ -276,7 +276,6 @@ local function updateDataModel(forceUpdate)
 			if modelUpdate.budgetTotal >= modelUpdate.budgetUsed then
 				Spring.PlaySoundFile("beep6", 0.5, nil, nil, nil, nil, nil, nil, "ui")
 			else
-				Spring.Echo("cmd-build", currentBudgetRemaining, widgetState.lastBudgetRemaining)
 				Spring.PlaySoundFile("cmd-build", 0.5, nil, nil, nil, nil, nil, nil, "ui")
 			end
 		elseif widgetState.lastBudgetRemaining == currentBudgetRemaining then
