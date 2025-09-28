@@ -48,6 +48,8 @@ local DEFAULT_INSTANT_BUILD_RANGE = 600
 local ALPHA_AFFORDABLE = 1.0
 local ALPHA_UNAFFORDABLE = 0.5
 
+local gameRules = {}
+
 local function calculateBudgetCost(metalCost, energyCost)
 	return metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
 end
@@ -179,7 +181,7 @@ end
 
 local function computeProjectedUsage()
 	local myTeamID = spGetMyTeamID() or 0
-	local gameRules = getGameRulesParams(myTeamID)
+	gameRules = getGameRulesParams(myTeamID)
 	local pregame = WG and WG["pregame-build"] and WG["pregame-build"].getBuildQueue and
 	WG["pregame-build"].getBuildQueue() or {}
 	local pregameUnitSelected = WG["pregame-unit-selected"] or -1
@@ -264,12 +266,17 @@ local function updateDataModel(force)
 	local modelUpdate = computeProjectedUsage()
 	local currentBudgetRemaining = modelUpdate.budgetRemaining or 0
 	
+	if queueChanged and  widgetState.lastBudgetRemaining > currentBudgetRemaining or queueChanged and widgetState.lastBudgetRemaining == currentBudgetRemaining and #queue > 0 then
+		if gameRules.budgetTotal >= modelUpdate.budgetUsed then
+			Spring.PlaySoundFile("beep6", 0.9, "ui")
+		else
+			Spring.PlaySoundFile("cmd-build", 0.9, "ui")
+		end
+	end
+	
 	if widgetState.lastBudgetRemaining > currentBudgetRemaining then
 		local deductionAmount = widgetState.lastBudgetRemaining - currentBudgetRemaining
 		showDeductionAnimation(deductionAmount)
-		Spring.PlaySoundFile("beep6", 1.0, "ui")
-	elseif queueChanged and widgetState.lastBudgetRemaining == currentBudgetRemaining and #queue > 0 then
-		Spring.PlaySoundFile("cmd-build", 1.0, "ui")
 	end
 	
 	widgetState.lastBudgetRemaining = currentBudgetRemaining
