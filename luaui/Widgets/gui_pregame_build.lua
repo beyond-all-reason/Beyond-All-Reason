@@ -20,7 +20,7 @@ local spTestBuildOrder = Spring.TestBuildOrder
 local ALPHA_SPAWNED = 1.0
 local ALPHA_DEFAULT = 0.5
 
-local BORDER_COLOR_SPAWNED = { 1.0, 0.0, 1.0, 0.5 }
+local BORDER_COLOR_SPAWNED = { 1.0, 0.0, 1.0, 0.7 }
 local BORDER_COLOR_NORMAL = { 0.3, 1.0, 0.3, 0.5 }
 local BORDER_COLOR_CLASH = { 0.7, 0.3, 0.3, 1.0 }
 local BORDER_COLOR_INVALID = { 1.0, 0.0, 0.0, 1.0 }
