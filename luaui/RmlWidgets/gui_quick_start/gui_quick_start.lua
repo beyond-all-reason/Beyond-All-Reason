@@ -43,12 +43,14 @@ local RML_PATH = "luaui/RmlWidgets/gui_quick_start/gui_quick_start.rml"
 local QUICK_START_CONDITION_KEY = "quickStartUnallocatedBudget"
 
 local ENERGY_VALUE_CONVERSION_DIVISOR = 10
-local MAX_QUEUE_HASH_ITEMS = 50
 local DEFAULT_INSTANT_BUILD_RANGE = 600
 local ALPHA_AFFORDABLE = 1.0
 local ALPHA_UNAFFORDABLE = 0.5
 
-local gameRules = {}
+local cachedGameRules = {}
+local cachedTeamRules = {}
+local lastRulesUpdate = 0
+local RULES_CACHE_DURATION = 0.1
 
 local function calculateBudgetCost(metalCost, energyCost)
 	return metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
@@ -59,8 +61,8 @@ local widgetState = {
 	dmHandle = nil,
 	document = nil,
 	lastUpdate = 0,
-	updateInterval = 0.2,
-	lastQueueHash = "",
+	updateInterval = 0.15,
+	lastQueueLength = 0,
 	isDocumentVisible = true,
 	hiddenByLobby = false,
 	budgetBarElements = {
@@ -70,6 +72,7 @@ local widgetState = {
 	lastBudgetRemaining = 0,
 	deductionElements = {},
 	currentDeductionIndex = 1,
+	lastMousePos = {0, 0},
 }
 
 local initialModel = {
@@ -107,13 +110,16 @@ local function isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, instan
 	return distance <= instantBuildRange
 end
 
-local function getGameRulesParams(myTeamID)
-	return {
-		budgetTotal = spGetGameRulesParam("quickStartBudgetBase") or 0,
-		factoryDiscountAmount = spGetGameRulesParam("quickStartFactoryDiscountAmount") or 0,
-		factoryDiscountUsed = spGetTeamRulesParam(myTeamID, "quickStartFactoryDiscountUsed") or 0,
-		instantBuildRange = spGetGameRulesParam("overridePregameBuildDistance") or DEFAULT_INSTANT_BUILD_RANGE,
-	}
+local function getCachedGameRules(myTeamID)
+	local currentTime = os.clock()
+	if currentTime - lastRulesUpdate > RULES_CACHE_DURATION then
+		cachedGameRules.budgetTotal = spGetGameRulesParam("quickStartBudgetBase") or 0
+		cachedGameRules.factoryDiscountAmount = spGetGameRulesParam("quickStartFactoryDiscountAmount") or 0
+		cachedGameRules.instantBuildRange = spGetGameRulesParam("overridePregameBuildDistance") or DEFAULT_INSTANT_BUILD_RANGE
+		cachedTeamRules.factoryDiscountUsed = spGetTeamRulesParam(myTeamID, "quickStartFactoryDiscountUsed") or 0
+		lastRulesUpdate = currentTime
+	end
+	return cachedGameRules, cachedTeamRules
 end
 
 local function updateUIElementText(document, elementId, text)
@@ -148,15 +154,6 @@ local function showDeductionAnimation(deductionAmount)
 end
 
 
-local function hashQueue(queue)
-	if not queue or #queue == 0 then return "" end
-	local hash = ""
-	for i = 1, math.min(#queue, MAX_QUEUE_HASH_ITEMS) do
-		local q = queue[i]
-		hash = hash .. tostring(q[1]) .. ":" .. tostring(q[2]) .. ":" .. tostring(q[4]) .. ":" .. tostring(q[5]) .. "|"
-	end
-	return hash
-end
 
 local function createBudgetBarElements()
 	if not widgetState.document then
@@ -179,98 +176,111 @@ local function createBudgetBarElements()
 	end
 end
 
+local function calculateBudgetForItem(unitDefID, gameRules, teamRules, shouldApplyDiscount, isFirstFactory)
+	if not unitDefID or unitDefID <= 0 or not UnitDefs[unitDefID] then
+		return 0
+	end
+	return calculateBudgetWithDiscount(unitDefID, gameRules.factoryDiscountAmount, shouldApplyDiscount, isFirstFactory)
+end
+
+local function getCommanderPosition(myTeamID)
+	local commanderX, commanderY, commanderZ = Spring.GetTeamStartPosition(myTeamID)
+	return commanderX or 0, commanderY or 0, commanderZ or 0
+end
+
 local function computeProjectedUsage()
 	local myTeamID = spGetMyTeamID() or 0
-	gameRules = getGameRulesParams(myTeamID)
+	local gameRules, teamRules = getCachedGameRules(myTeamID)
 	local pregame = WG and WG["pregame-build"] and WG["pregame-build"].getBuildQueue and
-	WG["pregame-build"].getBuildQueue() or {}
+		WG["pregame-build"].getBuildQueue() or {}
 	local pregameUnitSelected = WG["pregame-unit-selected"] or -1
 
 	local budgetUsed = 0
 	local firstFactoryPlaced = false
-	local shouldApplyDiscount = shouldApplyFactoryDiscount
-
-	local commanderX, commanderY, commanderZ = Spring.GetTeamStartPosition(myTeamID)
-	if not commanderX or not commanderZ then
-		commanderX, commanderY, commanderZ = 0, 0, 0
-	end
+	local commanderX, commanderY, commanderZ = getCommanderPosition(myTeamID)
 
 	if pregame and #pregame > 0 then
 		for i = 1, #pregame do
 			local item = pregame[i]
 			local defID = item[1]
-			if defID and defID > 0 and UnitDefs[defID] then
-				local buildX, buildZ = item[2], item[4]
+			local buildX, buildZ = item[2], item[4]
 
-				if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
-					local budgetCost = calculateBudgetWithDiscount(defID, gameRules.factoryDiscountAmount,
-						shouldApplyDiscount, not firstFactoryPlaced)
-					budgetUsed = budgetUsed + budgetCost
+			if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
+				local budgetCost = calculateBudgetForItem(defID, gameRules, teamRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
+				budgetUsed = budgetUsed + budgetCost
 
-					if UnitDefs[defID].isFactory and not firstFactoryPlaced then
-						firstFactoryPlaced = true
-					end
+				if UnitDefs[defID] and UnitDefs[defID].isFactory and not firstFactoryPlaced then
+					firstFactoryPlaced = true
 				end
 			end
 		end
 	end
 
 	local budgetProjected = 0
-	if pregameUnitSelected and pregameUnitSelected > 0 and UnitDefs[pregameUnitSelected] then
+	if pregameUnitSelected > 0 and UnitDefs[pregameUnitSelected] then
 		local uDef = UnitDefs[pregameUnitSelected]
 		local mx, my = Spring.GetMouseState()
-		local _, pos = Spring.TraceScreenRay(mx, my, true, false, false,
-			uDef.modCategories and uDef.modCategories.underwater)
-		if pos then
-			local buildFacing = Spring.GetBuildFacing()
-			local bx, by, bz = Spring.Pos2BuildPos(pregameUnitSelected, pos[1], pos[2], pos[3], buildFacing)
+		
+		if mx ~= widgetState.lastMousePos[1] or my ~= widgetState.lastMousePos[2] then
+			widgetState.lastMousePos[1] = mx
+			widgetState.lastMousePos[2] = my
+			
+			local _, pos = Spring.TraceScreenRay(mx, my, true, false, false,
+				uDef.modCategories and uDef.modCategories.underwater)
+			if pos then
+				local buildFacing = Spring.GetBuildFacing()
+				local bx, by, bz = Spring.Pos2BuildPos(pregameUnitSelected, pos[1], pos[2], pos[3], buildFacing)
 
-			if isWithinBuildRange(commanderX, commanderZ, bx, bz, gameRules.instantBuildRange) then
-				budgetProjected = calculateBudgetWithDiscount(pregameUnitSelected, gameRules.factoryDiscountAmount,
-					shouldApplyDiscount, not firstFactoryPlaced)
+				if isWithinBuildRange(commanderX, commanderZ, bx, bz, gameRules.instantBuildRange) then
+					budgetProjected = calculateBudgetForItem(pregameUnitSelected, gameRules, teamRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
+				end
 			end
 		end
 	end
 
 	local budgetRemaining = math.max(0, gameRules.budgetTotal - budgetUsed)
-	local percent = gameRules.budgetTotal > 0 and
-	math.max(0, math.min(100, (budgetRemaining / gameRules.budgetTotal) * 100)) or 0
-	local projectedPercent = gameRules.budgetTotal > 0 and
-	math.max(0, math.min(100, (budgetProjected / gameRules.budgetTotal) * 100)) or 0
+	local budgetPercent = gameRules.budgetTotal > 0 and math.max(0, math.min(100, (budgetRemaining / gameRules.budgetTotal) * 100)) or 0
+	local projectedPercent = gameRules.budgetTotal > 0 and math.max(0, math.min(100, (budgetProjected / gameRules.budgetTotal) * 100)) or 0
 
 	return {
 		budgetTotal = gameRules.budgetTotal,
 		budgetUsed = budgetUsed,
 		budgetRemaining = budgetRemaining,
-		budgetPercent = percent,
+		budgetPercent = budgetPercent,
 		budgetProjected = budgetProjected,
 		budgetProjectedPercent = projectedPercent,
-		factoryDiscountUsed = gameRules.factoryDiscountUsed == 1,
+		factoryDiscountUsed = teamRules.factoryDiscountUsed == 1,
 	}
 end
 
-local function updateDataModel(force)
+local function updateDataModel(forceUpdate)
 	if not widgetState.dmHandle then return end
 
-	local queue = WG and WG["pregame-build"] and WG["pregame-build"].getBuildQueue and
-	WG["pregame-build"].getBuildQueue() or {}
-	local newHash = hashQueue(queue)
-	if not force and widgetState.lastQueueHash == newHash and (os.clock() - widgetState.lastUpdate) < widgetState.updateInterval then
+	local buildQueue = WG and WG["pregame-build"] and WG["pregame-build"].getBuildQueue and
+		WG["pregame-build"].getBuildQueue() or {}
+	local currentQueueLength = #buildQueue
+	local currentTime = os.clock()
+	
+	if not forceUpdate and widgetState.lastQueueLength == currentQueueLength and 
+		(currentTime - widgetState.lastUpdate) < widgetState.updateInterval then
 		return
 	end
 	
-	local queueChanged = widgetState.lastQueueHash ~= newHash
-	widgetState.lastQueueHash = newHash
-	widgetState.lastUpdate = os.clock()
+	widgetState.lastUpdate = currentTime
 
 	local modelUpdate = computeProjectedUsage()
 	local currentBudgetRemaining = modelUpdate.budgetRemaining or 0
 	
-	if queueChanged and  widgetState.lastBudgetRemaining > currentBudgetRemaining or queueChanged and widgetState.lastBudgetRemaining == currentBudgetRemaining and #queue > 0 then
-		if gameRules.budgetTotal >= modelUpdate.budgetUsed then
-			Spring.PlaySoundFile("beep6", 0.9, "ui")
-		else
-			Spring.PlaySoundFile("cmd-build", 0.9, "ui")
+	if currentQueueLength > widgetState.lastQueueLength then
+		if currentBudgetRemaining < widgetState.lastBudgetRemaining then
+			if modelUpdate.budgetTotal >= modelUpdate.budgetUsed then
+				Spring.PlaySoundFile("beep6", 0.9, nil, nil, nil, nil, nil, nil, "ui")
+			else
+				Spring.Echo("cmd-build", currentBudgetRemaining, widgetState.lastBudgetRemaining)
+				Spring.PlaySoundFile("cmd-build", 0.9, nil, nil, nil, nil, nil, nil, "ui")
+			end
+		elseif widgetState.lastBudgetRemaining == currentBudgetRemaining then
+			Spring.PlaySoundFile("cmd-build", 0.9, nil, nil, nil, nil, nil, nil, "ui")
 		end
 	end
 	
@@ -279,21 +289,25 @@ local function updateDataModel(force)
 		showDeductionAnimation(deductionAmount)
 	end
 	
+	widgetState.lastQueueLength = currentQueueLength
 	widgetState.lastBudgetRemaining = currentBudgetRemaining
 	
 	local hasUnallocatedBudget = currentBudgetRemaining > 0
-	if WG['pregameui'] and WG['pregameui'].addReadyCondition and WG['pregameui'].removeReadyCondition then
+	local pregameUI = WG['pregameui']
+	local pregameUIDraft = WG['pregameui_draft']
+	
+	if pregameUI and pregameUI.addReadyCondition and pregameUI.removeReadyCondition then
 		if hasUnallocatedBudget then
-			WG['pregameui'].addReadyCondition(QUICK_START_CONDITION_KEY, "ui.quickStart.unallocatedBudget")
+			pregameUI.addReadyCondition(QUICK_START_CONDITION_KEY, "ui.quickStart.unallocatedBudget")
 		else
-			WG['pregameui'].removeReadyCondition(QUICK_START_CONDITION_KEY)
+			pregameUI.removeReadyCondition(QUICK_START_CONDITION_KEY)
 		end
 	end
-	if WG['pregameui_draft'] and WG['pregameui_draft'].addReadyCondition and WG['pregameui_draft'].removeReadyCondition then
+	if pregameUIDraft and pregameUIDraft.addReadyCondition and pregameUIDraft.removeReadyCondition then
 		if hasUnallocatedBudget then
-			WG['pregameui_draft'].addReadyCondition(QUICK_START_CONDITION_KEY, "ui.quickStart.unallocatedBudget")
+			pregameUIDraft.addReadyCondition(QUICK_START_CONDITION_KEY, "ui.quickStart.unallocatedBudget")
 		else
-			WG['pregameui_draft'].removeReadyCondition(QUICK_START_CONDITION_KEY)
+			pregameUIDraft.removeReadyCondition(QUICK_START_CONDITION_KEY)
 		end
 	end
 	
@@ -303,9 +317,11 @@ local function updateDataModel(force)
 
 	if widgetState.document then
 		local budgetPercent = widgetState.dmHandle.budgetPercent or 0
+		local budgetRemaining = math.floor(widgetState.dmHandle.budgetRemaining or 0)
+		local budgetTotal = math.floor(widgetState.dmHandle.budgetTotal or 0)
+		
 		if widgetState.budgetBarElements.fillElement then
-			widgetState.budgetBarElements.fillElement:SetAttribute("style",
-				"width: " .. string.format("%.1f%%", budgetPercent))
+			widgetState.budgetBarElements.fillElement:SetAttribute("style", "width: " .. string.format("%.1f%%", budgetPercent))
 		end
 
 		if widgetState.budgetBarElements.projectedElement then
@@ -316,51 +332,42 @@ local function updateDataModel(force)
 			widgetState.budgetBarElements.projectedElement:SetAttribute("style", style)
 		end
 
-		updateUIElementText(widgetState.document, "qs-budget-remaining",
-			tostring(math.floor(widgetState.dmHandle.budgetRemaining or 0)))
-		updateUIElementText(widgetState.document, "qs-budget-total",
-			tostring(math.floor(widgetState.dmHandle.budgetTotal or 0)))
-		updateUIElementText(widgetState.document, "qs-budget-value-left",
-			tostring(math.floor(widgetState.dmHandle.budgetRemaining or 0)))
+		updateUIElementText(widgetState.document, "qs-budget-remaining", tostring(budgetRemaining))
+		updateUIElementText(widgetState.document, "qs-budget-total", tostring(budgetTotal))
+		updateUIElementText(widgetState.document, "qs-budget-value-left", tostring(budgetRemaining))
 	end
 end
 
 
 local function getBuildQueueAlphaValues(buildQueue, selectedBuildData)
 	local myTeamID = spGetMyTeamID() or 0
-	local gameRules = getGameRulesParams(myTeamID)
+	local gameRules, teamRules = getCachedGameRules(myTeamID)
 	local alphaResults = {
 		queueAlphas = {},
 		selectedAlpha = ALPHA_AFFORDABLE
 	}
 	
-	local budgetRemaining = gameRules.budgetTotal
+	local remainingBudget = gameRules.budgetTotal
 	local firstFactoryPlaced = false
-	local shouldApplyDiscount = shouldApplyFactoryDiscount
-	
-	local commanderX, commanderY, commanderZ = Spring.GetTeamStartPosition(myTeamID)
-	if not commanderX or not commanderZ then
-		commanderX, commanderY, commanderZ = 0, 0, 0
-	end
+	local commanderX, commanderY, commanderZ = getCommanderPosition(myTeamID)
 	
 	if buildQueue and #buildQueue > 0 then
 		for i = 1, #buildQueue do
-			local item = buildQueue[i]
-			local defID = item[1]
+			local queueItem = buildQueue[i]
+			local unitDefID = queueItem[1]
 			local alpha = ALPHA_UNAFFORDABLE
 			
-			if defID and defID > 0 and UnitDefs[defID] then
-				local buildX, buildZ = item[2], item[4]
+			if unitDefID and unitDefID > 0 and UnitDefs[unitDefID] then
+				local buildX, buildZ = queueItem[2], queueItem[4]
 				
 				if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
-					local budgetCost = calculateBudgetWithDiscount(defID, gameRules.factoryDiscountAmount,
-						shouldApplyDiscount, not firstFactoryPlaced)
+					local budgetCost = calculateBudgetForItem(unitDefID, gameRules, teamRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
 					
-					if budgetRemaining >= budgetCost then
+					if remainingBudget >= budgetCost then
 						alpha = ALPHA_AFFORDABLE
-						budgetRemaining = budgetRemaining - budgetCost
+						remainingBudget = remainingBudget - budgetCost
 						
-						if UnitDefs[defID].isFactory and not firstFactoryPlaced then
+						if UnitDefs[unitDefID].isFactory and not firstFactoryPlaced then
 							firstFactoryPlaced = true
 						end
 					end
@@ -372,14 +379,13 @@ local function getBuildQueueAlphaValues(buildQueue, selectedBuildData)
 	end
 	
 	if selectedBuildData and selectedBuildData[1] and selectedBuildData[1] > 0 then
-		local defID = selectedBuildData[1]
+		local unitDefID = selectedBuildData[1]
 		local buildX, buildZ = selectedBuildData[2], selectedBuildData[4]
 		
 		if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
-			local budgetCost = calculateBudgetWithDiscount(defID, gameRules.factoryDiscountAmount,
-				shouldApplyDiscount, not firstFactoryPlaced)
+			local budgetCost = calculateBudgetForItem(unitDefID, gameRules, teamRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
 			
-			if budgetRemaining >= budgetCost then
+			if remainingBudget >= budgetCost then
 				alphaResults.selectedAlpha = ALPHA_AFFORDABLE
 			else
 				alphaResults.selectedAlpha = ALPHA_UNAFFORDABLE
@@ -426,34 +432,28 @@ function widget:Initialize()
 
 	WG["getBuildQueueAlphaValues"] = getBuildQueueAlphaValues
 	
+	local buildMenu = WG['buildmenu']
+	local gridMenu = WG['gridmenu']
+	
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		local metalCost = unitDef.metalCost or 0
 		local energyCost = unitDef.energyCost or 0
 		local budgetCost = calculateBudgetCost(metalCost, energyCost)
 		
-		if WG['buildmenu'] and WG['buildmenu'].setCostOverride then
-			WG['buildmenu'].setCostOverride(unitDefID, {
-				top = {
-					disabled = true,
-				},
-				bottom = {
-					value = budgetCost,
-					color = "\255\100\255\100",
-					colorDisabled = "\255\100\200\100"
-				}
-			})
+		local costOverride = {
+			top = { disabled = true },
+			bottom = {
+				value = budgetCost,
+				color = "\255\100\255\100",
+				colorDisabled = "\255\100\200\100"
+			}
+		}
+		
+		if buildMenu and buildMenu.setCostOverride then
+			buildMenu.setCostOverride(unitDefID, costOverride)
 		end
-		if WG['gridmenu'] and WG['gridmenu'].setCostOverride then
-			WG['gridmenu'].setCostOverride(unitDefID, {
-				top = {
-					disabled = true,
-				},
-				bottom = {
-					value = budgetCost,
-					color = "\255\100\255\100",
-					colorDisabled = "\255\100\200\100"
-				}
-			})
+		if gridMenu and gridMenu.setCostOverride then
+			gridMenu.setCostOverride(unitDefID, costOverride)
 		end
 	end
 
@@ -495,10 +495,11 @@ function widget:Shutdown()
 end
 
 function widget:Update()
-	local gameFrame = Spring.GetGameFrame()
-	if gameFrame > 0 then
-		if WG['topbar'] and WG['topbar'].setResourceBarsVisible then
-			WG['topbar'].setResourceBarsVisible(true)
+	local currentGameFrame = Spring.GetGameFrame()
+	if currentGameFrame > 0 then
+		local topbar = WG['topbar']
+		if topbar and topbar.setResourceBarsVisible then
+			topbar.setResourceBarsVisible(true)
 		end
 		widgetHandler:RemoveWidget(self)
 		return
@@ -506,22 +507,21 @@ function widget:Update()
 	updateDataModel(false)
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 19) == 'LobbyOverlayActive0' then
-		if widgetState.document then
-			if not widgetState.isDocumentVisible then
-				widgetState.document:Show()
-				widgetState.isDocumentVisible = true
-			end
-			widgetState.hiddenByLobby = false
+function widget:RecvLuaMsg(message, playerID)
+	local document = widgetState.document
+	if not document then return end
+	
+	if message:sub(1, 19) == 'LobbyOverlayActive0' then
+		if not widgetState.isDocumentVisible then
+			document:Show()
+			widgetState.isDocumentVisible = true
 		end
-	elseif msg:sub(1, 19) == 'LobbyOverlayActive1' then
-		if widgetState.document then
-			if widgetState.isDocumentVisible then
-				widgetState.document:Hide()
-				widgetState.isDocumentVisible = false
-			end
-			widgetState.hiddenByLobby = true
+		widgetState.hiddenByLobby = false
+	elseif message:sub(1, 19) == 'LobbyOverlayActive1' then
+		if widgetState.isDocumentVisible then
+			document:Hide()
+			widgetState.isDocumentVisible = false
 		end
+		widgetState.hiddenByLobby = true
 	end
 end
