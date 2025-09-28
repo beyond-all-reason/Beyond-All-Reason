@@ -1685,7 +1685,6 @@ function widget:Update(dt)
 	if sec > 0.33 then
 		sec = 0
 		checkGuishader()
-		
 		if WG["minimap"] and minimapHeight ~= WG["minimap"].getHeight() then
 			widget:ViewResize()
 
