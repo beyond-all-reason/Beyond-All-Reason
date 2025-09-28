@@ -30,11 +30,10 @@ if not shouldRunWidget then
 	return false
 end
 
-local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" or 
+local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" or
 	(modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
 
 local spGetGameRulesParam = Spring.GetGameRulesParam
-local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetMyTeamID = Spring.GetMyTeamID
 local spI18N = Spring.I18N
 
@@ -403,7 +402,15 @@ function widget:Initialize()
 
 	updateUIElementText(document, "qs-budget-header", spI18N('ui.quickStart.preGameResources'))
 	updateUIElementText(document, "qs-warning-text", spI18N('ui.quickStart.remainingResourcesWarning'))
-	updateUIElementText(document, "qs-factory-text", spI18N('ui.quickStart.placeDiscountedFactory'))
+	
+	local factoryTextElement = document:GetElementById("qs-factory-text")
+	if factoryTextElement then
+		if shouldApplyFactoryDiscount then
+			updateUIElementText(document, "qs-factory-text", spI18N('ui.quickStart.placeDiscountedFactory'))
+		else
+			factoryTextElement:SetAttribute("style", "display: none;")
+		end
+	end
 
 	createBudgetBarElements()
 
