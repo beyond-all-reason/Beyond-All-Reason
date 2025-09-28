@@ -202,19 +202,6 @@
 	animation: 9s 6s cubic-in-out 1 fade-in-out;
 }
 
-.qs-factory-text.placed {
-	opacity: 0.6;
-	color: #aaaaaa;
-}
-
-.qs-factory-text.discount-used {
-	color: #8000ff;
-}
-
-.qs-factory-text.placed.discount-used {
-	color: #6000aa;
-}
-
 @keyframes fade-in-out {
 	0% { opacity: 0; }
 	10% { opacity: 1; }
