@@ -37,8 +37,8 @@ for _,ud in pairs(UnitDefs) do
 	if ud.armoredMultiple ~= 1 and ud.armoredMultiple ~= 0 then
 		local reactive, armorHealth, recoverTime = Spring.Utilities.HasReactiveArmor(ud)
 		if reactive then
-			ud.customParams.armorHealth = armorHealth
-			ud.customParams.armorRecoverTime = recoverTime
+			ud.armorHealth = armorHealth
+			ud.armorRecoverTime = recoverTime
 		end
 	end
 end
