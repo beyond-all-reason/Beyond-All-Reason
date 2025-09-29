@@ -861,7 +861,7 @@ local function techsplitTweaks(name, uDef)
     end
 
     -- remove hovers from com
-    if name == "corcom" or name == "armcom" then
+    if name == "corcom" or name == "armcom" or name == "legcom" then
         uDef.buildoptions[26] = ""
         uDef.buildoptions[27] = ""
 
@@ -893,6 +893,7 @@ local function techsplitTweaks(name, uDef)
     ----------------------------------------------
     -- T2 mexes upkeep increased, health decreased
     if name == "armmoho" or name == "cormoho" or name == "armuwmme" or name == "coruwmme"
+    or name == "legmoho"
     then
         uDef.energyupkeep = 40
         uDef.health = uDef.health - 1200
@@ -905,8 +906,8 @@ local function techsplitTweaks(name, uDef)
     -------------------------------
     -- T3 mobile jammers have radar
 
-    if name == "armaser" or name == "corspec" 
-    or name == "armjam" or name == "coreter"
+    if name == "armaser" or name == "corspec" or name == "legajamk"
+    or name == "armjam" or name == "coreter" or name == "legavjam"
     then
         uDef.metalcost = uDef.metalcost + 100
         uDef.energycost = uDef.energycost + 1250
@@ -933,7 +934,7 @@ local function techsplitTweaks(name, uDef)
     -----------------------------------
     -- Pinpointers are T3 radar/jammers
 
-    if name == "armtarg" or name == "cortarg"
+    if name == "armtarg" or name == "cortarg" or name == "legtarg"
     or name == "armfatf" or name == "corfatf"
     then
         uDef.radardistance = 5000
@@ -1425,12 +1426,85 @@ local function techsplitTweaks(name, uDef)
         uDef.weapondefs.vipersabot.reloadtime = 3
     end
 
+
+
+
 -- Legion Update
 
-if name == "legcom" then
-	uDef.buildoptions[26] = ""
-    uDef.buildoptions[27] = ""
+
+
+--T2 labs
+if name == "legalab" then
+    uDef.buildoptions = {
+        [1] = "legack",
+        [2] = "legadvaabot",
+        [3] = "legstr",
+        [4] = "legshot",
+        [5] = "leginfestor",
+        [6] = "legamph",
+        [7] = "legsnapper",
+        [8] = "legbart",
+        [9] = "leghrk",
+        [10] = "legaspy",
+        [11] = "legaradk",
+    }
 end
+
+if name == "legavp" then
+    uDef.buildoptions = {
+        [1] = "legacv",
+        [2] = "legch",
+        [3] = "legavrad",
+        [4] = "legsh",
+        [5] = "legmrv",
+        [6] = "legfloat",
+        [7] = "legaskirmtank",
+        [8] = "legamcluster",
+        [9] = "legvcarry",
+        [10] = "legner",
+        [11] = "legmh",
+        [12] = "legah"
+    }
+end
+
+-- Placeholder: Legion T2 air is cor seaplanes
+if name == "legaap" then
+    uDef.buildoptions = {
+        [1] = "legaca",
+        [2] = "corhunt",
+        [3] = "corcut",
+        [4] = "corsb",
+        [5] = "corseap",
+        [6] = "corsfig",
+        [7] = "corhvytrans",
+    }
+end
+
+if name == "legaca" then 
+    uDef.buildpic = "CORCSA.DDS"
+    uDef.objectname = "Units/CORCSA.s3o"
+    uDef.script = "units/CORCSA.cob"
+    uDef.buildoptions = {
+        [1] = "legadvsol",
+        [2] = "legmext15",
+        [3] = "legdtr",
+        [4] = "legmg",
+        [5] = "legrhapsis",
+        [6] = "leglupara",
+        [7] = "legjuno",
+        [8] = "leghive",
+        [9] = "legfus",
+        [10] = "legarad",
+        [11] = "legajam",
+        [12] = "legsd",
+        [13] = "legap",
+        [14] = "legaap",
+        [15] = "leghaap",
+        [16] = "legcluster",
+        [17] = "legeconv"
+    }
+end 
+
 
 if name == "legaap" or name == "legasy" or name == "legalab" or name == "legavp"
 then
@@ -1454,7 +1528,7 @@ then
     uDef.customparams.techlevel = 2
 end
 
-elseif name == "legca" then
+if name == "legca" then
     uDef.buildoptions = {
         [1] = "legsolar",
         [2] = "legwin",
@@ -1478,31 +1552,9 @@ elseif name == "legca" then
         [20] = "legjam",
         [21] = "corsy",
     }
-
+end
 --------------------------
 -- Legion Air Placeholders
-
-if name == "legaca" then
-    uDef.buildoptions = {
-        [1] = "legadvsol",
-        [2] = "legmext15",
-        [3] = "legdtr",
-        [4] = "legmg",
-        [5] = "legrhapsis",
-        [6] = "leglupara",
-        [7] = "legjuno",
-        [8] = "leghive",
-        [9] = "legfus",
-        [10] = "legarad",
-        [11] = "legajam",
-        [12] = "legsd",
-        [13] = "legap",
-        [14] = "legaap",
-        [15] = "leghaap",
-        [16] = "legcluster",
-        [17] = "legeconv"
-    }
-end
 
 if name == "legch" then 
     uDef.buildoptions = {
@@ -1567,7 +1619,7 @@ if name == "legacv" then
         [8] = "leghive",
         [9] = "legfus",
         [10] = "legarad",
-        [11] = "legajam"
+        [11] = "legajam",
         [12] = "legsd",
         [13] = "leghavp",
         [14] = "legavp",
@@ -1651,38 +1703,8 @@ if name == "legck" then
     }
 end
 
-if name == "legavp" then
-    uDef.buildoptions = {
-        [1] = "legacv",
-        [2] = "legch",
-        [3] = "legcar",
-        [4] = "legmlv",
-        [5] = "legmrv",
-        [6] = "legfloat",
-        [7] = "legaskirmtank",
-        [8] = "legamcluster",
-        [9] = "legvcarry",
-        [10] = "legner",
-        [11] = "legmh",
-        [12] = "legah"
-    }
-end
 
-if name == "legalab" then
-    uDef.buildoptions = {
-        [1] = "legack",
-        [2] = "legadvaabot",
-        [3] = "legstr",
-        [4] = "legshot",
-        [5] = "leginfestor",
-        [6] = "legamph",
-        [7] = "legsnapper",
-        [8] = "legbart",
-        [9] = "leghrk",
-        [10] = "legaspy",
 
-    }
-end
 
     return uDef
 end
