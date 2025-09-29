@@ -32,6 +32,15 @@ for _,ud in pairs(UnitDefs) do
 			if (wd.waterWeapon) then ud.canAttackWater = true end
 		end
 	end
+
+	-- precalculate some gui values
+	if ud.armoredMultiple ~= 1 and ud.armoredMultiple ~= 0 then
+		local reactive, armorHealth, recoverTime = Spring.Utilities.HasReactiveArmor(ud)
+		if reactive then
+			ud.armorHealth = armorHealth
+			ud.armorRecoverTime = recoverTime
+		end
+	end
 end
 
 --------------------------------------------------------------------------------
