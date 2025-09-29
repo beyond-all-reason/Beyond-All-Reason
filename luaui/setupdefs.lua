@@ -34,9 +34,13 @@ for _,ud in pairs(UnitDefs) do
 	end
 
 	-- precalculate some gui values
-	if ud.armoredMultiple ~= 1 and ud.armoredMultiple ~= 0 then
-		local reactive, armorHealth, recoverTime = Spring.Utilities.HasReactiveArmor(ud)
-		if reactive then
+	if ud.armoredMultiple ~= 1 then
+		if ud.customParams.armorhealth then
+			ud.armorHealth = tonumber(ud.customParams.armorhealth)
+			ud.armorRecoverTime = tonumber(ud.customParams.armorrecovertime)
+		end
+		if Spring.Utilities.IsUnitScriptCOB(ud) then
+			local reactive, armorHealth, recoverTime = Spring.Utilities.HasReactiveArmor(ud)
 			ud.armorHealth = armorHealth
 			ud.armorRecoverTime = recoverTime
 		end
