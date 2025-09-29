@@ -1,7 +1,6 @@
 -- Various helpers for bridging the gap in unit data between defs and scripts.
 
----Based on C-style comments, so maybe I am assuming wrong.
-local function removeComments(content)
+local function removeCobComments(content)
 	local n = #content
 	local i = 1
 	local output = {}
@@ -21,8 +20,8 @@ local function removeComments(content)
 	while i <= n do
 		local ch = current()
 
-		-- Literals
 		if quotes[ch] then
+			-- Literals
 			local quote = ch
 			insert(output, quote)
 			i = i + 1
@@ -74,6 +73,153 @@ local function removeComments(content)
 					i = i + 1
 				end
 			end
+		else
+			insert(output, ch)
+			i = i + 1
+		end
+	end
+
+	return table.concat(output)
+end
+
+local function removeLusComments(content)
+	local n = #content
+	local i = 1
+	local output = {}
+
+	local escape = "%"
+	local line_feed = "\n"
+	local line_return = "\r"
+	local line_ends = { [line_feed] = true, [line_return] = true }
+	local quotes = { ['"'] = true, ["'"] = true }
+
+	local insert = table.insert
+	local function current() return string.sub(content, i, i) end
+	local function chartAt(j) return string.sub(content, j, j) end
+	local function starts_with(s)
+		return string.sub(content, i, i + #s - 1) == s
+	end
+
+	-- Check for multiline opening "long bracket" [=*[
+	local function multilineOpenLength(pos)
+		local j = pos + 1 -- pos is index of '['
+		local count = 0
+		while j <= n and chartAt(j) == "=" do
+			count = count + 1
+			j = j + 1
+		end
+		if j <= n and chartAt(j) == "[" then
+			return count
+		end
+	end
+
+	-- Skip closing ]=] of given size
+	local function skipMultilineClose(count, start_pos)
+		local j = start_pos
+		while j <= n do
+			if chartAt(j) == "]" then
+				local k = j + 1
+				local eq2 = 0
+				while k <= n and chartAt(k) == "=" do
+					eq2 = eq2 + 1
+					k = k + 1
+				end
+				if k <= n and chartAt(k) == "]" and eq2 == count then
+					return k + 1
+				end
+				j = j + 1
+			else
+				j = j + 1
+			end
+		end
+		return nil
+	end
+
+	while i <= n do
+		local ch = current()
+
+		if quotes[ch] then
+			-- Literals
+			local quote = ch
+			insert(output, quote)
+			i = i + 1
+			while i <= n do
+				local c = current()
+				insert(output, c)
+				i = i + 1
+				if c == escape then
+					if i <= n then
+						insert(output, current())
+						i = i + 1
+					end
+				elseif c == quote then
+					break
+				end
+			end
+
+		elseif starts_with("--") then
+			i = i + 2
+
+			if i <= n and current() == "[" then
+				local length = multilineOpenLength(i)
+
+				if length then
+					-- Multiline comment
+					i = i + 1 + length + 1
+					local next_pos = skipMultilineClose(length, i)
+
+					if next_pos then
+						local k = i
+						while k < next_pos do
+							local c = chartAt(k)
+							if line_ends[c] then insert(output, c) end
+							k = k + 1
+						end
+						i = next_pos
+					else
+						while i <= n do
+							local c = current()
+							if line_ends[c] then insert(output, c) end
+							i = i + 1
+						end
+					end
+				else
+					-- Single-line comment
+					while i <= n do
+						local c = current()
+						i = i + 1
+						if c == line_return then
+							insert(output, line_return)
+							if i <= n and current() == line_feed then
+								insert(output, line_feed)
+								i = i + 1
+							end
+							break
+						elseif c == line_feed then
+							insert(output, line_feed)
+							break
+						end
+					end
+				end
+			else
+				-- Single-line comment
+				while i <= n do
+					local c = current()
+					i = i + 1
+					if c == line_return then
+						insert(output, line_return)
+						if i <= n and current() == line_feed then
+							insert(output, line_feed)
+							i = i + 1
+						end
+						break
+					elseif c == line_feed then
+						insert(output, line_feed)
+						break
+					end
+				end
+			end
+
 		else
 			insert(output, ch)
 			i = i + 1
@@ -140,11 +286,12 @@ local function hasScriptMethod(unitDef, ...)
 	local hasMethodPattern = {}
 	local useMethodPattern = {}
 
-	-- Must not match lines like "//use call-script DeathAnim(); from Killed()"
-	-- though such a comment pretty strongly implies these methods are present.
-	local path = [[^#include "([^"]+])"]]
+	local includePattern = [[^#include "([^"]+])"]]
 
-	if isUnitScriptCOB(unitDef) then
+	local isScriptCob = isUnitScriptCOB(unitDef)
+	local removeComments = isScriptCob and removeCobComments or removeLusComments
+
+	if isScriptCob then
 		for i, name in ipairs(methods) do
 			hasMethod[i] = false
 			useMethod[i] = false
@@ -179,7 +326,7 @@ local function hasScriptMethod(unitDef, ...)
 						useMethod[i] = true
 					end
 
-					local _, _, include = line:find(path)
+					local _, _, include = line:find(includePattern)
 					if include and not table.getKeyOf(files, include:lower()) then
 						files[#files + 1] = include:lower()
 					end
@@ -226,9 +373,9 @@ end
 ---@return integer? armorHealth
 ---@return integer? armorRecoverTime
 local function hasReactiveArmor(unitDef)
-	if hasScriptMethod(unitDef, "repairShield") then
+	if isUnitScriptCOB(unitDef) and hasScriptMethod(unitDef, "repairShield") then
 		local scriptName = getUnitScriptFile(unitDef)
-		local content = removeComments(VFS.LoadFile(scriptName))
+		local content = removeCobComments(VFS.LoadFile(scriptName))
 
 		local health = 0
 		for _, var in ipairs { "tdamage", "ldamage", "rdamage" } do
