@@ -110,7 +110,9 @@ local mapHeight
 
 local gameFrame = 0
 local adjustedRezSpeed = ZOMBIES_REZ_SPEED
+local isIdleMode = false
 
+local extraDefs = {}
 local zombieCorpseDefs = {}
 local zombieWatch = {}
 local corpseCheckFrames = {}
@@ -146,6 +148,13 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		end
 
 		zombieHeapDefs[unitDefID] = zombieDefData
+	end
+	
+	extraDefs[unitDefID] =  {}
+	if unitDef.speed > 0 then
+		extraDefs[unitDefID].isMobile = true
+	elseif unitDef.buildOptions and #unitDef.buildOptions > 0 then
+		extraDefs[unitDefID].isFactory = true
 	end
 end
 
@@ -246,8 +255,7 @@ local function issueRandomOrders(unitID, unitDefID)
 			orders[#orders + 1] = {CMD_GUARD, {nearAlly}, 0}
 		end
 	end
-
-	if unitDef.isMobile then
+	if extraDefs[unitDefID].isMobile then
 		for i = 1, ZOMBIE_ORDER_COUNT do
 			local randomX = random(0, mapWidth)
 			local randomZ = random(0, mapHeight)
@@ -257,7 +265,7 @@ local function issueRandomOrders(unitID, unitDefID)
 				orders[#orders + 1] = {CMD_FIGHT, {randomX, randomY, randomZ}, CMD_OPT_SHIFT}
 			end
 		end
-	elseif not unitDef.isFactory then
+	elseif not extraDefs[unitDefID].isFactory then
 		orders[#orders + 1] = {CMD_FIGHT, {0, 0, 0}, CMD_OPT_SHIFT} --immobile units only need a single fight order
 	end
 
@@ -265,7 +273,7 @@ local function issueRandomOrders(unitID, unitDefID)
 		spGiveOrderArrayToUnit(unitID, orders)
 	end
 
-	if unitDef.isFactory then
+	if extraDefs[unitDefID].isFactory then
 		issueRandomFactoryBuildOrders(unitID, unitDefID)
 	end
 end
@@ -289,7 +297,7 @@ end
 local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 	local unitDef = UnitDefs[unitDefID]
 	local spawnCount = 1
-	if unitDef.isMobile then
+	if extraDefs[unitDefID].isMobile then
 		spawnCount = math.floor((random(ZOMBIES_COUNT_MIN, ZOMBIES_COUNT_MAX) + random(ZOMBIES_COUNT_MIN, ZOMBIES_COUNT_MAX)) / 2) --skew results towards average to produce better gameplay
 	end
 	local size = unitDef.xsize
@@ -389,7 +397,7 @@ function gadget:GameFrame(frame)
 				zombieWatch[unitID] = nil
 			else
 				local queueSize = spGetUnitCommandCount(unitID)
-				if not (queueSize) or (queueSize == 0)  and Spring.GetTeamID(unitID) == gaiaTeamID then
+				if not (queueSize) or (queueSize == 0) and spGetUnitTeam(unitID) == gaiaTeamID then
 					issueRandomOrders(unitID, unitDefID)
 				end
 			end
@@ -399,13 +407,15 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:FeatureCreated(featureID, allyTeam)
-	local featureDefID = spGetFeatureDefID(featureID)
-	if zombieCorpseDefs[featureDefID] then
-		local spawnDelayFrames = zombieCorpseDefs[featureDefID].spawnDelayFrames
-		local spawnFrame = gameFrame + spawnDelayFrames
-		corpsesData[featureID] = {featureDefID = featureDefID, spawnDelayFrames = spawnDelayFrames, creationFrame = gameFrame, spawnFrame = spawnFrame}
-		corpseCheckFrames[spawnFrame] = corpseCheckFrames[spawnFrame] or {}
-		corpseCheckFrames[spawnFrame][#corpseCheckFrames[spawnFrame] + 1] = featureID
+	if not isIdleMode then
+		local featureDefID = spGetFeatureDefID(featureID)
+		if zombieCorpseDefs[featureDefID] then
+			local spawnDelayFrames = zombieCorpseDefs[featureDefID].spawnDelayFrames
+			local spawnFrame = gameFrame + spawnDelayFrames
+			corpsesData[featureID] = {featureDefID = featureDefID, spawnDelayFrames = spawnDelayFrames, creationFrame = gameFrame, spawnFrame = spawnFrame}
+			corpseCheckFrames[spawnFrame] = corpseCheckFrames[spawnFrame] or {}
+			corpseCheckFrames[spawnFrame][#corpseCheckFrames[spawnFrame] + 1] = featureID
+		end
 	end
 end
 
@@ -445,7 +455,32 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	end
 end
 
+local function createZombieFromFeature(featureID)
+	if isIdleMode then
+		local featureDefID = spGetFeatureDefID(featureID)
+		if zombieCorpseDefs[featureDefID] then
+			local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
+			if featureX then
+				local featureDefData = zombieCorpseDefs[featureDefID]
+				local healthReductionRatio = calculateHealthRatio(featureID)
+				spawnZombies(featureID, featureDefData.unitDefID, healthReductionRatio, featureX, featureY, featureZ)
+				return true
+			end
+		end
+	end
+	return false
+end
+
 function gadget:Initialize()
+	local modOptionEnabled = modOptions.zombies ~= "disabled"
+	local idleModeEnabled = GG.Zombies and GG.Zombies.IdleMode == true
+	
+	if not modOptionEnabled and not idleModeEnabled then
+		return false
+	end
+	
+	isIdleMode = idleModeEnabled and not modOptionEnabled
+	
 	mapWidth = Game.mapSizeX
 	mapHeight = Game.mapSizeZ
 	gameFrame = spGetGameFrame()
@@ -457,13 +492,16 @@ function gadget:Initialize()
 		end
 	end
 	
-	local features = spGetAllFeatures()
-	for _, featureID in ipairs(features) do
-		gadget:FeatureCreated(featureID, gaiaTeamID)
+	if not isIdleMode then
+		local features = spGetAllFeatures()
+		for _, featureID in ipairs(features) do
+			gadget:FeatureCreated(featureID, gaiaTeamID)
+		end
 	end
 
-	GG.Zombies = {}
+	GG.Zombies = GG.Zombies or {}
 	GG.Zombies.SetZombie = setZombie
+	GG.Zombies.CreateZombieFromFeature = createZombieFromFeature
 end
 
 function gadget:GameStart()
