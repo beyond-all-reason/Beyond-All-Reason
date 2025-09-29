@@ -5,6 +5,7 @@ local team = VFS.Include(utilitiesDirectory .. 'teamFunctions.lua')
 local syncFunctions = VFS.Include(utilitiesDirectory .. 'synced.lua')
 local tableFunctions = VFS.Include(utilitiesDirectory .. 'tableFunctions.lua')
 local colorFunctions = VFS.Include(utilitiesDirectory .. 'color.lua')
+local scriptFunctions = VFS.Include(utilitiesDirectory .. 'unitScripts.lua')
 
 local utilities = {
 	LoadTGA = tga.LoadTGA,
@@ -36,6 +37,10 @@ local utilities = {
 
 	Color = colorFunctions,
 }
+
+for name, func in pairs(scriptFunctions) do
+	utilities[name] = func
+end
 
 local debugUtilities = VFS.Include(utilitiesDirectory .. 'debug.lua')
 
