@@ -486,6 +486,10 @@ local function drawStats(uDefID, uID)
 
 		if armoredMultiple and armoredMultiple ~= 1 then
 			DrawText(texts.closed..":", format(" +%d%%, "..texts.maxhp..": %d", (1/armoredMultiple-1) *100,maxHP/armoredMultiple))
+
+			if uDef.armorHealth then
+				DrawText("Reactive:", format("%d "..texts.health..", %ds recovery", uDef.armorHealth, uDef.armorRecoverTime))
+			end
 		end
 	end
 
