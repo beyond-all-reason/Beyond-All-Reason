@@ -3,7 +3,7 @@
 
 piece body, aimy1, turret, aimx1, sleeve, flare, ringinner, ringouter, blfoot, blhinge, bltoes, brfoot, brhinge, brtoes, flfoot, flhinge, fltoes, frfoot, frhinge, frtoes;
 
-static-var  restore_delay, timeLeft, animSpeed, maxSpeed, animFramesPerKeyframe, Stunned, isMoving, oldhead, isfiring, gameframe, lastfired, firetime, aimAdj, oldsteerheading;
+static-var  restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, Stunned, isMoving, oldhead, isfiring, aimAdj, oldsteerheading;
 
 
 #define BASEPIECE body
@@ -37,7 +37,7 @@ Steering(heading, steery, currentSpeed)
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
 #define SIGNAL_RESTORE 2
-#define SIGNAL_LIGHT 512
+
 
 Walk() {// For C:\Users\logst\Downloads\BAR\leginc anim.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	set-signal-mask SIGNAL_MOVE;
@@ -451,6 +451,7 @@ StopWalking() {
 	move body to z-axis [0] speed [100] / animSpeed;
 	
 	turn body to x-axis <0> speed <200> / animSpeed;
+	turn body to y-axis <0> speed <200> / animSpeed;
 	turn body to z-axis <0> speed <200> / animSpeed;
 	turn turret to y-axis <0> speed <200> / animSpeed; 
 	turn sleeve to x-axis <0> speed <200> / animSpeed;
@@ -533,7 +534,6 @@ UnitSpeed(){
 	}
 }
 
-
 StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
@@ -556,95 +556,42 @@ Stop()
 	hide flare;
 }
 
+RestoreAfterDelay()
+{
+	set-signal-mask SIGNAL_AIM1;
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
 
-
-TimeToRestore(addTime) {
-	
+ExecuteRestoreAfterDelay() 
+{
 	signal SIGNAL_RESTORE;
 	set-signal-mask SIGNAL_RESTORE;
-    // This function may not be signal terminated
-    // If it has to be, it _must_ be immediately restarted
-    // PROBLEM: the time that is slept depends on number of aim calls.
-    while((timeLeft > 1) || Stunned) {
-		//get PRINT(timeLeft, get GAME_FRAME);
-        addTime = timeLeft;
-        timeLeft = 1;
-        sleep addTime;//can sometimes sleep 6000 but never wake up again?
-    }
-	//get PRINT(77, timeLeft, get GAME_FRAME);
-    // The restore section must be atomic :/
-
-
-
-
-    signal SIGNAL_AIM1;
 	hide flare;
-
 	turn aimy1 to y-axis <0.0> speed <20.0>;
 	turn aimx1 to x-axis <0.0> speed <20.0>;
-
-    timeLeft = 0;
-	//get PRINT(333333);
     isfiring = 0;
 	oldhead = -1000000;
 	aimAdj = 0;	
-	//stop-spin barrelMid around z-axis decelerate <5>;
-	//wait-for-turn turretBase around y-axis;
 }
-
-
-SweepFire()
-{
-	signal SIGNAL_LIGHT;
-	set-signal-mask SIGNAL_LIGHT;
-	while (TRUE)
-	{
-		gameframe = get(GAME_FRAME);
-
-		//get PRINT(123, targetswap, isfiring, lastfired+firetime>gameframe);
-		//get PRINT(1234, lastfired, firetime, gameframe);
-		if (isfiring == 1 AND lastfired+firetime>gameframe)
-		{
-			emit-sfx 2048 from flare;
-		}
-		sleep 20;
-	}
-}
-
 
 Create()
 {
-	
-	restore_delay = 6000;
-	timeLeft = restore_delay;
-	//call-script TB_Init();
-	
+	restore_delay = 3000;
 	spin ringinner around y-axis speed <200>;
 	spin ringouter around y-axis speed <-200>;
-	
 	hide flare;
 	hide aimy1;
 	hide aimx1;
-		
 	isfiring = 0;
 	oldhead = -1000000;
-
-	firetime = 120;
-	lastfired = get(GAME_FRAME)-200;
-
 	oldsteerheading = get HEADING;
 	isMoving = FALSE;
 	animSpeed = 3;
 	aimAdj = 0;
 	start-script Steering();
-	start-script SweepFire();
 	start-script StopMoving();
 	start-script UnitSpeed();
-}
-
-SetMaxReloadTime(reloadMS)
-{
-	restore_delay = reloadMS * 2;
 }
 
 AimFromWeapon1(pieceIndex)
@@ -668,36 +615,22 @@ SetStunned(State)
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
 	turn aimy1 to y-axis heading - aimAdj speed <30>;
 	turn aimx1 to x-axis -1*pitch speed <15>;
-    if (timeLeft == 0)
-    {
-        start-script TimeToRestore();
-    }
-    timeLeft = restore_delay;
-	gameframe = get(GAME_FRAME);
-	if ((get ABS(oldhead - heading) < 500) AND oldhead != -1000000)
+	if (isfiring == 0 AND (((get ABS(oldhead - heading)) > 65536) OR ((get ABS(oldhead - heading) > <1>) AND ((get ABS(oldhead - heading)) < 65536 - <1>))))
 	{
-		oldhead = heading;
-		isfiring = 1;
-		gameframe = get(GAME_FRAME);
-		lastfired = gameframe;
-		return (0);
+		oldhead = 1000000;
+		wait-for-turn aimy1 around y-axis;
+		wait-for-turn aimx1 around x-axis;
 	}
-	wait-for-turn aimy1 around y-axis;
-	wait-for-turn aimx1 around x-axis;
 	oldhead = heading;
 	isfiring = 1;
-	gameframe = get(GAME_FRAME);
-	lastfired = gameframe;
-	return (0);
+	start-script RestoreAfterDelay();
+	return (1);
 }
 
 FireWeapon1()
 {
-	gameframe = get(GAME_FRAME);
-	lastfired = gameframe;
 	return (0);
 }
 

@@ -1,6 +1,8 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Map Waterlevel",
@@ -75,14 +77,9 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		local playername, _, spec = Spring.GetPlayerInfo(playerID, false)
-		local authorized = false
-		for name, enabled in pairs(_G.permissions.waterlevel) do
-			if enabled and playername == name then
-				authorized = true
-				break
-			end
-		end
+		local accountInfo = select(11, Spring.GetPlayerInfo(playerID))
+		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+		local authorized = _G.permissions.waterlevel[accountID]
 
 		if not (authorized or Spring.IsCheatingEnabled()) then
 			return
@@ -97,8 +94,9 @@ if gadgetHandler:IsSyncedCode() then
 else  -- UNSYNCED
 
 	local myPlayerID = Spring.GetMyPlayerID()
-	local myPlayerName = Spring.GetPlayerInfo(myPlayerID,false)
-	local authorized = SYNCED.permissions.waterlevel[myPlayerName]
+	local accountInfo = select(11, Spring.GetPlayerInfo(myPlayerID))
+	local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+	local authorized = SYNCED.permissions.waterlevel[accountID]
 
 	local function waterlevel(cmd, line, words, playerID)
 		if words[1] then

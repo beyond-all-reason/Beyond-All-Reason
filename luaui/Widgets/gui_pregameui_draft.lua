@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Pregame UI - Draft Spawn Order",
@@ -270,6 +272,7 @@ local function findPlayerName(playerID)
 					return player.name
 				else -- try to cache missing player name
 					tname = select(1, Spring.GetPlayerInfo(playerID, false))
+					tname = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or tname
 					if tname ~= nil then
 						player.name = tname
 						return player.name
@@ -278,7 +281,10 @@ local function findPlayerName(playerID)
 			end
 		end
 	end
-	tname = select(1, Spring.GetPlayerInfo(playerID, false)) or "unconnected" -- show "unconnected" instead of nil if we don't know the name
+	tname = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or Spring.GetPlayerInfo(playerID, false)
+	if not tname then
+		tname = "unconnected" 	-- show "unconnected" instead of nil if we don't know the name
+	end
 	return tname
 end
 
@@ -825,6 +831,9 @@ function widget:Initialize()
 			--	local tsSigma = customtable.skilluncertainty
 			--end
 		end
+	else
+	-- 	widgetHandler:RemoveWidget() -- not removing cause we still need widget:GameSetup to return true else there is player list readystate drawn on the left side of the screen
+	-- 	return
 	end
 
 	local myAllyCount = getHumanCountWithinAllyTeam(myAllyTeamID)
@@ -861,6 +870,9 @@ function widget:Initialize()
 end
 
 function widget:DrawScreen()
+	if mySpec and not eligibleAsSub then
+		return
+	end
 	if not startPointChosen then
 		checkStartPointChosen()
 	end
@@ -1006,12 +1018,15 @@ end
 -- DraftOrder mod start
 local sec = 0
 function widget:Update(dt)
+	if mySpec and not eligibleAsSub then
+		return
+	end
 	if draftMode == nil or draftMode == "disabled" then
 		widgetHandler:RemoveCallIn("Update")
 		return
 	end
 	sec = sec + dt
-	if sec >= 0.05 then -- 50 updates per second
+	if sec >= 0.05 then -- 20 updates per second
 		sec = 0
 		if TeamPlacementUI ~= nil then
 			glDeleteList(TeamPlacementUI)
@@ -1021,6 +1036,7 @@ function widget:Update(dt)
 		end
 	end
 end
+
 function widget:RecvLuaMsg(msg, playerID)
 	local words = {}
 	for word in msg:gmatch("%S+") do
@@ -1041,6 +1057,7 @@ function widget:RecvLuaMsg(msg, playerID)
 			for i = 3, #words do
 				local playerid = tonumber(words[i])
 				tname = select(1, Spring.GetPlayerInfo(playerid, false))
+				tname = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerid)) or tname
 				table.insert(myTeamPlayersOrder, {id = playerid, name = tname })
 			end
 			if #myTeamPlayersOrder > bigTeamAmountOfPlayers then -- big team, not regular game

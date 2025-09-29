@@ -4,6 +4,30 @@
 -- that controls it
 Unit = class(AIBase)
 
+local function tracyZoneBeginMem() return end
+local function tracyZoneEndMem() return end
+
+if tracy and not tracy then
+	Spring.Echo("Enabled Tracy support for UNIT STAI")
+	tracyZoneBeginMem = function(fname)
+		if logRAM then lastGCinfo = gcinfo() end
+		tracy.ZoneBeginN(fname)
+	end
+
+	tracyZoneEndMem = function(fname)
+		fname = fname or "STAI"
+		if logRAM then
+			local nowGCinfo = gcinfo()
+			local delta = nowGCinfo - lastGCinfo
+			if delta > 0 then
+				tracy.Message(tostring(fname .. nowGCinfo - lastGCinfo))
+			end
+			lastGCinfo = nowGCinfo
+		end
+		tracy.ZoneEnd()
+	end
+end
+
 function Unit:Init()
 	-- check if we were set up correctly
 	if self.engineUnit == nil then
@@ -40,7 +64,6 @@ end
 
 function Unit:Update()
 	-- Handle activating a new behaviour if we switched
-	--local RAM = gcinfo()
 	if self.nextBehaviour ~= nil then
 		self.activeBehaviour = self.nextBehaviour
 		self.nextBehaviour = nil
@@ -51,9 +74,9 @@ function Unit:Update()
 	-- Pass the update event to the behaviours
 	for k,behaviour in pairs(self.behaviours) do
 		--self.game:StartTimer(behaviour:Name() .. ' Unit')
-
+		--tracyZoneBeginMem('STAI:'..behaviour:Name())
 		behaviour:Update()
-
+		--tracyZoneEndMem('STAI:'..behaviour:Name())
 		--self.game:StopTimer(behaviour:Name() .. ' Unit')
 	end
 --  		RAM = gcinfo() - RAM

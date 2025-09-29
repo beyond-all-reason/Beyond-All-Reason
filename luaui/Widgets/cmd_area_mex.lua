@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Area Mex",
@@ -11,7 +13,7 @@ function widget:GetInfo()
 	}
 end
 
-VFS.Include("luarules/configs/customcmds.h.lua")
+local CMD_AREA_MEX = GameCMD.AREA_MEX
 
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMapDrawMode = Spring.GetMapDrawMode

@@ -1,6 +1,8 @@
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
   return {
     name = "CommandInsert",
@@ -131,6 +133,8 @@ function widget:CommandNotify(id, params, options)
   if options.alt then opt = opt + CMD.OPT_ALT end
   if options.ctrl then opt = opt + CMD.OPT_CTRL end
   if options.right then opt = opt + CMD.OPT_RIGHT end
+  -- options.meta not forwarded since we're doing insert with it
+  -- and don't want to alias with engine at the same time.
   if options.shift then
     opt = opt + CMD.OPT_SHIFT
 
@@ -157,7 +161,7 @@ function widget:CommandNotify(id, params, options)
   local units = Spring.GetSelectedUnits()
   for i=1,#units do
     local unit_id = units[i]
-    local commands = Spring.GetCommandQueue(unit_id,100)
+    local commands = Spring.GetUnitCommands(unit_id,100)
     local px,py,pz = Spring.GetUnitPosition(unit_id)
     local min_dlen = 1000000
     local insert_pos = 0

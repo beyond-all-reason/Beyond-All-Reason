@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Pre-aim",
@@ -18,7 +20,7 @@ end
 --this is a good idea for pop-up turrets so they don't prematurely reveal themselves.
 --also when proximityPriority is heavily biased toward far targets
 
-local weaponRange = {}
+local rangeBoost = {}
 local isPreaimUnit = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if not unitDef.canFly then
@@ -30,7 +32,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 
 					local weaponDefID = weapons[i].weaponDef
 					isPreaimUnit[unitDefID][i] = weaponDefID
-					weaponRange[weaponDefID] = WeaponDefs[weaponDefID].range
+					rangeBoost[weaponDefID] = math.max(0.1 * WeaponDefs[weaponDefID].range, 20)
 				end
 			end
 		end
@@ -40,7 +42,7 @@ end
 function gadget:UnitCreated(unitID, unitDefID)
 	if isPreaimUnit[unitDefID] then
 		for id, wdefID in pairs(isPreaimUnit[unitDefID]) do
-			Spring.SetUnitWeaponState(unitID, id, "autoTargetRangeBoost", (0.1 * weaponRange[wdefID]) or 20)
+			Spring.SetUnitWeaponState(unitID, id, "autoTargetRangeBoost", rangeBoost[wdefID])
 		end
 	end
 end

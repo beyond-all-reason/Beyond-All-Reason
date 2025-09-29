@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = "Prevent Cloaked Unit Reclaim",
@@ -11,6 +13,7 @@ function gadget:GetInfo()
 end
 
 local canReclaim = {}
+local unitRadius = {}
 local cloakedUnits = {}
 local checkedUnits = {}
 
@@ -41,7 +44,7 @@ if gadgetHandler:IsSyncedCode() then
         if (cloakedUnits[unitID]) and (not checkedUnits[unitID]) then  -- only needs to be checked when the unit barely is cloaked
             checkedUnits[unitID] = true
             local x, y, z = GetUnitPosition(unitID)
-            local units = GetUnitsInCylinder(x, z, maxBuildDist)
+            local units = GetUnitsInCylinder(x, z, maxBuildDist + unitRadius[GetUnitDefID(unitID)]) -- + unit radius since reclaim also works if only the edge of the unit is in range
             for _, bID in pairs(units) do
                 local unitDefID = GetUnitDefID(bID)
                 if canReclaim[unitDefID] then
@@ -76,6 +79,9 @@ if gadgetHandler:IsSyncedCode() then
         for unitDefID, unitDef in pairs(UnitDefs) do
             if unitDef.canReclaim then
                 canReclaim[unitDefID] = unitDef.buildDistance or 0
+            end
+            if unitDef.canCloak then
+                unitRadius[unitDefID] = unitDef.radius
             end
         end
         -- handle luarules reload

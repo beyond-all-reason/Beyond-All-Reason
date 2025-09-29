@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name	= "CUS GL4",
@@ -13,7 +15,6 @@ function gadget:GetInfo()
 end
 
 if gadgetHandler:IsSyncedCode() then
-	local itsXmas = GG.itsXmas
 	return false
 end
 
@@ -342,9 +343,6 @@ do --save a ton of locals
 	} -- maps uniformbins to a table of uniform names/values
 end
 
-local alphaMult = 0.35
-local alphaThresholdOpaque = 0.5
-local alphaThresholdAlpha  = 0.1
 local overrideDrawFlags = {
 	[0]  = true , --SO_OPAQUE_FLAG = 1, deferred hack
 	[1]  = true , --SO_OPAQUE_FLAG = 1,
@@ -417,7 +415,6 @@ local unitDrawBins = nil -- this also controls wether cusgl4 is on at all!
 
 local objectIDtoDefID = {}
 
-local processedCounter = 0 -- This is incremented on every update, and is used to identify which objects are no longer drawn
 
 local shaders = {} -- double nested table of {drawflag : {"units":shaderID}}
 
@@ -496,32 +493,34 @@ end
 
 local function SetFixedStatePre(drawPass, shaderID)
 	if HasBit(drawPass, 4) then
-		gl.ClipDistance(2, true)
+		gl.ClipDistance(0, true)
 	elseif HasBit(drawPass, 8) then
-		gl.ClipDistance(2, true)
+		gl.ClipDistance(0, true)
 	end
 end
 
 local function SetFixedStatePost(drawPass, shaderID)
 	if HasBit(drawPass, 4) then
-		gl.ClipDistance(2, false)
+		gl.ClipDistance(0, false)
 	elseif HasBit(drawPass, 8) then
-		gl.ClipDistance(2, false)
+		gl.ClipDistance(0, false)
 	end
 end
 
 local function SetShaderUniforms(drawPass, shaderID, uniformBinID)
-	--if true then return end
 	gl.UniformInt(gl.GetUniformLocation(shaderID, "drawPass"), drawPass)
-	if drawPass <= 2 then
-		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane2"), 0.0, 0.0, 0.0, 1.0)
-	elseif drawPass == 16 then
-		--gl.Uniform(gl.GetUniformLocation(shaderID, "alphaCtrl"), alphaThresholdOpaque, 1.0, 0.0, 0.0)
-		-- set properly by default
+
+	-- The clip plane is used for above/below water, for the reflection and refraction cameras only
+	if HasBit(drawPass, 4) then
+		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane0"), 0.0, 1.0, 0.0, 0.0)
+	elseif HasBit(drawPass, 8) then
+		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane0"), 0.0, -1.0, 0.0, 0.0)
+	else
+		-- This will cull stuff that are not in view of the camera. Not too useful methinks
+		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane0"), 0.0, 0.0, 0.0, 1.0)
 	end
 
 	for uniformLocationName, uniformValue in pairs(uniformBins[uniformBinID]) do
-		--Spring.Echo("Setting uniform",uniformLocationName, uniformValue)
 		if uniformLocationName == 'bitOptions' then
 			gl.UniformInt(gl.GetUniformLocation(shaderID, uniformLocationName), uniformValue)
 		else
@@ -529,19 +528,19 @@ local function SetShaderUniforms(drawPass, shaderID, uniformBinID)
 		end
 	end
 
-	if HasBit(drawPass, 4) then
-		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane2"), 0.0, 1.0, 0.0, 0.0)
-	elseif HasBit(drawPass, 8) then
-		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane2"), 0.0, -1.0, 0.0, 0.0)
-	end
+
 end
 ------------------------- SHADERS                   ----------------------
 ------------------------- LOADING OLD CUS MATERIALS ----------------------
-local luaShaderDir = "LuaUI/Widgets/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+
+local LuaShader = gl.LuaShader
+
 local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 
-local MATERIALS_DIR = "modelmaterials_gl4/"
+local QUATERNIONDEFS = ""
+if Engine.FeatureSupport.transformsInGL4 then 
+	QUATERNIONDEFS = LuaShader.GetQuaternionDefs()
+end
 
 local defaultMaterialTemplate
 local unitsNormalMapTemplate
@@ -736,6 +735,13 @@ local function CompileLuaShader(shader, definitions, plugIns, addName, recompila
 		end
 	end
 
+	for i, program in ipairs({"vertex", "fragment", "geometry"}) do
+		if shader[program] and QUATERNIONDEFS then 
+			shader[program] = shader[program]:gsub("//__QUATERNIONDEFS__",  QUATERNIONDEFS)
+		end
+	end
+
+
 	local luaShader = LuaShader(shader, "CUS_" .. addName)
 	local compilationResult = luaShader:Initialize()
 	if compilationResult ~= true then
@@ -789,7 +795,6 @@ end
 	-- uniform sampler2D losMapTex;	//8
 
 	-- uniform sampler2D brdfLUT;			//9
-	-- uniform sampler2D envLUT;			//10
 
 local textureKeytoSet = {} -- table of {TextureKey : {textureTable}}
 
@@ -851,7 +856,6 @@ local wreckAtlases = {
 }
 
 local brdfLUT = "modelmaterials_gl4/brdf_0.png"
-local envLUT = "modelmaterials_gl4/envlut_0.png"
 
 local existingfilecache = {} -- this speeds up the VFS calls
 
@@ -956,7 +960,6 @@ local function initBinsAndTextures()
 				[8] = "$info",
 				[9] = brdfLUT,
 				[10] = noisetex3dcube,
-				--[10] = envLUT,
 			}
 
 			objectDefToUniformBin[-1 * featureDefID] = 'feature'
@@ -1015,7 +1018,6 @@ local function initBinsAndTextures()
 				[8] = "$info:los",
 				[9] = GG.GetBrdfTexture(), --brdfLUT,
 				[10] = noisetex3dcube,
-				--[10] = envLUT,
 			}
 
 			local wreckTex1 =
@@ -1511,7 +1513,6 @@ local function RemoveObject(objectID, reason) -- we get pos/neg objectID here
 	end
 end
 
-local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 
 local function ProcessUnits(units, drawFlags, reason)
@@ -1519,7 +1520,6 @@ local function ProcessUnits(units, drawFlags, reason)
 		local unitID = units[i]
 		local drawFlag = drawFlags[i]
 		if debugmode then Spring.Echo("ProcessUnits", unitID, drawFlag, reason) end
-		local isBuilding = spGetUnitIsBeingBuilt(unitID)
 
 
 		if math_bit_and(drawFlag, 34) > 0 then -- has alpha (2) or alphashadow(32) flag 
@@ -1623,6 +1623,7 @@ local function ExecuteDrawPass(drawPass)
 	gl.Culling(GL.BACK)
 	if (drawPass == 1) then --forward opaque pass
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- 
+		--gl.PolygonOffset(-2.0, -2.0);
 	end
 	
 	--for shaderName, data in pairs(unitDrawBins[drawPass]) do
@@ -1641,7 +1642,7 @@ local function ExecuteDrawPass(drawPass)
 			local shaderTable = shaders[drawPass][shaderName]
 
 			if unitscountforthisshader > 0 then
-				gl.UseShader(shaderTable.shaderObj)
+				shaderTable:Activate()
 				shaderswaps = shaderswaps + 1
 				for uniformBinID, uniformBin in pairs(data) do
 
@@ -1672,7 +1673,7 @@ local function ExecuteDrawPass(drawPass)
 					end
 				end
 
-				gl.UseShader(0)
+				shaderTable:Deactivate()
 			end
 		end
 	end
@@ -1684,6 +1685,7 @@ local function ExecuteDrawPass(drawPass)
 	end
 	if drawPass == 1 then
 		gl.Blending(GL.ONE, GL.ZERO) -- do full opaque
+		--gl.PolygonOffset(0, 0);
 	end
 	
 	--drawpassstats[drawPass].batches = batches
@@ -2020,14 +2022,10 @@ function gadget:Shutdown()
 end
 
 
-local totalbatches = 0
-local totalunits = 0
 
 local updateframe = 0
 
-local updatecount = 0
 
-local prevobjectcount = 0
 
 
 local function countbintypes(flagarray)
@@ -2271,7 +2269,6 @@ function gadget:SunChanged() -- Note that map_nightmode.lua gadget has to change
 	lastSunChanged = df
 	local nightFactor = 1.0
 	if GG['NightFactor'] then
-		local altitudefactor = 1.0 --+ (1.0 - WG['NightFactor'].altitude) * 0.5
 		nightFactor = (GG['NightFactor'].red + GG['NightFactor'].green + GG['NightFactor'].blue) * 0.33
 	end
 	for uniformBinName, defaultBrightnessFactor in pairs(nightFactorBins) do
@@ -2302,36 +2299,14 @@ local function drawPassBitsToNumber(opaquePass, deferredPass, drawReflection, dr
 end
 
 function gadget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
+	
 	if unitDrawBins == nil then return end
 	if preloadedTextures == false then PreloadTextures() end
 	local drawPass = drawPassBitsToNumber(true, deferredPass, drawReflection, drawRefraction)
 	local batches, units = ExecuteDrawPass(drawPass)
 end
 
-function gadget:DrawAlphaUnitsLua(drawReflection, drawRefraction)
-	if unitDrawBins == nil then return end
-	local drawPass = drawPassBitsToNumber(false, false, drawReflection, drawRefraction)
-	--local batches, units = ExecuteDrawPass(drawPass)
-end
-
-function gadget:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefraction)
-	if unitDrawBins == nil then return end
-	local drawPass = drawPassBitsToNumber(true, deferredPass, drawReflection, drawRefraction)
-	--local batches, units = ExecuteDrawPass(drawPass)
-end
-
-function gadget:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
-	if unitDrawBins == nil then return end
-	local drawPass = drawPassBitsToNumber(true, false, drawReflection, drawRefraction)
-	--local batches, units = ExecuteDrawPass(drawPass)
-end
-
 function gadget:DrawShadowUnitsLua()
 	if unitDrawBins == nil then return end
 	local batches, units = ExecuteDrawPass(16)
-end
-
-function gadget:DrawShadowFeaturesLua() -- These are drawn together with units
-	if unitDrawBins == nil then return end
-	--ExecuteDrawPass(16)
 end

@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "API Resource Spot Builder (mex/geo)",
@@ -6,7 +8,6 @@ function widget:GetInfo()
 		version = "2.0",
 		date = "Oct 23, 2010; last update: April 12, 2022",
 		license = "GNU GPL, v2 or later",
-		handler = true,
 		layer = -1, -- load before all widgets that need these mex/geo building tools
 		enabled = true
 	}
@@ -15,13 +16,7 @@ end
 ------------------------------------------------------------
 -- Speedups
 ------------------------------------------------------------
-local CMD_STOP = CMD.STOP
 local CMD_GUARD = CMD.GUARD
-local CMD_OPT_RIGHT = CMD.OPT_RIGHT
-local CMD_OPT_ALT = CMD.OPT_ALT
-local CMD_OPT_CTRL = CMD.OPT_CTRL
-local CMD_OPT_META = CMD.OPT_META
-local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 
 local spGetBuildFacing = Spring.GetBuildFacing
 local spGetSelectedUnits = Spring.GetSelectedUnits
@@ -142,7 +137,7 @@ local function spotHasExtractorQueued(spot, builders)
 
 	else
 		for i=1, #builders do
-			local hasOrder = checkQueue(Spring.GetCommandQueue(builders[i], 100))
+			local hasOrder = checkQueue(Spring.GetUnitCommands(builders[i], 100))
 			if hasOrder then
 				return true
 			end
@@ -305,7 +300,7 @@ local function sortBuilders(units, constructorIds, buildingId, shift)
 	end
 
 	local function hasExistingGuardOrder(uid)
-		local queue = Spring.GetCommandQueue(uid, 10)
+		local queue = Spring.GetUnitCommands(uid, 10)
 		for i = 1, #queue do
 			local cmd = queue[i]
 			if cmd.id == CMD_GUARD and (cmd.params and cmd.params[1] and isMainBuilderOfId(cmd.params[1])) then

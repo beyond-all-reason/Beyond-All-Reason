@@ -18,7 +18,7 @@ return {
 		footprintz = 3,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 199,
+		health = 230,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/LEGWIN.s3o",

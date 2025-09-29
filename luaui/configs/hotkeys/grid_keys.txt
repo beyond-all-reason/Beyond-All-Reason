@@ -35,7 +35,7 @@ bind               sc_e  reclaim
 bind         Shift+sc_e  reclaim
 bind               sc_f  fight
 bind         Shift+sc_f  fight
-bind           Alt+sc_f  forcestart
+bind           Alt+sc_f  chain force forcestart | say !cv forcestart
 bind               sc_g  stopproduction
 bind         Shift+sc_g  stopproduction
 bind               sc_g  stop
@@ -61,6 +61,9 @@ bind         Shift+sc_p  gatherwait
 bind               sc_r  repair
 bind         Shift+sc_r  repair
 bind               sc_s  settarget
+bind         Shift+sc_s  settarget
+bind           Alt+sc_s  settargetnoground
+bind     Shift+Alt+sc_s  settargetnoground
 bind          Ctrl+sc_s  canceltarget
 bind               sc_u  unloadunits
 bind         Shift+sc_u  unloadunits
@@ -75,6 +78,13 @@ bind          sc_b,sc_b  onoff 0
 bind               sc_b  onoff 1
 bind Shift+sc_b,Shift+sc_b  onoff 0
 bind         Shift+sc_b  onoff 1
+
+bind     sc_b,sc_b,sc_b  trajectory_toggle 1
+bind          sc_b,sc_b  trajectory_toggle 0
+bind     sc_b trajectory_toggle 2
+bind Shift+sc_b,Shift+sc_b,Shift+sc_b  trajectory_toggle 1
+bind Shift+sc_b,Shift+sc_b trajectory_toggle 0
+bind         Shift+sc_b  trajectory_toggle 2
 
 bind     sc_l,sc_l,sc_l  firestate 1
 bind          sc_l,sc_l  firestate 0

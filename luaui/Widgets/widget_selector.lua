@@ -16,6 +16,8 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Widget Selector",
@@ -80,6 +82,7 @@ local bordery = yStep * 0.75
 
 local activeGuishader = false
 local scrollbarOffset = -15
+local updateUi = true
 
 local midx = vsx * 0.5
 local minx = vsx * 0.4
@@ -120,6 +123,7 @@ local buttonTop = 40 -- offset between top of buttons and bottom of widget
 
 local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
 local textInputDlist
+local uiList
 local updateTextInputDlist = true
 local textCursorRect
 local showTextInput = true
@@ -224,7 +228,8 @@ function drawChatInput()
 			local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/2)))
 			chatInputArea = { activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance }
 			UiElement(chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4], 0,0,nil,nil, 0,nil,nil,nil, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
-			if WG['guishader'] then
+
+			if WG['guishader'] and activeGuishader then
 				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'selectorinput')
 			end
 
@@ -293,6 +298,36 @@ local function UpdateListScroll()
 	for i = se, ee do
 		widgetsList[n], n = fullWidgetsList[i], n + 1
 	end
+
+	updateUiList2 = true
+end
+
+local function widgetselectorCmd(_, _, params)
+	show = not show
+	if show then
+		widgetHandler.textOwner = self		--widgetHandler:OwnText()
+		Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+		Spring.SetConfigInt("widgetselector", 1)
+	else
+		widgetHandler.textOwner = nil		--widgetHandler:DisownText()
+	end
+end
+
+local function factoryresetCmd(_, _, params)
+	widgetHandler.__blankOutConfig = true
+	--widgetHandler.__allowUserWidgets = false
+	Spring.SendCommands("luarules reloadluaui")
+end
+
+local function userwidgetsCmd(_, _, params)
+	if widgetHandler.allowUserWidgets then
+		widgetHandler.__allowUserWidgets = false
+		Spring.Echo("Disallowed user widgets, reloading...")
+	else
+		widgetHandler.__allowUserWidgets = true
+		Spring.Echo("Allowed user widgets, reloading...")
+	end
+	Spring.SendCommands("luarules reloadluaui")
 end
 
 function widget:Initialize()
@@ -329,6 +364,7 @@ function widget:Initialize()
 		show = newShow
 		if show then
 			widgetHandler.textOwner = self		--widgetHandler:OwnText()
+			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 			Spring.SetConfigInt("widgetselector", 1)
 		else
 			widgetHandler.textOwner = nil		--widgetHandler:DisownText()
@@ -343,6 +379,10 @@ function widget:Initialize()
 
 	widget:ViewResize(Spring.GetViewGeometry())
 	UpdateList()
+
+	widgetHandler.actionHandler:AddAction(self, "widgetselector", widgetselectorCmd, nil, 't')
+	widgetHandler.actionHandler:AddAction(self, "factoryreset", factoryresetCmd, nil, 't')
+	widgetHandler.actionHandler:AddAction(self, "userwidgets", userwidgetsCmd, nil, 't')
 end
 
 
@@ -427,8 +467,12 @@ function UpdateList(force)
 
 	if force and WG['guishader']then
 		activeGuishader = false
-		WG['guishader'].DeleteDlist('widgetselector')
-		WG['guishader'].DeleteDlist('widgetselector2')
+		WG['guishader'].RemoveDlist('widgetselector')
+		WG['guishader'].RemoveDlist('widgetselector2')
+		WG['guishader'].RemoveRect('selectorinput')
+		if textInputDlist then
+			textInputDlist = gl.DeleteList(textInputDlist)
+		end
 	end
 
 	UpdateListScroll()
@@ -450,9 +494,9 @@ function widget:ViewResize(n_vsx, n_vsy)
 	elementCorner = WG.FlowUI.elementCorner
 	UiSelectHighlight = WG.FlowUI.Draw.SelectHighlight
 
+	updateUi = true
 	UpdateGeometry()
 end
-
 
 -------------------------------------------------------------------------------
 
@@ -476,6 +520,7 @@ function widget:KeyPress(key, mods, isRepeat)
 			end
 			if show then
 				widgetHandler.textOwner = self		--widgetHandler:OwnText()
+				Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 				Spring.SetConfigInt("widgetselector", 1)
 			else
 				widgetHandler.textOwner = nil		--widgetHandler:DisownText()
@@ -562,60 +607,212 @@ function widget:DrawScreen()
 	if not show then
 		if WG['guishader'] and activeGuishader then
 			activeGuishader = false
-			WG['guishader'].DeleteDlist('widgetselector')
-			WG['guishader'].DeleteDlist('widgetselector2')
+			WG['guishader'].RemoveDlist('widgetselector')
+			WG['guishader'].RemoveDlist('widgetselector2')
+			WG['guishader'].RemoveRect('selectorinput')
 			if textInputDlist then
-				WG['guishader'].RemoveRect('selectorinput')
 				textInputDlist = gl.DeleteList(textInputDlist)
 			end
 		end
 		return
 	end
 
+	if not WG['guishader'] then
+		activeGuishader = false
+	end
+
+	local mx, my, lmb, mmb, rmb = Spring.GetMouseState()
+
 	UpdateList()
 
+	local prevBackgroundRect = backgroundRect or {0,0,1,1}
 	backgroundRect = { floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)) }
+	if backgroundRect[1] ~= prevBackgroundRect[1] or backgroundRect[2] ~= prevBackgroundRect[2] or backgroundRect[3] ~= prevBackgroundRect[3] or backgroundRect[4] ~= prevBackgroundRect[4] then
+		updateUi = true
+	end
 
 	local title = Spring.I18N('ui.widgetselector.title')
 	local titleFontSize = 18 * widgetScale
 	titleRect = { backgroundRect[1], backgroundRect[4], math.floor(backgroundRect[1] + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(backgroundRect[4] + (titleFontSize*1.7)) }
-
-	if WG['guishader'] == nil then
-		activeGuishader = false
-	end
-	if WG['guishader'] then
-		activeGuishader = true
-		dlistGuishader = gl.CreateList(function()
-			RectRound(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 6 * sizeMultiplier)
-		end)
-		dlistGuishader2 = gl.CreateList(function()
-			RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 6 * sizeMultiplier)
-		end)
-		WG['guishader'].InsertDlist(dlistGuishader, 'widgetselector')
-		WG['guishader'].InsertDlist(dlistGuishader2, 'widgetselector2')
-	end
 	borderx = (yStep * sizeMultiplier) * 0.75
 	bordery = (yStep * sizeMultiplier) * 0.75
 
+	if updateUi then
+		dlistGuishader = gl.DeleteList(dlistGuishader)
+		dlistGuishader = gl.CreateList(function()
+			RectRound(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 6 * sizeMultiplier)
+		end)
+		dlistGuishader2 = gl.DeleteList(dlistGuishader2)
+		dlistGuishader2 = gl.CreateList(function()
+			RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 6 * sizeMultiplier)
+		end)
 
-	local mx, my, lmb, mmb, rmb = Spring.GetMouseState()
-	local tcol = WhiteStr
+		uiList = gl.DeleteList(uiList)
+		uiList = gl.CreateList(function()
+			UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 1, 0, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 1, 0, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+			-- title background
+			gl.Color(0, 0, 0, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+			RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 
-	-- title background
-	gl.Color(0, 0, 0, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
-	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
+			-- title
+			font2:Begin()
+			font2:SetTextColor(1, 1, 1, 1)
+			font2:SetOutlineColor(0, 0, 0, 0.4)
+			font2:Print(title, backgroundRect[1] + (titleFontSize * 0.75), backgroundRect[4] + (8*widgetScale), titleFontSize, "on")
+			font2:End()
+		end)
+	end
 
-	-- title
-	font2:Begin()
-	font2:SetTextColor(1, 1, 1, 1)
-	font2:SetOutlineColor(0, 0, 0, 0.4)
-	font2:Print(title, backgroundRect[1] + (titleFontSize * 0.75), backgroundRect[4] + (8*widgetScale), titleFontSize, "on")
-	font2:End()
+	if WG['guishader'] and not activeGuishader then
+		activeGuishader = true
+		if dlistGuishader then
+			WG['guishader'].InsertDlist(dlistGuishader, 'widgetselector')
+			WG['guishader'].InsertDlist(dlistGuishader2, 'widgetselector2')
+		end
+	end
 
-	font:Begin()
+	local aboveWidget = aboveLabel(mx, my)
+	local pointedName = (aboveWidget and aboveWidget[1]) or nil
+	if pointedName ~= prevPointedName then
+		updateUiList2 = true
+	end
+	prevPointedName = pointedName
+
+	if prevLmb ~= lmb and math.isInRect(mx, my, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+		updateUiList2 = true
+	end
+	prevLmb = lmb
+
+	-- content
+	if updateUi or updateUiList2 then
+		uiList2 = gl.DeleteList(uiList2)
+		uiList2 = gl.CreateList(function()
+			font:Begin()
+
+			-- draw the widgets
+			local pointedY = nil
+			local posy = maxy - ((yStep + bgPadding) * sizeMultiplier)
+			sby1 = posy + ((fontSize + fontSpace) * sizeMultiplier) * 0.5
+			local prevFromZip = true
+			local customWidgetPosy
+			for _, namedata in ipairs(widgetsList) do
+
+				local name = namedata[1]
+				local data = namedata[2]
+
+				if prevFromZip ~= data.fromZip then
+					customWidgetPosy = posy
+					font2:SetTextColor(0.5, 0.5, 0.5, 0.4)
+					font2:Print(Spring.I18N('ui.widgetselector.islocal'), minx + fontSize * sizeMultiplier * 0.25, posy + (fontSize * sizeMultiplier) * 0.33, fontSize * sizeMultiplier, "")
+				end
+
+				local color = ''
+				local pointed = (pointedName == name)
+				local order = widgetHandler.orderList[name]
+				local enabled = order and (order > 0)
+				local active = data.active
+				if pointed and not activescrollbar then
+					pointedY = posy
+					if not pagestepped and (lmb or mmb or rmb) then
+						color = WhiteStr
+					else
+						color = (active and '\255\128\255\128') or (enabled and '\255\255\255\128') or '\255\255\128\128'
+					end
+				else
+					color = (active and '\255\064\224\064') or (enabled and '\255\200\200\064') or '\255\224\064\064'
+				end
+				prevFromZip = data.fromZip
+				font:Print(color .. name, midx, posy + (fontSize * sizeMultiplier) * 0.5, fontSize * sizeMultiplier, "vc")
+				posy = posy - (yStep * sizeMultiplier)
+			end
+			if customWidgetPosy then
+				gl.Color(1, 1, 1, 0.07)
+				RectRound(backgroundRect[1]+elementPadding, customWidgetPosy + math.floor(yStep * sizeMultiplier * 0.85), backgroundRect[3]-elementPadding, customWidgetPosy + math.floor(yStep * sizeMultiplier * 0.85)-1, 0, 0,0,0,0)
+				gl.Color(1, 1, 1, 0.035)
+				RectRound(backgroundRect[1]+elementPadding, backgroundRect[2]+elementPadding, backgroundRect[3]-elementPadding, customWidgetPosy + math.floor(yStep * sizeMultiplier * 0.85), elementPadding, 0,0,1,0)
+			end
+
+			-- scrollbar
+			if #widgetsList < #fullWidgetsList then
+				sby2 = posy + (yStep * sizeMultiplier) - (fontSpace * sizeMultiplier) * 0.5
+				sbheight = sby1 - sby2
+				sbsize = sbheight * #widgetsList / #fullWidgetsList
+				if activescrollbar then
+					startEntry = math.max(0, math.min(
+						floor(#fullWidgetsList *
+							((sby1 - sbsize) -
+								(my - math.min(scrollbargrabpos, sbsize)))
+							/ sbheight + 0.5),
+						#fullWidgetsList - curMaxEntries)) + 1
+				end
+				local sizex = maxx - minx
+				sbposx = minx + sizex + 1.0 + (scrollbarOffset * widgetScale)
+				sbposy = sby1 - sbsize - sbheight * (startEntry - 1) / #fullWidgetsList
+				sbsizex = (yStep * sizeMultiplier)
+				sbsizey = sbsize
+
+				local scrollerPadding = 8 * sizeMultiplier
+
+				-- background
+				if (sbposx < mx and mx < sbposx + sbsizex and miny < my and my < maxy) or activescrollbar then
+					RectRound(sbposx, miny, sbposx + (sbsizex * 0.61), maxy, 4.5 * sizeMultiplier, 1, 1, 1, 1, { 0.2, 0.2, 0.2, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
+				end
+
+				-- scroller
+				if (sbposx < mx and mx < sbposx + sbsizex and sby2 < my and my < sby2 + sbheight) then
+					gl.Color(1, 1, 1, 0.1)
+					gl.Blending(GL.SRC_ALPHA, GL.ONE)
+					RectRound(sbposx + scrollerPadding, sbposy, sbposx + sbsizex - scrollerPadding, sbposy + sbsizey, 1.75 * sizeMultiplier)
+					gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+				end
+				gl.Color(0.33, 0.33, 0.33, 0.8)
+				RectRound(sbposx + scrollerPadding, sbposy, sbposx + sbsizex - scrollerPadding, sbposy + sbsizey, 1.75 * sizeMultiplier)
+			else
+				sbposx = 0.0
+				sbposy = 0.0
+				sbsizex = 0.0
+				sbsizey = 0.0
+			end
+
+			-- highlight label
+			if (sbposx < mx and mx < sbposx + sbsizex and miny < my and my < maxy) or activescrollbar then
+
+			else
+				if pointedY then
+					local xn = minx + 0.5
+					local xp = maxx - 0.5
+					local yn = pointedY - ((fontSpace * 0.5 + 1) * sizeMultiplier)
+					local yp = pointedY + ((fontSize + fontSpace * 0.5 + 1) * sizeMultiplier)
+					if scrollbarOffset < 0 then
+						xp = xp + scrollbarOffset
+						--xn = xn - scrollbarOffset
+					end
+					yn = yn + 0.5
+					yp = yp - 0.5
+					gl.Blending(GL.SRC_ALPHA, GL.ONE)
+					UiSelectHighlight(math.floor(xn), math.floor(yn), math.floor(xp), math.floor(yp), nil, lmb and 0.18 or 0.11)
+					gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+				end
+			end
+			font:End()
+		end)
+	end
+
+	updateUi = false
+	updateUiList2 = false
+
+	if uiList then
+		gl.CallList(uiList)
+	end
+
+	if uiList2 then
+		gl.CallList(uiList2)
+	end
+
 	if showButtons then
+		font:Begin()
+		local tcol
 		for i, name in ipairs(buttons) do
 			tcol = WhiteStr
 			if minx < mx and mx < maxx and miny - (buttonTop * sizeMultiplier) - i * (buttonHeight * sizeMultiplier) < my and my < miny - (buttonTop * sizeMultiplier) - (i - 1) * (buttonHeight * sizeMultiplier) then
@@ -623,127 +820,13 @@ function widget:DrawScreen()
 			end
 			font:Print(tcol .. buttons[i], (minx + maxx) / 2, miny - (buttonTop * sizeMultiplier) - (i * (buttonHeight * sizeMultiplier)), buttonFontSize * sizeMultiplier, "oc")
 		end
+		font:End()
 	end
-
-	-- draw the widgets
-	local nd = aboveLabel(mx, my)
-	local pointedY = nil
-	local pointedEnabled = false
-	local pointedName = (nd and nd[1]) or nil
-	local posy = maxy - ((yStep + bgPadding) * sizeMultiplier)
-	sby1 = posy + ((fontSize + fontSpace) * sizeMultiplier) * 0.5
-	local prevFromZip = true
-	local customWidgetPosy
-	for _, namedata in ipairs(widgetsList) do
-
-		local name = namedata[1]
-		local data = namedata[2]
-
-		if prevFromZip ~= data.fromZip then
-			customWidgetPosy = posy
-			font2:SetTextColor(0.5, 0.5, 0.5, 0.4)
-			font2:Print(Spring.I18N('ui.widgetselector.islocal'), minx + fontSize * sizeMultiplier * 0.25, posy + (fontSize * sizeMultiplier) * 0.33, fontSize * sizeMultiplier, "")
-		end
-
-		local color = ''
-		local pointed = (pointedName == name)
-		local order = widgetHandler.orderList[name]
-		local enabled = order and (order > 0)
-		local active = data.active
-		if pointed and not activescrollbar then
-			pointedY = posy
-			pointedEnabled = data.active
-			if not pagestepped and (lmb or mmb or rmb) then
-				color = WhiteStr
-			else
-				color = (active and '\255\128\255\128') or (enabled and '\255\255\255\128') or '\255\255\128\128'
-			end
-		else
-			color = (active and '\255\064\224\064') or (enabled and '\255\200\200\064') or '\255\224\064\064'
-		end
-		prevFromZip = data.fromZip
-		font:Print(color .. name, midx, posy + (fontSize * sizeMultiplier) * 0.5, fontSize * sizeMultiplier, "vc")
-		posy = posy - (yStep * sizeMultiplier)
-	end
-	if customWidgetPosy then
-		gl.Color(1, 1, 1, 0.07)
-		RectRound(backgroundRect[1]+elementPadding, customWidgetPosy + math.floor(yStep * sizeMultiplier * 0.85), backgroundRect[3]-elementPadding, customWidgetPosy + math.floor(yStep * sizeMultiplier * 0.85)-1, 0, 0,0,0,0)
-		gl.Color(1, 1, 1, 0.035)
-		RectRound(backgroundRect[1]+elementPadding, backgroundRect[2]+elementPadding, backgroundRect[3]-elementPadding, customWidgetPosy + math.floor(yStep * sizeMultiplier * 0.85), elementPadding, 0,0,1,0)
-	end
-
-	-- scrollbar
-	if #widgetsList < #fullWidgetsList then
-		sby2 = posy + (yStep * sizeMultiplier) - (fontSpace * sizeMultiplier) * 0.5
-		sbheight = sby1 - sby2
-		sbsize = sbheight * #widgetsList / #fullWidgetsList
-		if activescrollbar then
-			startEntry = math.max(0, math.min(
-				floor(#fullWidgetsList *
-					((sby1 - sbsize) -
-						(my - math.min(scrollbargrabpos, sbsize)))
-					/ sbheight + 0.5),
-				#fullWidgetsList - curMaxEntries)) + 1
-		end
-		local sizex = maxx - minx
-		sbposx = minx + sizex + 1.0 + (scrollbarOffset * widgetScale)
-		sbposy = sby1 - sbsize - sbheight * (startEntry - 1) / #fullWidgetsList
-		sbsizex = (yStep * sizeMultiplier)
-		sbsizey = sbsize
-
-		local trianglePadding = 4 * sizeMultiplier
-		local scrollerPadding = 8 * sizeMultiplier
-
-		-- background
-		if (sbposx < mx and mx < sbposx + sbsizex and miny < my and my < maxy) or activescrollbar then
-			RectRound(sbposx, miny, sbposx + (sbsizex * 0.61), maxy, 4.5 * sizeMultiplier, 1, 1, 1, 1, { 0.2, 0.2, 0.2, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
-		end
-
-		-- scroller
-		if (sbposx < mx and mx < sbposx + sbsizex and sby2 < my and my < sby2 + sbheight) then
-			gl.Color(1, 1, 1, 0.1)
-			gl.Blending(GL.SRC_ALPHA, GL.ONE)
-			RectRound(sbposx + scrollerPadding, sbposy, sbposx + sbsizex - scrollerPadding, sbposy + sbsizey, 1.75 * sizeMultiplier)
-			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		end
-		gl.Color(0.33, 0.33, 0.33, 0.8)
-		RectRound(sbposx + scrollerPadding, sbposy, sbposx + sbsizex - scrollerPadding, sbposy + sbsizey, 1.75 * sizeMultiplier)
-	else
-		sbposx = 0.0
-		sbposy = 0.0
-		sbsizex = 0.0
-		sbsizey = 0.0
-	end
-
-
-	-- highlight label
-	if (sbposx < mx and mx < sbposx + sbsizex and miny < my and my < maxy) or activescrollbar then
-
-	else
-		if pointedY then
-			local xn = minx + 0.5
-			local xp = maxx - 0.5
-			local yn = pointedY - ((fontSpace * 0.5 + 1) * sizeMultiplier)
-			local yp = pointedY + ((fontSize + fontSpace * 0.5 + 1) * sizeMultiplier)
-			if scrollbarOffset < 0 then
-				xp = xp + scrollbarOffset
-				--xn = xn - scrollbarOffset
-			end
-			yn = yn + 0.5
-			yp = yp - 0.5
-			gl.Blending(GL.SRC_ALPHA, GL.ONE)
-			UiSelectHighlight(math.floor(xn), math.floor(yn), math.floor(xp), math.floor(yp), nil, lmb and 0.18 or 0.11)
-			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		end
-	end
-
-	font:End()
 
 	if WG['tooltip'] ~= nil then
-		local namedata = aboveLabel(mx, my)
-		if namedata then
-			local n = namedata[1]
-			local d = namedata[2]
+		if aboveWidget then
+			local n = aboveWidget[1]
+			local d = aboveWidget[2]
 
 			--local tt = (d.active and GreenStr) or (enabled and YellowStr) or RedStr
 			local tooltipTitle = ''
@@ -1007,46 +1090,7 @@ function widget:SetConfigData(data)
 	show = data.show or show
 	if show then
 		widgetHandler.textOwner = self		--widgetHandler:OwnText()
-	end
-end
-
-function widget:TextCommand(s)
-	-- process request to tell the widgetHandler to blank out the widget config when it shuts down
-	local token = {}
-	local n = 0
-	for w in string.gmatch(s, "%S+") do
-		n = n + 1
-		token[n] = w
-	end
-	if s == "widgetselector" then
-		show = not show
-		if show then
-			widgetHandler.textOwner = self		--widgetHandler:OwnText()
-			Spring.SetConfigInt("widgetselector", 1)
-		else
-			widgetHandler.textOwner = nil		--widgetHandler:DisownText()
-		end
-	end
-	if n == 1 and token[1] == "reset" then
-		-- tell the widget handler to reload with a blank config
-		widgetHandler.blankOutConfig = true
-		Spring.SendCommands("luarules reloadluaui")
-	end
-	if n == 1 and token[1] == "factoryreset" then
-		-- tell the widget handler to disallow user widgets and reload with a blank config
-		widgetHandler.__blankOutConfig = true
-		--widgetHandler.__allowUserWidgets = false
-		Spring.SendCommands("luarules reloadluaui")
-	end
-	if n == 1 and token[1] == "userwidgets" then
-		if widgetHandler.allowUserWidgets then
-			widgetHandler.__allowUserWidgets = false
-			Spring.Echo("Disallowed user widgets, reloading...")
-		else
-			widgetHandler.__allowUserWidgets = true
-			Spring.Echo("Allowed user widgets, reloading...")
-		end
-		Spring.SendCommands("luarules reloadluaui")
+		Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 	end
 end
 
@@ -1057,6 +1101,12 @@ function widget:Shutdown()
 		WG['guishader'].DeleteDlist('widgetselector')
 		WG['guishader'].DeleteDlist('widgetselector2')
 	end
+	uiList = gl.DeleteList(uiList)
+	uiList2 = gl.DeleteList(uiList2)
 	gl.DeleteFont(font)
 	gl.DeleteFont(font2)
+
+	widgetHandler.actionHandler:RemoveAction(self, "widgetselector")
+	widgetHandler.actionHandler:RemoveAction(self, "factoryreset")
+	widgetHandler.actionHandler:RemoveAction(self, "userwidgets")
 end

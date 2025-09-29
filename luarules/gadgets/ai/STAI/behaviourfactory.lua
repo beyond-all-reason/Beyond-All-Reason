@@ -79,7 +79,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 	end
 	if army.radars[un] then
 		--self:EchoDebug()
-		table.insert(b, AttackerBST)
+		--table.insert(b, AttackerBST)
 	end
 	if army.scouts[un] then
 		--self:EchoDebug()
@@ -125,10 +125,14 @@ function BehaviourFactory:defaultBehaviours(unit)
 		table.insert(b, AttackerBST)
 		--self:EchoDebug()
 	end
-	if army.amphibious[un] then
-		table.insert(b, ScoutBST)
+	if army.heavyAmphibious[un] then
 		table.insert(b, AttackerBST)
-		table.insert(b, RaidBST)
+		--self:EchoDebug()
+	end
+	if army.amphibious[un] then
+		--table.insert(b, ScoutBST)
+		table.insert(b, AttackerBST)
+		--table.insert(b, RaidBST)
 		--self:EchoDebug()
 	end
 	if army.transports[un] then

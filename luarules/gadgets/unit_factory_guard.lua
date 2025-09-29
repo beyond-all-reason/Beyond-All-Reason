@@ -4,6 +4,8 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "Factory Guard",
@@ -25,10 +27,9 @@ local spInsertUnitCmdDesc  = Spring.InsertUnitCmdDesc
 local spEditUnitCmdDesc    = Spring.EditUnitCmdDesc
 local spFindUnitCmdDesc    = Spring.FindUnitCmdDesc
 
+local CMD_FACTORY_GUARD = GameCMD.FACTORY_GUARD
 local CMD_GUARD = CMD.GUARD
 local CMD_MOVE = CMD.MOVE
-
-include("luarules/configs/customcmds.h.lua")
 
 local factoryGuardCmdDesc = {
 	id = CMD_FACTORY_GUARD,

@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "UnitCallinsGadget",
@@ -143,9 +145,9 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOp
 	if showcallins then addEvent(unitID, "UnitCommand") end
 end
 
-function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
+function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	if enabledcallins.UnitCmdDone == nil then return end
-	if printcallins then Spring.Echo("g:UnitCmdDone",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts) end
+	if printcallins then Spring.Echo("g:UnitCmdDone",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag) end
 	if showcallins then addEvent(unitID, "UnitCmdDone") end
 end
 

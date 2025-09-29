@@ -1,5 +1,7 @@
 
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Jitter Timer",
@@ -143,11 +145,7 @@ function widget:DrawScreen()
 	avgjitter = (1.0 - alpha) * avgjitter + math.abs(alpha * deltajitter)
 	correctionfactor = correctionfactor + deltajitter * alpha
 
-	local lastframeduration = spDiffTimers(timernew, timerold)*1000 -- in MILLISECONDS
 	timerold = timernew
-	local lastframetime = spDiffTimers(timernew, timerstart) * 1000 -- in MILLISECONDS
-
-	local CTOError = 0
 
 	local currdrawCTO = Spring.GetGameFrame() + fto
 	local currCTOdelta = currdrawCTO - lastdrawCTO
@@ -155,15 +153,7 @@ function widget:DrawScreen()
 	spreadCTO = (1.0 - alpha) * spreadCTO + alpha * math.abs(averageCTO - currCTOdelta)
 	averageCTO = (1.0 - alpha ) * averageCTO + alpha * currCTOdelta
 
-	if drawpersimframe == 2 then
-		CTOError = 4 * math.min(math.abs(fto-0.5), math.abs(fto))
-	elseif drawpersimframe ==3 then
-		CTOError = 6 * math.min(math.min(math.abs(fto-0.33), math.abs(fto -0.66)), math.abs(fto))
-	elseif drawpersimframe ==4 then
-		CTOError = 8 * math.min(math.min(math.abs(fto-0.25), math.abs(fto -0.5)), math.min(math.abs(fto), math.abs(fto-0.75)))
-	end
 	drawcounthist[actualdrawspergameframe] = (drawcounthist[actualdrawspergameframe] or 0) + 1
-	--Spring.Echo(Spring.GetGameFrame(), fto, CTOError)
 
 	gl.PushMatrix()
 	gl.Color(0.0, 0.0, 0.0, 1.0)

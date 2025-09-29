@@ -11,6 +11,8 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
   return {
     name      = "NoDuplicateOrders",
@@ -27,7 +29,7 @@ end
 --------------------------------------------------------------------------------
 
 local GetSelectedUnits        = Spring.GetSelectedUnits
-local GetCommandQueue         = Spring.GetCommandQueue
+local GetUnitCommands         = Spring.GetUnitCommands
 local GetUnitCurrentCommand   = Spring.GetUnitCurrentCommand
 local GetUnitPosition         = Spring.GetUnitPosition
 local GiveOrderToUnit         = Spring.GiveOrderToUnit
@@ -55,22 +57,29 @@ function widget:GameStart()
 end
 
 local function toLocString(posX,posY,posZ)
-  return (math.ceil(posX - 0.5) .. "_" .. math.ceil(posZ - 0.5))
+	if not posZ then return end
+	return (math.ceil(posX - 0.5) .. "_" .. math.ceil(posZ - 0.5))
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
-  local locString = toLocString(GetUnitPosition(unitID))
-  buildList[locString] = unitID
+	local locString = toLocString(GetUnitPosition(unitID))
+	if locString then
+		buildList[locString] = unitID
+	end
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
-  local locString = toLocString(GetUnitPosition(unitID))
-  buildList[locString] = nil
+	local locString = toLocString(GetUnitPosition(unitID))
+	if locString then
+		buildList[locString] = unitID
+	end
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-  local locString = toLocString(GetUnitPosition(unitID))
-  buildList[locString] = nil
+	local locString = toLocString(GetUnitPosition(unitID))
+	if locString then
+		buildList[locString] = unitID
+	end
 end
 
 function widget:CommandNotify(id, params, options)
@@ -82,7 +91,7 @@ function widget:CommandNotify(id, params, options)
         local unitID = selUnits[i]
         local cmdID, _, _, cmdParam1, _, cmdParam3 = GetUnitCurrentCommand(unitID)
         if cmdID then
-          if cmdID < 0 and (params[1] == buildList[toLocString(cmdParam1, 0, cmdParam3)]) then
+          if cmdID < 0 and (cmdParam3 and params[1] == buildList[toLocString(cmdParam1, 0, cmdParam3)]) then
             blockUnits[unitID] = true
           elseif (cmdID == CMD.REPAIR) and (params[1] == cmdParam1) then
             blockUnits[unitID] = true
@@ -95,7 +104,7 @@ function widget:CommandNotify(id, params, options)
           if not blockUnits[unitID] then
             GiveOrderToUnit(unitID, id, params, options)
           else
-            local cQueue = GetCommandQueue(unitID,50) or {}
+            local cQueue = GetUnitCommands(unitID,50) or {}
             for i=1,#cQueue do
               local v = cQueue[i]
               if (v.tag ~= cQueue[1].tag) then
@@ -113,7 +122,7 @@ function widget:CommandNotify(id, params, options)
       local blockUnits = {}
       for i=1,#selUnits do
         local unitID = selUnits[i]
-        local cQueue = GetCommandQueue(unitID,50) or {}
+        local cQueue = GetUnitCommands(unitID,50) or {}
         if (#cQueue > 0) and (params[1] == cQueue[1].params[1]) then
           blockUnits[unitID] = true
         end
@@ -124,7 +133,7 @@ function widget:CommandNotify(id, params, options)
           if not blockUnits[unitID] then
             GiveOrderToUnit(unitID, id, params, options)
           else
-            local cQueue = GetCommandQueue(unitID,50) or {}
+            local cQueue = GetUnitCommands(unitID,50) or {}
             for i=1,#cQueue do
               local v = cQueue[i]
               if (v.tag ~= cQueue[1].tag) then
@@ -136,7 +145,7 @@ function widget:CommandNotify(id, params, options)
         return true
       else
         return false
-      end  
+      end
     end
   end
 end

@@ -383,9 +383,9 @@ end
 local function bartexture(px,py,sx,sy, texLength, texHeight)
 	local texHeight = texHeight or 1
 	local width = (sx-px) / texLength * 4
-	gl.TexCoord(width, texHeight)
+	gl.TexCoord(width or 1, texHeight)
 	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(width, 0)
+	gl.TexCoord(width or 1, 0)
 	gl.Vertex(sx, py, 0)
 	gl.TexCoord(0,0)
 	gl.Vertex(px, py, 0)
@@ -437,6 +437,8 @@ end
 
 function addon.DrawLoadScreen()
 	local loadProgress = SG.GetLoadProgress()
+
+	if not Platform.gl then return end
 
 	if not aspectRatio then
 		local texInfo = gl.TextureInfo(backgroundTexture)
@@ -574,7 +576,7 @@ function addon.DrawLoadScreen()
 	if loadProgress == 0 then
 		loadProgress = lastProgress[1]
 	else
-		loadProgress = math.min(math.max(loadProgress, lastProgress[1]), lastProgress[2])
+		loadProgress = math.clamp(loadProgress, lastProgress[1], lastProgress[2])
 	end
 
 	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()

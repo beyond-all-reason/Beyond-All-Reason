@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Show Builder Queue",
@@ -28,7 +30,8 @@ local maxQueueDepth = 2000	-- not literal depth
 local myPlayerID = Spring.GetMyPlayerID()
 local _,fullview,_ = Spring.GetSpectatingState()
 
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -102,9 +105,9 @@ local function clearbuilderCommands(unitID)
 end
 
 local function checkBuilder(unitID)
-	local queueDepth = spGetCommandQueue(unitID, 0)
+	local queueDepth = spGetUnitCommandCount(unitID)
 	if queueDepth and queueDepth > 0 then
-		local queue = spGetCommandQueue(unitID, math.min(queueDepth, maxQueueDepth))
+		local queue = spGetUnitCommands(unitID, math.min(queueDepth, maxQueueDepth))
 		for i=1, #queue do
 			local cmd = queue[i]
 			if cmd.id < 0 then
@@ -198,32 +201,33 @@ local prevGuiHidden = Spring.IsGUIHidden()
 local checkCount = 1
 function widget:Update(dt)
 	sec = sec + dt
-	if reinit then
-		reinit = nil
-		widget:Initialize()
-	elseif sec > lastUpdate + 0.12 then
-		lastUpdate = sec
+	if not Spring.IsGUIHidden() then
+		if reinit then
+			reinit = nil
+			widget:Initialize()
+		elseif sec > lastUpdate + 0.12 then
+			lastUpdate = sec
 
-		-- sometimes build commands are dropped because the building cant be placed anymore and are skipped (due to terrain height changes)
-		-- there is no engine feedback/callin as far as I know of that can detect this, so we'd have to check up periodically on all builders with a buildqueue
-		checkCount = checkCount + 1
-		for unitID, _ in pairs(builderCommands) do
-			if (unitID+checkCount) % 30 == 1 and not newBuildCmdUnits[unitID] then
-				checkBuilder(unitID)
+			-- sometimes build commands are dropped because the building cant be placed anymore and are skipped (due to terrain height changes)
+			-- there is no engine feedback/callin as far as I know of that can detect this, so we'd have to check up periodically on all builders with a buildqueue
+			checkCount = checkCount + 1
+			for unitID, _ in pairs(builderCommands) do
+				if (unitID+checkCount) % 30 == 1 and not newBuildCmdUnits[unitID] then
+					checkBuilder(unitID)
+				end
 			end
-		end
 
-		-- process newly given commands (not done in widget:UnitCommand() because with huge build queue it eats memory and can crash lua)
-		local clock = os.clock()
-		for unitID, cmdClock in pairs(newBuildCmdUnits) do
-			if clock > cmdClock then
-				checkBuilder(unitID)
-				newBuildCmdUnits[unitID] = nil
+			-- process newly given commands (not done in widget:UnitCommand() because with huge build queue it eats memory and can crash lua)
+			local clock = os.clock()
+			for unitID, cmdClock in pairs(newBuildCmdUnits) do
+				if clock > cmdClock then
+					checkBuilder(unitID)
+					newBuildCmdUnits[unitID] = nil
+				end
 			end
+			removedUnitshapes = {}	-- in extreme cases the delayed widget:UnitCommand processing is slower than the actual UnitCreated/Finished, this table is to make sure a unitshape isnt created after
 		end
-		removedUnitshapes = {}	-- in extreme cases the delayed widget:UnitCommand processing is slower than the actual UnitCreated/Finished, this table is to make sure a unitshape isnt created after
 	end
-
 	if Spring.IsGUIHidden() ~= prevGuiHidden then
 		prevGuiHidden = Spring.IsGUIHidden()
 		if prevGuiHidden then

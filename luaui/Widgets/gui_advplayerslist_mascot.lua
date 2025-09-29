@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name		= "AdvPlayersList Mascot",
@@ -101,11 +103,8 @@ end
 --  Declarations
 ---------------------------------------------------------------------------------------------------
 
-local spGetGameFrame			= Spring.GetGameFrame
 local myPlayerID				= Spring.GetMyPlayerID()
 
-local glBlending          		= gl.Blending
-local glScale          			= gl.Scale
 local glRotate					= gl.Rotate
 local glTranslate				= gl.Translate
 local glPushMatrix          	= gl.PushMatrix

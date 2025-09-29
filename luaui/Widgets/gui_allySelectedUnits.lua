@@ -1,5 +1,7 @@
 include("keysym.h.lua")
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Ally Selected Units", -- GL4
@@ -26,9 +28,14 @@ local useHexagons = true
 
 ----------------------------------------------------------------------------
 
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 local selectionVBO = nil
 local selectShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 local glStencilFunc         = gl.StencilFunc
 local glStencilOp           = gl.StencilOp
@@ -239,7 +246,6 @@ function widget:PlayerChanged(playerID)
 	local prevFullview = fullview
 	spec, fullview = spGetSpectatingState()
 	if prevFullview ~= fullview then
-		local myAllyID = Spring.GetMyAllyTeamID()
 		for unitID, drawn in pairs(selectedUnits) do
 			if fullview then
 				addUnit(unitID)
@@ -271,7 +277,7 @@ function widget:VisibleUnitRemoved(unitID)
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(selectionVBO)
+	InstanceVBOTable.clearInstanceTable(selectionVBO)
 	for unitID, drawn in pairs(selectedUnits) do
 		removeUnit(unitID)
 	end
@@ -283,10 +289,10 @@ end
 local updateTime = 0
 local checkLockPlayerInterval = 1
 function widget:Update(dt)
-	if WG['advplayerlist_api'] ~= nil then
+	if WG.lockcamera then
 		updateTime = updateTime + dt
 		if updateTime > checkLockPlayerInterval then
-			lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
+			lockPlayerID = WG.lockcamera.GetPlayerID()
 			if lockPlayerID ~= nil and selectPlayerUnits then
 				selectPlayerSelectedUnits(lockPlayerID)
 			end

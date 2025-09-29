@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = 'Juno Damage',
@@ -48,6 +50,13 @@ if gadgetHandler:IsSyncedCode() then
 		['corspec'] = true,
 		['corvoyr'] = true,
 		['corvrad'] = true,
+		['legarad'] = true,
+		['legajam'] = true,
+		['legavrad'] = true,
+		['legavjam'] = true,
+		['legaradk'] = true,
+		['legajamk'] = true,
+		['legfrad'] = true,
 		
 		['armmine1'] = true,
 		['armmine2'] = true,
@@ -143,8 +152,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	local junoWeaponsNames = {
 		["armjuno_juno_pulse"] = true,
+		["legjuno_juno_pulse"] = true,
 		["corjuno_juno_pulse"] = true,
 		["armjuno_scav_juno_pulse"] = true,
+		["legjuno_scav_juno_pulse"] = true,
 		["corjuno_scav_juno_pulse"] = true,
 	}
 	-- convert unitname -> unitDefID
@@ -179,6 +190,9 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		if WeaponDefNames.armjuno_juno_pulse then
 			Script.SetWatchExplosion(WeaponDefNames.armjuno_juno_pulse.id, true)
+		end
+		if WeaponDefNames.legjuno_juno_pulse then
+			Script.SetWatchExplosion(WeaponDefNames.legjuno_juno_pulse.id, true)
 		end
 		if WeaponDefNames.corjuno_juno_pulse then
 			Script.SetWatchExplosion(WeaponDefNames.corjuno_juno_pulse.id, true)

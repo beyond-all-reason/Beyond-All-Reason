@@ -2,10 +2,10 @@ return {
 	legaskirmtank = {
 		maxacc = 0.05,
 		maxdec = 0.1,
-		energycost = 7500,
-		metalcost = 500,
+		energycost = 6800,
+		metalcost = 450,
 		buildpic = "LEGASKIRMTANK.DDS",
-		buildtime = 8750,
+		buildtime = 8000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "30 30 34", ---not respected used collisionvolumes.lua
@@ -140,7 +140,7 @@ return {
 				soundstart = "corraid",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 320,
+				weaponvelocity = 360,
 				damage = {
 					default = 70,
 					vtol = 20,

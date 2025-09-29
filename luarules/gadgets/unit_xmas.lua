@@ -2,6 +2,8 @@ if not Spring.GetModOptions().xmas then
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name		= "Xmas effects",
@@ -208,7 +210,7 @@ function gadget:GameFrame(n)
 				if addGaiaBalls and random() > 0.5 then
 					teamID = gaiaTeamID
 				end
-				local size = math.max(1, math.min(#decorationSizes, math.floor((hasDecoration[data[5]][4]))))	-- retrieve max size
+				local size = math.clamp(math.floor((hasDecoration[data[5]][4])), 1, #decorationSizes)	-- retrieve max size
 				size = math.min(size, (math.ceil((size*0.35) + (math.random() * (size*0.65)))))	-- pick a size
 				local decorationDefID = decorationSizes[size][math.floor(1 + (math.random() * (#decorationSizes[size]-0.001)))]	-- pick one of 2 variants/textured baubles
 				uID = Spring.CreateUnit(decorationDefID, data[1],data[2],data[3], 0, teamID)

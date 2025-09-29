@@ -135,11 +135,13 @@ function DamageHST:UnitDead(engineUnit)
 end
 
 function DamageHST:VisualDBG()
-	local ch = 1
- 	self.map:EraseAll(ch)
+	
+ 	
 	if not self.ai.drawDebug then
 		return
 	end
+	local ch = 1
+	self.map:EraseAll(ch)
 	local colours = self.ai.tool.COLOURS
 	for id,damaged in pairs(self.isDamaged) do
 		damaged:EraseHighlight(nil, nil, ch )
@@ -149,6 +151,11 @@ function DamageHST:VisualDBG()
 	for X,cells in pairs(self.DAMAGED) do
 		for Z, cell in pairs(cells) do
 			local p = cell.POS
+			if not p then
+				self:EchoDebug('no p in draw debug')
+				
+				return
+			end
 			local pos1, pos2 = api.Position(), api.Position()--z,api.Position(),api.Position(),api.Position()
 			pos1.x, pos1.z = p.x - cellElmosHalf, p.z - cellElmosHalf
 			pos2.x, pos2.z = p.x + cellElmosHalf, p.z + cellElmosHalf

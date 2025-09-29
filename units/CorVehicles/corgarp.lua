@@ -27,8 +27,8 @@ return {
 		script = "Units/CORGARP.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
-		sightdistance = 305,
-		sonardistance = 175.5,
+		sightdistance = 500,
+		sonardistance = 175,
 		speed = 58.5,
 		trackoffset = 0,
 		trackstrength = 6,
@@ -48,8 +48,8 @@ return {
 			paralyzemultiplier = 0.2,
 			subfolder = "CorVehicles",
 			unitgroup = "weapon",
-			weapon1turretx = 90,
-			weapon1turrety = 90,
+			weapon1turretx = 130,
+			weapon1turrety = 130,
 		},
 		featuredefs = {
 			dead = {

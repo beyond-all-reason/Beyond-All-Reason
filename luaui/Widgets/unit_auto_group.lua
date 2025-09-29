@@ -1,5 +1,7 @@
 local versionNum = '5.00'
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Auto Group",
@@ -112,10 +114,7 @@ local function addAllUnits()
 	end
 end
 
-local function ChangeUnitTypeAutogroupHandler(_, _, args, data)
-	local gr = args[1]
-	local removeAll = data and data['removeAll']
-
+local function changeUnitTypeAutogroup(gr, removeAll)
 	if not removeAll and not gr then return end -- noop if add to autogroup and no argument
 
 	if removeAll then
@@ -157,8 +156,7 @@ local function ChangeUnitTypeAutogroupHandler(_, _, args, data)
 			local curUnitDefID = GetUnitDefID(unitID)
 			if selUnitDefIDs[curUnitDefID] then
 				if gr then
-					local finishedBuilding = not GetUnitIsBeingBuilt(unitID)
-					if finishedBuilding then
+					if immediate or not GetUnitIsBeingBuilt(unitID) then
 						SetUnitGroup(unitID, gr)
 						SelectUnitArray({ unitID }, true)
 					end
@@ -172,7 +170,14 @@ local function ChangeUnitTypeAutogroupHandler(_, _, args, data)
 	return true
 end
 
-local function RemoveOneUnitFromGroupHandler(_, _, args)
+local function changeUnitTypeAutogroupHandler(_, _, args, data)
+	local gr = args and args[1]
+	local removeAll = data and data['removeAll']
+
+	changeUnitTypeAutogroup(gr, removeAll)
+end
+
+local function removeOneUnitFromGroupHandler(_, _, args)
 	local mx, my = GetMouseState()
 	local _, pos = TraceScreenRay(mx, my, true)
 	local mindist = math.huge
@@ -199,8 +204,7 @@ local function RemoveOneUnitFromGroupHandler(_, _, args)
 	return true
 end
 
-local function loadAutogroupPresetHandler(cmd, optLine, optWords, data, isRepeat, release, actions)
-	local newPreset = tonumber(optWords[1])
+local function loadAutogroupPreset(newPreset)
 	if not presets[newPreset] then
 		return
 	end
@@ -218,7 +222,7 @@ local function loadAutogroupPresetHandler(cmd, optLine, optWords, data, isRepeat
 	for _, uID in ipairs(Spring.GetTeamUnits(myTeam)) do
 		local unitDefID = GetUnitDefID(uID)
 		local group = unit2group[unitDefID]
-		if tonumber(prevGroup[unitDefID]) == GetUnitGroup(uID) then -- if in last 
+		if tonumber(prevGroup[unitDefID]) == GetUnitGroup(uID) then -- if in last
 			SetUnitGroup(uID, -1)
 		end
 
@@ -228,14 +232,18 @@ local function loadAutogroupPresetHandler(cmd, optLine, optWords, data, isRepeat
 	end
 end
 
+local function loadAutogroupPresetHandler(cmd, optLine, optWords, data, isRepeat, release, actions)
+	loadAutogroupPreset(tonumber(optWords[1]))
+end
+
 
 function widget:Initialize()
 
 	widget:PlayerChanged()
 
-	widgetHandler:AddAction("add_to_autogroup", ChangeUnitTypeAutogroupHandler, nil, "p") -- With a parameter, adds all units of this type to a specific autogroup
-	widgetHandler:AddAction("remove_from_autogroup", ChangeUnitTypeAutogroupHandler, { removeAll = true }, "p") -- Without a parameter, removes all units of this type from autogroups
-	widgetHandler:AddAction("remove_one_unit_from_group", RemoveOneUnitFromGroupHandler, nil, "p") -- Removes the closest of selected units from groups and selects only it
+	widgetHandler:AddAction("add_to_autogroup", changeUnitTypeAutogroupHandler, nil, "p") -- With a parameter, adds all units of this type to a specific autogroup
+	widgetHandler:AddAction("remove_from_autogroup", changeUnitTypeAutogroupHandler, { removeAll = true }, "p") -- Without a parameter, removes all units of this type from autogroups
+	widgetHandler:AddAction("remove_one_unit_from_group", removeOneUnitFromGroupHandler, nil, "p") -- Removes the closest of selected units from groups and selects only it
 	widgetHandler:AddAction("load_autogroup_preset", loadAutogroupPresetHandler, nil, "p") -- Changes the autogroup preset
 
 	WG['autogroup'] = {}
@@ -254,6 +262,18 @@ function widget:Initialize()
 	end
 	WG['autogroup'].getGroups = function()
 		return unit2group
+	end
+	WG['autogroup'].addCurrentSelectionToAutogroup = function(groupNumber)
+		changeUnitTypeAutogroup(groupNumber)
+	end
+	WG['autogroup'].removeCurrentSelectionFromAutogroup = function()
+		changeUnitTypeAutogroup(nil, true)
+	end
+	WG['autogroup'].removeOneUnitFromGroup = function()
+		removeOneUnitFromGroupHandler()
+	end
+	WG['autogroup'].loadAutogroupPreset = function(newPreset)
+		loadAutogroupPreset(newPreset)
 	end
 	if GetGameFrame() > 0 then
 		addAllUnits()
@@ -275,7 +295,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		finiGroup[unitID] = 1
 	end
 
-	if not immediate and ((builtInPlace[unitID] and #Spring.GetCommandQueue(unitID, 1) == 0) or builtInFrame) then
+	if not immediate and ((builtInPlace[unitID] and Spring.GetUnitCommandCount(unitID) == 0) or builtInFrame) then
 		local gr = unit2group[unitDefID]
 		if gr ~= nil and GetUnitGroup(unitID) == nil then
 			SetUnitGroup(unitID, gr)

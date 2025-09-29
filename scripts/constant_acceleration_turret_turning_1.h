@@ -130,19 +130,22 @@ CATT1_Aim(heading, pitch){
 	var deceleratethreshold;
 	var delta;
 	var temp;
+	var pastChassisHeading;
+	pastChassisHeading = get HEADING;
 
 	#ifdef CATT1_PIECE_X
 		turn CATT1_PIECE_X to x-axis <0.0> - pitch speed CATT1_PITCH_SPEED;
 	#endif
-	
+
 	delta = WRAPDELTA(heading - CATT1position);
-	
+
 	while(ABSOLUTE_GREATER_THAN(delta, CATT1_PRECISION) OR ABSOLUTE_GREATER_THAN(CATT1velocity,  CATT1_JERK)){
 		
 	//while( ( get ABS(delta) > CATT1_PRECISION ) OR (get ABS(CATT1velocity) > CATT1_JERK)){
 		if (CATT1gameFrame != get(GAME_FRAME)){ //this is to make sure we dont get double-called, as previous aimweapon thread runs before new aimweaponthread can signal-kill previous one 
 			CATT1gameFrame = get(GAME_FRAME);
-	
+
+
 			//Clamp CATT1position and CATT1delta between <-180>;<180>
 			CATT1position 	= WRAPDELTA(CATT1position);
 			delta 			= WRAPDELTA(delta);
@@ -161,12 +164,34 @@ CATT1_Aim(heading, pitch){
 			if (ABSOLUTE_LESS_THAN(delta, deceleratethreshold)){ //we need to decelerate
 				if (CATT1velocity > 0) CATT1velocity = CATT1velocity - CATT1_ACCELERATION;
 				else 				   CATT1velocity = CATT1velocity + CATT1_ACCELERATION;
+
+				// account for unit chassis turning, lets CATT units fire while turning.
+				// if turret has decelerated to slower than chassis turn rate, then we can return and let AimWeapon return true.
+				if (get ABS((get HEADING) - pastChassisHeading) > 0) // ABSOLUTE_LESS_THAN behaves bad if the second value is zero
+				{
+					if (ABSOLUTE_LESS_THAN(CATT1velocity, WRAPDELTA((get HEADING) - pastChassisHeading)))
+					{
+						// undo the deacceleration, then just tell the turret to continue turning at that slightly faster than chassis rate. 
+						// and give a goal heading assuming the chassis will continue turing for 6 frames (based on 5-6 frame reaim time for CATT units)
+						// sudden stops and not deacceleration may occur, but will be masked by the bulk unit turning. 
+						// Ideally, the chassis turning would be tracked *after* the return to the AimWeapon function, but that would require a separately threaded CATT implementation
+						if (CATT1velocity > 0) CATT1velocity = CATT1velocity + CATT1_ACCELERATION;
+						else 				   CATT1velocity = CATT1velocity - CATT1_ACCELERATION;
+						turn CATT1_PIECE_Y to y-axis (heading - 6*WRAPDELTA((get HEADING) - pastChassisHeading)) speed 30 * CATT1velocity;
+
+						#ifndef CATT_DONTRESTORE
+							start-script CATT1_Restore();
+						#endif
+						return;
+					}
+				}
 			}	
 			else //we need to accelerate
 			{
 				if (delta > 0) CATT1velocity = get MIN(       CATT1_MAX_VELOCITY, CATT1velocity + CATT1_ACCELERATION); 
 				else           CATT1velocity = get MAX((-1) * CATT1_MAX_VELOCITY, CATT1velocity - CATT1_ACCELERATION);
 			}
+			pastChassisHeading = get HEADING; //track chassis heading
 			
 			//Apply jerk at very low velocities
 			if (ABSOLUTE_LESS_THAN(CATT1velocity,  CATT1_JERK)){
@@ -180,15 +205,19 @@ CATT1_Aim(heading, pitch){
 			CATT1position = CATT1position + CATT1velocity; 
 			delta = heading - CATT1position ; 	
 
-			#ifdef CATT1_DEBUG
-				get PRINT ( 888888, delta ,  CATT1velocity, CATT1position);
-			#endif 
 			// Perform the turn with a NOW, this means that this will be run every frame!
 			//turn CATT1_PIECE_Y to y-axis CATT1position now;
 
 			// Needs to use velocity, because if we use NOW, then any previous turn speed command wont be overridden!
 			turn CATT1_PIECE_Y to y-axis CATT1position speed 30 * CATT1velocity;
-		}
+
+			if ((timetozero < 3) AND (timetozero != 0) AND (get ABS(CATT1velocity) < CATT1_JERK)) {
+				CATT1velocity = 0;
+				#ifndef CATT_DONTRESTORE
+					start-script CATT1_Restore();
+				#endif
+				return;}
+			}
 		sleep 32;
 	}
 	CATT1velocity = 0;

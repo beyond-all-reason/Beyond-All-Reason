@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "TeamStats",
@@ -92,6 +94,7 @@ local GetMouseState			= Spring.GetMouseState
 local GetGameFrame			= Spring.GetGameFrame
 local min					= math.min
 local max					= math.max
+local clamp					= math.clamp
 local floor					= math.floor
 local huge					= math.huge
 local sort					= table.sort
@@ -110,7 +113,7 @@ local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spr
 local isSpec = Spring.GetSpectatingState()
 
 
-local playerScale = math.max(0.3, math.min(1, 25 / #Spring.GetTeamList()))
+local playerScale = math.clamp(25 / #Spring.GetTeamList(), 0.3, 1)
 
 function aboveRectangle(mousePos,boxData)
 	local included = true
@@ -145,7 +148,7 @@ function isAbove(mousePos,guiData)
 end
 
 function colorToChar(colorarray)
-	return char(255,min(max(floor(colorarray[1]*255),1),255),min(max(floor(colorarray[2]*255),1),255),min(max(floor(colorarray[3]*255),1),255))
+	return char(255,clamp(floor(colorarray[1]*255), 1, 255) ,clamp(floor(colorarray[2]*255), 1, 255) ,clamp(floor(colorarray[3]*255), 1, 255))
 end
 
 local teamData={}
@@ -193,13 +196,12 @@ function calcAbsSizes()
 	}
 end
 
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (vsy / 1080)
 
 	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(fontfile2, 1.3, math.max(0.16, 0.25 / widgetScale), math.max(4.5, 6 / widgetScale))
+	font2 = WG['fonts'].getFont(2)
 	for _, data in pairs(headerRemap) do
 		maxColumnTextSize = max(font:GetTextWidth(data[2]), max(font:GetTextWidth(data[1]), maxColumnTextSize))
 	end
@@ -272,7 +274,10 @@ function widget:Shutdown()
 	glDeleteList(textDisplayList)
 	glDeleteList(backgroundDisplayList)
 	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('teamstats_window')
+		WG['guishader'].RemoveDlist('teamstats_window')
+	end
+	if backgroundGuishader ~= nil then
+		glDeleteList(backgroundGuishader)
 	end
 end
 
@@ -340,6 +345,7 @@ function widget:GameFrame(n,forceupdate)
 					end
 					local _,leader,isDead = GetTeamInfo(teamID,false)
 					local playerName,isActive = GetPlayerInfo(leader,false)
+					playerName = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(leader) or playerName
 					if Spring.GetGameRulesParam('ainame_'..teamID) then
 						playerName = Spring.GetGameRulesParam('ainame_'..teamID)
 					end
@@ -555,7 +561,7 @@ end
 function widget:DrawScreen()
 	if not guiData.mainPanel.visible then
 		if WG['guishader'] then
-			WG['guishader'].DeleteDlist('teamstats_window')
+			WG['guishader'].RemoveDlist('teamstats_window')
 		end
 		return
 	end

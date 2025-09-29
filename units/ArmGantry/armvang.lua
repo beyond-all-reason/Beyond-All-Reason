@@ -133,16 +133,16 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
+				customparams = {
+					exclude_preaim = true,
+					smart_backup = true,
+				},
 				damage = {
 					commanders = 1100,
 					default = 1265,
 					shields = 765,
 					subs = 500,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_backup = true,
-				}
 			},
 			shocker_low = {
 				areaofeffect = 192,
@@ -172,16 +172,16 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
+				customparams = {
+					exclude_preaim = true,
+					smart_priority = true,
+				},
 				damage = {
 					commanders = 1100,
 					default = 1265,
 					shields = 765,
 					subs = 500,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_priority = true,
-				}
 			},
 			smart_trajectory_dummy = {
 				areaofeffect = 192,
@@ -211,26 +211,28 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
-				damage = {
-					default = 0,
-				},
 				customparams = {
 					exclude_preaim = true,
 					smart_trajectory_checker = true,
-				}
+				},
+				damage = {
+					default = 0,
+				},
 			},
 		},
 		weapons = {
 			[1] = {
+				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "SHOCKER_LOW",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				badtargetcategory = "SURFACERAIDER",
+				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "SHOCKER_HIGH",
 				onlytargetcategory = "SURFACE",
 			},
 			[3] = {
+				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "smart_trajectory_dummy",
 				onlytargetcategory = "SURFACE",
 			},

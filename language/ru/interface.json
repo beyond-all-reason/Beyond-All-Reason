@@ -5,6 +5,10 @@
 			"catchingUp": "Синхронизация"
 		},
 		"topbar": {
+			"hint": {
+				"resign": "Сдаться.",
+				"teamResign": "Вызвать голосование на капитуляцию."
+			},
 			"button": {
 				"quit": "Выйти",
 				"resign": "Сдаться",
@@ -21,6 +25,7 @@
 				"stay": "Остаться",
 				"quit": "Выйти",
 				"resign": "Сдаться",
+				"teamResign": "Капитуляция Команды",
 				"reallyQuit": "Вы уверены что хотите выйти?",
 				"reallyQuitResign": "Вы уверены что хотите сдаться или вернуться в игровое лобби?",
 				"reallyResign": "Вы уверены что хотите сдаться?",
@@ -62,31 +67,17 @@
 				"tooManyConverters2Tooltip": "Прекратите строить Преобразователи Энергии и увеличьте её производство."
 			}
 		},
-		"unitMarket": {
-			"sellingUnit": "%{name} продает %{unitName} за %{price} металла.",
-			"unitSold": "%{name} купил %{unitName} у %{oldName} за %{price} металла. ",
-			"notEnoughMetal": "Недостаточно металла!",
-			"offeringThisUnitForSale": "Ваши юниты выставлены на продажу, союзники могут приобрести их через двойной клик! Цена - %{price}м.",
-			"youCanBuyThisTooltip": "Вы можете приобрести этого юнита двойным кликом! Цена - %{price}м.",
-			"youCantBuyThisTooltip": "Этот юнит продаётся, цена - %{price} м, но у вас недостаточно металла.",
-			"youCanAffordIt": "Этот юнит стоит %{price}металла, можно приобрести.",
-			"youCantAffordIt": "Этот юнит стоит %{price}металла, у вас не хватает.\nНо если нажать на него - расход металла автоматически приостановится, чтобы накопить на покупку.",
-			"t2conShop": "Рынок Т2 строителей!",
-			"shopTitle": "Рынок юнитов",
-			"shopInfo": "Здесь вы найдете Т2 строителей на продажу.",
-			"youAreSellingText": "Вы выставили Т2 строителя на продажу, другие теперь могут его купить!",
-			"failedToFindNewOffers": "Нет в наличии, ожидаем новых предложений! %{sec}с.",
-			"autoClosing": "Это окно автоматически закроется через %{sec}с.",
-			"purchasing": "Покупка: %{name}(%{price} м)",
-			"buy": "купить",
-			"abort": "отменить"
-		},
+
 		"playersList": {
 			"spectators": "Наблюдатели %{amount}",
 			"enemies": "Противники %{amount}",
 			"allies": "Союзники",
 			"hideSpecs": "Нажмите чтобы скрыть",
 			"showSpecs": "Нажмите чтобы показать",
+			"leaderboard": "Таблица лидеров",
+			"leaderboardTooltip": "Команды упорядочены по общей стоимости всех юнитов + сохраненные ресурсы",
+			"scoreboard": "Результаты",
+			"scoreboardTooltip": "Игроки упорядочены по их совокупной стоимости в металле + затраченной энергии + нанесенному урону",
 			"hideEnemies": "Нажмите чтобы скрыть",
 			"showEnemies": "Нажмите чтобы показать",
 			"trackPlayer": "Дважды нажмите на имя игрока для отслеживания",
@@ -130,7 +121,11 @@
 			"warlow": "Конфликт",
 			"warhigh": "Война",
 			"bossfight": "Битва с Боссом",
-			"gameover": "Игра закончена"
+			"gameover": "Игра закончена",
+			"bonus": "Бонус",
+			"scavengers": "Мусорщики",
+			"raptors": "Рапторы",
+			"interludes": "Интерлюдии"
 		},
 		"playerTV": {
 			"playerTV": "ТВ",
@@ -169,7 +164,7 @@
 			"previousPage": "Предыдущая страница",
 			"disabled": "%{textColor}%{unit}%{warnColor}(недоступно)",
 			"nextBuilder": "Следующий строитель",
-			"areamex_tooltip": "Совет: выберите этот экстрактор дважды, чтобы использовать команду Area Mex"
+			"areamex_tooltip": "Совет: выберите этот экстрактор дважды, чтобы использовать команду Зона МЭкс"
 		},
 		"orderMenu": {
 			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
@@ -192,7 +187,7 @@
 			"resurrect": "Реанимировать",
 			"resurrect_tooltip": "Восстанавливает боевую единицу из обломков (зажать+тянуть для восст. всех в области)",
 			"guard": "Охранять",
-			"guard_tooltip": "Охраняйте другое подразделение от атакующих его вражеских подразделений",
+			"guard_tooltip": "Охранять другое подразделение от атакующих его вражеских подразделений",
 			"factoryguard": "Помощь Заводу",
 			"factoryguard_tooltip": "Строители из этого завода будут автоматически получать приказ охраны на него",
 			"wait": "Ждать",
@@ -207,7 +202,7 @@
 			"capture_tooltip": "Взять под контроль юниты, принадлежащие противнику (или союзнику)",
 			"settarget": "Задать Цель",
 			"settarget_tooltip": "Задать приоритет для атаки (если цель находится в пределах досягаемости)",
-			"canceltarget": "Очистить Цель",
+			"canceltarget": "Снять Цель",
 			"canceltarget_tooltip": "Удаляет приоритетную цель",
 			"areamex": "Зона \"МЭкс\"",
 			"areamex_tooltip": "Зажмите+Тяните, чтобы построить Металлоэкстракторы на всех доступных Металлических жилах",
@@ -220,7 +215,7 @@
 			"stockpile": "Запас %{stockpileStatus}",
 			"stockpile_tooltip": "[ накоплено ] / [ макс. запас ]",
 			"stopproduction": "Очистить очередь",
-			"stopproduction_tooltip": "Очистить очередь строительства для всех юнитов в выбранных фабриках",
+			"stopproduction_tooltip": "Очистить очередь строительства и квоту для всех юнитов в выбранных фабриках",
 			"morph": "Улучшить",
 			"morph_tooltip": "Улучшить до следующего технического уровня (второе нажатие для отмены)",
 			"Spawning Disabled": "Спавн отключен",
@@ -263,20 +258,28 @@
 			"apAirRepair_tooltip": "Воздушная фабрика: Установить уровень здоровья в %% при котором самолет отступит на ближайшую Ремонтную Посадочную Площадку",
 			"Low traj": "Выс. траект.",
 			"High traj": "Выс. траект.",
-			"trajectory_tooltip": "Установить режим огня артиллерии (огонь навесом/прямой наводкой)",
+			"trajectory_toggle_tooltip": "Переключение угла стрельбы между низкой, высокой и автоматической траекторией",
+			"trajectory_low": "Низк. траектория",
+			"trajectory_high": "Выс. траектория",
+			"trajectory_auto": "Авто. Траектория ",
 			"hound_weapon_plasma": "Плазма-пушка",
 			"hound_weapon_gauss": "Гаусса-пушка",
 			"hound_weapon_toggle_tooltip": "Переключает орудие между медленными плазменными снарядами с широким радиусом и быстрой гаусс-пушкой",
-			"blueprint_place": "Разместить Чертеж",
+			"blueprint_place": "Чертеж",
 			"blueprint_place_tooltip": "Разместить сохраненный чертеж",
 			"blueprint_create": "Сохранить Чертеж",
 			"blueprint_create_tooltip": "Сохранить выбранные юниты в новый чертеж, в порядке их выделения",
+			"factoryqueuemode_normal": "Режим Очереди",
+			"factoryqueuemode_quota": "Режим Квоты",
+			"factoryqueuemode_tooltip": "Очередь: Построить каждого выбранного юнита единожды\nКвота: Поддерживать заданное количество юнитов на поле",
 			"customOnOff": {
 				"lowTrajectory": "Низк. траектория",
 				"highTrajectory": "Выс. траектория",
 				"trajectory_tooltip": "Переключить режим ведения огня: Навесная стрельба или Прямой наводкой",
 				"gauss_tooltip": "Переключает между Гаусс-пушкой и тяжёлой плазмо-пушкой"
-			}
+			},
+			"quicksharetotarget": "Передать Юнит",
+			"quicksharetotarget_tooltip": "Передать юнита выбранному игроку."
 		},
 		"idleBuilders": {
 			"name": "Незанятые строители",
@@ -464,20 +467,28 @@
 			"everyone": "все",
 			"allies": "союзники",
 			"spectators": "наблюдатели",
+			"spectator": "наблюдатель",
 			"cmd": "КОМАНДА",
-			"nohistory": "Не сохранять историю чата"
+			"nohistory": "Не сохранять историю чата",
+			"syncerrorfor": "Ошибка синхронизации%{textColor}для %{name}",
+			"laggingbehind": "%{name} %{textColor}отстаёт",
+			"pausedthegame": "%{name} %{textColor}приостановил игру",
+			"unpausedthegame": "%{name} %{textColor}снял паузу",
+			"connectionattemptfrom": "%{textColor}Попытка подключения от: %{name}",
+			"leftthegamenormal": "%{name} %{textColor}покинул игру %{textColor2}(отключился)",
+			"leftthegametimeout": "%{name} %{textColor}покинул игру %{textColor2}(превышено время ожидания)"
 		},
 		"teamStats": {
 			"player": "Игрок",
 			"dead": "%{player} (мёртв)",
 			"gone": "%{player} (ушёл)",
 			"damage": "Урон",
-			"damageDealt": "Нанесённый",
-			"damageReceived": "Полученный",
-			"damageEfficiency": "Эффективность",
+			"damageDealt": "Нанесено",
+			"damageReceived": "Получено",
+			"damageEfficiency": "Эффект.",
 			"units": "Юнитов",
-			"unitsProduced": "Произведено",
-			"unitsKilled": "Уничтожено",
+			"unitsProduced": "Произвед.",
+			"unitsKilled": "Уничт.",
 			"unitsDied": "Потеряно",
 			"actionsPerMinute1": "Действий",
 			"actionsPerMinute2": "В Минуту",
@@ -513,9 +524,11 @@
 		"gametypeInfo": {
 			"killAllUnits": "Убить всех вражеских юнитов",
 			"killAllCommanders": "Убить всех вражеских Командиров",
+			"killAllBuilders": "Убить всех вражеских строителей",
 			"commandersSurviveDgun": "Командиры переживают Д-Пушку и взрыв командира",
 			"victoryCondition": "Условие победы",
-			"owncomends": "Потеря вашего командира = потеря контроля над вашими юнитами / капитуляция"
+			"owncomends": "Потеря вашего командира = потеря контроля над вашими юнитами / капитуляция",
+			"territorialDomination": "Территориальная Доминация, захватите и удержите достаточно территорий чтобы избежать поражения"
 		},
 		"startSpot": {
 			"startbox": "Выберите стартовую позицию в зелёной зоне, и нажмите кнопку Готов. (F4 показывает Металлические Жилы).",
@@ -567,10 +580,16 @@
 			"firstWave2": "Готовьтесь к обороне!",
 			"airWave1": "Летающие Рапторы наступают!",
 			"airWave2": "%{unitCount} Рапторов!",
-			"queenIsAngry1": "Королева прибыла!",
+			"queenIsAngry1": {
+				"one"   : "Королева прибыла!",
+				"other" : "Королевы уже здесь!"
+			},
 			"queenIsAngry2": "Готовьтесь к последней битве!",
 			"queenResistant": "Королева стала устойчива к атакам%{unit}!",
-			"resistanceUnits": "Королева становится устойчивой к:",
+			"resistanceUnits":{
+				"one"   : "Королева становится устойчивой к:",
+				"other" : "Королевы становятся устойчивы к:"
+			},
 			"wave1": "Волна %{waveNumber}",
 			"wave2": "%{unitCount}  Рапторов!",
 			"raptorCount": " Рапторы: %{count}",
@@ -579,11 +598,21 @@
 			"queenAngerWithGain": "Инкубация Королевы: %{anger}%%(+%{gain}%%/сек)",
 			"queenAngerWithTech": "Инкубация Королевы: %{anger}%%(Эволюция: %{techAnger}%%)",
 			"queenAngerBase": "База: +%{value}%%/с",
-			"queenAngerAggression": "Агрессия: +%{value}%%/с",
+			"queenAngerAggression": "Агрессия игроков: +%{value}%%/с",
 			"queenAngerEco": "Экономика: +%{value}%%/с",
-			"queenETA": "Королева прибывает в: %{time}.",
-			"queenHealth": "Здоровье Королевы: %{health}%%",
-			"queenResistantToList": "Королева устойчива к:",
+			"queenETA": {
+				"one"   : "Королева прибывает через: %{time}.",
+				"other" : "%{count} Королев прибывает через: %{time}"
+			},
+			"queenHealth": {
+				"one"   : "Здоровье Королевы: %{health}%%",
+				"other" : "Здоровье Королев: %{health}%%"
+			},
+			"queensKilled": "Королев Убито: %{nKilled}/%{nTotal}",
+			"queenResistantToList": {
+				"one"   : "Королева устойчива к:",
+				"other" : "Королевы устойчивы к:"
+			},
 			"gracePeriod": "Период затишья: %{time}",
 			"burrowCount": "Норы: %{count}",
 			"burrowKillCount": "Уничтожено нор: %{count}",
@@ -605,10 +634,16 @@
 		"scavs": {
 			"firstWave1": "Мусорщики прибыли!",
 			"firstWave2": "Готовьтесь защищаться!",
-			"bossIsAngry1": "Босс уже здесь!",
+			"bossIsAngry1": {
+				"one"   : "Босс уже здесь!",
+				"other" : "Боссы уже здесь!"
+			},
 			"bossIsAngry2": "Готовьтесь к финальной битве!",
 			"bossResistant": "Босс становится устойчивым к атакам %{unit}!",
-			"resistanceUnits": "Босс становится устойчивым к:",
+			"resistanceUnits": {
+				"one"   : "Босс становится устойчивым к:",
+				"other" : "Боссы становятся устойчивы к:"
+			},
 			"wave1": "Волна %{waveNumber}",
 			"wave2": "%{unitCount} Мусорщики!",
 			"scavCount": "Мусорщики: %{count}",
@@ -617,11 +652,21 @@
 			"bossAngerWithGain": "Гнев Босса: %{anger}%% (+%{gain}%%/с)",
 			"bossAngerWithTech": "Гнев Босса: %{anger}%% (Тех.: %{techAnger}%%)",
 			"bossAngerBase": "База: +%{value}%%/с",
-			"bossAngerAggression": "Агрессия: +%{value}%%/с",
+			"bossAngerAggression": "Агрессия игроков: +%{value}%%/с",
 			"bossAngerEco": "Экономика: +%{value}%%/с",
-			"bossETA": "Босс прибывает в: %{time}.",
-			"bossHealth": "Здоровье Босса: %{health}%%",
-			"bossResistantToList": "Босс устойчив к:",
+			"bossETA": {
+				"one"   : "Босс прибывает через: %{time}.",
+				"other" : "%{count} Боссов прибывает через: %{time}"
+			},
+			"bossHealth": {
+				"one"   : "Здоровье Босса: %{health}%%",
+				"other" : "Здоровье Боссов: %{health}%%"
+			},
+			"bossesKilled": "Боссов Убито: %{nKilled}/%{nTotal}",
+			"bossResistantToList": {
+				"one"   : "Босс устойчив к:",
+				"other" : "Боссы устойчивы к:"
+			},
 			"gracePeriod": "Период затишья: %{time}",
 			"burrowCount": "Нор: %{count}",
 			"burrowKillCount": "Уничтожено нор: %{count}",
@@ -640,6 +685,12 @@
 				"endless": "Бесконечный режим"
 			}
 		},
+		"territorialDomination": {
+			"losingWarning1": "Союзники отступают через %{seconds} секунд!",
+			"losingWarning2": "Захватите еще%{count} территорий чтобы избежать выбывания.",
+			"rank": "Ранг %{rank}",
+			"scoreBarTooltip": "Захватывайте территории, чтобы заполнить полоску.\nЕсли полоска будет ниже черепа,\nвы будете исключены."
+		},
 		"loadScreen": {
 			"intelGpuWarning": "%{textColor}Вы используете встроенную %{warnColor}граф. карту Intel%{textColor}.     В настоящее время она %{warnColor}не поддерживается, игра не будет работать должным образом.",
 			"lowRamWarning": "%{textColor}Ваша система имеет меньше рекомендуемых %{warnColor}12ГБ памяти %{textColor}.     Попробуйте запустить игру с более низкими настройками, если у вас будут возникать ошибки из-за нехватки памяти."
@@ -648,7 +699,7 @@
 			"ready": "Готов",
 			"unready": "Не готов",
 			"readied": "Готов",
-			"lock": "Заблокировать Позицию",
+			"lock": "Готов",
 			"unlock": "Разблокировать Позицию",
 			"startCountdown": "Игра начнётся через %{time}...",
 			"choosePoint": "Пожалуйста выберите стартовую позицию!",
@@ -749,7 +800,8 @@
 			"factions": {
 				"arm": "Перехитрите своих врагов искусной тактикой",
 				"cor": "Сокрушите своих врагов грубой силой",
-				"leg": "Эта фракция находится на стадии разработки"
+				"leg": "Эта фракция находится на стадии разработки",
+				"random": "Выбирает случайный вариант из доступных"
 			}
 		},
 		"widgetselector": {
@@ -865,6 +917,8 @@
 			"transportmaxmass": " максимальная масса груза",
 			"transportmaxsize": "максимальный размер груза",
 			"transportcapacity": "вместимость",
+			"transport_heavy": "транспорт %{highlightColor}(Тяжелый)",
+			"transport_light": "транспорт %{highlightColor}(Лёгкий)",
 			"mass": "масса",
 			"footprint": "размер",
 			"speed": "скорость",
@@ -884,7 +938,11 @@
 			"eneededforconversion": "Э необходимая для преобразования",
 			"convertedm": "конвертируемая M",
 			"estorage": "вместимость Э",
-			"mstorage": "вместимость М"
+			"mstorage": "вместимость М",
+			"shieldcapacity": "Ёмкость щита",
+			"shieldrange": "Радиус щита",
+			"shieldrechargerate": "Скорость перезарядки",
+			"shieldrechargecost": "Стоимость перезарядки"
 		},
 		"spectator_hud": {
 			"metalIncome_title": "Доход Металла",
@@ -1006,8 +1064,6 @@
 				"cus_descr": "Включает: текстуру глубины, видимые повреждения, мигающие огни, окружающее освещение, движущиеся гусеницы танка.",
 				"darkenmap": "Затемнить карту",
 				"darkenmap_descr": "Затемняет всю карту (не юнитов)",
-				"darkenmap_darkenfeatures": "затемнить объекты",
-				"darkenmap_darkenfeatures_descr": "Затемняет объекты (деревья, обломки и т. д.) вместе с ползунком затемнения карты выше.\n\nПРИМЕЧАНИЕ: Может потреблять много ресурсов ЦП: он проходит через все видимые объекты\nи отрисовывает их еще раз.",
 				"advmapshading": "Продвинутое затенение карты",
 				"advmapshading_descr": "Включает: текстуру глубины, текстуры деталей, улучшенное освещение, тени.",
 				"shadowslider": "Тени",
@@ -1069,10 +1125,14 @@
 				"lighteffects_brightness_descr": "Устанавливает яркость источников света",
 				"lighteffects_radius": "радиус",
 				"lighteffects_radius_descr": "Устанавливает радиус свечения\n\nВНИМАНИЕ: чем больше радиус, тем больше нагрузка на ГП",
+				"lighteffects_screenspaceshadows": "детализация теней",
+				"lighteffects_screenspaceshadows_descr": "Установить уровень детализации дополнительной светотени. 0 чтобы отключить.\n\nВНИМАНИЕ: увеличение выборки требовательно к GPU",
 				"lighteffects_headlights": "фары",
 				"lighteffects_headlights_descr": "Добавляет юнитам фары",
 				"lighteffects_buildlights": "Габаритные огни",
 				"lighteffects_buildlights_descr": "Добавляет вращающиеся габаритные огни строительным юнитам",
+				"distortioneffects": "Эффекты искажения",
+				"distortioneffects_descr": "Добавить искажения ко всем видам взрывов",
 				"dof": "Глубина резкости",
 				"dof_descr": "Применяет размытие фокусировки",
 				"dof_autofocus": "автофокус",
@@ -1112,6 +1172,10 @@
 				"soundtrackold_descr": "Добавляет современные музыкальные темы в саундтрек",
 				"soundtrackcustom": "Пользовательский саундтрек",
 				"soundtrackcustom_descr": "Добавляйте произвольные .ogg или .mp3 файлы в плейлист\nПоместите их в data/music/custom, подпапки peace/warlow/warhigh/bossfight/gameover",
+				"soundtrackaprilfools": "Саундтрэк Дня Дурака ",
+				"soundtrackaprilfools_descr": "Включить музыку события Дня Дурака",
+				"soundtrackaprilfoolspostevent": "Саундтрек в честь прошедшего Дня Дурака",
+				"soundtrackaprilfoolspostevent_descr": "Включить музыку события Дня Дурака",
 				"soundtracksilence": "Периоды тишины",
 				"soundtracksilence_descr": "Добавляет паузы между композициями\nчтобы дать вам насладиться игровыми эффектами\nи сделать музыку менее повторяющейся.",
 				"soundtrackinterruption": "Прерывание",
@@ -1170,6 +1234,9 @@
 				"camera": "Камера",
 				"camerashake": "тряска",
 				"camerashake_descr": "Настройка интенсивности дрожания камеры при взрывах",
+				"smoothingmode": "Режим сглаживания",
+				"smoothing_exponential": "Экспоненциальный спад",
+				"smoothing_spring": "Spring Dampened",
 				"camerasmoothing": "сглаживание",
 				"camerasmoothness": "плавность",
 				"camerasmoothness_descr": "Насколько плавными должны быть переходы между движениями камеры?",
@@ -1200,6 +1267,8 @@
 				"guishader": "размытие",
 				"guishader_descr": "Размытие под элементами пользовательского интерфейса",
 				"guishaderintensity": "   интенсивность",
+				"rendertotexture": "Режим производительности ",
+				"rendertotexture_descr": "Прорисовка элементов пользовательского интерфейса в текстуре вместо многократного исполнения серий команд OpenGL \n\nПРИМЕЧАНИЕ: При включении качество может снизиться (особенно при низком разрешении)",
 				"font": "шрифт",
 				"font_descr": "Основной шрифт для читаемого текста",
 				"font2": "шрифт 2",
@@ -1289,8 +1358,12 @@
 				"advplayerlist": "Список игроков",
 				"advplayerlist_scale": "масштаб",
 				"advplayerlist_scale_descr": "Изменение размера списка игроков (и его аддонов)",
+				"advplayerlist_showallyid": "показать ID союзника",
+				"advplayerlist_showallyid_descr": "показать ID союзной команды",
 				"advplayerlist_showid": "показать ID Команды",
 				"advplayerlist_showid_descr": "показать ID команды",
+				"advplayerlist_showplayerid": "показать ID Игрока",
+				"advplayerlist_showplayerid_descr": "показать ID игрока",
 				"advplayerlist_country": "Отображать флаги стран",
 				"advplayerlist_country_descr": "Отображает флаг страны игрока сразу после его имени в лобби",
 				"advplayerlist_rank": "значок ранга",
@@ -1328,6 +1401,8 @@
 				"console_hide_descr": "Скрывает чат и консоль. (прокручиваемый интерфейс все еще доступен)",
 				"console_hidespecchat": "скрыть чат зрителей",
 				"console_hidespecchat_descr": "Не показывать чат зрителей",
+				"console_hidespecchatplayer": "только как игрок",
+				"console_hidespecchatplayer_descr": "Не показывать чат зрителя, когда вы игрок",
 				"console_showbackground": "показать фон",
 				"console_showbackground_descr": "Всегда показывать фон (тускло)",
 				"console_backgroundopacity": "прозрачность фона",
@@ -1351,7 +1426,7 @@
 				"idlebuilders": "Бездействующие строители",
 				"idlebuilders_descr": "Отображать иконки бездействующих строителей в нижней части экрана",
 				"buildbar": "Панель фабрик",
-				"buildbar_descr": "Отображает колонку с заводами в правой части экрана\nНаведите мышкой и кликните по юниту чтобы быстро добавить в очердь строительства",
+				"buildbar_descr": "Отображает колонку с заводами в правой части экрана\nНаведите мышкой и кликните по юниту чтобы быстро добавить в очередь строительства",
 				"converterusage": "Использование преобразователей энергии",
 				"converterusage_descr": "Отображает текущую занятость преобразователей энергии в металл в верхней части экрана",
 				"seeprices": "Показывать цену юнитов",
@@ -1370,6 +1445,9 @@
 				"enemyspotter_descr": "Отрисовывает размытые кружки под вражескими юнитами\n\nОтключается, если враг один или используется единый цвет",
 				"enemyspotter_opacity": "непрозрачность",
 				"enemyspotter_opacity_descr": "Устанавливает непрозрачность кружков под вражескими юнитами",
+				"ghosticons": "Призрачные иконки",
+				"ghosticons_brightness": "яркость",
+				"ghosticons_brightness_descr": "Яркость призрачных иконок вне радаров (0 чтобы отключить совсем)",
 				"selectedunits": "Выделение",
 				"selectedunits_descr": "При выборе отрисовывает область по контуру юнита\n\nПРИМЕЧАНИЕ: этот виджет может быть тяжелым при большом количестве выбранных единиц.",
 				"selectedunits_opacity": "непрозрачность выделения",
@@ -1421,6 +1499,7 @@
 				"allycursors_lights_descr": "Добавляет цветную подсветку каждому курсору союзника.",
 				"allycursors_lightradius": "радиус",
 				"allycursors_lightstrength": " сила",
+				"allycursors_selfshadowing": "cамозатенение",
 				"cursorlight": "Свечение курсора",
 				"cursorlight_descr": "Добавляет подсветку под вашим курсором\n\nТребуется включить \"Источники Света\" (в графике)",
 				"cursorlight_lightradius": "радиус",
@@ -1477,15 +1556,19 @@
 				"defrange_allyair": "Союзный Воздух",
 				"defrange_allyair_descr": "Отображать дальность союзных воздушных юнитов",
 				"defrange_allyground": "Союзная Земля",
-				"defrange_allyground_descr": "Отображать дальность союзных наземных юнитов",
+				"defrange_allyground_descr": "Показывать дальность действия для союзников на земле, на воде и пушек",
 				"defrange_allynuke": "Союзное ядерное оружие",
-				"defrange_allynuke_descr": "Отображает дальность союзного ядерного оружия",
+				"defrange_allynuke_descr": "Показывать дальность союзного противоядерного оружия",
+				"defrange_allylrpc": "Союзные ППДД",
+				"defrange_allylrpc_descr": "Показывать зоны покрытия союзных плазменных пушек дальнего действия",
 				"defrange_enemyair": "Вражеский Воздух",
 				"defrange_enemyair_descr": "Отображать дальность вражеских воздушных юнитов",
 				"defrange_enemyground": "Вражеская Земля",
-				"defrange_enemyground_descr": "Отображать дальность вражеских наземных юнитов",
+				"defrange_enemyground_descr": "Показывать зоны покрытия вражеских плазменных пушек дальнего действия",
 				"defrange_enemynuke": "Вражеское ядерное оружие",
-				"defrange_enemynuke_descr": "Отображает дальность вражеского ядерного оружия",
+				"defrange_enemynuke_descr": "Показывать дальность вражеского противоядерного оружия",
+				"defrange_enemylrpc": "Вражеские ППДД",
+				"defrange_enemylrpc_descr": "Показывать зоны покрытия вражеских плазменных пушек дальнего действия",
 				"antiranges": "Зоны противоядерного покрытия",
 				"antiranges_descr": "Отображает зоны противоядерного покрытия",
 				"allyselunits_select": "выделение юнитов",
@@ -1558,10 +1641,13 @@
 				"devmode_descr": "Переключение интерфейса разработчика",
 				"customwidgets": "Разрешить пользовательские виджеты",
 				"customwidgets_descr": "Разрешить загрузку пользовательских виджетов (размещенных внутри spring/luaui/widgets)",
-				"profiler": "Профайлер виджетов",
-				"profiler_min_time": "Миним. Время",
-				"profiler_min_memory": "Миним. Память",
-				"profiler_sort_by_load": "Сорт. По Загрузке",
+				"profiler": "Профайлер",
+				"profiler_widget": "виджет",
+				"profiler_gadget": "гаджет",
+				"profiler_sort_by_load": "сорт. по загрузке",
+				"profiler_sort_by_load_descr": "Применяется к Профайлерам Виджетов и Гаджетов",
+				"profiler_averagetime": "усреднение времени",
+				"profiler_averagetime_descr": "Длительность усреднения времени, занимаемого каждым виджетом/гаджетом",
 				"framegrapher": "График кадров",
 				"autocheat": "Автоматическое включение читов для $VERSION",
 				"autocheat_descr": "делает: /cheat, /globallos, /godmode",
@@ -1596,6 +1682,9 @@
 				"color_unitspecular": "Specular юнитов",
 				"suncolor": "Солнце",
 				"skycolor": "Небо",
+				"skybox": "Скайбокс",
+				"angle": "угол",
+				"reset": "сброс",
 				"sunlighting_reset": "Сбросить цвета: окружения/юнитов",
 				"sunlighting_reset_descr": "сбросить цвета: окружения/подсветки юнитов/рассеивания/отражения",
 				"red": "красный",
@@ -1659,6 +1748,10 @@
 				"title": "%{role1}/%{role2}",
 				"description": "%{role1}\n\nи/или\n\n%{role2}"
 			}
+		},
+		"quickShareToTarget": {
+			"noTarget": "Цель не выбрана",
+			"shareTo": "Передать: %{playerColor}%{player}"
 		}
 	}
 }

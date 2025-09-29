@@ -1,4 +1,6 @@
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Limit idle FPS",
@@ -13,7 +15,7 @@ end
 
 local offscreenDelay = 3
 local idleDelay = Spring.GetConfigInt("LimitIdleFpsDelay", 60)
-local vsyncValueActive = Spring.GetConfigInt("VSyncGame", 0)
+local vsyncValueActive = Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1)
 local vsyncValueIdle = Spring.GetConfigInt("IdleFpsDivider", 4)    -- sometimes vsync > 4 doesnt work at all
 
 local limitFpsWhenIdle = Spring.GetConfigInt("LimitIdleFps", 0) == 1
@@ -57,7 +59,7 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > 2 then
 		sec = 0
-		vsyncValueActive = Spring.GetConfigInt("VSyncGame", 0)
+		vsyncValueActive = Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1)
 		limitFpsWhenIdle = Spring.GetConfigInt("LimitIdleFps", 0) == 1
 		idleDelay = Spring.GetConfigInt("LimitIdleFpsDelay", 40)
 	end

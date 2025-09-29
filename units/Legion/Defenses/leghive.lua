@@ -3,10 +3,10 @@ return {
 		maxacc = 0,
 		maxdec = 4.5,
 		buildangle = 4096,
-		energycost = 9000,
+		energycost = 7500,
 		metalcost = 300,
 		buildpic = "leghive.DDS",
-		buildtime = 7500,
+		buildtime = 6000,
 		canrepeat = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -7 0",
@@ -123,27 +123,31 @@ return {
 				impulsefactor = 0.123,
 				name = "HeavyCannon",
 				noselfdamage = true,
-				range = 1000,
+				metalpershot = 15,
+				energypershot = 500,
+				range = 1100,
 				reloadtime = 2.5,
 				size = 0,
 				soundhit = "",
 				soundhitwet = "",
 				soundstart = "",
+				stockpile = true,
+				stockpiletime = 10,
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 360,
+				weaponvelocity = 1000,
 				damage = {
 					default = 0,
 				},
 				customparams = {
 					carried_unit = "legdrone",     --Name of the unit spawned by this carrier unit.
-					engagementrange = 1000,
+					engagementrange = 1100,
 					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 8, 				--Spawnrate roughly in seconds.
 					maxunits = 6,				--Will spawn units until this amount has been reached.
 					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1100,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					controlradius = 1200,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 4,
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
@@ -153,6 +157,12 @@ return {
 					dockingHelperSpeed = 5,
 					dockingpieces = "4 5 6 7 8 9",
 					dockingradius = 80,			--The range at which the units snap to the carrier unit when docking.
+					stockpilelimit = 6,
+					stockpilemetal = 15,
+					stockpileenergy = 500,
+					dronesusestockpile = true,
+					cobdockparam = 1,
+					cobundockparam = 1,
 				}
 			},
 		},

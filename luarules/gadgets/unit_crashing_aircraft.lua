@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name      = "Crashing Aircraft",
@@ -56,7 +58,7 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SetUnitCOBValue(unitID, COB_CRASHING, 1)
 			Spring.SetUnitNoSelect(unitID,true)
 			Spring.SetUnitNoMinimap(unitID,true)
-			Spring.UnitIconSetDraw(unitID, false)
+			Spring.SetUnitIconDraw(unitID, false)
 			Spring.SetUnitStealth(unitID, true)
 			Spring.SetUnitAlwaysVisible(unitID, false)
 			Spring.SetUnitNeutral(unitID, true)

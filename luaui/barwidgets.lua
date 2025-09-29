@@ -19,7 +19,7 @@ local gl = gl
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. 'Config/' .. Game.gameShortName .. '.lua'
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. 'Widgets/'
-local WIDGET_DIRNAME_MAP = LUAUI_DIRNAME .. 'Widgets/'
+local RML_WIDGET_DIRNAME = LUAUI_DIRNAME .. 'RmlWidgets/'
 
 local SELECTOR_BASENAME = 'selector.lua'
 
@@ -95,6 +95,7 @@ widgetHandler = {
 local flexCallIns = {
 	'GameOver',
 	'GameFrame',
+	'GameFramePost',
 	'GameSetup',
 	'GamePaused',
 	'TeamDied',
@@ -106,6 +107,8 @@ local flexCallIns = {
 	'WorldTooltip',
 	'MapDrawCmd',
 	'ActiveCommandChanged',
+	'CameraRotationChanged',
+	'CameraPositionChanged',
 	'DefaultCommand',
 	'UnitCreated',
 	'UnitFinished',
@@ -120,6 +123,7 @@ local flexCallIns = {
 	'UnitCommand',
 	'UnitCmdDone',
 	'UnitDamaged',
+	"UnitStunned",
 	'UnitEnteredRadar',
 	'UnitEnteredLos',
 	'UnitLeftRadar',
@@ -301,6 +305,7 @@ end
 
 
 --------------------------------------------------------------------------------
+local unsortedWidgets
 local doMoreYield = (Spring.Yield ~= nil);
 
 local function Yield()
@@ -314,59 +319,49 @@ local zipOnly = {
 	["Widget Profiler"] = true,
 }
 
+local function loadWidgetFiles(folder, vfsMode)
+	local fromZip = vfsMode ~= VFS.RAW
+	local widgetFiles = VFS.DirList(folder, "*.lua", vfsMode)
+
+	for _, subDirectory in ipairs( VFS.SubDirs(folder) ) do
+		table.append( widgetFiles, VFS.DirList(subDirectory, "*.lua", vfsMode) )
+	end
+
+	for _, file in ipairs(widgetFiles) do
+		local widget = widgetHandler:LoadWidget(file, fromZip)
+		local excludeWidget = widget and not fromZip and zipOnly[widget.whInfo.name]
+
+		if widget and not excludeWidget then
+			table.insert(unsortedWidgets, widget)
+			Yield()
+		end
+	end
+end
+
 function widgetHandler:Initialize()
 	widgetHandler:CreateQueuedReorderFuncs()
 	widgetHandler:HookReorderSpecialFuncs()
 	self:LoadConfigData()
 
-	-- do we allow userland widgets?
 	if self.allowUserWidgets == nil then
 		self.allowUserWidgets = true
 	end
+
+	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
+
+	unsortedWidgets = {}
+
 	if self.allowUserWidgets and allowuserwidgets then
 		Spring.Echo("LuaUI: Allowing User Widgets")
+		loadWidgetFiles(WIDGET_DIRNAME, VFS.RAW)
+		loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.RAW)
 	else
 		Spring.Echo("LuaUI: Disallowing User Widgets")
 	end
 
-	-- create the "LuaUI/Config" directory
-	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
+	loadWidgetFiles(WIDGET_DIRNAME, VFS.ZIP)
+	loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.ZIP)
 
-	local unsortedWidgets = {}
-
-	-- stuff the raw widgets into unsortedWidgets
-	if self.allowUserWidgets and allowuserwidgets then
-		local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.RAW)
-		for k, wf in ipairs(widgetFiles) do
-			local widget = self:LoadWidget(wf, false)
-			if widget and not zipOnly[widget.whInfo.name] then
-				table.insert(unsortedWidgets, widget)
-				Yield()
-			end
-		end
-	end
-
-	-- stuff the zip widgets into unsortedWidgets
-	local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.ZIP)
-	for k, wf in ipairs(widgetFiles) do
-		local widget = self:LoadWidget(wf, true)
-		if widget then
-			table.insert(unsortedWidgets, widget)
-			Yield()
-		end
-	end
-
-	-- stuff the map widgets into unsortedWidgets
-	local widgetFiles = VFS.DirList(WIDGET_DIRNAME_MAP, "*.lua", VFS.MAP)
-	for k, wf in ipairs(widgetFiles) do
-		local widget = self:LoadWidget(wf, true)
-		if widget then
-			table.insert(unsortedWidgets, widget)
-			Yield()
-		end
-	end
-
-	-- sort the widgets
 	table.sort(unsortedWidgets, function(w1, w2)
 		local l1 = w1.whInfo.layer
 		local l2 = w2.whInfo.layer
@@ -384,7 +379,6 @@ function widgetHandler:Initialize()
 		end
 	end)
 
-	-- add the widgets
 	for _, w in ipairs(unsortedWidgets) do
 		local name = w.whInfo.name
 		local basename = w.whInfo.basename
@@ -394,8 +388,7 @@ function widgetHandler:Initialize()
 		widgetHandler:InsertWidgetRaw(w)
 	end
 
-	-- Since Initialize is run out of the normal callin wrapper by InsertWidget,
-	-- we, need to reorder explicitly here.
+	-- Since Initialize is run out of the normal callin wrapper by InsertWidget, we, need to reorder explicitly here.
 	widgetHandler:PerformReorders()
 
 	-- save the active widgets, and their ordering
@@ -449,7 +442,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 			return nil
 		end
 
-		local widget = widgetHandler:NewWidget()
+		local widget = widgetHandler:NewWidget(enableLocalsAccess)
 		setfenv(chunk, widget)
 		local success, err = pcall(chunk)
 		if not success then
@@ -471,7 +464,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 		return nil
 	end
 
-	local widget = widgetHandler:NewWidget()
+	local widget = widgetHandler:NewWidget(enableLocalsAccess)
 	setfenv(chunk, widget)
 	local success, err = pcall(chunk)
 	if not success then
@@ -572,28 +565,31 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 	return widget
 end
 
-function widgetHandler:NewWidget()
+local WidgetMeta =
+{
+	__index = System,
+	__metatable = true,
+}
+
+function widgetHandler:NewWidget(enableLocalsAccess)
 	tracy.ZoneBeginN("W:NewWidget")
 	local widget = {}
-	if true then
+	if enableLocalsAccess then
 		-- copy the system calls into the widget table
 		for k, v in pairs(System) do
 			widget[k] = v
 		end
 	else
 		-- use metatable redirection
-		setmetatable(widget, {
-			__index = System,
-			__metatable = true,
-		})
+		setmetatable(widget, WidgetMeta)
 	end
+
 	widget.WG = self.WG    -- the shared table
 	widget.widget = widget -- easy self referencing
 
 	-- wrapped calls (closures)
 	widget.widgetHandler = {}
 	local wh = widget.widgetHandler
-	local self = self
 	widget.include = function(f)
 		return include(f, widget)
 	end
@@ -803,14 +799,18 @@ local function ArrayInsert(t, f, w)
 	end
 end
 
-local function ArrayRemove(t, w)
-	for k, v in ipairs(t) do
-		if v == w then
-			table.remove(t, k)
-			--break
+---Removes all elements equal to value from given array.
+---@generic V
+---@param t V[]
+---@param value V
+local function ArrayRemove(t, value)
+	for i = #t, 1, -1 do
+		if t[i] == value then
+			table.remove(t, i)
 		end
 	end
 end
+
 
 --------------------------------------------------------------------------------
 --- Safe reordering
@@ -1352,6 +1352,22 @@ function widgetHandler:ActiveCommandChanged(id, cmdType)
 	tracy.ZoneEnd()
 end
 
+function widgetHandler:CameraRotationChanged(rotx, roty, rotz)
+	tracy.ZoneBeginN("W:CameraRotationChanged")
+	for _,w in ipairs(self.CameraRotationChangedList) do
+		w:CameraRotationChanged(rotx, roty, rotz)
+	end
+	tracy.ZoneEnd()
+end
+
+function widgetHandler:CameraPositionChanged(posx, posy, posz)
+	tracy.ZoneBeginN("W:CameraPositionChanged")
+	for _,w in ipairs(self.CameraPositionChangedList) do
+		w:CameraPositionChanged(posx, posy, posz)
+	end
+	tracy.ZoneEnd()
+end
+
 function widgetHandler:CommandNotify(id, params, options)
 	tracy.ZoneBeginN("W:CommandNotify")
 	for _, w in ipairs(self.CommandNotifyList) do
@@ -1572,11 +1588,21 @@ function widgetHandler:DrawPreDecals()
 	return
 end
 
-function widgetHandler:DrawWorldPreParticles()
+function widgetHandler:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)
 	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. The second is the refraction pass.
+	-- drawAboveWater, drawBelowWater, drawReflection, drawRefraction
+	-- 1. false, 			true, 			false, 			false
+	-- 2. true, 			false, 			true, 			false
+	-- 3. true, 			false, 			false, 			false
+
+	-- When refractions are on:
+	-- false, true, false, false
+	-- false, true, false, true
+	-- true, false, true, false
+	-- true, false, false, false
 	tracy.ZoneBeginN("W:DrawWorldPreParticles")
 	for _, w in r_ipairs(self.DrawWorldPreParticlesList) do
-		w:DrawWorldPreParticles()
+		w:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)
 	end
 	tracy.ZoneEnd()
 	return
@@ -1824,6 +1850,9 @@ function widgetHandler:MouseRelease(x, y, button)
 end
 
 function widgetHandler:MouseWheel(up, value)
+	if value == 0 then
+		return false -- fix for touchpads: after any scroll it somehow adds an up=false, value=0
+	end
 	tracy.ZoneBeginN("W:MouseWheel")
 	for _, w in ipairs(self.MouseWheelList) do
 		if w:MouseWheel(up, value) then
@@ -2047,6 +2076,18 @@ function widgetHandler:GameFrame(frameNum)
 	for _, w in ipairs(self.GameFrameList) do
 		tracy.ZoneBeginN("W:GameFrame:" .. w.whInfo.name)
 		w:GameFrame(frameNum)
+		tracy.ZoneEnd()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+
+function widgetHandler:GameFramePost(frameNum)
+	tracy.ZoneBeginN("W:GameFramePost")
+	for _, w in ipairs(self.GameFramePostList) do
+		tracy.ZoneBeginN("W:GameFramePost:" .. w.whInfo.name)
+		w:GameFramePost(frameNum)
 		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
@@ -2333,20 +2374,18 @@ function widgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
 end
 
 function widgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-
 	tracy.ZoneBeginN("W:UnitCommand")
 	for _, w in ipairs(self.UnitCommandList) do
-		w:UnitCommand(unitID, unitDefID, unitTeam,
-			cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+		w:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	end
 	tracy.ZoneEnd()
 	return
 end
 
-function widgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
+function widgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	tracy.ZoneBeginN("W:UnitCmdDone")
 	for _, w in ipairs(self.UnitCmdDoneList) do
-		w:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
+		w:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2356,6 +2395,15 @@ function widgetHandler:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyze
 	tracy.ZoneBeginN("W:UnitDamaged")
 	for _, w in ipairs(self.UnitDamagedList) do
 		w:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:UnitStunned(unitID, unitDefID, unitTeam, stunned)
+	tracy.ZoneBeginN("W:UnitStunned")
+	for _, w in ipairs(self.UnitStunnedList) do
+		w:UnitStunned(unitID, unitDefID, unitTeam, stunned)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2442,23 +2490,19 @@ function widgetHandler:UnitSeismicPing(x, y, z, strength)
 	return
 end
 
-function widgetHandler:UnitLoaded(unitID, unitDefID, unitTeam,
-								  transportID, transportTeam)
+function widgetHandler:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	tracy.ZoneBeginN("W:UnitLoaded")
 	for _, w in ipairs(self.UnitLoadedList) do
-		w:UnitLoaded(unitID, unitDefID, unitTeam,
-			transportID, transportTeam)
+		w:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	end
 	tracy.ZoneEnd()
 	return
 end
 
-function widgetHandler:UnitUnloaded(unitID, unitDefID, unitTeam,
-									transportID, transportTeam)
+function widgetHandler:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	tracy.ZoneBeginN("W:UnitUnloaded")
 	for _, w in ipairs(self.UnitUnloadedList) do
-		w:UnitUnloaded(unitID, unitDefID, unitTeam,
-			transportID, transportTeam)
+		w:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2510,25 +2554,24 @@ end
 function widgetHandler:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 	tracy.ZoneBeginN("W:StockpileChanged")
 	for _, w in ipairs(self.StockpileChangedList) do
-		w:StockpileChanged(unitID, unitDefID, unitTeam,
-			weaponNum, oldCount, newCount)
+		w:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 	end
 	tracy.ZoneEnd()
 	return
 end
 
-function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
 	tracy.ZoneBeginN("W:VisibleUnitAdded")
 	for _, w in ipairs(self.VisibleUnitAddedList) do
-		w:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+		w:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
 	end
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
+function widgetHandler:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
 	tracy.ZoneBeginN("W:VisibleUnitRemoved")
 	for _, w in ipairs(self.VisibleUnitRemovedList) do
-		w:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
+		w:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
 	end
 	tracy.ZoneEnd()
 end
@@ -2619,30 +2662,6 @@ function widgetHandler:FeatureDestroyed(featureID, allyTeam)
 	tracy.ZoneBeginN("W:FeatureDestroyed")
 	for _, w in ipairs(self.FeatureDestroyedList) do
 		w:FeatureDestroyed(featureID, allyTeam)
-	end
-	tracy.ZoneEnd()
-	return
-end
-
-
---------------------------------------------------------------------------------
---
---  Unit Market
---
-
-function widgetHandler:UnitSale(unitID, price, msgFromTeamID)
-	tracy.ZoneBeginN("W:UnitSale")
-	for _, w in ipairs(self.UnitSaleList) do
-		w:UnitSale(unitID, price, msgFromTeamID)
-	end
-	tracy.ZoneEnd()
-	return
-end
-
-function widgetHandler:UnitSold(unitID, price, old_ownerTeamID, msgFromTeamID)
-	tracy.ZoneBeginN("W:UnitSold")
-	for _, w in ipairs(self.UnitSoldList) do
-		w:UnitSold(unitID, price, old_ownerTeamID, msgFromTeamID)
 	end
 	tracy.ZoneEnd()
 	return

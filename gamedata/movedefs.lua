@@ -1,4 +1,3 @@
--- the commented out slopemod were there to compensate for modoption betterunitmovementmrectr
 ----------------------------------------------------------------------------------
 --README
 --for organizational purposes all unit deffs must be added to thge movedeff name.
@@ -56,8 +55,8 @@ local moveDatas = {
 	ABOT2 = {
 		crushstrength = 50,
 		depthmod = 0,
-		footprintx = 2,
-		footprintz = 2,
+		footprintx = 3,
+		footprintz = 3,
 		maxslope = 36,
 		maxwaterdepth = 5000,
 		maxwaterslope = 50,
@@ -99,11 +98,11 @@ local moveDatas = {
 		minwaterdepth = 10,
 	},
 
-	-- armcarry armdronecarry armepoch corblackhy armbats corbats corcarry cordronecarry corsentinel armtrident
+	-- armcarry armdronecarry armepoch corblackhy armbats corbats corcarry cordronecarry corsentinel armtrident coresuppt3
 	BOAT8 = {
 		crushstrength = 252,
-		footprintx = 8,
-		footprintz = 8,
+		footprintx = 9,
+		footprintz = 9,
 		minwaterdepth = 15,
 	},
 
@@ -166,7 +165,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 	},
 
-	-- cormlv armmflash corgator legmrv armmlv leghades leghelops armfav corfav armconsul armlatnk cortorch legmrrv
+	-- cormlv armmflash corgator legmrv  leghades leghelops armfav corfav armconsul armlatnk cortorch legmrrv
 	TANK2 = {
 		crushstrength = 18,
 		footprintx = 2,
@@ -180,7 +179,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- armjam corraid armjanus armsam armstump corwolv legcv corsent coreter corcv  cormist legrail legacv armacv armgremlin
+	-- armjam corraid armjanus armsam armstump corwolv legcv corsent coreter corcv  cormist legrail legacv armacv armgremlin armmlv
 	--armcv armart coracv corlevlr leggat legbar armseer armmart armyork corforge cormabm legvcarry corvrad cormart
 	TANK3 = {
 		crushstrength = 30,
@@ -254,7 +253,7 @@ local moveDatas = {
 		}
 	},
 
-	--cornecro leggob legkark armpw armfark armrectr corak corfast corspy leglob armspy armfast
+	--cornecro leggob legkark armpw armfark armrectr corak corfast corspy leglob armspy 
 	BOT3 = {
 		crushstrength = 15,
 		footprintx = 2,
@@ -267,7 +266,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	--  armfido leggstr corhrk
+	--  armfido leggstr corhrk armmav armfast armzeus
 	BOT4 = {
 		crushstrength = 25,
 		footprintx = 3,
@@ -308,8 +307,8 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- corshiva armmar
-	HABOT4 = {
+	-- corshiva armmar armbanth legjav
+	HABOT5 = {
 		crushstrength = 252,
 		depthmod = 0,
 		footprintx = 5,
@@ -331,13 +330,13 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- corkorg armbanth
-	VBOT5 = {
+	-- corkorg legeheatraymech
+	VBOT6 = {
 		crushstrength = 1400,
 		depthmod = 0,
-		footprintx = 5,
-		footprintz = 5,
-		maxslope = 24,
+		footprintx = 6,
+		footprintz = 6,
+		maxslope = 36,
 		maxwaterdepth = 5000,
 		maxwaterslope = 30,
 	},
@@ -526,7 +525,7 @@ local moveDatas = {
 	},
 
 
-	-- corslrpc coresuppt3 armdecadet3 armptt2 armpshipt3
+	-- corslrpc armdecadet3 armptt2 armpshipt3
 	EPICSHIP = {
 		crushstrength = 9999,
 		footprintx = 5,
@@ -572,15 +571,8 @@ for moveName, moveData in pairs(moveDatas) do
 	moveData.allowTerrainCollisions = false
 	if moveName and string.find(moveName, "BOT") and moveData.maxslope then
 		moveData.slopemod = 4
-		--if moveData.IsAllTerrain then
-		--	moveData.slopemod = 2
-		--else
-		--	moveData.speedModClass = 0
-		--end
-	else
-		--moveData.slopemod = 60
 	end
-	--moveData.IsAllTerrain = nil
+
 	defs[#defs + 1] = moveData
 end
 

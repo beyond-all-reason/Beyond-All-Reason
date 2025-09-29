@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name      = "Projectile Effects",
@@ -32,7 +34,6 @@ local SpawnCEG = Spring.SpawnCEG
 -- Helpful debug wrapper:
 -- SpawnCEG = function(ceg,x,y,z,dx,dy,dz) Spring.Echo(ceg,x,y,z); Spring.SpawnCEG(ceg,x,y,z,dx,dy,dz) end
 
-local random = math.random
 
 local gameFrame = 0
 local mapHasWater = true

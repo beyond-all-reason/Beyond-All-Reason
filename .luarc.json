@@ -10,5 +10,15 @@
       "VFS.Include": "require",
       "include": "require",
       "shard_include": "require"
+  },
+  "workspace": {
+    "library": [
+      "recoil-lua-library"
+    ],
+    "ignoreDir": [
+      ".vscode",
+      "luaui/Tests",
+      "luaui/TestsExamples"
+    ]
   }
 }

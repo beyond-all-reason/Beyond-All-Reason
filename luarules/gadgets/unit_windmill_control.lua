@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Windmill Control",
@@ -20,6 +22,7 @@ if Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().m
 	energyMultActive = true
 end
 
+local windDefs = {}
 local unitEnergyMultiplier = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.windGenerator > 0 then

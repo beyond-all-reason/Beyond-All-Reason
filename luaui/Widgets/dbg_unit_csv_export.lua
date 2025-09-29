@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
   return {
     name      = "Unit CSV Export",
@@ -106,10 +108,10 @@ function widget:Initialize()
         if inBuildoptions[udid] or unitDef.name == 'armcom' or unitDef.name == 'corcom' or unitDef.name == 'legcom' then
             local faction = ''
             if string.sub(unitDef.name, 1, 3) == 'arm' then
-                faction = 'ARM'
+                faction = 'ARMADA'
             end
             if string.sub(unitDef.name, 1, 3) == 'cor' then
-                faction = 'CORE'
+                faction = 'CORTEX'
             end
             --if string.sub(unitDef.name, 1, 3) == 'leg' then
             --    faction = 'LEGION'

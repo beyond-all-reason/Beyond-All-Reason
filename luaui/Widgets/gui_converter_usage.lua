@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
     return {
       name      = "Converter Usage",
@@ -13,7 +15,6 @@ function widget:GetInfo()
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
 
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font2
 
 local RectRound, UiElement
@@ -47,16 +48,17 @@ local converterUse
 local formatOptions = { showSign = true }
 
 local function updateUI()
-    local freeArea = WG['topbar'].GetFreeArea()
-    widgetScale = freeArea[5]
-    area[1] = freeArea[1]
-    area[2] = freeArea[2]
-    area[3] = freeArea[1] + floor(90 * widgetScale)
-    if area[3] > freeArea[3] then
-        area[3] = freeArea[3]
-    end
-    area[4] = freeArea[4]
-
+	if WG['topbar'] then
+		local freeArea = WG['topbar'].GetFreeArea()
+		widgetScale = freeArea[5]
+		area[1] = freeArea[1]
+		area[2] = freeArea[2]
+		area[3] = freeArea[1] + floor(90 * widgetScale)
+		if area[3] > freeArea[3] then
+			area[3] = freeArea[3]
+		end
+		area[4] = freeArea[4]
+	end
 	if dlistGuishader ~= nil then
 		if WG['guishader'] then
 			WG['guishader'].RemoveDlist('converter_usage')
@@ -156,7 +158,7 @@ function widget:ViewResize()
     RectRound = WG.FlowUI.Draw.RectRound
     UiElement = WG.FlowUI.Draw.Element
 
-    font2 = WG['fonts'].getFont(fontfile2)
+    font2 = WG['fonts'].getFont(2)
 end
 
 function widget:Initialize()

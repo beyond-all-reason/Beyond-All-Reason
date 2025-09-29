@@ -1,173 +1,59 @@
-//            * Header Info *
-// VersionSignature                     4
-// NumberOfScripts                     17
-// NumberOfPieces                      9
-// LengthOfScripts                     3ce
-// NumberOfStaticVars                  5
-// UKZero                              0
-// OffsetToScriptCodeIndexArray        f64
-// OffsetToScriptNameOffsetArray       fa8
-// OffsetToPieceNameOffsetArray        fec
-// OffsetToScriptCode                  2c
-// OffsetToNameArray                   1010
-
-// OffsetToFirstName                   1010
-
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, flare, door1, door2, antenna, greenlight, orangelight;
 
-static-var  Static_Var_1, restore_delay, gun_1, statechg_DesiredState, statechg_StateChanging, missiles_stockpiled;
+static-var  restore_delay, missiles_stockpiled;
 
-// Signal definitions
-#define SIG_AIM				2
-
-
-activatescr()
-{
-	if( TRUE )
-	{
-		turn door1 to z-axis <0.000000> now;
-		turn door1 to z-axis <40> speed <73.000000>;
-		turn door2 to z-axis <0.000000> now;
-		turn door2 to z-axis <-40> speed <74.000000>;
-		sleep 768;
-	}
-
-	sleep 3;
-	return (0);
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-		turn door1 to z-axis <-90> now;
-		turn door1 to z-axis <0.000000> speed <73.000000>;
-		turn door2 to z-axis <90> now;
-		turn door2 to z-axis <0.000000> speed <74.000000>;
-		sleep 762;
-	}
-
-	sleep 14;
-	return (0);
-}
-
-
-Go()
-{
-	call-script activatescr();
-	Static_Var_1 = 1;
-	return (0);
-}
-
-Stop()
-{
-	Static_Var_1 = 0;
-	call-script deactivatescr();
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
 
 Create()
 {
 	hide flare;
-	Static_Var_1 = 0;
-	gun_1 = flare;
 	restore_delay = 3000;
 	missiles_stockpiled = 0;
 	hide greenlight;
 	show orangelight;
-	call-script InitState();
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Activate()
 {
-	start-script RequestState(0);
-	return (0);
+	turn door1 to z-axis <40> speed <73.0>;
+	turn door2 to z-axis <-40> speed <74.0>;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
-	return (0);
+	turn door1 to z-axis <0.0> speed <73.0>;
+	turn door2 to z-axis <0.0> speed <74.0>;
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
-	return (0);
+	restore_delay = reloadMS * 2;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	start-script Activate();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
-		gun_1 = flare;
-	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
-	return (0);
+	pieceIndex = flare;
 }
 
-AimFromPrimary(piecenum)
-		{
-		piecenum = flare;
-	return (0);
-}
-
-SweetSpot(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
-	return (0);
+	pieceIndex = flare;
 }
 
 lights_orange()

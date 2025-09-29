@@ -4,9 +4,9 @@ return {
 		buildpic = "CORMIST.DDS",
 		buildtime = 3440,
 		canmove = true,
-		collisionvolumeoffsets = "0 -6 1",
-		collisionvolumescales = "34 18 43",
-		collisionvolumetype = "Box",
+		collisionvolumeoffsets = "0 0 -2",
+		collisionvolumescales = "32 31 43",
+		collisionvolumetype = "ellipsoid",
 		corpse = "DEAD",
 		energycost = 2400,
 		explodeas = "mediumexplosiongeneric",
@@ -193,6 +193,10 @@ return {
 				weapontimer = 1.7,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 350,
+				customparams = {
+					overrange_distance = 662,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					default = 63,
 				},

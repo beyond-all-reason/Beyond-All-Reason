@@ -1,4 +1,6 @@
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
     return {
       name = "Factory Quotas",
@@ -8,11 +10,8 @@ function widget:GetInfo()
       license = "GNU GPL, v2 or later",
       layer = 0,
       enabled = true,
-      handler = true
     }
 end
-
-VFS.Include('luarules/configs/customcmds.h.lua')
 
 local maxBuildProg = 0.075 -- maximum build progress that gets replaced in a repeat queue
 local maxMetal = 500 -- maximum metal cost that gets replaced in a repeat queue(7.5% of a juggernaut is still over 2k metal)
@@ -50,6 +49,7 @@ local CMD_INSERT = CMD.INSERT
 local CMD_OPT_ALT = CMD.OPT_ALT
 local CMD_OPT_CTRL = CMD.OPT_CTRL
 local CMD_OPT_INTERNAL = CMD.OPT_INTERNAL
+local CMD_QUOTA_BUILD_TOGGLE = GameCMD.QUOTA_BUILD_TOGGLE
 -----
 
 --------- quota logic -------------
@@ -72,7 +72,7 @@ local function getMostNeedQuota(quota, factoryID)
             minimumQuota = quotaNumber
             minimumUnitDefID = unitDefID
             minimumRatio = getNumberOfUnits(factoryID, unitDefID)/quotaNumber
-            
+
         else
             local currentRatio = getNumberOfUnits(factoryID, unitDefID)/quotaNumber
             if currentRatio < minimumRatio then
@@ -150,7 +150,7 @@ end
 local function removeUnit(unitID, unitDefID, unitTeam)
     if unitTeam == myTeam then --check if it was built by the same player
         local factoryID = unitToFactoryID[unitID]
-        if factoryID and builtUnits[factoryID] then
+        if factoryID and builtUnits[factoryID] and builtUnits[factoryID][unitDefID] then
             builtUnits[factoryID][unitDefID][unitID] = nil
             unitToFactoryID[unitID] = nil
         elseif builtUnits[unitID] then
@@ -172,7 +172,7 @@ end
 
 function widget:PlayerChanged(playerID)
     if Spring.GetSpectatingState() then
-        widgetHandler:RemoveWidget(self)
+        widgetHandler:RemoveWidget()
     end
     myTeam = Spring.GetMyTeamID()
 end

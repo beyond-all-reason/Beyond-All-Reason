@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
     return {
         name = "Building Grid GL4",
@@ -7,7 +9,8 @@ function widget:GetInfo()
         license = "GNU GPL, v2 or later",
 		version = 0.2,
         layer = -1,
-        enabled = false
+        enabled = false,
+        depends = {'gl4'},
     }
 end
 
@@ -42,8 +45,8 @@ local shaderConfig = { -- These will be replaced in the shader using #defines's
 }
 
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
-local LuaShader = VFS.Include(luaShaderDir .. "LuaShader.lua")
+local LuaShader = gl.LuaShader
+
 
 local vsSrc = [[
 #version 420

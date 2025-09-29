@@ -29,7 +29,7 @@ return {
 		script = "Units/ARMTHUND.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 195,
+		sightdistance = 430,
 		speed = 255,
 		speedtofront = 0.063,
 		turnradius = 64,
@@ -79,11 +79,10 @@ return {
 		},
 		weapondefs = {
 			armbomb = {
-				accuracy = 500,
 				areaofeffect = 144,
 				avoidfeature = false,
 				burst = 5,
-				burstrate = 0.3,
+				burstrate = 0.25,
 				collidefriendly = false,
 				commandfire = false,
 				craterareaofeffect = 144,

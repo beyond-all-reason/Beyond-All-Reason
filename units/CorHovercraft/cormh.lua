@@ -140,6 +140,10 @@ return {
 				weapontimer = 2.9,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 480,
+				customparams = {
+					overrange_distance = 805,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					default = 550,
 					subs = 250,

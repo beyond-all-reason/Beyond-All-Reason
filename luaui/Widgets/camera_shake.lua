@@ -11,6 +11,8 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "CameraShake",
@@ -23,17 +25,9 @@ function widget:GetInfo()
 	}
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
--- Automatically generated local definitions
-
 local spSetCameraOffset = Spring.SetCameraOffset
 local spSetShockFrontFactors = Spring.SetShockFrontFactors
 local math_random = math.random
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 local exps = 0
 local shake = 0
@@ -43,20 +37,13 @@ local powerScale = 80
 local decayFactor = 5
 
 local minArea = 32  -- weapon's area of effect
-local minPower = (0.02 / powerScale)
+local minPower = 0.02 / powerScale
 local distAdj = 100
 
-local vsx, vsy = Spring.GetViewGeometry()
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
-function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
-end
 
 function widget:Initialize()
-	widget:ViewResize()
 
 	-- required for ShockFront() call-ins
 	-- (threshold uses the 1/d^2 power)
@@ -67,8 +54,12 @@ function widget:Initialize()
 		return powerScale
 	end
 	WG['camerashake'].setStrength = function(value)
-		powerScale = value
-		minPower = (0.02 / powerScale)
+		powerScale = math.floor(value)
+		if powerScale <= 0 then
+			minPower = 0
+		else
+			minPower = 0.02 / powerScale
+		end
 	end
 end
 
@@ -150,10 +141,11 @@ end
 
 function widget:SetConfigData(data)
 	if data.powerScale ~= nil then
-		powerScale = data.powerScale
-		minPower = (0.02 / powerScale)
+		powerScale = math.floor(data.powerScale)
+		if powerScale <= 0 then
+			minPower = 0
+		else
+			minPower = 0.02 / powerScale
+		end
 	end
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------

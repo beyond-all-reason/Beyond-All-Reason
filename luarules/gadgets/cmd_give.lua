@@ -1,3 +1,4 @@
+local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
@@ -46,29 +47,42 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function giveunits(amount, unitName, teamID, x, z, playerID, xp)
+		if not Spring.GetTeamInfo(teamID,false) then
+			Spring.SendMessageToPlayer(playerID, "TeamID '"..teamID.."' isn't valid")
+			return
+		end
+		-- give resources
+		if unitName == "metal" or unitName == "energy" then
+			-- Give resources instead of units
+			Spring.AddTeamResource(teamID, unitName, amount)
+			Spring.SendMessageToTeam(teamID, "You have been given: "..amount.." "..unitName)
+			Spring.SendMessageToPlayer(playerID, "You have given team "..teamID..": "..amount.." "..unitName)
+			return
+		end
+		-- give units
 		local unitDefID
 		for udid, unitDef in pairs(UnitDefs) do
 			if unitDef.name == unitName then  unitDefID = udid break end
 		end
 		if unitDefID == nil then
 			Spring.SendMessageToPlayer(playerID, "Unitname '"..unitName.."' isnt valid")
-		else
-			local succesfullyCreated = 0
-			for i=1, amount do
-				local unitID = Spring.CreateUnit(unitDefID, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
-				if unitID ~= nil then
-					succesfullyCreated = succesfullyCreated + 1
-					if xp and type(xp) == 'number' then
-						Spring.SetUnitExperience(unitID, xp)
-					end
+			return
+		end
+		local succesfullyCreated = 0
+		for i=1, amount do
+			local unitID = Spring.CreateUnit(unitDefID, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
+			if unitID ~= nil then
+				succesfullyCreated = succesfullyCreated + 1
+				if xp and type(xp) == 'number' then
+					Spring.SetUnitExperience(unitID, xp)
 				end
 			end
-			if succesfullyCreated > 0 then
-				if isSilentUnitGift[unitDefID] == nil then
-					Spring.SendMessageToTeam(teamID, "You have been given: "..succesfullyCreated.." "..unitName)
-				end
-				Spring.SendMessageToPlayer(playerID, "You have given team "..teamID..": "..succesfullyCreated.." "..unitName)
+		end
+		if succesfullyCreated > 0 then
+			if isSilentUnitGift[unitDefID] == nil then
+				Spring.SendMessageToTeam(teamID, "You have been given: "..succesfullyCreated.." "..unitName)
 			end
+			Spring.SendMessageToPlayer(playerID, "You have given team "..teamID..": "..succesfullyCreated.." "..unitName)
 		end
 	end
 
@@ -79,9 +93,10 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		local playername, _, spec = Spring.GetPlayerInfo(playerID,false)
+		local playername, _, spec, _, _, _, _, _, _, _, accountInfo = Spring.GetPlayerInfo(playerID)
+		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
 		local authorized = false
-		if _G.permissions.give[playername] then
+		if _G.permissions.give[accountID] then
 			authorized = true
 			givenSomethingAtFrame = Spring.GetGameFrame()
 		end
@@ -103,8 +118,9 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 	local myPlayerID = Spring.GetMyPlayerID()
-	local myPlayerName = Spring.GetPlayerInfo(myPlayerID,false)
-	local authorized = SYNCED.permissions.give[myPlayerName]
+	local accountInfo = select(11, Spring.GetPlayerInfo(myPlayerID))
+	local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+	local authorized = SYNCED.permissions.give[accountID]
 
 	local function RequestGive(cmd, line, words, playerID)
 		if authorized and playerID == myPlayerID then

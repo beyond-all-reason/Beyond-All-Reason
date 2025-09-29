@@ -1,11 +1,32 @@
-#define TA			// This is a TA script
+#include "../recoil_common_includes.h"
 
-#include "sfxtype.h"
-#include "exptype.h"
+piece body,
+legR1_1,
+legR1_2,
+legR1_3,
+legL1_1,
+legL1_2,
+legL1_3,
+legL3_1,
+legL3_2,
+legL3_3,
+legR2_1,
+legR2_2,
+legR2_3,
+head,
+headleft,
+heatray,
+headright,
+legL2_1,
+legL2_2,
+legL2_3,
+legR3_1,
+legR3_2,
+legR3_3,
+nano, heatrayaimflare; //empties
 
-piece  body, turret, sleeve, barrel1, flare1,  leg1a,leg1b,leg2a,leg2b,leg3a,leg3b,leg4a,leg4b,leg5a,leg5b,leg6a,leg6b, aimy, aimfromy, nanof;
 
-static-var  moving, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead;
+static-var  isMoving, restore_delay, maxSpeed, animFramesPerKeyframe, animSpeed, wpn1_lasthead, wpn2_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -13,223 +34,378 @@ static-var  moving, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wp
 #define SIG_MOVE 8
 #define SIG_BUILD 16
 
-#define FRONT_RIGHT_UP\
-	turn leg6a to y-axis <70> speed <12.5> *1000/(WALK_PERIOD);\
-	turn leg6a to z-axis <20> speed <20> *1000/(WALK_PERIOD);
-
-#define FRONT_RIGHT_DOWN\
-	turn leg6a to z-axis <-10> speed <30> *1000/(WALK_PERIOD);\
-	turn leg6b to z-axis <85> speed <85> *1000/(WALK_PERIOD);
-
-#define FRONT_RIGHT_BACK\
-	turn leg6a to y-axis <45> speed <6.25> *1000/(WALK_PERIOD);\
-	turn leg6a to z-axis <0> speed <7.5> *1000/(WALK_PERIOD);\
-	turn leg6b to z-axis <0> speed <23.75> *1000/(WALK_PERIOD);
-
-
-#define FRONT_LEFT_UP\
-	turn leg1a to y-axis <-70> speed <12.5> *1000/(WALK_PERIOD);\
-	turn leg1a to z-axis <-20> speed <20> *1000/(WALK_PERIOD);
-
-#define FRONT_LEFT_DOWN\
-	turn leg1a to z-axis <10> speed <30> *1000/(WALK_PERIOD);\
-	turn leg1b to z-axis <-85> speed <85> *1000/(WALK_PERIOD);
-
-#define FRONT_LEFT_BACK\
-	turn leg1a to y-axis <-45> speed <6.25> *1000/(WALK_PERIOD);\
-	turn leg1a to z-axis <0> speed <7.5> *1000/(WALK_PERIOD);\
-	turn leg1b to z-axis <0> speed <23.75> *1000/(WALK_PERIOD);
-
-
-#define MIDDLE_RIGHT_UP\
-	turn leg5a to y-axis <22.5> speed <22.5> *1000/(WALK_PERIOD);\
-	turn leg5a to z-axis <20> speed <20> *1000/(WALK_PERIOD);
-
-#define MIDDLE_RIGHT_DOWN\
-	turn leg5a to z-axis <0> speed <20> *1000/(WALK_PERIOD);
-
-#define MIDDLE_RIGHT_BACK\
-	turn leg5a to y-axis <-22.5> speed <12.5> *1000/(WALK_PERIOD);
-
-
-#define MIDDLE_LEFT_UP\
-	turn leg2a to y-axis <-22.5> speed <22.5> *1000/(WALK_PERIOD);\
-	turn leg2a to z-axis <-20> speed <20> *1000/(WALK_PERIOD);
-
-#define MIDDLE_LEFT_DOWN\
-	turn leg2a to z-axis <0> speed <20> *1000/(WALK_PERIOD);
-
-#define MIDDLE_LEFT_BACK\
-	turn leg2a to y-axis <22.5> speed <12.5> *1000/(WALK_PERIOD);\
-
-
-#define REAR_RIGHT_UP\
-	turn leg4a to y-axis <-45> speed <12.5> *1000/(WALK_PERIOD);\
-	turn leg4a to z-axis <20> speed <50> *1000/(WALK_PERIOD);\
-	turn leg4b to z-axis <0> speed <55> *1000/(WALK_PERIOD);
-
-#define REAR_RIGHT_DOWN\
-	turn leg4a to z-axis <0> speed <20> *1000/(WALK_PERIOD);
-
-#define REAR_RIGHT_BACK\
-	turn leg4a to y-axis <-70> speed <6.25> *1000/(WALK_PERIOD);\
-	turn leg4a to z-axis <-30> speed <7.5> *1000/(WALK_PERIOD);\
-	turn leg4b to z-axis <85> speed <23.75> *1000/(WALK_PERIOD);
-
-
-#define REAR_LEFT_UP\
-	turn leg3a to y-axis <45> speed <12.5> *1000/(WALK_PERIOD);\
-	turn leg3a to z-axis <-20> speed <50> *1000/(WALK_PERIOD);\
-	turn leg3b to z-axis <0> speed <55> *1000/(WALK_PERIOD);
-
-#define REAR_LEFT_DOWN\
-	turn leg3a to z-axis <0> speed <20> *1000/(WALK_PERIOD);
-
-#define REAR_LEFT_BACK\
-	turn leg3a to y-axis <70> speed <6.25> *1000/(WALK_PERIOD);\
-	turn leg3a to z-axis <30> speed <7.5> *1000/(WALK_PERIOD);\
-	turn leg3b to z-axis <-85> speed <23.75> *1000/(WALK_PERIOD);
-
-
-#define WAIT_WALK\
-	sleep WALK_PERIOD;\
-	while(!moving)\
-	{\
-		sleep 111;\
+Walk() {// For S:\Projects\BeyondAllReason\Infestor Zach Upgrade\infestoranimbaking.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
+	set-signal-mask SIGNAL_MOVE;
+	if (isMoving) { //Frame:6
+			//move body to z-axis [0.287877] speed [8.636310] / animSpeed; 
+			//move body to y-axis [0.978963] speed [29.368887] / animSpeed; 
+			move headleft to z-axis [-0.258045] speed [7.741363] / animSpeed; 
+			move headright to z-axis [-0.258046] speed [7.741392] / animSpeed; 
+			turn legL1_1 to x-axis <0.696244> speed <20.887316> / animSpeed; 
+			turn legL1_1 to z-axis <1.005079> speed <30.152360> / animSpeed; 
+			turn legL1_1 to y-axis <-0.300040> speed <9.001185> / animSpeed; 
+			turn legL1_2 to x-axis <1.258032> speed <37.740962> / animSpeed; 
+			turn legL1_2 to z-axis <1.251386> speed <37.541579> / animSpeed; 
+			turn legL1_3 to x-axis <-1.934358> speed <58.030741> / animSpeed; 
+			turn legL1_3 to z-axis <-2.198923> speed <65.967692> / animSpeed; 
+			turn legL2_1 to x-axis <24.657181> speed <739.715429> / animSpeed; 
+			turn legL2_1 to z-axis <-11.402455> speed <342.073658> / animSpeed; 
+			turn legL2_1 to y-axis <-27.045439> speed <811.363158> / animSpeed; 
+			turn legL2_2 to z-axis <24.254246> speed <727.627378> / animSpeed; 
+			turn legL2_2 to y-axis <0.134103> speed <4.023098> / animSpeed; 
+			turn legL2_3 to x-axis <-27.527401> speed <825.822019> / animSpeed; 
+			turn legL2_3 to z-axis <-12.891852> speed <386.755569> / animSpeed; 
+			turn legL2_3 to y-axis <-1.871894> speed <56.156827> / animSpeed; 
+			turn legL3_1 to x-axis <10.740114> speed <322.203417> / animSpeed; 
+			turn legL3_1 to z-axis <-10.539334> speed <316.180009> / animSpeed; 
+			turn legL3_1 to y-axis <1.546584> speed <46.397528> / animSpeed; 
+			turn legL3_2 to x-axis <-7.375466> speed <221.263987> / animSpeed; 
+			turn legL3_2 to z-axis <6.538976> speed <196.169291> / animSpeed; 
+			turn legL3_2 to y-axis <2.028171> speed <60.845120> / animSpeed; 
+			turn legL3_3 to x-axis <-0.252607> speed <7.578224> / animSpeed; 
+			turn legL3_3 to z-axis <1.823337> speed <54.700114> / animSpeed; 
+			turn legL3_3 to y-axis <-0.127504> speed <3.825118> / animSpeed; 
+			turn legR1_1 to x-axis <-40.198023> speed <1205.940693> / animSpeed; 
+			turn legR1_1 to z-axis <36.169260> speed <1085.077798> / animSpeed; 
+			turn legR1_1 to y-axis <28.956433> speed <868.692999> / animSpeed; 
+			turn legR1_2 to x-axis <40.419331> speed <1212.579944> / animSpeed; 
+			turn legR1_2 to z-axis <-57.530738> speed <1725.922141> / animSpeed; 
+			turn legR1_2 to y-axis <22.927097> speed <687.812924> / animSpeed; 
+			turn legR1_3 to x-axis <-22.320047> speed <669.601420> / animSpeed; 
+			turn legR1_3 to z-axis <33.384725> speed <1001.541750> / animSpeed; 
+			turn legR1_3 to y-axis <6.250623> speed <187.518699> / animSpeed; 
+			turn legR2_1 to x-axis <20.534481> speed <616.034415> / animSpeed; 
+			turn legR2_1 to z-axis <43.842267> speed <1315.268013> / animSpeed; 
+			turn legR2_1 to y-axis <-41.260398> speed <1237.811926> / animSpeed; 
+			turn legR2_2 to x-axis <-0.657137> speed <19.714101> / animSpeed; 
+			turn legR2_2 to z-axis <-65.872107> speed <1976.163196> / animSpeed; 
+			turn legR2_2 to y-axis <-0.654248> speed <19.627431> / animSpeed; 
+			turn legR2_3 to x-axis <-14.799092> speed <443.972763> / animSpeed; 
+			turn legR2_3 to z-axis <30.123125> speed <903.693757> / animSpeed; 
+			turn legR2_3 to y-axis <4.721370> speed <141.641086> / animSpeed; 
+			turn legR3_1 to x-axis <13.135672> speed <394.070163> / animSpeed; 
+			turn legR3_1 to z-axis <8.314856> speed <249.445689> / animSpeed; 
+			turn legR3_1 to y-axis <-5.447210> speed <163.416297> / animSpeed; 
+			turn legR3_2 to x-axis <-25.125648> speed <753.769449> / animSpeed; 
+			turn legR3_2 to z-axis <-31.502164> speed <945.064930> / animSpeed; 
+			turn legR3_2 to y-axis <-20.349633> speed <610.489002> / animSpeed; 
+			turn legR3_3 to x-axis <30.207652> speed <906.229567> / animSpeed; 
+			turn legR3_3 to z-axis <35.670267> speed <1070.108004> / animSpeed; 
+			turn legR3_3 to y-axis <-9.901211> speed <297.036338> / animSpeed; 
+		sleep ((33*animSpeed) -1);
 	}
-
-
-DoTheWalking()
-{
-	while(TRUE)
-	{
-		move body to y-axis [0.7] speed [5];
-		WAIT_WALK
-		FRONT_RIGHT_UP
-		MIDDLE_RIGHT_BACK
-		REAR_LEFT_DOWN
-		
-		move body to y-axis [0] speed [5];
-		WAIT_WALK
-		FRONT_RIGHT_DOWN
-		MIDDLE_LEFT_UP
-		REAR_LEFT_BACK
-		
-		move body to y-axis [0.7] speed [5];
-		WAIT_WALK
-		FRONT_RIGHT_BACK
-		MIDDLE_LEFT_DOWN
-		REAR_RIGHT_UP
-		
-		move body to y-axis [0] speed [5];
-		WAIT_WALK
-		MIDDLE_LEFT_BACK
-		REAR_RIGHT_DOWN
-		FRONT_LEFT_UP
-		
-		move body to y-axis [0.7] speed [5];
-		WAIT_WALK
-		REAR_RIGHT_BACK
-		FRONT_LEFT_DOWN
-		MIDDLE_RIGHT_UP
-		
-		move body to y-axis [0] speed [5];
-		WAIT_WALK
-		FRONT_LEFT_BACK
-		MIDDLE_RIGHT_DOWN
-		REAR_LEFT_UP
-	}
-}
-
-UnitSpeed()
-{
-	while(TRUE)
-	{
-		if (moving)
-		{
-			//currentSpeed = (moveSpeed * 80)/(get CURRENT_SPEED);
-			//if (currentSpeed>300) currentSpeed=300;
-			//WALK_PERIOD=currentSpeed;
-			//get PRINT(1,WALK_PERIOD,moveSpeed);
-			WALK_PERIOD=98;
+	while(isMoving) {
+		if (isMoving) { //Frame:8
+			//move body to z-axis [-0.225051] speed [15.387851] / animSpeed; 
+			turn legL1_1 to x-axis <-13.466239> speed <424.874479> / animSpeed; 
+			turn legL1_1 to z-axis <-17.365889> speed <551.129035> / animSpeed; 
+			turn legL1_1 to y-axis <2.199095> speed <74.974032> / animSpeed; 
+			turn legL1_2 to x-axis <0.176650> speed <32.441452> / animSpeed; 
+			turn legL1_2 to z-axis <0.281647> speed <29.092168> / animSpeed; 
+			turn legL1_2 to y-axis <0.108476> speed <3.927914> / animSpeed; 
+			turn legL1_3 to x-axis <13.902767> speed <475.113758> / animSpeed; 
+			turn legL1_3 to z-axis <16.561047> speed <562.799101> / animSpeed; 
+			turn legL1_3 to y-axis <-1.669891> speed <48.445845> / animSpeed; 
+			turn legL2_1 to x-axis <4.197516> speed <613.789942> / animSpeed; 
+			turn legL2_1 to z-axis <4.198386> speed <468.025232> / animSpeed; 
+			turn legL2_1 to y-axis <5.270853> speed <969.488752> / animSpeed; 
+			turn legL2_2 to z-axis <2.065272> speed <665.669229> / animSpeed; 
+			turn legL2_2 to y-axis <0.010574> speed <3.705867> / animSpeed; 
+			turn legL2_3 to x-axis <-3.471705> speed <721.670879> / animSpeed; 
+			turn legL2_3 to z-axis <-6.273037> speed <198.564446> / animSpeed; 
+			turn legL2_3 to y-axis <0.076914> speed <58.464252> / animSpeed; 
+			turn legL3_1 to x-axis <-2.879511> speed <408.588748> / animSpeed; 
+			turn legL3_1 to z-axis <0.503887> speed <331.296613> / animSpeed; 
+			turn legL3_1 to y-axis <-2.155820> speed <111.072118> / animSpeed; 
+			turn legL3_2 to x-axis <-8.639210> speed <37.912314> / animSpeed; 
+			turn legL3_2 to z-axis <8.773150> speed <67.025210> / animSpeed; 
+			turn legL3_2 to y-axis <0.618705> speed <42.283981> / animSpeed; 
+			turn legL3_3 to x-axis <11.308376> speed <346.829511> / animSpeed; 
+			turn legL3_3 to z-axis <-9.536521> speed <340.795744> / animSpeed; 
+			turn legL3_3 to y-axis <0.877908> speed <30.162363> / animSpeed; 
+			turn legR1_1 to x-axis <-30.325862> speed <296.164823> / animSpeed; 
+			turn legR1_1 to z-axis <15.416237> speed <622.590680> / animSpeed; 
+			turn legR1_1 to y-axis <19.736236> speed <276.605910> / animSpeed; 
+			turn legR1_3 to x-axis <-26.485711> speed <124.969922> / animSpeed; 
+			turn legR1_3 to z-axis <44.947822> speed <346.892911> / animSpeed; 
+			turn legR1_3 to y-axis <12.060717> speed <174.302820> / animSpeed; 
+			turn legR2_1 to x-axis <1.117554> speed <582.507803> / animSpeed; 
+			turn legR2_1 to z-axis <25.270050> speed <557.166500> / animSpeed; 
+			turn legR2_1 to y-axis <-2.421753> speed <1165.159341> / animSpeed; 
+			turn legR2_2 to x-axis <-0.055499> speed <18.049131> / animSpeed; 
+			turn legR2_2 to z-axis <-10.340562> speed <1665.946326> / animSpeed; 
+			turn legR2_2 to y-axis <-0.109242> speed <16.350164> / animSpeed; 
+			turn legR2_3 to x-axis <-0.678164> speed <423.627833> / animSpeed; 
+			turn legR2_3 to z-axis <-14.926545> speed <1351.490112> / animSpeed; 
+			turn legR2_3 to y-axis <-0.227502> speed <148.466137> / animSpeed; 
+			turn legR3_1 to x-axis <11.583939> speed <46.552008> / animSpeed; 
+			turn legR3_1 to z-axis <9.769036> speed <43.625392> / animSpeed; 
+			turn legR3_1 to y-axis <-3.936340> speed <45.326096> / animSpeed; 
+			turn legR3_2 to x-axis <-12.899606> speed <366.781261> / animSpeed; 
+			turn legR3_2 to z-axis <-8.984121> speed <675.541303> / animSpeed; 
+			turn legR3_2 to y-axis <-11.323896> speed <270.772118> / animSpeed; 
+			turn legR3_3 to x-axis <22.888828> speed <219.564730> / animSpeed; 
+			turn legR3_3 to z-axis <14.307402> speed <640.885939> / animSpeed; 
+			turn legR3_3 to y-axis <-2.870925> speed <210.908579> / animSpeed; 
+		sleep ((33*animSpeed) -1);
 		}
-		sleep 142;
-		//get PRINT(moving, currentSpeed,0,0);
+		if (isMoving) { //Frame:10
+			//move body to z-axis [-0.658220] speed [12.995063] / animSpeed; 
+			//move body to y-axis [1.229358] speed [6.206188] / animSpeed; 
+			turn legL1_1 to x-axis <-39.345878> speed <776.389191> / animSpeed; 
+			turn legL1_1 to z-axis <-30.411383> speed <391.364819> / animSpeed; 
+			turn legL1_1 to y-axis <-29.476672> speed <950.272999> / animSpeed; 
+			turn legL1_2 to x-axis <40.446854> speed <1208.106102> / animSpeed; 
+			turn legL1_2 to z-axis <57.519407> speed <1717.132792> / animSpeed; 
+			turn legL1_2 to y-axis <-22.952736> speed <691.836367> / animSpeed; 
+			turn legL1_3 to x-axis <-16.138197> speed <901.228921> / animSpeed; 
+			turn legL1_3 to z-axis <-26.376606> speed <1288.129589> / animSpeed; 
+			turn legL1_3 to y-axis <-4.509577> speed <85.190585> / animSpeed; 
+			turn legL2_1 to x-axis <17.327618> speed <393.903050> / animSpeed; 
+			turn legL2_1 to z-axis <-47.113327> speed <1539.351374> / animSpeed; 
+			turn legL2_1 to y-axis <34.696777> speed <882.777716> / animSpeed; 
+			turn legL2_2 to z-axis <64.410207> speed <1870.348062> / animSpeed; 
+			turn legL2_2 to y-axis <0.357181> speed <10.398201> / animSpeed; 
+			turn legL2_3 to x-axis <-13.103598> speed <288.956786> / animSpeed; 
+			turn legL2_3 to z-axis <-18.357771> speed <362.542006> / animSpeed; 
+			turn legL2_3 to y-axis <-1.963928> speed <61.225259> / animSpeed; 
+			turn legL3_1 to x-axis <12.909077> speed <473.657647> / animSpeed; 
+			turn legL3_1 to z-axis <-8.501897> speed <270.173507> / animSpeed; 
+			turn legL3_1 to y-axis <4.845315> speed <210.034035> / animSpeed; 
+			turn legL3_2 to x-axis <-25.235380> speed <497.885111> / animSpeed; 
+			turn legL3_2 to z-axis <31.398851> speed <678.771026> / animSpeed; 
+			turn legL3_2 to y-axis <19.458739> speed <565.201042> / animSpeed; 
+			turn legL3_3 to x-axis <27.534176> speed <486.773999> / animSpeed; 
+			turn legL3_3 to z-axis <-31.455862> speed <657.580245> / animSpeed; 
+			turn legL3_3 to y-axis <7.875735> speed <209.934802> / animSpeed; 
+			turn legR1_1 to x-axis <-3.204234> speed <813.648855> / animSpeed; 
+			turn legR1_1 to z-axis <1.084461> speed <429.953300> / animSpeed; 
+			turn legR1_1 to y-axis <2.142775> speed <527.803844> / animSpeed; 
+			turn legR1_2 to x-axis <6.116451> speed <1029.004540> / animSpeed; 
+			turn legR1_2 to z-axis <-6.108332> speed <1542.684472> / animSpeed; 
+			turn legR1_2 to y-axis <0.386110> speed <676.397403> / animSpeed; 
+			turn legR1_3 to x-axis <-3.080489> speed <702.156687> / animSpeed; 
+			turn legR1_3 to z-axis <4.767194> speed <1205.418837> / animSpeed; 
+			turn legR1_3 to y-axis <0.224656> speed <355.081837> / animSpeed; 
+			turn legR2_1 to x-axis <-20.520105> speed <649.129752> / animSpeed; 
+			turn legR2_1 to z-axis <23.229794> speed <61.207682> / animSpeed; 
+			turn legR2_1 to y-axis <28.152307> speed <917.221784> / animSpeed; 
+			turn legR2_2 to x-axis <0.338615> speed <11.823433> / animSpeed; 
+			turn legR2_2 to z-axis <-60.558602> speed <1506.541186> / animSpeed; 
+			turn legR2_2 to y-axis <0.373679> speed <14.487650> / animSpeed; 
+			turn legR2_3 to x-axis <15.516578> speed <485.842267> / animSpeed; 
+			turn legR2_3 to z-axis <38.360309> speed <1598.605639> / animSpeed; 
+			turn legR2_3 to y-axis <-6.908832> speed <200.439909> / animSpeed; 
+			turn legR3_1 to x-axis <1.855217> speed <291.861644> / animSpeed; 
+			turn legR3_1 to z-axis <8.598336> speed <35.121012> / animSpeed; 
+			turn legR3_1 to y-axis <6.944771> speed <326.433336> / animSpeed; 
+			turn legR3_2 to x-axis <0.360741> speed <397.810407> / animSpeed; 
+			turn legR3_2 to z-axis <0.203760> speed <275.636430> / animSpeed; 
+			turn legR3_2 to y-axis <0.181819> speed <345.171459> / animSpeed; 
+			turn legR3_3 to x-axis <-2.973197> speed <775.860758> / animSpeed; 
+			turn legR3_3 to z-axis <-8.032655> speed <670.201717> / animSpeed; 
+			turn legR3_3 to y-axis <0.318825> speed <95.692510> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:12
+			//move body to z-axis [-0.106477] speed [16.552296] / animSpeed; 
+			turn legL1_1 to x-axis <-27.238120> speed <363.232756> / animSpeed; 
+			turn legL1_1 to z-axis <-12.672123> speed <532.177818> / animSpeed; 
+			turn legL1_1 to y-axis <-16.948459> speed <375.846390> / animSpeed; 
+			turn legL1_3 to x-axis <-15.731638> speed <12.196754> / animSpeed; 
+			turn legL1_3 to z-axis <-26.746160> speed <11.086626> / animSpeed; 
+			turn legL2_1 to x-axis <-1.232359> speed <556.799312> / animSpeed; 
+			turn legL2_1 to z-axis <-18.076212> speed <871.113447> / animSpeed; 
+			turn legL2_1 to y-axis <-2.328740> speed <1110.765522> / animSpeed; 
+			turn legL2_2 to z-axis <5.509551> speed <1767.019688> / animSpeed; 
+			turn legL2_2 to y-axis <0.028660> speed <9.855642> / animSpeed; 
+			turn legL2_3 to x-axis <0.921695> speed <420.758775> / animSpeed; 
+			turn legL2_3 to z-axis <12.563803> speed <927.647205> / animSpeed; 
+			turn legL2_3 to y-axis <-0.275133> speed <50.663833> / animSpeed; 
+			turn legL3_1 to x-axis <11.641208> speed <38.036077> / animSpeed; 
+			turn legL3_1 to z-axis <-9.719918> speed <36.540624> / animSpeed; 
+			turn legL3_1 to y-axis <4.104534> speed <22.223429> / animSpeed; 
+			turn legL3_2 to x-axis <-12.408223> speed <384.814728> / animSpeed; 
+			turn legL3_2 to z-axis <7.936876> speed <703.859241> / animSpeed; 
+			turn legL3_2 to y-axis <11.726956> speed <231.953506> / animSpeed; 
+			turn legL3_3 to x-axis <19.379543> speed <244.638986> / animSpeed; 
+			turn legL3_3 to z-axis <-9.531239> speed <657.738713> / animSpeed; 
+			turn legL3_3 to y-axis <1.425532> speed <193.506078> / animSpeed; 
+			turn legR1_1 to x-axis <-17.035311> speed <414.932327> / animSpeed; 
+			turn legR1_1 to z-axis <17.793198> speed <501.262114> / animSpeed; 
+			turn legR1_1 to y-axis <2.745518> speed <18.082292> / animSpeed; 
+			turn legR1_2 to x-axis <7.160968> speed <31.335495> / animSpeed; 
+			turn legR1_2 to z-axis <-7.211695> speed <33.100898> / animSpeed; 
+			turn legR1_3 to x-axis <10.108592> speed <395.672417> / animSpeed; 
+			turn legR1_3 to z-axis <-10.233174> speed <450.011039> / animSpeed; 
+			turn legR1_3 to y-axis <0.916237> speed <20.747428> / animSpeed; 
+			turn legR2_1 to x-axis <8.487321> speed <870.222774> / animSpeed; 
+			turn legR2_1 to z-axis <-3.521651> speed <802.543364> / animSpeed; 
+			turn legR2_1 to y-axis <-10.559835> speed <1161.364257> / animSpeed; 
+			turn legR2_2 to x-axis <-0.173829> speed <15.373346> / animSpeed; 
+			turn legR2_2 to z-axis <-5.773233> speed <1643.561073> / animSpeed; 
+			turn legR2_2 to y-axis <-0.311828> speed <20.565233> / animSpeed; 
+			turn legR2_3 to x-axis <-6.920733> speed <673.119318> / animSpeed; 
+			turn legR2_3 to z-axis <9.309496> speed <871.524411> / animSpeed; 
+			turn legR2_3 to y-axis <0.145996> speed <211.644848> / animSpeed; 
+			turn legR3_1 to x-axis <3.501850> speed <49.398993> / animSpeed; 
+			turn legR3_1 to z-axis <2.598878> speed <179.983734> / animSpeed; 
+			turn legR3_1 to y-axis <-0.901918> speed <235.400679> / animSpeed; 
+			turn legR3_2 to x-axis <-19.626678> speed <599.622570> / animSpeed; 
+			turn legR3_2 to z-axis <-20.865391> speed <632.074539> / animSpeed; 
+			turn legR3_2 to y-axis <-3.691790> speed <116.208270> / animSpeed; 
+			turn legR3_3 to x-axis <16.376570> speed <580.493033> / animSpeed; 
+			turn legR3_3 to z-axis <17.849038> speed <776.450791> / animSpeed; 
+			turn legR3_3 to y-axis <-2.587223> speed <87.181439> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:14
+			//move body to z-axis [0.287877] speed [11.830618] / animSpeed; 
+			//move body to y-axis [0.978963] speed [10.448227] / animSpeed; 
+			turn legL1_1 to x-axis <0.696244> speed <838.030914> / animSpeed; 
+			turn legL1_1 to z-axis <1.005079> speed <410.316036> / animSpeed; 
+			turn legL1_1 to y-axis <-0.300040> speed <499.452576> / animSpeed; 
+			turn legL1_2 to x-axis <1.258032> speed <1174.368109> / animSpeed; 
+			turn legL1_2 to z-axis <1.251386> speed <1689.199775> / animSpeed; 
+			turn legL1_2 to y-axis <-0.022455> speed <687.210494> / animSpeed; 
+			turn legL1_3 to x-axis <-1.934358> speed <413.918409> / animSpeed; 
+			turn legL1_3 to z-axis <-2.198923> speed <736.417114> / animSpeed; 
+			turn legL1_3 to y-axis <-0.055030> speed <134.232872> / animSpeed; 
+			turn legL2_1 to x-axis <24.657181> speed <776.686205> / animSpeed; 
+			turn legL2_1 to z-axis <-11.402455> speed <200.212695> / animSpeed; 
+			turn legL2_1 to y-axis <-27.045439> speed <741.500945> / animSpeed; 
+			turn legL2_2 to z-axis <24.254246> speed <562.340855> / animSpeed; 
+			turn legL2_2 to y-axis <0.134103> speed <3.163308> / animSpeed; 
+			turn legL2_3 to x-axis <-27.527401> speed <853.472868> / animSpeed; 
+			turn legL2_3 to z-axis <-12.891852> speed <763.669646> / animSpeed; 
+			turn legL2_3 to y-axis <-1.871894> speed <47.902825> / animSpeed; 
+			turn legL3_1 to x-axis <10.740114> speed <27.032822> / animSpeed; 
+			turn legL3_1 to z-axis <-10.539334> speed <24.582483> / animSpeed; 
+			turn legL3_1 to y-axis <1.546584> speed <76.738488> / animSpeed; 
+			turn legL3_2 to x-axis <-7.375466> speed <150.982698> / animSpeed; 
+			turn legL3_2 to z-axis <6.538976> speed <41.936994> / animSpeed; 
+			turn legL3_2 to y-axis <2.028171> speed <290.963555> / animSpeed; 
+			turn legL3_3 to x-axis <-0.252607> speed <588.964524> / animSpeed; 
+			turn legL3_3 to z-axis <1.823337> speed <340.637275> / animSpeed; 
+			turn legL3_3 to y-axis <-0.127504> speed <46.591087> / animSpeed; 
+			turn legR1_1 to x-axis <-40.198023> speed <694.881350> / animSpeed; 
+			turn legR1_1 to z-axis <36.169260> speed <551.281865> / animSpeed; 
+			turn legR1_1 to y-axis <28.956433> speed <786.327462> / animSpeed; 
+			turn legR1_2 to x-axis <40.419331> speed <997.750905> / animSpeed; 
+			turn legR1_2 to z-axis <-57.530738> speed <1509.571280> / animSpeed; 
+			turn legR1_2 to y-axis <22.927097> speed <674.014698> / animSpeed; 
+			turn legR1_3 to x-axis <-22.320047> speed <972.859181> / animSpeed; 
+			turn legR1_3 to z-axis <33.384725> speed <1308.536964> / animSpeed; 
+			turn legR1_3 to y-axis <6.250623> speed <160.031588> / animSpeed; 
+			turn legR2_1 to x-axis <20.534481> speed <361.414781> / animSpeed; 
+			turn legR2_1 to z-axis <43.842267> speed <1420.917546> / animSpeed; 
+			turn legR2_1 to y-axis <-41.260398> speed <921.016867> / animSpeed; 
+			turn legR2_2 to x-axis <-0.657137> speed <14.499218> / animSpeed; 
+			turn legR2_2 to z-axis <-65.872107> speed <1802.966213> / animSpeed; 
+			turn legR2_2 to y-axis <-0.654248> speed <10.272580> / animSpeed; 
+			turn legR2_3 to x-axis <-14.799092> speed <236.350782> / animSpeed; 
+			turn legR2_3 to z-axis <30.123125> speed <624.408884> / animSpeed; 
+			turn legR2_3 to y-axis <4.721370> speed <137.261197> / animSpeed; 
+			turn legR3_1 to x-axis <13.135672> speed <289.014659> / animSpeed; 
+			turn legR3_1 to z-axis <8.314856> speed <171.479355> / animSpeed; 
+			turn legR3_1 to y-axis <-5.447210> speed <136.358752> / animSpeed; 
+			turn legR3_2 to x-axis <-25.125648> speed <164.969098> / animSpeed; 
+			turn legR3_2 to z-axis <-31.502164> speed <319.103194> / animSpeed; 
+			turn legR3_2 to y-axis <-20.349633> speed <499.735307> / animSpeed; 
+			turn legR3_3 to x-axis <30.207652> speed <414.932455> / animSpeed; 
+			turn legR3_3 to z-axis <35.670267> speed <534.636865> / animSpeed; 
+			turn legR3_3 to y-axis <-9.901211> speed <219.419650> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
 	}
 }
-
-StopWalk()
-{
-	turn leg6a to z-axis <20> speed <50> *1000/(WALK_PERIOD);
-	turn leg6b to z-axis <0> speed <20> *1000/(WALK_PERIOD);
-	sleep (WALK_PERIOD);
-	turn leg6a to y-axis <45> speed <25> *1000/(WALK_PERIOD);
-	sleep (WALK_PERIOD);
-	turn leg6a to z-axis <0> speed <30> *1000/(WALK_PERIOD);
-	turn leg6b to z-axis <20> speed <20> *1000/(WALK_PERIOD);
-	sleep (WALK_PERIOD);
-
-	turn leg2a to z-axis <-20> speed <50> *1000/(WALK_PERIOD);
-	turn leg2b to z-axis <0> speed <20> *1000/(WALK_PERIOD);
-	sleep (WALK_PERIOD);
-	turn leg2a to y-axis <0> speed <25> *1000/(WALK_PERIOD);
-	sleep (WALK_PERIOD);
-	turn leg2a to z-axis <0> speed <10> *1000/(WALK_PERIOD);
-	turn leg2b to z-axis <20> speed <20> *1000/(WALK_PERIOD);
-	sleep (WALK_PERIOD);
-	
-	turn leg4a to z-axis <20> speed <50> *1000/(WALK_PERIOD);
-	turn leg4b to z-axis <0> speed <20> *1000/(WALK_PERIOD);
-	sleep (WALK_PERIOD);
-	turn leg4a to y-axis <-45> speed <25> *1000/(WALK_PERIOD);
-	sleep (WALK_PERIOD);
-	turn leg4a to z-axis <0> speed <20> *1000/(WALK_PERIOD);
-	sleep (WALK_PERIOD);
-	
-	turn leg1a to z-axis <-20> speed <50> *1000/(WALK_PERIOD);
-	turn leg1b to z-axis <0> speed <20> *1000/(WALK_PERIOD);
-	sleep (WALK_PERIOD);
-	turn leg1a to y-axis <-45> speed <25> *1000/(WALK_PERIOD);
-	sleep (WALK_PERIOD);
-	turn leg1a to z-axis <0> speed <30> *1000/(WALK_PERIOD);
-	turn leg1b to z-axis <-20> speed <20> *1000/(WALK_PERIOD);
-	sleep (WALK_PERIOD);
-
-	turn leg5a to z-axis <20> speed <50> *1000/(WALK_PERIOD);
-	turn leg5b to z-axis <0> speed <20> *1000/(WALK_PERIOD);
-	sleep (WALK_PERIOD);
-	turn leg5a to y-axis <0> speed <25> *1000/(WALK_PERIOD);
-	sleep (WALK_PERIOD);
-	turn leg5a to z-axis <0> speed <10> *1000/(WALK_PERIOD);
-	turn leg5b to z-axis <-20> speed <20> *1000/(WALK_PERIOD);
-	sleep (WALK_PERIOD);
-
-	turn leg3a to z-axis <-20> speed <50> *1000/(WALK_PERIOD);
-	turn leg3b to z-axis <0> speed <20> *1000/(WALK_PERIOD);
-	sleep (WALK_PERIOD);
-	turn leg3a to y-axis <45> speed <25> *1000/(WALK_PERIOD);
-	sleep (WALK_PERIOD);
-	turn leg3b to z-axis <0> speed <20> *1000/(WALK_PERIOD);
-	sleep (WALK_PERIOD);
-	turn leg3a to z-axis <0> speed <20> *1000/(WALK_PERIOD);
+// Call this from StopMoving()!
+StopWalking() {
+	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
+	move body to y-axis [0.000000] speed [146.844435] / animSpeed;
+	move body to z-axis [0.000000] speed [82.761478] / animSpeed;
+	move headleft to z-axis [0.000000] speed [38.706815] / animSpeed;
+	move headright to z-axis [0.000000] speed [38.706958] / animSpeed;
+	turn legL1_1 to x-axis <0.000000> speed <4190.154570> / animSpeed;
+	turn legL1_1 to y-axis <0.000000> speed <4751.364993> / animSpeed;
+	turn legL1_1 to z-axis <0.000000> speed <2755.645173> / animSpeed;
+	turn legL1_2 to x-axis <0.000000> speed <6040.530508> / animSpeed;
+	turn legL1_2 to y-axis <0.000000> speed <3459.181836> / animSpeed;
+	turn legL1_2 to z-axis <0.000000> speed <8585.663959> / animSpeed;
+	turn legL1_3 to x-axis <0.000000> speed <4506.144606> / animSpeed;
+	turn legL1_3 to y-axis <0.000000> speed <671.164360> / animSpeed;
+	turn legL1_3 to z-axis <0.000000> speed <6440.647943> / animSpeed;
+	turn legL2_1 to x-axis <0.000000> speed <3883.431025> / animSpeed;
+	turn legL2_1 to y-axis <0.000000> speed <5553.827611> / animSpeed;
+	turn legL2_1 to z-axis <0.000000> speed <7696.756870> / animSpeed;
+	turn legL2_2 to y-axis <0.000000> speed <51.991005> / animSpeed;
+	turn legL2_2 to z-axis <0.000000> speed <9351.740308> / animSpeed;
+	turn legL2_3 to x-axis <0.000000> speed <4267.364341> / animSpeed;
+	turn legL2_3 to y-axis <0.000000> speed <306.126297> / animSpeed;
+	turn legL2_3 to z-axis <0.000000> speed <4638.236025> / animSpeed;
+	turn legL3_1 to x-axis <0.000000> speed <2368.288235> / animSpeed;
+	turn legL3_1 to y-axis <0.000000> speed <1050.170176> / animSpeed;
+	turn legL3_1 to z-axis <0.000000> speed <1656.483067> / animSpeed;
+	turn legL3_2 to x-axis <0.000000> speed <2489.425556> / animSpeed;
+	turn legL3_2 to y-axis <0.000000> speed <2826.005211> / animSpeed;
+	turn legL3_2 to z-axis <0.000000> speed <3519.296207> / animSpeed;
+	turn legL3_3 to x-axis <0.000000> speed <2944.822620> / animSpeed;
+	turn legL3_3 to y-axis <0.000000> speed <1049.674008> / animSpeed;
+	turn legL3_3 to z-axis <0.000000> speed <3288.693567> / animSpeed;
+	turn legR1_1 to x-axis <0.000000> speed <6029.703464> / animSpeed;
+	turn legR1_1 to y-axis <0.000000> speed <4343.464996> / animSpeed;
+	turn legR1_1 to z-axis <0.000000> speed <5425.388988> / animSpeed;
+	turn legR1_2 to x-axis <0.000000> speed <6062.899721> / animSpeed;
+	turn legR1_2 to y-axis <0.000000> speed <3439.064622> / animSpeed;
+	turn legR1_2 to z-axis <0.000000> speed <8629.610703> / animSpeed;
+	turn legR1_3 to x-axis <0.000000> speed <4864.295906> / animSpeed;
+	turn legR1_3 to y-axis <0.000000> speed <1775.409184> / animSpeed;
+	turn legR1_3 to z-axis <0.000000> speed <6542.684822> / animSpeed;
+	turn legR2_1 to x-axis <0.000000> speed <4351.113869> / animSpeed;
+	turn legR2_1 to y-axis <0.000000> speed <6189.059632> / animSpeed;
+	turn legR2_1 to z-axis <0.000000> speed <7104.587730> / animSpeed;
+	turn legR2_2 to x-axis <0.000000> speed <98.570507> / animSpeed;
+	turn legR2_2 to y-axis <0.000000> speed <102.826166> / animSpeed;
+	turn legR2_2 to z-axis <0.000000> speed <9880.815982> / animSpeed;
+	turn legR2_3 to x-axis <0.000000> speed <3365.596588> / animSpeed;
+	turn legR2_3 to y-axis <0.000000> speed <1058.224241> / animSpeed;
+	turn legR2_3 to z-axis <0.000000> speed <7993.028193> / animSpeed;
+	turn legR3_1 to x-axis <0.000000> speed <1970.350816> / animSpeed;
+	turn legR3_1 to y-axis <0.000000> speed <1632.166678> / animSpeed;
+	turn legR3_1 to z-axis <0.000000> speed <1247.228444> / animSpeed;
+	turn legR3_2 to x-axis <0.000000> speed <3768.847243> / animSpeed;
+	turn legR3_2 to y-axis <0.000000> speed <3052.445008> / animSpeed;
+	turn legR3_2 to z-axis <0.000000> speed <4725.324651> / animSpeed;
+	turn legR3_3 to x-axis <0.000000> speed <4531.147837> / animSpeed;
+	turn legR3_3 to y-axis <0.000000> speed <1485.181690> / animSpeed;
+	turn legR3_3 to z-axis <0.000000> speed <5350.540018> / animSpeed;
+}
+// REMEMBER TO animspeed = 2 in Create() !!
+UnitSpeed(){
+	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+	animFramesPerKeyframe = 2; //we need to calc the frames per keyframe value, from the known animtime
+	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+	while(TRUE){
+		animSpeed = (get CURRENT_SPEED);
+		if (animSpeed<1) animSpeed=1;
+		animSpeed = (maxSpeed * 2) / animSpeed; 
+		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
+		if (animSpeed<4) animSpeed=4;
+		if (animspeed>8) animSpeed=8;
+		sleep 65;
+	}
+}
+StartMoving(){
+	signal SIGNAL_MOVE;
+	isMoving=TRUE;
+	start-script Walk();
+}
+StopMoving(){
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
+	call-script StopWalking();
 }
 
-StartMoving()
-{
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	start-script UnitSpeed();
-	start-script DoTheWalking();
-	moving=TRUE;
-}
-
-StopMoving()
-{
-	signal SIG_MOVE;
-	moving=FALSE;
-	set-signal-mask SIG_MOVE;
-	start-script StopWalk();
-}
 
 
 #define BASEPIECE body
@@ -240,25 +416,23 @@ StopMoving()
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
+static-var last_nano_heading;
 Create()
 {
-	hide flare1;
-	hide aimy;
-	moving = FALSE;
-	gun_1 = 0;
+	hide nano;
+	hide heatrayaimflare;
+	isMoving = FALSE;
+	animSpeed = 12;
 	restore_delay = 3000;
-	turn leg6a to y-axis <30> now;
-	turn leg4a to y-axis <-30> now;
-	turn leg1a to y-axis <-30> now;//2
-	turn leg3a to y-axis <30> now;//5
-	moveSpeed = (get MAX_SPEED);
-	WALK_PERIOD=320;
+	last_nano_heading = 0;
+	start-script UnitSpeed();
+	call-script StopWalking();
 }
 
 
 QueryNanoPiece(piecenum)
 {
-	piecenum = nanof;
+	piecenum = nano;
 }
 
 
@@ -271,16 +445,22 @@ BuildAnim(){
 
 StartBuilding(heading, pitch)
 {
-    show nanof;
+    show nano;
 	signal SIG_BUILD;
+	last_nano_heading = heading;
+	turn body to y-axis heading speed <240.000000>;
+	//turn aimx1 to x-axis <-50> - pitch speed <240.0>;
+	wait-for-turn body around y-axis;
 	set INBUILDSTANCE to 1;
 	start-script BuildAnim();	
 }
 
 StopBuilding()
 {
-    hide nanof;
+    hide nano;
 	signal SIG_BUILD;	
+	turn body to y-axis 0 speed <160.000000>;
+	last_nano_heading = 0;
 	set-signal-mask SIG_BUILD;
 
 }
@@ -305,9 +485,11 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <55.000000>;
-	turn sleeve to x-axis <0.000000> speed <55.000000>;
-	wait-for-turn sleeve around y-axis;
+	move headleft to x-axis [0] speed <500>; 
+	move headright to x-axis [0] speed <500>; 
+	turn head to y-axis <0.000000> speed <90.000000>;
+	turn heatray to x-axis <0.000000> speed <90.000000>;
+	wait-for-turn heatray around y-axis;
 	wpn1_lasthead = 1000000;
 	//wpn2_lasthead = 1000000;
 }
@@ -328,13 +510,15 @@ RestoreAfterDelay()
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	turn turret to y-axis heading speed <180.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <110.000000>;
+	move headleft to x-axis [-0.5] speed <500>; 
+	move headright to x-axis [0.5] speed <500>; 
+	turn head to y-axis heading - last_nano_heading speed <180.000000>;
+	turn heatray to x-axis <0.000000> - pitch speed <110.000000>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
-		wait-for-turn turret around y-axis;
-		wait-for-turn sleeve around x-axis;
+		wait-for-turn head around y-axis;
+		wait-for-turn heatray around x-axis;
 	}
 	start-script RestoreAfterDelay();
 	wpn1_lasthead = heading;
@@ -343,33 +527,25 @@ AimPrimary(heading, pitch)
 
 FirePrimary() {
 
-	//gun_1 = !gun_1;
-	//if( gun_1 == 0 )
-	//{
-		move barrel1 to z-axis [-2.000000] speed [400.000000];
-		wait-for-move barrel1 along z-axis;
-		move barrel1 to z-axis [0.000000] speed [3.000000];
-	//}
-	//if( gun_1 == 1 )
-	//{
-		//move barrel2 to z-axis [-3.000000] speed [400.000000];
-		//wait-for-move barrel2 along z-axis;
-		//move barrel2 to z-axis [0.000000] speed [3.000000];
-	//}
-	return (0);
+//		move barrel1 to z-axis [-2.000000] speed [400.000000];
+//		wait-for-move barrel1 along z-axis;
+//		move barrel1 to z-axis [0.000000] speed [3.000000];
+//
+//	return (0);
+	return(1);
 }
 
 AimFromPrimary(piecenum)
 {
 
-	piecenum = aimfromy;
+	piecenum = heatray;
 
 }
 
 QueryPrimary(piecenum)
 {
 
-		piecenum = flare1;
+		piecenum = heatrayaimflare;
 		return (0);
 
 
@@ -393,7 +569,7 @@ Killed(severity, corpsetype)
 		//explode leg1b type BITMAPONLY | NOHEATCLOUD;
 		//explode leg2a type BITMAPONLY | NOHEATCLOUD;
 		//explode leg2b type BITMAPONLY | NOHEATCLOUD;
-		explode barrel1 type BITMAPONLY | NOHEATCLOUD;
+		explode heatray type BITMAPONLY | NOHEATCLOUD;
 		//explode flare1 type BITMAPONLY | NOHEATCLOUD;
 		//explode flare2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
@@ -414,7 +590,7 @@ Killed(severity, corpsetype)
 		//explode leg1b type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode leg2a type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode leg2b type FALL | NOHEATCLOUD;
-		explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode heatray type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -435,27 +611,27 @@ Killed(severity, corpsetype)
 		//explode leg1b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode leg2a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode leg2b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode heatray type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode body type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode leg5a type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode leg5b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode leg6a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode leg6b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode leg4a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode leg4b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode leg3a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode leg3b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode leg1a type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode leg1b type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode leg2a type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode leg2b type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode barrel1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode legR1_1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode legR1_2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode legR1_3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode legL1_1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode legL1_2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode legL1_3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode legL3_1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode legL3_2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode legL3_3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode legR2_1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode legR2_2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode legR2_3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode heatray type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

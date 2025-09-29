@@ -1,0 +1,41 @@
+-- Test cases for the "remove invalid models" check.
+-- Rename to .lua to "run" the test.
+
+return {
+	x_nonexistent_model = {
+		object = "caught_me_slippin.dae",
+	},
+	x_uses_model_but_nil = {
+		drawtype = 0,
+	},
+	x_uses_model_but_empty = {
+		drawtype = 0,
+		object = "",
+	},
+	x_uses_tree_1 = {
+		drawtype = 1,
+	},
+	x_uses_tree_777 = {
+		drawtype = 777,
+	},
+	x_uses_tree_1_provides_model = {
+		drawtype = 1,
+		object = "SimpleFlare.s3o"
+	},
+	x_uses_tree_777_provides_model = {
+		drawtype = 777,
+		object = "SimpleFlare.s3o"
+	},
+	x_nonexistent_model_drawtype_none = {
+		drawtype = -1,
+		object = "caught_me_slippin.dae",
+	},
+	x_nonexistent_model_drawtype_tree = {
+		drawtype = 1,
+		object = "caught_me_slippin.dae",
+	},
+	x_nonexistent_model_drawtype_tree_777 = {
+		drawtype = 777,
+		object = "caught_me_slippin.dae",
+	},
+}

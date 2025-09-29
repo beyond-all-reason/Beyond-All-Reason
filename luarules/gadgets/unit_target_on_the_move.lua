@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Target on the move",
@@ -11,19 +13,10 @@ function gadget:GetInfo()
 end
 
 
-local CMD_UNIT_SET_TARGET_NO_GROUND = 34922
-local CMD_UNIT_SET_TARGET = 34923
-local CMD_UNIT_CANCEL_TARGET = 34924
-local CMD_UNIT_SET_TARGET_RECTANGLE = 34925
---export to CMD table
-CMD.CMD_UNIT_SET_TARGET_NO_GROUND = CMD_UNIT_SET_TARGET_NO_GROUND
-CMD[CMD_UNIT_SET_TARGET_NO_GROUND] = 'UNIT_SET_TARGET_NO_GROUND'
-CMD.UNIT_SET_TARGET = CMD_UNIT_SET_TARGET
-CMD[CMD_UNIT_SET_TARGET] = 'UNIT_SET_TARGET'
-CMD.UNIT_CANCEL_TARGET = CMD_UNIT_SET_TARGET
-CMD[CMD_UNIT_CANCEL_TARGET] = 'UNIT_CANCEL_TARGET'
-CMD.UNIT_SET_TARGET_RECTANGLE = CMD_UNIT_SET_TARGET_RECTANGLE
-CMD[CMD_UNIT_SET_TARGET_RECTANGLE] = 'UNIT_SET_TARGET_RECTANGLE'
+local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
+local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
+local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
+local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
 
 local deleteMaxDistance = 30
 
@@ -61,7 +54,8 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 	local spSetUnitRulesParam = Spring.SetUnitRulesParam
-	local spGetCommandQueue = Spring.GetCommandQueue
+	local spGetUnitCommands = Spring.GetUnitCommands
+	local spGetUnitCommandCount = Spring.GetUnitCommandCount
 	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 	local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 	local spGetUnitWeaponTryTarget = Spring.GetUnitWeaponTryTarget
@@ -103,6 +97,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local unitTargets = {} -- data holds all unitID data
 	local pausedTargets = {}
+	--local needSend = {}
 	--------------------------------------------------------------------------------
 	-- Commands
 
@@ -110,19 +105,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	local unitSetTargetNoGroundCmdDesc = {
 		id = CMD_UNIT_SET_TARGET_NO_GROUND,
-		type = CMDTYPE.ICON_UNIT,
+		type = CMDTYPE.ICON_UNIT_OR_AREA,
 		name = 'Set Unit Target',
 		action = 'settargetnoground',
-		cursor = 'settarget',
-		tooltip = tooltipText,
-		hidden = true,
-	}
-
-	local unitSetTargetRectangleCmdDesc = {
-		id = CMD_UNIT_SET_TARGET_RECTANGLE,
-		type = CMDTYPE.ICON_UNIT_OR_RECTANGLE,
-		name = 'Set Target',
-		action = 'settargetrectangle',
 		cursor = 'settarget',
 		tooltip = tooltipText,
 		hidden = true,
@@ -234,17 +219,61 @@ if gadgetHandler:IsSyncedCode() then
 	-- Unit adding/removal
 
 	local function sendTargetsToUnsynced(unitID)
+		--tracy.ZoneBeginN(string.format("sendTargetsToUnsynced %d", unitID))
 		for index, targetData in ipairs(unitTargets[unitID].targets) do
-			if tonumber(targetData.target) then
-				SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, targetData.target)
-			else
-				SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, targetData.target[1], targetData.target[2], targetData.target[3])
+			if not targetData.sent then
+				if tonumber(targetData.target) then
+					SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, targetData.target)
+				else
+					SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, targetData.target[1], targetData.target[2], targetData.target[3])
+				end
+				targetData.sent = true
 			end
 		end
+		--tracy.ZoneEnd()
 	end
 
-	local function addUnitTargets(unitID, unitDefID, targets, append)
+	local function sendTargetsToUnsyncedBatched(unitID)
+		--tracy.ZoneBeginN(string.format("sendTargetsToUnsyncedBatched %d", unitID))
+		local targetCount = #unitTargets[unitID].targets
+		if targetCount == 1 then
+			sendTargetsToUnsynced(unitID)
+		elseif targetCount > 1 then
+			local data = {}
+			local count = 0
+			local stride = 8
+			for index, targetData in ipairs(unitTargets[unitID].targets) do
+				if not targetData.sent then
+					data[count + 1] = unitID
+					data[count + 2] = index
+					data[count + 3] = targetData.alwaysSeen
+					data[count + 4] = targetData.ignoreStop
+					data[count + 5] = targetData.userTarget
+					if tonumber(targetData.target) then
+						data[count + 6] = targetData.target
+						data[count + 7] = -1
+						data[count + 8] = -1
+						--SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, targetData.target)
+					else
+						data[count + 6] = targetData.target[1]
+						data[count + 7] = targetData.target[2]
+						data[count + 8] = targetData.target[3]
+						--SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, targetData.target[1], targetData.target[2], targetData.target[3])
+					end
+					targetData.sent = true
+				end
+				count = count + stride
+				if count > 4000 then break end
+			end
+			SendToUnsynced("targetListBatched", count, stride, data)
+		end
+		--tracy.ZoneEnd()
+	end
+
+	local function addUnitTargets(unitID, unitDefID, targets, append, reason)
+		--tracy.ZoneBeginN(string.format("addUnitTargets:%s %d %d",tostring(reason), unitID, unitDefID))
 		if spValidUnitID(unitID) then
+			--needSend[#needSend] = unitID
 			local data = unitTargets[unitID]
 			if not data then
 				data = {
@@ -264,6 +293,7 @@ if gadgetHandler:IsSyncedCode() then
 			for _, targetData in ipairs(targets) do
 				if not currentTargets[targetData.target] then	-- check if this target isnt already in targetData
 					if checkTarget(unitID, targetData.target) then
+						targetData.sent = nil
 						data.targets[#data.targets + 1] = targetData
 					end
 				end
@@ -280,6 +310,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
+		--tracy.ZoneEnd()
 	end
 
 	local function removeUnit(unitID, keeptrack)
@@ -299,7 +330,14 @@ if gadgetHandler:IsSyncedCode() then
 		if #unitTargets[unitID].targets == 0 then
 			removeUnit(unitID)
 		else
+			-- refresh the sent list:
+			for i, targetData in ipairs(unitTargets[unitID].targets) do
+				if i >= index then
+					targetData.sent = nil
+				end
+			end
 			sendTargetsToUnsynced(unitID)
+			SendToUnsynced("targetList", unitID, #unitTargets[unitID].targets + 1) -- ask to clear the last element since we made the table smaller
 		end
 	end
 
@@ -310,6 +348,13 @@ if gadgetHandler:IsSyncedCode() then
 	function GG.getUnitTargetIndex(unitID)
 		return unitTargets[unitID] and unitTargets[unitID].currentIndex
 	end
+
+	--[[function gadget:GameFramePost()
+		for _, unitID in ipairs(needSend) do
+			sendTargetsToUnsyncedBatched(unitID)
+		end
+		needSend = {}
+	end]]
 
 	function gadget:Initialize()
 		-- register command
@@ -335,12 +380,11 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		if validUnits[unitDefID] then
-			--spInsertUnitCmdDesc(unitID, unitSetTargetRectangleCmdDesc)
 			spInsertUnitCmdDesc(unitID, unitSetTargetNoGroundCmdDesc)
 			spInsertUnitCmdDesc(unitID, unitSetTargetCircleCmdDesc)
 			spInsertUnitCmdDesc(unitID, unitCancelTargetCmdDesc)
 			if unitTargets[builderID] then
-				addUnitTargets(unitID, unitDefID, unitTargets[builderID].targets, false)
+				addUnitTargets(unitID, unitDefID, unitTargets[builderID].targets, false, "UnitCreated")
 			end
 		end
 	end
@@ -361,13 +405,17 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	-- Command Tracking
 
-	local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+	local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, fromLua)
+		--tracy.ZoneBeginN(string.format("processCommand %d %d %d %d %s %s", unitID, unitDefID, teamID, cmdID, tostring(cmdParams), tostring(cmdOptions)))
+		--tracy.Message(string.format("processCommand params=%s oprt=%s", Json.encode(cmdParams), Json.encode(cmdOptions)))
 		if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE then
 			if validUnits[unitDefID] then
 				local weaponList = unitWeapons[unitDefID]
 				local append = cmdOptions.shift or false
 				local userTarget = not cmdOptions.internal
 				local ignoreStop = cmdOptions.ctrl
+
+				-- Checks if the command is a valid area command {x,y,z,r} with radius more than 0:
 				if #cmdParams > 3 and not (#cmdParams == 4 and cmdParams[4] == 0) then
 					local targets = {}
 					if #cmdParams == 6 then
@@ -420,18 +468,28 @@ if gadgetHandler:IsSyncedCode() then
 							local target = targets[i]
 							orders[i+base] = {
 								CMD_UNIT_SET_TARGET,
-								{ target },
+								target,
 								optionKeys
 							}
 
 						end
 						--re-insert in the queue as list of individual orders instead of processing directly, so that allowcommand etc can work
+						-- This will re-call Gadget:AllowCommand for each order
+						-- At this point, we dont yet know how many orders will be allowed out of these
+						-- Its hard to tell which is going to be the last one, which is when we should be sending to unsynced.
 						spGiveOrderArrayToUnit(unitID, orders)
+						-- oh wait we DO know, we just need to wait here for the return.
+						-- if we are coming from lua, then we are already
 					end
 				else
 					if #cmdParams == 3 or #cmdParams == 4 then
 						-- if radius is 0, it's a single click
 						if cmdParams[4] == 0 then
+							if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND then
+								SendToUnsynced("failCommand", teamID)
+								--tracy.ZoneEnd()
+								return false
+							end
 							cmdParams[4] = nil
 						end
 						local target = cmdParams
@@ -461,7 +519,7 @@ if gadgetHandler:IsSyncedCode() then
 									userTarget = userTarget,
 									target = target,
 								}
-							}, append)
+							}, append, "cmdparams 3 or 4 and validTarget")
 						end
 					elseif #cmdParams == 1 then
 						--single target
@@ -486,7 +544,7 @@ if gadgetHandler:IsSyncedCode() then
 										userTarget = userTarget,
 										target = target,
 									}
-								}, append)
+								}, append, "cmdparams 1 and validTarget")
 							end
 						end
 					elseif #cmdParams == 0 then
@@ -495,6 +553,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
+			--tracy.ZoneEnd()
 			return true
 		elseif cmdID == CMD_UNIT_CANCEL_TARGET then
 			if unitTargets[unitID] then
@@ -527,8 +586,10 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
+			--tracy.ZoneEnd()
 			return true
 		end
+		--tracy.ZoneEnd()
 	end
 
 	local waitingForInsertRemoval = {}
@@ -539,16 +600,11 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 	local function unpauseTargetting(unitID)
-		addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true)
+		addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true, "unpauseTargetting")
 		pausedTargets[unitID] = nil
 	end
 
-	local emptyCmdOptions = {}
-	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdTag, cmdParams, cmdOptions)
-		if type(cmdOptions) ~= 'table' then
-			-- does UnitCmdDone always returns number instead of table?
-			cmdOptions = emptyCmdOptions
-		end
+	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag)
 		processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 		if cmdID == CMD_STOP then
 			if unitTargets[unitID] and not unitTargets[unitID].ignoreStop then
@@ -558,7 +614,7 @@ if gadgetHandler:IsSyncedCode() then
 				pausedTargets[unitID] = nil
 			end
 		else
-			local activeCommandIsDgun = spGetCommandQueue(unitID, 0) ~= 0 and spGetCommandQueue(unitID, 1)[1].id == CMD_DGUN
+			local activeCommandIsDgun = spGetUnitCommandCount(unitID) ~= 0 and spGetUnitCommands(unitID, 1)[1].id == CMD_DGUN
 			if pausedTargets[unitID] and not activeCommandIsDgun then
 				if waitingForInsertRemoval[unitID] then
 					waitingForInsertRemoval[unitID] = nil
@@ -572,8 +628,11 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-		if spGetCommandQueue(unitID, 0) == 0 or not cmdOptions.meta then
-			if processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions) then
+		--tracy.ZoneBeginN(string.format("AllowCommand %s %s", tostring(fromSynced), tostring(fromLua)))
+		--tracy.Message(string.format("Allowcommand params %s %s", table.toString(cmdOptions), table.toString(cmdParams)))
+		if spGetUnitCommandCount(unitID) == 0 or not cmdOptions.meta then
+			if processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, fromLua) then
+				--tracy.ZoneEnd()
 				return false --command was used & fully processed, so block command
 			elseif cmdID == CMD_STOP then
 				if unitTargets[unitID] and not unitTargets[unitID].ignoreStop then
@@ -589,6 +648,7 @@ if gadgetHandler:IsSyncedCode() then
 				waitingForInsertRemoval[unitID] = true
 			end
 		end
+		--tracy.ZoneEnd()
 		return true  -- command was not used OR was used but not fully processed, so don't block command
 	end
 
@@ -652,7 +712,6 @@ else	-- UNSYNCED
 	local GL_LINES = GL.LINES
 
 	local spGetUnitPosition = Spring.GetUnitPosition
-	local spGetUnitLosState = Spring.GetUnitLosState
 	local spValidUnitID = Spring.ValidUnitID
 	local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 	local spGetMyTeamID = Spring.GetMyTeamID
@@ -663,7 +722,7 @@ else	-- UNSYNCED
 
 	local myAllyTeam = spGetMyAllyTeamID()
 	local myTeam = spGetMyTeamID()
-	local _, fullview = spGetSpectatingState()
+	local mySpec, fullview = spGetSpectatingState()
 
 	local lineWidth = 1.4
 	local queueColour = { 1, 0.75, 0, 0.3 }
@@ -677,7 +736,9 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction("targetdrawteam", handleTargetDrawEvent, "toggles drawing targets for units, params: teamID doDraw")
 		gadgetHandler:AddChatAction("targetdrawunit", handleUnitTargetDrawEvent, "toggles drawing targets for units, params: unitID")
 		gadgetHandler:AddSyncAction("targetList", handleTargetListEvent)
+		gadgetHandler:AddSyncAction("targetListBatched", handleTargetListBatchedEvent)
 		gadgetHandler:AddSyncAction("targetIndex", handleTargetIndexEvent)
+		gadgetHandler:AddSyncAction("failCommand", handleFailCommand)
 
 		-- register cursor
 		Spring.AssignMouseCursor("settarget", "cursorsettarget", false)
@@ -691,14 +752,16 @@ else	-- UNSYNCED
 	function gadget:PlayerChanged(playerID)
 		myAllyTeam = spGetMyAllyTeamID()
 		myTeam = spGetMyTeamID()
-		_, fullview = spGetSpectatingState()
+		mySpec, fullview = spGetSpectatingState()
 	end
 
 	function gadget:Shutdown()
 		gadgetHandler:RemoveChatAction("targetdrawteam")
 		gadgetHandler:RemoveChatAction("targetdrawunit")
 		gadgetHandler:RemoveSyncAction("targetList")
+		gadgetHandler:RemoveSyncAction("targetListBatched")
 		gadgetHandler:RemoveSyncAction("targetIndex")
+		gadgetHandler:RemoveSyncAction("failCommand")
 	end
 
 	function GG.getUnitTargetList(unitID)
@@ -709,14 +772,27 @@ else	-- UNSYNCED
 		return targetList[unitID] and targetList[unitID].currentIndex
 	end
 
+	function handleFailCommand(_, teamID)
+		if teamID == myTeam and not mySpec then
+			Spring.PlaySoundFile("FailedCommand", 0.75, "ui")
+			Spring.SetActiveCommand('settargetnoground')
+		end
+	end
+
 	function handleTargetListEvent(_, unitID, index, alwaysSeen, ignoreStop, userTarget, targetA, targetB, targetC)
+		--tracy.ZoneBeginN(string.format("handleTargetListEvent %d %d ", unitID, index))
 		if index == 0 then
 			targetList[unitID] = nil
+			--tracy.ZoneEnd()
 			return
 		end
 		targetList[unitID] = targetList[unitID] or {}
 		if index == 1 then
 			targetList[unitID].targets = {}
+		end
+		if targetA == nil then
+			table.remove(targetList[unitID].targets, index)
+			return
 		end
 		targetList[unitID].targets[index] = {
 			alwaysSeen = alwaysSeen,
@@ -724,7 +800,23 @@ else	-- UNSYNCED
 			userTarget = userTarget,
 			target = (not tonumber(targetB) and targetA) or { targetA, targetB, targetC },
 		}
+		--tracy.ZoneEnd()
 	end
+
+	function handleTargetListBatchedEvent(_, count, stride, data)
+		for i =1, count, stride do
+			local targetB = data[i+6]
+			local targetC = data[i+7]
+			if targetB < 0 then
+				targetB = nil
+			end
+			if targetC < 0 then
+				targetC = nil
+			end
+			handleTargetListEvent(_, data[i], data[i+1], data[i+2], data[i+3], data[i+4], data[i+5], targetB, targetC)
+		end
+	end
+
 
 	function handleTargetIndexEvent(_, unitID, index)
 		if not targetList[unitID] then
@@ -826,6 +918,10 @@ else	-- UNSYNCED
 	end
 
 	function gadget:DrawWorld()
+		if Spring.IsGUIHidden() then
+			return
+		end
+
 		if fullview then
 			drawDecorations()
 		else

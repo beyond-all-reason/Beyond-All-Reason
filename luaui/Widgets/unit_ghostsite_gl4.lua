@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Ghost Site GL4",
@@ -18,7 +20,6 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitDirection = Spring.GetUnitDirection
 local spGetUnitBasePosition = Spring.GetUnitBasePosition
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spGetPositionLosState = Spring.GetPositionLosState
 local math_deg = math.deg
 local math_atan2 = math.atan2
@@ -27,7 +28,7 @@ local math_rad = math.rad
 local sec = 0
 local ghostSites = {}
 local unitshapes = {}
-local spec,specFullView = Spring.GetSpectatingState()
+local _,fullview = Spring.GetSpectatingState()
 
 local includedUnitDefIDs = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -59,7 +60,7 @@ function widget:UnitEnteredLos(unitID, teamID)
 	if ghostSites[unitID] then
 		removeUnitShape(unitID)
 	end
-	if specFullView or spIsUnitAllied(unitID) then
+	if fullview or spIsUnitAllied(unitID) then
 		return
 	end
     local unitDefID = spGetUnitDefID(unitID)
@@ -92,7 +93,7 @@ local function updateGhostSites()
 end
 
 function widget:Update(dt)
-	if specFullView then return end
+	if fullview then return end
 	if not WG.DrawUnitShapeGL4 then
 		widgetHandler:RemoveWidget()
 	end
@@ -104,10 +105,40 @@ function widget:Update(dt)
 end
 
 function widget:PlayerChanged()
-	spec,specFullView = Spring.GetSpectatingState()
-	if specFullView then
+	_,fullview = Spring.GetSpectatingState()
+	if fullview then
 		for unitID, _ in pairs(unitshapes) do
 			removeUnitShape(unitID)
+		end
+	end
+end
+
+-- remove ghostsites for dead allyteams
+function widget:TeamDied(teamID)
+	-- Check if the entire allyteam is dead before removing ghost sites
+	local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
+	local allyTeamList = Spring.GetTeamList(allyTeamID)
+	if not allyTeamList then
+		return
+	end
+
+	-- Check if all teams in this allyteam are dead
+	local allyTeamDead = true
+	for _, checkTeamID in ipairs(allyTeamList) do
+		-- Check if team is still alive (not dead)
+		if checkTeamID ~= teamID and not select(3, Spring.GetTeamInfo(checkTeamID)) then
+			allyTeamDead = false
+			break
+		end
+	end
+
+	-- Only remove ghost sites if the entire allyteam is dead
+	if allyTeamDead then
+		for unitID, site in pairs(ghostSites) do
+			if select(6, Spring.GetTeamInfo(site.teamID)) == allyTeamID then
+				removeUnitShape(unitID)
+				ghostSites[unitID] = nil
+			end
 		end
 	end
 end

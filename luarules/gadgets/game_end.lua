@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Game End",
@@ -213,7 +215,7 @@ if gadgetHandler:IsSyncedCode() then
 				teamCount = teamCount + 1
 			end
 		end
-		if teamCount < 2 then  -- sandbox mode
+		if #allyteamList-1 < 2 then  -- sandbox mode
 			gadgetHandler:RemoveGadget(self)
 			return
 		elseif teamCount == 2 or isFFA then  -- let player quit & rejoin in 1v1

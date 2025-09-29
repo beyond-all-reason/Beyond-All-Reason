@@ -2,6 +2,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Map VoidWater",
@@ -40,7 +42,6 @@ local spGetFeaturePosition = Spring.GetFeaturePosition
 local mapx = Game.mapSizeX
 local mapz = Game.mapSizeZ
 
-local gaiaTeamID = Spring.GetGaiaTeamID()
 
 function gadget:FeatureCreated(featureID)
 	if select(2, spGetFeaturePosition(featureID)) <= 1 then

@@ -7,6 +7,8 @@ if gpuMem and gpuMem > 0 and gpuMem < 1800 then
 	isPotatoGpu = true
 end
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
   return {
     name      = "Map Grass GL4",
@@ -19,7 +21,7 @@ function widget:GetInfo()
     enabled   = not isPotatoGpu,
   }
 end
-
+    
 ----------IMPORTANT USAGE INSTRUCTIONS/ README----------
 
 -- The grass configuration is set in the following order:
@@ -83,6 +85,7 @@ local grassConfig = {
     SHADOWFACTOR = 0.25, -- how much shadowed grass gets darkened, lower values mean more shadows
     HASSHADOWS = 1, -- 0 for disable, no real difference in this (does not work yet)
 	GRASSBRIGHTNESS = 1.0; -- this is for future dark mode
+	COMPACTVBO = 1, -- if set to 1, then the grass patch vbo will be compacted to 8 vertices per patch, otherwise it will be 17 vertices per patch
   },
   grassBladeColorTex = "LuaUI/Images/luagrass/grass_field_medit_flowering.dds.cached.dds", -- rgb + alpha transp
   mapGrassColorModTex = "$grass", -- by default this means that grass will be colorized with the minimap
@@ -95,7 +98,7 @@ local grassConfig = {
 
 local nightFactor = {1,1,1,1}
 
-local distanceMult = 0.4
+local distanceMult = 0.4 
 
 --------------------------------------------------------------------------------
 -- map custom config
@@ -129,7 +132,7 @@ else
   end
 end
 Spring.Echo("Map is",Game.mapName)
-
+  
 -----------------------Old Map Overrides-------------------
 local mapoverrides  = {
   ["DSDR 4.0"] = {
@@ -207,6 +210,7 @@ local grassInstanceData = {}
 
 local grassPatchVBO = nil
 local grassPatchVBOsize = 0
+local grassPatchIndexVBO = nil
 local grassInstanceVBO = nil
 local grassInstanceVBOSize = nil
 local grassInstanceVBOStep = 4 -- 4 values per patch
@@ -215,8 +219,10 @@ local grassShader = nil
 local grassVertexShaderDebug = ""
 local grassFragmentShaderDebug = ""
 local grassPatchCount = 0
-local luaShaderDir = "LuaUI/Widgets/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
 local grassRowInstance = {0} -- a table of row, instanceidx from top side of the view
 
 local windDirX = 0
@@ -246,7 +252,7 @@ end
 --------------------------------------------------------------------------------
 -- using: http://ogldev.atspace.co.uk/www/tutorial33/tutorial33.html
 local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see the commented out python section at the bottom to make a custom vbo
-	grassPatchVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
+	grassPatchVBO = gl.GetVBO(GL.ARRAY_BUFFER,false)
 	if grassPatchVBO == nil then goodbye("No LuaVAO support") end
 
 	local VBOLayout= {  {id = 0, name = "position", size = 3},
@@ -256,9 +262,9 @@ local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see th
 	  {id = 4, name = "texcoords0", size = 2},
 	  {id = 5, name = "texcoords1", size = 2},
 	  {id = 6, name = "pieceindex", size = 1},} --khm, this should be unsigned int
-  
-	local VBOData = VFS.Include("LuaUI/Widgets/Include/grassPatches.lua")
-	
+
+	local VBOData = VFS.Include("LuaUI/Include/grassPatches.lua")
+
 	if grassPatchSize == 1 then
 		grassPatchVBOsize = 36
 		VBOData = VBOData[1]
@@ -267,12 +273,46 @@ local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see th
 		grassPatchVBOsize = 144
 		VBOData = VBOData[4]
 	end
+	-- What if we went down to 8 vertices?
+	if grassConfig.grassShaderParams.COMPACTVBO == 1 then
+
+		VBOLayout= {  {id = 0, name = "pos_u"},{id = 1, name = "norm_v"}}
+		local compactVBO = {}
+		for v = 1, grassPatchVBOsize do 
+			compactVBO[8 * (v-1) + 1] = VBOData[17 * (v-1) + 1] -- px
+			compactVBO[8 * (v-1) + 2] = VBOData[17 * (v-1) + 2] -- py
+			compactVBO[8 * (v-1) + 3] = VBOData[17 * (v-1) + 3] -- pz
+			compactVBO[8 * (v-1) + 4] = VBOData[17 * (v-1) + 13] -- u
+			compactVBO[8 * (v-1) + 5] = VBOData[17 * (v-1) + 4] -- nx
+			compactVBO[8 * (v-1) + 6] = VBOData[17 * (v-1) + 5] -- ny
+			compactVBO[8 * (v-1) + 7] = VBOData[17 * (v-1) + 6] -- nz
+			compactVBO[8 * (v-1) + 8] = VBOData[17 * (v-1) + 14] -- v
+		end
+		VBOData = compactVBO  
+	end
 
 	grassPatchVBO:Define(
 		grassPatchVBOsize, -- 3 verts, just a triangle for now
 		VBOLayout -- 17 floats per vertex
 	)
 	--Spring.Echo("VBODATA #", grassPatchSize, #VBOData)
+
+	-- Try making an indexVBO too 
+	-- NOTE THAT THIS DOES NOT WORK YET!
+	grassPatchIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER,false) -- order is 1 2 3 3 4 1
+	grassPatchIndexVBO:Define(grassPatchVBOsize * 6) -- 6 indices per patch
+	local indexVBO = {}
+	for i = 1, grassPatchVBOsize do 
+		local baseidx = 6*(i-1)
+		indexVBO[baseidx + 1] = baseidx 
+		indexVBO[baseidx + 2] = baseidx + 1
+		indexVBO[baseidx + 3] = baseidx + 2
+		indexVBO[baseidx + 4] = baseidx + 2
+		indexVBO[baseidx + 5] = baseidx + 3
+		indexVBO[baseidx + 6] = baseidx 
+	end
+	grassPatchIndexVBO:Upload(indexVBO)
+
 
 	grassPatchVBO:Upload(VBOData)
 end
@@ -329,7 +369,7 @@ local function grassPatchMultToByte(grasspatchsize) -- converts instancebuffer s
 	if grasspatchsize < grassConfig.grassMinSize then return 0 end
 	local grassbyte = (grasspatchsize - grassConfig.grassMinSize)
 	grassbyte = grassbyte / (grassConfig.grassMaxSize - grassConfig.grassMinSize) *254.0
-	return math.floor(math.max(1, math.min(254,grassbyte)))
+	return math.clamp(grassbyte, 1, 254)
 end
 
 local function world2grassmap(wx, wz) -- returns an index into the elements of a vbo
@@ -590,6 +630,9 @@ local function MakeAndAttachToVAO()
 
   if grassVAO == nil then goodbye("Failed to create grassVAO") end
   grassVAO:AttachVertexBuffer(grassPatchVBO)
+  if grassPatchIndexVBO then
+	grassVAO:AttachIndexBuffer(grassPatchIndexVBO)
+  end
   grassVAO:AttachInstanceBuffer(grassInstanceVBO)
 end
 
@@ -699,8 +742,8 @@ local function makeGrassInstanceVBO()
 	end
 end
 
-local vsSrcPath = "LuaUI/Widgets/Shaders/map_grass_gl4.vert.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/map_grass_gl4.frag.glsl"
+local vsSrcPath = "LuaUI/Shaders/map_grass_gl4.vert.glsl"
+local fsSrcPath = "LuaUI/Shaders/map_grass_gl4.frag.glsl"
 
 
 
@@ -726,9 +769,9 @@ local function makeShaderVAO()
 		shaderConfig = grassConfig.grassShaderParams,
 		silent = true,
 	}
-  
+
   grassShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
-  
+
   if not grassShader then goodbye("Failed to compile grassShader GL4 ") end
 end
 
@@ -752,6 +795,89 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	if not placementMode and weaponConf[weaponID] ~= nil and py - 10 < spGetGroundHeight(px, pz) then
 		adjustGrass(px, pz, weaponConf[weaponID][1], math.min(1, (weaponConf[weaponID][1]*weaponConf[weaponID][2])/45))
 	end
+end
+
+local function placegrassCmd(_, _, params)
+	placementMode = not placementMode
+	processChanges = true
+	Spring.Echo("Grass placement mode toggle to:", placementMode)
+end
+
+local function savegrassCmd(_, _, params)
+	if not params[1] then return end
+
+	local filename = params[1]
+	if string.len(filename) < 2 then
+		filename = Game.mapName .. "_grassDist.tga"
+	end
+	Spring.Echo("Savegrass: ", filename)
+
+	texture = Spring.Utilities.NewTGA(
+		math.floor(mapSizeX / grassConfig.patchResolution),
+		math.floor(mapSizeZ / grassConfig.patchResolution),
+		1)
+	local offset = 0
+	for y = 1, texture.height do
+		for x = 1, texture.width do
+			texture[y][x] = grassPatchMultToByte(grassInstanceData[offset*4 + 4])
+			offset = offset + 1
+		end
+	end
+	local success = Spring.Utilities.SaveTGA(texture, filename)
+	if success then Spring.Echo("Saving grass map image failed",filename,success) end
+end
+
+local function loadgrassCmd(_, _, params)
+	if not params[1] then return end
+
+	placementMode = true
+	local filename = params[1]
+	if string.len(filename) < 2 then
+		filename = Game.mapName .. "_grassDist.tga"
+	end
+	Spring.Echo("Loadgrass: ", filename)
+
+	LoadGrassTGA(filename)
+	defineUploadGrassInstanceVBOData()
+	MakeAndAttachToVAO()
+	--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
+end
+
+local function editgrassCmd(_, _, params)
+	placementMode = true
+	makeGrassInstanceVBO()
+	defineUploadGrassInstanceVBOData()
+	MakeAndAttachToVAO()
+	--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
+end
+
+local function cleargrassCmd(_, _, params)
+	Spring.Echo("Clearing grass")
+	placementMode = true
+	local patchResolution = grassConfig.patchResolution
+	local offset = 0
+	for z = 1, math.floor(mapSizeZ/patchResolution )do
+		for x = 1, math.floor(mapSizeX/patchResolution)do
+
+			local lx = (x - 0.5) * patchResolution + (math.random() - 0.5) * patchResolution/1.5
+			local lz = (z - 0.5) * patchResolution + (math.random() - 0.5) * patchResolution/1.5
+			grassInstanceData[offset*4 + 1] = lx
+			grassInstanceData[offset*4 + 2] = math.random()*6.28
+			grassInstanceData[offset*4 + 3] = lz
+			grassInstanceData[offset*4 + 4] = 0
+			offset = offset + 1
+		end
+	end
+	defineUploadGrassInstanceVBOData()
+	MakeAndAttachToVAO()
+	--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
+	Spring.Echo("Cleared grass")
+end
+
+local function dumpgrassshadersCmd(_, _, params)
+	Spring.Echo(grassVertexShaderDebug)
+	Spring.Echo(grassFragmentShaderDebug)
+	--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
 end
 
 function widget:Initialize()
@@ -817,93 +943,24 @@ function widget:Initialize()
 		processChanges = true
 		break
 	end
+
+	widgetHandler:AddAction("placegrass", placegrassCmd, nil, 't')
+	widgetHandler:AddAction("savegrass", savegrassCmd, nil, 't')
+	widgetHandler:AddAction("loadgrass", loadgrassCmd, nil, 't')
+	widgetHandler:AddAction("editgrass", editgrassCmd, nil, 't')
+	widgetHandler:AddAction("cleargrass", cleargrassCmd, nil, 't')
+	widgetHandler:AddAction("dumpgrassshaders", dumpgrassshadersCmd, nil, 't')
 end
 
 function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('GadgetRemoveGrass')
-end
 
-function widget:TextCommand(command)
-	-- savegrass filename
-	--Spring.Echo(command)
-	if string.find(command,"placegrass", nil, true ) == 1 then
-		placementMode = not placementMode
-		processChanges = true
-		Spring.Echo("Grass placement mode toggle to:",placementMode)
-	end
-
-	if string.find(command,"savegrass", nil, true ) == 1 then
-		local filename = string.sub(command, 11)
-		if string.len(filename) < 2 then
-			filename = Game.mapName .. "_grassDist.tga"
-		end
-		Spring.Echo("Savegrass: ",filename)
-
-		texture = Spring.Utilities.NewTGA(
-			math.floor(mapSizeX / grassConfig.patchResolution),
-			math.floor(mapSizeZ / grassConfig.patchResolution),
-			1)
-		local offset = 0
-		for y = 1, texture.height do
-			for x = 1, texture.width do
-				texture[y][x] = grassPatchMultToByte(grassInstanceData[offset*4 + 4])
-				offset = offset + 1
-			end
-		end
-		local success = Spring.Utilities.SaveTGA(texture, filename)
-		if success then Spring.Echo("Saving grass map image failed",filename,success) end
-	end
-
-	if string.find(command,"loadgrass", nil, true ) == 1 then
-		placementMode = true
-		local filename = string.sub(command,11)
-		if string.len(filename) < 2 then
-			filename = Game.mapName .. "_grassDist.tga"
-		end
-		Spring.Echo("Loadgrass: ",filename)
-
-		LoadGrassTGA(filename)
-		defineUploadGrassInstanceVBOData()
-		MakeAndAttachToVAO()
-		--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
-	end
-
-	if string.find(command,"editgrass", nil, true ) == 1 then
-		placementMode = true
-		makeGrassInstanceVBO()
-		defineUploadGrassInstanceVBOData()
-		MakeAndAttachToVAO()
-		--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
-	end
-
-	if string.find(command,"cleargrass", nil, true ) == 1 then
-		Spring.Echo("Clearing grass")
-		placementMode = true
-		local patchResolution = grassConfig.patchResolution
-		local offset = 0
-		for z = 1, math.floor(mapSizeZ/patchResolution )do
-			for x = 1, math.floor(mapSizeX/patchResolution)do
-
-				local lx = (x - 0.5) * patchResolution + (math.random() - 0.5) * patchResolution/1.5
-				local lz = (z - 0.5) * patchResolution + (math.random() - 0.5) * patchResolution/1.5
-				grassInstanceData[offset*4 + 1] = lx
-				grassInstanceData[offset*4 + 2] = math.random()*6.28
-				grassInstanceData[offset*4 + 3] = lz
-				grassInstanceData[offset*4 + 4] = 0
-				offset = offset + 1
-			end
-		end
-		defineUploadGrassInstanceVBOData()
-		MakeAndAttachToVAO()
-		--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
-		Spring.Echo("Cleared grass")
-	end
-
-	if string.find(command,"dumpgrassshaders", nil, true ) == 1 then
-		Spring.Echo(grassVertexShaderDebug)
-		Spring.Echo(grassFragmentShaderDebug)
-		--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
-	end
+	widgetHandler:RemoveAction("placegrass")
+	widgetHandler:RemoveAction("savegrass")
+	widgetHandler:RemoveAction("loadgrass")
+	widgetHandler:RemoveAction("editgrass")
+	widgetHandler:RemoveAction("cleargrass")
+	widgetHandler:RemoveAction("dumpgrassshaders")
 end
 
 function widget:SetConfigData(data)
@@ -1016,8 +1073,7 @@ function widget:DrawWorldPreUnit()
   local cx, cy, cz = Spring.GetCameraPosition()
   local gh = (Spring.GetGroundHeight(cx,cz) or 0)
 
-  local globalgrassfade = math.max(0.0,math.min(1.0,
-		((grassConfig.grassShaderParams.FADEEND*distanceMult) - (cy-gh))/((grassConfig.grassShaderParams.FADEEND*distanceMult)-(grassConfig.grassShaderParams.FADESTART*distanceMult))))
+  local globalgrassfade = math.clamp(((grassConfig.grassShaderParams.FADEEND*distanceMult) - (cy-gh))/((grassConfig.grassShaderParams.FADEEND*distanceMult)-(grassConfig.grassShaderParams.FADESTART*distanceMult)), 0, 1)
 
   local expFactor = math.min(1.0, 3 * timePassed) -- ADJUST THE TEMPORAL FACTOR OF 3
   smoothGrassFadeExp = smoothGrassFadeExp * (1.0 - expFactor) + globalgrassfade * expFactor
@@ -1058,8 +1114,9 @@ function widget:DrawWorldPreUnit()
 	grassShader:SetUniform("nightFactor", nightFactor[1], nightFactor[2], nightFactor[3], nightFactor[4])
 
 
+	-- NOTE THAT INDEXED DRAWING DOESNT WORK YET! 
+ 	grassVAO:DrawArrays(GL.TRIANGLES, grassPatchVBOsize, 0, instanceCount, startInstanceIndex)
 
-    grassVAO:DrawArrays(GL.TRIANGLES, grassPatchVBOsize, 0, instanceCount, startInstanceIndex)
     if placementMode and Spring.GetGameFrame()%30 == 0 then Spring.Echo("Drawing",instanceCount,"grass patches") end
     grassShader:Deactivate()
     glTexture(0, false)

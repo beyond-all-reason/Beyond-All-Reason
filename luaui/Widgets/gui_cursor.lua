@@ -1,4 +1,6 @@
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Cursor",
@@ -14,7 +16,6 @@ end
 local Settings = {}
 Settings['cursorSet'] = 'icexuick'
 Settings['cursorSize'] = 100
-Settings['sizeMult'] = 1
 Settings['version'] = 5		-- just so it wont restore configdata on load if it differs format
 
 local force = true
@@ -45,7 +46,7 @@ end
 
 function widget:ViewResize()
 	local ssx,ssy = Spring.GetScreenGeometry()	-- doesnt change when you unplug external display
-	autoCursorSize = 100 * (0.6 + (ssx*ssy / 10000000)) * Settings['sizeMult']
+	autoCursorSize = 100 * (0.6 + (ssx*ssy / 10000000)) * Spring.GetConfigFloat('cursorsize', 1)
 	SetCursor(Settings['cursorSet'])
 end
 
@@ -69,10 +70,10 @@ function widget:Initialize()
 		SetCursor(value)
 	end
 	WG['cursors'].getsizemult = function()
-		return Settings['sizeMult']
+		return Spring.GetConfigFloat('cursorsize', 1)
 	end
 	WG['cursors'].setsizemult = function(value)
-        Settings['sizeMult'] = value
+        Spring.SetConfigFloat('cursorsize', value)
 		widget:ViewResize()
 	end
 end
@@ -129,6 +130,11 @@ function SetCursor(cursorSet)
 		if WG.selectedunits or WG.teamplatter or WG.highlightselunits then
 			Spring.LoadCmdColorsConfig('unitBox  0 1 0 0')
 		end
+
+		-- Hide metal extractor circles on non-metal maps
+		if WG["resource_spot_finder"] and (not WG["resource_spot_finder"].isMetalMap) then
+			Spring.LoadCmdColorsConfig('rangeExtract         1.0  0.3  0.3  0.0')
+		end
 	end
 end
 
@@ -139,5 +145,9 @@ end
 function widget:SetConfigData(data)
     if data and type(data) == 'table' and data.version and data.version == Settings['version'] then
         Settings = data
+		if Settings['sizeMult'] then
+			Spring.SetConfigFloat('cursorsize', Settings['sizeMult'])
+			Settings['sizeMult'] = nil
+		end
     end
 end

@@ -3,6 +3,8 @@ if not (Spring.Utilities.Gametype.IsRaptors() or Spring.Utilities.Gametype.IsSca
 	return false
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
         name = "PvE Boss Drones",
@@ -19,24 +21,7 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
-local scavengerAITeamID = 999
-local raptorsAITeamID = 999
-
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-		scavengerAITeamID = i - 1
-		break
-	end
-end
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-		raptorsAITeamID = i - 1
-		break
-	end
-end
+local pveTeamID = Spring.Utilities.GetScavTeamID() or Spring.Utilities.GetRaptorTeamID()
 
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 
@@ -538,7 +523,7 @@ unitListNames = nil
 local aliveCarriers = {}
 local aliveDrones = {}
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-    if unitList[unitDefID] and (unitTeam == scavengerAITeamID or unitTeam == raptorsAITeamID) then
+    if unitList[unitDefID] and (unitTeam == pveTeamID) then
         aliveCarriers[unitID] = {}
         for i = 1,#unitList[unitDefID] do
             aliveCarriers[unitID][i] = {

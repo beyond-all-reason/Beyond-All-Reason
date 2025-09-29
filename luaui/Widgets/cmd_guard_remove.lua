@@ -1,4 +1,6 @@
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Guard Remove",
@@ -14,7 +16,7 @@ end
 include("keysym.h.lua")
 
 local spGetGameFrame = Spring.GetGameFrame
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommands = Spring.GetUnitCommands
 
 local CMD_GUARD = CMD.GUARD
 local CMD_PATROL = CMD.PATROL
@@ -47,7 +49,7 @@ function widget:UnitCommand(unitID, unitDefID, _, _, _, cmdOpts, _, _, _, _)
 
 	if validUnit[unitDefID] then
 		recentUnits[unitID] = spGetGameFrame()
-		local cmd = spGetCommandQueue(unitID, 2)
+		local cmd = spGetUnitCommands(unitID, 2)
 		if cmd then
 			for c = 1, #cmd do
 				if removableCommand[cmd[c].id] then

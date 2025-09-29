@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = false,
 		buildangle = 8192,
 		buildpic = "ARMGUARD.DDS",
-		buildtime = 21400,
+		buildtime = 19300,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "48 40 48",
@@ -126,15 +126,16 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					exclude_preaim = true,
+					norangering = 1,
+					smart_priority = true,
+				},
 				damage = {
 					default = 300,
 					subs = 150,
 					vtol = 90,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_priority = true,
-				}
 			},
 			plasma_high = {
 				accuracy = 75,
@@ -159,15 +160,15 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 600,
+				customparams = {
+					exclude_preaim = true,
+					smart_backup = true,
+				},
 				damage = {
 					default = 300,
 					subs = 150,
 					vtol = 90,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_backup = true,
-				}
 			},
 			smart_trajectory_dummy = {
 				accuracy = 75,
@@ -191,28 +192,30 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
-				damage = {
-					default = 0
-				},
 				customparams = {
+					bogus = 1,
 					exclude_preaim = true,
-					smart_trajectory_checker = true
-				}
+					smart_trajectory_checker = true,
+				},
+				damage = {
+					default = 0,
+				},
 			},
 		},
 		weapons = {
 			[1] = {
+				badtargetcategory = "VTOL",
 				def = "PLASMA",
 				maindir = "0 1 0",
 				maxangledif = 230,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				badtargetcategory = "SURFACERAIDER",
 				def = "PLASMA_HIGH",
 				onlytargetcategory = "SURFACE",
 			},
 			[3] = {
+				badtargetcategory = "VTOL",
 				def = "smart_trajectory_dummy",
 				maindir = "0 1 0",
 				maxangledif = 230,

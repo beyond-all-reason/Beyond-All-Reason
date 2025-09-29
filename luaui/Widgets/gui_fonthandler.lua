@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name      = "Font handler",
@@ -10,23 +12,19 @@ function widget:GetInfo()
 	}
 end
 
+local vsx,vsy = Spring.GetViewGeometry()
 
-local defaultFile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local defaultFile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local defaultSize = 28
-local defaultOutlineSize = 0.18
-local defaultOutlineStrength = 1.1
+local defaultFont = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
+local defaultFont2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local defaultFont3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 
-local presets = {
-	{defaultFile, defaultSize, defaultOutlineSize, defaultOutlineStrength},
-	{defaultFile, defaultSize, 0.2, 1.3},
-	{defaultFile2, defaultSize, defaultOutlineSize, defaultOutlineStrength},
-	{defaultFile2, defaultSize, 0.2, 1.3},
-}
+local defaultSize = 34
+
+local defaultOutlineStrength = 1.7
+local defaultOutlineSize -- assigned in ViewResize
 
 local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 
-local vsx,vsy = Spring.GetViewGeometry()
 local fonts = {}
 local fontScale = 1
 local sceduledDeleteFonts = {}
@@ -42,7 +40,26 @@ local function createFont(file, size, outlineSize, outlineStrength)
 end
 
 
+local sec = 0
 function widget:Update(dt)
+	-- sec = sec + dt
+	-- if sec > 4 then
+	-- 	sec = 0
+	-- 	local i = 0
+	-- 	for id,font in pairs(fonts) do
+	-- 		i = i + 1
+	-- 		if string.find(id, 'Exo') then
+	-- 			Spring.Echo(id)
+	-- 		end
+	-- 	end
+	-- 	for id,font in pairs(fonts) do
+	-- 		if not string.find(id, 'Exo') then
+	-- 			Spring.Echo(id)
+	-- 		end
+	-- 	end
+	-- 	Spring.Echo(i)
+	-- end
+
 	if sceduledDeleteFontsClock and sceduledDeleteFontsClock < os.clock() then
 		for i,font in pairs(sceduledDeleteFonts) do
 			gl.DeleteFont(font)
@@ -50,39 +67,29 @@ function widget:Update(dt)
 		sceduledDeleteFonts = {}
 		sceduledDeleteFontsClock = nil
 	end
-
-	-- not executing this cause other widgets wont know that their font has been deleted
-	--if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-	--	ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-	--	widget:ViewResize()
-	--end
-end
-
-local function addFallbackFonts()
-	if not gl.AddFallbackFont then return end
-
-	gl.AddFallbackFont('fallbacks/NotoEmoji-VariableFont_wght.ttf')
-	gl.AddFallbackFont('fallbacks/SourceHanSans-Regular.ttc')
 end
 
 function widget:Initialize()
-	addFallbackFonts()
+	if gl.AddFallbackFont then
+		gl.AddFallbackFont('fallbacks/NotoEmoji-VariableFont_wght.ttf')
+		gl.AddFallbackFont('fallbacks/SourceHanSans-Regular.ttc')
+	end
 
-	widget:ViewResize()
+	vsx,vsy = Spring.GetViewGeometry()
+	widget:ViewResize(vsx, vsy, true)
 
 	WG['fonts'] = {}
 	WG['fonts'].getFont = function(file, size, outlineSize, outlineStrength)
-		if type(file) == 'number' and presets[file] then	-- this method doesnt work yet, magically nil errors when trying
-			file = presets[file][1]
-			size = presets[file][2]
-			outlineSize = presets[file][3]
-			outlineStrength = presets[file][4]
-		else
-			file = (file and file or defaultFile)
-			size = math.floor((defaultSize * (size and size or 1) + 0.5))
-			outlineSize = math.floor((defaultSize * (outlineSize and outlineSize or defaultOutlineSize)) + 0.5)
-			outlineStrength = (outlineStrength and outlineStrength or defaultOutlineStrength)
+		if not file or file == 1 then
+			file = defaultFont
+		elseif file == 2 then
+			file = defaultFont2
+		elseif file == 3 then
+			file = defaultFont3
 		end
+		size = math.floor((defaultSize * (size and size or 1) + 0.5))
+		outlineSize = math.floor((defaultSize * (outlineSize and outlineSize or defaultOutlineSize)) + 0.5)
+		outlineStrength = (outlineStrength and outlineStrength or defaultOutlineStrength)
 
 		local id = file..'_'..size..'_'..outlineSize..'_'..outlineStrength
 		if fonts[id] == nil then
@@ -90,32 +97,36 @@ function widget:Initialize()
 		end
 		return fonts[id], size*fontScale
 	end
-
 end
 
-
-function widget:ViewResize()
+function widget:ViewResize(vsx, vsy, init)
 	vsx,vsy = Spring.GetViewGeometry()
-	local newFontScale = ((vsx+vsy / 2) / 2500) * ui_scale
+	local newFontScale = (vsy / 1080) * ui_scale
+
+	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
+	defaultOutlineSize = 0.22*(outlineMult*0.9)
+
 	if fontScale ~= newFontScale then
 		fontScale = newFontScale
-		for id,font in pairs(fonts) do
-			local params = string.split(id, '_')
-			createFont(params[1], tonumber(params[2]), tonumber(params[3]), tonumber(params[4]))
+
+		for id, font in pairs(fonts) do
+			gl.DeleteFont(font)
 		end
+		fonts = {}
 	end
 end
 
-
-function widget:GetConfigData() --save config
-	return {fonts=fonts, fontScale=fontScale}
+function widget:GetConfigData()
+	return {
+		fonts = fonts,
+		fontScale = fontScale
+	}
 end
 
-
-function widget:SetConfigData(data) --load config
+function widget:SetConfigData(data)
 	if Spring.GetGameFrame() > 0 then
 		if data.fonts ~= nil then
-			fonts = data.fonts
+			fonts = data.fonts		-- not sure why BYAR.lua just shows empty table while it has the fonts when restoring o_0
 			fontScale = data.fontScale
 		end
 	end

@@ -1,4 +1,6 @@
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
   return {
     name      = "Map Edge Extension",
@@ -45,8 +47,9 @@ local normalTex = '$ssmf_normals'
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -513,8 +516,6 @@ local numPoints
 local mirrorParams = {}
 
 
-VFS.Include(luaShaderDir.."instancevbotable.lua")
-
 function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
@@ -583,8 +584,8 @@ function widget:Initialize()
 		{id = 1, name = "mirrorParams", size = 4},
 	})
 	
-	local planeVBO, numVertices = makePlaneVBO(1,1,Game.mapSizeX/gridSizeDeferred,Game.mapSizeZ/gridSizeDeferred)
-	local planeIndexVBO, numIndices =  makePlaneIndexVBO(Game.mapSizeX/gridSizeDeferred,Game.mapSizeZ/gridSizeDeferred)
+	local planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1,1,Game.mapSizeX/gridSizeDeferred,Game.mapSizeZ/gridSizeDeferred)
+	local planeIndexVBO, numIndices =  InstanceVBOTable.makePlaneIndexVBO(Game.mapSizeX/gridSizeDeferred,Game.mapSizeZ/gridSizeDeferred)
 	planeVAO = gl.GetVAO()
 	planeVAO:AttachVertexBuffer(planeVBO)
 	planeVAO:AttachIndexBuffer(planeIndexVBO)

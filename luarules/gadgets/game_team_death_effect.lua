@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Team Death Effect",
@@ -35,6 +37,7 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitDefID = Spring.GetUnitDefID
 local DISTANCE_LIMIT = math.max(Game.mapSizeX,Game.mapSizeZ) * math.max(Game.mapSizeX,Game.mapSizeZ)
 local destroyUnitQueue = {}
+local wipedoutTeams = {}
 
 local function getSqrDistance(x1,z1,x2,z2)
 	local dx, dz = x1-x2, z1-z2
@@ -42,6 +45,7 @@ local function getSqrDistance(x1,z1,x2,z2)
 end
 
 local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)	-- only teamID is required
+	wipedoutTeams[teamID] = Spring.GetGameFrame()
 	periodMult = periodMult or 1
 	local gf = Spring.GetGameFrame()
 	local maxDeathFrame = 0
@@ -51,7 +55,7 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 		if not unitDecoration[spGetUnitDefID(unitID)] then
 			local x,_,z = spGetUnitPosition(unitID)
 			local deathFrame
-			if originX then
+			if originX and originZ then
 				deathFrame = 6 + math.floor((math.min(((getSqrDistance(x, z, originX, originZ) / DISTANCE_LIMIT) * wavePeriod*0.6), wavePeriod) + math.random(0,wavePeriod/2.5)) * periodMult)
 			else
 				deathFrame = 6 + math.floor((math.random(1, wavePeriod*0.3) + math.random(0,wavePeriod/2.5)) * periodMult)
@@ -70,6 +74,19 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 			Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
 			Spring.SetUnitSensorRadius(unitID, 'radar', 0)
 			Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
+			local i = 0
+			for weaponID, _ in pairs(UnitDefs[spGetUnitDefID(unitID)].weapons) do
+				Spring.UnitWeaponHoldFire(unitID, weaponID)
+				i = i + 1
+			end
+			if i > 0 then
+				Spring.SetUnitMaxRange(unitID, 0)	-- looks like this one doesnt really work
+				Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, {0}, 0)
+				Spring.SetUnitTarget(unitID, nil)
+				if GameCMD and GameCMD.UNIT_CANCEL_TARGET then	-- remove any settarget cmd
+					Spring.GiveOrderToUnit(unitID, GameCMD.UNIT_CANCEL_TARGET, {}, {})
+				end
+			end
 			--Spring.SetUnitNoMinimap(unitID, true)
 		end
 	end
@@ -88,7 +105,7 @@ local function wipeoutAllyTeam(allyTeamID, attackerUnitID, originX, originZ, per
 		local units = Spring.GetTeamUnits(teamID)
 		totalUnits = totalUnits + #units
 	end
-	periodMult = (periodMult or 1) * math.max(0.33, math.min(1, totalUnits / 300))	-- make low unitcount blow up faster
+	periodMult = (periodMult or 1) * math.clamp(totalUnits / 300, 0.33, 1)	-- make low unitcount blow up faster
 
 	-- destroy all teams
 	for _, teamID in ipairs(Spring.GetTeamList(allyTeamID)) do
@@ -116,5 +133,12 @@ function gadget:GameFrame(gf)
 				destroyUnitQueue[unitID] = nil
 			end
 		end
+	end
+end
+
+-- i've seen a resurrected unit being left-over so lets remove units being created after a team wipeout was initiated
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	if wipedoutTeams[unitTeam] and wipedoutTeams[unitTeam]+300 > Spring.GetGameFrame() then
+		Spring.DestroyUnit(unitID, not GG.wipeoutWithWreckage, false)
 	end
 end

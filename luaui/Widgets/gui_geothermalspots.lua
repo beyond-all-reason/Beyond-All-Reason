@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name    = "Geothermalspots",
@@ -85,9 +87,13 @@ local spotVBO = nil
 local spotInstanceVBO = nil
 local spotShader = nil
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance    = InstanceVBOTable.pushElementInstance
+local drawInstanceVBO        = InstanceVBOTable.drawInstanceVBO
+local getElementInstanceData = InstanceVBOTable.getElementInstanceData
+
 
 local vsSrc =
 [[
@@ -166,36 +172,6 @@ local function arrayAppend(target, source)
 	end
 end
 
-
-local function checkGeothermalspots()
-	local now = os.clock()
-	for i=1, #spots do
-		spots[i][2] = spGetGroundHeight(spots[i][1],spots[i][3])
-		local spot = spots[i]
-		local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 110*(spot[5] or 1))
-		local occupied = false
-		local prevOccupied = spots[i][6] or false
-		for j=1, #units do
-			if extractors[spGetUnitDefID(units[j])] then
-				occupied = true
-				break
-			end
-		end
-		if occupied ~= prevOccupied then
-			spots[i][7] = now
-			spots[i][6] = occupied
-			local curSpotkey = spotKey(spot[1], spot[3])
-			local oldinstance = getElementInstanceData(spotInstanceVBO, curSpotkey)
-			oldinstance[5] = (occupied and 0) or 1
-			oldinstance[6] = Spring.GetGameFrame()
-			pushElementInstance(spotInstanceVBO, oldinstance, curSpotkey, true)
-		end
-	end
-	sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 151
-	checkspots = false
-end
-
-
 local function makeSpotVBO()
 	spotVBO = gl.GetVBO(GL.ARRAY_BUFFER,false)
 	if spotVBO == nil then goodbye("Failed to create spotVBO") end
@@ -261,18 +237,55 @@ local function initGL4()
 		{id = 1, name = 'worldpos_radius', size = 4},
 		{id = 2, name = 'visibility', size = 4},
 	}
-	spotInstanceVBO = makeInstanceVBOTable(spotInstanceVBOLayout, 8, "geoSpotInstanceVBO")
+	spotInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(spotInstanceVBOLayout, 8, "geoSpotInstanceVBO")
 	spotInstanceVBO.numVertices = numVertices
 	spotInstanceVBO.vertexVBO = spotVBO
-	spotInstanceVBO.VAO = makeVAOandAttach(spotInstanceVBO.vertexVBO, spotInstanceVBO.instanceVBO)
+	spotInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(spotInstanceVBO.vertexVBO, spotInstanceVBO.instanceVBO)
 	spotInstanceVBO.primitiveType = GL.TRIANGLES
+end
+
+
+local function checkGeothermalspots()
+	local now = os.clock()
+	local geoHeightChange = false
+	for i=1, #spots do
+		local prevHeight = spots[i][2]
+		spots[i][2] = spGetGroundHeight(spots[i][1],spots[i][3])
+		if prevHeight ~= spots[i][2] then
+			geoHeightChange = true
+		end
+		local spot = spots[i]
+		local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 110*(spot[5] or 1))
+		local occupied = false
+		local prevOccupied = spots[i][6] or false
+		for j=1, #units do
+			if extractors[spGetUnitDefID(units[j])] then
+				occupied = true
+				break
+			end
+		end
+		if occupied ~= prevOccupied then
+			spots[i][7] = now
+			spots[i][6] = occupied
+			local curSpotkey = spotKey(spot[1], spot[3])
+			local oldinstance = getElementInstanceData(spotInstanceVBO, curSpotkey)
+			oldinstance[5] = (occupied and 0) or 1
+			oldinstance[6] = Spring.GetGameFrame()
+			pushElementInstance(spotInstanceVBO, oldinstance, curSpotkey, true)
+		end
+	end
+	sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 151
+	checkspots = false
+
+	if geoHeightChange then
+		widget:Initialize()
+	end
 end
 
 function widget:ViewResize()
 	local old_vsx, old_vsy = vsx, vsy
 	vsx,vsy = Spring.GetViewGeometry()
 	if old_vsx ~= vsx or old_vsy ~= vsy then
-		widget:Shutdown()
 		widget:Initialize()
 	end
 end

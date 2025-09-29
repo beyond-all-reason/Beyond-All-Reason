@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Commands FX",
@@ -14,7 +16,7 @@ end
 --                  handle set target
 --					quickfade on cmd cancel
 
-local CMD_RAW_MOVE = 39812
+local CMD_RAW_MOVE = GameCMD.RAW_MOVE
 local CMD_ATTACK = CMD.ATTACK --icon unit or map
 local CMD_CAPTURE = CMD.CAPTURE --icon unit or area
 local CMD_FIGHT = CMD.FIGHT -- icon map
@@ -29,7 +31,7 @@ local CMD_RECLAIM = CMD.RECLAIM --icon unit feature or area
 local CMD_REPAIR = CMD.REPAIR -- icon unit or area
 local CMD_RESTORE = CMD.RESTORE -- icon area
 local CMD_RESURRECT = CMD.RESURRECT -- icon unit feature or area
--- local CMD_SET_TARGET = 34923 -- custom command, doesn't go through UnitCommand
+-- local CMD_SET_TARGET = GameCMD.UNIT_SET_TARGET -- custom command, doesn't go through UnitCommand
 local CMD_UNLOAD_UNIT = CMD.UNLOAD_UNIT -- icon map
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS -- icon  unit or area
 local BUILD = -1
@@ -58,6 +60,7 @@ local GaiaTeamID = Spring.GetGaiaTeamID()
 local myTeamID = Spring.GetMyTeamID()
 local mySpec = Spring.GetSpectatingState()
 local hidden
+local guiHidden
 
 local prevTexOffset = 0
 local texOffset = 0
@@ -222,7 +225,8 @@ local unitCommand = {} -- most recent key in command table of order for unitID
 local osClock
 
 local spGetUnitPosition = Spring.GetUnitPosition
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spIsUnitInView = Spring.IsUnitInView
 local spIsSphereInView = Spring.IsSphereInView
 local spValidUnitID = Spring.ValidUnitID
@@ -271,6 +275,16 @@ local function setCmdLineColors(alpha)
 	spLoadCmdColorsConfig('deathWatch  0.5  0.5  0.5  ' .. alpha)
 end
 
+local function applyCmdQueueVisibility(hide)
+	if hide then
+		spLoadCmdColorsConfig('queueIconAlpha  0 ')
+		setCmdLineColors(0)
+	else
+		spLoadCmdColorsConfig('queueIconAlpha  0.5 ')
+		setCmdLineColors(0.5)
+	end
+end
+
 local function resetEnabledTeams()
 	enabledTeams = {}
 	local t = Spring.GetTeamList()
@@ -284,9 +298,8 @@ end
 function widget:Initialize()
 	--spLoadCmdColorsConfig('useQueueIcons  0 ')
 	spLoadCmdColorsConfig('queueIconScale  0.66 ')
-	spLoadCmdColorsConfig('queueIconAlpha  0.5 ')
+	applyCmdQueueVisibility(spIsGUIHidden())
 
-	setCmdLineColors(0.5)
 	resetEnabledTeams()
 
 	WG['commandsfx'] = {}
@@ -519,10 +532,9 @@ local function ExtractTargetLocation(a, b, c, d, cmdID)
 end
 
 local function getCommandsQueue(unitID)
-	local q = spGetCommandQueue(unitID, 35) or {} --limit to prevent mem leak, hax etc
+	local q = spGetUnitCommands(unitID, 35) or {} --limit to prevent mem leak, hax etc
 	local our_q = {}
 	local our_qCount = 0
-	local cmd
 	for i = 1, #q do
 		if CONFIG[q[i].id] or q[i].id < 0 then
 			if q[i].id < 0 then
@@ -552,15 +564,20 @@ function widget:Update(dt)
 		if not hidden then
 			if gf < hideBelowGameframe then
 				hidden = true
-				spLoadCmdColorsConfig('queueIconAlpha  0 ')
-				setCmdLineColors(0)
+				applyCmdQueueVisibility(true)
 			end
 		elseif gf >= hideBelowGameframe then
 			hidden = nil
-			spLoadCmdColorsConfig('queueIconAlpha  0.5 ')
-			setCmdLineColors(0.5)
+			applyCmdQueueVisibility(false)
 		end
 		lastUpdate = sec
+
+		-- also react to GUI hidden toggle so engine queue lines/icons are hidden too
+		local isGuiHidden = spIsGUIHidden()
+		if guiHidden ~= isGuiHidden then
+			guiHidden = isGuiHidden
+			applyCmdQueueVisibility(guiHidden)
+		end
 
 		-- process newly given commands (not done in widgetUnitCommand() because with huge build queue it eats memory and can crash lua)
 		for unitID, v in pairs(newUnitCommands) do
@@ -621,8 +638,8 @@ function widget:Update(dt)
 						if commands[i].draw == false then
 							monitorCommands[i] = nil
 						else
-							local q = spGetCommandQueue(commands[i].unitID, 35) or {}
-							if qsize ~= #q then
+							local q = spGetUnitCommandCount(commands[i].unitID)
+							if qsize ~= q then
 								local our_q = getCommandsQueue(commands[i].unitID)
 								commands[i].queue = our_q
 								commands[i].queueSize = #our_q

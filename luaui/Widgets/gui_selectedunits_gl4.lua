@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Selected Units GL4",
@@ -26,7 +28,13 @@ local selectionVBOAir = nil
 local mapHasWater = (Spring.GetGroundExtremes() < 0)
 
 local selectShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
+
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 
 local hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
 -- Localize for speedups:
@@ -67,8 +75,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 local unitBufferUniformCache = {0}
+
+
 local function AddPrimitiveAtUnit(unitID)
-	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then return end
+	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true or Spring.IsGUIHidden() then return end
 	local gf = Spring.GetGameFrame()
 
 	if not unitUnitDefID[unitID] then
@@ -201,6 +211,7 @@ end
 
 local lastMouseOverUnitID = nil
 local lastMouseOverFeatureID = nil
+local cleanedForHiddenUI = false
 
 local function ClearLastMouseOver()
 	if lastMouseOverUnitID then
@@ -220,6 +231,27 @@ end
 
 
 function widget:Update(dt)
+	-- Handle UI visibility: clear selections when hidden, resync on show
+	if Spring.IsGUIHidden() then
+		if not cleanedForHiddenUI then
+			ClearLastMouseOver()
+			for unitID, _ in pairs(selUnits) do
+				RemovePrimitive(unitID)
+			end
+			-- Reset drawn selection state so we can rebuild when UI becomes visible
+			selUnits = {}
+			cleanedForHiddenUI = true
+		end
+		-- Skip further processing while UI is hidden
+		return
+	else
+		-- UI just became visible again, trigger a resync to redraw selections
+		if cleanedForHiddenUI then
+			updateSelection = true
+			cleanedForHiddenUI = false
+		end
+	end
+
 	if updateSelection then
 		selectedUnits = Spring.GetSelectedUnits()
 		updateSelection = false
@@ -305,7 +337,7 @@ local function init()
 	shaderConfig.HEIGHTOFFSET = 4
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), "..(1-teamcolorOpacity)..") , texcolor.a * TRANSPARENCY + addRadius);"
 	selectionVBOGround, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsGround")
-	if mapHasWater then 
+	if mapHasWater then
 		selectionVBOAir = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsAir")
 	else
 		selectionVBOAir = selectionVBOGround

@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Sensor Ranges Radar Preview",
@@ -27,9 +29,8 @@ local mousepos = { 0, 0, 0 }
 local spGetActiveCommand = Spring.GetActiveCommand
 
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
-local LuaShader = VFS.Include(luaShaderDir .. "LuaShader.lua")
-VFS.Include(luaShaderDir .. "instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
 
 local radarTruthShader = nil
 
@@ -58,8 +59,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local shaderConfig = {}
-local vsSrcPath = "LuaUI/Widgets/Shaders/sensor_ranges_radar_preview.vert.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/sensor_ranges_radar_preview.frag.glsl"
+local vsSrcPath = "LuaUI/Shaders/sensor_ranges_radar_preview.vert.glsl"
+local fsSrcPath = "LuaUI/Shaders/sensor_ranges_radar_preview.frag.glsl"
 
 local shaderSourceCache = {
 		vssrcpath = vsSrcPath,
@@ -87,14 +88,14 @@ local function initgl4()
 		goodbye("Failed to compile radarTruthShader  GL4 ")
 	end
 
-	local smol, smolsize = makePlaneVBO(1, 1, smallradarrange / SHADERRESOLUTION)
-	local smoli, smolisize = makePlaneIndexVBO(smallradarrange / SHADERRESOLUTION, smallradarrange / SHADERRESOLUTION, true)
+	local smol, smolsize = InstanceVBOTable.makePlaneVBO(1, 1, smallradarrange / SHADERRESOLUTION)
+	local smoli, smolisize = InstanceVBOTable.makePlaneIndexVBO(smallradarrange / SHADERRESOLUTION, smallradarrange / SHADERRESOLUTION, true)
 	smallradVAO = gl.GetVAO()
 	smallradVAO:AttachVertexBuffer(smol)
 	smallradVAO:AttachIndexBuffer(smoli)
 
-	local larg, largsize = makePlaneVBO(1, 1, largeradarrange / SHADERRESOLUTION)
-	local largi, largisize = makePlaneIndexVBO(largeradarrange / SHADERRESOLUTION, largeradarrange / SHADERRESOLUTION, true)
+	local larg, largsize = InstanceVBOTable.makePlaneVBO(1, 1, largeradarrange / SHADERRESOLUTION)
+	local largi, largisize = InstanceVBOTable.makePlaneIndexVBO(largeradarrange / SHADERRESOLUTION, largeradarrange / SHADERRESOLUTION, true)
 	largeradVAO = gl.GetVAO()
 	largeradVAO:AttachVertexBuffer(larg)
 	largeradVAO:AttachIndexBuffer(largi)

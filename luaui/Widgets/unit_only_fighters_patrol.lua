@@ -13,6 +13,8 @@
 --------------------------------------------------------------------------------
 
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name	= "OnlyFightersPatrol",
@@ -27,10 +29,7 @@ end
 
 local stop_builders = true -- Whever to stop builders or not. Set to true if you dont use factory guard widget.
 
-local OrderUnit = Spring.GiveOrderToUnit
-local GetCommandQueue = Spring.GetCommandQueue
-local GetUnitBuildFacing = Spring.GetUnitBuildFacing
-local GetUnitPosition = Spring.GetUnitPosition
+local GetUnitCommands = Spring.GetUnitCommands
 local myTeamID = Spring.GetMyTeamID()
 
 local gameStarted
@@ -40,7 +39,7 @@ local isBuilder = {}
 local checkMustStop = {}
 
 local function UnitHasPatrolOrder(unitID)
-	local queue=GetCommandQueue(unitID,20)
+	local queue=GetUnitCommands(unitID,20)
 	for i=1,#queue do
 		local cmd = queue[i]
 		if cmd.id == CMD.PATROL then

@@ -139,6 +139,10 @@ return {
 				weapontimer = 3,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 230,
+				customparams = {
+					overrange_distance = 633,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					default = 330,
 					subs = 165,
@@ -215,7 +219,6 @@ return {
 				areaofeffect = 24,
 				avoidfeature = false,
 				avoidfriendly = false,
-				burnblow = true,
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,

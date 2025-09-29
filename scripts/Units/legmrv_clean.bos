@@ -4,7 +4,7 @@
 // 		gunl, sleevel, barrell, flarel, gunl2, sleevel2, barrell2, flarel2;
 
 piece base, flWheel, frWheel, rrTrack, rlTrack, turret, aimfrom, sleeveTop, sleeveBottom, flareTop, flareBottom, barrelTop, barrelBottom, flTyre, frTyre;
-static-var  restore_delay, moveSpeed, wheelSpeed, whichGun, oldHeading, timeLeft, Stunned;
+static-var  restore_delay, moveSpeed, wheelSpeed, whichGun, oldHeading, timeLeft, Stunned, last_primary_heading;
 
 
 // Signal definitions
@@ -43,6 +43,7 @@ Create()
 	whichGun = 9;
 	oldheading = get HEADING;
 	restore_delay = 3000;
+	last_primary_heading = -1000000;
 	call-script TB_Init();
 }
 
@@ -53,6 +54,7 @@ StartMoving(reversing)
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
     start-script Steering();
+	
 
 	spin flTyre around x-axis speed <140.0> accelerate <5.0>;
 	spin frTyre around x-axis speed <140.0> accelerate <5.0>;
@@ -113,7 +115,7 @@ TimeToRestore(addTime){
     }
     // The restore section must be atomic :/
     timeLeft = 0;
-
+	last_primary_heading = -1000000;
 	whichGun = 9;
 	turn turret to y-axis <0.000000> speed <90.000000>;
 	turn sleeveTop to x-axis <0.000000> speed <50.000000>;
@@ -123,20 +125,23 @@ TimeToRestore(addTime){
 
 AimWeapon1(heading, pitch)
 {
-	
 	if (timeLeft == 0)
     {
         start-script TimeToRestore();
     }
     timeLeft = restore_delay;
-	
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <200.000000>;
+	turn turret to y-axis heading speed <300.000000>;
 	turn sleeveTop to x-axis <0.000000> - pitch speed <200.000000>;
 	turn sleeveBottom to x-axis <0.000000> - pitch speed <200.000000>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn sleeveBottom around x-axis;
+	if (get ABS(last_primary_heading - heading)> <20>)
+	{
+		// seems to take 3 frames for wait-for-turn to process
+        wait-for-turn turret around y-axis;
+		wait-for-turn sleeveBottom around x-axis;
+	}
+	last_primary_heading = heading;
 	return (1);
 }
 

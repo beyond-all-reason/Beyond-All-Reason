@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Quick Build (mex/geo)",
@@ -6,14 +8,11 @@ function widget:GetInfo()
 		version = "1.0",
 		date = "Jan 2024",
 		license = "GNU GPL, v2 or later",
-		handler = true,
 		layer = 1000,
 		enabled = true
 	}
 end
 
-local CMD_MOVE = CMD.MOVE
-local CMD_GUARD = CMD.GUARD
 local CMD_RECLAIM = CMD.RECLAIM
 
 local spGetActiveCommand = Spring.GetActiveCommand
