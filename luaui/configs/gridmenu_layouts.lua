@@ -228,9 +228,9 @@ local labGrids = {
 	},
 
 	leghalab = {
-		"leghack", "legdecom", "leginc", "legaradk",
-		"legsrail", "legeshotgunmech", "", "legajamk",
-		"", "legjav", "legeallterrainmech", "",
+		"leghack", "legdecom", "legjav", "legajamk",
+		"legsrail", "leginc", "legshot", "",
+		"", "legamph", "legadvaabot", "",
 	},
 
 	armhaap = {
@@ -282,9 +282,9 @@ local labGrids = {
 	},
 
 	leghavp = {
-		"leghacv", "cormabm", "legaheattank", "legavrad",
-		"legmed", "legkeres", "legavroc", "legavjam",
-		"legerailtank", "legehovertank", "legvflak", "leginf",
+		"leghacv", "", "legmrv", "legavjam",
+		"leginf", "legmed", "legaheattank", "",
+		"cormabm", "legehovertank", "legvflak", "legavroc",
 	},
 }
 
@@ -2928,8 +2928,8 @@ if Spring.GetModOptions().techsplit then
 	}
 
 	labGrids["legalab"] = {
-		"legack", "leginfestor", "legstr", "legaspy",
-		"leghrk", "legshot", "legbart", "",
+		"legack", "leginfestor", "legstr", "legaradk",
+		"leghrk", "legbart", "legshot", "legaspy",
 		"legsnapper", "legamph", "legadvaabot", "",
 	}
 
@@ -2946,9 +2946,9 @@ if Spring.GetModOptions().techsplit then
 	}
 
 	labGrids["legavp"] = {
-		"legacv", "legmlv", "legmrv", "legvcarry",
-		"legamcluster", "legaskirmtank", "legmh", "legner",
-		"legch", "legfloat", "legah", "legcar",
+		"legacv", "legvcarry", "legmrv", "legavrad",
+		"legamcluster", "legaskirmtank", "legner", "legcs",
+		"legch", "legfloat", "legah", "legmh",
 	}
 
 	labGrids["armasy"] = {
