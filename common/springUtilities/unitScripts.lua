@@ -127,16 +127,16 @@ local function removeLusComments(content)
 	end
 
 	-- Find next closing ]=*] of given size
-	local function seekMultilineClose(count, j)
+	local function seekMultilineClose(length, j)
 		while j <= n do
 			if charAt(j) == "]" then
 				local k = j + 1
-				local eq2 = 0
+				local count = 0
 				while k <= n and charAt(k) == "=" do
-					eq2 = eq2 + 1
+					count = count + 1
 					k = k + 1
 				end
-				if k <= n and charAt(k) == "]" and eq2 == count then
+				if k <= n and charAt(k) == "]" and count == length then
 					return k + 1
 				end
 			end
