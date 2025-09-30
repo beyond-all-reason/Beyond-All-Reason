@@ -149,18 +149,10 @@ local function removeLusComments(content)
 		i = i + 1 + length + 1
 		local next_pos = seekMultilineClose(length, i)
 
-		if next_pos then
-			while i < next_pos do
-				local c = current()
-				if line_ends[c] then insert(output, c) end
-				i = i + 1
-			end
-		else
-			while i <= n do
-				local c = current()
-				if line_ends[c] then insert(output, c) end
-				i = i + 1
-			end
+		while i < (next_pos or n) do
+			local c = current()
+			if line_ends[c] then insert(output, c) end
+			i = i + 1
 		end
 	end
 
