@@ -142,7 +142,7 @@ local function removeLusComments(content)
 			end
 			j = j + 1
 		end
-		return n -- ! file is malformed
+		return n + 1 -- ! file is malformed
 	end
 
 	local function skipMultilineComment(length)
