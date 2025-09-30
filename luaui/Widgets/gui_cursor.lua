@@ -16,6 +16,7 @@ end
 local Settings = {}
 Settings['cursorSet'] = 'icexuick'
 Settings['cursorSize'] = 100
+Settings['sizeMult'] = Spring.GetConfigFloat('cursorsize', 1)
 Settings['version'] = 5		-- just so it wont restore configdata on load if it differs format
 
 local force = true
@@ -145,9 +146,6 @@ end
 function widget:SetConfigData(data)
     if data and type(data) == 'table' and data.version and data.version == Settings['version'] then
         Settings = data
-		if Settings['sizeMult'] then
-			Spring.SetConfigFloat('cursorsize', Settings['sizeMult'])
-			Settings['sizeMult'] = nil
-		end
+		Settings['sizeMult'] = Spring.GetConfigFloat('cursorsize', 1)
     end
 end
