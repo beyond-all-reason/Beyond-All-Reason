@@ -874,6 +874,9 @@ function widget:Initialize()
 			--	local tsSigma = customtable.skilluncertainty
 			--end
 		end
+	else
+	-- 	widgetHandler:RemoveWidget() -- not removing cause we still need widget:GameSetup to return true else there is player list readystate drawn on the left side of the screen
+	-- 	return
 	end
 
 	local myAllyCount = getHumanCountWithinAllyTeam(myAllyTeamID)
@@ -928,6 +931,9 @@ function widget:Initialize()
 end
 
 function widget:DrawScreen()
+	if mySpec and not eligibleAsSub then
+		return
+	end
 	if not startPointChosen then
 		checkStartPointChosen()
 	end
@@ -1073,12 +1079,15 @@ end
 -- DraftOrder mod start
 local sec = 0
 function widget:Update(dt)
+	if mySpec and not eligibleAsSub then
+		return
+	end
 	if draftMode == nil or draftMode == "disabled" then
 		widgetHandler:RemoveCallIn("Update")
 		return
 	end
 	sec = sec + dt
-	if sec >= 0.05 then -- 50 updates per second
+	if sec >= 0.05 then -- 20 updates per second
 		sec = 0
 		if TeamPlacementUI ~= nil then
 			glDeleteList(TeamPlacementUI)
@@ -1088,6 +1097,7 @@ function widget:Update(dt)
 		end
 	end
 end
+
 function widget:RecvLuaMsg(msg, playerID)
 	local words = {}
 	for word in msg:gmatch("%S+") do
