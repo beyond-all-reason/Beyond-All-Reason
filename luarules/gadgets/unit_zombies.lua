@@ -111,6 +111,7 @@ local mapHeight
 local gameFrame = 0
 local adjustedRezSpeed = ZOMBIES_REZ_SPEED
 local isIdleMode = false
+local autoSpawningEnabled = true
 
 local extraDefs = {}
 local zombieCorpseDefs = {}
@@ -405,18 +406,23 @@ function gadget:GameFrame(frame)
 		updateAdjustedRezSpeed()
 	end
 end
+local function queueCorpseForSpawning(featureID, bypassModOption)
+	if not bypassModOption and (isIdleMode or not autoSpawningEnabled) then
+		return
+	end
+	
+	local featureDefID = spGetFeatureDefID(featureID)
+	if zombieCorpseDefs[featureDefID] then
+		local spawnDelayFrames = zombieCorpseDefs[featureDefID].spawnDelayFrames
+		local spawnFrame = gameFrame + spawnDelayFrames
+		corpsesData[featureID] = {featureDefID = featureDefID, spawnDelayFrames = spawnDelayFrames, creationFrame = gameFrame, spawnFrame = spawnFrame}
+		corpseCheckFrames[spawnFrame] = corpseCheckFrames[spawnFrame] or {}
+		corpseCheckFrames[spawnFrame][#corpseCheckFrames[spawnFrame] + 1] = featureID
+	end
+end
 
 function gadget:FeatureCreated(featureID, allyTeam)
-	if not isIdleMode then
-		local featureDefID = spGetFeatureDefID(featureID)
-		if zombieCorpseDefs[featureDefID] then
-			local spawnDelayFrames = zombieCorpseDefs[featureDefID].spawnDelayFrames
-			local spawnFrame = gameFrame + spawnDelayFrames
-			corpsesData[featureID] = {featureDefID = featureDefID, spawnDelayFrames = spawnDelayFrames, creationFrame = gameFrame, spawnFrame = spawnFrame}
-			corpseCheckFrames[spawnFrame] = corpseCheckFrames[spawnFrame] or {}
-			corpseCheckFrames[spawnFrame][#corpseCheckFrames[spawnFrame] + 1] = featureID
-		end
-	end
+	queueCorpseForSpawning(featureID, false)
 end
 
 function gadget:FeatureDestroyed(featureID, allyTeam)
@@ -471,6 +477,17 @@ local function createZombieFromFeature(featureID)
 	return false
 end
 
+function ProcessAllCorpses()
+	local features = Spring.GetAllFeatures()
+	for _, featureID in ipairs(features) do
+		queueCorpseForSpawning(featureID, true)
+	end
+end
+
+local function setAutoSpawning(enabled)
+	autoSpawningEnabled = enabled
+end
+
 function gadget:Initialize()
 	local modOptionEnabled = modOptions.zombies ~= "disabled"
 	local idleModeEnabled = GG.Zombies and GG.Zombies.IdleMode == true
@@ -480,6 +497,7 @@ function gadget:Initialize()
 	end
 	
 	isIdleMode = idleModeEnabled and not modOptionEnabled
+	autoSpawningEnabled = modOptionEnabled
 	
 	mapWidth = Game.mapSizeX
 	mapHeight = Game.mapSizeZ
@@ -502,6 +520,8 @@ function gadget:Initialize()
 	GG.Zombies = GG.Zombies or {}
 	GG.Zombies.SetZombie = setZombie
 	GG.Zombies.CreateZombieFromFeature = createZombieFromFeature
+	GG.Zombies.ProcessAllCorpses = ProcessAllCorpses
+	GG.Zombies.SetAutoSpawning = setAutoSpawning
 end
 
 function gadget:GameStart()
