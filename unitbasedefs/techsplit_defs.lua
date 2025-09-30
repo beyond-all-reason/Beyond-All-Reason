@@ -1481,21 +1481,11 @@ if name == "legaap" then
     }
 end
 
-
-
-
 if name == "legaap" or name == "legasy" or name == "legalab" or name == "legavp"
 then
         uDef.metalcost = uDef.metalcost - 1300
         uDef.energycost = uDef.energycost - 5000
         uDef.buildtime = math.ceil(uDef.buildtime * 0.015) * 100
-end
-
-if name == "legack" or name == "legacv" or name == "legaca" or name == "legacsub"
-then
-    uDef.metalcost = uDef.metalcost - 200
-    uDef.energycost = uDef.energycost - 2000
-    uDef.buildtime = math.ceil(uDef.buildtime * 0.008) * 100
 end
 
 if name == "legch"
@@ -1539,7 +1529,7 @@ if name == "legck" then
         [26] = "legmg",
         [27] = "legdtr",
         [28] = "leghive",
-        
+        [29] = "legjuno",
     }
 end
 
@@ -1753,7 +1743,7 @@ end
 if name == "legaca" then 
     uDef.buildpic = "CORCSA.DDS"
     uDef.objectname = "Units/CORCSA.s3o"
-    uDef.script = "units/CORCSA.cob"
+    uDef.script = "Units/CORCSA.cob"
     uDef.buildoptions = {
         [1] = "legadvsol",
         [2] = "legmoho",

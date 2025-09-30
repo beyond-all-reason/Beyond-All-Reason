@@ -256,6 +256,12 @@ local labGrids = {
 		"corhunt", "corhvytrans", "corseap", "",                      -- radar, torpedo, empty, empty
 		"", "", "", "",                                     -- empty rows
 	},
+	
+	leghaap = {
+		"legaca", "legafigdef", "legvenator", "legphoenix",					--T2 con, defensive fig, interceptor, phoenix
+		"legwhisper", "legstronghold", "legatorpbomber", "",			--radar, transport(gunship), torpedo,
+		"legfort", "", "legmineb", ""			--flying fort, empty, minebomber
+	},
 
 	armhasy = {
 		"armhacs", "", "armlship", "armantiship",              
@@ -2576,8 +2582,8 @@ if Spring.GetModOptions().techsplit then
 	
 	unitGrids["armack"] = {
 		{
-			{ "armmoho", "armadvsol", "armfus", "armgmm", },
-			{ "armmakr", "armageo", "armckfus", "", },
+			{ "armmoho", "armfus", "", "armadvsol", },
+			{ "armmakr", "armageo", "armckfus", "armgmm", },
 			{ "armestor", "armmstor", "", "", },
 		},
 		{
@@ -2599,8 +2605,8 @@ if Spring.GetModOptions().techsplit then
 
 	unitGrids["armacv"] = {
 		{
-			{ "armmoho", "armadvsol", "armfus", "armgmm", },
-			{ "armmakr", "armageo", "armckfus", "", },
+			{ "armmoho", "armfus", "", "armadvsol", },
+			{ "armmakr", "armageo", "armckfus", "armgmm", },
 			{ "armestor", "armmstor", "", "", },
 		},
 		{
@@ -2622,8 +2628,8 @@ if Spring.GetModOptions().techsplit then
 
 	unitGrids["armch"] = {
 		{
-			{ "armmoho", "armadvsol", "armfus", "armgmm", },
-			{ "armmakr", "armageo", "armckfus", "", },
+			{ "armmoho", "armfus", "", "armadvsol", },
+			{ "armmakr", "armageo", "armckfus", "armgmm", },
 			{ "armestor", "armmstor", "", "", },
 		},
 		{
@@ -2645,8 +2651,8 @@ if Spring.GetModOptions().techsplit then
 
 	unitGrids["armaca"] = {
 		{
-			{ "armmoho", "armadvsol", "armfus", "armgmm", },
-			{ "armmakr", "armageo", "armckfus", "", },
+			{ "armmoho", "armfus", "", "armadvsol", },
+			{ "armmakr", "armageo", "armckfus", "armgmm", },
 			{ "armestor", "armmstor", "", "", },
 		},
 		{
@@ -2808,8 +2814,8 @@ if Spring.GetModOptions().techsplit then
 
 	unitGrids["corack"] = {
 		{
-			{"cormoho","coradvsol","corfus","",},
-			{"cormakr","corageo","","",},
+			{"cormoho","corfus","","coradvsol",},
+			{"cormakr","corageo","","corbhmth",},
 			{"corestor","cormstor","","",},
 		},
 		{
@@ -2831,8 +2837,8 @@ if Spring.GetModOptions().techsplit then
 
 	unitGrids["coracv"] = {
 		{
-			{"cormoho","coradvsol","corfus","",},
-			{"cormakr","corageo","","",},
+			{"cormoho","corfus","","coradvsol",},
+			{"cormakr","corageo","","corbhmth",},
 			{"corestor","cormstor","","",},
 		},
 		{
@@ -2854,8 +2860,8 @@ if Spring.GetModOptions().techsplit then
 
 	unitGrids["corch"] = {
 		{
-			{"cormoho","coradvsol","corfus","",},
-			{"cormakr","corgeo","","",},
+			{"cormoho","corfus","","coradvsol",},
+			{"cormakr","corageo","","corbhmth",},
 			{"corestor","cormstor","","",},
 		},
 		{
@@ -2877,8 +2883,8 @@ if Spring.GetModOptions().techsplit then
 
 	unitGrids["coraca"] = {
 		{
-			{"cormoho","coradvsol","corfus","",},
-			{"cormakr","corageo","","",},
+			{"cormoho","corfus","","coradvsol",},
+			{"cormakr","corageo","","corbhmth",},
 			{"corestor","cormstor","","",},
 		},
 		{
@@ -2900,9 +2906,9 @@ if Spring.GetModOptions().techsplit then
 
 	unitGrids["coracsub"] = {
 		{
-			{ "coruwmme", "cortide", "coruwfus", },                       -- uw moho, uw fusion,
-			{ "corfmkr", "coruwgeo" },                       -- floating T2 converter, adv geo powerplant
-			{ "coruwes", "coruwms", },                   -- uw e stor, uw metal stor
+			{"cormoho","corfus","","coradvsol",},
+			{"cormakr","corageo","","corbhmth",},
+			{"corestor","cormstor","","",},
 		},
 		{
 			{ "coratl", "corfhlt", },                         -- adv torp launcher, floating heavy platform
@@ -3014,8 +3020,8 @@ if Spring.GetModOptions().techsplit then
 
 	unitGrids["legack"] = {
 		{
-			{"legmoho","legadvsol","legfus","",},
-			{"legmakr","leggeo","","",},
+			{"legmoho","legfus","","legadvsol",},
+			{"legeconv","legageo","","legrampart",},
 			{"legestor","legmstor","","",},
 		},
 		{
@@ -3032,6 +3038,75 @@ if Spring.GetModOptions().techsplit then
 			{"leglab","legvp","legap","corsy",},
 			{"legnanotc","legalab","","",},
 			{"","leghalab","","",},
+		},
+	}
+
+	unitGrids["legacv"] = {
+		{
+			{"legmoho","legfus","","legadvsol",},
+			{"legeconv","legageo","","legrampart",},
+			{"legestor","legmstor","","",},
+		},
+		{
+			{"legmg","leghive","legmg","legapopupdef",},
+			{"legrhapsis","leglupara","legcluster","",},
+			{"legctl","","","",},
+		},
+		{
+			{"legrad","legsd","","",},
+			{"legajam","","","",},
+			{"legjuno","","","",},
+		},
+		{
+			{"leglab","legvp","legap","corsy",},
+			{"legnanotc","legavp","","",},
+			{"","leghavp","","",},
+		},
+	}
+
+	unitGrids["legch"] = {
+		{
+			{"legmoho","legfus","","legadvsol",},
+			{"legeconv","legageo","","legrampart",},
+			{"legestor","legmstor","","",},
+		},
+		{
+			{"legmg","leghive","legmg","legapopupdef",},
+			{"legrhapsis","leglupara","legcluster","",},
+			{"legctl","","","",},
+		},
+		{
+			{"legrad","legsd","","",},
+			{"legajam","","","",},
+			{"legjuno","","","",},
+		},
+		{
+			{"leglab","legvp","legap","corsy",},
+			{"legnanotc","legavp","","corasy",},
+			{"","leghavp","","corhasy",},
+		},
+	}
+
+	unitGrids["legaca"] = {
+		{
+			{"legmoho","legfus","","legadvsol",},
+			{"legeconv","legageo","","legrampart",},
+			{"legestor","legmstor","","",},
+		},
+		{
+			{"legmg","leghive","legmg","legapopupdef",},
+			{"legrhapsis","leglupara","legcluster","",},
+			{"legctl","","","",},
+		},
+		{
+			{"legrad","legsd","","",},
+			{"legajam","","","",},
+			{"legjuno","","","",},
+		},
+		{
+			{"leglab","legvp","legap","corsy",},
+			{"legnanotc","legaap","","",},
+			{"","leghaap","","",},
 		},
 	}
 	-- Lab Grids
@@ -3111,6 +3186,12 @@ if Spring.GetModOptions().techsplit then
 	labGrids["armaap"] = {
 		"armaca", "armsfig", "armsaber", "armsb",
 		"armsehak", "armhvytrans", "armseap", "",
+		"", "", "", "",
+	}
+
+	labGrids["legaap"] ={
+		"legaca", "corsfig", "corcut", "corsb",
+		"corawac", "corhvytrans", "corseap", "",
 		"", "", "", "",
 	}
 
