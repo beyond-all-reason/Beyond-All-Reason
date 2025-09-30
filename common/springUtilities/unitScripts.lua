@@ -52,7 +52,7 @@ local function removeCobComments(content)
 				i = i + 1
 				if c == line_return then
 					insert(output, line_return)
-					if i <= n and current() == line_feed then
+					if current() == line_feed then
 						insert(output, line_feed)
 						i = i + 1
 					end
@@ -117,11 +117,11 @@ local function removeLusComments(content)
 	local function multilineOpenLength(j)
 		j = j + 1 -- skip initial '['
 		local count = 0
-		while j <= n and charAt(j) == "=" do
+		while charAt(j) == "=" do
 			count = count + 1
 			j = j + 1
 		end
-		if j <= n and charAt(j) == "[" then
+		if charAt(j) == "[" then
 			return count
 		end
 	end
@@ -132,11 +132,11 @@ local function removeLusComments(content)
 			if charAt(j) == "]" then
 				local k = j + 1
 				local count = 0
-				while k <= n and charAt(k) == "=" do
+				while charAt(k) == "=" do
 					count = count + 1
 					k = k + 1
 				end
-				if k <= n and charAt(k) == "]" and count == length then
+				if charAt(k) == "]" and count == length then
 					return k + 1
 				end
 			end
@@ -162,7 +162,7 @@ local function removeLusComments(content)
 			i = i + 1
 			if c == line_return then
 				insert(output, line_return)
-				if i <= n and current() == line_feed then
+				if current() == line_feed then
 					insert(output, line_feed)
 					i = i + 1
 				end
@@ -198,7 +198,7 @@ local function removeLusComments(content)
 			outputStringLiteral(ch)
 		elseif matchFromCurrent("--") then
 			i = i + 2
-			if i <= n and current() == "[" then
+			if current() == "[" then
 				local length = multilineOpenLength(i)
 				if length then
 					skipMultilineComment(length)
