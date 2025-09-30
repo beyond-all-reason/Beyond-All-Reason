@@ -286,8 +286,6 @@ local function buildUnitDefs()
 	end
 
 	local function isArmyUnit(unitDefID, unitDef)
-		-- anything with a least one weapon and speed above zero is considered an army unit	
-		-- if isCommanderArmy is false, we ignore commander units for determining army
 		local isArmyUnit = #unitDef.weapons > 0 and unitDef.speed > 0
 		return isArmyUnit and (settings.isCommanderArmy or not isCommander(unitDefId, unitDef))
 	end
