@@ -12,9 +12,14 @@ local function removeCobComments(content)
 	local quotes = { ['"'] = true, ["'"] = true }
 
 	local insert = table.insert
-	local function current() return string.sub(content, i, i) end
-	local function starts_with(s)
-		return string.sub(content, i, i + #s - 1) == s
+	local string_start = string.startsWith
+	local string_sub = string.sub
+
+	local function current()
+		return string_sub(content, i, i)
+	end
+	local function matchFromCurrent(s)
+		return string_start(content, s, i)
 	end
 
 	while i <= n do
@@ -39,7 +44,7 @@ local function removeCobComments(content)
 				end
 			end
 
-		elseif starts_with("//") then
+		elseif matchFromCurrent("//") then
 			-- Single-line comment
 			i = i + 2
 			while i <= n do
@@ -58,11 +63,11 @@ local function removeCobComments(content)
 				end
 			end
 
-		elseif starts_with("/*") then
+		elseif matchFromCurrent("/*") then
 			-- Multi-line comment
 			i = i + 2
 			while i <= n do
-				if starts_with("*/") then
+				if matchFromCurrent("*/") then
 					i = i + 2
 					break
 				else
@@ -94,21 +99,29 @@ local function removeLusComments(content)
 	local quotes = { ['"'] = true, ["'"] = true }
 
 	local insert = table.insert
-	local function current() return string.sub(content, i, i) end
-	local function chartAt(j) return string.sub(content, j, j) end
-	local function starts_with(s)
-		return string.sub(content, i, i + #s - 1) == s
+	local string_charat = string.charAt
+	local string_start = string.startsWith
+	local string_sub = string.sub
+
+	local function current()
+		return string_sub(content, i, i)
+	end
+	local function charAt(j)
+		return string_charat(content, j)
+	end
+	local function matchFromCurrent(s)
+		return string_start(content, s, i)
 	end
 
 	-- Check for multiline opening "long bracket" [=*[
-	local function multilineOpenLength(pos)
-		local j = pos + 1 -- pos is index of '['
+	local function multilineOpenLength(j)
+		j = j + 1 -- skip initial '['
 		local count = 0
-		while j <= n and chartAt(j) == "=" do
+		while j <= n and charAt(j) == "=" do
 			count = count + 1
 			j = j + 1
 		end
-		if j <= n and chartAt(j) == "[" then
+		if j <= n and charAt(j) == "[" then
 			return count
 		end
 	end
@@ -117,14 +130,14 @@ local function removeLusComments(content)
 	local function seekMultilineClose(count, start_pos)
 		local j = start_pos
 		while j <= n do
-			if chartAt(j) == "]" then
+			if charAt(j) == "]" then
 				local k = j + 1
 				local eq2 = 0
-				while k <= n and chartAt(k) == "=" do
+				while k <= n and charAt(k) == "=" do
 					eq2 = eq2 + 1
 					k = k + 1
 				end
-				if k <= n and chartAt(k) == "]" and eq2 == count then
+				if k <= n and charAt(k) == "]" and eq2 == count then
 					return k + 1
 				end
 			end
@@ -140,7 +153,7 @@ local function removeLusComments(content)
 		if next_pos then
 			local k = i
 			while k < next_pos do
-				local c = chartAt(k)
+				local c = charAt(k)
 				if line_ends[c] then insert(output, c) end
 				k = k + 1
 			end
@@ -194,7 +207,7 @@ local function removeLusComments(content)
 		local ch = current()
 		if quotes[ch] then
 			outputStringLiteral(ch)
-		elseif starts_with("--") then
+		elseif matchFromCurrent("--") then
 			i = i + 2
 			if i <= n and current() == "[" then
 				local length = multilineOpenLength(i)
