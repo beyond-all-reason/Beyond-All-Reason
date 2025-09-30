@@ -1539,6 +1539,7 @@ if name == "legck" then
         [26] = "legmg",
         [27] = "legdtr",
         [28] = "leghive",
+        
     }
 end
 
@@ -1571,6 +1572,7 @@ if name == "legca" then
         [26] = "legmg",
         [27] = "legdtr",
         [28] = "leghive",
+        [29] = "legjuno",
     }
 end
 
@@ -1603,6 +1605,7 @@ if name == "legcv" then
         [26] = "legmg",
         [27] = "legdtr",
         [28] = "leghive",
+        [29] = "legjuno",
     }
 end
 
@@ -1639,6 +1642,7 @@ if name == "legotter" then
         [30] = "legtl",
         [31] = "legfrad",
         [32] = "corasy",
+        [33] = "legjuno",
     }
 end
 --------------------------
@@ -1750,7 +1754,6 @@ if name == "legaca" then
     uDef.buildpic = "CORCSA.DDS"
     uDef.objectname = "Units/CORCSA.s3o"
     uDef.script = "units/CORCSA.cob"
-    uDef.buildoptions = {
     uDef.buildoptions = {
         [1] = "legadvsol",
         [2] = "legmoho",
