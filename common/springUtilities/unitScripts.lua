@@ -113,8 +113,8 @@ local function removeLusComments(content)
 		end
 	end
 
-	-- Skip closing ]=] of given size
-	local function skipMultilineClose(count, start_pos)
+	-- Find next closing ]=*] of given size
+	local function seekMultilineClose(count, start_pos)
 		local j = start_pos
 		while j <= n do
 			if chartAt(j) == "]" then
@@ -127,99 +127,85 @@ local function removeLusComments(content)
 				if k <= n and chartAt(k) == "]" and eq2 == count then
 					return k + 1
 				end
-				j = j + 1
-			else
-				j = j + 1
+			end
+			j = j + 1
+		end
+		return nil -- ! file is malformed
+	end
+
+	local function skipMultilineComment(length)
+		i = i + 1 + length + 1
+		local next_pos = seekMultilineClose(length, i)
+
+		if next_pos then
+			local k = i
+			while k < next_pos do
+				local c = chartAt(k)
+				if line_ends[c] then insert(output, c) end
+				k = k + 1
+			end
+			i = next_pos
+		else
+			while i <= n do
+				local c = current()
+				if line_ends[c] then insert(output, c) end
+				i = i + 1
 			end
 		end
-		return nil
+	end
+
+	local function skipLineComment()
+		while i <= n do
+			local c = current()
+			i = i + 1
+			if c == line_return then
+				insert(output, line_return)
+				if i <= n and current() == line_feed then
+					insert(output, line_feed)
+					i = i + 1
+				end
+				break
+			elseif c == line_feed then
+				insert(output, line_feed)
+				break
+			end
+		end
+	end
+
+	local function outputStringLiteral(quote)
+		insert(output, quote)
+		i = i + 1
+		while i <= n do
+			local c = current()
+			insert(output, c)
+			i = i + 1
+			if c == escape then
+				if i <= n then
+					insert(output, current())
+					i = i + 1
+				end
+			elseif c == quote then
+				break
+			end
+		end
 	end
 
 	while i <= n do
 		local ch = current()
-
 		if quotes[ch] then
-			-- Literals
-			local quote = ch
-			insert(output, quote)
-			i = i + 1
-			while i <= n do
-				local c = current()
-				insert(output, c)
-				i = i + 1
-				if c == escape then
-					if i <= n then
-						insert(output, current())
-						i = i + 1
-					end
-				elseif c == quote then
-					break
-				end
-			end
-
+			outputStringLiteral(ch)
 		elseif starts_with("--") then
 			i = i + 2
-
 			if i <= n and current() == "[" then
 				local length = multilineOpenLength(i)
-
 				if length then
-					-- Multiline comment
-					i = i + 1 + length + 1
-					local next_pos = skipMultilineClose(length, i)
-
-					if next_pos then
-						local k = i
-						while k < next_pos do
-							local c = chartAt(k)
-							if line_ends[c] then insert(output, c) end
-							k = k + 1
-						end
-						i = next_pos
-					else
-						while i <= n do
-							local c = current()
-							if line_ends[c] then insert(output, c) end
-							i = i + 1
-						end
-					end
+					skipMultilineComment(length)
 				else
-					-- Single-line comment
-					while i <= n do
-						local c = current()
-						i = i + 1
-						if c == line_return then
-							insert(output, line_return)
-							if i <= n and current() == line_feed then
-								insert(output, line_feed)
-								i = i + 1
-							end
-							break
-						elseif c == line_feed then
-							insert(output, line_feed)
-							break
-						end
-					end
+					skipLineComment()
 				end
 			else
-				-- Single-line comment
-				while i <= n do
-					local c = current()
-					i = i + 1
-					if c == line_return then
-						insert(output, line_return)
-						if i <= n and current() == line_feed then
-							insert(output, line_feed)
-							i = i + 1
-						end
-						break
-					elseif c == line_feed then
-						insert(output, line_feed)
-						break
-					end
-				end
+				skipLineComment()
 			end
-
 		else
 			insert(output, ch)
 			i = i + 1
