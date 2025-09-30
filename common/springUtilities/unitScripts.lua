@@ -286,9 +286,8 @@ local function hasScriptMethod(unitDef, ...)
 	local hasMethodPattern = {}
 	local useMethodPattern = {}
 
-	local includePattern = [[^#include "([^"]+])"]]
-
 	local isScriptCob = isUnitScriptCOB(unitDef)
+	local includePattern = isScriptCob and [[^#include "([^"]+])"]] or [[%s*include%s*(%(?%s*["']([^"']+)["']%s*%)?)]]
 	local removeComments = isScriptCob and removeCobComments or removeLusComments
 
 	if isScriptCob then
@@ -312,8 +311,7 @@ local function hasScriptMethod(unitDef, ...)
 
 	local index = 1
 	local file = files[index]
-	while file ~= nil do
-		index = index + 1
+	repeat
 		local data = VFS.LoadFile(file)
 		if data then
 			data = removeComments(data)
@@ -327,14 +325,19 @@ local function hasScriptMethod(unitDef, ...)
 					end
 
 					local _, _, include = line:find(includePattern)
-					if include and not table.getKeyOf(files, include:lower()) then
-						files[#files + 1] = include:lower()
+					if include then
+						-- Normalize path and .cob; though, COB includes use .h extensions:
+						include = include:lower():gsub("^%.%./", ""):gsub(".cob$", ".bos")
+						if not table.getKeyOf(files, include:lower()) then
+							files[#files + 1] = include
+						end
 					end
 				end
 			end
 		end
+		index = index + 1
 		file = files[index]
-	end
+	until file == nil
 
 	local function setTrue(value)
 		return value == true
