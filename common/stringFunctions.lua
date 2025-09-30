@@ -1,5 +1,7 @@
 local base64 = VFS.Include("common/luaUtilities/base64.lua")
 
+local string_sub = string.sub
+
 if not string.split then
 	-- Split a string into a table of substrings, based on a delimiter.
 	-- If not supplied, delimiter defaults to whitespace.
@@ -180,5 +182,30 @@ if not string.formatSI then
 		end
 
 		return str .. siPrefix
+	end
+end
+
+if not string.charAt then
+	---Get the character at the given position. Supports negative indices.
+	---@param text string
+	---@param index integer [1, n]
+	---@return string character Either a single character or an empty string.
+	function string.charAt(text, index)
+		return string_sub(text, index, index)
+	end
+end
+
+if not string.startsWith then
+	---Determine whether the text begins with the characters of a specified string,
+	-- with an optional argument `index` to set a different starting position.
+	---@param text string
+	---@param substring string
+	---@param index integer? (default := `1`)
+	---@return boolean
+	function string.startsWith(text, substring, index)
+		if not index then
+			index = 1
+		end
+		return string_sub(text, index, index + #substring - 1) == substring
 	end
 end
