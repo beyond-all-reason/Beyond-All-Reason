@@ -161,6 +161,7 @@ local function techsplitTweaks(name, uDef)
             [26] = "armsy",
             [27] = "armap",
             [28] = "armnanotc",
+            [29] = "armamd",
         }
     end
 
@@ -191,6 +192,7 @@ local function techsplitTweaks(name, uDef)
             [23] = "corap",
             [24] = "corsy",
             [25] = "cornanotc",
+            [26] = "corfmd",
         }
     end
 
@@ -364,6 +366,7 @@ local function techsplitTweaks(name, uDef)
             [26] = "armsy",
             [27] = "armap",
             [28] = "armnanotc",
+            [29] = "armamd",
         }
     end
 
@@ -394,6 +397,7 @@ local function techsplitTweaks(name, uDef)
             [23] = "corap",
             [24] = "corsy",
             [25] = "cornanotc",
+            [26] = "corfmd",
         }
     end
 
@@ -615,6 +619,7 @@ local function techsplitTweaks(name, uDef)
             [26] = "armsy",
             [27] = "armap",
             [28] = "armnanotc",
+            [29] = "armamd",
         }
     end
 
@@ -648,6 +653,7 @@ local function techsplitTweaks(name, uDef)
             [23] = "corlab",
             [24] = "corsy",
             [25] = "cornanotc",
+            [26] = "corfmd",
         }
     end
     
@@ -793,6 +799,7 @@ local function techsplitTweaks(name, uDef)
             [30] = "armcir",
             [31] = "armsd",
             [32] = "armnanotcplat",
+            [33] = "armamd",
         }
 
     elseif name == "coracsub" then
@@ -826,6 +833,7 @@ local function techsplitTweaks(name, uDef)
             [27] = "corfdoom",
             [28] = "cormadsam",
             [29] = "corerad",
+            [30] = "corfmd",
         }
     end
 
@@ -848,16 +856,55 @@ local function techsplitTweaks(name, uDef)
     if name == "corgant" then
         uDef.footprintx = 15
         uDef.footprintz = 15
-        uDef.collisionvolumescales = "245 135 245"
+        uDef.collisionvolumescales = "245 131 245"
         uDef.yardmap = "oooooooooooooo ooooooooooooooo ooooooooooooooo ooooooooooooooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo"
         uDef.objectname = "Units/CORGANTBIG.s3o"
         uDef.script = "Units/techsplit/CORGANTBIG.cob"
         uDef.featuredefs.dead.object = "Units/corgant_dead.s3o"
         uDef.featuredefs.dead.footprintx = 15
         uDef.featuredefs.dead.footprintz = 15
+        uDef.featuredefs.dead.collisionvolumescales = "238 105 238"
+        uDef.customparams.buildinggrounddecalsizex = 18
+        uDef.customparams.buildinggrounddecalsizez = 18
+    end
+
+    if name == "leggant" then
+        uDef.footprintx = 15
+        uDef.footprintz = 15
+        uDef.collisionvolumescales = "245 135 245"
+        uDef.yardmap = "oooooooooooooo ooooooooooooooo ooooooooooooooo ooooooooooooooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo oooeeeeeeeeeooo yooeeeeeeeeeooy"
+        uDef.objectname = "Units/LEGGANTBIG.s3o"
+        uDef.script = "Units/techsplit/LEGGANTBIG.cob"
+        uDef.featuredefs.dead.object = "Units/leggant_dead.s3o"
+        uDef.featuredefs.dead.footprintx = 15
+        uDef.featuredefs.dead.footprintz = 15
         uDef.featuredefs.dead.collisionvolumescales = "145 90 160"
         uDef.customparams.buildinggrounddecalsizex = 18
         uDef.customparams.buildinggrounddecalsizez = 18
+    end
+
+    -- Remove lolmech from T3 cons
+    if name == "armhaca" or name == "armhack" or name == "armhacv" then
+        uDef.buildoptions[24] = ""
+    end
+
+    if name == "armhacs" then
+        uDef.buildoptions[13] = ""
+    end
+
+    if name == "corhaca" or name == "corhack" or name == "corhacv" then
+        uDef.buildoptions[25] = ""
+        uDef.buildoptions[26] = ""
+    end
+
+    if name == "corhacs" then
+        uDef.buildoptions[15] = ""
+        uDef.buildoptions[16] = ""
+    end
+
+    if name == "leghaca" or name == "leghack" or name == "leghacv" then
+        uDef.buildoptions[33] = ""
+        uDef.buildoptions[34] = ""
     end
 
     -- remove hovers from com
@@ -1007,6 +1054,7 @@ local function techsplitTweaks(name, uDef)
             [34] = "armuwmme",
             [35] = "armguard",
             [36] = "armnanotc",
+            [37] = "armamd",
         }
 
     elseif name == "corch" then
@@ -1042,7 +1090,8 @@ local function techsplitTweaks(name, uDef)
             [29] = "corhlt",
             [30] = "cortl",
             [31] = "corhasy",
-            [32] = "corpun"
+            [32] = "corpun",
+            [33] = "corfmd",
         }
     end
     -- Seaplane Platforms removed, become T2 air labs. 
@@ -1630,7 +1679,7 @@ if name == "legotter" then
         [28] = "leghive",
         [29] = "legtide",
         [30] = "legtl",
-        [31] = "legfrad",
+        [31] = "legfrad", 
         [32] = "corasy",
         [33] = "legjuno",
     }
@@ -1653,8 +1702,8 @@ if name == "legch" then
         [11] = "legajam",
         [12] = "legsd",
         [13] = "leglab",
-        [14] = "legalab",
-        [15] = "leghalab",
+        [14] = "legavp",
+        [15] = "leghavp",
         [16] = "legcluster",
         [17] = "legeconv",
         [18] = "legageo",
