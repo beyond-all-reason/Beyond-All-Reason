@@ -954,8 +954,12 @@ local function UpdateStandaloneDrones(frame)
 				droneMetaList[unitID].lastOrderUpdate = frame
 
 				dronex, droney, dronez = spGetUnitPosition(unitID)
-				rx, rz = RandomPointInUnitCircle(5)
-				spGiveOrderToUnit(unitID, CMD.MOVE, {dronex + rx*idleRadius, droney, dronez + rz*idleRadius}, 0)
+				if not dronez then	-- this can happen so make sure its dealt with
+					gadget:UnitDestroyed(unitID)
+				else
+					rx, rz = RandomPointInUnitCircle(5)
+					spGiveOrderToUnit(unitID, CMD.MOVE, {dronex + rx*idleRadius, droney, dronez + rz*idleRadius}, 0)
+				end
 			end
 		end
 
