@@ -162,7 +162,7 @@ local DEFAULT_DOCK_CHECK_FREQUENCY = 15		-- Checks the docking queue. Increasing
 	-- stockpilelimit = 1			Used for stockpile weapons, but for carriers it also enables stockpile for dronespawning.
 	-- stockpilemetal = 10			Set it to the same as the drone cost when using stockpile for drones
 	-- stockpileenergy = 10			Set it to the same as the drone cost when using stockpile for drones
-
+	-- dockinguntargetable = 1,     Set it to 0 to disable drones becoming untargetable (but still take damage) while docked.
 
 
 	-- },
@@ -224,6 +224,7 @@ for weaponDefID = 1, #WeaponDefs do
 			energyperstockpile = wdcp.stockpileenergy,
 			cobdockparam = wdcp.cobdockparam,
 			cobundockparam = wdcp.cobundockparam,
+			dockingUntargetable = wdcp.dockinguntargetable,
 
 		}
 
@@ -353,6 +354,8 @@ local function UnDockUnit(unitID, subUnitID)
 		unitUndocked = Spring.CallCOBScript(subUnitID, "Undocked", 0, carrierMetaList[unitID].cobundockparam, carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece)
 		if carrierMetaList[unitID].dockArmor then
 			spSetUnitArmored(subUnitID, false, 1)
+			spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", 0)
+
 		end
 	end
 end
@@ -377,18 +380,18 @@ local function SpawnUnit(spawnData)
 		local subUnitID = nil
 		local ownerID = spawnData.ownerID
 		if validSurface == true and ownerID then
-
+		
 			local stockpilecount = Spring.GetUnitStockpile(spawnData.ownerID) or 0
 			local stockpilechange = stockpilecount - carrierMetaList[spawnData.ownerID].stockpilecount
 			local stockpiledMetal = 0
 			local stockpiledEnergy = 0
-
+		
 			if stockpilechange > 0 then
 				carrierMetaList[spawnData.ownerID].stockpilecount = stockpilecount
 				stockpiledMetal = carrierMetaList[spawnData.ownerID].metalperstockpile * stockpilechange --TODO: Make this the actual set stockpile values
 				stockpiledEnergy = carrierMetaList[spawnData.ownerID].energyperstockpile * stockpilechange -- TODO: Make this the actual set stockpile values
 			end
-
+			
 			for dronetypeIndex, dronename in pairs(carrierMetaList[spawnData.ownerID].dronenames) do
 				if not(carrierMetaList[spawnData.ownerID].usestockpile) or carrierMetaList[spawnData.ownerID].subUnitCount[dronetypeIndex] < stockpilecount then
 					if carrierMetaList[spawnData.ownerID].subUnitCount[dronetypeIndex] < carrierMetaList[spawnData.ownerID].maxunits[dronetypeIndex] then
@@ -417,10 +420,10 @@ local function SpawnUnit(spawnData)
 								spUseTeamResource(spawnData.teamID, "metal", metalCost)
 								spUseTeamResource(spawnData.teamID, "energy", energyCost)
 								subUnitID = spCreateUnit(dronename, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
-							end
+							end	
 						end
-
-
+						
+						
 						------
 
 						if not subUnitID then
@@ -509,6 +512,11 @@ local function SpawnUnit(spawnData)
 							carrierMetaList[ownerID].subUnitsList[subUnitID].activeDocking = false
 							if carrierMetaList[ownerID].dockArmor then
 								spSetUnitArmored(subUnitID, true, carrierMetaList[ownerID].dockArmor)
+								if carrierMetaList[ownerID].dockUntargetable == 1 then
+ 								   spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", 1)
+								else
+								    spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", 0)
+								end
 							end
 							local _, carrierdockarg1, carrierdockarg2, carrierdockarg3  = Spring.CallCOBScript(ownerID, "Dronedocked", 5, carrierdockarg1, carrierMetaList[ownerID].subUnitsList[subUnitID].dockingPiece, carrierdockarg2, carrierdockarg3)
 							local unitDocked = Spring.CallCOBScript(subUnitID, "Docked", 0, carrierMetaList[ownerID].cobdockparam, carrierMetaList[ownerID].subUnitsList[subUnitID].dockingPiece, carrierdockarg1, carrierdockarg2, carrierdockarg3)
@@ -640,6 +648,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					local carrierData = {
 						dronenames = dronenames,
 						dronetypes = dronetypes,
+						dockUntargetable = tonumber(spawnDef.dockingUntargetable) or 0,
 						radius = tonumber(spawnDef.minRadius) or 65535,
 						controlRadius = tonumber(spawnDef.radius) or 65535,
 						subUnitsList = {}, -- list of subUnitIDs owned by this unit.
@@ -816,7 +825,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 						spGiveOrderToUnit(carrierUnitID, CMD.STOCKPILE, {}, 0)
 					end
 					carrierMetaList[carrierUnitID].stockpilecount = carrierMetaList[carrierUnitID].stockpilecount - 1
-
+					
 				end
 			end
 			carrierMetaList[carrierUnitID].subUnitsList[unitID] = nil
@@ -945,12 +954,8 @@ local function UpdateStandaloneDrones(frame)
 				droneMetaList[unitID].lastOrderUpdate = frame
 
 				dronex, droney, dronez = spGetUnitPosition(unitID)
-				if not dronez then	-- this can happen so make sure its dealt with
-					gadget:UnitDestroyed(unitID)
-				else
-					rx, rz = RandomPointInUnitCircle(5)
-					spGiveOrderToUnit(unitID, CMD.MOVE, {dronex + rx*idleRadius, droney, dronez + rz*idleRadius}, 0)
-				end
+				rx, rz = RandomPointInUnitCircle(5)
+				spGiveOrderToUnit(unitID, CMD.MOVE, {dronex + rx*idleRadius, droney, dronez + rz*idleRadius}, 0)
 			end
 		end
 
@@ -962,7 +967,7 @@ local function UpdateStandaloneDrones(frame)
 end
 
 local function UpdateCarrier(carrierID, carrierMetaData, frame)
-
+	
 	local carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
 	if not carrierx then
 		gadget:UnitDestroyed(carrierID)
@@ -981,7 +986,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	local agressiveDrones = false
 	local carrierStates = spGetUnitStates(carrierID)
 	--local newOrder = true
-
+	
 	--Spring.Echo("hornetdebug carrier:", carrierID, " command:", cmdID, " commandParam:", cmdParam_1)
 
 	--local activeSpawning = true
@@ -1466,6 +1471,12 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 								carrierMetaList[unitID].subUnitsList[subUnitID].bomberStage = 0
 								if carrierMetaList[unitID].dockArmor then
 									spSetUnitArmored(subUnitID, true, carrierMetaList[unitID].dockArmor)
+									if carrierMetaList[unitID].dockUntargetable == 1 then
+									    spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", 1)
+									else
+									    spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", 0)
+									end
+
 								end
 								local _, carrierdockarg1, carrierdockarg2, carrierdockarg3  = Spring.CallCOBScript(unitID, "Dronedocked", 5, carrierdockarg1, carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece, carrierdockarg2, carrierdockarg3)
 								local unitDocked = Spring.CallCOBScript(subUnitID, "Docked", 0, carrierMetaList[unitID].cobdockparam, carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece, carrierdockarg1, carrierdockarg2, carrierdockarg3)
@@ -1591,4 +1602,14 @@ function gadget:Shutdown()
 			spDestroyUnit(subUnitID, true, true)
 		end
 	end
+end
+
+function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, defaultPriority)
+    if targetID then
+        local v = Spring.GetUnitRulesParam(targetID, "drone_docked_untargetable")
+        if v == 1 then
+            return false, 0
+        end
+    end
+    return true, defaultPriority
 end
