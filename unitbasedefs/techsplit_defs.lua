@@ -1148,6 +1148,20 @@ local function techsplitTweaks(name, uDef)
 		}
 	end
 
+    if name == "armfhlt" then
+		uDef.health = 7600
+		uDef.metalcost = 570
+		uDef.energycost = 7520
+		uDef.buildtime = 11700
+		uDef.weapondefs.armfhlt_laser.range = 750
+		uDef.weapondefs.armfhlt_laser.reloadtime = 1.45
+		uDef.weapondefs.armfhlt_laser.damage = {
+			commanders = 414,
+			default = 290,
+			vtol = 71,
+		}
+	end
+
 	if name == "corhlt" then
 		uDef.health = 4640
 		uDef.metalcost = 580
@@ -1159,6 +1173,20 @@ local function techsplitTweaks(name, uDef)
 			commanders = 540,
 			default = 360,
 			vtol = 41,
+		}
+	end
+
+    if name == "corfhlt" then
+		uDef.health = 7340
+		uDef.metalcost = 580
+		uDef.energycost = 7520
+		uDef.buildtime = 13800
+		uDef.weapondefs.corfhlt_laser.range = 750
+		uDef.weapondefs.corfhlt_laser.reloadtime = 1.5
+		uDef.weapondefs.corfhlt_laser.damage = {
+			commanders = 482,
+			default = 319,
+			vtol = 61,
 		}
 	end
 
@@ -1712,7 +1740,7 @@ if name == "legch" then
         [21] = "legestor",
         [22] = "legcluster",
         [24] = "legmg",
-        [25] = "legdl",
+        [25] = "legctl",
         [26] = "legvp",
         [27] = "legap",
         [28] = "corsy",
@@ -1720,6 +1748,7 @@ if name == "legch" then
         [30] = "coruwmme",
         [31] = "legtl",
         [32] = "corasy",
+        [33] = "legabm",
     }
 end
 
@@ -1753,6 +1782,8 @@ if name == "legacv" then
         [27] = "legap",
         [28] = "corsy",
         [29] = "legnanotc",
+        [30] = "legabm",
+        [31] = "legctl",
     }
 end
 
@@ -1786,6 +1817,8 @@ if name == "legack" then
         [27] = "legap",
         [28] = "corsy",
         [29] = "legnanotc",
+        [30] = "legabm",
+        [31] = "legctl",
     }
 end
 
@@ -1822,9 +1855,22 @@ if name == "legaca" then
         [27] = "legap",
         [28] = "corsy",
         [29] = "legnanotc",
+        [30] = "legabm",
+        [31] = "legctl",
     }
 end 
 
+-- Legion Unit Tweaks
+
+if name == "legapopupdef" then
+    uDef.weapondefs.advanced_riot_cannon.range = 480
+    uDef.weapondefs.advanced_riot_cannon.reloadtime = 1.5
+    uDef.weapondefs.standard_minigun.range = 400
+end
+
+if name == "legmg" then
+    uDef.weapondefs.armmg_weapon.range = 650
+end
 
     return uDef
 end

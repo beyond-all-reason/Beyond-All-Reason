@@ -1841,12 +1841,12 @@ local unitGrids = {
 	leghaca = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "cormexp", "legrampart"},               -- T2 converter, T2 geo, armed moho
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
 			{ "legapopupdef", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
-			{ "legflak", "leglraa", "legabm", "legrampart", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "legflak", "leglraa", "legabm", "", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "leglrpc", "legstarfall", "legsilo", },                -- LRPC, ICBM, lolcannon
 		},
 		{
@@ -1910,12 +1910,12 @@ local unitGrids = {
 	leghack = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "cormexp", "legrampart"},               -- T2 converter, T2 geo, armed moho
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
 			{ "legapopupdef", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
-			{ "legflak", "leglraa", "legabm", "legrampart", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "legflak", "leglraa", "legabm", "", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "leglrpc", "legstarfall", "legsilo", },                -- LRPC, ICBM, lolcannon
 		},
 		{
@@ -1979,12 +1979,12 @@ local unitGrids = {
 	leghacv = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "cormexp", "legrampart"},               -- T2 converter, T2 geo, armed moho
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
 			{ "legapopupdef", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
-			{ "legflak", "leglraa", "legabm", "legrampart", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "legflak", "leglraa", "legabm", "", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "leglrpc", "legstarfall", "legsilo", },                -- LRPC, ICBM, lolcannon
 		},
 		{
@@ -3025,9 +3025,9 @@ if Spring.GetModOptions().techsplit then
 			{"legestor","legmstor","","",},
 		},
 		{
-			{"legmg","leghive","legmg","legapopupdef",},
-			{"legrhapsis","leglupara","legcluster","",},
-			{"legctl","","","",},
+			{"legmg","leghive","legapopupdef","legcluster",},
+			{"legrhapsis","leglupara","legabm","",},
+			{"legctl","legdl","","",},
 		},
 		{
 			{"legrad","legsd","","",},
@@ -3048,9 +3048,9 @@ if Spring.GetModOptions().techsplit then
 			{"legestor","legmstor","","",},
 		},
 		{
-			{"legmg","leghive","legmg","legapopupdef",},
-			{"legrhapsis","leglupara","legcluster","",},
-			{"legctl","","","",},
+			{"legmg","leghive","legapopupdef","legcluster",},
+			{"legrhapsis","leglupara","legabm","",},
+			{"legctl","legdl","","",},
 		},
 		{
 			{"legrad","legsd","","",},
@@ -3071,9 +3071,9 @@ if Spring.GetModOptions().techsplit then
 			{"legestor","legmstor","","",},
 		},
 		{
-			{"legmg","leghive","legmg","legapopupdef",},
-			{"legrhapsis","leglupara","legcluster","",},
-			{"legctl","","","",},
+			{"legmg","leghive","legapopupdef","legcluster",},
+			{"legrhapsis","leglupara","legabm","",},
+			{"legctl","legtl","","",},
 		},
 		{
 			{"legrad","legsd","","",},
@@ -3094,9 +3094,9 @@ if Spring.GetModOptions().techsplit then
 			{"legestor","legmstor","","",},
 		},
 		{
-			{"legmg","leghive","legmg","legapopupdef",},
-			{"legrhapsis","leglupara","legcluster","",},
-			{"legctl","","","",},
+			{"legmg","leghive","legapopupdef","legcluster",},
+			{"legrhapsis","leglupara","legabm","",},
+			{"legctl","legdl","","",},
 		},
 		{
 			{"legrad","legsd","","",},

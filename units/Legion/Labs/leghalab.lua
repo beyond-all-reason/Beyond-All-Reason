@@ -41,6 +41,7 @@ return {
 			[7] = "legjav",
 			[8] = "legshot",
 			[9] = "legamph",
+			[10] = "legaspy",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
