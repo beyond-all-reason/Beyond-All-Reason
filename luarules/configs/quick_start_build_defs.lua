@@ -12,6 +12,8 @@ local quickStartConfig = {
 			solar = "armsolar",
 			tidal = "armtide",
 			floatingConverter = "armfmkr",
+			landEnergyStorage = "armestor",
+			waterEnergyStorage = "armuwes",
 		},
 		corcom = {
 			windmill = "corwin",
@@ -20,6 +22,8 @@ local quickStartConfig = {
 			solar = "corsolar",
 			tidal = "cortide",
 			floatingConverter = "corfmkr",
+			landEnergyStorage = "corestor",
+			waterEnergyStorage = "coruwes",
 		},
 		legcom = {
 			windmill = "legwin",
@@ -28,6 +32,8 @@ local quickStartConfig = {
 			solar = "legsolar",
 			tidal = "legtide",
 			floatingConverter = "legfeconv",
+			landEnergyStorage = "legestor",
+			waterEnergyStorage = "leguwestore",
 		}
 	},
 	optionsToNodeType = {
@@ -37,26 +43,135 @@ local quickStartConfig = {
 		solar = "other",
 		tidal = "other",
 		floatingConverter = "converters",
+		landEnergyStorage = "other",
+		waterEnergyStorage = "other",
 	},
 	quotas = {
 		["metalMap"] = {
 			["land"] = {
-				["badWind"] = {mex = 3, windmill = 0, converter = 0, solar = 4, tidal = 0, floatingConverter = 0},
-				["goodWind"] = {mex = 3, windmill = 4, converter = 0, solar = 1, tidal = 0, floatingConverter = 0}
+				["badWind"] = {
+					"mex",
+					"mex", 
+					"mex",
+					"solar",
+					"solar",
+					"solar",
+					"solar",
+					"solar",
+					"solar",
+					"solar",
+					"solar",
+					"solar",
+					"solar",
+					"solar",
+					"landEnergyStorage",
+				},
+				["goodWind"] = {
+					"mex",
+					"mex",
+					"mex",
+					"windmill",
+					"windmill",
+					"windmill",
+					"windmill",
+					"windmill",
+					"windmill",
+					"windmill",
+					"windmill",
+					"solar",
+					"solar",
+					"solar",
+					"landEnergyStorage",
+				}
 			},
 			["water"] = {
-				["badWind"] = {mex = 4, windmill = 0, converter = 0, solar = 0, tidal = 5, floatingConverter = 1},
-				["goodWind"] = {mex = 4, windmill = 0, converter = 0, solar = 0, tidal = 5, floatingConverter = 1}
+				["badWind"] = {
+					"mex",
+					"mex",
+					"mex",
+					"mex",
+					"tidal",
+					"tidal",
+					"tidal",
+					"tidal",
+					"tidal",
+					"floatingConverter",
+					"waterEnergyStorage",
+				},
+				["goodWind"] = {
+					"mex",
+					"mex",
+					"mex",
+					"mex",
+					"tidal",
+					"tidal",
+					"tidal",
+					"tidal",
+					"tidal",
+					"floatingConverter",
+					"waterEnergyStorage",
+				}
 			}
 		},
 		["nonMetalMap"] = {
 			["land"] = {
-				["badWind"] = {mex = 3, windmill = 0, converter = 1, solar = 4, tidal = 0, floatingConverter = 0},
-				["goodWind"] = {mex = 3, windmill = 4, converter = 2, solar = 1, tidal = 0, floatingConverter = 0}
+				["badWind"] = {
+					"mex",
+					"mex",
+					"mex",
+					"converter",
+					"solar",
+					"solar",
+					"solar",
+					"solar",
+					"landEnergyStorage",
+				},
+				["goodWind"] = {
+					"mex",
+					"mex",
+					"mex",
+					"windmill",
+					"windmill",
+					"windmill",
+					"windmill",
+					"windmill",
+					"windmill",
+					"windmill",
+					"windmill",
+					"windmill",
+					"windmill",
+					"solar",
+					"landEnergyStorage",
+					"converter",
+				}
 			},
 			["water"] = {
-				["badWind"] = {mex = 3, windmill = 0, converter = 0, solar = 0, tidal = 5, floatingConverter = 2},
-				["goodWind"] = {mex = 3, windmill = 0, converter = 0, solar = 0, tidal = 5, floatingConverter = 2}
+				["badWind"] = {
+					"mex",
+					"mex",
+					"mex",
+					"tidal",
+					"tidal",
+					"tidal",
+					"tidal",
+					"tidal",
+					"floatingConverter",
+					"floatingConverter",
+					"waterEnergyStorage",
+				},
+				["goodWind"] = {
+					"mex",
+					"mex",
+					"mex",
+					"tidal",
+					"tidal",
+					"tidal",
+					"tidal",
+					"tidal",
+					"floatingConverter",
+					"floatingConverter",
+					"waterEnergyStorage",
+				}
 			}
 		}
 	}

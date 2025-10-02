@@ -60,6 +60,7 @@ local BASE_NODE_COUNT = 8
 local MEX_OVERLAP_DISTANCE = Game.extractorRadius + Game.metalMapSquareSize
 local SAFETY_COUNT = 15
 local BUILT_ENOUGH_FOR_FULL = 0.9
+local MAX_HEIGHT_DIFFERENCE = 100
 
 local spCreateUnit = Spring.CreateUnit
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -100,6 +101,7 @@ end
 local function generateLocalGrid(commanderID)
 	local comData = commanders[commanderID]
 	local originX, originZ = comData.spawnX, comData.spawnZ
+	local originY = comData.spawnY
 	local buildDefID = comData.isInWater and (comData.buildDefs and comData.buildDefs.tidal) or (comData.buildDefs and comData.buildDefs.windmill)
 	if not buildDefID then
 		return {}
@@ -135,12 +137,15 @@ local function generateLocalGrid(commanderID)
 					end
 					if not tooClose then
 						local searchY = spGetGroundHeight(testX, testZ)
-						local snappedX, snappedY, snappedZ = spPos2BuildPos(buildDefID, testX, searchY, testZ)
-						if snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, 0) == BUILD_ORDER_FREE then
-							local key = snappedX .. "_" .. snappedZ
-							if not used[key] then
-								used[key] = true
-								table.insert(gridList, { x = snappedX, z = snappedZ })
+						local heightDiff = math.abs(searchY - originY)
+						if heightDiff <= MAX_HEIGHT_DIFFERENCE then
+							local snappedX, snappedY, snappedZ = spPos2BuildPos(buildDefID, testX, searchY, testZ)
+							if snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, 0) == BUILD_ORDER_FREE then
+								local key = snappedX .. "_" .. snappedZ
+								if not used[key] then
+									used[key] = true
+									table.insert(gridList, { x = snappedX, z = snappedZ })
+								end
 							end
 						end
 					end
@@ -235,33 +240,32 @@ local function refreshAvailableMexSpots(commanderID)
 		return false
 	end
 
-	local availableMexes = {}
+	local validSpots = {}
 	local mexDefID = comData.buildDefs.mex
 	if mexDefID then
 		for i = 1, #comData.nearbyMexes do
-			local mexSpot = comData.nearbyMexes[i]
-			local buildY = spGetGroundHeight(mexSpot.x, mexSpot.z)
-			local snappedX, snappedY, snappedZ = spPos2BuildPos(mexDefID, mexSpot.x, buildY, mexSpot.z)
-			if snappedX and spTestBuildOrder(mexDefID, snappedX, snappedY, snappedZ, 0) == BUILD_ORDER_FREE then
-				local existingUnits = Spring.GetUnitsInCylinder(mexSpot.x, mexSpot.z, MEX_OVERLAP_DISTANCE)
-				local hasExistingMex = false
-				for j = 1, #existingUnits do
-					local unitDefID = Spring.GetUnitDefID(existingUnits[j])
+			local spot = comData.nearbyMexes[i]
+			local groundY = spGetGroundHeight(spot.x, spot.z)
+			local buildX, buildY, buildZ = spPos2BuildPos(mexDefID, spot.x, groundY, spot.z)
+			if buildX and spTestBuildOrder(mexDefID, buildX, buildY, buildZ, 0) == BUILD_ORDER_FREE then
+				local nearbyUnits = Spring.GetUnitsInCylinder(spot.x, spot.z, MEX_OVERLAP_DISTANCE)
+				local hasMex = false
+				for j = 1, #nearbyUnits do
+					local unitDefID = Spring.GetUnitDefID(nearbyUnits[j])
 					if mexDefs[unitDefID] then
-						hasExistingMex = true
+						hasMex = true
 						break
 					end
 				end
-				if not hasExistingMex then
-					table.insert(availableMexes, mexSpot)
+				if not hasMex then
+					table.insert(validSpots, spot)
 				end
 			end
 		end
 	end
 
-	comData.nearbyMexes = availableMexes
-	local quotas = getQuotas(isMetalMap, comData.isInWater, isGoodWind)
-	comData.buildWeights.mex = #availableMexes > 0 and #availableMexes / quotas.mex or 0
+	comData.nearbyMexes = validSpots
+	return #validSpots > 0
 end
 
 local function getBuildSpace(commanderID, option)
@@ -283,6 +287,13 @@ local function getBuildSpace(commanderID, option)
 		comData.gridLists[nodeType] = gridList
 
 		return candidate.x, candidate.z
+	else
+		if comData.nearbyMexes and #comData.nearbyMexes > 0 then
+			local mexSpot = comData.nearbyMexes[1]
+			table.remove(comData.nearbyMexes, 1)
+			return mexSpot.x, mexSpot.z
+		end
+		return nil, nil
 	end
 end
 
@@ -444,30 +455,18 @@ local function initializeCommander(commanderID, teamID)
 	end
 
 	local commanderBuildQuotas = getQuotas(isMetalMap, isInWater, isGoodWind)
-
-	local totalQuota = 0
-	for optionName, quota in pairs(commanderBuildQuotas) do
-		totalQuota = totalQuota + quota
-	end
-
-	local buildWeights = {}
-	for optionName, quota in pairs(commanderBuildQuotas) do
-		if quota == 0 then
-			buildWeights[optionName] = -math.huge
-		else
-			buildWeights[optionName] = quota / totalQuota
-		end
-	end
+	local buildIndex = 1
 
 	commanders[commanderID] = {
 		teamID = teamID,
 		budget = budget,
-		thingsMade = { windmill = 0, mex = 0, converter = 0, solar = 0, tidal = 0, floatingConverter = 0 },
+		thingsMade = {},
 		defaultFacing = defaultFacing,
 		isInWater = isInWater,
 		buildDefs = buildDefs,
 		gridLists = { other = {}, converters = {} },
-		buildWeights = buildWeights,
+		buildQuotas = commanderBuildQuotas,
+		buildIndex = buildIndex,
 		nearbyMexes = {}
 	}
 
@@ -497,46 +496,60 @@ end
 
 local function generateBuildCommands(commanderID)
 	local comData = commanders[commanderID]
-	local totalBudgetUsed = 0
-	local tryCount = 0
-	local maxMexes = isMetalMap and math.huge or #comData.nearbyMexes
-	local mexCount = 0
-	local weightedOptions = table.copy(comData.buildWeights)
-	refreshAvailableMexSpots(commanderID)
+	local budgetUsed = 0
+	local attempts = 0
 
-	for optionName, weight in pairs(weightedOptions) do
-		local currentCount = comData.thingsMade[optionName] or 0
-		local delayIntervals = currentCount * comData.buildWeights[optionName]
-		weightedOptions[optionName] = weight - delayIntervals
-	end
+	while budgetUsed < comData.budget and attempts < SAFETY_COUNT and comData.buildIndex <= #comData.buildQuotas do
+		local buildType = comData.buildQuotas[comData.buildIndex]
+		
+		if buildType then
+			if buildType == "mex" and not isMetalMap then
+				local hasMexSpots = refreshAvailableMexSpots(commanderID)
+				if not hasMexSpots then
+					comData.buildIndex = comData.buildIndex + 1
+					if comData.buildIndex > #comData.buildQuotas then
+						comData.buildIndex = 1
+					end
+					attempts = attempts + 1
+				else
+					local unitDefID = comData.buildDefs[buildType]
+					if unitDefID then
+						local unitDef = unitDefs[unitDefID]
+						local discount = getFactoryDiscount(unitDef, commanderID)
+						local cost = defMetergies[unitDefID] - discount
 
-	while totalBudgetUsed < comData.budget and tryCount < SAFETY_COUNT do
-		local selectedOption
-		local bestWeight = -math.huge
+						table.insert(comData.spawnQueue, 1, { id = unitDefID })
+						budgetUsed = budgetUsed + cost
+					end
+					
+					comData.buildIndex = comData.buildIndex + 1
+					if comData.buildIndex > #comData.buildQuotas then
+						comData.buildIndex = 1
+					end
+				end
+			else
+				local unitDefID = comData.buildDefs[buildType]
+				if unitDefID then
+					local unitDef = unitDefs[unitDefID]
+					local discount = getFactoryDiscount(unitDef, commanderID)
+					local cost = defMetergies[unitDefID] - discount
 
-		for optionName, weight in pairs(weightedOptions) do
-			local newWeight = weight + comData.buildWeights[optionName]
-			weightedOptions[optionName] = newWeight
-			if newWeight > bestWeight and not (optionName == "mex" and mexCount >= maxMexes) then
-				bestWeight = newWeight
-				selectedOption = optionName
+					table.insert(comData.spawnQueue, 1, { id = unitDefID })
+					budgetUsed = budgetUsed + cost
+				end
+				
+				comData.buildIndex = comData.buildIndex + 1
+				if comData.buildIndex > #comData.buildQuotas then
+					comData.buildIndex = 1
+				end
+			end
+		else
+			comData.buildIndex = comData.buildIndex + 1
+			if comData.buildIndex > #comData.buildQuotas then
+				comData.buildIndex = 1
 			end
 		end
-
-		if selectedOption then
-			weightedOptions[selectedOption] = comData.buildWeights[selectedOption]
-			if selectedOption == "mex" then
-				mexCount = mexCount + 1
-			end
-			local buildDefID = comData.buildDefs[selectedOption]
-			local unitDef = unitDefs[buildDefID]
-			local discount = getFactoryDiscount(unitDef, commanderID)
-			local budgetCost = defMetergies[buildDefID] - discount
-
-			table.insert(comData.spawnQueue, 1, { id = buildDefID })
-			totalBudgetUsed = totalBudgetUsed + budgetCost
-		end
-		tryCount = tryCount + 1
+		attempts = attempts + 1
 	end
 end
 
@@ -551,14 +564,14 @@ local function removeCommanderCommands(commanderID)
 	end
 end
 
-local function tryToSpawnBuild(commanderID, buildDefID, buildX, buildZ, facing)
-	local unitDef, comData = unitDefs[buildDefID], commanders[commanderID]
+local function tryToSpawnBuild(commanderID, unitDefID, buildX, buildZ, facing)
+	local unitDef, comData = unitDefs[unitDefID], commanders[commanderID]
 	local discount = getFactoryDiscount(unitDef, commanderID)
-	local budgetCost = defMetergies[buildDefID] - discount
+	local cost = defMetergies[unitDefID] - discount
 	if comData.budget <= 0 then return false end
 	local buildY = spGetGroundHeight(buildX, buildZ)
 
-	if spTestBuildOrder(buildDefID, buildX, buildY, buildZ, facing) ~= BUILD_ORDER_FREE then
+	if spTestBuildOrder(unitDefID, buildX, buildY, buildZ, facing) ~= BUILD_ORDER_FREE then
 		return false
 	end
 
@@ -567,17 +580,17 @@ local function tryToSpawnBuild(commanderID, buildDefID, buildX, buildZ, facing)
 		return false, nil
 	end
 
-	local affordableBudget = math.min(comData.budget, budgetCost)
-	local buildProgress = applyBuildProgressToUnit(unitID, unitDef, affordableBudget, budgetCost)
-	comData.budget = comData.budget - affordableBudget
+	local affordableCost = math.min(comData.budget, cost)
+	local buildProgress = applyBuildProgressToUnit(unitID, unitDef, affordableCost, cost)
+	comData.budget = comData.budget - affordableCost
 
 	if unitDef.isFactory and discountableFactories[unitDef.name] and discount > 0 then
 		commanderFactoryDiscounts[commanderID] = true
 	end
 
-	local optionName = optionDefIDToTypes[buildDefID]
-	if optionName then
-		comData.thingsMade[optionName] = (comData.thingsMade[optionName] or 0) + 1
+	local buildType = optionDefIDToTypes[unitDefID]
+	if buildType then
+		comData.thingsMade[buildType] = (comData.thingsMade[buildType] or 0) + 1
 	end
 
 	spSpawnCEG("quickstart-spawn-pulse-large", buildX, buildY + 10, buildZ)
@@ -589,56 +602,55 @@ local function tryToSpawnBuild(commanderID, buildDefID, buildX, buildZ, facing)
 end
 
 local function assignMexSpots()
-	local mexHashes = {}
-	local removalList = {}
+	local claimedSpots = {}
+	local toRemove = {}
 	for commanderID, comData in pairs(commanders) do
-		removalList[commanderID] = {}
-		for i, spawnData in ipairs(comData.spawnQueue) do
-			local optionType = optionDefIDToTypes[spawnData.id]
-				if optionType == "mex" then
-					local mexSpotHash
-					local assignedMexSpot
-					if spawnData.x then
-						assignedMexSpot = { x = spawnData.x, z = spawnData.z }
-						mexSpotHash = spawnData.x .. "_" .. spawnData.z
+		toRemove[commanderID] = {}
+		for i, buildItem in ipairs(comData.spawnQueue) do
+			local buildType = optionDefIDToTypes[buildItem.id]
+				if buildType == "mex" then
+					local spotHash
+					local mexSpot
+					if buildItem.x then
+						mexSpot = { x = buildItem.x, z = buildItem.z }
+						spotHash = buildItem.x .. "_" .. buildItem.z
 					else
 						if comData.nearbyMexes and #comData.nearbyMexes > 0 then
-							assignedMexSpot = comData.nearbyMexes[1]
+							mexSpot = comData.nearbyMexes[1]
 							table.remove(comData.nearbyMexes, 1)
-							mexSpotHash = assignedMexSpot.x .. "_" .. assignedMexSpot.z
+							spotHash = mexSpot.x .. "_" .. mexSpot.z
 						end
 					end
-					if mexSpotHash and assignedMexSpot then
-						local buildX = assignedMexSpot.x
-						local buildZ = assignedMexSpot.z
+					if spotHash and mexSpot then
+						local buildX = mexSpot.x
+						local buildZ = mexSpot.z
 						local distance = math.distance2d(buildX, buildZ, comData.spawnX, comData.spawnZ)
-						if mexHashes[mexSpotHash] then
-							if distance < mexHashes[mexSpotHash].distance then
-								local oldData = mexHashes[mexSpotHash]
+						if claimedSpots[spotHash] then
+							if distance < claimedSpots[spotHash].distance then
+								local oldClaim = claimedSpots[spotHash]
 
-								table.insert(removalList[oldData.commanderID], oldData.index)
-								mexHashes[mexSpotHash] = {commanderID = commanderID, index = i, distance = distance}
-								spawnData.x, spawnData.z = assignedMexSpot.x, assignedMexSpot.z
+								table.insert(toRemove[oldClaim.commanderID], oldClaim.index)
+								claimedSpots[spotHash] = {commanderID = commanderID, index = i, distance = distance}
+								buildItem.x, buildItem.z = mexSpot.x, mexSpot.z
 							else
-								table.insert(removalList[commanderID], i)
+								table.insert(toRemove[commanderID], i)
 							end
 						else
-							mexHashes[mexSpotHash] = {commanderID = commanderID, index = i, distance = distance}
-							spawnData.x, spawnData.z = assignedMexSpot.x, assignedMexSpot.z
+							claimedSpots[spotHash] = {commanderID = commanderID, index = i, distance = distance}
+							buildItem.x, buildItem.z = mexSpot.x, mexSpot.z
 						end
 					else
-						table.insert(removalList[commanderID], i)
+						table.insert(toRemove[commanderID], i)
 					end
 			end
 		end
-		comData.buildWeights.mex = math.max(0, #comData.nearbyMexes)
 	end
 
-	for commanderID, indicesToRemove in pairs(removalList) do
-		if #indicesToRemove > 0 then
-			table.sort(indicesToRemove, function(a, b) return a > b end)
+	for commanderID, indices in pairs(toRemove) do
+		if #indices > 0 then
+			table.sort(indices, function(a, b) return a > b end)
 			local comData = commanders[commanderID]
-			for _, index in ipairs(indicesToRemove) do
+			for _, index in ipairs(indices) do
 				table.remove(comData.spawnQueue, index)
 			end
 		end
@@ -682,16 +694,16 @@ function gadget:GameFrame(frame)
 			end
 			for commanderID, comData in pairs(commanders) do
 				if comData.spawnQueue then
-					for i, build in ipairs(comData.spawnQueue) do
-						local optionType = optionDefIDToTypes[build.id]
-						local buildX, buildZ = build.x, build.z
+					for i, buildItem in ipairs(comData.spawnQueue) do
+						local buildType = optionDefIDToTypes[buildItem.id]
+						local buildX, buildZ = buildItem.x, buildItem.z
 						if not buildX or not buildZ then
-							buildX, buildZ = getBuildSpace(commanderID, optionType)
+							buildX, buildZ = getBuildSpace(commanderID, buildType)
 						end
-						local facing = build.facing or comData.defaultFacing or 0
+						local facing = buildItem.facing or comData.defaultFacing or 0
 						if buildX and buildZ then
-							local fullyBuilt = tryToSpawnBuild(commanderID, build.id, buildX, buildZ, facing)
-							if fullyBuilt then
+							local success = tryToSpawnBuild(commanderID, buildItem.id, buildX, buildZ, facing)
+							if success then
 								loop = true
 							end
 						end
