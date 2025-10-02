@@ -1359,7 +1359,8 @@ local function techsplitTweaks(name, uDef)
 		uDef.speed = 69
 		uDef.turnrate = 500
 		uDef.weapondefs.banisher.areaofeffect = 180
-		uDef.weapondefs.banisher.range = 400
+        uDef.weapondefs.banisher.weaponvelocity = 864
+		uDef.weapondefs.banisher.range = 450
 	end
 
 	if name == "armcroc" then
