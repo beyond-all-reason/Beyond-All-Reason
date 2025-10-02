@@ -386,9 +386,9 @@ FireSecondary()
 	weapon = 0;
 	start-script Close();
 	shot = 0;
-	sleep 3000;
+	sleep 3500;
 	laserPause = 1;
-	sleep 4000;
+	sleep 3500;
 	justfired = 0;					//Enables hatches opening for next shot. Combined sleep in this script until this point must be about 1 second shorter than the reload time, so the hatches open on time for next shot
 	sleep 2000;
 	laserPause = 0;

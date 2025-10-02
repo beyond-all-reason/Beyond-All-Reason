@@ -111,7 +111,7 @@ return {
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 100,
-				flighttime = 6,
+				flighttime = 3.5,
 				impulsefactor = 0.2,
 				metalpershot = 0,
 				model = "leghomingmissile.s3o",
@@ -149,7 +149,7 @@ return {
 				customparams = {
 					projectile_destruction_method = "descend",
 					overrange_distance = 1093,
-					speceffect = "retarget",
+					speceffect = "guidance",
 				},
 			},
 			laser = {
