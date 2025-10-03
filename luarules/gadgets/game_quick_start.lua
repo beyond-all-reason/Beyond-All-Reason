@@ -591,12 +591,6 @@ local function tryToSpawnBuild(commanderID, unitDefID, buildX, buildY, buildZ, f
 	local cost = defMetergies[unitDefID] - discount
 	if comData.budget <= 0 then return false end
 
-	Spring.Echo("QS: Trying to spawn ", unitDef.name, " at ", buildX, ", ", buildY, ", ", buildZ, " facing ", facing)
-	if spTestBuildOrder(unitDefID, buildX, buildY, buildZ, facing) ~= UNOCCUPIED then
-		Spring.Echo("QS: Skipped " .. unitDef.name .. " ( fuck build order failed) idx:")
-		return false
-	end
-
 	local unitID = spCreateUnit(unitDef.name, buildX, buildY, buildZ, facing, comData.teamID)
 	if not unitID then
 		return false, nil
