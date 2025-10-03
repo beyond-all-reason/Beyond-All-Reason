@@ -134,16 +134,16 @@ local quickStartConfig = {
 					"windmill",
 					"windmill",
 					"mex", --100 extra base budget?
+					"converter", --if no mex, this will be built
 					"solar",
+					"windmill",
+					"windmill",
+					"windmill",
 					"windmill",
 					"windmill",
 					"landEnergyStorage",
 					"windmill",
 					"windmill",
-					"windmill",
-					"windmill",
-					"windmill",
-					"converter", --if no mex, this will be built
 					"converter", --if there's only two mex built, this is made
 				}
 			},

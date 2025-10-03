@@ -233,7 +233,7 @@ local function getCommanderBuildQueue(commanderID)
 	return spawnQueue
 end
 
-local function refreshAvailableMexSpots(commanderID)
+local function refreshAndCheckAvailableMexSpots(commanderID)
 	local comData = commanders[commanderID]
 	if not comData or isMetalMap then return end
 
@@ -518,63 +518,38 @@ local function initializeCommander(commanderID, teamID)
 	comData.gridLists.converters = comData.baseNodes.converters.grid or {}
 end
 
-
 local function generateBuildCommands(commanderID)
 	local comData = commanders[commanderID]
-	local budgetUsed = 0
+	local budgetRemaining = comData.budget
 	local attempts = 0
 
-	while budgetUsed < comData.budget and attempts < SAFETY_COUNT and comData.buildIndex <= #comData.buildQuotas do
-		local buildType = comData.buildQuotas[comData.buildIndex]
-		
-		if buildType then
-			if buildType == "mex" and not isMetalMap then
-				local hasMexSpots = refreshAvailableMexSpots(commanderID)
-				if not hasMexSpots then
-					comData.buildIndex = comData.buildIndex + 1
-					if comData.buildIndex > #comData.buildQuotas then
-						comData.buildIndex = 1
-					end
-					attempts = attempts + 1
-				else
-					local unitDefID = comData.buildDefs[buildType]
-					if unitDefID then
-						local unitDef = unitDefs[unitDefID]
-						local discount = getFactoryDiscount(unitDef, commanderID)
-						local cost = defMetergies[unitDefID] - discount
-
-						table.insert(comData.spawnQueue, 1, { id = unitDefID })
-						budgetUsed = budgetUsed + cost
-					end
-					
-					comData.buildIndex = comData.buildIndex + 1
-					if comData.buildIndex > #comData.buildQuotas then
-						comData.buildIndex = 1
-					end
-				end
-			else
-				local unitDefID = comData.buildDefs[buildType]
-				if unitDefID then
-					local unitDef = unitDefs[unitDefID]
-					local discount = getFactoryDiscount(unitDef, commanderID)
-					local cost = defMetergies[unitDefID] - discount
-
-					table.insert(comData.spawnQueue, 1, { id = unitDefID })
-					budgetUsed = budgetUsed + cost
-				end
-				
-				comData.buildIndex = comData.buildIndex + 1
-				if comData.buildIndex > #comData.buildQuotas then
-					comData.buildIndex = 1
-				end
-			end
-		else
-			comData.buildIndex = comData.buildIndex + 1
-			if comData.buildIndex > #comData.buildQuotas then
-				comData.buildIndex = 1
-			end
-		end
+	while budgetRemaining > 0 and attempts < SAFETY_COUNT and comData.buildIndex <= #comData.buildQuotas do
 		attempts = attempts + 1
+		local buildType = comData.buildQuotas[comData.buildIndex]
+		local unitDefID = comData.buildDefs[buildType]
+		local unitDef = unitDefs[unitDefID]
+		local discount = getFactoryDiscount(unitDef, commanderID)
+		local cost = defMetergies[unitDefID] - discount
+		local shouldQueue = true
+
+		if ((buildType == "mex" and not isMetalMap) and not refreshAndCheckAvailableMexSpots(commanderID)) then
+			shouldQueue = false
+		elseif cost > budgetRemaining then
+			shouldQueue = false
+			Spring.AddTeamResource(comData.teamID, "metal", budgetRemaining)
+			comData.budget = comData.budget - budgetRemaining
+			break
+		end
+
+		if shouldQueue then
+			table.insert(comData.spawnQueue, 1, { id = unitDefID })
+			budgetRemaining = budgetRemaining - cost
+		end
+
+		comData.buildIndex = comData.buildIndex + 1
+		if comData.buildIndex > #comData.buildQuotas then
+			comData.buildIndex = 1
+		end
 	end
 end
 
