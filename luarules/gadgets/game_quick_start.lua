@@ -46,13 +46,14 @@ local quickStartAmountConfig = {
 local ALL_COMMANDS = -1
 local UNOCCUPIED = 2
 local BUILD_SPACING = 64
+local COMMANDER_NO_GO_DISTANCE = 100
 local CONVERTER_GRID_DISTANCE = 200
 local BASE_GENERATION_RANGE = 600
 local ENERGY_VALUE_CONVERSION_DIVISOR = 10
 local FACTORY_DISCOUNT = math.huge
 local MAP_CENTER_X = Game.mapSizeX / 2
 local MAP_CENTER_Z = Game.mapSizeZ / 2
-local NODE_GRID_SORT_DISTANCE = 500
+local NODE_GRID_SORT_DISTANCE = 300
 local PREGAME_DELAY_FRAMES = 61 --after gui_pregame_build.lua is loaded
 local SKIP_STEP = 3
 local UPDATE_FRAMES = Game.gameSpeed
@@ -61,6 +62,7 @@ local MEX_OVERLAP_DISTANCE = Game.extractorRadius + Game.metalMapSquareSize
 local SAFETY_COUNT = 100
 local BUILT_ENOUGH_FOR_FULL = 0.9
 local MAX_HEIGHT_DIFFERENCE = 100
+local DEFAULT_FACING = 0
 
 local spCreateUnit = Spring.CreateUnit
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -112,7 +114,7 @@ local function generateLocalGrid(commanderID)
 	local gridList = {}
 	local used = {}
 	local noGoZones = {}
-	table.insert(noGoZones, { x = originX, z = originZ, distance = 100 })
+	table.insert(noGoZones, { x = originX, z = originZ, distance = COMMANDER_NO_GO_DISTANCE })
 	if comData.nearbyMexes then
 		for i = 1, #comData.nearbyMexes do
 			local mex = comData.nearbyMexes[i]
@@ -139,7 +141,7 @@ local function generateLocalGrid(commanderID)
 						local heightDiff = math.abs(searchY - originY)
 						if heightDiff <= MAX_HEIGHT_DIFFERENCE then
 							local snappedX, snappedY, snappedZ = spPos2BuildPos(buildDefID, testX, searchY, testZ)
-							if snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, 0) == UNOCCUPIED then
+			if snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, DEFAULT_FACING) == UNOCCUPIED then
 								local key = snappedX .. "_" .. snappedZ
 								if not used[key] then
 									used[key] = true
@@ -246,7 +248,7 @@ local function refreshAvailableMexSpots(commanderID)
 			local spot = comData.nearbyMexes[i]
 			local groundY = spGetGroundHeight(spot.x, spot.z)
 			local buildX, buildY, buildZ = spPos2BuildPos(mexDefID, spot.x, groundY, spot.z)
-			if buildX and spTestBuildOrder(mexDefID, buildX, buildY, buildZ, 0) == UNOCCUPIED then
+			if buildX and spTestBuildOrder(mexDefID, buildX, buildY, buildZ, DEFAULT_FACING) == UNOCCUPIED then
 				local nearbyUnits = Spring.GetUnitsInCylinder(spot.x, spot.z, MEX_OVERLAP_DISTANCE)
 				local hasMex = false
 				for j = 1, #nearbyUnits do
@@ -306,7 +308,7 @@ local function getBuildSpace(commanderID, option)
 			if mexSpot.x and mexSpot.y and mexSpot.z then
 				local mexDefID = comData.buildDefs.mex
 				if mexDefID then
-					if spTestBuildOrder(mexDefID, mexSpot.x, mexSpot.y, mexSpot.z, 0) == UNOCCUPIED then
+					if spTestBuildOrder(mexDefID, mexSpot.x, mexSpot.y, mexSpot.z, DEFAULT_FACING) == UNOCCUPIED then
 						return mexSpot.x, mexSpot.y, mexSpot.z
 					end
 				else
@@ -342,7 +344,8 @@ local function populateNodeGrids(nodes, localGrid)
 		end
 		node.score = #node.grid
 		node.distanceFromCenter = math.distance2d(node.x, node.z, MAP_CENTER_X, MAP_CENTER_Z)
-		node.goodEnough = node.score >= math.ceil(totalValid * 0.25)
+		local MIN_GRID_THRESHOLD = 0.20
+		node.goodEnough = node.score >= math.ceil(totalValid * MIN_GRID_THRESHOLD)
 	end
 end
 
@@ -351,34 +354,37 @@ local function generateBaseNodesFromLocalGrid(commanderID, localGrid)
 	local spawnX, spawnZ = comData.spawnX, comData.spawnZ
 	local nodes = createBaseNodes(spawnX, spawnZ)
 	populateNodeGrids(nodes, localGrid)
-	local nodesByDistance = {}
+	
+	local minDistance = math.huge
+	local maxDistance = 0
 	for i = 1, #nodes do
-		nodesByDistance[i] = nodes[i]
+		local node = nodes[i]
+		minDistance = math.min(minDistance, node.distanceFromCenter)
+		maxDistance = math.max(maxDistance, node.distanceFromCenter)
 	end
-	table.sort(nodesByDistance, function(a, b) return a.distanceFromCenter > b.distanceFromCenter end)
-	local selectedPair
-	for i = 1, #nodesByDistance do
-		local node = nodesByDistance[i]
-		if node.goodEnough then
-			local leftIndex = ((node.index + BASE_NODE_COUNT - 2) % BASE_NODE_COUNT) + 1
-			local rightIndex = (node.index % BASE_NODE_COUNT) + 1
-			if nodes[leftIndex].goodEnough then
-				selectedPair = { nodes[leftIndex], node }
-				break
+	
+	for i = 1, #nodes do
+		local node = nodes[i]
+		local MIN_CENTER_WEIGHT, MAX_CENTER_WEIGHT = 0.5, 1.0
+		local centerWeight = math.clamp(1.0 - (node.distanceFromCenter - minDistance) / (maxDistance - minDistance), MIN_CENTER_WEIGHT, MAX_CENTER_WEIGHT)
+		local averageDistance = 0
+		if #node.grid > 0 then
+			for j = 1, #node.grid do
+				averageDistance = averageDistance + math.distance2d(node.grid[j].x, node.grid[j].z, node.x, node.z)
 			end
-			if nodes[rightIndex].goodEnough then
-				selectedPair = { node, nodes[rightIndex] }
-				break
-			end
+			averageDistance = averageDistance / #node.grid
 		end
+		node.resultantScore = centerWeight * averageDistance
 	end
-	if not selectedPair then
-		local bestScore = -1
-		for i = 1, BASE_NODE_COUNT do
-			local j = (i % BASE_NODE_COUNT) + 1
-			local s = nodes[i].score + nodes[j].score
-			if s > bestScore then
-				bestScore = s
+	
+	local selectedPair
+	local bestResultantScore = math.huge
+	for i = 1, BASE_NODE_COUNT do
+		local j = (i % BASE_NODE_COUNT) + 1
+		if nodes[i].goodEnough and nodes[j].goodEnough then
+			local combinedScore = nodes[i].resultantScore + nodes[j].resultantScore
+			if combinedScore < bestResultantScore then
+				bestResultantScore = combinedScore
 				selectedPair = { nodes[i], nodes[j] }
 			end
 		end
@@ -391,25 +397,23 @@ local function generateBaseNodesFromLocalGrid(commanderID, localGrid)
 	local converterNode = nodeA.score <= nodeB.score and nodeA or nodeB
 	local otherNode = converterNode == nodeA and nodeB or nodeA
 	local filteredConverter = {}
+	local converterKeys = {}
 	for i = 1, #converterNode.grid do
 		local p = converterNode.grid[i]
 		if math.distance2d(p.x, p.z, converterNode.x, converterNode.z) <= CONVERTER_GRID_DISTANCE then
 			table.insert(filteredConverter, p)
+			converterKeys[p.x .. "_" .. p.z] = true
 		end
 	end
-	local converterKeys = {}
-	for i = 1, #filteredConverter do
-		local k = filteredConverter[i].x .. "_" .. filteredConverter[i].z
-		converterKeys[k] = true
-	end
+	
 	local filteredOther = {}
-	for i = 1, #otherNode.grid do
-		local p = otherNode.grid[i]
-		local k = p.x .. "_" .. p.z
-		if not converterKeys[k] then
+	for i = 1, #localGrid do
+		local p = localGrid[i]
+		if not converterKeys[p.x .. "_" .. p.z] then
 			table.insert(filteredOther, p)
 		end
 	end
+	
 	for i = 1, #filteredConverter do
 		filteredConverter[i].d = math.distance2d(filteredConverter[i].x, filteredConverter[i].z, converterNode.x, converterNode.z)
 	end
