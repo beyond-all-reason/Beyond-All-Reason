@@ -69,10 +69,10 @@ local quickStartConfig = {
 				["goodWind"] = {
 					"mex",
 					"mex",
+					"windmill",
+					"windmill",
+					"windmill",
 					"mex",
-					"windmill",
-					"windmill",
-					"windmill",
 					"windmill",
 					"windmill",
 					"windmill",
@@ -129,20 +129,22 @@ local quickStartConfig = {
 				["goodWind"] = {
 					"mex",
 					"mex",
+					"windmill",
 					"mex",
 					"windmill",
 					"windmill",
-					"windmill",
-					"windmill",
-					"windmill",
-					"windmill",
-					"windmill",
-					"windmill",
-					"windmill",
-					"windmill",
+					"mex", --100 extra base budget?
 					"solar",
+					"windmill",
+					"windmill",
 					"landEnergyStorage",
-					"converter",
+					"windmill",
+					"windmill",
+					"windmill",
+					"windmill",
+					"windmill",
+					"converter", --if no mex, this will be built
+					"converter", --if there's only two mex built, this is made
 				}
 			},
 			["water"] = {

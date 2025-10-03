@@ -38,13 +38,13 @@ local QUICK_START_COST_METAL = 800       --will be deducted from commander's met
 local quickStartAmountConfig = {
 	small = 1000,
 	normal = 1500,
-	large = 2250,
+	large = 3000,
 }
 
 -------------------------------------------------------------------------
 
 local ALL_COMMANDS = -1
-local BUILD_ORDER_FREE = 2
+local UNOCCUPIED = 2
 local BUILD_SPACING = 64
 local CONVERTER_GRID_DISTANCE = 200
 local BASE_GENERATION_RANGE = 600
@@ -58,7 +58,7 @@ local SKIP_STEP = 3
 local UPDATE_FRAMES = Game.gameSpeed
 local BASE_NODE_COUNT = 8
 local MEX_OVERLAP_DISTANCE = Game.extractorRadius + Game.metalMapSquareSize
-local SAFETY_COUNT = 15
+local SAFETY_COUNT = 100
 local BUILT_ENOUGH_FOR_FULL = 0.9
 local MAX_HEIGHT_DIFFERENCE = 100
 
@@ -100,8 +100,7 @@ end
 
 local function generateLocalGrid(commanderID)
 	local comData = commanders[commanderID]
-	local originX, originZ = comData.spawnX, comData.spawnZ
-	local originY = comData.spawnY
+	local originX, originY, originZ = comData.spawnX, comData.spawnY, comData.spawnZ
 	local buildDefID = comData.isInWater and (comData.buildDefs and comData.buildDefs.tidal) or (comData.buildDefs and comData.buildDefs.windmill)
 	if not buildDefID then
 		return {}
@@ -140,11 +139,11 @@ local function generateLocalGrid(commanderID)
 						local heightDiff = math.abs(searchY - originY)
 						if heightDiff <= MAX_HEIGHT_DIFFERENCE then
 							local snappedX, snappedY, snappedZ = spPos2BuildPos(buildDefID, testX, searchY, testZ)
-							if snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, 0) == BUILD_ORDER_FREE then
+							if snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, 0) == UNOCCUPIED then
 								local key = snappedX .. "_" .. snappedZ
 								if not used[key] then
 									used[key] = true
-									table.insert(gridList, { x = snappedX, z = snappedZ })
+									table.insert(gridList, { x = snappedX, y = snappedY, z = snappedZ })
 								end
 							end
 						end
@@ -209,7 +208,7 @@ local function getCommanderBuildQueue(commanderID)
 	local totalBudgetCost = 0
 	for i, cmd in ipairs(commands) do
 		if isBuildCommand(cmd.id) then
-			local spawnParams = { id = -cmd.id, x = cmd.params[1], z = cmd.params[3], facing = cmd
+			local spawnParams = { id = -cmd.id, x = cmd.params[1], y = cmd.params[2], z = cmd.params[3], facing = cmd
 			.params[4] or 1, cmdTag = cmd.tag }
 			if math.distance2d(comData.spawnX, comData.spawnZ, spawnParams.x, spawnParams.z) <= INSTANT_BUILD_RANGE then
 				table.insert(spawnQueue, spawnParams)
@@ -247,7 +246,7 @@ local function refreshAvailableMexSpots(commanderID)
 			local spot = comData.nearbyMexes[i]
 			local groundY = spGetGroundHeight(spot.x, spot.z)
 			local buildX, buildY, buildZ = spPos2BuildPos(mexDefID, spot.x, groundY, spot.z)
-			if buildX and spTestBuildOrder(mexDefID, buildX, buildY, buildZ, 0) == BUILD_ORDER_FREE then
+			if buildX and spTestBuildOrder(mexDefID, buildX, buildY, buildZ, 0) == UNOCCUPIED then
 				local nearbyUnits = Spring.GetUnitsInCylinder(spot.x, spot.z, MEX_OVERLAP_DISTANCE)
 				local hasMex = false
 				for j = 1, #nearbyUnits do
@@ -258,6 +257,7 @@ local function refreshAvailableMexSpots(commanderID)
 					end
 				end
 				if not hasMex then
+					spot.y = buildY
 					table.insert(validSpots, spot)
 				end
 			end
@@ -271,29 +271,50 @@ end
 local function getBuildSpace(commanderID, option)
 	local comData = commanders[commanderID]
 	if not comData then
-		return nil, nil
+		return nil, nil, nil
 	end
 
 	if option ~= "mex" or isMetalMap then
 		local nodeType = optionsToNodeType[option] or "other"
 		local gridList = comData.gridLists[nodeType] or {}
 
-		if #gridList == 0 then
-			return nil, nil
+		while #gridList > 0 do
+			local candidate = gridList[1]
+			table.remove(gridList, 1)
+			
+			if candidate.x and candidate.y and candidate.z then
+				local unitDefID = comData.buildDefs[option]
+				if unitDefID then
+					if spTestBuildOrder(unitDefID, candidate.x, candidate.y, candidate.z, 0) == UNOCCUPIED then
+						comData.gridLists[nodeType] = gridList
+						return candidate.x, candidate.y, candidate.z
+					end
+				else
+					comData.gridLists[nodeType] = gridList
+					return candidate.x, candidate.y, candidate.z
+				end
+			end
 		end
-
-		local candidate = gridList[1]
-		table.remove(gridList, 1)
+		
 		comData.gridLists[nodeType] = gridList
-
-		return candidate.x, candidate.z
+		return nil, nil, nil
 	else
-		if comData.nearbyMexes and #comData.nearbyMexes > 0 then
+		while comData.nearbyMexes and #comData.nearbyMexes > 0 do
 			local mexSpot = comData.nearbyMexes[1]
 			table.remove(comData.nearbyMexes, 1)
-			return mexSpot.x, mexSpot.z
+			
+			if mexSpot.x and mexSpot.y and mexSpot.z then
+				local mexDefID = comData.buildDefs.mex
+				if mexDefID then
+					if spTestBuildOrder(mexDefID, mexSpot.x, mexSpot.y, mexSpot.z, 0) == UNOCCUPIED then
+						return mexSpot.x, mexSpot.y, mexSpot.z
+					end
+				else
+					return mexSpot.x, mexSpot.y, mexSpot.z
+				end
+			end
 		end
-		return nil, nil
+		return nil, nil, nil
 	end
 end
 
@@ -316,7 +337,7 @@ local function populateNodeGrids(nodes, localGrid)
 		for j = 1, totalValid do
 			local p = localGrid[j]
 			if math.distance2d(p.x, p.z, node.x, node.z) <= NODE_GRID_SORT_DISTANCE then
-				table.insert(node.grid, { x = p.x, z = p.z })
+				table.insert(node.grid, { x = p.x, y = p.y, z = p.z })
 			end
 		end
 		node.score = #node.grid
@@ -564,14 +585,15 @@ local function removeCommanderCommands(commanderID)
 	end
 end
 
-local function tryToSpawnBuild(commanderID, unitDefID, buildX, buildZ, facing)
+local function tryToSpawnBuild(commanderID, unitDefID, buildX, buildY, buildZ, facing)
 	local unitDef, comData = unitDefs[unitDefID], commanders[commanderID]
 	local discount = getFactoryDiscount(unitDef, commanderID)
 	local cost = defMetergies[unitDefID] - discount
 	if comData.budget <= 0 then return false end
-	local buildY = spGetGroundHeight(buildX, buildZ)
 
-	if spTestBuildOrder(unitDefID, buildX, buildY, buildZ, facing) ~= BUILD_ORDER_FREE then
+	Spring.Echo("QS: Trying to spawn ", unitDef.name, " at ", buildX, ", ", buildY, ", ", buildZ, " facing ", facing)
+	if spTestBuildOrder(unitDefID, buildX, buildY, buildZ, facing) ~= UNOCCUPIED then
+		Spring.Echo("QS: Skipped " .. unitDef.name .. " ( fuck build order failed) idx:")
 		return false
 	end
 
@@ -612,7 +634,7 @@ local function assignMexSpots()
 					local spotHash
 					local mexSpot
 					if buildItem.x then
-						mexSpot = { x = buildItem.x, z = buildItem.z }
+						mexSpot = { x = buildItem.x, y = buildItem.y, z = buildItem.z }
 						spotHash = buildItem.x .. "_" .. buildItem.z
 					else
 						if comData.nearbyMexes and #comData.nearbyMexes > 0 then
@@ -631,13 +653,13 @@ local function assignMexSpots()
 
 								table.insert(toRemove[oldClaim.commanderID], oldClaim.index)
 								claimedSpots[spotHash] = {commanderID = commanderID, index = i, distance = distance}
-								buildItem.x, buildItem.z = mexSpot.x, mexSpot.z
+								buildItem.x, buildItem.y, buildItem.z = mexSpot.x, mexSpot.y, mexSpot.z
 							else
 								table.insert(toRemove[commanderID], i)
 							end
 						else
 							claimedSpots[spotHash] = {commanderID = commanderID, index = i, distance = distance}
-							buildItem.x, buildItem.z = mexSpot.x, mexSpot.z
+							buildItem.x, buildItem.y, buildItem.z = mexSpot.x, mexSpot.y, mexSpot.z
 						end
 					else
 						table.insert(toRemove[commanderID], i)
@@ -696,13 +718,13 @@ function gadget:GameFrame(frame)
 				if comData.spawnQueue then
 					for i, buildItem in ipairs(comData.spawnQueue) do
 						local buildType = optionDefIDToTypes[buildItem.id]
-						local buildX, buildZ = buildItem.x, buildItem.z
-						if not buildX or not buildZ then
-							buildX, buildZ = getBuildSpace(commanderID, buildType)
+						local buildX, buildY, buildZ = buildItem.x, buildItem.y, buildItem.z
+						if not buildX or not buildZ or not buildY then
+							buildX, buildY, buildZ = getBuildSpace(commanderID, buildType)
 						end
 						local facing = buildItem.facing or comData.defaultFacing or 0
-						if buildX and buildZ then
-							local success = tryToSpawnBuild(commanderID, buildItem.id, buildX, buildZ, facing)
+						if buildX then
+							local success = tryToSpawnBuild(commanderID, buildItem.id, buildX, buildY, buildZ, facing)
 							if success then
 								loop = true
 							end

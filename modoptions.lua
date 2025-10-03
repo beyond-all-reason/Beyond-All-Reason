@@ -1270,7 +1270,7 @@ local options = {
             { key = "default", 	name = "Default", desc = "Uses the default amount based on game mode" },
             { key = "small", 	name = "Small", desc = "1000 Base Budget" },
             { key = "normal", 	name = "Normal", desc = "1500 Base Budget" },
-            { key = "large", 	name = "Large", desc = "2250 Base Budget" },
+            { key = "large", 	name = "Large", desc = "3000 Base Budget" },
         }
     },
 
