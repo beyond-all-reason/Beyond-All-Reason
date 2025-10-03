@@ -2,8 +2,8 @@
 	position: absolute;
 	left: 0px;
 	top: 0px;
-	width: 1920px;
-	height: 1080px;
+	width: 100vw;
+	height: 100vh;
 	z-index: 10000;
 	font-family: Exo 2;
 	pointer-events: none;
@@ -24,7 +24,7 @@
 	flex-direction: column;
 	justify-content: flex-start;
 	align-items: flex-start;
-	padding-left: 30.2%;
+	padding-left: 30.7vw;
 	padding-top: 0px;
 }
 
@@ -43,6 +43,8 @@
 	decorator: image("/luaui/images/stripes-small.png" repeat);
 	image-color: rgba(40, 40, 40, 60);
 	position: relative;
+	width: 30.83vw;
+	min-width: 300px;
 }
 
 .qs-budget-gradient-overlay {
@@ -71,6 +73,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	width: 100%;
 }
 
 .qs-budget-metal-icon {
@@ -135,11 +138,11 @@
 
 .qs-budget-bar {
 	position: relative;
-	width: 519px;
+	width: 27vw;
 	height: 8px;
 	margin-top: 2px;
 	margin-right: 8px;
-	margin-left: 74px;
+	margin-left: 3.9vw;
 	margin-bottom: 8px;
 	background-color: rgba(0, 0, 0, 230);
 	border-radius: 6px;
@@ -153,6 +156,7 @@
 	width: 50%;
 	background-color: #c800f0;
 	decorator: vertical-gradient( #c800f0 #4a0058);
+	border-radius: 6px;
 	z-index: 1;
 }
 
@@ -162,6 +166,7 @@
 	width: 0%;
 	background-color: #a300c4;
 	decorator: vertical-gradient( #a300c4 #290031);
+	border-radius: 6px;
 	z-index: 2;
 }
 
@@ -184,7 +189,7 @@
 .qs-warning-text {
 	position: absolute;
 	left: 50%;
-	top: 50%;
+	top: 50vh;
 	transform: translate(-50%, -50%);
 	font-size: 30px;
 	font-effect: outline(1px black);
@@ -201,7 +206,7 @@
 .qs-factory-section {
 	position: absolute;
 	left: 50%;
-	top: 56%;
+	top: 56vh;
 	transform: translate(-50%, -50%);
 	z-index: 1000;
 }
