@@ -57,6 +57,7 @@ local CMD_GUARD = CMD.GUARD
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 
 local FIRE_STATE_FIRE_AT_WILL = 2
+local FIRE_STATE_RETURN_FIRE = 1
 local MOVE_STATE_ROAM = 2
 local ENABLE_REPEAT = 1
 
@@ -108,10 +109,12 @@ end
 local mapWidth
 local mapHeight
 
+local ordersEnabled = true
 local gameFrame = 0
 local adjustedRezSpeed = ZOMBIES_REZ_SPEED
 local isIdleMode = false
 local autoSpawningEnabled = true
+local debugMode = false
 
 local extraDefs = {}
 local zombieCorpseDefs = {}
@@ -175,11 +178,13 @@ local function setGaiaStorage()
 end
 
 local function updateAdjustedRezSpeed()
-    local techGuesstimateMultiplier = 2 -- to compensate for TechGuesstimate starting at 0.5
-    local highestPowerData = GG.PowerLib.HighestPlayerTeamPower()
-    if highestPowerData and highestPowerData.power then
-        adjustedRezSpeed = ZOMBIES_REZ_SPEED * GG.PowerLib.TechGuesstimate(highestPowerData.power) * techGuesstimateMultiplier
-    end
+	local techGuesstimateMultiplier = 2
+	if GG.PowerLib and GG.PowerLib.HighestPlayerTeamPower and GG.PowerLib.TechGuesstimate then
+		local highestPowerData = GG.PowerLib.HighestPlayerTeamPower()
+		if highestPowerData and highestPowerData.power then
+			adjustedRezSpeed = ZOMBIES_REZ_SPEED * GG.PowerLib.TechGuesstimate(highestPowerData.power) * techGuesstimateMultiplier
+		end
+	end
 end
 
 local function calculateHealthRatio(featureID)
@@ -202,6 +207,9 @@ local function GetUnitNearestAlly(unitID, unitDefID, range)
 	local bestAllyID
 	local bestDistanceSquared
 	local x, y, z = spGetUnitPosition(unitID)
+	if not x or not z then
+		return nil
+	end
 	local units = spGetUnitsInCylinder(x, z, range)
 	for i = 1, #units do
 		local allyID = units[i]
@@ -209,10 +217,12 @@ local function GetUnitNearestAlly(unitID, unitDefID, range)
 		local allyDefID = spGetUnitDefID(allyID)
 		if (allyID ~= unitID) and (allyTeam == gaiaTeamID) and UnitDefs[allyDefID].canAttack and spGetUnitCurrentCommand(allyID) ~= CMD_GUARD then
 			local ox, oy, oz = spGetUnitPosition(allyID)
-			local currentDistanceSquared = distance2dSquared(x, z, ox, oz)
-			if spTestMoveOrder(unitDefID, ox, oy, oz) and ((bestDistanceSquared == nil) or (currentDistanceSquared < bestDistanceSquared)) then
-				bestAllyID = allyID
-				bestDistanceSquared = currentDistanceSquared
+			if ox and oy and oz then
+				local currentDistanceSquared = distance2dSquared(x, z, ox, oz)
+				if spTestMoveOrder(unitDefID, ox, oy, oz) and ((bestDistanceSquared == nil) or (currentDistanceSquared < bestDistanceSquared)) then
+					bestAllyID = allyID
+					bestDistanceSquared = currentDistanceSquared
+				end
 			end
 		end
 	end
@@ -243,7 +253,7 @@ end
 
 local function playSpawnSound(x, y, z)
 	local selectedEffect = spawnEffects[random(#spawnEffects)]
-	spPlaySoundFile(selectedEffect, 0.5, x, y, z, 'sfx')
+		spPlaySoundFile(selectedEffect, 0.5, x, y, z, 0)
 end
 
 local function issueRandomOrders(unitID, unitDefID)
@@ -251,12 +261,14 @@ local function issueRandomOrders(unitID, unitDefID)
 	
 	local orders = {}
 	local nearAlly = (unitDef.canAttack) and GetUnitNearestAlly(unitID, unitDefID, ZOMBIE_GUARD_RADIUS) or nil
+	local isGuarding = false
 	if nearAlly then
 		if random() < ZOMBIE_GUARD_CHANCE then
 			orders[#orders + 1] = {CMD_GUARD, {nearAlly}, 0}
+			isGuarding = true
 		end
 	end
-	if extraDefs[unitDefID].isMobile then
+	if extraDefs[unitDefID].isMobile and not isGuarding then
 		for i = 1, ZOMBIE_ORDER_COUNT do
 			local randomX = random(0, mapWidth)
 			local randomZ = random(0, mapHeight)
@@ -292,7 +304,11 @@ local function setZombieStates(unitID, unitDefID)
 	local unitDef = UnitDefs[unitDefID]
 	spGiveOrderToUnit(unitID, CMD_REPEAT, ENABLE_REPEAT, 0)
 	spGiveOrderToUnit(unitID, CMD_MOVE_STATE, MOVE_STATE_ROAM, 0)
-	spGiveOrderToUnit(unitID, CMD_FIRE_STATE, FIRE_STATE_FIRE_AT_WILL, 0)
+	if ordersEnabled then
+		spGiveOrderToUnit(unitID, CMD_FIRE_STATE, FIRE_STATE_FIRE_AT_WILL, 0)
+	else
+		spGiveOrderToUnit(unitID, CMD_FIRE_STATE, FIRE_STATE_RETURN_FIRE, 0)
+	end
 end
 
 local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
@@ -321,22 +337,24 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 			end
 			local unitHealth = spGetUnitHealth(unitID)
 			spSetUnitHealth(unitID, unitHealth * healthReductionRatio)
-			spSetUnitRulesParam(unitID, "zombie", true)
+			spSetUnitRulesParam(unitID, "zombie", 1)
 			if scavTeamID then
 				spTransferUnit(unitID, scavTeamID)
 			else
 				zombieWatch[unitID] = unitDefID
-				issueRandomOrders(unitID, unitDefID)
+				if ordersEnabled then
+					issueRandomOrders(unitID, unitDefID)
+				end
 				setZombieStates(unitID, unitDefID)
 			end
 		end
 	end
 end
 
-local setZombie = function(unitID)
+local function setZombie(unitID)
 	local unitDefID = spGetUnitDefID(unitID)
 	if unitDefID then
-		spSetUnitRulesParam(unitID, "zombie", true)
+		spSetUnitRulesParam(unitID, "zombie", 1)
 		zombieWatch[unitID] = unitDefID
 		setZombieStates(unitID, unitDefID)
 	end
@@ -399,13 +417,16 @@ function gadget:GameFrame(frame)
 			else
 				local queueSize = spGetUnitCommandCount(unitID)
 				if not (queueSize) or (queueSize == 0) and spGetUnitTeam(unitID) == gaiaTeamID then
-					issueRandomOrders(unitID, unitDefID)
+					if ordersEnabled then
+						issueRandomOrders(unitID, unitDefID)
+					end
 				end
 			end
 		end
 		updateAdjustedRezSpeed()
 	end
 end
+
 local function queueCorpseForSpawning(featureID, bypassModOption)
 	if not bypassModOption and (isIdleMode or not autoSpawningEnabled) then
 		return
@@ -435,10 +456,10 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		if identifiedZombie then
 			zombieWatch[unitID] = unitDefID
 		else
-			spSetUnitRulesParam(unitID, "zombie", false)
+			spSetUnitRulesParam(unitID, "zombie", 0)
 		end
 	else
-		spSetUnitRulesParam(unitID, "zombie", false)
+		spSetUnitRulesParam(unitID, "zombie", 0)
 	end
 end
 
@@ -451,11 +472,13 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		local health = spGetUnitHealth(unitID)
 		if damage >= health then
 			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
-			local defData = zombieHeapDefs[unitDefID]
-			spDestroyUnit(unitID, false, true, attackerID)
-			spSpawnExplosion(unitX, unitY, unitZ, 0, 0, 0, {weaponDef = defData.explosionDefID} )
-			if defData.heapDefID then
-				spCreateFeature(defData.heapDefID, unitX, unitY, unitZ)
+			if unitX and unitY and unitZ then
+				local defData = zombieHeapDefs[unitDefID]
+				spDestroyUnit(unitID, false, true, attackerID)
+				spSpawnExplosion(unitX, unitY, unitZ, 0, 0, 0, {weaponDef = defData.explosionDefID, owner = attackerID, hitUnit = unitID, hitFeature = -1, craterAreaOfEffect = 0, damageAreaOfEffect = 0, edgeEffectiveness = 0, explosionSpeed = 0, gfxMod = 0, impactOnly = false, ignoreOwner = false, damageGround = true} )
+				if defData.heapDefID then
+					spCreateFeature(defData.heapDefID, unitX, unitY, unitZ)
+				end
 			end
 		end
 	end
@@ -477,27 +500,325 @@ local function createZombieFromFeature(featureID)
 	return false
 end
 
-function ProcessAllCorpses()
+local function queueAllCorpsesForSpawning()
 	local features = Spring.GetAllFeatures()
 	for _, featureID in ipairs(features) do
 		queueCorpseForSpawning(featureID, true)
 	end
 end
 
+local function clearOrders()
+	for zombieID, _ in pairs(zombieWatch) do
+		if Spring.ValidUnitID(zombieID) then
+			local currentCommand = Spring.GetUnitCurrentCommand(zombieID)
+			if currentCommand ~= CMD_GUARD then
+				Spring.GiveOrderToUnit(zombieID, CMD.STOP, {}, {})
+			end
+		end
+	end
+end
+
+local function pacifyZombies(enabled)
+	if enabled then
+		ordersEnabled = false
+		clearOrders()
+		for zombieID, _ in pairs(zombieWatch) do
+			if Spring.ValidUnitID(zombieID) then
+				Spring.GiveOrderToUnit(zombieID, CMD.FIRE_STATE, {FIRE_STATE_RETURN_FIRE}, {})
+			end
+		end
+	else
+		ordersEnabled = true
+		for zombieID, _ in pairs(zombieWatch) do
+			if Spring.ValidUnitID(zombieID) then
+				Spring.GiveOrderToUnit(zombieID, CMD.FIRE_STATE, {FIRE_STATE_FIRE_AT_WILL}, {})
+			end
+		end
+	end
+end
+
+local function aggroPlayerID(playerID)
+	clearOrders()
+	local targetUnits = Spring.GetTeamUnits(Spring.GetPlayerTeamID(playerID))
+	if not targetUnits or #targetUnits == 0 then return end
+	
+	for zombieID, _ in pairs(zombieWatch) do
+		if Spring.ValidUnitID(zombieID) then
+			local randomTarget = targetUnits[math.random(1, #targetUnits)]
+			if Spring.ValidUnitID(randomTarget) then
+				local targetX, targetY, targetZ = Spring.GetUnitPosition(randomTarget)
+				if targetX then
+					local angle = math.random() * 2 * math.pi
+					local offsetDistance = math.random(25, 500)
+					local fightX = targetX + math.cos(angle) * offsetDistance
+					local fightZ = targetZ + math.sin(angle) * offsetDistance
+					local fightY = Spring.GetGroundHeight(fightX, fightZ)
+					
+					Spring.GiveOrderToUnit(zombieID, CMD.FIGHT, {fightX, fightY, fightZ}, {})
+				end
+			end
+		end
+	end
+end
+
+local function aggroAllyID(allyID)
+	clearOrders()
+	local targetUnits = Spring.GetTeamUnits(allyID)
+	if not targetUnits or #targetUnits == 0 then return end
+	
+	for zombieID, _ in pairs(zombieWatch) do
+		if Spring.ValidUnitID(zombieID) then
+			local randomTarget = targetUnits[math.random(1, #targetUnits)]
+			if Spring.ValidUnitID(randomTarget) then
+				local targetX, targetY, targetZ = Spring.GetUnitPosition(randomTarget)
+				if targetX then
+					local angle = math.random() * 2 * math.pi
+					local offsetDistance = math.random(25, 500)
+					local fightX = targetX + math.cos(angle) * offsetDistance
+					local fightZ = targetZ + math.sin(angle) * offsetDistance
+					local fightY = Spring.GetGroundHeight(fightX, fightZ)
+					
+					Spring.GiveOrderToUnit(zombieID, CMD.FIGHT, {fightX, fightY, fightZ}, {})
+				end
+			end
+		end
+	end
+end
+
+local DAMAGE_EXTSOURCE_SYSTEM = -1
+
+local function killAllZombies()
+	for zombieID, zombieData in pairs(zombieWatch) do
+		if Spring.ValidUnitID(zombieID) and not Spring.GetUnitIsDead(zombieID) then
+			local currentHealth = Spring.GetUnitHealth(zombieID)
+			if currentHealth and currentHealth > 0 then
+				Spring.AddUnitDamage(zombieID, currentHealth, 0, DAMAGE_EXTSOURCE_SYSTEM, 0)
+			end
+		end
+	end
+end
+
+
 local function setAutoSpawning(enabled)
 	autoSpawningEnabled = enabled
+	if enabled then
+		queueAllCorpsesForSpawning()
+	end
+end
+
+local function clearAllZombieSpawns()
+	corpsesData = {}
+	corpseCheckFrames = {}
+end
+
+local function isAuthorized(playerID)
+	if Spring.IsCheatingEnabled() then
+		return true
+	else
+		local playername,_,_,_,_,_,_,_,_,_,accountInfo = Spring.GetPlayerInfo(playerID)
+		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+		if (_G and _G.permissions.devhelpers[accountID]) or (SYNCED and SYNCED.permissions.devhelpers[accountID]) then
+			return true
+		end
+	end
+	return false
+end
+
+local function handleConsoleCommand(playerID, commandName, requiredArgs, actionFunction)
+	if not isAuthorized(playerID) then
+		Spring.SendMessageToPlayer(playerID, "You are not authorized to use zombie commands")
+		return
+	end
+	
+	if requiredArgs and #requiredArgs == 0 then
+		Spring.SendMessageToPlayer(playerID, "Usage: /luarules " .. commandName .. " <required arguments>")
+		return
+	end
+	
+	return actionFunction(playerID, requiredArgs, true) -- true = send messages
+end
+
+local function convertUnitsToZombies(unitIDs)
+	if not unitIDs or #unitIDs == 0 then
+		return 0
+	end
+	
+	local convertedCount = 0
+	for _, unitID in ipairs(unitIDs) do
+		if Spring.ValidUnitID(unitID) then
+			GG.Zombies.SetZombie(unitID)
+			convertedCount = convertedCount + 1
+		end
+	end
+	
+	return convertedCount
+end
+
+local function setAllGaiaToZombies()
+	local allUnits = Spring.GetAllUnits()
+	local convertedCount = 0
+	
+	for _, unitID in ipairs(allUnits) do
+		local unitTeam = Spring.GetUnitTeam(unitID)
+		if unitTeam == gaiaTeamID then
+			GG.Zombies.SetZombie(unitID)
+			convertedCount = convertedCount + 1
+		end
+	end
+	
+	return convertedCount
+end
+
+local function setAllGaiaToZombiesCommand(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombiesetallgaia", nil, function(playerID, args, sendMessage)
+		local convertedCount = GG.Zombies.SetAllGaiaToZombies()
+		if sendMessage or debugMode then
+			Spring.SendMessageToPlayer(playerID, "Set " .. convertedCount .. " Gaia units as zombies")
+		end
+	end)
+end
+
+local function queueAllCorpsesForReanimation(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombiequeueall", nil, function(playerID, args, sendMessage)
+		GG.Zombies.QueueAllCorpsesForSpawning()
+		if sendMessage or debugMode then
+			Spring.SendMessageToPlayer(playerID, "Queued all corpses for spawning")
+		end
+	end)
+end
+
+local function toggleAutoReanimation(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombieautospawn", words, function(playerID, args, sendMessage)
+		if not args[1] then
+			if sendMessage or debugMode then
+				Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombieautospawning <0|1>")
+			end
+			return
+		end
+		
+		local enabled = tonumber(args[1])
+		if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
+			if sendMessage or debugMode then
+				Spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
+			end
+			return
+		end
+		
+		GG.Zombies.SetAutoSpawning(enabled == 1)
+		if sendMessage or debugMode then
+			Spring.SendMessageToPlayer(playerID, "Auto spawning " .. (enabled == 1 and "enabled" or "disabled"))
+		end
+	end)
+end
+
+local function pacifyZombies(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombiepassify", words, function(playerID, args, sendMessage)
+		if not args[1] then
+			if sendMessage or debugMode then
+				Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombiepacify <0|1>")
+			end
+			return
+		end
+		
+		local enabled = tonumber(args[1])
+		if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
+			if sendMessage or debugMode then
+				Spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
+			end
+			return
+		end
+		
+		GG.Zombies.PacifyZombies(enabled == 1)
+		if sendMessage or debugMode then
+			Spring.SendMessageToPlayer(playerID, "Zombies " .. (enabled == 1 and "pacified" or "unpacified"))
+		end
+	end)
+end
+
+local function aggroZombiesToTeam(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombieaggroplayer", words, function(playerID, args, sendMessage)
+		if not args[1] then
+			if sendMessage or debugMode then
+				Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombieaggroplayer <teamID>")
+			end
+			return
+		end
+		
+		local targetTeamID = tonumber(args[1])
+		if not targetTeamID or targetTeamID < 0 then
+			if sendMessage or debugMode then
+				Spring.SendMessageToPlayer(playerID, "Invalid teamID")
+			end
+			return
+		end
+		
+		GG.Zombies.AggroPlayerID(targetTeamID)
+		if sendMessage or debugMode then
+			Spring.SendMessageToPlayer(playerID, "Zombies aggroed to team " .. targetTeamID)
+		end
+	end)
+end
+
+local function aggroZombiesToAlly(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombieaggroally", words, function(playerID, args, sendMessage)
+		if not args[1] then
+			if sendMessage or debugMode then
+				Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombieaggroally <allyTeamID>")
+			end
+			return
+		end
+		
+		local allyTeamID = tonumber(args[1])
+		if not allyTeamID or allyTeamID < 0 then
+			if sendMessage or debugMode then
+				Spring.SendMessageToPlayer(playerID, "Invalid allyID")
+			end
+			return
+		end
+		
+		GG.Zombies.AggroAllyID(allyTeamID)
+		if sendMessage or debugMode then
+			Spring.SendMessageToPlayer(playerID, "Zombies aggroed to ally team " .. allyTeamID)
+		end
+	end)
+end
+
+local function killAllZombies(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombiekillall", nil, function(playerID, args, sendMessage)
+		GG.Zombies.KillAllZombies()
+		if sendMessage or debugMode then
+			Spring.SendMessageToPlayer(playerID, "Killed all zombies")
+		end
+	end)
+end
+
+local function clearZombieOrders(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombieclearorders", nil, function(playerID, args, sendMessage)
+		GG.Zombies.ClearOrders()
+		if sendMessage or debugMode then
+			Spring.SendMessageToPlayer(playerID, "Cleared zombie orders")
+		end
+	end)
+end
+
+local function clearZombieSpawns(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombieclearspawns", nil, function(playerID, args, sendMessage)
+		GG.Zombies.ClearAllZombieSpawns()
+		if sendMessage or debugMode then
+			Spring.SendMessageToPlayer(playerID, "Cleared all queued zombie spawns")
+		end
+	end)
 end
 
 function gadget:Initialize()
 	local modOptionEnabled = modOptions.zombies ~= "disabled"
-	local idleModeEnabled = GG.Zombies and GG.Zombies.IdleMode == true
+	isIdleMode = modOptions.seasonal_surprise == true or (GG.Zombies and GG.Zombies.IdleMode == true)
 	
-	if not modOptionEnabled and not idleModeEnabled then
+	if not modOptionEnabled and not isIdleMode then
 		return false
 	end
 	
-	isIdleMode = idleModeEnabled and not modOptionEnabled
-	autoSpawningEnabled = modOptionEnabled
+	autoSpawningEnabled = modOptionEnabled and not isIdleMode
 	
 	mapWidth = Game.mapSizeX
 	mapHeight = Game.mapSizeZ
@@ -518,10 +839,43 @@ function gadget:Initialize()
 	end
 
 	GG.Zombies = GG.Zombies or {}
+	isIdleMode = GG.Zombies.IdleMode and GG.Zombies.IdleMode or false
 	GG.Zombies.SetZombie = setZombie
+	GG.Zombies.ConvertUnitsToZombies = convertUnitsToZombies
+	GG.Zombies.SetAllGaiaToZombies = setAllGaiaToZombies
 	GG.Zombies.CreateZombieFromFeature = createZombieFromFeature
-	GG.Zombies.ProcessAllCorpses = ProcessAllCorpses
+	GG.Zombies.QueueAllCorpsesForSpawning = queueAllCorpsesForSpawning
 	GG.Zombies.SetAutoSpawning = setAutoSpawning
+	GG.Zombies.ClearAllZombieSpawns = clearAllZombieSpawns
+	GG.Zombies.PacifyZombies = pacifyZombies
+	GG.Zombies.AggroPlayerID = aggroPlayerID
+	GG.Zombies.AggroAllyID = aggroAllyID
+	GG.Zombies.KillAllZombies = killAllZombies
+	GG.Zombies.ClearOrders = clearOrders
+	
+	-- Register console commands
+	gadgetHandler:AddChatAction('zombiesetallgaia', setAllGaiaToZombiesCommand, "Set all Gaia units as zombies")
+	gadgetHandler:AddChatAction('zombiequeueallcorpses', queueAllCorpsesForReanimation, "Queue all corpses for spawning")
+	gadgetHandler:AddChatAction('zombieautospawning', toggleAutoReanimation, "Enable/disable auto spawning")
+	gadgetHandler:AddChatAction('zombieclearspawns', clearZombieSpawns, "Clear all queued zombie spawns")
+	gadgetHandler:AddChatAction('zombiepacify', pacifyZombies, "Pacify/unpacify zombies")
+	gadgetHandler:AddChatAction('zombieaggroplayer', aggroZombiesToTeam, "Make zombies aggro to teamID")
+	gadgetHandler:AddChatAction('zombieaggroally', aggroZombiesToAlly, "Make zombies aggro to ally team")
+	gadgetHandler:AddChatAction('zombiekillall', killAllZombies, "Kill all zombies")
+	gadgetHandler:AddChatAction('zombieclearorders', clearZombieOrders, "Clear zombie orders")
+end
+
+function gadget:Shutdown()
+	-- Remove console commands
+	gadgetHandler:RemoveChatAction('zombiesetallgaia')
+	gadgetHandler:RemoveChatAction('zombiequeueallcorpses')
+	gadgetHandler:RemoveChatAction('zombieautospawning')
+	gadgetHandler:RemoveChatAction('zombieclearspawns')
+	gadgetHandler:RemoveChatAction('zombiepacify')
+	gadgetHandler:RemoveChatAction('zombieaggroplayer')
+	gadgetHandler:RemoveChatAction('zombieaggroally')
+	gadgetHandler:RemoveChatAction('zombiekillall')
+	gadgetHandler:RemoveChatAction('zombieclearorders')
 end
 
 function gadget:GameStart()
