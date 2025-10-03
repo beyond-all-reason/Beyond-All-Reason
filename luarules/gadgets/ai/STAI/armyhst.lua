@@ -581,12 +581,7 @@ function ArmyHST:Init()
 		corfmd = true ,
 		}
 
-	self._airPlat_ = {
-		armasp = true ,
-		armfasp = true ,
-		corasp = true ,
-		corfasp = true ,
-		}
+	self._airPlat_ = {}
 
 	self._convs_ = {
 		armmmkr = true ,
