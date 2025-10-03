@@ -103,7 +103,8 @@ end
 local function generateLocalGrid(commanderID)
 	local comData = commanders[commanderID]
 	local originX, originY, originZ = comData.spawnX, comData.spawnY, comData.spawnZ
-	local buildDefID = comData.isInWater and (comData.buildDefs and comData.buildDefs.tidal) or (comData.buildDefs and comData.buildDefs.windmill)
+	local buildDefID = comData.isInWater and (comData.buildDefs and comData.buildDefs.tidal) or
+	(comData.buildDefs and comData.buildDefs.windmill)
 	if not buildDefID then
 		return {}
 	end
@@ -141,7 +142,7 @@ local function generateLocalGrid(commanderID)
 						local heightDiff = math.abs(searchY - originY)
 						if heightDiff <= MAX_HEIGHT_DIFFERENCE then
 							local snappedX, snappedY, snappedZ = spPos2BuildPos(buildDefID, testX, searchY, testZ)
-			if snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, DEFAULT_FACING) == UNOCCUPIED then
+							if snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, DEFAULT_FACING) == UNOCCUPIED then
 								local key = snappedX .. "_" .. snappedZ
 								if not used[key] then
 									used[key] = true
