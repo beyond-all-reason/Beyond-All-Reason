@@ -65,10 +65,11 @@ local landCmd = {
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if isAirplant[unitDefID] then
+		landCmd.params[1] = 1
+		plantList[unitID] = 1
 		InsertUnitCmdDesc(unitID, 500, landCmd)
-		plantList[unitID] = { landAt = 1, repairAt = 1 }
 	elseif plantList[builderID] then
-		GiveOrderToUnit(unitID, CMD_IDLEMODE, {plantList[builderID].landAt}, 0)
+		GiveOrderToUnit(unitID, CMD_IDLEMODE, plantList[builderID], 0)
 		SetUnitNeutral(unitID, true)
 		buildingUnits[unitID] = true
 	end
@@ -94,8 +95,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		local cmdDescID = FindUnitCmdDesc(unitID, CMD_LAND_AT)
 		landCmd.params[1] = cmdParams[1]
 		EditUnitCmdDesc(unitID, cmdDescID, landCmd)
-		plantList[unitID].landAt = cmdParams[1]
-		landCmd.params[1] = 1
+		plantList[unitID] = cmdParams[1]
 		return false
 	end
 	return true
