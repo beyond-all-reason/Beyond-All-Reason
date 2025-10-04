@@ -1364,6 +1364,7 @@ local function techsplitTweaks(name, uDef)
 	end
 
 	if name == "armcroc" then
+        uDef.health = 6000
 		uDef.turnrate = 270
 		uDef.weapondefs.arm_triton.reloadtime = 1.5
 		uDef.weapondefs.arm_triton.damage = {
@@ -1394,8 +1395,8 @@ local function techsplitTweaks(name, uDef)
         uDef.buildoptions[41] = "cornanotcplat"
     end
 
-	if name == "correap" then 
-		uDef.speed = 76
+	if name == "correap" then
+		uDef.speed = 74
 		uDef.turnrate = 250
 		uDef.weapondefs.cor_reap.areaofeffect = 92
 		uDef.weapondefs.cor_reap.damage = {
