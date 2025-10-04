@@ -16,7 +16,7 @@ local restoreVolumeData = {}
 local selectedID
 
 local function removeSelectionVolume(unitID)
-	local sx, sy, sz, ox, oy, oz, shape, cont, axis, ignoreHits = Spring.GetUnitSelectionVolumeData(unitID)
+	local sx, sy, sz, ox, oy, oz, shape, cont, axis = Spring.GetUnitSelectionVolumeData(unitID)
 
 	local rvd = restoreVolumeData
 	rvd[1] = sx
