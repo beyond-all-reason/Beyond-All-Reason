@@ -128,11 +128,17 @@ local autoSpawningEnabled = true
 local debugMode = false
 
 local extraDefs = {}
+local zombiesBeingBuilt = {}
 local zombieCorpseDefs = {}
 local zombieWatch = {}
 local corpseCheckFrames = {}
 local corpsesData = {}
 local zombieHeapDefs = {}
+
+local function isZombie(unitID)
+	local isZombieRulesParam = spGetUnitRulesParam(unitID, "zombie")
+	return isZombieRulesParam and isZombieRulesParam == 1
+end
 local warningEffects = {
 	"scavmist",
 	"scavradiation-lightning",
@@ -420,7 +426,9 @@ local function setZombie(unitID)
 		if newUnitID then
 			local health, maxHealth = spGetUnitHealth(unitID)
 			if health and maxHealth then
-				spSetUnitHealth(newUnitID, health / maxHealth)
+				local originalHealthRatio = health / maxHealth
+				Spring.Echo("originalHealthRatio", originalHealthRatio, maxHealth, originalHealthRatio * maxHealth)
+				spSetUnitHealth(newUnitID, originalHealthRatio * maxHealth)
 			end
 			local experience = Spring.GetUnitExperience(unitID)
 			spSetUnitExperience(newUnitID, experience)
@@ -527,12 +535,22 @@ function gadget:FeatureDestroyed(featureID, allyTeam)
 	corpsesData[featureID] = nil
 end
 
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	if unitTeam == gaiaTeamID then
+		if builderID then
+			if isZombie(builderID) then
+				zombiesBeingBuilt[unitID] = true
+			end
+		end
+	end
+end
+
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if unitTeam == gaiaTeamID then
-		local identifiedZombie = spGetUnitRulesParam(unitID, "zombie")
-		if identifiedZombie then
+		if isZombie(unitID) then
 			zombieWatch[unitID] = unitDefID
-		else
+		elseif zombiesBeingBuilt[unitID] then
+			zombiesBeingBuilt[unitID] = nil
 			setZombie(unitID)
 		end
 	end
@@ -543,7 +561,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID)
-	if zombieWatch[unitID] then
+	if isZombie(unitID) then
 		local health = spGetUnitHealth(unitID)
 		if damage >= health then
 			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
@@ -742,7 +760,7 @@ local function setAllGaiaToZombies()
 	
 	for _, unitID in ipairs(allUnits) do
 		local unitTeam = Spring.GetUnitTeam(unitID)
-		if unitTeam == gaiaTeamID then
+		if unitTeam == gaiaTeamID and not isZombie(unitID) then
 			GG.Zombies.SetZombie(unitID)
 			convertedCount = convertedCount + 1
 		end
@@ -907,9 +925,7 @@ function gadget:Initialize()
 
 	local units = spGetAllUnits()
 	for _, unitID in ipairs(units) do
-		local rulesParam = spGetUnitRulesParam(unitID, "zombie")
-		local identifiedZombie = rulesParam and rulesParam == 1
-		if identifiedZombie then
+		if isZombie(unitID) then
 			setZombie(unitID)
 		end
 	end
