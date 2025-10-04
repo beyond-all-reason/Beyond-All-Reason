@@ -72,6 +72,7 @@ local FIRE_STATE_RETURN_FIRE = 1
 local MOVE_STATE_ROAM = 2
 local ENABLE_REPEAT = 1
 
+local spValidUnitID				= Spring.ValidUnitID
 local spGetGroundHeight			= Spring.GetGroundHeight
 local spGetUnitPosition			= Spring.GetUnitPosition
 local spGetFeaturePosition		= Spring.GetFeaturePosition
@@ -286,6 +287,11 @@ local function playSpawnSound(x, y, z)
 end
 
 local function issueRandomOrders(unitID, unitDefID)
+	if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then
+		zombieWatch[unitID] = nil
+		return
+	end
+
 	local unitDef = UnitDefs[unitDefID]
 	
 	local orders = {}
@@ -496,7 +502,7 @@ function gadget:GameFrame(frame)
 	--check if any zombies need new orders
 	if frame % ZOMBIE_ORDER_CHECK_INTERVAL == 1 then
 		for unitID, unitDefID in pairs(zombieWatch) do
-			if spGetUnitIsDead(unitID) then
+			if spGetUnitIsDead(unitID) or not spValidUnitID(unitID) then
 				zombieWatch[unitID] = nil
 			else
 				local queueSize = spGetUnitCommandCount(unitID)
@@ -601,7 +607,7 @@ end
 
 local function clearOrders()
 	for zombieID, _ in pairs(zombieWatch) do
-		if Spring.ValidUnitID(zombieID) then
+		if spValidUnitID(zombieID) then
 			local currentCommand = Spring.GetUnitCurrentCommand(zombieID)
 			if currentCommand ~= CMD_GUARD then
 				Spring.GiveOrderToUnit(zombieID, CMD.STOP, {}, {})
@@ -615,14 +621,14 @@ local function pacifyZombies(enabled)
 		ordersEnabled = false
 		clearOrders()
 		for zombieID, _ in pairs(zombieWatch) do
-			if Spring.ValidUnitID(zombieID) then
+			if spValidUnitID(zombieID) then
 				Spring.GiveOrderToUnit(zombieID, CMD.FIRE_STATE, {FIRE_STATE_RETURN_FIRE}, {})
 			end
 		end
 	else
 		ordersEnabled = true
 		for zombieID, _ in pairs(zombieWatch) do
-			if Spring.ValidUnitID(zombieID) then
+			if spValidUnitID(zombieID) then
 				Spring.GiveOrderToUnit(zombieID, CMD.FIRE_STATE, {FIRE_STATE_FIRE_AT_WILL}, {})
 			end
 		end
@@ -633,9 +639,9 @@ local function fightNearTargets(targetUnits)
 	if not targetUnits or #targetUnits == 0 then return false end
 	
 	for zombieID, _ in pairs(zombieWatch) do
-		if Spring.ValidUnitID(zombieID) then
+		if spValidUnitID(zombieID) then
 			local randomTarget = targetUnits[math.random(1, #targetUnits)]
-			if Spring.ValidUnitID(randomTarget) then
+			if spValidUnitID(randomTarget) then
 				local targetX, targetY, targetZ = Spring.GetUnitPosition(randomTarget)
 				if targetX then
 					local angle = math.random() * 2 * math.pi
@@ -688,7 +694,7 @@ end
 
 local function killAllZombies()
 	for zombieID, zombieData in pairs(zombieWatch) do
-		if Spring.ValidUnitID(zombieID) and not Spring.GetUnitIsDead(zombieID) then
+		if spValidUnitID(zombieID) and not Spring.GetUnitIsDead(zombieID) then
 			local currentHealth = Spring.GetUnitHealth(zombieID)
 			if currentHealth and currentHealth > 0 then
 				Spring.AddUnitDamage(zombieID, currentHealth, 0, -1, 0)
@@ -723,19 +729,6 @@ local function isAuthorized(playerID)
 	return false
 end
 
-local function handleConsoleCommand(playerID, commandName, words, commandFunction, requiredArgsString)
-	if not isAuthorized(playerID) then
-		Spring.SendMessageToPlayer(playerID, "You are not authorized to use zombie commands")
-		return
-	end
-	
-	if requiredArgsString ~= "" and #words == 0 then
-		Spring.SendMessageToPlayer(playerID, "Usage: /luarules " .. commandName .. " " .. requiredArgsString)
-		return
-	end
-	
-	return commandFunction(nil, "", words, playerID)
-end
 
 local function convertUnitsToZombies(unitIDs)
 	if not unitIDs or #unitIDs == 0 then
@@ -744,7 +737,7 @@ local function convertUnitsToZombies(unitIDs)
 	
 	local convertedCount = 0
 	for _, unitID in ipairs(unitIDs) do
-		if Spring.ValidUnitID(unitID) then
+		if spValidUnitID(unitID) then
 			GG.Zombies.SetZombie(unitID)
 			convertedCount = convertedCount + 1
 		end
@@ -770,111 +763,166 @@ end
 
 
 local function commandSetAllGaiaToZombies(_, line, words, playerID)
-	return handleConsoleCommand(playerID, "zombiesetallgaia", words, function(cmdPlayerID, args)
-		local convertedCount = GG.Zombies.SetAllGaiaToZombies()
-		Spring.SendMessageToPlayer(playerID, "Set " .. convertedCount .. " Gaia units as zombies")
-	end, "")
+	if not isAuthorized(playerID) then
+		Spring.SendMessageToPlayer(playerID, "You are not authorized to use zombie commands")
+		return
+	end
+	
+	local convertedCount = GG.Zombies.SetAllGaiaToZombies()
+	Spring.SendMessageToPlayer(playerID, "Set " .. convertedCount .. " Gaia units as zombies")
 end
 
 local function commandQueueAllCorpsesForReanimation(_, line, words, playerID)
-	return handleConsoleCommand(playerID, "zombiequeueall", words, function(cmdPlayerID, args)
-		GG.Zombies.QueueAllCorpsesForSpawning()
-		Spring.SendMessageToPlayer(playerID, "Queued all corpses for spawning")
-	end, "")
+	if not isAuthorized(playerID) then
+		Spring.SendMessageToPlayer(playerID, "You are not authorized to use zombie commands")
+		return
+	end
+	
+	GG.Zombies.QueueAllCorpsesForSpawning()
+	Spring.SendMessageToPlayer(playerID, "Queued all corpses for spawning")
 end
 
 local function commandToggleAutoReanimation(_, line, words, playerID)
-	return handleConsoleCommand(playerID, "zombieautospawn", words, function(cmdPlayerID, args)
-		local enabled = tonumber(args[1])
-		if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
-			Spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
-			return
-		end
-		
-		GG.Zombies.SetAutoSpawning(enabled == 1)
-		Spring.SendMessageToPlayer(playerID, "Auto spawning " .. (enabled == 1 and "enabled" or "disabled"))
-	end, "0|1")
+	if not isAuthorized(playerID) then
+		Spring.SendMessageToPlayer(playerID, "You are not authorized to use zombie commands")
+		return
+	end
+	
+	if #words == 0 then
+		Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombieautospawn 0|1")
+		return
+	end
+	
+	local enabled = tonumber(words[1])
+	if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
+		Spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
+		return
+	end
+	
+	GG.Zombies.SetAutoSpawning(enabled == 1)
+	Spring.SendMessageToPlayer(playerID, "Auto spawning " .. (enabled == 1 and "enabled" or "disabled"))
 end
 
 local function commandPacifyZombies(_, line, words, playerID)
-	return handleConsoleCommand(playerID, "zombiepacify", words, function(cmdPlayerID, args)
-		local enabled = tonumber(args[1])
-		if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
-			Spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
-			return
-		end
-		
-		GG.Zombies.PacifyZombies(enabled == 1)
-		Spring.SendMessageToPlayer(playerID, "Zombies " .. (enabled == 1 and "pacified" or "unpacified"))
-	end, "0|1")
+	if not isAuthorized(playerID) then
+		Spring.SendMessageToPlayer(playerID, "You are not authorized to use zombie commands")
+		return
+	end
+	
+	if #words == 0 then
+		Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombiepacify 0|1")
+		return
+	end
+	
+	local enabled = tonumber(words[1])
+	if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
+		Spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
+		return
+	end
+	
+	GG.Zombies.PacifyZombies(enabled == 1)
+	Spring.SendMessageToPlayer(playerID, "Zombies " .. (enabled == 1 and "pacified" or "unpacified"))
 end
 
 local function commandAggroZombiesToTeam(_, line, words, playerID)
-	return handleConsoleCommand(playerID, "zombieaggroteam", words, function(cmdPlayerID, args)
-		local targetTeamID = tonumber(args[1])
-		if not targetTeamID or targetTeamID < 0 then
-			Spring.SendMessageToPlayer(playerID, "Invalid team ID")
-			return
-		end
-		
-		local success = GG.Zombies.AggroTeamID(targetTeamID)
-		if success then
-			Spring.SendMessageToPlayer(playerID, "Zombies aggroed to team " .. targetTeamID)
-		else
-			Spring.SendMessageToPlayer(playerID, "Team " .. targetTeamID .. " not found or has no units")
-		end
-	end, "<teamID>")
+	if not isAuthorized(playerID) then
+		Spring.SendMessageToPlayer(playerID, "You are not authorized to use zombie commands")
+		return
+	end
+	
+	if #words == 0 then
+		Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombieaggroteam <teamID>")
+		return
+	end
+	
+	local targetTeamID = tonumber(words[1])
+	if not targetTeamID or targetTeamID < 0 then
+		Spring.SendMessageToPlayer(playerID, "Invalid team ID")
+		return
+	end
+	
+	local success = GG.Zombies.AggroTeamID(targetTeamID)
+	if success then
+		Spring.SendMessageToPlayer(playerID, "Zombies aggroed to team " .. targetTeamID)
+	else
+		Spring.SendMessageToPlayer(playerID, "Team " .. targetTeamID .. " not found or has no units")
+	end
 end
 
 local function commandAggroZombiesToAlly(_, line, words, playerID)
-	return handleConsoleCommand(playerID, "zombieaggroally", words, function(cmdPlayerID, args)
-		local targetAllyID = tonumber(args[1])
-		if not targetAllyID or targetAllyID < 0 then
-			Spring.SendMessageToPlayer(playerID, "Invalid ally ID")
-			return
-		end
-		
-		local success = aggroAllyID(targetAllyID)
-		if success then
-			Spring.SendMessageToPlayer(playerID, "Zombies aggroed to ally team " .. targetAllyID)
-		else
-			Spring.SendMessageToPlayer(playerID, "Ally team " .. targetAllyID .. " not found or has no units")
-		end
-	end, "<allyID>")
+	if not isAuthorized(playerID) then
+		Spring.SendMessageToPlayer(playerID, "You are not authorized to use zombie commands")
+		return
+	end
+	
+	if #words == 0 then
+		Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombieaggroally <allyID>")
+		return
+	end
+	
+	local targetAllyID = tonumber(words[1])
+	if not targetAllyID or targetAllyID < 0 then
+		Spring.SendMessageToPlayer(playerID, "Invalid ally ID")
+		return
+	end
+	
+	local success = aggroAllyID(targetAllyID)
+	if success then
+		Spring.SendMessageToPlayer(playerID, "Zombies aggroed to ally team " .. targetAllyID)
+	else
+		Spring.SendMessageToPlayer(playerID, "Ally team " .. targetAllyID .. " not found or has no units")
+	end
 end
 
 local function commandKillAllZombies(_, line, words, playerID)
-	return handleConsoleCommand(playerID, "zombiekillall", words, function(cmdPlayerID, args)
-		GG.Zombies.KillAllZombies()
-		Spring.SendMessageToPlayer(playerID, "Killed all zombies")
-	end, "")
+	if not isAuthorized(playerID) then
+		Spring.SendMessageToPlayer(playerID, "You are not authorized to use zombie commands")
+		return
+	end
+	
+	GG.Zombies.KillAllZombies()
+	Spring.SendMessageToPlayer(playerID, "Killed all zombies")
 end
 
 local function commandClearZombieOrders(_, line, words, playerID)
-	return handleConsoleCommand(playerID, "zombieclearorders", words, function(cmdPlayerID, args)
-		GG.Zombies.ClearOrders()
-		Spring.SendMessageToPlayer(playerID, "Cleared zombie orders")
-	end, "")
+	if not isAuthorized(playerID) then
+		Spring.SendMessageToPlayer(playerID, "You are not authorized to use zombie commands")
+		return
+	end
+	
+	GG.Zombies.ClearOrders()
+	Spring.SendMessageToPlayer(playerID, "Cleared zombie orders")
 end
 
 local function commandClearZombieSpawns(_, line, words, playerID)
-	return handleConsoleCommand(playerID, "zombieclearspawns", words, function(cmdPlayerID, args)
-		GG.Zombies.ClearAllZombieSpawns()
-		Spring.SendMessageToPlayer(playerID, "Cleared all queued zombie spawns")
-	end, "")
+	if not isAuthorized(playerID) then
+		Spring.SendMessageToPlayer(playerID, "You are not authorized to use zombie commands")
+		return
+	end
+	
+	GG.Zombies.ClearAllZombieSpawns()
+	Spring.SendMessageToPlayer(playerID, "Cleared all queued zombie spawns")
 end
 
 local function commandToggleDebugMode(_, line, words, playerID)
-	return handleConsoleCommand(playerID, "zombiedebug", words, function(cmdPlayerID, args)
-		local enabled = tonumber(args[1])
-		if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
-			Spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
-			return
-		end
-		
-		debugMode = enabled == 1
-		Spring.SendMessageToPlayer(playerID, "Zombie debug mode " .. (debugMode and "enabled" or "disabled"))
-	end, "0|1")
+	if not isAuthorized(playerID) then
+		Spring.SendMessageToPlayer(playerID, "You are not authorized to use zombie commands")
+		return
+	end
+	
+	if #words == 0 then
+		Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombiedebug 0|1")
+		return
+	end
+	
+	local enabled = tonumber(words[1])
+	if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
+		Spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
+		return
+	end
+	
+	debugMode = enabled == 1
+	Spring.SendMessageToPlayer(playerID, "Zombie debug mode " .. (debugMode and "enabled" or "disabled"))
 end
 
 local function setZombieMode(mode)
@@ -888,20 +936,28 @@ local function setZombieMode(mode)
 end
 
 local function commandSetZombieMode(_, line, words, playerID)
-	return handleConsoleCommand(playerID, "zombiemode", words, function(cmdPlayerID, args)
-		local mode = string.lower(args[1])
-		if mode ~= "normal" and mode ~= "hard" and mode ~= "nightmare" and mode ~= "extreme" then
-			Spring.SendMessageToPlayer(playerID, "Invalid mode. Use: normal, hard, nightmare, or extreme")
-			return
-		end
-		
-		local success = GG.Zombies.SetZombieMode(mode)
-		if success then
-			Spring.SendMessageToPlayer(playerID, "Zombie mode set to " .. mode)
-		else
-			Spring.SendMessageToPlayer(playerID, "Failed to set zombie mode to " .. mode)
-		end
-	end, "normal|hard|nightmare|extreme")
+	if not isAuthorized(playerID) then
+		Spring.SendMessageToPlayer(playerID, "You are not authorized to use zombie commands")
+		return
+	end
+	
+	if #words == 0 then
+		Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombiemode normal|hard|nightmare|extreme")
+		return
+	end
+	
+	local mode = string.lower(words[1])
+	if mode ~= "normal" and mode ~= "hard" and mode ~= "nightmare" and mode ~= "extreme" then
+		Spring.SendMessageToPlayer(playerID, "Invalid mode. Use: normal, hard, nightmare, or extreme")
+		return
+	end
+	
+	local success = GG.Zombies.SetZombieMode(mode)
+	if success then
+		Spring.SendMessageToPlayer(playerID, "Zombie mode set to " .. mode)
+	else
+		Spring.SendMessageToPlayer(playerID, "Failed to set zombie mode to " .. mode)
+	end
 end
 
 function gadget:Initialize()
