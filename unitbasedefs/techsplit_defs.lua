@@ -1556,8 +1556,12 @@ if name == "legaap" then
         [4] = "corsb",
         [5] = "corseap",
         [6] = "corsfig",
-        [7] = "corhvytrans",
+        [7] = "legatrans",
     }
+end
+
+if name == "legap" then
+    uDef.buildoptions[7] = ""
 end
 
 if name == "legaap" or name == "legasy" or name == "legalab" or name == "legavp"
