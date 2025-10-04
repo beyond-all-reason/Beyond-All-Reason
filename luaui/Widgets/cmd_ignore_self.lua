@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name    = "Ignore Self",
-		desc    = "Remove selection volume to prevent mouse hover over the only selected unit",
+		desc    = "With only one unit selected, avoid self-targeting with default commands (e.g. self-Guard)",
 		author  = "efrec",
 		date    = "2025",
 		license = "GNU GPL, v2 or later",
