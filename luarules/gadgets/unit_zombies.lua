@@ -427,7 +427,6 @@ local function setZombie(unitID)
 			local health, maxHealth = spGetUnitHealth(unitID)
 			if health and maxHealth then
 				local originalHealthRatio = health / maxHealth
-				Spring.Echo("originalHealthRatio", originalHealthRatio, maxHealth, originalHealthRatio * maxHealth)
 				spSetUnitHealth(newUnitID, originalHealthRatio * maxHealth)
 			end
 			local experience = Spring.GetUnitExperience(unitID)
