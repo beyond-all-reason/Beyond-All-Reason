@@ -350,8 +350,7 @@ local function getScavVariantUnitDefID(unitDefID)
 	return scavUnitDef and scavUnitDef.id or unitDefID
 end
 
-local function setZombieStates(unitID, unitDefID)
-	local unitDef = UnitDefs[unitDefID]
+local function setZombieStates(unitID)
 	spGiveOrderToUnit(unitID, CMD_REPEAT, ENABLE_REPEAT, 0)
 	spGiveOrderToUnit(unitID, CMD_MOVE_STATE, MOVE_STATE_ROAM, 0)
 	if ordersEnabled then
@@ -378,8 +377,8 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 		local randomZ = z + random(-size * spawnCount, size * spawnCount)
 		local adjustedY = spGetGroundHeight(randomX, randomZ)
 
-		local unitToCreate = getScavVariantUnitDefID(unitDefID)
-		local unitID = spCreateUnit(unitToCreate, randomX, adjustedY, randomZ, 0, gaiaTeamID)
+		local unitDefToCreate = getScavVariantUnitDefID(unitDefID)
+		local unitID = spCreateUnit(unitDefToCreate, randomX, adjustedY, randomZ, 0, gaiaTeamID)
 		if unitID then
 			local size = math.ceil((unitDef.xsize / 2 + unitDef.zsize / 2) / 2)
 			local sizeName = "small"
@@ -404,11 +403,11 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 			if scavTeamID then
 				spTransferUnit(unitID, scavTeamID)
 			else
-				zombieWatch[unitID] = unitToCreate
+				zombieWatch[unitID] = unitDefToCreate
 				if ordersEnabled then
-					issueRandomOrders(unitID, unitToCreate)
+					issueRandomOrders(unitID, unitDefToCreate)
 				end
-				setZombieStates(unitID, unitToCreate)
+				setZombieStates(unitID)
 			end
 		end
 	end
@@ -703,7 +702,6 @@ local function killAllZombies()
 	end
 end
 
-
 local function setAutoSpawning(enabled)
 	autoSpawningEnabled = enabled
 	if enabled then
@@ -728,7 +726,6 @@ local function isAuthorized(playerID)
 	end
 	return false
 end
-
 
 local function convertUnitsToZombies(unitIDs)
 	if not unitIDs or #unitIDs == 0 then
@@ -760,7 +757,6 @@ local function setAllGaiaToZombies()
 	
 	return convertedCount
 end
-
 
 local function commandSetAllGaiaToZombies(_, line, words, playerID)
 	if not isAuthorized(playerID) then
