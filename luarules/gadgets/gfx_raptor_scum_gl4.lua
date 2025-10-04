@@ -263,7 +263,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-		if scumSpawnerIDs[unitDefID] and (debugmode or (unitTeam == pveTeamID)) then
+		if scumSpawnerIDs[unitDefID] and (debugmode or (unitTeam and unitTeam == pveTeamID)) then
 			local px, py, pz = Spring.GetUnitPosition(unitID)
 			local gf = Spring.GetGameFrame()
 
