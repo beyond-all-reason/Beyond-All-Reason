@@ -350,14 +350,17 @@ local function getScavVariantUnitDefID(unitDefID)
 	return scavUnitDef and scavUnitDef.id or unitDefID
 end
 
-local function setZombieStates(unitID)
-	spGiveOrderToUnit(unitID, CMD_REPEAT, ENABLE_REPEAT, 0)
+local function setZombieStates(unitID, unitDefID)
+	if extraDefs[unitDefID].isFactory then
+		spGiveOrderToUnit(unitID, CMD_REPEAT, ENABLE_REPEAT, 0)
+	end
 	spGiveOrderToUnit(unitID, CMD_MOVE_STATE, MOVE_STATE_ROAM, 0)
 	if ordersEnabled then
 		spGiveOrderToUnit(unitID, CMD_FIRE_STATE, FIRE_STATE_FIRE_AT_WILL, 0)
 	else
 		spGiveOrderToUnit(unitID, CMD_FIRE_STATE, FIRE_STATE_RETURN_FIRE, 0)
 	end
+	Spring.SetUnitRulesParam(unitID, "resurrected", 0, {inlos=true})
 end
 
 local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
@@ -407,7 +410,7 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 				if ordersEnabled then
 					issueRandomOrders(unitID, unitDefToCreate)
 				end
-				setZombieStates(unitID)
+				setZombieStates(unitID, unitDefID)
 			end
 		end
 	end
@@ -544,6 +547,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		if builderID then
 			if isZombie(builderID) then
 				zombiesBeingBuilt[unitID] = true
+				Spring.SetUnitRulesParam(unitID, "resurrected", 0, {inlos=true})
 			end
 		end
 	end
