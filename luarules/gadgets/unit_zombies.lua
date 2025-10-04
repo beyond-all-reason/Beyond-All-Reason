@@ -27,24 +27,39 @@ local WARNING_TIME = 15 * Game.gameSpeed-- Frames to start warning before reanim
 
 local ZOMBIE_MAX_XP = 2					-- Maximum experience value for zombies, skewed towards median
 
---default is normal
-local ZOMBIES_REZ_SPEED = 16			--metal per second
-local ZOMBIES_COUNT_MIN = 1
-local ZOMBIES_COUNT_MAX = 1
-local ZOMBIES_REZ_MIN = 60				-- in seconds
-local ZOMBIE_REZ_MAX = 180				-- in seconds
+local zombieModeConfigs = {
+	normal = {
+		rezSpeed = 16,
+		rezMin = 60,
+		rezMax = 180,
+		countMin = 1,
+		countMax = 1
+	},
+	hard = {
+		rezSpeed = 24,
+		rezMin = 30,
+		rezMax = 90,
+		countMin = 1,
+		countMax = 1
+	},
+	nightmare = {
+		rezSpeed = 24,
+		rezMin = 30,
+		rezMax = 90,
+		countMin = 2,
+		countMax = 5
+	},
+	extreme = {
+		rezSpeed = 48,
+		rezMin = 30,
+		rezMax = 45,
+		countMin = 4,
+		countMax = 10
+	}
+}
 
-if modOptions.zombies == "hard" then
-	ZOMBIES_REZ_SPEED = 24
-	ZOMBIES_REZ_MIN = 30
-	ZOMBIE_REZ_MAX = 90
-elseif modOptions.zombies == "nightmare" then
-	ZOMBIES_REZ_SPEED = 24
-	ZOMBIES_COUNT_MIN = 2
-	ZOMBIES_COUNT_MAX = 5
-	ZOMBIES_REZ_MIN = 30
-	ZOMBIE_REZ_MAX = 90
-end
+local currentZombieMode = "normal"
+local currentZombieConfig = zombieModeConfigs.normal
 
 local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 10 -- How often (in frames) to check if zombies need new orders
 local ZOMBIE_CHECK_INTERVAL = Game.gameSpeed -- How often (in frames) everything else is checked
@@ -111,7 +126,7 @@ local mapHeight
 
 local ordersEnabled = true
 local gameFrame = 0
-local adjustedRezSpeed = ZOMBIES_REZ_SPEED
+local adjustedRezSpeed = currentZombieConfig.rezSpeed
 local isIdleMode = false
 local autoSpawningEnabled = true
 local debugMode = false
@@ -137,7 +152,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		local corpseDefID = FeatureDefNames[corpseDefName].id
 		local spawnSeconds = math.floor(unitDef.metalCost / adjustedRezSpeed)
 
-		spawnSeconds = math.clamp(spawnSeconds, ZOMBIES_REZ_MIN, ZOMBIE_REZ_MAX)
+		spawnSeconds = math.clamp(spawnSeconds, currentZombieConfig.rezMin, currentZombieConfig.rezMax)
 		local spawnFrames = spawnSeconds * Game.gameSpeed
 		zombieCorpseDefs[corpseDefID] = {unitDefID = unitDefID, spawnDelayFrames = spawnFrames}
 
@@ -182,9 +197,21 @@ local function updateAdjustedRezSpeed()
 	if GG.PowerLib and GG.PowerLib.HighestPlayerTeamPower and GG.PowerLib.TechGuesstimate then
 		local highestPowerData = GG.PowerLib.HighestPlayerTeamPower()
 		if highestPowerData and highestPowerData.power then
-			adjustedRezSpeed = ZOMBIES_REZ_SPEED * GG.PowerLib.TechGuesstimate(highestPowerData.power) * techGuesstimateMultiplier
+			adjustedRezSpeed = currentZombieConfig.rezSpeed * GG.PowerLib.TechGuesstimate(highestPowerData.power) * techGuesstimateMultiplier
 		end
 	end
+end
+
+local function applyZombieModeSettings(mode)
+	local config = zombieModeConfigs[mode]
+	if not config then
+		config = zombieModeConfigs.normal -- fallback to normal
+	end
+	
+	currentZombieMode = mode
+	currentZombieConfig = config
+	
+	updateAdjustedRezSpeed()
 end
 
 local function calculateHealthRatio(featureID)
@@ -315,7 +342,7 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 	local unitDef = UnitDefs[unitDefID]
 	local spawnCount = 1
 	if extraDefs[unitDefID].isMobile then
-		spawnCount = math.floor((random(ZOMBIES_COUNT_MIN, ZOMBIES_COUNT_MAX) + random(ZOMBIES_COUNT_MIN, ZOMBIES_COUNT_MAX)) / 2) --skew results towards average to produce better gameplay
+		spawnCount = math.floor((random(currentZombieConfig.countMin, currentZombieConfig.countMax) + random(currentZombieConfig.countMin, currentZombieConfig.countMax)) / 2) --skew results towards average to produce better gameplay
 	end
 	local size = unitDef.xsize
 
@@ -561,10 +588,25 @@ local function aggroPlayerID(playerID)
 	end
 end
 
-local function aggroAllyID(allyID)
+local function aggroTeamID(teamID)
 	clearOrders()
-	local targetUnits = Spring.GetTeamUnits(allyID)
-	if not targetUnits or #targetUnits == 0 then return end
+	
+	-- Check if teamID exists in the game
+	local teams = Spring.GetTeamList()
+	local teamExists = false
+	for _, existingTeamID in ipairs(teams) do
+		if existingTeamID == teamID then
+			teamExists = true
+			break
+		end
+	end
+	
+	if not teamExists then
+		return false
+	end
+	
+	local targetUnits = Spring.GetTeamUnits(teamID)
+	if not targetUnits or #targetUnits == 0 then return false end
 	
 	for zombieID, _ in pairs(zombieWatch) do
 		if Spring.ValidUnitID(zombieID) then
@@ -583,6 +625,8 @@ local function aggroAllyID(allyID)
 			end
 		end
 	end
+	
+	return true
 end
 
 local DAMAGE_EXTSOURCE_SYSTEM = -1
@@ -740,7 +784,7 @@ local function toggleAutoReanimation(_, line, words, playerID)
 	end)
 end
 
-local function pacifyZombies(_, line, words, playerID)
+local function pacifyZombiesCommand(_, line, words, playerID)
 	return handleConsoleCommand(playerID, "zombiepassify", words, function(playerID, args, sendMessage)
 		if not args[1] then
 			if sendMessage or debugMode then
@@ -788,26 +832,30 @@ local function aggroZombiesToPlayer(_, line, words, playerID)
 	end)
 end
 
-local function aggroZombiesToAlly(_, line, words, playerID)
-	return handleConsoleCommand(playerID, "zombieaggroally", words, function(playerID, args, sendMessage)
+local function aggroZombiesToTeam(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombieaggroteam", words, function(playerID, args, sendMessage)
 		if not args[1] then
 			if sendMessage or debugMode then
-				Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombieaggroally <allyTeamID>")
+				Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombieaggroteam <teamID>")
 			end
 			return
 		end
 		
-		local allyTeamID = tonumber(args[1])
-		if not allyTeamID or allyTeamID < 0 then
+		local targetTeamID = tonumber(args[1])
+		if not targetTeamID or targetTeamID < 0 then
 			if sendMessage or debugMode then
-				Spring.SendMessageToPlayer(playerID, "Invalid ally team ID")
+				Spring.SendMessageToPlayer(playerID, "Invalid team ID")
 			end
 			return
 		end
 		
-		GG.Zombies.AggroAllyID(allyTeamID)
+		local success = GG.Zombies.AggroTeamID(targetTeamID)
 		if sendMessage or debugMode then
-			Spring.SendMessageToPlayer(playerID, "Zombies aggroed to ally team " .. allyTeamID)
+			if success then
+				Spring.SendMessageToPlayer(playerID, "Zombies aggroed to team " .. targetTeamID)
+			else
+				Spring.SendMessageToPlayer(playerID, "Team " .. targetTeamID .. " not found or has no units")
+			end
 		end
 	end)
 end
@@ -863,13 +911,54 @@ local function toggleDebugMode(_, line, words, playerID)
 	end)
 end
 
+local function setZombieMode(mode)
+	if mode ~= "normal" and mode ~= "hard" and mode ~= "nightmare" and mode ~= "extreme" then
+		return false
+	end
+	
+	currentZombieMode = mode
+	applyZombieModeSettings(mode)
+	return true
+end
+
+local function setZombieModeCommand(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombiemode", words, function(playerID, args, sendMessage)
+		if not args[1] then
+			if sendMessage or debugMode then
+				Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombiemode <normal|hard|nightmare|extreme>")
+			end
+			return
+		end
+		
+		local mode = string.lower(args[1])
+		if mode ~= "normal" and mode ~= "hard" and mode ~= "nightmare" and mode ~= "extreme" then
+			if sendMessage or debugMode then
+				Spring.SendMessageToPlayer(playerID, "Invalid mode. Use: normal, hard, nightmare, or extreme")
+			end
+			return
+		end
+		
+		local success = GG.Zombies.SetZombieMode(mode)
+		if sendMessage or debugMode then
+			if success then
+				Spring.SendMessageToPlayer(playerID, "Zombie mode set to " .. mode)
+			else
+				Spring.SendMessageToPlayer(playerID, "Failed to set zombie mode to " .. mode)
+			end
+		end
+	end)
+end
+
 function gadget:Initialize()
 	local modOptionEnabled = modOptions.zombies ~= "disabled"
-	local isIdleMode = modOptions.zombies == "idle"
-	
+	isIdleMode = modOptions.seasonal_surprise == true or (GG.Zombies and GG.Zombies.IdleMode == true) or false
+
 	if not modOptionEnabled and not isIdleMode then
 		return false
 	end
+	
+	local initialMode = modOptions.zombies or "normal"
+	applyZombieModeSettings(initialMode)
 	
 	autoSpawningEnabled = modOptionEnabled and not isIdleMode
 	
@@ -901,26 +990,27 @@ function gadget:Initialize()
 	GG.Zombies.ClearAllZombieSpawns = clearAllZombieSpawns
 	GG.Zombies.PacifyZombies = pacifyZombies
 	GG.Zombies.AggroPlayerID = aggroPlayerID
-	GG.Zombies.AggroAllyID = aggroAllyID
+	GG.Zombies.AggroTeamID = aggroTeamID
 	GG.Zombies.KillAllZombies = killAllZombies
 	GG.Zombies.ClearOrders = clearOrders
+	GG.Zombies.SetZombieMode = setZombieMode
+	GG.Zombies.GetZombieMode = function() return currentZombieMode end
 	
-	-- Register console commands
 	gadgetHandler:AddChatAction('zombiesetallgaia', setAllGaiaToZombiesCommand, "Set all Gaia units as zombies")
 	gadgetHandler:AddChatAction('zombiecreatefromfeature', spawnZombieFromCorpse, "Create zombie from feature ID")
 	gadgetHandler:AddChatAction('zombiequeueallcorpses', queueAllCorpsesForReanimation, "Queue all corpses for spawning")
 	gadgetHandler:AddChatAction('zombieautospawning', toggleAutoReanimation, "Enable/disable auto spawning")
 	gadgetHandler:AddChatAction('zombieclearspawns', clearZombieSpawns, "Clear all queued zombie spawns")
-	gadgetHandler:AddChatAction('zombiepacify', pacifyZombies, "Pacify/unpacify zombies")
+	gadgetHandler:AddChatAction('zombiepacify', pacifyZombiesCommand, "Pacify/unpacify zombies")
 	gadgetHandler:AddChatAction('zombieaggroplayer', aggroZombiesToPlayer, "Make zombies aggro to player")
-	gadgetHandler:AddChatAction('zombieaggroally', aggroZombiesToAlly, "Make zombies aggro to ally team")
+	gadgetHandler:AddChatAction('zombieaggroteam', aggroZombiesToTeam, "Make zombies aggro to specific team")
 	gadgetHandler:AddChatAction('zombiekillall', killAllZombiesCommand, "Kill all zombies")
 	gadgetHandler:AddChatAction('zombieclearorders', clearZombieOrders, "Clear zombie orders")
 	gadgetHandler:AddChatAction('zombiedebug', toggleDebugMode, "Enable/disable debug mode")
+	gadgetHandler:AddChatAction('zombiemode', setZombieModeCommand, "Set zombie mode (normal/hard/nightmare/extreme)")
 end
 
 function gadget:Shutdown()
-	-- Remove console commands
 	gadgetHandler:RemoveChatAction('zombiesetallgaia')
 	gadgetHandler:RemoveChatAction('zombiecreatefromfeature')
 	gadgetHandler:RemoveChatAction('zombiequeueallcorpses')
@@ -928,10 +1018,11 @@ function gadget:Shutdown()
 	gadgetHandler:RemoveChatAction('zombieclearspawns')
 	gadgetHandler:RemoveChatAction('zombiepacify')
 	gadgetHandler:RemoveChatAction('zombieaggroplayer')
-	gadgetHandler:RemoveChatAction('zombieaggroally')
+	gadgetHandler:RemoveChatAction('zombieaggroteam')
 	gadgetHandler:RemoveChatAction('zombiekillall')
 	gadgetHandler:RemoveChatAction('zombieclearorders')
 	gadgetHandler:RemoveChatAction('zombiedebug')
+	gadgetHandler:RemoveChatAction('zombiemode')
 end
 
 function gadget:GameStart()
