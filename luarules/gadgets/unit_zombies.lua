@@ -504,8 +504,8 @@ function gadget:GameFrame(frame)
 	end
 end
 
-local function queueCorpseForSpawning(featureID, bypassModOption)
-	if not bypassModOption and (isIdleMode or not autoSpawningEnabled) then
+local function queueCorpseForSpawning(featureID, override)
+	if not override and not autoSpawningEnabled then
 		return
 	end
 	
@@ -614,48 +614,7 @@ local function pacifyZombies(enabled)
 	end
 end
 
-local function aggroPlayerID(playerID)
-	clearOrders()
-	local targetUnits = Spring.GetTeamUnits(Spring.GetPlayerTeamID(playerID))
-	if not targetUnits or #targetUnits == 0 then return end
-	
-	for zombieID, _ in pairs(zombieWatch) do
-		if Spring.ValidUnitID(zombieID) then
-			local randomTarget = targetUnits[math.random(1, #targetUnits)]
-			if Spring.ValidUnitID(randomTarget) then
-				local targetX, targetY, targetZ = Spring.GetUnitPosition(randomTarget)
-				if targetX then
-					local angle = math.random() * 2 * math.pi
-					local offsetDistance = math.random(25, 500)
-					local fightX = targetX + math.cos(angle) * offsetDistance
-					local fightZ = targetZ + math.sin(angle) * offsetDistance
-					local fightY = Spring.GetGroundHeight(fightX, fightZ)
-					
-					Spring.GiveOrderToUnit(zombieID, CMD.FIGHT, {fightX, fightY, fightZ}, {})
-				end
-			end
-		end
-	end
-end
-
-local function aggroTeamID(teamID)
-	clearOrders()
-	
-	-- Check if teamID exists in the game
-	local teams = Spring.GetTeamList()
-	local teamExists = false
-	for _, existingTeamID in ipairs(teams) do
-		if existingTeamID == teamID then
-			teamExists = true
-			break
-		end
-	end
-	
-	if not teamExists then
-		return false
-	end
-	
-	local targetUnits = Spring.GetTeamUnits(teamID)
+local function fightNearTarget(targetUnits)
 	if not targetUnits or #targetUnits == 0 then return false end
 	
 	for zombieID, _ in pairs(zombieWatch) do
@@ -677,6 +636,59 @@ local function aggroTeamID(teamID)
 	end
 	
 	return true
+end
+
+local function aggroTeamID(teamID)
+	clearOrders()
+	
+	-- Check if teamID exists in the game
+	local teams = Spring.GetTeamList()
+	local teamExists = false
+	for _, existingTeamID in ipairs(teams) do
+		if existingTeamID == teamID then
+			teamExists = true
+			break
+		end
+	end
+	
+	if not teamExists then
+		return false
+	end
+	
+	local targetUnits = Spring.GetTeamUnits(teamID)
+	return fightNearTarget(targetUnits)
+end
+
+local function aggroAllyID(allyID)
+	clearOrders()
+	
+	-- Check if allyID exists in the game
+	local allyTeams = Spring.GetAllyTeamList()
+	local allyExists = false
+	for _, existingAllyID in ipairs(allyTeams) do
+		if existingAllyID == allyID then
+			allyExists = true
+			break
+		end
+	end
+	
+	if not allyExists then
+		return false
+	end
+	
+	local targetUnits = {}
+	local teams = Spring.GetTeamList()
+	
+	for _, teamID in ipairs(teams) do
+		if Spring.AreTeamsAllied(teamID, allyID) then
+			local teamUnits = Spring.GetTeamUnits(teamID)
+			for _, unitID in ipairs(teamUnits) do
+				table.insert(targetUnits, unitID)
+			end
+		end
+	end
+	
+	return fightNearTarget(targetUnits)
 end
 
 local DAMAGE_EXTSOURCE_SYSTEM = -1
@@ -858,30 +870,6 @@ local function pacifyZombiesCommand(_, line, words, playerID)
 	end)
 end
 
-local function aggroZombiesToPlayer(_, line, words, playerID)
-	return handleConsoleCommand(playerID, "zombieaggroplayer", words, function(playerID, args, sendMessage)
-		if not args[1] then
-			if sendMessage or debugMode then
-				Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombieaggroplayer <playerID>")
-			end
-			return
-		end
-		
-		local targetPlayerID = tonumber(args[1])
-		if not targetPlayerID or targetPlayerID < 0 then
-			if sendMessage or debugMode then
-				Spring.SendMessageToPlayer(playerID, "Invalid player ID")
-			end
-			return
-		end
-		
-		GG.Zombies.AggroPlayerID(targetPlayerID)
-		if sendMessage or debugMode then
-			Spring.SendMessageToPlayer(playerID, "Zombies aggroed to player " .. targetPlayerID)
-		end
-	end)
-end
-
 local function aggroZombiesToTeam(_, line, words, playerID)
 	return handleConsoleCommand(playerID, "zombieaggroteam", words, function(playerID, args, sendMessage)
 		if not args[1] then
@@ -905,6 +893,34 @@ local function aggroZombiesToTeam(_, line, words, playerID)
 				Spring.SendMessageToPlayer(playerID, "Zombies aggroed to team " .. targetTeamID)
 			else
 				Spring.SendMessageToPlayer(playerID, "Team " .. targetTeamID .. " not found or has no units")
+			end
+		end
+	end)
+end
+
+local function aggroZombiesToAlly(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombieaggroally", words, function(playerID, args, sendMessage)
+		if not args[1] then
+			if sendMessage or debugMode then
+				Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombieaggroally <allyID>")
+			end
+			return
+		end
+		
+		local targetAllyID = tonumber(args[1])
+		if not targetAllyID or targetAllyID < 0 then
+			if sendMessage or debugMode then
+				Spring.SendMessageToPlayer(playerID, "Invalid ally ID")
+			end
+			return
+		end
+		
+		local success = aggroAllyID(targetAllyID)
+		if sendMessage or debugMode then
+			if success then
+				Spring.SendMessageToPlayer(playerID, "Zombies aggroed to ally team " .. targetAllyID)
+			else
+				Spring.SendMessageToPlayer(playerID, "Ally team " .. targetAllyID .. " not found or has no units")
 			end
 		end
 	end)
@@ -1040,8 +1056,8 @@ function gadget:Initialize()
 	GG.Zombies.SetAutoSpawning = setAutoSpawning
 	GG.Zombies.ClearAllZombieSpawns = clearAllZombieSpawns
 	GG.Zombies.PacifyZombies = pacifyZombies
-	GG.Zombies.AggroPlayerID = aggroPlayerID
 	GG.Zombies.AggroTeamID = aggroTeamID
+	GG.Zombies.AggroAllyID = aggroAllyID
 	GG.Zombies.KillAllZombies = killAllZombies
 	GG.Zombies.ClearOrders = clearOrders
 	GG.Zombies.SetZombieMode = setZombieMode
@@ -1053,8 +1069,8 @@ function gadget:Initialize()
 	gadgetHandler:AddChatAction('zombieautospawning', toggleAutoReanimation, "Enable/disable auto spawning")
 	gadgetHandler:AddChatAction('zombieclearspawns', clearZombieSpawns, "Clear all queued zombie spawns")
 	gadgetHandler:AddChatAction('zombiepacify', pacifyZombiesCommand, "Pacify/unpacify zombies")
-	gadgetHandler:AddChatAction('zombieaggroplayer', aggroZombiesToPlayer, "Make zombies aggro to player")
 	gadgetHandler:AddChatAction('zombieaggroteam', aggroZombiesToTeam, "Make zombies aggro to specific team")
+	gadgetHandler:AddChatAction('zombieaggroally', aggroZombiesToAlly, "Make zombies aggro to entire ally team")
 	gadgetHandler:AddChatAction('zombiekillall', killAllZombiesCommand, "Kill all zombies")
 	gadgetHandler:AddChatAction('zombieclearorders', clearZombieOrders, "Clear zombie orders")
 	gadgetHandler:AddChatAction('zombiedebug', toggleDebugMode, "Enable/disable debug mode")
@@ -1070,6 +1086,7 @@ function gadget:Shutdown()
 	gadgetHandler:RemoveChatAction('zombiepacify')
 	gadgetHandler:RemoveChatAction('zombieaggroplayer')
 	gadgetHandler:RemoveChatAction('zombieaggroteam')
+	gadgetHandler:RemoveChatAction('zombieaggroally')
 	gadgetHandler:RemoveChatAction('zombiekillall')
 	gadgetHandler:RemoveChatAction('zombieclearorders')
 	gadgetHandler:RemoveChatAction('zombiedebug')
