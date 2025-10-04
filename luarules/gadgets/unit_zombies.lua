@@ -532,6 +532,8 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		local identifiedZombie = spGetUnitRulesParam(unitID, "zombie")
 		if identifiedZombie then
 			zombieWatch[unitID] = unitDefID
+		else
+			setZombie(unitID)
 		end
 	end
 end
@@ -715,7 +717,7 @@ local function handleConsoleCommand(playerID, commandName, words, commandFunctio
 		return
 	end
 	
-	return commandFunction(playerID, words)
+	return commandFunction(nil, "", words, playerID)
 end
 
 local function convertUnitsToZombies(unitIDs)
@@ -750,22 +752,22 @@ local function setAllGaiaToZombies()
 end
 
 
-local function commandSetAllGaiaToZombies(_, words, playerID)
-	return handleConsoleCommand(playerID, "zombiesetallgaia", words, function(playerID, args)
+local function commandSetAllGaiaToZombies(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombiesetallgaia", words, function(cmdPlayerID, args)
 		local convertedCount = GG.Zombies.SetAllGaiaToZombies()
 		Spring.SendMessageToPlayer(playerID, "Set " .. convertedCount .. " Gaia units as zombies")
 	end, "")
 end
 
-local function commandQueueAllCorpsesForReanimation(_, words, playerID)
-	return handleConsoleCommand(playerID, "zombiequeueall", words, function(playerID, args)
+local function commandQueueAllCorpsesForReanimation(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombiequeueall", words, function(cmdPlayerID, args)
 		GG.Zombies.QueueAllCorpsesForSpawning()
 		Spring.SendMessageToPlayer(playerID, "Queued all corpses for spawning")
 	end, "")
 end
 
-local function commandToggleAutoReanimation(_, words, playerID)
-	return handleConsoleCommand(playerID, "zombieautospawn", words, function(playerID, args)
+local function commandToggleAutoReanimation(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombieautospawn", words, function(cmdPlayerID, args)
 		local enabled = tonumber(args[1])
 		if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
 			Spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
@@ -777,8 +779,8 @@ local function commandToggleAutoReanimation(_, words, playerID)
 	end, "0|1")
 end
 
-local function commandPacifyZombies(_, words, playerID)
-	return handleConsoleCommand(playerID, "zombiepacify", words, function(playerID, args)
+local function commandPacifyZombies(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombiepacify", words, function(cmdPlayerID, args)
 		local enabled = tonumber(args[1])
 		if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
 			Spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
@@ -790,8 +792,8 @@ local function commandPacifyZombies(_, words, playerID)
 	end, "0|1")
 end
 
-local function commandAggroZombiesToTeam(_, words, playerID)
-	return handleConsoleCommand(playerID, "zombieaggroteam", words, function(playerID, args)
+local function commandAggroZombiesToTeam(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombieaggroteam", words, function(cmdPlayerID, args)
 		local targetTeamID = tonumber(args[1])
 		if not targetTeamID or targetTeamID < 0 then
 			Spring.SendMessageToPlayer(playerID, "Invalid team ID")
@@ -807,8 +809,8 @@ local function commandAggroZombiesToTeam(_, words, playerID)
 	end, "<teamID>")
 end
 
-local function commandAggroZombiesToAlly(_, words, playerID)
-	return handleConsoleCommand(playerID, "zombieaggroally", words, function(playerID, args)
+local function commandAggroZombiesToAlly(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombieaggroally", words, function(cmdPlayerID, args)
 		local targetAllyID = tonumber(args[1])
 		if not targetAllyID or targetAllyID < 0 then
 			Spring.SendMessageToPlayer(playerID, "Invalid ally ID")
@@ -824,29 +826,29 @@ local function commandAggroZombiesToAlly(_, words, playerID)
 	end, "<allyID>")
 end
 
-local function commandKillAllZombies(_, words, playerID)
-	return handleConsoleCommand(playerID, "zombiekillall", words, function(playerID, args)
+local function commandKillAllZombies(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombiekillall", words, function(cmdPlayerID, args)
 		GG.Zombies.KillAllZombies()
 		Spring.SendMessageToPlayer(playerID, "Killed all zombies")
 	end, "")
 end
 
-local function commandClearZombieOrders(_, words, playerID)
-	return handleConsoleCommand(playerID, "zombieclearorders", words, function(playerID, args)
+local function commandClearZombieOrders(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombieclearorders", words, function(cmdPlayerID, args)
 		GG.Zombies.ClearOrders()
 		Spring.SendMessageToPlayer(playerID, "Cleared zombie orders")
 	end, "")
 end
 
-local function commandClearZombieSpawns(_, words, playerID)
-	return handleConsoleCommand(playerID, "zombieclearspawns", words, function(playerID, args)
+local function commandClearZombieSpawns(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombieclearspawns", words, function(cmdPlayerID, args)
 		GG.Zombies.ClearAllZombieSpawns()
 		Spring.SendMessageToPlayer(playerID, "Cleared all queued zombie spawns")
 	end, "")
 end
 
-local function commandToggleDebugMode(_, words, playerID)
-	return handleConsoleCommand(playerID, "zombiedebug", words, function(playerID, args)
+local function commandToggleDebugMode(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombiedebug", words, function(cmdPlayerID, args)
 		local enabled = tonumber(args[1])
 		if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
 			Spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
@@ -868,8 +870,8 @@ local function setZombieMode(mode)
 	return true
 end
 
-local function commandSetZombieMode(_, words, playerID)
-	return handleConsoleCommand(playerID, "zombiemode", words, function(playerID, args)
+local function commandSetZombieMode(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombiemode", words, function(cmdPlayerID, args)
 		local mode = string.lower(args[1])
 		if mode ~= "normal" and mode ~= "hard" and mode ~= "nightmare" and mode ~= "extreme" then
 			Spring.SendMessageToPlayer(playerID, "Invalid mode. Use: normal, hard, nightmare, or extreme")
@@ -936,8 +938,8 @@ function gadget:Initialize()
 	GG.Zombies.GetZombieMode = function() return currentZombieMode end
 	
 	gadgetHandler:AddChatAction('zombiesetallgaia', commandSetAllGaiaToZombies, "Set all Gaia units as zombies")
-	gadgetHandler:AddChatAction('zombiequeueallcorpses', commandQueueAllCorpsesForReanimation, "Queue all corpses for spawning")
-	gadgetHandler:AddChatAction('zombieautospawning', commandToggleAutoReanimation, "Enable/disable auto spawning")
+	gadgetHandler:AddChatAction('zombiequeueall', commandQueueAllCorpsesForReanimation, "Queue all corpses for spawning")
+	gadgetHandler:AddChatAction('zombieautospawn', commandToggleAutoReanimation, "Enable/disable auto spawning")
 	gadgetHandler:AddChatAction('zombieclearspawns', commandClearZombieSpawns, "Clear all queued zombie spawns")
 	gadgetHandler:AddChatAction('zombiepacify', commandPacifyZombies, "Pacify/unpacify zombies")
 	gadgetHandler:AddChatAction('zombieaggroteam', commandAggroZombiesToTeam, "Make zombies aggro to specific team")
@@ -950,11 +952,10 @@ end
 
 function gadget:Shutdown()
 	gadgetHandler:RemoveChatAction('zombiesetallgaia')
-	gadgetHandler:RemoveChatAction('zombiequeueallcorpses')
-	gadgetHandler:RemoveChatAction('zombieautospawning')
+	gadgetHandler:RemoveChatAction('zombiequeueall')
+	gadgetHandler:RemoveChatAction('zombieautospawn')
 	gadgetHandler:RemoveChatAction('zombieclearspawns')
 	gadgetHandler:RemoveChatAction('zombiepacify')
-	gadgetHandler:RemoveChatAction('zombieaggroplayer')
 	gadgetHandler:RemoveChatAction('zombieaggroteam')
 	gadgetHandler:RemoveChatAction('zombieaggroally')
 	gadgetHandler:RemoveChatAction('zombiekillall')
