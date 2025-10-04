@@ -63,6 +63,17 @@ end
 
 local sp_TraceScreenRay = Spring.TraceScreenRay
 
+local getSelectedUnitID
+if widget then
+	getSelectedUnitID = function()
+		return selectedUnitID
+	end
+elseif gadget then
+	getSelectedUnitID = function()
+		return Spring.GetSelectedUnitsCount() == 1 and Spring.GetSelectedUnits()[1]
+	end
+end
+
 ---@param screenX number position on x axis in mouse coordinates (origin on left border of view)
 ---@param screenY number position on y axis in mouse coordinates (origin on top border of view)
 ---@param onlyCoords boolean? (Default: `false`) `result` includes only coordinates
@@ -73,7 +84,7 @@ local sp_TraceScreenRay = Spring.TraceScreenRay
 ---@return ("unit"|"feature"|"ground"|"sky")? description of traced object or position
 ---@return (number|xyz)? result unitID, featureID, or position triple; when `onlyCoords` is true, units/features also give position.
 Spring.TraceScreenRay = function(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset)
-	local unitID = selectedUnitID
+	local unitID = getSelectedUnitID()
 
 	if unitID then
 		restoreSelectionVolume(unitID)
