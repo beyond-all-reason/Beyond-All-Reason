@@ -1364,7 +1364,7 @@ local function techsplitTweaks(name, uDef)
 	end
 
 	if name == "armcroc" then
-        uDef.health = 6000
+        uDef.health = 5250
 		uDef.turnrate = 270
 		uDef.weapondefs.arm_triton.reloadtime = 1.5
 		uDef.weapondefs.arm_triton.damage = {
