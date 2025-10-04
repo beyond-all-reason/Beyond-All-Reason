@@ -1,19 +1,26 @@
-local widget = widget ---@type Widget
+local upget = gadget or widget ---@type Addon
+local UG = (gadget and GG) or (widget and WG) or false
 
-function widget:GetInfo()
+function upget:GetInfo()
 	return {
 		name    = "Ignore Self",
 		desc    = "With only one unit selected, avoid self-targeting with default commands (e.g. self-Guard)",
 		author  = "efrec",
 		date    = "2025",
 		license = "GNU GPL, v2 or later",
-		layer   = -100, -- preempt widgets loading wrapped Spring func -- todo: override engine api funcs after setting up env
-		enabled = true,
+		layer   = -1e9, -- before wupgets that handle unit selections
+		enabled = (not not UG),
 	}
 end
 
+if gadget then
+	if not gadgetHandler:IsSyncedCode() then
+		return
+	end
+end
+
+local selectedUnitID
 local restoreVolumeData = {}
-local selectedID
 
 local function removeSelectionVolume(unitID)
 	local sx, sy, sz, ox, oy, oz, shape, cont, axis = Spring.GetUnitSelectionVolumeData(unitID)
@@ -37,20 +44,22 @@ local function restoreSelectionVolume(unitID)
 	Spring.SetUnitSelectionVolumeData(unitID, unpack(restoreVolumeData))
 end
 
-function widget:SelectionChanged(selected)
-	if selectedID ~= selected[1] then
-		if selectedID ~= nil then
-			restoreSelectionVolume(selectedID)
-			selectedID = nil
-		end
-		if selected[1] ~= nil and selected[2] == nil then
-			removeSelectionVolume(selected[1])
-			selectedID = selected[1]
+if widget then
+	function widget:SelectionChanged(selected)
+		if selectedUnitID ~= selected[1] then
+			if selectedUnitID ~= nil then
+				restoreSelectionVolume(selectedUnitID)
+				selectedUnitID = nil
+			end
+			if selected[1] ~= nil and selected[2] == nil then
+				removeSelectionVolume(selected[1])
+				selectedUnitID = selected[1]
+			end
 		end
 	end
 end
 
--- todo: wrap TraceScreenRay in both gadget + widget space
+-- Override API functions that need to restore the selection volume temporarily.
 
 local sp_TraceScreenRay = Spring.TraceScreenRay
 
@@ -64,21 +73,21 @@ local sp_TraceScreenRay = Spring.TraceScreenRay
 ---@return ("unit"|"feature"|"ground"|"sky")? description of traced object or position
 ---@return (number|xyz)? result unitID, featureID, or position triple; when `onlyCoords` is true, units/features also give position.
 Spring.TraceScreenRay = function(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset)
-	local unitID = selectedID
+	local unitID = selectedUnitID
 
 	if unitID then
 		restoreSelectionVolume(unitID)
 	end
 
-	local description, xyzOrID = sp_TraceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset)
+	local description, result = sp_TraceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset)
 
 	if unitID then
 		removeSelectionVolume(unitID)
 	end
 
-	return description, xyzOrID
+	return description, result
 end
 
-function widget:Shutdown()
+function upget:Shutdown()
 	Spring.TraceScreenRay = sp_TraceScreenRay
 end
