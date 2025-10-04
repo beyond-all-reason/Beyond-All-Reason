@@ -323,6 +323,21 @@ local function resetSpawn(featureID, featureData, featureDefData)
 	corpseCheckFrames[newFrame][#corpseCheckFrames[newFrame] + 1] = featureID
 end
 
+local function getScavVariantUnitDefID(unitDefID)
+	local unitDef = UnitDefs[unitDefID]
+	if not unitDef then
+		return unitDefID
+	end
+	
+	if string.find(unitDef.name, "_scav") then
+		return unitDefID
+	end
+	
+	local scavUnitDefName = unitDef.name .. "_scav"
+	local scavUnitDef = UnitDefNames[scavUnitDefName]
+	return scavUnitDef and scavUnitDef.id or unitDefID
+end
+
 local function setZombieStates(unitID, unitDefID)
 	local unitDef = UnitDefs[unitDefID]
 	spGiveOrderToUnit(unitID, CMD_REPEAT, ENABLE_REPEAT, 0)
@@ -351,10 +366,23 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 		local randomZ = z + random(-size * spawnCount, size * spawnCount)
 		local adjustedY = spGetGroundHeight(randomX, randomZ)
 
-	
-		local unitID = spCreateUnit(unitDefID, randomX, adjustedY, randomZ, 0, gaiaTeamID)
+		local unitToCreate = getScavVariantUnitDefID(unitDefID)
+		local unitID = spCreateUnit(unitToCreate, randomX, adjustedY, randomZ, 0, gaiaTeamID)
 		if unitID then
-			spSpawnCEG("scav-spawnexplo", randomX, adjustedY, randomZ, 0, 0, 0, unitDef.xsize)
+			local size = math.ceil((unitDef.xsize / 2 + unitDef.zsize / 2) / 2)
+			local sizeName = "small"
+			if size > 4.5 then
+				sizeName = "huge"
+			elseif size > 3.5 then
+				sizeName = "large"
+			elseif size > 2.5 then
+				sizeName = "medium"
+			elseif size > 1.5 then
+				sizeName = "small"
+			else
+				sizeName = "tiny"
+			end
+			spSpawnCEG("scav-spawnexplo-" .. sizeName, randomX, adjustedY, randomZ, 0, 0, 0)
 			if modOptions.zombies ~= "normal" then
 				spSetUnitExperience(unitID, (random() * ZOMBIE_MAX_XP + random() * ZOMBIE_MAX_XP) / 2) -- to skew the experience towards the median
 			end
@@ -364,11 +392,11 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 			if scavTeamID then
 				spTransferUnit(unitID, scavTeamID)
 			else
-				zombieWatch[unitID] = unitDefID
+				zombieWatch[unitID] = unitToCreate
 				if ordersEnabled then
-					issueRandomOrders(unitID, unitDefID)
+					issueRandomOrders(unitID, unitToCreate)
 				end
-				setZombieStates(unitID, unitDefID)
+				setZombieStates(unitID, unitToCreate)
 			end
 		end
 	end
@@ -376,11 +404,37 @@ end
 
 local function setZombie(unitID)
 	local unitDefID = spGetUnitDefID(unitID)
-	if unitDefID then
-		spSetUnitRulesParam(unitID, "zombie", 1)
-		zombieWatch[unitID] = unitDefID
-		setZombieStates(unitID, unitDefID)
+	if not unitDefID then
+		return
 	end
+	
+	local scavUnitDefID = getScavVariantUnitDefID(unitDefID)
+	
+	-- If we need to convert to _scav variant
+	if scavUnitDefID ~= unitDefID then
+		local x, y, z = spGetUnitPosition(unitID)
+		local facing = Spring.GetUnitDirection(unitID) or 0
+		local teamID = spGetUnitTeam(unitID)
+		
+		local newUnitID = spCreateUnit(scavUnitDefID, x or 0, y or 0, z or 0, facing or 0, teamID)
+		if newUnitID then
+			local health, maxHealth = spGetUnitHealth(unitID)
+			if health and maxHealth then
+				spSetUnitHealth(newUnitID, health / maxHealth)
+			end
+			local experience = Spring.GetUnitExperience(unitID)
+			spSetUnitExperience(newUnitID, experience)
+			
+			spDestroyUnit(unitID, false, true)
+			
+			unitID = newUnitID
+			unitDefID = scavUnitDefID
+		end
+	end
+	
+	spSetUnitRulesParam(unitID, "zombie", 1)
+	zombieWatch[unitID] = unitDefID
+	setZombieStates(unitID, unitDefID)
 end
 
 function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
@@ -671,7 +725,7 @@ local function handleConsoleCommand(playerID, commandName, requiredArgs, actionF
 	end
 	
 	if requiredArgs and #requiredArgs == 0 then
-		Spring.SendMessageToPlayer(playerID, "Usage: /luarules " .. commandName .. " " .. (requiredArgs or ""))
+		Spring.SendMessageToPlayer(playerID, "Usage: /luarules " .. commandName .. " " .. table.concat(requiredArgs, " "))
 		return
 	end
 	
