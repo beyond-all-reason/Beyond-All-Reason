@@ -1393,10 +1393,10 @@ local options = {
 
     {
         key     = "techsplit_balance",
-        name    = "Tech Split Balance Test",
-        desc    = "Adjusts the balance of units in the proposed tech split.",
+        name    = "Tech Split: Tzar & Fatboy Test Patch",
+        desc    = "Test Patch for Tzar & Fatboy changes from the Tech Split. Moves Tzar and Fatboys to T3",
         type    = "bool",
-        hidden  = true,
+        hidden  = false,
         section = "options_experimental",
         def     = false,
     },
