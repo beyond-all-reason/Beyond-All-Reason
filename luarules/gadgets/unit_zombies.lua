@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
-		name      = "Corpse Revival",
-		desc      = "Resurrects corpses as Scavengers or hostile Gaia",
+		name      = "Zombies",
+		desc      = "Resurrects corpses as Scavengers or hostile Gaia Zombies",
 		author    = "SethDGamre, code snippets/inspiration from Rafal",
 		date      = "March 2024",
 		license   = "GNU GPL, v2 or later",
