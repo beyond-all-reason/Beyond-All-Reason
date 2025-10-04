@@ -496,7 +496,9 @@ function gadget:GameFrame(frame)
 			if not featureX then --doesn't exist anymore
 				corpsesData[featureID] = nil
 			elseif featureData.spawnFrame - frame < WARNING_TIME then
-				warningCEG(featureID, featureX, featureY, featureZ)
+				if not featureData.tamperedFrame then
+					warningCEG(featureID, featureX, featureY, featureZ)
+				end
 			end
 		end
 	end
