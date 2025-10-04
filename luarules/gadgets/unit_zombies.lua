@@ -16,10 +16,6 @@ end
 
 local modOptions = Spring.GetModOptions()
 
-if modOptions.zombies == "disabled" then
-	return false
-end
-
 local ZOMBIE_GUARD_RADIUS = 300			-- Radius for zombies to guard allies
 local ZOMBIE_ORDER_COUNT = 10
 local ZOMBIE_GUARD_CHANCE = 0.65		-- Chance a zombie will guard allies
@@ -954,7 +950,8 @@ function gadget:Initialize()
 	isIdleMode = modOptions.seasonal_surprise == true or (GG.Zombies and GG.Zombies.IdleMode == true) or false
 
 	if not modOptionEnabled and not isIdleMode then
-		return false
+		gadgetHandler:RemoveGadget(gadget)
+		return
 	end
 	
 	local initialMode = modOptions.zombies or "normal"
