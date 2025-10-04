@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author  = "efrec",
 		date    = "2025",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer   = -100, -- preempt widgets loading wrapped Spring func -- todo: override engine api funcs after setting up env
 		enabled = true,
 	}
 end
@@ -48,4 +48,37 @@ function widget:SelectionChanged(selected)
 			selectedID = selected[1]
 		end
 	end
+end
+
+-- todo: wrap TraceScreenRay in both gadget + widget space
+
+local sp_TraceScreenRay = Spring.TraceScreenRay
+
+---@param screenX number position on x axis in mouse coordinates (origin on left border of view)
+---@param screenY number position on y axis in mouse coordinates (origin on top border of view)
+---@param onlyCoords boolean? (Default: `false`) `result` includes only coordinates
+---@param useMinimap boolean? (Default: `false`) if position arguments are contained by minimap, use the minimap corresponding world position
+---@param includeSky boolean? (Default: `false`)
+---@param ignoreWater boolean? (Default: `false`)
+---@param heightOffset number? (Default: `0`)
+---@return ("unit"|"feature"|"ground"|"sky")? description of traced object or position
+---@return (number|xyz)? result unitID, featureID, or position triple; when `onlyCoords` is true, units/features also give position.
+Spring.TraceScreenRay = function(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset)
+	local unitID = selectedID
+
+	if unitID then
+		restoreSelectionVolume(unitID)
+	end
+
+	local description, xyzOrID = sp_TraceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset)
+
+	if unitID then
+		removeSelectionVolume(unitID)
+	end
+
+	return description, xyzOrID
+end
+
+function widget:Shutdown()
+	Spring.TraceScreenRay = sp_TraceScreenRay
 end
