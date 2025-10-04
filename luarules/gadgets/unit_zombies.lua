@@ -631,7 +631,7 @@ local function handleConsoleCommand(playerID, commandName, requiredArgs, actionF
 	end
 	
 	if requiredArgs and #requiredArgs == 0 then
-		Spring.SendMessageToPlayer(playerID, "Usage: /luarules " .. commandName .. " <required arguments>")
+		Spring.SendMessageToPlayer(playerID, "Usage: /luarules " .. commandName .. " " .. (requiredArgs or ""))
 		return
 	end
 	
@@ -669,11 +669,40 @@ local function setAllGaiaToZombies()
 	return convertedCount
 end
 
+
 local function setAllGaiaToZombiesCommand(_, line, words, playerID)
 	return handleConsoleCommand(playerID, "zombiesetallgaia", nil, function(playerID, args, sendMessage)
 		local convertedCount = GG.Zombies.SetAllGaiaToZombies()
 		if sendMessage or debugMode then
 			Spring.SendMessageToPlayer(playerID, "Set " .. convertedCount .. " Gaia units as zombies")
+		end
+	end)
+end
+
+local function spawnZombieFromCorpse(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombiecreatefromfeature", words, function(playerID, args, sendMessage)
+		if not args[1] then
+			if sendMessage or debugMode then
+				Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombiecreatefromfeature <featureID>")
+			end
+			return
+		end
+		
+		local featureID = tonumber(args[1])
+		if not featureID or not Spring.ValidFeatureID(featureID) then
+			if sendMessage or debugMode then
+				Spring.SendMessageToPlayer(playerID, "Invalid feature ID")
+			end
+			return
+		end
+		
+		local success = GG.Zombies.CreateZombieFromFeature(featureID)
+		if sendMessage or debugMode then
+			if success then
+				Spring.SendMessageToPlayer(playerID, "Created zombie from feature " .. featureID)
+			else
+				Spring.SendMessageToPlayer(playerID, "Failed to create zombie from feature " .. featureID)
+			end
 		end
 	end)
 end
@@ -735,26 +764,26 @@ local function pacifyZombies(_, line, words, playerID)
 	end)
 end
 
-local function aggroZombiesToTeam(_, line, words, playerID)
+local function aggroZombiesToPlayer(_, line, words, playerID)
 	return handleConsoleCommand(playerID, "zombieaggroplayer", words, function(playerID, args, sendMessage)
 		if not args[1] then
 			if sendMessage or debugMode then
-				Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombieaggroplayer <teamID>")
+				Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombieaggroplayer <playerID>")
 			end
 			return
 		end
 		
-		local targetTeamID = tonumber(args[1])
-		if not targetTeamID or targetTeamID < 0 then
+		local targetPlayerID = tonumber(args[1])
+		if not targetPlayerID or targetPlayerID < 0 then
 			if sendMessage or debugMode then
-				Spring.SendMessageToPlayer(playerID, "Invalid teamID")
+				Spring.SendMessageToPlayer(playerID, "Invalid player ID")
 			end
 			return
 		end
 		
-		GG.Zombies.AggroPlayerID(targetTeamID)
+		GG.Zombies.AggroPlayerID(targetPlayerID)
 		if sendMessage or debugMode then
-			Spring.SendMessageToPlayer(playerID, "Zombies aggroed to team " .. targetTeamID)
+			Spring.SendMessageToPlayer(playerID, "Zombies aggroed to player " .. targetPlayerID)
 		end
 	end)
 end
@@ -771,7 +800,7 @@ local function aggroZombiesToAlly(_, line, words, playerID)
 		local allyTeamID = tonumber(args[1])
 		if not allyTeamID or allyTeamID < 0 then
 			if sendMessage or debugMode then
-				Spring.SendMessageToPlayer(playerID, "Invalid allyID")
+				Spring.SendMessageToPlayer(playerID, "Invalid ally team ID")
 			end
 			return
 		end
@@ -783,7 +812,7 @@ local function aggroZombiesToAlly(_, line, words, playerID)
 	end)
 end
 
-local function killAllZombies(_, line, words, playerID)
+local function killAllZombiesCommand(_, line, words, playerID)
 	return handleConsoleCommand(playerID, "zombiekillall", nil, function(playerID, args, sendMessage)
 		GG.Zombies.KillAllZombies()
 		if sendMessage or debugMode then
@@ -810,9 +839,33 @@ local function clearZombieSpawns(_, line, words, playerID)
 	end)
 end
 
+local function toggleDebugMode(_, line, words, playerID)
+	return handleConsoleCommand(playerID, "zombiedebug", words, function(playerID, args, sendMessage)
+		if not args[1] then
+			if sendMessage or debugMode then
+				Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombiedebug <0|1>")
+			end
+			return
+		end
+		
+		local enabled = tonumber(args[1])
+		if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
+			if sendMessage or debugMode then
+				Spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
+			end
+			return
+		end
+		
+		debugMode = enabled == 1
+		if sendMessage or debugMode then
+			Spring.SendMessageToPlayer(playerID, "Zombie debug mode " .. (debugMode and "enabled" or "disabled"))
+		end
+	end)
+end
+
 function gadget:Initialize()
 	local modOptionEnabled = modOptions.zombies ~= "disabled"
-	isIdleMode = modOptions.seasonal_surprise == true or (GG.Zombies and GG.Zombies.IdleMode == true)
+	local isIdleMode = modOptions.zombies == "idle"
 	
 	if not modOptionEnabled and not isIdleMode then
 		return false
@@ -838,8 +891,7 @@ function gadget:Initialize()
 		end
 	end
 
-	GG.Zombies = GG.Zombies or {}
-	isIdleMode = GG.Zombies.IdleMode and GG.Zombies.IdleMode or false
+	GG.Zombies = {}
 	GG.Zombies.SetZombie = setZombie
 	GG.Zombies.ConvertUnitsToZombies = convertUnitsToZombies
 	GG.Zombies.SetAllGaiaToZombies = setAllGaiaToZombies
@@ -855,19 +907,22 @@ function gadget:Initialize()
 	
 	-- Register console commands
 	gadgetHandler:AddChatAction('zombiesetallgaia', setAllGaiaToZombiesCommand, "Set all Gaia units as zombies")
+	gadgetHandler:AddChatAction('zombiecreatefromfeature', spawnZombieFromCorpse, "Create zombie from feature ID")
 	gadgetHandler:AddChatAction('zombiequeueallcorpses', queueAllCorpsesForReanimation, "Queue all corpses for spawning")
 	gadgetHandler:AddChatAction('zombieautospawning', toggleAutoReanimation, "Enable/disable auto spawning")
 	gadgetHandler:AddChatAction('zombieclearspawns', clearZombieSpawns, "Clear all queued zombie spawns")
 	gadgetHandler:AddChatAction('zombiepacify', pacifyZombies, "Pacify/unpacify zombies")
-	gadgetHandler:AddChatAction('zombieaggroplayer', aggroZombiesToTeam, "Make zombies aggro to teamID")
+	gadgetHandler:AddChatAction('zombieaggroplayer', aggroZombiesToPlayer, "Make zombies aggro to player")
 	gadgetHandler:AddChatAction('zombieaggroally', aggroZombiesToAlly, "Make zombies aggro to ally team")
-	gadgetHandler:AddChatAction('zombiekillall', killAllZombies, "Kill all zombies")
+	gadgetHandler:AddChatAction('zombiekillall', killAllZombiesCommand, "Kill all zombies")
 	gadgetHandler:AddChatAction('zombieclearorders', clearZombieOrders, "Clear zombie orders")
+	gadgetHandler:AddChatAction('zombiedebug', toggleDebugMode, "Enable/disable debug mode")
 end
 
 function gadget:Shutdown()
 	-- Remove console commands
 	gadgetHandler:RemoveChatAction('zombiesetallgaia')
+	gadgetHandler:RemoveChatAction('zombiecreatefromfeature')
 	gadgetHandler:RemoveChatAction('zombiequeueallcorpses')
 	gadgetHandler:RemoveChatAction('zombieautospawning')
 	gadgetHandler:RemoveChatAction('zombieclearspawns')
@@ -876,6 +931,7 @@ function gadget:Shutdown()
 	gadgetHandler:RemoveChatAction('zombieaggroally')
 	gadgetHandler:RemoveChatAction('zombiekillall')
 	gadgetHandler:RemoveChatAction('zombieclearorders')
+	gadgetHandler:RemoveChatAction('zombiedebug')
 end
 
 function gadget:GameStart()
