@@ -128,8 +128,6 @@ for _, teamID in ipairs(teams) do
 		scavTeamID = teamID
 	end
 end
-local mapWidth
-local mapHeight
 
 local ordersEnabled = true
 local gameFrame = 0
@@ -1053,8 +1051,6 @@ function gadget:Initialize()
 	
 	autoSpawningEnabled = modOptionEnabled and not isIdleMode
 	
-	mapWidth = Game.mapSizeX
-	mapHeight = Game.mapSizeZ
 	gameFrame = spGetGameFrame()
 
 	local units = spGetAllUnits()
