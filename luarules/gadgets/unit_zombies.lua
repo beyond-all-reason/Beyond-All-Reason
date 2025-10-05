@@ -63,9 +63,9 @@ local STUCK_CHECK_INTERVAL = Game.gameSpeed * 20 -- How often (in frames) to che
 
 local STUCK_DISTANCE = 50 -- How far (in units) a zombie can move before being considered stuck
 local MAX_NOGO_ZONES = 10 -- How many no-go zones a zombie can have before being considered stuck
-local NOGO_ZONE_RADIUS = 300 -- How far (in units) a no-go zone is
+local NOGO_ZONE_RADIUS = 400 -- How far (in units) a no-go zone is
 local ENEMY_ATTACK_DISTANCE = 300 -- How far (in units) a zombie will detect and choose to attack an enemy
-local ORDER_DISTANCE = 600 -- How far (in units) a zombie moves per order
+local ORDER_DISTANCE = 800 -- How far (in units) a zombie moves per order
 
 local CMD_REPEAT = CMD.REPEAT
 local CMD_MOVE_STATE = CMD.MOVE_STATE
@@ -311,7 +311,7 @@ local function issueRandomOrders(unitID, unitDefID)
 	local isGuarding = false
 	local closestKnownEnemy = spGetUnitNearestEnemy(unitID, ENEMY_ATTACK_DISTANCE)
 	local yaw = select(2, spGetUnitRotation(unitID))
-	if nearAlly and random() < ZOMBIE_GUARD_CHANCE then
+	if nearAlly and not closestKnownEnemy and random() < ZOMBIE_GUARD_CHANCE then
 		spGiveOrderToUnit(unitID, CMD_GUARD, {nearAlly}, 0)
 		isGuarding = true
 	elseif extraDefs[unitDefID].isMobile and not isGuarding then
@@ -662,10 +662,12 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
 			if unitX and unitY and unitZ then
 				local defData = zombieHeapDefs[unitDefID]
-				spDestroyUnit(unitID, false, true, attackerID)
-				spSpawnExplosion(unitX, unitY, unitZ, 0, 0, 0, {weaponDef = defData.explosionDefID, owner = attackerID, hitUnit = unitID, hitFeature = -1, craterAreaOfEffect = 0, damageAreaOfEffect = 0, edgeEffectiveness = 0, explosionSpeed = 0, gfxMod = 0, impactOnly = false, ignoreOwner = false, damageGround = true} )
-				if defData.heapDefID then
-					spCreateFeature(defData.heapDefID, unitX, unitY, unitZ)
+				if defData then
+					spDestroyUnit(unitID, false, true, attackerID)
+					spSpawnExplosion(unitX, unitY, unitZ, 0, 0, 0, {weaponDef = defData.explosionDefID, owner = attackerID, hitUnit = unitID, hitFeature = -1, craterAreaOfEffect = 0, damageAreaOfEffect = 0, edgeEffectiveness = 0, explosionSpeed = 0, gfxMod = 0, impactOnly = false, ignoreOwner = false, damageGround = true} )
+					if defData.heapDefID then
+						spCreateFeature(defData.heapDefID, unitX, unitY, unitZ)
+					end
 				end
 			end
 		end
