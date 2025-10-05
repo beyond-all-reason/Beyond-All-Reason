@@ -76,7 +76,6 @@ local initialModel = {
 	budgetPercent = 0,
 	budgetProjected = 0,
 	budgetProjectedPercent = 0,
-	projectedBudgetText = "",
 	deductionAmount1 = "", --we have multiple to allow multiple deduction animations to play simultaneously.
 	deductionAmount2 = "",
 	deductionAmount3 = "",
@@ -321,27 +320,6 @@ local function updateDataModel(forceUpdate)
 			local overlayLeft = math.max(0, budgetPercent - overlayWidth)
 			local style = string.format("left: %.1f%%; width: %.1f%%;", overlayLeft, overlayWidth)
 			widgetState.budgetBarElements.projectedElement:SetAttribute("style", style)
-		end
-
-		local projectedBudgetTextElement = widgetState.document:GetElementById("qs-projected-budget-text")
-		if projectedBudgetTextElement then
-			local budgetProjected = math.floor(widgetState.dmHandle.budgetProjected or 0)
-			local budgetRemaining = math.floor(widgetState.dmHandle.budgetRemaining or 0)
-			local displayAmount = math.min(budgetRemaining, budgetProjected)
-			
-			if displayAmount > 0 then
-				local budgetProjectedPercent = widgetState.dmHandle.budgetProjectedPercent or 0
-				local overlayWidth = math.min(budgetProjectedPercent, budgetPercent)
-				local overlayLeft = math.max(0, budgetPercent - overlayWidth)
-				
-				widgetState.dmHandle.projectedBudgetText = "-" .. tostring(displayAmount)
-				local textLeft = overlayLeft + (overlayWidth / 2)
-				local textStyle = string.format("left: %.1f%%; opacity: 1;", textLeft)
-				projectedBudgetTextElement:SetAttribute("style", textStyle)
-			else
-				widgetState.dmHandle.projectedBudgetText = ""
-				projectedBudgetTextElement:SetAttribute("style", "opacity: 0;")
-			end
 		end
 
 		updateUIElementText(widgetState.document, "qs-budget-value-left", tostring(budgetRemaining))
