@@ -59,11 +59,11 @@ local currentZombieConfig = zombieModeConfigs.normal
 
 local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 5 -- How often (in frames) to check if zombies need new orders
 local ZOMBIE_CHECK_INTERVAL = Game.gameSpeed -- How often (in frames) everything else is checked
-local STUCK_CHECK_INTERVAL = Game.gameSpeed * 20 -- How often (in frames) to check if zombies are stuck
+local STUCK_CHECK_INTERVAL = Game.gameSpeed * 10 -- How often (in frames) to check if zombies are stuck
 
 local STUCK_DISTANCE = 50 -- How far (in units) a zombie can move before being considered stuck
 local MAX_NOGO_ZONES = 10 -- How many no-go zones a zombie can have before being considered stuck
-local NOGO_ZONE_RADIUS = 400 -- How far (in units) a no-go zone is
+local NOGO_ZONE_RADIUS = 600 -- How far (in units) a no-go zone is
 local ENEMY_ATTACK_DISTANCE = 300 -- How far (in units) a zombie will detect and choose to attack an enemy
 local ORDER_DISTANCE = 800 -- How far (in units) a zombie moves per order
 
@@ -79,6 +79,9 @@ local FIRE_STATE_FIRE_AT_WILL = 2
 local FIRE_STATE_RETURN_FIRE = 1
 local MOVE_STATE_ROAM = 2
 local ENABLE_REPEAT = 1
+
+local MAP_SIZE_X = Game.mapSizeX
+local MAP_SIZE_Z = Game.mapSizeZ
 
 local spGetUnitRotation			= Spring.GetUnitRotation
 local spGetUnitNearestEnemy		= Spring.GetUnitNearestEnemy
@@ -118,6 +121,12 @@ local spGetUnitCurrentCommand	= Spring.GetUnitCurrentCommand
 local spSetUnitExperience		= Spring.SetUnitExperience
 local random					= math.random
 local distance2dSquared			= math.distance2dSquared
+local pi						= math.pi
+local cos						= math.cos
+local sin						= math.sin
+local floor						= math.floor
+local clamp						= math.clamp
+local ceil						= math.ceil
 
 local teams = Spring.GetTeamList()
 local scavTeamID
@@ -157,9 +166,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	local corpseDefName = unitDef.corpse
 	if FeatureDefNames[corpseDefName] then
 		local corpseDefID = FeatureDefNames[corpseDefName].id
-		local spawnSeconds = math.floor(unitDef.metalCost / adjustedRezSpeed)
+		local spawnSeconds = floor(unitDef.metalCost / adjustedRezSpeed)
 
-		spawnSeconds = math.clamp(spawnSeconds, currentZombieConfig.rezMin, currentZombieConfig.rezMax)
+		spawnSeconds = clamp(spawnSeconds, currentZombieConfig.rezMin, currentZombieConfig.rezMax)
 		local spawnFrames = spawnSeconds * Game.gameSpeed
 		zombieCorpseDefs[corpseDefID] = {unitDefID = unitDefID, spawnDelayFrames = spawnFrames}
 
@@ -186,7 +195,7 @@ end
 
 local function initializeZombie(unitID, unitDefID)
     local x, y, z = Spring.GetUnitPosition(unitID)
-    zombieWatch[unitID] = {unitDefID = unitDefID, lastLocation = {x = x, y = y, z = z}, noGoZones = {}, isStuck = false, lastHealth = spGetUnitHealth(unitID)}
+    zombieWatch[unitID] = {unitDefID = unitDefID, lastLocation = {x = x, y = y, z = z}, noGoZones = {}, isStuck = false}
 end
 
 local function isZombie(unitID)
@@ -222,7 +231,7 @@ end
 local function applyZombieModeSettings(mode)
 	local config = zombieModeConfigs[mode]
 	if not config then
-		config = zombieModeConfigs.normal -- fallback to normal
+		config = zombieModeConfigs.normal
 	end
 	
 	currentZombieMode = mode
@@ -300,6 +309,11 @@ local function playSpawnSound(x, y, z)
 		spPlaySoundFile(selectedEffect, 0.5, x, y, z, 0)
 end
 
+-- for some reason, engine gives us the LEFT direction as the yaw instead of the forwards direction. This gets and corrects it.
+local function getActualForwardsYaw(unitID)
+	return (select(2, spGetUnitRotation(unitID)) + (pi / 2)) % (2 * pi)
+end
+
 local function issueRandomOrders(unitID, unitDefID)
 	if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then
 		zombieWatch[unitID] = nil
@@ -309,7 +323,6 @@ local function issueRandomOrders(unitID, unitDefID)
 	local nearAlly = (unitDef.canAttack) and GetUnitNearestAlly(unitID, unitDefID, ZOMBIE_GUARD_RADIUS) or nil
 	local isGuarding = false
 	local closestKnownEnemy = spGetUnitNearestEnemy(unitID, ENEMY_ATTACK_DISTANCE)
-	local yaw = select(2, spGetUnitRotation(unitID))
 	if nearAlly and not closestKnownEnemy and random() < ZOMBIE_GUARD_CHANCE then
 		spGiveOrderToUnit(unitID, CMD_GUARD, {nearAlly}, 0)
 		isGuarding = true
@@ -324,14 +337,22 @@ local function issueRandomOrders(unitID, unitDefID)
 				closestKnownEnemy = nil
 			else
 				if data.isStuck then
-					local randomAngle = math.random() * 2 * math.pi
-					attemptX = x + ORDER_DISTANCE * math.cos(randomAngle)
-					attemptZ = z + ORDER_DISTANCE * math.sin(randomAngle)
+					local randomAngle = random() * 2 * pi
+					attemptX = x + ORDER_DISTANCE * cos(randomAngle)
+					attemptZ = z + ORDER_DISTANCE * sin(randomAngle)
 				else
-					local biasedAngle = yaw + (math.random() * math.pi - math.pi / 2)
-					attemptX = x + ORDER_DISTANCE * math.cos(biasedAngle)
-					attemptZ = z + ORDER_DISTANCE * math.sin(biasedAngle)
+					local biasDirection = (random() > 0.5) and 1 or -1
+					local randomAngle = random() * (pi / 4)
+					local movementAngle = (getActualForwardsYaw(unitID) + (biasDirection * randomAngle)) % (2 * pi)
+
+					attemptX = x + ORDER_DISTANCE * cos(movementAngle)
+					attemptZ = z + ORDER_DISTANCE * sin(movementAngle)
 				end
+
+				if attemptX < 0 or attemptX > MAP_SIZE_X or attemptZ < 0 or attemptZ > MAP_SIZE_Z then
+					data.isStuck = true
+				end
+
 				attemptY = spGetGroundHeight(attemptX, attemptZ)
 			end
 				for _, zone in ipairs(data.noGoZones) do
@@ -401,7 +422,7 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 	local unitDef = UnitDefs[unitDefID]
 	local spawnCount = 1
 	if extraDefs[unitDefID].isMobile then
-		spawnCount = math.floor((random(currentZombieConfig.countMin, currentZombieConfig.countMax) + random(currentZombieConfig.countMin, currentZombieConfig.countMax)) / 2) --skew results towards average to produce better gameplay
+		spawnCount = floor((random(currentZombieConfig.countMin, currentZombieConfig.countMax) + random(currentZombieConfig.countMin, currentZombieConfig.countMax)) / 2) --skew results towards average to produce better gameplay
 	end
 	local size = unitDef.xsize
 
@@ -417,7 +438,7 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 		local unitDefToCreate = getScavVariantUnitDefID(unitDefID)
 		local unitID = spCreateUnit(unitDefToCreate, randomX, adjustedY, randomZ, 0, gaiaTeamID)
 		if unitID then
-			local size = math.ceil((unitDef.xsize / 2 + unitDef.zsize / 2) / 2)
+			local size = ceil((unitDef.xsize / 2 + unitDef.zsize / 2) / 2)
 			local sizeName = "small"
 			if size > 4.5 then
 				sizeName = "huge"
@@ -549,7 +570,6 @@ function gadget:GameFrame(frame)
 		end
 	end
 
-	--check if any zombies need new orders
 	if frame % ZOMBIE_ORDER_CHECK_INTERVAL == 1 then
 		for unitID, data in pairs(zombieWatch) do
 			local unitDefID = data.unitDefID
@@ -557,7 +577,7 @@ function gadget:GameFrame(frame)
 				zombieWatch[unitID] = nil
 			else
 				local REFRESH_ORDERS_CHANCE = 0.01
-				local refreshOrders = math.random() > REFRESH_ORDERS_CHANCE
+				local refreshOrders = random() > REFRESH_ORDERS_CHANCE
 				local currentOrder = Spring.GetUnitCurrentCommand(unitID)
 
 				local queueSize = spGetUnitCommandCount(unitID)
@@ -576,29 +596,34 @@ function gadget:GameFrame(frame)
 			else
 				local x, y, z = Spring.GetUnitPosition(unitID)
 				if x and y and z then
-					local currentHealth = spGetUnitHealth(unitID)
-					local distance = math.distance2dSquared(x, z, data.lastLocation.x, data.lastLocation.z)
-					if distance < STUCK_DISTANCE and currentHealth and currentHealth >= data.lastHealth then
-						clearUnitOrders(unitID)
-						data.isStuck = true
-						local alreadyPresent = false
-						for _, zone in ipairs(data.noGoZones) do
-							local dx = x - zone.x
-							local dz = z - zone.z
-							if (dx * dx + dz * dz) < (NOGO_ZONE_RADIUS * NOGO_ZONE_RADIUS) then
-								alreadyPresent = true
-								break
+					if not data.isStuck and distance2dSquared(x, z, data.lastLocation.x, data.lastLocation.z) < STUCK_DISTANCE then
+						local BLOCK_CHECK_STEP = 10
+						local forwardDirection = getActualForwardsYaw(unitID)
+						local unitX, unitY, unitZ = Spring.GetUnitPosition(unitID)
+						local testX = unitX + BLOCK_CHECK_STEP * cos(forwardDirection)
+						local testZ = unitZ + BLOCK_CHECK_STEP * sin(forwardDirection)
+						local unitDefID = data.unitDefID
+						if not spTestMoveOrder(unitDefID, testX, Spring.GetGroundHeight(testX, testZ), testZ) then
+							clearUnitOrders(unitID)
+							data.isStuck = true
+							local alreadyPresent = false
+							for _, zone in ipairs(data.noGoZones) do
+								local dx = x - zone.x
+								local dz = z - zone.z
+								if (dx * dx + dz * dz) < (NOGO_ZONE_RADIUS * NOGO_ZONE_RADIUS) then
+									alreadyPresent = true
+									break
+								end
 							end
-						end
-						if not alreadyPresent then
-							if #data.noGoZones < MAX_NOGO_ZONES then
-								table.remove(data.noGoZones, 1)
+							if not alreadyPresent then
+								if #data.noGoZones < MAX_NOGO_ZONES then
+									table.remove(data.noGoZones, 1)
+								end
+								table.insert(data.noGoZones, {x = x, y = y, z = z})
 							end
-							table.insert(data.noGoZones, {x = x, y = y, z = z})
 						end
 					end
 					data.lastLocation = {x = x, y = y, z = z}
-					data.lastHealth = currentHealth
 				end
 			end
 		end
@@ -720,14 +745,14 @@ local function fightNearTargets(targetUnits)
 	
 	for zombieID, _ in pairs(zombieWatch) do
 		if spValidUnitID(zombieID) then
-			local randomTarget = targetUnits[math.random(1, #targetUnits)]
+			local randomTarget = targetUnits[random(1, #targetUnits)]
 			if spValidUnitID(randomTarget) then
 				local targetX, targetY, targetZ = Spring.GetUnitPosition(randomTarget)
 				if targetX then
-					local angle = math.random() * 2 * math.pi
-					local offsetDistance = math.random(25, 500)
-					local fightX = targetX + math.cos(angle) * offsetDistance
-					local fightZ = targetZ + math.sin(angle) * offsetDistance
+					local angle = random() * 2 * pi
+					local offsetDistance = random(25, 500)
+					local fightX = targetX + cos(angle) * offsetDistance
+					local fightZ = targetZ + sin(angle) * offsetDistance
 					local fightY = Spring.GetGroundHeight(fightX, fightZ)
 					
 					Spring.GiveOrderToUnit(zombieID, CMD.FIGHT, {fightX, fightY, fightZ}, {})
