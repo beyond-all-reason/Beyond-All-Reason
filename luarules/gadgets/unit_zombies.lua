@@ -57,7 +57,7 @@ local zombieModeConfigs = {
 local currentZombieMode = "normal"
 local currentZombieConfig = zombieModeConfigs.normal
 
-local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 10 -- How often (in frames) to check if zombies need new orders
+local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 5 -- How often (in frames) to check if zombies need new orders
 local ZOMBIE_CHECK_INTERVAL = Game.gameSpeed -- How often (in frames) everything else is checked
 local STUCK_CHECK_INTERVAL = Game.gameSpeed * 20 -- How often (in frames) to check if zombies are stuck
 
@@ -146,15 +146,6 @@ local corpseCheckFrames = {}
 local corpsesData = {}
 local zombieHeapDefs = {}
 
-local function initializeZombie(unitID, unitDefID)
-    local x, y, z = Spring.GetUnitPosition(unitID)
-    zombieWatch[unitID] = {unitDefID = unitDefID, lastLocation = {x = x, y = y, z = z}, noGoZones = {}, isStuck = false, lastHealth = spGetUnitHealth(unitID)}
-end
-
-local function isZombie(unitID)
-	local isZombieRulesParam = spGetUnitRulesParam(unitID, "zombie")
-	return isZombieRulesParam and isZombieRulesParam == 1
-end
 local warningEffects = {
 	"scavmist",
 	"scavradiation-lightning",
@@ -193,6 +184,16 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	elseif unitDef.buildOptions and #unitDef.buildOptions > 0 then
 		extraDefs[unitDefID].isFactory = true
 	end
+end
+
+local function initializeZombie(unitID, unitDefID)
+    local x, y, z = Spring.GetUnitPosition(unitID)
+    zombieWatch[unitID] = {unitDefID = unitDefID, lastLocation = {x = x, y = y, z = z}, noGoZones = {}, isStuck = false, lastHealth = spGetUnitHealth(unitID)}
+end
+
+local function isZombie(unitID)
+	local isZombieRulesParam = spGetUnitRulesParam(unitID, "zombie")
+	return isZombieRulesParam and isZombieRulesParam == 1
 end
 
 local function setGaiaStorage()
