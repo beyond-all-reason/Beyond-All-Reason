@@ -269,7 +269,7 @@ return {
 			},
 			[2] = {
 				def = "ADVDEPTHCHARGE",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "CANBEUW UNDERWATER",
 			},
 			-- [3] = {
 			-- 	def = "ADVDEPTHCHARGE",

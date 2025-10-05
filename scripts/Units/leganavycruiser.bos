@@ -136,14 +136,13 @@ FireWeapon1()
 	//call-script RecoilRockBoat(aimDir3, RB_RECOIL_ENERGY_3);
     spin rightBarrel around z-axis speed <900>  accelerate <50>;
     spin leftBarrel around z-axis speed <-900> accelerate <50>;
-    if(gun_1==0){emit-sfx 1024 + 2 from rightGunFlare;}
-    else{emit-sfx 1024 + 2 from leftGunFlare;}
     //sleep 10;
 	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
 }
 
 Shot1(zero){
     gun_1 = !gun_1;
+    if(gun_1==0){emit-sfx 1024 + 2 from rightGunFlare;}else{emit-sfx 1024 + 2 from leftGunFlare;}
 }
 
 AimFromWeapon1(pieceIndex)
