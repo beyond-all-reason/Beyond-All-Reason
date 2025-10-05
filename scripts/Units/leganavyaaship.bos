@@ -22,7 +22,9 @@ podFlare2c,
 leftFlare,
 rightFlare,
 bow,
-wake;
+wake,
+rightMuzzleFlash,
+leftMuzzleFlash;
 		
 static-var  gun_1, restore_delay, aimDir, oldHead;
 static-var  BarrelCount1, BarrelCount2;
@@ -58,6 +60,9 @@ Create()
     turn rightTurretPitchPivot to x-axis <-45> now;
     turn leftTurretPitchPivot to x-axis <-45> now;
     turn leftTurretHeadingPivot to y-axis <-180> now;
+
+    move rightMuzzleFlash to z-axis [-30] now;
+    move leftMuzzleFlash to z-axis [-30] now;
 
 
 	gun_1 = 0;
@@ -170,7 +175,7 @@ Shot1()
 {
 	if( gun_1 == 0 )
 	{
-        spin rightBarrel around z-axis speed <360>;
+        spin rightBarrel around z-axis speed <720>;
         emit-sfx 1024 + 0 from rightFlare;
         stop-spin rightBarrel around z-axis decelerate <2>;
         sleep 60;
@@ -178,7 +183,7 @@ Shot1()
 	}
 	if( gun_1 == 1 )
 	{
-        spin leftBarrel around z-axis speed <360>;
+        spin leftBarrel around z-axis speed <720>;
         emit-sfx 1024 + 0 from leftFlare;
         stop-spin leftBarrel around z-axis decelerate <2>;
         sleep 60;
@@ -202,11 +207,11 @@ QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 0 )
 	{
-        pieceIndex = rightFlare;
+        pieceIndex = rightMuzzleFlash;
 	}
 	if( gun_1 == 1 )
 	{
-        pieceIndex = leftFlare;
+        pieceIndex = leftMuzzleFlash;
 	}
 }
 

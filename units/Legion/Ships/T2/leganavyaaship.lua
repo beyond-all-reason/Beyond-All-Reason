@@ -221,6 +221,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				cylindertargeting = 1,
+				collidefriendly = false,
 				edgeeffectiveness = 1,
 				explosiongenerator = "custom:flakshard",
 				gravityaffected = "true",
