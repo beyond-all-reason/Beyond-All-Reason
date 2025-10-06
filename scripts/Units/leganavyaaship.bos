@@ -61,8 +61,8 @@ Create()
     turn leftTurretPitchPivot to x-axis <-45> now;
     turn leftTurretHeadingPivot to y-axis <-180> now;
 
-    move rightMuzzleFlash to z-axis [-30] now;
-    move leftMuzzleFlash to z-axis [-30] now;
+    move rightMuzzleFlash to z-axis [-20] now;
+    move leftMuzzleFlash to z-axis [-15] now;
 
 
 	gun_1 = 0;
