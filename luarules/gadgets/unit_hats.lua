@@ -87,13 +87,14 @@ local champion = { --   Fight Night 1v1 and Master's League winners
 	[439] = true, -- Goopy
 	[70311] = true, -- PRO_BTCV
 }
- local vikings = { -- Omega Series 3: Winners
-	[59340] = true,  -- Austin
-	[1830] = true,   -- Zow
+ local vikings = { -- Omega Series 4: Winners
 	[59916] = true,	 -- Kuchy
-	[24665] = true,  -- Shoty
-	[38971] = true,  -- Chisato
-	[87571] = true,  -- Nezah
+	[151863] = true,  -- Blodir
+	[3913] = true,	 -- [teh]Teddy]
+	[1172] = true,	 -- PtaQ
+	[694] = true,	 -- Raghna
+	[5467] = true,  -- HelsHound
+	[50820] = true,   -- Emre
 }
 local kings = {
 	[82263] = true,  -- PRO-autopilot

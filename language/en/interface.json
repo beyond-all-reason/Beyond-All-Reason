@@ -1057,6 +1057,8 @@
 				"resolution_descr": "WARNING: sometimes freezes game engine in windowed mode",
 				"vsync": "VSync",
 				"vsync_descr": "Prevent vertical screen tearing. Note this can introduce slight lag. Try adaptive for less screen draw delay.",
+				"vsync_fraction": "frame limiter",
+				"vsync_fraction_descr": "Render only a fractional number of frames\n\nPossibly only works in windowed mode",
 				"limitoffscreenfps": "Limit FPS when offscreen",
 				"limitoffscreenfps_descr": "Reduces fps when offscreen (by setting vsync to a high number)\n(for borderless window and fullscreen need engine not have focus)\nMakes your pc more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode",
 				"limitidlefps": "also limit when idle",
