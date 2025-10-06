@@ -9,7 +9,7 @@
                 <div id="qs-budget-gradient-overlay" class="qs-budget-gradient-overlay"></div>
                 <div id="qs-budget-header" class="qs-budget-header"></div>
                 <div class="qs-budget-row">
-                    <img id="qs-budget-metal-icon" class="qs-budget-metal-icon" src="/luaui/images/flowui_gl4/metalenergy.png" width="32" height="32" />
+                    <img id="qs-budget-icon" class="qs-budget-icon" src="/luaui/images/flowui_gl4/metalenergy.png" width="32" height="32" />
                     <div id="qs-budget-value-left" class="qs-budget-value-left">0</div>
                     <div id="qs-deduction-amount-1" class="qs-deduction-amount-1">{{deductionAmount1}}</div>
                     <div id="qs-deduction-amount-2" class="qs-deduction-amount-2">{{deductionAmount2}}</div>

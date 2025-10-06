@@ -77,7 +77,7 @@
 	width: 100%;
 }
 
-.qs-budget-metal-icon {
+.qs-budget-icon {
 	width: 2.70vh;
 	height: 2.70vh;
 	z-index: 3;
