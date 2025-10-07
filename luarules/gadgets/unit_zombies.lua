@@ -58,9 +58,9 @@ local zombieModeConfigs           = {
 local currentZombieMode           = "normal"
 local currentZombieConfig         = zombieModeConfigs.normal
 
-local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 5 -- How often (in frames) to check if zombies need new orders
+local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 3 -- How often (in frames) to check if zombies need new orders
 local ZOMBIE_CHECK_INTERVAL       = Game.gameSpeed     -- How often (in frames) everything else is checked
-local STUCK_CHECK_INTERVAL        = Game.gameSpeed * 10 -- How often (in frames) to check if zombies are stuck
+local STUCK_CHECK_INTERVAL        = Game.gameSpeed * 12 -- How often (in frames) to check if zombies are stuck
 
 local STUCK_DISTANCE              = 50                 -- How far (in units) a zombie can move before being considered stuck
 local MAX_NOGO_ZONES              = 10                 -- How many no-go zones a zombie can have before being considered stuck
