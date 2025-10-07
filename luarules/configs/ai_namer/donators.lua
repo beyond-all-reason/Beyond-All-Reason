@@ -76,6 +76,7 @@ local DonatorAINames = {
     "rlm",
     "rous",
     "Shadowisper",
+    "Sinbearer",
     "SkyFire",
     "Sovgut",
     "Spanker",

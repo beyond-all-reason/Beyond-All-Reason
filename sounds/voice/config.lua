@@ -184,6 +184,9 @@ return {
 	TacticalNukeSiloDetected = {
 		delay = 25,
 	},
+	LongRangeNapalmLauncherDetected = {
+		delay = 25,
+	},
 	NuclearSiloDetected = {
 		delay = 25,
 	},
