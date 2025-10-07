@@ -10,10 +10,6 @@ function gadget:GetInfo()
 	}
 end
 
---zombie units getting stuck on water edge, need multiple steps distances to check if they can move
---idle units are valid guard targets leading to them getting stuck. Maybe we also need to make sure the valid ally isZombie(unitID)
---factories get infinite build orders, we need to gate this. Probably remove repeat also. They should also only build combat units.
-
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
@@ -22,6 +18,7 @@ local modOptions                  = Spring.GetModOptions()
 
 local ZOMBIE_GUARD_RADIUS         = 300  -- Radius for zombies to guard allies
 local ZOMBIE_ORDER_COUNT          = 10
+local ZOMBIE_FACTORY_BUILD_COUNT  = 20
 local ZOMBIE_GUARD_CHANCE         = 0.65 -- Chance a zombie will guard allies
 local WARNING_TIME                = 15 * Game.gameSpeed -- Frames to start warning before reanimation
 
@@ -68,20 +65,19 @@ local STUCK_CHECK_INTERVAL        = Game.gameSpeed * 10 -- How often (in frames)
 local STUCK_DISTANCE              = 50                 -- How far (in units) a zombie can move before being considered stuck
 local MAX_NOGO_ZONES              = 10                 -- How many no-go zones a zombie can have before being considered stuck
 local NOGO_ZONE_RADIUS            = 600                -- How far (in units) a no-go zone is
-local ENEMY_ATTACK_DISTANCE       = 300                -- How far (in units) a zombie will detect and choose to attack an enemy
+local ENEMY_ATTACK_DISTANCE       = 1000                -- How far (in units) a zombie will detect and choose to attack an enemy
 local ORDER_DISTANCE              = 800                -- How far (in units) a zombie moves per order
 
 local CMD_REPEAT                  = CMD.REPEAT
 local CMD_MOVE_STATE              = CMD.MOVE_STATE
-local CMD_FIGHT                   = CMD.FIGHT
-local CMD_OPT_SHIFT               = CMD.OPT_SHIFT
 local CMD_GUARD                   = CMD.GUARD
 local CMD_FIRE_STATE              = CMD.FIRE_STATE
 local CMD_MOVE                    = CMD.MOVE
+local CMD_RECLAIM                 = CMD.RECLAIM
 
 local FIRE_STATE_FIRE_AT_WILL     = 2
 local FIRE_STATE_RETURN_FIRE      = 1
-local MOVE_STATE_ROAM             = 2
+local MOVE_STATE_HOLD_POSITION    = 0
 local ENABLE_REPEAT               = 1
 local NULL_ATTACKER               = -1
 local ENVIRONMENTAL_DAMAGE_ID     = Game.envDamageTypes.GroundCollision
@@ -163,6 +159,8 @@ local corpseCheckFrames = {}
 local corpsesData = {}
 local zombieHeapDefs = {}
 local fightingDefs = {}
+local unitDefWithWeaponRanges = {}
+local repairingUnits = {}
 local unitDefs = UnitDefs
 local unitDefNames = UnitDefNames
 local featureDefNames = FeatureDefNames
@@ -200,9 +198,22 @@ for unitDefID, unitDef in pairs(unitDefs) do
 		zombieHeapDefs[unitDefID] = zombieDefData
 	end
 
+	if unitDef.weapons and #unitDef.weapons > 0 then
+		for i = 1, #unitDef.weapons do
+			local weaponDef = WeaponDefs[unitDef.weapons[i].weaponDef]
+			if weaponDef and weaponDef.range and weaponDef.range > 0 then
+				unitDefWithWeaponRanges[unitDefID] = weaponDef.range
+				break
+			end
+		end
+	end
 
 	if unitDef.canAttack then
 		fightingDefs[unitDefID] = true
+	end
+
+	if unitDef.canRepair then
+		repairingUnits[unitDefID] = true
 	end
 
 	extraDefs[unitDefID] = {}
@@ -293,7 +304,7 @@ local function GetUnitNearestReachableAlly(unitID, unitDefID, range)
 		local allyID = gaiaUnits[i]
 		local allyDefID = spGetUnitDefID(allyID)
 		local currentCommand = spGetUnitCurrentCommand(allyID)
-		if (allyID ~= unitID) and fightingDefs[allyDefID] and (currentCommand == CMD_FIGHT or currentCommand == CMD_MOVE) then
+		if (allyID ~= unitID) and fightingDefs[allyDefID] and currentCommand and currentCommand ~= CMD_GUARD then
 			local ox, oy, oz = spGetUnitPosition(allyID)
 			if ox and oy and oz then
 				local currentDistanceSquared = distance2dSquared(x, z, ox, oz)
@@ -309,15 +320,26 @@ end
 
 local function issueRandomFactoryBuildOrders(unitID, unitDefID)
 	local buildopts = unitDefs[unitDefID].buildOptions
-	if #buildopts == 0 then
+
+	local filteredBuildopts = {}
+	for i = 1, #buildopts do
+		local optionDefID = buildopts[i]
+		if unitDefWithWeaponRanges[optionDefID] then
+			filteredBuildopts[#filteredBuildopts + 1] = optionDefID
+		end
+	end
+
+	if #filteredBuildopts == 0 then
 		return
 	end
-	local orders = {}
-	for i = 1, ZOMBIE_ORDER_COUNT do
-		orders[#orders + 1] = { -buildopts[random(1, #buildopts)], 0, 0 }
+
+	local builds = {}
+	for i = 1, ZOMBIE_FACTORY_BUILD_COUNT do
+		builds[#builds + 1] = { -filteredBuildopts[random(1, #filteredBuildopts)], 0, 0 }
 	end
-	if (#orders > 0) then
-		spGiveOrderArrayToUnit(unitID, orders)
+
+	if (#builds > 0) then
+		spGiveOrderArrayToUnit(unitID, builds)
 	end
 end
 
@@ -348,28 +370,60 @@ local function issueRandomOrders(unitID, unitDefID)
 	local isAlreadyGuarding = currentCommand and currentCommand == CMD_GUARD
 	local nearAlly = not isAlreadyGuarding and fightingDefs[unitDefID] and
 	GetUnitNearestReachableAlly(unitID, unitDefID, ZOMBIE_GUARD_RADIUS) or nil
-	local closestKnownEnemy = spGetUnitNearestEnemy(unitID, ENEMY_ATTACK_DISTANCE)
-
-	if nearAlly and not closestKnownEnemy and random() < ZOMBIE_GUARD_CHANCE then
+	local closestKnownEnemy = spGetUnitNearestEnemy(unitID, ENEMY_ATTACK_DISTANCE, true)
+	local weaponRange = unitDefWithWeaponRanges[unitDefID]
+	local data = zombieWatch[unitID]
+	
+	if repairingUnits[unitDefID] and closestKnownEnemy and not data.isStuck then
+		local enemyDefID = spGetUnitDefID(closestKnownEnemy)
+		if enemyDefID and unitDefs[enemyDefID].reclaimable then
+			spGiveOrderToUnit(unitID, CMD_RECLAIM, { closestKnownEnemy }, 0)
+		else
+			data.isStuck = true
+		end
+	elseif nearAlly and not closestKnownEnemy and random() < ZOMBIE_GUARD_CHANCE then
 		spGiveOrderToUnit(unitID, CMD_GUARD, { nearAlly }, 0)
-	elseif extraDefs[unitDefID].isMobile and not isAlreadyGuarding then
-		local data = zombieWatch[unitID]
+	elseif extraDefs[unitDefID].isMobile then
 		local x, y, z = spGetUnitPosition(unitID)
 		for attempts = 1, ZOMBIE_ORDER_COUNT do
 			local attemptX, attemptY, attemptZ = x, y, z -- my coordinates for error prevention
 			local inNoGoZone = false
-			if closestKnownEnemy then
-				attemptX, attemptY, attemptZ = spGetUnitPosition(closestKnownEnemy)
+			if not data.isStuck and closestKnownEnemy and weaponRange then
+				local enemyX, enemyY, enemyZ = spGetUnitPosition(closestKnownEnemy)
+				if enemyX and enemyZ then  -- Make sure we got valid coordinates
+					local CLOSER_VARIANCE = 0.75
+					weaponRange = weaponRange * CLOSER_VARIANCE
+					local dx = x - enemyX
+					local dz = z - enemyZ
+
+					local distance = math.sqrt(dx * dx + dz * dz)
+
+					if distance > 0 then
+						local normalizedDx = dx / distance
+						local normalizedDz = dz / distance
+						
+						attemptX = enemyX + normalizedDx * weaponRange
+						attemptZ = enemyZ + normalizedDz * weaponRange
+						attemptY = spGetGroundHeight(attemptX, attemptZ)
+					else
+						attemptX, attemptY, attemptZ = enemyX, enemyY, enemyZ
+					end
+				end
 				closestKnownEnemy = nil
 			else
-				if data.isStuck then
+				if isAlreadyGuarding then
+					break
+				end
+				if data.isStuck or attempts == ZOMBIE_ORDER_COUNT then
 					local randomAngle = random() * tau
 					attemptX = x + ORDER_DISTANCE * cos(randomAngle)
 					attemptZ = z + ORDER_DISTANCE * sin(randomAngle)
 				else
+					local ANGLE_COMPOUNDER = 1.5
 					local biasDirection = (random() > 0.5) and 1 or -1
-					local randomAngle = random() * (pi / 4)
-					local movementAngle = getActualForwardsYaw(unitID) + (biasDirection * randomAngle)
+					local baseAngleOffset = pi / 4
+					local angleOffset = baseAngleOffset * (ANGLE_COMPOUNDER ^ (attempts - 1))
+					local movementAngle = getActualForwardsYaw(unitID) + (biasDirection * angleOffset)
 
 					attemptX = x + ORDER_DISTANCE * cos(movementAngle)
 					attemptZ = z + ORDER_DISTANCE * sin(movementAngle)
@@ -389,21 +443,22 @@ local function issueRandomOrders(unitID, unitDefID)
 					break
 				end
 			end
-			local POSITION_VARIANCE = 50
+			local POSITION_VARIANCE = 100
 			attemptX = attemptX + random(-POSITION_VARIANCE, POSITION_VARIANCE)
 			attemptZ = attemptZ + random(-POSITION_VARIANCE, POSITION_VARIANCE)
-			attemptY = attemptY + random(-POSITION_VARIANCE, POSITION_VARIANCE)
 			if not inNoGoZone and spTestMoveOrder(unitDefID, attemptX, attemptY, attemptZ) then
-				local orderType = data.isStuck and CMD_MOVE or CMD_FIGHT
-				spGiveOrderToUnit(unitID, orderType, { attemptX, attemptY, attemptZ }, {})
-				data.isStuck = false
+				spGiveOrderToUnit(unitID, CMD_MOVE, { attemptX, attemptY, attemptZ }, {})
 				break
 			end
 		end
 	end
 
 	if extraDefs[unitDefID].isFactory then
-		issueRandomFactoryBuildOrders(unitID, unitDefID)
+		local factoryCommands = Spring.GetFactoryCommands(unitID, -1) or {}
+		local currentCommandCount = #factoryCommands
+		if currentCommandCount < ZOMBIE_FACTORY_BUILD_COUNT then
+			issueRandomFactoryBuildOrders(unitID, unitDefID)
+		end
 	end
 end
 
@@ -435,7 +490,7 @@ local function setZombieStates(unitID, unitDefID)
 	if extraDefs[unitDefID].isFactory then
 		spGiveOrderToUnit(unitID, CMD_REPEAT, ENABLE_REPEAT, 0)
 	end
-	spGiveOrderToUnit(unitID, CMD_MOVE_STATE, MOVE_STATE_ROAM, 0)
+	spGiveOrderToUnit(unitID, CMD_MOVE_STATE, MOVE_STATE_HOLD_POSITION, 0)
 	if ordersEnabled then
 		spGiveOrderToUnit(unitID, CMD_FIRE_STATE, FIRE_STATE_FIRE_AT_WILL, 0)
 	else
@@ -607,10 +662,8 @@ function gadget:GameFrame(frame)
 			else
 				local REFRESH_ORDERS_CHANCE = 0.01
 				local refreshOrders = random() > REFRESH_ORDERS_CHANCE
-				local currentOrder = spGetUnitCurrentCommand(unitID)
-
 				local queueSize = spGetUnitCommandCount(unitID)
-				if ordersEnabled and currentOrder ~= CMD_GUARD and currentOrder ~= CMD_MOVE and (refreshOrders or (not (queueSize) or (queueSize == 0))) then
+				if ordersEnabled and (refreshOrders or not (queueSize) or (queueSize == 0)) then
 					issueRandomOrders(unitID, unitDefID)
 				end
 			end
@@ -625,14 +678,16 @@ function gadget:GameFrame(frame)
 			else
 				local x, y, z = spGetUnitPosition(unitID)
 				if x and y and z then
-					if not data.isStuck and distance2dSquared(x, z, data.lastLocation.x, data.lastLocation.z) < STUCK_DISTANCE then
-						local BLOCK_CHECK_STEP = 10
+					if distance2dSquared(x, z, data.lastLocation.x, data.lastLocation.z) < STUCK_DISTANCE then
+						local BLOCK_CHECK_STEP = 15
 						local forwardDirection = getActualForwardsYaw(unitID)
 						local unitX, unitY, unitZ = spGetUnitPosition(unitID)
-						local testX = unitX + BLOCK_CHECK_STEP * cos(forwardDirection)
-						local testZ = unitZ + BLOCK_CHECK_STEP * sin(forwardDirection)
+						local test1X = unitX + BLOCK_CHECK_STEP * cos(forwardDirection)
+						local test1Z = unitZ + BLOCK_CHECK_STEP * sin(forwardDirection)
+						local test2X = unitX - BLOCK_CHECK_STEP * cos(forwardDirection)
+						local test2Z = unitZ - BLOCK_CHECK_STEP * sin(forwardDirection)
 						local unitDefID = data.unitDefID
-						if not spTestMoveOrder(unitDefID, testX, spGetGroundHeight(testX, testZ), testZ) then
+						if not spTestMoveOrder(unitDefID, test1X, spGetGroundHeight(test1X, test1Z), test1Z) or not spTestMoveOrder(unitDefID, test2X, spGetGroundHeight(test2X, test2Z), test2Z) then
 							clearUnitOrders(unitID)
 							data.isStuck = true
 							local alreadyPresent = false
@@ -651,6 +706,8 @@ function gadget:GameFrame(frame)
 								table.insert(data.noGoZones, { x = x, y = y, z = z })
 							end
 						end
+					else
+						data.isStuck = false
 					end
 					data.lastLocation = { x = x, y = y, z = z }
 				end
