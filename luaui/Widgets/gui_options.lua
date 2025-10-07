@@ -808,6 +808,11 @@ function DrawWindow()
 									text = string.sub(text, 1, string.len(text) - 1)
 								end
 								text = text .. '...'
+								if not option.description or option.description == '' then
+									option.description = option.name
+								elseif option.description ~= option.name then
+									option.description = option.name..'\n\255\255\255\255'..option.description
+								end
 							end
 							if option.restart then
 								font:Print('\255\255\090\090*', xPos + (oPadding * 0.3), yPos - (oHeight / 5) - oPadding, oHeight, "no")
@@ -868,6 +873,11 @@ function DrawWindow()
 										text = string.sub(text, 1, string.len(text) - 1)
 									end
 									text = text .. '...'
+									if not option.description or option.description == '' then
+										option.description = option.name
+									elseif option.description ~= option.name then
+										option.description = option.name..'\n\255\255\255\255'..option.description
+									end
 								end
 								options[oid].nametext = text
 								if option.id == 'font2' then
