@@ -161,7 +161,7 @@ local DEFAULT_DOCK_CHECK_FREQUENCY = 15		-- Checks the docking queue. Increasing
 	-- stockpilelimit = 1			Used for stockpile weapons, but for carriers it also enables stockpile for dronespawning.
 	-- stockpilemetal = 10			Set it to the same as the drone cost when using stockpile for drones
 	-- stockpileenergy = 10			Set it to the same as the drone cost when using stockpile for drones
-	-- dockinguntargetable = 1,     Set it to 0 to disable drones becoming untargetable (but still take damage) while docked.
+	-- dockinguntargetable = false,  Set it to true to disable drones becoming targetable (but still take damage) while docked.
 
 
 	-- },
@@ -353,9 +353,8 @@ local function UnDockUnit(unitID, subUnitID)
 		unitUndocked = Spring.CallCOBScript(subUnitID, "Undocked", 0, carrierMetaList[unitID].cobundockparam, carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece)
 		if carrierMetaList[unitID].dockArmor then
 			spSetUnitArmored(subUnitID, false, 1)
-			spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", 0)
-
 		end
+		spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", 0)
 	end
 end
 
@@ -511,7 +510,7 @@ local function SpawnUnit(spawnData)
 							carrierMetaList[ownerID].subUnitsList[subUnitID].activeDocking = false
 							if carrierMetaList[ownerID].dockArmor then
 								spSetUnitArmored(subUnitID, true, carrierMetaList[ownerID].dockArmor)
-								if carrierMetaList[ownerID].dockUntargetable == 1 then
+								if carrierMetaList[ownerID].dockUntargetable == true then
  								   spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", 1)
 								else
 								    spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", 0)
@@ -647,7 +646,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					local carrierData = {
 						dronenames = dronenames,
 						dronetypes = dronetypes,
-						dockUntargetable = tonumber(spawnDef.dockingUntargetable) or 0,
+						dockUntargetable = spawnDef.dockingUntargetable or false,
 						radius = tonumber(spawnDef.minRadius) or 65535,
 						controlRadius = tonumber(spawnDef.radius) or 65535,
 						subUnitsList = {}, -- list of subUnitIDs owned by this unit.
@@ -1474,7 +1473,7 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 								carrierMetaList[unitID].subUnitsList[subUnitID].bomberStage = 0
 								if carrierMetaList[unitID].dockArmor then
 									spSetUnitArmored(subUnitID, true, carrierMetaList[unitID].dockArmor)
-									if carrierMetaList[unitID].dockUntargetable == 1 then
+									if carrierMetaList[unitID].dockUntargetable == true then
 									    spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", 1)
 									else
 									    spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", 0)
