@@ -810,7 +810,7 @@ function DrawWindow()
 								text = text .. '...'
 								if not option.description or option.description == '' then
 									option.description = option.name
-								elseif option.description ~= option.name then
+								elseif option.description ~= option.name and string.sub(option.description, 1, string.len(option.name)) ~= option.name then
 									option.description = option.name..'\n\255\255\255\255'..option.description
 								end
 							end
@@ -875,7 +875,7 @@ function DrawWindow()
 									text = text .. '...'
 									if not option.description or option.description == '' then
 										option.description = option.name
-									elseif option.description ~= option.name then
+									elseif option.description ~= option.name and string.sub(option.description, 1, string.len(option.name)) ~= option.name then
 										option.description = option.name..'\n\255\255\255\255'..option.description
 									end
 								end
@@ -6275,7 +6275,7 @@ function init()
 						count = count + 1
 						local color = widgetOptionColor
 						if v[4] and v[4] == 0 then color ='\255\100\100\100' end
-						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = color .. "   " .. Spring.I18N(v[3]), type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
+						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = color .. "   " .. Spring.I18N(v[3]), type = "bool", value = v[2], --description = v[3] and Spring.I18N(v[3]) or "",
 											  onchange = function(i, value)
 												  saveOptionValue('Notifications', 'notifications', 'setNotification' .. v[1], { 'notificationList' }, value)
 											  end,
