@@ -372,7 +372,7 @@ local function issueRandomOrders(unitID, unitDefID)
 	end
 	local currentCommand = spGetUnitCurrentCommand(unitID)
 	local isAlreadyGuarding = currentCommand and currentCommand == CMD_GUARD
-	local nearAlly = not isAlreadyGuarding and fightingDefs[unitDefID] and
+	local nearAlly = currentCommand ~= CMD_MOVE and not isAlreadyGuarding and fightingDefs[unitDefID] and
 	GetUnitNearestReachableAlly(unitID, unitDefID, ZOMBIE_GUARD_RADIUS) or nil
 	local closestKnownEnemy = spGetUnitNearestEnemy(unitID, ENEMY_ATTACK_DISTANCE, true)
 	local weaponRange = unitDefWithWeaponRanges[unitDefID]
@@ -668,6 +668,9 @@ function gadget:GameFrame(frame)
 				local refreshOrders = random() > REFRESH_ORDERS_CHANCE
 				local queueSize = spGetUnitCommandCount(unitID)
 				if ordersEnabled and (refreshOrders or not (queueSize) or (queueSize == 0)) then
+					if refreshOrders then
+						clearUnitOrders(unitID)
+					end
 					issueRandomOrders(unitID, unitDefID)
 				end
 			end
