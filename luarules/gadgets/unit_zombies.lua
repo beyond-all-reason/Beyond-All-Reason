@@ -124,6 +124,7 @@ local spGetFeatureRadius          = Spring.GetFeatureRadius
 local spGetUnitCurrentCommand     = Spring.GetUnitCurrentCommand
 local spSetUnitExperience         = Spring.SetUnitExperience
 local spGetUnitExperience         = Spring.GetUnitExperience
+local spGetUnitIsBeingBuilt      = Spring.GetUnitIsBeingBuilt
 local random                      = math.random
 local distance2dSquared           = math.distance2dSquared
 local pi                          = math.pi
@@ -216,7 +217,9 @@ for unitDefID, unitDef in pairs(unitDefs) do
 	if unitDef.canRepair then
 		repairingUnits[unitDefID] = true
 	end
+end
 
+for unitDefID, unitDef in pairs(unitDefs) do
 	extraDefs[unitDefID] = {}
 	if unitDef.speed > 0 then
 		extraDefs[unitDefID].isMobile = true
@@ -313,7 +316,7 @@ local function GetUnitNearestReachableAlly(unitID, unitDefID, range)
 		local allyID = gaiaUnits[i]
 		local allyDefID = spGetUnitDefID(allyID)
 		local currentCommand = spGetUnitCurrentCommand(allyID)
-		if (allyID ~= unitID) and fightingDefs[allyDefID] and currentCommand ~= CMD_GUARD and extraDefs[allyDefID].isMobile then
+		if (allyID ~= unitID) and fightingDefs[allyDefID] and currentCommand ~= CMD_GUARD and extraDefs[allyDefID].isMobile and not spGetUnitIsBeingBuilt(unitID) then
 			local ox, oy, oz = spGetUnitPosition(allyID)
 			if ox and oy and oz then
 				local currentDistanceSquared = distance2dSquared(x, z, ox, oz)
