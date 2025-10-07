@@ -152,6 +152,7 @@ local autoSpawningEnabled = true
 local debugMode = false
 
 local extraDefs = {}
+local factoriesWithCombatOptions = {}
 local zombiesBeingBuilt = {}
 local zombieCorpseDefs = {}
 local zombieWatch = {}
@@ -208,7 +209,7 @@ for unitDefID, unitDef in pairs(unitDefs) do
 		end
 	end
 
-	if unitDef.canAttack then
+	if unitDef.canFight then
 		fightingDefs[unitDefID] = true
 	end
 
@@ -220,7 +221,16 @@ for unitDefID, unitDef in pairs(unitDefs) do
 	if unitDef.speed > 0 then
 		extraDefs[unitDefID].isMobile = true
 	elseif #unitDef.buildOptions > 0 then
-		extraDefs[unitDefID].isFactory = true
+		local combatOptions = {}
+		for i = 1, #unitDef.buildOptions do
+			local optionDefID = unitDef.buildOptions[i]
+			if unitDefWithWeaponRanges[optionDefID] then
+				combatOptions[#combatOptions + 1] = optionDefID
+			end
+		end
+		if #combatOptions > 0 then
+			factoriesWithCombatOptions[unitDefID] = combatOptions
+		end
 	end
 end
 
@@ -283,12 +293,11 @@ local function calculateHealthRatio(featureID)
 	if health and maxHealth and health ~= 0 and maxHealth ~= 0 then
 		damagedReductionRatio = health / maxHealth
 	end
-	local healthRatio = (partialReclaimRatio + damagedReductionRatio) *
-	0.5                                                                  --average the two ratios to skew the result towards maximum health
+	local healthRatio = (partialReclaimRatio + damagedReductionRatio) * 0.5 --average the two ratios to skew the result towards maximum health
 	return healthRatio
 end
 
---we use this instead of spGetUnitNearestReachableAlly to make sure the unit is not guarding something on terrain it cannot traverse (like boats/land)
+--we use this instead of spGetUnitNearestAlly to make sure the unit is not guarding something on terrain it cannot traverse (like boats/land)
 local function GetUnitNearestReachableAlly(unitID, unitDefID, range)
 	local bestAllyID
 	local bestDistanceSquared
@@ -304,7 +313,7 @@ local function GetUnitNearestReachableAlly(unitID, unitDefID, range)
 		local allyID = gaiaUnits[i]
 		local allyDefID = spGetUnitDefID(allyID)
 		local currentCommand = spGetUnitCurrentCommand(allyID)
-		if (allyID ~= unitID) and fightingDefs[allyDefID] and currentCommand and currentCommand ~= CMD_GUARD then
+		if (allyID ~= unitID) and fightingDefs[allyDefID] and currentCommand ~= CMD_GUARD and extraDefs[allyDefID].isMobile then
 			local ox, oy, oz = spGetUnitPosition(allyID)
 			if ox and oy and oz then
 				local currentDistanceSquared = distance2dSquared(x, z, ox, oz)
@@ -319,23 +328,15 @@ local function GetUnitNearestReachableAlly(unitID, unitDefID, range)
 end
 
 local function issueRandomFactoryBuildOrders(unitID, unitDefID)
-	local buildopts = unitDefs[unitDefID].buildOptions
+	local combatOptions = factoriesWithCombatOptions[unitDefID]
 
-	local filteredBuildopts = {}
-	for i = 1, #buildopts do
-		local optionDefID = buildopts[i]
-		if unitDefWithWeaponRanges[optionDefID] then
-			filteredBuildopts[#filteredBuildopts + 1] = optionDefID
-		end
-	end
-
-	if #filteredBuildopts == 0 then
+	if not combatOptions or #combatOptions == 0 then
 		return
 	end
 
 	local builds = {}
 	for i = 1, ZOMBIE_FACTORY_BUILD_COUNT do
-		builds[#builds + 1] = { -filteredBuildopts[random(1, #filteredBuildopts)], 0, 0 }
+		builds[#builds + 1] = { -combatOptions[random(1, #combatOptions)], 0, 0 }
 	end
 
 	if (#builds > 0) then
@@ -381,7 +382,7 @@ local function issueRandomOrders(unitID, unitDefID)
 		else
 			data.isStuck = true
 		end
-	elseif nearAlly and not closestKnownEnemy and random() < ZOMBIE_GUARD_CHANCE then
+	elseif not data.isStuck and nearAlly and not closestKnownEnemy and random() < ZOMBIE_GUARD_CHANCE then
 		spGiveOrderToUnit(unitID, CMD_GUARD, { nearAlly }, 0)
 	elseif extraDefs[unitDefID].isMobile then
 		local x, y, z = spGetUnitPosition(unitID)
@@ -453,7 +454,7 @@ local function issueRandomOrders(unitID, unitDefID)
 		end
 	end
 
-	if extraDefs[unitDefID].isFactory then
+	if factoriesWithCombatOptions[unitDefID] then
 		local factoryCommands = Spring.GetFactoryCommands(unitID, -1) or {}
 		local currentCommandCount = #factoryCommands
 		if currentCommandCount < ZOMBIE_FACTORY_BUILD_COUNT then
@@ -487,7 +488,7 @@ local function getScavVariantUnitDefID(unitDefID)
 end
 
 local function setZombieStates(unitID, unitDefID)
-	if extraDefs[unitDefID].isFactory then
+	if factoriesWithCombatOptions[unitDefID] then
 		spGiveOrderToUnit(unitID, CMD_REPEAT, ENABLE_REPEAT, 0)
 	end
 	spGiveOrderToUnit(unitID, CMD_MOVE_STATE, MOVE_STATE_HOLD_POSITION, 0)
@@ -504,8 +505,8 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 	local spawnCount = 1
 	if extraDefs[unitDefID].isMobile then
 		--We bias downwards because lower values are preferred, it should be uncommon to find strong zombies but still possible
-		spawnCount = floor((random(currentZombieConfig.countMin, currentZombieConfig.countMax) + random(currentZombieConfig.countMin, currentZombieConfig.countMax)) /
-		2)                                                                                                                                                          --skew results towards average to produce better gameplay
+		spawnCount = floor((random(currentZombieConfig.countMin, currentZombieConfig.countMax) + random(currentZombieConfig.countMin,
+			currentZombieConfig.countMax)) / 2) --skew results towards average to produce better gameplay
 	end
 	local size = unitDef.xsize
 
@@ -725,8 +726,7 @@ local function queueCorpseForSpawning(featureID, override)
 	if zombieCorpseDefs[featureDefID] then
 		local spawnDelayFrames = zombieCorpseDefs[featureDefID].spawnDelayFrames
 		local spawnFrame = gameFrame + spawnDelayFrames
-		corpsesData[featureID] = { featureDefID = featureDefID, spawnDelayFrames = spawnDelayFrames, creationFrame =
-		gameFrame, spawnFrame = spawnFrame }
+		corpsesData[featureID] = { featureDefID = featureDefID, spawnDelayFrames = spawnDelayFrames, creationFrame = gameFrame, spawnFrame = spawnFrame }
 		corpseCheckFrames[spawnFrame] = corpseCheckFrames[spawnFrame] or {}
 		corpseCheckFrames[spawnFrame][#corpseCheckFrames[spawnFrame] + 1] = featureID
 	end
