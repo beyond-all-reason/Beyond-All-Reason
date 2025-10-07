@@ -360,6 +360,11 @@ Deactivate()
     turn dishDTop1 to z-axis <10>   speed <30>;
     turn dishDBot1 to z-axis <-10>  speed <30>;
 
+	stop-spin dishA around z-axis decelerate <2>;
+	stop-spin dishB around x-axis decelerate <2>;
+	stop-spin dishC around z-axis decelerate <2>;
+	stop-spin dishD around x-axis decelerate <2>;
+
     hide radarlight1;
     hide radarlight2;
     hide radarlight3;
