@@ -228,9 +228,9 @@ local labGrids = {
 	},
 
 	leghalab = {
-		"leghack", "legdecom", "leginc", "legaradk",
-		"legsrail", "legeshotgunmech", "", "legajamk",
-		"", "legjav", "legeallterrainmech", "",
+		"leghack", "legdecom", "legjav", "legajamk",
+		"legsrail", "leginc", "legshot", "",
+		"", "legamph", "legadvaabot", "",
 	},
 
 	armhaap = {
@@ -255,6 +255,12 @@ local labGrids = {
 		"corhaca", "corsfig", "corcut", "corsb",              -- T2 con, seaplane, gunship, bomber
 		"corhunt", "corhvytrans", "corseap", "",                      -- radar, torpedo, empty, empty
 		"", "", "", "",                                     -- empty rows
+	},
+	
+	leghaap = {
+		"legaca", "legafigdef", "legvenator", "legphoenix",					--T2 con, defensive fig, interceptor, phoenix
+		"legwhisper", "legstronghold", "legatorpbomber", "",			--radar, transport(gunship), torpedo,
+		"legfort", "", "legmineb", ""			--flying fort, empty, minebomber
 	},
 
 	armhasy = {
@@ -282,9 +288,9 @@ local labGrids = {
 	},
 
 	leghavp = {
-		"leghacv", "cormabm", "legaheattank", "legavrad",
-		"legmed", "legkeres", "legavroc", "legavjam",
-		"legerailtank", "legehovertank", "legvflak", "leginf",
+		"leghacv", "", "legmrv", "legavjam",
+		"leginf", "legmed", "legaheattank", "",
+		"cormabm", "legehovertank", "legvflak", "legavroc",
 	},
 }
 
@@ -1831,6 +1837,29 @@ local unitGrids = {
 			{"", "corhaap", "", "", },
 		},
 	},
+
+	leghaca = {
+		{
+			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
+			{ "legadveconv", "legageo", "cormexp", "legrampart"},               -- T2 converter, T2 geo, armed moho
+			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
+		},
+		{
+			{ "legapopupdef", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
+			{ "legflak", "leglraa", "legabm", "", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "leglrpc", "legstarfall", "legsilo", },                -- LRPC, ICBM, lolcannon
+		},
+		{
+			{ "legarad", "legtarg", "legforti", "legajam", },  -- adv radar, targeting facility, wall, adv jammer
+			{ "legsd", "", "", },               -- intrusion counter,  
+			{ "legdeflector", },                                     -- anti-nuke, shield
+		},
+		{
+			{ "leglab", "legvp", "legap", "corsy" },                                       -- T1 lab,
+			{ "legnanotc", "legaap", "leggant" },                           -- T3 lab, T2 lab
+			{ "", "leghaap", "", "" },                                     -- seaplane lab (aircon only)
+		}
+	},
 	
 	armhack = {
 		{
@@ -1880,25 +1909,25 @@ local unitGrids = {
 
 	leghack = {
 		{
-			{"legmext15","legadvsol","legfus","",},
-			{"legeconv","","","",},
-			{"","","","",},
+			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
+			{ "legadveconv", "legageo", "cormexp", "legrampart"},               -- T2 converter, T2 geo, armed moho
+			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{"legmg","legdtr","legcluster","leghive",},
-			{"legrhapsis","leglupara","","",},
-			{"legjuno","","","",},
+			{ "legapopupdef", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
+			{ "legflak", "leglraa", "legabm", "", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "leglrpc", "legstarfall", "legsilo", },                -- LRPC, ICBM, lolcannon
 		},
 		{
-			{"lagarad","legajam","legsd","",},
-			{"","","","",},
-			{"","","","",},
+			{ "legarad", "legtarg", "legforti", "legajam", },  -- adv radar, targeting facility, wall, adv jammer
+			{ "legsd", "", "", },               -- intrusion counter,  
+			{ "legdeflector", },                                     -- anti-nuke, shield
 		},
 		{
-			{"leglab","","","",},
-			{"","legalab","leghalab","",},
-			{"","","","",},
-		},
+			{ "leglab", "legvp", "legap", "corsy" },                                       -- T1 lab,
+			{ "legnanotc", "legalab", "leggant" },                           -- T3 lab, T2 lab
+			{ "", "leghalab", "", "" },                                     -- seaplane lab (aircon only)
+		}
 	},
 
 	armhacv = {
@@ -1949,25 +1978,25 @@ local unitGrids = {
 
 	leghacv = {
 		{
-			{"legmext15","legadvsol","legfus","",},
-			{"legeconv","","","",},
-			{"","","","",},
+			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
+			{ "legadveconv", "legageo", "cormexp", "legrampart"},               -- T2 converter, T2 geo, armed moho
+			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
-			{"legmg","legdtr","legcluster","leghive",},
-			{"legrhapsis","leglupara","","",},
-			{"legjuno","","","",},
+			{ "legapopupdef", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
+			{ "legflak", "leglraa", "legabm", "", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "leglrpc", "legstarfall", "legsilo", },                -- LRPC, ICBM, lolcannon
 		},
 		{
-			{"lagarad","legajam","legsd","",},
-			{"","","","",},
-			{"","","","",},
+			{ "legarad", "legtarg", "legforti", "legajam", },  -- adv radar, targeting facility, wall, adv jammer
+			{ "legsd", "", "", },               -- intrusion counter,  
+			{ "legdeflector", },                                     -- anti-nuke, shield
 		},
 		{
-			{"legvp","","","",},
-			{"","legavp","leghavp","",},
-			{"","","","",},
-		},
+			{ "leglab", "legvp", "legap", "corsy" },                                       -- T1 lab,
+			{ "legnanotc", "legavp", "leggant" },                           -- T3 lab, T2 lab
+			{ "", "leghavp", "", "" },                                     -- seaplane lab (aircon only)
+		}
 	},
 
 	armhacs = {
@@ -2450,7 +2479,7 @@ if Spring.GetModOptions().techsplit then
 		{
 			{ "armrad", "armeyes", "armdrag",  },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ "armjamt",},
-			{ "", },                                   -- juno
+			{ "armjuno", },                                   -- juno
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -2472,7 +2501,8 @@ if Spring.GetModOptions().techsplit then
 		},
 		{
 			{ "armfrad", "armeyes","armfdrag", },             -- floating radar, perimeter camera, shark's teeth
-			{ "", "armdrag", "", ""},                        	      -- dragon's teeth
+			{ "", "armdrag", "", ""},
+			{ "armjuno", "", "", ""},                        	      -- dragon's teeth
 		},
 		{
 			{ "armsy", "armvp", "armap", "armlab", },         -- shipyard, veh lab, air lab, bot lab
@@ -2495,7 +2525,7 @@ if Spring.GetModOptions().techsplit then
 		{
 			{ "armrad", "armeyes", "armdrag",  },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ "armjamt",},
-			{ "", },                                   -- juno
+			{ "armjuno", },                                   -- juno
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -2518,7 +2548,7 @@ if Spring.GetModOptions().techsplit then
 		{
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ "armjamt",},
-			{ "", },                                   -- juno
+			{ "armjuno", },                                   -- juno
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -2541,7 +2571,7 @@ if Spring.GetModOptions().techsplit then
 		{
 			{ "armrad", "armeyes", "armdrag",  },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ "armjamt",},
-			{ "", },                                   -- juno
+			{ "armjuno", },                                   -- juno
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -2552,19 +2582,19 @@ if Spring.GetModOptions().techsplit then
 	
 	unitGrids["armack"] = {
 		{
-			{ "armmoho", "armadvsol", "armfus", "armgmm", },
-			{ "armmakr", "armageo", "armckfus", "", },
+			{ "armmoho", "armfus", "", "armadvsol", },
+			{ "armmakr", "armageo", "armckfus", "armgmm", },
 			{ "armestor", "armmstor", "", "", },
 		},
 		{
 			{ "armbeamer", "armhlt", "armpb", "armguard", },
 			{ "armferret", "armcir", "", "", },
-			{ "armdl", "armjuno", "", "", },
+			{ "armdl", "", "", "", },
 		},
 		{
 			{ "armarad", "armsd", "", "" },
 			{ "armveil", "", "", "" },
-			{ "", "", "", "" },
+			{ "armjuno", "", "", "" },
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -2575,19 +2605,19 @@ if Spring.GetModOptions().techsplit then
 
 	unitGrids["armacv"] = {
 		{
-			{ "armmoho", "armadvsol", "armfus", "armgmm", },
-			{ "armmakr", "armageo", "armckfus", "", },
+			{ "armmoho", "armfus", "", "armadvsol", },
+			{ "armmakr", "armageo", "armckfus", "armgmm", },
 			{ "armestor", "armmstor", "", "", },
 		},
 		{
 			{ "armbeamer", "armhlt", "armpb", "armguard", },
 			{ "armferret", "armcir", "", "", },
-			{ "armdl", "armjuno", "", "", },
+			{ "armdl", "", "", "", },
 		},
 		{
 			{ "armarad", "armsd", "", "" },
 			{ "armveil", "", "", "" },
-			{ "", "", "", "" },
+			{ "armjuno", "", "", "" },
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -2598,19 +2628,19 @@ if Spring.GetModOptions().techsplit then
 
 	unitGrids["armch"] = {
 		{
-			{ "armmoho", "armadvsol", "armfus", "armgmm", },
-			{ "armmakr", "armageo", "armckfus", "", },
+			{ "armmoho", "armfus", "", "armadvsol", },
+			{ "armmakr", "armageo", "armckfus", "armgmm", },
 			{ "armestor", "armmstor", "", "", },
 		},
 		{
 			{ "armbeamer", "armhlt", "armpb", "armguard", },
 			{ "armferret", "armcir", "", "", },
-			{ "armdl", "armtl", "armjuno", "", },
+			{ "armdl", "armtl", "", "", },
 		},
 		{
 			{ "armarad", "armsd", "armason", "" },
 			{ "armveil", "", "", "" },
-			{ "", "", "", "" },
+			{ "armjuno", "", "", "" },
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -2621,19 +2651,19 @@ if Spring.GetModOptions().techsplit then
 
 	unitGrids["armaca"] = {
 		{
-			{ "armmoho", "armadvsol", "armfus", "armgmm", },
-			{ "armmakr", "armageo", "armckfus", "", },
+			{ "armmoho", "armfus", "", "armadvsol", },
+			{ "armmakr", "armageo", "armckfus", "armgmm", },
 			{ "armestor", "armmstor", "", "", },
 		},
 		{
 			{ "armbeamer", "armhlt", "armpb", "armguard", },
 			{ "armferret", "armcir", "", "", },
-			{ "armdl", "armjuno", "", "", },
+			{ "armdl", "", "", "", },
 		},
 		{
 			{ "armarad", "armsd", "", "" },
 			{ "armveil", "", "", "" },
-			{ "", "", "", "" },
+			{ "armjuno", "", "", "" },
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -2656,7 +2686,7 @@ if Spring.GetModOptions().techsplit then
 		{
 			{ "armason", "armfdrag", },                		   -- adv sonar, floating targeting facility
 			{ "armfatf", "", "", },                         -- Floating air repair pad
-			{ },                                               --
+			{ "armjuno", "", "", ""},                                               --
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -2679,7 +2709,7 @@ if Spring.GetModOptions().techsplit then
 		{
 			{ "corrad", "coreyes", "cordrag",  },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ "corjamt", },
-			{ },                                   -- juno
+			{ "corjuno", "", "", "", },                                   -- juno
 		},
 		{
 			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -2702,7 +2732,7 @@ if Spring.GetModOptions().techsplit then
 		{
 			{ "corrad", "coreyes", "cordrag",  },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ "corjamt", },
-			{ },                                   -- juno
+			{"corjuno","","","",},                              -- juno
 		},
 		{
 			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -2725,7 +2755,7 @@ if Spring.GetModOptions().techsplit then
 		{
 			{ "corrad", "coreyes", "cordrag",  },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ "corjamt", },
-			{ },                                   -- juno
+			{"corjuno","","","",},                                 -- juno
 		},
 		{
 			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -2748,7 +2778,7 @@ if Spring.GetModOptions().techsplit then
 		{
 			{ "corrad", "coreyes", "cordrag",  },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ "corjamt", },
-			{ },                                   -- juno
+			{"corjuno","","","",},                                  -- juno
 		},
 		{
 			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
@@ -2771,6 +2801,7 @@ if Spring.GetModOptions().techsplit then
 		{
 			{ "corfrad", "coreyes", "corfdrag", },            -- floating radar, perimeter camera, shark's teeth
 			{ "", "cordrag", "", "" },           -- dragon's teeth
+			{"corjuno","","","",},
 		},
 		{
 			{ "corsy", "corvp", "corap", "corlab",  },        -- shipyard, vehicle lab, air lab, bot lab
@@ -2783,8 +2814,8 @@ if Spring.GetModOptions().techsplit then
 
 	unitGrids["corack"] = {
 		{
-			{"cormoho","coradvsol","corfus","",},
-			{"cormakr","corageo","","",},
+			{"cormoho","corfus","","coradvsol",},
+			{"cormakr","corageo","","corbhmth",},
 			{"corestor","cormstor","","",},
 		},
 		{
@@ -2795,7 +2826,7 @@ if Spring.GetModOptions().techsplit then
 		{
 			{"cararad","corsd","","",},
 			{"corshroud","","","",},
-			{"","","","",},
+			{"corjuno","","","",},
 		},
 		{
 			{"corlab","corvp","corap","corsy",},
@@ -2806,8 +2837,8 @@ if Spring.GetModOptions().techsplit then
 
 	unitGrids["coracv"] = {
 		{
-			{"cormoho","coradvsol","corfus","",},
-			{"cormakr","corageo","","",},
+			{"cormoho","corfus","","coradvsol",},
+			{"cormakr","corageo","","corbhmth",},
 			{"corestor","cormstor","","",},
 		},
 		{
@@ -2829,8 +2860,8 @@ if Spring.GetModOptions().techsplit then
 
 	unitGrids["corch"] = {
 		{
-			{"cormoho","coradvsol","corfus","",},
-			{"cormakr","corgeo","","",},
+			{"cormoho","corfus","","coradvsol",},
+			{"cormakr","corageo","","corbhmth",},
 			{"corestor","cormstor","","",},
 		},
 		{
@@ -2852,8 +2883,8 @@ if Spring.GetModOptions().techsplit then
 
 	unitGrids["coraca"] = {
 		{
-			{"cormoho","coradvsol","corfus","",},
-			{"cormakr","corageo","","",},
+			{"cormoho","corfus","","coradvsol",},
+			{"cormakr","corageo","","corbhmth",},
 			{"corestor","cormstor","","",},
 		},
 		{
@@ -2875,9 +2906,9 @@ if Spring.GetModOptions().techsplit then
 
 	unitGrids["coracsub"] = {
 		{
-			{ "coruwmme", "cortide", "coruwfus", },                       -- uw moho, uw fusion,
-			{ "corfmkr", "coruwgeo" },                       -- floating T2 converter, adv geo powerplant
-			{ "coruwes", "coruwms", },                   -- uw e stor, uw metal stor
+			{"cormoho","corfus","","coradvsol",},
+			{"cormakr","corageo","","corbhmth",},
+			{"corestor","cormstor","","",},
 		},
 		{
 			{ "coratl", "corfhlt", },                         -- adv torp launcher, floating heavy platform
@@ -2895,6 +2926,189 @@ if Spring.GetModOptions().techsplit then
 		},
 	}
 
+	unitGrids["legck"] = {
+		{
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
+			{ "legeconv", "leggeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
+			{ "legestor", "legmstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
+		},
+		{
+			{ "leglht", "legmg", "leghive", "legdtr", },     	-- LLT, machine gun, hive, riot turret
+			{ "legrl", "legrhapsis", "legcluster", },            -- basic AA, SAM, eradicator
+			{ "legctl", "", },                        -- coastal torp launcher, punisher
+		},
+		{
+			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "", "", "", "" },                  --  
+			{ "legjuno", },                                   -- juno
+		},
+		{
+			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "legnanotc", "legalab", },                      -- nano, T2 lab
+			{ "", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+		}
+	}
+
+	unitGrids["legca"] = {
+		{
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
+			{ "legeconv", "leggeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
+			{ "legestor", "legmstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
+		},
+		{
+			{ "leglht", "legmg", "leghive", "legdtr", },     	-- LLT, machine gun, hive, riot turret
+			{ "legrl", "legrhapsis", "legcluster", },            -- basic AA, SAM, eradicator
+			{ "legctl", "", },                        -- coastal torp launcher, punisher
+		},
+		{
+			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "", "", "", "" },                  --  
+			{ "legjuno", },                                   -- juno
+		},
+		{
+			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "legnanotc", "legaap", },                      -- nano, T2 lab
+			{ "", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+		}
+	}
+
+	unitGrids["legcv"] = {
+		{
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
+			{ "legeconv", "leggeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
+			{ "legestor", "legmstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
+		},
+		{
+			{ "leglht", "legmg", "leghive", "legdtr", },     	-- LLT, machine gun, hive, riot turret
+			{ "legrl", "legrhapsis", "legcluster", },            -- basic AA, SAM, eradicator
+			{ "legctl", "", },                        -- coastal torp launcher, punisher
+		},
+		{
+			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "", "", "", "" },                  --  
+			{ "legjuno", },                                   -- juno
+		},
+		{
+			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "legnanotc", "legavp", },                      -- nano, T2 lab
+			{ "", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+		}
+	}
+
+	unitGrids["legotter"] = {
+		{
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
+			{ "legeconv", "leggeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
+			{ "legestor", "legmstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
+		},
+		{
+			{ "leglht", "legmg", "leghive", "legdtr", },     	-- LLT, machine gun, hive, riot turret
+			{ "legrl", "legrhapsis", "legcluster", },            -- basic AA, SAM, eradicator
+			{ "legctl", "legtl", },                        -- coastal torp launcher, punisher
+		},
+		{
+			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "", "", "", "" },                  --  
+			{ "legjuno", },                                   -- juno
+		},
+		{
+			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "legnanotc", "legavp", "", "corasy", },                      -- nano, T2 lab
+			{ "", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+		}
+	}
+
+	unitGrids["legack"] = {
+		{
+			{"legmoho","legfus","","legadvsol",},
+			{"legeconv","legageo","","legrampart",},
+			{"legestor","legmstor","","",},
+		},
+		{
+			{"legmg","leghive","legapopupdef","legcluster",},
+			{"legrhapsis","leglupara","legabm","",},
+			{"legctl","legdl","","",},
+		},
+		{
+			{"legrad","legsd","","",},
+			{"legajam","","","",},
+			{"legjuno","","","",},
+		},
+		{
+			{"leglab","legvp","legap","corsy",},
+			{"legnanotc","legalab","","",},
+			{"","leghalab","","",},
+		},
+	}
+
+	unitGrids["legacv"] = {
+		{
+			{"legmoho","legfus","","legadvsol",},
+			{"legeconv","legageo","","legrampart",},
+			{"legestor","legmstor","","",},
+		},
+		{
+			{"legmg","leghive","legapopupdef","legcluster",},
+			{"legrhapsis","leglupara","legabm","",},
+			{"legctl","legdl","","",},
+		},
+		{
+			{"legrad","legsd","","",},
+			{"legajam","","","",},
+			{"legjuno","","","",},
+		},
+		{
+			{"leglab","legvp","legap","corsy",},
+			{"legnanotc","legavp","","",},
+			{"","leghavp","","",},
+		},
+	}
+
+	unitGrids["legch"] = {
+		{
+			{"legmoho","legfus","","legadvsol",},
+			{"legeconv","legageo","","legrampart",},
+			{"legestor","legmstor","","",},
+		},
+		{
+			{"legmg","leghive","legapopupdef","legcluster",},
+			{"legrhapsis","leglupara","legabm","",},
+			{"legctl","legtl","","",},
+		},
+		{
+			{"legrad","legsd","","",},
+			{"legajam","","","",},
+			{"legjuno","","","",},
+		},
+		{
+			{"leglab","legvp","legap","corsy",},
+			{"legnanotc","legavp","","corasy",},
+			{"","leghavp","","corhasy",},
+		},
+	}
+
+	unitGrids["legaca"] = {
+		{
+			{"legmoho","legfus","","legadvsol",},
+			{"legeconv","legageo","","legrampart",},
+			{"legestor","legmstor","","",},
+		},
+		{
+			{"legmg","leghive","legapopupdef","legcluster",},
+			{"legrhapsis","leglupara","legabm","",},
+			{"legctl","legdl","","",},
+		},
+		{
+			{"legrad","legsd","","",},
+			{"legajam","","","",},
+			{"legjuno","","","",},
+		},
+		{
+			{"leglab","legvp","legap","corsy",},
+			{"legnanotc","legaap","","",},
+			{"","leghaap","","",},
+		},
+	}
 	-- Lab Grids
 
 	labGrids["armlab"] = {
@@ -2928,8 +3142,8 @@ if Spring.GetModOptions().techsplit then
 	}
 
 	labGrids["legalab"] = {
-		"legack", "leginfestor", "legstr", "legaspy",
-		"leghrk", "legshot", "legbart", "",
+		"legack", "leginfestor", "legstr", "legaradk",
+		"leghrk", "legbart", "legshot", "legaspy",
 		"legsnapper", "legamph", "legadvaabot", "",
 	}
 
@@ -2946,9 +3160,9 @@ if Spring.GetModOptions().techsplit then
 	}
 
 	labGrids["legavp"] = {
-		"legacv", "legmlv", "legmrv", "legvcarry",
-		"legamcluster", "legaskirmtank", "legmh", "legner",
-		"legch", "legfloat", "legah", "legcar",
+		"legacv", "legvcarry", "legmrv", "legavrad",
+		"legamcluster", "legaskirmtank", "legner", "legcs",
+		"legch", "legfloat", "legah", "legmh",
 	}
 
 	labGrids["armasy"] = {
@@ -2972,6 +3186,12 @@ if Spring.GetModOptions().techsplit then
 	labGrids["armaap"] = {
 		"armaca", "armsfig", "armsaber", "armsb",
 		"armsehak", "armhvytrans", "armseap", "",
+		"", "", "", "",
+	}
+
+	labGrids["legaap"] ={
+		"legaca", "corsfig", "corcut", "corsb",
+		"corawac", "corhvytrans", "corseap", "",
 		"", "", "", "",
 	}
 

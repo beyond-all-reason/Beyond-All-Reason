@@ -64,7 +64,8 @@ end
 
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
-	if unitConf[unitDefID] == nil or Spring.GetUnitRulesParam(unitID, "resurrected") == nil then return end
+	local rezRulesParam = Spring.GetUnitRulesParam(unitID, "resurrected")
+	if unitConf[unitDefID] == nil or not rezRulesParam or rezRulesParam == 0 then return end
 
 	local gf = Spring.GetGameFrame()
 	pushElementInstance(

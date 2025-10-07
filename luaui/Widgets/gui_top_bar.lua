@@ -361,10 +361,11 @@ local function updateComs(forceText)
 		-- Commander icon
 		local sizeHalf = (height / 2.44) * widgetScale
 		local yOffset = ((area[3] - area[1]) * 0.025)
-		glTexture(textures.com)
-		glTexRect(area[1] + ((area[3] - area[1]) / 2) - sizeHalf, area[2] + ((area[4] - area[2]) / 2) - sizeHalf +yOffset, area[1] + ((area[3] - area[1]) / 2) + sizeHalf, area[2] + ((area[4] - area[2]) / 2) + sizeHalf+yOffset)
-		glTexture(false)
-
+		if VFS.FileExists(string.lower(string.gsub(textures.com, ":.:", ""))) then
+			glTexture(textures.com)
+			glTexRect(area[1] + ((area[3] - area[1]) / 2) - sizeHalf, area[2] + ((area[4] - area[2]) / 2) - sizeHalf +yOffset, area[1] + ((area[3] - area[1]) / 2) + sizeHalf, area[2] + ((area[4] - area[2]) / 2) + sizeHalf+yOffset)
+			glTexture(false)
+		end
 		-- Text
 		if gameFrame > 0 or forceText then
 			font2:Begin(useRenderToTexture)
