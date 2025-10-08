@@ -71,6 +71,9 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		enforceLimit(unitTeam, unitDefID, unitID)
 	end
 end
+function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+  gadget:UnitFinished(unitID, unitDefID, unitTeam)
+end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	if limitedUnits[unitDefID] then
