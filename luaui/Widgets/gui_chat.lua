@@ -1321,14 +1321,18 @@ function widget:Update(dt)
 			ignoredAccounts = table.copy(WG.ignoredAccounts)
 		end
 
-		-- detect spectator filter change
+		-- add settings option commands
 		if not addedOptionsList and WG['options'] and WG['options'].getOptionsList then
 			local optionsList = WG['options'].getOptionsList()
-			addedOptionsList = true
-			for i, option in ipairs(optionsList) do
-				autocompleteCommands[#autocompleteCommands+1] = 'option '..option
+			if optionsList and #optionsList > 0 then
+				addedOptionsList = true
+				for i, option in ipairs(optionsList) do
+					autocompleteCommands[#autocompleteCommands+1] = 'option '..option
+				end
 			end
 		end
+
+		-- detect spectator filter change
 		if hideSpecChat ~= (Spring.GetConfigInt('HideSpecChat', 0) == 1) or hideSpecChatPlayer ~= (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1) then
 			hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
 			HideSpecChatPlayer = (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1)
