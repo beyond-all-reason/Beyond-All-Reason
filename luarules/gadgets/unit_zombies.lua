@@ -59,9 +59,9 @@ local zombieModeConfigs           = {
 local currentZombieMode           = "normal"
 local currentZombieConfig         = zombieModeConfigs.normal
 
-local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 2.5 -- How often (in frames) to check if zombies need new orders
+local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 3 -- How often (in frames) to check if zombies need new orders
 local ZOMBIE_CHECK_INTERVAL       = Game.gameSpeed     -- How often (in frames) everything else is checked
-local STUCK_CHECK_INTERVAL        = Game.gameSpeed * 10 -- How often (in frames) to check if zombies are stuck
+local STUCK_CHECK_INTERVAL        = Game.gameSpeed * 12 -- How often (in frames) to check if zombies are stuck
 
 local STUCK_DISTANCE              = 50                 -- How far (in units) a zombie can move before being considered stuck
 local MAX_NOGO_ZONES              = 10                 -- How many no-go zones a zombie can have before being considered stuck
@@ -78,7 +78,7 @@ local CMD_RECLAIM                 = CMD.RECLAIM
 local CMD_FIGHT                   = CMD.FIGHT
 local CMD_OPT_SHIFT               = {"shift"}
 
-local FIRE_STATE_FIRE_AT_WILL     = 2
+local FIRE_STATE_FIRE_AT_ALL      = 3
 local FIRE_STATE_RETURN_FIRE      = 1
 local MOVE_STATE_HOLD_POSITION    = 0
 local ENABLE_REPEAT               = 1
@@ -169,6 +169,7 @@ local unitDefWithWeaponRanges = {}
 local repairingUnits = {}
 local aaOnlyUnits = {}
 local antiUnderWaterOnlyUnits = {}
+local flyingUnits = {}
 local unitDefs = UnitDefs
 local unitDefNames = UnitDefNames
 local featureDefNames = FeatureDefNames
@@ -422,7 +423,7 @@ local function canAttackTarget(attackerID, attackerDefID, targetID, targetYPosit
 		if targetYPosition <= 0 then
 			return true
 		end
-	elseif targetYPosition + spGetUnitHeight(targetID) >= 0 then
+	elseif targetYPosition + spGetUnitHeight(targetID) >= 0 and not flyingUnits[targetID] then
 		return true
 	end
 	return false
@@ -560,7 +561,7 @@ local function setZombieStates(unitID, unitDefID)
 	end
 	spGiveOrderToUnit(unitID, CMD_MOVE_STATE, MOVE_STATE_HOLD_POSITION, 0)
 	if ordersEnabled then
-		spGiveOrderToUnit(unitID, CMD_FIRE_STATE, FIRE_STATE_FIRE_AT_WILL, 0)
+		spGiveOrderToUnit(unitID, CMD_FIRE_STATE, FIRE_STATE_FIRE_AT_ALL, 0)
 	else
 		spGiveOrderToUnit(unitID, CMD_FIRE_STATE, FIRE_STATE_RETURN_FIRE, 0)
 	end
@@ -682,6 +683,14 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 	return true
 end
 
+function UnitEnteredAir(unitID)
+	flyingUnits[unitID] = true
+end
+
+function UnitLeftAir(unitID)
+	flyingUnits[unitID] = nil
+end
+
 function gadget:GameFrame(frame)
 	gameFrame = frame
 
@@ -735,9 +744,9 @@ function gadget:GameFrame(frame)
 				local queueSize = spGetUnitCommandCount(unitID)
 				local closestKnownEnemy = spGetUnitNearestEnemy(unitID, ENEMY_ATTACK_DISTANCE, true)
 				local currentCommand = spGetUnitCurrentCommand(unitID)
-				
+
 				if ordersEnabled and (refreshOrders or 
-				(currentCommand ~= CMD_FIGHT and
+				(currentCommand ~= CMD_FIGHT and currentCommand ~= CMD_GUARD and
 				(closestKnownEnemy or not (queueSize) or (queueSize < ZOMBIE_MAX_ORDERS_ISSUED)))) then
 					clearUnitOrders(unitID)
 					updateOrders(unitID, unitDefID, closestKnownEnemy, currentCommand)
@@ -834,6 +843,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	flyingUnits[unitID] = nil
 	zombieWatch[unitID] = nil
 	zombiesBeingBuilt[unitID] = nil
 end
@@ -887,8 +897,7 @@ local function pacifyZombies(enabled)
 		ordersEnabled = false
 		clearAllOrders()
 	else
-		fireState = FIRE_STATE_FIRE_AT_WILL
-		ordersEnabled = true
+		fireState = FIRE_STATE_FIRE_AT_ALL
 	end
 	for zombieID, _ in pairs(zombieWatch) do
 		if spValidUnitID(zombieID) then
