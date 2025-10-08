@@ -1415,6 +1415,7 @@ Wake()
 FiringMode(){
 	while(TRUE){
 		if (isInWater){
+			move mainTurretPitchPivot to y-axis [-3] speed [3];
 			move  barrel1C to z-axis [10] speed [11.5];
 			move  barrel1A to z-axis [10] speed [11.5];
 			move  barrel1D to z-axis [10] speed [11.5];
@@ -1460,6 +1461,7 @@ FiringMode(){
 			sleep 10;
 		}
 		else{
+			move mainTurretPitchPivot to y-axis [0] speed [3];
 			move  barrel1A to y-axis [0] speed [1.44];
 			move  barrel1B to y-axis [0] speed [1.44];
 			move  barrel2A to y-axis [0] speed [1.44];
