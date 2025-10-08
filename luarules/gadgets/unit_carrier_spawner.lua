@@ -161,7 +161,7 @@ local DEFAULT_DOCK_CHECK_FREQUENCY = 15		-- Checks the docking queue. Increasing
 	-- stockpilelimit = 1			Used for stockpile weapons, but for carriers it also enables stockpile for dronespawning.
 	-- stockpilemetal = 10			Set it to the same as the drone cost when using stockpile for drones
 	-- stockpileenergy = 10			Set it to the same as the drone cost when using stockpile for drones
-	-- dockinguntargetable = false,  Set it to true to disable drones becoming targetable (but still take damage) while docked.
+	-- dockinguntargetable = true,  Set it to true to enable drones becoming untargetable (but still take damage) while docked.
 
 
 	-- },
