@@ -17,7 +17,8 @@ end
 local modOptions                  = Spring.GetModOptions()
 
 local ZOMBIE_GUARD_RADIUS         = 300  -- Radius for zombies to guard allies
-local ZOMBIE_ORDER_COUNT          = 10
+local ZOMBIE_MAX_ORDER_ATTEMPTS   = 10
+local ZOMBIE_MAX_ORDERS_ISSUED    = 2
 local ZOMBIE_FACTORY_BUILD_COUNT  = 20
 local ZOMBIE_GUARD_CHANCE         = 0.65 -- Chance a zombie will guard allies
 local WARNING_TIME                = 15 * Game.gameSpeed -- Frames to start warning before reanimation
@@ -74,6 +75,8 @@ local CMD_GUARD                   = CMD.GUARD
 local CMD_FIRE_STATE              = CMD.FIRE_STATE
 local CMD_MOVE                    = CMD.MOVE
 local CMD_RECLAIM                 = CMD.RECLAIM
+local CMD_FIGHT                   = CMD.FIGHT
+local CMD_OPT_SHIFT               = {"shift"}
 
 local FIRE_STATE_FIRE_AT_WILL     = 2
 local FIRE_STATE_RETURN_FIRE      = 1
@@ -422,20 +425,17 @@ local function canAttackTarget(attackerID, attackerDefID, targetID, targetYPosit
 	elseif targetYPosition + spGetUnitHeight(targetID) >= 0 then
 		return true
 	end
-	Spring.Echo("Cannot Attack Target", attackerDefID, targetYPosition + spGetUnitHeight(targetID))
 	return false
 end
 
-local function updateOrders(unitID, unitDefID)
+local function updateOrders(unitID, unitDefID, closestKnownEnemy, currentCommand)
 	if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then
 		zombieWatch[unitID] = nil
 		return
 	end
-	local currentCommand = spGetUnitCurrentCommand(unitID)
 	local isAlreadyGuarding = currentCommand and currentCommand == CMD_GUARD
 	local nearAlly = currentCommand ~= CMD_MOVE and not isAlreadyGuarding and fightingDefs[unitDefID] and
 	GetUnitNearestReachableAlly(unitID, unitDefID, ZOMBIE_GUARD_RADIUS) or nil
-	local closestKnownEnemy = spGetUnitNearestEnemy(unitID, ENEMY_ATTACK_DISTANCE, true)
 	local weaponRange = unitDefWithWeaponRanges[unitDefID]
 	local data = zombieWatch[unitID]
 	
@@ -450,7 +450,8 @@ local function updateOrders(unitID, unitDefID)
 		spGiveOrderToUnit(unitID, CMD_GUARD, { nearAlly }, 0)
 	elseif extraDefs[unitDefID].isMobile then
 		local x, y, z = spGetUnitPosition(unitID)
-		for attempts = 1, ZOMBIE_ORDER_COUNT do
+		local ordersIssued = 0
+		for attempts = 1, ZOMBIE_MAX_ORDER_ATTEMPTS do
 			local inNoGoZone = false
 			if not data.isStuck and closestKnownEnemy and weaponRange then
 				local enemyX, enemyY, enemyZ = spGetUnitPosition(closestKnownEnemy)
@@ -465,7 +466,7 @@ local function updateOrders(unitID, unitDefID)
 					if distance > 0 then
 						local normalizedDx = dx / distance
 						local normalizedDz = dz / distance
-						
+
 						attemptX = enemyX + normalizedDx * weaponRange
 						attemptZ = enemyZ + normalizedDz * weaponRange
 						attemptY = spGetGroundHeight(attemptX, attemptZ)
@@ -476,7 +477,7 @@ local function updateOrders(unitID, unitDefID)
 				if isAlreadyGuarding then
 					break
 				end
-				if data.isStuck or attempts == ZOMBIE_ORDER_COUNT then
+				if data.isStuck or attempts == ZOMBIE_MAX_ORDER_ATTEMPTS then
 					local randomAngle = random() * tau
 					attemptX = x + ORDER_DISTANCE * cos(randomAngle)
 					attemptZ = z + ORDER_DISTANCE * sin(randomAngle)
@@ -510,8 +511,11 @@ local function updateOrders(unitID, unitDefID)
 				attemptX = attemptX + random(-POSITION_VARIANCE, POSITION_VARIANCE)
 				attemptZ = attemptZ + random(-POSITION_VARIANCE, POSITION_VARIANCE)
 				if not inNoGoZone and spTestMoveOrder(unitDefID, attemptX, attemptY, attemptZ) then
-					spGiveOrderToUnit(unitID, CMD_MOVE, { attemptX, attemptY, attemptZ }, {})
-					break
+					spGiveOrderToUnit(unitID, CMD_MOVE, { attemptX, attemptY, attemptZ }, CMD_OPT_SHIFT)
+					ordersIssued = ordersIssued + 1
+					if ordersIssued >= ZOMBIE_MAX_ORDERS_ISSUED then
+						break
+					end
 				end
 			end
 		end
@@ -610,7 +614,9 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 			else
 				initializeZombie(unitID, unitDefID)
 				if ordersEnabled then
-					updateOrders(unitID, unitDefToCreate)
+					local closestKnownEnemy = spGetUnitNearestEnemy(unitID, ENEMY_ATTACK_DISTANCE, true)
+					local currentCommand = spGetUnitCurrentCommand(unitID)
+					updateOrders(unitID, unitDefToCreate, closestKnownEnemy, currentCommand)
 				end
 				setZombieStates(unitID, unitDefID)
 			end
@@ -725,18 +731,21 @@ function gadget:GameFrame(frame)
 				zombieWatch[unitID] = nil
 			else
 				local REFRESH_ORDERS_CHANCE = 0.01
-				local refreshOrders = random() > REFRESH_ORDERS_CHANCE
+				local refreshOrders = random() <= REFRESH_ORDERS_CHANCE
 				local queueSize = spGetUnitCommandCount(unitID)
-				if ordersEnabled and (refreshOrders or not (queueSize) or (queueSize == 0)) then
-					if refreshOrders then
-						clearUnitOrders(unitID)
-					end
-					updateOrders(unitID, unitDefID)
+				local closestKnownEnemy = spGetUnitNearestEnemy(unitID, ENEMY_ATTACK_DISTANCE, true)
+				local currentCommand = spGetUnitCurrentCommand(unitID)
+				
+				if ordersEnabled and (refreshOrders or 
+				(currentCommand ~= CMD_FIGHT and
+				(closestKnownEnemy or not (queueSize) or (queueSize < ZOMBIE_MAX_ORDERS_ISSUED)))) then
+					clearUnitOrders(unitID)
+					updateOrders(unitID, unitDefID, closestKnownEnemy, currentCommand)
 				end
 			end
 		end
-		updateAdjustedRezSpeed()
 	end
+	
 
 	if frame % STUCK_CHECK_INTERVAL == 0 then
 		for unitID, data in pairs(zombieWatch) do
