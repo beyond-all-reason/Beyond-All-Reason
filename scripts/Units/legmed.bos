@@ -13,7 +13,7 @@ sleeve5, barrel5, flare5,
 sleeve6, barrel6, flare6,
 trackingTower, trackingHeadingPivot, trackingTurret, targetFlare;
 
-static-var  weapon, restore_delay, target, lastheading, lastpitch, justfired, shot, opened, moving, stage1, stage2, stage3, stage4, ready;
+static-var  weapon, restore_delay, target, lastheading, lastpitch, justfired, shot, opened, moving, stage1, stage2, stage3, stage4, ready, laserPause;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -305,6 +305,14 @@ AimPrimary(heading, pitch)												//Beamer script
 	set-signal-mask SIG_AIM;
 	turn trackingHeadingPivot to y-axis heading speed <500.000000>;
 	//turn gun to x-axis <0.000000> - pitch speed <250.000000>;
+	if(opened == 0)													//Opens if it isn't already
+	{
+		start-script Open(0);
+	}
+	if(laserPause == 1)
+	{
+		return (0);
+	}
 	// if the turret can turn to its new heading in one frame, just return true and do not wait for turn
 	if ( ( get ABS ( lastheading - heading ) < 3000 ) AND ( get ABS ( lastpitch - pitch ) < 1500 ) )
 	{
@@ -324,7 +332,7 @@ AimPrimary(heading, pitch)												//Beamer script
 
 AimFromPrimary(piecenum)
 {
-	piecenum = targetFlare;
+	piecenum = trackingTurret;
 }
 
 FirePrimary()														//Sets target to 1 and just as the laser shot ends sets it to 0, so the next shot sets it to 1 the next milisecond, so its 1 whenever the laser is firing and 0 when it isn't
@@ -344,10 +352,6 @@ AimSecondary(heading, pitch)
 	while( target == 0)												//Doesn't shoot if laser isn't shooting
 	{
 		return (0);
-	}
-	if(opened == 0)													//Opens if it isn't already
-	{
-		start-script Open(0);
 	}
 	sleep 250;
 	signal SIG_AIM_2;
@@ -382,8 +386,12 @@ FireSecondary()
 	weapon = 0;
 	start-script Close();
 	shot = 0;
-	sleep 7000;														//Combined sleep in this script must be about 1 second shorter than the reload time, so the hatches open on time for next shot
-	justfired = 0;													//Enables hatches opening for next shot
+	sleep 3500;
+	laserPause = 1;
+	sleep 3500;
+	justfired = 0;					//Enables hatches opening for next shot. Combined sleep in this script until this point must be about 1 second shorter than the reload time, so the hatches open on time for next shot
+	sleep 2000;
+	laserPause = 0;
 }
 
 QuerySecondary(piecenum)
