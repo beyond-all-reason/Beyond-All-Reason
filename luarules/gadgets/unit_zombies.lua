@@ -58,9 +58,9 @@ local zombieModeConfigs           = {
 local currentZombieMode           = "normal"
 local currentZombieConfig         = zombieModeConfigs.normal
 
-local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 3 -- How often (in frames) to check if zombies need new orders
+local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 2.5 -- How often (in frames) to check if zombies need new orders
 local ZOMBIE_CHECK_INTERVAL       = Game.gameSpeed     -- How often (in frames) everything else is checked
-local STUCK_CHECK_INTERVAL        = Game.gameSpeed * 12 -- How often (in frames) to check if zombies are stuck
+local STUCK_CHECK_INTERVAL        = Game.gameSpeed * 10 -- How often (in frames) to check if zombies are stuck
 
 local STUCK_DISTANCE              = 50                 -- How far (in units) a zombie can move before being considered stuck
 local MAX_NOGO_ZONES              = 10                 -- How many no-go zones a zombie can have before being considered stuck
@@ -125,6 +125,7 @@ local spGetUnitCurrentCommand     = Spring.GetUnitCurrentCommand
 local spSetUnitExperience         = Spring.SetUnitExperience
 local spGetUnitExperience         = Spring.GetUnitExperience
 local spGetUnitIsBeingBuilt      = Spring.GetUnitIsBeingBuilt
+local spGetUnitHeight           = Spring.GetUnitHeight
 local random                      = math.random
 local distance2dSquared           = math.distance2dSquared
 local pi                          = math.pi
@@ -163,6 +164,8 @@ local zombieHeapDefs = {}
 local fightingDefs = {}
 local unitDefWithWeaponRanges = {}
 local repairingUnits = {}
+local aaOnlyUnits = {}
+local antiUnderWaterOnlyUnits = {}
 local unitDefs = UnitDefs
 local unitDefNames = UnitDefNames
 local featureDefNames = FeatureDefNames
@@ -216,6 +219,47 @@ for unitDefID, unitDef in pairs(unitDefs) do
 
 	if unitDef.canRepair then
 		repairingUnits[unitDefID] = true
+	end
+
+	if unitDef.weapons and #unitDef.weapons > 0 then
+		local hasWeapons = false
+		local allWeaponsAA = true
+		local allWeaponsUnderwater = true
+		local hasNonUnderwaterWeapons = false
+
+		for i = 1, #unitDef.weapons do
+			local weaponDefID = unitDef.weapons[i].weaponDef
+			if weaponDefID then
+				local weaponDef = WeaponDefs[weaponDefID]
+				if weaponDef and weaponDef.range and weaponDef.range > 0 and not (weaponDef.customParams and weaponDef.customParams.bogus) then
+					hasWeapons = true
+
+					local isAAWeapon = false
+					if unitDef.weapons[i].onlyTargets and unitDef.weapons[i].onlyTargets.vtol then
+						isAAWeapon = true
+					end
+
+					local isUnderwaterOnly = weaponDef.waterWeapon or false
+
+					if not isAAWeapon then
+						allWeaponsAA = false
+					end
+
+					if not isUnderwaterOnly then
+						allWeaponsUnderwater = false
+						hasNonUnderwaterWeapons = true
+					end
+				end
+			end
+		end
+
+		if hasWeapons and allWeaponsAA then
+			aaOnlyUnits[unitDefID] = true
+		end
+
+		if hasWeapons and allWeaponsUnderwater and not hasNonUnderwaterWeapons then
+			antiUnderWaterOnlyUnits[unitDefID] = true
+		end
 	end
 end
 
@@ -365,7 +409,24 @@ local function getActualForwardsYaw(unitID)
 	return select(2, spGetUnitRotation(unitID)) + (pi / 2)
 end
 
-local function issueRandomOrders(unitID, unitDefID)
+local function canAttackTarget(attackerID, attackerDefID, targetID, targetYPosition)
+	if aaOnlyUnits[attackerDefID] then
+		local targetDef = unitDefs[targetID]
+		if targetDef and targetDef.canFly and aaOnlyUnits[attackerDefID] then
+			return true
+		end
+	elseif antiUnderWaterOnlyUnits[attackerDefID] then
+		if targetYPosition <= 0 then
+			return true
+		end
+	elseif targetYPosition + spGetUnitHeight(targetID) >= 0 then
+		return true
+	end
+	Spring.Echo("Cannot Attack Target", attackerDefID, targetYPosition + spGetUnitHeight(targetID))
+	return false
+end
+
+local function updateOrders(unitID, unitDefID)
 	if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then
 		zombieWatch[unitID] = nil
 		return
@@ -390,12 +451,11 @@ local function issueRandomOrders(unitID, unitDefID)
 	elseif extraDefs[unitDefID].isMobile then
 		local x, y, z = spGetUnitPosition(unitID)
 		for attempts = 1, ZOMBIE_ORDER_COUNT do
-			local attemptX, attemptY, attemptZ = x, y, z -- my coordinates for error prevention
 			local inNoGoZone = false
 			if not data.isStuck and closestKnownEnemy and weaponRange then
 				local enemyX, enemyY, enemyZ = spGetUnitPosition(closestKnownEnemy)
-				if enemyX and enemyZ then  -- Make sure we got valid coordinates
-					local CLOSER_VARIANCE = 0.75
+				if enemyX and canAttackTarget(unitID, unitDefID, closestKnownEnemy, enemyY) then
+					local CLOSER_VARIANCE = 0.5
 					weaponRange = weaponRange * CLOSER_VARIANCE
 					local dx = x - enemyX
 					local dz = z - enemyZ
@@ -409,8 +469,6 @@ local function issueRandomOrders(unitID, unitDefID)
 						attemptX = enemyX + normalizedDx * weaponRange
 						attemptZ = enemyZ + normalizedDz * weaponRange
 						attemptY = spGetGroundHeight(attemptX, attemptZ)
-					else
-						attemptX, attemptY, attemptZ = enemyX, enemyY, enemyZ
 					end
 				end
 				closestKnownEnemy = nil
@@ -447,12 +505,14 @@ local function issueRandomOrders(unitID, unitDefID)
 					break
 				end
 			end
-			local POSITION_VARIANCE = 100
-			attemptX = attemptX + random(-POSITION_VARIANCE, POSITION_VARIANCE)
-			attemptZ = attemptZ + random(-POSITION_VARIANCE, POSITION_VARIANCE)
-			if not inNoGoZone and spTestMoveOrder(unitDefID, attemptX, attemptY, attemptZ) then
-				spGiveOrderToUnit(unitID, CMD_MOVE, { attemptX, attemptY, attemptZ }, {})
-				break
+			if attemptX then
+				local POSITION_VARIANCE = 50
+				attemptX = attemptX + random(-POSITION_VARIANCE, POSITION_VARIANCE)
+				attemptZ = attemptZ + random(-POSITION_VARIANCE, POSITION_VARIANCE)
+				if not inNoGoZone and spTestMoveOrder(unitDefID, attemptX, attemptY, attemptZ) then
+					spGiveOrderToUnit(unitID, CMD_MOVE, { attemptX, attemptY, attemptZ }, {})
+					break
+				end
 			end
 		end
 	end
@@ -550,7 +610,7 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 			else
 				initializeZombie(unitID, unitDefID)
 				if ordersEnabled then
-					issueRandomOrders(unitID, unitDefToCreate)
+					updateOrders(unitID, unitDefToCreate)
 				end
 				setZombieStates(unitID, unitDefID)
 			end
@@ -671,7 +731,7 @@ function gadget:GameFrame(frame)
 					if refreshOrders then
 						clearUnitOrders(unitID)
 					end
-					issueRandomOrders(unitID, unitDefID)
+					updateOrders(unitID, unitDefID)
 				end
 			end
 		end
