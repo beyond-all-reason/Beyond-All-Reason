@@ -59,6 +59,8 @@ local damage, time, range, resistance = 30, 10, 75, "none"
 local max                     = math.max
 local min                     = math.min
 local floor                   = math.floor
+local sqrt                    = math.sqrt
+local normalize               = math.normalize
 
 local spAddUnitDamage         = Spring.AddUnitDamage
 local spGetFeatureHealth      = Spring.GetFeatureHealth
@@ -229,30 +231,41 @@ end
 ---@return number? hitX reference coordinates <x, y, z>
 ---@return number? hitY
 ---@return number? hitZ
-local function getReferencePointInSphere(area, baseX, baseY, baseZ, midX, midY, midZ)
-    if midY >= area.minY and midY <= area.maxY then
-        local dx, dy, dz = area.x - midX, area.y - midY, area.z - midZ
-        local radius = area.radius
-        if dx * dx + dy * dy + dz * dz <= radius * radius then
-            return midX, midY, midZ
-        end
-    end
+local function getAreaHitPosition(area, baseX, baseY, baseZ, midX, midY, midZ)
+	if midY >= area.ymin and midY <= area.ymax then
+		local dx = midX - area.x
+		local dy = midY - area.y
+		local dz = midZ - area.z
+		local radius = area.range
+		if dx * dx + dy * dy + dz * dz <= radius * radius then
+			return midX, midY, midZ
+		end
+	end
 
-    if baseY >= area.minY and baseY <= area.maxY then
-        local dx, dy, dz = area.x - midX, area.y - midY, area.z - midZ
-        local radius = area.radius
-        if dx * dx + dy * dy + dz * dz <= radius * radius then
-            -- The unit base point is in the area and the mid point is not.
-            -- Find the intersection of a ray from mid->base onto the area.
-            local t = max(0, (baseX - midX) * (area.x - midX) + (baseY - midY) * (area.y - midY) + (baseZ - midZ) * (area.z - midZ))
+	if baseY >= area.ymin and baseY <= area.ymax then
+		local dx = baseX - area.x
+		local dy = baseY - area.y
+		local dz = baseZ - area.z
+		local radius = area.range
+		if dx * dx + dy * dy + dz * dz <= radius * radius then
+			-- The unit base point is in the area and the mid point is not.
+			-- Find the intersection of a ray from mid->base onto the area.
+			local rx, ry, rz = normalize(baseX - midX, baseY - midY, baseZ - midZ)
 
-            local ix = midX + t * (baseX - midX)
-            local iy = midY + t * (baseY - midY)
-            local iz = midZ + t * (baseZ - midZ)
+			local a = rx * rx + ry * ry + rz * rz
+			local b = (dx * rx + dy * ry + dz * rz) * 2
+			local c = dx * dx + dy * dy + dz * dz - radius * radius
 
-            return ix, iy, iz
-        end
-    end
+			-- We already know the discriminant is positive:
+			local discriminant = b * b - 4 * a * c
+			local t = (b + sqrt(discriminant)) / (2 * a)
+
+			return
+				midX + t * rx,
+				midY + t * ry,
+				midZ + t * rz
+		end
+	end
 end
 
 ---Applies a simple formula to keep damage under a limit when many areas of effect overlap.
