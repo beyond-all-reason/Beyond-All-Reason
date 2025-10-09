@@ -260,16 +260,16 @@ end
 ---Damage may be reduced enough that the CEG effect for indicating damage should not be shown.
 ---@param incoming number The area weapon's damage to the target
 ---@param accumulated number The target's area damage taken in the current interval
----@return number damage
+---@return number damageDealt
 ---@return boolean showDamageCeg
 local function getLimitedDamage(incoming, accumulated)
 	local ignoreLimit = max(0, incoming - damageLimit - accumulated)
 	local belowLimit = max(0, min(damageLimit - accumulated, incoming))
 	local aboveLimit = incoming - belowLimit - ignoreLimit
 
-	local damage = ignoreLimit + belowLimit + aboveLimit * damageExcessRate
+	local damageDealt = ignoreLimit + belowLimit + aboveLimit * damageExcessRate
 
-	return damage, damage >= incoming * damageCegMinMultiple or damage >= damageCegMinScalar
+	return damageDealt, damageDealt >= incoming * damageCegMinMultiple or damageDealt >= damageCegMinScalar
 end
 
 local function damageTargetsInAreas(timedAreas, gameFrame)
@@ -288,7 +288,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
             local unitID = unitsInRange[j]
 
             if not unitDamageImmunity[spGetUnitDefID(unitID)][area.resistance] then
-                local hitX, hitY, hitZ = getReferencePointInSphere(area, spGetUnitPosition(unitID, true))
+                local hitX, hitY, hitZ = getAreaHitPosition(area, spGetUnitPosition(unitID, true))
 
                 if hitX then
                     local damageTaken = unitDamageTaken[unitID]
@@ -299,14 +299,14 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
                         resetNewUnit[count] = unitID
                     end
 
-                    local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
+                    local damageDealt, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
 
                     if showDamageCeg then
                         spSpawnCEG(area.damageCeg, hitX, hitY, hitZ)
                     end
 
-                    unitDamageTaken[unitID] = damageTaken + damage
-                    spAddUnitDamage(unitID, damage, nil, area.owner, area.weapon)
+                    unitDamageTaken[unitID] = damageTaken + damageDealt
+                    spAddUnitDamage(unitID, damageDealt, nil, area.owner, area.weapon)
                 end
             end
         end
@@ -332,7 +332,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
             local featureID = featuresInRange[j]
 
             if not featDamageImmunity[featureID] then
-                local hitX, hitY, hitZ = getReferencePointInSphere(area, spGetFeaturePosition(featureID, true))
+                local hitX, hitY, hitZ = getAreaHitPosition(area, spGetFeaturePosition(featureID, true))
 
                 if hitX then
                     local damageTaken = featDamageTaken[featureID]
@@ -343,16 +343,16 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
                         resetNewFeat[count] = featureID
                     end
 
-                    local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
+                    local damageDealt, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
 
                     if showDamageCeg then
                         spSpawnCEG(area.damageCeg, hitX, hitY, hitZ)
                     end
 
-                    local health = spGetFeatureHealth(featureID) - damage
+                    local health = spGetFeatureHealth(featureID) - damageDealt
 
                     if health >= 1 then
-                        featDamageTaken[featureID] = damageTaken + damage
+                        featDamageTaken[featureID] = damageTaken + damageDealt
                         spSetFeatureHealth(featureID, health)
                     else
                         Spring.DestroyFeature(featureID)
