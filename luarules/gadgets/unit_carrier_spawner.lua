@@ -354,7 +354,7 @@ local function UnDockUnit(unitID, subUnitID)
 		if carrierMetaList[unitID].dockArmor then
 			spSetUnitArmored(subUnitID, false, 1)
 		end
-		spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", 0)
+		spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", nil)
 	end
 end
 
@@ -513,7 +513,7 @@ local function SpawnUnit(spawnData)
 								if carrierMetaList[ownerID].dockUntargetable == true then
  								   spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", 1)
 								else
-								    spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", 0)
+								    spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", nil)
 								end
 							end
 							local _, carrierdockarg1, carrierdockarg2, carrierdockarg3  = Spring.CallCOBScript(ownerID, "Dronedocked", 5, carrierdockarg1, carrierMetaList[ownerID].subUnitsList[subUnitID].dockingPiece, carrierdockarg2, carrierdockarg3)
@@ -1476,7 +1476,7 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 									if carrierMetaList[unitID].dockUntargetable == true then
 									    spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", 1)
 									else
-									    spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", 0)
+									    spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", nil)
 									end
 
 								end
@@ -1608,8 +1608,8 @@ end
 
 function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, defaultPriority)
     if targetID then
-        local v = Spring.GetUnitRulesParam(targetID, "drone_docked_untargetable")
-        if v == 1 then
+        local untargetable = Spring.GetUnitRulesParam(targetID, "drone_docked_untargetable")
+        if untargetable == 1 then
             return false, 0
         end
     end
