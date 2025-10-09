@@ -44,6 +44,7 @@ local EditUnitCmdDesc			= Spring.EditUnitCmdDesc
 local FindUnitCmdDesc			= Spring.FindUnitCmdDesc
 local InsertUnitCmdDesc			= Spring.InsertUnitCmdDesc
 local spGetGameSeconds 			= Spring.GetGameSeconds
+local spGetTargetable = Spring.GetUnitRulesParam(targetID, "drone_docked_untargetable")
 
 
 local mcEnable 				= Spring.MoveCtrl.Enable
@@ -1608,8 +1609,7 @@ end
 
 function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, defaultPriority)
     if targetID then
-        local untargetable = Spring.GetUnitRulesParam(targetID, "drone_docked_untargetable")
-        if untargetable == 1 then
+        if spGetTargetable == 1 then
             return false, 0
         end
     end
