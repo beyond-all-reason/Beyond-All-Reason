@@ -124,7 +124,7 @@ return {
 				cratermult = 0,
 				duration = 0.12,
 				edgeeffectiveness = 0.90,
-				energypershot = 1800,
+				energypershot = 600,
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				firestarter = 1,
 				hardstop = true,
