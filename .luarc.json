@@ -13,7 +13,8 @@
   },
   "workspace": {
     "library": [
-      "recoil-lua-library"
+      "recoil-lua-library",
+      "types"
     ],
     "ignoreDir": [
       ".vscode",

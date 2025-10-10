@@ -3200,7 +3200,7 @@ end
 --  Share slider gllist
 ---------------------------------------------------------------------------------------------------
 
-local ShareTax = VFS.Include('common/luaUtilities/resource_share_tax.lua')
+local ShareTax = VFS.Include('common/luaUtilities/team_transfer/resource_share_tax.lua')
 
 function CreateShareSlider()
     if ShareSlider then

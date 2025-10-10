@@ -1,3 +1,6 @@
+
+local ModOptions = VFS.Include("luarules/gadgets/team_transfer/modoption_enums.lua")
+
 -- Shared helper for resource share tax calculations
 -- Usable from both LuaRules (gadgets) and LuaUI (widgets)
 
@@ -10,21 +13,6 @@ local function sanitizeNumber(n, fallback)
 	return n
 end
 
--- Calculates transfer breakdown given an intended transfer amount that already respects receiver caps
--- resourceName: 'metal' or 'energy'
--- amount: number (>= 0), already limited by receiver max share/storage rules
--- taxRate: 0..1 (fraction)
--- threshold: for metal only, total amount a sender can send tax-free cumulatively
--- cumulativeSent: current cumulative amount the sender already sent (for metal)
--- Returns table:
--- {
---   actualSent,         -- amount removed from sender
---   actualReceived,     -- amount added to receiver
---   untaxedPortion,     -- portion of amount not taxed (metal within remaining allowance)
---   taxablePortion,     -- portion of amount taxed
---   allowanceRemaining, -- metal allowance left before this transfer
---   newCumulative,      -- updated cumulative (metal only)
--- }
 function Tax.computeTransfer(resourceName, amount, taxRate, threshold, cumulativeSent)
 	resourceName = resourceName == 'm' and 'metal' or (resourceName == 'e' and 'energy' or resourceName)
 	amount = sanitizeNumber(amount, 0)
@@ -93,13 +81,11 @@ end
 ---@class ResourceTransferModule
 ---@field CalculateSenderTaxedAmount fun(policyResult: ResourcePolicyResult, desiredReceived: number): CalculateSenderTaxedAmountResult
 
-local M = {}
-
 --- Core helper: compute sender cost for a desired received amount under policyResult
 ---@param policyResult ResourcePolicyResult
 ---@param desiredReceived number
 ---@return CalculateSenderTaxedAmountResult
-function M.CalculateSenderTaxedAmount(policyResult, desiredReceived)
+function Tax.CalculateSenderTaxedAmount(policyResult, desiredReceived)
     local maxReceivable = policyResult.amountReceivable
     local desired = math.min(desiredReceived, policyResult.amountSendable, maxReceivable)
     if desired <= 0 then
@@ -135,11 +121,11 @@ end
 --- Execute a resource transfer using received-unit desiredAmount capped by policy limits
 ---@param ctx ResourceTransferContext
 ---@return ResourceTransferResult
-local function ResourceTransfer(ctx)
+function Tax.ResourceTransfer(ctx)
     local policyResult = ctx.policyResult
     local desiredAmount = ctx.desiredAmount
 
-    local amounts = M.CalculateSenderTaxedAmount(policyResult, desiredAmount)
+    local amounts = Tax.CalculateSenderTaxedAmount(policyResult, desiredAmount)
     local actualSent = amounts.sentAmountBeforeTax
     local actualReceived = amounts.receivedAmount
 
@@ -160,16 +146,8 @@ local function ResourceTransfer(ctx)
     return result
 end
 
--- Make module callable: M(ctx) → perform transfer
-setmetatable(M, { __call = function(_, ctx) return ResourceTransfer(ctx) end })
-
-return M
-
 
 -- Tax Resource Sharing
-
--- local SharedEnums = VFS.Include("luarules/gadgets/team_transfer/shared_enums.lua")
-local ModOptions = VFS.Include("luarules/gadgets/team_transfer/modoption_enums.lua")
 
 local CUMULATIVE_METAL_PARAM = "metal_share_cumulative_sent"
 local CUMULATIVE_ENERGY_PARAM = "energy_share_cumulative_sent"
