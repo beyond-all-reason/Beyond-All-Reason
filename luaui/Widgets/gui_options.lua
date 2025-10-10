@@ -5994,22 +5994,22 @@ function init()
 
 	if (not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7)) then
 		options[getOptionByID('soundtrackAprilFools')] = nil
+		Spring.SetConfigInt("UseSoundtrackAprilFools", 1)
 	else
-		options[getOptionByID('soundtrackAprilFools')] = Spring.SetConfigInt("soundtrackAprilFools", 1)
 		options[getOptionByID('soundtrackAprilFoolsPostEvent')] = nil
 	end
 
 	if (not (tonumber(os.date("%m")) == 10 and tonumber(os.date("%d")) >= 17)) then
 		options[getOptionByID('soundtrackSpooktober')] = nil
+		Spring.SetConfigInt("UseSoundtrackSpooktober", 1)
 	else
-		options[getOptionByID('soundtrackSpooktober')] = Spring.SetConfigInt("soundtrackSpooktober", 1)
 		options[getOptionByID('soundtrackSpooktoberPostEvent')] = nil
 	end
 
 	if (not (tonumber(os.date("%m")) == 12 and tonumber(os.date("%d")) >= 12)) then
 		options[getOptionByID('soundtrackXmas')] = nil
+		Spring.SetConfigInt("UseSoundtrackXmas", 1)
 	else
-		options[getOptionByID('soundtrackXmas')] = Spring.SetConfigInt("soundtrackXmas", 1)
 		options[getOptionByID('soundtrackXmasPostEvent')] = nil
 	end
 
