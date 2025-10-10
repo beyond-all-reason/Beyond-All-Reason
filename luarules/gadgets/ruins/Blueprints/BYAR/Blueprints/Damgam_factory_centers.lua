@@ -3,6 +3,9 @@ local tiers = blueprintConfig.Tiers
 local types = blueprintConfig.BlueprintTypes
 local UDN = UnitDefNames
 
+-- Use math_random for random number generation in blueprints
+local math_random = math.random
+
 --	facing:
 --  0 - south
 --  1 - east
@@ -11,7 +14,7 @@ local UDN = UnitDefNames
 
 local function t1UnitSpammer()
 	local buildings
-	local r = math.random(0, 2)
+	local r = math_random(0, 2)
 	if r == 0 then
 		buildings = {
 			{ unitDefID = UDN.cormadsam_scav.id, xOffset = -24,  zOffset = -24, direction = 2 },
