@@ -47,7 +47,7 @@ end
 -- Constants
 local WIDGET_NAME = "WIDGET_NAME_PLACEHOLDER"
 local MODEL_NAME = "WIDGET_NAME_PLACEHOLDER_model"
-local RML_PATH = "luaui/rmlwidgets/WIDGET_NAME_PLACEHOLDER/WIDGET_NAME_PLACEHOLDER.rml"
+local RML_PATH = "Luaui/RmlWidgets/WIDGET_NAME_PLACEHOLDER/WIDGET_NAME_PLACEHOLDER.rml"
 
 -- Widget state
 local document
