@@ -808,6 +808,11 @@ function DrawWindow()
 									text = string.sub(text, 1, string.len(text) - 1)
 								end
 								text = text .. '...'
+								if not option.description or option.description == '' then
+									option.description = option.name
+								elseif option.description ~= option.name and string.sub(option.description, 1, string.len(option.name)) ~= option.name then
+									option.description = option.name..'\n\255\255\255\255'..option.description
+								end
 							end
 							if option.restart then
 								font:Print('\255\255\090\090*', xPos + (oPadding * 0.3), yPos - (oHeight / 5) - oPadding, oHeight, "no")
@@ -868,6 +873,11 @@ function DrawWindow()
 										text = string.sub(text, 1, string.len(text) - 1)
 									end
 									text = text .. '...'
+									if not option.description or option.description == '' then
+										option.description = option.name
+									elseif option.description ~= option.name and string.sub(option.description, 1, string.len(option.name)) ~= option.name then
+										option.description = option.name..'\n\255\255\255\255'..option.description
+									end
 								end
 								options[oid].nametext = text
 								if option.id == 'font2' then
@@ -2833,6 +2843,42 @@ function init()
 		{ id = "soundtrackAprilFoolsPostEvent", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackaprilfoolspostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackaprilfoolspostevent_descr'),
 		onchange = function(i, value)
 			Spring.SetConfigInt('UseSoundtrackAprilFoolsPostEvent', value and 1 or 0)
+			if WG['music'] and WG['music'].RefreshTrackList then
+				WG['music'].RefreshTrackList()
+				init()
+			end
+		end
+		},
+		{ id = "soundtrackSpooktober", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackspooktober'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackSpooktober', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackspooktober_descr'),
+			onchange = function(i, value)
+				Spring.SetConfigInt('UseSoundtrackSpooktober', value and 1 or 0)
+				if WG['music'] and WG['music'].RefreshTrackList then
+					WG['music'].RefreshTrackList()
+					init()
+				end
+			end
+		},
+		{ id = "soundtrackSpooktoberPostEvent", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackspooktoberpostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackSpooktoberPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackspooktoberpostevent_descr'),
+		onchange = function(i, value)
+			Spring.SetConfigInt('UseSoundtrackSpooktoberPostEvent', value and 1 or 0)
+			if WG['music'] and WG['music'].RefreshTrackList then
+				WG['music'].RefreshTrackList()
+				init()
+			end
+		end
+		},
+		{ id = "soundtrackXmas", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackxmas'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackXmas', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackxmas_descr'),
+			onchange = function(i, value)
+				Spring.SetConfigInt('UseSoundtrackXmas', value and 1 or 0)
+				if WG['music'] and WG['music'].RefreshTrackList then
+					WG['music'].RefreshTrackList()
+					init()
+				end
+			end
+		},
+		{ id = "soundtrackXmasPostEvent", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackxmaspostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackXmasPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackxmaspostevent_descr'),
+		onchange = function(i, value)
+			Spring.SetConfigInt('UseSoundtrackXmasPostEvent', value and 1 or 0)
 			if WG['music'] and WG['music'].RefreshTrackList then
 				WG['music'].RefreshTrackList()
 				init()
@@ -5946,15 +5992,25 @@ function init()
 		options[getOptionByID('spectator_hud_metric_damageDealt')] = nil
 	end
 
-	if Spring.GetConfigInt('UseSoundtrackNew', 1) == 1 then
-		if (not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7)) then
-			options[getOptionByID('soundtrackAprilFools')] = nil
-		else
-			options[getOptionByID('soundtrackAprilFoolsPostEvent')] = nil
-		end
-	else
+	if (not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7)) then
 		options[getOptionByID('soundtrackAprilFools')] = nil
+		Spring.SetConfigInt("UseSoundtrackAprilFools", 1)
+	else
 		options[getOptionByID('soundtrackAprilFoolsPostEvent')] = nil
+	end
+
+	if (not (tonumber(os.date("%m")) == 10 and tonumber(os.date("%d")) >= 17)) then
+		options[getOptionByID('soundtrackSpooktober')] = nil
+		Spring.SetConfigInt("UseSoundtrackSpooktober", 1)
+	else
+		options[getOptionByID('soundtrackSpooktoberPostEvent')] = nil
+	end
+
+	if (not (tonumber(os.date("%m")) == 12 and tonumber(os.date("%d")) >= 12)) then
+		options[getOptionByID('soundtrackXmas')] = nil
+		Spring.SetConfigInt("UseSoundtrackXmas", 1)
+	else
+		options[getOptionByID('soundtrackXmasPostEvent')] = nil
 	end
 
 	-- hide English unit names toggle if using English
@@ -6265,7 +6321,7 @@ function init()
 						count = count + 1
 						local color = widgetOptionColor
 						if v[4] and v[4] == 0 then color ='\255\100\100\100' end
-						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = color .. "   " .. Spring.I18N(v[3]), type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
+						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = color .. "   " .. Spring.I18N(v[3]), type = "bool", value = v[2], --description = v[3] and Spring.I18N(v[3]) or "",
 											  onchange = function(i, value)
 												  saveOptionValue('Notifications', 'notifications', 'setNotification' .. v[1], { 'notificationList' }, value)
 											  end,

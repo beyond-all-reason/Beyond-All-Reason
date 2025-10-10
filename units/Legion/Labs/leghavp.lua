@@ -2,8 +2,8 @@ return {
 	leghavp = {
 		maxacc = 0,
 		maxdec = 0,
-		energycost = 62000,
-		metalcost = 8400,
+		energycost = 46000,
+		metalcost = 4900,
 		builder = true,
 		buildpic = "LEGHAVP.DDS",
 		buildtime = 67300,
@@ -40,10 +40,8 @@ return {
 			[6] = "legvflak",
 			[7] = "cormabm",
 			[8] = "legavjam",
-			[9] = "legavrad",
-			[10] = "legkeres",
-			[11] = "legerailtank",
-			[12] = "legehovertank",
+			[9] = "legmrv",
+			[10] = "legehovertank",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
