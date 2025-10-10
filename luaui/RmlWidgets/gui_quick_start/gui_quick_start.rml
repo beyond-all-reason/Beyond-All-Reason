@@ -1,0 +1,32 @@
+<rml>
+<head>
+    <link type="text/rcss" href="gui_quick_start.rcss" />
+</head>
+<body data-model="quick_start_model">
+    <div id="qs-root" class="qs-root">
+        <div id="qs-budget-overlay" class="qs-budget-overlay">
+            <div id="qs-budget-container" class="qs-budget-container">
+                <div id="qs-budget-gradient-overlay" class="qs-budget-gradient-overlay"></div>
+                <div id="qs-budget-header" class="qs-budget-header"></div>
+                <div class="qs-budget-row">
+                    <img id="qs-budget-icon" class="qs-budget-icon" src="/luaui/images/flowui_gl4/metalenergy.png" width="32" height="32" />
+                    <div id="qs-budget-value-left" class="qs-budget-value-left">0</div>
+                    <div id="qs-deduction-amount-1" class="qs-deduction-amount-1">{{deductionAmount1}}</div>
+                    <div id="qs-deduction-amount-2" class="qs-deduction-amount-2">{{deductionAmount2}}</div>
+                    <div id="qs-deduction-amount-3" class="qs-deduction-amount-3">{{deductionAmount3}}</div>
+                    <div id="qs-deduction-amount-4" class="qs-deduction-amount-4">{{deductionAmount4}}</div>
+                    <div id="qs-deduction-amount-5" class="qs-deduction-amount-5">{{deductionAmount5}}</div>
+                    <div id="qs-budget-bar" class="qs-budget-bar">
+                        <div id="qs-budget-fill" class="qs-budget-fill"></div>
+                        <div id="qs-budget-projected" class="qs-budget-projected"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="qs-warning-text" class="qs-warning-text"></div>
+        <div id="qs-factory-section" class="qs-factory-section">
+            <div id="qs-factory-text" class="qs-factory-text"></div>
+        </div>
+    </div>
+</body>
+</rml>  
