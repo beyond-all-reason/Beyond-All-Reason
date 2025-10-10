@@ -34,7 +34,7 @@ local updateTime = 0
 
 local validUnit = {}
 for udid, ud in pairs(UnitDefs) do
-	validUnit[udid] = ud.isBuilder and not ud.isFactory
+	validUnit[udid] = ud.isBuilder and ud.canRepair and not ud.isFactory
 end
 
 function widget:UnitCommand(unitID, unitDefID, _, _, _, cmdOpts, _, _, _, _)
