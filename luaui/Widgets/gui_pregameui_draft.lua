@@ -68,9 +68,7 @@ local cachedTooltipText = ""
 
 local function hasActiveConditions()
 	for k, v in pairs(readyBlockedConditions) do
-		if v ~= nil then
-			return true
-		end
+		return true
 	end
 	return false
 end
