@@ -606,7 +606,7 @@ function widget:GameFrame(n)
 	end
 
 	-- handle the pregame build queue
-	if not (n <= 60 and n > 1) then
+	if not (n <= 90 and n > 1) then
 		return
 	end
 
