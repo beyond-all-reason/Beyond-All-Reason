@@ -70,6 +70,10 @@ local FORCE_SHOW_REASON = "gui_pregame_build"
 local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
 
+	if preGamestartPlayer then
+		WG["pregame-unit-selected"] = uDefID or -1
+	end
+
 	if WG["buildinggrid"] ~= nil and WG["buildinggrid"].setForceShow ~= nil then
 		WG["buildinggrid"].setForceShow(FORCE_SHOW_REASON, uDefID ~= nil, uDefID)
 	end
@@ -246,15 +250,15 @@ local function removeUnitShape(id)
 	end
 end
 
-local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID)
+local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID, alpha)
 	if unitshapes[id] then
 		removeUnitShape(id)
 	end
-	unitshapes[id] = WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, 1, teamID, nil, nil)
+	unitshapes[id] = WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha or 1, teamID, nil, nil, nil)
 	return unitshapes[id]
 end
 
-local function DrawBuilding(buildData, borderColor, drawRanges)
+local function DrawBuilding(buildData, borderColor, drawRanges, alpha)
 	local bDefID, bx, by, bz, facing = buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]
 	local bw, bh = GetBuildingDimensions(bDefID, facing)
 
@@ -291,7 +295,7 @@ local function DrawBuilding(buildData, borderColor, drawRanges)
 			.. buildData[4]
 			.. "_"
 			.. buildData[5]
-		addUnitShape(id, buildData[1], buildData[2], buildData[3], buildData[4], buildData[5] * (math.pi / 2), myTeamID)
+		addUnitShape(id, buildData[1], buildData[2], buildData[3], buildData[4], buildData[5] * (math.pi / 2), myTeamID, alpha)
 	end
 end
 
@@ -439,12 +443,16 @@ function widget:DrawWorld()
 	end
 
 	-- draw pregame build queue
-	local buildDistanceColor = { 0.3, 1.0, 0.3, 0.6 }
-	local buildLinesColor = { 0.3, 1.0, 0.3, 0.6 }
-	local borderNormalColor = { 0.3, 1.0, 0.3, 0.5 }
-	local borderClashColor = { 0.7, 0.3, 0.3, 1.0 }
-	local borderValidColor = { 0.0, 1.0, 0.0, 1.0 }
-	local borderInvalidColor = { 1.0, 0.0, 0.0, 1.0 }
+	local ALPHA_SPAWNED = 1.0
+	local ALPHA_DEFAULT = 0.5
+
+	local BORDER_COLOR_SPAWNED = { 1.0, 0.0, 1.0, 0.7 }
+	local BORDER_COLOR_NORMAL = { 0.3, 1.0, 0.3, 0.5 }
+	local BORDER_COLOR_CLASH = { 0.7, 0.3, 0.3, 1.0 }
+	local BORDER_COLOR_INVALID = { 1.0, 0.0, 0.0, 1.0 }
+	local BORDER_COLOR_VALID = { 0.0, 1.0, 0.0, 1.0 }
+	local BUILD_DISTANCE_COLOR = { 0.3, 1.0, 0.3, 0.6 }
+	local BUILD_LINES_COLOR = { 0.3, 1.0, 0.3, 0.6 }
 
 	gl.LineWidth(1.49)
 
@@ -474,8 +482,11 @@ function widget:DrawWorld()
 		sy = Spring.GetGroundHeight(sx, sz)
 
 		-- Draw start units build radius
-		gl.Color(buildDistanceColor)
-		gl.DrawGroundCircle(sx, sy, sz, UnitDefs[startDefID].buildDistance, 40)
+		gl.Color(BUILD_DISTANCE_COLOR)
+		local buildDistance = Spring.GetGameRulesParam("overridePregameBuildDistance") or UnitDefs[startDefID].buildDistance
+		if buildDistance then
+			gl.DrawGroundCircle(sx, sy, sz, buildDistance, 40)
+		end
 	end
 
 	-- Check for faction change
@@ -502,30 +513,59 @@ function widget:DrawWorld()
         prevStartDefID = startDefID
 	end
 
+	local alphaResults = { queueAlphas = {}, selectedAlpha = ALPHA_DEFAULT }
+	
+	local getBuildQueueSpawnStatus = WG["getBuildQueueSpawnStatus"]
+	if getBuildQueueSpawnStatus then
+		local spawnStatus = getBuildQueueSpawnStatus(buildQueue, selBuildData)
+		
+		for i = 1, #buildQueue do
+			local isSpawned = spawnStatus.queueSpawned[i] or false
+			alphaResults.queueAlphas[i] = isSpawned and ALPHA_SPAWNED or ALPHA_DEFAULT
+		end
+		
+		alphaResults.selectedAlpha = spawnStatus.selectedSpawned and ALPHA_SPAWNED or ALPHA_DEFAULT
+	else
+		for i = 1, #buildQueue do
+			alphaResults.queueAlphas[i] = ALPHA_DEFAULT
+		end
+	end
+
 	-- Draw all the buildings
 	local queueLineVerts = startChosen and { { v = { sx, sy, sz } } } or {}
 	for b = 1, #buildQueue do
 		local buildData = buildQueue[b]
 
 		if buildData[1] > 0 then
-			if selBuildData and DoBuildingsClash(selBuildData, buildData) then
-				DrawBuilding(buildData, borderClashColor)
-			else
-				DrawBuilding(buildData, borderNormalColor)
-			end
-		end
+			local alpha = alphaResults.queueAlphas[b] or 0.5
+			local isSpawned = alpha >= ALPHA_SPAWNED
+			local borderColor = isSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_NORMAL
 
-		queueLineVerts[#queueLineVerts + 1] = { v = { buildData[2], buildData[3], buildData[4] } }
+			if selBuildData and DoBuildingsClash(selBuildData, buildData) then
+				DrawBuilding(buildData, BORDER_COLOR_CLASH, false, alpha)
+			else
+				DrawBuilding(buildData, borderColor, false, alpha)
+			end
+			
+			if alpha < ALPHA_SPAWNED then
+				queueLineVerts[#queueLineVerts + 1] = { v = { buildData[2], buildData[3], buildData[4] } }
+			end
+		else
+			queueLineVerts[#queueLineVerts + 1] = { v = { buildData[2], buildData[3], buildData[4] } }
+		end
 	end
 
 	-- Draw queue lines
-	gl.Color(buildLinesColor)
+	gl.Color(BUILD_LINES_COLOR)
 	gl.LineStipple("springdefault")
 	gl.Shape(GL.LINE_STRIP, queueLineVerts)
 	gl.LineStipple(false)
 
 	-- Draw selected building
 	if selBuildData then
+		local selectedAlpha = alphaResults.selectedAlpha or ALPHA_DEFAULT
+		local isSelectedSpawned = selectedAlpha >= ALPHA_SPAWNED
+		
 		-- mmm, convoluted logic. Pregame handling is hell
 		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
 		local testOrder = spTestBuildOrder(
@@ -536,16 +576,18 @@ function widget:DrawWorld()
 			selBuildData[5]
 		) ~= 0
 		if not isMex then
-			local color = testOrder and borderValidColor or borderInvalidColor
-			DrawBuilding(selBuildData, color, true)
+			local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID) or BORDER_COLOR_INVALID
+			DrawBuilding(selBuildData, color, true, selectedAlpha)
 		elseif isMex then
 			if WG.ExtractorSnap.position or metalMap then
-				DrawBuilding(selBuildData, borderValidColor, true)
+				local color = isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID
+				DrawBuilding(selBuildData, color, true, selectedAlpha)
 			else
-				DrawBuilding(selBuildData, borderInvalidColor, true)
+				DrawBuilding(selBuildData, BORDER_COLOR_INVALID, true, selectedAlpha)
 			end
 		else
-			DrawBuilding(selBuildData, borderValidColor, true)
+			local color = isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID
+			DrawBuilding(selBuildData, color, true, selectedAlpha)
 		end
 	end
 
