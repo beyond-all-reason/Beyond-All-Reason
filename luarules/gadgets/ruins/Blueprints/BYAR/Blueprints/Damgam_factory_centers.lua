@@ -11,7 +11,7 @@ local UDN = UnitDefNames
 
 local function t1UnitSpammer()
 	local buildings
-	local r = math_random(0, 2)
+	local r = math.random(0, 2)
 	if r == 0 then
 		buildings = {
 			{ unitDefID = UDN.cormadsam_scav.id, xOffset = -24,  zOffset = -24, direction = 2 },
