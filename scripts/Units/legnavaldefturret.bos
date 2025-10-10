@@ -123,28 +123,28 @@ Shot1(zero)
         move pod1 to z-axis [-5] now;
         emit-sfx 1024 + 0 from podFlare1;
         sleep 10;
-        move pod1 to z-axis [5] speed [5];
+        move pod1 to z-axis [0] speed [5];
         whichPod = 1;
     }
 	else if(whichPod == 1){
         move pod2 to z-axis [-5] now;
         emit-sfx 1024 + 0 from podFlare2;
         sleep 10;
-        move pod2 to z-axis [5] speed [5];
+        move pod2 to z-axis [0] speed [5];
         whichPod = 2;
     }
 	else if(whichPod == 2){
         move pod3 to z-axis [-5] now;
         emit-sfx 1024 + 0 from podFlare3;
         sleep 10;
-        move pod3 to z-axis [5] speed [5];
+        move pod3 to z-axis [0] speed [5];
         whichPod = 3;
     }
 	else if(whichPod == 3){
         move pod4 to z-axis [-5] now;
         emit-sfx 1024 + 0 from podFlare4;
         sleep 10;
-        move pod4 to z-axis [5] speed [5];
+        move pod4 to z-axis [0] speed [5];
         whichPod = 0;
     }
     else{
