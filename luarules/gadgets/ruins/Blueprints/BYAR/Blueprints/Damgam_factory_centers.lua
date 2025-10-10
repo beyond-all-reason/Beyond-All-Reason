@@ -3,7 +3,6 @@ local tiers = blueprintConfig.Tiers
 local types = blueprintConfig.BlueprintTypes
 local UDN = UnitDefNames
 
--- Use math_random for random number generation in blueprints
 local math_random = math.random
 
 --	facing:
