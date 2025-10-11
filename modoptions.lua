@@ -1241,7 +1241,71 @@ local options = {
         type    = "separator",
     },
 
+    {
+        key 	= "quick_start",
+        name 	= "Quick Start",
+        desc   	= "Each player gets pre-game resources to spend on structures to be instantly spawned at the beginning of the game.",
+        type 	= "list",
+        def 	= "default",
+        section = "options_extra",
+        unlock = {"quick_start_amount"},
+        items 	= {
+            { key = "default", 	name = "Default", lock = {"quick_start_amount"}, desc = "Default settings for game modes." },
+            { key = "enabled", name = "Enabled", unlock = {"quick_start_amount"}, desc = "Quick Start alone, deducts 400 energy and 800 metal from starting resources." },
+            { key = "factory_discount", name = "Enabled: Discounted First Factory", desc = 
+            "Quick Start The commander's first factory is discounted at any time. Deducts 400 energy and 800 metal from starting resources.", unlock = {"quick_start_amount"} },
+            { key = "factory_discount_only", name = "First Factory Discount Only", desc = "No base budget, only first factory discount. No deduction from starting resources.", lock = {"quick_start_amount"} },
+            { key = "disabled", name = "Disabled", desc = "Disabled quick start for all game modes.", lock = {"quick_start_amount"} },
+        }
+    },
 
+    {
+        key 	= "quick_start_amount",
+        name 	= "Quick Start Base Budget",
+        desc   	= "How much pre-game resources you have to spend on pre-queuing structures.",
+        type 	= "list",
+        def 	= "default",
+        section = "options_extra",
+        items 	= {
+            { key = "default", 	name = "Default", desc = "Uses the default amount based on game mode" },
+            { key = "small", 	name = "Small", desc = "1000 Base Budget" },
+            { key = "normal", 	name = "Normal", desc = "1500 Base Budget" },
+            { key = "large", 	name = "Large", desc = "3000 Base Budget" },
+        }
+    },
+
+    {
+        key 	= "override_quick_start_range",
+        name 	= "Override Quick Start Range",
+        desc   	= "Override the quick start build range. Set to 0 to use default behavior.",
+        type 	= "number",
+        def 	= 0,
+        min 	= 300,
+        max 	= 10000,
+        step 	= 1,
+        section = "options_extra",
+        hidden 	= true,
+    },
+
+    {
+        key 	= "override_quick_start_resources",
+        name 	= "Override Quick Start Resources",
+        desc   	= "Override the quick start starting resources. Set to 0 to use default behavior.",
+        type 	= "number",
+        def 	= 0,
+        min 	= 100,
+        max 	= 10000,
+        step 	= 1,
+        section = "options_extra",
+        hidden 	= true,
+    },
+
+    {
+        key     = "sub_header",
+        section = "options_extra",
+        type    = "separator",
+    },
+    
     {
         key 	= "assistdronesenabled", -- TODO, turn this into booleam modoption
         name 	= "Commander Drones",
