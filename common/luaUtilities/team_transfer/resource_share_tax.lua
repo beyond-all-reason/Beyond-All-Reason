@@ -1,10 +1,12 @@
 
 local ModOptions = VFS.Include("luarules/gadgets/team_transfer/modoption_enums.lua")
+local SharedEnums = VFS.Include("luarules/gadgets/team_transfer/shared_enums.lua")
 
 -- Shared helper for resource share tax calculations
 -- Usable from both LuaRules (gadgets) and LuaUI (widgets)
 
 local Tax = {}
+__index = Tax
 
 local function sanitizeNumber(n, fallback)
 	if type(n) ~= 'number' or n ~= n then -- NaN check
@@ -130,8 +132,8 @@ function Tax.ResourceTransfer(ctx)
     local actualReceived = amounts.receivedAmount
 
     local springRepo = ctx.repositories.springRepo
-    springRepo:AddTeamResource(ctx.senderTeamId, policyResult.resourceType, -actualSent)
-    springRepo:AddTeamResource(ctx.receiverTeamId, policyResult.resourceType, actualReceived)
+    springRepo.AddTeamResource(ctx.senderTeamId, policyResult.resourceType, -actualSent)
+    springRepo.AddTeamResource(ctx.receiverTeamId, policyResult.resourceType, actualReceived)
 
     ---@type ResourceTransferResult
     local result = {
@@ -223,37 +225,26 @@ local buildResultFactory = function(taxRate, metalThreshold, energyThreshold)
 	return calcResourcePolicyResult
 end
 
----@param builder DSL
-local function buildPolicy(builder)
-	local taxRate = tonumber(builder.mod_options[ModOptions.Options.TaxResourceSharingAmount]) or 0
-
-	local metalThreshold = tonumber(builder.mod_options[ModOptions.Options.PlayerMetalSendThreshold]) or 0
-	local energyThreshold = tonumber(builder.mod_options[ModOptions.Options.PlayerEnergySendThreshold]) or 0
-
+---@param taxRate number
+---@param metalThreshold number
+---@param energyThreshold number
+---@param policyContext PolicyContext
+---@return ResourcePolicyResult
+local function buildPolicy(taxRate, metalThreshold, energyThreshold, policyContext, resourceType)
 	local calcResourcePolicyResult = buildResultFactory(taxRate, metalThreshold, energyThreshold)
 
-	builder:Allied():MetalTransfers():Use(function(ctx)
-		return calcResourcePolicyResult(ctx, SharedEnums.ResourceType.METAL)
-	end)
-
-	builder:Allied():EnergyTransfers():Use(function(ctx)
-		return calcResourcePolicyResult(ctx, SharedEnums.ResourceType.ENERGY)
-	end)
-
-	builder:RegisterPostMetalTransfer(function(transferResult, springRepo)
-		local cumMetal = getCumulativeParam(SharedEnums.ResourceType.METAL)
-		local current = tonumber(springRepo:GetTeamRulesParam(transferResult.senderTeamId, cumMetal)) or 0
-		springRepo:SetTeamRulesParam(transferResult.senderTeamId, cumMetal, current + transferResult.sent)
-	end)
-
-	builder:RegisterPostEnergyTransfer(function(transferResult, springRepo)
-		local cumEnergy = getCumulativeParam(SharedEnums.ResourceType.ENERGY)
-		local current = tonumber(springRepo:GetTeamRulesParam(transferResult.senderTeamId, cumEnergy)) or 0
-		springRepo:SetTeamRulesParam(transferResult.senderTeamId, cumEnergy, current + transferResult.sent)
-	end)
+	return calcResourcePolicyResult(policyContext, resourceType)
 end
 
----@type PolicyModule
+---@param transferResult ResourceTransferResult
+---@param resourceType ResourceType
+---@param springRepo SpringRepository
+function Tax.RegisterPostTransfer(transferResult, resourceType, springRepo)
+	local cumulativeParam = getCumulativeParam(resourceType)
+	local cumulativeSent = getCumulativeSent(transferResult.senderTeamId, resourceType, springRepo)
+	springRepo.SetTeamRulesParam(transferResult.senderTeamId, cumulativeParam, cumulativeSent + transferResult.sent)
+end
+
 local module = {
     name = SharedEnums.Policies.TaxResourceSharing,
     func = buildPolicy,
@@ -262,7 +253,6 @@ local module = {
         return modOptions[ModOptions.Options.TaxResourceSharingAmount] ~= nil
     end
 }
-return module
 
 return Tax
 
