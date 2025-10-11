@@ -43,6 +43,15 @@ local quickStartAmountConfig = {
 
 -------------------------------------------------------------------------
 
+local function getUnitFootprintSize(unitDefID)
+	if UnitDefs[unitDefID] then
+		local footprintSize = math.floor((UnitDefs[unitDefID].xsize / 2 + UnitDefs[unitDefID].zsize / 2) / 2)
+		return math.min(footprintSize, 5)
+	else
+		return 1
+	end
+end
+
 local ALL_COMMANDS = -1
 local UNOCCUPIED = 2
 local BUILD_SPACING = 64
@@ -589,7 +598,8 @@ local function tryToSpawnBuild(commanderID, unitDefID, buildX, buildY, buildZ, f
 		comData.thingsMade[buildType] = (comData.thingsMade[buildType] or 0) + 1
 	end
 
-	spSpawnCEG("quickstart-spawn-pulse-large", buildX, buildY + 10, buildZ)
+	local footprintSize = getUnitFootprintSize(unitDefID)
+	spSpawnCEG("quickstart-spawn" .. footprintSize, buildX, buildY + 10, buildZ)
 	if buildProgress < 1 then
 		Spring.GiveOrderToUnit(commanderID, CMD.INSERT, { 0, CMD.REPAIR, CMD.OPT_SHIFT, unitID }, CMD.OPT_ALT)
 	end
@@ -733,7 +743,7 @@ function gadget:GameFrame(frame)
 			end
 		end
 	end
-	if initialized and allDiscountsUsed and not running then
+	if initialized and allDiscountsUsed and not running and 1 == 2 then
 		gadgetHandler:RemoveGadget()
 	end
 end
@@ -759,7 +769,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		local fullBudgetCost = defMetergies[unitDefID]
 		local buildProgress = applyBuildProgressToUnit(unitID, unitDef, fullBudgetCost - discount, fullBudgetCost)
 		local x, y, z = spGetUnitPosition(unitID)
-		spSpawnCEG("quickstart-spawn-pulse-large", x, y + 10, z)
+		local footprintSize = getUnitFootprintSize(unitDefID)
+		spSpawnCEG("quickstart-spawn" .. footprintSize, x, y + 5, z)
 	end
 end
 
