@@ -179,6 +179,8 @@ local function getCollisionPosition(projectileID, targetID, isUnit)
 			radius = spGetFeatureRadius(targetID)
 		end
 	end
+	-- todo: Now that this is used to set projectile position (see `exhaust`),
+	-- todo: it should use a more normal, stable method with better precision.
 	if px and mx then -- Nearest point on a line/ray to the surface of a sphere:
 		local t = min(0, dx * (mx - px) + dy * (my - py) + dz * (mz - pz))
 		local ix = px + t*dx - mx
