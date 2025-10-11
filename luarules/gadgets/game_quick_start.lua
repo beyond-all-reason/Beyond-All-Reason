@@ -43,15 +43,6 @@ local quickStartAmountConfig = {
 
 -------------------------------------------------------------------------
 
-local function getUnitFootprintSize(unitDefID)
-	if UnitDefs[unitDefID] then
-		local footprintSize = math.floor((UnitDefs[unitDefID].xsize / 2 + UnitDefs[unitDefID].zsize / 2) / 2)
-		return math.min(footprintSize, 5)
-	else
-		return 1
-	end
-end
-
 local ALL_COMMANDS = -1
 local UNOCCUPIED = 2
 local BUILD_SPACING = 64
@@ -72,14 +63,32 @@ local SAFETY_COUNT = 100
 local BUILT_ENOUGH_FOR_FULL = 0.9
 local MAX_HEIGHT_DIFFERENCE = 100
 local DEFAULT_FACING = 0
+local INITIAL_BUILD_PROGRESS = 0.01
 
 local spCreateUnit = Spring.CreateUnit
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetUnitPosition = Spring.GetUnitPosition
 local spPos2BuildPos = Spring.Pos2BuildPos
-local spSpawnCEG = Spring.SpawnCEG
 local spTestBuildOrder = Spring.TestBuildOrder
+local spSetUnitHealth = Spring.SetUnitHealth
+local spValidUnitID = Spring.ValidUnitID
+local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitTeam = Spring.GetUnitTeam
+local random = math.random
+local ceil = math.ceil
+local max = math.max
+local clamp = math.clamp
+local abs = math.abs
+local distance2d = math.distance2d
+local floor = math.floor
+local pi = math.pi
+local min = math.min
+local atan2 = math.atan2
+local sin = math.sin
+local cos = math.cos
 
 local config = VFS.Include('LuaRules/Configs/quick_start_build_defs.lua')
 local commanderNonLabOptions = config.commanderNonLabOptions
@@ -103,6 +112,7 @@ local commanderFactoryDiscounts = {}
 local mexDefs = {}
 local optionDefIDToTypes = {}
 local queuedCommanders = {}
+local buildsInProgress = {}
 
 local function getQuotas(isMetalMap, isInWater, isGoodWind)
 	return config.quotas[isMetalMap and "metalMap" or "nonMetalMap"][isInWater and "water" or "land"]
@@ -119,7 +129,7 @@ local function generateLocalGrid(commanderID)
 	end
 	local dx = MAP_CENTER_X - originX
 	local dz = MAP_CENTER_Z - originZ
-	local skipDirection = math.abs(dx) >= math.abs(dz) and "x" or "z"
+	local skipDirection = abs(dx) >= abs(dz) and "x" or "z"
 	local maxOffset = BASE_GENERATION_RANGE
 	local gridList = {}
 	local used = {}
@@ -137,18 +147,18 @@ local function generateLocalGrid(commanderID)
 			if (index / BUILD_SPACING) % SKIP_STEP ~= 0 then
 				local testX = originX + offsetX
 				local testZ = originZ + offsetZ
-				if math.distance2d(testX, testZ, originX, originZ) <= BASE_GENERATION_RANGE then
+				if distance2d(testX, testZ, originX, originZ) <= BASE_GENERATION_RANGE then
 					local tooClose = false
 					for i = 1, #noGoZones do
 						local g = noGoZones[i]
-						if math.distance2d(testX, testZ, g.x, g.z) <= g.distance then
+						if distance2d(testX, testZ, g.x, g.z) <= g.distance then
 							tooClose = true
 							break
 						end
 					end
 					if not tooClose then
 						local searchY = spGetGroundHeight(testX, testZ)
-						local heightDiff = math.abs(searchY - originY)
+						local heightDiff = abs(searchY - originY)
 						if heightDiff <= MAX_HEIGHT_DIFFERENCE then
 							local snappedX, snappedY, snappedZ = spPos2BuildPos(buildDefID, testX, searchY, testZ)
 							if snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, DEFAULT_FACING) == UNOCCUPIED then
@@ -180,7 +190,7 @@ end
 for name, _ in pairs(discountableFactories) do
 	if unitDefNames[name] then
 		local labBudget = defMetergies[unitDefNames[name].id]
-		FACTORY_DISCOUNT = math.min(FACTORY_DISCOUNT, labBudget * FACTORY_DISCOUNT_MULTIPLIER)
+		FACTORY_DISCOUNT = min(FACTORY_DISCOUNT, labBudget * FACTORY_DISCOUNT_MULTIPLIER)
 	end
 end
 for commanderName, nonLabOptions in pairs(commanderNonLabOptions) do
@@ -203,13 +213,15 @@ local function getFactoryDiscount(unitDef, builderID)
 	return FACTORY_DISCOUNT
 end
 
-local function applyBuildProgressToUnit(unitID, unitDef, affordableBudget, fullBudgetCost)
-	local buildProgress = affordableBudget / fullBudgetCost
-	if buildProgress > BUILT_ENOUGH_FOR_FULL then --to account for tiny, necessary inaccuracy between widget and gadget
-		buildProgress = 1
+local function queueBuildForProgression(unitID, unitDef, affordableBudget, fullBudgetCost)
+	local targetProgress = affordableBudget / fullBudgetCost
+	if targetProgress > BUILT_ENOUGH_FOR_FULL then --to account for tiny, necessary inaccuracy between widget and gadget
+		targetProgress = 1
 	end
-	Spring.SetUnitHealth(unitID, { build = buildProgress, health = math.ceil(unitDef.health * buildProgress) })
-	return buildProgress
+	local rate = random() * 0.005 + 0.012 --roughly 2 seconds, staggered to produce more pleasing build progress effects
+	spSetUnitHealth(unitID, { build = INITIAL_BUILD_PROGRESS, health = ceil(unitDef.health * INITIAL_BUILD_PROGRESS) })
+	buildsInProgress[unitID] = { targetProgress = targetProgress, addedProgress = INITIAL_BUILD_PROGRESS, maxHealth = unitDef.health, rate = rate }
+	return targetProgress
 end
 
 local function getCommanderBuildQueue(commanderID)
@@ -222,7 +234,7 @@ local function getCommanderBuildQueue(commanderID)
 		if isBuildCommand(cmd.id) then
 			local spawnParams = { id = -cmd.id, x = cmd.params[1], y = cmd.params[2], z = cmd.params[3], facing = cmd
 			.params[4] or 1, cmdTag = cmd.tag }
-			if math.distance2d(comData.spawnX, comData.spawnZ, spawnParams.x, spawnParams.z) <= INSTANT_BUILD_RANGE then
+			if distance2d(comData.spawnX, comData.spawnZ, spawnParams.x, spawnParams.z) <= INSTANT_BUILD_RANGE then
 				table.insert(spawnQueue, spawnParams)
 				if cmd.tag then
 					table.insert(commandsToRemove, cmd.tag)
@@ -230,7 +242,7 @@ local function getCommanderBuildQueue(commanderID)
 				local unitDefID = -cmd.id
 				local unitDef = unitDefs[unitDefID]
 				local budgetCost = defMetergies[unitDefID] or 0
-				budgetCost = math.max(budgetCost - getFactoryDiscount(unitDef, commanderID), 0)
+				budgetCost = max(budgetCost - getFactoryDiscount(unitDef, commanderID), 0)
 				totalBudgetCost = totalBudgetCost + budgetCost
 				if totalBudgetCost > comData.budget then
 					comData.commandsToRemove = commandsToRemove
@@ -259,10 +271,10 @@ local function refreshAndCheckAvailableMexSpots(commanderID)
 			local groundY = spGetGroundHeight(spot.x, spot.z)
 			local buildX, buildY, buildZ = spPos2BuildPos(mexDefID, spot.x, groundY, spot.z)
 			if buildX and spTestBuildOrder(mexDefID, buildX, buildY, buildZ, DEFAULT_FACING) == UNOCCUPIED then
-				local nearbyUnits = Spring.GetUnitsInCylinder(spot.x, spot.z, MEX_OVERLAP_DISTANCE)
+				local nearbyUnits = spGetUnitsInCylinder(spot.x, spot.z, MEX_OVERLAP_DISTANCE)
 				local hasMex = false
 				for j = 1, #nearbyUnits do
-					local unitDefID = Spring.GetUnitDefID(nearbyUnits[j])
+					local unitDefID = spGetUnitDefID(nearbyUnits[j])
 					if mexDefs[unitDefID] then
 						hasMex = true
 						break
@@ -332,11 +344,11 @@ end
 
 local function createBaseNodes(spawnX, spawnZ)
 	local nodes = {}
-	local angleIncrement = 2 * math.pi / BASE_NODE_COUNT
+	local angleIncrement = 2 * pi / BASE_NODE_COUNT
 	for i = 0, BASE_NODE_COUNT - 1 do
 		local angle = i * angleIncrement
-		local nodeX = spawnX + (BASE_GENERATION_RANGE / 2) * math.cos(angle)
-		local nodeZ = spawnZ + (BASE_GENERATION_RANGE / 2) * math.sin(angle)
+		local nodeX = spawnX + (BASE_GENERATION_RANGE / 2) * cos(angle)
+		local nodeZ = spawnZ + (BASE_GENERATION_RANGE / 2) * sin(angle)
 		nodes[i + 1] = { x = nodeX, z = nodeZ, index = i + 1, grid = {}, score = 0 }
 	end
 	return nodes
@@ -348,14 +360,14 @@ local function populateNodeGrids(nodes, localGrid)
 		local node = nodes[i]
 		for j = 1, totalValid do
 			local p = localGrid[j]
-			if math.distance2d(p.x, p.z, node.x, node.z) <= NODE_GRID_SORT_DISTANCE then
+			if distance2d(p.x, p.z, node.x, node.z) <= NODE_GRID_SORT_DISTANCE then
 				table.insert(node.grid, { x = p.x, y = p.y, z = p.z })
 			end
 		end
 		node.score = #node.grid
-		node.distanceFromCenter = math.distance2d(node.x, node.z, MAP_CENTER_X, MAP_CENTER_Z)
+		node.distanceFromCenter = distance2d(node.x, node.z, MAP_CENTER_X, MAP_CENTER_Z)
 		local MIN_GRID_THRESHOLD = 0.20
-		node.goodEnough = node.score >= math.ceil(totalValid * MIN_GRID_THRESHOLD)
+		node.goodEnough = node.score >= ceil(totalValid * MIN_GRID_THRESHOLD)
 	end
 end
 
@@ -369,18 +381,18 @@ local function generateBaseNodesFromLocalGrid(commanderID, localGrid)
 	local maxDistance = 0
 	for i = 1, #nodes do
 		local node = nodes[i]
-		minDistance = math.min(minDistance, node.distanceFromCenter)
-		maxDistance = math.max(maxDistance, node.distanceFromCenter)
+		minDistance = min(minDistance, node.distanceFromCenter)
+		maxDistance = max(maxDistance, node.distanceFromCenter)
 	end
 	
 	for i = 1, #nodes do
 		local node = nodes[i]
 		local MIN_CENTER_WEIGHT, MAX_CENTER_WEIGHT = 0.5, 1.0
-		local centerWeight = math.clamp(1.0 - (node.distanceFromCenter - minDistance) / (maxDistance - minDistance), MIN_CENTER_WEIGHT, MAX_CENTER_WEIGHT)
+		local centerWeight = clamp(1.0 - (node.distanceFromCenter - minDistance) / (maxDistance - minDistance), MIN_CENTER_WEIGHT, MAX_CENTER_WEIGHT)
 		local averageDistance = 0
 		if #node.grid > 0 then
 			for j = 1, #node.grid do
-				averageDistance = averageDistance + math.distance2d(node.grid[j].x, node.grid[j].z, node.x, node.z)
+				averageDistance = averageDistance + distance2d(node.grid[j].x, node.grid[j].z, node.x, node.z)
 			end
 			averageDistance = averageDistance / #node.grid
 		end
@@ -410,7 +422,7 @@ local function generateBaseNodesFromLocalGrid(commanderID, localGrid)
 	local converterKeys = {}
 	for i = 1, #converterNode.grid do
 		local p = converterNode.grid[i]
-		if math.distance2d(p.x, p.z, converterNode.x, converterNode.z) <= CONVERTER_GRID_DISTANCE then
+		if distance2d(p.x, p.z, converterNode.x, converterNode.z) <= CONVERTER_GRID_DISTANCE then
 			table.insert(filteredConverter, p)
 			converterKeys[p.x .. "_" .. p.z] = true
 		end
@@ -425,10 +437,10 @@ local function generateBaseNodesFromLocalGrid(commanderID, localGrid)
 	end
 	
 	for i = 1, #filteredConverter do
-		filteredConverter[i].d = math.distance2d(filteredConverter[i].x, filteredConverter[i].z, converterNode.x, converterNode.z)
+		filteredConverter[i].d = distance2d(filteredConverter[i].x, filteredConverter[i].z, converterNode.x, converterNode.z)
 	end
 	for i = 1, #filteredOther do
-		filteredOther[i].d = math.distance2d(filteredOther[i].x, filteredOther[i].z, otherNode.x, otherNode.z)
+		filteredOther[i].d = distance2d(filteredOther[i].x, filteredOther[i].z, otherNode.x, otherNode.z)
 	end
 	table.sort(filteredConverter, function(a, b) return a.d < b.d end)
 	table.sort(filteredOther, function(a, b) return a.d < b.d end)
@@ -447,7 +459,7 @@ local function populateNearbyMexes(commanderID)
 	for i = 1, #metalSpotsList do
 		local metalSpot = metalSpotsList[i]
 		if metalSpot then
-			local distance = math.distance2d(metalSpot.x, metalSpot.z, commanderX, commanderZ)
+			local distance = distance2d(metalSpot.x, metalSpot.z, commanderX, commanderZ)
 			if distance <= INSTANT_BUILD_RANGE then
 				table.insert(comData.nearbyMexes, {
 					x = metalSpot.x,
@@ -478,8 +490,8 @@ local function initializeCommander(commanderID, teamID)
 	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
 	local directionX = MAP_CENTER_X - commanderX
 	local directionZ = MAP_CENTER_Z - commanderZ
-	local angle = math.atan2(directionX, directionZ)
-	local defaultFacing = math.floor((angle / (math.pi / 2)) + 0.5) % 4
+	local angle = atan2(directionX, directionZ)
+	local defaultFacing = floor((angle / (pi / 2)) + 0.5) % 4
 
 	local commanderDefID = Spring.GetUnitDefID(commanderID)
 	local commanderName = UnitDefs[commanderDefID].name
@@ -505,8 +517,8 @@ local function initializeCommander(commanderID, teamID)
 		nearbyMexes = {}
 	}
 
-	Spring.SetTeamResource(teamID, "metal", math.max(0, currentMetal - QUICK_START_COST_METAL))
-	Spring.SetTeamResource(teamID, "energy", math.max(0, currentEnergy - QUICK_START_COST_ENERGY))
+	Spring.SetTeamResource(teamID, "metal", max(0, currentMetal - QUICK_START_COST_METAL))
+	Spring.SetTeamResource(teamID, "energy", max(0, currentEnergy - QUICK_START_COST_ENERGY))
 
 	local comData = commanders[commanderID]
 	comData.spawnX, comData.spawnY, comData.spawnZ = spGetUnitPosition(commanderID)
@@ -514,7 +526,7 @@ local function initializeCommander(commanderID, teamID)
 	comData.spawnQueue = getCommanderBuildQueue(commanderID)
 	for i = #comData.spawnQueue, 1, -1 do
 		local build = comData.spawnQueue[i]
-		if math.distance2d(build.x, build.z, comData.spawnX, comData.spawnZ) > INSTANT_BUILD_RANGE then
+		if distance2d(build.x, build.z, comData.spawnX, comData.spawnZ) > INSTANT_BUILD_RANGE then
 			table.remove(comData.spawnQueue, i)
 		end
 	end
@@ -585,8 +597,8 @@ local function tryToSpawnBuild(commanderID, unitDefID, buildX, buildY, buildZ, f
 		return false, nil
 	end
 
-	local affordableCost = math.min(comData.budget, cost)
-	local buildProgress = applyBuildProgressToUnit(unitID, unitDef, affordableCost, cost)
+	local affordableCost = min(comData.budget, cost)
+	local projectedBuildProgress = queueBuildForProgression(unitID, unitDef, affordableCost, cost)
 	comData.budget = comData.budget - affordableCost
 
 	if unitDef.isFactory and discountableFactories[unitDef.name] and discount > 0 then
@@ -598,13 +610,11 @@ local function tryToSpawnBuild(commanderID, unitDefID, buildX, buildY, buildZ, f
 		comData.thingsMade[buildType] = (comData.thingsMade[buildType] or 0) + 1
 	end
 
-	local footprintSize = getUnitFootprintSize(unitDefID)
-	spSpawnCEG("quickstart-spawn" .. footprintSize, buildX, buildY + 10, buildZ)
-	if buildProgress < 1 then
+	if projectedBuildProgress < 1 then
 		Spring.GiveOrderToUnit(commanderID, CMD.INSERT, { 0, CMD.REPAIR, CMD.OPT_SHIFT, unitID }, CMD.OPT_ALT)
 	end
 
-	return buildProgress >= 1
+	return projectedBuildProgress >= 1
 end
 
 local function assignMexSpots()
@@ -630,7 +640,7 @@ local function assignMexSpots()
 					if spotHash and mexSpot then
 						local buildX = mexSpot.x
 						local buildZ = mexSpot.z
-						local distance = math.distance2d(buildX, buildZ, comData.spawnX, comData.spawnZ)
+						local distance = distance2d(buildX, buildZ, comData.spawnX, comData.spawnZ)
 						if claimedSpots[spotHash] then
 							if distance < claimedSpots[spotHash].distance then
 								local oldClaim = claimedSpots[spotHash]
@@ -733,6 +743,17 @@ function gadget:GameFrame(frame)
 		end
 	end
 
+	local allBuildsCompleted = true
+	for unitID, buildData in pairs(buildsInProgress) do
+		if buildData.addedProgress >= buildData.targetProgress or not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then
+			buildsInProgress[unitID] = nil
+		elseif buildData.targetProgress > buildData.addedProgress then
+			buildData.addedProgress = buildData.addedProgress + buildData.rate
+			spSetUnitHealth(unitID, { build = buildData.addedProgress, health = ceil(buildData.maxHealth * buildData.addedProgress)})
+			allBuildsCompleted = false
+		end
+	end
+
 	local allDiscountsUsed = false
 	if frame % UPDATE_FRAMES == 0 then
 		allDiscountsUsed = true
@@ -743,7 +764,7 @@ function gadget:GameFrame(frame)
 			end
 		end
 	end
-	if initialized and allDiscountsUsed and not running and 1 == 2 then
+	if initialized and allDiscountsUsed and not running and allBuildsCompleted then
 		gadgetHandler:RemoveGadget()
 	end
 end
@@ -767,10 +788,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		Spring.SetTeamRulesParam(unitTeam, "quickStartFactoryDiscountUsed", 1)
 
 		local fullBudgetCost = defMetergies[unitDefID]
-		local buildProgress = applyBuildProgressToUnit(unitID, unitDef, fullBudgetCost - discount, fullBudgetCost)
-		local x, y, z = spGetUnitPosition(unitID)
-		local footprintSize = getUnitFootprintSize(unitDefID)
-		spSpawnCEG("quickstart-spawn" .. footprintSize, x, y + 5, z)
+		queueBuildForProgression(unitID, unitDef, discount, fullBudgetCost)
 	end
 end
 
@@ -786,7 +804,7 @@ function gadget:Initialize()
 	if avgWind[minWind] and avgWind[minWind][maxWind] then
 		averageWind = tonumber(avgWind[minWind][maxWind])
 	else
-		averageWind = math.max(minWind, maxWind * 0.75)
+		averageWind = max(minWind, maxWind * 0.75)
 	end
 
 	isGoodWind = averageWind > 7
@@ -807,8 +825,8 @@ function gadget:Initialize()
 	if frame > 1 then
 		local allUnits = Spring.GetAllUnits()
 		for _, unitID in ipairs(allUnits) do
-			local unitDefinitionID = Spring.GetUnitDefID(unitID)
-			local unitTeam = Spring.GetUnitTeam(unitID)
+			local unitDefinitionID = spGetUnitDefID(unitID)
+			local unitTeam = spGetUnitTeam(unitID)
 			if boostableCommanders[unitDefinitionID] then
 				initializeCommander(unitID, unitTeam)
 			end
