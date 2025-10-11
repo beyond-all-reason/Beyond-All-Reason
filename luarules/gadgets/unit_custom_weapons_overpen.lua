@@ -81,7 +81,9 @@ local spGetUnitIsDead          = Spring.GetUnitIsDead
 local spGetUnitPosition        = Spring.GetUnitPosition
 local spGetUnitRadius          = Spring.GetUnitRadius
 local spGetWaterLevel          = Spring.GetWaterLevel
+local spSetProjectilePosition  = Spring.SetProjectilePosition
 local spSetProjectileVelocity  = Spring.SetProjectileVelocity
+local spSetProjectileMoveCtrl  = Spring.SetProjectileMoveControl
 
 local spAddUnitDamage          = Spring.AddUnitDamage
 local spDeleteProjectile       = Spring.DeleteProjectile
@@ -236,6 +238,7 @@ do
 					cx, cy, cz = collision.hitX, collision.hitY, collision.hitZ
 				else
 					cx, cy, cz = getCollisionPosition(projectileID, collision.targetID, collision.isUnit)
+					collision.hitX, collision.hitY, collision.hitZ = cx, cy, cz
 				end
 			end
 			if cx then
@@ -247,6 +250,34 @@ do
 			collision.distanceSquared = distanceSquared
 		end
 		table.sort(collisions, sortByDistanceSquared)
+	end
+end
+
+---Due to our time-travel shenanigans, move the projectile backwards (remove its momentum?)
+-- and delete it only after that. This may help to correct projectile visuals. Not sure.
+local function exhaust(projectileID, collision)
+	local cx, cy, cz
+	if not collision.hitX then
+		if collision.targetID then
+			cx, cy, cz = getCollisionPosition(projectileID, collision.targetID, collision.isUnit)
+		end
+	else
+		cx, cy, cz = collision.hitX, collision.hitY, collision.hitZ
+	end
+	if cx then
+		spSetProjectileMoveCtrl(projectileID, true)
+		spSetProjectilePosition(projectileID, cx, cy, cz)
+		spSetProjectileVelocity(projectileID, 0, 0, 0) -- Messes up smoke trails.
+	end
+	projectiles[projectileID] = nil
+	spDeleteProjectile(projectileID)
+end
+
+local function reset(projectileID, penetrator, speedRatio)
+	penetrator.collisions = {}
+	if speedRatio < 1 then
+		local vx, vy, vz = spGetProjectileVelocity(projectileID)
+		spSetProjectileVelocity(projectileID, vx * speedRatio, vy * speedRatio, vz * speedRatio)
 	end
 end
 
@@ -307,9 +338,10 @@ function gadget:GameFramePost(gameFrame)
 		end
 
 		local speedRatio = 1
+		local collision
 
 		for index = 1, #collisions do
-			local collision = collisions[index]
+			collision = collisions[index]
 			local targetID = collision.targetID
 
 			if not targetID then
@@ -392,14 +424,9 @@ function gadget:GameFramePost(gameFrame)
 		end
 
 		if speedRatio == 0 then
-			projectiles[projectileID] = nil
-			spDeleteProjectile(projectileID)
+			exhaust(projectileID, collision)
 		else
-			penetrator.collisions = {}
-			if speedRatio < 1 then
-				local vx, vy, vz = spGetProjectileVelocity(projectileID)
-				spSetProjectileVelocity(projectileID, vx * speedRatio, vy * speedRatio, vz * speedRatio)
-			end
+			reset(projectileID, penetrator, speedRatio)
 		end
 	end
 end
