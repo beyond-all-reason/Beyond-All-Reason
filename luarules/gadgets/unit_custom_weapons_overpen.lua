@@ -302,11 +302,10 @@ function gadget:GameFramePost(gameFrame)
 
 		local collisions = penetrator.collisions
 
-		if #collisions > 1 then
+		if collisions[2] then
 			sortPenetratorCollisions(collisions, projectileID, penetrator)
 		end
 
-		local exhausted = false
 		local speedRatio = 1
 
 		for index = 1, #collisions do
@@ -314,7 +313,7 @@ function gadget:GameFramePost(gameFrame)
 			local targetID = collision.targetID
 
 			if not targetID then
-				exhausted = true
+				speedRatio = 0
 			elseif collision.shieldID then
 				if spGetUnitIsDead(targetID) == false then
 					local weapon = penetrator.params
@@ -323,7 +322,7 @@ function gadget:GameFramePost(gameFrame)
 					local deleted, damage = addShieldDamage(targetID, collision.shieldID, damageToShields * damageLeftBefore, weapon.weaponID, projectileID)
 					local damageLeftAfter = damageLeftBefore - damage / damageToShields - weapon.penalty
 					if deleted or damageToShields * damageLeftAfter < 1 then
-						exhausted = true
+						speedRatio = 0
 					elseif weapon.falloff then
 						if weapon.slowing then
 							speedRatio = speedRatio * (1 + inertiaModifier * damageLeftAfter) / (1 + inertiaModifier * damageLeftBefore)
@@ -359,7 +358,7 @@ function gadget:GameFramePost(gameFrame)
 						end
 					else
 						impulse = impulse * (1 + inertiaModifier) / (1 + inertiaModifier * damageLeftBefore)
-						exhausted = true
+						speedRatio = 0
 					end
 
 					if collision.isUnit then
@@ -387,12 +386,12 @@ function gadget:GameFramePost(gameFrame)
 				end
 			end
 
-			if exhausted then
+			if speedRatio == 0 then
 				break
 			end
 		end
 
-		if exhausted then
+		if speedRatio == 0 then
 			projectiles[projectileID] = nil
 			spDeleteProjectile(projectileID)
 		else
