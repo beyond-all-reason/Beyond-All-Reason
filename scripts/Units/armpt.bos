@@ -131,8 +131,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turretl to y-axis heading speed <300.0>;
-	turn turretr to y-axis heading speed <300.0>;
+	turn turretl to y-axis heading speed <550.0>;
+	turn turretr to y-axis heading speed <550.0>;
 	wait-for-turn turretl around y-axis;
 	wait-for-turn turretr around y-axis;
 	start-script RestoreAfterDelay();

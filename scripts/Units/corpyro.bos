@@ -524,7 +524,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	isAiming = TRUE;
-	turn aimy1 to y-axis heading speed <275.0>;
+	turn aimy1 to y-axis heading speed <1320>;
 	turn aimx1 to x-axis <0.0> - pitch speed <110.0>;
 	//wait-for-turn aimy1 around y-axis;
 	start-script RestoreAfterDelay();
