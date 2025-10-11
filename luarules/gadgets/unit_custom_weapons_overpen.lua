@@ -170,7 +170,7 @@ local function getCollisionPosition(projectileID, targetID, isUnit)
 	local px, py, pz = spGetProjectilePosition(projectileID)
 	local dx, dy, dz = spGetProjectileDirection(projectileID)
 	local mx, my, mz, radius, _
-	if targetID then
+	if px then
 		if isUnit then
 			_, _, _, mx, my, mz = spGetUnitPosition(targetID, true)
 			radius = spGetUnitRadius(targetID)
