@@ -292,7 +292,7 @@ function gadget:Initialize()
 	end
 end
 
-function gadget:GameFrame(gameFrame)
+function gadget:GameFramePost(gameFrame)
 	-- Remove `or addShieldDamage` when shieldsrework is adopted.
 	local addShieldDamage = GG.AddShieldDamage or addShieldDamage
 	local setVelocityControl = GG.SetVelocityControl
