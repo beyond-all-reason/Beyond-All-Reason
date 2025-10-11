@@ -19,7 +19,7 @@ return {
 		maxslope = 14,
 		maxwaterdepth = 12,
 		metalcost = 410,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORMORT.s3o",
