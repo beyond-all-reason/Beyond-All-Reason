@@ -44,3 +44,66 @@ Ensure that you have the correct path by looking for the file `Beyond-All-Reason
 6. If developing Chobby also clone the code into the `games` directory. Follow the guide in the [Chobby README](https://github.com/beyond-all-reason/BYAR-Chobby#developing-the-lobby).
 
 More on the `.sdd` directory to run raw LUA and the structure expected by Spring Engine is [documented here](https://springrts.com/wiki/Gamedev:Structure).
+
+### Testing
+
+#### Unit Testing
+
+##### Install Lua 5.1 and LuaRocks
+
+*debian/linux*
+
+```zsh
+sudo apt install -y lua5.1 luarocks
+```
+*windows* (MSYS2, use UCRT64)
+
+```zsh
+pacman -S --needed mingw-w64-x86_64-lua51 mingw-w64-ucrt-x86_64-luarocks
+```
+*osx*
+
+```zsh
+brew install lua@5.1 luarocks
+```
+
+##### Install test tools
+
+Required (test runner):
+
+```zsh
+luarocks --lua-version=5.1 install busted
+```
+Optional (pretty printer for output debugging):
+
+```zsh
+luarocks --lua-version=5.1 install inspect
+```
+
+##### Running specs
+
+All specs:
+
+```zsh
+busted
+```
+
+You can also tag your spec `describe` or `it` blocks. For example:
+
+```lua
+it("should do something cool #focus", function()...
+```
+
+Then, run just tests tagged with that from busted
+
+```zsh
+busted -t focus
+```
+
+You can also inspect objects for more verbose output inline:
+
+```lua
+print(inspect(someObject))
+```
+
+Note that in spec files we use `require("relative/path/to/file")`, which VFS.Include is aliased to in spec_helper, allowing implementations to keep using VFS.Include.
