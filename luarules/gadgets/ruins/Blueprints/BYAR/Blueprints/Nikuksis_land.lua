@@ -92,20 +92,6 @@ local function Nikuksis_land3()
 end
 
 
-local function Nikuksis_land4()
-	return {
-		type = types.Land,
-		tiers = { tiers.T2, tiers.T3 },
-		radius = 104,
-		buildings = {
-			{ unitDefID = UnitDefNames.armasp_scav.id, xOffset = 4, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.armflak_scav.id, xOffset = 92, zOffset = -88, direction = 1},
-			{ unitDefID = UnitDefNames.armflak_scav.id, xOffset = 92, zOffset = 72, direction = 1},
-			{ unitDefID = UnitDefNames.armflak_scav.id, xOffset = -84, zOffset = -88, direction = 1},
-			{ unitDefID = UnitDefNames.armamd_scav.id, xOffset = -100, zOffset = 104, direction = 1},
-		},
-	}
-end
 
 local function Nikuksis_land5()
 	return {
@@ -231,7 +217,6 @@ return {
     Nikuksis_land1,
     Nikuksis_land2,
     Nikuksis_land3,
-    Nikuksis_land4,
     Nikuksis_land5,
     Nikuksis_land6,
     Nikuksis_land7,
