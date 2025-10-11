@@ -73,8 +73,6 @@ local unitlist = {
 	{'corvp','coramsub'},
 	{'armap','armplat'},
 	{'corap','corplat'},
-	{'corasp','corfasp'},
-	{'armasp','armfasp'},
 	{'armgeo','armuwgeo'},
 	{'armageo','armuwageo'},
 	{'corgeo','coruwgeo'},
@@ -104,7 +102,6 @@ local legionUnitlist = {
 	--{'cornanotc','cornanotcplat'},
 	{'legvp','legamsub'},
 	--{'corap','corplat'},
-	--{'corasp','corfasp'},
 	--{'corgeo','coruwgeo'},
 	--{'corageo','coruwageo'},
 }
