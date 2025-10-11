@@ -1783,6 +1783,12 @@
 		"quickShareToTarget": {
 			"noTarget": "No target selected",
 			"shareTo": "Share to: %{playerColor}%{player}"
+		},
+		"quickStart": {
+			"placeDiscountedFactory": "First factory is discounted",
+			"preGameResources": "Base Budget",
+			"remainingResourcesWarning": "Use the Base Budget to instantly spawn structures within range",
+			"unallocatedBudget": "Quick Start enabled: use your Base Budget first"
 		}
 	}
 }
