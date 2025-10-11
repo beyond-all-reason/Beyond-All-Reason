@@ -72,6 +72,8 @@ local min  = math.min
 local sqrt = math.sqrt
 
 local spGetFeatureHealth       = Spring.GetFeatureHealth
+local spGetFeaturePosition     = Spring.GetFeaturePosition
+local spGetFeatureRadius       = Spring.GetFeatureRadius
 local spGetGroundHeight        = Spring.GetGroundHeight
 local spGetProjectileDirection = Spring.GetProjectileDirection
 local spGetProjectilePosition  = Spring.GetProjectilePosition
@@ -81,12 +83,15 @@ local spGetUnitIsDead          = Spring.GetUnitIsDead
 local spGetUnitPosition        = Spring.GetUnitPosition
 local spGetUnitRadius          = Spring.GetUnitRadius
 local spGetWaterLevel          = Spring.GetWaterLevel
+
+local spSetFeatureHealth       = Spring.SetFeatureHealth
 local spSetProjectilePosition  = Spring.SetProjectilePosition
 local spSetProjectileVelocity  = Spring.SetProjectileVelocity
 local spSetProjectileMoveCtrl  = Spring.SetProjectileMoveControl
 
 local spAddUnitDamage          = Spring.AddUnitDamage
 local spDeleteProjectile       = Spring.DeleteProjectile
+local spDestroyFeature         = Spring.DestroyFeature
 local spValidFeatureID         = Spring.ValidFeatureID
 
 local armorDefault = Game.armorTypes.default
@@ -166,22 +171,25 @@ local function getCollisionPosition(projectileID, targetID, isUnit)
 			_, _, _, mx, my, mz = spGetUnitPosition(targetID, true)
 			radius = spGetUnitRadius(targetID)
 		else
-			_, _, _, mx, my, mz = Spring.GetFeaturePosition(targetID, true)
-			radius = Spring.GetFeatureRadius(targetID)
+			_, _, _, mx, my, mz = spGetFeaturePosition(targetID, true)
+			radius = spGetFeatureRadius(targetID)
 		end
 	end
 	if px and mx then -- Nearest point on a line/ray to the surface of a sphere:
 		local t = min(0, dx * (mx - px) + dy * (my - py) + dz * (mz - pz))
-		local d = sqrt((px + t*dx - mx)^2 + (py + t*dy - my)^2 + (pz + t*dz - mz)^2) - radius
+		local ix = px + t*dx - mx
+		local iy = py + t*dy - my
+		local iz = pz + t*dz - mz
+		local d = sqrt(ix * ix + iy * iy + iz * iz) - radius
 		if radius + d ~= 0 then
 			local radiusNorm = radius / (radius + d)
-			px = mx + (px + t*dx - mx) * radiusNorm
-			py = my + (py + t*dy - my) * radiusNorm
-			pz = mz + (pz + t*dz - mz) * radiusNorm
+			px = mx + ix * radiusNorm
+			py = my + iy * radiusNorm
+			pz = mz + iz * radiusNorm
 		else -- The ray passes through the midpoint.
-			px = mx - dx * radius
-			py = my - dy * radius
-			pz = mz - dz * radius
+			px = mx -- OK since it's used only for distance comparison.
+			py = my
+			pz = mz
 		end
 	end
 	return px, py, pz
@@ -225,11 +233,14 @@ end
 
 local sortPenetratorCollisions
 do
+	local table_sort = table.sort
+	local math_huge = math.huge
+
 	local function sortByDistanceSquared(a, b)
 		return a.distanceSquared < b.distanceSquared
 	end
 
-	sortPenetratorCollisions = function (collisions, projectileID, penetrator)
+	sortPenetratorCollisions = function(collisions, projectileID, penetrator)
 		for index = 1, #collisions do
 			local collision = collisions[index]
 			local distanceSquared, cx, cy, cz
@@ -242,14 +253,14 @@ do
 				end
 			end
 			if cx then
-				cx, cy, cz = cx - penetrator.posX, cy - penetrator.posY, cz - penetrator.posZ
-				distanceSquared = cx * cx + cy * cy + cz * cz
+				local dx, dy, dz = cx - penetrator.posX, cy - penetrator.posY, cz - penetrator.posZ
+				distanceSquared = dx * dx + dy * dy + dz * dz
 			else
-				distanceSquared = math.huge
+				distanceSquared = math_huge
 			end
 			collision.distanceSquared = distanceSquared
 		end
-		table.sort(collisions, sortByDistanceSquared)
+		table_sort(collisions, sortByDistanceSquared)
 	end
 end
 
@@ -410,9 +421,9 @@ function gadget:GameFramePost(gameFrame)
 						-- so apply damage only with no impulse. They also must be destroyed manually:
 						local health = collision.health - damage
 						if health > 1 then
-							Spring.SetFeatureHealth(targetID, health)
+							spSetFeatureHealth(targetID, health)
 						else
-							Spring.DestroyFeature(targetID)
+							spDestroyFeature(targetID)
 						end
 					end
 				end
