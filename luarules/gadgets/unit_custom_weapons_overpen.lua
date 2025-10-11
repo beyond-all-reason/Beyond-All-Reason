@@ -131,14 +131,18 @@ local function loadPenetratorWeaponDefs()
 	for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		local custom = weaponDef.customParams
 		if weaponDef.impactOnly and weaponDef.noExplode and tobool(custom.overpenetrate) then
-			local params = {
-				damages  = toSafeDamageArray(weaponDef.damages),
-				falloff  = tobool(custom.overpenetrate_falloff == nil and falloffPerType[weaponDef.type] or custom.overpenetrate_falloff),
-				slowing  = tobool(custom.overpenetrate_slowing == nil and slowingPerType[weaponDef.type] or custom.overpenetrate_slowing),
-				penalty  = max(0, tonumber(custom.overpenetrate_penalty or penaltyDefault)),
-				weaponID = weaponDefID,
-				impulse  = weaponDef.damages.impulseFactor,
-			}
+			local params = table.new(#Game.armorTypes, 1 + 5) -- `0` is stored in hash part
+
+			local damages = toSafeDamageArray(weaponDef.damages)
+			for i = 0, #Game.armorTypes do
+				params[i] = damages[i]
+			end
+
+			params.falloff  = tobool(custom.overpenetrate_falloff == nil and falloffPerType[weaponDef.type] or custom.overpenetrate_falloff)
+			params.slowing  = tobool(custom.overpenetrate_slowing == nil and slowingPerType[weaponDef.type] or custom.overpenetrate_slowing)
+			params.penalty  = max(0, tonumber(custom.overpenetrate_penalty or penaltyDefault))
+			params.weaponID = weaponDefID
+			params.impulse  = weaponDef.damages.impulseFactor
 
 			if params.slowing and not params.falloff then
 				params.slowing = false
@@ -146,7 +150,7 @@ local function loadPenetratorWeaponDefs()
 
 			if custom.shield_damage then
 				local multiplier = tonumber(custom.beamtime_damage_reduction_multiplier or 1)
-				params.damages[armorShields] = tonumber(custom.shield_damage) * multiplier
+				params[armorShields] = tonumber(custom.shield_damage) * multiplier
 			end
 
 			weaponParams[weaponDefID] = params
@@ -384,7 +388,7 @@ function gadget:GameFramePost(gameFrame)
 				if targetIsValid then
 					local weapon = penetrator.params
 					local damage = collision.damage
-					local damageToArmorType = weapon.damages[collision.armorType]
+					local damageToArmorType = weapon[collision.armorType]
 
 					local damageLeftBefore = penetrator.damageLeft
 					local damageBase = min(damage, damageToArmorType) * damageLeftBefore
@@ -494,7 +498,7 @@ end
 function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
 	local penetrator = projectiles[projectileID]
 	if penetrator then
-		local damage = penetrator.params.damages[armorShields]
+		local damage = penetrator.params[armorShields]
 		if damage > 1 then
 			projectileHits[projectileID] = penetrator
 			local collisions = penetrator.collisions
