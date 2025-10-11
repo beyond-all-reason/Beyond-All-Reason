@@ -163,6 +163,10 @@ local function loadPenetratorWeaponDefs()
 	return (table.count(weaponParams) > 0)
 end
 
+local function dot3(a, b, c, d, e, f)
+	return a * d + b * e + c * f
+end
+
 ---Projectiles with noexplode can move after colliding, so we infer an impact location.
 ---The hit can be a glance, so find the nearest point, not a line/sphere intersection.
 ---Slow explosion speeds can delay us until after position and direction are knowable.
@@ -179,26 +183,48 @@ local function getCollisionPosition(projectileID, targetID, isUnit)
 			radius = spGetFeatureRadius(targetID)
 		end
 	end
-	-- todo: Now that this is used to set projectile position (see `exhaust`),
-	-- todo: it should use a more normal, stable method with better precision.
-	if px and mx then -- Nearest point on a line/ray to the surface of a sphere:
-		local t = min(0, dx * (mx - px) + dy * (my - py) + dz * (mz - pz))
-		local ix = px + t*dx - mx
-		local iy = py + t*dy - my
-		local iz = pz + t*dz - mz
-		local d = sqrt(ix * ix + iy * iy + iz * iz) - radius
-		if radius + d ~= 0 then
-			local radiusNorm = radius / (radius + d)
-			px = mx + ix * radiusNorm
-			py = my + iy * radiusNorm
-			pz = mz + iz * radiusNorm
-		else -- The ray passes through the midpoint.
-			px = mx -- OK since it's used only for distance comparison.
-			py = my
-			pz = mz
-		end
+
+	if not mx then
+		return px, py, pz -- invalid target
 	end
-	return px, py, pz
+
+	local radiusSq = radius * radius
+	local travel = -1e3 - radius
+
+	-- Undo the travel of the ray (massive overshoot is okay) so we can
+	-- do much faster math and without my code agent committing sepuku.
+	px = px + dx * travel
+	py = py + dy * travel
+	pz = pz + dz * travel
+
+	local rx = mx - px
+	local ry = my - py
+	local rz = mz - pz
+	local b = dot3(rx, ry, rz, dx, dy, dz)
+	local c = dot3(rx, ry, rz, rx, ry, rz) - radiusSq
+
+	-- I'm replacing the previous method which is imprecise in 32-bit
+	-- with a more stable calculation that depends on a geometric ray
+	-- argument which _can fail_ when we fail at placing its origin:
+	if b * b < radiusSq and c > 0 then
+		return px, py, pz -- ray-sphere disjoint
+	end
+
+	-- Nearest approach, relative to sphere center:
+	local ax = rx - dx * b
+	local ay = ry - dy * b
+	local az = rz - dz * b
+	local a = dot3(ax, ay, az, ax, ay, az)
+
+	if a >= radiusSq then
+		return mx + ax, my + ay, mz + az -- ray-sphere approach
+	else
+		local separation = sqrt(radiusSq - a)
+		return
+			mx - ax - dx * separation, -- ray-sphere intersection
+			my - ay - dy * separation,
+			mz - az - dz * separation
+	end
 end
 
 local function addPenetratorProjectile(projectileID, ownerID, params)
