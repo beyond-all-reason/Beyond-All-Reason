@@ -188,8 +188,55 @@ local function ReloadMusicPlaylists()
 		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/warhigh', allowedExtensions))
 		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/interludes', allowedExtensions))
 
-		-- Christmas ----------------------------------------------------------------------------------------------------------------------
+		-- Spooktober --------------------------------------------------------------------------------------------------------------------
+		if ((tonumber(os.date("%m")) == 10 and tonumber(os.date("%d")) >= 17) and Spring.GetConfigInt('UseSoundtrackSpooktober', 1) == 1) then
+			table.append(eventPeaceTracks, VFS.DirList(musicDirNew..'/events/spooktober/peace', allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/spooktober/war', allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/spooktober/war', allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/spooktober/warlow', allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/spooktober/warhigh', allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/spooktober/interludes', allowedExtensions))
+		elseif (not ((tonumber(os.date("%m")) == 10 and tonumber(os.date("%d")) >= 17)) and Spring.GetConfigInt('UseSoundtrackSpooktoberPostEvent', 0) == 1) then
+			table.append(peaceTracksNew, VFS.DirList(musicDirNew..'/events/spooktober/peace', allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/spooktober/war', allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/spooktober/war', allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/spooktober/warlow', allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/spooktober/warhigh', allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/spooktober/interludes', allowedExtensions))
+		end
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/spooktober/menu', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/spooktober/loading', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/spooktober/peace', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/spooktober/war', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/spooktober/warlow', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/spooktober/warhigh', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/spooktober/interludes', allowedExtensions))
+
+		-- Christmas --------------------------------------------------------------------------------------------------------------------
+		if ((tonumber(os.date("%m")) == 12 and tonumber(os.date("%d")) >= 12) and Spring.GetConfigInt('UseSoundtrackXmas', 1) == 1) then
+			table.append(eventPeaceTracks, VFS.DirList(musicDirNew..'/events/xmas/peace', allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/xmas/war', allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/xmas/war', allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/xmas/warlow', allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/xmas/warhigh', allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/xmas/interludes', allowedExtensions))
+		elseif (not ((tonumber(os.date("%m")) == 12 and tonumber(os.date("%d")) >= 12)) and Spring.GetConfigInt('UseSoundtrackXmasPostEvent', 0) == 1) then
+			table.append(peaceTracksNew, VFS.DirList(musicDirNew..'/events/xmas/peace', allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/xmas/war', allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/xmas/war', allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/xmas/warlow', allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/xmas/warhigh', allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/xmas/interludes', allowedExtensions))
+		end
 		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/menu', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/loading', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/peace', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/war', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/warlow', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/warhigh', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/interludes', allowedExtensions))
+
+		---------------------------------------------------------------------------------------------------------------------------------
 
 		-- Map Music
 		table.append(eventPeaceTracks, VFS.DirList('music/map/peace', allowedExtensions))
@@ -844,7 +891,7 @@ function widget:Initialize()
 		local peaceTracksSorted = table.copy(peaceTracks)
 		sortPlaylist(peaceTracksSorted)
 		for k,v in pairs(peaceTracksSorted) do
-			if peaceTracks[k] and not string.find(peaceTracks[k], "/events/") then
+			if peaceTracksSorted[k] and not string.find(peaceTracksSorted[k], "/events/") then
 				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.peace'), processTrackname(v), v}
 			end
 		end
@@ -852,7 +899,7 @@ function widget:Initialize()
 		local warlowTracksSorted = table.copy(warlowTracks)
 		sortPlaylist(warlowTracksSorted)
 		for k,v in pairs(warlowTracksSorted) do
-			if warlowTracks[k] and not string.find(warlowTracks[k], "/events/") then
+			if warlowTracksSorted[k] and not string.find(warlowTracksSorted[k], "/events/") then
 				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warlow'), processTrackname(v), v}
 			end
 		end
@@ -860,7 +907,7 @@ function widget:Initialize()
 		local warhighTracksSorted = table.copy(warhighTracks)
 		sortPlaylist(warhighTracksSorted)
 		for k,v in pairs(warhighTracksSorted) do
-			if warhighTracks[k] and not string.find(warhighTracks[k], "/events/") then
+			if warhighTracksSorted[k] and not string.find(warhighTracksSorted[k], "/events/") then
 				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warhigh'), processTrackname(v), v}
 			end
 		end
@@ -868,7 +915,7 @@ function widget:Initialize()
 		local interludeTracksSorted = table.copy(interludeTracks)
 		sortPlaylist(interludeTracksSorted)
 		for k,v in pairs(interludeTracksSorted) do
-			if interludeTracks[k] and not string.find(interludeTracks[k], "/events/") then
+			if interludeTracksSorted[k] and not string.find(interludeTracksSorted[k], "/events/") then
 				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.interludes'), processTrackname(v), v}
 			end
 		end
