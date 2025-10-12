@@ -243,10 +243,15 @@ local function DrawRank(rank, posX, posY)
     end
 end
 
-local function DrawSkill(skill, posX, posY)
+local function DrawSkill(skill, uncertainty, posX, posY)
     local fontsize = 14 * (playerScale + ((1-playerScale)*0.25))
     font:Begin()
-    font:Print(skill, posX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
+	if uncertainty > 6 then
+		font:Print("??", posX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
+	else
+		font:Print(skill, posX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
+	end
+    
     font:End()
 end
 
@@ -506,13 +511,14 @@ local function DrawTeamPlacement()
 		--
 		local playerName = findPlayerName(playerID)
 		local _, active, _, playerTeamID, _, ping, _, _, rank, _, customtable = Spring.GetPlayerInfo(playerID, true)
-		local playerRank, playerSkill = 0, 0
+		local playerRank, playerSkill, playerSigma = 0, 0, 8.33
 		if type(customtable) == 'table' then
 			local tsMu = customtable.skill
 			local tsSigma = customtable.skilluncertainty
 			local ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
 			if (ts ~= nil) then playerSkill = round(ts, 0) end
 			if (rank ~= nil) then playerRank = rank end
+			if tsSigma then playerSigma = tonumber(tsSigma) end
 		end
 		-- | indicator/timer/hourglass | rankicon | skill/zero | [playercolor] playername |
 		local x_offset = padding_left
@@ -534,7 +540,7 @@ local function DrawTeamPlacement()
 			x_offset = padding_left + rank_column_offset
 			DrawRank(playerRank, x + x_offset, y_shift - 3)
 			x_offset = padding_left + skill_column_offset
-			DrawSkill(playerSkill, x + x_offset, y_shift - 4)
+			DrawSkill(playerSkill, playerSigma, x + x_offset, y_shift - 4)
 		end
 		x_offset = padding_left + player_column_offset
 		font:Print(colorMod .. playerName, x + x_offset, y_shift + 3, player_name_font_size * uiScale, "lo")

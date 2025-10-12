@@ -197,6 +197,10 @@ local function GetCommAttributes(unitID, unitDefID)
 			skill = customtable.skill
 			skill = skill and tonumber(skill:match("-?%d+%.?%d*")) or 0
 			skill = round(skill, 0)
+
+			if customtable.skilluncertainty and tonumber(customtable.skilluncertainty) > 6 then
+				skill = "??"
+			end
 		end
 	end
 
