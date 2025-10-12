@@ -77,6 +77,7 @@ local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitHealth = Spring.GetUnitHealth
 local random = math.random
 local ceil = math.ceil
 local max = math.max
@@ -745,12 +746,20 @@ function gadget:GameFrame(frame)
 
 	local allBuildsCompleted = true
 	for unitID, buildData in pairs(buildsInProgress) do
-		if buildData.addedProgress >= buildData.targetProgress or not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then
+		allBuildsCompleted = false
+		if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then
 			buildsInProgress[unitID] = nil
+		elseif buildData.addedProgress >= buildData.targetProgress then
+			local buildProgress = select(5, spGetUnitHealth(unitID))
+			if buildProgress >= 1 then
+				-- due to some kind of glitch related to incrimentally increasing build progress to 1, we gotta cycle mexes off and on to get them to actually extract metal.
+				Spring.GiveOrderToUnit(unitID, CMD.ONOFF, { 0 }, 0)
+				Spring.GiveOrderToUnit(unitID, CMD.ONOFF, { 1 }, 0)
+				buildsInProgress[unitID] = nil
+			end
 		elseif buildData.targetProgress > buildData.addedProgress then
 			buildData.addedProgress = buildData.addedProgress + buildData.rate
 			spSetUnitHealth(unitID, { build = buildData.addedProgress, health = ceil(buildData.maxHealth * buildData.addedProgress)})
-			allBuildsCompleted = false
 		end
 	end
 
