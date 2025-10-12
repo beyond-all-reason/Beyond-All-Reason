@@ -85,6 +85,7 @@ local math_isInRect = math.isInRect
 local buildmenuShows = false
 local refreshBuildmenu = true
 
+local costOverrides = {}
 --[[ MODIFICATION START ]]
 -- New state variables for the robust update system
 local selectionUpdateCountdown = 0  -- The debouncer timer, for selection changes only
@@ -727,20 +728,56 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 
 	-- price
 	if showPrice then
-		local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
-		local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
 		local function AddSpaces(price)
 			if price >= 1000 then
 				return string_format("%s %03d", AddSpaces(math_floor(price / 1000)), price % 1000)
 			end
 			return price
 		end
-		local metalPrice = AddSpaces(units.unitMetalCost[uDefID])
-		local energyPrice = AddSpaces(units.unitEnergyCost[uDefID])
-		local metalPriceText = metalColor .. metalPrice
-		local energyPriceText = energyColor .. energyPrice
-		font2:Print(metalPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
-		font2:Print(energyPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
+		
+		local costOverride = costOverrides and costOverrides[uDefID]
+		
+		if costOverride then
+			local topValue = costOverride.top and costOverride.top.value or units.unitMetalCost[uDefID]
+			local bottomValue = costOverride.bottom and costOverride.bottom.value or units.unitEnergyCost[uDefID]
+			
+			if costOverride.top and not costOverride.top.disabled then
+				local costColor = costOverride.top.color or "\255\100\255\100"
+				if disabled then
+					costColor = costOverride.top.colorDisabled or "\255\100\200\100"
+				end
+				local costPrice = AddSpaces(math.floor(topValue))
+				local costPriceText = costColor .. costPrice
+				font2:Print(costPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
+			elseif not costOverride.top then
+				local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
+				local metalPrice = AddSpaces(units.unitMetalCost[uDefID])
+				font2:Print(metalColor .. metalPrice, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
+			end
+			
+			if costOverride.bottom and not costOverride.bottom.disabled then
+				local costColor = costOverride.bottom.color or "\255\255\255\000"
+				if disabled then
+					costColor = costOverride.bottom.colorDisabled or "\255\135\135\135"
+				end
+				local costPrice = AddSpaces(math.floor(bottomValue))
+				local costPriceText = costColor .. costPrice
+				font2:Print(costPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
+			elseif not costOverride.bottom then
+				local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
+				local energyPrice = AddSpaces(units.unitEnergyCost[uDefID])
+				font2:Print(energyColor .. energyPrice, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
+			end
+		else
+			local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
+			local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
+			local metalPrice = AddSpaces(units.unitMetalCost[uDefID])
+			local energyPrice = AddSpaces(units.unitEnergyCost[uDefID])
+			local metalPriceText = metalColor .. metalPrice
+			local energyPriceText = energyColor .. energyPrice
+			font2:Print(metalPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
+			font2:Print(energyPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
+		end
 	end
 
 	-- factory queue number
@@ -1522,6 +1559,38 @@ function widget:Initialize()
 	end
 	WG['buildmenu'].getIsShowing = function()
 		return buildmenuShows
+	end
+	---@class CostLine
+	---@field value number?
+	---@field color string?
+	---@field colorDisabled string?
+	---@field disabled boolean?
+
+	---@class CostData
+	---@field top CostLine?
+	---@field bottom CostLine?
+
+	---Override the cost display for a specific unit in the build menu
+	---@param unitDefID number The unit definition ID to override costs for
+	---@param costData CostData Cost override configuration table with optional properties
+	WG['buildmenu'].setCostOverride = function(unitDefID, costData)
+		if unitDefID and costData then
+			costOverrides[unitDefID] = costData
+			clear()
+		end
+	end
+
+	---Clear cost overrides for a specific unit or all units
+	---@param unitDefID number? The unit definition ID to clear overrides for. If nil or not provided, clears all cost overrides.
+	WG['buildmenu'].clearCostOverrides = function(unitDefID)
+		if unitDefID then
+			costOverrides[unitDefID] = nil
+		else
+			for defID in pairs(costOverrides) do
+				costOverrides[defID] = nil
+			end
+		end
+		clear()
 	end
 end
 

@@ -119,8 +119,10 @@
 			"peace": "Peace",
 			"warlow": "Conflict",
 			"warhigh": "War",
-			"bossfight": "Boss fight",
-			"gameover": "Game over",
+			"bossfight": "Bossfight",
+			"victory": "Game Over: Victory",
+			"defeat": "Game Over: Defeat",
+			"gameover": "Game Over: Neutral",
 			"bonus": "Bonus",
 			"scavengers": "Scavengers",
 			"raptors": "Raptors",
@@ -1182,16 +1184,24 @@
 				"snddevice": "Sound device",
 				"snddevice_descr": "Select a sound device\ndefault means your default OS playback device",
 				"soundtrack": "Soundtrack",
-				"soundtracknew": "Original soundtrack",
+				"soundtracknew": "Original Soundtrack",
 				"soundtracknew_descr": "Adds Original Soundtrack to the playlist",
 				"soundtrackold": "Modern theme",
 				"soundtrackold_descr": "Add the modern themed music to the soundtrack",
-				"soundtrackcustom": "Custom soundtrack",
+				"soundtrackcustom": "Custom Soundtrack",
 				"soundtrackcustom_descr": "Add your own .ogg or .mp3 music files to the soundtrack playlist\nPlace these .ogg/.mp3 music files in data/music/custom/ subfolders: peace/warlow/warhigh/bossfight/gameover",
 				"soundtrackaprilfools": "April Fools Soundtrack",
 				"soundtrackaprilfools_descr": "Toggle April Fools event music ON and OFF.",
-				"soundtrackaprilfoolspostevent": "April fools soundtrack post event",
+				"soundtrackaprilfoolspostevent": "April fools Soundtrack Post Event",
 				"soundtrackaprilfoolspostevent_descr": "Toggle April Fools event music ON and OFF.",
+				"soundtrackspooktober": "Spooktober Soundtrack",
+				"soundtrackspooktober_descr": "Toggle Spooktober event music ON and OFF.",
+				"soundtrackspooktoberpostevent": "Spooktober Soundtrack Post Event",
+				"soundtrackspooktoberpostevent_descr": "Toggle Spooktober event music ON and OFF.",
+				"soundtrackxmas": "Christmas Soundtrack",
+				"soundtrackxmas_descr": "Toggle Christmas event music ON and OFF.",
+				"soundtrackxmaspostevent": "Christmas Soundtrack Post Event",
+				"soundtrackxmaspostevent_descr": "Toggle Christmas event music ON and OFF.",
 				"soundtracksilence": "Silence periods",
 				"soundtracksilence_descr": "Adds no-music breaks between tracks\nto give you some time to enjoy pure sound effects\nand to make the music less repetitive.",
 				"soundtrackinterruption": "Interruptions",
@@ -1775,6 +1785,12 @@
 		"quickShareToTarget": {
 			"noTarget": "No target selected",
 			"shareTo": "Share to: %{playerColor}%{player}"
+		},
+		"quickStart": {
+			"placeDiscountedFactory": "First factory is discounted",
+			"preGameResources": "Base Budget",
+			"remainingResourcesWarning": "Use the Base Budget to instantly spawn structures within range",
+			"unallocatedBudget": "Quick Start enabled: use your Base Budget first"
 		}
 	}
 }
