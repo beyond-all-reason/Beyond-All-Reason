@@ -60,6 +60,7 @@ local max                     = math.max
 local min                     = math.min
 local floor                   = math.floor
 local sqrt                    = math.sqrt
+local diag                    = math.diag
 local normalize               = math.normalize
 
 local spAddUnitDamage         = Spring.AddUnitDamage
@@ -208,7 +209,7 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
             endFrame   = explosion.frames + frameNumber,
         }
 
-        local index = bisectDamage(frameExplosions, explosion.damage, 1, #frameExplosions)
+        local index = bisectDamage(frameExplosions, area.damage, 1, #frameExplosions)
         table.insert(frameExplosions, index, area)
     end
 end
@@ -232,12 +233,10 @@ end
 ---@return number? hitY
 ---@return number? hitZ
 local function getAreaHitPosition(area, baseX, baseY, baseZ, midX, midY, midZ)
+	local radius = area.range
+
 	if midY >= area.ymin and midY <= area.ymax then
-		local dx = midX - area.x
-		local dy = midY - area.y
-		local dz = midZ - area.z
-		local radius = area.range
-		if dx * dx + dy * dy + dz * dz <= radius * radius then
+		if diag(midX - area.x, midY - area.y, midZ - area.z) <= radius then
 			return midX, midY, midZ
 		end
 	end
@@ -246,8 +245,8 @@ local function getAreaHitPosition(area, baseX, baseY, baseZ, midX, midY, midZ)
 		local dx = baseX - area.x
 		local dy = baseY - area.y
 		local dz = baseZ - area.z
-		local radius = area.range
-		if dx * dx + dy * dy + dz * dz <= radius * radius then
+
+		if diag(dx, dy, dz) <= radius then
 			-- The unit base point is in the area and the mid point is not.
 			-- Find the intersection of a ray from mid->base onto the area.
 			local rx, ry, rz = normalize(baseX - midX, baseY - midY, baseZ - midZ)
@@ -364,7 +363,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 
                     local health = spGetFeatureHealth(featureID) - damageDealt
 
-                    if health >= 1 then
+                    if health > 1 then
                         featDamageTaken[featureID] = damageTaken + damageDealt
                         spSetFeatureHealth(featureID, health)
                     else
