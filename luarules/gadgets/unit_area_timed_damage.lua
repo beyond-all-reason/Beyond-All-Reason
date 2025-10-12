@@ -364,8 +364,8 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
                     local health = spGetFeatureHealth(featureID) - damageDealt
 
                     if health > 1 then
-                        featDamageTaken[featureID] = damageTaken + damageDealt
                         spSetFeatureHealth(featureID, health)
+                        featDamageTaken[featureID] = damageTaken + damageDealt
                     else
                         Spring.DestroyFeature(featureID)
                     end
