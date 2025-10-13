@@ -17,6 +17,7 @@ local DonatorAINames = {
     "Aknaroth",
     "Anteep", --$40
     "badosu",
+    "Barscrewl",
     "BiFuriousGeorge",
     "Blickter", --$50
     "bobc7",

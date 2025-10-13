@@ -168,6 +168,7 @@ end
 
 -- Functions shortcuts
 local spGetSpectatingState = Spring.GetSpectatingState
+local spGetUnitDefID = Spring.GetUnitDefID
 local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitIsActive 	= Spring.GetUnitIsActive
@@ -263,8 +264,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason,  noupload)
 
 	instanceCache[1] =  unitRange[unitDefID]
 
-	
-	local active = true
+	local active = spGetUnitIsActive(unitID)
 	local gameFrame = Spring.GetGameFrame()
 	if reason == "UnitFinished" then
 		if active then 
@@ -300,6 +300,18 @@ function widget:VisibleUnitRemoved(unitID)
 	unitList[unitID] = nil
 end
 
+function widget:GameFrame(n)
+	if spec and fullview then return end
+	if n % 15 == 2 then
+		for unitID, oldActive in pairs(unitList) do
+			local active = spGetUnitIsActive(unitID)
+			if active ~= oldActive then
+				unitList[unitID] = active
+				widget:VisibleUnitAdded(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID) )
+			end
+		end
+	end
+end
 
 function widget:DrawWorld()
 	--if spec and fullview then return end
