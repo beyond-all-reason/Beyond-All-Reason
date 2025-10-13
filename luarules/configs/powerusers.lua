@@ -49,4 +49,5 @@ return {
 	[21114] = moderator,	-- [FH]Amojini
 	[168817] = moderator,	-- SongbirdOfChirping
 	[57158] = moderator,	-- Endorphins
+	[132545] = moderator,	-- Praedyth
 }
