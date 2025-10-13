@@ -75,8 +75,8 @@ end
 
 ---Fetches a premade direction set from DistributedDirections; otherwise, generates random directions.
 ---@param n number count of vectors to retrieve
----@return table vector3s
----@return boolean randomized
+---@return table? vector3s
+---@return boolean? randomized
 DirectionsUtil.GetDirections = function(n)
 	if not n or n < 1 then return end
 
@@ -86,10 +86,12 @@ DirectionsUtil.GetDirections = function(n)
 		return distributed, false
 	end
 
-	if n <= DIRECTION_SET_SIZE_MAX then
-		for i = 1, 3 * (n - 1) + 1, 3 do
-			return DirectionsUtil.GetRandomDirections(n), true
-		end
+	if n > DIRECTION_SET_SIZE_MAX then
+		n = DIRECTION_SET_SIZE_MAX
+	end
+
+	for i = 1, 3 * (n - 1) + 1, 3 do
+		return DirectionsUtil.GetRandomDirections(i), true
 	end
 end
 
