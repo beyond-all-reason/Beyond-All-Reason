@@ -1183,37 +1183,9 @@ function UnitDef_Post(name, uDef)
 		uDef = proposed_unit_reworks.proposed_unit_reworksTweaks(name, uDef)
 	end
 
-	-- -- Naval Balance Adjustments, if anything breaks here blame ZephyrSkies
-	-- if modOptions.naval_balance_tweaks == true then
-	-- 	-- buildOption array
-	-- 	local buildOptionReplacements = {
-	-- 		armcs = { ["armfhlt"] = "armnavaldefturret" },
-	-- 		armch = { ["armfhlt"] = "armnavaldefturret" },
-	-- 		armbeaver = { ["armfhlt"] = "armnavaldefturret" },
-	-- 		armcsa = { ["armfhlt"] = "armnavaldefturret" },
-	-- 		corcs = { ["corfhlt"] = "cornavaldefturret" },
-	-- 		corch = { ["corfhlt"] = "cornavaldefturret" },
-	-- 		cormuskrat = { ["corfhlt"] = "cornavaldefturret" },
-	-- 		corcsa = { ["corfhlt"] = "cornavaldefturret" },
-	-- 		legcs = { ["legfmg"]  = "legnavaldefturret" },
-	-- 		legch = { ["legfmg"]  = "legnavaldefturret" },
-	-- 		legotter = { ["legfmg"]  = "legnavaldefturret" },
-	-- 	}
-
-	-- 	if modOptions.naval_balance_tweaks == true then
-	-- 		if buildOptionReplacements[name] then
-	-- 			local replacements = buildOptionReplacements[name]
-	-- 			for i, buildOption in ipairs(uDef.buildoptions or {}) do
-	-- 				if replacements[buildOption] then
-	-- 					uDef.buildoptions[i] = replacements[buildOption]
-	-- 				end
-	-- 			end
-	-- 		end
-	-- 	end
-	-- end
-
-	-- Naval Balance Adjustments
+	-- Naval Balance Adjustments, if anything breaks here blame ZephyrSkies
 	if modOptions.naval_balance_tweaks == true then
+		-- buildOption array
 		local buildOptionReplacements = {
 			armcs = { ["armfhlt"] = "armnavaldefturret" },
 			armch = { ["armfhlt"] = "armnavaldefturret" },
@@ -1228,24 +1200,13 @@ function UnitDef_Post(name, uDef)
 			legotter = { ["legfmg"]  = "legnavaldefturret" },
 		}
 
-		if buildOptionReplacements[name] then
-			local replacements = buildOptionReplacements[name]
-			
-			-- DEBUG: print what buildoptions this unit has
-			Spring.Echo("[DEBUG] Processing unit:", name)
-			if uDef.buildoptions then
-				for i, buildOption in ipairs(uDef.buildoptions) do
-					Spring.Echo(string.format("[DEBUG]  buildoption[%d] = %s", i, buildOption))
-				end
-			else
-				Spring.Echo("[DEBUG]  No buildoptions for", name)
-			end
-
-			-- Actual replacement logic
-			for i, buildOption in ipairs(uDef.buildoptions or {}) do
-				if replacements[buildOption] then
-					Spring.Echo(string.format("[DEBUG]  Replacing %s with %s on %s", buildOption, replacements[buildOption], name))
-					uDef.buildoptions[i] = replacements[buildOption]
+		if modOptions.naval_balance_tweaks == true then
+			if buildOptionReplacements[name] then
+				local replacements = buildOptionReplacements[name]
+				for i, buildOption in ipairs(uDef.buildoptions or {}) do
+					if replacements[buildOption] then
+						uDef.buildoptions[i] = replacements[buildOption]
+					end
 				end
 			end
 		end
