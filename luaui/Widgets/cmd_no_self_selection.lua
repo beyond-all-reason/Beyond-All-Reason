@@ -37,8 +37,6 @@ local sp_TraceScreenRay = Spring.TraceScreenRay
 --------------------------------------------------------------------------------
 -- Initialization --------------------------------------------------------------
 
-local epsilonTime = 1e-5 ---@type number in seconds, ~inverse max frame rate
-
 local selectedUnitID -- widget ignores/sees through only a single unit
 local selectClickTime = 0
 local cx, cy
