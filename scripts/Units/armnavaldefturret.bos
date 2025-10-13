@@ -13,8 +13,6 @@ leftFlare,
 turretPlating;
 
 
-// static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5,
-//             Static_Var_6, Static_Var_7, restore_delay, wpn1_lasthead;
 
 static-var restore_delay, wpn1_lasthead, whichBarrel;
 
@@ -75,12 +73,6 @@ AimPrimary(heading, pitch)
 	turn turretHeadingPivot to y-axis heading speed <150>;
 	turn turretPitchPivot to x-axis <0.000000> - pitch speed <80>;
 
-    // if(pitch < <-20>){
-    //     move turretPitchPivot to y-axis [8] speed [16];
-    // }
-    // else{
-    //     move turretPitchPivot to y-axis [0] speed [16];
-    // }
 
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
@@ -114,23 +106,6 @@ FirePrimary()
     }
 }
 
-// Shot1(zero)
-// {
-//     if (whichBarrel == 0){
-//         emit-sfx 1024 + 0 from rightFlare;
-//         move rightbarrel to z-axis [-3] now;
-//         sleep 10;
-//         move rightbarrel to z-axis [0] speed [3];
-//         whichBarrel = 1;
-//     }
-//     else if (whichBarrel == 1){
-//         emit-sfx 1024 + 0 from leftFlare;
-//         move leftBarrel to z-axis [-3] now;
-//         sleep 10;
-//         move leftBarrel to z-axis [0] speed [3];
-//         whichBarrel = 0;
-//     }
-// }
 
 AimFromPrimary(piecenum)
 {

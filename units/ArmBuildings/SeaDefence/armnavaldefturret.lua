@@ -29,7 +29,7 @@ return {
 		waterline = 0,
 		yardmap = "ooooooooo",
 		customparams = {
-			unitgroup = 'weaponaa',
+			unitgroup = 'weapon',
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/arm_normal.dds",
 			removewait = true,
@@ -89,8 +89,6 @@ return {
 				alphadecay = 0.08,
 				areaofeffect = 18,
 				avoidfeature = false,
-				-- burst = 2,
-				-- burstrate = 0.2,
 				burnblow = true,
 				craterareaofeffect = 0,
 				craterboost = 0,
