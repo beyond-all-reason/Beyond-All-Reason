@@ -27,7 +27,7 @@ return {
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 650,
 		waterline = 0,
-		yardmap = "ooooooooo",
+		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
 			unitgroup = 'weapon',
 			model_author = "ZephyrSkies",
