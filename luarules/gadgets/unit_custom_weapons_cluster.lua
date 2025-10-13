@@ -20,29 +20,29 @@ if not gadgetHandler:IsSyncedCode() then return false end
 
 -- Default settings ------------------------------------------------------------
 
-local defaultSpawnTtl = 5					-- detonate projectiles after time = ttl, by default
+local defaultSpawnTtl = 5		 -- detonate projectiles after time = ttl, by default
 
 -- General settings ------------------------------------------------------------
 
-local minSpawnNumber = 3					-- minimum number of spawned projectiles
-local maxSpawnNumber = 24					-- protect game performance against stupid ideas
-local minUnitBounces = "armpw"				-- smallest unit (name) that bounces projectiles at all
-local minBulkReflect = 64000				-- smallest unit bulk that causes reflection as if terrain
+local minSpawnNumber = 3         -- minimum number of spawned projectiles
+local maxSpawnNumber = 24        -- protect game performance against stupid ideas
+local minUnitBounces = "armpw"   -- smallest unit (name) that "bounces" projectiles at all
+local minBulkReflect = 500       -- smallest unit bulk that "reflects" as if terrain
 
 -- CustomParams setup ----------------------------------------------------------
 --
-	-- weapon = {
-	-- 	type := "Cannon" | "EMGCannon"
-	-- 	customparams = {
-	-- 		cluster_def    := <string> | nil (see defaults)
-	-- 		cluster_number := <number> | nil (see defaults)
-	-- 	},
-	-- },
-    --
-    -- <cluster_def> = {
-	-- 	weaponvelocity := <number> -- Will be ignored in favor of range if possible.
-	-- 	range          := <number> -- Preferred over and replaces weaponvelocity.
-	-- }
+--   weapon = {
+--       type := "Cannon"
+--       customparams = {
+--           cluster_def    := <string> | nil (see defaults)
+--           cluster_number := <number> | nil (see defaults)
+--       },
+--   },
+--  
+--   <cluster_def> = {
+--       weaponvelocity := <number> -- Will be ignored in favor of range if possible.
+--       range          := <number> -- Preferred over and replaces weaponvelocity.
+--   }
 
 --------------------------------------------------------------------------------
 -- Localize --------------------------------------------------------------------
@@ -52,6 +52,7 @@ local DirectionsUtil = VFS.Include("LuaRules/Gadgets/Include/DirectionsUtil.lua"
 local max   = math.max
 local min   = math.min
 local rand  = math.random
+local diag  = math.diag
 local sqrt  = math.sqrt
 local cos   = math.cos
 local sin   = math.sin
@@ -67,25 +68,25 @@ local spSpawnProjectile       = Spring.SpawnProjectile
 
 local gameSpeed  = Game.gameSpeed
 local mapGravity = Game.gravity / (gameSpeed * gameSpeed) * -1
+
+--------------------------------------------------------------------------------
+-- Initialize ------------------------------------------------------------------
+
 local maxUnitRadius = 0
 
 for _, unitDef in pairs(UnitDefs) do
 	maxUnitRadius = max(maxUnitRadius, unitDef.radius)
 end
 
---------------------------------------------------------------------------------
--- Initialize ------------------------------------------------------------------
-
 defaultSpawnTtl = defaultSpawnTtl * gameSpeed
 
 local spawnableTypes = {
-	Cannon          = true  ,
-	EMGCannon       = true  ,
+	Cannon = true,
 }
 
 local clusterWeaponDefs = {}
 
-for unitDefName, unitDef in pairs(UnitDefNames) do
+for unitDefID, unitDef in ipairs(UnitDefs) do
 	for _, weapon in pairs(unitDef.weapons) do
 		local weaponDefID, weaponDef = weapon.weaponDef, WeaponDefs[weapon.weaponDef]
 		local clusterDefName = weaponDef.customParams.cluster_def
@@ -190,16 +191,12 @@ local function getSurfaceDeflection(x, y, z)
 	dx, dy, dz, slope = spGetGroundNormal(x, z, true)
 
 	if slope > 0.1 or slope * separation > 10 then
-		separation = separation * cos(slope)
-		local shift = separation * sin(slope) / sqrt(dx*dx + dz*dz)
-		local shiftX = x - dx * shift -- Next surface x, z
-		local shiftZ = z - dz * shift
+		local shiftXZ = separation * cos(slope) * sin(slope) / diag(dx, dz)
+		local shiftX = x - dx * shiftXZ -- Next surface x, z
+		local shiftZ = z - dz * shiftXZ
 		elevation = max(elevation, spGetGroundHeight(shiftX, shiftZ))
 		separation = y - elevation
-		dx, dy, dz = spGetGroundNormal(shiftX, shiftZ, true)
-	end
-
-	separation = 1.3 / sqrt(max(1, separation))
+	separation = 1.3 / diag(max(1, separation))
 	dx = dx * separation
 	dy = dy * separation
 	dz = dz * separation
@@ -212,14 +209,13 @@ local function getSurfaceDeflection(x, y, z)
 		bounce = unitBulks[spGetUnitDefID(unitID)]
 		if bounce then
 			_,_,_,unitX,unitY,unitZ = spGetUnitPosition(unitID, true)
-			radius         = spGetUnitRadius(unitID)
+			radius = spGetUnitRadius(unitID)
 			if unitY + radius > 0 then
 				unitX, unitY, unitZ = x - unitX, y - unitY, z - unitZ
-				separation = sqrt(unitX*unitX + unitY*unitY + unitZ*unitZ) / radius
-				if separation < 1.24 then
+				separation = diag(unitX, unitY, unitZ) / radius
 					bounce = bounce / max(1, separation)
 					local theta_z = atan2(unitX, unitZ)
-					local phi_y = atan2(unitY, sqrt(unitX*unitX + unitZ*unitZ))
+					local phi_y = atan2(unitY, diag(unitX, unitZ))
 					local cosy = cos(phi_y)
 					dx = dx + bounce * sin(theta_z) * cosy
 					dy = dy + bounce * sin(phi_y)
@@ -292,6 +288,6 @@ end
 function gadget:Explosion(weaponDefID, x, y, z, attackerID, projectileID)
 	local weaponData = clusterWeaponDefs[weaponDefID]
 	if weaponData then
-		spawnClusterProjectiles(weaponData, attackerID, x, y, z)
+		spawnClusterProjectiles(weaponData, x, y, z, attackerID, projectileID)
 	end
 end
