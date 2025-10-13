@@ -154,7 +154,9 @@ function widget:ActiveCommandChanged(cmdid, type)
 		inActiveCommand = true
 	elseif inActiveCommand then
 		inActiveCommand = false
-		removeSelectionVolume(selectedUnitID)
+		if selectedUnitID then
+			removeSelectionVolume(selectedUnitID)
+		end
 	end
 end
 
