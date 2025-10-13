@@ -246,7 +246,7 @@ end
 local function DrawSkill(skill, uncertainty, posX, posY)
     local fontsize = 14 * (playerScale + ((1-playerScale)*0.25))
     font:Begin()
-	if uncertainty > 6 then
+	if uncertainty > 6.65 then
 		font:Print("??", posX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
 	else
 		font:Print(skill, posX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
