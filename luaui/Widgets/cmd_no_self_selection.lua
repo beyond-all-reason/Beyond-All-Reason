@@ -29,6 +29,7 @@ local allowSelfCommand = {
 
 local math_abs = math.abs
 
+local sp_GetActiveCommand = Spring.GetActiveCommand
 local sp_GetMouseState = Spring.GetMouseState
 local sp_GetUnitSelectionVolumeData = Spring.GetUnitSelectionVolumeData
 local sp_SetUnitSelectionVolumeData = Spring.SetUnitSelectionVolumeData
@@ -118,8 +119,11 @@ end
 
 function widget:MousePress(x, y, button)
 	if button == 1 and isVolumeHidden then
-		restoreSelectionVolume(selectedUnitID)
-		selectClickTime = doubleClickTime
+		local _, commandID = sp_GetActiveCommand()
+		if not commandID then
+			restoreSelectionVolume(selectedUnitID)
+			selectClickTime = doubleClickTime
+		end
 	end
 end
 
