@@ -511,7 +511,7 @@ local function SpawnUnit(spawnData)
 							if carrierMetaList[ownerID].dockArmor then
 								spSetUnitArmored(subUnitID, true, carrierMetaList[ownerID].dockArmor)
 								if carrierMetaList[ownerID].dockUntargetable == true then
- 								   spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", 1)
+ 								   spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", true)
 								else
 								    spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", nil)
 								end
@@ -1474,7 +1474,7 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 								if carrierMetaList[unitID].dockArmor then
 									spSetUnitArmored(subUnitID, true, carrierMetaList[unitID].dockArmor)
 									if carrierMetaList[unitID].dockUntargetable == true then
-									    spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", 1)
+									    spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", true)
 									else
 									    spSetUnitRulesParam(subUnitID, "drone_docked_untargetable", nil)
 									end
@@ -1608,7 +1608,7 @@ end
 
 function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, defaultPriority)
     if targetID then
-        if spGetUnitRulesParam(targetID, "drone_docked_untargetable") == 1 then
+        if spGetUnitRulesParam(targetID, "drone_docked_untargetable") == true then
             return false, 0
         end
     end
