@@ -28,6 +28,7 @@ local minSpawnNumber = 3         -- minimum number of spawned projectiles
 local maxSpawnNumber = 24        -- protect game performance against stupid ideas
 local minUnitBounces = "armpw"   -- smallest unit (name) that "bounces" projectiles at all
 local minBulkReflect = 500       -- smallest unit bulk that "reflects" as if terrain
+local waterDepthCoef = 0.1       -- reduce "separation" from ground in water by a multiple
 
 -- CustomParams setup ----------------------------------------------------------
 --
@@ -180,22 +181,61 @@ DirectionsUtil.ProvisionDirections(maxDataNum)
 --------------------------------------------------------------------------------
 -- Functions -------------------------------------------------------------------
 
+-- Treat water as the dominant term, with a max deflection, past a given depth.
+local waterDepthDeflects = 1 / waterDepthCoef
+local waterFullDeflection = 0.85 -- 1 - vertical response loss
+
+---Water is generally incompressible so acts like solid terrain of lower density
+-- when it takes hard impacts or impulses. We take a fast estimate of its added
+-- bulk to the solid terrain below and shift the surface direction toward level.
+---@param slope number in radians? in what? is this [0, 1]?
+---@param elevation number in elmos, always negative
+---@return number percentX
+---@return number percentY
+---@return number percentZ
+---@return number depth
+local function getWaterDeflection(slope, elevation)
+	elevation = max(elevation * waterDepthCoef, waterDepthDeflects)
+	local waterDeflectFraction = min(1, elevation / waterDepthDeflects)
+
+	if slope == 1 and waterDeflectFraction == 1 then
+		return 0, waterFullDeflection, 0, elevation
+	else
+		slope = slope * (1 - waterDeflectFraction)
+		local dy = waterFullDeflection * (1 - slope)
+		local dxz = 1 - slope
+		return dxz, dy, dxz, elevation
+	end
+end
+
+---Deflection from solid terrain and unit collider surfaces plus water by depth.
 local function getSurfaceDeflection(x, y, z)
-	-- Deflection from deep water, shallow water, and solid terrain.
 	local elevation = spGetGroundHeight(x, z)
-	local separation
-	local dx, dy, dz
+	local separation -- distance to "solid" surface
+	local dx, dy, dz -- direction of response
 	local slope
 
 	separation = y - elevation
 	dx, dy, dz, slope = spGetGroundNormal(x, z, true)
 
+	-- On sloped terrain, the nearest point on the surface is up the slope.
 	if slope > 0.1 or slope * separation > 10 then
 		local shiftXZ = separation * cos(slope) * sin(slope) / diag(dx, dz)
 		local shiftX = x - dx * shiftXZ -- Next surface x, z
 		local shiftZ = z - dz * shiftXZ
 		elevation = max(elevation, spGetGroundHeight(shiftX, shiftZ))
+		dx, dy, dz, slope = spGetGroundNormal(shiftX, shiftZ, true)
 		separation = y - elevation
+	end
+
+	if elevation < 0 then
+		local px, py, pz, depth = getWaterDeflection(slope, elevation)
+		dx, dy, dz = dx * px, dy * py, dz * pz
+		separation = y - depth
+	end
+
+	-- Terrain can have a concave contour, so we need this extra ~30%.
+	-- Unit max bulk is 1.0 which is fine, since colliders are convex.
 	separation = 1.3 / diag(max(1, separation))
 	dx = dx * separation
 	dy = dy * separation
@@ -213,6 +253,9 @@ local function getSurfaceDeflection(x, y, z)
 			if unitY + radius > 0 then
 				unitX, unitY, unitZ = x - unitX, y - unitY, z - unitZ
 				separation = diag(unitX, unitY, unitZ) / radius
+				-- Even assuming that the explosion is near to the collider,
+				-- past some N x radius, we would not expect any deflection:
+				if separation < 2 then
 					bounce = bounce / max(1, separation)
 					local theta_z = atan2(unitX, unitZ)
 					local phi_y = atan2(unitY, diag(unitX, unitZ))
