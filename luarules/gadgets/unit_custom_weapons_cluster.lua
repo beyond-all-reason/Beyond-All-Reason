@@ -271,32 +271,49 @@ local function getSurfaceDeflection(x, y, z)
 	return dx, dy, dz
 end
 
-local function spawnClusterProjectiles(data, attackerID, x, y, z)
+local function inheritMomentum(projectileID)
+	local vx, vy, vz, vw = Spring.GetProjectileVelocity(projectileID)
+	-- Apply major loss from scattering (~50%) and reduce hyperspeeds (1 is convenient).
+	local scale = 0.5 / max(vw, 1)
+	return vx * scale, vy * scale, vz * scale
+end
+
+local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 	local clusterDefID = data.weaponID
 	local projectileCount = data.number
 	local projectileSpeed = data.weaponSpeed
+	local randomness = 1 / sqrt(projectileCount - 2) + 0.1
 
-	spawnCache.owner = attackerID or -1
-	spawnCache.ttl = data.weaponTtl
-	local speed = spawnCache.speed
-	local position = spawnCache.pos
+	local params = spawnCache
+	params.owner = attackerID or -1
+	params.ttl = data.weaponTtl
+	local speed = params.speed
+	local position = params.pos
+
+	local deflectX, deflectY, deflectZ = getSurfaceDeflection(x, y, z)
+	local inheritX, inheritY, inheritZ = inheritMomentum(projectileID)
+	local startX = deflectX + inheritX
+	local startY = deflectY + inheritY
+	local startZ = deflectZ + inheritZ
 
 	local directionVectors = directions[projectileCount]
-	local deflectX, deflectY, deflectZ = getSurfaceDeflection(x, y, z)
-	local randomness = 1 / sqrt(projectileCount - 2)
 
 	for i = 0, projectileCount - 1 do
-		local velocityX = directionVectors[3 * i + 1] + deflectX
-		local velocityY = directionVectors[3 * i + 2] + deflectY
-		local velocityZ = directionVectors[3 * i + 3] + deflectZ
+		local velocityX = directionVectors[3 * i + 1] + startX
+		local velocityY = directionVectors[3 * i + 2] + startY
+		local velocityZ = directionVectors[3 * i + 3] + startZ
+		local velocityW
 
-		velocityX = velocityX + (rand() - 0.5) * randomness * 2
-		velocityY = velocityY + (rand() - 0.5) * randomness * 2
-		velocityZ = velocityZ + (rand() - 0.5) * randomness * 2
+		repeat
+			velocityX = velocityX + (rand() - 0.5) * randomness * 2
+			velocityY = velocityY + (rand() - 0.5) * randomness * 2
+			velocityZ = velocityZ + (rand() - 0.5) * randomness * 2
+			velocityW = diag(velocityX, velocityY, velocityZ)
+		until velocityW ~= 0 -- prevent div-zero
 
-		-- Higher projectile counts will have less variation in projectile speed.
-		local normalization = (1 + rand() * randomness) / (1 + randomness)
-		normalization = normalization * projectileSpeed / sqrt(velocityX*velocityX + velocityY*velocityY + velocityZ*velocityZ)
+		local randomization = (1 + rand() * randomness) / (1 + randomness)
+		local normalization = (projectileSpeed / velocityW) * randomization
+
 		velocityX = velocityX * normalization
 		velocityY = velocityY * normalization
 		velocityZ = velocityZ * normalization
@@ -309,7 +326,7 @@ local function spawnClusterProjectiles(data, attackerID, x, y, z)
 		position[2] = y + velocityY * gameSpeed / 2
 		position[3] = z + velocityZ * gameSpeed / 2
 
-		spSpawnProjectile(clusterDefID, spawnCache)
+		spSpawnProjectile(clusterDefID, params)
 	end
 end
 
