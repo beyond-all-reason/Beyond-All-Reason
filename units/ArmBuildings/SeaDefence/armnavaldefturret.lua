@@ -11,7 +11,7 @@ return {
 		canrepeat = false,
 		cantbetransported = false,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "36 80 36",
+		collisionvolumescales = "70 60 70",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		explodeas = "mediumBuildingexplosiongeneric",
