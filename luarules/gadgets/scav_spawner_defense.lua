@@ -327,9 +327,6 @@ if gadgetHandler:IsSyncedCode() then
 	config.gracePeriodInitial = config.gracePeriod + 0
 	local maxBurrows = ((config.maxBurrows*(1-config.scavPerPlayerMultiplier))+(config.maxBurrows*config.scavPerPlayerMultiplier)*(math.min(SetCount(humanTeams), 8)))*config.scavSpawnMultiplier
 	local bossTime = (config.bossTime + config.gracePeriod)
-	if config.difficulty == config.difficulties.survival then
-		bossTime = math.ceil(bossTime*0.5)
-	end
 	local maxWaveSize = ((config.maxScavs*(1-config.scavPerPlayerMultiplier))+(config.maxScavs*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
 	local minWaveSize = ((config.minScavs*(1-config.scavPerPlayerMultiplier))+(config.minScavs*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
 	local currentMaxWaveSize = minWaveSize
@@ -377,7 +374,7 @@ if gadgetHandler:IsSyncedCode() then
 		config.maxBurrows = nextDifficulty.maxBurrows
 		config.maxXP = nextDifficulty.maxXP
 		config.angerBonus = nextDifficulty.angerBonus
-		config.bossTime = math.ceil(nextDifficulty.bossTime/endlessLoopCounter)
+		config.bossTime = math.ceil(nextDifficulty.bossTime/(endlessLoopCounter/2))
 
 		bossTime = (config.bossTime + config.gracePeriod)
 		maxBurrows = ((config.maxBurrows*(1-config.scavPerPlayerMultiplier))+(config.maxBurrows*config.scavPerPlayerMultiplier)*(math.min(SetCount(humanTeams), 8)))*config.scavSpawnMultiplier

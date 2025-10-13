@@ -323,9 +323,6 @@ if gadgetHandler:IsSyncedCode() then
 	config.gracePeriodInitial = config.gracePeriod + 0
 	local maxBurrows = ((config.maxBurrows*(1-config.raptorPerPlayerMultiplier))+(config.maxBurrows*config.raptorPerPlayerMultiplier)*(math.min(SetCount(humanTeams), 8)))*config.raptorSpawnMultiplier
 	local queenTime = (config.queenTime + config.gracePeriod)
-	if config.difficulty == config.difficulties.survival then
-		queenTime = math.ceil(queenTime*0.5)
-	end
 	local maxWaveSize = ((config.maxRaptors*(1-config.raptorPerPlayerMultiplier))+(config.maxRaptors*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))*config.raptorSpawnMultiplier
 	local minWaveSize = ((config.minRaptors*(1-config.raptorPerPlayerMultiplier))+(config.minRaptors*config.raptorPerPlayerMultiplier)*SetCount(humanTeams))*config.raptorSpawnMultiplier
 	local currentMaxWaveSize = minWaveSize
@@ -373,7 +370,7 @@ if gadgetHandler:IsSyncedCode() then
 		config.maxBurrows = nextDifficulty.maxBurrows
 		config.maxXP = nextDifficulty.maxXP
 		config.angerBonus = nextDifficulty.angerBonus
-		config.queenTime = math.ceil(nextDifficulty.queenTime/endlessLoopCounter)
+		config.queenTime = math.ceil(nextDifficulty.queenTime/(endlessLoopCounter/2))
 
 		queenTime = (config.queenTime + config.gracePeriod)
 		maxBurrows = ((config.maxBurrows*(1-config.raptorPerPlayerMultiplier))+(config.maxBurrows*config.raptorPerPlayerMultiplier)*(math.min(SetCount(humanTeams), 8)))*config.raptorSpawnMultiplier
