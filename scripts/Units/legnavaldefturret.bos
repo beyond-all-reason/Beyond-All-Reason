@@ -17,8 +17,6 @@ podFlare3,
 pod4,
 podFlare4;
 
-// static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5,
-//             Static_Var_6, Static_Var_7, restore_delay, wpn1_lasthead;
 
 static-var restore_delay, wpn1_lasthead, whichPod;
 
@@ -91,30 +89,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	// if(whichPod == 0){
-    //     move pod1 to z-axis [-5] now;
-    //     emit-sfx 1024 + 0 from podFlare1;
-    //     sleep 10;
-    //     move pod1 to z-axis [5] speed [5];
-    // }
-	// else if(whichPod == 1){
-    //     move pod2 to z-axis [-5] now;
-    //     emit-sfx 1024 + 0 from podFlare2;
-    //     sleep 10;
-    //     move pod2 to z-axis [5] speed [5];
-    // }
-	// else if(whichPod == 2){
-    //     move pod3 to z-axis [-5] now;
-    //     emit-sfx 1024 + 0 from podFlare3;
-    //     sleep 10;
-    //     move pod3 to z-axis [5] speed [5];
-    // }
-	// else if(whichPod == 3){
-    //     move pod4 to z-axis [-5] now;
-    //     emit-sfx 1024 + 0 from podFlare4;
-    //     sleep 10;
-    //     move pod4 to z-axis [5] speed [5];
-    // }
+
 }
 
 Shot1(zero)

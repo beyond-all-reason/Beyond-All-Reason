@@ -11,9 +11,6 @@ barrelFlare,
 firingPin;
 
 
-// static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5,
-//             Static_Var_6, Static_Var_7, restore_delay, wpn1_lasthead;
-
 static-var restore_delay, wpn1_lasthead;
 
 // Signal definitions
@@ -104,10 +101,6 @@ FirePrimary()
     move firingPin to z-axis [0] speed [4];
 }
 
-// Shot1(zero)
-// {
-
-// }
 
 AimFromPrimary(piecenum)
 {
