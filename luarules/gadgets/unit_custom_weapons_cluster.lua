@@ -138,25 +138,83 @@ for weaponDefID in pairs(removeIDs) do
 	clusterWeaponDefs[weaponDefID] = nil
 end
 
-local unitBulks = {} -- How sturdy the unit is. Projectiles scatter less with lower bulk values.
+local unitBulks = {} -- Projectiles scatter away more against higher bulk values.
 
-for unitDefID, unitDef in pairs(UnitDefs) do
-	local bulkiness = (
-		unitDef.health ^ 0.5 +                               -- HP is log2-ish but that feels too tryhard
-		unitDef.metalCost ^ 0.5 *                            -- Steel (metal) is heavier than feathers (energy)
-		unitDef.xsize * unitDef.zsize * unitDef.radius ^ 0.5 -- We see 'bigger' as 'more solid' not 'less dense'
-	) / minBulkReflect                                       -- Scaled against some large-ish bulk rating
+local function getUnitVolume(unitDef)
+	local mo = unitDef.model
+	local dx = mo.maxx - mo.minx
+	local dy = mo.maxy - mo.miny
+	local dz = mo.maxz - mo.minz
+	local volume = dx * dy * dz
 
-	if unitDef.armorType == Game.armorTypes.wall or unitDef.armorType == Game.armorTypes.indestructable then
-		bulkiness = bulkiness * 2
-	elseif unitDef.customParams.neutral_when_closed then
-		bulkiness = bulkiness * 1.5
+	local cv = unitDef.collisionVolume
+
+	if cv.type == "sphere" or cv.type == "ellipsoid" then
+		-- (4/3)πr => (1/6)πABC
+		return volume * math.pi / 6
+	elseif cv.type == "cylinder" then
+		-- πr²h => (1/4)πABc
+		return volume * math.pi / 4
+	else
+		return volume
 	end
-
-	unitBulks[unitDefID] = min(bulkiness, 1) ^ 0.39 -- Scale bulks to [0,1] and curve them upward towards 1.
 end
 
-local bulkMin = unitBulks[UnitDefNames[minUnitBounces].id] or 0.1
+local useCrushingMass = {
+	wall           = true,
+	indestructable = true,
+}
+
+local bulkDepth = 1
+
+local function getUnitBulk(unitDef)
+	-- Even with lower mass/metal, people see "bigger" as "more solid". Ape brain:
+	local volume = getUnitVolume(unitDef)
+
+	-- Height contributes less bulk, but tall units don't benefit as much from ground deflection.
+	-- Lower units, like Bulls, basically gain ground deflection on top of their unit deflection.
+	local height = math.clamp(unitDef.height, 1, 30) -- So set a height cap.
+
+	-- NB: Mass is absolutely useless. Do not use mass.
+	local fromHealth = sqrt(unitDef.health) -- [1, 1000000] => [1, 1000] approx
+	local fromMetal = sqrt(unitDef.metalCost) -- [0, 50000] => [0, 250] approx
+	local fromVolume = sqrt(volume / height) -- [0, 20000] => [1, 1000] approx
+
+	if useCrushingMass[unitDef.armorType] and unitDef.moveDef then
+		fromMetal = max(fromMetal, sqrt(unitDef.moveDef.crushStrength))
+	end
+
+	local bulkiness = (fromHealth + fromMetal + fromVolume) + sqrt(fromHealth * fromMetal)
+	bulkiness = math.clamp(bulkiness / minBulkReflect, 0, 1) -- Scaled vs. 100% terrain-like.
+	bulkiness = bulkiness ^ 0.57 -- Curve bulks upward, toward 1, to be much more noticeable.
+
+	if unitDef.customParams.decoyfor then
+		local decoyDef = UnitDefNames[unitDef.customParams.decoyfor]
+		if decoyDef then
+			if bulkDepth + 1 > 4 then
+				Spring.Echo("weapons_cluster", "bulkDepth exceeded", unitDef.name)
+				return 0
+			end
+			bulkDepth = bulkDepth + 1
+			local decoyBulk = unitBulks[decoyDef.id] or getUnitBulk(decoyDef)
+			bulkDepth = bulkDepth - 1
+			bulkiness = (bulkiness + decoyBulk) * 0.5 -- cheat slightly
+		end
+	end
+
+	return bulkiness
+end
+
+for unitDefID, unitDef in pairs(UnitDefs) do
+	local bulk = 0
+	if not (unitDef.customParams.decoration or unitDef.customParams.virtualunit) then
+		bulk = tonumber(unitDef.customParams.bulk_rating) or getUnitBulk(unitDef)
+	end
+	unitBulks[unitDefID] = bulk
+end
+
+local bulkMin = UnitDefs[minUnitBounces] and unitBulks[UnitDefs[minUnitBounces].id] or 0.1
+
 for unitDefID in pairs(UnitDefs) do
 	if unitBulks[unitDefID] < bulkMin then
 		unitBulks[unitDefID] = nil
