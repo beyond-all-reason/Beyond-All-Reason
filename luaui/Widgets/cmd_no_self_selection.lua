@@ -5,7 +5,8 @@ function widget:GetInfo()
 		name    = "Ignore Self",
 		desc    = "Avoid self-targeting with default commands (e.g. Guard on self)",
 		author  = "efrec",
-		date    = "2025",
+		date    = "2025-10-13",
+		version = "v1.0",
 		license = "GNU GPL, v2 or later",
 		layer   = -1e9, -- before other w:DefaultCommand
 		enabled = true,
