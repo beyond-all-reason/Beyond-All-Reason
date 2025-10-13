@@ -46,20 +46,25 @@ local spherePackings = {
 DirectionsUtil.GetRandomDirections = function(n)
 	n = n > 1 and n or 1
 	local vecs = {}
+	local math_random = math.random
 
 	for i = 1, 3 * (n - 1) + 1, 3 do
-		local m1, m2, m3, m4    -- Marsaglia procedure:
+		-- Marsaglia procedure:
+		-- The method begins by sampling & rejecting points.
+		-- The result can be transformed into radial coords.
+		local m1, m2, m3, m4
 
-		repeat                  -- The method begins by sampling & rejecting points.
-			m1 = 2 * math.random() - 1 -- The result can be transformed into radial coords.
-			m2 = 2 * math.random() - 1
+		repeat
+			m1 = 2 * math_random() - 1
+			m2 = 2 * math_random() - 1
 			m3 = m1 * m1 + m2 * m2
-		until (m3 < 1)
+		until m3 < 1
 
-		m4 = (1 - m3) ^ 0.5
+		m4 = math.sqrt(1 - m3)
+
 		vecs[i    ] = 2 * m1 * m4 -- x
 		vecs[i + 1] = 2 * m2 * m4 -- y
-		vecs[i + 2] = 1 -  2 * m3  -- z
+		vecs[i + 2] = 1 -  2 * m3 -- z
 	end
 
 	return vecs
