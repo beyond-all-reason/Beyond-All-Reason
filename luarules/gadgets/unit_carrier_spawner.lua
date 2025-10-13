@@ -1608,8 +1608,7 @@ end
 
 function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, defaultPriority)
     if targetID then
-		local spGetTargetable = Spring.GetUnitRulesParam(targetID, "drone_docked_untargetable")
-        if spGetTargetable == 1 then
+        if spGetUnitRulesParam(targetID, "drone_docked_untargetable") == 1 then
             return false, 0
         end
     end
