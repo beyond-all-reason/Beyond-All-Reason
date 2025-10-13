@@ -16,11 +16,11 @@ end
 
 local modOptions                  = Spring.GetModOptions()
 
-local ZOMBIE_GUARD_RADIUS         = 300  -- Radius for zombies to guard allies
+local ZOMBIE_GUARD_RADIUS         = 500  -- Radius for zombies to guard allies
 local ZOMBIE_MAX_ORDER_ATTEMPTS   = 10
 local ZOMBIE_MAX_ORDERS_ISSUED    = 2
 local ZOMBIE_FACTORY_BUILD_COUNT  = 20
-local ZOMBIE_GUARD_CHANCE         = 0.65 -- Chance a zombie will guard allies
+local ZOMBIE_GUARD_CHANCE         = 0.75 -- Chance a zombie will guard allies
 local WARNING_TIME                = 15 * Game.gameSpeed -- Frames to start warning before reanimation
 
 local ZOMBIE_MAX_XP               = 2    -- Maximum experience value for zombies, skewed towards median
@@ -454,6 +454,7 @@ local function updateOrders(unitID, unitDefID, closestKnownEnemy, currentCommand
 		local ordersIssued = 0
 		for attempts = 1, ZOMBIE_MAX_ORDER_ATTEMPTS do
 			local inNoGoZone = false
+			local attemptX, attemptY, attemptZ
 			if not data.isStuck and closestKnownEnemy and weaponRange then
 				local enemyX, enemyY, enemyZ = spGetUnitPosition(closestKnownEnemy)
 				if enemyX and canAttackTarget(unitID, unitDefID, closestKnownEnemy, enemyY) then
@@ -497,17 +498,21 @@ local function updateOrders(unitID, unitDefID, closestKnownEnemy, currentCommand
 					data.isStuck = true
 				end
 
-				attemptY = spGetGroundHeight(attemptX, attemptZ)
-			end
-			for _, zone in ipairs(data.noGoZones) do
-				local dx = attemptX - zone.x
-				local dz = attemptZ - zone.z
-				if (dx * dx + dz * dz) < (NOGO_ZONE_RADIUS * NOGO_ZONE_RADIUS) then
-					inNoGoZone = true
-					break
+				if attemptX then
+					attemptY = spGetGroundHeight(attemptX, attemptZ)
 				end
 			end
 			if attemptX then
+				for _, zone in ipairs(data.noGoZones) do
+					local dx = attemptX - zone.x
+					local dz = attemptZ - zone.z
+					if (dx * dx + dz * dz) < (NOGO_ZONE_RADIUS * NOGO_ZONE_RADIUS) then
+						inNoGoZone = true
+						break
+					end
+				end
+			end
+			if attemptX and attemptY then
 				local POSITION_VARIANCE = 50
 				attemptX = attemptX + random(-POSITION_VARIANCE, POSITION_VARIANCE)
 				attemptZ = attemptZ + random(-POSITION_VARIANCE, POSITION_VARIANCE)
@@ -739,11 +744,11 @@ function gadget:GameFrame(frame)
 			if spGetUnitIsDead(unitID) or not spValidUnitID(unitID) then
 				zombieWatch[unitID] = nil
 			else
-				local REFRESH_ORDERS_CHANCE = 0.01
-				local refreshOrders = random() <= REFRESH_ORDERS_CHANCE
+				local REFRESH_ORDERS_CHANCE = 0.005
 				local queueSize = spGetUnitCommandCount(unitID)
 				local closestKnownEnemy = spGetUnitNearestEnemy(unitID, ENEMY_ATTACK_DISTANCE, true)
 				local currentCommand = spGetUnitCurrentCommand(unitID)
+				local refreshOrders = currentCommand ~= CMD_FIGHT and random() <= REFRESH_ORDERS_CHANCE
 
 				if ordersEnabled and (refreshOrders or 
 				(currentCommand ~= CMD_FIGHT and currentCommand ~= CMD_GUARD and
@@ -898,11 +903,21 @@ local function pacifyZombies(enabled)
 		clearAllOrders()
 	else
 		fireState = FIRE_STATE_FIRE_AT_ALL
+		ordersEnabled = true
 	end
 	for zombieID, _ in pairs(zombieWatch) do
 		if spValidUnitID(zombieID) then
 			Spring.GiveOrderToUnit(zombieID, CMD.FIRE_STATE, fireState)
 		end
+	end
+end
+
+local function suspendAutoOrders(enabled)
+	if enabled then
+		ordersEnabled = false
+		clearAllOrders()
+	else
+		ordersEnabled = true
 	end
 end
 
@@ -1094,6 +1109,27 @@ local function commandPacifyZombies(_, line, words, playerID)
 	Spring.SendMessageToPlayer(playerID, "Zombies " .. (enabled == 1 and "pacified" or "unpacified"))
 end
 
+local function commandSuspendAutoOrders(_, line, words, playerID)
+	if not isAuthorized(playerID) then
+		Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
+		return
+	end
+
+	if #words == 0 then
+		Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombiesuspendorders 0|1")
+		return
+	end
+
+	local enabled = tonumber(words[1])
+	if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
+		Spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
+		return
+	end
+
+	suspendAutoOrders(enabled == 1)
+	Spring.SendMessageToPlayer(playerID, "Zombie auto-orders " .. (enabled == 1 and "suspended" or "resumed"))
+end
+
 local function commandAggroZombiesToTeam(_, line, words, playerID)
 	if not isAuthorized(playerID) then
 		Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
@@ -1269,6 +1305,7 @@ function gadget:Initialize()
 	GG.Zombies.SetAutoSpawning = setAutoSpawning
 	GG.Zombies.ClearAllZombieSpawns = clearAllZombieSpawns
 	GG.Zombies.PacifyZombies = pacifyZombies
+	GG.Zombies.SuspendAutoOrders = suspendAutoOrders
 	GG.Zombies.AggroTeamID = aggroTeamID
 	GG.Zombies.AggroAllyID = aggroAllyID
 	GG.Zombies.KillAllZombies = killAllZombies
@@ -1277,10 +1314,11 @@ function gadget:Initialize()
 	GG.Zombies.GetZombieMode = function() return currentZombieMode end
 
 	gadgetHandler:AddChatAction('zombiesetallgaia', commandSetAllGaiaToZombies, "Set all Gaia units as zombies")
-	gadgetHandler:AddChatAction('zombiequeueall', commandQueueAllCorpsesForReanimation, "Queue all corpses for spawning")
+	gadgetHandler:AddChatAction('zombiequeueallcorpses', commandQueueAllCorpsesForReanimation, "Queue all corpses for spawning")
 	gadgetHandler:AddChatAction('zombieautospawn', commandToggleAutoReanimation, "Enable/disable auto spawning")
 	gadgetHandler:AddChatAction('zombieclearspawns', commandClearZombieSpawns, "Clear all queued zombie spawns")
 	gadgetHandler:AddChatAction('zombiepacify', commandPacifyZombies, "Pacify/unpacify zombies")
+	gadgetHandler:AddChatAction('zombiesuspendorders', commandSuspendAutoOrders, "Suspend/resume zombie auto-orders")
 	gadgetHandler:AddChatAction('zombieaggroteam', commandAggroZombiesToTeam, "Make zombies aggro to specific team")
 	gadgetHandler:AddChatAction('zombieaggroally', commandAggroZombiesToAlly, "Make zombies aggro to entire ally team")
 	gadgetHandler:AddChatAction('zombiekillall', commandKillAllZombies, "Kill all zombies")
@@ -1291,10 +1329,11 @@ end
 
 function gadget:Shutdown()
 	gadgetHandler:RemoveChatAction('zombiesetallgaia')
-	gadgetHandler:RemoveChatAction('zombiequeueall')
+	gadgetHandler:RemoveChatAction('zombiequeueallcorpses')
 	gadgetHandler:RemoveChatAction('zombieautospawn')
 	gadgetHandler:RemoveChatAction('zombieclearspawns')
 	gadgetHandler:RemoveChatAction('zombiepacify')
+	gadgetHandler:RemoveChatAction('zombiesuspendorders')
 	gadgetHandler:RemoveChatAction('zombieaggroteam')
 	gadgetHandler:RemoveChatAction('zombieaggroally')
 	gadgetHandler:RemoveChatAction('zombiekillall')
