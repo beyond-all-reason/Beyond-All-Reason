@@ -381,15 +381,15 @@ local icontypes = {
 	},
 	armnavaldefturret = {
 		bitmap = "icons/defence_t15_gauss_impulse.png",
-		size = 1.3
+		size = 1.6
 	},
 	cornavaldefturret = {
 		bitmap = "icons/defence_t15_plasma_aoe.png",
-		size = 1.3
+		size = 1.6
 	},
 	legnavaldefturret = {
 		bitmap = "icons/defence_t15_rocket.png",
-		size = 1.3
+		size = 1.6
 	},
 	armfhp = {
 		bitmap = "icons/factory_hover.png",
