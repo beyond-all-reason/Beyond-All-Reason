@@ -101,9 +101,7 @@ end
 DirectionsUtil.ProvisionDirections = function(n)
 	if n < 2 or n > DIRECTION_SET_SIZE_MAX then return false end
 
-	local directions = DirectionsUtil.Directions
-
-	if not directions then return false end
+	local directions = DirectionsUtil.Directions or {}
 
 	for i = #directions + 1, n do
 		directions[i] = DirectionsUtil.GetRandomDirections(i)
