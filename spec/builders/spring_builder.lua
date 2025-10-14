@@ -3,7 +3,7 @@ require("spec/builders/team_builder")
 require("common/stringFunctions")
 require("common.tablefunctions")
 
----@class SpringRepositoryBuilder
+---@class SpringBuilder
 ---@field modOptions table
 ---@field teamRulesParams table
 ---@field teams table<number, TeamBuilder> Team builders that provide resource data
@@ -12,8 +12,8 @@ require("common.tablefunctions")
 ---@field gameFrame number
 ---@field cheatingEnabled boolean
 ---@field initialUnits table<number, table<number, string>>
-local SpringRepositoryBuilder = {}
-SpringRepositoryBuilder.__index = SpringRepositoryBuilder
+local SB = {}
+SB.__index = SB
 
 ---Get comprehensive default mod options required for unitdefs and alldefs_post.lua loading
 ---@return table
@@ -89,8 +89,8 @@ local function getUnitDefRequireModoptionDefaults()
     }
 end
 
----@return SpringRepositoryBuilder
-function SpringRepositoryBuilder.new()
+---@return SpringBuilder
+function SB.new()
     return setmetatable({
         modOptions = {},
         teamRulesParams = {}, -- teamID -> paramName -> value
@@ -100,32 +100,32 @@ function SpringRepositoryBuilder.new()
         gameFrame = 1,
         cheatingEnabled = false,
         _globalUnitDefs = nil -- Shared unit definitions cache
-    }, SpringRepositoryBuilder)
+    }, SB)
 end
 
----@param self SpringRepositoryBuilder
+---@param self SpringBuilder
 ---@param options table
----@return SpringRepositoryBuilder
-function SpringRepositoryBuilder:WithModOptions(options)
+---@return SpringBuilder
+function SB:WithModOptions(options)
     self.modOptions = options
     return self
 end
 
----@param self SpringRepositoryBuilder
+---@param self SpringBuilder
 ---@param key string
 ---@param value any
----@return SpringRepositoryBuilder
-function SpringRepositoryBuilder:WithModOption(key, value)
+---@return SpringBuilder
+function SB:WithModOption(key, value)
     self.modOptions[key] = value
     return self
 end
 
 
----@param self SpringRepositoryBuilder
+---@param self SpringBuilder
 ---@param team1ID number
 ---@param team2ID number
----@return SpringRepositoryBuilder
-function SpringRepositoryBuilder:WithAlliance(team1ID, team2ID, isAllied)
+---@return SpringBuilder
+function SB:WithAlliance(team1ID, team2ID, isAllied)
     if isAllied == nil then isAllied = true end -- Default to allied for backward compatibility
     self.alliances[team1ID] = self.alliances[team1ID] or {}
     self.alliances[team2ID] = self.alliances[team2ID] or {}
@@ -134,24 +134,23 @@ function SpringRepositoryBuilder:WithAlliance(team1ID, team2ID, isAllied)
     return self
 end
 
----@param self SpringRepositoryBuilder
+---@param self SpringBuilder
 ---@param frame number
----@return SpringRepositoryBuilder
-function SpringRepositoryBuilder:WithGameFrame(frame)
+---@return SpringBuilder
+function SB:WithGameFrame(frame)
     self.gameFrame = frame
     return self
 end
 
----@param self SpringRepositoryBuilder
----@return SpringRepository
-function SpringRepositoryBuilder:Build()
-    return self:BuildSpringRepository()
+---@param self SpringBuilder
+---@return ISpring
+function SB:Build()
+    return self:BuildSpring()
 end
 
----Build just the SpringRepository mock
----@param self SpringRepositoryBuilder
+---@param self SpringBuilder
 ---@return table
-function SpringRepositoryBuilder:BuildSpringRepository()
+function SB:BuildSpring()
     local instance = self
 
     -- Build all teams for use throughout the repository
@@ -456,11 +455,11 @@ function SpringRepositoryBuilder:BuildSpringRepository()
     return springRepo
 end
 
----Temporarily install minimal global Spring/VFS/Game/LOG to allow real unitdefs load
----@param self SpringRepositoryBuilder
+---Temporarily install minimal global Spring/VFS/Game/LOG (spec_helper does some of this but we try for thoroughness) to allow real unitdefs load
+---@param self SpringBuilder
 ---@param fn fun()
 ---@param persist? boolean If true, don't clean up globals after execution
-function SpringRepositoryBuilder:WithGlobalsDefined(fn, persist)
+function SB:WithGlobalsDefined(fn, persist)
     local instance = self
     -- Save current globals
     local prevSpring = _G.Spring
@@ -473,9 +472,9 @@ function SpringRepositoryBuilder:WithGlobalsDefined(fn, persist)
 
     -- Set up mocks for the duration of the function
     _G.Spring = _G.Spring or {}
-    local springRepo = self:BuildSpringRepository()
+    local springRepo = self:BuildSpring()
 
-    -- Expose all SpringRepository functions to global Spring object
+    -- Expose all Spring functions to global Spring object
     _G.Spring.GetModOptions = function()
         -- Start with comprehensive defaults, then override with explicitly set mod options
         local modOptions = getUnitDefRequireModoptionDefaults()
@@ -538,10 +537,10 @@ function SpringRepositoryBuilder:WithGlobalsDefined(fn, persist)
 end
 
 
----@param self SpringRepositoryBuilder
+---@param self SpringBuilder
 ---@param teamBuilder TeamBuilder The team builder instance
----@return SpringRepositoryBuilder
-function SpringRepositoryBuilder:WithTeam(teamBuilder)
+---@return SpringBuilder
+function SB:WithTeam(teamBuilder)
     if not teamBuilder.id then
         error("TeamBuilder must have an id field. teamBuilder: " .. table.toString(teamBuilder))
     end
@@ -549,9 +548,9 @@ function SpringRepositoryBuilder:WithTeam(teamBuilder)
     return self
 end
 
----@param self SpringRepositoryBuilder
----@return SpringRepositoryBuilder
-function SpringRepositoryBuilder:WithRealUnitDefs()
+---@param self SpringBuilder
+---@return SpringBuilder
+function SB:WithRealUnitDefs()
     if not self._globalUnitDefs then
         self:WithGlobalsDefined(function()
             -- Load unitdefs with proper VFS/Spring globals set up
@@ -587,4 +586,4 @@ function SpringRepositoryBuilder:WithRealUnitDefs()
 end
 
 
-return SpringRepositoryBuilder
+return SB

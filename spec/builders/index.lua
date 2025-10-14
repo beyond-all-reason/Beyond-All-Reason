@@ -1,12 +1,12 @@
 local TeamBuilder = require("spec/builders/team_builder")
-local SpringRepositoryBuilder = require("spec/builders/spring_repository_builder")
+local SpringBuilder = require("spec/builders/spring_builder")
 
 ---@class Builders
 ---@field Team TeamBuilder
----@field SpringRepository SpringRepositoryBuilder
+---@field Spring SpringBuilder
 local Builders = {
     Team = TeamBuilder,
-    SpringRepository = SpringRepositoryBuilder,
+    Spring = SpringBuilder
 }
 
 return Builders
