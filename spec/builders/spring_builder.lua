@@ -11,6 +11,7 @@ require("common.tablefunctions")
 ---@field alliances table
 ---@field gameFrame number
 ---@field cheatingEnabled boolean
+---@field _builtTeams table? -- Internal field for testing
 ---@field initialUnits table<number, table<number, string>>
 local SB = {}
 SB.__index = SB
@@ -143,6 +144,17 @@ function SB:WithGameFrame(frame)
 end
 
 ---@param self SpringBuilder
+---@param teamID number
+---@param key string
+---@param value any
+---@return SpringBuilder
+function SB:WithTeamRulesParam(teamID, key, value)
+    self.teamRulesParams[teamID] = self.teamRulesParams[teamID] or {}
+    self.teamRulesParams[teamID][key] = value
+    return self
+end
+
+---@param self SpringBuilder
 ---@return ISpring
 function SB:Build()
     return self:BuildSpring()
@@ -151,6 +163,7 @@ end
 ---@param self SpringBuilder
 ---@return ISpring
 function SB:BuildSpring()
+    ---@type SpringBuilder
     local instance = self
 
     -- Build all teams for use throughout the repository
@@ -180,20 +193,8 @@ function SB:BuildSpring()
             end
         end
     end
-    -- Team rules params storage for testing - shared with builder instance
-    if not instance.rulesParams then
-        instance.rulesParams = {}
-    end
-    local rulesParams = instance.rulesParams
-
-    -- Add methods to the builder instance too
-    instance.GetTeamRulesParam = function(teamID, key)
-        return rulesParams[teamID] and rulesParams[teamID][key] or nil
-    end
-    instance.SetTeamRulesParam = function(teamID, key, value)
-        rulesParams[teamID] = rulesParams[teamID] or {}
-        rulesParams[teamID][key] = value
-    end
+    -- Use the team rules params configured via WithTeamRulesParam
+    local rulesParams = instance.teamRulesParams
 
     -- Helper function for getting team resource data
     local function getTeamResourceData(teamID, resourceType)
