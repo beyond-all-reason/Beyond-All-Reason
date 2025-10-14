@@ -66,7 +66,15 @@ local options = {
         section	= "options_main",
         def    	= true,
     },
-
+    
+    {
+        key        = "team_resign",
+        name       = "Team Resign",
+        desc       = "Forbids individual resign when true",
+        type       = "bool",
+        def        = false,
+        section    = "options_main",
+    },
 
     {
         key    	= "allowuserwidgets",
