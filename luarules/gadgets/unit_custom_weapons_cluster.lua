@@ -269,12 +269,8 @@ end
 ---Deflection from solid terrain and unit collider surfaces plus water by depth.
 local function getSurfaceDeflection(x, y, z)
 	local elevation = spGetGroundHeight(x, z)
-	local separation -- distance to "solid" surface
-	local dx, dy, dz -- direction of response
-	local slope
-
-	separation = y - elevation
-	dx, dy, dz, slope = spGetGroundNormal(x, z, true)
+	local separation = y - elevation
+	local dx, dy, dz, slope = spGetGroundNormal(x, z, true)
 
 	-- On sloped terrain, the nearest point on the surface is up the slope.
 	if slope > 0.1 or slope * separation > 10 then
