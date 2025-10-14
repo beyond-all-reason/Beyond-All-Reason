@@ -26,7 +26,7 @@ return {
 		maxdamage = 3400,
 		maxvelocity = 2.25,
 		minwaterdepth = 15,
-		movementclass = "BOAT8",
+		movementclass = "BOAT9",
 		nochasecategory = "VTOL",
 		objectname = "Units/armtrident.s3o",
 		script = "Units/armtrident_clean.cob",
