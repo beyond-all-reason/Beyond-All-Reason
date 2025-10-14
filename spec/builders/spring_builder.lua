@@ -149,7 +149,7 @@ function SB:Build()
 end
 
 ---@param self SpringBuilder
----@return table
+---@return ISpring
 function SB:BuildSpring()
     local instance = self
 
@@ -160,6 +160,26 @@ function SB:BuildSpring()
     end
     -- Store built teams for access by other functions
     instance._builtTeams = builtTeams
+
+    -- Integrate real unit definitions into built teams if available
+    if instance._globalUnitDefs then
+        for teamId, builtTeam in pairs(builtTeams) do
+            if builtTeam.units then
+                for unitId, unitWrapper in pairs(builtTeam.units) do
+                    if unitWrapper.unitDefId and instance._globalUnitDefs[unitWrapper.unitDefId] then
+                        -- Populate unit wrapper with real unit definition data
+                        local unitDef = instance._globalUnitDefs[unitWrapper.unitDefId]
+                        for k, v in pairs(unitDef) do
+                            if unitWrapper[k] == nil then  -- Don't overwrite existing fields
+                                unitWrapper[k] = v
+                            end
+                        end
+                        unitWrapper.unitDef = unitDef
+                    end
+                end
+            end
+        end
+    end
     -- Team rules params storage for testing - shared with builder instance
     if not instance.rulesParams then
         instance.rulesParams = {}
@@ -199,7 +219,7 @@ function SB:BuildSpring()
         end
     end
 
-    local springRepo = {
+    local mock = {
         CMD = Spring and Spring.CMD or {
             LOAD_ONTO = 1,
             SELFD = 2,
@@ -224,7 +244,7 @@ function SB:BuildSpring()
         GetLoggedMessages = function()
             return instance.logMessages
         end,
-        AreAlliedTeams = function(self, team1ID, team2ID)
+        AreAlliedTeams = function(team1ID, team2ID)
             if team1ID == team2ID then return true end
             -- Check explicit alliance settings first
             if instance.alliances[team1ID] and instance.alliances[team1ID][team2ID] ~= nil then
@@ -258,7 +278,7 @@ function SB:BuildSpring()
             return teams
         end,
 
-        GetTeamResources = function(self, teamID, resourceType)
+        GetTeamResources = function(teamID, resourceType)
             local data = getTeamResourceData(teamID, resourceType)
             -- Return in Spring engine format: current, storage, pull, income, expense, share, sent, received
             return data.current, data.storage, data.pull, data.income, data.expense, data.share, data.sent, data.received
@@ -309,10 +329,13 @@ function SB:BuildSpring()
         end
     }
 
+    -- Make built teams accessible for testing/debugging
+    mock._builtTeams = builtTeams
+
     -- Add functions that reference other functions in the table
-    springRepo.GetPlayerList = function(self, teamID)
+    mock.GetPlayerList = function(teamID)
         -- Spring.GetPlayerList returns player IDs, not TeamInfo objects
-        local teamList = self.GetTeamList()
+        local teamList = mock.GetTeamList()
         if not teamList then return nil end
 
         if teamID then
@@ -332,8 +355,8 @@ function SB:BuildSpring()
         return playerIds
     end
 
-    springRepo.GetTeamUnits = function(self, teamID)
-        local teamData = builtTeams[teamID]
+    mock.GetTeamUnits = function(teamID)
+        local teamData = mock._builtTeams[teamID]
         if not teamData or not teamData.units then
             return {}
         end
@@ -346,9 +369,9 @@ function SB:BuildSpring()
         return unitMap
     end
 
-    springRepo.GetUnitTeam = function(self, unitID)
+    mock.GetUnitTeam = function(unitID)
         -- Find which team owns this unit
-        local bt = self._builtTeams or builtTeams
+        local bt = mock._builtTeams
         for teamId, teamBuilder in pairs(bt) do
             if teamBuilder.units then
                 for uId, uData in pairs(teamBuilder.units) do
@@ -361,8 +384,8 @@ function SB:BuildSpring()
         return nil -- Unit not found
     end
 
-    springRepo.GetUnitDefID = function(self, unitID)
-        local bt = self._builtTeams or builtTeams
+    mock.GetUnitDefID = function(unitID)
+        local bt = mock._builtTeams or builtTeams
         for teamId, teamBuilder in pairs(bt) do
             if teamBuilder.units then
                 for storedUnitId, unitWrapper in pairs(teamBuilder.units) do
@@ -375,12 +398,12 @@ function SB:BuildSpring()
         return nil -- Unit not found
     end
 
-    springRepo.GiveOrderToUnit = function(unitID, cmdID, params, options)
+    mock.GiveOrderToUnit = function(unitID, cmdID, params, options)
         -- Mock implementation - spy to record that the method was called
         return true
     end
 
-    springRepo.AddTeamResource = function(teamID, resourceType, amount)
+    mock.AddTeamResource = function(teamID, resourceType, amount)
         local teamData = builtTeams[teamID]
         if teamData then
             if resourceType == "metal" then
@@ -392,7 +415,7 @@ function SB:BuildSpring()
         return true, amount
     end
 
-    springRepo.ValidUnitID = function(unitID)
+    mock.ValidUnitID = function(unitID)
         -- Check if unit exists in any team
         for teamId, teamBuilder in pairs(builtTeams) do
             if teamBuilder.units and teamBuilder.units[unitID] then
@@ -402,11 +425,11 @@ function SB:BuildSpring()
         return false
     end
 
-    springRepo.TransferUnit = function(self, unitID, newTeamID, given)
+    mock.TransferUnit = function(unitID, newTeamID, given)
         -- Find current team
         local currentTeamID = nil
         local unitDefID = nil
-        local bt = self._builtTeams or builtTeams
+        local bt = mock._builtTeams or builtTeams
         for teamId, teamBuilder in pairs(bt) do
             if teamBuilder.units and teamBuilder.units[unitID] then
                 currentTeamID = teamId
@@ -440,7 +463,7 @@ function SB:BuildSpring()
         return true
     end
 
-    springRepo.AreTeamsAllied = function(teamA, teamB)
+    mock.AreTeamsAllied = function(teamA, teamB)
         -- Mock implementation - check if alliance was set up
         local teamAId = type(teamA) == "table" and (teamA.id or tostring(teamA)) or tostring(teamA)
         local teamBId = type(teamB) == "table" and (teamB.id or tostring(teamB)) or tostring(teamB)
@@ -448,11 +471,11 @@ function SB:BuildSpring()
         return instance.alliances[allianceKey] or false
     end
 
-    springRepo.IsCheatingEnabled = function()
+    mock.IsCheatingEnabled = function()
         return false
     end
 
-    return springRepo
+    return mock
 end
 
 ---Temporarily install minimal global Spring/VFS/Game/LOG (spec_helper does some of this but we try for thoroughness) to allow real unitdefs load
@@ -472,7 +495,7 @@ function SB:WithGlobalsDefined(fn, persist)
 
     -- Set up mocks for the duration of the function
     _G.Spring = _G.Spring or {}
-    local springRepo = self:BuildSpring()
+    local mock = self:BuildSpring()
 
     -- Expose all Spring functions to global Spring object
     _G.Spring.GetModOptions = function()
@@ -484,25 +507,25 @@ function SB:WithGlobalsDefined(fn, persist)
         end
         return modOptions
     end
-    _G.Spring.GetGameFrame = springRepo.GetGameFrame
-    _G.Spring.IsCheatingEnabled = springRepo.IsCheatingEnabled
+    _G.Spring.GetGameFrame = mock.GetGameFrame
+    _G.Spring.IsCheatingEnabled = mock.IsCheatingEnabled
     -- Don't override Spring.Log if it's already set by spec_helper
     if not _G.Spring.Log then
-        _G.Spring.Log = springRepo.Log
+        _G.Spring.Log = mock.Log
     end
-    _G.Spring.AreAlliedTeams = springRepo.AreAlliedTeams
-    _G.Spring.GetTeamRulesParam = springRepo.GetTeamRulesParam
-    _G.Spring.SetTeamRulesParam = springRepo.SetTeamRulesParam
-    _G.Spring.GetUnitDefID = springRepo.GetUnitDefID
-    _G.Spring.ValidUnitID = springRepo.ValidUnitID
+    _G.Spring.AreAlliedTeams = mock.AreAlliedTeams
+    _G.Spring.GetTeamRulesParam = mock.GetTeamRulesParam
+    _G.Spring.SetTeamRulesParam = mock.SetTeamRulesParam
+    _G.Spring.GetUnitDefID = mock.GetUnitDefID
+    _G.Spring.ValidUnitID = mock.ValidUnitID
 
     -- Use the builder's configured team data (returns proper TeamInfo objects)
-    _G.Spring.GetTeamList = springRepo.GetTeamList
-    _G.Spring.GetPlayerIdsList = springRepo.GetPlayerIdsList
+    _G.Spring.GetTeamList = mock.GetTeamList
+    _G.Spring.GetPlayerIdsList = mock.GetPlayerIdsList
 
     -- Include GetTeamResources with proper return types
-    _G.Spring.GetTeamResources = springRepo.GetTeamResources
-    _G.Spring.GetPlayerList = springRepo.GetPlayerList
+    _G.Spring.GetTeamResources = mock.GetTeamResources
+    _G.Spring.GetPlayerList = mock.GetPlayerList
 
     -- Additional Spring functions that may be needed
     _G.Spring.GetTeamLuaAI = function(_) return nil end

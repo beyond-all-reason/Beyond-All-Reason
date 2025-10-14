@@ -106,4 +106,33 @@ You can also inspect objects for more verbose output inline:
 print(inspect(someObject))
 ```
 
-Note that in spec files we use `require("relative/path/to/file")`, which VFS.Include is aliased to in spec_helper, allowing implementations to keep using VFS.Include.
+##### Important to note `require`
+
+Note: that in spec files we use `require("relative/path/to/file")`. VFS.Include is just an alias for require in our `spec_helper.lua`
+
+#### Test Switcher Configuration
+
+VSCode Plugin: https://marketplace.visualstudio.com/items?itemName=bmalehorn.test-switcher
+
+Then, open your user settings as json (command search -> `Preferences: Open User Settings (JSON)`) and add:
+
+```json
+    "test-switcher.rules": [
+        {
+            "pattern": "spec/(.*)_spec\\.lua",
+            "replacement": "$1.lua"
+        },
+        {
+            "pattern": "(luarules|common|luaui|gamedata)/(.*)\\.lua",
+            "replacement": "spec/$1/$2_spec.lua"
+        },
+        {
+            "pattern": "spec/builder_specs/(.*)_spec\\.lua",
+            "replacement": "spec/builders/$1.lua"
+        },
+        {
+            "pattern": "spec/builders/(.*)\\.lua",
+            "replacement": "spec/builder_specs/$1_spec.lua"
+        }
+    ],
+```
