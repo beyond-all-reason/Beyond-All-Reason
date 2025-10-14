@@ -1,4 +1,3 @@
-
 local voidWater = false
 local waterLevel = Spring.GetModOptions().map_waterlevel
 local waterIsLava = Spring.Lava.isLavaMap
@@ -65,8 +64,8 @@ local unitlist = {
 	{'corsolar','cortide'},
 	{'armlab','armsy'},
 	{'corlab','corsy'},
-	{'armllt','armtl'},
-	{'corllt','cortl'},
+	{'armdl','armtl'},
+	{'cordl','cortl'},
 	{'armnanotc','armnanotcplat'},
 	{'cornanotc','cornanotcplat'},
 	{'armvp','armamsub'},
@@ -79,30 +78,39 @@ local unitlist = {
 	{'armageo','armuwageo'},
 	{'corgeo','coruwgeo'},
 	{'corageo','coruwageo'},
+	{'armferret','armfrock'},
+    {'cormadsam','corfrock'},
 }
 
 
-
 local legionUnitlist = {
+	{'legeconv','legfeconv'},
+	{'legmstor','leguwmstore'},
+	{'legestor','leguwestore'},
+	{'legdrag','legfdrag'},
+	{'legctl','legtl'},
+	{'legflak','corenaa'},
+	{'leggeo','leguwgeo'},
+	{'legageo','coruwageo'},
+	{'legmg','legfmg'},
 	--{'cormakr','legfmkr'},
 	--{'cordrag','corfdrag'},
 	--{'cormstor', 'coruwms'},
 	--{'corestor', 'coruwes'},
 	--{'legrl','corfrt'},--
 	{'leghp','legfhp'},
-	--{'legrad','corfrad'},--asym pairs cannot overlap with core placeholders
+	{'legrad','legfrad'},
 	--{'legmg','corfhlt'},--
 	--{'cortarg','corfatf'},
 	--{'cormmkr','coruwmmm'},
 	--{'corfus','coruwfus'},
 	--{'corflak','corenaa'},
-	--{'cormoho','coruwmme'},--does this combo actually manifest on anything...?
+	{'legmoho','coruwmme'},
 	{'legsolar','legtide'},
 	--{'leglab','corsy'},--soon(tm)
-	{'leglht','legtl'},
 	{'leghive', 'legfhive'},
 	--{'cornanotc','cornanotcplat'},
-	{'legvp','legamsub'},
+	{'legvp','legamphlab'},
 	--{'corap','corplat'},
 	--{'corasp','corfasp'},
 	--{'corgeo','coruwgeo'},
@@ -294,5 +302,3 @@ function widget:Initialize()
 
 	for _,unitNames in ipairs(unitlist) do
 		addUnitDefPair(unitNames[1], unitNames[2])
-	end
-end
