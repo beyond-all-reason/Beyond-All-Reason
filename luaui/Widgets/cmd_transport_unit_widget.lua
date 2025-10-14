@@ -30,7 +30,7 @@ local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
 
 local CMDTYPE_ICON_MAP = CMDTYPE.ICON_MAP
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
-local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
+local CMD_UNLOAD_UNIT = CMD.UNLOAD_UNIT
 local CMD_STOP = CMD.STOP
 local CMD_WAIT = CMD.WAIT
 local CMD_INSERT = CMD.INSERT
@@ -46,13 +46,12 @@ local CMD_TRANSPORT_TO_DESC = {
 	action = "transport_to",
 }
 
-local CMD_AUTO_TRANSPORT = GameCMD.AUTO_TRANSPORT
-
 local MOVE_IF_NONE_FOUND = true
 local RETURN_TO_START_POS = true
 local HEAVY_TRANSPORT_MASS_THRESHOLD = 3000
 local LIGHT_UNIT_SIZE_THRESHOLD = 6
-local UNLOAD_RADIUS = 10
+--having transports in repeat breaks this widget, so we are not going to consider them
+local CONSIDER_TRANSPORTS_IN_REPEAT = false
 
 local function distanceSq(ax, az, bx, bz)
 	local dx, dz = ax - bx, az - bz
@@ -76,7 +75,8 @@ local unitMass = {}
 local unitXsize = {}
 
 local knownTransports = setmetatable({}, { __mode = "k" })
-local busyTransport = {}
+local busyTransport = {} --false:idle, "active":doing something, "returning":going back to start pos
+local transportStartPosition = {}
 --since threads cant yield, we use this to solve requests in the next update
 local pendingRequests = {}
 --keeps track of which transport is handling which transportee
@@ -185,6 +185,8 @@ local function refreshKnownTransports()
 		local defID = spGetUnitDefID(u)
 		if defID and isTransportDef[defID] then
 			knownTransports[u] = true
+			Echo("updating start position, reset")
+			transportStartPosition[u] = transportStartPosition[u] or { spGetUnitPosition(u) }
 		end
 	end
 end
@@ -193,7 +195,10 @@ local function pickBestTransport(unitID, ux, uz, unitDefID)
 	local wantType = unitRequestedType(unitDefID)
 	local bestLight, bestLightD, bestHeavy, bestHeavyD
 	for transportID in pairs(knownTransports) do
-		if not busyTransport[transportID] then
+		if
+			(not busyTransport[transportID] or busyTransport[transportID] == "returning")
+			and not (CONSIDER_TRANSPORTS_IN_REPEAT == true and isOnRepeat(transportID))
+		then
 			local tDefID = spGetUnitDefID(transportID)
 			if tDefID then
 				local ok, reason = canTransportWithReason(transportID, tDefID, unitID, unitDefID)
@@ -229,9 +234,10 @@ local function pickBestTransport(unitID, ux, uz, unitDefID)
 	return nil, nil
 end
 
-local function issuePickupAndDrop(transportID, unitID, target)
+--this is the part that does the flight path calcuation
+local function issuePickupAndDrop(transportID, unitID)
 	local chainedTargets = {}
-	local ux, uy, uz = spGetUnitPosition(transportID)
+	local endtx, endty, endtz
 	local chainLenght = 0
 	for _, cmd in ipairs(spGetUnitCommands(unitID, -1)) do
 		if cmd.id == CMD_TRANSPORT_TO then
@@ -241,17 +247,26 @@ local function issuePickupAndDrop(transportID, unitID, target)
 			break
 		end
 	end
+	GiveOrderToUnit(transportID, CMD_STOP, {}, 0)
 	GiveOrderToUnit(transportID, CMD_LOAD_UNITS, { unitID }, 0)
 	for index, cmd in ipairs(chainedTargets) do
 		if index == #chainedTargets then
-			GiveOrderToUnit(
-				transportID,
-				CMD_UNLOAD_UNITS,
-				{ cmd.params[1], cmd.params[2], cmd.params[3], UNLOAD_RADIUS },
-				{ "shift" }
-			)
+			GiveOrderToUnit(transportID, CMD_UNLOAD_UNIT, { cmd.params[1], cmd.params[2], cmd.params[3] }, { "shift" })
+			endtx, endty, endtz = cmd.params[1], cmd.params[2], cmd.params[3]
 		else
 			GiveOrderToUnit(transportID, CMD_MOVE, { cmd.params[1], cmd.params[2], cmd.params[3] }, { "shift" })
+		end
+	end
+	return endtx, endty, endtz
+end
+
+function isOnRepeat(unitID)
+	local cmds = Spring.GetUnitCommands(unitID, -1)
+	for _, cmd in ipairs(cmds) do
+		if cmd.id == CMD.REPEAT then
+			local mode = cmd.params[1]
+			-- Spring.Echo("Repeat mode is:", mode)
+			return mode == 1
 		end
 	end
 end
@@ -266,8 +281,6 @@ function widget:Initialize()
 	reloadBindings()
 	Spring.AssignMouseCursor("transto", "cursortransport")
 	Spring.SetCustomCommandDrawData(CMD_TRANSPORT_TO, "transto", { 1, 1, 1, 1 })
-
-	widgetHandler.actionHandler:AddAction(self, "blueprint_create", handleCMDTRANSPORT_TO_ACTION, nil, "p")
 end
 
 function widget:PlayerChanged(playerID)
@@ -287,6 +300,11 @@ function widget:MetaUnitAdded(unitID, unitDefID, teamID)
 	if isTransportDef[unitDefID] then
 		knownTransports[unitID] = true
 	end
+	if isTransportDef[unitDefID] then
+		busyTransport[unitID] = nil
+		local x, y, z = spGetUnitPosition(unitID)
+		transportStartPosition[unitID] = { x, y, z }
+	end
 end
 
 function widget:UnitIdle(unitID, unitDefID, unitTeam)
@@ -305,7 +323,6 @@ function widget:MetaUnitRemoved(unitID, unitDefID, teamID)
 	if i then
 		remove_transport_job(i)
 	end
-	remove_transport_job(unitID)
 end
 
 function widget:CommandsChanged()
@@ -331,12 +348,18 @@ function widget:CommandNotify(cmdID, params, opts)
 	local selected = Spring.GetSelectedUnits()
 	--if multiple units are selected, then let customFormations2 handle the command,
 	--else both left and right click give the command, which is not how it works with the rest of commands handled by customFormations2
-	if cmdID ~= CMD_TRANSPORT_TO then
-		for index, uID in pairs(selected) do
+	for index, uID in pairs(selected) do
+		if not opts.shift then
 			local i = does_unitHaveTransportJob(uID)
 			if i then
 				remove_transport_job(i)
 			end
+		end
+		--fuck it, just go back to where ever the player left u
+		local unitDefID = spGetUnitDefID(uID)
+		if isTransportDef[unitDefID] and RETURN_TO_START_POS and cmdID == CMD_MOVE then
+			Echo("updating start position, notify")
+			transportStartPosition[uID] = params
 		end
 	end
 
@@ -344,12 +367,18 @@ function widget:CommandNotify(cmdID, params, opts)
 end
 
 function widget:UnitCommandNotify(uID, cmdID, cmdParams, cmdOpts)
-	local queue = spGetUnitCommands(uID, -1)
-	if cmdID ~= CMD_TRANSPORT_TO then
+	local uDefID = spGetUnitDefID(uID)
+	if not cmdOpts.shift then
 		local i = does_unitHaveTransportJob(uID)
 		if i then
 			remove_transport_job(i)
 		end
+	end
+	--fuck it, just go back to where ever the player left u
+	local unitDefID = spGetUnitDefID(uID)
+	if isTransportDef[unitDefID] and RETURN_TO_START_POS and cmdID == CMD_MOVE then
+		Echo("updating start position, notify")
+		transportStartPosition[uID] = cmdParams
 	end
 end
 
@@ -379,22 +408,30 @@ function widget:Update(dt)
 		local tID, cls = solveTransportee(transporteeID, params)
 		if tID and isValidAndMine(tID) then
 			pendingRequests[index] = nil
-			local tx, ty, tz = spGetUnitPosition(tID)
-			busyTransport[tID] = true
+			busyTransport[tID] = "active"
 			transport_jobs[transporteeID] = {
 				transport = tID,
 				transportee = transporteeID,
 				target = params,
 				pos = { ux, uy, uz },
-				tpos = { tx, ty, tz },
 			}
-			issuePickupAndDrop(tID, transporteeID, params)
+			local endx, endy, endz = issuePickupAndDrop(tID, transporteeID)
+			transport_jobs[transporteeID].endx = endx
+			transport_jobs[transporteeID].endy = endy
+			transport_jobs[transporteeID].endz = endz
+			ClearUnitMoveGoal(transporteeID)
 		else
 			if MOVE_IF_NONE_FOUND and isCanMoveDef[transporteeDefID] then
-				pendingRequests[index] = nil
-				local queue = spGetUnitCommands(transporteeID, -1)
+				-- pendingRequests[index] = nil
 				transportee_skip_transport_to(transporteeID)
 			end
+		end
+	end
+	--sometimes it wont stop the first try, so we are going to make it stop every update
+	for index, pair in pairs(transport_jobs) do
+		local transporteeID = pair.transportee
+		if transporteeID then
+			ClearUnitMoveGoal(transporteeID)
 		end
 	end
 end
@@ -402,34 +439,41 @@ end
 function remove_transport_job(index, gracefull)
 	local transport = transport_jobs[index].transport
 	if isValidAndMine(transport) and RETURN_TO_START_POS then
-		local tpos = transport_jobs[index].tpos
-		GiveOrderToUnit(transport, CMD_MOVE, tpos, 0)
+		local tpos = transportStartPosition[transport]
+		GiveOrderToUnit(transport, CMD_STOP, {}, 0)
+		SetUnitMoveGoal(transport, tpos[1], tpos[2], tpos[3])
+		busyTransport[transport] = "returning"
 	end
 	local transportee = transport_jobs[index].transportee
-	if isValidAndMine(transportee) and MOVE_IF_NONE_FOUND and not gracefull then
-		transportee_skip_transport_to(transportee)
+	if isValidAndMine(transportee) then
+		local currentCmd, options, tag, x, y, z = spGetUnitCurrentCommand(transportee)
+		if currentCmd and currentCmd == CMD_TRANSPORT_TO then
+			--if it stills has a transport to command, we need to reissue
+			pend_solveTransportee(transportee, { x, y, z })
+		end
+		if MOVE_IF_NONE_FOUND and not gracefull then
+			transportee_skip_transport_to(transportee)
+		end
 	end
 	busyTransport[transport] = nil
 	transport_jobs[index] = nil
 end
 
+--Widgets can call these functions, so we need the gadget to do it
+function SetUnitMoveGoal(unitID, x, y, z)
+	local msg = string.format("POS|%d|%f|%f|%f", unitID, x, y, z)
+	Spring.SendLuaRulesMsg(msg)
+end
+
+function ClearUnitMoveGoal(UnitID)
+	local msg = string.format("TSTP|%d", UnitID)
+	Spring.SendLuaRulesMsg(msg)
+end
+
 function transportee_skip_transport_to(unitID)
 	local queue = spGetUnitCommands(unitID, -1)
 	if queue[1] and queue[1].id == CMD_TRANSPORT_TO then
-		local params = queue[1].params
-		local target = { params[1], params[2], params[3] }
-		local newOrders = {}
-		local skip = true
-		for index, command in ipairs(queue) do
-			if skip and command.id == CMD_TRANSPORT_TO then
-			--skip
-			else
-				skip = false
-				table.insert(newOrders, { command.id, command.params, command.options })
-			end
-		end
-		GiveOrderToUnit(unitID, CMD_MOVE, target, 0)
-		Spring.GiveOrderArrayToUnit(unitID, newOrders)
+		SetUnitMoveGoal(unitID, queue[1].params[1], queue[1].params[2], queue[1].params[3])
 	end
 end
 
@@ -504,6 +548,16 @@ end
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	if not unitTeam or not AreTeamsAllied(unitTeam, myTeamID) then
 		return
+	end
+	if cmdID == CMD_TRANSPORT_TO and cmdOpts.shift then
+		local i = does_unitHaveTransportJob(unitID)
+		-- local tjob = transport_jobs[i]
+		--i have no idea why issuePickupAndDrop does not work here, so we are just going to remove the job and let the update reissue it
+		if i then
+			-- Echo("reissuing transport to")
+			-- issuePickupAndDrop(tjob.transport, tjob.transportee)
+			remove_transport_job(i, true)
+		end
 	end
 	local currentCmd, options = spGetUnitCurrentCommand(unitID)
 	local commandQueue = spGetUnitCommands(unitID, -1)
