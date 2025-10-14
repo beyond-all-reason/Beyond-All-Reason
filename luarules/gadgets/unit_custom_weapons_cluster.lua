@@ -175,7 +175,7 @@ local function getUnitBulk(unitDef)
 	-- Lower units, like Bulls, basically gain ground deflection on top of their unit deflection.
 	local height = math.clamp(unitDef.height, 1, 30) -- So set a height cap.
 
-	-- NB: Mass is absolutely useless. Do not use mass.
+	-- NB: Mass is useless for us here. It serves several arbitrary purposes aside from "weight".
 	local fromHealth = sqrt(unitDef.health) -- [1, 1000000] => [1, 1000] approx
 	local fromMetal = sqrt(unitDef.metalCost) -- [0, 50000] => [0, 250] approx
 	local fromVolume = sqrt(volume / height) -- [0, 20000] => [1, 1000] approx
