@@ -191,9 +191,8 @@ local function getUnitBulk(unitDef)
 	if unitDef.customParams.decoyfor then
 		local decoyDef = UnitDefNames[unitDef.customParams.decoyfor]
 		if decoyDef then
-			if bulkDepth + 1 > 4 then
-				Spring.Echo("weapons_cluster", "bulkDepth exceeded", unitDef.name)
-				return 0
+			if bulkDepth > 2 then
+				return bulkiness
 			end
 			bulkDepth = bulkDepth + 1
 			local decoyBulk = unitBulks[decoyDef.id] or getUnitBulk(decoyDef)
