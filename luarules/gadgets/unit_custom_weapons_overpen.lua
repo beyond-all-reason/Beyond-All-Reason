@@ -202,9 +202,8 @@ local function getCollisionPosition(projectileID, targetID, isUnit)
 	local b = dot3(rx, ry, rz, dx, dy, dz)
 	local c = dot3(rx, ry, rz, rx, ry, rz) - radiusSq
 
-	-- I'm replacing the previous method which is imprecise in 32-bit
-	-- with a more stable calculation that depends on a geometric ray
-	-- argument which _can fail_ when we fail at placing its origin:
+	-- Construction with a ray-sphere rather than line-sphere argument
+	-- can fail but offers better precision for more accurate visuals:
 	if b * b < radiusSq and c > 0 then
 		return px, py, pz -- ray-sphere disjoint
 	end
