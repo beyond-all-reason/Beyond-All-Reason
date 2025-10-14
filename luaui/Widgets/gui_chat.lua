@@ -404,6 +404,20 @@ local autocompleteCommands = {
 	'luarules killteam',
 	'luarules globallos',
 
+	-- zombie commands
+	'luarules zombiesetallgaia',
+	'luarules zombiequeueallcorpses',
+	'luarules zombieautospawn 0',
+	'luarules zombieclearspawns',
+	'luarules zombiepacify 0',
+	'luarules zombiesuspendorders 0',
+	'luarules zombieaggroteam 0',
+	'luarules zombieaggroally 0',
+	'luarules zombiekillall',
+	'luarules zombieclearallorders',
+	'luarules zombiedebug 0',
+	'luarules zombiemode normal',
+
 	-- widgets
 	'luaui reload',
 	'luaui disable',
@@ -612,7 +626,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 					local pair = string.split(v, '=')
 					if pair[2] then
 						if playernames[pair[2]] then
-							t[ pair[1] ] = getPlayerColorString(n, gameFrame)..playernames[pair[2]][7]..msgColor
+							t[ pair[1] ] = getPlayerColorString(pair[2], gameFrame)..playernames[pair[2]][7]..msgColor
 						elseif params[1]:lower():find('energy', nil, true) then
 							t[ pair[1] ] = energyValueColor..pair[2]..msgColor
 						elseif params[1]:lower():find('metal', nil, true) then
@@ -1321,14 +1335,18 @@ function widget:Update(dt)
 			ignoredAccounts = table.copy(WG.ignoredAccounts)
 		end
 
-		-- detect spectator filter change
+		-- add settings option commands
 		if not addedOptionsList and WG['options'] and WG['options'].getOptionsList then
 			local optionsList = WG['options'].getOptionsList()
-			addedOptionsList = true
-			for i, option in ipairs(optionsList) do
-				autocompleteCommands[#autocompleteCommands+1] = 'option '..option
+			if optionsList and #optionsList > 0 then
+				addedOptionsList = true
+				for i, option in ipairs(optionsList) do
+					autocompleteCommands[#autocompleteCommands+1] = 'option '..option
+				end
 			end
 		end
+
+		-- detect spectator filter change
 		if hideSpecChat ~= (Spring.GetConfigInt('HideSpecChat', 0) == 1) or hideSpecChatPlayer ~= (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1) then
 			hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
 			HideSpecChatPlayer = (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1)
@@ -2579,7 +2597,7 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "hidespecchat", hidespecchatCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "hidespecchatplayer", hidespecchatplayerCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "preventhistorymode", preventhistorymodeCmd, nil, 't')
-	
+
 	for _, playerID in ipairs(playersList) do
 		local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
 		local historyName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name

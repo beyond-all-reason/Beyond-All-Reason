@@ -112,6 +112,7 @@ local function DrawStencilTexture(world, fullscreen)
 				gl.Rect(rect[1], rect[2], rect[3], rect[4])
 			end
 			for _, dlist in pairs(guishaderDlists) do
+				gl.Color(1,1,1,1)
 				gl.CallList(dlist)
 			end
 		elseif fullscreen then
@@ -121,6 +122,7 @@ local function DrawStencilTexture(world, fullscreen)
 				gl.Rect(rect[1], rect[2], rect[3], rect[4])
 			end
 			for _, dlist in pairs(guishaderScreenDlists) do
+				gl.Color(1,1,1,1)
 				gl.CallList(dlist)
 			end
 		end
@@ -322,6 +324,13 @@ local function DrawScreen() -- This blurs the UI elements obscured by other UI e
 	if Spring.IsGUIHidden() or uiOpacity > 0.99 then
 		return
 	end
+
+	for i, dlist in ipairs(deleteDlistQueue) do
+		gl.DeleteList(dlist)
+		updateStencilTexture = true
+	end
+	deleteDlistQueue = {}
+
 	--if true then return false end
 	if (screenBlur or next(guishaderScreenRects) or next(guishaderScreenDlists)) and blurShader then
 		gl.Texture(false)
@@ -350,19 +359,9 @@ local function DrawScreen() -- This blurs the UI elements obscured by other UI e
 	end
 
 	for k, v in pairs(renderDlists) do
+		gl.Color(1,1,1,1)
 		gl.CallList(k)
 	end
-
-	for k, v in pairs(deleteDlistQueue) do
-		gl.DeleteList(deleteDlistQueue[v])
-		if guishaderDlists[k] then
-			guishaderDlists[k] = nil
-		elseif guishaderScreenDlists[k] then
-			guishaderScreenDlists[k] = nil
-		end
-		updateStencilTexture = true
-	end
-	deleteDlistQueue = {}
 end
 
 function widget:DrawScreen()
@@ -401,7 +400,8 @@ function widget:Initialize()
 	WG['guishader'].DeleteDlist = function(name)
 		local found = guishaderDlists[name] ~= nil
 		if found then
-			deleteDlistQueue[name] = guishaderDlists[name]
+			deleteDlistQueue[#deleteDlistQueue + 1] = guishaderDlists[name]
+			guishaderDlists[name] = nil
 			updateStencilTexture = true
 		end
 		return found
@@ -431,10 +431,10 @@ function widget:Initialize()
 		return found
 	end
 	WG['guishader'].DeleteScreenDlist = function(name)
-		local found = false
-		if guishaderScreenDlists[name] ~= nil then
-			found = true
-			deleteDlistQueue[name] = guishaderScreenDlists[name]
+		local found = guishaderScreenDlists[name] ~= nil
+		if found then
+			deleteDlistQueue[#deleteDlistQueue + 1] = guishaderScreenDlists[name]
+			guishaderScreenDlists[name] = nil
 		end
 		return found
 	end

@@ -109,7 +109,6 @@ return {
 			"legfhp",
             "cormabm",
             "legkeres",
-			"corasp",
 			"legnanotc",
 			"legnanotcplat",
 		},

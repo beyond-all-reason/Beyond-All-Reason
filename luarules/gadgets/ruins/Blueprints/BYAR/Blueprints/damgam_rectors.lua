@@ -3,6 +3,8 @@ local tiers = blueprintConfig.Tiers
 local types = blueprintConfig.BlueprintTypes
 local UDN = UnitDefNames
 
+local math_random = math.random
+
 --	facing:
 --  0 - south
 --  1 - east
@@ -11,7 +13,7 @@ local UDN = UnitDefNames
 
 local function t1ResurrectorGroup1()
 	local unitID
-	local r = math.random(0,1)
+	local r = math_random(0,1)
 	if r == 0 then
 		unitID = UDN.armrectr_scav.id
 	else
@@ -34,7 +36,7 @@ end
 
 local function t1ResurrectorGroup2()
 	local unitID
-	local r = math.random(0,1)
+	local r = math_random(0,1)
 	if r == 0 then
 		unitID = UDN.armrectr_scav.id
 	else
