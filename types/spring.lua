@@ -1,0 +1,20 @@
+-- It would be better if LuaSyncedCtrl published this interface for us, until then we cope
+---@class ISpring
+---@field CMD table Spring command constants
+---@field GetModOptions fun(): table
+---@field GetGameFrame fun(): number, any
+---@field IsCheatingEnabled fun(): boolean
+---@field Log fun(tag: string, level: string, msg: string)
+---@field GetTeamRulesParam fun(self: ISpring, teamID: number, key: string): any
+---@field SetTeamRulesParam fun(self: ISpring, teamID: number, key: string, value: any, losAccess: boolean?)
+---@field GetTeamResources fun(self: ISpring, teamID: number, resourceType: string): number?, number?, number?, number?, number?, number?, number?, number?, number?
+---@field GetTeamList fun(): TeamInfo[]?
+---@field GetPlayerList fun(): number[]
+---@field GetPlayerListUnpacked fun(): TeamInfo[]?
+---@field GetPlayerIdsList fun(): number[]?
+---@field AreAlliedTeams fun(team1ID: number, team2ID: number): boolean
+---@field GetTeamUnits fun(teamID: number): number[]?
+---@field GetUnitTeam fun(unitID: number): number?
+---@field GetUnitDefID fun(unitID: number): number?
+---@field GiveOrderToUnit fun(self: ISpring, unitID: number, commandID: number, params: table, options: table)
+---@field AddTeamResource fun(self: ISpring, teamID: number, resourceType: string, amount: number)

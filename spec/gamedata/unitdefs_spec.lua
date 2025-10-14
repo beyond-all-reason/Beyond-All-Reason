@@ -3,7 +3,7 @@ local Builders = require("spec/builders/index")
 describe("UnitDefs", function()
     local unitDefs
     before_each(function()
-        local springRepo = Builders.SpringRepository.new():WithRealUnitDefs():Build()
+        local springRepo = Builders.Spring.new():WithRealUnitDefs():Build()
         unitDefs = springRepo:GetUnitDefs()
     end)
 
