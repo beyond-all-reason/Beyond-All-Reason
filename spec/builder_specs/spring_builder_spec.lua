@@ -35,14 +35,7 @@ describe("SpringBuilder", function()
         end
         assert.are.equal("armacv", unitDefId)
 
-        -- Check that the built team has integrated unit data
-        local builtTeam = spring._builtTeams[teamBuilder.id]
-        local unitWrapper = nil
-        for _, wrapper in pairs(builtTeam.units) do
-            unitWrapper = wrapper
-            break
-        end
-        assert.is_table(unitWrapper.unitDef)
-        assert.are.equal("armacv", unitWrapper.name)
+        local unitDef = spring.GetUnitDefs()[unitDefId]
+        assert.are.equal(unitDef.customParams.techlevel, 2)
     end)
 end)
