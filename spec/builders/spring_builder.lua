@@ -281,7 +281,6 @@ function SB:BuildSpring()
 
         GetTeamResources = function(teamID, resourceType)
             local data = getTeamResourceData(teamID, resourceType)
-            -- Return in Spring engine format: current, storage, pull, income, expense, share, sent, received
             return data.current, data.storage, data.pull, data.income, data.expense, data.share, data.sent, data.received
         end,
         -- Convenience accessors for tests
@@ -289,7 +288,7 @@ function SB:BuildSpring()
             return instance.initialUnits
         end,
         GetUnitDefs = function()
-            -- Return instance globals if defined (prefer test isolation)
+            -- Return instance globals from WithRealUnitDefs
             if instance._globalUnitDefs then
                 return instance._globalUnitDefs
             end
@@ -499,14 +498,18 @@ function SB:WithGlobalsDefined(fn, persist)
     local mock = self:BuildSpring()
 
     -- Expose all Spring functions to global Spring object
-    _G.Spring.GetModOptions = function()
-        -- Start with comprehensive defaults, then override with explicitly set mod options
-        local modOptions = getUnitDefRequireModoptionDefaults()
-        -- Override with any mod options that were explicitly set via WithModOption
-        for k, v in pairs(self.modOptions) do
-            modOptions[k] = v
+    -- Defer to already defined GetModOptions if it exists (defined by springOverrides.lua)
+    if not _G.Spring.GetModOptions then
+        ---@diagnostic disable: duplicate-set-field
+        _G.Spring.GetModOptions = function()
+            -- Start with comprehensive defaults, then override with explicitly set mod options
+            local modOptions = getUnitDefRequireModoptionDefaults()
+            -- Override with any mod options that were explicitly set via WithModOption
+            for k, v in pairs(self.modOptions) do
+                modOptions[k] = v
+            end
+            return modOptions
         end
-        return modOptions
     end
     _G.Spring.GetGameFrame = mock.GetGameFrame
     _G.Spring.IsCheatingEnabled = mock.IsCheatingEnabled
@@ -529,7 +532,11 @@ function SB:WithGlobalsDefined(fn, persist)
     _G.Spring.GetPlayerList = mock.GetPlayerList
 
     -- Additional Spring functions that may be needed
-    _G.Spring.GetTeamLuaAI = function(_) return nil end
+    -- Defer to already defined GetTeamLuaAI if it exists (real Spring API function)
+    if not _G.Spring.GetTeamLuaAI then
+        ---@diagnostic disable: duplicate-set-field
+        _G.Spring.GetTeamLuaAI = function(_) return "" end
+    end
     _G.Spring.GetPlayerTeam = function(playerID)
         -- For simplicity, assume playerID equals teamID in test scenarios
         return playerID
