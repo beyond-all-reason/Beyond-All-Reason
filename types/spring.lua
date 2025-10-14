@@ -1,20 +1,55 @@
 -- It would be better if LuaSyncedCtrl published this interface for us, until then we cope
+
+---@class UnitWrapper
+---@field unitDefId string
+---@field unitDef table? -- Populated by SpringBuilder with real unit definition data
+---@field [string] any Additional unit definition properties when loaded
+
+---@class ResourceData
+---@field current number
+---@field storage number
+---@field pull number
+---@field income number
+---@field expense number
+---@field shareSlider number
+---@field sent number
+---@field received number
+
+---@class TeamData
+---@field id number
+---@field isHuman boolean
+---@field playerName string
+---@field units table<number, UnitWrapper>
+---@field metal ResourceData
+---@field energy ResourceData
+
+---@class TeamInfo
+---@field id number
+---@field name string
+---@field leader number
+---@field isDead boolean
+---@field isAI boolean
+---@field side string
+---@field allyTeam number
+
 ---@class ISpring
+---@field AddTeamResource fun(teamID: number, resourceType: string, amount: number)
+---@field AreAlliedTeams fun(team1ID: number, team2ID: number): boolean
 ---@field CMD table Spring command constants
----@field GetModOptions fun(): table
 ---@field GetGameFrame fun(): number, any
----@field IsCheatingEnabled fun(): boolean
----@field Log fun(tag: string, level: string, msg: string)
----@field GetTeamRulesParam fun(self: ISpring, teamID: number, key: string): any
----@field SetTeamRulesParam fun(self: ISpring, teamID: number, key: string, value: any, losAccess: boolean?)
----@field GetTeamResources fun(self: ISpring, teamID: number, resourceType: string): number?, number?, number?, number?, number?, number?, number?, number?, number?
----@field GetTeamList fun(): TeamInfo[]?
+---@field GetModOptions fun(): table
+---@field GetPlayerIdsList fun(): number[]?
 ---@field GetPlayerList fun(): number[]
 ---@field GetPlayerListUnpacked fun(): TeamInfo[]?
----@field GetPlayerIdsList fun(): number[]?
----@field AreAlliedTeams fun(team1ID: number, team2ID: number): boolean
----@field GetTeamUnits fun(teamID: number): number[]?
----@field GetUnitTeam fun(unitID: number): number?
+---@field GetTeamList fun(): TeamInfo[]?
+---@field GetTeamResources fun(teamID: number, resourceType: string): number?, number?, number?, number?, number?, number?, number?, number?, number?
+---@field GetTeamRulesParam fun(teamID: number, key: string): any
+---@field GetTeamUnits fun(teamID: number): table
 ---@field GetUnitDefID fun(unitID: number): number?
----@field GiveOrderToUnit fun(self: ISpring, unitID: number, commandID: number, params: table, options: table)
----@field AddTeamResource fun(self: ISpring, teamID: number, resourceType: string, amount: number)
+---@field GetUnitDefs fun(): table
+---@field _builtTeams table? -- Internal field for testing
+---@field GetUnitTeam fun(unitID: number): number?
+---@field GiveOrderToUnit fun(unitID: number, commandID: number, params: table, options: table)
+---@field IsCheatingEnabled fun(): boolean
+---@field Log fun(tag: string, level: string, msg: string)
+---@field SetTeamRulesParam fun(teamID: number, key: string, value: any, losAccess: boolean?)

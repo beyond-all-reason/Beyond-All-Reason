@@ -1,26 +1,18 @@
 -- Team Builder
 -- Builds individual team/player configurations with automatic ID generation
 
----@class UnitWrapper
----@field unitDefId string
----@field [string] any Additional unit definition properties when loaded
-
 local Sides = require("gamedata/sides_enum")
 local Definitions = require("luaui/Include/blueprint_substitution/definitions")
 
 local sequence = require("spec/builders/sequence")
 
--- Global cache for unit definitions
-local _globalUnitDefs = {}
-
 ---@class TeamBuilder
 ---@field id number Team ID assigned by SpringBuilder
 ---@field isHuman boolean
 ---@field playerName string
+---@field units table<number, UnitWrapper> unitID -> wrapper object with unitDefId and splatted unitDef properties
 ---@field metal ResourceData
 ---@field energy ResourceData
----@field units table<number, UnitWrapper> unitID -> wrapper object with unitDefId and splatted unitDef properties
----@field _unitIdSequence function: number
 local TeamBuilder = {}
 TeamBuilder.__index = TeamBuilder
 
@@ -28,7 +20,7 @@ TeamBuilder.__index = TeamBuilder
 local defaultData = {
     id = 0,
     isHuman = true,
-    name = "Player",
+    playerName = "Player",
     units = {},
     metal = {
         current = 1000,
@@ -55,11 +47,6 @@ local defaultData = {
 local nextTeamId = sequence.sequence("team_id", { start = 0, format = function(p, n) return tostring(n) end })
 local nextUnitId = sequence.sequence("unit_id", { start = 1, format = function(p, n) return tostring(n) end })
 
--- Create the builder using metatable approach
----@class TeamBuilder
-local TeamBuilder = {}
-TeamBuilder.__index = TeamBuilder
-
 function TeamBuilder.new()
     local instance = {}
 
@@ -77,23 +64,13 @@ function TeamBuilder.new()
     -- Assign unique ID immediately to prevent collisions
     instance.id = tonumber(nextTeamId())
 
-    -- Unit IDs are now globally unique
-
-    return setmetatable(instance, TeamBuilder)
+    return setmetatable(instance, { __index = TeamBuilder })
 end
 
 function TeamBuilder:Build()
-    -- If called on the class/table itself, create a proper instance first
-    if self == TeamBuilder then
-        local instance = TeamBuilder.new()
-        instance.isHuman = self.isHuman or true
-        instance.playerName = self.playerName
-        return instance:Build()
-    end
-
-    local teamId = self.id
+    ---@type TeamData
     local out = {
-        id = teamId,
+        id = self.id,
         isHuman = self.isHuman,
         playerName = self.playerName,
         units = self.units,
@@ -101,6 +78,31 @@ function TeamBuilder:Build()
         energy = self.energy,
     }
     return out
+end
+
+function TeamBuilder:WithMetal(metal)
+    self.metal.current = metal
+    return self
+end
+
+function TeamBuilder:WithUnit(unitDefID, unitIdCallback)
+    local unitID = nextUnitId()
+
+    -- Create wrapper object with just the unitDefId - real data populated later by SpringBuilder
+    local unitWrapper = { unitDefId = unitDefID }
+
+    self.units[unitID] = unitWrapper
+
+    if unitIdCallback then
+        unitIdCallback(unitID)
+    end
+
+    return self
+end
+
+function TeamBuilder:AI()
+    self.isHuman = false
+    return self
 end
 
 function TeamBuilder:WithEnergy(energy)
@@ -113,28 +115,11 @@ function TeamBuilder:WithEnergyStorage(storage)
     return self
 end
 
-function TeamBuilder:WithMetal(metal)
-    self.metal.current = metal
-    return self
-end
-
 function TeamBuilder:WithMetalStorage(storage)
     self.metal.storage = storage
     return self
 end
 
--- Methods for setting complete resource data
-function TeamBuilder:WithMetalData(metalData)
-    self.metal = metalData
-    return self
-end
-
-function TeamBuilder:WithEnergyData(energyData)
-    self.energy = energyData
-    return self
-end
-
--- Methods for individual resource properties
 function TeamBuilder:WithMetalPull(pull)
     self.metal.pull = pull
     return self
@@ -192,59 +177,6 @@ end
 
 function TeamBuilder:WithEnergyReceived(received)
     self.energy.received = received
-    return self
-end
-
-function TeamBuilder:Human()
-    self.isHuman = true
-    return self
-end
-
-function TeamBuilder:AI()
-    self.isHuman = false
-    return self
-end
-
----@param unitDefId string
----@return table?
-local function getUnitDef(unitDefId)
-    -- Check global UnitDefs first (for test compatibility)
-    if _G.UnitDefs and _G.UnitDefs[unitDefId] then
-        return _G.UnitDefs[unitDefId]
-    end
-
-    -- Then check local cache
-    if not _globalUnitDefs or next(_globalUnitDefs) == nil then
-        return nil
-    end
-
-    local unitDef = _globalUnitDefs[unitDefId]
-    if not unitDef then
-        error("UnitDefId '" .. unitDefId .. "' not found")
-    end
-    return unitDef
-end
-
-function TeamBuilder:WithUnit(unitDefID, unitIdCallback)
-    local unitDef = getUnitDef(unitDefID)
-    local unitID = nextUnitId()
-
-    -- Always create consistent wrapper object
-    local unitWrapper = { unitDefId = unitDefID }
-
-    -- Splat unitDef properties when available
-    if unitDef then
-        for k, v in pairs(unitDef) do
-            unitWrapper[k] = v
-        end
-    end
-
-    self.units[unitID] = unitWrapper
-
-    if unitIdCallback then
-        unitIdCallback(unitID)
-    end
-
     return self
 end
 
