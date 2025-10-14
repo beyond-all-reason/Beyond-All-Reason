@@ -324,12 +324,9 @@ if gadgetHandler:IsSyncedCode() then
 	--
 	-- Difficulty
     --
-
-	local maxBurrows = ((config.maxBurrows*(1-config.scavPerPlayerMultiplier))+(config.maxBurrows*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
+	config.gracePeriodInitial = config.gracePeriod + 0
+	local maxBurrows = ((config.maxBurrows*(1-config.scavPerPlayerMultiplier))+(config.maxBurrows*config.scavPerPlayerMultiplier)*(math.min(SetCount(humanTeams), 8)))*config.scavSpawnMultiplier
 	local bossTime = (config.bossTime + config.gracePeriod)
-	if config.difficulty == config.difficulties.survival then
-		bossTime = math.ceil(bossTime*0.5)
-	end
 	local maxWaveSize = ((config.maxScavs*(1-config.scavPerPlayerMultiplier))+(config.maxScavs*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
 	local minWaveSize = ((config.minScavs*(1-config.scavPerPlayerMultiplier))+(config.minScavs*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
 	local currentMaxWaveSize = minWaveSize
@@ -377,10 +374,10 @@ if gadgetHandler:IsSyncedCode() then
 		config.maxBurrows = nextDifficulty.maxBurrows
 		config.maxXP = nextDifficulty.maxXP
 		config.angerBonus = nextDifficulty.angerBonus
-		config.bossTime = math.ceil(nextDifficulty.bossTime/endlessLoopCounter)
+		config.bossTime = math.ceil(nextDifficulty.bossTime/(endlessLoopCounter/2))
 
 		bossTime = (config.bossTime + config.gracePeriod)
-		maxBurrows = ((config.maxBurrows*(1-config.scavPerPlayerMultiplier))+(config.maxBurrows*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
+		maxBurrows = ((config.maxBurrows*(1-config.scavPerPlayerMultiplier))+(config.maxBurrows*config.scavPerPlayerMultiplier)*(math.min(SetCount(humanTeams), 8)))*config.scavSpawnMultiplier
 		maxWaveSize = ((config.maxScavs*(1-config.scavPerPlayerMultiplier))+(config.maxScavs*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
 		minWaveSize = ((config.minScavs*(1-config.scavPerPlayerMultiplier))+(config.minScavs*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
 		config.scavSpawnRate = nextDifficulty.scavSpawnRate
@@ -888,7 +885,7 @@ if gadgetHandler:IsSyncedCode() then
 			local spawnPosX, spawnPosY, spawnPosZ
 
 			if config.burrowSpawnType ~= "avoid" then
-				if config.useScum and (canSpawnBurrow and GetGameSeconds() >= config.gracePeriod) then -- Attempt #1, find position in creep/scum (skipped if creep is disabled)
+				if config.useScum and (canSpawnBurrow and GetGameSeconds() >= config.gracePeriodInitial) then -- Attempt #1, find position in creep/scum (skipped if creep is disabled)
 					if spread < MAPSIZEX - spread and spread < MAPSIZEZ - spread then
 						for _ = 1,1000 do
 							spawnPosX = mRandom(spread, MAPSIZEX - spread)
@@ -1015,7 +1012,7 @@ if gadgetHandler:IsSyncedCode() then
 				canSpawnBurrow = false
 			end
 
-			if (canSpawnBurrow and GetGameSeconds() < config.gracePeriod*0.9) then -- Don't spawn new burrows in existing creep during grace period - Force them to spread as much as they can..... AT LEAST THAT'S HOW IT'S SUPPOSED TO WORK, lol.
+			if (canSpawnBurrow and GetGameSeconds() < config.gracePeriodInitial*0.9) then -- Don't spawn new burrows in existing creep during grace period - Force them to spread as much as they can..... AT LEAST THAT'S HOW IT'S SUPPOSED TO WORK, lol.
 				canSpawnBurrow = not GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
 			end
 
@@ -1519,8 +1516,8 @@ if gadgetHandler:IsSyncedCode() then
 		for uName, uSettings in pairs(config.scavTurrets) do
 			if not uSettings.maxBossAnger then uSettings.maxBossAnger = uSettings.minBossAnger + 100 end
 			if uSettings.minBossAnger <= waveParameters.waveTechAnger and uSettings.maxBossAnger >= waveParameters.waveTechAnger then
-				local numOfTurrets = (uSettings.spawnedPerWave*(1-config.scavPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.scavPerPlayerMultiplier)*SetCount(humanTeams)
-				local maxExisting = (uSettings.maxExisting*(1-config.scavPerPlayerMultiplier))+(uSettings.maxExisting*config.scavPerPlayerMultiplier)*SetCount(humanTeams)
+				local numOfTurrets = (uSettings.spawnedPerWave*(1-config.scavPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.scavPerPlayerMultiplier)*(math.min(SetCount(humanTeams), 8))
+				local maxExisting = (uSettings.maxExisting*(1-config.scavPerPlayerMultiplier))+(uSettings.maxExisting*config.scavPerPlayerMultiplier)*(math.min(SetCount(humanTeams), 8))
 				local maxAllowedToSpawn
 				if waveParameters.waveTechAnger <= 100 then  -- i don't know how this works but it does. scales maximum amount of turrets allowed to spawn with techAnger.
 					maxAllowedToSpawn = math.ceil(maxExisting*((waveParameters.waveTechAnger-uSettings.minBossAnger)/(math.min(100-uSettings.minBossAnger, uSettings.maxBossAnger-uSettings.minBossAnger))))
@@ -1529,7 +1526,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				--Spring.Echo(uName,"MaxExisting",maxExisting,"MaxAllowed",maxAllowedToSpawn)
 				for i = 1, math.ceil(numOfTurrets) do
-					if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriod),1) and UnitDefNames[uName] and (Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[uName].id) <= maxAllowedToSpawn) then
+					if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriodInitial),1) and UnitDefNames[uName] and (Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[uName].id) <= maxAllowedToSpawn) then
 						if i <= numOfTurrets or math.random() <= numOfTurrets%1 then
 							local attempts = 0
 							local footprintX = UnitDefNames[uName].xsize -- why the fuck is this footprint *2??????
@@ -1947,7 +1944,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:TrySpawnBurrow()
-		local maxSpawnRetries = math.floor((config.gracePeriod-t)/spawnRetryTimeDiv)
+		local maxSpawnRetries = math.floor((config.gracePeriodInitial-t)/spawnRetryTimeDiv)
 		local spawned = SpawnBurrow()
 		timeOfLastSpawn = t
 		if not fullySpawned then
@@ -1964,7 +1961,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if firstSpawn and spawned then
-			timeOfLastWave = (config.gracePeriod + 10) - config.scavSpawnRate
+			timeOfLastWave = (config.gracePeriodInitial + 10) - config.scavSpawnRate
 			firstSpawn = false
 		end
 	end
@@ -1979,7 +1976,7 @@ if gadgetHandler:IsSyncedCode() then
 			createUnitQueue = {}
 		end
 
-		if announcedFirstWave == false and GetGameSeconds() > config.gracePeriod then
+		if announcedFirstWave == false and GetGameSeconds() > config.gracePeriodInitial then
 			scavEvent("firstWave")
 			announcedFirstWave = true
 		end
@@ -2018,11 +2015,14 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
-			techAnger = math.max(math.min((t - config.gracePeriod) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult)) - config.gracePeriod) * 100, 999), 0)
+
+			techAnger = (t - config.gracePeriodInitial) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult)) - config.gracePeriodInitial) * 100
 			techAnger = math.ceil(techAnger*((config.economyScale*0.5)+0.5))
-			if t < config.gracePeriod then
+			techAnger = math.clamp(techAnger, 0, 999)
+
+			if t < config.gracePeriodInitial then
 				bossAnger = 0
-				minBurrows = math.ceil(math.max(4, 2*SetCount(humanTeams))*(t/config.gracePeriod))
+				minBurrows = math.ceil(math.max(4, 2*(math.min(SetCount(humanTeams), 8)))*(t/config.gracePeriodInitial))
 			else
 				if nSpawnedBosses == 0 then
 					bossAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (bossTime - config.gracePeriod) * 100) + bossAngerAggressionLevel, 100), 0)
@@ -2042,7 +2042,7 @@ if gadgetHandler:IsSyncedCode() then
 			SetGameRulesParam("scavBossAnger", math.floor(bossAnger))
 			SetGameRulesParam("scavTechAnger", math.floor(techAnger))
 
-			if bossAnger >= 100 or (burrowCount <= 1 and t > config.gracePeriod) then
+			if bossAnger >= 100 or (burrowCount <= 1 and t > config.gracePeriod+60) then
 				-- check if the boss should be alive
 				updateSpawnBoss()
 			end
@@ -2053,7 +2053,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if (t > config.burrowSpawnRate and burrowCount < minBurrows and (t > timeOfLastSpawn + 10 or burrowCount == 0)) or (config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount < maxBurrows) then
-				if (config.burrowSpawnType == "initialbox") and (t > config.gracePeriod) then
+				if (config.burrowSpawnType == "initialbox") and (t > config.gracePeriodInitial) then
 					config.burrowSpawnType = "initialbox_post"
 				end
 				gadget:TrySpawnBurrow(t)
@@ -2063,7 +2063,7 @@ if gadgetHandler:IsSyncedCode() then
 				timeOfLastSpawn = t
 			end
 
-			if t > config.gracePeriod+5 then
+			if t > config.gracePeriodInitial+5 then
 				if burrowCount > 0
 				and SetCount(spawnQueue) == 0
 				and ((config.scavSpawnRate*waveParameters.waveTimeMultiplier) < (t - timeOfLastWave)) then

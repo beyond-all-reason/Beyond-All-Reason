@@ -146,6 +146,29 @@ local definitions = {
  --        	},
  --    	},
 	},
+		["Heavy-Plasma"] = {
+		flame = {
+            air                = true,
+            class              = [[CBitmapMuzzleFlame]],
+            count              = 1,
+            ground             = true,
+            underwater         = true,
+            water              = true,
+            properties = {
+                colormap           = [[0.9 0.65 0.3 0.007   0.9 0.6 0.2 0.006   0.8 0.3 0.1 0.004   0 0 0 0.01]],
+                dir                = [[dir]],
+                frontoffset        = 0, --0.03
+                fronttexture       = [[null]], --glow
+                length             = -1.5,
+                sidetexture        = [[trail]],
+                size               = 14,
+                sizegrowth         = 0.0,
+                ttl                = 2,
+                useairlos          = true,
+                castShadow         = true,
+        	},
+    	},
+	},
 	["arty-small"] = {
 		flame = {
             air                = true,

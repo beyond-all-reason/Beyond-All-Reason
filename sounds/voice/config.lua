@@ -105,38 +105,68 @@ return {
 
 	-- Unit Ready
 	RagnarokIsReady = {
-		delay = 30,
+		delay = 9999999,
 	},
 	CalamityIsReady = {
-		delay = 30,
+		delay = 9999999,
 	},
 	StarfallIsReady = {
-		delay = 30,
+		delay = 9999999,
 	},
 	AstraeusIsReady = {
-		delay = 30,
+		delay = 9999999,
 	},
 	SolinvictusIsReady = {
-		delay = 30,
+		delay = 9999999,
+	},
+	TitanIsReady = {
+		delay = 9999999,
+	},
+	ThorIsReady = {
+		delay = 9999999,
 	},
 	JuggernautIsReady = {
-		delay = 30,
+		delay = 9999999,
+	},
+	BehemothIsReady = {
+		delay = 9999999,
+	},
+	FlagshipIsReady = {
+		delay = 9999999,
+	},
+	Tech2UnitReady = {
+		delay = 9999999,
 	},
 	Tech3UnitReady = {
 		delay = 9999999,
 	},
+	Tech4UnitReady = {
+		delay = 9999999,
+	},
+	Tech2TeamReached = {
+		delay = 9999999,
+	},
+	Tech3TeamReached = {
+		delay = 9999999,
+	},
+	Tech4TeamReached = {
+		delay = 9999999,
+	},
 
 	-- Units Detected
-	T2Detected = {
+	Tech2UnitDetected = {
 		delay = 9999999,
 	},
-	T3Detected = {
+	Tech3UnitDetected = {
 		delay = 9999999,
 	},
-	T4Detected = {
+	Tech4UnitDetected = {
 		delay = 9999999,
 	},
-	AircraftSpotted = {
+	EnemyDetected = {
+		delay = 9999999,
+	},
+	AircraftDetected = {
 		delay = 9999999,
 	},
 	MinesDetected = {
@@ -149,43 +179,58 @@ return {
 		delay = 25,
 	},
 	EmpSiloDetected = {
-		delay = 4,
+		delay = 25,
 	},
 	TacticalNukeSiloDetected = {
-		delay = 4,
+		delay = 25,
+	},
+	LongRangeNapalmLauncherDetected = {
+		delay = 25,
 	},
 	NuclearSiloDetected = {
-		delay = 4,
+		delay = 25,
+	},
+	CalamityDetected = {
+		delay = 25,
+	},
+	RagnarokDetected = {
+		delay = 25,
+	},
+	StarfallDetected = {
+		delay = 25,
 	},
 	NuclearBomberDetected = {
 		delay = 60,
 	},
 	BehemothDetected = {
-		delay = 9999999,
+		delay = 300,
 	},
 	SolinvictusDetected = {
-		delay = 9999999,
+		delay = 300,
 	},
 	JuggernautDetected = {
-		delay = 9999999,
+		delay = 300,
 	},
 	TitanDetected = {
-		delay = 9999999,
+		delay = 300,
+	},
+	ThorDetected = {
+		delay = 300,
 	},
 	FlagshipDetected = {
-		delay = 9999999,
+		delay = 300,
 	},
-	CommandoDetected = {
-		delay = 9999999,
+	AstraeusDetected = {
+		delay = 300,
 	},
 	TransportDetected = {
-		delay = 9999999,
+		delay = 300,
 	},
 	AirTransportDetected = {
-		delay = 9999999,
+		delay = 300,
 	},
 	SeaTransportDetected = {
-		delay = 9999999,
+		delay = 300,
 	},
 
 	-- Lava

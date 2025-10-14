@@ -23,6 +23,8 @@ local defaultBlurIntensity = 1
 
 -- hardware capability
 local canShader = gl.CreateShader ~= nil
+
+local LuaShader = gl.LuaShader
 local NON_POWER_OF_TWO = gl.HasExtension("GL_ARB_texture_non_power_of_two")
 
 local renderDlists = {}
@@ -33,9 +35,6 @@ local screencopyUI -- this is for the special case of UI blur
 
 local stenciltex
 local stenciltexScreen
-local intensityLoc
-local ivsxLoc
-local ivsyLoc
 
 local screenBlur = false
 
@@ -113,6 +112,7 @@ local function DrawStencilTexture(world, fullscreen)
 				gl.Rect(rect[1], rect[2], rect[3], rect[4])
 			end
 			for _, dlist in pairs(guishaderDlists) do
+				gl.Color(1,1,1,1)
 				gl.CallList(dlist)
 			end
 		elseif fullscreen then
@@ -122,6 +122,7 @@ local function DrawStencilTexture(world, fullscreen)
 				gl.Rect(rect[1], rect[2], rect[3], rect[4])
 			end
 			for _, dlist in pairs(guishaderScreenDlists) do
+				gl.Color(1,1,1,1)
 				gl.CallList(dlist)
 			end
 		end
@@ -154,11 +155,11 @@ end
 
 local function CreateShaders()
 	if blurShader then
-		gl.DeleteShader(blurShader or 0)
+		blurShader:Finalize()
 	end
 
 	-- create blur shaders
-	blurShader = gl.CreateShader({
+	blurShader = LuaShader({
 		fragment = [[
 		#version 150 compatibility
 		uniform sampler2D tex2;
@@ -230,18 +231,16 @@ local function CreateShaders()
 			ivsx = 0,
 			ivsy = 0,
 		}
-	})
+	}, "guishader blurShader")
 
 
-	if blurShader == nil then
+	if not blurShader:Initialize() then
 		Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader blurShader: shader error: " .. gl.GetShaderLog())
 		widgetHandler:RemoveWidget()
 		return false
 	end
 
-	intensityLoc = gl.GetUniformLocation(blurShader, "intensity")
-	ivsxLoc = gl.GetUniformLocation(blurShader, "ivsx")
-	ivsyLoc = gl.GetUniformLocation(blurShader, "ivsy")
+
 
 	screencopyUI = gl.CreateTexture(vsx, vsy, {
 		border = false,
@@ -264,9 +263,7 @@ local function DeleteShaders()
 	gl.DeleteTexture(usedStencilTex)
 	gl.DeleteTexture(screencopyUI)
 	stenciltex, stenciltexScreen, screencopyUI, usedStencilTex = nil, nil, nil, nil
-	if gl.DeleteShader then
-		gl.DeleteShader(blurShader or 0)
-	end
+	if blurShader then blurShader:Finalize() end
 	blurShader = nil
 end
 
@@ -309,14 +306,14 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 		gl.Blending(true)
 		gl.Texture(screencopy)
 		gl.Texture(2, stenciltex)
-		gl.UseShader(blurShader)
+		blurShader:Activate()
+			--blurShader:SetUniform("intensity", math.max(blurIntensity, 0.0015))
+			blurShader:SetUniform("ivsx", 0.5/vsx)
+			blurShader:SetUniform("ivsy", 0.5/vsy)
 
-		gl.Uniform(intensityLoc, math.max(blurIntensity, 0.0015))
-		gl.Uniform(ivsxLoc, 0.5/vsx)
-		gl.Uniform(ivsyLoc, 0.5/vsy)
+			gl.TexRect(0, vsy, vsx, 0) -- draw the blurred version
+		blurShader:Deactivate()
 
-		gl.TexRect(0, vsy, vsx, 0) -- draw the blurred version
-		gl.UseShader(0)
 		gl.Texture(2, false)
 		gl.Texture(false)
 		gl.Blending(false)
@@ -327,6 +324,13 @@ local function DrawScreen() -- This blurs the UI elements obscured by other UI e
 	if Spring.IsGUIHidden() or uiOpacity > 0.99 then
 		return
 	end
+
+	for i, dlist in ipairs(deleteDlistQueue) do
+		gl.DeleteList(dlist)
+		updateStencilTexture = true
+	end
+	deleteDlistQueue = {}
+
 	--if true then return false end
 	if (screenBlur or next(guishaderScreenRects) or next(guishaderScreenDlists)) and blurShader then
 		gl.Texture(false)
@@ -342,32 +346,22 @@ local function DrawScreen() -- This blurs the UI elements obscured by other UI e
 		gl.Texture(screencopyUI)
 
 		gl.Texture(2, stenciltexScreen)
-		gl.UseShader(blurShader)
 
-		gl.Uniform(intensityLoc, math.max(blurIntensity, 0.0015))
-		gl.Uniform(ivsxLoc, 0.5/vsx)
-		gl.Uniform(ivsyLoc, 0.5/vsy)
+		blurShader:Activate()
+			--blurShader:SetUniform("intensity", math.max(blurIntensity, 0.0015))
+			blurShader:SetUniform("ivsx", 0.5/vsx)
+			blurShader:SetUniform("ivsy", 0.5/vsy)
 
-		gl.TexRect(0, vsy, vsx, 0) -- draw the blurred version
-		gl.UseShader(0)
+			gl.TexRect(0, vsy, vsx, 0) -- draw the blurred version
+		blurShader:Deactivate()
 		gl.Texture(2, false)
 		gl.Texture(false)
 	end
 
 	for k, v in pairs(renderDlists) do
+		gl.Color(1,1,1,1)
 		gl.CallList(k)
 	end
-
-	for k, v in pairs(deleteDlistQueue) do
-		gl.DeleteList(deleteDlistQueue[v])
-		if guishaderDlists[k] then
-			guishaderDlists[k] = nil
-		elseif guishaderScreenDlists[k] then
-			guishaderScreenDlists[k] = nil
-		end
-		updateStencilTexture = true
-	end
-	deleteDlistQueue = {}
 end
 
 function widget:DrawScreen()
@@ -406,7 +400,8 @@ function widget:Initialize()
 	WG['guishader'].DeleteDlist = function(name)
 		local found = guishaderDlists[name] ~= nil
 		if found then
-			deleteDlistQueue[name] = guishaderDlists[name]
+			deleteDlistQueue[#deleteDlistQueue + 1] = guishaderDlists[name]
+			guishaderDlists[name] = nil
 			updateStencilTexture = true
 		end
 		return found
@@ -436,10 +431,10 @@ function widget:Initialize()
 		return found
 	end
 	WG['guishader'].DeleteScreenDlist = function(name)
-		local found = false
-		if guishaderScreenDlists[name] ~= nil then
-			found = true
-			deleteDlistQueue[name] = guishaderScreenDlists[name]
+		local found = guishaderScreenDlists[name] ~= nil
+		if found then
+			deleteDlistQueue[#deleteDlistQueue + 1] = guishaderScreenDlists[name]
+			guishaderScreenDlists[name] = nil
 		end
 		return found
 	end

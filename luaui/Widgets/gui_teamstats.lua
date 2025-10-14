@@ -274,7 +274,10 @@ function widget:Shutdown()
 	glDeleteList(textDisplayList)
 	glDeleteList(backgroundDisplayList)
 	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('teamstats_window')
+		WG['guishader'].RemoveDlist('teamstats_window')
+	end
+	if backgroundGuishader ~= nil then
+		glDeleteList(backgroundGuishader)
 	end
 end
 
@@ -342,6 +345,7 @@ function widget:GameFrame(n,forceupdate)
 					end
 					local _,leader,isDead = GetTeamInfo(teamID,false)
 					local playerName,isActive = GetPlayerInfo(leader,false)
+					playerName = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(leader) or playerName
 					if Spring.GetGameRulesParam('ainame_'..teamID) then
 						playerName = Spring.GetGameRulesParam('ainame_'..teamID)
 					end
@@ -557,7 +561,7 @@ end
 function widget:DrawScreen()
 	if not guiData.mainPanel.visible then
 		if WG['guishader'] then
-			WG['guishader'].DeleteDlist('teamstats_window')
+			WG['guishader'].RemoveDlist('teamstats_window')
 		end
 		return
 	end

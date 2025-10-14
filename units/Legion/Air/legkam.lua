@@ -36,7 +36,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "",
 		selfdestructcountdown = 0,
-		sightdistance = 250,
+		sightdistance = 430,
 		speedtofront = 0.06183,
 		turnradius = 48,
 		turnrate = 800,
