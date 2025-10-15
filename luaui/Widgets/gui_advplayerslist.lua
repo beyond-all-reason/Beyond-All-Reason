@@ -1133,7 +1133,12 @@ function GetSkill(playerID)
                 local color2 = math.max(0.75, color * color)
                 tsRed, tsGreen, tsBlue = math.floor(255 * color), math.floor(255 * color2), math.floor(255 * color2)
             end
-            osSkill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. osSkill
+            if tonumber(osSigma) > 6.65 then
+                osSkill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. "??"
+            else
+                osSkill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. osSkill
+            end
+            
         end
     else
         osSkill = "\255" .. string.char(160) .. string.char(160) .. string.char(160) .. "?"
