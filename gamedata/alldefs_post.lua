@@ -1209,7 +1209,6 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-
 	--Lategame Rebalance
 	if modOptions.lategame_rebalance == true then
 		if name == "armamb" then
