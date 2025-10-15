@@ -1,0 +1,4 @@
+hotspot center
+frame anims/icexuick_75/cursortransport_0.png 5
+
+

@@ -56,6 +56,7 @@ local lineFadeRate = 2.0
 -- What commands are eligible for custom formations
 local CMD_SETTARGET = GameCMD.UNIT_SET_TARGET
 local CMD_MANUAL_LAUNCH = GameCMD.MANUAL_LAUNCH
+local CMD_TRANSPORT_TO = GameCMD.TRANSPORT_TO
 
 local formationCmds = {
     [CMD.MOVE] = true,
@@ -65,6 +66,7 @@ local formationCmds = {
     [CMD.UNLOAD_UNIT] = true,
     [CMD_SETTARGET] = true,
 	[CMD_MANUAL_LAUNCH] = true,
+    [CMD_TRANSPORT_TO] = true,
 }
 
 -- Context-based default commands that can be overridden (meaning that cf2 doesn't touch the command i.e. guard/attack when mouseover unit)
@@ -81,12 +83,12 @@ local positionCmds = {
     [CMD.MOVE]=true,		[CMD.ATTACK]=true,		 [CMD.RECLAIM]=true,		[CMD.RESTORE]=true,		[CMD.RESURRECT]=true,
     [CMD.PATROL]=true,		[CMD.CAPTURE]=true,		 [CMD.FIGHT]=true, 		    [CMD.MANUALFIRE]=true,
     [CMD.UNLOAD_UNIT]=true,	[CMD.UNLOAD_UNITS]=true, [CMD.LOAD_UNITS]=true,	    [CMD.GUARD]=true,		[CMD.AREA_ATTACK] = true,
-    [CMD_SETTARGET]=true,   [CMD_MANUAL_LAUNCH]=true,
+    [CMD_SETTARGET]=true,   [CMD_MANUAL_LAUNCH]=true, [CMD_TRANSPORT_TO]=true,
 }
 
 -- What commands need more than one unit selected to be issued as a formation command
 local multiUnitOnlyCmds = {
-	[CMD_MANUAL_LAUNCH]=true
+	[CMD_MANUAL_LAUNCH]=true,
 }
 
 local chobbyInterface
@@ -150,6 +152,7 @@ local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetCameraPosition = Spring.GetCameraPosition
 local spGetViewGeometry = Spring.GetViewGeometry
 local spTraceScreenRay = Spring.TraceScreenRay
+local spGetUnitDefID = Spring.GetUnitDefID
 
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local maxUnits = Game.maxUnits
@@ -244,7 +247,13 @@ local function CanUnitExecute(uID, cmdID)
         local transporting = spGetUnitIsTransporting(uID)
         return (transporting and #transporting > 0)
     end
-
+    local ud = UnitDefs[spGetUnitDefID(uID)]
+	local grounded = not ud.canFly
+    local isFactory = ud.isFactory
+	local notCantBeTransported = (ud.cantBeTransported == nil) or (ud.cantBeTransported == false)
+    if cmdID == CMD_TRANSPORT_TO and (grounded and notCantBeTransported) or isFactory then
+        return true
+    end
     return (spFindUnitCmdDesc(uID, cmdID) ~= nil)
 end
 
@@ -362,7 +371,6 @@ local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
     if widgetHandler:CommandNotify(cmdID, cmdParams, cmdOpts) then
         return
     end
-
     spGiveOrder(cmdID, cmdParams, cmdOpts.coded)
 end
 
