@@ -1813,8 +1813,8 @@ local unitGrids = {
 		},
 		{
 			{ "armtarg", "armdf", "armfort", "" },     -- adv radar, targeting facility, wall, adv jammer
-			{ "armveil", "", "armasp" },                     -- intrusion counter, decoy fusion, air repair pad
-			{ "armgate", },                                     -- shield
+			{ "armveil", "" },                         -- intrusion counter, decoy fusion
+			{ "armgate", },                            -- shield
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },                                      -- T1 lab,
@@ -1882,7 +1882,7 @@ local unitGrids = {
 		},
 		{
 			{ "armtarg", "armsd", "armfort", "" },     -- adv radar, targeting facility, wall, adv jammer
-			{ "", "armdf", "" },                     -- intrusion counter, decoy fusion, air repair pad
+			{ "", "armdf" },                     -- intrusion counter, decoy fusion
 			{ "armgate", },                                     -- shield
 		},
 		{
@@ -1951,7 +1951,7 @@ local unitGrids = {
 		},
 		{
 			{ "armtarg", "armsd", "armfort", "" },     -- adv radar, targeting facility, wall, adv jammer
-			{ "", "armdf", "" },                     -- intrusion counter, decoy fusion, air repair pad
+			{ "", "armdf" },                     -- intrusion counter, decoy fusion
 			{ "armgate", },                                     -- shield
 		},
 		{
@@ -2695,7 +2695,7 @@ if Spring.GetModOptions().techsplit then
 		},
 		{
 			{ "armason", "armfdrag", },                		   -- adv sonar, floating targeting facility
-			{ "armfatf", "", "", },                         -- Floating air repair pad
+			{ "armfatf", "", "", },
 			{ "armjuno", "", "", ""},                                               --
 		},
 		{
@@ -2927,7 +2927,7 @@ if Spring.GetModOptions().techsplit then
 		},
 		{
 			{ "corason", "corfdrag", "corarad", "corshroud", },                         -- adv sonar, floating targeting facility
-			{ "", "", "", "" },                          -- Floating air repair pad
+			{ "", "", "", "" },
 		},
 		{
 			{"corlab","corvp","corap","corsy",},
