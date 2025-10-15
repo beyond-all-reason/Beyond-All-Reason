@@ -1311,7 +1311,7 @@ local unitGrids = {
 			{ "armuwes", "armuwms", },                        -- uw e stor, uw m stor
 		},
 		{
-			{ "armtl", "armfhlt", "", "armclaw", },           -- offshore torp launcher, floating HLT
+			{ "armtl", "armfhlt", "armnavaldefturret", "armclaw", },           -- offshore torp launcher, floating HLT
 			{ "armfrt", },                                    -- floating AA
 			{ "armdl", "armguard", },              			  -- coastal torp launcher, guardian, lightning turret
 		},
@@ -1333,7 +1333,7 @@ local unitGrids = {
 			{ "coruwes", "coruwms", },                        -- uw e stor, uw m stor
 		},
 		{
-			{ "cortl", "corfhlt", "", "cormaw" },             -- offshore torp launcher, floating HLT
+			{ "cortl", "corfhlt", "cornavaldefturret", "cormaw" },             -- offshore torp launcher, floating HLT
 			{ "corfrt", },                                    -- floating AA
 			{ "cordl", "corpun", },                 		  -- coastal torp launcher, punisher, flame turret
 		},
@@ -1359,6 +1359,7 @@ local unitGrids = {
 			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
 			{ "armrl", "armferret", "armcir", "armfrt",},     -- basic AA, ferret, chainsaw, floating AA
 			{ "armdl", "armguard", "armtl", "armfhlt", },     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
+			{ "armnavaldefturret", "", "", "", },
 		},
 		{
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -1382,6 +1383,7 @@ local unitGrids = {
 			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
 			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
 			{ "cordl", "corpun", "cortl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
+			{ "cornavaldefturret", "", "", "", },
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -1405,6 +1407,7 @@ local unitGrids = {
 			{ "leglht", "legmg", "leghive", "legdtr", },     	-- LLT, machine gun, hive, riot turret
 			{ "legrl", "legrhapsis", "leglupara", "legfrl" },             -- basic AA, rhapsis, t1.5 flak, floating AA
 			{ "legctl", "legcluster", "legtl", "legfmg", },       -- coastal torp launcher, amputator, offshore torp launcher, floating HLT
+			{ "legnavaldefturret", "", "", "", },
 		},
 		{
 			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -1429,6 +1432,7 @@ local unitGrids = {
 			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
 			{ "armrl", "armferret", "armcir", "armfrt",},     -- basic AA, ferret, chainsaw, floating AA
 			{ "armdl", "armguard", "armtl", "armfhlt", },     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
+			{ "armnavaldefturret", "", "", "", },
 		},
 		{
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -1452,6 +1456,7 @@ local unitGrids = {
 			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
 			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
 			{ "cordl", "corpun", "cortl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
+			{ "cornavaldefturret", "", "", "", },
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -1476,6 +1481,7 @@ local unitGrids = {
 			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
 			{ "armrl", "armferret", "armcir", "armfrt",},     -- basic AA, ferret, chainsaw, floating AA
 			{ "armdl", "armguard", "armtl", "armfhlt", },     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
+			{ "armnavaldefturret", "", "", "", },
 		},
 		{
 			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -1499,6 +1505,7 @@ local unitGrids = {
 			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
 			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
 			{ "cordl", "corpun", "cortl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
+			{ "cornavaldefturret", "", "", "", },
 		},
 		{
 			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -1522,6 +1529,7 @@ local unitGrids = {
 			{ "leglht", "legmg", "corhlt", "legdtr", },     -- LLT, machine gun, HLT, flame turret
 			{ "legrl", "legrhapsis", "leglupara", "legfrl" },             -- basic AA, SAM, eradicator, floating AA
 			{ "legctl", "legcluster", "legtl", "legfmg", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
+			{ "legnavaldefturret", "", "", "", },
 		},
 		{
 			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -2365,6 +2373,7 @@ local unitGrids = {
 			{ "armtl", "armkraken", "armamb", "armfhlt", },         -- torp launcher, kraken, ambusher, fHLT
 			{ "armfflak", "armpt", "armamph", },                    -- fl flak, PT boat, pelican
 			{ "armdecade", "armroy", },                             -- decade, destroyer
+			{ "armnavaldefturret", "", "", "", },
 		},
 		{
 			{ "armfrad", "armarad", },                              -- fl radar, adv radar
@@ -2388,6 +2397,7 @@ local unitGrids = {
 			{ "cortl", "corfdoom", "cortoast", "corfhlt", },       -- torp launcher, fl DDM, toaster, fHLT
 			{ "corenaa", "corpt", },                               -- fl flak, searcher
 			{ "coresupp", "corroy", },                             -- supporter, destroyer
+			{ "cornavaldefturret", "", "", "", },
 		},
 		{
 			{ "corfrad", "corarad", },                             -- fl radar, adv radar

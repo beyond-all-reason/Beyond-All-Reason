@@ -1177,9 +1177,36 @@ function UnitDef_Post(name, uDef)
 		uDef = skyshiftUnits.skyshiftUnitTweaks(name, uDef)
 	end
 
+	-- Proposed Unit Reworks
 	if modOptions.proposed_unit_reworks == true then
 		local proposed_unit_reworks = VFS.Include("unitbasedefs/proposed_unit_reworks_defs.lua")
 		uDef = proposed_unit_reworks.proposed_unit_reworksTweaks(name, uDef)
+	end
+
+	-- Naval Balance Adjustments, if anything breaks here blame ZephyrSkies
+	if modOptions.naval_balance_tweaks == true then
+		local buildOptionReplacements = {
+			armcs = { ["armfhlt"] = "armnavaldefturret" },
+			armch = { ["armfhlt"] = "armnavaldefturret" },
+			armbeaver = { ["armfhlt"] = "armnavaldefturret" },
+			armcsa = { ["armfhlt"] = "armnavaldefturret" },
+			corcs = { ["corfhlt"] = "cornavaldefturret" },
+			corch = { ["corfhlt"] = "cornavaldefturret" },
+			cormuskrat = { ["corfhlt"] = "cornavaldefturret" },
+			corcsa = { ["corfhlt"] = "cornavaldefturret" },
+			legcs = { ["legfmg"]  = "legnavaldefturret" },
+			legch = { ["legfmg"]  = "legnavaldefturret" },
+			legotter = { ["legfmg"]  = "legnavaldefturret" },
+		}
+
+		if buildOptionReplacements[name] then
+			local replacements = buildOptionReplacements[name]
+			for i, buildOption in ipairs(uDef.buildoptions or {}) do
+				if replacements[buildOption] then
+					uDef.buildoptions[i] = replacements[buildOption]
+				end
+			end
+		end
 	end
 
 	--Lategame Rebalance
