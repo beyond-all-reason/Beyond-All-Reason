@@ -379,6 +379,18 @@ local icontypes = {
 		bitmap = "icons/defence_1_laser.png",
 		size = 1.3
 	},
+	armnavaldefturret = {
+		bitmap = "icons/defence_t15_gauss_impulse.png",
+		size = 1.6
+	},
+	cornavaldefturret = {
+		bitmap = "icons/defence_t15_plasma_aoe.png",
+		size = 1.6
+	},
+	legnavaldefturret = {
+		bitmap = "icons/defence_t15_rocket.png",
+		size = 1.6
+	},
 	armfhp = {
 		bitmap = "icons/factory_hover.png",
 		size = 1.52250004
@@ -647,6 +659,7 @@ local icontypes = {
 		bitmap = "icons/metalstorage.png",
 		size = 1.10249984
 	},
+
 	armnanotc = {
 		bitmap = "icons/nanot1.png",
 		size = 0.96599996
