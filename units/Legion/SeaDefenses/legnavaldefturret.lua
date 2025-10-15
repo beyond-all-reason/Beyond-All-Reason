@@ -48,7 +48,7 @@ return {
 				footprintz = 5,
 				height = 50,
 				metal = 350,
-				object = "Units/legnavydefturret_dead.s3o",
+				object = "Units/legnavaldefturret_dead.s3o",
 				reclaimable = true,
 			},
 		},
