@@ -1184,21 +1184,22 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Naval Balance Adjustments, if anything breaks here blame ZephyrSkies
-	local buildOptionReplacements = {
-		armcs = { ["armfhlt"] = "armnavaldefturret" },
-		armch = { ["armfhlt"] = "armnavaldefturret" },
-		armbeaver = { ["armfhlt"] = "armnavaldefturret" },
-		armcsa = { ["armfhlt"] = "armnavaldefturret" },
-		corcs = { ["corfhlt"] = "cornavaldefturret" },
-		corch = { ["corfhlt"] = "cornavaldefturret" },
-		cormuskrat = { ["corfhlt"] = "cornavaldefturret" },
-		corcsa = { ["corfhlt"] = "cornavaldefturret" },
-		legcs = { ["legfmg"]  = "legnavaldefturret" },
-		legch = { ["legfmg"]  = "legnavaldefturret" },
-		legotter = { ["legfmg"]  = "legnavaldefturret" },
-	}
 	if modOptions.naval_balance_tweaks == true then
 		-- buildOption array
+		local buildOptionReplacements = {
+			armcs = { ["armfhlt"] = "armnavaldefturret" },
+			armch = { ["armfhlt"] = "armnavaldefturret" },
+			armbeaver = { ["armfhlt"] = "armnavaldefturret" },
+			armcsa = { ["armfhlt"] = "armnavaldefturret" },
+			corcs = { ["corfhlt"] = "cornavaldefturret" },
+			corch = { ["corfhlt"] = "cornavaldefturret" },
+			cormuskrat = { ["corfhlt"] = "cornavaldefturret" },
+			corcsa = { ["corfhlt"] = "cornavaldefturret" },
+			legcs = { ["legfmg"]  = "legnavaldefturret" },
+			legch = { ["legfmg"]  = "legnavaldefturret" },
+			legotter = { ["legfmg"]  = "legnavaldefturret" },
+		}
+
 		if modOptions.naval_balance_tweaks == true then
 			if buildOptionReplacements[name] then
 				local replacements = buildOptionReplacements[name]
