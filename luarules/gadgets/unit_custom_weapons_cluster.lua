@@ -173,7 +173,7 @@ local function getUnitBulk(unitDef)
 
 	-- Height contributes less bulk, but tall units don't benefit as much from ground deflection.
 	-- Lower units, like Bulls, basically gain ground deflection on top of their unit deflection.
-	local height = math.clamp(unitDef.height, 1, 20) -- So set a height cap.
+	local height = 20 / math.clamp(unitDef.height, 1, 60) -- So set a cap and a peak at ~20.
 
 	-- NB: Mass is useless for us here. It serves several arbitrary purposes aside from "weight".
 	local fromHealth = sqrt(unitDef.health) -- [1, 1000000] => [1, 1000] approx
