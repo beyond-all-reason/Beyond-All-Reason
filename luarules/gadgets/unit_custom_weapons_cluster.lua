@@ -173,7 +173,7 @@ local function getUnitBulk(unitDef)
 
 	-- Height contributes less bulk, but tall units don't benefit as much from ground deflection.
 	-- Lower units, like Bulls, basically gain ground deflection on top of their unit deflection.
-	local height = math.clamp(unitDef.height, 1, 30) -- So set a height cap.
+	local height = math.clamp(unitDef.height, 1, 20) -- So set a height cap.
 
 	-- NB: Mass is useless for us here. It serves several arbitrary purposes aside from "weight".
 	local fromHealth = sqrt(unitDef.health) -- [1, 1000000] => [1, 1000] approx
@@ -186,7 +186,7 @@ local function getUnitBulk(unitDef)
 
 	local bulkiness = (fromHealth + fromMetal + fromVolume) + sqrt(fromHealth * fromMetal)
 	bulkiness = math.clamp(bulkiness / minBulkReflect, 0, 1) -- Scaled vs. 100% terrain-like.
-	bulkiness = bulkiness ^ 0.57 -- Curve bulks upward, toward 1, to be much more noticeable.
+	bulkiness = bulkiness ^ 0.45 -- Curve bulks upward, toward 1, to be much more noticeable.
 
 	if unitDef.customParams.decoyfor then
 		local decoyDef = UnitDefNames[unitDef.customParams.decoyfor]
@@ -344,17 +344,22 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 	local position = params.pos
 
 	local deflectX, deflectY, deflectZ = getSurfaceDeflection(x, y, z)
-	local inheritX, inheritY, inheritZ = inheritMomentum(projectileID)
-	local startX = deflectX + inheritX
-	local startY = deflectY + inheritY
-	local startZ = deflectZ + inheritZ
+
+	if y - spGetGroundHeight(x, z) < 1 then
+		-- Only inherit momentum vs terrain hits so we do not bounce
+		-- directly into a unit that we should be scattering around.
+		local inheritX, inheritY, inheritZ = inheritMomentum(projectileID)
+		deflectX = deflectX + inheritX
+		deflectY = deflectY + inheritY
+		deflectZ = deflectZ + inheritZ
+	end
 
 	local directionVectors = directions[projectileCount]
 
 	for i = 0, projectileCount - 1 do
-		local velocityX = directionVectors[3 * i + 1] + startX
-		local velocityY = directionVectors[3 * i + 2] + startY
-		local velocityZ = directionVectors[3 * i + 3] + startZ
+		local velocityX = directionVectors[3 * i + 1] + deflectX
+		local velocityY = directionVectors[3 * i + 2] + deflectY
+		local velocityZ = directionVectors[3 * i + 3] + deflectZ
 		local velocityW
 
 		repeat
