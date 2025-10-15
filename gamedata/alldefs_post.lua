@@ -1185,7 +1185,6 @@ function UnitDef_Post(name, uDef)
 
 	-- Naval Balance Adjustments, if anything breaks here blame ZephyrSkies
 	if modOptions.naval_balance_tweaks == true then
-		-- buildOption array
 		local buildOptionReplacements = {
 			armcs = { ["armfhlt"] = "armnavaldefturret" },
 			armch = { ["armfhlt"] = "armnavaldefturret" },
@@ -1200,13 +1199,11 @@ function UnitDef_Post(name, uDef)
 			legotter = { ["legfmg"]  = "legnavaldefturret" },
 		}
 
-		if modOptions.naval_balance_tweaks == true then
-			if buildOptionReplacements[name] then
-				local replacements = buildOptionReplacements[name]
-				for i, buildOption in ipairs(uDef.buildoptions or {}) do
-					if replacements[buildOption] then
-						uDef.buildoptions[i] = replacements[buildOption]
-					end
+		if buildOptionReplacements[name] then
+			local replacements = buildOptionReplacements[name]
+			for i, buildOption in ipairs(uDef.buildoptions or {}) do
+				if replacements[buildOption] then
+					uDef.buildoptions[i] = replacements[buildOption]
 				end
 			end
 		end
