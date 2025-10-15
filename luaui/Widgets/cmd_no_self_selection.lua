@@ -55,7 +55,9 @@ local function cacheSelectionVolume(unitID)
 	restoreVolumeData = { sp_GetUnitSelectionVolumeData(unitID) }
 end
 
----Prevent a unit from being hovered, clicked, or selected via raycast (e.g. by the cursor).
+-- Prevent a unit from being hovered, clicked, or selected via raycast (e.g. by the cursor).
+-- This way you cannot give nonsense commands, such as self-guard, and it becomes easy to
+-- target things obscured by the unit (sub under battleship, things under large aircraft or tall buildings)
 --
 -- Since the camera can be rotated to extreme perspectives, even units that do not allow any
 -- other unit underneath themselves will have their selection volumes shrunk to zero radius.
