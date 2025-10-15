@@ -2,7 +2,6 @@
 -- This is a minor utility for distributing directions rotationally in 3D.
 
 local DirectionsUtil = {}
-local DIRECTION_SET_SIZE_MAX = 64
 
 DirectionsUtil.Directions = {}
 
@@ -44,7 +43,6 @@ local spherePackings = {
 ---@param n number count of vectors to produce
 ---@return table vector3s
 DirectionsUtil.GetRandomDirections = function(n)
-	n = n > 1 and n or 1
 	local vecs = {}
 	local math_random = math.random
 
@@ -78,16 +76,10 @@ end
 ---@return table? vector3s
 ---@return boolean? randomized
 DirectionsUtil.GetDirections = function(n)
-	if not n or n < 1 then return end
-
 	local distributed = DirectionsUtil.Directions[n]
 
 	if distributed then
 		return distributed, false
-	end
-
-	if n > DIRECTION_SET_SIZE_MAX then
-		n = DIRECTION_SET_SIZE_MAX
 	end
 
 	for i = 1, 3 * (n - 1) + 1, 3 do
@@ -99,7 +91,9 @@ end
 ---@param n number max solution size to add to Directions
 ---@return boolean success
 DirectionsUtil.ProvisionDirections = function(n)
-	if n < 2 or n > DIRECTION_SET_SIZE_MAX then return false end
+	if n < 2 then
+		return false
+	end
 
 	local directions = DirectionsUtil.Directions or {}
 
