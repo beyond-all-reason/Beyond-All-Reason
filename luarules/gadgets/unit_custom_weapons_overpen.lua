@@ -81,6 +81,7 @@ local spGetUnitHealth          = Spring.GetUnitHealth
 local spGetUnitIsDead          = Spring.GetUnitIsDead
 local spGetUnitPosition        = Spring.GetUnitPosition
 local spGetUnitRadius          = Spring.GetUnitRadius
+local spGetUnitShieldState     = Spring.GetUnitShieldState
 local spGetWaterLevel          = Spring.GetWaterLevel
 
 local spSetFeatureHealth       = Spring.SetFeatureHealth
@@ -323,7 +324,7 @@ end
 -- TODO: If future modoptions might override the rework, then keep this function.
 local function addShieldDamageDefault(shieldUnitID, shieldWeaponIndex, damageToShields, weaponDefID, projectileID)
 	local exhausted, damageDone = false, 0
-	local state, health = Spring.GetUnitShieldState(shieldUnitID)
+	local state, health = spGetUnitShieldState(shieldUnitID)
 	local SHIELD_STATE_ENABLED = 1 -- nb: not boolean
 	if state == SHIELD_STATE_ENABLED and health > 0 then
 		local healthLeft = max(0, health - damageToShields)
@@ -500,7 +501,7 @@ function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, sh
 		local damage = penetrator.params[armorShields]
 		if damage > 1 then
 			projectileHits[projectileID] = penetrator
-			local state, health = Spring.GetUnitShieldState(unitID, shieldWeaponIndex)
+			local state, health = spGetUnitShieldState(shieldUnitID, shieldWeaponIndex)
 			local collisions = penetrator.collisions
 			collisions[#collisions+1] = {
 				targetID  = shieldUnitID,
