@@ -78,12 +78,22 @@ for _, allyTeamID in ipairs(allyTeamList) do
 	allyWatch[allyTeamID] = teamList
 end
 
+function gadget:Initialize()
+	local teamList = Spring.GetTeamList()
+	for _, teamID in ipairs(teamList) do
+		if not ignoredTeams[teamID] then
+			spSetTeamRulesParam(teamID, "tech_points", 0)
+			spSetTeamRulesParam(teamID, "tech_level", 1)
+		end
+	end
+end
+
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	local power = UnitDefs[unitDefID].power
 	if power then
 		local allyTeam = spGetUnitAllyTeam(unitID)
 		for _, teamID in ipairs(allyWatch[allyTeam]) do
-			allyGains[teamID] = spGetTeamRulesParam(teamID, "tech_points") + power * unitCreationRewardMultiplier
+			allyGains[teamID] = (spGetTeamRulesParam(teamID, "tech_points") or 0) + power * unitCreationRewardMultiplier
 		end
 	end
 	if techPointsGeneratorDefs[unitDefID] and not ignoredTeams[unitTeam] then
@@ -117,23 +127,27 @@ function gadget:GameFrame(frame)
 	end
 
 	for teamID, gain in pairs(allyGains) do
-		spSetTeamRulesParam(teamID, "tech_points", math.floor(gain)) -- we assign it once to prevent losses from math.floor on incrimental fractions
+		if gain > 0 then
+			spSetTeamRulesParam(teamID, "tech_points", math.floor(gain)) -- we assign it once to prevent losses from math.floor on incrimental fractions
+		end
 	end
 	allyGains = {}
 
 	for allyTeamID, teamList in pairs(allyWatch) do
 		local techLevel = 1
-		local currentTechPoints = 0
+		local currentTechPoints
 		for _, teamID in ipairs(teamList) do
-			currentTechPoints = spGetTeamRulesParam(teamID, "tech_points")
-			if currentTechPoints >= t3TechThreshold then
-				techLevel = 3
-			elseif currentTechPoints >= t2TechThreshold then
-				techLevel = 2
+			if not ignoredTeams[teamID] then
+				currentTechPoints = spGetTeamRulesParam(teamID, "tech_points")
+				if currentTechPoints and currentTechPoints >= t3TechThreshold then
+					techLevel = 3
+				elseif currentTechPoints >= t2TechThreshold then
+					techLevel = 2
+				end
+				spSetTeamRulesParam(teamID, "tech_level", techLevel)
 			end
-			spSetTeamRulesParam(teamID, "tech_level", techLevel)
+			Spring.Echo("Team " .. teamID .. " tech points B: ", currentTechPoints, "t3Threshold: ", t3TechThreshold, "t2Threshold: ", t2TechThreshold, "techLevel: ", techLevel)
 		end
-		Spring.Echo("Ally Team " .. allyTeamID .. " tech level: " .. techLevel, "Tech points: " .. currentTechPoints)
 	end
 end
 
