@@ -42,20 +42,23 @@ return {
 	GamePaused = {
 		delay = 5,
 	},
-	PlayerDisconnected = {
-		delay = 1,
+	TeammateCatchedUp = {
+		delay = 5,
 	},
-	PlayerAdded = {
-		delay = 1,
+	TeammateDisconnected = {
+		delay = 5,
 	},
-	PlayerResigned = {
-		delay = 1,
+	TeammateLagging = {
+		delay = 5,
 	},
-	PlayerTimedout = {
-		delay = 1,
+	TeammateReconnected = {
+		delay = 5,
 	},
-	PlayerReconnecting = {
-		delay = 1,
+	TeammateResigned = {
+		delay = 5,
+	},
+	TeammateTimedout = {
+		delay = 5,
 	},
 	RaptorsAndScavsMixed = {
 		delay = 15,
