@@ -470,6 +470,10 @@ function UnitDef_Post(name, uDef)
 				uDef.customparams.tech_points_gain = uDef.customparams.tech_points_gain or 1
 			elseif techLevel == 2 then
 				uDef.customparams.tech_points_gain = uDef.customparams.tech_points_gain or 4
+				uDef.customparams.tech_build_blocked_until_level = uDef.customparams.tech_build_blocked_until_level or 2
+			elseif techLevel == 3 then
+				uDef.customparams.tech_points_gain = uDef.customparams.tech_points_gain or 8
+				uDef.customparams.tech_build_blocked_until_level = uDef.customparams.tech_build_blocked_until_level or 3
 			end
 		end
 		--zzz
