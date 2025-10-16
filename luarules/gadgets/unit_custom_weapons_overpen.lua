@@ -499,7 +499,7 @@ function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, sh
 	local penetrator = projectiles[projectileID]
 	if penetrator then
 		local damage = penetrator.params[armorShields]
-		if damage > 1 then
+		if damage > 1 and shieldUnitID and shieldWeaponIndex then
 			projectileHits[projectileID] = penetrator
 			local state, health = spGetUnitShieldState(shieldUnitID, shieldWeaponIndex)
 			local collisions = penetrator.collisions
