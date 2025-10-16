@@ -383,9 +383,17 @@ function widget:Initialize()
 	end
 	WG['notifications'].getNotificationList = function()
 		local soundInfo = {}
+
 		for i, event in pairs(notificationOrder) do
 			soundInfo[i] = { event, notificationList[event], notification[event].textID, #notification[event].voiceFiles }
 		end
+
+		table.sort(soundInfo, function(a, b)
+			local nameA = Spring.I18N(a[3]) or ""
+			local nameB = Spring.I18N(b[3]) or ""
+			return string.lower(nameA) < string.lower(nameB)
+		end)
+
 		return soundInfo
 	end
 	WG['notifications'].getTutorial = function()
