@@ -212,9 +212,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitBulks[unitDefID] = bulk
 end
 
-local bulkMin = UnitDefs[minUnitBounces] and unitBulks[UnitDefs[minUnitBounces].id] or 0.1
-
-for unitDefID in pairs(UnitDefs) do
+-- The value 0.1 is very low for an individual unit, but could potentially add up in groups:
+local bulkMin = UnitDefNames[minUnitBounces] and unitBulks[UnitDefNames[minUnitBounces].id] or 0.1
+for unitDefID in ipairs(UnitDefs) do
 	if unitBulks[unitDefID] < bulkMin then
 		unitBulks[unitDefID] = nil
 	end
