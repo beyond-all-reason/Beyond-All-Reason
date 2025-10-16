@@ -804,7 +804,7 @@ local unitOrderTable = {
 
    ['armnavaldefturret']	= 230301,
    ['cornavaldefturret']	= 230401,
-   ['legnavadefturret']		= 230402,
+   ['legnavaldefturret']	= 230402,
 
    ['legfhive']        = 230450,
    ['armkraken']      = 230500,
