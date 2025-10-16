@@ -27,7 +27,7 @@ local defaultSpawnTtl = 5		 -- detonate projectiles after time = ttl, by default
 local minSpawnNumber = 3         -- minimum number of spawned projectiles
 local maxSpawnNumber = 24        -- protect game performance against stupid ideas
 local minUnitBounces = "armpw"   -- smallest unit (name) that "bounces" projectiles at all
-local minBulkReflect = 500       -- smallest unit bulk that "reflects" as if terrain
+local minBulkReflect = 800       -- smallest unit bulk that "reflects" as if terrain
 local waterDepthCoef = 0.1       -- reduce "separation" from ground in water by a multiple
 
 -- CustomParams setup ----------------------------------------------------------
@@ -173,7 +173,7 @@ local function getUnitBulk(unitDef)
 
 	-- Height contributes less bulk, but tall units don't benefit as much from ground deflection.
 	-- Lower units, like Bulls, basically gain ground deflection on top of their unit deflection.
-	local height = 20 / math.clamp(unitDef.height, 1, 60) -- So set a cap and a peak at ~20.
+	local height = 50 / math.clamp(unitDef.height, 1, 100) -- So set a cap and a peak at ~50.
 
 	-- NB: Mass is useless for us here. It serves several arbitrary purposes aside from "weight".
 	local fromHealth = sqrt(unitDef.health) -- [1, 1000000] => [1, 1000] approx
@@ -186,7 +186,7 @@ local function getUnitBulk(unitDef)
 
 	local bulkiness = (fromHealth + fromMetal + fromVolume) + sqrt(fromHealth * fromMetal)
 	bulkiness = math.clamp(bulkiness / minBulkReflect, 0, 1) -- Scaled vs. 100% terrain-like.
-	bulkiness = bulkiness ^ 0.45 -- Curve bulks upward, toward 1, to be much more noticeable.
+	bulkiness = bulkiness ^ 0.64 -- Curve bulks upward, toward 1, to be much more noticeable.
 
 	if unitDef.customParams.decoyfor then
 		local decoyDef = UnitDefNames[unitDef.customParams.decoyfor]
