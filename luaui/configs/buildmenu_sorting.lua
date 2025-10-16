@@ -801,6 +801,11 @@ local unitOrderTable = {
    ['armfhlt']        = 230300,
    ['corfhlt']        = 230400,
    ['legfmg']        = 230401,
+
+   ['armnavaldefturret']	= 230301,
+   ['cornavaldefturret']	= 230401,
+   ['legnavadefturret']		= 230402,
+
    ['legfhive']        = 230450,
    ['armkraken']      = 230500,
    ['corfdoom']       = 230600,
