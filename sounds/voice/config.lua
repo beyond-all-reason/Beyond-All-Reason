@@ -68,8 +68,20 @@ return {
 	MaxUnitsReached = {
 		delay = 90,
 	},
+	BaseUnderAttack = {
+		delay = 10,
+	},
+	UnitsCaptured = {
+		delay = 10,
+	},
 	UnitsReceived = {
-		delay = 5,
+		delay = 10,
+	},
+	UnitsUnderAttack = {
+		delay = 10,
+	},
+	UnitLost = {
+		delay = 10,
 	},
 	RadarLost = {
 		delay = 12,
@@ -86,10 +98,16 @@ return {
 		delay = 80,
 	},
 	WholeTeamWastingMetal = {
-		delay = 60,
+		delay = 120,
 	},
 	WholeTeamWastingEnergy = {
+		delay = 240,
+	},
+	YouAreWastingMetal = {
 		delay = 120,
+	},
+	YouAreWastingEnergy = {
+		delay = 240,
 	},
 	LowPower = {
 		delay = 50,
