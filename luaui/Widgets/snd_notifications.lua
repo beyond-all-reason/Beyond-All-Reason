@@ -336,6 +336,7 @@ local function queueNotification(event, forceplay)
 	end
 end
 
+
 local function queueTutorialNotification(event)
 	if doTutorialMode and (not tutorialPlayed[event] or tutorialPlayed[event] < tutorialPlayLimit) then
 		queueNotification(event)
@@ -425,6 +426,9 @@ function widget:Initialize()
 		if notification[value] then
 			queueNotification(value, force)
 		end
+	end
+	WG['notifications'].queueNotification = function(event, forceplay)
+		queueNotification(event, forceplay)
 	end
 	WG['notifications'].playNotification = function(event)
 		if notification[event] then
