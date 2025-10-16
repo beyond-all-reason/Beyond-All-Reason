@@ -323,23 +323,26 @@ end
 -- TODO: Remove this function when shieldsrework modoption is made mandatory. However:
 -- TODO: If future modoptions might override the rework, then keep this function.
 local function addShieldDamageDefault(shieldUnitID, shieldWeaponIndex, damageToShields, weaponDefID, projectileID)
-	local exhausted, damageDone = false, 0
-	local state, health = spGetUnitShieldState(shieldUnitID)
-	local SHIELD_STATE_ENABLED = 1 -- nb: not boolean
-	if state == SHIELD_STATE_ENABLED and health > 0 then
-		local healthLeft = max(0, health - damageToShields)
-		if shieldWeaponIndex then
-			Spring.SetUnitShieldState(shieldUnitID, shieldWeaponIndex, healthLeft)
-		else
-			Spring.SetUnitShieldState(shieldUnitID, healthLeft)
+	if shieldUnitID then
+		local exhausted, damageDone = false, 0
+		local state, health = spGetUnitShieldState(shieldUnitID)
+		local SHIELD_STATE_ENABLED = 1 -- nb: not boolean
+		if state == SHIELD_STATE_ENABLED and health > 0 then
+			local healthLeft = max(0, health - damageToShields)
+			if shieldWeaponIndex then
+				Spring.SetUnitShieldState(shieldUnitID, shieldWeaponIndex, healthLeft)
+			else
+				Spring.SetUnitShieldState(shieldUnitID, healthLeft)
+			end
+			if healthLeft > 0 then
+				exhausted, damageDone = true, damageToShields
+			else
+				exhausted, damageDone = false, health
+			end
 		end
-		if healthLeft > 0 then
-			exhausted, damageDone = true, damageToShields
-		else
-			exhausted, damageDone = false, health
-		end
+
+		return exhausted, damageDone
 	end
-	return exhausted, damageDone
 end
 
 --------------------------------------------------------------------------------
@@ -499,7 +502,7 @@ function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, sh
 	local penetrator = projectiles[projectileID]
 	if penetrator then
 		local damage = penetrator.params[armorShields]
-		if damage > 1 then
+		if damage > 1 and shieldUnitID and shieldWeaponIndex then
 			projectileHits[projectileID] = penetrator
 			local state, health = spGetUnitShieldState(shieldUnitID, shieldWeaponIndex)
 			local collisions = penetrator.collisions
