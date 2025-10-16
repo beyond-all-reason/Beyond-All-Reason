@@ -495,6 +495,7 @@ local LandUnitsList = {
 			["cormabm_scav"] = 2,
 			--Legion
 			["leggobt3_scav"] = 3,
+			["legemissiletank"] = 2,
 		},
 		[7] = {
 			--Armada

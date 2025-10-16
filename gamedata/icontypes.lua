@@ -2704,6 +2704,10 @@ local icontypes = {
 		bitmap = "icons/corban_1.6.png",
 		size = 1.85
 	},
+	legemissiletank = {
+		bitmap = "icons/vehicle_t3_missiles.png",
+		size = 2.4
+	},
 	legmex = {
 		bitmap = "icons/mex_t1.png",
 		size = 0.80849993
