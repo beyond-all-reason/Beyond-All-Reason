@@ -175,10 +175,10 @@ unitsOfInterestNames = nil
 -- added this so they wont get immediately triggered after gamestart
 LastPlay['YouAreOverflowingMetal'] = spGetGameFrame() + 1200
 --LastPlay['YouAreOverflowingEnergy'] = spGetGameFrame()+300
---LastPlay['YouAreWastingMetal'] = spGetGameFrame()+300
---LastPlay['YouAreWastingEnergy'] = spGetGameFrame()+300
-LastPlay['WholeTeamWastingMetal'] = spGetGameFrame() + 1200
-LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame() + 2000
+LastPlay['YouAreWastingMetal'] = spGetGameFrame()
+LastPlay['YouAreWastingEnergy'] = spGetGameFrame()
+LastPlay['WholeTeamWastingMetal'] = spGetGameFrame()
+LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame()
 
 local soundQueue = {}
 local nextSoundQueued = 0
