@@ -1,0 +1,89 @@
+/* Tech Points Display - Responsive design using vh, vw, dp units */
+
+.tech-points-root {
+    position: fixed;
+    /* Center the panel on screen using viewport units */
+    left: 50vw;
+    top: 2.7vh;
+    margin-left: -2.7vh; /* Half of width for centering */
+    margin-top: -2.7vh; /* Half of height for centering */
+    width: 5.4vh; /* Based on 46px base * 1.18 scale factor for 1080p */
+    height: 5.4vh; /* Same as width for square panel */
+    z-index: 1000;
+    font-family: Exo 2;
+}
+
+.tech-points-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Square progress bar - 90% of panel size */
+.tech-points-progress {
+    position: relative;
+    width: 90%;
+    height: 90%;
+    background-color: #333333;
+    overflow: hidden;
+}
+
+/* Vertical fill from bottom to top */
+.tech-points-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0%; /* Start empty, will be set dynamically */
+    background-color: #00ff00;
+}
+
+/* Tech level number - centered and 90% size of progress bar */
+.tech-level-number {
+    position: absolute;
+    top: 5%; /* Approximate center positioning */
+    left: 5%;
+    right: 5%;
+    bottom: 5%;
+    font-size: 81%; /* 90% of progress bar size */
+    font-weight: bold;
+    color: #ffffff;
+    text-align: center;
+    z-index: 2;
+}
+
+/* Responsive adjustments for different aspect ratios */
+@media (max-aspect-ratio: 16/10) {
+    .tech-points-progress {
+        width: 85%;
+        height: 85%;
+    }
+
+    .tech-level-number {
+        top: 7.5%;
+        left: 7.5%;
+        right: 7.5%;
+        bottom: 7.5%;
+        font-size: 76.5%; /* 90% of adjusted progress bar */
+    }
+}
+
+@media (min-aspect-ratio: 21/9) {
+    .tech-points-progress {
+        width: 95%;
+        height: 95%;
+    }
+
+    .tech-level-number {
+        top: 2.5%;
+        left: 2.5%;
+        right: 2.5%;
+        bottom: 2.5%;
+        font-size: 85.5%; /* 90% of adjusted progress bar */
+    }
+}
+
