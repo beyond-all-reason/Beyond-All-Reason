@@ -3,12 +3,10 @@
 .tech-points-root {
     position: fixed;
     /* Center the panel on screen using viewport units */
-    left: 50vw;
-    top: 2.7vh;
-    margin-left: -2.7vh; /* Half of width for centering */
-    margin-top: -2.7vh; /* Half of height for centering */
-    width: 5.4vh; /* Based on 46px base * 1.18 scale factor for 1080p */
-    height: 5.4vh; /* Same as width for square panel */
+    left: 27.54vw;
+    top: -3dp;
+    width: 42dp; /* Based on 46px base * 1.18 scale factor for 1080p */
+    height: 42dp; /* Same as width for square panel */
     z-index: 1000;
     font-family: Exo 2;
 }
@@ -17,20 +15,19 @@
     position: absolute;
     width: 100%;
     height: 100%;
-    background-color: #000000;
+    background-color: rgba(40, 40, 40, 20);
+    border-radius: 6dp;
+    border-width: 4dp;
+    border-color: rgba(30, 30, 30, 150);
+    decorator: image("/luaui/images/stripes-small.png" repeat);
+    image-color: rgba(35, 35, 35, 117);
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
 /* Square progress bar - 90% of panel size */
-.tech-points-progress {
-    position: relative;
-    width: 90%;
-    height: 90%;
-    background-color: #333333;
-    overflow: hidden;
-}
+
 
 /* Vertical fill from bottom to top */
 .tech-points-fill {
@@ -39,51 +36,72 @@
     left: 0;
     width: 100%;
     height: 0%; /* Start empty, will be set dynamically */
-    background-color: #00ff00;
+    background-color: #585757;
+    decorator: vertical-gradient(rgba(121, 121, 121, 0.62) #585757);
 }
 
-/* Tech level number - centered and 90% size of progress bar */
-.tech-level-number {
+/* Text container for header and number */
+.tech-text-container {
     position: absolute;
-    top: 5%; /* Approximate center positioning */
-    left: 5%;
-    right: 5%;
-    bottom: 5%;
-    font-size: 81%; /* 90% of progress bar size */
-    font-weight: bold;
-    color: #ffffff;
-    text-align: center;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
     z-index: 2;
 }
 
-/* Responsive adjustments for different aspect ratios */
-@media (max-aspect-ratio: 16/10) {
-    .tech-points-progress {
-        width: 85%;
-        height: 85%;
-    }
-
-    .tech-level-number {
-        top: 7.5%;
-        left: 7.5%;
-        right: 7.5%;
-        bottom: 7.5%;
-        font-size: 76.5%; /* 90% of adjusted progress bar */
-    }
+/* Tech level header text */
+.tech-level-header {
+    font-size: 14dp;
+    font-weight: bold;
+    color: #ffffff;
+    text-align: center;
+    font-effect: outline(1dp black);
+    margin-bottom: 0dp;
 }
 
-@media (min-aspect-ratio: 21/9) {
-    .tech-points-progress {
-        width: 95%;
-        height: 95%;
-    }
-
-    .tech-level-number {
-        top: 2.5%;
-        left: 2.5%;
-        right: 2.5%;
-        bottom: 2.5%;
-        font-size: 85.5%; /* 90% of adjusted progress bar */
-    }
+/* Tech level number - centered and scaled */
+.tech-level-number {
+    font-size: 24dp;
+    margin-bottom: 4dp;
+    font-weight: 900;
+    color: #ffffff;
+    text-align: center;
+    font-effect: outline(1dp black);
 }
 
+.tech-level-popup {
+    position: absolute;
+    left: 50%;
+    top: 50vh;
+    transform: translate(-50%, -50%);
+    font-family: Exo 2;
+    font-size: 2.78vh;
+    font-effect: outline(1dp black);
+    text-align: center;
+    white-space: nowrap;
+    z-index: 1000;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 0.93vh 2.08vw;
+    border-radius: 0.56vh;
+    border-width: 0.09vh;
+    border-color: rgba(255, 255, 255, 0.3);
+    opacity: 0;
+}
+
+/* Tech popup animation when active */
+.tech-level-popup.show-popup {
+    animation: 3s 0s cubic-in-out 1 tech-popup-fade;
+}
+
+/* Tech popup fade animation */
+@keyframes tech-popup-fade {
+    0% { opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+}
