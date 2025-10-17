@@ -11,6 +11,7 @@ function widget:GetInfo()
 		enabled = true
 	}
 end
+
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
@@ -25,13 +26,153 @@ local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spIsReplay = Spring.IsReplay
+local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 local log = Spring.Echo
-
-local ENEMY_TEAM_ID = -4
 
 local myTeamID
 local myAllyTeamID
 local gameStarted
+
+----------------------------------------------------------------------------------------------------------
+--- Logic which distributes targets between transports. Should be split and extracted to separate widget
+----------------------------------------------------------------------------------------------------------
+
+-- Multiplier to convert footprints sizes
+-- see SPRING_FOOTPRINT_SCALE in GlobalConstants.h in recoil engine repo for details
+-- https://github.com/beyond-all-reason/RecoilEngine/blob/master/rts%2FSim%2FMisc%2FGlobalConstants.h
+local springFootprintScale = 2
+
+local transportDefs = {}
+local cantBeTransported = {}
+local unitMass = {}
+local unitXSize = {}
+
+for defId, def in pairs(UnitDefs) do
+	if def.transportSize and def.transportSize > 0 then
+		transportDefs[defId] = { def.transportMass, def.transportCapacity, def.transportSize, def.health }
+	end
+	unitMass[defId] = def.mass
+	unitXSize[defId] = def.xsize
+	cantBeTransported[defId] = def.cantBeTransported
+end
+
+local function distributeTargetsToTransports(transports, targets)
+	---@type table<number,TransportData>
+	local transportsDataMap = {}
+	local validTransportsForUnitTypeMap = {}
+	local passengerPriority = {}
+
+	-- 1. Find transports with capacity
+	for _, transportUnitId in ipairs(transports) do
+		local transportDefId = spGetUnitDefID(transportUnitId)
+		local transportedUnits = spGetUnitIsTransporting(transportUnitId)
+		local transCapacity = transportDefs[transportDefId][2]
+		local remainingCapacity = transCapacity - (transportedUnits and #transportedUnits or 0)
+
+		if remainingCapacity > 0 then
+			if not transportsDataMap[transportDefId] then
+				---@class TransportData
+				transportsDataMap[transportDefId] = {
+					transportCapacity = {},
+					transportList = {},
+					validPassengers = {},
+					transportHealth = transportDefs[transportDefId][4]
+				}
+			end
+			transportsDataMap[transportDefId].transportCapacity[transportUnitId] = remainingCapacity
+			table.insert(transportsDataMap[transportDefId].transportList, transportUnitId)
+		end
+	end
+
+	-- 2. Match passengers to transport types
+	for transDefId, transportTypeData in pairs(transportsDataMap) do
+		local transportDef = transportDefs[transDefId]
+		local transMassLimit = transportDef[1]
+		local transportSizeLimit = transportDef[3]
+
+		for _, targetId in ipairs(targets) do
+			local passengerDefId = spGetUnitDefID(targetId)
+			local isValid = false
+			validTransportsForUnitTypeMap[passengerDefId] = validTransportsForUnitTypeMap[passengerDefId] or {}
+
+			if validTransportsForUnitTypeMap[passengerDefId][transDefId] then
+				isValid = true
+			elseif not cantBeTransported[passengerDefId] then
+				local passengerFootprintX = unitXSize[passengerDefId] / springFootprintScale
+				if unitMass[passengerDefId] <= transMassLimit and passengerFootprintX <= transportSizeLimit then
+					isValid = true
+					validTransportsForUnitTypeMap[passengerDefId][transDefId] = true
+				end
+			end
+			if isValid then
+				passengerPriority[targetId] = (passengerPriority[targetId] or 0) + 1
+				table.insert(transportTypeData.validPassengers, targetId)
+			end
+		end
+		if #transportTypeData.validPassengers == 0 then
+			transportsDataMap[transDefId] = nil
+		end
+	end
+
+	local orderedTransportDefs = {}
+
+	for transDefId, transportData in pairs(transportsDataMap) do
+		-- 3. Sort passengers (hardest to transport first)
+		table.sort(transportData.validPassengers, function(a, b)
+			return passengerPriority[a] < passengerPriority[b]
+		end)
+
+		table.insert(orderedTransportDefs, transDefId)
+	end
+
+	-- 4. Sort transports
+	table.sort(orderedTransportDefs, function(a, b)
+		local passengerA = transportsDataMap[a].validPassengers[1]
+		local passengerB = transportsDataMap[b].validPassengers[1]
+
+		-- Transports with lowest capabilities are chosen first.
+		if passengerPriority[passengerA] ~= passengerPriority[passengerB] then
+			return passengerPriority[passengerA] > passengerPriority[passengerB]
+		end
+
+		-- In case of tie, we want the sturdier transport first as it will be the first to pick up bigger units
+		return transportsDataMap[a].transportHealth > transportsDataMap[b].transportHealth
+	end)
+
+	-- 5. Distribute passengers
+	local alreadyAssignedPassengers = {}
+	local passengerAssignments = {}
+
+	for _, transDefId in ipairs(orderedTransportDefs) do
+		local transportsData = transportsDataMap[transDefId]
+		local validPassengers = transportsData.validPassengers
+
+		local transportIds = transportsData.transportList
+		local transportCapacities = transportsData.transportCapacity
+
+		for _, passengerId in ipairs(validPassengers) do
+			if not alreadyAssignedPassengers[passengerId] then
+				for _, transportId in ipairs(transportIds) do
+					if transportCapacities[transportId] > 0 then
+						if not passengerAssignments[transportId] then
+							passengerAssignments[transportId] = {}
+						end
+						table.insert(passengerAssignments[transportId], passengerId)
+						alreadyAssignedPassengers[passengerId] = true
+						transportCapacities[transportId] = transportCapacities[transportId] - 1
+						break
+					end
+				end
+			end
+		end
+	end
+
+	return passengerAssignments
+end
+
+---------------------------------------------------------------------------------------
+--- End of transport logic
+---------------------------------------------------------------------------------------
 
 local function giveOrders(cmdId, selectedUnits, filteredTargets, options)
 	local count = 0
@@ -81,11 +222,9 @@ end
 
 --- Each transport picks one target
 local function loadUnitsHandler(cmdId, selectedUnits, filteredTargets, options)
-	local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
-	for targetId, targets in pairs(unitTargetsMap) do
-		if #targets > 0 then
-			giveOrders(cmdId, { targetId }, { targets[1] }, options)
-		end
+	local passengerAssignments = distributeTargetsToTransports(selectedUnits, filteredTargets)
+	for transportId, targetIds in pairs(passengerAssignments) do
+		giveOrders(cmdId, { transportId }, targetIds, options)
 	end
 end
 
@@ -123,7 +262,7 @@ local function filterUnits(targetId, cmdX, cmdZ, radius, options, skipAlliedUnit
 
 	local unitsInArea
 	if isEnemyTarget then
-		unitsInArea = spGetUnitsInCylinder(cmdX, cmdZ, radius, ENEMY_TEAM_ID)
+		unitsInArea = spGetUnitsInCylinder(cmdX, cmdZ, radius, Spring.ENEMY_UNITS)
 	elseif not skipAlliedUnits then
 		unitsInArea = spGetUnitsInCylinder(cmdX, cmdZ, radius, myTeamID)
 	end
