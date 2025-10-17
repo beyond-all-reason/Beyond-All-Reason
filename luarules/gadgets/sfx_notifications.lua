@@ -131,6 +131,7 @@ else
 	local isMex = {}
 	local isLrpc = {}
 	local isBuilding = {}
+	local hasWeapons = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		-- not critter/raptor/object
 		if not string.find(unitDef.name, 'critter') and not string.find(unitDef.name, 'raptor') and (not unitDef.modCategories or not unitDef.modCategories.object) then
@@ -145,6 +146,9 @@ else
 			end
 			if unitDef.extractsMetal > 0 then
 				isMex[unitDefID] = unitDef.extractsMetal
+			end
+			if unitDef.weapons and #unitDef.weapons > 0 then
+				hasWeapons[unitDefID] = true
 			end
 			isBuilding[unitDefID] = unitDef.isBuilding or unitDef.isFactory
 		end
@@ -199,8 +203,8 @@ else
 
 	local commanderLastDamaged = {}
 	local UnitLostNotifCooldown = 60
-	local UnitsUnderAttackNotifCooldown = 45
-	local BaseUnderAttackNotifCooldown = 30
+	local UnitsUnderAttackNotifCooldown = 60
+	local BaseUnderAttackNotifCooldown = 60
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 		if unitTeam == myTeamID and isLrpc[attackerDefID] and attackerTeam and GetAllyTeamID(attackerTeam) ~= myAllyTeamID then
 			BroadcastEvent("NotificationEvent", 'LrpcTargetUnits', tostring(myPlayerID))
@@ -213,25 +217,23 @@ else
 				if UnitsUnderAttackNotifCooldown <= 0 then
 					BroadcastEvent("NotificationEvent", 'UnitsUnderAttack', tostring(myPlayerID))
 				end
-				UnitsUnderAttackNotifCooldown = 45
+				UnitsUnderAttackNotifCooldown = 60
 			end
 			
 			
-			if isBuilding[unitDefID] == true and (not isMex[unitDefID]) then
+			if isBuilding[unitDefID] == true and (not isMex[unitDefID]) and (not hasWeapons[unitDefID]) then
 				if BaseUnderAttackNotifCooldown <= 0 then
 					BroadcastEvent("NotificationEvent", 'BaseUnderAttack', tostring(myPlayerID))
 				end
-				BaseUnderAttackNotifCooldown = 30
+				BaseUnderAttackNotifCooldown = 60
 			end
 		end
 	end
 
-	function gadget:GameFrame(frame)
-		if frame%30 == 15 then
-			UnitsUnderAttackNotifCooldown = UnitsUnderAttackNotifCooldown - 1
-			BaseUnderAttackNotifCooldown = BaseUnderAttackNotifCooldown - 1
-			UnitLostNotifCooldown = UnitLostNotifCooldown - 1
-		end
+	function gadget:Update(dt)
+		UnitsUnderAttackNotifCooldown = UnitsUnderAttackNotifCooldown - dt
+		BaseUnderAttackNotifCooldown = BaseUnderAttackNotifCooldown - dt
+		UnitLostNotifCooldown = UnitLostNotifCooldown - dt
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
