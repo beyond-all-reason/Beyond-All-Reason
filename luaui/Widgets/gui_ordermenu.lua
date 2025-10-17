@@ -54,7 +54,6 @@ local commandInfo = {
 	upgrademex		= { red = 0.93,	green = 0.93,	blue = 0.93 },
 	loadunits		= { red = 0.1,	green = 0.7,	blue = 1 },
 	unloadunits		= { red = 0,	green = 0.5,	blue = 1 },
-	landatairbase	= { red = 0.4,	green = 0.7,	blue = 0.4 },
 	wantcloak		= { red = nil,	green = nil,	blue = nil },
 	onoff			= { red = nil,	green = nil,	blue = nil },
 	sellunit		= { red = nil,	green = nil,	blue = nil },

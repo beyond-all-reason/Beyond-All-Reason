@@ -361,13 +361,12 @@ function gadget:Initialize()
 	end
 end
 
-function gadget:GameFramePost()
+local function _GameFramePost(collisionList)
 	local addShieldDamage = GG.AddShieldDamage or addShieldDamageDefault
 	local setVelocityControl = GG.SetVelocityControl
 
-	local projectileHits = projectileHits
-	for projectileID, penetrator in pairs(projectileHits) do
-		projectileHits[projectileID] = nil
+	for projectileID, penetrator in pairs(collisionList) do
+		collisionList[projectileID] = nil
 		local collisions = penetrator.collisions
 
 		if collisions[2] then
@@ -446,6 +445,12 @@ function gadget:GameFramePost()
 	end
 end
 
+function gadget:GameFramePost(frame)
+	if next(projectileHits) then
+		_GameFramePost(projectileHits)
+	end
+end
+
 function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
 	local params = weaponParams[weaponDefID]
 	if params then
@@ -506,6 +511,7 @@ function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, sh
 			collisions[#collisions+1] = {
 				targetID  = shieldUnitID,
 				shieldID  = shieldWeaponIndex,
+				armorType = armorShields,
 				healthMax = health,
 				damage    = damage,
 				hitX      = hitX,
