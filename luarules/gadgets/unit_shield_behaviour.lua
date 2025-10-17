@@ -150,6 +150,8 @@ if not reworkEnabled then
 	function gadget:ProjectileDestroyed(proID)
 		projectileDefIDCache[proID] = nil
 	end
+
+	return
 end
 
 -- Shield Rework
