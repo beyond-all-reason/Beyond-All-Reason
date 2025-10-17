@@ -26,6 +26,14 @@ end
 local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetMyTeamID = Spring.GetMyTeamID
+local spI18N = Spring.I18N
+
+local function updateUIElementText(document, elementId, text)
+	local element = document:GetElementById(elementId)
+	if element then
+		element.inner_rml = text
+	end
+end
 
 local MODEL_NAME = "tech_points_model"
 local RML_PATH = "luaui/RmlWidgets/gui_tech_points/gui_tech_points.rml"
@@ -36,6 +44,9 @@ local widgetState = {
 	dmHandle = nil,
 	lastUpdate = 0,
 	updateInterval = 0.5,
+	fillElement = nil,
+	levelElement = nil,
+	popupElement = nil,
 }
 
 local initialModel = {
@@ -56,22 +67,43 @@ local function calculateNextThreshold(currentPoints, t2Threshold, t3Threshold)
 end
 
 local function calculateProgressPercent(currentPoints, nextThreshold, currentTechLevel, t2Threshold, t3Threshold)
-	-- For tech level transitions, reset progress when reaching new levels
-	if currentTechLevel and currentTechLevel == 1 and currentPoints >= t2Threshold then
-		return 0 -- Reset for T2
-	elseif currentTechLevel and currentTechLevel == 2 and currentPoints >= t3Threshold then
-		return 0 -- Reset for T3
-	else
-		if nextThreshold <= 0 then return 0 end
-		return math.min(100, (currentPoints / nextThreshold) * 100)
+	-- Calculate progress towards the next threshold
+	-- When reaching a threshold, the progress should continue from where it left off
+	-- but visually reset to show progress towards the new threshold
+
+	if nextThreshold <= 0 then
+		return 0
 	end
+
+	-- If we've reached T3 (max level), show 100%
+	if currentPoints >= t3Threshold then
+		return 100
+	end
+
+	-- If we've reached T2 but not T3, show progress towards T3
+	if currentPoints >= t2Threshold then
+		local progressInT2 = (currentPoints - t2Threshold) / (t3Threshold - t2Threshold) * 100
+		return math.min(100, progressInT2)
+	end
+
+	-- If we're still in T1, show progress towards T2
+	local progressInT1 = currentPoints / t2Threshold * 100
+	return math.min(100, progressInT1)
 end
 
 local function updateTechPointsData()
 	local myTeamID = spGetMyTeamID()
-	if not myTeamID then return end
+	if not myTeamID then
+		return {
+			techLevel = 1,
+			currentTechPoints = 0,
+			nextThreshold = 100,
+			progressPercent = 0,
+		}
+	end
 
-	local currentTechPoints = spGetTeamRulesParam(myTeamID, "tech_points") or 0
+	local currentTechPoints = spGetTeamRulesParam(myTeamID, "tech_points")
+	if currentTechPoints == nil then currentTechPoints = 0 end
 	local t2Threshold = modOptions.t2_tech_threshold or 100
 	local t3Threshold = modOptions.t3_tech_threshold or 1000
 
@@ -83,6 +115,7 @@ local function updateTechPointsData()
 	end
 
 	local nextThreshold = calculateNextThreshold(currentTechPoints, t2Threshold, t3Threshold)
+
 	local progressPercent = calculateProgressPercent(currentTechPoints, nextThreshold, techLevel, t2Threshold, t3Threshold)
 
 	return {
@@ -95,10 +128,58 @@ end
 
 -- Positioning function removed - using CSS viewport units instead
 
+local function createTechPointsElements()
+	if not widgetState.document then
+		return
+	end
+
+	-- Try to find elements multiple times in case document isn't ready yet
+	for attempt = 1, 5 do
+		local fillElement = widgetState.document:GetElementById("tech-points-fill")
+		local levelElement = widgetState.document:GetElementById("tech-level-number")
+		local popupElement = widgetState.document:GetElementById("tech-level-popup")
+
+		Spring.Echo("Attempt " .. attempt .. ": fillElement=" .. (fillElement and "found" or "null") ..
+				   ", levelElement=" .. (levelElement and "found" or "null") ..
+				   ", popupElement=" .. (popupElement and "found" or "null"))
+
+		if fillElement and levelElement then
+			widgetState.fillElement = fillElement
+			widgetState.levelElement = levelElement
+			widgetState.popupElement = popupElement
+			Spring.Echo("Core elements found successfully! Popup element: " .. (popupElement and "found" or "not found"))
+			return
+		end
+
+		-- Small delay between attempts
+		if attempt < 5 then
+			local currentTime = os.clock()
+			while os.clock() - currentTime < 0.01 do end -- 10ms delay
+		end
+	end
+	Spring.Echo("Failed to find all elements after 5 attempts!")
+end
+
 local function updateUI()
-	if not widgetState.document then return end
+	if not widgetState.document then
+		return
+	end
 
 	local data = updateTechPointsData()
+
+	-- Always display current tech level in center of screen
+	local popupKey = "ui.techBlocking.techPopup.level" .. tostring(data.techLevel)
+	local popupText = spI18N(popupKey)
+	Spring.Echo("Setting popup text to: " .. popupText .. " for tech level: " .. data.techLevel)
+	if widgetState.document then
+		local popupElement = widgetState.document:GetElementById("tech-level-popup")
+		if popupElement then
+			Spring.Echo("Found popup element, setting text")
+			updateUIElementText(widgetState.document, "tech-level-popup", popupText)
+		else
+			Spring.Echo("Could not find popup element!")
+		end
+	end
 
 	-- Update data model
 	if widgetState.dmHandle then
@@ -108,16 +189,21 @@ local function updateUI()
 		widgetState.dmHandle.progressPercent = data.progressPercent
 	end
 
+	-- Ensure elements exist, recreate if needed
+	if not widgetState.fillElement or not widgetState.levelElement then
+		createTechPointsElements()
+	end
+
 	-- Update progress bar height (vertical fill from bottom)
-	local fillElement = widgetState.document:GetElementById("tech-points-fill")
-	if fillElement then
-		fillElement:SetAttribute("style", string.format("height: %.1f%%", data.progressPercent))
+	if widgetState.fillElement then
+		local heightValue = string.format("%.1f%%", data.progressPercent)
+		widgetState.fillElement:SetAttribute("style", "height: " .. heightValue)
 	end
 
 	-- Update tech level display
-	local levelElement = widgetState.document:GetElementById("tech-level-number")
-	if levelElement then
-		levelElement.inner_rml = tostring(data.techLevel)
+	if widgetState.levelElement then
+		local levelText = tostring(data.techLevel)
+		widgetState.levelElement.inner_rml = levelText
 	end
 end
 
@@ -145,10 +231,19 @@ function widget:ContinueInitialize()
 	end
 
 	widgetState.document = document
+
 	document:Show()
 
-	-- Initial data update
-	updateTechPointsData()
+	updateUIElementText(document, "tech-level-header", spI18N('ui.techBlocking.techLevel'))
+	local initialPopupText = spI18N('ui.techBlocking.techPopup.level1')
+	Spring.Echo("Setting initial popup text to: " .. initialPopupText)
+	updateUIElementText(document, "tech-level-popup", initialPopupText)
+
+	-- Create element references
+	createTechPointsElements()
+
+	-- Initial data update and UI refresh
+	updateUI()
 
 	return true
 end
@@ -176,5 +271,3 @@ function widget:Update(dt)
 		updateUI()
 	end
 end
-
--- ViewResize removed - using CSS viewport units for responsive positioning
