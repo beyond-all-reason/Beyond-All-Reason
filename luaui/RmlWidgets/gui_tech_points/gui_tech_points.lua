@@ -47,6 +47,10 @@ local widgetState = {
 	fillElement = nil,
 	levelElement = nil,
 	popupElement = nil,
+	previousTechLevel = 1,
+	popupEndTime = 0,
+	gameStartTime = nil,
+	initialPopupShown = false,
 }
 
 local initialModel = {
@@ -139,15 +143,10 @@ local function createTechPointsElements()
 		local levelElement = widgetState.document:GetElementById("tech-level-number")
 		local popupElement = widgetState.document:GetElementById("tech-level-popup")
 
-		Spring.Echo("Attempt " .. attempt .. ": fillElement=" .. (fillElement and "found" or "null") ..
-				   ", levelElement=" .. (levelElement and "found" or "null") ..
-				   ", popupElement=" .. (popupElement and "found" or "null"))
-
 		if fillElement and levelElement then
 			widgetState.fillElement = fillElement
 			widgetState.levelElement = levelElement
 			widgetState.popupElement = popupElement
-			Spring.Echo("Core elements found successfully! Popup element: " .. (popupElement and "found" or "not found"))
 			return
 		end
 
@@ -157,7 +156,6 @@ local function createTechPointsElements()
 			while os.clock() - currentTime < 0.01 do end -- 10ms delay
 		end
 	end
-	Spring.Echo("Failed to find all elements after 5 attempts!")
 end
 
 local function updateUI()
@@ -167,18 +165,46 @@ local function updateUI()
 
 	local data = updateTechPointsData()
 
-	-- Always display current tech level in center of screen
-	local popupKey = "ui.techBlocking.techPopup.level" .. tostring(data.techLevel)
-	local popupText = spI18N(popupKey)
-	Spring.Echo("Setting popup text to: " .. popupText .. " for tech level: " .. data.techLevel)
-	if widgetState.document then
-		local popupElement = widgetState.document:GetElementById("tech-level-popup")
-		if popupElement then
-			Spring.Echo("Found popup element, setting text")
+	-- Check if 10 seconds have passed and show initial tech level popup
+	if not widgetState.initialPopupShown and widgetState.gameStartTime and
+	   (os.clock() - widgetState.gameStartTime) >= 10.0 then
+		local popupText = spI18N("ui.techBlocking.techPopup.level1")
+		if widgetState.document then
 			updateUIElementText(widgetState.document, "tech-level-popup", popupText)
-		else
-			Spring.Echo("Could not find popup element!")
 		end
+
+		-- Trigger popup animation
+		if widgetState.popupElement then
+			widgetState.popupElement:SetClass("show-popup", true)
+		end
+
+		widgetState.initialPopupShown = true
+		widgetState.popupEndTime = os.clock() + 3.0  -- 3 seconds animation
+	end
+
+	-- Check if tech level changed and show popup
+	if data.techLevel ~= widgetState.previousTechLevel then
+		local popupKey = "ui.techBlocking.techPopup.level" .. tostring(data.techLevel)
+		local popupText = spI18N(popupKey)
+		if widgetState.document then
+			updateUIElementText(widgetState.document, "tech-level-popup", popupText)
+		end
+
+		-- Trigger popup animation
+		if widgetState.popupElement then
+			widgetState.popupElement:SetClass("show-popup", true)
+		end
+
+		widgetState.previousTechLevel = data.techLevel
+		widgetState.popupEndTime = os.clock() + 3.0  -- 3 seconds animation
+	end
+
+	-- Hide popup after animation completes
+	if widgetState.popupEndTime > 0 and os.clock() >= widgetState.popupEndTime then
+		if widgetState.popupElement then
+			widgetState.popupElement:SetClass("show-popup", false)
+		end
+		widgetState.popupEndTime = 0
 	end
 
 	-- Update data model
@@ -208,6 +234,7 @@ local function updateUI()
 end
 
 function widget:Initialize()
+	widgetState.gameStartTime = os.clock()
 	widgetState.rmlContext = RmlUi.GetContext("shared")
 	if not widgetState.rmlContext then
 		return false
@@ -235,9 +262,7 @@ function widget:ContinueInitialize()
 	document:Show()
 
 	updateUIElementText(document, "tech-level-header", spI18N('ui.techBlocking.techLevel'))
-	local initialPopupText = spI18N('ui.techBlocking.techPopup.level1')
-	Spring.Echo("Setting initial popup text to: " .. initialPopupText)
-	updateUIElementText(document, "tech-level-popup", initialPopupText)
+	updateUIElementText(document, "tech-level-popup", spI18N('ui.techBlocking.techPopup.level1'))
 
 	-- Create element references
 	createTechPointsElements()
