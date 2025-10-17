@@ -534,16 +534,6 @@ function widget:AddConsoleLine(lines, priority)
 	end
 end
 
-function widget:KeyPress(key)
-	-- ESC
-	if key == 27 and voteDlist and eligibleToVote then
-		if not weAreVoteOwner then
-			Spring.SendCommands("say !vote b")
-		end
-		MinimizeVote()
-	end
-end
-
 function widget:MousePress(x, y, button)
 	if voteDlist and eligibleToVote and not voteEndText and button == 1 then
 		if math_isInRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then
