@@ -66,7 +66,7 @@ function widget:Update(dt)
             elseif ping and ping <= 2 and PlayersInformationMemory[playerName].timingout then
                 if PlayersInformationMemory[playerName].allyTeamID == Spring.GetLocalAllyTeamID() and not Spring.GetSpectatingState() then
                     --Spring.Echo("Teammate Catched Up", playerID, playerName)
-                    WG['notifications'].queueNotification("TeammateCatchedUp")
+                    WG['notifications'].queueNotification("TeammateCaughtUp")
                 end
                 PlayersInformationMemory[playerName].timingout = false
             end
