@@ -610,7 +610,8 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 	chatLineID = chatLineID and chatLineID or #chatLines + 1
 
 	if not noProcessors then
-		for _, processor in pairs(chatProcessors) do
+		for _, processor in ipairs(chatProcessors) do
+			if text == nil then break end
 			text = processor(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID)
 		end
 	end
