@@ -7,10 +7,14 @@
         <div class="tech-points-container">
             <!-- Square progress bar with tech level overlay -->
             <div class="tech-points-progress">
-                <div class="tech-points-fill"></div>
-                <div class="tech-level-number">{{techLevel}}</div>
+                <div id="tech-points-fill" class="tech-points-fill"></div>
+                <div class="tech-text-container">
+                    <div id="tech-level-header" class="tech-level-header"></div>
+                    <div id="tech-level-number" class="tech-level-number">{{techLevel}}</div>
+                </div>
             </div>
         </div>
     </div>
+    <div id="tech-level-popup" class="tech-level-popup"></div>
 </body>
 </rml>
