@@ -230,10 +230,12 @@ else
 		end
 	end
 
-	function gadget:Update(dt)
-		UnitsUnderAttackNotifCooldown = UnitsUnderAttackNotifCooldown - dt
-		BaseUnderAttackNotifCooldown = BaseUnderAttackNotifCooldown - dt
-		UnitLostNotifCooldown = UnitLostNotifCooldown - dt
+	function gadget:GameFrame(frame)
+		if frame%30 == 15 then
+			UnitsUnderAttackNotifCooldown = UnitsUnderAttackNotifCooldown - 1
+			BaseUnderAttackNotifCooldown = BaseUnderAttackNotifCooldown - 1
+			UnitLostNotifCooldown = UnitLostNotifCooldown - 1
+		end
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
