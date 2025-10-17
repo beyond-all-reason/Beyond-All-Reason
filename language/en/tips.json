@@ -73,7 +73,7 @@
 			"battleEnded": "Battle, Ended",
 			"gamePaused": "Battle, Paused",
 			"gameUnpaused": "Battle, Resumed",
-			"teammateCatchedUp": "Friendly Player, Catched Up",
+			"teammateCaughtUp": "Friendly Player, Caught Up",
 			"teammateDisconnected": "Friendly Player, Disconnected",
 			"teammateLagging": "Friendly Player, Lagging Behind",
 			"teammateReconnected": "Friendly Player, Reconnected",

@@ -42,7 +42,7 @@ return {
 	GamePaused = {
 		delay = 5,
 	},
-	TeammateCatchedUp = {
+	TeammateCaughtUp = {
 		delay = 5,
 	},
 	TeammateDisconnected = {
