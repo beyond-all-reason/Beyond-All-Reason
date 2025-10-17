@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		desc = "Overrides default shield engine behavior.",
 		author = "SethDGamre",
 		layer = 1,
-		enabled = reworkEnabled,
+		enabled = true,
 	}
 end
 
@@ -66,9 +66,12 @@ local armoredUnitDefs               = {}
 local gameFrame 					= 0
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
-
-	if weaponDef.type == 'Flame' or weaponDef.customParams.overpenetrate then --overpenetration and flame projectiles aren't deleted when striking the shield. For compatibility with shield blocking type overrides.
-		forceDeleteWeapons[weaponDefID] = weaponDef
+	if weaponDef.noExplode then
+		-- Volumetric projectiles deal damage per-frame while inside of the shield.
+		-- We only delete certain types; e.g., ignoring Commander and other DGun's.
+		if weaponDef.type == "Flame" or weaponDef.customParams.overpenetrate then
+			forceDeleteWeapons[weaponDefID] = weaponDef
+		end
 	end
 
 	if reworkEnabled then  --remove this if when shield rework is permanent
@@ -83,8 +86,6 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 		else
 			originalShieldDamages[weaponDefID] = weaponDef.customParams.shield_damage or fallbackShieldDamage
 		end
-
-
 
 		local highestDamage = 0
 		if weaponDef.damages then
@@ -106,7 +107,6 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 			-- Math.floor is used to sheer off the extra digits of the number of frames that the hits occur
 			beamtimeReductionMultiplier = 1 / math.floor(weaponDef.beamtime * Game.gameSpeed)
 		end
-
 
 		local minimumMinIntensity = 0.65 --impirically tested to work the majority of the time with normal damage falloff.
 		local hasDamageFalloff = false
