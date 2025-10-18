@@ -192,6 +192,7 @@ local function updateBlocking()
 	local techPointsChangedSignificantly = math.abs(currentTechPoints - widgetState.previousTechPoints) >= 10
 
 	if techLevelChanged or techPointsChangedSignificantly then
+		Spring.Echo("[TechPoints Debug] Tech level changed or points changed significantly - calling clearBlockReasons")
 		if WG["gridmenu"] and WG["gridmenu"].clearBlockReasons then
 			WG["gridmenu"].clearBlockReasons()
 		end
@@ -308,11 +309,6 @@ function widget:Initialize()
 		return false
 	end
 
-	widget:ContinueInitialize()
-	return true
-end
-
-function widget:ContinueInitialize()
 	local dm = widgetState.rmlContext:OpenDataModel(MODEL_NAME, initialModel, self)
 	if not dm then
 		return false
@@ -335,8 +331,6 @@ function widget:ContinueInitialize()
 	createTechPointsElements()
 
 	updateUI()
-
-	return true
 end
 
 function widget:Shutdown()
