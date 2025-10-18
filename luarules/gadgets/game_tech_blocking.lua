@@ -196,7 +196,6 @@ function gadget:GameFrame(frame)
 
 		for teamID, currentTechPoints in pairs(teamTechPoints) do
 			spSetTeamRulesParam(teamID, "tech_level", techLevel)
-			Spring.Echo("Team " .. teamID .. " tech points: ", currentTechPoints, "total ally points: ", totalTechPoints, "adjusted t3Threshold: ", adjustedT3Threshold, "adjusted t2Threshold: ", adjustedT2Threshold, "techLevel: ", techLevel)
 		end
 	end
 end
