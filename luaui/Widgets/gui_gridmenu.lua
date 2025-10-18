@@ -1072,12 +1072,14 @@ local function setPregameBlueprint(uDefID)
 	end
 end
 
-local function queueUnit(uDefID, opts)
+local function queueUnit(uDefID, opts, quantity)
 	local sel = spGetSelectedUnitsSorted()
 	for unitDefID, unitIds in pairs(sel) do
 		if units.isFactory[unitDefID] then
 			for _, uid in ipairs(unitIds) do
-				spGiveOrderToUnit(uid, -uDefID, {}, opts)
+				for _ = 1,quantity do
+					spGiveOrderToUnit(uid, -uDefID, 0, opts)
+				end
 			end
 		end
 	end
@@ -1144,15 +1146,16 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
 	if builderIsFactory then
-		if WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt then
-			local quantity = 1
-			if shift then
-				quantity = modKeyMultiplier.keyPress.shift
-			end
+		local quantity = 1
+		if shift then
+			quantity = modKeyMultiplier.keyPress.shift
+		end
 
-			if ctrl then
-				quantity = quantity * modKeyMultiplier.keyPress.ctrl
-			end
+		if ctrl then
+			quantity = quantity * modKeyMultiplier.keyPress.ctrl
+		end
+
+		if WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt then
 			updateQuotaNumber(uDefID,quantity)
 			return true
 		else
@@ -1162,22 +1165,42 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 
 			local opts
 
-			if ctrl then
+			if quantity < 0 then
+				quantity = quantity * -1
 				opts = { "right" }
 				Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
 			else
 				opts = { "left" }
 				Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
-			end
 
+				--if quantity is more than 100, more than 20 or more than 5 then use engine logic for better performance (fewer for loops inside queueUnit())
+				if opts ~= { "right" } and not alt and quantity >= 100 then
+					opts = { "left","ctrl","shift" }
+					quantity2 = math.floor(quantity / 100)
+					queueUnit(uDefID, opts, quantity2)
+					quantity = math.fmod(quantity,100)
+					opts = { "left" }
+				end
+				if opts ~= { "right" } and not alt and quantity >= 20 then
+					opts = { "left","ctrl" }
+					quantity2 = math.floor(quantity / 20)
+					queueUnit(uDefID, opts, quantity2)
+					quantity = math.fmod(quantity,20)
+					opts = { "left" }
+				end
+				if opts ~= { "right" } and not alt and quantity >= 5 then
+					opts = { "left","shift" }
+					quantity2 = math.floor(quantity / 5)
+					queueUnit(uDefID, opts, quantity2)
+					quantity = math.fmod(quantity,5)
+					opts = { "left" }
+				end
+			end
 			if alt then
 				table.insert(opts, "alt")
 			end
-			if shift then
-				table.insert(opts, "shift")
-			end
 
-			queueUnit(uDefID, opts)
+			queueUnit(uDefID, opts, quantity)
 
 			return true
 		end
@@ -1345,6 +1368,19 @@ function widget:Initialize()
 	end
 	WG["gridmenu"].clearCategory = function()
 		clearCategory()
+	end
+
+	WG["gridmenu"].getCtrlKeyModifier = function()
+		return modKeyMultiplier.keyPress.ctrl
+	end
+	WG["gridmenu"].setCtrlKeyModifier = function(value)
+		modKeyMultiplier.keyPress.ctrl = value
+	end
+	WG["gridmenu"].getShiftKeyModifier = function()
+		return modKeyMultiplier.keyPress.shift
+	end
+	WG["gridmenu"].setShiftKeyModifier = function(value)
+		modKeyMultiplier.keyPress.shift = value
 	end
 
 	WG["buildmenu"].getGroups = function()
@@ -2893,6 +2929,8 @@ function widget:GetConfigData()
 		stickToBottom = stickToBottom,
 		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
 		alwaysShow = alwaysShow,
+		ctrlKeyModifier = modKeyMultiplier.keyPress.ctrl,
+		shiftKeyModifier = modKeyMultiplier.keyPress.shift,
 	}
 end
 
@@ -2920,6 +2958,12 @@ function widget:SetConfigData(data)
 	end
 	if data.alwaysShow ~= nil then
 		alwaysShow = data.alwaysShow
+	end
+	if data.ctrlKeyModifier ~= nil then
+		modKeyMultiplier.keyPress.ctrl = data.ctrlKeyModifier
+	end
+	if data.shiftKeyModifier ~= nil then
+		modKeyMultiplier.keyPress.shift = data.shiftKeyModifier
 	end
 end
 
