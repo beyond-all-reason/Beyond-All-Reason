@@ -29,6 +29,9 @@ local spI18N = Spring.I18N
 local blockTechDefs = {}
 local blockTechCount = 0
 local blockedDefs = {}
+local POPUP_DELAY_FRAMES = Game.gameSpeed * 10
+local popupsEnabled = false
+local techLevelChanged = true
 
 local function initializeTechBlocking()
 	for unitDefID, unitDef in pairs(UnitDefs) do
@@ -188,16 +191,17 @@ local function updateBlocking()
 		techLevel = 2
 	end
 
-	local techLevelChanged = techLevel ~= widgetState.previousTechLevel
+	techLevelChanged = techLevelChanged == true or techLevel ~= widgetState.previousTechLevel
 	local techPointsChangedSignificantly = math.abs(currentTechPoints - widgetState.previousTechPoints) >= 10
 
 	if techLevelChanged or techPointsChangedSignificantly then
-		Spring.Echo("[TechPoints Debug] Tech level changed or points changed significantly - calling clearBlockReasons")
-		if WG["gridmenu"] and WG["gridmenu"].clearBlockReasons then
-			WG["gridmenu"].clearBlockReasons()
-		end
-		if WG["buildmenu"] and WG["buildmenu"].clearBlockReasons then
-			WG["buildmenu"].clearBlockReasons()
+		for unitDefID in pairs(blockedDefs) do
+			if WG["gridmenu"] and WG["gridmenu"].removeBlockReason then
+				WG["gridmenu"].removeBlockReason(unitDefID, "tech_block")
+			end
+			if WG["buildmenu"] and WG["buildmenu"].removeBlockReason then
+				WG["buildmenu"].removeBlockReason(unitDefID, "tech_block")
+			end
 		end
 
 		for unitDefID in pairs(blockedDefs) do
@@ -234,8 +238,8 @@ local function updateUI()
 
 	updateBlocking()
 
-	if not widgetState.initialPopupShown and widgetState.gameStartTime and
-	   (os.clock() - widgetState.gameStartTime) >= 10.0 and Spring.GetGameFrame() > 0 then
+	if not widgetState.initialPopupShown and widgetState.gameStartTime and (popupsEnabled or Spring.GetGameFrame() > POPUP_DELAY_FRAMES) then
+		popupsEnabled = true
 		local popupText = spI18N("ui.techBlocking.techPopup.level1")
 		if widgetState.document then
 			updateUIElementText(widgetState.document, "tech-level-popup", popupText)
