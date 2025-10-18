@@ -97,6 +97,7 @@ local hiddenCommands = {
 	[CMD.SQUADWAIT] = true,
 	[CMD.DEATHWAIT] = true,
 	[CMD.TIMEWAIT] = true,
+	[CMD.IDLEMODE] = true, -- retreat/idle mode (air repair pads removed)
 	[39812] = true, -- raw move
 	[34922] = true, -- set unit target
 }
