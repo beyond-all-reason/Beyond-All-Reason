@@ -25,35 +25,12 @@ local spGetTeamUnitCount = Spring.GetTeamUnitCount
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
-function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType, amount)
-	-- Spring uses 'm' and 'e' instead of the full names that we need, so we need to convert the resourceType
-	-- We also check for 'metal' or 'energy' incase Spring decides to use those in a later version
-	local resourceName
-	if (resourceType == 'm') or (resourceType == 'metal') then
-		resourceName = 'metal'
-	elseif (resourceType == 'e') or (resourceType == 'energy') then
-		resourceName = 'energy'
-	else
-		-- We don't handle whatever this resource is, allow it
-		return true
-	end
+---@deprecated
+--- game_tax_resource_sharing.lua is now the undivided emporer of economic policy.
+--- It always prevents out of bounds transfers. It sometimes has a tax rate of 0.
+-- function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType, amount)
 
-	-- Calculate the maximum amount the receiver can receive
-	local rCur, rStor, rPull, rInc, rExp, rShare = Spring.GetTeamResources(receiverTeamId, resourceName)
-	local maxShare = rStor * rShare - rCur
-
-	-- Is the sender trying to send more than the maximum? Block it, possibly sending a reduced amount instead
-	if amount > maxShare then
-		if maxShare > 0 then
-			Spring.ShareTeamResource(senderTeamId, receiverTeamId, resourceName, maxShare)
-		end
-		return false
-	end
-
-	-- Allow anything we don't explictly block
-	return true
-end
-
+--TODO: This should probably be moved somewhere that is named correctly: game_unit_sharing_mode?
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 	local unitCount = spGetTeamUnitCount(newTeam)
 	if capture or spIsCheatingEnabled() or unitCount < Spring.GetTeamMaxUnits(newTeam) then
