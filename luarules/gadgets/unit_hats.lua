@@ -87,38 +87,47 @@ local champion = { --   Fight Night 1v1 and Master's League winners
 	[439] = true, -- Goopy
 	[70311] = true, -- PRO_BTCV
 }
- local vikings = { -- Omega Series 3: Winners
-	[59340] = true,  -- Austin
-	[1830] = true,   -- Zow
+ local vikings = { -- Omega Series 4: Winners
 	[59916] = true,	 -- Kuchy
-	[24665] = true,  -- Shoty
-	[38971] = true,  -- Chisato
-	[87571] = true,  -- Nezah
+	[151863] = true,  -- Blodir
+	[3913] = true,	 -- [teh]Teddy]
+	[1172] = true,	 -- PtaQ
+	[694] = true,	 -- Raghna
+	[5467] = true,  -- HelsHound
+	[50820] = true,   -- Emre
 }
 local kings = {
 	[82263] = true,  -- PRO-autopilot
 }
-local goldMedals = { -- Nation Wars 1st place
+local goldMedals = { -- Nation Wars 1st place, last season finishers
 	[64215] = true,  -- XFactorLive
 	[116414] = true, -- [SG]random_variable
 	[3778] = true,   -- PRO_che
 	[9361] = true,   -- [DmE]ChickenDinner
 	[1422] = true,   -- ZaRxT4
+	[59340] = true,  -- [HELO]Austin
+	[1332] = true,  -- Flash
+	[50820] = true,  -- Emre
 }
-local silverMedals = { -- Nation Wars 2nd place
+local silverMedals = { -- Nation Wars 2nd place, last season finishers
 	[63960] = true,  -- Delfea
 	[59916] = true,  -- Kuchy
 	[137454] = true, -- Chronopolize
 	[44807] = true,  -- Ezreal
 	[97867] = true,  -- [KILL]SirIcecream55
 	[119832] = true, -- Darkclone
+	[76221] = true, -- InDaClub
+	[82263] = true, -- PRO-autopilot
 }
-local bronzeMedals = { -- Nation Wars 3rd place
+local bronzeMedals = { -- Nation Wars 3rd place, last season finishers
 	[82811] = true,   -- [DmE]SlickLikeVik
 	[139750] = true,  -- TM_Sashkorin
 	[134499] = true,  -- Archangels
 	[60841] = true,   -- Alhazred
 	[8069] = true,    -- Grumpy
+	[151863] = true,  -- Blodir
+	[38971] = true, -- Yanami
+	[123900] = true, -- Narnuk
 }
 local uniques = {--playername, hat ident, CaSe MaTtErS
 }

@@ -297,16 +297,6 @@ local options = {
 		def		=  false,
 		column	= 1.76,
 	},
-	{
-		key		= "unit_market",
-		name	= "Unit Market",
-		desc	= "Allow players to trade units. (Select unit, press 'For Sale' in order window or say /sell_unit in chat to mark the unit for sale. Double-click to buy from allies. T2cons show up in shop window!)",
-		type	= "bool",
-		def		= false,
-		section	= "options_main",
-	},
-
-
     {
         key     = "sub_header",
         section = "options_main",
@@ -643,11 +633,11 @@ local options = {
     {
         key		= "raptor_queen_count",
         name	= "Raptor Queen Count",
-        desc	= "(Range: 1 - 20). Number of queens that will spawn.",
+        desc	= "(Range: 1 - 100). Number of queens that will spawn.",
         type	= "number",
         def		= 1,
         min		= 1,
-        max		= 20,
+        max		= 100,
         step	= 1,
         section	= "raptor_defense_options",
     },
@@ -916,7 +906,7 @@ local options = {
         section = "options_extra",
         def  	= false,
     },
-	
+
     {
         key    	= "scavunitsforplayers",
         name   	= "Scavengers Units Pack",
@@ -967,17 +957,17 @@ local options = {
         column	= 1,
         items	= {
             { key= "default", 	name= "Default", desc= "Map Settings",
-                lock = 
+                lock =
                 {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell", "sub_header_lava3", "sub_header_lava4"},
                 unlock =
                     { "sub_header_lava1", "sub_header_lava2"}},
             { key= "enabled",	name= "Enable/Override",desc= "Lava tides will use these settings over the map defaults",
-                unlock = 
+                unlock =
                 {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell", "sub_header_lava3", "sub_header_lava4"},
                 lock =
                     { "sub_header_lava1", "sub_header_lava2"}},
             { key= "disabled",	name= "Disable",desc= "Lava will not have tides, even on maps that normally have it",
-                lock = 
+                lock =
                 {"map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell", "sub_header_lava3", "sub_header_lava4"},
                 unlock =
                     { "sub_header_lava1", "sub_header_lava2"}},
@@ -1036,7 +1026,7 @@ local options = {
         step 	= 1,
         section = "options_extra",
         column	= 1,
-    },  
+    },
 
     {
         key 	= "map_lavalowdwell",
@@ -1055,8 +1045,8 @@ local options = {
     { key = "sub_header_lava2", section = "options_extra", type    = "subheader", name = "",},
     { key = "sub_header_lava3", section = "options_extra", type    = "subheader", name = "",},
     { key = "sub_header_lava4", section = "options_extra", type    = "subheader", name = "",},
- 
-    
+
+
     {
         key     = "sub_header",
         section = "options_extra",
@@ -1148,7 +1138,6 @@ local options = {
         section = "options_extra",
         type    = "separator",
     },
-
 
     {
         key 	= "evocom",
@@ -1252,6 +1241,70 @@ local options = {
         type    = "separator",
     },
 
+    {
+        key 	= "quick_start",
+        name 	= "Quick Start",
+        desc   	= "Each player gets pre-game resources to spend on structures to be instantly spawned at the beginning of the game.",
+        type 	= "list",
+        def 	= "default",
+        section = "options_extra",
+        unlock = {"quick_start_amount"},
+        items 	= {
+            { key = "default", 	name = "Default", lock = {"quick_start_amount"}, desc = "Default settings for game modes." },
+            { key = "enabled", name = "Enabled", unlock = {"quick_start_amount"}, desc = "Quick Start alone, deducts 400 energy and 800 metal from starting resources." },
+            { key = "factory_discount", name = "Enabled: Discounted First Factory", desc =
+            "Quick Start The commander's first factory is discounted at any time. Deducts 400 energy and 800 metal from starting resources.", unlock = {"quick_start_amount"} },
+            { key = "factory_discount_only", name = "First Factory Discount Only", desc = "No base budget, only first factory discount. No deduction from starting resources.", lock = {"quick_start_amount"} },
+            { key = "disabled", name = "Disabled", desc = "Disabled quick start for all game modes.", lock = {"quick_start_amount"} },
+        }
+    },
+
+    {
+        key 	= "quick_start_amount",
+        name 	= "Quick Start Base Budget",
+        desc   	= "How much pre-game resources you have to spend on pre-queuing structures.",
+        type 	= "list",
+        def 	= "default",
+        section = "options_extra",
+        items 	= {
+            { key = "default", 	name = "Default", desc = "Uses the default amount based on game mode" },
+            { key = "small", 	name = "Small", desc = "1000 Base Budget" },
+            { key = "normal", 	name = "Normal", desc = "1500 Base Budget" },
+            { key = "large", 	name = "Large", desc = "3000 Base Budget" },
+        }
+    },
+
+    {
+        key 	= "override_quick_start_range",
+        name 	= "Override Quick Start Range",
+        desc   	= "Override the quick start build range. Set to 0 to use default behavior.",
+        type 	= "number",
+        def 	= 0,
+        min 	= 300,
+        max 	= 10000,
+        step 	= 1,
+        section = "options_extra",
+        hidden 	= true,
+    },
+
+    {
+        key 	= "override_quick_start_resources",
+        name 	= "Override Quick Start Resources",
+        desc   	= "Override the quick start starting resources. Set to 0 to use default behavior.",
+        type 	= "number",
+        def 	= 0,
+        min 	= 100,
+        max 	= 10000,
+        step 	= 1,
+        section = "options_extra",
+        hidden 	= true,
+    },
+
+    {
+        key     = "sub_header",
+        section = "options_extra",
+        type    = "separator",
+    },
 
     {
         key 	= "assistdronesenabled", -- TODO, turn this into booleam modoption
@@ -1341,6 +1394,36 @@ local options = {
         step   	= 1,
     },
 
+    {
+        key     = "sub_header",
+        section = "options_extra",
+        type    = "separator",
+    },
+
+    {
+        key 	= "zombies",
+        name 	= "Scavenger Zombies",
+        type 	= "list",
+        def 	= "disabled",
+        section = "options_extra",
+        hidden  = false,
+        items 	= {
+            { key = "disabled", name = "Disabled", desc = "Disabled"},
+            { key = "normal", name = "Normal", desc = "Slow revival rate, normal strength."},
+            { key = "hard", name = "Hard", desc = "Fast revival rate, stronger Scavenger Zombies." },
+            { key = "nightmare", name = "Nightmare", desc = "Extreme revival rate, stronger Scavenger Zombies, 2-5 spawn per corpse." },
+        }
+    },
+
+    {
+        key     = "seasonal_surprise",
+        name    = "Seasonal Surprise",
+        desc    = "Happy spooktober!",
+        type    = "bool",
+        def     = false,
+        section = "options_extra",
+        hidden  = true,
+    },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1390,17 +1473,27 @@ local options = {
     },
 
     -- Hidden Tests
-	
-	{
-        key   	= "splittiers",
-        name   	= "Split T2",
-        desc   	= "Splits T2 into two tiers moving experimental to T4.",
-        type   	= "bool",
+
+    {
+        key     = "techsplit",
+        name    = "Tech Split",
+        desc    = "Adds a new tier between T1 and T2 for bots and vehicles",
+        type    = "bool",
+        hidden  = true,
         section = "options_experimental",
-        def  	= false,
-        hidden 	= true,
-	},
-	
+        def     = false,
+    },
+
+    {
+        key     = "techsplit_balance",
+        name    = "Tech Split Balance Test",
+        desc    = "Adjusts the balance of units in the proposed tech split.",
+        type    = "bool",
+        hidden  = true,
+        section = "options_experimental",
+        def     = false,
+    },
+
     {
         key    	= "shieldsrework",
         name   	= "Shields Rework v2.0",
@@ -1475,9 +1568,19 @@ local options = {
     {
         key 	= "proposed_unit_reworks",
         name 	= "Proposed Unit Reworks",
-        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.",
+        desc 	= "Modoption used to test balance changes that are being considered for the base game.",
         type 	= "bool",
-        hidden 	= true,
+        --hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key 	= "naval_balance_tweaks",
+        name 	= "Proposed Naval Balance Tweaks",
+        desc 	= "Modoption used to test specific balance adjustments dedicated towards naval units.",
+        type 	= "bool",
+        --hidden 	= true,
         section = "options_experimental",
         def 	= false,
     },

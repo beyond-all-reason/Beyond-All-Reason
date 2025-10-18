@@ -89,7 +89,9 @@ end
 
 -- look at this later, currently this makes these units completely immune to spark damage, friend or foe
 local immuneToSplash = {}
+local unitRadius = {}
 for udid, ud in pairs(UnitDefs) do
+	unitRadius[udid] = ud.radius
 	for i, v in pairs(ud.weapons) do
 		if WeaponDefs[ud.weapons[i].weaponDef] and WeaponDefs[ud.weapons[i].weaponDef].type == "LightningCannon" then
 			immuneToSplash[udid] = true
@@ -138,24 +140,26 @@ function gadget:ProjectileDestroyed(proID)
 			if not immuneToSplash[nearUnitDefID] then -- check if unit is immune to sparking
 				if not spGetUnitIsDead(nearUnit) then -- check if unit is in "death animation", so sparks do not chain to dying units.
 					if lightning_shooter[lightning.proOwnerID] ~= nearUnit then --check if main bolt has hit this target or not
-						local v1,v2,v3,v4,v5,v6, ex, ey, ez = spGetUnitPosition(nearUnit,true,true) -- gets aimpoint of unit
-						spSpawnCEG(terminal_spark_effect,ex,ey,ez,0,0,0) -- spawns "electric aura" at spark target
-						local spark_damage = lightning.spark_basedamage*lightning.spark_forkdamage -- figure out damage to apply to spark target
-						-- NB: weaponDefID -1 is debris damage which gets removed by engine_hotfixes.lua, use -7 (crush damage) arbitrarily instead
-						spAddUnitDamage(nearUnit, spark_damage, 0, lightning.proOwnerID, -7) -- apply damage to spark target
-						-- create visual lighting arc from main bolt termination point to spark target
-						-- set owner = -1 as a "spark bolt" identifier
-						-- lightning.weaponDefID
-						projectileCacheTable.pos[1] = lightning.x
-						projectileCacheTable.pos[2] = lightning.y
-						projectileCacheTable.pos[3] = lightning.z
-						projectileCacheTable['end'][1] = ex
-						projectileCacheTable['end'][2] = ey
-						projectileCacheTable['end'][3] = ez
+						local bx,by,bz,mx,my,mz, ex, ey, ez = spGetUnitPosition(nearUnit,true,true) -- gets aimpoint of unit
+						if my+unitRadius[nearUnitDefID] > -10 then -- check if unit is above water (not underwater)
+							spSpawnCEG(terminal_spark_effect,ex,ey,ez,0,0,0) -- spawns "electric aura" at spark target
+							local spark_damage = lightning.spark_basedamage*lightning.spark_forkdamage -- figure out damage to apply to spark target
+							-- NB: weaponDefID -1 is debris damage which gets removed by engine_hotfixes.lua, use -7 (crush damage) arbitrarily instead
+							spAddUnitDamage(nearUnit, spark_damage, 0, lightning.proOwnerID, -7) -- apply damage to spark target
+							-- create visual lighting arc from main bolt termination point to spark target
+							-- set owner = -1 as a "spark bolt" identifier
+							-- lightning.weaponDefID
+							projectileCacheTable.pos[1] = lightning.x
+							projectileCacheTable.pos[2] = lightning.y
+							projectileCacheTable.pos[3] = lightning.z
+							projectileCacheTable['end'][1] = ex
+							projectileCacheTable['end'][2] = ey
+							projectileCacheTable['end'][3] = ez
 
-						--spSpawnProjectile(lightning.weaponDefID, projectileCacheTable)
-						spSpawnProjectile(lightning.weaponDefID, {["pos"]={lightning.x,lightning.y,lightning.z},["end"] = {ex,ey,ez}, ["ttl"] = 2, ["owner"] = -1})
-						count = count - 1 -- spark target count accounting
+							--spSpawnProjectile(lightning.weaponDefID, projectileCacheTable)
+							spSpawnProjectile(lightning.weaponDefID, {["pos"]={lightning.x,lightning.y,lightning.z},["end"] = {ex,ey,ez}, ["ttl"] = 2, ["owner"] = -1})
+							count = count - 1 -- spark target count accounting
+						end
 					end
 				end
 			end
