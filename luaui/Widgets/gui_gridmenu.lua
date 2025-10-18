@@ -1075,8 +1075,8 @@ local function queueUnit(uDefID, opts, quantity)
 	for unitDefID, unitIds in pairs(sel) do
 		if units.isFactory[unitDefID] then
 			for _, uid in ipairs(unitIds) do
-				for _ = 1,quantity,1 do
-					spGiveOrderToUnit(uid, -uDefID, {}, opts)
+				for _ = 1,quantity do
+					spGiveOrderToUnit(uid, -uDefID, 0, opts)
 				end
 			end
 		end
@@ -1171,7 +1171,14 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 				opts = { "left" }
 				Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 
-				--if quantity is more than 20 or more than 5 then use engine logic for better performance (fewer for loops inside queueUnit())
+				--if quantity is more than 100, more than 20 or more than 5 then use engine logic for better performance (fewer for loops inside queueUnit())
+				if opts ~= { "right" } and not alt and quantity >= 100 then
+					opts = { "left","ctrl","shift" }
+					quantity2 = math.floor(quantity / 100)
+					queueUnit(uDefID, opts, quantity2)
+					quantity = math.fmod(quantity,100)
+					opts = { "left" }
+				end
 				if opts ~= { "right" } and not alt and quantity >= 20 then
 					opts = { "left","ctrl" }
 					quantity2 = math.floor(quantity / 20)
