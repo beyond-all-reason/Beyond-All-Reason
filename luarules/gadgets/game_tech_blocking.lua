@@ -32,9 +32,9 @@ local spSetTeamRulesParam = Spring.SetTeamRulesParam
 
 local UPDATE_INTERVAL = Game.gameSpeed
 
---static tables
 local blockTechDefs = {}
 local techPointsGeneratorDefs = {}
+local techCoreValueDefs = {}
 local ignoredTeams = {
 	[Spring.GetGaiaTeamID()] = true,
 }
@@ -47,9 +47,9 @@ if raptorTeamID then
 	ignoredTeams[raptorTeamID] = true
 end
 
---active tables
 local allyWatch = {}
 local xpGenerators = {}
+local techCoreUnits = {}
 local allyGains = {}
 
 local removeGadget = true
@@ -65,6 +65,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			removeGadget = false
 			local techXP = tonumber(customParams.tech_points_gain)
 			techPointsGeneratorDefs[unitDefID] = techXP
+		end
+		if customParams.tech_core_value then
+			removeGadget = false
+			local coreValue = tonumber(customParams.tech_core_value)
+			techCoreValueDefs[unitDefID] = coreValue
 		end
 	end
 end
@@ -93,25 +98,59 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if power then
 		local allyTeam = spGetUnitAllyTeam(unitID)
 		for _, teamID in ipairs(allyWatch[allyTeam]) do
-			allyGains[teamID] = (spGetTeamRulesParam(teamID, "tech_points") or 0) + power * unitCreationRewardMultiplier
+			local currentPoints = spGetTeamRulesParam(teamID, "tech_points") or 0
+			allyGains[teamID] = (allyGains[teamID] or currentPoints) + power * unitCreationRewardMultiplier
 		end
 	end
 	if techPointsGeneratorDefs[unitDefID] and not ignoredTeams[unitTeam] then
 		xpGenerators[unitID] = {gain = techPointsGeneratorDefs[unitDefID], allyTeam = spGetUnitAllyTeam(unitID)}
+	end
+	if techCoreValueDefs[unitDefID] and not ignoredTeams[unitTeam] then
+		local allyTeam = spGetUnitAllyTeam(unitID)
+		local coreValue = techCoreValueDefs[unitDefID]
+		for _, teamID in ipairs(allyWatch[allyTeam]) do
+			local currentPoints = spGetTeamRulesParam(teamID, "tech_points") or 0
+			allyGains[teamID] = (allyGains[teamID] or currentPoints) + coreValue
+		end
+		techCoreUnits[unitID] = {value = coreValue, allyTeam = allyTeam}
 	end
 end
 
 function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	if ignoredTeams[unitTeam] then
 		xpGenerators[unitID] = nil
+		techCoreUnits[unitID] = nil
 		return
 	elseif xpGenerators[unitID] then
 		xpGenerators[unitID] = {gain = techPointsGeneratorDefs[unitDefID], allyTeam = spGetUnitAllyTeam(unitID)}
+	end
+	if techCoreUnits[unitID] then
+		local coreData = techCoreUnits[unitID]
+		local newAllyTeam = spGetUnitAllyTeam(unitID)
+		if coreData.allyTeam ~= newAllyTeam then
+			for _, teamID in ipairs(allyWatch[coreData.allyTeam]) do
+				local currentPoints = spGetTeamRulesParam(teamID, "tech_points") or 0
+				allyGains[teamID] = (allyGains[teamID] or currentPoints) - coreData.value
+			end
+			for _, teamID in ipairs(allyWatch[newAllyTeam]) do
+				local currentPoints = spGetTeamRulesParam(teamID, "tech_points") or 0
+				allyGains[teamID] = (allyGains[teamID] or currentPoints) + coreData.value
+			end
+			techCoreUnits[unitID].allyTeam = newAllyTeam
+		end
 	end
 end
 
 function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	xpGenerators[unitID] = nil
+	if techCoreUnits[unitID] then
+		local coreData = techCoreUnits[unitID]
+		for _, teamID in ipairs(allyWatch[coreData.allyTeam]) do
+			local currentPoints = spGetTeamRulesParam(teamID, "tech_points") or 0
+			allyGains[teamID] = (allyGains[teamID] or currentPoints) - coreData.value
+		end
+		techCoreUnits[unitID] = nil
+	end
 end
 
 function gadget:GameFrame(frame)
@@ -121,32 +160,43 @@ function gadget:GameFrame(frame)
 
 	for unitID, data in pairs(xpGenerators) do
 		for _, teamID in ipairs(allyWatch[data.allyTeam]) do
-			local currentTechPoints = spGetTeamRulesParam(teamID, "tech_points")
-			allyGains[teamID] = currentTechPoints + data.gain
+			local currentTechPoints = spGetTeamRulesParam(teamID, "tech_points") or 0
+			allyGains[teamID] = (allyGains[teamID] or currentTechPoints) + data.gain
 		end
 	end
 
 	for teamID, gain in pairs(allyGains) do
-		if gain > 0 then
-			spSetTeamRulesParam(teamID, "tech_points", math.floor(gain)) -- we assign it once to prevent losses from math.floor on incrimental fractions
-		end
+		spSetTeamRulesParam(teamID, "tech_points", math.floor(gain))
 	end
 	allyGains = {}
 
 	for allyTeamID, teamList in pairs(allyWatch) do
-		local techLevel = 1
-		local currentTechPoints
+		local totalTechPoints = 0
+		local activeTeamCount = 0
+		local teamTechPoints = {}
+
 		for _, teamID in ipairs(teamList) do
 			if not ignoredTeams[teamID] then
-				currentTechPoints = spGetTeamRulesParam(teamID, "tech_points")
-				if currentTechPoints and currentTechPoints >= t3TechThreshold then
-					techLevel = 3
-				elseif currentTechPoints >= t2TechThreshold then
-					techLevel = 2
-				end
-				spSetTeamRulesParam(teamID, "tech_level", techLevel)
+				local currentTechPoints = spGetTeamRulesParam(teamID, "tech_points") or 0
+				teamTechPoints[teamID] = currentTechPoints
+				totalTechPoints = totalTechPoints + currentTechPoints
+				activeTeamCount = activeTeamCount + 1
 			end
-			Spring.Echo("Team " .. teamID .. " tech points B: ", currentTechPoints, "t3Threshold: ", t3TechThreshold, "t2Threshold: ", t2TechThreshold, "techLevel: ", techLevel)
+		end
+
+		local adjustedT2Threshold = t2TechThreshold * activeTeamCount
+		local adjustedT3Threshold = t3TechThreshold * activeTeamCount
+
+		local techLevel = 1
+		if totalTechPoints >= adjustedT3Threshold then
+			techLevel = 3
+		elseif totalTechPoints >= adjustedT2Threshold then
+			techLevel = 2
+		end
+
+		for teamID, currentTechPoints in pairs(teamTechPoints) do
+			spSetTeamRulesParam(teamID, "tech_level", techLevel)
+			Spring.Echo("Team " .. teamID .. " tech points: ", currentTechPoints, "total ally points: ", totalTechPoints, "adjusted t3Threshold: ", adjustedT3Threshold, "adjusted t2Threshold: ", adjustedT2Threshold, "techLevel: ", techLevel)
 		end
 	end
 end
