@@ -157,6 +157,7 @@ local buildmenuShows = false
 local hoveredRect = false
 
 local costOverrides = {}
+local blockOverride = {}
 
 -------------------------------------------------------------------------------
 --- KEYBIND VALUES
@@ -317,6 +318,7 @@ local function refreshUnitDefs()
 
 	-- unit names and icons
 	for udid, ud in pairs(UnitDefs) do
+		Spring.Echo("udid", udid, ud.name, ud.metalCost, ud.energyCost)
 		unitBuildOptions[udid] = ud.buildOptions
 		unitTranslatedHumanName[udid] = ud.translatedHumanName
 		unitTranslatedTooltip[udid] = ud.translatedTooltip
@@ -691,7 +693,8 @@ local function updateGrid()
 			if uDefID then
 				uDefCellIds[uDefID] = cellRectID
 
-				rect.opts.disabled = units.unitRestricted[uDefID]
+				local isDisabled = units.unitRestricted[uDefID] or (blockOverride[uDefID] and next(blockOverride[uDefID]))
+				rect.opts.disabled = isDisabled
 
 				if showHotkeys then
 					local hotkey = string.gsub(string.upper(keyLayout[row][col]), "ANY%+", "")
@@ -991,7 +994,6 @@ local function setActiveCommand(cmd, button, leftClick, rightClick)
 		or Spring.SetActiveCommand(cmd)
 
 	if not didChangeCmd then
-		Spring.Echo("<Grid menu> Unable to change active command", cmd)
 		return
 	end
 
@@ -1431,6 +1433,59 @@ function widget:Initialize()
 		end
 		redraw = true
 		refreshCommands()
+	end
+
+	WG["gridmenu"].addBlockReason = function(unitDefID, reason)
+		if unitDefID and reason then
+			blockOverride[unitDefID] = blockOverride[unitDefID] or {}
+			blockOverride[unitDefID][reason] = true
+			redraw = true
+			doUpdate = true
+			refreshCommands()
+		end
+	end
+
+	WG["gridmenu"].removeBlockReason = function(unitDefID, reason)
+		if not unitDefID then
+			return
+		end
+
+		if not blockOverride[unitDefID] then
+			return
+		end
+
+		if reason then
+			blockOverride[unitDefID][reason] = nil
+		else
+			blockOverride[unitDefID] = nil
+		end
+
+		redraw = true
+		doUpdate = true
+		refreshCommands()
+	end
+
+	WG["gridmenu"].clearBlockReasons = function(unitDefID)
+		if unitDefID then
+			blockOverride[unitDefID] = nil
+		else
+			for defID in pairs(blockOverride) do
+				blockOverride[defID] = nil
+			end
+		end
+		redraw = true
+		doUpdate = true
+		refreshCommands()
+	end
+
+	WG["gridmenu"].getBlockedUnits = function()
+		local blocked = {}
+		for unitDefID, reasons in pairs(blockOverride) do
+			if next(reasons) then
+				blocked[unitDefID] = reasons
+			end
+		end
+		return blocked
 	end
 end
 
