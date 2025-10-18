@@ -28,16 +28,18 @@ local spI18N = Spring.I18N
 
 local blockTechDefs = {}
 local blockTechCount = 0
-for unitDefID, unitDef in pairs(UnitDefs) do
-	local customParams = unitDef.customParams
-	if customParams and customParams.tech_build_blocked_until_level then
-		local techLevel = tonumber(customParams.tech_build_blocked_until_level)
-		blockTechDefs[unitDefID] = techLevel
-		blockTechCount = blockTechCount + 1
+local blockedDefs = {}
+
+local function initializeTechBlocking()
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local customParams = unitDef.customParams
+		if customParams and customParams.tech_build_blocked_until_level then
+			local techLevel = tonumber(customParams.tech_build_blocked_until_level)
+			blockTechDefs[unitDefID] = techLevel
+			blockTechCount = blockTechCount + 1
+		end
 	end
 end
-
-local blockedDefs = {}
 
 local function updateUIElementText(document, elementId, text)
 	local element = document:GetElementById(elementId)
@@ -232,7 +234,7 @@ local function updateUI()
 	updateBlocking()
 
 	if not widgetState.initialPopupShown and widgetState.gameStartTime and
-	   (os.clock() - widgetState.gameStartTime) >= 10.0 then
+	   (os.clock() - widgetState.gameStartTime) >= 10.0 and Spring.GetGameFrame() > 0 then
 		local popupText = spI18N("ui.techBlocking.techPopup.level1")
 		if widgetState.document then
 			updateUIElementText(widgetState.document, "tech-level-popup", popupText)
@@ -291,6 +293,8 @@ local function updateUI()
 end
 
 function widget:Initialize()
+	initializeTechBlocking()
+
 	widgetState.gameStartTime = os.clock()
 
 	local myTeamID = spGetMyTeamID()
@@ -360,5 +364,16 @@ function widget:Update(dt)
 	if currentTime - widgetState.lastBlockingUpdate > widgetState.blockingUpdateInterval then
 		widgetState.lastBlockingUpdate = currentTime
 		updateBlocking()
+	end
+end
+
+function widget:RecvLuaMsg(message, playerID)
+	local document = widgetState.document
+	if not document then return end
+
+	if message:sub(1, 19) == 'LobbyOverlayActive0' then
+		document:Show()
+	elseif message:sub(1, 19) == 'LobbyOverlayActive1' then
+		document:Hide()
 	end
 end
