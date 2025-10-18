@@ -1,12 +1,9 @@
 local SharedEnums = VFS.Include("common/luaUtilities/team_transfer/shared_enums.lua")
+local PolicyShared = VFS.Include("common/luaUtilities/team_transfer/policy_shared.lua")
 
 local Shared = {}
 
-local FieldTypes = {
-  string = "string",
-  boolean = "boolean",
-  number = "number",
-}
+local FieldTypes = PolicyShared.FieldTypes
 
 -- Field type definitions for serialization/deserialization
 Shared.ResourcePolicyFields = {
@@ -27,31 +24,14 @@ Shared.ResourcePolicyFields = {
 ---@param resourceType ResourceType
 ---@return string
 function Shared.MakeBaseKey(receiverId, resourceType)
-  return string.format("policy_cache_%d_%s_", receiverId, resourceType)
+  return string.format("resource_transfer_policy_%d_%s_", receiverId, resourceType)
 end
 
 ---Serialize ResourcePolicyResult to string for efficient storage
 ---@param policyResult table
 ---@return string
-function Shared.SerializePolicyResult(policyResult)
-  -- Simple serialization: field1:value1:field2:value2:...
-  -- Exclude senderTeamId and receiverTeamId as they're set by the cache key
-  local parts = {}
-  for field, fieldType in pairs(Shared.ResourcePolicyFields) do
-    local v = policyResult[field]
-    if v ~= nil then
-      if fieldType == FieldTypes.boolean then
-        v = v and "1" or "0"
-      elseif fieldType == FieldTypes.string then
-        v = v         -- strings are fine
-      else
-        v = tostring(v)
-      end
-      table.insert(parts, field)
-      table.insert(parts, v)
-    end
-  end
-  return table.concat(parts, ":")
+function Shared.SerializeResourcePolicyResult(policyResult)
+  return PolicyShared.Serialize(Shared.ResourcePolicyFields, policyResult)
 end
 
 ---Deserialize ResourcePolicyResult from string
@@ -59,30 +39,9 @@ end
 ---@param resourceType ResourceType
 ---@return ResourcePolicyResult
 function Shared.DeserializeResourcePolicyResult(serialized, resourceType)
-  local result = {}
-  local parts = {}
-  for part in string.gmatch(serialized, "([^:]+)") do
-    table.insert(parts, part)
-  end
-  for i = 1, #parts, 2 do
-    local key = parts[i]
-    local value = parts[i + 1]
-    if key and value then
-      local fieldType = Shared.ResourcePolicyFields[key]
-      if key == "resourceType" then
-        result[key] = resourceType
-      elseif fieldType == FieldTypes.boolean then
-        result[key] = value == "1"
-      elseif fieldType == FieldTypes.string then
-        result[key] = value
-      elseif fieldType == FieldTypes.number then
-        result[key] = tonumber(value) or 0
-      else
-        error("Unknown field type: " .. tostring(fieldType))
-      end
-    end
-  end
-  return result
+  local decoded = PolicyShared.Deserialize(Shared.ResourcePolicyFields, serialized)
+  decoded.resourceType = resourceType
+  return decoded
 end
 
 --- Core helper: compute sender cost for a desired received amount under policyResult
@@ -142,6 +101,7 @@ function Shared.GetCachedPolicyResult(senderId, receiverId, resourceType)
       remainingTaxFreeAllowance = 0,
       resourceShareThreshold = 0,
       cumulativeSent = 0,
+      overflowSliderEnabled = false
     }
     return result
   end
