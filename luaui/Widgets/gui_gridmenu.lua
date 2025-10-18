@@ -1361,19 +1361,6 @@ function widget:Initialize()
 		clearCategory()
 	end
 
-	WG["gridmenu"].getCtrlClickModifier = function()
-		return modKeyMultiplier.click.ctrl
-	end
-	WG["gridmenu"].setCtrlClickModifier = function(value)
-		modKeyMultiplier.click.ctrl = value
-	end
-	WG["gridmenu"].getShiftClickModifier = function()
-		return modKeyMultiplier.click.shift
-	end
-	WG["gridmenu"].setShiftClickModifier = function(value)
-		modKeyMultiplier.click.shift = value
-	end
-
 	WG["gridmenu"].getCtrlKeyModifier = function()
 		return modKeyMultiplier.keyPress.ctrl
 	end
@@ -2840,8 +2827,6 @@ function widget:GetConfigData()
 		stickToBottom = stickToBottom,
 		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
 		alwaysShow = alwaysShow,
-		ctrlClickModifier = modKeyMultiplier.click.ctrl,
-		shiftClickModifier = modKeyMultiplier.click.shift,
 		ctrlKeyModifier = modKeyMultiplier.keyPress.ctrl,
 		shiftKeyModifier = modKeyMultiplier.keyPress.shift,
 	}
@@ -2871,12 +2856,6 @@ function widget:SetConfigData(data)
 	end
 	if data.alwaysShow ~= nil then
 		alwaysShow = data.alwaysShow
-	end
-	if data.ctrlClickModifier ~= nil then
-		modKeyMultiplier.click.ctrl = data.ctrlClickModifier
-	end
-	if data.shiftClickModifier ~= nil then
-		modKeyMultiplier.click.shift = data.shiftClickModifier
 	end
 	if data.ctrlKeyModifier ~= nil then
 		modKeyMultiplier.keyPress.ctrl = data.ctrlKeyModifier
