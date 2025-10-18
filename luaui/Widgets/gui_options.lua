@@ -4525,6 +4525,14 @@ function init()
 				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'damageDealt' }, value, { 'damageDealt', value })
 			end,
 		},
+		{ id = "spectator_hud_isCommanderArmy", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.spectator_hud.isCommanderArmy_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getIsCommanderArmy~= nil and WG['spectator_hud'].getIsCommanderArmy()) or 1, description = Spring.I18N('ui.spectator_hud.isCommanderArmy_tooltip'),
+			onload = function(i)
+				loadWidgetData("Spectator HUD", "spectator_hud_isCommanderArmy", { 'isCommanderArmy' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Spectator HUD', 'spectator_hud', 'setIsCommanderArmy', { 'metricsEnabled', 'isCommanderArmy' }, value, value )
+			end,
+		},
 
 		{ id = "label_ui_developer", group = "ui", name = Spring.I18N('ui.settings.option.label_developer'), category = types.advanced },
 		{ id = "label_ui_developer_spacer", group = "ui", category = types.advanced },
@@ -5990,6 +5998,7 @@ function init()
 		options[getOptionByID('spectator_hud_metric_utilityValue')] = nil
 		options[getOptionByID('spectator_hud_metric_economyValue')] = nil
 		options[getOptionByID('spectator_hud_metric_damageDealt')] = nil
+		options[getOptionByID('spectator_hud_isCommanderArmy')] = nil
 	end
 
 	if (not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7)) then
