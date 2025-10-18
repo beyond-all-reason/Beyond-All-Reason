@@ -3426,29 +3426,6 @@ function init()
 		  end,
 		},
 
-		--{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guishader'), type = "slider", min = 0, max = 0.005, steps = {0, 1, 2, 3, 4, 5, 6}, value = guishaderIntensity, description = '',
-		--  onload = function(i)
-		--	  loadWidgetData("GUI Shader", "guishader", { 'blurIntensity' })
-		--	  if type(options[getOptionByID('guishader')].value) ~= 'number' then
-		--		  options[getOptionByID('guishader')].value = 0
-		--	  end
-		--  end,
-		--  onchange = function(i, value)
-		--	  if type(value) == 'number' then
-		--		  guishaderIntensity = value
-		--		  saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', { 'blurIntensity' }, value)
-		--	  end
-		--	  if value <= 0.000001 then
-		--		  if GetWidgetToggleValue('GUI Shader') then
-		--			  widgetHandler:DisableWidget('GUI Shader')
-		--		  end
-		--	  else
-		--		  if not GetWidgetToggleValue('GUI Shader') then
-		--			  widgetHandler:EnableWidget('GUI Shader')
-		--		  end
-		--	  end
-		--  end,
-		--},
 		{ id = "guishader", group = "ui", category = types.basic, widget = "GUI Shader", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guishader'), type = "bool", value = GetWidgetToggleValue("GUI Shader") },
 
 		{ id = "rendertotexture", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.rendertotexture'), type = "bool", value = Spring.GetConfigInt("ui_rendertotexture", 1) == 1, description = Spring.I18N('ui.settings.option.rendertotexture_descr'),
@@ -6094,6 +6071,14 @@ function init()
 		options[getOptionByID('dualmode_minimap_aspectratio')] = nil
 	end
 
+
+	if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+		id = getOptionByID('guishader')
+		if id then
+			options[id] = nil
+		end
+	end
+
 	-- reduce options for potatoes
 	if isPotatoGpu or isPotatoCpu then
 		--local id = getOptionByID('shadowslider')
@@ -6144,7 +6129,6 @@ function init()
 				widgetHandler:DisableWidget(options[id].widget)
 			end
 			options[id] = nil
-			options[getOptionByID('guishader')] = nil
 
 			id = getOptionByID('dof')
 			if id and GetWidgetToggleValue(options[id].widget) then
