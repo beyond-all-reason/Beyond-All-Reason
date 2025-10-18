@@ -91,6 +91,15 @@ function gadget:Initialize()
 			spSetTeamRulesParam(teamID, "tech_level", 1)
 		end
 	end
+
+	local allUnits = Spring.GetAllUnits()
+	for _, unitID in ipairs(allUnits) do
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitTeam = Spring.GetUnitTeam(unitID)
+		if unitDefID and unitTeam then
+			gadget:UnitFinished(unitID, unitDefID, unitTeam)
+		end
+	end
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
