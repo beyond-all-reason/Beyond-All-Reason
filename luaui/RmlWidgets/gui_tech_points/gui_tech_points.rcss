@@ -15,12 +15,12 @@
     position: absolute;
     width: 100%;
     height: 100%;
-    background-color: rgba(40, 40, 40, 25);
+    background-color: rgba(40, 40, 40, 40);
     border-radius: 6dp;
     border-width: 4dp;
     border-color: rgba(30, 30, 30, 150);
     decorator: image("/luaui/images/stripes-small.png" repeat);
-    image-color: rgba(35, 35, 35, 125);
+    image-color: rgba(35, 35, 35, 120);
     display: flex;
     justify-content: center;
     align-items: center;
