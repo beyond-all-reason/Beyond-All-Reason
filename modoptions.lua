@@ -1252,7 +1252,7 @@ local options = {
         items 	= {
             { key = "default", 	name = "Default", lock = {"quick_start_amount"}, desc = "Default settings for game modes." },
             { key = "enabled", name = "Enabled", unlock = {"quick_start_amount"}, desc = "Quick Start alone, deducts 400 energy and 800 metal from starting resources." },
-            { key = "factory_discount", name = "Enabled: Discounted First Factory", desc = 
+            { key = "factory_discount", name = "Enabled: Discounted First Factory", desc =
             "Quick Start The commander's first factory is discounted at any time. Deducts 400 energy and 800 metal from starting resources.", unlock = {"quick_start_amount"} },
             { key = "factory_discount_only", name = "First Factory Discount Only", desc = "No base budget, only first factory discount. No deduction from starting resources.", lock = {"quick_start_amount"} },
             { key = "disabled", name = "Disabled", desc = "Disabled quick start for all game modes.", lock = {"quick_start_amount"} },
@@ -1305,7 +1305,7 @@ local options = {
         section = "options_extra",
         type    = "separator",
     },
-    
+
     {
         key 	= "assistdronesenabled", -- TODO, turn this into booleam modoption
         name 	= "Commander Drones",
@@ -1519,7 +1519,7 @@ local options = {
     },
 
     -- Hidden Tests
-	
+
     {
         key     = "techsplit",
         name    = "Tech Split",
@@ -1549,7 +1549,7 @@ local options = {
         section = "options_experimental",
         def  	= false,
     },
-    
+
     {
         key 	= "lategame_rebalance",
         name 	= "Lategame Rebalance",
@@ -1615,6 +1615,16 @@ local options = {
         key 	= "proposed_unit_reworks",
         name 	= "Proposed Unit Reworks",
         desc 	= "Modoption used to test balance changes that are being considered for the base game.",
+        type 	= "bool",
+        --hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key 	= "naval_balance_tweaks",
+        name 	= "Proposed Naval Balance Tweaks",
+        desc 	= "Modoption used to test specific balance adjustments dedicated towards naval units.",
         type 	= "bool",
         --hidden 	= true,
         section = "options_experimental",

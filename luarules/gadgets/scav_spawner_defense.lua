@@ -2319,8 +2319,14 @@ if gadgetHandler:IsSyncedCode() then
 
 				if Spring.GetModOptions().scav_endless then
 					updateDifficultyForSurvival()
+					Spring.SetGameRulesParam("scavBossAnger", 0)
+					Spring.SetGameRulesParam("scavBossHealth", 0)
+					Spring.SetGameRulesParam("scavTechAnger", 0)
 				else
 					gameOver = GetGameFrame() + 200
+					Spring.SetGameRulesParam("scavBossAnger", 0)
+					Spring.SetGameRulesParam("scavBossHealth", 0)
+					Spring.SetGameRulesParam("scavTechAnger", 0)
 					spawnQueue = {}
 
 					if not killedScavsAllyTeam then

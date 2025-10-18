@@ -222,7 +222,7 @@ local function StartVote(name)	-- when called without params its just to refresh
 			font2:Begin()
 			font2:SetOutlineColor(1, 1, 1, 0.2)
 			font2:SetTextColor(0, 0, 0, 0.7)
-			font2:Print("\255\000\000\000" .. Spring.I18N('ui.voting.cancel'), closeButtonArea[1] + ((closeButtonArea[3] - closeButtonArea[1]) / 2), closeButtonArea[2] + ((closeButtonArea[4] - closeButtonArea[2]) / 2) - (fontSize / 3), fontSize, "cn")
+			font2:Print("\255\000\000\000X", closeButtonArea[1] + ((closeButtonArea[3] - closeButtonArea[1]) / 2), closeButtonArea[2] + ((closeButtonArea[4] - closeButtonArea[2]) / 2) - (fontSize / 3), fontSize, "cn")
 
 			-- NO / End Vote
 			local color1, color2, mult
@@ -531,16 +531,6 @@ function widget:AddConsoleLine(lines, priority)
 				end
 			end
 		end
-	end
-end
-
-function widget:KeyPress(key)
-	-- ESC
-	if key == 27 and voteDlist and eligibleToVote then
-		if not weAreVoteOwner then
-			Spring.SendCommands("say !vote b")
-		end
-		MinimizeVote()
 	end
 end
 
