@@ -1406,7 +1406,7 @@ local options = {
         type 	= "list",
         def 	= "disabled",
         section = "options_extra",
-        hidden  = true,
+        hidden  = false,
         items 	= {
             { key = "disabled", name = "Disabled", desc = "Disabled"},
             { key = "normal", name = "Normal", desc = "Slow revival rate, normal strength."},
