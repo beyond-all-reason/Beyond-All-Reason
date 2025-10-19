@@ -71,7 +71,14 @@ local spGetSpectatingState = Spring.GetSpectatingState
 	v44   (Floris): added rendertotexture draw method
 	v45   (Floris): support PvE team ranking leaderboard style
 	v46   (Floris): support alternative (historic) playernames based on accountID's
+    v47   (Attean): introduce a policy cache and TeamTransfer module, removing a lot of economic and unit specific code from this file and enabling unit_sharing_mode and player_[resource]_send_threshold modoptions
 ]]--
+
+local SharedEnums = VFS.Include('sharing_modes/shared_enums.lua')
+local TeamTransfer = VFS.Include('common/luaUtilities/team_transfer/team_transfer_unsynced.lua')
+local ResourceTransfer = TeamTransfer.Resources
+local ApiExtensions = VFS.Include('common/luaUtilities/team_transfer/gui_advplayerlist_api_extensions.lua')
+local Helpers = VFS.Include('common/luaUtilities/team_transfer/gui_advplayerlist_helpers.lua')
 
 --------------------------------------------------------------------------------
 -- Config
@@ -236,7 +243,9 @@ local Background, ShareSlider, BackgroundGuishader, tipText, tipTextTitle, drawT
 --local specJoinedOnce, scheduledSpecFullView
 --local prevClickedPlayer, clickedPlayerTime, clickedPlayerID
 local lockPlayerID  --leftPosX, lastSliderSound, release
+local hoveredPlayerID = nil
 local MainList, MainList2, MainList3, drawListOffset
+
 
 local deadPlayerHeightReduction = 8
 
@@ -301,7 +310,6 @@ end
 local energyPlayer    -- player to share energy with (nil when no energy sharing)
 local metalPlayer    -- player to share metal with(nil when no metal sharing)
 local shareAmount = 0      -- amount of metal/energy to share/ask
-local maxShareAmount    -- max amount of metal/energy to share/ask
 local sliderPosition      -- slider position in metal and energy sharing
 local shareSliderHeight = 80
 local sliderOrigin   -- position of the cursor before dragging the widget
@@ -767,6 +775,11 @@ function ActivityEvent(playerID)
     lastActivity[playerID] = os.clock()
 end
 
+function widget:SelectionChanged(selectedUnits)
+    Helpers.UpdatePlayerUnitValidations(player, myTeamID, selectedUnits)
+end
+
+
 ---------------------------------------------------------------------------------------------------
 --  Init/GameStart (creating players)
 ---------------------------------------------------------------------------------------------------
@@ -964,6 +977,11 @@ function widget:Initialize()
 			end
 		end
 	end
+
+	WG['advplayerlist_api'].AddHoverChangeListener = ApiExtensions.AddHoverChangeListener
+	WG['advplayerlist_api'].RemoveHoverChangeListener = ApiExtensions.RemoveHoverChangeListener
+	WG['advplayerlist_api'].AddHoverInvalidUnitsListener = ApiExtensions.AddHoverInvalidUnitsListener
+	WG['advplayerlist_api'].RemoveHoverInvalidUnitsListener = ApiExtensions.RemoveHoverInvalidUnitsListener
 
 	widgetHandler:AddAction("speclist", speclistCmd, nil, 't')
 end
@@ -1333,7 +1351,7 @@ function CreatePlayerFromTeam(teamID)
         metal = metal,
         metalStorage = metalStorage,
         metalShare = metalShare,
-        incomeMultiplier = tincomeMultiplier,
+        incomeMultiplier = tincomeMultiplier
     }
 end
 
@@ -1384,6 +1402,9 @@ function UpdatePlayerResources()
 					end
 				end
 			end
+        end
+        if player[playerID].team then
+            Helpers.PackAllPoliciesForPlayer(player[playerID], myTeamID, player[playerID].team)
         end
     end
 
@@ -1895,37 +1916,25 @@ end
 --  Main (player) gllist
 ---------------------------------------------------------------------------------------------------
 
+local function updateShareAmount(player, resourceType)
+    local policyResult = Helpers.GetPlayerPolicy(player, resourceType, myTeamID)
+    if not policyResult.amountSendable then
+        shareAmount = 0
+        return
+    end
+    shareAmount = policyResult.amountSendable * sliderPosition / shareSliderHeight
+    shareAmount = shareAmount - (shareAmount % 1)
+end
+
 function UpdateResources()
     if sliderPosition then
         if energyPlayer ~= nil then
-			if energyPlayer.team == myTeamID then
-				local current, storage = Spring_GetTeamResources(myTeamID, "energy")
-				maxShareAmount = storage - current
-				shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
-				shareAmount = shareAmount - (shareAmount % 1)
-			else
-				maxShareAmount = Spring_GetTeamResources(myTeamID, "energy")
-				local energy, energyStorage, _, _, _, shareSliderPos = Spring_GetTeamResources(energyPlayer.team, "energy")
-				maxShareAmount = mathMin(maxShareAmount, ((energyStorage*shareSliderPos) - energy))
-                shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
-                shareAmount = shareAmount - (shareAmount % 1)
-            end
+            updateShareAmount(energyPlayer, "energy")
         end
 
-        if metalPlayer ~= nil then
-            if metalPlayer.team == myTeamID then
-                local current, storage = Spring_GetTeamResources(myTeamID, "metal")
-                maxShareAmount = storage - current
-                shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
-                shareAmount = shareAmount - (shareAmount % 1)
-            else
-                maxShareAmount = Spring_GetTeamResources(myTeamID, "metal")
-				local metal, metalStorage, _, _, _, shareSliderPos = Spring_GetTeamResources(metalPlayer.team, "metal")
-				maxShareAmount = mathMin(maxShareAmount, ((metalStorage*shareSliderPos) - metal))
-                shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
-                shareAmount = shareAmount - (shareAmount % 1)
-            end
-        end
+		if metalPlayer ~= nil then
+            updateShareAmount(metalPlayer, "metal")
+		end
     end
 end
 
@@ -2233,11 +2242,14 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
     local cpu = player[playerID].cpu
     local spec = player[playerID].spec
     local totake = player[playerID].totake
-    local needm = player[playerID].needm
-    local neede = player[playerID].neede
     local dead = player[playerID].dead
     local ai = player[playerID].ai
     local alliances = player[playerID].alliances
+    local metalPolicy, energyPolicy, unitPolicy, unitValidationResult
+    if not spec then
+        metalPolicy, energyPolicy, unitPolicy = Helpers.UnpackAllPolicies(player[playerID], myTeamID, team)
+        unitValidationResult = Helpers.UnpackSelectedUnitsValidation(player[playerID])
+    end
     local posY = widgetPosY + widgetHeight - vOffset
     local tipPosY = widgetPosY + ((widgetHeight - vOffset) * widgetScale)
 	local desynced = player[playerID].desynced
@@ -2260,8 +2272,15 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
             alpha = alphaActivity
         end
     end
-    if mouseY >= tipPosY and mouseY <= tipPosY + (16 * widgetScale * playerScale) then
+    -- detect hover on the entire row bounds so we can detect when the moust leaves the row
+    local rowTop = posY
+    local rowBottom = posY + (playerOffset*playerScale)
+    if IsOnRect(mouseX, mouseY, widgetPosX, rowTop, widgetPosX + widgetWidth, rowBottom) then
         tipY = true
+        if hoveredPlayerID ~= playerID and player[playerID] and player[playerID].team then
+            local selectedUnits = Spring.GetSelectedUnits()
+            ApiExtensions.HandleHoverChange(myTeamID, selectedUnits, player[playerID].team, playerID)
+        end
     end
 
     if onlyMainList and lockPlayerID and lockPlayerID == playerID then
@@ -2297,10 +2316,10 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                                 end
                             end
                         end
-                        if m_share.active and not dead and not hideShareIcons then
-                            DrawShareButtons(posY, needm, neede)
+                        if m_share.active and not dead and not hideShareIcons and (unitPolicy and metalPolicy and energyPolicy) then
+                            DrawShareButtons(posY, unitPolicy, metalPolicy, energyPolicy, unitValidationResult)
                             if tipY then
-                                ShareTip(mouseX, playerID)
+                                ShareTip(mouseX, unitPolicy, metalPolicy, energyPolicy, unitValidationResult)
                             end
                         end
                     end
@@ -2435,7 +2454,25 @@ function DrawTakeSignal(posY)
     end
 end
 
-function DrawShareButtons(posY, needm, neede)
+local function DrawSharingIconOverlay(posY, enabled, offsetX)
+    -- Subtle highlight when sharing is possible (replaces red lowPic overlay)
+    if enabled then
+        gl_Texture(false)
+        gl_Color(1, 1, 1, 0.12)
+        DrawRect(m_share.posX + widgetPosX + offsetX, posY, m_share.posX + widgetPosX + offsetX + (16*playerScale), posY + (16*playerScale))
+        gl_Color(1, 1, 1, 1)
+    end
+
+    -- Grey-out when sharing is not allowed
+    if not enabled then
+        gl_Texture(false)
+        gl_Color(0, 0, 0, 0.45)
+        DrawRect(m_share.posX + widgetPosX + offsetX, posY, m_share.posX + widgetPosX + offsetX + (16*playerScale), posY + (16*playerScale))
+        gl_Color(1, 1, 1, 1)
+    end
+end
+
+function DrawShareButtons(posY, unitPolicy, metalPolicy, energyPolicy, unitValidationResult)
     gl_Color(1, 1, 1, 1)
     gl_Texture(pics["unitsPic"])
     DrawRect(m_share.posX + widgetPosX + (1*playerScale), posY, m_share.posX + widgetPosX + (17*playerScale), posY + (16*playerScale))
@@ -2443,15 +2480,11 @@ function DrawShareButtons(posY, needm, neede)
     DrawRect(m_share.posX + widgetPosX + (17*playerScale), posY, m_share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale))
     gl_Texture(pics["metalPic"])
     DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale))
-    gl_Texture(pics["lowPic"])
 
-    if needm then
-        DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale))
-    end
-
-    if neede then
-        DrawRect(m_share.posX + widgetPosX + (17*playerScale), posY, m_share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale))
-    end
+    local shareButtonEnabled = unitPolicy.canShare and (not unitValidationResult or unitValidationResult.status ~= SharedEnums.UnitValidationOutcome.Failure)
+    DrawSharingIconOverlay(posY, shareButtonEnabled, 1 * playerScale)
+    DrawSharingIconOverlay(posY, energyPolicy.canShare, 17 * playerScale)
+    DrawSharingIconOverlay(posY, metalPolicy.canShare, 33 * playerScale)
 
     gl_Texture(false)
 end
@@ -3058,30 +3091,15 @@ function NameTip(mouseX, playerID, accountID, nameIsAlias)
 	end
 end
 
-function ShareTip(mouseX, playerID)
-    if playerID == myPlayerID then
-        if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.requestSupport')
-            tipTextTime = os.clock()
-        elseif mouseX >= widgetPosX + (m_share.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (35*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.requestEnergy')
-            tipTextTime = os.clock()
-        elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.requestMetal')
-            tipTextTime = os.clock()
-        end
-    else
-        if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.shareUnits')
-            tipTextTime = os.clock()
-        elseif mouseX >= widgetPosX + (m_share.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (35*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.shareEnergy')
-            tipTextTime = os.clock()
-        elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.shareMetal')
-            tipTextTime = os.clock()
-        end
+function ShareTip(mouseX, unitPolicy, metalPolicy, energyPolicy, unitValidationResult)
+    if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
+        tipText = TeamTransfer.Units.TooltipText(unitPolicy, unitValidationResult)
+    elseif mouseX >= widgetPosX + (m_share.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (35*playerScale)) * widgetScale then
+        tipText = ResourceTransfer.TooltipText(energyPolicy)
+    elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
+        tipText = ResourceTransfer.TooltipText(metalPolicy)
     end
+    tipTextTime = os.clock()
 end
 
 function AllyTip(mouseX, playerID)
@@ -3209,9 +3227,41 @@ end
 --  Share slider gllist
 ---------------------------------------------------------------------------------------------------
 
+local function RenderShareSliderText(posY, player, resourceType, baseOffset)
+    local policyResult = Helpers.GetPlayerPolicy(player, resourceType, myTeamID)
+    local case = ResourceTransfer.DecideCommunicationCase(policyResult)
+    local label
+    if case == ResourceTransfer.ResourceCommunicationCase.OnTaxFree then
+        -- For tax-free sharing, just show the amount being shared
+        label = ResourceTransfer.FormatNumberForUI(shareAmount)
+    else
+        -- For taxed cases, show explicit sent -> received breakdown
+        local received, sent = ResourceTransfer.CalculateSenderTaxedAmount(policyResult, shareAmount)
+        label = "S:" .. ResourceTransfer.FormatNumberForUI(sent) .. "→R:" .. ResourceTransfer.FormatNumberForUI(received)
+    end
+    local textXRight = m_share.posX + widgetPosX + (baseOffset * playerScale) - (4 * playerScale)
+    local fontSize = 14
+    local pad = 4 * playerScale
+    local textWidth = font:GetTextWidth(label) * fontSize
+    local bgLeft = math.floor(textXRight - textWidth - pad)
+    local bgRight = math.floor(textXRight + pad)
+    local bgBottom = math.floor(posY - 1 + sliderPosition)
+    local bgTop = math.floor(posY + (17*playerScale) + sliderPosition)
+    gl_Color(0.45,0.45,0.45,1)
+    RectRound(bgLeft, bgBottom, bgRight, bgTop, 2.5*playerScale)
+    font:Print("\255\255\255\255"..label, textXRight, posY + (3 * playerScale) + sliderPosition, fontSize, "or")
+end
+
 function CreateShareSlider()
     if ShareSlider then
         gl_DeleteList(ShareSlider)
+    end
+
+    -- Refresh policy data for focused players before drawing
+    if energyPlayer then
+        Helpers.PackMetalPolicyResult(energyPlayer.team, myTeamID, energyPlayer)
+    elseif metalPlayer then
+        Helpers.PackEnergyPolicyResult(metalPlayer.team, myTeamID, metalPlayer)
     end
 
     ShareSlider = gl_CreateList(function()
@@ -3219,6 +3269,7 @@ function CreateShareSlider()
         if sliderPosition then
             font:Begin(useRenderToTexture)
             local posY
+
             if energyPlayer ~= nil then
                 posY = widgetPosY + widgetHeight - energyPlayer.posY
                 gl_Texture(pics["barPic"])
@@ -3226,9 +3277,7 @@ function CreateShareSlider()
                 gl_Texture(pics["energyPic"])
                 DrawRect(m_share.posX + widgetPosX + (17*playerScale), posY + sliderPosition, m_share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale) + sliderPosition)
                 gl_Texture(false)
-				gl_Color(0.45,0.45,0.45,1)
-				RectRound(mathFloor(m_share.posX + widgetPosX - (28*playerScale)), mathFloor(posY - 1 + sliderPosition), mathFloor(m_share.posX + widgetPosX + (19*playerScale)), mathFloor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
-				font:Print("\255\255\255\255"..shareAmount, m_share.posX + widgetPosX - (5*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
+                RenderShareSliderText(posY, energyPlayer, "energy", 16)
             elseif metalPlayer ~= nil then
                 posY = widgetPosY + widgetHeight - metalPlayer.posY
                 gl_Texture(pics["barPic"])
@@ -3236,9 +3285,7 @@ function CreateShareSlider()
                 gl_Texture(pics["metalPic"])
                 DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY + sliderPosition, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale) + sliderPosition)
                 gl_Texture(false)
-				gl_Color(0.45,0.45,0.45,1)
-				RectRound(mathFloor(m_share.posX + widgetPosX - (12*playerScale)), mathFloor(posY - 1 + sliderPosition), mathFloor(m_share.posX + widgetPosX + (35*playerScale)), mathFloor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
-				font:Print("\255\255\255\255"..shareAmount, m_share.posX + widgetPosX + (11*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
+                RenderShareSliderText(posY, metalPlayer, "metal", 32)
             end
             font:End()
         end
@@ -3485,50 +3532,20 @@ function widget:MouseRelease(x, y, button)
         else
             release = nil
         end
-        if energyPlayer ~= nil then
-            -- share energy/metal mouse release
-            if energyPlayer.team == myTeamID then
-                if shareAmount == 0 then
-                    --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needEnergy'))
-					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needEnergy')
-                else
-                    --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needEnergyAmount', { amount = shareAmount }))
-					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needEnergyAmount:amount='..shareAmount)
-                end
-            elseif shareAmount > 0 then
-                Spring_ShareResources(energyPlayer.team, "energy", shareAmount)
-                --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveEnergy', { amount = shareAmount, name = energyPlayer.name }))
-				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy:amount='..shareAmount..':name='..(energyPlayer.orgname or energyPlayer.name))
-                WG.sharedEnergyFrame = spGetGameFrame()
-            end
-            sliderOrigin = nil
-            maxShareAmount = nil
-            sliderPosition = nil
-            shareAmount = nil
-            energyPlayer = nil
-        end
 
-        if metalPlayer ~= nil and shareAmount then
-            if metalPlayer.team == myTeamID then
-                if shareAmount == 0 then
-                    --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetal'))
-					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needMetal')
-                else
-                    --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetalAmount', { amount = shareAmount }))
-					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needMetalAmount:amount='..shareAmount)
-                end
-            elseif shareAmount > 0 then
-                Spring_ShareResources(metalPlayer.team, "metal", shareAmount)
-                --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveMetal', { amount = shareAmount, name = metalPlayer.name }))
-				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal:amount='..shareAmount..':name='..(metalPlayer.orgname or metalPlayer.name))
-                WG.sharedMetalFrame = spGetGameFrame()
-            end
-            sliderOrigin = nil
-            maxShareAmount = nil
-            sliderPosition = nil
-            shareAmount = nil
-            metalPlayer = nil
-        end
+          if energyPlayer ~= nil and shareAmount then
+             Helpers.HandleResourceTransfer(energyPlayer, "energy", shareAmount, myTeamID)
+          end
+
+          if metalPlayer ~= nil and shareAmount then
+             Helpers.HandleResourceTransfer(metalPlayer, "metal", shareAmount, myTeamID)
+          end
+        
+        sliderOrigin = nil
+        sliderPosition = nil
+        shareAmount = 0
+        energyPlayer = nil
+        metalPlayer = nil
     end
 end
 
@@ -3761,12 +3778,7 @@ function CheckPlayersChange()
             end
             -- Update stall / cpu / ping info for each player
             if player[i].spec == false then
-                player[i].needm = GetNeed("metal", player[i].team)
-                player[i].neede = GetNeed("energy", player[i].team)
                 player[i].rank = rank
-            else
-                player[i].needm = false
-                player[i].neede = false
             end
 
             player[i].pingLvl = GetPingLvl(pingTime)
@@ -3793,18 +3805,6 @@ function CheckPlayersChange()
         SetModulesPositionX()    -- change the X size if needed (change of widest name)
         CreateLists()
     end
-end
-
-function GetNeed(resType, teamID)
-    local current, _, pull, income = Spring_GetTeamResources(teamID, resType)
-    if current == nil then
-        return false
-    end
-    local loss = pull - income
-    if loss > 0 and loss * 5 > current then
-        return true
-    end
-    return false
 end
 
 function updateTake(allyTeamID)
@@ -3845,8 +3845,12 @@ end
 function widget:Update(delta)
     --handles takes & related messages
     local mx, my = spGetMouseState()
+    local wasHoveringPlayerlist = hoverPlayerlist
     hoverPlayerlist = false
-    if math_isInRect(mx, my, apiAbsPosition[2] - 1, apiAbsPosition[3] - 1, apiAbsPosition[4] + 1, apiAbsPosition[1] + 1 ) then
+
+    -- Determine if the mouse is over the full player list bounding box
+    local insidePlayerlist = math_isInRect(mx, my, apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1])
+    if insidePlayerlist then
         hoverPlayerlist = true
 
 		if leaderboardOffset then
@@ -3951,6 +3955,12 @@ function widget:Update(delta)
         if updateMainList2 or updateMainList3 then
             CreateLists(curFrame==0, updateMainList2, updateMainList3)
         end
+    end
+
+    -- Clear hover state when mouse leaves player list entirely (any side)
+    if wasHoveringPlayerlist and not hoverPlayerlist then
+        local selectedUnits = Spring.GetSelectedUnits()
+        ApiExtensions.HandleHoverChange(myTeamID, selectedUnits, nil, nil)
     end
 end
 
