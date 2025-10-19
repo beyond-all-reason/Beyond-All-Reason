@@ -71,7 +71,14 @@ local spGetSpectatingState = Spring.GetSpectatingState
 	v44   (Floris): added rendertotexture draw method
 	v45   (Floris): support PvE team ranking leaderboard style
 	v46   (Floris): support alternative (historic) playernames based on accountID's
+    v47   (Attean): introduce a policy cache and TeamTransfer module, removing a lot of economic and unit specific code from this file and enabling unit_sharing_mode and player_[resource]_send_threshold modoptions
 ]]--
+
+local SharedEnums = VFS.Include('sharing_modes/shared_enums.lua')
+local TeamTransfer = VFS.Include('common/luaUtilities/team_transfer/team_transfer_unsynced.lua')
+local ResourceTransfer = TeamTransfer.Resources
+local ApiExtensions = VFS.Include('common/luaUtilities/team_transfer/gui_advplayerlist_api_extensions.lua')
+local Helpers = VFS.Include('common/luaUtilities/team_transfer/gui_advplayerlist_helpers.lua')
 
 --------------------------------------------------------------------------------
 -- Config
@@ -141,54 +148,53 @@ local specOffset = 256
 --------------------------------------------------------------------------------
 -- IMAGES
 --------------------------------------------------------------------------------
-local images = {}
-images['imgDir'] = LUAUI_DIRNAME .. "Images/advplayerslist/"
-images['imageDirectory'] = ":lc:" .. images['imgDir']
-images['flagsExt'] = '.png'
-images['flagHeight'] = 10
+local imgDir = LUAUI_DIRNAME .. "Images/advplayerslist/"
+local imageDirectory = ":lc:" .. imgDir
+local flagsExt = '.png'
+local flagHeight = 10
 
 local pics = {
-    currentPic = images['imageDirectory'] .. "indicator.dds",
-    unitsPic = images['imageDirectory'] .. "units.dds",
-    energyPic = images['imageDirectory'] .. "energy.dds",
-    metalPic = images['imageDirectory'] .. "metal.dds",
-    notFirstPic = images['imageDirectory'] .. "notfirst.dds",
-    pingPic = images['imageDirectory'] .. "ping.dds",
-    cpuPic = images['imageDirectory'] .. "cpu.dds",
-    barPic = images['imageDirectory'] .. "bar.png",
-    pointPic = images['imageDirectory'] .. "point.dds",
-    pencilPic = images['imageDirectory'] .. "pencil.dds",
-    eraserPic = images['imageDirectory'] .. "eraser.dds",
-    lowPic = images['imageDirectory'] .. "low.dds",
-    arrowPic = images['imageDirectory'] .. "arrow.dds",
-    takePic = images['imageDirectory'] .. "take.dds",
-    indentPic = images['imageDirectory'] .. "indent.png",
-    cameraPic = images['imageDirectory'] .. "camera.dds",
-    countryPic = images['imageDirectory'] .. "country.dds",
-    readyTexture = images['imageDirectory'] .. "indicator.dds",
-    allyPic = images['imageDirectory'] .. "ally.dds",
-    unallyPic = images['imageDirectory'] .. "unally.dds",
-    resourcesPic = images['imageDirectory'] .. "res.png",
-    resbarPic = images['imageDirectory'] .. "resbar.png",
-    resbarBgPic = images['imageDirectory'] .. "resbarBg.png",
-    incomePic = images['imageDirectory'] .. "res.png",
-    barGlowCenterPic = images['imageDirectory'] .. "barglow-center.png",
-    barGlowEdgePic = images['imageDirectory'] .. "barglow-edge.png",
+    currentPic = imageDirectory .. "indicator.dds",
+    unitsPic = imageDirectory .. "units.dds",
+    energyPic = imageDirectory .. "energy.dds",
+    metalPic = imageDirectory .. "metal.dds",
+    notFirstPic = imageDirectory .. "notfirst.dds",
+    pingPic = imageDirectory .. "ping.dds",
+    cpuPic = imageDirectory .. "cpu.dds",
+    barPic = imageDirectory .. "bar.png",
+    pointPic = imageDirectory .. "point.dds",
+    pencilPic = imageDirectory .. "pencil.dds",
+    eraserPic = imageDirectory .. "eraser.dds",
+    lowPic = imageDirectory .. "low.dds",
+    arrowPic = imageDirectory .. "arrow.dds",
+    takePic = imageDirectory .. "take.dds",
+    indentPic = imageDirectory .. "indent.png",
+    cameraPic = imageDirectory .. "camera.dds",
+    countryPic = imageDirectory .. "country.dds",
+    readyTexture = imageDirectory .. "indicator.dds",
+    allyPic = imageDirectory .. "ally.dds",
+    unallyPic = imageDirectory .. "unally.dds",
+    resourcesPic = imageDirectory .. "res.png",
+    resbarPic = imageDirectory .. "resbar.png",
+    resbarBgPic = imageDirectory .. "resbarBg.png",
+    incomePic = imageDirectory .. "res.png",
+    barGlowCenterPic = imageDirectory .. "barglow-center.png",
+    barGlowEdgePic = imageDirectory .. "barglow-edge.png",
 
-    chatPic = images['imageDirectory'] .. "chat.dds",
-    sidePic = images['imageDirectory'] .. "side.dds",
-    sharePic = images['imageDirectory'] .. "share.dds",
-    idPic = images['imageDirectory'] .. "id.dds",
-    tsPic = images['imageDirectory'] .. "ts.dds",
+    chatPic = imageDirectory .. "chat.dds",
+    sidePic = imageDirectory .. "side.dds",
+    sharePic = imageDirectory .. "share.dds",
+    idPic = imageDirectory .. "id.dds",
+    tsPic = imageDirectory .. "ts.dds",
 
-    rank0 = images['imageDirectory'] .. "ranks/1.png",
-    rank1 = images['imageDirectory'] .. "ranks/2.png",
-    rank2 = images['imageDirectory'] .. "ranks/3.png",
-    rank3 = images['imageDirectory'] .. "ranks/4.png",
-    rank4 = images['imageDirectory'] .. "ranks/5.png",
-    rank5 = images['imageDirectory'] .. "ranks/6.png",
-    rank6 = images['imageDirectory'] .. "ranks/7.png",
-    rank7 = images['imageDirectory'] .. "ranks/8.png",
+    rank0 = imageDirectory .. "ranks/1.png",
+    rank1 = imageDirectory .. "ranks/2.png",
+    rank2 = imageDirectory .. "ranks/3.png",
+    rank3 = imageDirectory .. "ranks/4.png",
+    rank4 = imageDirectory .. "ranks/5.png",
+    rank5 = imageDirectory .. "ranks/6.png",
+    rank6 = imageDirectory .. "ranks/7.png",
+    rank7 = imageDirectory .. "ranks/8.png",
 }
 
 local sidePics = {}  -- loaded in SetSidePics function
@@ -198,11 +204,6 @@ local apiAbsPosition = { 0, 0, 0, 0, 1, 1, false }
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
-
-local sharingTax = Spring.GetModOptions().tax_resource_sharing_amount or 0
-if Spring.GetModOptions().easytax then
-	sharingTax = 0.3 -- 30% tax for easytax modoption
-end
 
 --------------------------------------------------------------------------------
 -- Colors
@@ -242,7 +243,9 @@ local Background, ShareSlider, BackgroundGuishader, tipText, tipTextTitle, drawT
 --local specJoinedOnce, scheduledSpecFullView
 --local prevClickedPlayer, clickedPlayerTime, clickedPlayerID
 local lockPlayerID  --leftPosX, lastSliderSound, release
+local hoveredPlayerID = nil
 local MainList, MainList2, MainList3, drawListOffset
+
 
 local deadPlayerHeightReduction = 8
 
@@ -307,7 +310,6 @@ end
 local energyPlayer    -- player to share energy with (nil when no energy sharing)
 local metalPlayer    -- player to share metal with(nil when no metal sharing)
 local shareAmount = 0      -- amount of metal/energy to share/ask
-local maxShareAmount    -- max amount of metal/energy to share/ask
 local sliderPosition      -- slider position in metal and energy sharing
 local shareSliderHeight = 80
 local sliderOrigin   -- position of the cursor before dragging the widget
@@ -316,7 +318,6 @@ local firstclick = 0
 local dblclickPeriod = 0.4
 local backgroundMargin = 8
 local widgetRelRight = 0
-local lastUsedPipNum = 0
 
 --------------------------------------------------------------------------------
 -- GEOMETRY VARIABLES
@@ -346,245 +347,15 @@ local teamN
 local prevClickTime = os.clock()
 local specListShow = true
 local enemyListShow = true
-local enemyListShowUserPref = true  -- Stores user preference, separate from auto-disabled state
 local forceMainListRefresh = true
 
 --------------------------------------------------
 -- Modules
 --------------------------------------------------
 
-local modules = {}
-local m_indent, m_rank, m_side, m_allyID, m_playerID, m_ID, m_name, m_share, m_chat, m_cpuping, m_country, m_alliance, m_skill, m_resources, m_income
-
--- these are not considered as normal module since they dont take any place and wont affect other's position
--- (they have no module.width and are not part of modules)
-local m_point, m_take
-
-local position = 1
-m_indent = {
-    name = "indent",
-    spec = true, --display for specs?
-    play = true, --display for players?
-    active = true, --display? (overrides above)
-    default = true, --display by default?
-    width = 9,
-    position = position,
-    posX = 0,
-    pic = pics["indentPic"],
-    noPic = true,
-}
-position = position + 1
-
-m_allyID = {
-    name = "allyid",
-    spec = true,
-    play = true,
-    active = false,
-    width = 17,
-    position = position,
-    posX = 0,
-    pic = pics["idPic"],
-}
-position = position + 1
-
-m_ID = {
-    name = "id",
-    spec = true,
-    play = true,
-    active = false,
-    width = 17,
-    position = position,
-    posX = 0,
-    pic = pics["idPic"],
-}
-position = position + 1
-
-m_playerID = {
-    name = "playerid",
-    spec = true,
-    play = true,
-    active = false,
-    width = 17,
-    position = position,
-    posX = 0,
-    pic = pics["idPic"],
-}
-position = position + 1
-
-m_rank = {
-    name = "rank",
-    spec = true, --display for specs?
-    play = true, --display for players?
-    active = true, --display? (overrides above)
-    default = false, --display by default?
-    width = 18,
-    position = position,
-    posX = 0,
-    pic = pics["rank6"],
-}
-position = position + 1
-
-m_country = {
-    name = "country",
-    spec = true,
-    play = true,
-    active = true,
-    default = true,
-    width = 20,
-    position = position,
-    posX = 0,
-    pic = pics["countryPic"],
-}
-position = position + 1
-
-m_side = {
-    name = "side",
-    spec = true,
-    play = true,
-    active = false,
-    width = 18,
-    position = position,
-    posX = 0,
-    pic = pics["sidePic"],
-}
-position = position + 1
-
-m_skill = {
-    name = "skill",
-    spec = true,
-    play = true,
-    active = false,
-    width = 18,
-    position = position,
-    posX = 0,
-    pic = pics["tsPic"],
-}
-position = position + 1
-
-m_name = {
-    name = "name",
-    spec = true,
-    play = true,
-    active = true,
-    alwaysActive = true,
-    width = 10,
-    position = position,
-    posX = 0,
-    noPic = true,
-    picGap = 7,
-}
-position = position + 1
-
-m_cpuping = {
-    name = "cpuping",
-    spec = true,
-    play = true,
-    active = true,
-    width = 24,
-    position = position,
-    posX = 0,
-    pic = pics["cpuPic"],
-}
-position = position + 1
-
-m_resources = {
-    name = "resources",
-    spec = true,
-    play = true,
-    active = true,
-    width = 28,
-    position = position,
-    posX = 0,
-    pic = pics["resourcesPic"],
-    picGap = 7,
-}
-position = position + 1
-
-m_income = {
-    name = "income",
-    spec = true,
-    play = true,
-    active = false,
-    width = 28,
-    position = position,
-    posX = 0,
-    pic = pics["incomePic"],
-    picGap = 7,
-}
-position = position + 1
-
-m_share = {
-    name = "share",
-    spec = false,
-    play = true,
-    active = true,
-    width = 50,
-    position = position,
-    posX = 0,
-    pic = pics["sharePic"],
-}
-position = position + 1
-
-m_chat = {
-    name = "chat",
-    spec = false,
-    play = true,
-    active = false,
-    width = 18,
-    position = position,
-    posX = 0,
-    pic = pics["chatPic"],
-}
-position = position + 1
-
 local drawAllyButton = not Spring.GetModOptions().fixedallies
-
-m_alliance = {
-    name = "ally",
-    spec = false,
-    play = true,
-    active = true,
-    width = 16,
-    position = position,
-    posX = 0,
-    pic = pics["allyPic"],
-    noPic = false,
-}
-
-if not drawAllyButton then
-    m_alliance.width = 0
-end
-
-position = position + 1
-
-modules = {
-    m_indent,
-    m_rank,
-    m_country,
-	m_allyID,
-    m_ID,
-    m_playerID,
-    --m_side,
-    m_name,
-    m_skill,
-    m_resources,
-    m_income,
-    m_cpuping,
-    m_alliance,
-    m_share,
-    m_chat,
-}
-
-m_point = {
-    active = true,
-    default = true,
-}
-
-m_take = {
-    active = true,
-    default = true,
-    pic = pics["takePic"],
-}
+local ModulesFactory = VFS.Include('luaui/Widgets/gui_advplayerslist_modules.lua')
+local modules, ModuleRefs, m_point, m_take = ModulesFactory(pics, drawAllyButton)
 
 local specsLabelOffset = 0
 local enemyLabelOffset = 0
@@ -604,7 +375,7 @@ local isPvE = Spring.Utilities.Gametype.IsPvE()
 ---------------------------------------------------------------------------------------------------
 
 function SetModulesPositionX()
-    m_name.width = SetMaxPlayerNameWidth()
+    ModuleRefs.name.width = SetMaxPlayerNameWidth()
     tableSort(modules, function(v1, v2)
         return v1.position < v2.position
     end)
@@ -774,6 +545,11 @@ end
 function ActivityEvent(playerID)
     lastActivity[playerID] = os.clock()
 end
+
+function widget:SelectionChanged(selectedUnits)
+    Helpers.UpdatePlayerUnitValidations(player, myTeamID, selectedUnits)
+end
+
 
 ---------------------------------------------------------------------------------------------------
 --  Init/GameStart (creating players)
@@ -973,6 +749,11 @@ function widget:Initialize()
 		end
 	end
 
+	WG['advplayerlist_api'].AddHoverChangeListener = ApiExtensions.AddHoverChangeListener
+	WG['advplayerlist_api'].RemoveHoverChangeListener = ApiExtensions.RemoveHoverChangeListener
+	WG['advplayerlist_api'].AddHoverInvalidUnitsListener = ApiExtensions.AddHoverInvalidUnitsListener
+	WG['advplayerlist_api'].RemoveHoverInvalidUnitsListener = ApiExtensions.RemoveHoverInvalidUnitsListener
+
 	widgetHandler:AddAction("speclist", speclistCmd, nil, 't')
 end
 
@@ -1073,9 +854,9 @@ function SetSidePics()
         end
 
         if teamSide then
-            sidePics[team] = images['imageDirectory'] .. teamSide .. "_default.png"
+            sidePics[team] = imageDirectory .. teamSide .. "_default.png"
         else
-            sidePics[team] = images['imageDirectory'] .. "default.png"
+            sidePics[team] = imageDirectory .. "default.png"
         end
     end
 end
@@ -1341,7 +1122,7 @@ function CreatePlayerFromTeam(teamID)
         metal = metal,
         metalStorage = metalStorage,
         metalShare = metalShare,
-        incomeMultiplier = tincomeMultiplier,
+        incomeMultiplier = tincomeMultiplier
     }
 end
 
@@ -1392,6 +1173,9 @@ function UpdatePlayerResources()
 					end
 				end
 			end
+        end
+        if player[playerID].team then
+            Helpers.PackAllPoliciesForPlayer(player[playerID], myTeamID, player[playerID].team)
         end
     end
 
@@ -1453,7 +1237,6 @@ function SortList()
         initiated = true
         if aliveTeams > 40 then
             enemyListShow = false
-            -- Don't update enemyListShowUserPref - this is auto-disabled, not user choice
         end
     end
     local deadTeamSize = 0.66
@@ -1705,38 +1488,7 @@ function widget:DrawScreen()
 
 	-- Push matrix to preserve GL state for other widgets
 	gl.PushMatrix()
-
-    -- Draw points/pencils/erasers outside render-to-texture so they extend beyond widget bounds
-    if m_point.active then
-        local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
-        local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
-        gl.Scale(widgetScale, widgetScale, 0)
-        gl.Translate(scaleDiffX, scaleDiffY, 0)
-        for i, drawObject in ipairs(drawList) do
-            if drawObject >= 0 then
-                local posY = widgetPosY + widgetHeight - drawListOffset[i]
-                if player[drawObject].pointTime ~= nil then
-                    if player[drawObject].allyteam == myAllyTeamID or mySpecStatus then
-                        DrawPoint(posY, player[drawObject].pointTime - now)
-                    end
-                end
-                if player[drawObject].pencilTime ~= nil then
-                    if player[drawObject].allyteam == myAllyTeamID or mySpecStatus then
-                        DrawPencil(posY, player[drawObject].pencilTime - now)
-                    end
-                end
-                if player[drawObject].eraserTime ~= nil then
-                    if player[drawObject].allyteam == myAllyTeamID or mySpecStatus then
-                        DrawEraser(posY, player[drawObject].eraserTime - now)
-                    end
-                end
-            end
-        end
-        gl_Texture(false)
-        gl.PopMatrix()
-        gl.PushMatrix()
-    end
-
+	
     local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
     local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
     gl.Scale(widgetScale, widgetScale, 0)
@@ -1778,7 +1530,7 @@ function widget:DrawScreen()
 
 	-- Pop matrix to restore GL state for other widgets
 	gl.PopMatrix()
-
+	
 	-- Reset GL state to clean defaults for other widgets
 	gl.Color(1, 1, 1, 1)
 	gl.Texture(false)
@@ -1801,7 +1553,7 @@ function doCreateLists(onlyMainList, onlyMainList2, onlyMainList3)
     if not onlyMainList and not onlyMainList2 and not onlyMainList3 then
         onlyMainList = true
         onlyMainList2 = true
-        --if m_resources.active or m_income.active then
+        --if ModuleRefs.resources.active or ModuleRefs.income.active then
             onlyMainList3 = true
         --end
     end
@@ -1826,7 +1578,7 @@ function doCreateLists(onlyMainList, onlyMainList2, onlyMainList3)
         GetAliveAllyTeams()
     end
     if onlyMainList2 or onlyMainList3 then
-        if m_resources.active or m_income.active then
+        if ModuleRefs.resources.active or ModuleRefs.income.active then
             UpdateResources()
             UpdatePlayerResources()
         end
@@ -1935,37 +1687,25 @@ end
 --  Main (player) gllist
 ---------------------------------------------------------------------------------------------------
 
+local function updateShareAmount(player, resourceType)
+    local policyResult = Helpers.GetPlayerPolicy(player, resourceType, myTeamID)
+    if not policyResult.amountSendable then
+        shareAmount = 0
+        return
+    end
+    shareAmount = policyResult.amountSendable * sliderPosition / shareSliderHeight
+    shareAmount = shareAmount - (shareAmount % 1)
+end
+
 function UpdateResources()
     if sliderPosition then
         if energyPlayer ~= nil then
-			if energyPlayer.team == myTeamID then
-				local current, storage = Spring_GetTeamResources(myTeamID, "energy")
-				maxShareAmount = storage - current
-				shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
-				shareAmount = shareAmount - (shareAmount % 1)
-			else
-				maxShareAmount = Spring_GetTeamResources(myTeamID, "energy")
-				local energy, energyStorage, _, _, _, shareSliderPos = Spring_GetTeamResources(energyPlayer.team, "energy")
-				maxShareAmount = mathMin(maxShareAmount, ((energyStorage*shareSliderPos) - energy))
-                shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
-                shareAmount = shareAmount - (shareAmount % 1)
-            end
+            updateShareAmount(energyPlayer, "energy")
         end
 
-        if metalPlayer ~= nil then
-            if metalPlayer.team == myTeamID then
-                local current, storage = Spring_GetTeamResources(myTeamID, "metal")
-                maxShareAmount = storage - current
-                shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
-                shareAmount = shareAmount - (shareAmount % 1)
-            else
-                maxShareAmount = Spring_GetTeamResources(myTeamID, "metal")
-				local metal, metalStorage, _, _, _, shareSliderPos = Spring_GetTeamResources(metalPlayer.team, "metal")
-				maxShareAmount = mathMin(maxShareAmount, ((metalStorage*shareSliderPos) - metal))
-                shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
-                shareAmount = shareAmount - (shareAmount % 1)
-            end
-        end
+		if metalPlayer ~= nil then
+            updateShareAmount(metalPlayer, "metal")
+		end
     end
 end
 
@@ -2273,11 +2013,14 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
     local cpu = player[playerID].cpu
     local spec = player[playerID].spec
     local totake = player[playerID].totake
-    local needm = player[playerID].needm
-    local neede = player[playerID].neede
     local dead = player[playerID].dead
     local ai = player[playerID].ai
     local alliances = player[playerID].alliances
+    local metalPolicy, energyPolicy, unitPolicy, unitValidationResult
+    if not spec then
+        metalPolicy, energyPolicy, unitPolicy = Helpers.UnpackAllPolicies(player[playerID], myTeamID, team)
+        unitValidationResult = Helpers.UnpackSelectedUnitsValidation(player[playerID])
+    end
     local posY = widgetPosY + widgetHeight - vOffset
     local tipPosY = widgetPosY + ((widgetHeight - vOffset) * widgetScale)
 	local desynced = player[playerID].desynced
@@ -2300,8 +2043,15 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
             alpha = alphaActivity
         end
     end
-    if mouseY >= tipPosY and mouseY <= tipPosY + (16 * widgetScale * playerScale) then
+    -- detect hover on the entire row bounds so we can detect when the moust leaves the row
+    local rowTop = posY
+    local rowBottom = posY + (playerOffset*playerScale)
+    if IsOnRect(mouseX, mouseY, widgetPosX, rowTop, widgetPosX + widgetWidth, rowBottom) then
         tipY = true
+        if hoveredPlayerID ~= playerID and player[playerID] and player[playerID].team then
+            local selectedUnits = Spring.GetSelectedUnits()
+            ApiExtensions.HandleHoverChange(myTeamID, selectedUnits, player[playerID].team, playerID)
+        end
     end
 
     if onlyMainList and lockPlayerID and lockPlayerID == playerID then
@@ -2309,10 +2059,10 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
     end
 
 	if onlyMainList then
-		if m_allyID.active and not spec then
+		if ModuleRefs.allyID.active and not spec then
 			DrawAllyID(allyteam, posY, dark, dead)
 		end
-		if m_playerID.active and not ai and playerID < 255 then
+		if ModuleRefs.playerID.active and not ai and playerID < 255 then
 			DrawPlayerID(playerID, posY, dark, spec)
 		end
 	end
@@ -2337,10 +2087,10 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                                 end
                             end
                         end
-                        if m_share.active and not dead and not hideShareIcons then
-                            DrawShareButtons(posY, needm, neede)
+                        if m_share.active and not dead and not hideShareIcons and (unitPolicy and metalPolicy and energyPolicy) then
+                            DrawShareButtons(posY, unitPolicy, metalPolicy, energyPolicy, unitValidationResult)
                             if tipY then
-                                ShareTip(mouseX, playerID)
+                                ShareTip(mouseX, unitPolicy, metalPolicy, energyPolicy, unitValidationResult)
                             end
                         end
                     end
@@ -2351,15 +2101,15 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                     end
                 end
             else
-                if onlyMainList and m_indent.active and Spring_GetMyTeamID() == team then
+                if onlyMainList and ModuleRefs.indent.active and Spring_GetMyTeamID() == team then
                     DrawDot(posY)
                 end
             end
             if onlyMainList then
-                if m_ID.active and not dead then
+                if ModuleRefs.ID.active and not dead then
                     DrawID(team, posY, dark, dead)
                 end
-                if m_skill.active then
+                if ModuleRefs.skill.active then
                     DrawSkill(skill, posY, dark)
                 end
 
@@ -2367,25 +2117,25 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
         end
 
         if onlyMainList then
-            if m_rank.active then
+            if ModuleRefs.rank.active then
                 DrawRank(tonumber(rank), posY)
             end
-            if m_country.active and country ~= "" then
+            if ModuleRefs.country.active and country ~= "" then
                 DrawCountry(country, posY)
             end
-            if name ~= absentName and m_side.active then
+            if name ~= absentName and ModuleRefs.side.active then
                 DrawSidePic(team, playerID, posY, leader, dark, ai)
             end
-            if m_name.active then
+            if ModuleRefs.name.active then
                 DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desynced)
             end
         end
 
-        if onlyMainList2 and m_alliance.active and drawAllyButton and not mySpecStatus and not dead and team ~= myTeamID then
+        if onlyMainList2 and ModuleRefs.alliance.active and drawAllyButton and not mySpecStatus and not dead and team ~= myTeamID then
             DrawAlly(posY, player[playerID].team)
         end
 
-        if (onlyMainList2 or onlyMainList3) and not isSingle and (m_resources.active or m_income.active) and aliveAllyTeams[allyteam] ~= nil and player[playerID].energy ~= nil then
+        if (onlyMainList2 or onlyMainList3) and not isSingle and (ModuleRefs.resources.active or ModuleRefs.income.active) and aliveAllyTeams[allyteam] ~= nil and player[playerID].energy ~= nil then
             if (mySpecStatus and enemyListShow) or myAllyTeamID == allyteam then
                 local e = player[playerID].energy
                 local es = player[playerID].energyStorage
@@ -2397,13 +2147,13 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                 local mi = player[playerID].metalIncome
                 local msh = player[playerID].metalShare
                 if es and es > 0 then
-                    if onlyMainList3 and m_resources.active and e and (not dead or (e > 0 or m > 0)) then
+                    if onlyMainList3 and ModuleRefs.resources.active and e and (not dead or (e > 0 or m > 0)) then
                         DrawResources(e, es, esh, ec, m, ms, msh, posY, dead, (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][1])), (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][2])))
                         if tipY then
                             ResourcesTip(mouseX, e, es, ei, m, ms, mi, name, team)
                         end
                     end
-                    if onlyMainList2 and m_income.active and ei and playerScale >= 0.7 then
+                    if onlyMainList2 and ModuleRefs.income.active and ei and playerScale >= 0.7 then
                         DrawIncome(ei, mi, posY, dead)
                         if tipY then
                             IncomeTip(mouseX, ei, mi, name, team)
@@ -2414,12 +2164,12 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
         end
     else
         -- spectator
-        if onlyMainList and specListShow and m_name.active then
+        if onlyMainList and specListShow and ModuleRefs.name.active then
             DrawSmallName(name, nameIsAlias, team, posY, false, playerID, accountID, alpha)
         end
     end
 
-    if onlyMainList2 and m_cpuping.active and not isSinglePlayer then
+    if onlyMainList2 and ModuleRefs.cpuping.active and not isSinglePlayer then
         if cpuLvl ~= nil then
             -- draws CPU usage and ping icons (except AI and ghost teams)
             DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, lastFpsData[playerID])
@@ -2431,9 +2181,30 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 
     if playerID < specOffset then
         if onlyMainList then
-            if m_chat.active and mySpecStatus == false and spec == false then
+            if ModuleRefs.chat.active and mySpecStatus == false and spec == false then
                 if playerID ~= myPlayerID then
                     DrawChatButton(posY)
+                end
+            end
+        else
+            if m_point.active then
+                if player[playerID].pointTime ~= nil then
+                    if player[playerID].allyteam == myAllyTeamID or mySpecStatus then
+                        DrawPoint(posY, player[playerID].pointTime - now)
+                        if tipY then
+                            PointTip(mouseX)
+                        end
+                    end
+                end
+                if player[playerID].pencilTime ~= nil then
+                    if player[playerID].allyteam == myAllyTeamID or mySpecStatus then
+                        DrawPencil(posY, player[playerID].pencilTime - now)
+                    end
+                end
+                if player[playerID].eraserTime ~= nil then
+                    if player[playerID].allyteam == myAllyTeamID or mySpecStatus then
+                        DrawEraser(posY, player[playerID].eraserTime - now)
+                    end
                 end
             end
         end
@@ -2454,30 +2225,44 @@ function DrawTakeSignal(posY)
     end
 end
 
-function DrawShareButtons(posY, needm, neede)
+local function DrawSharingIconOverlay(posY, enabled, offsetX)
+    -- Subtle highlight when sharing is possible (replaces red lowPic overlay)
+    if enabled then
+        gl_Texture(false)
+        gl_Color(1, 1, 1, 0.12)
+        DrawRect(m_share.posX + widgetPosX + offsetX, posY, m_share.posX + widgetPosX + offsetX + (16*playerScale), posY + (16*playerScale))
+        gl_Color(1, 1, 1, 1)
+    end
+
+    -- Grey-out when sharing is not allowed
+    if not enabled then
+        gl_Texture(false)
+        gl_Color(0, 0, 0, 0.45)
+        DrawRect(m_share.posX + widgetPosX + offsetX, posY, m_share.posX + widgetPosX + offsetX + (16*playerScale), posY + (16*playerScale))
+        gl_Color(1, 1, 1, 1)
+    end
+end
+
+function DrawShareButtons(posY, unitPolicy, metalPolicy, energyPolicy, unitValidationResult)
     gl_Color(1, 1, 1, 1)
     gl_Texture(pics["unitsPic"])
-    DrawRect(m_share.posX + widgetPosX + (1*playerScale), posY, m_share.posX + widgetPosX + (17*playerScale), posY + (16*playerScale))
+    DrawRect(ModuleRefs.share.posX + widgetPosX + (1*playerScale), posY, ModuleRefs.share.posX + widgetPosX + (17*playerScale), posY + (16*playerScale))
     gl_Texture(pics["energyPic"])
-    DrawRect(m_share.posX + widgetPosX + (17*playerScale), posY, m_share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale))
+    DrawRect(ModuleRefs.share.posX + widgetPosX + (17*playerScale), posY, ModuleRefs.share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale))
     gl_Texture(pics["metalPic"])
     DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale))
-    gl_Texture(pics["lowPic"])
 
-    if needm then
-        DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale))
-    end
-
-    if neede then
-        DrawRect(m_share.posX + widgetPosX + (17*playerScale), posY, m_share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale))
-    end
+    local shareButtonEnabled = unitPolicy.canShare and (not unitValidationResult or unitValidationResult.status ~= SharedEnums.UnitValidationOutcome.Failure)
+    DrawSharingIconOverlay(posY, shareButtonEnabled, 1 * playerScale)
+    DrawSharingIconOverlay(posY, energyPolicy.canShare, 17 * playerScale)
+    DrawSharingIconOverlay(posY, metalPolicy.canShare, 33 * playerScale)
 
     gl_Texture(false)
 end
 
 function DrawChatButton(posY)
     gl_Texture(pics["chatPic"])
-    DrawRect(m_chat.posX + widgetPosX + (1*playerScale), posY, m_chat.posX + widgetPosX + (17*playerScale), posY + (16*playerScale))
+    DrawRect(ModuleRefs.chat.posX + widgetPosX + (1*playerScale), posY, ModuleRefs.chat.posX + widgetPosX + (17*playerScale), posY + (16*playerScale))
 end
 
 function DrawResources(energy, energyStorage, energyShare, energyConversion, metal, metalStorage, metalShare, posY, dead, maxAllyTeamEnergyStorage, maxAllyTeamMetalStorage)
@@ -2487,7 +2272,7 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
     local bordersize = 0.75
     local paddingLeft = 2 * playerScale
     local paddingRight = 2 * playerScale
-    local barWidth = (m_resources.width - paddingLeft - paddingRight) * (1-((1-playerScale)*0.5))
+    local barWidth = (ModuleRefs.resources.width - paddingLeft - paddingRight) * (1-((1-playerScale)*0.5))
     local y1Offset
     local y2Offset
     local sizeMult = playerScale
@@ -2502,37 +2287,37 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
     if not maxStorage or maxStorage == 0 then return end -- protect from NaN
     --gl_Color(0,0,0, 0.05)
     --gl_Texture(false)
-    --DrawRect(m_resources.posX + widgetPosX + paddingLeft-bordersize, posY + y1Offset+bordersize, m_resources.posX + widgetPosX + paddingLeft + (barWidth * (metalStorage/maxStorage))+bordersize, posY + y2Offset-bordersize)
+    --DrawRect(ModuleRefs.resources.posX + widgetPosX + paddingLeft-bordersize, posY + y1Offset+bordersize, ModuleRefs.resources.posX + widgetPosX + paddingLeft + (barWidth * (metalStorage/maxStorage))+bordersize, posY + y2Offset-bordersize)
     gl_Color(1, 1, 1, 0.18)
     gl_Texture(pics["resbarBgPic"])
-    DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + (barWidth * (metalStorage/maxStorage)), posY + y2Offset)
+    DrawRect(ModuleRefs.resources.posX + widgetPosX + paddingLeft, posY + y1Offset, ModuleRefs.resources.posX + widgetPosX + paddingLeft + (barWidth * (metalStorage/maxStorage)), posY + y2Offset)
     gl_Color(1, 1, 1, 1)
     gl_Texture(pics["resbarPic"])
-    DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal), posY + y2Offset)
+    DrawRect(ModuleRefs.resources.posX + widgetPosX + paddingLeft, posY + y1Offset, ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal), posY + y2Offset)
 
     if playerScale >= 0.9 and (barWidth / maxStorage) * metal > 0.8 then
         local glowsize = 10
         gl_Color(1, 1, 1.2, 0.08)
         gl_Texture(pics["barGlowCenterPic"])
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal), posY + y2Offset - glowsize)
+        DrawRect(ModuleRefs.resources.posX + widgetPosX + paddingLeft, posY + y1Offset + glowsize, ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal), posY + y2Offset - glowsize)
 
         gl_Texture(pics["barGlowEdgePic"])
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft - (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft, posY + y2Offset - glowsize)
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal) + (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal), posY + y2Offset - glowsize)
+        DrawRect(ModuleRefs.resources.posX + widgetPosX + paddingLeft - (glowsize * 1.8), posY + y1Offset + glowsize, ModuleRefs.resources.posX + widgetPosX + paddingLeft, posY + y2Offset - glowsize)
+        DrawRect(ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal) + (glowsize * 1.8), posY + y1Offset + glowsize, ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal), posY + y2Offset - glowsize)
     end
 
     if metalShare < 0.99 then  -- default = 0.99
         gl_Color(0,0,0, 0.18)
         gl_Texture(false)
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) - 0.75 - bordersize,
+        DrawRect(ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) - 0.75 - bordersize,
                 posY + y1Offset + 0.55 + bordersize,
-                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) + 0.75 + bordersize,
+                ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) + 0.75 + bordersize,
                 posY + y2Offset - 0.55 - bordersize)
         gl_Color(1, 0.25, 0.25, 1)
         gl_Texture(pics["resbarPic"])
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) - 0.75,
+        DrawRect(ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) - 0.75,
                 posY + y1Offset + 0.55,
-                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) + 0.75,
+                ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth * (metalStorage/maxStorage)) * metalShare) + 0.75,
                 posY + y2Offset - 0.55)
     end
 
@@ -2546,52 +2331,52 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
     maxStorage = (maxAllyTeamEnergyStorage and maxAllyTeamEnergyStorage or energyStorage)
     --gl_Color(0,0,0, 0.05)
     --gl_Texture(false)
-    --DrawRect(m_resources.posX + widgetPosX + paddingLeft -bordersize, posY + y1Offset+bordersize, m_resources.posX + widgetPosX + paddingLeft + (barWidth * (energyStorage/maxStorage))+bordersize, posY + y2Offset-bordersize)
+    --DrawRect(ModuleRefs.resources.posX + widgetPosX + paddingLeft -bordersize, posY + y1Offset+bordersize, ModuleRefs.resources.posX + widgetPosX + paddingLeft + (barWidth * (energyStorage/maxStorage))+bordersize, posY + y2Offset-bordersize)
     gl_Color(1, 1, 0, 0.18)
     gl_Texture(pics["resbarBgPic"])
-    DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + (barWidth * (energyStorage/maxStorage)), posY + y2Offset)
+    DrawRect(ModuleRefs.resources.posX + widgetPosX + paddingLeft, posY + y1Offset, ModuleRefs.resources.posX + widgetPosX + paddingLeft + (barWidth * (energyStorage/maxStorage)), posY + y2Offset)
     gl_Color(1, 1, 0, 1)
     gl_Texture(pics["resbarPic"])
-    DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy), posY + y2Offset)
+    DrawRect(ModuleRefs.resources.posX + widgetPosX + paddingLeft, posY + y1Offset, ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy), posY + y2Offset)
 
     if playerScale >= 0.9 and (barWidth / maxStorage) * energy > 0.8 then
         local glowsize = 10
         gl_Color(1, 1, 0.2, 0.08)
         gl_Texture(pics["barGlowCenterPic"])
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy), posY + y2Offset - glowsize)
+        DrawRect(ModuleRefs.resources.posX + widgetPosX + paddingLeft, posY + y1Offset + glowsize, ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy), posY + y2Offset - glowsize)
 
         gl_Texture(pics["barGlowEdgePic"])
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft - (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft, posY + y2Offset - glowsize)
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy) + (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy), posY + y2Offset - glowsize)
+        DrawRect(ModuleRefs.resources.posX + widgetPosX + paddingLeft - (glowsize * 1.8), posY + y1Offset + glowsize, ModuleRefs.resources.posX + widgetPosX + paddingLeft, posY + y2Offset - glowsize)
+        DrawRect(ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy) + (glowsize * 1.8), posY + y1Offset + glowsize, ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy), posY + y2Offset - glowsize)
     end
 
     if energyConversion and energyConversion ~= 0.75 and not dead then    -- default = 0.75
         gl_Color(0,0,0, 0.125)
         gl_Texture(false)
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) - 0.75 - bordersize,
+        DrawRect(ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) - 0.75 - bordersize,
                 posY + y1Offset + 0.55 + bordersize,
-                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) + 0.75 + bordersize,
+                ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) + 0.75 + bordersize,
                 posY + y2Offset - 0.55 - bordersize)
         gl_Color(0.9, 0.9, 0.73, 1)
         gl_Texture(pics["resbarPic"])
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) - 0.75,
+        DrawRect(ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) - 0.75,
                 posY + y1Offset + 0.55,
-                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) + 0.75,
+                ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyConversion) + 0.75,
                 posY + y2Offset - 0.55)
     end
 
     if energyShare < 0.94 or energyShare > 0.96 then  -- default = 0.94999999
         gl_Color(0,0,0, 0.18)
         gl_Texture(false)
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) - 0.75 - bordersize,
+        DrawRect(ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) - 0.75 - bordersize,
                 posY + y1Offset + 1.1,
-                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) + 0.75 + bordersize,
+                ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) + 0.75 + bordersize,
                 posY + y2Offset - 1.1)
         gl_Color(1, 0.25, 0.25, 1)
         gl_Texture(pics["resbarPic"])
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) - 0.75,
+        DrawRect(ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) - 0.75,
                 posY + y1Offset + 0.55,
-                m_resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) + 0.75,
+                ModuleRefs.resources.posX + widgetPosX + paddingLeft + ((barWidth * (energyStorage/maxStorage)) * energyShare) + 0.75,
                 posY + y2Offset - 0.55)
     end
 end
@@ -2605,7 +2390,7 @@ function DrawIncome(energy, metal, posY, dead)
     if energy > 0 then
         font:Print(
                 '\255\255\255\050' .. string.formatSI(mathFloor(energy)),
-                m_income.posX + widgetPosX + m_income.width - 2,
+                ModuleRefs.income.posX + widgetPosX + ModuleRefs.income.width - 2,
                 posY + ((fontsize*0.2)*sizeMult) + (dead and 1 or 0),
                 fontsize,
                 "or"
@@ -2614,7 +2399,7 @@ function DrawIncome(energy, metal, posY, dead)
     if metal > 0 then
         font:Print(
                 '\255\235\235\235' .. string.formatSI(mathFloor(metal)),
-                m_income.posX + widgetPosX + m_income.width - 2,
+                ModuleRefs.income.posX + widgetPosX + ModuleRefs.income.width - 2,
                 posY + ((fontsize*1.15)*sizeMult) + (dead and 1 or 0),
                 fontsize,
                 "or"
@@ -2631,10 +2416,10 @@ function DrawSidePic(team, playerID, posY, leader, dark, ai)
         else
             gl_Texture(pics["notFirstPic"]) -- sets image for not leader of team players
         end
-        DrawRect(m_side.posX + widgetPosX + (2*playerScale), posY + (1*playerScale), m_side.posX + widgetPosX + (16*playerScale), posY + (15*playerScale)) -- draws side image
+        DrawRect(ModuleRefs.side.posX + widgetPosX + (2*playerScale), posY + (1*playerScale), ModuleRefs.side.posX + widgetPosX + (16*playerScale), posY + (15*playerScale)) -- draws side image
         gl_Texture(false)
     else
-        DrawState(playerID, m_side.posX + widgetPosX, posY)
+        DrawState(playerID, ModuleRefs.side.posX + widgetPosX, posY)
     end
 end
 
@@ -2663,7 +2448,7 @@ end
 function DrawRankImage(rankImage, posY)
     gl_Color(1, 1, 1, 1)
     gl_Texture(rankImage)
-    DrawRect(m_rank.posX + widgetPosX + (3*playerScale), posY + (8*playerScale) - (7.5*playerScale), m_rank.posX + widgetPosX + (17*playerScale), posY + (8*playerScale) + (7.5*playerScale))
+    DrawRect(ModuleRefs.rank.posX + widgetPosX + (3*playerScale), posY + (8*playerScale) - (7.5*playerScale), ModuleRefs.rank.posX + widgetPosX + (17*playerScale), posY + (8*playerScale) + (7.5*playerScale))
 end
 
 local function RectQuad(px, py, sx, sy)
@@ -2689,21 +2474,21 @@ function DrawAlly(posY, team)
     else
         gl_Texture(pics["allyPic"])
     end
-    DrawRect(m_alliance.posX + widgetPosX + (3*playerScale), posY + (1*playerScale), m_alliance.posX + widgetPosX + (playerOffset*playerScale), posY + (15*playerScale))
+    DrawRect(ModuleRefs.alliance.posX + widgetPosX + (3*playerScale), posY + (1*playerScale), ModuleRefs.alliance.posX + widgetPosX + (playerOffset*playerScale), posY + (15*playerScale))
 end
 
 function DrawCountry(country, posY)
-    if country ~= nil and country ~= "??" and VFS.FileExists(images['imgDir'] .. "flags/"  .. string.upper(country) .. images['flagsExt']) then
-        gl_Texture(images['imgDir'] .. "flags/" .. string.upper(country) .. images['flagsExt'])
+    if country ~= nil and country ~= "??" and VFS.FileExists(imgDir .. "flags/"  .. string.upper(country) .. flagsExt) then
+        gl_Texture(imgDir .. "flags/" .. string.upper(country) .. flagsExt)
         gl_Color(1, 1, 1, 1)
-        DrawRect(m_country.posX + widgetPosX + (3*playerScale), posY + (8*playerScale) - ((images['flagHeight']/2)*playerScale), m_country.posX + widgetPosX + (17*playerScale), posY + (8*playerScale) + ((images['flagHeight']/2)*playerScale))
+        DrawRect(m_country.posX + widgetPosX + (3*playerScale), posY + (8*playerScale) - ((flagHeight/2)*playerScale), m_country.posX + widgetPosX + (17*playerScale), posY + (8*playerScale) + ((flagHeight/2)*playerScale))
     end
 end
 
 function DrawDot(posY)
     gl_Color(1, 1, 1, 0.70)
     gl_Texture(pics["currentPic"])
-    DrawRect(m_indent.posX + widgetPosX - 1, posY + (3*playerScale), m_indent.posX + widgetPosX + (7*playerScale), posY + (11*playerScale))
+    DrawRect(ModuleRefs.indent.posX + widgetPosX - 1, posY + (3*playerScale), ModuleRefs.indent.posX + widgetPosX + (7*playerScale), posY + (11*playerScale))
 end
 
 function DrawCamera(posY, active)
@@ -2713,7 +2498,7 @@ function DrawCamera(posY, active)
         gl_Color(1, 1, 1, 0.13)
     end
     gl_Texture(pics["cameraPic"])
-    DrawRect(m_indent.posX + widgetPosX - (1.5*playerScale), posY + (2*playerScale), m_indent.posX + widgetPosX + (9*playerScale), posY + (12.4*playerScale))
+    DrawRect(ModuleRefs.indent.posX + widgetPosX - (1.5*playerScale), posY + (2*playerScale), ModuleRefs.indent.posX + widgetPosX + (9*playerScale), posY + (12.4*playerScale))
 end
 
 function colourNames(teamID, returnRgb)
@@ -2752,8 +2537,8 @@ end
 
 function DrawAlliances(alliances, posY)
     -- still a problem is that teams with the same/similar color can be misleading
-    local posX = widgetPosX + m_name.posX
-    local width = m_name.width / #alliances
+    local posX = widgetPosX + ModuleRefs.name.posX
+    local width = ModuleRefs.name.width / #alliances
     local padding = 2
     local drawn = false
     for i, playerID in pairs(alliances) do
@@ -2807,9 +2592,9 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
 
     -- includes readystate icon if factions arent shown
     local xPadding = 0
-    if not gameStarted and not m_side.active then
+    if not gameStarted and not ModuleRefs.side.active then
         xPadding = 16
-        DrawState(playerID, m_name.posX + widgetPosX, posY)
+        DrawState(playerID, ModuleRefs.name.posX + widgetPosX, posY)
     end
 
     font2:Begin(useRenderToTexture)
@@ -2829,7 +2614,7 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
         font2:SetOutlineColor(0, 0, 0, 0.4)
         font2:SetTextColor(0.45,0.45,0.45,1)
     end
-    font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + (4*playerScale), fontsize, "o")
+    font2:Print(nameText, ModuleRefs.name.posX + widgetPosX + 3 + xPadding, posY + (4*playerScale), fontsize, "o")
 
     --desynced = playerID == 1
     local pScale = (0.5+playerScale)*0.67  --dont scale too much for the already smaller bonus font
@@ -2838,23 +2623,23 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
             font2:SetOutlineColor(0, 0, 0, 1)
         end
 		font2:SetTextColor(1,0.45,0.45,1)
-		font2:Print(Spring.I18N('ui.playersList.desynced'), m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
+		font2:Print(Spring.I18N('ui.playersList.desynced'), ModuleRefs.name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
 	elseif player[playerID] and not player[playerID].dead and player[playerID].incomeMultiplier and player[playerID].incomeMultiplier ~= 1 then
         if dark then
             font2:SetOutlineColor(0, 0, 0, 1)
         end
         if player[playerID].incomeMultiplier > 1 then
             font2:SetTextColor(0.5,1,0.5,1)
-            font2:Print('+'..mathFloor((player[playerID].incomeMultiplier-1+0.005)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
+            font2:Print('+'..mathFloor((player[playerID].incomeMultiplier-1+0.005)*100)..'%', ModuleRefs.name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
         else
             font2:SetTextColor(1,0.5,0.5,1)
-            font2:Print(mathFloor((player[playerID].incomeMultiplier-1+0.005)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
+            font2:Print(mathFloor((player[playerID].incomeMultiplier-1+0.005)*100)..'%', ModuleRefs.name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
         end
     end
     font2:End()
 
     if ignored or desynced then
-        local x = m_name.posX + widgetPosX + 2 + xPadding
+        local x = ModuleRefs.name.posX + widgetPosX + 2 + xPadding
         local y = posY + (7*playerScale)
         local w = (font2:GetTextWidth(nameText) * fontsize) + 2
         local h = (2*playerScale)
@@ -2875,7 +2660,7 @@ function DrawSmallName(name, nameIsAlias, team, posY, dark, playerID, accountID,
     end
     local ignored = WG.ignoredAccounts and (WG.ignoredAccounts[accountID] or WG.ignoredAccounts[name] ~= nil)
     local textindent = 4
-    if m_indent.active or m_rank.active or m_side.active or m_allyID.active or m_playerID.active or m_ID.active then
+    if ModuleRefs.indent.active or ModuleRefs.rank.active or ModuleRefs.side.active or ModuleRefs.allyID.active or ModuleRefs.playerID.active or ModuleRefs.ID.active then
         textindent = 0
     end
 
@@ -2899,11 +2684,11 @@ function DrawSmallName(name, nameIsAlias, team, posY, dark, playerID, accountID,
     font2:Begin(useRenderToTexture)
     font2:SetOutlineColor(0.15+(alpha*0.33), 0.15+(alpha*0.33), 0.15+(alpha*0.33), 0.55)
     font2:SetTextColor(alpha, alpha, alpha, 1)
-    font2:Print(nameText, m_name.posX + textindent + widgetPosX + 3, posY + (4*specScale), (10*specScale * math.clamp(1+((1-(vsy/1200))*0.66), 1, 1.33)), "n")
+    font2:Print(nameText, ModuleRefs.name.posX + textindent + widgetPosX + 3, posY + (4*specScale), (10*specScale * math.clamp(1+((1-(vsy/1200))*0.66), 1, 1.33)), "n")
     font2:End()
 
     if ignored then
-        local x = m_name.posX + textindent + widgetPosX + 2.2
+        local x = ModuleRefs.name.posX + textindent + widgetPosX + 2.2
         local y = posY + (6*specScale)
         local w = font2:GetTextWidth(nameText) * 10 + 2
         local h = 2
@@ -2923,7 +2708,7 @@ function DrawAllyID(allyID, posY, dark, dead)
     font:Begin(useRenderToTexture)
 	font:SetTextColor(0.9, 0.7, 0.9, 1)
 	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
-    font:Print(spacer .. allyID, m_allyID.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "on")
+    font:Print(spacer .. allyID, ModuleRefs.allyID.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "on")
     font:End()
 end
 
@@ -2938,7 +2723,7 @@ function DrawPlayerID(playerID, posY, dark, spec)
     font:Begin(useRenderToTexture)
 	font:SetTextColor(0.7, 0.9, 0.7, spec and 0.5 or 1)
 	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
-    font:Print(spacer .. playerID, m_playerID.posX + widgetPosX + (4.5*usedScale), posY + (5.3*usedScale), fontsize, "on")
+    font:Print(spacer .. playerID, ModuleRefs.playerID.posX + widgetPosX + (4.5*usedScale), posY + (5.3*usedScale), fontsize, "on")
     font:End()
 end
 
@@ -2951,14 +2736,14 @@ function DrawID(teamID, posY, dark, dead)
     font:Begin(useRenderToTexture)
 	font:SetTextColor(0.7, 0.7, 0.7, 1)
 	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
-    font:Print(spacer .. teamID, m_ID.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "on")
+    font:Print(spacer .. teamID, ModuleRefs.ID.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "on")
     font:End()
 end
 
 function DrawSkill(skill, posY, dark)
     local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25)) * math.clamp(1+((1-(vsy/1200))*0.75), 1, 1.25)
     font:Begin(useRenderToTexture)
-    font:Print(skill, m_skill.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
+    font:Print(skill, ModuleRefs.skill.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
     font:End()
 end
 
@@ -2970,10 +2755,10 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, fps)
     if spec then
         grayvalue = 0.5 + (pingLvl / 20)
         gl_Color(grayvalue, grayvalue, grayvalue, (0.2 * pingLvl))
-        DrawRect(m_cpuping.posX + widgetPosX + (12*specScale), posY + (1*specScale), m_cpuping.posX + widgetPosX + (21*specScale), posY + (14*specScale))
+        DrawRect(ModuleRefs.cpuping.posX + widgetPosX + (12*specScale), posY + (1*specScale), ModuleRefs.cpuping.posX + widgetPosX + (21*specScale), posY + (14*specScale))
     else
         gl_Color(pingLevelData[pingLvl].r, pingLevelData[pingLvl].g, pingLevelData[pingLvl].b)
-        DrawRect(m_cpuping.posX + widgetPosX + (12*playerScale), posY + (1*playerScale), m_cpuping.posX + widgetPosX + (24*playerScale), posY + (15*playerScale))
+        DrawRect(ModuleRefs.cpuping.posX + widgetPosX + (12*playerScale), posY + (1*playerScale), ModuleRefs.cpuping.posX + widgetPosX + (24*playerScale), posY + (15*playerScale))
     end
 
 
@@ -2991,20 +2776,20 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, fps)
         end
         if spec then
             font:SetTextColor(grayvalue*0.7, grayvalue*0.7, grayvalue*0.7, 1)
-            font:Print(fps, m_cpuping.posX + widgetPosX + (11*specScale), posY + (5.3*playerScale), 9*specScale*fontScale, "ro")
+            font:Print(fps, ModuleRefs.cpuping.posX + widgetPosX + (11*specScale), posY + (5.3*playerScale), 9*specScale*fontScale, "ro")
         else
             font:SetTextColor(grayvalue, grayvalue, grayvalue, 1)
-            font:Print(fps, m_cpuping.posX + widgetPosX + (11*playerScale), posY + (5.3*playerScale), 9.5*playerScale*fontScale, "ro")
+            font:Print(fps, ModuleRefs.cpuping.posX + widgetPosX + (11*playerScale), posY + (5.3*playerScale), 9.5*playerScale*fontScale, "ro")
         end
     else
         grayvalue = 0.7 + (cpu / 135)
         gl_Texture(pics["cpuPic"])
         if spec then
             gl_Color(grayvalue, grayvalue, grayvalue, 0.1 + (0.14 * cpuLvl))
-            DrawRect(m_cpuping.posX + widgetPosX + (2*specScale), posY + (1*specScale), m_cpuping.posX + widgetPosX + (13*specScale), posY + (14*specScale*fontScale))
+            DrawRect(ModuleRefs.cpuping.posX + widgetPosX + (2*specScale), posY + (1*specScale), ModuleRefs.cpuping.posX + widgetPosX + (13*specScale), posY + (14*specScale*fontScale))
         else
             gl_Color(pingLevelData[cpuLvl].r, pingLevelData[cpuLvl].g, pingLevelData[cpuLvl].b)
-            DrawRect(m_cpuping.posX + widgetPosX + (1*playerScale), posY + (1*playerScale), m_cpuping.posX + widgetPosX + (14*playerScale), posY + (15*playerScale*fontScale))
+            DrawRect(ModuleRefs.cpuping.posX + widgetPosX + (1*playerScale), posY + (1*playerScale), ModuleRefs.cpuping.posX + widgetPosX + (14*playerScale), posY + (15*playerScale*fontScale))
         end
         gl_Color(1, 1, 1, 1)
     end
@@ -3025,7 +2810,7 @@ function DrawPencil(posY, time)
     leftPosX = widgetPosX + widgetWidth
     gl_Color(1, 1, 1, (time / pencilDuration ) * 0.12)
     gl_Texture(pics["pencilPic"])
-    DrawRect(m_indent.posX + widgetPosX - 3.5, posY + (3*playerScale), m_indent.posX + widgetPosX - 1.5 + (8*playerScale), posY + (14*playerScale))
+    DrawRect(ModuleRefs.indent.posX + widgetPosX - 3.5, posY + (3*playerScale), ModuleRefs.indent.posX + widgetPosX - 1.5 + (8*playerScale), posY + (14*playerScale))
     gl_Color(1, 1, 1, 1)
 end
 
@@ -3033,7 +2818,7 @@ function DrawEraser(posY, time)
     leftPosX = widgetPosX + widgetWidth
     gl_Color(1, 1, 1, (time / pencilDuration ) * 0.12)
     gl_Texture(pics["eraserPic"])
-    DrawRect(m_indent.posX + widgetPosX -0.5, posY + (3*playerScale), m_indent.posX + widgetPosX + 1.5 + (8*playerScale), posY + (14*playerScale))
+    DrawRect(ModuleRefs.indent.posX + widgetPosX -0.5, posY + (3*playerScale), ModuleRefs.indent.posX + widgetPosX + 1.5 + (8*playerScale), posY + (14*playerScale))
     gl_Color(1, 1, 1, 1)
 end
 
@@ -3045,7 +2830,7 @@ function TakeTip(mouseX)
 end
 
 function NameTip(mouseX, playerID, accountID, nameIsAlias)
-	if accountID and mouseX >= widgetPosX + (m_name.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_name.posX + m_name.width) * widgetScale and WG.playernames then
+	if accountID and mouseX >= widgetPosX + (ModuleRefs.name.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (ModuleRefs.name.posX + ModuleRefs.name.width) * widgetScale and WG.playernames then
 		if WG.playernames and not player[playerID].history then
 			player[playerID].history = WG.playernames.getAccountHistory(accountID) or {}
 		end
@@ -3077,34 +2862,19 @@ function NameTip(mouseX, playerID, accountID, nameIsAlias)
 	end
 end
 
-function ShareTip(mouseX, playerID)
-    if playerID == myPlayerID then
-        if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.requestSupport')
-            tipTextTime = os.clock()
-        elseif mouseX >= widgetPosX + (m_share.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (35*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.requestEnergy')
-            tipTextTime = os.clock()
-        elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.requestMetal')
-            tipTextTime = os.clock()
-        end
-    else
-        if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.shareUnits')
-            tipTextTime = os.clock()
-        elseif mouseX >= widgetPosX + (m_share.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (35*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.shareEnergy')
-            tipTextTime = os.clock()
-        elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
-            tipText = Spring.I18N('ui.playersList.shareMetal')
-            tipTextTime = os.clock()
-        end
+function ShareTip(mouseX, unitPolicy, metalPolicy, energyPolicy, unitValidationResult)
+    if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
+        tipText = TeamTransfer.Units.TooltipText(unitPolicy, unitValidationResult)
+    elseif mouseX >= widgetPosX + (m_share.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (35*playerScale)) * widgetScale then
+        tipText = ResourceTransfer.TooltipText(energyPolicy)
+    elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
+        tipText = ResourceTransfer.TooltipText(metalPolicy)
     end
+    tipTextTime = os.clock()
 end
 
 function AllyTip(mouseX, playerID)
-    if mouseX >= widgetPosX + (m_alliance.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_alliance.posX + (11*playerScale)) * widgetScale then
+    if mouseX >= widgetPosX + (ModuleRefs.alliance.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (ModuleRefs.alliance.posX + (11*playerScale)) * widgetScale then
         if Spring_AreTeamsAllied(player[playerID].team, myTeamID) then
             tipText = Spring.I18N('ui.playersList.becomeEnemy')
             tipTextTime = os.clock()
@@ -3116,7 +2886,7 @@ function AllyTip(mouseX, playerID)
 end
 
 function ResourcesTip(mouseX, energy, energyStorage, energyIncome, metal, metalStorage, metalIncome, name, teamID)
-    if mouseX >= widgetPosX + (m_resources.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_resources.posX + (m_resources.width*playerScale)) * widgetScale then
+    if mouseX >= widgetPosX + (ModuleRefs.resources.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (ModuleRefs.resources.posX + (ModuleRefs.resources.width*playerScale)) * widgetScale then
         if energy > 1000 then
             energy = mathFloor(energy / 100) * 100
         else
@@ -3160,7 +2930,7 @@ function ResourcesTip(mouseX, energy, energyStorage, energyIncome, metal, metalS
 end
 
 function IncomeTip(mouseX, energyIncome, metalIncome, name, teamID)
-    if mouseX >= widgetPosX + (m_income.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_income.posX + m_resources.width) * widgetScale then
+    if mouseX >= widgetPosX + (ModuleRefs.income.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (ModuleRefs.income.posX + ModuleRefs.resources.width) * widgetScale then
         if energyIncome == nil then
             energyIncome = 0
             metalIncome = 0
@@ -3188,7 +2958,7 @@ function IncomeTip(mouseX, energyIncome, metalIncome, name, teamID)
 end
 
 function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, spec, apm)
-    if mouseX >= widgetPosX + (m_cpuping.posX + (13*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + (23*playerScale)) * widgetScale then
+    if mouseX >= widgetPosX + (ModuleRefs.cpuping.posX + (13*playerScale)) * widgetScale and mouseX <= widgetPosX + (ModuleRefs.cpuping.posX + (23*playerScale)) * widgetScale then
         if pingLvl < 2000 then
             pingLvl = Spring.I18N('ui.playersList.milliseconds', { number = pingLvl })
         elseif pingLvl >= 2000 then
@@ -3197,7 +2967,7 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, 
         tipText = Spring.I18N('ui.playersList.commandDelay', { labelColor = "\255\190\190\190", delayColor = "\255\255\255\255", delay = pingLvl })
         tipTextTitle = (spec and "\255\240\240\240" or colourNames(teamID)) .. name
         tipTextTime = os.clock()
-    elseif mouseX >= widgetPosX + (m_cpuping.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + (11*playerScale)) * widgetScale then
+    elseif mouseX >= widgetPosX + (ModuleRefs.cpuping.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (ModuleRefs.cpuping.posX + (11*playerScale)) * widgetScale then
 		tipText = ''
 		if not spec and apm ~= nil then
 			tipText = tipText .. Spring.I18N('ui.playersList.apm', { apm = apm }) .."\n"
@@ -3228,9 +2998,41 @@ end
 --  Share slider gllist
 ---------------------------------------------------------------------------------------------------
 
+local function RenderShareSliderText(posY, player, resourceType, baseOffset)
+    local policyResult = Helpers.GetPlayerPolicy(player, resourceType, myTeamID)
+    local case = ResourceTransfer.DecideCommunicationCase(policyResult)
+    local label
+    if case == ResourceTransfer.ResourceCommunicationCase.OnTaxFree then
+        -- For tax-free sharing, just show the amount being shared
+        label = ResourceTransfer.FormatNumberForUI(shareAmount)
+    else
+        -- For taxed cases, show explicit sent -> received breakdown
+        local received, sent = ResourceTransfer.CalculateSenderTaxedAmount(policyResult, shareAmount)
+        label = "S:" .. ResourceTransfer.FormatNumberForUI(sent) .. "→R:" .. ResourceTransfer.FormatNumberForUI(received)
+    end
+    local textXRight = m_share.posX + widgetPosX + (baseOffset * playerScale) - (4 * playerScale)
+    local fontSize = 14
+    local pad = 4 * playerScale
+    local textWidth = font:GetTextWidth(label) * fontSize
+    local bgLeft = math.floor(textXRight - textWidth - pad)
+    local bgRight = math.floor(textXRight + pad)
+    local bgBottom = math.floor(posY - 1 + sliderPosition)
+    local bgTop = math.floor(posY + (17*playerScale) + sliderPosition)
+    gl_Color(0.45,0.45,0.45,1)
+    RectRound(bgLeft, bgBottom, bgRight, bgTop, 2.5*playerScale)
+    font:Print("\255\255\255\255"..label, textXRight, posY + (3 * playerScale) + sliderPosition, fontSize, "or")
+end
+
 function CreateShareSlider()
     if ShareSlider then
         gl_DeleteList(ShareSlider)
+    end
+
+    -- Refresh policy data for focused players before drawing
+    if energyPlayer then
+        Helpers.PackMetalPolicyResult(energyPlayer.team, myTeamID, energyPlayer)
+    elseif metalPlayer then
+        Helpers.PackEnergyPolicyResult(metalPlayer.team, myTeamID, metalPlayer)
     end
 
     ShareSlider = gl_CreateList(function()
@@ -3238,26 +3040,23 @@ function CreateShareSlider()
         if sliderPosition then
             font:Begin(useRenderToTexture)
             local posY
+
             if energyPlayer ~= nil then
                 posY = widgetPosY + widgetHeight - energyPlayer.posY
                 gl_Texture(pics["barPic"])
-                DrawRect(m_share.posX + widgetPosX + (16*playerScale), posY - (3*playerScale), m_share.posX + widgetPosX + (34*playerScale), posY + shareSliderHeight + (18*playerScale))
+                DrawRect(ModuleRefs.share.posX + widgetPosX + (16*playerScale), posY - (3*playerScale), ModuleRefs.share.posX + widgetPosX + (34*playerScale), posY + shareSliderHeight + (18*playerScale))
                 gl_Texture(pics["energyPic"])
-                DrawRect(m_share.posX + widgetPosX + (17*playerScale), posY + sliderPosition, m_share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale) + sliderPosition)
+                DrawRect(ModuleRefs.share.posX + widgetPosX + (17*playerScale), posY + sliderPosition, ModuleRefs.share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale) + sliderPosition)
                 gl_Texture(false)
-				gl_Color(0.45,0.45,0.45,1)
-				RectRound(mathFloor(m_share.posX + widgetPosX - (28*playerScale)), mathFloor(posY - 1 + sliderPosition), mathFloor(m_share.posX + widgetPosX + (19*playerScale)), mathFloor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
-				font:Print("\255\255\255\255"..shareAmount, m_share.posX + widgetPosX - (5*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
+                RenderShareSliderText(posY, energyPlayer, "energy", 16)
             elseif metalPlayer ~= nil then
                 posY = widgetPosY + widgetHeight - metalPlayer.posY
                 gl_Texture(pics["barPic"])
-                DrawRect(m_share.posX + widgetPosX + (32*playerScale), posY - 3, m_share.posX + widgetPosX + (50*playerScale), posY + shareSliderHeight + (18*playerScale))
+                DrawRect(ModuleRefs.share.posX + widgetPosX + (32*playerScale), posY - 3, ModuleRefs.share.posX + widgetPosX + (50*playerScale), posY + shareSliderHeight + (18*playerScale))
                 gl_Texture(pics["metalPic"])
-                DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY + sliderPosition, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale) + sliderPosition)
+                DrawRect(ModuleRefs.share.posX + widgetPosX + (33*playerScale), posY + sliderPosition, ModuleRefs.share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale) + sliderPosition)
                 gl_Texture(false)
-				gl_Color(0.45,0.45,0.45,1)
-				RectRound(mathFloor(m_share.posX + widgetPosX - (12*playerScale)), mathFloor(posY - 1 + sliderPosition), mathFloor(m_share.posX + widgetPosX + (35*playerScale)), mathFloor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
-				font:Print("\255\255\255\255"..shareAmount, m_share.posX + widgetPosX + (11*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
+                RenderShareSliderText(posY, metalPlayer, "metal", 32)
             end
             font:End()
         end
@@ -3314,7 +3113,6 @@ function widget:MousePress(x, y, button)
         posY = widgetPosY + widgetHeight - enemyLabelOffset
         if numberOfEnemies > 0 and IsOnRect(x, y, widgetPosX + 2, posY + 2, widgetPosX + widgetWidth - 2, posY + 20) then
             enemyListShow = not enemyListShow
-            enemyListShowUserPref = enemyListShow  -- User explicitly toggled, update preference
             SortList()
             SetModulesPositionX() --why?
             CreateLists()
@@ -3347,22 +3145,9 @@ function widget:MousePress(x, y, button)
                     end
                 end
                 if i > -1 then -- and i < specOffset
-                    if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, widgetPosX, posY, widgetPosX + widgetWidth, posY + (playerOffset*playerScale)) then
+                    if ModuleRefs.name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, widgetPosX, posY, widgetPosX + widgetWidth, posY + (playerOffset*playerScale)) then
                         if ctrl and i < specOffset then
                             Spring_SendCommands("toggleignore " .. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name))
-                            return true
-                        elseif alt and not clickedPlayer.ai then
-                            -- ALT+click: track player camera in PIP
-                            -- Try other PIPs first before cycling back to the last used one
-                            for offset = 1, 5 do
-                                local pipNum = ((lastUsedPipNum + offset - 1) % 5) + 1
-                                if WG['pip'..pipNum] and WG['pip'..pipNum].TrackPlayer then
-                                    if WG['pip'..pipNum].TrackPlayer(i) then
-                                        lastUsedPipNum = pipNum
-                                        return true
-                                    end
-                                end
-                            end
                             return true
                         elseif not player[i].spec then
                             if i ~= myTeamPlayerID then
@@ -3397,8 +3182,8 @@ function widget:MousePress(x, y, button)
                                 end
                             end
                         end
-                        if m_share.active and clickedPlayer.dead ~= true and not hideShareIcons then
-                            if IsOnRect(x, y, m_share.posX + widgetPosX + (1*playerScale), posY, m_share.posX + widgetPosX + (17*playerScale), posY + (playerOffset*playerScale)) then
+                        if ModuleRefs.share.active and clickedPlayer.dead ~= true and not hideShareIcons then
+                            if IsOnRect(x, y, ModuleRefs.share.posX + widgetPosX + (1*playerScale), posY, ModuleRefs.share.posX + widgetPosX + (17*playerScale), posY + (playerOffset*playerScale)) then
                                 -- share units button
                                 if release ~= nil then
                                     if release >= now then
@@ -3406,7 +3191,7 @@ function widget:MousePress(x, y, button)
                                             --Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.needSupport'))
 											Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needSupport')
                                         else
-                                            Spring_ShareResources(clickedPlayer.team, "units")
+                                            TeamTransfer.Units.ShareUnits(clickedPlayer.team)
                                             Spring.PlaySoundFile("beep4", 1, 'ui')
                                         end
                                     end
@@ -3416,12 +3201,12 @@ function widget:MousePress(x, y, button)
                                 end
                                 return true
                             end
-                            if IsOnRect(x, y, m_share.posX + widgetPosX + (17*playerScale), posY, m_share.posX + widgetPosX + (33*playerScale), posY + (playerOffset*playerScale)) then
+                            if IsOnRect(x, y, ModuleRefs.share.posX + widgetPosX + (17*playerScale), posY, ModuleRefs.share.posX + widgetPosX + (33*playerScale), posY + (playerOffset*playerScale)) then
                                 -- share energy button (initiates the slider)
                                 energyPlayer = clickedPlayer
                                 return true
                             end
-                            if IsOnRect(x, y, m_share.posX + widgetPosX + (33*playerScale), posY, m_share.posX + widgetPosX + (49*playerScale), posY + (playerOffset*playerScale)) then
+                            if IsOnRect(x, y, ModuleRefs.share.posX + widgetPosX + (33*playerScale), posY, ModuleRefs.share.posX + widgetPosX + (49*playerScale), posY + (playerOffset*playerScale)) then
                                 -- share metal button (initiates the slider)
                                 metalPlayer = clickedPlayer
                                 return true
@@ -3435,15 +3220,15 @@ function widget:MousePress(x, y, button)
                     t = false
                     if i > -1 and i < specOffset then
                         --chat button
-                        if m_chat.active then
-                            if IsOnRect(x, y, m_chat.posX + widgetPosX + 1, posY, m_chat.posX + widgetPosX + 17, posY + (playerOffset*playerScale)) then
+                        if ModuleRefs.chat.active then
+                            if IsOnRect(x, y, ModuleRefs.chat.posX + widgetPosX + 1, posY, ModuleRefs.chat.posX + widgetPosX + 17, posY + (playerOffset*playerScale)) then
                                 Spring_SendCommands("chatall", "pastetext /w " .. clickedPlayer.name .. ' \1')
                                 return true
                             end
                         end
                         --ally button
-                        if m_alliance.active and drawAllyButton and not mySpecStatus and player[i] ~= nil and player[i].dead ~= true and i ~= myPlayerID then
-                            if IsOnRect(x, y, m_alliance.posX + widgetPosX + 1, posY, m_alliance.posX + widgetPosX + m_alliance.width, posY + (playerOffset*playerScale)) then
+                        if ModuleRefs.alliance.active and drawAllyButton and not mySpecStatus and player[i] ~= nil and player[i].dead ~= true and i ~= myPlayerID then
+                            if IsOnRect(x, y, ModuleRefs.alliance.posX + widgetPosX + 1, posY, ModuleRefs.alliance.posX + widgetPosX + ModuleRefs.alliance.width, posY + (playerOffset*playerScale)) then
                                 if Spring_AreTeamsAllied(player[i].team, myTeamID) then
                                     Spring_SendCommands("ally " .. player[i].allyteam .. " 0")
                                 else
@@ -3464,23 +3249,9 @@ function widget:MousePress(x, y, button)
                             end
                         end
                         --name
-                        if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + 12) then
+                        if ModuleRefs.name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, ModuleRefs.name.posX + widgetPosX + 1, posY, ModuleRefs.name.posX + widgetPosX + ModuleRefs.name.width, posY + 12) then
                             if ctrl then
                                 Spring_SendCommands("toggleignore " .. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name))
-                                return true
-                            end
-                            if alt and not clickedPlayer.ai then
-                                -- ALT+click: track player camera in PIP
-                                -- Try other PIPs first before cycling back to the last used one
-                                for offset = 1, 5 do
-                                    local pipNum = ((lastUsedPipNum + offset - 1) % 5) + 1
-                                    if WG['pip'..pipNum] and WG['pip'..pipNum].TrackPlayer then
-                                        if WG['pip'..pipNum].TrackPlayer(i) then
-                                            lastUsedPipNum = pipNum
-                                            return true
-                                        end
-                                    end
-                                end
                                 return true
                             end
                             if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
@@ -3532,62 +3303,20 @@ function widget:MouseRelease(x, y, button)
         else
             release = nil
         end
-        if energyPlayer ~= nil then
-            -- share energy/metal mouse release
-            if energyPlayer.team == myTeamID then
-                Spring.SendLuaUIMsg('alert:allyRequest:energy', 'allies')
-                if shareAmount == 0 then
-                    --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needEnergy'))
-					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needEnergy')
-                else
-                    --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needEnergyAmount', { amount = shareAmount }))
-					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needEnergyAmount:amount='..shareAmount)
-                end
-            elseif shareAmount > 0 then
-                Spring_ShareResources(energyPlayer.team, "energy", shareAmount)
-                --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveEnergy', { amount = shareAmount, name = energyPlayer.name }))
-                if sharingTax and sharingTax > 0 then
-                    local amount2 = mathFloor(shareAmount * (1- sharingTax))
-                    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy_taxed:amount='..shareAmount..':name='..(energyPlayer.orgname or energyPlayer.name)..':amount2='..amount2)
-                else
-				    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy:amount='..shareAmount..':name='..(energyPlayer.orgname or energyPlayer.name))
-                end
-                WG.sharedEnergyFrame = spGetGameFrame()
-            end
-            sliderOrigin = nil
-            maxShareAmount = nil
-            sliderPosition = nil
-            shareAmount = nil
-            energyPlayer = nil
-        end
 
-        if metalPlayer ~= nil and shareAmount then
-            if metalPlayer.team == myTeamID then
-                Spring.SendLuaUIMsg('alert:allyRequest:metal', 'allies')
-                if shareAmount == 0 then
-                    --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetal'))
-					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needMetal')
-                else
-                    --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetalAmount', { amount = shareAmount }))
-					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needMetalAmount:amount='..shareAmount)
-                end
-            elseif shareAmount > 0 then
-                Spring_ShareResources(metalPlayer.team, "metal", shareAmount)
-                --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveMetal', { amount = shareAmount, name = metalPlayer.name }))
-                if sharingTax and sharingTax > 0 then
-                    local amount2 = mathFloor(shareAmount * (1- sharingTax))
-                    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal_taxed:amount='..shareAmount..':name='..(metalPlayer.orgname or metalPlayer.name)..':amount2='..amount2)
-                else
-				    Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal:amount='..shareAmount..':name='..(metalPlayer.orgname or metalPlayer.name))
-                end
-                WG.sharedMetalFrame = spGetGameFrame()
-            end
-            sliderOrigin = nil
-            maxShareAmount = nil
-            sliderPosition = nil
-            shareAmount = nil
-            metalPlayer = nil
-        end
+          if energyPlayer ~= nil and shareAmount then
+             Helpers.HandleResourceTransfer(energyPlayer, "energy", shareAmount, myTeamID)
+          end
+
+          if metalPlayer ~= nil and shareAmount then
+             Helpers.HandleResourceTransfer(metalPlayer, "metal", shareAmount, myTeamID)
+          end
+        
+        sliderOrigin = nil
+        sliderPosition = nil
+        shareAmount = 0
+        energyPlayer = nil
+        metalPlayer = nil
     end
 end
 
@@ -3621,7 +3350,7 @@ end
 local version = 1
 function widget:GetConfigData()
     -- save
-    if m_name ~= nil then
+    if ModuleRefs.name ~= nil then
         local m_active_Table = {}
         for n, module in pairs(modules) do
             m_active_Table[module.name] = module.active
@@ -3644,7 +3373,7 @@ function widget:GetConfigData()
             m_takeActive = m_take.active,
             m_active_Table = m_active_Table,
             specListShow = specListShow,
-            enemyListShow = enemyListShowUserPref,  -- Save user preference, not auto-disabled state
+            enemyListShow = enemyListShow,
             gameFrame = spGetGameFrame(),
             lastSystemData = lastSystemData,
             alwaysHideSpecs = alwaysHideSpecs,
@@ -3674,7 +3403,6 @@ function widget:SetConfigData(data)
 
     if data.enemyListShow ~= nil then
         enemyListShow = data.enemyListShow
-        enemyListShowUserPref = data.enemyListShow  -- Restore user preference
     end
 
     if data.version ~= nil and data.alwaysHideSpecs ~= nil then
@@ -3746,7 +3474,7 @@ function widget:SetConfigData(data)
     end
 
     if not data.hasresetskill then
-        m_skill.active = false
+        ModuleRefs.skill.active = false
     end
 
     SetModulesPositionX()
@@ -3821,12 +3549,7 @@ function CheckPlayersChange()
             end
             -- Update stall / cpu / ping info for each player
             if player[i].spec == false then
-                player[i].needm = GetNeed("metal", player[i].team)
-                player[i].neede = GetNeed("energy", player[i].team)
                 player[i].rank = rank
-            else
-                player[i].needm = false
-                player[i].neede = false
             end
 
             player[i].pingLvl = GetPingLvl(pingTime)
@@ -3853,18 +3576,6 @@ function CheckPlayersChange()
         SetModulesPositionX()    -- change the X size if needed (change of widest name)
         CreateLists()
     end
-end
-
-function GetNeed(resType, teamID)
-    local current, _, pull, income = Spring_GetTeamResources(teamID, resType)
-    if current == nil then
-        return false
-    end
-    local loss = pull - income
-    if loss > 0 and loss * 5 > current then
-        return true
-    end
-    return false
 end
 
 function updateTake(allyTeamID)
@@ -3905,8 +3616,12 @@ end
 function widget:Update(delta)
     --handles takes & related messages
     local mx, my = spGetMouseState()
+    local wasHoveringPlayerlist = hoverPlayerlist
     hoverPlayerlist = false
-    if math_isInRect(mx, my, apiAbsPosition[2] - 1, apiAbsPosition[3] - 1, apiAbsPosition[4] + 1, apiAbsPosition[1] + 1 ) then
+
+    -- Determine if the mouse is over the full player list bounding box
+    local insidePlayerlist = math_isInRect(mx, my, apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1])
+    if insidePlayerlist then
         hoverPlayerlist = true
 
 		if leaderboardOffset then
@@ -3974,9 +3689,9 @@ function widget:Update(delta)
 				end
             end
 			if detailedToSay then
-				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.takeTeam:name='..tookTeamName..':units='..mathFloor(afterU)..':energy='..mathFloor(afterE)..':metal='..mathFloor(afterE))
+				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.takeTeam:name:'..tookTeamName..':units:'..mathFloor(afterU)..':energy:'..mathFloor(afterE)..':metal:'..mathFloor(afterM))
 			else
-				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.takeTeam:name='..tookTeamName)
+				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.takeTeam:name:'..tookTeamName)
 			end
 
             for j = 0, (specOffset*2)-1 do
@@ -4007,10 +3722,16 @@ function widget:Update(delta)
         CreateLists()
     else
         local updateMainList2 = timeCounter > updateRate*updateRateMult
-        local updateMainList3 = ((m_resources.active or m_income.active) and timeFastCounter > updateFastRate*updateFastRateMult)
+        local updateMainList3 = ((ModuleRefs.resources.active or ModuleRefs.income.active) and timeFastCounter > updateFastRate*updateFastRateMult)
         if updateMainList2 or updateMainList3 then
             CreateLists(curFrame==0, updateMainList2, updateMainList3)
         end
+    end
+
+    -- Clear hover state when mouse leaves player list entirely (any side)
+    if wasHoveringPlayerlist and not hoverPlayerlist then
+        local selectedUnits = Spring.GetSelectedUnits()
+        ApiExtensions.HandleHoverChange(myTeamID, selectedUnits, nil, nil)
     end
 end
 

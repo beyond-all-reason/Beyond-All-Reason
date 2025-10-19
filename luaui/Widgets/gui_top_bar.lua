@@ -37,6 +37,8 @@ local spGetMouseState = Spring.GetMouseState
 local spGetWind = Spring.GetWind
 local spGetGameSpeed = Spring.GetGameSpeed
 
+local TeamTransfer = VFS.Include("common/luaUtilities/team_transfer/team_transfer_unsynced.lua")
+
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 -- Configuration
@@ -61,6 +63,8 @@ local numPlayers = Spring.Utilities.GetPlayerCount()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 local chobbyLoaded = false
 local isSingle = false
+local metalSharingEnabled = TeamTransfer.Resources.GetCachedPolicyResult(myTeamID, myTeamID, "metal").canShare
+local energySharingEnabled = TeamTransfer.Resources.GetCachedPolicyResult(myTeamID, myTeamID, "energy").canShare
 local gameStarted = (spGetGameFrame() > 0)
 local gameFrame = spGetGameFrame()
 local gameIsOver = false
@@ -847,7 +851,8 @@ local function updateResbar(res)
 		end
 
 		-- Share slider
-		if not isSingle then
+		local sharingEnabled = res == 'energy' and energySharingEnabled or metalSharingEnabled
+		if not isSingle and sharingEnabled then
 			if res == 'energy' then
 				energyOverflowLevel = r[res][6]
 			else
@@ -2174,7 +2179,7 @@ function widget:MousePress(x, y, button)
 		end
 
 		if not spec then
-			if not isSingle then
+			if not isSingle and metalSharingEnabled then
 				if mathIsInRect(x, y, shareIndicatorArea['metal'][1], shareIndicatorArea['metal'][2], shareIndicatorArea['metal'][3], shareIndicatorArea['metal'][4]) then
 					draggingShareIndicator = 'metal'
 				end

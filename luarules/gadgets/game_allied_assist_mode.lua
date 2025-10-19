@@ -12,12 +12,19 @@ function gadget:GetInfo()
 	}
 end
 
+local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+local assistEnabled = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedAssistMode] == SharedEnums.AlliedAssistMode.Enabled
+if assistEnabled then
+	return false
+end
+
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitTeam = Spring.GetUnitTeam
@@ -171,7 +178,16 @@ function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, fa
 				return false, false
 			end
 		end
+	-- Also disallow assisting building (caused by a repair command) units under construction
+	-- Area repair doesn't cause assisting, so it's fine that we can't properly filter it
+	elseif cmdID == CMD_REPAIR and #cmdParams == 1 then
+		local targetID = cmdParams[1]
+		local targetTeam = Spring.GetUnitTeam(targetID)
+		if targetTeam and unitTeam ~= targetTeam and Spring.AreTeamsAllied(unitTeam, targetTeam) then
+			return false
+		end
 	end
+
 	return true, true
 end
 

@@ -1,3 +1,5 @@
+local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+
 --  Custom Options Definition Table format
 --  NOTES:
 --  using an enumerated table lets you specify the options order
@@ -41,6 +43,14 @@ local options = {
         desc   	= "",
         type   	= "section",
         weight  = 7,
+    },
+
+    {
+        key		= "options_sharing",
+        name	= "Sharing",
+        desc   	= "Resource and unit sharing options",
+        type   	= "section",
+        weight  = 6,
     },
 
     {
@@ -266,48 +276,130 @@ local options = {
         step   	= 1,
     },
 
+    {
+        key     = SharedEnums.ModOptions.SharingMode,
+        name    = "Sharing Mode",
+        desc    = "Controls overall sharing policy and locks/unlocks specific options, see `sharing_modes/` for more details",
+        type    = "list",
+        section = "options_sharing",
+        def     = "enabled",
+        items   = {}, -- Will be populated dynamically by Chobby from sharing_modes/ directory
+    },
+
+    {
+        key     = "sub_header",
+        name    = "-- Units",
+        type    = "subheader",
+        section = "options_sharing",
+        def     =  true,
+    },
 	{
-		key		= "sub_header",
-		section	= "options_main",
-		type	= "separator",
+		key		= SharedEnums.ModOptions.UnitSharingMode,
+		name	= "Unit Sharing",
+		desc	= "Controls which units can be shared",
+		type	= "list",
+		section	= "options_sharing",
+		def		= SharedEnums.UnitSharingMode.Enabled,
+		items	= {
+			{ key = SharedEnums.UnitSharingMode.Enabled, name = "Enabled", desc = "All unit sharing allowed" },
+			{ key = SharedEnums.UnitSharingMode.T2Cons, name = "T2 Constructor Sharing Only", desc = "Only T2 constructors can be shared between allies" },
+			{ key = SharedEnums.UnitSharingMode.CombatUnits, name = "Combat Units Only", desc = "Only combat units can be shared (no economic units, factories, or constructors)" },
+			{ key = SharedEnums.UnitSharingMode.CombatT2Cons, name = "Combat Units + T2 Constructors", desc = "Combat units and T2 constructors can be shared" },
+			{ key = SharedEnums.UnitSharingMode.Economic, name = "Economic Units Only", desc = "Only combat units can be shared (no economic units, factories, or constructors)" },
+			{ key = SharedEnums.UnitSharingMode.EconomicPlusBuildings, name = "Economic Units and Buildings", desc = "All economic units and resource production buildings can be shared but no combat units" },
+			{ key = SharedEnums.UnitSharingMode.Disabled, name = "Disabled", desc = "No unit sharing allowed" },
+		},
+	},
+
+    {
+        key     = "sub_header",
+        name    = "-- Resources",
+        type    = "subheader",
+        desc    = "",
+        section = "options_sharing",
+        def     =  true,
+    },
+	{
+		key		= SharedEnums.ModOptions.ResourceSharingEnabled,
+		name	= "Resource Sharing",
+		desc	= "Enable or disable all player-to-player resource sharing and overflow",
+		type	= "bool",
+		section	= "options_sharing",
+		def		= true,
+		column  = 1,
 	},
 	{
-		key		= "sub_header",
-		name	= "-- Sharing and Taxes",
-		section	= "options_main",
-		type	= "subheader",
-		def		=  true,
-	},
-	{
-		key		= "tax_resource_sharing_amount",
-		name	= "Resource Sharing Tax",
-		desc	=	"Taxes resource sharing".."\255\128\128\128".." and overflow (engine TODO:)\n"..
-					"Set to [0] to turn off. Recommended: [0.4]. (Ranges: 0 - 0.99)",
+		key		= SharedEnums.ModOptions.TaxResourceSharingAmount,
+		name	= "Resource Sharing Tax Rate",
+		desc	= "Taxes resource sharing and overflow"..
+				  "Set to [0] to turn off. Recommended: [0.3]. (Ranges: 0 - 0.99)",
 		type	= "number",
 		def		= 0,
 		min		= 0,
 		max		= 0.99,
 		step	= 0.01,
-		section	= "options_main",
+		section	= "options_sharing",
 		column	= 1,
 	},
 	{
-		key		= "disable_unit_sharing",
-		name	= "Disable Unit Sharing",
-		desc	= "Disable sharing units and structures to allies",
-		type	= "bool",
-		section	= "options_main",
-		def		= false,
+		key     = SharedEnums.ModOptions.PlayerMetalSendThreshold,
+		name    = "Player Metal Send Threshold",
+		desc    = "Max total metal a player can send tax-free cumulatively. Tax applies to amounts sent *after* this limit is reached. Set to 0 for immediate tax (if rate > 0).",
+		type    = "number",
+		def     = 0,
+		min     = 0,
+		max     = 100000,
+		step    = 10,
+		section = "options_sharing",
+		column  = 1,
 	},
 	{
-		key		= "disable_assist_ally_construction",
-		name	= "Disable Assist Ally Construction",
-		desc	= "Disables assisting allied blueprints and labs.",
-		type	= "bool",
-		section	= "options_main",
-		def		=  false,
-		column	= 1.76,
+		key     = SharedEnums.ModOptions.PlayerEnergySendThreshold,
+		name    = "Player Energy Send Threshold",
+		desc    = "Max total energy a player can send tax-free cumulatively. Tax applies to amounts sent *after* this limit is reached. Set to 0 for immediate tax (if rate > 0).",
+		type    = "number",
+		def     = 0,
+		min     = 0,
+		max     = 100000,
+		step    = 10,
+		section = "options_sharing",
+		column  = 2,
 	},
+
+    {
+        key     = "sub_header",
+        name    = "-- Allied Interactions",
+        desc    = "",
+        section = "options_sharing",
+        type    = "subheader",
+        def     =  true,
+    },
+	{
+		key		= SharedEnums.ModOptions.AlliedAssistMode,
+		name	= "Ally Assist",
+		desc	= "Controls whether units can assist allied construction and repair",
+		type	= "list",
+		section	= "options_sharing",
+		def		= SharedEnums.AlliedAssistMode.Enabled,
+		column	= 1,
+		items	= {
+			{ key = SharedEnums.AlliedAssistMode.Disabled, name = "Disabled", desc = "Units cannot assist allied construction and repair" },
+			{ key = SharedEnums.AlliedAssistMode.Enabled,  name = "Enabled Automation Restricted",  desc = "Units can assist allied construction and repair" },
+		},
+	},
+	{
+		key		= SharedEnums.ModOptions.AlliedUnitReclaimMode,
+		name	= "Ally Unit Reclaim",
+		desc	= "Controls reclaiming allied units and guarding allied units that can reclaim",
+		type	= "list",
+		section	= "options_sharing",
+		def		= SharedEnums.AlliedUnitReclaimMode.EnabledAutomationRestricted,
+		items	= {
+			{ key = SharedEnums.AlliedUnitReclaimMode.Disabled, name = "Disabled", desc = "Allied reclaim is disabled" },
+			{ key = SharedEnums.AlliedUnitReclaimMode.EnabledAutomationRestricted, name = "Enabled", desc = "Allied reclaim is allowed" },
+		},
+	},
+
     {
         key     = "sub_header",
         section = "options_main",

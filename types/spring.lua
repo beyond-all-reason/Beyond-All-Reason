@@ -1,5 +1,4 @@
 -- It would be better if LuaSyncedCtrl published this interface for us, until then we cope
--- It would be better if LuaSyncedCtrl published this interface for us, until then we cope
 ---@class ISpring
 ---@field CMD table Spring command constants
 ---@field GetModOptions fun(): table

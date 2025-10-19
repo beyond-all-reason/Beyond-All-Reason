@@ -38,6 +38,7 @@ local LineTypes = {
 }
 
 local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
+local TeamTransfer = VFS.Include("common/luaUtilities/team_transfer/team_transfer_unsynced.lua")
 local badWords = VFS.Include('luaui/configs/badwords.lua')
 
 local L_DEPRECATED = LOG.DEPRECATED
@@ -693,18 +694,49 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 		local params = string.split(text, ':')
 		local t = {}
 		if params[1] then
-			for k,v in pairs(params) do
-				if k > 1 then
-					local pair = string.split(v, '=')
-					if pair[2] then
-						if playernames[pair[2]] then
-							t[ pair[1] ] = getPlayerColorString(pair[2], gameFrame)..playernames[pair[2]][7]..msgColor
-						elseif params[1]:lower():find('energy', nil, true) then
-							t[ pair[1] ] = energyValueColor..pair[2]..msgColor
-						elseif params[1]:lower():find('metal', nil, true) then
-							t[ pair[1] ] = metalValueColor..pair[2]..msgColor
+			local resourceType = nil
+			if params[1]:lower():find('energy', nil, true) then
+				resourceType = 'energy'
+			elseif params[1]:lower():find('metal', nil, true) then
+				resourceType = 'metal'
+			end
+			-- Check for explicit resourceType parameter (overrides key-based detection)
+			for i = 2, #params, 2 do
+				local key = params[i]
+				local value = params[i + 1]
+				if key == 'resourceType' and value then
+					resourceType = value
+					break
+				end
+			end
+
+			-- Second pass: process key-value pairs with determined resourceType
+			for i = 2, #params, 2 do
+				local key = params[i]
+				local value = params[i + 1]
+				if key and value then
+					if key == 'resourceType' then
+						-- Skip the resourceType parameter itself
+					elseif playernames[value] then
+						t[key] = getPlayerColorString(value, gameFrame)..playernames[value][7]..msgColor
+					else
+						local shouldHighlight = false
+						if key:lower():find('energy', nil, true) or key:lower():find('metal', nil, true) then
+							shouldHighlight = true
 						else
-							t[ pair[1] ] = pair[2]
+							shouldHighlight = TeamTransfer.Resources.SendTransferChatMessageProtocolHighlights[key] == true
+						end
+
+						if shouldHighlight then
+							if resourceType == 'energy' then
+								t[key] = energyValueColor..value..msgColor
+							elseif resourceType == 'metal' then
+								t[key] = metalValueColor..value..msgColor
+							else
+								t[key] = value
+							end
+						else
+							t[key] = value
 						end
 					end
 				end
