@@ -5,7 +5,7 @@ local SharedEnums = VFS.Include("common/luaUtilities/team_transfer/shared_enums.
 ---@field policy fun(senderTeamID: number, receiverTeamID: number): PolicyContext
 ---@field action fun(senderTeamId: number, receiverTeamId: number, transferCategory: string): PolicyActionContext
 ---@field resourceTransfer fun(senderTeamId: number, receiverTeamId: number, resourceType: ResourceType, desiredAmount: number, policyResult: ResourcePolicyResult): ResourceTransferContext
----@field unitTransfer fun(senderTeamId: number, receiverTeamId: number, unitIds: number[], given: boolean, policyResult: UnitTransferPolicyResult): UnitTransferContext
+---@field unitTransfer fun(senderTeamId: number, receiverTeamId: number, unitIds: number[], given: boolean, policyResult: UnitPolicyResult, unitValidationResult: UnitValidationResult): UnitTransferContext
 local ContextFactory = {}
 
 ---@param springRepo ISpring
@@ -115,9 +115,29 @@ function ContextFactory.create(springRepo)
     })
   end
 
+  ---Create unit transfer context for transfer actions
+  ---@param senderTeamId number
+  ---@param receiverTeamId number
+  ---@param unitIds number[]
+  ---@param given boolean?
+  ---@param policyResult UnitPolicyResult\
+  ---@param validationResult UnitValidationResult
+  ---@return UnitTransferContext
+  local function unitTransfer(senderTeamId, receiverTeamId, unitIds, given, policyResult, validationResult)
+    return buildContext(senderTeamId, receiverTeamId, {
+        transferCategory = SharedEnums.TransferCategory.UnitTransfer,
+        unitIds = unitIds,
+        given = given,
+        policyResult = policyResult,
+        validationResult = validationResult
+    })
+  end
+
   return {
     policy = policy,
     action = policyAction,
+    resourceTransfer = resourceTransfer,
+    unitTransfer = unitTransfer,
   }
 end
 
