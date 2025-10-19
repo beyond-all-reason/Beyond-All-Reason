@@ -72,7 +72,6 @@ return {
 				--soundhitwet = "splslrg",
 				soundstart = "mismed1emp1",
 				startvelocity = 1,
-				targetborder = 0.75,
 				texture1 = "null",
 				turret = 1,
 				weaponacceleration = 1800,
