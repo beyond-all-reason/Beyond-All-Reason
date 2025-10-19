@@ -18,6 +18,6 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-	Spring.GiveOrderToUnit(unitID, CMD.REMOVE, { CMD.LOAD_UNITS }, { "alt" })
-	return true
+  Spring.GiveOrderToUnit(unitID, CMD.REMOVE, { CMD.LOAD_UNITS }, { "alt" })
+  return true
 end
