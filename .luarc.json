@@ -30,6 +30,7 @@
       "luaui/TestsExamples"
     ],
     "library": [
+      "common/luaUtilities",
       "recoil-lua-library",
       "luarules",
       "luaui",
