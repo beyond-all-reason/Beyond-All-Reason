@@ -1483,6 +1483,15 @@ local options = {
     },
 
     {
+        key		= "tech_blocking_per_team",
+        name   	= "Per Player Threshold",
+        desc   	= "If enabled, tech thresholds are per player. If disabled thresholds are absolute for the whole team",
+        type   	= "bool",
+        section	= "options_experimental",
+        def    	= true,
+    },
+
+    {
         key		= "t2_tech_threshold",
         name   	= "Tech 2 Threshold",
         desc   	= "Amount of tech points required to unlock Tech 2 units",

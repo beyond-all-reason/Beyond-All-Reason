@@ -20,6 +20,7 @@ local modOptions = Spring.GetModOptions()
 local techMode = modOptions.tech_blocking
 local t2TechThreshold = modOptions.t2_tech_threshold or 100
 local t3TechThreshold = modOptions.t3_tech_threshold or 1000
+local techBlockingPerTeam = modOptions.tech_blocking_per_team or false
 local unitCreationRewardMultiplier = modOptions.unit_creation_reward_multiplier or 0
 
 if not techMode then
@@ -193,8 +194,8 @@ function gadget:GameFrame(frame)
 			end
 		end
 
-		local adjustedT2Threshold = t2TechThreshold * activeTeamCount
-		local adjustedT3Threshold = t3TechThreshold * activeTeamCount
+		local adjustedT2Threshold = techBlockingPerTeam and t2TechThreshold or (t2TechThreshold * activeTeamCount)
+		local adjustedT3Threshold = techBlockingPerTeam and t3TechThreshold or (t3TechThreshold * activeTeamCount)
 
 		local techLevel = 1
 		if totalTechPoints >= adjustedT3Threshold then
