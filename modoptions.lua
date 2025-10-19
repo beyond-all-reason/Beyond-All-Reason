@@ -306,8 +306,22 @@ local options = {
 		column  = 2,
 		disabled= { key="tax_resource_sharing_amount", value = 0},
 	},
+	{
+		key		= "unit_sharing_mode",
+		name	= "Unit Sharing Mode",
+		desc	= "Controls which units can be shared",
+		type	= "list",
 		section	= "options_main",
-		def		= false,
+		def		= "enabled",
+		items	= {
+			{ key = "enabled", name = "Enabled", desc = "All unit sharing allowed" },
+			{ key = "t2_cons", name = "T2 Constructor Sharing Only", desc = "Only T2 constructors can be shared between allies" },
+			{ key = "combat", name = "Combat Units Only", desc = "Only combat units can be shared (no economic units, factories, or constructors)" },
+			{ key = "combat_t2_cons", name = "Combat Units + T2 Constructors", desc = "Combat units and T2 constructors can be shared" },
+			{ key = "economic", name = "Economic Units Only", desc = "Only combat units can be shared (no economic units, factories, or constructors)" },
+			{ key = "economic_plus_buildings", name = "Economic Units and Buildings", desc = "All economic units and resource production buildings can be shared but no combat units" },
+			{ key = "disabled", name = "Disabled", desc = "No unit sharing allowed" },
+		},
 	},
 	{
 		key		= "disable_assist_ally_construction",
