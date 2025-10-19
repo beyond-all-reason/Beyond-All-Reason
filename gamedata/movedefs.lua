@@ -223,7 +223,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- armthor
+	-- armthor legemissiletank
 	HTANK5 = {
 		crushstrength = 1400,
 		footprintx = 7,
