@@ -1,11 +1,16 @@
 local function proposed_unit_reworksTweaks(name, uDef)
 
-	if name == "armap" or name == "armlab" or name == "armfhp" or name == "armhp" or name == "armvp"
-	or name == "corap" or name == "corlab" or name == "corfhp" or name == "corhp" or name == "corvp"
+	if name == "armfhp" or name == "armhp" or name == "corfhp" or name == "corhp"
 	then
-		uDef.metalcost = math.ceil(uDef.metalcost * 0.08) * 10
-		uDef.energycost = math.ceil(uDef.energycost * 0.08) * 10
-		uDef.buildtime = math.ceil(uDef.buildtime * 0.008) * 100
+		uDef.metalcost = uDef.metalcost - 80
+		uDef.energycost = uDef.energycost - 750
+		uDef.buildtime = uDef.buildtime - 800
+	end
+
+	if name == "armap" or name == "corap" 
+	then
+		uDef.metalcost = uDef.metalcost - 60
+		uDef.buildtime = uDef.buildtime - 300
 	end
 
 	if name == "armnanotc" or name == "armnanotcplat" 
@@ -19,7 +24,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	or name == "coraap" or name == "coralab" or name == "corasy" or name == "coravp"
 	then
 		uDef.metalcost = uDef.metalcost - 300
-		uDef.buildtime = uDef.buildtime * 1.5
+		uDef.buildtime = uDef.buildtime * 1.3
 		uDef.workertime = uDef.workertime * 2
 	end
 
@@ -65,13 +70,13 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.buildtime = 65000
 	end
 
-	if name == "armmoho" or name == "armuwmme"
-	or name == "cormoho" or name == "coruwmme"
-	then
+	--if name == "armmoho" or name == "armuwmme"
+	--or name == "cormoho" or name == "coruwmme"
+	--then
 		--uDef.metalcost = math.ceil(uDef.metalcost * 0.12) * 10
-		uDef.energycost = math.ceil(uDef.energycost * 0.012) * 100
-		uDef.buildtime = math.ceil(uDef.buildtime * 0.0012) * 1000 
-	end
+	--	uDef.energycost = math.ceil(uDef.energycost * 0.012) * 100
+	--	uDef.buildtime = math.ceil(uDef.buildtime * 0.0012) * 1000 
+	--end
 
 	if name == "armamsub" or name == "coramsub" then
 		uDef.workertime = 300
@@ -91,6 +96,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 	if name == "armfboy" then
 		uDef.weapondefs.arm_fatboy_notalaser.edgeeffectiveness = 0.15
+		uDef.weapondefs.arm_fatboy_notalaser.areaofeffect = 300
 	end
 	if name == "armmart" then
 		uDef.weapondefs.arm_artillery.edgeeffectiveness = 0.15
@@ -105,7 +111,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.metalcost = 400
 	end
 
-	if name == "armrectr" or name == "cornecro" or name == "armconsul" or name == "armfark" or name == "corfast" then
+	if name == "armconsul" or name == "armfark" or name == "corfast" or name == "armmls" or name == "cormls"then
 		uDef.metalcost = math.ceil(uDef.metalcost * 1.1 / 5) * 5
 	end
 
