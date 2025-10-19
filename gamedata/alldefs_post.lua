@@ -1420,6 +1420,13 @@ function UnitDef_Post(name, uDef)
 		uDef = techsplit_balanceUnits.techsplit_balanceTweaks(name, uDef)
 	end
 
+	-- Experimental Low Priority Pacifists
+	if modOptions.experimental_low_priority_pacifists then
+		if uDef.energycost and uDef.metalcost and (not uDef.weapons or #uDef.weapons == 0) and uDef.speed and uDef.speed > 0 and 
+		(string.find(name, "arm") or string.find(name, "cor") or string.find(name, "leg")) then
+			uDef.power = uDef.power or ((uDef.metalcost + uDef.energycost / 60) * 0.1) --recreate the default power formula obtained from the spring wiki for target prioritization
+		end
+	end
 
 	-- Multipliers Modoptions
 
