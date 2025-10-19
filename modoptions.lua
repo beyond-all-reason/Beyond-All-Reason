@@ -1479,16 +1479,7 @@ local options = {
         type   	= "bool",
         section	= "options_experimental",
         def    	= false,
-        unlock  = {"t2_tech_threshold", "t3_tech_threshold", "unit_creation_reward_multiplier"},
-    },
-
-    {
-        key		= "tech_blocking_per_team",
-        name   	= "Per Player Threshold",
-        desc   	= "If enabled, tech thresholds are per player. If disabled thresholds are absolute for the whole team",
-        type   	= "bool",
-        section	= "options_experimental",
-        def    	= true,
+        unlock  = {"t2_tech_threshold", "t3_tech_threshold", "unit_creation_reward_multiplier", "tech_blocking_per_team"},
     },
 
     {
@@ -1514,7 +1505,16 @@ local options = {
         max    	= 100000,
         step   	= 1,
     },
-
+    
+    {
+        key		= "tech_blocking_per_team",
+        name   	= "Per Player Threshold",
+        desc   	= "If enabled, tech thresholds are per player. If disabled thresholds are absolute for the whole team",
+        type   	= "bool",
+        section	= "options_experimental",
+        def    	= true,
+    },
+    
     {
         key		= "unit_creation_reward_multiplier",
         name   	= "Unit Creation Reward Multiplier",
