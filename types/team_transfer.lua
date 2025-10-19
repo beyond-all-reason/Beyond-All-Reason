@@ -16,7 +16,7 @@
 
 -- Unit Transfer Action
 
----@class UnitTransferPolicyResult : PolicyResult
+---@class UnitPolicyResult : PolicyResult
 ---@field canShare boolean
 ---@field sharingMode string
 ---@field allowTakeBypass boolean
@@ -25,7 +25,7 @@
 ---@field unitIds number[]
 ---@field given boolean?
 ---@field validationResult UnitValidationResult
----@field policyResult UnitTransferPolicyResult
+---@field policyResult UnitPolicyResult
 
 ---@class UnitDefValidationSummary
 ---@field ok boolean
@@ -36,10 +36,10 @@
 ---@class UnitValidationResult
 ---@field status string SharedEnums.UnitValidationOutcome
 ---@field invalidUnitCount number
----@field invalidUnitCategoryCount number
+---@field invalidUnitIds number[]
 ---@field invalidUnitNames string[]
 ---@field validUnitCount number
----@field validUnitCategoryCount number
+---@field validUnitIds number[]
 ---@field validUnitNames string[]
 
 ---@class UnitTransferResult
@@ -47,7 +47,7 @@
 ---@field senderTeamId number
 ---@field receiverTeamId number
 ---@field validationResult UnitValidationResult
----@field policyResult UnitTransferPolicyResult
+---@field policyResult UnitPolicyResult
 
 -- Unit Sharing Globals
 

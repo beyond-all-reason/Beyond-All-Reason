@@ -84,7 +84,14 @@
 			"requestSupport": "Double-click to ask for support",
 			"requestMetal": "Click-and-drag to ask for metal",
 			"requestEnergy": "Click-and-drag to ask for energy",
-			"shareUnits": "Double-click to share units",
+			"shareUnits": "Double-click to share %{validUnitCount} units",
+			"shareUnitsInvalid": {
+				"all": "Sharing these units are not allowed",
+				"one": "Double-click to share units (mode is %{unitSharingMode} - %{firstInvalidUnitName} cannot be shared)",
+				"two": "Double-click to share units (mode is %{unitSharingMode} - %{firstInvalidUnitName} and %{secondInvalidUnitName} cannot be shared)",
+				"other": "Double-click to share units (mode is %{unitSharingMode} - %{firstInvalidUnitName}, %{secondInvalidUnitName} and %{count} others cannot be shared)"
+			},
+			"shareUnitsDisabled": "Unit sharing not allowed (mode is %{unitSharingMode})",
 			"shareMetal": "Click-and-drag to share metal",
 			"shareMetalTaxed": "Click-and-drag to share metal, receivable: %{amountReceivable}m, spendable: %{amountSendable}m at %{taxRatePercentage}%%",
 			"shareMetalTaxedThreshold": "Click-and-drag to share metal, receivable: %{amountReceivable}m, spendable: %{amountSendable}m at %{taxRatePercentage}%% (free used %{sentAmountUntaxed}/%{resourceShareThreshold}m)",

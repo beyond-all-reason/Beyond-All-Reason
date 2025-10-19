@@ -63,6 +63,7 @@ end
 local SharedEnums = VFS.Include('common/luaUtilities/team_transfer/shared_enums.lua')
 local TeamTransfer = VFS.Include('common/luaUtilities/team_transfer/team_transfer_unsynced.lua')
 local ResourceTransfer = TeamTransfer.Resources
+local UnitTransfer = TeamTransfer.Units
 
 --------------------------------------------------------------------------------
 -- Config
@@ -756,6 +757,22 @@ end
 function ActivityEvent(playerID)
     lastActivity[playerID] = os.clock()
 end
+
+function widget:SelectionChanged(selectedUnits)
+    local myTeamID = Spring_GetMyTeamID()
+    for playerID, playerData in pairs(player) do
+        if playerData.team and playerID ~= myTeamID then
+            if selectedUnits and #selectedUnits > 0 then
+                local policyResult = UnitTransfer.GetCachedPolicyResult(myTeamID, playerData.team)
+                local validationResult = UnitTransfer.ValidateUnits(policyResult, selectedUnits)
+                TeamTransfer.PackSelectedUnitsValidation(validationResult, playerData)
+            else
+                TeamTransfer.ClearSelectedUnitsValidation(playerData)
+            end
+        end
+    end
+end
+
 
 ---------------------------------------------------------------------------------------------------
 --  Init/GameStart (creating players)
@@ -2210,9 +2227,10 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
     local dead = player[playerID].dead
     local ai = player[playerID].ai
     local alliances = player[playerID].alliances
-    local metalPolicy, energyPolicy
+    local metalPolicy, energyPolicy, unitPolicy, unitValidationResult
     if not spec then
-        metalPolicy, energyPolicy = ResourceTransfer.GetAllPolicies(player[playerID], myTeamID, team)
+        metalPolicy, energyPolicy, unitPolicy = TeamTransfer.UnpackAllPolicies(player[playerID], myTeamID, team)
+        unitValidationResult = TeamTransfer.UnpackSelectedUnitsValidation(player[playerID])
     end
     local posY = widgetPosY + widgetHeight - vOffset
     local tipPosY = widgetPosY + ((widgetHeight - vOffset) * widgetScale)
@@ -2273,10 +2291,10 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                                 end
                             end
                         end
-                        if m_share.active and not dead and not hideShareIcons and (metalPolicy and energyPolicy) then
-                            DrawShareButtons(posY, metalPolicy, energyPolicy)
+                        if m_share.active and not dead and not hideShareIcons and (unitPolicy and metalPolicy and energyPolicy) then
+                            DrawShareButtons(posY, unitPolicy, metalPolicy, energyPolicy, unitValidationResult)
                             if tipY then
-                                ShareTip(mouseX, metalPolicy, energyPolicy)
+                                ShareTip(mouseX, unitPolicy, metalPolicy, energyPolicy, unitValidationResult)
                             end
                         end
                     end
@@ -2429,7 +2447,7 @@ local function DrawSharingIconOverlay(posY, enabled, offsetX)
     end
 end
 
-function DrawShareButtons(posY, unitPolicy, metalPolicy, energyPolicy)
+function DrawShareButtons(posY, unitPolicy, metalPolicy, energyPolicy, unitValidationResult)
     gl_Color(1, 1, 1, 1)
     gl_Texture(pics["unitsPic"])
     DrawRect(m_share.posX + widgetPosX + (1*playerScale), posY, m_share.posX + widgetPosX + (17*playerScale), posY + (16*playerScale))
@@ -2438,8 +2456,10 @@ function DrawShareButtons(posY, unitPolicy, metalPolicy, energyPolicy)
     gl_Texture(pics["metalPic"])
     DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale))
 
-    DrawSharingIconOverlay(posY, energyPolicy, 17 * playerScale)
-    DrawSharingIconOverlay(posY, metalPolicy, 33 * playerScale)
+    local shareButtonEnabled = unitPolicy.canShare and (not unitValidationResult or unitValidationResult.status ~= SharedEnums.UnitValidationOutcome.Failure)
+    DrawSharingIconOverlay(posY, shareButtonEnabled, 1 * playerScale)
+    DrawSharingIconOverlay(posY, energyPolicy.canShare, 17 * playerScale)
+    DrawSharingIconOverlay(posY, metalPolicy.canShare, 33 * playerScale)
 
     gl_Texture(false)
 end
@@ -3046,13 +3066,9 @@ function NameTip(mouseX, playerID, accountID, nameIsAlias)
 	end
 end
 
-function ShareTip(mouseX, metalPolicy, energyPolicy)
+function ShareTip(mouseX, unitPolicy, metalPolicy, energyPolicy, unitValidationResult)
     if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
-        if myPlayerID == metalPolicy.receiverTeamId then
-            tipText = Spring.I18N('ui.playersList.shareUnits')
-        else
-            tipText = Spring.I18N('ui.playersList.shareUnits')
-        end
+        tipText = UnitTransfer.TooltipText(unitPolicy, unitValidationResult)
     elseif mouseX >= widgetPosX + (m_share.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (35*playerScale)) * widgetScale then
         tipText = ResourceTransfer.TooltipText(energyPolicy)
     elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
