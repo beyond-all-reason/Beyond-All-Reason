@@ -24,7 +24,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	or name == "coraap" or name == "coralab" or name == "corasy" or name == "coravp"
 	then
 		uDef.metalcost = uDef.metalcost - 300
-		uDef.buildtime = uDef.buildtime * 1.2
+		uDef.buildtime = uDef.buildtime * 1.3
 		uDef.workertime = uDef.workertime * 2
 	end
 
