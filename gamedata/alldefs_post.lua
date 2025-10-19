@@ -1804,10 +1804,10 @@ function WeaponDef_Post(name, wDef)
 
 		--Use targetborderoverride in weapondef customparams to override this global setting
 		--Controls whether the weapon aims for the center or the edge of its target's collision volume. Clamped between -1.0 - target the far border, and 1.0 - target the near border.
-		if wDef.customparams and wDef.customparams.targetborderoverride == nil then
-			wDef.targetborder = 1 --Aim for just inside the hitsphere
-		elseif wDef.customparams and wDef.customparams.targetborderoverride ~= nil then
+		if wDef.customparams and wDef.customparams.targetborderoverride ~= nil then
 			wDef.targetborder = tonumber(wDef.customparams.targetborderoverride)
+		else
+			wDef.targetborder = 1 --Aim for just inside the hitsphere
 		end
 
 		if wDef.craterareaofeffect then
