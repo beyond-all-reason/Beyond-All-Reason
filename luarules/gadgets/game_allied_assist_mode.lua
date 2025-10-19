@@ -12,12 +12,14 @@ function gadget:GetInfo()
 	}
 end
 
+local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local allowAssist = not Spring.GetModOptions().disable_assist_ally_construction
-if allowAssist then
+local assistEnabled = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedAssistMode] == SharedEnums.AlliedAssistMode.Enabled
+if assistEnabled then
 	return false
 end
 
@@ -29,7 +31,6 @@ local function isComplete(u)
 		return false
 	end
 end
-
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 
@@ -44,21 +45,14 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 				return false
 			end
 		end
-		return true
-	end
-
 	-- Also disallow assisting building (caused by a repair command) units under construction
 	-- Area repair doesn't cause assisting, so it's fine that we can't properly filter it
-	if cmdID == CMD.REPAIR and #cmdParams == 1 then
+	elseif (cmdID == CMD.RECLAIM and #cmdParams >= 1) then
 		local targetID = cmdParams[1]
 		local targetTeam = Spring.GetUnitTeam(targetID)
-
-		if targetTeam and unitTeam ~= Spring.GetUnitTeam(targetID) and Spring.AreTeamsAllied(unitTeam, targetTeam) then
-			if not isComplete(targetID) then
-				return false
-			end
+		if targetTeam and unitTeam ~= targetTeam and Spring.AreTeamsAllied(unitTeam, targetTeam) then
+			return false
 		end
-		return true
 	end
 
 	return true
