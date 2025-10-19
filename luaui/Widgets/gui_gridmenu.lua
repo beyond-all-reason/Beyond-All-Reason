@@ -1182,7 +1182,11 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 				Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 
 				--if quantity is more than 100, more than 20 or more than 5 then use engine logic for better performance (fewer for loops inside queueUnit())
-				if not alt then
+				if alt then
+					quantity = multiQueue(uDefID,quantity,100,{ "alt","left","ctrl","shift" })
+					quantity = multiQueue(uDefID,quantity,20,{ "alt","left","ctrl" })
+					quantity = multiQueue(uDefID,quantity,5,{ "alt","left","shift" })
+				else
 					quantity = multiQueue(uDefID,quantity,100,{ "left","ctrl","shift" })
 					quantity = multiQueue(uDefID,quantity,20,{ "left","ctrl" })
 					quantity = multiQueue(uDefID,quantity,5,{ "left","shift" })
