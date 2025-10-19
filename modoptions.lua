@@ -1508,13 +1508,13 @@ local options = {
     
     {
         key		= "tech_blocking_per_team",
-        name   	= "Per Player Threshold",
+        name   	= "Thresholds are per player",
         desc   	= "If enabled, tech thresholds are per player. If disabled thresholds are absolute for the whole team",
         type   	= "bool",
         section	= "options_experimental",
         def    	= true,
     },
-    
+
     {
         key		= "unit_creation_reward_multiplier",
         name   	= "Unit Creation Reward Multiplier",
