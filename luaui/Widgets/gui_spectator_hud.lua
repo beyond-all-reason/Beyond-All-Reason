@@ -2177,7 +2177,7 @@ function widget:SetConfigData(data)
 	if data.widgetConfig then
 		settings.widgetConfig = data.widgetConfig
 	end
-	if data.isCommanderArmy then
+	if data.widgetConfig~= nil then
 		settings.isCommanderArmy = data.isCommanderArmy
 	end
 	if data.oneTimeEcostatsEnableDone then
