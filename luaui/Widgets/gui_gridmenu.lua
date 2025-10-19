@@ -1120,6 +1120,16 @@ local function gridmenuCategoryHandler(_, _, args)
 	return true
 end
 
+local function multiQueue(uDefID, quantity, cap, opts)
+	--if quantity is more than 100, more than 20 or more than 5 then use engine logic for better performance (fewer for loops inside queueUnit())
+	if quantity >= cap then
+		quantity2 = math.floor(quantity / cap)
+		queueUnit(uDefID, opts, quantity2)
+		quantity = math.fmod(quantity,cap)
+	end
+	return quantity
+end
+
 local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	if builderIsFactory and useLabBuildMode and not labBuildModeActive then
 		return
@@ -1172,26 +1182,10 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 				Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 
 				--if quantity is more than 100, more than 20 or more than 5 then use engine logic for better performance (fewer for loops inside queueUnit())
-				if opts ~= { "right" } and not alt and quantity >= 100 then
-					opts = { "left","ctrl","shift" }
-					quantity2 = math.floor(quantity / 100)
-					queueUnit(uDefID, opts, quantity2)
-					quantity = math.fmod(quantity,100)
-					opts = { "left" }
-				end
-				if opts ~= { "right" } and not alt and quantity >= 20 then
-					opts = { "left","ctrl" }
-					quantity2 = math.floor(quantity / 20)
-					queueUnit(uDefID, opts, quantity2)
-					quantity = math.fmod(quantity,20)
-					opts = { "left" }
-				end
-				if opts ~= { "right" } and not alt and quantity >= 5 then
-					opts = { "left","shift" }
-					quantity2 = math.floor(quantity / 5)
-					queueUnit(uDefID, opts, quantity2)
-					quantity = math.fmod(quantity,5)
-					opts = { "left" }
+				if not alt then
+					quantity = multiQueue(uDefID,quantity,100,{ "left","ctrl","shift" })
+					quantity = multiQueue(uDefID,quantity,20,{ "left","ctrl" })
+					quantity = multiQueue(uDefID,quantity,5,{ "left","shift" })
 				end
 			end
 			if alt then
