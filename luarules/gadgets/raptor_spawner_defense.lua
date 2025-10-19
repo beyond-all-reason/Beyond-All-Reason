@@ -2132,14 +2132,6 @@ if gadgetHandler:IsSyncedCode() then
 		--computerTeams[teamID] = nil
 	end
 
-	function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-		if newTeam == raptorTeamID then
-			return false
-		else
-			return true
-		end
-	end
-
 	function gadget:FeatureCreated(featureID, featureAllyTeamID)
 		if featureAllyTeamID == raptorAllyTeamID then
 			local egg = string.find(FeatureDefs[Spring.GetFeatureDefID(featureID)].name, "raptor_egg")
