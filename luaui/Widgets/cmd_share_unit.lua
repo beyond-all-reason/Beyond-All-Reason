@@ -14,6 +14,8 @@ function widget:GetInfo()
 	}
 end
 
+local TeamTransfer = VFS.Include("common/luaUtilities/team_transfer/team_transfer_unsynced.lua")
+
 --------------------------------------------------------------------------------
 --vars
 --------------------------------------------------------------------------------
@@ -336,8 +338,8 @@ function widget:CommandNotify(cmdID, cmdParams, _)
 			targetTeamID = findTeamInArea(mouseX, mouseY)
 		end
 
-		if targetTeamID == nil or targetTeamID == myTeamID or GetTeamAllyTeamID(targetTeamID) ~= myAllyTeamID then
-			-- invalid target, don't do anything
+		local policyResult = TeamTransfer.Units.GetCachedPolicyResult(myTeamID, targetTeamID)
+		if not policyResult or not policyResult.canShare then
 			return true
 		end
 
