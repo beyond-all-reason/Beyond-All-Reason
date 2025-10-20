@@ -63,6 +63,7 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SetUnitAlwaysVisible(unitID, false)
 			Spring.SetUnitNeutral(unitID, true)
 			Spring.SetUnitBlocking(unitID, false)
+			Spring.SetUnitCrashing(unitID, true)
 			if unitWeapons[unitDefID] then
 				for weaponID, _ in pairs(unitWeapons[unitDefID]) do
 					SetUnitWeaponState(unitID, weaponID, "reloadState", 0)
