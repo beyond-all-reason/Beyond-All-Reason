@@ -126,7 +126,7 @@ function Shared.GetModeUnitTypes(mode)
   if mode == SharedEnums.UnitSharingMode.Disabled then
     return {}
   end
-
+  
   if mode == SharedEnums.UnitSharingMode.Enabled then
     return {
       SharedEnums.UnitType.Combat,
@@ -170,7 +170,6 @@ end
 local function EvaluateUnitForSharing(unitDef, mode)
   if not unitDef then return false end
 
-  -- Simple cases
   if mode == SharedEnums.UnitSharingMode.Disabled then
     return false
   end
@@ -179,31 +178,7 @@ local function EvaluateUnitForSharing(unitDef, mode)
     return true
   end
 
-  local unitType = UnitSharingCategories.classifyUnitDef(unitDef)
-
-  if mode == SharedEnums.UnitSharingMode.CombatUnits then
-    return unitType == SharedEnums.UnitType.Combat
-  end
-
-  if mode == SharedEnums.UnitSharingMode.Economic then
-    return unitType == SharedEnums.UnitType.Economic or unitType == SharedEnums.UnitType.T2Constructor
-  end
-
-  if mode == SharedEnums.UnitSharingMode.EconomicPlusBuildings then
-    return unitType == SharedEnums.UnitType.Economic or unitType == SharedEnums.UnitType.T2Constructor or
-    unitType == SharedEnums.UnitType.Utility
-  end
-
-  if mode == SharedEnums.UnitSharingMode.T2Cons then
-    return unitType == SharedEnums.UnitType.T2Constructor
-  end
-
-  if mode == SharedEnums.UnitSharingMode.CombatT2Cons then
-    return unitType == SharedEnums.UnitType.Combat or unitType == SharedEnums.UnitType.T2Constructor
-  end
-
-  Spring.Log("unit_transfer_shared", LOG.ERROR, "EvaluateUnitForSharing: unknown mode =", mode)
-  return false
+  return UnitTypeMatchesMode(unitDef, mode)
 end
 
 -- Allowed UnitDefID cache per mode for fast validation

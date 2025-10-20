@@ -6,6 +6,7 @@ local Hack = VFS.Include("common/luaUtilities/team_transfer/take_hack.lua")
 
 local Synced = {
   ValidateUnits = Shared.ValidateUnits,
+  GetModeUnitTypes = Shared.GetModeUnitTypes,
 }
 
 ---Get per-pair policy (expose) and cache it for UI consumption
