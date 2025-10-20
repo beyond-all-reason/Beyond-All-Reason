@@ -39,6 +39,11 @@ end
 ---@param resourceType ResourceType
 ---@return ResourcePolicyResult|nil
 local function tryRejectPolicy(ctx, resourceType)
+  -- Globally disable any form of resource sharing if the modoption is turned off
+  local modOpts = ctx.springRepo.GetModOptions and ctx.springRepo.GetModOptions()
+  if modOpts and modOpts.game_resource_sharing_enabled == false then
+    return rejectPolicy(ctx, resourceType)
+  end
   if ctx.isCheatingEnabled then
     return nil
   end

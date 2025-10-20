@@ -50,6 +50,7 @@ local numPlayers = Spring.Utilities.GetPlayerCount()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 local chobbyLoaded = false
 local isSingle = false
+local resourceSharingEnabled = Spring.GetModOptions().game_resource_sharing_enabled
 local gameStarted = (Spring.GetGameFrame() > 0)
 local gameFrame = Spring.GetGameFrame()
 local gameIsOver = false
@@ -787,7 +788,7 @@ local function updateResbar(res)
 		end
 
 		-- Share slider
-		if not isSingle then
+		if not isSingle and resourceSharingEnabled then
 			if res == 'energy' then
 				energyOverflowLevel = r[res][6]
 			else
@@ -2071,7 +2072,7 @@ function widget:MousePress(x, y, button)
 		end
 
 		if not spec then
-			if not isSingle then
+			if not isSingle and resourceSharingEnabled then
 				if math_isInRect(x, y, shareIndicatorArea['metal'][1], shareIndicatorArea['metal'][2], shareIndicatorArea['metal'][3], shareIndicatorArea['metal'][4]) then
 					draggingShareIndicator = 'metal'
 				end

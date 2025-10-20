@@ -268,6 +268,15 @@ local options = {
 		def		=  true,
 	},
 	{
+		key		= "game_resource_sharing_enabled",
+		name	= "Resource Sharing",
+		desc	= "Enable or disable all player-to-player resource sharing and overflow",
+		type	= "bool",
+		section	= "options_main",
+		def		= true,
+		column  = 1,
+	},
+	{
 		key		= "tax_resource_sharing_amount",
 		name	= "Resource Sharing Tax",
 		desc	=	"Taxes resource sharing".."\255\128\128\128".." and overflow (engine TODO:)\n"..
