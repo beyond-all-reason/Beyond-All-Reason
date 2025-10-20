@@ -1,11 +1,16 @@
 local vssrc = VFS.LoadFile("modelmaterials_gl4/templates/cus_gl4.vert.glsl")
+
+--local gssrc = VFS.LoadFile("modelmaterials_gl4/templates/cus_gl4.geom.glsl")
+
 local fssrc = VFS.LoadFile("modelmaterials_gl4/templates/cus_gl4.frag.glsl")
 
 local shaderTemplate = {
 
 	vertex = vssrc,
 
-	fragment = fssrc, 
+	geometry = gssrc,
+
+	fragment = fssrc,
 
 	uniformInt = {
 		texture1 	 = 0,
