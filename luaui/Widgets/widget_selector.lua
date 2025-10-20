@@ -467,8 +467,8 @@ function UpdateList(force)
 
 	if force and WG['guishader']then
 		activeGuishader = false
-		WG['guishader'].DeleteDlist('widgetselector')
-		WG['guishader'].DeleteDlist('widgetselector2')
+		WG['guishader'].RemoveDlist('widgetselector')
+		WG['guishader'].RemoveDlist('widgetselector2')
 		WG['guishader'].RemoveRect('selectorinput')
 		if textInputDlist then
 			textInputDlist = gl.DeleteList(textInputDlist)
@@ -607,8 +607,8 @@ function widget:DrawScreen()
 	if not show then
 		if WG['guishader'] and activeGuishader then
 			activeGuishader = false
-			WG['guishader'].DeleteDlist('widgetselector')
-			WG['guishader'].DeleteDlist('widgetselector2')
+			WG['guishader'].RemoveDlist('widgetselector')
+			WG['guishader'].RemoveDlist('widgetselector2')
 			WG['guishader'].RemoveRect('selectorinput')
 			if textInputDlist then
 				textInputDlist = gl.DeleteList(textInputDlist)

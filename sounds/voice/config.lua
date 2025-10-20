@@ -45,20 +45,23 @@ return {
 	GamePaused = {
 		delay = 5,
 	},
-	PlayerDisconnected = {
-		delay = 1,
+	TeammateCaughtUp = {
+		delay = 5,
 	},
-	PlayerAdded = {
-		delay = 1,
+	TeammateDisconnected = {
+		delay = 5,
 	},
-	PlayerResigned = {
-		delay = 1,
+	TeammateLagging = {
+		delay = 5,
 	},
-	PlayerTimedout = {
-		delay = 1,
+	TeammateReconnected = {
+		delay = 5,
 	},
-	PlayerReconnecting = {
-		delay = 1,
+	TeammateResigned = {
+		delay = 5,
+	},
+	TeammateTimedout = {
+		delay = 5,
 	},
 	RaptorsAndScavsMixed = {
 		delay = 15,
@@ -68,8 +71,20 @@ return {
 	MaxUnitsReached = {
 		delay = 90,
 	},
+	BaseUnderAttack = {
+		delay = 10,
+	},
+	UnitsCaptured = {
+		delay = 10,
+	},
 	UnitsReceived = {
-		delay = 5,
+		delay = 10,
+	},
+	UnitsUnderAttack = {
+		delay = 10,
+	},
+	UnitLost = {
+		delay = 10,
 	},
 	RadarLost = {
 		delay = 12,
@@ -86,10 +101,16 @@ return {
 		delay = 80,
 	},
 	WholeTeamWastingMetal = {
-		delay = 60,
+		delay = 120,
 	},
 	WholeTeamWastingEnergy = {
+		delay = 240,
+	},
+	YouAreWastingMetal = {
 		delay = 120,
+	},
+	YouAreWastingEnergy = {
+		delay = 240,
 	},
 	LowPower = {
 		delay = 50,
@@ -108,38 +129,68 @@ return {
 
 	-- Unit Ready
 	RagnarokIsReady = {
-		delay = 30,
+		delay = 9999999,
 	},
 	CalamityIsReady = {
-		delay = 30,
+		delay = 9999999,
 	},
 	StarfallIsReady = {
-		delay = 30,
+		delay = 9999999,
 	},
 	AstraeusIsReady = {
-		delay = 30,
+		delay = 9999999,
 	},
 	SolinvictusIsReady = {
-		delay = 30,
+		delay = 9999999,
+	},
+	TitanIsReady = {
+		delay = 9999999,
+	},
+	ThorIsReady = {
+		delay = 9999999,
 	},
 	JuggernautIsReady = {
-		delay = 30,
+		delay = 9999999,
+	},
+	BehemothIsReady = {
+		delay = 9999999,
+	},
+	FlagshipIsReady = {
+		delay = 9999999,
+	},
+	Tech2UnitReady = {
+		delay = 9999999,
 	},
 	Tech3UnitReady = {
 		delay = 9999999,
 	},
+	Tech4UnitReady = {
+		delay = 9999999,
+	},
+	Tech2TeamReached = {
+		delay = 9999999,
+	},
+	Tech3TeamReached = {
+		delay = 9999999,
+	},
+	Tech4TeamReached = {
+		delay = 9999999,
+	},
 
 	-- Units Detected
-	T2Detected = {
+	Tech2UnitDetected = {
 		delay = 9999999,
 	},
-	T3Detected = {
+	Tech3UnitDetected = {
 		delay = 9999999,
 	},
-	T4Detected = {
+	Tech4UnitDetected = {
 		delay = 9999999,
 	},
-	AircraftSpotted = {
+	EnemyDetected = {
+		delay = 9999999,
+	},
+	AircraftDetected = {
 		delay = 9999999,
 	},
 	MinesDetected = {
@@ -152,43 +203,58 @@ return {
 		delay = 25,
 	},
 	EmpSiloDetected = {
-		delay = 4,
+		delay = 25,
 	},
 	TacticalNukeSiloDetected = {
-		delay = 4,
+		delay = 25,
+	},
+	LongRangeNapalmLauncherDetected = {
+		delay = 25,
 	},
 	NuclearSiloDetected = {
-		delay = 4,
+		delay = 25,
+	},
+	CalamityDetected = {
+		delay = 25,
+	},
+	RagnarokDetected = {
+		delay = 25,
+	},
+	StarfallDetected = {
+		delay = 25,
 	},
 	NuclearBomberDetected = {
 		delay = 60,
 	},
 	BehemothDetected = {
-		delay = 9999999,
+		delay = 300,
 	},
 	SolinvictusDetected = {
-		delay = 9999999,
+		delay = 300,
 	},
 	JuggernautDetected = {
-		delay = 9999999,
+		delay = 300,
 	},
 	TitanDetected = {
-		delay = 9999999,
+		delay = 300,
+	},
+	ThorDetected = {
+		delay = 300,
 	},
 	FlagshipDetected = {
-		delay = 9999999,
+		delay = 300,
 	},
-	CommandoDetected = {
-		delay = 9999999,
+	AstraeusDetected = {
+		delay = 300,
 	},
 	TransportDetected = {
-		delay = 9999999,
+		delay = 300,
 	},
 	AirTransportDetected = {
-		delay = 9999999,
+		delay = 300,
 	},
 	SeaTransportDetected = {
-		delay = 9999999,
+		delay = 300,
 	},
 
 	-- Lava
@@ -265,4 +331,90 @@ return {
 		delay = 9999999,
 		tutorial = true,
 	},
+
+	-- Raptors/Scavs ----------------------------------------------------------------------
+	["PvE/AntiNukeReminder"] = {
+		delay = 10,
+	},
+
+	-- Raptor Queen Hatch Progress
+	["PvE/Raptor_Queen50Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen75Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen90Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen95Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen98Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_QueenIsReady"] = {
+		delay = 10,
+	},
+
+	-- Raptor Queen Health
+	["PvE/Raptor_Queen50HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen25HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen10HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen5HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen2HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_QueenIsDestroyed"] = {
+		delay = 10,
+	},
+
+	-- Scavenger Boss Construction Progress
+	["PvE/Scav_Boss50Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss75Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss90Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss95Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss98Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_BossIsReady"] = {
+		delay = 10,
+	},
+
+	-- Scavenger Boss Health
+	["PvE/Scav_Boss50HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss25HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss10HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss5HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss2HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Scav_BossIsDestroyed"] = {
+		delay = 10,
+	},
+
 }

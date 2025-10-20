@@ -121,6 +121,7 @@ return {
 			cor_gol = {
 				areaofeffect = 292,
 				avoidfeature = false,
+				cegtag = "Heavy-Plasma",
 				craterareaofeffect = 292,
 				craterboost = 0,
 				cratermult = 0,

@@ -192,17 +192,17 @@ pieceCollisionVolume['legpede'] = {
 	['0']={26,28,90,0,5,-23,2,1},
 	['32']={26,28,86,0,0,7,2,1},
 }
---pieceCollisionVolume['legrail'] = {
---	['0']={40,16,38,0,10,0,2,1},
---	['2']={10,10,30,0,2,12,1,2},
---}
+pieceCollisionVolume['legrail'] = {
+	['2']={31,20,38,-0.5,-4,-4,2,1},
+	['5']={10,10,36,0,0,9,1,2},
+}
 pieceCollisionVolume['legsrail'] = {
 	['0']={55,24,55,0,12,0,1,1},
 	['7']={12,12,60,0,3,9,1,2},
 }
 pieceCollisionVolume['legerailtank'] = {
-	['0']={65,28.3,90.6, 0,1,-10, 2,1},
-	['10']={31,21,36, 0,6.4,2.3, 2,1},
+	['0']={65,20,75, 0,-4,0, 2,1}, 
+	['4']={31,21,36, 0,0,0, 2,1},
 	--['10']={50,50,50,0,0,0,2,1},
 }
 pieceCollisionVolume['leginf'] = {
@@ -252,8 +252,8 @@ pieceCollisionVolume['cortermite'] = {
 
 
 pieceCollisionVolume['correap'] = {
-	['0']={36,20,46,0,3.5,0,2,1},
-	['3']={24,14,24,0,1.875,1.5,2,1},
+	['1']={35,20,46,0,1,0,2,1},
+	['9']={19,14,20,0,2,0,2,1},
 }
 pieceCollisionVolume['corlevlr'] = {
 	['0']={31,17,31,0,3.5,0,2,1},
@@ -367,7 +367,12 @@ pieceCollisionVolume['legcar'] = {
 
 pieceCollisionVolume['legmed'] = {
 	['0']={48,31,69,0,0,0,2,1},
-	['1']={7,25,15,0,35,-5,2,1},
+	['1']={7,35,15,0,40,-5,2,1},
+}
+
+pieceCollisionVolume['legehovertank'] = {
+	['0']={63,32,63,0,-15,0,1,1},
+	['20']={25,12,37,0,0,-6,2,1},
 }
 
 --{60,80,60,  -- Volume X scale, Volume Y scale, Volume Z scale,
