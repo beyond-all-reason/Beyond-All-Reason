@@ -982,9 +982,7 @@
 			"economyValue_title": "Economy Value",
 			"economyValue_tooltip": "Economy value in metal",
 			"damageDealt_title": "Damage Dealt",
-			"damageDealt_tooltip": "Damage dealt",
-			"isCommanderArmy_title": "Is Commander Army?",
-			"isCommanderArmy_tooltip": "If enabled, the value of the Commander is added to army value."
+			"damageDealt_tooltip": "Damage dealt"
 		},
 		"settings": {
 			"basic": "Basic",

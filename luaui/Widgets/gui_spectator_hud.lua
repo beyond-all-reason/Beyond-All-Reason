@@ -204,7 +204,6 @@ local settings = {
 	-- this table is used only when widgetConfig is set to custom
 	metricsEnabled = {},
 	oneTimeEcostatsEnableDone = false,
-	isCommanderArmy = true,
 }
 
 local metricKeys = {
@@ -287,7 +286,7 @@ local function buildUnitDefs()
 
 	local function isArmyUnit(unitDefID, unitDef)
 		local isArmyUnit = #unitDef.weapons > 0 and unitDef.speed > 0
-		return isArmyUnit and (settings.isCommanderArmy or not isCommander(unitDefId, unitDef))
+		return isArmyUnit and not isCommander(unitDefId, unitDef)
 	end
 
 	local function isDefenseUnit(unitDefID, unitDef)
@@ -693,8 +692,6 @@ local function buildMetricsEnabled()
 			end
 		elseif settings.widgetConfig >= metric.configLevel then
 			addMetric = true
-		elseif settings.isCommanderArmy then
-			addMetric = false
 		end
 
 		if addMetric then
@@ -1909,15 +1906,6 @@ function widget:Initialize()
 		reInit()
 	end
 
-	WG["spectator_hud"].getIsCommanderArmy = function()
-		return settings.isCommanderArmy
-	end
-
-	WG["spectator_hud"].setIsCommanderArmy = function(value)
-		settings.isCommanderArmy = value
-		reInit()
-	end
-
 	WG["spectator_hud"].getConfig = function()
 		return settings.widgetConfig
 	end
@@ -2165,8 +2153,6 @@ function widget:GetConfigData()
 		result.metricsEnabled[metric] = settings.metricsEnabled[metric]
 	end
 
-	result.isCommanderArmy = settings.isCommanderArmy
-
 	return result
 end
 
@@ -2176,9 +2162,6 @@ function widget:SetConfigData(data)
 	end
 	if data.widgetConfig then
 		settings.widgetConfig = data.widgetConfig
-	end
-	if data.widgetConfig~= nil then
-		settings.isCommanderArmy = data.isCommanderArmy
 	end
 	if data.oneTimeEcostatsEnableDone then
 		settings.oneTimeEcostatsEnableDone = data.oneTimeEcostatsEnableDone
