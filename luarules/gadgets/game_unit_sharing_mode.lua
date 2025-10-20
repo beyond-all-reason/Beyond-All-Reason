@@ -4,10 +4,10 @@ function gadget:GetInfo()
   return {
     name    = 'Unit Sharing Mode',
     desc    = 'Controls which units can be shared with allies',
-    author  = 'Rimilel, Attean',
+    author  = 'Rimilel',
     date    = 'April 2024',
     license = 'GNU GPL, v2 or later',
-    layer   = 1,
+    layer   = 0,
     enabled = true
   }
 end
