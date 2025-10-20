@@ -307,6 +307,18 @@ local options = {
 		disabled= { key="tax_resource_sharing_amount", value = 0},
 	},
 	{
+		key		= "game_allied_reclaim",
+		name	= "Allied Reclaim",
+		desc	= "Controls reclaiming allied units and guarding allied units that can reclaim",
+		type	= "list",
+		section	= "options_main",
+		def		= "enabled",
+		items	= {
+			{ key = "enabled", name = "Enabled", desc = "Allied reclaim is disabled" },
+			{ key = "disabled", name = "Disabled", desc = "Allied reclaim is allowed" },
+		},
+	},
+	{
 		key		= "unit_sharing_mode",
 		name	= "Unit Sharing Mode",
 		desc	= "Controls which units can be shared",
