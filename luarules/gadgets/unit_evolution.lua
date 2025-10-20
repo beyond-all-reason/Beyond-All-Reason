@@ -38,8 +38,8 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 
 	local GAME_SPEED = Game.gameSpeed
-	local FIRST_EVOLUTION_DELAY_SECONDS = 70 / Game.gameSpeed -- to prevent race conditions with spawn in effects such as Quick Start
 	local PRIVATE = { private = true }
+	local FIRST_EVOLUTION_DELAY_FRAMES = 70 -- to prevent race conditions with spawn in effects such as Quick Start
 
 	local evolutionMetaList = {}
 	local teamList = spGetTeamList()
@@ -365,8 +365,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function isEvolutionTimePassed(evolution, currentTime)
-		return (evolution.evolution_condition == 'timer' and (currentTime - evolution.timeCreated) >= math.max(evolution.evolution_timer, FIRST_EVOLUTION_DELAY_SECONDS))
-			or (evolution.evolution_condition == 'timer_global' and currentTime >= math.max(evolution.evolution_timer, (evolution.timeCreated + FIRST_EVOLUTION_DELAY_SECONDS)))
+		return (evolution.evolution_condition == 'timer' and (currentTime - evolution.timeCreated) >= evolution.evolution_timer)
+			or (evolution.evolution_condition == 'timer_global' and currentTime >= evolution.evolution_timer)
 	end
 
 	local function isEvolutionPowerPassed(evolution)
@@ -402,7 +402,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			if not combatCheckUpdate(unitID, evolution, currentTime)
 				and not spGetUnitTransporter(unitID)
-				and (isEvolutionTimePassed(evolution, currentTime) or isEvolutionPowerPassed(evolution)) then
+				and ((isEvolutionTimePassed(evolution, currentTime) or isEvolutionPowerPassed(evolution))) and f > FIRST_EVOLUTION_DELAY_FRAMES then
 					evolve(unitID, evolution.evolution_target)
 			end
 
