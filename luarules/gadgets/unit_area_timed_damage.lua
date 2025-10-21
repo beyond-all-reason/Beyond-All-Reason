@@ -20,11 +20,11 @@ end
 --------------------------------------------------------------------------------
 -- Configuration ---------------------------------------------------------------
 
-local damageInterval = 0.7333 -- in seconds
-local damageLimit = 100 -- in damage per second, not per interval
-local damageExcessRate = 0.2 -- %damage dealt above limit
-local damageCegMinScalar = 30
-local damageCegMinMultiple = 1 / 3
+local damageInterval = 0.7333 ---@type number in seconds, time between procs
+local damageLimit = 100 ---@type number in damage per second, soft-cap across multiple areas
+local damageExcessRate = 0.2 ---@type number %damage dealt above limit [0, 1)
+local damageCegMinScalar = 30 ---@type number in damage, minimum to show hit CEG
+local damageCegMinMultiple = 1 / 3 ---@type number in %damage, minimum to show hit CEG
 local factoryWaitTime = damageInterval ---@type number in seconds, immunity period for factory-built units
 
 -- Since I couldn't figure out totally arbitrary-radius variable CEGs for fire,
