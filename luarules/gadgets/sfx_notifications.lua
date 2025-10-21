@@ -234,8 +234,9 @@ else
 
 		-- if own and not killed by yourself
 		if not isSpec and unitTeam == myTeamID and attackerTeam and attackerTeam ~= unitTeam then -- and not unitInView
-			UnitLostNotifCooldown = 60
+			
 			if UnitLostNotifCooldown <= 0 then
+				UnitLostNotifCooldown = 60
 				if isRadar[unitDefID] then
 					local event = isRadar[unitDefID] > 2800 and 'AdvRadarLost' or 'RadarLost'
 					BroadcastEvent("NotificationEvent", event, tostring(myPlayerID))
@@ -249,6 +250,8 @@ else
 					BroadcastEvent("NotificationEvent", "UnitLost", tostring(myPlayerID))
 					return
 				end
+			else
+				UnitLostNotifCooldown = 60
 			end
 		end
 
