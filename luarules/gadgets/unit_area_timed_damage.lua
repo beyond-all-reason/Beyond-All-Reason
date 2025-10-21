@@ -25,6 +25,7 @@ local damageLimit = 100 -- in damage per second, not per interval
 local damageExcessRate = 0.2 -- %damage dealt above limit
 local damageCegMinScalar = 30
 local damageCegMinMultiple = 1 / 3
+local factoryWaitTime = damageInterval ---@type number in seconds, immunity period for factory-built units
 
 -- Since I couldn't figure out totally arbitrary-radius variable CEGs for fire,
 -- we're left with this static list, which is repeated in the expgen def files:
@@ -79,6 +80,7 @@ local gameSpeed              = Game.gameSpeed
 
 local frameInterval = math.round(Game.gameSpeed * damageInterval)
 local frameCegShift = math.round(Game.gameSpeed * damageInterval * 0.5)
+local frameWaitTime = math.round(Game.gameSpeed * factoryWaitTime)
 
 local timedDamageWeapons = {}
 local unitDamageImmunity = {}
@@ -462,7 +464,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
     if isFactory[builderID] then
-        isNewUnit[unitID] = frameNumber + frameInterval
+        isNewUnit[unitID] = frameNumber + frameWaitTime
     end
 end
 
