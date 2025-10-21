@@ -454,7 +454,7 @@ function gadget:GameFrame(frame)
     frameNumber = frame
 
     for unitID, expire in pairs(isNewUnit) do
-        if expire >= frame then
+        if expire > frame then
             isNewUnit[unitID] = nil
         end
     end
