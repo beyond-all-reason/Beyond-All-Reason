@@ -234,21 +234,21 @@ else
 
 		-- if own and not killed by yourself
 		if not isSpec and unitTeam == myTeamID and attackerTeam and attackerTeam ~= unitTeam then -- and not unitInView
-			if isRadar[unitDefID] then
-				local event = isRadar[unitDefID] > 2800 and 'AdvRadarLost' or 'RadarLost'
-				BroadcastEvent("NotificationEvent", event, tostring(myPlayerID))
-				return
-			elseif isMex[unitDefID] then
-				--local event = isMex[unitDefID] > 0.002 and 'T2MexLost' or 'MexLost'
-				local event = 'MexLost'
-				BroadcastEvent("NotificationEvent", event, tostring(myPlayerID))
-				return
-			elseif not isCommander[unitDefID] then
-				if UnitLostNotifCooldown <= 0 then
+			UnitLostNotifCooldown = 60
+			if UnitLostNotifCooldown <= 0 then
+				if isRadar[unitDefID] then
+					local event = isRadar[unitDefID] > 2800 and 'AdvRadarLost' or 'RadarLost'
+					BroadcastEvent("NotificationEvent", event, tostring(myPlayerID))
+					return
+				elseif isMex[unitDefID] then
+					--local event = isMex[unitDefID] > 0.002 and 'T2MexLost' or 'MexLost'
+					local event = 'MexLost'
+					BroadcastEvent("NotificationEvent", event, tostring(myPlayerID))
+					return
+				elseif not isCommander[unitDefID] then
 					BroadcastEvent("NotificationEvent", "UnitLost", tostring(myPlayerID))
+					return
 				end
-				UnitLostNotifCooldown = 60
-				return
 			end
 		end
 
