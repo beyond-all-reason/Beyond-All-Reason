@@ -97,15 +97,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	-- Player left send to all in allyteam
-	function gadget:PlayerRemoved(playerID, reason)
-		local players = PlayersInAllyTeamID(select(5,spGetPlayerInfo(playerID,false)))
-		for ct, player in pairs (players) do
-			if tostring(player) then
-				SendToUnsynced("NotificationEvent", "PlayerLeft", tostring(player))
-			end
-		end
-	end
 
 	function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 		local event = "StealthyUnitsDetected"
@@ -202,9 +193,9 @@ else
 	end
 
 	local commanderLastDamaged = {}
-	local UnitLostNotifCooldown = 60
-	local UnitsUnderAttackNotifCooldown = 60
-	local BaseUnderAttackNotifCooldown = 60
+	local UnitLostNotifCooldown = 0
+	local UnitsUnderAttackNotifCooldown = 0
+	local BaseUnderAttackNotifCooldown = 0
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 		if unitTeam == myTeamID and isLrpc[attackerDefID] and attackerTeam and GetAllyTeamID(attackerTeam) ~= myAllyTeamID then
 			BroadcastEvent("NotificationEvent", 'LrpcTargetUnits', tostring(myPlayerID))
@@ -242,22 +233,22 @@ else
 		local unitInView = Spring.IsUnitInView(unitID)
 
 		-- if own and not killed by yourself
-		if not isSpec and not unitInView and unitTeam == myTeamID and attackerTeam and attackerTeam ~= unitTeam then
-			if isRadar[unitDefID] then
-				local event = isRadar[unitDefID] > 2800 and 'AdvRadarLost' or 'RadarLost'
-				BroadcastEvent("NotificationEvent", event, tostring(myPlayerID))
-				return
-			elseif isMex[unitDefID] then
-				--local event = isMex[unitDefID] > 0.002 and 'T2MexLost' or 'MexLost'
-				local event = 'MexLost'
-				BroadcastEvent("NotificationEvent", event, tostring(myPlayerID))
-				return
-			elseif not isCommander[unitDefID] then
-				if UnitLostNotifCooldown <= 0 then
+		if not isSpec and unitTeam == myTeamID and attackerTeam and attackerTeam ~= unitTeam then -- and not unitInView
+			UnitLostNotifCooldown = 60
+			if UnitLostNotifCooldown <= 0 then
+				if isRadar[unitDefID] then
+					local event = isRadar[unitDefID] > 2800 and 'AdvRadarLost' or 'RadarLost'
+					BroadcastEvent("NotificationEvent", event, tostring(myPlayerID))
+					return
+				elseif isMex[unitDefID] then
+					--local event = isMex[unitDefID] > 0.002 and 'T2MexLost' or 'MexLost'
+					local event = 'MexLost'
+					BroadcastEvent("NotificationEvent", event, tostring(myPlayerID))
+					return
+				elseif not isCommander[unitDefID] then
 					BroadcastEvent("NotificationEvent", "UnitLost", tostring(myPlayerID))
+					return
 				end
-				UnitLostNotifCooldown = 60
-				return
 			end
 		end
 
