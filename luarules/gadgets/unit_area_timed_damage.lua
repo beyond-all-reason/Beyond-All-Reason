@@ -420,12 +420,14 @@ function gadget:Initialize()
         end
 
         isNewUnit = {}
+		local progressMax = 0.05 -- Assuming 20s build time. Any guess is fine (for /luarules reload).
+		local beingBuilt, progress, health, healthMax, framesRemaining
         for _, unitID in ipairs(Spring.GetAllUnits()) do
-            local beingBuilt, progress = Spring.GetUnitIsBeingBuilt(unitID)
-            if beingBuilt and progress <= 0.01 then
-                -- Close enough is good enough:
-                local framesRemaining = frameInterval * (1 - 0.5 * progress / 0.01)
-                isNewUnit[unitID] = frameNumber + math.max(1, framesRemaining)
+            beingBuilt, progress = Spring.GetUnitIsBeingBuilt(unitID)
+			health, healthMax = Spring.GetUnitHealth(unitID)
+            if beingBuilt and min(progress, health / healthMax) <= progressMax then
+                framesRemaining = frameInterval * (1 - 0.5 * min(progress, health / healthMax) / progressMax)
+                isNewUnit[unitID] = frameNumber + max(1, framesRemaining)
             end
         end
     else
