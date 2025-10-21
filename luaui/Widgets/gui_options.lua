@@ -4480,7 +4480,6 @@ function init()
 			end,
 		},
 
-
 		{ id = "label_ui_developer", group = "ui", name = Spring.I18N('ui.settings.option.label_developer'), category = types.advanced },
 		{ id = "label_ui_developer_spacer", group = "ui", category = types.advanced },
 
