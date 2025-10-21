@@ -407,13 +407,14 @@ local autocompleteCommands = {
 	-- zombie commands
 	'luarules zombiesetallgaia',
 	'luarules zombiequeueallcorpses',
-	'luarules zombieautospawning 0',
+	'luarules zombieautospawn 0',
 	'luarules zombieclearspawns',
 	'luarules zombiepacify 0',
+	'luarules zombiesuspendorders 0',
 	'luarules zombieaggroteam 0',
 	'luarules zombieaggroally 0',
 	'luarules zombiekillall',
-	'luarules zombieclearorders',
+	'luarules zombieclearallorders',
 	'luarules zombiedebug 0',
 	'luarules zombiemode normal',
 
