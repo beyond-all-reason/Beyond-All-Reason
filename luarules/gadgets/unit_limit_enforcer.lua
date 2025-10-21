@@ -19,6 +19,7 @@ end
 local limitedUnits = {}
 local teamQueuedCounts = {}
 local teamLivingCounts = {}
+local unitBuildQueue = {}
 local shouldRemoveGadget = true
 
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -59,6 +60,25 @@ end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions)
 	if cmdID >= 0 then
+		if unitBuildQueue[unitID] then
+			local interruptingCommands = {
+				[CMD.MOVE] = true,
+				[CMD.ATTACK] = true,
+				[CMD.PATROL] = true,
+				[CMD.FIGHT] = true,
+				[CMD.GUARD] = true,
+				[CMD.STOP] = true,
+			}
+
+			if interruptingCommands[cmdID] then
+				for buildUnitDefID, queueCount in pairs(unitBuildQueue[unitID]) do
+					for i = 1, queueCount do
+						decrementQueuedCount(unitTeam, buildUnitDefID)
+					end
+				end
+				unitBuildQueue[unitID] = nil
+			end
+		end
 		return true
 	end
 	local buildUnitDefID = -cmdID
@@ -84,10 +104,27 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		ensureTeamCountsTable(unitTeam)
 		local currentCount = getQueuedCount(unitTeam, buildUnitDefID)
 		teamQueuedCounts[unitTeam][buildUnitDefID] = currentCount + 1
+
+		unitBuildQueue[unitID] = unitBuildQueue[unitID] or {}
+		unitBuildQueue[unitID][buildUnitDefID] = (unitBuildQueue[unitID][buildUnitDefID] or 0) + 1
 		return true
 	end
 
 	return true
+end
+
+function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	unitBuildQueue[unitID] = nil
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	if isUnitLimited(unitDefID) then
+		local _, _, inBuild = Spring.GetUnitIsStunned(unitID)
+		if inBuild then
+			decrementQueuedCount(unitTeam, unitDefID)
+		end
+	end
+	unitBuildQueue[unitID] = nil
 end
 
 function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
@@ -110,6 +147,19 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if isUnitLimited(unitDefID) then
 		decrementQueuedCount(unitTeam, unitDefID)
+
+		for builderID, buildQueue in pairs(unitBuildQueue) do
+			if buildQueue[unitDefID] and buildQueue[unitDefID] > 0 then
+				buildQueue[unitDefID] = buildQueue[unitDefID] - 1
+				if buildQueue[unitDefID] == 0 then
+					buildQueue[unitDefID] = nil
+				end
+				if next(buildQueue) == nil then
+					unitBuildQueue[builderID] = nil
+				end
+				break
+			end
+		end
 	end
 end
 
