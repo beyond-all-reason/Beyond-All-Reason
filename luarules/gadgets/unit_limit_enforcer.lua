@@ -18,55 +18,106 @@ end
 
 local limitedUnits = {}
 local teamQueuedCounts = {}
+local teamLivingCounts = {}
+local shouldRemoveGadget = true
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.maxThisUnit and unitDef.maxThisUnit > 0 and unitDef.maxThisUnit < 10000 then
 		limitedUnits[unitDefID] = unitDef.maxThisUnit
+		shouldRemoveGadget = false
 	end
+end
+
+if shouldRemoveGadget then
+	gadgetHandler:RemoveGadget(gadget)
+	return
 end
 
 local function getQueuedCount(teamID, unitDefID)
 	return teamQueuedCounts[teamID] and teamQueuedCounts[teamID][unitDefID] or 0
 end
 
-local function addQueuedCount(teamID, unitDefID)
+local function getLivingCount(teamID, unitDefID)
+	return teamLivingCounts[teamID] and teamLivingCounts[teamID][unitDefID] or 0
+end
+
+local function ensureTeamCountsTable(teamID)
 	teamQueuedCounts[teamID] = teamQueuedCounts[teamID] or {}
-	teamQueuedCounts[teamID][unitDefID] = getQueuedCount(teamID, unitDefID) + 1
 end
 
-local function removeQueuedCount(teamID, unitDefID)
-	if not teamQueuedCounts[teamID] or not teamQueuedCounts[teamID][unitDefID] then
-		return
-	end
-
-	teamQueuedCounts[teamID][unitDefID] = teamQueuedCounts[teamID][unitDefID] - 1
-	if teamQueuedCounts[teamID][unitDefID] <= 0 then
-		teamQueuedCounts[teamID][unitDefID] = nil
+local function decrementQueuedCount(teamID, unitDefID)
+	ensureTeamCountsTable(teamID)
+	local currentCount = getQueuedCount(teamID, unitDefID)
+	if currentCount > 0 then
+		teamQueuedCounts[teamID][unitDefID] = currentCount - 1
 	end
 end
 
-function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID)
-	if cmdID < 0 then
-		local buildUnitDefID = -cmdID
-		if limitedUnits[buildUnitDefID] then
-			local existingCount = 0
-			for _, uid in ipairs(Spring.GetTeamUnits(unitTeam)) do
-				if Spring.GetUnitDefID(uid) == buildUnitDefID then
-					existingCount = existingCount + 1
-				end
-			end
-			local queuedCount = getQueuedCount(unitTeam, buildUnitDefID)
-			if (existingCount + queuedCount) >= limitedUnits[buildUnitDefID] then
-				return false
-			end
-			addQueuedCount(unitTeam, buildUnitDefID)
+local function isUnitLimited(unitDefID)
+	return limitedUnits[unitDefID] ~= nil
+end
+
+function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions)
+	if cmdID >= 0 then
+		return true
+	end
+	local buildUnitDefID = -cmdID
+	if not isUnitLimited(buildUnitDefID) then
+		return true
+	end
+
+	local isCancelCommand = cmdOptions.right and cmdOptions.coded == 16
+	local isBuildCommand = not cmdOptions.right
+
+	if isCancelCommand then
+		decrementQueuedCount(unitTeam, buildUnitDefID)
+		return true
+	elseif isBuildCommand then
+		local livingCount = getLivingCount(unitTeam, buildUnitDefID)
+		local queuedCount = getQueuedCount(unitTeam, buildUnitDefID)
+		local totalCount = livingCount + queuedCount
+		local maxAllowed = limitedUnits[buildUnitDefID]
+
+		if totalCount >= maxAllowed then
+			return false
 		end
+		ensureTeamCountsTable(unitTeam)
+		local currentCount = getQueuedCount(unitTeam, buildUnitDefID)
+		teamQueuedCounts[unitTeam][buildUnitDefID] = currentCount + 1
+		return true
 	end
+
 	return true
 end
 
+function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	if isUnitLimited(unitDefID) then
+		teamLivingCounts[unitTeam] = teamLivingCounts[unitTeam] or {}
+		local currentCount = getLivingCount(unitTeam, unitDefID)
+		teamLivingCounts[unitTeam][unitDefID] = currentCount + 1
+	end
+end
+
+function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	if isUnitLimited(unitDefID) then
+		if teamLivingCounts[unitTeam] and teamLivingCounts[unitTeam][unitDefID] then
+			local currentCount = teamLivingCounts[unitTeam][unitDefID]
+			teamLivingCounts[unitTeam][unitDefID] = math.max(currentCount - 1, 0)
+		end
+	end
+end
+
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	if limitedUnits[unitDefID] then
-		removeQueuedCount(unitTeam, unitDefID)
+	if isUnitLimited(unitDefID) then
+		decrementQueuedCount(unitTeam, unitDefID)
+	end
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	if isUnitLimited(unitDefID) then
+		local _, _, inBuild = Spring.GetUnitIsStunned(unitID)
+		if inBuild then
+			decrementQueuedCount(unitTeam, unitDefID)
+		end
 	end
 end
