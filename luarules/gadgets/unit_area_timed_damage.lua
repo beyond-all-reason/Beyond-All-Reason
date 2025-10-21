@@ -466,6 +466,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
     end
 end
 
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	isNewUnit[unitID] = nil
+end
+
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
     if unitDamageTaken[unitID] then
         unitDamageTaken[unitID] = nil
