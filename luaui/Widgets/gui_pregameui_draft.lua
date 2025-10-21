@@ -62,6 +62,33 @@ local lockText = ''
 local locked = false
 local showLockButton = true
 local buttonDrawn = false
+local isReadyBlocked = false
+local readyBlockedConditions = {}
+local cachedTooltipText = ""
+
+local function hasActiveConditions()
+	for k, v in pairs(readyBlockedConditions) do
+		return true
+	end
+	return false
+end
+
+local function updateTooltip()
+	isReadyBlocked = hasActiveConditions()
+	if isReadyBlocked then
+		cachedTooltipText = ""
+		for conditionKey, description in pairs(readyBlockedConditions) do
+			if description ~= nil then
+				if cachedTooltipText ~= "" then
+					cachedTooltipText = cachedTooltipText .. "\n"
+				end
+				cachedTooltipText = cachedTooltipText .. Spring.I18N(description)
+			end
+		end
+	else
+		cachedTooltipText = ""
+	end
+end
 
 local RectRound, UiElement, UiButton, elementPadding, uiPadding
 
@@ -529,7 +556,11 @@ local function drawButton()
 		if cantPlaceNow then
 			color = waitButtonColor
 		elseif not locked then
-			color = readyButtonColor
+			if isReadyBlocked then
+				color = { 0.3, 0.3, 0.3 }
+			else
+				color = readyButtonColor
+			end
 		else
 			color = unreadyButtonColor
 		end
@@ -606,18 +637,26 @@ local function drawButton()
 		if x > buttonRect[1] and x < buttonRect[3] and y > buttonRect[2] and y < buttonRect[4] and not cantPlaceNow then
 			glCallList(buttonHoverList)
 			colorString = "\255\210\210\210"
+			
+			if isReadyBlocked and WG['tooltip'] then
+				WG['tooltip'].ShowTooltip('pregameui', cachedTooltipText)
+			end
 		else
 			glCallList(buttonList)
 			timer2 = timer2 + Spring.GetLastUpdateSeconds()
 			if mySpec then
 				colorString = offeredAsSub and "\255\255\255\225" or "\255\222\222\222"
 			else
-				colorString = os.clock() % 0.75 <= 0.375 and "\255\255\255\255" or "\255\222\222\222"
+				if isReadyBlocked then
+					colorString = "\255\150\150\150"
+				else
+					colorString = os.clock() % 0.75 <= 0.375 and "\255\255\255\255" or "\255\222\222\222"
+				end
 			end
 			if readied or cantPlaceNow then
 				colorString = "\255\222\222\222"
 			end
-			if blinkButton and not readied and os.clock() % 0.75 <= 0.375 then
+			if blinkButton and not readied and not isReadyBlocked and os.clock() % 0.75 <= 0.375 then
 				local mult = 1.33
 				UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { readyButtonColor[1]*0.55*mult, readyButtonColor[2]*0.55*mult, readyButtonColor[3]*0.55*mult, 1 }, { readyButtonColor[1]*mult, readyButtonColor[2]*mult, readyButtonColor[3]*mult, 1 })
 			end
@@ -754,7 +793,9 @@ function widget:MousePress(sx, sy)
 				if not readied then
 					if not mySpec then
 						if not readied then
-							if startPointChosen then
+							if isReadyBlocked then
+								return true
+							elseif startPointChosen then
 								pressedReady = true
 								readied = true
 								Spring.SendLuaRulesMsg("ready_to_start_game")
@@ -866,6 +907,24 @@ function widget:Initialize()
 
 	if (draftMode ~= nil and draftMode ~= "disabled") then
 		reloadedDraftMode = os.clock()+2 -- in case you luaui reload
+	end
+	
+	WG['pregameui_draft'] = {}
+	WG['pregameui_draft'].addReadyCondition = function(conditionKey, description)
+		if conditionKey and description then
+			readyBlockedConditions[conditionKey] = description
+			updateTooltip()
+		end
+	end
+	WG['pregameui_draft'].removeReadyCondition = function(conditionKey)
+		if conditionKey and readyBlockedConditions[conditionKey] then
+			readyBlockedConditions[conditionKey] = nil
+			updateTooltip()
+		end
+	end
+	WG['pregameui_draft'].clearAllReadyConditions = function()
+		readyBlockedConditions = {}
+		updateTooltip()
 	end
 end
 
@@ -1138,4 +1197,5 @@ function widget:Shutdown()
 			removeUnitShape(id)
 		end
 	end
+	WG['pregameui_draft'] = nil
 end
