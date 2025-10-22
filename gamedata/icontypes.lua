@@ -391,6 +391,18 @@ local icontypes = {
 		bitmap = "icons/defence_t15_rocket.png",
 		size = 1.6
 	},
+	armanavaldefturret = {
+		bitmap = "icons/armanni.png",
+		size = 2.0
+	},
+	coranavaldefturret = {
+		bitmap = "icons/defence_t2_aoe_plasma_laser.png",
+		size = 2.0
+	},
+	leganavaldefturret = {
+		bitmap = "icons/defence_t2_shotgun_mg.png",
+		size = 2.0
+	},
 	armfhp = {
 		bitmap = "icons/factory_hover.png",
 		size = 1.52250004

@@ -1760,7 +1760,7 @@ local unitGrids = {
 			{ "armuwadves", "armuwadvms", },                   -- uw e stor, uw metal stor
 		},
 		{
-			{ "armatl", "armkraken", },                        -- adv torp launcher, floating heavy platform
+			{ "armatl", "armkraken", "armanavaldefturret" },                        -- adv torp launcher, floating heavy platform
 			{ "armfflak", },                                   -- floating flak
 			{ },                                               --
 		},
@@ -1783,7 +1783,7 @@ local unitGrids = {
 			{ "coruwadves", "coruwadvms", },                   -- uw e stor, uw metal stor
 		},
 		{
-			{ "coratl", "corfdoom", },                         -- adv torp launcher, floating heavy platform
+			{ "coratl", "corfdoom","coranavaldefturret", },                         -- adv torp launcher, floating heavy platform
 			{ "corenaa", },                                    -- floating flak
 			{ },                                               --
 		},
@@ -2014,7 +2014,7 @@ local unitGrids = {
 			{"armuwadves","armuwadvms","","",},
 		},
 		{
-			{"armkraken", "armpb", "armanni", "",},
+			{"armkraken", "armpb", "armanni", "armanavaldefturret",},
 			{"armfflak","armmercury","","",},
 			{"armatl","","","",},
 		},
@@ -2037,7 +2037,7 @@ local unitGrids = {
 			{"coruwadves","coruwadvms","","",},
 		},
 		{
-			{"corfdoom", "corvipe", "cordoom", "",},
+			{"corfdoom", "corvipe", "cordoom", "coranavaldefturret",},
 			{"corenaa","corscreamer","","",},
 			{"coratl","","","",},
 		},
@@ -2373,7 +2373,7 @@ local unitGrids = {
 			{ "armtl", "armkraken", "armamb", "armfhlt", },         -- torp launcher, kraken, ambusher, fHLT
 			{ "armfflak", "armpt", "armamph", },                    -- fl flak, PT boat, pelican
 			{ "armdecade", "armroy", },                             -- decade, destroyer
-			{ "armnavaldefturret", "", "", "", },
+			{ "armnavaldefturret", "armanavaldefturret", "", "", },
 		},
 		{
 			{ "armfrad", "armarad", },                              -- fl radar, adv radar
@@ -2397,7 +2397,7 @@ local unitGrids = {
 			{ "cortl", "corfdoom", "cortoast", "corfhlt", },       -- torp launcher, fl DDM, toaster, fHLT
 			{ "corenaa", "corpt", },                               -- fl flak, searcher
 			{ "coresupp", "corroy", },                             -- supporter, destroyer
-			{ "cornavaldefturret", "", "", "", },
+			{ "cornavaldefturret", "coranavaldefturret", "", "", },
 		},
 		{
 			{ "corfrad", "corarad", },                             -- fl radar, adv radar

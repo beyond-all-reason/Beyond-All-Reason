@@ -810,6 +810,10 @@ local unitOrderTable = {
    ['armkraken']      = 230500,
    ['corfdoom']       = 230600,
 
+   ['armanavaldefturret']	= 230451,
+   ['coranavaldefturret']	= 230501,
+   ['leganavaldefturret']	= 230601,
+
    --WATER DEFENSES AA
    ['armfrt']         = 255100,
    ['corfrt']         = 255200,
