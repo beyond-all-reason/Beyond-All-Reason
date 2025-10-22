@@ -58,7 +58,6 @@ local graphsWindowVisible = false
 -- Resources
 local r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
 local energyOverflowLevel, metalOverflowLevel
-local wholeTeamWastingMetalCount = 0
 local allyteamOverflowingMetal = false
 local allyteamOverflowingEnergy = false
 local overflowingMetal = false
@@ -587,16 +586,27 @@ local function updateResbarText(res, force)
 					text = (allyteamOverflowingMetal and '   ' .. Spring.I18N('ui.topbar.resources.wastingMetal') .. '   ' or '   ' .. Spring.I18N('ui.topbar.resources.overflowing') .. '   ')
 					if not supressOverflowNotifs and  WG['notifications'] and not isMetalmap and (not WG.sharedMetalFrame or WG.sharedMetalFrame+60 < gameFrame) then
 						if allyteamOverflowingMetal then
-							if numTeamsInAllyTeam > 1 and wholeTeamWastingMetalCount < 5 then
-								wholeTeamWastingMetalCount = wholeTeamWastingMetalCount + 1
-								WG['notifications'].addEvent('WholeTeamWastingMetal')
+							if numTeamsInAllyTeam > 1 then
+								WG['notifications'].queueNotification('WholeTeamWastingMetal')
+							else
+								WG['notifications'].queueNotification('YouAreWastingMetal')
 							end
 						elseif r[res][6] > 0.75 then	-- supress if you are deliberately overflowing by adjustingthe share slider down
-							WG['notifications'].addEvent('YouAreOverflowingMetal')
+							WG['notifications'].queueNotification('YouAreOverflowingMetal')
 						end
 					end
 				else
 					text = (allyteamOverflowingEnergy and '   ' .. Spring.I18N('ui.topbar.resources.wastingEnergy') .. '   '  or '   ' .. Spring.I18N('ui.topbar.resources.overflowing') .. '   ')
+					if not supressOverflowNotifs and  WG['notifications'] and (not WG.sharedEnergyFrame or WG.sharedEnergyFrame+60 < gameFrame) then
+						if allyteamOverflowingEnergy then
+							if numTeamsInAllyTeam > 1 then
+								WG['notifications'].queueNotification('WholeTeamWastingEnergy')
+							else
+								WG['notifications'].queueNotification('YouAreWastingEnergy')
+							end
+						end
+					end
+
 				end
 
 				if lastWarning[res] ~= text or force then

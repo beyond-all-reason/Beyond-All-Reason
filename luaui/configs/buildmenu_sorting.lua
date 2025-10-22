@@ -576,9 +576,6 @@ local unitOrderTable = {
    ['corapt3']        = 102725, --scavengers
 
    --UTILITIES
-   ['armasp']         = 102800, --AIR REPAIR PADS
-   ['corasp']         = 102825,
-   ['corfasp']         = 102826,
 
    ['armeyes']        = 103000,
    ['coreyes']        = 103050,
@@ -784,8 +781,6 @@ local unitOrderTable = {
    ['corfmine3']      = 217200,
 
    --WATER UTILITIES
-   ['armfasp']        = 220000,
-   ['corfasp']        = 220050,
    ['armfrad']        = 220100,
    ['legfrad']        = 220101,
    ['corfrad']        = 220150,
