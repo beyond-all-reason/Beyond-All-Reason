@@ -1,6 +1,8 @@
 local SharedEnums = VFS.Include("common/luaUtilities/team_transfer/shared_enums.lua")
 
-local Comms = {}
+local Comms = {
+  ResourceCommunicationCase = SharedEnums.ResourceCommunicationCase,
+}
 Comms.__index = Comms
 
 --- Determine communication case from parameters

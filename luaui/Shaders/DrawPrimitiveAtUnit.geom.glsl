@@ -29,6 +29,7 @@ in DataVS {
 out DataGS {
 	vec4 g_color;
 	vec4 g_uv;
+	float g_invalid;
 };
 
 mat3 rotY;
@@ -56,6 +57,7 @@ void offsetVertex4(float x, float y, float z, float u, float v, float addRadiusC
 		gl_Position.z = (gl_Position.z) - ZPULL / (gl_Position.w); // send 16 elmos forward in depth buffer
 	#endif 
 	g_uv.zw = dataIn[0].v_parameters.zw;
+	g_invalid = dataIn[0].v_parameters.y;
 	POST_GEOMETRY
 	EmitVertex();
 }

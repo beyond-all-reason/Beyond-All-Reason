@@ -63,7 +63,8 @@ end
 local SharedEnums = VFS.Include('common/luaUtilities/team_transfer/shared_enums.lua')
 local TeamTransfer = VFS.Include('common/luaUtilities/team_transfer/team_transfer_unsynced.lua')
 local ResourceTransfer = TeamTransfer.Resources
-local UnitTransfer = TeamTransfer.Units
+local ApiExtensions = VFS.Include('common/luaUtilities/team_transfer/gui_advplayerlist_api_extensions.lua')
+local Helpers = VFS.Include('common/luaUtilities/team_transfer/gui_advplayerlist_helpers.lua')
 
 --------------------------------------------------------------------------------
 -- Config
@@ -228,7 +229,9 @@ local Background, ShareSlider, BackgroundGuishader, tipText, tipTextTitle, drawT
 --local specJoinedOnce, scheduledSpecFullView
 --local prevClickedPlayer, clickedPlayerTime, clickedPlayerID
 local lockPlayerID  --leftPosX, lastSliderSound, release
+local hoveredPlayerID = nil
 local MainList, MainList2, MainList3, drawListOffset
+
 
 local deadPlayerHeightReduction = 8
 
@@ -759,18 +762,7 @@ function ActivityEvent(playerID)
 end
 
 function widget:SelectionChanged(selectedUnits)
-    local myTeamID = Spring_GetMyTeamID()
-    for playerID, playerData in pairs(player) do
-        if playerData.team and playerID ~= myTeamID then
-            if selectedUnits and #selectedUnits > 0 then
-                local policyResult = UnitTransfer.GetCachedPolicyResult(myTeamID, playerData.team)
-                local validationResult = UnitTransfer.ValidateUnits(policyResult, selectedUnits)
-                TeamTransfer.PackSelectedUnitsValidation(validationResult, playerData)
-            else
-                TeamTransfer.ClearSelectedUnitsValidation(playerData)
-            end
-        end
-    end
+    Helpers.UpdatePlayerUnitValidations(player, myTeamID, selectedUnits)
 end
 
 
@@ -971,6 +963,11 @@ function widget:Initialize()
 			end
 		end
 	end
+
+	WG['advplayerlist_api'].AddHoverChangeListener = ApiExtensions.AddHoverChangeListener
+	WG['advplayerlist_api'].RemoveHoverChangeListener = ApiExtensions.RemoveHoverChangeListener
+	WG['advplayerlist_api'].AddHoverInvalidUnitsListener = ApiExtensions.AddHoverInvalidUnitsListener
+	WG['advplayerlist_api'].RemoveHoverInvalidUnitsListener = ApiExtensions.RemoveHoverInvalidUnitsListener
 
 	widgetHandler:AddAction("speclist", speclistCmd, nil, 't')
 end
@@ -1393,7 +1390,7 @@ function UpdatePlayerResources()
 			end
         end
         if player[playerID].team then
-            TeamTransfer.PackAllPoliciesForPlayer(player[playerID], myTeamID, player[playerID].team)
+            Helpers.PackAllPoliciesForPlayer(player[playerID], myTeamID, player[playerID].team)
         end
     end
 
@@ -1899,7 +1896,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 local function updateShareAmount(player, resourceType)
-    local policyResult = ResourceTransfer.GetPlayerPolicy(player, resourceType, myTeamID)
+    local policyResult = Helpers.GetPlayerPolicy(player, resourceType, myTeamID)
     if not policyResult.amountSendable then
         shareAmount = 0
         return
@@ -2229,8 +2226,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
     local alliances = player[playerID].alliances
     local metalPolicy, energyPolicy, unitPolicy, unitValidationResult
     if not spec then
-        metalPolicy, energyPolicy, unitPolicy = TeamTransfer.UnpackAllPolicies(player[playerID], myTeamID, team)
-        unitValidationResult = TeamTransfer.UnpackSelectedUnitsValidation(player[playerID])
+        metalPolicy, energyPolicy, unitPolicy = Helpers.UnpackAllPolicies(player[playerID], myTeamID, team)
+        unitValidationResult = Helpers.UnpackSelectedUnitsValidation(player[playerID])
     end
     local posY = widgetPosY + widgetHeight - vOffset
     local tipPosY = widgetPosY + ((widgetHeight - vOffset) * widgetScale)
@@ -2254,8 +2251,15 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
             alpha = alphaActivity
         end
     end
-    if mouseY >= tipPosY and mouseY <= tipPosY + (16 * widgetScale * playerScale) then
+    -- detect hover on the entire row bounds so we can detect when the moust leaves the row
+    local rowTop = posY
+    local rowBottom = posY + (playerOffset*playerScale)
+    if IsOnRect(mouseX, mouseY, widgetPosX, rowTop, widgetPosX + widgetWidth, rowBottom) then
         tipY = true
+        if hoveredPlayerID ~= playerID and player[playerID] and player[playerID].team then
+            local selectedUnits = Spring.GetSelectedUnits()
+            ApiExtensions.HandleHoverChange(myTeamID, selectedUnits, player[playerID].team, playerID)
+        end
     end
 
     if onlyMainList and lockPlayerID and lockPlayerID == playerID then
@@ -3068,7 +3072,7 @@ end
 
 function ShareTip(mouseX, unitPolicy, metalPolicy, energyPolicy, unitValidationResult)
     if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
-        tipText = UnitTransfer.TooltipText(unitPolicy, unitValidationResult)
+        tipText = TeamTransfer.Units.TooltipText(unitPolicy, unitValidationResult)
     elseif mouseX >= widgetPosX + (m_share.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (35*playerScale)) * widgetScale then
         tipText = ResourceTransfer.TooltipText(energyPolicy)
     elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
@@ -3203,10 +3207,10 @@ end
 ---------------------------------------------------------------------------------------------------
 
 local function RenderShareSliderText(posY, player, resourceType, baseOffset)
-    local policyResult = ResourceTransfer.GetPlayerPolicy(player, resourceType, myTeamID)
+    local policyResult = Helpers.GetPlayerPolicy(player, resourceType, myTeamID)
     local case = ResourceTransfer.DecideCommunicationCase(policyResult)
     local label
-    if case == ResourceTransfer.CommunicationCase.OnTaxFree then
+    if case == ResourceTransfer.ResourceCommunicationCase.OnTaxFree then
         -- For tax-free sharing, just show the amount being shared
         label = ResourceTransfer.FormatNumberForUI(shareAmount)
     else
@@ -3234,9 +3238,9 @@ function CreateShareSlider()
 
     -- Refresh policy data for focused players before drawing
     if energyPlayer then
-        TeamTransfer.PackMetalPolicyResult(energyPlayer.team, myTeamID, energyPlayer)
+        Helpers.PackMetalPolicyResult(energyPlayer.team, myTeamID, energyPlayer)
     elseif metalPlayer then
-        TeamTransfer.PackEnergyPolicyResult(metalPlayer.team, myTeamID, metalPlayer)
+        Helpers.PackEnergyPolicyResult(metalPlayer.team, myTeamID, metalPlayer)
     end
 
     ShareSlider = gl_CreateList(function()
@@ -3395,6 +3399,7 @@ function widget:MousePress(x, y, button)
                                             --Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.needSupport'))
 											Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needSupport')
                                         else
+                                            Spring.Echo("Calling ShareResources UNIT")
                                             Spring_ShareResources(clickedPlayer.team, "units")
                                             Spring.PlaySoundFile("beep4", 1, 'ui')
                                         end
@@ -3498,34 +3503,6 @@ function widget:MouseMove(x, y, dx, dy, button)
     end
 end
 
----@param receiverTeamId number
----@param resourceType ResourceType
-local function handleResourceTransfer(receiverTeamId, resourceType)
-    local targetPlayer = (resourceType == "metal" and metalPlayer) or energyPlayer
-    local policyResult, pascalResourceType = ResourceTransfer.GetPlayerPolicy(targetPlayer, resourceType, myTeamID)
-
-    local case = ResourceTransfer.DecideCommunicationCase(policyResult)
-
-    if case == ResourceTransfer.CommunicationCase.OnSelf then
-      if shareAmount > 0 then
-          Spring.SendLuaRulesMsg('msg:ui.playersList.chat.need' .. pascalResourceType .. 'Amount:amount='..shareAmount)
-        else
-          Spring.SendLuaRulesMsg('msg:ui.playersList.chat.need' .. pascalResourceType)
-        end
-    end
-
-    if shareAmount and shareAmount > 0 then
-        Spring_ShareResources(receiverTeamId, resourceType, shareAmount)
-        -- post-transfer messaging now handled by game_tax_resource_sharing.lua
-    end
-    
-    sliderOrigin = nil
-    sliderPosition = nil
-    shareAmount = 0
-    energyPlayer = nil
-    metalPlayer = nil
-end
-
 function widget:MouseRelease(x, y, button)
     if button == 1 then
         if firstclick ~= nil then
@@ -3536,13 +3513,19 @@ function widget:MouseRelease(x, y, button)
             release = nil
         end
 
-        if energyPlayer ~= nil and shareAmount then
-            handleResourceTransfer(energyPlayer.team, "energy")
-        end
+          if energyPlayer ~= nil and shareAmount then
+             Helpers.HandleResourceTransfer(energyPlayer, "energy", shareAmount, myTeamID)
+          end
 
-        if metalPlayer ~= nil and shareAmount then
-            handleResourceTransfer(metalPlayer.team, "metal")
-        end
+          if metalPlayer ~= nil and shareAmount then
+             Helpers.HandleResourceTransfer(metalPlayer, "metal", shareAmount, myTeamID)
+          end
+        
+        sliderOrigin = nil
+        sliderPosition = nil
+        shareAmount = 0
+        energyPlayer = nil
+        metalPlayer = nil
     end
 end
 
@@ -3842,8 +3825,12 @@ end
 function widget:Update(delta)
     --handles takes & related messages
     local mx, my = Spring.GetMouseState()
+    local wasHoveringPlayerlist = hoverPlayerlist
     hoverPlayerlist = false
-    if math_isInRect(mx, my, apiAbsPosition[2] - 1, apiAbsPosition[3] - 1, apiAbsPosition[4] + 1, apiAbsPosition[1] + 1 ) then
+
+    -- Determine if the mouse is over the full player list bounding box
+    local insidePlayerlist = math_isInRect(mx, my, apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1])
+    if insidePlayerlist then
         hoverPlayerlist = true
 
 		if leaderboardOffset then
@@ -3948,6 +3935,12 @@ function widget:Update(delta)
         if updateMainList2 or updateMainList3 then
             CreateLists(curFrame==0, updateMainList2, updateMainList3)
         end
+    end
+
+    -- Clear hover state when mouse leaves player list entirely (any side)
+    if wasHoveringPlayerlist and not hoverPlayerlist then
+        local selectedUnits = Spring.GetSelectedUnits()
+        ApiExtensions.HandleHoverChange(myTeamID, selectedUnits, nil, nil)
     end
 end
 
