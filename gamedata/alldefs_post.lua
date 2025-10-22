@@ -1196,7 +1196,16 @@ function UnitDef_Post(name, uDef)
 			corcsa = { ["corfhlt"] = "cornavaldefturret" },
 			legcs = { ["legfmg"]  = "legnavaldefturret" },
 			legch = { ["legfmg"]  = "legnavaldefturret" },
-			legotter = { ["legfmg"]  = "legnavaldefturret" },
+			armacsub = { ["armkraken"]  = "armanavaldefturret" },
+			armmls = {
+				["armfhlt"]  = "armnavaldefturret",
+				["armkraken"] = "armanavaldefturret",
+			},
+			coracsub = { ["corfdoom"]  = "coranavaldefturret" },
+			cormls = {
+				["corfhlt"]  = "cornavaldefturret",
+				["corfdoom"] = "coranavaldefturret",
+			},
 		}
 
 		if buildOptionReplacements[name] then
