@@ -109,7 +109,7 @@ FireSecondary()
 
 }
 
-Shot1(zero){
+Shot2(zero){
     if(whichBarrel == 0){
         emit-sfx 1024 + 0 from rightGaussFlare1;
         move rightGaussBarrel1 to z-axis [-5] now;
