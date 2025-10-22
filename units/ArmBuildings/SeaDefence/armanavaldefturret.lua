@@ -165,13 +165,13 @@ return {
 			},
 		},
 		weapons = {
-			[2] = {
+			[1] = {
 				def = "armada_tachyon_emitter",
 				-- badtargetcategory = "VTOL",
 				onlytargetcategory = "SURFACE",
 				-- fastautoretargeting = true,
 			},
-			[1] = {
+			[2] = {
 				def = "armada_medium_gauss_cannon",
 				badtargetcategory = "VTOL",
 				fastautoretargeting = true,
