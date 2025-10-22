@@ -26,6 +26,7 @@ local unitRanges = {}
 local myAllyTeam = Spring.GetMyAllyTeamID()
 
 local POLLING_RATE = 15
+local CMD_STOP = CMD.STOP
 local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
 local CMD_SET_TARGET = GameCMD.UNIT_SET_TARGET
 -- Set target on units that aren't in range yet but may come in range soon
@@ -87,7 +88,7 @@ function widget:GameFrame(frame)
 				newCmdOpts = { "shift" }
 			end
 
-			commandsToGive[#commandsToGive+1] = { CMD_SET_TARGET, { targetID }, newCmdOpts }			
+			commandsToGive[#commandsToGive+1] = { CMD_SET_TARGET, { targetID }, newCmdOpts }
 		end
 
 		spGiveOrderArrayToUnit(unitID, commandsToGive)
@@ -101,12 +102,12 @@ end
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	local shouldCleanupTargeting = false
 	local selectedUnits = spGetSelectedUnits()
-	if cmdID == CMD_UNIT_CANCEL_TARGET then
+	if cmdID == CMD_UNIT_CANCEL_TARGET or cmdID == CMD_STOP then
 		shouldCleanupTargeting = true
 	end
 
 	if cmdID == CMD_SET_TARGET and not cmdOpts.alt then
-		shouldCleanupTargeting = true		
+		shouldCleanupTargeting = true
 	end
 
 	if cmdID == CMD_SET_TARGET and #cmdParams ~= 1 then
