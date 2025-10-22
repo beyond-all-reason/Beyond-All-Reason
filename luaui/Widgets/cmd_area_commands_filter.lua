@@ -28,6 +28,7 @@ local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spIsReplay = Spring.IsReplay
 local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 local spGetUnitPosition = Spring.GetUnitPosition
+local spGetFeaturePosition = Spring.GetFeaturePosition
 local log = Spring.Echo
 
 local myTeamID
@@ -37,15 +38,24 @@ local gameStarted
 ---------------------------------------------------------------------------------------
 --- Target sorting logic (pick the closest first)
 ---------------------------------------------------------------------------------------
-local function distanceSq(x1, z1, x2, z2)
-	local dx = x1 - x2
-	local dz = z1 - z2
+---@field position1 table {x,z}
+---@field position2 table {x,z}
+local function distanceSq(position1, position2)
+	local dx = position1.x - position2.x
+	local dz = position1.z - position2.z
 	return dx * dx + dz * dz
 end
 
-local function getAveragePositionOfSelectedUnits(units)
+local function getAveragePositionOfUnits(units)
+	local unitCount = units and #units or 0
+	if unitCount == 0 then
+		return
+	end
+	if unitCount == 1 then
+		local x, _, z = spGetUnitPosition(units[1])
+		return { x = x, z = z }
+	end
 	local sumX, sumZ = 0, 0
-	local unitCount = #units
 	for _, unitId in ipairs(units) do
 		local x, _, z = spGetUnitPosition(unitId)
 		if z then
@@ -53,7 +63,6 @@ local function getAveragePositionOfSelectedUnits(units)
 		end
 	end
 
-	if unitCount == 0 then return end
 	return { x = sumX / unitCount, z = sumZ / unitCount }
 end
 
@@ -222,7 +231,7 @@ local function distributeTargetsToTransports(transports, targets)
 						for _, passengerId in ipairs(passengers) do
 							if not alreadyAssignedPassengers[passengerId] then
 								local passengerPos = passengerPositions[passengerId]
-								local distSq = distanceSq(transportPos.x, transportPos.z, passengerPos.x, passengerPos.z)
+								local distSq = distanceSq(transportPos, passengerPos)
 
 								if closestDistSq == nil or distSq < closestDistSq then
 									closestDistSq = distSq
@@ -262,6 +271,24 @@ end
 --- End of transport logic
 ---------------------------------------------------------------------------------------
 
+local function sortTargetsByDistance(selectedUnits, filteredTargets)
+	local avgPosition = getAveragePositionOfUnits(selectedUnits)
+	table.sort(filteredTargets, function(targetIdA, targetIdB)
+		local xA, zA, xB, zB
+
+		-- Have to convert back to featureId
+		if targetIdA > Game.maxUnits then
+			xA, _, zA = spGetFeaturePosition(targetIdA - Game.maxUnits)
+			xB, _, zB = spGetFeaturePosition(targetIdB - Game.maxUnits)
+		else
+			xA, _, zA = spGetUnitPosition(targetIdA)
+			xB, _, zB = spGetUnitPosition(targetIdB)
+		end
+
+		return distanceSq(avgPosition, { x = xA, z = zA }) < distanceSq(avgPosition, { x = xB, z = zB })
+	end)
+end
+
 local function giveOrders(cmdId, selectedUnits, filteredTargets, options)
 	local count = 0
 	for _, targetId in ipairs(filteredTargets) do
@@ -294,8 +321,10 @@ end
 --- Each unit gets a chunk of the queue
 local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
 	local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
-	for targetId, targets in pairs(unitTargetsMap) do
-		giveOrders(cmdId, { targetId }, targets, options)
+	for selectedUnitId, targets in pairs(unitTargetsMap) do
+		local selectedUnitTable = { selectedUnitId }
+		sortTargetsByDistance(selectedUnitTable, targets)
+		giveOrders(cmdId, selectedUnitTable, targets, options)
 	end
 end
 
@@ -304,6 +333,7 @@ local function defaultHandler(cmdId, selectedUnits, filteredTargets, options)
 	if options.shift and options.meta then
 		splitOrders(cmdId, selectedUnits, filteredTargets, options)
 	else
+		sortTargetsByDistance(selectedUnits, filteredTargets)
 		giveOrders(cmdId, selectedUnits, filteredTargets, options)
 	end
 end
@@ -311,6 +341,7 @@ end
 --- Each transport picks one target
 local function loadUnitsHandler(cmdId, selectedUnits, filteredTargets, options)
 	local passengerAssignments = distributeTargetsToTransports(selectedUnits, filteredTargets)
+	-- distributeTargetsToTransports already sorted the targets so no sortTargetsByDistance call here
 	for transportId, targetIds in pairs(passengerAssignments) do
 		giveOrders(cmdId, { transportId }, targetIds, options)
 	end
