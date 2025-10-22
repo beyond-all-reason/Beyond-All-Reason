@@ -115,10 +115,6 @@ local icontypes = {
 		bitmap = "icons/radar_t2.png",
 		size = 1.25999999
 	},
-	armasp = {
-		bitmap = "icons/armasp_2.4.png",
-		size = 2.51999998
-	},
 	armassimilator = {
 		bitmap = "icons/bot_t3.png",
 		size = 1.99499989
@@ -335,10 +331,6 @@ local icontypes = {
 		bitmap = "icons/engineer_small.png",
 		size = 0.94499993
 	},
-	armfasp = {
-		bitmap = "icons/armasp_2.4.png",
-		size = 2.51999998
-	},
 	armfast = {
 		bitmap = "icons/bot_t2_raid.png",
 		size = 1.15499997
@@ -378,6 +370,18 @@ local icontypes = {
 	armfhlt = {
 		bitmap = "icons/defence_1_laser.png",
 		size = 1.3
+	},
+	armnavaldefturret = {
+		bitmap = "icons/defence_t15_gauss_impulse.png",
+		size = 1.6
+	},
+	cornavaldefturret = {
+		bitmap = "icons/defence_t15_plasma_aoe.png",
+		size = 1.6
+	},
+	legnavaldefturret = {
+		bitmap = "icons/defence_t15_rocket.png",
+		size = 1.6
 	},
 	armfhp = {
 		bitmap = "icons/factory_hover.png",
@@ -647,6 +651,7 @@ local icontypes = {
 		bitmap = "icons/metalstorage.png",
 		size = 1.10249984
 	},
+
 	armnanotc = {
 		bitmap = "icons/nanot1.png",
 		size = 0.96599996
@@ -1235,10 +1240,6 @@ local icontypes = {
 		bitmap = "icons/radar_t2.png",
 		size = 1.25999999
 	},
-	corasp = {
-		bitmap = "icons/corasp_2.4.png",
-		size = 2.51999998
-	},
 	corassistdrone = {
 		bitmap = "icons/air_assistdrone.png",
 		size = 0.85000002
@@ -1446,10 +1447,6 @@ local icontypes = {
 	coreyes = {
 		bitmap = "icons/eye.png",
 		size = 0.89249998
-	},
-	corfasp = {
-		bitmap = "icons/corasp_2.4.png",
-		size = 2.51999998
 	},
 	corfast = {
 		bitmap = "icons/corfast_1.3.png",
