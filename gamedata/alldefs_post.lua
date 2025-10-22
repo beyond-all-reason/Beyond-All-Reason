@@ -1217,6 +1217,17 @@ function UnitDef_Post(name, uDef)
 				end
 			end
 		end
+
+		if name == "armfrad" then
+			uDef.sightdistance = 800
+		end
+		if name == "corfrad" then
+			uDef.sightdistance = 800
+		end
+		if name == "legfrad" then
+			uDef.sightdistance = 800
+		end
+
 	end
 
 	--Lategame Rebalance
