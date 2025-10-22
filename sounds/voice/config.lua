@@ -42,7 +42,7 @@ return {
 	GamePaused = {
 		delay = 5,
 	},
-	TeammateCatchedUp = {
+	TeammateCaughtUp = {
 		delay = 5,
 	},
 	TeammateDisconnected = {
@@ -68,8 +68,20 @@ return {
 	MaxUnitsReached = {
 		delay = 90,
 	},
+	BaseUnderAttack = {
+		delay = 10,
+	},
+	UnitsCaptured = {
+		delay = 10,
+	},
 	UnitsReceived = {
-		delay = 5,
+		delay = 10,
+	},
+	UnitsUnderAttack = {
+		delay = 10,
+	},
+	UnitLost = {
+		delay = 10,
 	},
 	RadarLost = {
 		delay = 12,
@@ -86,10 +98,16 @@ return {
 		delay = 80,
 	},
 	WholeTeamWastingMetal = {
-		delay = 60,
+		delay = 120,
 	},
 	WholeTeamWastingEnergy = {
+		delay = 240,
+	},
+	YouAreWastingMetal = {
 		delay = 120,
+	},
+	YouAreWastingEnergy = {
+		delay = 240,
 	},
 	LowPower = {
 		delay = 50,
@@ -310,4 +328,90 @@ return {
 		delay = 9999999,
 		tutorial = true,
 	},
+
+	-- Raptors/Scavs ----------------------------------------------------------------------
+	["PvE/AntiNukeReminder"] = {
+		delay = 10,
+	},
+
+	-- Raptor Queen Hatch Progress
+	["PvE/Raptor_Queen50Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen75Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen90Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen95Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen98Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_QueenIsReady"] = {
+		delay = 10,
+	},
+
+	-- Raptor Queen Health
+	["PvE/Raptor_Queen50HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen25HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen10HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen5HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen2HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_QueenIsDestroyed"] = {
+		delay = 10,
+	},
+
+	-- Scavenger Boss Construction Progress
+	["PvE/Scav_Boss50Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss75Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss90Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss95Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss98Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_BossIsReady"] = {
+		delay = 10,
+	},
+
+	-- Scavenger Boss Health
+	["PvE/Scav_Boss50HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss25HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss10HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss5HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss2HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Scav_BossIsDestroyed"] = {
+		delay = 10,
+	},
+
 }

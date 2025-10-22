@@ -2061,8 +2061,14 @@ if gadgetHandler:IsSyncedCode() then
 				Spring.SetGameRulesParam("BossFightStarted", 0)
 				if Spring.GetModOptions().raptor_endless then
 					updateDifficultyForSurvival()
+					Spring.SetGameRulesParam("raptorQueenAnger", 0)
+					Spring.SetGameRulesParam("raptorQueenHealth", 0)
+					Spring.SetGameRulesParam("raptorTechAnger", 0)
 				else
 					gameOver = GetGameFrame() + 200
+					Spring.SetGameRulesParam("raptorQueenAnger", 0)
+					Spring.SetGameRulesParam("raptorQueenHealth", 0)
+					Spring.SetGameRulesParam("raptorTechAnger", 0)
 					spawnQueue = {}
 
 					if not killedRaptorsAllyTeam then

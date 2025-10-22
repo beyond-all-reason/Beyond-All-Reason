@@ -323,26 +323,23 @@ end
 -- TODO: Remove this function when shieldsrework modoption is made mandatory. However:
 -- TODO: If future modoptions might override the rework, then keep this function.
 local function addShieldDamageDefault(shieldUnitID, shieldWeaponIndex, damageToShields, weaponDefID, projectileID)
-	if shieldUnitID then
-		local exhausted, damageDone = false, 0
-		local state, health = spGetUnitShieldState(shieldUnitID)
-		local SHIELD_STATE_ENABLED = 1 -- nb: not boolean
-		if state == SHIELD_STATE_ENABLED and health > 0 then
-			local healthLeft = max(0, health - damageToShields)
-			if shieldWeaponIndex then
-				Spring.SetUnitShieldState(shieldUnitID, shieldWeaponIndex, healthLeft)
-			else
-				Spring.SetUnitShieldState(shieldUnitID, healthLeft)
-			end
-			if healthLeft > 0 then
-				exhausted, damageDone = true, damageToShields
-			else
-				exhausted, damageDone = false, health
-			end
+	local exhausted, damageDone = false, 0
+	local state, health = spGetUnitShieldState(shieldUnitID)
+	local SHIELD_STATE_ENABLED = 1 -- nb: not boolean
+	if state == SHIELD_STATE_ENABLED and health > 0 then
+		local healthLeft = max(0, health - damageToShields)
+		if shieldWeaponIndex then
+			Spring.SetUnitShieldState(shieldUnitID, shieldWeaponIndex, healthLeft)
+		else
+			Spring.SetUnitShieldState(shieldUnitID, healthLeft)
 		end
-
-		return exhausted, damageDone
+		if healthLeft > 0 then
+			exhausted, damageDone = true, damageToShields
+		else
+			exhausted, damageDone = false, health
+		end
 	end
+	return exhausted, damageDone
 end
 
 --------------------------------------------------------------------------------
@@ -364,13 +361,12 @@ function gadget:Initialize()
 	end
 end
 
-function gadget:GameFramePost()
+local function _GameFramePost(collisionList)
 	local addShieldDamage = GG.AddShieldDamage or addShieldDamageDefault
 	local setVelocityControl = GG.SetVelocityControl
 
-	local projectileHits = projectileHits
-	for projectileID, penetrator in pairs(projectileHits) do
-		projectileHits[projectileID] = nil
+	for projectileID, penetrator in pairs(collisionList) do
+		collisionList[projectileID] = nil
 		local collisions = penetrator.collisions
 
 		if collisions[2] then
@@ -449,6 +445,12 @@ function gadget:GameFramePost()
 	end
 end
 
+function gadget:GameFramePost(frame)
+	if next(projectileHits) then
+		_GameFramePost(projectileHits)
+	end
+end
+
 function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
 	local params = weaponParams[weaponDefID]
 	if params then
@@ -502,13 +504,14 @@ function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, sh
 	local penetrator = projectiles[projectileID]
 	if penetrator then
 		local damage = penetrator.params[armorShields]
-		if damage > 1 and shieldUnitID and shieldWeaponIndex then
+		if damage > 1 then
 			projectileHits[projectileID] = penetrator
 			local state, health = spGetUnitShieldState(shieldUnitID, shieldWeaponIndex)
 			local collisions = penetrator.collisions
 			collisions[#collisions+1] = {
 				targetID  = shieldUnitID,
 				shieldID  = shieldWeaponIndex,
+				armorType = armorShields,
 				healthMax = health,
 				damage    = damage,
 				hitX      = hitX,
