@@ -1,7 +1,8 @@
 local SharedEnums = VFS.Include("common/luaUtilities/team_transfer/shared_enums.lua")
 local PolicyShared = VFS.Include("common/luaUtilities/team_transfer/team_transfer_cache.lua")
+local Comms = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_comms.lua")
 
-local Shared = {}
+local Shared = Comms
 
 local FieldTypes = PolicyShared.FieldTypes
 

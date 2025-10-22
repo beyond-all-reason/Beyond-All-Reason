@@ -84,7 +84,7 @@
 			"requestSupport": "Double-click to ask for support",
 			"requestMetal": "Click-and-drag to ask for metal",
 			"requestEnergy": "Click-and-drag to ask for energy",
-			"shareUnits": "Double-click to share %{validUnitCount} units",
+			"shareUnits": "Double-click to share units",
 			"shareUnitsInvalid": {
 				"all": "Sharing these units are not allowed",
 				"one": "Double-click to share units (mode is %{unitSharingMode} - %{firstInvalidUnitName} cannot be shared)",
