@@ -1,8 +1,9 @@
 local SharedEnums = VFS.Include("common/luaUtilities/team_transfer/shared_enums.lua")
 local PolicyShared = VFS.Include("common/luaUtilities/team_transfer/team_transfer_cache.lua")
 local UnitSharingCategories = VFS.Include("common/luaUtilities/team_transfer/unit_sharing_categories.lua")
+local Comms = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_comms.lua")
 
-local Shared = {}
+local Shared = Comms
 
 local FieldTypes = PolicyShared.FieldTypes
 Shared.UnitPolicyFields = {
@@ -39,7 +40,6 @@ function Shared.ValidateUnits(policyResult, unitIds)
   for _, unitId in ipairs(unitIds) do
     local unitDefID = Spring.GetUnitDefID(unitId)
     if not unitDefID then
-      Spring.Log("unit_transfer_shared", LOG.ERROR, "ValidateUnits: unitId", unitId, "not found")
       out.invalidUnitCount = out.invalidUnitCount + 1
       table.insert(out.invalidUnitIds, unitId)
       table.insert(out.invalidUnitNames, "Unknown Unit")

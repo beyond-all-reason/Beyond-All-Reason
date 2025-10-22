@@ -59,6 +59,9 @@ local selectedUnits = Spring.GetSelectedUnits()
 local unitTeam = {}
 local unitUnitDefID = {}
 
+local invalidUnits = {} -- units that are invalid for sharing with hovered player
+local hoverListenerRegistered = false
+
 local unitScale = {}
 local unitCanFly = {}
 local unitBuilding = {}
@@ -75,7 +78,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 local unitBufferUniformCache = {0}
-
 
 local function AddPrimitiveAtUnit(unitID)
 	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true or Spring.IsGUIHidden() then return end
@@ -111,18 +113,19 @@ local function AddPrimitiveAtUnit(unitID)
 		width = radius
 		length = radius
 	end
+	local isInvalid = invalidUnits[unitID] ~= nil
 	if selectionHighlight then
-		unitBufferUniformCache[1] = 1
+		unitBufferUniformCache[1] = isInvalid and -1 or 1
 		gl.SetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
 	end
-	--Spring.Echo(unitID,radius,radius, Spring.GetUnitTeam(unitID), numvertices, 1, gf)
+	local invalidFlag = isInvalid and 1 or 0
 	pushElementInstance(
 		(unitCanFly[unitDefID] and selectionVBOAir) or selectionVBOGround, -- push into this Instance VBO Table
 		{
 			length, width, cornersize, additionalheight,  -- lengthwidthcornerheight
 			unitTeam[unitID], -- teamID
 			numVertices, -- how many trianges should we make
-			gf, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
+			gf, invalidFlag, 0, 0, -- the gameFrame (for animations), and invalid flag
 			0, 1, 0, 1, -- These are our default UV atlas tranformations
 			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
 		},
@@ -132,7 +135,6 @@ local function AddPrimitiveAtUnit(unitID)
 		unitID -- last one should be UNITID?
 	)
 end
-
 
 local function DrawSelections(selectionVBO, isAir)
 	if selectionVBO.usedElements > 0 then
@@ -204,6 +206,30 @@ local function RemovePrimitive(unitID)
 	end
 end
 
+local function OnHoverInvalidUnitsChanged(newHoverTeamID, newHoverPlayerID, invalidUnitIds)
+	local newInvalidUnits = {}
+	for _, unitID in ipairs(invalidUnitIds) do
+		newInvalidUnits[unitID] = true
+	end
+
+	local oldInvalidUnits = invalidUnits
+	invalidUnits = newInvalidUnits
+
+	-- Only rebuild primitives for units whose invalid state actually changed (otherwise we get flickering)
+	for unitID, _ in pairs(selUnits) do
+		if Spring.ValidUnitID(unitID) then
+			local wasInvalid = oldInvalidUnits[unitID] ~= nil
+			local isInvalid = newInvalidUnits[unitID] ~= nil
+
+			-- Only update if the invalid state changed
+			if wasInvalid ~= isInvalid then
+				RemovePrimitive(unitID)
+				AddPrimitiveAtUnit(unitID)
+			end
+		end
+	end
+end
+
 function widget:SelectionChanged(sel)
 	updateSelection = true
 end
@@ -257,7 +283,6 @@ function widget:Update(dt)
 		updateSelection = false
 
 		local newSelUnits = {}
-		-- add to selection
 		for i, unitID in ipairs(selectedUnits) do
 			newSelUnits[unitID] = true
 			if not selUnits[unitID] then
@@ -271,6 +296,13 @@ function widget:Update(dt)
 			end
 		end
 		selUnits = newSelUnits
+	end
+
+	if not hoverListenerRegistered then
+		if WG['advplayerlist_api'] and WG['advplayerlist_api'].AddHoverInvalidUnitsListener then
+			WG['advplayerlist_api'].AddHoverInvalidUnitsListener(OnHoverInvalidUnitsChanged)
+			hoverListenerRegistered = true
+		end
 	end
 
 	-- We move the check for mouseovered units here,
@@ -291,7 +323,9 @@ function widget:Update(dt)
 				if lastMouseOverUnitID ~= unitID then
 					ClearLastMouseOver()
 					local newUniform = (selUnits[unitID] and 1 or 0 ) + 2
-					gl.SetUnitBufferUniforms(unitID, {newUniform}, 6)
+					-- Preserve the selection highlight value when setting mouseover
+					local currentHighlight = invalidUnits[unitID] and -1 or 1
+					gl.SetUnitBufferUniforms(unitID, {currentHighlight, newUniform}, 6)
 					lastMouseOverUnitID = unitID
 				end
 			elseif result == 'feature' and not Spring.IsGUIHidden() then
@@ -335,7 +369,7 @@ local function init()
 	shaderConfig.GROWTHRATE = 3.5
 	shaderConfig.TEAMCOLORIZATION = teamcolorOpacity	-- not implemented, doing it via POST_SHADING below instead
 	shaderConfig.HEIGHTOFFSET = 4
-	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), "..(1-teamcolorOpacity)..") , texcolor.a * TRANSPARENCY + addRadius);"
+	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(g_invalid > 0.5 ? vec3(1.0, 0.0, 0.0) : (g_color.rgb * texcolor.rgb + addRadius), texcolor.a * TRANSPARENCY + addRadius);";
 	selectionVBOGround, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsGround")
 	if mapHasWater then
 		selectionVBOAir = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsAir")
@@ -400,6 +434,10 @@ function widget:Shutdown()
 		Spring.LoadCmdColorsConfig('unitBox  0 1 0 1')
 	end
 	WG.selectedunits = nil
+
+	if hoverListenerRegistered and WG['advplayerlist_api'] and WG['advplayerlist_api'].RemoveHoverInvalidUnitsListener then
+		WG['advplayerlist_api'].RemoveHoverInvalidUnitsListener(OnHoverInvalidUnitsChanged)
+	end
 end
 
 function widget:GetConfigData(data)

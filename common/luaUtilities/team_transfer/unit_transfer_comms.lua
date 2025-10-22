@@ -1,6 +1,8 @@
 local SharedEnums = VFS.Include("common/luaUtilities/team_transfer/shared_enums.lua")
 
-local Comms = {}
+local Comms = {
+  UnitCommunicationCase = SharedEnums.UnitCommunicationCase,
+}
 Comms.__index = Comms
 
 ---Decide communication case for unit sharing based on policy and optional validation results
@@ -58,10 +60,7 @@ function Comms.TooltipText(policy, validationResult)
     end
   elseif case == SharedEnums.UnitCommunicationCase.OnFullyShareable then
     if validationResult then
-      local i18nData = {
-        validUnitCount = validationResult.validUnitCount,
-      }
-      return Spring.I18N(baseKey .. '.shareUnits', i18nData)
+      return Spring.I18N(baseKey .. '.shareUnits')
     else
       return Spring.I18N(baseKey .. '.shareUnits')
     end
