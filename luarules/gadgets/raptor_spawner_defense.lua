@@ -1431,7 +1431,7 @@ if gadgetHandler:IsSyncedCode() then
 						notify = 0
 					}
 				end
-				local resistPercent = math.min((queenResistance[attackerDefID].damage) / aliveBossesMaxHealth, 0.95)
+				local resistPercent = math.min((queenResistance[attackerDefID].damage) / aliveBossesMaxHealth, config.queenResistanceCap)
 				if resistPercent > 0.5 then
 					if queenResistance[attackerDefID].notify == 0 then
 						raptorEvent("queenResistance", tonumber(attackerDefID))

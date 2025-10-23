@@ -3112,6 +3112,7 @@ local config = { -- Don't touch this! ------------------------------------------
 	bossFightWaveSizeScale  = bossFightWaveSizeScale,
 	defaultRaptorFirestate = defaultRaptorFirestate,
 	economyScale			= economyScale,
+	queenResistanceCap		= Spring.GetModOptions().raptor_queenresistancecap,
 }
 
 for key, value in pairs(optionValues[difficulty]) do

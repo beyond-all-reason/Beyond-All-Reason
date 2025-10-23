@@ -690,6 +690,18 @@ local options = {
         section	= "raptor_defense_options",
     },
 
+    {
+        key		= "raptor_queenresistancecap",
+        name	= "Queen Resistance Cap",
+        desc	= "(Range: 0.5 - 1.0). Maximum resistance percentage the Queen can reach against any weapon type (0.95 = 95% resistance cap).",
+        type	= "number",
+        def		= 0.95,
+        min		= 0.5,
+        max		= 1.0,
+        step	= 0.01,
+        section	= "raptor_defense_options",
+    },
+
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
