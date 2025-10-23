@@ -13,6 +13,10 @@ function gadget:GetInfo()
 	}
 end
 
+if #Spring.GetTeamList()-1 <= 64 then
+	return
+end
+
 -- usage: /luarules undo #teamid #maxSecondsAgo (#receivingteamid)
 
 -- only works when being spectator and you werent a player before
@@ -179,9 +183,10 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,2)=="un" and msg:sub(3,4)==validation then
 
-			local playername, _, spec = Spring.GetPlayerInfo(playerID,false)
+			local accountInfo = select(11, Spring.GetPlayerInfo(playerID))
+			local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
 			local authorized = false
-			if _G.permissions.undo[playername] then
+			if _G.permissions.undo[accountID] then
 				authorized = true
 			end
 			if authorized then
@@ -194,8 +199,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function notify(message)
 		for _,playerID in pairs(Spring.GetPlayerList()) do
-			local playername, _, spec, teamID, allyTeamID = Spring.GetPlayerInfo(playerID,false)
-			if _G.permissions.undo[playername] then
+			local accountInfo = select(11, Spring.GetPlayerInfo(playerID))
+			local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+			if _G.permissions.undo[accountID] then
 				Spring.SendMessageToPlayer(playerID, message)
 			end
 		end
@@ -204,7 +210,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 		if safeguardedUnits[unitDefID] and attackerTeam and Spring.AreTeamsAllied(unitTeam, attackerTeam) then
 			if dgunDef[weaponID] or weaponUnitSelfd[weaponID] or not Spring.GetUnitNearestEnemy(unitID, 1000) then
-				local _, playerID, _, victimIsAi = Spring.GetTeamInfo(attackerTeam, false)
+				local _, playerID, _, victimIsAi = Spring.GetTeamInfo(unitTeam, false)
 				local name = Spring.GetPlayerInfo(playerID,false)
 				if victimIsAi and Spring.GetGameRulesParam('ainame_' .. unitTeam) then
 					name = Spring.GetGameRulesParam('ainame_' .. unitTeam)..' (AI)'

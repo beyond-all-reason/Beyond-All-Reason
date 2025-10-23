@@ -29,7 +29,7 @@ return {
 		script = "Units/CORSFIG2.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericAir",
-		sightdistance = 230,
+		sightdistance = 430,
 		speed = 315.60001,
 		speedtofront = 0.07,
 		turnradius = 64,
@@ -37,6 +37,7 @@ return {
 		wingangle = 0.06252,
 		wingdrag = 0.235,
 		customparams = {
+			attacksafetydistance = 300,
 			fighter = 1,
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",

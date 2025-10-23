@@ -93,9 +93,10 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		local playername, _, spec = Spring.GetPlayerInfo(playerID,false)
+		local playername, _, spec, _, _, _, _, _, _, _, accountInfo = Spring.GetPlayerInfo(playerID)
+		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
 		local authorized = false
-		if _G.permissions.give[playername] then
+		if _G.permissions.give[accountID] then
 			authorized = true
 			givenSomethingAtFrame = Spring.GetGameFrame()
 		end
@@ -117,8 +118,9 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 	local myPlayerID = Spring.GetMyPlayerID()
-	local myPlayerName = Spring.GetPlayerInfo(myPlayerID,false)
-	local authorized = SYNCED.permissions.give[myPlayerName]
+	local accountInfo = select(11, Spring.GetPlayerInfo(myPlayerID))
+	local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+	local authorized = SYNCED.permissions.give[accountID]
 
 	local function RequestGive(cmd, line, words, playerID)
 		if authorized and playerID == myPlayerID then
