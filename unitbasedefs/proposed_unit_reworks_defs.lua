@@ -28,10 +28,9 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.workertime = uDef.workertime * 2
 	end
 
-	if uDef.canmove and tonumber(uDef.customparams.techlevel) == 2 and uDef.energycost and uDef.metalcost and uDef.buildtime and not (name == "armavp" or name == "coravp" or name == "armalab" or name == "coralab" or name == "armaap" or name == "coraap" or name == "armasy" or name == "corasy") 
+	if uDef.canmove and tonumber(uDef.customparams.techlevel) == 2 and uDef.energycost and uDef.metalcost and uDef.buildtime and not (name == "armavp" or name == "coravp" or name == "armalab" or name == "coralab" or name == "armaap" or name == "coraap" or name == "armasy" or name == "corasy" or name == "armfido" or name == "armmav" or name == "armvader" or name == "corroach" ) 
 	or uDef.canmove and tonumber(uDef.customparams.techlevel) == 3 and uDef.energycost and uDef.metalcost and uDef.buildtime
-	or uDef.customparams.subfolder == "ArmSeaplanes" or uDef.customparams.subfolder == "CorSeaplanes" and
-	name ~= arfido and name ~= armmav and name ~= armvader and name ~= corroach  then
+	or uDef.customparams.subfolder == "ArmSeaplanes" or uDef.customparams.subfolder == "CorSeaplanes" then
 		uDef.buildtime = 1.1* uDef.buildtime + (uDef.metalcost*60 + uDef.energycost) / 20  
 		if uDef.buildtime < 20000 then
 			uDef.buildtime = math.ceil(uDef.buildtime * 0.002) * 500
