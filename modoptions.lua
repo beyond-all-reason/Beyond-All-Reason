@@ -961,7 +961,7 @@ local options = {
     {
         key     = "map_lavatidemode",
         name	= "Lava Tide Mode",
-        desc	= "Toggle whether lava starts at high or low tide, or uses the advanced settings",
+        desc	= "Toggle whether lava starts at high or low tide.",
         hidden	= false,
         type	= "list",
         def		= "lavastartlow",
@@ -969,7 +969,6 @@ local options = {
         items	= {
             { key= "lavastartlow", 	name= "Start Low", desc= "Lava starts at low tide" },
             { key= "lavastarthigh",	name= "Start High",desc= "Lava starts at high tide" },
-            { key= "lavaadvanced", 	name= "Advanced",desc= "Lava tide rhythm follows the advanced tweak input" },
         }
     },
 

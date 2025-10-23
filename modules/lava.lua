@@ -187,11 +187,16 @@ local function validateTideRhythm(modoptionDataRaw)
 		end
 		table.insert(advancedRhythm, partRhythm)
 	end
-	return advancedRhythm
+	if next(advancedRhythm) == nil then
+		Spring.Echo("Lava Advanced Tide Rhythm data is empty")
+		return false
+	else
+		return advancedRhythm
+	end
 end
 
 local function lavaModGen(modOptions)
-	if modOptions.map_lavatidemode == "lavaadvanced" then 
+	if modOptions.map_tweaklava ~= "" then 
 		local tweakLavaRaw = modOptions.map_tweaklava
 		local advancedRhythm = validateTideRhythm(tweakLavaRaw)
 		if advancedRhythm then 
