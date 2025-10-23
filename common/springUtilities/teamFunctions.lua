@@ -93,7 +93,7 @@ local function getSettings()
 	end
 
 	local isHoliday = {}
-	if Spring.GetModOptions().date_day then
+	if Spring.GetModOptions and Spring.GetModOptions().date_day then
 		local currentDay = Spring.GetModOptions().date_day
 		local currentMonth = Spring.GetModOptions().date_month
 		local currentYear = Spring.GetModOptions().date_year

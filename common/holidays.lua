@@ -1,3 +1,7 @@
+if not Spring.GetModOptions then
+    return
+end
+
 local currentDay = Spring.GetModOptions().date_day
 local currentMonth = Spring.GetModOptions().date_month
 local currentYear = Spring.GetModOptions().date_year
@@ -99,7 +103,5 @@ local holidaysList = {
         specialDay = { day = GetEasterStartEnd().easterDay, month = GetEasterStartEnd().easterMonth}
 	},
 }
-
-Spring.Echo("Holidays List Easter Date for " .. currentYear, holidaysList["easter"])
 
 return holidaysList
