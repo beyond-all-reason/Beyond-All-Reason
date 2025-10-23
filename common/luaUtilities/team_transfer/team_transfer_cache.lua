@@ -1,4 +1,4 @@
-local SharedEnums = VFS.Include("common/luaUtilities/team_transfer/shared_enums.lua")
+local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 
 local M = {}
 
