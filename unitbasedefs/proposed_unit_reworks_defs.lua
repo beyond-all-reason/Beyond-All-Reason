@@ -92,7 +92,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 	
 	if name == "corgol" then
-		uDef.speed = 37
+		uDef.speed = 39
 		uDef.weapondefs.cor_gol.reloadtime = 3.5
 	end
 	if name == "armfboy" then
