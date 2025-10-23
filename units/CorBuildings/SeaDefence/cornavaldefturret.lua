@@ -86,7 +86,7 @@ return {
 		},
 		weapondefs = {
 			t1_heavy_plasma_cannon = {
-				areaofeffect = 125,
+				areaofeffect = 145,
 				avoidfeature = false,
 				craterboost = 0,
 				cratermult = 0,
