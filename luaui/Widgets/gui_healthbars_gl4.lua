@@ -799,11 +799,22 @@ end
 
 local function removeBarFromFeature(featureID, targetVBO)
 	--Spring.Echo("removeBarFromFeature", featureID, targetVBO.myName)
-	if targetVBO.instanceIDtoIndex[featureID] then
-		popElementInstance(targetVBO, featureID)
+	if not targetVBO.instanceIDtoIndex[featureID] then
+		return
 	end
-	if featureBars[featureID] then
-		featureBars[featureID] = featureBars[featureID] - 1 -- TODO ERROR
+
+	popElementInstance(targetVBO, featureID)
+
+	local barCount = featureBars[featureID]
+	if not barCount then
+		return
+	end
+
+	barCount = barCount - 1
+	if barCount > 0 then
+		featureBars[featureID] = barCount
+	else
+		featureBars[featureID] = nil
 	end
 end
 
