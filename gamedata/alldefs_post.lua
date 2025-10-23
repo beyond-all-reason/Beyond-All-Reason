@@ -93,6 +93,11 @@ function UnitDef_Post(name, uDef)
 
 	-- April Fools
 	if Spring.Utilities.Gametype.IsHoliday()["aprilfools"] then
+		-- Something to experiment with
+		--if VFS.FileExists("units/event/aprilfools/" .. uDef.objectname) then
+		--	uDef.objectname = "units/event/aprilfools/" .. uDef.objectname
+		--end
+
 		if name == "corak" then
 			uDef.objectname = "units/event/aprilfools/CORAK.s3o"
 		elseif name == "corllt" then
@@ -107,8 +112,8 @@ function UnitDef_Post(name, uDef)
 			uDef.objectname = "units/event/aprilfools/ARMPW.s3o"
 		elseif name == "cordemon" then
 			uDef.objectname = "units/event/aprilfools/cordemon.s3o"
-		elseif name == "correap" then
-			uDef.objectname = "units/event/aprilfools/correap.s3o"
+		--elseif name == "correap" then -- Requires Model Update
+		--	uDef.objectname = "units/event/aprilfools/correap.s3o"
 		elseif name == "corstorm" then
 			uDef.objectname = "units/event/aprilfools/corstorm.s3o"
 		elseif name == "armcv" then
@@ -125,8 +130,8 @@ function UnitDef_Post(name, uDef)
 			uDef.objectname = "units/event/aprilfools/armham.s3o"
 		elseif name == "corwin" then
 			uDef.objectname = "units/event/aprilfools/corwin.s3o"
-		elseif name == "corthud" then
-			uDef.objectname = "units/event/aprilfools/corthud.s3o"
+		--elseif name == "corthud" then -- Requires Model Update
+		--	uDef.objectname = "units/event/aprilfools/corthud.s3o"
 		end
 	end
 
