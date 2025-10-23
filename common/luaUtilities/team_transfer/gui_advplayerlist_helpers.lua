@@ -1,7 +1,7 @@
 --- holds helper functions for the gui_advplayerslist.lua
 --- these are related to team transfer, but highly specific to the gui
 --- gui_advplayerslist has severe restrictions on the number of local cosures due to lua 5.1's 200 cap
-local SharedEnums = VFS.Include("common/luaUtilities/team_transfer/shared_enums.lua")
+local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 local UnitShared = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_shared.lua")
 local ResourceShared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_shared.lua")
 

@@ -1,12 +1,10 @@
-local SharedEnums = VFS.Include("common/luaUtilities/team_transfer/shared_enums.lua")
+local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 
-local Comms = {
-  UnitCommunicationCase = SharedEnums.UnitCommunicationCase,
-}
+local Comms = {}
 Comms.__index = Comms
 
 ---Decide communication case for unit sharing based on policy and optional validation results
----@param policy UnitPolicyResult
+---@param policy UnitTransferPolicyResult
 ---@param validationResult UnitValidationResult?
 ---@return number SharedEnums.UnitCommunicationCase
 function Comms.DecideCommunicationCase(policy, validationResult)
@@ -27,17 +25,22 @@ function Comms.DecideCommunicationCase(policy, validationResult)
   end
 end
 
----@param policy UnitPolicyResult
+---@param policy UnitTransferPolicyResult
 ---@param validationResult UnitValidationResult?
-function Comms.TooltipText(policy, validationResult)
+function Comms.UnitShareTooltip(policy, validationResult)
   local baseKey = 'ui.playersList'
   local case = Comms.DecideCommunicationCase(policy, validationResult)
+  local i18nData = {
+    unitSharingMode = policy.sharingMode,
+  }
+  if validationResult then
+    i18nData.firstInvalidUnitName = validationResult.invalidUnitNames[1] or ""
+    i18nData.secondInvalidUnitName = validationResult.invalidUnitNames[2] or ""
+    i18nData.count = #validationResult.invalidUnitNames - 2
+  end
   if case == SharedEnums.UnitCommunicationCase.OnSelf then
     return Spring.I18N(baseKey .. '.requestSupport')
   elseif case == SharedEnums.UnitCommunicationCase.OnPolicyDisabled then
-    local i18nData = {
-      unitSharingMode = policy.sharingMode,
-    }
     return Spring.I18N(baseKey .. '.shareUnitsDisabled', i18nData)
   elseif case == SharedEnums.UnitCommunicationCase.OnSelectionValidationFailed then
     return Spring.I18N(baseKey .. '.shareUnitsInvalid.all')
@@ -60,7 +63,10 @@ function Comms.TooltipText(policy, validationResult)
     end
   elseif case == SharedEnums.UnitCommunicationCase.OnFullyShareable then
     if validationResult then
-      return Spring.I18N(baseKey .. '.shareUnits')
+      local i18nData = {
+        validUnitCount = validationResult.validUnitCount,
+      }
+      return Spring.I18N(baseKey .. '.shareUnits', i18nData)
     else
       return Spring.I18N(baseKey .. '.shareUnits')
     end

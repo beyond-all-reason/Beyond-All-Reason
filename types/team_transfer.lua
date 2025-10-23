@@ -4,6 +4,7 @@
 ---@alias TransferCategory "metal_transfer" | "energy_transfer" | "unit_transfer" | "guard_transfer" | "repair_transfer" | "reclaim_transfer"
 ---@alias ResourceType "metal" | "energy"
 ---@alias UnitValidationOutcome "success" | "disabled" | "partial_success"
+---@alias SharingMode "disabled" | "enabled" | "limited_sharing"
 
 ---@class ValidationResult
 ---@field ok boolean
