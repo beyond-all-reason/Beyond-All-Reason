@@ -285,8 +285,8 @@ local function buildUnitDefs()
 	end
 
 	local function isArmyUnit(unitDefID, unitDef)
-		-- anything with a least one weapon and speed above zero is considered an army unit
-		return unitDef.weapons and (#unitDef.weapons > 0) and unitDef.speed and (unitDef.speed > 0)
+		local isArmyUnit = #unitDef.weapons > 0 and unitDef.speed > 0
+		return isArmyUnit and not isCommander(unitDefId, unitDef)
 	end
 
 	local function isDefenseUnit(unitDefID, unitDef)
@@ -341,6 +341,10 @@ local function buildUnitDefs()
 	end
 end
 
+local function deleteUnitDefs()
+	unitDefsToTrack = {}
+end
+
 local function addToUnitCache(teamID, unitID, unitDefID)
 	local function addToUnitCacheInternal(cache, teamID, unitID, value)
 		if unitCache[teamID][cache] then
@@ -385,6 +389,10 @@ local function addToUnitCache(teamID, unitID, unitDefID)
 		addToUnitCacheInternal("economyBuildings", teamID, unitID,
 					   unitDefsToTrack.economyBuildingDefs[unitDefID])
 	end
+end
+
+local function deleteUnitCache()
+	unitCache = {}
 end
 
 local function removeFromUnitCache(teamID, unitID, unitDefID)
@@ -1864,6 +1872,8 @@ local function init()
 end
 
 local function deInit()
+	deleteUnitDefs()
+	deleteUnitCache()
 	deleteMetricDisplayLists()
 	deleteKnobVAO()
 	deleteTextures()
