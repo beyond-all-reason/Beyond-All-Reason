@@ -30,7 +30,7 @@ local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetUnitArrayCentroid = Spring.GetUnitArrayCentroid
-local log = Spring.Echo
+local spGetFeatureResurrect = Spring.GetFeatureResurrect
 
 local myTeamID
 local myAllyTeamID
@@ -55,6 +55,7 @@ end
 
 ----------------------------------------------------------------------------------------------------------
 --- Logic which distributes targets between transports. Should be split and extracted to separate widget
+--- Preferably after https://github.com/beyond-all-reason/Beyond-All-Reason/pull/5738 will be merged
 ----------------------------------------------------------------------------------------------------------
 
 -- Multiplier to convert footprints sizes
@@ -339,27 +340,25 @@ local function loadUnitsHandler(cmdId, selectedUnits, filteredTargets, options)
 	end
 end
 
-local TargetType = {
-	Feature = "feature",
-	Unit = "unit",
-}
+local FEATURE = "feature"
+local UNIT = "unit"
 
 ---@class CommandConfig
 ---@field handle function
----@field targetType "feature" | "unit"
+---@field allowedTargetTypes table
 ---@field skipAlliedUnits? boolean
 
 ---@type table<number, CommandConfig>
 local allowedCommands = {
-	[CMD.ATTACK] = { handle = defaultHandler, targetType = TargetType.Unit, skipAlliedUnits = true },
-	[CMD.GUARD] = { handle = defaultHandler, targetType = TargetType.Unit },
-	[CMD.RECLAIM] = { handle = defaultHandler, targetType = TargetType.Unit },
-	[CMD.REPAIR] = { handle = defaultHandler, targetType = TargetType.Unit },
-	[CMD.CAPTURE] = { handle = defaultHandler, targetType = TargetType.Unit },
-	[GameCMD.UNIT_SET_TARGET] = { handle = defaultHandler, targetType = TargetType.Unit },
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = { handle = defaultHandler, targetType = TargetType.Unit },
-	[CMD.RESURRECT] = { handle = defaultHandler, targetType = TargetType.Feature },
-	[CMD.LOAD_UNITS] = { handle = loadUnitsHandler, targetType = TargetType.Unit },
+	[CMD.ATTACK] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true }, skipAlliedUnits = true },
+	[CMD.GUARD] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true } },
+	[CMD.RECLAIM] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true, [FEATURE] = true } },
+	[CMD.REPAIR] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true } },
+	[CMD.CAPTURE] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true } },
+	[GameCMD.UNIT_SET_TARGET] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true } },
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true } },
+	[CMD.RESURRECT] = { handle = defaultHandler, allowedTargetTypes = { [FEATURE] = true } },
+	[CMD.LOAD_UNITS] = { handle = loadUnitsHandler, allowedTargetTypes = { [UNIT] = true } },
 }
 
 local function filterUnits(targetId, cmdX, cmdZ, radius, options, skipAlliedUnits)
@@ -438,15 +437,20 @@ function widget:CommandNotify(cmdId, params, options)
 	local mouseX, mouseY = spWorldToScreenCoords(cmdX, cmdY, cmdZ)
 	local targetType, targetId = spTraceScreenRay(mouseX, mouseY)
 
-	if targetType ~= currentCommand.targetType then
+	if not currentCommand.allowedTargetTypes[targetType] then
 		return false
 	end
 
 	local filteredTargets
 
-	if currentCommand.targetType == TargetType.Unit then
+	if targetType == UNIT then
 		filteredTargets = filterUnits(targetId, cmdX, cmdZ, radius, options, currentCommand.skipAlliedUnits)
-	elseif currentCommand.targetType == TargetType.Feature then
+	elseif targetType == FEATURE then
+		local featureDefName = spGetFeatureResurrect(targetId)
+		-- filter only wrecks which can be resurrected
+		if featureDefName == nil or featureDefName == "" then
+			return false
+		end
 		filteredTargets = filterFeatures(targetId, cmdX, cmdZ, radius, options)
 	end
 
@@ -469,7 +473,7 @@ function widget:GameStart()
 	maybeRemoveSelf()
 end
 
-function widget:PlayerChanged(playerID)
+function widget:PlayerChanged()
 	maybeRemoveSelf()
 	myTeamID = spGetMyTeamID()
 	myAllyTeamID = spGetMyAllyTeamID()
