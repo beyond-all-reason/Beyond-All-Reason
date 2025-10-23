@@ -28,7 +28,7 @@ tachyonFlare,
 tachyonAimHelper,
 mainTurretAimHelper;
 
-static-var restore_delay, wpn1_lasthead, whichBarrel, turretRotationVar;
+static-var restore_delay, wpn1_lasthead, whichBarrel, turretRotationVar, wpn2_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -66,6 +66,7 @@ ExecuteRestoreAfterDelay()
     turn tachyonPitchPivot to x-axis <0> speed <10>;
     turretRotationVar = 0;
 	wpn1_lasthead = 1000000;
+    wpn2_lasthead = 1000000;
 	set-signal-mask 0;
 }
 
@@ -175,10 +176,14 @@ AimPrimary(heading, pitch)
     turn tachyonHeadingPivot to y-axis heading - turretRotationVar speed <150.0>;
     turn tachyonPitchPivot to x-axis <0.0> - pitch speed <30.0>;
 
-    wait-for-turn tachyonHeadingPivot around y-axis;
-    wait-for-turn turretHeadingPivot around y-axis;
-    wait-for-turn tachyonPitchPivot around y-axis;
-	
+	if (((get ABS(wpn2_lasthead - (heading - turretRotationVar))) > 65536) OR(((get ABS(wpn2_lasthead - (heading - turretRotationVar))) > 6000) AND ((get ABS(wpn2_lasthead - (heading - turretRotationVar))) < 64236)))
+	{
+		wpn2_lasthead = 1000000;
+        wait-for-turn tachyonHeadingPivot around y-axis;
+        //wait-for-turn turretHeadingPivot around y-axis;
+        wait-for-turn tachyonPitchPivot around y-axis;
+	}
+	wpn2_lasthead = (heading - turretRotationVar);
     start-script RestoreAfterDelay();
     return (1);
 }

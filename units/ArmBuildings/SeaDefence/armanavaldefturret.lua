@@ -105,7 +105,7 @@ return {
 				laserflaresize = 6.05,
 				name = "Long-Range Tachyon Emitter",
 				noselfdamage = true,
-				proximitypriority = -10,
+				-- proximitypriority = -1,
 				range = 950,
 				reloadtime = 4.7,
 				rgbcolor = "0 0 1",
