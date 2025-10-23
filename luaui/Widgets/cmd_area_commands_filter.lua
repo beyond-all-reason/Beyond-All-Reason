@@ -29,6 +29,7 @@ local spIsReplay = Spring.IsReplay
 local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
+local spGetUnitArrayCentroid = Spring.GetUnitArrayCentroid
 local log = Spring.Echo
 
 local myTeamID
@@ -38,32 +39,18 @@ local gameStarted
 ---------------------------------------------------------------------------------------
 --- Target sorting logic (pick the closest first)
 ---------------------------------------------------------------------------------------
----@field position1 table {x,z}
----@field position2 table {x,z}
+
+---@field position1 table {x, y, z}
+---@field position2 table {x, y, z}
 local function distanceSq(position1, position2)
 	local dx = position1.x - position2.x
 	local dz = position1.z - position2.z
 	return dx * dx + dz * dz
 end
 
-local function getAveragePositionOfUnits(units)
-	local unitCount = units and #units or 0
-	if unitCount == 0 then
-		return
-	end
-	if unitCount == 1 then
-		local x, _, z = spGetUnitPosition(units[1])
-		return { x = x, z = z }
-	end
-	local sumX, sumZ = 0, 0
-	for _, unitId in ipairs(units) do
-		local x, _, z = spGetUnitPosition(unitId)
-		if z then
-			sumX, sumZ = sumX + x, sumZ + z
-		end
-	end
-
-	return { x = sumX / unitCount, z = sumZ / unitCount }
+---@return table {x, y, z}
+local function toPositionTable(x, y, z)
+	return { x = x, y = y, z = z }
 end
 
 ----------------------------------------------------------------------------------------------------------
@@ -117,9 +104,9 @@ local function distributeTargetsToTransports(transports, targets)
 					transportHealth = transportDefs[transportDefId][4]
 				}
 			end
-			local x, _, z = spGetUnitPosition(transportUnitId)
+			local position = toPositionTable(spGetUnitPosition(transportUnitId))
 			---@class TransportInfo
-			local transportInfo = { capacity = remainingCapacity, position = { x = x, z = z } }
+			local transportInfo = { capacity = remainingCapacity, position = position }
 			transportTypeDataMap[transportDefId].transportsInfo[transportUnitId] = transportInfo
 			table.insert(transportTypeDataMap[transportDefId].transportIdsList, transportUnitId)
 		end
@@ -134,8 +121,8 @@ local function distributeTargetsToTransports(transports, targets)
 		for _, targetId in ipairs(targets) do
 			local passengerDefId = spGetUnitDefID(targetId)
 			local isValid = false
-			local x, _, z = spGetUnitPosition(targetId)
-			passengerPositions[targetId] = { x = x, z = z }
+			local position = toPositionTable(spGetUnitPosition(targetId))
+			passengerPositions[targetId] = position
 			validTransportsForUnitTypeMap[passengerDefId] = validTransportsForUnitTypeMap[passengerDefId] or {}
 
 			if validTransportsForUnitTypeMap[passengerDefId][transDefId] then
@@ -272,20 +259,20 @@ end
 ---------------------------------------------------------------------------------------
 
 local function sortTargetsByDistance(selectedUnits, filteredTargets)
-	local avgPosition = getAveragePositionOfUnits(selectedUnits)
+	local avgPosition = toPositionTable(spGetUnitArrayCentroid(selectedUnits))
 	table.sort(filteredTargets, function(targetIdA, targetIdB)
-		local xA, zA, xB, zB
+		local positionA, positionB
 
 		-- Have to convert back to featureId
 		if targetIdA > Game.maxUnits then
-			xA, _, zA = spGetFeaturePosition(targetIdA - Game.maxUnits)
-			xB, _, zB = spGetFeaturePosition(targetIdB - Game.maxUnits)
+			positionA = toPositionTable(spGetFeaturePosition(targetIdA - Game.maxUnits))
+			positionB = toPositionTable(spGetFeaturePosition(targetIdB - Game.maxUnits))
 		else
-			xA, _, zA = spGetUnitPosition(targetIdA)
-			xB, _, zB = spGetUnitPosition(targetIdB)
+			positionA = toPositionTable(spGetUnitPosition(targetIdA))
+			positionB = toPositionTable(spGetUnitPosition(targetIdB))
 		end
 
-		return distanceSq(avgPosition, { x = xA, z = zA }) < distanceSq(avgPosition, { x = xB, z = zB })
+		return distanceSq(avgPosition, positionA) < distanceSq(avgPosition, positionB)
 	end)
 end
 
