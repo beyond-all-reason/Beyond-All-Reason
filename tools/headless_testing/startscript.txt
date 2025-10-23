@@ -10,7 +10,7 @@
 	FixedRNGSeed = 1;
   [MODOPTIONS]
   {
-    debugcommands=1:cheat|2:godmode|3:devlua 1|10:testsautoheightmap 1|30:runtestsheadless;
+    debugcommands=1:cheat|2:godmode|3:globallos|30:runtestsheadless;
 		deathmode=neverend;
   }
   [ALLYTEAM0]
