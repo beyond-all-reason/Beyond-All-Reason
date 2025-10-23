@@ -35,3 +35,9 @@ changes so it's easier for reviewers to see what is different in this PR
 #### AFTER:
 (screenshot from branch)
 -->
+
+<!-- If relevant
+### AI / LLM usage statement:
+Tell us if you used an AI or LLM in the creation of this code, and to what extent. See CONTRIBUTING.md for information on this policy.
+Careless LLM users quickly lose trust. You are responsible for your code.
+-->
