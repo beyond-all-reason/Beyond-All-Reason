@@ -1171,26 +1171,21 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 				return false
 			end
 
-			local opts
+			local removing = false
 
 			if quantity < 0 then
 				quantity = quantity * -1
-				opts = { "right" }
+				removing = true
 				Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
 			else
-				opts = { "left" }
 				Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
-
-				--if quantity is more than 100, more than 20 or more than 5 then use engine logic for better performance (fewer for loops inside queueUnit())
-				quantity = multiQueue(uDefID,quantity,100,{ "ctrl","shift", alt and "alt" })
-				quantity = multiQueue(uDefID,quantity,20,{ "ctrl", alt and "alt" })
-				quantity = multiQueue(uDefID,quantity,5,{ "shift", alt and "alt" })
 			end
-			if alt then
-				table.insert(opts, "alt")
-			end
-
-			queueUnit(uDefID, opts, quantity)
+			--if quantity is more than 100, more than 20 or more than 5 then use engine logic for better performance (fewer for loops inside queueUnit())
+			quantity = multiQueue(uDefID,quantity,100,{ "ctrl","shift", alt and "alt", removing and "right" })
+			quantity = multiQueue(uDefID,quantity,20,{ "ctrl", alt and "alt", removing and "right" })
+			quantity = multiQueue(uDefID,quantity,5,{ "shift", alt and "alt", removing and "right" })
+			--queue the remaining units
+			multiQueue(uDefID,quantity,1,{ alt and "alt", removing and "right" })
 
 			return true
 		end
