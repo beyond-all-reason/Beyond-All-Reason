@@ -258,7 +258,7 @@ end
 --- End of transport logic
 ---------------------------------------------------------------------------------------
 
-local function sortTargetsByDistance(selectedUnits, filteredTargets)
+local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst)
 	local avgPosition = toPositionTable(spGetUnitArrayCentroid(selectedUnits))
 	table.sort(filteredTargets, function(targetIdA, targetIdB)
 		local positionA, positionB
@@ -272,7 +272,11 @@ local function sortTargetsByDistance(selectedUnits, filteredTargets)
 			positionB = toPositionTable(spGetUnitPosition(targetIdB))
 		end
 
-		return distanceSq(avgPosition, positionA) < distanceSq(avgPosition, positionB)
+		if closestFirst then
+			return distanceSq(avgPosition, positionA) < distanceSq(avgPosition, positionB)
+		else
+			return distanceSq(avgPosition, positionA) > distanceSq(avgPosition, positionB)
+		end
 	end)
 end
 
@@ -280,7 +284,7 @@ local function giveOrders(cmdId, selectedUnits, filteredTargets, options)
 	local count = 0
 	for _, targetId in ipairs(filteredTargets) do
 		local cmdOpts = {}
-		if count > 0 or (options.shift and not options.meta) then
+		if count > 0 or options.shift then
 			table.insert(cmdOpts, "shift")
 		end
 		if options.meta and not options.shift then
@@ -310,7 +314,7 @@ local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
 	local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
 		local selectedUnitTable = { selectedUnitId }
-		sortTargetsByDistance(selectedUnitTable, targets)
+		sortTargetsByDistance(selectedUnitTable, targets, true)
 		giveOrders(cmdId, selectedUnitTable, targets, options)
 	end
 end
@@ -320,7 +324,8 @@ local function defaultHandler(cmdId, selectedUnits, filteredTargets, options)
 	if options.shift and options.meta then
 		splitOrders(cmdId, selectedUnits, filteredTargets, options)
 	else
-		sortTargetsByDistance(selectedUnits, filteredTargets)
+		local closestFirst = not options.meta
+		sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst)
 		giveOrders(cmdId, selectedUnits, filteredTargets, options)
 	end
 end
