@@ -2,6 +2,8 @@ local smallTeamThreshold = 4
 local initialized = false
 local settings = { }
 
+local holidaysList = VFS.Include("common/holidays.lua")
+
 local function getSettings()
 	if initialized then
 		return settings
@@ -90,6 +92,40 @@ local function getSettings()
 		isCoop = true
 	end
 
+	local isHoliday = {}
+	if Spring.GetModOptions().date_day then
+		local currentDay = Spring.GetModOptions().date_day
+		local currentMonth = Spring.GetModOptions().date_month
+		local currentYear = Spring.GetModOptions().date_year
+
+		-- FIXME: This doesn't support events that start and end in different years.
+		for holiday, dates in pairs(holidaysList) do
+			local afterStart = false
+			local beforeEnd = false
+			if (dates.firstDay.month == currentMonth and dates.firstDay.day <= currentDay) or (dates.firstDay.month < currentMonth) then
+				afterStart = true
+			end
+			if (dates.lastDay.month == currentMonth and dates.lastDay.day >= currentDay) or (dates.lastDay.month > currentMonth) then
+				beforeEnd = true
+			end
+
+			if afterStart and beforeEnd then
+				isHoliday[holiday] = true
+				if dates.specialDay and dates.specialDay.day == currentDay and dates.specialDay.month == currentMonth then
+					isHoliday[holiday .. "_specialDay"] = true
+				else
+					isHoliday[holiday .. "_specialDay"] = false
+				end
+			else
+				isHoliday[holiday] = false
+				isHoliday[holiday .. "_specialDay"] = false
+			end
+		end
+
+		Spring.Echo("isHoliday", isHoliday)
+		--end
+	end
+
 	initialized = true
 
 	settings = {
@@ -111,6 +147,7 @@ local function getSettings()
 		scavAllyTeamID = scavAllyTeamID,
 		raptorTeamID = raptorTeamID,
 		raptorAllyTeamID = raptorAllyTeamID,
+		isHoliday = isHoliday,
 	}
 
 	return settings
@@ -156,4 +193,7 @@ return {
 	GetRaptorTeamID = function () return getSettings().raptorTeamID end,
 	---@return integer? raptorAllyTeamID Team ID for the raptor ally team.
 	GetRaptorAllyTeamID = function () return getSettings().raptorAllyTeamID end,
+	---@return table? isHoliday Currently running holiday events. 
+	---See common/holidays.lua for more information.
+	GetHoliday = function () return getSettings().isHoliday end,
 }
