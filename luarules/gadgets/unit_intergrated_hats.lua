@@ -27,14 +27,19 @@ end
 local hatCounts = {}
 local unitCount = 0
 do
-	local hats = Spring.GetModOptions().unithats
+	local hats
+
+	if Spring.Utilities.Gametype.IsHoliday()["aprilfools"] then
+		hats = "april"
+	end
+
 	if hats then
 
 		-- count of how many hats a unit has for the hat mode
 		-- unit models should be swapped out to the appropate models via all defs post
 		local hatCountsTemp = {}
 		local hatTable = {
-			april = { -- objects3d/apf, APrilFools hats
+			april = { -- objects3d/units/events/aprilfools, AprilFools hats
 				corak=7,
 				corstorm=7,
 				corck=6,

@@ -1,4 +1,4 @@
-if not Spring.GetModOptions().xmas then
+if not Spring.Utilities.Gametype.IsHoliday()["xmas"] then
 	return
 end
 

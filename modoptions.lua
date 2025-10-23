@@ -867,36 +867,6 @@ local options = {
         type    = "separator",
     },
 
-    --{
-    --	key    	= "xmas",
-    --	name   	= "Holiday decorations",
-    --	desc   	= "Various  holiday decorations",
-    --	type   	= "bool",
-    --	def    	= true,
-    --	section	= "options_extra",
-    --},
-
-	-- {
-	-- 	key		= "unithats",
-	-- 	name	= "Unit Hats",
-	-- 	desc	= "Unit Hats, for the current season",
-	-- 	type	= "list",
-	-- 	def		= "disabled",
-	-- 	items	= {
-	-- 		{ key = "disabled",	name = "Disabled" },
-	-- 		{ key = "april", 	name = "Silly", 		desc = "An assortment of foolish and silly hats >:3" },
-	-- 	},
-	-- 	section	= "options_extra",
-	-- },
-	--{
-	--	key		= "easter_egg_hunt",
-	--	name	= "Easter Eggs Hunt",
-	--	desc	= "Easter Eggs are spawned around the map! Time to go on an Easter Egg hunt! (5 metal 50 energy per)",
-	--	type	= "bool",
-	--	def		= false,
-	--	section	= "options_extra",
-	--},
-
 
     {
         key    	= "experimentalextraunits",

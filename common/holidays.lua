@@ -65,6 +65,9 @@ local function GetEasterStartEnd()
 end
 
 -- FIXME: This doesn't support events that start and end in different years. Don't do that for now. Split it into two events if you have to do that.
+
+-- Spring.Utilities.Gametype.IsHoliday()["aprilfools"]
+
 local holidaysList = {
 	-- Static
 	["aprilfools"] = {
