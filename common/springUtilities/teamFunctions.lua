@@ -12,6 +12,7 @@ local function getSettings()
 	local allyTeamCount, playerCount = 0, 0
 	local isSinglePlayer, is1v1, isTeams, isBigTeams, isSmallTeams, isRaptors, isScavengers, isPvE, isCoop, isFFA, isSandbox = false, false, false, false, false, false, false, false, false, false, false
 	local scavTeamID, scavAllyTeamID, raptorTeamID, raptorAllyTeamID
+	local isHoliday = {}
 
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
 	local springAllyTeamList = Spring.GetAllyTeamList()
@@ -92,7 +93,6 @@ local function getSettings()
 		isCoop = true
 	end
 
-	local isHoliday = {}
 	if Spring.GetModOptions and Spring.GetModOptions().date_day then
 		local currentDay = Spring.GetModOptions().date_day
 		local currentMonth = Spring.GetModOptions().date_month
@@ -121,10 +121,9 @@ local function getSettings()
 				isHoliday[holiday .. "_specialDay"] = false
 			end
 		end
-
-		Spring.Echo("isHoliday", isHoliday)
-		--end
 	end
+
+	Spring.Echo("isHoliday", isHoliday)
 
 	initialized = true
 
@@ -184,6 +183,9 @@ return {
 		IsFFA          = function () return getSettings().isFFA          end,
 		---@return boolean
 		IsSandbox      = function () return getSettings().isSandbox      end,
+		---@return table? isHoliday Currently running holiday events. 
+		---See common/holidays.lua for more information.
+		IsHoliday = function () return getSettings().isHoliday end,
 	},
 	---@return integer? scavTeamID Team ID for the scavenger team.
 	GetScavTeamID = function () return getSettings().scavTeamID end,
@@ -193,7 +195,5 @@ return {
 	GetRaptorTeamID = function () return getSettings().raptorTeamID end,
 	---@return integer? raptorAllyTeamID Team ID for the raptor ally team.
 	GetRaptorAllyTeamID = function () return getSettings().raptorAllyTeamID end,
-	---@return table? isHoliday Currently running holiday events. 
-	---See common/holidays.lua for more information.
-	GetHoliday = function () return getSettings().isHoliday end,
+
 }

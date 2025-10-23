@@ -38861,8 +38861,6 @@ local fraction = 5
 local day = tonumber(os.date("%d"))
 if day <= 25 then
 	fraction = fraction + (25 - day)
-else
-	fraction = fraction + ((day - 25) * 5)
 end
 local xmaslightbase = {
 			fraction = fraction,
@@ -38886,7 +38884,7 @@ local xmaslightbase = {
 -- White Fire Remake 1.3
 -- Ice Scream v2.5.1
 -- add colorful xmas lights to a percentage of certain snowy trees
-if os.date("%m") == "12" and os.date("%d") >= "12" then --and  os.date("%d") <= "26"
+if Spring.Utilities.Gametype.IsHoliday()["xmas"] then --and  os.date("%d") <= "26"
 	local snowy_tree_keys = {allpinesb_ad0 = 60, __tree_fir_tall_3 = 60, __tree_fir_ = 60}
 	local xmasColors = {
 		[1] = {234,13,13}, -- red
