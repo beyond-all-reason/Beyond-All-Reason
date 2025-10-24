@@ -44,7 +44,7 @@ do
 				corstorm=7,
 				corck=6,
 				corack=6,
-				correap=6,
+				--correap=6,
 				corllt=8,
 				corhllt=8,
 				cordemon=4,
@@ -56,7 +56,7 @@ do
 				corwin=7,
 				armwin=6,
 				armham=5,
-				corthud=6,
+				--corthud=6,
 			},
 		}
 
