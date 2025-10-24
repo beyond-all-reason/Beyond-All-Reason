@@ -21,7 +21,7 @@ if not gadgetHandler:IsSyncedCode() then
   return false
 end
 
-local reclaimEnabled = Spring.GetModOptions() and Spring.GetModOptions()[SharedEnums.ModOptions.AlliedUnitReclaimMode] == SharedEnums.AlliedUnitReclaimMode.EnabledAutomationRestricted
+local reclaimEnabled = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedUnitReclaimMode] == SharedEnums.AlliedUnitReclaimMode.EnabledAutomationRestricted
 if reclaimEnabled then
   return
 end
@@ -49,7 +49,8 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
     if unitTeam ~= targetTeam and Spring.AreTeamsAllied(unitTeam, targetTeam) then
       return false
     end
-  elseif (cmdID == CMD.GUARD) then -- Also block guarding allied units that can reclaim
+  -- Also block guarding allied units that can reclaim
+  elseif (cmdID == CMD.GUARD) then
     local targetID = cmdParams[1]
     local targetUnitDef = UnitDefs[Spring.GetUnitDefID(targetID)]
 
