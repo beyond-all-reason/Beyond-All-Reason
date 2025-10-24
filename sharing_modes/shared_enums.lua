@@ -7,6 +7,7 @@ M.ModOptions = {
 	PlayerEnergySendThreshold = "player_energy_send_threshold",
 	PlayerMetalSendThreshold = "player_metal_send_threshold",
 	ResourceSharingEnabled = "resource_sharing_enabled",
+	SharingMode = "sharing_mode",
 	TaxResourceSharingAmount = "tax_resource_sharing_amount",
 	UnitSharingMode = "unit_sharing_mode",
 }
@@ -76,7 +77,7 @@ M.AlliedAssistMode = {
 
 M.AlliedUnitReclaimMode = {
 	Disabled = "disabled",
-	Enabled = "enabled",
+	EnabledAutomationRestricted = "enabled_automation_restricted",
 }
 
 return M

@@ -1,8 +1,9 @@
 local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 local PolicyShared = VFS.Include("common/luaUtilities/team_transfer/team_transfer_cache.lua")
 local UnitSharingCategories = VFS.Include("common/luaUtilities/team_transfer/unit_sharing_categories.lua")
+local Comms = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_comms.lua")
 
-local Shared = {}
+local Shared = Comms
 
 local FieldTypes = PolicyShared.FieldTypes
 Shared.UnitPolicyFields = {
@@ -10,7 +11,6 @@ Shared.UnitPolicyFields = {
   sharingMode = FieldTypes.string,
   allowTakeBypass = FieldTypes.boolean,
 }
-
 
 ---Validate a list of unitIds under current mode
 ---Returns a structured result object designed for UI consumption.

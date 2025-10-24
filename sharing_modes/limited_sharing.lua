@@ -27,12 +27,12 @@ return {
             value = 0,
             locked = false,
         },
-        [SharedEnums.ModOptions.AlliedAssist] = {
+        [SharedEnums.ModOptions.AlliedAssistMode] = {
             value = SharedEnums.AlliedAssistMode.Enabled,
             locked = false,
         },
         [SharedEnums.ModOptions.AlliedUnitReclaimMode] = {
-            value = SharedEnums.AlliedUnitReclaimMode.Enabled,
+            value = SharedEnums.AlliedUnitReclaimMode.EnabledAutomationRestricted,
             locked = false,
         },
     }

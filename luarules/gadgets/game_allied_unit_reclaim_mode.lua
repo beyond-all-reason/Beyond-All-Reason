@@ -12,6 +12,8 @@ function gadget:GetInfo()
   }
 end
 
+local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+
 ----------------------------------------------------------------
 -- Synced only
 ----------------------------------------------------------------
@@ -19,8 +21,8 @@ if not gadgetHandler:IsSyncedCode() then
   return false
 end
 
-local alliedReclaimEnabled = Spring.GetModOptions() and Spring.GetModOptions().game_allied_reclaim == "enabled"
-if alliedReclaimEnabled then
+local reclaimEnabled = Spring.GetModOptions() and Spring.GetModOptions()[SharedEnums.ModOptions.AlliedUnitReclaimMode] == SharedEnums.AlliedUnitReclaimMode.EnabledAutomationRestricted
+if reclaimEnabled then
   return
 end
 

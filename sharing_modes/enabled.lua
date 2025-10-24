@@ -35,7 +35,7 @@ return {
             locked = true,
         },
         [SharedEnums.ModOptions.AlliedUnitReclaimMode] = {
-            value = SharedEnums.AlliedUnitReclaimMode.Enabled,
+            value = SharedEnums.AlliedUnitReclaimMode.EnabledAutomationRestricted,
             locked = true,
         },
     }

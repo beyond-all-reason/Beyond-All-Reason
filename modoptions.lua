@@ -46,6 +46,14 @@ local options = {
     },
 
     {
+        key		= "options_sharing",
+        name	= "Sharing",
+        desc   	= "Resource and unit sharing options",
+        type   	= "section",
+        weight  = 6,
+    },
+
+    {
         key     = "sub_header",
         name    = "Options for changing base game settings.",
         desc    = "",
@@ -258,20 +266,13 @@ local options = {
     },
 
     {
-        key     = "options_sharing",
-        name    = "Sharing",
-        type    = "section", 
-        weight  = 6,
-    },
-    {
-        key     = "sharing_mode",
+        key     = SharedEnums.ModOptions.SharingMode,
         name    = "Sharing Mode",
         desc    = "Controls overall sharing policy and locks/unlocks specific options, see `sharing_modes/` for more details",
         type    = "list",
         section = "options_sharing",
-        sharing_category = "mode_selection",
         def     = "enabled",
-        items   = {}, -- Will be populated by UI code from sharing_modes
+        items   = {}, -- Will be populated dynamically by Chobby from sharing_modes/ directory
     },
 
     {
@@ -279,7 +280,6 @@ local options = {
         name    = "-- Units",
         type    = "subheader",
         section = "options_sharing",
-        sharing_category = "units",
         def     =  true,
     },
 	{
@@ -306,7 +306,6 @@ local options = {
         type    = "subheader",
         desc    = "",
         section = "options_sharing",
-        sharing_category = "resources",
         def     =  true,
     },
 	{
@@ -315,7 +314,6 @@ local options = {
 		desc	= "Enable or disable all player-to-player resource sharing and overflow",
 		type	= "bool",
 		section	= "options_sharing",
-        sharing_category = "resources",
 		def		= true,
 		column  = 1,
 	},
@@ -330,9 +328,7 @@ local options = {
 		max		= 0.99,
 		step	= 0.01,
 		section	= "options_sharing",
-		sharing_category = "resources",
 		column	= 1,
-		disabled= { key = SharedEnums.ModOptions.ResourceSharingEnabled, value = false},
 	},
 	{
 		key     = SharedEnums.ModOptions.PlayerMetalSendThreshold,
@@ -344,9 +340,7 @@ local options = {
 		max     = 100000,
 		step    = 10,
 		section = "options_sharing",
-		sharing_category = "resources",
 		column  = 1,
-		disabled= { key = SharedEnums.ModOptions.ResourceSharingEnabled, value = false},
 	},
 	{
 		key     = SharedEnums.ModOptions.PlayerEnergySendThreshold,
@@ -358,9 +352,7 @@ local options = {
 		max     = 100000,
 		step    = 10,
 		section = "options_sharing",
-		sharing_category = "resources",
 		column  = 2,
-		disabled= { key = SharedEnums.ModOptions.ResourceSharingEnabled, value = false},
 	},
 
     {
@@ -368,7 +360,6 @@ local options = {
         name    = "-- Allied Interactions",
         desc    = "",
         section = "options_sharing",
-        sharing_category = "allied_interactions",
         type    = "subheader",
         def     =  true,
     },
@@ -378,12 +369,11 @@ local options = {
 		desc	= "Controls whether units can assist allied construction and repair",
 		type	= "list",
 		section	= "options_sharing",
-        sharing_category = "allied_interactions",
 		def		= SharedEnums.AlliedAssistMode.Enabled,
 		column	= 1,
 		items	= {
 			{ key = SharedEnums.AlliedAssistMode.Disabled, name = "Disabled", desc = "Units cannot assist allied construction and repair" },
-			{ key = SharedEnums.AlliedAssistMode.Enabled,  name = "Enabled",  desc = "Units can assist allied construction and repair" },
+			{ key = SharedEnums.AlliedAssistMode.Enabled,  name = "Enabled Automation Restricted",  desc = "Units can assist allied construction and repair" },
 		},
 	},
 	{
@@ -392,11 +382,10 @@ local options = {
 		desc	= "Controls reclaiming allied units and guarding allied units that can reclaim",
 		type	= "list",
 		section	= "options_sharing",
-        sharing_category = "allied_interactions",
-		def		= SharedEnums.AlliedUnitReclaimMode.Enabled,
+		def		= SharedEnums.AlliedUnitReclaimMode.EnabledAutomationRestricted,
 		items	= {
 			{ key = SharedEnums.AlliedUnitReclaimMode.Disabled, name = "Disabled", desc = "Allied reclaim is disabled" },
-			{ key = SharedEnums.AlliedUnitReclaimMode.Enabled, name = "Enabled", desc = "Allied reclaim is allowed" },
+			{ key = SharedEnums.AlliedUnitReclaimMode.EnabledAutomationRestricted, name = "Enabled", desc = "Allied reclaim is allowed" },
 		},
 	},
 

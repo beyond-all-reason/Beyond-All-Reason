@@ -5,35 +5,23 @@ local Comms = {
 }
 Comms.__index = Comms
 
---- Determine communication case from parameters
----@param senderTeamId number
----@param receiverTeamId number
----@param taxRate number
----@param resourceShareThreshold number
----@return integer
-function Comms.DecideCommunicationCaseFromParams(senderTeamId, receiverTeamId, taxRate, resourceShareThreshold)
-  if senderTeamId == receiverTeamId then
-    return SharedEnums.ResourceCommunicationCase.OnSelf
-  end
-  if taxRate <= 0 then
-    return SharedEnums.ResourceCommunicationCase.OnTaxFree
-  end
-  if resourceShareThreshold > 0 then
-    return SharedEnums.ResourceCommunicationCase.OnTaxedThreshold
-  end
-  return SharedEnums.ResourceCommunicationCase.OnTaxed
-end
-
 --- Determine communication case from policy result
 ---@param policyResult ResourcePolicyResult
 ---@return integer
 function Comms.DecideCommunicationCase(policyResult)
-  return Comms.DecideCommunicationCaseFromParams(
-    policyResult.senderTeamId,
-    policyResult.receiverTeamId,
-    policyResult.taxRate,
-    policyResult.resourceShareThreshold
-  )
+  if policyResult.senderTeamId == policyResult.receiverTeamId then
+    return SharedEnums.ResourceCommunicationCase.OnSelf
+  end
+  if not policyResult.canShare then
+    return SharedEnums.ResourceCommunicationCase.OnDisabled
+  end
+  if policyResult.taxRate <= 0 then
+    return SharedEnums.ResourceCommunicationCase.OnTaxFree
+  end
+  if policyResult.resourceShareThreshold > 0 then
+    return SharedEnums.ResourceCommunicationCase.OnTaxedThreshold
+  end
+  return SharedEnums.ResourceCommunicationCase.OnTaxed
 end
 
 ---Format a number for UI display by flooring it to whole numbers, this mirrors behavior in ResourceTransfer, which rounds down to the nearest percentage when interpreting commands from the slider
@@ -41,11 +29,12 @@ end
 ---@return string
 function FormatNumberForUI(value)
   if type(value) == "number" then
-      return tostring(math.floor(value))
+    return tostring(math.floor(value))
   else
-      return tostring(value)
+    return tostring(value)
   end
 end
+
 Comms.FormatNumberForUI = FormatNumberForUI
 
 ---@param policyResult ResourcePolicyResult
@@ -54,25 +43,27 @@ function Comms.TooltipText(policyResult)
   local baseKey = 'ui.playersList'
   local case = Comms.DecideCommunicationCase(policyResult)
   if case == SharedEnums.ResourceCommunicationCase.OnSelf then
-      return Spring.I18N(baseKey .. '.request' .. pascalResourceType)
+    return Spring.I18N(baseKey .. '.request' .. pascalResourceType)
   elseif case == SharedEnums.ResourceCommunicationCase.OnTaxFree then
-      return Spring.I18N(baseKey .. '.share' .. pascalResourceType)
+    return Spring.I18N(baseKey .. '.share' .. pascalResourceType)
+  elseif case == SharedEnums.ResourceCommunicationCase.OnDisabled then
+    return Spring.I18N(baseKey .. '.share' .. pascalResourceType .. 'Disabled')
   elseif case == SharedEnums.ResourceCommunicationCase.OnTaxed then
     local i18nData = {
-        amountReceivable = FormatNumberForUI(policyResult.amountReceivable),
-        amountSendable = FormatNumberForUI(policyResult.amountSendable),
-        taxRatePercentage = FormatNumberForUI(policyResult.taxRate * 100),
+      amountReceivable = FormatNumberForUI(policyResult.amountReceivable),
+      amountSendable = FormatNumberForUI(policyResult.amountSendable),
+      taxRatePercentage = FormatNumberForUI(policyResult.taxRate * 100),
     }
     return Spring.I18N(baseKey .. '.share' .. pascalResourceType .. 'Taxed', i18nData)
   elseif case == SharedEnums.ResourceCommunicationCase.OnTaxedThreshold then
-      local i18nData = {
-          amountReceivable = FormatNumberForUI(policyResult.amountReceivable),
-          amountSendable = FormatNumberForUI(policyResult.amountSendable),
-          taxRatePercentage = FormatNumberForUI(policyResult.taxRate * 100),
-          resourceShareThreshold = FormatNumberForUI(policyResult.resourceShareThreshold),
-          sentAmountUntaxed = FormatNumberForUI(math.min(policyResult.resourceShareThreshold, policyResult.cumulativeSent)),
-      }
-      return Spring.I18N(baseKey .. '.share' .. pascalResourceType .. 'TaxedThreshold', i18nData)
+    local i18nData = {
+      amountReceivable = FormatNumberForUI(policyResult.amountReceivable),
+      amountSendable = FormatNumberForUI(policyResult.amountSendable),
+      taxRatePercentage = FormatNumberForUI(policyResult.taxRate * 100),
+      resourceShareThreshold = FormatNumberForUI(policyResult.resourceShareThreshold),
+      sentAmountUntaxed = FormatNumberForUI(math.min(policyResult.resourceShareThreshold, policyResult.cumulativeSent)),
+    }
+    return Spring.I18N(baseKey .. '.share' .. pascalResourceType .. 'TaxedThreshold', i18nData)
   end
 end
 

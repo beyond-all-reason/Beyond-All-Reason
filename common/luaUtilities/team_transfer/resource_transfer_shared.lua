@@ -1,7 +1,8 @@
 local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 local PolicyShared = VFS.Include("common/luaUtilities/team_transfer/team_transfer_cache.lua")
+local Comms = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_comms.lua")
 
-local Shared = {}
+local Shared = Comms
 
 local FieldTypes = PolicyShared.FieldTypes
 
@@ -48,17 +49,34 @@ function Shared.DeserializePolicyResult(serialized, senderTeamId, receiverTeamId
   })
 end
 
---- Core helper: compute sender cost for a desired received amount under policyResult
----@param policyResult ResourcePolicyResult
----@param desiredReceived number
----@return number receivedAmount, number sentAmount, number untaxedPortion
-function Shared.CalculateSenderTaxedAmount(policyResult, desiredReceived)
-  local maxReceivable = policyResult.amountReceivable
-  local desired = math.min(desiredReceived, policyResult.amountSendable, maxReceivable)
-  if desired <= 0 then
-    return 0, 0, 0
-  end
+---@param senderTeamId number
+---@param receiverTeamId number
+---@param resourceType ResourceType
+---@return ResourcePolicyResult
+function Shared.CreateDenyPolicy(senderTeamId, receiverTeamId, resourceType)
+  ---@type ResourcePolicyResult
+  local result = {
+    senderTeamId = senderTeamId,
+    receiverTeamId = receiverTeamId,
+    canShare = false,
+    amountSendable = 0,
+    amountReceivable = 0,
+    taxedPortion = 0,
+    untaxedPortion = 0,
+    taxRate = 0,
+    resourceType = resourceType,
+    remainingTaxFreeAllowance = 0,
+    resourceShareThreshold = 0,
+    cumulativeSent = Shared.GetCumulativeSent(senderTeamId, resourceType),
+    overflowSliderEnabled = false
+  }
+  return result
+end
 
+---@param policyResult ResourcePolicyResult
+---@param desired number
+---@return number received, number sent, number untaxed
+function Shared.CalculateSenderTaxedAmount(policyResult, desired)
   local untaxed = math.min(desired, policyResult.untaxedPortion)
   local taxed = desired - untaxed
   local r = policyResult.taxRate
@@ -91,31 +109,14 @@ function Shared.GetCachedPolicyResult(senderId, receiverId, resourceType)
   local serialized = Spring.GetTeamRulesParam(senderId, baseKey)
 
   if serialized == nil then
-    -- default to deny
-    ---@type ResourcePolicyResult
-    local result = {
-      senderTeamId = senderId,
-      receiverTeamId = receiverId,
-      canShare = false,
-      amountSendable = 0,
-      amountReceivable = 0,
-      taxedPortion = 0,
-      untaxedPortion = 0,
-      taxRate = 0,
-      resourceType = resourceType,
-      remainingTaxFreeAllowance = 0,
-      resourceShareThreshold = 0,
-      cumulativeSent = 0,
-      overflowSliderEnabled = false
-    }
-    return result
+    return Shared.CreateDenyPolicy(senderId, receiverId, resourceType)
   end
 
   if type(serialized) ~= "string" then
     serialized = tostring(serialized)
   end
 
-  local result = Shared.DeserializePolicyResult(serialized)
+  local result = Shared.DeserializePolicyResult(serialized, senderId, receiverId)
   result.senderTeamId = senderId
   result.receiverTeamId = receiverId
   return result

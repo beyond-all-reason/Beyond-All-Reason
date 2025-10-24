@@ -20,40 +20,27 @@ local function isNonPlayerTeam(springRepo, teamId)
   return luaAI ~= nil
 end
 
--- Build a rejected policy result with zeroed capabilities
----@param ctx PolicyContext
----@param resourceType ResourceType
----@return ResourcePolicyResult
-local function rejectPolicy(ctx, resourceType)
-  return Shared.CreateDenyPolicy(
-    ctx.senderTeamId,
-    ctx.receiverTeamId,
-    resourceType,
-    Shared.GetCumulativeSent(ctx.senderTeamId, resourceType)
-  )
-end
-
 -- Encapsulate legacy AllowResourceTransfer gate rules
 ---@param ctx PolicyContext
 ---@param resourceType ResourceType
 ---@return ResourcePolicyResult|nil
-local function tryRejectPolicy(ctx, resourceType)
+local function TryDenyPolicy(ctx, resourceType)
   -- Globally disable any form of resource sharing if the modoption is turned off
   local modOpts = ctx.springRepo.GetModOptions and ctx.springRepo.GetModOptions()
-  if modOpts and modOpts.game_resource_sharing_enabled == false then
-    return rejectPolicy(ctx, resourceType)
+  if modOpts and modOpts[SharedEnums.ModOptions.ResourceSharingEnabled] == false then
+    return Shared.CreateDenyPolicy(ctx.senderTeamId, ctx.receiverTeamId, resourceType)
   end
   if ctx.isCheatingEnabled then
     return nil
   end
   if not ctx.areAlliedTeams and not isNonPlayerTeam(ctx.springRepo, ctx.senderTeamId) then
-    return rejectPolicy(ctx, resourceType)
+    return Shared.CreateDenyPolicy(ctx.senderTeamId, ctx.receiverTeamId, resourceType)
   end
   local numActivePlayers = ctx.springRepo.GetTeamRulesParam(ctx.receiverTeamId, "numActivePlayers")
   local activePlayers = numActivePlayers and
       tonumber(ctx.springRepo.GetTeamRulesParam(ctx.receiverTeamId, "numActivePlayers")) or 0
   if activePlayers == 0 then
-    return rejectPolicy(ctx, resourceType)
+    return Shared.CreateDenyPolicy(ctx.senderTeamId, ctx.receiverTeamId, resourceType)
   end
   return nil
 end
@@ -116,7 +103,7 @@ function Gadgets.BuildResultFactory(taxRate, metalThreshold, energyThreshold)
   ---@param resourceType ResourceType
   ---@return ResourcePolicyResult
   local function calcResourcePolicyResult(ctx, resourceType)
-    local rejected = tryRejectPolicy(ctx, resourceType)
+    local rejected = TryDenyPolicy(ctx, resourceType)
     if rejected then return rejected end
 
     local senderData
