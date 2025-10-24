@@ -367,9 +367,6 @@ return {
 	["PvE/Raptor_Queen5HealthLeft"] = {
 		delay = 10,
 	},
-	["PvE/Raptor_Queen2HealthLeft"] = {
-		delay = 10,
-	},
 	["PvE/Raptor_QueenIsDestroyed"] = {
 		delay = 10,
 	},
@@ -405,9 +402,6 @@ return {
 		delay = 10,
 	},
 	["PvE/Scav_Boss5HealthLeft"] = {
-		delay = 10,
-	},
-	["PvE/Scav_Boss2HealthLeft"] = {
 		delay = 10,
 	},
 	["PvE/Scav_BossIsDestroyed"] = {
