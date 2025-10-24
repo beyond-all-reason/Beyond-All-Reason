@@ -47,7 +47,8 @@ function Synced.UnitTransfer(ctx)
   local failedUnits = {}
 
   for _, unitId in ipairs(ctx.validationResult.validUnitIds) do
-    local success = Spring.TransferUnit(unitId, ctx.receiverTeamId, ctx.given) -- ctx.given should always be false here because we short-circuit inside AllowResourceTransfer
+    -- ctx.given should always be false here because we short-circuit inside AllowResourceTransfer
+    local success = Spring.TransferUnit(unitId, ctx.receiverTeamId, ctx.given)
     if success then
       table.insert(transferredUnits, unitId)
     else

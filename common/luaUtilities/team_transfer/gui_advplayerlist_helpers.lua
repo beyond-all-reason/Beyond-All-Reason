@@ -8,6 +8,22 @@ local ResourceShared = VFS.Include("common/luaUtilities/team_transfer/resource_t
 local METAL_POLICY_PREFIX = "metal_"
 local ENERGY_POLICY_PREFIX = "energy_"
 local UNIT_POLICY_PREFIX = "unit_"
+local UNIT_VALIDATION_PREFIX = "unit_validation_"
+
+local metalPlayerScratch = {}
+local energyPlayerScratch = {}
+local unitPlayerScratch = {}
+local validationResultScratch = {}
+
+local UnitValidationFields = {
+  status = true,
+  invalidUnitCount = true,
+  invalidUnitIds = true,
+  invalidUnitNames = true,
+  validUnitCount = true,
+  validUnitIds = true,
+  validUnitNames = true,
+}
 
 local Helpers = {}
 
@@ -16,7 +32,8 @@ local Helpers = {}
 ---@param senderTeamId number
 ---@return ResourcePolicyResult policyResult, string pascalResourceType
 function Helpers.GetPlayerPolicy(player, resourceType, senderTeamId)
-  local transferCategory = resourceType == "metal" and SharedEnums.TransferCategory.MetalTransfer or SharedEnums.TransferCategory.EnergyTransfer
+  local transferCategory = resourceType == "metal" and SharedEnums.TransferCategory.MetalTransfer or
+  SharedEnums.TransferCategory.EnergyTransfer
   local policyResult = Helpers.UnpackPolicyResult(transferCategory, player, senderTeamId, player.team)
   local pascalResourceType = resourceType == SharedEnums.ResourceType.METAL and "Metal" or "Energy"
   return policyResult, pascalResourceType
@@ -49,31 +66,42 @@ end
 ---@param validationResult UnitValidationResult
 ---@param playerData table
 function Helpers.PackSelectedUnitsValidation(validationResult, playerData)
-    playerData.selectedUnitsValidation = validationResult
+  for field, _ in pairs(UnitValidationFields) do
+    playerData[UNIT_VALIDATION_PREFIX .. field] = validationResult and validationResult[field] or nil
+  end
 end
 
 ---@param playerData table
 function Helpers.ClearSelectedUnitsValidation(playerData)
-    playerData.selectedUnitsValidation = nil
+  for field, _ in pairs(UnitValidationFields) do
+    playerData[UNIT_VALIDATION_PREFIX .. field] = nil
+  end
 end
 
 ---@param playerData table
 ---@return UnitValidationResult | nil
 function Helpers.UnpackSelectedUnitsValidation(playerData)
-    return playerData.selectedUnitsValidation
+  if playerData[UNIT_VALIDATION_PREFIX .. "status"] == nil then
+    return nil
+  end
+  local scratch = validationResultScratch
+  for field, _ in pairs(UnitValidationFields) do
+    scratch[field] = playerData[UNIT_VALIDATION_PREFIX .. field]
+  end
+  return scratch
 end
 
 ---@param playerData table
 ---@param myTeamID number
 ---@param playerTeamID number
 function Helpers.PackAllPoliciesForPlayer(playerData, myTeamID, playerTeamID)
-    -- Pack all policy types for the player
-    Helpers.PackMetalPolicyResult(playerTeamID, myTeamID, playerData)
-    Helpers.PackEnergyPolicyResult(playerTeamID, myTeamID, playerData)
+  -- Pack all policy types for the player
+  Helpers.PackMetalPolicyResult(playerTeamID, myTeamID, playerData)
+  Helpers.PackEnergyPolicyResult(playerTeamID, myTeamID, playerData)
 
-    -- For unit policy, we need to get it from cache and pack it
-    local unitPolicy = UnitShared.GetCachedPolicyResult(myTeamID, playerTeamID)
-    Helpers.PackPolicyResult(SharedEnums.TransferCategory.UnitTransfer, unitPolicy, playerData)
+  -- For unit policy, we need to get it from cache and pack it
+  local unitPolicy = UnitShared.GetCachedPolicyResult(myTeamID, playerTeamID)
+  Helpers.PackPolicyResult(SharedEnums.TransferCategory.UnitTransfer, unitPolicy, playerData)
 end
 
 ---@param playerData table
@@ -81,10 +109,10 @@ end
 ---@param team number
 ---@return table, table, table
 function Helpers.UnpackAllPolicies(playerData, myTeamID, team)
-    local metalPolicy = Helpers.UnpackPolicyResult(SharedEnums.TransferCategory.MetalTransfer, playerData, myTeamID, team)
-    local energyPolicy = Helpers.UnpackPolicyResult(SharedEnums.TransferCategory.EnergyTransfer, playerData, myTeamID, team)
-    local unitPolicy = Helpers.UnpackUnitPolicyResult(playerData, myTeamID, team)
-    return metalPolicy, energyPolicy, unitPolicy
+  local metalPolicy = Helpers.UnpackPolicyResult(SharedEnums.TransferCategory.MetalTransfer, playerData, myTeamID, team)
+  local energyPolicy = Helpers.UnpackPolicyResult(SharedEnums.TransferCategory.EnergyTransfer, playerData, myTeamID, team)
+  local unitPolicy = Helpers.UnpackUnitPolicyResult(playerData, myTeamID, team)
+  return metalPolicy, energyPolicy, unitPolicy
 end
 
 ---Unpack policy result for a given transfer category
@@ -94,28 +122,30 @@ end
 ---@param receiverTeamId number
 ---@return table
 function Helpers.UnpackPolicyResult(transferCategory, playerData, senderTeamId, receiverTeamId)
-  local fields, prefix
+  local fields, prefix, scratch
   if transferCategory == SharedEnums.TransferCategory.MetalTransfer then
     fields = ResourceShared.ResourcePolicyFields
     prefix = METAL_POLICY_PREFIX
+    scratch = metalPlayerScratch
   elseif transferCategory == SharedEnums.TransferCategory.EnergyTransfer then
     fields = ResourceShared.ResourcePolicyFields
     prefix = ENERGY_POLICY_PREFIX
+    scratch = energyPlayerScratch
   elseif transferCategory == SharedEnums.TransferCategory.UnitTransfer then
     fields = UnitShared.UnitPolicyFields
     prefix = UNIT_POLICY_PREFIX
+    scratch = unitPlayerScratch
   else
     error("Invalid transfer category: " .. transferCategory)
   end
 
-  local result = {
-    senderTeamId = senderTeamId,
-    receiverTeamId = receiverTeamId
-  }
+  scratch.senderTeamId = senderTeamId
+  scratch.receiverTeamId = receiverTeamId
+
   for field, _ in pairs(fields) do
-    result[field] = playerData[prefix .. field]
+    scratch[field] = playerData[prefix .. field]
   end
-  return result
+  return scratch
 end
 
 ---Unpack unit policy result from player data
@@ -155,18 +185,18 @@ end
 ---@param myTeamID number
 ---@param player table
 function Helpers.PackMetalPolicyResult(team, myTeamID, player)
-    -- Get the metal policy and pack it
-    local policyResult = ResourceShared.GetCachedPolicyResult(myTeamID, team, SharedEnums.ResourceType.METAL)
-    Helpers.PackPolicyResult(SharedEnums.TransferCategory.MetalTransfer, policyResult, player)
+  -- Get the metal policy and pack it
+  local policyResult = ResourceShared.GetCachedPolicyResult(myTeamID, team, SharedEnums.ResourceType.METAL)
+  Helpers.PackPolicyResult(SharedEnums.TransferCategory.MetalTransfer, policyResult, player)
 end
 
 ---@param team number
 ---@param myTeamID number
 ---@param player table
 function Helpers.PackEnergyPolicyResult(team, myTeamID, player)
-    -- Get the energy policy and pack it
-    local policyResult = ResourceShared.GetCachedPolicyResult(myTeamID, team, SharedEnums.ResourceType.ENERGY)
-    Helpers.PackPolicyResult(SharedEnums.TransferCategory.EnergyTransfer, policyResult, player)
+  -- Get the energy policy and pack it
+  local policyResult = ResourceShared.GetCachedPolicyResult(myTeamID, team, SharedEnums.ResourceType.ENERGY)
+  Helpers.PackPolicyResult(SharedEnums.TransferCategory.EnergyTransfer, policyResult, player)
 end
 
 -- Function to handle selection changes and update validations for all players
@@ -174,17 +204,17 @@ end
 ---@param myTeamID number
 ---@param selectedUnits number[]
 function Helpers.UpdatePlayerUnitValidations(player, myTeamID, selectedUnits)
-    for playerID, playerData in pairs(player) do
-        if playerData.team and playerID ~= myTeamID then
-            if selectedUnits and #selectedUnits > 0 then
-                local policyResult = UnitShared.GetCachedPolicyResult(myTeamID, playerData.team)
-                local validationResult = UnitShared.ValidateUnits(policyResult, selectedUnits)
-                Helpers.PackSelectedUnitsValidation(validationResult, playerData)
-            else
-                Helpers.ClearSelectedUnitsValidation(playerData)
-            end
-        end
+  for playerID, playerData in pairs(player) do
+    if playerData.team and playerID ~= myTeamID then
+      if selectedUnits and #selectedUnits > 0 then
+        local policyResult = UnitShared.GetCachedPolicyResult(myTeamID, playerData.team)
+        local validationResult = UnitShared.ValidateUnits(policyResult, selectedUnits)
+        Helpers.PackSelectedUnitsValidation(validationResult, playerData)
+      else
+        Helpers.ClearSelectedUnitsValidation(playerData)
+      end
     end
+  end
 end
 
 return Helpers

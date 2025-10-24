@@ -172,7 +172,7 @@ local function BuildAllowedCacheForMode(mode)
   if allowedByMode[mode] then return end
   local cache = {}
   for unitDefID, unitDef in pairs(UnitDefs) do
-  if EvaluateUnitForSharing(unitDef, mode) then
+    if EvaluateUnitForSharing(unitDef, mode) then
       cache[unitDefID] = true
     end
   end
