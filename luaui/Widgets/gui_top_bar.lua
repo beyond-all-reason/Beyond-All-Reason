@@ -12,6 +12,7 @@ function widget:GetInfo()
 		handler = true, --can use widgetHandler:x()
 	}
 end
+local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 -- Configuration
@@ -50,7 +51,7 @@ local numPlayers = Spring.Utilities.GetPlayerCount()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 local chobbyLoaded = false
 local isSingle = false
-local resourceSharingEnabled = Spring.GetModOptions().game_resource_sharing_enabled
+local resourceSharingEnabled = Spring.GetModOptions()[SharedEnums.ModOptions.ResourceSharingEnabled] == true
 local gameStarted = (Spring.GetGameFrame() > 0)
 local gameFrame = Spring.GetGameFrame()
 local gameIsOver = false
