@@ -34,7 +34,6 @@ local spGetFeatureResurrect = Spring.GetFeatureResurrect
 
 local myTeamID
 local myAllyTeamID
-local gameStarted
 
 ---------------------------------------------------------------------------------------
 --- Target sorting logic (pick the closest first)
@@ -61,8 +60,9 @@ end
 -- Multiplier to convert footprints sizes
 -- see SPRING_FOOTPRINT_SCALE in GlobalConstants.h in recoil engine repo for details
 -- https://github.com/beyond-all-reason/RecoilEngine/blob/master/rts%2FSim%2FMisc%2FGlobalConstants.h
-local springFootprintScale = 2
+local springFootprintScale = Game.footprintScale
 
+---@type table<number, TransportDef>
 local transportDefs = {}
 local cantBeTransported = {}
 local unitMass = {}
@@ -70,7 +70,13 @@ local unitXSize = {}
 
 for defId, def in pairs(UnitDefs) do
 	if def.transportSize and def.transportSize > 0 then
-		transportDefs[defId] = { def.transportMass, def.transportCapacity, def.transportSize, def.health }
+		---@class TransportDef
+		transportDefs[defId] = {
+			massLimit = def.transportMass,
+			maxCapacity = def.transportCapacity,
+			sizeLimit = def.transportSize,
+			health = def.health,
+		}
 	end
 	unitMass[defId] = def.mass
 	unitXSize[defId] = def.xsize
@@ -89,8 +95,8 @@ local function distributeTargetsToTransports(transports, targets)
 	for _, transportUnitId in ipairs(transports) do
 		local transportDefId = spGetUnitDefID(transportUnitId)
 		local transportedUnits = spGetUnitIsTransporting(transportUnitId)
-		local transCapacity = transportDefs[transportDefId][2]
-		local remainingCapacity = transCapacity - (transportedUnits and #transportedUnits or 0)
+		local maxCapacity = transportDefs[transportDefId].maxCapacity
+		local remainingCapacity = maxCapacity - (transportedUnits and #transportedUnits or 0)
 
 		if remainingCapacity > 0 then
 			if not transportTypeDataMap[transportDefId] then
@@ -102,7 +108,7 @@ local function distributeTargetsToTransports(transports, targets)
 					allValidPassengers = {},
 					passengersByPriority = {},
 					maxPriority = -1,
-					transportHealth = transportDefs[transportDefId][4]
+					transportHealth = transportDefs[transportDefId].health
 				}
 			end
 			local position = toPositionTable(spGetUnitPosition(transportUnitId))
@@ -116,8 +122,8 @@ local function distributeTargetsToTransports(transports, targets)
 	-- 2. Match passengers to transport types
 	for transDefId, transportTypeData in pairs(transportTypeDataMap) do
 		local transportDef = transportDefs[transDefId]
-		local transMassLimit = transportDef[1]
-		local transportSizeLimit = transportDef[3]
+		local transportMassLimit = transportDef.massLimit
+		local transportSizeLimit = transportDef.sizeLimit
 
 		for _, targetId in ipairs(targets) do
 			local passengerDefId = spGetUnitDefID(targetId)
@@ -130,7 +136,7 @@ local function distributeTargetsToTransports(transports, targets)
 				isValid = true
 			elseif not cantBeTransported[passengerDefId] then
 				local passengerFootprintX = unitXSize[passengerDefId] / springFootprintScale
-				if unitMass[passengerDefId] <= transMassLimit and passengerFootprintX <= transportSizeLimit then
+				if unitMass[passengerDefId] <= transportMassLimit and passengerFootprintX <= transportSizeLimit then
 					isValid = true
 					validTransportsForUnitTypeMap[passengerDefId][transDefId] = true
 				end
@@ -462,28 +468,18 @@ function widget:CommandNotify(cmdId, params, options)
 	return true
 end
 
-local function maybeRemoveSelf()
-	if spGetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+local function initialize()
+	if spGetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
-end
-
-function widget:GameStart()
-	gameStarted = true
-	maybeRemoveSelf()
+	myTeamID = spGetMyTeamID()
+	myAllyTeamID = spGetMyAllyTeamID()
 end
 
 function widget:PlayerChanged()
-	maybeRemoveSelf()
-	myTeamID = spGetMyTeamID()
-	myAllyTeamID = spGetMyAllyTeamID()
+	initialize()
 end
 
 function widget:Initialize()
-	myTeamID = spGetMyTeamID()
-	myAllyTeamID = spGetMyAllyTeamID()
-
-	if spIsReplay() or spGetGameFrame() > 0 then
-		maybeRemoveSelf()
-	end
+	initialize()
 end
