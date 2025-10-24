@@ -111,14 +111,8 @@ local function getSettings()
 
 			if afterStart and beforeEnd then
 				isHoliday[holiday] = true
-				if dates.specialDay and dates.specialDay.day == currentDay and dates.specialDay.month == currentMonth then
-					isHoliday[holiday .. "_specialDay"] = true
-				else
-					isHoliday[holiday .. "_specialDay"] = false
-				end
 			else
 				isHoliday[holiday] = false
-				isHoliday[holiday .. "_specialDay"] = false
 			end
 		end
 	end
