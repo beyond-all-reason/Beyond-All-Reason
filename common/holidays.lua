@@ -6,7 +6,7 @@ local currentDay = Spring.GetModOptions().date_day
 local currentMonth = Spring.GetModOptions().date_month
 local currentYear = Spring.GetModOptions().date_year
 
--- Function to calculate Easter Sunday for a given year. Magic.
+-- Computus Paschalis Function to calculate Easter Sunday for a given year. Magic.
 local function EasterDate(year)
     local a = year % 19
     local b = math.floor(year / 100)
@@ -64,46 +64,59 @@ local function GetEasterStartEnd()
     }
 end
 
+local EasterEventDates = GetEasterStartEnd()
+
 -- FIXME: This doesn't support events that start and end in different years. Don't do that for now. Split it into two events if you have to do that.
 
--- Spring.Utilities.Gametype.IsHoliday()["aprilfools"]
+-- Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"]
 
 local holidaysList = {
-	-- Static
+	-- Static -----------------------------
 	["aprilfools"] = {
 		firstDay = { day = 1, month = 4},
-		lastDay = { day = 7, month = 4},
-        specialDay = { day = 1, month = 4}
+		lastDay = { day = 7, month = 4}
 	},
+    ["aprilfools_specialDay"] = {
+		firstDay = { day = 1, month = 4},
+		lastDay = { day = 1, month = 4}
+	},
+
 	["spooktober"] = {
 		firstDay = { day = 17, month = 10},
-		lastDay = { day = 31, month = 10},
-        specialDay = { day = 31, month = 10}
+		lastDay = { day = 31, month = 10}
 	},
+    ["spooktober_specialDay"] = {
+		firstDay = { day = 31, month = 10},
+		lastDay = { day = 31, month = 10}
+	},
+
 	["xmas"] = {
 		firstDay = { day = 12, month = 12},
-		lastDay = { day = 31, month = 12},
-        specialDay = { day = 24, month = 12}
+		lastDay = { day = 31, month = 12}
+	},
+    ["xmas_specialDay"] = {
+		firstDay = { day = 24, month = 12},
+		lastDay = { day = 26, month = 12}
 	},
 
     -- We split these into two events because yes
     ["newyearbefore"] = {
 		firstDay = { day = 31, month = 12},
-		lastDay = { day = 31, month = 12},
-        specialDay = { day = 31, month = 12}
+		lastDay = { day = 31, month = 12}
 	},
     ["newyearafter"] = {
 		firstDay = { day = 1, month = 1},
-		lastDay = { day = 1, month = 1},
-        specialDay = { day = 1, month = 1}
+		lastDay = { day = 1, month = 1}
 	},
 
-
-	-- Dynamic
+	-- Dynamic -----------------------------
     ["easter"] = {
-		firstDay = { day = GetEasterStartEnd().firstDay, month = GetEasterStartEnd().firstMonth},
-		lastDay = { day = GetEasterStartEnd().lastDay, month = GetEasterStartEnd().lastMonth},
-        specialDay = { day = GetEasterStartEnd().easterDay, month = GetEasterStartEnd().easterMonth}
+		firstDay = { day = EasterEventDates.firstDay, month = EasterEventDates.firstMonth},
+		lastDay = { day = EasterEventDates.lastDay, month = EasterEventDates.lastMonth}
+	},
+    ["easter_specialDay"] = {
+		firstDay = { day = EasterEventDates.easterDay, month = EasterEventDates.easterMonth},
+		lastDay = { day = EasterEventDates.easterDay, month = EasterEventDates.easterMonth}
 	},
 }
 

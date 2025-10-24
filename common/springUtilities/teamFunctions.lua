@@ -185,7 +185,7 @@ return {
 		IsSandbox      = function () return getSettings().isSandbox      end,
 		---@return table? isHoliday Currently running holiday events. 
 		---See common/holidays.lua for more information.
-		IsHoliday = function () return getSettings().isHoliday end,
+		GetCurrentHolidays = function () return getSettings().isHoliday end,
 	},
 	---@return integer? scavTeamID Team ID for the scavenger team.
 	GetScavTeamID = function () return getSettings().scavTeamID end,

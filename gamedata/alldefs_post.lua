@@ -92,7 +92,7 @@ function UnitDef_Post(name, uDef)
 	-- Event Model Replacements: ----------------------------------------------------------------------------- 
 
 	-- April Fools
-	if Spring.Utilities.Gametype.IsHoliday()["aprilfools"] then
+	if Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"] then
 		-- Something to experiment with
 		--if VFS.FileExists("units/event/aprilfools/" .. uDef.objectname) then
 		--	uDef.objectname = "units/event/aprilfools/" .. uDef.objectname
@@ -136,7 +136,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Spooktober
-	if Spring.Utilities.Gametype.IsHoliday()["spooktober"] then
+	if Spring.Utilities.Gametype.GetCurrentHolidays()["spooktober"] then
 		if name == "armcom" or name == "armdecom" then
 			uDef.objectname = "units/event/spooktober/armcom.s3o"
 		elseif name == "corcom" or name == "cordecom" then
@@ -145,7 +145,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Xmas
-	if Spring.Utilities.Gametype.IsHoliday()["xmas"] then
+	if Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] then
 		if name == "armcom" or name == "armdecom" then
 			uDef.objectname = "units/event/xmas/armcom.s3o"
 		elseif name == "corcom" or name == "cordecom" then
