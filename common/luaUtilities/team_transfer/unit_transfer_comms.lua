@@ -4,7 +4,7 @@ local Comms = {}
 Comms.__index = Comms
 
 ---Decide communication case for unit sharing based on policy and optional validation results
----@param policy UnitTransferPolicyResult
+---@param policy UnitPolicyResult
 ---@param validationResult UnitValidationResult?
 ---@return number SharedEnums.UnitCommunicationCase
 function Comms.DecideCommunicationCase(policy, validationResult)
@@ -25,9 +25,9 @@ function Comms.DecideCommunicationCase(policy, validationResult)
   end
 end
 
----@param policy UnitTransferPolicyResult
+---@param policy UnitPolicyResult
 ---@param validationResult UnitValidationResult?
-function Comms.UnitShareTooltip(policy, validationResult)
+function Comms.TooltipText(policy, validationResult)
   local baseKey = 'ui.playersList'
   local case = Comms.DecideCommunicationCase(policy, validationResult)
   local i18nData = {

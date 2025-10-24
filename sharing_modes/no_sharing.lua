@@ -25,7 +25,12 @@ return {
             locked = true,
             ui = "hidden"
         },
-        [SharedEnums.ModOptions.AlliedAssist] = {
+        [SharedEnums.ModOptions.PlayerEnergySendThreshold] = {
+            value = 0,
+            locked = true,
+            ui = "hidden"
+        },
+        [SharedEnums.ModOptions.AlliedAssistMode] = {
             value = SharedEnums.AlliedAssistMode.Disabled,
             locked = true
         },
