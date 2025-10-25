@@ -393,7 +393,7 @@ return {
 					radius = 100,
 					repulser = false,
 					smart = true,
-					startingpower = 3300,
+					startingpower = 6270,
 					visiblerepulse = false,
 					badcolor = {
 						[1] = 1,
