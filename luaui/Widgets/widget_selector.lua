@@ -1042,6 +1042,8 @@ function widget:MouseRelease(x, y, mb)
 
 	if mb == 1 then
 		widgetHandler:ToggleWidget(name)
+		local event = (data.active and "widget_disabled") or "widget_enabled"
+		WG.Analytics.SendOnetimeEvent(event, { widget = name })
 	elseif mb == 2 or mb == 3 then
 		local w = widgetHandler:FindWidget(name)
 		if not w then
