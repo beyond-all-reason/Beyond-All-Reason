@@ -93,7 +93,7 @@ local function getSettings()
 		isCoop = true
 	end
 
-	if Spring.GetModOptions and Spring.GetModOptions().date_day then
+	if holidaysList and Spring.GetModOptions and Spring.GetModOptions().date_day then
 		local currentDay = Spring.GetModOptions().date_day
 		local currentMonth = Spring.GetModOptions().date_month
 		local currentYear = Spring.GetModOptions().date_year
