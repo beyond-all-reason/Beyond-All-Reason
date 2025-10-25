@@ -1722,26 +1722,10 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
-		--shield behavior override
-		if modOptions.shieldsrework == true then
-			local shieldCollisionExemptions = { --add the name of the weapons (or just the name of the unit followed by _ ) to this table to exempt from shield collision.
-			'corsilo_', 'armsilo_', 'armthor_empmissile', 'armemp_', 'cortron_', 'corjuno_', 'armjuno_',
-			}
-
-
-			if ((not wDef.interceptedbyshieldtype or wDef.interceptedbyshieldtype ~= 1) and wDef.weapontype ~= "Cannon") then
-				wDef.customparams = wDef.customparams or {}
-				wDef.customparams.shield_aoe_penetration = true
-			end
-
-			for _, exemption in ipairs(shieldCollisionExemptions) do
-				if string.find(name, exemption) then
-					wDef.interceptedbyshieldtype = 0
-					wDef.customparams = wDef.customparams or {}
-					wDef.customparams.shield_aoe_penetration = true
-					break
-				end
-			end
+		-- allows unblocked weapons' aoe to reach inside shields
+		if ((not wDef.interceptedbyshieldtype or wDef.interceptedbyshieldtype ~= 1) and wDef.weapontype ~= "Cannon") then
+			wDef.customparams = wDef.customparams or {}
+			wDef.customparams.shield_aoe_penetration = true
 		end
 
 		if modOptions.multiplier_shieldpower then

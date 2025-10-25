@@ -131,6 +131,7 @@ return {
 				soundstart = "junofir2",
 				stockpile = true,
 				stockpiletime = 75,
+				interceptedbyshieldtype = 0,
 				texture1 = "null",
 				texture2 = "smoketrailbar",
 				texture3 = "null",
@@ -143,10 +144,9 @@ return {
 				customparams = {
 					lups_noshockwave = 1,
 					nofire = true,
+					shield_aoe_penetration = true,
 					stockpilelimit = 20,
 					water_splash = 0,
-					interceptedbyshieldtype = 0,
-					shield_aoe_penetration = true,
 				},
 				damage = {
 					default = 1,

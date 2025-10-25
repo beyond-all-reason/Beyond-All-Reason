@@ -142,6 +142,7 @@ return {
 				firestarter = 100,
 				flighttime = 400,
 				impulsefactor = 1.1,
+				interceptedbyshieldtype = 0,
 				metalpershot = 1000,
 				model = "crblmssl.s3o",
 				name = "Intercontinental ballistic nuclear warhead",
@@ -172,9 +173,8 @@ return {
 				weaponvelocity = 1600,
 				customparams = {
 					place_target_on_ground = "true",
-					stockpilelimit = 10,
-					interceptedbyshieldtype = 0,
 					shield_aoe_penetration = true,
+					stockpilelimit = 10,
 				},
 				damage = {
 					commanders = 2500,

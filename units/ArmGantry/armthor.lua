@@ -172,6 +172,7 @@ return {
 				fixedlauncher = true,
 				flighttime = 12,
 				impulsefactor = 0,
+				interceptedbyshieldtype = 0,
 				metalpershot = 100,
 				model = "corshiprocket.s3o",
 				name = "Heavy long-range g2g EMP starburst rocket",
@@ -197,9 +198,8 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				customparams = {
-					stockpilelimit = 2,
-					interceptedbyshieldtype = 0,
 					shield_aoe_penetration = true,
+					stockpilelimit = 2,
 				},
 				damage = {
 					default = 80000,
