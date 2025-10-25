@@ -117,8 +117,6 @@ local function getSettings()
 		end
 	end
 
-	Spring.Echo("isHoliday", isHoliday)
-
 	initialized = true
 
 	settings = {

@@ -2,6 +2,10 @@ if not Spring.GetModOptions then
     return
 end
 
+if not Spring.GetModOptions().holiday_events then
+    return
+end
+
 local currentDay = Spring.GetModOptions().date_day
 local currentMonth = Spring.GetModOptions().date_month
 local currentYear = Spring.GetModOptions().date_year
