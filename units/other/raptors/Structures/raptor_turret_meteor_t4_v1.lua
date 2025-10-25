@@ -93,7 +93,6 @@ return {
 				soundhitwet = "nukewater",
 				soundstart = "bugarty",
 				targetable = 1,
-				targetborder = 0.75,
 				turret = 1,
 				weaponvelocity = 1500,
 				damage = {

@@ -126,7 +126,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "heatray1",
 				soundtrigger = 1,
-				targetborder = 0.3,
 				thickness = 2.6,
 				tolerance = 10000,
 				turret = true,

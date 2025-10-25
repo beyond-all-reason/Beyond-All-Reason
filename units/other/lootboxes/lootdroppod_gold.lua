@@ -77,7 +77,6 @@ return {
 				soundstart = "scavlootdrop",
 				soundhit = "scavdroplootspawn",
 				startvelocity = 1,
-				targetborder = 0.75,
 				turret = 1,
 				weaponacceleration = 50,
 				weapontimer = 2,

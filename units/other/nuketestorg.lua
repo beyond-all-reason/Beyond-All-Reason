@@ -71,7 +71,6 @@ return {
 				soundhit = "xplomed4",
 				soundstart = "misicbm1",
 				startvelocity = 1,
-				targetborder = 0.75,
 				texture1 = "null",
 				texture2 = "null",
 				texture3 = "null",
