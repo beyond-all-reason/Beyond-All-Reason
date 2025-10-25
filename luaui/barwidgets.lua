@@ -2006,10 +2006,10 @@ function widgetHandler:GameStart()
 	return
 end
 
-function widgetHandler:GameOver()
+function widgetHandler:GameOver(winningAllyTeams)
 	tracy.ZoneBeginN("W:GameOver")
 	for _, w in ipairs(self.GameOverList) do
-		w:GameOver()
+		w:GameOver(winningAllyTeams)
 	end
 	tracy.ZoneEnd()
 	return

@@ -808,6 +808,11 @@ function DrawWindow()
 									text = string.sub(text, 1, string.len(text) - 1)
 								end
 								text = text .. '...'
+								if not option.description or option.description == '' then
+									option.description = option.name
+								elseif option.description ~= option.name and string.sub(option.description, 1, string.len(option.name)) ~= option.name then
+									option.description = option.name..'\n\255\255\255\255'..option.description
+								end
 							end
 							if option.restart then
 								font:Print('\255\255\090\090*', xPos + (oPadding * 0.3), yPos - (oHeight / 5) - oPadding, oHeight, "no")
@@ -868,6 +873,11 @@ function DrawWindow()
 										text = string.sub(text, 1, string.len(text) - 1)
 									end
 									text = text .. '...'
+									if not option.description or option.description == '' then
+										option.description = option.name
+									elseif option.description ~= option.name and string.sub(option.description, 1, string.len(option.name)) ~= option.name then
+										option.description = option.name..'\n\255\255\255\255'..option.description
+									end
 								end
 								options[oid].nametext = text
 								if option.id == 'font2' then
@@ -2839,6 +2849,42 @@ function init()
 			end
 		end
 		},
+		{ id = "soundtrackSpooktober", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackspooktober'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackSpooktober', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackspooktober_descr'),
+			onchange = function(i, value)
+				Spring.SetConfigInt('UseSoundtrackSpooktober', value and 1 or 0)
+				if WG['music'] and WG['music'].RefreshTrackList then
+					WG['music'].RefreshTrackList()
+					init()
+				end
+			end
+		},
+		{ id = "soundtrackSpooktoberPostEvent", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackspooktoberpostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackSpooktoberPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackspooktoberpostevent_descr'),
+		onchange = function(i, value)
+			Spring.SetConfigInt('UseSoundtrackSpooktoberPostEvent', value and 1 or 0)
+			if WG['music'] and WG['music'].RefreshTrackList then
+				WG['music'].RefreshTrackList()
+				init()
+			end
+		end
+		},
+		{ id = "soundtrackXmas", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackxmas'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackXmas', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackxmas_descr'),
+			onchange = function(i, value)
+				Spring.SetConfigInt('UseSoundtrackXmas', value and 1 or 0)
+				if WG['music'] and WG['music'].RefreshTrackList then
+					WG['music'].RefreshTrackList()
+					init()
+				end
+			end
+		},
+		{ id = "soundtrackXmasPostEvent", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackxmaspostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackXmasPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackxmaspostevent_descr'),
+		onchange = function(i, value)
+			Spring.SetConfigInt('UseSoundtrackXmasPostEvent', value and 1 or 0)
+			if WG['music'] and WG['music'].RefreshTrackList then
+				WG['music'].RefreshTrackList()
+				init()
+			end
+		end
+		},
 		{ id = "soundtrackInterruption", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackinterruption'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackinterruption_descr'),
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackInterruption', value and 1 or 0)
@@ -3041,6 +3087,20 @@ function init()
 		  end,
 		},
 
+		{ id = "gridmenu_ctrlkeymodifier", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_ctrlkeymodifier'), type = "slider", min = -20, max = 100, step = 1, value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getCtrlKeyModifier ~= nil and WG['gridmenu'].getCtrlKeyModifier()), description = Spring.I18N('ui.settings.option.gridmenu_ctrlkeymodifier_descr'),
+		  onload = function()
+		  end,
+		  onchange = function(_, value)
+			  saveOptionValue('Grid menu', 'gridmenu', 'setCtrlKeyModifier', { 'ctrlKeyModifier' }, value)
+		  end,
+		},
+		{ id = "gridmenu_shiftkeymodifier", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_shiftkeymodifier'), type = "slider", min = -20, max = 100, step = 1, value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getShiftKeyModifier ~= nil and WG['gridmenu'].getShiftKeyModifier()), description = Spring.I18N('ui.settings.option.gridmenu_shiftkeymodifier_descr'),
+		  onload = function()
+		  end,
+		  onchange = function(_, value)
+			  saveOptionValue('Grid menu', 'gridmenu', 'setShiftKeyModifier', { 'ShiftKeyModifier' }, value)
+		  end,
+		},
 
 		{ id = "label_ui_cursor", group = "control", name = Spring.I18N('ui.settings.option.label_cursor'), category = types.basic },
 		{ id = "label_ui_cursor_spacer", group = "control", category = types.basic },
@@ -3380,29 +3440,6 @@ function init()
 		  end,
 		},
 
-		--{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guishader'), type = "slider", min = 0, max = 0.005, steps = {0, 1, 2, 3, 4, 5, 6}, value = guishaderIntensity, description = '',
-		--  onload = function(i)
-		--	  loadWidgetData("GUI Shader", "guishader", { 'blurIntensity' })
-		--	  if type(options[getOptionByID('guishader')].value) ~= 'number' then
-		--		  options[getOptionByID('guishader')].value = 0
-		--	  end
-		--  end,
-		--  onchange = function(i, value)
-		--	  if type(value) == 'number' then
-		--		  guishaderIntensity = value
-		--		  saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', { 'blurIntensity' }, value)
-		--	  end
-		--	  if value <= 0.000001 then
-		--		  if GetWidgetToggleValue('GUI Shader') then
-		--			  widgetHandler:DisableWidget('GUI Shader')
-		--		  end
-		--	  else
-		--		  if not GetWidgetToggleValue('GUI Shader') then
-		--			  widgetHandler:EnableWidget('GUI Shader')
-		--		  end
-		--	  end
-		--  end,
-		--},
 		{ id = "guishader", group = "ui", category = types.basic, widget = "GUI Shader", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guishader'), type = "bool", value = GetWidgetToggleValue("GUI Shader") },
 
 		{ id = "rendertotexture", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.rendertotexture'), type = "bool", value = Spring.GetConfigInt("ui_rendertotexture", 1) == 1, description = Spring.I18N('ui.settings.option.rendertotexture_descr'),
@@ -5929,6 +5966,10 @@ function init()
 		options[getOptionByID('gridmenu_alwaysreturn')] = nil
 		options[getOptionByID('gridmenu_autoselectfirst')] = nil
 		options[getOptionByID('gridmenu_labbuildmode')] = nil
+		options[getOptionByID('gridmenu_ctrlclickmodifier')] = nil
+		options[getOptionByID('gridmenu_shiftclickmodifier')] = nil
+		options[getOptionByID('gridmenu_ctrlkeymodifier')] = nil
+		options[getOptionByID('gridmenu_shiftkeymodifier')] = nil
 	end
 
 	if spectatorHUDConfigOptions[options[getOptionByID('spectator_hud_config')].value] ~= Spring.I18N('ui.settings.option.spectator_hud_config_custom') then
@@ -5946,15 +5987,25 @@ function init()
 		options[getOptionByID('spectator_hud_metric_damageDealt')] = nil
 	end
 
-	if Spring.GetConfigInt('UseSoundtrackNew', 1) == 1 then
-		if (not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7)) then
-			options[getOptionByID('soundtrackAprilFools')] = nil
-		else
-			options[getOptionByID('soundtrackAprilFoolsPostEvent')] = nil
-		end
-	else
+	if (not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7)) then
 		options[getOptionByID('soundtrackAprilFools')] = nil
+		Spring.SetConfigInt("UseSoundtrackAprilFools", 1)
+	else
 		options[getOptionByID('soundtrackAprilFoolsPostEvent')] = nil
+	end
+
+	if (not (tonumber(os.date("%m")) == 10 and tonumber(os.date("%d")) >= 17)) then
+		options[getOptionByID('soundtrackSpooktober')] = nil
+		Spring.SetConfigInt("UseSoundtrackSpooktober", 1)
+	else
+		options[getOptionByID('soundtrackSpooktoberPostEvent')] = nil
+	end
+
+	if (not (tonumber(os.date("%m")) == 12 and tonumber(os.date("%d")) >= 12)) then
+		options[getOptionByID('soundtrackXmas')] = nil
+		Spring.SetConfigInt("UseSoundtrackXmas", 1)
+	else
+		options[getOptionByID('soundtrackXmasPostEvent')] = nil
 	end
 
 	-- hide English unit names toggle if using English
@@ -6038,6 +6089,14 @@ function init()
 		options[getOptionByID('dualmode_minimap_aspectratio')] = nil
 	end
 
+
+	if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+		id = getOptionByID('guishader')
+		if id then
+			options[id] = nil
+		end
+	end
+
 	-- reduce options for potatoes
 	if isPotatoGpu or isPotatoCpu then
 		--local id = getOptionByID('shadowslider')
@@ -6088,7 +6147,6 @@ function init()
 				widgetHandler:DisableWidget(options[id].widget)
 			end
 			options[id] = nil
-			options[getOptionByID('guishader')] = nil
 
 			id = getOptionByID('dof')
 			if id and GetWidgetToggleValue(options[id].widget) then
@@ -6265,7 +6323,7 @@ function init()
 						count = count + 1
 						local color = widgetOptionColor
 						if v[4] and v[4] == 0 then color ='\255\100\100\100' end
-						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = color .. "   " .. Spring.I18N(v[3]), type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
+						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = color .. "   " .. Spring.I18N(v[3]), type = "bool", value = v[2], --description = v[3] and Spring.I18N(v[3]) or "",
 											  onchange = function(i, value)
 												  saveOptionValue('Notifications', 'notifications', 'setNotification' .. v[1], { 'notificationList' }, value)
 											  end,

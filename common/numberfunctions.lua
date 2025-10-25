@@ -15,18 +15,17 @@ if not math.triangulate then
 	function math.triangulate(polies)
 		local triangles = {}
 		local trianglesCount = 0
-		local poliesCount = #polies
 		for j = 1, #polies do
 			local polygon = polies[j]
 
 			-- find out clockwisdom
-			poliesCount = poliesCount + 1
-			polygon[poliesCount] = polygon[1]
+			local polygonVertexCount = #polygon
+			polygon[polygonVertexCount + 1] = polygon[1]
 			local clockwise = 0
 			for i = 2, #polygon do
 				clockwise = clockwise + (polygon[i - 1][1] * polygon[i][2]) - (polygon[i - 1][2] * polygon[i][1])
 			end
-			polygon[#polygon] = nil
+			polygon[polygonVertexCount + 1] = nil
 			clockwise = (clockwise < 0)
 
 			-- the van gogh concave polygon triangulation algorithm: cuts off ears

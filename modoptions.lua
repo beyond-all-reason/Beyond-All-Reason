@@ -1139,7 +1139,6 @@ local options = {
         type    = "separator",
     },
 
-
     {
         key 	= "evocom",
         name 	= "Evolving Commanders",
@@ -1242,6 +1241,70 @@ local options = {
         type    = "separator",
     },
 
+    {
+        key 	= "quick_start",
+        name 	= "Quick Start",
+        desc   	= "Each player gets pre-game resources to spend on structures to be instantly spawned at the beginning of the game.",
+        type 	= "list",
+        def 	= "default",
+        section = "options_extra",
+        unlock = {"quick_start_amount"},
+        items 	= {
+            { key = "default", 	name = "Default", lock = {"quick_start_amount"}, desc = "Default settings for game modes." },
+            { key = "enabled", name = "Enabled", unlock = {"quick_start_amount"}, desc = "Quick Start alone, deducts 400 energy and 800 metal from starting resources." },
+            { key = "factory_discount", name = "Enabled: Discounted First Factory", desc =
+            "Quick Start The commander's first factory is discounted at any time. Deducts 400 energy and 800 metal from starting resources.", unlock = {"quick_start_amount"} },
+            { key = "factory_discount_only", name = "First Factory Discount Only", desc = "No base budget, only first factory discount. No deduction from starting resources.", lock = {"quick_start_amount"} },
+            { key = "disabled", name = "Disabled", desc = "Disabled quick start for all game modes.", lock = {"quick_start_amount"} },
+        }
+    },
+
+    {
+        key 	= "quick_start_amount",
+        name 	= "Quick Start Base Budget",
+        desc   	= "How much pre-game resources you have to spend on pre-queuing structures.",
+        type 	= "list",
+        def 	= "default",
+        section = "options_extra",
+        items 	= {
+            { key = "default", 	name = "Default", desc = "Uses the default amount based on game mode" },
+            { key = "small", 	name = "Small", desc = "1000 Base Budget" },
+            { key = "normal", 	name = "Normal", desc = "1500 Base Budget" },
+            { key = "large", 	name = "Large", desc = "3000 Base Budget" },
+        }
+    },
+
+    {
+        key 	= "override_quick_start_range",
+        name 	= "Override Quick Start Range",
+        desc   	= "Override the quick start build range. Set to 0 to use default behavior.",
+        type 	= "number",
+        def 	= 0,
+        min 	= 300,
+        max 	= 10000,
+        step 	= 1,
+        section = "options_extra",
+        hidden 	= true,
+    },
+
+    {
+        key 	= "override_quick_start_resources",
+        name 	= "Override Quick Start Resources",
+        desc   	= "Override the quick start starting resources. Set to 0 to use default behavior.",
+        type 	= "number",
+        def 	= 0,
+        min 	= 100,
+        max 	= 10000,
+        step 	= 1,
+        section = "options_extra",
+        hidden 	= true,
+    },
+
+    {
+        key     = "sub_header",
+        section = "options_extra",
+        type    = "separator",
+    },
 
     {
         key 	= "assistdronesenabled", -- TODO, turn this into booleam modoption
@@ -1331,6 +1394,36 @@ local options = {
         step   	= 1,
     },
 
+    {
+        key     = "sub_header",
+        section = "options_extra",
+        type    = "separator",
+    },
+
+    {
+        key 	= "zombies",
+        name 	= "Scavenger Zombies",
+        type 	= "list",
+        def 	= "disabled",
+        section = "options_extra",
+        hidden  = false,
+        items 	= {
+            { key = "disabled", name = "Disabled", desc = "Disabled"},
+            { key = "normal", name = "Normal", desc = "Slow revival rate, normal strength."},
+            { key = "hard", name = "Hard", desc = "Fast revival rate, stronger Scavenger Zombies." },
+            { key = "nightmare", name = "Nightmare", desc = "Extreme revival rate, stronger Scavenger Zombies, 2-5 spawn per corpse." },
+        }
+    },
+
+    {
+        key     = "seasonal_surprise",
+        name    = "Seasonal Surprise",
+        desc    = "Happy spooktober!",
+        type    = "bool",
+        def     = false,
+        section = "options_extra",
+        hidden  = true,
+    },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1380,7 +1473,7 @@ local options = {
     },
 
     -- Hidden Tests
-	
+
     {
         key     = "techsplit",
         name    = "Tech Split",
@@ -1410,7 +1503,7 @@ local options = {
         section = "options_experimental",
         def  	= false,
     },
-    
+
     {
         key 	= "lategame_rebalance",
         name 	= "Lategame Rebalance",
@@ -1476,6 +1569,16 @@ local options = {
         key 	= "proposed_unit_reworks",
         name 	= "Proposed Unit Reworks",
         desc 	= "Modoption used to test balance changes that are being considered for the base game.",
+        type 	= "bool",
+        --hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key 	= "naval_balance_tweaks",
+        name 	= "Proposed Naval Balance Tweaks",
+        desc 	= "Modoption used to test specific balance adjustments dedicated towards naval units.",
         type 	= "bool",
         --hidden 	= true,
         section = "options_experimental",
@@ -1598,12 +1701,17 @@ local options = {
     },
     {
         key     = "dummyboolfeelfreetotouch",
-        name    = "dummy to hide the faction limiter",
-        desc    = "This is a dummy to hide the faction limiter from the text field, it needs to exploit or work around some flaws to hide it...",
+        name    = "dummy to hide some modoptions",
+        desc    = "This is a dummy to hide some modoptions to not bloat the changed options panel with unneeded information",
         section = "dev",
         type    = "bool",
-        unlock  = {"dummyboolfeelfreetotouch", "factionlimiter"},
+        -- This doesn't have a default on purpse, do not add one
+        unlock  = {"dummyboolfeelfreetotouch", "factionlimiter", "date_year", "date_month", "date_day", "date_hour"},
     },
+    { key     = "date_year", name    = "Year", desc    = "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten", section = "dev", type = "number", def = 0, min = 0, max = 365, step = 1, },
+    { key     = "date_month", name    = "Month", desc    = "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten", section = "dev", type = "number", def = 0, min = 0, max = 12, step = 1, },
+    { key     = "date_day", name    = "Day", desc    = "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten", section = "dev", type = "number", def = 0, min = 0, max = 31, step = 1, },
+    { key     = "date_hour", name    = "Hour", desc    = "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten", section = "dev", type = "number", def = 0, min = 0, max = 24, step = 1, },
     {
         key     = "factionlimiter",
         name    = "Faction Limiter:".."\255\255\191\76".." ON\n".."\255\125\125\125".."BITMASK",

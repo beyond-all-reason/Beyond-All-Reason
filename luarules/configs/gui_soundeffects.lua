@@ -643,12 +643,6 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-factory-hover-water",
 	},
 
-	armasp = {
-		BaseSoundSelectType = "arm-bld-factory-t2",
-		--BaseSoundMovementType = "",
-		BaseSoundWeaponType = "arm-bld-repairpad",
-	},
-
 	armshltx = {
 		BaseSoundSelectType = "arm-bld-factory-t3",
 		--BaseSoundMovementType = "",
@@ -1868,12 +1862,6 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-factory",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-sp",
-	},
-
-	corasp = {
-		BaseSoundSelectType = "arm-bld-factory-t2",
-		--BaseSoundMovementType = "",
-		BaseSoundWeaponType = "arm-bld-repairpad",
 	},
 
 	corgant = {

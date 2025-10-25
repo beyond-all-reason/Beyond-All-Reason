@@ -58,7 +58,6 @@ local graphsWindowVisible = false
 -- Resources
 local r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
 local energyOverflowLevel, metalOverflowLevel
-local wholeTeamWastingMetalCount = 0
 local allyteamOverflowingMetal = false
 local allyteamOverflowingEnergy = false
 local overflowingMetal = false
@@ -136,6 +135,7 @@ local widgetScale = (0.80 + (vsx * vsy / 6000000))
 local xPos = math_floor(vsx * relXpos)
 local showButtons = true
 local autoHideButtons = false
+local showResourceBars = true
 local widgetSpaceMargin, bgpadding, RectRound, TexturedRectRound, UiElement, UiButton, UiSliderKnob
 local updateRes = { metal = {false,false,false,false}, energy = {false,false,false,false} }
 
@@ -361,10 +361,11 @@ local function updateComs(forceText)
 		-- Commander icon
 		local sizeHalf = (height / 2.44) * widgetScale
 		local yOffset = ((area[3] - area[1]) * 0.025)
-		glTexture(textures.com)
-		glTexRect(area[1] + ((area[3] - area[1]) / 2) - sizeHalf, area[2] + ((area[4] - area[2]) / 2) - sizeHalf +yOffset, area[1] + ((area[3] - area[1]) / 2) + sizeHalf, area[2] + ((area[4] - area[2]) / 2) + sizeHalf+yOffset)
-		glTexture(false)
-
+		if VFS.FileExists(string.lower(string.gsub(textures.com, ":.:", ""))) then
+			glTexture(textures.com)
+			glTexRect(area[1] + ((area[3] - area[1]) / 2) - sizeHalf, area[2] + ((area[4] - area[2]) / 2) - sizeHalf +yOffset, area[1] + ((area[3] - area[1]) / 2) + sizeHalf, area[2] + ((area[4] - area[2]) / 2) + sizeHalf+yOffset)
+			glTexture(false)
+		end
 		-- Text
 		if gameFrame > 0 or forceText then
 			font2:Begin(useRenderToTexture)
@@ -528,6 +529,10 @@ local function drawResbarStorage(res)
 end
 
 local function updateResbarText(res, force)
+	if not showResourceBars then
+		return
+	end
+	
 	-- used to flashing resbar area (tinting)
 	if not dlistResbar[res][4] or force then
 		if dlistResbar[res][4] then
@@ -581,16 +586,27 @@ local function updateResbarText(res, force)
 					text = (allyteamOverflowingMetal and '   ' .. Spring.I18N('ui.topbar.resources.wastingMetal') .. '   ' or '   ' .. Spring.I18N('ui.topbar.resources.overflowing') .. '   ')
 					if not supressOverflowNotifs and  WG['notifications'] and not isMetalmap and (not WG.sharedMetalFrame or WG.sharedMetalFrame+60 < gameFrame) then
 						if allyteamOverflowingMetal then
-							if numTeamsInAllyTeam > 1 and wholeTeamWastingMetalCount < 5 then
-								wholeTeamWastingMetalCount = wholeTeamWastingMetalCount + 1
-								WG['notifications'].addEvent('WholeTeamWastingMetal')
+							if numTeamsInAllyTeam > 1 then
+								WG['notifications'].queueNotification('WholeTeamWastingMetal')
+							else
+								WG['notifications'].queueNotification('YouAreWastingMetal')
 							end
 						elseif r[res][6] > 0.75 then	-- supress if you are deliberately overflowing by adjustingthe share slider down
-							WG['notifications'].addEvent('YouAreOverflowingMetal')
+							WG['notifications'].queueNotification('YouAreOverflowingMetal')
 						end
 					end
 				else
 					text = (allyteamOverflowingEnergy and '   ' .. Spring.I18N('ui.topbar.resources.wastingEnergy') .. '   '  or '   ' .. Spring.I18N('ui.topbar.resources.overflowing') .. '   ')
+					if not supressOverflowNotifs and  WG['notifications'] and (not WG.sharedEnergyFrame or WG.sharedEnergyFrame+60 < gameFrame) then
+						if allyteamOverflowingEnergy then
+							if numTeamsInAllyTeam > 1 then
+								WG['notifications'].queueNotification('WholeTeamWastingEnergy')
+							else
+								WG['notifications'].queueNotification('YouAreWastingEnergy')
+							end
+						end
+					end
+
 				end
 
 				if lastWarning[res] ~= text or force then
@@ -667,6 +683,10 @@ local function drawResbarValue(res)
 end
 
 local function updateResbar(res)
+	if not showResourceBars then
+		return
+	end
+	
 	local area = resbarArea[res]
 
 	if dlistResbar[res][1] then
@@ -817,6 +837,10 @@ local function updateResbar(res)
 end
 
 local function updateResbarValues(res, update)
+	if not showResourceBars then
+		return
+	end
+	
 	if update then
 		local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2] -- only read values if update is needed
 		local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1] -- only read values if update is needed
@@ -1244,6 +1268,10 @@ local function renderResbarText()
 end
 
 local function drawResBars()
+	if not showResourceBars then
+		return
+	end
+	
 	glPushMatrix()
 
 	local update = false
@@ -1281,12 +1309,20 @@ local function drawResBars()
 		if dlistResValuesBar[res] then
 			glCallList(dlistResValuesBar[res]) -- res bar
 		end
-		glCallList(dlistResbar[res][2]) -- sliders
+		if dlistResbar[res][2] then
+			glCallList(dlistResbar[res][2]) -- sliders
+		end
 
 		if not useRenderToTexture then
-			glCallList(dlistResValues[res])	-- res bar value
-			glCallList(dlistResbar[res][6]) -- storage
-			glCallList(dlistResbar[res][3]) -- pull, expense, income
+			if dlistResValues[res] then
+				glCallList(dlistResValues[res])	-- res bar value
+			end
+			if dlistResbar[res][6] then
+				glCallList(dlistResbar[res][6]) -- storage
+			end
+			if dlistResbar[res][3] then
+				glCallList(dlistResbar[res][3]) -- pull, expense, income
+			end
 		end
 		if showOverflowTooltip[res] and dlistResbar[res][7] then glCallList(dlistResbar[res][7]) end -- overflow warning
 	end
@@ -1320,13 +1356,23 @@ local function drawResBars()
 		if dlistResValuesBar[res] then
 			glCallList(dlistResValuesBar[res]) -- res bar
 		end
-		glCallList(dlistEnergyGlow)
-		glCallList(dlistResbar[res][2]) -- sliders
+		if dlistEnergyGlow then
+			glCallList(dlistEnergyGlow)
+		end
+		if dlistResbar[res][2] then
+			glCallList(dlistResbar[res][2]) -- sliders
+		end
 
 		if not useRenderToTexture then
-			glCallList(dlistResValues[res])	-- res bar value
-			glCallList(dlistResbar[res][6]) -- storage
-			glCallList(dlistResbar[res][3]) -- pull, expense, income
+			if dlistResValues[res] then
+				glCallList(dlistResValues[res])	-- res bar value
+			end
+			if dlistResbar[res][6] then
+				glCallList(dlistResbar[res][6]) -- storage
+			end
+			if dlistResbar[res][3] then
+				glCallList(dlistResbar[res][3]) -- pull, expense, income
+			end
 		end
 		if showOverflowTooltip[res] and dlistResbar[res][7] then glCallList(dlistResbar[res][7]) end -- overflow warning
 	end
@@ -1544,11 +1590,13 @@ local function drawQuitScreen()
 end
 
 local function drawUiBackground()
-	if resbarArea.energy[1] then
-		UiElement(resbarArea.energy[1], resbarArea.energy[2], resbarArea.energy[3], resbarArea.energy[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
-	end
-	if resbarArea.metal[1] then
-		UiElement(resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
+	if showResourceBars then
+		if resbarArea.energy[1] then
+			UiElement(resbarArea.energy[1], resbarArea.energy[2], resbarArea.energy[3], resbarArea.energy[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
+		end
+		if resbarArea.metal[1] then
+			UiElement(resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
+		end
 	end
 	if comsArea[1] then
 		UiElement(comsArea[1], comsArea[2], comsArea[3], comsArea[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
@@ -1568,7 +1616,7 @@ local function drawUi()
 	if showButtons and dlistButtons then
 		glCallList(dlistButtons)
 	end
-	if dlistResbar.energy and dlistResbar.energy[1] then
+	if showResourceBars and dlistResbar.energy and dlistResbar.energy[1] then
 		glCallList(dlistResbar.energy[1])
 		glCallList(dlistResbar.metal[1])
 	end
@@ -2184,6 +2232,15 @@ function widget:Initialize()
 	WG['topbar'].updateTopBarEnergy = function(value)
 		draggingConversionIndicatorValue = value
 		updateResbar('energy')
+	end
+
+	WG['topbar'].setResourceBarsVisible = function(visible)
+		showResourceBars = visible
+		refreshUi = true
+	end
+
+	WG['topbar'].getResourceBarsVisible = function()
+		return showResourceBars
 	end
 
 	updateAvgWind()

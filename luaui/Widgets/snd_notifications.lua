@@ -175,10 +175,10 @@ unitsOfInterestNames = nil
 -- added this so they wont get immediately triggered after gamestart
 LastPlay['YouAreOverflowingMetal'] = spGetGameFrame() + 1200
 --LastPlay['YouAreOverflowingEnergy'] = spGetGameFrame()+300
---LastPlay['YouAreWastingMetal'] = spGetGameFrame()+300
---LastPlay['YouAreWastingEnergy'] = spGetGameFrame()+300
-LastPlay['WholeTeamWastingMetal'] = spGetGameFrame() + 1200
-LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame() + 2000
+LastPlay['YouAreWastingMetal'] = spGetGameFrame()
+LastPlay['YouAreWastingEnergy'] = spGetGameFrame()
+LastPlay['WholeTeamWastingMetal'] = spGetGameFrame()
+LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame()
 
 local soundQueue = {}
 local nextSoundQueued = 0
@@ -336,6 +336,7 @@ local function queueNotification(event, forceplay)
 	end
 end
 
+
 local function queueTutorialNotification(event)
 	if doTutorialMode and (not tutorialPlayed[event] or tutorialPlayed[event] < tutorialPlayLimit) then
 		queueNotification(event)
@@ -382,9 +383,35 @@ function widget:Initialize()
 	end
 	WG['notifications'].getNotificationList = function()
 		local soundInfo = {}
+
 		for i, event in pairs(notificationOrder) do
-			soundInfo[i] = { event, notificationList[event], notification[event].textID, #notification[event].voiceFiles }
+			if not string.find(notification[event].textID, "/") then
+				soundInfo[#soundInfo+1] = { event, notificationList[event], notification[event].textID, #notification[event].voiceFiles }
+			end
 		end
+
+		table.sort(soundInfo, function(a, b)
+			local nameA = Spring.I18N(a[3]) or ""
+			local nameB = Spring.I18N(b[3]) or ""
+			return string.lower(nameA) < string.lower(nameB)
+		end)
+
+		local soundInfoPvE = {}
+
+		for i, event in pairs(notificationOrder) do
+			if string.find(notification[event].textID, "pvE/") then
+				soundInfoPvE[#soundInfoPvE+1] = { event, notificationList[event], notification[event].textID, #notification[event].voiceFiles }
+			end
+		end
+
+		table.sort(soundInfoPvE, function(a, b)
+			local nameA = Spring.I18N(a[3]) or ""
+			local nameB = Spring.I18N(b[3]) or ""
+			return string.lower(nameA) < string.lower(nameB)
+		end)
+
+		table.append(soundInfo, soundInfoPvE)
+
 		return soundInfo
 	end
 	WG['notifications'].getTutorial = function()
@@ -425,6 +452,9 @@ function widget:Initialize()
 		if notification[value] then
 			queueNotification(value, force)
 		end
+	end
+	WG['notifications'].queueNotification = function(event, forceplay)
+		queueNotification(event, forceplay)
 	end
 	WG['notifications'].playNotification = function(event)
 		if notification[event] then
