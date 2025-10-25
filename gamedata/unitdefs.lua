@@ -121,7 +121,10 @@ for name, def in pairs(unitDefs) do
 		Spring.Log(section, LOG.ERROR, 'removed ' .. name .. ' unitDef, missing objectname param')
 	else
 		local objfile = 'objects3d/' .. model
-		if not VFS.FileExists(objfile) and not VFS.FileExists(objfile .. '.s3o') then
+		if not objfile:match("%.s3o$") then
+			error("objname (" .. model .. ") does not end with `.s3o`, please include the complete path to the file for unit definition " .. name)
+		end
+		if not VFS.FileExists(objfile) then
 			unitDefs[name] = nil
 			Spring.Log(section, LOG.ERROR, 'removed ' .. name .. ' unitDef, missing model file  (' .. model .. ')')
 		end
