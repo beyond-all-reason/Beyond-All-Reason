@@ -1748,6 +1748,39 @@ function WeaponDef_Post(name, wDef)
 			wDef.customparams.shield_aoe_penetration = true
 		end
 
+		-- Due to the engine not handling overkill damage, we have to store the original shield damage values as a customParam for unit_shield_behavior.lua to reference
+		if wDef.damage ~= nil then
+			-- For balance, paralyzers need to do reduced damage to shields, as their raw raw damage is outsized
+			local paralyzerShieldDamageMultiplier = 0.25
+			-- VTOL's may or may not do full damage to shields if not defined in weapondefs
+			local vtolShieldDamageMultiplier = 0
+
+			wDef.customparams = wDef.customparams or {}
+			if wDef.damage.shields then
+				wDef.customparams.shield_damage = wDef.damage.shields
+			elseif wDef.damage.default then
+				wDef.customparams.shield_damage = wDef.damage.default
+			elseif wDef.damage.vtol then
+				wDef.customparams.shield_damage = wDef.damage.vtol * vtolShieldDamageMultiplier
+			else
+				wDef.customparams.shield_damage = 0
+			end
+
+			if wDef.paralyzer then
+				wDef.customparams.shield_damage = wDef.customparams.shield_damage * paralyzerShieldDamageMultiplier
+			end
+
+			-- Set damage to 0 so projectiles always collide with shield. Without this, if damage > shield charge then it passes through.
+			-- Applying damage is instead handled in unit_shield_behavior.lua
+			wDef.damage.shields = 0
+
+			if wDef.beamtime and wDef.beamtime > 1 / Game.gameSpeed then
+				 -- This splits up the damage of hitscan weapons over the duration of beamtime, as each frame counts as a hit in ShieldPreDamaged() callin
+				 -- Math.floor is used to sheer off the extra digits of the number of frames that the hits occur
+				wDef.customparams.beamtime_damage_reduction_multiplier = 1 / math.floor(wDef.beamtime * Game.gameSpeed)
+			end
+		end
+
 		if modOptions.multiplier_shieldpower then
 			if wDef.shield then
 				local multiplier = modOptions.multiplier_shieldpower
