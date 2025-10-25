@@ -58,13 +58,13 @@ function widget:Update(dt)
         for playerName, data in pairs(PlayersInformationMemory) do
             local ping = select(6, Spring.GetPlayerInfo(data.id))
             if ping and ping > 10 and not PlayersInformationMemory[playerName].timingout then
-                if (not PlayersInformationMemory[playerName].resigned) and PlayersInformationMemory[playerName].allyTeamID == Spring.GetLocalAllyTeamID() and not Spring.GetSpectatingState() then
+                if (not PlayersInformationMemory[playerName].spectator) and (not PlayersInformationMemory[playerName].resigned) and PlayersInformationMemory[playerName].allyTeamID == Spring.GetLocalAllyTeamID() and not Spring.GetSpectatingState() then
                     --Spring.Echo("Teammate Lagging", playerID, playerName)
                     WG['notifications'].queueNotification("TeammateLagging")
                 end
                 PlayersInformationMemory[playerName].timingout = true
             elseif ping and ping <= 2 and PlayersInformationMemory[playerName].timingout then
-                if (not PlayersInformationMemory[playerName].resigned) and PlayersInformationMemory[playerName].allyTeamID == Spring.GetLocalAllyTeamID() and not Spring.GetSpectatingState() then
+                if (not PlayersInformationMemory[playerName].spectator) and (not PlayersInformationMemory[playerName].resigned) and PlayersInformationMemory[playerName].allyTeamID == Spring.GetLocalAllyTeamID() and not Spring.GetSpectatingState() then
                     --Spring.Echo("Teammate Catched Up", playerID, playerName)
                     WG['notifications'].queueNotification("TeammateCaughtUp")
                 end
@@ -115,7 +115,7 @@ function widget:PlayerRemoved(playerID)
         if PlayersInformationMemory[playerName] then
             --Differences = ComparePlayerData(playerID)
 
-            if (not PlayersInformationMemory[playerName].resigned) and PlayersInformationMemory[playerName].allyTeamID == Spring.GetLocalAllyTeamID() and not Spring.GetSpectatingState()then
+            if (not PlayersInformationMemory[playerName].spectator) and (not PlayersInformationMemory[playerName].resigned) and PlayersInformationMemory[playerName].allyTeamID == Spring.GetLocalAllyTeamID() and not Spring.GetSpectatingState()then
                 if PlayersInformationMemory[playerName].timingout then
                     --Spring.Echo("Teammate Timedout", playerName, Spring.GetGameFrame())
                     WG['notifications'].queueNotification("TeammateTimedout")

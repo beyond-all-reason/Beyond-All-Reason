@@ -1,0 +1,201 @@
+
+#include "../recoil_common_includes.h"
+
+piece
+base,
+turretHeadingPivot,
+turretHousing,
+blastTurretPitchPivot,
+blastTurret1,
+blastFlare1,
+blastTurret2,
+blastFlare2,
+blastBarrel1,
+blastBarrel2,
+eBlasterTurretPitchPivot,
+eBlaster,
+barrel,
+eBlasterFlare;
+
+
+static-var restore_delay, wpn1_lasthead, whichBarrel;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_AIM_2			4
+
+#define WATER_ROCK_UNITSIZE 17
+#include "../floatmotion.h"
+
+
+#define BASEPIECE base
+#define HITSPEED <30.0>
+#define MAXTILT 200
+#define UNITSIZE 10
+#define RECOIL_POWER 10000
+
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+
+Create()
+{
+	whichBarrel = 0;
+	restore_delay = 4000;
+	start-script FloatMotion();
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn turretHeadingPivot to y-axis <0> speed <60>;
+    turn blastTurretPitchPivot to x-axis <0.000000> speed <30>;
+	turn eBlasterTurretPitchPivot to x-axis <0.000000> speed <30>;
+	wpn1_lasthead = 1000000;
+	set-signal-mask 0;
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+
+/// energy blaster
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn turretHeadingPivot to y-axis heading speed <150>;
+	turn eBlasterTurretPitchPivot to x-axis <0.000000> - pitch speed <90>;
+
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn turretHeadingPivot around y-axis;
+		wait-for-turn eBlasterTurretPitchPivot around x-axis;
+	}
+	wpn1_lasthead = heading;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+    emit-sfx 1024 + 0 from eBlasterFlare;
+    move barrel to z-axis [-7] now;
+    sleep 100;
+    move barrel to z-axis [0] speed [7];
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = eBlasterTurretPitchPivot;
+}
+
+QueryPrimary(piecenum)
+{
+    piecenum = eBlasterFlare;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+/// 2x blast cannons
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	turn blastTurretPitchPivot to x-axis <0.000000> - pitch speed <60>;
+	wait-for-turn turretHeadingPivot around y-axis;
+	wait-for-turn blastTurretPitchPivot around x-axis;
+
+	return (1);
+}
+
+FireSecondary()
+{
+	if(whichBarrel == 0){
+		emit-sfx 1024 + 1 from blastFlare1;
+		move blastBarrel1 to z-axis [-7] now;
+		sleep 100;
+		move blastBarrel1 to z-axis [0] speed [7];
+		whichBarrel = 1;
+	}
+	else if(whichBarrel == 1){
+		emit-sfx 1024 + 1 from blastFlare2;
+		move blastBarrel2 to z-axis [-7] now;
+		sleep 100;
+		move blastBarrel2 to z-axis [0] speed [7];
+		whichBarrel = 0;
+	}
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = blastTurretPitchPivot;
+}
+
+QuerySecondary(piecenum)
+{
+	if(whichBarrel == 0){
+		piecenum = blastFlare1;
+	}
+	else if(whichBarrel == 1){
+		piecenum = blastFlare2;
+	}
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turretHeadingPivot type BITMAPONLY | NOHEATCLOUD;
+		explode turretHousing type BITMAPONLY | NOHEATCLOUD;
+		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode eBlasterFlare type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turretHeadingPivot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turretHousing type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel type FALL | NOHEATCLOUD;
+		explode eBlasterFlare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turretHeadingPivot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turretHousing type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode eBlasterFlare type SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turretHeadingPivot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turretHousing type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode eBlasterFlare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

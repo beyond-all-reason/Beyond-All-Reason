@@ -1197,6 +1197,16 @@ function UnitDef_Post(name, uDef)
 			legcs = { ["legfmg"]  = "legnavaldefturret" },
 			legch = { ["legfmg"]  = "legnavaldefturret" },
 			legotter = { ["legfmg"]  = "legnavaldefturret" },
+			armacsub = { ["armkraken"]  = "armanavaldefturret" },
+			armmls = {
+				["armfhlt"]  = "armnavaldefturret",
+				["armkraken"] = "armanavaldefturret",
+			},
+			coracsub = { ["corfdoom"]  = "coranavaldefturret" },
+			cormls = {
+				["corfhlt"]  = "cornavaldefturret",
+				["corfdoom"] = "coranavaldefturret",
+			},
 		}
 
 		if buildOptionReplacements[name] then
@@ -1207,6 +1217,17 @@ function UnitDef_Post(name, uDef)
 				end
 			end
 		end
+
+		if name == "armfrad" then
+			uDef.sightdistance = 800
+		end
+		if name == "corfrad" then
+			uDef.sightdistance = 800
+		end
+		if name == "legfrad" then
+			uDef.sightdistance = 800
+		end
+
 	end
 
 	--Lategame Rebalance

@@ -241,6 +241,7 @@ local function initUnitList()
 		['armtl'] = { weapons = { 'ground' } }, --torp launcher
 		['armfhlt'] = { weapons = { 'ground' } },  --floating hlt
 		['armnavaldefturret'] = { weapons = { 'ground' } },  --cauterizer
+		['armanavaldefturret'] = { weapons = { 'ground' } },  --liquifier
 		['armfrt'] = { weapons = { 'air' } },  --floating rocket laucher
 		['armfflak'] = { weapons = { 'air' } },  --floating flak AA
 		['armatl'] = { weapons = { 'ground' } }, --adv torpedo launcher
@@ -273,6 +274,7 @@ local function initUnitList()
 
 		['corfhlt'] = { weapons = { 'ground' } },  --floating hlt
 		['cornavaldefturret'] = { weapons = { 'ground' } },  --cyclops
+		['coranavaldefturret'] = { weapons = { 'ground' } },  --orthrus
 		['cortl'] = { weapons = { 'ground' } }, --torp launcher
 		['coratl'] = { weapons = { 'ground' } }, --T2 torp launcher
 		['corfrt'] = { weapons = { 'air' } }, --floating rocket laucher
@@ -307,6 +309,7 @@ local function initUnitList()
 		['legmg'] = { weapons = { 'ground' } }, --ground-AA MG defense
 		['legfmg'] = { weapons = { 'ground' } },  --cyclops
 		['legnavaldefturret'] = { weapons = { 'ground' } },  --cyclops
+		['leganavaldefturret'] = { weapons = { 'ground' } },  --Ionia
 		['legbombard'] = { weapons = { 'ground' } }, --Grenadier defense
 		['legbastion'] = { weapons = { 'ground' } }, --T2 Heatray Tower
 		['legrl'] = { weapons = { 'air' } }, --T1 AA

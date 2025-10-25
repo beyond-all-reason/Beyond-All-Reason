@@ -462,7 +462,15 @@ local armorDefs = {
 		"legmohocon",
 		"legmohoconct",
 		"leghrk",
-		"legfdrag"
+		"legfdrag",
+
+		"armnavaldefturret",
+		"cornavaldefturret",
+		"legnavaldefturret",
+		"armanavaldefturret",
+		"coranavaldefturret",
+		"leganavaldefturret",
+
 	},
 	mines = {
 		"armfmine3",

@@ -168,8 +168,7 @@
 			"pvE/Raptor_Queen50HealthLeft": "Raptor Queen Health Remaining, 50%%! Keep Pushing!",
 			"pvE/Raptor_Queen25HealthLeft": "Raptor Queen Health Remaining, 25%%! Victory Is Close!",
 			"pvE/Raptor_Queen10HealthLeft": "Raptor Queen Health Remaining, 10%%! Just A Little More!",
-			"pvE/Raptor_Queen5HealthLeft": "Raptor Queen Health Remaining, 5%%! Almost There!",
-			"pvE/Raptor_Queen2HealthLeft": "Raptor Queen Is Nearly Done!",
+			"pvE/Raptor_Queen5HealthLeft": "Raptor Queen Is Nearly Done!",
 			"pvE/Raptor_QueenIsDestroyed": "Raptor Queen Has Been Destroyed! Great Work Commanders!",
 			"pvE/Scav_Boss50Ready": "Scavengers Boss Construction Progress, 50%%!",
 			"pvE/Scav_Boss75Ready": "Scavengers Boss Construction Progress, 75%%!",
@@ -180,8 +179,7 @@
 			"pvE/Scav_Boss50HealthLeft": "Scavengers Boss Health Remaining, 50%%! Keep Pushing!",
 			"pvE/Scav_Boss25HealthLeft": "Scavengers Boss Health Remaining, 25%%! Victory Is Close!",
 			"pvE/Scav_Boss10HealthLeft": "Scavengers Boss Health Remaining, 10%%! Just A Little More!",
-			"pvE/Scav_Boss5HealthLeft": "Scavengers Boss Health Remaining, 5%%! Almost There!",
-			"pvE/Scav_Boss2HealthLeft": "Scavengers Boss Is Nearly Done!",
+			"pvE/Scav_Boss5HealthLeft": "Scavengers Boss Is Nearly Done!",
 			"pvE/Scav_BossIsDestroyed": "Scavengers Boss Has Been Destroyed! Great Work Commanders!"
 		},
 		"deathMessages": {
