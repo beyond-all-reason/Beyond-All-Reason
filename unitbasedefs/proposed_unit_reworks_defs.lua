@@ -25,7 +25,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	then
 		uDef.metalcost = uDef.metalcost - 300
 		uDef.buildtime = uDef.buildtime * 1.3
-		uDef.workertime = uDef.workertime * 2
+		uDef.workertime = 600
 	end
 
 	if uDef.canmove and tonumber(uDef.customparams.techlevel) == 2 and uDef.energycost and uDef.metalcost and uDef.buildtime and not (name == "armavp" or name == "coravp" or name == "armalab" or name == "coralab" or name == "armaap" or name == "coraap" or name == "armasy" or name == "corasy" or name == "armfido" or name == "armmav" or name == "armvader" or name == "corroach" ) 
