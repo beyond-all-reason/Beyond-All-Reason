@@ -89,48 +89,80 @@ function UnitDef_Post(name, uDef)
 		uDef.minCollisionSpeed = 75 / Game.gameSpeed -- define the minimum velocity(speed) required for all units to suffer fall/collision damage.
 	end
 
-	-- inidivual unit hat processing
-	do
-		if modOptions.unithats then
-			if modOptions.unithats == "april" then
-				if name == "corak" then
-					uDef.objectname = "apf/CORAK.s3o"
-				elseif name == "corllt" then
-					uDef.objectname = "apf/CORllt.s3o"
-				elseif name == "corhllt" then
-					uDef.objectname = "apf/CORhllt.s3o"
-				elseif name == "corack" then
-					uDef.objectname = "apf/CORACK.s3o"
-				elseif name == "corck" then
-					uDef.objectname = "apf/CORCK.s3o"
-				elseif name == "armpw" then
-					uDef.objectname = "apf/ARMPW.s3o"
-				elseif name == "cordemon" then
-					uDef.objectname = "apf/cordemon.s3o"
-				elseif name == "correap" then
-					uDef.objectname = "apf/correap.s3o"
-				elseif name == "corstorm" then
-					uDef.objectname = "apf/corstorm.s3o"
-				elseif name == "armcv" then
-					uDef.objectname = "apf/armcv.s3o"
-				elseif name == "armrock" then
-					uDef.objectname = "apf/armrock.s3o"
-				elseif name == "armbull" then
-					uDef.objectname = "apf/armbull.s3o"
-				elseif name == "armllt" then
-					uDef.objectname = "apf/armllt.s3o"
-				elseif name == "armwin" then
-					uDef.objectname = "apf/armwin.s3o"
-				elseif name == "armham" then
-					uDef.objectname = "apf/armham.s3o"
-				elseif name == "corwin" then
-					uDef.objectname = "apf/corwin.s3o"
-				elseif name == "corthud" then
-					uDef.objectname = "apf/corthud.s3o"
-				end
-			end
+	-- Event Model Replacements: ----------------------------------------------------------------------------- 
+
+	-- April Fools
+	if Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"] then
+		-- Something to experiment with
+		--if VFS.FileExists("units/event/aprilfools/" .. uDef.objectname) then
+		--	uDef.objectname = "units/event/aprilfools/" .. uDef.objectname
+		--end
+
+		if name == "corak" then
+			uDef.objectname = "units/event/aprilfools/CORAK.s3o"
+		elseif name == "corllt" then
+			uDef.objectname = "units/event/aprilfools/CORllt.s3o"
+		elseif name == "corhllt" then
+			uDef.objectname = "units/event/aprilfools/CORhllt.s3o"
+		elseif name == "corack" then
+			uDef.objectname = "units/event/aprilfools/CORACK.s3o"
+		elseif name == "corck" then
+			uDef.objectname = "units/event/aprilfools/CORCK.s3o"
+		elseif name == "armpw" then
+			uDef.objectname = "units/event/aprilfools/ARMPW.s3o"
+		elseif name == "cordemon" then
+			uDef.objectname = "units/event/aprilfools/cordemon.s3o"
+		--elseif name == "correap" then -- Requires Model Update
+		--	uDef.objectname = "units/event/aprilfools/correap.s3o"
+		elseif name == "corstorm" then
+			uDef.objectname = "units/event/aprilfools/corstorm.s3o"
+		elseif name == "armcv" then
+			uDef.objectname = "units/event/aprilfools/armcv.s3o"
+		elseif name == "armrock" then
+			uDef.objectname = "units/event/aprilfools/armrock.s3o"
+		elseif name == "armbull" then
+			uDef.objectname = "units/event/aprilfools/armbull.s3o"
+		elseif name == "armllt" then
+			uDef.objectname = "units/event/aprilfools/armllt.s3o"
+		elseif name == "armwin" then
+			uDef.objectname = "units/event/aprilfools/armwin.s3o"
+		elseif name == "armham" then
+			uDef.objectname = "units/event/aprilfools/armham.s3o"
+		elseif name == "corwin" then
+			uDef.objectname = "units/event/aprilfools/corwin.s3o"
+		--elseif name == "corthud" then -- Requires Model Update
+		--	uDef.objectname = "units/event/aprilfools/corthud.s3o"
 		end
 	end
+
+	-- Spooktober
+	if Spring.Utilities.Gametype.GetCurrentHolidays()["spooktober"] then
+		if name == "armcom" or name == "armdecom" then
+			uDef.objectname = "units/event/spooktober/armcom.s3o"
+		elseif name == "corcom" or name == "cordecom" then
+			uDef.objectname = "units/event/spooktober/corcom.s3o"
+		elseif name == "legcom" or name == "legdecom" then
+			uDef.objectname = "units/event/spooktober/legcom.s3o"
+
+		elseif name == "correap" then
+			uDef.objectname = "units/event/spooktober/correap.s3o"
+		elseif name == "leggob" then
+			uDef.objectname = "units/event/spooktober/leggob.s3o"
+		end
+	end
+
+	-- Xmas
+	if Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] then
+		if name == "armcom" or name == "armdecom" then
+			uDef.objectname = "units/event/xmas/armcom.s3o"
+		elseif name == "corcom" or name == "cordecom" then
+			uDef.objectname = "units/event/xmas/corcom.s3o"
+		end
+	end
+
+	---------------------------------------------------------------------------------------------------------- 
+
+
 
 	if uDef.sounds then
 		if uDef.sounds.ok then

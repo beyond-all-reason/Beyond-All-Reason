@@ -12,7 +12,7 @@ function gadget:GetInfo()
     }
 end
 
-if Spring.GetModOptions().easter_egg_hunt ~= true then
+if not Spring.Utilities.Gametype.GetCurrentHolidays()["easter"] then
 	return false
 end
 
