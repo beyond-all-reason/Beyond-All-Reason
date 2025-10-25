@@ -10,7 +10,7 @@ local currentDay = Spring.GetModOptions().date_day
 local currentMonth = Spring.GetModOptions().date_month
 local currentYear = Spring.GetModOptions().date_year
 
--- Computus Paschalis Function to calculate Easter Sunday for a given year. Magic.
+-- Meeus's Julian algorithm Function to calculate Easter Sunday for a given year. Magic.
 local function EasterDate(year)
     local a = year % 19
     local b = math.floor(year / 100)

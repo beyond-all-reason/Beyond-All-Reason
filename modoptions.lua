@@ -2116,11 +2116,11 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 
     {
 		key		= "holiday_events",
-		name	= "Disable Holiday Events",
+		name	= "Enable Holiday Events",
 		desc	= "",
 		section = "options_cheats",
 		type	= "bool",
-		def		= false,
+		def		= true,
         hidden  = true,
 	},
 
