@@ -25,7 +25,7 @@ return {
 		maxslope = 64,
 		speed = 30.0,
 		maxwaterdepth = 0,
-		movementclass = "BOT1",
+		movementclass = "SBOT2",
 		objectname = "xmasball2_3.s3o",
 		reclaimable = false,
 		repairable = false,

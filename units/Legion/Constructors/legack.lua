@@ -24,7 +24,7 @@ return {
 		maxslope = 20,
 		speed = 36.0,
 		maxwaterdepth = 25,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		objectname = "Units/legack.s3o",
 		radardistance = 50,
 		script = "Units/LEGACK.cob",
