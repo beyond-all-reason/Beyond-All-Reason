@@ -103,7 +103,7 @@ if gadgetHandler:IsSyncedCode() then
 	function updateLava()
 		if (lavaGrow < 0 and lavaLevel < tideRhythm[tideIndex].targetLevel)
 			or (lavaGrow > 0 and lavaLevel > tideRhythm[tideIndex].targetLevel) then
-			tideContinueFrame = gameframe + tideRhythm[tideIndex].remainTime*gameSpeed
+			tideContinueFrame = gameframe + math.round(tideRhythm[tideIndex].remainTime*gameSpeed)
 			lavaGrow = 0
 			--Spring.Echo ("Next LAVA LEVEL change in " .. (tideContinueFrame-gameframe)/30 .. " seconds")
 		end

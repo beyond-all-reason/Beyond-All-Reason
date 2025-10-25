@@ -181,9 +181,9 @@ local function validateTideRhythm(modoptionDataRaw)
 		elseif not ((partRhythm[1] >= 0) and (partRhythm[2] > 0) and (partRhythm[3] > 0)) then
 			Spring.Echo("Lava Advanced Tide Rhythm data is not valid, negative or zero values: ", partRhythm)
 			return false
-		elseif (partRhythm[1] % 1 ~= 0) or (partRhythm[3]*gameSpeed % 1 ~= 0) then
-			Spring.Echo("Lava Advanced Tide Rhythm data is not valid, Height and Dwell frame must be a whole number: ", partRhythm)
-			return false
+		--elseif (partRhythm[1] % 1 ~= 0) or (partRhythm[3]*gameSpeed % 1 ~= 0) then
+		--	Spring.Echo("Lava Advanced Tide Rhythm data is not valid, Height and Dwell frame must be a whole number: ", partRhythm)
+		--	return false
 		end
 		table.insert(advancedRhythm, partRhythm)
 	end
