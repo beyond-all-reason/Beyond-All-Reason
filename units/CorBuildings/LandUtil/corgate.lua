@@ -28,7 +28,6 @@ return {
 		metalcost = 3200,
 		noautofire = true,
 		objectname = "Units/CORGATE.s3o",
-		onoffable = false,
 		script = "Units/CORGATE.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",

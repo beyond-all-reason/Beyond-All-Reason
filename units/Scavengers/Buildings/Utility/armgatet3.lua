@@ -28,7 +28,6 @@ return {
 		metalcost = 12000,
 		noautofire = true,
 		objectname = "Units/ARMGATET3.s3o",
-		onoffable = false,
 		script = "Units/ARMGATET3.cob",
 		seismicsignature = 0,
 		selfdestructas = "fusionExplosionSelfd",

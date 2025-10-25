@@ -28,7 +28,6 @@ return {
 		metalcost = 3200,
 		noautofire = true,
 		objectname = "Units/LEGDEFLECTOR.s3o",
-		onoffable = false,
 		script = "Units/LEGDEFLECTOR.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",

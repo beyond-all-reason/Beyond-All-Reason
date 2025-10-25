@@ -29,7 +29,6 @@ return {
 		metalcost = 14500,
 		noautofire = true,
 		objectname = "Units/LEGGATET3.s3o",
-		onoffable = false,
 		script = "Units/LEGGATET3.cob",
 		seismicsignature = 0,
 		selfdestructas = "fusionExplosionSelfd",

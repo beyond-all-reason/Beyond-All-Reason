@@ -29,7 +29,6 @@ return {
 		noautofire = true,
 		norestrict = 1,
 		objectname = "Units/armfgate.s3o",
-		onoffable = false,
 		script = "Units/armfgate.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",

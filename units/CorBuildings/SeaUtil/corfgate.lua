@@ -29,7 +29,6 @@ return {
 		noautofire = true,
 		norestrict = 1,
 		objectname = "Units/corfgate.s3o",
-		onoffable = false,
 		script = "Units/corfgate.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",

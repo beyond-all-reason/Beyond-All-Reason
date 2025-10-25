@@ -28,7 +28,6 @@ return {
 		metalcost = 3000,
 		noautofire = true,
 		objectname = "Units/ARMGATE.s3o",
-		onoffable = false,
 		script = "Units/ARMGATE.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
