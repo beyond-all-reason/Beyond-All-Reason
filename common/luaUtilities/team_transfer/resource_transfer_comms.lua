@@ -1,4 +1,6 @@
 local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local Cache = VFS.Include("common/luaUtilities/team_transfer/team_transfer_cache.lua")
+local FieldTypes = Cache.FieldTypes
 
 local Comms = {
   ResourceCommunicationCase = SharedEnums.ResourceCommunicationCase,
@@ -67,6 +69,22 @@ function Comms.TooltipText(policyResult)
   end
 end
 
+Comms.SendTransferChatMessageProtocol = {
+  receivedAmount = FieldTypes.string,
+  sentAmount = FieldTypes.string,
+  taxRatePercentage = FieldTypes.string,
+  sentAmountUntaxed = FieldTypes.string,
+  resourceShareThreshold = FieldTypes.string,
+}
+
+Comms.SendTransferChatMessageProtocolHighlights = {
+  receivedAmount = true,
+  sentAmount = true,
+  taxRatePercentage = false,
+  sentAmountUntaxed = true,
+  resourceShareThreshold = true,
+}
+
 --- Send chat messages for completed resource transfers
 ---@param transferResult ResourceTransferResult
 ---@param policyResult ResourcePolicyResult
@@ -75,30 +93,27 @@ function Comms.SendTransferChatMessages(transferResult, policyResult)
     local resourceType = policyResult.resourceType
     local pascalResourceType = resourceType == SharedEnums.ResourceType.METAL and "Metal" or "Energy"
     local case = Comms.DecideCommunicationCase(policyResult)
+    local cumulativeUntaxed = math.min(policyResult.resourceShareThreshold, policyResult.cumulativeSent)
+    local chatParams = {
+      receivedAmount = math.floor(transferResult.received),
+      sentAmount = FormatNumberForUI(transferResult.sent),
+      taxRatePercentage = FormatNumberForUI(policyResult.taxRate * 100 + 0.5),
+      sentAmountUntaxed = FormatNumberForUI(cumulativeUntaxed),
+      resourceShareThreshold = FormatNumberForUI(policyResult.resourceShareThreshold),
+      resourceType = resourceType,
+    }
 
+    local key
     if case == SharedEnums.ResourceCommunicationCase.OnTaxFree then
-      Spring.SendLuaRulesMsg('msg:ui.playersList.chat.sent' ..
-        pascalResourceType .. ':receivedAmount=' .. math.floor(transferResult.received))
+      key = 'ui.playersList.chat.sent' .. pascalResourceType
     elseif case == SharedEnums.ResourceCommunicationCase.OnTaxed then
-      Spring.SendLuaRulesMsg('msg:ui.playersList.chat.sent' ..
-        pascalResourceType ..
-        'Taxed:receivedAmount=' ..
-        math.floor(transferResult.received) ..
-        ':sentAmount=' ..
-        math.floor(transferResult.sent) .. ':taxRatePercentage=' .. math.floor(policyResult.taxRate * 100 + 0.5))
+      key = 'ui.playersList.chat.sent' .. pascalResourceType .. 'Taxed'
     elseif case == SharedEnums.ResourceCommunicationCase.OnTaxedThreshold then
-      local cumulativeUntaxed = math.min(policyResult.resourceShareThreshold, policyResult.cumulativeSent)
-      Spring.SendLuaRulesMsg('msg:ui.playersList.chat.sent' ..
-        pascalResourceType ..
-        'TaxedThreshold:receivedAmount=' ..
-        math.floor(transferResult.received) ..
-        ':sentAmount=' ..
-        math.floor(transferResult.sent) ..
-        ':taxRatePercentage=' ..
-        math.floor(policyResult.taxRate * 100 + 0.5) ..
-        ':sentAmountUntaxed=' ..
-        math.floor(cumulativeUntaxed) .. ':resourceShareThreshold=' .. math.floor(policyResult.resourceShareThreshold))
+      key = 'ui.playersList.chat.sent' .. pascalResourceType .. 'TaxedThreshold'
     end
+
+    local serialized = Cache.Serialize(Comms.SendTransferChatMessageProtocol, chatParams)
+    Spring.SendLuaRulesMsg('msg:' .. key .. ':' .. serialized)
   end
 end
 

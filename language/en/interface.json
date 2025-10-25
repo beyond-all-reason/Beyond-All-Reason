@@ -123,11 +123,11 @@
 				"giveMetal": "I sent %{amount} metal to %{name}",
 				"giveEnergy": "I sent %{amount} energy to %{name}",
 				"sentMetal": "Sent %{receivedAmount}m",
-				"sentMetalTaxed": "Sent %{receivedAmount}m, spent %{sentAmount}m at %{taxRatePercentage}% overhead",
-				"sentMetalTaxedThreshold": "Sent %{receivedAmount}m, spent %{sentAmount}m at %{taxRatePercentage}% overhead (free used %{sentAmountUntaxed}/%{resourceShareThreshold}m)",
+				"sentMetalTaxed": "Sent %{receivedAmount}m, spent %{sentAmount}m at %{taxRatePercentage}%% overhead",
+				"sentMetalTaxedThreshold": "Sent %{receivedAmount}m, spent %{sentAmount}m at %{taxRatePercentage}%% overhead (free used %{sentAmountUntaxed}/%{resourceShareThreshold}m)",
 				"sentEnergy": "Sent %{receivedAmount}e",
-				"sentEnergyTaxed": "Sent %{receivedAmount}e, spent %{sentAmount}e at %{taxRatePercentage}% overhead",
-				"sentEnergyTaxedThreshold": "Sent %{receivedAmount}e, spent %{sentAmount}e at %{taxRatePercentage}% overhead (free used %{sentAmountUntaxed}/%{resourceShareThreshold}e)",
+				"sentEnergyTaxed": "Sent %{receivedAmount}e, spent %{sentAmount}e at %{taxRatePercentage}%% overhead",
+				"sentEnergyTaxedThreshold": "Sent %{receivedAmount}e, spent %{sentAmount}e at %{taxRatePercentage}%% overhead (free used %{sentAmountUntaxed}/%{resourceShareThreshold}e)",
 				"takeTeam": "I took %{name}.",
 				"takeTeamAmount": "I took %{name}: %{units} units, %{energy} energy and %{metal} metal."
 			}
