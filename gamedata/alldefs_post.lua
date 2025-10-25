@@ -1562,6 +1562,14 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	-- bounce shields
+	if modOptions.experimentalshields == "bounceplasma" or modOptions.experimentalshields == "bounceeverything" then
+		local shieldPowerMultiplier = 0.529 --converts to pre-shield rework vanilla integration
+		if uDef.customparams and uDef.customparams.shield_power then
+			uDef.customparams.shield_power = uDef.customparams.shield_power * shieldPowerMultiplier
+		end
+	end
+
 	-- add model vertex displacement
 	local vertexDisplacement = 5.5 + ((uDef.footprintx + uDef.footprintz) / 12)
 	if vertexDisplacement > 10 then
@@ -1719,6 +1727,18 @@ function WeaponDef_Post(name, wDef)
 			end
 			if (not wDef.interceptedbyshieldtype) or wDef.interceptedbyshieldtype ~= 1 then
 				wDef.interceptedbyshieldtype = 1
+			end
+		end
+
+
+		if shieldModOption == "bounceeverything" or shieldModOption == "bounceplasma" then
+			local shieldPowerMultiplier = 0.529 --converts to pre-shield rework vanilla integration
+			local shieldRegenMultiplier = 0.4 --converts to pre-shield rework vanilla integration
+			if wDef.shield then
+				wDef.shield.power = wDef.shield.power * shieldPowerMultiplier
+				wDef.shield.powerregen = wDef.shield.powerregen * shieldRegenMultiplier
+				wDef.shield.startingpower = wDef.shield.startingpower * shieldPowerMultiplier
+				wDef.shield.repulser = true
 			end
 		end
 

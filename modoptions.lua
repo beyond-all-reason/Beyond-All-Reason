@@ -1495,16 +1495,6 @@ local options = {
     },
 
     {
-        key    	= "shieldsrework",
-        name   	= "Shields Rework v2.0",
-        desc   	= "Shields block plasma. Overkill damage is absorbed. Shield is down for the duration required to recharge the overkill damage at normal energy cost.",
-        type   	= "bool",
-        hidden 	= false,
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
         key 	= "lategame_rebalance",
         name 	= "Lategame Rebalance",
         desc 	= "T2 defenses and anti-air is weaker, giving more time for late T2 strategies to be effective.  Early T3 unit prices increased. Increased price of calamity/ragnarock by 20% so late T3 has more time to be effective.",
@@ -2109,9 +2099,9 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
         hidden  = true,
         items	= {
             { key = "unchanged", 		name = "Unchanged", 			desc = "Unchanged" },
-            { key = "absorbplasma", 	name = "Absorb Plasma", 		desc = "Collisions Disabled" },
-            { key = "absorbeverything", name = "Absorb Everything", 	desc = "Collisions Enabled" },
-            { key = "bounceeverything", name = "Deflect Everything", 	desc = "Collisions Enabled" },
+            { key = "absorbeverything", name = "Absorb Everything", 	desc = "Shields absorb everything" },
+            { key = "bounceplasma",     name = "Deflect Plasma", 		desc = "Shields deflect plasma only" },
+            { key = "bounceeverything", name = "Deflect Everything", 	desc = "Shields deflect everything" },
         }
     },
 
