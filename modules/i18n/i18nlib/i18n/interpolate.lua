@@ -30,7 +30,20 @@ local function interpolate(str, vars)
   str = escapeDoublePercent(str)
   str = interpolateVariables(str, vars)
   str = interpolateFormattedVariables(str, vars)
-  str = string.format(str, unpack(vars))
+  -- Handle any remaining % positional placeholders (e.g., %s, %d)
+  -- Only if they exist and vars can be treated as array
+  if str:find('%%') and not str:find('%%{') and not str:find('%%<') then
+    local percentCount = 0
+    for _ in str:gmatch('%%') do
+      percentCount = percentCount + 1
+    end
+    -- For positional placeholders, assume vars[1], vars[2], etc.
+    local args = {}
+    for i = 1, percentCount do
+      args[i] = vars[i] or vars[tostring(i)] or 'nil'
+    end
+    str = string.format(str, unpack(args))
+  end
   str = unescapeDoublePercent(str)
   return str
 end
