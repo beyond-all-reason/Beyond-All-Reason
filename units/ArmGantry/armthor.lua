@@ -198,6 +198,8 @@ return {
 				weaponvelocity = 500,
 				customparams = {
 					stockpilelimit = 2,
+					interceptedbyshieldtype = 0,
+					shield_aoe_penetration = true,
 				},
 				damage = {
 					default = 80000,

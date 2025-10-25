@@ -1015,19 +1015,6 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-- Shield Rework
-	if modOptions.shieldsrework == true and uDef.weapondefs then
-		local shieldPowerMultiplier = 1.9-- To compensate for always taking full damage from projectiles in contrast to bounce-style only taking partial
-
-		for _, weapon in pairs(uDef.weapondefs) do
-			if weapon.shield and weapon.shield.repulser then
-				uDef.onoffable = true
-			end
-		end
-		if uDef.customparams.shield_power then
-			uDef.customparams.shield_power = uDef.customparams.shield_power * shieldPowerMultiplier
-		end
-	end
 
 	--- EMP rework
 	if modOptions.emprework == true then
@@ -1735,60 +1722,12 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
-		--Shields Rework
+		--shield behavior override
 		if modOptions.shieldsrework == true then
-			-- To compensate for always taking full damage from projectiles in contrast to bounce-style only taking partial
-			local shieldPowerMultiplier = 1.9
-			local shieldRegenMultiplier = 2.5
-			local shieldRechargeCostMultiplier = 1
-
-			-- For balance, paralyzers need to do reduced damage to shields, as their raw raw damage is outsized
-			local paralyzerShieldDamageMultiplier = 0.25
-
-			-- VTOL's may or may not do full damage to shields if not defined in weapondefs
-			local vtolShieldDamageMultiplier = 0
-
 			local shieldCollisionExemptions = { --add the name of the weapons (or just the name of the unit followed by _ ) to this table to exempt from shield collision.
 			'corsilo_', 'armsilo_', 'armthor_empmissile', 'armemp_', 'cortron_', 'corjuno_', 'armjuno_',
 			}
 
-			if wDef.damage ~= nil then
-				-- Due to the engine not handling overkill damage, we have to store the original shield damage values as a customParam for unit_shield_behavior.lua to reference
-				wDef.customparams = wDef.customparams or {}
-				if wDef.damage.shields then
-					wDef.customparams.shield_damage = wDef.damage.shields
-				elseif wDef.damage.default then
-					wDef.customparams.shield_damage = wDef.damage.default
-				elseif wDef.damage.vtol then
-					wDef.customparams.shield_damage = wDef.damage.vtol * vtolShieldDamageMultiplier
-				else
-					wDef.customparams.shield_damage = 0
-				end
-
-				if wDef.paralyzer then
-					wDef.customparams.shield_damage = wDef.customparams.shield_damage * paralyzerShieldDamageMultiplier
-				end
-
-				-- Set damage to 0 so projectiles always collide with shield. Without this, if damage > shield charge then it passes through.
-				-- Applying damage is instead handled in unit_shield_behavior.lua
-				wDef.damage.shields = 0
-
-				if wDef.beamtime and wDef.beamtime > 1 / Game.gameSpeed then
-					 -- This splits up the damage of hitscan weapons over the duration of beamtime, as each frame counts as a hit in ShieldPreDamaged() callin
-					 -- Math.floor is used to sheer off the extra digits of the number of frames that the hits occur
-					wDef.customparams.beamtime_damage_reduction_multiplier = 1 / math.floor(wDef.beamtime * Game.gameSpeed)
-				end
-			end
-
-			if wDef.shield then
-				wDef.shield.exterior = true
-				if wDef.shield.repulser == true then --isn't an evocom
-					wDef.shield.powerregen = wDef.shield.powerregen * shieldRegenMultiplier
-					wDef.shield.power = wDef.shield.power * shieldPowerMultiplier
-					wDef.shield.powerregenenergy = wDef.shield.powerregenenergy * shieldRechargeCostMultiplier
-				end
-				wDef.shield.repulser = false
-			end
 
 			if ((not wDef.interceptedbyshieldtype or wDef.interceptedbyshieldtype ~= 1) and wDef.weapontype ~= "Cannon") then
 				wDef.customparams = wDef.customparams or {}
@@ -1798,6 +1737,7 @@ function WeaponDef_Post(name, wDef)
 			for _, exemption in ipairs(shieldCollisionExemptions) do
 				if string.find(name, exemption) then
 					wDef.interceptedbyshieldtype = 0
+					wDef.customparams = wDef.customparams or {}
 					wDef.customparams.shield_aoe_penetration = true
 					break
 				end

@@ -144,6 +144,8 @@ return {
 				customparams = {
 					water_splash_ceg = "splash-gigantic", -- 1 bigger than it would get
 					stockpilelimit = 10,
+					interceptedbyshieldtype = 0,
+					shield_aoe_penetration = true,
 				},
 				damage = {
 					commanders = 750,

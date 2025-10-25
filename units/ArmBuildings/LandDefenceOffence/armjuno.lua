@@ -144,6 +144,8 @@ return {
 					nofire = true,
 					stockpilelimit = 20,
 					water_splash = 0,
+					interceptedbyshieldtype = 0,
+					shield_aoe_penetration = true,
 				},
 				damage = {
 					default = 1,

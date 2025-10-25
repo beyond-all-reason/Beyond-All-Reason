@@ -148,6 +148,8 @@ return {
 				customparams = {
 					place_target_on_ground = "true",
 					stockpilelimit = 10,
+					interceptedbyshieldtype = 0,
+					shield_aoe_penetration = true,
 				},
 				damage = {
 					commanders = 2500,
