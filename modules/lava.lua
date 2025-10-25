@@ -193,8 +193,8 @@ local function validateTideRhythm(modoptionDataRaw)
 end
 
 local function lavaModGen(modOptions)
-	if modOptions.map_tweaklava ~= "" then 
-		local tweakLavaRaw = modOptions.map_tweaklava
+	local tweakLavaRaw = modOptions.map_tweaklava
+	if tweakLavaRaw ~= "" and tweakLavaRaw ~= "0" then 
 		local advancedRhythm = validateTideRhythm(tweakLavaRaw)
 		if advancedRhythm then 
 			tideRhythm = advancedRhythm
