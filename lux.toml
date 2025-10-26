@@ -1,0 +1,22 @@
+package = "Beyond All Reason"
+version = "0.1.0"
+lua = "=5.1"
+
+[description]
+summary = "Beyond All Reason Game Code."
+maintainer = "BAR Team"
+labels = [ "BAR" ]
+license = "GPL"
+
+[test_dependencies]
+
+[test_dependencies.luassert ]
+git = "github:LuaCATS/luassert"
+version = "d3528bb679302cbfdedefabb37064515ab95f7b9"
+
+[test_dependencies.busted ]
+git = "github:LuaCATS/busted"
+version = "5ed85d0e016a5eb5eca097aa52905eedf1b180f1"
+
+[build_dependencies]
+inspect = "3.1.3-0"

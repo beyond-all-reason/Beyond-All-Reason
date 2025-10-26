@@ -44,3 +44,98 @@ Ensure that you have the correct path by looking for the file `Beyond-All-Reason
 6. If developing Chobby also clone the code into the `games` directory. Follow the guide in the [Chobby README](https://github.com/beyond-all-reason/BYAR-Chobby#developing-the-lobby).
 
 More on the `.sdd` directory to run raw LUA and the structure expected by Spring Engine is [documented here](https://springrts.com/wiki/Gamedev:Structure).
+
+-----
+
+## Automated Testing
+
+### Prereqs
+
+**Lua 5.1**
+
+*debian/linux*
+
+```zsh
+sudo apt install -y lua5.1
+```
+
+*windows* (MSYS2 UCRT64)
+
+```zsh
+pacman -S --needed mingw-w64-ucrt-x86_64-lua51
+```
+
+*macOS*
+
+```zsh
+brew install lua@5.1
+```
+
+**Lux Package Manager**
+Follow the [Lux Getting Started Guide](https://lux.lumen-labs.org/tutorial/getting-started/).
+
+### Install Project Packages
+
+From the repo root (where `lux.toml` lives):
+
+```zsh
+lux update
+```
+
+### Running Tests
+
+Run the full suite (via [Busted](https://lunarmodules.github.io/busted/)):
+
+```zsh
+# preferred for predictable CLI behavior
+busted
+```
+
+Filter by tag:
+
+```zsh
+busted -t focus
+```
+
+Optionally, run through Lux’s wrapper:
+
+```zsh
+lx test
+```
+
+Inspect objects inline while debugging:
+
+```lua
+print(require("inspect")(someObject))
+```
+
+### Notes
+
+* In specs, use `require("relative/path/to/file")`.
+  `VFS.Include` is aliased to `require` in `spec/spec_helper.lua`, but `require` makes it clear you’re referencing test code.
+* `lx check` runs LuaCATS/EmmyLua type checking and updates `.luarc.json`.
+
+### VS Code Test Switcher (optional)
+
+Install: [Test Switcher Plugin](https://marketplace.visualstudio.com/items?itemName=bmalehorn.test-switcher)
+
+Then open **User Settings (JSON)** and add:
+
+```json
+"test-switcher.rules": [
+    {
+        "pattern": "luarules/(.*)\\.lua",
+        "replacement": "common/unitTesting/$1_spec.lua"
+    },
+    {
+        "pattern": "common/unitTesting/(.*)_spec\\.lua",
+        "replacement": "luarules/$1.lua"
+    }
+],
+```
+=======
+You can also inspect objects for more verbose output inline:
+
+```lua
+print(inspect(someObject))
+```

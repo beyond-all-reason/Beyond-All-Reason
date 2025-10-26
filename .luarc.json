@@ -1,24 +1,42 @@
 {
   "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
-  "runtime.version": "Lua 5.1",
   "completion.requireSeparator": "/",
+  "diagnostics": {
+    "type": {
+      "definition": [
+        ".lux/",
+        "types/",
+        "recoil-lua-library/library/"
+      ]
+    }
+  },
   "runtime.path": [
-      "?",
-      "?.lua"
+    "?",
+    "?.lua"
   ],
   "runtime.special": {
-      "VFS.Include": "require",
-      "include": "require",
-      "shard_include": "require"
+    "VFS.Include": "require",
+    "include": "require",
+    "shard_include": "require"
+  },
+  "runtime.version": "Lua 5.1",
+  "semantic": {
+    "enable": true
   },
   "workspace": {
-    "library": [
-      "recoil-lua-library"
-    ],
     "ignoreDir": [
       ".vscode",
       "luaui/Tests",
       "luaui/TestsExamples"
+    ],
+    "library": [
+      "recoil-lua-library",
+      "luarules/",
+      "luaui/",
+      "spec/",
+      "types/",
+      ".lux/5.1/test_dependencies/5.1/1164eee68470e47a53444c9b6d72400404c06e50c0f5030f877d9e0fe64027c4-busted@5ed85d0e016a5eb5eca097aa52905eedf1b180f1-1/src",
+      ".lux/5.1/test_dependencies/5.1/b33830aca2d15b029d998fc9fc817288ce3f45b5a9595fdf5608c63b76250a3d-luassert@d3528bb679302cbfdedefabb37064515ab95f7b9-1/src"
     ]
   }
 }
