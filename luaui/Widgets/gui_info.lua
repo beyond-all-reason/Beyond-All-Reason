@@ -36,6 +36,7 @@ local iconTypes = VFS.Include("gamedata/icontypes.lua")
 local vsx, vsy = Spring.GetViewGeometry()
 
 local hoverType, hoverData = '', ''
+local customHoverType, customHoverData = nil, nil  -- For external widgets (like PIP) to supply hover info
 local sound_button = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_button2 = 'LuaUI/Sounds/buildbar_rem.wav'
 
@@ -674,6 +675,15 @@ function widget:Initialize()
 	end
 	WG['info'].getIsShowing = function()
 		return infoShows
+	end
+	WG['info'].setCustomHover = function(hType, hData)
+		-- Allow external widgets to supply custom hover info (e.g., PIP window)
+		customHoverType = hType
+		customHoverData = hData
+	end
+	WG['info'].clearCustomHover = function()
+		customHoverType = nil
+		customHoverData = nil
 	end
 	if WG['buildmenu'] then
 		if WG['buildmenu'].getGroups then
@@ -2093,7 +2103,19 @@ end
 function checkChanges()
 	hideBuildlist = nil	-- only set for pregame startunit
 	local x, y, b, _, _, _, cameraPanMode = spGetMouseState()
-	hoverType, hoverData = spTraceScreenRay(x, y)
+	
+	-- Use custom hover if provided by external widget (e.g., PIP window)
+	-- or skip hover detection if PIP window is above (to prevent showing units below PIP)
+	if customHoverType and customHoverData then
+		hoverType = customHoverType
+		hoverData = customHoverData
+	elseif WG['guiPip'] and WG['guiPip'].IsAbove and WG['guiPip'].IsAbove(x, y) then
+		-- PIP window is above the cursor, don't detect anything below it
+		hoverType = nil
+		hoverData = nil
+	else
+		hoverType, hoverData = spTraceScreenRay(x, y)
+	end
 
 	local prevDisplayMode = displayMode
 	local prevDisplayUnitDefID = displayUnitDefID
