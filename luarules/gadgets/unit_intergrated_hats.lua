@@ -57,6 +57,7 @@ do
 				armwin=6,
 				armham=5,
 				--corthud=6,
+				corcom=2,
 			},
 		}
 
