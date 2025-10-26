@@ -85,11 +85,11 @@ local holidaysList = {
 		lastDay = { day = 1, month = 4}
 	},
 
-	["spooktober"] = {
+	["halloween"] = {
 		firstDay = { day = 17, month = 10},
 		lastDay = { day = 31, month = 10}
 	},
-    ["spooktober_specialDay"] = {
+    ["halloween_specialDay"] = {
 		firstDay = { day = 31, month = 10},
 		lastDay = { day = 31, month = 10}
 	},

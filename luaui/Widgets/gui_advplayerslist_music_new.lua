@@ -203,29 +203,29 @@ local function ReloadMusicPlaylists()
 		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/warhigh', allowedExtensions))
 		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/interludes', allowedExtensions))
 
-		-- Spooktober --------------------------------------------------------------------------------------------------------------------
-		if (Spring.Utilities.Gametype.GetCurrentHolidays()["spooktober"] and Spring.GetConfigInt('UseSoundtrackSpooktober', 1) == 1) then
-			table.append(eventPeaceTracks, VFS.DirList(musicDirNew..'/events/spooktober/peace', allowedExtensions))
-			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/spooktober/war', allowedExtensions))
-			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/spooktober/war', allowedExtensions))
-			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/spooktober/warlow', allowedExtensions))
-			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/spooktober/warhigh', allowedExtensions))
-			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/spooktober/interludes', allowedExtensions))
-		elseif ((not Spring.Utilities.Gametype.GetCurrentHolidays()["spooktober"]) and Spring.GetConfigInt('UseSoundtrackSpooktoberPostEvent', 0) == 1) then
-			table.append(peaceTracksNew, VFS.DirList(musicDirNew..'/events/spooktober/peace', allowedExtensions))
-			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/spooktober/war', allowedExtensions))
-			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/spooktober/war', allowedExtensions))
-			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/spooktober/warlow', allowedExtensions))
-			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/spooktober/warhigh', allowedExtensions))
-			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/spooktober/interludes', allowedExtensions))
+		-- Halloween --------------------------------------------------------------------------------------------------------------------
+		if (Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"] and Spring.GetConfigInt('UseSoundtrackHalloween', 1) == 1) then
+			table.append(eventPeaceTracks, VFS.DirList(musicDirNew..'/events/halloween/peace', allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/halloween/war', allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/halloween/war', allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/halloween/warlow', allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/halloween/warhigh', allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/halloween/interludes', allowedExtensions))
+		elseif ((not Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"]) and Spring.GetConfigInt('UseSoundtrackHalloweenPostEvent', 0) == 1) then
+			table.append(peaceTracksNew, VFS.DirList(musicDirNew..'/events/halloween/peace', allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/halloween/war', allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/halloween/war', allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/halloween/warlow', allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/halloween/warhigh', allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/halloween/interludes', allowedExtensions))
 		end
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/spooktober/menu', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/spooktober/loading', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/spooktober/peace', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/spooktober/war', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/spooktober/warlow', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/spooktober/warhigh', allowedExtensions))
-		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/spooktober/interludes', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/menu', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/loading', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/peace', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/war', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/warlow', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/warhigh', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/interludes', allowedExtensions))
 
 		-- Christmas --------------------------------------------------------------------------------------------------------------------
 		if (Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] and Spring.GetConfigInt('UseSoundtrackXmas', 1) == 1) then

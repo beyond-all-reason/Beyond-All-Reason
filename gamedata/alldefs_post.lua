@@ -135,8 +135,8 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-- Spooktober
-	if Spring.Utilities.Gametype.GetCurrentHolidays()["spooktober"] then
+	-- Halloween
+	if Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"] then
 		if name == "armcom" or name == "armdecom" then
 			uDef.objectname = "units/event/halloween/armcom.s3o"
 		elseif name == "corcom" or name == "cordecom" then

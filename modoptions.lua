@@ -1388,7 +1388,7 @@ local options = {
     {
         key     = "seasonal_surprise",
         name    = "Seasonal Surprise",
-        desc    = "Happy spooktober!",
+        desc    = "Happy Halloween!",
         type    = "bool",
         def     = false,
         section = "options_extra",
