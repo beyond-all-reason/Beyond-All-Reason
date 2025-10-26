@@ -138,16 +138,20 @@ function UnitDef_Post(name, uDef)
 	-- Spooktober
 	if Spring.Utilities.Gametype.GetCurrentHolidays()["spooktober"] then
 		if name == "armcom" or name == "armdecom" then
-			uDef.objectname = "units/event/spooktober/armcom.s3o"
+			uDef.objectname = "units/event/halloween/armcom.s3o"
 		elseif name == "corcom" or name == "cordecom" then
-			uDef.objectname = "units/event/spooktober/corcom.s3o"
+			uDef.objectname = "units/event/halloween/corcom.s3o"
 		elseif name == "legcom" or name == "legdecom" then
-			uDef.objectname = "units/event/spooktober/legcom.s3o"
+			uDef.objectname = "units/event/halloween/legcom.s3o"
 
 		elseif name == "correap" then
-			uDef.objectname = "units/event/spooktober/correap.s3o"
+			uDef.objectname = "units/event/halloween/correap.s3o"
 		elseif name == "leggob" then
-			uDef.objectname = "units/event/spooktober/leggob.s3o"
+			uDef.objectname = "units/event/halloween/leggob.s3o"
+		elseif name == "armrectr" then
+			uDef.objectname = "units/event/halloween/armrectr.s3o"
+		elseif name == "armspy" then
+			uDef.objectname = "units/event/halloween/armspy.s3o"
 		end
 	end
 
