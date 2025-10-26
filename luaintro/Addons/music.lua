@@ -63,16 +63,16 @@ function addon.Initialize()
 				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/events/aprilfools/loading', allowedExtensions))
 			end
 
-			-- Spooktober
+			-- Halloween
 			---- Halloween Day - 100% chance
-			if Spring.GetConfigInt('UseSoundtrackSpooktober', 1) == 1 and Spring.Utilities.Gametype.GetCurrentHolidays()["spooktober_specialDay"] then
-				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/spooktober/loading', allowedExtensions))
+			if Spring.GetConfigInt('UseSoundtrackHalloween', 1) == 1 and Spring.Utilities.Gametype.GetCurrentHolidays()["halloween_specialDay"] then
+				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/halloween/loading', allowedExtensions))
 			---- 2 Weeks Before Halloween - 50% chance
-			elseif Spring.GetConfigInt('UseSoundtrackSpooktober', 1) == 1 and Spring.Utilities.Gametype.GetCurrentHolidays()["spooktober"] and math.random() <= 0.5 then
-				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/spooktober/loading', allowedExtensions))
+			elseif Spring.GetConfigInt('UseSoundtrackHalloween', 1) == 1 and Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"] and math.random() <= 0.5 then
+				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/halloween/loading', allowedExtensions))
 			---- Post Event - Add to regular playlist
-			elseif Spring.GetConfigInt('UseSoundtrackSpooktoberPostEvent', 0) == 1 and (not Spring.Utilities.Gametype.GetCurrentHolidays()["spooktober_specialDay"]) then
-				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/events/spooktober/loading', allowedExtensions))
+			elseif Spring.GetConfigInt('UseSoundtrackHalloweenPostEvent', 0) == 1 and (not Spring.Utilities.Gametype.GetCurrentHolidays()["halloween_specialDay"]) then
+				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/events/halloween/loading', allowedExtensions))
 			end
 
 			-- Xmas
