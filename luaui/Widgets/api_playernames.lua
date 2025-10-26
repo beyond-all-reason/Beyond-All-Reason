@@ -121,10 +121,10 @@ local function actualizeHistory()
 		local accountsByDate = {}
 		for accountID, data in pairs(history) do
 			if data.d then
-				table.insert(accountsByDate, {accountID = accountID, date = data.d})
+				table.insert(accountsByDate, {accountID = accountID, date = tonumber(data.d)})
 			else
 				-- if no date, treat as very old (assign a very old date)
-				table.insert(accountsByDate, {accountID = accountID, date = "000000"})
+				table.insert(accountsByDate, {accountID = accountID, date = 1})
 			end
 		end
 

@@ -14,7 +14,9 @@ if Spring.GetTeamList then
 		end
 	end
 end
-if Spring.GetModOptions().ruins == "enabled" or Spring.GetModOptions().forceallunits == true then
+
+local modOptions = Spring.GetModOptions()
+if modOptions.ruins == "enabled" or modOptions.forceallunits == true or modOptions.zombies ~= "disabled" or modOptions.seasonal_surprise == true or (GG and GG.Zombies and GG.Zombies.IdleMode == true) then
 	scavengersEnabled = true
 end
 

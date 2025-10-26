@@ -503,11 +503,13 @@ if gadgetHandler:IsSyncedCode() then
 
 			debugcommands = {}
 			local commands = string.split(Spring.GetModOptions().debugcommands, '|')
-			for i,command in ipairs(commands) do
+			for i, command in ipairs(commands) do
 				local cmdsplit = string.split(command,':')
 				if cmdsplit[1] and cmdsplit[2] and tonumber(cmdsplit[1]) then
-					debugcommands[tonumber(cmdsplit[1])] = cmdsplit[2]
-					Spring.Echo("Adding debug command",cmdsplit[1], cmdsplit[2])
+					if not string.find(string.lower(cmdsplit[2]), 'execute', nil, true) then
+						debugcommands[tonumber(cmdsplit[1])] = cmdsplit[2]
+						Spring.Echo("Adding debug command",cmdsplit[1], cmdsplit[2])
+					end
 				end
 			end
 

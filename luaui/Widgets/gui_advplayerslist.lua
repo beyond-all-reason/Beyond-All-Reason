@@ -1133,7 +1133,12 @@ function GetSkill(playerID)
                 local color2 = math.max(0.75, color * color)
                 tsRed, tsGreen, tsBlue = math.floor(255 * color), math.floor(255 * color2), math.floor(255 * color2)
             end
-            osSkill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. osSkill
+            if not osSigma or tonumber(osSigma) > 6.65 then
+                osSkill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. "??"
+            else
+                osSkill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. osSkill
+            end
+
         end
     else
         osSkill = "\255" .. string.char(160) .. string.char(160) .. string.char(160) .. "?"
@@ -2789,9 +2794,15 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
     --desynced = playerID == 1
     local pScale = (0.5+playerScale)*0.67  --dont scale too much for the already smaller bonus font
 	if desynced then
+        if dark then
+            font2:SetOutlineColor(0, 0, 0, 1)
+        end
 		font2:SetTextColor(1,0.45,0.45,1)
 		font2:Print(Spring.I18N('ui.playersList.desynced'), m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
 	elseif player[playerID] and not player[playerID].dead and player[playerID].incomeMultiplier and player[playerID].incomeMultiplier ~= 1 then
+        if dark then
+            font2:SetOutlineColor(0, 0, 0, 1)
+        end
         if player[playerID].incomeMultiplier > 1 then
             font2:SetTextColor(0.5,1,0.5,1)
             font2:Print('+'..math.floor((player[playerID].incomeMultiplier-1+0.005)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")

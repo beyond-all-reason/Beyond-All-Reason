@@ -105,7 +105,10 @@ for key, value in pairs(modoptions) do
 				local decodeSuccess, postsFuncStr = pcall(string.base64Decode, value)
 				changedModoptions[key] = '\n' .. (decodeSuccess and postsFuncStr or '\255\255\100\100 - '..Spring.I18N('ui.gameInfo.decodefailed').. ' - ')
 			else
-				local success, tweaks = pcall(Spring.Utilities.CustomKeyToUsefulTable, value)
+        local dataRaw = string.gsub(value, '_', '=')
+				local decodeSuccess, postsFuncStr = pcall(string.base64Decode, dataRaw)
+				local success, tweaks = pcall(Spring.Utilities.SafeLuaTableParser, postsFuncStr)
+
 				if success and type(tweaks) == "table" then
 					local text = ''
 					for name, ud in pairs(tweaks) do
