@@ -140,7 +140,11 @@ function UnitDef_Post(name, uDef)
 		if name == "armcom" or name == "armdecom" then
 			uDef.objectname = "units/event/halloween/armcom.s3o"
 		elseif name == "corcom" or name == "cordecom" then
-			uDef.objectname = "units/event/halloween/corcom.s3o"
+			if math.random(2) == 1 then
+				uDef.objectname = "units/event/halloween/corcom.s3o"
+			else
+				uDef.objectname = "units/event/halloween/corcom_alt.s3o"
+			end
 		elseif name == "legcom" or name == "legdecom" then
 			uDef.objectname = "units/event/halloween/legcom.s3o"
 
