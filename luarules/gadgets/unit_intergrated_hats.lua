@@ -33,6 +33,10 @@ do
 		hats = "april"
 	end
 
+	if Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"] then
+		hats = "halloween"
+	end
+
 	if hats then
 
 		-- count of how many hats a unit has for the hat mode
@@ -57,8 +61,10 @@ do
 				armwin=6,
 				armham=5,
 				--corthud=6,
-				corcom=2,
 			},
+			halloween = {
+				corcom=2,
+			}
 		}
 
 		hatCountsTemp = hatTable[hats]
