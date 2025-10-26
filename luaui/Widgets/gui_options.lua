@@ -5987,21 +5987,21 @@ function init()
 		options[getOptionByID('spectator_hud_metric_damageDealt')] = nil
 	end
 
-	if (not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7)) then
+	if not Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"] then
 		options[getOptionByID('soundtrackAprilFools')] = nil
 		Spring.SetConfigInt("UseSoundtrackAprilFools", 1)
 	else
 		options[getOptionByID('soundtrackAprilFoolsPostEvent')] = nil
 	end
 
-	if (not (tonumber(os.date("%m")) == 10 and tonumber(os.date("%d")) >= 17)) then
+	if not Spring.Utilities.Gametype.GetCurrentHolidays()["spooktober"] then
 		options[getOptionByID('soundtrackSpooktober')] = nil
 		Spring.SetConfigInt("UseSoundtrackSpooktober", 1)
 	else
 		options[getOptionByID('soundtrackSpooktoberPostEvent')] = nil
 	end
 
-	if (not (tonumber(os.date("%m")) == 12 and tonumber(os.date("%d")) >= 12)) then
+	if not Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] then
 		options[getOptionByID('soundtrackXmas')] = nil
 		Spring.SetConfigInt("UseSoundtrackXmas", 1)
 	else
