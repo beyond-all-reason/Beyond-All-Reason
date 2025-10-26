@@ -867,36 +867,6 @@ local options = {
         type    = "separator",
     },
 
-    --{
-    --	key    	= "xmas",
-    --	name   	= "Holiday decorations",
-    --	desc   	= "Various  holiday decorations",
-    --	type   	= "bool",
-    --	def    	= true,
-    --	section	= "options_extra",
-    --},
-
-	-- {
-	-- 	key		= "unithats",
-	-- 	name	= "Unit Hats",
-	-- 	desc	= "Unit Hats, for the current season",
-	-- 	type	= "list",
-	-- 	def		= "disabled",
-	-- 	items	= {
-	-- 		{ key = "disabled",	name = "Disabled" },
-	-- 		{ key = "april", 	name = "Silly", 		desc = "An assortment of foolish and silly hats >:3" },
-	-- 	},
-	-- 	section	= "options_extra",
-	-- },
-	--{
-	--	key		= "easter_egg_hunt",
-	--	name	= "Easter Eggs Hunt",
-	--	desc	= "Easter Eggs are spawned around the map! Time to go on an Easter Egg hunt! (5 metal 50 energy per)",
-	--	type	= "bool",
-	--	def		= false,
-	--	section	= "options_extra",
-	--},
-
 
     {
         key    	= "experimentalextraunits",
@@ -1418,7 +1388,7 @@ local options = {
     {
         key     = "seasonal_surprise",
         name    = "Seasonal Surprise",
-        desc    = "Happy spooktober!",
+        desc    = "Happy Halloween!",
         type    = "bool",
         def     = false,
         section = "options_extra",
@@ -1701,12 +1671,17 @@ local options = {
     },
     {
         key     = "dummyboolfeelfreetotouch",
-        name    = "dummy to hide the faction limiter",
-        desc    = "This is a dummy to hide the faction limiter from the text field, it needs to exploit or work around some flaws to hide it...",
+        name    = "dummy to hide some modoptions",
+        desc    = "This is a dummy to hide some modoptions to not bloat the changed options panel with unneeded information",
         section = "dev",
         type    = "bool",
-        unlock  = {"dummyboolfeelfreetotouch", "factionlimiter"},
+        -- This doesn't have a default on purpse, do not add one
+        unlock  = {"dummyboolfeelfreetotouch", "factionlimiter", "date_year", "date_month", "date_day", "date_hour"},
     },
+    { key     = "date_year", name    = "Year", desc    = "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten", section = "dev", type = "number", def = 0, min = 0, max = 3000, step = 1, },
+    { key     = "date_month", name    = "Month", desc    = "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten", section = "dev", type = "number", def = 0, min = 0, max = 12, step = 1, },
+    { key     = "date_day", name    = "Day", desc    = "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten", section = "dev", type = "number", def = 0, min = 0, max = 31, step = 1, },
+    { key     = "date_hour", name    = "Hour", desc    = "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten", section = "dev", type = "number", def = 0, min = 0, max = 24, step = 1, },
     {
         key     = "factionlimiter",
         name    = "Faction Limiter:".."\255\255\191\76".." ON\n".."\255\125\125\125".."BITMASK",
@@ -2137,6 +2112,16 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		section = "options_cheats",
 		type	= "bool",
 		def		= false,
+	},
+
+    {
+		key		= "holiday_events",
+		name	= "Enable Holiday Events",
+		desc	= "",
+		section = "options_cheats",
+		type	= "bool",
+		def		= true,
+        hidden  = true,
 	},
 
 }
