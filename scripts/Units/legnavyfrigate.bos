@@ -2,7 +2,7 @@
 
 piece base, turret, gun, lFlap, rFlap, flare, fan, fan1, wake;
 
-static-var  gun_1, restore_delay, fired, aiming;
+static-var  gun_1, restore_delay, fired, last_primary_heading, last_secondary_heading;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -27,9 +27,10 @@ Create()
 	hide flare;
 	hide wake;
 	fired = 0;
-	aiming = 0;
 	gun_1 = 1;
 	restore_delay = 3000;
+	last_primary_heading = -1000000;
+	last_secondary_heading = -1000000;
 	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
 	turn fan1 to x-axis <50.2> now;
@@ -51,6 +52,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
+	last_primary_heading = -1000000;
+	last_secondary_heading = -1000000;
 	turn turret to y-axis <0.000000> speed <60.000000>;
 	turn gun to x-axis <0.000000> speed <60.000000>;
 }
@@ -72,18 +75,8 @@ ResetFire()
 	signal SIGNAL_SHOOT1;
 	set-signal-mask SIGNAL_SHOOT1;
 	fired = 1;
-	sleep 1500;
+	sleep 2500;
 	fired = 0;
-}
-
-
-ResetAiming()
-{
-	signal SIGNAL_IDLE;
-	set-signal-mask SIGNAL_IDLE;
-	aiming = 1;
-	sleep 500;
-	aiming = 0;
 }
 
 StartMoving()
@@ -106,26 +99,25 @@ StopMoving()
 	return (0);
 }
 
-/// regular torp launcher
+/// anti-surface
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM_1;
 	set-signal-mask SIG_AIM_1;
-	if((<0> - pitch)<<45>){
-		start-script ResetAiming();
-		turn turret to y-axis heading speed <120.000000>;
-		turn gun to x-axis <0> - pitch / 3 speed <120>;
+	turn turret to y-axis heading speed <120.000000>;
+	turn gun to x-axis <0> - pitch / 3 speed <120>;
+	if (get ABS(last_primary_heading - heading)> <20>)
+	{
 		wait-for-turn turret around y-axis;
 		wait-for-turn gun around x-axis;
-		start-script RestoreAfterDelay();
-		if(fired == 1)
-		{
-			return (0);
-		}
-		return (1);
 	}
-	else return (0);
-
+	start-script RestoreAfterDelay();
+	if(fired == 1)
+	{
+		return (0);
+	}
+	last_primary_heading = heading;
+	return (1);
 }
 
 FirePrimary()
@@ -148,29 +140,26 @@ QueryPrimary(piecenum)
 	piecenum = flare;
 }
 
-/// missile torp launcher for up close encounters
+/// anti-sub
 AimSecondary(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
-	if((<0> - pitch)>=<45>){
-		if(aiming == 1)
-		{
-			return (0);
-		}
-		turn turret to y-axis heading speed <120.000000>;
-		turn gun to x-axis <0> - pitch / 3 speed <120>;
+	turn turret to y-axis heading speed <120.000000>;
+	turn gun to x-axis <0> - pitch / 3 speed <120>;
+	if (get ABS(last_secondary_heading - heading)> <20>)
+	{
 		wait-for-turn turret around y-axis;
 		wait-for-turn gun around x-axis;
-		start-script RestoreAfterDelay();
-		sleep 33;
-		if(fired == 1)
-		{
-			return (0);
-		}	
-		return (1);
 	}
-	else return (0);
+	start-script RestoreAfterDelay();
+	sleep 33;
+	if(fired == 1)
+	{
+		return (0);
+	}
+	last_secondary_heading = heading;
+	return (1);
 }
 
 FireSecondary()
