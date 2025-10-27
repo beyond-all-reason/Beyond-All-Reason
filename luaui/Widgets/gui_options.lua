@@ -128,8 +128,6 @@ local show = false
 local prevShow = show
 local manualChange = true
 
-local guishaderIntensity = 0.0035
-
 local spGetGroundHeight = Spring.GetGroundHeight
 
 local os_clock = os.clock
@@ -1967,7 +1965,6 @@ function init()
 			distortioneffects = true,
 		 	snow = true,
 		 	particles = 20000,
-		 	guishader = guishaderIntensity,
 			decalsgl4 = 1,
 		 	decals = 2,
 			shadowslider = 4,
@@ -1988,7 +1985,6 @@ function init()
 			distortioneffects = true,
 			snow = true,
 			particles = 30000,
-			guishader = guishaderIntensity,
 			decalsgl4 = 1,
 			decals = 3,
 			shadowslider = 5,
@@ -2009,7 +2005,6 @@ function init()
 			distortioneffects = true,
 			snow = true,
 			particles = 40000,
-			guishader = guishaderIntensity,
 			decalsgl4 = 1,
 			decals = 4,
 			shadowslider = 6,
@@ -6089,14 +6084,6 @@ function init()
 		options[getOptionByID('dualmode_minimap_aspectratio')] = nil
 	end
 
-
-	if Platform ~= nil and Platform.gpuVendor == 'Intel' then
-		id = getOptionByID('guishader')
-		if id then
-			options[id] = nil
-		end
-	end
-
 	-- reduce options for potatoes
 	if isPotatoGpu or isPotatoCpu then
 		--local id = getOptionByID('shadowslider')
@@ -7009,7 +6996,6 @@ function widget:GetConfigData()
 		show = show,
 		waterDetected = waterDetected,
 		customPresets = customPresets,
-		guishaderIntensity = guishaderIntensity,
 		changesRequireRestart = changesRequireRestart,
 		requireRestartDefaults = requireRestartDefaults,
 
@@ -7047,9 +7033,6 @@ function widget:SetConfigData(data)
 	end
 	if data.cameraPanTransitionTime ~= nil then
 		cameraPanTransitionTime = data.cameraPanTransitionTime
-	end
-	if data.guishaderIntensity then
-		guishaderIntensity = data.guishaderIntensity
 	end
 	if data.edgeMoveWidth then
 		edgeMoveWidth = data.edgeMoveWidth
