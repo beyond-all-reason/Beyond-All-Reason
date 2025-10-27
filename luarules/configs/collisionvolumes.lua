@@ -378,16 +378,10 @@ pieceCollisionVolume['legehovertank'] = {
 	['20']={25,12,37,0,0,-6,2,1},
 }
 
---{60,80,60,  -- Volume X scale, Volume Y scale, Volume Z scale,
---		    0,15,0,    -- Volume X offset, Volume Y offset, Volume Z offset,
-
 pieceCollisionVolume['corsiegebreaker'] = {
-['0']={36,18,64,0,4,8,2,2},
-['1']={19,12,24,0,-2.5,-2.5,2,1},
+	['0']={36,18,64,0,4,8,2,2},
+	['1']={19,12,24,0,-2.5,-2.5,2,1},
 }
---['1']={18,14,24,0,-1,1.5,0,4},
-
-
 
 pieceCollisionVolume['armshockwave'] = {
     ['2']={22,22,22,0,10,0,1,1},
@@ -406,15 +400,6 @@ for name, v in pairs(pieceCollisionVolume) do
 	end
 end
 
-----dynamicPieceCollisionVolume['cortoast'] = {
-----	on = {
-----		['1']={40,40,40,-13,10,0,0,0},
-----		['5']={8,8,21,0,1,-2,1,2},
-----	},
-----	off = {
-----		['1']={12,58,58,-2,13,0,1,0},
-----	}
-----}
 dynamicPieceCollisionVolume['corvipe'] = {
 	on = {
 		['0']={38,26,38,0,0,0,2,0},
