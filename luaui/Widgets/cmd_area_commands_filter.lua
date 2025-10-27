@@ -1,5 +1,10 @@
 local widget = widget ---@type RulesUnsyncedCallins
 
+-- When performing an area command for one of the `allowedCommands` below:
+-- - If Ctrl is pressed and hovering over a unit, targets all units with the same alliance (enemy/allied) in the area.
+-- - If Alt is pressed and hovering over a unit, targets all units that share the same unitdefid in the area.
+-- - If Meta is pressed, orders are put in front of the order queue.
+-- - If Meta and Shift are pressed, splits orders between selected units. Orders are placed at the end of the queue
 function widget:GetInfo()
 	return {
 		name = "Area Command Filter",
@@ -22,10 +27,8 @@ local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spIsReplay = Spring.IsReplay
 local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
@@ -331,6 +334,8 @@ local function defaultHandler(cmdId, selectedUnits, filteredTargets, options)
 	if options.shift and options.meta then
 		splitOrders(cmdId, selectedUnits, filteredTargets, options)
 	else
+		-- when meta is held it puts orders at the front of the queue so it reverses their order.
+		-- sorting has to be reversed to fix that
 		local closestFirst = not options.meta
 		sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst)
 		giveOrders(cmdId, selectedUnits, filteredTargets, options)
@@ -386,9 +391,13 @@ local function filterUnits(targetId, cmdX, cmdZ, radius, options, skipAlliedUnit
 		return nil
 	end
 
+	if options.ctrl then
+		return unitsInArea
+	end
+
 	for i = 1, #unitsInArea do
 		local unitID = unitsInArea[i]
-		if options.ctrl or (options.alt and spGetUnitDefID(unitID) == unitDefId) then
+		if spGetUnitDefID(unitID) == unitDefId then
 			table.insert(filteredTargets, unitID)
 		end
 	end
@@ -396,6 +405,10 @@ local function filterUnits(targetId, cmdX, cmdZ, radius, options, skipAlliedUnit
 end
 
 local function filterFeatures(targetId, cmdX, cmdZ, radius, options)
+	if not options.alt then
+		return nil
+	end
+
 	local filteredTargets = {}
 	local featureDefId = spGetFeatureDefID(targetId)
 	if not featureDefId then
@@ -409,7 +422,7 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options)
 
 	for i = 1, #featuresInArea do
 		local featureId = featuresInArea[i]
-		if options.alt and spGetFeatureDefID(featureId) == featureDefId then
+		if spGetFeatureDefID(featureId) == featureDefId then
 			-- featureId is normalised to Game.maxUnits + featureId because of:
 			-- https://springrts.com/wiki/Lua_CMDs#CMDTYPE.ICON_UNIT_FEATURE_OR_AREA
 			-- "expect 1 parameter in return (unitid or Game.maxUnits+featureid)"
