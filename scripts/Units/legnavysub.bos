@@ -1,0 +1,156 @@
+#include "../recoil_common_includes.h"
+
+piece  base, flare, lfin, rfin, lshroud, rshroud, thrust1, thrust2;
+
+static-var  restore_delay, oldheading;
+// Signal definitions
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
+
+#define BASEPIECE base
+#define HITSPEED <25.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 5
+#define MAXTILT 200
+
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+#define TB_BASE base 
+#define TB_TURNRATE <30.0> 
+#define TB_TILT_X <-0.32>
+#define TB_BANK_Z <0.5> // Do not define this if you dont want banking
+#define TB_WAKE_PIECE base
+#define TB_WAKE_FOAM 1024 + 1
+#include "../tilt_bank_submarine.h"
+
+FinControl(heading, steery, currentSpeed)
+{
+	while(1)
+	{
+		heading = get HEADING;
+		steery = (heading - oldheading)*-3;
+		
+		turn lfin to y-axis steery speed <30>;
+		turn rfin to y-axis steery speed <30>;
+		turn lfin to x-axis 0-steery speed <30>;
+		turn rfin to x-axis 0-steery speed <30>;
+
+		sleep 66;
+		oldheading = heading;
+	}
+}
+
+Create()
+{
+	hide flare;
+	restore_delay = 3000;
+	call-script TB_Init();
+	return (0);
+}
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
+	start-script FinControl();
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
+}
+
+FireWeapon1()
+{
+	return (0);
+}
+
+QueryWeapon1(pieceIndex)
+{
+	pieceIndex = flare;
+	return (0);
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	move lshroud to x-axis [0] speed [8];
+    turn lshroud to y-axis <0> speed <90>;
+	move rshroud to x-axis [0] speed [8];
+    turn rshroud to y-axis <0> speed <90>;
+
+	wait-for-move lshroud along x-axis;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = base;
+}
+
+AimWeapon1(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	move lshroud to x-axis [-4] speed [12];
+    turn lshroud to y-axis <30> speed <60>;
+	move rshroud to x-axis [4] speed [12];
+    turn rshroud to y-axis <-30> speed <60>;
+	
+	wait-for-move lshroud along x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode lfin type FIRE | SMOKE | NOHEATCLOUD;
+		explode lshroud type BITMAPONLY | NOHEATCLOUD;
+		explode rshroud type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode lfin type FIRE | SMOKE | NOHEATCLOUD;
+		explode lshroud type NOHEATCLOUD;
+		explode rshroud type FIRE | SMOKE | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | NOHEATCLOUD;
+		explode lfin type FIRE | SMOKE | NOHEATCLOUD;
+		explode lshroud type FIRE | SMOKE | NOHEATCLOUD;
+		explode rshroud type FIRE | SMOKE | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfin type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
+		explode lshroud type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
+		explode rshroud type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
+	return corpsetype;
+}
