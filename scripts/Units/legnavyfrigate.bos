@@ -1,7 +1,4 @@
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece base, turret, gun, lFlap, rFlap, flare, fan, fan1, wake;
 
@@ -9,15 +6,21 @@ static-var  gun_1, restore_delay, fired, aiming;
 
 // Signal definitions
 #define SIG_MOVE			2
-#define SIG_AIM				4
+#define SIG_AIM_1			4
+#define SIG_AIM_2			8
 
-#define BASEPIECE base
-#define HITSPEED <20.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 2
-#define MAXTILT 200
+#define RB_MASS 10
+#define RB_LENGTH 5
+#define RB_WIDTH 3
+#define RB_PITCH_ACCELERATION 10
+#define RB_ROLL_ACCELERATION 8
+#define RB_RECOIL_ENERGY_2 500
+#define RB_WAKE_PIECE wake
+#define RB_WAKE_CEG 1024 + 0
+#define RB_IDLE_KICK 10000
+#define RB_ROCKUNIT 75
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../bar_ships_common.h"
 
 Create()
 {
@@ -27,15 +30,18 @@ Create()
 	aiming = 0;
 	gun_1 = 1;
 	restore_delay = 3000;
+	start-script InitRockBoat();
+	SLEEP_UNTIL_UNITFINISHED;
 	turn fan1 to x-axis <50.2> now;
 	turn fan1 to z-axis <16> now;
 	spin fan around y-axis speed <300> accelerate <30>;
+	start-script BoatPhysics();
 	return (0);
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 	return (0);
 }
 
@@ -57,9 +63,27 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
+}
+
+ResetFire()
+{
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
+	fired = 1;
+	sleep 1500;
+	fired = 0;
+}
+
+
+ResetAiming()
+{
+	signal SIGNAL_IDLE;
+	set-signal-mask SIGNAL_IDLE;
+	aiming = 1;
+	sleep 500;
+	aiming = 0;
 }
 
 StartMoving()
@@ -82,44 +106,96 @@ StopMoving()
 	return (0);
 }
 
+/// regular torp launcher
 AimPrimary(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <120.000000>;
-	turn gun to x-axis <0> - pitch / 3 speed <120>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn gun around x-axis;
-	start-script RestoreAfterDelay();
-	return (1);
+	signal SIG_AIM_1;
+	set-signal-mask SIG_AIM_1;
+	if((<0> - pitch)<<45>){
+		start-script ResetAiming();
+		turn turret to y-axis heading speed <120.000000>;
+		turn gun to x-axis <0> - pitch / 3 speed <120>;
+		wait-for-turn turret around y-axis;
+		wait-for-turn gun around x-axis;
+		start-script RestoreAfterDelay();
+		if(fired == 1)
+		{
+			return (0);
+		}
+		return (1);
+	}
+	else return (0);
+
 }
 
 FirePrimary()
 {
+	start-script ResetFire();
 	turn lFlap to y-axis <44> speed <440>;
 	turn rFlap to y-axis <-44> speed <440>;
 	wait-for-turn lFlap around y-axis;
 	turn lFlap to y-axis <0> speed <12>;
 	turn rFlap to y-axis <0> speed <12>;
-	return (0);
 }
 
 AimFromPrimary(piecenum)
 {
 	piecenum = turret;
-	return (0);
 }
 
 QueryPrimary(piecenum)
 {
 	piecenum = flare;
-	return (0);
+}
+
+/// missile torp launcher for up close encounters
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	if((<0> - pitch)>=<45>){
+		if(aiming == 1)
+		{
+			return (0);
+		}
+		turn turret to y-axis heading speed <120.000000>;
+		turn gun to x-axis <0> - pitch / 3 speed <120>;
+		wait-for-turn turret around y-axis;
+		wait-for-turn gun around x-axis;
+		start-script RestoreAfterDelay();
+		sleep 33;
+		if(fired == 1)
+		{
+			return (0);
+		}	
+		return (1);
+	}
+	else return (0);
+}
+
+FireSecondary()
+{
+	start-script ResetFire();
+	turn lFlap to y-axis <44> speed <440>;
+	turn rFlap to y-axis <-44> speed <440>;
+	wait-for-turn lFlap around y-axis;
+	turn lFlap to y-axis <0> speed <12>;
+	turn rFlap to y-axis <0> speed <12>;
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = turret;
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = flare;
 }
 
 SweetSpot(piecenum)
 {
 	piecenum = base;
-	return (0);
 }
 
 Killed(severity, corpsetype)

@@ -64,6 +64,7 @@ StopMoving()
 
 FireWeapon1()
 {
+	emit-sfx 1024 + 2 from flare;
 	return (0);
 }
 
