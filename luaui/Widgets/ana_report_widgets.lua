@@ -119,7 +119,7 @@ function widget:GameFrame(frame)
         end
 
         local customWidgetReport = {}
-        customWidgetReport.widgetsAmount = #widgetList
+        customWidgetReport.widgetCount = #widgetList
         customWidgetReport.widgets = widgetList
         customWidgetReport.truncated = truncated
 
