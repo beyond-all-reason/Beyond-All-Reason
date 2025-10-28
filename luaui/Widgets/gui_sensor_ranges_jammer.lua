@@ -24,7 +24,7 @@ local circleSegments = 62 -- To ensure its only 2 warps per instance
 local rangecorrectionelmos = debugmode and -16 or 16 -- how much smaller they are drawn than truth due to LOS mipping
 --------- End configurables ------
 
-local minJammerDistance = 100
+local minJammerDistance = 63
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 ------- GL4 NOTES -----

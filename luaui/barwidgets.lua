@@ -1850,6 +1850,9 @@ function widgetHandler:MouseRelease(x, y, button)
 end
 
 function widgetHandler:MouseWheel(up, value)
+	if value == 0 then
+		return false -- fix for touchpads: after any scroll it somehow adds an up=false, value=0
+	end
 	tracy.ZoneBeginN("W:MouseWheel")
 	for _, w in ipairs(self.MouseWheelList) do
 		if w:MouseWheel(up, value) then
@@ -2003,10 +2006,10 @@ function widgetHandler:GameStart()
 	return
 end
 
-function widgetHandler:GameOver()
+function widgetHandler:GameOver(winningAllyTeams)
 	tracy.ZoneBeginN("W:GameOver")
 	for _, w in ipairs(self.GameOverList) do
-		w:GameOver()
+		w:GameOver(winningAllyTeams)
 	end
 	tracy.ZoneEnd()
 	return

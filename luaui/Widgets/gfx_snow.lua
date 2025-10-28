@@ -26,7 +26,6 @@ local customParticleMultiplier  = 1
 local windMultiplier			= 4.5
 local maxWindSpeed				= 25		-- to keep it real
 local gameFrameCountdown		= 120		-- on launch: wait this many frames before adjusting the average fps calc
-local particleScaleMultiplier	= 1
 
 -- pregame info message
 local autoReduce = true
@@ -116,10 +115,7 @@ local glGetShaderLog       = gl.GetShaderLog
 local glCreateShader       = gl.CreateShader
 local LuaShader            = gl.LuaShader
 local glDeleteShader       = gl.DeleteShader
-local glUseShader          = gl.UseShader
-local glUniform            = gl.Uniform
-local glGetUniformLocation = gl.GetUniformLocation
-local glResetState = gl.ResetState
+local glResetState         = gl.ResetState
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -142,6 +138,7 @@ local function removeSnow()
 	removeParticleLists()
 	if shader ~= nil then
 		glDeleteShader(shader)
+		shader = nil
 	end
 end
 
@@ -186,7 +183,7 @@ local function init()
 	-- abort if not enabled
 	if enabled == false then return end
 
-	if (glCreateShader == nil) then
+	if glCreateShader == nil then
 		Spring.Echo("[Snow widget:Initialize] no shader support")
 		widgetHandler:RemoveWidget()
 		return
@@ -391,7 +388,7 @@ end
 function widget:Shutdown()
 	enabled = false
 	widgetHandler:RemoveAction("snow")
-	if shader then shader:Finalize() end 
+	if shader then shader:Finalize() end
 end
 
 local pausedTime = 0
@@ -412,7 +409,7 @@ function widget:DrawWorld()
 			diffTime = Spring.DiffTimers(lastFrametime, startTimer) - pausedTime
 			shader:SetUniform("time", diffTime)
 			shader:SetUniform("camPos", camX, camY, camZ)
-			
+
 			glDepthTest(true)
 			glBlending(GL.SRC_ALPHA, GL.ONE)
 
@@ -453,7 +450,6 @@ function widget:ViewResize()
 	if particleLists[#particleTypes] ~= nil then
 		CreateParticleLists()
 		gameFrameCountdown = 80
-		--particleScale = (0.60 + (vsx*vsy / 8000000)) * particleScaleMultiplier
 	end
 end
 
