@@ -27,7 +27,6 @@ local function analyticsCoroutine(eventType, eventData)
 	-- Add static fields
 	jsondict.eventtype = eventType
 	jsondict.username = myPlayerName
-	jsondict.mapName = tostring(Game and Game.mapName or "")
 	jsondict.frame = frameNumber
 
 	-- Add eventData incrementally
