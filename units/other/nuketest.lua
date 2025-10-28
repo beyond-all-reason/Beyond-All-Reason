@@ -71,7 +71,6 @@ return {
 				soundhit = "nukearm",
 				soundstart = "aarocket",
 				startvelocity = 1,
-				targetborder = 0.75,
 				turret = 1,
 				weaponacceleration = 1800,
 				weapontimer = 2,
