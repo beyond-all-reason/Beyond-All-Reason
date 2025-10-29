@@ -1,16 +1,16 @@
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-    return {
-        name    = "Analytics - Widgets",
-        desc    = "Report widget usage to Analytics API",
-        author  = "uBdead",
-        date    = "Oct 2025",
-        license = "GPL-v2",
-        layer   = 0,
-        enabled = true,
-        handler = true,
-    }
+	return {
+		name    = "Analytics - Widgets",
+		desc    = "Report widget usage to Analytics API",
+		author  = "uBdead",
+		date    = "Oct 2025",
+		license = "GPL-v2",
+		layer   = 0,
+		enabled = true,
+		handler = true,
+	}
 end
 
 -- We are in no rush to report this, so we delay it until the initialization of other widgets is over
@@ -39,94 +39,94 @@ local function GetWidgetToggleValue(widgetname)
 end
 
 local function processWidget(widget)
-    -- I know this is redundant as we literally just defined these values ourselves, 
-    -- but i want to keep the GetWidgetToggleValue the same as the original
-    local state = GetWidgetToggleValue(widget.name)
-    if state == false then   
-        widget.state = 0 
-    elseif state == 0.5 then
-        widget.state = -1
-    else
-        widget.state = 1
-    end
+	-- I know this is redundant as we literally just defined these values ourselves, 
+	-- but i want to keep the GetWidgetToggleValue the same as the original
+	local state = GetWidgetToggleValue(widget.name)
+	if state == false then   
+		widget.state = 0 
+	elseif state == 0.5 then
+		widget.state = -1
+	else
+		widget.state = 1
+	end
 
-    if widget.filename then
-        local file = io.open(widget.filename, "r")
-        if file then
-            local content = file:read("*a")
-            file:close()
+	if widget.filename then
+		local file = io.open(widget.filename, "r")
+		if file then
+			local content = file:read("*a")
+			file:close()
 
-            widget.hash = VFS.CalculateHash(content, 0) --MD5 (no security needed here)
-        end
-        widget.filename = nil -- not important anymore
-    end
+			widget.hash = VFS.CalculateHash(content, 0) --MD5 (no security needed here)
+		end
+		widget.filename = nil -- not important anymore
+	end
 end
 
 function widget:GameFrame(frame)
-    if not WG.Analytics then
-        widgetHandler:RemoveWidget(self)
-        return
-    end
+	if not WG.Analytics then
+		widgetHandler:RemoveWidget(self)
+		return
+	end
 
-    if frame < REPORT_DELAY_FRAMES then
-        return
-    end
+	if frame < REPORT_DELAY_FRAMES then
+		return
+	end
 
-    if not initialized then
-        initialized = true
-        for name, data in pairs(widgetHandler.knownWidgets) do
-            if not (EXCLUDE_ZIP and data.fromZip) then
-                local description = data.desc
-                if description and #description > 100 then
-                    description = string.sub(description, 1, 100) .. "..."
-                end
-                widgets[#widgets + 1] = {
-                    name = name,
-                    author = data.author,
-                    desc = description,
-                    filename = data.filename, -- to be processed later and stripped out
-                }
-            end
-        end
-    end
+	if not initialized then
+		initialized = true
+		for name, data in pairs(widgetHandler.knownWidgets) do
+			if not (EXCLUDE_ZIP and data.fromZip) then
+				local description = data.desc
+				if description and #description > 100 then
+					description = string.sub(description, 1, 100) .. "..."
+				end
+				widgets[#widgets + 1] = {
+					name = name,
+					author = data.author,
+					desc = description,
+					filename = data.filename, -- to be processed later and stripped out
+				}
+			end
+		end
+	end
 
-    local hashesThisFrame = 0
-    while currentWidgetIndex <= #widgets and hashesThisFrame < HASH_PER_FRAME do
-        local w = widgets[currentWidgetIndex]
+	local hashesThisFrame = 0
+	while currentWidgetIndex <= #widgets and hashesThisFrame < HASH_PER_FRAME do
+		local w = widgets[currentWidgetIndex]
 
-        processWidget(w)
+		processWidget(w)
 
-        hashesThisFrame = hashesThisFrame + 1
-        currentWidgetIndex = currentWidgetIndex + 1
-    end
+		hashesThisFrame = hashesThisFrame + 1
+		currentWidgetIndex = currentWidgetIndex + 1
+	end
 
-    if currentWidgetIndex > #widgets then
-        -- Build truncated report
-        local widgetList = {}
-        local truncated = false
-        for i, w in ipairs(widgets) do
-            if i > MAX_WIDGETS_PER_REPORT then
-                truncated = true
-                break
-            end
-            widgetList[#widgetList + 1] = {
-                name = w.name,
-                author = w.author or "unknown",
-                hash = w.hash or "nil",
-                state = w.state,
-                desc = w.desc,
-            }
-        end
+	if currentWidgetIndex > #widgets then
+		-- Build truncated report
+		local widgetList = {}
+		local truncated = false
+		for i, w in ipairs(widgets) do
+			if i > MAX_WIDGETS_PER_REPORT then
+				truncated = true
+				break
+			end
+			widgetList[#widgetList + 1] = {
+				name = w.name,
+				author = w.author or "unknown",
+				hash = w.hash or "nil",
+				state = w.state,
+				desc = w.desc,
+			}
+		end
 
-        local customWidgetReport = {}
-       customWidgetReport.widgetCount = #widgetList -- not redundant, in case of truncation
-        customWidgetReport.widgets = widgetList
-        customWidgetReport.truncated = truncated
+		local customWidgetReport = {}
+	   customWidgetReport.widgetCount = #widgetList -- not redundant, in case of truncation
+		customWidgetReport.widgets = widgetList
+		customWidgetReport.truncated = truncated
 
-        -- Send to analytics API (truncated)
-        -- Spring.Echo("Analytics API: Sending widget report with " .. tostring(#widgetList) .. " widgets (truncated)")
-        WG.Analytics.SendEvent("widgets_report", customWidgetReport)
+		-- Send to analytics API (truncated)
+		-- Spring.Echo("Analytics API: Sending widget report with " .. tostring(#widgetList) .. " widgets (truncated)")
+		WG.Analytics.SendEvent("widgets_report", customWidgetReport)
 
-        widgetHandler:RemoveWidget(self)
-    end
+		widgetHandler:RemoveWidget(self)
+	end
 end
