@@ -13,7 +13,7 @@ function widget:GetInfo()
     }
 end
 
--- and it will filter out inconsequential matches
+-- We are in no rush to report this, so we delay it until the initialization of other widgets is over
 local REPORT_DELAY_FRAMES = 30
 local MAX_WIDGETS_PER_REPORT = 50
 local HASH_PER_FRAME = 1
@@ -119,7 +119,7 @@ function widget:GameFrame(frame)
         end
 
         local customWidgetReport = {}
-        customWidgetReport.widgetCount = #widgetList
+       customWidgetReport.widgetCount = #widgetList -- not redundant, in case of truncation
         customWidgetReport.widgets = widgetList
         customWidgetReport.truncated = truncated
 
