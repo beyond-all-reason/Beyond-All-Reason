@@ -24,6 +24,8 @@ describe("UnitDefs", function()
         for _, unitName in ipairs(testUnits) do
             local unitDef = unitDefs[unitName]
             assert.is_table(unitDef)
+            -- Unit definitions should have a name
+            assert.is_string(unitDef.name)
             -- Unit definitions should have basic properties
             assert.is_number(unitDef.maxDamage or unitDef.health)
         end

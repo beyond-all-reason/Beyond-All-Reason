@@ -541,7 +541,7 @@ function SB:WithGlobalsDefined(fn, persist)
         -- For simplicity, assume playerID equals teamID in test scenarios
         return playerID
     end
-    _G.Spring.Utilities = _G.Spring.Utilities or { Gametype = { IsScavengers = function() return false end, IsRaptors = function() return false end } }
+    _G.Spring.Utilities = _G.Spring.Utilities or { Gametype = { IsScavengers = function() return false end, IsRaptors = function() return false end, GetCurrentHolidays = function() return {} end } }
 
     _G.LOG = _G.LOG or { DEBUG = "DEBUG", INFO = "INFO", WARNING = "WARNING", ERROR = "ERROR" }
     _G.Game = _G.Game or {}

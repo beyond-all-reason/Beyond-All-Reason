@@ -80,16 +80,6 @@ function UnitDef_Post(name, uDef)
 	-- SPEC SETUP
 	-- Set the unit name (Spring engine normally does this automatically)
 	uDef.name = uDef.name or name
-
-	-- Normalize customparams to customParams (Spring engine normally does this automatically)
-	if uDef.customparams and not uDef.customParams then
-		uDef.customParams = uDef.customparams
-	end
-
-	-- Normalize buildoptions to buildOptions (Spring engine normally does this automatically)
-	if uDef.buildoptions and not uDef.buildOptions then
-		uDef.buildOptions = uDef.buildoptions
-	end
 	-- /SPEC SETUP
 
 	local isScav = string.sub(name, -5, -1) == "_scav"
