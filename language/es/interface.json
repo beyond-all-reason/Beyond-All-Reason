@@ -684,7 +684,6 @@
 			"scoreBarTooltip": "Captura territorios para llenar la barra\nSi la barra cae debajo del Craneo,\nserás eliminado "
 		},
 		"loadScreen": {
-			"intelGpuWarning": "%{textColor}Estás usando la tarjeta integrada %{warnColor}Intel graphics%{textColor} card.     Actualmente, esta tarjeta %{warnColor}no es compatible con el juego y hará que no funcione correctamente.",
 			"lowRamWarning": "%{textColor} Tu sistema tiene menos de los %{warnColor}12 GB de RAM %{textColor}recomendados.  Reduce tus ajustes  gráficos si el juego crashea con frecuencia por errores relacionados con la falta de memoria."
 		},
 		"initialSpawn": {
