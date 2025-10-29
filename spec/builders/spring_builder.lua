@@ -517,29 +517,17 @@ function SB:WithGlobalsDefined(fn, persist)
     if not _G.Spring.Log then
         _G.Spring.Log = mock.Log
     end
-    _G.Spring.AreAlliedTeams = mock.AreAlliedTeams
     _G.Spring.GetTeamRulesParam = mock.GetTeamRulesParam
     _G.Spring.SetTeamRulesParam = mock.SetTeamRulesParam
     _G.Spring.GetUnitDefID = mock.GetUnitDefID
     _G.Spring.ValidUnitID = mock.ValidUnitID
 
-    -- Use the builder's configured team data (returns proper TeamInfo objects)
-    _G.Spring.GetTeamList = mock.GetTeamList
-    _G.Spring.GetPlayerIdsList = mock.GetPlayerIdsList
-
-    -- Include GetTeamResources with proper return types
-    _G.Spring.GetTeamResources = mock.GetTeamResources
-    _G.Spring.GetPlayerList = mock.GetPlayerList
 
     -- Additional Spring functions that may be needed
     -- Defer to already defined GetTeamLuaAI if it exists (real Spring API function)
     if not _G.Spring.GetTeamLuaAI then
         ---@diagnostic disable: duplicate-set-field
         _G.Spring.GetTeamLuaAI = function(_) return "" end
-    end
-    _G.Spring.GetPlayerTeam = function(playerID)
-        -- For simplicity, assume playerID equals teamID in test scenarios
-        return playerID
     end
     _G.Spring.Utilities = _G.Spring.Utilities or { Gametype = { IsScavengers = function() return false end, IsRaptors = function() return false end, GetCurrentHolidays = function() return {} end } }
 
