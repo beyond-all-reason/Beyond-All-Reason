@@ -67,8 +67,7 @@ function Shared.CreateDenyPolicy(senderTeamId, receiverTeamId, resourceType)
     resourceType = resourceType,
     remainingTaxFreeAllowance = 0,
     resourceShareThreshold = 0,
-    cumulativeSent = Shared.GetCumulativeSent(senderTeamId, resourceType),
-    overflowSliderEnabled = false
+    cumulativeSent = Shared.GetCumulativeSent(senderTeamId, resourceType)
   }
   return result
 end

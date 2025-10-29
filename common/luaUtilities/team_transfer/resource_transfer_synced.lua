@@ -26,8 +26,9 @@ end
 ---@return ResourcePolicyResult|nil
 local function TryDenyPolicy(ctx, resourceType)
   -- Globally disable any form of resource sharing if the modoption is turned off
-  local modOpts = ctx.springRepo.GetModOptions and ctx.springRepo.GetModOptions()
-  if modOpts and modOpts[SharedEnums.ModOptions.ResourceSharingEnabled] == false then
+
+  local modOpts = ctx.springRepo.GetModOptions()
+  if modOpts[SharedEnums.ModOptions.ResourceSharingEnabled] == false then
     return Shared.CreateDenyPolicy(ctx.senderTeamId, ctx.receiverTeamId, resourceType)
   end
   if ctx.isCheatingEnabled then
@@ -142,6 +143,7 @@ function Gadgets.BuildResultFactory(taxRate, metalThreshold, energyThreshold)
     return {
       senderTeamId = ctx.senderTeamId,
       receiverTeamId = ctx.receiverTeamId,
+
       canShare = amountSendable > 0,
       amountSendable = amountSendable,
       amountReceivable = receiverCapacity,
@@ -151,7 +153,7 @@ function Gadgets.BuildResultFactory(taxRate, metalThreshold, energyThreshold)
       resourceType = resourceType,
       remainingTaxFreeAllowance = allowanceRemaining,
       resourceShareThreshold = threshold,
-      cumulativeSent = cumulativeSent,
+      cumulativeSent = cumulativeSent
     }
   end
   return calcResourcePolicyResult
