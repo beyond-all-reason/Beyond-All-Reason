@@ -36,6 +36,6 @@ describe("SpringBuilder", function()
         assert.are.equal("armacv", unitDefId)
 
         local unitDef = spring.GetUnitDefs()[unitDefId]
-        assert.are.equal(unitDef.customParams.techlevel, 2)
+        assert.are.equal(unitDef.customparams.techlevel, 2)
     end)
 end)
