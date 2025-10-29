@@ -113,7 +113,7 @@ function widget:GameFrame(frame)
                 name = w.name,
                 author = w.author or "unknown",
                 hash = w.hash or "nil",
-                stats = w.state,
+                state = w.state,
                 desc = w.desc,
             }
         end
