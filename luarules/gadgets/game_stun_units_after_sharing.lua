@@ -21,19 +21,28 @@ if (Spring.GetModOption().stun_unit_after_sharing == "off" or stun_units_after_t
     return true
 end
 
-local spGetUnitHealth = Spring.GetUnitHealth
-local spSetUnitHealth = Spring.SetUnitHealth
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local currentGameFrame = Spring.GetGameFrame()
+
+-- TODO place affected units in this list, removing units after their stun expires
+-- in theory we can use this list in the widget to show some sort of stun-bar / transfer bar over the unit.
+-- TODO see if luaui/Widgets/gui_healthbars_gl4.lua has modes that align with expiryFrame or seconds-until-complete
+-- e.g. "-- bit 3: use timeleft style display 
 
 local transferedStunnedList = {}
 
-function gadget:AllowUnitTransfer(unitID, _, _, _, _)
+function gadget:AllowUnitTransfer(unitID, _, _, _, wasCaptured)
+    -- early return captured units as they are not affected
+    if (wasCaptured) then 
+      return true
+    end
+
     Spring.Echo("stun_unit_after_sharing: " .. tostring(Spring.GetModOptions().stun_unit_after_sharing))
     Spring.Echo("stun_units_after_transfer_duration_seconds: " .. tostring(Spring.GetModOptions().stun_units_after_transfer_duration_seconds))
     -- allow the unit to transfer, but stun the unit as the transfer happens
-	local inputStunSeconds = Spring.GetModOptions().stun_units_after_transfer_duration_seconds
-    -- that is, we're going to store the unit id with the future game frame that the unit will become available
+	local inputStunSeconds = math.floor(tonumber(Spring.GetModOptions().stun_units_after_transfer_duration_seconds))
     local gameFrameThatUnitWillBeAvailable = currentGameFrame + (inputStunSeconds * Game.gameSpeed);
+    spGiveOrderToUnit(unitID, CMD.TIMEWAIT, {}, inputStunSeconds)
 
     return true
 end
