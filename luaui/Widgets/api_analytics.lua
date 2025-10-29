@@ -78,6 +78,15 @@ end
 
 function widget:Initialize()
 	local Analytics = {}
+
+	---
+	--- Sends an analytics event to the telemetry system.
+	--  WARNING: Do NOT include any personal information in eventType or eventData.
+	--  WARNING: Data sent via this function may be intercepted by other players (including opponents!).
+	--  Only send anonymized, non-personal game-related data.
+	--  This function is intended for gameplay analytics and debugging, not for user tracking.
+	--  @param eventType string: The type of event to send (must not contain personal info)
+	--  @param eventData table: Additional event data (must not contain personal info)
 	Analytics.SendEvent = sendAnalyticsEvent
 
 	-- Initialize the analytics API
