@@ -42,7 +42,7 @@ local function processWidget(widget)
     -- I know this is redundant as we literally just defined these values ourselves, 
     -- but i want to keep the GetWidgetToggleValue the same as the original
     local state = GetWidgetToggleValue(widget.name)
-    if state == 0 then   
+    if state == false then   
         widget.state = 0 
     elseif state == 0.5 then
         widget.state = -1
