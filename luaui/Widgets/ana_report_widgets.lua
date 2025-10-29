@@ -13,6 +13,14 @@ function widget:GetInfo()
 	}
 end
 
+function widget:Initialize()
+	local isReplay = Spring.IsReplay()
+	if not WG.Analytics or isReplay then
+		widgetHandler:RemoveWidget(self)
+		return
+	end
+end
+
 -- We are in no rush to report this, so we delay it until the initialization of other widgets is over
 local REPORT_DELAY_FRAMES = 30
 local MAX_WIDGETS_PER_REPORT = 50
@@ -59,6 +67,8 @@ local function processWidget(widget)
 			widget.hash = VFS.CalculateHash(content, 0) --MD5 (no security needed here)
 		end
 		widget.filename = nil -- not important anymore
+	else
+		widget.hash = "missing filename"
 	end
 end
 
