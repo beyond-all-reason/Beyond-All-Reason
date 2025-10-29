@@ -39,7 +39,7 @@ local function analyticsCoroutine(eventType, eventData)
 			if jsondict[k] == nil then
 				jsondict[k] = eventData[k]
 			else
-				spLog("Analytics API: Key conflict for '" .. k .. "'. Skipping this key.", Spring.LOG_WARNING)
+				spLog("Analytics API", LOG.WARNING, "Key conflict, skipping", k)
 			end
 			i = i + 1
 		end
@@ -53,6 +53,7 @@ local function analyticsCoroutine(eventType, eventData)
 
 	local complexMatchEvent = "complex-match-event:" .. b64str
 	-- Spring.Echo(complexMatchEvent)
+	-- TODO would ideally be forwarded via lobby, for privacy and to avoid bloating replays
 	spSendLuaUIMsg(complexMatchEvent)
 end
 
@@ -93,4 +94,8 @@ function widget:Initialize()
 	if not WG.Analytics then
 		WG.Analytics = Analytics
 	end
+end
+
+function widget:Shutdown()
+	WG.Analytics = nil
 end
