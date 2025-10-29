@@ -117,7 +117,9 @@ print(require("inspect")(someObject))
 
 ### VS Code Test Switcher (optional)
 
-Install: [Test Switcher Plugin](https://marketplace.visualstudio.com/items?itemName=bmalehorn.test-switcher)
+This handy plugin lets you switch between the test and the code-being-tested just by tapping `Cmd+Shift+Y`.
+
+VSCode Plugin: https://marketplace.visualstudio.com/items?itemName=bmalehorn.test-switcher
 
 Then open **User Settings (JSON)** and add:
 
