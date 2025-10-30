@@ -289,6 +289,7 @@ local BUILD_MODES = enum(
 )
 
 local function getBuildingDimensions(unitDefID, facing)
+	if not unitDefID then return 0, 0 end
 	local unitDef = UnitDefs[unitDefID]
 	if (facing % 2 == 1) then
 		return SQUARE_SIZE * unitDef.zsize, SQUARE_SIZE * unitDef.xsize
@@ -305,6 +306,7 @@ local function getUnitsBounds(units)
 	local r = table.reduce(
 		units,
 		function(acc, unit)
+			if not unit.unitDefID then return acc end
 			local bw, bh = getBuildingDimensions(unit.unitDefID, unit.facing)
 			local bxMin = unit.position[1] - bw / 2
 			local bxMax = unit.position[1] + bw / 2
@@ -326,6 +328,10 @@ end
 
 local function getBlueprintDimensions(blueprint, facing)
 	local xMin, xMax, zMin, zMax = getUnitsBounds(blueprint.units)
+
+	if not xMin then
+		return 0, 0
+	end
 
 	if not facing or facing % 2 == 0 then
 		return xMax - xMin, zMax - zMin
@@ -577,55 +583,58 @@ local function createInstancesForPosition(blueprint, teamID, copyPosition, posit
 	end
 
 	for _, unit in ipairs(effectiveBlueprint.units) do
-		local x = copyPosition[1] + unit.position[1]
-		local z = copyPosition[3] + unit.position[3]
+		if unit.unitDefID then
+			local x = copyPosition[1] + unit.position[1]
+			local z = copyPosition[3] + unit.position[3]
 
-		local y = SpringGetGroundHeight(x, z)
+			local y = SpringGetGroundHeight(x, z)
 
-		local sx, sy, sz = SpringPos2BuildPos(unit.unitDefID, x, y, z, unit.facing)
+			local sx, sy, sz = SpringPos2BuildPos(unit.unitDefID, x, y, z, unit.facing)
 
-		local bw, bh = getBuildingDimensions(unit.unitDefID, unit.facing)
+			local bw, bh = getBuildingDimensions(unit.unitDefID, unit.facing)
 
-		local blocking = SpringTestBuildOrder(
-			unit.unitDefID,
-			sx, sy, sz,
-			unit.facing
-		)
-
-		local color
-		if blocking == 0 then
-			color = blockingColor
-		elseif activeBuilderBuildOptions[unit.unitDefID] then
-			color = buildableColor
-		else
-			color = unbuildableColor
-		end
-
-		-- outline
-		table.insert(instanceIDs[positionKey].outline, pushElementInstance(
-			outlineInstanceVBO,
-			{
+			local blocking = SpringTestBuildOrder(
+				unit.unitDefID,
 				sx, sy, sz,
-				bw, bh,
-				unpack(color),
-			},
-			nil,
-			true,
-			true
-		))
+				unit.facing
+			)
 
-		-- building
-		table.insert(instanceIDs[positionKey].unit, WG.DrawUnitShapeGL4(
-			unit.unitDefID,
-			sx, sy, sz,
-			unit.facing * (math.pi / 2),
-			UNIT_ALPHA,
-			teamID,
-			nil,
-			nil,
-			nil,
-			widget:GetInfo().name
-		))
+			local color
+			if blocking == 0 then
+				color = blockingColor
+			elseif activeBuilderBuildOptions[unit.unitDefID] then
+				color = buildableColor
+			else
+				color = unbuildableColor
+			end
+
+			-- outline
+			local outlineInstanceID = pushElementInstance(
+				outlineInstanceVBO,
+				{
+					sx, sy, sz,
+					bw, bh,
+					unpack(color),
+				},
+				nil,
+				true,
+				true
+			)
+			table.insert(instanceIDs[positionKey].outline, outlineInstanceID)
+
+			-- building
+			table.insert(instanceIDs[positionKey].unit, WG.DrawUnitShapeGL4(
+				unit.unitDefID,
+				sx, sy, sz,
+				unit.facing * (math.pi / 2),
+				UNIT_ALPHA,
+				teamID,
+				nil,
+				nil,
+				nil,
+				widget:GetInfo().name
+			))
+		end
 	end
 end
 
@@ -712,9 +721,9 @@ local function setActiveBlueprint(bp)
 		return
 	end
 
-	local blueprintToProcess = table.copy(bp) 
+	local blueprintToProcess = table.copy(bp)
 	local sourceInfo = SubLogic.analyzeBlueprintSides(blueprintToProcess)
-	blueprintToProcess.sourceInfo = sourceInfo 
+	blueprintToProcess.sourceInfo = sourceInfo
 
 	local determinedTargetSide = currentAPITargetSide
 	local substitutionNeeded = false
@@ -725,19 +734,26 @@ local function setActiveBlueprint(bp)
 		end
 	end
 
-	if substitutionNeeded then 
-		Spring.Log("BlueprintAPI", LOG.DEBUG, string.format("Attempting substitution. Source: %s, Target: %s, NumSources: %d", 
-			tostring(sourceInfo.primarySourceSide), tostring(determinedTargetSide), sourceInfo.numSourceSides))
-		
-		local resultTable = SubLogic.processBlueprintSubstitution(blueprintToProcess, determinedTargetSide) 
-		
+	if substitutionNeeded then
+		local resultTable = SubLogic.processBlueprintSubstitution(blueprintToProcess, determinedTargetSide)
+
 		if resultTable.substitutionFailed then
-			FeedbackForUser("[Blueprint API] " .. resultTable.summaryMessage) 
+			Spring.Log("BlueprintAPI", LOG.WARNING, resultTable.summaryMessage)
 		else
-			Spring.Log("BlueprintAPI", LOG.INFO, "[Blueprint API] " .. resultTable.summaryMessage)
+			Spring.Log("BlueprintAPI", LOG.INFO, resultTable.summaryMessage)
+		end
+
+		-- This allows partial substitutions to work even when some units fail to map
+		for _, unit in ipairs(blueprintToProcess.units) do
+			if unit.originalName then
+				local substitutedUnitDefID = UnitDefNames[unit.originalName] and UnitDefNames[unit.originalName].id
+				if substitutedUnitDefID then
+					unit.unitDefID = substitutedUnitDefID
+				end
+			end
 		end
 	end
-	
+
 	activeBlueprint = rotateBlueprint(blueprintToProcess, blueprintToProcess.facing)
 	clearInstances()
 	updateInstances(activeBlueprint, activeBuildPositions, SpringGetMyTeamID())
@@ -769,7 +785,7 @@ local function setActiveBuilders(unitIDs)
 		{}
 	)
 
-	currentAPITargetSide = nil 
+	currentAPITargetSide = nil
 	if unitIDs and #unitIDs > 0 then
 		local firstBuilderID = unitIDs[1]
 		local firstBuilderDefID = SpringGetUnitDefID(firstBuilderID)
@@ -787,19 +803,33 @@ local function setActiveBuilders(unitIDs)
 	end
 end
 
-local function getBuildableUnits(blueprint)
-	local buildable = 0
-	local unbuildable = 0
-
-	for _, unit in ipairs(blueprint.units) do
-		if activeBuilderBuildOptions[unit.unitDefID] then
-			buildable = buildable + 1
-		else
-			unbuildable = unbuildable + 1
-		end
+local function createBlueprintFromSerialized(serializedBlueprint)
+	-- This function contains logic to handle blueprints with units that are not
+	-- in the base game (e.g., Legion, expiremental unit pack). It attempts to substitute
+	-- those units to a default faction (ARM) so that the blueprints can still be used.
+	if not serializedBlueprint or not serializedBlueprint.units then
+		return nil
 	end
 
-	return buildable, unbuildable
+	local result = table.copy(serializedBlueprint)
+	result.units = {}
+
+	for _, serializedUnit in ipairs(serializedBlueprint.units) do
+		local unitDefID = UnitDefNames[serializedUnit.unitName] and UnitDefNames[serializedUnit.unitName].id
+		table.insert(result.units, {
+			blueprintUnitID = WG['cmd_blueprint'].nextBlueprintUnitID(),
+			position = serializedUnit.position,
+			facing = serializedUnit.facing,
+			unitDefID = unitDefID,
+			originalName = serializedUnit.unitName
+		})
+	end
+
+	if #result.units == 0 then
+		return nil
+	end
+
+	return result
 end
 
 function widget:Initialize()
@@ -836,12 +866,12 @@ function widget:Initialize()
 		setActiveBlueprint = setActiveBlueprint,
 		setActiveBuilders = setActiveBuilders,
 		setBlueprintPositions = setBlueprintPositions,
+		createBlueprintFromSerialized = createBlueprintFromSerialized,
 		rotateBlueprint = rotateBlueprint,
 		calculateBuildPositions = calculateBuildPositions,
 		getBuildingDimensions = getBuildingDimensions,
 		getBlueprintDimensions = getBlueprintDimensions,
 		getUnitsBounds = getUnitsBounds,
-		getBuildableUnits = getBuildableUnits,
 		snapBlueprint = snapBlueprint,
 		BUILD_MODES = BUILD_MODES,
 		SQUARE_SIZE = SQUARE_SIZE,
@@ -878,3 +908,6 @@ function widget:Shutdown()
 	end
 	reportFunctions = nil
 end
+
+
+
