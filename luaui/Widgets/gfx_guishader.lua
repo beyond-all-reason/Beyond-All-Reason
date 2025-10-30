@@ -163,7 +163,6 @@ local function CreateShaders()
 	if isIntelGPU then
 		-- Intel GPUs: Use simple box blur with weighted distribution for quality
 		-- Avoids derivative functions (dFdx/dFdy) which are buggy on Intel drivers
-		Spring.Echo("GUI Shader: Using Intel-compatible shader (9-sample weighted blur)")
 		fragmentShaderCode = [[
 		#version 120
 		uniform sampler2D tex2;

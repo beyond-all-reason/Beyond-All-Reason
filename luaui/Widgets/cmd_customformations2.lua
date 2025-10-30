@@ -185,6 +185,11 @@ local function GetModKeys()
     if spGetInvertQueueKey() then -- Shift inversion
         shift = not shift
     end
+    
+    -- Check if PiP widget wants to force shift for right-click drags
+    if WG.pipForceShift then
+        shift = true
+    end
 
     return alt, ctrl, meta, shift
 end
