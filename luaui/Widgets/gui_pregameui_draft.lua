@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "Floris, Tom Fyuri",
 		date = "2024",
 		license = "GNU GPL, v2 or later",
-		layer = -3,
+		layer = -999999,
 		enabled = true
 	}
 end
@@ -251,7 +251,7 @@ local function DrawSkill(skill, uncertainty, posX, posY)
 	else
 		font:Print(skill, posX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
 	end
-    
+
     font:End()
 end
 
@@ -643,7 +643,7 @@ local function drawButton()
 		if x > buttonRect[1] and x < buttonRect[3] and y > buttonRect[2] and y < buttonRect[4] and not cantPlaceNow then
 			glCallList(buttonHoverList)
 			colorString = "\255\210\210\210"
-			
+
 			if isReadyBlocked and WG['tooltip'] then
 				WG['tooltip'].ShowTooltip('pregameui', cachedTooltipText)
 			end
@@ -914,7 +914,7 @@ function widget:Initialize()
 	if (draftMode ~= nil and draftMode ~= "disabled") then
 		reloadedDraftMode = os.clock()+2 -- in case you luaui reload
 	end
-	
+
 	WG['pregameui_draft'] = {}
 	WG['pregameui_draft'].addReadyCondition = function(conditionKey, description)
 		if conditionKey and description then

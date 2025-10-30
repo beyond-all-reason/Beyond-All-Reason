@@ -403,7 +403,6 @@ return {
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
 				soundstartvolume = 50,
-				targetBorder = -1.0,
 				turret = true,
 				trajectoryheight = 1,
 				waterbounce = true,

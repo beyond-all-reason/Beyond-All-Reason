@@ -1,7 +1,6 @@
--- disable for intel cards (else it will render solid dark screen)
-if Platform ~= nil and Platform.gpuVendor == 'Intel' then
-	return
-end
+-- Intel GPU compatibility: Use a simplified shader path
+-- The complex derivative-based quad message passing doesn't work reliably on Intel GPUs
+local isIntelGPU = Platform ~= nil and Platform.gpuVendor == 'Intel'
 
 local widget = widget ---@type Widget
 
@@ -159,8 +158,53 @@ local function CreateShaders()
 	end
 
 	-- create blur shaders
-	blurShader = LuaShader({
-		fragment = [[
+	local fragmentShaderCode
+	
+	if isIntelGPU then
+		-- Intel GPUs: Use simple box blur with weighted distribution for quality
+		-- Avoids derivative functions (dFdx/dFdy) which are buggy on Intel drivers
+		fragmentShaderCode = [[
+		#version 120
+		uniform sampler2D tex2;
+		uniform sampler2D tex0;
+		uniform float ivsx;
+		uniform float ivsy;
+
+		void main(void)
+		{
+			vec2 texCoord = gl_TexCoord[0].st;
+			float stencil = texture2D(tex2, texCoord).a;
+			
+			if (stencil < 0.01)
+			{
+				discard;
+			}
+			
+			// 9-sample weighted blur for smooth, high-quality results
+			vec4 sum = vec4(0.0);
+			vec2 offset = vec2(ivsx, ivsy) * 6.0;
+			
+			// Center sample gets highest weight
+			sum += texture2D(tex0, texCoord) * 4.0;
+			
+			// Cardinal directions weighted higher
+			sum += texture2D(tex0, texCoord + vec2(offset.x, 0.0)) * 2.0;
+			sum += texture2D(tex0, texCoord - vec2(offset.x, 0.0)) * 2.0;
+			sum += texture2D(tex0, texCoord + vec2(0.0, offset.y)) * 2.0;
+			sum += texture2D(tex0, texCoord - vec2(0.0, offset.y)) * 2.0;
+			
+			// Diagonal corners for smoothness
+			sum += texture2D(tex0, texCoord + offset);
+			sum += texture2D(tex0, texCoord - offset);
+			sum += texture2D(tex0, texCoord + vec2(offset.x, -offset.y));
+			sum += texture2D(tex0, texCoord + vec2(-offset.x, offset.y));
+			
+			gl_FragColor = sum / 17.0;
+		}
+		]]
+	else
+		-- Other GPUs: Use optimized shader with quad message passing
+		fragmentShaderCode = [[
 		#version 150 compatibility
 		uniform sampler2D tex2;
 		uniform sampler2D tex0;
@@ -219,7 +263,11 @@ local function CreateShaders()
 				//gl_FragColor.rgba = vec4(1.0);
 			}
 		}
-	]],
+		]]
+	end
+
+	blurShader = LuaShader({
+		fragment = fragmentShaderCode,
 
 		uniformInt = {
 			tex0 = 0,
@@ -301,6 +349,11 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 		if updateStencilTexture then
 			DrawStencilTexture(true)
 			updateStencilTexture = false
+		end
+
+		-- Debug: Check if stencil texture exists
+		if isIntelGPU and stenciltex == nil then
+			Spring.Echo("DEBUG: stenciltex is nil!")
 		end
 
 		gl.Blending(true)

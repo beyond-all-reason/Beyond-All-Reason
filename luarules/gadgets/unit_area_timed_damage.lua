@@ -1,16 +1,16 @@
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-	return {
-		name = 'Area Timed Damage Handler',
-		desc = '',
-		author = 'Damgam',
-		version = '1.0',
-		date = '2022',
-		license = 'GNU GPL, v2 or later',
-		layer = 0,
-		enabled = true
-	}
+    return {
+        name = 'Area Timed Damage Handler',
+        desc = '',
+        author = 'Damgam',
+        version = '1.0',
+        date = '2022',
+        license = 'GNU GPL, v2 or later',
+        layer = 0,
+        enabled = true
+    }
 end
 
 if not gadgetHandler:IsSyncedCode() then
@@ -20,11 +20,12 @@ end
 --------------------------------------------------------------------------------
 -- Configuration ---------------------------------------------------------------
 
-local damageInterval = 0.7333 -- in seconds
-local damageLimit = 100 -- in damage per second, not per interval
-local damageExcessRate = 0.2 -- %damage dealt above limit
-local damageCegMinScalar = 30
-local damageCegMinMultiple = 1 / 3
+local damageInterval = 0.7333 ---@type number in seconds, time between procs
+local damageLimit = 100 ---@type number in damage per second, soft-cap across multiple areas
+local damageExcessRate = 0.2 ---@type number %damage dealt above limit [0, 1)
+local damageCegMinScalar = 30 ---@type number in damage, minimum to show hit CEG
+local damageCegMinMultiple = 1 / 3 ---@type number in %damage, minimum to show hit CEG
+local factoryWaitTime = damageInterval ---@type number in seconds, immunity period for factory-built units
 
 -- Since I couldn't figure out totally arbitrary-radius variable CEGs for fire,
 -- we're left with this static list, which is repeated in the expgen def files:
@@ -82,10 +83,14 @@ local gameSpeed               = Game.gameSpeed
 
 local frameInterval = math.round(Game.gameSpeed * damageInterval)
 local frameCegShift = math.round(Game.gameSpeed * damageInterval * 0.5)
+local frameWaitTime = math.round(Game.gameSpeed * factoryWaitTime)
 
 local timedDamageWeapons = {}
 local unitDamageImmunity = {}
 local featDamageImmunity = {}
+
+local isFactory = {}
+local isNewUnit = {}
 
 local aliveExplosions = {}
 local frameExplosions = {}
@@ -275,13 +280,13 @@ end
 ---@return number damageDealt
 ---@return boolean showDamageCeg
 local function getLimitedDamage(incoming, accumulated)
-	local ignoreLimit = max(0, incoming - damageLimit - accumulated)
-	local belowLimit = max(0, min(damageLimit - accumulated, incoming))
-	local aboveLimit = incoming - belowLimit - ignoreLimit
+    local ignoreLimit = max(0, incoming - damageLimit - accumulated)
+    local belowLimit = max(0, min(damageLimit - accumulated, incoming))
+    local aboveLimit = incoming - belowLimit - ignoreLimit
 
-	local damageDealt = ignoreLimit + belowLimit + aboveLimit * damageExcessRate
+	local damage = ignoreLimit + belowLimit + aboveLimit * damageExcessRate
 
-	return damageDealt, damageDealt >= incoming * damageCegMinMultiple or damageDealt >= damageCegMinScalar
+	return damage, damage >= incoming * damageCegMinMultiple or damage >= damageCegMinScalar
 end
 
 local function damageTargetsInAreas(timedAreas, gameFrame)
@@ -298,28 +303,20 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 
         for j = 1, #unitsInRange do
             local unitID = unitsInRange[j]
-
-            if not unitDamageImmunity[spGetUnitDefID(unitID)][area.resistance] then
-                local hitX, hitY, hitZ = getAreaHitPosition(area, spGetUnitPosition(unitID, true))
-
-                if hitX then
-                    local damageTaken = unitDamageTaken[unitID]
-
-                    if not damageTaken then
-                        damageTaken = 0
-                        count = count + 1
-                        resetNewUnit[count] = unitID
-                    end
-
-                    local damageDealt, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
-
-                    if showDamageCeg then
-                        spSpawnCEG(area.damageCeg, hitX, hitY, hitZ)
-                    end
-
-                    unitDamageTaken[unitID] = damageTaken + damageDealt
-                    spAddUnitDamage(unitID, damageDealt, nil, area.owner, area.weapon)
+            if not unitDamageImmunity[spGetUnitDefID(unitID)][area.resistance] and not isNewUnit[unitID] then
+                local damageTaken = unitDamageTaken[unitID]
+                if not damageTaken then
+                    damageTaken = 0
+                    count = count + 1
+                    resetNewUnit[count] = unitID
                 end
+                local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
+                if showDamageCeg then
+                    local ux, uy, uz = spGetUnitPosition(unitID)
+                    spSpawnCEG(area.damageCeg, ux, uy, uz)
+                end
+                spAddUnitDamage(unitID, damage, nil, area.owner, area.weapon)
+                unitDamageTaken[unitID] = damageTaken + damage
             end
         end
     end
@@ -414,6 +411,9 @@ function gadget:Initialize()
             timedDamageWeapons[WeaponDefNames[unitDef.deathExplosion].id] = params
             timedDamageWeapons[WeaponDefNames[unitDef.selfDExplosion].id] = params
         end
+        if unitDef.isFactory then
+            isFactory[unitDefID] = true
+        end
     end
 
     -- This simplifies writing tweakdefs to modify area_on[x]_range for balance,
@@ -484,6 +484,7 @@ function gadget:Initialize()
         for weaponDefID in pairs(timedDamageWeapons) do
             Script.SetWatchExplosion(weaponDefID, true)
         end
+
         aliveExplosions = {}
         for ii = 1, frameInterval do
             aliveExplosions[ii] = {}
@@ -493,6 +494,18 @@ function gadget:Initialize()
         for frame = frameNumber - 1, frameNumber + gameSpeed do
             unitDamageReset[frame] = {}
             featDamageReset[frame] = {}
+        end
+
+        isNewUnit = {}
+		local progressMax = 0.05 -- Assuming 20s build time. Any guess is fine (for /luarules reload).
+		local beingBuilt, progress, health, healthMax, framesRemaining
+        for _, unitID in ipairs(Spring.GetAllUnits()) do
+            beingBuilt, progress = Spring.GetUnitIsBeingBuilt(unitID)
+			health, healthMax = Spring.GetUnitHealth(unitID)
+            if beingBuilt and min(progress, health / healthMax) <= progressMax then
+                framesRemaining = frameInterval * (1 - 0.5 * min(progress, health / healthMax) / progressMax)
+                isNewUnit[unitID] = frameNumber + max(1, framesRemaining)
+            end
         end
     else
         Spring.Log(gadget:GetInfo().name, LOG.INFO, "No timed areas found. Removing gadget.")
@@ -516,18 +529,35 @@ function gadget:GameFrame(frame)
 
     frameExplosions = frameAreas
     frameNumber = frame
+
+    for unitID, expire in pairs(isNewUnit) do
+        if expire > frame then
+            isNewUnit[unitID] = nil
+        end
+    end
+end
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+    if builderID and isFactory[builderID] then
+        isNewUnit[unitID] = frameNumber + frameWaitTime
+    end
+end
+
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	isNewUnit[unitID] = nil
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
     if unitDamageTaken[unitID] then
-		unitDamageTaken[unitID] = nil
+        unitDamageTaken[unitID] = nil
         removeFromArrays(unitDamageReset, unitID)
     end
+    isNewUnit[unitID] = nil
 end
 
 function gadget:FeatureDestroyed(featureID, allyTeam)
     if featDamageTaken[featureID] then
-		featDamageTaken[featureID] = nil
+        featDamageTaken[featureID] = nil
         removeFromArrays(featDamageReset, featureID)
     end
 end

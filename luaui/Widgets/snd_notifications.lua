@@ -146,9 +146,6 @@ local unitsOfInterestNames = {
 	legeheatraymech = 'SolinvictusDetected',
 	armepoch = 'FlagshipDetected',
 	corblackhy = 'FlagshipDetected',
-	armthovr = 'TransportDetected',
-	corthovr = 'TransportDetected',
-	corintr = 'TransportDetected',
 	armatlas = 'AirTransportDetected',
 	corvalk = 'AirTransportDetected',
 	leglts = 'AirTransportDetected',
@@ -158,8 +155,6 @@ local unitsOfInterestNames = {
 	armdfly = 'AirTransportDetected',
 	corseah = 'AirTransportDetected',
 	legstronghold = 'AirTransportDetected',
-	armtship = 'SeaTransportDetected',
-	cortship = 'SeaTransportDetected',
 	legelrpcmech = 'AstraeusDetected',
 }
 -- convert unitname -> unitDefID

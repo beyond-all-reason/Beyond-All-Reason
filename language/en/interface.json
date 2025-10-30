@@ -696,7 +696,6 @@
 			"scoreBarTooltip": "Capture territories to fill this bar.\nIf the bar drops below the skull,\nyou will be eliminated."
 		},
 		"loadScreen": {
-			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly.",
 			"lowRamWarning": "%{textColor}Your system has below the recommended %{warnColor}12GB memory %{textColor}.     Try running with lower settings if you encounter out-of-memory crashes"
 		},
 		"initialSpawn": {
@@ -1184,10 +1183,10 @@
 				"soundtrackaprilfools_descr": "Toggle April Fools event music ON and OFF.",
 				"soundtrackaprilfoolspostevent": "April fools Soundtrack Post Event",
 				"soundtrackaprilfoolspostevent_descr": "Toggle April Fools event music ON and OFF.",
-				"soundtrackspooktober": "Spooktober Soundtrack",
-				"soundtrackspooktober_descr": "Toggle Spooktober event music ON and OFF.",
-				"soundtrackspooktoberpostevent": "Spooktober Soundtrack Post Event",
-				"soundtrackspooktoberpostevent_descr": "Toggle Spooktober event music ON and OFF.",
+				"soundtrackhalloween": "Halloween Soundtrack",
+				"soundtrackhalloween_descr": "Toggle Halloween event music ON and OFF.",
+				"soundtrackhalloweenpostevent": "Halloween Soundtrack Post Event",
+				"soundtrackhalloweenpostevent_descr": "Toggle Halloween event music ON and OFF.",
 				"soundtrackxmas": "Christmas Soundtrack",
 				"soundtrackxmas_descr": "Toggle Christmas event music ON and OFF.",
 				"soundtrackxmaspostevent": "Christmas Soundtrack Post Event",
