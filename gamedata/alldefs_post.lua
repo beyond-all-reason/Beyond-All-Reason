@@ -946,14 +946,14 @@ function UnitDef_Post(name, uDef)
 		HOVER2 = true,
 		HOVER3 = true,
 		HHOVER4 = true,
-		HOVER5 = true
+		AHOVER2 = true
 	}
 
 	local shipList = {
 		BOAT3 = true,
 		BOAT4 = true,
 		BOAT5 = true,
-		BOAT8 = true,
+		BOAT9 = true,
 		EPICSHIP = true
 	}
 
@@ -967,7 +967,7 @@ function UnitDef_Post(name, uDef)
 		COMMANDERBOT = true,
 		SCAVCOMMANDERBOT = true,
 		ATANK3 = true,
-		ABOT2 = true,
+		ABOT3 = true,
 		HABOT5 = true,
 		ABOTBOMB2 = true,
 		EPICBOT = true,
