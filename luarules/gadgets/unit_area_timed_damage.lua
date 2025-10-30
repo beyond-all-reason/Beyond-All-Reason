@@ -284,9 +284,9 @@ local function getLimitedDamage(incoming, accumulated)
     local belowLimit = max(0, min(damageLimit - accumulated, incoming))
     local aboveLimit = incoming - belowLimit - ignoreLimit
 
-	local damage = ignoreLimit + belowLimit + aboveLimit * damageExcessRate
+	local damageDealt = ignoreLimit + belowLimit + aboveLimit * damageExcessRate
 
-	return damage, damage >= incoming * damageCegMinMultiple or damage >= damageCegMinScalar
+	return damageDealt, damageDealt >= incoming * damageCegMinMultiple or damageDealt >= damageCegMinScalar
 end
 
 local function damageTargetsInAreas(timedAreas, gameFrame)
