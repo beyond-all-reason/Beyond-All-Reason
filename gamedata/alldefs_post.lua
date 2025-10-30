@@ -77,11 +77,6 @@ end
 function UnitDef_Post(name, uDef)
 	local modOptions = Spring.GetModOptions()
 
-	-- SPEC SETUP
-	-- Set the unit name (Spring engine normally does this automatically)
-	uDef.name = uDef.name or name
-	-- /SPEC SETUP
-
 	local isScav = string.sub(name, -5, -1) == "_scav"
 	local basename = isScav and string.sub(name, 1, -6) or name
 
