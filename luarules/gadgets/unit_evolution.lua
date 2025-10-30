@@ -39,6 +39,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local GAME_SPEED = Game.gameSpeed
 	local PRIVATE = { private = true }
+	local FIRST_EVOLUTION_DELAY_FRAMES = 70 -- to prevent race conditions with spawn in effects such as Quick Start
 
 	local evolutionMetaList = {}
 	local teamList = spGetTeamList()
@@ -401,7 +402,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			if not combatCheckUpdate(unitID, evolution, currentTime)
 				and not spGetUnitTransporter(unitID)
-				and (isEvolutionTimePassed(evolution, currentTime) or isEvolutionPowerPassed(evolution)) then
+				and ((isEvolutionTimePassed(evolution, currentTime) or isEvolutionPowerPassed(evolution))) and f > FIRST_EVOLUTION_DELAY_FRAMES then
 					evolve(unitID, evolution.evolution_target)
 			end
 
