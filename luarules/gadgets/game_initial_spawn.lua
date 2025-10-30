@@ -52,13 +52,13 @@ if gadgetHandler:IsSyncedCode() then
 		local modoptions = Spring.GetModOptions()
 		local factionlimiter = tonumber(modoptions.factionlimiter) or 0
 		if factionlimiter > 0 then
-			local legcomDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
+			local legcomDefID = modoptions.experimentallegionfaction and UnitDefNames.legcom and UnitDefNames.legcom.id
 			local armcomDefID = UnitDefNames.armcom and UnitDefNames.armcom.id
 			local corcomDefID = UnitDefNames.corcom and UnitDefNames.corcom.id
 			local ARM_MASK = 2^0
 			local COR_MASK = 2^1
 			local LEG_MASK = 2^2
-			local FULL_BITMASK = math.bit_and(ARM_MASK, COR_MASK, LEG_MASK)
+			local FULL_BITMASK = math.bit_or(ARM_MASK, COR_MASK, LEG_MASK)
 
 			local allyTeams = Spring.GetAllyTeamList()
 			for i = 1, #allyTeams do
@@ -130,7 +130,7 @@ if gadgetHandler:IsSyncedCode() then
 			if corcomDefID then
 				validStartUnits[#validStartUnits+1] = corcomDefID
 			end
-			local legcomDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
+			local legcomDefID = modoptions.experimentallegionfaction and UnitDefNames.legcom and UnitDefNames.legcom.id
 			if legcomDefID then
 				validStartUnits[#validStartUnits+1] = legcomDefID
 			end
@@ -311,6 +311,32 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Startpoints
 	----------------------------------------------------------------
+	local _unitType = {}
+	--- @return boolean untraversable if the unit can not traverse the passed in x/z position
+	local function isFootingUntraversable(x, y, z, unitDefID)
+		-- type: 1|2|3 : air | ground mobile | building
+		local type = _unitType[unitDefID]
+		if not type then
+			local unitDef = UnitDefs[unitDefID]
+			type = unitDef.canFly and 1 or (unitDef.moveDef and unitDef.moveDef.id) and 2 or 3
+			_unitType[unitDefID] = type
+		end
+
+		if type == 1 then
+			return false
+		end
+
+		if type == 2 then
+			return not (Spring.TestMoveOrder(unitDefID, x, y, z) and
+			Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0) and
+			Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1) and
+			Spring.TestMoveOrder(unitDefID, x, y, z,-1, 0, 0) and
+			Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0,-1))
+		end
+
+		return Spring.TestBuildOrder(unitDefID, x, y, z, "s") == 0
+	end
+
 	function gadget:AllowStartPosition(playerID, teamID, readyState, x, y, z)
 		-- readyState:
 		-- 0: player did not place startpoint, is unready
@@ -363,6 +389,10 @@ if gadgetHandler:IsSyncedCode() then
 			if isOutsideStartbox then
 				return false
 			end
+		end
+
+		if isFootingUntraversable(x,y,z, tonumber(spGetTeamRulesParam(teamID, startUnitParamName))) then
+			return false
 		end
 
 		-- don't allow player to place if locked
@@ -433,6 +463,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local startUnitList = {}
+	local startUnitBlocking = {}
 	local function spawnStartUnit(teamID, x, z)
 		local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 		local luaAI = Spring.GetTeamLuaAI(teamID)
@@ -468,6 +499,8 @@ if gadgetHandler:IsSyncedCode() then
 					local paralyzemult = 3 * 0.025 -- 3 seconds of paralyze
 					local paralyzedamage = (umaxhealth - uparalyze) + (umaxhealth * paralyzemult)
 					Spring.SetUnitHealth(unitID, { paralyze = paralyzedamage })
+					startUnitBlocking[unitID] = { Spring.GetUnitBlocking(unitID) }
+					Spring.SetUnitBlocking(unitID, false, false, false, false, false, false, false)
 				end
 			end
 		end
@@ -572,6 +605,10 @@ if gadgetHandler:IsSyncedCode() then
                     Spring.MoveCtrl.Disable(unitID)
                     Spring.SetUnitNoDraw(unitID, false)
                     Spring.SetUnitHealth(unitID, { paralyze = 0 })
+					local unitBlocking = startUnitBlocking[unitID]
+					if unitBlocking then
+						Spring.SetUnitBlocking(unitID, unpack(unitBlocking))
+					end
                 end
             end
 		end

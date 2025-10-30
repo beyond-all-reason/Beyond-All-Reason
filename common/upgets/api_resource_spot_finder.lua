@@ -182,14 +182,17 @@ end
 
 
 local function IsBuildingPositionValid(spot, x, z)
-	if z <= spot.maxZ - extractorRadius or z >= spot.minZ + extractorRadius then -- Test for metal being included is dist < extractorRadius
+	-- add an extra mapSquareSize to account for snapping behaviours from api users
+	local expandedRadius = extractorRadius + metalMapSquareSize
+	if z <= spot.maxZ - expandedRadius or z >= spot.minZ + expandedRadius then -- Test for metal being included is dist < extractorRadius
 		return false
 	end
 
+	local expandedRadiusSqr = expandedRadius*expandedRadius
 	local sLeft, sRight = spot.left, spot.right
 	for sz = spot.minZ, spot.maxZ, metalMapSquareSize do
 		local dz = sz - z
-		local maxXOffset = sqrt(extractorRadiusSqr - dz * dz) -- Test for metal being included is dist < extractorRadius
+		local maxXOffset = sqrt(expandedRadiusSqr - dz * dz) -- Test for metal being included is dist < extractorRadius
 		if x <= sRight[sz] - maxXOffset or x >= sLeft[sz] + maxXOffset then
 			return false
 		end
@@ -324,8 +327,6 @@ local function GetSpotsMetal()
 	end
 
 	-- Final processing
-	-- armmex used as representative unit for placement checking, since all metal extractors are the same size
-	local uDefID = UnitDefNames["armmex"].id
 	local spots = {}
 	for _, g in ipairs(uniqueGroups) do
 		local gMinX, gMaxX = huge, -1
@@ -352,12 +353,6 @@ local function GetSpotsMetal()
 		if gMaxX - gMinX > maxStripLength or g.maxZ - g.minZ > maxStripLength then
 			return false, true
 		end
-
-		local positions = GetBuildingPositions(g, uDefID, 0, false)
-		local pos = positions[floor(#positions / 2 + 1)]
-		g.x = pos.x
-		g.y = pos.y
-		g.z = pos.z
 	end
 
 	--for i = 1, #spots do

@@ -110,7 +110,6 @@ return {
             "cormabm",
             "legkeres",
 			"legeshotgunmech",
-			"corasp",
 			"legnanotc",
 			"legnanotcplat",
 			"legdeflector",

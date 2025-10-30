@@ -26,7 +26,6 @@ local customParticleMultiplier  = 1
 local windMultiplier			= 4.5
 local maxWindSpeed				= 25		-- to keep it real
 local gameFrameCountdown		= 120		-- on launch: wait this many frames before adjusting the average fps calc
-local particleScaleMultiplier	= 1
 
 -- pregame info message
 local autoReduce = true
@@ -77,10 +76,6 @@ table.insert(particleTypes, {
 local widgetDisabledSnow = false
 
 local shader
-local shaderTimeLoc
-local shaderCamPosLoc
-local shaderScaleLoc
-local shaderSpeedLoc
 
 local startTimer = Spring.GetTimer()
 local diffTime = 0
@@ -118,11 +113,9 @@ local glDeleteList         = gl.DeleteList
 local glTexture            = gl.Texture
 local glGetShaderLog       = gl.GetShaderLog
 local glCreateShader       = gl.CreateShader
+local LuaShader            = gl.LuaShader
 local glDeleteShader       = gl.DeleteShader
-local glUseShader          = gl.UseShader
-local glUniform            = gl.Uniform
-local glGetUniformLocation = gl.GetUniformLocation
-local glResetState = gl.ResetState
+local glResetState         = gl.ResetState
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -145,6 +138,7 @@ local function removeSnow()
 	removeParticleLists()
 	if shader ~= nil then
 		glDeleteShader(shader)
+		shader = nil
 	end
 end
 
@@ -189,13 +183,13 @@ local function init()
 	-- abort if not enabled
 	if enabled == false then return end
 
-	if (glCreateShader == nil) then
+	if glCreateShader == nil then
 		Spring.Echo("[Snow widget:Initialize] no shader support")
 		widgetHandler:RemoveWidget()
 		return
 	end
 
-	shader = glCreateShader({
+	shader = LuaShader({
 		vertex = [[
 	  		#version 150 compatibility
 			uniform float time;
@@ -235,26 +229,20 @@ local function init()
 				gl_Position = gl_ProjectionMatrix * eyePos;
 			}
 		]],
-		uniform = {
+		uniformFloat = {
 			time   = diffTime,
 			scale  = 0,
 			speed  = {0,0,0},
 			camPos = {0,0,0},
 		},
-	})
+	}, "Snow Shader")
 
-	if (shader == nil) then
+	if not shader:Initialize() then
 		Spring.Echo("[Snow widget:Initialize] particle shader compilation failed")
 		Spring.Echo(glGetShaderLog())
 		widgetHandler:RemoveWidget()
 		return
 	end
-
-	shaderTimeLoc			= glGetUniformLocation(shader, 'time')
-	shaderCamPosLoc			= glGetUniformLocation(shader, 'camPos')
-
-	shaderScaleLoc			= glGetUniformLocation(shader, 'scale')
-	shaderSpeedLoc			= glGetUniformLocation(shader, 'speed')
 
 	if particleLists[1] == nil then
 		CreateParticleLists()
@@ -400,6 +388,7 @@ end
 function widget:Shutdown()
 	enabled = false
 	widgetHandler:RemoveAction("snow")
+	if shader then shader:Finalize() end
 end
 
 local pausedTime = 0
@@ -415,12 +404,11 @@ function widget:DrawWorld()
 	lastFrametime = Spring.GetTimer()
 	if os.clock() - startOsClock > 0.5 then		-- delay to prevent no textures being shown
 		if shader ~= nil and particleLists[#particleTypes] ~= nil and particleLists[#particleTypes][particleStep] ~= nil then
-			glUseShader(shader)
+			shader:Activate()
 			camX,camY,camZ = Spring.GetCameraPosition()
 			diffTime = Spring.DiffTimers(lastFrametime, startTimer) - pausedTime
-
-			glUniform(shaderTimeLoc,diffTime * 1)
-			glUniform(shaderCamPosLoc, camX, camY, camZ)
+			shader:SetUniform("time", diffTime)
+			shader:SetUniform("camPos", camX, camY, camZ)
 
 			glDepthTest(true)
 			glBlending(GL.SRC_ALPHA, GL.ONE)
@@ -440,8 +428,8 @@ function widget:DrawWorld()
 
 			glTexture(snowTexture)
 			for particleType, pt in pairs(particleTypes) do
-				glUniform(shaderScaleLoc, pt.scale*particleScale)
-				glUniform(shaderSpeedLoc, pt.gravity, offsetX, offsetZ)
+				shader:SetUniform("scale", pt.scale * particleScale)
+				shader:SetUniform("speed", pt.gravity, offsetX, offsetZ)
 				glCallList(particleLists[particleType][particleStep])
 			end
 			glTexture(false)
@@ -450,7 +438,7 @@ function widget:DrawWorld()
 			gl.PointSize(1.0)
 			gl.PointSprite(false, false)
 			glResetState()
-			glUseShader(0)
+			shader:Deactivate()
 		end
 	end
 end
@@ -462,7 +450,6 @@ function widget:ViewResize()
 	if particleLists[#particleTypes] ~= nil then
 		CreateParticleLists()
 		gameFrameCountdown = 80
-		--particleScale = (0.60 + (vsx*vsy / 8000000)) * particleScaleMultiplier
 	end
 end
 

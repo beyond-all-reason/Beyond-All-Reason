@@ -82,7 +82,7 @@ for udid, udef in pairs(UnitDefs) do
 	local building = (isMobile == false)
 	local combat = (not builder) and isMobile and (#udef.weapons > 0)
 
-	if string.find(udef.name, 'armspid') then
+	if string.find(udef.name, 'armspid') or string.find(udef.name, 'leginfestor') then
 		builder = false
 	end
 	combatFilter[udid] = combat
@@ -146,9 +146,9 @@ function widget:SelectionChanged(sel)
 		if #sel == 0 and not select(2, spGetModKeyState()) then -- ctrl
 			-- if empty selection box and engine hardcoded deselect modifier is not
 			-- pressed, user is selected empty space
-			-- we must clear selection to disambiguate from our own deselect modifier
+			-- let engine deselect everything by itself since we didn't modify its provided value
 			selectedUnits = {}
-			spSelectUnitArray({})
+			return false
 		else
 			-- we also want to override back from engine selection to our selection
 			spSelectUnitArray(selectedUnits)
@@ -228,11 +228,12 @@ function widget:Update(dt)
 	sec = 0
 
 	-- get units under selection rectangle
+	local isGodMode = spIsGodModeEnabled()
 	local mouseSelection
 	if inMiniMapSel then
 		mouseSelection = GetUnitsInMinimapRectangle(x, y)
 	else
-		mouseSelection = spGetUnitsInScreenRectangle(x1, y1, x2, y2, not spec and -2) or {}		-- -2 = own units
+		mouseSelection = spGetUnitsInScreenRectangle(x1, y1, x2, y2, not spec and not isGodMode and -2) or {}		-- -2 = own units
 	end
 
 	local newSelection = {}
@@ -241,7 +242,12 @@ function widget:Update(dt)
 	local tmp = {}
 	local n = 0
 	local equalsMouseSelection = #mouseSelection == lastMouseSelectionCount
-	local isGodMode = spIsGodModeEnabled()
+	if equalsMouseSelection and lastMouseSelectionCount == 0 and not mods.deselect and not mods.append then
+		-- if its an empty selection but reference selection isn't empty consider
+		-- it non equal so deselect by selecting empty space always works.
+		-- skip if deselect or append since it won't deselect on empty selection.
+		equalsMouseSelection = #referenceSelection == 0
+	end
 
 	for i = 1, #mouseSelection do
 		uid = mouseSelection[i]
@@ -255,7 +261,6 @@ function widget:Update(dt)
 			end
 		end
 	end
-
 	if equalsMouseSelection
 		and mods.idle == lastMods[1]
 		and mods.same == lastMods[2]

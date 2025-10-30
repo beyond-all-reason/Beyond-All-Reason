@@ -203,6 +203,7 @@ local shaderConfig = {
 	BLEEDFACTOR = 0.15, -- How much oversaturated color channels will bleed into other color channels.
 	VOIDWATER = gl.GetMapRendering("voidWater") and 1 or 0,
 	SCREENSPACESHADOWS = 1, -- set to nil to disable completely
+	USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
 }
 
 local radiusMultiplier = 1.0
@@ -1063,7 +1064,7 @@ function widget:PlayerChanged(playerID)
 	elseif r and g and b then
 		teamColors[playerID] = { r, g, b }
 	end
-	if cursorLights and cursorLights[playerID] and cursorPointLightVBO.instanceIDtoIndex["PLAYERCURSOR"] then
+	if cursorLights and cursorLights[playerID] and isSpec then
 		popElementInstance(cursorPointLightVBO, cursorLights[playerID])
 		cursorLights[playerID] = nil
 	end
@@ -1480,7 +1481,7 @@ function widget:Update(dt)
 		local cursors, notIdle = WG['allycursors'].getCursors()
 		for playerID, cursor in pairs(cursors) do
 			if teamColors[playerID] and not cursor[8] and notIdle[playerID] then
-				if not cursorLights[playerID] then
+				if not cursorLights[playerID] and not cursor[8] then
 					local params = cursorLightParams.lightParamTable	-- see lightParamKeyOrder for which key contains what
 					params[1], params[2], params[3] = cursor[1], cursor[2] + cursorLightHeight, cursor[3]
 					params[4] = cursorLightRadius * 250
@@ -1489,7 +1490,12 @@ function widget:Update(dt)
 					params[20] = cursorLightSelfShadowing and 8 or 0
 					cursorLights[playerID] = AddLight(nil, nil, nil, cursorPointLightVBO, params)	--pointLightVBO
 				else
-					updateLightPosition(cursorPointLightVBO, cursorLights[playerID], cursor[1], cursor[2]+cursorLightHeight, cursor[3])
+					if cursor[8] or cursor[7] < 0.01 then
+						popElementInstance(cursorPointLightVBO, cursorLights[playerID])
+						cursorLights[playerID] = nil
+					else
+						updateLightPosition(cursorPointLightVBO, cursorLights[playerID], cursor[1], cursor[2]+cursorLightHeight, cursor[3])
+					end
 				end
 			end
 		end

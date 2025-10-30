@@ -98,8 +98,6 @@ local armorDefs = {
 		"armamph",
 		"armanac",
 		"armap",
-		"armasp",
-		"armfasp",
 		"armbrtha",
 		"armch",
 		"armck",
@@ -190,8 +188,6 @@ local armorDefs = {
 		"corah",
 		"corak",
 		"corap",
-		"corasp",
-		"corfasp",
 		"corbhmth",
 		"legrampart",
 		"corbuzz",
@@ -305,6 +301,7 @@ local armorDefs = {
         "armspy",
 		"cormando",
 		"corspy",
+		"legaspy",
         "armdl",
 		"cordl",
 		"legctl",
@@ -465,7 +462,15 @@ local armorDefs = {
 		"legmohocon",
 		"legmohoconct",
 		"leghrk",
-		"legfdrag"
+		"legfdrag",
+
+		"armnavaldefturret",
+		"cornavaldefturret",
+		"legnavaldefturret",
+		"armanavaldefturret",
+		"coranavaldefturret",
+		"leganavaldefturret",
+
 	},
 	mines = {
 		"armfmine3",
@@ -543,6 +548,7 @@ local armorDefs = {
 		"cordroneold",
 		"legdrone",
 		"legheavydrone",
+		"legheavydronesmall",
 		"raptor_air_bomber_basic_t1_v1",
 		"raptor_air_bomber_basic_t2_v1",
 		"raptor_air_bomber_basic_t2_v2",
@@ -644,6 +650,7 @@ local armorDefs = {
 		"armbats",
 		"corbats",
 		"armepoch",
+		"corprince",
 		"corblackhy",
 	},
 

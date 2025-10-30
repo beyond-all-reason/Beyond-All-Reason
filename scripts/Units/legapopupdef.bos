@@ -25,7 +25,7 @@ piece
     doorFlare1,
     doorFlare2;
 
-static-var  restore_delay, is_open, last_primary_heading, last_primary_pitch;
+static-var  restore_delay, is_open, wpn1_lasthead;
 static-var  Stunned;
 
 // Signal definitions
@@ -43,26 +43,21 @@ static-var  Stunned;
 Close()
 {
 	// set-signal-mask SIGNAL_AIM1;
-	is_open = 0;
 
     move backStruts to y-axis [0] speed [7];
     turn minigunHousingL to z-axis <45> speed <45>;
     turn minigunHousingR to z-axis <-45> speed <45>;
-
-    sleep 500;
     
     turn turretPivotPitch to x-axis <-130> speed <150>;
     turn turretPivotBottom to x-axis <40> speed <40>;
-
-    sleep 700;
+    wait-for-turn turretPivotBottom around x-axis;
 
     move platform to y-axis [-48] speed [24];
+    wait-for-move platform along y-axis;
 
-    sleep 900;
-
-	turn doorA to x-axis <120> speed <120>;
-    turn doorB to x-axis <120> speed <120>;
-    turn doorC to x-axis <120> speed <120>;
+	turn doorA to x-axis <120> speed <240>;
+    turn doorB to x-axis <120> speed <240>;
+    turn doorC to x-axis <120> speed <240>;
 
 	set ARMORED to 1;
 }
@@ -73,42 +68,37 @@ Open()
 
     /////////////
 
-    turn doorA to x-axis <0> speed <-240>;
-    turn doorB to x-axis <0> speed <-240>;
-    turn doorC to x-axis <0> speed <-240>;
+    turn doorA to x-axis <0> speed <-360>;
+    turn doorB to x-axis <0> speed <-360>;
+    turn doorC to x-axis <0> speed <-360>;
 
-    sleep 250;
+    wait-for-turn doorA around x-axis;
 
     move platform to y-axis [0] speed [-75];
-
-    sleep 250;
+    wait-for-move platform along y-axis;
 
     turn turretPivotPitch to x-axis <0> speed <150>;
     turn turretPivotBottom to x-axis <0> speed <40>;
 
-    sleep 250;
-
     move backStruts to y-axis [7] speed [14];
     turn minigunHousingL to z-axis <0> speed <45>;
     turn minigunHousingR to z-axis <0> speed <45>;
-
-	is_open = 1;
 }
 
 Activate()
 {
 	start-script OpenCloseAnim(1);
     signal SIGNAL_AIM1;
-    last_primary_heading = -1000000;
-    last_primary_pitch = -1000000;
+    wpn1_lasthead = -1000000;
+	
 }
 
 Deactivate()
 {
 	start-script OpenCloseAnim(0);
     signal SIGNAL_AIM1;
-    last_primary_heading = -1000000;
-    last_primary_pitch = -1000000;
+    wpn1_lasthead = -1000000;
+	
 }
 
 ExecuteRestoreAfterDelay()
@@ -121,8 +111,8 @@ ExecuteRestoreAfterDelay()
     turn turretBaseHeading to y-axis <0> speed <100>;
 	set-signal-mask 0;
     start-script OpenCloseAnim(0);
-    last_primary_heading = -1000000;
-	last_primary_pitch = -1000000;
+    wpn1_lasthead = -1000000;
+	
 }
 SetStunned(State)
 {
@@ -150,19 +140,26 @@ Create()
     turn doorFlare1 to y-axis <-120> now;
     turn doorFlare2 to y-axis <120> now;
 
-    last_primary_heading = -1000000;
-	last_primary_pitch = -1000000;
+    wpn1_lasthead = -1000000;
+	
+	///close immediately
 
+    move backStruts to y-axis [0] now;
+    turn minigunHousingL to z-axis <45> now;
+    turn minigunHousingR to z-axis <-45> now;
+    
+    turn turretPivotPitch to x-axis <-130> now;
+    turn turretPivotBottom to x-axis <40> now;
+
+    move platform to y-axis [-48] now;
+
+	turn doorA to x-axis <120> now;
+    turn doorB to x-axis <120> now;
+    turn doorC to x-axis <120> now;
 
 	SLEEP_UNTIL_UNITFINISHED;
-	// close and armor once construction is done
-	// only if no target in range when done
-	sleep 1000;
-    // is_open = 0;
-	if ( is_open == 0 )
-	{
-		start-script Close();
-	}
+
+
 }
 
 AimWeapon1(heading, pitch)
@@ -170,13 +167,20 @@ AimWeapon1(heading, pitch)
     start-script OpenCloseAnim(1);
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	while( is_open == 0 )
-	{
-		sleep 250;
-	}
+	
+	if (!IsOpen) return 0;
+	
 	turn turretBaseHeading to y-axis heading speed <180.0>;
 	turn turretPivotPitch to x-axis (-1*pitch) speed <180.0>;
+	
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn turretBaseHeading around y-axis;
+	}
+	
 	wait-for-turn turretBaseHeading around y-axis;
+	
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -193,11 +197,9 @@ AimWeapon2(heading, pitch)
 {
 	// signal SIGNAL_AIM1;
 	// set-signal-mask SIGNAL_AIM1;
-	while( is_open == 0 )
-	{
-		sleep 250;
-	}
-	wait-for-turn turretBaseHeading around y-axis;
+	
+	if (!IsOpen) return 0;
+	
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -225,11 +227,9 @@ AimWeapon3(heading, pitch)
 {
 	// signal SIGNAL_AIM1;
 	// set-signal-mask SIGNAL_AIM1;
-	while( is_open == 0 )
-	{
-		sleep 250;
-	}
-	wait-for-turn turretBaseHeading around y-axis;
+	
+	if (!IsOpen) return 0;
+	
 	start-script RestoreAfterDelay();
 	return (1);
 }

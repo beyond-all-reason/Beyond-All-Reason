@@ -25,140 +25,135 @@ local raptorTurrets = {}
 
 -- If you use fractions in spawnerPerWave, it becomes a percentage chance to spawn one.
 
-raptorTurrets["raptor_turret_basic_t2_v1"] 				= { minQueenAnger = 0, 	spawnedPerWave = 0.5, 	maxExisting = 20,	maxQueenAnger = 1000,}
-raptorTurrets["raptor_turret_acid_t2_v1"] 			= { minQueenAnger = 15, spawnedPerWave = 0.25, 	maxExisting = 10,	maxQueenAnger = 1000,}
-raptorTurrets["raptor_turret_emp_t2_v1"] 		= { minQueenAnger = 15, spawnedPerWave = 0.25, 	maxExisting = 10,	maxQueenAnger = 1000,}
-raptorTurrets["raptor_turret_basic_t3_v1"] 				= { minQueenAnger = 30, spawnedPerWave = 0.5, 	maxExisting = 6,	maxQueenAnger = 1000,}
-raptorTurrets["raptor_turret_acid_t3_v1"] 			= { minQueenAnger = 45, spawnedPerWave = 0.25, 	maxExisting = 3,	maxQueenAnger = 1000,}
-raptorTurrets["raptor_turret_emp_t3_v1"] 		= { minQueenAnger = 45, spawnedPerWave = 0.25, 	maxExisting = 3,	maxQueenAnger = 1000,}
+raptorTurrets["raptor_turret_basic_t2_v1"] = { minQueenAnger = 0, spawnedPerWave = 0.5, maxExisting = 20, maxQueenAnger = 1000, }
+raptorTurrets["raptor_turret_acid_t2_v1"]  = { minQueenAnger = 15, spawnedPerWave = 0.25, maxExisting = 10, maxQueenAnger = 1000, }
+raptorTurrets["raptor_turret_emp_t2_v1"]   = { minQueenAnger = 15, spawnedPerWave = 0.25, maxExisting = 10, maxQueenAnger = 1000, }
+raptorTurrets["raptor_turret_basic_t3_v1"] = { minQueenAnger = 30, spawnedPerWave = 0.5, maxExisting = 6, maxQueenAnger = 1000, }
+raptorTurrets["raptor_turret_acid_t3_v1"]  = { minQueenAnger = 45, spawnedPerWave = 0.25, maxExisting = 3, maxQueenAnger = 1000, }
+raptorTurrets["raptor_turret_emp_t3_v1"]   = { minQueenAnger = 45, spawnedPerWave = 0.25, maxExisting = 3, maxQueenAnger = 1000, }
 
 if not Spring.GetModOptions().unit_restrictions_nonukes then
-
-	raptorTurrets["raptor_turret_antinuke_t2_v1"] 	= { minQueenAnger = 15, spawnedPerWave = 0.25, 	maxExisting = 10,	maxQueenAnger = 1000,}
-	raptorTurrets["raptor_turret_antinuke_t3_v1"] 	= { minQueenAnger = 45, spawnedPerWave = 0.25, 	maxExisting = 3,	maxQueenAnger = 1000,}
-	raptorTurrets["raptor_turret_meteor_t4_v1"]		= { minQueenAnger = 75, spawnedPerWave = 0.5, 	maxExisting = 6,	maxQueenAnger = 1000,}
-
+	raptorTurrets["raptor_turret_antinuke_t2_v1"] = { minQueenAnger = 15, spawnedPerWave = 0.25, maxExisting = 10, maxQueenAnger = 1000, }
+	raptorTurrets["raptor_turret_antinuke_t3_v1"] = { minQueenAnger = 45, spawnedPerWave = 0.25, maxExisting = 3, maxQueenAnger = 1000, }
+	raptorTurrets["raptor_turret_meteor_t4_v1"]   = { minQueenAnger = 75, spawnedPerWave = 0.5, maxExisting = 6, maxQueenAnger = 1000, }
 end
 if not Spring.GetModOptions().unit_restrictions_noair then
-
-	raptorTurrets["raptor_turret_antiair_t2_v1"] 	= { minQueenAnger = 0, 	spawnedPerWave = 0.5, 	maxExisting = 20,	maxQueenAnger = 1000,}
-	raptorTurrets["raptor_turret_antiair_t3_v1"] 	= { minQueenAnger = 30, spawnedPerWave = 0.5, 	maxExisting = 6,	maxQueenAnger = 1000,}
-	raptorTurrets["raptor_turret_antiair_t4_v1"]	= { minQueenAnger = 60, spawnedPerWave = 0.25, 	maxExisting = 2,	maxQueenAnger = 1000,}
-
+	raptorTurrets["raptor_turret_antiair_t2_v1"] = { minQueenAnger = 0, spawnedPerWave = 0.5, maxExisting = 20, maxQueenAnger = 1000, }
+	raptorTurrets["raptor_turret_antiair_t3_v1"] = { minQueenAnger = 30, spawnedPerWave = 0.5, maxExisting = 6, maxQueenAnger = 1000, }
+	raptorTurrets["raptor_turret_antiair_t4_v1"] = { minQueenAnger = 60, spawnedPerWave = 0.25, maxExisting = 2, maxQueenAnger = 1000, }
 end
 if not Spring.GetModOptions().unit_restrictions_nolrpc then
-
-	raptorTurrets["raptor_turret_basic_t4_v1"]			= { minQueenAnger = 60, spawnedPerWave = 0.25, 	maxExisting = 2,	maxQueenAnger = 1000,}
-	raptorTurrets["raptor_turret_emp_t4_v1"]	= { minQueenAnger = 75, spawnedPerWave = 0.25, 	maxExisting = 1,	maxQueenAnger = 1000,}
-	raptorTurrets["raptor_turret_acid_t4_v1"]		= { minQueenAnger = 75, spawnedPerWave = 0.25, 	maxExisting = 1,	maxQueenAnger = 1000,}
+	raptorTurrets["raptor_turret_basic_t4_v1"] = { minQueenAnger = 60, spawnedPerWave = 0.25, maxExisting = 2, maxQueenAnger = 1000, }
+	raptorTurrets["raptor_turret_emp_t4_v1"]   = { minQueenAnger = 75, spawnedPerWave = 0.25, maxExisting = 1, maxQueenAnger = 1000, }
+	raptorTurrets["raptor_turret_acid_t4_v1"]  = { minQueenAnger = 75, spawnedPerWave = 0.25, maxExisting = 1, maxQueenAnger = 1000, }
 end
 
 local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to be true, if some unit is not specified here, it drops random egg colors.
-	raptor_land_swarmer_basic_t2_v1       						=   "purple",
-	raptor_land_swarmer_basic_t1_v1						=   "purple",
-	raptor_land_swarmer_basic_t2_v2      						=   "pink",
-	raptor_land_swarmer_basic_t2_v3      						=   "purple",
-	raptor_land_swarmer_basic_t2_v4      						=   "purple",
-	raptor_land_swarmer_basic_t3_v1      						=   "pink",
-	raptor_land_swarmer_basic_t3_v2      						=   "pink",
-	raptor_land_swarmer_basic_t3_v3      						=   "pink",
-	raptor_land_swarmer_basic_t4_v1       						=   "pink",
-	raptor_land_swarmer_basic_t4_v2      						=   "pink",
-	raptor_land_assault_basic_t2_v1      						=   "red",
-	raptor_land_assault_basic_t2_v2     						=   "red",
-	raptor_land_assault_basic_t2_v3     						=   "red",
-	raptor_allterrain_assault_basic_t2_v1					=   "red",
-	raptor_allterrain_assault_basic_t2_v2					=   "red",
-	raptor_allterrain_assault_basic_t2_v3					=   "red",
-	raptor_land_assault_basic_t4_v1      						=   "red",
-	raptor_land_assault_basic_t4_v2     						=   "red",
-	raptor_allterrain_assault_basic_t4_v1 		=   "red",
-	raptor_allterrain_assault_basic_t4_v2 		=   "red",
-	raptor_land_spiker_basic_t2_v1      						=   "green",
-	raptor_land_spiker_basic_t4_v1      						=   "darkgreen",
-	raptor_land_kamikaze_basic_t2_v1  						=   "red",
-	raptor_land_kamikaze_basic_t4_v1  						=   "red",
-	raptor_air_kamikaze_basic_t2_v1  					=   "red",
-	raptor_air_bomber_basic_t1_v1      					=   "darkgreen",
-	raptor_air_bomber_basic_t2_v1      						=   "darkgreen",
-	raptor_air_bomber_basic_t2_v2     						=   "darkgreen",
-	raptor_air_bomber_basic_t4_v1      					=   "darkgreen",
-	raptor_air_bomber_basic_t4_v2     					=   "darkgreen",
-	raptor_air_scout_basic_t2_v1      				=   "white",
-	raptor_air_scout_basic_t3_v1      				=   "white",
-	raptor_air_scout_basic_t4_v1      				=   "white",
-	raptor_allterrain_swarmer_basic_t2_v1      						=   "white",
-	raptor_allterrain_swarmer_basic_t3_v1     						=   "white",
-	raptor_allterrain_swarmer_basic_t4_v1     						=   "white",
-	raptor_allterrain_arty_basic_t2_v1      						=   "darkgreen",
-	raptor_allterrain_arty_basic_t4_v1      						=   "darkgreen",
-	raptor_land_swarmer_heal_t1_v1      					=   "white",
-	raptor_land_swarmer_heal_t2_v1      					=   "white",
-	raptor_land_swarmer_heal_t3_v1      					=   "white",
-	raptor_land_swarmer_heal_t4_v1      					=   "white",
-	raptorh1b     						=   "white",
-	raptor_land_swarmer_brood_t4_v1      						=   "purple",
-	raptor_land_swarmer_brood_t3_v1      						=   "purple",
-	raptor_land_swarmer_brood_t2_v1      						=   "purple",
-	raptor_air_bomber_brood_t4_v2 				= 	"purple",
-	raptor_air_bomber_brood_t4_v3 				= 	"purple",
-	raptor_air_bomber_brood_t4_v4 				= 	"purple",
-	raptor_allterrain_arty_brood_t4_v1 					= 	"purple",
-	raptor_allterrain_arty_brood_t2_v1 				= 	"purple",
-	raptorh5      						=   "white",
-	raptor_air_fighter_basic_t2_v1      						=   "purple",
-	raptor_air_fighter_basic_t1_v1      					=   "purple",
-	raptor_air_fighter_basic_t2_v2     						=   "purple",
-	raptor_air_fighter_basic_t2_v3     						=   "purple",
-	raptor_air_fighter_basic_t2_v4     						=   "purple",
-	raptor_air_fighter_basic_t4_v1      						=   "darkred",
-	raptor_land_swarmer_fire_t2_v1      						=   "darkred",
-	raptor_land_swarmer_fire_t4_v1      						=   "darkred",
-	raptor_allterrain_swarmer_fire_t2_v1				=	"darkred",
-	raptor_land_swarmer_emp_t2_v1	   						=   "blue",
-	raptor_land_assault_emp_t2_v1	   						=   "blue",
-	raptor_allterrain_arty_emp_t2_v1  						=   "blue",
-	raptor_allterrain_arty_emp_t4_v1  						=   "blue",
-	raptor_air_bomber_emp_t2_v1 						=   "blue",
-	raptor_allterrain_swarmer_emp_t2_v1 			=   "blue",
-	raptor_allterrain_assault_emp_t2_v1		=   "blue",
-	raptor_land_kamikaze_emp_t2_v1  				=   "blue",
-	raptor_land_kamikaze_emp_t4_v1  				=   "blue",
-	raptor_land_swarmer_acids_t2_v1 					=   "acidgreen",
-	raptor_land_assault_acid_t2_v1 					=   "acidgreen",
-	raptor_allterrain_arty_acid_t2_v1 						=   "acidgreen",
-	raptor_allterrain_arty_acid_t4_v1 					=   "acidgreen",
-	raptor_air_bomber_acid_t2_v1 					=   "acidgreen",
-	raptor_allterrain_swarmer_acid_t2_v1				=	"acidgreen",
-	raptor_allterrain_assault_acid_t2_v1			=   "acidgreen",
-	raptor_land_swarmer_spectre_t3_v1					=   "yellow",
-	raptor_land_swarmer_spectre_t4_v1						=   "yellow",
-	raptor_land_assault_spectre_t2_v1					=   "yellow",
-	raptor_land_assault_spectre_t4_v1					=   "yellow",
-	raptor_land_spiker_spectre_t4_v1					=   "yellow",
+	raptor_land_swarmer_basic_t2_v1       = "purple",
+	raptor_land_swarmer_basic_t1_v1       = "purple",
+	raptor_land_swarmer_basic_t2_v2       = "pink",
+	raptor_land_swarmer_basic_t2_v3       = "purple",
+	raptor_land_swarmer_basic_t2_v4       = "purple",
+	raptor_land_swarmer_basic_t3_v1       = "pink",
+	raptor_land_swarmer_basic_t3_v2       = "pink",
+	raptor_land_swarmer_basic_t3_v3       = "pink",
+	raptor_land_swarmer_basic_t4_v1       = "pink",
+	raptor_land_swarmer_basic_t4_v2       = "pink",
+	raptor_land_assault_basic_t2_v1       = "red",
+	raptor_land_assault_basic_t2_v2       = "red",
+	raptor_land_assault_basic_t2_v3       = "red",
+	raptor_allterrain_assault_basic_t2_v1 = "red",
+	raptor_allterrain_assault_basic_t2_v2 = "red",
+	raptor_allterrain_assault_basic_t2_v3 = "red",
+	raptor_land_assault_basic_t4_v1       = "red",
+	raptor_land_assault_basic_t4_v2       = "red",
+	raptor_allterrain_assault_basic_t4_v1 = "red",
+	raptor_allterrain_assault_basic_t4_v2 = "red",
+	raptor_land_spiker_basic_t2_v1        = "green",
+	raptor_land_spiker_basic_t4_v1        = "darkgreen",
+	raptor_land_kamikaze_basic_t2_v1      = "red",
+	raptor_land_kamikaze_basic_t4_v1      = "red",
+	raptor_air_kamikaze_basic_t2_v1       = "red",
+	raptor_air_bomber_basic_t1_v1         = "darkgreen",
+	raptor_air_bomber_basic_t2_v1         = "darkgreen",
+	raptor_air_bomber_basic_t2_v2         = "darkgreen",
+	raptor_air_bomber_basic_t4_v1         = "darkgreen",
+	raptor_air_bomber_basic_t4_v2         = "darkgreen",
+	raptor_air_scout_basic_t2_v1          = "white",
+	raptor_air_scout_basic_t3_v1          = "white",
+	raptor_air_scout_basic_t4_v1          = "white",
+	raptor_allterrain_swarmer_basic_t2_v1 = "white",
+	raptor_allterrain_swarmer_basic_t3_v1 = "white",
+	raptor_allterrain_swarmer_basic_t4_v1 = "white",
+	raptor_allterrain_arty_basic_t2_v1    = "darkgreen",
+	raptor_allterrain_arty_basic_t4_v1    = "darkgreen",
+	raptor_land_swarmer_heal_t1_v1        = "white",
+	raptor_land_swarmer_heal_t2_v1        = "white",
+	raptor_land_swarmer_heal_t3_v1        = "white",
+	raptor_land_swarmer_heal_t4_v1        = "white",
+	raptorh1b                             = "white",
+	raptor_land_swarmer_brood_t4_v1       = "purple",
+	raptor_land_swarmer_brood_t3_v1       = "purple",
+	raptor_land_swarmer_brood_t2_v1       = "purple",
+	raptor_air_bomber_brood_t4_v2         = "purple",
+	raptor_air_bomber_brood_t4_v3         = "purple",
+	raptor_air_bomber_brood_t4_v4         = "purple",
+	raptor_allterrain_arty_brood_t4_v1    = "purple",
+	raptor_allterrain_arty_brood_t2_v1    = "purple",
+	raptorh5                              = "white",
+	raptor_air_fighter_basic_t2_v1        = "purple",
+	raptor_air_fighter_basic_t1_v1        = "purple",
+	raptor_air_fighter_basic_t2_v2        = "purple",
+	raptor_air_fighter_basic_t2_v3        = "purple",
+	raptor_air_fighter_basic_t2_v4        = "purple",
+	raptor_air_fighter_basic_t4_v1        = "darkred",
+	raptor_land_swarmer_fire_t2_v1        = "darkred",
+	raptor_land_swarmer_fire_t4_v1        = "darkred",
+	raptor_allterrain_swarmer_fire_t2_v1  = "darkred",
+	raptor_land_swarmer_emp_t2_v1         = "blue",
+	raptor_land_assault_emp_t2_v1         = "blue",
+	raptor_allterrain_arty_emp_t2_v1      = "blue",
+	raptor_allterrain_arty_emp_t4_v1      = "blue",
+	raptor_air_bomber_emp_t2_v1           = "blue",
+	raptor_allterrain_swarmer_emp_t2_v1   = "blue",
+	raptor_allterrain_assault_emp_t2_v1   = "blue",
+	raptor_land_kamikaze_emp_t2_v1        = "blue",
+	raptor_land_kamikaze_emp_t4_v1        = "blue",
+	raptor_land_swarmer_acids_t2_v1       = "acidgreen",
+	raptor_land_assault_acid_t2_v1        = "acidgreen",
+	raptor_allterrain_arty_acid_t2_v1     = "acidgreen",
+	raptor_allterrain_arty_acid_t4_v1     = "acidgreen",
+	raptor_air_bomber_acid_t2_v1          = "acidgreen",
+	raptor_allterrain_swarmer_acid_t2_v1  = "acidgreen",
+	raptor_allterrain_assault_acid_t2_v1  = "acidgreen",
+	raptor_land_swarmer_spectre_t3_v1     = "yellow",
+	raptor_land_swarmer_spectre_t4_v1     = "yellow",
+	raptor_land_assault_spectre_t2_v1     = "yellow",
+	raptor_land_assault_spectre_t4_v1     = "yellow",
+	raptor_land_spiker_spectre_t4_v1      = "yellow",
 
-	raptor_turret_basic_t2_v1						=	"white",
-	raptor_turret_basic_t3_v1						=	"white",
-	raptor_turret_basic_t4_v1						=	"white",
-	raptor_turret_emp_t2_v1				=   "blue",
-	raptor_turret_emp_t3_v1				=   "blue",
-	raptor_turret_emp_t4_v1			=   "blue",
-	raptor_turret_acid_t2_v1					=   "acidgreen",
-	raptor_turret_acid_t3_v1					=   "acidgreen",
-	raptor_turret_acid_t4_v1				=   "acidgreen",
-	raptor_turret_antinuke_t2_v1				= 	"white",
-	raptor_turret_antinuke_t3_v1				= 	"white",
-	raptor_turret_antiair_t2_v1				=	"red",
-	raptor_turret_antiair_t3_v1				=	"red",
-	raptor_turret_antiair_t4_v1				=	"red",
-	raptor_turret_meteor_t4_v1				=	"darkgreen",
+	raptor_turret_basic_t2_v1             = "white",
+	raptor_turret_basic_t3_v1             = "white",
+	raptor_turret_basic_t4_v1             = "white",
+	raptor_turret_emp_t2_v1               = "blue",
+	raptor_turret_emp_t3_v1               = "blue",
+	raptor_turret_emp_t4_v1               = "blue",
+	raptor_turret_acid_t2_v1              = "acidgreen",
+	raptor_turret_acid_t3_v1              = "acidgreen",
+	raptor_turret_acid_t4_v1              = "acidgreen",
+	raptor_turret_antinuke_t2_v1          = "white",
+	raptor_turret_antinuke_t3_v1          = "white",
+	raptor_turret_antiair_t2_v1           = "red",
+	raptor_turret_antiair_t3_v1           = "red",
+	raptor_turret_antiair_t4_v1           = "red",
+	raptor_turret_meteor_t4_v1            = "darkgreen",
 
-	raptor_matriarch_electric			=   "blue",
-	raptor_matriarch_acid				=   "acidgreen",
-	raptor_matriarch_healer				=  	"white",
-	raptor_matriarch_basic 				=  	"pink",
-	raptor_matriarch_fire 				=  	"darkred",
-	raptor_matriarch_spectre 			=  	"yellow",
+	raptor_matriarch_electric             = "blue",
+	raptor_matriarch_acid                 = "acidgreen",
+	raptor_matriarch_healer               = "white",
+	raptor_matriarch_basic                = "pink",
+	raptor_matriarch_fire                 = "darkred",
+	raptor_matriarch_spectre              = "yellow",
 }
 
 raptorBehaviours = {
@@ -182,13 +177,13 @@ raptorBehaviours = {
 		[UnitDefNames["raptor_land_swarmer_brood_t4_v1"].id] = { distance = 500, chance = 0.25 },
 		[UnitDefNames["raptor_allterrain_arty_brood_t2_v1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["raptor_allterrain_arty_brood_t4_v1"].id] = { distance = 500, chance = 0.1 },
-		[UnitDefNames["raptor_land_swarmer_spectre_t3_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
-		[UnitDefNames["raptor_land_swarmer_spectre_t4_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
-		[UnitDefNames["raptor_land_spiker_spectre_t4_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
-		[UnitDefNames["raptor_land_assault_spectre_t2_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
-		[UnitDefNames["raptor_land_assault_spectre_t4_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
-		[UnitDefNames["raptor_matriarch_spectre"].id] = {distance = 500, chance = 0.001, teleport = true, teleportcooldown = 2 },
-		[UnitDefNames["raptor_matriarch_electric"].id] = {distance = 500, chance = 0.001 },
+		[UnitDefNames["raptor_land_swarmer_spectre_t3_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2, },
+		[UnitDefNames["raptor_land_swarmer_spectre_t4_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2, },
+		[UnitDefNames["raptor_land_spiker_spectre_t4_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2, },
+		[UnitDefNames["raptor_land_assault_spectre_t2_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2, },
+		[UnitDefNames["raptor_land_assault_spectre_t4_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2, },
+		[UnitDefNames["raptor_matriarch_spectre"].id] = { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 2 },
+		[UnitDefNames["raptor_matriarch_electric"].id] = { distance = 500, chance = 0.001 },
 		[UnitDefNames["raptor_matriarch_acid"].id] = { distance = 500, chance = 0.001 },
 		[UnitDefNames["raptor_matriarch_healer"].id] = { distance = 500, chance = 0.001 },
 		[UnitDefNames["raptor_matriarch_basic"].id] = { distance = 500, chance = 0.001 },
@@ -212,11 +207,11 @@ raptorBehaviours = {
 		[UnitDefNames["raptor_allterrain_arty_brood_t4_v1"].id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames["raptor_land_swarmer_brood_t4_v1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["raptor_land_swarmer_brood_t3_v1"].id] = { distance = 500, chance = 0.25 },
-		[UnitDefNames["raptor_land_swarmer_spectre_t3_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
-		[UnitDefNames["raptor_land_swarmer_spectre_t4_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
-		[UnitDefNames["raptor_land_spiker_spectre_t4_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
-		[UnitDefNames["raptor_land_assault_spectre_t2_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
-		[UnitDefNames["raptor_land_assault_spectre_t4_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["raptor_land_swarmer_spectre_t3_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2, },
+		[UnitDefNames["raptor_land_swarmer_spectre_t4_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2, },
+		[UnitDefNames["raptor_land_spiker_spectre_t4_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2, },
+		[UnitDefNames["raptor_land_assault_spectre_t2_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2, },
+		[UnitDefNames["raptor_land_assault_spectre_t4_v1"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 2, },
 		[UnitDefNames["raptor_matriarch_spectre"].id] = { distance = 500, chance = 0.001, teleport = true, teleportcooldown = 2 },
 		[UnitDefNames["raptor_matriarch_electric"].id] = { distance = 500, chance = 0.001 },
 		[UnitDefNames["raptor_matriarch_acid"].id] = { distance = 500, chance = 0.001 },
@@ -225,7 +220,7 @@ raptorBehaviours = {
 		[UnitDefNames["raptor_matriarch_fire"].id] = { distance = 500, chance = 0.001 },
 	},
 	BERSERK = { -- Run towards target after getting hit by enemy or after hitting the target
-		[UnitDefNames["raptor_land_spiker_basic_t4_v1"].id] = {chance = 0.2, distance = 750},
+		[UnitDefNames["raptor_land_spiker_basic_t4_v1"].id] = { chance = 0.2, distance = 750 },
 		[UnitDefNames["raptor_land_assault_basic_t2_v1"].id] = { chance = 0.2, distance = 1500 },
 		[UnitDefNames["raptor_land_assault_basic_t2_v2"].id] = { chance = 0.2, distance = 1500 },
 		[UnitDefNames["raptor_land_assault_basic_t2_v3"].id] = { chance = 0.2, distance = 1500 },
@@ -246,13 +241,13 @@ raptorBehaviours = {
 		[UnitDefNames["raptor_land_swarmer_fire_t4_v1"].id] = { chance = 0.2 },
 		[UnitDefNames["raptor_allterrain_swarmer_fire_t2_v1"].id] = { chance = 0.2 },
 		[UnitDefNames["raptor_land_swarmer_brood_t2_v1"].id] = { chance = 1 },
-		[UnitDefNames["raptor_land_swarmer_spectre_t3_v1"].id] = { distance = 1000, chance = 0.25},
-		[UnitDefNames["raptor_land_swarmer_spectre_t4_v1"].id] = { distance = 1000, chance = 0.25},
-		[UnitDefNames["raptor_land_assault_spectre_t2_v1"].id] = { distance = 1000, chance = 0.25},
-		[UnitDefNames["raptor_land_assault_spectre_t4_v1"].id] = { distance = 1000, chance = 0.25},
-		[UnitDefNames["raptor_land_spiker_spectre_t4_v1"].id] = { distance = 1000, chance = 0.25},
-		[UnitDefNames["raptor_matriarch_spectre"].id] = {distance = 500, chance = 0.01 },
-		[UnitDefNames["raptor_matriarch_electric"].id] = {distance = 500, chance = 0.01 },
+		[UnitDefNames["raptor_land_swarmer_spectre_t3_v1"].id] = { distance = 1000, chance = 0.25 },
+		[UnitDefNames["raptor_land_swarmer_spectre_t4_v1"].id] = { distance = 1000, chance = 0.25 },
+		[UnitDefNames["raptor_land_assault_spectre_t2_v1"].id] = { distance = 1000, chance = 0.25 },
+		[UnitDefNames["raptor_land_assault_spectre_t4_v1"].id] = { distance = 1000, chance = 0.25 },
+		[UnitDefNames["raptor_land_spiker_spectre_t4_v1"].id] = { distance = 1000, chance = 0.25 },
+		[UnitDefNames["raptor_matriarch_spectre"].id] = { distance = 500, chance = 0.01 },
+		[UnitDefNames["raptor_matriarch_electric"].id] = { distance = 500, chance = 0.01 },
 		[UnitDefNames["raptor_matriarch_acid"].id] = { distance = 500, chance = 0.01 },
 		[UnitDefNames["raptor_matriarch_healer"].id] = { distance = 500, chance = 0.01 },
 		[UnitDefNames["raptor_matriarch_basic"].id] = { distance = 500, chance = 0.01 },
@@ -2908,6 +2903,138 @@ addNewSquad({
 		{count = 8, unit = "raptor_land_swarmer_heal_t4_v1"}
 	}
 })
+
+--[[
+	Custom Squads Support 
+	This down here is meant for TweakDefs modders to allow them to add their custom modified Raptor units to the spawn rosters easily'ish.	
+
+	Documentation WiP	
+
+	Available CustomParameters:
+
+	raptorcustomsquad - bool - allow this unit to be processed by this whole thing
+	raptorsquadunitsamount - number, integrer - maximum amount of these units that can spawn in a squad
+	raptorsquadminanger - number, integrer - minimum evolution percentage this unit can spawn at
+	raptorsquadmaxanger - number, integrer - maximum evolution percentage this unit can spawn at
+	raptorsquadweight - number, integrer - how often will this unit be picked relative to other options. higher number = more often.
+	raptorsquadrarity - string - either "basic" or "special", defaults to special. Basic squads are your spammable cannon fodder while specials are more specialised elemental units.
+	raptorsquadbehavior - string - explained below
+	raptorsquadbehaviordistance - number, integrer - Distance at which the behaviors operate. Usually means the fleeing distance, except berserks and kamikazes, where it defines reaction range.
+	raptorsquadbehaviorchance - number, float between 0 and 1 - How sensitive the unit is to the behavior triggers.
+
+	Behavior Classes:
+
+	"raider" - This is the default, that doesn't get any behaviors. You can specify it but it won't do anything.
+	"berserk" - Run towards target after getting hit by enemy or after hitting the target
+	"skirmisher" - Keep distance from the target
+	"healer" - Getting long max lifetime and always use Fight command. These units spawn as healers from burrows and queen
+	"artillery" - Long lifetime and no regrouping, always uses Fight command to keep distance, friendly fire enabled (assuming nothing else in the game stops it)
+	"kamikaze" - Long lifetime and no regrouping, always uses Move command to rush into the enemy
+]]
+
+for name, unitDef in pairs(UnitDefNames) do
+	if unitDef.customParams then
+		--Spring.Echo(name, unitDef.customParams)
+		if unitDef.customParams.raptorcustomsquad and unitDef.customParams.raptorcustomsquad == "1" then
+			local customSquadTable = {}
+			customSquadTable.units = {{
+				count = tonumber(unitDef.customParams.raptorsquadunitsamount) or 1,
+				unit = name
+			}}
+			customSquadTable.minAnger = tonumber(unitDef.customParams.raptorsquadminanger) or 0
+			customSquadTable.maxAnger = tonumber(unitDef.customParams.raptorsquadmaxanger) or 999
+			customSquadTable.weight = tonumber(unitDef.customParams.raptorsquadweight) or 1
+
+			if unitDef.customParams.raptorsquadbehavior then
+
+				if unitDef.customParams.raptorsquadbehavior == "berserk" and not raptorBehaviours.BERSERK[unitDef.id] then
+					raptorBehaviours.BERSERK[unitDef.id] = {
+						chance = tonumber(unitDef.customParams.raptorsquadbehaviorchance) or 0.1,
+						distance = tonumber(unitDef.customParams.raptorsquadbehaviordistance) or 2000
+					}
+				end
+
+				if unitDef.customParams.raptorsquadbehavior == "skirmisher" then
+					if not raptorBehaviours.SKIRMISH[unitDef.id] then
+						raptorBehaviours.SKIRMISH[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.raptorsquadbehaviorchance) or 0.5,
+							distance = tonumber(unitDef.customParams.raptorsquadbehaviordistance) or 500
+						}
+					end
+					if not raptorBehaviours.COWARD[unitDef.id] then
+						raptorBehaviours.COWARD[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.raptorsquadbehaviorchance) or 0.5,
+							distance = tonumber(unitDef.customParams.raptorsquadbehaviordistance) or 500
+						}
+					end
+				end
+
+				if unitDef.customParams.raptorsquadbehavior == "healer" then
+					if not raptorBehaviours.COWARD[unitDef.id] then
+						raptorBehaviours.COWARD[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.raptorsquadbehaviorchance) or 1,
+							distance = tonumber(unitDef.customParams.raptorsquadbehaviordistance) or 500
+						}
+					end
+					if not raptorBehaviours.HEALER[unitDef.id] then
+						raptorBehaviours.HEALER[unitDef.id] = true
+					end
+					customSquadTable.type = "healer"
+				end
+
+				if unitDef.customParams.raptorsquadbehavior == "artillery" then
+					if not raptorBehaviours.SKIRMISH[unitDef.id] then
+						raptorBehaviours.SKIRMISH[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.raptorsquadbehaviorchance) or 0.5, 
+							distance = tonumber(unitDef.customParams.raptorsquadbehaviordistance) or 500
+						}
+					end
+					if not raptorBehaviours.COWARD[unitDef.id] then
+						raptorBehaviours.COWARD[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.raptorsquadbehaviorchance) or 0.5,
+							distance = tonumber(unitDef.customParams.raptorsquadbehaviordistance) or 500
+						}
+					end
+					if not raptorBehaviours.ARTILLERY[unitDef.id] then
+						raptorBehaviours.ARTILLERY[unitDef.id] = true
+					end
+				end
+
+				if unitDef.customParams.raptorsquadbehavior == "kamikaze" then
+					if not raptorBehaviours.BERSERK[unitDef.id] then
+						raptorBehaviours.BERSERK[unitDef.id] = {
+							chance = tonumber(unitDef.customParams.raptorsquadbehaviorchance) or 1,
+							distance = tonumber(unitDef.customParams.raptorsquadbehaviordistance) or 500
+						}
+					end
+					if not raptorBehaviours.KAMIKAZE[unitDef.id] then
+						raptorBehaviours.KAMIKAZE[unitDef.id] = true
+					end
+				end
+
+
+			end
+
+			if not customSquadTable.type then
+				if unitDef.customParams.raptorsquadrarity and unitDef.customParams.raptorsquadrarity == "basic" then
+					if unitDef.canFly then
+						customSquadTable.type = "basicAir"
+					else
+						customSquadTable.type = "basic"
+					end
+				else
+					if unitDef.canFly then
+						customSquadTable.type = "specialAir"
+					else
+						customSquadTable.type = "special"
+					end
+				end
+			end
+			addNewSquad(customSquadTable)
+		end
+	end
+end
+
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Settings -- Adjust these

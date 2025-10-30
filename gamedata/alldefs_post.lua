@@ -199,7 +199,7 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
-		if modOptions.unit_restrictions_noair then
+		if modOptions.unit_restrictions_noair and not uDef.customparams.ignore_noair then
 			if string.find(uDef.customparams.subfolder, "Aircraft") then
 				uDef.maxthisunit = 0
 			elseif uDef.customparams.unitgroup and uDef.customparams.unitgroup == "aa" then
@@ -586,6 +586,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 1] = "coresuppt3" -- Adjudictator - Heavy Heatray Battleship
 			uDef.buildoptions[numBuildoptions + 2] = "coronager" -- Onager - Coastal Assault Submarine
 			uDef.buildoptions[numBuildoptions + 3] = "cordesolator" -- Desolator - Nuclear ICBM Submarine
+			uDef.buildoptions[numBuildoptions + 4] = "corprince" -- Black Prince - Shore bombardment battleship
 		end
 
 		-- Cortex T3 Gantry
@@ -770,6 +771,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 1] = "legsrailt4" -- Epic Arquebus
 			uDef.buildoptions[numBuildoptions + 2] = "leggobt3" -- Epic Goblin
 			uDef.buildoptions[numBuildoptions + 3] = "legpede" -- Mukade - Heavy Multi Weapon Centipede
+			uDef.buildoptions[numBuildoptions + 4] = "legeheatraymech_old" -- Old Sol Invictus - Quad Heatray Mech
 		end
 	end
 
@@ -822,28 +824,6 @@ function UnitDef_Post(name, uDef)
 			uDef.maxacc = uDef.speed * 0.00166
 			uDef.maxdec = uDef.speed * 0.00166
 		elseif uDef.canfly then
-			if modOptions.air_rework == true then
-				uDef.speed = uDef.speed * 0.65
-				uDef.health = uDef.health * 1.5
-
-				uDef.maxacc = 1
-				uDef.maxdec = 1
-				uDef.usesmoothmesh = true
-
-				-- flightmodel
-				uDef.maxaileron = 0.025
-				uDef.maxbank = 0.65
-				uDef.maxelevator = 0.025
-				uDef.maxpitch = 0.75
-				uDef.maxrudder = 0.18
-				uDef.wingangle = 0.06593
-				uDef.wingdrag = 0.02
-				uDef.turnradius = 64
-				uDef.turnrate = 50
-				uDef.speedtofront = 0.06
-				uDef.cruisealtitude = 220
-				--uDef.attackrunlength = 32
-			else
 				uDef.maxacc = 1
 				uDef.maxdec = 0.25
 				uDef.usesmoothmesh = true
@@ -859,9 +839,7 @@ function UnitDef_Post(name, uDef)
 				uDef.turnradius = 64
 				uDef.turnrate = 1600
 				uDef.speedtofront = 0.01
-				uDef.cruisealtitude = 220
 				--uDef.attackrunlength = 32
-			end
 		end
 	end
 
@@ -1186,8 +1164,7 @@ function UnitDef_Post(name, uDef)
 		--end
 
 	end
-
-
+	
 	--Air rework
 	if modOptions.air_rework == true then
 		local airReworkUnits = VFS.Include("unitbasedefs/air_rework_defs.lua")
@@ -1200,9 +1177,57 @@ function UnitDef_Post(name, uDef)
 		uDef = skyshiftUnits.skyshiftUnitTweaks(name, uDef)
 	end
 
+	-- Proposed Unit Reworks
 	if modOptions.proposed_unit_reworks == true then
 		local proposed_unit_reworks = VFS.Include("unitbasedefs/proposed_unit_reworks_defs.lua")
 		uDef = proposed_unit_reworks.proposed_unit_reworksTweaks(name, uDef)
+	end
+
+	-- Naval Balance Adjustments, if anything breaks here blame ZephyrSkies
+	if modOptions.naval_balance_tweaks == true then
+		local buildOptionReplacements = {
+			armcs = { ["armfhlt"] = "armnavaldefturret" },
+			armch = { ["armfhlt"] = "armnavaldefturret" },
+			armbeaver = { ["armfhlt"] = "armnavaldefturret" },
+			armcsa = { ["armfhlt"] = "armnavaldefturret" },
+			corcs = { ["corfhlt"] = "cornavaldefturret" },
+			corch = { ["corfhlt"] = "cornavaldefturret" },
+			cormuskrat = { ["corfhlt"] = "cornavaldefturret" },
+			corcsa = { ["corfhlt"] = "cornavaldefturret" },
+			legcs = { ["legfmg"]  = "legnavaldefturret" },
+			legch = { ["legfmg"]  = "legnavaldefturret" },
+			legotter = { ["legfmg"]  = "legnavaldefturret" },
+			armacsub = { ["armkraken"]  = "armanavaldefturret" },
+			armmls = {
+				["armfhlt"]  = "armnavaldefturret",
+				["armkraken"] = "armanavaldefturret",
+			},
+			coracsub = { ["corfdoom"]  = "coranavaldefturret" },
+			cormls = {
+				["corfhlt"]  = "cornavaldefturret",
+				["corfdoom"] = "coranavaldefturret",
+			},
+		}
+
+		if buildOptionReplacements[name] then
+			local replacements = buildOptionReplacements[name]
+			for i, buildOption in ipairs(uDef.buildoptions or {}) do
+				if replacements[buildOption] then
+					uDef.buildoptions[i] = replacements[buildOption]
+				end
+			end
+		end
+
+		if name == "armfrad" then
+			uDef.sightdistance = 800
+		end
+		if name == "corfrad" then
+			uDef.sightdistance = 800
+		end
+		if name == "legfrad" then
+			uDef.sightdistance = 800
+		end
+
 	end
 
 	--Lategame Rebalance
@@ -1402,6 +1427,21 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	----------------
+	-- Tech Split --
+	----------------
+
+	if modOptions.techsplit == true then
+		local techsplitUnits = VFS.Include("unitbasedefs/techsplit_defs.lua")
+		uDef = techsplitUnits.techsplitTweaks(name, uDef)
+	end
+
+	if modOptions.techsplit_balance == true then
+		local techsplit_balanceUnits = VFS.Include("unitbasedefs/techsplit_balance_defs.lua")
+		uDef = techsplit_balanceUnits.techsplit_balanceTweaks(name, uDef)
+	end
+
+
 	-- Multipliers Modoptions
 
 	-- Max Speed
@@ -1558,7 +1598,6 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 	end
-
 end
 
 local function ProcessSoundDefaults(wd)
@@ -1896,6 +1935,9 @@ function WeaponDef_Post(name, wDef)
 		end
 		if wDef.weapontype == "StarburstLauncher" and wDef.weapontimer then
 			wDef.weapontimer = wDef.weapontimer + (wDef.weapontimer * ((rangeMult - 1) * 0.4))
+		end
+		if wDef.customparams and wDef.customparams.overrange_distance then
+			wDef.customparams.overrange_distance = wDef.customparams.overrange_distance * rangeMult
 		end
 	end
 

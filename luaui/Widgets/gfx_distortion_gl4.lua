@@ -9,7 +9,8 @@ function widget:GetInfo()
 		date = "2022.06.10",
 		license = "Lua code is GPL V2, GLSL is (c) Beherith (mysterme@gmail.com)",
 		layer = -999999999, -- should be the last call of DrawWorld
-		enabled = true
+		enabled = true,
+		depends = {'gl4'},
 	}
 end
 
@@ -77,6 +78,7 @@ local shaderConfig = {
 	CHROMATIC_ABERRATION = 1.02, -- How much chromatic aberration to apply to the distortion, set to nil to disable
 	DEBUGCOMBINER = autoupdate and 1 or 0, -- 1 is debug mode, 0 is normal mode
 	UNIFORMSBUFFERCOPY = nil, -- enable this for experimental unit uniforms buffer copy
+	USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
 }
 
 local radiusMultiplier = 1.0
@@ -774,6 +776,10 @@ function widget:Shutdown()
 	projectileDefDistortions = nil
 	explosionDistortions  = nil
 	gibDistortion = nil
+
+	gl.DeleteTexture(ScreenCopy)
+	gl.DeleteTexture(DistortionTexture)
+	ScreenCopy, DistortionTexture = nil, nil
 
 	--collectgarbage("collect")
 	--collectgarbage("collect")

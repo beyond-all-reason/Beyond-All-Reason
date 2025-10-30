@@ -293,12 +293,14 @@ local function buildUnitDefs()
 		return unitDef.weapons and (#unitDef.weapons > 0) and (not unitDef.speed or (unitDef.speed == 0))
 	end
 
-	local function isUtilityUnit(unitDefID, unitDef)
-		return unitDef.customParams.unitgroup == 'util'
-	end
-
 	local function isEconomyBuilding(unitDefID, unitDef)
 		return (unitDef.customParams.unitgroup == 'metal') or (unitDef.customParams.unitgroup == 'energy')
+	end
+
+	local function isUtilityUnit(unitDefID, unitDef)
+		-- anything that is not economy, army, or defense is considered utility
+		-- thus, utility serves as a catch-all for unit value that does not fall into the other categories
+		return not (isEconomyBuilding(unitDefID, unitDef) or isArmyUnit(unitDefID, unitDef) or isDefenseUnit(unitDefID, unitDef))
 	end
 
 	unitDefsToTrack = {}
@@ -542,6 +544,7 @@ local function buildPlayerData()
 				if playerID and playerID[1] then
 					-- it's a player
 					playerName = select(1, Spring.GetPlayerInfo(playerID[1], false))
+					playerName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID[1])) or playerName
 				else
 					local aiName = Spring.GetGameRulesParam("ainame_" .. teamID)
 					if aiName then
@@ -729,7 +732,7 @@ local function calculateWidgetDimensions()
 	widgetDimensions.distanceFromTopBar = mathfloor(defaults.widgetDimensions.distanceFromTopBar * scaleMultiplier)
 	if WG['topbar'] and WG['topbar'].getShowButtons() then
 		local topBarPosition = WG['topbar'].GetPosition()
-		widgetDimensions.top = topBarPosition[2] - widgetDimensions.distanceFromTopBar
+		widgetDimensions.top = topBarPosition[2] -- widgetDimensions.distanceFromTopBar
 	else
 		widgetDimensions.top = viewScreenHeight
 	end
@@ -1151,68 +1154,40 @@ local function drawText()
 	local indexLeft = teamOrder and teamOrder[1] or 1
 	local indexRight = teamOrder and teamOrder[2] or 2
 
-	gl.Color(textColorWhite)
-	gl.Texture(titleTexture)
-	gl.TexRect(
-		titleDimensions.left,
-		widgetDimensions.bottom,
-		titleDimensions.right,
-		widgetDimensions.top,
-		false,
-		true
-	)
-	gl.Texture(false)
-
-	gl.Texture(statsTexture)
-	gl.TexRect(
-		knobDimensions.leftKnobLeft,
-		widgetDimensions.bottom,
-		knobDimensions.rightKnobRight,
-		widgetDimensions.top,
-		false,
-		true
-	)
-	gl.Texture(false)
+	gl.R2tHelper.BlendTexRect(titleTexture, titleDimensions.left, widgetDimensions.bottom, titleDimensions.right, widgetDimensions.top, true)
+	gl.R2tHelper.BlendTexRect(statsTexture, knobDimensions.leftKnobLeft, widgetDimensions.bottom, knobDimensions.rightKnobRight, widgetDimensions.top, true)
 end
 
 local function doTitleTexture()
 	local function drawTitlesToTexture()
-		-- This may be unnecessary, but without initializing the texture like this I've seen some weird fragments that
-		-- look like the texture would have old drawings.
-		gl.Blending(GL.ONE, GL.ZERO)
-		gl.Color(1, 1, 1, 0.0)
-		gl.Rect(-titleDimensions.width, -widgetDimensions.height, titleDimensions.width, widgetDimensions.height)
-
-		gl.PushMatrix()
 		gl.Translate(-1, -1, 0)
 		gl.Scale(
 			2 / titleDimensions.width,
 			2 / widgetDimensions.height,
 			0
 		)
-		font:Begin()
-			font:SetTextColor(textColorWhite)
+		font:Begin(true)
+		font:SetTextColor(textColorWhite)
 
-			for metricIndex,metric in ipairs(metricsEnabled) do
-				local bottom = widgetDimensions.height - metricIndex * metricDimensions.height
+		for metricIndex,metric in ipairs(metricsEnabled) do
+			local bottom = widgetDimensions.height - metricIndex * metricDimensions.height
 
-				local textHCenter = titleDimensions.widthHalf
-				local textVCenter = bottom + titleDimensions.verticalCenterOffset
-				local textText = metricsEnabled[metricIndex].text
+			local textHCenter = titleDimensions.widthHalf
+			local textVCenter = bottom + titleDimensions.verticalCenterOffset
+			local textText = metricsEnabled[metricIndex].text
 
-				font:Print(
-					textText,
-					textHCenter,
-					textVCenter,
-					titleDimensions.fontSize,
-					'cvo'
-				)
-			end
+			font:Print(
+				textText,
+				textHCenter,
+				textVCenter,
+				titleDimensions.fontSize,
+				'cvo'
+			)
+		end
 		font:End()
-		gl.PopMatrix()
 	end
 
-	gl.RenderToTexture(titleTexture, drawTitlesToTexture)
+	gl.R2tHelper.RenderToTexture(titleTexture, drawTitlesToTexture,	true)
 end
 
 local function updateStatsTexture()
@@ -1237,19 +1212,13 @@ local function updateStatsTexture()
 		local statsTextureWidth = knobDimensions.rightKnobRight - knobDimensions.leftKnobLeft
 		local statsTextureHeight = widgetDimensions.height
 
-		-- Remove everything we drew previously
-		gl.Blending(GL.ONE, GL.ZERO)
-		gl.Color(1, 1, 1, 0.0)
-		gl.Rect(-statsTextureWidth, -statsTextureHeight, statsTextureWidth, statsTextureHeight)
-
-		gl.PushMatrix()
 		gl.Translate(-1, -1, 0)
 		gl.Scale(
 			2 / statsTextureWidth,
 			2 / statsTextureHeight,
 			0
 		)
-		font:Begin()
+		font:Begin(true)
 			font:SetTextColor(textColorWhite)
 
 			local indexLeft = teamOrder and teamOrder[1] or 1
@@ -1321,10 +1290,9 @@ local function updateStatsTexture()
 				)
 			end
 		font:End()
-		gl.PopMatrix()
 	end
 
-	gl.RenderToTexture(statsTexture, drawStatsToTexture)
+	gl.R2tHelper.RenderToTexture(statsTexture, drawStatsToTexture, true)
 end
 
 local function updateTextTextures()
@@ -1336,8 +1304,16 @@ local function updateTextTextures()
 	updateStatsTexture()
 end
 
-local function createMetricDisplayLists()
+local function deleteMetricDisplayLists()
+	for _,metricDisplayList in ipairs(metricDisplayLists) do
+		gl.DeleteList(metricDisplayList)
+	end
 	metricDisplayLists = {}
+	displayListsChanged = true
+end
+
+local function createMetricDisplayLists()
+	deleteMetricDisplayLists()
 
 	local left = widgetDimensions.left
 	local right = widgetDimensions.right
@@ -1351,18 +1327,13 @@ local function createMetricDisplayLists()
 				bottom,
 				right,
 				top,
-				1, 1, 1, 1,
-				1, 1, 1, 1
+				metricIndex == 1 and 0 or 1, 0, 0, 1,
+				0 or 1, 1, 1, 1
 			)
 		end)
 		table.insert(metricDisplayLists, newDisplayList)
 	end
-end
-
-local function deleteMetricDisplayLists()
-	for _,metricDisplayList in ipairs(metricDisplayLists) do
-		gl.DeleteList(metricDisplayList)
-	end
+	displayListsChanged = true
 end
 
 local function createKnobVertices(vertexMatrix, left, bottom, right, top, cornerRadius, cornerTriangleAmount)
@@ -1966,6 +1937,14 @@ function widget:Shutdown()
 	if shader then
 		shader:Finalize()
 	end
+	if guishaderDlist then
+		if WG['guishader'] then
+			WG['guishader'].DeleteDlist('spechud')
+		else
+			gl.DeleteList(guishaderDlist)
+		end
+		guishaderDlist = nil
+	end
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -2107,7 +2086,7 @@ function widget:Update(dt)
 end
 
 function widget:DrawGenesis()
-	if (not widgetEnabled) or (not haveFullView) then
+	if not widgetEnabled or not haveFullView then
 		return
 	end
 
@@ -2118,8 +2097,27 @@ function widget:DrawGenesis()
 end
 
 function widget:DrawScreen()
-	if (not widgetEnabled) or (not haveFullView) then
+
+	if not widgetEnabled or not haveFullView then
+		if WG['guishader'] and guishaderDlist then
+			WG['guishader'].DeleteDlist('spechud')
+			guishaderDlist = nil
+		end
 		return
+	end
+
+	if WG['guishader'] and (displayListsChanged or not guishaderDlist) then
+		if guishaderDlist then
+			gl.DeleteList(guishaderDlist)
+			guishaderDlist = nil
+		end
+		guishaderDlist = gl.CreateList(function ()
+			for _, metricDisplayList in ipairs(metricDisplayLists) do
+				gl.CallList(metricDisplayList)
+			end
+		end)
+		WG['guishader'].InsertDlist(guishaderDlist, 'spechud')
+		displayListsChanged = nil
 	end
 
 	for _, metricDisplayList in ipairs(metricDisplayLists) do

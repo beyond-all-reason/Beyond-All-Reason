@@ -80,6 +80,7 @@ local unitOrderTable = {
 
 	['armspy']         = 003900, --SPIES
 	['corspy']         = 004000,
+	['legaspy']         = 004001,
 	['corphantom']     = 004010,
 
 	-- AIR SCOUTS LAND UNARMED
@@ -94,8 +95,10 @@ local unitOrderTable = {
 	-- SCOUTS/UTILITY LAND
 	['armmark']        = 004100,
 	['corvoyr']        = 004110,
+	['legaradk']       = 004115,
 	['armaser']        = 004120,
 	['corspec']        = 004130,
+	['legajamk']       = 004135,
 
 	['armseer']        = 004200,
 	['corvrad']        = 004210,
@@ -287,7 +290,8 @@ local unitOrderTable = {
 	['armraz']         		= 007020,
 	['corkarg']        		= 007030,
 	['armvang']        		= 007040,
-	['legelrpcmech']       	= 007041,
+	['legeallterrainmech']  = 007041,
+	['legelrpcmech']       	= 007042,
 	['corshiva']       		= 007050,
 	['legkeres']	   		= 007051,
 	['legerailtank']   		= 007052,
@@ -303,6 +307,7 @@ local unitOrderTable = {
 	--T3 HOVER
 	['armlun']         = 007100, --hover
 	['corsok']         = 007110, --hover
+	['legehovertank']  = 007111, --hover
 
 	--T4 LAND ATTACK (SCAVS)
 	['armmeatball']    = 007200,
@@ -393,6 +398,7 @@ local unitOrderTable = {
 
 	['armdecadet3']    = 009450, --SCAV SHIPS
 	['coresuppt3']     = 009460,
+	['corprince']      = 009461,
 	['armpshipt3']     = 009470,
 	['corslrpc']       = 009480,
 
@@ -570,9 +576,6 @@ local unitOrderTable = {
    ['corapt3']        = 102725, --scavengers
 
    --UTILITIES
-   ['armasp']         = 102800, --AIR REPAIR PADS
-   ['corasp']         = 102825,
-   ['corfasp']         = 102826,
 
    ['armeyes']        = 103000,
    ['coreyes']        = 103050,
@@ -778,8 +781,6 @@ local unitOrderTable = {
    ['corfmine3']      = 217200,
 
    --WATER UTILITIES
-   ['armfasp']        = 220000,
-   ['corfasp']        = 220050,
    ['armfrad']        = 220100,
    ['legfrad']        = 220101,
    ['corfrad']        = 220150,
@@ -795,9 +796,18 @@ local unitOrderTable = {
    ['armfhlt']        = 230300,
    ['corfhlt']        = 230400,
    ['legfmg']        = 230401,
+
+   ['armnavaldefturret']	= 230301,
+   ['cornavaldefturret']	= 230401,
+   ['legnavaldefturret']	= 230402,
+
    ['legfhive']        = 230450,
    ['armkraken']      = 230500,
    ['corfdoom']       = 230600,
+
+   ['armanavaldefturret']	= 230451,
+   ['coranavaldefturret']	= 230501,
+   ['leganavaldefturret']	= 230601,
 
    --WATER DEFENSES AA
    ['armfrt']         = 255100,

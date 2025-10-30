@@ -99,7 +99,7 @@ layout(std140, binding = 1) uniform UniformParamsBuffer {
 	vec3 rndVec3; //new every draw frame.
 	uint renderCaps; //various render booleans
 
-	vec4 timeInfo; //gameFrame, gameSeconds, drawFrame, frameTimeOffset
+	vec4 timeInfo; //gameFrame, drawSeconds, interpolated(unsynced)GameSeconds(synced), frameTimeOffset
 	vec4 viewGeometry; //vsx, vsy, vpx, vpy
 	vec4 mapSize; //xz, xzPO2
 	vec4 mapHeight; //height minCur, maxCur, minInit, maxInit
@@ -206,6 +206,43 @@ vec2 heightmapUVatWorldPosMirrored(vec2 worldpos) {
 	return abs(fract(uvhm * 0.5 + 0.5) - 0.5) * 2.0;
 }
 
+//  SphereInViewSignedDistance
+//  Signed distance from a world-space sphere to the X-Y NDC box.
+//  Z (near/far) is ignored. Very reliable, reasonably optimized. 
+//  Returns:
+//      < 0  – sphere at least partially inside the X-Y clip box
+//      = 0  – sphere exactly touches at least one edge
+//      > 0  – sphere is more distance from the edge of frustrum by that many NDC units
+// 
+float SphereInViewSignedDistance(vec3 centerWS,  float radiusWS)
+{
+    // 1.  centre → clip space
+    vec4 clipC = cameraViewProj * vec4(centerWS, 1.0);
+    if (clipC.w <= 0.0)           // behind the eye? treat as inside
+        return -1.0;
+
+    // 2.  NDC centre (one perspective divide, reused later)
+    vec2  ndc   = clipC.xy / clipC.w;        // = clipC.xy / clipC.w
+
+    // 3.  Project world-space +X displacement
+    //     M * (p + (r,0,0,0)) = (M*p) + r*M*Xcol
+    vec4 deltaClip = radiusWS * cameraViewProj[0];   // first column of matrix
+    vec4 clipX     = clipC + deltaClip;
+
+    // 4.  Radius in NDC (second perspective divide only once)
+    float ndcRadius = length((clipX.xy / clipX.w) - ndc);
+
+    // 5.  Four signed distances, keep the worst (Chebyshev / max)
+    float dLeft   = -(ndc.x + 1.0) - ndcRadius;
+    float dRight  =  (ndc.x - 1.0) - ndcRadius;
+    float dBottom = -(ndc.y + 1.0) - ndcRadius;
+    float dTop    =  (ndc.y - 1.0) - ndcRadius;
+
+    return max(max(dLeft, dRight), max(dBottom, dTop));
+}
+
+
+
 // Note that this function does not check the Z or depth of the clip space, but in regular springrts top-down views, this isnt needed either. 
 // the radius to cameradist ratio is a good proxy for visibility in the XY plane
 bool isSphereVisibleXY(vec4 wP, float wR){ //worldPos, worldRadius
@@ -266,6 +303,197 @@ vec4 waterBlend(float fragmentheight){
 
     return eubs .. waterUniforms
 end
+local function GetQuaternionDefs()
+	-- For replacing //__QUATERNIONDEFS__ with the quaternion definitions
+	return	[[
+// Quaternion math functions
+struct Transform {
+	vec4 quat;
+	vec4 trSc;
+};
+
+layout(std140, binding = 0) readonly buffer TransformBuffer {
+	Transform transforms[];
+};
+
+uint GetUnpackedValue(uint packedValue, uint byteNum) {
+	return (packedValue >> (8u * byteNum)) & 0xFFu;
+}
+
+vec4 MultiplyQuat(vec4 a, vec4 b)
+{
+    return vec4(a.w * b.xyz + b.w * a.xyz + cross(a.xyz, b.xyz), a.w * b.w - dot(a.xyz, b.xyz));
+}
+
+vec3 RotateByQuaternion(vec4 q, vec3 v) {
+	return 2.0 * dot(q.xyz, v) * q.xyz + (q.w * q.w - dot(q.xyz, q.xyz)) * v + 2.0 * q.w * cross(q.xyz, v);
+}
+
+vec4 RotateByQuaternion(vec4 q, vec4 v) {
+	return vec4(RotateByQuaternion(q, v.xyz), v.w);
+}
+
+vec4 InvertNormalizedQuaternion(vec4 q) {
+	return vec4(-q.x, -q.y, -q.z, q.w);
+}
+
+vec3 ApplyTransform(Transform tra, vec3 v) {
+	return RotateByQuaternion(tra.quat, v * tra.trSc.w) + tra.trSc.xyz;
+}
+
+vec4 ApplyTransform(Transform tra, vec4 v) {
+	return vec4(RotateByQuaternion(tra.quat, v.xyz * tra.trSc.w) + tra.trSc.xyz * v.w, v.w);
+}
+
+Transform ApplyTransform(Transform parentTra, Transform childTra) {
+	return Transform(
+		MultiplyQuat(parentTra.quat, childTra.quat),
+		vec4(
+			parentTra.trSc.xyz + RotateByQuaternion(parentTra.quat, parentTra.trSc.w * childTra.trSc.xyz),
+			parentTra.trSc.w * childTra.trSc.w
+		)
+	);
+}
+
+Transform InvertTransformAffine(Transform tra) {
+	vec4 invR = InvertNormalizedQuaternion(tra.quat);
+	float invS = 1.0 / tra.trSc.w;
+	return Transform(
+		invR,
+		vec4(
+			RotateByQuaternion(invR, -tra.trSc.xyz * invS),
+			invS
+		)
+	);
+}
+
+mat4 TransformToMatrix(Transform tra) {
+	float qxx = tra.quat.x * tra.quat.x;
+	float qyy = tra.quat.y * tra.quat.y;
+	float qzz = tra.quat.z * tra.quat.z;
+	float qxz = tra.quat.x * tra.quat.z;
+	float qxy = tra.quat.x * tra.quat.y;
+	float qyz = tra.quat.y * tra.quat.z;
+	float qrx = tra.quat.w * tra.quat.x;
+	float qry = tra.quat.w * tra.quat.y;
+	float qrz = tra.quat.w * tra.quat.z;
+
+	mat3 rot = mat3(
+		vec3(1.0 - 2.0 * (qyy + qzz), 2.0 * (qxy + qrz)      , 2.0 * (qxz - qry)      ),
+		vec3(2.0 * (qxy - qrz)      , 1.0 - 2.0 * (qxx + qzz), 2.0 * (qyz + qrx)      ),
+		vec3(2.0 * (qxz + qry)      , 2.0 * (qyz - qrx)      , 1.0 - 2.0 * (qxx + qyy))
+	);
+
+	rot *= tra.trSc.w;
+
+	return mat4(
+		vec4(rot[0]      , 0.0),
+		vec4(rot[1]      , 0.0),
+		vec4(rot[2]      , 0.0),
+		vec4(tra.trSc.xyz, 1.0)
+	);
+}
+vec4 SLerp(vec4 qa, vec4 qb, float t) {
+	// Calculate angle between them.
+	float cosHalfTheta = dot(qa, qb);
+
+	// Every rotation can be represented by two quaternions: (++++) or (----)
+	// avoid taking the longer way: choose one representation
+	float s = sign(cosHalfTheta);
+	qb *= s;
+	cosHalfTheta *= s;
+	// now cosHalfTheta is >= 0.0
+
+	// if qa and qb (or -qb originally) represent ~ the same rotation
+	if (cosHalfTheta >= (1.0 - 0.005))
+		return normalize(mix(qa, qb, t));
+
+	// Interpolation of orthogonal rotations (i.e. cosHalfTheta ~ 0)
+	// does not require special handling, however this usually represents
+	// "physically impossible" 180 degree turns with infinite speed so perhaps
+	// it can be handled in the following (cuurently disabled) special way
+	#if 0
+	if (cosHalfTheta <= 0.005)
+		return mix(qa, qb, step(0.5, t));
+	#endif
+
+	float halfTheta = acos(cosHalfTheta);
+
+	// both should be divided by sinHalfTheta (calculation skipped),
+	// but it makes no sense to do it due to follow up normalization
+	float ratioA = sin((1.0 - t) * halfTheta);
+	float ratioB = sin((      t) * halfTheta);
+
+	return qa * ratioA + qb * ratioB; // already normalized
+}
+
+vec4 Lerp(vec4 qa, vec4 qb, float t) {
+	// Ensure shortest path
+	if (dot(qa, qb) < 0.0)
+		qb = -qb;
+	return normalize(mix(qa, qb, t)); // GLSL's mix() = (1 - t) * qa + t * qb
+}
+
+Transform SLerp(Transform t0, Transform t1, float a) {
+	// generally good idea, otherwise extrapolation artifacts
+	// will be nasty in some cases (e.g. fast rotation)
+	a = clamp(a, 0.0, 1.0);
+	return Transform(
+		SLerp(t0.quat, t1.quat, a),
+		mix(t0.trSc, t1.trSc, a)
+	);
+}
+
+
+Transform Lerp(Transform t0, Transform t1, float a) {
+	// generally good idea, otherwise extrapolation artifacts
+	// will be nasty in some cases (e.g. fast rotation)
+	a = clamp(a, 0.0, 1.0);
+	return Transform(
+		Lerp(t0.quat, t1.quat, a),
+		mix(t0.trSc, t1.trSc, a)
+	);
+}
+
+
+
+// This helper function gets the transform that gets you the model-space to world-space transform
+Transform GetModelWorldTransform(uint baseIndex)
+{
+	return Lerp(
+		transforms[baseIndex + 0u],
+		transforms[baseIndex + 1u],
+		timeInfo.w
+	);
+}
+
+// This helper function gets the transform that gets you the piece-space to model-space transform
+Transform GetPieceModelTransform(uint baseIndex, uint pieceID)
+{
+	return Lerp(
+		transforms[baseIndex + 2u * (1u + pieceID) + 0u],
+		transforms[baseIndex + 2u * (1u + pieceID) + 1u],
+		timeInfo.w
+	);
+}
+
+// This helper function gets the transform that gets you the piece-space to world-space transform
+Transform GetPieceWorldTransform(uint baseIndex, uint pieceID)
+{
+	Transform pieceToMModelTX =  GetPieceModelTransform(baseIndex, pieceID);
+
+	Transform modelToWorldTX = GetModelWorldTransform(baseIndex);
+
+	return ApplyTransform(modelToWorldTX, pieceToMModelTX);
+}
+
+Transform GetStaticPieceModelTransform(uint baseIndex, uint pieceID)
+{
+	return transforms[baseIndex + 1u * (pieceID) + 0u];
+}
+	
+]]
+end
 
 local function CreateShaderDefinesString(args) -- Args is a table of stuff that are the shader parameters
   local defines = {}
@@ -286,6 +514,7 @@ LuaShader.isDeferredShadingEnabled = IsDeferredShadingEnabled()
 LuaShader.GetAdvShadingActive = GetAdvShadingActive
 LuaShader.GetEngineUniformBufferDefs = GetEngineUniformBufferDefs
 LuaShader.CreateShaderDefinesString = CreateShaderDefinesString
+LuaShader.GetQuaternionDefs = GetQuaternionDefs
 
 
 local function CheckShaderUpdates(shadersourcecache, delaytime)
@@ -311,10 +540,14 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			shadersourcecache.updateFlag = true
 			local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 			local shaderDefines = LuaShader.CreateShaderDefinesString(shadersourcecache.shaderConfig)
+			local quaternionDefines = LuaShader.GetQuaternionDefs()
 
 			local printfpattern =  "^[^/]*printf%s*%(%s*([%w_%.]+)%s*%)"
 			local printf = nil
-			fsSrcNewLines = string.lines(fsSrcNew)
+			if not fsSrcNew then 
+				Spring.Echo("Warning: No fragment shader source found for", shadersourcecache.shaderName)
+			end	
+			local fsSrcNewLines = string.lines(fsSrcNew)
 			for i, line in ipairs(fsSrcNewLines) do 
 				--Spring.Echo(i,line)
 				local glslvariable = line:match(printfpattern)
@@ -402,21 +635,24 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			if vsSrcNew then 
 				vsSrcNew = vsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 				vsSrcNew = vsSrcNew:gsub("//__DEFINES__", shaderDefines)
+				vsSrcNew = vsSrcNew:gsub("//__QUATERNIONDEFS__", quaternionDefines)
 				shadersourcecache.vsSrcComplete = vsSrcNew
 			end
 
 			if gsSrcNew then 
 				gsSrcNew = gsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 				gsSrcNew = gsSrcNew:gsub("//__DEFINES__", shaderDefines)
+				gsSrcNew = gsSrcNew:gsub("//__QUATERNIONDEFS__", quaternionDefines)
 				shadersourcecache.gsSrcComplete = gsSrcNew
 			end
 
 			if fsSrcNew then 
 				fsSrcNew = fsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", (printf and (engineUniformBufferDefs .. printf.SSBODefinition) or engineUniformBufferDefs))
 				fsSrcNew = fsSrcNew:gsub("//__DEFINES__", shaderDefines)
+				fsSrcNew = fsSrcNew:gsub("//__QUATERNIONDEFS__", quaternionDefines)
 				shadersourcecache.fsSrcComplete = fsSrcNew -- the complete subbed cache should be kept as its needed to decipher lines post compilation errors
 			end
-				local reinitshader =  LuaShader(
+			local reinitshader =  LuaShader(
 				{
 				vertex = vsSrcNew,
 				fragment = fsSrcNew,
@@ -760,12 +996,18 @@ function LuaShader:Deactivate()
 		self.printf.SSBO:UnbindBufferRange(7)
 		self.printf.bufferData = self.printf.SSBO:Download(-1, 0, nil, true) -- last param is forceGPURead = true
 		--Spring.Echo(self.printf.bufferData[1],self.printf.bufferData[2],self.printf.bufferData[3],self.printf.bufferData[4])
+		-- Do NAN checks on bufferData array and replace with -666 if NAN:
+		for i = 1, #self.printf.bufferData do 
+			if type(self.printf.bufferData[i]) == 'number' and (self.printf.bufferData[i] ~= self.printf.bufferData[i]) then -- check for NAN
+				self.printf.bufferData[i] = -666
+			end
+		end
 
 		if not self.DrawPrintf then 
 			--Spring.Echo("creating DrawPrintf")
 			local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Semibold.otf")
 			local fontSize = 16
-			local font3 = WG['fonts'].getFont(fontfile3, 1 , 0.5, 1.0)
+			local font3 = gl.LoadFont(fontfile3, 32, 0.5, 1)
 			
 			local function DrawPrintf(sometimesself, xoffset, yoffset)
 				--Spring.Echo("attempting to draw printf",xoffset)

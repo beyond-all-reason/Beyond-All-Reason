@@ -58,6 +58,8 @@ local playersList = Spring.GetPlayerList()
 local spGetTeamColor = Spring.GetTeamColor
 local spGetPlayerInfo = Spring.GetPlayerInfo
 
+local ColorIsDark = Spring.Utilities.Color.ColorIsDark
+
 local aiTeams = {}
 local teamColorKeys = {}
 for i = 1, #teamList do
@@ -141,7 +143,7 @@ local function createCountdownLists()
 		drawlistsCountdown[i] = gl.CreateList(function()
 			font:Begin()
 			font:SetOutlineColor(0.15, 0.15, 0.15, 1)
-			font:SetTextColor(0, 0, 0, useRenderToTexture and 0.85 or 0.6)
+			font:SetTextColor(0, 0, 0, 0.6)
 			font:Print(i, right - rightPadding - (0.7 * widgetScale), bottom + (widgetHeight* 1.2 * widgetScale), fontSize * widgetScale, 'rn')
 			font:Print(i, right - rightPadding + (0.7 * widgetScale), bottom + (widgetHeight* 1.2 * widgetScale), fontSize * widgetScale, 'rn')
 			font:SetTextColor(0.88, 0.88, 0.88, 1)
@@ -157,8 +159,8 @@ local function refreshUiDrawing()
 		gl.DeleteList(drawlist[i])
 	end
 
-	local buttonOpacity = useRenderToTexture and 0.87 or 0.66
-	local mult = useRenderToTexture and 1.33 or 1
+	local buttonOpacity = 0.66
+	local mult = 1
 
 	drawlist = {}
 	drawlist[1] = gl.CreateList(function()
@@ -362,6 +364,7 @@ function widget:PlayerChanged(playerID)
 		end
 	end
 	local name = spGetPlayerInfo(playerID, false)
+	name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 	if select(4, Spring.GetTeamInfo(myTeamID,false)) then	-- is AI?
 		local _, _, _, aiName = Spring.GetAIInfo(myTeamID)
 		local niceName = Spring.GetGameRulesParam('ainame_' .. myTeamID)
@@ -561,6 +564,7 @@ local function drawContent()
 					lockPlayerID = WG.lockcamera.GetPlayerID()
 				end
 				local name, _, spec, teamID, _, _, _, _, _ = spGetPlayerInfo(myTeamPlayerID, false)
+				name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(myTeamPlayerID)) or name
 				if select(4, Spring.GetTeamInfo(myTeamID,false)) then	-- is AI?
 					local _, _, _, aiName = Spring.GetAIInfo(myTeamID)
 					local niceName = Spring.GetGameRulesParam('ainame_' .. myTeamID)
@@ -579,7 +583,7 @@ local function drawContent()
 						end
 						font2:Begin()
 						font2:SetTextColor(r, g, b, 1)
-						if (r + g * 1.2 + b * 0.4) < 0.65 then
+						if ColorIsDark(r, g, b) then
 							font2:SetOutlineColor(1, 1, 1, 1)
 						else
 							font2:SetOutlineColor(0, 0, 0, 1)
@@ -607,33 +611,30 @@ function widget:DrawScreen()
 		if useRenderToTexture then
 			if right-left >= 1 and top-bottom >= 1 then
 				uiTexTopExtra = math.floor(vsy*0.06)
-				uiTexLeftExtra = math.floor(vsy*0.06)
+				uiTexLeftExtra = math.floor(vsy*0.08)
 				if not uiTex then
-					uiTex = gl.CreateTexture((math.floor(right-left)+uiTexLeftExtra), (math.floor(top-bottom)+uiTexTopExtra), {	--*(vsy<1400 and 2 or 1)
+					uiTex = gl.CreateTexture((math.floor(right-left)+uiTexLeftExtra), (math.floor(top-bottom)+uiTexTopExtra), {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
 					})
 				end
-				gl.RenderToTexture(uiTex, function()
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / ((right-left)+uiTexLeftExtra), 2 / ((top-bottom)+uiTexTopExtra), 0)
-					gl.Translate(-left+uiTexLeftExtra, -bottom, 0)
-					drawContent()
-					gl.PopMatrix()
-				end)
+				gl.R2tHelper.RenderToTexture(uiTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / ((right-left)+uiTexLeftExtra), 2 / ((top-bottom)+uiTexTopExtra), 0)
+						gl.Translate(-left+uiTexLeftExtra, -bottom, 0)
+						drawContent()
+					end,
+					useRenderToTexture
+				)
 			end
 		end
 	end
 
 	if useRenderToTexture then
 		if uiTex then
-			gl.Color(1,1,1,1)
-			gl.Texture(uiTex)
-			gl.TexRect(left-uiTexLeftExtra, bottom, right, top+uiTexTopExtra, false, true)
-			gl.Texture(false)
+			gl.R2tHelper.BlendTexRect(uiTex, left-uiTexLeftExtra, bottom, right, top+uiTexTopExtra, useRenderToTexture)
 		end
 	else
 		drawContent()
@@ -845,7 +846,7 @@ function widget:ViewResize()
 	end
 
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 
@@ -872,7 +873,7 @@ function widget:Shutdown()
 	end
 	drawlist = {}
 	if uiTex then
-		gl.DeleteTextureFBO(uiTex)
+		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
 	if toggled and WG.lockcamera then
