@@ -79,7 +79,7 @@ Follow the [Lux Getting Started Guide](https://lux.lumen-labs.org/tutorial/getti
 From the repo root (where `lux.toml` lives):
 
 ```zsh
-lux update
+lx update
 ```
 
 ### Running Tests
