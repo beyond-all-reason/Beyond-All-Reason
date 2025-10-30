@@ -440,14 +440,6 @@ local unitOrderTable = {
 	['leglts']      = 010520,
 	['legatrans']      = 010525,
 
-	['armtship']       = 010540,
-	['cortship']       = 010550,
-
-	['armthovr']       = 010560,
-	['corthovr']       = 010570,
-
-	['corintr']        = 010600,
-
 	['armdfly']        = 010610,
 	['corseah']        = 010620,
 
