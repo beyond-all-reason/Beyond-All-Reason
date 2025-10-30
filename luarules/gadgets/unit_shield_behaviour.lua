@@ -1,18 +1,18 @@
 local gadget = gadget ---@type Gadget
 
-local reworkEnabled = Spring.GetModOptions().shieldsrework --remove when shield rework is permanent
-
 function gadget:GetInfo()
 	return {
 		name = "Shield Behaviour",
 		desc = "Overrides default shield engine behavior.",
 		author = "SethDGamre",
 		layer = 1,
-		enabled = reworkEnabled,
+		enabled = true,
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then return false end
+local modOptions = Spring.GetModOptions()
+local runGadget = modOptions.experimentalshields == "unchanged" or modOptions.experimentalshields == "absorbeverything"
+if not gadgetHandler:IsSyncedCode() or not runGadget then return false end
 
 ---- Optional unit customParams ----
 -- shield_aoe_penetration = bool, if true then AOE damage will hurt units within the shield radius
@@ -71,66 +71,63 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 		forceDeleteWeapons[weaponDefID] = weaponDef
 	end
 
-	if reworkEnabled then  --remove this if when shield rework is permanent
-		if not weaponDef.customParams.shield_aoe_penetration then
-			AOEWeaponDefIDs[weaponDefID] = true
-		end
+	if not weaponDef.customParams.shield_aoe_penetration then
+		AOEWeaponDefIDs[weaponDefID] = true
+	end
 
-		if weaponDef.customParams.beamtime_damage_reduction_multiplier then
-			local base = weaponDef.customParams.shield_damage or fallbackShieldDamage
-			local multiplier = weaponDef.customParams.beamtime_damage_reduction_multiplier
-			originalShieldDamages[weaponDefID] = mathCeil(base * multiplier)
-		else
-			originalShieldDamages[weaponDefID] = weaponDef.customParams.shield_damage or fallbackShieldDamage
-		end
-
+	if weaponDef.customParams.beamtime_damage_reduction_multiplier then
+		local base = weaponDef.customParams.shield_damage or fallbackShieldDamage
+		local multiplier = weaponDef.customParams.beamtime_damage_reduction_multiplier
+		originalShieldDamages[weaponDefID] = mathCeil(base * multiplier)
+	else
+		originalShieldDamages[weaponDefID] = weaponDef.customParams.shield_damage or fallbackShieldDamage
+	end
 
 
-		local highestDamage = 0
-		if weaponDef.damages then
-			for type, damage in ipairs(weaponDef.damages) do
-				if damage > highestDamage then
-					highestDamage = damage
-				end
+
+	local highestDamage = 0
+	if weaponDef.damages then
+		for type, damage in ipairs(weaponDef.damages) do
+			if damage > highestDamage then
+				highestDamage = damage
 			end
 		end
-
-		--this section calculates the rough amount of damage required to be considered a "direct hit", which assumes it didn't happen from AOE reaching inside shield.
-		local beamtimeReductionMultiplier = 1
-		local minIntensity = 1
-		if weaponDef.beamtime and weaponDef.beamtime < 1 then
-			local minimumMinIntensity = 0.5
-			local minIntensity = weaponDef.minIntensity or minimumMinIntensity
-			minIntensity = math.max(minIntensity, minimumMinIntensity)
-			-- This splits up the damage of hitscan weapons over the duration of beamtime, as each frame counts as a hit in ShieldPreDamaged() callin
-			-- Math.floor is used to sheer off the extra digits of the number of frames that the hits occur
-			beamtimeReductionMultiplier = 1 / math.floor(weaponDef.beamtime * Game.gameSpeed)
-		end
-
-
-		local minimumMinIntensity = 0.65 --impirically tested to work the majority of the time with normal damage falloff.
-		local hasDamageFalloff = false
-		local damageFalloffUnitTypes = {
-			BeamLaser = true,
-			Flame = true,
-			LaserCannon = true,
-			LightningCannon = true,
-		}
-		if damageFalloffUnitTypes[weaponDef.type] then
-			hasDamageFalloff = true
-		end
-
-		if weaponDef.minIntensity and hasDamageFalloff then
-			minIntensity = math.max(minimumMinIntensity, weaponDef.minIntensity)
-		end
-
-		highestWeapDefDamages[weaponDefID] = highestDamage * beamtimeReductionMultiplier * minIntensity *
-		directHitQualifyingMultiplier
 	end
+
+	--this section calculates the rough amount of damage required to be considered a "direct hit", which assumes it didn't happen from AOE reaching inside shield.
+	local beamtimeReductionMultiplier = 1
+	local minIntensity = 1
+	if weaponDef.beamtime and weaponDef.beamtime < 1 then
+		local minimumMinIntensity = 0.5
+		local minIntensity = weaponDef.minIntensity or minimumMinIntensity
+		minIntensity = math.max(minIntensity, minimumMinIntensity)
+		-- This splits up the damage of hitscan weapons over the duration of beamtime, as each frame counts as a hit in ShieldPreDamaged() callin
+		-- Math.floor is used to sheer off the extra digits of the number of frames that the hits occur
+		beamtimeReductionMultiplier = 1 / math.floor(weaponDef.beamtime * Game.gameSpeed)
+	end
+
+
+	local minimumMinIntensity = 0.65 --impirically tested to work the majority of the time with normal damage falloff.
+	local hasDamageFalloff = false
+	local damageFalloffUnitTypes = {
+		BeamLaser = true,
+		Flame = true,
+		LaserCannon = true,
+		LightningCannon = true,
+	}
+	if damageFalloffUnitTypes[weaponDef.type] then
+		hasDamageFalloff = true
+	end
+
+	if weaponDef.minIntensity and hasDamageFalloff then
+		minIntensity = math.max(minimumMinIntensity, weaponDef.minIntensity)
+	end
+
+	highestWeapDefDamages[weaponDefID] = highestDamage * beamtimeReductionMultiplier * minIntensity *
+	directHitQualifyingMultiplier
 end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if not reworkEnabled then break end --remove when shield rework is permanent
 	if unitDef.customParams.shield_radius then
 		local data = {}
 		data.shieldRadius = tonumber(unitDef.customParams.shield_radius)
@@ -197,7 +194,6 @@ end
 ----main logic----
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if not reworkEnabled then return end --remove when shield rework is permanent
 	local data = shieldUnitDefs[unitDefID]
 	if data then
 		shieldUnitsData[unitID] = {
@@ -220,7 +216,6 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	if not reworkEnabled then return end --remove when shield rework is permanent
 	shieldUnitsData[unitID] = nil
 	unitDefIDCache[unitID] = nil
 end
@@ -318,7 +313,6 @@ local shieldCheckEndIndex = 1
 function gadget:GameFrame(frame)
 	gameFrame = frame
 
-	if not reworkEnabled then return end --remove when shield rework is permanent
 	for shieldUnitID, _ in pairs(shieldCheckFlags) do
 		local shieldData = shieldUnitsData[shieldUnitID] --zzz for some reason the shield orb isn't disappearing sometimes when big damage
 
@@ -418,7 +412,6 @@ end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID,
 							   attackerDefID, attackerTeam)
-	if not reworkEnabled then return end --remove when shield rework is permanent
 	if not AOEWeaponDefIDs[weaponDefID] or projectileShieldHitCache[projectileID] then
 		return damage
 	end
@@ -447,49 +440,39 @@ end
 function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitID, bounceProjectile, beamEmitterWeaponNum,
 								 beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
 	local weaponDefID
-	if not reworkEnabled then --this section is added for when shield rework isn't enabled, but any shields are able to block all projectiles. <<<
-		if proID > -1 then
-			weaponDefID = projectileDefIDCache[proID] or spGetProjectileDefID(proID)
-			if forceDeleteWeapons[weaponDefID] then
-				-- Flames and penetrating projectiles aren't destroyed when they hit shields, so need to delete manually
-				spDeleteProjectile(proID)
-			end
+	local shieldData = shieldUnitsData[shieldUnitID]
+	if not shieldData or not shieldData.shieldEnabled then
+		return true
+	end
+
+	-- proID isn't nil if hitscan weapons are used, it's actually -1.
+	if proID > -1 then
+		weaponDefID = projectileDefIDCache[proID] or spGetProjectileDefID(proID)
+		local newShieldDamage = originalShieldDamages[weaponDefID] or fallbackShieldDamage
+		shieldData.shieldDamage = shieldData.shieldDamage + newShieldDamage
+		if forceDeleteWeapons[weaponDefID] then
+			-- Flames and penetrating projectiles aren't destroyed when they hit shields, so need to delete manually
+			spDeleteProjectile(proID)
 		end
-	else -- >>>
-		local shieldData = shieldUnitsData[shieldUnitID]
-		if not shieldData or not shieldData.shieldEnabled then
-			return true
-		end
+	elseif beamEmitterUnitID then
+		local beamEmitterUnitDefID = unitDefIDCache[beamEmitterUnitID]
 
-		-- proID isn't nil if hitscan weapons are used, it's actually -1.
-		if proID > -1 then
-			weaponDefID = projectileDefIDCache[proID] or spGetProjectileDefID(proID)
-			local newShieldDamage = originalShieldDamages[weaponDefID] or fallbackShieldDamage
-			shieldData.shieldDamage = shieldData.shieldDamage + newShieldDamage
-			if forceDeleteWeapons[weaponDefID] then
-				-- Flames and penetrating projectiles aren't destroyed when they hit shields, so need to delete manually
-				spDeleteProjectile(proID)
-			end
-		elseif beamEmitterUnitID then
-			local beamEmitterUnitDefID = unitDefIDCache[beamEmitterUnitID]
-
-			if not beamEmitterUnitDefID then
-				return false
-			end
-
-			weaponDefID = UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef
-			shieldData.shieldDamage = (shieldData.shieldDamage + originalShieldDamages[weaponDefID])
+		if not beamEmitterUnitDefID then
+			return false
 		end
 
-		shieldCheckFlags[shieldUnitID] = true
+		weaponDefID = UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef
+		shieldData.shieldDamage = (shieldData.shieldDamage + originalShieldDamages[weaponDefID])
+	end
 
-		if shieldData.shieldEnabled then
-			if not shieldData.shieldCoverageChecked and AOEWeaponDefIDs[weaponDefID] then
-				setCoveredUnits(shieldUnitID)
-			end
-		else
-			removeCoveredUnits(shieldUnitID)
+	shieldCheckFlags[shieldUnitID] = true
+
+	if shieldData.shieldEnabled then
+		if not shieldData.shieldCoverageChecked and AOEWeaponDefIDs[weaponDefID] then
+			setCoveredUnits(shieldUnitID)
 		end
+	else
+		removeCoveredUnits(shieldUnitID)
 	end
 end
 ---Shield controller API for other gadgets to generate and process their own shield damage events.
