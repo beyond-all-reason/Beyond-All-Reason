@@ -522,7 +522,7 @@ return {
 				},
 			},
 			loadScreen = {
-				lowRamWarning = "%{textColor}Your system has below the recommended %{warnColor}12GB memory %{textColor}.     Try running with lower settings if you encounter out-of-memory crashes",
+				intelGpuWarning = "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.      Your experience might be sub optimal.",
 			},
 			initialSpawn = {
 				ready = "Ready",

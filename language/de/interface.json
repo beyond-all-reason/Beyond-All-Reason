@@ -552,6 +552,9 @@
 			"aliveCommanders": "Kommandanten: %{count}",
 			"difficultyLevel": "Schwierigkeit: %{count}"
 		},
+		"loadScreen": {
+			"intelGpuWarning": "%{textColor}Du verwendest eine integrierte %{warnColor}Intel-Grafikkarte%{textColor}. Diese wird derzeit%{warnColor}nicht unterstüzt, das Spiel wird deshalb nicht ordnungsgemäß funktionieren."
+		},
 		"initialSpawn": {
 			"ready": "Bereit",
 			"unready": "Nicht Bereit",

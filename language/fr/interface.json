@@ -594,6 +594,9 @@
 				"endless": "Infini"
 			}
 		},
+		"loadScreen": {
+			"intelGpuWarning": "%{textColor}Vous utilisez le %{warnColor} chipset graphique Intel intégré%{textColor}. Il n'est actuellement %{warnColor} pas pris en charge, le jeu ne fonctionnera pas correctement."
+		},
 		"initialSpawn": {
 			"ready": "Prêt",
 			"unready": "Pas prêt",
