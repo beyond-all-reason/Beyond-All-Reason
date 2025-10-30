@@ -57,23 +57,26 @@ local damage, time, range, resistance = 30, 10, 75, "none"
 --------------------------------------------------------------------------------
 -- Cached globals --------------------------------------------------------------
 
-local max                    = math.max
-local min                    = math.min
-local floor                  = math.floor
+local max                     = math.max
+local min                     = math.min
+local floor                   = math.floor
+local sqrt                    = math.sqrt
+local diag                    = math.diag
+local normalize               = math.normalize
 
-local spAddUnitDamage        = Spring.AddUnitDamage
-local spGetFeatureHealth     = Spring.GetFeatureHealth
-local spGetFeaturePosition   = Spring.GetFeaturePosition
-local spGetFeaturesInSphere  = Spring.GetFeaturesInSphere
-local spGetGroundHeight      = Spring.GetGroundHeight
-local spGetGroundNormal      = Spring.GetGroundNormal
-local spGetUnitDefID         = Spring.GetUnitDefID
-local spGetUnitPosition      = Spring.GetUnitPosition
-local spGetUnitsInSphere     = Spring.GetUnitsInSphere
-local spSetFeatureHealth     = Spring.SetFeatureHealth
-local spSpawnCEG             = Spring.SpawnCEG
+local spAddUnitDamage         = Spring.AddUnitDamage
+local spGetFeatureHealth      = Spring.GetFeatureHealth
+local spGetFeaturePosition    = Spring.GetFeaturePosition
+local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
+local spGetGroundHeight       = Spring.GetGroundHeight
+local spGetGroundNormal       = Spring.GetGroundNormal
+local spGetUnitDefID          = Spring.GetUnitDefID
+local spGetUnitPosition       = Spring.GetUnitPosition
+local spGetUnitsInCylinder    = Spring.GetUnitsInCylinder
+local spSetFeatureHealth      = Spring.SetFeatureHealth
+local spSpawnCEG              = Spring.SpawnCEG
 
-local gameSpeed              = Game.gameSpeed
+local gameSpeed               = Game.gameSpeed
 
 --------------------------------------------------------------------------------
 -- Local variables -------------------------------------------------------------
@@ -178,17 +181,28 @@ end
 local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectileID)
     local explosion = timedDamageWeapons[weaponDefID]
     local elevation = max(spGetGroundHeight(px, pz), 0)
+
     if py <= elevation + explosion.range then
         local dx, dy, dz
         if elevation > 0 then
             dx, dy, dz = spGetGroundNormal(px, pz, true)
+        else
+            dx, dy, dz = 0, 1, 0
         end
+
+        local minY = elevation - explosion.range
+        if minY < 0 then
+            minY = minY * (1 - dy * 0.5) -- avoid damage to submerged targets
+        end
+
         local area = {
             weapon     = weaponDefID,
             owner      = attackerID,
             x          = px,
             y          = elevation,
             z          = pz,
+            ymin       = minY,
+            ymax       = elevation + explosion.range,
             dx         = dx,
             dy         = dy,
             dz         = dz,
@@ -199,6 +213,7 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
             damageCeg  = explosion.damageCeg,
             endFrame   = explosion.frames + frameNumber,
         }
+
         local index = bisectDamage(frameExplosions, area.damage, 1, #frameExplosions)
         table.insert(frameExplosions, index, area)
     end
@@ -210,21 +225,68 @@ local function spawnAreaCEGs(loopIndex)
     end
 end
 
+---We prefer the target's midpoint if it is in the radius since the damaged CEGs are easier to see higher up
+---on the model, but if it is too high/awkward then the base position is fine, with a small vertical offset.
+---@param area table contains the timed area properties
+---@param baseX number unit base position coordinates <x, y, z>
+---@param baseY number
+---@param baseZ number
+---@param midX number unit midpoint position coordinates <x, y, z>
+---@param midY number
+---@param midZ number
+---@return number? hitX reference coordinates <x, y, z>
+---@return number? hitY
+---@return number? hitZ
+local function getAreaHitPosition(area, baseX, baseY, baseZ, midX, midY, midZ)
+	local radius = area.range
+
+	if midY >= area.ymin and midY <= area.ymax then
+		if diag(midX - area.x, midY - area.y, midZ - area.z) <= radius then
+			return midX, midY, midZ
+		end
+	end
+
+	if baseY >= area.ymin and baseY <= area.ymax then
+		local dx = baseX - area.x
+		local dy = baseY - area.y
+		local dz = baseZ - area.z
+
+		if diag(dx, dy, dz) <= radius then
+			-- The unit base point is in the area and the mid point is not.
+			-- Find the intersection of a ray from mid->base onto the area.
+			local rx, ry, rz = normalize(baseX - midX, baseY - midY, baseZ - midZ)
+
+			local a = rx * rx + ry * ry + rz * rz
+			local b = (dx * rx + dy * ry + dz * rz) * 2
+			local c = dx * dx + dy * dy + dz * dz - radius * radius
+
+			-- We already know the discriminant is positive:
+			local discriminant = b * b - 4 * a * c
+			local t = (b + sqrt(discriminant)) / (2 * a)
+
+			return
+				midX + t * rx,
+				midY + t * ry,
+				midZ + t * rz
+		end
+	end
+end
+
 ---Applies a simple formula to keep damage under a limit when many areas of effect overlap.
 ---Stronger areas partially ignore the preset limit but not damage accumulation on the target.
 ---Damage may be reduced enough that the CEG effect for indicating damage should not be shown.
 ---@param incoming number The area weapon's damage to the target
 ---@param accumulated number The target's area damage taken in the current interval
----@return number damage
+---@return number damageDealt
 ---@return boolean showDamageCeg
 local function getLimitedDamage(incoming, accumulated)
     local ignoreLimit = max(0, incoming - damageLimit - accumulated)
     local belowLimit = max(0, min(damageLimit - accumulated, incoming))
     local aboveLimit = incoming - belowLimit - ignoreLimit
 
-    local damage = ignoreLimit + belowLimit + aboveLimit * damageExcessRate
+	local damageDealt = ignoreLimit + belowLimit + aboveLimit * damageExcessRate
 
-    return damage, damage >= incoming * damageCegMinMultiple or damage >= damageCegMinScalar
+	return damageDealt, damageDealt >= incoming * damageCegMinMultiple or damageDealt >= damageCegMinScalar
 end
 
 local function damageTargetsInAreas(timedAreas, gameFrame)
@@ -235,12 +297,13 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 
     for index = length, 1, -1 do
         local area = timedAreas[index]
-        local unitsInRange = spGetUnitsInSphere(area.x, area.y, area.z, area.range)
+        local x, z, radius = area.x, area.z, area.range
+
+        local unitsInRange = spGetUnitsInCylinder(x, z, radius)
+
         for j = 1, #unitsInRange do
             local unitID = unitsInRange[j]
-            if unitDamageImmunity[spGetUnitDefID(unitID)][area.resistance] == nil
-                and isNewUnit[unitID] == nil
-            then
+            if not unitDamageImmunity[spGetUnitDefID(unitID)][area.resistance] and not isNewUnit[unitID] then
                 local damageTaken = unitDamageTaken[unitID]
                 if not damageTaken then
                     damageTaken = 0
@@ -270,27 +333,39 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 
     for index = length, 1, -1 do
         local area = timedAreas[index]
-        local featuresInRange = spGetFeaturesInSphere(area.x, area.y, area.z, area.range)
+        local x, z, radius = area.x, area.z, area.range
+
+        local featuresInRange = spGetFeaturesInCylinder(x, z, radius)
+
         for j = 1, #featuresInRange do
             local featureID = featuresInRange[j]
+
             if not featDamageImmunity[featureID] then
-                local damageTaken = featDamageTaken[featureID]
-                if not damageTaken then
-                    damageTaken = 0
-                    count = count + 1
-                    resetNewFeat[count] = featureID
-                end
-                local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
-                if showDamageCeg then
-                    local fx, fy, fz = spGetFeaturePosition(featureID)
-                    spSpawnCEG(area.damageCeg, fx, fy, fz)
-                end
-                local health = spGetFeatureHealth(featureID) - damage
-                if health > 1 then
-                    spSetFeatureHealth(featureID, health)
-                    featDamageTaken[featureID] = damageTaken + damage
-                else
-                    Spring.DestroyFeature(featureID)
+                local hitX, hitY, hitZ = getAreaHitPosition(area, spGetFeaturePosition(featureID, true))
+
+                if hitX then
+                    local damageTaken = featDamageTaken[featureID]
+
+                    if not damageTaken then
+                        damageTaken = 0
+                        count = count + 1
+                        resetNewFeat[count] = featureID
+                    end
+
+                    local damageDealt, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
+
+                    if showDamageCeg then
+                        spSpawnCEG(area.damageCeg, hitX, hitY, hitZ)
+                    end
+
+                    local health = spGetFeatureHealth(featureID) - damageDealt
+
+                    if health > 1 then
+                        spSetFeatureHealth(featureID, health)
+                        featDamageTaken[featureID] = damageTaken + damageDealt
+                    else
+                        Spring.DestroyFeature(featureID)
+                    end
                 end
             end
         end
