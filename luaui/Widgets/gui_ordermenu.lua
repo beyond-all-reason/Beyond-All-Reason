@@ -54,7 +54,6 @@ local commandInfo = {
 	upgrademex		= { red = 0.93,	green = 0.93,	blue = 0.93 },
 	loadunits		= { red = 0.1,	green = 0.7,	blue = 1 },
 	unloadunits		= { red = 0,	green = 0.5,	blue = 1 },
-	landatairbase	= { red = 0.4,	green = 0.7,	blue = 0.4 },
 	wantcloak		= { red = nil,	green = nil,	blue = nil },
 	onoff			= { red = nil,	green = nil,	blue = nil },
 	sellunit		= { red = nil,	green = nil,	blue = nil },
@@ -98,6 +97,7 @@ local hiddenCommands = {
 	[CMD.SQUADWAIT] = true,
 	[CMD.DEATHWAIT] = true,
 	[CMD.TIMEWAIT] = true,
+	[CMD.AUTOREPAIRLEVEL] = true, -- retreat/idle mode (air repair pads removed)
 	[39812] = true, -- raw move
 	[34922] = true, -- set unit target
 }
@@ -278,6 +278,35 @@ local function refreshCommands()
 	end
 	for i = 1, otherCommandsCount do
 		commands[i + stateCommandsCount + waitCommandCount] = otherCommands[i]
+	end
+
+	-- OPTIMIZATION: Cache the display text for each command
+	for _, cmd in ipairs(commands) do
+		local text
+		-- First element of params represents selected state index, but Spring engine implementation returns a value 2 less than the actual index
+		local stateOffset = 2
+
+		if isStateCommand[cmd.id] then
+			local currentStateIndex = cmd.params[1]
+			if currentStateIndex then
+				local commandState = cmd.params[currentStateIndex + stateOffset]
+				if commandState then
+					text = Spring.I18N('ui.orderMenu.' .. commandState)
+				else
+					text = '?'
+				end
+			else
+				text = '?'
+			end
+		else
+			if cmd.action == 'stockpile' then
+				-- Stockpile command name gets mutated to reflect the current status, so can just pass it in
+				text  = Spring.I18N('ui.orderMenu.' .. cmd.action, { stockpileStatus = cmd.name })
+			else
+				text = Spring.I18N('ui.orderMenu.' .. cmd.action)
+			end
+		end
+		cmd.cachedText = text -- Store the translated text
 	end
 
 	setupCellGrid(false)
@@ -574,30 +603,8 @@ local function drawCell(cell, zoom)
 
 		-- text
 		if not showIcons or not cursorTextures[cmd.cursor] then
-			local text
-			-- First element of params represents selected state index, but Spring engine implementation returns a value 2 less than the actual index
-			local stateOffset = 2
-
-			if isStateCommand[cmd.id] then
-				local currentStateIndex = cmd.params[1]
-				if currentStateIndex then
-					local commandState = cmd.params[currentStateIndex + stateOffset]
-					if commandState then
-						text = Spring.I18N('ui.orderMenu.' .. commandState)
-					else
-						text = '?'
-					end
-				else
-					text = '?'
-				end
-			else
-				if cmd.action == 'stockpile' then
-					-- Stockpile command name gets mutated to reflect the current status, so can just pass it in
-					text  = Spring.I18N('ui.orderMenu.' .. cmd.action, { stockpileStatus = cmd.name })
-				else
-					text = Spring.I18N('ui.orderMenu.' .. cmd.action)
-				end
-			end
+			-- OPTIMIZATION: Use the cached text instead of recalculating it
+			local text = cmd.cachedText or '?'
 
 			local fontSize = cellInnerWidth / font:GetTextWidth('  ' .. text .. ' ') * math_min(1, (cellInnerHeight / (rows * 6)))
 			if fontSize > cellInnerWidth / 7 then

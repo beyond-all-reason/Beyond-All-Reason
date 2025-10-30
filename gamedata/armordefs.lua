@@ -98,8 +98,6 @@ local armorDefs = {
 		"armamph",
 		"armanac",
 		"armap",
-		"armasp",
-		"armfasp",
 		"armbrtha",
 		"armch",
 		"armck",
@@ -189,8 +187,6 @@ local armorDefs = {
 		"corah",
 		"corak",
 		"corap",
-		"corasp",
-		"corfasp",
 		"corbhmth",
 		"legrampart",
 		"corbuzz",
@@ -463,7 +459,15 @@ local armorDefs = {
 		"legmohocon",
 		"legmohoconct",
 		"leghrk",
-		"legfdrag"
+		"legfdrag",
+
+		"armnavaldefturret",
+		"cornavaldefturret",
+		"legnavaldefturret",
+		"armanavaldefturret",
+		"coranavaldefturret",
+		"leganavaldefturret",
+
 	},
 	mines = {
 		"armfmine3",

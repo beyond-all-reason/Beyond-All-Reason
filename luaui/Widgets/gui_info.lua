@@ -36,6 +36,7 @@ local iconTypes = VFS.Include("gamedata/icontypes.lua")
 local vsx, vsy = Spring.GetViewGeometry()
 
 local hoverType, hoverData = '', ''
+local customHoverType, customHoverData = nil, nil  -- For external widgets (like PIP) to supply hover info
 local sound_button = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_button2 = 'LuaUI/Sounds/buildbar_rem.wav'
 
@@ -675,6 +676,15 @@ function widget:Initialize()
 	WG['info'].getIsShowing = function()
 		return infoShows
 	end
+	WG['info'].setCustomHover = function(hType, hData)
+		-- Allow external widgets to supply custom hover info (e.g., PIP window)
+		customHoverType = hType
+		customHoverData = hData
+	end
+	WG['info'].clearCustomHover = function()
+		customHoverType = nil
+		customHoverData = nil
+	end
 	if WG['buildmenu'] then
 		if WG['buildmenu'].getGroups then
 			groups, unitGroup = WG['buildmenu'].getGroups()
@@ -1088,7 +1098,7 @@ local function drawUnitInfo()
 		end
 		local halfSize = iconSize * 0.5
 		local padding = (halfSize + halfSize) * 0.045
-		local size = (halfSize + halfSize) * 0.18
+		local size = (halfSize + halfSize) * 0.195
 		local metalPriceText = "\255\245\245\245" .. AddSpaces(unitDefInfo[displayUnitDefID].metalCost)
 		local energyPriceText = "\n\255\255\255\000" .. AddSpaces(unitDefInfo[displayUnitDefID].energyCost)
 		local energyPriceTextHeight = font2:GetTextHeight(energyPriceText) * size
@@ -1215,6 +1225,7 @@ local function drawUnitInfo()
 		if mySpec or (myTeamID ~= teamID) then
 			local _, playerID, _, isAiTeam = Spring.GetTeamInfo(teamID, false)
 			local name = Spring.GetPlayerInfo(playerID, false)
+			name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 			if isAiTeam then
 				name = GetAIName(teamID)
 			end
@@ -1232,8 +1243,8 @@ local function drawUnitInfo()
 			end
 		end
 	else
-		valueY1 = metalColor .. unitDefInfo[displayUnitDefID].metalCost
-		valueY2 = energyColor .. unitDefInfo[displayUnitDefID].energyCost
+		--valueY1 = metalColor .. unitDefInfo[displayUnitDefID].metalCost
+		--valueY2 = energyColor .. unitDefInfo[displayUnitDefID].energyCost
 		valueY3 = healthColor .. unitDefInfo[displayUnitDefID].health
 	end
 
@@ -2092,7 +2103,19 @@ end
 function checkChanges()
 	hideBuildlist = nil	-- only set for pregame startunit
 	local x, y, b, _, _, _, cameraPanMode = spGetMouseState()
-	hoverType, hoverData = spTraceScreenRay(x, y)
+	
+	-- Use custom hover if provided by external widget (e.g., PIP window)
+	-- or skip hover detection if PIP window is above (to prevent showing units below PIP)
+	if customHoverType and customHoverData then
+		hoverType = customHoverType
+		hoverData = customHoverData
+	elseif WG['guiPip'] and WG['guiPip'].IsAbove and WG['guiPip'].IsAbove(x, y) then
+		-- PIP window is above the cursor, don't detect anything below it
+		hoverType = nil
+		hoverData = nil
+	else
+		hoverType, hoverData = spTraceScreenRay(x, y)
+	end
 
 	local prevDisplayMode = displayMode
 	local prevDisplayUnitDefID = displayUnitDefID

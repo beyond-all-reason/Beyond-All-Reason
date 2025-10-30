@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Deny Invalid Mex Orders",
-		desc = "Denies mex build orders where there's no 100% yield",
+		desc = "Denies mex build orders where there's no 100% yield and double building mexes",
 		author = "badosu",
 		version = "v1.0",
 		date = "December 2023",
@@ -13,11 +13,20 @@ function gadget:GetInfo()
 	}
 end
 
-local CMD_INSERT = CMD.INSERT
-
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
+
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetPlayerInfo = Spring.GetPlayerInfo
+local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
+
+local CMD_INSERT = CMD.INSERT
+
+local gExtractorRadius = Game.extractorRadius
 
 local isMex = {}
 for uDefID, uDef in pairs(UnitDefs) do
@@ -29,7 +38,8 @@ end
 local metalSpotsList
 
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(CMD.ANY)
+	gadgetHandler:RegisterAllowCommand(CMD.BUILD)
+	gadgetHandler:RegisterAllowCommand(CMD.INSERT)
 	local isMetalMap = GG["resource_spot_finder"].isMetalMap
 	if isMetalMap then
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Metal map detected, removing self")
@@ -38,8 +48,21 @@ function gadget:Initialize()
 	metalSpotsList = GG["resource_spot_finder"].metalSpotsList
 end
 
+local function mexExists(spot, allyTeamID, cmdX, cmdZ)
+	local units = spGetUnitsInCylinder(spot.x, spot.z, gExtractorRadius)
+	for _, unit in ipairs(units) do
+		if isMex[spGetUnitDefID(unit)] then
+			local ux, _, uz = spGetUnitPosition(unit)
+			if not(ux == cmdX and uz == cmdZ) and spGetUnitAllyTeam(unit) == allyTeamID then -- exclude upgrading mexes
+				return true
+			end
+		end
+	end
+	return false
+end
+
 -- function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-function gadget:AllowCommand(_, _, _, cmdID, cmdParams)
+function gadget:AllowCommand(_, _, _, cmdID, cmdParams, _, _, playerID)
 	local isInsert = cmdID == CMD_INSERT
 	if isInsert and cmdParams[2] then
 		cmdID = cmdParams[2] -- this is where the ID is placed in prepended commands with commandinsert
@@ -62,5 +85,19 @@ function gadget:AllowCommand(_, _, _, cmdID, cmdParams)
 		return false
 	end
 
-	return true
+	return not mexExists(closestSpot, select(5, spGetPlayerInfo(playerID)), bx, bz)
+end
+
+-- function gadget:AllowUnitCreation(unitDefID, builderID, teamID, x, y, z, facing)
+function gadget:AllowUnitCreation(unitDefID, _, teamID, x, _, z)
+	if not isMex[unitDefID] then
+		return true
+	end
+
+	local closestSpot = math.getClosestPosition(x, z, metalSpotsList)
+	if not closestSpot then
+		return false
+	end
+	
+	return not mexExists(closestSpot, spGetTeamAllyTeamID(teamID), x, z)
 end

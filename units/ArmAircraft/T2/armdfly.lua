@@ -29,8 +29,8 @@ return {
 		script = "Units/ARMDFLY.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
-		sightdistance = 318,
-		speed = 241.5,
+		sightdistance = 430,
+		speed = 225,
 		stealth = true,
 		transportcapacity = 1,
 		transportsize = 4,
@@ -39,13 +39,13 @@ return {
 		turnrate = 420,
 		unloadspread = 0,
 		customparams = {
+			crashable = 0,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "ArmAircraft/T2",
 			techlevel = 2,
 			unitgroup = "emp",
-			crashable = 0,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

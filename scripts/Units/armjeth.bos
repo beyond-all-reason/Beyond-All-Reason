@@ -379,14 +379,14 @@ FireWeapon2()
 	{
 		move lbarrel to z-axis [-2] speed [35.0];
 		wait-for-move lbarrel along z-axis;
-		emit-sfx 1024 from rexhaust;
+		emit-sfx 1024 from lexhaust;
 		move lbarrel to z-axis [0.0] speed [4.0];
 	}
 	else
 	{
 		move rbarrel to z-axis [-2] speed [35.0];
 		wait-for-move rbarrel along z-axis;
-		emit-sfx 1024 from lexhaust;
+		emit-sfx 1024 from rexhaust;
 		move rbarrel to z-axis [0.0] speed [4.0];
 	}
 	gun_3 = !gun_3;

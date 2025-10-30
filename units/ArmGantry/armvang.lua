@@ -129,20 +129,19 @@ return {
 				soundhit = "xplomed2",
 				soundhitwet = "splslrg",
 				soundstart = "cannhvy5",
-				targetborder = 1,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
+				customparams = {
+					exclude_preaim = true,
+					smart_backup = true,
+				},
 				damage = {
 					commanders = 1100,
 					default = 1265,
 					shields = 765,
 					subs = 500,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_backup = true,
-				}
 			},
 			shocker_low = {
 				areaofeffect = 192,
@@ -168,20 +167,19 @@ return {
 				soundhit = "xplomed2",
 				soundhitwet = "splslrg",
 				soundstart = "cannhvy5",
-				targetborder = 1,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
+				customparams = {
+					exclude_preaim = true,
+					smart_priority = true,
+				},
 				damage = {
 					commanders = 1100,
 					default = 1265,
 					shields = 765,
 					subs = 500,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_priority = true,
-				}
 			},
 			smart_trajectory_dummy = {
 				areaofeffect = 192,
@@ -207,17 +205,16 @@ return {
 				soundhit = "xplomed2",
 				soundhitwet = "splslrg",
 				soundstart = "cannhvy5",
-				targetborder = 1,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
-				damage = {
-					default = 0,
-				},
 				customparams = {
 					exclude_preaim = true,
 					smart_trajectory_checker = true,
-				}
+				},
+				damage = {
+					default = 0,
+				},
 			},
 		},
 		weapons = {

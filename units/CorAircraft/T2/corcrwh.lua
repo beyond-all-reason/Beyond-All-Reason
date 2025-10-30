@@ -124,11 +124,11 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1250,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					vtol = 76,
-				},
-				customparams = {
-					noattackrangearc= 1,
 				},
 			},
 			dragonmawh = {
