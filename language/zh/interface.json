@@ -676,7 +676,6 @@
 			}
 		},
 		"loadScreen": {
-			"intelGpuWarning": "%{textColor}您正在使用 %{warnColor}英特尔集成%{textColor} 显卡。它是%{warnColor}不被支持的，游戏无法完全正常地运行。",
 			"lowRamWarning": "%{textColor}您的系统内存低于推荐的%{warnColor}12GB内存%{textColor}. 如果遇到内存不足导致的崩溃，请尝试降低游戏设置再运行游戏。"
 		},
 		"initialSpawn": {
