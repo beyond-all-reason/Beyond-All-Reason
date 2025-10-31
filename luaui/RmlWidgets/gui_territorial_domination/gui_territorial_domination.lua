@@ -107,12 +107,13 @@ local initialModel = {
 	pointsCap = 0,
 	prevHighestScore = 0,
 	timeRemaining = TIME_ZERO_STRING,
-	roundDisplayText = "Round 1/7",
+	roundDisplayText = spI18N('ui.territorialDomination.round.displayDefault', { maxRounds = DEFAULT_MAX_ROUNDS }),
 	timeRemainingSeconds = 0,
 	isCountdownWarning = false,
 	territoryCount = 0,
 	territoryPoints = 0,
 	pointsPerTerritory = 0,
+	territoryWorthText = "",
 	currentScore = 0,
 	combinedScore = 0,
 	teamName = "",
@@ -403,7 +404,7 @@ local function updateLeaderboard()
 	
 	if #eliminatedTeams > 0 then
 		if eliminationThreshold > 0 then
-			separatorTextElement.inner_rml = "Elimination Threshold: " .. tostring(eliminationThreshold) .. "p"
+			separatorTextElement.inner_rml = spI18N('ui.territorialDomination.elimination.threshold', { threshold = eliminationThreshold })
 			separatorElement:SetClass("hidden", false)
 		else
 			separatorElement:SetClass("hidden", true)
@@ -765,11 +766,11 @@ local function updateRoundInfo()
 
 	local roundDisplayText
 	if currentRound > maxRounds then
-		roundDisplayText = "Round " .. tostring(maxRounds) .. "/" .. tostring(maxRounds)
+		roundDisplayText = spI18N('ui.territorialDomination.round.displayMax', { maxRounds = maxRounds })
 	elseif currentRound == 0 then
-		roundDisplayText = "Round 1/" .. tostring(maxRounds)
+		roundDisplayText = spI18N('ui.territorialDomination.round.displayDefault', { maxRounds = maxRounds })
 	else
-		roundDisplayText = "Round " .. tostring(currentRound) .. "/" .. tostring(maxRounds)
+		roundDisplayText = spI18N('ui.territorialDomination.round.displayWithMax', { currentRound = currentRound, maxRounds = maxRounds })
 	end
 
 	local isFinalRound = currentRound >= maxRounds and timeRemainingSeconds <= 0
@@ -864,7 +865,7 @@ local function updatePlayerDisplay()
 		end
 		
 		if playerRank > 0 then
-			rankDisplayText = "Rank " .. tostring(playerRank)
+			rankDisplayText = spI18N('ui.territorialDomination.rank.display', { rank = playerRank })
 		end
 		
 	local playerCombinedScore = currentScore + projectedPoints
@@ -874,22 +875,22 @@ local function updatePlayerDisplay()
 	local isFinalRound = (currentRound == maxRounds) or (dataModel.isFinalRound or false)
 	
 	if isFinalRound then
-		eliminationText = "Final Round"
+		eliminationText = spI18N('ui.territorialDomination.elimination.finalRound')
 		isAboveElimination = false
 	elseif eliminationThreshold > 0 then
 		local difference = playerCombinedScore - eliminationThreshold
 		if difference > 0 then
-			eliminationText = tostring(difference) .. "p above elimination"
+			eliminationText = spI18N('ui.territorialDomination.elimination.aboveElimination', { points = difference })
 			isAboveElimination = true
 		elseif difference < 0 then
-			eliminationText = tostring(math.abs(difference)) .. "p below elimination"
+			eliminationText = spI18N('ui.territorialDomination.elimination.belowElimination', { points = math.abs(difference) })
 			isAboveElimination = false
 		else
-			eliminationText = "0p above elimination"
+			eliminationText = spI18N('ui.territorialDomination.elimination.zeroAboveElimination')
 			isAboveElimination = true
 		end
 	else
-		eliminationText = "Eliminations next round"
+		eliminationText = spI18N('ui.territorialDomination.elimination.eliminationsNextRound')
 		isAboveElimination = true
 	end
 		
@@ -898,9 +899,9 @@ local function updatePlayerDisplay()
 				local secondPlaceScore = (allyTeams[2].score or 0) + (allyTeams[2].projectedPoints or 0)
 				local leadingMargin = playerCombinedScore - secondPlaceScore
 				if leadingMargin > 0 then
-					advanceText = "Leading by " .. tostring(leadingMargin)
+					advanceText = spI18N('ui.territorialDomination.advancement.leadingBy', { points = leadingMargin })
 				elseif leadingMargin == 0 then
-					advanceText = "1p to advance"
+					advanceText = spI18N('ui.territorialDomination.advancement.onePointToAdvance')
 				else
 					advanceText = ""
 				end
@@ -912,9 +913,9 @@ local function updatePlayerDisplay()
 			local aheadScore = (aheadTeam.score or 0) + (aheadTeam.projectedPoints or 0)
 			local pointsNeeded = aheadScore - playerCombinedScore + 1
 			if aheadScore == playerCombinedScore then
-				advanceText = "1p to advance"
+				advanceText = spI18N('ui.territorialDomination.advancement.onePointToAdvance')
 			elseif pointsNeeded > 0 then
-				advanceText = tostring(pointsNeeded) .. "p to advance"
+				advanceText = spI18N('ui.territorialDomination.advancement.pointsToAdvance', { points = pointsNeeded })
 			else
 				advanceText = ""
 			end
@@ -929,6 +930,7 @@ local function updatePlayerDisplay()
 	dataModel.territoryCount = territoryCount
 	dataModel.territoryPoints = projectedPoints
 	dataModel.pointsPerTerritory = pointsPerTerritory
+	dataModel.territoryWorthText = spI18N('ui.territorialDomination.territories.worth', { points = pointsPerTerritory })
 	dataModel.currentScore = currentScore
 	dataModel.combinedScore = currentScore + projectedPoints
 	dataModel.teamName = teamName

@@ -700,15 +700,46 @@
 			"round": {
 				"display": "Round %{currentRound}",
 				"displayWithMax": "Round %{currentRound}/%{maxRounds}",
+				"displayDefault": "Round 1/%{maxRounds}",
+				"displayMax": "Round %{maxRounds}/%{maxRounds}",
 				"overtime": "Overtime",
 				"finalRound": "Final Round"
 			},
 			"team": {
 				"ally": "Ally %{allyNumber}"
 			},
+			"rank": {
+				"display": "Rank %{rank}"
+			},
+			"advancement": {
+				"leadingBy": "Leading by %{points}",
+				"pointsToAdvance": "%{points}p to advance",
+				"onePointToAdvance": "1p to advance"
+			},
+			"elimination": {
+				"aboveElimination": "%{points}p above elimination",
+				"belowElimination": "%{points}p below elimination",
+				"zeroAboveElimination": "0p above elimination",
+				"eliminationsNextRound": "Eliminations next round",
+				"finalRound": "Final Round",
+				"threshold": "Elimination Threshold: %{threshold}p"
+			},
+			"territories": {
+				"worth": "Territories are worth %{points}p"
+			},
+			"scoreboard": {
+				"title": "Scoreboard",
+				"viewLeaderboard": "View leaderboard",
+				"headerRank": "Rank",
+				"headerTeam": "Team",
+				"headerScore": "Score",
+				"headerTerritories": "Territories",
+				"headerGains": "Gains",
+				"headerTotal": "Total",
+				"eliminationThreshold": "Elimination Threshold"
+			},
 			"danger": "DANGER",
 			"defeated": "DEFEATED",
-			"rank": "#%{rank}",
 			"eliminationBelow": "Elimination Below %{value}"
 		},
 		"loadScreen": {
