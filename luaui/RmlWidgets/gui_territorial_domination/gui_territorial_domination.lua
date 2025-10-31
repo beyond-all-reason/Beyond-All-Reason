@@ -33,24 +33,19 @@ local spGetSpectatingState = Spring.GetSpectatingState
 local spI18N = Spring.I18N
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local spGetTeamInfo = Spring.GetTeamInfo
+local spGetPlayerInfo = Spring.GetPlayerInfo
+local spGetAIInfo = Spring.GetAIInfo
+local ColorString = Spring.Utilities.Color.ToString
 
-local DISPLAY_LIMIT = 8
 local DEFAULT_MAX_ROUNDS = 7
 local DEFAULT_POINTS_CAP = 100
-
-local COLOR_MULTIPLIER = 255
 local DEFAULT_COLOR_VALUE = 0.5
-local DARK_COLOR_MULTIPLIER = 0.25
-local BACKGROUND_COLOR_ALPHA = 204
-local PROJECTED_COLOR_ALPHA = 100
-local FILL_COLOR_ALPHA = 230
 
 local SECONDS_PER_MINUTE = 60
 local COUNTDOWN_ALERT_THRESHOLD = 60
 local COUNTDOWN_WARNING_THRESHOLD = 10
 local ROUND_END_POPUP_DELAY = 3
 local POPUP_FADE_OUT_DURATION = 0.5
-local DANGER_INITIAL_DURATION = 8
 
 local UPDATE_INTERVAL = 0.5
 local SCORE_UPDATE_INTERVAL = 2.0
@@ -68,8 +63,6 @@ local widgetState = {
 	lastTimeUpdateTime = 0,
 	lastScoreUpdateTime = 0,
 	allyTeamData = {},
-	scoreElements = {},
-	displayedTeamIds = {},
 	hiddenByLobby = false,
 	isDocumentVisible = false,
 	popupState = {
@@ -77,7 +70,6 @@ local widgetState = {
 		showTime = 0,
 		fadeOutStartTime = nil,
 	},
-	dangerStates = {},
 	cachedData = {
 		allyTeams = {},
 		roundInfo = {},
@@ -96,7 +88,9 @@ local widgetState = {
 	lastGameTime = 0,
 	updateCounter = 0,
 	lastTimeRemainingSeconds = 0,
-	lastHaloUpdateTime = 0,
+	leaderboardPanel = nil,
+	isLeaderboardVisible = false,
+	lastRoundScores = {},
 }
 
 local initialModel = {
@@ -122,7 +116,94 @@ local initialModel = {
 	eliminationText = "",
 	isAboveElimination = false,
 	isFinalRound = false,
+	leaderboardTeams = {},
 }
+
+local function getAIName(teamID)
+	local _, _, _, name, _, options = spGetAIInfo(teamID)
+	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
+	
+	if niceName then
+		name = niceName
+		
+		if Spring.Utilities.ShowDevUI() and options.profile then
+			name = name .. " [" .. options.profile .. "]"
+		end
+	end
+	
+	return Spring.I18N('ui.playersList.aiName', { name = name })
+end
+
+local function getAllyTeamPlayerNames(allyTeamID)
+	local teamList = spGetTeamList(allyTeamID)
+	if not teamList or #teamList == 0 then
+		return spI18N('ui.territorialDomination.team.ally', { allyNumber = allyTeamID + 1 })
+	end
+	
+	local playerNames = {}
+	local seenPlayerIDs = {}
+	local myTeamID = Spring.GetMyTeamID()
+	local mySpecStatus = spGetSpectatingState()
+	local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+	
+	for i = 1, #teamList do
+		local teamID = teamList[i]
+		local _, playerID, _, isAI = spGetTeamInfo(teamID, false)
+		
+		if isAI then
+			local name = getAIName(teamID)
+			local r, g, b = spGetTeamColor(teamID)
+			if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
+				local anonymousColorR = Spring.GetConfigInt("anonymousColorR", 255) / 255
+				local anonymousColorG = Spring.GetConfigInt("anonymousColorG", 0) / 255
+				local anonymousColorB = Spring.GetConfigInt("anonymousColorB", 0) / 255
+				r, g, b = anonymousColorR, anonymousColorG, anonymousColorB
+			end
+			
+			local rByte = math.floor(r * 255)
+			local gByte = math.floor(g * 255)
+			local bByte = math.floor(b * 255)
+			local colorHex = string.format("#%02X%02X%02X", rByte, gByte, bByte)
+			
+			table.insert(playerNames, {
+				name = name,
+				color = colorHex
+			})
+		elseif playerID and not seenPlayerIDs[playerID] then
+			seenPlayerIDs[playerID] = true
+			local name, _, spec = spGetPlayerInfo(playerID, false)
+			if name and not spec then
+				if WG.playernames and WG.playernames.getPlayername then
+					name = WG.playernames.getPlayername(playerID) or name
+				end
+				
+				local r, g, b = spGetTeamColor(teamID)
+				if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
+					local anonymousColorR = Spring.GetConfigInt("anonymousColorR", 255) / 255
+					local anonymousColorG = Spring.GetConfigInt("anonymousColorG", 0) / 255
+					local anonymousColorB = Spring.GetConfigInt("anonymousColorB", 0) / 255
+					r, g, b = anonymousColorR, anonymousColorG, anonymousColorB
+				end
+				
+				local rByte = math.floor(r * 255)
+				local gByte = math.floor(g * 255)
+				local bByte = math.floor(b * 255)
+				local colorHex = string.format("#%02X%02X%02X", rByte, gByte, bByte)
+				
+				table.insert(playerNames, {
+					name = name,
+					color = colorHex
+				})
+			end
+		end
+	end
+	
+	if #playerNames == 0 then
+		return spI18N('ui.territorialDomination.team.ally', { allyNumber = allyTeamID + 1 })
+	end
+	
+	return playerNames
+end
 
 local function getAllyTeamColor(allyTeamID)
 	local teamList = spGetTeamList(allyTeamID)
@@ -145,6 +226,164 @@ local function isPlayerInFirstPlace()
 	if #allyTeams == 0 then return false end
 
 	return allyTeams[1].allyTeamID == myAllyTeamID
+end
+
+local function buildLeaderboardRow(team, rank, isEliminated)
+	local row = widgetState.document:CreateElement("div")
+	row.class_name = "leaderboard-team-row"
+	if isEliminated then
+		row:SetClass("eliminated", true)
+	end
+	
+	local teamColor = team.color or { r = 0.5, g = 0.5, b = 0.5 }
+	local rByte = math.floor(teamColor.r * 255)
+	local gByte = math.floor(teamColor.g * 255)
+	local bByte = math.floor(teamColor.b * 255)
+	local bgColor = string.format("rgba(%d, %d, %d, 35)", rByte, gByte, bByte)
+	row:SetAttribute("style", "background-color: " .. bgColor .. ";")
+	
+	local rankDiv = widgetState.document:CreateElement("div")
+	rankDiv.class_name = "leaderboard-rank"
+	rankDiv.inner_rml = tostring(rank)
+	
+	local nameDiv = widgetState.document:CreateElement("div")
+	nameDiv.class_name = "leaderboard-name"
+	
+	if type(team.name) == "table" then
+		for i = 1, #team.name do
+			local playerName = team.name[i]
+			local nameSpan = widgetState.document:CreateElement("div")
+			nameSpan.class_name = "leaderboard-player-name"
+			local styleStr = "color: " .. playerName.color .. ";"
+			nameSpan:SetAttribute("style", styleStr)
+			nameSpan.inner_rml = playerName.name
+			nameDiv:AppendChild(nameSpan)
+		end
+	else
+		nameDiv.inner_rml = team.name or ""
+	end
+	
+	local previousScoreDiv = widgetState.document:CreateElement("div")
+	previousScoreDiv.class_name = "leaderboard-previous"
+	local previousScore = team.score or 0
+	previousScoreDiv.inner_rml = tostring(previousScore) .. "p"
+	
+	local dataModel = widgetState.dmHandle
+	local currentRound = (dataModel and dataModel.currentRound) or 1
+	local pointsPerTerritory = currentRound > 0 and currentRound or 1
+	local territoryCount = pointsPerTerritory > 0 and math.floor((team.projectedPoints or 0) / pointsPerTerritory) or 0
+	
+	local territoriesDiv = widgetState.document:CreateElement("div")
+	territoriesDiv.class_name = "leaderboard-territories"
+	territoriesDiv.inner_rml = tostring(territoryCount)
+	
+	local gainsDiv = widgetState.document:CreateElement("div")
+	gainsDiv.class_name = "leaderboard-gains"
+	gainsDiv.inner_rml = tostring(team.projectedPoints or 0) .. "p"
+	
+	local totalDiv = widgetState.document:CreateElement("div")
+	totalDiv.class_name = "leaderboard-total"
+	local totalScore = previousScore + (team.projectedPoints or 0)
+	totalDiv.inner_rml = tostring(totalScore) .. "p"
+	
+	row:AppendChild(rankDiv)
+	row:AppendChild(nameDiv)
+	row:AppendChild(previousScoreDiv)
+	row:AppendChild(territoriesDiv)
+	row:AppendChild(gainsDiv)
+	row:AppendChild(totalDiv)
+	
+	return row
+end
+
+local function updateLeaderboard()
+	if not widgetState.document then return end
+	
+	local leaderboardPanel = widgetState.document:GetElementById("leaderboard-panel")
+	if not leaderboardPanel then return end
+	
+	local teamsContainer = widgetState.document:GetElementById("leaderboard-teams")
+	local eliminatedContainer = widgetState.document:GetElementById("leaderboard-eliminated")
+	local separatorElement = widgetState.document:GetElementById("elimination-separator")
+	
+	if not teamsContainer or not eliminatedContainer or not separatorElement then return end
+	
+	while teamsContainer:HasChildNodes() do
+		local child = teamsContainer:GetChild(0)
+		if child then
+			teamsContainer:RemoveChild(child)
+		else
+			break
+		end
+	end
+	
+	while eliminatedContainer:HasChildNodes() do
+		local child = eliminatedContainer:GetChild(0)
+		if child then
+			eliminatedContainer:RemoveChild(child)
+		else
+			break
+		end
+	end
+	
+	local allyTeams = widgetState.allyTeamData
+	if not allyTeams or #allyTeams == 0 then return end
+	
+	local dataModel = widgetState.dmHandle
+	local eliminationThreshold = (dataModel and dataModel.prevHighestScore) or 0
+	
+	local livingTeams = {}
+	local eliminatedTeams = {}
+	
+	for i = 1, #allyTeams do
+		local team = allyTeams[i]
+		local combinedScore = (team.score or 0) + (team.projectedPoints or 0)
+		local isEliminated = not team.isAlive or (eliminationThreshold > 0 and combinedScore < eliminationThreshold)
+		
+		if isEliminated then
+			table.insert(eliminatedTeams, { team = team, rank = i })
+		else
+			table.insert(livingTeams, { team = team, rank = i })
+		end
+	end
+	
+	for i = 1, #livingTeams do
+		local entry = livingTeams[i]
+		local row = buildLeaderboardRow(entry.team, entry.rank, false)
+		teamsContainer:AppendChild(row)
+	end
+	
+	if #eliminatedTeams > 0 then
+		separatorElement:SetClass("hidden", false)
+		for i = 1, #eliminatedTeams do
+			local entry = eliminatedTeams[i]
+			local row = buildLeaderboardRow(entry.team, entry.rank, true)
+			eliminatedContainer:AppendChild(row)
+		end
+	else
+		separatorElement:SetClass("hidden", true)
+	end
+end
+
+local function showLeaderboard()
+	if not widgetState.document then return end
+	
+	local leaderboardPanel = widgetState.document:GetElementById("leaderboard-panel")
+	if not leaderboardPanel then return end
+	
+	widgetState.isLeaderboardVisible = true
+	leaderboardPanel:SetClass("hidden", false)
+	updateLeaderboard()
+end
+
+local function hideLeaderboard()
+	if not widgetState.document then return end
+	
+	local leaderboardPanel = widgetState.document:GetElementById("leaderboard-panel")
+	if not leaderboardPanel then return end
+	
+	widgetState.isLeaderboardVisible = false
+	leaderboardPanel:SetClass("hidden", true)
 end
 
 local function calculateUILayout()
@@ -189,92 +428,6 @@ local function calculateUILayout()
 		local newStyle = string.format("left: 100vw; top: %.2fvh; transform: translate(-100%%, -100%%);", fallbackTopVh)
 		tdRootElement:SetAttribute("style", newStyle)
 	end
-end
-
-local function createColorStyle(color, alpha)
-	return string.format("rgba(%d, %d, %d, %d)",
-		color.r * COLOR_MULTIPLIER, color.g * COLOR_MULTIPLIER, color.b * COLOR_MULTIPLIER, alpha)
-end
-
-local function createScoreBarElement(parentDiv, allyTeam)
-	local document = widgetState.document
-	
-	local scoreBarDiv = document:CreateElement("div")
-	scoreBarDiv.class_name = "td-bar"
-
-	local containerDiv = document:CreateElement("div")
-	containerDiv.class_name = "td-bar__track"
-
-	local backgroundDiv = document:CreateElement("div")
-	backgroundDiv.class_name = "td-bar__background"
-	local darkColor = {
-		r = math.floor(allyTeam.color.r * DARK_COLOR_MULTIPLIER * COLOR_MULTIPLIER),
-		g = math.floor(allyTeam.color.g * DARK_COLOR_MULTIPLIER * COLOR_MULTIPLIER),
-		b = math.floor(allyTeam.color.b * DARK_COLOR_MULTIPLIER * COLOR_MULTIPLIER),
-		a = BACKGROUND_COLOR_ALPHA
-	}
-	backgroundDiv:SetAttribute("style", "background-color: rgba(" .. darkColor.r .. "," .. darkColor.g .. "," .. darkColor.b .. "," .. darkColor.a .. ")")
-
-	local projectedDiv = document:CreateElement("div")
-	projectedDiv.class_name = "td-bar__projected"
-	projectedDiv.id = "projected-fill-" .. tostring(allyTeam.allyTeamID)
-	projectedDiv:SetAttribute("style", "background-color: " .. createColorStyle(allyTeam.color, PROJECTED_COLOR_ALPHA))
-
-	local fillDiv = document:CreateElement("div")
-	fillDiv.class_name = "td-bar__fill"
-	fillDiv.id = "score-fill-" .. tostring(allyTeam.allyTeamID)
-	fillDiv:SetAttribute("style", "background-color: " .. createColorStyle(allyTeam.color, FILL_COLOR_ALPHA))
-
-	local currentScoreText = document:CreateElement("div")
-	currentScoreText.class_name = "td-text current"
-	currentScoreText.id = "current-score-" .. tostring(allyTeam.allyTeamID)
-	currentScoreText.inner_rml = tostring((allyTeam.score or 0) + (allyTeam.projectedPoints or 0))
-
-	local projectedScoreText = document:CreateElement("div")
-	projectedScoreText.class_name = "td-text projected"
-	projectedScoreText.id = "projected-score-" .. tostring(allyTeam.allyTeamID)
-	projectedScoreText.inner_rml = spI18N('ui.territorialDomination.rank', { rank = allyTeam.rank })
-
-	local dangerOverlay = document:CreateElement("div")
-	dangerOverlay.class_name = "td-danger"
-	dangerOverlay.id = "danger-overlay-" .. tostring(allyTeam.allyTeamID)
-	dangerOverlay.inner_rml = spI18N('ui.territorialDomination.danger')
-
-	local dangerInitialOverlay = document:CreateElement("div")
-	dangerInitialOverlay.class_name = "td-danger-initial"
-	dangerInitialOverlay.id = "danger-initial-overlay-" .. tostring(allyTeam.allyTeamID)
-	dangerInitialOverlay.inner_rml = spI18N('ui.territorialDomination.danger')
-
-	containerDiv:AppendChild(backgroundDiv)
-	containerDiv:AppendChild(projectedDiv)
-	containerDiv:AppendChild(fillDiv)
-	containerDiv:AppendChild(currentScoreText)
-	containerDiv:AppendChild(projectedScoreText)
-	containerDiv:AppendChild(dangerOverlay)
-	containerDiv:AppendChild(dangerInitialOverlay)
-
-	scoreBarDiv:AppendChild(containerDiv)
-	parentDiv:AppendChild(scoreBarDiv)
-
-	return {
-		container = scoreBarDiv,
-		trackElement = containerDiv,
-		currentScoreElement = currentScoreText,
-		projectedScoreElement = projectedScoreText,
-		projectedElement = projectedDiv,
-		fillElement = fillDiv,
-		dangerOverlay = dangerOverlay,
-		dangerInitialOverlay = dangerInitialOverlay,
-		lastFillWidth = nil,
-		lastProjectedWidth = nil,
-		lastScoreText = nil,
-		lastProjectedText = nil,
-		lastTrackClass = nil,
-		lastDangerClass = nil,
-		lastDangerText = nil,
-		lastDangerInitialClass = nil,
-		lastEliminated = nil,
-	}
 end
 
 local function createDataHash(data)
@@ -395,7 +548,7 @@ local function getSelectedPlayerTeam()
 	local projectedPoints = spGetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0
 	
 	return {
-		name = spI18N('ui.territorialDomination.team.ally', { allyNumber = myAllyTeamID + 1 }),
+		name = getAllyTeamPlayerNames(myAllyTeamID),
 		allyTeamID = myAllyTeamID,
 		firstTeamID = firstTeamID,
 		score = score,
@@ -432,7 +585,7 @@ local function updateAllyTeamData()
 				end
 
 				table.insert(validAllyTeams, {
-					name = spI18N('ui.territorialDomination.team.ally', { allyNumber = allyTeamID + 1 }),
+					name = getAllyTeamPlayerNames(allyTeamID),
 					allyTeamID = allyTeamID,
 					firstTeamID = firstTeamID,
 					score = score,
@@ -556,106 +709,6 @@ local function updateCountdownColor()
 		timeDisplayElement:SetClass("pulsing", false)
 	end
 	timeDisplayElement:SetAttribute("style", "")
-end
-
-local function updateHaloSelection()
-	-- Update halo selection independently and more frequently
-	local allyTeams = widgetState.allyTeamData
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
-	
-	if not allyTeams or #allyTeams == 0 then return end
-	
-	for i, allyTeam in ipairs(allyTeams) do
-		local scoreBarElements = widgetState.scoreElements[i]
-		if scoreBarElements and scoreBarElements.trackElement then
-			local isSelectedTeam = (myAllyTeamID and allyTeam.allyTeamID == myAllyTeamID)
-			local currentHaloClass = scoreBarElements.trackElement.class_name
-			local shouldHaveHalo = isSelectedTeam and "td-bar__track selected" or "td-bar__track"
-			
-			if currentHaloClass ~= shouldHaveHalo then
-				scoreBarElements.trackElement.class_name = shouldHaveHalo
-				scoreBarElements.lastTrackClass = shouldHaveHalo
-			end
-		end
-	end
-end
-
-local function getDisplayedTeams()
-	local allyTeams = widgetState.allyTeamData
-	if not allyTeams or #allyTeams == 0 then return {} end
-
-	local limit = math.min(#allyTeams, DISPLAY_LIMIT)
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
-
-	local livingTeams = {}
-	local deadTeams = {}
-	for i = 1, #allyTeams do
-		local teamInfo = allyTeams[i]
-		if teamInfo.isAlive then
-			livingTeams[#livingTeams + 1] = teamInfo
-		else
-			deadTeams[#deadTeams + 1] = teamInfo
-		end
-	end
-
-	local function sortByScoreDesc(a, b)
-		local at = (a.score or 0) + (a.projectedPoints or 0)
-		local bt = (b.score or 0) + (b.projectedPoints or 0)
-		if at ~= bt then
-			return at > bt
-		end
-		return a.allyTeamID < b.allyTeamID
-	end
-	
-	if #livingTeams > 1 then table.sort(livingTeams, sortByScoreDesc) end
-	if #deadTeams > 1 then table.sort(deadTeams, sortByScoreDesc) end
-
-	local displayed = {}
-	-- Fill with top teams up to the limit
-	for i = 1, math.min(#livingTeams, limit) do
-		displayed[#displayed + 1] = livingTeams[i]
-	end
-	
-	if #displayed < limit then
-		local remaining = limit - #displayed
-		for i = 1, math.min(#deadTeams, remaining) do
-			displayed[#displayed + 1] = deadTeams[i]
-		end
-	end
-
-	-- Only provision the last position for the player's team if they would otherwise be outside the display bounds
-	if myAllyTeamID then
-		local myTeam
-		for i = 1, #allyTeams do
-			if allyTeams[i].allyTeamID == myAllyTeamID then
-				myTeam = allyTeams[i]
-				break
-			end
-		end
-		
-		if myTeam then
-			-- Check if my team is already in the displayed list
-			local myTeamInDisplay = false
-			for i = 1, #displayed do
-				if displayed[i].allyTeamID == myAllyTeamID then
-					myTeamInDisplay = true
-					break
-				end
-			end
-			
-			-- Only add my team to the last position if they're not already visible
-			if not myTeamInDisplay then
-				-- Remove the last team to make room
-				if #displayed >= limit then
-					table.remove(displayed, #displayed)
-				end
-				-- Add my team to the last position
-				displayed[#displayed + 1] = myTeam
-			end
-		end
-	end
-
-	return displayed
 end
 
 local function updatePlayerDisplay()
@@ -890,6 +943,13 @@ local function updateDataModel()
 	local roundChanged = hasDataChanged(roundInfo, widgetState.cachedData, "roundInfo")
 	local timeChanged = hasDataChanged(math.floor(roundInfo.timeRemainingSeconds or 0), widgetState.cachedData, "lastTimeHash")
 
+	if roundChanged and previousRound > 0 and roundInfo.currentRound > previousRound then
+		for i = 1, #allyTeams do
+			local team = allyTeams[i]
+			widgetState.lastRoundScores[team.allyTeamID] = team.score
+		end
+	end
+	
 	if roundChanged and (dataModel.currentRound or 0) ~= roundInfo.currentRound then
 		resetCache()
 		scoresChanged = true
@@ -916,6 +976,9 @@ local function updateDataModel()
 		
 		if scoresChanged or roundChanged then
 			-- Data model updates already handled above
+			if widgetState.isLeaderboardVisible then
+				updateLeaderboard()
+			end
 		end
 
 		if timeChanged then
@@ -976,6 +1039,33 @@ function widget:Initialize()
 		document:Show()
 		widgetState.isDocumentVisible = true
 	end
+	
+	local leaderboardButton = document:GetElementById("leaderboard-button")
+	if leaderboardButton then
+		leaderboardButton:AddEventListener("click", function(event)
+			if widgetState.isLeaderboardVisible then
+				hideLeaderboard()
+			else
+				showLeaderboard()
+			end
+			event:StopPropagation()
+		end, false)
+	end
+	
+	local leaderboardOverlay = document:GetElementById("leaderboard-overlay")
+	if leaderboardOverlay then
+		leaderboardOverlay:AddEventListener("click", function(event)
+			hideLeaderboard()
+			event:StopPropagation()
+		end, false)
+	end
+	
+	local leaderboardContent = document:GetElementById("leaderboard-content")
+	if leaderboardContent then
+		leaderboardContent:AddEventListener("click", function(event)
+			event:StopPropagation()
+		end, false)
+	end
 
 	resetCache()
 	widgetState.lastUpdateTime = Spring.GetGameSeconds()
@@ -1026,7 +1116,6 @@ function widget:Shutdown()
 	end
 
 	widgetState.rmlContext = nil
-	widgetState.scoreElements = {}
 	widgetState.popupState.fadeOutStartTime = nil
 end
 

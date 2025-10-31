@@ -39,5 +39,27 @@
 		<div id="round-end-popup" class="round-end-popup">
 			<div id="popup-text" class="popup-text"></div>
 		</div>
+		<div id="leaderboard-panel" class="leaderboard-panel hidden" data-model="territorial_score_model">
+			<div id="leaderboard-overlay" class="leaderboard-overlay"></div>
+			<div id="leaderboard-content" class="leaderboard-content">
+				<div id="leaderboard-gradient-overlay" class="leaderboard-gradient-overlay"></div>
+				<div id="leaderboard-header" class="leaderboard-header">Scoreboard</div>
+				<div id="leaderboard-table-wrapper" class="leaderboard-table-wrapper">
+					<div id="leaderboard-column-headers" class="leaderboard-column-headers">
+						<div class="header-rank">Rank</div>
+						<div class="header-name">Team</div>
+						<div class="header-previous">Score</div>
+						<div class="header-territories">Territories</div>
+						<div class="header-gains">Gains</div>
+						<div class="header-total">Total</div>
+					</div>
+					<div id="leaderboard-teams" class="leaderboard-teams"></div>
+					<div id="elimination-separator" class="elimination-separator hidden">
+						<div class="elimination-separator-text">Elimination Threshold</div>
+					</div>
+					<div id="leaderboard-eliminated" class="leaderboard-eliminated"></div>
+				</div>
+			</div>
+		</div>
 	</body>
 </rml>

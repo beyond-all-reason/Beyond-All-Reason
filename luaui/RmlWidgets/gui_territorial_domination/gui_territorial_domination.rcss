@@ -19,7 +19,7 @@ body {
 	box-sizing: border-box;
 	padding: 6dp;
 	decorator: image("/luaui/images/stripes-small.png" repeat);
-	image-color: rgba(40, 40, 40, 87);
+	image-color: rgba(40, 40, 40, 109);
 	left: 87.25vw;
 	top: 100vh;
 	transform: translate(-100%, -100%);
@@ -258,32 +258,6 @@ body {
 	font-effect: outline(1dp #000000CC);
 }
 
-.team-name {
-	color: #4285F4;
-	font-family: Exo 2;
-	font-size: 17dp;
-	font-weight: bold;
-	text-align: center;
-	display: none;
-	font-effect: outline(1dp #000000CC);
-}
-
-.elimination-warning {
-	background-color: rgb(139, 0, 0);
-	color: #ffffff;
-	font-family: Exo 2;
-	font-size: 16dp;
-	font-weight: bold;
-	padding: 6dp;
-	border-radius: 4dp;
-	text-align: center;
-	margin-top: 4dp;
-}
-
-.elimination-warning.hidden {
-	display: none;
-}
-
 .leaderboard-button {
 	display: flex;
 	justify-content: center;
@@ -307,12 +281,6 @@ body {
 
 .leaderboard-text {
 	color: #ffffff;
-	font-effect: outline(1dp #000000CC);
-}
-
-.leaderboard-chevron {
-	color: #ffffff;
-	font-size: 13dp;
 	font-effect: outline(1dp #000000CC);
 }
 
@@ -375,4 +343,298 @@ body {
 	text-align: center;
 	white-space: nowrap;
 	font-effect: outline(1.5dp #000000CC);
+}
+.leaderboard-panel {
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100vw;
+	height: 100vh;
+	z-index: 2000;
+	pointer-events: auto;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.leaderboard-panel.hidden {
+	display: none;
+}
+
+.leaderboard-overlay {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.7);
+	pointer-events: auto;
+}
+
+.leaderboard-content {
+	position: relative;
+	z-index: 2001;
+	background-color: rgba(50, 50, 50, 60);
+	border-radius: 0.56vh;
+	border-width: 0.14vh;
+	border-color: rgba(30, 30, 30, 150);
+	padding: 12dp;
+	min-width: 600dp;
+	max-width: 900dp;
+	overflow-y: auto;
+	pointer-events: auto;
+	decorator: image("/luaui/images/stripes-small.png" repeat);
+	image-color: rgba(40, 40, 40, 109);
+}
+
+.leaderboard-gradient-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	border-radius: 0.56vh;
+	decorator: vertical-gradient( #FFFFFF27 #00000097 );
+	pointer-events: none;
+	z-index: 1;
+}
+
+.leaderboard-header {
+	color: #ffffff;
+	font-family: Exo 2;
+	font-size: 24dp;
+	font-weight: bold;
+	text-align: center;
+	margin-bottom: 12dp;
+	font-effect: outline(1dp #000000CC);
+	position: relative;
+	z-index: 2;
+	width: 100%;
+	display: block;
+}
+
+.header-rank,
+.leaderboard-rank {
+	color: #ffffff;
+	font-family: Exo 2;
+	font-weight: bold;
+	font-effect: outline(1dp #000000CC);
+	text-align: center;
+	width: auto;
+	min-width: auto;
+}
+
+.header-rank {
+	font-size: 14dp;
+}
+
+.leaderboard-rank {
+	font-size: 16dp;
+}
+
+.header-name {
+	color: #ffffff;
+	font-family: Exo 2;
+	font-size: 14dp;
+	font-weight: bold;
+	font-effect: outline(1dp #000000CC);
+	min-width: 120dp;
+	width: auto;
+	white-space: normal;
+	text-align: left;
+}
+
+.leaderboard-name {
+	color: #ffffff;
+	font-family: Exo 2;
+	font-size: 16dp;
+	font-weight: bold;
+	font-effect: outline(1dp #000000CC);
+	white-space: normal;
+	display: table-cell;
+	vertical-align: top;
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+	max-width: 320dp;
+	min-width: 160dp;
+	overflow: hidden;
+	text-align: left;
+}
+
+.header-previous,
+.header-territories,
+.header-gains,
+.header-total,
+.leaderboard-previous,
+.leaderboard-territories,
+.leaderboard-gains,
+.leaderboard-total {
+	color: #ffffff;
+	font-family: Exo 2;
+	font-weight: bold;
+	text-align: center;
+	font-effect: outline(1dp #000000CC);
+	white-space: nowrap;
+	width: auto;
+	min-width: auto;
+}
+
+.header-previous,
+.header-territories,
+.header-gains,
+.header-total {
+	font-size: 14dp;
+}
+
+.leaderboard-previous,
+.leaderboard-territories,
+.leaderboard-gains,
+.leaderboard-total {
+	font-size: 16dp;
+}
+
+.leaderboard-table-wrapper {
+	display: table;
+	border-spacing: 0;
+	table-layout: auto;
+	width: auto;
+	position: relative;
+	z-index: 2;
+}
+
+.leaderboard-column-headers {
+	display: table-row;
+}
+
+.leaderboard-column-headers > * {
+	display: table-cell;
+	padding: 8dp 12dp 2dp 8dp;
+	vertical-align: middle;
+	border-bottom-width: 1dp;
+	border-bottom-color: rgba(255, 255, 255, 0.3);
+	white-space: nowrap;
+}
+
+.leaderboard-column-headers > .header-rank {
+	padding: 8dp 8dp 2dp 8dp;
+}
+
+.leaderboard-column-headers > .header-name {
+	white-space: normal;
+	max-width: 320dp;
+	min-width: 160dp;
+	padding-right: 20dp;
+}
+
+.leaderboard-column-headers > .header-previous,
+.leaderboard-column-headers > .header-territories,
+.leaderboard-column-headers > .header-gains,
+.leaderboard-column-headers > .header-total {
+	padding-left: 12dp;
+	padding-right: 12dp;
+}
+
+.leaderboard-column-headers > *:last-child {
+	padding-right: 8dp;
+}
+
+.leaderboard-teams,
+.leaderboard-eliminated {
+	display: table-row-group;
+	padding-top: 2dp;
+}
+
+.leaderboard-team-row {
+	display: table-row;
+	transition: background-color 0.2s;
+}
+
+.leaderboard-team-row > * {
+	display: table-cell;
+	padding: 8dp 12dp 8dp 8dp;
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
+.leaderboard-team-row > .leaderboard-rank {
+	padding: 8dp 8dp;
+	vertical-align: middle;
+}
+
+.leaderboard-team-row > .leaderboard-name {
+	white-space: normal;
+	max-width: 320dp;
+	min-width: 160dp;
+	padding-right: 20dp;
+	padding-left: 8dp;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	overflow: hidden;
+	vertical-align: top;
+}
+
+.leaderboard-team-row > .leaderboard-previous,
+.leaderboard-team-row > .leaderboard-territories,
+.leaderboard-team-row > .leaderboard-gains,
+.leaderboard-team-row > .leaderboard-total {
+	padding-left: 12dp;
+	padding-right: 12dp;
+	vertical-align: middle;
+}
+
+.leaderboard-team-row > *:last-child {
+	padding-right: 8dp;
+}
+
+.leaderboard-team-row:hover {
+	opacity: 0.9;
+}
+
+.leaderboard-team-row.eliminated {
+	opacity: 0.6;
+}
+
+.leaderboard-player-name {
+	font-family: Exo 2;
+	font-size: 16dp;
+	font-weight: bold;
+	font-effect: outline(1dp #000000CC);
+	white-space: nowrap;
+	display: block;
+	margin-bottom: 2dp;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
+	box-sizing: border-box;
+	text-align: left;
+}
+
+.leaderboard-player-name:last-child {
+	margin-bottom: 0dp;
+}
+
+.elimination-separator {
+	display: table-row;
+	border-top-width: 1dp;
+	border-top-color: rgba(255, 255, 255, 0.3);
+	border-bottom-width: 1dp;
+	border-bottom-color: rgba(255, 255, 255, 0.3);
+	position: relative;
+	z-index: 2;
+}
+
+.elimination-separator.hidden {
+	display: none;
+}
+
+.elimination-separator-text {
+	color: #ffffff;
+	font-family: Exo 2;
+	font-size: 16dp;
+	font-weight: bold;
+	text-align: center;
+	font-effect: outline(1dp #000000CC);
+	display: table-cell;
+	padding: 8dp;
+	column-span: all;
 }
