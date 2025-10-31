@@ -6,21 +6,36 @@ body {
 	position: absolute;
 	display: flex;
 	flex-direction: column;
-	background-color: rgb(34, 48, 34);
+	background-color: rgba(50, 50, 50, 60);
+	border-radius: 0.56vh;
+	border-width: 0.14vh;
+	border-color: rgba(30, 30, 30, 150);
 	z-index: 1000;
 	pointer-events: auto;
 	font-family: Exo 2;
-	height: auto;
+	width: 220dp;
+	height: 240dp;
 	overflow: visible;
 	box-sizing: border-box;
-	width: auto;
-	min-width: 220dp;
 	padding: 6dp;
-	border-radius: 8dp;
-	left: 50vw;
-	top: 50vh;
-	transform: translate(-50%, -50%);
+	decorator: image("/luaui/images/stripes-small.png" repeat);
+	image-color: rgba(40, 40, 40, 87);
+	left: 87.25vw;
+	top: 100vh;
+	transform: translate(-100%, -100%);
 	gap: 4dp;
+}
+
+.td-gradient-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	border-radius: 0.56vh;
+	decorator: vertical-gradient( #FFFFFF27 #00000097 );
+	pointer-events: none;
+	z-index: 1;
 }
 
 .header-info {
@@ -29,6 +44,9 @@ body {
 	align-items: flex-start;
 	flex-shrink: 0;
 	margin-bottom: 2dp;
+	position: relative;
+	z-index: 2;
+	background-color: transparent;
 }
 
 .left-header {
@@ -48,9 +66,10 @@ body {
 .round-display {
 	color: #ffffff;
 	font-family: Exo 2;
-	font-size: 18dp;
+	font-size: 19dp;
 	font-weight: bold;
 	text-align: right;
+	font-effect: outline(1dp #000000CC);
 }
 
 .round-display.hidden {
@@ -60,9 +79,10 @@ body {
 .rank-display {
 	color: #ffffff;
 	font-family: Exo 2;
-	font-size: 18dp;
+	font-size: 19dp;
 	font-weight: bold;
 	text-align: left;
+	font-effect: outline(1dp #000000CC);
 }
 
 .rank-display.hidden {
@@ -72,9 +92,10 @@ body {
 .time-display {
 	color: #ffffff;
 	font-family: Exo 2;
-	font-size: 18dp;
+	font-size: 19dp;
 	font-weight: bold;
 	text-align: right;
+	font-effect: outline(1dp #000000CC);
 }
 
 .time-display.hidden {
@@ -97,10 +118,12 @@ body {
 .advance-text {
 	color: #ffffff;
 	font-family: Exo 2;
-	font-size: 14dp;
-	font-weight: bold;
+	font-size: 16dp;
 	text-align: left;
 	opacity: 0.8;
+	position: relative;
+	z-index: 2;
+	font-effect: outline(1dp #000000CC);
 }
 
 .advance-text.hidden {
@@ -110,12 +133,15 @@ body {
 .elimination-warning {
 	color: #ffffff;
 	font-family: Exo 2;
-	font-size: 14dp;
+	font-size: 16dp;
 	font-weight: bold;
 	padding: 6dp;
 	border-radius: 4dp;
 	text-align: center;
 	margin-bottom: 4dp;
+	position: relative;
+	z-index: 2;
+	font-effect: outline(1dp #000000CC);
 }
 
 .elimination-warning.above-elimination {
@@ -147,6 +173,8 @@ body {
 	align-items: center;
 	gap: 2dp;
 	margin-bottom: 4dp;
+	position: relative;
+	z-index: 2;
 }
 
 .territory-info-row {
@@ -187,24 +215,27 @@ body {
 .territory-count {
 	color: #ffffff;
 	font-family: Exo 2;
-	font-size: 16dp;
+	font-size: 17dp;
 	font-weight: bold;
+	font-effect: outline(1dp #000000CC);
 }
 
 .territory-points {
 	color: #ffffff;
 	font-family: Exo 2;
-	font-size: 16dp;
+	font-size: 17dp;
 	font-weight: bold;
+	font-effect: outline(1dp #000000CC);
 }
 
 .territory-worth {
 	color: #ffffff;
 	font-family: Exo 2;
-	font-size: 12dp;
+	font-size: 16dp;
 	opacity: 0.8;
-	margin-bottom: 1dp;
+	margin-bottom: 6dp;
 	text-align: center;
+	font-effect: outline(1dp #000000CC);
 }
 
 .score-section {
@@ -214,33 +245,34 @@ body {
 	gap: 2dp;
 	margin-top: 2dp;
 	margin-bottom: 2dp;
-	padding-top: 2dp;
-	border-top-width: 1dp;
-	border-top-color: rgba(255, 255, 255, 0.2);
+	position: relative;
+	z-index: 2;
 }
 
 .current-score {
 	color: #ffffff;
 	font-family: Exo 2;
-	font-size: 23dp;
+	font-size: 24dp;
 	font-weight: bold;
 	text-align: center;
+	font-effect: outline(1dp #000000CC);
 }
 
 .team-name {
 	color: #4285F4;
 	font-family: Exo 2;
-	font-size: 16dp;
+	font-size: 17dp;
 	font-weight: bold;
 	text-align: center;
 	display: none;
+	font-effect: outline(1dp #000000CC);
 }
 
 .elimination-warning {
 	background-color: rgb(139, 0, 0);
 	color: #ffffff;
 	font-family: Exo 2;
-	font-size: 14dp;
+	font-size: 16dp;
 	font-weight: bold;
 	padding: 6dp;
 	border-radius: 4dp;
@@ -259,10 +291,12 @@ body {
 	gap: 6dp;
 	color: #ffffff;
 	font-family: Exo 2;
-	font-size: 14dp;
+	font-size: 16dp;
 	cursor: pointer;
 	padding: 6dp;
 	border-radius: 4dp;
+	position: relative;
+	z-index: 2;
 	margin-top: 4dp;
 	transition: background-color 0.2s;
 }
@@ -273,11 +307,13 @@ body {
 
 .leaderboard-text {
 	color: #ffffff;
+	font-effect: outline(1dp #000000CC);
 }
 
 .leaderboard-chevron {
 	color: #ffffff;
-	font-size: 12dp;
+	font-size: 13dp;
+	font-effect: outline(1dp #000000CC);
 }
 
 .round-end-popup {
@@ -335,8 +371,8 @@ body {
 	color: #ffffff;
 	font-weight: bold;
 	font-family: Exo 2;
-	font-size: 30dp;
+	font-size: 31dp;
 	text-align: center;
 	white-space: nowrap;
-	font-effect: outline(1.5dp black);
+	font-effect: outline(1.5dp #000000CC);
 }

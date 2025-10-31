@@ -107,7 +107,7 @@ local initialModel = {
 	pointsCap = 0,
 	prevHighestScore = 0,
 	timeRemaining = TIME_ZERO_STRING,
-	roundDisplayText = "",
+	roundDisplayText = "Round 1",
 	timeRemainingSeconds = 0,
 	isCountdownWarning = false,
 	territoryCount = 0,
@@ -148,8 +148,47 @@ local function isPlayerInFirstPlace()
 end
 
 local function calculateUILayout()
-	-- Layout is now handled by CSS using vw/vh and dp units
-	-- No dynamic positioning needed
+	if not widgetState.document then return end
+	
+	local tdRootElement = widgetState.document:GetElementById("td-root")
+	if not tdRootElement then return end
+	
+	local advPlayerListAPI = WG['advplayerlist_api']
+	if not advPlayerListAPI or not advPlayerListAPI.GetPosition then
+		return
+	end
+	
+	local apiAbsPosition = advPlayerListAPI.GetPosition()
+	if not apiAbsPosition or #apiAbsPosition < 4 then
+		return
+	end
+	
+	local screenWidth, screenHeight = Spring.GetViewGeometry()
+	if not screenWidth or screenWidth <= 0 then
+		return
+	end
+	
+	local GL_BASE_WIDTH = 1920
+	local GL_BASE_HEIGHT = 1080
+	local scaleX = screenWidth / GL_BASE_WIDTH
+	local scaleY = screenHeight / GL_BASE_HEIGHT
+	
+	local leaderboardTop = apiAbsPosition[1]
+	local gap = (50 + (spGetSpectatingState() and 25 or 0)) * scaleY
+	local panelHeight = tdRootElement.offset_height or 240
+	
+	local leaderboardTopCss = screenHeight - leaderboardTop
+	local desiredBottomCss = leaderboardTopCss - gap
+	
+	if desiredBottomCss >= 0 and desiredBottomCss < screenHeight then
+		local topVh = (desiredBottomCss / screenHeight) * 100
+		local newStyle = string.format("left: 100vw; top: %.2fvh; transform: translate(-100%%, -100%%);", topVh)
+		tdRootElement:SetAttribute("style", newStyle)
+	else
+		local fallbackTopVh = 100
+		local newStyle = string.format("left: 100vw; top: %.2fvh; transform: translate(-100%%, -100%%);", fallbackTopVh)
+		tdRootElement:SetAttribute("style", newStyle)
+	end
 end
 
 local function createColorStyle(color, alpha)
@@ -453,7 +492,7 @@ local function updateRoundInfo()
 	if currentRound > maxRounds then
 		roundDisplayText = spI18N('ui.territorialDomination.round.overtime')
 	elseif currentRound == 0 then
-		roundDisplayText = ""
+		roundDisplayText = "Round 1"
 	else
 		roundDisplayText = "Round " .. tostring(currentRound)
 	end
@@ -483,10 +522,14 @@ local function updateHeaderVisibility()
 	if not headerElement or not roundElement or not timeElement then return end
 
 	local hasRoundInfo = roundElement.inner_rml and roundElement.inner_rml ~= ""
+	local dataModel = widgetState.dmHandle
+	local roundDisplayText = (dataModel and dataModel.roundDisplayText) or ""
+	if roundDisplayText ~= "" then
+		hasRoundInfo = true
+	end
 	local currentRoundParam = spGetGameRulesParam("territorialDominationCurrentRound") or 0
 	local maxRoundsParam = (widgetState.dmHandle and widgetState.dmHandle.maxRounds) or DEFAULT_MAX_ROUNDS
 	local inOvertime = currentRoundParam > maxRoundsParam
-	local dataModel = widgetState.dmHandle
 	local timeSecs = (dataModel and dataModel.timeRemainingSeconds) or 0
 	local hasTimeInfo = timeElement.inner_rml and (timeSecs > 0 or inOvertime)
 
@@ -1005,6 +1048,10 @@ function widget:Update()
 
 	widgetState.updateCounter = widgetState.updateCounter + 1
 	
+	if widgetState.updateCounter % 10 == 0 then
+		calculateUILayout()
+	end
+	
 	if shouldFullUpdate() or shouldUpdateScores() then
 		updateDataModel()
 		widgetState.lastScoreUpdateTime = currentTime
@@ -1013,6 +1060,10 @@ function widget:Update()
 		updateTimeOnly()
 		widgetState.lastTimeUpdateTime = currentTime
 	end
+end
+
+function widget:ViewResize()
+	calculateUILayout()
 end
 
 function widget:DrawScreen()

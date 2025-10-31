@@ -6,7 +6,8 @@
 	</head>
 	<body>
 		<div id="td-root" class="td-root" data-model="territorial_score_model">
-			<div id="header-info" class="td-header header-info">
+			<div id="td-gradient-overlay" class="td-gradient-overlay"></div>
+			<div id="header-info" class="header-info">
 				<div id="left-header" class="left-header">
 					<div id="rank-display" class="td-rank rank-display">{{rankDisplayText}}</div>
 					<div id="advance-text" class="advance-text">{{advanceText}}</div>
@@ -32,8 +33,7 @@
 			</div>
 			<div id="elimination-warning" class="elimination-warning">{{eliminationText}}</div>
 			<div id="leaderboard-button" class="leaderboard-button">
-				<span id="leaderboard-text" class="leaderboard-text">View full leaderboard</span>
-				<span id="leaderboard-chevron" class="leaderboard-chevron">▼</span>
+				<span id="leaderboard-text" class="leaderboard-text">View leaderboard</span>
 			</div>
 		</div>
 		<div id="round-end-popup" class="round-end-popup">
