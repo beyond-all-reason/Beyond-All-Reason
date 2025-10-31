@@ -22,11 +22,11 @@ local territorialDominationConfig = {
 	},
 	["24-Minutes"] = {
 		maxRounds = 4,
-		minutesPerRound = 2,
+		minutesPerRound = 6,
 	},
 	["30-Minutes"] = {
 		maxRounds = 5,
-		minutesPerRound = 2,
+		minutesPerRound = 6,
 	},
 	["42-Minutes"] = {
 		maxRounds = 7,
