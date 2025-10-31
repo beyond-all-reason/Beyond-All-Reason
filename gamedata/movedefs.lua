@@ -534,20 +534,19 @@ local function setMaxSlope(moveDef)
 	end
 end
 
--- Skip other moveDef validation for special names that ignore the footprint requirement.
-local validName = { "^COMMANDER", "^NANO$", "^EPIC", "^RAPTOR", "^SCAV" }
+-- Skip validation for special names that ignore the footprint requirement.
+local noSizeCheck = { "^COMMANDER", "^NANO$", "^EPIC", "^RAPTOR", "^SCAV" }
 
 ---@param moveDef MoveDefCreate
-local function validate(moveDef)
+local function validateDef(moveDef)
 	local name = moveDef.name
 	if type(name) ~= "string" then
-		return false
-	elseif table.any(validName, function(v) return name:match(v) end) then
-		return true
-	elseif name:match("%d+$") == tostring(moveDef.footprintx) then
-		return true
-	else
-		return false
+		Spring.Echo("Warning:", "Movedef name is not a string")
+	elseif
+		not table.any(noSizeCheck, function(v) return name:match(v) end)
+		and name:match("%d+$") ~= tostring(moveDef.footprintx)
+	then
+		Spring.Echo("Warning:", "Movedef name and footprint size do not match")
 	end
 end
 
@@ -573,12 +572,9 @@ for moveName, moveData in pairs(moveDatas) do
 		slopeMod               = moveData.slopeMod,
 		speedModClass          = moveData.speedModClass,
 	}
-
 	setMaxSlope(moveDef)
-
-	if validate(moveDef) then
-		defs[#defs + 1] = moveDef
-	end
+	validateDef(moveDef)
+	defs[#defs + 1] = moveDef
 end
 
 return defs
