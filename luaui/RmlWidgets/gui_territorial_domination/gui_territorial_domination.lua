@@ -55,11 +55,6 @@ local DANGER_INITIAL_DURATION = 8
 local UPDATE_INTERVAL = 0.5
 local SCORE_UPDATE_INTERVAL = 2.0
 
-local NON_SPECTATOR_LEFT = 1720
-local NON_SPECTATOR_TOP = 44
-local SPECTATOR_LEFT = 1609
-local SPECTATOR_TOP = 44
-
 local PERCENTAGE_MULTIPLIER = 100
 local TIME_ZERO_STRING = "0:00"
 
@@ -115,6 +110,18 @@ local initialModel = {
 	roundDisplayText = "",
 	timeRemainingSeconds = 0,
 	isCountdownWarning = false,
+	territoryCount = 0,
+	territoryPoints = 0,
+	pointsPerTerritory = 0,
+	currentScore = 0,
+	combinedScore = 0,
+	teamName = "",
+	eliminationThreshold = 0,
+	rankDisplayText = "",
+	advanceText = "",
+	eliminationText = "",
+	isAboveElimination = false,
+	isFinalRound = false,
 }
 
 local function getAllyTeamColor(allyTeamID)
@@ -141,20 +148,8 @@ local function isPlayerInFirstPlace()
 end
 
 local function calculateUILayout()
-	if not widgetState.document then return end
-	
-	local rootElement = widgetState.document:GetElementById("td-root") or
-		widgetState.document:GetElementById("score-container")
-	if not rootElement then return end
-	
-	local isSpectating = select(1, spGetSpectatingState())
-	if isSpectating == widgetState.lastSpectatingState then return end
-	
-	widgetState.lastSpectatingState = isSpectating
-	local left, top = isSpectating and SPECTATOR_LEFT or NON_SPECTATOR_LEFT,
-		isSpectating and SPECTATOR_TOP or NON_SPECTATOR_TOP
-	
-	rootElement:SetAttribute("style", string.format("left: %dpx; top: %dpx;", left, top))
+	-- Layout is now handled by CSS using vw/vh and dp units
+	-- No dynamic positioning needed
 end
 
 local function createColorStyle(color, alpha)
@@ -349,6 +344,30 @@ local function hideRoundEndPopup()
 	widgetState.popupState.isVisible = false
 end
 
+local function getSelectedPlayerTeam()
+	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	if not myAllyTeamID then return nil end
+	
+	local teamList = spGetTeamList(myAllyTeamID)
+	if not teamList or #teamList == 0 then return nil end
+	
+	local firstTeamID = teamList[1]
+	local score = spGetTeamRulesParam(firstTeamID, "territorialDominationScore") or 0
+	local projectedPoints = spGetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0
+	
+	return {
+		name = spI18N('ui.territorialDomination.team.ally', { allyNumber = myAllyTeamID + 1 }),
+		allyTeamID = myAllyTeamID,
+		firstTeamID = firstTeamID,
+		score = score,
+		projectedPoints = projectedPoints,
+		color = getAllyTeamColor(myAllyTeamID),
+		rank = spGetTeamRulesParam(firstTeamID, "territorialDominationDisplayRank") or 1,
+		teamCount = #teamList,
+		teamList = teamList,
+	}
+end
+
 local function updateAllyTeamData()
 	local allyTeamList = spGetAllyTeamList()
 	local validAllyTeams = {}
@@ -435,11 +454,8 @@ local function updateRoundInfo()
 		roundDisplayText = spI18N('ui.territorialDomination.round.overtime')
 	elseif currentRound == 0 then
 		roundDisplayText = ""
-	elseif currentRound == maxRounds then
-		roundDisplayText = spI18N('ui.territorialDomination.round.finalRound')
 	else
-		roundDisplayText = spI18N('ui.territorialDomination.round.displayWithMax',
-			{ currentRound = currentRound, maxRounds = maxRounds })
+		roundDisplayText = "Round " .. tostring(currentRound)
 	end
 
 	local isFinalRound = currentRound >= maxRounds and timeRemainingSeconds <= 0
@@ -599,168 +615,151 @@ local function getDisplayedTeams()
 	return displayed
 end
 
-local function updateScoreBarVisuals()
+local function updatePlayerDisplay()
 	if not widgetState.document then return end
-
+	
 	local dataModel = widgetState.dmHandle
-	local allyTeams = getDisplayedTeams()
-	local columnsContainer = widgetState.document:GetElementById("td-scores") or
-		widgetState.document:GetElementById("score-columns")
-	if not columnsContainer then return end
-
-	local numTeams = #allyTeams
-	if numTeams == 0 then return end
-
-	local newTeamOrderHash = createTeamOrderHash(allyTeams)
-	if newTeamOrderHash == widgetState.lastTeamOrderHash and #allyTeams == widgetState.lastAllyTeamCount then
-		return
-	end
-
-	widgetState.lastTeamOrderHash = newTeamOrderHash
-	widgetState.lastAllyTeamCount = #allyTeams
-
-	columnsContainer.inner_rml = ""
-	widgetState.scoreElements = {}
-	for i = 1, #allyTeams do
-		local elements = createScoreBarElement(columnsContainer, allyTeams[i])
-		widgetState.scoreElements[i] = elements
-	end
-
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
-	local myScoreRank = nil
-	for i = 1, #widgetState.allyTeamData do
-		local team = widgetState.allyTeamData[i]
-		if team.allyTeamID == myAllyTeamID then
-			myScoreRank = spGetTeamRulesParam(team.firstTeamID, "territorialDominationDisplayRank") or team.rank or 1
-			break
+	if not dataModel then return end
+	
+	local selectedTeam = getSelectedPlayerTeam()
+	if not selectedTeam then return end
+	
+	local currentRound = dataModel.currentRound or 0
+	local pointsPerTerritory = currentRound > 0 and currentRound or 1
+	local projectedPoints = selectedTeam.projectedPoints or 0
+	local territoryCount = pointsPerTerritory > 0 and math.floor(projectedPoints / pointsPerTerritory) or 0
+	local currentScore = selectedTeam.score or 0
+	local teamName = selectedTeam.name or ""
+	local eliminationThreshold = dataModel.prevHighestScore or 0
+	
+	local allyTeams = widgetState.allyTeamData
+	local playerRank = 1
+	local rankDisplayText = ""
+	local advanceText = ""
+	
+	if allyTeams and #allyTeams > 0 then
+		for i = 1, #allyTeams do
+			if allyTeams[i].allyTeamID == selectedTeam.allyTeamID then
+				playerRank = i
+				break
+			end
 		end
+		
+		if playerRank > 0 then
+			rankDisplayText = "Rank " .. tostring(playerRank)
+		end
+		
+	local playerCombinedScore = currentScore + projectedPoints
+	local eliminationText = ""
+	local isAboveElimination = false
+	local isFinalRound = dataModel.isFinalRound or false
+	
+	if isFinalRound then
+		eliminationText = "Final Round"
+		isAboveElimination = false
+	elseif eliminationThreshold > 0 then
+		local difference = playerCombinedScore - eliminationThreshold
+		if difference > 0 then
+			eliminationText = tostring(difference) .. "p above elimination"
+			isAboveElimination = true
+		elseif difference < 0 then
+			eliminationText = tostring(math.abs(difference)) .. "p below elimination"
+			isAboveElimination = false
+		else
+			eliminationText = "0p above elimination"
+			isAboveElimination = true
+		end
+	else
+		eliminationText = "Eliminations next round"
+		isAboveElimination = true
 	end
-
-	local existingSpacer = widgetState.document:GetElementById("rank-spacer")
-	if existingSpacer then
-		columnsContainer:RemoveChild(existingSpacer)
-	end
-
-	local knockoutThreshold = dataModel.prevHighestScore or 0
-	local spacerInserted = false
-
-	for i, allyTeam in ipairs(allyTeams) do
-		local scoreBarElements = widgetState.scoreElements[i]
-		if scoreBarElements then
-			local totalForTeam = (allyTeam.score or 0) + (allyTeam.projectedPoints or 0)
-			
-			-- Insert knockout header before the first team that's below the threshold
-			if not spacerInserted and knockoutThreshold > 0 and totalForTeam < knockoutThreshold then
-				local spacer = widgetState.document:CreateElement("div")
-				spacer.class_name = "td-rank-spacer"
-				spacer.id = "rank-spacer"
-				spacer.inner_rml = spI18N('ui.territorialDomination.eliminationBelow', { value = knockoutThreshold })
-				columnsContainer:InsertBefore(spacer, scoreBarElements.container)
-				spacerInserted = true
-			end
-
-			local projectedWidth = "0%"
-			if dataModel.pointsCap > 0 then
-				local totalProjected = allyTeam.score + allyTeam.projectedPoints
-				projectedWidth = string.format("%.1f%%",
-					math.min(PERCENTAGE_MULTIPLIER, (totalProjected / dataModel.pointsCap) * PERCENTAGE_MULTIPLIER))
-			end
-
-			scoreBarElements.projectedElement:SetAttribute("style", "width: " .. projectedWidth)
-			scoreBarElements.lastProjectedWidth = projectedWidth
-
-			local fillWidth = "0%"
-			if dataModel.pointsCap > 0 then
-				fillWidth = string.format("%.1f%%",
-					math.min(PERCENTAGE_MULTIPLIER, (allyTeam.score / dataModel.pointsCap) * PERCENTAGE_MULTIPLIER))
-			end
-
-			scoreBarElements.fillElement:SetAttribute("style", "width: " .. fillWidth)
-			scoreBarElements.lastFillWidth = fillWidth
-
-			scoreBarElements.currentScoreElement.inner_rml = tostring((allyTeam.score or 0) + (allyTeam.projectedPoints or 0))
-			scoreBarElements.lastScoreText = tostring((allyTeam.score or 0) + (allyTeam.projectedPoints or 0))
-			
-			scoreBarElements.projectedScoreElement.inner_rml = spI18N('ui.territorialDomination.rank', { rank = allyTeam.rank or 1 })
-			scoreBarElements.lastProjectedText = spI18N('ui.territorialDomination.rank', { rank = allyTeam.rank or 1 })
-
-					-- Halo selection is now handled separately in updateHaloSelection() for faster updates
-
-			local prevHighest = dataModel.prevHighestScore or 0
-			local combinedScore = (allyTeam.score or 0) + (allyTeam.projectedPoints or 0)
-			local eliminated = false
-			
-			if allyTeam.firstTeamID then
-				local isDead = select(3, spGetTeamInfo(allyTeam.firstTeamID))
-				if isDead then
-					eliminated = true
+		
+		if playerRank == 1 then
+			if #allyTeams > 1 then
+				local secondPlaceScore = (allyTeams[2].score or 0) + (allyTeams[2].projectedPoints or 0)
+				local leadingMargin = playerCombinedScore - secondPlaceScore
+				if leadingMargin > 0 then
+					advanceText = "Leading by " .. tostring(leadingMargin)
+				elseif leadingMargin == 0 then
+					advanceText = "1p to advance"
 				else
-					local defeatTime = spGetTeamRulesParam(allyTeam.firstTeamID, "defeatTime")
-					if defeatTime and defeatTime > 0 then eliminated = true end
-					local tdElim = spGetTeamRulesParam(allyTeam.firstTeamID, "territorialDominationEliminated")
-					if tdElim and tdElim == 1 then eliminated = true end
+					advanceText = ""
 				end
-			end
-			
-			local shouldShowDanger = (not eliminated) and prevHighest > 0 and combinedScore < prevHighest
-			
-			if eliminated then
-				local classBase = "td-danger visible defeated"
-				scoreBarElements.dangerOverlay.class_name = classBase
-				scoreBarElements.lastDangerClass = classBase
-				
-				local defeatedText = spI18N('ui.territorialDomination.defeated')
-				scoreBarElements.dangerOverlay.inner_rml = defeatedText
-				scoreBarElements.lastDangerText = defeatedText
-				
-				if scoreBarElements.dangerInitialOverlay then
-					scoreBarElements.dangerInitialOverlay.class_name = "td-danger-initial"
-					scoreBarElements.lastDangerInitialClass = "td-danger-initial"
-				end
-				
-				-- Reset danger state
-				if widgetState.dangerStates[allyTeam.allyTeamID] then
-					widgetState.dangerStates[allyTeam.allyTeamID] = { wasInDanger = false, initialActive = false, initialEndTime = 0 }
-				end
-				scoreBarElements.lastEliminated = true
-			elseif shouldShowDanger then
-				-- Show danger by making only the score red instead of blinking text
-				scoreBarElements.currentScoreElement:SetClass("danger", true)
-				
-				-- Hide danger overlays
-				scoreBarElements.dangerOverlay.class_name = "td-danger"
-				scoreBarElements.lastDangerClass = "td-danger"
-				
-				if scoreBarElements.dangerInitialOverlay then
-					scoreBarElements.dangerInitialOverlay.class_name = "td-danger-initial"
-					scoreBarElements.lastDangerInitialClass = "td-danger-initial"
-				end
-				
-				scoreBarElements.lastEliminated = false
 			else
-				-- Normal state - remove danger styling
-				scoreBarElements.currentScoreElement:SetClass("danger", false)
-				
-				scoreBarElements.dangerOverlay.class_name = "td-danger"
-				scoreBarElements.lastDangerClass = "td-danger"
-				
-				if scoreBarElements.dangerInitialOverlay then
-					scoreBarElements.dangerInitialOverlay.class_name = "td-danger-initial"
-					scoreBarElements.lastDangerInitialClass = "td-danger-initial"
-				end
-				
-				scoreBarElements.lastEliminated = false
+				advanceText = ""
 			end
+		else
+			local aheadTeam = allyTeams[playerRank - 1]
+			local aheadScore = (aheadTeam.score or 0) + (aheadTeam.projectedPoints or 0)
+			local pointsNeeded = aheadScore - playerCombinedScore + 1
+			if aheadScore == playerCombinedScore then
+				advanceText = "1p to advance"
+			elseif pointsNeeded > 0 then
+				advanceText = tostring(pointsNeeded) .. "p to advance"
+			else
+				advanceText = ""
+			end
+		end
+		
+		dataModel.advanceText = advanceText
+		dataModel.eliminationText = eliminationText
+		dataModel.isAboveElimination = isAboveElimination
+		dataModel.isFinalRound = isFinalRound
+	end
+	
+	dataModel.territoryCount = territoryCount
+	dataModel.territoryPoints = projectedPoints
+	dataModel.pointsPerTerritory = pointsPerTerritory
+	dataModel.currentScore = currentScore
+	dataModel.combinedScore = currentScore + projectedPoints
+	dataModel.teamName = teamName
+	dataModel.eliminationThreshold = eliminationThreshold
+	dataModel.rankDisplayText = rankDisplayText
+	
+	local rankDisplayElement = widgetState.document:GetElementById("rank-display")
+	if rankDisplayElement then
+		if rankDisplayText ~= "" then
+			rankDisplayElement:SetClass("hidden", false)
+		else
+			rankDisplayElement:SetClass("hidden", true)
 		end
 	end
 	
-	-- Always display the knockout threshold header after all scorebars
-	if knockoutThreshold > 0 and not spacerInserted then
-		local spacer = widgetState.document:CreateElement("div")
-		spacer.class_name = "td-rank-spacer"
-		spacer.id = "rank-spacer"
-		spacer.inner_rml = spI18N('ui.territorialDomination.eliminationBelow', { value = knockoutThreshold })
-		columnsContainer:AppendChild(spacer)
+	local advanceTextElement = widgetState.document:GetElementById("advance-text")
+	if advanceTextElement then
+		if dataModel.advanceText ~= "" then
+			advanceTextElement:SetClass("hidden", false)
+		else
+			advanceTextElement:SetClass("hidden", true)
+		end
+	end
+	
+	local eliminationWarningElement = widgetState.document:GetElementById("elimination-warning")
+	if eliminationWarningElement then
+		if dataModel.eliminationText ~= "" then
+			eliminationWarningElement:SetClass("hidden", false)
+			if dataModel.isFinalRound then
+				eliminationWarningElement:SetClass("above-elimination", false)
+				eliminationWarningElement:SetClass("below-elimination", true)
+				eliminationWarningElement:SetClass("next-round", false)
+			elseif dataModel.isAboveElimination then
+				if dataModel.eliminationThreshold == 0 then
+					eliminationWarningElement:SetClass("above-elimination", false)
+					eliminationWarningElement:SetClass("below-elimination", false)
+					eliminationWarningElement:SetClass("next-round", true)
+				else
+					eliminationWarningElement:SetClass("above-elimination", true)
+					eliminationWarningElement:SetClass("below-elimination", false)
+					eliminationWarningElement:SetClass("next-round", false)
+				end
+			else
+				eliminationWarningElement:SetClass("above-elimination", false)
+				eliminationWarningElement:SetClass("below-elimination", true)
+				eliminationWarningElement:SetClass("next-round", false)
+			end
+		else
+			eliminationWarningElement:SetClass("hidden", true)
+		end
 	end
 end
 
@@ -870,8 +869,10 @@ local function updateDataModel()
 	calculateUILayout()
 
 	if widgetState.document then
+		updatePlayerDisplay()
+		
 		if scoresChanged or roundChanged then
-			updateScoreBarVisuals()
+			-- Data model updates already handled above
 		end
 
 		if timeChanged then
@@ -901,8 +902,8 @@ local function updateTimeOnly()
 		widgetState.dmHandle.isCountdownWarning = roundInfo.isCountdownWarning
 		widgetState.dmHandle.timeRemaining = roundInfo.timeRemaining
 		updateCountdownColor()
+		updatePlayerDisplay()
 		
-		-- Store the last displayed seconds for smooth countdown
 		widgetState.lastTimeRemainingSeconds = roundInfo.timeRemainingSeconds
 	end
 end
@@ -1003,12 +1004,6 @@ function widget:Update()
 	if shouldSkipUpdate() then return end
 
 	widgetState.updateCounter = widgetState.updateCounter + 1
-	
-	-- Update halo selection every second using os.clock for consistent timing
-	if currentOSClock - (widgetState.lastHaloUpdateTime or 0) >= 1.0 then
-		updateHaloSelection()
-		widgetState.lastHaloUpdateTime = currentOSClock
-	end
 	
 	if shouldFullUpdate() or shouldUpdateScores() then
 		updateDataModel()
