@@ -987,7 +987,9 @@ local function updatePlayerDisplay()
 		local isBelowElimination = false
 		if dataModel.eliminationText ~= "" then
 			if dataModel.isFinalRound then
-				isBelowElimination = true
+				if playerRank ~= 1 then
+					isBelowElimination = true
+				end
 			elseif not dataModel.isAboveElimination and dataModel.eliminationThreshold > 0 then
 				isBelowElimination = true
 			end

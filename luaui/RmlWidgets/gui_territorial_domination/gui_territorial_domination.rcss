@@ -120,6 +120,7 @@ body {
 	font-family: Exo 2;
 	font-size: 16dp;
 	text-align: left;
+	font-weight: bold;
 	opacity: 0.8;
 	position: relative;
 	z-index: 2;
@@ -171,6 +172,7 @@ body {
 	flex-direction: column;
 	align-items: center;
 	gap: 2dp;
+	font-weight: bold;
 	margin-bottom: 4dp;
 	position: relative;
 	z-index: 2;
@@ -273,6 +275,7 @@ body {
 	color: #ffffff;
 	font-family: Exo 2;
 	font-size: 16dp;
+	font-weight: bold;
 	cursor: pointer;
 	padding: 6dp;
 	border-radius: 4dp;
@@ -280,10 +283,11 @@ body {
 	z-index: 2;
 	margin-top: 4dp;
 	transition: background-color 0.2s;
+	background-color: rgba(255, 255, 255, 40);
 }
 
 .scorepanel-leaderboard-button:hover {
-	background-color: rgba(255, 255, 255, 0.1);
+	background-color: rgba(255, 255, 255, 80);
 }
 
 .scorepanel-leaderboard-text {
