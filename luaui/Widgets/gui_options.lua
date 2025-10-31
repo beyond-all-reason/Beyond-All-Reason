@@ -6807,12 +6807,7 @@ function widget:Initialize()
 		-- if Spring.GetConfigInt("snd_volmusic", 50) > 50 then
 		-- 	Spring.SetConfigInt("snd_volmusic", 50)
 		-- end
-
-		-- enable advanced model shading
-		if Spring.GetConfigInt("AdvModelShading", 0) ~= 1 then
-			Spring.SetConfigInt("AdvModelShading", 1)
-			Spring.SendCommands("advmodelshading 1")
-		end
+		
 		-- enable normal mapping
 		if Spring.GetConfigInt("NormalMapping", 0) ~= 1 then
 			Spring.SetConfigInt("NormalMapping", 1)
