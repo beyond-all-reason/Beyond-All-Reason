@@ -544,10 +544,11 @@ local function validate(moveDef)
 		return false
 	elseif table.any(validName, function(v) return name:match(v) end) then
 		return true
-	elseif name:gmatch("%d+$") ~= tostring(moveDef.footprintx) then
+	elseif name:match("%d+$") == tostring(moveDef.footprintx) then
+		return true
+	else
 		return false
 	end
-	return false
 end
 
 local defs = {}
