@@ -5,59 +5,59 @@
 		<link type="text/rcss" href="gui_territorial_domination.rcss" />
 	</head>
 	<body>
-		<div id="td-root" class="td-root" data-model="territorial_score_model">
-			<div id="td-gradient-overlay" class="td-gradient-overlay"></div>
-			<div id="header-info" class="header-info">
-				<div id="left-header" class="left-header">
-					<div id="rank-display" class="td-rank rank-display">{{rankDisplayText}}</div>
-					<div id="advance-text" class="advance-text">{{advanceText}}</div>
+		<div id="td-root" class="scorepanel-root" data-model="territorial_score_model">
+			<div id="td-gradient-overlay" class="scorepanel-gradient-overlay"></div>
+			<div id="header-info" class="scorepanel-header-info">
+				<div id="left-header" class="scorepanel-left-header">
+					<div id="rank-display" class="scorepanel-rank-display">{{rankDisplayText}}</div>
+					<div id="advance-text" class="scorepanel-advance-text">{{advanceText}}</div>
 				</div>
-				<div id="right-header" class="right-header">
-					<div id="round-display" class="td-round round-display">{{roundDisplayText}}</div>
-					<div id="time-display" class="td-time time-display">{{timeRemaining}}</div>
+				<div id="right-header" class="scorepanel-right-header">
+					<div id="round-display" class="scorepanel-round-display">{{roundDisplayText}}</div>
+					<div id="time-display" class="scorepanel-time-display">{{timeRemaining}}</div>
 				</div>
 			</div>
-			<div id="territory-info" class="territory-info">
-				<div id="territory-worth" class="territory-worth">Territories are worth {{pointsPerTerritory}}p</div>
-				<div id="territory-info-row" class="territory-info-row">
-					<div id="territory-icon" class="territory-icon">
-						<div class="territory-icon-square territory-icon-square-tl"></div>
-						<div class="territory-icon-square territory-icon-square-br"></div>
+			<div id="territory-info" class="scorepanel-territory-info">
+				<div id="territory-worth" class="scorepanel-territory-worth">Territories are worth {{pointsPerTerritory}}p</div>
+				<div id="territory-info-row" class="scorepanel-territory-info-row">
+					<div id="territory-icon" class="scorepanel-territory-icon">
+						<div class="scorepanel-territory-icon-square scorepanel-territory-icon-square-tl"></div>
+						<div class="scorepanel-territory-icon-square scorepanel-territory-icon-square-br"></div>
 					</div>
-					<div id="territory-count" class="territory-count">{{territoryCount}}</div>
-					<div id="territory-points" class="territory-points">+{{territoryPoints}}p</div>
+					<div id="territory-count" class="scorepanel-territory-count">{{territoryCount}}</div>
+					<div id="territory-points" class="scorepanel-territory-points">+{{territoryPoints}}p</div>
 				</div>
 			</div>
-			<div id="score-section" class="score-section">
-				<div id="current-score" class="current-score">{{combinedScore}}p</div>
+			<div id="score-section" class="scorepanel-score-section">
+				<div id="current-score" class="scorepanel-current-score">{{combinedScore}}p</div>
 			</div>
-			<div id="elimination-warning" class="elimination-warning">{{eliminationText}}</div>
-			<div id="leaderboard-button" class="leaderboard-button">
-				<span id="leaderboard-text" class="leaderboard-text">View leaderboard</span>
+			<div id="elimination-warning" class="scorepanel-elimination-warning">{{eliminationText}}</div>
+			<div id="leaderboard-button" class="scorepanel-leaderboard-button">
+				<span id="leaderboard-text" class="scorepanel-leaderboard-text">View leaderboard</span>
 			</div>
 		</div>
-		<div id="round-end-popup" class="round-end-popup">
+		<div id="round-end-popup" class="popup-round-end">
 			<div id="popup-text" class="popup-text"></div>
 		</div>
-		<div id="leaderboard-panel" class="leaderboard-panel hidden" data-model="territorial_score_model">
-			<div id="leaderboard-overlay" class="leaderboard-overlay"></div>
-			<div id="leaderboard-content" class="leaderboard-content">
-				<div id="leaderboard-gradient-overlay" class="leaderboard-gradient-overlay"></div>
-				<div id="leaderboard-header" class="leaderboard-header">Scoreboard</div>
-				<div id="leaderboard-table-wrapper" class="leaderboard-table-wrapper">
-					<div id="leaderboard-column-headers" class="leaderboard-column-headers">
-						<div class="header-rank">Rank</div>
-						<div class="header-name">Team</div>
-						<div class="header-previous">Score</div>
-						<div class="header-territories">Territories</div>
-						<div class="header-gains">Gains</div>
-						<div class="header-total">Total</div>
+		<div id="leaderboard-panel" class="scoreboard-panel hidden" data-model="territorial_score_model">
+			<div id="leaderboard-overlay" class="scoreboard-overlay"></div>
+			<div id="leaderboard-content" class="scoreboard-content">
+				<div id="leaderboard-gradient-overlay" class="scoreboard-gradient-overlay"></div>
+				<div id="leaderboard-header" class="scoreboard-header">Scoreboard</div>
+				<div id="leaderboard-table-wrapper" class="scoreboard-table-wrapper">
+					<div id="leaderboard-column-headers" class="scoreboard-column-headers">
+						<div class="scoreboard-header-rank">Rank</div>
+						<div class="scoreboard-header-name">Team</div>
+						<div class="scoreboard-header-previous">Score</div>
+						<div class="scoreboard-header-territories">Territories</div>
+						<div class="scoreboard-header-gains">Gains</div>
+						<div class="scoreboard-header-total">Total</div>
 					</div>
-					<div id="leaderboard-teams" class="leaderboard-teams"></div>
-					<div id="elimination-separator" class="elimination-separator hidden">
-						<div class="elimination-separator-text">Elimination Threshold</div>
+					<div id="leaderboard-teams" class="scoreboard-teams"></div>
+					<div id="elimination-separator" class="scoreboard-elimination-separator hidden">
+						<div id="elimination-separator-text" class="scoreboard-elimination-separator-text">Elimination Threshold</div>
 					</div>
-					<div id="leaderboard-eliminated" class="leaderboard-eliminated"></div>
+					<div id="leaderboard-eliminated" class="scoreboard-eliminated"></div>
 				</div>
 			</div>
 		</div>

@@ -2,7 +2,7 @@ body {
 	pointer-events: none;
 }
 
-.td-root {
+.scorepanel-root {
 	position: absolute;
 	display: flex;
 	flex-direction: column;
@@ -26,7 +26,7 @@ body {
 	gap: 4dp;
 }
 
-.td-gradient-overlay {
+.scorepanel-gradient-overlay {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -38,7 +38,7 @@ body {
 	z-index: 1;
 }
 
-.header-info {
+.scorepanel-header-info {
 	display: flex;
 	justify-content: space-between;
 	align-items: flex-start;
@@ -49,21 +49,21 @@ body {
 	background-color: transparent;
 }
 
-.left-header {
+.scorepanel-left-header {
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
 	gap: 2dp;
 }
 
-.right-header {
+.scorepanel-right-header {
 	display: flex;
 	flex-direction: column;
 	align-items: flex-end;
 	gap: 2dp;
 }
 
-.round-display {
+.scorepanel-round-display {
 	color: #ffffff;
 	font-family: Exo 2;
 	font-size: 19dp;
@@ -72,11 +72,11 @@ body {
 	font-effect: outline(1dp #000000CC);
 }
 
-.round-display.hidden {
+.scorepanel-round-display.hidden {
 	display: none;
 }
 
-.rank-display {
+.scorepanel-rank-display {
 	color: #ffffff;
 	font-family: Exo 2;
 	font-size: 19dp;
@@ -85,11 +85,11 @@ body {
 	font-effect: outline(1dp #000000CC);
 }
 
-.rank-display.hidden {
+.scorepanel-rank-display.hidden {
 	display: none;
 }
 
-.time-display {
+.scorepanel-time-display {
 	color: #ffffff;
 	font-family: Exo 2;
 	font-size: 19dp;
@@ -98,15 +98,15 @@ body {
 	font-effect: outline(1dp #000000CC);
 }
 
-.time-display.hidden {
+.scorepanel-time-display.hidden {
 	display: none;
 }
 
-.time-display.warning {
+.scorepanel-time-display.warning {
 	color: #ff0000;
 }
 
-.time-display.warning.pulsing {
+.scorepanel-time-display.warning.pulsing {
 	animation: countdown-pulse 0.5s cubic-in-out infinite;
 }
 
@@ -115,7 +115,7 @@ body {
 	100% { color: #cc0000; transform: scale(1); }
 }
 
-.advance-text {
+.scorepanel-advance-text {
 	color: #ffffff;
 	font-family: Exo 2;
 	font-size: 16dp;
@@ -126,11 +126,11 @@ body {
 	font-effect: outline(1dp #000000CC);
 }
 
-.advance-text.hidden {
+.scorepanel-advance-text.hidden {
 	display: none;
 }
 
-.elimination-warning {
+.scorepanel-elimination-warning {
 	color: #ffffff;
 	font-family: Exo 2;
 	font-size: 16dp;
@@ -144,17 +144,16 @@ body {
 	font-effect: outline(1dp #000000CC);
 }
 
-.elimination-warning.above-elimination {
+.scorepanel-elimination-warning.above-elimination {
 	background-color: #00800080;
 }
 
-.elimination-warning.next-round {
+.scorepanel-elimination-warning.next-round {
 	background-color: #00800080;
 }
 
-.elimination-warning.below-elimination {
+.scorepanel-elimination-warning.below-elimination {
 	background-color: #8B000080;
-	animation: elimination-blink 1s cubic-in-out infinite;
 }
 
 @keyframes elimination-blink {
@@ -163,11 +162,11 @@ body {
 	100% { background-color: #8B000080; }
 }
 
-.elimination-warning.hidden {
+.scorepanel-elimination-warning.hidden {
 	display: none;
 }
 
-.territory-info {
+.scorepanel-territory-info {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -177,14 +176,14 @@ body {
 	z-index: 2;
 }
 
-.territory-info-row {
+.scorepanel-territory-info-row {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	gap: 6dp;
 }
 
-.territory-icon {
+.scorepanel-territory-icon {
 	width: 20dp;
 	height: 20dp;
 	display: inline-block;
@@ -195,24 +194,24 @@ body {
 	box-sizing: border-box;
 }
 
-.territory-icon-square {
+.scorepanel-territory-icon-square {
 	position: absolute;
 	width: 9dp;
 	height: 9dp;
 	background-color: #ffffff;
 }
 
-.territory-icon-square-tl {
+.scorepanel-territory-icon-square-tl {
 	left: 0;
 	top: 0;
 }
 
-.territory-icon-square-br {
+.scorepanel-territory-icon-square-br {
 	right: 0;
 	bottom: 0;
 }
 
-.territory-count {
+.scorepanel-territory-count {
 	color: #ffffff;
 	font-family: Exo 2;
 	font-size: 17dp;
@@ -220,7 +219,7 @@ body {
 	font-effect: outline(1dp #000000CC);
 }
 
-.territory-points {
+.scorepanel-territory-points {
 	color: #ffffff;
 	font-family: Exo 2;
 	font-size: 17dp;
@@ -228,7 +227,7 @@ body {
 	font-effect: outline(1dp #000000CC);
 }
 
-.territory-worth {
+.scorepanel-territory-worth {
 	color: #ffffff;
 	font-family: Exo 2;
 	font-size: 16dp;
@@ -238,7 +237,7 @@ body {
 	font-effect: outline(1dp #000000CC);
 }
 
-.score-section {
+.scorepanel-score-section {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -249,7 +248,7 @@ body {
 	z-index: 2;
 }
 
-.current-score {
+.scorepanel-current-score {
 	color: #ffffff;
 	font-family: Exo 2;
 	font-size: 24dp;
@@ -258,7 +257,15 @@ body {
 	font-effect: outline(1dp #000000CC);
 }
 
-.leaderboard-button {
+.scorepanel-current-score.warning {
+	color: #ff0000;
+}
+
+.scorepanel-current-score.warning.pulsing {
+	animation: countdown-pulse 0.5s cubic-in-out infinite;
+}
+
+.scorepanel-leaderboard-button {
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -275,16 +282,16 @@ body {
 	transition: background-color 0.2s;
 }
 
-.leaderboard-button:hover {
+.scorepanel-leaderboard-button:hover {
 	background-color: rgba(255, 255, 255, 0.1);
 }
 
-.leaderboard-text {
+.scorepanel-leaderboard-text {
 	color: #ffffff;
 	font-effect: outline(1dp #000000CC);
 }
 
-.round-end-popup {
+.popup-round-end {
 	position: absolute;
 	z-index: 2000;
 	pointer-events: none;
@@ -302,14 +309,14 @@ body {
 	min-width: 0dp;
 }
 
-.round-end-popup.visible {
+.popup-round-end.visible {
 	display: block;
 	opacity: 1;
 	transform: scale(1) translateY(0);
 	animation: popup-fade-in 0.5s cubic-out;
 }
 
-.round-end-popup.fade-out {
+.popup-round-end.fade-out {
 	animation: popup-fade-out 0.5s cubic-in;
 }
 
@@ -344,7 +351,7 @@ body {
 	white-space: nowrap;
 	font-effect: outline(1.5dp #000000CC);
 }
-.leaderboard-panel {
+.scoreboard-panel {
 	position: fixed;
 	left: 0;
 	top: 0;
@@ -357,11 +364,11 @@ body {
 	align-items: center;
 }
 
-.leaderboard-panel.hidden {
+.scoreboard-panel.hidden {
 	display: none;
 }
 
-.leaderboard-overlay {
+.scoreboard-overlay {
 	position: absolute;
 	left: 0;
 	top: 0;
@@ -371,7 +378,7 @@ body {
 	pointer-events: auto;
 }
 
-.leaderboard-content {
+.scoreboard-content {
 	position: relative;
 	z-index: 2001;
 	background-color: rgba(50, 50, 50, 60);
@@ -387,7 +394,7 @@ body {
 	image-color: rgba(40, 40, 40, 109);
 }
 
-.leaderboard-gradient-overlay {
+.scoreboard-gradient-overlay {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -399,7 +406,7 @@ body {
 	z-index: 1;
 }
 
-.leaderboard-header {
+.scoreboard-header {
 	color: #ffffff;
 	font-family: Exo 2;
 	font-size: 24dp;
@@ -413,8 +420,8 @@ body {
 	display: block;
 }
 
-.header-rank,
-.leaderboard-rank {
+.scoreboard-header-rank,
+.scoreboard-rank {
 	color: #ffffff;
 	font-family: Exo 2;
 	font-weight: bold;
@@ -424,15 +431,15 @@ body {
 	min-width: auto;
 }
 
-.header-rank {
+.scoreboard-header-rank {
 	font-size: 14dp;
 }
 
-.leaderboard-rank {
+.scoreboard-rank {
 	font-size: 16dp;
 }
 
-.header-name {
+.scoreboard-header-name {
 	color: #ffffff;
 	font-family: Exo 2;
 	font-size: 14dp;
@@ -444,7 +451,7 @@ body {
 	text-align: left;
 }
 
-.leaderboard-name {
+.scoreboard-name {
 	color: #ffffff;
 	font-family: Exo 2;
 	font-size: 16dp;
@@ -461,14 +468,14 @@ body {
 	text-align: left;
 }
 
-.header-previous,
-.header-territories,
-.header-gains,
-.header-total,
-.leaderboard-previous,
-.leaderboard-territories,
-.leaderboard-gains,
-.leaderboard-total {
+.scoreboard-header-previous,
+.scoreboard-header-territories,
+.scoreboard-header-gains,
+.scoreboard-header-total,
+.scoreboard-previous,
+.scoreboard-territories,
+.scoreboard-gains,
+.scoreboard-total {
 	color: #ffffff;
 	font-family: Exo 2;
 	font-weight: bold;
@@ -479,21 +486,21 @@ body {
 	min-width: auto;
 }
 
-.header-previous,
-.header-territories,
-.header-gains,
-.header-total {
+.scoreboard-header-previous,
+.scoreboard-header-territories,
+.scoreboard-header-gains,
+.scoreboard-header-total {
 	font-size: 14dp;
 }
 
-.leaderboard-previous,
-.leaderboard-territories,
-.leaderboard-gains,
-.leaderboard-total {
+.scoreboard-previous,
+.scoreboard-territories,
+.scoreboard-gains,
+.scoreboard-total {
 	font-size: 16dp;
 }
 
-.leaderboard-table-wrapper {
+.scoreboard-table-wrapper {
 	display: table;
 	border-spacing: 0;
 	table-layout: auto;
@@ -502,11 +509,11 @@ body {
 	z-index: 2;
 }
 
-.leaderboard-column-headers {
+.scoreboard-column-headers {
 	display: table-row;
 }
 
-.leaderboard-column-headers > * {
+.scoreboard-column-headers > * {
 	display: table-cell;
 	padding: 8dp 12dp 2dp 8dp;
 	vertical-align: middle;
@@ -515,53 +522,53 @@ body {
 	white-space: nowrap;
 }
 
-.leaderboard-column-headers > .header-rank {
+.scoreboard-column-headers > .scoreboard-header-rank {
 	padding: 8dp 8dp 2dp 8dp;
 }
 
-.leaderboard-column-headers > .header-name {
+.scoreboard-column-headers > .scoreboard-header-name {
 	white-space: normal;
 	max-width: 320dp;
 	min-width: 160dp;
 	padding-right: 20dp;
 }
 
-.leaderboard-column-headers > .header-previous,
-.leaderboard-column-headers > .header-territories,
-.leaderboard-column-headers > .header-gains,
-.leaderboard-column-headers > .header-total {
+.scoreboard-column-headers > .scoreboard-header-previous,
+.scoreboard-column-headers > .scoreboard-header-territories,
+.scoreboard-column-headers > .scoreboard-header-gains,
+.scoreboard-column-headers > .scoreboard-header-total {
 	padding-left: 12dp;
 	padding-right: 12dp;
 }
 
-.leaderboard-column-headers > *:last-child {
+.scoreboard-column-headers > *:last-child {
 	padding-right: 8dp;
 }
 
-.leaderboard-teams,
-.leaderboard-eliminated {
+.scoreboard-teams,
+.scoreboard-eliminated {
 	display: table-row-group;
 	padding-top: 2dp;
 }
 
-.leaderboard-team-row {
+.scoreboard-team-row {
 	display: table-row;
 	transition: background-color 0.2s;
 }
 
-.leaderboard-team-row > * {
+.scoreboard-team-row > * {
 	display: table-cell;
 	padding: 8dp 12dp 8dp 8dp;
 	vertical-align: middle;
 	white-space: nowrap;
 }
 
-.leaderboard-team-row > .leaderboard-rank {
+.scoreboard-team-row > .scoreboard-rank {
 	padding: 8dp 8dp;
 	vertical-align: middle;
 }
 
-.leaderboard-team-row > .leaderboard-name {
+.scoreboard-team-row > .scoreboard-name {
 	white-space: normal;
 	max-width: 320dp;
 	min-width: 160dp;
@@ -573,28 +580,47 @@ body {
 	vertical-align: top;
 }
 
-.leaderboard-team-row > .leaderboard-previous,
-.leaderboard-team-row > .leaderboard-territories,
-.leaderboard-team-row > .leaderboard-gains,
-.leaderboard-team-row > .leaderboard-total {
+.scoreboard-team-row > .scoreboard-previous,
+.scoreboard-team-row > .scoreboard-territories,
+.scoreboard-team-row > .scoreboard-gains,
+.scoreboard-team-row > .scoreboard-total {
 	padding-left: 12dp;
 	padding-right: 12dp;
 	vertical-align: middle;
 }
 
-.leaderboard-team-row > *:last-child {
+.scoreboard-team-row > *:last-child {
 	padding-right: 8dp;
 }
 
-.leaderboard-team-row:hover {
+.scoreboard-team-row:hover {
 	opacity: 0.9;
 }
 
-.leaderboard-team-row.eliminated {
+.scoreboard-team-row.eliminated {
 	opacity: 0.6;
 }
 
-.leaderboard-player-name {
+.scoreboard-team-row.eliminated .scoreboard-rank,
+.scoreboard-team-row.eliminated .scoreboard-previous,
+.scoreboard-team-row.eliminated .scoreboard-territories,
+.scoreboard-team-row.eliminated .scoreboard-gains,
+.scoreboard-team-row.eliminated .scoreboard-total {
+	color: #888888;
+	font-effect: outline(1dp #00000080);
+}
+
+.scoreboard-team-row.eliminated .scoreboard-name {
+	color: #888888;
+	font-effect: outline(1dp #00000080);
+}
+
+.scoreboard-team-row.eliminated .scoreboard-name .scoreboard-player-name {
+	color: #888888 !important;
+	font-effect: outline(1dp #00000080);
+}
+
+.scoreboard-player-name {
 	font-family: Exo 2;
 	font-size: 16dp;
 	font-weight: bold;
@@ -609,11 +635,11 @@ body {
 	text-align: left;
 }
 
-.leaderboard-player-name:last-child {
+.scoreboard-player-name:last-child {
 	margin-bottom: 0dp;
 }
 
-.elimination-separator {
+.scoreboard-elimination-separator {
 	display: table-row;
 	border-top-width: 1dp;
 	border-top-color: rgba(255, 255, 255, 0.3);
@@ -623,11 +649,11 @@ body {
 	z-index: 2;
 }
 
-.elimination-separator.hidden {
+.scoreboard-elimination-separator.hidden {
 	display: none;
 }
 
-.elimination-separator-text {
+.scoreboard-elimination-separator-text {
 	color: #ffffff;
 	font-family: Exo 2;
 	font-size: 16dp;
@@ -637,4 +663,5 @@ body {
 	display: table-cell;
 	padding: 8dp;
 	column-span: all;
+	white-space: nowrap;
 }
