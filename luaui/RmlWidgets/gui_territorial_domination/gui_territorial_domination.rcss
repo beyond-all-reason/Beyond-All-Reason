@@ -13,7 +13,7 @@ body {
 	z-index: 1000;
 	pointer-events: auto;
 	font-family: Exo 2;
-	width: 220dp;
+	width: 240dp;
 	height: 240dp;
 	overflow: visible;
 	box-sizing: border-box;
