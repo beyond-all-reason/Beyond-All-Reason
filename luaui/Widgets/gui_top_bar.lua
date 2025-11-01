@@ -103,13 +103,15 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
 -- Graphics
-local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
-local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
-local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
-local energyGlowTexture = "LuaUI/Images/paralyzed.png"
-local bladesTexture = ":n:LuaUI/Images/wind-blades.png"
-local wavesTexture = ":n:LuaUI/Images/tidal-waves.png"
-local comTexture = ":n:Icons/corcom.png"
+local textures = {
+	noiseBackground = ":g:LuaUI/Images/rgbnoise.png",
+	barGlowCenter = ":l:LuaUI/Images/barglow-center.png",
+	barGlowEdge = ":l:LuaUI/Images/barglow-edge.png",
+	energyGlow = "LuaUI/Images/paralyzed.png",
+	blades = ":n:LuaUI/Images/wind-blades.png",
+	waves = ":n:LuaUI/Images/tidal-waves.png",
+	com = ":n:Icons/corcom.png"
+}
 local textWarnColor = "\255\255\215\215"
 
 -- UI Elements
@@ -152,6 +154,7 @@ local lastStorageValue = { metal = -1, energy = -1 }
 local lastStorageText = { metal = '', energy = '' }
 local lastWarning = { metal = nil, energy = nil }
 local lastValueWidth = { metal = -1, energy = -1 }
+local lastResbarValueWidth = { metal = 1, energy = 1 }
 local prevShowButtons = showButtons
 
 
@@ -358,7 +361,7 @@ local function updateComs(forceText)
 		-- Commander icon
 		local sizeHalf = (height / 2.44) * widgetScale
 		local yOffset = ((area[3] - area[1]) * 0.025)
-		glTexture(comTexture)
+		glTexture(textures.com)
 		glTexRect(area[1] + ((area[3] - area[1]) / 2) - sizeHalf, area[2] + ((area[4] - area[2]) / 2) - sizeHalf +yOffset, area[1] + ((area[3] - area[1]) / 2) + sizeHalf, area[2] + ((area[4] - area[2]) / 2) + sizeHalf+yOffset)
 		glTexture(false)
 
@@ -416,7 +419,7 @@ local function updateWind()
 		glPushMatrix()
 		glTranslate(area[1] + ((area[3] - area[1]) / 2), area[2] + (bgpadding/2) + ((area[4] - area[2]) / 2), 0)
 		glColor(1, 1, 1, 0.2)
-		glTexture(bladesTexture)
+		glTexture(textures.blades)
 		-- glRotate is done after displaying this dl, and before dl2
 	end)
 
@@ -482,7 +485,7 @@ local function updateTidal()
 
 	tidaldlist2 = glCreateList(function()
 		glColor(1, 1, 1, 0.2)
-		glTexture(wavesTexture)
+		glTexture(textures.waves)
 		glTexRect(-wavesSize, -wavesSize, wavesSize, wavesSize)
 		glTexture(false)
 		glPopMatrix()
@@ -650,7 +653,8 @@ local function updateResbarText(res, force)
 end
 
 local function drawResbarValue(res)
-	-- Text: current
+	local value = short(smoothedResources[res][1])
+	lastResbarValueWidth[res] = font2:GetTextWidth(value) * resbarDrawinfo[res].textCurrent[4]
 	font2:Begin(useRenderToTexture)
 	if res == 'metal' then
 		font2:SetTextColor(0.95, 0.95, 0.95, 1)
@@ -658,7 +662,7 @@ local function drawResbarValue(res)
 		font2:SetTextColor(1, 1, 0.74, 1)
 	end
 	font2:SetOutlineColor(0, 0, 0, 1)
-	font2:Print(short(smoothedResources[res][1]), resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+	font2:Print(value, resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
 	font2:End()
 end
 
@@ -736,7 +740,7 @@ local function updateResbar(res)
 		local borderSize = 1
 		RectRound(barArea[1] - edgeWidth + borderSize, barArea[2] - edgeWidth + borderSize, barArea[3] + edgeWidth - borderSize, barArea[4] + edgeWidth - borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0,0,0, 0.1 }, { 0,0,0, 0.13 })
 
-		glTexture(noiseBackgroundTexture)
+		glTexture(textures.noiseBackground)
 		glColor(1,1,1, 0.16)
 		TexturedRectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, barWidth*0.33, 0)
 		glTexture(false)
@@ -849,15 +853,15 @@ local function updateResbarValues(res, update)
 				-- Bar value glow
 				glBlending(GL_SRC_ALPHA, GL_ONE)
 				glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
-				glTexture(barGlowCenterTexture)
+				glTexture(textures.barGlowCenter)
 				DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4], 0.008)
-				glTexture(barGlowEdgeTexture)
+				glTexture(textures.barGlowEdge)
 				DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4], 0.008)
 				DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth) + (glowSize * 3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
 				glTexture(false)
 
 				if res == 'metal' then
-					glTexture(noiseBackgroundTexture)
+					glTexture(textures.noiseBackground)
 					glColor(1,1,1, 0.37)
 					TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 1, 1, 1, 1, barWidth*0.33, 0)
 					glTexture(false)
@@ -875,7 +879,7 @@ local function updateResbarValues(res, update)
 				-- energy flow effect
 				glColor(1,1,1, 0.33)
 				glBlending(GL_SRC_ALPHA, GL_ONE)
-				glTexture(energyGlowTexture)
+				glTexture(textures.energyGlow)
 				TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 0, 0, 1, 1, barWidth/0.5, -now/80)
 				TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 0, 0, 1, 1, barWidth/0.33, now/70)
 				TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 0, 0, 1, 1, barWidth/0.45,-now/55)
@@ -974,7 +978,7 @@ local function checkSelfStatus()
 	myTeamID = Spring.GetMyTeamID()
 
 	if myTeamID ~= gaiaTeamID and UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')] then
-		comTexture = ':n:Icons/'..UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')].name..'.png'
+		textures.com = ':n:Icons/'..UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')].name..'.png'
 	end
 end
 
@@ -1334,9 +1338,9 @@ local function drawResBars()
 			res = 'metal'
 			if updateRes[res][1] then
 				scissors[#scissors+1] = {
-					(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(resbarDrawinfo[res].textCurrent[4]*3),
+					(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(lastResbarValueWidth[res]*0.75),
 					(topbarArea[4]-topbarArea[2])*0.48,
-					resbarDrawinfo[res].textCurrent[4]*6,
+					resbarDrawinfo[res].textCurrent[4]+lastResbarValueWidth[res],
 					topbarArea[4]-topbarArea[2]
 				}
 			end
@@ -1359,9 +1363,9 @@ local function drawResBars()
 			res = 'energy'
 			if updateRes[res][1] then
 				scissors[#scissors+1] = {
-					(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(resbarDrawinfo[res].textCurrent[4]*3),
+					(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(lastResbarValueWidth[res]*0.75),
 					(topbarArea[4]-topbarArea[2])*0.48,
-					resbarDrawinfo[res].textCurrent[4]*6,
+					resbarDrawinfo[res].textCurrent[4]+lastResbarValueWidth[res],
 					topbarArea[4]-topbarArea[2]
 				}
 			end
@@ -1740,9 +1744,9 @@ function widget:DrawScreen()
 	end
 
 	-- current wind
-	if gameFrame > 0 and minWind+maxWind >= 0.5 then
+	if gameFrame > 0 and (minWind+maxWind >= 0.5 or refreshUi) then
 		if useRenderToTexture then
-			if currentWind ~= prevWind then
+			if currentWind ~= prevWind or refreshUi then
 				prevWind = currentWind
 
 				gl.R2tHelper.RenderToTexture(uiTex,
@@ -2123,7 +2127,7 @@ function widget:Initialize()
 	if teamN > 2 then displayComCounter = true end
 
 	if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')] then
-		comTexture = ':n:Icons/'..UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name..'.png'
+		textures.com = ':n:Icons/'..UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name..'.png'
 	end
 
 	for _, teamID in ipairs(myAllyTeamList) do
