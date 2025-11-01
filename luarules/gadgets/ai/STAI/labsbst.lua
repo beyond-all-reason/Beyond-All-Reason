@@ -45,7 +45,7 @@ end
 
 function LabsBST:ExitCheck()
 	for i,v in pairs(self.ai.armyhst.unitTable[self.name].unitsCanBuild) do
-		
+
 		if not Spring.TestMoveOrder(self.ai.armyhst.unitTable[v].defId, self.position.x, self.position.y, self.position.z) then
 			self:EchoDebug('exitcheck failed',self.name)
 			self.ai.cleanhst.cleanableByID[self.id] = self.id
@@ -92,7 +92,7 @@ function LabsBST:preFilter()
 			self:EchoDebug('lab is waiting -> restart')
 			self.ai.tool:GiveOrder(self.id,CMD.WAIT,0,0,'1-1')
 		end
-		
+
 	elseif self.ai.ecohst.Metal.full < 0.1 then
 		for id, lab in pairs(self.ai.labshst.labs) do
 			if lab.underConstruction  and not self.unit:Internal():IsWaiting() then
@@ -110,12 +110,12 @@ end
 
 function LabsBST:Update()
 	--if self.exitClosed then
---		return
---	end
+	--	return
+	--end
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'LabsBST' then return end
 	local f = self.game:Frame()
 	self:preFilter() -- work or no resource??
-	if Spring.GetFactoryCommands(self.id,0) > 1 then return end --factory alredy work
+	if Spring.GetFactoryCommandCount(self.id) > 1 then return end -- factory already work
 	self:GetAmpOrGroundWeapon() -- need more amph to attack in this map?
 	local soldier, param, utype = self:getSoldier()
 	if soldier then
@@ -142,7 +142,7 @@ end
 function LabsBST:getQueue()
 	if self.name == 'armamsub' or self.name == 'coramsub' then
 		return self.ai.taskshst.labs.amphibiousComplex
-	
+
 	end
 	if self.spec.techLevel >= 3 then
 		if self.ai.tool:countFinished({'_fus_'}) < 1 and self.ai.tool:countFinished({'t2mex'}) < 2 then
