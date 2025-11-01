@@ -71,12 +71,12 @@ local SLOPE_MOD = {
 local depthModGeneric = {
 	minheight   = 4,
 	linearcoeff = 0.03,
-	maxvalue    = 0.7, -- TODO: Should be "maxScale" and should be > 1.
+	maxscale    = 1.4, -- at depth 46.67
 }
 
 ---@type DepthModParams
 local depthModCommanders = {
-	maxscale       = 1.5,
+	maxscale       = 1.5, -- at depth 149.14
 	quadraticcoeff = (9.9 / 22090) / 2,
 	linearcoeff    = (0.1 / 470) / 2,
 }
