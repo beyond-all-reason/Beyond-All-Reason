@@ -398,13 +398,10 @@ local function _GameFramePost(collisionList)
 
 			if shieldNumber then
 				local deleted, damage = addShieldDamage(targetID, shieldNumber, damageDealt, weapon.weaponID, projectileID)
-				damageLeft = deleted and 0 or damageLeft - damage / damageDealt - penalty -- shields force falloff
+				damageLeft = deleted and 0 or damageLeft - penalty - damage / damageDealt -- shields force falloff
 			else
-				damageLeft = damageLeft - penalty - (hasFalloff and collision.health / damageBase or 0)
-
 				if isTargetUnit then
 					local impulse = damageBase * factor * falloffRatio(damageLeft, 1) -- inverse ratio
-					setVelocityControl(targetID, true)
 					spAddUnitDamage(
 						targetID,
 						damageDealt,
@@ -415,6 +412,7 @@ local function _GameFramePost(collisionList)
 						penetrator.dirY * impulse,
 						penetrator.dirZ * impulse
 					)
+					setVelocityControl(targetID, true)
 				else
 					local health = collision.health - damageDealt
 					if health > 1 then
@@ -423,6 +421,7 @@ local function _GameFramePost(collisionList)
 						spDestroyFeature(targetID)
 					end
 				end
+				damageLeft = damageLeft - penalty - (hasFalloff and collision.health / damageBase or 0)
 			end
 
 			if damageArmor * damageLeft > 1 and damageBase >= collision.healthMax * damageThreshold then
