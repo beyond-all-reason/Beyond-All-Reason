@@ -402,7 +402,6 @@ local function _GameFramePost(collisionList)
 			else
 				if isTargetUnit then
 					local impulse = damageBase * factor * falloffRatio(damageLeft, 1) -- inverse ratio
-					setVelocityControl(targetID, true)
 					spAddUnitDamage(
 						targetID,
 						damageDealt,
@@ -413,6 +412,7 @@ local function _GameFramePost(collisionList)
 						penetrator.dirY * impulse,
 						penetrator.dirZ * impulse
 					)
+					setVelocityControl(targetID, true)
 				else
 					local health = collision.health - damageDealt
 					if health > 1 then
