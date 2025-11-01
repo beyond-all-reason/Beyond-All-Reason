@@ -3,6 +3,8 @@ local tiers = blueprintConfig.Tiers
 local types = blueprintConfig.BlueprintTypes
 local UDN = UnitDefNames
 
+local math_random = math.random
+
 --	facing:
 --  0 - south
 --  1 - east

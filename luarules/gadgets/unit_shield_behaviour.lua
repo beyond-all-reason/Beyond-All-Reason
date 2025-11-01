@@ -1,12 +1,14 @@
 local gadget = gadget ---@type Gadget
 
+local reworkEnabled = Spring.GetModOptions().shieldsrework --remove when shield rework is permanent
+
 function gadget:GetInfo()
 	return {
 		name = "Shield Behaviour",
 		desc = "Overrides default shield engine behavior.",
 		author = "SethDGamre",
 		layer = 1,
-		enabled = true
+		enabled = reworkEnabled,
 	}
 end
 
@@ -27,7 +29,6 @@ local minDownTime					= 1 * Game.gameSpeed
 -- The maximum number of frames a shield is allowed to be offline from overkill. This is to handle very, very high single-attack damage which would otherwise cripple the shield for multiple minutes.
 local maxDownTime					= 20 * Game.gameSpeed
 
-local reworkEnabled 				= Spring.GetModOptions().shieldsrework --remove when shield rework is permanent
 local shieldModulo                  = Game.gameSpeed
 local shieldOnUnitRulesParamIndex   = 531313
 local INLOS                         = { inlos = true }

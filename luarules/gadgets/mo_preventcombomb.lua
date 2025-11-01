@@ -63,7 +63,8 @@ local function CommCount(unitTeam)
 	end
 	-- Spring.Echo(teamsInAllyID[currentAllyTeamID])
 	local count = 0
-	for _, teamID in pairs(teamsInAllyID[select(6,GetTeamInfo(unitTeam,false))]) do -- [_] = teamID,
+	local allyTeamID = select(6, GetTeamInfo(unitTeam, false))
+	for _, teamID in pairs(teamsInAllyID[allyTeamID]) do -- [_] = teamID,
 		for unitDefID,_ in pairs(isCommander) do
 			count = count + Spring.GetTeamUnitDefCount(teamID, unitDefID)
 		end

@@ -17,6 +17,7 @@ local DonatorAINames = {
     "Aknaroth",
     "Anteep", --$40
     "badosu",
+    "Barscrewl",
     "BiFuriousGeorge",
     "Blickter", --$50
     "bobc7",
@@ -25,6 +26,7 @@ local DonatorAINames = {
     "catraxx",
     "Chrono",
     "Coresample",
+	"CorgiCommander",
     "dallabill",
     "danielquinn",
     "Dave",
@@ -34,9 +36,11 @@ local DonatorAINames = {
     "FishouseMike",
     "FlorisXIV",
     "fluxtux",
+	"frozenclaw",
     "gamerangela911",
     "Glass",
     "greggy4485",
+	"Heally",
     "Hershy",
     "ISolox",
     "Jaedrik",
@@ -76,6 +80,7 @@ local DonatorAINames = {
     "rlm",
     "rous",
     "Shadowisper",
+    "Sinbearer",
     "SkyFire",
     "Sovgut",
     "Spanker",
@@ -99,6 +104,7 @@ local DonatorAINames = {
     "Zee1158", --$60
     "Zerpiederp",
     "zGeneral",
+	"[Zoteling]",
 }
 
 return DonatorAINames

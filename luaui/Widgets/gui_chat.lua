@@ -191,7 +191,6 @@ local soundErrors = {}
 local autocompleteCommands = {
 	-- engine
 	'advmapshading',
-	'advmodelshading',
 	'aicontrol',
 	'aikill',
 	'ailist',
@@ -403,6 +402,20 @@ local autocompleteCommands = {
 	'luarules playertoteam',
 	'luarules killteam',
 	'luarules globallos',
+
+	-- zombie commands
+	'luarules zombiesetallgaia',
+	'luarules zombiequeueallcorpses',
+	'luarules zombieautospawn 0',
+	'luarules zombieclearspawns',
+	'luarules zombiepacify 0',
+	'luarules zombiesuspendorders 0',
+	'luarules zombieaggroteam 0',
+	'luarules zombieaggroally 0',
+	'luarules zombiekillall',
+	'luarules zombieclearallorders',
+	'luarules zombiedebug 0',
+	'luarules zombiemode normal',
 
 	-- widgets
 	'luaui reload',
@@ -1321,14 +1334,18 @@ function widget:Update(dt)
 			ignoredAccounts = table.copy(WG.ignoredAccounts)
 		end
 
-		-- detect spectator filter change
+		-- add settings option commands
 		if not addedOptionsList and WG['options'] and WG['options'].getOptionsList then
 			local optionsList = WG['options'].getOptionsList()
-			addedOptionsList = true
-			for i, option in ipairs(optionsList) do
-				autocompleteCommands[#autocompleteCommands+1] = 'option '..option
+			if optionsList and #optionsList > 0 then
+				addedOptionsList = true
+				for i, option in ipairs(optionsList) do
+					autocompleteCommands[#autocompleteCommands+1] = 'option '..option
+				end
 			end
 		end
+
+		-- detect spectator filter change
 		if hideSpecChat ~= (Spring.GetConfigInt('HideSpecChat', 0) == 1) or hideSpecChatPlayer ~= (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1) then
 			hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
 			HideSpecChatPlayer = (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1)

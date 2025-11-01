@@ -260,7 +260,7 @@ local startConeShader = nil
 
 local function DrawStartPolygons(inminimap)
 
-	local advUnitShading, advMapShading = Spring.HaveAdvShading()
+	local _, advMapShading = Spring.HaveAdvShading()
 
 	if advMapShading then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
