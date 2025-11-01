@@ -36,12 +36,6 @@ if gadgetHandler:IsSyncedCode() then
 	local DAMAGE_RATE = 10 -- frames
 	local lavaDamage = lava.damage * (DAMAGE_RATE / gameSpeed)
 	local lavaDamageFeatures = lava.damageFeatures
-	if lavaDamageFeatures then
-		if not tonumber(lavaDamageFeatures) then
-			lavaDamageFeatures = 0.1
-		end
-		lavaDamageFeatures = lavaDamageFeatures * (DAMAGE_RATE / gameSpeed)
-	end
 
 	-- ceg effects
 	local lavaEffectBurst = lava.effectBurst
