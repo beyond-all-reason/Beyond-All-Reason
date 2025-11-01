@@ -6,3 +6,4 @@
 *.iml
 .project
 *.code-workspace
+.claude
