@@ -12,13 +12,19 @@ function gadget:GetInfo()
     }
 end
 
+local CMD_WAIT = CMD.WAIT
+
 if (gadgetHandler:IsSyncedCode()) then
 
     local canResurrect = {}
+	local isBuilding = {}
     for unitDefID, unitDef in pairs(UnitDefs) do
         if unitDef.canResurrect then
             canResurrect[unitDefID] = true
         end
+		if unitDef.isBuilding then
+			isBuilding[unitDefID] = true
+		end
     end
 
     -- detect resurrected units here
@@ -29,6 +35,9 @@ if (gadgetHandler:IsSyncedCode()) then
 				Spring.SetUnitRulesParam(unitID, "resurrected", 1, {inlos=true})
 			end
 			Spring.SetUnitHealth(unitID, Spring.GetUnitHealth(unitID) * 0.05)
+			if not isBuilding[unitDefID] then
+				Spring.GiveOrderToUnit(unitID, CMD_WAIT, {}, 0)
+			end
 		end
 		-- See: https://github.com/beyond-all-reason/spring/pull/471
 		-- if builderID and Spring.GetUnitCurrentCommand(builderID) == CMD.RESURRECT then

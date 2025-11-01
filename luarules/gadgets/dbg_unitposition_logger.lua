@@ -225,19 +225,18 @@ if not gadgetHandler:IsSyncedCode() then
 			-- find out which players/specs aren't lagged behind and available to send a part of all unit position data
 			local participants = {}
 			local myPart
-			for _,playerID in ipairs(Spring.GetPlayerList()) do
-				local name,_,_,teamID,_,ping = Spring.GetPlayerInfo(playerID,false)
-				-- exclude lagged out players and AI
-				-- NOTE: ping is 0 when player is catching up or playing local (local can be slightly above 0 when low fps 0.033)
-				if (ping > 0.01 or isSinglePlayer) and ping < pingCutoff/1000 and not Spring.GetTeamLuaAI(teamID) and not select(4, Spring.GetTeamInfo(teamID)) then
-					participants[#participants+1] = playerID
-					if playerID == myPlayerID then
-						myPart = #participants
-					end
+		for _,playerID in ipairs(Spring.GetPlayerList()) do
+			local name,_,_,teamID,_,ping = Spring.GetPlayerInfo(playerID,false)
+			-- exclude lagged out players and AI
+			-- NOTE: ping is 0 when player is catching up or playing local (local can be slightly above 0 when low fps 0.033)
+			local isDead = select(4, Spring.GetTeamInfo(teamID))
+			if (ping > 0.01 or isSinglePlayer) and ping < pingCutoff/1000 and not Spring.GetTeamLuaAI(teamID) and not isDead then
+				participants[#participants+1] = playerID
+				if playerID == myPlayerID then
+					myPart = #participants
 				end
 			end
-
-			-- send log when you're included as participant
+		end			-- send log when you're included as participant
 			if myPart then
 				updateLog(gf, participants)
 				sendLog(gf, myPart, 1)

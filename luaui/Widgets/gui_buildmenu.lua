@@ -397,7 +397,7 @@ local function RefreshCommands()
 			end
 		end
 	end
-	
+
 	--[[ MODIFICATION START ]]
 	-- Failsafe check with reset logic
 	if (not preGamestartPlayer) and cmdsCount == 0 and selectedBuilderCount > 0 then
@@ -1320,19 +1320,40 @@ function widget:MousePress(x, y, button)
 								end
 							end
 						else
-							if cmds[cellRectID].params[1] and playSounds then
-								-- has queue
-								Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
-							end
-							if setQuotas and not alt then
+							local queueCount = tonumber(cmds[cellRectID].params[1] or 0)
+
+							local function decreaseQuota()
 								if changeQuotas(-uDefID, modKeyMultiplier.right) and playSounds then
 									Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
 								end
-							else
+							end
+
+							local function decreaseQueue()
+								if queueCount > 0 and playSounds then
+									Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
+								end
 								if preGamestartPlayer then
 									setPreGamestartDefID(cmds[cellRectID].id * -1)
 								elseif spGetCmdDescIndex(cmds[cellRectID].id) then
 									Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id), 3, false, true, Spring.GetModKeyState())
+								end
+							end
+
+							local isQuotaMode = setQuotas and not alt
+							local quotaInfo = cellQuotas[-uDefID]
+							local currentQuota = (quotaInfo and quotaInfo.quota) or 0
+
+							if isQuotaMode then
+								if currentQuota > 0 then
+									decreaseQuota()
+								else
+									decreaseQueue()
+								end
+							else
+								if queueCount > 0 then
+									decreaseQueue()
+								else
+									decreaseQuota()
 								end
 							end
 						end

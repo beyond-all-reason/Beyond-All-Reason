@@ -1680,6 +1680,9 @@ function widget:DrawScreen()
    		end
 	end
 
+	-- Push matrix to preserve GL state for other widgets
+	gl.PushMatrix()
+	
     local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
     local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
     gl.Scale(widgetScale, widgetScale, 0)
@@ -1719,9 +1722,13 @@ function widget:DrawScreen()
         gl_CallList(ShareSlider)
     end
 
-    local scaleReset = widgetScale / widgetScale / widgetScale
-    gl.Translate(-scaleDiffX, -scaleDiffY, 0)
-    gl.Scale(scaleReset, scaleReset, 0)
+	-- Pop matrix to restore GL state for other widgets
+	gl.PopMatrix()
+	
+	-- Reset GL state to clean defaults for other widgets
+	gl.Color(1, 1, 1, 1)
+	gl.Texture(false)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
 -- old funcion called from wherever but it must run in DrawScreen now so we scedule its execution

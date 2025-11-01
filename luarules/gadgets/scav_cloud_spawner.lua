@@ -181,7 +181,8 @@ if gadgetHandler:IsSyncedCode() then -- Synced
     end
 
     function gadget:FeatureCreated(featureID, featureAllyTeamID)
-        aliveWrecks[featureID] = {age = 0, resurrectable = Spring.GetFeatureResurrect(featureID), facing = select(2, Spring.GetFeatureResurrect(featureID)), lastResurrectionCheck = 0}
+        local resurrectable, facing = Spring.GetFeatureResurrect(featureID)
+        aliveWrecks[featureID] = {age = 0, resurrectable = resurrectable, facing = facing, lastResurrectionCheck = 0}
     end
 
     function gadget:FeatureDestroyed(featureID, featureAllyTeamID)

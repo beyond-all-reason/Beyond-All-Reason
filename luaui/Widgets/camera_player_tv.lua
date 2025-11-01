@@ -750,7 +750,8 @@ function widget:Initialize()
 		local _, _, spec, team = spGetPlayerInfo(playerID, false)
 		if not spec then
 			playersTS[playerID] = GetSkill(playerID)
-			if not select(3, Spring.GetTeamInfo(team, false)) and not select(4, Spring.GetTeamInfo(team, false)) then
+			local isDestroyable, isDead = select(3, Spring.GetTeamInfo(team, false))
+			if not isDestroyable and not isDead then
 				humanPlayers = humanPlayers + 1
 			end
 		end

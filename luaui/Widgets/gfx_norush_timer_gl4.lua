@@ -69,7 +69,7 @@ function widget:DrawWorldPreUnit()
 
 	if chobbyInterface or spIsGUIHidden() then return end
 
-	local advUnitShading, advMapShading = Spring.HaveAdvShading()
+	local _, advMapShading = Spring.HaveAdvShading()
 
 	if advMapShading then 
 		gl.Texture(0, "$map_gbuffer_zvaltex")

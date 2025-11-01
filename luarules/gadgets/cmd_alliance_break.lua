@@ -153,7 +153,8 @@ else
 
 	-- Dynamic alliances are not supported for AI teams
 	local function getTeamLeaderName(teamID)
-		return GetPlayerInfo(select(2, GetTeamInfo(teamID, false)), false)
+		local leaderPlayerID = select(2, GetTeamInfo(teamID, false))
+		return GetPlayerInfo(leaderPlayerID, false)
 	end
 
 	local function allianceMade(_, teamA, teamB)

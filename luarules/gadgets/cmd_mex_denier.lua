@@ -85,7 +85,8 @@ function gadget:AllowCommand(_, _, _, cmdID, cmdParams, _, _, playerID)
 		return false
 	end
 
-	return not mexExists(closestSpot, select(5, spGetPlayerInfo(playerID)), bx, bz)
+	local allyTeamID = select(5, spGetPlayerInfo(playerID))
+	return not mexExists(closestSpot, allyTeamID, bx, bz)
 end
 
 -- function gadget:AllowUnitCreation(unitDefID, builderID, teamID, x, y, z, facing)

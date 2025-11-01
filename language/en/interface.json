@@ -696,7 +696,6 @@
 			"scoreBarTooltip": "Capture territories to fill this bar.\nIf the bar drops below the skull,\nyou will be eliminated."
 		},
 		"loadScreen": {
-			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly.",
 			"lowRamWarning": "%{textColor}Your system has below the recommended %{warnColor}12GB memory %{textColor}.     Try running with lower settings if you encounter out-of-memory crashes"
 		},
 		"initialSpawn": {

@@ -68,10 +68,11 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			-- ensure the wipeout is initiated (for some reason game_end doesnt kill the allyteam I think)
 			if allyTeamDead then
+				local wipeoutAllyID = select(6, Spring.GetTeamInfo(teamID))
 				if GG.wipeoutAllyTeam then
-					GG.wipeoutAllyTeam(select(6, Spring.GetTeamInfo(teamID)))
+					GG.wipeoutAllyTeam(wipeoutAllyID)
 				else
-					local teams = Spring.GetTeamList(select(6, Spring.GetTeamInfo(teamID)))
+					local teams = Spring.GetTeamList(wipeoutAllyID)
 					for _,tID in pairs(teams) do
 						local teamUnits = Spring.GetTeamUnits(tID)
 						for i=1, #teamUnits do

@@ -191,7 +191,6 @@ local soundErrors = {}
 local autocompleteCommands = {
 	-- engine
 	'advmapshading',
-	'advmodelshading',
 	'aicontrol',
 	'aikill',
 	'ailist',

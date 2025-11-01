@@ -48,11 +48,11 @@ local function IsDeferredShadingEnabled()
 end
 
 local function GetAdvShadingActive()
-	local advUnitShading, advMapShading = Spring.HaveAdvShading()
+	local _, advMapShading = Spring.HaveAdvShading()
 	if advMapShading == nil then
 		advMapShading = true
 	end --old engine
-	return advUnitShading and advMapShading
+	return advMapShading
 end
 
 local function GetEngineUniformBufferDefs()
@@ -202,18 +202,18 @@ vec2 heightmapUVatWorldPosMirrored(vec2 worldpos) {
 	vec2 heightmaptexel = vec2(8.0, 8.0);
 	worldpos +=  vec2(-8.0, -8.0) * (worldpos * inverseMapSize) + vec2(4.0, 4.0) ;
 	vec2 uvhm = worldpos * inverseMapSize;
-	
+
 	return abs(fract(uvhm * 0.5 + 0.5) - 0.5) * 2.0;
 }
 
 //  SphereInViewSignedDistance
 //  Signed distance from a world-space sphere to the X-Y NDC box.
-//  Z (near/far) is ignored. Very reliable, reasonably optimized. 
+//  Z (near/far) is ignored. Very reliable, reasonably optimized.
 //  Returns:
 //      < 0  – sphere at least partially inside the X-Y clip box
 //      = 0  – sphere exactly touches at least one edge
 //      > 0  – sphere is more distance from the edge of frustrum by that many NDC units
-// 
+//
 float SphereInViewSignedDistance(vec3 centerWS,  float radiusWS)
 {
     // 1.  centre → clip space
@@ -243,7 +243,7 @@ float SphereInViewSignedDistance(vec3 centerWS,  float radiusWS)
 
 
 
-// Note that this function does not check the Z or depth of the clip space, but in regular springrts top-down views, this isnt needed either. 
+// Note that this function does not check the Z or depth of the clip space, but in regular springrts top-down views, this isnt needed either.
 // the radius to cameradist ratio is a good proxy for visibility in the XY plane
 bool isSphereVisibleXY(vec4 wP, float wR){ //worldPos, worldRadius
 	vec3 ToCamera = wP.xyz - cameraViewInv[3].xyz; // vector from worldpos to camera
@@ -276,8 +276,8 @@ vec3 rgb2hsv(vec3 c){
 	local waterMinColorR, waterMinColorG, waterMinColorB = gl.GetWaterRendering("minColor")
 	local waterBaseColorR, waterBaseColorG, waterBaseColorB = gl.GetWaterRendering("baseColor")
 
-	local waterUniforms = 
-[[ 
+	local waterUniforms =
+[[
 #define WATERABSORBCOLOR vec3(%f,%f,%f)
 #define WATERMINCOLOR vec3(%f,%f,%f)
 #define WATERBASECOLOR vec3(%f,%f,%f)
@@ -295,9 +295,9 @@ vec4 waterBlend(float fragmentheight){
 	return waterBlendResult;
 }
 ]]
-	waterUniforms = string.format(waterUniforms, 
+	waterUniforms = string.format(waterUniforms,
 		waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB,
-		waterMinColorR, waterMinColorG, waterMinColorB, 
+		waterMinColorR, waterMinColorG, waterMinColorB,
 		waterBaseColorR, waterBaseColorG, waterBaseColorB
 	)
 
@@ -491,7 +491,7 @@ Transform GetStaticPieceModelTransform(uint baseIndex, uint pieceID)
 {
 	return transforms[baseIndex + 1u * (pieceID) + 0u];
 }
-	
+
 ]]
 end
 
@@ -519,16 +519,16 @@ LuaShader.GetQuaternionDefs = GetQuaternionDefs
 
 local function CheckShaderUpdates(shadersourcecache, delaytime)
 	-- todo: extract shaderconfig
-	if shadersourcecache.forceupdate or shadersourcecache.lastshaderupdate == nil or 
-		Spring.DiffTimers(Spring.GetTimer(), shadersourcecache.lastshaderupdate) > (delaytime or 0.5) then 
+	if shadersourcecache.forceupdate or shadersourcecache.lastshaderupdate == nil or
+		Spring.DiffTimers(Spring.GetTimer(), shadersourcecache.lastshaderupdate) > (delaytime or 0.5) then
 		shadersourcecache.lastshaderupdate = Spring.GetTimer()
 		local vsSrcNew = (shadersourcecache.vssrcpath and VFS.LoadFile(shadersourcecache.vssrcpath)) or shadersourcecache.vsSrc
 		local fsSrcNew = (shadersourcecache.fssrcpath and VFS.LoadFile(shadersourcecache.fssrcpath)) or shadersourcecache.fsSrc
 		local gsSrcNew = (shadersourcecache.gssrcpath and VFS.LoadFile(shadersourcecache.gssrcpath)) or shadersourcecache.gsSrc
-		if vsSrcNew == shadersourcecache.vsSrc and 
-			fsSrcNew == shadersourcecache.fsSrc and 
-			gsSrcNew == shadersourcecache.gsSrc and 
-			not shadersourcecache.forceupdate then 
+		if vsSrcNew == shadersourcecache.vsSrc and
+			fsSrcNew == shadersourcecache.fsSrc and
+			gsSrcNew == shadersourcecache.gsSrc and
+			not shadersourcecache.forceupdate then
 			--Spring.Echo("No change in shaders")
 			return nil
 		else
@@ -544,44 +544,44 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 
 			local printfpattern =  "^[^/]*printf%s*%(%s*([%w_%.]+)%s*%)"
 			local printf = nil
-			if not fsSrcNew then 
+			if not fsSrcNew then
 				Spring.Echo("Warning: No fragment shader source found for", shadersourcecache.shaderName)
-			end	
+			end
 			local fsSrcNewLines = string.lines(fsSrcNew)
-			for i, line in ipairs(fsSrcNewLines) do 
+			for i, line in ipairs(fsSrcNewLines) do
 				--Spring.Echo(i,line)
 				local glslvariable = line:match(printfpattern)
-				if glslvariable then 
+				if glslvariable then
 					--Spring.Echo("printf in fragment shader",i,  glslvariable, line)
 					-- init our printf table
-					
+
 					-- Replace uncommented printf's with the function stub to set the SSBO data for that field
 
 					-- Figure out wether the glsl variable is a float, vec2-4
 					local glslvarcount = 1 -- default is 1
 					local dotposition = string.find(glslvariable, "%.")
 					local swizzle = 'x'
-					if dotposition then 
+					if dotposition then
 						swizzle = string.sub(glslvariable, dotposition+1)
 						glslvarcount = string.len(swizzle)
 					end
-					if glslvarcount>4 then 
+					if glslvarcount>4 then
 						glslvarcount = 4
 					end
-					if not printf then printf = {} end 
+					if not printf then printf = {} end
 					printf["vars"] = printf["vars"] or {}
 					local vardata =  {name = glslvariable, count = glslvarcount, line = i, index = #printf["vars"], swizzle = swizzle, shaderstage = 'f'}
-					table.insert(printf["vars"], vardata)   
+					table.insert(printf["vars"], vardata)
 					local replacementstring = string.format('if (all(lessThan(abs(mouseScreenPos.xy- (gl_FragCoord.xy + vec2(0.5, -1.5))),vec2(0.25) ))) {	printfData[%i].%s = %s;}	//printfData[INDEX] = vertexPos.xyzw;',
 							vardata.index, string.sub('xyzw', 1, vardata.count), vardata.name
 					)
-					Spring.Echo(string.format("Replacing f:%d %s", i, line))   
+					Spring.Echo(string.format("Replacing f:%d %s", i, line))
 					fsSrcNewLines[i] = replacementstring
 				end
 			end
-			
+
 			-- If any substitutions were made, reassemble the shader source
-			if printf then 
+			if printf then
 				-- Define the shader storage buffer object, with at most SSBOSize entries
 				printf.SSBOSize = math.max(#printf['vars'], 16)
 				--Spring.Echo("SSBOSize", printf.SSBOSize)
@@ -598,10 +598,10 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 				]]
 
 				-- Check shader version string and replace if required:
-				
-				for i, line in ipairs(fsSrcNewLines) do 
-					if string.find(line, "#version", nil, true) then 
-						if line ~= "#version 430 core" then 
+
+				for i, line in ipairs(fsSrcNewLines) do
+					if string.find(line, "#version", nil, true) then
+						if line ~= "#version 430 core" then
 							Spring.Echo("Replacing shader version", line, "with #version 430 core")
 							fsSrcNewLines[i] = ""
 							table.insert(fsSrcNewLines,1, "#version 430 core\n")
@@ -609,21 +609,21 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 						end
 					end
 				end
-				
+
 				-- Add required extensions
 
 				local ssboextensions = {'#extension GL_ARB_shading_language_420pack: require',
-										'#extension GL_ARB_uniform_buffer_object : require', 
+										'#extension GL_ARB_uniform_buffer_object : require',
 										'#extension GL_ARB_shader_storage_buffer_object : require'}
 				for j, ext in ipairs(ssboextensions) do
 					local found = false
-					for i, line in ipairs(fsSrcNewLines) do 
-						if string.find(line, ext, nil, true) then 
+					for i, line in ipairs(fsSrcNewLines) do
+						if string.find(line, ext, nil, true) then
 							found = true
 							break
 						end
 					end
-					if not found then 
+					if not found then
 						table.insert(fsSrcNewLines, 2, ext) -- insert at position two as first pos is already taken by #version
 					end
 				end
@@ -632,21 +632,21 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 				fsSrcNew = table.concat(fsSrcNewLines, '\n')
 				--Spring.Echo(fsSrcNew)
 			end
-			if vsSrcNew then 
+			if vsSrcNew then
 				vsSrcNew = vsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 				vsSrcNew = vsSrcNew:gsub("//__DEFINES__", shaderDefines)
 				vsSrcNew = vsSrcNew:gsub("//__QUATERNIONDEFS__", quaternionDefines)
 				shadersourcecache.vsSrcComplete = vsSrcNew
 			end
 
-			if gsSrcNew then 
+			if gsSrcNew then
 				gsSrcNew = gsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 				gsSrcNew = gsSrcNew:gsub("//__DEFINES__", shaderDefines)
 				gsSrcNew = gsSrcNew:gsub("//__QUATERNIONDEFS__", quaternionDefines)
 				shadersourcecache.gsSrcComplete = gsSrcNew
 			end
 
-			if fsSrcNew then 
+			if fsSrcNew then
 				fsSrcNew = fsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", (printf and (engineUniformBufferDefs .. printf.SSBODefinition) or engineUniformBufferDefs))
 				fsSrcNew = fsSrcNew:gsub("//__DEFINES__", shaderDefines)
 				fsSrcNew = fsSrcNew:gsub("//__QUATERNIONDEFS__", quaternionDefines)
@@ -663,10 +663,10 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 				shadersourcecache.shaderName
 			)
 			local shaderCompiled = reinitshader:Initialize()
-			if not shadersourcecache.silent then 
+			if not shadersourcecache.silent then
 				Spring.Echo(shadersourcecache.shaderName, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", Spring.GetGameFrame(), "success", shaderCompiled or false)
 			end
-			if shaderCompiled then 
+			if shaderCompiled then
 				reinitshader.printf = printf
 				reinitshader.ignoreUnkUniform = true
 				return reinitshader
@@ -691,7 +691,7 @@ end
 
 function LuaShader:CreateLineTable()
 	--[[
-	-- self.shaderParams == 
+	-- self.shaderParams ==
 			 ({[ vertex   = "glsl code" ,]
 		   [ tcs      = "glsl code" ,]
 		   [ tes      = "glsl code" ,]
@@ -707,30 +707,30 @@ function LuaShader:CreateLineTable()
 		   [ definitions = "string of shader #defines", ]
 		 })
 	]]--
-	
+
 	local numtoline = {}
-	
-	--try to translate errors that look like this into lines: 
+
+	--try to translate errors that look like this into lines:
 	--	0(31048) : error C1031: swizzle mask element not present in operand "ra"
 	--	0(31048) : error C1031: swizzle mask element not present in operand "ra"
 	--for k, v in pairs(self) do
 	--	Spring.Echo(k)
 	--end
-	
-	for _, shadertype in pairs({'vertex', 'tcs', 'tes', 'geometry', 'fragment', 'compute'}) do 
-		if self.shaderParams[shadertype] ~= nil then 
+
+	for _, shadertype in pairs({'vertex', 'tcs', 'tes', 'geometry', 'fragment', 'compute'}) do
+		if self.shaderParams[shadertype] ~= nil then
 			local shaderLines = (self.shaderParams.definitions or "") .. self.shaderParams[shadertype]
 			local currentlinecount = 0
 			for i, line in ipairs(lines(shaderLines)) do
 				numtoline[currentlinecount] = string.format("%s:%i %s", shadertype, currentlinecount, line)
 				--Spring.Echo(currentlinecount, numtoline[currentlinecount] )
-				if line:find("#line ", nil, true) then 
-					local defline = tonumber(line:sub(7)) 
-					if defline then 
+				if line:find("#line ", nil, true) then
+					local defline = tonumber(line:sub(7))
+					if defline then
 						currentlinecount = defline
 					end
 				else
-				
+
 					currentlinecount = currentlinecount + 1
 				end
 			end
@@ -739,26 +739,26 @@ function LuaShader:CreateLineTable()
 	return numtoline
 end
 
-local function translateLines(alllines, errorcode) 
-	if string.len(errorcode) < 3 then 
+local function translateLines(alllines, errorcode)
+	if string.len(errorcode) < 3 then
 		return ("The shader compilation error code was very short. This likely means a Linker error, check the [in] [out] blocks linking VS/GS/FS shaders to each other to make sure the structs match")
 	end
 	local result = ""
-	for _,line in pairs(lines(errorcode)) do 
+	for _,line in pairs(lines(errorcode)) do
 		local pstart = line:find("(", nil, true)
 		local pend = line:find(")", nil, true)
 		local found = false
-		if pstart and pend then 
+		if pstart and pend then
 			local lineno = line:sub(pstart +1,pend-1)
 			--Spring.Echo(lineno)
-			lineno = tonumber(lineno) 
+			lineno = tonumber(lineno)
 			--Spring.Echo(lineno, alllines[lineno])
-			if alllines[lineno] then 
+			if alllines[lineno] then
 				result = result .. string.format("%s\n ^^ %s \n", alllines[lineno], line)
 				found = true
 			end
 		end
-		if found == false then 
+		if found == false then
 			result = result .. line ..'\n'
 		end
 	end
@@ -775,8 +775,8 @@ function LuaShader:OutputLogEntry(text, isError)
 
 	message = string.format("LuaShader: [%s] shader %s(s):\n%s", self.shaderName, warnErr, text)
 	Spring.Echo(message)
-	
-	if isError then 
+
+	if isError then
 		local linetable = self:CreateLineTable()
 		Spring.Echo(translateLines(linetable, text))
 	end
@@ -887,7 +887,7 @@ function LuaShader:Compile(suppresswarnings)
 		self:ShowWarning(shLog)
 	end
 
-	if gldebugannotations and gl_program_id and self.shaderName then 
+	if gldebugannotations and gl_program_id and self.shaderName then
 		local GL_PROGRAM = 0x82E2
 		gl.ObjectLabel(GL_PROGRAM, gl_program_id, self.shaderName)
 	end
@@ -904,19 +904,19 @@ function LuaShader:Compile(suppresswarnings)
 		--Spring.Echo(uniName, uniforms[uniName].location, uniforms[uniName].type, uniforms[uniName].size)
 		--Spring.Echo(uniName, uniforms[uniName].location)
 	end
-	
+
 	-- Note that the function call overhead to the LuaShader:SetUniformFloat is about 500ns
 	-- With this, a direct gl.Uniform call, this goes down to 100ns
 	self.uniformLocations = {}
-	for _, uniformGeneric in ipairs({self.shaderParams.uniformFloat or {}, self.shaderParams.uniformInt or {} }) do 
-		for uniName, defaultvalue in pairs(uniformGeneric) do 
-			local location = glGetUniformLocation(shaderObj, uniName) 
-			if location then 
-				self.uniformLocations[uniName] = location 
+	for _, uniformGeneric in ipairs({self.shaderParams.uniformFloat or {}, self.shaderParams.uniformInt or {} }) do
+		for uniName, defaultvalue in pairs(uniformGeneric) do
+			local location = glGetUniformLocation(shaderObj, uniName)
+			if location then
+				self.uniformLocations[uniName] = location
 			else
 				Spring.Echo(string.format("Notice from shader %s: Could not find location of uniform name: %s", "dunno", uniName ))
 			end
-			
+
 		end
 	end
 
@@ -948,11 +948,11 @@ LuaShader.Finalize = LuaShader.Delete
 function LuaShader:Activate()
 	if self.shaderObj ~= nil then
 		-- bind the printf SSBO if present
-		if self.printf then 
+		if self.printf then
 			local bindingIndex = self.printf.SSBO:BindBufferRange(7)
 			if bindingIndex <= 0 then Spring.Echo("Failed to bind printfData SSBO for shader", self.shaderName) end
 		end
-		
+
 		self.active = true
 		if gldebugannotations and self.gl_program_id then
 			gl.PushDebugGroup(self.gl_program_id * 1000, self.shaderName)
@@ -991,33 +991,33 @@ function LuaShader:Deactivate()
 	if gldebugannotations then gl.PopDebugGroup() end
 	--Spring.Echo("LuaShader:Deactivate()")
 
-	if self.printf then 
+	if self.printf then
 		--Spring.Echo("self.printf", self.printf)
 		self.printf.SSBO:UnbindBufferRange(7)
 		self.printf.bufferData = self.printf.SSBO:Download(-1, 0, nil, true) -- last param is forceGPURead = true
 		--Spring.Echo(self.printf.bufferData[1],self.printf.bufferData[2],self.printf.bufferData[3],self.printf.bufferData[4])
 		-- Do NAN checks on bufferData array and replace with -666 if NAN:
-		for i = 1, #self.printf.bufferData do 
+		for i = 1, #self.printf.bufferData do
 			if type(self.printf.bufferData[i]) == 'number' and (self.printf.bufferData[i] ~= self.printf.bufferData[i]) then -- check for NAN
 				self.printf.bufferData[i] = -666
 			end
 		end
 
-		if not self.DrawPrintf then 
+		if not self.DrawPrintf then
 			--Spring.Echo("creating DrawPrintf")
 			local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Semibold.otf")
 			local fontSize = 16
 			local font3 = gl.LoadFont(fontfile3, 32, 0.5, 1)
-			
+
 			local function DrawPrintf(sometimesself, xoffset, yoffset)
 				--Spring.Echo("attempting to draw printf",xoffset)
-				
+
 				xoffset = xoffset or 0
 				yoffset = yoffset or 0
-				if type(sometimesself) == 'table' then 
+				if type(sometimesself) == 'table' then
 					xoffset = xoffset or 0
 					yoffset = yoffset or 0
-				elseif type(sometimesself) == 'number' then 
+				elseif type(sometimesself) == 'number' then
 					yoffset = xoffset
 					xoffset = sometimesself
 				end
@@ -1031,11 +1031,11 @@ function LuaShader:Deactivate()
 				-- Todo: could really use a monospaced font!
 				--gl.Color(1,1,1,1)
 				gl.Blending(GL.ONE, GL.ZERO)
-				for i, vardata in ipairs(self.printf.vars) do 
-					local message 
-					if vardata.count == 1 then 
+				for i, vardata in ipairs(self.printf.vars) do
+					local message
+					if vardata.count == 1 then
 						message = string.format("%s:%d %s = %.3f", vardata.shaderstage, vardata.line, vardata.name, self.printf.bufferData[1 + vardata.index * 4])
-					elseif vardata.count == 2 then 
+					elseif vardata.count == 2 then
 						message = string.format("%s:%d %s = [%.3f, %.3f]", vardata.shaderstage, vardata.line, vardata.name, self.printf.bufferData[1 + vardata.index * 4], self.printf.bufferData[2 + vardata.index * 4])
 					elseif vardata.count == 3 then
 						message = string.format("%s:%d %s = [%10.3f, %10.3f, %10.3f]", vardata.shaderstage, vardata.line, vardata.name, self.printf.bufferData[1 + vardata.index * 4], self.printf.bufferData[2 + vardata.index * 4], self.printf.bufferData[3 + vardata.index * 4])
@@ -1047,13 +1047,13 @@ function LuaShader:Deactivate()
 					local vsx, vsy = Spring.GetViewGeometry()
 					local alignment = ''
 					if mx > (vsx - 400) then alignment = 'r' end
-					--Spring.Echo(my,vsy) 
+					--Spring.Echo(my,vsy)
 					font3:Print(message, math.floor(mx), math.floor(my), fontSize,alignment .."o"  )
 				end
-				
+
 				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 				gl.PopMatrix()
-				
+
 				font3:End()
 			end
 			self.DrawPrintf = DrawPrintf
@@ -1125,23 +1125,23 @@ local function isUpdateRequiredNoTable(uniform, u1, u2, u3, u4)
 
 	local update = false
 	local cachedValues = uniform.values
-	
-	if u1 and cachedValues[1] ~= u1 then 
-		update = true 
-		cachedValues[1] = val 	
-	end 
-	if u2 and cachedValues[2] ~= u2 then 
-		update = true 
-		cachedValues[2] = u2	
-	end 
-	if u3 and cachedValues[3] ~= u3 then 
-		update = true 
-		cachedValues[3] = u3 	
-	end 
-	if u4 and cachedValues[4] ~= u4 then 
-		update = true 
-		cachedValues[4] = u4 	
-	end 
+
+	if u1 and cachedValues[1] ~= u1 then
+		update = true
+		cachedValues[1] = val
+	end
+	if u2 and cachedValues[2] ~= u2 then
+		update = true
+		cachedValues[2] = u2
+	end
+	if u3 and cachedValues[3] ~= u3 then
+		update = true
+		cachedValues[3] = u3
+	end
+	if u4 and cachedValues[4] ~= u4 then
+		update = true
+		cachedValues[4] = u4
+	end
 
 	return update
 end
@@ -1158,11 +1158,11 @@ end
 
 --FLOAT UNIFORMS
 local function setUniformAlwaysImpl(uniform, u1, u2, u3, u4)
-	if u4 ~= nil then 
+	if u4 ~= nil then
 		glUniform(uniform.location, u1, u2, u3, u4)
-	elseif u3 ~= nil then 
+	elseif u3 ~= nil then
 		glUniform(uniform.location, u1, u2, u3)
-	elseif u2 ~= nil then 
+	elseif u2 ~= nil then
 		glUniform(uniform.location, u1, u2)
 	else
 		glUniform(uniform.location, u1)
@@ -1199,11 +1199,11 @@ LuaShader.SetUniformFloatAlways = LuaShader.SetUniformAlways
 
 --INTEGER UNIFORMS
 local function setUniformIntAlwaysImpl(uniform,  u1, u2, u3, u4)
-	if u4 ~= nil then 
+	if u4 ~= nil then
 		glUniformInt(uniform.location, u1, u2, u3, u4)
-	elseif u3 ~= nil then 
+	elseif u3 ~= nil then
 		glUniformInt(uniform.location, u1, u2, u3)
-	elseif u2 ~= nil then 
+	elseif u2 ~= nil then
 		glUniformInt(uniform.location, u1, u2)
 	else
 		glUniformInt(uniform.location, u1)

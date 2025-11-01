@@ -93,6 +93,7 @@ local spAddUnitDamage          = Spring.AddUnitDamage
 local spDeleteProjectile       = Spring.DeleteProjectile
 local spDestroyFeature         = Spring.DestroyFeature
 local spValidFeatureID         = Spring.ValidFeatureID
+local spValidUnitID            = Spring.ValidUnitID
 
 local armorDefault = Game.armorTypes.default
 local armorShields = Game.armorTypes.shields
@@ -501,24 +502,33 @@ function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, 
 end
 
 function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+	if not spValidUnitID(shieldUnitID) then
+		return
+	end
+
 	local penetrator = projectiles[projectileID]
-	if penetrator then
-		local damage = penetrator.params[armorShields]
-		if damage > 1 then
-			projectileHits[projectileID] = penetrator
-			local state, health = spGetUnitShieldState(shieldUnitID, shieldWeaponIndex)
-			local collisions = penetrator.collisions
-			collisions[#collisions+1] = {
-				targetID  = shieldUnitID,
-				shieldID  = shieldWeaponIndex,
-				armorType = armorShields,
-				healthMax = health,
-				damage    = damage,
-				hitX      = hitX,
-				hitY      = hitY,
-				hitZ      = hitZ,
-			}
-		end
+	if not penetrator then
+		return
+	end
+
+	local damage = penetrator.params[armorShields]
+	if damage <= 1 then
 		return true
 	end
+
+	projectileHits[projectileID] = penetrator
+	local state, health = spGetUnitShieldState(shieldUnitID, shieldWeaponIndex)
+	local collisions = penetrator.collisions
+	collisions[#collisions+1] = {
+		targetID  = shieldUnitID,
+		shieldID  = shieldWeaponIndex,
+		armorType = armorShields,
+		healthMax = health,
+		damage    = damage,
+		hitX      = hitX,
+		hitY      = hitY,
+		hitZ      = hitZ,
+	}
+
+	return true
 end

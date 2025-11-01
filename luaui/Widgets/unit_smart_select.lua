@@ -470,12 +470,11 @@ function widget:Initialize()
 	WG.SmartSelect_SelectUnits = function(units)
 		-- Apply smart select filtering to the provided units
 		local mouseSelection = units
-		local newSelection = {}
 		local uid, udid
 		
 		local tmp = {}
 		
-		-- Filter unselectable units and ignored units
+		-- Filter unselectable units and ignored units (always apply this basic filter)
 		local isGodMode = spIsGodModeEnabled()
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
@@ -485,6 +484,40 @@ function widget:Initialize()
 			end
 		end
 		mouseSelection = tmp
+		
+		-- Check modifiers to determine mode
+		local _, ctrl, _, shift = spGetModKeyState()
+		
+		-- Ctrl mode: deselect units in mouseSelection from current selection
+		-- Use RAW mouseSelection (no filters) for deselect to match engine behavior
+		if ctrl then
+			-- If no reference selection (started with nothing selected), don't select anything
+			if next(externalSelectionReference) == nil then
+				selectedUnits = {}
+				spSelectUnitArray(selectedUnits)
+				return
+			end
+			
+			-- Build set of units to deselect (use RAW list, no filters)
+			local unitsToDeselect = {}
+			for i = 1, #mouseSelection do
+				unitsToDeselect[mouseSelection[i]] = true
+			end
+			
+			-- Keep units from reference that are not in the deselect set
+			local newSelection = {}
+			for unitID, _ in pairs(externalSelectionReference) do
+				if not unitsToDeselect[unitID] then
+					newSelection[#newSelection + 1] = unitID
+				end
+			end
+			
+			selectedUnits = newSelection
+			spSelectUnitArray(selectedUnits)
+			return
+		end
+		
+		-- For non-deselect modes, apply smart select filters
 		
 		-- Apply custom filter if set
 		if next(customFilter) ~= nil then
@@ -566,10 +599,7 @@ function widget:Initialize()
 			end
 		end
 		
-		-- Handle deselect, append, or replace selection
-		local _, ctrl, _, shift = spGetModKeyState()
-		
-		-- For external selections (like PIP), check if we should use append mode
+		-- Shift mode: append units to reference selection
 		if shift and next(externalSelectionReference) ~= nil then
 			-- Append mode with reference - start with reference units, then add/keep box units
 			local combined = {}

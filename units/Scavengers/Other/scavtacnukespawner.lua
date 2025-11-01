@@ -68,7 +68,6 @@ return {
 				soundhit = "xplomed4",
 				soundstart = "mismed1",
 				startvelocity = 1,
-				targetborder = 0.75,
 				texture1 = "flare2",
 				turret = 1,
 				weaponacceleration = 1800,

@@ -912,7 +912,7 @@ local options = {
         type   	= "bool",
         def    	= false,
         section	= "options_extra",
-        unlock  = {"map_lavatiderhythm", "map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell"},
+        unlock  = {"map_lavatiderhythm", "map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell","map_tweaklava"},
         lock    = {"sub_header_lava3", "sub_header_lava4"},
         bitmask = 1,
     },
@@ -947,15 +947,15 @@ local options = {
 
     {
         key     = "map_lavatidemode",
-        name	= "Lava Start Position",
-        desc	= "Toggle whether lava starts at high or low tide",
+        name	= "Lava Tide Mode",
+        desc	= "Toggle whether lava starts at high or low tide.",
         hidden	= false,
         type	= "list",
         def		= "lavastartlow",
         section	= "options_extra",
         items	= {
-            { key= "lavastartlow", 	name= "Low", desc= "Lava starts at low tide" },
-            { key= "lavastarthigh",	name= "High",desc= "Lava starts at high tide" },
+            { key= "lavastartlow", 	name= "Start Low", desc= "Lava starts at low tide" },
+            { key= "lavastarthigh",	name= "Start High",desc= "Lava starts at high tide" },
         }
     },
 
@@ -979,7 +979,7 @@ local options = {
         type 	= "number",
         def 	= 60,
         min 	= 1,
-        max 	= 10000,
+        max 	= 30000,
         step 	= 1,
         section = "options_extra",
         column	= 2.0,
@@ -1005,10 +1005,21 @@ local options = {
         type 	= "number",
         def 	= 300,
         min 	= 1,
-        max 	= 10000,
+        max 	= 30000,
         step 	= 1,
         section = "options_extra",
         column	= 2.0,
+    },
+
+    {
+        key 	= "map_tweaklava",
+        name 	= "Advanced Tide Rhythm",
+        desc 	= "Table with format {MapHeight (elmo), Rate (elmo/s), Dwell Time (s)}, e.g. {0, 6, 60},{100, 3, 20}",
+        hidden 	= true,
+        hint    = "{Lava Height, Rise/Fall Rate, Dwell Time}",
+        type 	= "string",
+        def 	= "",
+        section = "options_extra",
     },
 
     { key = "sub_header_lava1", section = "options_extra", type    = "subheader", name = "",},
@@ -1470,6 +1481,15 @@ local options = {
         desc   	= "Shields block plasma. Overkill damage is absorbed. Shield is down for the duration required to recharge the overkill damage at normal energy cost.",
         type   	= "bool",
         hidden 	= false,
+        section = "options_experimental",
+        def  	= false,
+    },
+
+    {
+        key    	= "experimental_low_priority_pacifists",
+        name   	= "Low Priority Pacifists",
+        desc   	= "Makes the automatic target priority of non-combat mobile units much lower, so they must be intentionally targeted.",
+        type   	= "bool",
         section = "options_experimental",
         def  	= false,
     },

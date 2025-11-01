@@ -37,11 +37,6 @@ Spring.SetConfigInt("CubeTexSizeReflection", 1024)
 -- disable grass
 Spring.SetConfigInt("GrassDetail", 0)
 
--- adv unit shading
-if not tonumber(Spring.GetConfigInt("AdvUnitShading",0) or 0) then
-	Spring.SetConfigInt("AdvUnitShading", 1)
-end
-
 -- adv map shading
 Spring.SetConfigInt("AdvMapShading", 1)
 
@@ -114,10 +109,6 @@ Spring.SetConfigInt("ServerSleepTime", 1)
 Spring.SetConfigInt("BumpWaterTexSizeReflection", 1024)
 
 Spring.SetConfigFloat("CrossAlpha", 0)	-- will be in effect next launch
-
-if Spring.GetConfigInt("AdvModelShading", 0) ~= 1 then
-	Spring.SetConfigInt("AdvModelShading", 1)
-end
 
 if not Spring.GetConfigFloat("UnitIconFadeAmount") then
 	Spring.SetConfigFloat("UnitIconFadeAmount", 0.1)
