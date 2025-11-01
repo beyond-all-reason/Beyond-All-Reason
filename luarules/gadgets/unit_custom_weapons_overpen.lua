@@ -398,7 +398,7 @@ local function _GameFramePost(collisionList)
 
 			if shieldNumber then
 				local deleted, damage = addShieldDamage(targetID, shieldNumber, damageDealt, weapon.weaponID, projectileID)
-				damageLeft = deleted and 0 or damageLeft - damage / damageDealt - penalty -- shields force falloff
+				damageLeft = deleted and 0 or damageLeft - penalty - damage / damageDealt -- shields force falloff
 			else
 				if isTargetUnit then
 					local impulse = damageBase * factor * falloffRatio(damageLeft, 1) -- inverse ratio
