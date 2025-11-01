@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date    = 'April 2024',
 		license = 'GNU GPL, v2 or later',
 		layer   = 1, -- Needs to occur before "Prevent Excessive Share" since their restriction on AllowResourceTransfer is not compatible
-		enabled = true
+		enabled = false -- This is taken over by game_resource_sharing_limitations_pre2025.06.05
 	}
 end
 
