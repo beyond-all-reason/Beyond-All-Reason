@@ -137,16 +137,16 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		while evolution and evolution.evolution_condition and evolution.evolution_timer and evolution.evolution_target do
-			if evolution.evolution_condition == 'timer' then
+			if evolution.evolution_condition == "timer" then
 				if delayedSeconds < tonumber(evolution.evolution_timer) then
 					break
 				end
-			elseif evolution.evolution_condition == 'timer_global' then
-				if now >= tonumber(evolution.evolution_timer) then
-					delayedSeconds = now - tonumber(evolution.evolution_timer)
-					newUnitName = evolution.evolution_target
-					evolution = UnitDefNames[newUnitName] and UnitDefNames[newUnitName].customParams
-				else
+				delayedSeconds = delayedSeconds - tonumber(evolution.evolution_timer)
+				newUnitName = evolution.evolution_target
+				evolution = UnitDefNames[newUnitName] and UnitDefNames[newUnitName].customParams
+			elseif evolution.evolution_condition == "timer_global" then
+				local requiredTime = tonumber(evolution.evolution_timer)
+				if now < requiredTime then
 					break
 				end
 				delayedSeconds = now - requiredTime
