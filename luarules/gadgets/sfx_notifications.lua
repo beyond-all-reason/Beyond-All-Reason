@@ -194,11 +194,9 @@ else
 
 	local commanderLastDamaged = {}
 	local unitLostOrDamagedCooldowns = { -- We set it all to 0 to not delay the first occurence of the notif by any means
-		LostDelay = 0, -- 5
 		RadarLost = 0, -- 30
 		MexLost = 0, -- 30
 		UnitLost = 0, -- 60
-		UnderAttackDelay = 0, -- 5
 		CommanderUnderAttack = 0, -- 10
 		UnitsUnderAttack = 0, -- 60
 		BaseUnderAttack = 0, -- 30
@@ -211,7 +209,6 @@ else
 			if unitLostOrDamagedCooldowns["LrpcTargetUnits"] <= 0 then
 				BroadcastEvent("NotificationEvent", 'LrpcTargetUnits', tostring(myPlayerID))
 			end
-			unitLostOrDamagedCooldowns["UnderAttackDelay"] = 5
 			unitLostOrDamagedCooldowns["LrpcTargetUnits"] = 60
 		end
 		if isCommander[unitDefID] then
@@ -222,22 +219,18 @@ else
 				if unitLostOrDamagedCooldowns["CommanderUnderAttack"] <= 0 then
 					BroadcastEvent("NotificationEvent", 'CommanderUnderAttack', tostring(myPlayerID))
 				end
-				unitLostOrDamagedCooldowns["UnderAttackDelay"] = 5
 				unitLostOrDamagedCooldowns["CommanderUnderAttack"] = 10
 			elseif isBuilding[unitDefID] == true and (not isMex[unitDefID]) and (not hasWeapons[unitDefID]) then
-				if unitLostOrDamagedCooldowns["UnderAttackDelay"] <= 0 and unitLostOrDamagedCooldowns["BaseUnderAttack"] <= 0 then
+				if unitLostOrDamagedCooldowns["BaseUnderAttack"] <= 0 then
 					BroadcastEvent("NotificationEvent", 'BaseUnderAttack', tostring(myPlayerID))
 				end
-				unitLostOrDamagedCooldowns["UnderAttackDelay"] = 5
 				unitLostOrDamagedCooldowns["BaseUnderAttack"] = 30
 			elseif isBuilding[unitDefID] == false then
-				if unitLostOrDamagedCooldowns["UnderAttackDelay"] <= 0 and unitLostOrDamagedCooldowns["UnitsUnderAttack"] <= 0 then
+				if unitLostOrDamagedCooldowns["UnitsUnderAttack"] <= 0 then
 					BroadcastEvent("NotificationEvent", 'UnitsUnderAttack', tostring(myPlayerID))
 				end
-				unitLostOrDamagedCooldowns["UnderAttackDelay"] = 5
 				unitLostOrDamagedCooldowns["UnitsUnderAttack"] = 60
 			end
-
 		end
 	end
 
@@ -255,34 +248,34 @@ else
 		-- if own and not killed by yourself
 		if not isSpec and unitTeam == myTeamID and attackerTeam and attackerTeam ~= unitTeam then -- and not unitInView
 			if isRadar[unitDefID] then
-				if unitLostOrDamagedCooldowns["LostDelay"] <= 0 and unitLostOrDamagedCooldowns["RadarLost"] <= 0 then
+				if unitLostOrDamagedCooldowns["RadarLost"] <= 0 then
 					local event = isRadar[unitDefID] > 2800 and 'AdvRadarLost' or 'RadarLost'
 					BroadcastEvent("NotificationEvent", event, tostring(myPlayerID))
+					unitLostOrDamagedCooldowns["UnitLost"] = 60
 				end
-				unitLostOrDamagedCooldowns["LostDelay"] = 5
 				unitLostOrDamagedCooldowns["RadarLost"] = 30
 				return
-			elseif isMex[unitDefID] then
-				if unitLostOrDamagedCooldowns["LostDelay"] <= 0 and unitLostOrDamagedCooldowns["MexLost"] <= 0 then
+			end
+			if isMex[unitDefID] then
+				if unitLostOrDamagedCooldowns["MexLost"] <= 0 then
 					--local event = isMex[unitDefID] > 0.002 and 'T2MexLost' or 'MexLost'
 					local event = 'MexLost'
 					BroadcastEvent("NotificationEvent", event, tostring(myPlayerID))
+					unitLostOrDamagedCooldowns["UnitLost"] = 60
 				end
-				unitLostOrDamagedCooldowns["LostDelay"] = 5
 				unitLostOrDamagedCooldowns["MexLost"] = 30
 				return
-			elseif not isCommander[unitDefID] then
-				if unitLostOrDamagedCooldowns["LostDelay"] <= 0 and unitLostOrDamagedCooldowns["UnitLost"] <= 0 then
+			end
+			if not isCommander[unitDefID] then
+				if unitLostOrDamagedCooldowns["UnitLost"] <= 0 then
 					BroadcastEvent("NotificationEvent", "UnitLost", tostring(myPlayerID))
 				end
-				unitLostOrDamagedCooldowns["LostDelay"] = 5
 				unitLostOrDamagedCooldowns["UnitLost"] = 60
 				return
 			end
 		end
 
 		if isCommander[unitDefID] then
-			unitLostOrDamagedCooldowns["LostDelay"] = 5
 			local myComCount = 0
 			local allyComCount = 0
 			local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
