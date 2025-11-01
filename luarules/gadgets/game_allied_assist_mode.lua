@@ -12,12 +12,14 @@ function gadget:GetInfo()
 	}
 end
 
+local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local allowAssist = not Spring.GetModOptions().disable_assist_ally_construction
-if allowAssist then
+local assistEnabled = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedAssistMode] == SharedEnums.AlliedAssistMode.Enabled
+if assistEnabled then
 	return false
 end
 
