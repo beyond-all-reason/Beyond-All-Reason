@@ -99,6 +99,7 @@ function widget:PlayerChanged(playerID)
                 if PlayersInformationMemory[playerName].hasDisconnected and (not (Differences.spectator or PlayersInformationMemory[playerName].spectator)) then
                     --Spring.Echo("Teammate Reconnected", playerName, Spring.GetGameFrame())
                     WG['notifications'].queueNotification("TeammateReconnected")
+                    PlayersInformationMemory[playerName].hasDisconnected = false
                     -- TeammateReconnected
                 end
             end
