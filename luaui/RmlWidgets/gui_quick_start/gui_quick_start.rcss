@@ -215,7 +215,6 @@
 .qs-factory-text.fade-out {
 	opacity: 1;
 	animation: 1.5s cubic-in-out 1 fade-out;
-	animation-fill-mode: forwards;
 }
 
 @keyframes fade-out {
