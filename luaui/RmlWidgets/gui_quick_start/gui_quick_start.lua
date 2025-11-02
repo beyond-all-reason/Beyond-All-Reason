@@ -45,12 +45,22 @@ local ENERGY_VALUE_CONVERSION_DIVISOR = 60
 local BUILD_TIME_VALUE_CONVERSION_DIVISOR = 300
 local DEFAULT_INSTANT_BUILD_RANGE = 600
 
+local function customRound(value)
+	if value < 15 then
+		return math.floor(value)
+	elseif value < 100 then
+		return math.floor(value / 5 + 0.5) * 5
+	else
+		return math.floor(value / 10 + 0.5) * 10
+	end
+end
+
 local cachedGameRules = {}
 local lastRulesUpdate = 0
 local RULES_CACHE_DURATION = 0.1
 
 local function calculateBudgetCost(metalCost, energyCost, buildTime)
-	return math.floor((metalCost + energyCost / ENERGY_VALUE_CONVERSION_DIVISOR) + (buildTime / BUILD_TIME_VALUE_CONVERSION_DIVISOR))
+	return customRound((metalCost + energyCost / ENERGY_VALUE_CONVERSION_DIVISOR) + (buildTime / BUILD_TIME_VALUE_CONVERSION_DIVISOR))
 end
 
 local widgetState = {

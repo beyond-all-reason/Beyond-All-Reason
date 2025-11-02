@@ -44,6 +44,16 @@ local quickStartAmountConfig = {
 local BUILD_TIME_VALUE_CONVERSION_DIVISOR = 300
 local ENERGY_VALUE_CONVERSION_DIVISOR = 60
 
+local function customRound(value)
+	if value < 15 then
+		return math.floor(value)
+	elseif value < 100 then
+		return math.floor(value / 5 + 0.5) * 5
+	else
+		return math.floor(value / 10 + 0.5) * 10
+	end
+end
+
 -------------------------------------------------------------------------
 
 local ALL_COMMANDS = -1
@@ -182,7 +192,7 @@ end
 
 for unitDefID, unitDef in pairs(unitDefs) do
 	local metalCost, energyCost = unitDef.metalCost or 0, unitDef.energyCost or 0
-	defMetergies[unitDefID] = math.floor((metalCost + energyCost / ENERGY_VALUE_CONVERSION_DIVISOR) + (unitDef.buildTime / BUILD_TIME_VALUE_CONVERSION_DIVISOR))
+	defMetergies[unitDefID] = customRound((metalCost + energyCost / ENERGY_VALUE_CONVERSION_DIVISOR) + (unitDef.buildTime / BUILD_TIME_VALUE_CONVERSION_DIVISOR))
 	if unitDef.extractsMetal > 0 then
 		mexDefs[unitDefID] = true
 	end
