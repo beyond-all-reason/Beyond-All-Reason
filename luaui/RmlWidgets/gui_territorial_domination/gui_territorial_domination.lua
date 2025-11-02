@@ -83,8 +83,6 @@ local widgetState = {
 	lastTimeRemaining = "",
 	lastRoundDisplayText = "",
 	lastCountdownWarning = false,
-	lastAllyTeamCount = 0,
-	lastTeamOrderHash = "",
 	lastGameTime = 0,
 	updateCounter = 0,
 	lastTimeRemainingSeconds = 0,
@@ -126,6 +124,20 @@ local initialModel = {
 	leaderboardTeams = {},
 }
 
+local function rgbToHex(r, g, b)
+	local rByte = math.floor(r * 255)
+	local gByte = math.floor(g * 255)
+	local bByte = math.floor(b * 255)
+	return string.format("#%02X%02X%02X", rByte, gByte, bByte)
+end
+
+local function getAnonymousColor()
+	local anonymousColorR = Spring.GetConfigInt("anonymousColorR", 255) / 255
+	local anonymousColorG = Spring.GetConfigInt("anonymousColorG", 0) / 255
+	local anonymousColorB = Spring.GetConfigInt("anonymousColorB", 0) / 255
+	return anonymousColorR, anonymousColorG, anonymousColorB
+end
+
 local function getAIName(teamID)
 	local _, _, _, name, _, options = spGetAIInfo(teamID)
 	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
@@ -157,21 +169,15 @@ local function fetchAllyTeamPlayerNames(allyTeamID)
 		local teamID = teamList[i]
 		local _, playerID, _, isAI = spGetTeamInfo(teamID, false)
 		
+		local r, g, b = spGetTeamColor(teamID)
+		if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
+			r, g, b = getAnonymousColor()
+		end
+		
+		local colorHex = rgbToHex(r, g, b)
+		
 		if isAI then
 			local name = getAIName(teamID)
-			local r, g, b = spGetTeamColor(teamID)
-			if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
-				local anonymousColorR = Spring.GetConfigInt("anonymousColorR", 255) / 255
-				local anonymousColorG = Spring.GetConfigInt("anonymousColorG", 0) / 255
-				local anonymousColorB = Spring.GetConfigInt("anonymousColorB", 0) / 255
-				r, g, b = anonymousColorR, anonymousColorG, anonymousColorB
-			end
-			
-			local rByte = math.floor(r * 255)
-			local gByte = math.floor(g * 255)
-			local bByte = math.floor(b * 255)
-			local colorHex = string.format("#%02X%02X%02X", rByte, gByte, bByte)
-			
 			table.insert(playerNames, {
 				name = name,
 				color = colorHex
@@ -183,19 +189,6 @@ local function fetchAllyTeamPlayerNames(allyTeamID)
 				if WG.playernames and WG.playernames.getPlayername then
 					name = WG.playernames.getPlayername(playerID) or name
 				end
-				
-				local r, g, b = spGetTeamColor(teamID)
-				if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
-					local anonymousColorR = Spring.GetConfigInt("anonymousColorR", 255) / 255
-					local anonymousColorG = Spring.GetConfigInt("anonymousColorG", 0) / 255
-					local anonymousColorB = Spring.GetConfigInt("anonymousColorB", 0) / 255
-					r, g, b = anonymousColorR, anonymousColorG, anonymousColorB
-				end
-				
-				local rByte = math.floor(r * 255)
-				local gByte = math.floor(g * 255)
-				local bByte = math.floor(b * 255)
-				local colorHex = string.format("#%02X%02X%02X", rByte, gByte, bByte)
 				
 				table.insert(playerNames, {
 					name = name,
@@ -266,6 +259,17 @@ local function isPlayerInFirstPlace()
 	if #allyTeams == 0 then return false end
 
 	return allyTeams[1].allyTeamID == myAllyTeamID
+end
+
+local function clearContainer(container)
+	while container:HasChildNodes() do
+		local child = container:GetChild(0)
+		if child then
+			container:RemoveChild(child)
+		else
+			break
+		end
+	end
 end
 
 local function buildLeaderboardRow(team, rank, isEliminated, isDead)
@@ -351,23 +355,8 @@ local function updateLeaderboard()
 	
 	if not teamsContainer or not eliminatedContainer or not separatorElement or not separatorTextElement then return end
 	
-	while teamsContainer:HasChildNodes() do
-		local child = teamsContainer:GetChild(0)
-		if child then
-			teamsContainer:RemoveChild(child)
-		else
-			break
-		end
-	end
-	
-	while eliminatedContainer:HasChildNodes() do
-		local child = eliminatedContainer:GetChild(0)
-		if child then
-			eliminatedContainer:RemoveChild(child)
-		else
-			break
-		end
-	end
+	clearContainer(teamsContainer)
+	clearContainer(eliminatedContainer)
 	
 	local allyTeams = widgetState.allyTeamData
 	if not allyTeams or #allyTeams == 0 then return end
@@ -381,12 +370,9 @@ local function updateLeaderboard()
 	for i = 1, #allyTeams do
 		local team = allyTeams[i]
 		local combinedScore = (team.score or 0) + (team.projectedPoints or 0)
-		local isEliminated = false
-		
+		local isEliminated = not team.isAlive
 		if eliminationThreshold > 0 then
-			isEliminated = not team.isAlive or combinedScore < eliminationThreshold
-		else
-			isEliminated = not team.isAlive
+			isEliminated = isEliminated or combinedScore < eliminationThreshold
 		end
 		
 		if isEliminated then
@@ -491,14 +477,11 @@ local function calculateUILayout()
 		return
 	end
 	
-	local GL_BASE_WIDTH = 1920
 	local GL_BASE_HEIGHT = 1080
-	local scaleX = screenWidth / GL_BASE_WIDTH
 	local scaleY = screenHeight / GL_BASE_HEIGHT
 	
 	local leaderboardTop = apiAbsPosition[1]
 	local gap = (50 + (spGetSpectatingState() and 25 or 0)) * scaleY
-	local panelHeight = tdRootElement.offset_height or 240
 	
 	local leaderboardTopCss = screenHeight - leaderboardTop
 	local desiredBottomCss = leaderboardTopCss - gap
@@ -530,16 +513,6 @@ local function createDataHash(data)
 		return hash
 	end
 	return tostring(data)
-end
-
-local function createTeamOrderHash(allyTeams)
-	local hash = ""
-	for i = 1, math.min(#allyTeams, 8) do
-		local team = allyTeams[i]
-		local total = (team.score or 0) + (team.projectedPoints or 0)
-		hash = hash .. tostring(team.allyTeamID) .. ":" .. tostring(total) .. "|"
-	end
-	return hash
 end
 
 local function hasDataChanged(newData, cacheTable, cacheKey)
@@ -661,9 +634,7 @@ local function updateAllyTeamData()
 	end
 	
 	for allyTeamID, _ in pairs(widgetState.knownAllyTeamIDs) do
-		if allyTeamID == GAIA_ALLY_TEAM_ID then
-			-- Skip GAIA team
-		else
+		if allyTeamID ~= GAIA_ALLY_TEAM_ID then
 			local teamList = spGetTeamList(allyTeamID)
 			local hasTeamList = teamList and #teamList > 0
 			local firstTeamID = nil
@@ -1013,8 +984,6 @@ local function resetCache()
 		roundInfo = {},
 		lastTimeHash = "",
 	}
-	widgetState.lastTeamOrderHash = ""
-	widgetState.lastAllyTeamCount = 0
 end
 
 local function shouldSkipUpdate()
