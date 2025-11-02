@@ -63,7 +63,7 @@ function widget:Update(dt)
                     WG['notifications'].queueNotification("TeammateLagging")
                 end
                 PlayersInformationMemory[playerName].timingout = true
-            elseif ping and ping <= 2 and PlayersInformationMemory[playerName].timingout then
+            elseif ping and ping <= 2 and PlayersInformationMemory[playerName].timingout and (not PlayersInformationMemory[playerName].hasDisconnected) then
                 if (not PlayersInformationMemory[playerName].spectator) and (not PlayersInformationMemory[playerName].resigned) and PlayersInformationMemory[playerName].allyTeamID == Spring.GetLocalAllyTeamID() and not Spring.GetSpectatingState() then
                     --Spring.Echo("Teammate Catched Up", playerID, playerName)
                     WG['notifications'].queueNotification("TeammateCaughtUp")
@@ -99,6 +99,7 @@ function widget:PlayerChanged(playerID)
                 if PlayersInformationMemory[playerName].hasDisconnected and (not (Differences.spectator or PlayersInformationMemory[playerName].spectator)) then
                     --Spring.Echo("Teammate Reconnected", playerName, Spring.GetGameFrame())
                     WG['notifications'].queueNotification("TeammateReconnected")
+                    PlayersInformationMemory[playerName].hasDisconnected = false
                     -- TeammateReconnected
                 end
             end

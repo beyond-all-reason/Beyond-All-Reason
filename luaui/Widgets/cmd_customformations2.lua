@@ -108,6 +108,7 @@ local dimmAlpha = 0 -- The current alpha of dimming line
 local pathCandidate = false -- True if we should start a path on mouse move
 local draggingPath = false -- True if we are dragging a path for unit(s) to follow
 local lastPathPos = nil -- The last point added to the path, used for min-distance check
+local pathPositions = {} -- All positions added to the path, used to prevent overlapping commands
 
 local overriddenCmd = nil -- The command we ignored in favor of move
 local overriddenTarget = nil -- The target (for params) we ignored
@@ -184,6 +185,11 @@ local function GetModKeys()
 
     if spGetInvertQueueKey() then -- Shift inversion
         shift = not shift
+    end
+    
+    -- Check if PiP widget wants to force shift for right-click drags
+    if WG.pipForceShift then
+        shift = true
     end
 
     return alt, ctrl, meta, shift
@@ -461,6 +467,9 @@ function widget:MousePress(mx, my, mButton)
     -- Is this line a path candidate (We don't do a path off an overriden command)
 	pathCandidate = (not overriddenCmd) and selectedUnitsCount==1 and (not shift or repeatForSingleUnit)
 
+    -- Initialize path positions tracking
+    pathPositions = {}
+
     return true
 end
 
@@ -501,6 +510,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 
             GiveNotifyingOrder(usingCmd, pos, cmdOpts)
             lastPathPos = pos
+            pathPositions[1] = {pos[1], pos[2], pos[3]}
 
             draggingPath = true
         end
@@ -511,11 +521,26 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
             local dx, dz = pos[1] - lastPathPos[1], pos[3] - lastPathPos[3]
             if (dx*dx + dz*dz) > minPathSpacingSq then
 
-                local alt, ctrl, meta, shift = GetModKeys()
-                local cmdOpts = GetCmdOpts(false, ctrl, meta, true, usingRMB) -- using alt uses springs box formation, so we set it off always
+                -- Check if this position is too close to any previously added path position
+                local tooClose = false
+                for i = 1, #pathPositions do
+                    local prevPos = pathPositions[i]
+                    local pdx, pdz = pos[1] - prevPos[1], pos[3] - prevPos[3]
+                    if (pdx*pdx + pdz*pdz) <= minPathSpacingSq then
+                        tooClose = true
+                        break
+                    end
+                end
 
-                GiveNotifyingOrder(usingCmd, pos, cmdOpts)
-                lastPathPos = pos
+                -- Only add command if it's not too close to any previous position
+                if not tooClose then
+                    local alt, ctrl, meta, shift = GetModKeys()
+                    local cmdOpts = GetCmdOpts(false, ctrl, meta, true, usingRMB)
+
+                    GiveNotifyingOrder(usingCmd, pos, cmdOpts)
+                    lastPathPos = pos
+                    pathPositions[#pathPositions + 1] = {pos[1], pos[2], pos[3]}
+                end
             end
         end
     end
@@ -1378,6 +1403,7 @@ function widget:Initialize()
 		pathCandidate = false
 		draggingPath = false
 		lastPathPos = nil
+		pathPositions = {}
 		overriddenCmd = nil
 		overriddenTarget = nil
 		
@@ -1413,14 +1439,30 @@ function widget:Initialize()
 				local dx, dz = worldPos[1] - lastPathPos[1], worldPos[3] - lastPathPos[3]
 				local distSq = dx * dx + dz * dz
 				if distSq >= minDist then
-					draggingPath = true
-					local alt, ctrl, meta, shift = GetModKeys()
-					local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, usingRMB)
-					GiveNotifyingOrder(usingCmd, worldPos, cmdOpts)
-					lastPathPos = worldPos
+					-- Check if this position is too close to any previously added path position
+					local tooClose = false
+					for i = 1, #pathPositions do
+						local prevPos = pathPositions[i]
+						local pdx, pdz = worldPos[1] - prevPos[1], worldPos[3] - prevPos[3]
+						if (pdx*pdx + pdz*pdz) <= minPathSpacingSq then
+							tooClose = true
+							break
+						end
+					end
+					
+					-- Only add command if it's not too close to any previous position
+					if not tooClose then
+						draggingPath = true
+						local alt, ctrl, meta, shift = GetModKeys()
+						local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, usingRMB)
+						GiveNotifyingOrder(usingCmd, worldPos, cmdOpts)
+						lastPathPos = worldPos
+						pathPositions[#pathPositions + 1] = {worldPos[1], worldPos[2], worldPos[3]}
+					end
 				end
 			else
 				lastPathPos = worldPos
+				pathPositions[1] = {worldPos[1], worldPos[2], worldPos[3]}
 			end
 		end
 		
@@ -1517,6 +1559,7 @@ function widget:Initialize()
 		fDists = {}
 		draggingPath = false
 		pathCandidate = false
+		pathPositions = {}
 		return true
 	end
 	

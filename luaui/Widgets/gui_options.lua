@@ -128,8 +128,6 @@ local show = false
 local prevShow = show
 local manualChange = true
 
-local guishaderIntensity = 0.0035
-
 local spGetGroundHeight = Spring.GetGroundHeight
 
 local os_clock = os.clock
@@ -439,6 +437,7 @@ local function cancelChatInput()
 	if selectOptionsList then
 		selectOptionsList = glDeleteList(selectOptionsList)
 	end
+	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil	--widgetHandler:DisownText()
 	if doReinit then
 		init()
@@ -1967,7 +1966,6 @@ function init()
 			distortioneffects = true,
 		 	snow = true,
 		 	particles = 20000,
-		 	guishader = guishaderIntensity,
 			decalsgl4 = 1,
 		 	decals = 2,
 			shadowslider = 4,
@@ -1988,7 +1986,6 @@ function init()
 			distortioneffects = true,
 			snow = true,
 			particles = 30000,
-			guishader = guishaderIntensity,
 			decalsgl4 = 1,
 			decals = 3,
 			shadowslider = 5,
@@ -2009,7 +2006,6 @@ function init()
 			distortioneffects = true,
 			snow = true,
 			particles = 40000,
-			guishader = guishaderIntensity,
 			decalsgl4 = 1,
 			decals = 4,
 			shadowslider = 6,
@@ -6048,8 +6044,9 @@ function init()
 
 	-- check if cus is disabled by auto disable cus widget (in case options widget has been reloaded)
 	if getOptionByID('sun_y') then
-		if select(2, gl.GetSun("pos")) < options[getOptionByID('sun_y')].min then
-			Spring.SetSunDirection(select(1, gl.GetSun("pos")), options[getOptionByID('sun_y')].min, select(3, gl.GetSun("pos")))
+		local sunX, sunY, sunZ = gl.GetSun("pos")
+		if sunY < options[getOptionByID('sun_y')].min then
+			Spring.SetSunDirection(sunX, options[getOptionByID('sun_y')].min, sunZ)
 		end
 	end
 
@@ -6087,14 +6084,6 @@ function init()
 		options[getOptionByID('dualmode_enabled')] = nil
 		options[getOptionByID('dualmode_left')] = nil
 		options[getOptionByID('dualmode_minimap_aspectratio')] = nil
-	end
-
-
-	if Platform ~= nil and Platform.gpuVendor == 'Intel' then
-		id = getOptionByID('guishader')
-		if id then
-			options[id] = nil
-		end
 	end
 
 	-- reduce options for potatoes
@@ -6821,11 +6810,6 @@ function widget:Initialize()
 		-- 	Spring.SetConfigInt("snd_volmusic", 50)
 		-- end
 
-		-- enable advanced model shading
-		if Spring.GetConfigInt("AdvModelShading", 0) ~= 1 then
-			Spring.SetConfigInt("AdvModelShading", 1)
-			Spring.SendCommands("advmodelshading 1")
-		end
 		-- enable normal mapping
 		if Spring.GetConfigInt("NormalMapping", 0) ~= 1 then
 			Spring.SetConfigInt("NormalMapping", 1)
@@ -7009,7 +6993,6 @@ function widget:GetConfigData()
 		show = show,
 		waterDetected = waterDetected,
 		customPresets = customPresets,
-		guishaderIntensity = guishaderIntensity,
 		changesRequireRestart = changesRequireRestart,
 		requireRestartDefaults = requireRestartDefaults,
 
@@ -7047,9 +7030,6 @@ function widget:SetConfigData(data)
 	end
 	if data.cameraPanTransitionTime ~= nil then
 		cameraPanTransitionTime = data.cameraPanTransitionTime
-	end
-	if data.guishaderIntensity then
-		guishaderIntensity = data.guishaderIntensity
 	end
 	if data.edgeMoveWidth then
 		edgeMoveWidth = data.edgeMoveWidth

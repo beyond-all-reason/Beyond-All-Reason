@@ -20,6 +20,9 @@ end
 local shouldNotBuggeroff = {}
 local cachedUnitDefs = {}
 local cachedBuilderTeams = {}
+local mostRecentCommandFrame = {}
+local gameFrame = 0
+
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isImmobile then
 		shouldNotBuggeroff[unitDefID] = true
@@ -76,6 +79,8 @@ local FAST_UPDATE_FREQUENCY = 30
 local SLOW_UPDATE_FREQUENCY = 60
 local MAX_BUGGEROFF_RADIUS  = 400
 local BUGGEROFF_RADIUS_INCREMENT = FAST_UPDATE_FREQUENCY * 0.5
+-- Don't buggeroff units that were ordered to do something recently
+local USER_COMMAND_TIMEOUT	= 60
 
 local function watchBuilder(builderID)
 	slowUpdateBuilders[builderID]   = nil
@@ -106,6 +111,10 @@ local function shouldIssueBuggeroff(builderTeam, interferingUnitID, x, y, z, rad
 		return false
 	end
 
+	if mostRecentCommandFrame[interferingUnitID] ~= nil and gameFrame - mostRecentCommandFrame[interferingUnitID] < USER_COMMAND_TIMEOUT then
+		return false
+	end
+
 	if willBeNearTarget(interferingUnitID, x, y, z, BUILDER_DELAY_SECONDS, radius) then
 		return true
 	end
@@ -118,6 +127,7 @@ local function shouldIssueBuggeroff(builderTeam, interferingUnitID, x, y, z, rad
 end
 
 function gadget:GameFrame(frame)
+	gameFrame = frame
 	if frame % FAST_UPDATE_FREQUENCY ~= 0 then
 		return
 	end
@@ -151,7 +161,7 @@ function gadget:GameFrame(frame)
 			builderRadiusOffsets[builderID] = builderRadiusOffsets[builderID] + BUGGEROFF_RADIUS_INCREMENT
 
 			for _, interferingUnitID in ipairs(interferingUnits) do
-				if builderID ~= interferingUnitID and visited[interferingUnitID] == nil and Spring.GetUnitIsBeingBuilt(interferingUnitID) == false  then
+				if builderID ~= interferingUnitID and visited[interferingUnitID] == nil and Spring.GetUnitIsBeingBuilt(interferingUnitID) == false then
 					-- Only buggeroff from one build site at a time
 					visited[interferingUnitID] = true
 					local unitX, _, unitZ = Spring.GetUnitPosition(interferingUnitID)
@@ -229,10 +239,12 @@ function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	if cachedUnitDefs[unitDefID].isBuilder then
 		removeBuilder(unitID)
 	end
+	mostRecentCommandFrame[unitID] = nil
 end
 
 function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if cachedUnitDefs[unitDefID].isBuilder then
 		slowWatchBuilder(unitID)
 	end
+	mostRecentCommandFrame[unitID] = gameFrame
 end

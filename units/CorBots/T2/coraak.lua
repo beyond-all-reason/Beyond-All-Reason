@@ -18,7 +18,7 @@ return {
 		maxacc = 0.138,
 		maxdec = 0.6486,
 		metalcost = 650,
-		movementclass = "ABOT2",
+		movementclass = "ABOT3",
 		movestate = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORAAK.s3o",
