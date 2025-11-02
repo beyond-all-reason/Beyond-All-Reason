@@ -106,7 +106,7 @@ commonClassGroups.definitions = {
         primary = "text-center text-darkest font-bold bg-gradient_primary-accent hover-brighten cursor-pointer",
         ghost = "text-center text-primary font-bold border-2 border border-primary-alpha bg-primary-hover-alpha cursor-pointer",
         surface = "text-center text-surface-anti font-bold bg-surface border border-surface-alpha hover-brighten cursor-pointer",
-        secondary = "text-center text-secondary font-bold bg-gradient_secondary-accent hover-brighten cursor-pointer",
+        secondary = "text-center text-primary-dark bg-gradient_primary-alpha font-bold hover-brighten cursor-pointer bg-secondary",
     },
 
     nav = {

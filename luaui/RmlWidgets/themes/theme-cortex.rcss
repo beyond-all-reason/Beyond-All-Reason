@@ -16,12 +16,12 @@
     .border-primary-alpha { border-color: rgba(230, 57, 70, 128); }
 
     /* === SECONDARY RED (#ff4444) === */
-    .bg-secondary { background-color: rgb(255, 68, 68); }
-    .text-secondary { color: rgb(255, 68, 68); }
-    .border-secondary { border-color: rgb(255, 68, 68); }
-    .bg-secondary-alpha { background-color: rgba(255, 68, 68, 128); }
-    .text-secondary-alpha { color: rgba(255, 68, 68, 128); }
-    .border-secondary-alpha { border-color: rgba(255, 68, 68, 128); }
+    .bg-secondary { background-color: rgb(254, 82, 82); }
+    .text-secondary { color: rgb(254, 82, 82); }
+    .border-secondary { border-color: rgb(254, 82, 82); }
+    .bg-secondary-alpha { background-color: rgba(254, 82, 82, 128); }
+    .text-secondary-alpha { color: rgba(254, 82, 82, 128); }
+    .border-secondary-alpha { border-color: rgba(254, 82, 82, 128); }
 
     /* === ACCENT RED (#ff2222) - Old primary, now vibrant accent === */
     .bg-accent { background-color: rgb(255, 34, 34); }
