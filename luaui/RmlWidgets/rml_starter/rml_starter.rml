@@ -1,961 +1,973 @@
 <rml>
+<head>
+    <title>Rml Starter Widget</title>
 
-    <head>
-        <title>RML Widget Starter Template</title>
+    <!-- External stylesheets - order matters for cascading -->
+    <link rel="stylesheet" href="../styles.rcss" type="text/rcss" />
+    <link rel="stylesheet" href="../rml-utility-classes.rcss" type="text/rcss" />
+    <link rel="stylesheet" href="../palette-standard-global.rcss" type="text/rcss" />
+    <link rel="stylesheet" href="../themes/theme-base.rcss" type="text/rcss" />
+    <link rel="stylesheet" href="../themes/theme-armada.rcss" type="text/rcss" />
+    <link rel="stylesheet" href="../themes/theme-cortex.rcss" type="text/rcss" />
+    <link rel="stylesheet" href="../themes/theme-legion.rcss" type="text/rcss" />
+    
+    <link rel="stylesheet" href="rml_starter.rcss" type="text/rcss" />
+</head>
 
-        <!-- External stylesheets - order matters for cascading -->
-        <link rel="stylesheet" href="../styles.rcss" type="text/rcss" />
-        <link rel="stylesheet" href="../rml-utils.rcss" type="text/rcss" />
-        <link rel="stylesheet" href="../palette-standard-global.rcss" type="text/rcss" />
-        <link rel="stylesheet" href="../palette-base.rcss" type="text/rcss" />
-        <!-- <link rel="stylesheet" href="../palette-cortex.rcss" type="text/rcss" /> -->
-        <link rel="stylesheet" href="../palette-armada.rcss" type="text/rcss" />
-        <!-- <link rel="stylesheet" href="../palette-legion.rcss" type="text/rcss" /> -->
-        <link rel="stylesheet" href="rml_starter.rcss" type="text/rcss" />
-    </head>
-
-    <body id="rml-starter-widget">
-        <div id="widget-container" data-model="rml_starter_model">
-            <div id="tabs-navigation">
-                <button data-for="tab : tabs" class="tab-button text-white bg-darker-alpha"
-                    data-class-active="activeTab == tab.id" data-class-bg-primary="activeTab == tab.id"
-                    data-class-border-primary="activeTab == tab.id" data-class-text-darkest="activeTab == tab.id"
-                    data-tab="{{tab.id}}" data-event-mousedown="activeTab = tab.id">
-                    <span class="text-glow-light">{{tab.label}}</span>
+<body id="rml-starter-widget" class="widget-shadow rounded-lg">
+    <div id="widget-container" data-model="rml_starter_model">
+        <!-- Collapsed title bar -->
+        <!--
+            There is an issue in RMLUI where a click event is not registered if the element triggering mousedown is not the same as the one triggering mouseup.
+            The hacky solution is to add pointer-events: none to all child elements of the clickable container. This way the click event always registers on the parent.
+        -->
+        <div data-if="!expanded" class="collapsed-title flex items-center justify-center bg-gradient bg-dark" data-event-click="toggleExpand()">
+            <div data-attr-class="ccg.text.warning + ' toggle-expand-container pe-none'">
+                <span data-class-expanded="expanded" class="chevron pe-none"></span>
+            </div>
+            <span class="text-base font-bold text-outline-darker-lg pe-none">
+                rml starter
+            </span>
+        </div>
+        <!-- Debug controls + expand/collapse button -->
+        <div data-visible="expanded" class="debug-controls absolute top left pl-2 pt-2">
+            <button data-attr-class="ccg.text.warning + ' toggle-expand-container border rounded border-darkest-alpha bg-dark-alpha p-0-5'" data-event-click="toggleExpand()">
+                <span data-class-expanded="expanded" class="chevron pe-none"></span>
+            </button>
+            <button data-attr-class="ccg.text.warning + ' px-1 debug-btn'" onclick="widget:Reload()" title="Reload Widget">
+                <span>reload</span> 
+            </button>
+            <button data-attr-class="ccg.text.warning + ' px-1 debug-btn'" onclick="widget:ToggleDebugger()" title="Toggle Debugger">
+                <span>debug</span>
+            </button>
+        </div>
+        <!-- Widget header with controls -->
+        <div data-visible="expanded" data-attr-class="my.tabsNavigationStyles + ' flex flex-col items-center relative min-w-32'">
+            <div id="tabs-navigation" class="flex-1 flex flex-col justify-center">
+                <button data-for="tab : tabs"
+                    data-attr-class="(activeTab == tab.id ?  ccg.themeButton.primary + ' active' :  ccg.themeButton.ghost) + ' tab-button tab-button-hover transition-bg p-2 font-bold text-outline'"
+                    data-event-mousedown="setActiveTab(tab.id)">
+                    <span class="text-glow-light text-base text-light">{{tab.label}}</span>
                 </button>
             </div>
-
-            <!-- Main content area with tab panels -->
-            <div id="main-content" class="bg-black-semi-alpha flex flex-col gap-4">
-                <div class="actions flex flex-row-reverse gap-2 m-1 flex-end border-bottom border-primary-alpha">
-                    <button class="bg-primary text-darkest text-center p-2 font-bold flex items-center" onclick="widget:Reload()">
-                        <span>Reload Widget</span>
-                    </button>
-                    <button class="bg-primary text-darkest text-center p-2 font-bold flex items-center" onclick="widget:ToggleDebugger()">
-                        <span>
-                            {{debugMode ? 'Hide Debug' : 'Show Debug'}}
-                        </span>
-                    </button>
+        </div>
+        <!-- Main content area with tab panels -->
+        <div data-visible="expanded" data-attr-class="ccg.sheet.general.container + ' flex w-full'">
+            <!-- Main content area -->
+            <div id="landing" data-if="activeTab == 'landing'">
+                <div class="flex flex-col items-center justify-center p-6 h-full gap-3 text-center">
+                    <h1 data-attr-class="ccg.heading.h1">RML Starter</h1>
+                    <span class="divider-horizontal-primary w-40"></span>
+                    <div class="text-center">
+                        <span class="divider-horizontal-primary w-40"></span>
+                        <h2 data-attr-class="ccg.heading.h3 + ' mb-4'">What is it?</h2>
+                        <p data-attr-class="ccg.text.body + ' mb-2'">This widget demonstrates key concepts and best practices for creating RmlUi widgets within Beyond All Reason.</p>
+                        <p data-attr-class="ccg.text.body + ' mb-2'">This widget is itself an RmlUi implementation so feel free to explore the code and see how it works.</p>
+                    </div>
+                    <div class="text-center">
+                        <h2 data-attr-class="ccg.heading.h3 + ' mb-4'">Widget Actions</h2>
+                        <p data-attr-class="ccg.text.body + ' mb-2'">RML widgets require reloading to see changes to <span data-attr-class="ccg.badge.primary">.rml</span> and <span data-attr-class="ccg.badge.primary">.rcss</span> files. Use the <button data-attr-class="ccg.text.warning + ' debug-btn'">reload</button> button above to refresh.</p>
+                        <p data-attr-class="ccg.text.body + ' mb-2'">The <button data-attr-class="ccg.text.warning + ' debug-btn'">debug</button> button toggles the RmlUi debugger for real-time insights into documents, data models, and DOM state.</p>
+                    </div>
+                    <div class="text-center">
+                        <h2 data-attr-class="ccg.heading.h3 + ' mb-4'">Quick Start</h2>
+                        <p data-attr-class="ccg.text.body  + ' mb-2'">Head to the Tools tab for a generator script that creates new widgets with best practices and common patterns already built-in.</p>
+                        <p data-attr-class="ccg.text.body + ' mb-2'">Check the RmlUi documentation  regularly, and ask for help in the <span data-attr-class="ccg.themeText.highlight">#rmlui</span> Discord channel any time you're stuck.</p>
+                    </div>
+                    <span class="divider-horizontal-primary w-40"></span>
+                    <p data-attr-class="ccg.themeText.value + ' mt-3'">Good luck!</p>
                 </div>
+            </div>
 
-                <div data-if="activeTab == ''" class="landing">
-                    <div class="flex flex-col gap-2 p-10">
-                        <h1 class="text-darkest text-glow-primary">RML Starter Widget</h1>
-                        <h2 class="mt-5">What is it?</h2>
-                        <p class="text-light">This widget is one part documentation and one part connected example. It demonstrates key concepts and emerging best practices for creating, and working with RMLUI widgets within Beyond All Reason.</p>
-                        <p class="text-light">Navigate using the tabs, and keep in mind that this widget is itself an RmlUi implementation. If you see something you’d like to understand better, explore the code, edit values, and see how it works for yourself. Avoid committing changes to this widget, as it is meant to be a starting point for your own work.</p>
-                        <h2 class="mt-5">Widget Actions</h2>
-                        <p class="text-light">RML Widgets do not currently have hot reload functionality, as such, a reload is required to see changes made to <span class="file-text bg-primary text-darkest">.rml</span> and <span class="file-text bg-primary text-darkest">.rcss</span> files. The <span class="font-bold text-primary border-sm rounded border-primary">Reload Widget</span> button above will refresh the widget and apply any changes you might have made in your IDE to the <span class="file-text bg-primary text-darkest">.rml</span> and <span class="file-text bg-primary text-darkest">.rcss</span> files.</p>
-                        <p class="text-light">Use the <span class="font-bold text-primary border-sm rounded border-primary">Show Debug</span> button to show or hide the RmlUi debugger. The debugger provides invaluable real-time insights into the context's documents, data models, event handling, styling, and importantly, the state of the DOM.</p>
-                        <h2 class="mt-5">Skip to the Good Stuff</h2>
-                        <p class="text-light">If you want to get started quickly, head to the Tools tab and follow instruction to run a generator script. The generated widget hopefully embodies best practices and common patterns for RML development regarding file structure, naming conventions, and initial component organization.</p>
-                        <p class="text-light">Make use of the RmlUi documentation, and don't hesitate to reach out for help in the <span class="font-bold">#rmlui</span> channel in Discord.</p>
-                        <p class="text-primary font-bold mt-5">Good luck.</p>
-                    </div>
+            <!-- Getting Started Tab Panel -->
+            <div id="getting-started" data-attr-class="ccg.sheet.general.container + ' clip overflow-scroll relative'" data-if="activeTab == 'getting-started'">
+                <div data-attr-class="ccg.sheet.construction.title + ' flex flex-col items-center fixed top-0 z-1 w-full'">
+                    <h1 data-attr-class="ccg.heading.h1">Getting Started</h1>
                 </div>
-
-                <!-- Getting Started Tab Panel -->
-                <div class="tab-panel" data-panel="getting-started" data-if="activeTab == 'getting-started'">
-                    <div class="content-section">
-                    <h1 class="text-darkest text-glow-primary">Getting Started</h1>
-                    <p class="text-light">Essential information before creating your first RmlUi widget, for the sake of the following example lets call it <span class="font-bold">my_widget.</span></p>
-                    </div>
-
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">File Structure</h2>
-                        <p class="text-light">Every RmlUi widget needs three files of different types, the <span class="font-bold">.lua</span>, <span class="font-bold">.rml</span>, and <span class="font-bold">.rcss</span> files. These files should be named as follows:</p>
-                        <div class="flex flex-row gap-4 mt-2">
-                            <div class="file bg-primary-alpha rounded-md border-sm border-muted-alpha">
-                                <span class="font-bold bg-primary text-darker p-1">my_widget.lua</span>
-                                <p class="p-2">Backend logic and data model</p>
-                                <p class="p-2 text-muted"><em>controller + model</em></p>
+                <div class="fixed-header-spacer h-24">you can't see me</div>
+                <p data-attr-class="ccg.text.body + ' px-6'">Essential information before creating your first RmlUi widget, for the sake of the following example lets call it <span class="font-bold">my_widget.</span></p>
+                
+                <div data-attr-class="ccg.sheet.general.content + ' flex flex-col gap-3'">
+                    <div data-attr-class="ccg.panel.general + ' box-shadow-none'">
+                        <h2 data-attr-class="ccg.heading.h2">Structure</h2>
+                        <div class="pl-2">
+                            <div data-attr-class="ccg.heading.h5">Files</div>
+                            <p data-attr-class="ccg.text.body + ' mt-2'">Every RmlUi widget needs three files of different types, the <span class="font-bold">.lua</span>, <span class="font-bold">.rml</span>, and <span class="font-bold">.rcss</span> files. These files should be named as follows:</p>
+                            <div class="flex flex-col gap-3 mt-2">
+                                <div class="flex items-center gap-3">
+                                    <span data-attr-class="ccg.badge.info">my_widget.lua</span>
+                                    <span data-attr-class="ccg.text.body">Backend logic and data model</span>
+                                    <span data-attr-class="ccg.themeText.caption">(controller + model)</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span data-attr-class="ccg.badge.success">my_widget.rml</span>
+                                    <span data-attr-class="ccg.text.body">Frontend UI layout and markup</span>
+                                    <span data-attr-class="ccg.themeText.caption">(view)</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span data-attr-class="ccg.badge.warning">my_widget.rcss</span>
+                                    <span data-attr-class="ccg.text.body">Styling and visual appearance</span>
+                                    <span data-attr-class="ccg.themeText.caption">(view styles)</span>
+                                </div>
                             </div>
-                            <div class="file bg-primary-alpha rounded-md border-sm border-muted-alpha">
-                                <span class="font-bold bg-primary text-darker p-1">my_widget.rml</span>
-                                <p class="p-2">Frontend UI layout and markup</p>
-                                <p class="p-2 text-muted"><em>view</em></p>
+                        </div>
+                        <div class="pl-2 mt-4">
+                            <div data-attr-class="ccg.heading.h5">Location</div>
+                            <p data-attr-class="ccg.text.body + ' mt-2'">
+                                RmlUi widgets are those which have some sort of GUI powered by RmlUi and should be placed in the following directory:</p>
+                            <div data-attr-class="my.codeBlock + ' m-6'">
+                                <div>
+                                    luaui/RmlWidgets/
+                                </div>
                             </div>
-                            <div class="file bg-primary-alpha rounded-md border-sm border-muted-alpha">
-                                <span class="font-bold bg-primary text-darker p-1">my_widget.rcss</span>
-                                <p class="p-2">Styling and visual appearance</p>
-                                <p class="p-2 text-muted"><em>view styles</em></p>
+                            <p data-attr-class="ccg.text.body + ' mt-2'">It is recommended to name your folder the same as your widget, the resultant directory structure would be something like:</p>
+                            <div data-attr-class="my.codeBlock + ' m-6'">
+                                <div>luaui/</div>
+                                <div class="pl-2">RmlWidgets/</div>
+                                <div class="pl-4">my_widget/</div>
+                                <div class="pl-6">my_widget.lua</div>
+                                <div class="pl-6">my_widget.rml</div>
+                                <div class="pl-6">my_widget.rcss</div>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">File Location</h2>
-                        <p class="text-light m-1">
-                            RmlUi widgets are those which have some sort of GUI powered by RmlUi and should be placed in the following directory:</p>
-                        <div class="text-darker m-2 bg-medium-alpha rounded-lg p-4 text-sm">luaui/RmlWidgets/
-                        </div>
-                        <p class="text-light m-1">It is recommended to name your folder the same as your widget, the resultant directory structure would be something like:</p>
-                        <div class="flex flex-col text-darker m-2 bg-medium-alpha rounded-lg p-4 text-sm">
-                            <div>luaui/</div>
-                            <div class="pl-2">RmlWidgets/</div>
-                            <div class="pl-4">my_widget/</div>
-                            <div class="pl-6">my_widget.lua</div>
-                            <div class="pl-6">my_widget.rml</div>
-                            <div class="pl-6">my_widget.rcss</div>
-                        </div>
-                        <p class="text-light m-1">This structure helps keep your widget organized and easily identifiable within the RmlUi ecosystem.
-                        </p>
-                        <p class="text-light m-1">
-                            Additionally, there are global styles, utility classes, and palettes which can be imported to maintain consistency across UI, and some of which your widget will require to function correctly. For example:</p>
-                        <div class="flex flex-col text-darker m-2 bg-medium-alpha rounded-lg p-4 text-sm">
-                            <div>luaui/</div>
-                            <div class="pl-2">RmlWidgets/</div>
-                            <div class="pl-4 text-dark">my_widget/</div>
-                            <div class="pl-6 text-dark">my_widget.lua</div>
-                            <div class="pl-6 text-dark">my_widget.rml</div>
-                            <div class="pl-6 text-dark">my_widget.rcss</div>
-                            <div class="pl-4">styles.rcss <span class="text-success font-bold">&lt;&lt;</span></div>
-                            <div class="pl-4">rml-utils.rcss <span class="text-success font-bold">&lt;&lt;</span></div>
-                            <div class="pl-4">palette-standard-global.rcss <span class="text-success font-bold">&lt;&lt;</span></div>
-                            <div class="pl-4">palette-base.rcss <span class="text-success font-bold">&lt;&lt;</span></div>
-                        </div>
-                    </div>
-
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">Core Functionality</h2>
-                        <p class="text-light m-1">A basic RmlUi widget should provide:</p>
-                        <ul class="text-light m-1 flex flex-col gap-2">
-                            <li><strong class="text-secondary">Lifecycle</strong>: <strong>GetInfo</strong>, <strong>Initialize</strong>, <strong>Update</strong>, and <strong>Shutdown</strong> hooks no different to standard widgets in the <span class="file-text bg-primary text-darkest">/luai/widgets</span> folder.</li>
-                            <li><strong class="text-secondary">Data Model</strong>: Variables that drive the UI state set in the logic layer and applied with data-binding in the ui layer.</li>
-                            <li><strong class="text-secondary">UI Layout</strong>: Rml markup defining the visual arrangement of the widget much like HTML.</li>
-                            <li><strong class="text-secondary">Styling</strong>: Rcss selectors used to style the elements in the Rml as with CSS.</li>
-                        </ul>
-                        <p class="text-light m-1">Take a moment to look through the entry point for this widget at <span class="file-text bg-primary text-darkest">rml_starter.lua</span> to see how these concepts are implemented.</p>
-                    </div>
-
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">Quick Start Steps</h2>
-                        <p class="text-light m-1">To create your first widget use the generation script provided in the folder for this, the <span class="font-bold">rml_starter</span> widget at <span class="file-text bg-primary text-darkest">/luaui/RmlWidgets/rml_starter/generate-widget.sh</span></p>
-                        <p class="text-light m-1">Run the script in your terminal, providing the name of your widget as an argument. This will create a new folder with all necessary files and structures, in a new folder. The generated base widget will provides all of the aforementioned core functionality and some simple implementation examples.</p>
-                        <div class="text-darker m-2 bg-medium-alpha rounded-lg p-4"><span>./generate-widget.sh my_widget</span></div>
-                    </div>
-                </div>
-
-                <!-- Base Widget Conventions Tab Panel -->
-                <div class="tab-panel" data-panel="base-widget-structure" data-if="activeTab == 'base-widget-conventions'">
-                    <div class="content-section">
-                        <h1 class="text-darkest text-glow-primary">Base Widget Conventions</h1>
-                        <p class="text-dark-light m-1">What follows are some of the fundamental concepts which form the basis of an RmlUi widget, understanding these will help you create more effective and maintainable widgets.</p>
-                        <p>For now lets breakdown what each of the three main files is responsible for.</p>
-                    </div>
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">Logic</h2>
-                        <p>The core of your widget's logic is handled in the <span class="code-highlight text-darkest bg-primary rounded">.lua</span> file. It must contain the following functions:</p>
-                        <ul class="text-light m-1 flex flex-col gap-2">
-                            <li>
-                                <h3 class="text-secondary mb-1">widget:GetInfo()</h3>
-                                <p>Returns a table containing metadata about the widget including name, description, author, version, and configuration options. The name field is particularly important as it's used for widget identification and management.</p>
-                                <p class="p-2 text-sm text-light-alpha"><em>This function is called during widget loading to register the widget. Properties like 'enabled' control default state, while 'layer' affects rendering order relative to other widgets.</em></p>
-                            </li>
-                            <li>
-                                <h3 class="text-secondary mb-1">widget:Initialize()</h3>
-                                <p>
-                                    Called upon initialization and should retrieve the <strong>shared context</strong>, open a data model (used for data binding in the template) on that context, and load a document onto that context.</p>
-                                <p class="p-2 text-sm text-light-alpha"><em>Think of the context as if it is the browser window into which we load our HTML(rml) and CSS(rcss) much like the Document in a web page. The primary difference
-                                    being that in RmlUi we may have many documents loaded on to the same context.
-                                </em></p>
-                            </li>
-                            <li>
-                                <h3 class="text-secondary mb-1">widget:Shutdown()</h3>
-                                <p>
-                                    Called when the widget is being destroyed or disabled. This is where you should clean up all resources including closing documents, removing data models from the context, and clearing any references.</p>
-                                <p class="p-2 text-sm text-light-alpha"><em>Proper cleanup prevents memory leaks and ensures the widget can be safely reloaded or removed without affecting other widgets or the game performance.</em></p>
-                            </li>
-                            <li>
-                                <h3 class="text-secondary mb-1">widget:Reload() <span class="text-warning">[OPTIONAL]</span></h3>
-                                <p>Not a standard widget function, but implemented for development convenience. This function typically calls Shutdown() followed by Initialize() to refresh the widget without restarting the game and must be called manually.</p>
-                                <p class="p-2 text-sm text-light-alpha"><em>Extremely useful during development as RML and RCSS files require a widget reload to reflect changes. All functionality mentioned here comes pre-implemented in widgets created by the generation script.</em></p>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">Structure</h2>
-                        <p class="mb-1">
-                            The structure and organization of a widget's UI is defined by its layout and the arrangement of its elements and is the responsibility of the <span class="code-highlight text-darkest bg-primary rounded">.rml</span> file.
-                            This includes the use of containers, panels, and individual components to create a cohesive and functional interface.</p>
-                        <p class="mb-1">In your .rml files, you can define the structure using a combination of HTML-like tags and RmlUi-specific attributes to achieve the desired layout.</p>
-                        <ul class="text-light m-1 flex flex-col gap-2">
-                            <h3 class="text-secondary mb-1">Key Elements</h3>
-                            <li>
-                                <p><strong class="text-primary">&lt;rml&gt;</strong></p>
-                                <p>The root element of an RML document containing all other UI elements and defines the overall layout.</p>
-                                <p class="p-2">Think of this as your &lt;html&gt; element if you are coming from web development.</p>
-                            </li>
-                            <li>
-                                <p><strong class="text-primary">&lt;head&gt;</strong></p>
-                                <p>Contains metadata and links to external resources, primarily stylesheets.</p>
-                                <p class="p-2"><em>This element is crucial for defining the visual style and layout of the widget. It must contain <strong class="text-primary">&lt;link&gt;</strong> elements for the global stylesheets, and can optionally include a <strong class="text-primary">&lt;style&gt;</strong> element for widget-specific styles.
-                                </em>
+                            <p data-attr-class="ccg.text.body + ' mt-2'">This structure helps keep your widget organized and easily identifiable within the RmlUi ecosystem.
                             </p>
-                            <ul class="flex flex-col text-darker m-2 bg-medium-alpha rounded-lg p-4 text-sm">
-                                <li>../styles.rcss <span class="text-success font-bold">&lt; mandatory</span></li>
-                                <li>../rml-utils.rcss <span class="text-success font-bold">&lt; mandatory</span></li>
-                                <li>../palette-standard-global.rcss <span class="text-success font-bold">&lt; mandatory</span></li>
-                                <li>../palette-base.rcss <span class="text-success font-bold">&lt; mandatory</span></li>
-                                <li>my_widget.rcss <span class="text-info font-bold">&lt; optional (or use &lt;style&gt; element)</span></li>
-                            </ul>
-                            <p class="p-2 text-sm text-light-alpha"><em>You can add widget-specific styles either by linking to a .rcss file or by including them directly in a &lt;style&gt; element within the &lt;head&gt;. The &lt;style&gt; approach keeps everything in one file but can become unwieldy for complex styling.</em></p>
-                            </li>
-                            <li>
-                                <p class="mb-1"><strong class="text-primary">&lt;body&gt;</strong></p>
-                                <p class="mb-1"> Contains the main content of the widget, including all interactive elements and visual components.
-                                    This element must contain one and only one property - <strong>the ID</strong>.
-                                </p>
-                                <p class="mb-1">
-                                    The <strong>&lt;body&gt;</strong> element should have an <strong>id</strong> matching the widget's unique identifier + "_widget".
-                                    For example, if your widget's file name is "rml_starter", then the body element should look like this:
-                                </p>
-                                <p class="text-darker m-2 bg-medium-alpha rounded-lg p-4 text-sm">&lt;body id="rml-starter-widget"&gt;</p>
-                                <p>The body should have one element to act as the wrapper for all other elements, onto which the data-model attribute should be applied.</p>
-                                <p class="text-darker m-2 bg-medium-alpha rounded-lg p-4 text-sm">
-                                    <p>&lt;body id="rml-starter-widget"&gt;</p>
-                                    <p class="pl-2">&lt;div class="widget-container" data-model="rml_starter_model"&gt;</p>
-                                    <p class="pl-4">// Widget content goes here</p>
-                                    <p class="pl-2">&lt;/div&gt;</p>
-                                    <p>&lt;/body&gt;</p>
-                                </p>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">Styling</h2>
-                        <p class="mb-1">
-                            The visual appearance and layout behavior of your widget is controlled by RCSS (RML Cascading Style Sheets).
-                            RCSS follows CSS2 specifications with some CSS3 features, allowing you to style elements much like web development.</p>
-                        <p class="mb-1">Your widget inherits from several global stylesheets that provide consistency and utility classes across the UI.</p>
-                        <p class="mb-1">Widget-specific styles can be added in two ways:</p>
-                        <ul class="text-light m-1 flex flex-col gap-1 pl-4">
-                            <li><strong class="text-secondary">Separate .rcss file</strong>: Recommended for complex widgets to keep styles organized</li>
-                            <li><strong class="text-secondary">Inline &lt;style&gt; element</strong>: Convenient for simple widgets or quick prototyping</li>
-                        </ul>
-                        <ul class="text-light m-1 flex flex-col gap-2">
-                            <h3 class="text-secondary mb-1">Required Global Imports</h3>
-                            <li>
-                                <p><strong class="text-primary">../styles.rcss</strong></p>
-                                <p>Core styling foundation including reset rules, basic typography, and common element styles. This provides the base layer that all widgets build upon.</p>
-                                <p class="p-2 text-sm text-light-alpha"><em>Essential for consistent typography, form elements, and basic layout patterns across all widgets.</em></p>
-                            </li>
-                            <li>
-                                <p><strong class="text-primary">../rml-utils.rcss</strong></p>
-                                <p>Utility classes for rapid styling (similar to Tailwind CSS) including flexbox, spacing, colors, borders, and common layout patterns.</p>
-                                <p class="p-2 text-sm text-light-alpha"><em>Provides classes like 'flex', 'gap-4', 'bg-primary', 'text-center' for quick styling without writing custom CSS.</em></p>
-                            </li>
-                            <li>
-                                <p><strong class="text-primary">../palette-standard-global.rcss</strong></p>
-                                <p>Global color definitions and theme variables that ensure consistency across the entire UI system. Covers all non-theme specific colors like lights, darks, and semantic accents like <span class="text-success">success</span>, <span class="text-warning">warning</span>, <span class="text-error">error</span>, <span class="text-info">info</span>, and <span class="text-confirm">confirm</span>.</p>
-                                <p class="p-2 text-sm text-light-alpha"><em>Defines semantic color names and CSS variables that can be used throughout your widget styling.</em></p>
-                            </li>
-                            <li>
-                                <p><strong class="text-primary">../palette-base.rcss</strong></p>
-                                <p class="mb-1">Provides the foundational color class definitions that themes are expected to implement. Other palettes (palette-cortex.rcss, palette-armada.rcss, palette-legion.rcss) are examples of how these base classes can be customized while maintaining the same class names.</p>
-                                <p>A palette will provide classes such as <span class="text-primary">.text-primary</span>, <span class="text-secondary">.text-secondary</span>,</p>
-                                <p><span class="bg-accent text-darkest">.bg-accent</span>, <span class="bg-primary-alpha text-darkest">.bg-primary-alpha</span> and others.</p>
-                                <p class="p-2 text-sm text-light-alpha"><em>Defines the expected color variables that any theme/palette should provide, ensuring consistent naming across different visual themes. In time, systems should evolve to include more dynamic theming capabilities, and authors should be encouraged to contribute their own themes and variations, via custom palettes.</em></p>
-                            </li>
-                        </ul>
-                        <ul class="text-light m-1 flex flex-col gap-2">
-                            <h3 class="text-secondary mb-1">Widget-Specific Styling Options</h3>
-                            <li>
-                                <p><strong class="text-secondary">External .rcss File</strong>: Create a separate <span class="code-highlight text-darkest bg-primary rounded">my_widget.rcss</span> file and link it in the &lt;head&gt; section. This is recommended for widgets with significant custom styling to keep code organized and maintainable.</p>
-                                <div class="text-darker m-2 bg-medium-alpha rounded-lg p-4 text-sm">
-                                    <div>&lt;head&gt;</div>
-                                    <div class="pl-2">&lt;link type="text/rcss" href="../styles.rcss" /&gt;</div>
-                                    <div class="pl-2">... other global imports ...</div>
-                                    <div class="pl-2">&lt;link type="text/rcss" href="my_widget.rcss" /&gt;</div>
-                                    <div>&lt;/head&gt;</div>
-                                </div>
-                            </li>
-                            <li>
-                                <p><strong class="text-secondary">Inline &lt;style&gt; Element</strong>: Add styles directly within a &lt;style&gt; element in the &lt;head&gt; section. This approach keeps everything in one file but can become unwieldy for complex styling.</p>
-                                <div class="text-darker m-2 bg-medium-alpha rounded-lg p-4 text-sm">
-                                    <div>&lt;head&gt;</div>
-                                    <div class="pl-2">&lt;link type="text/rcss" href="../styles.rcss" /&gt;</div>
-                                    <div class="pl-2">... other global imports ...</div>
-                                    <div class="pl-2">&lt;style&gt;</div>
-                                    <div class="pl-4">#my-widget-widget {</div>
-                                    <div class="pl-6">position: absolute;</div>
-                                    <div class="pl-6">top: 10%;</div>
-                                    <div class="pl-6">width: 400dp;</div>
-                                    <div class="pl-4">}</div>
-                                    <div class="pl-2">&lt;/style&gt;</div>
-                                    <div>&lt;/head&gt;</div>
-                                </div>
-                            </li>
-                        </ul>
-                        <ul class="text-light m-1 flex flex-col gap-2">
-                            <h3 class="text-secondary mb-1">Key Styling Considerations</h3>
-                            <li>
-                                <p><strong class="text-secondary">Utility-First Approach</strong>: Use utility classes from rml-utils.rcss as they provide the closest equivalent to a CSS-variables-like functionality, ensuring consistency across UIs. These predefined classes maintain uniform spacing, colors, and styling patterns.</p>
-                            </li>
-                            <li>
-                                <p><strong class="text-secondary">Alpha Transparency</strong>: RCSS uses 0-255 range for alpha values, not 0-1. Use <span class="code-highlight text-darkest bg-primary rounded">rgba(0, 0, 0, 180)</span> for semi-transparent backgrounds.</p>
-                            </li>
-                            <li>
-                                <p><strong class="text-secondary">Semantic Colors</strong>: Prefer semantic color classes (<span class="code-highlight text-darkest bg-primary rounded">bg-primary</span>, <span class="code-highlight text-darkest bg-primary rounded">text-secondary</span>) over hardcoded values for theme consistency.</p>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Widget Positioning -->
-                <div class="tab-panel" data-panel="widget-positioning" data-if="activeTab == 'widget-positioning'">
-                    <div class="content-section">
-                        <h1 class="text-darkest text-glow-primary">Widget Positioning</h1>
-                        <p class="text-light">Understanding how widgets are positioned within the RmlUi 'shared' context is essential for proper widget placement and sizing.</p>
-                    </div>
-
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">CSS Positioning Primer</h2>
-                        <p class="text-light m-1">Widget positioning uses standard CSS rules. If you're new to CSS, these concepts apply universally - research "CSS positioning" for more detailed information.</p>
-                        
-                        <div class="bg-darker-alpha border-sm border-light p-4 mt-2" style="position: relative; height: 200dp;">
-                            <p class="text-light text-xs mb-2" style="position: absolute; bottom: 0; right: 5dp;">Container acts here like the RmlUi 'shared' context</p>
-                            
-                            <!-- Top-left positioned box -->
-                            <div style="position: absolute; top: 10dp; left: 10dp; width: 80dp; height: 40dp;" class="bg-primary text-darkest p-1 text-xs">
-                                <div>top: 10dp</div>
-                                <div>left: 10dp</div>
-                            </div>
-                            
-                            <!-- Top-right positioned box -->
-                            <div style="position: absolute; top: 10dp; right: 10dp; width: 80dp; height: 40dp;" class="bg-success text-darkest p-1 text-xs">
-                                <div>top: 10dp</div>
-                                <div>right: 10dp</div>
-                            </div>
-                            
-                            <!-- Bottom-left positioned box -->
-                            <div style="position: absolute; bottom: 10dp; left: 10dp; width: 80dp; height: 40dp;" class="bg-warning text-darkest p-1 text-xs">
-                                <div>bottom: 10dp</div>
-                                <div>left: 10dp</div>
-                            </div>
-                            
-                            <!-- Center positioned box -->
-                            <div style="position: absolute; top: 50%; left: 50%; width: 100dp; height: 50dp; transform: translate(-50dp, -25dp);" class="bg-info text-darkest p-1 text-xs">
-                                <div>top: 50%</div>
-                                <div>left: 50%</div>
-                                <div>centered</div>
+                            <p data-attr-class="ccg.text.body + ' mt-2'">
+                                Additionally, there are global styles, utility classes, and themes which can be imported to maintain consistency across UI, some of which your widget will require to function correctly. For example:</p>
+                            <div data-attr-class="my.codeBlock + ' m-6'">
+                                <div>luaui/</div>
+                                <div class="pl-2">RmlWidgets/</div>
+                                <div class="pl-4 text-dark">my_widget/</div>
+                                <div class="pl-6 text-dark">my_widget.lua</div>
+                                <div class="pl-6 text-dark">my_widget.rml</div>
+                                <div class="pl-6 text-dark">my_widget.rcss</div>
+                                <div class="pl-4">styles.rcss <span class="text-success font-bold">&lt;&lt;</span></div>
+                                <div class="pl-4">rml-utility-classes.rcss <span class="text-success font-bold">&lt;&lt;</span></div>
+                                <div class="pl-4">palette-standard-global.rcss <span class="text-success font-bold">&lt;&lt;</span></div>
+                                <div class="pl-4">themes/ <span class="text-success font-bold">&lt;&lt;</span></div>
+                                <div class="pl-6">theme-base.rcss <span class="text-success font-bold">&lt;&lt;</span></div>
+                                <div class="pl-6">theme-cortex.rcss <span class="text-success font-bold">&lt;&lt;</span></div>
+                                <div class="pl-6">theme-armada.rcss <span class="text-success font-bold">&lt;&lt;</span></div>
+                                <div class="pl-6">theme-legion.rcss <span class="text-success font-bold">&lt;&lt;</span></div>
                             </div>
                         </div>
-                        
-                        <p class="text-light text-xs mt-2"><em>Each colored box shows its positioning properties. The container represents the RmlUi context that widgets are positioned within.</em></p>
                     </div>
 
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">Multiple Widget Positioning Example</h2>
-                        <p class="text-light m-1">A comprehensive example showing common patterns for positioning multiple widgets relative to screen edges and each other:</p>
-                        
+
+                    <div data-attr-class="ccg.panel.general + ' flex-col'">
+                        <h2 data-attr-class="ccg.heading.h2">Core Functionality</h2>
+                        <p class="text-light m-1">A basic RmlUi widget should provide:</p>
+                        <div class="pl-2">
+                            <div>
+                                <h3 data-attr-class="ccg.heading.h5">Lifecycle</h3>
+                                <p data-attr-class="ccg.text.body + ' mt-1-5'">Standard lifecycle stages as in "ordinary" non-rmlui widgets. These stages include initialization <span class="code-green">widget:Initialize()</span>, updating <span class="code-green">widget:Update()</span>, and shutdown <span class="code-green">widget:Shutdown()</span>.</p>
+                                <p data-attr-class="ccg.themeText.caption + ' mt-1-5 text-center font-italic p-4'">Initialize sets up the widget's internal state and prepares it for interaction. Shutdown will clear the widget's state and release any resources, including anything held by the context it was opened on.</p>
+                            </div>
+                            <div>
+                                <h3 data-attr-class="ccg.heading.h5">Data Model</h3>
+                                <p data-attr-class="ccg.text.body + ' mt-1-5'">A data model to manage the state and data of the widget, enabling dynamic updates and interactions. A model should be prepared in the <span class="code-green">init_model</span> or an <span class="code-green">initModel()</span> function, and then loaded onto the context in the Initialize stage.</p>
+                                <p data-attr-class="ccg.text.body + ' mt-1-5'">Changes to the data model are made through the <span class="code-green px-1">dm_handle</span> upon which RMLUI will automatically propagate updates to the UI re-rendering only the affected elements.</p>
+                                <p data-attr-class="ccg.themeText.caption + ' mt-1-5 text-center font-italic p-4'">
+                                    The data model acts as the bridge between the logic layer and the UI layer. Updates to the data model via the dm_handle should automatically reflect in the UI, and vice versa for any two-way binding values.</p>
+                            </div>
+                            <div>
+                                <h3 data-attr-class="ccg.heading.h5">UI Layout</h3>
+                                <p data-attr-class="ccg.text.body + ' mt-1-5'">Rml markup defining the visual arrangement of the widget much like HTML.</p>
+                                <p data-attr-class="ccg.themeText.caption + ' mt-1-5 text-center font-italic p-4'">The Rml layout serves as the bones of the widget's UI onto which styles get applied.</p>
+                            </div>
+                            <div>
+                                <h3 data-attr-class="ccg.heading.h5">Styling</h3>
+                                <p data-attr-class="ccg.text.body + ' mt-1-5'">Rcss selectors are provided by files used to style the elements in the Rml as with CSS.</p>
+                                <p data-attr-class="ccg.themeText.caption + ' mt-1-5 text-center font-italic p-4'">RMLUI is based upon the CSS2 spec although it provides many additional features and enhancements that one might find in modern web development.</p>
+                            </div>
+                        </div>
+                        <div data-attr-class="ccg.panel.info + ' p-3'">
+                            <div data-attr-class="ccg.text.warning">Why not</div>
+                            <p data-attr-class="ccg.text.body + ' mt-1-5'"> Take a quick moment and look through this widget's entry point at <span class="code-green px-0-5">rml_starter.lua</span> to see how these concepts are implemented.</p>
+                        </div>
+                    </div>
+
+                    <div data-attr-class="ccg.panel.general + ' flex-col'">
+                        <h2 data-attr-class="ccg.heading.h2">Quick Start Steps</h2>
+                        <p data-attr-class="ccg.text.body + ' mt-1-5'">Ready to create your first widget? Check the <strong>Tools tab</strong> for the automated generator script that scaffolds a new widget along with all the best practices and patterns shown in this guide.</p>
+                        <p data-attr-class="ccg.text.body + ' mt-1-5'">The generator creates a complete widget structure with working examples, so you can start building immediately rather than setting up boilerplate code.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Base Widget Conventions Tab Panel -->
+            <div id="base-widget-conventions" data-attr-class="ccg.sheet.general.container + ' clip overflow-scroll relative'" data-if="activeTab == 'base-widget-conventions'">
+                <div data-attr-class="ccg.sheet.construction.title + ' flex flex-col items-center fixed top-0 z-1 w-full'">
+                    <h1 data-attr-class="ccg.heading.h1">Base Widget Conventions</h1>
+                </div>
+                <div class="fixed-header-spacer h-24">you can't see me</div>
+                <p data-attr-class="ccg.text.body + ' px-6'">Fundamental concepts that form the basis of an RmlUi widget. Understanding these will help you create more effective and maintainable widgets.</p>
+                <div data-attr-class="ccg.sheet.general.content + ' flex flex-col gap-3'">
+                    <div data-attr-class="ccg.panel.general">
+                        <h2 data-attr-class="ccg.heading.h2">Logic Layer (.lua)</h2>
+                        <p data-attr-class="ccg.text.body">The core of your widget's logic is handled in the <span data-attr-class="ccg.badge.info">.lua</span> file. It must contain the following functions:</p>
                         <div class="mt-2">
-                            <p class="text-secondary text-sm mb-2"><strong>Example BAR UI Layout</strong></p>
-                            <div class="bg-darker-alpha border-sm border-light p-2 text-xs" style="position: relative; height: 260dp;">
-                                <!-- Top-left: Square minimap -->
-                                <div style="position: absolute; top: 0; left: 0; width: 70dp; height: 70dp;" class="bg-primary-alpha text-xxs border border-primary">
-                                    <div><strong>Minimap</strong></div>
-                                    <div>top: 0</div>
-                                    <div>left: 0</div>
-                                    <div>60dp × 60dp</div>
-                                </div>
-                                
-                                <!-- Top-center: Resource bar -->
-                                <div style="position: absolute; top: 0; left: 50%; width: 200dp; height: 25dp; transform: translateX(-90dp);" class="bg-success-alpha text-xxs border border-success">
-                                    <div><strong>Resource Bar</strong></div>
-                                    <div>top: 0, centered (left: 50%, translateX(-90dp))</div>
-                                </div>
-                                
-                                <!-- Top-right: Thin settings menu -->
-                                <div style="position: absolute; top: 0; right: 0; width: 80dp; height: 20dp;" class="bg-warning-alpha text-xxs border border-warning">
-                                    <div><strong>Settings</strong></div>
-                                    <div>top: 0;</div>
-                                    <div>right: 0;</div>
-                                </div>
-                                
-                                <!-- Bottom-left: Build grid (above unit info) -->
-                                <div style="position: absolute; bottom: 52dp; left: 0; width: 100dp; height: 80dp;" class="bg-info-alpha text-xxs border border-info">
-                                    <div><strong>Build Grid</strong></div>
-                                    <div>bottom: 52dp</div>
-                                    <div>left: 0</div>
-                                    <div>above unit info</div>
-                                </div>
-                                
-                                <!-- Bottom-left: Unit info widget -->
-                                <div style="position: absolute; bottom: 0; left: 0; width: 100dp; height: 50dp;" class="bg-confirm-alpha text-xxs border border-confirm">
-                                    <div><strong>Unit Info</strong></div>
-                                    <div>bottom: 0</div>
-                                    <div>left: 0</div>
-                                </div>
-                                
-                                <!-- Bottom-center: Commands widget (right of unit info) -->
-                                <div style="position: absolute; bottom: 0; left: 102dp; width: 150dp; height: 50dp;" class="bg-error-alpha text-xxs border border-error">
-                                    <div><strong>Commands</strong></div>
-                                    <div>bottom: 0</div>
-                                    <div>left: 102dp</div>
-                                    <div>right of unit info</div>
-                                </div>
-                                
-                                <!-- Bottom-right: Advanced player list -->
-                                <div style="position: absolute; bottom: 0; right: 0; width: 100dp; height: 80dp;" class="bg-accent-alpha text-xxs border border-accent">
-                                    <div><strong>Player List</strong></div>
-                                    <div>bottom: 0</div>
-                                    <div>right: 0</div>
-                                    <div>100dp × 80dp</div>
-                                </div>
+                            <div>
+                                <h3 data-attr-class="ccg.heading.h5">widget:GetInfo()</h3>
+                                <p data-attr-class="ccg.text.body + ' mt-1-5'">Returns a table containing metadata about the widget including name, description, author, version, and configuration options. The name field is particularly important as it's used for widget identification and management.</p>
+                                <p data-attr-class="ccg.themeText.caption + ' mt-1-5 text-center font-italic p-4'">This function is called during widget loading to register the widget. Properties like 'enabled' control default state, while 'layer' affects rendering order relative to other widgets.</p>
                             </div>
-                            <div class="flex flex-col gap-1 mt-2 text-xs text-light-alpha">
-                                <p><strong>Centering calculation:</strong> Resource Bar uses left: 50% with transform: translateX(-90dp) where 90dp = half the widget width (180dp ÷ 2)</p>
-                                <p><strong>Horizontal positioning:</strong> Commands widget left: 100dp = Unit Info left (0) + Unit Info width (100dp), positioned directly adjacent</p>
-                                <p><strong>Vertical stacking:</strong> Build Grid bottom: 52dp = Unit Info height (50dp) + small gap, positioned directly above</p>
-                                <p><strong>Edge positioning:</strong> Widgets positioned flush against screen edges using 0 values - no margins needed</p>
-                                <p class="text-warning"><strong>Note:</strong> Some considerations in the above example made to account for border thickness in other widgets ie. '102dp'.</p>
+                            
+                            <div>
+                                <h3 data-attr-class="ccg.heading.h5">widget:Initialize()</h3>
+                                <p data-attr-class="ccg.text.body + ' mt-1-5'">Called upon initialization and should retrieve the shared context, open a data model (used for data binding in the template) on that context, and load a document onto that context.</p>
+                                <p data-attr-class="ccg.themeText.caption + ' mt-1-5 text-center font-italic p-4'">Think of the context as if it is the browser window into which we load our HTML(rml) and CSS(rcss) much like the Document in a web page. The primary difference being that in RmlUi we may have many documents loaded on to the same context.</p>
+                            </div>
+                            
+                            <div>
+                                <h3 data-attr-class="ccg.heading.h5">widget:Shutdown()</h3>
+                                <p data-attr-class="ccg.text.body + ' mt-1-5'">Called when the widget is being destroyed or disabled. This is where you should clean up all resources including closing documents, removing data models from the context, and clearing any references.</p>
+                                <p data-attr-class="ccg.themeText.caption + ' mt-1-5 text-center font-italic p-4'">Proper cleanup prevents memory leaks and ensures the widget can be safely reloaded or removed without affecting other widgets or the game performance.</p>
+                            </div>
+                            
+                            <div>
+                                <h3 data-attr-class="ccg.heading.h5">widget:Reload() <span data-attr-class="ccg.badge.construction + ' ml-2 text-light-override px-2 filter-faded'">development</span></h3>
+                                <p data-attr-class="ccg.text.body + ' mt-1-5'">Not a standard widget function, but implemented for development convenience. This function typically calls <span class="code-green">Shutdown()</span> followed by <span class="code-green">Initialize()</span> to refresh the widget without restarting the game and must be called manually.</p>
+                                <p data-attr-class="ccg.themeText.caption + ' mt-1-5 text-center font-italic p-4'">Extremely useful during development as RML and RCSS files require a widget reload to reflect changes. All functionality mentioned here comes pre-implemented in widgets created by the generation script.</p>
+                            </div>
+
+                            <div>
+                                <h3 data-attr-class="ccg.heading.h5">widget:ToggleDebugger() <span data-attr-class="ccg.badge.construction + ' ml-2 text-light-override px-2 filter-faded'">development</span></h3>
+                                <p data-attr-class="ccg.text.body + ' mt-1-5'">Called to toggle the visibility of the debugger overlay. This function can be used to show or hide debugging information for the widget.</p>
+                                <p data-attr-class="ccg.themeText.caption + ' mt-1-5 text-center font-italic p-4'">Useful for development and testing, allowing you to inspect the widget's state and behavior without modifying the code. Should be removed before deployment.</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">Widget Positioning in BAR</h2>
-                        <p class="text-light m-1">Each widget is positioned absolutely within the context, which acts as the bounding window. Widgets do not have a master layout system and cannot be positioned relative to each other.</p>
-                        <ul class="text-light m-1 flex flex-col gap-2">
-                            <li><strong class="text-secondary">Context as Viewport</strong>: The RmlUi context acts as the screen/window boundary for all widgets</li>
-                            <li><strong class="text-secondary">Absolute Positioning</strong>: All widgets use absolute positioning relative to the context edges</li>
-                            <li><strong class="text-secondary">No Widget Relativity</strong>: Widgets cannot be positioned relative to other widgets - each is independent</li>
-                            <li><strong class="text-secondary">Hard-coded Dimensions</strong>: Use fixed dp values, avoid percentages for reliable sizing</li>
-                        </ul>
-                        <div class="bg-warning-alpha border border-warning p-3 rounded-lg mt-3">
-                            <p class="text-warning font-bold mb-1">Understood Limitation</p>
-                            <p class="text-light text-sm">This absolute positioning approach is not a perfect solution, but it serves the current needs where primary UI widget's dimensions will be hard-coded and positioned manually. As development progresses, more dynamic and flexible layout systems may be introduced to provide better widget arrangement and responsive design capabilities at the inter-widget context level.</p>
-                        </div>
-                    </div>
-
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">Body Element Positioning</h2>
-                        <p class="text-light m-1">Widget dimensions and position are defined on the <span class="code-highlight text-darkest bg-primary rounded">&lt;body&gt;</span> element with the widget ID:</p>
-                        <div class="text-darker m-2 bg-medium-alpha rounded-lg p-4 text-sm">
-                            <div>#my-widget-widget {</div>
-                            <div class="pl-4">/* Required: Absolute positioning */</div>
-                            <div class="pl-4">position: absolute;</div>
-                            <div class="pl-4"></div>
-                            <div class="pl-4">/* Position relative to context edges */</div>
-                            <div class="pl-4">top: 5%;</div>
-                            <div class="pl-4">right: 10dp;</div>
-                            <div class="pl-4"></div>
-                            <div class="pl-4">/* Hard-coded dimensions */</div>
-                            <div class="pl-4">width: 800dp;</div>
-                            <div class="pl-4">height: 600dp;</div>
-                            <div>}</div>
-                        </div>
-                        <p class="text-light text-sm mt-2"><strong>Convention:</strong> The body ID must be <span class="code-highlight text-darkest bg-primary rounded">widget-name + "-widget"</span> and match your .lua filename</p>
-                    </div>
-
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">Positioning Properties</h2>
-                        <div class="flex flex-col gap-2 mt-2">
-                            <div class="flex flex-row gap-4">
-                                <div class="bg-medium-alpha rounded p-2 flex-1">
-                                    <strong class="text-secondary">Position Values:</strong>
-                                    <p class="text-light text-sm">top, bottom, left, right</p>
-                                    <p class="text-light text-xs">Use dp units or percentages</p>
+                    <div data-attr-class="ccg.panel.general + ' box-shadow-none'">
+                        <h2 data-attr-class="ccg.heading.h2">Structure Layer (.rml)</h2>
+                        <p data-attr-class="ccg.text.body">The structure and organization of a widget's UI is defined by its layout and the arrangement of its elements and is the responsibility of the <span class="code-green">.rml</span> file. This includes the use of containers, panels, and individual components to create a cohesive and functional interface.</p>
+                        
+                        <div class="gap-4 mt-2 pl-2">
+                            <div>
+                                <h3 data-attr-class="ccg.heading.h5">&lt;rml&gt;</h3>
+                                <p data-attr-class="ccg.text.body + ' mt-1-5'">The root element of an RML document containing all other UI elements and defines the overall layout.</p>
+                                <p data-attr-class="ccg.themeText.caption + ' mt-1-5 text-center font-italic p-4'">Think of this as your &lt;html&gt; element if you are coming from web development.</p>
+                            </div>
+                            
+                            <div>
+                                <h3 data-attr-class="ccg.heading.h5">&lt;head&gt;</h3>
+                                <p data-attr-class="ccg.text.body + ' mt-1-5'">Contains metadata and links to external resources, primarily stylesheets.</p>
+                                <p data-attr-class="ccg.text.body + ' mt-1-5'">You can add widget-specific styles either by linking to a .rcss file or by including them directly in a &lt;style&gt; element within the &lt;head&gt;. The &lt;style&gt; approach keeps everything in one file but can become unwieldy for complex styling.</p>
+                                <div class="gap-2 mt-2">
+                                    <div data-attr-class="my.codeBlock + ' m-6'">
+                                        <div class="text-warning">// Recommended stylesheet imports into &lt;head&gt;</div>
+                                        <div>../styles.rcss <span class="text-info font-bold">&lt; mandatory</span></div>
+                                        <div>../rml-utility-classes.rcss <span class="text-info font-bold">&lt; mandatory</span></div>
+                                        <div>../palette-standard-global.rcss <span class="text-info font-bold">&lt; mandatory</span></div>
+                                        <div>../themes/theme-base.rcss</div>
+                                        <div>../themes/theme-armada.rcss</div>
+                                        <div>../themes/theme-cortex.rcss</div>
+                                        <div>../themes/theme-legion.rcss</div>
+                                        <div>my_widget.rcss <span class="text-info font-bold">&lt; optional (or use &lt;style&gt; element)</span></div>
+                                    </div>
                                 </div>
-                                <div class="bg-medium-alpha rounded p-2 flex-1">
-                                    <strong class="text-secondary">Dimension Values:</strong>
-                                    <p class="text-light text-sm">width, height</p>
-                                    <p class="text-light text-xs">Prefer dp units over percentages</p>
+                                <p data-attr-class="ccg.themeText.caption + ' text-center font-italic p-6'">This element is crucial for defining the visual style and layout of the widget. It must contain &lt;link&gt; elements for the global stylesheets, and can optionally include a &lt;style&gt; element for widget-specific styles.</p>
+                            </div>
+                            
+                            <div>
+                                <h3 data-attr-class="ccg.heading.h5">&lt;body&gt;</h3>
+                                <p data-attr-class="ccg.text.body + ' mt-2'">Contains the main content of the widget, including all interactive elements and visual components. This element should contain one and only one property - the ID, special consideration also only for classes which MUST be set at that level, for example some <span class="code-green">.widget-shadow</span> or border class.</p>
+                                <p data-attr-class="ccg.text.body + ' mt-2'">The <span class="code-green">&lt;body&gt;</span> element should: </p>
+                                <div class="flex flex-col gap-2 mt-1 pl-2">
+                                    <div data-attr-class="ccg.text.body">1. have an id matching the widget's unique identifier + "-widget".</div>
+                                    <div data-attr-class="ccg.text.body">2. contain one wrapper element for all widget content onto which the <span class="code-green">data-model</span> attribute should be applied.</div>
+                                </div>
+                                <div data-attr-class="my.codeBlock + ' m-6'">
+                                    <div>&lt;body id="rml-starter-widget" class="widget-shadow rounded"&gt; <span class="text-warning">// ID + minimal classes</span></div>
+                                    <div class="pl-2">&lt;div class="widget-container" data-model="rml_starter_model"&gt; <span class="text-warning">// container + model</span></div>
+                                    <div class="pl-4 text-light-alpha">// Widget content goes here</div>
+                                    <div class="pl-2">&lt;/div&gt;</div>
+                                    <div>&lt;/body&gt;</div>
+                                </div>
+                                <p data-attr-class="ccg.themeText.caption + ' mt-1-5 text-center font-italic p-6'">
+                                    This structure ensures that the widget is properly identified and that its data model is correctly bound to the UI elements within the widget. It is important to NOT add any other properties or the data-model to the &lt;body&gt; element to avoid conflicts with the widget system.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div data-attr-class="ccg.panel.general + ' box-shadow-none'">
+                        <h2 data-attr-class="ccg.heading.h2">Styling Layer (.rcss)</h2>
+                        <p data-attr-class="ccg.text.body">The visual appearance and layout behavior of your widget is controlled by RCSS (RML Cascading Style Sheets). RCSS follows CSS2 specifications with some CSS3 features, allowing you to style elements much like web development.</p>
+                        
+                        <div class="mt-2 px-2">
+                            <h3 data-attr-class="ccg.heading.h5">Recommended Global Imports</h3>
+                            <div class="flex flex-row h-28 mt-2">
+                                <div class="flex-1 border border-dark-alpha bg-darkest-alpha">
+                                    <div class="flex flex-row w-full h-8 bg-darkest radial-focus-start items-center justify-between">
+                                        <span class="code-green text-outline-darker-lg p-2 text-sm">..styles.rcss</span><span data-attr-class="ccg.text.warning + ' mx-2'">compulsory</span>
+                                    </div>
+                                    <p data-attr-class="ccg.text.body + ' m-2'">Core styling foundation including reset rules, basic typography, and common element styles. This provides the base layer that all widgets build upon.</p>
+                                    <p data-attr-class="ccg.text.body + ' m-2'">This file <span class="font-bold">must</span> be included in every RmlUi widget to ensure consistent base styling and functionality across all widgets.</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-row h-40 mt-2 gap-2">
+                                <div class="flex-1 border border-dark-alpha bg-darkest-alpha">
+                                    <div class="flex flex-row w-full h-8 bg-darkest radial-focus-start items-center justify-between">
+                                        <span class="code-green text-outline-darker-lg p-2 text-sm">../rml-utility-classes.rcss</span>
+                                    </div>
+                                    <p data-attr-class="ccg.text.body + ' m-2'">Utility classes for rapid styling (similar to Tailwind CSS) including flexbox, spacing, colors, borders, and common layout patterns. Required for ccg and theming integrations.</p>
+                                    <p data-attr-class="ccg.text.body + ' m-2'">Use these to be aligned with the overall design system.</p>
+                                    <p data-attr-class="ccg.text.warning + ' m-2'"> Required for ccg and theming integrations.</p>
+                                </div>
+                                <div class="flex-1 border border-dark-alpha bg-darkest-alpha">
+                                    <div class="flex flex-row w-full h-8 bg-darkest radial-focus-start items-center justify-between">
+                                        <span class="code-green text-outline-darker-lg p-2 text-sm">../palette-standard-global.rcss</span>
+                                    </div>
+                                    <p data-attr-class="ccg.text.body + ' m-2'">Global color definitions and theme variables that ensure consistency across the entire UI system.</p>
+                                    <p data-attr-class="ccg.text.body + ' m-2'">Use these to be aligned with the overall design system.</p>
+                                    <p data-attr-class="ccg.text.warning + ' m-2'"> Required for ccg and theming integrations.</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-row h-28 mt-2">
+                                <div class="flex-1 border border-dark-alpha bg-darkest-alpha">
+                                    <div class="flex flex-row w-full h-8 bg-darkest radial-focus-start items-center justify-between">
+                                        <div class="flex-1 code-green text-outline-darker-lg px-2 py-0-5 text-sm">../themes/...</div>
+                                    </div>
+                                    <p data-attr-class="ccg.text.body + ' m-2'">These files provide the foundational color class definitions for theme specific styles. <span class="text-primary">text-primary</span> and <span class="bg-surface text-surface-anti px-1">bg-surface</span> for example.</p>
+                                    <p data-attr-class="ccg.text.body + ' m-2'">Use these to be aligned with the overall design system.</p>
+                                    <p data-attr-class="ccg.text.warning + ' m-2'"> Required for ccg and theming integrations.</p>
+                                </div>
+                            </div>
+                            <p data-attr-class="ccg.text.body + ' mt-2'">While only the <span class="code-green">../styles.rcss</span> are truly <span class="font-italic">required</span>, these global imports ensure visual coherence with other widgets.</p>
+                            <p data-attr-class="ccg.text.caption + ' mt-1-5'">Utility classes, themed or otherwise, are provided to enable developers to create aesthetically congruent UIs. Should you choose not to use established patterns then your widget may look inconsistent with others, and may not integrate well with the overall design system.</p>
+                        </div>
+                        
+                        <div class="pl-2 mt-4">
+                            <h3 data-attr-class="ccg.heading.h5">Theme Integration</h3>
+                            <p data-attr-class="ccg.text.body + ' mt-1-5'">While theme styles are 'optional', setting a theme without including the necessary theme files may result in missing colours and styles.</p>
+                            <div class="flex flex-wrap gap-1 mx-10 mt-4 items-center">
+                                <span data-attr-class="ccg.text.warning + ' flex-1 text-center bg-dark-alpha p-2'">theme-base.rcss</span>
+                                <span data-attr-class="ccg.text.info + ' flex-1 text-center bg-dark-alpha p-2'">theme-armada.rcss</span>
+                            </div>
+                            <div class="flex flex-wrap gap-1 mx-10 mt-1 items-center">
+                                <span data-attr-class="ccg.text.danger + ' flex-1 text-center bg-dark-alpha p-2'">theme-cortex.rcss</span>
+                                <span data-attr-class="ccg.text.success + ' flex-1 text-center bg-dark-alpha p-2'">theme-legion.rcss</span>
+                            </div>
+                            <p data-attr-class="ccg.themeText.caption + ' text-center font-italic mt-4 mx-4'">The styles provided in theme files are made active by a mechanism similar to that of media queries.
+                                Active themes are managed by the context via <span class="code-green">theme-utils.lua</span> and config. Set active rml theme via interface settings.</p>
+                        </div>
+                        
+                        <div class="pl-2 mt-4">
+                            <h3 data-attr-class="ccg.heading.h5">Widget-Specific Styling</h3>
+                            <p data-attr-class="ccg.text.body + ' mt-1-5'">Widget-specific styles can be added in two ways, or both ways:</p>
+                            <div class="flex flex-row gap-3 mt-2">
+                                <div data-attr-class="ccg.panel.general + ' flex-1'">
+                                    <span data-attr-class="ccg.text.success">Separate .rcss file</span>
+                                    <p data-attr-class="ccg.text.body + ' mt-2'">Recommended for complex widgets to keep styles organized</p>
+                                </div>
+                                <div data-attr-class="ccg.panel.general + ' flex-1'">
+                                    <span data-attr-class="ccg.text.warning">Inline &lt;head&gt; &lt;style&gt; element</span>
+                                    <p data-attr-class="ccg.text.body + ' mt-2'">Convenient for quick prototyping, ideally move to a separate .rcss file upon release for clear organization.</p>
                                 </div>
                             </div>
                         </div>
-                        <p class="text-warning text-sm mt-2"><strong>Important:</strong> Avoid using percentages for dimensions as they can cause inconsistent sizing across different screen resolutions.</p>
-                        <p class="text-info text-sm mt-1"><strong>Learn More:</strong> These are standard CSS positioning concepts. Search for "CSS absolute positioning" and "CSS box model" for comprehensive tutorials.</p>
+                    </div>
+                    <div data-attr-class="ccg.panel.general">
+                        <h2 data-attr-class="ccg.heading.h4">Key Styling Considerations</h2>
+                        <p data-attr-class="ccg.text.body">Important gotchas and best practices when working with RCSS styling in RmlUi widgets:</p>
+                        <div class="mt-2">
+                            <div class="flex items-start gap-2 mt-3">
+                                <div class="w-1 h-1 bg-primary rounded-full mt-2"></div>
+                                <p data-attr-class="ccg.text.body"><strong class="text-secondary">Utility-First Approach</strong>: Use utility classes from rml-utility-classes.rcss as they provide the closest equivalent to a CSS-variables-like functionality, ensuring consistency across UIs.</p>
+                            </div>
+                            <div class="flex items-start gap-2 mt-3">
+                                <div class="w-1 h-1 bg-primary rounded-full mt-2"></div>
+                                <p data-attr-class="ccg.text.body"><strong class="text-secondary">Alpha Transparency</strong>: RCSS uses 0-255 range for alpha values, not 0-1. Use <span class="code-green px-1">rgba(0, 0, 0, 180)</span> for semi-transparent backgrounds.</p>
+                            </div>
+                            <div class="flex items-start gap-2 mt-3">
+                                <div class="w-1 h-1 bg-primary rounded-full mt-2"></div>
+                                <p data-attr-class="ccg.text.body"><strong class="text-secondary">Semantic Colors</strong>: Prefer semantic color classes (<span class="code-green px-1">bg-primary</span>, <span class="code-green px-1">text-secondary</span>) over hardcoded values for theme consistency.</p>
+                            </div>
+                            <div class="flex items-start gap-2 mt-3">
+                                <div class="w-1 h-1 bg-primary rounded-full mt-2"></div>
+                                <p data-attr-class="ccg.text.body"><strong class="text-secondary">CSS Specification</strong>: RmlUi follows CSS2 with some CSS3 features. Always refer to the <span class="code-green px-1">RmlUi documentation</span> for supported properties and values.</p>
+                            </div>
+                            <div class="flex items-start gap-2 mt-3">
+                                <div class="w-1 h-1 bg-primary rounded-full mt-2"></div>
+                                <p data-attr-class="ccg.text.body"><strong class="text-secondary">Data Binding Priority</strong>: Prefer data binding over manual DOM manipulation for dynamic UI updates and state management.</p>
+                            </div>
+                            <div class="flex items-start gap-2 mt-3">
+                                <div class="w-1 h-1 bg-primary rounded-full mt-2"></div>
+                                <p data-attr-class="ccg.text.body"><strong class="text-secondary">Border Limitations</strong>: RmlUi borders don't support CSS border styles like <span class="code-green px-1">dotted</span>, <span class="code-green px-1">dashed</span>, or <span class="code-green px-1">solid</span>. Borders are always solid and only support width and color properties.</p>
+                            </div>
+                            <div class="flex items-start gap-2 mt-3">
+                                <div class="w-1 h-1 bg-primary rounded-full mt-2"></div>
+                                <p data-attr-class="ccg.text.body"><strong class="text-secondary">Function Placement</strong>: Provide functions via the data model rather than loading them onto the widget object. Note the oddity: when setting up functions in the model, reference the model via <span class="code-green px-1">utils.GetCurrentModel(dm_handle)</span> instead of directly (see switchTheme function example).</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Data Binding Tab Panel -->
-                <div class="tab-panel" data-panel="data-binding" data-if="activeTab == 'data-binding'">
-                    <div class="content-section">
-                        <h1 class="text-darkest text-glow-primary">Data Binding</h1>
-                        <p class="text-light">The data model provides dynamism and reactivity to RML templates. Changes to model variables automatically update the UI without manual DOM manipulation.</p>
-                    </div>
-
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">The Data Model Pattern</h2>
-                        <p class="text-light m-1">RmlUi widgets use a two-part data model approach:</p>
+            </div>
+            <!-- Widget Positioning Tab Panel -->
+            <div id="widget-positioning" data-attr-class="ccg.sheet.general.container + ' clip overflow-scroll relative'" data-if="activeTab == 'widget-positioning'">
+                <div data-attr-class="ccg.sheet.construction.title + ' flex flex-col items-center fixed top-0 z-50 w-full'">
+                    <h1 data-attr-class="ccg.heading.h1">Widget Positioning</h1>
+                </div>
+                <div class="fixed-header-spacer h-24">you can't see me</div>
+                <p data-attr-class="ccg.text.body + ' px-6'">Understanding how widgets are positioned within the RmlUi 'shared' context is essential for proper widget placement and sizing.</p>
+                <div data-attr-class="ccg.sheet.general.content + ' flex flex-col gap-3'">
+                    <div data-attr-class="ccg.panel.general + ' box-shadow-none'">
+                        <h2 data-attr-class="ccg.heading.h2">CSS Positioning</h2>
                         
-                        <div class="flex flex-col gap-3 mt-3">
-                            <div class="bg-darker-alpha border border-primary p-3 rounded">
-                                <div class="text-primary text-sm font-bold mb-2">1. Initial Model (init_model)</div>
-                                <div class="text-light text-xs">
-                                    <p>Defines the starting state with all properties and their default values. Used only during widget initialization.</p>
-                                    <div class="bg-medium-alpha text-darkest p-2 rounded text-xs mt-2">
-                                        local init_model = { metalCount = 250, playerName = "Commander" }
-                                    </div>
+                        <div class="mt-2 pl-2">
+                            <h3 data-attr-class="ccg.heading.h5">Simple Example</h3>
+                            <p data-attr-class="ccg.text.body + ' mt-1-5'">Widget positioning uses standard CSS rules. If you're new to CSS, these concepts apply universally - research "CSS positioning" for more detailed information.</p>
+                            <div class="bg-darker-alpha border border-dark-alpha rounded p-4 mt-2" style="position: relative; height: 200dp;">
+                                <p class="text-light text-xs font-italic" style="position: absolute; bottom: 2dp; right: 5dp;">Container acts here like the RmlUi 'shared' context</p>
+                                
+                                <!-- Top-left positioned box -->
+                                <div style="position: absolute; top: 10dp; left: 10dp; width: 80dp; height: 40dp;" class="bg-primary text-darkest p-1 text-xs">
+                                    <div>top: 10dp</div>
+                                    <div>left: 10dp</div>
+                                </div>
+                                
+                                <!-- Top-right positioned box -->
+                                <div style="position: absolute; top: 10dp; right: 10dp; width: 80dp; height: 40dp;" class="bg-success text-darkest p-1 text-xs">
+                                    <div>top: 10dp</div>
+                                    <div>right: 10dp</div>
+                                </div>
+                                
+                                <!-- Bottom-left positioned box -->
+                                <div style="position: absolute; bottom: 0dp; left: 0dp; width: 80dp; height: 40dp;" class="bg-warning text-darkest p-1 text-xs">
+                                    <div>bottom: 0</div>
+                                    <div>left: 0</div>
+                                </div>
+                                
+                                <!-- Center positioned box -->
+                                <div style="position: absolute; top: 50%; left: 50%; width: 100dp; height: 50dp; transform: translate(-50dp, -25dp);" class="bg-info text-darkest p-1 text-xs">
+                                    <div>top: 50%</div>
+                                    <div>left: 50%</div>
+                                    <div>centered</div>
                                 </div>
                             </div>
                             
-                            <div class="bg-darker-alpha border border-success p-3 rounded"> 
-                                <div class="text-success text-sm font-bold mb-2">2. Model Handle (dm_handle)</div>
-                                <div class="text-light text-xs">
-                                    <p>Created when opening the model on the context. Used for all runtime updates to trigger UI changes.</p>
-                                    <div class="bg-medium-alpha text-darkest p-2 rounded text-xs mt-2">
-                                        dm_handle = context:OpenDataModel("model_name", init_model)<br/>
-                                        dm_handle.metalCount = 500  -- Updates UI automatically
+                            <p data-attr-class="ccg.text.caption + ' mt-2'">Each colored box shows its positioning properties. The container represents the RmlUi context that widgets are positioned within.</p>
+                        </div>
+                        <div class="mt-4 pl-2">
+                            <h2 data-attr-class="ccg.heading.h5">Multiple Widget Example</h2>
+                            <p data-attr-class="ccg.text.body  + ' mt-2'">Here is an example which is more indicative of how hard-coded positioning works in practice, across different screen sizes and resolutions.</p>
+                            <p data-attr-class="ccg.themeText.caption  + ' mt-2 text-center'">Hold and drag the button beneath the example and see the interplay of multiple widgets yourself.</p>
+                            <div class="mt-2">
+                                <div id="resizable-layout" class="bg-darker-alpha border-sm border-dark-alpha p-2 text-xs m-4" style="position: relative; height: 260dp;">
+                                    <!-- Top-left: Square minimap -->
+                                    <div style="position: absolute; top: 0; left: 0; width: 60dp; height: 60dp;" class="bg-primary-alpha text-xxs border border-primary">
+                                        <div><strong>Minimap</strong></div>
+                                        <div>top: 0</div>
+                                        <div>left: 0</div>
+                                        <div>60dp × 60dp</div>
+                                    </div>
+                                    
+                                    <!-- Top-center: Resource bar -->
+                                    <div style="position: absolute; top: 0; left: 50%; width: 100dp; height: 20dp; transform: translateX(-50dp);" class="bg-success-alpha text-xxs border border-success">
+                                        <div><strong>Resource Bar</strong></div>
+                                        <div>top: 0, centered (left: 50%, translateX(-50dp))</div>
+                                    </div>
+                                    
+                                    <!-- Top-right: Thin settings menu -->
+                                    <div style="position: absolute; top: 0; right: 0; width: 60dp; height: 15dp;" class="bg-warning-alpha text-xxs border border-warning">
+                                        <div><strong>Settings</strong></div>
+                                        <div>top: 0; right: 0;</div>
+                                    </div>
+                                    
+                                    <!-- Bottom-left: Build grid (above unit info) -->
+                                    <div style="position: absolute; bottom: 42dp; left: 0; width: 60dp; height: 70dp;" class="bg-info-alpha text-xxs border border-info">
+                                        <div><strong>Build Grid</strong></div>
+                                        <div>bottom: 52dp</div>
+                                        <div>left: 0</div>
+                                        <div>above unit info</div>
+                                    </div>
+                                    
+                                    <!-- Bottom-left: Unit info widget -->
+                                    <div style="position: absolute; bottom: 0; left: 0; width: 60dp; height: 40dp;" class="bg-confirm-alpha text-xxs border border-confirm">
+                                        <div><strong>Unit Info</strong></div>
+                                        <div>bottom: 0</div>
+                                        <div>left: 0</div>
+                                    </div>
+                                    
+                                    <!-- Bottom-center: Commands widget (right of unit info) -->
+                                    <div style="position: absolute; bottom: 0; left: 62dp; width: 120dp; height: 40dp;" class="bg-danger-alpha text-xxs border border-danger">
+                                        <div><strong>Commands</strong></div>
+                                        <div>bottom: 0</div>
+                                        <div>left: 62dp</div>
+                                        <div>right of unit info</div>
+                                    </div>
+                                    
+                                    <!-- Bottom-right: Advanced player list -->
+                                    <div style="position: absolute; bottom: 0; right: 0; width: 70dp; height: 80dp;" class="bg-accent-alpha text-xxs border border-accent">
+                                        <div><strong>Player List</strong></div>
+                                        <div>bottom: 0</div>
+                                        <div>right: 0</div>
+                                        <div>70dp × 80dp</div>
                                     </div>
                                 </div>
+                                <div class="flex w-full h-4 items-center justify-center">
+                                    <handle data-attr-class="ccg.themeButton.primary + ' resize-handle z-50 h-full w-28 rounded-full'" size_target="resizable-layout">
+                                        drag to resize
+                                    </handle>
+                                </div>
+                                <div data-attr-class="ccg.panel.general + ' text-center p-6 m-6'">
+                                    <div class="m-4">
+                                        <strong class="text-secondary">Centering calculation:</strong>
+                                        <p data-attr-class="ccg.text.body + ' mt-1-5'">Resource Bar uses left: 50% with transform: translateX(-50dp) where 50dp = half the widget width (100dp ÷ 2)</p>
+                                    </div>
+                                    <div class="divider-horizontal-primary w-full"></div>
+                                    <div class="m-4">
+                                        <strong class="text-secondary">Horizontal positioning:</strong>
+                                        <p data-attr-class="ccg.text.body + ' mt-1-5'">Commands widget left: 100dp = Unit Info left (0) + Unit Info width (100dp), positioned directly adjacent</p>
+                                    </div>
+                                    <div class="divider-horizontal-primary w-full"></div>
+                                    <div class="m-4">
+                                        <strong class="text-secondary">Vertical stacking:</strong>
+                                        <p data-attr-class="ccg.text.body + ' mt-1-5'">Build Grid bottom: 52dp = Unit Info height (50dp) + small gap, positioned directly above</p>
+                                    </div>
+                                    <div class="divider-horizontal-primary w-full"></div>
+                                    <div class="m-4">
+                                        <strong class="text-secondary">Edge positioning:</strong>
+                                        <p data-attr-class="ccg.text.body + ' mt-1-5'">Widgets positioned flush against screen edges using 0 values - no margins required</p>
+                                    </div>
+                                </div>
+                                <p data-attr-class="ccg.themeText.caption + ' mt-4'"><span class="text-warning mr-1"><strong>Note:</strong></span>Some considerations in the above example made to account for border thickness in other widgets ie. '102dp'.</p>
                             </div>
                         </div>
-                        
-                        <p class="text-info text-sm mt-3">When you change a property via the handle (e.g., <span class="code-highlight bg-medium-alpha text-darkest">dm_handle.metalCount = 500</span>), RmlUi automatically updates all bound template elements like <span class="code-highlight bg-medium-alpha text-darkest">{{metalCount}}</span> and re-evaluates <span class="code-highlight bg-medium-alpha text-darkest">data-if</span> conditions.</p>
                     </div>
 
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">Conditional Rendering with data-if</h2>
-                        <p class="text-light m-1">The <span class="code-highlight bg-medium-alpha text-darkest">data-if</span> attribute shows/hides elements based on model values. Functions update the model, UI updates automatically - no manual DOM manipulation needed.</p>
-                        
-                        <div class="flex flex-row items-center gap-4 mt-3 h-12">
-                            <div class="flex flex-col flex-1 gap-2">
-                                <button onclick="widget:AddMetal()" class="bg-success text-center rounded">+ 50 Metal</button>
-                                <button onclick="widget:SubtractMetal()" class="bg-error text-center rounded">- 50 Metal</button>
+                    <div data-attr-class="ccg.panel.general + ' box-shadow-none'">
+                        <h2 data-attr-class="ccg.heading.h5">Positioning in BAR</h2>
+                        <p data-attr-class="ccg.text.body + ' mt-1-5'">Each widget is positioned absolutely within the context, which acts as the bounding window. Widgets do not have a master layout system and cannot be positioned relative to each other.</p>
+                        <div data-attr-class="ccg.panel.general + ' text-center p-6 m-6'">
+                            <div class="m-4">
+                                <strong class="text-secondary">Context as Viewport:</strong>
+                                <p data-attr-class="ccg.text.body + ' mt-1-5'">The RmlUi context acts as the screen/window boundary for all widgets</p>
+                            </div>
+                            <div class="divider-horizontal-primary w-full"></div>
+                            <div class="m-4">
+                                <strong class="text-secondary">Absolute Positioning:</strong>
+                                <p data-attr-class="ccg.text.body + ' mt-1-5'">All widgets use absolute positioning relative to the context edges</p>
+                            </div>
+                            <div class="divider-horizontal-primary w-full"></div>
+                            <div class="m-4">
+                                <strong class="text-secondary">No Widget Relativity:</strong>
+                                <p data-attr-class="ccg.text.body + ' mt-1-5'">Widgets cannot be positioned relative to other widgets - each is independent</p>
+                            </div>
+                            <div class="divider-horizontal-primary w-full"></div>
+                            <div class="m-4">
+                                <strong class="text-secondary">Hard-coded Dimensions:</strong>
+                                <p data-attr-class="ccg.text.body + ' mt-1-5'">Use fixed dp values, avoid percentages for reliable sizing</p>
+                            </div>
+                        </div>
+                        <div data-attr-class="ccg.panel.info + ' mt-3 p-3'">
+                            <p data-attr-class="ccg.text.warning + ' font-bold mb-1'">Understood Limitation</p>
+                            <p data-attr-class="ccg.text.body">This absolute positioning approach is not a perfect solution, but it serves the current needs where primary UI widget's dimensions will be hard-coded and positioned manually. As development progresses, more dynamic and flexible layout systems may be introduced to provide better widget arrangement and responsive design capabilities at the inter-widget context level.</p>
+                        </div>
+                        <div class="mt-4 pl-2">
+                            <h3 data-attr-class="ccg.heading.h5">Body Element Positioning</h3>
+                            <p data-attr-class="ccg.text.body">Widget dimensions and position are defined on the <span data-attr-class="ccg.badge.info">&lt;body&gt;</span> element with the widget ID:</p>
+                            <div data-attr-class="my.codeBlock + ' m-6 p-6'">
+                                <div>#my-widget-widget {</div>
+                                <div class="pl-4">/* Required: Absolute positioning */</div>
+                                <div class="pl-4">position: absolute;</div>
+                                <div class="pl-4"></div>
+                                <div class="pl-4">/* Position relative to context edges */</div>
+                                <div class="pl-4">top: 5%;</div>
+                                <div class="pl-4">right: 10dp;</div>
+                                <div class="pl-4"></div>
+                                <div class="pl-4">/* Hard-coded dimensions */</div>
+                                <div class="pl-4">width: 800dp;</div>
+                                <div class="pl-4">height: 600dp;</div>
+                                <div>}</div>
+                            </div>
+                            <p data-attr-class="ccg.themeText.caption + ' my-2'"><span data-attr-class="ccg.text.warning">Convention:</span> The body ID should be <span class="code-green">widget-name + "-widget"</span> and match your <span class="code-green">.lua</span> filename</p>
+                        </div>
+                        <h3 data-attr-class="ccg.heading.h5 + ' mt-6'">More to Explore</h3>
+                        <div data-attr-class="ccg.panel.general + ' flex flex-row gap-1'">
+                            <div class="flex-1 flex flex-col">
+                                <div class="flex-1">
+                                    <h3 data-attr-class="ccg.heading.h6">Position Values</h3>
+                                    <div class="h-16 border rounded border-dark-alpha p-3 w-28 flex flex-col gap-2">
+                                        <div class="flex justify-center flex-1">
+                                            <span data-attr-class="ccg.badge.info + ' w-8 text-center'">top</span>
+                                        </div>
+                                        <div class="flex justify-between flex-1">
+                                            <span data-attr-class="ccg.badge.info + ' w-8 text-center'">left</span>
+                                            <span data-attr-class="ccg.badge.info + ' w-8 text-center'">right</span>
+                                        </div>
+                                        <div class="flex justify-center flex-1">
+                                            <span data-attr-class="ccg.badge.info + ' w-8 text-center'">bottom</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex-1">
+                                        <h3 data-attr-class="ccg.heading.h6">Dimension Values</h3>
+                                        <div class="flex flex-wrap gap-2">
+                                            <span data-attr-class="ccg.badge.success">width</span>
+                                            <span data-attr-class="ccg.badge.success">height</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="flex-1">
-                                <span class="text-light">{{metalCount}}</span>
+                                <h3 data-attr-class="ccg.heading.h5">Unit Types</h3>
+                                <div class="flex flex-col gap-2">
+                                    <span data-attr-class="ccg.pill.success">dp (density-independent pixels)</span>
+                                    <span data-attr-class="ccg.pill.warning">% (percentages)</span>
+                                    <span data-attr-class="ccg.pill.info">px (CSS pixels)</span>
+                                    <p data-attr-class="ccg.text.body"><strong>dp units</strong> behave like px but can be scaled globally to create scalable UIs. The dp ratio is set globally on the RmlUi context - BAR's <span class="code-green px-1">rml_context_manager</span> handles all dp value setup automatically, adjusting for different screen densities or user preferences.</p>
+                                    <p data-attr-class="ccg.text.caption">Example: <span class="code-green px-1">width: 800dp;</span> creates a scalable width that maintains proportional sizing across different displays</p>
+                                </div>
                             </div>
-                            <div class="flex-2 h-full">
-                                <div class="bg-error-alpha h-full flex justify-center items-center" data-if="metalCount < 500">
-                                    <span class="text-light">you need more metal</span>
+                        </div>
+                        <p data-attr-class="ccg.text.caption + ' flex-2'"><span data-attr-class="ccg.text.warning">Note:</span> Always use dp units and hardcoded values before resorting to percentages, we want to reduce layout time wherever possible.</p>
+                    </div>
+                    <div data-attr-class="ccg.panel.general">
+                        <div data-attr-class="ccg.card.surface + ' text-center mx-6 mt-4'">
+                            <span data-attr-class="ccg.text.warning">Important</span>
+                            <p data-attr-class="ccg.text.body + ' mt-3'">Avoid using percentages for dimensions as they can cause inconsistent sizing across different screen resolutions.</p>
+                        </div>
+                        <p data-attr-class="ccg.themeText.caption + ' mt-4'"><span class="text-warning mr-1"><strong>Note:</strong></span>In modern web development more advanced positioning mechanisms are more commonly utilized and absolute positioning is a response instead to our unique layout requirements in Beyond All Reason. Search for "CSS absolute positioning" and "CSS box model" for comprehensive tutorials.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Data Binding Tab Panel -->
+            <div id="data-binding" data-attr-class="ccg.sheet.general.container + ' clip overflow-scroll relative'" data-if="activeTab == 'data-binding'">
+                <div data-attr-class="ccg.sheet.construction.title + ' flex flex-col items-center fixed top-0 z-1 w-full'">
+                    <h1 data-attr-class="ccg.heading.h1">Data Binding</h1>
+                </div>
+                <div class="fixed-header-spacer h-24">you can't see me</div>
+                <p data-attr-class="ccg.text.body + ' px-6'">Data binding automatically updates your UI when data changes. Think of it like React or Vue's reactivity - change a variable in code, the UI updates instantly.</p>
+                    
+                <div data-attr-class="ccg.sheet.general.content + ' flex flex-col gap-3'">
+                    <div data-attr-class="ccg.panel.general + ' flex-col'">
+                        <h3 data-attr-class="ccg.heading.h5">How It Works</h3>
+                        <p data-attr-class="ccg.text.body">Modern RML widgets use utilities to set up data models with a clean, standardized approach:</p>
+                        
+                        <div class="flex flex-row gap-3 mt-3">
+                            <div data-attr-class="ccg.panel.general + ' flex-1'">
+                                <span data-attr-class="ccg.badge.info">1. Create initModel Function</span>
+                                <p data-attr-class="ccg.text.body + ' mt-2'">Define a function that returns your data structure with initial values.</p>
+                                <div data-attr-class="my.codeBlock + ' mt-2'">
+                                    <div class="text-xs">
+                                        <div>local function initModel()</div>
+                                        <div class="pl-2">return {</div>
+                                        <div class="pl-4">score = 0,</div>
+                                        <div class="pl-4">playerName = "Guest"</div>
+                                        <div class="pl-2">}</div>
+                                        <div>end</div>
+                                    </div>
                                 </div>
-                                <div class="bg-warning-alpha h-full flex justify-center items-center" data-if="metalCount >= 500 && metalCount < 1000">
-                                    <span class="text-light">You're nearly there</span>
+                            </div>
+                            
+                            <div data-attr-class="ccg.panel.general + ' flex-1'">
+                                <span data-attr-class="ccg.badge.success">2. Initialize with Utils</span>
+                                <p data-attr-class="ccg.text.body + ' mt-2'">Use utils.initializeRmlWidget() in your Initialize function.</p>
+                                <div data-attr-class="my.codeBlock + ' mt-2'">
+                                    <div class="text-xs">
+                                        <div>local result = utils.initializeRmlWidget(self, {</div>
+                                        <div class="pl-2">widgetId = WIDGET_ID,</div>
+                                        <div class="pl-2">modelName = MODEL_NAME,</div>
+                                        <div class="pl-2">rmlPath = RML_PATH,</div>
+                                        <div class="pl-2">initModel = initModel(),</div>
+                                        <div class="pl-2">useCommonClassGroups = true,</div>
+                                        <div>})</div>
+                                        <div>dm_handle = result.dm_handle</div>
+                                    </div>
                                 </div>
-                                <div class="bg-success-alpha h-full flex flex-row gap-2 justify-around items-center" data-if="metalCount >= 1000">
-                                    <span class="text-light">You have enough Metal!</span>
-                                    <button class="bg-accent border border-primary rounded m-2 p-2" onclick="widget:ClearMetal()">Yeet</button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-row gap-3 mt-3">
+                            <div data-attr-class="ccg.panel.general + ' flex-1'">
+                                <span data-attr-class="ccg.badge.warning">3. Connect to UI</span>
+                                <p data-attr-class="ccg.text.body + ' mt-2'">Use data binding attributes in your RML to display data.</p>
+                                <div data-attr-class="my.codeBlock + ' mt-2'">
+                                    <div class="text-xs">
+                                        &lt;span&gt;Score: &#123;&#123;score&#125;&#125;&lt;/span&gt;
+                                    </div>
                                 </div>
+                            </div>
+                            
+                            <div data-attr-class="ccg.panel.general + ' flex-1'">
+                                <span data-attr-class="ccg.badge.primary">4. Update via dm_handle</span>
+                                <p data-attr-class="ccg.text.body + ' mt-2'">Use the data model handle to update values from Lua.</p>
+                                <div data-attr-class="my.codeBlock + ' mt-2'">
+                                    <div class="text-xs">
+                                        dm_handle.score = 100
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p data-attr-class="ccg.text.body + ' mt-3'">When you change <span class="code-green px-1">dm_handle.score = 100</span> in your Lua code, the UI automatically shows the new score. The <span class="code-green px-1">utils.initializeRmlWidget()</span> function handles all the complex setup including document loading, model binding, and context management.</p>
+                    </div>
+
+                    <div data-attr-class="ccg.panel.general + ' flex-col'">
+                        <h3 data-attr-class="ccg.heading.h5">Essential Patterns</h3>
+                        <p data-attr-class="ccg.text.body">These four patterns cover 90% of what you'll need for dynamic UIs:</p>
+                        
+                        <div class="flex flex-row gap-3 mt-3">
+                            <div data-attr-class="ccg.panel.general + ' flex-1'">
+                                <span data-attr-class="ccg.badge.info">Display Data</span>
+                                <p data-attr-class="ccg.text.body + ' mt-2'">Show variables in text using double curly braces.</p>
+                                <div data-attr-class="my.codeBlock + ' mt-2'">
+                                    <div class="text-xs">
+                                        &lt;h1&gt;Hello &#123;&#123;playerName&#125;&#125;!&lt;/h1&gt;
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div data-attr-class="ccg.panel.general + ' flex-1'">
+                                <span data-attr-class="ccg.badge.success">Show/Hide Elements</span>
+                                <p data-attr-class="ccg.text.body + ' mt-2'">Conditionally display elements based on data.</p>
+                                <div data-attr-class="my.codeBlock + ' mt-2'">
+                                    <div class="text-xs">
+                                        &lt;div data-if="score &amp;lt;= 100"&gt;
+                                    </div>
+                                    <div class="text-xs pl-2">
+                                        Keep Trying!
+                                    </div>
+                                    <div class="text-xs">&lt;/div&gt;</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-row gap-3 mt-3">
+                            <div data-attr-class="ccg.panel.general + ' flex-1'">
+                                <span data-attr-class="ccg.badge.warning">Repeat Elements</span>
+                                <p data-attr-class="ccg.text.body + ' mt-2'">Loop through arrays to create lists.</p>
+                                <div data-attr-class="my.codeBlock + ' mt-2'">
+                                    <div class="text-xs">
+                                        &lt;div data-for="player : players"&gt;
+                                    </div>
+                                    <div class="text-xs pl-2">&#123;&#123;player&#125;&#125;</div>
+                                    <div class="text-xs">&lt;/div&gt;</div>
+                                </div>
+                            </div>
+                            
+                            <div data-attr-class="ccg.panel.general + ' flex-1'">
+                                <span data-attr-class="ccg.badge.primary">Handle Input</span>
+                                <p data-attr-class="ccg.text.body + ' mt-2'">Sync form inputs with your data automatically.</p>
+                                <div data-attr-class="my.codeBlock + ' mt-2'">
+                                    <div class="text-xs">
+                                        &lt;input data-value="unitSearch"/&gt;
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div data-attr-class="ccg.panel.general + ' flex-col'">
+                        <h3 data-attr-class="ccg.heading.h5">Live Examples</h3>
+                        <p data-attr-class="ccg.text.body">Here are working examples showing each data binding pattern in action using existing widget data:</p>
+                        
+                        <!-- Text Interpolation Example -->
+                        <div data-attr-class="ccg.panel.general + ' mt-3'">
+                            <h4 data-attr-class="ccg.heading.h6">Text Interpolation</h4>
+                            <div class="mt-2">
+                                <div class="flex gap-1">
+                                    <div data-attr-class="my.codeBlock + ' flex-1'">
+                                        <div class="text-xs">&lt;p&gt;Welcome to BAR, &#123;&#123;playerName&#125;&#125;!&lt;/p&gt;</div>
+                                        <div class="text-xs">&lt;p&gt;Current time: &#123;&#123;currentTime&#125;&#125;&lt;/p&gt;</div>
+                                    </div>
+                                    <div data-attr-class="ccg.panel.info + ' p-3 flex-1'">
+                                        <p data-attr-class="ccg.text.warning">Current time: <span class="code-green">{{currentTime}}</span></p>
+                                        <p data-attr-class="ccg.text.body + ' mt-1-5 text-outline-darker-lg'">Welcome to BAR, <span class="text-primary text-outline-darker-lg">{{playerName}}</span> !</p>
+                                    </div>
+                                </div>
+                                <p data-attr-class="ccg.text.body + ' mt-1-5'">Updates to the input field below are automatically reflected in the player name. This is what is referred to as "two-way data binding". Try updating it now...</p>
+                                <div data-attr-class="ccg.card.surface + ' flex flex-row gap-1 items-center w-60 m-6'">
+                                    <label for="playerName" class="font-bold text-sm flex-1 text-primary text-outline-darker-lg">Player Name:</label>
+                                    <input id="playerName" type="text" data-value="playerName" class="text-white text-sm bg-gradient p-2 input-highlighter flex-3 bg-darkest-alpha"></input>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conditional Display Example -->
+                        <div data-attr-class="ccg.panel.general + ' mt-3'">
+                            <h4 data-attr-class="ccg.heading.h6">Conditional Display (data-if)</h4>
+                            <div class="mt-2">
+                                <div class="flex flex-col gap-2">
+                                    <div data-if="debugMode" class="bg-warning-alpha p-2 rounded">
+                                        <span class="text-light">Debug mode is currently enabled</span>
+                                    </div>
+                                    <div data-if="!debugMode" class="bg-info-alpha p-2 rounded">
+                                        <span class="text-light">Debug mode is currently disabled</span>
+                                    </div>
+                                </div>
+                                <p data-attr-class="ccg.text.caption + ' mt-2'">Only one of these messages shows based on the debugMode variable.</p>
+                                
+                                <div data-attr-class="my.codeBlock + ' mt-3'">
+                                    <div>&lt;div data-if="debugMode"&gt;</div>
+                                    <div class="pl-4">Debug mode is enabled</div>
+                                    <div>&lt;/div&gt;</div>
+                                    <div>&lt;div data-if="!debugMode"&gt;</div>
+                                    <div class="pl-4">Debug mode is disabled</div>
+                                    <div>&lt;/div&gt;</div>
+                                </div>
+                                <p data-attr-class="ccg.themeText.caption + ' mt-2 text-center'">Hit the <button data-attr-class="ccg.text.warning + ' debug-btn'" onclick="widget:ToggleDebugger()">debug</button> button to see a change.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div data-attr-class="ccg.panel.general + ' flex-col'">
+                        <h3 data-attr-class="ccg.heading.h5">Updating Data from Lua</h3>
+                        <p data-attr-class="ccg.text.body">To change data model values from your Lua code, you must use the data model handle (<span class="code-green px-1">dm_handle</span>), not the initial model table:</p>
+                        
+                        <div data-attr-class="my.codeBlock + ' mt-3'">
+                            <div class="text-success">-- Correct: Use dm_handle to update values</div>
+                            <div>dm_handle.playerName = "NewPlayerName"</div>
+                            <div>dm_handle.score = 1500</div>
+                            <div>dm_handle.debugMode = true</div>
+                            <div></div>
+                            <div class="text-danger">-- Wrong: Don't modify the initial model</div>
+                            <div>init_model.playerName = "NewName" <span>-- this will do nothing</span></div>
+                        </div>
+                        
+                        <div data-attr-class="ccg.panel.danger + ' mt-3 p-3'">
+                            <p data-attr-class="ccg.text.warning + ' font-bold mb-2'">Critical Limitation</p>
+                            <p data-attr-class="ccg.text.body">You cannot add new properties to the model after it's loaded. All properties must exist in the initial model definition, even if they start as <span class="code-green px-1">nil</span> or empty values.</p>
+                        </div>
+                    </div>
+
+                    <!-- Array Iteration Example -->
+                    <div data-attr-class="ccg.panel.general">
+                        <h3 data-attr-class="ccg.heading.h5">Array Iteration (data-for)</h3>
+                        <div class="mt-2">
+                            <p data-attr-class="ccg.text.caption + ' mb-2'">Available Themes:</p>
+                            <div class="flex flex-wrap gap-2">
+                                <div data-for="theme : dataBindingExamples.availableThemes" class="bg-darker p-2 rounded text-xs">
+                                    <span>{{theme.name}}</span>
+                                </div>
+                            </div>
+                            <p data-attr-class="ccg.text.caption + ' mt-2'">Each theme is automatically generated from the availableThemes array.</p>
+                            
+                            <div data-attr-class="my.codeBlock + ' mt-3'">
+                                <div>&lt;div data-for="theme : availableThemes"&gt;</div>
+                                <div class="pl-4">&lt;span&gt;&#123;&#123;theme.name&#125;&#125;&lt;/span&gt;</div>
+                                <div>&lt;/div&gt;</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Structure Example -->
+                    <div data-attr-class="ccg.panel.general">
+                        <h3 data-attr-class="ccg.heading.h5">Complex Data Structure</h3>
+                        <div class="mt-2">
+                            <p data-attr-class="ccg.text.caption + ' mb-2'">Test Array Data:</p>
+                            <div class="bg-darker-alpha p-2 rounded">
+                                <div data-for="item : testArray" class="flex justify-between items-center p-1 mb-1 bg-darker rounded text-xs">
+                                    <span>{{item.name}}</span>
+                                    <span class="text-accent">{{item.value}}</span>
+                                </div>
+                            </div>
+                            <p data-attr-class="ccg.text.caption + ' mt-2'">This demonstrates accessing object properties within arrays using dot notation.</p>
+                            
+                            <div data-attr-class="my.codeBlock + ' mt-3'">
+                                <div>&lt;div data-for="item : testArray"&gt;</div>
+                                <div class="pl-4">&lt;span&gt;&#123;&#123;item.name&#125;&#125;&lt;/span&gt;</div>
+                                <div class="pl-4">&lt;span&gt;&#123;&#123;item.value&#125;&#125;&lt;/span&gt;</div>
+                                <div>&lt;/div&gt;</div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Styling Tab Panel -->
-                <div class="tab-panel" data-panel="styling" data-if="activeTab == 'styling'">
-                    <div class="content-section">
-                        <h1 class="text-darkest text-glow-primary">Utility Class Library</h1>
-                        <p class="text-light">Visual reference for the Tailwind-esque utility classes available through the global stylesheets. Use these classes for consistent styling across widgets.</p>
-                        <div class="bg-error-alpha text-light border border-error p-4 rounded-lg m-2">
-                            <p class="mb-1"><strong>PLEASE NOTE:</strong> This tab has not been optimized for performance and may serve as a good example of a long layout time.</p>
-                            <p class="mb-1">See the blocking for yourself when selecting this tab panel. It is primarily due to the large number of utility classes being rendered, but more importantly, the calculations required to position with flexbox where absolute dimensions are not provided.</p>
-                            <p class="mb-1">I have intentionally left this tab unoptimized to demonstrate the potential performance implications of unoptimized complex layouts, and how they might manifest in the user experience.</p>
-                        </div>
-                    </div>
-
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">Theme Colors (palette-base.rcss)</h2>
-                        <p class="text-light m-1">Primary theme colors that can be customized per faction:</p>
-                        <div class="flex flex-col gap-2 mt-2">
-                            <div class="flex flex-row gap-2">
-                                <div class="bg-primary text-darkest p-2 rounded text-sm font-bold">Primary</div>
-                                <div class="bg-primary-alpha text-darkest p-2 rounded text-sm font-bold">Primary Alpha</div>
-                                <div class="bg-primary-dark text-light p-2 rounded text-sm font-bold">Primary Dark</div>
-                            </div>
-                            <div class="flex flex-row gap-2">
-                                <div class="bg-secondary text-darkest p-2 rounded text-sm font-bold">Secondary</div>
-                                <div class="bg-accent text-darkest p-2 rounded text-sm font-bold">Accent</div>
-                                <div class="bg-muted text-darkest p-2 rounded text-sm font-bold">Muted</div>
-                                <div class="bg-surface text-darkest p-2 rounded text-sm font-bold">Surface</div>
-                            </div>
-                        </div>
-                        <p class="text-light text-sm mt-2">Classes: <span class="code-highlight text-darkest bg-primary rounded">bg-primary</span>, <span class="code-highlight text-darkest bg-primary rounded">text-primary</span>, <span class="code-highlight text-darkest bg-primary rounded">border-primary</span> (+ -alpha, -dark variants)</p>
-                    </div>
-
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">Global Colors (palette-standard-global.rcss)</h2>
-                        <p class="text-light m-1">Consistent grayscale and semantic colors across all themes:</p>
-                        <div class="flex flex-col gap-2 mt-2">
-                            <div class="flex flex-row gap-2">
-                                <div class="bg-black text-white p-2 rounded text-sm font-bold">Black</div>
-                                <div class="bg-darkest text-light p-2 rounded text-sm font-bold">Darkest</div>
-                                <div class="bg-darker text-light p-2 rounded text-sm font-bold">Darker</div>
-                                <div class="bg-dark text-light p-2 rounded text-sm font-bold">Dark</div>
-                                <div class="bg-medium text-darkest p-2 rounded text-sm font-bold">Medium</div>
-                                <div class="bg-light text-darkest p-2 rounded text-sm font-bold">Light</div>
-                                <div class="bg-white text-darkest p-2 rounded text-sm font-bold">White</div>
-                            </div>
-                            <div class="flex flex-row gap-2">
-                                <div class="bg-success text-darkest p-2 rounded text-sm font-bold">Success</div>
-                                <div class="bg-warning text-darkest p-2 rounded text-sm font-bold">Warning</div>
-                                <div class="bg-error text-light p-2 rounded text-sm font-bold">Error</div>
-                                <div class="bg-info text-darkest p-2 rounded text-sm font-bold">Info</div>
-                                <div class="bg-confirm text-darkest p-2 rounded text-sm font-bold">Confirm</div>
-                            </div>
-                            <div class="flex flex-row gap-2">
-                                <div class="bg-black-alpha text-white p-2 rounded text-sm font-bold">Black Alpha</div>
-                                <div class="bg-dark-alpha text-light p-2 rounded text-sm font-bold">Dark Alpha</div>
-                                <div class="bg-medium-alpha text-darkest p-2 rounded text-sm font-bold">Medium Alpha</div>
-                                <div class="bg-light-alpha text-darkest p-2 rounded text-sm font-bold">Light Alpha</div>
-                                <div class="bg-success-alpha text-darkest p-2 rounded text-sm font-bold">Success Alpha</div>
-                            </div>
-                            <div class="flex flex-row gap-2">
-                                <div class="bg-black-semi-alpha text-white p-2 rounded text-sm font-bold">Black Semi Alpha</div>
-                                <div class="bg-dark-semi-alpha text-light p-2 rounded text-sm font-bold">Dark Semi Alpha</div>
-                                <div class="bg-darkest-semi-alpha text-light p-2 rounded text-sm font-bold">Darkest Semi Alpha</div>
-                            </div>
-                        </div>
-                        <p class="text-light text-sm mt-2">All colors have <span class="code-highlight text-darkest bg-primary rounded">-alpha</span> variants. Special: <span class="code-highlight text-darkest bg-primary rounded">bg-black-semi-alpha</span>, <span class="code-highlight text-darkest bg-primary rounded">bg-dark-semi-alpha</span></p>
-                        <p class="text-warning text-sm mt-1"><strong>Note:</strong> Translucent colors (alpha/semi-alpha variants) will blend with underlying elements, affecting their final appearance. Test transparency effects with your actual background colors.</p>
-                    </div>
-
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">Layout & Flexbox (rml-utils.rcss)</h2>
-                        <div class="flex flex-col gap-4 mt-2">
-                            <div>
-                                <p class="text-secondary text-sm mb-2"><strong>Display - Visual Examples:</strong></p>
-                                <div class="flex flex-col gap-2">
-                                    <div class="flex flex-row gap-4 items-center">
-                                        <span class="text-xs w-16">flex</span>
-                                        <div class="bg-info-alpha flex gap-1 p-1">
-                                            <div class="bg-medium text-darkest p-1 text-xs">Item 1</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">Item 2</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">Item 3</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex flex-row gap-4 items-center">
-                                        <span class="text-xs w-16">block</span>
-                                        <div class="bg-info-alpha block p-1">
-                                            <div class="bg-medium text-darkest p-1 text-xs mb-1">Item 1</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs mb-1">Item 2</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">Item 3</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <p class="text-secondary text-sm mb-2"><strong>Flex Direction - Visual Examples:</strong></p>
-                                <div class="flex flex-col gap-2">
-                                    <div class="flex flex-row gap-4 items-center">
-                                        <span class="text-xs flex-1">flex-row</span>
-                                        <div class="bg-success-alpha flex flex-row gap-1 p-1 flex-3">
-                                            <div class="bg-medium text-darkest p-1 text-xs">1</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">2</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">3</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex flex-row gap-4 items-center">
-                                        <span class="text-xs flex-1">flex-col</span>
-                                        <div class="bg-success-alpha flex flex-col gap-1 p-1 flex-3">
-                                            <div class="bg-medium text-darkest p-1 text-xs">1</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">2</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">3</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex flex-row gap-4 items-center">
-                                        <span class="text-xs flex-1">flex-row-reverse</span>
-                                        <div class="bg-success-alpha flex flex-row-reverse gap-1 p-1 flex-3">
-                                            <div class="bg-medium text-darkest p-1 text-xs">1</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">2</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">3</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <p class="text-secondary text-sm mb-2"><strong>Alignment - Visual Examples:</strong></p>
-                                <div class="flex flex-col gap-2">
-                                    <div class="flex flex-row gap-4 items-start">
-                                        <span class="text-xs flex-1">items-start</span>
-                                        <div class="bg-warning-alpha flex items-start gap-1 p-1 h-16 flex-3 ">
-                                            <div class="bg-medium text-darkest p-1 text-xs">Short</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">Taller item</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">Med</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex flex-row gap-4 items-start">
-                                        <span class="text-xs flex-1">items-center</span>
-                                        <div class="bg-warning-alpha flex items-center gap-1 p-1 h-16 flex-3">
-                                            <div class="bg-medium text-darkest p-1 text-xs">Short</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">Taller item</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">Med</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex flex-row gap-4 items-start">
-                                        <span class="text-xs flex-1">justify-center</span>
-                                        <div class="bg-warning-alpha flex justify-center gap-1 p-1 flex-3">
-                                            <div class="bg-medium text-darkest p-1 text-xs">1</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">2</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex flex-row gap-4 items-start">
-                                        <span class="text-xs flex-1">justify-between</span>
-                                        <div class="bg-warning-alpha flex justify-between gap-1 p-1 flex-3">
-                                            <div class="bg-medium text-darkest p-1 text-xs">1</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">2</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <p class="text-secondary text-sm mb-2"><strong>Gap - Visual Examples:</strong></p>
-                                <div class="flex flex-col gap-2">
-                                    <div class="flex flex-row gap-4 items-center">
-                                        <span class="text-xs flex-1">gap-1 (4dp)</span>
-                                        <div class="bg-confirm-alpha flex gap-1 p-1 flex-3">
-                                            <div class="bg-medium text-darkest p-1 text-xs">A</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">B</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">C</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex flex-row gap-4 items-center">
-                                        <span class="text-xs flex-1">gap-4 (16dp)</span>
-                                        <div class="bg-confirm-alpha flex gap-4 p-1 flex-3 ">
-                                            <div class="bg-medium text-darkest p-1 text-xs">A</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">B</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">C</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex flex-row gap-4 items-center">
-                                        <span class="text-xs flex-1">gap-6 (24dp)</span>
-                                        <div class="bg-confirm-alpha flex gap-6 p-1 flex-3 ">
-                                            <div class="bg-medium text-darkest p-1 text-xs">A</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">B</div>
-                                            <div class="bg-medium text-darkest p-1 text-xs">C</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <p class="text-secondary text-sm mb-2"><strong>Additional Classes:</strong></p>
-                                <div class="flex flex-row flex-wrap gap-2 text-xs">
-                                    <span class="bg-medium-alpha p-1 rounded">inline-block</span>
-                                    <span class="bg-medium-alpha p-1 rounded">hidden</span>
-                                    <span class="bg-medium-alpha p-1 rounded">items-end</span>
-                                    <span class="bg-medium-alpha p-1 rounded">justify-end</span>
-                                    <span class="bg-medium-alpha p-1 rounded">justify-around</span>
-                                    <span class="bg-medium-alpha p-1 rounded">flex-1</span>
-                                    <span class="bg-medium-alpha p-1 rounded">flex-2</span>
-                                    <span class="bg-medium-alpha p-1 rounded">flex-3</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">Spacing (rml-utils.rcss)</h2>
-                        <div class="flex flex-col gap-4 mt-2">
-                            <div>
-                                <p class="text-secondary text-sm mb-2"><strong>Margin - Visual Examples:</strong></p>
-                                <div class="flex flex-col gap-2">
-                                    <div class="flex flex-row gap-4 items-center">
-                                        <span class="text-xs w-12">m-1 (4dp)</span>
-                                        <div class="bg-error-alpha"><div class="bg-medium text-darkest m-1 text-xs">Box</div></div>
-                                    </div>
-                                    <div class="flex flex-row gap-4 items-center">
-                                        <span class="text-xs w-12">m-2 (8dp)</span>
-                                        <div class="bg-error-alpha"><div class="bg-medium text-darkest m-2 text-xs">Box</div></div>
-                                    </div>
-                                    <div class="flex flex-row gap-4 items-center">
-                                        <span class="text-xs w-12">m-4 (16dp)</span>
-                                        <div class="bg-error-alpha"><div class="bg-medium text-darkest m-4 text-xs">Box</div></div>
-                                    </div>
-                                </div>
-                                <p class="text-light text-xs mt-2"><em>Red area shows margin space</em></p>
-                            </div>
-                            <div>
-                                <p class="text-secondary text-sm mb-2"><strong>Padding - Visual Examples:</strong></p>
-                                <div class="flex flex-col gap-2">
-                                    <div class="flex flex-row gap-4 items-center">
-                                        <span class="text-xs w-12">p-1 (4dp)</span>
-                                        <div class="bg-success-alpha p-1"><div class="bg-medium text-darkest text-xs">Content</div></div>
-                                    </div>
-                                    <div class="flex flex-row gap-4 items-center">
-                                        <span class="text-xs w-12">p-2 (8dp)</span>
-                                        <div class="bg-success-alpha p-2"><div class="bg-medium text-darkest text-xs">Content</div></div>
-                                    </div>
-                                    <div class="flex flex-row gap-4 items-center">
-                                        <span class="text-xs w-12">p-4 (16dp)</span>
-                                        <div class="bg-success-alpha p-4"><div class="bg-medium text-darkest text-xs">Content</div></div>
-                                    </div>
-                                </div>
-                                <p class="text-light text-xs mt-2"><em>Green area shows padding space</em></p>
-                            </div>
-                            <div>
-                                <p class="text-secondary text-sm mb-2"><strong>Directional Spacing Classes:</strong></p>
-                                <div class="flex flex-col gap-2">
-                                    <div class="flex flex-row flex-wrap gap-2 text-xs">
-                                        <div class="bg-medium-alpha rounded p-1">
-                                            <strong>Margin:</strong> m-1, mt-2, mb-3, ml-4, mr-5
-                                        </div>
-                                    </div>
-                                    <div class="flex flex-row flex-wrap gap-2 text-xs">
-                                        <div class="bg-medium-alpha rounded p-1">
-                                            <strong>Padding:</strong> p-1, pt-2, pb-3, pl-4, pr-5
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <p class="text-secondary text-sm mb-2"><strong>Directional Examples:</strong></p>
-                                <div class="flex flex-row gap-4">
-                                    <div class="flex flex-col gap-1 items-center">
-                                        <span class="text-xs">ml-4</span>
-                                        <div class="bg-info-alpha p-2"><div class="bg-medium text-darkest ml-4 text-xs">Left margin</div></div>
-                                    </div>
-                                    <div class="flex flex-col gap-1 items-center">
-                                        <span class="text-xs">mr-4</span>
-                                        <div class="bg-info-alpha p-2"><div class="bg-medium text-darkest mr-4 text-xs">Right margin</div></div>
-                                    </div>
-                                    <div class="flex flex-col gap-1 items-center">
-                                        <span class="text-xs">pl-4</span>
-                                        <div class="bg-confirm-alpha p-2"><div class="bg-medium text-darkest pl-4 text-xs">Left padding</div></div>
-                                    </div>
-                                    <div class="flex flex-col gap-1 items-center">
-                                        <span class="text-xs">pr-4</span>
-                                        <div class="bg-confirm-alpha p-2"><div class="bg-medium text-darkest pr-4 text-xs">Right padding</div></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="text-light text-sm">Range: 0, 1 (4dp), 2 (8dp), 3 (12dp), 4 (16dp), 5 (20dp), 6 (24dp), 8 (32dp), 10 (40dp), 12 (48dp), 16 (64dp)</p>
-                        </div>
-                    </div>
-
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">Typography & Effects (rml-utils.rcss)</h2>
-                        <div class="flex flex-col gap-3 mt-2">
-                            <div>
-                                <p class="text-secondary text-sm mb-1"><strong>Font Sizes:</strong></p>
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-xs">text-xs (12dp)</span>
-                                    <span class="text-sm">text-sm (14dp)</span>
-                                    <span class="text-base">text-base (16dp)</span>
-                                    <span class="text-lg">text-lg (18dp)</span>
-                                    <span class="text-xl">text-xl (20dp)</span>
-                                    <span class="text-2xl">text-2xl (24dp)</span>
-                                </div>
-                            </div>
-                            <div>
-                                <p class="text-secondary text-sm mb-1"><strong>Font Weight & Align:</strong></p>
-                                <div class="flex flex-row gap-2 text-xs">
-                                    <span class="bg-medium-alpha p-1 rounded font-light">font-light</span>
-                                    <span class="bg-medium-alpha p-1 rounded font-normal">font-normal</span>
-                                    <span class="bg-medium-alpha p-1 rounded font-bold">font-bold</span>
-                                    <span class="bg-medium-alpha p-1 rounded text-center">text-center</span>
-                                </div>
-                            </div>
-                            <div>
-                                <p class="text-secondary text-sm mb-1"><strong>Effects:</strong></p>
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-shadow">text-shadow</span>
-                                    <span class="text-glow-light">text-glow-light</span>
-                                    <span class="text-glow-primary">text-glow-primary</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="content-section bg-dark-semi-alpha border-sm border-dark-alpha">
-                        <h2 class="text-secondary">Borders & Radius (rml-utils.rcss)</h2>
-                        <div class="flex flex-col gap-3 mt-2">
-                            <div>
-                                <p class="text-secondary text-sm mb-1"><strong>Border Width:</strong></p>
-                                <div class="flex flex-row gap-2 text-xs">
-                                    <span class="bg-medium-alpha p-2 border-sm border-light rounded">border-sm</span>
-                                    <span class="bg-medium-alpha p-2 border-md border-light rounded">border-md</span>
-                                    <span class="bg-medium-alpha p-2 border-lg border-light rounded">border-lg</span>
-                                </div>
-                            </div>
-                            <div>
-                                <p class="text-secondary text-sm mb-1"><strong>Border Radius:</strong></p>
-                                <div class="flex flex-row gap-2 text-xs">
-                                    <span class="bg-medium-alpha p-2 rounded">rounded</span>
-                                    <span class="bg-medium-alpha p-2 rounded-md">rounded-md</span>
-                                    <span class="bg-medium-alpha p-2 rounded-lg">rounded-lg</span>
-                                </div>
-                            </div>
-                            <div>
-                                <p class="text-secondary text-sm mb-1"><strong>Directional Borders:</strong></p>
-                                <div class="flex flex-row gap-2 text-xs">
-                                    <span class="bg-medium-alpha p-1 rounded border-top border-primary">border-top</span>
-                                    <span class="bg-medium-alpha p-1 rounded border-bottom border-primary">border-bottom</span>
-                                    <span class="bg-medium-alpha p-1 rounded border-left border-primary">border-left</span>
-                                    <span class="bg-medium-alpha p-1 rounded border-right border-primary">border-right</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            </div>
+            <!-- Tools Tab Panel -->
+            <div id="tools" data-attr-class="ccg.sheet.general.container + ' clip overflow-scroll relative w-full'" data-if="activeTab == 'tools'">
+                <div data-attr-class="ccg.sheet.construction.title + ' flex flex-col items-center fixed top-0 z-1 w-full'">
+                    <h1 data-attr-class="ccg.heading.h1">Tools</h1>
                 </div>
-
-                <!-- Convention Tab Panel -->
-                <div class="tab-panel" data-panel="convention" data-if="activeTab == 'convention'">
-                    <div class="content-section">
-                        <h1 class="text-white">Convention <span class="text-warning">[WIP]</span></h1>
-                        <p class="text-dark">There are several important conventions to follow when developing RMLUI widgets</p>
-                        <div class="card">
-                            <h2>Mandatory Conventions</h2>
-                            <ul>
-                                <li>- Use consistent naming conventions for files and classes</li>
-                                <li>- Follow the established folder structure for new widgets</li>
-                            </ul>
+                <div class="fixed-header-spacer h-24">you can't see me</div>
+                <p data-attr-class="ccg.text.body + ' px-6'">Development tools and utilities for efficient RML widget creation and styling.</p>
+                
+                <div data-attr-class="ccg.sheet.general.content + ' flex flex-col gap-3'">                
+                    <div data-attr-class="ccg.panel.general">
+                        <h2 data-attr-class="ccg.heading.h2">Widget Generator Script</h2>
+                        <p data-attr-class="ccg.text.body">Use the automated script to quickly scaffold new widgets with modern best practices:</p>
+                        <div data-attr-class="my.codeBlock + ' m-6 p-6'">
+                            <div class="text-info">## Windows PowerShell</div>
+                            <div>bash ./generate-widget.sh --name your_widget_name</div>
+                            <div><br/></div>
+                            <div class="text-info">## Linux/Mac Terminal</div>
+                            <div>./generate-widget.sh --name your_widget_name</div>
+                            <div><br/></div>
+                            <div class="text-info">## Legacy support (any shell)</div>
+                            <div>bash ./generate-widget.sh your_widget_name</div>
+                        </div>
+                        <p data-attr-class="ccg.text.body + ' mt-3 font-bold'">Generated widgets include:</p>
+                        <div class="pl-2">
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="w-1 h-1 bg-primary rounded-full"></div>
+                                <p data-attr-class="ccg.text.body">Boilerplate for all necessary files and folders in the correct structure.</p>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="w-1 h-1 bg-primary rounded-full"></div>
+                                <p data-attr-class="ccg.text.body">Common Class Group integration <span data-attr-class="ccg.badge.info">CCG</span> and theme support.</p>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="w-1 h-1 bg-primary rounded-full"></div>
+                                <p data-attr-class="ccg.text.body">Some interactive examples with buttons and a fully connected data model.</p>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="w-1 h-1 bg-primary rounded-full"></div>
+                                <p data-attr-class="ccg.text.body">A standard <span data-attr-class="ccg.badge.warning">300x400dp</span> size.</p>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="w-1 h-1 bg-primary rounded-full"></div>
+                                <p data-attr-class="ccg.text.body">Built-in reload and debugger controls</p>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="w-1 h-1 bg-primary rounded-full"></div>
+                                <p data-attr-class="ccg.text.body">Links to style guide and usage instructions.</p>
+                            </div>
+                        </div>
+                        <div data-attr-class="ccg.panel.danger + ' mt-3 p-3'">
+                            <p data-attr-class="ccg.text.warning + ' font-bold mb-2'">Caution</p>
+                            <p data-attr-class="ccg.text.body">Never run a script you do not understand, or that hasn't been verified. The generation script provided is a utility script but when this author is gone, then it may be subject to misuse.</p>
                         </div>
                     </div>
-                </div>
-
-                <!-- Performance Tab Panel -->
-                <div class="tab-panel" data-panel="performance" data-if="activeTab == 'performance'">
-                    <div class="content-section">
-                        <h1 class="text-white">Performance <span class="text-warning">[WIP]</span></h1>
-                        <p class="text-dark">This section is currently under development</p>
-                        <p class="text-dark m-1">Coming soon: Optimization techniques, memory management,
-                            rendering performance, and profiling tips</p>
-                    </div>
-                </div>
-
-                <!-- Tools Tab Panel -->
-                <div class="tab-panel" data-panel="tools" data-if="activeTab == 'tools'">
-                    <div class="content-section">
-                        <h1 class="text-white">Tools</h1>
-                        <p class="text-neutral-dark">Development tools and utilities for RML widget creation</p>
-                    </div>
-
-                    <div class="content-section">
-                        <h2 class="text-secondary">Widget Generator Script</h2>
-                        <p class="text-medium m-1">Use the automated script to quickly scaffold new widgets:</p>
-                        <div class="code-highlight text-white m-1 bg-game-medium">./generate-widget.sh your_widget_name
+                    <div data-attr-class="ccg.panel.general">
+                        <h2 data-attr-class="ccg.heading.h2">RML Style Guide</h2>
+                        <p data-attr-class="ccg.text.body">Interactive reference for the Common Class Groups (CCG) system - the foundation of consistent styling across all widgets. Enable the <span data-attr-class="ccg.text.info">rml_style_guide</span> widget to explore the complete component library.</p>
+                        
+                        <p data-attr-class="ccg.text.body + ' mt-3 font-bold'">Common Class Groups provide:</p>
+                        <div class="pl-2">
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="w-1 h-1 bg-primary rounded-full"></div>
+                                <p data-attr-class="ccg.text.body">Standardized styling system using <span class="code-green">data-attr-class</span> attributes for consistent theming.</p>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="w-1 h-1 bg-primary rounded-full"></div>
+                                <p data-attr-class="ccg.text.body">Automatic theme adaptation across Armada, Cortex, Legion, and Base without manual CSS changes.</p>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="w-1 h-1 bg-primary rounded-full"></div>
+                                <p data-attr-class="ccg.text.body">Copy-paste ready markup for every component with instant clipboard integration.</p>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="w-1 h-1 bg-primary rounded-full"></div>
+                                <p data-attr-class="ccg.text.body">Live interactive previews and real-time theme switching demonstrations.</p>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="w-1 h-1 bg-primary rounded-full"></div>
+                                <p data-attr-class="ccg.text.body">Complete documentation with usage patterns and extension guidelines.</p>
+                            </div>
                         </div>
-                        <p class="text-light m-1">This script creates a complete widget template with:</p>
-                        <ul class="text-white m-1 flex flex-col gap-1">
-                            <li>• Pre-configured <span class="code-highlight bg-primary rounded">.lua</span>
-                                file with lifecycle functions</li>
-                            <li>• Basic <span class="code-highlight bg-primary rounded">.rml</span> layout
-                                with data binding</li>
-                            <li>• Starter <span class="code-highlight bg-primary rounded">.rcss</span> styles
-                                with debug controls</li>
-                            <li>• Built-in reload and debugger functionality</li>
-                        </ul>
-                    </div>
-                     <div class="content-section">
-                        <h2 class="text-secondary">Development Tips</h2>
-                        <ul class="text-light m-1 flex flex-col gap-1">
-                            <li>• Use <span class="code-highlight text-white bg-primary rounded">Spring.Echo()</span>
-                                for debugging output</li>
-                            <li>• Alpha values in RGBA colors use 0-255 range, not 0-1</li>
-                            <li>• RMLUI is adherent to the CSS2 specification, but offers additional more modern css3 equivalents.
-                                always refer to the <a href="https://rmlui.com/docs/" class="text-primary">RMLUI documentation</a> for details.
-                            </li>
-                            <li>• Prefer data binding over manual DOM manipulation</li>
-                            <li>• Use or create a widget reload button for quick iteration</li>
-                            <li>• Leverage the RmlUi debugger for real-time insights</li>
-                            <li>• Follow naming conventions for clarity and consistency</li>
-                            <li>• Use the <span class="code-highlight text-white bg-primary rounded">rml-utils.rcss</span> file for a tailwind-like approach to styling</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Examples Tab Panel -->
-                <div class="tab-panel" data-panel="examples" data-if="activeTab == 'examples'">
-                    <div class="content-section">
-                        <h1 class="text-white">Examples <span class="text-warning">[WIP]</span></h1>
-                        <p class="text-neutral-dark">This section is currently under development</p>
-                        <p class="text-neutral-dark-light m-1">Coming soon: Real-world implementation patterns, code samples, and practical use cases</p>
+                        
+                        <div data-attr-class="ccg.panel.info + ' p-3 mt-6 rounded-lg'">
+                            <h3 data-attr-class="ccg.text.warning">Developers</h3>
+                            <p data-attr-class="ccg.text.body + ' mt-1-5'">If building primary widgets, use the style guide to attain consistency and visual coherence across all components.</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </body>
+    </div>
+</body>
 </rml>

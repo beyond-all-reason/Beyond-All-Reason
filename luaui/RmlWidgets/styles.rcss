@@ -6,7 +6,7 @@ from traditional web design. */
 
 body {
     font-family: "Exo 2";
-    font-size: 16dp;
+    font-size: 10dp;
 }
 
 div
@@ -22,21 +22,21 @@ p
 h1
 {
 	display: block;
-	font-size: 24dp;
+	font-size: 2.25rem;
 	font-weight: bold;
 }
 
 h2
 {
 	display: block;
-	font-size: 20dp;
+	font-size: 2rem;
 	font-weight: bold;
 }
 
 h3
 {
 	display: block;
-	font-size: 18dp;
+	font-size: 1.5rem;
 	font-weight: bold;
 }
 
@@ -100,6 +100,7 @@ select selectbox {
     border-top-width: 0;
     background-color: #fffa;
 }
+
 select selectarrow {
     max-width: 10dp;
 	max-height: 10dp;
@@ -136,30 +137,14 @@ scrollbarhorizontal sliderbar
 	border-radius: 2dp;
 }
 
-sliderarrowdec,
-sliderarrowinc
-{
-	width: 6dp;
-	height: 6dp;
-	background-color: rgb(100, 100, 100);
-}
-
-sliderarrowdec
-{
-	border-top-left-radius: 5dp;
-	border-top-right-radius: 5dp;
-	margin-bottom: 2dp;
-}
-
-sliderarrowinc
-{
-	border-bottom-left-radius: 5dp;
-	border-bottom-right-radius: 5dp;
-	margin-top: 2dp;
-}
-
 sliderarrowinc:hover,
 sliderarrowdec:hover
 {
 	background-color: rgb(150,150,150);
+}
+
+.widget-shadow {
+	box-shadow: #000a 2dp 3dp 3dp 0dp;
+	border: 1dp rgba(0, 0, 0, 150);
+	clip: always; /* ensures child elements do not overflow rounded corners */
 }

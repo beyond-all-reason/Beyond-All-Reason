@@ -1,0 +1,152 @@
+/* Armada Palette - Blue Theme */
+
+@media ( theme: armada ) {
+    /* === Border === */
+    .border-bottom-primary { border-bottom: 1dp #2BA5EA; }
+    .border-left-primary { border-left: 1dp #2BA5EA; }
+    .border-right-primary { border-right: 1dp #2BA5EA; }
+    .border-top-primary { border-top: 1dp #2BA5EA; }
+
+    /* === PRIMARY BLUE (#2BA5EA) === */
+    .bg-primary { background-color: #2BA5EA; }
+    .text-primary { color: #2BA5EA; }
+    .border-primary { border-color: #2BA5EA; }
+    .bg-primary-alpha { background-color: #2BA5EA80; }
+    .text-primary-alpha { color: #2BA5EA80; }
+    .border-primary-alpha { border-color: #2BA5EA80; }
+
+    /* === SECONDARY BLUE (#5BB8ED) === */
+    .bg-secondary { background-color: #5BB8ED; }
+    .text-secondary { color: #5BB8ED; }
+    .border-secondary { border-color: #5BB8ED; }
+    .bg-secondary-alpha { background-color: #5BB8ED80; }
+    .text-secondary-alpha { color: #5BB8ED80; }
+    .border-secondary-alpha { border-color: #5BB8ED80; }
+
+    /* === ACCENT BLUE (#1F7BB8) === */
+    .bg-accent { background-color: #1F7BB8; }
+    .text-accent { color: #1F7BB8; }
+    .border-accent { border-color: #1F7BB8; }
+    .bg-accent-alpha { background-color: #1F7BB880; }
+    .text-accent-alpha { color: #1F7BB880; }
+    .border-accent-alpha { border-color: #1F7BB880; }
+
+    /* === MUTED BLUE (#8DCBF0) === */
+    .bg-muted { background-color: #8DCBF0; }
+    .text-muted { color: #8DCBF0; }
+    .border-muted { border-color: #8DCBF0; }
+    .bg-muted-alpha { background-color: #8DCBF080; }
+    .text-muted-alpha { color: #8DCBF080; }
+    .border-muted-alpha { border-color: #8DCBF080; }
+
+    /* === ARMOR ROYAL BLUE (#22344E) & OPTICS SAND (#e7f7d2) === */
+    /* === SURFACE - BLUE (#22344E) === */
+    .bg-surface { background-color: rgb(34, 52, 78); }
+    .text-surface { color: rgb(34, 52, 78); }
+    .border-surface { border-color: rgb(34, 52, 78); }
+    .bg-surface-alpha { background-color: rgba(34, 52, 78, 128); }
+    .text-surface-alpha { color: rgba(34, 52, 78, 128); }
+    .border-surface-alpha { border-color: rgba(34, 52, 78, 128); }
+
+    /* === SURFACE-ANTI - LIGHT GREEN (#E7F7D2) === */
+    .bg-surface-anti { background-color: rgb(231, 247, 210); }
+    .text-surface-anti { color: rgb(231, 247, 210); }
+    .border-surface-anti { border-color: rgb(231, 247, 210); }
+    .bg-surface-anti-alpha { background-color: rgba(231, 247, 210, 128); }
+    .text-surface-anti-alpha { color: rgba(231, 247, 210, 128); }
+    .border-surface-anti-alpha { border-color: rgba(231, 247, 210, 128); }
+
+    /* === DARK BLUE (#1A5C86) === */
+    .bg-primary-dark { background-color: #1A5C86; }
+    .text-primary-dark { color: #1A5C86; }
+    .border-primary-dark { border-color: #1A5C86; }
+    .bg-primary-dark-alpha { background-color: #1A5C8680; }
+    .text-primary-dark-alpha { color: #1A5C8680; }
+    .border-primary-dark-alpha { border-color: #1A5C8680; }
+
+    /* === Box Shadow === */
+    .box-shadow-primary { box-shadow: #2BA5EA 4dp 4dp 0dp 0dp; }
+    .box-shadow-glow { box-shadow: 0dp 0dp 20dp #2BA5EA50; }
+    .box-shadow-intense { box-shadow: 0dp 0dp 30dp #2BA5EA80, 0dp 8dp 32dp rgba(0, 0, 0, 160); }
+    
+    /* === Text Shadow === */
+    .text-shadow-primary { font-effect: shadow( 4px 4px #2BA5EA ); }
+    .text-glow-primary { font-effect: glow(4px 6px 0px 0px #2BA5EA); }
+
+    /* === Hovers === */
+    .bg-primary-hover:hover { background-color: #2BA5EA; }
+    .bg-primary-hover-alpha:hover { background-color: #2BA5EA80; }
+    .text-primary-hover:hover { color: #2BA5EA; }
+    .border-primary-hover:hover { border-color: #2BA5EA; }
+
+    .bg-accent-hover:hover { background-color: #1F7BB8; }
+    .bg-accent-hover-alpha:hover { background-color: #1F7BB880; }
+    .text-accent-hover:hover { color: #1F7BB8; }
+    .border-accent-hover:hover { border-color: #1F7BB8; }
+
+    .bg-secondary-hover:hover { background-color: #5BB8ED; }
+    .bg-secondary-hover-alpha:hover { background-color: #5BB8ED80; }
+    .text-secondary-hover:hover { color: #5BB8ED; }
+    .border-secondary-hover:hover { border-color: #5BB8ED; }
+
+    .bg-surface-hover:hover { background-color: rgba(34, 52, 78, 200); }
+    .bg-surface-hover-alpha:hover { background-color: rgba(34, 52, 78, 100); }
+    .text-surface-hover:hover { color: rgba(34, 52, 78, 200); }
+    .border-surface-hover:hover { border-color: rgba(34, 52, 78, 200); }
+
+    .bg-surface-anti-hover:hover { background-color: rgba(231, 247, 210, 200); }
+    .bg-surface-anti-hover-alpha:hover { background-color: rgba(231, 247, 210, 100); }
+    .text-surface-anti-hover:hover { color: rgba(231, 247, 210, 200); }
+    .border-surface-anti-hover:hover { border-color: rgba(231, 247, 210, 200); }
+
+    /* inverse hovers for ghost buttons */
+    .bg-primary-inverse-hover:hover { background-color: #2BA5EA; }
+    .text-primary-inverse-hover:hover { color: #2D2D2D; }
+
+    /* === Gradients === */
+    /*  color -- alpha */
+    .bg-gradient_primary-accent { decorator: linear-gradient(135deg, #2BA5EA, #1F7BB8); }
+    .bg-gradient_primary-dark { decorator: linear-gradient(135deg, #2BA5EA, #4a4a4a); }
+    .bg-gradient_primary-alpha { decorator: linear-gradient(135deg, #2BA5EA, #ffffff00); }
+
+    /* === Textured Surface Gradient === */
+    /* this gradient is custom per palette, based on the surface and surface-anti colors and contrast */
+    .bg-gradient_surface-textured {
+        background-color: rgba(34, 52, 78, 128);
+        decorator:
+            repeating-linear-gradient(90deg, transparent 0 13px, rgba(231, 247, 210, 8) 14px 15px),
+            repeating-linear-gradient(0deg, transparent 0 10px, rgba(231, 247, 210, 8) 11px 12px),
+            radial-gradient(ellipse at top left, rgba(231, 247, 210, 128), transparent 70%);
+    }
+
+    /* Frosted glass effect using primaries and surface */
+    .bg-gradient_glass { 
+        decorator: radial-gradient(ellipse at top left, rgba(43, 165, 234, 21), transparent 70%),
+                   linear-gradient(135deg, #ffffff18, transparent 30%, rgba(43, 165, 234, 18), transparent 70%, rgba(31, 123, 184, 21)),
+                   radial-gradient(ellipse at bottom right, rgba(34, 52, 78, 21), transparent 60%);
+    }
+
+    .divider-horizontal-primary {
+        height: 1px;
+        decorator: linear-gradient(to right, transparent, rgb(43, 165, 234), transparent);
+        margin-top: 8dp;
+        margin-bottom: 8dp;
+    }
+
+    .divider-vertical-primary{
+        width: 1px;
+        decorator: linear-gradient(to bottom, transparent, rgb(43, 165, 234), transparent);
+        margin-left: 8dp;
+        margin-right: 8dp;
+    }
+
+    .faction-texture {
+        decorator:
+            image("../rml_style_guide/armada-tileable-v01-mono.png" cover);
+    }
+
+    .faction-texture-tiled {
+        decorator: 
+            image("../rml_style_guide/armada-tileable-v01-alpha-128.png" repeat);
+    }
+}

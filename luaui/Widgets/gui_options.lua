@@ -3349,6 +3349,30 @@ function init()
 			  end
 		  end,
 		},
+		{ id = "rml_theme", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. "RML Theme", type = "select", options = { "Base", "Armada", "Cortex", "Legion" }, description = "Choose the color theme for RML widgets",
+			onload = function(i)
+				local currentTheme = Spring.GetConfigString("rml_theme", "base")
+				local themeValues = { "base", "armada", "cortex", "legion" }
+				for k, value in pairs(themeValues) do
+					if value == currentTheme then
+						options[i].value = k
+						break
+					end
+				end
+			end,
+			onchange = function(i, value)
+				local themeValues = { "base", "armada", "cortex", "legion" }
+				local selectedTheme = themeValues[value]
+				Spring.SetConfigString("rml_theme", selectedTheme)
+				
+				-- Apply theme to all RML widgets that have the theme API
+				if WG.rml_theme_changed then
+					WG.rml_theme_changed(selectedTheme)
+				end
+				
+				Spring.Echo("RML Theme changed to: " .. selectedTheme)
+			end,
+		},
 		{ id = "guiopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guiopacity'), type = "slider", min = 0.3, max = 1, step = 0.01, value = Spring.GetConfigFloat("ui_opacity", 0.7), description = '',
 		  onload = function(i)
 		  end,

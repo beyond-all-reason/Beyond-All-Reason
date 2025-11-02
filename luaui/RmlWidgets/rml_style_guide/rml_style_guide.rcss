@@ -1,0 +1,215 @@
+/* rml_style_guide Widget Styles */
+#rml_style_guide-widget {
+    /* positional properties */
+    display: flex;
+    position: absolute;
+    left: 200dp;
+    top: 100dp;
+    /* dimensional properties */
+    width: 700dp;
+    height: 80vh;
+}
+
+#rml_style_guide-widget.collapsed {
+    width: 144dp;
+    height: 24dp;
+    top: 10dp;
+    left: 200dp;
+}
+
+#rml_style_guide-widget.collapsed .toggle-expand-container {
+    right: 3dp;
+}
+
+#widget-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    position: relative;
+}
+
+/* Small floating debug controls */
+.debug-controls {
+    position: absolute;
+    top: -3dp;
+    right: 10dp;
+    display: flex;
+    gap: 3dp;
+    z-index: 10;
+}
+
+.debug-btn {
+    height: 20dp;
+    padding: 0 4dp;
+    cursor: pointer;
+    text-align: center;
+    line-height: 18dp;
+    transition: all 0.1s;
+}
+
+.debug-btn:hover {
+    transform: scale(1.1);
+}
+
+.debug-btn:active {
+    transform: scale(0.95);
+}
+
+.code-green {
+    color: #2cfd79;
+}
+
+/* Draggable handle styles */
+.handle {
+    height: 100%;
+    cursor: move;
+    text-align: left;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 5;
+    border-top-left-radius: 10dp;
+    border-top-right-radius: 10dp;
+    clip: always;
+}
+
+.handle>.greeble {
+    color: #00000000;
+    padding-left: 5dp;
+    position: relative;
+    top: -15dp;
+    font-size: 2.5rem;
+}
+
+@keyframes greeble-pulse {
+    0% { color: #00000000; }
+    50% { color: #fad400; }
+    100% { color: #00000000;  }
+}
+
+@keyframes jiggle-on-x {
+    0% { transform: translateX(0dp) rotate(45deg); }
+    25% { transform: translateX(-2dp) rotate(45deg); }
+    50% { transform: translateX(2dp) rotate(45deg); }
+    75% { transform: translateX(-2dp) rotate(45deg); }
+    100% { transform: translateX(0dp) rotate(45deg); }
+}
+
+.handle:hover>.greeble {
+    animation: none;
+    color: #2cf877;
+}
+
+.handle:active>.greeble {
+    animation: 1s back-in-out infinite greeble-pulse;
+}
+
+.handle:active>.angle-decorator {
+    animation: 0.5s back-in-out infinite jiggle-on-x;
+}
+
+.angle-decorator {
+    position: absolute;
+    top: -210dp;
+    left: -360dp;
+    width: 400dp;
+    height: 400dp;
+    transform: rotate(45deg);
+}
+
+.section {
+    clip: always;
+    overflow: hidden scroll;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.copy-button {
+    cursor: copy;
+    position: relative;
+}
+
+.copy-button:hover {
+    transition: background-color 0.2s;
+    background-color: rgba(255, 255, 255, 50);
+}
+
+.copy-button:active {
+    transform: translate(1px, 1px);
+}
+
+.copy-button:active>.tooltip {
+    transform: translate(-1px, -1px);
+}
+
+.tooltip {
+    visibility: hidden;
+    text-align: center;
+    position: absolute;
+    z-index: 1;
+    bottom: 100%;
+    right: 0;
+    opacity: 0;
+    transition: opacity 0.1s;
+    width: 550dp;
+    pointer-events: none;
+}
+
+.copy-button:hover>.tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+button:active {
+    transform: translate(1dp, 1dp)
+}
+
+.toggle-expand-container {
+    position:absolute;
+    top: 8dp;
+    right: 4dp;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 10dp;
+    height: 10dp;
+    cursor: pointer;
+    z-index: 50;
+}
+
+.chevron {
+    width: 4dp;
+    height: 4dp;
+    position: relative;
+    /* warning yellow #fad400 */
+    border-left: 2dp #fad400;
+    border-right: 1dp transparent;
+    border-top: 2dp #fad400;
+    border-bottom: 1dp transparent;
+    border-radius: 5dp;
+    transition: transform 0.1s, right 0.3s,opacity 0.2s;
+    opacity: 0.5;
+    transform: rotate(225deg);
+    top: -4dp;
+}
+
+.chevron:hover {
+    opacity: 1.0;
+}
+
+.chevron.expanded {
+    transform: rotate(45deg);
+    top: -2dp;
+}
+
+.collapsed-title {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    font-weight: bold;
+    font-size: 14dp;
+}
