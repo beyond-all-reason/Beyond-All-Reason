@@ -115,6 +115,7 @@ local function getCachedGameRules(myTeamID)
 		cachedGameRules.budgetTotal = spGetGameRulesParam("quickStartBudgetBase") or 0
 		cachedGameRules.factoryDiscountAmount = spGetGameRulesParam("quickStartFactoryDiscountAmount") or 0
 		cachedGameRules.instantBuildRange = spGetGameRulesParam("overridePregameBuildDistance") or DEFAULT_INSTANT_BUILD_RANGE
+		cachedGameRules.budgetThresholdToAllowStart = spGetGameRulesParam("quickStartBudgetThresholdToAllowStart") or 0
 		lastRulesUpdate = currentTime
 	end
 	return cachedGameRules
@@ -317,7 +318,10 @@ local function updateDataModel(forceUpdate)
 	widgetState.lastQueueLength = currentQueueLength
 	widgetState.lastBudgetRemaining = currentBudgetRemaining
 	
-	local hasUnallocatedBudget = currentBudgetRemaining > 0
+	local myTeamID = spGetMyTeamID() or 0
+	local gameRules = getCachedGameRules(myTeamID)
+	local budgetThreshold = gameRules.budgetThresholdToAllowStart or 0
+	local hasUnallocatedBudget = currentBudgetRemaining > budgetThreshold
 	local pregameUI = WG['pregameui']
 	local pregameUIDraft = WG['pregameui_draft']
 	
