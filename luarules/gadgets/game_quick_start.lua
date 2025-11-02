@@ -512,6 +512,10 @@ local function populateNearbyMexes(commanderID)
 end
 
 local function initializeCommander(commanderID, teamID)
+	if not spValidUnitID(commanderID) then
+		return
+	end
+
 	if shouldApplyFactoryDiscount then
 		commanderFactoryDiscounts[commanderID] = false
 		if modOptions.quick_start == "factory_discount_only" then
@@ -524,6 +528,9 @@ local function initializeCommander(commanderID, teamID)
 	local budget = (modOptions.override_quick_start_resources and modOptions.override_quick_start_resources > 0) and modOptions.override_quick_start_resources or quickStartAmountConfig[modOptions.quick_start_amount == "default" and "normal" or modOptions.quick_start_amount]
 
 	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
+	if not commanderX or not commanderY or not commanderZ then
+		return
+	end
 	local directionX = MAP_CENTER_X - commanderX
 	local directionZ = MAP_CENTER_Z - commanderZ
 	local angle = atan2(directionX, directionZ)
