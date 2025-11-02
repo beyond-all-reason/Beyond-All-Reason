@@ -24,14 +24,10 @@ end
 --local maxunits = Spring.GetModOptions().maxunits
 
 function gadget:TeamDied(teamID)
-	local allyID = select(6, Spring.GetTeamInfo(teamID, false))
-	if not allyID then
-		return
-	end
-
 	local redistributionAmount = Spring.GetTeamMaxUnits(teamID)
 
 	-- redistribute to teammates (will not respect global maxunits limit yet)
+	local allyID = select(6, Spring.GetTeamInfo(teamID, false))
 	local teams = Spring.GetTeamList(allyID)
 	local aliveTeams = 0
 	for i = 1, #teams do

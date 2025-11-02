@@ -87,7 +87,7 @@ if gadgetHandler:IsSyncedCode() then
 		local frame = Spring.GetGameFrame()
 
 		if frame < norushtimer and (not TeamIDsToExclude[unitTeam]) then
-			local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(unitTeam)
+			local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(unitTeam, false)
 			if cmdID == CMD.INSERT then
 			  -- CMD.INSERT wraps another command, so we need to extract it
 			  cmdID = cmdParams[2]
