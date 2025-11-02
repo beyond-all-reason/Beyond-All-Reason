@@ -203,7 +203,7 @@ end
 for name, _ in pairs(discountableFactories) do
 	if unitDefNames[name] then
 		local labBudget = defMetergies[unitDefNames[name].id]
-		FACTORY_DISCOUNT = min(FACTORY_DISCOUNT, labBudget * FACTORY_DISCOUNT_MULTIPLIER)
+		FACTORY_DISCOUNT = min(FACTORY_DISCOUNT, customRound(labBudget * FACTORY_DISCOUNT_MULTIPLIER))
 	end
 end
 for commanderName, nonLabOptions in pairs(commanderNonLabOptions) do
