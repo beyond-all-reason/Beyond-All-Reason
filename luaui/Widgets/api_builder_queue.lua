@@ -178,7 +178,7 @@ local function checkBuilder(unitId)
 					buildCommand.positionX = positionX
 					buildCommand.positionY = floor(queueCommand.params[2])
 					buildCommand.positionZ = positionZ
-					buildCommand.rotation = floor(queueCommand.params[4])
+					buildCommand.rotation = queueCommand.params[4] and floor(queueCommand.params[4]) or 0
 					buildCommand.builderIds = {}
 					buildCommands[commandId] = buildCommand
 					isNewCommand = true
