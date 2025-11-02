@@ -639,7 +639,7 @@ function SetMaxPlayerNameWidth()
     local maxWidth = 14 * (font2 and font2:GetTextWidth(absentName) or 100) + 8 -- 8 is minimal width
 
     for _, wplayer in ipairs(t) do
-        local name, _, spec, teamID = Spring_GetPlayerInfo(wplayer)
+        local name, _, spec, teamID = Spring_GetPlayerInfo(wplayer, false)
         name = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(wplayer) or name
         if not select(4, Spring_GetTeamInfo(teamID, false)) then
             -- is not AI?
@@ -2043,7 +2043,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
     local active, spec
     local playerList = Spring_GetPlayerList()
     for _, playerID in ipairs(playerList) do
-        _, active, spec = Spring_GetPlayerInfo(playerID)
+        _, active, spec = Spring_GetPlayerInfo(playerID, false)
         if active and spec then
             numberOfSpecs = numberOfSpecs + 1
         end
@@ -2055,7 +2055,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
         if teamID ~= gaiaTeamID then
             _, playerID, _, isAiTeam, _, allyTeamID = Spring_GetTeamInfo(teamID, false)
             if aliveAllyTeams[allyTeamID] then
-                _, active = Spring_GetPlayerInfo(playerID)
+                _, active = Spring_GetPlayerInfo(playerID, false)
                 if active or isAiTeam then
                     if allyTeamID ~= myAllyTeamID then
                         numberOfEnemies = numberOfEnemies + 1

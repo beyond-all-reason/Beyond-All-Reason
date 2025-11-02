@@ -30,7 +30,7 @@ local teamNames = {}
 
 local function getTeamNames(teamID)
 	local playerNames = {}
-	local _, _, _, isAI = Spring.GetTeamInfo(teamID)
+	local _, _, _, isAI = Spring.GetTeamInfo(teamID, false)
 
 	if isAI then
 		local _, _, _, name = Spring.GetAIInfo(teamID)
@@ -45,7 +45,7 @@ local function getTeamNames(teamID)
 		local players = Spring.GetPlayerList(teamID)
 
 		for _, playerID in pairs(players) do
-			local name = Spring.GetPlayerInfo(playerID)
+			local name = Spring.GetPlayerInfo(playerID, false)
 			name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 			table.insert(playerNames, name)
 		end
