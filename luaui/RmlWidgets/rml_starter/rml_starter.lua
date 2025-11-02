@@ -29,19 +29,11 @@ local dm_handle
 -- Create a new data model every time to avoid reference oddities even with dm_handle
 local function initModel()
     return {
-        -- String data with dynamic content
-        message = "Hello! This text comes from the Lua data model and demonstrates variable binding.",
-        
-        -- Array of objects - demonstrates iteration
-        testArray = {
-            { name = "Configuration", value = 100 },
-            { name = "Game State", value = 200 },
-            { name = "UI Controls", value = 300 },
-            { name = "User Preferences", value = 400 },
-        },
-        
-        -- Tab system state (controlled by data binding)
-        activeTab = "landing", -- Always starts fresh
+
+        -- Main widget states
+        expanded = true,
+        debugMode = false,
+        activeTab = "landing",
 
         -- All tabs
         tabs = {
@@ -52,24 +44,25 @@ local function initModel()
             { id = "data-binding", label = "Data Binding" },
             { id = "tools", label = "Tools" },
         },
-
-        expanded = true,
-
-        -- Current time for demonstrations
-        currentTime = os.date("%H:%M:%S"),
         
-        -- Debug mode toggle
-        debugMode = false,
-
+        -- Custom class groups for this widget for repeatability
         my = {
             codeBlock = "flex flex-col p-3 bg-darker rounded border border-dark-alpha code-green text-sm",
             tabsNavigationStyles = "font-bold bg-darkest-semi-alpha bg-gradient-darker-alpha radial-focus-start text-outline-darkest-lg border-bottom border-darkest",
         },
-        
+
         -- Data binding demo variables
         playerName = "Commander",
+        currentTime = os.date("%H:%M:%S"),
 
-        -- Comprehensive data binding examples table
+        testArray = {
+            { name = "Configuration", value = 100 },
+            { name = "Game State", value = 200 },
+            { name = "UI Controls", value = 300 },
+            { name = "User Preferences", value = 400 },
+        },
+
+        -- Data binding examples table
         dataBindingExamples = {
             
             -- Array examples for iteration
@@ -92,8 +85,8 @@ local function initModel()
                 { id = "legion", name = "Legion" },
             },
         },
-        
-        -- How to cleanly use functions in the data model
+
+        -- How to cleanly use functions in the data model, use utils.GetCurrentModel(dm_handle) to avoid callback reference issues
         setActiveTab = function(event, tabId)
             local model = utils.GetCurrentModel(dm_handle)
             if model then
@@ -150,8 +143,7 @@ end
 
 function widget:Shutdown()
     Spring.Echo(WIDGET_ID .. ": Shutting down widget...")
-    
-    -- Use the modern utility function to shutdown
+
     local shutdownParams = {
         widgetId = WIDGET_ID,
         modelName = MODEL_NAME

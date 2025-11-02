@@ -5,10 +5,10 @@
     - Set default position absolutely - this will be relative to the window/screen.
     - width and height should be set to hard-coded values, avoid using percentages.
 =========================================== */
-#rml-starter-widget {
+#rml_starter-widget {
     /* positional properties */
     position: absolute;
-    top: 5%;
+    top: 5vh;
     right: 5dp;
     /* dimensional properties */
     width: 600dp;
@@ -17,18 +17,14 @@
     display: flex;
 }
 
-#rml-starter-widget.collapsed {
+#rml_starter-widget.collapsed {
     width: 144dp;
     height: 24dp;
     top: 100dp;
     transition: transform 0.1s elastic-in-out;
 }
 
-#rml-starter-widget.collapsed:hover {
-    transform: translateX(-3dp);
-}
-
-#rml-starter-widget.collapsed:hover .chevron {
+#rml_starter-widget.collapsed:hover .chevron {
     opacity: 1;
     filter: none;
 }
@@ -138,19 +134,6 @@
     border-radius: 2dp;
 }
 
-.file {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 5dp;
-    height: 120dp;
-    clip: always;
-    border-top-left-radius: 16dp;
-    border-top-right-radius: 4dp;
-    border-bottom-left-radius: 0dp;
-    border-bottom-right-radius: 0dp;
-}
-
 button:active {
     transform: translate(1dp, 1dp)
 }
@@ -185,7 +168,6 @@ button:active {
     border-left: 4dp #fad400;
     border-top: 4dp #fad400;
     border-top-left-radius: 3dp;
-    /* border-radius: 5dp; */
     transition: transform 0.1s, right 0.3s,opacity 0.1s;
     opacity: 0.1;
     transform: rotate(315deg);
@@ -204,7 +186,7 @@ button:active {
     font-size: 14dp;
 }
 
-/* Target directly where possible the following selector is better then '.collapsed-title:hover .chevron {}' */
+/* Target directly where possible - the following selector is better then '.collapsed-title:hover .chevron {}' */
 .collapsed-title:hover>.toggle-expand-container>.chevron {
     opacity: 1;
     filter: none;

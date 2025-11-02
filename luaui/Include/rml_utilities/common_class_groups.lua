@@ -1,5 +1,8 @@
 -- RmlWidgets Common Class Groups
 -- Utility system for managing reusable CSS class combinations provided in templates via the data-attr-class
+-- Should later optimizations be required the first would be to facilitate more precise class group retrieval
+-- e.g., commonClassGroups.get("button.success") to get only the success button classes.
+-- Currently we do not know the limits or performance applications of frontloading widget models with all class groups.
 
 if not WG.rml_commonClassGroups then
     local commonClassGroups = {}
@@ -15,14 +18,14 @@ commonClassGroups.prefix = "ccg"
 
 commonClassGroups.definitions = {
     text = {
-        error = "text-sm font-bold text-danger text-outline-darker-lg",
         success = "text-sm font-bold text-success text-outline-darker-lg",
         warning = "text-sm font-bold text-warning text-outline-darker-lg",
         tooltip = "text-sm font-normal text-light p-2 rounded border bg-darker border-light-alpha",
         body = "text-sm font-normal text-light",
-        info = "text-sm font-bold text-info",
+        info = "text-sm font-bold text-info text-outline-darker-lg",
         caption = "text-sm font-normal text-medium",
         emphasis = "text-sm font-semibold text-light text-outline-darker-lg",
+        danger = "text-sm font-bold text-danger text-outline-darker-lg",
     },
 
     themeText = {
@@ -37,7 +40,6 @@ commonClassGroups.definitions = {
     },
 
     badge = {
-        default = "text-sm font-bold text-darkest pl-2 pr-2 pt-0-5 pb-0-5 rounded bg-gradient_primary-accent",
         primary = "text-sm font-bold text-darkest pl-2 pr-2 pt-0-5 pb-0-5 rounded bg-gradient_primary-accent",
         success = "text-sm font-bold text-success pl-2 pr-2 pt-0-5 pb-0-5 rounded bg-success text-outline-darker-lg",
         warning = "text-sm font-bold text-warning pl-2 pr-2 pt-0-5 pb-0-5 rounded bg-warning text-outline-darker-lg",
@@ -46,10 +48,10 @@ commonClassGroups.definitions = {
         construction = "text-sm font-bold text-warning pl-2 pr-2 pt-0-5 pb-0-5 rounded bg-warning hazards-construction text-outline-darkest-lg border border-warning clip",
         ghost = "text-sm font-bold text-light pl-2 pr-2 pt-0-5 pb-0-5 rounded border border-light-alpha bg-darkest-alpha",
         surface = "text-sm font-bold text-surface-anti pl-2 pr-2 pt-0-5 pb-0-5 rounded bg-surface",
+        general = "text-sm font-bold text-medium pl-2 pr-2 pt-0-5 pb-0-5 rounded bg-gradient bg-light text-outline-darkest-lg",
     },
 
     pill = {
-        default = "text-sm font-bold text-darkest pl-2 pr-2 pt-0-5 pb-0-5 rounded-full bg-gradient_primary-accent",
         primary = "text-sm font-bold text-darkest pl-2 pr-2 pt-0-5 pb-0-5 rounded-full bg-gradient_primary-accent",
         success = "text-sm font-bold text-success pl-2 pr-2 pt-0-5 pb-0-5 rounded-full bg-success text-outline-darker-lg",
         warning = "text-sm font-bold text-warning pl-2 pr-2 pt-0-5 pb-0-5 rounded-full bg-warning text-outline-darker-lg",
@@ -58,17 +60,18 @@ commonClassGroups.definitions = {
         construction = "text-sm font-bold text-warning pl-2 pr-2 pt-0-5 pb-0-5 rounded-full bg-warning hazards-construction text-outline-darkest-lg border border-warning clip",
         ghost = "text-sm font-bold text-light pl-2 pr-2 pt-0-5 pb-0-5 rounded-full border border-light-alpha bg-darkest-alpha",
         surface = "text-sm font-bold text-surface-anti pl-2 pr-2 pt-0-5 pb-0-5 rounded-full bg-surface",
+        general = "text-sm font-bold text-medium pl-2 pr-2 pt-0-5 pb-0-5 rounded-full bg-gradient bg-light text-outline-darkest-lg",
     },
 
     circle = {
-        default = "text-xs font-bold text-darkest w-6 h-6 rounded-full bg-gradient_primary-accent flex items-center justify-center",
-        primary = "text-xs font-bold text-darkest w-6 h-6 rounded-full bg-gradient_primary-accent flex items-center justify-center",
-        success = "text-xs font-bold text-success w-6 h-6 rounded-full bg-success text-outline-darker-lg flex items-center justify-center",
-        warning = "text-xs font-bold text-warning w-6 h-6 rounded-full bg-warning text-outline-darker-lg flex items-center justify-center",
-        danger = "text-xs font-bold text-danger w-6 h-6 rounded-full bg-danger text-outline-darker-lg flex items-center justify-center",
-        info = "text-xs font-bold text-info w-6 h-6 rounded-full bg-info text-outline-darker-lg flex items-center justify-center",
-        ghost = "text-xs font-bold text-light w-6 h-6 rounded-full bg-darkest-alpha flex items-center justify-center",
-        surface = "text-xs font-bold text-surface-anti w-6 h-6 rounded-full bg-surface flex items-center justify-center",
+        general = "text-xs font-bold text-darkest w-4 h-4 rounded-full radial-focus-start-feint flex items-center justify-center",
+        primary = "text-xs font-bold text-darkest w-4 h-4 rounded-full bg-gradient_primary-accent flex items-center justify-center",
+        success = "text-xs font-bold text-success w-4 h-4 rounded-full bg-success text-outline-darker-lg flex items-center justify-center",
+        warning = "text-xs font-bold text-warning w-4 h-4 rounded-full bg-warning text-outline-darker-lg flex items-center justify-center",
+        danger = "text-xs font-bold text-danger w-4 h-4 rounded-full bg-danger text-outline-darker-lg flex items-center justify-center",
+        info = "text-xs font-bold text-info w-4 h-4 rounded-full bg-info text-outline-darker-lg flex items-center justify-center",
+        ghost = "text-xs font-bold text-light w-4 h-4 rounded-full bg-darkest-alpha flex items-center justify-center",
+        surface = "text-xs font-bold text-surface-anti w-4 h-4 rounded-full bg-surface flex items-center justify-center",
     },
 
     container = {
@@ -92,7 +95,7 @@ commonClassGroups.definitions = {
     },
 
     button = {
-        default = "text-center text-light bg-darkest bg-gradient-darkest hover-brighten cursor-pointer",
+        general = "text-center text-light bg-darkest bg-gradient-darkest hover-brighten cursor-pointer",
         success = "text-center text-success text-outline-darker-lg bg-success radial-focus-center-feint hover-brighten cursor-pointer",
         warning = "text-center text-warning text-outline-darker-lg bg-warning radial-focus-center-feint hover-brighten cursor-pointer",
         danger = "text-center text-danger text-outline-darker-lg bg-danger radial-focus-center-feint hover-brighten cursor-pointer",
@@ -100,9 +103,10 @@ commonClassGroups.definitions = {
     },
     
     themeButton = {
-        default = "text-center text-darkest font-bold bg-gradient_primary-accent hover-brighten cursor-pointer",
+        primary = "text-center text-darkest font-bold bg-gradient_primary-accent hover-brighten cursor-pointer",
         ghost = "text-center text-primary font-bold border-2 border border-primary-alpha bg-primary-hover-alpha cursor-pointer",
         surface = "text-center text-surface-anti font-bold bg-surface border border-surface-alpha hover-brighten cursor-pointer",
+        secondary = "text-center text-secondary font-bold bg-gradient_secondary-accent hover-brighten cursor-pointer",
     },
 
     nav = {
@@ -110,16 +114,17 @@ commonClassGroups.definitions = {
     },
 
     panel = {
-        default = "bg-darkest-alpha rounded-md border-dark-alpha border text-shadow hazards-135",
+        general = "gap-6 p-4 rounded border-sm border-darker-alpha box-shadow-sm bg-darker-alpha radial-focus-start-feint",
         primary = "bg-primary-alpha shadow-md rounded border-primary-dark border hazards-135 text-shadow",
         construction = "bg-warning shadow-lg rounded border-warning border-2 hazards-construction-textured text-outline-darkest-lg border border-warning-alpha",
         danger = "bg-danger-alpha shadow-md rounded border-danger border hazards-225 text-shadow",
-        general = "gap-6 p-4 rounded border-sm border-darker-alpha box-shadow-sm bg-darker-alpha radial-focus-start-feint",
         info = "bg-info-alpha shadow-md rounded border-darker-alpha border text-shadow radial-focus-start-feint",
+        success = "bg-success-alpha shadow-md rounded border-success border radial-focus-start-feint text-shadow",
+        warning = "bg-warning-alpha shadow-md rounded border-warning border radial-focus-start-feint text-shadow",
     },
 
     sheet = {
-        default = {
+        general = {
             container = "hazards-135 bg-darkest",
             title = "text-2xl font-bold bg-darkest-semi-alpha p-3 bg-gradient-darker-alpha radial-focus-start text-outline-darkest-lg border-bottom border-darkest",
             content = "p-4",
@@ -152,7 +157,7 @@ commonClassGroups.definitions = {
     },
 
     card = {
-        default = "bg-darker p-2 box-shadow-sm",
+        general = "bg-darker-alpha p-2 box-shadow-sm",
         primary = "bg-primary p-2 box-shadow-sm",
         primaryAlpha = "bg-primary-alpha p-4 box-shadow-sm",
         light = "bg-light p-2 box-shadow-sm",

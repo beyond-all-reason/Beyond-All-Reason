@@ -1,7 +1,7 @@
 /* Base Palette - Yellow Theme */
 
 @media ( theme: base ) {
-    /* === Border === */    
+    /* === BORDER === */    
     .border-bottom-primary { border-bottom: 1dp #FDC04C; }
     .border-left-primary { border-left: 1dp #FDC04C; }
     .border-right-primary { border-right: 1dp #FDC04C; }
@@ -63,16 +63,16 @@
     .text-primary-dark-alpha { color: #B8941A80; }
     .border-primary-dark-alpha { border-color: #B8941A80; }
 
-    /* === Box Shadow === */
+    /* === BOX SHADOW === */
     .box-shadow-primary { box-shadow: #FDC04C 4dp 4dp 0dp 0dp; }
     .box-shadow-glow { box-shadow: 0dp 0dp 20dp #FDC04C50; }
     .box-shadow-intense { box-shadow: 0dp 0dp 30dp #FDC04C80, 0dp 8dp 32dp rgba(0, 0, 0, 160); }
-    
-    /* === Text Shadow === */
+
+    /* === TEXT SHADOW === */
     .text-shadow-primary { font-effect: shadow( 4px 4px #FDC04C ); }
     .text-glow-primary { font-effect: glow(4px 6px 0px 0px #FDC04C); }
 
-    /* === Hovers === */
+    /* === HOVERS === */
     .bg-primary-hover:hover { background-color: #E6A532; }
     .bg-primary-hover-alpha:hover { background-color: #E6A53280; }
     .text-primary-hover:hover { color: #E6A532; }
@@ -98,29 +98,25 @@
     .text-surface-anti-hover:hover { color: rgba(7, 44, 41, 200); }
     .border-surface-anti-hover:hover { border-color: rgba(7, 44, 41, 200); }
 
-    /* Inverse hovers for ghost buttons */
+    /* INVERSE HOVERS */
     .bg-primary-inverse-hover:hover { background-color: #FDC04C; }
     .text-primary-inverse-hover:hover { color: #2D2D2D; }
 
-    /* === Gradients === */
+    /* === GRADIENTS === */
     /*  color -- alpha */
     .bg-gradient_primary-accent { decorator: linear-gradient(135deg, #FDC04C, #E6A532); }
     .bg-gradient_primary-dark { decorator: linear-gradient(135deg, #FDC04C, #4a4a4a); }
     .bg-gradient_primary-alpha { decorator: linear-gradient(135deg, #FDC04C, #ffffff00); }
 
-    .bg-gradient_surface-textured {
-        background-color: rgba(36, 214, 199, 50);
-        decorator: repeating-linear-gradient(135deg, transparent 0 4dp, rgba(36, 214, 199, 10) 5dp 6dp),
-            radial-gradient(ellipse at top left, rgba(36, 214, 199, 175), transparent 70%);
-    }
-
-    /* Ultra-premium glass morphism gradient - modern frosted glass effect */
+    /* Frosted glass effect using primaries and surface */
     .bg-gradient_glass { 
         decorator: radial-gradient(ellipse at top left, #FDC04C15, transparent 70%),
                    linear-gradient(135deg, #ffffff18, transparent 30%, #FDC04C12, transparent 70%, #E6A53215),
                    radial-gradient(ellipse at bottom right, #24D6C715, transparent 60%);
+        backdrop-filter: blur(2px);
     }
     
+    /* === DECORATIVE === */
     .divider-horizontal-primary {
         height: 1px;
         decorator: linear-gradient(to right, transparent, rgb(253, 192, 76), transparent);
@@ -133,5 +129,14 @@
         decorator: linear-gradient(to bottom, transparent, rgb(253, 192, 76), transparent);
         margin-left: 8dp;
         margin-right: 8dp;
+    }
+
+    /* === TEXTURED SURFACE GRADIENT === */
+    /* this gradient is custom per palette, based on the surface and surface-anti colors and contrast */
+    .bg-gradient_surface-textured {
+        background-color: rgba(36, 214, 199, 50);
+        decorator:
+            repeating-linear-gradient(135deg, transparent 0 4dp, rgba(36, 214, 199, 10) 5dp 6dp),
+            radial-gradient(ellipse at top left, rgba(36, 214, 199, 175), transparent 70%);
     }
 }

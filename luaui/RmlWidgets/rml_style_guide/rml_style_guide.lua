@@ -10,8 +10,8 @@ local themeUtils = VFS.Include("luaui/Include/rml_utilities/theme_utils.lua")
 function widget:GetInfo()
     return {
         name = "rml_style_guide",
-        desc = "Generated RML widget template",
-        author = "Generated from rml_starter/generate-widget.sh",
+        desc = "RML Style Guide showcasing common RmlUi class groups and styles available in BAR.",
+        author = "Mupersega",
         date = "2025",
         license = "GNU GPL, v2 or later",
         layer = -10000,
@@ -19,7 +19,7 @@ function widget:GetInfo()
     }
 end
 
--- Helper function for nested sheet structures
+-- Helper function for nested sheet group structures
 local function createSheetArray(ccgTable, prefix)
     local result = {}
     for key, value in pairs(ccgTable) do
@@ -68,10 +68,9 @@ local function createTextArray(ccgTable, prefix)
         warning = { example = "Low Resources", description = "Warning messages" },
         tooltip = { example = "Press ESC to cancel", description = "Tooltip and help text" },
         body = { example = "This is body text for paragraphs and content.", description = "Regular paragraph text" },
-        muted = { example = "Secondary information", description = "De-emphasized secondary text" },
         emphasis = { example = "Important notice", description = "Highlighted important text" },
-        code = { example = "data-attr-class", description = "Inline code snippets" },
         info = { example = "Information notice", description = "Informational text" },
+        danger = { example = "Critical error", description = "Critical error messages" },
         
         -- themeText group (theme colors) - excluding badge and pill
         highlight = { example = "SELECTED", description = "Emphasized text with background" },
@@ -100,7 +99,7 @@ end
 local function createComponentArray(ccgTable, prefix, componentType)
     local componentExamples = {
         -- Badge examples (rectangular)
-        default = { example = "NEW", description = "Default themed badge style" },
+        general = { example = "NEW", description = "General themed badge style" },
         primary = { example = "ACTIVE", description = "Primary themed badge" },
         success = { example = "ONLINE", description = "Success state indicator" },
         warning = { example = "ALERT", description = "Warning state indicator" },
@@ -115,12 +114,12 @@ local function createComponentArray(ccgTable, prefix, componentType)
         pill = { example = "ACTIVE", description = "Legacy themed pill from themeText group" },
     }
     
-    -- For circles, use shorter single-character or number examples
+    -- Circles have different example content
     if componentType == "Circle" then
         componentExamples = {
-            default = { example = "1", description = "Default themed circular indicator" },
+            general = { example = "1", description = "General dark themed circular indicator with gradient" },
             primary = { example = "2", description = "Primary themed circular indicator" },
-            success = { example = "✓", description = "Success state circular indicator" },
+            success = { example = "S", description = "Success state circular indicator" },
             warning = { example = "!", description = "Warning state circular indicator" },
             danger = { example = "X", description = "Error state circular indicator" },
             info = { example = "i", description = "Information state circular indicator" },
@@ -194,11 +193,11 @@ local function initModel()
                 copybutton = "p-0-5 flex gap-2 items-center w-4 h-4 justify-center",
                 classInfo = ccg.definitions.themeText.caption .. " flex-1",
             },
-            copySvgStyles = "h-2-5 w-2-5 mx-0-5",
+            copySvgStyles = "h-2-5 w-2-5 mx-1 mt-0-5",
         },
     
-        -- Theme management - will be dynamically set from current config/context
-        currentTheme = "", -- Will be populated in Initialize from actual current theme
+        -- Theme management
+        currentTheme = "", -- set in init
         availableThemes = {
             { id = "base", name = "Base" },
             { id = "armada", name = "Armada" },
@@ -243,7 +242,7 @@ local function initModel()
         end,
     
         -- ordinarily an expanded and collapsed state should be handled by the model,
-        -- but in this instance the whole widget which gets collapsed has no access to model properties,
+        -- but in this instance the whole widget gets collapsed and has no access to model properties,
         -- so we target it directly.
         toggleExpand = function()
             local model = utils.GetCurrentModel(dm_handle)
@@ -290,7 +289,6 @@ end
 function widget:Shutdown()
     Spring.Echo(WIDGET_ID .. ": Shutting down widget...")
     
-    -- Use the modern utility function to shutdown
     local shutdownParams = {
         widgetId = WIDGET_ID,
         modelName = MODEL_NAME

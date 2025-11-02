@@ -1,7 +1,7 @@
 /* Legion Palette - Green Theme */
 
 @media ( theme: legion ) {
-    /* === Border === */
+    /* === BORDER === */
     .border-bottom-primary { border-bottom: 1dp #7eb141; }
     .border-left-primary { border-left: 1dp #7eb141; }
     .border-right-primary { border-right: 1dp #7eb141; }
@@ -63,17 +63,17 @@
     .bg-primary-dark-alpha { background-color: #3e5a2280; }
     .text-primary-dark-alpha { color: #3e5a2280; }
     .border-primary-dark-alpha { border-color: #3e5a2280; }
-    
-    /* === Box Shadow === */
+
+    /* === BOX SHADOW === */
     .box-shadow-primary { box-shadow: #7eb141 4dp 4dp 0dp 0dp; }
     .box-shadow-glow { box-shadow: 0dp 0dp 20dp #7fb14150; }
     .box-shadow-intense { box-shadow: 0dp 0dp 30dp #7fb14180, 0dp 8dp 32dp rgba(0, 0, 0, 160); }
-    
-    /* === Text Shadow === */
+
+    /* === TEXT SHADOW === */
     .text-shadow-primary { font-effect: shadow( 4px 4px #7eb141 ); }
     .text-glow-primary { font-effect: glow(4px 6px 0px 0px #7eb141); }
 
-    /* === Hovers === */
+    /* === HOVERS === */
     .bg-primary-hover:hover { background-color: #7eb141; }
     .bg-primary-hover-alpha:hover { background-color: #7eb14180; }
     .text-primary-hover:hover { color: #7eb141; }
@@ -99,32 +99,25 @@
     .text-surface-anti-hover:hover { color: rgba(234, 243, 229, 200); }
     .border-surface-anti-hover:hover { border-color: rgba(234, 243, 229, 200); }
 
-    /* inverse hovers for ghost buttons */
+    /* INVERSE HOVERS */
     .bg-primary-inverse-hover:hover { background-color: #7eb141; }
     .text-primary-inverse-hover:hover { color: #2D2D2D; }
 
-    /* === Gradients === */
+    /* === GRADIENTS === */
     /*  color -- alpha */
     .bg-gradient_primary-accent { decorator: linear-gradient(135deg, #7eb141, #5a8030); }
     .bg-gradient_primary-dark { decorator: linear-gradient(135deg, #7eb141, #4a4a4a); }
     .bg-gradient_primary-alpha { decorator: linear-gradient(135deg, #7eb141, #ffffff00); }
-
-    /* === Textured Surface Gradient === */
-    /* this gradient is custom per palette, based on the surface and surface-anti colors and contrast */
-    .bg-gradient_surface-textured {
-        background-color: rgba(152, 132, 105, 128);
-        decorator: repeating-linear-gradient(135deg, transparent 0 3dp, rgba(234, 243, 229, 30) 4dp 5dp),
-            repeating-linear-gradient(0deg, transparent 0 20px, rgba(234, 243, 229, 15) 21px 22px),
-            radial-gradient(ellipse at top left, rgba(234, 243, 229, 128), transparent 70%);
-    }
 
     /* Frosted glass effect using primaries and surface */
     .bg-gradient_glass { 
         decorator: radial-gradient(ellipse at top left, rgba(126, 177, 65, 21), transparent 70%),
                    linear-gradient(135deg, #ffffff18, transparent 30%, rgba(126, 177, 65, 18), transparent 70%, rgba(90, 128, 48, 21)),
                    radial-gradient(ellipse at bottom right, rgba(152, 132, 105, 21), transparent 60%);
+        backdrop-filter: blur(2px);
     }
 
+    /* === DECORATIVE === */
     .divider-horizontal-primary {
         height: 1px;
         decorator: linear-gradient(to right, transparent, rgb(126, 177, 65), transparent);
@@ -137,5 +130,15 @@
         decorator: linear-gradient(to bottom, transparent, rgb(126, 177, 65), transparent);
         margin-left: 8dp;
         margin-right: 8dp;
+    }
+
+    /* === TEXTURED SURFACE GRADIENT === */
+    /* this gradient is custom per palette, based on the surface and surface-anti colors and contrast */
+    .bg-gradient_surface-textured {
+        background-color: rgba(152, 132, 105, 128);
+        decorator:
+            repeating-linear-gradient(135deg, transparent 0 3dp, rgba(234, 243, 229, 30) 4dp 5dp),
+            repeating-linear-gradient(0deg, transparent 0 20px, rgba(234, 243, 229, 15) 21px 22px),
+            radial-gradient(ellipse at top left, rgba(234, 243, 229, 128), transparent 70%);
     }
 }

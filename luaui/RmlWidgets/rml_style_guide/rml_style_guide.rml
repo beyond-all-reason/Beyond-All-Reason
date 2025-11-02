@@ -14,21 +14,32 @@
     <link rel="stylesheet" href="rml_style_guide.rcss" type="text/rcss" />
 </head>
 <body id="rml_style_guide-widget" class="widget-shadow rounded-lg">
-    <div id="widget-container" data-model="rml_style_guide_model" data-attr-class="ccg.sheet.default.container">
-        <div data-attr-class="ccg.text.warning + ' toggle-expand-container'" data-event-click="toggleExpand()">
-            <span data-class-expanded="expanded" class="chevron"></span>
-        </div>
-        <div data-if="!expanded" class="collapsed-title flex items-center justify-center bg-gradient bg-dark">
-            <span class="text-base font-bold text-outline-darker-lg">
+    <div id="widget-container" data-model="rml_style_guide_model" data-attr-class="ccg.sheet.general.container">
+        <!--
+            There is an issue in RMLUI where a click event is not registered if the element triggering mousedown is not the same as the one triggering mouseup.
+            The hacky solution is to add pointer-events: none to all child elements of the clickable container. This way the click event always registers on the parent.
+        -->
+        <div data-if="!expanded" class="collapsed-title flex items-center justify-center bg-gradient bg-dark" data-event-click="toggleExpand()">
+            <span class="text-base font-bold text-outline-darker-lg pe-none">
                 rml style guide
             </span>
+            <div data-attr-class="ccg.text.warning + ' toggle-expand-container pe-none'">
+                <span data-class-expanded="expanded" class="chevron pe-none"></span>
+            </div>
         </div>
-        <!-- Small floating debug buttons -->
-        <div data-visible="expanded" class="debug-controls pl-2 pr-1 pt-2">
-            <button data-attr-class="ccg.text.warning + ' px-1'" onclick="widget:Reload()">reload</button>
-            <button data-attr-class="ccg.text.warning + ' px-1'" onclick="widget:ToggleDebugger()">debug</button>
+        <!-- Debug controls + expand/collapse button -->
+        <div data-visible="expanded" class="debug-controls absolute top right pr-2 pt-2">
+            <button data-attr-class="ccg.text.warning + ' px-1 debug-btn'" onclick="widget:Reload()" title="Reload Widget">
+                <span>reload</span> 
+            </button>
+            <button data-attr-class="ccg.text.warning + ' px-1 debug-btn'" onclick="widget:ToggleDebugger()" title="Toggle Debugger">
+                <span>debug</span>
+            </button>
+            <button data-attr-class="ccg.text.warning + ' toggle-expand-container border rounded border-darkest-alpha bg-dark-alpha p-0-5'" data-event-click="toggleExpand()">
+                <span data-class-expanded="expanded" class="chevron pe-none"></span>
+            </button>
         </div>
-        <div data-if="expanded" data-attr-class="ccg.sheet.default.title + ' flex flex-col justify-between items-center relative min-h-14'">
+        <div data-if="expanded" data-attr-class="ccg.sheet.general.title + ' flex flex-col justify-between items-center relative min-h-14'">
             <span>
                 RMLUI STYLE GUIDE
             </span>
@@ -36,7 +47,7 @@
             <div class="flex flex-row justify-center items-center gap-2 text-sm text-light z-50">
                 <span data-attr-class="ccg.text.body">Theme:</span>
                 <button data-for="theme : availableThemes"
-                        data-attr-class="(currentTheme == theme.id ? ccg.themeButton.default : ccg.button.ghost) + ' text-sm px-3 py-1 text-outline-none rounded transition-bg'"
+                        data-attr-class="(currentTheme == theme.id ? ccg.themeButton.primary : ccg.button.ghost) + ' text-sm px-3 py-1 text-outline-none rounded transition-bg'"
                         data-event-mousedown="switchTheme(theme.id)">
                     <span>{{theme.name}}</span>
                 </button>
@@ -54,9 +65,9 @@
         <nav data-if="expanded" class="flex bg-dark-alpha min-h-8 box-shadow-md z-10" style="gap: 1px;">
             <!-- umm yeh, so this 1px div is here to stop a hover bug in rmlui, will remove later if it gets fixed,
                 remove and you'll see it when you hover the first button -->
-            <div data-attr-class="ccg.themeButton.default" style="width: 1px;"></div>
+            <div data-attr-class="ccg.themeButton.primary" style="width: 1px;"></div>
             <button data-for="tab : tabs" class="transition"
-                data-attr-class="(activeTab == tab.id ? ccg.themeButton.default + ' bg-primary_hover': ccg.button.default) + ' transition-bg p-2-5 font-bold text-outline'"
+                data-attr-class="(activeTab == tab.id ? ccg.themeButton.primary + ' bg-primary_hover': ccg.button.general) + ' transition-bg p-2-5 font-bold text-outline'"
                 data-event-mousedown="activeTab = tab.id">
                 {{ tab.label }}
             </button>
@@ -215,7 +226,7 @@
                                 <div>
                                     <p data-attr-class="ccg.themeText.caption">Add layout:</p>
                                     <div class="p-2 bg-darker rounded text-xs">
-                                        <p class="code-green">ccg.card.default + ' flex flex-col'</p>
+                                        <p class="code-green">ccg.card.general + ' flex flex-col'</p>
                                     </div>
                                 </div>
                                 <div class="mt-2 p-2 bg-dark-alpha rounded border-left-4 border-yellow">
@@ -468,14 +479,16 @@
                 <!-- Circles -->
                 <div class="pl-2">
                     <h3 data-attr-class="ccg.heading.h4">Circles</h3>
-                    <p data-attr-class="ccg.text.body">Perfect circular indicators with fixed dimensions, ideal for counters, status dots, and icon containers.</p>
+                    <p data-attr-class="ccg.text.body">Circular indicators with fixed dimensions, ideal for counters, status dots, and icon containers.</p>
                 </div>
                 <div class="flex flex-col p-2 gap-3">
                     <div data-for="circle, i : circles" class="min-h-16 flex flex-row items-center gap-2 p-2 rounded border-sm border-darker-alpha box-shadow bg-darker-alpha radial-focus-start-feint">
                         <div class="flex-1 p-3 items-center justify-center flex">
-                            <span data-attr-class="circle.styles + ' text-sm text-dark'">
-                                {{ circle.example }}
-                            </span>
+                            <div data-attr-class="circle.styles">
+                                <span>
+                                    {{ circle.example }}
+                                </span>
+                            </div>
                         </div>
                         <div data-attr-class="my.groupCard.container + ' flex-4'">
                             <h3 data-attr-class="my.groupCard.title + ' flex-1'">Class group: {{ circle.class }}</h3>
@@ -584,13 +597,6 @@
                     <h2 data-attr-class="ccg.heading.h4">Content Cards</h2>
                     <p data-attr-class="ccg.text.body">Lightweight content containers with clean styling. Perfect for displaying information, stats, or organizing content into digestible blocks.</p>
                 </div>
-                <!-- <div data-attr-class="my.groupCard.container + ' flex-4'">
-                            <h3 data-attr-class="my.groupCard.title + ' flex-1'">Class group: {{ circle.class }}</h3>
-                            <div class="flex flex-col flex-2">
-                                <span data-attr-class="my.groupCard.description + ' flex-1'">{{ circle.description }}</span>
-                                <span data-attr-class="my.groupCard.classInfo + ' flex-1'">{{ circle.styles }}</span>
-                            </div>
-                        </div> -->
                 <div class="flex flex-col p-2 gap-4">
                     <div data-for="card : cards" class="min-h-24 flex flex-row items-center gap-2 p-2 rounded border-sm border-darker-alpha box-shadow bg-darker-alpha radial-focus-start-feint">
                         <div class="flex-1 p-3 items-center justify-center">
@@ -665,21 +671,7 @@
             <div id="play-panel-section" class="section" data-if="activeTab == 'playPanel'">
                 <div class="pl-2">
                     <h2 data-attr-class="ccg.heading.h4">Play Panel</h2>
-
-                    <div data-attr-class="ccg.sheet.construction.container">
-                        <div data-attr-class="ccg.panel.construction">
-                            <div>
-                                <div data-attr-class="ccg.panel.general + ' flex flex-col gap-4 p-4'">
-                                    <div class="ccg.text.body">
-                                        here is some game Info
-                                        do you want to continue?
-                                    </div>
-                                    <button data-attr-class="ccg.button.success + ' p-2 w-24'">yep</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                                    
+                    <p data-attr-class="ccg.text.body">This is just a spare tab to try things out. Commit no changes to this panel.</p>
                 </div>
             </div>
         </div>

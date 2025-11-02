@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="rml_starter.rcss" type="text/rcss" />
 </head>
 
-<body id="rml-starter-widget" class="widget-shadow rounded-lg">
+<body id="rml_starter-widget" class="widget-shadow rounded-lg">
     <div id="widget-container" data-model="rml_starter_model">
         <!-- Collapsed title bar -->
         <!--

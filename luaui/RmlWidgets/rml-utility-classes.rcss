@@ -28,14 +28,9 @@
 .bottom { bottom: 0; }
 
 /* === Flex === */
-/*
-
-Flex used incorrectly in RMLUI can cause significant performance issues.
-
+/* Flex used incorrectly in RMLUI can cause significant performance issues.
 Can it be done without flexbox for the same effect? If so, prefer other layout methods for better performance.
-
 Otherwise, always assign specific dimensions to parents and flex parts to child elements to minimize layout recalculations.
-
 Read https://mikke89.github.io/RmlUiDoc/pages/rcss/flexboxes.html#performance
 */
 .flex { display: flex; }
@@ -504,6 +499,7 @@ Read https://mikke89.github.io/RmlUiDoc/pages/rcss/flexboxes.html#performance
 /* note that border and border color is not included, it is set instead in the theme files */
 .border { border: 1dp; }
 .border-0 { border: 1dp transparent; }
+.border-px { border: 1px; }
 
 .border-bottom { border-bottom: 1dp; }
 .border-top { border-top: 1dp; }
@@ -547,6 +543,8 @@ Read https://mikke89.github.io/RmlUiDoc/pages/rcss/flexboxes.html#performance
 /* Cursor styles for hovers */
 .cursor-pointer { cursor: pointer; }
 .cursor-default { cursor: default; }
+
+.pe-none { pointer-events: none; }
 
 /* === Z-Index === */
 .z-0 { z-index: 0; }

@@ -1,7 +1,7 @@
 /* Armada Palette - Blue Theme */
 
 @media ( theme: armada ) {
-    /* === Border === */
+    /* === BORDER === */
     .border-bottom-primary { border-bottom: 1dp #2BA5EA; }
     .border-left-primary { border-left: 1dp #2BA5EA; }
     .border-right-primary { border-right: 1dp #2BA5EA; }
@@ -48,7 +48,7 @@
     .text-surface-alpha { color: rgba(34, 52, 78, 128); }
     .border-surface-alpha { border-color: rgba(34, 52, 78, 128); }
 
-    /* === SURFACE-ANTI - LIGHT GREEN (#E7F7D2) === */
+    /* === SURFACE-ANTI - LIGHT LIME GREEN (#E7F7D2) === */
     .bg-surface-anti { background-color: rgb(231, 247, 210); }
     .text-surface-anti { color: rgb(231, 247, 210); }
     .border-surface-anti { border-color: rgb(231, 247, 210); }
@@ -64,16 +64,16 @@
     .text-primary-dark-alpha { color: #1A5C8680; }
     .border-primary-dark-alpha { border-color: #1A5C8680; }
 
-    /* === Box Shadow === */
+    /* === BOX SHADOW === */
     .box-shadow-primary { box-shadow: #2BA5EA 4dp 4dp 0dp 0dp; }
     .box-shadow-glow { box-shadow: 0dp 0dp 20dp #2BA5EA50; }
     .box-shadow-intense { box-shadow: 0dp 0dp 30dp #2BA5EA80, 0dp 8dp 32dp rgba(0, 0, 0, 160); }
-    
-    /* === Text Shadow === */
+
+    /* === TEXT SHADOW === */
     .text-shadow-primary { font-effect: shadow( 4px 4px #2BA5EA ); }
     .text-glow-primary { font-effect: glow(4px 6px 0px 0px #2BA5EA); }
 
-    /* === Hovers === */
+    /* === HOVERS === */
     .bg-primary-hover:hover { background-color: #2BA5EA; }
     .bg-primary-hover-alpha:hover { background-color: #2BA5EA80; }
     .text-primary-hover:hover { color: #2BA5EA; }
@@ -99,33 +99,25 @@
     .text-surface-anti-hover:hover { color: rgba(231, 247, 210, 200); }
     .border-surface-anti-hover:hover { border-color: rgba(231, 247, 210, 200); }
 
-    /* inverse hovers for ghost buttons */
+    /* INVERSE HOVERS */
     .bg-primary-inverse-hover:hover { background-color: #2BA5EA; }
     .text-primary-inverse-hover:hover { color: #2D2D2D; }
 
-    /* === Gradients === */
+    /* === GRADIENTS === */
     /*  color -- alpha */
     .bg-gradient_primary-accent { decorator: linear-gradient(135deg, #2BA5EA, #1F7BB8); }
     .bg-gradient_primary-dark { decorator: linear-gradient(135deg, #2BA5EA, #4a4a4a); }
     .bg-gradient_primary-alpha { decorator: linear-gradient(135deg, #2BA5EA, #ffffff00); }
-
-    /* === Textured Surface Gradient === */
-    /* this gradient is custom per palette, based on the surface and surface-anti colors and contrast */
-    .bg-gradient_surface-textured {
-        background-color: rgba(34, 52, 78, 128);
-        decorator:
-            repeating-linear-gradient(90deg, transparent 0 13px, rgba(231, 247, 210, 8) 14px 15px),
-            repeating-linear-gradient(0deg, transparent 0 10px, rgba(231, 247, 210, 8) 11px 12px),
-            radial-gradient(ellipse at top left, rgba(231, 247, 210, 128), transparent 70%);
-    }
 
     /* Frosted glass effect using primaries and surface */
     .bg-gradient_glass { 
         decorator: radial-gradient(ellipse at top left, rgba(43, 165, 234, 21), transparent 70%),
                    linear-gradient(135deg, #ffffff18, transparent 30%, rgba(43, 165, 234, 18), transparent 70%, rgba(31, 123, 184, 21)),
                    radial-gradient(ellipse at bottom right, rgba(34, 52, 78, 21), transparent 60%);
+        backdrop-filter: blur(2px);
     }
 
+    /* === DECORATIVE === */
     .divider-horizontal-primary {
         height: 1px;
         decorator: linear-gradient(to right, transparent, rgb(43, 165, 234), transparent);
@@ -140,13 +132,13 @@
         margin-right: 8dp;
     }
 
-    .faction-texture {
+    /* === TEXTURED SURFACE GRADIENT === */
+    /* this gradient is custom per palette, based on the surface and surface-anti colors and contrast */
+    .bg-gradient_surface-textured {
+        background-color: rgba(34, 52, 78, 128);
         decorator:
-            image("../rml_style_guide/armada-tileable-v01-mono.png" cover);
-    }
-
-    .faction-texture-tiled {
-        decorator: 
-            image("../rml_style_guide/armada-tileable-v01-alpha-128.png" repeat);
+            repeating-linear-gradient(90deg, transparent 0 13px, rgba(231, 247, 210, 8) 14px 15px),
+            repeating-linear-gradient(0deg, transparent 0 10px, rgba(231, 247, 210, 8) 11px 12px),
+            radial-gradient(ellipse at top left, rgba(231, 247, 210, 128), transparent 70%);
     }
 }

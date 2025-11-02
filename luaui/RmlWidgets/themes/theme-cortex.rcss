@@ -1,7 +1,7 @@
 /* Cortex Palette - Red Theme */
 
 @media ( theme: cortex ) {
-    /* === Border === */
+    /* === BORDER === */
     .border-bottom-primary { border-bottom: 1dp rgb(230, 57, 70); }
     .border-left-primary { border-left: 1dp rgb(230, 57, 70); }
     .border-right-primary { border-right: 1dp rgb(230, 57, 70); }
@@ -64,16 +64,16 @@
     .text-primary-dark-alpha { color: rgba(153, 0, 0, 128); }
     .border-primary-dark-alpha { border-color: rgba(153, 0, 0, 128); }
 
-    /* === Box Shadow === */
+    /* === BOX SHADOW === */
     .box-shadow-primary { box-shadow: rgb(230, 57, 70) 4dp 4dp 0dp 0dp; }
     .box-shadow-glow { box-shadow: 0dp 0dp 20dp rgba(230, 57, 70, 80); }
     .box-shadow-intense { box-shadow: 0dp 0dp 30dp rgba(230, 57, 70, 128), 0dp 8dp 32dp rgba(0, 0, 0, 160); }
-    
-    /* === Text Shadow === */
+
+    /* === TEXT SHADOW === */
     .text-shadow-primary { font-effect: shadow( 4px 4px rgb(230, 57, 70) ); }
     .text-glow-primary { font-effect: glow(4px 6px 0px 0px rgb(230, 57, 70)); }
 
-    /* === Hovers === */
+    /* === HOVERS === */
     .bg-primary-hover:hover { background-color: rgb(230, 57, 70); }
     .bg-primary-hover-alpha:hover { background-color: rgba(230, 57, 70, 128); }
     .text-primary-hover:hover { color: rgb(230, 57, 70); }
@@ -99,32 +99,25 @@
     .text-surface-anti-hover:hover { color: rgba(243, 203, 183, 200); }
     .border-surface-anti-hover:hover { border-color: rgba(243, 203, 183, 200); }
 
-    /* inverse hovers for ghost buttons */
+    /* INVERSE HOVERS */
     .bg-primary-inverse-hover:hover { background-color: rgb(230, 57, 70); }
     .text-primary-inverse-hover:hover { color: #2D2D2D; }
 
-    /* === Gradients === */
+    /* === GRADIENTS === */
     /*  color -- alpha */
     .bg-gradient_primary-accent { decorator: linear-gradient(135deg, rgb(230, 57, 70), rgb(255, 34, 34)); }
     .bg-gradient_primary-dark { decorator: linear-gradient(135deg, rgb(230, 57, 70), #4a4a4a); }
     .bg-gradient_primary-alpha { decorator: linear-gradient(135deg, rgb(230, 57, 70), #ffffff00); }
 
-    /* === Textured Surface Gradient === */
-    /* this gradient is custom per palette, based on the surface and surface-anti colors and contrast */
-    .bg-gradient_surface-textured {
-        background-color: rgba(117, 117, 117, 128);
-        decorator: repeating-linear-gradient(135deg, transparent 0 5px, rgba(243, 203, 183, 5) 6px 7px),
-            repeating-linear-gradient(45deg, transparent 0 12px, rgba(243, 203, 183, 20) 13px 14px),
-            radial-gradient(ellipse at top left, rgba(243, 203, 183, 128), transparent 70%);
-    }
-
-    /* Ultra-premium glass morphism gradient - modern frosted glass effect */
+    /* Frosted glass effect using primaries and surface */
     .bg-gradient_glass { 
         decorator: radial-gradient(ellipse at top left, rgba(230, 57, 70, 21), transparent 70%),
                    linear-gradient(135deg, #ffffff18, transparent 30%, rgba(230, 57, 70, 18), transparent 70%, rgba(255, 34, 34, 21)),
                    radial-gradient(ellipse at bottom right, rgba(117, 117, 117, 21), transparent 60%);
+        backdrop-filter: blur(2px);
     }
 
+    /* === DECORATIVE === */
     .divider-horizontal-primary {
         height: 1px;
         decorator: linear-gradient(to right, transparent, rgb(230, 57, 70), transparent);
@@ -139,4 +132,13 @@
         margin-right: 8dp;
     }
 
+    /* === TEXTURED SURFACE GRADIENT === */
+    /* this gradient is custom per palette, based on the surface and surface-anti colors and contrast */
+    .bg-gradient_surface-textured {
+        background-color: rgba(117, 117, 117, 128);
+        decorator:
+            repeating-linear-gradient(135deg, transparent 0 5px, rgba(243, 203, 183, 5) 6px 7px),
+            repeating-linear-gradient(45deg, transparent 0 12px, rgba(243, 203, 183, 20) 13px 14px),
+            radial-gradient(ellipse at top left, rgba(243, 203, 183, 128), transparent 70%);
+    }
 }
