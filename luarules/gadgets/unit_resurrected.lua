@@ -35,11 +35,11 @@ if (gadgetHandler:IsSyncedCode()) then
 				if rezRulesParam == nil then
 					Spring.SetUnitRulesParam(unitID, "resurrected", 1, {inlos=true})
 				end
-				Spring.SetUnitHealth(unitID, Spring.GetUnitHealth(unitID) * 0.05)
 				if not isBuilding[unitDefID] then
 					Spring.GiveOrderToUnit(unitID, CMD_WAIT, {}, 0)
 				end
 			end
+			Spring.SetUnitHealth(unitID, Spring.GetUnitHealth(unitID) * 0.05)
 		end
 		-- See: https://github.com/beyond-all-reason/spring/pull/471
 		-- if builderID and Spring.GetUnitCurrentCommand(builderID) == CMD.RESURRECT then
