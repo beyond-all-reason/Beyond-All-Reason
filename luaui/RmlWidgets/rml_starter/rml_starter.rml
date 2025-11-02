@@ -538,7 +538,7 @@
                     </div>
 
                     <div data-attr-class="ccg.panel.general + ' box-shadow-none'">
-                        <h2 data-attr-class="ccg.heading.h5">Positioning in BAR</h2>
+                        <h2 data-attr-class="ccg.heading.h2">Positioning in BAR</h2>
                         <p data-attr-class="ccg.text.body + ' mt-1-5'">Each widget is positioned absolutely within the context, which acts as the bounding window. Widgets do not have a master layout system and cannot be positioned relative to each other.</p>
                         <div data-attr-class="ccg.panel.general + ' text-center p-6 m-6'">
                             <div class="m-4">
@@ -561,76 +561,73 @@
                                 <p data-attr-class="ccg.text.body + ' mt-1-5'">Use fixed dp values, avoid percentages for reliable sizing</p>
                             </div>
                         </div>
-                        <div data-attr-class="ccg.panel.info + ' mt-3 p-3'">
-                            <p data-attr-class="ccg.text.warning + ' font-bold mb-1'">Understood Limitation</p>
-                            <p data-attr-class="ccg.text.body">This absolute positioning approach is not a perfect solution, but it serves the current needs where primary UI widget's dimensions will be hard-coded and positioned manually. As development progresses, more dynamic and flexible layout systems may be introduced to provide better widget arrangement and responsive design capabilities at the inter-widget context level.</p>
-                        </div>
                         <div class="mt-4 pl-2">
                             <h3 data-attr-class="ccg.heading.h5">Body Element Positioning</h3>
                             <p data-attr-class="ccg.text.body">Widget dimensions and position are defined on the <span data-attr-class="ccg.badge.info">&lt;body&gt;</span> element with the widget ID:</p>
                             <div data-attr-class="my.codeBlock + ' m-6 p-6'">
                                 <div>#my-widget-widget {</div>
-                                <div class="pl-4">/* Required: Absolute positioning */</div>
-                                <div class="pl-4">position: absolute;</div>
-                                <div class="pl-4"></div>
-                                <div class="pl-4">/* Position relative to context edges */</div>
-                                <div class="pl-4">top: 5%;</div>
-                                <div class="pl-4">right: 10dp;</div>
-                                <div class="pl-4"></div>
-                                <div class="pl-4">/* Hard-coded dimensions */</div>
-                                <div class="pl-4">width: 800dp;</div>
-                                <div class="pl-4">height: 600dp;</div>
-                                <div>}</div>
+                                    <div class="pl-4">/* Required: Absolute positioning */</div>
+                                    <div class="pl-4">position: absolute;</div>
+                                    <div class="pl-4"></div>
+                                    <div class="pl-4">/* Position relative to context edges */</div>
+                                    <div class="pl-4">top: 5%;</div>
+                                    <div class="pl-4">right: 10dp;</div>
+                                    <div class="pl-4"></div>
+                                    <div class="pl-4">/* Hard-coded dimensions */</div>
+                                    <div class="pl-4">width: 800dp;</div>
+                                    <div class="pl-4">height: 600dp;</div>
+                                    <div>}</div>
+                                </div>
+                                <p data-attr-class="ccg.themeText.caption + ' my-2'"><span data-attr-class="ccg.text.warning">Convention:</span> The body ID should be <span class="code-green">widget-name + "-widget"</span> and match your <span class="code-green">.lua</span> filename</p>
                             </div>
-                            <p data-attr-class="ccg.themeText.caption + ' my-2'"><span data-attr-class="ccg.text.warning">Convention:</span> The body ID should be <span class="code-green">widget-name + "-widget"</span> and match your <span class="code-green">.lua</span> filename</p>
-                        </div>
-                        <h3 data-attr-class="ccg.heading.h5 + ' mt-6'">More to Explore</h3>
-                        <div data-attr-class="ccg.panel.general + ' flex flex-row gap-1'">
-                            <div class="flex-1 flex flex-col">
-                                <div class="flex-1">
-                                    <h3 data-attr-class="ccg.heading.h6">Position Values</h3>
-                                    <div class="h-16 border rounded border-dark-alpha p-3 w-28 flex flex-col gap-2">
-                                        <div class="flex justify-center flex-1">
-                                            <span data-attr-class="ccg.badge.info + ' w-8 text-center'">top</span>
+                            <div data-attr-class="ccg.panel.info + ' mt-3 p-3 mx-2'">
+                                <p data-attr-class="ccg.text.warning + ' font-bold mb-1'">Understood Limitation</p>
+                                <p data-attr-class="ccg.text.body">This absolute positioning approach is not a perfect solution, but it serves the current needs where primary UI widget's dimensions will be hard-coded and positioned manually. As development progresses, more dynamic and flexible layout systems may be introduced to provide better widget arrangement and responsive design capabilities at the inter-widget context level.</p>
+                            </div>
+                            <div class="px-2">
+                                <h3 data-attr-class="ccg.heading.h5 + ' mt-6'">More to Explore</h3>
+                                <div data-attr-class="ccg.panel.general + ' flex flex-row gap-1'">
+                                    <div class="flex-1 flex flex-col gap-1 items-center">
+                                        <div class="flex-1">
+                                            <h3 data-attr-class="ccg.heading.h6 + ' text-center'">Position Values</h3>
+                                            <div class="h-16 border rounded border-dark-alpha p-3 w-28 flex flex-col gap-2">
+                                                <div class="flex justify-center flex-1">
+                                                    <span data-attr-class="ccg.badge.info + ' w-8 text-center'">top</span>
+                                                </div>
+                                                <div class="flex justify-between flex-1">
+                                                    <span data-attr-class="ccg.badge.info + ' w-8 text-center'">left</span>
+                                                    <span data-attr-class="ccg.badge.info + ' w-8 text-center'">right</span>
+                                                </div>
+                                                <div class="flex justify-center flex-1">
+                                                    <span data-attr-class="ccg.badge.info + ' w-8 text-center'">bottom</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="flex justify-between flex-1">
-                                            <span data-attr-class="ccg.badge.info + ' w-8 text-center'">left</span>
-                                            <span data-attr-class="ccg.badge.info + ' w-8 text-center'">right</span>
-                                        </div>
-                                        <div class="flex justify-center flex-1">
-                                            <span data-attr-class="ccg.badge.info + ' w-8 text-center'">bottom</span>
+                                        <div class="flex-1">
+                                            <h3 data-attr-class="ccg.heading.h6 + ' text-center'">Dimension Values</h3>
+                                            <div class="flex flex-wrap gap-2 border rounded border-dark-alpha p-3 w-28">
+                                                <span data-attr-class="ccg.badge.success + ' text-center flex-1'">width</span>
+                                                <span data-attr-class="ccg.badge.success + ' text-center flex-1'">height</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="flex-1">
                                     <div class="flex-1">
-                                        <h3 data-attr-class="ccg.heading.h6">Dimension Values</h3>
-                                        <div class="flex flex-wrap gap-2">
-                                            <span data-attr-class="ccg.badge.success">width</span>
-                                            <span data-attr-class="ccg.badge.success">height</span>
+                                        <h3 data-attr-class="ccg.heading.h6">Unit Types</h3>
+                                        <div class="flex flex-col gap-1 border rounded border-dark-alpha p-3">
+                                            <span data-attr-class="ccg.badge.success">dp (density-independent pixels)</span>
+                                            <span data-attr-class="ccg.badge.warning">% (percentages)</span>
+                                            <span data-attr-class="ccg.badge.info">px (CSS pixels)</span>
+                                            <p data-attr-class="ccg.text.body"><strong>dp units</strong> behave like px but can be scaled globally to create scalable UIs. The dp ratio is set globally on the RmlUi context - BAR's <span class="code-green px-1">rml_context_manager</span> handles all dp value setup automatically, adjusting for different screen densities or user preferences.</p>
+                                            <p data-attr-class="ccg.text.caption">Example: <span class="code-green px-1">width: 800dp;</span> creates a scalable width that maintains proportional sizing across different displays</p>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="flex-1">
-                                <h3 data-attr-class="ccg.heading.h5">Unit Types</h3>
-                                <div class="flex flex-col gap-2">
-                                    <span data-attr-class="ccg.pill.success">dp (density-independent pixels)</span>
-                                    <span data-attr-class="ccg.pill.warning">% (percentages)</span>
-                                    <span data-attr-class="ccg.pill.info">px (CSS pixels)</span>
-                                    <p data-attr-class="ccg.text.body"><strong>dp units</strong> behave like px but can be scaled globally to create scalable UIs. The dp ratio is set globally on the RmlUi context - BAR's <span class="code-green px-1">rml_context_manager</span> handles all dp value setup automatically, adjusting for different screen densities or user preferences.</p>
-                                    <p data-attr-class="ccg.text.caption">Example: <span class="code-green px-1">width: 800dp;</span> creates a scalable width that maintains proportional sizing across different displays</p>
-                                </div>
+                                <p data-attr-class="ccg.themeText.caption + ' mt-1-5 text-center font-italic p-4'">In modern web development more advanced layout mechanisms like <strong>display: grid;</strong> are utilized. Absolute positioning here is a response to our unique layout requirements in Beyond All Reason. Always use dp units and hardcoded values before resorting to percentages, aim to reduce layout time wherever possible.</p>
                             </div>
                         </div>
-                        <p data-attr-class="ccg.text.caption + ' flex-2'"><span data-attr-class="ccg.text.warning">Note:</span> Always use dp units and hardcoded values before resorting to percentages, we want to reduce layout time wherever possible.</p>
-                    </div>
-                    <div data-attr-class="ccg.panel.general">
-                        <div data-attr-class="ccg.card.surface + ' text-center mx-6 mt-4'">
-                            <span data-attr-class="ccg.text.warning">Important</span>
-                            <p data-attr-class="ccg.text.body + ' mt-3'">Avoid using percentages for dimensions as they can cause inconsistent sizing across different screen resolutions.</p>
-                        </div>
-                        <p data-attr-class="ccg.themeText.caption + ' mt-4'"><span class="text-warning mr-1"><strong>Note:</strong></span>In modern web development more advanced positioning mechanisms are more commonly utilized and absolute positioning is a response instead to our unique layout requirements in Beyond All Reason. Search for "CSS absolute positioning" and "CSS box model" for comprehensive tutorials.</p>
+                    <div data-attr-class="ccg.card.surface + ' text-center mt-2 mx-1 rounded-lg border border-surface'">
+                        <span data-attr-class="ccg.text.warning">Important</span>
+                        <p data-attr-class="ccg.text.body + ' mt-3'">Avoid using percentages for dimensions as they can cause inconsistent sizing across different screen resolutions.</p>
                     </div>
                 </div>
             </div>
@@ -641,7 +638,7 @@
                     <h1 data-attr-class="ccg.heading.h1">Data Binding</h1>
                 </div>
                 <div class="fixed-header-spacer h-24">you can't see me</div>
-                <p data-attr-class="ccg.text.body + ' px-6'">Data binding automatically updates your UI when data changes. Think of it like React or Vue's reactivity - change a variable in code, the UI updates instantly.</p>
+                <p data-attr-class="ccg.text.body + ' px-6'">Data binding automatically updates your UI when data changes. Think of it like React or Vue's reactive variables, the UI updates instantly once they are changed and ideally only re-renders those elements affected.</p>
                     
                 <div data-attr-class="ccg.sheet.general.content + ' flex flex-col gap-3'">
                     <div data-attr-class="ccg.panel.general + ' flex-col'">
@@ -927,7 +924,7 @@
                                 <p data-attr-class="ccg.text.body">Links to style guide and usage instructions.</p>
                             </div>
                         </div>
-                        <div data-attr-class="ccg.panel.danger + ' mt-3 p-3'">
+                        <div data-attr-class="ccg.panel.danger + ' p-3 mt-6 rounded-lg'">
                             <p data-attr-class="ccg.text.warning + ' font-bold mb-2'">Caution</p>
                             <p data-attr-class="ccg.text.body">Never run a script you do not understand, or that hasn't been verified. The generation script provided is a utility script but when this author is gone, then it may be subject to misuse.</p>
                         </div>
