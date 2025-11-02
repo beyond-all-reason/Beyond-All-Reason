@@ -30,13 +30,15 @@ if (gadgetHandler:IsSyncedCode()) then
     -- detect resurrected units here
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		if builderID and canResurrect[Spring.GetUnitDefID(builderID)] then
-			local rezRulesParam = Spring.GetUnitRulesParam(unitID, "resurrected")
-			if not Spring.Utilities.Gametype.IsScavengers()  and rezRulesParam == nil then
-				Spring.SetUnitRulesParam(unitID, "resurrected", 1, {inlos=true})
-			end
-			Spring.SetUnitHealth(unitID, Spring.GetUnitHealth(unitID) * 0.05)
-			if not isBuilding[unitDefID] then
-				Spring.GiveOrderToUnit(unitID, CMD_WAIT, {}, 0)
+			if not Spring.Utilities.Gametype.IsScavengers() then -- FIXME: Scavengers have constructors which can also resurrect, which f***s over the whole thing.
+				local rezRulesParam = Spring.GetUnitRulesParam(unitID, "resurrected")
+				if rezRulesParam == nil then
+					Spring.SetUnitRulesParam(unitID, "resurrected", 1, {inlos=true})
+				end
+				Spring.SetUnitHealth(unitID, Spring.GetUnitHealth(unitID) * 0.05)
+				if not isBuilding[unitDefID] then
+					Spring.GiveOrderToUnit(unitID, CMD_WAIT, {}, 0)
+				end
 			end
 		end
 		-- See: https://github.com/beyond-all-reason/spring/pull/471
