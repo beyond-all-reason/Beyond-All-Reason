@@ -2,36 +2,31 @@ body {
 	pointer-events: none;
 }
 
-.scorepanel-root,
-.scoreboard-content {
-	font-family: Exo 2;
-	background-color: rgba(50, 50, 50, 60);
-	border-radius: 0.56vh;
-	border-width: 0.14vh;
-	border-color: rgba(30, 30, 30, 150);
-	decorator: image("/luaui/images/stripes-small.png" repeat);
-	image-color: rgba(40, 40, 40, 109);
-}
-
 .scorepanel-root {
 	position: absolute;
 	display: flex;
 	flex-direction: column;
+	background-color: rgba(50, 50, 50, 60);
+	border-radius: 0.56vh;
+	border-width: 0.14vh;
+	border-color: rgba(30, 30, 30, 150);
 	z-index: 1000;
 	pointer-events: auto;
+	font-family: Exo 2;
 	width: 240dp;
 	height: 240dp;
 	overflow: visible;
 	box-sizing: border-box;
 	padding: 6dp;
+	decorator: image("/luaui/images/stripes-small.png" repeat);
+	image-color: rgba(40, 40, 40, 109);
 	left: 87.25vw;
 	top: 100vh;
 	transform: translate(-100%, -100%);
 	gap: 4dp;
 }
 
-.scorepanel-gradient-overlay,
-.scoreboard-gradient-overlay {
+.scorepanel-gradient-overlay {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -54,45 +49,55 @@ body {
 	background-color: transparent;
 }
 
-.scorepanel-left-header,
-.scorepanel-right-header {
+.scorepanel-left-header {
 	display: flex;
 	flex-direction: column;
+	align-items: flex-start;
 	gap: 2dp;
 }
 
-.scorepanel-left-header {
-	align-items: flex-start;
-}
-
 .scorepanel-right-header {
+	display: flex;
+	flex-direction: column;
 	align-items: flex-end;
+	gap: 2dp;
 }
 
-.scorepanel-round-display,
-.scorepanel-rank-display,
+.scorepanel-round-display {
+	color: #ffffff;
+	font-family: Exo 2;
+	font-size: 19dp;
+	font-weight: bold;
+	text-align: right;
+	font-effect: outline(1dp #000000CC);
+}
+
+.scorepanel-round-display.hidden {
+	display: none;
+}
+
+.scorepanel-rank-display {
+	color: #ffffff;
+	font-family: Exo 2;
+	font-size: 19dp;
+	font-weight: bold;
+	text-align: left;
+	font-effect: outline(1dp #000000CC);
+}
+
+.scorepanel-rank-display.hidden {
+	display: none;
+}
+
 .scorepanel-time-display {
 	color: #ffffff;
 	font-family: Exo 2;
 	font-size: 19dp;
 	font-weight: bold;
+	text-align: right;
 	font-effect: outline(1dp #000000CC);
 }
 
-.scorepanel-round-display {
-	text-align: right;
-}
-
-.scorepanel-rank-display {
-	text-align: left;
-}
-
-.scorepanel-time-display {
-	text-align: right;
-}
-
-.scorepanel-round-display.hidden,
-.scorepanel-rank-display.hidden,
 .scorepanel-time-display.hidden {
 	display: none;
 }
@@ -140,7 +145,10 @@ body {
 	font-effect: outline(1dp #000000CC);
 }
 
-.scorepanel-elimination-warning.above-elimination,
+.scorepanel-elimination-warning.above-elimination {
+	background-color: #00800080;
+}
+
 .scorepanel-elimination-warning.next-round {
 	background-color: #00800080;
 }
@@ -205,7 +213,14 @@ body {
 	bottom: 0;
 }
 
-.scorepanel-territory-count,
+.scorepanel-territory-count {
+	color: #ffffff;
+	font-family: Exo 2;
+	font-size: 17dp;
+	font-weight: bold;
+	font-effect: outline(1dp #000000CC);
+}
+
 .scorepanel-territory-points {
 	color: #ffffff;
 	font-family: Exo 2;
@@ -340,7 +355,6 @@ body {
 	white-space: nowrap;
 	font-effect: outline(1.5dp #000000CC);
 }
-
 .scoreboard-panel {
 	position: fixed;
 	left: 0;
@@ -371,11 +385,29 @@ body {
 .scoreboard-content {
 	position: relative;
 	z-index: 2001;
+	background-color: rgba(50, 50, 50, 60);
+	border-radius: 0.56vh;
+	border-width: 0.14vh;
+	border-color: rgba(30, 30, 30, 150);
 	padding: 12dp;
 	min-width: 600dp;
 	max-width: 900dp;
 	overflow-y: auto;
 	pointer-events: auto;
+	decorator: image("/luaui/images/stripes-small.png" repeat);
+	image-color: rgba(40, 40, 40, 109);
+}
+
+.scoreboard-gradient-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	border-radius: 0.56vh;
+	decorator: vertical-gradient( #FFFFFF27 #00000097 );
+	pointer-events: none;
+	z-index: 1;
 }
 
 .scoreboard-header {
@@ -411,24 +443,25 @@ body {
 	font-size: 16dp;
 }
 
-.scoreboard-header-name,
-.scoreboard-name {
+.scoreboard-header-name {
 	color: #ffffff;
 	font-family: Exo 2;
+	font-size: 14dp;
 	font-weight: bold;
 	font-effect: outline(1dp #000000CC);
+	min-width: 120dp;
+	width: auto;
 	white-space: normal;
 	text-align: left;
 }
 
-.scoreboard-header-name {
-	font-size: 14dp;
-	min-width: 120dp;
-	width: auto;
-}
-
 .scoreboard-name {
+	color: #ffffff;
+	font-family: Exo 2;
 	font-size: 16dp;
+	font-weight: bold;
+	font-effect: outline(1dp #000000CC);
+	white-space: normal;
 	display: table-cell;
 	vertical-align: top;
 	overflow-wrap: break-word;
@@ -436,6 +469,7 @@ body {
 	max-width: 320dp;
 	min-width: 160dp;
 	overflow: hidden;
+	text-align: left;
 }
 
 .scoreboard-header-previous,
