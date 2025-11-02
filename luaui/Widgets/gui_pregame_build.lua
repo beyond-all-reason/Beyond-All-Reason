@@ -918,6 +918,13 @@ function widget:MousePress(mx, my, button)
 	end
 
 	if button == 3 then
+		if selBuildQueueDefID then
+			setPreGamestartDefID(nil)
+			buildModeState.startPosition = nil
+			buildModeState.buildPositions = {}
+			return true
+		end
+		
 		setPreGamestartDefID(nil)
 		buildModeState.startPosition = nil
 		buildModeState.buildPositions = {}
@@ -943,6 +950,7 @@ function widget:MousePress(mx, my, button)
 
 			buildQueue[#buildQueue + 1] = buildData
 		end
+		return true
 	end
 
 	if button == 3 and #buildQueue > 0 then
