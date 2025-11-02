@@ -41,15 +41,16 @@ local MODEL_NAME = "quick_start_model"
 local RML_PATH = "luaui/RmlWidgets/gui_quick_start/gui_quick_start.rml"
 local QUICK_START_CONDITION_KEY = "quickStartUnallocatedBudget"
 
-local ENERGY_VALUE_CONVERSION_DIVISOR = 10
+local ENERGY_VALUE_CONVERSION_DIVISOR = 60
+local BUILD_TIME_VALUE_CONVERSION_DIVISOR = 300
 local DEFAULT_INSTANT_BUILD_RANGE = 600
 
 local cachedGameRules = {}
 local lastRulesUpdate = 0
 local RULES_CACHE_DURATION = 0.1
 
-local function calculateBudgetCost(metalCost, energyCost)
-	return metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
+local function calculateBudgetCost(metalCost, energyCost, buildTime)
+	return math.floor((metalCost + energyCost / ENERGY_VALUE_CONVERSION_DIVISOR) + (buildTime / BUILD_TIME_VALUE_CONVERSION_DIVISOR))
 end
 
 local widgetState = {
@@ -89,7 +90,8 @@ local function calculateBudgetWithDiscount(unitDefID, factoryDiscountAmount, sho
 
 	local metalCost = unitDef.metalCost or 0
 	local energyCost = unitDef.energyCost or 0
-	local budgetCost = calculateBudgetCost(metalCost, energyCost)
+	local buildTime = unitDef.buildTime or 0
+	local budgetCost = calculateBudgetCost(metalCost, energyCost, buildTime)
 
 	if unitDef.isFactory and isFirstFactory and shouldApplyDiscount then
 		return math.max(0, budgetCost - factoryDiscountAmount)
@@ -427,7 +429,8 @@ function widget:Initialize()
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		local metalCost = unitDef.metalCost or 0
 		local energyCost = unitDef.energyCost or 0
-		local budgetCost = calculateBudgetCost(metalCost, energyCost)
+		local buildTime = unitDef.buildTime or 0
+		local budgetCost = calculateBudgetCost(metalCost, energyCost, buildTime)
 		
 		local costOverride = {
 			top = { disabled = true },

@@ -36,10 +36,13 @@ local INSTANT_BUILD_RANGE = modOptions.override_quick_start_range > 0 and modOpt
 local QUICK_START_COST_ENERGY = 400      --will be deducted from commander's energy upon start.
 local QUICK_START_COST_METAL = 800       --will be deducted from commander's metal upon start.
 local quickStartAmountConfig = {
-	small = 1000,
-	normal = 1500,
-	large = 3000,
+	small = 800,
+	normal = 1200,
+	large = 2400,
 }
+
+local BUILD_TIME_VALUE_CONVERSION_DIVISOR = 300
+local ENERGY_VALUE_CONVERSION_DIVISOR = 60
 
 -------------------------------------------------------------------------
 
@@ -49,7 +52,6 @@ local BUILD_SPACING = 64
 local COMMANDER_NO_GO_DISTANCE = 100
 local CONVERTER_GRID_DISTANCE = 200
 local BASE_GENERATION_RANGE = 600
-local ENERGY_VALUE_CONVERSION_DIVISOR = 10
 local FACTORY_DISCOUNT = math.huge
 local MAP_CENTER_X = Game.mapSizeX / 2
 local MAP_CENTER_Z = Game.mapSizeZ / 2
@@ -180,7 +182,7 @@ end
 
 for unitDefID, unitDef in pairs(unitDefs) do
 	local metalCost, energyCost = unitDef.metalCost or 0, unitDef.energyCost or 0
-	defMetergies[unitDefID] = metalCost + (energyCost / ENERGY_VALUE_CONVERSION_DIVISOR)
+	defMetergies[unitDefID] = math.floor((metalCost + energyCost / ENERGY_VALUE_CONVERSION_DIVISOR) + (unitDef.buildTime / BUILD_TIME_VALUE_CONVERSION_DIVISOR))
 	if unitDef.extractsMetal > 0 then
 		mexDefs[unitDefID] = true
 	end
