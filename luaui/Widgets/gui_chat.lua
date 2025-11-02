@@ -2118,56 +2118,8 @@ function widget:KeyPress(key)
 
 	local alt, ctrl, _, shift = Spring.GetModKeyState()
 
-	if key == 13 then -- RETURN	 (keypad enter = 271)
-		if showTextInput then
-			if ctrl or alt or shift then
-				-- switch mode
-				if ctrl then
-					inputMode = ''
-				elseif alt and not mySpec then
-					inputMode = (inputMode == 'a:' and '' or 'a:')
-				else
-					inputMode = (inputMode == 's:' and '' or 's:')
-				end
-			else
-				-- send chat/cmd
-				if inputText ~= '' then
-					if ssub(inputText, 1, 1) == '/' then
-						Spring.SendCommands(ssub(inputText, 2))
-					else
-						Spring.SendCommands("say "..inputMode..inputText)
-					end
-				end
-				cancelChatInput()
-			end
-		else
-			cancelChatInput()
-			showTextInput = true
-			if showHistoryWhenChatInput then
-				historyMode = 'chat'
-				maxLinesScroll = maxLinesScrollChatInput
-			end
-			widgetHandler.textOwner = self	-- non handler = true: widgetHandler:OwnText()
-			if not inputHistory[inputHistoryCurrent] or inputHistory[inputHistoryCurrent] ~= '' then
-				if inputHistoryCurrent == 1 or inputHistory[inputHistoryCurrent] ~= inputHistory[inputHistoryCurrent-1] then
-					inputHistoryCurrent = inputHistoryCurrent + 1
-				end
-				inputHistory[inputHistoryCurrent] = ''
-			end
-			if ctrl then
-				inputMode = ''
-			elseif alt then
-				inputMode = mySpec and 's:' or 'a:'
-			elseif shift then
-				inputMode = 's:'
-			end
-			-- again just to be safe, had report locking could still happen
-			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
-		end
-
-		updateTextInputDlist = true
-		return true
-	end
+	--if key == 13 then -- RETURN	 (keypad enter = 271)
+	--end
 
 	if not showTextInput then
 		return false
@@ -2461,6 +2413,102 @@ function widget:PlayerAdded(playerID)
 	end
 end
 
+local function openChatMode()
+	cancelChatInput()
+	showTextInput = true
+	if showHistoryWhenChatInput then
+		historyMode = 'chat'
+		maxLinesScroll = maxLinesScrollChatInput
+	end
+	widgetHandler.textOwner = self	-- non handler = true: widgetHandler:OwnText()
+	if not inputHistory[inputHistoryCurrent] or inputHistory[inputHistoryCurrent] ~= '' then
+		if inputHistoryCurrent == 1 or inputHistory[inputHistoryCurrent] ~= inputHistory[inputHistoryCurrent-1] then
+			inputHistoryCurrent = inputHistoryCurrent + 1
+		end
+		inputHistory[inputHistoryCurrent] = ''
+	end
+	-- again just to be safe, had report locking could still happen
+	Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+end
+
+local function toggleChatCmd()
+	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	
+	if showTextInput then
+		if ctrl or alt or shift then
+			-- switch mode
+			if ctrl then
+				inputMode = ''
+			elseif alt and not mySpec then
+				inputMode = (inputMode == 'a:' and '' or 'a:')
+			else
+				inputMode = (inputMode == 's:' and '' or 's:')
+			end
+		else
+			-- send chat/cmd
+			if inputText ~= '' then
+				if ssub(inputText, 1, 1) == '/' then
+					Spring.SendCommands(ssub(inputText, 2))
+				else
+					Spring.SendCommands("say "..inputMode..inputText)
+				end
+			end
+			cancelChatInput()
+		end
+	else
+		openChatMode()
+		if ctrl then
+			inputMode = ''
+		elseif alt then
+			inputMode = mySpec and 's:' or 'a:'
+		elseif shift then
+			inputMode = 's:'
+		end
+	end
+
+	updateTextInputDlist = true
+	return true
+end
+
+local function toggleChatAllyCmd()
+	if showTextInput then
+		-- switch to ally
+		inputMode = mySpec and '' or 'a:'
+		updateTextInputDlist = true
+	else
+		-- open chat with ally
+		openChatMode()
+		inputMode = mySpec and '' or 'a:'
+	end
+	return true
+end
+
+local function toggleChatAllCmd()
+	if showTextInput then
+		-- switch to all
+		inputMode = ''
+		updateTextInputDlist = true
+	else
+		-- open chat with all
+		openChatMode()
+		inputMode = ''
+	end
+	return true
+end
+
+local function toggleChatSpecCmd()
+	if showTextInput then
+		-- switch to spectators
+		inputMode = 's:'
+		updateTextInputDlist = true
+	else
+		-- open chat with spectators
+		openChatMode()
+		inputMode = 's:'
+	end
+	return true
+end
+
 local function clearconsoleCmd(_, _, params)
 	orgLines = {}
 	chatLines = {}
@@ -2593,6 +2641,10 @@ function widget:Initialize()
 		processAddConsoleLine(params[1], params[2], orgLineID)
 	end
 
+	widgetHandler.actionHandler:AddAction(self, "chat", toggleChatCmd, nil, 'p')
+	widgetHandler.actionHandler:AddAction(self, "chatswitchally", toggleChatAllyCmd, nil, 'p')
+	widgetHandler.actionHandler:AddAction(self, "chatswitchall", toggleChatAllCmd, nil, 'p')
+	widgetHandler.actionHandler:AddAction(self, "chatswitchspec", toggleChatSpecCmd, nil, 'p')
 	widgetHandler.actionHandler:AddAction(self, "clearconsole", clearconsoleCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "hidespecchat", hidespecchatCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "hidespecchatplayer", hidespecchatplayerCmd, nil, 't')
@@ -2623,6 +2675,10 @@ function widget:Shutdown()
 		uiTex = nil
 	end
 
+	widgetHandler.actionHandler:RemoveAction(self, "chat")
+	widgetHandler.actionHandler:RemoveAction(self, "chatswitchally")
+	widgetHandler.actionHandler:RemoveAction(self, "chatswitchall")
+	widgetHandler.actionHandler:RemoveAction(self, "chatswitchspec")
 	widgetHandler.actionHandler:RemoveAction(self, "clearconsole")
 	widgetHandler.actionHandler:RemoveAction(self, "hidespecchat")
 	widgetHandler.actionHandler:RemoveAction(self, "hidespecchatplayer")
