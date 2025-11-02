@@ -204,6 +204,29 @@ for commanderName, nonLabOptions in pairs(commanderNonLabOptions) do
 	end
 end
 
+local function calculateCheapestEconomicStructure()
+	local cheapestCost = math.huge
+	local uniqueUnitNames = {}
+	
+	for commanderName, nonLabOptions in pairs(commanderNonLabOptions) do
+		for optionName, unitName in pairs(nonLabOptions) do
+			uniqueUnitNames[unitName] = true
+		end
+	end
+	
+	for unitName, _ in pairs(uniqueUnitNames) do
+		if unitDefNames[unitName] then
+			local unitDefID = unitDefNames[unitName].id
+			local budgetCost = defMetergies[unitDefID] or math.huge
+			if budgetCost < cheapestCost then
+				cheapestCost = budgetCost
+			end
+		end
+	end
+	
+	return cheapestCost == math.huge and 0 or cheapestCost
+end
+
 local function isBuildCommand(cmdID)
 	return cmdID < 0
 end
@@ -776,6 +799,11 @@ function gadget:GameFrame(frame)
 		end
 	end
 	if initialized and allDiscountsUsed and not running and allBuildsCompleted then
+		for commanderID, comData in pairs(commanders) do
+			if comData.budget and comData.budget > 0 then
+				Spring.AddTeamResource(comData.teamID, "metal", comData.budget)
+			end
+		end
 		gadgetHandler:RemoveGadget()
 	end
 end
@@ -829,6 +857,8 @@ function gadget:Initialize()
 	local finalBudget = modOptions.override_quick_start_resources > 0 and modOptions.override_quick_start_resources or immediateBudget
 	Spring.SetGameRulesParam("quickStartBudgetBase", finalBudget)
 	Spring.SetGameRulesParam("quickStartFactoryDiscountAmount", FACTORY_DISCOUNT)
+	local cheapestEconomicCost = calculateCheapestEconomicStructure()
+	Spring.SetGameRulesParam("quickStartBudgetThresholdToAllowStart", cheapestEconomicCost)
 	if modOptions.quick_start ~= "factory_discount_only" then
 		Spring.SetGameRulesParam("overridePregameBuildDistance", INSTANT_BUILD_RANGE)
 	end
