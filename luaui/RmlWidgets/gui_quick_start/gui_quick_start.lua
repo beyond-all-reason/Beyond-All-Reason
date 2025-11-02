@@ -68,6 +68,11 @@ local widgetState = {
 	deductionElements = {},
 	currentDeductionIndex = 1,
 	lastMousePos = {0, 0},
+	warningsFadedOut = false,
+	warningElements = {
+		warningText = nil,
+		factoryText = nil,
+	},
 }
 
 local initialModel = {
@@ -167,6 +172,16 @@ local function createBudgetBarElements()
 			widgetState.deductionElements[i] = deductionElement
 		end
 	end
+	
+	local warningTextElement = widgetState.document:GetElementById("qs-warning-text")
+	local factoryTextElement = widgetState.document:GetElementById("qs-factory-text")
+	
+	if warningTextElement then
+		widgetState.warningElements.warningText = warningTextElement
+	end
+	if factoryTextElement then
+		widgetState.warningElements.factoryText = factoryTextElement
+	end
 end
 
 local function calculateBudgetForItem(unitDefID, gameRules, shouldApplyDiscount, isFirstFactory)
@@ -246,6 +261,23 @@ local function computeProjectedUsage()
 	}
 end
 
+local function fadeOutWarnings()
+	if widgetState.warningsFadedOut then
+		return
+	end
+	
+	widgetState.warningsFadedOut = true
+	
+	if widgetState.warningElements.warningText then
+		widgetState.warningElements.warningText:SetClass("visible", false)
+		widgetState.warningElements.warningText:SetClass("fade-out", true)
+	end
+	if widgetState.warningElements.factoryText then
+		widgetState.warningElements.factoryText:SetClass("visible", false)
+		widgetState.warningElements.factoryText:SetClass("fade-out", true)
+	end
+end
+
 local function updateDataModel(forceUpdate)
 	if not widgetState.dmHandle then return end
 
@@ -279,6 +311,7 @@ local function updateDataModel(forceUpdate)
 	if widgetState.lastBudgetRemaining > currentBudgetRemaining then
 		local deductionAmount = widgetState.lastBudgetRemaining - currentBudgetRemaining
 		showDeductionAnimation(deductionAmount)
+		fadeOutWarnings()
 	end
 	
 	widgetState.lastQueueLength = currentQueueLength
@@ -410,12 +443,18 @@ function widget:Initialize()
 	if factoryTextElement then
 		if shouldApplyFactoryDiscount then
 			updateUIElementText(document, "qs-factory-text", spI18N('ui.quickStart.placeDiscountedFactory'))
+			factoryTextElement:SetClass("visible", true)
 		else
 			factoryTextElement:SetAttribute("style", "display: none;")
 		end
 	end
 
 	createBudgetBarElements()
+	
+	local warningTextElement = document:GetElementById("qs-warning-text")
+	if warningTextElement then
+		warningTextElement:SetClass("visible", true)
+	end
 
 	if WG['topbar'] and WG['topbar'].setResourceBarsVisible then
 		WG['topbar'].setResourceBarsVisible(false)
@@ -489,6 +528,7 @@ end
 function widget:Update()
 	local currentGameFrame = Spring.GetGameFrame()
 	if currentGameFrame > 0 then
+		fadeOutWarnings()
 		local topbar = WG['topbar']
 		if topbar and topbar.setResourceBarsVisible then
 			topbar.setResourceBarsVisible(true)

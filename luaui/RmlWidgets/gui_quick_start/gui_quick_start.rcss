@@ -185,7 +185,11 @@
 	border-width: 0.09vh;
 	border-color: rgba(255, 255, 255, 0.3);
 	opacity: 0;
-	animation: 10s 5s cubic-in-out 1 fade-in-out;
+}
+
+.qs-warning-text.visible,
+.qs-factory-text.visible {
+	opacity: 1;
 }
 
 .qs-factory-section {
@@ -205,12 +209,16 @@
 	border-width: 0.09vh;
 	border-color: rgba(255, 255, 255, 0.3);
 	opacity: 0;
-	animation: 9s 6s cubic-in-out 1 fade-in-out;
 }
 
-@keyframes fade-in-out {
-	0% { opacity: 0; }
-	10% { opacity: 1; }
-	80% { opacity: 1; }
+.qs-warning-text.fade-out,
+.qs-factory-text.fade-out {
+	opacity: 1;
+	animation: 1.5s cubic-in-out 1 fade-out;
+	animation-fill-mode: forwards;
+}
+
+@keyframes fade-out {
+	0% { opacity: 1; }
 	100% { opacity: 0; }
 }
