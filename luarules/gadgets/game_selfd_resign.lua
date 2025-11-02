@@ -116,11 +116,12 @@ else -- UNSYNCED
 
 	local function forceResignMessage(_, playerID)
 		if playerID == myPlayerID then
-			if not Spring.GetSpectatingState() then
-				-- check first if player has team players
-				local numActiveTeamPlayers = 0
-				local teamList = Spring.GetTeamList(select(6, Spring.GetTeamInfo(myTeamID,false)))
-				for _,tID in ipairs(teamList) do
+		if not Spring.GetSpectatingState() then
+			-- check first if player has team players
+			local numActiveTeamPlayers = 0
+			local allyID = select(6, Spring.GetTeamInfo(myTeamID, false))
+			local teamList = Spring.GetTeamList(allyID)
+			for _,tID in ipairs(teamList) do
 					local luaAI = Spring.GetTeamLuaAI(tID)
 					if tID ~= myTeamID and not select(4, Spring.GetTeamInfo(tID,false)) and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(tID, "numActivePlayers") > 0 then
 						numActiveTeamPlayers = numActiveTeamPlayers + 1
