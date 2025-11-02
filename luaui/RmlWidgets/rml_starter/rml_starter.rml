@@ -188,7 +188,7 @@
 
                     <div data-attr-class="ccg.panel.general + ' flex-col'">
                         <h2 data-attr-class="ccg.heading.h2">Quick Start Steps</h2>
-                        <p data-attr-class="ccg.text.body + ' mt-1-5'">Ready to create your first widget? Check the <strong>Tools tab</strong> for the automated generator script that scaffolds a new widget along with all the best practices and patterns shown in this guide.</p>
+                        <p data-attr-class="ccg.text.body + ' mt-1-5'">Ready to create your first widget? Check the <strong>Tools tab</strong> for an automated generator script which will scaffold a new widget embodying best practices and the patterns shown in this guide.</p>
                         <p data-attr-class="ccg.text.body + ' mt-1-5'">The generator creates a complete widget structure with working examples, so you can start building immediately rather than setting up boilerplate code.</p>
                     </div>
                 </div>
