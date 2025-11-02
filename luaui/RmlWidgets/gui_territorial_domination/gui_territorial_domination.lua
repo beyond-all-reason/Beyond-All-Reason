@@ -52,6 +52,7 @@ local SCORE_UPDATE_INTERVAL = 2.0
 
 local PERCENTAGE_MULTIPLIER = 100
 local TIME_ZERO_STRING = "0:00"
+local KEY_ESCAPE = 27
 
 local GAIA_ALLY_TEAM_ID = select(6, spGetTeamInfo(spGetGaiaTeamID()))
 
@@ -388,20 +389,19 @@ local function updateLeaderboard()
 		teamsContainer:AppendChild(row)
 	end
 	
+	if eliminationThreshold > 0 then
+		separatorTextElement.inner_rml = spI18N('ui.territorialDomination.elimination.threshold', { threshold = eliminationThreshold })
+		separatorElement:SetClass("hidden", false)
+	else
+		separatorElement:SetClass("hidden", true)
+	end
+	
 	if #eliminatedTeams > 0 then
-		if eliminationThreshold > 0 then
-			separatorTextElement.inner_rml = spI18N('ui.territorialDomination.elimination.threshold', { threshold = eliminationThreshold })
-			separatorElement:SetClass("hidden", false)
-		else
-			separatorElement:SetClass("hidden", true)
-		end
 		for i = 1, #eliminatedTeams do
 			local entry = eliminatedTeams[i]
 			local row = buildLeaderboardRow(entry.team, entry.rank, true, not entry.team.isAlive)
 			eliminatedContainer:AppendChild(row)
 		end
-	else
-		separatorElement:SetClass("hidden", true)
 	end
 end
 
@@ -1267,6 +1267,16 @@ end
 
 function widget:ViewResize()
 	calculateUILayout()
+end
+
+function widget:KeyPress(key)
+	if key == KEY_ESCAPE then
+		if widgetState.isLeaderboardVisible then
+			hideLeaderboard()
+			return true
+		end
+	end
+	return false
 end
 
 function widget:DrawScreen()
