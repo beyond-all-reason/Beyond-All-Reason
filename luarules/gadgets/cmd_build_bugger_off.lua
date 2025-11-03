@@ -17,6 +17,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local gameSpeed = Game.gameSpeed
+
 local shouldNotBuggeroff = {}
 local cachedUnitDefs = {}
 local cachedBuilderTeams = {}
@@ -38,9 +40,9 @@ local function willBeNearTarget(unitID, tx, ty, tz, seconds, maxDistance)
 	local vx, vy, vz = Spring.GetUnitVelocity(unitID)
 	if not vx then return false end
 
-	local futureX = ux + vx * seconds * Game.gameSpeed
-	local futureY = uy + vy * seconds * Game.gameSpeed
-	local futureZ = uz + vz * seconds * Game.gameSpeed
+	local futureX = ux + vx * seconds * gameSpeed
+	local futureY = uy + vy * seconds * gameSpeed
+	local futureZ = uz + vz * seconds * gameSpeed
 
 	local dx = futureX - tx
 	local dy = futureY - ty
@@ -74,13 +76,10 @@ local FAST_UPDATE_RADIUS	= 400
 -- builders take about this much to enter build stance; determined empirically
 local BUILDER_DELAY_SECONDS = 3.3
 local BUILDER_BUILD_RADIUS  = 200
-local SEARCH_RADIUS_OFFSET  = 200
-local FAST_UPDATE_FREQUENCY = 30
-local SLOW_UPDATE_FREQUENCY = 60
-local MAX_BUGGEROFF_RADIUS  = 400
-local BUGGEROFF_RADIUS_INCREMENT = FAST_UPDATE_FREQUENCY * 0.5
+local FAST_UPDATE_FREQUENCY = gameSpeed
+local SLOW_UPDATE_FREQUENCY = 2 * gameSpeed
 -- Don't buggeroff units that were ordered to do something recently
-local USER_COMMAND_TIMEOUT	= 60
+local USER_COMMAND_TIMEOUT	= 2 * gameSpeed
 
 local function watchBuilder(builderID)
 	slowUpdateBuilders[builderID]   = nil
