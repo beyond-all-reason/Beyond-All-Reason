@@ -437,6 +437,7 @@ local function cancelChatInput()
 	if selectOptionsList then
 		selectOptionsList = glDeleteList(selectOptionsList)
 	end
+	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil	--widgetHandler:DisownText()
 	if doReinit then
 		init()
@@ -6832,7 +6833,7 @@ function widget:Initialize()
 		-- if Spring.GetConfigInt("snd_volmusic", 50) > 50 then
 		-- 	Spring.SetConfigInt("snd_volmusic", 50)
 		-- end
-		
+
 		-- enable normal mapping
 		if Spring.GetConfigInt("NormalMapping", 0) ~= 1 then
 			Spring.SetConfigInt("NormalMapping", 1)

@@ -163,6 +163,9 @@ for unitName, sound in pairs(unitsOfInterestNames) do
 	if UnitDefNames[unitName] then
 		unitsOfInterest[UnitDefNames[unitName].id] = sound
 	end
+	if UnitDefNames[unitName .. "_scav"] then
+		unitsOfInterest[UnitDefNames[unitName .. "_scav"].id] = sound
+	end
 end
 unitsOfInterestNames = nil
 
@@ -214,25 +217,56 @@ local tutorialPlayed = {}        -- store the number of times a tutorial event h
 local tutorialPlayedThisGame = {}    -- log that a tutorial event has played this game
 
 local unitIsReadyTab = {
-	{ UnitDefNames['armvulc'].id, 												'RagnarokIsReady' },
-	{ UnitDefNames['armbanth'].id, 												'TitanIsReady' },
-	{ UnitDefNames['armepoch'].id, 												'FlagshipIsReady' },
-	{ UnitDefNames['armthor'].id, 												'ThorIsReady' },
-	{ UnitDefNames['corbuzz'].id, 												'CalamityIsReady' },
-	{ UnitDefNames['corkorg'].id, 												'JuggernautIsReady' },
-	{ UnitDefNames['corjugg'].id, 												'BehemothIsReady' },
-	{ UnitDefNames['corblackhy'].id, 											'FlagshipIsReady' },
-	{ UnitDefNames['legstarfall'] and UnitDefNames['legstarfall'].id, 			'StarfallIsReady' },
-	{ UnitDefNames['legelrpcmech'] and UnitDefNames['legelrpcmech'].id, 		'AstraeusIsReady' },
-	{ UnitDefNames['legeheatraymech'] and UnitDefNames['legeheatraymech'].id, 	'SolinvictusIsReady' },
+	{ UnitDefNames['armvulc'].id, 															'RagnarokIsReady' },
+	{ UnitDefNames['armbanth'].id, 															'TitanIsReady' },
+	{ UnitDefNames['armepoch'].id, 															'FlagshipIsReady' },
+	{ UnitDefNames['armthor'].id, 															'ThorIsReady' },
+	{ UnitDefNames['corbuzz'].id, 															'CalamityIsReady' },
+	{ UnitDefNames['corkorg'].id, 															'JuggernautIsReady' },
+	{ UnitDefNames['corjugg'].id, 															'BehemothIsReady' },
+	{ UnitDefNames['corblackhy'].id, 														'FlagshipIsReady' },
+	{ UnitDefNames['legstarfall'] and UnitDefNames['legstarfall'].id, 						'StarfallIsReady' },
+	{ UnitDefNames['legelrpcmech'] and UnitDefNames['legelrpcmech'].id, 					'AstraeusIsReady' },
+	{ UnitDefNames['legeheatraymech'] and UnitDefNames['legeheatraymech'].id, 				'SolinvictusIsReady' },
 }
 
-local isFactoryAir = { [UnitDefNames['armap'].id] = true, [UnitDefNames['corap'].id] = true }
-local isFactorySeaplanes = { [UnitDefNames['armplat'].id] = true, [UnitDefNames['corplat'].id] = true }
-local isFactoryVeh = { [UnitDefNames['armvp'].id] = true, [UnitDefNames['corvp'].id] = true }
-local isFactoryBot = { [UnitDefNames['armlab'].id] = true, [UnitDefNames['corlab'].id] = true }
-local isFactoryHover = { [UnitDefNames['armhp'].id] = true, [UnitDefNames['corhp'].id] = true }
-local isFactoryShip = { [UnitDefNames['armsy'].id] = true, [UnitDefNames['corsy'].id] = true }
+if UnitDefNames["armcom_scav"] then -- quick check if scav units exist
+	local unitIsReadyScavAppend = {}
+	for i = 1,#unitIsReadyTab do
+		if UnitDefNames[UnitDefs[unitIsReadyTab[1][1]].name .. "_scav" ].id then
+			unitIsReadyScavAppend[#unitIsReadyScavAppend+1] = {UnitDefNames[UnitDefs[unitIsReadyTab[i][1]].name .. "_scav" ].id, unitIsReadyTab[i][2]}
+		end
+	end
+	table.append(unitIsReadyTab, unitIsReadyScavAppend)
+end
+
+-- Tutorial stuff, might not be needed soon
+local isFactoryAir = {
+	[UnitDefNames['armap'].id] = true,
+	[UnitDefNames['corap'].id] = true
+}
+local isFactorySeaplanes = { 
+	[UnitDefNames['armplat'].id] = true,
+	[UnitDefNames['corplat'].id] = true
+}
+local isFactoryVeh = { 
+	[UnitDefNames['armvp'].id] = true,
+	[UnitDefNames['corvp'].id] = true
+}
+local isFactoryBot = { 
+	[UnitDefNames['armlab'].id] = true,
+	[UnitDefNames['corlab'].id] = true
+}
+local isFactoryHover = { 
+	[UnitDefNames['armhp'].id] = true,
+	[UnitDefNames['corhp'].id] = true
+}
+local isFactoryShip = { 
+	[UnitDefNames['armsy'].id] = true,
+	[UnitDefNames['corsy'].id] = true
+}
+
+
 local numFactoryAir = 0
 local numFactorySeaplanes = 0
 local numFactoryVeh = 0

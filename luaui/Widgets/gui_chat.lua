@@ -510,7 +510,7 @@ for i = 1, #teams do
 		if isAiTeam then
 			teamNames[teamID] = aiName
 		else
-			local name, _, spec, _ = spGetPlayerInfo(playerID)
+			local name, _, spec, _ = spGetPlayerInfo(playerID, false)
 			name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 			if not spec then
 				teamNames[teamID] = name
@@ -714,6 +714,7 @@ local function cancelChatInput()
 		WG['guishader'].RemoveRect('chatinput')
 		WG['guishader'].RemoveRect('chatinputautocomplete')
 	end
+	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil	-- non handler = true: widgetHandler:DisownText()
 	updateDrawUi = true
 end

@@ -228,7 +228,7 @@ local function processLivingTeams()
 
 	allTeams = Spring.GetTeamList()
 	for _, teamID in ipairs(allTeams) do
-		local _, _, isDead = spGetTeamInfo(teamID)
+		local _, _, isDead = spGetTeamInfo(teamID, false)
 		if not isDead then
 			local allyID = select(6, spGetTeamInfo(teamID))
 

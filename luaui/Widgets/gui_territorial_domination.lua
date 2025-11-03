@@ -353,7 +353,7 @@ local function isAllyTeamAlive(allyTeamID)
 
 	local teamList = spGetTeamList(allyTeamID)
 	for _, teamID in ipairs(teamList) do
-		local _, _, isDead = spGetTeamInfo(teamID)
+		local _, _, isDead = spGetTeamInfo(teamID, false)
 		if not isDead then
 			return true
 		end
@@ -1433,7 +1433,7 @@ function widget:GameFrame(frame)
 				end
 			else
 				local myTeamID = Spring.GetMyTeamID()
-				local _, _, isDead = spGetTeamInfo(myTeamID)
+				local _, _, isDead = spGetTeamInfo(myTeamID, false)
 				if isDead then
 					cleanupCountdowns(myAllyID)
 				end
