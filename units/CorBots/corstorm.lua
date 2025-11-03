@@ -19,7 +19,7 @@ return {
 		maxslope = 14,
 		maxwaterdepth = 21,
 		metalcost = 110,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSTORM.s3o",
@@ -137,12 +137,12 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 190,
+				customparams = {
+					overrange_distance = 547,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					default = 157,
-				},
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 547,
 				},
 			},
 		},

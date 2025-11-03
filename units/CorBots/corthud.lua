@@ -20,7 +20,7 @@ return {
 		maxslope = 14,
 		maxwaterdepth = 12,
 		metalcost = 140,
-		movementclass = "BOT4",
+		movementclass = "BOT3",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORTHUD.s3o",
 		script = "Units/CORTHUD.cob",
@@ -34,7 +34,7 @@ return {
 		turnrate = 1263.84998,
 		upright = true,
 		customparams = {
-			model_author = "Mr Bob, Flaka",
+			model_author = "jjackVII",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBots",
 			unitgroup = "weapon",

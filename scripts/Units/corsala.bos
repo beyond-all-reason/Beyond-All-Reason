@@ -140,27 +140,13 @@ FlameLight()
 FireWeapon1()
 {
 
-	if( gun_1 == 0 )
-	{
-		//move barrel1 to z-axis [-3] speed [9];
-		start-script FlameLight();
-		//emit-sfx 1024 + 0 from flare1;
-		//sleep 334;
-		//wait-for-move barrel1 along z-axis;
-		//move barrel1 to z-axis [0.0] speed [4.5];
-	}
-	if( gun_1 == 1 )
-	{
-		//move barrel2 to z-axis [-3] speed [9];
-		start-script FlameLight();
-		//emit-sfx 1024 + 0 from flare2;
-		//sleep 334;
-		//wait-for-move barrel2 along z-axis;
-		//move barrel2 to z-axis [0.0] speed [4.5];
-	}
-	//sleep 234;
-	gun_1 = !gun_1;
+	start-script FlameLight();
 
+}
+
+EndBurst1()
+{
+	gun_1 = !gun_1;
 }
 
 QueryWeapon1(pieceIndex)

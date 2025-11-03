@@ -20,7 +20,6 @@ end
 local usePrefixedNames = true
 
 local tick = 0.1
-local averageTime = 0.5
 local retainSortTime = 10
 
 local minPerc = 0.005 -- above this value, we fade in how red we mark a widget
@@ -37,8 +36,8 @@ local prefixColor = {
 	game = '\255\166\166\255',
 	cmd = '\255\166\255\255',
 	unit = '\255\255\166\255',
-	map = '\255\122\122\122',
-	dbg = '\255\088\088\088',
+	map = '\255\255\255\080',
+	dbg = '\255\120\120\120',
 }
 
 local spGetLuaMemUsage = Spring.GetLuaMemUsage
@@ -71,10 +70,6 @@ local allOverSpace = 0
 local avgTLoad = {}
 
 local sortedList = {}
-local function SortFunc(a, b)
-	return a.avgTLoad > b.avgTLoad
-	--return a.plainname < b.plainname
-end
 
 local deltaTime
 local redStrength = {}
@@ -94,7 +89,7 @@ local function ConstructPrefixedName (ghInfo)
 	local baseName = ghInfo.basename
 	local _pos = baseName:find("_", 1, true)
 	local prefix = ((_pos and usePrefixedNames) and ((prefixColor[baseName:sub(1, _pos - 1)] and prefixColor[baseName:sub(1, _pos - 1)] or "\255\166\166\166") .. baseName:sub(1, _pos - 1) .. "     ") or "")
-	prefixedWnames[gadgetName] = prefix .. string.char(255, math.random(100, 255), math.random(100, 255), math.random(100, 255)) .. gadgetName .. "   "
+	prefixedWnames[gadgetName] = prefix .. string.char(255, math.random(125, 255), math.random(125, 255), math.random(125, 255)) .. gadgetName .. "   "
 	return prefixedWnames[gadgetName]
 end
 
@@ -135,10 +130,7 @@ function widget:TextCommand(s)
 		if token[2] then
 			tick = tonumber(token[2]) or tick
 		end
-		if token[3] then
-			averageTime = tonumber(token[3]) or averageTime
-		end
-		Spring.Echo("Setting widget profiler to tick=", tick, "averageTime=", averageTime)
+		Spring.Echo("Setting widget profiler to tick=", tick)
 	end
 
 end
@@ -153,11 +145,13 @@ local function IsHook(func)
 	return listOfHooks[func]
 end
 
+local wname2name = {}
 local function Hook(w, name)
 	-- name is the callin
 	local widgetName = w.whInfo.name
 
 	local wname = prefixedWnames[widgetName] or ConstructPrefixedName(w.whInfo)
+	wname2name[wname] = widgetName
 
 	local realFunc = w[name]
 	w["_old" .. name] = realFunc
@@ -392,15 +386,19 @@ function widget:DrawScreen()
 		return
 	end
 
+	local averageTime = Spring.GetConfigFloat("profiler_averagetime", 2)
+
 	-- sort & count timing
 	deltaTime = Spring.DiffTimers(spGetTimer(), startTimer, nil, highres)
 	if deltaTime >= tick then
+
 		startTimer = spGetTimer()
 		sortedList = {}
 
 		allOverTime = 0
 		allOverSpace = 0
 		local n = 1
+		local sortByLoad = Spring.GetConfigInt("profiler_sort_by_load", 1) == 1
 		for wname, callins in pairs(callinStats) do
 			local t = 0 -- would call it time, but protected
 			local cmax_t = 0
@@ -439,14 +437,18 @@ function widget:DrawScreen()
 			local frames = math.min(1 / tick, Spring.GetFPS()) * retainSortTime
 			avgTLoad[wname] = ((avgTLoad[wname]*(frames-1)) + tLoad) / frames
 			local sLoad = spaceLoadAverages[wname]
-			if avgTLoad[wname] >= 0.05 or sLoad >= 5 then -- only show heavy ones
-				sortedList[n] = { plainname = wname, fullname = wname .. ' \255\166\166\166(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = t / deltaTime, avgTLoad = avgTLoad[wname] }
+			if not sortByLoad or avgTLoad[wname] >= 0.05 or sLoad >= 5 then -- only show heavy ones
+				sortedList[n] = { name = wname2name[wname], plainname = wname, fullname = wname .. ' \255\166\166\166(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = t / deltaTime, avgTLoad = avgTLoad[wname] }
 				n = n + 1
 			end
 			allOverTime = allOverTime + tLoad
 			allOverSpace = allOverSpace + sLoad
 		end
-		table.sort(sortedList, SortFunc)
+		if sortByLoad then
+			table.sort(sortedList, function(a, b) return a.avgTLoad > b.avgTLoad end)
+		else
+			table.sort(sortedList, function(a, b) return a.name < b.name end)
+		end
 
 		for i = 1, #sortedList do
 			GetRedColourStrings(sortedList[i])

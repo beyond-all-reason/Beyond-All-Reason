@@ -88,6 +88,7 @@ local function AddEffect(cmdType, x, y, z, osClock, unitID, playerID)
 		playerID = false
 	end
 	local nickname,_,spec,teamID = spGetPlayerInfo(playerID,false)
+	nickname = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or nickname
 	local teamcolor = {}
 	teamcolor[1],teamcolor[2],teamcolor[3] = spGetTeamColor(teamID)
 

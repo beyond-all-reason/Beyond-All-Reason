@@ -49,8 +49,6 @@ return {
 			"legarad",
 			"legajam",
 			"legforti",
-			"corasp",
-			"corfasp",
 			"legtarg",
 			"legsd",
 			"legdeflector",

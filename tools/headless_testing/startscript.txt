@@ -1,6 +1,6 @@
 [GAME]
 {
-	MapName=Supreme Isthmus v1.6.4;
+	MapName=Supreme Isthmus v2.1;
 	GameType=Beyond All Reason $VERSION;
 	GameStartDelay=0;
 	StartPosType=0;

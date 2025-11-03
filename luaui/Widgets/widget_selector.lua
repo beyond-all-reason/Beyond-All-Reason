@@ -184,6 +184,7 @@ end
 
 local function cancelChatInput()
 	clearChatInput()
+	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil	--widgetHandler:DisownText()
 	UpdateList(true)
 end
@@ -309,6 +310,7 @@ local function widgetselectorCmd(_, _, params)
 		Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 		Spring.SetConfigInt("widgetselector", 1)
 	else
+		Spring.SDLStopTextInput()
 		widgetHandler.textOwner = nil		--widgetHandler:DisownText()
 	end
 end
@@ -367,6 +369,7 @@ function widget:Initialize()
 			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 			Spring.SetConfigInt("widgetselector", 1)
 		else
+			Spring.SDLStopTextInput()
 			widgetHandler.textOwner = nil		--widgetHandler:DisownText()
 		end
 	end
@@ -467,8 +470,8 @@ function UpdateList(force)
 
 	if force and WG['guishader']then
 		activeGuishader = false
-		WG['guishader'].DeleteDlist('widgetselector')
-		WG['guishader'].DeleteDlist('widgetselector2')
+		WG['guishader'].RemoveDlist('widgetselector')
+		WG['guishader'].RemoveDlist('widgetselector2')
 		WG['guishader'].RemoveRect('selectorinput')
 		if textInputDlist then
 			textInputDlist = gl.DeleteList(textInputDlist)
@@ -523,6 +526,7 @@ function widget:KeyPress(key, mods, isRepeat)
 				Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 				Spring.SetConfigInt("widgetselector", 1)
 			else
+				Spring.SDLStopTextInput()
 				widgetHandler.textOwner = nil		--widgetHandler:DisownText()
 			end
 		end
@@ -607,8 +611,8 @@ function widget:DrawScreen()
 	if not show then
 		if WG['guishader'] and activeGuishader then
 			activeGuishader = false
-			WG['guishader'].DeleteDlist('widgetselector')
-			WG['guishader'].DeleteDlist('widgetselector2')
+			WG['guishader'].RemoveDlist('widgetselector')
+			WG['guishader'].RemoveDlist('widgetselector2')
 			WG['guishader'].RemoveRect('selectorinput')
 			if textInputDlist then
 				textInputDlist = gl.DeleteList(textInputDlist)
@@ -937,6 +941,7 @@ function widget:MousePress(x, y, button)
 		return true
 	else
 		show = false
+		Spring.SDLStopTextInput()
 		widgetHandler.textOwner = nil		--widgetHandler:DisownText()
 		return false
 	end

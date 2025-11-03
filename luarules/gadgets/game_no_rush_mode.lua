@@ -66,17 +66,28 @@ for _, teamID in ipairs(Spring.GetTeamList()) do
 	end
 end
 
-
 if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
-		gadgetHandler:RegisterAllowCommand(CMD.ANY)
+		gadgetHandler:RegisterAllowCommand(CMD.BUILD)
+
+		local registered = { [CMD.BUILD] = true }
+
+		for _, commandList in ipairs { CommandsToCatchMap, CommandsToCatchUnit, CommandsToCatchFeature } do
+			for command in pairs(commandList) do
+				if not registered[command] then
+					gadgetHandler:RegisterAllowCommand(command)
+					registered[command] = true
+				end
+			end
+		end
 	end
+
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 		local allowed = true
 		local frame = Spring.GetGameFrame()
 
 		if frame < norushtimer and (not TeamIDsToExclude[unitTeam]) then
-			local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(unitTeam)
+			local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(unitTeam, false)
 			if cmdID == CMD.INSERT then
 			  -- CMD.INSERT wraps another command, so we need to extract it
 			  cmdID = cmdParams[2]

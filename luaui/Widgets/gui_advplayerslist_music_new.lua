@@ -18,9 +18,10 @@ Spring.CreateDir("music/custom/loading")
 Spring.CreateDir("music/custom/peace")
 Spring.CreateDir("music/custom/warlow")
 Spring.CreateDir("music/custom/warhigh")
-Spring.CreateDir("music/custom/war")
 Spring.CreateDir("music/custom/interludes")
 Spring.CreateDir("music/custom/bossfight")
+Spring.CreateDir("music/custom/victory")
+Spring.CreateDir("music/custom/defeat")
 Spring.CreateDir("music/custom/gameover")
 Spring.CreateDir("music/custom/menu")
 
@@ -48,11 +49,19 @@ local function applySpectatorThresholds()
 	--Spring.Echo("[Music Player] Spectator mode enabled")
 end
 
+if Spring.GetSpectatingState() or Spring.IsReplay() then
+	victoryConditionAllyID = 999
+else
+	victoryConditionAllyID = Spring.GetLocalAllyTeamID()
+end
+
 math.randomseed( os.clock() )
 
 local peaceTracks = {}
 local warhighTracks = {}
 local warlowTracks = {}
+local victoryTracks = {}
+local defeatTracks = {}
 local gameoverTracks = {}
 local bossFightTracks = {}
 local bonusTracks = {}
@@ -65,7 +74,7 @@ local menuTracks = {}
 local loadingTracks = {}
 
 local currentTrack
-local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, interludeTracksPlayCounter, bossFightTracksPlayCounter, gameoverTracksPlayCounter, eventPeaceTracksPlayCounter, eventWarLowTracksPlayCounter, eventWarHighTracksPlayCounter
+local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, interludeTracksPlayCounter, bossFightTracksPlayCounter, victoryTracksPlayCounter, defeatTracksPlayCounter, gameoverTracksPlayCounter, eventPeaceTracksPlayCounter, eventWarLowTracksPlayCounter, eventWarHighTracksPlayCounter
 local fadeOutSkipTrack = false
 local interruptionEnabled
 local deviceLostSafetyCheck = 0
@@ -98,6 +107,8 @@ local function ReloadMusicPlaylists()
 	local warhighTracksNew 			= VFS.DirList(musicDirNew..'/warhigh', allowedExtensions)
 	local warlowTracksNew 			= VFS.DirList(musicDirNew..'/warlow', allowedExtensions)
 	local interludeTracksNew 		= VFS.DirList(musicDirNew..'/interludes', allowedExtensions)
+	local victoryTracksNew 			= VFS.DirList(musicDirNew..'/victory', allowedExtensions)
+	local defeatTracksNew 			= VFS.DirList(musicDirNew..'/defeat', allowedExtensions)
 	local gameoverTracksNew 		= VFS.DirList(musicDirNew..'/gameover', allowedExtensions)
 	local menuTracksNew 			= VFS.DirList(musicDirNew..'/menu', allowedExtensions)
 	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading', allowedExtensions)
@@ -113,6 +124,8 @@ local function ReloadMusicPlaylists()
 	local warlowTracksCustom 		= VFS.DirList(musicDirCustom..'/warlow', allowedExtensions)
 	local warTracksCustom 			= VFS.DirList(musicDirCustom..'/war', allowedExtensions)
 	local interludeTracksCustom 	= VFS.DirList(musicDirCustom..'/interludes', allowedExtensions)
+	local victoryTracksCustom 		= VFS.DirList(musicDirCustom..'/victory', allowedExtensions)
+	local defeatTracksCustom 		= VFS.DirList(musicDirCustom..'/defeat', allowedExtensions)
 	local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover', allowedExtensions)
 	local menuTracksCustom 			= VFS.DirList(musicDirCustom..'/menu', allowedExtensions)
 	local loadingTracksCustom  		= VFS.DirList(musicDirCustom..'/loading', allowedExtensions)
@@ -126,6 +139,8 @@ local function ReloadMusicPlaylists()
 	peaceTracks = {}
 	warhighTracks = {}
 	warlowTracks = {}
+	victoryTracks = {}
+	defeatTracks = {}
 	gameoverTracks = {}
 	bossFightTracks = {}
 	menuTracks = {}
@@ -165,14 +180,14 @@ local function ReloadMusicPlaylists()
 		table.append(scavTracks, VFS.DirList(musicDirNew..'/events/scavengers/bossfight', allowedExtensions))
 
 		-- April Fools --------------------------------------------------------------------------------------------------------------------
-		if ((tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7) and Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1) then
+		if (Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"] and Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1) then
 			table.append(eventPeaceTracks, VFS.DirList(musicDirNew..'/events/aprilfools/peace', allowedExtensions))
 			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
 			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
 			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/aprilfools/warlow', allowedExtensions))
 			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/aprilfools/warhigh', allowedExtensions))
 			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/aprilfools/interludes', allowedExtensions))
-		elseif (not ((tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7)) and Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1) then
+		elseif ((not Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"]) and Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1) then
 			table.append(peaceTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/peace', allowedExtensions))
 			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
 			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
@@ -188,8 +203,55 @@ local function ReloadMusicPlaylists()
 		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/warhigh', allowedExtensions))
 		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/aprilfools/interludes', allowedExtensions))
 
-		-- Christmas ----------------------------------------------------------------------------------------------------------------------
+		-- Halloween --------------------------------------------------------------------------------------------------------------------
+		if (Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"] and Spring.GetConfigInt('UseSoundtrackHalloween', 1) == 1) then
+			table.append(eventPeaceTracks, VFS.DirList(musicDirNew..'/events/halloween/peace', allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/halloween/war', allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/halloween/war', allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/halloween/warlow', allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/halloween/warhigh', allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/halloween/interludes', allowedExtensions))
+		elseif ((not Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"]) and Spring.GetConfigInt('UseSoundtrackHalloweenPostEvent', 0) == 1) then
+			table.append(peaceTracksNew, VFS.DirList(musicDirNew..'/events/halloween/peace', allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/halloween/war', allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/halloween/war', allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/halloween/warlow', allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/halloween/warhigh', allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/halloween/interludes', allowedExtensions))
+		end
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/menu', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/loading', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/peace', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/war', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/warlow', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/warhigh', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/halloween/interludes', allowedExtensions))
+
+		-- Christmas --------------------------------------------------------------------------------------------------------------------
+		if (Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] and Spring.GetConfigInt('UseSoundtrackXmas', 1) == 1) then
+			table.append(eventPeaceTracks, VFS.DirList(musicDirNew..'/events/xmas/peace', allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/xmas/war', allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/xmas/war', allowedExtensions))
+			table.append(eventWarLowTracks, VFS.DirList(musicDirNew..'/events/xmas/warlow', allowedExtensions))
+			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/xmas/warhigh', allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/xmas/interludes', allowedExtensions))
+		elseif ((not Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"]) and Spring.GetConfigInt('UseSoundtrackXmasPostEvent', 0) == 1) then
+			table.append(peaceTracksNew, VFS.DirList(musicDirNew..'/events/xmas/peace', allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/xmas/war', allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/xmas/war', allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/xmas/warlow', allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/xmas/warhigh', allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/xmas/interludes', allowedExtensions))
+		end
 		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/menu', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/loading', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/peace', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/war', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/warlow', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/warhigh', allowedExtensions))
+		table.append(bonusTracks, VFS.DirList(musicDirNew..'/events/xmas/interludes', allowedExtensions))
+
+		---------------------------------------------------------------------------------------------------------------------------------
 
 		-- Map Music
 		table.append(eventPeaceTracks, VFS.DirList('music/map/peace', allowedExtensions))
@@ -210,6 +272,8 @@ local function ReloadMusicPlaylists()
 		table.append(peaceTracks, peaceTracksNew)
 		table.append(warhighTracks, warhighTracksNew)
 		table.append(warlowTracks, warlowTracksNew)
+		table.append(victoryTracks, victoryTracksNew)
+		table.append(defeatTracks, defeatTracksNew)
 		table.append(gameoverTracks, gameoverTracksNew)
 		table.append(bossFightTracks, bossFightTracksNew)
 		table.append(menuTracks, menuTracksNew)
@@ -223,6 +287,8 @@ local function ReloadMusicPlaylists()
 		table.append(warlowTracks, warlowTracksCustom)
 		table.append(warhighTracks, warTracksCustom)
 		table.append(warlowTracks, warTracksCustom)
+		table.append(victoryTracks, victoryTracksCustom)
+		table.append(defeatTracks, defeatTracksCustom)
 		table.append(gameoverTracks, gameoverTracksCustom)
 		table.append(bossFightTracks, bossFightTracksCustom)
 		table.append(raptorTracks, bossFightTracksCustom)
@@ -242,6 +308,14 @@ local function ReloadMusicPlaylists()
 
 	if #gameoverTracks == 0 then
 		gameoverTracks = peaceTracks
+	end
+
+	if #victoryTracks == 0 then
+		victoryTracks = gameoverTracks
+	end
+
+	if #defeatTracks == 0 then
+		defeatTracks = gameoverTracks
 	end
 
 	if #menuTracks == 0 then
@@ -266,16 +340,18 @@ local function ReloadMusicPlaylists()
 		return shuffledPlaylist
 	end
 
-	peaceTracks 	= shuffleMusic(peaceTracks)
-	warhighTracks 	= shuffleMusic(warhighTracks)
-	warlowTracks 	= shuffleMusic(warlowTracks)
-	interludeTracks = shuffleMusic(interludeTracks)
-	gameoverTracks 	= shuffleMusic(gameoverTracks)
-	bossFightTracks = shuffleMusic(bossFightTracks)
-	eventPeaceTracks = shuffleMusic(eventPeaceTracks)
-	eventWarLowTracks = shuffleMusic(eventWarLowTracks)
+	peaceTracks        = shuffleMusic(peaceTracks)
+	warhighTracks      = shuffleMusic(warhighTracks)
+	warlowTracks       = shuffleMusic(warlowTracks)
+	interludeTracks    = shuffleMusic(interludeTracks)
+	victoryTracks      = shuffleMusic(victoryTracks)
+	defeatTracks       = shuffleMusic(defeatTracks)
+	gameoverTracks     = shuffleMusic(gameoverTracks)
+	bossFightTracks    = shuffleMusic(bossFightTracks)
+	eventPeaceTracks   = shuffleMusic(eventPeaceTracks)
+	eventWarLowTracks  = shuffleMusic(eventWarLowTracks)
 	eventWarHighTracks = shuffleMusic(eventWarHighTracks)
-	bonusTracks = shuffleMusic(bonusTracks)
+	bonusTracks        = shuffleMusic(bonusTracks)
 
 	-- Spring.Echo("----- MUSIC PLAYER PLAYLIST -----")
 	-- Spring.Echo("----- peaceTracks -----")
@@ -327,6 +403,18 @@ local function ReloadMusicPlaylists()
 		bossFightTracksPlayCounter = math.random(#bossFightTracks)
 	else
 		bossFightTracksPlayCounter = 1
+	end
+
+	if #victoryTracks > 1 then
+		victoryTracksPlayCounter = math.random(#victoryTracks)
+	else
+		victoryTracksPlayCounter = 1
+	end
+
+	if #defeatTracks > 1 then
+		defeatTracksPlayCounter = math.random(#defeatTracks)
+	else
+		defeatTracksPlayCounter = 1
 	end
 
 	if #gameoverTracks > 1 then
@@ -844,7 +932,7 @@ function widget:Initialize()
 		local peaceTracksSorted = table.copy(peaceTracks)
 		sortPlaylist(peaceTracksSorted)
 		for k,v in pairs(peaceTracksSorted) do
-			if peaceTracks[k] and not string.find(peaceTracks[k], "/events/") then
+			if peaceTracksSorted[k] and not string.find(peaceTracksSorted[k], "/events/") then
 				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.peace'), processTrackname(v), v}
 			end
 		end
@@ -852,7 +940,7 @@ function widget:Initialize()
 		local warlowTracksSorted = table.copy(warlowTracks)
 		sortPlaylist(warlowTracksSorted)
 		for k,v in pairs(warlowTracksSorted) do
-			if warlowTracks[k] and not string.find(warlowTracks[k], "/events/") then
+			if warlowTracksSorted[k] and not string.find(warlowTracksSorted[k], "/events/") then
 				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warlow'), processTrackname(v), v}
 			end
 		end
@@ -860,7 +948,7 @@ function widget:Initialize()
 		local warhighTracksSorted = table.copy(warhighTracks)
 		sortPlaylist(warhighTracksSorted)
 		for k,v in pairs(warhighTracksSorted) do
-			if warhighTracks[k] and not string.find(warhighTracks[k], "/events/") then
+			if warhighTracksSorted[k] and not string.find(warhighTracksSorted[k], "/events/") then
 				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warhigh'), processTrackname(v), v}
 			end
 		end
@@ -868,7 +956,7 @@ function widget:Initialize()
 		local interludeTracksSorted = table.copy(interludeTracks)
 		sortPlaylist(interludeTracksSorted)
 		for k,v in pairs(interludeTracksSorted) do
-			if interludeTracks[k] and not string.find(interludeTracks[k], "/events/") then
+			if interludeTracksSorted[k] and not string.find(interludeTracksSorted[k], "/events/") then
 				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.interludes'), processTrackname(v), v}
 			end
 		end
@@ -883,6 +971,18 @@ function widget:Initialize()
 		sortPlaylist(scavTracksSorted)
 		for k,v in pairs(scavTracksSorted) do
 			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.scavengers'), processTrackname(v), v}
+		end
+
+		local victoryTracksSorted = table.copy(victoryTracks)
+		sortPlaylist(victoryTracksSorted)
+		for k,v in pairs(victoryTracksSorted) do
+			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.victory'), processTrackname(v), v}
+		end
+
+		local defeatTracksSorted = table.copy(defeatTracks)
+		sortPlaylist(defeatTracksSorted)
+		for k,v in pairs(defeatTracksSorted) do
+			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.defeat'), processTrackname(v), v}
 		end
 
 		local gameoverTracksSorted = table.copy(gameoverTracks)
@@ -1220,6 +1320,15 @@ function PlayNewTrack(paused)
 	if gameOver then
 		currentTrackList = gameoverTracks
 		currentTrackListString = "gameOver"
+		if gameOverState then
+			if gameOverState == "victory" then
+				currentTrackList = victoryTracks
+				currentTrackListString = "victory"
+			elseif gameOverState == "defeat" then
+				currentTrackList = defeatTracks
+				currentTrackListString = "defeat"
+			end
+		end
 		playedGameOverTrack = true
 	elseif bossHasSpawned then
 		currentTrackList = bossFightTracks
@@ -1339,6 +1448,12 @@ function PlayNewTrack(paused)
 		end
 		if currentTrackListString == "gameOver" then
 			currentTrack = currentTrackList[gameoverTracksPlayCounter]
+		end
+		if currentTrackListString == "victory" then
+			currentTrack = currentTrackList[victoryTracksPlayCounter]
+		end
+		if currentTrackListString == "defeat" then
+			currentTrack = currentTrackList[defeatTracksPlayCounter]
 		end
 	elseif #currentTrackList == 0 then
 		return
@@ -1468,7 +1583,24 @@ function widget:GameFrame(n)
 end
 
 function widget:GameOver(winningAllyTeams)
+	Spring.Echo("winningAllyTeams", winningAllyTeams)
 	gameOver = true
+	if victoryConditionAllyID ~= 999 then
+		gameOverState = "defeat"
+		for i = 1, #winningAllyTeams do
+			if winningAllyTeams[i] == victoryConditionAllyID then
+				gameOverState = "victory"
+			end
+		end
+	else
+		gameOverState = "neutral"
+	end
+
+	if (not winningAllyTeams) or (winningAllyTeams and #winningAllyTeams == 0) then
+		gameOverState = "neutral"
+	end
+
+	Spring.Echo("gameOverState", gameOverState)
 end
 
 function widget:GetConfigData(data)

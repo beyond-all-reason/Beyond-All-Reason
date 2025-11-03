@@ -30,8 +30,9 @@ function isAuthorized(playerID)
 	if Spring.IsCheatingEnabled() then
 		return true
 	else
-		local playername = Spring.GetPlayerInfo(playerID, false)
-		if (_G and _G.permissions.devhelpers[playername]) or (SYNCED and SYNCED.permissions.devhelpers[playername]) then
+		local playername,_,_,_,_,_,_,_,_,_,accountInfo = Spring.GetPlayerInfo(playerID)
+		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+		if (_G and _G.permissions.devhelpers[accountID]) or (SYNCED and SYNCED.permissions.devhelpers[accountID]) then
 			if startPlayers == nil or startPlayers[playername] == nil then
 				return true
 			end
@@ -502,11 +503,13 @@ if gadgetHandler:IsSyncedCode() then
 
 			debugcommands = {}
 			local commands = string.split(Spring.GetModOptions().debugcommands, '|')
-			for i,command in ipairs(commands) do
+			for i, command in ipairs(commands) do
 				local cmdsplit = string.split(command,':')
 				if cmdsplit[1] and cmdsplit[2] and tonumber(cmdsplit[1]) then
-					debugcommands[tonumber(cmdsplit[1])] = cmdsplit[2]
-					Spring.Echo("Adding debug command",cmdsplit[1], cmdsplit[2])
+					if not string.find(string.lower(cmdsplit[2]), 'execute', nil, true) then
+						debugcommands[tonumber(cmdsplit[1])] = cmdsplit[2]
+						Spring.Echo("Adding debug command",cmdsplit[1], cmdsplit[2])
+					end
 				end
 			end
 

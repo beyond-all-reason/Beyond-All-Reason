@@ -115,6 +115,7 @@ local callInLists = {
 	"PlayerRemoved",
 
 	"GameFrame",
+	"GameFramePost",
 	"GamePaused",
 
 	"ViewResize",  -- FIXME ?
@@ -1166,6 +1167,17 @@ function gadgetHandler:GameFrame(frameNum)
 	return
 end
 
+function gadgetHandler:GameFramePost(frameNum)
+	callinDepth = 1 -- See notes on GameFrame.
+	tracy.ZoneBeginN("G:GameFramePost")
+	for _, g in r_ipairs(self.GameFramePostList) do
+		tracy.ZoneBeginN("G:GameFramePost:" .. g.ghInfo.name)
+		g:GameFramePost(frameNum)
+		tracy.ZoneEnd()
+	end
+	tracy.ZoneEnd()
+end
+
 function gadgetHandler:GamePaused(playerID, paused)
 	for _, g in ipairs(self.GamePausedList) do
 		g:GamePaused(playerID, paused)
@@ -1343,6 +1355,7 @@ end
 
 local CMD_ANY = CMD.ANY
 local CMD_NIL = CMD.NIL
+local CMD_BUILD = CMD.BUILD
 local allowCommandList = {[CMD_ANY] = {}}
 
 function gadgetHandler:ReorderAllowCommands(gadget, f)
@@ -1481,7 +1494,13 @@ end
 function gadgetHandler:AllowCommand(unitID, unitDefID, unitTeam,
 									cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	local cmdKey = cmdID or CMD_NIL
-	if not allowCommandList[cmdKey] then cmdKey = CMD_ANY end
+	if not allowCommandList[cmdKey] then
+		if type(cmdKey) == "number" and cmdKey < 0 then
+			cmdKey = CMD_BUILD
+		else
+			cmdKey = CMD_ANY
+		end
+	end
 
 	tracy.ZoneBeginN("G:AllowCommand")
 	for _, g in ipairs(allowCommandList[cmdKey]) do
@@ -2133,7 +2152,8 @@ function gadgetHandler:SunChanged()
 	return
 end
 
-function gadgetHandler:Update(deltaTime)
+function gadgetHandler:Update()
+	local deltaTime = Spring.GetLastUpdateSeconds()
 	tracy.ZoneBeginN("G:Update")
 	for _, g in ipairs(self.UpdateList) do
 		tracy.ZoneBeginN("G:Update:" .. g.ghInfo.name)

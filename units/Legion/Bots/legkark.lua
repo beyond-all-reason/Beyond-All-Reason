@@ -22,7 +22,7 @@ return {
 		mass = 210, -- Testing: this unit has resistance to impulse 
 		speed = 42.0,
 		maxwaterdepth = 12,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		name = "Karkinos",
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGKARK.s3o",
