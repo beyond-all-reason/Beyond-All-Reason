@@ -1,4 +1,4 @@
-local gadget = gadget ---@type gadget
+local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
@@ -62,6 +62,9 @@ local function willBeNearTarget(unitID, tx, ty, tz, seconds, maxDistance)
 		return b * b - 4 * a * c >= 0
 	end
 end
+
+local function isInTargetArea(unitID, x, z, radius)
+	local ux, uy, uz = Spring.GetUnitPosition(unitID)
 	if not ux then return false end
 	return math.diag(ux - x, uz - z) <= radius
 end
@@ -128,11 +131,13 @@ local function shouldIssueBuggeroff(builderTeam, interferingUnitID, x, y, z, rad
 		return false
 	end
 
-	if willBeNearTarget(interferingUnitID, x, y, z, BUILDER_DELAY_SECONDS, radius) then
-		return true
+	local lookahead = 0.25
+
+	if not isInTargetArea(interferingUnitID, x, z, radius) then
+		lookahead = BUILDER_DELAY_SECONDS
 	end
 
-	if isInTargetArea(interferingUnitID, x, y, z, radius) then
+	if willBeNearTarget(interferingUnitID, x, y, z, lookahead, radius) then
 		return true
 	end
 
@@ -180,10 +185,14 @@ function gadget:GameFrame(frame)
 					local unitX, _, unitZ = Spring.GetUnitPosition(interferingUnitID)
 					if shouldIssueBuggeroff(cachedBuilderTeams[builderID], interferingUnitID, targetX, targetY, targetZ, buggerOffRadius) then
 						local sendX, sendZ = math.closestPointOnCircle(targetX, targetZ, buggerOffRadius, unitX, unitZ)
-
-						if Spring.TestMoveOrder(Spring.GetUnitDefID(interferingUnitID), sendX, targetY, sendZ) then
-							Spring.GiveOrderToUnit(interferingUnitID, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_INTERNAL, sendX, targetY, sendZ}, CMD.OPT_ALT )
+						for _ = 1, 2 do
+							if not Spring.TestMoveOrder(Spring.GetUnitDefID(interferingUnitID), sendX, targetY, sendZ) then
+								-- It is preferable to move the unit any distance at all toward the move goal. -- fixme: stupid hack
+								sendX = (unitX + sendX) * 0.5
+								sendZ = (unitZ + sendZ) * 0.5
+							end
 						end
+						Spring.GiveOrderToUnit(interferingUnitID, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_INTERNAL, sendX, targetY, sendZ}, CMD.OPT_ALT)
 					end
 				end
 			end
