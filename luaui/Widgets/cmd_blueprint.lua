@@ -3,12 +3,6 @@ local widget = widget ---@type Widget
 -- makes the intent of our usage of Spring.Echo clear
 local FeedbackForUser = Spring.Echo
 
-local SIDES = VFS.Include("gamedata/sides_enum.lua")
-local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
-
----@type table<Blueprint, SerializedBlueprint>
-local serializedInvalidBlueprints = {}
-
 function widget:GetInfo()
 	return {
 		name = "Blueprint",
@@ -214,9 +208,6 @@ local BLUEPRINT_FILE_PATH = "LuaUI/Config/blueprints.json"
 ---@type Blueprint[]
 local blueprints = {}
 
----@type SerializedBlueprint[]
-local filteredOutSerializedBlueprints = {}
-
 local selectedBlueprintIndex = nil
 
 local blueprintPlacementActive = false
@@ -292,17 +283,21 @@ local function setSelectedBlueprintIndex(index)
 end
 
 local function isValidBlueprint(blueprint)
-	if not blueprint or not blueprint.units or #blueprint.units == 0 then
+	if blueprint == nil then
 		return false
 	end
 
-	for _, unit in ipairs(blueprint.units) do
-		if unit.unitDefID and UnitDefs[unit.unitDefID] then
-			return true
-		end
+	if blueprint.hasInvalidUnits then
+		return false
 	end
 
-	return false
+	local buildable, unbuildable = WG["api_blueprint"].getBuildableUnits(blueprint)
+
+	if buildable == 0 then
+		return false
+	end
+
+	return true
 end
 
 local function getNextFilteredBlueprintIndex(startIndex)
@@ -382,12 +377,9 @@ local function postProcessBlueprint(bp)
 	-- precompute some useful information
 	bp.dimensions = pack(WG["api_blueprint"].getBlueprintDimensions(bp))
 	bp.floatOnWater = table.any(bp.units, function(u)
-		return u.unitDefID and UnitDefs[u.unitDefID] and UnitDefs[u.unitDefID].floatOnWater
+		return UnitDefs[u.unitDefID].floatOnWater
 	end)
 	bp.minBuildingDimension = table.reduce(bp.units, function(acc, u)
-		if not u.unitDefID then
-			return acc
-		end
 		local w, h = WG["api_blueprint"].getBuildingDimensions(
 			u.unitDefID,
 			0
@@ -416,6 +408,19 @@ local function createBlueprint(unitIDs, ordered)
 		return
 	end
 
+	local xMin, xMax, zMin, zMax = WG["api_blueprint"].getUnitsBounds(table.map(
+		buildableUnits,
+		function(unitID)
+			local x, y, z = SpringGetUnitPosition(unitID)
+			return {
+				position = { x, y, z },
+				unitDefID = Spring.GetUnitDefID(unitID),
+				facing = Spring.GetUnitBuildFacing(unitID),
+			}
+		end
+	))
+	local center = { (xMin + xMax) / 2, 0, (zMin + zMax) / 2 }
+
 	local blueprint = {
 		spacing = 0,
 		facing = 0,
@@ -425,33 +430,17 @@ local function createBlueprint(unitIDs, ordered)
 			buildableUnits,
 			function(unitID)
 				local x, y, z = SpringGetUnitPosition(unitID)
-				local unitDefID = Spring.GetUnitDefID(unitID)
-				local unitDef = UnitDefs[unitDefID]
-				local unitName = unitDef and unitDef.name or "unknown"
-				
+				local facing = Spring.GetUnitBuildFacing(unitID)
+
 				return {
 					blueprintUnitID = nextBlueprintUnitID(),
-					unitDefID = unitDefID,
-					position = { x, y, z },
-					facing = Spring.GetUnitBuildFacing(unitID),
-					originalName = unitName
+					unitDefID = Spring.GetUnitDefID(unitID),
+					position = subtractPoints({ x, y, z }, center),
+					facing = facing
 				}
 			end
 		)
 	}
-
-	if not isValidBlueprint(blueprint) then
-		FeedbackForUser("[Blueprint] no valid units to save")
-		return
-	end
-
-	local xMin, xMax, zMin, zMax = WG["api_blueprint"].getUnitsBounds(blueprint.units)
-	local center = { (xMin + xMax) / 2, 0, (zMin + zMax) / 2 }
-
-	-- Adjust positions relative to center
-	for _, unit in ipairs(blueprint.units) do
-		unit.position = subtractPoints(unit.position, center)
-	end
 
 	postProcessBlueprint(blueprint)
 
@@ -1100,22 +1089,23 @@ end
 -- saving/loading
 -- ==============
 
+local serializedInvalidBlueprints = {}
+
 ---@param blueprint Blueprint
 ---@return SerializedBlueprint
 local function serializeBlueprint(blueprint)
+	if serializedInvalidBlueprints[blueprint] ~= nil then
+		return serializedInvalidBlueprints[blueprint]
+	end
+
 	return {
 		name = blueprint.name,
 		spacing = blueprint.spacing,
 		facing = blueprint.facing,
 		ordered = blueprint.ordered,
 		units = table.map(blueprint.units, function(blueprintUnit)
-			local unitDef = UnitDefs[blueprintUnit.unitDefID]
-			local unitName = (unitDef and unitDef.name) or "unknown"
-			if blueprintUnit.originalName then
-				unitName = blueprintUnit.originalName
-			end
 			return {
-				unitName = unitName,
+				unitName = UnitDefs[blueprintUnit.unitDefID].name,
 				position = blueprintUnit.position,
 				facing = blueprintUnit.facing
 			}
@@ -1125,20 +1115,32 @@ end
 
 ---@param serializedBlueprint SerializedBlueprint
 ---@return Blueprint
-local function deserializeBlueprint(serializedBlueprint, index)
-	local blueprint = WG["api_blueprint"].createBlueprintFromSerialized(serializedBlueprint)
+local function deserializeBlueprint(serializedBlueprint)
+	local result = table.copy(serializedBlueprint)
+	result.hasInvalidUnits = false
+	result.units = table.map(serializedBlueprint.units, function(serializedBlueprintUnit)
+		local unit = {
+			blueprintUnitID = nextBlueprintUnitID(),
+			position = serializedBlueprintUnit.position,
+			facing = serializedBlueprintUnit.facing
+		}
 
-	if not blueprint or not table.any(blueprint.units, function(u) return u.unitDefID ~= nil end) then
-		local name = serializedBlueprint.name
-		if not name or name == "" then
-			name = "#" .. tostring(index)
+		if UnitDefNames[serializedBlueprintUnit.unitName] then
+			unit.unitDefID = UnitDefNames[serializedBlueprintUnit.unitName].id
+		else
+			result.hasInvalidUnits = true
 		end
-		FeedbackForUser(string.format("[Blueprint] Blueprint '%s' was filtered out as it contains no valid or substitutable units.", name))
-		return nil
+
+		return unit
+	end)
+
+	if not result.hasInvalidUnits then
+		postProcessBlueprint(result)
+	else
+		serializedInvalidBlueprints[result] = serializedBlueprint
 	end
 
-	postProcessBlueprint(blueprint)
-	return blueprint
+	return result
 end
 
 local function loadBlueprintsFromFile()
@@ -1160,16 +1162,7 @@ local function loadBlueprintsFromFile()
 		decoded.savedBlueprints = {}
 	end
 
-	blueprints = {}
-	filteredOutSerializedBlueprints = {}
-	for i, serializedBlueprint in ipairs(decoded.savedBlueprints) do
-		local blueprint = deserializeBlueprint(serializedBlueprint, i)
-		if blueprint then
-			table.insert(blueprints, blueprint)
-		else
-			table.insert(filteredOutSerializedBlueprints, serializedBlueprint)
-		end
-	end
+	blueprints = table.map(decoded.savedBlueprints, deserializeBlueprint)
 
 	if #blueprints == 0 then
 		setSelectedBlueprintIndex(nil)
@@ -1186,17 +1179,15 @@ local function saveBlueprintsToFile()
 		return
 	end
 
-	local activeSerializedBps = table.map(blueprints, serializeBlueprint)
-	local allSerializedBpsToSave = {}
-	table.append(allSerializedBpsToSave, activeSerializedBps)
-	table.append(allSerializedBpsToSave, filteredOutSerializedBlueprints)
-
-	if #allSerializedBpsToSave == 0 then
-		allSerializedBpsToSave = 0
+	local savedBlueprintsToWrite = blueprints
+	if #savedBlueprintsToWrite == 0 then
+		savedBlueprintsToWrite = 0
+	else
+		savedBlueprintsToWrite = table.map(savedBlueprintsToWrite, serializeBlueprint)
 	end
 
 	local encoded = Json.encode({
-		savedBlueprints = allSerializedBpsToSave
+		savedBlueprints = savedBlueprintsToWrite
 	})
 
 	if encoded == nil then
@@ -1222,7 +1213,6 @@ function widget:Initialize()
 	WG['cmd_blueprint'] = {
 		reloadBindings = reloadBindings,
 	}
-	WG['cmd_blueprint'].nextBlueprintUnitID = nextBlueprintUnitID
 
 	loadBlueprintsFromFile()
 	loadedBlueprints = true
@@ -1260,4 +1250,3 @@ function widget:Shutdown()
 	widgetHandler.actionHandler:RemoveAction(self, "buildfacing", "p")
 	widgetHandler.actionHandler:RemoveAction(self, "buildspacing", "p")
 end
-
