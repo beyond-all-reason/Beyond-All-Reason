@@ -127,7 +127,7 @@ local moveDatas = {
 	--critter_crab cormando armaak corcrash armjeth coramph coraak
 	ABOT3 = {
 		crushstrength = CRUSH.LARGE,
-		depthmod = 0,
+		depthMod = 0,
 		footprint = 3,
 		maxslope = SLOPE.DIFFICULT,
 		maxwaterdepth = DEPTH.AMPHIBIOUS,
@@ -137,7 +137,7 @@ local moveDatas = {
 	-- corgarp armbeaver armmar corparrow armprow corseal corsala cormuskrat armcroc armpincer corintr legassistdrone_land corassistdrone armassistdrone legotter corphantom
 	ATANK3 = {
 		crushstrength = CRUSH.MEDIUM + 5,
-		depthmod = 0,
+		depthMod = 0,
 		footprint = 3,
 		maxslope = SLOPE.DIFFICULT,
 		slopeMod = SLOPE_MOD.MODERATE,
@@ -306,7 +306,7 @@ local moveDatas = {
 	-- corshiva armmar armbanth legjav
 	HABOT5 = {
 		crushstrength = CRUSH.HEAVY + 2,
-		depthmod = 0,
+		depthMod = 0,
 		footprint = 5,
 		maxslope = SLOPE.DIFFICULT,
 		maxwaterdepth = DEPTH.AMPHIBIOUS,
@@ -323,7 +323,7 @@ local moveDatas = {
 	-- corkorg legeheatraymech
 	VBOT6 = {
 		crushstrength = CRUSH.HUGE,
-		depthmod = 0,
+		depthMod = 0,
 		footprint = 6,
 		maxslope = SLOPE.DIFFICULT,
 		maxwaterdepth = DEPTH.AMPHIBIOUS,
@@ -459,7 +459,7 @@ local moveDatas = {
 	-- armpwt4 corakt4 armmeatball armassimilator armlunchbox
 	EPICBOT = {
 		crushstrength = CRUSH.MASSIVE,
-		depthmod = 0,
+		depthMod = 0,
 		footprint = 4,
 		maxslope = SLOPE.DIFFICULT,
 		maxwaterdepth = DEPTH.MAXIMUM,
@@ -469,7 +469,7 @@ local moveDatas = {
 	-- corgolt4 armrattet4
 	EPICVEH = {
 		crushstrength = CRUSH.MASSIVE,
-		depthmod = 0,
+		depthMod = 0,
 		footprint = 5,
 		maxslope = SLOPE.DIFFICULT,
 		slopeMod = SLOPE_MOD.MODERATE,
@@ -490,7 +490,7 @@ local moveDatas = {
 	-- armvadert4 armsptkt4 corkargenetht4
 	EPICALLTERRAIN = {
 		crushstrength = CRUSH.MASSIVE,
-		depthmod = 0,
+		depthMod = 0,
 		footprint = 5,
 		maxslope = SLOPE.MAXIMUM,
 		maxwaterdepth = DEPTH.MAXIMUM,
@@ -579,14 +579,19 @@ for moveName, moveData in pairs(moveDatas) do
 		minwaterdepth          = moveData.minwaterdepth,
 		slopeMod               = moveData.slopeMod,
 		speedModClass          = moveData.speedModClass,
+		subMarine 			   = moveData.subMarine,
 		overrideUnitWaterline  = moveData.overrideUnitWaterline,
 	}
+
+	
 
 	setMaxSlope(moveDef)
 
 	if validate(moveDef) then
 		defs[#defs + 1] = moveDef
 	end
+
+	Spring.Echo(moveName, defs)
 end
 
 return defs
