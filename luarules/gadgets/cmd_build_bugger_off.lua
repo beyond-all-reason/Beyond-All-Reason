@@ -84,6 +84,7 @@ local slowUpdateBuilders 	= {}
 local watchedBuilders 		= {}
 local builderRadiusOffsets 	= {}
 local needsUpdate 			= false
+local areaCommandCooldown	= {}
 
 local FAST_UPDATE_RADIUS	= 400
 -- builders take about this much to enter build stance; determined empirically
@@ -97,6 +98,8 @@ local BUGGEROFF_RADIUS_INCREMENT = 4 * Game.squareSize
 local MAX_BUGGEROFF_RADIUS  = BUGGEROFF_RADIUS_INCREMENT * (20 * gameSpeed / SLOW_UPDATE_FREQUENCY)
 -- Don't buggeroff units that were ordered to do something recently
 local USER_COMMAND_TIMEOUT	= 2 * gameSpeed
+-- Cooldown for area commands to prevent mass slowWatchBuilder calls
+local AREA_COMMAND_COOLDOWN = 2 * gameSpeed
 
 local function watchBuilder(builderID)
 	slowUpdateBuilders[builderID]   = nil
@@ -152,6 +155,7 @@ function gadget:GameFrame(frame)
 
 	local visitedTeams = {}
 	local visitedUnits = {}
+	local cylinderCache = {}  -- Cache GetUnitsInCylinder results per location
 
 	for builderID, _ in pairs(watchedBuilders) do
 		local cmdID, _, _, targetX, targetY, targetZ =  Spring.GetUnitCurrentCommand(builderID, 1)
@@ -160,14 +164,28 @@ function gadget:GameFrame(frame)
 		local builderTeam    = Spring.GetUnitTeam(builderID);
 		local targetDistance = targetZ and math.distance2d(targetX, targetZ, x, z)
 
-		if not cmdID or cmdID > -1 or targetDistance > FAST_UPDATE_RADIUS then
+		-- Skip if no valid build command or unit position
+		if not cmdID or cmdID > -1 or not x then
+			if not x then
+				removeBuilder(builderID)
+			else
+				slowWatchBuilder(builderID)
+			end
+		elseif targetDistance > FAST_UPDATE_RADIUS then
 			slowWatchBuilder(builderID)
 
 		elseif not isBuilding and targetDistance < BUILDER_BUILD_RADIUS + cachedUnitDefs[-cmdID].radius and Spring.GetUnitIsBeingBuilt(builderID) == false then
 			local builtUnitDefID	= -cmdID
 			local buggerOffRadius	= cachedUnitDefs[builtUnitDefID].radius + builderRadiusOffsets[builderID]
 			local searchRadius		= buggerOffRadius + SEARCH_RADIUS_OFFSET
-			local interferingUnits	= Spring.GetUnitsInCylinder(targetX, targetZ, searchRadius)
+			
+			-- Use cached cylinder lookup to reduce redundant API calls
+			local cacheKey = string.format("%.0f_%.0f_%.0f", targetX, targetZ, searchRadius)
+			local interferingUnits = cylinderCache[cacheKey]
+			if not interferingUnits then
+				interferingUnits = Spring.GetUnitsInCylinder(targetX, targetZ, searchRadius)
+				cylinderCache[cacheKey] = interferingUnits
+			end
 
 			-- Make sure at least one builder per player is never told to move
 			if (visitedTeams[builderTeam] == nil) then
@@ -214,7 +232,8 @@ function gadget:GameFrame(frame)
 
 	needsUpdate = false
 	for builderID, _ in pairs(slowUpdateBuilders) do
-		local builderCommands   = Spring.GetUnitCommands(builderID, -1)
+		-- Only check first few commands instead of entire queue for performance
+		local builderCommands   = Spring.GetUnitCommands(builderID, 5)
 		local hasBuildCommand, buildCommandFirst = false, false
 		local targetX, targetZ  = 0, 0
 
@@ -226,6 +245,7 @@ function gadget:GameFrame(frame)
 						buildCommandFirst = true
 						targetX, targetZ  = command.params[1], command.params[3]
 					end
+					break  -- Early exit once we find a build command
 				end
 			end
 		end
@@ -263,11 +283,22 @@ function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 		removeBuilder(unitID)
 	end
 	mostRecentCommandFrame[unitID] = nil
+	areaCommandCooldown[unitID] = nil
 end
 
 function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if cachedUnitDefs[unitDefID].isBuilder then
-		slowWatchBuilder(unitID)
+		-- Throttle area command processing to avoid performance spikes with many builders
+		if cmdID < 0 then  -- Build command
+			local lastAreaCommand = areaCommandCooldown[unitID]
+			if not lastAreaCommand or gameFrame - lastAreaCommand >= AREA_COMMAND_COOLDOWN then
+				slowWatchBuilder(unitID)
+				areaCommandCooldown[unitID] = gameFrame
+			end
+		else
+			-- Non-build commands always get tracked
+			slowWatchBuilder(unitID)
+		end
 	end
 	mostRecentCommandFrame[unitID] = gameFrame
 end
