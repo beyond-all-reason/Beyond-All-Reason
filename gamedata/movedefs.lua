@@ -527,6 +527,7 @@ for moveName, moveData in pairs(moveDatas) do
 		minwaterdepth          = moveData.minwaterdepth,
 		slopemod               = moveData.slopemod,
 		speedmodclass          = moveData.speedmodclass,
+		submarine              = moveData.submarine,
 	}
 	setMaxSlope(moveDef)
 	validateDef(moveDef)
