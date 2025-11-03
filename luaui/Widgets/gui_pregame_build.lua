@@ -188,9 +188,9 @@ local function convertBuildQueueFaction(previousFactionSide, currentFactionSide)
 end
 
 local function handleSelectedBuildingConversion(currentSelDefID, prevFactionSide, currentFactionSide, currentSelBuildData)
-	if not currentSelDefID then 
+	if not currentSelDefID then
 		Spring.Log("gui_pregame_build", LOG.WARNING, "handleSelectedBuildingConversion: Called with nil currentSelDefID.")
-		return currentSelDefID 
+		return currentSelDefID
 	end
 
 	local newSelDefID = SubLogic.getEquivalentUnitDefID(currentSelDefID, currentFactionSide)
