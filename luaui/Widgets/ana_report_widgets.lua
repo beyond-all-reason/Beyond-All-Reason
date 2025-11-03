@@ -21,9 +21,10 @@ function widget:Initialize()
 	end
 end
 
--- We are in no rush to report this, so we delay it until the initialization of other widgets is over
+-- Doing it a bit late also hopes to catch the state after people already toggled widgets on/off  
 local REPORT_DELAY_FRAMES = 30
 local MAX_WIDGETS_PER_REPORT = 50
+local MAX_WIDGET_DESCRIPTION_LEN = 100
 local HASH_PER_FRAME = 1
 local EXCLUDE_ZIP = true
 
@@ -87,8 +88,8 @@ function widget:GameFrame(frame)
 		for name, data in pairs(widgetHandler.knownWidgets) do
 			if not (EXCLUDE_ZIP and data.fromZip) then
 				local description = data.desc
-				if description and #description > 100 then
-					description = string.sub(description, 1, 100) .. "..."
+				if description and #description > MAX_WIDGET_DESCRIPTION_LEN then
+					description = string.sub(description, 1, MAX_WIDGET_DESCRIPTION_LEN) .. "..."
 				end
 				widgets[#widgets + 1] = {
 					name = name,

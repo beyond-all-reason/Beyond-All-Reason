@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author  = "uBdead",
 		date    = "Oct 2025",
 		license = "GPL-v2",
-		layer   = -1,
+		layer   = -1, -- expose API at init arbitrarily early, hopefully before want to use the API
 		enabled = true,
 	}
 end
