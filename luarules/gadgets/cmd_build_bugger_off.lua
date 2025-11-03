@@ -50,11 +50,18 @@ local function willBeNearTarget(unitID, tx, ty, tz, seconds, maxDistance)
 	local dx = futureX - tx
 	local dy = futureY - ty
 	local dz = futureZ - tz
-	return math.diag(dx, dy, dz) <= maxDistance
-end
 
-local function isInTargetArea(interferingUnitID, x, y, z, radius)
-	local ux, uy, uz = Spring.GetUnitPosition(interferingUnitID)
+	if math.diag(dx, dy, dz) <= maxDistance then
+		-- Unit is in the target area at the end of the period.
+		return true
+	else
+		-- Test if the unit will pass through the entire area.
+		local a = vx * vx + vy * vy + vz * vz
+		local b = (dx * vx + dy * vy + dz * vz) * 2
+		local c = dx * dx + dy * dy + dz * dz - maxDistance * maxDistance
+		return b * b - 4 * a * c >= 0
+	end
+end
 	if not ux then return false end
 	return math.diag(ux - x, uz - z) <= radius
 end
