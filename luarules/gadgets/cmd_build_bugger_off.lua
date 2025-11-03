@@ -78,6 +78,7 @@ local BUILDER_DELAY_SECONDS = 3.3
 local BUILDER_BUILD_RADIUS  = 200
 local FAST_UPDATE_FREQUENCY = gameSpeed
 local SLOW_UPDATE_FREQUENCY = 2 * gameSpeed
+local BUGGEROFF_RADIUS_INCREMENT = 4 * Game.squareSize
 -- Don't buggeroff units that were ordered to do something recently
 local USER_COMMAND_TIMEOUT	= 2 * gameSpeed
 
