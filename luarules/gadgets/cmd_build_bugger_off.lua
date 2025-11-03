@@ -24,10 +24,13 @@ local cachedUnitDefs = {}
 local cachedBuilderTeams = {}
 local mostRecentCommandFrame = {}
 local gameFrame = 0
+local unitSpeedMax = 0
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isImmobile then
 		shouldNotBuggeroff[unitDefID] = true
+	elseif unitDef.speed > unitSpeedMax and not unitDef.canFly then
+		unitSpeedMax = unitDef.speed
 	end
 
 	cachedUnitDefs[unitDefID] = { radius = unitDef.radius, isBuilder = unitDef.isBuilder}
@@ -76,9 +79,12 @@ local FAST_UPDATE_RADIUS	= 400
 -- builders take about this much to enter build stance; determined empirically
 local BUILDER_DELAY_SECONDS = 3.3
 local BUILDER_BUILD_RADIUS  = 200
+local SEARCH_RADIUS_OFFSET  = unitSpeedMax + 2 * (Game.squareSize * Game.footprintScale)
 local FAST_UPDATE_FREQUENCY = gameSpeed
 local SLOW_UPDATE_FREQUENCY = 2 * gameSpeed
 local BUGGEROFF_RADIUS_INCREMENT = 4 * Game.squareSize
+-- Limit the buggeroff time to 20 seconds, a tortured enough duration:
+local MAX_BUGGEROFF_RADIUS  = BUGGEROFF_RADIUS_INCREMENT * (20 * gameSpeed / SLOW_UPDATE_FREQUENCY)
 -- Don't buggeroff units that were ordered to do something recently
 local USER_COMMAND_TIMEOUT	= 2 * gameSpeed
 
