@@ -79,6 +79,7 @@ function gadget:GameFrame(n)
 			for unitID, check in pairs(toBeUnWaited) do
 				local health = spGetUnitHealth(unitID)
 				if health <= prevHealth[unitID] then -- stopped healing
+					createdFrame[unitID] = nil
 					toBeUnWaited[unitID] = nil
 					prevHealth[unitID] = nil
 					currentCmd = spGetUnitCurrentCommand(unitID, 1)
