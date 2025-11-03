@@ -183,8 +183,9 @@ function gadget:GameFrame(frame)
 					-- Only buggeroff from one build site at a time
 					visitedUnits[interferingUnitID] = true
 					local unitX, _, unitZ = Spring.GetUnitPosition(interferingUnitID)
-					if shouldIssueBuggeroff(cachedBuilderTeams[builderID], interferingUnitID, targetX, targetY, targetZ, buggerOffRadius) then
-						local sendX, sendZ = math.closestPointOnCircle(targetX, targetZ, buggerOffRadius, unitX, unitZ)
+					local unitBuggerRadius = cachedUnitDefs[builtUnitDefID].radius + buggerOffRadius
+					if shouldIssueBuggeroff(cachedBuilderTeams[builderID], interferingUnitID, targetX, targetY, targetZ, unitBuggerRadius) then
+						local sendX, sendZ = math.closestPointOnCircle(targetX, targetZ, unitBuggerRadius, unitX, unitZ)
 						for _ = 1, 2 do
 							if not Spring.TestMoveOrder(Spring.GetUnitDefID(interferingUnitID), sendX, targetY, sendZ) then
 								-- It is preferable to move the unit any distance at all toward the move goal. -- fixme: stupid hack
