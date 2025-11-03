@@ -579,6 +579,7 @@ for moveName, moveData in pairs(moveDatas) do
 		minwaterdepth          = moveData.minwaterdepth,
 		slopeMod               = moveData.slopeMod,
 		speedModClass          = moveData.speedModClass,
+		overrideUnitWaterline  = moveData.overrideUnitWaterline,
 	}
 
 	setMaxSlope(moveDef)
