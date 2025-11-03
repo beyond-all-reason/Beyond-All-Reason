@@ -34,6 +34,8 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetUnitArrayCentroid = Spring.GetUnitArrayCentroid
 local spGetFeatureResurrect = Spring.GetFeatureResurrect
+local spGetUnitTeam = Spring.GetUnitTeam
+local spAreTeamsAllied = Spring.AreTeamsAllied
 
 local myTeamID
 local myAllyTeamID
@@ -385,7 +387,22 @@ local function filterUnits(targetId, cmdX, cmdZ, radius, options, skipAlliedUnit
 	if isEnemyTarget then
 		unitsInArea = spGetUnitsInCylinder(cmdX, cmdZ, radius, Spring.ENEMY_UNITS)
 	elseif not skipAlliedUnits then
-		unitsInArea = spGetUnitsInCylinder(cmdX, cmdZ, radius, myTeamID)
+		local nearbyUnits = spGetUnitsInCylinder(cmdX, cmdZ, radius)
+		if not nearbyUnits then
+			return nil
+		end
+
+		unitsInArea = {}
+		for i = 1, #nearbyUnits do
+			local unitID = nearbyUnits[i]
+			if spAreTeamsAllied(spGetUnitTeam(unitID), myTeamID) then
+				unitsInArea[#unitsInArea + 1] = unitID
+			end
+		end
+
+		if #unitsInArea == 0 then
+			return nil
+		end
 	end
 	if not unitsInArea then
 		return nil
