@@ -124,7 +124,7 @@ local moveDatas = {
 		depthModParams = depthModCrawlingBombs,
 	},
 
-	--critter_crab raptor_land_spiker_basic_t2_v1 cormando raptor_land_spiker_basic_t4_v1 armaak corcrash raptorems2_spectre armjeth coramph coraak
+	--critter_crab cormando armaak corcrash armjeth coramph coraak
 	ABOT3 = {
 		crushstrength = CRUSH.LARGE,
 		depthmod = 0,
@@ -356,6 +356,7 @@ local moveDatas = {
 		maxslope = SLOPE.MAXIMUM,
 		maxwaterslope = SLOPE.MAXIMUM,
 		speedModClass = SPEED_CLASS.Hover,
+		overrideUnitWaterline = false,
 	},
 	-- raptor_land_swarmer_heal_t1_v1 raptor_land_swarmer_basic_t4_v2 raptor_land_swarmer_spectre_t4_v1 raptor_land_swarmer_basic_t4_v1 raptor_land_swarmer_emp_t2_v1 raptor_land_swarmer_basic_t1_v1 raptor_land_kamikaze_emp_t2_v1 raptor_land_spiker_basic_t4_v1
 	--raptor_land_kamikaze_emp_t4_v1 raptor_land_spiker_basic_t2_v1 raptor_land_swarmer_basic_t3_v2 raptor_land_swarmer_basic_t3_v1 raptor_land_swarmer_basic_t3_v3 raptor_land_swarmer_basic_t2_v4 raptor_land_swarmer_basic_t2_v3 raptor_land_swarmer_basic_t2_v2 raptor_land_swarmer_basic_t2_v1 raptor_land_swarmer_brood_t3_v1 raptor_land_swarmer_brood_t4_v1
@@ -370,6 +371,7 @@ local moveDatas = {
 		slopeMod = SLOPE_MOD.MODERATE,
 		maxwaterslope = SLOPE.MAXIMUM,
 		speedModClass = SPEED_CLASS.Hover,
+		overrideUnitWaterline = false,
 	},
 	-- raptor_land_assault_emp_t2_v1 raptoracidassualt raptor_land_assault_basic_t2_v1 raptor_land_assault_basic_t2_v3 raptor_land_swarmer_basic_t2_v2 raptor_land_assault_spectre_t2_v1
 	RAPTORBIGHOVER = {
@@ -381,6 +383,7 @@ local moveDatas = {
 		slopeMod = SLOPE_MOD.MODERATE,
 		maxwaterslope = SLOPE.MAXIMUM,
 		speedModClass = SPEED_CLASS.Hover,
+		overrideUnitWaterline = false,
 	},
 	-- raptor_land_assault_spectre_t4_v1 raptora2 raptor_land_assault_basic_t4_v2
 	RAPTORBIG2HOVER = {
@@ -392,6 +395,7 @@ local moveDatas = {
 		slopeMod = SLOPE_MOD.MODERATE,
 		maxwaterslope = SLOPE.MAXIMUM,
 		speedModClass = SPEED_CLASS.Hover,
+		overrideUnitWaterline = false,
 	},
 	-- raptor_allterrain_swarmer_basic_t2_v1 raptor_allterrain_swarmer_basic_t4_v1 raptor_allterrain_swarmer_basic_t3_v1 raptor_allterrain_swarmer_acid_t2_v1 raptor_allterrain_swarmer_fire_t2_v1 raptor_6legged_I raptoreletricalallterrain
 	RAPTORALLTERRAINHOVER = {
@@ -401,6 +405,7 @@ local moveDatas = {
 		maxwaterdepth = DEPTH.AMPHIBIOUS,
 		maxwaterslope = SLOPE.EXTREME,
 		speedModClass = SPEED_CLASS.Hover,
+		overrideUnitWaterline = false,
 	},
 	-- raptor_allterrain_arty_basic_t2_v1 raptor_allterrain_arty_acid_t2_v1 raptor_allterrain_arty_acid_t4_v1 raptor_allterrain_arty_emp_t2_v1 raptor_allterrain_arty_emp_t4_v1 raptor_allterrain_arty_brood_t2_v1 raptoracidalllterrrainassual
 	--raptor_allterrain_swarmer_emp_t2_v1assualt raptor_allterrain_assault_basic_t2_v1 raptoraallterraina1 raptoraallterrain1c raptoraallterrain1b
@@ -411,6 +416,7 @@ local moveDatas = {
 		maxwaterdepth = DEPTH.AMPHIBIOUS,
 		maxwaterslope = SLOPE.EXTREME,
 		speedModClass = SPEED_CLASS.Hover,
+		overrideUnitWaterline = false,
 	},
 	-- raptor_allterrain_arty_basic_t4_v1 raptor_allterrain_arty_brood_t4_v1 raptorapexallterrainassualt raptorapexallterrainassualtb
 	RAPTORALLTERRAINBIG2HOVER = {
@@ -420,9 +426,10 @@ local moveDatas = {
 		maxwaterdepth = DEPTH.AMPHIBIOUS,
 		maxwaterslope = SLOPE.EXTREME,
 		speedModClass = SPEED_CLASS.Hover,
+		overrideUnitWaterline = false,
 	},
 
-	-- leghive armnanotc cornanotc cornanotcplat  raptor_worm_green raptor_turret_acid_t2_v1 raptor_turret_meteor_t4_v1
+	-- leghive armnanotc cornanotc cornanotcplat
 	NANO = {
 		crushstrength = CRUSH.NONE,
 		footprint = 3,
