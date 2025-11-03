@@ -12,7 +12,7 @@ function widget:GetInfo()
 		author = "SuperKitowiec. Based on Specific Unit Reclaimer and Loader by Google Frog",
 		date = "October 16, 2025",
 		license = "GNU GPL, v2 or later",
-		layer = -1,
+		layer = -1, -- Has to be run before Smart Area Reclaim widget
 		enabled = true
 	}
 end
