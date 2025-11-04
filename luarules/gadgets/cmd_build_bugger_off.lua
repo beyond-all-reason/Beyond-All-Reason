@@ -200,9 +200,15 @@ function gadget:GameFrame(frame)
 			-- if there are many units in the way, they may cause a traffic jam and need to clear more room.
 			builderRadiusOffsets[builderID] = builderRadiusOffsets[builderID] + BUGGEROFF_RADIUS_INCREMENT
 
-			for _, interferingUnitID in ipairs(interferingUnits) do
-				if builderID ~= interferingUnitID and not visitedUnits[interferingUnitID] and Spring.GetUnitIsBeingBuilt(interferingUnitID) == false then
+			for _, unitID in ipairs(interferingUnits) do
+				if builderID ~= unitID and not visitedUnits[unitID] and Spring.GetUnitIsBeingBuilt(unitID) == false then
 					-- Only buggeroff from one build site at a time
+					visitedUnits[unitID] = true
+					local unitX, _, unitZ = Spring.GetUnitPosition(unitID)
+					local unitDefID  = Spring.GetUnitDefID(unitID)
+					local unitRadius = cachedUnitDefs[unitDefID].radius
+					local areaRadius = math.max(buggerOffRadius, buildDefRadius + unitRadius) -- tells very big lads to move sooner
+					if shouldIssueBuggeroff(cachedBuilderTeams[builderID], unitID, unitDefID, targetX, targetZ, areaRadius) then
 						local sendX, sendZ = math.closestPointOnCircle(targetX, targetZ, buggerOffRadius + unitRadius, unitX, unitZ)
 						if Spring.TestMoveOrder(Spring.GetUnitDefID(unitID), sendX, targetY, sendZ) then
 							Spring.GiveOrderToUnit(unitID, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_INTERNAL, sendX, targetY, sendZ}, CMD.OPT_ALT)
