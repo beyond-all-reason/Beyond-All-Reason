@@ -59,28 +59,36 @@ local USER_COMMAND_TIMEOUT	= 2 * gameSpeed
 local AREA_COMMAND_COOLDOWN = 2 * gameSpeed
 
 local function willBeNearTarget(unitID, tx, tz, maxDistance)
-    local ux, uy, uz = Spring.GetUnitPosition(unitID)
-    if not ux then return false end
+	local ux, uy, uz = Spring.GetUnitPosition(unitID)
+	if not ux then return false end
 
 	local vx, vy, vz = Spring.GetUnitVelocity(unitID)
 	if not vx then return false end
 
-	local futureX = ux + vx * seconds * gameSpeed
-	local futureY = uy + vy * seconds * gameSpeed
-	local futureZ = uz + vz * seconds * gameSpeed
+	local sx = ux - tx
+	local sz = uz - tz
 
-	local dx = futureX - tx
-	local dy = futureY - ty
-	local dz = futureZ - tz
+	-- If unit starts in area, allow to leave quickly; else, check over a long period.
+	local seconds = math.diag(sx, sz) <= maxDistance and 0.5 or BUILDER_DELAY_SECONDS
+	local dx = ux + vx * seconds - tx
+	local dz = uz + vz * seconds - tz
 
-	if math.diag(dx, dy, dz) <= maxDistance then
-		-- Unit is in the target area at the end of the period.
+	if math.diag(dx, dz) <= maxDistance then
+		-- Unit ends within the area after `seconds`.
 		return true
+	end
+
+	local ix = tx - ux
+	local iz = tz - uz
+
+	if math.diag(ix , iz) > maxDistance then
+		-- The unit starts within the area but does not end in it.
+		return false
 	else
-		-- Test if the unit will pass through the entire area.
-		local a = vx * vx + vy * vy + vz * vz
-		local b = (dx * vx + dy * vy + dz * vz) * 2
-		local c = dx * dx + dy * dy + dz * dz - maxDistance * maxDistance
+		-- Check whether or not the unit passes through the area.
+		local a = vx * vx + vz * vz
+		local b = (ix * vx + iz * vz) * 2
+		local c = ix * ix + iz * iz - maxDistance * maxDistance
 		return b * b - 4 * a * c >= 0
 	end
 end
@@ -122,26 +130,20 @@ local function slowWatchBuilder(builderID)
 	needsUpdate = true
 end
 
-local function shouldIssueBuggeroff(builderTeam, interferingUnitID, x, y, z, radius)
-	if Spring.AreTeamsAllied(Spring.GetUnitTeam(interferingUnitID), builderTeam) == false then
+local function shouldIssueBuggeroff(builderTeam, unitID, unitDefID, x, z, radius)
+	if Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID), builderTeam) == false then
 		return false
 	end
 
-	if shouldNotBuggeroff[Spring.GetUnitDefID(interferingUnitID)] then
+	if shouldNotBuggeroff[unitDefID] then
 		return false
 	end
 
-	if mostRecentCommandFrame[interferingUnitID] ~= nil and gameFrame - mostRecentCommandFrame[interferingUnitID] < USER_COMMAND_TIMEOUT then
+	if not mostRecentCommandFrame[unitID] and gameFrame - mostRecentCommandFrame[unitID] < USER_COMMAND_TIMEOUT then
 		return false
 	end
 
-	local lookahead = 0.25
-
-	if not isInTargetArea(interferingUnitID, x, z, radius) then
-		lookahead = BUILDER_DELAY_SECONDS
-	end
-
-	if willBeNearTarget(interferingUnitID, x, y, z, lookahead, radius) then
+	if willBeNearTarget(unitID, x, z, radius) then
 		return true
 	end
 
