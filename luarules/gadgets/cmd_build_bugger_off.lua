@@ -203,19 +203,10 @@ function gadget:GameFrame(frame)
 			for _, interferingUnitID in ipairs(interferingUnits) do
 				if builderID ~= interferingUnitID and not visitedUnits[interferingUnitID] and Spring.GetUnitIsBeingBuilt(interferingUnitID) == false then
 					-- Only buggeroff from one build site at a time
-					visitedUnits[interferingUnitID] = true
-					local unitX, _, unitZ = Spring.GetUnitPosition(interferingUnitID)
-					local unitBuggerRadius = cachedUnitDefs[builtUnitDefID].radius + buggerOffRadius
-					if shouldIssueBuggeroff(cachedBuilderTeams[builderID], interferingUnitID, targetX, targetY, targetZ, unitBuggerRadius) then
-						local sendX, sendZ = math.closestPointOnCircle(targetX, targetZ, unitBuggerRadius, unitX, unitZ)
-						for _ = 1, 2 do
-							if not Spring.TestMoveOrder(Spring.GetUnitDefID(interferingUnitID), sendX, targetY, sendZ) then
-								-- It is preferable to move the unit any distance at all toward the move goal. -- fixme: stupid hack
-								sendX = (unitX + sendX) * 0.5
-								sendZ = (unitZ + sendZ) * 0.5
-							end
+						local sendX, sendZ = math.closestPointOnCircle(targetX, targetZ, buggerOffRadius + unitRadius, unitX, unitZ)
+						if Spring.TestMoveOrder(Spring.GetUnitDefID(unitID), sendX, targetY, sendZ) then
+							Spring.GiveOrderToUnit(unitID, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_INTERNAL, sendX, targetY, sendZ}, CMD.OPT_ALT)
 						end
-						Spring.GiveOrderToUnit(interferingUnitID, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_INTERNAL, sendX, targetY, sendZ}, CMD.OPT_ALT)
 					end
 				end
 			end
