@@ -99,28 +99,33 @@ local function distributeTargetsToTransports(transports, targets)
 	-- 1. Find transports with capacity
 	for _, transportUnitId in ipairs(transports) do
 		local transportDefId = spGetUnitDefID(transportUnitId)
-		local transportedUnits = spGetUnitIsTransporting(transportUnitId)
-		local maxCapacity = transportDefs[transportDefId].maxCapacity
-		local remainingCapacity = maxCapacity - (transportedUnits and #transportedUnits or 0)
+		if transportDefId then
+			local transportDef = transportDefs[transportDefId]
+			if transportDef then
+				local transportedUnits = spGetUnitIsTransporting(transportUnitId)
+				local maxCapacity = transportDef.maxCapacity
+				local remainingCapacity = maxCapacity - (transportedUnits and #transportedUnits or 0)
 
-		if remainingCapacity > 0 then
-			if not transportTypeDataMap[transportDefId] then
-				---@class TransportData
-				---@field transportsInfo table<number,TransportInfo>
-				transportTypeDataMap[transportDefId] = {
-					transportsInfo = {},
-					transportIdsList = {},
-					allValidPassengers = {},
-					passengersByPriority = {},
-					maxPriority = -1,
-					transportHealth = transportDefs[transportDefId].health
-				}
+				if remainingCapacity > 0 then
+					if not transportTypeDataMap[transportDefId] then
+						---@class TransportData
+						---@field transportsInfo table<number,TransportInfo>
+						transportTypeDataMap[transportDefId] = {
+							transportsInfo = {},
+							transportIdsList = {},
+							allValidPassengers = {},
+							passengersByPriority = {},
+							maxPriority = -1,
+							transportHealth = transportDef.health
+						}
+					end
+					local position = toPositionTable(spGetUnitPosition(transportUnitId))
+					---@class TransportInfo
+					local transportInfo = { capacity = remainingCapacity, position = position }
+					transportTypeDataMap[transportDefId].transportsInfo[transportUnitId] = transportInfo
+					table.insert(transportTypeDataMap[transportDefId].transportIdsList, transportUnitId)
+				end
 			end
-			local position = toPositionTable(spGetUnitPosition(transportUnitId))
-			---@class TransportInfo
-			local transportInfo = { capacity = remainingCapacity, position = position }
-			transportTypeDataMap[transportDefId].transportsInfo[transportUnitId] = transportInfo
-			table.insert(transportTypeDataMap[transportDefId].transportIdsList, transportUnitId)
 		end
 	end
 
@@ -346,7 +351,17 @@ end
 
 --- Each transport picks one target
 local function loadUnitsHandler(cmdId, selectedUnits, filteredTargets, options)
-	local passengerAssignments = distributeTargetsToTransports(selectedUnits, filteredTargets)
+	local transports = {}
+	for _, unitId in ipairs(selectedUnits) do
+		local unitDefId = spGetUnitDefID(unitId)
+		if unitDefId and transportDefs[unitDefId] then
+			transports[#transports + 1] = unitId
+		end
+	end
+	if #transports == 0 then
+		return
+	end
+	local passengerAssignments = distributeTargetsToTransports(transports, filteredTargets)
 	-- distributeTargetsToTransports already sorted the targets so no sortTargetsByDistance call here
 	for transportId, targetIds in pairs(passengerAssignments) do
 		giveOrders(cmdId, { transportId }, targetIds, options)
