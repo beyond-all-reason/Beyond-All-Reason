@@ -36,9 +36,31 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	cachedUnitDefs[unitDefID] = { radius = unitDef.radius, isBuilder = unitDef.isBuilder}
 end
 
-local function willBeNearTarget(unitID, tx, ty, tz, seconds, maxDistance)
-	local ux, uy, uz = Spring.GetUnitPosition(unitID)
-	if not ux then return false end
+local slowUpdateBuilders 	= {}
+local watchedBuilders 		= {}
+local builderRadiusOffsets 	= {}
+local needsUpdate 			= false
+local areaCommandCooldown	= {}
+
+local FAST_UPDATE_RADIUS	= 400
+-- builders take about this much to enter build stance; determined empirically
+local BUILDER_DELAY_SECONDS = 3.3
+local BUILDER_BUILD_RADIUS  = 200 -- ! varies per-unit
+-- Assume the units are super-fast and medium-sized.
+local SEARCH_RADIUS_OFFSET  = unitSpeedMax + 2 * (Game.squareSize * Game.footprintScale)
+local FAST_UPDATE_FREQUENCY = gameSpeed * 0.5
+local SLOW_UPDATE_FREQUENCY = gameSpeed * 1.5
+local BUGGEROFF_RADIUS_INCREMENT = 4 * Game.squareSize
+-- Limit the buggeroff time to a tortured enough duration:
+local MAX_BUGGEROFF_RADIUS  = BUGGEROFF_RADIUS_INCREMENT * (16 * gameSpeed / SLOW_UPDATE_FREQUENCY)
+-- Don't buggeroff units that were ordered to do something recently
+local USER_COMMAND_TIMEOUT	= 2 * gameSpeed
+-- Cooldown for area commands to prevent mass slowWatchBuilder calls
+local AREA_COMMAND_COOLDOWN = 2 * gameSpeed
+
+local function willBeNearTarget(unitID, tx, tz, maxDistance)
+    local ux, uy, uz = Spring.GetUnitPosition(unitID)
+    if not ux then return false end
 
 	local vx, vy, vz = Spring.GetUnitVelocity(unitID)
 	if not vx then return false end
@@ -79,27 +101,6 @@ local function IsUnitRepeatOn(unitID)
 	end
 	return false
 end
-
-local slowUpdateBuilders 	= {}
-local watchedBuilders 		= {}
-local builderRadiusOffsets 	= {}
-local needsUpdate 			= false
-local areaCommandCooldown	= {}
-
-local FAST_UPDATE_RADIUS	= 400
--- builders take about this much to enter build stance; determined empirically
-local BUILDER_DELAY_SECONDS = 3.3
-local BUILDER_BUILD_RADIUS  = 200
-local SEARCH_RADIUS_OFFSET  = unitSpeedMax + 2 * (Game.squareSize * Game.footprintScale)
-local FAST_UPDATE_FREQUENCY = gameSpeed
-local SLOW_UPDATE_FREQUENCY = 2 * gameSpeed
-local BUGGEROFF_RADIUS_INCREMENT = 4 * Game.squareSize
--- Limit the buggeroff time to 20 seconds, a tortured enough duration:
-local MAX_BUGGEROFF_RADIUS  = BUGGEROFF_RADIUS_INCREMENT * (20 * gameSpeed / SLOW_UPDATE_FREQUENCY)
--- Don't buggeroff units that were ordered to do something recently
-local USER_COMMAND_TIMEOUT	= 2 * gameSpeed
--- Cooldown for area commands to prevent mass slowWatchBuilder calls
-local AREA_COMMAND_COOLDOWN = 2 * gameSpeed
 
 local function watchBuilder(builderID)
 	slowUpdateBuilders[builderID]   = nil
