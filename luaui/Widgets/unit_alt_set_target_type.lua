@@ -8,7 +8,7 @@ function widget:GetInfo()
 		date	= "August 1, 2025",
 		version = "1.0",
 		license = "GNU GPL, v2 or later",
-		layer 	= 0,
+		layer 	= -4,
 		enabled = true
 	}
 end
@@ -23,7 +23,6 @@ local spGetSelectedUnits     = Spring.GetSelectedUnits
 
 local trackedUnitsToUnitDefID = {}
 local unitRanges = {}
-local myAllyTeam = Spring.GetMyAllyTeamID()
 
 local POLLING_RATE = 15
 local CMD_STOP = CMD.STOP
@@ -54,6 +53,9 @@ end
 local function GetUnitsInAttackRangeWithDef(unitID, unitDefIDToTarget)
     local unitsInRange = {}
 
+	local unitTeam = spGetUnitTeam(unitID)
+	if unitTeam == nil then return unitsInRange end
+
     local ux, uy, uz = spGetUnitPosition(unitID)
     if not ux then return unitsInRange end
 
@@ -63,8 +65,9 @@ local function GetUnitsInAttackRangeWithDef(unitID, unitDefIDToTarget)
 
     local candidateUnits = spGetUnitsInCylinder(ux, uz, maxRange)
 	for _, targetID in ipairs(candidateUnits) do
-        if targetID ~= unitID then
-            local isAllied = spAreTeamsAllied(myAllyTeam, spGetUnitTeam(targetID))
+		local targetTeam = spGetUnitTeam(targetID)
+        if targetID ~= unitID and targetTeam ~= nil then
+            local isAllied = spAreTeamsAllied(unitTeam, targetTeam)
 			if not isAllied and spGetUnitDefID(targetID) == unitDefIDToTarget then
 				table.insert(unitsInRange, targetID)
             end
