@@ -179,9 +179,10 @@ function gadget:GameFrame(frame)
 
 		elseif not isBuilding and targetDistance < BUILDER_BUILD_RADIUS + cachedUnitDefs[-cmdID].radius and Spring.GetUnitIsBeingBuilt(builderID) == false then
 			local builtUnitDefID	= -cmdID
-			local buggerOffRadius	= cachedUnitDefs[builtUnitDefID].radius + builderRadiusOffsets[builderID]
-			local searchRadius		= buggerOffRadius + SEARCH_RADIUS_OFFSET
-			
+			local buildDefRadius    = cachedUnitDefs[builtUnitDefID].radius
+			local buggerOffRadius	= builderRadiusOffsets[builderID] + buildDefRadius
+			local searchRadius		= SEARCH_RADIUS_OFFSET + buildDefRadius
+
 			-- Use cached cylinder lookup to reduce redundant API calls
 			local cacheKey = string.format("%.0f_%.0f_%.0f", targetX, targetZ, searchRadius)
 			local interferingUnits = cylinderCache[cacheKey]
