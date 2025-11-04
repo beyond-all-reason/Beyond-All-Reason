@@ -76,6 +76,9 @@ local BUILT_ENOUGH_FOR_FULL = 0.9
 local MAX_HEIGHT_DIFFERENCE = 100
 local DEFAULT_FACING = 0
 local INITIAL_BUILD_PROGRESS = 0.01
+local GRID_GENERATION_RANGE = 640
+local GRID_RESOLUTION = 32
+local GRID_CHECK_RESOLUTION_MULTIPLIER = 1
 
 local spCreateUnit = Spring.CreateUnit
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -90,6 +93,7 @@ local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitHealth = Spring.GetUnitHealth
+local spTestMoveOrder = Spring.TestMoveOrder
 local random = math.random
 local ceil = math.ceil
 local max = math.max
@@ -104,6 +108,7 @@ local sin = math.sin
 local cos = math.cos
 
 local config = VFS.Include('LuaRules/Configs/quick_start_build_defs.lua')
+local traversabilityGrid = VFS.Include('LuaRules/Utilities/traversability_grid.lua')
 local commanderNonLabOptions = config.commanderNonLabOptions
 local discountableFactories = config.discountableFactories
 local optionsToNodeType = config.optionsToNodeType
@@ -270,7 +275,9 @@ local function getCommanderBuildQueue(commanderID)
 		if isBuildCommand(cmd.id) then
 			local spawnParams = { id = -cmd.id, x = cmd.params[1], y = cmd.params[2], z = cmd.params[3], facing = cmd
 			.params[4] or 1, cmdTag = cmd.tag }
-			if distance2d(comData.spawnX, comData.spawnZ, spawnParams.x, spawnParams.z) <= INSTANT_BUILD_RANGE then
+			local distance = distance2d(comData.spawnX, comData.spawnZ, spawnParams.x, spawnParams.z)
+			local isTraversable = comData.unitDefID and traversabilityGrid.canMoveToPosition(comData.unitDefID, spawnParams.x, spawnParams.z, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
+			if distance <= INSTANT_BUILD_RANGE and isTraversable then
 				table.insert(spawnQueue, spawnParams)
 				if cmd.tag then
 					table.insert(commandsToRemove, cmd.tag)
@@ -496,7 +503,8 @@ local function populateNearbyMexes(commanderID)
 		local metalSpot = metalSpotsList[i]
 		if metalSpot then
 			local distance = distance2d(metalSpot.x, metalSpot.z, commanderX, commanderZ)
-			if distance <= INSTANT_BUILD_RANGE then
+			local isTraversable = comData.unitDefID and traversabilityGrid.canMoveToPosition(comData.unitDefID, metalSpot.x, metalSpot.z, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
+			if distance <= INSTANT_BUILD_RANGE and isTraversable then
 				table.insert(comData.nearbyMexes, {
 					x = metalSpot.x,
 					y = metalSpot.y,
@@ -557,7 +565,10 @@ local function initializeCommander(commanderID, teamID)
 		gridLists = { other = {}, converters = {} },
 		buildQuotas = commanderBuildQuotas,
 		buildIndex = buildIndex,
-		nearbyMexes = {}
+		nearbyMexes = {},
+		lastCommanderX = nil,
+		lastCommanderZ = nil,
+		unitDefID = commanderDefID
 	}
 
 	Spring.SetTeamResource(teamID, "metal", max(0, currentMetal - QUICK_START_COST_METAL))
@@ -565,11 +576,21 @@ local function initializeCommander(commanderID, teamID)
 
 	local comData = commanders[commanderID]
 	comData.spawnX, comData.spawnY, comData.spawnZ = spGetUnitPosition(commanderID)
+
+	if comData.lastCommanderX ~= comData.spawnX or comData.lastCommanderZ ~= comData.spawnZ then
+		traversabilityGrid.generateTraversableGrid(comData.unitDefID, comData.spawnX, comData.spawnZ, GRID_GENERATION_RANGE, GRID_RESOLUTION, comData.unitDefID)
+		comData.lastCommanderX = comData.spawnX
+		comData.lastCommanderZ = comData.spawnZ
+	end
+
 	populateNearbyMexes(commanderID)
 	comData.spawnQueue = getCommanderBuildQueue(commanderID)
+
 	for i = #comData.spawnQueue, 1, -1 do
 		local build = comData.spawnQueue[i]
-		if distance2d(build.x, build.z, comData.spawnX, comData.spawnZ) > INSTANT_BUILD_RANGE then
+		local distance = distance2d(build.x, build.z, comData.spawnX, comData.spawnZ)
+		local isTraversable = comData.unitDefID and traversabilityGrid.canMoveToPosition(comData.unitDefID, build.x, build.z, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
+		if distance > INSTANT_BUILD_RANGE or not isTraversable then
 			table.remove(comData.spawnQueue, i)
 		end
 	end
