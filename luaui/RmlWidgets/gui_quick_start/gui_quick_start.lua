@@ -48,8 +48,8 @@ local ENERGY_VALUE_CONVERSION_DIVISOR = 60
 local BUILD_TIME_VALUE_CONVERSION_DIVISOR = 300
 local DEFAULT_INSTANT_BUILD_RANGE = 600
 local GRID_GENERATION_RANGE = 640
-local GRID_RESOLUTION = 16
-local GRID_CHECK_RESOLUTION_MULTIPLIER = 2
+local GRID_RESOLUTION = 32
+local GRID_CHECK_RESOLUTION_MULTIPLIER = 1
 
 local traversabilityGrid = VFS.Include("luarules/Utilities/traversability_grid.lua")
 local lastCommanderX = nil
