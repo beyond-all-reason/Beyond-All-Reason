@@ -37,6 +37,9 @@ local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetMyTeamID = Spring.GetMyTeamID
 local spI18N = Spring.I18N
 
+local isSpec = Spring.GetSpectatingState()
+local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
+
 local MODEL_NAME = "quick_start_model"
 local RML_PATH = "luaui/RmlWidgets/gui_quick_start/gui_quick_start.rml"
 local QUICK_START_CONDITION_KEY = "quickStartUnallocatedBudget"
@@ -44,6 +47,13 @@ local QUICK_START_CONDITION_KEY = "quickStartUnallocatedBudget"
 local ENERGY_VALUE_CONVERSION_DIVISOR = 60
 local BUILD_TIME_VALUE_CONVERSION_DIVISOR = 300
 local DEFAULT_INSTANT_BUILD_RANGE = 600
+local GRID_GENERATION_RANGE = 640
+local GRID_RESOLUTION = 16
+local GRID_CHECK_RESOLUTION_MULTIPLIER = 2
+
+local traversabilityGrid = VFS.Include("luarules/Utilities/traversability_grid.lua")
+local lastCommanderX = nil
+local lastCommanderZ = nil
 
 local function customRound(value)
 	if value < 15 then
@@ -116,7 +126,18 @@ end
 
 local function isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, instantBuildRange)
 	local distance = math.distance2d(commanderX, commanderZ, buildX, buildZ)
-	return distance <= instantBuildRange
+	if distance > instantBuildRange then
+		return false
+	end
+
+	local myTeamID = spGetMyTeamID() or 0
+	local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+
+	if startDefID and traversabilityGrid.canMoveToPosition(startDefID, buildX, buildZ, GRID_CHECK_RESOLUTION_MULTIPLIER) then
+		return true
+	end
+
+	return false
 end
 
 local function getCachedGameRules(myTeamID)
@@ -129,6 +150,29 @@ local function getCachedGameRules(myTeamID)
 		lastRulesUpdate = currentTime
 	end
 	return cachedGameRules
+end
+
+local function updateTraversabilityGrid()
+	if not preGamestartPlayer then
+		return
+	end
+
+	local myTeamID = spGetMyTeamID() or 0
+	local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+
+	if not startDefID then
+		return
+	end
+
+	local commanderX, commanderY, commanderZ = Spring.GetTeamStartPosition(myTeamID)
+	if commanderX == -100 then
+		return
+	end
+	if lastCommanderX ~= commanderX or lastCommanderZ ~= commanderZ then
+		traversabilityGrid.generateTraversableGrid(startDefID, commanderX, commanderZ, GRID_GENERATION_RANGE, GRID_RESOLUTION, startDefID)
+		lastCommanderX = commanderX
+		lastCommanderZ = commanderZ
+	end
 end
 
 local function updateUIElementText(document, elementId, text)
@@ -550,6 +594,7 @@ function widget:Update()
 		widgetHandler:RemoveWidget(self)
 		return
 	end
+	updateTraversabilityGrid()
 	updateDataModel(false)
 end
 
