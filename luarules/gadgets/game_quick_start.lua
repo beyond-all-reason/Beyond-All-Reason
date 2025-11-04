@@ -180,10 +180,13 @@ local function generateLocalGrid(commanderID)
 						if heightDiff <= MAX_HEIGHT_DIFFERENCE then
 							local snappedX, snappedY, snappedZ = spPos2BuildPos(buildDefID, testX, searchY, testZ)
 							if snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, DEFAULT_FACING) == UNOCCUPIED then
-								local key = snappedX .. "_" .. snappedZ
-								if not used[key] then
-									used[key] = true
-									table.insert(gridList, { x = snappedX, y = snappedY, z = snappedZ })
+								local isTraversable = commanders[commanderID] and commanders[commanderID].unitDefID and traversabilityGrid.canMoveToPosition(commanders[commanderID].unitDefID, snappedX, snappedZ, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
+								if isTraversable then
+									local key = snappedX .. "_" .. snappedZ
+									if not used[key] then
+										used[key] = true
+										table.insert(gridList, { x = snappedX, y = snappedY, z = snappedZ })
+									end
 								end
 							end
 						end
