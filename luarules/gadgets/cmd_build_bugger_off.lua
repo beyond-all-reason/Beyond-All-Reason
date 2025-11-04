@@ -52,7 +52,7 @@ local FAST_UPDATE_FREQUENCY = gameSpeed * 0.5
 local SLOW_UPDATE_FREQUENCY = gameSpeed * 1.5
 local BUGGEROFF_RADIUS_INCREMENT = 4 * Game.squareSize
 -- Limit the buggeroff time to a tortured enough duration:
-local MAX_BUGGEROFF_RADIUS  = BUGGEROFF_RADIUS_INCREMENT * (16 * gameSpeed / SLOW_UPDATE_FREQUENCY)
+local MAX_BUGGEROFF_RADIUS  = BUGGEROFF_RADIUS_INCREMENT * (16 * gameSpeed / SLOW_UPDATE_FREQUENCY) -- => 341 elmos; try to stay < 400
 -- Don't buggeroff units that were ordered to do something recently
 local USER_COMMAND_TIMEOUT	= 2 * gameSpeed
 -- Cooldown for area commands to prevent mass slowWatchBuilder calls
