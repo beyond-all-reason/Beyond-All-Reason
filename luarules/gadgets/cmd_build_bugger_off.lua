@@ -51,6 +51,8 @@ local SEARCH_RADIUS_OFFSET  = unitSpeedMax + 2 * (Game.squareSize * Game.footpri
 local FAST_UPDATE_FREQUENCY = gameSpeed * 0.5
 local SLOW_UPDATE_FREQUENCY = gameSpeed * 1.5
 local BUGGEROFF_RADIUS_INCREMENT = 4 * Game.squareSize
+-- Move away based on predicted position with lookahead:
+local BUGGEROFF_LOOKAHEAD   = (1/6) * gameSpeed
 -- Limit the buggeroff time to a tortured enough duration:
 local MAX_BUGGEROFF_RADIUS  = BUGGEROFF_RADIUS_INCREMENT * (16 * gameSpeed / SLOW_UPDATE_FREQUENCY) -- => 341 elmos; try to stay < 400
 -- Don't buggeroff units that were ordered to do something recently
@@ -207,8 +209,10 @@ function gadget:GameFrame(frame)
 					local unitX, _, unitZ = Spring.GetUnitPosition(unitID)
 					local unitDefID  = Spring.GetUnitDefID(unitID)
 					local unitRadius = cachedUnitDefs[unitDefID].radius
-					local areaRadius = math.max(buggerOffRadius, buildDefRadius + unitRadius) -- tells very big lads to move sooner
+					local areaRadius = math.max(buggerOffRadius, buildDefRadius + unitRadius)
 					if shouldIssueBuggeroff(cachedBuilderTeams[builderID], unitID, unitDefID, targetX, targetZ, areaRadius) then
+						local vx, vy, vz = Spring.GetUnitVelocity(unitID)
+						unitX, unitZ = unitX + vx * BUGGEROFF_LOOKAHEAD, unitZ + vz * BUGGEROFF_LOOKAHEAD
 						local sendX, sendZ = math.closestPointOnCircle(targetX, targetZ, buggerOffRadius + unitRadius, unitX, unitZ)
 						if Spring.TestMoveOrder(Spring.GetUnitDefID(unitID), sendX, targetY, sendZ) then
 							Spring.GiveOrderToUnit(unitID, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_INTERNAL, sendX, targetY, sendZ}, CMD.OPT_ALT)
