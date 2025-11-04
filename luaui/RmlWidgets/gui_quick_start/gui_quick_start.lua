@@ -46,8 +46,8 @@ local QUICK_START_CONDITION_KEY = "quickStartUnallocatedBudget"
 
 local ENERGY_VALUE_CONVERSION_DIVISOR = 60
 local BUILD_TIME_VALUE_CONVERSION_DIVISOR = 300
-local DEFAULT_INSTANT_BUILD_RANGE = 600
-local GRID_GENERATION_RANGE = 640
+local DEFAULT_INSTANT_BUILD_RANGE = 500
+local GRID_GENERATION_RANGE = 544
 local GRID_RESOLUTION = 32
 local GRID_CHECK_RESOLUTION_MULTIPLIER = 1
 
@@ -320,16 +320,14 @@ local function fadeOutWarnings()
 	if widgetState.warningsFadedOut then
 		return
 	end
-	
+
 	widgetState.warningsFadedOut = true
-	
+
 	if widgetState.warningElements.warningText then
-		widgetState.warningElements.warningText:SetClass("visible", false)
-		widgetState.warningElements.warningText:SetClass("fade-out", true)
+		widgetState.warningElements.warningText:SetAttribute("style", "opacity: 0;")
 	end
 	if widgetState.warningElements.factoryText then
-		widgetState.warningElements.factoryText:SetClass("visible", false)
-		widgetState.warningElements.factoryText:SetClass("fade-out", true)
+		widgetState.warningElements.factoryText:SetAttribute("style", "opacity: 0;")
 	end
 end
 
@@ -594,6 +592,7 @@ function widget:Update()
 		widgetHandler:RemoveWidget(self)
 		return
 	end
+
 	updateTraversabilityGrid()
 	updateDataModel(false)
 end

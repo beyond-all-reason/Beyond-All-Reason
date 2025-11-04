@@ -210,14 +210,3 @@
 	border-color: rgba(255, 255, 255, 0.3);
 	opacity: 0;
 }
-
-.qs-warning-text.fade-out,
-.qs-factory-text.fade-out {
-	opacity: 1;
-	animation: 1.5s cubic-in-out 1 fade-out;
-}
-
-@keyframes fade-out {
-	0% { opacity: 1; }
-	100% { opacity: 0; }
-}
