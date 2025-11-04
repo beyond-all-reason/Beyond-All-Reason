@@ -236,6 +236,7 @@ function gadget:GameFrame(frame)
 	end
 
 	needsUpdate = false
+
 	for builderID, _ in pairs(slowUpdateBuilders) do
 		-- Only check first few commands instead of entire queue for performance
 		local builderCommands   = Spring.GetUnitCommands(builderID, 5)
@@ -258,10 +259,9 @@ function gadget:GameFrame(frame)
 		local isBuilding  = false
 		if Spring.GetUnitIsBuilding(builderID) then isBuilding = true end
 
-		local x, _, z = Spring.GetUnitPosition(builderID)
-		if hasBuildCommand == false then
+		if not hasBuildCommand then
 			removeBuilder(builderID)
-		elseif buildCommandFirst and isBuilding == false and math.distance2d(targetX, targetZ, x, z) <= FAST_UPDATE_RADIUS then
+		elseif buildCommandFirst and not isBuilding and isInTargetArea(builderID, targetX, targetZ, FAST_UPDATE_RADIUS) then
 			watchBuilder(builderID)
 		end
 	end
