@@ -200,7 +200,7 @@ return {
 					stockpilelimit = 2,
 				},
 				damage = {
-					default = 80000,
+					default = 0,
 				},
 			},
 			thunder = {
