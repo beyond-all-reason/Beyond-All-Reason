@@ -202,20 +202,20 @@ function gadget:GameFrame(frame)
 			-- if there are many units in the way, they may cause a traffic jam and need to clear more room.
 			builderRadiusOffsets[builderID] = builderRadiusOffsets[builderID] + BUGGEROFF_RADIUS_INCREMENT
 
-			for _, unitID in ipairs(interferingUnits) do
-				if builderID ~= unitID and not visitedUnits[unitID] and Spring.GetUnitIsBeingBuilt(unitID) == false then
+			for _, interferingID in ipairs(interferingUnits) do
+				if builderID ~= interferingID and not visitedUnits[interferingID] and Spring.GetUnitIsBeingBuilt(interferingID) == false then
 					-- Only buggeroff from one build site at a time
-					visitedUnits[unitID] = true
-					local unitX, _, unitZ = Spring.GetUnitPosition(unitID)
-					local unitDefID  = Spring.GetUnitDefID(unitID)
+					visitedUnits[interferingID] = true
+					local unitX, _, unitZ = Spring.GetUnitPosition(interferingID)
+					local unitDefID  = Spring.GetUnitDefID(interferingID)
 					local unitRadius = cachedUnitDefs[unitDefID].radius
 					local areaRadius = math.max(buggerOffRadius, buildDefRadius + unitRadius)
-					if shouldIssueBuggeroff(cachedBuilderTeams[builderID], unitID, unitDefID, targetX, targetZ, areaRadius) then
-						local vx, vy, vz = Spring.GetUnitVelocity(unitID)
+					if shouldIssueBuggeroff(cachedBuilderTeams[builderID], interferingID, unitDefID, targetX, targetZ, areaRadius) then
+						local vx, vy, vz = Spring.GetUnitVelocity(interferingID)
 						unitX, unitZ = unitX + vx * BUGGEROFF_LOOKAHEAD, unitZ + vz * BUGGEROFF_LOOKAHEAD
 						local sendX, sendZ = math.closestPointOnCircle(targetX, targetZ, buggerOffRadius + unitRadius, unitX, unitZ)
-						if Spring.TestMoveOrder(Spring.GetUnitDefID(unitID), sendX, targetY, sendZ) then
-							Spring.GiveOrderToUnit(unitID, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_INTERNAL, sendX, targetY, sendZ}, CMD.OPT_ALT)
+						if Spring.TestMoveOrder(Spring.GetUnitDefID(interferingID), sendX, targetY, sendZ) then
+							Spring.GiveOrderToUnit(interferingID, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_INTERNAL, sendX, targetY, sendZ}, CMD.OPT_ALT)
 						end
 					end
 				end
