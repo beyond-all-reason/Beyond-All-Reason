@@ -17,6 +17,7 @@ local ContributorAINames = {
     "Calm Phill",
     "Chirick2051",
     "ChrisFloofyKitsune",
+	"Chronographer",
     "Damgam",
     "Devious Null",
     "Doo",
