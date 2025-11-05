@@ -50,7 +50,7 @@ local BUILDER_BUILD_RADIUS  = 200 -- ! varies per-unit
 local SEARCH_RADIUS_OFFSET  = unitSpeedMax + 2 * (Game.squareSize * Game.footprintScale)
 local FAST_UPDATE_FREQUENCY = gameSpeed * 0.5
 local SLOW_UPDATE_FREQUENCY = gameSpeed * 1.5
-local BUGGEROFF_RADIUS_INCREMENT = 4 * Game.squareSize
+local BUGGEROFF_RADIUS_INCREMENT = 2 * Game.squareSize
 -- Move away based on predicted position with lookahead:
 local BUGGEROFF_LOOKAHEAD   = (1/6) * gameSpeed
 -- Limit the buggeroff time to a tortured enough duration:
