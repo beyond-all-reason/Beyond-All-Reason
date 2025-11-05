@@ -267,9 +267,7 @@ else
 			end
 			if isMex[unitDefID] then
 				if unitLostOrDamagedCooldowns["MexLost"] <= 0 then
-					--local event = isMex[unitDefID] > 0.002 and 'T2MexLost' or 'MexLost'
-					local event = 'MexLost'
-					BroadcastEvent("NotificationEvent", event, tostring(myPlayerID))
+					BroadcastEvent("NotificationEvent", "MetalExtractorLost", tostring(myPlayerID))
 					unitLostOrDamagedCooldowns["UnitLost"] = 60
 				end
 				unitLostOrDamagedCooldowns["MexLost"] = 30
