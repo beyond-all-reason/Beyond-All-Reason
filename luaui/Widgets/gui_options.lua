@@ -437,6 +437,7 @@ local function cancelChatInput()
 	if selectOptionsList then
 		selectOptionsList = glDeleteList(selectOptionsList)
 	end
+	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil	--widgetHandler:DisownText()
 	if doReinit then
 		init()
@@ -6043,8 +6044,9 @@ function init()
 
 	-- check if cus is disabled by auto disable cus widget (in case options widget has been reloaded)
 	if getOptionByID('sun_y') then
-		if select(2, gl.GetSun("pos")) < options[getOptionByID('sun_y')].min then
-			Spring.SetSunDirection(select(1, gl.GetSun("pos")), options[getOptionByID('sun_y')].min, select(3, gl.GetSun("pos")))
+		local sunX, sunY, sunZ = gl.GetSun("pos")
+		if sunY < options[getOptionByID('sun_y')].min then
+			Spring.SetSunDirection(sunX, options[getOptionByID('sun_y')].min, sunZ)
 		end
 	end
 
@@ -6808,11 +6810,6 @@ function widget:Initialize()
 		-- 	Spring.SetConfigInt("snd_volmusic", 50)
 		-- end
 
-		-- enable advanced model shading
-		if Spring.GetConfigInt("AdvModelShading", 0) ~= 1 then
-			Spring.SetConfigInt("AdvModelShading", 1)
-			Spring.SendCommands("advmodelshading 1")
-		end
 		-- enable normal mapping
 		if Spring.GetConfigInt("NormalMapping", 0) ~= 1 then
 			Spring.SetConfigInt("NormalMapping", 1)
