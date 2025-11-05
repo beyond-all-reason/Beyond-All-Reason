@@ -198,6 +198,7 @@ else
 		MexLost = 0, -- 30
 		UnitLost = 0, -- 60
 		CommanderUnderAttack = 0, -- 10
+		CommanderTakingHeavyDamage = 0, -- 10
 		UnitsUnderAttack = 0, -- 60
 		BaseUnderAttack = 0, -- 30
 
@@ -216,8 +217,16 @@ else
 		end
 		if unitTeam == myTeamID and attackerTeam and GetAllyTeamID(attackerTeam) ~= myAllyTeamID then
 			if isCommander[unitDefID] then
-				if unitLostOrDamagedCooldowns["CommanderUnderAttack"] <= 0 then
+				local health, maxhealth = Spring.GetUnitHealth(unitID)
+				local healthPercent = health/maxhealth
+				if healthPercent >= 0.2 and unitLostOrDamagedCooldowns["CommanderUnderAttack"] <= 0 then
 					BroadcastEvent("NotificationEvent", 'CommanderUnderAttack', tostring(myPlayerID))
+				end
+				if healthPercent < 0.2 then
+					if unitLostOrDamagedCooldowns["CommanderTakingHeavyDamage"] <= 0 then
+						BroadcastEvent("NotificationEvent", 'ComHeavyDamage', tostring(myPlayerID))
+					end
+					unitLostOrDamagedCooldowns["CommanderTakingHeavyDamage"] = 10
 				end
 				unitLostOrDamagedCooldowns["CommanderUnderAttack"] = 10
 			elseif isBuilding[unitDefID] == true and (not isMex[unitDefID]) and (not hasWeapons[unitDefID]) then
