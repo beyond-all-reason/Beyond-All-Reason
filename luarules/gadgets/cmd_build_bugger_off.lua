@@ -141,7 +141,7 @@ local function shouldIssueBuggeroff(builderTeam, unitID, unitDefID, x, z, radius
 		return false
 	end
 
-	if not mostRecentCommandFrame[unitID] and gameFrame - mostRecentCommandFrame[unitID] < USER_COMMAND_TIMEOUT then
+	if mostRecentCommandFrame[unitID] and (gameFrame - mostRecentCommandFrame[unitID] < USER_COMMAND_TIMEOUT) then
 		return false
 	end
 
