@@ -8,7 +8,7 @@ function widget:GetInfo()
 		date	= "August 1, 2025",
 		version = "1.0",
 		license = "GNU GPL, v2 or later",
-		layer 	= -4,
+		layer 	= -1,
 		enabled = true
 	}
 end
@@ -134,6 +134,8 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		cleanupUnitTargeting(unitID)
 		trackedUnitsToUnitDefID[unitID] = targetUnitDefID
 	end
+
+	return true
 end
 
 function maybeRemoveSelf()
