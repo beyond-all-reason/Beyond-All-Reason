@@ -124,7 +124,7 @@ if gadgetHandler:IsSyncedCode() then
 		_G.lavaGrow = lavaGrow
 	end
 
-	function slowUnit(unitID, unitDefID, unitSlow)
+	function updateSlow(unitID, unitDefID, unitSlow)
 		if spMoveCtrlEnabled(unitID) then return end
 		local slowedMaxSpeed = speedDefs[unitDefID] * unitSlow
 		local slowedTurnRate = turnDefs[unitDefID] * unitSlow
@@ -155,13 +155,13 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					if lavaUnits[unitID].slowed and (unitSlow ~= lavaUnits[unitID].currentSlow) then
 						lavaUnits[unitID].currentSlow = unitSlow
-						slowUnit(unitID, unitDefID, unitSlow)
+						updateSlow(unitID, unitDefID, unitSlow)
 					end
 				spAddUnitDamage(unitID, lavaDamage, 0, gaiaTeamID, 1)
 				spSpawnCEG(lavaEffectDamage, x, y+5, z)
 				elseif lavaUnits[unitID] then -- unit exited lava
 					if lavaUnits[unitID].slowed then
-						slowUnit(unitID, unitDefID, 1)
+						updateSlow(unitID, unitDefID, 1)
 					end
 				lavaUnits[unitID] = nil
 				end
