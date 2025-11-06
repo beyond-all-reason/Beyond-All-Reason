@@ -55,7 +55,8 @@ local BUGGEROFF_RADIUS_INCREMENT = 2 * Game.squareSize
 local BUGGEROFF_LOOKAHEAD   = (1/6) * gameSpeed
 -- The max buggeroff radius = increment * (time * update rate - 1), so we set a max time here also, implicitly.
 -- Prevent units from roaming by maintaining a max raduis <= 400, the engine's max leash radius (see e.g. CMobileCAI::ExecuteFight).
-local MAX_BUGGEROFF_RADIUS  = BUGGEROFF_RADIUS_INCREMENT * (13 * gameSpeed / FAST_UPDATE_FREQUENCY - 1) -- => 400 elmos
+local MAX_BUGGEROFF_TIME    = 13
+local MAX_BUGGEROFF_RADIUS  = BUGGEROFF_RADIUS_INCREMENT * (MAX_BUGGEROFF_TIME * gameSpeed / FAST_UPDATE_FREQUENCY - 1) -- => 400 elmos
 -- Don't buggeroff units that were ordered to do something recently
 local USER_COMMAND_TIMEOUT	= 2 * gameSpeed
 -- Cooldown for area commands to prevent mass slowWatchBuilder calls
