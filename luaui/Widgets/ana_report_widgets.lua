@@ -130,7 +130,7 @@ function widget:GameFrame(frame)
 		end
 
 		local customWidgetReport = {}
-	   customWidgetReport.widgetCount = #widgetList -- not redundant, in case of truncation
+		customWidgetReport.widgetCount = #widgetList -- not redundant, in case of truncation
 		customWidgetReport.widgets = widgetList
 		customWidgetReport.truncated = truncated
 
