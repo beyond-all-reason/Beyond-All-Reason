@@ -2414,6 +2414,7 @@ end
 local function drawBuildMenu()
 	font2:Begin(useRenderToTexture)
 	font2:SetTextColor(1,1,1,1)
+	font2:SetOutlineColor(0,0,0,1)
 
 	local drawBackScreen = (currentCategory and not builderIsFactory)
 		or (builderIsFactory and useLabBuildMode and labBuildModeActive)
@@ -2714,7 +2715,7 @@ function widget:DrawScreen()
 					)
 				end
 				if not buildmenuTex then
-					buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x)*2, math_floor(buildersRectYend-backgroundRect.y)*2, {	--*(vsy<1400 and 2 or 2)
+					buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x)*2, math_floor(buildersRectYend-backgroundRect.y)*2, {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
