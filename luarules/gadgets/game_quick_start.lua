@@ -41,8 +41,8 @@ local quickStartAmountConfig = {
 	large = 2400,
 }
 
-local BUILD_TIME_VALUE_CONVERSION_DIVISOR = 300
-local ENERGY_VALUE_CONVERSION_DIVISOR = 60
+local BUILD_TIME_VALUE_CONVERSION_MULTIPLIER = 1/300 --300 being a representative of commander workertime, statically defined so future com unitdef adjustments don't change this.
+local ENERGY_VALUE_CONVERSION_MULTIPLIER = 1/60 --60 being the energy conversion rate of t2 energy converters, statically defined so future changes not to affect this.
 
 local function customRound(value)
 	if value < 15 then
@@ -200,7 +200,7 @@ end
 
 for unitDefID, unitDef in pairs(unitDefs) do
 	local metalCost, energyCost = unitDef.metalCost or 0, unitDef.energyCost or 0
-	defMetergies[unitDefID] = customRound((metalCost + energyCost / ENERGY_VALUE_CONVERSION_DIVISOR) + (unitDef.buildTime / BUILD_TIME_VALUE_CONVERSION_DIVISOR))
+	defMetergies[unitDefID] = customRound(metalCost + energyCost * ENERGY_VALUE_CONVERSION_MULTIPLIER + unitDef.buildTime * BUILD_TIME_VALUE_CONVERSION_MULTIPLIER)
 	if unitDef.extractsMetal > 0 then
 		mexDefs[unitDefID] = true
 	end
