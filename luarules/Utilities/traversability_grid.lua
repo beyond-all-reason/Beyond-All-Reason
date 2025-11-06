@@ -1,3 +1,7 @@
+-- The performance of travesabilty grids done in lua isn't great.
+-- Try to keep resolution as low as you can get away with and for small zones.
+-- Remember changes in terrain will invalidate the grid. Re-generations are expensive.
+
 local spTestMoveOrder = Spring.TestMoveOrder
 local spGetGroundHeight = Spring.GetGroundHeight
 local floor = math.floor
