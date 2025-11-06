@@ -2414,6 +2414,7 @@ end
 local function drawBuildMenu()
 	font2:Begin(useRenderToTexture)
 	font2:SetTextColor(1,1,1,1)
+	font2:SetOutlineColor(0,0,0,1)
 
 	local drawBackScreen = (currentCategory and not builderIsFactory)
 		or (builderIsFactory and useLabBuildMode and labBuildModeActive)
