@@ -54,7 +54,7 @@ local BUGGEROFF_RADIUS_INCREMENT = 2 * Game.squareSize
 -- Move away based on predicted position with lookahead:
 local BUGGEROFF_LOOKAHEAD   = (1/6) * gameSpeed
 -- Limit the buggeroff time to a tortured enough duration:
-local MAX_BUGGEROFF_RADIUS  = BUGGEROFF_RADIUS_INCREMENT * (16 * gameSpeed / SLOW_UPDATE_FREQUENCY) -- => 341 elmos; try to stay < 400
+local MAX_BUGGEROFF_RADIUS  = BUGGEROFF_RADIUS_INCREMENT * (16 * gameSpeed / SLOW_UPDATE_FREQUENCY) -- => 341 elmos; try to stay < max leash radius (400)
 -- Don't buggeroff units that were ordered to do something recently
 local USER_COMMAND_TIMEOUT	= 2 * gameSpeed
 -- Cooldown for area commands to prevent mass slowWatchBuilder calls
