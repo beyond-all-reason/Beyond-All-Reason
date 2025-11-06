@@ -275,17 +275,69 @@ local function computeProjectedUsage()
 		end
 	end
 
-	local budgetProjected = 0
-	if pregameUnitSelected > 0 and UnitDefs[pregameUnitSelected] then
+	local factoryHasBeenPlaced = firstFactoryPlaced
+	if pregameUnitSelected > 0 and UnitDefs[pregameUnitSelected] and UnitDefs[pregameUnitSelected].isFactory then
 		local uDef = UnitDefs[pregameUnitSelected]
 		local mx, my = Spring.GetMouseState()
-		
+
 		local mouseMoved = mx ~= widgetState.lastMousePos[1] or my ~= widgetState.lastMousePos[2]
 		if mouseMoved then
 			widgetState.lastMousePos[1] = mx
 			widgetState.lastMousePos[2] = my
 		end
-		
+
+		local _, pos = Spring.TraceScreenRay(mx, my, true, false, false,
+			uDef.modCategories and uDef.modCategories.underwater)
+		if pos then
+			local buildFacing = Spring.GetBuildFacing()
+			local bx, by, bz = Spring.Pos2BuildPos(pregameUnitSelected, pos[1], pos[2], pos[3], buildFacing)
+
+			if isWithinBuildRange(commanderX, commanderZ, bx, bz, gameRules.instantBuildRange) then
+				factoryHasBeenPlaced = true
+			end
+		end
+	end
+
+	local buildMenu = WG['buildmenu']
+	local gridMenu = WG['gridmenu']
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.isFactory then
+			local metalCost = unitDef.metalCost or 0
+			local energyCost = unitDef.energyCost or 0
+			local buildTime = unitDef.buildTime or 0
+			local baseBudgetCost = calculateBudgetCost(metalCost, energyCost, buildTime)
+			local discountedCost = calculateBudgetWithDiscount(unitDefID, gameRules.factoryDiscountAmount, shouldApplyFactoryDiscount, not factoryHasBeenPlaced)
+			local displayCost = discountedCost
+
+			local costOverride = {
+				top = { disabled = true },
+				bottom = {
+					value = displayCost,
+					color = "\255\255\110\255",
+					colorDisabled = "\255\200\50\200"
+				}
+			}
+
+			if buildMenu and buildMenu.setCostOverride then
+				buildMenu.setCostOverride(unitDefID, costOverride)
+			end
+			if gridMenu and gridMenu.setCostOverride then
+				gridMenu.setCostOverride(unitDefID, costOverride)
+			end
+		end
+	end
+
+	local budgetProjected = 0
+	if pregameUnitSelected > 0 and UnitDefs[pregameUnitSelected] then
+		local uDef = UnitDefs[pregameUnitSelected]
+		local mx, my = Spring.GetMouseState()
+
+		local mouseMoved = mx ~= widgetState.lastMousePos[1] or my ~= widgetState.lastMousePos[2]
+		if mouseMoved then
+			widgetState.lastMousePos[1] = mx
+			widgetState.lastMousePos[2] = my
+		end
+
 		local _, pos = Spring.TraceScreenRay(mx, my, true, false, false,
 			uDef.modCategories and uDef.modCategories.underwater)
 		if pos then
@@ -519,30 +571,32 @@ function widget:Initialize()
 	end
 
 	WG["getBuildQueueSpawnStatus"] = getBuildQueueSpawnStatus
-	
+
 	local buildMenu = WG['buildmenu']
 	local gridMenu = WG['gridmenu']
-	
+
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		local metalCost = unitDef.metalCost or 0
-		local energyCost = unitDef.energyCost or 0
-		local buildTime = unitDef.buildTime or 0
-		local budgetCost = calculateBudgetCost(metalCost, energyCost, buildTime)
-		
-		local costOverride = {
-			top = { disabled = true },
-			bottom = {
-				value = budgetCost,
-				color = "\255\255\110\255",
-				colorDisabled = "\255\200\50\200"
+		if not unitDef.isFactory then
+			local metalCost = unitDef.metalCost or 0
+			local energyCost = unitDef.energyCost or 0
+			local buildTime = unitDef.buildTime or 0
+			local budgetCost = calculateBudgetCost(metalCost, energyCost, buildTime)
+
+			local costOverride = {
+				top = { disabled = true },
+				bottom = {
+					value = budgetCost,
+					color = "\255\255\110\255",
+					colorDisabled = "\255\200\50\200"
+				}
 			}
-		}
-		
-		if buildMenu and buildMenu.setCostOverride then
-			buildMenu.setCostOverride(unitDefID, costOverride)
-		end
-		if gridMenu and gridMenu.setCostOverride then
-			gridMenu.setCostOverride(unitDefID, costOverride)
+
+			if buildMenu and buildMenu.setCostOverride then
+				buildMenu.setCostOverride(unitDefID, costOverride)
+			end
+			if gridMenu and gridMenu.setCostOverride then
+				gridMenu.setCostOverride(unitDefID, costOverride)
+			end
 		end
 	end
 
