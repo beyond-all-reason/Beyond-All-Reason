@@ -58,6 +58,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spSetFeatureResources = Spring.SetFeatureResources
 	local spGetMoveData = Spring.GetUnitMoveTypeData
+	local spMoveCtrlEnabled = Spring.MoveCtrl.IsEnabled
 	local spSetMoveData = Spring.MoveCtrl.SetGroundMoveTypeData
 	local spGetGroundHeight = Spring.GetGroundHeight
 	local spSpawnCEG = Spring.SpawnCEG
@@ -123,6 +124,14 @@ if gadgetHandler:IsSyncedCode() then
 		_G.lavaGrow = lavaGrow
 	end
 
+	function slowUnit(unitID, unitDefID, unitSlow)
+		if spMoveCtrlEnabled(unitID) then return end
+		local slowedMaxSpeed = speedDefs[unitDefID] * unitSlow
+		local slowedTurnRate = turnDefs[unitDefID] * unitSlow
+		local slowedAccRate = accDefs[unitDefID] * unitSlow
+		spSetMoveData(unitID, {maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate})
+	end
+
 	-- slow down and damage unit+features in lava
 	function lavaObjectsCheck()
 		local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -145,17 +154,14 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 					if lavaUnits[unitID].slowed and (unitSlow ~= lavaUnits[unitID].currentSlow) then
-						local slowedMaxSpeed = speedDefs[unitDefID] * unitSlow
-						local slowedTurnRate = turnDefs[unitDefID] * unitSlow
-						local slowedAccRate = accDefs[unitDefID] * unitSlow
-						spSetMoveData(unitID, {maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate})
 						lavaUnits[unitID].currentSlow = unitSlow
+						slowUnit(unitID, unitDefID, unitSlow)
 					end
 				spAddUnitDamage(unitID, lavaDamage, 0, gaiaTeamID, 1)
 				spSpawnCEG(lavaEffectDamage, x, y+5, z)
 				elseif lavaUnits[unitID] then -- unit exited lava
 					if lavaUnits[unitID].slowed then
-						spSetMoveData(unitID, {maxSpeed = speedDefs[unitDefID], turnRate = turnDefs[unitDefID], accRate = accDefs[unitDefID]})
+						slowUnit(unitID, unitDefID, 1)
 					end
 				lavaUnits[unitID] = nil
 				end
