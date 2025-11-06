@@ -11,7 +11,7 @@ function widget:GetInfo()
 		author = "SethDGamre",
 		date = "2025-07",
 		license = "GNU GPL, v2 or later",
-		layer = 1,
+		layer = 2, --after pregame_build
 		enabled = true,
 	}
 end
@@ -36,6 +36,9 @@ local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" 
 local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetMyTeamID = Spring.GetMyTeamID
 local spI18N = Spring.I18N
+
+-- WG function references populated in initialize() to respect load order
+local wgBuildMenu, wgGridMenu, wgTopbar, wgPregameBuild, wgPregameUI, wgPregameUIDraft, wgPregameUnitSelected
 
 local MODEL_NAME = "quick_start_model"
 local RML_PATH = "luaui/RmlWidgets/gui_quick_start/gui_quick_start.rml"
@@ -127,7 +130,7 @@ local function isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, instan
 		return false
 	end
 
-	local myTeamID = spGetMyTeamID() or 0
+	local myTeamID = spGetMyTeamID()
 	local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 
 	if startDefID and traversabilityGrid.canMoveToPosition(startDefID, buildX, buildZ, GRID_CHECK_RESOLUTION_MULTIPLIER) then
@@ -248,11 +251,10 @@ local function getCommanderPosition(myTeamID)
 end
 
 local function computeProjectedUsage()
-	local myTeamID = spGetMyTeamID() or 0
+	local myTeamID = spGetMyTeamID()
 	local gameRules = getCachedGameRules(myTeamID)
-	local pregame = WG and WG["pregame-build"] and WG["pregame-build"].getBuildQueue and
-		WG["pregame-build"].getBuildQueue() or {}
-	local pregameUnitSelected = WG["pregame-unit-selected"] or -1
+	local pregame = wgPregameBuild and wgPregameBuild.getBuildQueue and wgPregameBuild.getBuildQueue() or {}
+	local pregameUnitSelected = wgPregameUnitSelected or -1
 
 	local budgetUsed = 0
 	local firstFactoryPlaced = false
@@ -275,69 +277,17 @@ local function computeProjectedUsage()
 		end
 	end
 
-	local factoryHasBeenPlaced = firstFactoryPlaced
-	if pregameUnitSelected > 0 and UnitDefs[pregameUnitSelected] and UnitDefs[pregameUnitSelected].isFactory then
-		local uDef = UnitDefs[pregameUnitSelected]
-		local mx, my = Spring.GetMouseState()
-
-		local mouseMoved = mx ~= widgetState.lastMousePos[1] or my ~= widgetState.lastMousePos[2]
-		if mouseMoved then
-			widgetState.lastMousePos[1] = mx
-			widgetState.lastMousePos[2] = my
-		end
-
-		local _, pos = Spring.TraceScreenRay(mx, my, true, false, false,
-			uDef.modCategories and uDef.modCategories.underwater)
-		if pos then
-			local buildFacing = Spring.GetBuildFacing()
-			local bx, by, bz = Spring.Pos2BuildPos(pregameUnitSelected, pos[1], pos[2], pos[3], buildFacing)
-
-			if isWithinBuildRange(commanderX, commanderZ, bx, bz, gameRules.instantBuildRange) then
-				factoryHasBeenPlaced = true
-			end
-		end
-	end
-
-	local buildMenu = WG['buildmenu']
-	local gridMenu = WG['gridmenu']
-	for unitDefID, unitDef in pairs(UnitDefs) do
-		if unitDef.isFactory then
-			local metalCost = unitDef.metalCost or 0
-			local energyCost = unitDef.energyCost or 0
-			local buildTime = unitDef.buildTime or 0
-			local baseBudgetCost = calculateBudgetCost(metalCost, energyCost, buildTime)
-			local discountedCost = calculateBudgetWithDiscount(unitDefID, gameRules.factoryDiscountAmount, shouldApplyFactoryDiscount, not factoryHasBeenPlaced)
-			local displayCost = discountedCost
-
-			local costOverride = {
-				top = { disabled = true },
-				bottom = {
-					value = displayCost,
-					color = "\255\255\110\255",
-					colorDisabled = "\255\200\50\200"
-				}
-			}
-
-			if buildMenu and buildMenu.setCostOverride then
-				buildMenu.setCostOverride(unitDefID, costOverride)
-			end
-			if gridMenu and gridMenu.setCostOverride then
-				gridMenu.setCostOverride(unitDefID, costOverride)
-			end
-		end
-	end
-
 	local budgetProjected = 0
 	if pregameUnitSelected > 0 and UnitDefs[pregameUnitSelected] then
 		local uDef = UnitDefs[pregameUnitSelected]
 		local mx, my = Spring.GetMouseState()
-
+		
 		local mouseMoved = mx ~= widgetState.lastMousePos[1] or my ~= widgetState.lastMousePos[2]
 		if mouseMoved then
 			widgetState.lastMousePos[1] = mx
 			widgetState.lastMousePos[2] = my
 		end
-
+		
 		local _, pos = Spring.TraceScreenRay(mx, my, true, false, false,
 			uDef.modCategories and uDef.modCategories.underwater)
 		if pos then
@@ -379,23 +329,82 @@ local function hideWarnings()
 	end
 end
 
+local function updateAllCostOverrides()
+	if not wgBuildMenu or not wgGridMenu then
+		return
+	end
+
+	local myTeamID = spGetMyTeamID()
+	local gameRules = getCachedGameRules(myTeamID)
+	local buildQueue = wgPregameBuild and wgPregameBuild.getBuildQueue and wgPregameBuild.getBuildQueue() or {}
+
+	local factoryAlreadyPlaced = false
+	local commanderX, commanderY, commanderZ = getCommanderPosition(myTeamID)
+
+	for i = 1, #buildQueue do
+		local queueItem = buildQueue[i]
+		local unitDefID = queueItem[1]
+
+		if unitDefID and unitDefID > 0 and UnitDefs[unitDefID] then
+			local buildX, buildZ = queueItem[2], queueItem[4]
+
+			if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
+				if UnitDefs[unitDefID].isFactory then
+					factoryAlreadyPlaced = true
+					break
+				end
+			end
+		end
+	end
+
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local metalCost = unitDef.metalCost or 0
+		local energyCost = unitDef.energyCost or 0
+		local buildTime = unitDef.buildTime or 0
+		local budgetCost = calculateBudgetCost(metalCost, energyCost, buildTime)
+
+		if unitDef.isFactory and shouldApplyFactoryDiscount and not factoryAlreadyPlaced then
+			budgetCost = calculateBudgetWithDiscount(unitDefID, gameRules.factoryDiscountAmount, shouldApplyFactoryDiscount, true)
+		end
+
+		local costOverride = {
+			top = { disabled = true },
+			bottom = {
+				value = budgetCost,
+				color = "\255\255\110\255",
+				colorDisabled = "\255\200\50\200"
+			}
+		}
+
+		if wgBuildMenu.setCostOverride then
+			wgBuildMenu.setCostOverride(unitDefID, costOverride)
+		end
+		if wgGridMenu.setCostOverride then
+			wgGridMenu.setCostOverride(unitDefID, costOverride)
+		end
+	end
+end
+
 local function updateDataModel(forceUpdate)
 	if not widgetState.dmHandle then return end
 
-	local buildQueue = WG and WG["pregame-build"] and WG["pregame-build"].getBuildQueue and
-		WG["pregame-build"].getBuildQueue() or {}
+	local buildQueue = wgPregameBuild and wgPregameBuild.getBuildQueue and wgPregameBuild.getBuildQueue() or {}
 	local currentQueueLength = #buildQueue
 	local currentTime = os.clock()
-	
-	if not forceUpdate and widgetState.lastQueueLength == currentQueueLength and 
+
+	if not forceUpdate and widgetState.lastQueueLength == currentQueueLength and
 		(currentTime - widgetState.lastUpdate) < widgetState.updateInterval then
 		return
 	end
-	
+
 	widgetState.lastUpdate = currentTime
 
 	local modelUpdate = computeProjectedUsage()
 	local currentBudgetRemaining = modelUpdate.budgetRemaining or 0
+
+	if forceUpdate or currentQueueLength ~= widgetState.lastQueueLength then
+		updateAllCostOverrides()
+	end
 	
 	if currentQueueLength > widgetState.lastQueueLength then
 		if currentBudgetRemaining < widgetState.lastBudgetRemaining then
@@ -418,25 +427,23 @@ local function updateDataModel(forceUpdate)
 	widgetState.lastQueueLength = currentQueueLength
 	widgetState.lastBudgetRemaining = currentBudgetRemaining
 	
-	local myTeamID = spGetMyTeamID() or 0
+	local myTeamID = spGetMyTeamID()
 	local gameRules = getCachedGameRules(myTeamID)
 	local budgetThreshold = gameRules.budgetThresholdToAllowStart or 0
 	local hasUnallocatedBudget = currentBudgetRemaining > budgetThreshold
-	local pregameUI = WG['pregameui']
-	local pregameUIDraft = WG['pregameui_draft']
 	
-	if pregameUI and pregameUI.addReadyCondition and pregameUI.removeReadyCondition then
+	if wgPregameUI and wgPregameUI.addReadyCondition and wgPregameUI.removeReadyCondition then
 		if hasUnallocatedBudget then
-			pregameUI.addReadyCondition(QUICK_START_CONDITION_KEY, "ui.quickStart.unallocatedBudget")
+			wgPregameUI.addReadyCondition(QUICK_START_CONDITION_KEY, "ui.quickStart.unallocatedBudget")
 		else
-			pregameUI.removeReadyCondition(QUICK_START_CONDITION_KEY)
+			wgPregameUI.removeReadyCondition(QUICK_START_CONDITION_KEY)
 		end
 	end
-	if pregameUIDraft and pregameUIDraft.addReadyCondition and pregameUIDraft.removeReadyCondition then
+	if wgPregameUIDraft and wgPregameUIDraft.addReadyCondition and wgPregameUIDraft.removeReadyCondition then
 		if hasUnallocatedBudget then
-			pregameUIDraft.addReadyCondition(QUICK_START_CONDITION_KEY, "ui.quickStart.unallocatedBudget")
+			wgPregameUIDraft.addReadyCondition(QUICK_START_CONDITION_KEY, "ui.quickStart.unallocatedBudget")
 		else
-			pregameUIDraft.removeReadyCondition(QUICK_START_CONDITION_KEY)
+			wgPregameUIDraft.removeReadyCondition(QUICK_START_CONDITION_KEY)
 		end
 	end
 	
@@ -447,7 +454,6 @@ local function updateDataModel(forceUpdate)
 	if widgetState.document then
 		local budgetPercent = widgetState.dmHandle.budgetPercent or 0
 		local budgetRemaining = math.floor(widgetState.dmHandle.budgetRemaining or 0)
-		local budgetTotal = math.floor(widgetState.dmHandle.budgetTotal or 0)
 		
 		if widgetState.budgetBarElements.fillElement then
 			widgetState.budgetBarElements.fillElement:SetAttribute("style", "width: " .. string.format("%.1f%%", budgetPercent))
@@ -465,9 +471,8 @@ local function updateDataModel(forceUpdate)
 	end
 end
 
-
 local function getBuildQueueSpawnStatus(buildQueue, selectedBuildData)
-	local myTeamID = spGetMyTeamID() or 0
+	local myTeamID = spGetMyTeamID()
 	local gameRules = getCachedGameRules(myTeamID)
 	local spawnResults = {
 		queueSpawned = {},
@@ -546,6 +551,14 @@ function widget:Initialize()
 	widgetState.document = document
 	document:Show()
 
+	wgBuildMenu = WG['buildmenu']
+	wgGridMenu = WG['gridmenu']
+	wgTopbar = WG['topbar']
+	wgPregameBuild = WG['pregame-build']
+	wgPregameUI = WG['pregameui']
+	wgPregameUIDraft = WG['pregameui_draft']
+	wgPregameUnitSelected = WG['pregame-unit-selected']
+
 	updateUIElementText(document, "qs-budget-header", spI18N('ui.quickStart.preGameResources'))
 	updateUIElementText(document, "qs-warning-text", spI18N('ui.quickStart.remainingResourcesWarning'))
 	
@@ -566,39 +579,13 @@ function widget:Initialize()
 		warningTextElement:SetClass("visible", true)
 	end
 
-	if WG['topbar'] and WG['topbar'].setResourceBarsVisible then
-		WG['topbar'].setResourceBarsVisible(false)
+	if wgTopbar and wgTopbar.setResourceBarsVisible then
+		wgTopbar.setResourceBarsVisible(false)
 	end
 
 	WG["getBuildQueueSpawnStatus"] = getBuildQueueSpawnStatus
 
-	local buildMenu = WG['buildmenu']
-	local gridMenu = WG['gridmenu']
-
-	for unitDefID, unitDef in pairs(UnitDefs) do
-		if not unitDef.isFactory then
-			local metalCost = unitDef.metalCost or 0
-			local energyCost = unitDef.energyCost or 0
-			local buildTime = unitDef.buildTime or 0
-			local budgetCost = calculateBudgetCost(metalCost, energyCost, buildTime)
-
-			local costOverride = {
-				top = { disabled = true },
-				bottom = {
-					value = budgetCost,
-					color = "\255\255\110\255",
-					colorDisabled = "\255\200\50\200"
-				}
-			}
-
-			if buildMenu and buildMenu.setCostOverride then
-				buildMenu.setCostOverride(unitDefID, costOverride)
-			end
-			if gridMenu and gridMenu.setCostOverride then
-				gridMenu.setCostOverride(unitDefID, costOverride)
-			end
-		end
-	end
+	updateAllCostOverrides()
 
 	updateDataModel(true)
 	widgetState.lastBudgetRemaining = widgetState.dmHandle.budgetRemaining or 0
@@ -606,24 +593,24 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if WG['topbar'] and WG['topbar'].setResourceBarsVisible then
-		WG['topbar'].setResourceBarsVisible(true)
+	if wgTopbar and wgTopbar.setResourceBarsVisible then
+		wgTopbar.setResourceBarsVisible(true)
 	end
 
 	WG["getBuildQueueSpawnStatus"] = nil
-	
-	if WG['buildmenu'] and WG['buildmenu'].clearCostOverrides then
-		WG['buildmenu'].clearCostOverrides()
+
+	if wgBuildMenu and wgBuildMenu.clearCostOverrides then
+		wgBuildMenu.clearCostOverrides()
 	end
-	if WG['gridmenu'] and WG['gridmenu'].clearCostOverrides then
-		WG['gridmenu'].clearCostOverrides()
+	if wgGridMenu and wgGridMenu.clearCostOverrides then
+		wgGridMenu.clearCostOverrides()
 	end
-	
-	if WG['pregameui'] and WG['pregameui'].removeReadyCondition then
-		WG['pregameui'].removeReadyCondition(QUICK_START_CONDITION_KEY)
+
+	if wgPregameUI and wgPregameUI.removeReadyCondition then
+		wgPregameUI.removeReadyCondition(QUICK_START_CONDITION_KEY)
 	end
-	if WG['pregameui_draft'] and WG['pregameui_draft'].removeReadyCondition then
-		WG['pregameui_draft'].removeReadyCondition(QUICK_START_CONDITION_KEY)
+	if wgPregameUIDraft and wgPregameUIDraft.removeReadyCondition then
+		wgPregameUIDraft.removeReadyCondition(QUICK_START_CONDITION_KEY)
 	end
 
 	if widgetState.rmlContext and widgetState.dmHandle then
@@ -641,9 +628,8 @@ function widget:Update()
 	local currentGameFrame = Spring.GetGameFrame()
 	if currentGameFrame > 0 then
 		hideWarnings()
-		local topbar = WG['topbar']
-		if topbar and topbar.setResourceBarsVisible then
-			topbar.setResourceBarsVisible(true)
+		if wgTopbar and wgTopbar.setResourceBarsVisible then
+			wgTopbar.setResourceBarsVisible(true)
 		end
 		widgetHandler:RemoveWidget(self)
 		return
