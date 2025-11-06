@@ -1314,9 +1314,6 @@ function widget:DrawWorld()
 	end
 
 	if selBuildData and showSelectedBuilding then
-		local selectedAlpha = alphaResults.selectedAlpha or ALPHA_DEFAULT
-		local isSelectedSpawned = selectedAlpha >= ALPHA_SPAWNED
-		
 		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
 		local testOrder = spTestBuildOrder(
 			selBuildQueueDefID,
@@ -1325,18 +1322,28 @@ function widget:DrawWorld()
 			selBuildData[4],
 			selBuildData[5]
 		) ~= 0
+		
+		local isSelectedSpawned = false
+		local selectedAlpha = ALPHA_DEFAULT
+		local getBuildQueueSpawnStatus = WG["getBuildQueueSpawnStatus"]
+		if getBuildQueueSpawnStatus and testOrder then
+			local spawnStatus = getBuildQueueSpawnStatus(buildQueue, selBuildData)
+			isSelectedSpawned = spawnStatus.selectedSpawned or false
+			selectedAlpha = isSelectedSpawned and ALPHA_SPAWNED or ALPHA_DEFAULT
+		end
+		
 		if not isMex then
 			local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID) or BORDER_COLOR_INVALID
 			DrawBuilding(selBuildData, color, true, selectedAlpha)
 		elseif isMex then
 			if WG.ExtractorSnap.position or isMetalMap then
-				local color = isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID
+				local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID) or BORDER_COLOR_INVALID
 				DrawBuilding(selBuildData, color, true, selectedAlpha)
 			else
 				DrawBuilding(selBuildData, BORDER_COLOR_INVALID, true, selectedAlpha)
 			end
 		else
-			local color = isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID
+			local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID) or BORDER_COLOR_INVALID
 			DrawBuilding(selBuildData, color, true, selectedAlpha)
 		end
 	end
