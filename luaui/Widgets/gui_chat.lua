@@ -714,6 +714,7 @@ local function cancelChatInput()
 		WG['guishader'].RemoveRect('chatinput')
 		WG['guishader'].RemoveRect('chatinputautocomplete')
 	end
+	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil	-- non handler = true: widgetHandler:DisownText()
 	updateDrawUi = true
 end
