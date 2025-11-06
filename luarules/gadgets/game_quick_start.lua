@@ -43,16 +43,8 @@ local quickStartAmountConfig = {
 
 local BUILD_TIME_VALUE_CONVERSION_MULTIPLIER = 1/300 --300 being a representative of commander workertime, statically defined so future com unitdef adjustments don't change this.
 local ENERGY_VALUE_CONVERSION_MULTIPLIER = 1/60 --60 being the energy conversion rate of t2 energy converters, statically defined so future changes not to affect this.
-
-local function customRound(value)
-	if value < 15 then
-		return math.floor(value)
-	elseif value < 100 then
-		return math.floor(value / 5 + 0.5) * 5
-	else
-		return math.floor(value / 10 + 0.5) * 10
-	end
-end
+local aestheticCustomCostRound = VFS.Include('LuaRules/Utilities/aestheticCustomCostRound.lua')
+local customRound = aestheticCustomCostRound.customRound
 
 -------------------------------------------------------------------------
 

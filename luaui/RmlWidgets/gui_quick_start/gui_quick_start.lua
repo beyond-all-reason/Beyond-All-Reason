@@ -52,18 +52,10 @@ local GRID_RESOLUTION = 32
 local GRID_CHECK_RESOLUTION_MULTIPLIER = 1
 
 local traversabilityGrid = VFS.Include("luarules/Utilities/traversability_grid.lua")
+local aestheticCustomCostRound = VFS.Include("LuaRules/Utilities/aestheticCustomCostRound.lua")
+local customRound = aestheticCustomCostRound.customRound
 local lastCommanderX = nil
 local lastCommanderZ = nil
-
-local function customRound(value)
-	if value < 15 then
-		return math.floor(value)
-	elseif value < 100 then
-		return math.floor(value / 5 + 0.5) * 5
-	else
-		return math.floor(value / 10 + 0.5) * 10
-	end
-end
 
 local cachedGameRules = {}
 local lastRulesUpdate = 0
