@@ -37,15 +37,12 @@ local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetMyTeamID = Spring.GetMyTeamID
 local spI18N = Spring.I18N
 
-local isSpec = Spring.GetSpectatingState()
-local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
-
 local MODEL_NAME = "quick_start_model"
 local RML_PATH = "luaui/RmlWidgets/gui_quick_start/gui_quick_start.rml"
 local QUICK_START_CONDITION_KEY = "quickStartUnallocatedBudget"
 
-local ENERGY_VALUE_CONVERSION_DIVISOR = 60
-local BUILD_TIME_VALUE_CONVERSION_DIVISOR = 300
+local ENERGY_VALUE_CONVERSION_MULTIPLIER = 1/60 --60 being the energy conversion rate of t2 energy converters, statically defined so future changes not to affect this.
+local BUILD_TIME_VALUE_CONVERSION_MULTIPLIER = 1/300 --300 being a representative of commander workertime, statically defined so future com unitdef adjustments don't change this.
 local DEFAULT_INSTANT_BUILD_RANGE = 500
 local GRID_GENERATION_RANGE = 544
 local GRID_RESOLUTION = 32
@@ -70,7 +67,7 @@ local lastRulesUpdate = 0
 local RULES_CACHE_DURATION = 0.1
 
 local function calculateBudgetCost(metalCost, energyCost, buildTime)
-	return customRound((metalCost + energyCost / ENERGY_VALUE_CONVERSION_DIVISOR) + (buildTime / BUILD_TIME_VALUE_CONVERSION_DIVISOR))
+	return customRound(metalCost + energyCost * ENERGY_VALUE_CONVERSION_MULTIPLIER + buildTime * BUILD_TIME_VALUE_CONVERSION_MULTIPLIER)
 end
 
 local widgetState = {
@@ -88,7 +85,7 @@ local widgetState = {
 	deductionElements = {},
 	currentDeductionIndex = 1,
 	lastMousePos = {0, 0},
-	warningsFadedOut = false,
+	warningsHidden = false,
 	warningElements = {
 		warningText = nil,
 		factoryText = nil,
@@ -153,13 +150,12 @@ local function getCachedGameRules(myTeamID)
 end
 
 local function updateTraversabilityGrid()
-	if not preGamestartPlayer then
+	local myTeamID = spGetMyTeamID()
+	if not myTeamID then
 		return
 	end
 
-	local myTeamID = spGetMyTeamID() or 0
 	local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
-
 	if not startDefID then
 		return
 	end
@@ -316,12 +312,12 @@ local function computeProjectedUsage()
 	}
 end
 
-local function fadeOutWarnings()
-	if widgetState.warningsFadedOut then
+local function hideWarnings()
+	if widgetState.warningsHidden then
 		return
 	end
 
-	widgetState.warningsFadedOut = true
+	widgetState.warningsHidden = true
 
 	if widgetState.warningElements.warningText then
 		widgetState.warningElements.warningText:SetAttribute("style", "opacity: 0;")
@@ -364,7 +360,7 @@ local function updateDataModel(forceUpdate)
 	if widgetState.lastBudgetRemaining > currentBudgetRemaining then
 		local deductionAmount = widgetState.lastBudgetRemaining - currentBudgetRemaining
 		showDeductionAnimation(deductionAmount)
-		fadeOutWarnings()
+		hideWarnings()
 	end
 	
 	widgetState.lastQueueLength = currentQueueLength
@@ -472,6 +468,12 @@ local function getBuildQueueSpawnStatus(buildQueue, selectedBuildData)
 end
 
 function widget:Initialize()
+
+	local isSpectating = Spring.GetSpectatingState()
+	if isSpectating then
+		widgetHandler:RemoveWidget(self)
+	end
+
 	widgetState.rmlContext = RmlUi.GetContext("shared")
 	if not widgetState.rmlContext then
 		return false
@@ -584,7 +586,7 @@ end
 function widget:Update()
 	local currentGameFrame = Spring.GetGameFrame()
 	if currentGameFrame > 0 then
-		fadeOutWarnings()
+		hideWarnings()
 		local topbar = WG['topbar']
 		if topbar and topbar.setResourceBarsVisible then
 			topbar.setResourceBarsVisible(true)
