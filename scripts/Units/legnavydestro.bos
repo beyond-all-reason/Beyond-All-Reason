@@ -52,10 +52,10 @@ static-var deltaheading, newchassisheading, chassisheading, restore_position;
 // A high precision requirement can result in overshoots if desired 
 // Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 // adjustments by Itanthias
-#define MAX_AIMY1_VELOCITY <3.20>
-#define AIMY1_ACCELERATION <0.26>
+#define MAX_AIMY1_VELOCITY <3.30>
+#define AIMY1_ACCELERATION <0.3>
 #define AIMY1_SNAP_TOLERANCE <0.8>
-#define AIMY1_PRECISION <1.2>
+#define AIMY1_PRECISION <0.6>
 #define AIMY1_RESTORE_SPEED <1.0>
 
 static-var aimy1delta, timetozero, deceleratethreshold;
@@ -176,7 +176,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turretBaseHeadingPivot to y-axis <0.0> speed <35.0>;
+	//turn turretBaseHeadingPivot to y-axis <0.0> speed <35.0>;
 	turn turretStrutPitchPivot to x-axis <0.0> speed <20.0>;
 }
 SetStunned(State)
