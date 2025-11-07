@@ -39,7 +39,7 @@ return {
 		waterline = 0,
 		customparams = {
 			unitgroup = 'aa',
-			model_author = "Beherith",
+			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Ships",
 		},
