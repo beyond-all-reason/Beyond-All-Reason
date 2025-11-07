@@ -190,11 +190,11 @@ return {
 				customparams = {
 					cegtag = "missiletrailcorroyspecial",
 					model = "airbomb",
+					noattackrangearc = 1,
 					number = "6",
 					speceffect = "split",
 					speceffect_def = "armmship_rocket_split",
 					splitexplosionceg = "genericshellexplosion-medium",
-					noattackrangearc= 1,
 				},
 				damage = {
 					commanders = 350,

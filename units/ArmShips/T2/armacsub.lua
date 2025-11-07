@@ -51,7 +51,6 @@ return {
 			[12] = "armfflak",
 			[13] = "armkraken",
 			[14] = "armuwageo",
-			[15] = "armfasp",
 		},
 		customparams = {
 			model_author = "FireStorm",

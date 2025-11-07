@@ -1,7 +1,6 @@
--- disable for intel cards (else it will render solid dark screen)
-if Platform ~= nil and Platform.gpuVendor == 'Intel' then
-	return
-end
+-- Intel GPU compatibility: Use a simplified shader path
+-- The complex derivative-based quad message passing doesn't work reliably on Intel GPUs
+local isIntelGPU = Platform ~= nil and Platform.gpuVendor == 'Intel'
 
 local widget = widget ---@type Widget
 
@@ -112,6 +111,7 @@ local function DrawStencilTexture(world, fullscreen)
 				gl.Rect(rect[1], rect[2], rect[3], rect[4])
 			end
 			for _, dlist in pairs(guishaderDlists) do
+				gl.Color(1,1,1,1)
 				gl.CallList(dlist)
 			end
 		elseif fullscreen then
@@ -121,6 +121,7 @@ local function DrawStencilTexture(world, fullscreen)
 				gl.Rect(rect[1], rect[2], rect[3], rect[4])
 			end
 			for _, dlist in pairs(guishaderScreenDlists) do
+				gl.Color(1,1,1,1)
 				gl.CallList(dlist)
 			end
 		end
@@ -157,8 +158,53 @@ local function CreateShaders()
 	end
 
 	-- create blur shaders
-	blurShader = LuaShader({
-		fragment = [[
+	local fragmentShaderCode
+	
+	if isIntelGPU then
+		-- Intel GPUs: Use simple box blur with weighted distribution for quality
+		-- Avoids derivative functions (dFdx/dFdy) which are buggy on Intel drivers
+		fragmentShaderCode = [[
+		#version 120
+		uniform sampler2D tex2;
+		uniform sampler2D tex0;
+		uniform float ivsx;
+		uniform float ivsy;
+
+		void main(void)
+		{
+			vec2 texCoord = gl_TexCoord[0].st;
+			float stencil = texture2D(tex2, texCoord).a;
+			
+			if (stencil < 0.01)
+			{
+				discard;
+			}
+			
+			// 9-sample weighted blur for smooth, high-quality results
+			vec4 sum = vec4(0.0);
+			vec2 offset = vec2(ivsx, ivsy) * 6.0;
+			
+			// Center sample gets highest weight
+			sum += texture2D(tex0, texCoord) * 4.0;
+			
+			// Cardinal directions weighted higher
+			sum += texture2D(tex0, texCoord + vec2(offset.x, 0.0)) * 2.0;
+			sum += texture2D(tex0, texCoord - vec2(offset.x, 0.0)) * 2.0;
+			sum += texture2D(tex0, texCoord + vec2(0.0, offset.y)) * 2.0;
+			sum += texture2D(tex0, texCoord - vec2(0.0, offset.y)) * 2.0;
+			
+			// Diagonal corners for smoothness
+			sum += texture2D(tex0, texCoord + offset);
+			sum += texture2D(tex0, texCoord - offset);
+			sum += texture2D(tex0, texCoord + vec2(offset.x, -offset.y));
+			sum += texture2D(tex0, texCoord + vec2(-offset.x, offset.y));
+			
+			gl_FragColor = sum / 17.0;
+		}
+		]]
+	else
+		-- Other GPUs: Use optimized shader with quad message passing
+		fragmentShaderCode = [[
 		#version 150 compatibility
 		uniform sampler2D tex2;
 		uniform sampler2D tex0;
@@ -217,7 +263,11 @@ local function CreateShaders()
 				//gl_FragColor.rgba = vec4(1.0);
 			}
 		}
-	]],
+		]]
+	end
+
+	blurShader = LuaShader({
+		fragment = fragmentShaderCode,
 
 		uniformInt = {
 			tex0 = 0,
@@ -301,6 +351,11 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 			updateStencilTexture = false
 		end
 
+		-- Debug: Check if stencil texture exists
+		if isIntelGPU and stenciltex == nil then
+			Spring.Echo("DEBUG: stenciltex is nil!")
+		end
+
 		gl.Blending(true)
 		gl.Texture(screencopy)
 		gl.Texture(2, stenciltex)
@@ -322,6 +377,13 @@ local function DrawScreen() -- This blurs the UI elements obscured by other UI e
 	if Spring.IsGUIHidden() or uiOpacity > 0.99 then
 		return
 	end
+
+	for i, dlist in ipairs(deleteDlistQueue) do
+		gl.DeleteList(dlist)
+		updateStencilTexture = true
+	end
+	deleteDlistQueue = {}
+
 	--if true then return false end
 	if (screenBlur or next(guishaderScreenRects) or next(guishaderScreenDlists)) and blurShader then
 		gl.Texture(false)
@@ -350,19 +412,9 @@ local function DrawScreen() -- This blurs the UI elements obscured by other UI e
 	end
 
 	for k, v in pairs(renderDlists) do
+		gl.Color(1,1,1,1)
 		gl.CallList(k)
 	end
-
-	for k, v in pairs(deleteDlistQueue) do
-		gl.DeleteList(deleteDlistQueue[v])
-		if guishaderDlists[k] then
-			guishaderDlists[k] = nil
-		elseif guishaderScreenDlists[k] then
-			guishaderScreenDlists[k] = nil
-		end
-		updateStencilTexture = true
-	end
-	deleteDlistQueue = {}
 end
 
 function widget:DrawScreen()
@@ -401,7 +453,8 @@ function widget:Initialize()
 	WG['guishader'].DeleteDlist = function(name)
 		local found = guishaderDlists[name] ~= nil
 		if found then
-			deleteDlistQueue[name] = guishaderDlists[name]
+			deleteDlistQueue[#deleteDlistQueue + 1] = guishaderDlists[name]
+			guishaderDlists[name] = nil
 			updateStencilTexture = true
 		end
 		return found
@@ -431,10 +484,10 @@ function widget:Initialize()
 		return found
 	end
 	WG['guishader'].DeleteScreenDlist = function(name)
-		local found = false
-		if guishaderScreenDlists[name] ~= nil then
-			found = true
-			deleteDlistQueue[name] = guishaderScreenDlists[name]
+		local found = guishaderScreenDlists[name] ~= nil
+		if found then
+			deleteDlistQueue[#deleteDlistQueue + 1] = guishaderScreenDlists[name]
+			guishaderScreenDlists[name] = nil
 		end
 		return found
 	end

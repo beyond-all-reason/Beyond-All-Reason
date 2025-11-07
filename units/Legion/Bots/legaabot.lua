@@ -19,7 +19,7 @@ return {
 		maxdec = 0.6486,
 		maxslope = 15,
 		metalcost = 120,
-		movementclass = "ABOT2",
+		movementclass = "ABOT3",
 		movestate = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/legaabot.s3o",

@@ -260,7 +260,7 @@ local startConeShader = nil
 
 local function DrawStartPolygons(inminimap)
 
-	local advUnitShading, advMapShading = Spring.HaveAdvShading()
+	local _, advMapShading = Spring.HaveAdvShading()
 
 	if advMapShading then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
@@ -528,6 +528,7 @@ function widget:DrawScreenEffects()
 	for _, teamID in ipairs(Spring.GetTeamList()) do
 		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
 		local name, _, spec = Spring.GetPlayerInfo(playerID, false)
+		name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 		if name ~= nil and not spec and teamID ~= gaiaTeamID then
 			local x, y, z = Spring.GetTeamStartPosition(teamID)
 			if coopStartPoints[playerID] then

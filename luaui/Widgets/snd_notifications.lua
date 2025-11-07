@@ -129,24 +129,23 @@ end
 local unitsOfInterestNames = {
 	armemp = 'EmpSiloDetected',
 	cortron = 'TacticalNukeSiloDetected',
+	legperdition = "LongRangeNapalmLauncherDetected",
 	armsilo = 'NuclearSiloDetected',
 	corsilo = 'NuclearSiloDetected',
 	corint = 'LrpcDetected',
 	armbrtha = 'LrpcDetected',
 	leglrpc = 'LrpcDetected',
-	corbuzz = 'LrpcDetected',
-	armvulc = 'LrpcDetected',
-	legstarfall = 'LrpcDetected',
+	corbuzz = 'CalamityDetected',
+	armvulc = 'RagnarokDetected',
+	legstarfall = 'StarfallDetected',
 	armliche = 'NuclearBomberDetected',
 	corjugg = 'BehemothDetected',
 	corkorg = 'JuggernautDetected',
 	armbanth = 'TitanDetected',
+	armthor = "ThorDetected",
 	legeheatraymech = 'SolinvictusDetected',
 	armepoch = 'FlagshipDetected',
 	corblackhy = 'FlagshipDetected',
-	armthovr = 'TransportDetected',
-	corthovr = 'TransportDetected',
-	corintr = 'TransportDetected',
 	armatlas = 'AirTransportDetected',
 	corvalk = 'AirTransportDetected',
 	leglts = 'AirTransportDetected',
@@ -156,14 +155,16 @@ local unitsOfInterestNames = {
 	armdfly = 'AirTransportDetected',
 	corseah = 'AirTransportDetected',
 	legstronghold = 'AirTransportDetected',
-	armtship = 'SeaTransportDetected',
-	cortship = 'SeaTransportDetected',
+	legelrpcmech = 'AstraeusDetected',
 }
 -- convert unitname -> unitDefID
 local unitsOfInterest = {}
 for unitName, sound in pairs(unitsOfInterestNames) do
 	if UnitDefNames[unitName] then
 		unitsOfInterest[UnitDefNames[unitName].id] = sound
+	end
+	if UnitDefNames[unitName .. "_scav"] then
+		unitsOfInterest[UnitDefNames[unitName .. "_scav"].id] = sound
 	end
 end
 unitsOfInterestNames = nil
@@ -172,10 +173,10 @@ unitsOfInterestNames = nil
 -- added this so they wont get immediately triggered after gamestart
 LastPlay['YouAreOverflowingMetal'] = spGetGameFrame() + 1200
 --LastPlay['YouAreOverflowingEnergy'] = spGetGameFrame()+300
---LastPlay['YouAreWastingMetal'] = spGetGameFrame()+300
---LastPlay['YouAreWastingEnergy'] = spGetGameFrame()+300
-LastPlay['WholeTeamWastingMetal'] = spGetGameFrame() + 1200
-LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame() + 2000
+LastPlay['YouAreWastingMetal'] = spGetGameFrame()
+LastPlay['YouAreWastingEnergy'] = spGetGameFrame()
+LastPlay['WholeTeamWastingMetal'] = spGetGameFrame()
+LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame()
 
 local soundQueue = {}
 local nextSoundQueued = 0
@@ -215,22 +216,57 @@ local doTutorialMode = tutorialMode
 local tutorialPlayed = {}        -- store the number of times a tutorial event has played across games
 local tutorialPlayedThisGame = {}    -- log that a tutorial event has played this game
 
-local vulcanDefID = UnitDefNames['armvulc'].id
-local titanDefID = UnitDefNames['armbanth'].id
+local unitIsReadyTab = {
+	{ UnitDefNames['armvulc'].id, 															'RagnarokIsReady' },
+	{ UnitDefNames['armbanth'].id, 															'TitanIsReady' },
+	{ UnitDefNames['armepoch'].id, 															'FlagshipIsReady' },
+	{ UnitDefNames['armthor'].id, 															'ThorIsReady' },
+	{ UnitDefNames['corbuzz'].id, 															'CalamityIsReady' },
+	{ UnitDefNames['corkorg'].id, 															'JuggernautIsReady' },
+	{ UnitDefNames['corjugg'].id, 															'BehemothIsReady' },
+	{ UnitDefNames['corblackhy'].id, 														'FlagshipIsReady' },
+	{ UnitDefNames['legstarfall'] and UnitDefNames['legstarfall'].id, 						'StarfallIsReady' },
+	{ UnitDefNames['legelrpcmech'] and UnitDefNames['legelrpcmech'].id, 					'AstraeusIsReady' },
+	{ UnitDefNames['legeheatraymech'] and UnitDefNames['legeheatraymech'].id, 				'SolinvictusIsReady' },
+}
 
-local buzzsawDefID = UnitDefNames['corbuzz'].id
-local juggernautDefID = UnitDefNames['corkorg'].id
+if UnitDefNames["armcom_scav"] then -- quick check if scav units exist
+	local unitIsReadyScavAppend = {}
+	for i = 1,#unitIsReadyTab do
+		if UnitDefNames[UnitDefs[unitIsReadyTab[1][1]].name .. "_scav" ].id then
+			unitIsReadyScavAppend[#unitIsReadyScavAppend+1] = {UnitDefNames[UnitDefs[unitIsReadyTab[i][1]].name .. "_scav" ].id, unitIsReadyTab[i][2]}
+		end
+	end
+	table.append(unitIsReadyTab, unitIsReadyScavAppend)
+end
 
-local starfallDefID = UnitDefNames['legstarfall'] and UnitDefNames['legstarfall'].id
-local astraeusDefID = UnitDefNames['legelrpcmech'] and UnitDefNames['legelrpcmech'].id
-local solinvictusDefID = UnitDefNames['legeheatraymech'] and UnitDefNames['legeheatraymech'].id
+-- Tutorial stuff, might not be needed soon
+local isFactoryAir = {
+	[UnitDefNames['armap'].id] = true,
+	[UnitDefNames['corap'].id] = true
+}
+local isFactorySeaplanes = { 
+	[UnitDefNames['armplat'].id] = true,
+	[UnitDefNames['corplat'].id] = true
+}
+local isFactoryVeh = { 
+	[UnitDefNames['armvp'].id] = true,
+	[UnitDefNames['corvp'].id] = true
+}
+local isFactoryBot = { 
+	[UnitDefNames['armlab'].id] = true,
+	[UnitDefNames['corlab'].id] = true
+}
+local isFactoryHover = { 
+	[UnitDefNames['armhp'].id] = true,
+	[UnitDefNames['corhp'].id] = true
+}
+local isFactoryShip = { 
+	[UnitDefNames['armsy'].id] = true,
+	[UnitDefNames['corsy'].id] = true
+}
 
-local isFactoryAir = { [UnitDefNames['armap'].id] = true, [UnitDefNames['corap'].id] = true }
-local isFactorySeaplanes = { [UnitDefNames['armplat'].id] = true, [UnitDefNames['corplat'].id] = true }
-local isFactoryVeh = { [UnitDefNames['armvp'].id] = true, [UnitDefNames['corvp'].id] = true }
-local isFactoryBot = { [UnitDefNames['armlab'].id] = true, [UnitDefNames['corlab'].id] = true }
-local isFactoryHover = { [UnitDefNames['armhp'].id] = true, [UnitDefNames['corhp'].id] = true }
-local isFactoryShip = { [UnitDefNames['armsy'].id] = true, [UnitDefNames['corsy'].id] = true }
+
 local numFactoryAir = 0
 local numFactorySeaplanes = 0
 local numFactoryVeh = 0
@@ -248,6 +284,7 @@ local isEnergyProducer = {}
 local isWind = {}
 local isAircraft = {}
 local isT2 = {}
+local isT2mobile = {}
 local isT3mobile = {}
 local isT4mobile = {}
 local isMine = {}
@@ -259,6 +296,9 @@ for udefID, def in ipairs(UnitDefs) do
 		if def.customParams.techlevel then
 			if def.customParams.techlevel == '2' and not (def.customParams.iscommander or def.customParams.isscavcommander) then
 				isT2[udefID] = true
+			end
+			if def.customParams.techlevel == '2' and not (def.customParams.iscommander or def.customParams.isscavcommander or def.isBuilding) then
+				isT2mobile[udefID] = true
 			end
 			if def.customParams.techlevel == '3' and not def.isBuilding then
 				isT3mobile[udefID] = true
@@ -325,6 +365,7 @@ local function queueNotification(event, forceplay)
 	end
 end
 
+
 local function queueTutorialNotification(event)
 	if doTutorialMode and (not tutorialPlayed[event] or tutorialPlayed[event] < tutorialPlayLimit) then
 		queueNotification(event)
@@ -371,9 +412,35 @@ function widget:Initialize()
 	end
 	WG['notifications'].getNotificationList = function()
 		local soundInfo = {}
+
 		for i, event in pairs(notificationOrder) do
-			soundInfo[i] = { event, notificationList[event], notification[event].textID, #notification[event].voiceFiles }
+			if not string.find(notification[event].textID, "/") then
+				soundInfo[#soundInfo+1] = { event, notificationList[event], notification[event].textID, #notification[event].voiceFiles }
+			end
 		end
+
+		table.sort(soundInfo, function(a, b)
+			local nameA = Spring.I18N(a[3]) or ""
+			local nameB = Spring.I18N(b[3]) or ""
+			return string.lower(nameA) < string.lower(nameB)
+		end)
+
+		local soundInfoPvE = {}
+
+		for i, event in pairs(notificationOrder) do
+			if string.find(notification[event].textID, "pvE/") then
+				soundInfoPvE[#soundInfoPvE+1] = { event, notificationList[event], notification[event].textID, #notification[event].voiceFiles }
+			end
+		end
+
+		table.sort(soundInfoPvE, function(a, b)
+			local nameA = Spring.I18N(a[3]) or ""
+			local nameB = Spring.I18N(b[3]) or ""
+			return string.lower(nameA) < string.lower(nameB)
+		end)
+
+		table.append(soundInfo, soundInfoPvE)
+
 		return soundInfo
 	end
 	WG['notifications'].getTutorial = function()
@@ -414,6 +481,9 @@ function widget:Initialize()
 		if notification[value] then
 			queueNotification(value, force)
 		end
+	end
+	WG['notifications'].queueNotification = function(event, forceplay)
+		queueNotification(event, forceplay)
 	end
 	WG['notifications'].playNotification = function(event)
 		if notification[event] then
@@ -506,6 +576,12 @@ function widget:GameFrame(gf)
 				idleBuilder[unitID] = nil    -- do not repeat
 			end
 		end
+
+		-- max units check
+		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		if currentUnits >= maxUnits then
+			queueNotification('MaxUnitsReached')
+		end
 	end
 
 	if gameframe % updateCommandersFrames == 0 then
@@ -539,23 +615,20 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			end
 		end
 
-		if unitDefID == vulcanDefID then
-			queueNotification('RagnarokIsReady')
-		elseif unitDefID == buzzsawDefID then
-			queueNotification('CalamityIsReady')
-		elseif unitDefID == starfallDefID then
-			queueNotification('StarfallIsReady')
-		elseif unitDefID == astraeusDefID then
-			queueNotification('AstraeusIsReady')
-		elseif unitDefID == solinvictusDefID then
-			queueNotification('SolinvictusIsReady')
-		elseif unitDefID == juggernautDefID then
-			queueNotification('JuggernautIsReady')
-		-- elseif unitDefID == titanDefID then
-		-- 	queueNotification('TitanIsReady')
+		for index,tab in pairs(unitIsReadyTab) do -- Play Unit Is Ready notifs based on the table's content
+			if unitDefID == tab[1] then
+				queueNotification(tab[2])
+				break
+			end
+		end
+		
+
+		if isT2mobile[unitDefID] then
+			queueNotification('Tech2UnitReady')
 		elseif isT3mobile[unitDefID] then
 			queueNotification('Tech3UnitReady')
-
+		elseif isT4mobile[unitDefID] then
+			queueNotification('Tech4UnitReady')
 		elseif doTutorialMode then
 			if isFactoryAir[unitDefID] then
 				queueTutorialNotification('FactoryAir')
@@ -570,6 +643,14 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			elseif isFactoryShip[unitDefID] then
 				queueTutorialNotification('FactoryShips')
 			end
+		end
+	else
+		if isT2mobile[unitDefID] then
+			queueNotification('Tech2TeamReached')
+		elseif isT3mobile[unitDefID] then
+			queueNotification('Tech3TeamReached')
+		elseif isT4mobile[unitDefID] then
+			queueNotification('Tech4TeamReached')
 		end
 	end
 end
@@ -588,17 +669,18 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 	local udefID = spGetUnitDefID(unitID)
 
 	-- single detection events below
+	queueNotification('EnemyDetected')
 	if isAircraft[udefID] then
-		queueNotification('AircraftSpotted')
+		queueNotification('AircraftDetected')
 	end
-	if isT2[udefID] then
-		queueNotification('T2Detected')
+	if isT2mobile[udefID] then
+		queueNotification('Tech2UnitDetected')
 	end
 	if isT3mobile[udefID] then
-		queueNotification('T3Detected')
+		queueNotification('Tech3UnitDetected')
 	end
 	if isT4mobile[udefID] then
-		queueNotification('T4UnitDetected')
+		queueNotification('Tech4UnitDetected')
 	end
 	if isMine[udefID] then
 		-- ignore when far away
@@ -620,7 +702,8 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
 		end
-		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
+		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		if currentUnits >= maxUnits then
 			queueNotification('MaxUnitsReached')
 		end
 	end
@@ -631,7 +714,8 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 		if isCommander[unitDefID] then
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
 		end
-		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
+		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		if currentUnits >= maxUnits then
 			queueNotification('MaxUnitsReached')
 		end
 	end
@@ -642,7 +726,8 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 		return
 	end
 	if unitTeam == myTeamID then
-		if Spring.GetTeamUnitCount(myTeamID) >= Spring.GetTeamMaxUnits(myTeamID) then
+		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+		if currentUnits >= maxUnits then
 			queueNotification('MaxUnitsReached')
 		end
 

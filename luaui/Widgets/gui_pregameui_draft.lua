@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "Floris, Tom Fyuri",
 		date = "2024",
 		license = "GNU GPL, v2 or later",
-		layer = -3,
+		layer = -999999,
 		enabled = true
 	}
 end
@@ -62,6 +62,33 @@ local lockText = ''
 local locked = false
 local showLockButton = true
 local buttonDrawn = false
+local isReadyBlocked = false
+local readyBlockedConditions = {}
+local cachedTooltipText = ""
+
+local function hasActiveConditions()
+	for k, v in pairs(readyBlockedConditions) do
+		return true
+	end
+	return false
+end
+
+local function updateTooltip()
+	isReadyBlocked = hasActiveConditions()
+	if isReadyBlocked then
+		cachedTooltipText = ""
+		for conditionKey, description in pairs(readyBlockedConditions) do
+			if description ~= nil then
+				if cachedTooltipText ~= "" then
+					cachedTooltipText = cachedTooltipText .. "\n"
+				end
+				cachedTooltipText = cachedTooltipText .. Spring.I18N(description)
+			end
+		end
+	else
+		cachedTooltipText = ""
+	end
+end
 
 local RectRound, UiElement, UiButton, elementPadding, uiPadding
 
@@ -216,10 +243,15 @@ local function DrawRank(rank, posX, posY)
     end
 end
 
-local function DrawSkill(skill, posX, posY)
+local function DrawSkill(skill, uncertainty, posX, posY)
     local fontsize = 14 * (playerScale + ((1-playerScale)*0.25))
     font:Begin()
-    font:Print(skill, posX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
+	if uncertainty > 6.65 then
+		font:Print("??", posX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
+	else
+		font:Print(skill, posX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
+	end
+
     font:End()
 end
 
@@ -272,6 +304,7 @@ local function findPlayerName(playerID)
 					return player.name
 				else -- try to cache missing player name
 					tname = select(1, Spring.GetPlayerInfo(playerID, false))
+					tname = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or tname
 					if tname ~= nil then
 						player.name = tname
 						return player.name
@@ -280,7 +313,10 @@ local function findPlayerName(playerID)
 			end
 		end
 	end
-	tname = select(1, Spring.GetPlayerInfo(playerID, false)) or "unconnected" -- show "unconnected" instead of nil if we don't know the name
+	tname = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or Spring.GetPlayerInfo(playerID, false)
+	if not tname then
+		tname = "unconnected" 	-- show "unconnected" instead of nil if we don't know the name
+	end
 	return tname
 end
 
@@ -372,7 +408,7 @@ local function getHumanCountWithinAllyTeam(allyTeamID)
 	local myTeamList = Spring.GetTeamList(allyTeamID)
 	local count = 0
 	for _, teamID in ipairs(myTeamList) do
-		local _, _, _, isAiTeam = Spring.GetTeamInfo(teamID)
+		local _, _, _, isAiTeam = Spring.GetTeamInfo(teamID, false)
 		if not isAiTeam then
 			count = count + 1
 		end
@@ -475,13 +511,14 @@ local function DrawTeamPlacement()
 		--
 		local playerName = findPlayerName(playerID)
 		local _, active, _, playerTeamID, _, ping, _, _, rank, _, customtable = Spring.GetPlayerInfo(playerID, true)
-		local playerRank, playerSkill = 0, 0
+		local playerRank, playerSkill, playerSigma = 0, 0, 8.33
 		if type(customtable) == 'table' then
 			local tsMu = customtable.skill
 			local tsSigma = customtable.skilluncertainty
 			local ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
 			if (ts ~= nil) then playerSkill = round(ts, 0) end
 			if (rank ~= nil) then playerRank = rank end
+			if tsSigma then playerSigma = tonumber(tsSigma) end
 		end
 		-- | indicator/timer/hourglass | rankicon | skill/zero | [playercolor] playername |
 		local x_offset = padding_left
@@ -503,7 +540,7 @@ local function DrawTeamPlacement()
 			x_offset = padding_left + rank_column_offset
 			DrawRank(playerRank, x + x_offset, y_shift - 3)
 			x_offset = padding_left + skill_column_offset
-			DrawSkill(playerSkill, x + x_offset, y_shift - 4)
+			DrawSkill(playerSkill, playerSigma, x + x_offset, y_shift - 4)
 		end
 		x_offset = padding_left + player_column_offset
 		font:Print(colorMod .. playerName, x + x_offset, y_shift + 3, player_name_font_size * uiScale, "lo")
@@ -525,7 +562,11 @@ local function drawButton()
 		if cantPlaceNow then
 			color = waitButtonColor
 		elseif not locked then
-			color = readyButtonColor
+			if isReadyBlocked then
+				color = { 0.3, 0.3, 0.3 }
+			else
+				color = readyButtonColor
+			end
 		else
 			color = unreadyButtonColor
 		end
@@ -602,18 +643,26 @@ local function drawButton()
 		if x > buttonRect[1] and x < buttonRect[3] and y > buttonRect[2] and y < buttonRect[4] and not cantPlaceNow then
 			glCallList(buttonHoverList)
 			colorString = "\255\210\210\210"
+
+			if isReadyBlocked and WG['tooltip'] then
+				WG['tooltip'].ShowTooltip('pregameui', cachedTooltipText)
+			end
 		else
 			glCallList(buttonList)
 			timer2 = timer2 + Spring.GetLastUpdateSeconds()
 			if mySpec then
 				colorString = offeredAsSub and "\255\255\255\225" or "\255\222\222\222"
 			else
-				colorString = os.clock() % 0.75 <= 0.375 and "\255\255\255\255" or "\255\222\222\222"
+				if isReadyBlocked then
+					colorString = "\255\150\150\150"
+				else
+					colorString = os.clock() % 0.75 <= 0.375 and "\255\255\255\255" or "\255\222\222\222"
+				end
 			end
 			if readied or cantPlaceNow then
 				colorString = "\255\222\222\222"
 			end
-			if blinkButton and not readied and os.clock() % 0.75 <= 0.375 then
+			if blinkButton and not readied and not isReadyBlocked and os.clock() % 0.75 <= 0.375 then
 				local mult = 1.33
 				UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { readyButtonColor[1]*0.55*mult, readyButtonColor[2]*0.55*mult, readyButtonColor[3]*0.55*mult, 1 }, { readyButtonColor[1]*mult, readyButtonColor[2]*mult, readyButtonColor[3]*mult, 1 })
 			end
@@ -717,7 +766,7 @@ function widget:GameSetup(state, ready, playerStates)
 	ready = true
 	local playerList = Spring.GetPlayerList()
 	for _, playerID in pairs(playerList) do
-		local _, _, spectator_flag = Spring.GetPlayerInfo(playerID)
+		local _, _, spectator_flag = Spring.GetPlayerInfo(playerID, false)
 		if spectator_flag == false then
 			local is_player_ready = Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")
 			--Spring.Echo(#playerList, playerID, is_player_ready)
@@ -750,7 +799,9 @@ function widget:MousePress(sx, sy)
 				if not readied then
 					if not mySpec then
 						if not readied then
-							if startPointChosen then
+							if isReadyBlocked then
+								return true
+							elseif startPointChosen then
 								pressedReady = true
 								readied = true
 								Spring.SendLuaRulesMsg("ready_to_start_game")
@@ -827,6 +878,9 @@ function widget:Initialize()
 			--	local tsSigma = customtable.skilluncertainty
 			--end
 		end
+	else
+	-- 	widgetHandler:RemoveWidget() -- not removing cause we still need widget:GameSetup to return true else there is player list readystate drawn on the left side of the screen
+	-- 	return
 	end
 
 	local myAllyCount = getHumanCountWithinAllyTeam(myAllyTeamID)
@@ -860,9 +914,30 @@ function widget:Initialize()
 	if (draftMode ~= nil and draftMode ~= "disabled") then
 		reloadedDraftMode = os.clock()+2 -- in case you luaui reload
 	end
+
+	WG['pregameui_draft'] = {}
+	WG['pregameui_draft'].addReadyCondition = function(conditionKey, description)
+		if conditionKey and description then
+			readyBlockedConditions[conditionKey] = description
+			updateTooltip()
+		end
+	end
+	WG['pregameui_draft'].removeReadyCondition = function(conditionKey)
+		if conditionKey and readyBlockedConditions[conditionKey] then
+			readyBlockedConditions[conditionKey] = nil
+			updateTooltip()
+		end
+	end
+	WG['pregameui_draft'].clearAllReadyConditions = function()
+		readyBlockedConditions = {}
+		updateTooltip()
+	end
 end
 
 function widget:DrawScreen()
+	if mySpec and not eligibleAsSub then
+		return
+	end
 	if not startPointChosen then
 		checkStartPointChosen()
 	end
@@ -1008,12 +1083,15 @@ end
 -- DraftOrder mod start
 local sec = 0
 function widget:Update(dt)
+	if mySpec and not eligibleAsSub then
+		return
+	end
 	if draftMode == nil or draftMode == "disabled" then
 		widgetHandler:RemoveCallIn("Update")
 		return
 	end
 	sec = sec + dt
-	if sec >= 0.05 then -- 50 updates per second
+	if sec >= 0.05 then -- 20 updates per second
 		sec = 0
 		if TeamPlacementUI ~= nil then
 			glDeleteList(TeamPlacementUI)
@@ -1023,6 +1101,7 @@ function widget:Update(dt)
 		end
 	end
 end
+
 function widget:RecvLuaMsg(msg, playerID)
 	local words = {}
 	for word in msg:gmatch("%S+") do
@@ -1043,6 +1122,7 @@ function widget:RecvLuaMsg(msg, playerID)
 			for i = 3, #words do
 				local playerid = tonumber(words[i])
 				tname = select(1, Spring.GetPlayerInfo(playerid, false))
+				tname = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerid)) or tname
 				table.insert(myTeamPlayersOrder, {id = playerid, name = tname })
 			end
 			if #myTeamPlayersOrder > bigTeamAmountOfPlayers then -- big team, not regular game
@@ -1123,4 +1203,5 @@ function widget:Shutdown()
 			removeUnitShape(id)
 		end
 	end
+	WG['pregameui_draft'] = nil
 end

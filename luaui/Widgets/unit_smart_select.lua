@@ -40,6 +40,7 @@ local lastMods = mods
 local lastCustomFilterDef = customFilterDef
 local lastMouseSelection = {}
 local lastMouseSelectionCount = 0
+local externalSelectionReference = {} -- Track initial selection for external (PIP) box drags
 
 local spGetMouseState = Spring.GetMouseState
 local spGetModKeyState = Spring.GetModKeyState
@@ -443,10 +444,189 @@ function widget:Shutdown()
 	WG['smartselect'] = nil
 
 	WG.SmartSelect_MousePress2 = nil
+	WG.SmartSelect_SelectUnits = nil
+	WG.SmartSelect_SetReference = nil
+	WG.SmartSelect_ClearReference = nil
 end
 
 function widget:Initialize()
 	WG.SmartSelect_MousePress2 = mousePress
+
+	-- Function to set the reference selection for external box selections
+	WG.SmartSelect_SetReference = function()
+		externalSelectionReference = {}
+		local current = Spring.GetSelectedUnits()
+		for i = 1, #current do
+			externalSelectionReference[current[i]] = true
+		end
+	end
+	
+	-- Function to clear the reference selection
+	WG.SmartSelect_ClearReference = function()
+		externalSelectionReference = {}
+	end
+
+	-- Function to handle external unit selections (e.g., from PIP widget)
+	WG.SmartSelect_SelectUnits = function(units)
+		-- Apply smart select filtering to the provided units
+		local mouseSelection = units
+		local uid, udid
+		
+		local tmp = {}
+		
+		-- Filter unselectable units and ignored units (always apply this basic filter)
+		local isGodMode = spIsGodModeEnabled()
+		for i = 1, #mouseSelection do
+			uid = mouseSelection[i]
+			if not spGetUnitNoSelect(uid) and
+				(isGodMode or ((not spec or spGetUnitTeam(uid) ~= GaiaTeamID) and not ignoreUnits[spGetUnitDefID(uid)])) then
+				tmp[#tmp + 1] = uid
+			end
+		end
+		mouseSelection = tmp
+		
+		-- Check modifiers to determine mode
+		local _, ctrl, _, shift = spGetModKeyState()
+		
+		-- Ctrl mode: deselect units in mouseSelection from current selection
+		-- Use RAW mouseSelection (no filters) for deselect to match engine behavior
+		if ctrl then
+			-- If no reference selection (started with nothing selected), don't select anything
+			if next(externalSelectionReference) == nil then
+				selectedUnits = {}
+				spSelectUnitArray(selectedUnits)
+				return
+			end
+			
+			-- Build set of units to deselect (use RAW list, no filters)
+			local unitsToDeselect = {}
+			for i = 1, #mouseSelection do
+				unitsToDeselect[mouseSelection[i]] = true
+			end
+			
+			-- Keep units from reference that are not in the deselect set
+			local newSelection = {}
+			for unitID, _ in pairs(externalSelectionReference) do
+				if not unitsToDeselect[unitID] then
+					newSelection[#newSelection + 1] = unitID
+				end
+			end
+			
+			selectedUnits = newSelection
+			spSelectUnitArray(selectedUnits)
+			return
+		end
+		
+		-- For non-deselect modes, apply smart select filters
+		
+		-- Apply custom filter if set
+		if next(customFilter) ~= nil then
+			tmp = {}
+			for i = 1, #mouseSelection do
+				uid = mouseSelection[i]
+				if selectApi.unitPassesFilter(uid, customFilter) then
+					tmp[#tmp + 1] = uid
+				end
+			end
+			if #tmp ~= 0 then
+				mouseSelection = tmp
+			end
+		end
+		
+		-- Apply idle filter if active
+		if mods.idle then
+			tmp = {}
+			for i = 1, #mouseSelection do
+				uid = mouseSelection[i]
+				if spGetUnitCommandCount(uid) == 0 then
+					tmp[#tmp + 1] = uid
+				end
+			end
+			mouseSelection = tmp
+		end
+		
+		-- Apply same-type filter if active
+		if mods.same and #referenceSelection > 0 then
+			tmp = {}
+			for i = 1, #mouseSelection do
+				uid = mouseSelection[i]
+				if referenceSelectionTypes[spGetUnitDefID(uid)] then
+					tmp[#tmp + 1] = uid
+				end
+			end
+			mouseSelection = tmp
+		end
+		
+		-- Apply mobile filter if active
+		if mods.mobile then
+			tmp = {}
+			for i = 1, #mouseSelection do
+				uid = mouseSelection[i]
+				if combatFilter[spGetUnitDefID(uid)] then
+					tmp[#tmp + 1] = uid
+				end
+			end
+			mouseSelection = tmp
+		elseif selectBuildingsWithMobile == false and (mods.any == false and mods.all == false) then
+			-- Filter out buildings if mobile units are present
+			local mobiles = false
+			for i = 1, #mouseSelection do
+				uid = mouseSelection[i]
+				if mobileFilter[spGetUnitDefID(uid)] then
+					mobiles = true
+					break
+				end
+			end
+			
+			if mobiles then
+				tmp = {}
+				local tmp2 = {}
+				for i = 1, #mouseSelection do
+					uid = mouseSelection[i]
+					udid = spGetUnitDefID(uid)
+					if buildingFilter[udid] == false then
+						if includeBuilders or not builderFilter[udid] then
+							tmp[#tmp + 1] = uid
+						else
+							tmp2[#tmp2 + 1] = uid
+						end
+					end
+				end
+				if #tmp == 0 then
+					tmp = tmp2
+				end
+				mouseSelection = tmp
+			end
+		end
+		
+		-- Shift mode: append units to reference selection
+		if shift and next(externalSelectionReference) ~= nil then
+			-- Append mode with reference - start with reference units, then add/keep box units
+			local combined = {}
+			local unitSet = {}
+			
+			-- Add reference selection (units selected before box drag started)
+			for unitID, _ in pairs(externalSelectionReference) do
+				unitSet[unitID] = true
+				combined[#combined + 1] = unitID
+			end
+			
+			-- Add new units from box selection
+			for i = 1, #mouseSelection do
+				if not unitSet[mouseSelection[i]] then
+					unitSet[mouseSelection[i]] = true
+					combined[#combined + 1] = mouseSelection[i]
+				end
+			end
+			
+			selectedUnits = combined
+			spSelectUnitArray(selectedUnits)
+		else
+			-- Replace mode - only select units in the current box
+			selectedUnits = mouseSelection
+			spSelectUnitArray(selectedUnits)
+		end
+	end
 
 	for modifierName, _ in pairs(mods) do
 		widgetHandler:AddAction("selectbox_" .. modifierName, handleSetModifier, { modifierName, true }, "p")

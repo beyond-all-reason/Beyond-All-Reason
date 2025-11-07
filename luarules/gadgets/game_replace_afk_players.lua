@@ -254,7 +254,7 @@ else
 	end
 
 	local function MarkStartPoint(_, x, y, z, name, teamID)
-		local _, _, spec = Spring.GetPlayerInfo(myPlayerID)
+		local _, _, spec = Spring.GetPlayerInfo(myPlayerID, false)
 		if not spec then
 			Spring.MarkerAddPoint(x, y, z, colourNames(teamID) .. name, true)
 			revealed = true

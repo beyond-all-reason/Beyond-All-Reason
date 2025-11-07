@@ -103,37 +103,11 @@ local function deleteDlists()
 	allycursorDrawList = {}
 end
 
-local function GetLights(beamLights, beamLightCount, pointLights, pointLightCount)
-	if not Spring.IsGUIHidden() then
-		for playerID, cursor in pairs(cursors) do
-			if teamColors[playerID] and not cursor[8] and notIdle[playerID] then
-				local params = { param = {} }
-				params.px, params.py, params.pz = cursor[1], cursor[2], cursor[3]
-				params.param.r, params.param.g, params.param.b = teamColors[playerID][1], teamColors[playerID][2], teamColors[playerID][3]
-				params.colMult = 0.4 * lightStrengthMult
-				params.param.radius = 1000 * lightRadiusMult
-				params.py = params.py + 50
-				pointLightCount = pointLightCount + 1
-				pointLights[pointLightCount] = params
-			end
-		end
-	end
-	return beamLights, beamLightCount, pointLights, pointLightCount
-end
-
 local function updateSpecList(init)
 	specList = {}
 	local t = Spring.GetPlayerList()
 	for _, playerID in ipairs(t) do
 		specList[playerID] = select(3, spGetPlayerInfo(playerID, false))
-	end
-
-	-- update deferred lights function
-	if not init and addLights and WG.DeferredLighting_RegisterFunction then
-		if functionID and WG.DeferredLighting_UnRegisterFunction then
-			WG.DeferredLighting_UnRegisterFunction(functionID)
-		end
-		functionID = WG.DeferredLighting_RegisterFunction(GetLights)
 	end
 end
 
@@ -243,15 +217,6 @@ function widget:Initialize()
 	WG['allycursors'] = {}
 	WG['allycursors'].setLights = function(value)
 		addLights = value
-		if value then
-			if WG.DeferredLighting_RegisterFunction then
-				functionID = WG.DeferredLighting_RegisterFunction(GetLights)
-			end
-		else
-			if functionID and WG.DeferredLighting_UnRegisterFunction then
-				WG.DeferredLighting_UnRegisterFunction(functionID)
-			end
-		end
 		deleteDlists()
 	end
 	WG['allycursors'].getLights = function()
@@ -259,33 +224,15 @@ function widget:Initialize()
 	end
 	WG['allycursors'].setLightStrength = function(value)
 		lightStrengthMult = value
-		if functionID and WG.DeferredLighting_UnRegisterFunction then
-			WG.DeferredLighting_UnRegisterFunction(functionID)
-		end
-		if WG.DeferredLighting_RegisterFunction then
-			functionID = WG.DeferredLighting_RegisterFunction(GetLights)
-		end
 	end
 	WG['allycursors'].getLightStrength = function()
 		return lightStrengthMult
 	end
 	WG['allycursors'].setLightRadius = function(value)
 		lightRadiusMult = value
-		if functionID and WG.DeferredLighting_UnRegisterFunction then
-			WG.DeferredLighting_UnRegisterFunction(functionID)
-		end
-		if WG.DeferredLighting_RegisterFunction then
-			functionID = WG.DeferredLighting_RegisterFunction(GetLights)
-		end
 	end
 	WG['allycursors'].setLightSelfShadowing = function(value)
 		lightSelfShadowing = value
-		if functionID and WG.DeferredLighting_UnRegisterFunction then
-			WG.DeferredLighting_UnRegisterFunction(functionID)
-		end
-		if WG.DeferredLighting_RegisterFunction then
-			functionID = WG.DeferredLighting_RegisterFunction(GetLights)
-		end
 	end
 	WG['allycursors'].getLightRadius = function()
 		return lightRadiusMult
@@ -324,18 +271,11 @@ function widget:Initialize()
 	for _, playerID in ipairs(pList) do
 		alliedCursorsTime[playerID] = now
 	end
-	if addLights and WG.DeferredLighting_RegisterFunction then
-		functionID = WG.DeferredLighting_RegisterFunction(GetLights)
-	end
-
 end
 
 function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('MouseCursorEvent')
 	deleteDlists()
-	if functionID and WG.DeferredLighting_UnRegisterFunction then
-		WG.DeferredLighting_UnRegisterFunction(functionID)
-	end
 	WG['allycursors'] = nil
 end
 
@@ -346,6 +286,12 @@ function widget:PlayerChanged(playerID)
 	local r, g, b = spGetTeamColor(teamID)
 	if isSpec then
 		teamColors[playerID] = { 1, 1, 1, 0.6 }
+		if cursors[playerID] then
+			if not showSpectatorName then
+				cursors[playerID][7] = 0
+			end
+			cursors[playerID][8] = true
+		end
 	elseif r and g and b then
 		teamColors[playerID] = { r, g, b, 0.75 }
 	end
@@ -355,7 +301,6 @@ function widget:PlayerChanged(playerID)
 		end
 		allycursorDrawList[playerID] = nil
 	end
-
 	-- update speclist when player becomes spectator
 	--if isSpec and not specList[playerID] then
 		updateSpecList()
@@ -383,6 +328,7 @@ end
 
 local function createCursorDrawList(playerID, opacityMultiplier)
 	local name, _, spec, teamID = spGetPlayerInfo(playerID, false)
+	name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 	local r, g, b = spGetTeamColor(teamID)
 	local wx, wy, wz = 0, 0, 0
 	local quadSize = usedCursorSize

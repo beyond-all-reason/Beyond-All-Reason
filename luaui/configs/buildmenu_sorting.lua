@@ -440,14 +440,6 @@ local unitOrderTable = {
 	['leglts']      = 010520,
 	['legatrans']      = 010525,
 
-	['armtship']       = 010540,
-	['cortship']       = 010550,
-
-	['armthovr']       = 010560,
-	['corthovr']       = 010570,
-
-	['corintr']        = 010600,
-
 	['armdfly']        = 010610,
 	['corseah']        = 010620,
 
@@ -576,9 +568,6 @@ local unitOrderTable = {
    ['corapt3']        = 102725, --scavengers
 
    --UTILITIES
-   ['armasp']         = 102800, --AIR REPAIR PADS
-   ['corasp']         = 102825,
-   ['corfasp']         = 102826,
 
    ['armeyes']        = 103000,
    ['coreyes']        = 103050,
@@ -784,8 +773,6 @@ local unitOrderTable = {
    ['corfmine3']      = 217200,
 
    --WATER UTILITIES
-   ['armfasp']        = 220000,
-   ['corfasp']        = 220050,
    ['armfrad']        = 220100,
    ['legfrad']        = 220101,
    ['corfrad']        = 220150,
@@ -801,9 +788,18 @@ local unitOrderTable = {
    ['armfhlt']        = 230300,
    ['corfhlt']        = 230400,
    ['legfmg']        = 230401,
+
+   ['armnavaldefturret']	= 230301,
+   ['cornavaldefturret']	= 230401,
+   ['legnavaldefturret']	= 230402,
+
    ['legfhive']        = 230450,
    ['armkraken']      = 230500,
    ['corfdoom']       = 230600,
+
+   ['armanavaldefturret']	= 230451,
+   ['coranavaldefturret']	= 230501,
+   ['leganavaldefturret']	= 230601,
 
    --WATER DEFENSES AA
    ['armfrt']         = 255100,
