@@ -856,36 +856,6 @@ local options = {
         type    = "separator",
     },
 
-    --{
-    --	key    	= "xmas",
-    --	name   	= "Holiday decorations",
-    --	desc   	= "Various  holiday decorations",
-    --	type   	= "bool",
-    --	def    	= true,
-    --	section	= "options_extra",
-    --},
-
-	-- {
-	-- 	key		= "unithats",
-	-- 	name	= "Unit Hats",
-	-- 	desc	= "Unit Hats, for the current season",
-	-- 	type	= "list",
-	-- 	def		= "disabled",
-	-- 	items	= {
-	-- 		{ key = "disabled",	name = "Disabled" },
-	-- 		{ key = "april", 	name = "Silly", 		desc = "An assortment of foolish and silly hats >:3" },
-	-- 	},
-	-- 	section	= "options_extra",
-	-- },
-	--{
-	--	key		= "easter_egg_hunt",
-	--	name	= "Easter Eggs Hunt",
-	--	desc	= "Easter Eggs are spawned around the map! Time to go on an Easter Egg hunt! (5 metal 50 energy per)",
-	--	type	= "bool",
-	--	def		= false,
-	--	section	= "options_extra",
-	--},
-
 
     {
         key    	= "experimentalextraunits",
@@ -931,7 +901,7 @@ local options = {
         type   	= "bool",
         def    	= false,
         section	= "options_extra",
-        unlock  = {"map_lavatiderhythm", "map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell"},
+        unlock  = {"map_lavatiderhythm", "map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell","map_tweaklava"},
         lock    = {"sub_header_lava3", "sub_header_lava4"},
         bitmask = 1,
     },
@@ -966,15 +936,15 @@ local options = {
 
     {
         key     = "map_lavatidemode",
-        name	= "Lava Start Position",
-        desc	= "Toggle whether lava starts at high or low tide",
+        name	= "Lava Tide Mode",
+        desc	= "Toggle whether lava starts at high or low tide.",
         hidden	= false,
         type	= "list",
         def		= "lavastartlow",
         section	= "options_extra",
         items	= {
-            { key= "lavastartlow", 	name= "Low", desc= "Lava starts at low tide" },
-            { key= "lavastarthigh",	name= "High",desc= "Lava starts at high tide" },
+            { key= "lavastartlow", 	name= "Start Low", desc= "Lava starts at low tide" },
+            { key= "lavastarthigh",	name= "Start High",desc= "Lava starts at high tide" },
         }
     },
 
@@ -998,7 +968,7 @@ local options = {
         type 	= "number",
         def 	= 60,
         min 	= 1,
-        max 	= 10000,
+        max 	= 30000,
         step 	= 1,
         section = "options_extra",
         column	= 2.0,
@@ -1024,10 +994,21 @@ local options = {
         type 	= "number",
         def 	= 300,
         min 	= 1,
-        max 	= 10000,
+        max 	= 30000,
         step 	= 1,
         section = "options_extra",
         column	= 2.0,
+    },
+
+    {
+        key 	= "map_tweaklava",
+        name 	= "Advanced Tide Rhythm",
+        desc 	= "Table with format {MapHeight (elmo), Rate (elmo/s), Dwell Time (s)}, e.g. {0, 6, 60},{100, 3, 20}",
+        hidden 	= true,
+        hint    = "{Lava Height, Rise/Fall Rate, Dwell Time}",
+        type 	= "string",
+        def 	= "",
+        section = "options_extra",
     },
 
     { key = "sub_header_lava1", section = "options_extra", type    = "subheader", name = "",},
@@ -1407,7 +1388,7 @@ local options = {
     {
         key     = "seasonal_surprise",
         name    = "Seasonal Surprise",
-        desc    = "Happy spooktober!",
+        desc    = "Happy Halloween!",
         type    = "bool",
         def     = false,
         section = "options_extra",
@@ -1489,6 +1470,15 @@ local options = {
         desc   	= "Shields block plasma. Overkill damage is absorbed. Shield is down for the duration required to recharge the overkill damage at normal energy cost.",
         type   	= "bool",
         hidden 	= false,
+        section = "options_experimental",
+        def  	= false,
+    },
+
+    {
+        key    	= "experimental_low_priority_pacifists",
+        name   	= "Low Priority Pacifists",
+        desc   	= "Makes the automatic target priority of non-combat mobile units much lower, so they must be intentionally targeted.",
+        type   	= "bool",
         section = "options_experimental",
         def  	= false,
     },
@@ -1690,12 +1680,17 @@ local options = {
     },
     {
         key     = "dummyboolfeelfreetotouch",
-        name    = "dummy to hide the faction limiter",
-        desc    = "This is a dummy to hide the faction limiter from the text field, it needs to exploit or work around some flaws to hide it...",
+        name    = "dummy to hide some modoptions",
+        desc    = "This is a dummy to hide some modoptions to not bloat the changed options panel with unneeded information",
         section = "dev",
         type    = "bool",
-        unlock  = {"dummyboolfeelfreetotouch", "factionlimiter"},
+        -- This doesn't have a default on purpse, do not add one
+        unlock  = {"dummyboolfeelfreetotouch", "factionlimiter", "date_year", "date_month", "date_day", "date_hour"},
     },
+    { key     = "date_year", name    = "Year", desc    = "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten", section = "dev", type = "number", def = 0, min = 0, max = 3000, step = 1, },
+    { key     = "date_month", name    = "Month", desc    = "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten", section = "dev", type = "number", def = 0, min = 0, max = 12, step = 1, },
+    { key     = "date_day", name    = "Day", desc    = "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten", section = "dev", type = "number", def = 0, min = 0, max = 31, step = 1, },
+    { key     = "date_hour", name    = "Hour", desc    = "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten", section = "dev", type = "number", def = 0, min = 0, max = 24, step = 1, },
     {
         key     = "factionlimiter",
         name    = "Faction Limiter:".."\255\255\191\76".." ON\n".."\255\125\125\125".."BITMASK",
@@ -2126,6 +2121,16 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		section = "options_cheats",
 		type	= "bool",
 		def		= false,
+	},
+
+    {
+		key		= "holiday_events",
+		name	= "Enable Holiday Events",
+		desc	= "",
+		section = "options_cheats",
+		type	= "bool",
+		def		= true,
+        hidden  = true,
 	},
 
 }

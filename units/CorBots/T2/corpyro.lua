@@ -19,7 +19,7 @@ return {
 		maxslope = 17,
 		maxwaterdepth = 25,
 		metalcost = 200,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORPYRO.s3o",
 		script = "Units/corpyro.cob",

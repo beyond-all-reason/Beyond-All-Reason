@@ -26,6 +26,7 @@ local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spGetUnitDefID = Spring.GetUnitDefID
 
 local inheritChildrenXP = {} -- stores the value of XP rate to be derived from unitdef
+local inheritCreationXP = {} -- multiplier of XP to inherit to newly created units, indexed by unitID
 local childrenInheritXP = {} -- stores the string that represents the types of units that will inherit the parent's XP when created
 local parentsInheritXP = {} -- stores the string that represents the types of units the parent will gain xp from
 local childrenWithParents = {} --stores the parent/child relationships format. Each entry stores key of unitID with an array of {unitID, builderID, xpInheritance}
@@ -36,6 +37,9 @@ local unitPowerDefs = {}
 for id, def in pairs(UnitDefs) do
 	if def.customParams.inheritxpratemultiplier then
 		inheritChildrenXP[id] = def.customParams.inheritxpratemultiplier or 1
+	end
+	if def.customParams.inheritcreationxpmultiplier then
+		inheritCreationXP[id] = def.customParams.inheritcreationxpmultiplier or 1
 	end
 	if def.customParams.parentsinheritxp then
 		parentsInheritXP[id] = def.customParams.parentsinheritxp or " "
@@ -142,7 +146,11 @@ function gadget:GameFrame(frame)
 				if string.find(parentTypes, childrenWithParents[unitID].childtype) then -- if child is correct type, set xp
 					local parentXP = spGetUnitExperience(parentID)
 					spSetUnitExperience(unitID, parentXP)
-					oldChildXPValues[unitID] = parentXP	--add parent xp to the oldxp value to exclude it from inheritance
+					oldChildXPValues[unitID] = parentXP --add parent xp to the oldxp value to exclude it from inheritance
+					local initMult = inheritCreationXP[parentDefID] or 1
+					local childInitXP = parentXP * initMult
+					spSetUnitExperience(unitID, childInitXP)
+					oldChildXPValues[unitID] = childInitXP  --add parent xp to the oldxp value to exclude it from inheritance
 				end
 			end
 

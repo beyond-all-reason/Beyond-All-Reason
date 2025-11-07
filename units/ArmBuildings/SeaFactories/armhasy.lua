@@ -7,7 +7,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "256 80 221",
 		collisionvolumetype = "Box",
-		corpse = "ARMSHLT_DEAD",
+		corpse = "DEAD",
 		energycost = 44000,
 		energystorage = 1400,
 		explodeas = "hugeBuildingexplosiongeneric-uw",

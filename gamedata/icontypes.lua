@@ -383,6 +383,18 @@ local icontypes = {
 		bitmap = "icons/defence_t15_rocket.png",
 		size = 1.6
 	},
+	armanavaldefturret = {
+		bitmap = "icons/armanni.png",
+		size = 2.0
+	},
+	coranavaldefturret = {
+		bitmap = "icons/defence_t2_aoe_plasma_laser.png",
+		size = 2.0
+	},
+	leganavaldefturret = {
+		bitmap = "icons/defence_t2_shotgun_mg.png",
+		size = 2.0
+	},
 	armfhp = {
 		bitmap = "icons/factory_hover.png",
 		size = 1.52250004
@@ -960,10 +972,6 @@ local icontypes = {
 		bitmap = "icons/armthor.png",
 		size = 2.4000001
 	},
-	armthovr = {
-		bitmap = "icons/hovertrans.png",
-		size = 1.78499997
-	},
 	armthund = {
 		bitmap = "icons/air_bomber.png",
 		size = 1.41750002
@@ -983,10 +991,6 @@ local icontypes = {
 	armtorps = {
 		bitmap = "icons/ship.png",
 		size = 1.25999999
-	},
-	armtship = {
-		bitmap = "icons/shiptrans.png",
-		size = 2.0999999
 	},
 	armtrident = {
 		bitmap = "icons/ship_t2_dronecarry.png",
@@ -1628,10 +1632,6 @@ local icontypes = {
 		bitmap = "icons/corint.png",
 		size = 2.41499972
 	},
-	corintr = {
-		bitmap = "icons/corintr.png",
-		size = 2.0999999
-	},
 	corjamt = {
 		bitmap = "icons/jammer.png",
 		size = 0.94499993
@@ -2088,10 +2088,6 @@ local icontypes = {
 		bitmap = "icons/corthermite.png",
 		size = 2.42499924
 	},
-	corthovr = {
-		bitmap = "icons/hovertrans.png",
-		size = 1.78499997
-	},
 	corthud = {
 		bitmap = "icons/bot_plasma_t1.png",
 		size = 1.10249984
@@ -2123,10 +2119,6 @@ local icontypes = {
 	cortron = {
 		bitmap = "icons/tacnuke.png",
 		size = 1.88999987
-	},
-	cortship = {
-		bitmap = "icons/shiptrans.png",
-		size = 2.0999999
 	},
 	coruwadves = {
 		bitmap = "icons/energystorage_t2.png",

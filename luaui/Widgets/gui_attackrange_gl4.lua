@@ -291,7 +291,7 @@ local function initializeUnitDefRing(unitDefID)
 		-- 1) paralyzer/EMP weapons
 		if weaponDef.paralyzer then
 			cfgKey = baseKey .. "_emp"
-			Spring.Echo("[AttackRange] using EMP colour for:", weaponDef.name)
+			--Spring.Echo("[AttackRange] using EMP colour for:", weaponDef.name)
   		-- 2) DGun override
 		elseif weaponDef.type == "DGun" then
 			cfgKey = baseKey .. "_dgun"

@@ -43,7 +43,7 @@ return {
 		delay = 1,
 	},
 	GamePaused = {
-		delay = 5,
+		delay = 1,
 	},
 	TeammateCaughtUp = {
 		delay = 5,
@@ -72,28 +72,31 @@ return {
 		delay = 90,
 	},
 	BaseUnderAttack = {
-		delay = 10,
+		delay = 5,
 	},
 	UnitsCaptured = {
-		delay = 10,
+		delay = 5,
 	},
 	UnitsReceived = {
-		delay = 10,
+		delay = 5,
+	},
+	CommanderUnderAttack = {
+		delay = 5,
 	},
 	UnitsUnderAttack = {
-		delay = 10,
+		delay = 5,
 	},
 	UnitLost = {
-		delay = 10,
+		delay = 5,
 	},
 	RadarLost = {
-		delay = 12,
+		delay = 5,
 	},
 	AdvancedRadarLost = {
-		delay = 12,
+		delay = 5,
 	},
 	MetalExtractorLost = {
-		delay = 10,
+		delay = 5,
 	},
 
 	-- Resources
@@ -124,7 +127,7 @@ return {
 		delay = 3,
 	},
 	LrpcTargetUnits = {
-		delay = 9999999,
+		delay = 5,
 	},
 
 	-- Unit Ready
@@ -370,9 +373,6 @@ return {
 	["PvE/Raptor_Queen5HealthLeft"] = {
 		delay = 10,
 	},
-	["PvE/Raptor_Queen2HealthLeft"] = {
-		delay = 10,
-	},
 	["PvE/Raptor_QueenIsDestroyed"] = {
 		delay = 10,
 	},
@@ -408,9 +408,6 @@ return {
 		delay = 10,
 	},
 	["PvE/Scav_Boss5HealthLeft"] = {
-		delay = 10,
-	},
-	["PvE/Scav_Boss2HealthLeft"] = {
 		delay = 10,
 	},
 	["PvE/Scav_BossIsDestroyed"] = {

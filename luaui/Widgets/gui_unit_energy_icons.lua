@@ -173,8 +173,9 @@ local function updateStalling()
 			--It is possible to add here a check if maxEnergy > maxStall and then remove all energy symbols and then skip the for, but I believe it is roughly the same speed as it is right now, so left that out
 			--Previous implementation of such a mechanism led to the energy symbols then remaining when the condition was reached(worked for all but starfall)
 			for unitID, unitDefID in pairs(units) do
+				local unitEnergy = select(4, spGetUnitResources(unitID))
 				if teamEnergy[teamID] and unitConf[unitDefID][3] > teamEnergy[teamID] and -- more neededEnergy than we have
-					(not unitConf[unitDefID][4] or ((unitConf[unitDefID][4] and (select(4, spGetUnitResources(unitID))) or 999999) < unitConf[unitDefID][3])) then
+					(not unitConf[unitDefID][4] or ((unitConf[unitDefID][4] and (unitEnergy or 999999)) < unitConf[unitDefID][3])) then
 
 					if not Spring.GetUnitIsBeingBuilt(unitID) and
 						energyIconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn

@@ -203,7 +203,7 @@ function widget:GameSetup(state, ready, playerStates)
 	ready = true
 	local playerList = Spring.GetPlayerList()
 	for _, playerID in pairs(playerList) do
-		local _, _, spectator_flag = Spring.GetPlayerInfo(playerID)
+		local _, _, spectator_flag = Spring.GetPlayerInfo(playerID, false)
 		if spectator_flag == false then
 			local is_player_ready = Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")
 			--Spring.Echo(#playerList, playerID, is_player_ready)

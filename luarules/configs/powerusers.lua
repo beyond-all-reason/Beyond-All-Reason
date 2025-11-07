@@ -50,4 +50,5 @@ return {
 	[168817] = moderator,	-- SongbirdOfChirping
 	[57158] = moderator,	-- Endorphins
 	[132545] = moderator,	-- Praedyth
+	[88808] = moderator,	-- Shadowisperke
 }
