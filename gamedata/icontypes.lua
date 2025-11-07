@@ -383,6 +383,38 @@ local icontypes = {
 		bitmap = "icons/defence_t15_rocket.png",
 		size = 1.6
 	},
+	legsy = {
+		bitmap = "icons/factory_ship.png",
+		size = 1.52250004
+	},
+	legnavyconship = {
+		bitmap = "icons/ship_worker.png",
+		size = 1.39649999
+	},
+	legnavyaaship = {
+		bitmap = "icons/ship_aa.png",
+		size = 1.14999998
+	},
+	legnavyscout = {
+		bitmap = "icons/ship_raid.png",
+		size = 0.89999998
+	},
+	legnavyfrigate = {
+		bitmap = "icons/ship.png",
+		size = 1.14999998
+	},
+	legnavydestro = {
+		bitmap = "icons/ship_pship.png",
+		size = 1.51199996
+	},
+	legnavysub = {
+		bitmap = "icons/sub.png",
+		size = 1.0
+	},
+	legnavyartyship = {
+		bitmap = "icons/ship_t15_plasma.png",
+		size = 1.6
+	},
 	armanavaldefturret = {
 		bitmap = "icons/armanni.png",
 		size = 2.0
