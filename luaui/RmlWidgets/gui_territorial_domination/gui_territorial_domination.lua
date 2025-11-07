@@ -50,9 +50,9 @@ local POPUP_FADE_OUT_DURATION = 0.5
 local UPDATE_INTERVAL = 0.5
 local SCORE_UPDATE_INTERVAL = 2.0
 
-local PERCENTAGE_MULTIPLIER = 100
 local TIME_ZERO_STRING = "0:00"
 local KEY_ESCAPE = 27
+local AESTHETIC_POINTS_MULTIPLIER = 10 -- because bigger number feels good, and to help destinguish points from territory counts in round 1.
 
 local GAIA_ALLY_TEAM_ID = select(6, spGetTeamInfo(spGetGaiaTeamID()))
 
@@ -313,7 +313,7 @@ local function buildLeaderboardRow(team, rank, isEliminated, isDead)
 	
 	local dataModel = widgetState.dmHandle
 	local currentRound = (dataModel and dataModel.currentRound) or 1
-	local pointsPerTerritory = currentRound > 0 and currentRound or 1
+	local pointsPerTerritory = currentRound > 0 and currentRound * AESTHETIC_POINTS_MULTIPLIER or AESTHETIC_POINTS_MULTIPLIER
 	local territoryCount = pointsPerTerritory > 0 and math.floor((team.projectedPoints or 0) / pointsPerTerritory) or 0
 	
 	local territoriesDiv = widgetState.document:CreateElement("div")
@@ -844,7 +844,7 @@ local function updatePlayerDisplay()
 	if not selectedTeam then return end
 	
 	local currentRound = dataModel.currentRound or 0
-	local pointsPerTerritory = currentRound > 0 and currentRound or 1
+	local pointsPerTerritory = currentRound > 0 and currentRound * AESTHETIC_POINTS_MULTIPLIER or AESTHETIC_POINTS_MULTIPLIER
 	local projectedPoints = selectedTeam.projectedPoints or 0
 	local territoryCount = pointsPerTerritory > 0 and math.floor(projectedPoints / pointsPerTerritory) or 0
 	local currentScore = selectedTeam.score or 0
@@ -911,7 +911,7 @@ local function updatePlayerDisplay()
 		else
 			local aheadTeam = allyTeams[playerRank - 1]
 			local aheadScore = (aheadTeam.score or 0) + (aheadTeam.projectedPoints or 0)
-			local pointsNeeded = aheadScore - playerCombinedScore + 1
+			local pointsNeeded = aheadScore - playerCombinedScore + AESTHETIC_POINTS_MULTIPLIER
 			if aheadScore == playerCombinedScore then
 				advanceText = spI18N('ui.territorialDomination.advancement.onePointToAdvance')
 			elseif pointsNeeded > 0 then

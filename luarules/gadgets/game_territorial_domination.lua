@@ -55,6 +55,7 @@ local CLOAKED_UNIT_POWER_MULTIPLIER = 0
 local STATIC_UNIT_POWER_MULTIPLIER = 3
 local COMMANDER_POWER_MULTIPLIER = 1000
 local MAX_INITIAL_POINTS_CAP = 300
+local AESTHETIC_POINTS_MULTIPLIER = 10 --to be consistent with gui_territorial_domination.lua
 
 local MAX_PROGRESS = 1.0
 local STARTING_PROGRESS = 0
@@ -561,7 +562,7 @@ local function updateProjectedPoints()
 		if not gameOver then
 			for gridID, data in pairs(captureGrid) do
 				if data.progress > OWNERSHIP_THRESHOLD and data.allyOwnerID == allyID then
-					projectedScore = projectedScore + currentRound
+					projectedScore = projectedScore + currentRound * AESTHETIC_POINTS_MULTIPLIER
 				end
 			end
 		end
@@ -578,11 +579,11 @@ local function calculateMaximumPossiblePoints()
 	local totalTerritories = numberOfSquaresX * numberOfSquaresZ
 	local roundSum = 0
 	for round = 1, MAX_ROUNDS do
-		roundSum = roundSum + round
+		roundSum = roundSum + round * AESTHETIC_POINTS_MULTIPLIER
 	end
 	local maxPossiblePoints = totalTerritories * roundSum
 	local pointsCap = math.min(MAX_INITIAL_POINTS_CAP, math.ceil(maxPossiblePoints / allyTeamsCount + 1))
-	
+
 	return pointsCap
 end
 
