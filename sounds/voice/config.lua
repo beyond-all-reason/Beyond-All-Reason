@@ -18,12 +18,15 @@ return {
 	},
 	ComHeavyDamage = {
 		delay = 12,
+		soundEffect = "CommanderHeavilyDamaged",
 	},
 	TeamDownLastCommander = {
 		delay = 30,
+		soundEffect = "YourTeamHasTheLastCommander",
 	},
 	YouHaveLastCommander = {
 		delay = 30,
+		soundEffect = "YouHaveTheLastCommander",
 	},
 
 	-- Game Status
@@ -38,6 +41,7 @@ return {
 	},
 	BattleEnded = {
 		delay = 1,
+		soundEffect = "GameEnd",
 	},
 	GamePaused = {
 		delay = 1,
@@ -258,9 +262,11 @@ return {
 	-- Lava
 	LavaRising = {
 		delay = 25,
+		soundEffect = "LavaAlert",
 	},
 	LavaDropping = {
 		delay = 25,
+		soundEffect = "LavaAlert",
 	},
 
 	-- Tutorial / tips
