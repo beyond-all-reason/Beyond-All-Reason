@@ -70,6 +70,7 @@ return {
 	},
 	BaseUnderAttack = {
 		delay = 5,
+		soundEffect = "UnitUnderAttack",
 	},
 	UnitsCaptured = {
 		delay = 5,
@@ -79,21 +80,27 @@ return {
 	},
 	CommanderUnderAttack = {
 		delay = 5,
+		soundEffect = "CommanderUnderAttack",
 	},
 	UnitsUnderAttack = {
 		delay = 5,
+		soundEffect = "UnitUnderAttack",
 	},
 	UnitLost = {
 		delay = 5,
+		soundEffect = "UnitUnderAttack",
 	},
 	RadarLost = {
 		delay = 5,
+		soundEffect = "UnitUnderAttack",
 	},
 	AdvancedRadarLost = {
 		delay = 5,
+		soundEffect = "UnitUnderAttack",
 	},
 	MetalExtractorLost = {
 		delay = 5,
+		soundEffect = "UnitUnderAttack",
 	},
 
 	-- Resources

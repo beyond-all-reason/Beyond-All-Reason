@@ -73,6 +73,7 @@ local lockPlayerID
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local soundFolder = "sounds/voice/" .. voiceSet .. "/"
+local soundEffectsFolder = "sounds/voice-soundeffects/"
 local defaultSoundFolder = "sounds/voice/" .. defaultVoiceSet .. "/"
 
 local voiceSetFound = false
@@ -88,12 +89,13 @@ if not voiceSetFound then
 	voiceSet = defaultVoiceSet
 end
 
-local function addNotification(name, soundFiles, minDelay, i18nTextID, tutorial)
+local function addNotification(name, soundFiles, minDelay, i18nTextID, tutorial, soundEffect)
 	notification[name] = {
 		delay = minDelay,
 		textID = i18nTextID,
 		voiceFiles = soundFiles,
-		tutorial = tutorial
+		tutorial = tutorial,
+		soundEffect = soundEffect,
 	}
 	notificationList[name] = true
 	if not tutorial then
@@ -126,7 +128,7 @@ for notifID, notifDef in pairs(notificationTable) do
 			notifSounds[currentEntry] = defaultSoundFolder .. notifID .. '.wav'
 		end
 	end
-	addNotification(notifID, notifSounds, notifDef.delay or 2, notifTexts[1], notifDef.tutorial) -- bandaid, picking text from first variation always.
+	addNotification(notifID, notifSounds, notifDef.delay or 2, notifTexts[1], notifDef.tutorial, notifDef.soundEffect) -- bandaid, picking text from first variation always.
 end
 
 local unitsOfInterestNames = {
@@ -494,6 +496,9 @@ function widget:Initialize()
 				local m = #notification[event].voiceFiles > 1 and math.random(1, #notification[event].voiceFiles) or 1
 				if notification[event].voiceFiles[m] then
 					Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, 'ui')
+					if notification[event].soundEffect then
+						Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
+					end
 				else
 					Spring.Echo('notification "'..event..'" missing sound file: #'..m)
 				end
@@ -873,6 +878,9 @@ local function playNextSound()
 					nextSoundQueued = sec + (duration or 3) + silentTime
 				else
 					Spring.Echo('notification "'..event..'" missing sound file: #'..m)
+				end
+				if notification[event].soundEffect then
+					Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
 				end
 			end
 			if displayMessages and WG['messages'] and notification[event].textID then
