@@ -26,6 +26,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local GetUnitStockpile	= Spring.GetUnitStockpile
 	local GiveOrderToUnit	= Spring.GiveOrderToUnit
+	local mathClamp = math.clamp
 
 	for udid, ud in pairs(UnitDefs) do
 		if ud.canStockpile then
@@ -45,7 +46,7 @@ if gadgetHandler:IsSyncedCode() then
 		if not unitID then
 			return
 		end
-		local MaxStockpile = math.clamp(unitStockpileLimit[unitDefID], 0, StockpileDesiredTarget[unitID])
+		local MaxStockpile = mathClamp(unitStockpileLimit[unitDefID], 0, StockpileDesiredTarget[unitID])
 
 		local stock,queued = GetUnitStockpile(unitID)
 		if queued and stock then
@@ -107,7 +108,7 @@ if gadgetHandler:IsSyncedCode() then
 					return true
 				else
 					if StockpileDesiredTarget[unitID] then
-						StockpileDesiredTarget[unitID] = math.clamp(StockpileDesiredTarget[unitID] + addQ, 0, unitStockpileLimit[unitDefID])
+						StockpileDesiredTarget[unitID] = mathClamp(StockpileDesiredTarget[unitID] + addQ, 0, unitStockpileLimit[unitDefID])
 						UpdateStockpile(unitID, unitDefID)
 					end
 					return false
