@@ -14,9 +14,10 @@ end
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
-local minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld
-local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
-local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+local minimapUtils = VFS.Include("luaui/Include/minimap_utils.lua")
+local minimapToWorld = minimapUtils.minimapToWorld
+local getCurrentMiniMapRotationOption = minimapUtils.getCurrentMiniMapRotationOption
+local ROTATION = minimapUtils.ROTATION
 
 
 local maxAllowedWidth = 0.26
@@ -38,7 +39,6 @@ local backgroundRect = { 0, 0, 0, 0 }
 local delayedSetup = false
 local sec = 0
 local sec2 = 0
-local lastRot = -1 --TODO: switch this to use MiniMapRotationChanged Callin when it is added to Engine
 
 local spGetCameraState = Spring.GetCameraState
 local spGetActiveCommand = Spring.GetActiveCommand
@@ -132,6 +132,13 @@ function widget:Initialize()
 	oldMinimapGeometry = Spring.GetMiniMapGeometry()
 	gl.SlaveMiniMap(true)
 
+	local currRot = getCurrentMiniMapRotationOption()
+	if currRot == ROTATION.DEG_90 or currRot == ROTATION.DEG_270 then
+		ratio = Game.mapY / Game.mapX
+	else
+		ratio = Game.mapX / Game.mapY
+	end
+
 	widget:ViewResize()
 
 	if Spring.GetConfigInt("MinimapMinimize", 0) == 1 then
@@ -172,17 +179,6 @@ function widget:Shutdown()
 end
 
 function widget:Update(dt)
-	local currRot = getCurrentMiniMapRotationOption()
-	if lastRot ~= currRot then
-		if currRot == ROTATION.DEG_90 or currRot == ROTATION.DEG_270 then
-			ratio = Game.mapY / Game.mapX
-		else
-			ratio = Game.mapX / Game.mapY
-		end
-		lastRot = currRot
-		widget:ViewResize()
-		return
-	end
 	if not delayedSetup then
 		sec = sec + dt
 		if sec > 2 then
@@ -204,6 +200,15 @@ function widget:Update(dt)
 
 	Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
 	checkGuishader()
+end
+
+function widget:MiniMapRotationChanged(newRot)
+	if newRot == ROTATION.DEG_90 or newRot == ROTATION.DEG_270 then
+		ratio = Game.mapY / Game.mapX
+	else
+		ratio = Game.mapX / Game.mapY
+	end
+	widget:ViewResize()
 end
 
 

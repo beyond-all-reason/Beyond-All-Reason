@@ -12,8 +12,9 @@ function widget:GetInfo()
 	}
 end
 
-local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
-local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+local minimapUtils = VFS.Include("luaui/Include/minimap_utils.lua")
+local getCurrentMiniMapRotationOption = minimapUtils.getCurrentMiniMapRotationOption
+local ROTATION = minimapUtils.ROTATION
 
 local vsx, vsy = Spring.GetViewGeometry()
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
