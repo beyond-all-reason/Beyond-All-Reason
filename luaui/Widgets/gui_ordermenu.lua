@@ -90,6 +90,27 @@ local buildmenuBottomPosition
 local activeCommand, previousActiveCommand, doUpdate, doUpdateClock
 local ordermenuShows = false
 
+-- Cache for translations to avoid repeated Spring.I18N calls
+local translationCache = {}
+local function getCachedTranslation(key, params)
+	local cacheKey = params and (key .. tostring(params)) or key
+	if not translationCache[cacheKey] then
+		translationCache[cacheKey] = Spring.I18N(key, params)
+	end
+	return translationCache[cacheKey]
+end
+
+-- Throttling for command refresh
+local lastCommandRefreshTime = 0
+local commandRefreshDelay = 0.05  -- 50ms delay
+
+-- Cache for hotkey strings
+local hotkeyCache = {}
+
+-- Reusable tables to reduce allocations in hot paths
+local stateCommandsTemp = {}
+local otherCommandsTemp = {}
+
 local hiddenCommands = {
 	[CMD.LOAD_ONTO] = true,
 	[CMD.SELFD] = true,
@@ -203,7 +224,8 @@ local function setupCellGrid(force)
 		clickedCell = nil
 		clickedCellTime = nil
 		clickedCellDesiredState = nil
-		cellRects = {}
+
+		-- Reuse cellRects table instead of creating new one
 		local i = 0
 		cellWidth = math_floor((activeRect[3] - activeRect[1]) / cols)
 		cellHeight = math_floor((activeRect[4] - activeRect[2]) / rows)
@@ -228,25 +250,40 @@ local function setupCellGrid(force)
 				addedWidthFloat = addedWidthFloat + (leftOverWidth / cols)
 				addedWidth = math_floor(addedWidthFloat)
 				i = i + 1
-				cellRects[i] = {
-					math_floor(activeRect[1] + prevAddedWidth + (cellWidth * (col - 1)) + 0.5),
-					math_floor(activeRect[4] - addedHeight - (cellHeight * row) + 0.5),
-					math_ceil(activeRect[1] + addedWidth + (cellWidth * col) + 0.5),
-					math_ceil(activeRect[4] - prevAddedHeight - (cellHeight * (row - 1)) + 0.5)
-				}
+				-- Reuse existing table if available
+				if not cellRects[i] then
+					cellRects[i] = {}
+				end
+				local rect = cellRects[i]
+				rect[1] = math_floor(activeRect[1] + prevAddedWidth + (cellWidth * (col - 1)) + 0.5)
+				rect[2] = math_floor(activeRect[4] - addedHeight - (cellHeight * row) + 0.5)
+				rect[3] = math_ceil(activeRect[1] + addedWidth + (cellWidth * col) + 0.5)
+				rect[4] = math_ceil(activeRect[4] - prevAddedHeight - (cellHeight * (row - 1)) + 0.5)
 				prevAddedWidth = addedWidth
 			end
+		end
+		-- Clear unused cellRects
+		for j = i + 1, #cellRects do
+			cellRects[j] = nil
 		end
 	end
 end
 
 local function refreshCommands()
 	local waitCommand
-	local stateCommands = {}
-	local otherCommands = {}
+	-- Clear and reuse temp tables instead of creating new ones
 	local stateCommandsCount = 0
 	local waitCommandCount = 0
 	local otherCommandsCount = 0
+
+	-- Clear old entries
+	for i = #stateCommandsTemp, 1, -1 do
+		stateCommandsTemp[i] = nil
+	end
+	for i = #otherCommandsTemp, 1, -1 do
+		otherCommandsTemp[i] = nil
+	end
+
 	local activeCmdDescs = spGetActiveCmdDescs()
 	for _, command in ipairs(activeCmdDescs) do
 		if type(command) == "table" and not disabledCommand[command.name] then
@@ -258,55 +295,65 @@ local function refreshCommands()
 					-- intentionally empty, no action to take
 				elseif isStateCommand[command.id] then
 					stateCommandsCount = stateCommandsCount + 1
-					stateCommands[stateCommandsCount] = command
+					stateCommandsTemp[stateCommandsCount] = command
 				elseif command.id == CMD.WAIT then
 					waitCommandCount = 1
 					waitCommand = command
 				else
 					otherCommandsCount = otherCommandsCount + 1
-					otherCommands[otherCommandsCount] = command
+					otherCommandsTemp[otherCommandsCount] = command
 				end
 			end
 		end
 	end
-	commands = {}
+
+	-- Reuse commands table instead of creating new one
+	local totalCommands = stateCommandsCount + waitCommandCount + otherCommandsCount
+	-- Clear old entries beyond what we need
+	for i = totalCommands + 1, #commands do
+		commands[i] = nil
+	end
+
 	for i = 1, stateCommandsCount do
-		commands[i] = stateCommands[i]
+		commands[i] = stateCommandsTemp[i]
 	end
 	if waitCommand then
 		commands[1 + stateCommandsCount] = waitCommand
 	end
 	for i = 1, otherCommandsCount do
-		commands[i + stateCommandsCount + waitCommandCount] = otherCommands[i]
+		commands[i + stateCommandsCount + waitCommandCount] = otherCommandsTemp[i]
 	end
 
 	-- OPTIMIZATION: Cache the display text for each command
 	for _, cmd in ipairs(commands) do
-		local text
-		-- First element of params represents selected state index, but Spring engine implementation returns a value 2 less than the actual index
-		local stateOffset = 2
+		-- Skip if already cached
+		if not cmd.cachedText then
+			local text
+			-- First element of params represents selected state index, but Spring engine implementation returns a value 2 less than the actual index
+			local stateOffset = 2
 
-		if isStateCommand[cmd.id] then
-			local currentStateIndex = cmd.params[1]
-			if currentStateIndex then
-				local commandState = cmd.params[currentStateIndex + stateOffset]
-				if commandState then
-					text = Spring.I18N('ui.orderMenu.' .. commandState)
+			if isStateCommand[cmd.id] then
+				local currentStateIndex = cmd.params[1]
+				if currentStateIndex then
+					local commandState = cmd.params[currentStateIndex + stateOffset]
+					if commandState then
+						text = getCachedTranslation('ui.orderMenu.' .. commandState)
+					else
+						text = '?'
+					end
 				else
 					text = '?'
 				end
 			else
-				text = '?'
+				if cmd.action == 'stockpile' then
+					-- Stockpile command name gets mutated to reflect the current status, so can just pass it in
+					text = getCachedTranslation('ui.orderMenu.' .. cmd.action, { stockpileStatus = cmd.name })
+				else
+					text = getCachedTranslation('ui.orderMenu.' .. cmd.action)
+				end
 			end
-		else
-			if cmd.action == 'stockpile' then
-				-- Stockpile command name gets mutated to reflect the current status, so can just pass it in
-				text  = Spring.I18N('ui.orderMenu.' .. cmd.action, { stockpileStatus = cmd.name })
-			else
-				text = Spring.I18N('ui.orderMenu.' .. cmd.action)
-			end
+			cmd.cachedText = text -- Store the translated text
 		end
-		cmd.cachedText = text -- Store the translated text
 	end
 
 	setupCellGrid(false)
@@ -394,7 +441,7 @@ end
 function widget:Initialize()
 	reloadBindings()
 	widget:ViewResize()
-	widget:SelectionChanged()
+	widget:SelectionChanged(Spring.GetSelectedUnits())
 
 	WG['ordermenu'] = {}
 	WG['ordermenu'].getPosition = function()
@@ -744,11 +791,16 @@ function widget:DrawScreen()
 						local cmd = commands[cell]
 						if WG['tooltip'] then
 							local tooltipKey = cmd.action .. '_tooltip'
-							local tooltip = Spring.I18N('ui.orderMenu.' .. tooltipKey)
-							local hotkey = keyConfig.sanitizeKey(actionHotkeys[cmd.action], currentLayout)
+							local tooltip = getCachedTranslation('ui.orderMenu.' .. tooltipKey)
+
+							-- Cache hotkey lookup
+							if not hotkeyCache[cmd.action] then
+								hotkeyCache[cmd.action] = keyConfig.sanitizeKey(actionHotkeys[cmd.action], currentLayout)
+							end
+							local hotkey = hotkeyCache[cmd.action]
 
 							if tooltip ~= '' and hotkey ~= '' then
-								tooltip = Spring.I18N('ui.orderMenu.hotkeyTooltip', { hotkey = hotkey:upper(), tooltip = tooltip, highlightColor = "\255\255\215\100", textColor = "\255\240\240\240" })
+								tooltip = getCachedTranslation('ui.orderMenu.hotkeyTooltip', { hotkey = hotkey:upper(), tooltip = tooltip, highlightColor = "\255\255\215\100", textColor = "\255\240\240\240" })
 							end
 							if tooltip ~= '' then
 								local title
@@ -758,10 +810,10 @@ function widget:DrawScreen()
 									local stateOffset = 2
 									local commandState = cmd.params[currentStateIndex + stateOffset]
 									if commandState then
-										title = Spring.I18N('ui.orderMenu.' .. commandState)
+										title = getCachedTranslation('ui.orderMenu.' .. commandState)
 									end
 								else
-									title = Spring.I18N('ui.orderMenu.' .. cmd.action)
+									title = getCachedTranslation('ui.orderMenu.' .. cmd.action)
 								end
 								WG['tooltip'].ShowTooltip('ordermenu', tooltip, nil, nil, title)
 							end
@@ -780,13 +832,24 @@ function widget:DrawScreen()
 	if clickedCellDesiredState and not doUpdateClock then	-- make sure state changes get updated
 		doUpdateClock = now + 0.1
 	end
+
+	-- Throttle command refresh to avoid excessive updates during rapid selection changes
 	if doUpdate or (doUpdateClock and now >= doUpdateClock) then
-		if doUpdateClock and now >= doUpdateClock then
+		-- Only refresh if enough time has passed since last refresh
+		if now - lastCommandRefreshTime >= commandRefreshDelay then
+			if doUpdateClock and now >= doUpdateClock then
+				doUpdateClock = nil
+				doUpdate = true
+			end
 			doUpdateClock = nil
-			doUpdate = true
+			lastCommandRefreshTime = now
+			refreshCommands()
+		else
+			-- Defer the update slightly
+			if not doUpdateClock then
+				doUpdateClock = now + commandRefreshDelay
+			end
 		end
-		doUpdateClock = nil
-		refreshCommands()
 	end
 
 	if #commands == 0 and (not alwaysShow or Spring.GetGameFrame() == 0) then	-- dont show pregame because factions interface is shown
@@ -1017,6 +1080,23 @@ end
 function widget:SelectionChanged(sel)
 	clickCountDown = 2
 	clickedCellDesiredState = nil
+
+	-- Adaptive throttling: increase delay based on selection size
+	local selCount = #sel
+	local throttleDelay = 0.01
+	if selCount >= 300 then
+		throttleDelay = 0.03
+	elseif selCount >= 160 then
+		throttleDelay = 0.02
+	elseif selCount >= 80 then
+		throttleDelay = 0.015
+	end
+
+	-- Throttle updates during rapid selection changes
+	local now = os_clock()
+	if not doUpdateClock or (now - lastCommandRefreshTime) > throttleDelay then
+		doUpdateClock = now + throttleDelay
+	end
 end
 
 function widget:LanguageChanged()

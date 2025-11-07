@@ -88,7 +88,7 @@ local refreshBuildmenu = true
 local costOverrides = {}
 --[[ MODIFICATION START ]]
 -- New state variables for the robust update system
-local selectionUpdateCountdown = 0  -- The debouncer timer, for selection changes only
+local selectionUpdateTime = 0  -- Time-based debouncer for selection changes
 local raceConditionUpdateCountdown = 0 -- Timer for race conditions
 local forceRefreshNextFrame = false   -- The failsafe retry flag
 local refreshRetryCounter = 0       -- Failsafe counter to prevent infinite retries
@@ -140,6 +140,19 @@ local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
 
 local unitDefToCellMap = {}
 local cellQuotas = {}
+
+-- Reusable tables to reduce allocations in hot paths
+local cmdUnitdefsTemp = {}
+local selBuilderDefsTemp1 = {}
+local selBuilderDefsTemp2 = {}
+local currentSelBuilderDefs = selBuilderDefsTemp1  -- Track which temp table is current
+local buildCycleTemp = {}
+local emptyParams = {}
+
+-- Cache for expensive Spring API calls
+local cachedActiveCmdDescs = nil
+local cachedActiveCmdDescsTime = 0
+local activeCmdDescsCacheDelay = 0.05  -- Cache for 50ms
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -202,6 +215,16 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_DST_ALPHA = GL.DST_ALPHA
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
+
+-- Helper function for cached Spring API calls (must be after localizations)
+local function getCachedActiveCmdDescs()
+	local now = os_clock()
+	if not cachedActiveCmdDescs or (now - cachedActiveCmdDescsTime) > activeCmdDescsCacheDelay then
+		cachedActiveCmdDescs = spGetActiveCmdDescs()
+		cachedActiveCmdDescsTime = now
+	end
+	return cachedActiveCmdDescs
+end
 
 local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner
 
@@ -346,44 +369,49 @@ local function UpdateGridGeometry()
 end
 
 local function RefreshCommands()
-	cmds = {}
+	-- Clear and reuse cmds table instead of creating new one
+	for i = #cmds, 1, -1 do
+		cmds[i] = nil
+	end
 	cmdsCount = 0
 
 	if preGamestartPlayer then
 		if startDefID then
 
-			local cmdUnitdefs = {}
+			-- Clear and reuse temp table instead of creating new one
+			clearTable(cmdUnitdefsTemp)
 			for i, udefid in ipairs(unitBuildOptions[startDefID]) do
-				cmdUnitdefs[udefid] = i
+				cmdUnitdefsTemp[udefid] = i
 			end
 			for k, uDefID in ipairs(units.unitOrder) do
-				if cmdUnitdefs[uDefID] then
+				if cmdUnitdefsTemp[uDefID] then
 					cmdsCount = cmdsCount + 1
 					-- mimmick output of spGetActiveCmdDescs
 					cmds[cmdsCount] = {
 						id = uDefID * -1,
 						name = unitName[uDefID],
-						params = {}
+						params = emptyParams
 					}
 				end
 			end
 		end
 	else
 
-		local activeCmdDescs = spGetActiveCmdDescs()
+		local activeCmdDescs = getCachedActiveCmdDescs()
 		if smartOrderUnits then
-			local cmdUnitdefs = {}
+			-- Clear and reuse temp table instead of creating new one
+			clearTable(cmdUnitdefsTemp)
 			for index, cmd in ipairs(activeCmdDescs) do
 				if type(cmd) == "table" then
 					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
-						cmdUnitdefs[cmd.id * -1] = index
+						cmdUnitdefsTemp[cmd.id * -1] = index
 					end
 				end
 			end
 			for k, uDefID in ipairs(units.unitOrder) do
-				if cmdUnitdefs[uDefID] then
+				if cmdUnitdefsTemp[uDefID] then
 					cmdsCount = cmdsCount + 1
-					cmds[cmdsCount] = activeCmdDescs[cmdUnitdefs[uDefID]]
+					cmds[cmdsCount] = activeCmdDescs[cmdUnitdefsTemp[uDefID]]
 				end
 			end
 		else
@@ -561,17 +589,23 @@ function widget:Update(dt)
 		end
 	end
 
-	-- Debounced selection update logic
-	if selectionUpdateCountdown > 0 then
-		selectionUpdateCountdown = selectionUpdateCountdown - 1
-		if selectionUpdateCountdown == 0 then
+	-- Debounced selection update logic (time-based)
+	if selectionUpdateTime > 0 then
+		local now = os_clock()
+		if now >= selectionUpdateTime then
+			selectionUpdateTime = 0
 			-- The old `updateSelection = false` is no longer needed
 			-- The rest of the original logic from `if updateSelection` block is moved here
 			selectedBuilders = {}
 			selectedBuilderCount = 0
 			local prevSelectedFactoryCount = selectedFactoryCount
 			selectedFactoryCount = 0
-			local selBuilderDefs = {}
+
+			-- Swap to the other temp table (ping-pong buffering)
+			local prevSelBuilderDefs = currentSelBuilderDefs
+			currentSelBuilderDefs = (currentSelBuilderDefs == selBuilderDefsTemp1) and selBuilderDefsTemp2 or selBuilderDefsTemp1
+			clearTable(currentSelBuilderDefs)
+
 			SelectedUnitsCount = spGetSelectedUnitsCount()
 			if SelectedUnitsCount > 0 then
 				local sel = Spring.GetSelectedUnits()
@@ -579,12 +613,12 @@ function widget:Update(dt)
 					local uDefID = spGetUnitDefID(unitID)
 					if units.isFactory[uDefID] then
 						selectedFactoryCount = selectedFactoryCount + 1
-						selBuilderDefs[uDefID] = true
+						currentSelBuilderDefs[uDefID] = true
 					end
 					if units.isBuilder[uDefID] then
 						selectedBuilders[unitID] = true
 						selectedBuilderCount = selectedBuilderCount + 1
-						selBuilderDefs[uDefID] = true
+						currentSelBuilderDefs[uDefID] = true
 					end
 				end
 
@@ -594,17 +628,17 @@ function widget:Update(dt)
 
 				-- check if builder type selection actually differs from previous selection
 				if not doUpdate then
-					if #selBuilderDefs ~= #prevSelBuilderDefs then
+					if #currentSelBuilderDefs ~= #prevSelBuilderDefs then
 						doUpdate = true
 					else
 						for uDefID, _ in pairs(prevSelBuilderDefs) do
-							if not selBuilderDefs[uDefID] then
+							if not currentSelBuilderDefs[uDefID] then
 								doUpdate = true
 								break
 							end
 						end
 						if not doUpdate then
-							for uDefID, _ in pairs(selBuilderDefs) do
+							for uDefID, _ in pairs(currentSelBuilderDefs) do
 								if not prevSelBuilderDefs[uDefID] then
 									doUpdate = true
 									break
@@ -614,7 +648,6 @@ function widget:Update(dt)
 					end
 				end
 			end
-			prevSelBuilderDefs = selBuilderDefs
 		end
 	end
 	--[[ MODIFICATION END ]]
@@ -734,13 +767,13 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 			end
 			return price
 		end
-		
+
 		local costOverride = costOverrides and costOverrides[uDefID]
-		
+
 		if costOverride then
 			local topValue = costOverride.top and costOverride.top.value or units.unitMetalCost[uDefID]
 			local bottomValue = costOverride.bottom and costOverride.bottom.value or units.unitEnergyCost[uDefID]
-			
+
 			if costOverride.top and not costOverride.top.disabled then
 				local costColor = costOverride.top.color or "\255\100\255\100"
 				if disabled then
@@ -754,7 +787,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 				local metalPrice = AddSpaces(units.unitMetalCost[uDefID])
 				font2:Print(metalColor .. metalPrice, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
 			end
-			
+
 			if costOverride.bottom and not costOverride.bottom.disabled then
 				local costColor = costOverride.bottom.color or "\255\255\255\000"
 				if disabled then
@@ -1203,8 +1236,20 @@ end
 
 function widget:SelectionChanged(sel)
 	--[[ MODIFICATION START ]]
-	-- The original `updateSelection = true` is replaced with the debouncer.
-	selectionUpdateCountdown = 2
+	-- Adaptive throttling: increase delay based on selection size
+	local selCount = #sel
+	local throttleDelay = 0.01
+	if selCount >= 300 then
+		throttleDelay = 0.03
+	elseif selCount >= 160 then
+		throttleDelay = 0.02
+	elseif selCount >= 80 then
+		throttleDelay = 0.015
+	end
+
+	selectionUpdateTime = os_clock() + throttleDelay
+	-- Invalidate cached commands on selection change
+	cachedActiveCmdDescs = nil
 	--[[ MODIFICATION END ]]
 end
 
@@ -1410,24 +1455,27 @@ local function buildUnitHandler(_, _, _, data)
 	-- didnt find a suitable binding to cycle from
 	if not (pressedKey or pressedScan) then return end
 
-	local buildCycle = {}
+	-- Clear and reuse temp table instead of creating new one
+	clearTable(buildCycleTemp)
+	local buildCycleCount = 0
 	for _, keybind in ipairs(Spring.GetKeyBindings(pressedKey, pressedScan)) do
 		if string_sub(keybind.command, 1, 10) == 'buildunit_' then
 			local uDefName = string_sub(keybind.command, 11)
 			local uDef = UnitDefNames[uDefName]
 	        if uDef then -- prevents crashing when trying to access unloaded units (legion)
 	            if comBuildOptions[unitName[startDefID]][uDef.id] and not units.unitRestricted[uDef.id] then
-	                table.insert(buildCycle, uDef.id)
+	                buildCycleCount = buildCycleCount + 1
+	                buildCycleTemp[buildCycleCount] = uDef.id
 	            end
         	end
 		end
 	end
 
-	if #buildCycle == 0 then return end
+	if buildCycleCount == 0 then return end
 
 	local buildCycleIndex
-	for i, v in ipairs(buildCycle) do
-		if v == selBuildQueueDefID then
+	for i = 1, buildCycleCount do
+		if buildCycleTemp[i] == selBuildQueueDefID then
 			buildCycleIndex = i
 			break
 		end
@@ -1439,9 +1487,9 @@ local function buildUnitHandler(_, _, _, data)
 	end
 
 	buildCycleIndex = buildCycleIndex + 1
-	if buildCycleIndex > #buildCycle then buildCycleIndex = 1 end
+	if buildCycleIndex > buildCycleCount then buildCycleIndex = 1 end
 
-	setPreGamestartDefID(buildCycle[buildCycleIndex])
+	setPreGamestartDefID(buildCycleTemp[buildCycleIndex])
 
 	return true
 end
