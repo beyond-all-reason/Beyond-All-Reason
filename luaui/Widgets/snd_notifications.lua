@@ -625,14 +625,6 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			end
 		end
 
-		for index,tab in pairs(unitIsReadyTab) do -- Play Unit Is Ready notifs based on the table's content
-			if unitDefID == tab[1] then
-				queueNotification(tab[2])
-				break
-			end
-		end
-		
-
 		if isT2mobile[unitDefID] then
 			queueNotification('Tech2UnitReady')
 		elseif isT3mobile[unitDefID] then
@@ -654,14 +646,21 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 				queueTutorialNotification('FactoryShips')
 			end
 		end
-	else
-		if isT2mobile[unitDefID] then
-			queueNotification('Tech2TeamReached')
-		elseif isT3mobile[unitDefID] then
-			queueNotification('Tech3TeamReached')
-		elseif isT4mobile[unitDefID] then
-			queueNotification('Tech4TeamReached')
+
+		for index,tab in pairs(unitIsReadyTab) do -- Play Unit Is Ready notifs based on the table's content
+			if unitDefID == tab[1] then
+				queueNotification(tab[2])
+				break
+			end
 		end
+	end
+
+	if isT2mobile[unitDefID] then
+		queueNotification('Tech2TeamReached')
+	elseif isT3mobile[unitDefID] then
+		queueNotification('Tech3TeamReached')
+	elseif isT4mobile[unitDefID] then
+		queueNotification('Tech4TeamReached')
 	end
 end
 
