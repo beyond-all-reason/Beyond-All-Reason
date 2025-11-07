@@ -625,6 +625,11 @@ local armorDefs = {
 		"leghastatusalt",
 		"legoptio",
 		"legpontus",
+
+		"legnavyscout",
+		"legnavyfrigate",
+		"legnavyaaship",
+		"legnavyconship",
 	},
 
 	hvyboats = {
@@ -647,6 +652,9 @@ local armorDefs = {
 		"armepoch",
 		"corprince",
 		"corblackhy",
+
+		"legnavydestro",
+		"legnavyartyship",
 	},
 
 	subs = {
@@ -665,6 +673,8 @@ local armorDefs = {
 		"cordesolator",
 		"armexcalibur",
 		"armseadragon",
+
+		"legnavysub",
 	},
 
 	raptor =
