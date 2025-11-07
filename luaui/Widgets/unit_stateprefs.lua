@@ -20,7 +20,8 @@ end
 Usage:
 Bind stateprefs_record to a key of your choice in /Beyond-All-Reason/data/uikeys.txt
 
-e.g. bind  Ctrl  stateprefs_record
+e.g. Bind alt+ctrl stateprefs_clear
+bind  ctrl  stateprefs_record
 
 --]]------------------------------------------------------------------------------
 local unitArray = {}
@@ -38,7 +39,8 @@ if chunk then
 end
 
 local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
-local isActionPressed = false
+local isRecordPressed = false
+local isClearPressed = false
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -81,20 +83,50 @@ function widget:Initialize()
 		widget:GameOver()
 	end
 
-	widgetHandler:AddAction("stateprefs_record", onActionPress, nil, "p")
-	widgetHandler:AddAction("stateprefs_record", onActionRelease, nil, "r")
+	widgetHandler:AddAction("stateprefs_record", onRecordPress, nil, "p")
+	widgetHandler:AddAction("stateprefs_record", onRecordRelease, nil, "r")
+	widgetHandler:AddAction("stateprefs_clear", onClearPress, nil, "p")
+	widgetHandler:AddAction("stateprefs_clear", onClearRelease, nil, "r")
+	widgetHandler:AddAction("stateprefs_clearunit", doClearUnit, nil, "p")
+	
 end
 
-function onActionPress()
-  isActionPressed = true
+function onRecordPress()
+  isRecordPressed = true
 end
 
-function onActionRelease()
-  isActionPressed = false
+function onRecordRelease()
+  isRecordPressed = false
+end
+
+function onClearPress()
+  isClearPressed = true
+end
+
+function onClearRelease()
+  isClearPressed = false
+end
+
+function saveStatePrefs()
+	table.save(unitSet, "LuaUI/config/StatesPrefs.lua", "--States prefs")
+end
+
+function doClearUnit()
+	local selectedUnits = Spring.GetSelectedUnits()
+	for i = 1, #selectedUnits do
+		local unitID = selectedUnits[i]
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		local name = unitName[unitDefID]
+		unitSet[name] = {}
+		Spring.Echo("All state prefs removed for unit: " .. name)
+	end
+	saveStatePrefs()
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	if not isActionPressed then return false end
+	if not isRecordPressed and not isClearPressed then 
+		return false 
+	end
 
 	local index = Spring.GetCmdDescIndex(cmdID)
 	local command = Spring.GetActiveCmdDesc(index)
@@ -109,10 +141,15 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		local name = unitName[unitDefID]
 		unitSet[name] = unitSet[name] or {}
-		if #cmdParams == 1 and not (unitSet[name][cmdID] == cmdParams[1]) then
+		
+		if #cmdParams == 1 and isClearPressed then
+			unitSet[name][cmdID] = nil
+			Spring.Echo("State pref removed: " .. name .. ", " .. command.name)
+			saveStatePrefs()
+		elseif #cmdParams == 1 and not (unitSet[name][cmdID] == cmdParams[1]) then
 			unitSet[name][cmdID] = cmdParams[1]
 			Spring.Echo("State pref changed:  " .. name .. ",  " .. command.name .. " " .. cmdParams[1])
-			table.save(unitSet, "LuaUI/config/StatesPrefs.lua", "--States prefs")
+			saveStatePrefs()
 		end
 	end
 end
@@ -136,12 +173,14 @@ end
 
 function widget:GameOver()
 	Spring.Echo("Recorded States Prefs")
-	table.save(unitSet, "LuaUI/config/StatesPrefs.lua", "--States prefs")
+	saveStatePrefs()
 	widgetHandler:RemoveWidget()
 end
 
 function widget:Shutdown()
 	widgetHandler:RemoveAction("stateprefs_record")
+	widgetHandler:RemoveAction("stateprefs_clear")
+	widgetHandler:RemoveAction("stateprefs_clearunit")
 end
 
 --------------------------------------------------------------------------------
