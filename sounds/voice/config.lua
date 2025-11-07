@@ -266,7 +266,6 @@ return {
 	-- Tutorial / tips
 	Welcome = {
 		delay = 9999999,
-		tutorial = true,
 	},
 	BuildMetal = {
 		delay = 9999999,

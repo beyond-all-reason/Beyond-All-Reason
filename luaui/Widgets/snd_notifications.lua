@@ -370,6 +370,11 @@ local function queueNotification(event, forceplay)
 	end
 end
 
+if Spring.GetConfigInt('WelcomeMessagePlayed', 0) == 0 then
+	Spring.SetConfigInt('WelcomeMessagePlayed', 1)
+	queueNotification('Welcome', true)
+end
+
 
 local function queueTutorialNotification(event)
 	if doTutorialMode and (not tutorialPlayed[event] or tutorialPlayed[event] < tutorialPlayLimit) then
@@ -525,9 +530,6 @@ function widget:GameFrame(gf)
 		return
 	end
 
-	if gameframe == 70 and doTutorialMode then
-		queueTutorialNotification('Welcome')
-	end
 	if gameframe % 30 == 15 then
 		e_currentLevel, e_storage, e_pull, e_income, e_expense, e_share, e_sent, e_received = spGetTeamResources(myTeamID, 'energy')
 		m_currentLevel, m_storage, m_pull, m_income, m_expense, m_share, m_sent, m_received = spGetTeamResources(myTeamID, 'metal')

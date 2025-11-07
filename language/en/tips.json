@@ -142,7 +142,7 @@
 			"transportDetected": "Transport located",
 			"airTransportDetected": "Air Transport, Detected",
 			"seaTransportDetected": "Sea Transport, Detected",
-			"welcome": "Welcome to BAR, it is your mission to win this battle with both strategic and tactical supremacy. First, you need to produce metal and energy.",
+			"welcome": "Welcome, Commander. I'm your personal voice assistant. I will provide you with battlefield analysis and resource management insights during battles. Let's get to work!",
 			"buildMetal": "Choose the metal extractor and build it on a metal spot, indicated by the rotating circles on the map.",
 			"buildEnergy": "You will need to produce energy to efficiently construct units. Build windmills or solar panels. ",
 			"buildFactory":"Well done!  Now you have metal and energy income. It's time to produce mobile units. Choose and build your factory of choice.",
