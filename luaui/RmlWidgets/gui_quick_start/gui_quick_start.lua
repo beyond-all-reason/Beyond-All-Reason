@@ -47,8 +47,8 @@ local QUICK_START_CONDITION_KEY = "quickStartUnallocatedBudget"
 local ENERGY_VALUE_CONVERSION_MULTIPLIER = 1/60 --60 being the energy conversion rate of t2 energy converters, statically defined so future changes not to affect this.
 local BUILD_TIME_VALUE_CONVERSION_MULTIPLIER = 1/300 --300 being a representative of commander workertime, statically defined so future com unitdef adjustments don't change this.
 local DEFAULT_INSTANT_BUILD_RANGE = 500
-local GRID_GENERATION_RANGE = 544
-local GRID_RESOLUTION = 32
+local TRAVERSABILITY_GRID_GENERATION_RANGE = 576 --must match the value in game_quick_start.lua. It has to be slightly larger than the instant build range to account for traversability_grid snapping at TRAVERSABILITY_GRID_RESOLUTION intervals
+local TRAVERSABILITY_GRID_RESOLUTION = 32
 local GRID_CHECK_RESOLUTION_MULTIPLIER = 1
 
 local traversabilityGrid = VFS.Include("luarules/Utilities/traversability_grid.lua")
@@ -160,7 +160,7 @@ local function updateTraversabilityGrid()
 		return
 	end
 	if lastCommanderX ~= commanderX or lastCommanderZ ~= commanderZ then
-		traversabilityGrid.generateTraversableGrid(startDefID, commanderX, commanderZ, GRID_GENERATION_RANGE, GRID_RESOLUTION, startDefID)
+		traversabilityGrid.generateTraversableGrid(startDefID, commanderX, commanderZ, TRAVERSABILITY_GRID_GENERATION_RANGE, TRAVERSABILITY_GRID_RESOLUTION, startDefID)
 		lastCommanderX = commanderX
 		lastCommanderZ = commanderZ
 	end

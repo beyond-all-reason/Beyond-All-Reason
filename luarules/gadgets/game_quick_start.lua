@@ -68,8 +68,8 @@ local BUILT_ENOUGH_FOR_FULL = 0.9
 local MAX_HEIGHT_DIFFERENCE = 100
 local DEFAULT_FACING = 0
 local INITIAL_BUILD_PROGRESS = 0.01
-local GRID_GENERATION_RANGE = 544
-local GRID_RESOLUTION = 32
+local TRAVERSABILITY_GRID_GENERATION_RANGE = 576 --must match the value in gui_quick_start.lua. It has to be slightly larger than the instant build range to account for traversability_grid snapping at TRAVERSABILITY_GRID_RESOLUTION intervals
+local TRAVERSABILITY_GRID_RESOLUTION = 32
 local GRID_CHECK_RESOLUTION_MULTIPLIER = 1
 
 local spCreateUnit = Spring.CreateUnit
@@ -573,7 +573,7 @@ local function initializeCommander(commanderID, teamID)
 	comData.spawnX, comData.spawnY, comData.spawnZ = spGetUnitPosition(commanderID)
 
 	if comData.lastCommanderX ~= comData.spawnX or comData.lastCommanderZ ~= comData.spawnZ then
-		traversabilityGrid.generateTraversableGrid(comData.unitDefID, comData.spawnX, comData.spawnZ, GRID_GENERATION_RANGE, GRID_RESOLUTION, comData.unitDefID)
+		traversabilityGrid.generateTraversableGrid(comData.unitDefID, comData.spawnX, comData.spawnZ, TRAVERSABILITY_GRID_GENERATION_RANGE, TRAVERSABILITY_GRID_RESOLUTION, comData.unitDefID)
 		comData.lastCommanderX = comData.spawnX
 		comData.lastCommanderZ = comData.spawnZ
 	end
