@@ -39,6 +39,11 @@ local isMetalMap = false
 
 local unitshapes = {}
 
+local cachedAlphaResults
+local cachedStartPosition
+local cachedQueueMetrics
+local cachedQueueLineVerts
+
 local BUILD_MODE = {
 	SINGLE = 0,
 	LINE = 1,
@@ -918,13 +923,6 @@ function widget:MousePress(mx, my, button)
 	end
 
 	if button == 3 then
-		if selBuildQueueDefID then
-			setPreGamestartDefID(nil)
-			buildModeState.startPosition = nil
-			buildModeState.buildPositions = {}
-			return true
-		end
-		
 		setPreGamestartDefID(nil)
 		buildModeState.startPosition = nil
 		buildModeState.buildPositions = {}
@@ -950,7 +948,6 @@ function widget:MousePress(mx, my, button)
 
 			buildQueue[#buildQueue + 1] = buildData
 		end
-		return true
 	end
 
 	if button == 3 and #buildQueue > 0 then
@@ -958,6 +955,37 @@ function widget:MousePress(mx, my, button)
 
 		return true
 	end
+end
+
+local function hasCacheExpired(currentStartPos, currentSelBuildData)
+	local startPosChanged = not cachedStartPosition or
+		cachedStartPosition.x ~= currentStartPos.x or
+		cachedStartPosition.y ~= currentStartPos.y or
+		cachedStartPosition.z ~= currentStartPos.z
+
+	local currentMetrics = {
+		firstItemCoords = buildQueue[1] and {buildQueue[1][2], buildQueue[1][3], buildQueue[1][4]} or nil,
+		queueLength = #buildQueue
+	}
+
+	local queueChanged = not cachedQueueMetrics or
+		currentMetrics.queueLength ~= cachedQueueMetrics.queueLength or
+		(currentMetrics.firstItemCoords and cachedQueueMetrics.firstItemCoords and (
+			currentMetrics.firstItemCoords[1] ~= cachedQueueMetrics.firstItemCoords[1] or
+			currentMetrics.firstItemCoords[2] ~= cachedQueueMetrics.firstItemCoords[2] or
+			currentMetrics.firstItemCoords[3] ~= cachedQueueMetrics.firstItemCoords[3]
+		)) or
+		(currentMetrics.firstItemCoords == nil) ~= (cachedQueueMetrics.firstItemCoords == nil)
+
+	if startPosChanged or queueChanged then
+		cachedStartPosition = {x = currentStartPos.x, y = currentStartPos.y, z = currentStartPos.z}
+		cachedQueueMetrics = {
+			firstItemCoords = currentMetrics.firstItemCoords and {unpack(currentMetrics.firstItemCoords)} or nil,
+			queueLength = currentMetrics.queueLength
+		}
+		return true
+	end
+	return false
 end
 
 function widget:DrawWorld()
@@ -1051,31 +1079,50 @@ function widget:DrawWorld()
         prevStartDefID = startDefID
 	end
 
-	local alphaResults = { queueAlphas = {}, selectedAlpha = ALPHA_DEFAULT }
-	
-	local getBuildQueueSpawnStatus = WG["getBuildQueueSpawnStatus"]
-	if getBuildQueueSpawnStatus then
-		local spawnStatus = getBuildQueueSpawnStatus(buildQueue, selBuildData)
-		
-		for i = 1, #buildQueue do
-			local isSpawned = spawnStatus.queueSpawned[i] or false
-			alphaResults.queueAlphas[i] = isSpawned and ALPHA_SPAWNED or ALPHA_DEFAULT
+	local alphaResults = cachedAlphaResults
+	local cacheExpired = hasCacheExpired({x = sx, y = sy, z = sz}, selBuildData)
+
+	if not alphaResults or cacheExpired then
+		alphaResults = { queueAlphas = {}, selectedAlpha = ALPHA_DEFAULT }
+
+		local getBuildQueueSpawnStatus = WG["getBuildQueueSpawnStatus"]
+		if getBuildQueueSpawnStatus then
+			local spawnStatus = getBuildQueueSpawnStatus(buildQueue, selBuildData)
+
+			for i = 1, #buildQueue do
+				local isSpawned = spawnStatus.queueSpawned[i] or false
+				alphaResults.queueAlphas[i] = isSpawned and ALPHA_SPAWNED or ALPHA_DEFAULT
+			end
+
+			alphaResults.selectedAlpha = spawnStatus.selectedSpawned and ALPHA_SPAWNED or ALPHA_DEFAULT
 		end
-		
-		alphaResults.selectedAlpha = spawnStatus.selectedSpawned and ALPHA_SPAWNED or ALPHA_DEFAULT
-	else
-		for i = 1, #buildQueue do
-			alphaResults.queueAlphas[i] = ALPHA_DEFAULT
-		end
+
+		cachedAlphaResults = alphaResults
 	end
 
-	-- Draw all the buildings
-	local queueLineVerts = startChosen and { { v = { sx, sy, sz } } } or {}
+	if not cachedQueueLineVerts or cacheExpired then
+		cachedQueueLineVerts = startChosen and { { v = { sx, sy, sz } } } or {}
+		for b = 1, #buildQueue do
+			local buildData = buildQueue[b]
+
+			if buildData[1] > 0 then
+				local alpha = alphaResults.queueAlphas[b] or ALPHA_DEFAULT
+
+				if alpha < ALPHA_SPAWNED then
+					cachedQueueLineVerts[#cachedQueueLineVerts + 1] = { v = { buildData[2], buildData[3], buildData[4] } }
+				end
+			else
+				cachedQueueLineVerts[#cachedQueueLineVerts + 1] = { v = { buildData[2], buildData[3], buildData[4] } }
+			end
+		end
+	end
+	local queueLineVerts = cachedQueueLineVerts
+
 	for b = 1, #buildQueue do
 		local buildData = buildQueue[b]
 
 		if buildData[1] > 0 then
-			local alpha = alphaResults.queueAlphas[b] or 0.5
+			local alpha = alphaResults.queueAlphas[b] or ALPHA_DEFAULT
 			local isSpawned = alpha >= ALPHA_SPAWNED
 			local borderColor = isSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_NORMAL
 
@@ -1084,12 +1131,6 @@ function widget:DrawWorld()
 			else
 				DrawBuilding(buildData, borderColor, false, alpha)
 			end
-			
-			if alpha < ALPHA_SPAWNED then
-				queueLineVerts[#queueLineVerts + 1] = { v = { buildData[2], buildData[3], buildData[4] } }
-			end
-		else
-			queueLineVerts[#queueLineVerts + 1] = { v = { buildData[2], buildData[3], buildData[4] } }
 		end
 	end
 
