@@ -70,6 +70,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
+    turn turretHeadingPivot to y-axis 0 speed <100.0>;
 }
 SetStunned(State)
 {
@@ -103,7 +104,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turretHeadingPivot to y-axis heading speed <270.>;
+	turn turretHeadingPivot to y-axis heading speed <270.0>;
 	wait-for-turn turretHeadingPivot around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
