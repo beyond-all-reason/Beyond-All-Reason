@@ -126,7 +126,7 @@ local labGrids = {
 		"corsub", "", "corpt",                            -- sub, missile boat
 	},
 	legsy = {
-		"legnavyconship", "correcl", "legnavyscout", "",               -- T1 sea con, rez sub, supporter, missile boat
+		"legnavyconship", "legnavyrezsub", "legnavyscout", "",               -- T1 sea con, rez sub, supporter, missile boat
 		"legnavyfrigate", "legnavydestro", "legnavyartyship", "",       -- frigate, destroyer, transport ("cortship",)
 		"legnavysub", "", "legnavyaaship",                            -- sub, missile boat
 	},

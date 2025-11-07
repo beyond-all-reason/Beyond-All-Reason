@@ -42,6 +42,7 @@ local unitOrderTable = {
 
 	['armrecl']        = 002300, --REZ SUBS
 	['correcl']        = 002350,
+	['legnavyrezsub']  = 002351,
 
 	['armack']         = 002400,
 	['corack']         = 002450,

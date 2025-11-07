@@ -415,6 +415,10 @@ local icontypes = {
 		bitmap = "icons/ship_t15_plasma.png",
 		size = 1.6
 	},
+	legnavyrezsub = {
+		bitmap = "icons/sub_rez.png",
+		size = 1.64299989
+	},
 	armanavaldefturret = {
 		bitmap = "icons/armanni.png",
 		size = 2.0

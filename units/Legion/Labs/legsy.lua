@@ -32,7 +32,7 @@ return {
 		yardmap = "oyyyyo oeeeeo oeeeeo oeeeeo oeeeeo oyyyyo",
 		buildoptions = {
 			[1] = "legnavyconship",
-			[2] = "correcl",
+			[2] = "legnavyrezsub",
 			[3] = "legnavyscout",
 			[4] = "legnavyaaship",
 			[5] = "legnavyfrigate",

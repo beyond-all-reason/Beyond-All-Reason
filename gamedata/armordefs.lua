@@ -669,6 +669,7 @@ local armorDefs = {
         "coracsub",
 		"armrecl",
 		"correcl",
+		"legnavyrezsub",
 		"coronager",
 		"cordesolator",
 		"armexcalibur",
