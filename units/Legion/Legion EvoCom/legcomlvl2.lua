@@ -81,7 +81,7 @@ return {
 			"leguwmstore",
 			"leguwestore",
 			"legfeconv",
-			"corsy",
+			"legsy",
 			"legfdrag",
 			"legtl",
 			"legfrl",
