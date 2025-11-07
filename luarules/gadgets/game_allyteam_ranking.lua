@@ -39,10 +39,12 @@ end
 local spGetTeamResources = Spring.GetTeamResources
 local spGetTeamList = Spring.GetTeamList
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local mathFloor = math.floor
+local tableSort = table.sort
 
 local unitCost = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitCost[unitDefID] = math.floor(unitDef.metalCost + (unitDef.energyCost / 65))
+	unitCost[unitDefID] = mathFloor(unitDef.metalCost + (unitDef.energyCost / 65))
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
@@ -117,10 +119,10 @@ function gadget:GameFrame(gf)
 				-- get current resources in storage
 				local totalResCost = 0
 				local teamList = spGetTeamList(allyTeamID)
-				for _, teamID in ipairs(teamList) do
-					local availableMetal = spGetTeamResources(teamID, "metal")
-					local availableEnergy = spGetTeamResources(teamID, "energy")
-					totalResCost = math.floor(totalResCost + availableMetal + (availableEnergy / 65))
+				for i = 1, #teamList do
+					local availableMetal = spGetTeamResources(teamList[i], "metal")
+					local availableEnergy = spGetTeamResources(teamList[i], "energy")
+					totalResCost = mathFloor(totalResCost + availableMetal + (availableEnergy / 65))
 				end
 				-- get unfinished units worth
 				local totalConstructionCost = 0
@@ -129,12 +131,12 @@ function gadget:GameFrame(gf)
 					if not completeness then	-- this shouldnt occur
 						unfinishedUnits[allyTeamID][unitID] = nil
 					else
-						totalConstructionCost = totalConstructionCost + math.floor(unitCost[unitDefID] * completeness)
+						totalConstructionCost = totalConstructionCost + mathFloor(unitCost[unitDefID] * completeness)
 					end
 				end
 				temp[#temp+1] = { allyTeamID = allyTeamID, totalCost = totalCost + totalResCost + totalConstructionCost }
 			end
-			table.sort(temp, function(m1, m2)
+			tableSort(temp, function(m1, m2)
 				return m1.totalCost > m2.totalCost
 			end)
 			local rankingChanged = false

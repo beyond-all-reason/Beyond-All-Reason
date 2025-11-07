@@ -26,12 +26,17 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spSpawnCEG = Spring.SpawnCEG
 local spGetGameFrame = Spring.GetGameFrame
 
+local mathSqrt = math.sqrt
+local mathMax = math.max
+local pairsNext = next
+
 local dgunData = {}
 local dgunDef = {}
 local dgunTimeouts = {}
 local dgunShieldPenetrations = {}
 
-for weaponDefID, weaponDef in ipairs(WeaponDefs) do
+for weaponDefID = 1, #WeaponDefs do
+	local weaponDef = WeaponDefs[weaponDefID]
 	if weaponDef.type == 'DGun' then
 		Script.SetWatchProjectile(weaponDefID, true)
 		dgunDef[weaponDefID] = weaponDef
@@ -44,14 +49,16 @@ local isCommander = {}
 local isDecoyCommander = {}
 local commanderNames = {}
 
-for unitDefID, unitDef in ipairs(UnitDefs) do
+for unitDefID = 1, #UnitDefs do
+	local unitDef = UnitDefs[unitDefID]
 	if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
 		isCommander[unitDefID] = true
 		commanderNames[unitDef.name] = true
 	end
 end
 
-for unitDefID, unitDef in ipairs(UnitDefs) do
+for unitDefID = 1, #UnitDefs do
+	local unitDef = UnitDefs[unitDefID]
 	if unitDef.customParams.decoyfor and commanderNames[unitDef.customParams.decoyfor] then
 		isDecoyCommander[unitDefID] = true
 	end
@@ -102,7 +109,7 @@ function gadget:ProjectileDestroyed(proID)
 end
 
 function gadget:GameFrame(frame)
-	for proID in pairs(flyingDGuns) do
+	for proID in pairsNext, flyingDGuns do
 		-- Fireball is hitscan while in flight, engine only applies AoE damage after hitting the ground,
 		-- so we need to add the AoE damage manually for flying projectiles
 		addVolumetricDamage(proID)
@@ -113,7 +120,7 @@ function gadget:GameFrame(frame)
 		if y < h + 1 or y < 0 then -- assume ground or water collision
 			-- normalize horizontal velocity
 			local dx, _, dz, speed = spGetProjectileVelocity(proID)
-			local norm = speed / math.sqrt(dx ^ 2 + dz ^ 2)
+			local norm = speed / mathSqrt(dx ^ 2 + dz ^ 2)
 			local ndx = dx * norm
 			local ndz = dz * norm
 			spSetProjectileVelocity(proID, ndx, 0, ndz)
@@ -123,17 +130,17 @@ function gadget:GameFrame(frame)
 		end
 	end
 
-	for proID in pairs(groundedDGuns) do
+	for proID in pairsNext, groundedDGuns do
 		local x, y, z = spGetProjectilePosition(proID)
 		-- place projectile slightly under ground to ensure fiery trail
 		local verticalOffset = 1
-		spSetProjectilePosition(proID, x, math.max(spGetGroundHeight(x, z), 0) - verticalOffset, z)
+		spSetProjectilePosition(proID, x, mathMax(spGetGroundHeight(x, z), 0) - verticalOffset, z)
 
 		-- NB: no removal; do this every frame so that it doesn't fly off a cliff or something
 	end
 
 	-- Without defining a time to live (TTL) for the DGun, it will live forever until it reaches maximum range. This means it would deal infinite damage to shields until it depleted them.
-	for proID, timeout in pairs(dgunTimeouts) do
+	for proID, timeout in pairsNext, dgunTimeouts do
 		if frame > timeout then
 			spDeleteProjectile(proID)
 			flyingDGuns[proID] = nil
@@ -182,7 +189,7 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shie
 		if not dgunShieldPenetrations[proID] then
 			-- Adjusting the projectile position based on setback
 			local dx, dy, dz = spGetProjectileVelocity(proID)
-			local magnitude = math.sqrt(dx ^ 2 + dy ^ 2 + dz ^ 2)
+			local magnitude = mathSqrt(dx ^ 2 + dy ^ 2 + dz ^ 2)
 			local normalX, normalY, normalZ = dx / magnitude, dy / magnitude, dz / magnitude
 
 			local setback = dgunDef[weaponDefID].setback
