@@ -108,8 +108,6 @@ return {
 			heatroy = {
 				areaofeffect = 72,
 				avoidfeature = false,
-				-- beamtime = 0.033,
-				-- beamttl = 0.033,
 				camerashake = 0.1,
 				corethickness = 0.3,
 				craterareaofeffect = 72,
@@ -122,6 +120,7 @@ return {
 				explosiongenerator = "custom:heatray-large",
 				firestarter = 90,
 				firetolerance = 5000,
+				tolerance = 5000,
 				impulsefactor = 0,
 				intensity = 5,
 				laserflaresize = 6,
@@ -129,7 +128,7 @@ return {
 				name = "Medium Sweepfire Heatray",
 				noselfdamage = true,
 				predictboost = 1,
-				proximitypriority = -1,
+				proximitypriority = 0,
 				range = 700,
 				reloadtime = 2.2,
 				rgbcolor = "1 0.5 0",
@@ -144,13 +143,13 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1200,
 				damage = {
-					--commanders = 205,
 					default = 410,
 					vtol = 110,
 				},
+				customparams = {
+					exclude_preaim = true,
+				},
 			},
-
-
 
 			rangefinder = {
 				areaofeffect = 4,
@@ -213,7 +212,8 @@ return {
 				badtargetcategory = "VTOL",
 				def = "heatroy",
 				onlytargetcategory = "SURFACE",
-				fastautoretargeting = false,
+				fastautoretargeting = true,
+				burstControlWhenOutOfArc = 2,
 			},
 		
 			[2] = {

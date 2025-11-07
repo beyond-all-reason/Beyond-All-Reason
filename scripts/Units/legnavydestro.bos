@@ -25,8 +25,10 @@ wake,
 frontWakeFlare;
 
 static-var  gun_1, restore_delay, aimDir1, aimDir2;
+static-var deltaheading, newchassisheading, chassisheading, restore_position;
 
 // Signal definitions
+#define SIGNAL_AIM1 256
 #define SIGNAL_AIM2 512
 
 #define RB_MASS 30
@@ -41,31 +43,134 @@ static-var  gun_1, restore_delay, aimDir1, aimDir2;
 
 #include "../bar_ships_common.h"
 
+
+
+
+//-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
+// MaxVelocity and acceleration are in degrees per frame (not second!)
+// Jerk is the minimum velocity of the turret
+// A high precision requirement can result in overshoots if desired 
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
+// adjustments by Itanthias
+#define MAX_AIMY1_VELOCITY <3.20>
+#define AIMY1_ACCELERATION <0.26>
+#define AIMY1_SNAP_TOLERANCE <0.8>
+#define AIMY1_PRECISION <1.2>
+#define AIMY1_RESTORE_SPEED <1.0>
+
+static-var aimy1delta, timetozero, deceleratethreshold;
+static-var aimy1velocity, aimy1target, aimy1position, gameFrame;
+static-var  Stunned;
+
+AimControl()
+{
+	
+	//-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
+	while( TRUE  ){
+		// only turn when not stunned
+		if (Stunned == 0){
+
+			// apply correction for chassis turning
+			newchassisheading = get HEADING; //get heading
+			deltaheading = newchassisheading - chassisheading;
+			chassisheading = newchassisheading;
+			aimy1target = aimy1target - deltaheading;
+
+			// apply aimy1target for neutral, restored, position
+			if (restore_position == 1)
+			{
+				aimy1target = 0;
+			}
+	
+			aimy1delta = aimy1target - aimy1position ; 	
+			//Clamp angles between <-180>;<180>
+			while (aimy1target >  <180>) aimy1target = aimy1target - <360>;
+			while (aimy1target < <-180>) aimy1target = aimy1target + <360>;
+			while (aimy1position >  <180>) aimy1position = aimy1position - <360>;
+			while (aimy1position < <-180>) aimy1position = aimy1position + <360>;
+			while (aimy1delta >  <180>) aimy1delta = aimy1delta - <360>;
+			while (aimy1delta < <-180>) aimy1delta = aimy1delta + <360>;
+			
+			// Snap turret exactly to aimy1target if within snap tolerance
+			if (get ABS(aimy1delta) < AIMY1_SNAP_TOLERANCE) {
+				aimy1position = aimy1target;
+				turn turretBaseHeadingPivot to y-axis aimy1position now;	
+
+				// velocity match to chassis heading change
+				if ( (restore_position == 0) ){
+					aimy1velocity = (-1)*deltaheading;
+					// clamp velocity to max value
+					aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity); 
+					aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity);
+				}
+				else
+				{
+					aimy1velocity = 0;
+				}
+			}
+			else
+			{
+
+				//number of frames required to decelerate to 0
+				//account for chassis rotation speed
+				timetozero = get ABS(aimy1velocity - deltaheading) / AIMY1_ACCELERATION;
+			
+				//distance from target where we should start decelerating, always 'positive'
+				//pos = t * v - (t*(t-1)*a/2)
+				deceleratethreshold = timetozero * (get ABS(aimy1velocity)) - (timetozero * (timetozero - 1) * AIMY1_ACCELERATION / 2); 
+			
+				if (get ABS(aimy1delta) <= deceleratethreshold){ //we need to decelerate
+					if (aimy1velocity > 0) aimy1velocity = aimy1velocity - AIMY1_ACCELERATION;
+					else 				   aimy1velocity = aimy1velocity + AIMY1_ACCELERATION;
+			
+				}	
+				else //we need to accelerate
+				{
+					if (aimy1delta > 0) aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity + AIMY1_ACCELERATION); 
+					else                aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity - AIMY1_ACCELERATION);
+				}
+
+				if (get ABS(aimy1velocity) < (2 * AIMY1_SNAP_TOLERANCE) ){
+					if (get ABS(aimy1delta) < AIMY1_SNAP_TOLERANCE) aimy1velocity = aimy1delta;
+					//if ((aimy1delta >        AIMY1_JERK)) aimy1velocity =        AIMY1_JERK;
+					//if ((aimy1delta < (-1) * AIMY1_JERK)) aimy1velocity = (-1) * AIMY1_JERK;
+				}
+			
+				aimy1position = aimy1position + aimy1velocity; 
+				turn turretBaseHeadingPivot to y-axis aimy1position now;
+			}
+
+		}
+		sleep 30;
+	}
+}
+
+
+
 Create()
 {
-	// hide bow;
-	// hide wake;
-	// hide flareb;
-	// hide flarea1;
-	// hide flarea2;
-	// hide flarea1;
-	// hide flarea2;
-	// hide flareb;
-	//gun_1 = 0;
+	
+	chassisheading = get HEADING;
+	newchassisheading = chassisheading;
+	deltaheading = 0;
+	restore_position = 1;
+	aimy1position = 0;
+	aimy1target = 0;
+	aimy1delta = 0;
+
     move base to y-axis [2.5] now;
 	restore_delay = 3000;
 	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script BoatPhysics();
+	start-script AimControl();
 }
 
 SetMaxReloadTime(reloadMS)
 {
 	restore_delay = reloadMS * 2;
-	return (0);
 }
 
-static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
@@ -99,37 +204,32 @@ StopMoving()
 
 AimWeapon1(heading, pitch)
 {
-	signal 2;
-	set-signal-mask 2;
-	turn turretBaseHeadingPivot to y-axis heading speed <90.0>;
-	turn turretStrutPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <60.0>;
-	wait-for-turn turretBaseHeadingPivot around y-axis;
-	//wait-for-turn turretStrutPitchPivot around x-axis;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	aimDir1 = heading;
+
+	//We can do this any time
+	restore_position = 0;
+	turn turretStrutPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <30.0>;
 	start-script RestoreAfterDelay();
-	return (1);
+
+	// let AimControl know what to aim at
+	aimy1target = heading;
+	while ( TRUE )
+	{
+		// condition 1, is aim good?
+		aimy1delta = aimy1target - aimy1position ; 	
+		if (get ABS(aimy1delta) < AIMY1_PRECISION) {
+			return (1); 
+		}
+		sleep 1;
+	}
 }
 
 FireWeapon1()
 {	
 	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
     
-
-	// if( gun_1 == 0 )
-	// {
-	// 	emit-sfx 1024 + 0 from flarea1;
-	// 	move barrel1 to z-axis [-7.500000] speed [100.0];
-	// 	wait-for-move barrel1 along z-axis;
-	// 	move barrel1 to z-axis [0.0] speed [7.500000];
-	// }
-	// if( gun_1 == 1 )
-	// {
-	//     emit-sfx 1024 + 0 from flarea2;
-	// 	move barrel2 to z-axis [-7.500000] speed [100.0];
-	// 	wait-for-move barrel2 along z-axis;
-	// 	move barrel2 to z-axis [0.0] speed [7.500000];
-	// }
-	// gun_1 = !gun_1;
 	return (0);
 }
 
