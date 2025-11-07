@@ -404,7 +404,7 @@ local icontypes = {
 		size = 1.14999998
 	},
 	legnavydestro = {
-		bitmap = "icons/ship_pship.png",
+		bitmap = "icons/ship_laser_drones.png",
 		size = 1.51199996
 	},
 	legnavysub = {
