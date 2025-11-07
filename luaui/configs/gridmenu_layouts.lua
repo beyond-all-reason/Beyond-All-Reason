@@ -125,6 +125,11 @@ local labGrids = {
 		"corpship", "corroy", "", "",                    -- frigate, destroyer, transport ("cortship",)
 		"corsub", "", "corpt",                            -- sub, missile boat
 	},
+	legsy = {
+		"legnavyconship", "correcl", "legnavyscout", "",               -- T1 sea con, rez sub, supporter, missile boat
+		"legnavyfrigate", "legnavydestro", "legnavyartyship", "",       -- frigate, destroyer, transport ("cortship",)
+		"legnavysub", "", "legnavyaaship",                            -- sub, missile boat
+	},
 	-- T2 boats
 	armasy = {
 		"armacsub", "armmls", "armcrus", "armmship",         -- T2 con sub, naval engineer, cruiser, rocket ship
@@ -1345,6 +1350,28 @@ local unitGrids = {
 			{ "corsy", "corvp", "corap", "corlab",  },        -- shipyard, vehicle lab, air lab, bot lab
 			{ "cornanotcplat", "corasy", },                   -- floating nano, T2 shipyard
 			{ "corfhp", "", "coramsub", "corplat",  },        -- floating hover, amphibious lab, seaplane lab
+		}
+	},
+
+	legnavyconship = {
+		{
+			{ "legmex", "legtide", },                         -- mex, tidal
+			{ "legfeconv", "leggeo", },                         -- floating T1 converter, geo
+			{ "leguwestore", "leguwmstore", },                        -- uw e stor, uw m stor
+		},
+		{
+			{ "legtl", "legfmg", "legnavaldefturret", "legdtr" },             -- offshore torp launcher, floating HLT
+			{ "legfrl", },                                    -- floating AA
+			{ "legctl", "legcluster", },                 		  -- coastal torp launcher, punisher, flame turret
+		},
+		{
+			{ "legfrad", "legeyes", "legfdrag", },            -- floating radar, perimeter camera, shark's teeth
+			{ "", "legdrag", "", "" },           -- dragon's teeth
+		},
+		{
+			{ "legsy", "legvp", "legap", "leglab",  },        -- shipyard, vehicle lab, air lab, bot lab
+			{ "legnanotcplat", "corasy", },                   -- floating nano, T2 shipyard
+			{ "legfhp", "", "legamphlab", "corplat",  },        -- floating hover, amphibious lab, seaplane lab
 		}
 	},
 
