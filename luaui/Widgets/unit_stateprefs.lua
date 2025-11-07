@@ -7,7 +7,7 @@ function widget:GetInfo()
 	return {
 		name = "State Prefs V2",
 		desc = "Sets pre-defined units states. Hold bindable action 'stateprefs_record' while clicking a unit's state commands to define the preferred state for newly produced units of its type. V2 fixes bug, improves console output to show unit and state change details.",
-		author = "Errrrrrr, quantum + Doo, sneyed",
+		author = "Errrrrrr, quantum + Doo, sneyed, Chronographer",
 		date = "April 21, 2023",
 		license = "GNU GPL, v2 or later",
 		layer = 1000,
@@ -18,10 +18,15 @@ end
 --[[------------------------------------------------------------------------------
 
 Usage:
-Bind stateprefs_record to a key of your choice in /Beyond-All-Reason/data/uikeys.txt
+Bind actions to a key of your choice in /Beyond-All-Reason/data/uikeys.txt
+stateprefs_record 		will save the preferred state for the selected unit/units for the selected command.
+stateprefs_clear 		will clears the preferred state for the selected unit/units for the selected command.
+stateprefs_clearunit 	will clears all saved states for the selected unit/units for all commands.
 
-e.g. Bind alt+ctrl stateprefs_clear
-bind  ctrl  stateprefs_record
+e.g. 
+bind alt 	stateprefs_clear
+bind ctrl 	stateprefs_record
+bind sc_\ 	stateprefs_clearunit
 
 --]]------------------------------------------------------------------------------
 local unitArray = {}
