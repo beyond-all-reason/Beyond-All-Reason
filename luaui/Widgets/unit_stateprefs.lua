@@ -38,6 +38,7 @@ if chunk then
 	unitArray = chunk()
 end
 
+local clearSound = 'LuaUI/Sounds/switchoff.wav'
 local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
 local isRecordPressed = false
 local isClearPressed = false
@@ -120,6 +121,7 @@ function doClearUnit()
 		unitSet[name] = {}
 		Spring.Echo("All state prefs removed for unit: " .. name)
 	end
+	Spring.PlaySoundFile(clearSound , 0.6, 'ui')
 	saveStatePrefs()
 end
 
