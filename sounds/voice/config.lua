@@ -122,9 +122,6 @@ return {
 	LowPower = {
 		delay = 50,
 	},
-	WindNotGood = {
-		delay = 9999999,
-	},
 
 	-- Alerts
 	NukeLaunched = {
@@ -254,13 +251,7 @@ return {
 	AstraeusDetected = {
 		delay = 300,
 	},
-	TransportDetected = {
-		delay = 300,
-	},
 	AirTransportDetected = {
-		delay = 300,
-	},
-	SeaTransportDetected = {
 		delay = 300,
 	},
 
