@@ -13,7 +13,10 @@ function widget:GetInfo()
 	}
 end
 
-local defaultVoiceSet = 'en/allison'
+local defaultVoiceSet = 'en/cephis'
+if Spring.GetConfigString("voiceset", 'en/cephis') == 'en/allison' then
+	Spring.SetConfigString("voiceset", 'en/cephis')
+end
 
 local useDefaultVoiceFallback = false    -- when a voiceset has missing file, try to load the default voiceset file instead
 
