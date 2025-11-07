@@ -400,8 +400,8 @@ local icontypes = {
 		size = 0.89999998
 	},
 	legnavyfrigate = {
-		bitmap = "icons/ship_aa.png",
-		size = 1.14999998
+		bitmap = "icons/ship_torpedo.png",
+		size = 1.25999999
 	},
 	legnavydestro = {
 		bitmap = "icons/ship_laser_drones.png",
