@@ -115,19 +115,31 @@ FireWeapon1()
 
 }
 
+Restorelbarrel()
+{
+	set-signal-mask 0;	//make sure shots from other barrel do not interrupt current barrel movement
+	sleep 100;
+	move barrel1 to z-axis [0.0] speed [9.0];
+}
+
+Restorerbarrel()
+{
+	set-signal-mask 0;	//make sure shots from other barrel do not interrupt current barrel movement
+	sleep 100;
+	move barrel2 to z-axis [0.0] speed [9.0];
+}
+
 Shot1(zero){
     if(whichGun == 0){
         emit-sfx 1024 + 2 from flare1;
         move barrel1 to z-axis [-3] now;
-        sleep 10;
-        move barrel1 to z-axis [0] speed 6;
+        start-script Restorelbarrel();
         whichGun = 1;
     }
     else if (whichGun == 1){
         emit-sfx 1024 + 2 from flare2;
         move barrel2 to z-axis [-3] now;
-        sleep 10;
-        move barrel2 to z-axis [0] speed 6;
+        start-script Restorerbarrel();
         whichGun = 0;
     }
     else{
