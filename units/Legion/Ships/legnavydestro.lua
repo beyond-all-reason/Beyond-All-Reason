@@ -36,7 +36,7 @@ return {
 		turnrate = 280,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weaponsub',
+			unitgroup = 'weapon',
 			customrange = 700,
 			model_author = "Phill-Art (Concept Art), ZephyrSkies (Model)",
 			normaltex = "unittextures/leg_normal.dds",

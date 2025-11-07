@@ -119,14 +119,14 @@ Restorelbarrel()
 {
 	set-signal-mask 0;	//make sure shots from other barrel do not interrupt current barrel movement
 	sleep 100;
-	move barrel1 to z-axis [0.0] speed [9.0];
+	move barrel1 to z-axis [0.0] speed [18.0];
 }
 
 Restorerbarrel()
 {
 	set-signal-mask 0;	//make sure shots from other barrel do not interrupt current barrel movement
 	sleep 100;
-	move barrel2 to z-axis [0.0] speed [9.0];
+	move barrel2 to z-axis [0.0] speed [18.0];
 }
 
 Shot1(zero){
