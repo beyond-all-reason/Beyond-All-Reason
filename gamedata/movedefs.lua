@@ -591,7 +591,6 @@ for moveName, moveData in pairs(moveDatas) do
 		defs[#defs + 1] = moveDef
 	end
 
-	--Spring.Echo(moveName, defs)
 end
 
 return defs
