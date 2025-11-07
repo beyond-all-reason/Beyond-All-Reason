@@ -1355,8 +1355,8 @@ local unitGrids = {
 
 	legnavyconship = {
 		{
-			{ "legmex", "legtide", },                         -- mex, tidal
-			{ "legfeconv", "leggeo", },                         -- floating T1 converter, geo
+			{ "legmex", "legtide","" },                         -- mex, tidal
+			{ "legfeconv", "legmext15", "leggeo", },                         -- floating T1 converter, geo
 			{ "leguwestore", "leguwmstore", },                        -- uw e stor, uw m stor
 		},
 		{

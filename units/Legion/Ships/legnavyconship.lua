@@ -63,6 +63,7 @@ return {
 			[24] = "legtl",
 			[25] = "legfrl",
 			[26] = "legfmg",
+            [27] = "legmext15",
 		},
 		customparams = {
 			model_author = "ZephyrSkies (model), Phill-Arts (Concept Art)",
