@@ -176,6 +176,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
+	restore_position = 1;
 	//turn turretBaseHeadingPivot to y-axis <0.0> speed <35.0>;
 	turn turretStrutPitchPivot to x-axis <0.0> speed <20.0>;
 }
