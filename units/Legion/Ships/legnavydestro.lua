@@ -6,7 +6,7 @@ return {
 		buildangle = 16384,
 		energycost = 9000,
 		metalcost = 860,
-		buildpic = "legtriariusdrone.DDS",
+		buildpic = "legnavydestro.DDS",
 		buildtime = 11500,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",

@@ -28,7 +28,7 @@ static-var  gun_1, gun_2, restore_delay, oldheading, whichGun;
 #define RB_ROLL_ACCELERATION 8
 #define RB_RECOIL_ENERGY_2 500
 #define RB_WAKE_PIECE wake
-#define RB_WAKE_CEG 1024 + 0
+#define RB_WAKE_CEG 1024 + 1
 #define RB_IDLE_KICK 10000
 
 #include "../bar_ships_common.h"
@@ -131,13 +131,13 @@ Restorerbarrel()
 
 Shot1(zero){
     if(whichGun == 0){
-        emit-sfx 1024 + 2 from flare1;
+        emit-sfx 1024 + 0 from flare1;
         move barrel1 to z-axis [-3] now;
         start-script Restorelbarrel();
         whichGun = 1;
     }
     else if (whichGun == 1){
-        emit-sfx 1024 + 2 from flare2;
+        emit-sfx 1024 + 0 from flare2;
         move barrel2 to z-axis [-3] now;
         start-script Restorerbarrel();
         whichGun = 0;

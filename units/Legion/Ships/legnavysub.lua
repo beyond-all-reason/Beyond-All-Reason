@@ -75,6 +75,7 @@ return {
 			explosiongenerators = {
 				[0] = "custom:subbubbles",
 				[1] = "custom:subwake",
+				[2] = "custom:barrelshot-small",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

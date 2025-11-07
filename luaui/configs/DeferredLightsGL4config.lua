@@ -32373,6 +32373,18 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['legnavyconship']={
+		nanolight1 = {
+			lightType = 'point',
+			pieceName = 'nanoFlare',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.3,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+
+	},
 	['legaca']={
 		nanolight1 = {
 			lightType = 'point',
