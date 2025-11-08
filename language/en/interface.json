@@ -139,6 +139,15 @@
 			"playerCamera": "Player Camera",
 			"playerCameraTooltip": "Follow player camera perspective and apply selections"
 		},
+		"pip": {
+			"tooltip": "Toggle Picture-in-Picture",
+			"switch": "Switch view with main view",
+			"track": "Track selected units",
+			"move": "Move window",
+			"resize": "Resize window",
+			"minimize": "Minimize",
+			"maximize": "Maximize"
+		},
 		"teamEconomy": {
 			"tooltipTitle": "Team Income",
 			"tooltip": "Total metal/energy income\n(Lighter portion is income from reclaiming)"

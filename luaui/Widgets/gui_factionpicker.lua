@@ -19,6 +19,8 @@ local mathFloor = math.floor
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+
 local factions = {}
 
 
@@ -77,11 +79,15 @@ local GL_ONE = GL.ONE
 
 local font, font2, bgpadding, dlistGuishader, dlistFactionpicker, bpWidth, bpHeight, rectMargin, fontSize
 
+local factionpickerBgTex, factionpickerTex
+
 local RectRound, UiElement, UiUnit
 
-local function drawFactionpicker()
+local function drawFactionpickerBackground()
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1, 1, ((posY - height > 0 or posX <= 0) and 1 or 0), 0)
+end
 
+local function drawFactionpicker()
 	local contentPadding = mathFloor((height * vsy * 0.09) * (1 - ((1 - ui_scale) * 0.5)))
 	font2:Begin()
 	font2:SetTextColor(1, 1, 1, 1)
@@ -209,6 +215,13 @@ function widget:ViewResize()
 	doUpdate = true
 
 	fontSize = (height * vsy * 0.125) * (1 - ((1 - ui_scale) * 0.5))
+
+	if factionpickerTex then
+		gl.DeleteTexture(factionpickerBgTex)
+		factionpickerBgTex = nil
+		gl.DeleteTexture(factionpickerTex)
+		factionpickerTex = nil
+	end
 end
 
 function widget:Initialize()
@@ -239,6 +252,15 @@ function widget:Shutdown()
 		dlistGuishader = nil
 	end
 	dlistFactionpicker = gl.DeleteList(dlistFactionpicker)
+
+	if factionpickerBgTex then
+		gl.DeleteTexture(factionpickerBgTex)
+		factionpickerBgTex = nil
+	end
+	if factionpickerTex then
+		gl.DeleteTexture(factionpickerTex)
+		factionpickerTex = nil
+	end
 
 	if WG['tooltip'] ~= nil then
 		for i, faction in pairs(factions) do
@@ -287,16 +309,73 @@ function widget:DrawScreen()
 	if dlistGuishader and WG['guishader'] then
 		WG['guishader'].InsertDlist(dlistGuishader, 'factionpicker')
 	end
-	if doUpdate then
-		dlistFactionpicker = gl.DeleteList(dlistFactionpicker)
+
+	if useRenderToTexture then
+		if not factionpickerBgTex then
+			factionpickerBgTex = gl.CreateTexture(mathFloor(width*vsx), mathFloor(height*vsy), {
+				target = GL.TEXTURE_2D,
+				format = GL.ALPHA,
+				fbo = true,
+			})
+			if factionpickerBgTex then
+				gl.R2tHelper.RenderToTexture(factionpickerBgTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+						drawFactionpickerBackground()
+					end,
+					useRenderToTexture
+				)
+			end
+		end
+	end
+
+	if useRenderToTexture then
+		if not factionpickerTex then
+			factionpickerTex = gl.CreateTexture(mathFloor(width*vsx)*(vsy<1400 and 2 or 1), mathFloor(height*vsy)*(vsy<1400 and 2 or 1), {
+				target = GL.TEXTURE_2D,
+				format = GL.ALPHA,
+				fbo = true,
+			})
+		end
+	end
+
+	if factionpickerTex and doUpdate then
+		gl.R2tHelper.RenderToTexture(factionpickerTex,
+			function()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+				gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+				drawFactionpicker()
+			end,
+			useRenderToTexture
+		)
 		doUpdate = nil
 	end
-	if not dlistFactionpicker then
-		dlistFactionpicker = gl.CreateList(function()
-			drawFactionpicker()
-		end)
+
+	if useRenderToTexture then
+		if factionpickerBgTex then
+			-- background element
+			gl.R2tHelper.BlendTexRect(factionpickerBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
+		end
+		if factionpickerTex then
+			-- content
+			gl.R2tHelper.BlendTexRect(factionpickerTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
+		end
+	else
+		if doUpdate then
+			dlistFactionpicker = gl.DeleteList(dlistFactionpicker)
+			doUpdate = nil
+		end
+		if not dlistFactionpicker then
+			dlistFactionpicker = gl.CreateList(function()
+				drawFactionpickerBackground()
+				drawFactionpicker()
+			end)
+		end
+		gl.CallList(dlistFactionpicker)
 	end
-	gl.CallList(dlistFactionpicker)
 
 	font2:Begin()
 	font2:SetOutlineColor(0, 0, 0, 0.66)
