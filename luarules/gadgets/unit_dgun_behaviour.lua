@@ -120,10 +120,18 @@ function gadget:GameFrame(frame)
 		if y < h + 1 or y < 0 then -- assume ground or water collision
 			-- normalize horizontal velocity
 			local dx, _, dz, speed = spGetProjectileVelocity(proID)
-			local norm = speed / mathSqrt(dx ^ 2 + dz ^ 2)
-			local ndx = dx * norm
-			local ndz = dz * norm
-			spSetProjectileVelocity(proID, ndx, 0, ndz)
+			local horizontalMagnitude = mathSqrt(dx ^ 2 + dz ^ 2)
+
+			-- Safeguard against division by zero (when projectile has no horizontal velocity)
+			if horizontalMagnitude > 0.001 and speed > 0 then
+				local norm = speed / horizontalMagnitude
+				local ndx = dx * norm
+				local ndz = dz * norm
+				spSetProjectileVelocity(proID, ndx, 0, ndz)
+			else
+				-- If no horizontal velocity, keep projectile stationary on ground
+				spSetProjectileVelocity(proID, 0, 0, 0)
+			end
 
 			groundedDGuns[proID] = true
 			flyingDGuns[proID] = nil
