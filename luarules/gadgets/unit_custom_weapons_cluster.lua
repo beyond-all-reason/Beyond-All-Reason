@@ -39,7 +39,7 @@ local waterDepthCoef = 0.1       -- reduce "separation" from ground in water by 
 --           cluster_number := <number> | nil (see defaults)
 --       },
 --   },
---  
+--
 --   <cluster_def> = {
 --       weaponvelocity := <number> -- Will be ignored in favor of range if possible.
 --       range          := <number> -- Preferred over and replaces weaponvelocity.
@@ -273,12 +273,18 @@ local function getSurfaceDeflection(x, y, z)
 
 	-- On sloped terrain, the nearest point on the surface is up the slope.
 	if slope > 0.1 or slope * separation > 10 then
-		local shiftXZ = separation * cos(slope) * sin(slope) / diag(dx, dz)
-		local shiftX = x - dx * shiftXZ -- Next surface x, z
-		local shiftZ = z - dz * shiftXZ
-		elevation = max(elevation, spGetGroundHeight(shiftX, shiftZ))
-		dx, dy, dz, slope = spGetGroundNormal(shiftX, shiftZ, true)
-		separation = y - elevation
+		local horizontalNormal = diag(dx, dz)
+
+		-- Safeguard against division by zero (when terrain is perfectly flat in x,z)
+		if horizontalNormal > 0.001 then
+			local shiftXZ = separation * cos(slope) * sin(slope) / horizontalNormal
+			local shiftX = x - dx * shiftXZ -- Next surface x, z
+			local shiftZ = z - dz * shiftXZ
+			elevation = max(elevation, spGetGroundHeight(shiftX, shiftZ))
+			dx, dy, dz, slope = spGetGroundNormal(shiftX, shiftZ, true)
+			separation = y - elevation
+		end
+		-- If horizontal normal is zero, skip the slope calculation (perfectly flat terrain)
 	end
 
 	if elevation < 0 then
