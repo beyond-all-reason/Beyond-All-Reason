@@ -576,7 +576,7 @@ local function attachToNewCarrier(newCarrier, subUnitID)
 		totalDroneCount = totalDroneCount + 1
 	else
 		local oldCarrierID = Spring.GetUnitRulesParam(subUnitID, "carrier_host_unit_id")
-		if oldCarrierID then
+		if oldCarrierID and carrierMetaList[oldCarrierID] then  -- Safeguard: check old carrier exists in metadata
 			carrierMetaList[newCarrier] = carrierMetaList[oldCarrierID]
 			carrierMetaList[newCarrier].docking = nil
 			carrierMetaList[newCarrier].subInitialSpawnData.ownerID = newCarrier
@@ -742,7 +742,7 @@ end
 
 function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	local carrierUnitID = spGetUnitRulesParam(unitID, "carrier_host_unit_id")
-	if carrierUnitID then
+	if carrierUnitID and carrierMetaList[carrierUnitID] then
 		if carrierMetaList[carrierUnitID].subUnitsList[unitID] then
 			if carrierMetaList[carrierUnitID].subUnitsList[unitID].dronetype == "bomber" and (cmdID == CMD.MOVE or cmdID == CMD.ATTACK) and carrierMetaList[carrierUnitID].subUnitsList[unitID].bomberStage > 0 then
 				if carrierMetaList[carrierUnitID].subUnitsList[unitID].bomberStage == 1 then
@@ -774,7 +774,7 @@ end
 function gadget:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 	if proOwnerID then
 	    local carrierUnitID = spGetUnitRulesParam(tonumber(proOwnerID), "carrier_host_unit_id")
-	    if carrierUnitID then
+	    if carrierUnitID and carrierMetaList[carrierUnitID] then
 		    if carrierMetaList[carrierUnitID].subUnitsList[proOwnerID] then
 			    if carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].dronetype == "bomber" and carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].bomberStage > 0 then
 				    local currentTime =  spGetGameSeconds()
@@ -812,7 +812,7 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	local carrierUnitID = spGetUnitRulesParam(unitID, "carrier_host_unit_id")
 
-	if carrierUnitID then
+	if carrierUnitID and carrierMetaList[carrierUnitID] then
 		if carrierMetaList[carrierUnitID].subUnitsList[unitID] then
 			local dronetypeIndex = carrierMetaList[carrierUnitID].subUnitsList[unitID].dronetypeIndex
 			if dronetypeIndex then
