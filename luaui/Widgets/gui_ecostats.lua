@@ -27,8 +27,8 @@ local mathMax = math.max
 local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
 local spEcho = Spring.Echo
-local spGetTeamUnits = Spring.GetTeamUnits
 local spGetSpectatingState = Spring.GetSpectatingState
+local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 

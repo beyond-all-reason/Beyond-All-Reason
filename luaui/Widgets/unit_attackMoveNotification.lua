@@ -71,7 +71,7 @@ function widget:Initialize()
 	localTeamID = spGetLocalTeamID()
 	lastAlarmTime = spGetTimer()
 	lastCommanderAlarmTime = spGetTimer()
-	mathRandomseed(os.time())
+	math.randomseed(os.time())
 end
 
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)

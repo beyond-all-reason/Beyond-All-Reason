@@ -13,11 +13,12 @@ function widget:GetInfo()
 end
 
 
--- Localized functions for performance
-
 -- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetGameFrame = Spring.GetGameFrame
+
+local spGetSelectedUnitsSorted = spGetSelectedUnitsSorted
+local spGetUnitStates = Spring.GetUnitStates
 
 local spies  = {}
 
@@ -32,10 +33,6 @@ for _, spyName in ipairs(spyNames) do
 		spies[UnitDefNames[spyName].id] = true
 	end
 end
-
-local GetSelectedUnitsSorted = spGetSelectedUnitsSorted
-local GetUnitStates = Spring.GetUnitStates
-local GetSelectedUnitsCount = spGetSelectedUnitsCount
 
 local gameStarted, selectionChanged
 
@@ -67,7 +64,7 @@ function widget:Initialize()
 end
 
 local spySelected = false
-local selectedUnitsCount = GetSelectedUnitsCount()
+local selectedUnitsCount = spGetSelectedUnitsCount()
 function widget:SelectionChanged(sel)
 	selectionChanged = true
 end
@@ -80,15 +77,15 @@ function widget:Update(dt)
 		selChangedSec = 0
 		selectionChanged = nil
 
-		selectedUnitsCount = GetSelectedUnitsCount()
+		selectedUnitsCount = spGetSelectedUnitsCount()
 
 		spySelected = false
 		if selectedUnitsCount > 0 and selectedUnitsCount <= 12 then  -- above a little amount we aren't micro-ing spies anymore...
-			local selectedUnittypes = GetSelectedUnitsSorted()
+			local selectedUnittypes = spGetSelectedUnitsSorted()
 			for spyDefID in pairs(spies) do
 				if selectedUnittypes[spyDefID] then
 					for _,unitID in pairs(selectedUnittypes[spyDefID]) do
-						if select(5,GetUnitStates(unitID,false,true)) then	-- 5=cloak
+						if select(5,spGetUnitStates(unitID,false,true)) then	-- 5=cloak
 							spySelected = true
 							break
 						end

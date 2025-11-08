@@ -170,7 +170,7 @@ local function CreateParticleLists()
 			local particles = mathFloor(((particleDensityMax/particleSteps) * step) / (((particleSteps+(particleSteps/2)) - step) / (particleSteps/2)))
 			particleLists[particleType][step] = gl.CreateList(function()
 				local tmpRand = mathRandom()
-				mathRandomseed(particleType)
+				math.randomseed(particleType)
 				gl.BeginEnd(GL.POINTS, function()
 				  for i = 1, particles do
 					local x = mathRandom()

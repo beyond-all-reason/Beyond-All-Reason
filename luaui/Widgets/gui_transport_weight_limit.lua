@@ -20,6 +20,7 @@ local mathCos = math.cos
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------

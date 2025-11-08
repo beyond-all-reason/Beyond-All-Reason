@@ -22,8 +22,9 @@ local tableInsert = table.insert
 
 -- Localized Spring API for performance
 local spGetSelectedUnits = Spring.GetSelectedUnits
-local spEcho = Spring.Echo
+local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetSpectatingState = Spring.GetSpectatingState
+local spEcho = Spring.Echo
 
 local texts = {}
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua")) and VFS.Include("LuaUI/Config/BAR_damageStats.lua")

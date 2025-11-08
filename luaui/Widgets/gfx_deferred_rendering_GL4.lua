@@ -1723,7 +1723,7 @@ function widget:Initialize()
 	end
 
 	if addrandomlights then
-		mathRandomseed(1)
+		math.randomseed(1)
 		for i=1, 1 do AddRandomLight(	mathRandom()) end
 	end
 

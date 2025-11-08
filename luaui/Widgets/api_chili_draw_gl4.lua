@@ -455,7 +455,7 @@ function widget:Initialize()
 	CreateInstanceVBOTable("default") 
 	
 	if true then -- debug mode
-		mathRandomseed(1)
+		math.randomseed(1)
 		local grid = 32
 		local gs = 64
 		local vsx, vsy = Spring.GetViewGeometry()
