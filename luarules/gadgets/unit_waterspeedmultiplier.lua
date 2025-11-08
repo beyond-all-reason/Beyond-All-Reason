@@ -36,7 +36,7 @@ for defID, ud in pairs(UnitDefs) do
     local cp = ud.customParams
     if tonumber(cp.speedfactorwater) and tonumber(cp.speedfactorwater) ~= 1 and (not ud.canFly and not ud.isAirUnit) then
         unitDefData[defID] = {
-            speedFactorInWater  = tonumber(cp.speedfactorwater),
+            speedFactorInWater = tonumber(cp.speedfactorwater),
             speed  = ud.speed,
             turn   = ud.turnRate,
             acc    = ud.maxAcc,
@@ -85,7 +85,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
         local isInWater = (Spring.GetGroundHeight(x, z) < Spring.GetWaterPlaneLevel())
 
         if isInWater then
-            applySpeed(unitID, data, data.speedFactorInWater )
+            applySpeed(unitID, data, data.speedFactorInWater)
         else
             applySpeed(unitID, data, 1)
         end
@@ -95,7 +95,7 @@ end
 function gadget:UnitEnteredWater(unitID, unitDefID, teamID)
     local data = unitDefData[unitDefID]
     if data then
-        applySpeed(unitID, data, data.speedFactorInWater )
+        applySpeed(unitID, data, data.speedFactorInWater)
     end
 end
 
