@@ -13,6 +13,13 @@ function widget:GetInfo()
    }
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+local spGetViewGeometry = Spring.GetViewGeometry
+
 -- So in total about 168/162 fps delta just going from 1 to 2 screencopies!
 
 -- 3 things want screencopies, at least:
@@ -29,7 +36,7 @@ end
 			screencopy = WG['screencopymanager'].GetScreenCopy()
 		else
 			-- gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy) -- copy screen to screencopy, and render screencopy into blurtex
-			Spring.Echo("no manager",  WG['screencopymanager'] )
+			spEcho("no manager",  WG['screencopymanager'] )
 			return
 		end
 		if screencopy == nil then return end
@@ -46,11 +53,11 @@ local lastScreenCopyFrame
 local DepthCopy
 local lastDepthCopyFrame
 
-local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+local vsx, vsy, vpx, vpy = spGetViewGeometry()
 local firstCopy = true
 
 function widget:ViewResize()
-	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+	vsx, vsy, vpx, vpy = spGetViewGeometry()
 	if ScreenCopy then gl.DeleteTexture(ScreenCopy) end
 	ScreenCopy = gl.CreateTexture(vsx  , vsy, {
 		border = false,
@@ -70,13 +77,13 @@ function widget:ViewResize()
 		wrap_s = GL.CLAMP,
 		wrap_t = GL.CLAMP,
 	})
-	if not ScreenCopy then Spring.Echo("ScreenCopy Manager failed to create a ScreenCopy") end 
-	if not DepthCopy then Spring.Echo("ScreenCopy Manager failed to create a DepthCopy") end 
+	if not ScreenCopy then spEcho("ScreenCopy Manager failed to create a ScreenCopy") end 
+	if not DepthCopy then spEcho("ScreenCopy Manager failed to create a DepthCopy") end 
 end
 
 local function GetScreenCopy()
 	local df = Spring.GetDrawFrame()
-	--Spring.Echo("GetScreenCopy", df)
+	--spEcho("GetScreenCopy", df)
 	if df ~= lastScreenCopyFrame then
 		gl.CopyToTexture(ScreenCopy, 0, 0, vpx, vpy, vsx, vsy)
 		lastScreenCopyFrame = df
@@ -91,7 +98,7 @@ end
 
 local function GetDepthCopy()
 	local df = Spring.GetDrawFrame()
-	--Spring.Echo("GetScreenCopy", df)
+	--spEcho("GetScreenCopy", df)
 	if df ~= lastDepthCopyFrame then
 		gl.CopyToTexture(DepthCopy, 0, 0, vpx, vpy, vsx, vsy)
 		lastDepthCopyFrame = df
@@ -106,7 +113,7 @@ end
 
 function widget:Initialize()
 	if gl.CopyToTexture == nil then
-		Spring.Echo("ScreenCopy Manager API: your hardware is missing the necessary CopyToTexture feature")
+		spEcho("ScreenCopy Manager API: your hardware is missing the necessary CopyToTexture feature")
 		widgetHandler:RemoveWidget()
 		return false
 	end

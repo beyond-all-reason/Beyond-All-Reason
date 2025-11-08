@@ -12,6 +12,12 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 include("keysym.h.lua")
 
 ------------------------------------------------
@@ -29,7 +35,7 @@ end
 
 function widget:Initialize()
 	if not Spring.Utilities.IsDevMode() then
-		Spring.Echo("ReloadCob widget requires devmode")
+		spEcho("ReloadCob widget requires devmode")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -44,7 +50,7 @@ function widget:Update()
 			if not reloadedCobDefs[unitDefID] then 
 				local unitDefName = UnitDefs[unitDefID].name
 				Spring.SendCommands('reloadcob ' .. unitDefName)
-				Spring.Echo("Reloaded COB: ".. unitDefName .. " from " .. UnitDefs[unitDefID].scriptName)
+				spEcho("Reloaded COB: ".. unitDefName .. " from " .. UnitDefs[unitDefID].scriptName)
 				reloadedCobDefs[unitDefID] = true
 			end
 		end

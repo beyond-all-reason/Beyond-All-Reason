@@ -15,6 +15,12 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local spGetGameSpeed = Spring.GetGameSpeed
 local spGetGameFrame = Spring.GetGameFrame
 
@@ -40,7 +46,7 @@ local osClock = os.clock
 -- CONFIGURATION
 
 local fontfile = "fonts/unlisted/MicrogrammaDBold.ttf"
-local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+local vsx, vsy, vpx, vpy = spGetViewGeometry()
 local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 local fontfileSize = 35
 local fontfileOutlineSize = 6
@@ -285,7 +291,7 @@ local function updateWindowCoords()
 end
 
 function widget:ViewResize()
-	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+	vsx, vsy, vpx, vpy = spGetViewGeometry()
 	usedSizeMultiplier = (0.5 + ((vsx * vsy) / 5500000)) * sizeMultiplier
 
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))

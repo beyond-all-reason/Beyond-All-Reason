@@ -12,6 +12,19 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathMax = math.max
+local mathSqrt = math.sqrt
+local mathSin = math.sin
+local mathCos = math.cos
+local mathAtan2 = math.atan2
+local mathPi = math.pi
+
+-- Localized Spring API for performance
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetGroundHeight = Spring.GetGroundHeight
+
 --------------------------------------------------------------------------------
 --config
 --------------------------------------------------------------------------------
@@ -45,7 +58,7 @@ local selectionChanged
 --------------------------------------------------------------------------------
 local GetActiveCommand = Spring.GetActiveCommand
 local GetCameraPosition = Spring.GetCameraPosition
-local GetGroundHeight = Spring.GetGroundHeight
+local GetGroundHeight = spGetGroundHeight
 local GetMouseState = Spring.GetMouseState
 local GetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local GetUnitPosition = Spring.GetUnitPosition
@@ -75,13 +88,13 @@ local glVertex = gl.Vertex
 local GL_LINES = GL.LINES
 local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_POINTS = GL.POINTS
-local PI = math.pi
-local atan2 = math.atan2
-local cos = math.cos
-local sin = math.sin
+local PI = mathPi
+local atan2 = mathAtan2
+local cos = mathCos
+local sin = mathSin
 local floor = math.floor
-local max = math.max
-local sqrt = math.sqrt
+local max = mathMax
+local sqrt = mathSqrt
 
 local unitCost = {}
 local isAirUnit = {}
@@ -147,7 +160,7 @@ local function GetMouseTargetPosition(dgun)
 				local unitDefID = Spring.GetUnitDefID(mouseTarget)
 				local mouseTargetType2, mouseTarget2 = TraceScreenRay(mx, my, true)
 				if mouseTarget2 then
-					if isAirUnit[unitDefID] or isShip[unitDefID] or isUnderwater[unitDefID] or (Spring.GetGroundHeight(mouseTarget2[1], mouseTarget2[3]) < 0 and isHover[unitDefID]) then
+					if isAirUnit[unitDefID] or isShip[unitDefID] or isUnderwater[unitDefID] or (spGetGroundHeight(mouseTarget2[1], mouseTarget2[3]) < 0 and isHover[unitDefID]) then
 						return GetUnitPosition(mouseTarget)
 					else
 						return mouseTarget2[1], mouseTarget2[2], mouseTarget2[3]
@@ -383,13 +396,13 @@ end
 --------------------------------------------------------------------------------
 
 local function DrawAoE(tx, ty, tz, aoe, ee, alphaMult, offset, requiredEnergy)
-	glLineWidth(math.max(aoeLineWidthMult * aoe / mouseDistance, 0.5))
+	glLineWidth(mathMax(aoeLineWidthMult * aoe / mouseDistance, 0.5))
 
 	for i = 1, numAoECircles do
 		local proportion = i / (numAoECircles + 1)
 		local radius = aoe * proportion
 		local alpha = aoeColor[4] * (1 - proportion) / (1 - proportion * ee) * (1 - GetSecondPart(offset or 0)) * (alphaMult or 1)
-		if requiredEnergy and select(1, Spring.GetTeamResources(Spring.GetMyTeamID(), 'energy')) < requiredEnergy then
+		if requiredEnergy and select(1, Spring.GetTeamResources(spGetMyTeamID(), 'energy')) < requiredEnergy then
 			glColor(aoeColorNoEnergy[1], aoeColorNoEnergy[2], aoeColorNoEnergy[3], alpha)
 		else
 			glColor(aoeColor[1], aoeColor[2], aoeColor[3], alpha)
@@ -427,7 +440,7 @@ local function DrawNoExplode(aoe, fx, fy, fz, tx, ty, tz, range, requiredEnergy)
 					   { fx - wx, fy, fz - wz }, { fx + ex - wx, ty, fz + ez - wz } }
 	local alpha = (1 - GetSecondPart()) * aoeColor[4]
 
-	if requiredEnergy and select(1, Spring.GetTeamResources(Spring.GetMyTeamID(), 'energy')) < requiredEnergy then
+	if requiredEnergy and select(1, Spring.GetTeamResources(spGetMyTeamID(), 'energy')) < requiredEnergy then
 		glColor(aoeColorNoEnergy[1], aoeColorNoEnergy[2], aoeColorNoEnergy[3], alpha)
 	else
 		glColor(aoeColor[1], aoeColor[2], aoeColor[3], alpha)
@@ -605,30 +618,30 @@ local function DrawSectorScatter(angle, shortfall, rangeMax, fx, fy, fz, tx, ty,
 	local pz = fz
 	local vw = vx * vx + vz * vz
 	if vw > 1 and vw > rangeMax * rangeMax then
-		vw = math.sqrt(vw)
+		vw = mathSqrt(vw)
 		local scale = rangeMax / vw
-		local angleAim = math.atan2(vx, vz)
-		px = px + (vw - rangeMax) * math.sin(angleAim)
-		pz = pz + (vw - rangeMax) * math.cos(angleAim)
+		local angleAim = mathAtan2(vx, vz)
+		px = px + (vw - rangeMax) * mathSin(angleAim)
+		pz = pz + (vw - rangeMax) * mathCos(angleAim)
 		vx = vx * scale
 		vz = vz * scale
 	end
 	local vx2 = 0
 	local vz2 = 0
-	local segments = math.max(3, angle / 30)
-	local toRadians = math.pi / 180
+	local segments = mathMax(3, angle / 30)
+	local toRadians = mathPi / 180
 	local count = 1
 	for ii = -segments, segments do
-		vx2 = vx * math.cos(0.5 * angle * ii / 3 * toRadians) - vz * math.sin(0.5 * angle * ii / 3 * toRadians)
-		vz2 = vx * math.sin(0.5 * angle * ii / 3 * toRadians) + vz * math.cos(0.5 * angle * ii / 3 * toRadians)
+		vx2 = vx * mathCos(0.5 * angle * ii / 3 * toRadians) - vz * mathSin(0.5 * angle * ii / 3 * toRadians)
+		vz2 = vx * mathSin(0.5 * angle * ii / 3 * toRadians) + vz * mathCos(0.5 * angle * ii / 3 * toRadians)
 		bars[count] = { px + vx2, ty, pz + vz2 }
 		count = count + 1
 	end
 	bars[count] = { px + (1 - shortfall) * vx2, ty, pz + (1 - shortfall) * vz2 }
 	count = count + 1
 	for ii = segments, -segments, -1 do
-		vx2 = vx * math.cos(0.5 * angle * ii / 3 * toRadians) - vz * math.sin(0.5 * angle * ii / 3 * toRadians)
-		vz2 = vx * math.sin(0.5 * angle * ii / 3 * toRadians) + vz * math.cos(0.5 * angle * ii / 3 * toRadians)
+		vx2 = vx * mathCos(0.5 * angle * ii / 3 * toRadians) - vz * mathSin(0.5 * angle * ii / 3 * toRadians)
+		vz2 = vx * mathSin(0.5 * angle * ii / 3 * toRadians) + vz * mathCos(0.5 * angle * ii / 3 * toRadians)
 		bars[count] = { px + (1 - shortfall) * vx2, ty, pz + (1 - shortfall) * vz2 }
 		count = count + 1
 	end
@@ -749,7 +762,7 @@ local function DrawOrbitalScatter(scatter, tx, ty, tz)
 end
 
 local function DrawDGun(aoe, fx, fy, fz, tx, ty, tz, range, requiredEnergy, unitName)
-	local angle = atan2(fx - tx, fz - tz) + (math.pi / 2.1)
+	local angle = atan2(fx - tx, fz - tz) + (mathPi / 2.1)
 	local dx, dz, offset_x, offset_z = fx, fz, 0, 0
 	if unitName == 'armcom' then
 		offset_x = (sin(angle) * 10)

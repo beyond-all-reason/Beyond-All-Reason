@@ -16,6 +16,16 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathAbs = math.abs
+local mathCeil = math.ceil
+local mathFloor = math.floor
+local mathMin = math.min
+
+-- Localized Spring API for performance
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local config = VFS.Include('LuaRules/Configs/raptor_spawn_defs.lua')
 
 local customScale = 1
@@ -41,7 +51,7 @@ local panelTexture = ":n:LuaUI/Images/raptorpanel.tga"
 local panelFontSize = 14
 local waveFontSize = 36
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
 local viewSizeX, viewSizeY = 0, 0
 local w = 300
@@ -151,8 +161,8 @@ local function getRaptorCounts(type)
 end
 
 local function updatePos(x, y)
-	x1 = math.min((viewSizeX * 0.94) - (w * widgetScale) / 2, x)
-	y1 = math.min((viewSizeY * 0.89) - (h * widgetScale) / 2, y)
+	x1 = mathMin((viewSizeX * 0.94) - (w * widgetScale) / 2, x)
+	y1 = mathMin((viewSizeY * 0.89) - (h * widgetScale) / 2, y)
 	updatePanel = true
 end
 
@@ -184,7 +194,7 @@ local function CreatePanelDisplayList()
 				gain = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Base"), 3) + math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Aggression"), 3) + math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Eco"), 3)
 			end
 			--font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerWithGain', { anger = gameInfo.raptorQueenAnger, gain = math.round(gain, 3) }), panelMarginX, PanelRow(1), panelFontSize, "")
-			font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerWithTech', { anger = math.floor(0.5+gameInfo.raptorQueenAnger), techAnger = gameInfo.raptorTechAnger}), panelMarginX, PanelRow(1), panelFontSize, "")
+			font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerWithTech', { anger = mathFloor(0.5+gameInfo.raptorQueenAnger), techAnger = gameInfo.raptorTechAnger}), panelMarginX, PanelRow(1), panelFontSize, "")
 
 			local totalSeconds = (100 - gameInfo.raptorQueenAnger) / gain
 			time = string.formatTime(totalSeconds)
@@ -209,7 +219,7 @@ local function CreatePanelDisplayList()
 			end
 		end
 	else
-		font:Print(textColor .. Spring.I18N('ui.raptors.gracePeriod', { time = string.formatTime(math.ceil(((currentTime - gameInfo.raptorGracePeriod) * -1) - 0.5)) }), panelMarginX, PanelRow(1), panelFontSize, "")
+		font:Print(textColor .. Spring.I18N('ui.raptors.gracePeriod', { time = string.formatTime(mathCeil(((currentTime - gameInfo.raptorGracePeriod) * -1) - 0.5)) }), panelMarginX, PanelRow(1), panelFontSize, "")
 	end
 
 	font:Print(textColor .. Spring.I18N('ui.raptors.raptorKillCount', { count = gameInfo.raptorKills }), panelMarginX, PanelRow(6), panelFontSize, "")
@@ -367,8 +377,8 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal("RaptorEvent", RaptorEvent)
 	UpdateRules()
 	viewSizeX, viewSizeY = gl.GetViewSizes()
-	local x = math.abs(math.floor(viewSizeX - 320))
-	local y = math.abs(math.floor(viewSizeY - 300))
+	local x = mathAbs(mathFloor(viewSizeX - 320))
+	local y = mathAbs(mathFloor(viewSizeY - 300))
 
 	-- reposition if scavengers panel is shown as well
 	if Spring.Utilities.Gametype.IsScavengers() then
@@ -407,7 +417,7 @@ function widget:GameFrame(n)
 	if gotScore then
 		local sDif = gotScore - scoreCount
 		if sDif > 0 then
-			scoreCount = scoreCount + math.ceil(sDif / 7.654321)
+			scoreCount = scoreCount + mathCeil(sDif / 7.654321)
 			if scoreCount > gotScore then
 				scoreCount = gotScore
 			else
@@ -450,13 +460,13 @@ function widget:MouseRelease(x, y, button)
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 
 	font = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(2)
 
-	x1 = math.floor(x1 - viewSizeX)
-	y1 = math.floor(y1 - viewSizeY)
+	x1 = mathFloor(x1 - viewSizeX)
+	y1 = mathFloor(y1 - viewSizeY)
 	viewSizeX, viewSizeY = vsx, vsy
 	widgetScale = (0.75 + (viewSizeX * viewSizeY / 10000000)) * customScale
 	x1 = viewSizeX + x1 + ((x1 / 2) * (widgetScale - 1))

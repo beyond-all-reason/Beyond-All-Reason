@@ -13,6 +13,12 @@ function widget:GetInfo()
 end
 
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 -- a table of lights
 -- Important: the A param is a multiplier to the power of the light (mults RGB).
 -- RGBA is NOT clamped to [0;1]
@@ -36,8 +42,8 @@ local maplights = {
 }
 
 function widget:Initialize()
-	--Spring.Echo("Loading Maplights")
-	--Spring.Echo(WG, WG['lighteffects'], WG['lighteffects'].createLight,Script.LuaUI("GadgetCreateLight"))
+	--spEcho("Loading Maplights")
+	--spEcho(WG, WG['lighteffects'], WG['lighteffects'].createLight,Script.LuaUI("GadgetCreateLight"))
 	if (WG and WG['lighteffects'] and WG['lighteffects'].createLight) or Script.LuaUI("GadgetCreateLight") then
 
 		for _, lightparams in pairs(maplights) do

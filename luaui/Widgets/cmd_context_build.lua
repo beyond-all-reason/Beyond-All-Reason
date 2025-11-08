@@ -22,7 +22,14 @@ function widget:GetInfo()
 	}
 end
 
-local isPregame = Spring.GetGameFrame() == 0 and not isSpec
+
+-- Localized functions for performance
+local tableInsert = table.insert
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+
+local isPregame = spGetGameFrame() == 0 and not isSpec
 
 local uDefNames = UnitDefNames
 
@@ -270,21 +277,21 @@ local function addUnitDefPair(firstUnitName, lastUnitName)
 
 		-- Break the unit list into two matching arrays
 		if isWater then
-			table.insert(waterBuildings, unitDefID)
+			tableInsert(waterBuildings, unitDefID)
 		else
-			table.insert(groundBuildings, unitDefID)
+			tableInsert(groundBuildings, unitDefID)
 		end
 	end
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+	if Spring.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 
 	if Spring.GetModOptions().experimentallegionfaction then
 		for _,v in ipairs(legionUnitlist) do
-			table.insert(unitlist, v)
+			tableInsert(unitlist, v)
 		end
 	end
 

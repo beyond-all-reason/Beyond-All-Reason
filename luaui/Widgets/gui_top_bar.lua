@@ -12,6 +12,15 @@ function widget:GetInfo()
 		handler = true, --can use widgetHandler:x()
 	}
 end
+
+-- Localized functions for performance
+local mathCeil = math.ceil
+local mathFloor = math.floor
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 -- Configuration
@@ -23,7 +32,7 @@ local allowSavegame = true -- Spring.Utilities.ShowDevUI()
 
 -- Math
 local math_isInRect = math.isInRect
-local math_floor = math.floor
+local math_floor = mathFloor
 local math_min = math.min
 local sformat = string.format
 
@@ -50,8 +59,8 @@ local numPlayers = Spring.Utilities.GetPlayerCount()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 local chobbyLoaded = false
 local isSingle = false
-local gameStarted = (Spring.GetGameFrame() > 0)
-local gameFrame = Spring.GetGameFrame()
+local gameStarted = (spGetGameFrame() > 0)
+local gameFrame = spGetGameFrame()
 local gameIsOver = false
 local graphsWindowVisible = false
 
@@ -406,7 +415,7 @@ local function updateAvgWind()
 	if avgWind[minWind] then avgWindValue = avgWind[minWind][maxWind] end
 
 	-- fallback approximation
-	if not avgWindValue then avgWindValue = "~" .. tostring(math.max(minWind, maxWind * 0.75)) end
+	if not avgWindValue then avgWindValue = "~" .. tostring(mathMax(minWind, maxWind * 0.75)) end
 end
 
 local function updateWind()
@@ -703,13 +712,13 @@ local function updateResbar(res)
 	local shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
 	local barWidth = barArea[3] - barArea[1]
 	local glowSize = barHeight * 7
-	local edgeWidth = math.max(1, math_floor(vsy / 1100))
+	local edgeWidth = mathMax(1, math_floor(vsy / 1100))
 
 	if not showQuitscreen and resbarHover and resbarHover == res then
 		sliderHeightAdd = barHeight / 0.75
 		shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
 	end
-	shareSliderWidth = math.ceil(shareSliderWidth)
+	shareSliderWidth = mathCeil(shareSliderWidth)
 
 	if refreshUi then
 		if res == 'metal' then
@@ -850,7 +859,7 @@ local function updateResbarValues(res, update)
 		if cappedCurRes >maxStorageRes * 1.07 then cappedCurRes =maxStorageRes * 1.07 end
 		local barSize = barHeight * 0.2
 		local valueWidth = math_floor(((cappedCurRes /maxStorageRes) * barWidth))
-		if valueWidth < math.ceil(barSize) then valueWidth = math.ceil(barSize) end
+		if valueWidth < mathCeil(barSize) then valueWidth = mathCeil(barSize) end
 		if valueWidth ~= lastValueWidth[res] then  -- only recalc if the width changed
 			lastValueWidth[res] = valueWidth
 
@@ -1480,7 +1489,7 @@ local function drawQuitScreen()
 			local padding = math_floor(w / 90)
 			local textTopPadding = padding + padding + padding + padding + padding + fontSize
 			local txtWidth = font:GetTextWidth(text) * fontSize
-			w = math.max(w, txtWidth + textTopPadding + textTopPadding)
+			w = mathMax(w, txtWidth + textTopPadding + textTopPadding)
 
 			local x = math_floor((vsx / 2) - (w / 2))
 			local y = math_floor((vsy / 1.8) - (h / 2))
@@ -1492,7 +1501,7 @@ local function drawQuitScreen()
 			quitscreenArea = { x, y, x + w, y + h }
 
 			if teamResign then
-				quitscreenArea[2] = quitscreenArea[2] - math.floor(fontSize*1.7)
+				quitscreenArea[2] = quitscreenArea[2] - mathFloor(fontSize*1.7)
 			end
 
 			quitscreenStayArea   = { x + buttonMargin + 0 * (buttonWidth + buttonMargin), y + buttonMargin, x + buttonMargin + 0 * (buttonWidth + buttonMargin) + buttonWidth, y + buttonMargin + buttonHeight }
@@ -1700,7 +1709,7 @@ function widget:DrawScreen()
 			if uiBgTex then
 				gl.DeleteTexture(uiBgTex)
 			end
-			uiBgTex = gl.CreateTexture(math.floor(topbarArea[3]-topbarArea[1]), math.floor(topbarArea[4]-topbarArea[2]), {
+			uiBgTex = gl.CreateTexture(mathFloor(topbarArea[3]-topbarArea[1]), mathFloor(topbarArea[4]-topbarArea[2]), {
 				target = GL.TEXTURE_2D,
 				format = GL.ALPHA,
 				fbo = true,
@@ -1708,7 +1717,7 @@ function widget:DrawScreen()
 			if uiTex then
 				gl.DeleteTexture(uiTex)
 			end
-			uiTex = gl.CreateTexture(math.floor(topbarArea[3]-topbarArea[1]), math.floor(topbarArea[4]-topbarArea[2]), {	--*(vsy<1400 and 2 or 1)
+			uiTex = gl.CreateTexture(mathFloor(topbarArea[3]-topbarArea[1]), mathFloor(topbarArea[4]-topbarArea[2]), {	--*(vsy<1400 and 2 or 1)
 				target = GL.TEXTURE_2D,
 				format = GL.ALPHA,
 				fbo = true,
@@ -2166,7 +2175,7 @@ function widget:LanguageChanged()
 end
 
 function widget:Initialize()
-	gameFrame = Spring.GetGameFrame()
+	gameFrame = spGetGameFrame()
 	Spring.SendCommands("resbar 0")
 
 	-- determine if we want to show comcounter

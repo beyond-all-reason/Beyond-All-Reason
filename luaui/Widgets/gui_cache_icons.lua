@@ -14,6 +14,12 @@ function widget:GetInfo()
 end
 
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+
 local iconTypes = VFS.Include("gamedata/icontypes.lua")
 local vsx, vsy = Spring.GetViewGeometry()
 local delayedCacheUnitIcons
@@ -72,7 +78,7 @@ end
 
 
 function widget:DrawScreen()
-	if not delayedCacheUnitIcons and Spring.GetGameFrame() > 0 then
+	if not delayedCacheUnitIcons and spGetGameFrame() > 0 then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -95,7 +101,7 @@ function widget:DrawScreen()
 		gl.Translate(vsx, 0, 0)
 	end
 
-	if (not cachedUnitIcons) and Spring.GetGameFrame() == 0 then
+	if (not cachedUnitIcons) and spGetGameFrame() == 0 then
 		cachedUnitIcons = true
 		cacheUnitIcons()
 	end

@@ -14,7 +14,13 @@ function widget:GetInfo()
 	}
 end
 
-local vsx,vsy = Spring.GetViewGeometry()
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetViewGeometry = Spring.GetViewGeometry
+
+local vsx,vsy = spGetViewGeometry()
 
 -----------------------------------------------------
 -- Config
@@ -61,7 +67,7 @@ local glRect			= gl.Rect
 -----------------------------------------------------
 
 function widget:ViewResize()
-	vsx,vsy = Spring.GetViewGeometry()
+	vsx,vsy = spGetViewGeometry()
 	font = WG['fonts'].getFont(1, 1.5)
 end
 

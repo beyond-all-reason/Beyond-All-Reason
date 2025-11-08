@@ -12,6 +12,12 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local shapeOpacity = 0.5
 local addHeight = 8	-- compensate for unit wobbling underground
 
@@ -21,7 +27,7 @@ local spIsUnitInView = Spring.IsUnitInView
 
 local unitshapes = {}
 local dots = {}
-local spec,specFullView = Spring.GetSpectatingState()
+local spec,specFullView = spGetSpectatingState()
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local includedUnitDefIDs = {}
@@ -51,7 +57,7 @@ local function addUnitShape(unitID, unitDefID, px, py, pz, rotationY, teamID)
 end
 
 function widget:PlayerChanged()
-	spec,specFullView = Spring.GetSpectatingState()
+	spec,specFullView = spGetSpectatingState()
 	if specFullView then
 		for unitID, _ in pairs(unitshapes) do
 			removeUnitShape(unitID)
@@ -143,7 +149,7 @@ function widget:Update(dt)
 		widgetHandler:RemoveWidget()
 	end
 	if spec then
-		_,specFullView,_ = Spring.GetSpectatingState()
+		_,specFullView,_ = spGetSpectatingState()
 	end
 	if not specFullView then
 		for unitID, shape in pairs(unitshapes) do

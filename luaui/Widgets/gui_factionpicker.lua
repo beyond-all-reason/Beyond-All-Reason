@@ -11,6 +11,14 @@ function widget:GetInfo()
 		enabled = true
 	}
 end
+
+-- Localized functions for performance
+local mathFloor = math.floor
+
+-- Localized Spring API for performance
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local factions = {}
 
 
@@ -50,13 +58,13 @@ for i, faction in pairs(factions) do
 	factionRect[i] = {}
 end
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
 local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
-local isSpec = Spring.GetSpectatingState()
+local isSpec = spGetSpectatingState()
 local backgroundRect = {}
 
 local math_isInRect = math.isInRect
@@ -74,25 +82,25 @@ local RectRound, UiElement, UiUnit
 local function drawFactionpicker()
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1, 1, ((posY - height > 0 or posX <= 0) and 1 or 0), 0)
 
-	local contentPadding = math.floor((height * vsy * 0.09) * (1 - ((1 - ui_scale) * 0.5)))
+	local contentPadding = mathFloor((height * vsy * 0.09) * (1 - ((1 - ui_scale) * 0.5)))
 	font2:Begin()
 	font2:SetTextColor(1, 1, 1, 1)
 	font2:SetOutlineColor(0, 0, 0, 0.66)
 	font2:Print(Spring.I18N('ui.factionPicker.pick'), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.7), fontSize, "o")
 
-	local contentWidth = math.floor(backgroundRect[3] - backgroundRect[1] - contentPadding)
-	local contentHeight = math.floor(backgroundRect[4] - backgroundRect[2] - (contentPadding * 1.33))
-	local maxCellHeight = math.floor((contentHeight - (fontSize * 1.1)) + 0.5)
-	local maxCellWidth = math.floor((contentWidth / #factions) + 0.5)
+	local contentWidth = mathFloor(backgroundRect[3] - backgroundRect[1] - contentPadding)
+	local contentHeight = mathFloor(backgroundRect[4] - backgroundRect[2] - (contentPadding * 1.33))
+	local maxCellHeight = mathFloor((contentHeight - (fontSize * 1.1)) + 0.5)
+	local maxCellWidth = mathFloor((contentWidth / #factions) + 0.5)
 	local cellSize = math.min(maxCellHeight, maxCellWidth)
 	local padding = bgpadding
 
 	for i, faction in pairs(factions) do
 		factionRect[i] = {
-			math.floor(backgroundRect[3] - padding - (cellSize * i)),
-			math.floor(backgroundRect[2]),
-			math.floor(backgroundRect[3] - padding - (cellSize * (i - 1))),
-			math.floor(backgroundRect[2] + cellSize)
+			mathFloor(backgroundRect[3] - padding - (cellSize * i)),
+			mathFloor(backgroundRect[2]),
+			mathFloor(backgroundRect[3] - padding - (cellSize * (i - 1))),
+			mathFloor(backgroundRect[2] + cellSize)
 		}
 		local disabled = Spring.GetTeamRulesParam(myTeamID, 'startUnit') ~= factions[i].startUnit
 		if disabled then
@@ -139,11 +147,11 @@ local function checkGuishader(force)
 end
 
 function widget:PlayerChanged(playerID)
-	isSpec = Spring.GetSpectatingState()
+	isSpec = spGetSpectatingState()
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 
 	width = 0.2125
 	height = 0.14 * ui_scale
@@ -152,8 +160,8 @@ function widget:ViewResize()
 	width = width * ui_scale
 
 	-- make pixel aligned
-	width = math.floor(width * vsx) / vsx
-	height = math.floor(height * vsy) / vsy
+	width = mathFloor(width * vsx) / vsx
+	height = mathFloor(height * vsy) / vsy
 
 	local buildmenuBottomPos
 	if WG['buildmenu'] then

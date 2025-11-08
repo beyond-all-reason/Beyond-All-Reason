@@ -14,6 +14,12 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 -- TODO 2022.10.21
 -- Dont load all the 3d shit from luaui images root!
 
@@ -24,16 +30,16 @@ local function addDirToAtlas(atlas, path)
 	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
 	local numadded = 0
 	local files = VFS.DirList(path)
-	Spring.Echo("Adding",#files, "images to atlas from", path)
+	spEcho("Adding",#files, "images to atlas from", path)
 	for i=1, #files do
 		if imgExts[string.sub(files[i],-3,-1)] then
 			gl.AddAtlasTexture(atlas,files[i])
 			atlassedImages[files[i]] = true 
 			numadded = numadded + 1
-			--Spring.Echo("Adding",files[i], "to atlas")
+			--spEcho("Adding",files[i], "to atlas")
 			--if i > (#files)*0.57 then break end
 		else
-			--Spring.Echo(files[i],' not an image',string.sub(files[i],-3,-1))
+			--spEcho(files[i],' not an image',string.sub(files[i],-3,-1))
 		end
 	end
 	return numadded
@@ -41,9 +47,9 @@ end
 
 local function makeAtlas()
 	local atlasSize = 8192
-	Spring.Echo("attempt to make atlas")
+	spEcho("attempt to make atlas")
 	atlasID = gl.CreateTextureAtlas(atlasSize,atlasSize,1)
-	Spring.Echo("Attempt to add texture")
+	spEcho("Attempt to add texture")
 
 	addDirToAtlas(atlasID, "unitpics/")
 	--addDirToAtlas(atlasID, "luaui/images")
@@ -61,7 +67,7 @@ local function makeAtlas()
 	addDirToAtlas(atlasID, "luarules/images/")
 	addDirToAtlas(atlasID, "icons/")
 	addDirToAtlas(atlasID, "icons/inverted/")
-	Spring.Echo("Attempt to finalize")
+	spEcho("Attempt to finalize")
 	gl.FinalizeTextureAtlas(atlasID)
 end
 

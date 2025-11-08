@@ -12,6 +12,16 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+local mathMin = math.min
+local mathPi = math.pi
+
+-- Localized Spring API for performance
+local spGetViewGeometry = Spring.GetViewGeometry
+
 WG.FlowUI = WG.FlowUI or {}
 WG.FlowUI.version = 1
 WG.FlowUI.initialized = false
@@ -24,7 +34,7 @@ WG.FlowUI.tileSize = WG.FlowUI.tileScale
 
 local function ViewResize(vsx, vsy)
 	if not vsy then
-		vsx, vsy = Spring.GetViewGeometry()
+		vsx, vsy = spGetViewGeometry()
 	end
 	if WG.FlowUI.vsx and (WG.FlowUI.vsx == vsx and WG.FlowUI.vsy == vsy) then
 		return
@@ -32,20 +42,20 @@ local function ViewResize(vsx, vsy)
 	WG.FlowUI.vsx = vsx
 	WG.FlowUI.vsy = vsy
 	-- elementMargin: number of px between each separated ui element
-	WG.FlowUI.elementMargin = math.floor(0.0045 * vsy * WG.FlowUI.scale)
+	WG.FlowUI.elementMargin = mathFloor(0.0045 * vsy * WG.FlowUI.scale)
 	-- elementCorner: element cutoff corner size
 	WG.FlowUI.elementCorner = WG.FlowUI.elementMargin * 0.9
 	-- elementPadding: element inner (background) border/outline size
-	WG.FlowUI.elementPadding = math.floor(0.003 * vsy * WG.FlowUI.scale)
+	WG.FlowUI.elementPadding = mathFloor(0.003 * vsy * WG.FlowUI.scale)
 	-- buttonPadding: button inner (background) border/outline size
-	WG.FlowUI.buttonPadding = math.floor(0.002 * vsy * WG.FlowUI.scale)
+	WG.FlowUI.buttonPadding = mathFloor(0.002 * vsy * WG.FlowUI.scale)
 
 	WG.FlowUI.tileSize = WG.FlowUI.tileScale * 0.003 * vsy * WG.FlowUI.scale
 end
 
 -- called at the bottom of this file
 local function Initialize()
-	ViewResize(Spring.GetViewGeometry())
+	ViewResize(spGetViewGeometry())
 	WG.FlowUI.initialized = true
 	WG.FlowUI.shutdown = false
 end
@@ -100,13 +110,13 @@ WG.FlowUI.Draw.RectRound = function(px, py, sx, sy,  cs,   tl, tr, br, bl,   c1,
 	--  optional: tl,tr,br,bl  0 = no corner (1 = always)
 	--  optional: c1,c2 for top-down color gradients
 	local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-		cs = math.max(cs, 1)
+		cs = mathMax(cs, 1)
 
 		-- Pre-calculate gradient colors if needed (avoids redundant calculations)
 		local hasGradient = c2 ~= nil
 		local edgeColor, midColor
 		if hasGradient then
-			local csyMult = 1 / math.max(((sy - py) / cs), 1)
+			local csyMult = 1 / mathMax(((sy - py) / cs), 1)
 			-- Bottom edge color (blend from c1 towards c2)
 			edgeColor = {
 				c1[1] * (1 - csyMult) + (c2[1] * csyMult),
@@ -250,7 +260,7 @@ WG.FlowUI.Draw.RectRoundProgress = function(left, bottom, right, top, cs, progre
 	local ycen = height * 0.5
 	local alpha = 360 * progress
 	local alpha_rad = math.rad(alpha)
-	local beta_rad = math.pi / 2 - alpha_rad
+	local beta_rad = mathPi / 2 - alpha_rad
 
 	-- Pre-calculate frequently used values
 	local topMinusYcen = height - ycen  -- (top - ycen)
@@ -476,7 +486,7 @@ WG.FlowUI.Draw.Circle = function(x, z, radius, sides, color1, color2)
 		end
 
 		-- Pre-calculate the angle increment between vertices
-		local sideAngle = (math.pi * 2) / sides
+		local sideAngle = (mathPi * 2) / sides
 
 		gl.Color(color1)
 		gl.Vertex(x, z, 0)
@@ -508,7 +518,7 @@ end
 		bgpadding = custom border size
 ]]
 WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding, opaque)
-	local opacity = math.min(1, opacity or WG.FlowUI.opacity)
+	local opacity = mathMin(1, opacity or WG.FlowUI.opacity)
 	local color1 = color1 or { 0.04, 0.04, 0.04, opacity}
 	local color2 = color2 or { 1, 1, 1, opacity * 0.1 }
 	if opaque then
@@ -531,7 +541,7 @@ WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pb
 	local sxPad = bgpadding * (sx < WG.FlowUI.vsx and 1 or 0) * (ptr or 1)
 	local syPad = bgpadding * (sy < WG.FlowUI.vsy and 1 or 0) * (ptl or 1)
 
-	local glossHeight = math.floor(0.02 * WG.FlowUI.vsy * ui_scale)
+	local glossHeight = mathFloor(0.02 * WG.FlowUI.vsy * ui_scale)
 	local doBottomFx = (sy-py-syPad-syPad) > (glossHeight*2.3)
 
 	gl.Texture(false)
@@ -628,7 +638,7 @@ WG.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr
 	local opacity = opacity or 1
 	local color1 = color1 or { 0, 0, 0, opacity}
 	local color2 = color2 or { 1, 1, 1, opacity * 0.1}
-	local bgpadding = math.floor(bgpadding or WG.FlowUI.buttonPadding*0.5)
+	local bgpadding = mathFloor(bgpadding or WG.FlowUI.buttonPadding*0.5)
 	glossMult = (1 + (2 - (opacity * 1.5))) * (glossMult and glossMult or 1)
 
 	local tl = tl or 1
@@ -641,7 +651,7 @@ WG.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr
 	local sxPad = bgpadding * (sx < WG.FlowUI.vsx and 1 or 0) * (ptr or 1)
 	local syPad = bgpadding * (sy < WG.FlowUI.vsy and 1 or 0) * (ptl or 1)
 
-	local glossHeight = math.floor((sy-py)*0.5)
+	local glossHeight = mathFloor((sy-py)*0.5)
 	local cs = bgpadding * 1.6
 
 	-- Layer 1: Background with gradient
@@ -763,8 +773,8 @@ end
 		queueCount
 ]]
 WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  borderSize, borderOpacity,  texture, radarTexture, groupTexture, price, queueCount)
-	local borderSize = borderSize~=nil and borderSize or math.min(math.max(1, math.floor((sx-px) * 0.024)), math.floor((WG.FlowUI.vsy*0.0015)+0.5))	-- set default with upper limit
-	local cs = cs~=nil and cs or math.max(1, math.floor((sx-px) * 0.024))
+	local borderSize = borderSize~=nil and borderSize or mathMin(mathMax(1, mathFloor((sx-px) * 0.024)), mathFloor((WG.FlowUI.vsy*0.0015)+0.5))	-- set default with upper limit
+	local cs = cs~=nil and cs or mathMax(1, mathFloor((sx-px) * 0.024))
 	local halfSize = ((sx-px) * 0.5)
 	borderOpacity = borderOpacity or 0.1
 
@@ -809,7 +819,7 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 
 	-- Layer 5: Group texture icon (if present)
 	if groupTexture then
-		local iconSize = math.floor((sx - px) * 0.3)
+		local iconSize = mathFloor((sx - px) * 0.3)
 		gl.Color(1, 1, 1, 1)
 		gl.Texture(groupTexture)
 		gl.BeginEnd(GL.QUADS, WG.FlowUI.Draw.TexRectRound, px, sy - iconSize, px + iconSize, sy,  0,  0,0,0,0,  0.05)
@@ -818,8 +828,8 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 
 	-- Layer 6: Radar texture icon (if present)
 	if radarTexture then
-		local iconSize = math.floor((sx - px) * 0.25)
-		local iconPadding = math.floor((sx - px) * 0.03)
+		local iconSize = mathFloor((sx - px) * 0.25)
+		local iconPadding = mathFloor((sx - px) * 0.03)
 		gl.Color(0.88, 0.88, 0.88, 1)
 		gl.Texture(radarTexture)
 		gl.BeginEnd(GL.QUADS, WG.FlowUI.Draw.TexRectRound, px + iconPadding, py + iconPadding, px + iconPadding + iconSize, py + iconPadding + iconSize,  0,  0,0,0,0,  0.05)
@@ -839,14 +849,14 @@ end
 WG.FlowUI.Draw.Scroller = function(px, py, sx, sy, contentHeight, position)
 	local width = sx - px
 	local height = sy - py
-	local padding = math.floor((width * 0.25) + 0.5)
+	local padding = mathFloor((width * 0.25) + 0.5)
 	local sliderAreaHeight = height - padding - padding
 	local sliderHeight = sliderAreaHeight / contentHeight
 
 	if sliderHeight < 1 then
 		position = position or 0
-		sliderHeight = math.floor((sliderHeight * sliderAreaHeight) + 0.5)
-		local sliderPos = sy - padding - math.floor((sliderAreaHeight * (position / contentHeight)) + 0.5)
+		sliderHeight = mathFloor((sliderHeight * sliderAreaHeight) + 0.5)
+		local sliderPos = sy - padding - mathFloor((sliderAreaHeight * (position / contentHeight)) + 0.5)
 
 		-- background
 		WG.FlowUI.Draw.RectRound(px, py, sx, sy, width * 0.2, 1, 1, 1, 1, { 0, 0, 0, 0.2 })
@@ -872,7 +882,7 @@ WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 	local height = sy - py
 	local width = sx - px
 	local cs = height * 0.1
-	local edgeWidth = math.max(1, math.floor(height * 0.1))
+	local edgeWidth = mathMax(1, mathFloor(height * 0.1))
 
 	-- faint dark outline edge
 	WG.FlowUI.Draw.RectRound(px - edgeWidth, py - edgeWidth, sx + edgeWidth, sy + edgeWidth, cs * 1.5, 1, 1, 1, 1, { 0, 0, 0, 0.05 })
@@ -888,9 +898,9 @@ WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- draw state
-	local padding = math.floor(height * 0.2)
-	local radius = math.floor(height * 0.5) - padding
-	local y = math.floor(py + (height * 0.5))
+	local padding = mathFloor(height * 0.2)
+	local radius = mathFloor(height * 0.5) - padding
+	local y = mathFloor(py + (height * 0.5))
 	local x, color, glowMult
 	if state == true or state == 1 then		-- on
 		x = sx - padding - radius
@@ -901,7 +911,7 @@ WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 		color = {0.95, 0.66, 0.66, 1}
 		glowMult = 0.3
 	else		-- in between
-		x = math.floor(px + (width * 0.42))
+		x = mathFloor(px + (width * 0.42))
 		color = {1, 0.9, 0.7, 1}
 		glowMult = 0.6
 	end
@@ -932,8 +942,8 @@ end
 WG.FlowUI.Draw.SliderKnob = function(x, y, radius, color)
 	local color = color or {0.95,0.95,0.95,1}
 	local color1 = {color[1]*0.55, color[2]*0.55, color[3]*0.55, color[4]}
-	local edgeWidth = math.max(1, math.floor(radius * 0.05))
-	local cs = math.max(1.1, radius*0.15)
+	local edgeWidth = mathMax(1, mathFloor(radius * 0.05))
+	local cs = mathMax(1.1, radius*0.15)
 
 	-- faint dark outline edge
 	WG.FlowUI.Draw.RectRound(x-radius-edgeWidth, y-radius-edgeWidth, x+radius+edgeWidth, y+radius+edgeWidth, cs, 1,1,1,1, {0,0,0,0.1})
@@ -955,7 +965,7 @@ WG.FlowUI.Draw.Slider = function(px, py, sx, sy, steps, min, max)
 	local height = sy - py
 	local width = sx - px
 	local cs = height * 0.25
-	local edgeWidth = math.max(1, math.floor(height * 0.1))
+	local edgeWidth = mathMax(1, mathFloor(height * 0.1))
 
 	-- faint dark outline edge
 	WG.FlowUI.Draw.RectRound(px - edgeWidth, py - edgeWidth, sx + edgeWidth, sy + edgeWidth, cs * 1.5, 1, 1, 1, 1, { 0, 0, 0, 0.05 })
@@ -973,14 +983,14 @@ WG.FlowUI.Draw.Slider = function(px, py, sx, sy, steps, min, max)
 			max = steps[#steps]
 			numSteps = #steps
 			for _, value in pairs(steps) do
-				processedSteps[#processedSteps + 1] = math.floor((px + (width * ((value - min) / (max - min)))) + 0.5)
+				processedSteps[#processedSteps + 1] = mathFloor((px + (width * ((value - min) / (max - min)))) + 0.5)
 			end
 			-- remove first step at the bar start
 			processedSteps[1] = nil
 		elseif min and max then
 			numSteps = (max - min) / steps
 			for i = 1, numSteps do
-				processedSteps[#processedSteps + 1] = math.floor((px + (width / numSteps) * (#processedSteps + 1)) + 0.5)
+				processedSteps[#processedSteps + 1] = mathFloor((px + (width / numSteps) * (#processedSteps + 1)) + 0.5)
 				i = i + 1
 			end
 		end
@@ -989,8 +999,8 @@ WG.FlowUI.Draw.Slider = function(px, py, sx, sy, steps, min, max)
 
 		-- dont bother when steps too small
 		if numSteps and numSteps < (width / 7) then
-			local stepSizeLeft = math.max(1, math.floor(width * 0.01))
-			local stepSizeRight = math.floor(width * 0.005)
+			local stepSizeLeft = mathMax(1, mathFloor(width * 0.01))
+			local stepSizeRight = mathFloor(width * 0.005)
 			for _, posX in pairs(processedSteps) do
 				WG.FlowUI.Draw.RectRound(posX - stepSizeLeft, py + 1, posX + stepSizeRight, sy - 1, stepSizeLeft, 1, 1, 1, 1, { 0.12, 0.12, 0.12, 0.22 }, { 0, 0, 0, 0.22 })
 			end
@@ -1014,7 +1024,7 @@ end
 WG.FlowUI.Draw.Selector = function(px, py, sx, sy)
 	local height = sy - py
 	local cs = height * 0.1
-	local edgeWidth = math.max(1, math.floor(height * 0.1))
+	local edgeWidth = mathMax(1, mathFloor(height * 0.1))
 
 	-- faint dark outline edge
 	WG.FlowUI.Draw.RectRound(px - edgeWidth, py - edgeWidth, sx + edgeWidth, sy + edgeWidth, cs * 1.5, 1, 1, 1, 1, { 0, 0, 0, 0.05 })
@@ -1047,7 +1057,7 @@ end
 WG.FlowUI.Draw.SelectHighlight = function(px, py, sx, sy,  cs, opacity, color)
 	local height = sy - py
 	cs = cs or (height * 0.08)
-	local edgeWidth = math.max(1, math.floor((WG.FlowUI.vsy * 0.001)))
+	local edgeWidth = mathMax(1, mathFloor((WG.FlowUI.vsy * 0.001)))
 	local opacity = opacity or 0.35
 	local color = color or {1, 1, 1}
 

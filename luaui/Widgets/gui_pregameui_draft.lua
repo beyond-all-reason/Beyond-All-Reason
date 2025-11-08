@@ -12,8 +12,20 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+local mathRandom = math.random
+local tableInsert = table.insert
+
+-- Localized Spring API for performance
+local spGetGroundHeight = Spring.GetGroundHeight
+local spEcho = Spring.Echo
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 local fontfileScale = (0.5 + (vsx * vsy / 6200000))
 local fontfileSize = 50
 local fontfileOutlineSize = 10
@@ -47,14 +59,14 @@ local auto_ready = not Spring.Utilities.Gametype.IsSinglePlayer()
 
 local buttonPosX = 0.8
 local buttonPosY = 0.76
-local buttonX = math.floor(vsx * buttonPosX)
-local buttonY = math.floor(vsy * buttonPosY)
+local buttonX = mathFloor(vsx * buttonPosX)
+local buttonY = mathFloor(vsy * buttonPosY)
 
 local orgbuttonH = 40
 local orgbuttonW = 115
 
-local buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
-local buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
+local buttonW = mathFloor(orgbuttonW * uiScale / 2) * 2
+local buttonH = mathFloor(orgbuttonH * uiScale / 2) * 2
 
 local buttonList, buttonHoverList
 local buttonText = ''
@@ -257,7 +269,7 @@ end
 
 local function round(num, idp)
     local mult = 10 ^ (idp or 0)
-    return math.floor(num * mult + 0.5) / mult
+    return mathFloor(num * mult + 0.5) / mult
 end
 
 -- advplayerlist end
@@ -324,7 +336,7 @@ local function draftModeInited() -- We want to ensure the player's UI is loaded 
 	if draftModeLoaded then return end
 
 	local mode = draftMode:gsub("^%l", string.upper) -- Random/Captain/Skill/Fair
-	Spring.Echo(Spring.I18N('ui.draftOrderMod.mode' .. mode)..".")
+	spEcho(Spring.I18N('ui.draftOrderMod.mode' .. mode)..".")
 	draftModeLoaded = true
 	if mode == "Fair" then
 		fairTimeout = os.clock() + 2
@@ -372,7 +384,7 @@ local function buttonTextRefresh()
 				showLockButton = true
 				local text = Spring.I18N('ui.draftOrderMod.waitingForPlayers')
 				if (voteConTimeout) then
-					vcttimer = math.floor(voteConTimeout-os.clock())+1
+					vcttimer = mathFloor(voteConTimeout-os.clock())+1
 					if (vcttimer > 0) then
 						text = text .. " " .. vcttimer .. "s"
 					end
@@ -430,7 +442,7 @@ local function DrawTeamPlacement()
 	-- Center Screen Stuff
 	local tmsg = ""
 	if currentTurnTimeout then
-		tmsg = math.floor(currentTurnTimeout-os.clock())+1
+		tmsg = mathFloor(currentTurnTimeout-os.clock())+1
 		if (tmsg <= 0) then tmsg = " ?" else -- this implies that player has "connection problems" in which we will force skip that player's turn in a few seconds anyway
 			tmsg = tmsg .. "s"
 		end
@@ -483,13 +495,13 @@ local function DrawTeamPlacement()
 	local padding_left = 12
 	local player_name_font_size = 16
 
-	max_width = math.max((max_width * player_name_font_size * uiScale) + padding_left + player_column_offset + padding_left, button_width)
+	max_width = mathMax((max_width * player_name_font_size * uiScale) + padding_left + player_column_offset + padding_left, button_width)
 
 	-- we can modify "lock position" button pos here
 	buttonPosX = 0.78
 	buttonPosY = 0.83
-	buttonX = math.floor(vsx * buttonPosX) + max_width/2
-	buttonY = math.floor(vsy * buttonPosY) - max_height - 4 - buttonH
+	buttonX = mathFloor(vsx * buttonPosX) + max_width/2
+	buttonY = mathFloor(vsy * buttonPosY) - max_height - 4 - buttonH
 	--
 
 	font:SetOutlineColor(0, 0, 0, 0.5)
@@ -576,8 +588,8 @@ local function drawButton()
 
 	-- because text can change now
 	orgbuttonW = font:GetTextWidth('       '..buttonText) * 24
-	buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
-	buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
+	buttonW = mathFloor(orgbuttonW * uiScale / 2) * 2
+	buttonH = mathFloor(orgbuttonH * uiScale / 2) * 2
 
 	uiElementRect = { buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding }
 	buttonRect = { buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2) }
@@ -706,13 +718,13 @@ local function progressQueueLocally(shift) -- only for dev UI testing of DOM
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 	uiScale = (0.75 + (vsx * vsy / 6000000))
-	buttonX = math.floor(vsx * buttonPosX)
-	buttonY = math.floor(vsy * buttonPosY)
+	buttonX = mathFloor(vsx * buttonPosX)
+	buttonY = mathFloor(vsy * buttonPosY)
 	orgbuttonW = font:GetTextWidth('       '..buttonText) * 24
-	buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
-	buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
+	buttonW = mathFloor(orgbuttonW * uiScale / 2) * 2
+	buttonH = mathFloor(orgbuttonH * uiScale / 2) * 2
 
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then
@@ -725,7 +737,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	UiButton = WG.FlowUI.Draw.Button
 	RectRound = WG.FlowUI.Draw.RectRound
 	elementPadding = WG.FlowUI.elementPadding
-	uiPadding = math.floor(elementPadding * 4.5)
+	uiPadding = mathFloor(elementPadding * 4.5)
 end
 
 local ihavejoined = false
@@ -769,7 +781,7 @@ function widget:GameSetup(state, ready, playerStates)
 		local _, _, spectator_flag = Spring.GetPlayerInfo(playerID, false)
 		if spectator_flag == false then
 			local is_player_ready = Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")
-			--Spring.Echo(#playerList, playerID, is_player_ready)
+			--spEcho(#playerList, playerID, is_player_ready)
 			if is_player_ready == 0 or is_player_ready == 4 then
 				ready = false
 			end
@@ -809,7 +821,7 @@ function widget:MousePress(sx, sy)
 								locked = true
 								Spring.SendLuaRulesMsg("locking_in_place")
 							else
-								Spring.Echo(Spring.I18N('ui.initialSpawn.choosePoint'))
+								spEcho(Spring.I18N('ui.initialSpawn.choosePoint'))
 							end
 
 						end
@@ -818,9 +830,9 @@ function widget:MousePress(sx, sy)
 					elseif eligibleAsSub then
 						offeredAsSub = not offeredAsSub
 						if offeredAsSub then
-							Spring.Echo(Spring.I18N('ui.substitutePlayers.substitutionMessage'))
+							spEcho(Spring.I18N('ui.substitutePlayers.substitutionMessage'))
 						else
-							Spring.Echo(Spring.I18N('ui.substitutePlayers.offerWithdrawn'))
+							spEcho(Spring.I18N('ui.substitutePlayers.offerWithdrawn'))
 						end
 						Spring.SendLuaRulesMsg(offeredAsSub and '\144' or '\145')
 					end
@@ -945,7 +957,7 @@ function widget:DrawScreen()
 	-- display autoready timer
 	if Spring.GetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready and not auto_ready_disable then
 		local colorString = auto_ready_timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
-		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1, math.floor(auto_ready_timer)) })
+		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = mathMax(1, mathFloor(auto_ready_timer)) })
 		font:Begin()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
@@ -1002,7 +1014,7 @@ function widget:DrawScreen()
 		if not myAllyTeamJoined then
 			local text = DMWarnColor .. Spring.I18N('ui.draftOrderMod.waitingForTeamToLoad')
 			if (voteConTimeout) then
-				vcttimer = math.floor(voteConTimeout-os.clock())+1
+				vcttimer = mathFloor(voteConTimeout-os.clock())+1
 				if (vcttimer > 0) then
 					text = text .. " " .. vcttimer .. "s"
 				end
@@ -1016,7 +1028,7 @@ function widget:DrawScreen()
 			ihavejoined_fair = true
 		end
 		if voteConTimeout and os.clock() >= voteConTimeout and ihavejoined_fair then
-			-- TODO do we draw UI or Spring.Echo that Player X have voted to forcestart draft (skip waiting for unconnected allies)?
+			-- TODO do we draw UI or spEcho that Player X have voted to forcestart draft (skip waiting for unconnected allies)?
 			if not myAllyTeamJoined then
 				Spring.SendLuaRulesMsg("vote_wait_too_long")
 			end
@@ -1033,7 +1045,7 @@ function widget:DrawScreen()
 	if gameStarting then
 		timer = timer + Spring.GetLastUpdateSeconds()
 		local colorString = timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
-		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1, 3 - math.floor(timer)) })
+		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = mathMax(1, 3 - mathFloor(timer)) })
 		font:Begin()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
@@ -1069,11 +1081,11 @@ function widget:DrawWorld()
 		if tsx and tsx > 0 then
 			local startUnitDefID = Spring.GetTeamRulesParam(teamID, 'startUnit')
 			if startUnitDefID then
-				id = startUnitDefID..'_'..tsx..'_'..Spring.GetGroundHeight(tsx, tsz)..'_'..tsz
+				id = startUnitDefID..'_'..tsx..'_'..spGetGroundHeight(tsx, tsz)..'_'..tsz
 				if teamStartPositions[teamID] ~= id then
 					removeUnitShape(teamStartPositions[teamID])
 					teamStartPositions[teamID] = id
-					addUnitShape(id, startUnitDefID, tsx, Spring.GetGroundHeight(tsx, tsz), tsz, 0, teamID, 1)
+					addUnitShape(id, startUnitDefID, tsx, spGetGroundHeight(tsx, tsz), tsz, 0, teamID, 1)
 				end
 			end
 		end
@@ -1105,7 +1117,7 @@ end
 function widget:RecvLuaMsg(msg, playerID)
 	local words = {}
 	for word in msg:gmatch("%S+") do
-		table.insert(words, word)
+		tableInsert(words, word)
 	end
 
 	if words[1] == "DraftOrderPlayersOrder" then
@@ -1114,16 +1126,16 @@ function widget:RecvLuaMsg(msg, playerID)
 		if myTeamPlayersOrder == nil then
 			myTeamPlayersOrder = {}
 			if devUItestMode then
-				local fakePlayers = math.random(16)
+				local fakePlayers = mathRandom(16)
 				for i = 1, fakePlayers do
-					table.insert(myTeamPlayersOrder, {id = 30+i, name = "Player"..tostring((i+9+math.random(1000000))) }) -- debug
+					tableInsert(myTeamPlayersOrder, {id = 30+i, name = "Player"..tostring((i+9+mathRandom(1000000))) }) -- debug
 				end
 			end
 			for i = 3, #words do
 				local playerid = tonumber(words[i])
 				tname = select(1, Spring.GetPlayerInfo(playerid, false))
 				tname = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerid)) or tname
-				table.insert(myTeamPlayersOrder, {id = playerid, name = tname })
+				tableInsert(myTeamPlayersOrder, {id = playerid, name = tname })
 			end
 			if #myTeamPlayersOrder > bigTeamAmountOfPlayers then -- big team, not regular game
 				turnTimeOut = turnTimeOutBigTeam

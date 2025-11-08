@@ -12,6 +12,14 @@ function widget:GetInfo()
   }
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMouseState = Spring.GetMouseState
+
 local doNotify = true
 local doBlink = true
 
@@ -25,7 +33,7 @@ local imageBattlePausedNotif = "_pausednotif.png"
 local imageBattlePausedNotif2 = "_pausednotif2.png"
 local imageBattleGameover = "_gameover.png"
 
-local previousGameFrame = Spring.GetGameFrame()
+local previousGameFrame = spGetGameFrame()
 local paused = false
 local notif = false
 local blink = false
@@ -34,11 +42,11 @@ local initialized = false
 local gameover = false
 
 local faction = '_a'
-if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name == 'corcom' then
+if UnitDefs[Spring.GetTeamRulesParam(spGetMyTeamID(), 'startUnit')].name == 'corcom' then
 	faction = '_c'
 end
 
-local mouseOffscreen = select(6, Spring.GetMouseState())
+local mouseOffscreen = select(6, spGetMouseState())
 local prevMouseOffscreen = mouseOffscreen
 
 function widget:Initialize()
@@ -53,7 +61,7 @@ end
 
 function widget:GameStart()
 	local prevFaction = faction
-	if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name == 'corcom' then
+	if UnitDefs[Spring.GetTeamRulesParam(spGetMyTeamID(), 'startUnit')].name == 'corcom' then
 		faction = '_c'
 	else
 		faction = '_a'
@@ -83,7 +91,7 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > 1.25 then
 		sec = 0
-		local gameFrame = Spring.GetGameFrame()
+		local gameFrame = spGetGameFrame()
 		if gameFrame > 0 then
 
 			local _, gameSpeed, isPaused = Spring.GetGameSpeed()
@@ -105,7 +113,7 @@ function widget:Update(dt)
 			end
 		else
 			local prevFaction = faction
-			if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name == 'corcom' then
+			if UnitDefs[Spring.GetTeamRulesParam(spGetMyTeamID(), 'startUnit')].name == 'corcom' then
 				faction = '_c'
 			else
 				faction = '_a'
@@ -118,7 +126,7 @@ function widget:Update(dt)
 
 		if doNotify then
 			local prevMouseOffscreen = mouseOffscreen
-			mouseOffscreen = select(6, Spring.GetMouseState())
+			mouseOffscreen = select(6, spGetMouseState())
 
 			if not mouseOffscreen then
 				if prevMouseOffscreen then

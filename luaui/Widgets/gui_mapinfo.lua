@@ -12,6 +12,13 @@ function widget:GetInfo()
   }
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+
+-- Localized Spring API for performance
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local scale					= 1
 local offset				= 5
 local thickness				= 6
@@ -40,7 +47,7 @@ local glDeleteList		= gl.DeleteList
 local glDepthTest       = gl.DepthTest
 local glRotate          = gl.Rotate
 
-local vsx,vsy = Spring.GetViewGeometry()
+local vsx,vsy = spGetViewGeometry()
 
 local mapInfoWidth = 400	-- minimum width
 local mapinfoList = {}
@@ -50,7 +57,7 @@ local font, mapInfoBoxHeight
 local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
 
 function widget:ViewResize()
-	vsx,vsy = Spring.GetViewGeometry()
+	vsx,vsy = spGetViewGeometry()
 
 	font = WG['fonts'].getFont()
 
@@ -168,7 +175,7 @@ local function Init()
 	mapInfoBoxHeight = spGetGroundHeight(0, Game.mapSizeZ)
 
 	-- find the lowest map height
-	for i=math.floor(offset*scale), math.floor((mapInfoWidth+offset)*scale) do
+	for i=mathFloor(offset*scale), mathFloor((mapInfoWidth+offset)*scale) do
 		if spGetGroundHeight(i, Game.mapSizeZ) < mapInfoBoxHeight then
 			mapInfoBoxHeight = spGetGroundHeight(i, Game.mapSizeZ)
 		end
@@ -211,7 +218,7 @@ function widget:DrawWorld()
 			opacityMultiplier = 1
 		end
 		if opacityMultiplier > 0.05 then
-			opacityMultiplier = math.floor(opacityMultiplier * dlistAmount)/dlistAmount
+			opacityMultiplier = mathFloor(opacityMultiplier * dlistAmount)/dlistAmount
 
 			if mapinfoList[opacityMultiplier] == nil then
 				createMapinfoList(opacityMultiplier)

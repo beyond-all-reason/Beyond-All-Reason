@@ -53,7 +53,7 @@ local unitCanFly = {}
 local unitBuilding = {}
 local unitDecoration = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitScale[unitDefID] = (7.5 * ( unitDef.xsize^2 + unitDef.zsize^2 ) ^ 0.5) + 8
+	unitScale[unitDefID] = (7.5 * ( unitDef.xsize*xsize + unitDef.zsize*zsize ) ^ 0.5) + 8
 	if unitDef.canFly then
 		unitCanFly[unitDefID] = true
 		unitScale[unitDefID] = unitScale[unitDefID] * 0.7

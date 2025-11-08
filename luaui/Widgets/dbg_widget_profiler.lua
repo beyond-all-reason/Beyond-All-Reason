@@ -17,6 +17,16 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+local mathRandom = math.random
+local tableSort = table.sort
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 local usePrefixedNames = true
 
 local tick = 0.1
@@ -81,7 +91,7 @@ if Spring.GetTimerMicros and  Spring.GetConfigInt("UseHighResTimer", 0) == 1 the
 	highres = true
 end
 
-Spring.Echo("Profiler using highres timers", highres, Spring.GetConfigInt("UseHighResTimer", 0))
+spEcho("Profiler using highres timers", highres, Spring.GetConfigInt("UseHighResTimer", 0))
 
 local prefixedWnames = {}
 local function ConstructPrefixedName (ghInfo)
@@ -89,7 +99,7 @@ local function ConstructPrefixedName (ghInfo)
 	local baseName = ghInfo.basename
 	local _pos = baseName:find("_", 1, true)
 	local prefix = ((_pos and usePrefixedNames) and ((prefixColor[baseName:sub(1, _pos - 1)] and prefixColor[baseName:sub(1, _pos - 1)] or "\255\166\166\166") .. baseName:sub(1, _pos - 1) .. "     ") or "")
-	prefixedWnames[gadgetName] = prefix .. string.char(255, math.random(125, 255), math.random(125, 255), math.random(125, 255)) .. gadgetName .. "   "
+	prefixedWnames[gadgetName] = prefix .. string.char(255, mathRandom(125, 255), mathRandom(125, 255), mathRandom(125, 255)) .. gadgetName .. "   "
 	return prefixedWnames[gadgetName]
 end
 
@@ -130,7 +140,7 @@ function widget:TextCommand(s)
 		if token[2] then
 			tick = tonumber(token[2]) or tick
 		end
-		Spring.Echo("Setting widget profiler to tick=", tick)
+		spEcho("Setting widget profiler to tick=", tick)
 	end
 
 end
@@ -196,7 +206,7 @@ local function Hook(w, name)
 end
 
 local function StartHook()
-	Spring.Echo("start profiling")
+	spEcho("start profiling")
 
 	local wh = widgetHandler
 	--wh.actionHandler:AddAction("widgetprofiler", widgetprofileraction, "Configure the tick rate of the widget profiler", 't')
@@ -219,7 +229,7 @@ local function StartHook()
 		end
 	end
 
-	Spring.Echo("hooked all callins")
+	spEcho("hooked all callins")
 
 	--// hook the UpdateCallin function
 	oldUpdateWidgetCallIn = wh.UpdateWidgetCallInRaw
@@ -242,7 +252,7 @@ local function StartHook()
 		end
 	end
 
-	Spring.Echo("hooked UpdateCallin")
+	spEcho("hooked UpdateCallin")
 
 	--// hook the InsertWidget function
 	oldInsertWidget = wh.InsertWidgetRaw
@@ -261,11 +271,11 @@ local function StartHook()
 		end
 	end
 
-	Spring.Echo("hooked InsertWidget")
+	spEcho("hooked InsertWidget")
 end
 
 local function StopHook()
-	Spring.Echo("stop profiling")
+	spEcho("stop profiling")
 
 	local wh = widgetHandler
 	--widgetHandler.RemoveAction("widgetprofiler")
@@ -289,13 +299,13 @@ local function StopHook()
 		end
 	end
 
-	Spring.Echo("unhooked all callins")
+	spEcho("unhooked all callins")
 
 	--// unhook the UpdateCallin and InsertWidget functions
 	wh.UpdateWidgetCallInRaw = oldUpdateWidgetCallIn
-	Spring.Echo("unhooked UpdateCallin")
+	spEcho("unhooked UpdateCallin")
 	wh.InsertWidgetRaw = oldInsertWidget
-	Spring.Echo("unhooked InsertWidget")
+	spEcho("unhooked InsertWidget")
 end
 
 function widget:Update()
@@ -445,9 +455,9 @@ function widget:DrawScreen()
 			allOverSpace = allOverSpace + sLoad
 		end
 		if sortByLoad then
-			table.sort(sortedList, function(a, b) return a.avgTLoad > b.avgTLoad end)
+			tableSort(sortedList, function(a, b) return a.avgTLoad > b.avgTLoad end)
 		else
-			table.sort(sortedList, function(a, b) return a.name < b.name end)
+			tableSort(sortedList, function(a, b) return a.name < b.name end)
 		end
 
 		for i = 1, #sortedList do
@@ -486,14 +496,14 @@ function widget:DrawScreen()
 	-- draw
 	local vsx, vsy = gl.GetViewSizes()
 
-	local fontSize = math.max(11, math.floor(vsy / 90))
+	local fontSize = mathMax(11, mathFloor(vsy / 90))
 	local lineSpace = fontSize + 2
 
 	local dataColWidth = fontSize * 5
 	local colWidth = vsx * 0.98 / 4
 
 	local x, y = vsx - colWidth, vsy * 0.77 -- initial coord for writing
-	local maxLines = math.max(20, math.floor(y / lineSpace) - 3)
+	local maxLines = mathMax(20, mathFloor(y / lineSpace) - 3)
 	local j = -1 --line number
 
 	gl.Color(1, 1, 1, 1)

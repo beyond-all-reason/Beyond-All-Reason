@@ -12,11 +12,18 @@ function widget:GetInfo()
    }
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local ignoreUnitDefs = {}
 local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
 	local xsize, zsize = unitDef.xsize, unitDef.zsize
-	local scale = 6*( xsize^2 + zsize^2 )^0.5
+	local scale = 6*( xsize*xsize + zsize*zsize )^0.5
 	unitConf[udid] = 7 +(scale/2.5)
 	if string.find(unitDef.name, 'droppod') then
 		ignoreUnitDefs[udid] = true
@@ -35,7 +42,7 @@ local drawLists = {}
 
 local glDrawListAtUnit			= gl.DrawListAtUnit
 local glDepthTest				= gl.DepthTest
-local spGetUnitDefID			= Spring.GetUnitDefID
+local spGetUnitDefID			= spGetUnitDefID
 local spIsUnitInView 			= Spring.IsUnitInView
 local spGetUnitSelfDTime		= Spring.GetUnitSelfDTime
 local spGetAllUnits				= Spring.GetAllUnits
@@ -45,7 +52,7 @@ local spGetCameraDirection		= Spring.GetCameraDirection
 local spIsGUIHidden				= Spring.IsGUIHidden
 local spGetUnitTransporter		= Spring.GetUnitTransporter
 
-local spec = Spring.GetSpectatingState()
+local spec = spGetSpectatingState()
 
 
 
@@ -79,7 +86,7 @@ end
 
 local function hasSelfDQueued(unitID)
 	local limit = -1
-	local unitDefID = Spring.GetUnitDefID(unitID)
+	local unitDefID = spGetUnitDefID(unitID)
 	if unitDefID and UnitDefs[unitDefID].isFactory then
 		limit = 1
 	end
@@ -114,7 +121,7 @@ local function init()
 	drawLists = {}
 	font = WG['fonts'].getFont(2, 1.5)
 
-	spec = Spring.GetSpectatingState()
+	spec = spGetSpectatingState()
 
 	activeSelfD = {}
 	queuedSelfD = {}

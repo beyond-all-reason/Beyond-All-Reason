@@ -12,6 +12,12 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local shapeOpacity = 0.15
 local highlightAmount = 0.11
 local updateRate = 1
@@ -28,7 +34,7 @@ local math_rad = math.rad
 local sec = 0
 local ghostSites = {}
 local unitshapes = {}
-local _,fullview = Spring.GetSpectatingState()
+local _,fullview = spGetSpectatingState()
 
 local includedUnitDefIDs = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -105,7 +111,7 @@ function widget:Update(dt)
 end
 
 function widget:PlayerChanged()
-	_,fullview = Spring.GetSpectatingState()
+	_,fullview = spGetSpectatingState()
 	if fullview then
 		for unitID, _ in pairs(unitshapes) do
 			removeUnitShape(unitID)

@@ -12,6 +12,12 @@ function widget:GetInfo()
     }
   end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetMouseState = Spring.GetMouseState
+
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
 
@@ -123,7 +129,7 @@ function widget:DrawScreen()
         glCallList(dlistCU)
     end
     if area[1] then
-        local x, y = Spring.GetMouseState()
+        local x, y = spGetMouseState()
         if math.isInRect(x, y, area[1], area[2], area[3], area[4]) then
             Spring.SetMouseCursor('cursornormal')
         end
@@ -132,7 +138,7 @@ end
 
 function widget:MousePress(x, y, button)
     if area[1] then
-        local x, y = Spring.GetMouseState()
+        local x, y = spGetMouseState()
         if math.isInRect(x, y, area[1], area[2], area[3], area[4]) then
             return true
         end

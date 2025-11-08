@@ -17,9 +17,16 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetMouseState = Spring.GetMouseState
+local spEcho = Spring.Echo
+
 local widgetContents = {} -- maps widgetname to raw code
 local widgetFilesNames = {} -- maps widgetname to filename
-local mouseOffscreen = select(6, Spring.GetMouseState())
+local mouseOffscreen = select(6, spGetMouseState())
 
 function widget:Initialize()
 	local widgets = widgetHandler.widgets
@@ -38,11 +45,11 @@ local function CheckForChanges(widgetName, fileName)
 		widgetContents[widgetName] = newContents
 		local chunk, err = loadstring(newContents, fileName)
 		if not mouseOffscreen and chunk == nil then
-			Spring.Echo('Failed to load: ' .. fileName .. '  (' .. err .. ')')
+			spEcho('Failed to load: ' .. fileName .. '  (' .. err .. ')')
 			return nil
 		end
 		widgetHandler:DisableWidget(widgetName)
-		--Spring.Echo("Reloading widget: " .. widgetName)
+		--spEcho("Reloading widget: " .. widgetName)
 		widgetHandler:EnableWidget(widgetName)
 	end
 end
@@ -55,7 +62,7 @@ function widget:Update()
 	lastUpdate = Spring.GetTimer()
 
 	local prevMouseOffscreen = mouseOffscreen
-	mouseOffscreen = select(6, Spring.GetMouseState())
+	mouseOffscreen = select(6, spGetMouseState())
 
 	if not mouseOffscreen and prevMouseOffscreen then
 		widget:Initialize()

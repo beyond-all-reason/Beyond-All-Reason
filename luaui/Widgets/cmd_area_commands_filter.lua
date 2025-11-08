@@ -17,6 +17,11 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local tableInsert = table.insert
+local tableSort = table.sort
+
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
@@ -123,7 +128,7 @@ local function distributeTargetsToTransports(transports, targets)
 					---@class TransportInfo
 					local transportInfo = { capacity = remainingCapacity, position = position }
 					transportTypeDataMap[transportDefId].transportsInfo[transportUnitId] = transportInfo
-					table.insert(transportTypeDataMap[transportDefId].transportIdsList, transportUnitId)
+					tableInsert(transportTypeDataMap[transportDefId].transportIdsList, transportUnitId)
 				end
 			end
 		end
@@ -153,7 +158,7 @@ local function distributeTargetsToTransports(transports, targets)
 			end
 			if isValid then
 				passengerPriorities[targetId] = (passengerPriorities[targetId] or 0) + 1
-				table.insert(transportTypeData.allValidPassengers, targetId)
+				tableInsert(transportTypeData.allValidPassengers, targetId)
 			end
 		end
 		if #transportTypeData.allValidPassengers == 0 then
@@ -167,7 +172,7 @@ local function distributeTargetsToTransports(transports, targets)
 		local maxPriority = -1
 
 		-- 3. Sort passengers (hardest to transport first)
-		table.sort(transportTypeData.allValidPassengers, function(a, b)
+		tableSort(transportTypeData.allValidPassengers, function(a, b)
 			return passengerPriorities[a] < passengerPriorities[b]
 		end)
 
@@ -180,15 +185,15 @@ local function distributeTargetsToTransports(transports, targets)
 			if not transportTypeData.passengersByPriority[priority] then
 				transportTypeData.passengersByPriority[priority] = {}
 			end
-			table.insert(transportTypeData.passengersByPriority[priority], passengerId)
+			tableInsert(transportTypeData.passengersByPriority[priority], passengerId)
 		end
 		transportTypeData.maxPriority = maxPriority
 
-		table.insert(orderedTransportDefs, transDefId)
+		tableInsert(orderedTransportDefs, transDefId)
 	end
 
 	-- 5. Sort transport types
-	table.sort(orderedTransportDefs, function(a, b)
+	tableSort(orderedTransportDefs, function(a, b)
 		local passengerA = transportTypeDataMap[a].allValidPassengers[1]
 		local passengerB = transportTypeDataMap[b].allValidPassengers[1]
 
@@ -250,7 +255,7 @@ local function distributeTargetsToTransports(transports, targets)
 							if not passengerAssignments[transportId] then
 								passengerAssignments[transportId] = {}
 							end
-							table.insert(passengerAssignments[transportId], bestPassengerId)
+							tableInsert(passengerAssignments[transportId], bestPassengerId)
 
 							alreadyAssignedPassengers[bestPassengerId] = true
 							transportInfo.capacity = transportInfo.capacity - 1
@@ -277,7 +282,7 @@ end
 
 local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst)
 	local avgPosition = toPositionTable(spGetUnitArrayCentroid(selectedUnits))
-	table.sort(filteredTargets, function(targetIdA, targetIdB)
+	tableSort(filteredTargets, function(targetIdA, targetIdB)
 		local positionA, positionB
 
 		-- Have to convert back to featureId
@@ -302,7 +307,7 @@ local function giveOrders(cmdId, selectedUnits, filteredTargets, options)
 	for _, targetId in ipairs(filteredTargets) do
 		local cmdOpts = {}
 		if count > 0 or options.shift then
-			table.insert(cmdOpts, "shift")
+			tableInsert(cmdOpts, "shift")
 		end
 		if options.meta and not options.shift then
 			spGiveOrderToUnitArray(selectedUnits, CMD.INSERT, { 0, cmdId, 0, targetId }, CMD.OPT_ALT)
@@ -319,7 +324,7 @@ local function splitTargets(selectedUnits, filteredTargets)
 		unitTargetsMap[selectedUnitId] = {}
 		for targetIdx, targetUnitId in ipairs(filteredTargets) do
 			if targetIdx % #filteredTargets == unitIdx % #filteredTargets or unitIdx % #selectedUnits == targetIdx % #selectedUnits then
-				table.insert(unitTargetsMap[selectedUnitId], targetUnitId)
+				tableInsert(unitTargetsMap[selectedUnitId], targetUnitId)
 			end
 		end
 	end
@@ -430,7 +435,7 @@ local function filterUnits(targetId, cmdX, cmdZ, radius, options, skipAlliedUnit
 	for i = 1, #unitsInArea do
 		local unitID = unitsInArea[i]
 		if spGetUnitDefID(unitID) == unitDefId then
-			table.insert(filteredTargets, unitID)
+			tableInsert(filteredTargets, unitID)
 		end
 	end
 	return filteredTargets
@@ -459,7 +464,7 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options)
 			-- https://springrts.com/wiki/Lua_CMDs#CMDTYPE.ICON_UNIT_FEATURE_OR_AREA
 			-- "expect 1 parameter in return (unitid or Game.maxUnits+featureid)"
 			featureId = Game.maxUnits + featureId
-			table.insert(filteredTargets, featureId)
+			tableInsert(filteredTargets, featureId)
 		end
 	end
 	return filteredTargets

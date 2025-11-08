@@ -12,10 +12,17 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetTeamUnits = Spring.GetTeamUnits
+
 ----------------------------------------------------------------
 -- Globals
 ----------------------------------------------------------------
-local myTeam = Spring.GetMyTeamID()
+local myTeam = spGetMyTeamID()
 
 -- Tracks unit IDs of all assist-capable builders that I own and are alive
 local myAssistBuilders = {}
@@ -98,11 +105,11 @@ local function maybeRemoveSelf()
 end
 
 function widget:Initialize()
-	myTeam = Spring.GetMyTeamID()
+	myTeam = spGetMyTeamID()
 	if maybeRemoveSelf() then
 		return
 	end
-	for _, unitID in ipairs(Spring.GetTeamUnits(myTeam)) do
+	for _, unitID in ipairs(spGetTeamUnits(myTeam)) do
 		widget:MetaUnitAdded(unitID, spGetUnitDefID(unitID), myTeam)
 	end
 end
@@ -112,14 +119,14 @@ function widget:Shutdown()
 end
 
 function widget:PlayerChanged()
-	myTeam = Spring.GetMyTeamID()
+	myTeam = spGetMyTeamID()
 	if maybeRemoveSelf() then
 		return
 	end
 	-- otherwise we handle what happens if a player changes to a different non-spectator team
 	-- note that to my knowledge, this rarely happens outside of a dev environment
 	myAssistBuilders = {}
-	for _, unitID in ipairs(Spring.GetTeamUnits(myTeam)) do
+	for _, unitID in ipairs(spGetTeamUnits(myTeam)) do
 		widget:MetaUnitAdded(unitID, spGetUnitDefID(unitID), myTeam)
 	end
 end

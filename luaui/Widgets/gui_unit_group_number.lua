@@ -12,6 +12,12 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local hideBelowGameframe = 100
 
 local GetGroupUnits = Spring.GetGroupUnits
@@ -150,7 +156,7 @@ end
 ------------------------------------------- End GL4 Stuff -------------------------------------------
 
 function widget:PlayerChanged()
-	if Spring.GetSpectatingState() then
+	if spGetSpectatingState() then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -189,7 +195,7 @@ function widget:GroupChanged(groupID)
 end
 
 function widget:Initialize()
-	if Spring.GetSpectatingState() then
+	if spGetSpectatingState() then
 		widgetHandler:RemoveWidget()
 		return
 	end

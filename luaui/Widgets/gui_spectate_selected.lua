@@ -13,16 +13,23 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local spGetUnitTeam = Spring.GetUnitTeam
-local spec, fullview = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
+local spec, fullview = spGetSpectatingState()
+local myTeamID = spGetMyTeamID()
 
 local switchToTeam
 
 function widget:PlayerChanged()
-	spec, fullview = Spring.GetSpectatingState()
-	if myTeamID ~= Spring.GetMyTeamID() then
-		myTeamID = Spring.GetMyTeamID()
+	spec, fullview = spGetSpectatingState()
+	if myTeamID ~= spGetMyTeamID() then
+		myTeamID = spGetMyTeamID()
 		switchToTeam = myTeamID
 	end
 end

@@ -12,6 +12,17 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathCeil = math.ceil
+local mathFloor = math.floor
+
+-- Localized Spring API for performance
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetGameFrame = Spring.GetGameFrame
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
@@ -62,7 +73,7 @@ local isStateCommand = {}
 
 local disabledCommand = {}
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
@@ -149,12 +160,12 @@ local GL_ONE = GL.ONE
 local math_min = math.min
 local math_max = math.max
 local math_clamp = math.clamp
-local math_ceil = math.ceil
-local math_floor = math.floor
+local math_ceil = mathCeil
+local math_floor = mathFloor
 
 local RectRound, UiElement, UiButton, elementCorner
 
-local isSpectating = Spring.GetSpectatingState()
+local isSpectating = spGetSpectatingState()
 local cursorTextures = {}
 local actionHotkeys
 
@@ -185,7 +196,7 @@ local function checkGuiShader(force)
 end
 
 function widget:PlayerChanged(playerID)
-	isSpectating = Spring.GetSpectatingState()
+	isSpectating = spGetSpectatingState()
 end
 
 local function setupCellGrid(force)
@@ -360,7 +371,7 @@ local function refreshCommands()
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 
 	width = 0.2125
 	height = 0.14 * uiScale
@@ -369,8 +380,8 @@ function widget:ViewResize()
 	width = width * uiScale
 
 	-- make pixel aligned
-	width = math.floor(width * vsx) / vsx
-	height = math.floor(height * vsy) / vsy
+	width = mathFloor(width * vsx) / vsx
+	height = mathFloor(height * vsy) / vsy
 
 	if WG['buildmenu'] then
 		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()
@@ -412,7 +423,7 @@ function widget:ViewResize()
 	backgroundRect = { posX * vsx, (posY - height) * vsy, (posX + width) * vsx, posY * vsy }
 	local activeBgpadding = math_floor((backgroundPadding * 1.4) + 0.5)
 	activeRect = {
-		(posX * vsx) + (posX > 0 and activeBgpadding or math.ceil(backgroundPadding * 0.6)),
+		(posX * vsx) + (posX > 0 and activeBgpadding or mathCeil(backgroundPadding * 0.6)),
 		((posY - height) * vsy) + (posY-height > 0 and math_floor(activeBgpadding) or math_floor(activeBgpadding / 3)),
 		((posX + width) * vsx) - activeBgpadding,
 		(posY * vsy) - activeBgpadding
@@ -441,7 +452,7 @@ end
 function widget:Initialize()
 	reloadBindings()
 	widget:ViewResize()
-	widget:SelectionChanged(Spring.GetSelectedUnits())
+	widget:SelectionChanged(spGetSelectedUnits())
 
 	WG['ordermenu'] = {}
 	WG['ordermenu'].getPosition = function()
@@ -547,7 +558,7 @@ function widget:Update(dt)
 		doUpdate = true
 	end
 
-	if (WG['guishader'] and not displayListGuiShader) or (#commands == 0 and (not alwaysShow or Spring.GetGameFrame() == 0)) then
+	if (WG['guishader'] and not displayListGuiShader) or (#commands == 0 and (not alwaysShow or spGetGameFrame() == 0)) then
 		ordermenuShows = false
 	else
 		ordermenuShows = true
@@ -684,7 +695,7 @@ local function drawCell(cell, zoom)
 			else
 				statecount = 2
 				local referenceUnit
-				for _, unitID in ipairs(Spring.GetSelectedUnits()) do
+				for _, unitID in ipairs(spGetSelectedUnits()) do
 					local canWait = Spring.FindUnitCmdDesc(unitID, CMD.WAIT)
 					if canWait then
 						referenceUnit = unitID
@@ -852,7 +863,7 @@ function widget:DrawScreen()
 		end
 	end
 
-	if #commands == 0 and (not alwaysShow or Spring.GetGameFrame() == 0) then	-- dont show pregame because factions interface is shown
+	if #commands == 0 and (not alwaysShow or spGetGameFrame() == 0) then	-- dont show pregame because factions interface is shown
 		if displayListGuiShader and WG['guishader'] then
 			WG['guishader'].RemoveDlist('ordermenu')
 		end
@@ -1059,7 +1070,7 @@ function widget:MousePress(x, y, button)
 				end
 			end
 			return true
-		elseif alwaysShow and Spring.GetGameFrame() > 0 then
+		elseif alwaysShow and spGetGameFrame() > 0 then
 			return true
 		end
 	end
