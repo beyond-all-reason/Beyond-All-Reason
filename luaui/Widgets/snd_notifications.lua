@@ -19,6 +19,7 @@ if Spring.GetConfigString("voiceset", 'en/cephis') == 'en/allison' then
 end
 
 local useDefaultVoiceFallback = false    -- when a voiceset has missing file, try to load the default voiceset file instead
+local playWelcome = Spring.GetConfigInt('WelcomeMessagePlayed', 0) == 0
 
 local silentTime = 0.7    -- silent time between queued notifications
 local globalVolume = 0.7
@@ -368,11 +369,6 @@ local function queueNotification(event, forceplay)
 			end
 		end
 	end
-end
-
-if Spring.GetConfigInt('WelcomeMessagePlayed', 0) == 0 then
-	Spring.SetConfigInt('WelcomeMessagePlayed', 1)
-	queueNotification('Welcome', true)
 end
 
 
@@ -913,6 +909,7 @@ function widget:Update(dt)
 	if not displayMessages and not spoken then
 		return
 	end
+
 	sec = sec + dt
 	passedTime = passedTime + dt
 	if passedTime > 0.2 then
@@ -940,6 +937,12 @@ function widget:Update(dt)
 		end
 		if WG['rejoin'] and WG['rejoin'].showingRejoining() then
 			isIdle = true
+		end
+
+		if playWelcome then
+			Spring.SetConfigInt('WelcomeMessagePlayed', 1)
+			queueNotification('Welcome', true)
+			playWelcome = false
 		end
 	end
 end
