@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name = "LUPS Orb GL4",
+		name = "Orb Effects GL4",
 		desc = "Pretty orbs for Fusions, Shields and Junos",
 		author = "Beherith, Shader by jK",
 		date = "2024.02.10",
@@ -28,7 +28,7 @@ local spGetUnitTeam = Spring.GetUnitTeam
 --------------------------------------------------------------------------------
 -- TODO:
 -- [x] Add health-based brightening
--- [x] Add shield based darkening 
+-- [x] Add shield based darkening
 -- [ ] Optimize shader
 -- [ ] Combine Effects of techniques
 -- [x] LightningOrb() TOO EXPENSIVE!
@@ -153,7 +153,7 @@ local armgateShieldSphere = table.merge(defaults, {
 	size = 14.5,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
-	isShield = true, 
+	isShield = true,
 })
 
 local armgatet3ShieldSphere = table.merge(defaults, {
@@ -161,14 +161,14 @@ local armgatet3ShieldSphere = table.merge(defaults, {
 	size = 20,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
-	isShield = true, 
+	isShield = true,
 })
 local leggatet3ShieldSphere = table.merge(defaults, {
 	pos = { 0, 45, 0 },
 	size = 18,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
-	isShield = true, 
+	isShield = true,
 })
 
 local legdeflectorShieldSphere = table.merge(defaults, {
@@ -321,23 +321,23 @@ local orbUnitDefs = {}
 
 
 for unitname, effect in pairs(UnitEffects) do
-	if UnitDefNames[unitname] then 
-		for _, effectdef in ipairs(effect) do 
-			if effectdef.class == "ShieldSphere" then 
-				local attr = {} 
+	if UnitDefNames[unitname] then
+		for _, effectdef in ipairs(effect) do
+			if effectdef.class == "ShieldSphere" then
+				local attr = {}
 				local opts = effectdef.options
-				--orbUnitDefs[UnitDefNames[unitname].id] = 
+				--orbUnitDefs[UnitDefNames[unitname].id] =
 				attr[1], attr[2], attr[3] = unpack(opts.pos)
 				attr[4] = opts.size
-				
+
 				attr[5] = 1 -- margin
 				attr[6] = 0 -- precision
 				attr[7] = (opts.isShield and 1) or 0  -- isShield
 				attr[8] = 1 -- technique
-				
+
 				attr[ 9], attr[10], attr[11], attr[12] = unpack((opts.colormap1 and opts.colormap1[1]) or {-1,-1,-1,-1})
 				attr[13], attr[14], attr[15], attr[16] = unpack((opts.colormap2 and opts.colormap2[1]) or {-1,-1,-1,-1})
-				
+
 				attr[17], attr[18], attr[19], attr[20] = 0, 0, 0, 0 -- padding for instData
 				orbUnitDefs[UnitDefNames[unitname].id] =  attr
 			end
@@ -423,24 +423,24 @@ void main()
 		gl_Position = vec4(2.0,2.0,2.0,1.0);
 		return;
 	}
-	
+
 	vec3 modelWorldPos = uni[instData.y].drawPos.xyz;// + vec3(100,100,100);
 	unitID_vs = 0.1 + float(uni[instData.y].composite >> 16 ) / 256000.0;
-	
+
 	float modelRot = uni[instData.y].drawPos.w;
 	mat3 rotY = rotation3dY(modelRot);
-		
+
 	vec4 vertexWorldPos = vec4(1);
 	vec3 flippedPos = vec3(1,-1,1) * position.xzy;
-	
-	
+
+
 	float radius = 0.99 * posrad.w;
 	float startFrame = margin_teamID_shield_technique.x;
 	//float lifeScale = clamp(((timeInfo.x + timeInfo.w) - startFrame) / 100.0, 0.001, 1.0);
 	float lifeScale = 1.0 - exp(-0.10 * ((timeInfo.x + timeInfo.w) - startFrame));
 	radius *= lifeScale;
 	radius += (sin(timeInfo.z)) - 1.0;
-	
+
 	vertexWorldPos.xyz = rotY * ( flippedPos * (radius) + posrad.xyz + vec3(0,0,0) ) + modelWorldPos;
 	if (reflectionPass < 0.5){
 		gl_Position = cameraViewProj * vertexWorldPos;
@@ -448,10 +448,10 @@ void main()
 		gl_Position = reflectionViewProj * vertexWorldPos;
 	}
 
-	
+
 
 	mat3 normalMatrix = mat3( cameraView[0].xyz, cameraView[1].xyz, cameraView[2].xyz);
-	
+
 	vec3 normal = (rotY * normals.xzy);
 	normal.y *= -1;
 	vec3 camPos = cameraViewInv[3].xyz;
@@ -462,7 +462,7 @@ void main()
 	opac_vs = pow( abs( angle ) , 1.0);
 	//opac_vs = 1.0;
 	//color1_vs.rgb = vec3(angle);
-	
+
 	vec4 color2_vs;
 	if (color1.r < 0) { // negative numbers mean teamcolor
 		vec4 teamcolor = teamColor[int(margin_teamID_shield_technique.y)];
@@ -476,25 +476,25 @@ void main()
 		color1_vs = color1;
 		color2_vs = color2;
 	}
-	
+
 	color1_vs = mix(color1_vs, color2_vs, opac_vs);
-	
+
 	if (margin_teamID_shield_technique.z > 0.5){
 		float shieldPower = clamp(uni[instData.y].userDefined[0].z, 0, 1);
 		color1_vs = mix(vec4(0.8,0.4, 0,1.0),color1_vs,  shieldPower);
 	}
-	
+
 	float relHealth  = clamp(uni[instData.y].health/uni[instData.y].maxHealth, 0, 1);
 	//color1_vs.rgb *= 1.0 + relHealth;
-	
-	
+
+
 	modelPos_vs = vec4(position.xzy*posrad.w, 0);
 	//modelPos_vs.z = fract(modelPos_vs.z * 10);
 	modelPos_vs.w = relHealth;
 	gameFrame_vs = timeInfo.z;
-	
+
 	technique_vs = int(floor(margin_teamID_shield_technique.w));
-	
+
 }
 ]]
 
@@ -738,7 +738,7 @@ vec3 LightningOrb2(vec2 vUv, vec3 color) {
 void main(void)
 {
 	fragColor = color1_vs;
-	
+
 	//modelPos_vs contains the sphere's coords.
 
 	if (technique_vs == 1) { // LightningOrb
@@ -773,7 +773,7 @@ void main(void)
 ]]
 
 local function goodbye(reason)
-  spEcho("Lups Orb GL4 widget exiting with reason: "..reason)
+  spEcho("Orb GL4 widget exiting with reason: "..reason)
   widgetHandler:RemoveWidget()
 end
 
@@ -812,7 +812,7 @@ local function initGL4()
   orbVBO.vertexVBO = sphereVBO
   orbVBO.VAO = InstanceVBOTable.makeVAOandAttach(orbVBO.vertexVBO, orbVBO.instanceVBO)
   orbVBO.primitiveType = GL.TRIANGLES
-  orbVBO.indexVBO = sphereIndexVBO  
+  orbVBO.indexVBO = sphereIndexVBO
   orbVBO.VAO:AttachIndexBuffer(orbVBO.indexVBO)
 end
 
@@ -834,17 +834,17 @@ end
 --------------------------------------------------------------------------------
 -- Widget Interface
 --------------------------------------------------------------------------------
--- Note that we rely on VisibleUnitRemoved triggering right before VisibleUnitAdded on UnitFinished 
+-- Note that we rely on VisibleUnitRemoved triggering right before VisibleUnitAdded on UnitFinished
 local shieldFinishFrames = {} -- unitID to gameframe
 
-function widget:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction) 
+function widget:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)
 	if next(shieldFinishFrames) then shieldFinishFrames = {} end
-	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. 
+	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present.
 	-- If water is present on the map, then it gets called again between the two for the refraction pass
 	-- Solution is to draw it only on the first call, and draw reflections from widget:DrawWorldReflection
-	
+
 	if drawAboveWater and not drawReflection and not drawRefraction then
-		DrawOrbs(false) 
+		DrawOrbs(false)
 	end
 end
 
@@ -861,7 +861,7 @@ function widget:Initialize()
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	else
-		spEcho("Unit Tracker API unavailable, exiting Orb Lups GL4")
+		spEcho("Unit Tracker API unavailable, exiting Orb GL4")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -870,10 +870,10 @@ end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
 	--spEcho("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, noupload,shieldFinishFrames[unitID])
-	if unitDefID and orbUnitDefs[unitDefID] then 
+	if unitDefID and orbUnitDefs[unitDefID] then
 
 		unitTeam = unitTeam or spGetUnitTeam(unitID)
-		
+
 		local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
 		if buildProgress < 1 then return end
 
@@ -882,8 +882,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
 		instanceCache[6] = unitTeam
 		--instanceCache[7] = spGetGameFrame()
 		shieldFinishFrames[unitID] = nil
-		
-		--spEcho("Added lups orb")
+
 		pushElementInstance(orbVBO,
 			instanceCache,
 			unitID, --key
@@ -891,14 +890,14 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
 			noupload,
 			unitID -- unitID for uniform buffers
 		)
-	end 
+	end
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	if orbVBO.usedElements > 0 then 
-		InstanceVBOTable.clearInstanceTable(orbVBO) 
+	if orbVBO.usedElements > 0 then
+		InstanceVBOTable.clearInstanceTable(orbVBO)
 	end
-	for unitID, unitDefID in pairs(extVisibleUnits) do 
+	for unitID, unitDefID in pairs(extVisibleUnits) do
 		widget:VisibleUnitAdded(unitID, unitDefID, nil, true)
 	end
 	InstanceVBOTable.uploadAllElements(orbVBO)

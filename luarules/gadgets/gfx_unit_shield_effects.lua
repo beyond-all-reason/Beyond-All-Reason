@@ -236,7 +236,6 @@ local function AddUnit(unitID, unitDefID)
 		return
 	end
 
-	-- Create shield info directly without going through LUPS
 	local shieldInfo = table.copy(def.config)
 	shieldInfo.unit = unitID
 	shieldInfo.shieldCapacity = def.shieldCapacity
@@ -495,7 +494,7 @@ local function DrawIcosahedron(subd, cw)
 end
 
 -----------------------------------------------------------------
--- Shield configuration (integrated from lups_shield_fxs.lua)
+-- Shield configuration
 -----------------------------------------------------------------
 
 local function LoadShieldConfig()
