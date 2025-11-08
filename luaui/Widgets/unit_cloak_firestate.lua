@@ -15,6 +15,12 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetMyTeamID = Spring.GetMyTeamID
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -25,7 +31,7 @@ local CMD_WANT_CLOAK    = GameCMD.WANT_CLOAK
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-local myTeam = Spring.GetMyTeamID()
+local myTeam = spGetMyTeamID()
 
 local exceptionList = { --add exempt units here
 	"armmine1",
@@ -111,7 +117,7 @@ local function maybeRemoveSelf()
 end
 
 function widget:Initialize()
-	myTeam = Spring.GetMyTeamID()
+	myTeam = spGetMyTeamID()
 	maybeRemoveSelf()
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		widget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
@@ -119,6 +125,6 @@ function widget:Initialize()
 end
 
 function widget:PlayerChanged()
-	myTeam = Spring.GetMyTeamID()
+	myTeam = spGetMyTeamID()
 	maybeRemoveSelf()
 end

@@ -13,6 +13,13 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spEcho = Spring.Echo
+
 local spGetUnitTeam = Spring.GetUnitTeam
 
 
@@ -768,7 +775,7 @@ void main(void)
 ]]
 
 local function goodbye(reason)
-  Spring.Echo("Lups Orb GL4 widget exiting with reason: "..reason)
+  spEcho("Lups Orb GL4 widget exiting with reason: "..reason)
   widgetHandler:RemoveWidget()
 end
 
@@ -794,7 +801,7 @@ local function initGL4()
   shaderCompiled = orbShader:Initialize()
   if not shaderCompiled then goodbye("Failed to compile orbShader GL4 ") end
   local sphereVBO, numVerts, sphereIndexVBO, numIndices = InstanceVBOTable.makeSphereVBO(24,16,1)
-  --Spring.Echo("SphereVBO has", numVerts, "vertices and ", numIndices,"indices")
+  --spEcho("SphereVBO has", numVerts, "vertices and ", numIndices,"indices")
   local orbVBOLayout = {
 		  {id = 3, name = 'posrad', size = 4}, -- widthlength
 		  {id = 4, name = 'margin_teamID_shield_technique', size = 4}, --  emit dir
@@ -856,7 +863,7 @@ function widget:Initialize()
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	else
-		Spring.Echo("Unit Tracker API unavailable, exiting Orb Lups GL4")
+		spEcho("Unit Tracker API unavailable, exiting Orb Lups GL4")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -864,7 +871,7 @@ end
 
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
-	--Spring.Echo("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, noupload,shieldFinishFrames[unitID])
+	--spEcho("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, noupload,shieldFinishFrames[unitID])
 	if unitDefID and orbUnitDefs[unitDefID] then 
 
 		unitTeam = unitTeam or spGetUnitTeam(unitID)
@@ -875,10 +882,10 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
 		local instanceCache = orbUnitDefs[unitDefID]
 		instanceCache[5] = shieldFinishFrames[unitID] or 0
 		instanceCache[6] = unitTeam
-		--instanceCache[7] = Spring.GetGameFrame()
+		--instanceCache[7] = spGetGameFrame()
 		shieldFinishFrames[unitID] = nil
 		
-		--Spring.Echo("Added lups orb")
+		--spEcho("Added lups orb")
 		pushElementInstance(orbVBO,
 			instanceCache,
 			unitID, --key
@@ -900,7 +907,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 end
 
 function widget:VisibleUnitRemoved(unitID)
-	shieldFinishFrames[unitID] = Spring.GetGameFrame()
+	shieldFinishFrames[unitID] = spGetGameFrame()
 	if orbVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(orbVBO, unitID)
 	end

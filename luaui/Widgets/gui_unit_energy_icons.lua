@@ -12,11 +12,19 @@ function widget:GetInfo()
    }
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local weaponEnergyCostFloor = 6
 
 local spGetTeamResources		= Spring.GetTeamResources
 local spGetUnitResources		= Spring.GetUnitResources
-local spGetUnitTeam		        = Spring.GetUnitTeam
+local spGetUnitTeam		        = spGetUnitTeam
 
 local teamEnergy = {} -- table of teamid to current energy amount
 local teamUnits = {} -- table of teamid to table of stallable unitID : unitDefID
@@ -28,7 +36,7 @@ local unitConf = {} -- table of unitid to {iconsize, iconheight, neededEnergy, b
 local maxStall = 0 --Currently not used, was used to skip checking energy level when maxenergy > maxStall issue was energy symbols were not removed then
 for udid, unitDef in pairs(UnitDefs) do
 	local xsize, zsize = unitDef.xsize, unitDef.zsize
-	local scale = 6*( xsize^2 + zsize^2 )^0.5
+	local scale = 6*( xsize*xsize + zsize*zsize )^0.5
 	local buildingNeedingUpkeep = false
 	local neededEnergy = 0
 	local weapons = unitDef.weapons
@@ -132,9 +140,9 @@ local function UpdateTeamEnergy()
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	local spec, fullview = Spring.GetSpectatingState()
+	local spec, fullview = spGetSpectatingState()
 	if spec then
-		fullview = select(2,Spring.GetSpectatingState())
+		fullview = select(2,spGetSpectatingState())
 	end
 	if not fullview then
 		teamList = Spring.GetTeamList(Spring.GetMyAllyTeamID())
@@ -166,7 +174,7 @@ end
 
 local function updateStalling()
 	UpdateTeamEnergy()
-	local gf = Spring.GetGameFrame()
+	local gf = spGetGameFrame()
 	for teamID, units in pairs(teamUnits) do
 		--Spring.Echo('teamID',teamID)
 		if teamEnergy[teamID] then
@@ -183,7 +191,7 @@ local function updateStalling()
 							pushElementInstance(
 								energyIconVBO, -- push into this Instance VBO Table
 									{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],  -- lengthwidthcornerheight
-									0, --Spring.GetUnitTeam(featureID), -- teamID
+									0, --spGetUnitTeam(featureID), -- teamID
 									4, -- how many vertices should we make ( 2 is a quad)
 									gf, 0, 0.75 , 0, -- the gameFrame (for animations), and any other parameters one might want to add
 									0,1,0,1, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
@@ -206,7 +214,7 @@ local function updateStalling()
 end
 
 function widget:GameFrame(n)
-	if Spring.GetGameFrame() %9 == 0 then
+	if spGetGameFrame() %9 == 0 then
 		updateStalling()
 	end
 end

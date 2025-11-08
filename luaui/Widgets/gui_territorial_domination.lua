@@ -10,6 +10,11 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathMin = math.min
+local tableInsert = table.insert
+
 local modOptions = Spring.GetModOptions()
 if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) then return false end
 
@@ -18,7 +23,7 @@ local ceil = math.ceil
 local format = string.format
 local abs = math.abs
 local max = math.max
-local min = math.min
+local min = mathMin
 
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
@@ -269,7 +274,7 @@ local CACHE_TTL = {
 
 local fontCache = cache:getOrCompute(CACHE_KEYS.FONT_DATA, function()
 	local _, viewportSizeY = spGetViewGeometry()
-	local fontSizeMultiplier = max(1.2, math.min(2.25, viewportSizeY / 1080))
+	local fontSizeMultiplier = max(1.2, mathMin(2.25, viewportSizeY / 1080))
 	local baseFontSize = floor(14 * fontSizeMultiplier)
 	return {
 		initialized = true,
@@ -383,7 +388,7 @@ local function updateAliveAllyTeams()
 
 	for _, allyTeamID in ipairs(allyTeamList) do
 		if isAllyTeamAlive(allyTeamID) and not isHordeModeAllyTeam(allyTeamID) then
-			table.insert(aliveAllyTeams, allyTeamID)
+			tableInsert(aliveAllyTeams, allyTeamID)
 		end
 	end
 end
@@ -746,7 +751,7 @@ local function getAllyTeamDisplayData()
 				defeatTimeRemaining = math.huge
 			end
 
-			table.insert(allyTeamScores, {
+			tableInsert(allyTeamScores, {
 				allyTeamID = allyTeamID,
 				score = score,
 				teamColor = teamColor,
@@ -1139,7 +1144,7 @@ local function createCountdownDisplayList(timeRemaining, allyTeamID)
 		if displayListKey:sub(1, #tostring(allyTeamID) + 1) == allyTeamID .. "_" and displayListKey ~= cacheKey then
 			local keyTime = tonumber(displayListKey:sub(#tostring(allyTeamID) + 2))
 			if keyTime and (timeRemaining - keyTime > 3 or keyTime - timeRemaining > 1) then
-				table.insert(keysToDelete, displayListKey)
+				tableInsert(keysToDelete, displayListKey)
 			end
 		end
 	end
@@ -1258,8 +1263,8 @@ end
 local function queueTeleportSounds()
 	soundQueue = {}
 	if defeatTime and defeatTime > 0 then
-		table.insert(soundQueue, 1, { when = defeatTime - WINDUP_SOUND_DURATION, sound = "cmd-off", volume = 0.4 })
-		table.insert(soundQueue, 1,
+		tableInsert(soundQueue, 1, { when = defeatTime - WINDUP_SOUND_DURATION, sound = "cmd-off", volume = 0.4 })
+		tableInsert(soundQueue, 1,
 			{ when = defeatTime - WINDUP_SOUND_DURATION, sound = "teleport-windup", volume = 0.225 })
 	end
 end

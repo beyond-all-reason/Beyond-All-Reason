@@ -15,6 +15,14 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spEcho = Spring.Echo
+
 --[[------------------------------------------------------------------------------
 
 Usage:
@@ -118,13 +126,13 @@ function saveStatePrefs()
 end
 
 function doClearUnit()
-	local selectedUnits = Spring.GetSelectedUnits()
+	local selectedUnits = spGetSelectedUnits()
 	for i = 1, #selectedUnits do
 		local unitID = selectedUnits[i]
-		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitDefID = spGetUnitDefID(unitID)
 		local name = unitName[unitDefID]
 		unitSet[name] = {}
-		Spring.Echo("All state prefs removed for unit: " .. name)
+		spEcho("All state prefs removed for unit: " .. name)
 	end
 	Spring.PlaySoundFile(clearSound , 0.6, 'ui')
 	saveStatePrefs()
@@ -142,20 +150,20 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return
 	end
 
-	local selectedUnits = Spring.GetSelectedUnits()
+	local selectedUnits = spGetSelectedUnits()
 	for i = 1, #selectedUnits do
 		local unitID = selectedUnits[i]
-		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitDefID = spGetUnitDefID(unitID)
 		local name = unitName[unitDefID]
 		unitSet[name] = unitSet[name] or {}
 		
 		if #cmdParams == 1 and isClearPressed then
 			unitSet[name][cmdID] = nil
-			Spring.Echo("State pref removed: " .. name .. ", " .. command.name)
+			spEcho("State pref removed: " .. name .. ", " .. command.name)
 			saveStatePrefs()
 		elseif #cmdParams == 1 and not (unitSet[name][cmdID] == cmdParams[1]) then
 			unitSet[name][cmdID] = cmdParams[1]
-			Spring.Echo("State pref changed:  " .. name .. ",  " .. command.name .. " " .. cmdParams[1])
+			spEcho("State pref changed:  " .. name .. ",  " .. command.name .. " " .. cmdParams[1])
 			saveStatePrefs()
 		end
 	end
@@ -173,13 +181,13 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 				return
 			end -- we're skipping "repeat" command here for now
 			local success = Spring.GiveOrderToUnit(unitID, cmdID, { cmdParam }, cmdOpts)
-			--Spring.Echo("".. name .. ", " .. tostring(cmdID) .. ", " .. tostring(cmdParam) .. " success: ".. tostring(success))
+			--spEcho("".. name .. ", " .. tostring(cmdID) .. ", " .. tostring(cmdParam) .. " success: ".. tostring(success))
 		end
 	end
 end
 
 function widget:GameOver()
-	Spring.Echo("Recorded States Prefs")
+	spEcho("Recorded States Prefs")
 	saveStatePrefs()
 	widgetHandler:RemoveWidget()
 end

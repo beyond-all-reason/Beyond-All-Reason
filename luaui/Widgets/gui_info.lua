@@ -12,6 +12,20 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+local mathMin = math.min
+local tableConcat = table.concat
+
+-- Localized Spring API for performance
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetGroundHeight = Spring.GetGroundHeight
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local alwaysShow = false
@@ -33,7 +47,7 @@ local showEngineTooltip = false		-- straight up display old engine delivered tex
 
 local iconTypes = VFS.Include("gamedata/icontypes.lua")
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
 local hoverType, hoverData = '', ''
 local customHoverType, customHoverData = nil, nil  -- For external widgets (like PIP) to supply hover info
@@ -97,17 +111,17 @@ local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spColorString = Spring.Utilities.Color.ToString
 
 
-local math_floor = math.floor
+local math_floor = mathFloor
 local math_ceil = math.ceil
-local math_min = math.min
-local math_max = math.max
+local math_min = mathMin
+local math_max = mathMax
 local math_isInRect = math.isInRect
 local string_lines = string.lines
 
 local os_clock = os.clock
 
-local myTeamID = Spring.GetMyTeamID()
-local mySpec = Spring.GetSpectatingState()
+local myTeamID = spGetMyTeamID()
+local mySpec = spGetSpectatingState()
 
 local GL_QUADS = GL.QUADS
 local glTexture = gl.Texture
@@ -276,7 +290,7 @@ local function refreshUnitInfo()
 		-----------------------------------------------------
 
 		local function calculateLaserDPS(def, damage)
-			minIntensity = math.max(def.minIntensity, 0.5)
+			minIntensity = mathMax(def.minIntensity, 0.5)
 			local prevMinDps = unitDefInfo[unitDefID].mindps or 0
 			local prevMaxDps = unitDefInfo[unitDefID].maxdps or 0
 			local mindps = math_floor(minIntensity*(damage * def.salvoSize / def.reload))
@@ -339,7 +353,7 @@ local function refreshUnitInfo()
 			unitDefInfo[unitDefID].weapons[i] = weapons[i].weaponDef
 			local weaponDef = WeaponDefs[weapons[i].weaponDef]
 			if weaponDef.interceptor ~= 0 and weaponDef.coverageRange then
-				unitDefInfo[unitDefID].maxCoverage = math.max(unitDefInfo[unitDefID].maxCoverage or 1, weaponDef.coverageRange)
+				unitDefInfo[unitDefID].maxCoverage = mathMax(unitDefInfo[unitDefID].maxCoverage or 1, weaponDef.coverageRange)
 			end
 			if weaponDef.damages then
 				if unitDef.name == 'armfido' then
@@ -445,7 +459,7 @@ local function refreshUnitInfo()
 						if weaponDef.customParams then
 
 							if weaponDef.customParams.sweepfire then
-								unitDefInfo[unitDefID].maxdps = (weaponDef.damages[0] * weaponDef.customParams.sweepfire) / math.max(weaponDef.minIntensity, 0.5)
+								unitDefInfo[unitDefID].maxdps = (weaponDef.damages[0] * weaponDef.customParams.sweepfire) / mathMax(weaponDef.minIntensity, 0.5)
 								unitDefInfo[unitDefID].mindps = weaponDef.damages[0] * weaponDef.customParams.sweepfire
 							else
 								calculateLaserDPS(weaponDef, defDmg)
@@ -455,7 +469,7 @@ local function refreshUnitInfo()
 						end
 					else
 						-- calculate laser emp dmg
-						minIntensity = math.max(weaponDef.minIntensity, 0.5)
+						minIntensity = mathMax(weaponDef.minIntensity, 0.5)
 						local prevMinDps = unitDefInfo[unitDefID].minemp or 0
 						local prevMaxDps = unitDefInfo[unitDefID].maxemp or 0
 						local mindps = math_floor(minIntensity*(weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload))
@@ -584,14 +598,14 @@ local function checkGuishader(force)
 end
 
 function widget:PlayerChanged(playerID)
-	myTeamID = Spring.GetMyTeamID()
-	mySpec = Spring.GetSpectatingState()
+	myTeamID = spGetMyTeamID()
+	mySpec = spGetSpectatingState()
 end
 
 function widget:ViewResize()
 	ViewResizeUpdate = true
 
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 
 	width = 0.2125
 	height = 0.14 * ui_scale
@@ -1037,7 +1051,7 @@ local function drawSelection()
 	local totalMetalMake, totalMetalUse, totalEnergyMake, totalEnergyUse = 0, 0, 0, 0
 	local totalKills = 0
 	local unitsToCheck = cellHovered and selUnitsSorted[selectionCells[cellHovered]] or selectedUnits
-	local maxUnitsToCheck = math.min(50, #unitsToCheck)
+	local maxUnitsToCheck = mathMin(50, #unitsToCheck)
 	for i = 1, maxUnitsToCheck do
 		local unitID = unitsToCheck[i]
 		local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(unitID)
@@ -1060,7 +1074,7 @@ local function drawSelection()
 		totalMetalUse = totalMetalUse * scale
 		totalEnergyMake = totalEnergyMake * scale
 		totalEnergyUse = totalEnergyUse * scale
-		totalKills = math.floor(totalKills * scale)
+		totalKills = mathFloor(totalKills * scale)
 	end
 
 	local valuePlusColor = '\255\180\255\180'
@@ -1178,10 +1192,10 @@ local function GetAIName(teamID)
 end
 
 local function drawUnitInfo()
-	local fontSize = (height * vsy * 0.123) * (0.94 - ((1 - math.max(1.05, ui_scale)) * 0.4))
+	local fontSize = (height * vsy * 0.123) * (0.94 - ((1 - mathMax(1.05, ui_scale)) * 0.4))
 
-	local iconSize = math.floor(fontSize * 4.4)
-	local iconPadding = math.floor(fontSize * 0.22)
+	local iconSize = mathFloor(fontSize * 4.4)
+	local iconPadding = mathFloor(fontSize * 0.22)
 
 	if unitDefInfo[displayUnitDefID].buildPic then
 		local iconX = backgroundRect[1] + iconPadding
@@ -1711,7 +1725,7 @@ local function drawUnitInfo()
 		end
 
 		-- Build final text from buffer
-		local text = table.concat(stringBuffer)
+		local text = tableConcat(stringBuffer)
 		text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
 
 		-- prune number of lines
@@ -1730,7 +1744,7 @@ local function drawUnitInfo()
 				stringBuffer[bufferIndex] = '\n'
 			end
 		end
-		text = table.concat(stringBuffer)
+		text = tableConcat(stringBuffer)
 		lines = nil
 
 		-- display unit(def) info text
@@ -1767,24 +1781,24 @@ local function drawEngineTooltip()
 				font:SetTextColor(1, 1, 1, 1)
 				font:SetOutlineColor(0.1, 0.1, 0.1, 1)
 				if displayMapPosition then
-					font:Print(tooltipValueColor..math.floor(hoverData[1])..',', backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
-					font:Print(math.floor(hoverData[3]), backgroundRect[1] + contentPadding + (fontSize * 3.2), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
-					font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.elevation')..'  '..tooltipValueColor..math.floor(Spring.GetGroundHeight(coords[1], coords[3])), backgroundRect[1] + contentPadding + (fontSize * 6.6), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+					font:Print(tooltipValueColor..mathFloor(hoverData[1])..',', backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+					font:Print(mathFloor(hoverData[3]), backgroundRect[1] + contentPadding + (fontSize * 3.2), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+					font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.elevation')..'  '..tooltipValueColor..mathFloor(spGetGroundHeight(coords[1], coords[3])), backgroundRect[1] + contentPadding + (fontSize * 6.6), backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 					height = height + heightStep
 				end
 				if tankSpeed ~= 1 or botSpeed ~= 1 or hoverSpeed ~= 1 or (shipSpeed ~= 1 and coords[2] <= 0) then
 					text = ''
 					if tankSpeed ~= 1 then
-						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.tank')..' '..tooltipValueColor..math.floor(tankSpeed*100).."%"
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.tank')..' '..tooltipValueColor..mathFloor(tankSpeed*100).."%"
 					end
 					if botSpeed ~= 1 then
-						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.bot')..' '..tooltipValueColor..math.floor(botSpeed*100).."%"
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.bot')..' '..tooltipValueColor..mathFloor(botSpeed*100).."%"
 					end
 					if hoverSpeed ~= 1 then
-						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.hover')..' '..tooltipValueColor..math.floor(hoverSpeed*100).."%"
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.hover')..' '..tooltipValueColor..mathFloor(hoverSpeed*100).."%"
 					end
 					if shipSpeed ~= 1 and coords[2] <= 0 then
-						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.ship')..' '..tooltipValueColor..math.floor(shipSpeed*100).."%"
+						text = text..(text~='' and '   ' or '')..tooltipLabelTextColor..Spring.I18N('ui.info.ship')..' '..tooltipValueColor..mathFloor(shipSpeed*100).."%"
 					end
 					if groundType2 and groundType2 ~= '' then
 						font2:Begin(useRenderToTexture)
@@ -1800,11 +1814,11 @@ local function drawEngineTooltip()
 				end
 				--if metal > 0 then
 				--	height = height + heightStep
-				--	font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.metal')..' '..tooltipValueColor..math.floor(metal), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+				--	font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.metal')..' '..tooltipValueColor..mathFloor(metal), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				--end
 				--if hardness ~= 1 then
 				--	height = height + heightStep
-				--	font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.hardness')..' '..tooltipValueColor..math.floor(hardness), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
+				--	font:Print(tooltipLabelTextColor..Spring.I18N('ui.info.hardness')..' '..tooltipValueColor..mathFloor(hardness), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				--end
 				font:End()
 			elseif hoverType == 'feature' then
@@ -1828,12 +1842,12 @@ local function drawEngineTooltip()
 				local metal, _, energy, _ = Spring.GetFeatureResources(hoverData)
 				if energy > 0 then
 					height = height + heightStep
-					text = tooltipLabelTextColor..Spring.I18N('ui.info.energy').."  \255\255\255\000"..math.floor(energy)
+					text = tooltipLabelTextColor..Spring.I18N('ui.info.energy').."  \255\255\255\000"..mathFloor(energy)
 					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
 				if metal > 0 then
 					height = height + heightStep
-					text = tooltipLabelTextColor..Spring.I18N('ui.info.metal').."  "..tooltipValueColor..math.floor(metal)
+					text = tooltipLabelTextColor..Spring.I18N('ui.info.metal').."  "..tooltipValueColor..mathFloor(metal)
 					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
 				font:End()
@@ -1953,12 +1967,12 @@ local function unloadTransport(transportID, unitID, x, z, shift, depth)
 	end
 	local radius = 20 * depth
 	local orgX, orgZ = x, z
-	local y = Spring.GetGroundHeight(x, z)
+	local y = spGetGroundHeight(x, z)
 	local unitSphereRadius = 60	-- too low value will result in unload conflicts
 	local areaUnits = Spring.GetUnitsInSphere(x, y, z, unitSphereRadius)
 	if #areaUnits == 0 then	-- unblocked spot!
 		unloadParams[1], unloadParams[2], unloadParams[3], unloadParams[4] = x, y, z, unitID
-		Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unloadParams, shift and shiftTable or emptyTable)
+		spGiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unloadParams, shift and shiftTable or emptyTable)
 	else
 		-- unload is blocked by unit at ground just lets find free alternative spot in a radius around it
 		local samples = 8
@@ -1968,13 +1982,13 @@ local function unloadTransport(transportID, unitID, x, z, shift, depth)
 			x = x + (radius * math.cos(i * sideAngle))
 			z = z + (radius * math.sin(i * sideAngle))
 			if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ then
-				y = Spring.GetGroundHeight(x, z)
+				y = spGetGroundHeight(x, z)
 				areaUnits = Spring.GetUnitsInSphere(x, y, z, unitSphereRadius)
 				if #areaUnits == 0 then	-- unblocked spot!
 					local areaFeatures = Spring.GetFeaturesInSphere(x, y, z, unitSphereRadius)
 					if #areaFeatures == 0 then
 						unloadParams[1], unloadParams[2], unloadParams[3], unloadParams[4] = x, y, z, unitID
-						Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unloadParams, shift and shiftTable or emptyTable)
+						spGiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unloadParams, shift and shiftTable or emptyTable)
 						foundUnloadSpot = true
 						break
 					end
@@ -2039,10 +2053,10 @@ function widget:MouseRelease(x, y, button)
 								if cmdQueue[#cmdQueue] and cmdQueue[#cmdQueue].id == CMD.MOVE and cmdQueue[#cmdQueue].params[3] then
 									x, z = cmdQueue[#cmdQueue].params[1], cmdQueue[#cmdQueue].params[3]
 									-- remove the last move command (to replace it with the unload cmd after)
-									Spring.GiveOrderToUnit(displayUnitID, CMD.STOP, emptyTable, 0)
+									spGiveOrderToUnit(displayUnitID, CMD.STOP, emptyTable, 0)
 									for c = 1, #cmdQueue do
 										if c < #cmdQueue then
-											Spring.GiveOrderToUnit(displayUnitID, cmdQueue[c].id, cmdQueue[c].params, shiftTable)
+											spGiveOrderToUnit(displayUnitID, cmdQueue[c].id, cmdQueue[c].params, shiftTable)
 										end
 									end
 								end
@@ -2334,8 +2348,8 @@ function checkChanges()
 
 		if featureDef.reclaimable then
 			local metal, _, energy, _ = Spring.GetFeatureResources(featureID)
-			metal = math.floor(metal)
-			energy = math.floor(energy)
+			metal = mathFloor(metal)
+			energy = mathFloor(energy)
 			local reclaimText = Spring.I18N('ui.reclaimInfo.metal', { metal = metal }) .. "\255\255\255\128" .. " " .. Spring.I18N('ui.reclaimInfo.energy', { energy = energy })
 			newTooltip = newTooltip .. "\n\n" .. reclaimText
 		end

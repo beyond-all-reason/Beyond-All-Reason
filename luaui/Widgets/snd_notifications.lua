@@ -13,6 +13,18 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathRandom = math.random
+local tableSort = table.sort
+
+-- Localized Spring API for performance
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMouseState = Spring.GetMouseState
+local spEcho = Spring.Echo
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local defaultVoiceSet = 'en/cephis'
 if Spring.GetConfigString("voiceset", 'en/cephis') == 'en/allison' then
 	Spring.SetConfigString("voiceset", 'en/cephis')
@@ -205,11 +217,11 @@ local spGetUnitHealth = Spring.GetUnitHealth
 
 local isIdle = false
 local lastUserInputTime = os.clock()
-local lastMouseX, lastMouseY = Spring.GetMouseState()
+local lastMouseX, lastMouseY = spGetMouseState()
 
-local isSpec = Spring.GetSpectatingState()
+local isSpec = spGetSpectatingState()
 local isReplay = Spring.IsReplay()
-local myTeamID = Spring.GetMyTeamID()
+local myTeamID = spGetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local myRank = select(9, Spring.GetPlayerInfo(myPlayerID))
 
@@ -379,8 +391,8 @@ local function queueTutorialNotification(event)
 end
 
 function widget:PlayerChanged(playerID)
-	isSpec = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
+	isSpec = spGetSpectatingState()
+	myTeamID = spGetMyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
 	doTutorialMode = (not isReplay and not isSpec and tutorialMode)
 	updateCommanders()
@@ -425,7 +437,7 @@ function widget:Initialize()
 			end
 		end
 
-		table.sort(soundInfo, function(a, b)
+		tableSort(soundInfo, function(a, b)
 			local nameA = Spring.I18N(a[3]) or ""
 			local nameB = Spring.I18N(b[3]) or ""
 			return string.lower(nameA) < string.lower(nameB)
@@ -439,7 +451,7 @@ function widget:Initialize()
 			end
 		end
 
-		table.sort(soundInfoPvE, function(a, b)
+		tableSort(soundInfoPvE, function(a, b)
 			local nameA = Spring.I18N(a[3]) or ""
 			local nameB = Spring.I18N(b[3]) or ""
 			return string.lower(nameA) < string.lower(nameB)
@@ -494,14 +506,14 @@ function widget:Initialize()
 	WG['notifications'].playNotification = function(event)
 		if notification[event] then
 			if notification[event].voiceFiles and #notification[event].voiceFiles > 0 then
-				local m = #notification[event].voiceFiles > 1 and math.random(1, #notification[event].voiceFiles) or 1
+				local m = #notification[event].voiceFiles > 1 and mathRandom(1, #notification[event].voiceFiles) or 1
 				if notification[event].voiceFiles[m] then
 					Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, 'ui')
 					if notification[event].soundEffect then
 						Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
 					end
 				else
-					Spring.Echo('notification "'..event..'" missing sound file: #'..m)
+					spEcho('notification "'..event..'" missing sound file: #'..m)
 				end
 			end
 			if displayMessages and WG['messages'] and notification[event].textID then
@@ -689,7 +701,7 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 	end
 	if isMine[udefID] then
 		-- ignore when far away
-		local x, _, z = Spring.GetUnitPosition(unitID)
+		local x, _, z = spGetUnitPosition(unitID)
 		if #Spring.GetUnitsInCylinder(x, z, 1700, myTeamID) > 0 then
 			queueNotification('MinesDetected')
 		end
@@ -805,7 +817,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 
 		-- notify when commander gets damaged
 		if commanders[unitID] then
-			local x, y, z = Spring.GetUnitPosition(unitID)
+			local x, y, z = spGetUnitPosition(unitID)
 			local camX, camY, camZ = Spring.GetCameraPosition()
 			if not spIsUnitInView(unitID) or math.diag(camX - x, camY - y, camZ - z) > 3000 then
 				if not commandersDamages[unitID] then
@@ -864,7 +876,7 @@ local function playNextSound()
 		if not muteWhenIdle or not isIdle or notification[event].tutorial then
 			local m = 1
 			if spoken and #notification[event].voiceFiles > 0 then
-				local m = #notification[event].voiceFiles > 1 and math.random(1, #notification[event].voiceFiles) or 1
+				local m = #notification[event].voiceFiles > 1 and mathRandom(1, #notification[event].voiceFiles) or 1
 				if notification[event].voiceFiles[m] then
 					Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, 'ui')
 					local duration = wavFileLengths[string.sub(notification[event].voiceFiles[m], 8)]
@@ -874,7 +886,7 @@ local function playNextSound()
 					end
 					nextSoundQueued = sec + (duration or 3) + silentTime
 				else
-					Spring.Echo('notification "'..event..'" missing sound file: #'..m)
+					spEcho('notification "'..event..'" missing sound file: #'..m)
 				end
 				if notification[event].soundEffect then
 					Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
@@ -924,7 +936,7 @@ function widget:Update(dt)
 		end
 
 		-- check idle status
-		local mouseX, mouseY = Spring.GetMouseState()
+		local mouseX, mouseY = spGetMouseState()
 		if mouseX ~= lastMouseX or mouseY ~= lastMouseY then
 			lastUserInputTime = os.clock()
 		end

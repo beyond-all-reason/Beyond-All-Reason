@@ -11,32 +11,38 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 local connectedController
 local reportState = false
 
 function widget:Initialize()
 	if not Spring.GetAvailableControllers then
-		Spring.Echo("ControllerTest: Spring.GetAvailableControllers not available")
+		spEcho("ControllerTest: Spring.GetAvailableControllers not available")
 		return
 	end
 	local availableControllers = Spring.GetAvailableControllers()
 
 	if next(availableControllers) == nil then
-		Spring.Echo("ControllerTest: No available controllers")
+		spEcho("ControllerTest: No available controllers")
 		return
 	end
 
-	Spring.Echo("ControllerTest: Found controllers")
-	Spring.Echo(availableControllers)
+	spEcho("ControllerTest: Found controllers")
+	spEcho(availableControllers)
 
 	-- Find already connected controllers and disconnect if more than 1 already connected
 	for _, controller in pairs(availableControllers) do
 		if controller.instanceId then
 			if connectedController then
-				Spring.Echo("ControllerTest: Already connected to " .. connectedController .. ". Disconnecting " .. controller.instanceId .. ": " .. controller.name)
+				spEcho("ControllerTest: Already connected to " .. connectedController .. ". Disconnecting " .. controller.instanceId .. ": " .. controller.name)
 				Spring.DisconnectController(controller.instanceId)
 			else
-				Spring.Echo("ControllerTest: Using already connected " .. controller.instanceId .. ": " .. controller.name)
+				spEcho("ControllerTest: Using already connected " .. controller.instanceId .. ": " .. controller.name)
 				connectedController = controller.instanceId
 			end
 		end
@@ -45,7 +51,7 @@ function widget:Initialize()
 	if not connectedController then
 		-- get any controller to connect to
 		local deviceId, controller = next(availableControllers)
-		Spring.Echo("ControllerTest: No controllers connected, connecting to " .. deviceId .. ": " .. controller.name)
+		spEcho("ControllerTest: No controllers connected, connecting to " .. deviceId .. ": " .. controller.name)
 		Spring.ConnectController(deviceId)
 	end
 end
@@ -56,74 +62,74 @@ function widget:Update(dt)
 	if uiSec > 1 and connectedController and reportState then
 		uiSec = 0
 
-		Spring.Echo("ControllerTest: Controller State")
-		Spring.Echo(Spring.GetControllerState(connectedController))
+		spEcho("ControllerTest: Controller State")
+		spEcho(Spring.GetControllerState(connectedController))
 	end
 end
 
 function widget:ControllerAdded(deviceId)
-	Spring.Echo("ControllerTest: Added", deviceId)
+	spEcho("ControllerTest: Added", deviceId)
 
 	if not connectedController then
-		Spring.Echo("ControllerTest: Connecting to ", deviceId)
+		spEcho("ControllerTest: Connecting to ", deviceId)
 		Spring.ConnectController(deviceId)
 	end
 end
 
 function widget:ControllerConnected(instanceId)
-	Spring.Echo("ControllerTest: Connected", instanceId)
+	spEcho("ControllerTest: Connected", instanceId)
 
 	if not connectedController then
-		Spring.Echo("ControllerTest: Connection to " .. instanceId .. " established")
+		spEcho("ControllerTest: Connection to " .. instanceId .. " established")
 		connectedController = instanceId
 	end
 end
 
 function widget:ControllerRemoved(instanceId)
-	Spring.Echo("ControllerTest: Removed", instanceId)
+	spEcho("ControllerTest: Removed", instanceId)
 
 	if connectedController == instanceId then
-		Spring.Echo("ControllerTest: Disconnecting", instanceId)
+		spEcho("ControllerTest: Disconnecting", instanceId)
 		Spring.DisconnectController(instanceId)
 	end
 end
 
 function widget:ControllerRemapped(instanceId)
-	Spring.Echo("ControllerTest: Remapped", instanceId)
+	spEcho("ControllerTest: Remapped", instanceId)
 end
 
 function widget:ControllerDisconnected(instanceId)
-	Spring.Echo("ControllerTest: Disconnected", instanceId)
+	spEcho("ControllerTest: Disconnected", instanceId)
 
 	if connectedController == instanceId then
-		Spring.Echo("ControllerTest: Removed Connection")
+		spEcho("ControllerTest: Removed Connection")
 		connectedController = nil
 	end
 end
 
 function widget:ControllerButtonUp(instanceId, buttonId, state, name)
 	if instanceId ~= connectedController then
-		Spring.Echo("ControllerTest: ButtonUp -> Received event from controller not connected by this widget", instanceId, name)
+		spEcho("ControllerTest: ButtonUp -> Received event from controller not connected by this widget", instanceId, name)
 		return
 	end
 
-	Spring.Echo("ControllerTest: ButtonUp", instanceId, buttonId, state, name)
+	spEcho("ControllerTest: ButtonUp", instanceId, buttonId, state, name)
 end
 
 function widget:ControllerButtonDown(instanceId, buttonId, state, name)
 	if instanceId ~= connectedController then
-		Spring.Echo("ControllerTest: ButtonDown -> Received event from controller not connected by this widget", instanceId, name)
+		spEcho("ControllerTest: ButtonDown -> Received event from controller not connected by this widget", instanceId, name)
 		return
 	end
 
-	Spring.Echo("ControllerTest: ButtonDown", instanceId, buttonId, state, name)
+	spEcho("ControllerTest: ButtonDown", instanceId, buttonId, state, name)
 end
 
 function widget:ControllerAxisMotion(instanceId, axisId, value, name)
 	if instanceId ~= connectedController then
-		Spring.Echo("ControllerTest: AxisMotion -> Received event from controller not connected by this widget", instanceId, name)
+		spEcho("ControllerTest: AxisMotion -> Received event from controller not connected by this widget", instanceId, name)
 		return
 	end
 
-	Spring.Echo("ControllerTest: AxisMotion", instanceId, axisId, value, name)
+	spEcho("ControllerTest: AxisMotion", instanceId, axisId, value, name)
 end

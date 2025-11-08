@@ -20,6 +20,18 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathAbs = math.abs
+local mathMax = math.max
+local mathMin = math.min
+local tableInsert = table.insert
+local tableSort = table.sort
+
+-- Localized Spring API for performance
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetSelectedUnits = Spring.GetSelectedUnits
+
 -- types
 -- =====
 
@@ -101,7 +113,7 @@ end
 ---@return Point
 local function subtractPoints(a, b)
 	local result = {}
-	for i = 1, math.max(#a, #b) do
+	for i = 1, mathMax(#a, #b) do
 		result[i] = (a[i] or 0) - (b[i] or 0)
 	end
 	return result
@@ -129,7 +141,7 @@ local function glListCache(originalFunc)
 		local params = {}
 		for index, value in ipairs(rawParams) do
 			if index > 1 then
-				table.insert(params, value)
+				tableInsert(params, value)
 			end
 		end
 
@@ -393,9 +405,9 @@ local function postProcessBlueprint(bp)
 			0
 		)
 		if acc then
-			return math.min(w, h, acc)
+			return mathMin(w, h, acc)
 		else
-			return math.min(w, h)
+			return mathMin(w, h)
 		end
 	end, nil)
 end
@@ -407,7 +419,7 @@ local function createBlueprint(unitIDs, ordered)
 	end
 
 	local buildableUnits = table.filterArray(unitIDs, function(unitID)
-		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitDefID = spGetUnitDefID(unitID)
 		return blueprintBuildableUnitDefs[unitDefID]
 	end)
 
@@ -425,7 +437,7 @@ local function createBlueprint(unitIDs, ordered)
 			buildableUnits,
 			function(unitID)
 				local x, y, z = SpringGetUnitPosition(unitID)
-				local unitDefID = Spring.GetUnitDefID(unitID)
+				local unitDefID = spGetUnitDefID(unitID)
 				local unitDef = UnitDefs[unitDefID]
 				local unitName = unitDef and unitDef.name or "unknown"
 				
@@ -542,7 +554,7 @@ local function setBlueprintPlacementActive(active)
 	blueprintPlacementActive = active
 
 	if active then
-		widget:SelectionChanged(Spring.GetSelectedUnits())
+		widget:SelectionChanged(spGetSelectedUnits())
 
 		Spring.PlaySoundFile(sounds.activateBlueprint, 0.75, "ui")
 	else
@@ -573,10 +585,10 @@ local function updateSelectedUnits(selection)
 	local buildable = table.filterArray(
 		selection,
 		function(unitID)
-			return blueprintBuildableUnitDefs[Spring.GetUnitDefID(unitID)]
+			return blueprintBuildableUnitDefs[spGetUnitDefID(unitID)]
 		end
 	)
-	table.sort(buildable)
+	tableSort(buildable)
 	local buildableSet = set(buildable)
 
 	-- remove from selectionOrder and selectedUnitsSet anything not present here
@@ -596,7 +608,7 @@ local function updateSelectedUnits(selection)
 	-- add all units that aren't in selectedUnitsSet to selectionOrder and selectedUnitsSet
 	for _, unitID in ipairs(buildable) do
 		if not selectedUnitsSet[unitID] then
-			table.insert(selectedUnitsOrder, unitID)
+			tableInsert(selectedUnitsOrder, unitID)
 			selectedUnitsSet[unitID] = true
 		end
 	end
@@ -617,7 +629,7 @@ function widget:Update(dt)
 	t = 0
 
 	if pendingBoxSelect and not Spring.GetSelectionBox() then
-		updateSelectedUnits(Spring.GetSelectedUnits())
+		updateSelectedUnits(spGetSelectedUnits())
 		pendingBoxSelect = false
 	end
 
@@ -772,7 +784,7 @@ function widget:SelectionChanged(selection)
 		local builders = table.filterArray(
 			selection,
 			function(unitID)
-				return blueprintCommandableUnitDefs[Spring.GetUnitDefID(unitID)]
+				return blueprintCommandableUnitDefs[spGetUnitDefID(unitID)]
 			end
 		)
 
@@ -788,17 +800,17 @@ function widget:SelectionChanged(selection)
 end
 
 function widget:CommandsChanged()
-	local selectedUnits = Spring.GetSelectedUnits()
+	local selectedUnits = spGetSelectedUnits()
 	if #selectedUnits > 0 then
 		local addPlaceCommand = false
 		local addCreateCommand = false
 		local customCommands = widgetHandler.customCommands
 
 		for i = 1, #selectedUnits do
-			if blueprintCommandableUnitDefs[Spring.GetUnitDefID(selectedUnits[i])] then
+			if blueprintCommandableUnitDefs[spGetUnitDefID(selectedUnits[i])] then
 				addPlaceCommand = true
 			end
-			if blueprintBuildableUnitDefs[Spring.GetUnitDefID(selectedUnits[i])] then
+			if blueprintBuildableUnitDefs[spGetUnitDefID(selectedUnits[i])] then
 				addCreateCommand = true
 			end
 		end
@@ -917,7 +929,7 @@ local function handleSpacingAction(_, _, args)
 	end
 
 	local minSpacing = math.floor(
-		-(math.min(bp.dimensions[1], bp.dimensions[2]) - bp.minBuildingDimension)
+		-(mathMin(bp.dimensions[1], bp.dimensions[2]) - bp.minBuildingDimension)
 			/ WG["api_blueprint"].BUILD_SQUARE_SIZE
 	)
 
@@ -928,7 +940,7 @@ local function handleSpacingAction(_, _, args)
 		newSpacing = bp.spacing - 1
 	end
 
-	newSpacing = math.max(minSpacing, newSpacing)
+	newSpacing = mathMax(minSpacing, newSpacing)
 
 	if newSpacing then
 		setBlueprintSpacing(newSpacing)
@@ -986,7 +998,7 @@ local function createBuildingComparator(sortSpec)
 		b = pack(Spring.Pos2BuildPos(b.unitDefID, b.position[1], b.position[2], b.position[3], b.facing))
 		for _, index in ipairs(sortSpec) do
 			local ascending = index > 0
-			index = math.abs(index)
+			index = mathAbs(index)
 			if a[index] ~= b[index] then
 				return (a[index] < b[index]) == ascending
 			end
@@ -1007,9 +1019,9 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			return false
 		end
 
-		local builders = table.filterArray(Spring.GetSelectedUnits(),
+		local builders = table.filterArray(spGetSelectedUnits(),
 			function(unitID)
-				return blueprintCommandableUnitDefs[Spring.GetUnitDefID(unitID)]
+				return blueprintCommandableUnitDefs[spGetUnitDefID(unitID)]
 			end
 		)
 
@@ -1027,7 +1039,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			local delta = subtractPoints(state.endPosition, state.startPosition)
 			local xSort = delta[1] >= 0 and 1 or -1
 			local zSort = delta[3] >= 0 and 3 or -3
-			if math.abs(delta[1]) > math.abs(delta[3]) then
+			if mathAbs(delta[1]) > mathAbs(delta[3]) then
 				buildingComparator = createBuildingComparator({ xSort, zSort })
 			else
 				buildingComparator = createBuildingComparator({ zSort, xSort })
@@ -1050,7 +1062,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 					selectedBlueprint.facing + facing
 				)
 				if not selectedBlueprint.ordered then
-					table.sort(blueprintRotations[facing].units, buildingComparator)
+					tableSort(blueprintRotations[facing].units, buildingComparator)
 				end
 			end
 			local blueprint = blueprintRotations[facing]
@@ -1165,9 +1177,9 @@ local function loadBlueprintsFromFile()
 	for i, serializedBlueprint in ipairs(decoded.savedBlueprints) do
 		local blueprint = deserializeBlueprint(serializedBlueprint, i)
 		if blueprint then
-			table.insert(blueprints, blueprint)
+			tableInsert(blueprints, blueprint)
 		else
-			table.insert(filteredOutSerializedBlueprints, serializedBlueprint)
+			tableInsert(filteredOutSerializedBlueprints, serializedBlueprint)
 		end
 	end
 
@@ -1234,7 +1246,7 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "buildfacing", handleFacingAction, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "buildspacing", handleSpacingAction, nil, "p")
 
-	widget:SelectionChanged(Spring.GetSelectedUnits())
+	widget:SelectionChanged(spGetSelectedUnits())
 end
 
 function widget:Shutdown()

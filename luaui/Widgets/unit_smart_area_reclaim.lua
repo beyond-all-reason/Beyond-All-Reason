@@ -25,6 +25,12 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+
 local maxOrdersCheck = 100 -- max amount of orders to check for duplicate orders on units
 local maxReclaimOrders = 1000 -- max amount of orders to issue at once
 
@@ -68,7 +74,7 @@ end
 
 
 local function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
+    if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
         widgetHandler:RemoveWidget()
     end
 end
@@ -86,7 +92,7 @@ end
 
 
 function widget:Initialize()
-    if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+    if Spring.IsReplay() or spGetGameFrame() > 0 then
         maybeRemoveSelf()
     end
 end

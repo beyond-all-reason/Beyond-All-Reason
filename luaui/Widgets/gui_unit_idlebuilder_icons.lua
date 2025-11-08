@@ -12,6 +12,12 @@ function widget:GetInfo()
    }
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+
 local onlyOwnTeam = true
 
 local idleUnitDelay = 8	-- how long a unit must be idle before the icon shows up
@@ -112,7 +118,7 @@ end
 
 
 local function updateIcons()
-	local gf = Spring.GetGameFrame()
+	local gf = spGetGameFrame()
 	local queue
 	for unitID, unitDefID in pairs(unitScope) do
 		queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 0) or spGetUnitCommandCount(unitID, 0)
@@ -150,7 +156,7 @@ local function updateIcons()
 end
 
 function widget:GameFrame(n)
-	if Spring.GetGameFrame() % 25 == 0 then
+	if spGetGameFrame() % 25 == 0 then
 		updateIcons()
 	end
 end

@@ -26,7 +26,13 @@ function widget:GetInfo()
 	}
 end
 
-local vsx, vsy = Spring.GetViewGeometry()
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetViewGeometry = Spring.GetViewGeometry
+
+local vsx, vsy = spGetViewGeometry()
 local widgetScale = 0.80 + (vsx * vsy / 6000000)
 
 local glPopMatrix = gl.PopMatrix
@@ -42,7 +48,7 @@ local font
 local draftMode = Spring.GetModOptions().draft_mode
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 	widgetScale = (0.80 + (vsx * vsy / 6000000))
 
 	font = WG['fonts'].getFont(1, 1.5)

@@ -14,6 +14,12 @@ function widget:GetInfo()
   }
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- fix seams?
@@ -593,7 +599,7 @@ function widget:Initialize()
 
 
 	hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == false)
-	--Spring.Echo(gsSrc)
+	--spEcho(gsSrc)
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	gsSrc = gsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
@@ -807,7 +813,7 @@ end
 
 
 function widget:DrawGroundDeferred()
-	--Spring.Echo("widget:DrawGroundDeferred")
+	--spEcho("widget:DrawGroundDeferred")
 	if #mirrorParams == 0 then
 		return
 	end

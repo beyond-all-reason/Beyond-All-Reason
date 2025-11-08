@@ -13,6 +13,17 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSpectatingState = Spring.GetSpectatingState
+
 include("keysym.h.lua")
 
 local pairs = pairs
@@ -101,9 +112,9 @@ local playSounds = true
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
-local ordermenuLeft = math.floor(vsx / 5)
+local ordermenuLeft = mathFloor(vsx / 5)
 local advplayerlistLeft = vsx * 0.8
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
@@ -111,8 +122,8 @@ local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 
 local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
 
-local isSpec = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
+local isSpec = spGetSpectatingState()
+local myTeamID = spGetMyTeamID()
 
 local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 
@@ -136,7 +147,7 @@ local cmdsCount = 0
 local currentPage = 1
 local pages = 1
 local paginatorRects = {}
-local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
+local preGamestartPlayer = spGetGameFrame() == 0 and not isSpec
 
 local unitDefToCellMap = {}
 local cellQuotas = {}
@@ -202,9 +213,9 @@ local SelectedUnitsCount = spGetSelectedUnitsCount()
 local string_sub = string.sub
 local os_clock = os.clock
 
-local math_floor = math.floor
+local math_floor = mathFloor
 local math_ceil = math.ceil
-local math_max = math.max
+local math_max = mathMax
 local math_min = math.min
 
 local glTexture = gl.Texture
@@ -291,8 +302,8 @@ local function checkGuishader(force)
 end
 
 function widget:PlayerChanged(playerID)
-	isSpec = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
+	isSpec = spGetSpectatingState()
+	myTeamID = spGetMyTeamID()
 end
 
 local function UpdateGridGeometry()
@@ -485,7 +496,7 @@ local function clear()
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
 	font2 = WG['fonts'].getFont(2)
@@ -779,7 +790,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 				if disabled then
 					costColor = costOverride.top.colorDisabled or "\255\100\200\100"
 				end
-				local costPrice = AddSpaces(math.floor(topValue))
+				local costPrice = AddSpaces(mathFloor(topValue))
 				local costPriceText = costColor .. costPrice
 				font2:Print(costPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
 			elseif not costOverride.top then
@@ -793,7 +804,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 				if disabled then
 					costColor = costOverride.bottom.colorDisabled or "\255\135\135\135"
 				end
-				local costPrice = AddSpaces(math.floor(bottomValue))
+				local costPrice = AddSpaces(mathFloor(bottomValue))
 				local costPriceText = costColor .. costPrice
 				font2:Print(costPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
 			elseif not costOverride.bottom then
@@ -945,7 +956,7 @@ function widget:DrawScreen()
 	-- refresh buildmenu if active cmd changed
 	local prevActiveCmd = activeCmd
 
-	if Spring.GetGameFrame() == 0 and WG['pregame-build'] then
+	if spGetGameFrame() == 0 and WG['pregame-build'] then
 		activeCmd = WG["pregame-build"] and WG["pregame-build"].getPreGameDefID()
 		if activeCmd then
 			activeCmd = unitName[activeCmd]
@@ -1207,7 +1218,7 @@ end
 function widget:DrawWorld()
 
 	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
-	if Spring.GetGameFrame() > 0 then
+	if spGetGameFrame() > 0 then
 		widgetHandler:RemoveWidgetCallIn('DrawWorld', self)
 		return
 	end
@@ -1296,7 +1307,7 @@ local function updateQuotaNumber(unitDefID, count)
 				quotas[builderID] = quotas[builderID] or {}
 				quotas[builderID][unitDefID] = quotas[builderID][unitDefID] or 0
 				local prev = quotas[builderID][unitDefID]
-				quotas[builderID][unitDefID] = math.max(quotas[builderID][unitDefID] + (count or 0), 0)
+				quotas[builderID][unitDefID] = mathMax(quotas[builderID][unitDefID] + (count or 0), 0)
 				quotaChanged = quotaChanged or prev ~= quotas[builderID][unitDefID]
 			end
 		end

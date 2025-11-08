@@ -12,6 +12,13 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetGameFrame = Spring.GetGameFrame
+
 local spies  = {}
 
 local spyNames = {
@@ -26,16 +33,16 @@ for _, spyName in ipairs(spyNames) do
 	end
 end
 
-local GetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
+local GetSelectedUnitsSorted = spGetSelectedUnitsSorted
 local GetUnitStates = Spring.GetUnitStates
-local GetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+local GetSelectedUnitsCount = spGetSelectedUnitsCount
 
 local gameStarted, selectionChanged
 
 local CMD_MOVE = CMD.MOVE
 
 function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
+    if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
         widgetHandler:RemoveWidget()
     end
 end
@@ -54,7 +61,7 @@ function widget:Initialize()
 	    widgetHandler:RemoveWidget()
 	    return
     end
-    if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+    if Spring.IsReplay() or spGetGameFrame() > 0 then
         maybeRemoveSelf()
     end
 end

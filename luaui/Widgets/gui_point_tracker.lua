@@ -13,6 +13,13 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spEcho = Spring.Echo
+
 local timeToLive = 330
 local lineWidth = 1.0
 
@@ -165,7 +172,7 @@ void main(void) { fragColor = vec4(blendedcolor.rgba); }
 ]]
 
 local function goodbye(reason)
-  Spring.Echo("Point Tracker GL4 widget exiting with reason: "..reason)
+  spEcho("Point Tracker GL4 widget exiting with reason: "..reason)
   widgetHandler:RemoveWidget()
 end
 
@@ -235,7 +242,7 @@ end
 --------------------------------------------------------------------------------
 function DrawMapMarksWorld(isMiniMap)
   if mapMarkInstanceVBO.usedElements > 0 then
-    --Spring.Echo("DrawMapMarksWorld",isMiniMap, Spring.GetGameFrame(), mapMarkInstanceVBO.usedElements)
+    --spEcho("DrawMapMarksWorld",isMiniMap, spGetGameFrame(), mapMarkInstanceVBO.usedElements)
 	  glLineWidth(lineWidth)
 		mapMarkShader:Activate()
 		mapMarkShader:SetUniform("isMiniMap",isMiniMap)
@@ -286,7 +293,7 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz, label)
 	end
   instanceIDgen= instanceIDgen + 1
 	local r, g, b = GetPlayerColor(playerID)
-  local gf = Spring.GetGameFrame()
+  local gf = spGetGameFrame()
 
   pushElementInstance(
 			mapMarkInstanceVBO,

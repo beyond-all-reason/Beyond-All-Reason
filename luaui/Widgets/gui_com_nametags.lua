@@ -12,6 +12,16 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetViewGeometry = Spring.GetViewGeometry
+local spWorldToScreenCoords = Spring.WorldToScreenCoords
+local spGetSpectatingState = Spring.GetSpectatingState
+
 --------------------------------------------------------------------------------
 -- config
 --------------------------------------------------------------------------------
@@ -69,7 +79,7 @@ local diag = math.diag
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local fontfileScale = (0.5 + (vsx * vsy / 5700000))
@@ -107,8 +117,8 @@ teams = nil
 local drawScreenUnits = {}
 local CheckedForSpec = false
 
-local spec = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
+local spec = spGetSpectatingState()
+local myTeamID = spGetMyTeamID()
 local GaiaTeam = Spring.GetGaiaTeamID()
 
 local comHeight = {}
@@ -338,7 +348,7 @@ function widget:Update(dt)
 		sec = 0
 	end
 	if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
-		if myTeamID ~= Spring.GetMyTeamID() then
+		if myTeamID ~= spGetMyTeamID() then
 			-- old
 			local teamPlayerID = select(2, GetTeamInfo(myTeamID, false))
 			local name = GetPlayerInfo(teamPlayerID, false)
@@ -349,7 +359,7 @@ function widget:Update(dt)
 			if comnameIconList[name] ~= nil then
 				comnameIconList[name] = gl.DeleteList(comnameIconList[name])
 			end
-			myTeamID = Spring.GetMyTeamID()
+			myTeamID = spGetMyTeamID()
 			teamPlayerID = select(2, GetTeamInfo(myTeamID, false))
 			name = GetPlayerInfo(teamPlayerID, false)
 			name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(teamPlayerID)) or name
@@ -386,7 +396,7 @@ local function DrawName(attributes)
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then
@@ -406,7 +416,7 @@ local function createComnameIconList(unitID, attributes)
 	end
 	comnameIconList[attributes[1]] = gl.CreateList(function()
 		local x, y, z = GetUnitPosition(unitID)
-		x, z = Spring.WorldToScreenCoords(x, y, z)
+		x, z = spWorldToScreenCoords(x, y, z)
 
 		local outlineColor = { 0, 0, 0, 1 }
 		if ColorIsDark(attributes[2][1], attributes[2][2], attributes[2][3]) then
@@ -427,7 +437,7 @@ end
 
 function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader will blur it when needed
 	if Spring.IsGUIHidden() then return end
-	if Spring.GetGameFrame() < hideBelowGameframe then return end
+	if spGetGameFrame() < hideBelowGameframe then return end
 
 	for unitID, attributes in pairs(drawScreenUnits) do
 		if not comnameIconList[attributes[1]] then
@@ -435,7 +445,7 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader
 		end
 		local x, y, z = GetUnitPosition(unitID)
 		if x and y and z then
-			x, z = Spring.WorldToScreenCoords(x, y + 50 + heightOffset, z)
+			x, z = spWorldToScreenCoords(x, y + 50 + heightOffset, z)
 			local scale = 1 - (attributes[5] / 25000)
 			if scale < 0.5 then
 				scale = 0.5
@@ -455,10 +465,10 @@ end
 
 function widget:DrawWorld()
 	if Spring.IsGUIHidden() then return end
-	if Spring.GetGameFrame() < hideBelowGameframe then return end
+	if spGetGameFrame() < hideBelowGameframe then return end
 
 	-- untested fix: when you resign, to also show enemy com playernames  (because widget:PlayerChanged() isnt called anymore)
-	if not CheckedForSpec and Spring.GetGameFrame() > 1 then
+	if not CheckedForSpec and spGetGameFrame() > 1 then
 		if spec then
 			CheckedForSpec = true
 			CheckAllComs()
@@ -512,8 +522,8 @@ end
 
 function widget:PlayerChanged(playerID)
 	local prevSpec = spec
-	spec = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
+	spec = spGetSpectatingState()
+	myTeamID = spGetMyTeamID()
 
 	local name, _ = GetPlayerInfo(playerID, false)
 	name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name

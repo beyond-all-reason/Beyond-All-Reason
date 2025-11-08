@@ -16,6 +16,18 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+local mathMin = math.min
+local mathRandom = math.random
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spEcho = Spring.Echo
+local spGetSpectatingState = Spring.GetSpectatingState
+
 -------------------------------- Notes, TODO ----------------------------------
 do
 -- GL4 notes:
@@ -172,7 +184,7 @@ local spValidUnitID = Spring.ValidUnitID
 -- Weak:
 local spIsGUIHidden = Spring.IsGUIHidden
 
-local math_max = math.max
+local math_max = mathMax
 local math_ceil = math.ceil
 
 local unitName = {}
@@ -360,14 +372,14 @@ local testprojlighttable = {0,16,0,200, --pos + radius
 								}
 local numAddLights = 0 -- how many times AddLight was called
 
-local spec = Spring.GetSpectatingState()
+local spec = spGetSpectatingState()
 
 ---------------------- INITIALIZATION FUNCTIONS ----------------------------------
 
 
 
 local function goodbye(reason)
-	Spring.Echo('Deferred Lights GL4 exiting:', reason)
+	spEcho('Deferred Lights GL4 exiting:', reason)
 	widgetHandler:RemoveWidget()
 end
 
@@ -446,7 +458,7 @@ local function InitializeLight(lightTable, unitID)
 			end
 			lightparams[lightParamKeyOrder.radius] = lightparams[lightParamKeyOrder.radius]
 			lightparams[lightParamKeyOrder.a] =  lightparams[lightParamKeyOrder.a]
-			lightparams[lightParamKeyOrder.lifetime] = math.floor( lightparams[lightParamKeyOrder.lifetime] )
+			lightparams[lightParamKeyOrder.lifetime] = mathFloor( lightparams[lightParamKeyOrder.lifetime] )
 			lightTable.lightParamTable = lightparams
 			lightTable.lightConfig = nil -- never used again after initialization
 		end
@@ -467,7 +479,7 @@ local function InitializeLight(lightTable, unitID)
 				lightTable.pieceIndex = pieceMap[lightTable.pieceName]
 				lightTable.lightParamTable[pieceIndexPos] = lightTable.pieceIndex
 			end
-				--Spring.Echo(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
+				--spEcho(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
 		end
 
 		lightTable.initComplete = true
@@ -564,7 +576,7 @@ local function AddPointLight(instanceID, unitID, pieceIndex, targetVBO, px_or_ta
 		autoLightInstanceID = autoLightInstanceID + 1
 		instanceID = autoLightInstanceID
 	end
-	--Spring.Echo("AddPointLight",instanceID)
+	--spEcho("AddPointLight",instanceID)
 	local noUpload
 	local lightparams
 	if type(px_or_table) ~= "table" then
@@ -611,7 +623,7 @@ end
 
 local function AddRandomDecayingPointLight()
 	AddPointLight(nil,nil,nil, nil,
-		Game.mapSizeX * 0.5 + math.random()*2000,
+		Game.mapSizeX * 0.5 + mathRandom()*2000,
 		Spring.GetGroundHeight(Game.mapSizeX * 0.5,Game.mapSizeZ * 0.5) + 50,
 		Game.mapSizeZ * 0.5,
 		250,
@@ -619,10 +631,10 @@ local function AddRandomDecayingPointLight()
 		0,1,0,60,
 		1,1,1,1,
 		gameFrame, 100, 20, 1)
-	--Spring.Echo("AddRandomDecayingPointLight", instanceID)
+	--spEcho("AddRandomDecayingPointLight", instanceID)
 
 	AddPointLight(nil,nil,nil,nil,
-		Game.mapSizeX * 0.5 + math.random()*2000,
+		Game.mapSizeX * 0.5 + mathRandom()*2000,
 		Spring.GetGroundHeight(Game.mapSizeX * 0.5,Game.mapSizeZ * 0.5) + 50,
 		Game.mapSizeZ * 0.5 + 400,
 		250,
@@ -630,10 +642,10 @@ local function AddRandomDecayingPointLight()
 		1,0.5,0.2,5,
 		1,1,1,1,
 		gameFrame, 30, 0.2, 1)
-	--Spring.Echo("AddRandomExplosionPointLight", instanceID)
+	--spEcho("AddRandomExplosionPointLight", instanceID)
 
 	AddPointLight(nil,nil,nil,nil,
-		Game.mapSizeX * 0.5 + math.random()*2000,
+		Game.mapSizeX * 0.5 + mathRandom()*2000,
 		Spring.GetGroundHeight(Game.mapSizeX * 0.5,Game.mapSizeZ * 0.5) + 50,
 		Game.mapSizeZ * 0.5 + 800,
 		250,
@@ -641,7 +653,7 @@ local function AddRandomDecayingPointLight()
 		1,0.5,0.25,3, -- go to yellow in 3 frames
 		1,1,1,1,
 		gameFrame, 100, 20, 1) -- Sustain peak brightness for 20 frames, and go down to 0 brightness by 100 frames.
-	--Spring.Echo("AddRandomDecayingPointLight", instanceID)
+	--spEcho("AddRandomDecayingPointLight", instanceID)
 end
 
 ---AddBeamLight
@@ -873,14 +885,14 @@ local function RemoveUnitAttachedLights(unitID, instanceID)
 					numremoved = numremoved + 1
 					popElementInstance(targetVBO,instanceID)
 				else
-					--Spring.Echo("Light attached to unit no longer is in targetVBO", unitID, instanceID, targetVBO.myName)
+					--spEcho("Light attached to unit no longer is in targetVBO", unitID, instanceID, targetVBO.myName)
 				end
 			end
-			--Spring.Echo("Removed lights from unitID", unitID, numremoved, successes)
+			--spEcho("Removed lights from unitID", unitID, numremoved, successes)
 			unitAttachedLights[unitID] = nil
 		end
 	else
-		--Spring.Echo("RemoveUnitAttachedLights: No lights attached to", unitID)
+		--spEcho("RemoveUnitAttachedLights: No lights attached to", unitID)
 	end
 	return numremoved
 end
@@ -898,7 +910,7 @@ local function RemoveLight(lightshape, instanceID, unitID, noUpload)
 			unitAttachedLights[unitID][instanceID] = nil
 			return popElementInstance(targetVBO, instanceID)
 		else
-			Spring.Echo("RemoveLight tried to remove a non-existing unitlight", lightshape, instanceID, unitID)
+			spEcho("RemoveLight tried to remove a non-existing unitlight", lightshape, instanceID, unitID)
 		end
 	elseif lightshape then
 		if lightVBOMap[lightshape].instanceIDtoIndex[instanceID] then
@@ -906,12 +918,12 @@ local function RemoveLight(lightshape, instanceID, unitID, noUpload)
 		else
 			if not noUpload then
 				if type(instanceID) == "string" and (not string.find(instanceID, "FeatureCreated", nil, true)) then
-					Spring.Echo("RemoveLight tried to remove a non-existing light", lightshape, instanceID, unitID)
+					spEcho("RemoveLight tried to remove a non-existing light", lightshape, instanceID, unitID)
 				end
 			end
 		end
 	else
-		Spring.Echo("RemoveLight tried to remove a non-existing light", lightshape, instanceID, unitID)
+		spEcho("RemoveLight tried to remove a non-existing light", lightshape, instanceID, unitID)
 	end
 	return nil
 end
@@ -919,15 +931,15 @@ end
 
 function AddRandomLight(which)
 	local gf = gameFrame
-	local radius = math.random() * 150 + 50
-	local posx = Game.mapSizeX * math.random() * 1.0
-	local posz = Game.mapSizeZ * math.random() * 1.0
-	local posy = Spring.GetGroundHeight(posx, posz) + math.random() * 0.5 * radius
+	local radius = mathRandom() * 150 + 50
+	local posx = Game.mapSizeX * mathRandom() * 1.0
+	local posz = Game.mapSizeZ * mathRandom() * 1.0
+	local posy = Spring.GetGroundHeight(posx, posz) + mathRandom() * 0.5 * radius
 	-- randomize color
-	local r  = math.random() + 0.1 --r
-	local g = math.random() + 0.1 --g
-	local b = math.random() + 0.1 --b
-	local a = math.random() * 1.0 + 0.5 -- intensity or alpha
+	local r  = mathRandom() + 0.1 --r
+	local g = mathRandom() + 0.1 --g
+	local b = mathRandom() + 0.1 --b
+	local a = mathRandom() * 1.0 + 0.5 -- intensity or alpha
 
 	lightCacheTable[13] = 1 -- modelfactor
 	lightCacheTable[14] = 1 -- specular
@@ -938,16 +950,16 @@ function AddRandomLight(which)
 	if which < 0.33 then -- point
 		AddPointLight(nil, nil, nil, nil, posx, posy, posz, radius, r,g,b,a)
 	elseif which < 0.66 then -- beam
-		local s =  (math.random() - 0.5) * 500
-		local t =  (math.random() + 0.5) * 100
-		local u =  (math.random() - 0.5) * 500
+		local s =  (mathRandom() - 0.5) * 500
+		local t =  (mathRandom() + 0.5) * 100
+		local u =  (mathRandom() - 0.5) * 500
 		AddBeamLight(nil,nil,nil,nil, posx, posy , posz, radius, r,g,b,a, posx + s, posy + t, posz + u)
 	else -- cone
-		local s =  (math.random() - 0.5) * 2
-		local t =  (math.random() + 0.0) * -1
-		local u =  (math.random() - 0.5) * 2
+		local s =  (mathRandom() - 0.5) * 2
+		local t =  (mathRandom() + 0.0) * -1
+		local u =  (mathRandom() - 0.5) * 2
 		local lenstu = 1.0 / math.sqrt(s*s + t*t + u*u)
-		local theta = math.random() * 0.9
+		local theta = mathRandom() * 0.9
 		AddConeLight(nil,nil,nil,nil, posx, posy + radius, posz, 3* radius, r,g,b,a,s * lenstu, t * lenstu, u * lenstu, theta)
 	end
 
@@ -956,20 +968,20 @@ end
 
 local function LoadLightConfig()
 	local success, result =	pcall(VFS.Include, 'luaui/configs/DeferredLightsGL4config.lua')
-	--Spring.Echo("Loading GL4 light config", success, result)
+	--spEcho("Loading GL4 light config", success, result)
 	if success then
-		--Spring.Echo("Loaded GL4 light config")
+		--spEcho("Loaded GL4 light config")
 		unitDefLights = result.unitDefLights
 		unitEventLights = result.unitEventLights
 		featureDefLights = result.featureDefLights
 		--projectileDefLights = result.projectileDefLights
 
 	else
-		Spring.Echo("Failed to load GL4 Unit light config", success, result)
+		spEcho("Failed to load GL4 Unit light config", success, result)
 	end
 
 	local success2, result2 =	pcall(VFS.Include, 'luaui/configs/DeferredLightsGL4WeaponsConfig.lua')
-	--Spring.Echo("Loading GL4 weapon light config", success2, result2)
+	--spEcho("Loading GL4 weapon light config", success2, result2)
 	if success2 then
 		gibLight = result2.gibLight
 		InitializeLight(gibLight)
@@ -989,7 +1001,7 @@ local function LoadLightConfig()
 			InitializeLight(lightTable)
 		end
 	else
-		Spring.Echo("Failed to load GL4 weapon light config", success2, result2)
+		spEcho("Failed to load GL4 weapon light config", success2, result2)
 	end
 	return success and success2
 end
@@ -1055,7 +1067,7 @@ local function GetLightVBO(vboName)
 end
 
 function widget:PlayerChanged(playerID)
-	spec = Spring.GetSpectatingState()
+	spec = spGetSpectatingState()
 
 	local _, _, isSpec, teamID = Spring.GetPlayerInfo(playerID, false)
 	local r, g, b = Spring.GetTeamColor(teamID)
@@ -1116,12 +1128,12 @@ function widget:Shutdown()
 	for lighttype, vbo in pairs(lightVBOMap) do ram = ram + vbo:Delete() end
 	ram = ram + cursorPointLightVBO:Delete()
 
-	--Spring.Echo("DLGL4 ram usage MB = ", ram / 1000000)
-	--Spring.Echo("featureDefLights", table.countMem(featureDefLights))
-	--Spring.Echo("unitEventLights", table.countMem(unitEventLights))
-	--Spring.Echo("unitDefLights", table.countMem(unitDefLights))
-	--Spring.Echo("projectileDefLights", table.countMem(projectileDefLights))
-	--Spring.Echo("explosionLights", table.countMem(explosionLights))
+	--spEcho("DLGL4 ram usage MB = ", ram / 1000000)
+	--spEcho("featureDefLights", table.countMem(featureDefLights))
+	--spEcho("unitEventLights", table.countMem(unitEventLights))
+	--spEcho("unitDefLights", table.countMem(unitDefLights))
+	--spEcho("projectileDefLights", table.countMem(projectileDefLights))
+	--spEcho("explosionLights", table.countMem(explosionLights))
 
 	-- Note, these must be nil'ed manually, because
 	-- tables included from VFS.Include dont get GC'd unless specifically nil'ed
@@ -1147,14 +1159,14 @@ function widget:GameFrame(n)
 	end
 	gameFrame = n
 	local windDirX, _, windDirZ, windStrength = Spring.GetWind()
-	--windStrength = math.min(20, math.max(3, windStrength))
-	--Spring.Echo(windDirX,windDirZ,windStrength)
+	--windStrength = mathMin(20, mathMax(3, windStrength))
+	--spEcho(windDirX,windDirZ,windStrength)
 	windX = windX + windDirX * 0.016
 	windZ = windZ + windDirZ * 0.016
 	if lightRemoveQueue[n] then
 		for instanceID, targetVBO in pairs(lightRemoveQueue[n]) do
 			if targetVBO.instanceIDtoIndex[instanceID] then
-				--Spring.Echo("removing dead light", targetVBO.usedElements, 'id:', instanceID)
+				--spEcho("removing dead light", targetVBO.usedElements, 'id:', instanceID)
 				popElementInstance(targetVBO, instanceID)
 			end
 		end
@@ -1204,7 +1216,7 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 								local unitHeight = Spring.GetUnitHeight(unitID)
 								if unitHeight == nil then
 									local losstate = Spring.GetUnitLosState(unitID)
-									Spring.Echo("Unitheight is nil for unitID", unitID, "unitDefName", unitName[unitDefID], eventName, lightname, 'losstate', losstate and losstate.los)
+									spEcho("Unitheight is nil for unitID", unitID, "unitDefName", unitName[unitDefID], eventName, lightname, 'losstate', losstate and losstate.los)
 								end
 
 								lightCacheTable[2] = lightCacheTable[2] + lightTable.aboveUnit + (unitHeight or 0)
@@ -1315,10 +1327,10 @@ end
 
 local function updateProjectileLights(newgameframe)
 	local nowprojectiles = Spring.GetVisibleProjectiles()
-	gameFrame = Spring.GetGameFrame()
+	gameFrame = spGetGameFrame()
 	local newgameframe = true
 	if gameFrame == lastGameFrame then newgameframe = false end
-	--Spring.Echo(gameFrame, lastGameFrame, newgameframe)
+	--spEcho(gameFrame, lastGameFrame, newgameframe)
 	lastGameFrame = gameFrame
 	-- turn off uploading vbo
 	-- one known issue regarding to every gameframe respawning lights is to actually get them to update existing dead light candidates, this is very very hard to do sanely
@@ -1338,7 +1350,7 @@ local function updateProjectileLights(newgameframe)
 						local dx,dy,dz = spGetProjectileVelocity(projectileID)
 						local instanceIndex = updateLightPosition(projectileLightVBOMap[lightType],
 							projectileID, px,py,pz, nil, dx,dy,dz)
-						if debugproj then Spring.Echo("Updated", instanceIndex, projectileID, px, py, pz,dx,dy,dz) end
+						if debugproj then spEcho("Updated", instanceIndex, projectileID, px, py, pz,dx,dy,dz) end
 					end
 
 				end
@@ -1361,7 +1373,7 @@ local function updateProjectileLights(newgameframe)
 						lightParamTable[1] = px
 						lightParamTable[2] = py
 						lightParamTable[3] = pz
-						if debugproj then Spring.Echo(lightType, projectileDefLights[weaponDefID].lightClassName) end
+						if debugproj then spEcho(lightType, projectileDefLights[weaponDefID].lightClassName) end
 
 						local dx,dy,dz = spGetProjectileVelocity(projectileID)
 
@@ -1375,12 +1387,12 @@ local function updateProjectileLights(newgameframe)
 							lightParamTable[6] = dy
 							lightParamTable[7] = dz
 						end
-						if debugproj then Spring.Echo(lightType, px,py,pz, dx, dy,dz) end
+						if debugproj then spEcho(lightType, px,py,pz, dx, dy,dz) end
 
 						AddLight(projectileID, nil, nil, projectileLightVBOMap[lightType], lightParamTable,noUpload)
 						--AddLight(projectileID, nil, nil, projectilePointLightVBO, lightParamTable)
 					else
-						--Spring.Echo("No projectile light defined for", projectileID, weaponDefID, px, pz)
+						--spEcho("No projectile light defined for", projectileID, weaponDefID, px, pz)
 						--testprojlighttable[1] = px
 						--testprojlighttable[2] = py
 						--testprojlighttable[3] = pz
@@ -1388,7 +1400,7 @@ local function updateProjectileLights(newgameframe)
 					end
 				end
 				numadded = numadded + 1
-				if debugproj then Spring.Echo("Adding projlight", projectileID, Spring.GetProjectileName(projectileID)) end
+				if debugproj then spEcho("Adding projlight", projectileID, Spring.GetProjectileName(projectileID)) end
 				--trackedProjectiles[]
 				trackedProjectileTypes[projectileID] = lightType
 			end
@@ -1429,7 +1441,7 @@ local function updateProjectileLights(newgameframe)
 		end
 	end
 	--if debugproj then
-	--	Spring.Echo("#points", projectilePointLightVBO.usedElements, '#projs', #nowprojectiles )
+	--	spEcho("#points", projectilePointLightVBO.usedElements, '#projs', #nowprojectiles )
 	--end
 end
 
@@ -1526,7 +1538,7 @@ function widget:Update(dt)
 
 	updateProjectileLights()
 	expavg = expavg * 0.98 + 0.02 * Spring.DiffTimers(Spring.GetTimerMicros(),tus)
-	--if Spring.GetGameFrame() % 120 ==0 then Spring.Echo("Update is on average", expavg,'ms') end
+	--if spGetGameFrame() % 120 ==0 then spEcho("Update is on average", expavg,'ms') end
 end
 
 ------------------------------- Drawing all the lights ---------------------------------
@@ -1599,10 +1611,10 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		-- As the setting goes from 0 to 4, map to 0,8,16,32,64
 		local screenSpaceShadowSampleCount = 0
 		if screenSpaceShadows > 0 then
-			screenSpaceShadowSampleCount = math.min(64, math.floor( math.pow(2, screenSpaceShadows) * 4) )
+			screenSpaceShadowSampleCount = mathMin(64, mathFloor( math.pow(2, screenSpaceShadows) * 4) )
 		end
 		deferredLightShader:SetUniformInt("screenSpaceShadows",  screenSpaceShadowSampleCount)
-		--Spring.Echo(windX, windZ)
+		--spEcho(windX, windZ)
 
 
 		-- Fixed worldpos lights, cursors, projectiles, world lights
@@ -1648,15 +1660,15 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	--local t1 = 	Spring.GetTimerMicros()
 	--if (Spring.GetDrawFrame() % 50 == 0 ) then
 	--	local dt =  Spring.DiffTimers(t1,t0)
-	--	Spring.Echo("Deltat is ", dt,'us, so total load should be', dt * Spring.GetFPS() / 10 ,'%')
-	--	Spring.Echo("epoch is ", Spring.DiffTimers(t1,tf))
+	--	spEcho("Deltat is ", dt,'us, so total load should be', dt * Spring.GetFPS() / 10 ,'%')
+	--	spEcho("epoch is ", Spring.DiffTimers(t1,tf))
 	--end
 end
 
 -- Register /luaui dlgl4stats to dump light statistics
 function widget:TextCommand(command)
 	if string.find(command, "dlgl4stats", nil, true) then
-		Spring.Echo(string.format("DLGLStats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d), Cursor = %d",
+		spEcho(string.format("DLGLStats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d), Cursor = %d",
 				numAddLights,
 				pointLightVBO.usedElements, beamLightVBO.usedElements, coneLightVBO.usedElements,
 				unitPointLightVBO.usedElements, unitBeamLightVBO.usedElements, unitConeLightVBO.usedElements,
@@ -1666,7 +1678,7 @@ function widget:TextCommand(command)
 	end
 	if string.find(command, "dlgl4skipdraw", nil, true) then
 		skipdraw = not skipdraw
-		Spring.Echo("Deferred Rendering GL4 skipdraw set to", skipdraw)
+		spEcho("Deferred Rendering GL4 skipdraw set to", skipdraw)
 		return true
 	end
 	return false
@@ -1676,7 +1688,7 @@ function widget:Initialize()
 
 	Spring.Debug.TraceEcho("Initialize DLGL4")
 	if Spring.GetConfigString("AllowDeferredMapRendering") == '0' or Spring.GetConfigString("AllowDeferredModelRendering") == '0' then
-		Spring.Echo('Deferred Rendering (gfx_deferred_rendering.lua) requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!')
+		spEcho('Deferred Rendering (gfx_deferred_rendering.lua) requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!')
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -1704,15 +1716,15 @@ function widget:Initialize()
 					end
 				end
 			else
-				Spring.Echo("Deferred Lights GL4: Warning: This map does not specify ",v, "in mapinfo.lua!")
+				spEcho("Deferred Lights GL4: Warning: This map does not specify ",v, "in mapinfo.lua!")
 			end
 		end
 		Spring.SetSunLighting(nightLightingParams)
 	end
 
 	if addrandomlights then
-		math.randomseed(1)
-		for i=1, 1 do AddRandomLight(	math.random()) end
+		mathRandomseed(1)
+		for i=1, 1 do AddRandomLight(	mathRandom()) end
 	end
 
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then

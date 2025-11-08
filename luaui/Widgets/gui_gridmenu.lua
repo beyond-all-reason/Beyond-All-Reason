@@ -23,6 +23,19 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathCeil = math.ceil
+local mathFloor = math.floor
+local mathMax = math.max
+local mathMin = math.min
+
+-- Localized Spring API for performance
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 -------------------------------------------------------------------------------
@@ -33,13 +46,13 @@ local spGetActiveCommand = Spring.GetActiveCommand
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
-local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
+local spGetSelectedUnitsSorted = spGetSelectedUnitsSorted
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
-local math_floor = math.floor
-local math_ceil = math.ceil
-local math_max = math.max
-local math_min = math.min
+local math_floor = mathFloor
+local math_ceil = mathCeil
+local math_max = mathMax
+local math_min = mathMin
 local math_clamp = math.clamp
 local math_bit_and = math.bit_and
 
@@ -218,9 +231,9 @@ end
 local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner, TexRectRound
 local ui_opacity, ui_scale
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
-local ordermenuLeft = math.floor(vsx / 5)
+local ordermenuLeft = mathFloor(vsx / 5)
 local advplayerlistLeft = vsx * 0.8
 
 local zoomMult = 1.5
@@ -563,11 +576,11 @@ local function updateQuotaNumber(unitDefID, quantity)
 	end
 	local cellRect = cellRects[cellId]
 	if WG.Quotas then
-		for _, builderID in ipairs(Spring.GetSelectedUnitsSorted()[activeBuilder]) do
+		for _, builderID in ipairs(spGetSelectedUnitsSorted()[activeBuilder]) do
 			local quotas = WG.Quotas.getQuotas()
 			quotas[builderID] = quotas[builderID] or {}
 			quotas[builderID][unitDefID] = quotas[builderID][unitDefID] or 0
-			quotas[builderID][unitDefID] = math.max(quotas[builderID][unitDefID] + (quantity or 0), 0)
+			quotas[builderID][unitDefID] = mathMax(quotas[builderID][unitDefID] + (quantity or 0), 0)
 			cellRect.opts.quotanumber = quotas[builderID][unitDefID]
 		end
 		if quantity > 0 then
@@ -1125,7 +1138,7 @@ end
 local function multiQueue(uDefID, quantity, cap, opts)
 	--if quantity is more than 100, more than 20 or more than 5 then use engine logic for better performance (fewer for loops inside queueUnit())
 	if quantity >= cap then
-		multiqueue_quantity = math.floor(quantity / cap)
+		multiqueue_quantity = mathFloor(quantity / cap)
 		queueUnit(uDefID, opts, multiqueue_quantity)
 		quantity = math.fmod(quantity,cap)
 	end
@@ -1286,8 +1299,8 @@ function widget:Initialize()
 		widgetHandler:DisableWidgetRaw("Build menu")
 	end
 
-	myTeamID = Spring.GetMyTeamID()
-	isSpec = Spring.GetSpectatingState()
+	myTeamID = spGetMyTeamID()
+	isSpec = spGetSpectatingState()
 	isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
 	WG["gridmenu"] = {}
@@ -1328,7 +1341,7 @@ function widget:Initialize()
 	if isPregame then
 		refreshCommands()
 	else
-		widget:SelectionChanged(Spring.GetSelectedUnits())
+		widget:SelectionChanged(spGetSelectedUnits())
 	end
 
 	WG["gridmenu"].getAlwaysReturn = function()
@@ -1481,11 +1494,11 @@ end
 
 -- Set up all of the UI positioning
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 
 	local widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding
-	iconMargin = math.floor((bgpadding * 0.5) + 0.5)
+	iconMargin = mathFloor((bgpadding * 0.5) + 0.5)
 	elementCorner = WG.FlowUI.elementCorner
 	RectRound = WG.FlowUI.Draw.RectRound
 	RectRoundProgress = WG.FlowUI.Draw.RectRoundProgress
@@ -1829,7 +1842,7 @@ local function drawButton(rect)
 	local dim = disabled and 0.4 or 1.0
 
 	if rect.opts.icon then
-		local iconSize = math.min(math.floor(rect:getHeight() * 1.1), categoryButtonHeight)
+		local iconSize = mathMin(mathFloor(rect:getHeight() * 1.1), categoryButtonHeight)
 		local icon = ":l:" .. rect.opts.icon
 		gl.Color(dim, dim, dim, 0.9)
 		gl.Texture(icon)
@@ -2008,7 +2021,7 @@ local function drawCell(rect)
 				if disabled then
 					costColor = costOverride.top.colorDisabled or "\255\100\200\100"
 				end
-				local costPrice = formatPrice(math.floor(topValue))
+				local costPrice = formatPrice(mathFloor(topValue))
 				local costPriceText = costColor .. costPrice
 				font2:Print(
 					costPriceText,
@@ -2034,7 +2047,7 @@ local function drawCell(rect)
 				if disabled then
 					costColor = costOverride.bottom.colorDisabled or "\255\135\135\135"
 				end
-				local costPrice = formatPrice(math.floor(bottomValue))
+				local costPrice = formatPrice(mathFloor(bottomValue))
 				local costPriceText = costColor .. costPrice
 				font2:Print(
 					costPriceText,
@@ -2339,7 +2352,7 @@ local function drawBuilder(rect)
 		rect.y,
 		rect.xEnd,
 		rect.yEnd,
-		math.ceil(bgpadding * 0.5),
+		mathCeil(bgpadding * 0.5),
 		1,
 		1,
 		1,
@@ -2919,8 +2932,8 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged()
-	isSpec = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
+	isSpec = spGetSpectatingState()
+	myTeamID = spGetMyTeamID()
 end
 
 function widget:GetConfigData()

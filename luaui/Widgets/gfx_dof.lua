@@ -13,6 +13,12 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 local highQuality = true		-- doesnt seem to do anything
 local autofocus = true
 local mousefocus = not autofocus
@@ -246,7 +252,7 @@ function InitTextures()
 	if not intermediateBlurTex0 or not intermediateBlurTex1 or not intermediateBlurTex2
 		 or not finalBlurTex or not baseBlurTex or not screenTex or not depthTex
 		 or (highQuality and (not baseNearBlurTex or not intermediateBlurTex3 or not finalNearBlurTex)) then
-			Spring.Echo("Depth of Field: Failed to create textures!")
+			spEcho("Depth of Field: Failed to create textures!")
 			widgetHandler:RemoveWidget()
 		return
 	end
@@ -260,7 +266,7 @@ function init()
 	reset()
 
 	if (glCreateShader == nil) then
-		Spring.Echo("[Depth of Field::Initialize] removing widget, no shader support")
+		spEcho("[Depth of Field::Initialize] removing widget, no shader support")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -288,8 +294,8 @@ function init()
 	})
 
 	if not dofShader then
-		Spring.Echo("Depth of Field: Failed to create shader!")
-		Spring.Echo(gl.GetShaderLog())
+		spEcho("Depth of Field: Failed to create shader!")
+		spEcho(gl.GetShaderLog())
 		widgetHandler:RemoveWidget()
 		return
 	end

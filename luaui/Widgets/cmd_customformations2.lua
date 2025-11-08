@@ -15,6 +15,12 @@ function widget:GetInfo()
     }
 end
 
+
+-- Localized functions for performance
+
+-- Localized Spring API for performance
+local spGetSelectedUnits = Spring.GetSelectedUnits
+
 -- Behavior:
 -- To give a line command: select command, then right click & drag
 -- To give a command within an area: select command, then left click and drag
@@ -174,8 +180,8 @@ local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 
 local keyShift = 304
-local selectedUnits = Spring.GetSelectedUnits()
-local selectedUnitsCount = Spring.GetSelectedUnitsCount()
+local selectedUnits = spGetSelectedUnits()
+local selectedUnitsCount = spGetSelectedUnitsCount()
 
 --------------------------------------------------------------------------------
 -- Helper Functions
@@ -388,7 +394,7 @@ end
 
 function widget:SelectionChanged(sel)
     selectedUnits = sel
-    selectedUnitsCount = Spring.GetSelectedUnitsCount()
+    selectedUnitsCount = spGetSelectedUnitsCount()
 end
 
 

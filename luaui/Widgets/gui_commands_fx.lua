@@ -12,6 +12,14 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
+
 -- future:          hotkey to show all current cmds? (like current shift+space)
 --                  handle set target
 --					quickfade on cmd cancel
@@ -57,8 +65,8 @@ local glTexCoord = gl.TexCoord
 local GL_QUADS = GL.QUADS
 
 local GaiaTeamID = Spring.GetGaiaTeamID()
-local myTeamID = Spring.GetMyTeamID()
-local mySpec = Spring.GetSpectatingState()
+local myTeamID = spGetMyTeamID()
+local mySpec = spGetSpectatingState()
 local hidden
 local guiHidden
 
@@ -251,7 +259,7 @@ local function loadTeamColors()
 	for i = 1, #teams do
 		local r, g, b = Spring.GetTeamColor(teams[i])
 		local min = 0.12
-		teamColor[teams[i]] = { math.max(r, min), math.max(g, min), math.max(b, min), 0.33 }
+		teamColor[teams[i]] = { mathMax(r, min), mathMax(g, min), mathMax(b, min), 0.33 }
 	end
 end
 loadTeamColors()
@@ -767,8 +775,8 @@ end
 
 
 function widget:PlayerChanged()
-	myTeamID = Spring.GetMyTeamID()
-	mySpec = Spring.GetSpectatingState()
+	myTeamID = spGetMyTeamID()
+	mySpec = spGetSpectatingState()
 end
 
 function widget:GetConfigData()
