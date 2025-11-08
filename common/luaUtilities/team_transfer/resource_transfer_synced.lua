@@ -26,22 +26,24 @@ end
 ---@return ResourcePolicyResult|nil
 local function TryDenyPolicy(ctx, resourceType)
   -- Globally disable any form of resource sharing if the modoption is turned off
-
   local modOpts = ctx.springRepo.GetModOptions()
   if modOpts[SharedEnums.ModOptions.ResourceSharingEnabled] == false then
-    return Shared.CreateDenyPolicy(ctx.senderTeamId, ctx.receiverTeamId, resourceType)
+    return Shared.CreateDenyPolicy(ctx.senderTeamId, ctx.receiverTeamId, resourceType, ctx.springRepo)
   end
+
   if ctx.isCheatingEnabled then
     return nil
   end
+
   if not ctx.areAlliedTeams and not isNonPlayerTeam(ctx.springRepo, ctx.senderTeamId) then
-    return Shared.CreateDenyPolicy(ctx.senderTeamId, ctx.receiverTeamId, resourceType)
+    return Shared.CreateDenyPolicy(ctx.senderTeamId, ctx.receiverTeamId, resourceType, ctx.springRepo)
   end
+
   local numActivePlayers = ctx.springRepo.GetTeamRulesParam(ctx.receiverTeamId, "numActivePlayers")
   local activePlayers = numActivePlayers and
       tonumber(ctx.springRepo.GetTeamRulesParam(ctx.receiverTeamId, "numActivePlayers")) or 0
   if activePlayers == 0 then
-    return Shared.CreateDenyPolicy(ctx.senderTeamId, ctx.receiverTeamId, resourceType)
+    return Shared.CreateDenyPolicy(ctx.senderTeamId, ctx.receiverTeamId, resourceType, ctx.springRepo)
   end
   return nil
 end
@@ -52,8 +54,8 @@ end
 function Gadgets.ResourceTransfer(ctx)
   local policyResult = ctx.policyResult
   local desiredAmount = ctx.desiredAmount
-
   if (not policyResult or not policyResult.canShare) or (not desiredAmount or desiredAmount <= 0) then
+    print("inside")
     ---@type ResourceTransferResult
     return {
       success = false,
@@ -119,7 +121,7 @@ function Gadgets.BuildResultFactory(taxRate, metalThreshold, energyThreshold)
 
     local receiverCapacity = receiverData.storage - receiverData.current
 
-    local cumulativeSent = Shared.GetCumulativeSent(ctx.senderTeamId, resourceType)
+    local cumulativeSent = Shared.GetCumulativeSent(ctx.senderTeamId, resourceType, ctx.springRepo)
     local threshold = getThreshold(resourceType)
     local allowanceRemaining = math.max(0, threshold - cumulativeSent)
     local senderBudget = math.max(0, senderData.current)

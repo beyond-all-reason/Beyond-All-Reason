@@ -100,7 +100,7 @@ function Helpers.PackAllPoliciesForPlayer(playerData, myTeamID, playerTeamID)
   Helpers.PackEnergyPolicyResult(playerTeamID, myTeamID, playerData)
 
   -- For unit policy, we need to get it from cache and pack it
-  local unitPolicy = UnitShared.GetCachedPolicyResult(myTeamID, playerTeamID)
+  local unitPolicy = UnitShared.GetCachedPolicyResult(myTeamID, playerTeamID, Spring)
   Helpers.PackPolicyResult(SharedEnums.TransferCategory.UnitTransfer, unitPolicy, playerData)
 end
 
@@ -207,8 +207,8 @@ function Helpers.UpdatePlayerUnitValidations(player, myTeamID, selectedUnits)
   for playerID, playerData in pairs(player) do
     if playerData.team and playerID ~= myTeamID then
       if selectedUnits and #selectedUnits > 0 then
-        local policyResult = UnitShared.GetCachedPolicyResult(myTeamID, playerData.team)
-        local validationResult = UnitShared.ValidateUnits(policyResult, selectedUnits)
+        local policyResult = UnitShared.GetCachedPolicyResult(myTeamID, playerData.team, Spring)
+        local validationResult = UnitShared.ValidateUnits(policyResult, selectedUnits, Spring)
         Helpers.PackSelectedUnitsValidation(validationResult, playerData)
       else
         Helpers.ClearSelectedUnitsValidation(playerData)
