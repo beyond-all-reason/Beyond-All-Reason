@@ -26,12 +26,21 @@ for defID, ud in pairs(UnitDefs) do
     local cp = ud.customParams
     if tonumber(cp.waterspeedfactor) and tonumber(cp.waterspeedfactor) ~= 1 and (not ud.canFly and not ud.isAirUnit) then
         unitDefData[defID] = {
-            factor = tonumber(cp.waterspeedfactor),
+            speedFactorInWater  = tonumber(cp.waterspeedfactor),
             speed  = ud.speed,
             turn   = ud.turnRate,
             acc    = ud.maxAcc,
             dec    = ud.maxDec,
         }
+    end
+end
+
+-- water is void check
+local waterIsVoid = false
+do
+    local success, mapinfo = pcall(VFS.Include, "mapinfo.lua")
+    if success and mapinfo then
+	    waterIsVoid = mapinfo.voidwater
     end
 end
 
@@ -72,10 +81,10 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
     local data = unitDefData[unitDefID]
     if data then
         local x, y, z = Spring.GetUnitPosition(unitID)
-        local isInWater = Spring.GetGroundHeight(x, z) < Spring.GetWaterPlaneLevel()
+        local isInWater = (not waterIsVoid) and (Spring.GetGroundHeight(x, z) < Spring.GetWaterPlaneLevel())
 
         if isInWater then
-            applySpeed(unitID, data, data.factor)
+            applySpeed(unitID, data, data.speedFactorInWater )
         else
             applySpeed(unitID, data, 1)
         end
@@ -85,7 +94,7 @@ end
 function gadget:UnitEnteredWater(unitID, unitDefID, teamID)
     local data = unitDefData[unitDefID]
     if data then
-        applySpeed(unitID, data, data.factor)
+        applySpeed(unitID, data, data.speedFactorInWater )
     end
 end
 
