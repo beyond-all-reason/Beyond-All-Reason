@@ -32383,7 +32383,26 @@ local unitLights = {
 							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
-
+	},
+	['legnavyrezsub']={
+		nanolight1 = {
+			lightType = 'point',
+			pieceName = 'nanoFlare',
+			lightConfig = { posx = 0, posy = 0, posz = -1.5, radius = 25,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.25,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		nanolight2 = {
+			lightType = 'point',
+			pieceName = 'nanoFlare',
+			lightConfig = { posx = 0, posy = 0, posz = -1.5, radius = 15,
+							color2r = 0, color2g = 0, color2b = 0, colortime = -1,
+							r = -1, g = 1, b = 1, a = 0.35,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
 	},
 	['legaca']={
 		nanolight1 = {
