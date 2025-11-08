@@ -49,6 +49,9 @@ local CommandsToCatchFeature = { -- CMDTYPES: ICON_UNIT_FEATURE_OR_AREA
 	[CMD.RESURRECT] = true,
 }
 
+local CommandsToClearQueue = { -- CMDTYPES: ICON_UNIT_FEATURE_OR_AREA
+	[CMD.STOP] = true
+}
 
 
 --return early if not enabled 
@@ -101,7 +104,7 @@ function gadget:AllowUnitTransfer(unitID, _, _, _, wasCaptured)
     local currentGameFrame = Spring.GetGameFrame()
     -- separates internal name from global modoption namespace
     local stun_unit_after_sharing  = Spring.GetModOptions().stun_unit_after_sharing
-    local stun_units_after_transfer_duration_seconds = Spring.GetModOptions().stun_units_after_transfer_duration_seconds
+    local stun_units_after_transfer_duration_seconds_int = tonumber(Spring.GetModOptions().stun_units_after_transfer_duration_seconds) or 0
 
 
     --TODO rip through the list and remove entries that are in the past (simple garbage collect)
@@ -110,22 +113,42 @@ function gadget:AllowUnitTransfer(unitID, _, _, _, wasCaptured)
 
     if DEBUG then
         Spring.Echo("stun_unit_after_sharing: " .. tostring(stun_unit_after_sharing))
-        Spring.Echo("stun_units_after_transfer_duration_seconds: " .. tostring(stun_units_after_transfer_duration_seconds))
+        Spring.Echo("stun_units_after_transfer_duration_seconds: " .. tostring(stun_units_after_transfer_duration_seconds_int))
     end
     -- allow the unit to transfer, but stun the unit as the transfer happens
-	local inputStunSeconds = math.floor(tonumber(stun_units_after_transfer_duration_seconds))
+	local inputStunSeconds = math.floor(tonumber(stun_units_after_transfer_duration_seconds_int))
     local gameFrameThatUnitWillBeAvailable = currentGameFrame + (inputStunSeconds * Game.gameSpeed);
     if DEBUG then
         Spring.Echo("stun_frame: " .. tostring(currentGameFrame) .. " available at:" .. tostring(gameFrameThatUnitWillBeAvailable))
     end
 
     -- TODO switch to a mode that won't clear the queue 
-    Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0) 
+    --Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+
+    --Spring.GiveOrderToUnit(unitID, CMD.TIMEWAIT, {inputStunSeconds}, 0)
+
+
+    if DEBUG then 
+     local beforeQ = Spring.GetCommandQueue(unitID, -1)
+     Spring.Echo("beforeQ:")
+     Spring.Echo(beforeQ)
+   end
+    Spring.GiveOrderToUnit(unitID,
+     CMD.INSERT,
+     {0,CMD.TIMEWAIT,CMD.OPT_SHIFT,inputStunSeconds}
+   );
+   if DEBUG then 
+     local newQueue = Spring.GetCommandQueue(unitID, -1)
+     Spring.Echo("afterQ:")
+     Spring.Echo(newQueue)
+   end
     stunnedUnitReleaseFrameTable[unitID] = gameFrameThatUnitWillBeAvailable
  
 
     return true
 end
+
+-- TODO switch phrasing to "stun eco" vs "stun movement" vs "both" or something like that
 
 -- if the unit is stunned due to sharing, no commands can be issued for some number of GameFrames
 -- taken from luarules/gadgets/game_no_rush_mode.lua , so in theory this could be refactored to share some useful functions around command parameter handling
@@ -159,7 +182,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
     end
 
     local allowed = false
-  
+
     local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(unitTeam)
     if cmdID == CMD.INSERT then
         -- CMD.INSERT wraps another command, so we need to extract it
@@ -184,7 +207,9 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
     elseif CommandsToCatchUnit[cmdID] and #cmdParams == 1 then
         allowed = false
     elseif CommandsToCatchFeature[cmdID] and #cmdParams == 1 then
-                allowed = false
+        allowed = false
+    elseif CommandsToClearQueue[cmdID] then 
+        allowed = false
     end
 
     return allowed
