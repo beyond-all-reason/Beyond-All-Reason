@@ -31,8 +31,6 @@ local function generateTraversableGrid(unitDefID, originX, originZ, range, gridR
 	local grid = {}
 	local visited = {}
 	local queue = {}
-	local queueStart = 1
-	local queueEnd = 0
 
 	local snappedOriginX = snapToGrid(originX, gridResolution)
 	local snappedOriginZ = snapToGrid(originZ, gridResolution)
@@ -49,8 +47,7 @@ local function generateTraversableGrid(unitDefID, originX, originZ, range, gridR
 	grid[snappedOriginX][snappedOriginZ] = true
 	visited[snappedOriginX] = visited[snappedOriginX] or {}
 	visited[snappedOriginX][snappedOriginZ] = true
-	queueEnd = queueEnd + 1
-	queue[queueEnd] = {x = snappedOriginX, z = snappedOriginZ}
+	queue[#queue + 1] = {x = snappedOriginX, z = snappedOriginZ}
 
 	local neighbors = {
 		{dx = gridResolution, dz = 0},
@@ -59,12 +56,13 @@ local function generateTraversableGrid(unitDefID, originX, originZ, range, gridR
 		{dx = 0, dz = -gridResolution}
 	}
 
-	while queueStart <= queueEnd do
-		local current = queue[queueStart]
-		queueStart = queueStart + 1
+	local i = 1
+	while i <= #queue do
+		local current = queue[i]
+		i = i + 1
 
-		for i = 1, #neighbors do
-			local neighbor = neighbors[i]
+		for j = 1, #neighbors do
+			local neighbor = neighbors[j]
 			local neighborX = current.x + neighbor.dx
 			local neighborZ = current.z + neighbor.dz
 
@@ -80,8 +78,7 @@ local function generateTraversableGrid(unitDefID, originX, originZ, range, gridR
 					grid[neighborX] = grid[neighborX] or {}
 					if isNeighborTraversable then
 						grid[neighborX][neighborZ] = true
-						queueEnd = queueEnd + 1
-						queue[queueEnd] = {x = neighborX, z = neighborZ}
+						queue[#queue + 1] = {x = neighborX, z = neighborZ}
 					else
 						grid[neighborX][neighborZ] = false
 					end
