@@ -1,5 +1,14 @@
 local gadget = gadget ---@type Gadget
 
+-- water is void check
+local enabled = true
+do
+    local success, mapinfo = pcall(VFS.Include, "mapinfo.lua")
+    if success and mapinfo then
+        enabled = enabled and not mapinfo.voidwater
+    end
+end
+
 function gadget:GetInfo()
     return {
         name      = "Water Speed Multiplier",
@@ -8,12 +17,13 @@ function gadget:GetInfo()
         date      = "2025-09-14",
         license   = "GNU GPL, v2 or later",
         layer     = 0,
-        enabled   = true
+        enabled   = enabled,
     }
 end
 
+
 -- units need to have the following customparam set for this to work properly:
--- waterspeedfactor (number, e.g. 0.5 = half speed on water, 1 = no change, 2 = double speed)
+-- speedfactorwater (number, e.g. 0.5 = half speed on water, 1 = no change, 2 = double speed)
 
 if not gadgetHandler:IsSyncedCode() then return false end
 
@@ -32,15 +42,6 @@ for defID, ud in pairs(UnitDefs) do
             acc    = ud.maxAcc,
             dec    = ud.maxDec,
         }
-    end
-end
-
--- water is void check
-local waterIsVoid = false
-do
-    local success, mapinfo = pcall(VFS.Include, "mapinfo.lua")
-    if success and mapinfo then
-	    waterIsVoid = mapinfo.voidwater
     end
 end
 
@@ -81,7 +82,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
     local data = unitDefData[unitDefID]
     if data then
         local x, y, z = Spring.GetUnitPosition(unitID)
-        local isInWater = (not waterIsVoid) and (Spring.GetGroundHeight(x, z) < Spring.GetWaterPlaneLevel())
+        local isInWater = (Spring.GetGroundHeight(x, z) < Spring.GetWaterPlaneLevel())
 
         if isInWater then
             applySpeed(unitID, data, data.speedFactorInWater )
