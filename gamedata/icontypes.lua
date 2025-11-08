@@ -412,7 +412,7 @@ local icontypes = {
 		size = 1.0
 	},
 	legnavyartyship = {
-		bitmap = "icons/ship_t15_plasma.png",
+		bitmap = "icons/ship_t15_artillery_mediumtraj.png",
 		size = 1.6
 	},
 	legnavyrezsub = {
