@@ -43,7 +43,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function UpdateStockpile(unitID, unitDefID)
-		if not unitID then
+		if not unitID or not StockpileDesiredTarget[unitID] then
 			return
 		end
 		local MaxStockpile = mathClamp(unitStockpileLimit[unitDefID], 0, StockpileDesiredTarget[unitID])
@@ -107,7 +107,7 @@ if gadgetHandler:IsSyncedCode() then
 				if fromLua == true and fromSynced == true then 	-- fromLua is *true* if command is sent from a gadget and *false* if it's sent by a player.
 					return true
 				else
-					if StockpileDesiredTarget[unitID] then
+					if StockpileDesiredTarget[unitID] and unitStockpileLimit[unitDefID] then
 						StockpileDesiredTarget[unitID] = mathClamp(StockpileDesiredTarget[unitID] + addQ, 0, unitStockpileLimit[unitDefID])
 						UpdateStockpile(unitID, unitDefID)
 					end
