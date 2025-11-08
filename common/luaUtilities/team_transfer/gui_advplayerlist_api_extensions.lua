@@ -33,8 +33,8 @@ function API.HandleHoverChange(myTeamID, selectedUnits, newHoverTeamID, newHover
 
   -- Notify about invalid units (or clear them if not hovering)
   if newHoverTeamID and selectedUnits and #selectedUnits > 0 then
-    local policyResult = UnitShared.GetCachedPolicyResult(myTeamID, newHoverTeamID)
-    local validationResult = UnitShared.ValidateUnits(policyResult, selectedUnits)
+    local policyResult = UnitShared.GetCachedPolicyResult(myTeamID, newHoverTeamID, Spring)
+    local validationResult = UnitShared.ValidateUnits(policyResult, selectedUnits, Spring)
     if #validationResult.invalidUnitIds > 0 then
       API.NotifyHoverSelectedUnitsInvalid(newHoverTeamID, newHoverPlayerID, validationResult.invalidUnitIds)
     else

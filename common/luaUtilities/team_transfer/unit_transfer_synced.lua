@@ -1,5 +1,4 @@
 local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
-local UnitSharingCategories = VFS.Include("common/luaUtilities/team_transfer/unit_sharing_categories.lua")
 local Shared = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_shared.lua")
 local PolicyShared = VFS.Include("common/luaUtilities/team_transfer/team_transfer_cache.lua")
 local Hack = VFS.Include("common/luaUtilities/team_transfer/take_hack.lua")
@@ -13,8 +12,8 @@ local Synced = {
 ---@param ctx PolicyContext
 ---@return UnitPolicyResult
 function Synced.GetPolicy(ctx)
-  local mode = Spring.GetModOptions().unit_sharing_mode
-  local allowTakeBypass = Hack.CheckTakeCondition(ctx.senderTeamId, ctx.receiverTeamId)
+  local mode = ctx.springRepo.GetModOptions().unit_sharing_mode
+  local allowTakeBypass = Hack.CheckTakeCondition(ctx.springRepo, ctx.senderTeamId, ctx.receiverTeamId)
   local canShare = ctx.areAlliedTeams and mode ~= SharedEnums.UnitSharingMode.Disabled
   return {
     canShare = canShare,
@@ -48,7 +47,7 @@ function Synced.UnitTransfer(ctx)
 
   for _, unitId in ipairs(ctx.validationResult.validUnitIds) do
     -- ctx.given should always be false here because we short-circuit inside AllowResourceTransfer
-    local success = Spring.TransferUnit(unitId, ctx.receiverTeamId, ctx.given)
+    local success = ctx.springRepo.TransferUnit(unitId, ctx.receiverTeamId, ctx.given)
     if success then
       table.insert(transferredUnits, unitId)
     else

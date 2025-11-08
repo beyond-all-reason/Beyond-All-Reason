@@ -106,3 +106,49 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	end
 end
 
+function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType, amount)
+  local resType = (resourceType == 'm' or resourceType == 'metal') and SharedEnums.ResourceType.METAL or
+      SharedEnums.ResourceType.ENERGY
+  local policyResult = Shared.GetCachedPolicyResult(senderTeamId, receiverTeamId, resType, Spring)
+  local ctx = contextFactory.resourceTransfer(senderTeamId, receiverTeamId, resType, amount, policyResult)
+
+  local transferResult = ResourceTransfer.ResourceTransfer(ctx)
+  ResourceTransfer.RegisterPostTransfer(ctx, transferResult)
+
+  -- immediately rebuild the cache for this resource
+  local policyCtx = contextFactory.policy(senderTeamId, receiverTeamId)
+  local frame = Spring.GetGameFrame()
+  local updatedPolicyResult = BuildPolicyCache(policyCtx, resType)
+  Comms.SendTransferChatMessages(transferResult, updatedPolicyResult)
+
+  return false
+end
+
+function gadget:GameFrame(frame)
+  local nextSchedHeavy = lastGameFrameCacheUpdate + POLICY_CACHE_TAINT_FRAME_RATE
+  if frame < nextSchedHeavy then
+    return
+  end
+  local teamList = Spring.GetTeamList() or {}
+  lastGameFrameCacheUpdate = frame
+  for _, senderTeamId in ipairs(teamList) do
+    -- we also calculate me -> me for standardized resource request limits
+    for _, receiverTeamId in ipairs(teamList) do
+      local ctx = contextFactory.policy(senderTeamId, receiverTeamId)
+      for _, resourceType in ipairs(RESOURCE_TYPES) do
+        BuildPolicyCache(ctx, resourceType)
+      end
+    end
+  end
+end
+
+-- Keep cache in sync with roster changes
+function gadget:PlayerAdded(playerID)
+  local frame = Spring.GetGameFrame()
+  local _, _, _, teamID = Spring.GetPlayerInfo(playerID, false)
+  if teamID then
+    for _, receiverTeamId in ipairs(Spring.GetTeamList() or {}) do
+      InitializeNewTeam(teamID, receiverTeamId)
+    end
+  end
+end
