@@ -48,60 +48,59 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if unitTeam ~= GaiaTeamID then
-		local allyTeamID = teamAllyteam[unitTeam]
-		if spGetUnitIsBeingBuilt(unitID) then
-			unfinishedUnits[allyTeamID][unitID] = unitDefID
-		else
-			allyteamCost[allyTeamID] = allyteamCost[allyTeamID] + unitCost[unitDefID]
-		end
+	local allyTeamID = teamAllyteam[unitTeam]
+	if not allyTeamID then return end
+	if spGetUnitIsBeingBuilt(unitID) then
+		unfinishedUnits[allyTeamID][unitID] = unitDefID
+	else
+		allyteamCost[allyTeamID] = allyteamCost[allyTeamID] + unitCost[unitDefID]
 	end
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if unitTeam ~= GaiaTeamID then
-		local allyTeamID = teamAllyteam[unitTeam]
-		if unfinishedUnits[allyTeamID][unitID] then
-			allyteamCost[allyTeamID] = allyteamCost[allyTeamID] + unitCost[unitDefID]
-			unfinishedUnits[allyTeamID][unitID] = nil
-		end
+	local allyTeamID = teamAllyteam[unitTeam]
+	if not allyTeamID then return end
+	if unfinishedUnits[allyTeamID][unitID] then
+		allyteamCost[allyTeamID] = allyteamCost[allyTeamID] + unitCost[unitDefID]
+		unfinishedUnits[allyTeamID][unitID] = nil
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	if unitTeam ~= GaiaTeamID then
-		local allyTeamID = teamAllyteam[unitTeam]
-		if unfinishedUnits[allyTeamID][unitID] then
-			unfinishedUnits[allyTeamID][unitID] = nil
-		else
-			allyteamCost[allyTeamID] = allyteamCost[allyTeamID] - unitCost[unitDefID]
-		end
+	local allyTeamID = teamAllyteam[unitTeam]
+	if not allyTeamID then return end
+	if unfinishedUnits[allyTeamID][unitID] then
+		unfinishedUnits[allyTeamID][unitID] = nil
+	else
+		allyteamCost[allyTeamID] = allyteamCost[allyTeamID] - unitCost[unitDefID]
 	end
 end
 
 function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	if unitTeam ~= GaiaTeamID then
-		local allyTeamID = teamAllyteam[unitTeam]
-		if spGetUnitIsBeingBuilt(unitID) then
-			local oldAllyTeamID = teamAllyteam[oldTeam]
-			unfinishedUnits[oldAllyTeamID][unitID] = nil
-			unfinishedUnits[allyTeamID][unitID] = unitDefID
-		else
-			allyteamCost[allyTeamID] = allyteamCost[allyTeamID] + unitCost[unitDefID]
-		end
+	local allyTeamID = teamAllyteam[unitTeam]
+	local oldAllyTeamID = teamAllyteam[oldTeam]
+	if not allyTeamID or not oldAllyTeamID then return end
+
+	if spGetUnitIsBeingBuilt(unitID) then
+		unfinishedUnits[oldAllyTeamID][unitID] = nil
+		unfinishedUnits[allyTeamID][unitID] = unitDefID
+	else
+		allyteamCost[oldAllyTeamID] = allyteamCost[oldAllyTeamID] - unitCost[unitDefID]
+		allyteamCost[allyTeamID] = allyteamCost[allyTeamID] + unitCost[unitDefID]
 	end
 end
 
 function gadget:UnitTaken(unitID, unitDefID, unitTeam, oldTeam)
-	if unitTeam ~= GaiaTeamID then
-		local allyTeamID = teamAllyteam[unitTeam]
-		if spGetUnitIsBeingBuilt(unitID) then
-			local oldAllyTeamID = teamAllyteam[oldTeam]
-			unfinishedUnits[oldAllyTeamID][unitID] = nil
-			unfinishedUnits[allyTeamID][unitID] = unitDefID
-		else
-			allyteamCost[allyTeamID] = allyteamCost[allyTeamID] - unitCost[unitDefID]
-		end
+	local allyTeamID = teamAllyteam[unitTeam]
+	local oldAllyTeamID = teamAllyteam[oldTeam]
+	if not allyTeamID or not oldAllyTeamID then return end
+
+	if spGetUnitIsBeingBuilt(unitID) then
+		unfinishedUnits[oldAllyTeamID][unitID] = nil
+		unfinishedUnits[allyTeamID][unitID] = unitDefID
+	else
+		allyteamCost[oldAllyTeamID] = allyteamCost[oldAllyTeamID] + unitCost[unitDefID]
+		allyteamCost[allyTeamID] = allyteamCost[allyTeamID] - unitCost[unitDefID]
 	end
 end
 
