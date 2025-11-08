@@ -13,9 +13,13 @@ function widget:GetInfo()
 	}
 end
 
-local defaultVoiceSet = 'en/allison'
+local defaultVoiceSet = 'en/cephis'
+if Spring.GetConfigString("voiceset", 'en/cephis') == 'en/allison' then
+	Spring.SetConfigString("voiceset", 'en/cephis')
+end
 
 local useDefaultVoiceFallback = false    -- when a voiceset has missing file, try to load the default voiceset file instead
+local playWelcome = Spring.GetConfigInt('WelcomeMessagePlayed', 0) == 0
 
 local silentTime = 0.7    -- silent time between queued notifications
 local globalVolume = 0.7
@@ -70,6 +74,7 @@ local lockPlayerID
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local soundFolder = "sounds/voice/" .. voiceSet .. "/"
+local soundEffectsFolder = "sounds/voice-soundeffects/"
 local defaultSoundFolder = "sounds/voice/" .. defaultVoiceSet .. "/"
 
 local voiceSetFound = false
@@ -85,12 +90,13 @@ if not voiceSetFound then
 	voiceSet = defaultVoiceSet
 end
 
-local function addNotification(name, soundFiles, minDelay, i18nTextID, tutorial)
+local function addNotification(name, soundFiles, minDelay, i18nTextID, tutorial, soundEffect)
 	notification[name] = {
 		delay = minDelay,
 		textID = i18nTextID,
 		voiceFiles = soundFiles,
-		tutorial = tutorial
+		tutorial = tutorial,
+		soundEffect = soundEffect,
 	}
 	notificationList[name] = true
 	if not tutorial then
@@ -123,7 +129,7 @@ for notifID, notifDef in pairs(notificationTable) do
 			notifSounds[currentEntry] = defaultSoundFolder .. notifID .. '.wav'
 		end
 	end
-	addNotification(notifID, notifSounds, notifDef.delay or 2, notifTexts[1], notifDef.tutorial) -- bandaid, picking text from first variation always.
+	addNotification(notifID, notifSounds, notifDef.delay or 2, notifTexts[1], notifDef.tutorial, notifDef.soundEffect) -- bandaid, picking text from first variation always.
 end
 
 local unitsOfInterestNames = {
@@ -491,6 +497,9 @@ function widget:Initialize()
 				local m = #notification[event].voiceFiles > 1 and math.random(1, #notification[event].voiceFiles) or 1
 				if notification[event].voiceFiles[m] then
 					Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, 'ui')
+					if notification[event].soundEffect then
+						Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
+					end
 				else
 					Spring.Echo('notification "'..event..'" missing sound file: #'..m)
 				end
@@ -517,9 +526,6 @@ function widget:GameFrame(gf)
 		return
 	end
 
-	if gameframe == 70 and doTutorialMode then
-		queueTutorialNotification('Welcome')
-	end
 	if gameframe % 30 == 15 then
 		e_currentLevel, e_storage, e_pull, e_income, e_expense, e_share, e_sent, e_received = spGetTeamResources(myTeamID, 'energy')
 		m_currentLevel, m_storage, m_pull, m_income, m_expense, m_share, m_sent, m_received = spGetTeamResources(myTeamID, 'metal')
@@ -615,14 +621,6 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			end
 		end
 
-		for index,tab in pairs(unitIsReadyTab) do -- Play Unit Is Ready notifs based on the table's content
-			if unitDefID == tab[1] then
-				queueNotification(tab[2])
-				break
-			end
-		end
-		
-
 		if isT2mobile[unitDefID] then
 			queueNotification('Tech2UnitReady')
 		elseif isT3mobile[unitDefID] then
@@ -644,14 +642,21 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 				queueTutorialNotification('FactoryShips')
 			end
 		end
-	else
-		if isT2mobile[unitDefID] then
-			queueNotification('Tech2TeamReached')
-		elseif isT3mobile[unitDefID] then
-			queueNotification('Tech3TeamReached')
-		elseif isT4mobile[unitDefID] then
-			queueNotification('Tech4TeamReached')
+
+		for index,tab in pairs(unitIsReadyTab) do -- Play Unit Is Ready notifs based on the table's content
+			if unitDefID == tab[1] then
+				queueNotification(tab[2])
+				break
+			end
 		end
+	end
+
+	if isT2mobile[unitDefID] then
+		queueNotification('Tech2TeamReached')
+	elseif isT3mobile[unitDefID] then
+		queueNotification('Tech3TeamReached')
+	elseif isT4mobile[unitDefID] then
+		queueNotification('Tech4TeamReached')
 	end
 end
 
@@ -871,6 +876,9 @@ local function playNextSound()
 				else
 					Spring.Echo('notification "'..event..'" missing sound file: #'..m)
 				end
+				if notification[event].soundEffect then
+					Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
+				end
 			end
 			if displayMessages and WG['messages'] and notification[event].textID then
 				WG['messages'].addMessage(Spring.I18N(notification[event].textID))
@@ -901,6 +909,7 @@ function widget:Update(dt)
 	if not displayMessages and not spoken then
 		return
 	end
+
 	sec = sec + dt
 	passedTime = passedTime + dt
 	if passedTime > 0.2 then
@@ -928,6 +937,12 @@ function widget:Update(dt)
 		end
 		if WG['rejoin'] and WG['rejoin'].showingRejoining() then
 			isIdle = true
+		end
+
+		if playWelcome then
+			Spring.SetConfigInt('WelcomeMessagePlayed', 1)
+			queueNotification('Welcome', true)
+			playWelcome = false
 		end
 	end
 end
