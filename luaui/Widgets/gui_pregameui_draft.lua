@@ -78,6 +78,16 @@ local isReadyBlocked = false
 local readyBlockedConditions = {}
 local cachedTooltipText = ""
 
+-- Button state tracking for display list optimization
+local lastButtonText = ''
+local lastButtonColor = {0, 0, 0}
+local lastButtonW = 0
+local lastButtonH = 0
+local lastShowLockButton = true
+local lastBlinkButton = false
+local lastCantPlaceNow = false
+local buttonStateChanged = true  -- Force initial creation
+
 local function hasActiveConditions()
 	for k, v in pairs(readyBlockedConditions) do
 		return true
@@ -86,6 +96,7 @@ local function hasActiveConditions()
 end
 
 local function updateTooltip()
+	local oldReadyBlocked = isReadyBlocked
 	isReadyBlocked = hasActiveConditions()
 	if isReadyBlocked then
 		cachedTooltipText = ""
@@ -99,6 +110,11 @@ local function updateTooltip()
 		end
 	else
 		cachedTooltipText = ""
+	end
+	
+	-- If ready blocked state changed, invalidate button (function defined later)
+	if oldReadyBlocked ~= isReadyBlocked then
+		buttonStateChanged = true
 	end
 end
 
@@ -563,12 +579,47 @@ local function DrawTeamPlacement()
 end
 -- DraftOrder mod end
 
+-- Helper function to check if button state has changed
+local function checkButtonStateChanged(color, cantPlaceNow, blinkButton, currentButtonW, currentButtonH)
+	return buttonStateChanged or 
+		   lastButtonText ~= buttonText or
+		   lastShowLockButton ~= showLockButton or
+		   lastButtonColor[1] ~= color[1] or lastButtonColor[2] ~= color[2] or lastButtonColor[3] ~= color[3] or
+		   lastButtonW ~= currentButtonW or
+		   lastButtonH ~= currentButtonH or
+		   lastBlinkButton ~= blinkButton or
+		   lastCantPlaceNow ~= cantPlaceNow
+end
+
+-- Helper function to update button state tracking
+local function updateButtonStateTracking(color, cantPlaceNow, blinkButton, currentButtonW, currentButtonH)
+	lastButtonText = buttonText
+	lastShowLockButton = showLockButton
+	lastButtonColor[1] = color[1]
+	lastButtonColor[2] = color[2]  
+	lastButtonColor[3] = color[3]
+	lastButtonW = currentButtonW
+	lastButtonH = currentButtonH
+	lastBlinkButton = blinkButton
+	lastCantPlaceNow = cantPlaceNow
+	buttonStateChanged = false
+end
+
+-- Helper function to force button state refresh (call when game state changes)
+local function invalidateButtonState()
+	buttonStateChanged = true
+end
+
 local function drawButton()
+	-- Only refresh button text if needed (this may change button state)
 	buttonTextRefresh()
+	
 	local cantPlaceNow = not canPlayerPlaceNow(myPlayerID)
 	if draftMode ~= nil and draftMode ~= "disabled" and buttonText == "" and not mySpec and showLockButton then
 		showLockButton = false
 	end
+	
+	-- Calculate button color
 	local color = { 0.15, 0.15, 0.15 }
 	if not mySpec then
 		if cantPlaceNow then
@@ -586,42 +637,14 @@ local function drawButton()
 		color = offeredAsSub and unsubButtonColor or subButtonColor
 	end
 
-	-- because text can change now
+	-- Calculate button dimensions
 	orgbuttonW = font:GetTextWidth('       '..buttonText) * 24
-	buttonW = mathFloor(orgbuttonW * uiScale / 2) * 2
-	buttonH = mathFloor(orgbuttonH * uiScale / 2) * 2
+	local currentButtonW = mathFloor(orgbuttonW * uiScale / 2) * 2
+	local currentButtonH = mathFloor(orgbuttonH * uiScale / 2) * 2
 
-	uiElementRect = { buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding }
-	buttonRect = { buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2) }
-
-	if (not showLockButton and buttonDrawn) then
-		if buttonList then
-			glDeleteList(buttonList)
-		end
-		if buttonHoverList then
-			glDeleteList(buttonHoverList)
-		end
-		buttonList = nil
-		buttonHoverList = nil
-		buttonDrawn = false
-	end
-
+	-- Calculate blink state (expensive operation - only do when needed)
+	local blinkButton = false
 	if showLockButton then
-		if buttonList then
-			glDeleteList(buttonList)
-		end
-		buttonList = gl.CreateList(function()
-			UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
-			UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.55, color[2]*0.55, color[3]*0.55, 1 }, { color[1], color[2], color[3], 1 })
-		end)
-		if buttonHoverList then
-			glDeleteList(buttonHoverList)
-		end
-		buttonHoverList = gl.CreateList(function()
-			UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
-			UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.85, color[2]*0.85, color[3]*0.85, 1 }, { color[1]*1.5, color[2]*1.5, color[3]*1.5, 1 })
-		end)
-
 		local playerList = Spring.GetPlayerList()
 		local numPlayers = #playerList
 		local numPlayersReady = 0
@@ -638,7 +661,62 @@ local function drawButton()
 		if (draftMode ~= nil and draftMode ~= "disabled") and not cantPlaceNow and not locked then
 			blinkButton = true
 		end
+	end
 
+	-- Check if button state changed - only rebuild display lists if necessary
+	if checkButtonStateChanged(color, cantPlaceNow, blinkButton, currentButtonW, currentButtonH) then
+		-- Update button dimensions
+		buttonW = currentButtonW
+		buttonH = currentButtonH
+		
+		-- Recalculate button rectangles
+		uiElementRect = { buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding }
+		buttonRect = { buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2) }
+
+		-- Clean up old display lists
+		if buttonList then
+			glDeleteList(buttonList)
+			buttonList = nil
+		end
+		if buttonHoverList then
+			glDeleteList(buttonHoverList)
+			buttonHoverList = nil
+		end
+
+		-- Create new display lists only if button should be shown
+		if showLockButton then
+			buttonList = gl.CreateList(function()
+				UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
+				UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.55, color[2]*0.55, color[3]*0.55, 1 }, { color[1], color[2], color[3], 1 })
+			end)
+			
+			buttonHoverList = gl.CreateList(function()
+				UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
+				UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.85, color[2]*0.85, color[3]*0.85, 1 }, { color[1]*1.5, color[2]*1.5, color[3]*1.5, 1 })
+			end)
+		end
+
+		-- Update state tracking
+		updateButtonStateTracking(color, cantPlaceNow, blinkButton, currentButtonW, currentButtonH)
+		buttonDrawn = showLockButton
+	end
+
+	-- Handle case where button should be hidden
+	if not showLockButton and buttonDrawn then
+		if buttonList then
+			glDeleteList(buttonList)
+			buttonList = nil
+		end
+		if buttonHoverList then
+			glDeleteList(buttonHoverList)
+			buttonHoverList = nil
+		end
+		buttonDrawn = false
+	end
+
+	-- Render the button (this happens every frame but uses cached display lists)
+	if showLockButton and buttonList and buttonHoverList then
+		-- Add GUI shader rect
 		if WG['guishader'] then
 			WG['guishader'].InsertRect(
 				uiElementRect[1],
@@ -649,7 +727,7 @@ local function drawButton()
 			)
 		end
 
-		-- draw ready button and text
+		-- Check mouse hover and render appropriate display list
 		local x, y = Spring.GetMouseState()
 		local colorString
 		if x > buttonRect[1] and x < buttonRect[3] and y > buttonRect[2] and y < buttonRect[4] and not cantPlaceNow then
@@ -674,16 +752,18 @@ local function drawButton()
 			if readied or cantPlaceNow then
 				colorString = "\255\222\222\222"
 			end
+			-- Blink effect is applied as additional rendering on top
 			if blinkButton and not readied and not isReadyBlocked and os.clock() % 0.75 <= 0.375 then
 				local mult = 1.33
 				UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { readyButtonColor[1]*0.55*mult, readyButtonColor[2]*0.55*mult, readyButtonColor[3]*0.55*mult, 1 }, { readyButtonColor[1]*mult, readyButtonColor[2]*mult, readyButtonColor[3]*mult, 1 })
 			end
 		end
+		
+		-- Draw text (this is relatively cheap so we do it every frame)
 		font:Begin()
 		font:Print(colorString .. buttonText, buttonRect[1]+((buttonRect[3]-buttonRect[1])/2), (buttonRect[2]+((buttonRect[4]-buttonRect[2])/2)) - (buttonH * 0.16), 24 * uiScale, "co")
 		font:End()
 		gl.Color(1, 1, 1, 1)
-		buttonDrawn = true
 	end
 end
 
@@ -738,6 +818,9 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	RectRound = WG.FlowUI.Draw.RectRound
 	elementPadding = WG.FlowUI.elementPadding
 	uiPadding = mathFloor(elementPadding * 4.5)
+	
+	-- Button dimensions/position changed, invalidate display lists
+	invalidateButtonState()
 end
 
 local ihavejoined = false
@@ -1185,6 +1268,7 @@ function widget:RecvLuaMsg(msg, playerID)
 		allyTeamID_about = tonumber(words[2] or -1)
 		if (allyTeamID_about == myAllyTeamID) and (myAllyTeamJoined ~= true) then
 			myAllyTeamJoined = true
+			invalidateButtonState()  -- Ally team joining changes button state
 			if draftMode == "fair" then
 				PlayChooseStartLocSound()
 			end
