@@ -201,6 +201,10 @@ if gadgetHandler:IsSyncedCode() then
 
 		spSetUnitRulesParam(unitID, "unit_evolved", newUnitID, PRIVATE)
 
+		if GG.quick_start and GG.quick_start.transferCommanderData then
+			GG.quick_start.transferCommanderData(unitID, newUnitID)
+		end
+
 		SendToUnsynced("unit_evolve_finished", unitID, newUnitID, announcement,announcementSize)
 		if evolution.evolution_health_transfer == "full" then
 		elseif evolution.evolution_health_transfer == "percentage" then
