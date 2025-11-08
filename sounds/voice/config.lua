@@ -135,6 +135,7 @@ return {
 	-- Alerts
 	NukeLaunched = {
 		delay = 3,
+		soundEffect = "NukeAlert",
 	},
 	LrpcTargetUnits = {
 		delay = 5,
