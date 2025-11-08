@@ -1,13 +1,17 @@
 local Hack = {}
 
 -- TODO: remove this function when we refactor /take out of the engine and into the game lua
-function Hack.CheckTakeCondition(senderTeamID, receiverTeamID)
+---@param springRepo ISpring
+---@param senderTeamID number
+---@param receiverTeamID number
+---@return boolean
+function Hack.CheckTakeCondition(springRepo, senderTeamID, receiverTeamID)
   -- Check if sender is allied
-  if Spring.AreTeamsAllied(senderTeamID, receiverTeamID) then
+  if springRepo.AreTeamsAllied(senderTeamID, receiverTeamID) then
     -- Loop to see if sender has any active human players
-    local playerList = Spring.GetPlayerList() or {}
+    local playerList = springRepo.GetPlayerList() or {}
     for _, playerID in ipairs(playerList) do
-      local _, active, spectator, teamID = Spring.GetPlayerInfo(playerID)
+      local _, active, spectator, teamID = springRepo.GetPlayerInfo(playerID)
       if active and not spectator and teamID == senderTeamID then
         -- Found an active player, so this is NOT the /take condition.
         return false

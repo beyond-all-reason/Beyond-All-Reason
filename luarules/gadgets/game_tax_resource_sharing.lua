@@ -83,7 +83,7 @@ end
 function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType, amount)
   local resType = (resourceType == 'm' or resourceType == 'metal') and SharedEnums.ResourceType.METAL or
       SharedEnums.ResourceType.ENERGY
-  local policyResult = Shared.GetCachedPolicyResult(senderTeamId, receiverTeamId, resType)
+  local policyResult = Shared.GetCachedPolicyResult(senderTeamId, receiverTeamId, resType, Spring)
   local ctx = contextFactory.resourceTransfer(senderTeamId, receiverTeamId, resType, amount, policyResult)
 
   local transferResult = ResourceTransfer.ResourceTransfer(ctx)

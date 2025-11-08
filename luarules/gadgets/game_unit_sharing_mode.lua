@@ -66,9 +66,9 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, captu
   if capture then
     return true
   end
-  local policyResult = Shared.GetCachedPolicyResult(fromTeamID, toTeamID)
+  local policyResult = Shared.GetCachedPolicyResult(fromTeamID, toTeamID, Spring)
   local given = false
-  local validation = Shared.ValidateUnits(policyResult, { unitID })
+  local validation = Shared.ValidateUnits(policyResult, { unitID }, Spring)
   if validation and validation.status ~= SharedEnums.UnitValidationOutcome.Failure then
     local transferCtx = contextFactory.unitTransfer(fromTeamID, toTeamID, { unitID }, given, policyResult, validation)
     UnitTransfer.UnitTransfer(transferCtx)

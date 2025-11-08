@@ -17,8 +17,12 @@ Shared.UnitPolicyFields = {
 ---We don't make decisions here on how to display unit names etc, we just collate the data and let the UI decide.
 ---@param policyResult UnitPolicyResult -- note that policyResult is useless right now but is passed in for future use
 ---@param unitIds number[]
+---@param springApi ISpring?
+---@param unitDefs table?
 ---@return UnitValidationResult
-function Shared.ValidateUnits(policyResult, unitIds)
+function Shared.ValidateUnits(policyResult, unitIds, springApi, unitDefs)
+  local spring = springApi or Spring
+  local defs = unitDefs or UnitDefs or (spring.GetUnitDefs and spring.GetUnitDefs()) or {}
   local out = {
     status = SharedEnums.UnitValidationOutcome.Failure,
     validUnitCount = 0,
@@ -37,17 +41,17 @@ function Shared.ValidateUnits(policyResult, unitIds)
   local validUnitNamesSet = {}
   local invalidUnitNamesSet = {}
   for _, unitId in ipairs(unitIds) do
-    local unitDefID = Spring.GetUnitDefID(unitId)
+    local unitDefID = spring.GetUnitDefID(unitId)
     if not unitDefID then
-      Spring.Log("unit_transfer_shared", LOG.ERROR, "ValidateUnits: unitId", unitId, "not found")
+      spring.Log("unit_transfer_shared", tostring(LOG.ERROR), string.format("ValidateUnits: unitId %d not found", unitId))
       out.invalidUnitCount = out.invalidUnitCount + 1
       table.insert(out.invalidUnitIds, unitId)
       table.insert(out.invalidUnitNames, "Unknown Unit")
       return out
     else
-      local ok = Shared.IsShareableDef(unitDefID, mode)
-      local unitName = UnitDefs[unitDefID] and (UnitDefs[unitDefID].translatedHumanName or UnitDefs[unitDefID].name)
-
+      local ok = Shared.IsShareableDef(unitDefID, mode, defs)
+      local def = defs[unitDefID] or defs[tostring(unitDefID)]
+      local unitName = (def and (def.translatedHumanName or def.name)) or tostring(unitDefID)
       if ok then
         out.validUnitCount = out.validUnitCount + 1
         table.insert(out.validUnitIds, unitId)
@@ -80,10 +84,12 @@ end
 ---UI getter for per-pair policy expose from cache
 ---@param senderTeamId number
 ---@param receiverTeamId number
+---@param springApi ISpring?
 ---@return UnitPolicyResult
-function Shared.GetCachedPolicyResult(senderTeamId, receiverTeamId)
+function Shared.GetCachedPolicyResult(senderTeamId, receiverTeamId, springApi)
+  local spring = springApi or Spring
   local baseKey = PolicyShared.MakeBaseKey(receiverTeamId, SharedEnums.TransferCategory.UnitTransfer)
-  local serialized = Spring.GetTeamRulesParam(senderTeamId, baseKey)
+  local serialized = spring.GetTeamRulesParam(senderTeamId, baseKey)
   if serialized == nil then
     -- default to deny
     ---@type UnitPolicyResult
@@ -186,23 +192,35 @@ local function EvaluateUnitForSharing(unitDef, mode)
 end
 
 -- Allowed UnitDefID cache per mode for fast validation
-local allowedByMode = {}
+local allowedByMode = setmetatable({}, { __mode = "k" })
 
-local function BuildAllowedCacheForMode(mode)
-  if allowedByMode[mode] then return end
+local function BuildAllowedCacheForMode(mode, unitDefs)
+  local defs = unitDefs or UnitDefs
+  if not defs then return nil end
+  local cacheByDefs = allowedByMode[defs]
+  if not cacheByDefs then
+    cacheByDefs = {}
+    allowedByMode[defs] = cacheByDefs
+  end
+  if cacheByDefs[mode] then
+    return cacheByDefs[mode]
+  end
   local cache = {}
-  for unitDefID, unitDef in pairs(UnitDefs) do
-    if EvaluateUnitForSharing(unitDef, mode) then
+  for unitDefID, unitDef in pairs(defs) do
+    local ok = EvaluateUnitForSharing(unitDef, mode)
+    if ok then
       cache[unitDefID] = true
     end
   end
-  allowedByMode[mode] = cache
+  cacheByDefs[mode] = cache
+  return cache
 end
 
-function Shared.IsShareableDef(unitDefId, mode)
+function Shared.IsShareableDef(unitDefId, mode, unitDefs)
   if not unitDefId or not mode then return false end
-  BuildAllowedCacheForMode(mode)
-  return allowedByMode[mode][unitDefId] == true
+  local cache = BuildAllowedCacheForMode(mode, unitDefs)
+  if not cache then return false end
+  return cache[unitDefId] == true
 end
 
 return Shared

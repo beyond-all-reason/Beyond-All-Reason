@@ -52,8 +52,9 @@ end
 ---@param senderTeamId number
 ---@param receiverTeamId number
 ---@param resourceType ResourceType
+---@param springApi ISpring?
 ---@return ResourcePolicyResult
-function Shared.CreateDenyPolicy(senderTeamId, receiverTeamId, resourceType)
+function Shared.CreateDenyPolicy(senderTeamId, receiverTeamId, resourceType, springApi)
   ---@type ResourcePolicyResult
   local result = {
     senderTeamId = senderTeamId,
@@ -67,7 +68,7 @@ function Shared.CreateDenyPolicy(senderTeamId, receiverTeamId, resourceType)
     resourceType = resourceType,
     remainingTaxFreeAllowance = 0,
     resourceShareThreshold = 0,
-    cumulativeSent = Shared.GetCumulativeSent(senderTeamId, resourceType)
+    cumulativeSent = Shared.GetCumulativeSent(senderTeamId, resourceType, springApi)
   }
   return result
 end
@@ -102,13 +103,15 @@ end
 ---@param senderId number
 ---@param receiverId number
 ---@param resourceType ResourceType
+---@param springApi ISpring?
 ---@return ResourcePolicyResult
-function Shared.GetCachedPolicyResult(senderId, receiverId, resourceType)
+function Shared.GetCachedPolicyResult(senderId, receiverId, resourceType, springApi)
   local baseKey = Shared.MakeBaseKey(receiverId, resourceType)
-  local serialized = Spring.GetTeamRulesParam(senderId, baseKey)
+  local spring = springApi or Spring
+  local serialized = spring.GetTeamRulesParam(senderId, baseKey)
 
   if serialized == nil then
-    return Shared.CreateDenyPolicy(senderId, receiverId, resourceType)
+    return Shared.CreateDenyPolicy(senderId, receiverId, resourceType, springApi)
   end
 
   if type(serialized) ~= "string" then
@@ -133,10 +136,12 @@ end
 
 ---@param teamId number
 ---@param resourceType ResourceType
+---@param springApi ISpring?
 ---@return number
-function Shared.GetCumulativeSent(teamId, resourceType)
+function Shared.GetCumulativeSent(teamId, resourceType, springApi)
   local param = Shared.GetCumulativeParam(resourceType)
-  return tonumber(Spring.GetTeamRulesParam(teamId, param)) or 0
+  local spring = springApi or Spring
+  return tonumber(spring.GetTeamRulesParam(teamId, param)) or 0
 end
 
 return Shared

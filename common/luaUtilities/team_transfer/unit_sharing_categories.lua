@@ -32,9 +32,11 @@ end
 ---@param unitDef table Unit definition from UnitDefs
 ---@return boolean isT2Con True if the unit is a T2 constructor
 function sharing.isT2ConstructorDef(unitDef)
+	local techlevel = unitDef.customParams and unitDef.customParams.techlevel
+	local techlevelStr = techlevel and tostring(techlevel)
 	return not unitDef.isFactory
 			and #(unitDef.buildOptions or {}) > 0
-			and unitDef.customParams.techlevel == "2"
+			and techlevelStr == "2"
 end
 
 ---Check if a unit definition is combat-oriented (weapons, defense, offense)
