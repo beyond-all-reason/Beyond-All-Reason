@@ -16,6 +16,14 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
 local defaultBlurIntensity = 1
@@ -46,10 +54,10 @@ local updateStencilTexture = false
 local updateStencilTextureScreen = false
 
 local oldvs = 0
-local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+local vsx, vsy, vpx, vpy = spGetViewGeometry()
 
 function widget:ViewResize(_, _)
-	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+	vsx, vsy, vpx, vpy = spGetViewGeometry()
 
 	if screencopyUI then gl.DeleteTexture(screencopyUI) end
 	screencopyUI = gl.CreateTexture(vsx, vsy, {
@@ -65,7 +73,7 @@ function widget:ViewResize(_, _)
 end
 
 local function DrawStencilTexture(world, fullscreen)
-	--Spring.Echo("DrawStencilTexture",world, fullscreen, Spring.GetDrawFrame(), updateStencilTexture)
+	--spEcho("DrawStencilTexture",world, fullscreen, Spring.GetDrawFrame(), updateStencilTexture)
 	local usedStencilTex
 	if world then
 		usedStencilTex = stenciltex
@@ -138,13 +146,13 @@ end
 
 local function CheckHardware()
 	if not canShader then
-		Spring.Echo("guishader api: your hardware does not support shaders, OR: change springsettings: \"enable lua shaders\" ")
+		spEcho("guishader api: your hardware does not support shaders, OR: change springsettings: \"enable lua shaders\" ")
 		widgetHandler:RemoveWidget()
 		return false
 	end
 
 	if not NON_POWER_OF_TWO then
-		Spring.Echo("guishader api: your hardware does not non-2^n-textures")
+		spEcho("guishader api: your hardware does not non-2^n-textures")
 		widgetHandler:RemoveWidget()
 		return false
 	end
@@ -335,7 +343,7 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 		if WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
 			screencopy = WG['screencopymanager'].GetScreenCopy()
 		else
-			Spring.Echo("Missing Screencopy Manager, exiting",  WG['screencopymanager'] )
+			spEcho("Missing Screencopy Manager, exiting",  WG['screencopymanager'] )
 			widgetHandler:RemoveWidget()
 			return false
 		end
@@ -353,14 +361,14 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 
 		-- Debug: Check if stencil texture exists
 		if isIntelGPU and stenciltex == nil then
-			Spring.Echo("DEBUG: stenciltex is nil!")
+			spEcho("DEBUG: stenciltex is nil!")
 		end
 
 		gl.Blending(true)
 		gl.Texture(screencopy)
 		gl.Texture(2, stenciltex)
 		blurShader:Activate()
-			--blurShader:SetUniform("intensity", math.max(blurIntensity, 0.0015))
+			--blurShader:SetUniform("intensity", mathMax(blurIntensity, 0.0015))
 			blurShader:SetUniform("ivsx", 0.5/vsx)
 			blurShader:SetUniform("ivsy", 0.5/vsy)
 
@@ -401,7 +409,7 @@ local function DrawScreen() -- This blurs the UI elements obscured by other UI e
 		gl.Texture(2, stenciltexScreen)
 
 		blurShader:Activate()
-			--blurShader:SetUniform("intensity", math.max(blurIntensity, 0.0015))
+			--blurShader:SetUniform("intensity", mathMax(blurIntensity, 0.0015))
 			blurShader:SetUniform("ivsx", 0.5/vsx)
 			blurShader:SetUniform("ivsy", 0.5/vsy)
 
@@ -514,7 +522,7 @@ function widget:Initialize()
 			value = defaultBlurIntensity
 		end
 		if tonumber(value) == nil then
-			Spring.Echo("Attempted to set blurIntensity to a non-number:",value," resetting to default")
+			spEcho("Attempted to set blurIntensity to a non-number:",value," resetting to default")
 			blurIntensity = defaultBlurIntensity
 		else
 			blurIntensity = value
@@ -552,7 +560,7 @@ end
 function widget:SetConfigData(data)
 	if data.blurIntensity ~= nil then
 		if tonumber(data.blurIntensity) == nil then
-			Spring.Echo("Attempted to set blurIntensity to a non-number:",data.blurIntensity," resetting to default")
+			spEcho("Attempted to set blurIntensity to a non-number:",data.blurIntensity," resetting to default")
 			blurIntensity = defaultBlurIntensity
 		else
 			blurIntensity = data.blurIntensity

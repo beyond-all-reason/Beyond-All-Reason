@@ -13,6 +13,15 @@ function widget:GetInfo()
 end
 
 
+
+-- Localized functions for performance
+local mathSin = math.sin
+local mathCos = math.cos
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local showValue			= false
 local metalViewOnly		= false
 
@@ -32,9 +41,9 @@ local spGetMapDrawMode  = Spring.GetMapDrawMode
 local spots = {}
 local previousOsClock = os.clock()
 local checkspots = true
-local sceduledCheckedSpotsFrame = Spring.GetGameFrame()
+local sceduledCheckedSpotsFrame = spGetGameFrame()
 
-local isSpec, fullview = Spring.GetSpectatingState()
+local isSpec, fullview = spGetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 local chobbyInterface
@@ -193,23 +202,23 @@ local function makeSpotVBO()
 				a4 = ((i+circleInnerOffset+detailPartWidth) * radstep) - ((width / detail)*0.6)
 
 
-				arrayAppend(VBOData, {math.sin(a3)*innersize, math.cos(a3)*innersize, dir, a3})
+				arrayAppend(VBOData, {mathSin(a3)*innersize, mathCos(a3)*innersize, dir, a3})
 				if dir == 1 then
-					arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, a4})
-					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
+					arrayAppend(VBOData, {mathSin(a4)*innersize, mathCos(a4)*innersize, dir, a4})
+					arrayAppend(VBOData, {mathSin(a1)*outersize, mathCos(a1)*outersize, dir, a1})
 				else
-					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
-					arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, a4})
+					arrayAppend(VBOData, {mathSin(a1)*outersize, mathCos(a1)*outersize, dir, a1})
+					arrayAppend(VBOData, {mathSin(a4)*innersize, mathCos(a4)*innersize, dir, a4})
 				end
 
 				if dir == -1 then
-					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
-					arrayAppend(VBOData, {math.sin(a2)*outersize, math.cos(a2)*outersize, dir, a2})
+					arrayAppend(VBOData, {mathSin(a1)*outersize, mathCos(a1)*outersize, dir, a1})
+					arrayAppend(VBOData, {mathSin(a2)*outersize, mathCos(a2)*outersize, dir, a2})
 				else
-					arrayAppend(VBOData, {math.sin(a2)*outersize, math.cos(a2)*outersize, dir, a2})
-					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
+					arrayAppend(VBOData, {mathSin(a2)*outersize, mathCos(a2)*outersize, dir, a2})
+					arrayAppend(VBOData, {mathSin(a1)*outersize, mathCos(a1)*outersize, dir, a1})
 				end
-				arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, a4})
+				arrayAppend(VBOData, {mathSin(a4)*innersize, mathCos(a4)*innersize, dir, a4})
 			end
 		end
 	end
@@ -270,11 +279,11 @@ local function checkGeothermalspots()
 			local curSpotkey = spotKey(spot[1], spot[3])
 			local oldinstance = getElementInstanceData(spotInstanceVBO, curSpotkey)
 			oldinstance[5] = (occupied and 0) or 1
-			oldinstance[6] = Spring.GetGameFrame()
+			oldinstance[6] = spGetGameFrame()
 			pushElementInstance(spotInstanceVBO, oldinstance, curSpotkey, true)
 		end
 	end
-	sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 151
+	sceduledCheckedSpotsFrame = spGetGameFrame() + 151
 	checkspots = false
 
 	if geoHeightChange then
@@ -355,7 +364,7 @@ end
 function widget:PlayerChanged(playerID)
 	local prevFullview = fullview
 	local prevMyAllyTeamID = myAllyTeamID
-	isSpec, fullview = Spring.GetSpectatingState()
+	isSpec, fullview = spGetSpectatingState()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	if fullview ~= prevFullview or myAllyTeamID ~= prevMyAllyTeamID then
 		checkGeothermalspots()
@@ -370,7 +379,7 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if extractors[unitDefID] then
-		sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 3	-- delay needed, i don't know why
+		sceduledCheckedSpotsFrame = spGetGameFrame() + 3	-- delay needed, i don't know why
 	end
 end
 

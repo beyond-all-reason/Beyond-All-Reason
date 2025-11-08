@@ -3,30 +3,38 @@ return {
 	-- Commanders
 	EnemyCommanderDied = {
 		delay = 1,
+		soundEffect = "EnemyComDead",
 	},
 	FriendlyCommanderDied = {
 		delay = 1,
+		soundEffect = "FriendlyComDead",
 	},
 	FriendlyCommanderSelfD = {
 		delay = 1,
+		soundEffect = "FriendlyComDead",
 	},
 	SpectatorCommanderDied = {
 		delay = 1,
+		soundEffect = "NeutralComDead",
 	},
 	SpectatorCommanderSelfD = {
 		delay = 1,
+		soundEffect = "NeutralComDead",
 	},
 	PlayerEliminated = {
 		delay = 1,
 	},
 	ComHeavyDamage = {
 		delay = 12,
+		soundEffect = "CommanderHeavilyDamaged",
 	},
 	TeamDownLastCommander = {
 		delay = 30,
+		soundEffect = "YourTeamHasTheLastCommander",
 	},
 	YouHaveLastCommander = {
 		delay = 30,
+		soundEffect = "YouHaveTheLastCommander",
 	},
 
 	-- Game Status
@@ -41,6 +49,7 @@ return {
 	},
 	BattleEnded = {
 		delay = 1,
+		soundEffect = "GameEnd",
 	},
 	GamePaused = {
 		delay = 1,
@@ -73,6 +82,7 @@ return {
 	},
 	BaseUnderAttack = {
 		delay = 5,
+		soundEffect = "UnitUnderAttack",
 	},
 	UnitsCaptured = {
 		delay = 5,
@@ -82,21 +92,27 @@ return {
 	},
 	CommanderUnderAttack = {
 		delay = 5,
+		soundEffect = "CommanderUnderAttack",
 	},
 	UnitsUnderAttack = {
 		delay = 5,
+		soundEffect = "UnitUnderAttack",
 	},
 	UnitLost = {
 		delay = 5,
+		soundEffect = "UnitUnderAttack",
 	},
 	RadarLost = {
 		delay = 5,
+		soundEffect = "UnitUnderAttack",
 	},
 	AdvancedRadarLost = {
 		delay = 5,
+		soundEffect = "UnitUnderAttack",
 	},
 	MetalExtractorLost = {
 		delay = 5,
+		soundEffect = "UnitUnderAttack",
 	},
 
 	-- Resources
@@ -117,9 +133,6 @@ return {
 	},
 	LowPower = {
 		delay = 50,
-	},
-	WindNotGood = {
-		delay = 9999999,
 	},
 
 	-- Alerts
@@ -250,28 +263,23 @@ return {
 	AstraeusDetected = {
 		delay = 300,
 	},
-	TransportDetected = {
-		delay = 300,
-	},
 	AirTransportDetected = {
-		delay = 300,
-	},
-	SeaTransportDetected = {
 		delay = 300,
 	},
 
 	-- Lava
 	LavaRising = {
 		delay = 25,
+		soundEffect = "LavaAlert",
 	},
 	LavaDropping = {
 		delay = 25,
+		soundEffect = "LavaAlert",
 	},
 
 	-- Tutorial / tips
 	Welcome = {
 		delay = 9999999,
-		tutorial = true,
 	},
 	BuildMetal = {
 		delay = 9999999,

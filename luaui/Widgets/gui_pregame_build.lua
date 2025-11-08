@@ -15,6 +15,23 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathAbs = math.abs
+local mathCeil = math.ceil
+local mathFloor = math.floor
+local mathMax = math.max
+local tableInsert = table.insert
+local tableRemove = table.remove
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMouseState = Spring.GetMouseState
+local spTraceScreenRay = Spring.TraceScreenRay
+local spGetGroundHeight = Spring.GetGroundHeight
+local spEcho = Spring.Echo
+
 local spTestBuildOrder = Spring.TestBuildOrder
 
 local buildQueue = {}
@@ -31,8 +48,8 @@ local buildModeState = {
 }
 
 local isSpec = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
-local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
+local myTeamID = spGetMyTeamID()
+local preGamestartPlayer = spGetGameFrame() == 0 and not isSpec
 local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 local prevStartDefID = startDefID
 local isMetalMap = false
@@ -89,7 +106,7 @@ local function buildSpacingHandler(command, line, args)
 		buildModeState.spacing = buildModeState.spacing + 1
 		return true
 	elseif action == "dec" then
-		buildModeState.spacing = math.max(0, buildModeState.spacing - 1)
+		buildModeState.spacing = mathMax(0, buildModeState.spacing - 1)
 		return true
 	end
 end
@@ -188,14 +205,14 @@ local function convertBuildQueueFaction(previousFactionSide, currentFactionSide)
 	local result = SubLogic.processBuildQueueSubstitution(buildQueue, previousFactionSide, currentFactionSide)
 	
 	if result.substitutionFailed then
-		Spring.Echo(string.format("[gui_pregame_build] %s", result.summaryMessage))
+		spEcho(string.format("[gui_pregame_build] %s", result.summaryMessage))
 	end
 end
 
 local function handleSelectedBuildingConversion(currentSelDefID, prevFactionSide, currentFactionSide, currentSelBuildData)
-	if not currentSelDefID then 
+	if not currentSelDefID then
 		Spring.Log("gui_pregame_build", LOG.WARNING, "handleSelectedBuildingConversion: Called with nil currentSelDefID.")
-		return currentSelDefID 
+		return currentSelDefID
 	end
 
 	local newSelDefID = SubLogic.getEquivalentUnitDefID(currentSelDefID, currentFactionSide)
@@ -207,7 +224,7 @@ local function handleSelectedBuildingConversion(currentSelDefID, prevFactionSide
 		end
 		local newUnitDef = UnitDefs[newSelDefID]
 		local successMsg = "[Pregame Build] Selected item converted to " .. (newUnitDef and (newUnitDef.humanName or newUnitDef.name) or ("UnitDefID " .. tostring(newSelDefID)))
-		Spring.Echo(successMsg)
+		spEcho(successMsg)
 	else
 		if prevFactionSide ~= currentFactionSide then
 			local originalUnitDef = UnitDefs[currentSelDefID]
@@ -288,16 +305,16 @@ local function snapPosition(unitDefID, pos, facing)
 	local result = { x = 0, y = pos.y, z = 0 }
 	local buildingWidth, buildingHeight = GetBuildingDimensions(unitDefID, facing or 0)
 
-	if math.floor(buildingWidth / BUILD_SQUARE_SIZE) % 2 > 0 then
-		result.x = math.floor(pos.x / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE
+	if mathFloor(buildingWidth / BUILD_SQUARE_SIZE) % 2 > 0 then
+		result.x = mathFloor(pos.x / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE
 	else
-		result.x = math.floor((pos.x + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE
+		result.x = mathFloor((pos.x + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE
 	end
 
-	if math.floor(buildingHeight / BUILD_SQUARE_SIZE) % 2 > 0 then
-		result.z = math.floor(pos.z / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE
+	if mathFloor(buildingHeight / BUILD_SQUARE_SIZE) % 2 > 0 then
+		result.z = mathFloor(pos.z / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE
 	else
-		result.z = math.floor((pos.z + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE
+		result.z = mathFloor((pos.z + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE
 	end
 	
 	return result
@@ -306,7 +323,7 @@ end
 local function fillRow(startX, startZ, stepX, stepZ, count, facing)
 	local result = {}
 	for _ = 1, count do
-		local groundY = Spring.GetGroundHeight(startX, startZ)
+		local groundY = spGetGroundHeight(startX, startZ)
 		result[#result + 1] = { x = startX, y = groundY, z = startZ, facing = facing }
 		startX = startX + stepX
 		startZ = startZ + stepZ
@@ -321,11 +338,11 @@ local function calculateBuildingPlacementSteps(unitDefID, startPos, endPos, spac
 	local xSize = buildingWidth + SQUARE_SIZE * spacing * 2
 	local zSize = buildingHeight + SQUARE_SIZE * spacing * 2
 	
-	local xCount = math.floor((math.abs(delta.x) + xSize * BUILDING_COUNT_FUDGE_FACTOR) / xSize)
-	local zCount = math.floor((math.abs(delta.z) + zSize * BUILDING_COUNT_FUDGE_FACTOR) / zSize)
+	local xCount = mathFloor((mathAbs(delta.x) + xSize * BUILDING_COUNT_FUDGE_FACTOR) / xSize)
+	local zCount = mathFloor((mathAbs(delta.z) + zSize * BUILDING_COUNT_FUDGE_FACTOR) / zSize)
 
-	local xStep = math.floor((delta.x > 0) and xSize or -xSize)
-	local zStep = math.floor((delta.z > 0) and zSize or -zSize)
+	local xStep = mathFloor((delta.x > 0) and xSize or -xSize)
+	local zStep = mathFloor((delta.z > 0) and zSize or -zSize)
 
 	return xStep, zStep, xCount, zCount, delta
 end
@@ -336,7 +353,7 @@ local function getBuildPositionsSingle(unitDefID, facing, startPos)
 	end
 
 	local snappedPos = snapPosition(unitDefID, startPos, facing)
-	local groundY = Spring.GetGroundHeight(snappedPos.x, snappedPos.z)
+	local groundY = spGetGroundHeight(snappedPos.x, snappedPos.z)
 	return { { x = snappedPos.x, y = groundY, z = snappedPos.z, facing = facing } }
 end
 
@@ -350,7 +367,7 @@ local function getBuildPositionsLine(unitDefID, facing, startPos, endPos, spacin
 	
 	local xStep, zStep, xCount, zCount, delta = calculateBuildingPlacementSteps(unitDefID, snappedStart, snappedEnd, spacing or 0, facing)
 	
-	local xGreaterThanZ = math.abs(delta.x) > math.abs(delta.z)
+	local xGreaterThanZ = mathAbs(delta.x) > mathAbs(delta.z)
 
 	if xGreaterThanZ then
 		zStep = xStep * delta.z / (delta.x ~= 0 and delta.x or 1)
@@ -423,8 +440,8 @@ local function getBuildPositionsAround(unitDefID, facing, target)
 	local targetBuildingWidth, targetBuildingHeight = GetBuildingDimensions(target.unitDefID, target.facing)
 	local currentBuildingWidth, currentBuildingHeight = GetBuildingDimensions(unitDefID, facing)
 
-	local widthBuildingCount = math.ceil((targetBuildingWidth + 2 * currentBuildingWidth) / currentBuildingWidth)
-	local heightBuildingCount = math.ceil((targetBuildingHeight + 2 * currentBuildingHeight) / currentBuildingHeight)
+	local widthBuildingCount = mathCeil((targetBuildingWidth + 2 * currentBuildingWidth) / currentBuildingWidth)
+	local heightBuildingCount = mathCeil((targetBuildingHeight + 2 * currentBuildingHeight) / currentBuildingHeight)
 
 	local perimeterWidth = widthBuildingCount * currentBuildingWidth
 	local perimeterHeight = heightBuildingCount * currentBuildingHeight
@@ -453,7 +470,7 @@ local function getBuildPositionsAround(unitDefID, facing, target)
 			else
 				pos.z = startZ + i * side.step
 			end
-			table.insert(result, pos)
+			tableInsert(result, pos)
 		end
 	end
 
@@ -492,7 +509,7 @@ local BUILD_POSITION_FUNCTIONS = {
 }
 
 local function getGhostBuildingUnderCursor(mouseX, mouseY)
-	local _, cursorWorldPositionRaw = Spring.TraceScreenRay(mouseX, mouseY, true, false, false, false)
+	local _, cursorWorldPositionRaw = spTraceScreenRay(mouseX, mouseY, true, false, false, false)
 	if not cursorWorldPositionRaw then
 		return nil
 	end
@@ -508,7 +525,7 @@ local function getGhostBuildingUnderCursor(mouseX, mouseY)
 			}
 			local distanceToBuilding = math.distance2d(cursorWorldPosition.x, cursorWorldPosition.z, ghostPosition.x, ghostPosition.z)
 			local buildingWidth, buildingHeight = GetBuildingDimensions(buildingData[1], buildingData[5] or 0)
-			local maximumDetectionDistance = math.max(buildingWidth * HALF, buildingHeight * HALF) + BUILDING_DETECTION_TOLERANCE
+			local maximumDetectionDistance = mathMax(buildingWidth * HALF, buildingHeight * HALF) + BUILDING_DETECTION_TOLERANCE
 
 			if distanceToBuilding <= maximumDetectionDistance then
 				return {
@@ -532,8 +549,8 @@ local function DoBuildingsClash(buildingData1, buildingData2)
 	local halfBuilding1Width, halfBuilding1Height = building1Width * HALF, building1Height * HALF
 	local halfBuilding2Width, halfBuilding2Height = building2Width * HALF, building2Height * HALF
 
-	local xDistance = math.abs(buildingData1[2] - buildingData2[2])
-	local zDistance = math.abs(buildingData1[4] - buildingData2[4])
+	local xDistance = mathAbs(buildingData1[2] - buildingData2[2])
+	local zDistance = mathAbs(buildingData1[4] - buildingData2[4])
 
 	return xDistance < halfBuilding1Width + halfBuilding2Width and zDistance < halfBuilding1Height + halfBuilding2Height
 end
@@ -595,7 +612,7 @@ local function isUnderwater(unitDefID)
 end
 
 local function getMouseWorldPosition(unitDefID, x, y)
-	local _, pos = Spring.TraceScreenRay(x, y, true, false, false, isUnderwater(unitDefID))
+	local _, pos = spTraceScreenRay(x, y, true, false, false, isUnderwater(unitDefID))
 	if pos then
 		local buildFacing = Spring.GetBuildFacing()
 		local posX = pos.x or pos[1]
@@ -620,7 +637,7 @@ function widget:Update(dt)
 	end
 	updateTime = 0
 	
-	local x, y, leftButton = Spring.GetMouseState()
+	local x, y, leftButton = spGetMouseState()
 	
 	if not leftButton then
 		if buildModeState.startPosition and #buildModeState.buildPositions > 0 then
@@ -648,7 +665,7 @@ function widget:Update(dt)
 				if not hasConflicts then
 					for i = #buildQueue, 1, -1 do
 						if buildQueue[i][1] > 0 and DoBuildingsClash(buildDataPos, buildQueue[i]) then
-							table.remove(buildQueue, i)
+							tableRemove(buildQueue, i)
 							hasConflicts = true
 						end
 					end
@@ -669,7 +686,7 @@ function widget:Update(dt)
 				end
 
 				if not hasConflicts then
-					table.insert(newBuildQueue, buildDataPos)
+					tableInsert(newBuildQueue, buildDataPos)
 				end
 			end
 			if #newBuildQueue > 0 then
@@ -778,7 +795,7 @@ function widget:MousePress(mx, my, button)
 					end
 
 					if not hasOverlap then
-						table.insert(filteredAroundPositions, buildDataPos)
+						tableInsert(filteredAroundPositions, buildDataPos)
 					end
 				end
 
@@ -810,7 +827,7 @@ function widget:MousePress(mx, my, button)
 					end
 
 					if not hasConflicts then
-						table.insert(newBuildQueue, buildDataPos)
+						tableInsert(newBuildQueue, buildDataPos)
 					end
 				end
 
@@ -825,7 +842,7 @@ function widget:MousePress(mx, my, button)
 		end
 	end
 
-	local _, pos = Spring.TraceScreenRay(mx, my, true, false, false, isUnderwater(selBuildQueueDefID))
+	local _, pos = spTraceScreenRay(mx, my, true, false, false, isUnderwater(selBuildQueueDefID))
 	if button == 1 then
 		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
 		if WG.ExtractorSnap then
@@ -880,7 +897,7 @@ function widget:MousePress(mx, my, button)
 			if not hasConflicts then
 				for i = #buildQueue, 1, -1 do
 					if buildQueue[i][1] > 0 and DoBuildingsClash(buildData, buildQueue[i]) then
-						table.remove(buildQueue, i)
+						tableRemove(buildQueue, i)
 						hasConflicts = true
 					end
 				end
@@ -897,7 +914,7 @@ function widget:MousePress(mx, my, button)
 
 			if not hasConflicts then
 				if meta then
-					table.insert(buildQueue, 1, buildData)
+					tableInsert(buildQueue, 1, buildData)
 				elseif shift then
 					buildQueue[#buildQueue + 1] = buildData
 					handleBuildMenu(shift)
@@ -929,7 +946,7 @@ function widget:MousePress(mx, my, button)
 	end
 
 	if button == 1 and #buildQueue > 0 and buildQueue[1][1]>0 then
-		local _, pos = Spring.TraceScreenRay(mx, my, true, false, false, isUnderwater(startDefID))
+		local _, pos = spTraceScreenRay(mx, my, true, false, false, isUnderwater(startDefID))
 		if not pos then
 			return
 		end
@@ -941,8 +958,8 @@ function widget:MousePress(mx, my, button)
 	end
 
 	if button == 3 and shift then
-		local x, y, _ = Spring.GetMouseState()
-		local _, pos = Spring.TraceScreenRay(x, y, true, false, false, true)
+		local x, y, _ = spGetMouseState()
+		local _, pos = spTraceScreenRay(x, y, true, false, false, true)
 		if pos and pos[1] then
 			local buildData = { -CMD.MOVE, pos[1], pos[2], pos[3], nil }
 
@@ -951,7 +968,7 @@ function widget:MousePress(mx, my, button)
 	end
 
 	if button == 3 and #buildQueue > 0 then
-		table.remove(buildQueue, #buildQueue)
+		tableRemove(buildQueue, #buildQueue)
 
 		return true
 	end
@@ -999,7 +1016,7 @@ function widget:DrawWorld()
 	end
 
 	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
-	if Spring.GetGameFrame() > 0 then
+	if spGetGameFrame() > 0 then
 		widgetHandler:RemoveCallIn("DrawWorld")
 		return
 	end
@@ -1025,8 +1042,8 @@ function widget:DrawWorld()
 	-- We need data about currently selected building, for drawing clashes etc
 	local selBuildData
 	if selBuildQueueDefID then
-		local x, y, _ = Spring.GetMouseState()
-		local _, pos = Spring.TraceScreenRay(x, y, true, false, false, isUnderwater(selBuildQueueDefID))
+		local x, y, _ = spGetMouseState()
+		local _, pos = spTraceScreenRay(x, y, true, false, false, isUnderwater(selBuildQueueDefID))
 		if pos then
 			local buildFacing = Spring.GetBuildFacing()
 			local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3], buildFacing)
@@ -1045,7 +1062,7 @@ function widget:DrawWorld()
 	local startChosen = (sx ~= 0) or (sy ~=0) or (sz~=0)
 	if startChosen and startDefID then
 		-- Correction for start positions in the air
-		sy = Spring.GetGroundHeight(sx, sz)
+		sy = spGetGroundHeight(sx, sz)
 
 		-- Draw start units build radius
 		gl.Color(BUILD_DISTANCE_COLOR)
@@ -1169,7 +1186,7 @@ function widget:DrawWorld()
 		if not (shift and ctrl) then
 			return false, nil
 		end
-		local x, y = Spring.GetMouseState()
+		local x, y = spGetMouseState()
 		local buildAroundTarget = getGhostBuildingUnderCursor(x, y)
 		return buildAroundTarget ~= nil, buildAroundTarget
 	end
@@ -1203,7 +1220,7 @@ function widget:DrawWorld()
 		if getBuildQueueSpawnStatus then
 			local tempQueue = {}
 			for _, b in ipairs(buildQueue) do
-				table.insert(tempQueue, b)
+				tableInsert(tempQueue, b)
 			end
 
 			local validPreviewPositions = {}
@@ -1222,7 +1239,7 @@ function widget:DrawWorld()
 				end
 
 				if not hasConflicts then
-					table.insert(validPreviewPositions, previewBuildData)
+					tableInsert(validPreviewPositions, previewBuildData)
 				end
 			end
 
@@ -1234,7 +1251,7 @@ function widget:DrawWorld()
 				local mexValid = checkMexValidity(posX, posZ, isMex)
 
 				if not clashesWithCommander and isValid and mexValid then
-					table.insert(tempQueue, previewBuildData)
+					tableInsert(tempQueue, previewBuildData)
 					validPreviewCount = validPreviewCount + 1
 				end
 			end
@@ -1272,8 +1289,8 @@ function widget:DrawWorld()
 			end
 
 			if not hasOverlap then
-				table.insert(filteredPreviewPositions, buildPos)
-				table.insert(filteredPreviewBuildData, previewBuildData)
+				tableInsert(filteredPreviewPositions, buildPos)
+				tableInsert(filteredPreviewBuildData, previewBuildData)
 			end
 		end
 
@@ -1314,9 +1331,6 @@ function widget:DrawWorld()
 	end
 
 	if selBuildData and showSelectedBuilding then
-		local selectedAlpha = alphaResults.selectedAlpha or ALPHA_DEFAULT
-		local isSelectedSpawned = selectedAlpha >= ALPHA_SPAWNED
-		
 		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
 		local testOrder = spTestBuildOrder(
 			selBuildQueueDefID,
@@ -1325,18 +1339,28 @@ function widget:DrawWorld()
 			selBuildData[4],
 			selBuildData[5]
 		) ~= 0
+		
+		local isSelectedSpawned = false
+		local selectedAlpha = ALPHA_DEFAULT
+		local getBuildQueueSpawnStatus = WG["getBuildQueueSpawnStatus"]
+		if getBuildQueueSpawnStatus and testOrder then
+			local spawnStatus = getBuildQueueSpawnStatus(buildQueue, selBuildData)
+			isSelectedSpawned = spawnStatus.selectedSpawned or false
+			selectedAlpha = isSelectedSpawned and ALPHA_SPAWNED or ALPHA_DEFAULT
+		end
+		
 		if not isMex then
 			local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID) or BORDER_COLOR_INVALID
 			DrawBuilding(selBuildData, color, true, selectedAlpha)
 		elseif isMex then
 			if WG.ExtractorSnap.position or isMetalMap then
-				local color = isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID
+				local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID) or BORDER_COLOR_INVALID
 				DrawBuilding(selBuildData, color, true, selectedAlpha)
 			else
 				DrawBuilding(selBuildData, BORDER_COLOR_INVALID, true, selectedAlpha)
 			end
 		else
-			local color = isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID
+			local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID) or BORDER_COLOR_INVALID
 			DrawBuilding(selBuildData, color, true, selectedAlpha)
 		end
 	end
@@ -1373,7 +1397,7 @@ function widget:GameFrame(n)
 
 	local tasker
 	-- Search for our starting unit
-	local units = Spring.GetTeamUnits(Spring.GetMyTeamID())
+	local units = Spring.GetTeamUnits(spGetMyTeamID())
 	for u = 1, #units do
 		local uID = units[u]
 		if GetUnitCanCompleteQueue(uID) then
@@ -1463,7 +1487,7 @@ end
 function widget:SetConfigData(data)
 	if
 		data.buildQueue
-		and Spring.GetGameFrame() == 0
+		and spGetGameFrame() == 0
 		and data.gameID
 		and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"))
 	then

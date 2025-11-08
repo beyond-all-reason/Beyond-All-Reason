@@ -719,7 +719,7 @@ function DrawWindow()
 		local startY = screenY - screenHeight + buttonMarginY
 
 		glColor(1, 1, 1, 1)
-		
+
 		if (startColumn - 1) + maxShownColumns < totalColumns then
 			optionButtonForward = { startX - buttonSize - buttonMarginX, startY, startX - buttonMarginX, startY + buttonSize }
 			glColor(1, 1, 1, 1)
@@ -6248,7 +6248,7 @@ function init()
 
 	-- add sound notification sets
 	if getOptionByID('notifications_set') then
-		local voiceset = Spring.GetConfigString("voiceset", 'en/allison')
+		local voiceset = Spring.GetConfigString("voiceset", 'en/cephis')
 		local currentVoiceSetOption
 		local sets = {}
 		local languageDirs = VFS.SubDirs('sounds/voice', '*')
