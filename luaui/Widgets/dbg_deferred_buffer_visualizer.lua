@@ -13,8 +13,6 @@ function widget:GetInfo()
 end
 
 
--- Localized functions for performance
-
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
 local spGetViewGeometry = Spring.GetViewGeometry

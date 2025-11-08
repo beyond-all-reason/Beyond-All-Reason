@@ -13,8 +13,6 @@ function widget:GetInfo()
 end
 
 
--- Localized functions for performance
-
 -- Localized Spring API for performance
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetTeamUnits = Spring.GetTeamUnits

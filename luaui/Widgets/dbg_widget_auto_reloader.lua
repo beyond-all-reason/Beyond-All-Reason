@@ -18,8 +18,6 @@ function widget:GetInfo()
 end
 
 
--- Localized functions for performance
-
 -- Localized Spring API for performance
 local spGetMouseState = Spring.GetMouseState
 local spEcho = Spring.Echo

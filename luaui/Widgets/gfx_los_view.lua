@@ -14,8 +14,6 @@ function widget:GetInfo()
 end
 
 
--- Localized functions for performance
-
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
 local spGetSpectatingState = Spring.GetSpectatingState

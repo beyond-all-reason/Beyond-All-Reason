@@ -15,8 +15,6 @@ function widget:GetInfo()
 end
 
 
--- Localized functions for performance
-
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGameFrame = Spring.GetGameFrame
@@ -82,7 +80,7 @@ local unitCanFly = {}
 local unitBuilding = {}
 local sizeAdd = -(lineSize*1.5)
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitScale[unitDefID] = (7.5 * ( unitDef.xsize*xsize + unitDef.zsize*zsize ) ^ 0.5) + 8
+	unitScale[unitDefID] = (7.5 * ( unitDef.xsize*unitDef.xsize + unitDef.zsize*unitDef.zsize ) ^ 0.5) + 8
 	unitScale[unitDefID] = unitScale[unitDefID] + sizeAdd
 	if unitDef.canFly then
 		unitCanFly[unitDefID] = true
@@ -129,7 +127,7 @@ local function AddPrimitiveAtUnit(unitID)
 	instanceCache[1], instanceCache[2], instanceCache[3], instanceCache[4] = length, width, cornersize, additionalheight
 	instanceCache[5] = spGetUnitTeam(unitID)
 	instanceCache[7] = spGetGameFrame()
-	
+
 	pushElementInstance(
 		selectionVBO, -- push into this Instance VBO Table
 		instanceCache,

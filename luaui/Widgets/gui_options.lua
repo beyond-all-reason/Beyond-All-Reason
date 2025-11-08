@@ -13,20 +13,6 @@ function widget:GetInfo()
 	}
 end
 
-
--- Localized functions for performance
-local mathAbs = math.abs
-local mathCeil = math.ceil
-local mathFloor = math.floor
-local mathMax = math.max
-local mathMin = math.min
-
--- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-local spGetMouseState = Spring.GetMouseState
-local spEcho = Spring.Echo
-local spGetViewGeometry = Spring.GetViewGeometry
-
 Spring.SendCommands("resbar 0")
 
 -- Add new options at: function init
@@ -115,7 +101,7 @@ local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local fontfile3 = "fonts/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 
-local vsx, vsy = spGetViewGeometry()
+local vsx, vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 local fontfileSize = 36
 local fontfileOutlineSize = 7
@@ -132,8 +118,8 @@ local screenWidth = screenWidthOrg
 
 local centerPosX = 0.5
 local centerPosY = 0.5
-local screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
-local screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
+local screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
+local screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
 
 local changesRequireRestart = false
 local useNetworkSmoothing = false
@@ -323,21 +309,21 @@ end
 
 local function adjustShadowQuality()
 	local quality = Spring.GetConfigInt("ShadowQuality", 3)
-	local shadowMapSize = 600 + mathMin(10240, (vsy+vsx)*0.37)*(quality*0.5)
+	local shadowMapSize = 600 + math.min(10240, (vsy+vsx)*0.37)*(quality*0.5)
 	Spring.SetConfigInt("Shadows", (quality==0 and 0 or 1))
 	Spring.SetConfigInt("ShadowMapSize", shadowMapSize)
 	Spring.SendCommands("shadows "..(quality==0 and 0 or 1).." " .. shadowMapSize)
 end
 
 function widget:ViewResize()
-	vsx, vsy = spGetViewGeometry()
+	vsx, vsy = Spring.GetViewGeometry()
 
 	widgetScale = (vsy / 1080)
 
-	screenHeight = mathFloor(screenHeightOrg * widgetScale)
-	screenWidth = mathFloor(screenWidthOrg * widgetScale)
-	screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
-	screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
+	screenHeight = math.floor(screenHeightOrg * widgetScale)
+	screenWidth = math.floor(screenWidthOrg * widgetScale)
+	screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
+	screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
 
 	bgpadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
@@ -397,7 +383,7 @@ local cursorBlinkTimer = 0
 local cursorBlinkDuration = 1
 local maxTextInputChars = 127	-- tested 127 as being the true max
 local inputTextInsertActive = false
-local floor = mathFloor
+local floor = math.floor
 local inputMode = ''
 
 function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked it
@@ -474,7 +460,7 @@ function updateInputDlist()
 		local activationArea = {screenX, screenY - screenHeight, screenX + screenWidth, screenY}
 		local usedFontSize = 15 * widgetScale
 		local lineHeight = floor(usedFontSize * 1.15)
-		local x,y,_ = spGetMouseState()
+		local x,y,_ = Spring.GetMouseState()
 		local chatlogHeightDiff = 0
 		local inputFontSize = floor(usedFontSize * 1.03)
 		local inputHeight = floor(inputFontSize * 2.15)
@@ -487,16 +473,16 @@ function updateInputDlist()
 		end
 		local modeTextPosX = floor(activationArea[1]+elementPadding+elementPadding+leftOffset)
 		local textPosX = floor(modeTextPosX + (usedFont:GetTextWidth(modeText) * inputFontSize) + leftOffset + inputFontSize)
-		local textCursorWidth = 1 + mathFloor(inputFontSize / 14)
+		local textCursorWidth = 1 + math.floor(inputFontSize / 14)
 		if inputTextInsertActive then
-			textCursorWidth = mathFloor(textCursorWidth * 5)
+			textCursorWidth = math.floor(textCursorWidth * 5)
 		end
 		local textCursorPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, inputTextPosition)) * inputFontSize)
 
 		-- background
-		local x2 = mathMax(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/5)))
+		local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/5)))
 		chatInputArea = { activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance }
-		UiElement(chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4], 0,0,nil,nil, 0,nil,nil,nil, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+		UiElement(chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4], 0,0,nil,nil, 0,nil,nil,nil, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 		if WG['guishader'] then
 			WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'optionsinput')
 		end
@@ -575,7 +561,7 @@ function mouseoverGroupTab(id)
 	end
 
 	local tabFontSize = 16 * widgetScale
-	local groupMargin = mathFloor(bgpadding * 0.8)
+	local groupMargin = math.floor(bgpadding * 0.8)
 	glBlending(GL_SRC_ALPHA, GL_ONE)
 	RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, groupMargin * 1.8, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.07 })
 	-- gloss
@@ -604,10 +590,10 @@ function DrawWindow()
 	windowRect = { screenX, screenY - screenHeight, screenX + screenWidth, screenY }
 
 	-- background
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, (showTextInput and inputText ~= '' and inputMode == '') and 1 or 0, 0, 1, (showTextInput and 0 or 1), 1, 1, 1, 1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, (showTextInput and inputText ~= '' and inputMode == '') and 1 or 0, 0, 1, (showTextInput and 0 or 1), 1, 1, 1, 1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 
 	-- title
-	local groupMargin = mathFloor(bgpadding * 0.8)
+	local groupMargin = math.floor(bgpadding * 0.8)
 	local color2 = '\255\125\125\125'
 	local color = '\255\255\255\255'
 	local title = ""
@@ -619,7 +605,7 @@ function DrawWindow()
 		title = color .. Spring.I18N('ui.settings.basic') .. color2 .. "  /  " .. Spring.I18N('ui.settings.advanced')
 	end
 	local titleFontSize = 18 * widgetScale
-	titleRect = { mathFloor((screenX + screenWidth) - ((font2:GetTextWidth(title) * titleFontSize) + (titleFontSize * 1.5))), screenY, screenX + screenWidth, mathFloor(screenY + (titleFontSize * 1.7)) }
+	titleRect = { math.floor((screenX + screenWidth) - ((font2:GetTextWidth(title) * titleFontSize) + (titleFontSize * 1.5))), screenY, screenX + screenWidth, math.floor(screenY + (titleFontSize * 1.7)) }
 
 	-- title drawing
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
@@ -639,7 +625,7 @@ function DrawWindow()
 		groupRect = {}
 		for id, group in pairs(optionGroups) do
 			if group.numOptions > 0 then
-				groupRect[id] = { xpos, titleRect[2], mathFloor(xpos + (font2:GetTextWidth(group.name) * tabFontSize) + (33 * widgetScale)), titleRect[4] }
+				groupRect[id] = { xpos, titleRect[2], math.floor(xpos + (font2:GetTextWidth(group.name) * tabFontSize) + (33 * widgetScale)), titleRect[4] }
 				if devMode or devUI or group.id ~= 'dev' then
 					xpos = groupRect[id][3]
 					if currentGroupTab == nil or currentGroupTab ~= group.id then
@@ -677,23 +663,23 @@ function DrawWindow()
 	font:SetOutlineColor(0,0,0,0.4)
 
 	-- draw options
-	local oHeight = mathFloor(15 * widgetScale)
-	local oPadding = mathFloor(6 * widgetScale)
-	y = mathFloor(mathFloor(y - oPadding - (17 * widgetScale)))
-	local oWidth = mathFloor((screenWidth / 3) - oPadding - oPadding)
-	local yHeight = mathFloor(screenHeight - (65 * widgetScale) - oPadding)
-	local xPos = mathFloor(x + oPadding + (5 * widgetScale))
+	local oHeight = math.floor(15 * widgetScale)
+	local oPadding = math.floor(6 * widgetScale)
+	y = math.floor(math.floor(y - oPadding - (17 * widgetScale)))
+	local oWidth = math.floor((screenWidth / 3) - oPadding - oPadding)
+	local yHeight = math.floor(screenHeight - (65 * widgetScale) - oPadding)
+	local xPos = math.floor(x + oPadding + (5 * widgetScale))
 	local xPosMax = xPos + oWidth - oPadding - oPadding
 	local yPosMax = y - yHeight
-	local boolWidth = mathFloor(40 * widgetScale)
-	local sliderWidth = mathFloor(110 * widgetScale)
-	local selectWidth = mathFloor(140 * widgetScale)
+	local boolWidth = math.floor(40 * widgetScale)
+	local sliderWidth = math.floor(110 * widgetScale)
+	local selectWidth = math.floor(140 * widgetScale)
 	local i = 0
 	local rows = 0
 	local column = 1
 	local drawColumnPos = 1
 
-	maxColumnRows = mathCeil((y - yPosMax + oPadding) / (oHeight + oPadding + oPadding))
+	maxColumnRows = math.ceil((y - yPosMax + oPadding) / (oHeight + oPadding + oPadding))
 	local numOptions = #options
 
 	local dontFilterGroup = false
@@ -709,7 +695,7 @@ function DrawWindow()
 		end
 	end
 
-	totalColumns = mathCeil(numOptions / maxColumnRows)
+	totalColumns = math.ceil(numOptions / maxColumnRows)
 
 	optionButtons = {}
 	optionHover = {}
@@ -721,7 +707,7 @@ function DrawWindow()
 		RectRound(screenX+bgpadding, screenY - screenHeight+bgpadding + (30 * widgetScale)-1, screenX + screenWidth-bgpadding, screenY-screenHeight + (30 * widgetScale), 0, 0, 0, 0, 0)
 		font:SetTextColor(0.9, 0.3, 0.3, 1)
 		font:SetOutlineColor(0, 0, 0, 0.4)
-		font:Print(Spring.I18N('ui.settings.madechanges'), screenX + mathFloor(screenWidth*0.5), screenY - screenHeight + (12 * widgetScale), 15 * widgetScale, "cn")
+		font:Print(Spring.I18N('ui.settings.madechanges'), screenX + math.floor(screenWidth*0.5), screenY - screenHeight + (12 * widgetScale), 15 * widgetScale, "cn")
 	end
 
 	-- draw navigation... backward/forward
@@ -733,7 +719,7 @@ function DrawWindow()
 		local startY = screenY - screenHeight + buttonMarginY
 
 		glColor(1, 1, 1, 1)
-		
+
 		if (startColumn - 1) + maxShownColumns < totalColumns then
 			optionButtonForward = { startX - buttonSize - buttonMarginX, startY, startX - buttonMarginX, startY + buttonSize }
 			glColor(1, 1, 1, 1)
@@ -746,7 +732,7 @@ function DrawWindow()
 		end
 
 		font:SetTextColor(1, 1, 1, 0.4)
-		font:Print(mathCeil(startColumn / maxShownColumns) .. ' / ' .. mathCeil(totalColumns / maxShownColumns), startX - (buttonSize * 2.6) - buttonMarginX, startY + buttonSize / 2.6, buttonSize / 2.4, "rn")
+		font:Print(math.ceil(startColumn / maxShownColumns) .. ' / ' .. math.ceil(totalColumns / maxShownColumns), startX - (buttonSize * 2.6) - buttonMarginX, startY + buttonSize / 2.6, buttonSize / 2.4, "rn")
 		if startColumn > 1 then
 			optionButtonBackward = { startX - (buttonSize * 2) - buttonMarginX - (buttonMarginX / 1.5), startY, startX - (buttonSize * 1) - buttonMarginX - (buttonMarginX / 1.5), startY + buttonSize }
 			glColor(1, 1, 1, 1)
@@ -765,7 +751,7 @@ function DrawWindow()
 	for oid, option in pairs(options) do
 		if showOption(option) then
 			if currentGroupTab == nil or option.group == currentGroupTab or dontFilterGroup then
-				yPos = mathFloor(y - (((oHeight + oPadding + oPadding) * i) - oPadding))
+				yPos = math.floor(y - (((oHeight + oPadding + oPadding) * i) - oPadding))
 				if yPos - oHeight < yPosMax then
 					i = 0
 					column = column + 1
@@ -776,8 +762,8 @@ function DrawWindow()
 						break
 					end
 					if rows > 0 then
-						xPos = mathFloor(x + (((screenWidth / 3)) * (drawColumnPos - 1)))
-						xPosMax = mathFloor(xPos + oWidth)
+						xPos = math.floor(x + (((screenWidth / 3)) * (drawColumnPos - 1)))
+						xPosMax = math.floor(xPos + oWidth)
 					end
 					yPos = y - (((oHeight + oPadding + oPadding) * i) - oPadding)
 				end
@@ -802,7 +788,7 @@ function DrawWindow()
 							font:SetOutlineColor(0, 0, 0, 0.4)
 						else
 							local text = option.name
-							local width = font:GetTextWidth(text) * mathFloor(15 * widgetScale)
+							local width = font:GetTextWidth(text) * math.floor(15 * widgetScale)
 							local maxWidthMult = 1
 							if option.type == 'bool' then
 								maxWidthMult = 0.85
@@ -814,7 +800,7 @@ function DrawWindow()
 							local maxWidth = (xPosMax - xPos - 45) * maxWidthMult
 							if width > maxWidth then
 								maxWidth = (xPosMax - xPos - 50) * maxWidthMult
-								while font:GetTextWidth(text) * mathFloor(15 * widgetScale) > maxWidth do
+								while font:GetTextWidth(text) * math.floor(15 * widgetScale) > maxWidth do
 									text = string.sub(text, 1, string.len(text) - 1)
 								end
 								text = text .. '...'
@@ -832,17 +818,17 @@ function DrawWindow()
 						end
 
 						-- define hover area
-						optionHover[oid] = { mathFloor(xPos), mathFloor(yPos - oHeight - oPadding), mathFloor(xPosMax), mathFloor(yPos + oPadding) }
+						optionHover[oid] = { math.floor(xPos), math.floor(yPos - oHeight - oPadding), math.floor(xPosMax), math.floor(yPos + oPadding) }
 
 						-- option controller
 						local rightPadding = 4
 						if option.type == 'click' then
 							optionButtons[oid] = {}
-							optionButtons[oid] = { mathFloor(xPos + rightPadding), mathFloor(yPos - oHeight), mathFloor(xPosMax - rightPadding), mathFloor(yPos) }
+							optionButtons[oid] = { math.floor(xPos + rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos) }
 
 						elseif option.type == 'bool' then
 							optionButtons[oid] = {}
-							optionButtons[oid] = { mathFloor(xPosMax - boolWidth - rightPadding), mathFloor(yPos - oHeight), mathFloor(xPosMax - rightPadding), mathFloor(yPos) }
+							optionButtons[oid] = { math.floor(xPosMax - boolWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos) }
 							UiToggle(optionButtons[oid][1], optionButtons[oid][2], optionButtons[oid][3], optionButtons[oid][4], option.value)
 
 						elseif option.type == 'slider' then
@@ -864,22 +850,22 @@ function DrawWindow()
 									sliderPos = (option.value - option.min) / (option.max - option.min)
 								end
 								if type(sliderPos) == 'number' then
-									UiSlider(mathFloor(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding), mathFloor(yPos - ((oHeight / 7) * 4.5)), mathFloor(xPosMax - (sliderSize / 2) - rightPadding), mathFloor(yPos - ((oHeight / 7) * 2.8)), option.steps and option.steps or option.step, option.min, option.max)
-									UiSliderKnob(mathFloor(xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - rightPadding), mathFloor(yPos - oHeight + ((oHeight) / 2)), mathFloor(sliderSize / 2))
+									UiSlider(math.floor(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding), math.floor(yPos - ((oHeight / 7) * 4.5)), math.floor(xPosMax - (sliderSize / 2) - rightPadding), math.floor(yPos - ((oHeight / 7) * 2.8)), option.steps and option.steps or option.step, option.min, option.max)
+									UiSliderKnob(math.floor(xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - rightPadding), math.floor(yPos - oHeight + ((oHeight) / 2)), math.floor(sliderSize / 2))
 									optionButtons[oid] = { xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - (sliderSize / 2) - rightPadding, yPos - oHeight + ((oHeight - sliderSize) / 2), xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) + (sliderSize / 2) - rightPadding, yPos - ((oHeight - sliderSize) / 2) }
 									optionButtons[oid].sliderXpos = { xPosMax - (sliderSize / 2) - sliderWidth - rightPadding, xPosMax - (sliderSize / 2) - rightPadding }
 								end
 							end
 						elseif option.type == 'select' then
-							optionButtons[oid] = { mathFloor(xPosMax - selectWidth - rightPadding), mathFloor(yPos - oHeight), mathFloor(xPosMax - rightPadding), mathFloor(yPos) }
+							optionButtons[oid] = { math.floor(xPosMax - selectWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos) }
 							UiSelector(optionButtons[oid][1], optionButtons[oid][2], optionButtons[oid][3], optionButtons[oid][4], option.value)
 
 							if option.options[tonumber(option.value)] ~= nil then
 								local fontSize = oHeight * 0.85
 
 								local text = option.options[tonumber(option.value)]
-								if font:GetTextWidth(text) * mathFloor(15 * widgetScale) > (optionButtons[oid][3] - optionButtons[oid][1]) * 0.93 then
-									while font:GetTextWidth(text) * mathFloor(15 * widgetScale) > (optionButtons[oid][3] - optionButtons[oid][1]) * 0.9 do
+								if font:GetTextWidth(text) * math.floor(15 * widgetScale) > (optionButtons[oid][3] - optionButtons[oid][1]) * 0.93 then
+									while font:GetTextWidth(text) * math.floor(15 * widgetScale) > (optionButtons[oid][3] - optionButtons[oid][1]) * 0.9 do
 										text = string.sub(text, 1, string.len(text) - 1)
 									end
 									text = text .. '...'
@@ -956,7 +942,7 @@ function widget:Update(dt)
 	if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
 
 	local prevIsOffscreen = isOffscreen
-	isOffscreen = select(6, spGetMouseState())
+	isOffscreen = select(6, Spring.GetMouseState())
 	if isOffscreen and enabledGrabinput then
 		enabledGrabinput = false
 	end
@@ -1022,7 +1008,7 @@ function widget:Update(dt)
 	-- check if there is water shown 	(we do this because basic water 0 saves perf when no water is rendered)
 	if not waterDetected then
 		-- in case of modoption waterlevel has been made to show water
-		if not checkedForWaterAfterGamestart and spGetGameFrame() <= 30 then
+		if not checkedForWaterAfterGamestart and Spring.GetGameFrame() <= 30 then
 			detectWater()
 			checkedForWaterAfterGamestart = true
 		end
@@ -1100,7 +1086,7 @@ end
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	if show then
 		--on window
-		local mx, my, ml = spGetMouseState()
+		local mx, my, ml = Spring.GetMouseState()
 		if math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]) then
 			return true
 		elseif titleRect and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
@@ -1203,7 +1189,7 @@ function widget:DrawScreen()
 		if (show or showOnceMore) and windowList then
 
 			--on window
-			local mx, my, ml = spGetMouseState()
+			local mx, my, ml = Spring.GetMouseState()
 			if (math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4])) or
 					(titleRect and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4])) or
 					(chatInputArea and math_isInRect(mx, my, chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4]))
@@ -1256,7 +1242,7 @@ function widget:DrawScreen()
 			-- mouseover (highlight and tooltip)
 			local description = ''
 			if not (devMode or devUI) and titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
-				local groupMargin = mathFloor(bgpadding * 0.8)
+				local groupMargin = math.floor(bgpadding * 0.8)
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
 				RectRound(titleRect[1] + groupMargin, titleRect[2], titleRect[3] - groupMargin, titleRect[4] - groupMargin, groupMargin * 1.8, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.12 })
@@ -1363,7 +1349,7 @@ function widget:DrawScreen()
 				end
 
 				local oHeight = optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]
-				local oPadding = mathFloor(4 * widgetScale)
+				local oPadding = math.floor(4 * widgetScale)
 				local y = optionButtons[showSelectOptions][4] - oPadding
 				local yPos = y
 				optionSelect = {}
@@ -1377,7 +1363,7 @@ function widget:DrawScreen()
 				local fontSize = oHeight * 0.85
 				local maxWidth = optionButtons[showSelectOptions][3] - optionButtons[showSelectOptions][1]
 				for i, option in pairs(options[showSelectOptions].options) do
-					maxWidth = mathMax(maxWidth, font:GetTextWidth(option .. '   ') * fontSize)
+					maxWidth = math.max(maxWidth, font:GetTextWidth(option .. '   ') * fontSize)
 				end
 				if selectOptionsList then
 					if WG['guishader'] then
@@ -1386,7 +1372,7 @@ function widget:DrawScreen()
 					glDeleteList(selectOptionsList)
 				end
 				selectOptionsList = glCreateList(function()
-					local borderSize = mathMax(1, mathFloor(vsy / 900))
+					local borderSize = math.max(1, math.floor(vsy / 900))
 					RectRound(optionButtons[showSelectOptions][1] - borderSize, yPos - oHeight - oPadding - borderSize, optionButtons[showSelectOptions][1] + maxWidth + borderSize, optionButtons[showSelectOptions][2] + borderSize, (optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]) * 0.1, 1, 1, 1, 1, { 0, 0, 0, 0.25 }, { 0, 0, 0, 0.25 })
 					RectRound(optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][1] + maxWidth, optionButtons[showSelectOptions][2], (optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]) * 0.1, 1, 1, 1, 1, { 0.3, 0.3, 0.3, WG['guishader'] and 0.84 or 0.94 }, { 0.35, 0.35, 0.35, WG['guishader'] and 0.84 or 0.94 })
 					UiSelector(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4])
@@ -1394,11 +1380,11 @@ function widget:DrawScreen()
 					local i = 0
 					for k, option in pairs(options[showSelectOptions].options) do
 						i = i + 1
-						yPos = mathFloor(y - (((oHeight + oPadding + oPadding) * i) - oPadding))
-						optionSelect[#optionSelect + 1] = { mathFloor(optionButtons[showSelectOptions][1]), mathFloor(yPos - oHeight - oPadding), mathFloor(optionButtons[showSelectOptions][1] + maxWidth), mathFloor(yPos + oPadding) - 1, k }
+						yPos = math.floor(y - (((oHeight + oPadding + oPadding) * i) - oPadding))
+						optionSelect[#optionSelect + 1] = { math.floor(optionButtons[showSelectOptions][1]), math.floor(yPos - oHeight - oPadding), math.floor(optionButtons[showSelectOptions][1] + maxWidth), math.floor(yPos + oPadding) - 1, k }
 
 						if math_isInRect(mx, my, optionSelect[#optionSelect][1], optionSelect[#optionSelect][2], optionSelect[#optionSelect][3], optionSelect[#optionSelect][4]) then
-							UiSelectHighlight(optionButtons[showSelectOptions][1], mathFloor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][1] + maxWidth, mathFloor(yPos + oPadding))
+							UiSelectHighlight(optionButtons[showSelectOptions][1], math.floor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][1] + maxWidth, math.floor(yPos + oPadding))
 							if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
 								Spring.PlaySoundFile(sounds.selectHoverClick, 0.04, 'ui')
 							end
@@ -1581,8 +1567,8 @@ end
 function NearestValue(table, number)
 	local smallestSoFar, smallestIndex
 	for i, y in ipairs(table) do
-		if not smallestSoFar or (mathAbs(number - y) < smallestSoFar) then
-			smallestSoFar = mathAbs(number - y)
+		if not smallestSoFar or (math.abs(number - y) < smallestSoFar) then
+			smallestSoFar = math.abs(number - y)
 			smallestIndex = i
 		end
 	end
@@ -1617,13 +1603,13 @@ function getSliderValue(draggingSlider, mx)
 	if options[draggingSlider].steps ~= nil then
 		value = NearestValue(options[draggingSlider].steps, value)
 	elseif options[draggingSlider].step ~= nil then
-		value = mathFloor((value + (options[draggingSlider].step / 2)) / options[draggingSlider].step) * options[draggingSlider].step
+		value = math.floor((value + (options[draggingSlider].step / 2)) / options[draggingSlider].step) * options[draggingSlider].step
 	end
 	return value    -- is a string now :(
 end
 
 function widget:MouseWheel(up, value)
-	local x, y = spGetMouseState()
+	local x, y = Spring.GetMouseState()
 	if show then
 		return true
 	end
@@ -2032,7 +2018,7 @@ function init()
 	local displays = WG['screenMode'] and WG['screenMode'].GetDisplays() or {}
 
 	local currentDisplay = 1
-	local v_sx, v_sy, v_px, v_py = spGetViewGeometry()
+	local v_sx, v_sy, v_px, v_py = Spring.GetViewGeometry()
 	local displayNames = {}
 	local hasMultiDisplayOption = false
 	for index, display in ipairs(displays) do
@@ -2113,10 +2099,10 @@ function init()
 	-- restrict options for potato systems
 	if isPotatoCpu or isPotatoGpu then
 		if isPotatoCpu then
-			spEcho('potato CPU detected')
+			Spring.Echo('potato CPU detected')
 		end
 		if isPotatoGpu then
-			spEcho('potato Graphics Card detected')
+			Spring.Echo('potato Graphics Card detected')
 		end
 		presetNames = {
 			Spring.I18N('ui.settings.option.preset_lowest'),
@@ -2180,7 +2166,7 @@ function init()
 				Spring.SetConfigString('graphicsPreset', configSetting)
 				if configSetting == 'custom' then return end
 
-				spEcho('Loading preset:   ' .. options[i].options[value])
+				Spring.Echo('Loading preset:   ' .. options[i].options[value])
 				manualChange = false
 				for optionID, value in pairs(presets[configSetting]) do
 					local i = getOptionByID(optionID)
@@ -2234,7 +2220,7 @@ function init()
 				if WG['screenMode'] then
 					WG['screenMode'].SetScreenMode(value+screenmodeOffset)
 					currentDisplay = 1
-					local v_sx, v_sy, v_px, v_py = spGetViewGeometry()
+					local v_sx, v_sy, v_px, v_py = Spring.GetViewGeometry()
 					for index, display in ipairs(displays) do
 						if v_px >= display.x and v_px < display.x + display.width and v_py >= display.y and v_py < display.y + display.height then
 							currentDisplay = index
@@ -2539,7 +2525,7 @@ function init()
 
 		{ id = "featuredrawdist", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.featuredrawdist'), type = "slider", min = 2500, max = 40000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = Spring.I18N('ui.settings.option.featuredrawdist_descr'),
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("FeatureFadeDistance", mathFloor(value * 0.8))
+			  Spring.SetConfigInt("FeatureFadeDistance", math.floor(value * 0.8))
 			  Spring.SetConfigInt("FeatureDrawDistance", value)
 		  end,
 		},
@@ -2673,8 +2659,8 @@ function init()
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("FogMult", value)
 			  value = 1 / value	-- inverse
-			  local newFogStart = mathMin(9, (defaultMapFog.fogStart * ((value+4)*0.2)))
-			  local newFogEnd = mathMin(9, defaultMapFog.fogEnd * ((value+1)*0.5))
+			  local newFogStart = math.min(9, (defaultMapFog.fogStart * ((value+4)*0.2)))
+			  local newFogEnd = math.min(9, defaultMapFog.fogEnd * ((value+1)*0.5))
 			  if newFogStart >= newFogEnd then newFogStart = newFogEnd - 0.01 end
 			  Spring.SetAtmosphere({ fogStart = newFogStart, fogEnd = newFogEnd })
 		  end,
@@ -2688,7 +2674,7 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("MaxParticles", value)
-			  Spring.SetConfigInt("MaxNanoParticles", mathFloor(value*0.34))
+			  Spring.SetConfigInt("MaxNanoParticles", math.floor(value*0.34))
 		  end,
 		},
 
@@ -3033,16 +3019,16 @@ function init()
 
 			  if isCustom and not VFS.FileExists(keyFile) then
 				  Spring.SendCommands("keysave " .. keyFile)
-				  spEcho("Preset Custom selected, file saved at: " .. keyFile)
+				  Spring.Echo("Preset Custom selected, file saved at: " .. keyFile)
 			  end
 
 			  Spring.SetConfigString("KeybindingFile", keyFile)
 			  if isCustom then
-				  spEcho("To test your custom bindings after changes type in chat: /keyreload")
+				  Spring.Echo("To test your custom bindings after changes type in chat: /keyreload")
 			  end
 			  -- enable grid menu for grid keybinds
 			  local preset = options[getOptionByID('keybindings')].options[value]
-			  spEcho(preset)
+			  Spring.Echo(preset)
 			  if string.find(string.lower(preset), "grid", nil, true) then
 				  widgetHandler:DisableWidget('Build menu')
 				  widgetHandler:EnableWidget('Grid menu')
@@ -3296,7 +3282,7 @@ function init()
 			  Spring.SetConfigInt("CamSpringScrollSpeed", value)        -- spring default: 10
 		  end,
 		},
-		{ id = "scrollspeed", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.scrollspeed'), type = "slider", min = 1, max = 50, step = 1, value = mathAbs(tonumber(Spring.GetConfigInt("ScrollWheelSpeed", 1) or 25)), description = '',
+		{ id = "scrollspeed", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.scrollspeed'), type = "slider", min = 1, max = 50, step = 1, value = math.abs(tonumber(Spring.GetConfigInt("ScrollWheelSpeed", 1) or 25)), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4895,7 +4881,7 @@ function init()
 		{ id = "echocamerastate", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.echocamerastate'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.echocamerastate_descr'),
 		  onchange = function(i, value)
 			  options[getOptionByID('echocamerastate')].value = false
-			  spEcho(Spring.GetCameraState())
+			  Spring.Echo(Spring.GetCameraState())
 		  end,
 		},
 
@@ -5047,7 +5033,7 @@ function init()
 			  Spring.SetSunDirection(sunX, sunY, sunZ)
 			  -- just so that map/model lighting gets updated
 			  Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
-			  spEcho(gl.GetSun())
+			  Spring.Echo(gl.GetSun())
 		  end,
 		},
 		{ id = "sun_x", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sun_x'), type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(1, gl.GetSun("pos")),
@@ -5064,7 +5050,7 @@ function init()
 			  Spring.SetSunDirection(sunX, sunY, sunZ)
 			  -- just so that map/model lighting gets updated
 			  Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
-			  spEcho(gl.GetSun())
+			  Spring.Echo(gl.GetSun())
 		  end,
 		},
 		{ id = "sun_z", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sun_z'), type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(3, gl.GetSun("pos")),
@@ -5083,7 +5069,7 @@ function init()
 			  Spring.SetSunDirection(sunX, sunY, sunZ)
 			  -- just so that map/model lighting gets updated
 			  Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
-			  spEcho(gl.GetSun())
+			  Spring.Echo(gl.GetSun())
 		  end,
 		},
 		{ id = "sun_reset", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sun_reset'), type = "bool", value = false,
@@ -5097,7 +5083,7 @@ function init()
 			  Spring.SetSunDirection(defaultMapSunPos[1], defaultMapSunPos[2], defaultMapSunPos[3])
 			  -- just so that map/model lighting gets updated
 			  Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
-			  spEcho(gl.GetSun())
+			  Spring.Echo(gl.GetSun())
 		  end,
 		},
 
@@ -5167,7 +5153,7 @@ function init()
 			  options[getOptionByID('fog_b')].value = defaultMapFog.fogColor[3]
 			  options[getOptionByID('fog_color_reset')].value = false
 			  Spring.SetAtmosphere({ fogColor = defaultMapFog.fogColor })
-			  spEcho('resetted map fog color defaults')
+			  Spring.Echo('resetted map fog color defaults')
 		  end,
 		},
 
@@ -5581,7 +5567,7 @@ function init()
 			  options[getOptionByID('sunlighting_reset')].value = false
 			  -- just so that map/model lighting gets updated
 			  Spring.SetSunLighting(defaultSunLighting)
-			  spEcho('resetted ground/unit coloring')
+			  Spring.Echo('resetted ground/unit coloring')
 			  init()
 		  end,
 		},
@@ -5637,7 +5623,7 @@ function init()
 		  onchange = function(i, value)
 			  options[getOptionByID('skyaxisangle_reset')].value = false
 			  Spring.SetAtmosphere({ skyAxisAngle = defaultSkyAxisAngle })
-			  spEcho('resetted skyAxisAngle atmosphere')
+			  Spring.Echo('resetted skyAxisAngle atmosphere')
 			  init()
 		  end,
 		},
@@ -6075,7 +6061,7 @@ function init()
 		options[getOptionByID('anonymous_b')] = nil
 	end
 
-	if spGetGameFrame() == 0 then
+	if Spring.GetGameFrame() == 0 then
 		detectWater()
 
 		-- set vsync
@@ -6195,7 +6181,7 @@ function init()
 	loadAllWidgetData()
 
 	-- while we have set config-ints, that isnt enough to have these settings applied ingame
-	if savedConfig and spGetGameFrame() == 0 then
+	if savedConfig and Spring.GetGameFrame() == 0 then
 		for k, v in pairs(savedConfig) do
 			if getOptionByID(k) then
 				applyOptionValue(getOptionByID(k))
@@ -6610,7 +6596,7 @@ function widget:MapDrawCmd(playerID, cmdType, startx, starty, startz, a, b, c)
 end
 
 function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
-	if not waterDetected and spGetGameFrame() > 30 then
+	if not waterDetected and Spring.GetGameFrame() > 30 then
 		if heightmapChangeClock == nil then
 			heightmapChangeClock = os_clock()
 		end
@@ -6769,7 +6755,7 @@ function widget:Initialize()
 	if firstlaunchsetupDone == false then
 		firstlaunchsetupDone = true
 
-		spEcho('First time setup:  done')
+		Spring.Echo('First time setup:  done')
 		Spring.SetConfigFloat("snd_airAbsorption", 0.35)
 
 		-- Set lower defaults for lower end/potato systems
@@ -6796,7 +6782,7 @@ function widget:Initialize()
 		local minMaxparticles = 12000
 		if tonumber(Spring.GetConfigInt("MaxParticles", 1) or 0) < minMaxparticles then
 			Spring.SetConfigInt("MaxParticles", minMaxparticles)
-			spEcho('First time setup:  setting MaxParticles config value to ' .. minMaxparticles)
+			Spring.Echo('First time setup:  setting MaxParticles config value to ' .. minMaxparticles)
 		end
 
 		Spring.SetConfigInt("CamMode", 3)
@@ -6806,7 +6792,7 @@ function widget:Initialize()
 	Spring.SetConfigFloat("CamTimeFactor", 1)
 	Spring.SetConfigString("InputTextGeo", "0.35 0.72 0.03 0.04")    -- input chat position posX, posY, ?, ?
 
-	if spGetGameFrame() == 0 then
+	if Spring.GetGameFrame() == 0 then
 		-- set minimum particle amount
 		if tonumber(Spring.GetConfigInt("MaxParticles", 1) or 10000) <= 10000 then
 			Spring.SetConfigInt("MaxParticles", 10000)
@@ -6841,7 +6827,7 @@ function widget:Initialize()
 	end
 
 	-- make sure vertical angle is proper (not horizontal view)
-	if spGetGameFrame() == 0 and (Spring.GetConfigInt("CamMode", 2) == 2 or Spring.GetConfigInt("CamMode", 2) == 3) then
+	if Spring.GetGameFrame() == 0 and (Spring.GetConfigInt("CamMode", 2) == 2 or Spring.GetConfigInt("CamMode", 2) == 3) then
 		local cameraState = Spring.GetCameraState()
 		cameraState.rx = 2.6
 		Spring.SetCameraState(cameraState, 0.1)
@@ -6928,7 +6914,7 @@ function widget:Initialize()
 	WG['options'].applyOptionValue = function(option, value)
 		local optionID = getOptionByID(option)
 		if not optionID then
-			spEcho("Options widget: applyOptionValue: option '" .. option .. "' not found")
+			Spring.Echo("Options widget: applyOptionValue: option '" .. option .. "' not found")
 			return
 		end
 			applyOptionValue(optionID, tonumber(value))
@@ -7045,7 +7031,7 @@ function widget:SetConfigData(data)
 	if data.edgeMoveWidth then
 		edgeMoveWidth = data.edgeMoveWidth
 	end
-	if spGetGameFrame() > 0 then
+	if Spring.GetGameFrame() > 0 then
 		if data.requireRestartDefaults then
 			requireRestartDefaults = data.requireRestartDefaults
 		end
@@ -7063,7 +7049,7 @@ function widget:SetConfigData(data)
 			end
 		end
 	end
-	if data.pauseGameWhenSingleplayerExecuted ~= nil and spGetGameFrame() > 0 then
+	if data.pauseGameWhenSingleplayerExecuted ~= nil and Spring.GetGameFrame() > 0 then
 		pauseGameWhenSingleplayerExecuted = data.pauseGameWhenSingleplayerExecuted
 	end
 	if data.pauseGameWhenSingleplayer ~= nil then

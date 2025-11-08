@@ -70,7 +70,7 @@ else
 	victoryConditionAllyID = Spring.GetLocalAllyTeamID()
 end
 
-mathRandomseed( os.clock() )
+math.randomseed(os.clock())
 
 local peaceTracks = {}
 local warhighTracks = {}
@@ -1311,7 +1311,7 @@ end
 function PlayNewTrack(paused)
 	if isChangingTrack then return end
 	isChangingTrack = true
-	
+
 	if Spring.GetConfigInt('music', 1) ~= 1 then
 		isChangingTrack = false
 		return

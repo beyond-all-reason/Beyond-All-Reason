@@ -14,8 +14,6 @@ function widget:GetInfo()
 end
 
 
--- Localized functions for performance
-
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
 local spEcho = Spring.Echo

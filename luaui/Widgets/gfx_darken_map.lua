@@ -18,8 +18,6 @@ end
 
 
 
--- Localized functions for performance
-
 -- Localized Spring API for performance
 local spGetCameraPosition = Spring.GetCameraPosition
 

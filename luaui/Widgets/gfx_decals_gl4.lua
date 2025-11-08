@@ -1839,7 +1839,7 @@ function widget:Initialize()
 	end
 	initAreas()
 	if autoupdate then
-		mathRandomseed(1)
+		math.randomseed(1)
 		for i= 1, 100 do
 			local w = mathRandom() * 15 + 7
 			w = w * w

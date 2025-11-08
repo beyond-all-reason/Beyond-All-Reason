@@ -126,8 +126,6 @@ shaderDefinedSliders.top = shaderDefinedSliders.bottom + shaderDefinedSliders.sl
 
 local shaderDefinedSlidersLayer, shaderDefinedSlidersWindow
 
-local math_sqrt = mathSqrt
-
 local cusMult = 1.4
 local strengthMult = 1
 
@@ -240,7 +238,7 @@ local unitStencil = nil
 -----------------------------------------------------------------
 
 local function G(x, sigma)
-	return ( 1 / ( math_sqrt(2 * mathPi) * sigma ) ) * math.exp( -(x * x) / (2 * sigma * sigma) )
+	return ( 1 / ( mathSqrt(2 * mathPi) * sigma ) ) * math.exp( -(x * x) / (2 * sigma * sigma) )
 end
 
 local function GetGaussDiscreteWeightsOffsets(sigma, kernelHalfSize, valMult)
@@ -320,7 +318,7 @@ end
 -- so bigger SSAO kernel size can be supported if they are conveyed via uniforms vs varyings
 local function GetSamplingVectorArray(kernelSize)
 	local result = {}
-	mathRandomseed(kernelSize) -- for repeatability
+	math.randomseed(kernelSize) -- for repeatability
 	if shaderConfig.SSAO_FIBONACCI == 1 then
 		local points = {}
 		local phi = mathPi * (mathSqrt(5.) - 1.)--  # golden angle in radians
@@ -350,7 +348,7 @@ local function GetSamplingVectorArray(kernelSize)
 			x, y = 2.0 * x - 1.0, 2.0 * y - 1.0 -- xy:[-1, 1]^2, z:[0, 1]
 			z = z + shaderConfig.SSAO_KERNEL_MINZ --dont make them fully planar, its wasteful
 
-			local l = math_sqrt(x * x + y * y + z * z) --norm
+			local l = mathSqrt(x * x + y * y + z * z) --norm
 			x, y, z = x / l, y / l, z / l --normalize
 
 			local scale = i / (kernelSize - 1)
@@ -538,7 +536,7 @@ local function InitGL()
 		shaderConfig = {},
 		shaderName = widgetName..": texrect",
 	})
-	
+
 	texrectFullVAO = InstanceVBOTable.MakeTexRectVAO(-1, -1, 1, 1, 0,0,1,1)
 
 	-- These are now offset by the half pixel that is needed here due to ceil(vsx/rez)
@@ -664,7 +662,7 @@ local function DoDrawSSAO()
 			gbuffFuseShader:SetUniformMatrix("invProjMatrix", "projectioninverse")
 			glTexture(1, "$model_gbuffer_zvaltex")
 			glTexture(4, "$map_gbuffer_zvaltex")
-			
+
 			texrectFullVAO:DrawArrays(GL.TRIANGLES)
 
 			glTexture(1, false)
@@ -685,7 +683,7 @@ local function DoDrawSSAO()
 				glTexture(5, gbuffFuseViewPosTex)
 			end
 			glTexture(0, "$model_gbuffer_normtex")
-			
+
 			texrectFullVAO:DrawArrays(GL.TRIANGLES)
 
 			for i = 0, 6 do glTexture(i,false) end
