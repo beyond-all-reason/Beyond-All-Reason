@@ -23,7 +23,8 @@ radarConnector1,
 radarAimingStrut,
 radarStrut,
 wake1,
-wake2;
+wake2,
+radarPulseFlare;
 		
 static-var  gun_1, restore_delay, aimDir, oldHead;
 static-var  BarrelCount;
@@ -87,7 +88,7 @@ activateDish(){
     while( TRUE )
 	{
 	    if (!Stunned) {
-		    //emit-sfx 1024 + 0 from blink; //need this flare
+		    emit-sfx 1024 + 2 from radarPulseFlare; //need this flare
 		}
 		sleep 2500;
 	}

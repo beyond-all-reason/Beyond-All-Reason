@@ -31,7 +31,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 750,
-		sonardistance = 500,
+		-- sonardistance = 500, --removing it as the frigates have sonar
 		radardistance = 1200,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -78,6 +78,7 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-flak",
 				[2] = "custom:waterwake-medium-splash",
+				[3] = "custom:radarpulse_t1_slow",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
