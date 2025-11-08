@@ -115,6 +115,21 @@ local optionDefIDToTypes = {}
 local queuedCommanders = {}
 local buildsInProgress = {}
 
+GG.quick_start = {}
+
+function GG.quick_start.transferCommanderData(oldUnitID, newUnitID)
+	if oldUnitID and newUnitID  and spValidUnitID(oldUnitID) and spValidUnitID(newUnitID) then
+		buildsInProgress[newUnitID] = buildsInProgress[oldUnitID]
+		buildsInProgress[oldUnitID] = nil
+
+		commanders[newUnitID] = commanders[oldUnitID]
+		commanders[oldUnitID] = nil
+
+		commanderFactoryDiscounts[newUnitID] = commanderFactoryDiscounts[oldUnitID]
+		commanderFactoryDiscounts[oldUnitID] = nil
+	end
+end
+
 local function getQuotas(isMetalMap, isInWater, isGoodWind)
 	return config.quotas[isMetalMap and "metalMap" or "nonMetalMap"][isInWater and "water" or "land"]
 	[isGoodWind and "goodWind" or "badWind"]
@@ -784,7 +799,7 @@ function gadget:UnitDestroyed(unitID)
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if boostableCommanders[unitDefID] then
+	if boostableCommanders[unitDefID] and not commanders[unitID] then
 		queuedCommanders[unitTeam] = unitID
 	end
 
