@@ -72,7 +72,7 @@ local function applySpeed(unitID, stats, factor)
 end
 
 function gadget:Initialize()
-    if not next(unitDefData) then
+    if waterIsVoid or not next(unitDefData) then
         gadgetHandler:RemoveGadget()
     end
 end
