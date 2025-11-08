@@ -13,6 +13,7 @@ local ContributorAINames = {
     "Borg King",
     "Born2Crawl",
     "BrassCode",
+	"Cephis",
     "CMDR*Zod",
     "Calm Phill",
     "Chirick2051",
