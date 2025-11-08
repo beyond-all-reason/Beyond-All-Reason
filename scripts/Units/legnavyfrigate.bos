@@ -122,7 +122,9 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
+	emit-sfx 1024 + 1 from flare;
 	start-script ResetFire();
+
 	turn lFlap to y-axis <44> speed <440>;
 	turn rFlap to y-axis <-44> speed <440>;
 	wait-for-turn lFlap around y-axis;
@@ -164,6 +166,7 @@ AimSecondary(heading, pitch)
 
 FireSecondary()
 {
+	emit-sfx 1024 + 1 from flare;
 	start-script ResetFire();
 	turn lFlap to y-axis <44> speed <440>;
 	turn rFlap to y-axis <-44> speed <440>;
