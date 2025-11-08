@@ -16,7 +16,15 @@ function widget:GetInfo()
 	}
 end
 
-local mouseOffscreen = select(6, Spring.GetMouseState())
+
+-- Localized functions for performance
+local tableInsert = table.insert
+
+-- Localized Spring API for performance
+local spGetMouseState = Spring.GetMouseState
+local spEcho = Spring.Echo
+
+local mouseOffscreen = select(6, spGetMouseState())
 
 -----------------------------------------------------------------------------------------------------------------
 ---The entire CEG bit
@@ -231,7 +239,7 @@ local function parseCEGExpression(inputCegString, numFloats, countIndex, damage)
 				return nil, "Invalid character found:"..char
 			end
 		end
-		table.insert(results, result)
+		tableInsert(results, result)
 	end
 	if numFloats and (numFloats ~= numExpressions)  then
 		return nil, "Invalid number of floats, expected:"..tostring(numFloats) .. " got:"..tostring(numExpressions)
@@ -325,7 +333,7 @@ local function isColorMapValid(colormap)
 	local colorMap = {}
 	local colorMapParts = {}
 	for color in string.gmatch(colormap, "%S+") do
-		table.insert(colorMapParts, color)
+		tableInsert(colorMapParts, color)
 	end
 	if #colorMapParts % 4 ~= 0 then
 		return false, 'Colormap must have a multiple of 4 floats but has:'..tostring(colorMapParts)
@@ -798,12 +806,12 @@ local function validateCEG(cegTable, cegName)
 				return false, msg
 			else
 				for k, v in pairs(spawnerTable) do
-					--Spring.Echo('cegDefTemplate',k)
+					--spEcho('cegDefTemplate',k)
 					if cegDefTemplate[k] then
 						if cegDefTemplate[k].validator then
 							local res, err = cegDefTemplate[k].validator(v)
 							if not res then
-								--Spring.Echo("VAL", err)
+								--spEcho("VAL", err)
 
 								local msg = string.format(
 									'Error: CEG {%s = {%s = {%s = %s ,...}}} : %s',
@@ -817,7 +825,7 @@ local function validateCEG(cegTable, cegName)
 								return false, msg
 
 							else
-								--Spring.Echo("Valid, type:",cegDefTemplate[k].type,  k, v)
+								--spEcho("Valid, type:",cegDefTemplate[k].type,  k, v)
 							end
 						end
 					elseif k == 'properties' then
@@ -826,7 +834,7 @@ local function validateCEG(cegTable, cegName)
 								if cegDefTemplate[k2].validator then
 									local res, err = cegDefTemplate[k2].validator(v2)
 									if not res then
-										--Spring.Echo("VAL", err)
+										--spEcho("VAL", err)
 
 
 										local msg = string.format(
@@ -840,7 +848,7 @@ local function validateCEG(cegTable, cegName)
 
 										return false, msg
 									else
-										--Spring.Echo("Valid, type:",cegDefTemplate[k2].type,  k2, v2)
+										--spEcho("Valid, type:",cegDefTemplate[k2].type,  k2, v2)
 									end
 								end
 							end
@@ -932,7 +940,7 @@ local function LoadAllCegs()
 	for i, dir in pairs({'effects', 'effects/lootboxes', 'effects/raptors', 'effects/scavengers'}) do
 		local cegfiles = VFS.DirList(dir, "*.lua")
 		for _, cegfile in pairs(cegfiles) do
-			--Spring.Echo(cegfile)
+			--spEcho(cegfile)
 			local fileString = VFS.LoadFile(cegfile)
 			cegFileContents[cegfile] = fileString
 
@@ -940,10 +948,10 @@ local function LoadAllCegs()
 			for cegDefname, cegTable in pairs(cegs) do
 
 
-				--Spring.Echo(name)
+				--spEcho(name)
 				local res, err = validateCEG(cegTable, cegDefname)
 				if not res then
-					Spring.Echo(err)
+					spEcho(err)
 				else
 				end
 				cegDefs[cegDefname]=  cegTable
@@ -968,7 +976,7 @@ local function ScanChanges()
 			cegFileContents[filename] = newContents
 			local chunk, err = loadstring(newContents, filename)
 			if not chunk then
-				Spring.Echo("Failed to load: " .. filename .. '  (' .. err .. ')')
+				spEcho("Failed to load: " .. filename .. '  (' .. err .. ')')
 			else
 				local newDefs = VFS.Include(filename)
 
@@ -976,14 +984,14 @@ local function ScanChanges()
 				for cegDefname, cegTable in pairs(newDefs) do
 					local res, err = validateCEG(cegTable, cegDefname)
 					if not res then
-						Spring.Echo(filename.. ':' .. err)
+						spEcho(filename.. ':' .. err)
 						allok = false
 					else
 						if tableEquals(cegDefs[cegDefname], cegTable) then
-							--Spring.Echo("No changes to: " .. cegDefname)
+							--spEcho("No changes to: " .. cegDefname)
 						else
 							spamCeg = cegDefname
-							Spring.Echo("Changes in: " .. cegDefname)
+							spEcho("Changes in: " .. cegDefname)
 							needsReload[cegDefname] = cegDefFiles[cegDefname]
 							cegDefs[cegDefname] = cegTable
 						end
@@ -1001,7 +1009,7 @@ local function ScanChanges()
 	end
 	if allok then
 		for cegDefname, cegDefFile in pairs(needsReload) do
-			Spring.Echo("Reloading: " .. cegDefname)
+			spEcho("Reloading: " .. cegDefname)
 			Spring.SendCommands("reloadcegs")
 		end
 	end
@@ -1010,11 +1018,11 @@ end
 local function LoadResources()
 	local resources = VFS.Include("gamedata/resources.lua")
 	for k,v in pairs(resources.graphics.projectiletextures) do
-		--Spring.Echo("projectileTexures", k,v)
+		--spEcho("projectileTexures", k,v)
 		projectileTexures[k] = v
 	end
 	for k,v in pairs(resources.graphics.groundfx) do
-		--Spring.Echo("groundfx", k,v)
+		--spEcho("groundfx", k,v)
 		projectileTexures[k] = v
 	end
 end
@@ -1033,7 +1041,7 @@ function widget:Update()
 	lastUpdate = Spring.GetTimer()
 
 	local prevMouseOffscreen = mouseOffscreen
-	mouseOffscreen = select(6, Spring.GetMouseState())
+	mouseOffscreen = select(6, spGetMouseState())
 
 	--if not mouseOffscreen and prevMouseOffscreen then
 		ScanChanges()

@@ -105,12 +105,7 @@ function ArmyHST:Init()
 	self.transports = {
 		corvalk = true,
 		armatlas = true,
-		armthovr = true,
-		corthovr = true,
-		corintr = true,
 		armdfly = true,
-		cortship = true,
-		armtship = true,
 		corseah = true,
 
 		}
@@ -579,13 +574,6 @@ function ArmyHST:Init()
 	self._antinuke_ = {
 		armamd = true ,
 		corfmd = true ,
-		}
-
-	self._airPlat_ = {
-		armasp = true ,
-		armfasp = true ,
-		corasp = true ,
-		corfasp = true ,
 		}
 
 	self._convs_ = {

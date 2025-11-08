@@ -12,11 +12,22 @@ function widget:GetInfo()
   }
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathRandom = math.random
+local tableInsert = table.insert
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spEcho = Spring.Echo
+local spGetViewGeometry = Spring.GetViewGeometry
+
 --------------------------------------------------------------------------------
 -- /snow    -- toggles snow on current map (also remembers this)
 --------------------------------------------------------------------------------
 
--- local vsx,vsy = Spring.GetViewGeometry()
+-- local vsx,vsy = spGetViewGeometry()
 
 local minFps					= 22		-- stops snowing at
 local maxFps					= 55		-- max particles at
@@ -26,7 +37,6 @@ local customParticleMultiplier  = 1
 local windMultiplier			= 4.5
 local maxWindSpeed				= 25		-- to keep it real
 local gameFrameCountdown		= 120		-- on launch: wait this many frames before adjusting the average fps calc
-local particleScaleMultiplier	= 1
 
 -- pregame info message
 local autoReduce = true
@@ -49,27 +59,27 @@ snowMaps['thecoldplace'] = false
 ]]
 
 local particleTypes = {}
-table.insert(particleTypes, {
+tableInsert(particleTypes, {
 		gravity = 50,
 		scale = 5500
 })
-table.insert(particleTypes, {
+tableInsert(particleTypes, {
 		gravity = 44,
 		scale = 5500
 })
-table.insert(particleTypes, {
+tableInsert(particleTypes, {
 		gravity = 58,
 		scale = 5500
 })
-table.insert(particleTypes, {
+tableInsert(particleTypes, {
 		gravity = 62,
 		scale = 6600
 })
-table.insert(particleTypes, {
+tableInsert(particleTypes, {
 		gravity = 47,
 		scale = 6600
 })
-table.insert(particleTypes, {
+tableInsert(particleTypes, {
 		gravity = 54,
 		scale = 6600
 })
@@ -94,7 +104,7 @@ local prevOsClock = os.clock()
 
 local enabled = false
 local previousFps				= (maxFps + minFps) / 1.75
-local particleStep				= math.floor(particleSteps / 1.33)
+local particleStep				= mathFloor(particleSteps / 1.33)
 if particleStep < 1 then particleStep = 1 end
 local currentMapname = Game.mapName:lower()
 local particleLists = {}
@@ -116,10 +126,7 @@ local glGetShaderLog       = gl.GetShaderLog
 local glCreateShader       = gl.CreateShader
 local LuaShader            = gl.LuaShader
 local glDeleteShader       = gl.DeleteShader
-local glUseShader          = gl.UseShader
-local glUniform            = gl.Uniform
-local glGetUniformLocation = gl.GetUniformLocation
-local glResetState = gl.ResetState
+local glResetState         = gl.ResetState
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -142,6 +149,7 @@ local function removeSnow()
 	removeParticleLists()
 	if shader ~= nil then
 		glDeleteShader(shader)
+		shader = nil
 	end
 end
 
@@ -153,26 +161,26 @@ end
 -- creating multiple lists per particleType so we can switch to less particles without causing lag
 local function CreateParticleLists()
 	removeParticleLists()
-	particleDensityMax	= math.floor(((vsx * vsy) * (particleMultiplier*customParticleMultiplier)) / #particleTypes)
+	particleDensityMax	= mathFloor(((vsx * vsy) * (particleMultiplier*customParticleMultiplier)) / #particleTypes)
 	particleDensity		= particleDensityMax * ((averageFps-minFps) / maxFps)
 	for particleType, pt in pairs(particleTypes) do
 		particleLists[particleType] = {}
 		for step=1, particleSteps do
 			--local density = (particleDensityMax/particleSteps) * step
-			local particles = math.floor(((particleDensityMax/particleSteps) * step) / (((particleSteps+(particleSteps/2)) - step) / (particleSteps/2)))
+			local particles = mathFloor(((particleDensityMax/particleSteps) * step) / (((particleSteps+(particleSteps/2)) - step) / (particleSteps/2)))
 			particleLists[particleType][step] = gl.CreateList(function()
-				local tmpRand = math.random()
+				local tmpRand = mathRandom()
 				math.randomseed(particleType)
 				gl.BeginEnd(GL.POINTS, function()
 				  for i = 1, particles do
-					local x = math.random()
-					local y = math.random()
-					local z = math.random()
+					local x = mathRandom()
+					local y = mathRandom()
+					local z = mathRandom()
 					local w = 1
 					gl.Vertex(x, y, z, w)
 				  end
 				end)
-				math.random(1e9 * tmpRand)
+				mathRandom(1e9 * tmpRand)
 			end)
 		end
 	end
@@ -186,8 +194,8 @@ local function init()
 	-- abort if not enabled
 	if enabled == false then return end
 
-	if (glCreateShader == nil) then
-		Spring.Echo("[Snow widget:Initialize] no shader support")
+	if glCreateShader == nil then
+		spEcho("[Snow widget:Initialize] no shader support")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -241,8 +249,8 @@ local function init()
 	}, "Snow Shader")
 
 	if not shader:Initialize() then
-		Spring.Echo("[Snow widget:Initialize] particle shader compilation failed")
-		Spring.Echo(glGetShaderLog())
+		spEcho("[Snow widget:Initialize] particle shader compilation failed")
+		spEcho(glGetShaderLog())
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -269,12 +277,12 @@ local function snowCmd(_, _, params)
 	if (params[1] and params[1] == '1') or (not params[1] and (snowMaps[currentMapname] == nil or snowMaps[currentMapname] == false)) then
 		snowMaps[currentMapname] = true
 		enabled = true
-		Spring.Echo("Snow widget: snow enabled for this map. (Snow wont show when average fps is below "..minFps..".)")
+		spEcho("Snow widget: snow enabled for this map. (Snow wont show when average fps is below "..minFps..".)")
 		init()
 	else
 		snowMaps[currentMapname] = false
 		enabled = false
-		Spring.Echo("Snow widget: snow disabled for this map.")
+		spEcho("Snow widget: snow disabled for this map.")
 		removeSnow()
 	end
 end
@@ -373,9 +381,9 @@ function widget:GameFrame(gameFrame)
 						enabled = false
 						widgetDisabledSnow = true
 					else
-						particleDensity = math.floor(particleDensityMax * particleAmount)
+						particleDensity = mathFloor(particleDensityMax * particleAmount)
 						if particleDensity > particleDensityMax then particleDensity = particleDensityMax end
-						particleStep = math.floor(particleDensity / (particleDensityMax / particleSteps))
+						particleStep = mathFloor(particleDensity / (particleDensityMax / particleSteps))
 						if particleStep < 1 then particleStep = 1 end
 						enabled = true
 						widgetDisabledSnow = false
@@ -391,7 +399,7 @@ end
 function widget:Shutdown()
 	enabled = false
 	widgetHandler:RemoveAction("snow")
-	if shader then shader:Finalize() end 
+	if shader then shader:Finalize() end
 end
 
 local pausedTime = 0
@@ -412,7 +420,7 @@ function widget:DrawWorld()
 			diffTime = Spring.DiffTimers(lastFrametime, startTimer) - pausedTime
 			shader:SetUniform("time", diffTime)
 			shader:SetUniform("camPos", camX, camY, camZ)
-			
+
 			glDepthTest(true)
 			glBlending(GL.SRC_ALPHA, GL.ONE)
 
@@ -447,13 +455,12 @@ function widget:DrawWorld()
 end
 
 function widget:ViewResize()
-	vsx,vsy = Spring.GetViewGeometry()
+	vsx,vsy = spGetViewGeometry()
 
 
 	if particleLists[#particleTypes] ~= nil then
 		CreateParticleLists()
 		gameFrameCountdown = 80
-		--particleScale = (0.60 + (vsx*vsy / 8000000)) * particleScaleMultiplier
 	end
 end
 
@@ -463,9 +470,9 @@ end
 function widget:GetConfigData(data)
     return {
 		snowMaps = snowMaps,
-		averageFps = math.floor(averageFps),
+		averageFps = mathFloor(averageFps),
 		articleStep = particleStep,
-		gameframe = Spring.GetGameFrame(),
+		gameframe = spGetGameFrame(),
 		customParticleMultiplier = customParticleMultiplier,
 		autoReduce = autoReduce
 	}
@@ -479,7 +486,7 @@ function widget:SetConfigData(data)
 		if data.averageFps ~= nil 	then
 			averageFps = data.averageFps
 		end
-		if data.particleStep ~= nil and data.gameframe ~= nil and Spring.GetGameFrame() > 0 then
+		if data.particleStep ~= nil and data.gameframe ~= nil and spGetGameFrame() > 0 then
 			particleStep = data.particleStep
 			if particleStep < 1 then particleStep = 1 end
 			if particleStep > particleSteps then particleStep = particleSteps end

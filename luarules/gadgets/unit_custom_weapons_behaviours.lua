@@ -244,6 +244,42 @@ specialEffectFunction.retarget = function(projectileID)
 	end
 end
 
+-- Guidance
+-- Missile guidance behavior that changes the projectile's target when the primary weapon changes targets.
+-- If the primary weapon stops firing (no LoS/unit dead) the missiles will go for the last location that was targeted.
+
+-- Based on retarget
+-- Uses no weapon customParams.
+
+specialEffectFunction.guidance = function(projectileID)
+
+	if spGetProjectileTimeToLive(projectileID) > 0 then
+		local targetType, target= spGetProjectileTarget(projectileID)
+		local ownerID = spGetProjectileOwnerID(projectileID)
+		local lasing = spGetUnitWeaponTarget (ownerID, 1)
+		if lasing ~= 0 then
+			local ownerTargetType, _, ownerTarget = spGetUnitWeaponTarget(ownerID, 1)
+			
+			if target ~= ownerTarget then
+				-- Hardcoded to retarget only from the primary weapon and only units or ground
+			
+				if ownerTargetType == 1 then
+					spSetProjectileTarget(projectileID, ownerTarget, targetedUnit)
+				elseif ownerTargetType == 2 then
+					spSetProjectileTarget(projectileID, ownerTarget[1], ownerTarget[2], ownerTarget[3])
+				end
+			end
+		return false
+		else	
+			spSetProjectileTarget(projectileID, 9999999, 9999999)
+			return false
+		end
+		
+	else
+		return true
+	end
+end
+
 -- Sector fire
 -- Changes the targeting error of a weapon to a section in an annulus between a min and max range.
 -- Use a weapon with no other sources of inaccuracy for the gui_attack_aoe indicator to be correct.

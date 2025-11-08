@@ -23,18 +23,21 @@ end
 
 --local maxunits = Spring.GetModOptions().maxunits
 
+local mathFloor = math.floor
+
 function gadget:TeamDied(teamID)
 	local redistributionAmount = Spring.GetTeamMaxUnits(teamID)
 
 	-- redistribute to teammates (will not respect global maxunits limit yet)
-	local teams = Spring.GetTeamList(select(6, Spring.GetTeamInfo(teamID, false)))
+	local allyID = select(6, Spring.GetTeamInfo(teamID, false))
+	local teams = Spring.GetTeamList(allyID)
 	local aliveTeams = 0
 	for i = 1, #teams do
 		if teams[i] ~= teamID and not select(2, Spring.GetTeamInfo(teams[i], false)) then	-- not dead
 			aliveTeams = aliveTeams + 1
 		end
 	end
-	local portionSize = math.floor(redistributionAmount / aliveTeams)
+	local portionSize = mathFloor(redistributionAmount / aliveTeams)
 	for i = 1, #teams do
 		if teams[i] ~= teamID and not select(2, Spring.GetTeamInfo(teams[i], false)) then	-- not dead
 			Spring.TransferTeamMaxUnits(teamID, teams[i], portionSize)
@@ -49,7 +52,7 @@ function gadget:TeamDied(teamID)
 				aliveTeams = aliveTeams + 1
 			end
 		end
-		local portionSize = math.floor(redistributionAmount / aliveTeams)
+		portionSize = mathFloor(redistributionAmount / aliveTeams)
 		for i = 1, #teams do
 			if teams[i] ~= teamID and not select(2, Spring.GetTeamInfo(teams[i], false)) then	-- not dead
 				Spring.TransferTeamMaxUnits(teamID, teams[i], portionSize)

@@ -587,10 +587,6 @@
 		"attribute": ["siege"],
 		"retreat": 0.6
 	},
-	"armasp": {
-		"role": ["static"],
-		"limit": 1
-	},
 
 	// adv aircraft - armaap
 	"armaca": {
@@ -999,10 +995,6 @@
 		"role": ["assault", "air"],
 		"attribute": ["siege"],
 		"retreat": 0.3
-	},
-	"corasp": {
-		"role": ["static"],
-		"limit": 1
 	},
 
 	// adv aircraft - coraap

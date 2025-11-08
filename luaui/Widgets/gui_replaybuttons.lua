@@ -14,7 +14,16 @@ function widget:GetInfo()
 	}
 end
 
-local vsx, vsy = Spring.GetViewGeometry()
+
+-- Localized functions for performance
+local mathFloor = math.floor
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMouseState = Spring.GetMouseState
+local spGetViewGeometry = Spring.GetViewGeometry
+
+local vsx, vsy = spGetViewGeometry()
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
@@ -28,7 +37,8 @@ local buttons = {}
 local speeds = { 0.5, 1, 2, 3, 4, 6, 8, 10, 15, 20 }
 local wPos = { x = 0.00, y = 0.145 }
 local isPaused = false
-local isActive = true --is the widget shown and reacts to clicks?
+local isActive = false
+local prevIsActive = false
 local sceduleUpdate = true
 local widgetScale = (0.5 + (vsx * vsy / 5700000))
 
@@ -58,7 +68,7 @@ local function point_in_rect(x1, y1, x2, y2, px, py)
 end
 
 local function clicked_button(b)
-	local mx, my, click = Spring.GetMouseState()
+	local mx, my, click = spGetMouseState()
 	local mousex = mx / vsx
 	local mousey = my / vsy
 	for i = 1, #b, 1 do
@@ -79,14 +89,14 @@ local function draw_buttons(b)
 	font:SetTextColor(1, 1, 1, 1)
 	font:SetOutlineColor(0, 0, 0, 0.7)
 	for i = 1, #b do
-		UiButton(math.floor((b[i].x * vsx) + 0.5), math.floor((b[i].y * vsy) + 0.5), math.floor(((b[i].x + bWidth) * vsx) + 0.5), math.floor(((b[i].y + bHeight) * vsy) + 0.5), 0,1,1,0, 1,1,1,1, nil, { 0, 0, 0, ui_opacity }, { 0.2, 0.2, 0.2, ui_opacity }, bgpadding * 0.5)
-		font:Print(b[i].text, math.floor((b[i].x * vsx) + 0.5), math.floor(((b[i].y + bHeight / 2) * vsy) + 0.5), math.floor((0.0115 * vsx) + 0.5), 'vo')
+		UiButton(mathFloor((b[i].x * vsx) + 0.5), mathFloor((b[i].y * vsy) + 0.5), mathFloor(((b[i].x + bWidth) * vsx) + 0.5), mathFloor(((b[i].y + bHeight) * vsy) + 0.5), 0,1,1,0, 1,1,1,1, nil, { 0, 0, 0, ui_opacity }, { 0.2, 0.2, 0.2, ui_opacity }, bgpadding * 0.5)
+		font:Print(b[i].text, mathFloor((b[i].x * vsx) + 0.5), mathFloor(((b[i].y + bHeight / 2) * vsy) + 0.5), mathFloor((0.0115 * vsx) + 0.5), 'vo')
 	end
 	font:End()
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 	widgetScale = (0.5 + (vsx * vsy / 5700000))
 	sceduleUpdate = true
 
@@ -115,7 +125,7 @@ function widget:Initialize()
 		add_button(wPos.x, wPos.y + dy, "  " .. speeds[i] .. "x", speeds[i])
 	end
 	dy = dy + bHeight
-	add_button(wPos.x, wPos.y, (Spring.GetGameFrame() > 0 and "  ||" or "  skip"), "playpauseskip")
+	add_button(wPos.x, wPos.y, (spGetGameFrame() > 0 and "  ||" or "  skip"), "playpauseskip")
 end
 
 function widget:Shutdown()
@@ -128,36 +138,37 @@ end
 
 
 function widget:DrawScreen()
-	if WG['guishader'] then
-		if isActive then
-			local dy = (#speeds + 1) * bHeight
-
-			if backgroundGuishader then
-				gl.DeleteList(backgroundGuishader)
-			end
-			backgroundGuishader = gl.CreateList(function()
-				RectRound(math.floor((wPos.x * vsx) + 0.5), math.floor((wPos.y * vsy) + 0.5), math.floor(((wPos.x + bWidth) * vsx) + 0.5),  math.floor(((wPos.y + dy) * vsy) + 0.5), elementCorner, 0, 1, 1, 0)
-			end)
-			WG['guishader'].InsertDlist(backgroundGuishader, 'replaybuttons')
-		else
-			WG['guishader'].DeleteDlist('replaybuttons')
-		end
-	end
-
 	if not isActive then
+		if WG['guishader'] and prevIsActive ~= isActive then
+			WG['guishader'].RemoveDlist('replaybuttons')
+		end
 		return
 	end
+
 	if sceduleUpdate then
+		sceduleUpdate = false
 		if buttonsList then
 			gl.DeleteList(buttonsList)
 		end
 		buttonsList = gl.CreateList(draw_buttons, buttons)
-		sceduleUpdate = false
+
+		local dy = (#speeds + 1) * bHeight
+		if backgroundGuishader then
+			gl.DeleteList(backgroundGuishader)
+		end
+		backgroundGuishader = gl.CreateList(function()
+			RectRound(mathFloor((wPos.x * vsx) + 0.5), mathFloor((wPos.y * vsy) + 0.5), mathFloor(((wPos.x + bWidth) * vsx) + 0.5),  mathFloor(((wPos.y + dy) * vsy) + 0.5), elementCorner, 0, 1, 1, 0)
+		end)
 	end
+	
+	if WG['guishader'] and isActive and prevIsActive ~= isActive then
+		WG['guishader'].InsertDlist(backgroundGuishader, 'replaybuttons')
+	end
+
 	if buttonsList then
 		gl.CallList(buttonsList)
 	end
-	local mousex, mousey, buttonstate = Spring.GetMouseState()
+	local mousex, mousey, buttonstate = spGetMouseState()
 	local b = buttons
 	local topbutton = #buttons-1
 	font:Begin()
@@ -169,10 +180,10 @@ function widget:DrawScreen()
 			if point_in_rect(b[i].x, b[i].y, b[i].x + bWidth, b[i].y + bHeight, mousex / vsx, mousey / vsy) or i == active_button then
 
 				glBlending(GL_SRC_ALPHA, GL_ONE)
-				RectRound(math.floor((b[i].x * vsx) + 0.5), math.floor((b[i].y * vsy) + 0.5), math.floor(((b[i].x + bWidth) * vsx) + 0.5), math.floor(((b[i].y + bHeight) * vsy) + 0.5), bgpadding * 0.5, 0,1,1,0, { 0.3, 0.3, 0.3, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, buttonstate and 0.25 or 0.15 })
+				RectRound(mathFloor((b[i].x * vsx) + 0.5), mathFloor((b[i].y * vsy) + 0.5), mathFloor(((b[i].x + bWidth) * vsx) + 0.5), mathFloor(((b[i].y + bHeight) * vsy) + 0.5), bgpadding * 0.5, 0,1,1,0, { 0.3, 0.3, 0.3, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, buttonstate and 0.25 or 0.15 })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-				font:Print(b[i].text, math.floor((b[i].x * vsx) + 0.5), math.floor(((b[i].y + bHeight / 2) * vsy) + 0.5), math.floor((0.0115 * vsx) + 0.5), 'vo')
+				font:Print(b[i].text, mathFloor((b[i].x * vsx) + 0.5), mathFloor(((b[i].y + bHeight / 2) * vsy) + 0.5), mathFloor((0.0115 * vsx) + 0.5), 'vo')
 				break
 			end
 		end
@@ -187,7 +198,7 @@ function widget:MousePress(x, y, button)
 
 	local cb, i = clicked_button(buttons)
 	if cb == "playpauseskip" then
-		if Spring.GetGameFrame() > 1 then
+		if spGetGameFrame() > 1 then
 			isPaused = not isPaused
 			Spring.SendCommands('pause '..(isPaused and '1' or '0'))
 			buttons[i].text = (isPaused and '  >>' or '  ||')
@@ -205,6 +216,7 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:Update(dt)
+	prevIsActive = isActive
 	isActive = #Spring.GetSelectedUnits() == 0
 end
 
