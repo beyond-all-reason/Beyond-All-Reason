@@ -698,7 +698,7 @@ function gadget:DrawWorld()
 				info.stunned = spGetUnitIsStunned(unitID)
 			end
 
-			if not info.stunned then
+			if not info.stunned and info.visibleToMyAllyTeam then
 				local radius = info.radius
 				local posx, posy, posz = spGetUnitPosition(unitID)
 
