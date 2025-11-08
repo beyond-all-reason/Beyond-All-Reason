@@ -26,7 +26,7 @@ for defID, ud in pairs(UnitDefs) do
     local cp = ud.customParams
     if tonumber(cp.speedfactorwater) and tonumber(cp.speedfactorwater) ~= 1 and (not ud.canFly and not ud.isAirUnit) then
         unitDefData[defID] = {
-            speedFactorInWater  = tonumber(cp.waterspeedfactor),
+            speedFactorInWater  = tonumber(cp.speedfactorwater),
             speed  = ud.speed,
             turn   = ud.turnRate,
             acc    = ud.maxAcc,
