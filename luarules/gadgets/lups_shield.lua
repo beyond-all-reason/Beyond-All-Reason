@@ -313,12 +313,23 @@ local BIASLOG = 2.5
 local LOGMUL = AOE_MAX / BIASLOG
 
 local function CalcAoE(dmg, capacity)
+	-- Safeguard against invalid inputs that could produce NaN
+	if capacity <= 0 or dmg <= 0 then
+		return 0
+	end
+
 	local ratio = dmg / capacity
+
+	-- Safeguard against log of very small or invalid values
+	if ratio <= 0 then
+		return 0
+	end
+
 	local aoe = (BIASLOG + math.log(ratio)/LOG10) * LOGMUL
 	return (aoe > 0 and aoe or 0)
 end
 
-local AOE_SAME_SPOT = AOE_MAX / 3 -- ~0.13, angle threshold in radians. 
+local AOE_SAME_SPOT = AOE_MAX / 3 -- ~0.13, angle threshold in radians.
 
 local AOE_SAME_SPOT_COS = math.cos(AOE_SAME_SPOT) -- about 0.99
 
@@ -344,7 +355,7 @@ local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
 						hitInfo.x, hitInfo.y, hitInfo.z = x, y, z
 					end
 					hitInfo.dmg = dmg
-				else -- this is not a bounced projectile, 
+				else -- this is not a bounced projectile,
 					--this vector is very likely normalized :)
 					hitInfo.x, hitInfo.y, hitInfo.z = GetSLerpedPoint(x, y, z, hitInfo.x, hitInfo.y, hitInfo.z, dmg, hitInfo.dmg)
 					hitInfo.dmg = dmg + hitInfo.dmg
