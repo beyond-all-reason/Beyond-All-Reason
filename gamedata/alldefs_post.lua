@@ -1230,7 +1230,7 @@ function UnitDef_Post(name, uDef)
 			corch = { ["corfhlt"] = "cornavaldefturret" },
 			cormuskrat = { ["corfhlt"] = "cornavaldefturret" },
 			corcsa = { ["corfhlt"] = "cornavaldefturret" },
-			legcs = { ["legfmg"]  = "legnavaldefturret" },
+			legnavyconship = { ["legfmg"]  = "legnavaldefturret" },
 			legch = { ["legfmg"]  = "legnavaldefturret" },
 			legotter = { ["legfmg"]  = "legnavaldefturret" },
 			armacsub = { ["armkraken"]  = "armanavaldefturret" },
