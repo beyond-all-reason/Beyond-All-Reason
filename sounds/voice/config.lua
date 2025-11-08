@@ -3,18 +3,23 @@ return {
 	-- Commanders
 	EnemyCommanderDied = {
 		delay = 1,
+		soundEffect = "EnemyComDead",
 	},
 	FriendlyCommanderDied = {
 		delay = 1,
+		soundEffect = "FriendlyComDead",
 	},
 	FriendlyCommanderSelfD = {
 		delay = 1,
+		soundEffect = "FriendlyComDead",
 	},
 	SpectatorCommanderDied = {
 		delay = 1,
+		soundEffect = "NeutralComDead",
 	},
 	SpectatorCommanderSelfD = {
 		delay = 1,
+		soundEffect = "NeutralComDead",
 	},
 	ComHeavyDamage = {
 		delay = 12,
