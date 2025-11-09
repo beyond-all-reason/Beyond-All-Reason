@@ -13,6 +13,13 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathSin = math.sin
+local mathCos = math.cos
+local mathPi = math.pi
+local tableInsert = table.insert
+
 --[[
 Spectator HUD is a widget that displays various game metrics. It is only enabled in spectator mode and only works when
 spectating a game between two allyTeams (excluding Gaia). The widget is drawn at the top-right corner of the screen.
@@ -1331,7 +1338,7 @@ local function createMetricDisplayLists()
 				0 or 1, 1, 1, 1
 			)
 		end)
-		table.insert(metricDisplayLists, newDisplayList)
+		tableInsert(metricDisplayLists, newDisplayList)
 	end
 	displayListsChanged = true
 end
@@ -1344,10 +1351,10 @@ local function createKnobVertices(vertexMatrix, left, bottom, right, top, corner
 		vertexMatrix[startIndex+2] = 0
 		vertexMatrix[startIndex+3] = 1
 
-		local alpha = math.pi / 2 / cornerTriangleAmount
+		local alpha = mathPi / 2 / cornerTriangleAmount
 		for sliceIndex=0,cornerTriangleAmount do
-			local x = originX + cornerRadiusX * (math.cos(startAngle + alpha * sliceIndex))
-			local y = originY + cornerRadiusY * (math.sin(startAngle + alpha * sliceIndex))
+			local x = originX + cornerRadiusX * (mathCos(startAngle + alpha * sliceIndex))
+			local y = originY + cornerRadiusY * (mathSin(startAngle + alpha * sliceIndex))
 
 			local vertexIndex = startIndex + (sliceIndex+1)*4
 
@@ -1394,7 +1401,7 @@ local function createKnobVertices(vertexMatrix, left, bottom, right, top, corner
 	addCornerVertices(
 		vertexMatrix,
 		vertexIndex,
-		math.pi/2,
+		mathPi/2,
 		leftOpenGL + cornerRadiusX,
 		topOpenGL - cornerRadiusY,
 		cornerRadiusX,
@@ -1462,7 +1469,7 @@ local function createKnobVertices(vertexMatrix, left, bottom, right, top, corner
 	addCornerVertices(
 		vertexMatrix,
 		vertexIndex,
-		math.pi,
+		mathPi,
 		leftOpenGL + cornerRadiusX,
 		bottomOpenGL + cornerRadiusY,
 		cornerRadiusX,
@@ -1485,7 +1492,7 @@ local function createKnobVertices(vertexMatrix, left, bottom, right, top, corner
 	addCornerVertices(
 		vertexMatrix,
 		vertexIndex,
-		-math.pi/2,
+		-mathPi/2,
 		rightOpenGL - cornerRadiusX,
 		bottomOpenGL + cornerRadiusY,
 		cornerRadiusX,
@@ -1499,20 +1506,20 @@ end
 local function insertKnobIndices(indexData, vertexStartIndex, cornerTriangleAmount)
 	local function insertCornerIndices(currentVertexOffset)
 		for i=1,cornerTriangleAmount do
-			table.insert(indexData, currentVertexOffset + 0)
-			table.insert(indexData, currentVertexOffset + i)
-			table.insert(indexData, currentVertexOffset + i+1)
+			tableInsert(indexData, currentVertexOffset + 0)
+			tableInsert(indexData, currentVertexOffset + i)
+			tableInsert(indexData, currentVertexOffset + i+1)
 		end
 		return currentVertexOffset + cornerTriangleAmount + 2
 	end
 
 	local function insertRectangleIndices(currentVertexOffset)
-		table.insert(indexData, currentVertexOffset)
-		table.insert(indexData, currentVertexOffset+1)
-		table.insert(indexData, currentVertexOffset+2)
-		table.insert(indexData, currentVertexOffset+1)
-		table.insert(indexData, currentVertexOffset+2)
-		table.insert(indexData, currentVertexOffset+3)
+		tableInsert(indexData, currentVertexOffset)
+		tableInsert(indexData, currentVertexOffset+1)
+		tableInsert(indexData, currentVertexOffset+2)
+		tableInsert(indexData, currentVertexOffset+1)
+		tableInsert(indexData, currentVertexOffset+2)
+		tableInsert(indexData, currentVertexOffset+3)
 		return currentVertexOffset + 4
 	end
 
@@ -1641,10 +1648,10 @@ local function addKnob(knobVAO, left, bottom, color)
 	local instanceData = {}
 
 	-- posBias
-	table.insert(instanceData, coordinateScreenXToOpenGL(left)+1.0)
-	table.insert(instanceData, coordinateScreenYToOpenGL(bottom)+1.0)
-	table.insert(instanceData, 0.0)
-	table.insert(instanceData, 0.0)
+	tableInsert(instanceData, coordinateScreenXToOpenGL(left)+1.0)
+	tableInsert(instanceData, coordinateScreenYToOpenGL(bottom)+1.0)
+	tableInsert(instanceData, 0.0)
+	tableInsert(instanceData, 0.0)
 
 	-- aKnobColor
 	instanceData[5] = color[1]
@@ -2026,7 +2033,7 @@ function widget:GameFrame(frameNum)
 					accumulator.z = accumulator.z + z
 				end
 				local startAverage= { x = accumulator.x / #teamList, z = accumulator.z / #teamList }
-				table.insert(teamStartAverages, { allyID, startAverage })
+				tableInsert(teamStartAverages, { allyID, startAverage })
 			end
 		end
 
@@ -2034,8 +2041,8 @@ function widget:GameFrame(frameNum)
 
 		-- sort averages and create team order (from left to right)
 		table.sort(teamStartAverages, function (left, right)
-			return ((left[2].x * math.cos(rotY) + left[2].z * math.sin(rotY)) <
-					(right[2].x * math.cos(rotY) + right[2].z * math.sin(rotY)))
+			return ((left[2].x * mathCos(rotY) + left[2].z * mathSin(rotY)) <
+					(right[2].x * mathCos(rotY) + right[2].z * mathSin(rotY)))
 		end)
 		teamOrder = {}
 		for i,teamStart in ipairs(teamStartAverages) do

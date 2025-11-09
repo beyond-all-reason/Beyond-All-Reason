@@ -12,12 +12,16 @@ function widget:GetInfo()
    }
 end
 
+
+-- Localized Spring API for performance
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local commands					= {}
 local mapDrawNicknameTime		= {}	-- this table is used to filter out previous map drawing nicknames if user has drawn something new
 local mapEraseNicknameTime		= {}
 
 local ownPlayerID = Spring.GetMyPlayerID()
-local vsx,vsy = Spring.GetViewGeometry()
+local vsx,vsy = spGetViewGeometry()
 
 -- spring vars
 local spGetPlayerInfo			= Spring.GetPlayerInfo
@@ -108,7 +112,7 @@ end
 
 
 function widget:ViewResize()
-	vsx,vsy = Spring.GetViewGeometry()
+	vsx,vsy = spGetViewGeometry()
 	font = WG['fonts'].getFont(1, 1.5)
 end
 

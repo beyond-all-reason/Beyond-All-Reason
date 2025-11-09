@@ -20,6 +20,15 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathAbs = math.abs
+local mathMin = math.min
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spEcho = Spring.Echo
+
 ---------------------------Speedups-----------------------------
 local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
@@ -145,7 +154,7 @@ function widget:Initialize()
 
   local shaderCompiled = rectShader:Initialize()
   if not shaderCompiled then
-   Spring.Echo("Failed to compile shaders for: frame grapher v2")
+   spEcho("Failed to compile shaders for: frame grapher v2")
    widgetHandler:RemoveWidget(self)
   end
   timerstart = Spring.GetTimerMicros()
@@ -223,7 +232,7 @@ local function nowEvent(e)
       local lastframeduration = spDiffTimers(nowTime, lastTime, nil, true) * 1000 -- in MILLISECONDS
 
       eventBuffer[#eventBuffer+1] = {frameType, lastframetime, lastframeduration}
-      --Spring.Echo("Event", frameType, "from", e,  "duration", lastframeduration, "ms")
+      --spEcho("Event", frameType, "from", e,  "duration", lastframeduration, "ms")
     end
     lastTime = nowTime
     lastCallin = e
@@ -232,7 +241,7 @@ end
 
 function widget:GameFramePost() 
   nowEvent("GameFramePost")
-  --Spring.Echo("GameFramePost", Spring.GetGameFrame())
+  --spEcho("GameFramePost", spGetGameFrame())
 end
 
 function widget:GameFrame(n)
@@ -240,7 +249,7 @@ function widget:GameFrame(n)
   wasgameframe =  wasgameframe + 1
   gameFrameHappened = true
   if drawspergameframe ~= 2 then
-	--Spring.Echo(drawspergameframe, "draws instead of 2", n)
+	--spEcho(drawspergameframe, "draws instead of 2", n)
   end
   drawspergameframe = 0
 end
@@ -271,13 +280,13 @@ function widget:DrawScreen()
   local CTOError = 0
 
   if drawpersimframe == 2 then
-	CTOError = 4 * math.min(math.abs(fto-0.5), math.abs(fto))
+	CTOError = 4 * mathMin(mathAbs(fto-0.5), mathAbs(fto))
   elseif drawpersimframe ==3 then
-	CTOError = 6 * math.min(math.min(math.abs(fto-0.33), math.abs(fto -0.66)), math.abs(fto))
+	CTOError = 6 * mathMin(mathMin(mathAbs(fto-0.33), mathAbs(fto -0.66)), mathAbs(fto))
   elseif drawpersimframe ==4 then
-	CTOError = 8 * math.min(math.min(math.abs(fto-0.25), math.abs(fto -0.5)), math.min(math.abs(fto), math.abs(fto-0.75)))
+	CTOError = 8 * mathMin(mathMin(mathAbs(fto-0.25), mathAbs(fto -0.5)), mathMin(mathAbs(fto), mathAbs(fto-0.75)))
   end
-  --Spring.Echo(Spring.GetGameFrame(), fto, CTOError)
+  --spEcho(spGetGameFrame(), fto, CTOError)
 
   rectInstancePtr = rectInstancePtr+1
   if rectInstancePtr >= maxframes then rectInstancePtr = 0 end
@@ -307,7 +316,7 @@ function widget:DrawScreen()
     rectInstancePtr = rectInstancePtr+1
     if rectInstancePtr >= maxframes then rectInstancePtr = 0 end
     local frameColor = frametypeidx[frametype]
-    --Spring.Echo("Event", frametype, "frameColor", frameColor, lastframeduration, "ms", lastframetime)
+    --spEcho("Event", frametype, "frameColor", frameColor, lastframeduration, "ms", lastframetime)
     pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration, frameColor, 0 }, rectInstancePtr, true)
   end
   eventBuffer = {} -- clear the event buffer

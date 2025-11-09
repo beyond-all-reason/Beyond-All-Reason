@@ -713,14 +713,15 @@ function DrawWindow()
 	-- draw navigation... backward/forward
 	if totalColumns > maxShownColumns then
 		local buttonSize = 35 * widgetScale
-		local buttonMargin = 8 * widgetScale
+		local buttonMarginX = 15 * widgetScale
+		local buttonMarginY = 10 * widgetScale
 		local startX = x + screenWidth
-		local startY = screenY - screenHeight + buttonMargin
+		local startY = screenY - screenHeight + buttonMarginY
 
 		glColor(1, 1, 1, 1)
 
 		if (startColumn - 1) + maxShownColumns < totalColumns then
-			optionButtonForward = { startX - buttonSize - buttonMargin, startY, startX - buttonMargin, startY + buttonSize }
+			optionButtonForward = { startX - buttonSize - buttonMarginX, startY, startX - buttonMarginX, startY + buttonSize }
 			glColor(1, 1, 1, 1)
 			glTexture(forwardTex)
 			glTexRect(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4])
@@ -731,13 +732,9 @@ function DrawWindow()
 		end
 
 		font:SetTextColor(1, 1, 1, 0.4)
-		font:Print(math.ceil(startColumn / maxShownColumns) .. ' / ' .. math.ceil(totalColumns / maxShownColumns), startX - (buttonSize * 2.6) - buttonMargin, startY + buttonSize / 2.6, buttonSize / 2.4, "rn")
+		font:Print(math.ceil(startColumn / maxShownColumns) .. ' / ' .. math.ceil(totalColumns / maxShownColumns), startX - (buttonSize * 2.6) - buttonMarginX, startY + buttonSize / 2.6, buttonSize / 2.4, "rn")
 		if startColumn > 1 then
-			if optionButtonForward == nil then
-				optionButtonBackward = { startX - buttonSize - buttonMargin, startY, startX - buttonMargin, startY + buttonSize }
-			else
-				optionButtonBackward = { startX - (buttonSize * 2) - buttonMargin - (buttonMargin / 1.5), startY, startX - (buttonSize * 1) - buttonMargin - (buttonMargin / 1.5), startY + buttonSize }
-			end
+			optionButtonBackward = { startX - (buttonSize * 2) - buttonMarginX - (buttonMarginX / 1.5), startY, startX - (buttonSize * 1) - buttonMarginX - (buttonMarginX / 1.5), startY + buttonSize }
 			glColor(1, 1, 1, 1)
 			glTexture(backwardTex)
 			glTexRect(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4])
@@ -6251,7 +6248,7 @@ function init()
 
 	-- add sound notification sets
 	if getOptionByID('notifications_set') then
-		local voiceset = Spring.GetConfigString("voiceset", 'en/allison')
+		local voiceset = Spring.GetConfigString("voiceset", 'en/cephis')
 		local currentVoiceSetOption
 		local sets = {}
 		local languageDirs = VFS.SubDirs('sounds/voice', '*')

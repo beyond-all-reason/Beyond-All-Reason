@@ -13,10 +13,15 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local floor = math.floor
 local spTestBuildOrder = Spring.TestBuildOrder
-local spGetSelUnitCount = Spring.GetSelectedUnitsCount
-local spGetSelUnitsSorted = Spring.GetSelectedUnitsSorted
+local spGetSelUnitCount = spGetSelectedUnitsCount
+local spGetSelUnitsSorted = spGetSelectedUnitsSorted
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
 local activeModifier = false
@@ -48,7 +53,7 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged()
-	isSpec = Spring.GetSpectatingState()
+	isSpec = spGetSpectatingState()
 	maybeRemoveSelf()
 end
 
@@ -59,7 +64,7 @@ end
 
 function widget:Initialize()
 	gameStarted = Spring.GetGameFrame() > 0
-	isSpec = Spring.GetSpectatingState()
+	isSpec = spGetSpectatingState()
 
 	if maybeRemoveSelf() then
 		return

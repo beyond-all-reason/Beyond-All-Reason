@@ -79,10 +79,12 @@ local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spValidUnitID = Spring.ValidUnitID
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetUnitTeam = Spring.GetUnitTeam
+local spGetAllUnits = Spring.GetAllUnits
+local spGetUnitDefID = Spring.GetUnitDefID
 local simSpeed = Game.gameSpeed
 
-local max = math.max
-local floor = math.floor
+local mathMax = math.max
+local mathFloor = math.floor
 
 local updateFrame = {}
 
@@ -115,7 +117,8 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_PRIORITY)
 	updateTeamList()
 
-	for _, teamID in ipairs(teamList) do
+	for i = 1, #teamList do
+		local teamID = teamList[i]
 		-- Distribute initial update frames. They will drift on their own afterward.
 		local gameFrame = Spring.GetGameFrame()
 		if not updateFrame[teamID] then
@@ -127,8 +130,10 @@ function gadget:Initialize()
 		Spring.SetTeamRulesParam(teamID, "suspendbuilderpriority", 0)
 	end
 
-	for _,unitID in pairs(Spring.GetAllUnits()) do
-        gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), spGetUnitTeam(unitID))
+	local allUnits = spGetAllUnits()
+	for i = 1, #allUnits do
+		local unitID = allUnits[i]
+        gadget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
 		if currentBuildSpeed[unitID] then
 			spSetUnitBuildSpeed(unitID, currentBuildSpeed[unitID]) -- needed for luarules reloads
 		end
@@ -249,11 +254,11 @@ local function UpdatePassiveBuilders(teamID, interval)
 	stor = stor * share
 	-- amount of res available to assign to passive builders (in next interval)
 	-- leave a tiny bit left over to avoid engines own "stall mode"
-	teamStallingMetal = cur - max(inc*stallMarginInc, stor*stallMarginSto) - 1 + (interval)*(nonPassiveConsTotalExpenseMetal+inc+rec-sent)/simSpeed
+	teamStallingMetal = cur - mathMax(inc*stallMarginInc, stor*stallMarginSto) - 1 + (interval)*(nonPassiveConsTotalExpenseMetal+inc+rec-sent)/simSpeed
 
 	cur, stor, _, inc, _, share, sent, rec = spGetTeamResources(teamID, "energy")
 	stor = stor * share
-	teamStallingEnergy = cur - max(inc*stallMarginInc, stor*stallMarginSto) - 1 + (interval)*(nonPassiveConsTotalExpenseEnergy+inc+rec-sent)/simSpeed
+	teamStallingEnergy = cur - mathMax(inc*stallMarginInc, stor*stallMarginSto) - 1 + (interval)*(nonPassiveConsTotalExpenseEnergy+inc+rec-sent)/simSpeed
 
 	-- work through passive cons allocating as much expense as we have left
 	for builderID in pairs(passiveTeamCons) do
@@ -294,11 +299,12 @@ end
 
 local function GetUpdateInterval(teamID)
 	local maxInterval = 1
-	for _, resName in ipairs(resources) do
+	for i = 1, #resources do
+		local resName = resources[i]
 		local _, stor, _, inc = spGetTeamResources(teamID, resName)
 		local resMaxInterval
 		if inc > 0 then
-			resMaxInterval = floor(stor*simSpeed/inc)+1 -- how many frames would it take to fill our current storage based on current income?
+			resMaxInterval = mathFloor(stor*simSpeed/inc)+1 -- how many frames would it take to fill our current storage based on current income?
 		else
 			resMaxInterval = 6
 		end

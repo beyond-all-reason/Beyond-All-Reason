@@ -16,6 +16,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local spSetUnitWeaponState = Spring.SetUnitWeaponState
+local tableCopy = table.copy
+
 
 local convertedUnitsNames = {
 	-- value is reaimtime in frames, engine default is 15
@@ -185,14 +188,14 @@ local spamThreshold = 100
 local maxReAimTime = 15
 
 -- add for scavengers copies
-local convertedUnitsCopy = table.copy(convertedUnits)
+local convertedUnitsCopy = tableCopy(convertedUnits)
 for id, v in pairs(convertedUnitsCopy) do
 	if UnitDefNames[UnitDefs[id].name..'_scav'] then
 		convertedUnits[UnitDefNames[UnitDefs[id].name..'_scav'].id] = v
 	end
 end
 
-local spamUnitsTeamsCopy = table.copy(spamUnitsTeams)
+local spamUnitsTeamsCopy = tableCopy(spamUnitsTeams)
 for id,v in pairs(spamUnitsTeamsCopy) do
 	if UnitDefNames[UnitDefs[id].name..'_scav'] then
 		spamUnitsTeams[UnitDefNames[UnitDefs[id].name..'_scav'].id] = {}
@@ -244,7 +247,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
 				-- NOTE: this will prevent unit from firing if it does not IMMEDIATELY return from AimWeapon (no sleeps, not wait for turns!)
 				-- So you have to manually check in script if it is at the desired heading
 				-- https://springrts.com/phpbb/viewtopic.php?t=36654
-				Spring.SetUnitWeaponState(unitID, id, "reaimTime", currentReaimTime)
+				spSetUnitWeaponState(unitID, id, "reaimTime", currentReaimTime)
 			end
 		end
 	end

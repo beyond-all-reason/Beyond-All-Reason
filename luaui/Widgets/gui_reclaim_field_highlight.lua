@@ -12,6 +12,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local tableSort = table.sort
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Options
@@ -96,7 +100,7 @@ local clusterizingNeeded = false
 local redrawingNeeded = false
 
 local epsilon = 300
-local epsilonSq = epsilon^2
+local epsilonSq = epsilon*epsilon
 local minFeatureMetal = 9 -- armflea reclaim value, probably
 if UnitDefNames.armflea then
 	local small = FeatureDefNames[UnitDefNames.armflea.corpse]
@@ -261,7 +265,7 @@ do
 	---Credit: mindthenerd.blogspot.ru/2012/05/fastest-convex-hull-algorithm-ever.html
 	---Also: www-cgrl.cs.mcgill.ca/~godfried/publications/fast.convex.hull.algorithm.pdf
 	local function convexSetConditioning(points)
-		-- table.sort(points, sortMonotonic) -- Moved to previous, shared step.
+		-- tableSort(points, sortMonotonic) -- Moved to previous, shared step.
 		local remaining = { points[1] }
 		local x, z = points[1].x, points[1].z
 
@@ -357,7 +361,7 @@ do
 		MonotoneChain = function (points)
 			local numPoints = #points
 			if numPoints < 3 then return end
-			-- table.sort(points, sortMonotonic) -- Moved to previous, shared step.
+			-- tableSort(points, sortMonotonic) -- Moved to previous, shared step.
 
 			local lower = {}
 			for i = 1, numPoints do
@@ -418,7 +422,7 @@ do
 
 		local convexHull, hullArea
 		if #points >= 3 then
-			table.sort(points, sortMonotonic) -- Moved to avoid repeating the sort.
+			tableSort(points, sortMonotonic) -- Moved to avoid repeating the sort.
 			if #points >= 60 then
 				convexHull = MonotoneChain(convexSetConditioning(points))
 			else

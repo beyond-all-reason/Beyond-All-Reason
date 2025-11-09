@@ -18,6 +18,16 @@ function widget:GetInfo()
     }
 end
 
+
+-- Localized functions for performance
+local mathMax = math.max
+local mathMin = math.min
+local mathSin = math.sin
+local mathPi = math.pi
+
+-- Localized Spring API for performance
+local spGetSpectatingState = Spring.GetSpectatingState
+
 --------------------------------------------------------------------------------
 -- OPTIONS
 --------------------------------------------------------------------------------
@@ -29,8 +39,8 @@ local fadeMultiplier            = 1.2  -- lower value: fades out sooner
 local circleDivs                = 64   -- detail of range circle
 
 -- pulse speeds (radians per second) for main-pass opacity
-local pulseSpeedDecloak = math.pi * 0.75   -- one cycle every 2s for decloak
-local pulseSpeedEMP     = math.pi * 1.5 -- one cycle every 4s for EMP
+local pulseSpeedDecloak = mathPi * 0.75   -- one cycle every 2s for decloak
+local pulseSpeedEMP     = mathPi * 1.5 -- one cycle every 4s for EMP
 
 -- opacity bounds for main-pass
 local decloakAlphaMin = 0.25
@@ -66,7 +76,7 @@ local CMD_FIRE_STATE       = CMD.FIRE_STATE
 --------------------------------------------------------------------------------
 -- GAME STATE
 --------------------------------------------------------------------------------
-local spec, fullview       = Spring.GetSpectatingState()
+local spec, fullview       = spGetSpectatingState()
 local chobbyInterface
 local units                = {}  -- [unitID] = { decloakDist, empRadius }
 
@@ -166,7 +176,7 @@ end
 
 function widget:PlayerChanged(playerID)
     local prevTeam, prevFull = Spring.GetMyTeamID(), fullview
-    spec, fullview = Spring.GetSpectatingState()
+    spec, fullview = spGetSpectatingState()
     if fullview ~= prevFull then
         widget:Initialize()
     end
@@ -183,17 +193,17 @@ function widget:DrawWorldPreUnit()
 
     -- current time for pulses
     local t = spGetGameSeconds()
-    local pulseD = (math.sin(t * pulseSpeedDecloak) + 1) * 0.5
-    local pulseE = (math.sin(t * pulseSpeedEMP) + 1) * 0.5
+    local pulseD = (mathSin(t * pulseSpeedDecloak) + 1) * 0.5
+    local pulseE = (mathSin(t * pulseSpeedEMP) + 1) * 0.5
 
     for unitID, prop in pairs(units) do
         local dx, dy, dz = spGetUnitPosition(unitID)
-        local maxRad = math.max(prop[1], prop[2])
+        local maxRad = mathMax(prop[1], prop[2])
         if ((not onlyDrawRangeWhenSelected) or spIsUnitSelected(unitID))
            and spIsSphereInView(dx, dy, dz, maxRad) then
 
             local distToCam = ((camX-dx)^2 + (camY-dy)^2 + (camZ-dz)^2)^0.5
-            local alphaScale = fadeOnCameraDistance and math.min(1, (1100/distToCam)*fadeMultiplier) or 1
+            local alphaScale = fadeOnCameraDistance and mathMin(1, (1100/distToCam)*fadeMultiplier) or 1
             if alphaScale > 0.15 then
 
                 local cloaked = spGetUnitIsCloaked(unitID) == true
@@ -215,7 +225,7 @@ function widget:DrawWorldPreUnit()
                 -- end
 
                 -- main pass with opacity pulses
-                local lw = math.max(1.5, 2.5 - math.min(2, distToCam/2000))
+                local lw = mathMax(1.5, 2.5 - mathMin(2, distToCam/2000))
                 glLineWidth(lw)
                 if prop[1] > 0 and cloaked then
                     local r = 0.09 * pulseE + 0.8 * (1-pulseE)
