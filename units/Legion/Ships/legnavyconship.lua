@@ -66,7 +66,7 @@ return {
             [27] = "legmext15",
 		},
 		customparams = {
-			model_author = "ZephyrSkies (model), Phill-Arts (Concept Art)",
+			model_author = "ZephyrSkies (Model), Phill-Arts (Concept Art)",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Ships",
 			unitgroup = "builder",

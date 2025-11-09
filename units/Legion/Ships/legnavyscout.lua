@@ -34,7 +34,7 @@ return {
 		waterline = 0,
 		customparams = {
 			unitgroup = 'weapon',
-			model_author = "ZephyrSkies (model), Phill-Art (Concept)",
+			model_author = "ZephyrSkies (Model), Phill-Art (Concept Art)",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Ships",
 		},

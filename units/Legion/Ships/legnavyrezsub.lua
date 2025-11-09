@@ -39,7 +39,7 @@ return {
 		waterline = 80,
 		workertime = 150,
 		customparams = {
-			model_author = "ZephyrSkies (model), Jjack13 (Concept Art)",
+			model_author = "ZephyrSkies (model), JjackVII (Concept Art)",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Ships",
 			unitgroup = "builder",

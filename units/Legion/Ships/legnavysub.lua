@@ -35,7 +35,7 @@ return {
 		upright = true,
 		waterline = 45,
 		customparams = {
-			model_author = "Tharsis",
+			model_author = "Tharsis (Model), Phill-Arts (Concept Art)",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Ships",
 			unitgroup = "sub",

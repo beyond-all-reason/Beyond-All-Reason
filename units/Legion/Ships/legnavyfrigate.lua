@@ -38,7 +38,7 @@ return {
 		waterline = 0,
 		customparams = {
 			unitgroup = 'weaponsub',
-			model_author = "EnderRobo",
+			model_author = "EnderRobo (Model), Phill-Arts (Concept Art)",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.5,
 			subfolder = "Legion/Ships",
