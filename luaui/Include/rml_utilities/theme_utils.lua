@@ -1,14 +1,10 @@
 -- RmlWidgets Theme Utils
--- Complete theme management system for RmlUi widgets
 -- Handles theme data, validation, and RML context application
 
 -- Make themeUtils global so all widgets share the same instance
 if not WG.rml_themeUtils then
     local themeUtils = {}
     WG.rml_themeUtils = themeUtils
-    Spring.Echo("themeUtils: Created global WG.rml_themeUtils")
-else
-    Spring.Echo("themeUtils: Using existing global WG.rml_themeUtils")
 end
 local themeUtils = WG.rml_themeUtils
 
@@ -68,7 +64,7 @@ function themeUtils.getInfo(themeId)
     return nil
 end
 
--- Apply theme to all RML contexts (modern approach)
+-- Apply theme to all RML contexts
 -- @param themeName: Theme name (base, armada, cortex, legion)
 -- @return boolean: Success status
 function themeUtils.applyTheme(themeName)
@@ -104,19 +100,11 @@ end
 function themeUtils.setAndApplyTheme(themeName)
     -- Validate theme before applying
     if not themeUtils.isValid(themeName) then
-        Spring.Echo("themeUtils: Invalid theme - " .. tostring(themeName))
+        Spring.Echo("Error: themeUtils - Invalid theme - " .. tostring(themeName))
         return false
     end
     
-    -- Set the theme setting and apply it immediately
-    Spring.SetConfigString("rml_theme", themeName)
     return themeUtils.applyTheme(themeName)
-end
-
--- Get theme display names for UI components (legacy function for compatibility)
--- @return table: Map of theme keys to display names
-function themeUtils.getThemeDisplayNames()
-    return themeUtils.getDisplayNames()
 end
 
 return themeUtils

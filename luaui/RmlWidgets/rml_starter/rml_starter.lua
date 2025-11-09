@@ -137,21 +137,15 @@ function widget:Initialize()
 
     dm_handle.toggleExpand() -- start expanded true and toggle it closed on init to start collapsed
     
-    Spring.Echo(WIDGET_ID .. ": Widget initialized successfully")
     return true
 end
 
 function widget:Shutdown()
-    Spring.Echo(WIDGET_ID .. ": Shutting down widget...")
-
     local shutdownParams = {
         widgetId = WIDGET_ID,
         modelName = MODEL_NAME
     }
-    
-    utils.shutdownRmlWidget(self, shutdownParams, document, dm_handle)
-    
-    Spring.Echo(WIDGET_ID .. ": Shutdown complete")
+    utils.shutdownRmlWidget(self, shutdownParams, document, dm_handle)    
 end
 
 function widget:Update()

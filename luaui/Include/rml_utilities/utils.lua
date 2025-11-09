@@ -8,9 +8,6 @@ local ccg = VFS.Include("luaui/Include/rml_utilities/common_class_groups.lua")
 if not WG.rml_utils then
     local utils = {}
     WG.rml_utils = utils
-    Spring.Echo("utils: Created global WG.rml_utils")
-else
-    Spring.Echo("utils: Using existing global WG.rml_utils")
 end
 local utils = WG.rml_utils
 
@@ -95,7 +92,6 @@ end
 -- RML Widget shutdown helper
 function utils.shutdownRmlWidget(widget, shutdownParams, document, dm_handle)
     local widgetId = shutdownParams.widgetId
-    Spring.Echo(widgetId .. ": Shutting down widget...")
     
     -- Clean up data model
     if not widget.rmlContext then
@@ -103,13 +99,9 @@ function utils.shutdownRmlWidget(widget, shutdownParams, document, dm_handle)
         return
     end
     local removed = widget.rmlContext:RemoveDataModel(shutdownParams.modelName)
-    if removed then
-        Spring.Echo(widgetId .. ": Data model '" .. shutdownParams.modelName .. "' removed successfully")
-    else
+    if not removed then
         Spring.Echo(widgetId .. ": Warning: Data model '" .. shutdownParams.modelName .. "' could not be removed or did not exist")
     end
-    -- if widget.rmlContext and dm_handle then
-    -- end
     
     -- Close document
     if document then
@@ -117,10 +109,7 @@ function utils.shutdownRmlWidget(widget, shutdownParams, document, dm_handle)
     end
     
     widget.rmlContext = nil
-    Spring.Echo(widgetId .. ": Shutdown complete")
 end
-
--- Theme management utilities
 
 -- Helper to get the current data model handle used primarily in init model functions to avoid reassignment after initialization.
 function utils.GetCurrentModel(dm_handle)

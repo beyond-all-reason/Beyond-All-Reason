@@ -35,19 +35,12 @@ local oldCreateContext = RmlUi.CreateContext
 
 local function NewCreateContext(name)
 	local context = oldCreateContext(name)
-
-	-- set up dp_ratio considering the user's UI scale preference and the screen resolution
-	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
-
-	local userScale = Spring.GetConfigFloat("ui_scale", 1)
-
-	local baseWidth = 1920
-	local baseHeight = 1080
-	local resFactor = math.min(viewSizeX / baseWidth, viewSizeY / baseHeight)
-
-	context.dp_ratio = resFactor * userScale
-
-	context.dp_ratio = math.floor(context.dp_ratio * 100) / 100
+	local viewSizeY = Spring.GetViewGeometry()
+    local userScale = Spring.GetConfigFloat("ui_scale", 1)
+    local baseHeight = 1080
+    local resFactor = viewSizeY / baseHeight
+    local dpRatio = resFactor * userScale
+    context.dp_ratio = math.floor(dpRatio * 100) / 100
 	return context
 end
 
@@ -82,4 +75,3 @@ RmlUi.SetMouseCursorAlias("ns-resize", 'uiresizev')
 RmlUi.SetMouseCursorAlias("ew-resize", 'uiresizeh')
 
 RmlUi.CreateContext("shared")
-

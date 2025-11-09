@@ -7,9 +7,6 @@
 if not WG.rml_commonClassGroups then
     local commonClassGroups = {}
     WG.rml_commonClassGroups = commonClassGroups
-    Spring.Echo("commonClassGroups: Created global WG.rml_commonClassGroups")
-else
-    Spring.Echo("commonClassGroups: Using existing global WG.rml_commonClassGroups")
 end
 
 local commonClassGroups = WG.rml_commonClassGroups
@@ -216,21 +213,6 @@ function commonClassGroups.list()
     end
     table.sort(groups)
     return groups
-end
-
--- Debug: Print all class groups
-function commonClassGroups.debug()
-    Spring.Echo("=== Class Groups ===")
-    local groups = commonClassGroups.list()
-    if #groups == 0 then
-        Spring.Echo("No class groups defined")
-        return
-    end
-    
-    for _, componentName in ipairs(groups) do
-        Spring.Echo(componentName .. " = " .. commonClassGroups.definitions[componentName])
-    end
-    Spring.Echo("Total: " .. #groups .. " class groups")
 end
 
 return commonClassGroups

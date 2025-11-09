@@ -24,6 +24,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
+--[[
+Legitimately copied from https://github.com/cappelnord/EzSVG
+
+Any changes or extensions to these functionalities should be made in a
+separate file to avoid polluting base expectations provided by EzSVG.
+]]--
+
 local EzSVG = {}
 
 EzSVG.knownTags = {

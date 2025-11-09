@@ -91,7 +91,7 @@ function widget:GetInfo()
         author = "Generated from rml_starter/generate-widget.sh",
         date = "2025",
         license = "GNU GPL, v2 or later",
-        layer = -10000,
+        layer = -1000,
         enabled = false,
     }
 end
