@@ -40,7 +40,7 @@ return {
 			subfolder = "Legion/Ships/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			waterspeedfactor = "2.6",
+			speedfactorwater = "2.6",
 		},
 		featuredefs = {
 			dead = {
