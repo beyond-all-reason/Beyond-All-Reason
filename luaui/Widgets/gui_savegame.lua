@@ -12,6 +12,13 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+
 local SAVE_DIR = "Saves"
 local SAVE_DIR_LENGTH = string.len(SAVE_DIR) + 2
 
@@ -29,9 +36,9 @@ local function SecondsToClock(seconds)
 	if seconds <= 0 then
 		return "00:00";
 	else
-		hours = string.format("%02d", math.floor(seconds / 3600));
-		mins = string.format("%02d", math.floor(seconds / 60 - (hours * 60)));
-		secs = string.format("%02d", math.floor(seconds - hours * 3600 - mins * 60));
+		hours = string.format("%02d", mathFloor(seconds / 3600));
+		mins = string.format("%02d", mathFloor(seconds / 60 - (hours * 60)));
+		secs = string.format("%02d", mathFloor(seconds - hours * 3600 - mins * 60));
 		if seconds >= 3600 then
 			return hours .. ":" .. mins .. ":" .. secs
 		else
@@ -112,8 +119,8 @@ local function SaveGame(filename, description, requireOverwrite)
 			saveData.engineVersion = Engine.version
 			saveData.map = Game.mapName
 			saveData.gameID = (Spring.GetGameRulesParam("save_gameID") or (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")))
-			saveData.gameframe = Spring.GetGameFrame()
-			saveData.totalGameframe = Spring.GetGameFrame() + (Spring.GetGameRulesParam("totalSaveGameFrame") or 0)
+			saveData.gameframe = spGetGameFrame()
+			saveData.totalGameframe = spGetGameFrame() + (Spring.GetGameRulesParam("totalSaveGameFrame") or 0)
 			saveData.playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 			table.save(saveData, path)
 

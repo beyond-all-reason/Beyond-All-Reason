@@ -13,6 +13,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 --------------------------------------------------------------------------------
 --- TODO:
 ---	- [ ] Customize grid
@@ -82,7 +86,7 @@ function widget:Initialize()
 		return
 	end
     if not WG['infolosapi'] then
-        Spring.Echo("Los View GL4: Missing InfoLOS API")
+        spEcho("Los View GL4: Missing InfoLOS API")
         widgetHandler:RemoveWidget()
         return
     end
@@ -91,7 +95,7 @@ function widget:Initialize()
     losViewShader = LuaShader.CheckShaderUpdates(losViewShaderSourceCache)
     fullScreenQuadVAO = InstanceVBOTable.MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5)
     losViewShader:Initialize()
-    if not losViewShader then Spring.Echo("Failed to compile losViewShader GL4") end
+    if not losViewShader then spEcho("Failed to compile losViewShader GL4") end
 end
 
 function widget:Shutdown()

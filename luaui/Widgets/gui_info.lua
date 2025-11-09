@@ -55,6 +55,12 @@ local tooltipDarkTextColor = '\255\133\133\133'
 local tooltipValueColor = '\255\255\255\255'
 local tooltipValueWhiteColor = '\255\255\255\255'
 
+-- Cache frequently used color strings
+local cachedColorStrings = {
+	white = '\255\233\233\233',
+	grey = '\255\215\215\215',
+}
+
 local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor .. ": Select\n " .. tooltipTextColor .. "   + CTRL" .. tooltipLabelTextColor .. ": Select units of this type on map\n " .. tooltipTextColor .. "   + ALT" .. tooltipLabelTextColor .. ": Select 1 single unit of this unit type\n " .. tooltipTextColor .. "Right click" .. tooltipLabelTextColor .. ": Remove\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Remove only 1 unit from that unit type\n " .. tooltipTextColor .. "Middle click" .. tooltipLabelTextColor .. ": Move to center location\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Move to center off whole selection"
 
 local anonymousName = '?????'
@@ -136,6 +142,30 @@ local unitDefInfo = {}
 local unitRestricted = {}
 local isWaterUnit = {}
 local isGeothermalUnit = {}
+
+-- Cache frequently used translated strings
+local cachedTranslations = {}
+local function getCachedTranslation(key)
+	if not cachedTranslations[key] then
+		cachedTranslations[key] = Spring.I18N(key)
+	end
+	return cachedTranslations[key]
+end
+
+-- String buffer for concatenation to reduce allocations
+local stringBuffer = {}
+local function clearStringBuffer()
+	for i = #stringBuffer, 1, -1 do
+		stringBuffer[i] = nil
+	end
+end
+
+-- Reusable tables to reduce allocations in hot paths
+local rightMouseButtonMap = {}
+local emptyTable = {}
+local shiftTable = { "shift" }
+local unloadParams = { 0, 0, 0, 0 }  -- x, y, z, unitID
+local viewSelectionCmd = { "viewselection" }
 
 local function refreshUnitInfo()
 	for unitDefID, unitDef in pairs(UnitDefs) do
@@ -334,6 +364,7 @@ local function refreshUnitInfo()
 					unitDef.name == 'armguard'     or -- ignore high-trajectory modes
 					unitDef.name == 'corpun'       or
 					unitDef.name == 'legcluster'   or
+					unitDef.name == 'legnavyfrigate'   or
 					unitDef.name == 'armamb'       or
 					unitDef.name == 'cortoast'     or
 					unitDef.name == 'armvang'
@@ -748,14 +779,12 @@ end
 local sec2 = 0
 local sec = 0
 local lastCameraPanMode = false
+local lastMouseOffScreen = false
 function widget:Update(dt)
 	infoShows = false
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
-	if lastCameraPanMode ~= cameraPanMode then
-		lastCameraPanMode = cameraPanMode
-		checkChanges()
-		doUpdate = true
-	end
+
+	-- Early exit for common case
 	if not alwaysShow and ((cameraPanMode and not doUpdate) or mouseOffScreen) and not isPregame then
 		if SelectedUnitsCount == 0 then
 			if dlistGuishader then
@@ -764,6 +793,14 @@ function widget:Update(dt)
 			end
 		end
 		return
+	end
+
+	-- Only check changes when camera or mouse state changes
+	if lastCameraPanMode ~= cameraPanMode or lastMouseOffScreen ~= mouseOffScreen then
+		lastCameraPanMode = cameraPanMode
+		lastMouseOffScreen = mouseOffScreen
+		checkChanges()
+		doUpdate = true
 	end
 
 	sec2 = sec2 + dt
@@ -871,6 +908,10 @@ local function RectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2
 	gl.BeginEnd(GL_QUADS, DrawRectRoundCircle, x, y, z, radius, cs, centerOffset, color1, color2)
 end
 
+-- Cache for kill counts to avoid expensive spGetUnitRulesParam calls every frame
+local killCountCache = {}
+local killCountCacheTime = 0
+
 local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	if not usedZoom then
 		usedZoom = defaultCellZoom
@@ -888,22 +929,43 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 		groups[unitGroup[uDefID]]
 	)
 
-	-- unit count
-	local fontSize = math_min(gridHeight * 0.17, cellsize * 0.6) * (1 - ((1 + string.len(selUnitsCounts[uDefID])) * 0.066))
-	if selUnitsCounts[uDefID] > 1 then
+	local selCount = selUnitsCounts[uDefID]
+	-- unit count - calculate fontSize once
+	local fontSize = math_min(gridHeight * 0.17, cellsize * 0.6) * (1 - ((1 + string.len(selCount)) * 0.066))
+	if selCount > 1 then
 		--font2:Begin(useRenderToTexture)
-		font2:Print('\255\233\233\233'..selUnitsCounts[uDefID], cellRect[cellID][3] - cellPadding - (fontSize * 0.09), cellRect[cellID][2] + (fontSize * 0.3), fontSize, "ro")
+		font2:Print(cachedColorStrings.white..selCount, cellRect[cellID][3] - cellPadding - (fontSize * 0.09), cellRect[cellID][2] + (fontSize * 0.3), fontSize, "ro")
 		--font2:End()
 	end
 
-	-- kill count
+	-- kill count - cached to reduce expensive calls
+	local currentTime = os_clock()
 	local kills = 0
-	for i, unitID in ipairs(selUnitsSorted[uDefID]) do
-		local unitKills = spGetUnitRulesParam(unitID, "kills")
-		if unitKills then
-			kills = kills + unitKills
+
+	-- Only update kill cache every 0.5 seconds
+	if currentTime - killCountCacheTime > 0.5 then
+		killCountCacheTime = currentTime
+		-- Clear old cache
+		for k in pairs(killCountCache) do
+			killCountCache[k] = nil
 		end
 	end
+
+	-- Check if we have cached value for this unitdef
+	if killCountCache[uDefID] then
+		kills = killCountCache[uDefID]
+	else
+		-- Calculate kills (expensive)
+		local unitsSortedForDef = selUnitsSorted[uDefID]
+		for i = 1, #unitsSortedForDef do
+			local unitKills = spGetUnitRulesParam(unitsSortedForDef[i], "kills")
+			if unitKills then
+				kills = kills + unitKills
+			end
+		end
+		killCountCache[uDefID] = kills
+	end
+
 	if kills > 0 then
 		local size = math_floor((cellRect[cellID][3] - (cellRect[cellID][1] + (cellPadding*0.5)))*0.33)
 		glColor(0.88,0.88,0.88,0.66)
@@ -911,7 +973,7 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 		glTexRect(cellRect[cellID][3] - size+(cellPadding*0.5), cellRect[cellID][4]-size-(cellPadding*0.5), cellRect[cellID][3]+(cellPadding*0.5), cellRect[cellID][4]-(cellPadding*0.5))
 		glTexture(false)
 		--font2:Begin(useRenderToTexture)
-		font2:Print('\255\233\233\233'..kills, cellRect[cellID][3] - (size * 0.5)+(cellPadding*0.5), cellRect[cellID][4] -(cellPadding*0.5)- (size * 0.5) - (fontSize * 0.19), fontSize * 0.66, "oc")
+		font2:Print(cachedColorStrings.white..kills, cellRect[cellID][3] - (size * 0.5)+(cellPadding*0.5), cellRect[cellID][4] -(cellPadding*0.5)- (size * 0.5) - (fontSize * 0.19), fontSize * 0.66, "oc")
 		--font2:End()
 	end
 end
@@ -920,7 +982,16 @@ local function drawSelection()
 	selUnitsCounts = spGetSelectedUnitsCounts()
 	selUnitsSorted = spGetSelectedUnitsSorted()
 	selUnitTypes = 0
-	selectionCells = {}
+
+	-- Reuse existing table instead of creating new one
+	if not selectionCells then
+		selectionCells = {}
+	else
+		-- Clear existing entries
+		for i = #selectionCells, 1, -1 do
+			selectionCells[i] = nil
+		end
+	end
 
 	for k, uDefID in pairs(unitOrder) do
 		if selUnitsSorted[uDefID] then
@@ -935,35 +1006,41 @@ local function drawSelection()
 	local numLines
 	--local stats = getSelectionTotals(selectionCells)
 	local fontSize = (height * vsy * 0.115) * (0.95 - ((1 - ui_scale) * 0.5))
-	local height = 0
+	local heightVar = 0
 	local heightStep = (fontSize * 1.36)
 	font2:Begin(useRenderToTexture)
 	font2:SetOutlineColor(0,0,0,1)
-	font2:Print(tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. "  "..Spring.I18N('ui.info.unitsselected'), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1.2) - height, (fontSize * 1.23), "o")
+	font2:Print(tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. "  "..getCachedTranslation('ui.info.unitsselected'), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1.2) - heightVar, (fontSize * 1.23), "o")
 	font2:End()
 	font:Begin(useRenderToTexture)
 	font:SetOutlineColor(0,0,0,1)
-	height = height + (fontSize * 0.85)
+	heightVar = heightVar + (fontSize * 0.85)
 
 	-- loop all unitdefs/cells (but not individual unitID's)
 	local totalMetalValue = 0
 	local totalEnergyValue = 0
-	for _, unitDefID in pairs(selectionCells) do
+	for i = 1, #selectionCells do
+		local unitDefID = selectionCells[i]
+		local unitDefData = unitDefInfo[unitDefID]
+		local count = selUnitsCounts[unitDefID]
 		-- metal cost
-		if unitDefInfo[unitDefID].metalCost then
-			totalMetalValue = totalMetalValue + (unitDefInfo[unitDefID].metalCost * selUnitsCounts[unitDefID])
+		if unitDefData.metalCost then
+			totalMetalValue = totalMetalValue + (unitDefData.metalCost * count)
 		end
 		-- energy cost
-		if unitDefInfo[unitDefID].energyCost then
-			totalEnergyValue = totalEnergyValue + (unitDefInfo[unitDefID].energyCost * selUnitsCounts[unitDefID])
+		if unitDefData.energyCost then
+			totalEnergyValue = totalEnergyValue + (unitDefData.energyCost * count)
 		end
 	end
 
-	-- loop all unitID's
-	local totalMaxHealthValue = 0
+	-- Only calculate resources for limited set of units (expensive operation)
+	-- Limit to first 50 units to avoid frame drops during large selections
 	local totalMetalMake, totalMetalUse, totalEnergyMake, totalEnergyUse = 0, 0, 0, 0
 	local totalKills = 0
-	for _, unitID in pairs(cellHovered and selUnitsSorted[selectionCells[cellHovered]] or selectedUnits) do
+	local unitsToCheck = cellHovered and selUnitsSorted[selectionCells[cellHovered]] or selectedUnits
+	local maxUnitsToCheck = math.min(50, #unitsToCheck)
+	for i = 1, maxUnitsToCheck do
+		local unitID = unitsToCheck[i]
 		local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(unitID)
 		if metalMake then
 			totalMetalMake = totalMetalMake + metalMake
@@ -977,36 +1054,54 @@ local function drawSelection()
 		end
 	end
 
+	-- Scale up if we only checked a subset
+	if maxUnitsToCheck < #unitsToCheck then
+		local scale = #unitsToCheck / maxUnitsToCheck
+		totalMetalMake = totalMetalMake * scale
+		totalMetalUse = totalMetalUse * scale
+		totalEnergyMake = totalEnergyMake * scale
+		totalEnergyUse = totalEnergyUse * scale
+		totalKills = math.floor(totalKills * scale)
+	end
+
 	local valuePlusColor = '\255\180\255\180'
 	local valueMinColor = '\255\255\180\180'
 	if totalMetalUse > 0 or totalMetalMake > 0 then
-		height = height + heightStep
-		font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.m').."   " .. (totalMetalMake > 0 and valuePlusColor .. '+' .. (totalMetalMake < 10 and round(totalMetalMake, 1) or round(totalMetalMake, 0)) .. '  ' or '') .. (totalMetalUse > 0 and valueMinColor .. '-' .. (totalMetalUse < 10 and round(totalMetalUse, 1) or round(totalMetalUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+		heightVar = heightVar + heightStep
+		font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.m').."   " .. (totalMetalMake > 0 and valuePlusColor .. '+' .. (totalMetalMake < 10 and round(totalMetalMake, 1) or round(totalMetalMake, 0)) .. '  ' or '') .. (totalMetalUse > 0 and valueMinColor .. '-' .. (totalMetalUse < 10 and round(totalMetalUse, 1) or round(totalMetalUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
 	end
 	if totalEnergyUse > 0 or totalEnergyMake > 0 then
-		height = height + heightStep
-		font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.e').."   " .. (totalEnergyMake > 0 and valuePlusColor .. '+' .. (totalEnergyMake < 10 and round(totalEnergyMake, 1) or round(totalEnergyMake, 0)) .. '  ' or '') .. (totalEnergyUse > 0 and valueMinColor .. '-' .. (totalEnergyUse < 10 and round(totalEnergyUse, 1) or round(totalEnergyUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+		heightVar = heightVar + heightStep
+		font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.e').."   " .. (totalEnergyMake > 0 and valuePlusColor .. '+' .. (totalEnergyMake < 10 and round(totalEnergyMake, 1) or round(totalEnergyMake, 0)) .. '  ' or '') .. (totalEnergyUse > 0 and valueMinColor .. '-' .. (totalEnergyUse < 10 and round(totalEnergyUse, 1) or round(totalEnergyUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
 	end
 
 	-- metal cost
-	height = height + heightStep
-	font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.costm').."   " .. tooltipValueWhiteColor .. totalMetalValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+	heightVar = heightVar + heightStep
+	font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.costm').."   " .. tooltipValueWhiteColor .. totalMetalValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
 
 	-- energy cost
-	height = height + heightStep
-	font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.coste').."\255\255\255\128   " .. totalEnergyValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+	heightVar = heightVar + heightStep
+	font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.coste').."\255\255\255\128   " .. totalEnergyValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
 
 	-- kills
 	if totalKills > 0 then
-		height = height + heightStep
-		font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.kills').."   " .. tooltipValueColor .. totalKills, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+		heightVar = heightVar + heightStep
+		font:Print( tooltipLabelTextColor .. getCachedTranslation('ui.info.kills').."   " .. tooltipValueColor .. totalKills, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - heightVar, fontSize, "o")
 	end
 	font:End()
 
 	-- selected units grid area
 	local gridWidth = math_floor((backgroundRect[3] - backgroundRect[1] - bgpadding) * 0.6)  -- leaving some room for the totals
 	gridHeight = math_floor((backgroundRect[4] - backgroundRect[2]) - bgpadding)
-	customInfoArea = { backgroundRect[3] - gridWidth, backgroundRect[2], backgroundRect[3] - bgpadding, backgroundRect[2] + gridHeight }
+
+	-- Reuse customInfoArea table
+	if not customInfoArea then
+		customInfoArea = {}
+	end
+	customInfoArea[1] = backgroundRect[3] - gridWidth
+	customInfoArea[2] = backgroundRect[2]
+	customInfoArea[3] = backgroundRect[3] - bgpadding
+	customInfoArea[4] = backgroundRect[2] + gridHeight
 
 	-- draw selected unit icons
 	local rows = 2
@@ -1028,7 +1123,15 @@ local function drawSelection()
 	customInfoArea[3] = customInfoArea[3] - cellPadding -- leave space at the right side
 
 	-- draw grid (bottom right to top left)
-	cellRect = {}
+	-- Reuse cellRect table
+	if not cellRect then
+		cellRect = {}
+	else
+		-- Clear old entries
+		for i = #cellRect, 1, -1 do
+			cellRect[i] = nil
+		end
+	end
 	texOffset = (0.03 * rows) * zoomMult
 	cornerSize = math_max(1, cellPadding * 0.9)
 	if texOffset > 0.25 then
@@ -1039,7 +1142,15 @@ local function drawSelection()
 		for coll = 1, colls do
 			if selectionCells[cellID] then
 				--local uDefID = selectionCells[cellID]
-				cellRect[cellID] = { math_ceil(customInfoArea[3] - cellPadding - (coll * cellsize)), math_ceil(customInfoArea[2] + cellPadding + ((row - 1) * cellsize)), math_ceil(customInfoArea[3] - cellPadding - ((coll - 1) * cellsize)), math_ceil(customInfoArea[2] + cellPadding + ((row) * cellsize)) }
+				local cellRectEntry = cellRect[cellID]
+				if not cellRectEntry then
+					cellRectEntry = {}
+					cellRect[cellID] = cellRectEntry
+				end
+				cellRectEntry[1] = math_ceil(customInfoArea[3] - cellPadding - (coll * cellsize))
+				cellRectEntry[2] = math_ceil(customInfoArea[2] + cellPadding + ((row - 1) * cellsize))
+				cellRectEntry[3] = math_ceil(customInfoArea[3] - cellPadding - ((coll - 1) * cellsize))
+				cellRectEntry[4] = math_ceil(customInfoArea[2] + cellPadding + ((row) * cellsize))
 				drawSelectionCell(cellID, selectionCells[cellID], texOffset)
 			end
 			cellID = cellID - 1
@@ -1291,7 +1402,14 @@ local function drawUnitInfo()
 		-- draw grid (bottom right to top left)
 		local cellID = #unitDefInfo[displayUnitDefID].buildOptions
 		cellPadding = math_floor((cellsize * 0.022) + 0.5)
-		cellRect = {}
+		-- Clear and reuse cellRect table
+		if not cellRect then
+			cellRect = {}
+		else
+			for i = #cellRect, 1, -1 do
+				cellRect[i] = nil
+			end
+		end
 		for row = 1, rows do
 			for coll = 1, colls do
 				if unitDefInfo[displayUnitDefID].buildOptions[cellID] then
@@ -1346,7 +1464,14 @@ local function drawUnitInfo()
 			local cellID = #units
 			cellPadding = math_floor((cellsize * 0.022) + 0.5)
 			cornerSize = math_max(1, cellPadding * 0.9)
-			cellRect = {}
+			-- Clear and reuse cellRect table
+			if not cellRect then
+				cellRect = {}
+			else
+				for i = #cellRect, 1, -1 do
+					cellRect[i] = nil
+				end
+			end
 			for row = 1, rows do
 				for coll = 1, colls do
 					if units[cellID] then
@@ -1383,12 +1508,29 @@ local function drawUnitInfo()
 		contentPadding = contentPadding * 0.95
 		local contentPaddingLeft = customInfoArea[1] + contentPadding
 
-		local text = ''
+		-- Use string buffer for concatenation to reduce allocations
+		clearStringBuffer()
+		local bufferIndex = 0
 		local separator = ''
 		local infoFontsize = fontSize * 0.89
 		-- to determine what to show in what order
 		local function addTextInfo(label, value)
-			text = text .. labelColor .. separator .. string.upper(label:sub(1, 1)) .. label:sub(2)  .. valueColor .. (value and (label ~= '' and ' ' or '')..value or '')
+			bufferIndex = bufferIndex + 1
+			stringBuffer[bufferIndex] = labelColor
+			bufferIndex = bufferIndex + 1
+			stringBuffer[bufferIndex] = separator
+			bufferIndex = bufferIndex + 1
+			stringBuffer[bufferIndex] = string.upper(label:sub(1, 1))
+			bufferIndex = bufferIndex + 1
+			stringBuffer[bufferIndex] = label:sub(2)
+			bufferIndex = bufferIndex + 1
+			stringBuffer[bufferIndex] = valueColor
+			if value and label ~= '' then
+				bufferIndex = bufferIndex + 1
+				stringBuffer[bufferIndex] = ' '
+				bufferIndex = bufferIndex + 1
+				stringBuffer[bufferIndex] = value
+			end
 			separator = ',   '
 		end
 
@@ -1569,19 +1711,27 @@ local function drawUnitInfo()
 			addTextInfo(Spring.I18N('ui.info.transportcapacity'), unitDefInfo[displayUnitDefID].transport[3])
 		end
 
-		local text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
+		-- Build final text from buffer
+		local text = table.concat(stringBuffer)
+		text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
 
 		-- prune number of lines
 		local lines = string_lines(text)
-		text = ''
+		clearStringBuffer()
+		bufferIndex = 0
 		for i, line in pairs(lines) do
-			text = text .. line
+			bufferIndex = bufferIndex + 1
+			stringBuffer[bufferIndex] = line
 			-- only 4 fully fit, but showing 5, so the top part of text shows and indicates there is more to see somehow
 			if i == 5 then
 				break
 			end
-			text = text .. '\n'
+			if i < 5 then
+				bufferIndex = bufferIndex + 1
+				stringBuffer[bufferIndex] = '\n'
+			end
 		end
+		text = table.concat(stringBuffer)
 		lines = nil
 
 		-- display unit(def) info text
@@ -1752,11 +1902,11 @@ local function MiddleMouseButton(unitDefID, unitTable)
 	local alt, ctrl, meta, shift = spGetModKeyState()
 	if ctrl then
 		-- center the view on the entire selection
-		Spring.SendCommands({ "viewselection" })
+		Spring.SendCommands(viewSelectionCmd)
 	else
 		-- center the view on this type on unit
 		spSelectUnitArray(unitTable)
-		Spring.SendCommands({ "viewselection" })
+		Spring.SendCommands(viewSelectionCmd)
 		spSelectUnitArray(selectedUnits)
 	end
 	selectedUnits = spGetSelectedUnits()
@@ -1768,17 +1918,20 @@ local function RightMouseButton(unitDefID, unitTable)
 	local alt, ctrl, meta, shift = spGetModKeyState()
 
 	-- remove selected units of icon type
-	local map = {}
+	-- Clear and reuse map table instead of creating new one
+	for k in pairs(rightMouseButtonMap) do
+		rightMouseButtonMap[k] = nil
+	end
 	for i = 1, #selectedUnits do
-		map[selectedUnits[i]] = true
+		rightMouseButtonMap[selectedUnits[i]] = true
 	end
 	for _, uid in ipairs(unitTable) do
-		map[uid] = nil
+		rightMouseButtonMap[uid] = nil
 		if ctrl then
 			break -- only remove 1 unit
 		end
 	end
-	spSelectUnitMap(map)
+	spSelectUnitMap(rightMouseButtonMap)
 	selectedUnits = spGetSelectedUnits()
 	SelectedUnitsCount = spGetSelectedUnitsCount()
 	Spring.PlaySoundFile(sound_button2, 0.5, 'ui')
@@ -1805,7 +1958,8 @@ local function unloadTransport(transportID, unitID, x, z, shift, depth)
 	local unitSphereRadius = 60	-- too low value will result in unload conflicts
 	local areaUnits = Spring.GetUnitsInSphere(x, y, z, unitSphereRadius)
 	if #areaUnits == 0 then	-- unblocked spot!
-		Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, { x, y, z, unitID }, {shift and "shift"})
+		unloadParams[1], unloadParams[2], unloadParams[3], unloadParams[4] = x, y, z, unitID
+		Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unloadParams, shift and shiftTable or emptyTable)
 	else
 		-- unload is blocked by unit at ground just lets find free alternative spot in a radius around it
 		local samples = 8
@@ -1820,7 +1974,8 @@ local function unloadTransport(transportID, unitID, x, z, shift, depth)
 				if #areaUnits == 0 then	-- unblocked spot!
 					local areaFeatures = Spring.GetFeaturesInSphere(x, y, z, unitSphereRadius)
 					if #areaFeatures == 0 then
-						Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, { x, y, z, unitID }, {shift and "shift"})
+						unloadParams[1], unloadParams[2], unloadParams[3], unloadParams[4] = x, y, z, unitID
+						Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unloadParams, shift and shiftTable or emptyTable)
 						foundUnloadSpot = true
 						break
 					end
@@ -1885,10 +2040,10 @@ function widget:MouseRelease(x, y, button)
 								if cmdQueue[#cmdQueue] and cmdQueue[#cmdQueue].id == CMD.MOVE and cmdQueue[#cmdQueue].params[3] then
 									x, z = cmdQueue[#cmdQueue].params[1], cmdQueue[#cmdQueue].params[3]
 									-- remove the last move command (to replace it with the unload cmd after)
-									Spring.GiveOrderToUnit(displayUnitID, CMD.STOP, {}, 0)
+									Spring.GiveOrderToUnit(displayUnitID, CMD.STOP, emptyTable, 0)
 									for c = 1, #cmdQueue do
 										if c < #cmdQueue then
-											Spring.GiveOrderToUnit(displayUnitID, cmdQueue[c].id, cmdQueue[c].params, { "shift" })
+											Spring.GiveOrderToUnit(displayUnitID, cmdQueue[c].id, cmdQueue[c].params, shiftTable)
 										end
 									end
 								end
@@ -2103,7 +2258,7 @@ end
 function checkChanges()
 	hideBuildlist = nil	-- only set for pregame startunit
 	local x, y, b, _, _, _, cameraPanMode = spGetMouseState()
-	
+
 	-- Use custom hover if provided by external widget (e.g., PIP window)
 	-- or skip hover detection if PIP window is above (to prevent showing units below PIP)
 	if customHoverType and customHoverData then
@@ -2235,13 +2390,27 @@ function widget:SelectionChanged(sel)
 	if SelectedUnitsCount ~= 0 and newSelectedUnitsCount == 0 then
 		doUpdate = true
 		SelectedUnitsCount = 0
-		selectedUnits = {}
+		-- Clear existing table instead of creating new one
+		for i = #selectedUnits, 1, -1 do
+			selectedUnits[i] = nil
+		end
 	end
 	if newSelectedUnitsCount > 0 then
 		SelectedUnitsCount = newSelectedUnitsCount
 		selectedUnits = sel
-		if not doUpdateClock then
-			doUpdateClock = os_clock() + 0.05  -- delay to save some performance
+		-- Adaptive throttling: increase delay based on selection size
+		local throttleDelay = 0.01
+		if newSelectedUnitsCount >= 300 then
+			throttleDelay = 0.03
+		elseif newSelectedUnitsCount >= 160 then
+			throttleDelay = 0.02
+		elseif newSelectedUnitsCount >= 80 then
+			throttleDelay = 0.015
+		end
+
+		local currentTime = os_clock()
+		if not doUpdateClock or (currentTime - lastUpdateClock) > throttleDelay then
+			doUpdateClock = currentTime + throttleDelay
 		end
 	end
 	if not alwaysShow and select(7, spGetMouseState()) then	-- cameraPanMode

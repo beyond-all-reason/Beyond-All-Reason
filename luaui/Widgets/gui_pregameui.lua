@@ -12,9 +12,19 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spGetGroundHeight = Spring.GetGroundHeight
+local spEcho = Spring.Echo
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local draftMode = Spring.GetModOptions().draft_mode
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
 local uiScale = (0.7 + (vsx * vsy / 6500000))
 local myPlayerID = Spring.GetMyPlayerID()
@@ -42,14 +52,14 @@ local auto_ready = not Spring.Utilities.Gametype.IsSinglePlayer()
 
 local buttonPosX = 0.8
 local buttonPosY = 0.76
-local buttonX = math.floor(vsx * buttonPosX)
-local buttonY = math.floor(vsy * buttonPosY)
+local buttonX = mathFloor(vsx * buttonPosX)
+local buttonY = mathFloor(vsy * buttonPosY)
 
 local orgbuttonH = 40
 local orgbuttonW = 115
 
-local buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
-local buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
+local buttonW = mathFloor(orgbuttonW * uiScale / 2) * 2
+local buttonH = mathFloor(orgbuttonH * uiScale / 2) * 2
 
 local buttonList, buttonHoverList
 local buttonText = ''
@@ -147,21 +157,21 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 		end
 	end
 
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 
 	font = WG['fonts'].getFont(2)
 
 	uiScale = (0.75 + (vsx * vsy / 6000000))
-	buttonX = math.floor(vsx * buttonPosX)
-	buttonY = math.floor(vsy * buttonPosY)
+	buttonX = mathFloor(vsx * buttonPosX)
+	buttonY = mathFloor(vsy * buttonPosY)
 	orgbuttonW = font:GetTextWidth('       '..buttonText) * 24
-	buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
-	buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
+	buttonW = mathFloor(orgbuttonW * uiScale / 2) * 2
+	buttonH = mathFloor(orgbuttonH * uiScale / 2) * 2
 
 	UiElement = WG.FlowUI.Draw.Element
 	UiButton = WG.FlowUI.Draw.Button
 	elementPadding = WG.FlowUI.elementPadding
-	uiPadding = math.floor(elementPadding * 4.5)
+	uiPadding = mathFloor(elementPadding * 4.5)
 
 	createButton()
 
@@ -206,7 +216,7 @@ function widget:GameSetup(state, ready, playerStates)
 		local _, _, spectator_flag = Spring.GetPlayerInfo(playerID, false)
 		if spectator_flag == false then
 			local is_player_ready = Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")
-			--Spring.Echo(#playerList, playerID, is_player_ready)
+			--spEcho(#playerList, playerID, is_player_ready)
 			if is_player_ready == 0 or is_player_ready == 4 then
 				ready = false
 			end
@@ -239,7 +249,7 @@ function widget:MousePress(sx, sy)
 								locked = true
 								Spring.SendLuaRulesMsg("locking_in_place")
 							else
-								Spring.Echo(Spring.I18N('ui.initialSpawn.choosePoint'))
+								spEcho(Spring.I18N('ui.initialSpawn.choosePoint'))
 							end
 
 						end
@@ -248,9 +258,9 @@ function widget:MousePress(sx, sy)
 					elseif eligibleAsSub then
 						offeredAsSub = not offeredAsSub
 						if offeredAsSub then
-							Spring.Echo(Spring.I18N('ui.substitutePlayers.substitutionMessage'))
+							spEcho(Spring.I18N('ui.substitutePlayers.substitutionMessage'))
 						else
-							Spring.Echo(Spring.I18N('ui.substitutePlayers.offerWithdrawn'))
+							spEcho(Spring.I18N('ui.substitutePlayers.offerWithdrawn'))
 						end
 						Spring.SendLuaRulesMsg(offeredAsSub and '\144' or '\145')
 					end
@@ -360,7 +370,7 @@ function widget:DrawScreen()
 	-- display autoready timer
 	if Spring.GetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready then
 		local colorString = auto_ready_timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
-		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1, math.floor(auto_ready_timer)) })
+		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = mathMax(1, mathFloor(auto_ready_timer)) })
 		font:Begin()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
@@ -383,7 +393,7 @@ function widget:DrawScreen()
 	if gameStarting then
 		timer = timer + Spring.GetLastUpdateSeconds()
 		local colorString = timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
-		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1, 3 - math.floor(timer)) })
+		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = mathMax(1, 3 - mathFloor(timer)) })
 		font:Begin()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
@@ -478,11 +488,11 @@ function widget:DrawWorld()
 		if tsx and tsx > 0 then
 			local startUnitDefID = Spring.GetTeamRulesParam(teamID, 'startUnit')
 			if startUnitDefID then
-				id = startUnitDefID..'_'..tsx..'_'..Spring.GetGroundHeight(tsx, tsz)..'_'..tsz
+				id = startUnitDefID..'_'..tsx..'_'..spGetGroundHeight(tsx, tsz)..'_'..tsz
 				if teamStartPositions[teamID] ~= id then
 					removeUnitShape(teamStartPositions[teamID])
 					teamStartPositions[teamID] = id
-					addUnitShape(id, startUnitDefID, tsx, Spring.GetGroundHeight(tsx, tsz), tsz, 0, teamID, 1)
+					addUnitShape(id, startUnitDefID, tsx, spGetGroundHeight(tsx, tsz), tsz, 0, teamID, 1)
 				end
 			end
 		end

@@ -12,12 +12,19 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathRandom = math.random
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 -- Note: this is now updated to support arbitrary start polygons via GL.SHADER_STORAGE_BUFFER
 
 -- The format of the buffer is the following:
 -- Triplets of :teamID, triangleID, x, z
 
--- Spring.Echo(Spring.GetTeamInfo(Spring.GetMyTeamID()))
+-- spEcho(Spring.GetTeamInfo(Spring.GetMyTeamID()))
 
 -- TODO:
 -- [ ] Handle overlapping of boxes and myAllyTeamID
@@ -89,7 +96,7 @@ local function DrawStartPolygons(inminimap)
 		if WG['screencopymanager'] and WG['screencopymanager'].GetDepthCopy() then
 			gl.Texture(0, WG['screencopymanager'].GetDepthCopy())
 		else
-			Spring.Echo("Start Polygons: Adv map shading not available, and no depth copy available")
+			spEcho("Start Polygons: Adv map shading not available, and no depth copy available")
 			return
 		end
 	end
@@ -143,7 +150,7 @@ function widget:Initialize()
 		if teamID ~= gaiaAllyTeamID then
 			--and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
 			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-			--Spring.Echo("Allyteam",teamID,"startbox",xn, zn, xp, zp)
+			--spEcho("Allyteam",teamID,"startbox",xn, zn, xp, zp)
 			StartPolygons[teamID] = {{xn, zn}, {xp, zn}, {xp, zp}, {xn, zp}}
 		end
 	end
@@ -153,13 +160,13 @@ function widget:Initialize()
 		-- lets add a bunch of silly StartPolygons:
 		StartPolygons = {}
 		for i = 2,8 do
-			local x0 = math.random(0, Game.mapSizeX)
-			local y0 = math.random(0, Game.mapSizeZ)
+			local x0 = mathRandom(0, Game.mapSizeX)
+			local y0 = mathRandom(0, Game.mapSizeZ)
 			local polygon = {{x0, y0}}
 
-			for j = 2, math.ceil(math.random() * 10) do
-				local x1 = math.random(0, Game.mapSizeX / 5)
-				local y1 = math.random(0, Game.mapSizeZ / 5)
+			for j = 2, math.ceil(mathRandom() * 10) do
+				local x1 = mathRandom(0, Game.mapSizeX / 5)
+				local y1 = mathRandom(0, Game.mapSizeZ / 5)
 				polygon[#polygon+1] = {x0+x1, y0+y1}
 			end
 			StartPolygons[#StartPolygons+1] = polygon
@@ -175,7 +182,7 @@ function widget:Initialize()
 		numPolygons = numPolygons + 1
 		local numPoints = #polygon
 		local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-		--Spring.Echo("teamID", teamID, "at " ,xn, zn, xp, zp)
+		--spEcho("teamID", teamID, "at " ,xn, zn, xp, zp)
 		for vertexID, vertex in ipairs(polygon) do
 			local x, z = vertex[1], vertex[2]
 			bufferdata[#bufferdata+1] = teamID
@@ -201,7 +208,7 @@ function widget:Initialize()
 	startPolygonShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or startPolygonShader
 
 	if not startPolygonShader then
-		Spring.Echo("Error: Norush Timer GL4 shader not initialized")
+		spEcho("Error: Norush Timer GL4 shader not initialized")
 		widgetHandler:RemoveWidget()
 		return
 	end

@@ -22,7 +22,14 @@ function widget:GetInfo()
 	}
 end
 
-local isPregame = Spring.GetGameFrame() == 0 and not isSpec
+
+-- Localized functions for performance
+local tableInsert = table.insert
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+
+local isPregame = spGetGameFrame() == 0 and not isSpec
 
 local uDefNames = UnitDefNames
 
@@ -141,6 +148,21 @@ local function setPreGamestartDefID(uDefID)
 	end
 end
 
+-- returns true if the given unitDefID can be built by the pregame start unit
+local function canSelectPreGameDef(uDefID)
+	local myTeamID = Spring.GetMyTeamID()
+	local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+	if not startDefID or not UnitDefs[startDefID] or not UnitDefs[startDefID].buildOptions then
+		return false
+	end
+	for _, opt in ipairs(UnitDefs[startDefID].buildOptions) do
+		if opt == uDefID then
+			return true
+		end
+	end
+	return false
+end
+
 -- returns the unitDefID of the selected building, or false if there is no selected building
 local function isBuilding()
 	local _, cmdID
@@ -234,7 +256,10 @@ function widget:DrawWorld()
 	if pos[2] < 0.01 then
 		if isGround then
 			if isPregame then
-				setPreGamestartDefID(alt)
+				-- Only change the pregame selection if the start unit can build the alternative
+				if canSelectPreGameDef(alt) then
+					setPreGamestartDefID(alt)
+				end
 			else
 				SetActiveCommand('buildunit_'..name)
 			end
@@ -242,7 +267,10 @@ function widget:DrawWorld()
 	else
 		if not isGround then
 			if isPregame then
-				setPreGamestartDefID(alt)
+				-- Only change the pregame selection if the start unit can build the alternative
+				if canSelectPreGameDef(alt) then
+					setPreGamestartDefID(alt)
+				end
 			else
 				SetActiveCommand('buildunit_'..unitName[alt])
 			end
@@ -270,21 +298,21 @@ local function addUnitDefPair(firstUnitName, lastUnitName)
 
 		-- Break the unit list into two matching arrays
 		if isWater then
-			table.insert(waterBuildings, unitDefID)
+			tableInsert(waterBuildings, unitDefID)
 		else
-			table.insert(groundBuildings, unitDefID)
+			tableInsert(groundBuildings, unitDefID)
 		end
 	end
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+	if Spring.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 
 	if Spring.GetModOptions().experimentallegionfaction then
 		for _,v in ipairs(legionUnitlist) do
-			table.insert(unitlist, v)
+			tableInsert(unitlist, v)
 		end
 	end
 

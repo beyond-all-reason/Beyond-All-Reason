@@ -13,6 +13,13 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local tableInsert = table.insert
+
+-- Localized Spring API for performance
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local shapeOpacity = 0.26
 local maxUnitShapes = 4096
 
@@ -28,7 +35,7 @@ local maxUnitShapes = 4096
 -- v9 SuperKitowiec - Extract builder queue related code to api_builder_queue.lua.
 
 local myPlayerId = Spring.GetMyPlayerID()
-local _, fullView, _ = Spring.GetSpectatingState()
+local _, fullView, _ = spGetSpectatingState()
 
 local spGetGroundHeight = Spring.GetGroundHeight
 local halfPi = math.pi / 2
@@ -128,10 +135,10 @@ function widget:Initialize()
 	end
 
 	-- Register event callbacks
-	table.insert(builderQueueApiCallbacks, builderQueueAPI.OnBuildCommandAdded(onBuildCommandAdded))
-	table.insert(builderQueueApiCallbacks, builderQueueAPI.OnBuildCommandRemoved(onBuildCommandRemoved))
-	table.insert(builderQueueApiCallbacks, builderQueueAPI.OnUnitCreated(onUnitCreated))
-	table.insert(builderQueueApiCallbacks, builderQueueAPI.OnUnitFinished(onUnitFinished))
+	tableInsert(builderQueueApiCallbacks, builderQueueAPI.OnBuildCommandAdded(onBuildCommandAdded))
+	tableInsert(builderQueueApiCallbacks, builderQueueAPI.OnBuildCommandRemoved(onBuildCommandRemoved))
+	tableInsert(builderQueueApiCallbacks, builderQueueAPI.OnUnitCreated(onUnitCreated))
+	tableInsert(builderQueueApiCallbacks, builderQueueAPI.OnUnitFinished(onUnitFinished))
 
 	unitShapes = {}
 	removedUnitShapes = {}
@@ -156,7 +163,7 @@ end
 
 function widget:PlayerChanged(playerId)
 	local prevFullView = fullView
-	_, fullView, _ = Spring.GetSpectatingState()
+	_, fullView, _ = spGetSpectatingState()
 	if playerId == myPlayerId and prevFullView ~= fullView then
 		reInitialize = true
 	end

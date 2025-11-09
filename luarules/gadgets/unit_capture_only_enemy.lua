@@ -21,9 +21,11 @@ local CMD_CAPTURE = CMD.CAPTURE
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 	-- accepts: CMD.CAPTURE
 	local targetTeamID = Spring.GetUnitTeam(cmdParams[1])
-	local isDead = select(4, Spring.GetTeamInfo(targetTeamID))
-	if Spring.GetUnitAllyTeam(unitID) == Spring.GetUnitAllyTeam(cmdParams[1]) and not isDead and not Spring.GetTeamLuaAI(targetTeamID) then
-		return false
+	if targetTeamID then
+		local isDead = select(4, Spring.GetTeamInfo(targetTeamID))
+		if Spring.GetUnitAllyTeam(unitID) == Spring.GetUnitAllyTeam(cmdParams[1]) and not isDead and not Spring.GetTeamLuaAI(targetTeamID) then
+			return false
+		end
 	end
 	return true
 end

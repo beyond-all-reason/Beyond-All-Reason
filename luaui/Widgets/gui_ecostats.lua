@@ -17,6 +17,19 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathCeil = math.ceil
+local mathFloor = math.floor
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMyTeamID = Spring.GetMyTeamID
+local spEcho = Spring.Echo
+local spGetSpectatingState = Spring.GetSpectatingState
+local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
+
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local cfgResText = true
@@ -45,11 +58,11 @@ local vsx, vsy = Spring.GetViewGeometry()
 local topbarShowButtons = true
 
 local sin = math.sin
-local floor = math.floor
+local floor = mathFloor
 local math_isInRect = math.isInRect
 
 local GetGameSeconds = Spring.GetGameSeconds
-local GetGameFrame = Spring.GetGameFrame
+local GetGameFrame = spGetGameFrame
 local glColor = gl.Color
 local glTexRect = gl.TexRect
 
@@ -102,8 +115,8 @@ local xRelPos, yRelPos = 1, 1
 local widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 local singleTeams = (#Spring.GetTeamList() - 1 == #Spring.GetAllyTeamList() - 1)
 local enableStartposbuttons = not Spring.Utilities.Gametype.IsFFA()	-- spots wont match when ffa
-local myFullview = select(2, Spring.GetSpectatingState())
-local myTeamID = Spring.GetMyTeamID()
+local myFullview = select(2, spGetSpectatingState())
+local myTeamID = spGetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local gaiaID = Spring.GetGaiaTeamID()
 local gaiaAllyID = select(6, GetTeamInfo(gaiaID, false))
@@ -191,12 +204,12 @@ local function getNbPlacedPositions(teamID)
 
 	for _, pID in ipairs(GetTeamList(teamID)) do
 		if teamData[pID] == nil then
-			Spring.Echo("getNbPlacedPositions returned nil:", teamID)
+			spEcho("getNbPlacedPositions returned nil:", teamID)
 			return nil
 		end
 		leaderID = teamData[pID].leaderID
 		if leaderID == nil then
-			Spring.Echo("getNbPlacedPositions returned nil:", teamID)
+			spEcho("getNbPlacedPositions returned nil:", teamID)
 			return nil
 		end
 		startx = teamData[pID].startx or -1
@@ -277,7 +290,7 @@ local function setDefaults()
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 	borderPadding = 4.5
 	HBadge = tH * 0.5
-	WBadge = math.floor(HBadge * playerScale)
+	WBadge = mathFloor(HBadge * playerScale)
 	cW = 88
 	textsize = 14
 end
@@ -296,13 +309,13 @@ local function processScaling()
 		sizeMultiplier = sizeMultiplier * 0.77
 	end
 
-	tH = math.floor(tH * sizeMultiplier)
-	widgetWidth = math.floor(widgetWidth * sizeMultiplier)
-	HBadge = math.floor(HBadge * sizeMultiplier)
-	WBadge = math.floor(HBadge * playerScale)
-	cW = math.floor(cW * sizeMultiplier)
-	textsize = math.floor(textsize * sizeMultiplier)
-	borderPadding = math.floor(borderPadding * sizeMultiplier)
+	tH = mathFloor(tH * sizeMultiplier)
+	widgetWidth = mathFloor(widgetWidth * sizeMultiplier)
+	HBadge = mathFloor(HBadge * sizeMultiplier)
+	WBadge = mathFloor(HBadge * playerScale)
+	cW = mathFloor(cW * sizeMultiplier)
+	textsize = mathFloor(textsize * sizeMultiplier)
+	borderPadding = mathFloor(borderPadding * sizeMultiplier)
 	widgetHeight = getNbTeams() * tH + (2 * sizeMultiplier)
 end
 
@@ -331,7 +344,7 @@ local function checkCommanderAlive(teamID)
 	local hasCom = false
 	for commanderDefID, _ in pairs(comDefs) do
 		if Spring.GetTeamUnitDefCount(teamID, commanderDefID) > 0 then
-			local unitList = Spring.GetTeamUnitsByDefs(teamID, commanderDefID)
+			local unitList = spGetTeamUnitsByDefs(teamID, commanderDefID)
 			for i = 1, #unitList do
 				if not Spring.GetUnitIsDead(unitList[i]) then
 					hasCom = true
@@ -484,10 +497,10 @@ local function Init()
 		HBadge = 14
 	end
 	HBadge = HBadge * sizeMultiplier
-	WBadge = math.floor(HBadge * playerScale)
+	WBadge = mathFloor(HBadge * playerScale)
 
 	if maxPlayers * WBadge + (20 * sizeMultiplier) > widgetWidth then
-		widgetWidth = math.ceil((20 * sizeMultiplier) + maxPlayers * WBadge)
+		widgetWidth = mathCeil((20 * sizeMultiplier) + maxPlayers * WBadge)
 	end
 
 	processScaling()
@@ -515,7 +528,7 @@ local function setReclaimerUnits()
 end
 
 function widget:Initialize()
-	if not (Spring.GetSpectatingState() or isReplay) then
+	if not (spGetSpectatingState() or isReplay) then
 		inSpecMode = false
 	else
 		inSpecMode = true
@@ -630,7 +643,7 @@ local function makeTeamCompositionList()
 			if uiBgTex then
 				gl.DeleteTexture(uiBgTex)
 			end
-			uiBgTex = gl.CreateTexture(math.floor(areaRect[3]-areaRect[1]), math.floor(areaRect[4]-areaRect[2]), {
+			uiBgTex = gl.CreateTexture(mathFloor(areaRect[3]-areaRect[1]), mathFloor(areaRect[4]-areaRect[2]), {
 				target = GL.TEXTURE_2D,
 				format = GL.ALPHA,
 				fbo = true,
@@ -638,7 +651,7 @@ local function makeTeamCompositionList()
 			if uiTex then
 				gl.DeleteTexture(uiTex)
 			end
-			uiTex = gl.CreateTexture(math.floor(areaRect[3]-areaRect[1]), math.floor(areaRect[4]-areaRect[2]), {
+			uiTex = gl.CreateTexture(mathFloor(areaRect[3]-areaRect[1]), mathFloor(areaRect[4]-areaRect[2]), {
 				target = GL.TEXTURE_2D,
 				format = GL.ALPHA,
 				fbo = true,
@@ -696,7 +709,7 @@ local function Reinit()
 	else
 		HBadge = 14 * sizeMultiplier
 	end
-	WBadge = math.floor(HBadge * playerScale)
+	WBadge = mathFloor(HBadge * playerScale)
 
 	if maxPlayers * WBadge + (20 * sizeMultiplier) > widgetWidth then
 		widgetWidth = (20 * sizeMultiplier) + maxPlayers * WBadge
@@ -752,11 +765,11 @@ end
 function widget:TextCommand(command)
 	if string.sub(command,1, 13) == "ecostatstext" then
 		cfgResText = not cfgResText
-		Spring.Echo('ecostats: text: '..(cfgResText and 'enabled' or 'disabled'))
+		spEcho('ecostats: text: '..(cfgResText and 'enabled' or 'disabled'))
 	end
 	if string.sub(command,1, 16) == "ecostatsreclaim" then
 		cfgTrackReclaim = not cfgTrackReclaim
-		Spring.Echo('ecostats: reclaim: '..(cfgTrackReclaim and 'enabled' or 'disabled'))
+		spEcho('ecostats: reclaim: '..(cfgTrackReclaim and 'enabled' or 'disabled'))
 	end
 end
 
@@ -778,16 +791,16 @@ end
 
 local function DrawEBar(tE, tEp, vOffset)
 	-- where tE = team Energy = [0,1]
-	vOffset = math.floor(vOffset - (borderPadding * 0.5))
-	tE = math.max(tE, 0)
-	tEp = math.max(tEp, 0)
+	vOffset = mathFloor(vOffset - (borderPadding * 0.5))
+	tE = mathMax(tE, 0)
+	tEp = mathMax(tEp, 0)
 
-	local dx = math.floor(15 * sizeMultiplier)
-	local dy = math.floor(tH * 0.43)
+	local dx = mathFloor(15 * sizeMultiplier)
+	local dy = mathFloor(tH * 0.43)
 	local maxW = widgetWidth - (30 * sizeMultiplier)
-	local barheight = 1 + math.floor(tH * 0.08)
+	local barheight = 1 + mathFloor(tH * 0.08)
 	if cfgResText then
-		dx = math.floor(11 * sizeMultiplier)
+		dx = mathFloor(11 * sizeMultiplier)
 		maxW = (widgetWidth / 2.15)
 	end
 
@@ -875,17 +888,17 @@ end
 
 local function DrawMBar(tM, tMp, vOffset)
 	-- where tM = team Metal = [0,1]
-	vOffset = math.floor(vOffset - (borderPadding * 0.5))
-	tM = math.max(tM, 0)
-	tMp = math.max(tMp, 0)
+	vOffset = mathFloor(vOffset - (borderPadding * 0.5))
+	tM = mathMax(tM, 0)
+	tMp = mathMax(tMp, 0)
 
-	local dx = math.floor(15 * sizeMultiplier)
-	local dy = math.floor(tH * 0.67)
+	local dx = mathFloor(15 * sizeMultiplier)
+	local dy = mathFloor(tH * 0.67)
 	local maxW = widgetWidth - (30 * sizeMultiplier)
-	local barheight = 1 + math.floor(tH * 0.08)
+	local barheight = 1 + mathFloor(tH * 0.08)
 
 	if cfgResText then
-		dx = math.floor(11 * sizeMultiplier)
+		dx = mathFloor(11 * sizeMultiplier)
 		maxW = (widgetWidth / 2.15)
 	end
 	-- background
@@ -970,8 +983,8 @@ local function DrawMBar(tM, tMp, vOffset)
 end
 
 local function DrawBackground(posY, allyID, teamWidth)
-	local y1 = math.ceil((widgetPosY - posY) + widgetHeight)
-	local y2 = math.ceil((widgetPosY - posY) + tH + widgetHeight)
+	local y1 = mathCeil((widgetPosY - posY) + widgetHeight)
+	local y2 = mathCeil((widgetPosY - posY) + tH + widgetHeight)
 	local area = { widgetPosX, y1, widgetPosX + widgetWidth, y2 }
 
 	uiElementRects[#uiElementRects+1] = { widgetPosX + teamWidth, y1, widgetPosX + widgetWidth, y2, allyID }
@@ -1080,7 +1093,7 @@ function DrawTeamComposition()
 			teamWidth = teamWidth + floor((playerScale-1)*14)
 
 			if type(data.tE) == "number" and drawpos and #(data.teams) > 0 then
-				DrawBackground(posy - (4 * sizeMultiplier), aID, math.floor(teamWidth))
+				DrawBackground(posy - (4 * sizeMultiplier), aID, mathFloor(teamWidth))
 			end
 
 			-- team rectangles
@@ -1220,7 +1233,7 @@ end
 
 function widget:PlayerChanged(playerID)
 	local doReinit = false
-	if myFullview ~= select(2, Spring.GetSpectatingState()) then
+	if myFullview ~= select(2, spGetSpectatingState()) then
 		if myFullview then
 			doReinit = true
 		else
@@ -1228,17 +1241,17 @@ function widget:PlayerChanged(playerID)
 		end
 	end
 	if myFullview and not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
-		if myTeamID ~= Spring.GetMyTeamID() then
+		if myTeamID ~= spGetMyTeamID() then
 			UpdateAllTeams()
 			refreshTeamCompositionList = true
 		end
 	end
-	myFullview = select(2, Spring.GetSpectatingState())
-	myTeamID = Spring.GetMyTeamID()
+	myFullview = select(2, spGetSpectatingState())
+	myTeamID = spGetMyTeamID()
 
 	if myFullview then
 		lastPlayerChange = GetGameFrame()
-		if not (Spring.GetSpectatingState() or isReplay) then
+		if not (spGetSpectatingState() or isReplay) then
 			inSpecMode = false
 			UpdateAllies()
 		else
@@ -1270,7 +1283,7 @@ function widget:TeamDied(teamID)
 
 	removeGuiShaderRects()
 
-	if not (Spring.GetSpectatingState() or isReplay) then
+	if not (spGetSpectatingState() or isReplay) then
 		inSpecMode = false
 		UpdateAllies()
 		UpdateAllTeams()
@@ -1314,7 +1327,7 @@ function widget:MousePress(x, y, button)
 				if ctrlDown and teamData[teamID].hasCom then
 					local com
 					for commanderDefID, _ in ipairs(comDefs) do
-						com = Spring.GetTeamUnitsByDefs(teamID, commanderDefID)[1] or com
+						com = spGetTeamUnitsByDefs(teamID, commanderDefID)[1] or com
 					end
 
 					if com then
@@ -1383,7 +1396,7 @@ function widget:Update(dt)
 		return
 	end
 
-	local gf = Spring.GetGameFrame()
+	local gf = spGetGameFrame()
 	if not gamestarted and gf > 0 then
 		gamestarted = true
 	end

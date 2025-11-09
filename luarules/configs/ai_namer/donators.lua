@@ -69,6 +69,7 @@ local DonatorAINames = {
     "obliterator",
     "OmegaWolf",
     "outerorbit",
+    "panzerjaeger",
     "Poops",
     "Prime_Federator",
     "principal",

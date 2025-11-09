@@ -52,7 +52,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 				Spring.SetUnitRulesParam(unitID, "resurrected", 1, {inlos=true})
 			end
 			if (not isBuilding[unitDefID]) and (not isBuilder[unitDefID]) then
-				createdFrame[unitID] = spGetGameFrame()
+				--createdFrame[unitID] = spGetGameFrame()
 				toBeUnWaited[unitID] = true
 				prevHealth[unitID] = 0
 				spGiveOrderToUnit(unitID, CMD_WAIT, {}, 0)
@@ -78,8 +78,12 @@ function gadget:GameFrame(n)
 		if next(toBeUnWaited) ~= nil then
 			for unitID, check in pairs(toBeUnWaited) do
 				local health = spGetUnitHealth(unitID)
-				if health <= prevHealth[unitID] then -- stopped healing
-					createdFrame[unitID] = nil
+				if not health then
+					--createdFrame[unitID] = nil
+					toBeUnWaited[unitID] = nil
+					prevHealth[unitID] = nil
+				elseif health <= prevHealth[unitID] then -- stopped healing
+					--createdFrame[unitID] = nil
 					toBeUnWaited[unitID] = nil
 					prevHealth[unitID] = nil
 					currentCmd = spGetUnitCurrentCommand(unitID, 1)
@@ -95,7 +99,7 @@ function gadget:GameFrame(n)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID)
-	createdFrame[unitID] = nil
+	--createdFrame[unitID] = nil
 	toBeUnWaited[unitID] = nil
 	prevHealth[unitID] = nil
 end

@@ -63,10 +63,14 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitWeaponTestRange = Spring.GetUnitWeaponTestRange
 	local spGetUnitWeaponHaveFreeLineOfFire = Spring.GetUnitWeaponHaveFreeLineOfFire
 	local spGetGroundHeight = Spring.GetGroundHeight
+	local spGetAllUnits = Spring.GetAllUnits
 
 	local tremove = table.remove
+	local tableInsert = table.insert
 
 	local diag = math.diag
+	local pairsNext = next
+	local tonumber = tonumber
 
 	local CMD_STOP = CMD.STOP
 	local CMD_DGUN = CMD.DGUN
@@ -74,7 +78,8 @@ if gadgetHandler:IsSyncedCode() then
 	local validUnits = {}
 	local unitWeapons = {}
 	local unitAlwaysSeen = {}
-	for unitDefID, unitDef in pairs(UnitDefs) do
+	for unitDefID = 1, #UnitDefs do
+		local unitDef = UnitDefs[unitDefID]
 		if (unitDef.canAttack and unitDef.maxWeaponRange and unitDef.maxWeaponRange > 0) then
 			validUnits[unitDefID] = true
 		end
@@ -150,7 +155,7 @@ if gadgetHandler:IsSyncedCode() then
 		if not weaponList then
 			return
 		end
-		for weaponID in pairs(weaponList) do
+		for weaponID in pairsNext, weaponList do
 			--GetUnitWeaponTryTarget tests both target type validity and target to be reachable for the moment
 			if tonumber(target) and CallAsTeam(teamID, spGetUnitWeaponTryTarget, unitID, weaponID, target) then
 				return weaponID
@@ -372,7 +377,9 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RegisterAllowCommand(CMD_UNIT_CANCEL_TARGET)
 
 		-- load active units
-		for _, unitID in pairs(Spring.GetAllUnits()) do
+		local allUnits = spGetAllUnits()
+		for i = 1, #allUnits do
+			local unitID = allUnits[i]
 			gadget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
 		end
 
@@ -447,7 +454,7 @@ if gadgetHandler:IsSyncedCode() then
 						local optionKeys = {}
 						local optionKeysCount = 0
 						--re-insert back the command options
-						for optionName, optionValue in pairs(cmdOptions) do
+						for optionName, optionValue in pairsNext, cmdOptions do
 							if optionName == 'shift' then
 								-- Always add shift to enforce chained commands, but clear orders at
 								-- the beginning of our order chain when not an append (shift).
@@ -500,7 +507,7 @@ if gadgetHandler:IsSyncedCode() then
 						end -- clip to ground level
 						--only accept valid targets
 						if weaponList then
-							for weaponID in ipairs(weaponList) do
+							for weaponID = 1, #weaponList do
 								validTarget = spGetUnitWeaponTestTarget(unitID, weaponID, target[1], target[2], target[3])
 								if validTarget then
 									break
@@ -528,7 +535,7 @@ if gadgetHandler:IsSyncedCode() then
 							local validTarget = false
 							--only accept valid targets
 							if weaponList then
-								for weaponID in ipairs(weaponList) do
+								for weaponID = 1, #weaponList do
 									--unit test target only tests the validity of the target type, not range or other variable things
 									validTarget = spGetUnitWeaponTestTarget(unitID, weaponID, target)
 									if validTarget then
@@ -664,7 +671,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- sim here
 
 		if n % 5 == 4 then
-			for unitID, unitData in pairs(unitTargets) do
+			for unitID, unitData in pairsNext, unitTargets do
 				local targetIndex
 				for index, targetData in ipairs(unitData.targets) do
 					if not checkTarget(unitID, targetData.target) then
@@ -684,7 +691,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if n % USEEN_UPDATE_FREQUENCY == 0 then
-			for unitID, unitData in pairs(unitTargets) do
+			for unitID, unitData in pairsNext, unitTargets do
 				for index, targetData in ipairs(unitData.targets) do
 					if removeUnseenTarget(targetData, unitData.allyTeam) then
 						removeTarget(unitID, index)
@@ -719,6 +726,12 @@ else	-- UNSYNCED
 	local spGetSpectatingState = Spring.GetSpectatingState
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 	local spGetUnitTeam = Spring.GetUnitTeam
+	local spPlaySoundFile = Spring.PlaySoundFile
+	local spSetActiveCommand = Spring.SetActiveCommand
+	local spAssignMouseCursor = Spring.AssignMouseCursor
+	local spSetCustomCommandDrawData = Spring.SetCustomCommandDrawData
+	local spAddWorldIcon = Spring.AddWorldIcon
+	local pairsNext = next
 
 	local myAllyTeam = spGetMyAllyTeamID()
 	local myTeam = spGetMyTeamID()
@@ -741,11 +754,11 @@ else	-- UNSYNCED
 		gadgetHandler:AddSyncAction("failCommand", handleFailCommand)
 
 		-- register cursor
-		Spring.AssignMouseCursor("settarget", "cursorsettarget", false)
+		spAssignMouseCursor("settarget", "cursorsettarget", false)
 		--show the command in the queue
-		Spring.SetCustomCommandDrawData(CMD_UNIT_SET_TARGET, "settarget", queueColour, true)
-		Spring.SetCustomCommandDrawData(CMD_UNIT_SET_TARGET_NO_GROUND, "settargetrectangle", queueColour, true)
-		Spring.SetCustomCommandDrawData(CMD_UNIT_SET_TARGET_RECTANGLE, "settargetnoground", queueColour, true)
+		spSetCustomCommandDrawData(CMD_UNIT_SET_TARGET, "settarget", queueColour, true)
+		spSetCustomCommandDrawData(CMD_UNIT_SET_TARGET_NO_GROUND, "settargetrectangle", queueColour, true)
+		spSetCustomCommandDrawData(CMD_UNIT_SET_TARGET_RECTANGLE, "settargetnoground", queueColour, true)
 
 	end
 
@@ -774,8 +787,8 @@ else	-- UNSYNCED
 
 	function handleFailCommand(_, teamID)
 		if teamID == myTeam and not mySpec then
-			Spring.PlaySoundFile("FailedCommand", 0.75, "ui")
-			Spring.SetActiveCommand('settargetnoground')
+			spPlaySoundFile("FailedCommand", 0.75, "ui")
+			spSetActiveCommand('settargetnoground')
 		end
 	end
 
@@ -852,7 +865,7 @@ else	-- UNSYNCED
 		glVertex(x, y, z)
 		if not unitIconsDrawn[cacheKey] then
 			-- avoid sending WorldIcons to engine at the same unit/location
-			Spring.AddWorldIcon(CMD_UNIT_SET_TARGET, x, y, z)
+			spAddWorldIcon(CMD_UNIT_SET_TARGET, x, y, z)
 			unitIconsDrawn[cacheKey] = true
 		end
 	end
@@ -889,7 +902,7 @@ else	-- UNSYNCED
 
 	local function drawDecorations()
 		local init = false
-		for unitID, unitData in pairs(targetList) do
+		for unitID, unitData in pairsNext, targetList do
 			if drawTarget[unitID] or drawAllTargets[spGetUnitTeam(unitID)] or spIsUnitSelected(unitID) then
 				if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
 					if not init then
