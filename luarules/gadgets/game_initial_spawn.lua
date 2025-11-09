@@ -283,7 +283,7 @@ if gadgetHandler:IsSyncedCode() then
 			local playerList = Spring.GetPlayerList()
 			local all_players_joined = true
 			for _, PID in pairs(playerList) do
-				local _, _, spectator_flag = spGetPlayerInfo(PID)
+				local _, _, spectator_flag = spGetPlayerInfo(PID, false)
 				if spectator_flag == false then
 					if Spring.GetGameRulesParam("player_" .. PID .. "_joined") == nil then
 						all_players_joined = false
@@ -468,7 +468,7 @@ if gadgetHandler:IsSyncedCode() then
 		local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 		local luaAI = Spring.GetTeamLuaAI(teamID)
 
-		local _, _, _, isAI, sideName, allyTeadID = spGetTeamInfo(teamID)
+		local _, _, _, isAI, sideName, allyTeadID = spGetTeamInfo(teamID, false)
 		if (startUnit or RANDOM_DUMMY) == RANDOM_DUMMY then
 			startUnit = getValidRandom(allyTeadID)
 		end

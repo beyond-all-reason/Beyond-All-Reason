@@ -184,6 +184,7 @@ end
 
 local function cancelChatInput()
 	clearChatInput()
+	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil	--widgetHandler:DisownText()
 	UpdateList(true)
 end
@@ -309,6 +310,7 @@ local function widgetselectorCmd(_, _, params)
 		Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 		Spring.SetConfigInt("widgetselector", 1)
 	else
+		Spring.SDLStopTextInput()
 		widgetHandler.textOwner = nil		--widgetHandler:DisownText()
 	end
 end
@@ -367,6 +369,7 @@ function widget:Initialize()
 			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 			Spring.SetConfigInt("widgetselector", 1)
 		else
+			Spring.SDLStopTextInput()
 			widgetHandler.textOwner = nil		--widgetHandler:DisownText()
 		end
 	end
@@ -523,6 +526,7 @@ function widget:KeyPress(key, mods, isRepeat)
 				Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 				Spring.SetConfigInt("widgetselector", 1)
 			else
+				Spring.SDLStopTextInput()
 				widgetHandler.textOwner = nil		--widgetHandler:DisownText()
 			end
 		end
@@ -937,6 +941,7 @@ function widget:MousePress(x, y, button)
 		return true
 	else
 		show = false
+		Spring.SDLStopTextInput()
 		widgetHandler.textOwner = nil		--widgetHandler:DisownText()
 		return false
 	end
