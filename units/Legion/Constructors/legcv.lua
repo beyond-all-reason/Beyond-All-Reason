@@ -71,7 +71,7 @@ return {
 			"legctl",
 			"legjam",
 			"legjuno",
-			"corsy",
+			"legsy",
 			"leghive",
 		},
 		customparams = {

@@ -1,17 +1,17 @@
 return {
-	legtriariusdrone = {
+	legnavydestro = {
 		maxacc = 0.02757,
 		activatewhenbuilt = true,
 		maxdec = 0.02757,
 		buildangle = 16384,
-		energycost = 8000,
-		metalcost = 760,
-		buildpic = "legtriariusdrone.DDS",
+		energycost = 9000,
+		metalcost = 860,
+		buildpic = "legnavydestro.DDS",
 		buildtime = 11500,
 		canmove = true,
-		collisionvolumeoffsets = "0 -5 1",
-		collisionvolumescales = "34 34 82",
-		collisionvolumetype = "CylZ",
+		collisionvolumeoffsets = "0 -5 -4",
+		collisionvolumescales = "33 40 80",
+		collisionvolumetype = "ellipsoid",
 		corpse = "DEAD",
 		explodeas = "mediumexplosiongeneric",
 		floater = true,
@@ -25,8 +25,8 @@ return {
 		movementclass = "BOAT4",
 		movestate = 0,
 		nochasecategory = "VTOL",
-		objectname = "Units/legtriariusdrone.s3o",
-		script = "Units/legtriariusdrone.cob",
+		objectname = "Units/legnavydestro.s3o",
+		script = "Units/legnavydestro.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 500,
@@ -36,18 +36,21 @@ return {
 		turnrate = 280,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weaponsub',
+			unitgroup = 'weapon',
 			customrange = 700,
-			model_author = "Mr Bob",
-			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "CorShips",
+			model_author = "Phill-Art (Concept Art), ZephyrSkies (Model)",
+			normaltex = "unittextures/leg_normal.dds",
+			subfolder = "Legion/Ships",
+			inheritxpratemultiplier = 1,
+			childreninheritxp = "DRONE",
+			parentsinheritxp = "DRONE",
 		},
 		featuredefs = {
 			dead = {
 				blocking = false,
 				category = "corpses",
-				collisionvolumeoffsets = "0.0580749511719 -0.062504465332 -0.201034545898",
-				collisionvolumescales = "33.2652587891 20.5109710693 79.4415893555",
+				collisionvolumeoffsets = "0 0 0",
+				collisionvolumescales = "33 25 88",
 				collisionvolumetype = "Box",
 				damage = 3360,
 				featuredead = "HEAP",
@@ -55,7 +58,7 @@ return {
 				footprintz = 5,
 				height = 4,
 				metal = 480,
-				object = "Units/corroy_dead.s3o",
+				object = "Units/legnavydestro_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
@@ -105,11 +108,9 @@ return {
 			},
 		},
 		weapondefs = {
-			heatroy = {
+			leg_medium_heatray = {
 				areaofeffect = 72,
 				avoidfeature = false,
-				beamtime = 0.033,
-				beamttl = 0.033,
 				camerashake = 0.1,
 				corethickness = 0.3,
 				craterareaofeffect = 72,
@@ -119,20 +120,22 @@ return {
 				beamttl = 0.8,
 				edgeeffectiveness = 0.15,
 				energypershot = 17,
-				explosiongenerator = "custom:heatray-huge",
+				explosiongenerator = "custom:heatray-large",
 				firestarter = 90,
-				firetolerance = 300,
+				firetolerance = 5000,
+				tolerance = 5000,
 				impulsefactor = 0,
 				intensity = 5,
 				laserflaresize = 6,
-				name = "Roybeam",
+				leadlimit = 0,
+				name = "Medium Sweepfire Heatray",
 				noselfdamage = true,
 				predictboost = 1,
-				proximitypriority = -1,
+				proximitypriority = 0,
 				range = 700,
-				reloadtime = 2.2,
-				rgbcolor = "1 0.8 0",
-				rgbcolor2 = "0.8 0 1",
+				reloadtime = 2.4,
+				rgbcolor = "1 0.5 0",
+				rgbcolor2 = "0.8 1.0 0.3",
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "heatray3",
@@ -143,15 +146,15 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1200,
 				damage = {
-					commanders = 205,
 					default = 410,
 					vtol = 110,
 				},
+				customparams = {
+					exclude_preaim = true,
+				},
 			},
 
-
-
-			rangefinder = {
+			drone_control_matrix = {
 				areaofeffect = 4,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -162,14 +165,18 @@ return {
 				gravityaffected = "true",
 				hightrajectory = 1,
 				impulsefactor = 0.123,
-				name = "Rangefinder",
+				name = "Dual Ballistics Drone Control Matrix",
 				noselfdamage = true,
+				metalpershot = 15,
+				energypershot = 500,
 				range = 1000,
 				reloadtime = 2.5,
 				size = 0,
 				soundhit = "",
 				soundhitwet = "",
 				soundstart = "",
+				stockpile = true,
+				stockpiletime = 20,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 360,
@@ -180,7 +187,7 @@ return {
 					carried_unit = "legdrone",     --Name of the unit spawned by this carrier unit.
 					engagementrange = 1000,
 					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 8, 				--Spawnrate roughly in seconds.
+					spawnrate = 20, 				--Spawnrate roughly in seconds.
 					maxunits = 2,				--Will spawn units until this amount has been reached.
 					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
@@ -192,8 +199,14 @@ return {
 					docktohealthreshold = 66,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
-					dockingpieces = "10 11",
+					dockingpieces = "7 9",
 					dockingradius = 80,			--The range at which the units snap to the carrier unit when docking.
+					stockpilelimit = 2,
+					stockpilemetal = 15,
+					stockpileenergy = 500,
+					dronesusestockpile = true,
+					-- cobdockparam = 1,
+					-- cobundockparam = 1,
 				}
 			},
 
@@ -202,14 +215,15 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "heatroy",
+				def = "leg_medium_heatray",
 				onlytargetcategory = "SURFACE",
-				fastautoretargeting = false,
+				fastautoretargeting = true,
+				burstControlWhenOutOfArc = 2,
 			},
 		
 			[2] = {
 				badtargetcategory = "VTOL",
-				def = "rangefinder",
+				def = "drone_control_matrix",
 				onlytargetcategory = "SURFACE",
 			},
 

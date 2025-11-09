@@ -364,6 +364,7 @@ local function refreshUnitInfo()
 					unitDef.name == 'armguard'     or -- ignore high-trajectory modes
 					unitDef.name == 'corpun'       or
 					unitDef.name == 'legcluster'   or
+					unitDef.name == 'legnavyfrigate'   or
 					unitDef.name == 'armamb'       or
 					unitDef.name == 'cortoast'     or
 					unitDef.name == 'armvang'
