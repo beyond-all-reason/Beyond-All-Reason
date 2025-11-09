@@ -50,8 +50,8 @@ local TRAVERSABILITY_GRID_GENERATION_RANGE = 576 --must match the value in game_
 local TRAVERSABILITY_GRID_RESOLUTION = 32
 local GRID_CHECK_RESOLUTION_MULTIPLIER = 1
 
-local traversabilityGrid = VFS.Include("luarules/Utilities/traversability_grid.lua")
-local aestheticCustomCostRound = VFS.Include("LuaRules/Utilities/aestheticCustomCostRound.lua")
+local traversabilityGrid = VFS.Include("common/traversability_grid.lua")
+local aestheticCustomCostRound = VFS.Include("common/aestheticCustomCostRound.lua")
 local customRound = aestheticCustomCostRound.customRound
 local lastCommanderX = nil
 local lastCommanderZ = nil

@@ -43,7 +43,7 @@ local quickStartAmountConfig = {
 
 local BUILD_TIME_VALUE_CONVERSION_MULTIPLIER = 1/300 --300 being a representative of commander workertime, statically defined so future com unitdef adjustments don't change this.
 local ENERGY_VALUE_CONVERSION_MULTIPLIER = 1/60 --60 being the energy conversion rate of t2 energy converters, statically defined so future changes not to affect this.
-local aestheticCustomCostRound = VFS.Include('LuaRules/Utilities/aestheticCustomCostRound.lua')
+local aestheticCustomCostRound = VFS.Include('common/aestheticCustomCostRound.lua')
 local customRound = aestheticCustomCostRound.customRound
 
 -------------------------------------------------------------------------
@@ -100,7 +100,7 @@ local sin = math.sin
 local cos = math.cos
 
 local config = VFS.Include('LuaRules/Configs/quick_start_build_defs.lua')
-local traversabilityGrid = VFS.Include('LuaRules/Utilities/traversability_grid.lua')
+local traversabilityGrid = VFS.Include('common/traversability_grid.lua')
 local commanderNonLabOptions = config.commanderNonLabOptions
 local discountableFactories = config.discountableFactories
 local optionsToNodeType = config.optionsToNodeType
