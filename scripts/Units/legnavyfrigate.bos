@@ -1,6 +1,6 @@
 #include "../recoil_common_includes.h"
 
-piece base, turret, gun, lFlap, rFlap, flare, fan, fan1, wake;
+piece base, turret, gun, lFlap, lFlap1, rFlap, rFlap1, tFlap, flare, fan, fan1, wake;
 
 static-var  gun_1, restore_delay, fired, last_primary_heading, last_secondary_heading;
 
@@ -35,6 +35,10 @@ Create()
 	SLEEP_UNTIL_UNITFINISHED;
 	turn fan1 to x-axis <50.2> now;
 	turn fan1 to z-axis <16> now;
+	turn rFlap1 to z-axis <-30> now;
+	turn lFlap1 to z-axis <30> now;
+	turn rFlap to z-axis <30> now;
+	turn lFlap to z-axis <-30> now;
 	spin fan around y-axis speed <300> accelerate <30>;
 	start-script BoatPhysics();
 	return (0);
@@ -127,9 +131,11 @@ FirePrimary()
 
 	turn lFlap to y-axis <44> speed <440>;
 	turn rFlap to y-axis <-44> speed <440>;
+	turn tFlap to x-axis <-29> speed <290>;
 	wait-for-turn lFlap around y-axis;
-	turn lFlap to y-axis <0> speed <36>;
-	turn rFlap to y-axis <0> speed <36>;
+	turn lFlap to y-axis <0> speed <12>;
+	turn rFlap to y-axis <0> speed <12>;
+	turn tFlap to x-axis <0> speed <8>;
 }
 
 AimFromPrimary(piecenum)
@@ -170,9 +176,11 @@ FireSecondary()
 	start-script ResetFire();
 	turn lFlap to y-axis <44> speed <440>;
 	turn rFlap to y-axis <-44> speed <440>;
+	turn tFlap to x-axis <-29> speed <290>;
 	wait-for-turn lFlap around y-axis;
-	turn lFlap to y-axis <0> speed <36>;
-	turn rFlap to y-axis <0> speed <36>;
+	turn lFlap to y-axis <0> speed <12>;
+	turn rFlap to y-axis <0> speed <12>;
+	turn tFlap to x-axis <0> speed <8>;
 }
 
 AimFromSecondary(piecenum)
