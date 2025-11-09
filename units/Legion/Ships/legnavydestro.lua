@@ -41,6 +41,9 @@ return {
 			model_author = "Phill-Art (Concept Art), ZephyrSkies (Model)",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Ships",
+			inheritxpratemultiplier = 1,
+			childreninheritxp = "DRONE",
+			parentsinheritxp = "DRONE",
 		},
 		featuredefs = {
 			dead = {
@@ -105,7 +108,7 @@ return {
 			},
 		},
 		weapondefs = {
-			heatroy = {
+			leg_medium_heatray = {
 				areaofeffect = 72,
 				avoidfeature = false,
 				camerashake = 0.1,
@@ -151,7 +154,7 @@ return {
 				},
 			},
 
-			rangefinder = {
+			drone_control_matrix = {
 				areaofeffect = 4,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -162,7 +165,7 @@ return {
 				gravityaffected = "true",
 				hightrajectory = 1,
 				impulsefactor = 0.123,
-				name = "Dual Ballistic Drone Control Matrix",
+				name = "Dual Ballistics Drone Control Matrix",
 				noselfdamage = true,
 				metalpershot = 15,
 				energypershot = 500,
@@ -190,7 +193,7 @@ return {
 					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1100,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 4,
-					carrierdeaththroe = "death",
+					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
 					dockinghealrate = 16,
 					docktohealthreshold = 66,
@@ -202,6 +205,8 @@ return {
 					stockpilemetal = 15,
 					stockpileenergy = 500,
 					dronesusestockpile = true,
+					cobdockparam = 1,
+					cobundockparam = 1,
 				}
 			},
 
@@ -210,7 +215,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "heatroy",
+				def = "leg_medium_heatray",
 				onlytargetcategory = "SURFACE",
 				fastautoretargeting = true,
 				burstControlWhenOutOfArc = 2,
@@ -218,7 +223,7 @@ return {
 		
 			[2] = {
 				badtargetcategory = "VTOL",
-				def = "rangefinder",
+				def = "drone_control_matrix",
 				onlytargetcategory = "SURFACE",
 			},
 
