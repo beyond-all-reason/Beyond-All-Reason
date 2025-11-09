@@ -160,6 +160,21 @@
 //####|| LEGION FACTORY SEA ||###########################################################################################
 //#######################################################################################################################
 
+	"legsy": {
+		"importance": [1.0, 0.0],
+		"require_energy": false,
+		"income_tier": [20],
+		"unit":      ["legnavyconship", "legnavyrezsub", 	"legnavyaaship", 	"legnavyscout", "legnavyfrigate", 	"legnavydestro", 	"legnavyartyship", 	"legnavysub"],
+		"land": {
+			"tier0": [ 0.09,    		0.01,      			0.26,    			0.23,        	0.14,       		0.18,     			0.09,     			0.09],
+			"tier1": [ 0.09,    		0.01,      			0.26,    			0.23,        	0.14,       		0.18,     			0.09,     			0.09]
+		},
+		"air": {
+			"tier0": [ 0.09,    		0.01,      			0.26,    			0.23,        	0.14,       		0.18,     			0.09,     			0.09],
+			"tier1": [ 0.09,    		0.01,      			0.26,    			0.23,        	0.14,       		0.18,     			0.09,     			0.09]
+		},
+		"caretaker": 6
+	},
 	"leghp": {
 		"importance": [0.0, 0.0],
 		"require_energy": false,	
