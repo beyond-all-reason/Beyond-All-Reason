@@ -15,6 +15,7 @@ local DonatorAINames = {
     "[SMRT]RobotRobert03",
     "aeon",
     "Aknaroth",
+    "Aldreagon", --$40
     "Anteep", --$40
     "badosu",
     "Barscrewl",
