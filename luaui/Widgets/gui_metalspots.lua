@@ -11,6 +11,20 @@ function widget:GetInfo()
 		enabled = true,
 	}
 end
+
+-- Localized functions for performance
+local mathCeil = math.ceil
+local mathMax = math.max
+local mathMin = math.min
+local mathSin = math.sin
+local mathCos = math.cos
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMyTeamID = Spring.GetMyTeamID
+local spEcho = Spring.Echo
+local spGetSpectatingState = Spring.GetSpectatingState
+
 --2023.05.21 TODO list
 -- Add occupied circle to center
 -- Add text billboard vertices at end (exploit vertex index)
@@ -66,19 +80,19 @@ local mySpots = {} -- {spotKey  = {x = spot.x, y= spGetGroundHeight(spot.x, spot
 local valueList = {}
 local previousOsClock = os.clock()
 local checkspots = true
-local sceduledCheckedSpotsFrame = Spring.GetGameFrame()
+local sceduledCheckedSpotsFrame = spGetGameFrame()
 
-local isSpec, fullview = Spring.GetSpectatingState()
+local isSpec, fullview = spGetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
-local incomeMultiplier = select(7, Spring.GetTeamInfo(Spring.GetMyTeamID(), false))
+local incomeMultiplier = select(7, Spring.GetTeamInfo(spGetMyTeamID(), false))
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = math.min(1.5, (0.5 + (vsx*vsy / 5700000)))
+local fontfileScale = mathMin(1.5, (0.5 + (vsx*vsy / 5700000)))
 local fontfileSize = 80
 local fontfileOutlineSize = 26
 local fontfileOutlineStrength = 1.6
---Spring.Echo("Loading Font",fontfile,fontfileSize*fontfileScale,fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+--spEcho("Loading Font",fontfile,fontfileSize*fontfileScale,fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local chobbyInterface
@@ -127,7 +141,7 @@ local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 local valueToUVs = {} -- key value string to uvCoords object from atlas in xXyYwh array
 
 local function goodbye(reason)
-	Spring.Echo("Metalspots GL4 widget exiting with reason: "..reason)
+	spEcho("Metalspots GL4 widget exiting with reason: "..reason)
 	widgetHandler:RemoveWidget()
 end
 
@@ -157,24 +171,24 @@ local function makeSpotVBO()
 				a3 = ((i+circleInnerOffset+detailPartWidth - (width / detail)) * radstep)
 				a4 = ((i+circleInnerOffset+detailPartWidth) * radstep)
 
-				arrayAppend(VBOData, {math.sin(a3)*innersize, math.cos(a3)*innersize, dir, 0})
+				arrayAppend(VBOData, {mathSin(a3)*innersize, mathCos(a3)*innersize, dir, 0})
 
 				if dir == -1 then
-					arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, 0})
-					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, 0})
+					arrayAppend(VBOData, {mathSin(a4)*innersize, mathCos(a4)*innersize, dir, 0})
+					arrayAppend(VBOData, {mathSin(a1)*outersize, mathCos(a1)*outersize, dir, 0})
 				else
-					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, 0})
-					arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, 0})
+					arrayAppend(VBOData, {mathSin(a1)*outersize, mathCos(a1)*outersize, dir, 0})
+					arrayAppend(VBOData, {mathSin(a4)*innersize, mathCos(a4)*innersize, dir, 0})
 				end
 
 				if dir == 1 then
-					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, 0})
-					arrayAppend(VBOData, {math.sin(a2)*outersize, math.cos(a2)*outersize, dir, 0})
+					arrayAppend(VBOData, {mathSin(a1)*outersize, mathCos(a1)*outersize, dir, 0})
+					arrayAppend(VBOData, {mathSin(a2)*outersize, mathCos(a2)*outersize, dir, 0})
 				else
-					arrayAppend(VBOData, {math.sin(a2)*outersize, math.cos(a2)*outersize, dir, 0})
-					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, 0})
+					arrayAppend(VBOData, {mathSin(a2)*outersize, mathCos(a2)*outersize, dir, 0})
+					arrayAppend(VBOData, {mathSin(a1)*outersize, mathCos(a1)*outersize, dir, 0})
 				end
-				arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, 0})
+				arrayAppend(VBOData, {mathSin(a4)*innersize, mathCos(a4)*innersize, dir, 0})
 			end
 		end
 	end
@@ -253,11 +267,11 @@ local function checkMetalspots()
 		if changed then
 			local oldinstance = getElementInstanceData(spotInstanceVBO, spot.instanceID)
 			oldinstance[5] = (occupied and 0) or 1
-			oldinstance[6] = Spring.GetGameFrame()
+			oldinstance[6] = spGetGameFrame()
 			pushElementInstance(spotInstanceVBO, oldinstance, spot.instanceID, true)
 		end
 	end
-	sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 151
+	sceduledCheckedSpotsFrame = spGetGameFrame() + 151
 	checkspots = false
 end
 
@@ -266,7 +280,7 @@ local function valueToText(value)
 end
 
 local function CalcSpotScale(spot)
-	return 0.77 + ((math.max(spot.maxX,spot.minX)-(math.min(spot.maxX,spot.minX))) * (math.max(spot.maxZ,spot.minZ)-(math.min(spot.maxZ,spot.minZ)))) / 10000
+	return 0.77 + ((mathMax(spot.maxX,spot.minX)-(mathMin(spot.maxX,spot.minX))) * (mathMax(spot.maxZ,spot.minZ)-(mathMin(spot.maxZ,spot.minZ)))) / 10000
 end
 
 
@@ -277,7 +291,7 @@ local function InitializeAtlas(mSpots)
 		if multipliers[incomeMultiplier] == nil then
 			multipliers[incomeMultiplier] = teamID
 		end
-		--Spring.Echo("incomeMultiplier", teamID, incomeMultiplier)
+		--spEcho("incomeMultiplier", teamID, incomeMultiplier)
 		teamIncomeMultipliers[teamID] = incomeMultiplier
 	end
 	local uniquevalues = {}
@@ -302,11 +316,11 @@ local function InitializeAtlas(mSpots)
 
 	-- Whats the size of one of these? I would say width 128, height 64
 	local textheight = 96
-	textheight = math.ceil(fontfileSize*fontfileScale +  fontfileOutlineSize*fontfileScale * 0.5)
-	--Spring.Echo(textheight)
+	textheight = mathCeil(fontfileSize*fontfileScale +  fontfileOutlineSize*fontfileScale * 0.5)
+	--spEcho(textheight)
 	local textwidth  = 2 * textheight
 	-- attempt to make a square-ish, power of two-ish atlas:
-	local cellcount = math.max(1, math.ceil(math.sqrt(numvalues)))
+	local cellcount = mathMax(1, mathCeil(math.sqrt(numvalues)))
 	MetalSpotTextAtlas = MakeAtlasOnDemand({sizex = textwidth * cellcount, sizey =  textheight*cellcount, xresolution = textwidth, yresolution = textheight, name = "MetalSpotAtlas", defaultfont = {font = font, options = 'o'}})
 	AtlasTextureID = MetalSpotTextAtlas.textureID
 
@@ -388,7 +402,7 @@ function widget:Initialize()
 		return
 	end
 	if not WG['resource_spot_finder'].metalSpotsList then
-		Spring.Echo("<metalspots> This widget requires the 'Metalspot Finder' widget to run.")
+		spEcho("<metalspots> This widget requires the 'Metalspot Finder' widget to run.")
 		widgetHandler:RemoveWidget()
 	end
 	if WG['resource_spot_finder'].isMetalMap then
@@ -457,10 +471,10 @@ end
 function widget:PlayerChanged(playerID)
 	local prevFullview = fullview
 	local prevMyAllyTeamID = myAllyTeamID
-	isSpec, fullview = Spring.GetSpectatingState()
+	isSpec, fullview = spGetSpectatingState()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	local oldIncomeMultiplier = incomeMultiplier
-	incomeMultiplier = select(7, Spring.GetTeamInfo(Spring.GetMyTeamID(), false))
+	incomeMultiplier = select(7, Spring.GetTeamInfo(spGetMyTeamID(), false))
 	if incomeMultiplier ~= oldIncomeMultiplier then
 		UpdateSpotValues()
 	end
@@ -477,7 +491,7 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID) -- THIS IS RETARDED TOO
 	if extractorDefs[unitDefID] then
-		sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 3	-- delay needed, i don't know why
+		sceduledCheckedSpotsFrame = spGetGameFrame() + 3	-- delay needed, i don't know why
 	end
 end
 
@@ -504,7 +518,7 @@ function widget:DrawWorldPreUnit()
 	drawInstanceVBO(spotInstanceVBO)
 	spotShader:Deactivate()
 
-	if needsInit and Spring.GetGameFrame() == 0 then
+	if needsInit and spGetGameFrame() == 0 then
 		checkMetalspots()
 		needsInit = false
 	end

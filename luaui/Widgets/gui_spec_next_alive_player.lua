@@ -12,6 +12,12 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local processTeamDiedFrame, processTeamDiedTeamID
 
 local function switchToTeam(teamID)
@@ -26,7 +32,7 @@ end
 
 local function processTeamDied(teamID)
 	local _, _, isDead = Spring.GetTeamInfo(teamID, false)
-	if isDead and Spring.GetMyTeamID() == teamID then
+	if isDead and spGetMyTeamID() == teamID then
 		local myAllyTeamID = Spring.GetMyAllyTeamID()
 		-- first try alive team mates
 		local teamList = Spring.GetTeamList(myAllyTeamID)
@@ -49,18 +55,18 @@ local function processTeamDied(teamID)
 end
 
 function widget:TeamDied(teamID)
-	local spec = Spring.GetSpectatingState()
-	if spec and Spring.GetMyTeamID() == teamID then
-		processTeamDiedFrame = Spring.GetGameFrame() + 1
+	local spec = spGetSpectatingState()
+	if spec and spGetMyTeamID() == teamID then
+		processTeamDiedFrame = spGetGameFrame() + 1
 		processTeamDiedTeamID = teamID
 	end
 end
 
 function widget:PlayerChanged(playerID)
-	local spec = Spring.GetSpectatingState()
+	local spec = spGetSpectatingState()
 	local _, _, _, teamID = Spring.GetPlayerInfo(playerID, false)	-- player can be spec here and team not be dead still
-	if spec and teamID and Spring.GetMyTeamID() == teamID then
-		processTeamDiedFrame = Spring.GetGameFrame() + 1
+	if spec and teamID and spGetMyTeamID() == teamID then
+		processTeamDiedFrame = spGetGameFrame() + 1
 		processTeamDiedTeamID = teamID
 	end
 end

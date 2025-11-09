@@ -40,7 +40,7 @@ return {
 		movementclass = "COMMANDERBOT",
 		movestate = 0,
 		nochasecategory = "ALL",
-		objectname = "Units/CORCOM"..(Spring.GetModOptions().xmas and '-XMAS' or '')..".s3o",
+		objectname = "Units/CORCOM.s3o",
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,

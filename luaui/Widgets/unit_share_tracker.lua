@@ -14,6 +14,11 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
@@ -53,7 +58,7 @@ local font
 local GetPlayerInfo = Spring.GetPlayerInfo
 local GetTeamColor = Spring.GetTeamColor
 local WorldToScreenCoords = Spring.WorldToScreenCoords
-local GetUnitPosition = Spring.GetUnitPosition
+local GetUnitPosition = spGetUnitPosition
 local GetMyTeamID = Spring.GetMyTeamID
 local glColor = gl.Color
 local glRect = gl.Rect
@@ -71,7 +76,7 @@ local GL_FILL = GL.FILL
 -- vars
 ----------------------------------------------------------------
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 local mapPoints = {}
 local timeNow, timePart
 local on = false
@@ -128,7 +133,7 @@ function widget:DrawScreen()
 		if expired then
 			mapPoints[unitID] = nil
 		else
-			defs.x, defs.y, defs.z = Spring.GetUnitPosition(unitID)
+			defs.x, defs.y, defs.z = spGetUnitPosition(unitID)
 			if defs.x then
 				local sx, sy, sz = WorldToScreenCoords(defs.x, defs.y, defs.z)
 				if sx >= 0 and sy >= 0 and sx <= vsx and sy <= vsy then
@@ -222,7 +227,7 @@ function widget:DrawScreen()
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 
 	font = WG['fonts'].getFont(1, 1.5)
 

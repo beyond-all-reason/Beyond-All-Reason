@@ -7,13 +7,25 @@ function widget:GetInfo()
 		author = "Floris, Tom Fyuri",
 		date = "2024",
 		license = "GNU GPL, v2 or later",
-		layer = -3,
+		layer = -999999,
 		enabled = true
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+local mathRandom = math.random
+local tableInsert = table.insert
+
+-- Localized Spring API for performance
+local spGetGroundHeight = Spring.GetGroundHeight
+local spEcho = Spring.Echo
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 local fontfileScale = (0.5 + (vsx * vsy / 6200000))
 local fontfileSize = 50
 local fontfileOutlineSize = 10
@@ -47,14 +59,14 @@ local auto_ready = not Spring.Utilities.Gametype.IsSinglePlayer()
 
 local buttonPosX = 0.8
 local buttonPosY = 0.76
-local buttonX = math.floor(vsx * buttonPosX)
-local buttonY = math.floor(vsy * buttonPosY)
+local buttonX = mathFloor(vsx * buttonPosX)
+local buttonY = mathFloor(vsy * buttonPosY)
 
 local orgbuttonH = 40
 local orgbuttonW = 115
 
-local buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
-local buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
+local buttonW = mathFloor(orgbuttonW * uiScale / 2) * 2
+local buttonH = mathFloor(orgbuttonH * uiScale / 2) * 2
 
 local buttonList, buttonHoverList
 local buttonText = ''
@@ -62,6 +74,49 @@ local lockText = ''
 local locked = false
 local showLockButton = true
 local buttonDrawn = false
+local isReadyBlocked = false
+local readyBlockedConditions = {}
+local cachedTooltipText = ""
+
+-- Button state tracking for display list optimization
+local lastButtonText = ''
+local lastButtonColor = {0, 0, 0}
+local lastButtonW = 0
+local lastButtonH = 0
+local lastShowLockButton = true
+local lastBlinkButton = false
+local lastCantPlaceNow = false
+local buttonStateChanged = true  -- Force initial creation
+
+local function hasActiveConditions()
+	for k, v in pairs(readyBlockedConditions) do
+		return true
+	end
+	return false
+end
+
+local function updateTooltip()
+	local oldReadyBlocked = isReadyBlocked
+	isReadyBlocked = hasActiveConditions()
+	if isReadyBlocked then
+		cachedTooltipText = ""
+		for conditionKey, description in pairs(readyBlockedConditions) do
+			if description ~= nil then
+				if cachedTooltipText ~= "" then
+					cachedTooltipText = cachedTooltipText .. "\n"
+				end
+				cachedTooltipText = cachedTooltipText .. Spring.I18N(description)
+			end
+		end
+	else
+		cachedTooltipText = ""
+	end
+	
+	-- If ready blocked state changed, invalidate button (function defined later)
+	if oldReadyBlocked ~= isReadyBlocked then
+		buttonStateChanged = true
+	end
+end
 
 local RectRound, UiElement, UiButton, elementPadding, uiPadding
 
@@ -216,16 +271,21 @@ local function DrawRank(rank, posX, posY)
     end
 end
 
-local function DrawSkill(skill, posX, posY)
+local function DrawSkill(skill, uncertainty, posX, posY)
     local fontsize = 14 * (playerScale + ((1-playerScale)*0.25))
     font:Begin()
-    font:Print(skill, posX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
+	if uncertainty > 6.65 then
+		font:Print("??", posX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
+	else
+		font:Print(skill, posX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "o")
+	end
+
     font:End()
 end
 
 local function round(num, idp)
     local mult = 10 ^ (idp or 0)
-    return math.floor(num * mult + 0.5) / mult
+    return mathFloor(num * mult + 0.5) / mult
 end
 
 -- advplayerlist end
@@ -292,7 +352,7 @@ local function draftModeInited() -- We want to ensure the player's UI is loaded 
 	if draftModeLoaded then return end
 
 	local mode = draftMode:gsub("^%l", string.upper) -- Random/Captain/Skill/Fair
-	Spring.Echo(Spring.I18N('ui.draftOrderMod.mode' .. mode)..".")
+	spEcho(Spring.I18N('ui.draftOrderMod.mode' .. mode)..".")
 	draftModeLoaded = true
 	if mode == "Fair" then
 		fairTimeout = os.clock() + 2
@@ -340,7 +400,7 @@ local function buttonTextRefresh()
 				showLockButton = true
 				local text = Spring.I18N('ui.draftOrderMod.waitingForPlayers')
 				if (voteConTimeout) then
-					vcttimer = math.floor(voteConTimeout-os.clock())+1
+					vcttimer = mathFloor(voteConTimeout-os.clock())+1
 					if (vcttimer > 0) then
 						text = text .. " " .. vcttimer .. "s"
 					end
@@ -376,7 +436,7 @@ local function getHumanCountWithinAllyTeam(allyTeamID)
 	local myTeamList = Spring.GetTeamList(allyTeamID)
 	local count = 0
 	for _, teamID in ipairs(myTeamList) do
-		local _, _, _, isAiTeam = Spring.GetTeamInfo(teamID)
+		local _, _, _, isAiTeam = Spring.GetTeamInfo(teamID, false)
 		if not isAiTeam then
 			count = count + 1
 		end
@@ -398,7 +458,7 @@ local function DrawTeamPlacement()
 	-- Center Screen Stuff
 	local tmsg = ""
 	if currentTurnTimeout then
-		tmsg = math.floor(currentTurnTimeout-os.clock())+1
+		tmsg = mathFloor(currentTurnTimeout-os.clock())+1
 		if (tmsg <= 0) then tmsg = " ?" else -- this implies that player has "connection problems" in which we will force skip that player's turn in a few seconds anyway
 			tmsg = tmsg .. "s"
 		end
@@ -451,13 +511,13 @@ local function DrawTeamPlacement()
 	local padding_left = 12
 	local player_name_font_size = 16
 
-	max_width = math.max((max_width * player_name_font_size * uiScale) + padding_left + player_column_offset + padding_left, button_width)
+	max_width = mathMax((max_width * player_name_font_size * uiScale) + padding_left + player_column_offset + padding_left, button_width)
 
 	-- we can modify "lock position" button pos here
 	buttonPosX = 0.78
 	buttonPosY = 0.83
-	buttonX = math.floor(vsx * buttonPosX) + max_width/2
-	buttonY = math.floor(vsy * buttonPosY) - max_height - 4 - buttonH
+	buttonX = mathFloor(vsx * buttonPosX) + max_width/2
+	buttonY = mathFloor(vsy * buttonPosY) - max_height - 4 - buttonH
 	--
 
 	font:SetOutlineColor(0, 0, 0, 0.5)
@@ -479,13 +539,14 @@ local function DrawTeamPlacement()
 		--
 		local playerName = findPlayerName(playerID)
 		local _, active, _, playerTeamID, _, ping, _, _, rank, _, customtable = Spring.GetPlayerInfo(playerID, true)
-		local playerRank, playerSkill = 0, 0
+		local playerRank, playerSkill, playerSigma = 0, 0, 8.33
 		if type(customtable) == 'table' then
 			local tsMu = customtable.skill
 			local tsSigma = customtable.skilluncertainty
 			local ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
 			if (ts ~= nil) then playerSkill = round(ts, 0) end
 			if (rank ~= nil) then playerRank = rank end
+			if tsSigma then playerSigma = tonumber(tsSigma) end
 		end
 		-- | indicator/timer/hourglass | rankicon | skill/zero | [playercolor] playername |
 		local x_offset = padding_left
@@ -507,7 +568,7 @@ local function DrawTeamPlacement()
 			x_offset = padding_left + rank_column_offset
 			DrawRank(playerRank, x + x_offset, y_shift - 3)
 			x_offset = padding_left + skill_column_offset
-			DrawSkill(playerSkill, x + x_offset, y_shift - 4)
+			DrawSkill(playerSkill, playerSigma, x + x_offset, y_shift - 4)
 		end
 		x_offset = padding_left + player_column_offset
 		font:Print(colorMod .. playerName, x + x_offset, y_shift + 3, player_name_font_size * uiScale, "lo")
@@ -518,18 +579,57 @@ local function DrawTeamPlacement()
 end
 -- DraftOrder mod end
 
+-- Helper function to check if button state has changed
+local function checkButtonStateChanged(color, cantPlaceNow, blinkButton, currentButtonW, currentButtonH)
+	return buttonStateChanged or 
+		   lastButtonText ~= buttonText or
+		   lastShowLockButton ~= showLockButton or
+		   lastButtonColor[1] ~= color[1] or lastButtonColor[2] ~= color[2] or lastButtonColor[3] ~= color[3] or
+		   lastButtonW ~= currentButtonW or
+		   lastButtonH ~= currentButtonH or
+		   lastBlinkButton ~= blinkButton or
+		   lastCantPlaceNow ~= cantPlaceNow
+end
+
+-- Helper function to update button state tracking
+local function updateButtonStateTracking(color, cantPlaceNow, blinkButton, currentButtonW, currentButtonH)
+	lastButtonText = buttonText
+	lastShowLockButton = showLockButton
+	lastButtonColor[1] = color[1]
+	lastButtonColor[2] = color[2]  
+	lastButtonColor[3] = color[3]
+	lastButtonW = currentButtonW
+	lastButtonH = currentButtonH
+	lastBlinkButton = blinkButton
+	lastCantPlaceNow = cantPlaceNow
+	buttonStateChanged = false
+end
+
+-- Helper function to force button state refresh (call when game state changes)
+local function invalidateButtonState()
+	buttonStateChanged = true
+end
+
 local function drawButton()
+	-- Only refresh button text if needed (this may change button state)
 	buttonTextRefresh()
+	
 	local cantPlaceNow = not canPlayerPlaceNow(myPlayerID)
 	if draftMode ~= nil and draftMode ~= "disabled" and buttonText == "" and not mySpec and showLockButton then
 		showLockButton = false
 	end
+	
+	-- Calculate button color
 	local color = { 0.15, 0.15, 0.15 }
 	if not mySpec then
 		if cantPlaceNow then
 			color = waitButtonColor
 		elseif not locked then
-			color = readyButtonColor
+			if isReadyBlocked then
+				color = { 0.3, 0.3, 0.3 }
+			else
+				color = readyButtonColor
+			end
 		else
 			color = unreadyButtonColor
 		end
@@ -537,42 +637,14 @@ local function drawButton()
 		color = offeredAsSub and unsubButtonColor or subButtonColor
 	end
 
-	-- because text can change now
+	-- Calculate button dimensions
 	orgbuttonW = font:GetTextWidth('       '..buttonText) * 24
-	buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
-	buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
+	local currentButtonW = mathFloor(orgbuttonW * uiScale / 2) * 2
+	local currentButtonH = mathFloor(orgbuttonH * uiScale / 2) * 2
 
-	uiElementRect = { buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding }
-	buttonRect = { buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2) }
-
-	if (not showLockButton and buttonDrawn) then
-		if buttonList then
-			glDeleteList(buttonList)
-		end
-		if buttonHoverList then
-			glDeleteList(buttonHoverList)
-		end
-		buttonList = nil
-		buttonHoverList = nil
-		buttonDrawn = false
-	end
-
+	-- Calculate blink state (expensive operation - only do when needed)
+	local blinkButton = false
 	if showLockButton then
-		if buttonList then
-			glDeleteList(buttonList)
-		end
-		buttonList = gl.CreateList(function()
-			UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
-			UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.55, color[2]*0.55, color[3]*0.55, 1 }, { color[1], color[2], color[3], 1 })
-		end)
-		if buttonHoverList then
-			glDeleteList(buttonHoverList)
-		end
-		buttonHoverList = gl.CreateList(function()
-			UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
-			UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.85, color[2]*0.85, color[3]*0.85, 1 }, { color[1]*1.5, color[2]*1.5, color[3]*1.5, 1 })
-		end)
-
 		local playerList = Spring.GetPlayerList()
 		local numPlayers = #playerList
 		local numPlayersReady = 0
@@ -589,7 +661,62 @@ local function drawButton()
 		if (draftMode ~= nil and draftMode ~= "disabled") and not cantPlaceNow and not locked then
 			blinkButton = true
 		end
+	end
 
+	-- Check if button state changed - only rebuild display lists if necessary
+	if checkButtonStateChanged(color, cantPlaceNow, blinkButton, currentButtonW, currentButtonH) then
+		-- Update button dimensions
+		buttonW = currentButtonW
+		buttonH = currentButtonH
+		
+		-- Recalculate button rectangles
+		uiElementRect = { buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding }
+		buttonRect = { buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2) }
+
+		-- Clean up old display lists
+		if buttonList then
+			glDeleteList(buttonList)
+			buttonList = nil
+		end
+		if buttonHoverList then
+			glDeleteList(buttonHoverList)
+			buttonHoverList = nil
+		end
+
+		-- Create new display lists only if button should be shown
+		if showLockButton then
+			buttonList = gl.CreateList(function()
+				UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
+				UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.55, color[2]*0.55, color[3]*0.55, 1 }, { color[1], color[2], color[3], 1 })
+			end)
+			
+			buttonHoverList = gl.CreateList(function()
+				UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
+				UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.85, color[2]*0.85, color[3]*0.85, 1 }, { color[1]*1.5, color[2]*1.5, color[3]*1.5, 1 })
+			end)
+		end
+
+		-- Update state tracking
+		updateButtonStateTracking(color, cantPlaceNow, blinkButton, currentButtonW, currentButtonH)
+		buttonDrawn = showLockButton
+	end
+
+	-- Handle case where button should be hidden
+	if not showLockButton and buttonDrawn then
+		if buttonList then
+			glDeleteList(buttonList)
+			buttonList = nil
+		end
+		if buttonHoverList then
+			glDeleteList(buttonHoverList)
+			buttonHoverList = nil
+		end
+		buttonDrawn = false
+	end
+
+	-- Render the button (this happens every frame but uses cached display lists)
+	if showLockButton and buttonList and buttonHoverList then
+		-- Add GUI shader rect
 		if WG['guishader'] then
 			WG['guishader'].InsertRect(
 				uiElementRect[1],
@@ -600,33 +727,43 @@ local function drawButton()
 			)
 		end
 
-		-- draw ready button and text
+		-- Check mouse hover and render appropriate display list
 		local x, y = Spring.GetMouseState()
 		local colorString
 		if x > buttonRect[1] and x < buttonRect[3] and y > buttonRect[2] and y < buttonRect[4] and not cantPlaceNow then
 			glCallList(buttonHoverList)
 			colorString = "\255\210\210\210"
+
+			if isReadyBlocked and WG['tooltip'] then
+				WG['tooltip'].ShowTooltip('pregameui', cachedTooltipText)
+			end
 		else
 			glCallList(buttonList)
 			timer2 = timer2 + Spring.GetLastUpdateSeconds()
 			if mySpec then
 				colorString = offeredAsSub and "\255\255\255\225" or "\255\222\222\222"
 			else
-				colorString = os.clock() % 0.75 <= 0.375 and "\255\255\255\255" or "\255\222\222\222"
+				if isReadyBlocked then
+					colorString = "\255\150\150\150"
+				else
+					colorString = os.clock() % 0.75 <= 0.375 and "\255\255\255\255" or "\255\222\222\222"
+				end
 			end
 			if readied or cantPlaceNow then
 				colorString = "\255\222\222\222"
 			end
-			if blinkButton and not readied and os.clock() % 0.75 <= 0.375 then
+			-- Blink effect is applied as additional rendering on top
+			if blinkButton and not readied and not isReadyBlocked and os.clock() % 0.75 <= 0.375 then
 				local mult = 1.33
 				UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { readyButtonColor[1]*0.55*mult, readyButtonColor[2]*0.55*mult, readyButtonColor[3]*0.55*mult, 1 }, { readyButtonColor[1]*mult, readyButtonColor[2]*mult, readyButtonColor[3]*mult, 1 })
 			end
 		end
+		
+		-- Draw text (this is relatively cheap so we do it every frame)
 		font:Begin()
 		font:Print(colorString .. buttonText, buttonRect[1]+((buttonRect[3]-buttonRect[1])/2), (buttonRect[2]+((buttonRect[4]-buttonRect[2])/2)) - (buttonH * 0.16), 24 * uiScale, "co")
 		font:End()
 		gl.Color(1, 1, 1, 1)
-		buttonDrawn = true
 	end
 end
 
@@ -661,13 +798,13 @@ local function progressQueueLocally(shift) -- only for dev UI testing of DOM
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 	uiScale = (0.75 + (vsx * vsy / 6000000))
-	buttonX = math.floor(vsx * buttonPosX)
-	buttonY = math.floor(vsy * buttonPosY)
+	buttonX = mathFloor(vsx * buttonPosX)
+	buttonY = mathFloor(vsy * buttonPosY)
 	orgbuttonW = font:GetTextWidth('       '..buttonText) * 24
-	buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
-	buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
+	buttonW = mathFloor(orgbuttonW * uiScale / 2) * 2
+	buttonH = mathFloor(orgbuttonH * uiScale / 2) * 2
 
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then
@@ -680,7 +817,10 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	UiButton = WG.FlowUI.Draw.Button
 	RectRound = WG.FlowUI.Draw.RectRound
 	elementPadding = WG.FlowUI.elementPadding
-	uiPadding = math.floor(elementPadding * 4.5)
+	uiPadding = mathFloor(elementPadding * 4.5)
+	
+	-- Button dimensions/position changed, invalidate display lists
+	invalidateButtonState()
 end
 
 local ihavejoined = false
@@ -721,10 +861,10 @@ function widget:GameSetup(state, ready, playerStates)
 	ready = true
 	local playerList = Spring.GetPlayerList()
 	for _, playerID in pairs(playerList) do
-		local _, _, spectator_flag = Spring.GetPlayerInfo(playerID)
+		local _, _, spectator_flag = Spring.GetPlayerInfo(playerID, false)
 		if spectator_flag == false then
 			local is_player_ready = Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")
-			--Spring.Echo(#playerList, playerID, is_player_ready)
+			--spEcho(#playerList, playerID, is_player_ready)
 			if is_player_ready == 0 or is_player_ready == 4 then
 				ready = false
 			end
@@ -754,7 +894,9 @@ function widget:MousePress(sx, sy)
 				if not readied then
 					if not mySpec then
 						if not readied then
-							if startPointChosen then
+							if isReadyBlocked then
+								return true
+							elseif startPointChosen then
 								pressedReady = true
 								readied = true
 								Spring.SendLuaRulesMsg("ready_to_start_game")
@@ -762,7 +904,7 @@ function widget:MousePress(sx, sy)
 								locked = true
 								Spring.SendLuaRulesMsg("locking_in_place")
 							else
-								Spring.Echo(Spring.I18N('ui.initialSpawn.choosePoint'))
+								spEcho(Spring.I18N('ui.initialSpawn.choosePoint'))
 							end
 
 						end
@@ -771,9 +913,9 @@ function widget:MousePress(sx, sy)
 					elseif eligibleAsSub then
 						offeredAsSub = not offeredAsSub
 						if offeredAsSub then
-							Spring.Echo(Spring.I18N('ui.substitutePlayers.substitutionMessage'))
+							spEcho(Spring.I18N('ui.substitutePlayers.substitutionMessage'))
 						else
-							Spring.Echo(Spring.I18N('ui.substitutePlayers.offerWithdrawn'))
+							spEcho(Spring.I18N('ui.substitutePlayers.offerWithdrawn'))
 						end
 						Spring.SendLuaRulesMsg(offeredAsSub and '\144' or '\145')
 					end
@@ -867,6 +1009,24 @@ function widget:Initialize()
 	if (draftMode ~= nil and draftMode ~= "disabled") then
 		reloadedDraftMode = os.clock()+2 -- in case you luaui reload
 	end
+
+	WG['pregameui_draft'] = {}
+	WG['pregameui_draft'].addReadyCondition = function(conditionKey, description)
+		if conditionKey and description then
+			readyBlockedConditions[conditionKey] = description
+			updateTooltip()
+		end
+	end
+	WG['pregameui_draft'].removeReadyCondition = function(conditionKey)
+		if conditionKey and readyBlockedConditions[conditionKey] then
+			readyBlockedConditions[conditionKey] = nil
+			updateTooltip()
+		end
+	end
+	WG['pregameui_draft'].clearAllReadyConditions = function()
+		readyBlockedConditions = {}
+		updateTooltip()
+	end
 end
 
 function widget:DrawScreen()
@@ -880,7 +1040,7 @@ function widget:DrawScreen()
 	-- display autoready timer
 	if Spring.GetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready and not auto_ready_disable then
 		local colorString = auto_ready_timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
-		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1, math.floor(auto_ready_timer)) })
+		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = mathMax(1, mathFloor(auto_ready_timer)) })
 		font:Begin()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
@@ -937,7 +1097,7 @@ function widget:DrawScreen()
 		if not myAllyTeamJoined then
 			local text = DMWarnColor .. Spring.I18N('ui.draftOrderMod.waitingForTeamToLoad')
 			if (voteConTimeout) then
-				vcttimer = math.floor(voteConTimeout-os.clock())+1
+				vcttimer = mathFloor(voteConTimeout-os.clock())+1
 				if (vcttimer > 0) then
 					text = text .. " " .. vcttimer .. "s"
 				end
@@ -951,7 +1111,7 @@ function widget:DrawScreen()
 			ihavejoined_fair = true
 		end
 		if voteConTimeout and os.clock() >= voteConTimeout and ihavejoined_fair then
-			-- TODO do we draw UI or Spring.Echo that Player X have voted to forcestart draft (skip waiting for unconnected allies)?
+			-- TODO do we draw UI or spEcho that Player X have voted to forcestart draft (skip waiting for unconnected allies)?
 			if not myAllyTeamJoined then
 				Spring.SendLuaRulesMsg("vote_wait_too_long")
 			end
@@ -968,7 +1128,7 @@ function widget:DrawScreen()
 	if gameStarting then
 		timer = timer + Spring.GetLastUpdateSeconds()
 		local colorString = timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
-		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1, 3 - math.floor(timer)) })
+		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = mathMax(1, 3 - mathFloor(timer)) })
 		font:Begin()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
@@ -1004,11 +1164,11 @@ function widget:DrawWorld()
 		if tsx and tsx > 0 then
 			local startUnitDefID = Spring.GetTeamRulesParam(teamID, 'startUnit')
 			if startUnitDefID then
-				id = startUnitDefID..'_'..tsx..'_'..Spring.GetGroundHeight(tsx, tsz)..'_'..tsz
+				id = startUnitDefID..'_'..tsx..'_'..spGetGroundHeight(tsx, tsz)..'_'..tsz
 				if teamStartPositions[teamID] ~= id then
 					removeUnitShape(teamStartPositions[teamID])
 					teamStartPositions[teamID] = id
-					addUnitShape(id, startUnitDefID, tsx, Spring.GetGroundHeight(tsx, tsz), tsz, 0, teamID, 1)
+					addUnitShape(id, startUnitDefID, tsx, spGetGroundHeight(tsx, tsz), tsz, 0, teamID, 1)
 				end
 			end
 		end
@@ -1040,7 +1200,7 @@ end
 function widget:RecvLuaMsg(msg, playerID)
 	local words = {}
 	for word in msg:gmatch("%S+") do
-		table.insert(words, word)
+		tableInsert(words, word)
 	end
 
 	if words[1] == "DraftOrderPlayersOrder" then
@@ -1049,16 +1209,16 @@ function widget:RecvLuaMsg(msg, playerID)
 		if myTeamPlayersOrder == nil then
 			myTeamPlayersOrder = {}
 			if devUItestMode then
-				local fakePlayers = math.random(16)
+				local fakePlayers = mathRandom(16)
 				for i = 1, fakePlayers do
-					table.insert(myTeamPlayersOrder, {id = 30+i, name = "Player"..tostring((i+9+math.random(1000000))) }) -- debug
+					tableInsert(myTeamPlayersOrder, {id = 30+i, name = "Player"..tostring((i+9+mathRandom(1000000))) }) -- debug
 				end
 			end
 			for i = 3, #words do
 				local playerid = tonumber(words[i])
 				tname = select(1, Spring.GetPlayerInfo(playerid, false))
 				tname = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerid)) or tname
-				table.insert(myTeamPlayersOrder, {id = playerid, name = tname })
+				tableInsert(myTeamPlayersOrder, {id = playerid, name = tname })
 			end
 			if #myTeamPlayersOrder > bigTeamAmountOfPlayers then -- big team, not regular game
 				turnTimeOut = turnTimeOutBigTeam
@@ -1108,6 +1268,7 @@ function widget:RecvLuaMsg(msg, playerID)
 		allyTeamID_about = tonumber(words[2] or -1)
 		if (allyTeamID_about == myAllyTeamID) and (myAllyTeamJoined ~= true) then
 			myAllyTeamJoined = true
+			invalidateButtonState()  -- Ally team joining changes button state
 			if draftMode == "fair" then
 				PlayChooseStartLocSound()
 			end
@@ -1138,4 +1299,5 @@ function widget:Shutdown()
 			removeUnitShape(id)
 		end
 	end
+	WG['pregameui_draft'] = nil
 end

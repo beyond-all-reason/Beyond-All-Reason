@@ -70,6 +70,8 @@ local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spSetUnitResourcing = Spring.SetUnitResourcing
+local mathCeil = math.ceil
+local tableSort = table.sort
 
 ----------------------------------------------------------------
 -- Functions
@@ -243,17 +245,17 @@ function BuildeSteps()
 	local i = 1
 	for defid, defs in pairs(convertCapacities) do
 		local inTable = false
-		for _, e in ipairs(eSteps) do
-			if (e == defs.e) then
+		for j = 1, #eSteps do
+			if eSteps[j] == defs.e then
 				inTable = true
 			end
 		end
-		if (inTable == false) then
+		if inTable == false then
 			eSteps[i] = defs.e
-			i = (i + 1)
+			i = i + 1
 		end
 	end
-	table.sort(eSteps, function(m1, m2)
+	tableSort(eSteps, function(m1, m2)
 		return m1 > m2;
 	end)
 end
@@ -270,7 +272,8 @@ function gadget:GameFrame(n)
 	-- in case of more than 15 teams ingame, two or more teams are processed in one gameframe
 
 	if n % resourceRefreshRate == (splitMMPointer - 1) then
-		for i = 0, math.ceil(#teamList / resourceRefreshRate) - 1 do
+		local ceilTeams = mathCeil(#teamList / resourceRefreshRate)
+		for i = 0, ceilTeams - 1 do
 			local tID
 			local tpos = (splitMMPointer + (i * resourceRefreshRate))
 			if tpos < #teamList then
@@ -340,7 +343,7 @@ function gadget:UnitDamaged(uID, uDefID, uTeam, damage, paralyzer)
 		local _, maxHealth, paralyzeDamage, _, _ = spGetUnitHealth(uID)
 		local relativeParDmg = paralyzeDamage - maxHealth
 		if relativeParDmg > 0 then
-			EmpedVector:push(uID, currentFrameStamp + math.ceil(relativeParDmg / (maxHealth / paralysisRelRate)))
+			EmpedVector:push(uID, currentFrameStamp + mathCeil(relativeParDmg / (maxHealth / paralysisRelRate)))
 		end
 	end
 end

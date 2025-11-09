@@ -15,6 +15,15 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathMax = math.max
+local tableInsert = table.insert
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+local spGetUnitTeam = Spring.GetUnitTeam
+
 -- GL4 dev Notes:
 -- AA should be purple :D
 -- heightboost is going to be a bitch - > use $heightmap and hope that heightboost is kinda linear
@@ -190,11 +199,11 @@ local function initializeUnitDefRing(unitDefID)
 
 		local range = weaponDef.range
 		local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
-		--Spring.Echo(weaponType)
+		--spEcho(weaponType)
 		if weaponType ~= nil  then
 			if  weaponType == 'nuke' then -- antinuke
 				range = weaponDef.coverageRange
-				--Spring.Echo("init antinuke", range)
+				--spEcho("init antinuke", range)
 			end
 			-- local color = colorConfig[weaponType].color
 			-- local fadeparams =  colorConfig[weaponType].fadeparams
@@ -204,7 +213,7 @@ local function initializeUnitDefRing(unitDefID)
 	        local cfg    = colorConfig[baseKey]
 	        if (baseKey == "ground") and (weaponDef.waterWeapon) then
 	            cfg = colorConfig.ground_water
-	            --Spring.Echo("[DefenseRange] using water colour for:", weaponDef.name)
+	            --spEcho("[DefenseRange] using water colour for:", weaponDef.name)
 	        end
 	        local color      = cfg.color
 	        local fadeparams = cfg.fadeparams
@@ -240,6 +249,8 @@ local function initUnitList()
 		['armjuno'] = { weapons = { 'ground' } },
 		['armtl'] = { weapons = { 'ground' } }, --torp launcher
 		['armfhlt'] = { weapons = { 'ground' } },  --floating hlt
+		['armnavaldefturret'] = { weapons = { 'ground' } },  --cauterizer
+		['armanavaldefturret'] = { weapons = { 'ground' } },  --liquifier
 		['armfrt'] = { weapons = { 'air' } },  --floating rocket laucher
 		['armfflak'] = { weapons = { 'air' } },  --floating flak AA
 		['armatl'] = { weapons = { 'ground' } }, --adv torpedo launcher
@@ -271,6 +282,8 @@ local function initUnitList()
 		['corjuno'] = { weapons = { 'ground' } },
 
 		['corfhlt'] = { weapons = { 'ground' } },  --floating hlt
+		['cornavaldefturret'] = { weapons = { 'ground' } },  --cyclops
+		['coranavaldefturret'] = { weapons = { 'ground' } },  --orthrus
 		['cortl'] = { weapons = { 'ground' } }, --torp launcher
 		['coratl'] = { weapons = { 'ground' } }, --T2 torp launcher
 		['corfrt'] = { weapons = { 'air' } }, --floating rocket laucher
@@ -303,6 +316,9 @@ local function initUnitList()
 		['legdtr'] = { weapons = { 'ground' } }, --dragons jaw
 		['leghive'] = { weapons = { 'ground' } }, --Drone-defense
 		['legmg'] = { weapons = { 'ground' } }, --ground-AA MG defense
+		['legfmg'] = { weapons = { 'ground' } },  --cyclops
+		['legnavaldefturret'] = { weapons = { 'ground' } },  --cyclops
+		['leganavaldefturret'] = { weapons = { 'ground' } },  --Ionia
 		['legbombard'] = { weapons = { 'ground' } }, --Grenadier defense
 		['legbastion'] = { weapons = { 'ground' } }, --T2 Heatray Tower
 		['legrl'] = { weapons = { 'air' } }, --T1 AA
@@ -348,7 +364,7 @@ local function initUnitList()
 	end
 	-- add scavs
 	for k,_ in pairs(scavlist) do
-		--Spring.Echo(k, unitName[k])
+		--spEcho(k, unitName[k])
 		if UnitDefNames[unitName[k] .. '_scav'] then
 			unitDefRings[UnitDefNames[unitName[k] .. '_scav'].id] = unitDefRings[k]
 		end
@@ -371,7 +387,7 @@ local function initUnitList()
 		for i, suffix in pairs(wreckheaps) do
 			if FeatureDefNames[unitDefName..suffix] then
 				featureDefIDtoUnitDefID[FeatureDefNames[unitDefName..suffix].id] = unitDefID
-				--Spring.Echo(FeatureDefNames[unitDefName..suffix].id, unitDefID)
+				--spEcho(FeatureDefNames[unitDefName..suffix].id, unitDefID)
 			end
 		end
 	end
@@ -441,7 +457,7 @@ function widget:TextCommand(command)
 		else
 			buttonConfig[ally][rangetype]=enabled
 		end
-		Spring.Echo("Range visibility of "..ally.." "..rangetype.." defenses set to",enabled)
+		spEcho("Range visibility of "..ally.." "..rangetype.." defenses set to",enabled)
 		return true
 	end
 
@@ -464,7 +480,7 @@ local allyenemypairs = {"ally","enemy"}
 local defenseRangeClasses = {}
 for allyenemy, ringclasses in pairs(buttonConfig) do
 	for ringclass, enabled in pairs(ringclasses) do
-			table.insert(defenseRangeClasses, allyenemy .. ringclass)
+			tableInsert(defenseRangeClasses, allyenemy .. ringclass)
 	end
 end
 --local defenseRangeClasses = {'enemyair','enemyground','enemynuke','allyair','allyground','allynuke', 'enemycannon', 'allycannon'}
@@ -516,7 +532,7 @@ local shaderSourceCache = {
 
 
 local function goodbye(reason)
-  Spring.Echo("DefenseRange GL4 widget exiting with reason: "..reason)
+  spEcho("DefenseRange GL4 widget exiting with reason: "..reason)
   widgetHandler:RemoveWidget()
 end
 
@@ -567,7 +583,7 @@ function widget:Initialize()
 				else
 					buttonConfig[ae][wt] = value
 				end
-				Spring.Echo(string.format("Defense Range GL4 Setting %s%s to %s",Ae,Wt, value and 'on' or 'off'))
+				spEcho(string.format("Defense Range GL4 Setting %s%s to %s",Ae,Wt, value and 'on' or 'off'))
 				if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 					widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 				end
@@ -576,7 +592,7 @@ function widget:Initialize()
 	end
 	myAllyTeam = Spring.GetMyAllyTeamID()
 	local allyteamlist = Spring.GetAllyTeamList( )
-	--Spring.Echo("# of allyteams = ", #allyteamlist)
+	--spEcho("# of allyteams = ", #allyteamlist)
 	numallyteams = #allyteamlist
 
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
@@ -616,11 +632,11 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 			local ringParams = unitDefRings[unitDefID]['rings'][i]
 			local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
 			local wpx, wpy, wpz, wdx, wdy, wdz = Spring.GetUnitWeaponVectors(unitID, weaponID)
-			--Spring.Echo("Defranges: unitID", unitID,x,y,z,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
+			--spEcho("Defranges: unitID", unitID,x,y,z,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
 
 			-- Now this is a truly terrible hack, we cache each unitDefID's max weapon turret height at position 18 in the table
 			-- so it only goes up with popups
-			local turretHeight = math.max(ringParams[18] or 0, (wpy or mpy ) - y)
+			local turretHeight = mathMax(ringParams[18] or 0, (wpy or mpy ) - y)
 			ringParams[18] = turretHeight
 
 
@@ -669,7 +685,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	-- my
 	spec, fullview = Spring.GetSpectatingState()
 	if (not enabledAsSpec) and spec then
-		Spring.Echo("Defense Range GL4 disabled in spectating state")
+		spEcho("Defense Range GL4 disabled in spectating state")
 		widget:RemoveWidget()
 		return
 	end
@@ -681,7 +697,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 		InstanceVBOTable.clearInstanceTable(instanceTable) -- clear all instances
 	end
 	for unitID, unitDefID in pairs(extVisibleUnits) do
-		UnitDetected(unitID, unitDefID, Spring.GetUnitTeam(unitID), true) -- add them with noUpload = true
+		UnitDetected(unitID, unitDefID, spGetUnitTeam(unitID), true) -- add them with noUpload = true
 	end
 	for vaokey, instanceTable in pairs(defenseRangeVAOs) do
 		InstanceVBOTable.uploadAllElements(instanceTable) -- clear all instances
@@ -691,7 +707,7 @@ end
 local function checkEnemyUnitConfirmedDead(unitID, defense)
 	local x, y, z = defense["posx"], defense["posy"], defense["posz"]
 	local _, losState, _ = spGetPositionLosState(x, y, z)
-	--Spring.Echo("checkEnemyUnitConfirmedDead",unitID, losState, spGetUnitDefID(unitID), Spring.GetUnitIsDead(unitID))
+	--spEcho("checkEnemyUnitConfirmedDead",unitID, losState, spGetUnitDefID(unitID), Spring.GetUnitIsDead(unitID))
 	if losState then -- visible
 		if Spring.GetUnitIsDead(unitID) ~= false then -- If its cloaked and jammed, we cant see it i think
 			return true
@@ -705,7 +721,7 @@ local function removeUnit(unitID,defense)
 	enemydefenses[unitID] = nil
 	defensePosHash[hashPos(defense.posx,defense.posz)] = nil
 	for instanceKey,vaoKey in pairs(defense.vaokeys) do
-		--Spring.Echo(vaoKey,instanceKey)
+		--spEcho(vaoKey,instanceKey)
 		if defenseRangeVAOs[vaoKey].instanceIDtoIndex[instanceKey] then
 			popElementInstance(defenseRangeVAOs[vaoKey],instanceKey)
 		end
@@ -717,7 +733,7 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 	if defenses[unitID] == nil then return end -- nothing to do
 
 	local defense = defenses[unitID]
-	--local teamID = Spring.GetUnitTeam(unitID)
+	--local teamID = spGetUnitTeam(unitID)
 	local removeme = false
 
 	if mobileAntiUnits[unitID] then
@@ -749,7 +765,7 @@ function widget:FeatureCreated(featureID, allyTeam)
 		if unitID then
 			if defenses[unitID] and defenses[unitID].allied == false and
 				featureDefIDtoUnitDefID[featureDefID] == defenses[unitID].unitDefID then
-				--Spring.Echo("feature created at a likely dead defense pos!")
+				--spEcho("feature created at a likely dead defense pos!")
 				removeUnit(unitID,defenses[unitID])
 			end
 		end
@@ -758,11 +774,11 @@ end
 
 function widget:PlayerChanged(playerID)
 	--[[
-	Spring.Echo("playerchanged", playerID)
+	spEcho("playerchanged", playerID)
 	local GetLocalPlayerID  = Spring.GetLocalPlayerID( )
-	--Spring.Echo("GetLocalPlayerID", GetLocalPlayerID)
+	--spEcho("GetLocalPlayerID", GetLocalPlayerID)
 	local GetMyTeamID = Spring.GetMyTeamID ( )
-	--Spring.Echo("GetMyTeamID", GetMyTeamID)
+	--spEcho("GetMyTeamID", GetMyTeamID)
 	]]--
 	local nowspec, nowfullview = spGetSpectatingState()
 	local nowmyAllyTeam = Spring.GetMyAllyTeamID()
@@ -786,12 +802,12 @@ function widget:PlayerChanged(playerID)
 
 	if reinit then
 		myAllyTeam = nowmyAllyTeam -- only update if we reinit
-		--Spring.Echo("DefenseRange GL4 allyteam change detected, reinitializing")
+		--spEcho("DefenseRange GL4 allyteam change detected, reinitializing")
 		if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 			widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 		end
 	else
-		--Spring.Echo("No change needed", numallyteams, myAllyTeam)
+		--spEcho("No change needed", numallyteams, myAllyTeam)
 	end
 end
 
@@ -849,7 +865,7 @@ function widget:Update(dt)
 				defense.posz = pz
 				for instanceKey,vaoKey in pairs(defense.vaokeys) do
 					local cacheTable = getElementInstanceData(defenseRangeVAOs[vaoKey], instanceKey, cacheTable) -- this is horrible perf wise
-					--Spring.Echo("Anti at",unitID, px, pz,mobileantiinfo[1],mobileantiinfo[2],vbodata[1],vbodata[2])
+					--spEcho("Anti at",unitID, px, pz,mobileantiinfo[1],mobileantiinfo[2],vbodata[1],vbodata[2])
 					cacheTable[1] = px
 					cacheTable[2] = py
 					cacheTable[3] = pz
@@ -872,7 +888,7 @@ function widget:Update(dt)
 				if defense.allied == false then
 					local x, y, z = defense["posx"], defense["posy"], defense["posz"]
 					local _, losState, _ = spGetPositionLosState(x, y, z)
-					--Spring.Echo("removal",unitID, losState)
+					--spEcho("removal",unitID, losState)
 					if losState then
 						if not spGetUnitDefID(unitID) then
 							removeUnit(unitID, defense)
@@ -881,7 +897,7 @@ function widget:Update(dt)
 				end
 			end
 		end
-		--Spring.Echo("removestep", removestep , scanned)
+		--spEcho("removestep", removestep , scanned)
 	end
 	-- DRAW THE ATTACK RING FOR THE ACTIVELY BUILDING UNIT
 	local cmdID = select(2, Spring.GetActiveCommand())
@@ -917,8 +933,8 @@ function widget:Update(dt)
 
 			local mx, my, lp, mp, rp, offscreen = Spring.GetMouseState()
 			local _, coords = Spring.TraceScreenRay(mx, my, true)
-			--Spring.Echo(cmdID, "Attempting to draw rings at") 
-			--Spring.Echo(mx, my, coords[1], coords[2], coords[3])
+			--spEcho(cmdID, "Attempting to draw rings at") 
+			--spEcho(mx, my, coords[1], coords[2], coords[3])
 			
 			if coords and coords[1] and coords[2] and coords[3] then 
 				local bpx, bpy, bpz = Spring.Pos2BuildPos(buildUnitDefID, coords[1], coords[2], coords[3])
@@ -960,7 +976,7 @@ local cameraHeightFactor = 0
 
 local function GetCameraHeightFactor() -- returns a smoothstepped value between 0 and 1 for height based rescaling of line width.
 	local camX, camY, camZ = Spring.GetCameraPosition()
-	local camheight = camY - math.max(Spring.GetGroundHeight(camX, camZ), 0)
+	local camheight = camY - mathMax(Spring.GetGroundHeight(camX, camZ), 0)
 	-- Smoothstep to half line width as camera goes over 2k height to 4k height
 	--genType t;  /* Or genDType t; */
     --t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
@@ -978,9 +994,9 @@ local stenciledrings = {}
 local nonstenciledrings = {}
 for i, weaponType in ipairs(allrings) do
 	if colorConfig[weaponType].stenciled then
-		table.insert(stenciledrings, weaponType)
+		tableInsert(stenciledrings, weaponType)
 	else
-		table.insert(nonstenciledrings, weaponType)
+		tableInsert(nonstenciledrings, weaponType)
 	end
 end
 
@@ -1040,7 +1056,7 @@ function widget:DrawWorld()
 			glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
 
 			DRAWRINGS(GL.TRIANGLE_FAN, nil, stenciledrings) -- FILL THE CIRCLES
-			--glLineWidth(math.max(0.1,4 + math.sin(gameFrame * 0.04) * 10))
+			--glLineWidth(mathMax(0.1,4 + math.sin(gameFrame * 0.04) * 10))
 			glColorMask(true, true, true, true)	-- re-enable color drawing
 			glStencilMask(0)
 
@@ -1067,7 +1083,7 @@ function widget:DrawWorld()
 		if false and Spring.GetDrawFrame() % 60 == 0 then
 			local s = 'drawcounts: '
 			for k,v in pairs(drawcounts) do s = s .. " " .. tostring(k) .. ":" .. tostring(v) end
-			Spring.Echo(s)
+			spEcho(s)
 		end
 	end
 end
@@ -1108,7 +1124,7 @@ function widget:SetConfigData(data)
 				end
 			end
 			if autoReload then
-				--Spring.Echo("defenserange gl4:", configstr)
+				--spEcho("defenserange gl4:", configstr)
 			end
 			--printDebug("enabled config found...")
 		end

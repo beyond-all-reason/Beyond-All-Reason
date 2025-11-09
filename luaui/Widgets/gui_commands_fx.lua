@@ -12,6 +12,14 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
+
 -- future:          hotkey to show all current cmds? (like current shift+space)
 --                  handle set target
 --					quickfade on cmd cancel
@@ -57,8 +65,8 @@ local glTexCoord = gl.TexCoord
 local GL_QUADS = GL.QUADS
 
 local GaiaTeamID = Spring.GetGaiaTeamID()
-local myTeamID = Spring.GetMyTeamID()
-local mySpec = Spring.GetSpectatingState()
+local myTeamID = spGetMyTeamID()
+local mySpec = spGetSpectatingState()
 local hidden
 local guiHidden
 
@@ -243,6 +251,68 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local MAX_UNITS = Game.maxUnits
 
 --------------------------------------------------------------------------------
+-- Table pools for performance (reuse tables instead of allocating new ones)
+--------------------------------------------------------------------------------
+-- Performance optimizations:
+-- 1. Table pooling: Reuse tables instead of creating new ones to reduce GC pressure
+-- 2. Efficient table clearing: Clear tables in-place instead of reallocating
+-- 3. Position caching: Cache unit positions per frame to avoid redundant API calls
+-- 4. Loop optimization: Precompute invariant values outside loops
+-- 5. Local variable caching: Cache frequently accessed values to reduce table lookups
+
+local tablePool = {}
+local tablePoolCount = 0
+local maxTablePoolSize = 100
+
+local function getTable()
+	if tablePoolCount > 0 then
+		local t = tablePool[tablePoolCount]
+		tablePool[tablePoolCount] = nil
+		tablePoolCount = tablePoolCount - 1
+		return t
+	else
+		return {}
+	end
+end
+
+local function releaseTable(t)
+	-- Clear the table
+	for k in pairs(t) do
+		t[k] = nil
+	end
+	-- Return to pool if not full
+	if tablePoolCount < maxTablePoolSize then
+		tablePoolCount = tablePoolCount + 1
+		tablePool[tablePoolCount] = t
+	end
+end
+
+-- Cache for unit positions to avoid repeated API calls per frame
+local unitPosCache = {}
+local unitPosCacheFrame = -1
+
+local function getCachedUnitPosition(unitID)
+	if unitPosCacheFrame ~= spGetGameFrame() then
+		-- Clear cache on new frame
+		for k in pairs(unitPosCache) do
+			unitPosCache[k] = nil
+		end
+		unitPosCacheFrame = spGetGameFrame()
+	end
+	
+	local cached = unitPosCache[unitID]
+	if cached then
+		return cached[1], cached[2], cached[3]
+	end
+	
+	local x, y, z = spGetUnitPosition(unitID)
+	if x then
+		unitPosCache[unitID] = {x, y, z}
+	end
+	return x, y, z
+end
+
+--------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 local teamColor = {}
@@ -251,7 +321,7 @@ local function loadTeamColors()
 	for i = 1, #teams do
 		local r, g, b = Spring.GetTeamColor(teams[i])
 		local min = 0.12
-		teamColor[teams[i]] = { math.max(r, min), math.max(g, min), math.max(b, min), 0.33 }
+		teamColor[teams[i]] = { mathMax(r, min), mathMax(g, min), mathMax(b, min), 0.33 }
 	end
 end
 loadTeamColors()
@@ -484,9 +554,16 @@ local function addUnitCommand(unitID, unitDefID, cmdID)
 	-- record that a command was given (note: cmdID is not used, but useful to record for debugging)
 	if unitID and (CONFIG[cmdID] or cmdID == CMD_INSERT or cmdID < 0) then
 		unprocessedCommandsNum = unprocessedCommandsNum + 1
-		unprocessedCommands[unprocessedCommandsNum] = { ID = cmdID, time = os_clock(), unitID = unitID, draw = false, selected = spIsUnitSelected(unitID), udid = unitDefID } -- command queue is not updated until next gameframe
+		local cmd = getTable()
+		cmd.ID = cmdID
+		cmd.time = os_clock()
+		cmd.unitID = unitID
+		cmd.draw = false
+		cmd.selected = spIsUnitSelected(unitID)
+		cmd.udid = unitDefID
+		unprocessedCommands[unprocessedCommandsNum] = cmd -- command queue is not updated until next gameframe
 		if useTeamColors or (mySpec and useTeamColorsWhenSpec) then
-			unprocessedCommands[unprocessedCommandsNum].teamID = Spring.GetUnitTeam(unitID)
+			cmd.teamID = Spring.GetUnitTeam(unitID)
 		end
 	end
 end
@@ -533,7 +610,7 @@ end
 
 local function getCommandsQueue(unitID)
 	local q = spGetUnitCommands(unitID, 35) or {} --limit to prevent mem leak, hax etc
-	local our_q = {}
+	local our_q = getTable()
 	local our_qCount = 0
 	for i = 1, #q do
 		if CONFIG[q[i].id] or q[i].id < 0 then
@@ -579,15 +656,21 @@ function widget:Update(dt)
 			applyCmdQueueVisibility(guiHidden)
 		end
 
-		-- process newly given commands (not done in widgetUnitCommand() because with huge build queue it eats memory and can crash lua)
+		-- process newly given commands
+		-- (not done in widgetUnitCommand() because with huge build queue
+		-- it eats memory and can crash lua)
 		for unitID, v in pairs(newUnitCommands) do
 			if v ~= true and ignoreUnits[v[1]] == nil then
 				addUnitCommand(unitID, v[1], v[2])
 			end
 		end
-		newUnitCommands = {}
+		-- Clear table without reallocating
+		for k in pairs(newUnitCommands) do
+			newUnitCommands[k] = nil
+		end
 
-		-- process new commands (cant be done directly because at widget:UnitCommand() the queue isnt updated yet)
+		-- process new commands (cant be done directly because at
+		-- widget:UnitCommand() the queue isnt updated yet)
 		for k = 1, #unprocessedCommands do
 			if totalCommands <= maxTotalCommandCount then
 				maxCommand = maxCommand + 1
@@ -621,9 +704,15 @@ function widget:Update(dt)
 					end
 				end
 				commands[i].time = os_clock()
+			else
+				-- If we didn't use this command, release it back to pool
+				releaseTable(unprocessedCommands[k])
 			end
 		end
-		unprocessedCommands = {}
+		-- Clear unprocessedCommands array (tables already moved to commands or released)
+		for k = 1, unprocessedCommandsNum do
+			unprocessedCommands[k] = nil
+		end
 		unprocessedCommandsNum = 0
 
 		if sec2 > lastUpdate2 + 0.3 then
@@ -640,9 +729,13 @@ function widget:Update(dt)
 						else
 							local q = spGetUnitCommandCount(commands[i].unitID)
 							if qsize ~= q then
+								local old_queue = commands[i].queue
 								local our_q = getCommandsQueue(commands[i].unitID)
 								commands[i].queue = our_q
 								commands[i].queueSize = #our_q
+								if old_queue then
+									releaseTable(old_queue)
+								end
 								if qsize > 1 then
 									monitorCommands[i] = qsize
 								else
@@ -679,96 +772,112 @@ function widget:DrawWorldPreUnit()
 	gl.DepthTest(false)
 	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
+	-- Precompute values used in loop
+	local useTeamColorsForDraw = useTeamColors or (mySpec and useTeamColorsWhenSpec)
+	local lineWidthDelta = lineWidth - (lineWidth * lineWidthEnd)
+	
 	local commandCount = 0
-	for i, v in pairs(commands) do
-		local progress = (osClock - commands[i].time) / duration
-		local unitID = commands[i].unitID
+	for i in pairs(commands) do
+		local command = commands[i]
+		if command and command.time then
+			local progress = (osClock - command.time) / duration
+			local unitID = command.unitID
 
-		if progress >= 1 then
-			commands[i] = nil
-			totalCommands = totalCommands - 1
-			monitorCommands[i] = nil
-			if unitCommand[unitID] == i then
-				unitCommand[unitID] = nil
-			end
+			if progress >= 1 then
+				if command.queue then
+					releaseTable(command.queue)
+				end
+				commands[i] = nil
+				totalCommands = totalCommands - 1
+				monitorCommands[i] = nil
+				if unitCommand[unitID] == i then
+					unitCommand[unitID] = nil
+				end
 
-		elseif commands[i].draw and (spIsUnitInView(unitID) or IsPointInView(commands[i].x, commands[i].y, commands[i].z)) then
+			elseif command.draw and (spIsUnitInView(unitID) or
+				IsPointInView(command.x, command.y, command.z)) then
 
-			-- draw command queue
-			local prevX, prevY, prevZ = spGetUnitPosition(unitID)
-			if commands[i].queueSize > 0 and prevX and commandCount < maxCommandCount then
+				-- draw command queue
+				local prevX, prevY, prevZ = getCachedUnitPosition(unitID)
+				if command.queueSize > 0 and prevX and commandCount < maxCommandCount then
 
-				local lineAlphaMultiplier = 1 - progress
-				for j = 1, commands[i].queueSize do
-					local X, Y, Z = ExtractTargetLocation(commands[i].queue[j].params[1], commands[i].queue[j].params[2], commands[i].queue[j].params[3], commands[i].queue[j].params[4], commands[i].queue[j].id)
-					local validCoord = X and Z and X >= 0 and X <= mapX and Z >= 0 and Z <= mapZ
-					-- draw
-					if X and validCoord then
-						commandCount = commandCount + 1
-						-- lines
-						local usedLineWidth = lineWidth - (progress * (lineWidth - (lineWidth * lineWidthEnd)))
-						local lineColour
-						if (useTeamColors or (mySpec and useTeamColorsWhenSpec)) and commands[i].teamID then
-							lineColour = teamColor[commands[i].teamID]
-						else
-							lineColour = CONFIG[commands[i].queue[j].id].colour
-						end
-						local lineAlpha = opacity * lineOpacity * (lineColour[4] * 2) * lineAlphaMultiplier
-						if lineAlpha > 0 then
-							glColor(lineColour[1], lineColour[2], lineColour[3], lineAlpha)
-							if drawLineTexture then
-
-								usedLineWidth = lineWidth - (progress * (lineWidth - (lineWidth * lineWidthEnd)))
-								glTexture(lineImg)
-								glBeginEnd(GL_QUADS, DrawLineTex, prevX, prevY, prevZ, X, Y, Z, usedLineWidth, lineTextureLength * (lineWidth / usedLineWidth), texOffset)
-								glTexture(false)
+					local lineAlphaMultiplier = 1 - progress
+					local usedLineWidth = lineWidth - (progress * lineWidthDelta)
+					
+					for j = 1, command.queueSize do
+						local queueCmd = command.queue[j]
+						local X, Y, Z = ExtractTargetLocation(
+							queueCmd.params[1], queueCmd.params[2], queueCmd.params[3], queueCmd.params[4], queueCmd.id
+						)
+						local validCoord = X and Z and X >= 0 and X <= mapX and Z >= 0 and Z <= mapZ
+						-- draw
+						if X and validCoord then
+							commandCount = commandCount + 1
+							-- lines
+							local lineColour
+							if useTeamColorsForDraw and command.teamID then
+								lineColour = teamColor[command.teamID]
 							else
-								glBeginEnd(GL_QUADS, DrawLine, prevX, prevY, prevZ, X, Y, Z, usedLineWidth)
+								lineColour = CONFIG[queueCmd.id].colour
 							end
-							-- ghost of build queue
-							if drawBuildQueue and commands[i].queue[j].buildingID then
-								glPushMatrix()
-								glTranslate(X, Y + 1, Z)
-								glRotate(90 * commands[i].queue[j].params[4], 0, 1, 0)
-								glUnitShape(commands[i].queue[j].buildingID, myTeamID, true, false, false)
-								glRotate(-90 * commands[i].queue[j].params[4], 0, 1, 0)
-								glTranslate(-X, -Y - 1, -Z)
-								glPopMatrix()
-							end
-							if j == 1 and not drawLineTexture then
-								-- draw startpoint rounding
+							local lineAlpha = opacity * lineOpacity * (lineColour[4] * 2) * lineAlphaMultiplier
+							if lineAlpha > 0 then
 								glColor(lineColour[1], lineColour[2], lineColour[3], lineAlpha)
-								glBeginEnd(GL_QUADS, DrawLineEnd, X, Y, Z, prevX, prevY, prevZ, usedLineWidth)
-							end
-						end
-						if j == commands[i].queueSize then
-
-							-- draw endpoint rounding
-							if drawLineTexture == false and lineAlpha > 0 then
 								if drawLineTexture then
+
 									glTexture(lineImg)
-									glColor(lineColour[1], lineColour[2], lineColour[3], lineAlpha)
-									glBeginEnd(GL_QUADS, DrawLineEndTex, prevX, prevY, prevZ, X, Y, Z, usedLineWidth, lineTextureLength, texOffset)
+									glBeginEnd(GL_QUADS, DrawLineTex, prevX, prevY, prevZ, X, Y, Z,
+										usedLineWidth, lineTextureLength * (lineWidth / usedLineWidth), texOffset)
 									glTexture(false)
 								else
+									glBeginEnd(GL_QUADS, DrawLine, prevX, prevY, prevZ, X, Y, Z, usedLineWidth)
+								end
+								-- ghost of build queue
+								if drawBuildQueue and queueCmd.buildingID then
+									glPushMatrix()
+									glTranslate(X, Y + 1, Z)
+									glRotate(90 * queueCmd.params[4], 0, 1, 0)
+									glUnitShape(queueCmd.buildingID, myTeamID, true, false, false)
+									glRotate(-90 * queueCmd.params[4], 0, 1, 0)
+									glTranslate(-X, -Y - 1, -Z)
+									glPopMatrix()
+								end
+								if j == 1 and not drawLineTexture then
+									-- draw startpoint rounding
 									glColor(lineColour[1], lineColour[2], lineColour[3], lineAlpha)
-									glBeginEnd(GL_QUADS, DrawLineEnd, prevX, prevY, prevZ, X, Y, Z, usedLineWidth)
+									glBeginEnd(GL_QUADS, DrawLineEnd, X, Y, Z, prevX, prevY, prevZ, usedLineWidth)
 								end
 							end
+							if j == command.queueSize then
+
+								-- draw endpoint rounding
+								if drawLineTexture == false and lineAlpha > 0 then
+									if drawLineTexture then
+										glTexture(lineImg)
+										glColor(lineColour[1], lineColour[2], lineColour[3], lineAlpha)
+										glBeginEnd(GL_QUADS, DrawLineEndTex, prevX, prevY, prevZ, X, Y, Z,
+											usedLineWidth, lineTextureLength, texOffset)
+										glTexture(false)
+									else
+										glColor(lineColour[1], lineColour[2], lineColour[3], lineAlpha)
+										glBeginEnd(GL_QUADS, DrawLineEnd, prevX, prevY, prevZ, X, Y, Z, usedLineWidth)
+									end
+								end
+							end
+							prevX, prevY, prevZ = X, Y, Z
 						end
-						prevX, prevY, prevZ = X, Y, Z
 					end
 				end
 			end
-		end
+		end -- end if command check
 	end
 	glColor(1, 1, 1, 1)
 end
 
 
 function widget:PlayerChanged()
-	myTeamID = Spring.GetMyTeamID()
-	mySpec = Spring.GetSpectatingState()
+	myTeamID = spGetMyTeamID()
+	mySpec = spGetSpectatingState()
 end
 
 function widget:GetConfigData()

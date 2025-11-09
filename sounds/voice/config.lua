@@ -3,27 +3,35 @@ return {
 	-- Commanders
 	EnemyCommanderDied = {
 		delay = 1,
+		soundEffect = "EnemyComDead",
 	},
 	FriendlyCommanderDied = {
 		delay = 1,
+		soundEffect = "FriendlyComDead",
 	},
 	FriendlyCommanderSelfD = {
 		delay = 1,
+		soundEffect = "FriendlyComDead",
 	},
 	SpectatorCommanderDied = {
 		delay = 1,
+		soundEffect = "NeutralComDead",
 	},
 	SpectatorCommanderSelfD = {
 		delay = 1,
+		soundEffect = "NeutralComDead",
 	},
 	ComHeavyDamage = {
 		delay = 12,
+		soundEffect = "CommanderHeavilyDamaged",
 	},
 	TeamDownLastCommander = {
 		delay = 30,
+		soundEffect = "YourTeamHasTheLastCommander",
 	},
 	YouHaveLastCommander = {
 		delay = 30,
+		soundEffect = "YouHaveTheLastCommander",
 	},
 
 	-- Game Status
@@ -38,24 +46,28 @@ return {
 	},
 	BattleEnded = {
 		delay = 1,
+		soundEffect = "GameEnd",
 	},
 	GamePaused = {
+		delay = 1,
+	},
+	TeammateCaughtUp = {
 		delay = 5,
 	},
-	PlayerDisconnected = {
-		delay = 1,
+	TeammateDisconnected = {
+		delay = 5,
 	},
-	PlayerAdded = {
-		delay = 1,
+	TeammateLagging = {
+		delay = 5,
 	},
-	PlayerResigned = {
-		delay = 1,
+	TeammateReconnected = {
+		delay = 5,
 	},
-	PlayerTimedout = {
-		delay = 1,
+	TeammateResigned = {
+		delay = 5,
 	},
-	PlayerReconnecting = {
-		delay = 1,
+	TeammateTimedout = {
+		delay = 5,
 	},
 	RaptorsAndScavsMixed = {
 		delay = 15,
@@ -65,17 +77,39 @@ return {
 	MaxUnitsReached = {
 		delay = 90,
 	},
+	BaseUnderAttack = {
+		delay = 5,
+		soundEffect = "UnitUnderAttack",
+	},
+	UnitsCaptured = {
+		delay = 5,
+	},
 	UnitsReceived = {
 		delay = 5,
 	},
+	CommanderUnderAttack = {
+		delay = 5,
+		soundEffect = "CommanderUnderAttack",
+	},
+	UnitsUnderAttack = {
+		delay = 5,
+		soundEffect = "UnitUnderAttack",
+	},
+	UnitLost = {
+		delay = 5,
+		soundEffect = "UnitUnderAttack",
+	},
 	RadarLost = {
-		delay = 12,
+		delay = 5,
+		soundEffect = "UnitUnderAttack",
 	},
 	AdvancedRadarLost = {
-		delay = 12,
+		delay = 5,
+		soundEffect = "UnitUnderAttack",
 	},
 	MetalExtractorLost = {
-		delay = 10,
+		delay = 5,
+		soundEffect = "UnitUnderAttack",
 	},
 
 	-- Resources
@@ -83,24 +117,28 @@ return {
 		delay = 80,
 	},
 	WholeTeamWastingMetal = {
-		delay = 60,
+		delay = 120,
 	},
 	WholeTeamWastingEnergy = {
+		delay = 240,
+	},
+	YouAreWastingMetal = {
 		delay = 120,
+	},
+	YouAreWastingEnergy = {
+		delay = 240,
 	},
 	LowPower = {
 		delay = 50,
-	},
-	WindNotGood = {
-		delay = 9999999,
 	},
 
 	-- Alerts
 	NukeLaunched = {
 		delay = 3,
+		soundEffect = "NukeAlert",
 	},
 	LrpcTargetUnits = {
-		delay = 9999999,
+		delay = 5,
 	},
 
 	-- Unit Ready
@@ -223,28 +261,23 @@ return {
 	AstraeusDetected = {
 		delay = 300,
 	},
-	TransportDetected = {
-		delay = 300,
-	},
 	AirTransportDetected = {
-		delay = 300,
-	},
-	SeaTransportDetected = {
 		delay = 300,
 	},
 
 	-- Lava
 	LavaRising = {
 		delay = 25,
+		soundEffect = "LavaAlert",
 	},
 	LavaDropping = {
 		delay = 25,
+		soundEffect = "LavaAlert",
 	},
 
 	-- Tutorial / tips
 	Welcome = {
 		delay = 9999999,
-		tutorial = true,
 	},
 	BuildMetal = {
 		delay = 9999999,
@@ -307,4 +340,84 @@ return {
 		delay = 9999999,
 		tutorial = true,
 	},
+
+	-- Raptors/Scavs ----------------------------------------------------------------------
+	["PvE/AntiNukeReminder"] = {
+		delay = 10,
+	},
+
+	-- Raptor Queen Hatch Progress
+	["PvE/Raptor_Queen50Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen75Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen90Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen95Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen98Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_QueenIsReady"] = {
+		delay = 10,
+	},
+
+	-- Raptor Queen Health
+	["PvE/Raptor_Queen50HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen25HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen10HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen5HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_QueenIsDestroyed"] = {
+		delay = 10,
+	},
+
+	-- Scavenger Boss Construction Progress
+	["PvE/Scav_Boss50Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss75Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss90Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss95Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss98Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_BossIsReady"] = {
+		delay = 10,
+	},
+
+	-- Scavenger Boss Health
+	["PvE/Scav_Boss50HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss25HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss10HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss5HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Scav_BossIsDestroyed"] = {
+		delay = 10,
+	},
+
 }
