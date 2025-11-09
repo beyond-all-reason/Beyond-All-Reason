@@ -2,13 +2,13 @@
 -- Try to keep resolution as low as you can get away with and for small zones.
 -- Remember changes in terrain will invalidate the grid. Re-generations are expensive.
 
-local spTestMoveOrder = Spring.TestMoveOrder
-local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundNormal = Spring.GetGroundNormal
 local floor = math.floor
 local distance2dSquared = math.distance2dSquared
 
 local DEFAULT_GRID_SPACING = 32 -- the interval at which terrain is tested using the unitDefID. A decent compromise between performance and accuracy. Emperically chosen.
 local GRID_RESOLUTION_MULTIPLIER_DEFAULT = 2 -- how many GRID_SPACINGs step to check in each direction to determine if a spot is reachable or not.
+local DEFAULT_MAX_SLOPE = 0.36 -- calibrated using quickstart on ascendency
 
 local unitIDTraversabilityGrids = {}
 local unitIDGridResolutions = {}
@@ -18,15 +18,19 @@ local function snapToGrid(value, gridSpacing)
 	return floor(value / gridSpacing) * gridSpacing
 end
 
+local function isPositionTraversable(x, z, maxSlope)
+	local nx, ny, nz, slope = spGetGroundNormal(x, z)
+	return slope <= maxSlope
+end
 
-
-local function generateTraversableGrid(unitDefID, originX, originZ, range, gridResolution, gridKey)
-	if not unitDefID or not originX or not originZ or not range then
+local function generateTraversableGrid(originX, originZ, range, gridResolution, gridKey, maxSlope)
+	if not originX or not originZ or not range then
 		return
 	end
 
 	gridResolution = gridResolution or DEFAULT_GRID_SPACING
 	gridKey = gridKey or "defaultKey"
+	maxSlope = maxSlope or DEFAULT_MAX_SLOPE
 
 	local grid = {}
 	local visited = {}
@@ -35,8 +39,7 @@ local function generateTraversableGrid(unitDefID, originX, originZ, range, gridR
 	local snappedOriginX = snapToGrid(originX, gridResolution)
 	local snappedOriginZ = snapToGrid(originZ, gridResolution)
 
-	local originY = spGetGroundHeight(snappedOriginX, snappedOriginZ)
-	local isTraversable = spTestMoveOrder(unitDefID, snappedOriginX, originY, snappedOriginZ, 0, 0, 0, true, true, false)
+	local isTraversable = isPositionTraversable(snappedOriginX, snappedOriginZ, maxSlope)
 
 	if not isTraversable then
 		unitIDTraversabilityGrids[gridKey] = grid
@@ -72,8 +75,7 @@ local function generateTraversableGrid(unitDefID, originX, originZ, range, gridR
 					visited[neighborX] = visited[neighborX] or {}
 					visited[neighborX][neighborZ] = true
 
-					local neighborY = spGetGroundHeight(neighborX, neighborZ)
-					local isNeighborTraversable = spTestMoveOrder(unitDefID, neighborX, neighborY, neighborZ, 0, 0, 0, true, true, false)
+					local isNeighborTraversable = isPositionTraversable(neighborX, neighborZ, maxSlope)
 
 					grid[neighborX] = grid[neighborX] or {}
 					if isNeighborTraversable then
