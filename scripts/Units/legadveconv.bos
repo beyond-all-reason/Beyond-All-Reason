@@ -1,52 +1,95 @@
 #include "../recoil_common_includes.h"
 
-piece  base, core, rotor1, rotor2, rotor3, rotor4, swivel, wall1, topLight, botLeftLight, botRightLight, topLeftLight, topRightLight;
+piece
+smallArm2,
+smallArm1,
+smallArm4,
+smallArm3,
+largeCell4,
+largeCell2,
+largeCell1,
+largeCell3,
+base,
+largeMidCell,
+smallArmFlare1,
+smallArmFlare2,
+smallArmFlare3,
+smallArmFlare4,
+largeCellFlare1,
+largeCellFlare2,
+largeCellFlare3,
+largeCellFlare4,
+lightFlare1,
+lightFlare2,
+lightFlare3,
+lightFlare4,
+lightFlare5;
 
 static-var  Active;
 
 MMStatus(State)
 {
 	Active = State;
-	if (Active){
-		turn rotor1 to y-axis <0> speed <20>;
-        turn rotor2 to y-axis <0> speed <20>;
-        turn rotor3 to y-axis <0> speed <20>;
-        turn rotor4 to y-axis <0> speed <20>;
-        move wall1 to y-axis [0] speed [5];
-        move core to y-axis [0] speed [5];
-		wait-for-move core along y-axis;
-		show topLight;
-		show botLeftLight;
-		show botrightLight;
-		show toprightLight;
-		show topLeftLight;
+	if (Active) {
+        show lightFlare1;
+        show lightFlare2;
+        show lightFlare3;
+        show lightFlare4;
+        show lightFlare5;
+
+        move largeCell1 to y-axis [0] speed [9];
+        move largeCell2 to y-axis [0] speed [9];
+        move largeCell3 to y-axis [0] speed [9];
+        move largeCell4 to y-axis [0] speed [9];
+
+        turn smallArm1 to x-axis <0> speed <45>;
+        turn smallArm2 to x-axis <0> speed <45>;
+        turn smallArm3 to x-axis <0> speed <45>;
+        turn smallArm4 to x-axis <0> speed <45>;
+
+        move largeMidCell to y-axis [0] speed [5];
 
 	}
-	else
-	{
-		hide topLight;
-		hide botLeftLight;
-		hide botrightLight;
-		hide toprightLight;
-		hide topLeftLight;
-        move wall1 to y-axis [5] speed [5];
-        move core to y-axis [-5] speed [5];
-        turn rotor1 to y-axis <-80> speed <20>;
-        turn rotor2 to y-axis <-60> speed <20>;
-        turn rotor3 to y-axis <-40> speed <20>;
-        turn rotor4 to y-axis <-20> speed <20>;
+	else {
+        hide lightFlare1;
+        hide lightFlare2;
+        hide lightFlare3;
+        hide lightFlare4;
+        hide lightFlare5;
+
+        move largeCell1 to y-axis [-9] speed [9];
+        move largeCell2 to y-axis [-9] speed [9];
+        move largeCell3 to y-axis [-9] speed [9];
+        move largeCell4 to y-axis [-9] speed [9];
+
+        turn smallArm1 to x-axis <45> speed <45>;
+        turn smallArm2 to x-axis <45> speed <45>;
+        turn smallArm3 to x-axis <45> speed <45>;
+        turn smallArm4 to x-axis <45> speed <45>;
+
+        move largeMidCell to y-axis [-5] speed [5];
 	}
-	//get PRINT(get GAME_FRAME, Active);
 	
 }
 
-Create()
-{
-			hide topLight;
-		hide botLeftLight;
-		hide botrightLight;
-		hide toprightLight;
-		hide topLeftLight;
+Create(){
+
+    hide lightFlare1;
+    hide lightFlare2;
+    hide lightFlare3;
+    hide lightFlare4;
+    hide lightFlare5;
+    
+    turn largeCellFlare1 to x-axis <-50> now;
+    turn largeCellFlare3 to x-axis <50> now;
+    turn largeCellFlare2 to z-axis <50> now;
+    turn largeCellFlare4 to z-axis <-50> now;
+
+    turn smallArmFlare1 to y-axis <45> now;
+    turn smallArmFlare2 to y-axis <135> now;
+    turn smallArmFlare3 to y-axis <225> now;
+    turn smallArmFlare4 to y-axis <315> now;
+
 	Active = 0;
 
 }
@@ -62,25 +105,25 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode core type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode largeMidCell type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode core type FALL | NOHEATCLOUD;
+		explode largeMidCell type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode core type SMOKE | FALL | NOHEATCLOUD;
+		explode largeMidCell type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode core type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode largeMidCell type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
