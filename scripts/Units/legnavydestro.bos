@@ -229,7 +229,7 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {	
-	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+	//RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
     
 	return (0);
 }

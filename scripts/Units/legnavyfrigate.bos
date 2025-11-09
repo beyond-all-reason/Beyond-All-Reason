@@ -133,9 +133,9 @@ FirePrimary()
 	turn rFlap to y-axis <-44> speed <440>;
 	turn tFlap to x-axis <-29> speed <290>;
 	wait-for-turn lFlap around y-axis;
-	turn lFlap to y-axis <0> speed <12>;
-	turn rFlap to y-axis <0> speed <12>;
-	turn tFlap to x-axis <0> speed <8>;
+	turn lFlap to y-axis <0> speed <36>;
+	turn rFlap to y-axis <0> speed <36>;
+	turn tFlap to x-axis <0> speed <24>;
 }
 
 AimFromPrimary(piecenum)
@@ -178,9 +178,9 @@ FireSecondary()
 	turn rFlap to y-axis <-44> speed <440>;
 	turn tFlap to x-axis <-29> speed <290>;
 	wait-for-turn lFlap around y-axis;
-	turn lFlap to y-axis <0> speed <12>;
-	turn rFlap to y-axis <0> speed <12>;
-	turn tFlap to x-axis <0> speed <8>;
+	turn lFlap to y-axis <0> speed <36>;
+	turn rFlap to y-axis <0> speed <36>;
+	turn tFlap to x-axis <0> speed <24>;
 }
 
 AimFromSecondary(piecenum)
