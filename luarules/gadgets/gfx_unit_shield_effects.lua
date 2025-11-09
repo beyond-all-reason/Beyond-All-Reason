@@ -236,6 +236,12 @@ local function AddUnit(unitID, unitDefID)
 		return
 	end
 
+	-- Validate shield capacity
+	if not def.shieldCapacity or def.shieldCapacity <= 0 then
+		Spring.Echo("Warning: Shield unit " .. unitDefID .. " has invalid capacity: " .. tostring(def.shieldCapacity))
+		return
+	end
+
 	local shieldInfo = table.copy(def.config)
 	shieldInfo.unit = unitID
 	shieldInfo.shieldCapacity = def.shieldCapacity
@@ -597,8 +603,23 @@ end
 local function InitializeShader()
 	local LuaShader = gl.LuaShader
 
+	-- Check if shader files exist
+	if not VFS.FileExists("shaders/ShieldSphereColor.vert") then
+		Spring.Echo("Shield shader error: shaders/ShieldSphereColor.vert not found!")
+		return false
+	end
+	if not VFS.FileExists("shaders/ShieldSphereColor.frag") then
+		Spring.Echo("Shield shader error: shaders/ShieldSphereColor.frag not found!")
+		return false
+	end
+
 	local shieldShaderVert = VFS.LoadFile("shaders/ShieldSphereColor.vert")
 	local shieldShaderFrag = VFS.LoadFile("shaders/ShieldSphereColor.frag")
+
+	if not shieldShaderVert or not shieldShaderFrag then
+		Spring.Echo("Shield shader error: Failed to load shader files!")
+		return false
+	end
 
 	shieldShaderFrag = shieldShaderFrag:gsub("###DEPTH_CLIP01###", (Platform.glSupportClipSpaceControl and "1" or "0"))
 	shieldShaderFrag = shieldShaderFrag:gsub("###MAX_POINTS###", MAX_POINTS)
@@ -628,6 +649,19 @@ local function InitializeShader()
 	local shaderCompiled = shieldShader:Initialize()
 	if not shaderCompiled then
 		Spring.Echo("Shield shader failed to compile!")
+		local shaderLog = shieldShader:GetLog()
+		if shaderLog and shaderLog ~= "" then
+			Spring.Echo("Shader compilation log:")
+			Spring.Echo(shaderLog)
+		end
+		shieldShader = nil
+		return false
+	end
+
+	-- Verify shader object is valid
+	if not shieldShader or not shieldShader.uniformLocations then
+		Spring.Echo("Shield shader object is invalid after initialization!")
+		shieldShader = nil
 		return false
 	end
 
@@ -671,6 +705,11 @@ end
 
 function gadget:DrawWorld()
 	if not shieldShader then
+		return
+	end
+
+	-- Additional safety check to ensure shader is actually usable
+	if not shieldShader.uniformLocations or not uTranslationScale then
 		return
 	end
 
@@ -787,10 +826,14 @@ function gadget:DrawWorld()
 				glUniformInt(uEffects, info.optionX)
 
 				local _, charge = spGetUnitShieldState(unitID)
-				if charge then
-					local frac = charge / (info.shieldCapacity or 10000)
+				if charge and info.shieldCapacity and info.shieldCapacity > 0 then
+					local frac = charge / info.shieldCapacity
 
 					if frac > 1 then frac = 1 elseif frac < 0 then frac = 0 end
+					
+					-- Additional NaN safety check
+					if frac ~= frac then frac = 0 end -- NaN check (NaN != NaN)
+					
 					local fracinv = 1.0 - frac
 
 					local colormap1 = info.colormap1[1]
