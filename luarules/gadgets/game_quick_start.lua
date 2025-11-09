@@ -187,7 +187,7 @@ local function generateLocalGrid(commanderID)
 						if heightDiff <= MAX_HEIGHT_DIFFERENCE then
 							local snappedX, snappedY, snappedZ = spPos2BuildPos(buildDefID, testX, searchY, testZ)
 							if snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, DEFAULT_FACING) == UNOCCUPIED then
-								local isTraversable = commanders[commanderID] and commanders[commanderID].unitDefID and traversabilityGrid.canMoveToPosition(commanders[commanderID].unitDefID, snappedX, snappedZ, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
+								local isTraversable = traversabilityGrid.canMoveToPosition(commanderID, snappedX, snappedZ, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
 								if isTraversable then
 									local key = snappedX .. "_" .. snappedZ
 									if not used[key] then
@@ -286,7 +286,7 @@ local function getCommanderBuildQueue(commanderID)
 			local spawnParams = { id = -cmd.id, x = cmd.params[1], y = cmd.params[2], z = cmd.params[3], facing = cmd
 			.params[4] or 1, cmdTag = cmd.tag }
 			local distance = distance2d(comData.spawnX, comData.spawnZ, spawnParams.x, spawnParams.z)
-			local isTraversable = comData.unitDefID and traversabilityGrid.canMoveToPosition(comData.unitDefID, spawnParams.x, spawnParams.z, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
+			local isTraversable = traversabilityGrid.canMoveToPosition(commanderID, spawnParams.x, spawnParams.z, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
 			if distance <= INSTANT_BUILD_RANGE and isTraversable then
 				table.insert(spawnQueue, spawnParams)
 				if cmd.tag then
@@ -513,7 +513,7 @@ local function populateNearbyMexes(commanderID)
 		local metalSpot = metalSpotsList[i]
 		if metalSpot then
 			local distance = distance2d(metalSpot.x, metalSpot.z, commanderX, commanderZ)
-			local isTraversable = comData.unitDefID and traversabilityGrid.canMoveToPosition(comData.unitDefID, metalSpot.x, metalSpot.z, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
+			local isTraversable = traversabilityGrid.canMoveToPosition(commanderID, metalSpot.x, metalSpot.z, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
 			if distance <= INSTANT_BUILD_RANGE and isTraversable then
 				table.insert(comData.nearbyMexes, {
 					x = metalSpot.x,
@@ -588,7 +588,7 @@ local function initializeCommander(commanderID, teamID)
 	comData.spawnX, comData.spawnY, comData.spawnZ = spGetUnitPosition(commanderID)
 
 	if comData.lastCommanderX ~= comData.spawnX or comData.lastCommanderZ ~= comData.spawnZ then
-		traversabilityGrid.generateTraversableGrid(comData.unitDefID, comData.spawnX, comData.spawnZ, TRAVERSABILITY_GRID_GENERATION_RANGE, TRAVERSABILITY_GRID_RESOLUTION, comData.unitDefID)
+		traversabilityGrid.generateTraversableGrid(comData.spawnX, comData.spawnZ, TRAVERSABILITY_GRID_GENERATION_RANGE, TRAVERSABILITY_GRID_RESOLUTION, commanderID)
 		comData.lastCommanderX = comData.spawnX
 		comData.lastCommanderZ = comData.spawnZ
 	end
@@ -599,7 +599,7 @@ local function initializeCommander(commanderID, teamID)
 	for i = #comData.spawnQueue, 1, -1 do
 		local build = comData.spawnQueue[i]
 		local distance = distance2d(build.x, build.z, comData.spawnX, comData.spawnZ)
-		local isTraversable = comData.unitDefID and traversabilityGrid.canMoveToPosition(comData.unitDefID, build.x, build.z, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
+		local isTraversable = traversabilityGrid.canMoveToPosition(commanderID, build.x, build.z, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
 		if distance > INSTANT_BUILD_RANGE or not isTraversable then
 			table.remove(comData.spawnQueue, i)
 		end
