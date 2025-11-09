@@ -133,7 +133,7 @@ return {
 				predictboost = 1,
 				proximitypriority = 0,
 				range = 700,
-				reloadtime = 2.2,
+				reloadtime = 2.4,
 				rgbcolor = "1 0.5 0",
 				rgbcolor2 = "0.8 1.0 0.3",
 				soundhitdry = "flamhit1",
@@ -193,7 +193,7 @@ return {
 					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1100,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 4,
-					carrierdeaththroe = "release",
+					carrierdeaththroe = "death",
 					dockingarmor = 0.2,
 					dockinghealrate = 16,
 					docktohealthreshold = 66,
