@@ -18,6 +18,7 @@ end
 
 -- Localized Spring API for performance
 local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 
 -- Behavior:
 -- To give a line command: select command, then right click & drag
@@ -190,7 +191,7 @@ local function GetModKeys()
     if spGetInvertQueueKey() then -- Shift inversion
         shift = not shift
     end
-    
+
     -- Check if PiP widget wants to force shift for right-click drags
     if WG.pipForceShift then
         shift = true
@@ -1396,7 +1397,7 @@ function widget:Initialize()
 	WG.customformations.setRepeatForSingleUnit = function(value)
 		repeatForSingleUnit = value
 	end
-	
+
 	-- External formation dragging API (for PIP window, etc.)
 	WG.customformations.StartFormation = function(worldPos, cmdID, fromMinimap)
 		-- Reset state
@@ -1410,12 +1411,12 @@ function widget:Initialize()
 		pathPositions = {}
 		overriddenCmd = nil
 		overriddenTarget = nil
-		
+
 		-- Set command
 		usingCmd = cmdID or CMD_MOVE
 		usingRMB = true
 		inMinimap = fromMinimap or false
-		
+
 		-- Add first node
 		if AddFNode(worldPos) then
 			local alt, ctrl, meta, shift = spGetModKeyState()
@@ -1424,18 +1425,18 @@ function widget:Initialize()
 		end
 		return false
 	end
-	
+
 	WG.customformations.AddFormationNode = function(worldPos)
 		if #fNodes == 0 then return false end
-		
+
 		local added = AddFNode(worldPos)
-		
+
 		-- Start drawing when we have 2+ nodes
 		if #fNodes == 2 then
 			widgetHandler:UpdateWidgetCallIn("DrawWorld", self)
 			widgetHandler:UpdateWidgetCallIn("DrawInMiniMap", self)
 		end
-		
+
 		-- Path handling
 		if #fNodes > 1 and pathCandidate then
 			local minDist = minPathSpacingSq
@@ -1453,7 +1454,7 @@ function widget:Initialize()
 							break
 						end
 					end
-					
+
 					-- Only add command if it's not too close to any previous position
 					if not tooClose then
 						draggingPath = true
@@ -1469,31 +1470,31 @@ function widget:Initialize()
 				pathPositions[1] = {worldPos[1], worldPos[2], worldPos[3]}
 			end
 		end
-		
+
 		return added
 	end
-	
+
 	WG.customformations.EndFormation = function(worldPos, cmdID)
 		if #fNodes == 0 then return false end
-		
+
 		-- Add final position
 		if worldPos then
 			AddFNode(worldPos)
 		end
-		
+
 		-- Determine if we used the formation
 		local usingFormation = not draggingPath
 		local result = false
-		
+
 		if usingFormation then
 			local alt, ctrl, meta, shift = GetModKeys()
 			local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, usingRMB)
-			
+
 			-- Get drag threshold
 			local selectionThreshold = Spring.GetConfigInt("MouseDragFrontCommandThreshold") or 20
 			local dragDelta = selectionThreshold -- Approximate for external callers
 			local adjustedMinFormationLength = max(dragDelta, minFormationLength)
-			
+
 			if fDists[#fNodes] < adjustedMinFormationLength or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64*(selectedUnitsCount - 1)) then
 				-- Single-click style order
 				if usingCmd == CMD_MOVE and #fNodes > 0 then
@@ -1511,7 +1512,7 @@ function widget:Initialize()
 					else
 						orders = GetOrdersNoX(interpNodes, mUnits, #mUnits, shift and not meta)
 					end
-					
+
 					local unitArr = {}
 					local orderArr = {}
 					if meta then
@@ -1541,7 +1542,7 @@ function widget:Initialize()
 				end
 			end
 		end
-		
+
 		-- Show dimming line
 		if #fNodes > 1 then
 			dimmCmd = usingCmd
@@ -1549,15 +1550,15 @@ function widget:Initialize()
 			dimmAlpha = 1.0
 			widgetHandler:UpdateWidgetCallIn("Update", self)
 		end
-		
+
 		-- Reset
 		fNodes = {}
 		fDists = {}
 		draggingPath = false
-		
+
 		return result
 	end
-	
+
 	WG.customformations.CancelFormation = function()
 		fNodes = {}
 		fDists = {}
@@ -1566,23 +1567,23 @@ function widget:Initialize()
 		pathPositions = {}
 		return true
 	end
-	
+
 	WG.customformations.IsFormationActive = function()
 		return #fNodes > 0
 	end
-	
+
 	WG.customformations.GetFormationNodes = function()
 		return fNodes
 	end
-	
+
 	WG.customformations.GetFormationCommand = function()
 		return usingCmd
 	end
-	
+
 	WG.customformations.GetFormationLineLength = function()
 		return lineLength
 	end
-	
+
 	WG.customformations.GetSelectedUnitsCount = function()
 		return selectedUnitsCount
 	end
