@@ -1,0 +1,207 @@
+
+#include "../recoil_common_includes.h"
+
+piece  
+base,
+turretHeadingPivot,
+turret,
+barrel1,
+flare1,
+barrel2,
+flare2,
+wake,
+bow;
+
+static-var  gun_1, gun_2, restore_delay, oldheading, whichGun;
+
+
+// Signal definitions
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_MOVE 1
+
+
+#define RB_MASS 10
+#define RB_LENGTH 5
+#define RB_WIDTH 3
+#define RB_PITCH_ACCELERATION 10
+#define RB_ROLL_ACCELERATION 8
+#define RB_RECOIL_ENERGY_2 500
+#define RB_WAKE_PIECE wake
+#define RB_WAKE_CEG 1024 + 1
+#define RB_IDLE_KICK 10000
+
+#include "../bar_ships_common.h"
+
+
+Steering(heading, steery, currentspeed)
+{
+	//signal SIGNAL_MOVE;
+	//set-signal-mask SIGNAL_MOVE;
+	while(1)
+	{
+		heading = get HEADING;
+		steery = (oldheading - heading)*2;
+		sleep 100;
+		oldheading = heading;
+	}
+}
+
+
+
+Create()
+{
+    whichGun = 0;
+	restore_delay = 3000;
+	start-script InitRockBoat();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script BoatPhysics();
+}
+
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 2;
+	return (0);
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+    turn turretHeadingPivot to y-axis 0 speed <100.0>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	start-script Steering();
+}
+
+
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	return (0);
+}
+
+AimWeapon1(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn turretHeadingPivot to y-axis heading speed <270.0>;
+	wait-for-turn turretHeadingPivot around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon1()
+{
+
+}
+
+Restorelbarrel()
+{
+	set-signal-mask 0;	//make sure shots from other barrel do not interrupt current barrel movement
+	sleep 100;
+	move barrel1 to z-axis [0.0] speed [18.0];
+}
+
+Restorerbarrel()
+{
+	set-signal-mask 0;	//make sure shots from other barrel do not interrupt current barrel movement
+	sleep 100;
+	move barrel2 to z-axis [0.0] speed [18.0];
+}
+
+Shot1(zero){
+    if(whichGun == 0){
+        emit-sfx 1024 + 0 from flare1;
+        move barrel1 to z-axis [-3] now;
+        start-script Restorelbarrel();
+        whichGun = 1;
+    }
+    else if (whichGun == 1){
+        emit-sfx 1024 + 0 from flare2;
+        move barrel2 to z-axis [-3] now;
+        start-script Restorerbarrel();
+        whichGun = 0;
+    }
+    else{
+        whichGun = 0;
+    }
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = turret;
+	return (0);
+}
+
+
+QueryWeapon1(pieceIndex)
+{
+    if (whichGun == 0){
+        pieceIndex = flare1;
+    } 
+    else if (whichGun == 1){
+        pieceIndex = flare2;
+    }
+}
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode fturret type BITMAPONLY | NOHEATCLOUD;
+		// explode flbarrel type BITMAPONLY | NOHEATCLOUD;
+		// explode frbarrel type BITMAPONLY | NOHEATCLOUD;
+		// explode bturret type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode fturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode flbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode frbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode bturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode fturret type SMOKE | FALL | NOHEATCLOUD;
+		// explode flbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode frbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode bturret type SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		// explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode fturret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		// explode flbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode frbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode bturret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}
