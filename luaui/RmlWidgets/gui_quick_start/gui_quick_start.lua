@@ -50,8 +50,8 @@ local TRAVERSABILITY_GRID_GENERATION_RANGE = 576 --must match the value in game_
 local TRAVERSABILITY_GRID_RESOLUTION = 32
 local GRID_CHECK_RESOLUTION_MULTIPLIER = 1
 
-local traversabilityGrid = VFS.Include("luarules/Utilities/traversability_grid.lua")
-local aestheticCustomCostRound = VFS.Include("LuaRules/Utilities/aestheticCustomCostRound.lua")
+local traversabilityGrid = VFS.Include("common/traversability_grid.lua")
+local aestheticCustomCostRound = VFS.Include("common/aestheticCustomCostRound.lua")
 local customRound = aestheticCustomCostRound.customRound
 local lastCommanderX = nil
 local lastCommanderZ = nil
@@ -120,10 +120,7 @@ local function isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, instan
 		return false
 	end
 
-	local myTeamID = spGetMyTeamID()
-	local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
-
-	if startDefID and traversabilityGrid.canMoveToPosition(startDefID, buildX, buildZ, GRID_CHECK_RESOLUTION_MULTIPLIER) then
+	if traversabilityGrid.canMoveToPosition("myGrid", buildX, buildZ, GRID_CHECK_RESOLUTION_MULTIPLIER) then
 		return true
 	end
 
@@ -158,7 +155,7 @@ local function updateTraversabilityGrid()
 		return
 	end
 	if lastCommanderX ~= commanderX or lastCommanderZ ~= commanderZ then
-		traversabilityGrid.generateTraversableGrid(startDefID, commanderX, commanderZ, TRAVERSABILITY_GRID_GENERATION_RANGE, TRAVERSABILITY_GRID_RESOLUTION, startDefID)
+		traversabilityGrid.generateTraversableGrid(commanderX, commanderZ, TRAVERSABILITY_GRID_GENERATION_RANGE, TRAVERSABILITY_GRID_RESOLUTION, "myGrid")
 		lastCommanderX = commanderX
 		lastCommanderZ = commanderZ
 	end
