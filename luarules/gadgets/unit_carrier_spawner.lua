@@ -1372,7 +1372,7 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmd
     --if carrierMetaList[unitID] and carrierMetaList[unitID].ignorenextcommand then
      --   carrierMetaList[unitID].ignorenextcommand = false
 	--else
-	if carrierMetaList[unitID] then
+	if carrierMetaList[unitID] and cmdID == CMD.STOP then
 		carrierMetaList[unitID].subUnitsCommand.cmdID = nil
 	 	carrierMetaList[unitID].subUnitsCommand.cmdParams = nil
 		for subUnitID,value in pairsNext, carrierMetaList[unitID].subUnitsList do
