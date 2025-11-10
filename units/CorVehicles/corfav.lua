@@ -48,6 +48,7 @@ return {
 			unitgroup = "weapon",
 			weapon1turretx = 300,
 			weapon1turrety = 300,
+			has_surfing_colvol = true,
 		},
 		featuredefs = {
 			dead = {
