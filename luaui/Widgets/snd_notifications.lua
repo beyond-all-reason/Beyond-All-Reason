@@ -13,7 +13,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local mathRandom = math.random
 local tableSort = table.sort
@@ -622,6 +621,10 @@ end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	if not displayMessages and not spoken then
+		return
+	end
+
+	if (not spIsUnitAllied(unitID)) or unitTeam == gaiaTeamID then
 		return
 	end
 
