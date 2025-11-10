@@ -70,6 +70,7 @@ local loadedFontSize, font, font2, font2, cfgDisplayUnitID, cfgDisplayUnitDefID,
 local cellRect, cellPadding, cornerSize, cellsize, cellHovered
 local gridHeight, selUnitsSorted, selUnitsCounts, selectionCells, customInfoArea, contentPadding
 local displayUnitID, displayUnitDefID, doUpdateClock
+local prevDisplayUnitID, prevDisplayUnitDefID
 local contentWidth, dlistInfo, bfcolormap, selUnitTypes
 
 local RectRound, UiElement, UiUnit, elementCorner
@@ -1184,6 +1185,15 @@ local function drawUnitInfo()
 	local iconSize = math.floor(fontSize * 4.4)
 	local iconPadding = math.floor(fontSize * 0.22)
 
+	local displayUnitDefID = displayUnitDefID
+	if displayUnitID then
+		local paramKey = "decoyRevealed_team" .. myTeamID
+		local revealedUnitDefID = spGetUnitRulesParam(displayUnitID, paramKey)
+		if revealedUnitDefID then
+			displayUnitDefID = revealedUnitDefID
+		end
+	end
+
 	if unitDefInfo[displayUnitDefID].buildPic then
 		local iconX = backgroundRect[1] + iconPadding
 		local iconY =  backgroundRect[4] - iconPadding - bgpadding
@@ -1283,7 +1293,6 @@ local function drawUnitInfo()
 	font:SetOutlineColor(0,0,0,1)
 	font:Print(descriptionColor .. text, backgroundRect[3] - width + bgpadding, backgroundRect[4] - contentPadding - (fontSize * 2.17), fontSize * 0.94, "o")
 	font:End()
-
 	-- unit name
 	local nameFontSize = fontSize * 1.12
 	local humanName = unitDefInfo[displayUnitDefID].translatedHumanName
@@ -2273,8 +2282,8 @@ function checkChanges()
 	end
 
 	local prevDisplayMode = displayMode
-	local prevDisplayUnitDefID = displayUnitDefID
-	local prevDisplayUnitID = displayUnitID
+	prevDisplayUnitDefID = displayUnitDefID
+	prevDisplayUnitID = displayUnitID
 
 	-- determine what mode to display
 	displayMode = 'text'

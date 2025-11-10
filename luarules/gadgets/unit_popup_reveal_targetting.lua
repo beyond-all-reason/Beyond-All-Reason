@@ -20,6 +20,7 @@ local spGetUnitArmored = Spring.GetUnitArmored
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spAreTeamsAllied = Spring.AreTeamsAllied
+local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local armoredTurrets = {}
 local discoveredUnits = {}
 local armoredStates = {}
@@ -35,16 +36,19 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	end
 end	
 
-local function flagTeamAndAllies(unitID, teamID)
+local function flagTeam(unitID, teamID)
 	if not discoveredUnits[unitID] then
 		discoveredUnits[unitID] = {}
 	end
 	if discoveredUnits[unitID][teamID] then
 		return
 	end
-	for _, checkedTeamID in ipairs(Spring.GetTeamList()) do
-		if spAreTeamsAllied(teamID, checkedTeamID) then
-			discoveredUnits[unitID][checkedTeamID] = true
+	local unitDefID = spGetUnitDefID(unitID)
+	for _, checkTeamID in ipairs(Spring.GetTeamList()) do
+		if spAreTeamsAllied(teamID, checkTeamID) then
+			discoveredUnits[unitID][checkTeamID] = true
+			local paramKey = "decoyRevealed_team" .. checkTeamID
+			spSetUnitRulesParam(unitID, paramKey, unitDefID, { public = true })
 		end
 	end
 	armoredStates[unitID] = UNKNOWN
@@ -61,6 +65,10 @@ function gadget:Initialize()
 			local unitDefID = spGetUnitDefID(unitID)
 			if armoredTurrets[unitDefID] then
 				discoveredUnits[unitID] = {}
+				for _, teamID in ipairs(Spring.GetTeamList()) do
+					local paramKey = "decoyRevealed_team" .. teamID
+					spSetUnitRulesParam(unitID, paramKey, nil)
+				end
 			end
 		end
 	end
@@ -69,6 +77,7 @@ end
 function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
 	local priority = defPriority or 1.0
 	local targetDefID = spGetUnitDefID(targetID)
+
 	if not targetDefID or not armoredTurrets[targetDefID] then
 		return true, priority
 	end
@@ -83,11 +92,12 @@ function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attac
 	end
 
 	if state == UNARMORED then
-		flagTeamAndAllies(targetID, attackerTeamID)
+		flagTeam(targetID, attackerTeamID)
 		return true, priority
 	end
 
-	return (discoveredUnits[targetID] and discoveredUnits[targetID][attackerTeamID]) or false, priority
+	local canTarget = (discoveredUnits[targetID] and discoveredUnits[targetID][attackerTeamID]) or false
+	return canTarget, priority
 end
 
 function gadget:GameFrame(frame)
