@@ -22,8 +22,7 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetTeamList = Spring.GetTeamList
 
-local COB_ARMORED = 20
-
+local COB_ARMORED = COB.ARMORED
 local armoredTurrets = {}
 local discoveredUnits = {}
 
@@ -31,7 +30,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.customParams and unitDef.customParams.concealed_when_closed then
 		armoredTurrets[unitDefID] = true
 	end
-end
+end	
 
 local function flagTeamAndAllies(unitID, teamID)
 	discoveredUnits[unitID] = discoveredUnits[unitID] or {}
@@ -51,11 +50,9 @@ end
 
 function gadget:Initialize()
 
-	local registeredCount = 0
 	for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		if weaponDef.range > 0 and not weaponDef.name:find("fake") then
 			Script.SetWatchAllowTarget(weaponDefID, true)
-			registeredCount = registeredCount + 1
 		end
 	end
 
@@ -78,9 +75,6 @@ function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attac
 	end
 
 	local attackerTeamID = spGetUnitTeam(attackerID)
-	if not attackerTeamID then
-		return true, priority
-	end
 
 	local cobValue = spGetUnitCOBValue(targetID, COB_ARMORED)
 	if cobValue and cobValue == 0 then
