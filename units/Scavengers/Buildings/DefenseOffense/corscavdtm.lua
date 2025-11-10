@@ -43,6 +43,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
+			concealed_when_closed = true,
 			--subfolder = "other/Scavengers",
 		},
 		featuredefs = {
