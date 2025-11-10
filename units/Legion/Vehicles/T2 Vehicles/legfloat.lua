@@ -130,7 +130,7 @@ return {
 				impulsefactor = 0.123,
 				name = "Medium g2g gauss cannon",
 				noselfdamage = true,
-				range = 600,
+				range = 550,
 				reloadtime = 2.5,
 				separation = 1.8,
 				nogap = false,
@@ -144,7 +144,7 @@ return {
 				tolerance = 8000,
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 550,
+				weaponvelocity = 600,
 				damage = {
 					default = 250,
 				},
