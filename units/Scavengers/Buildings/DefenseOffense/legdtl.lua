@@ -46,7 +46,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
-			concealed_when_closed = true,
+			decoy_when_closed = true,
 		},
 		featuredefs = {
 			dead = {

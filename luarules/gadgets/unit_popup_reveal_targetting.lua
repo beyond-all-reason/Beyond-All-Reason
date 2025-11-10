@@ -30,7 +30,7 @@ local ARMORED = 1
 local CHECK_INTERVAL = math.floor(Game.gameSpeed * 0.5)
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
-	if unitDef.customParams and unitDef.customParams.concealed_when_closed then
+	if unitDef.customParams and unitDef.customParams.decoy_when_closed then
 		armoredTurrets[unitDefID] = true
 	end
 end	

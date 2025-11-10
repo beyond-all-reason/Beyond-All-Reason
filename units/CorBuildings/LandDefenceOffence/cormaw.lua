@@ -40,7 +40,7 @@ return {
 			buildinggrounddecaltype = "decals/cormaw_aoplane.dds",
 			decoyfor = "cormaw",
 			model_author = "Mr Bob",
-			concealed_when_closed = true,
+			decoy_when_closed = true,
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
