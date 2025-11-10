@@ -22,13 +22,11 @@ local mathIsInRect = math.isInRect
 
 -- Localized string functions
 local stringFormat = string.format
-local stringFind = string.find
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetTeamList = Spring.GetTeamList
-local spGetTeamInfo = Spring.GetTeamInfo
 local spSetMouseCursor = Spring.SetMouseCursor
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
@@ -1311,7 +1309,7 @@ function widget:Update(dt)
 		local energyDiff8 = r['energy'][8] - prevR['energy'][8]
 		local metalStorage = r['metal'][2]
 		local energyStorage = r['energy'][2]
-		
+
 		if (r['metal'][7] > 1 and metalDiff7 ~= 0 and r['metal'][7] / metalStorage > 0.05) or
 			(r['metal'][8] > 1 and metalDiff8 ~= 0 and r['metal'][8] / metalStorage > 0.05) or
 			(r['energy'][7] > 1 and energyDiff7 ~= 0 and r['energy'][7] / energyStorage > 0.05) or
