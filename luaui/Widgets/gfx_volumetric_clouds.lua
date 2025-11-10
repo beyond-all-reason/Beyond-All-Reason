@@ -14,10 +14,6 @@ function widget:GetInfo()
   }
 end
 
-
--- Localized Spring API for performance
-local spEcho = Spring.Echo
-
 local enabled = true
 
 local opacityMult = 1
@@ -113,10 +109,7 @@ local glTexture              = gl.Texture
 local LuaShader 			 = gl.LuaShader
 local spGetCameraPosition    = Spring.GetCameraPosition
 local spGetWind              = Spring.GetWind
-
-local function spEcho(words)
-	spEcho('<Volumetric Clouds> '..words)
-end
+local spEcho				 = Spring.Echo
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -178,7 +171,7 @@ function widget:ViewResize()
 
 
 	if depthTexture == nil or fogTexture == nil then
-		spEcho("Removing fog widget, bad depth texture")
+		spEcho("<Volumetric Clouds> Removing fog widget, bad depth texture")
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -568,7 +561,7 @@ local function init()
 		}, "Volumetric Clouds Depth Shader")
 
 		if not depthShader:Initialize() then
-			spEcho("Bad shader, reverting to non-GLSL widget.")
+			spEcho("<Volumetric Clouds> Bad shader, reverting to non-GLSL widget.")
 			enabled = false
 		end
 	end
