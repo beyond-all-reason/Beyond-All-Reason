@@ -206,6 +206,11 @@ end
 -- Engine events
 
 function gadget:Initialize()
+	if not next(canSurf) then
+		widgetHandler:RemoveWidget()
+		return
+	end
+
 	-- For luarules reload:
 	local waterLevel = Spring.GetWaterPlaneLevel()
 
