@@ -19,16 +19,21 @@ end
 local spGetUnitArmored = Spring.GetUnitArmored
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
-local spAreTeamsAllied = Spring.AreTeamsAllied
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
+local spGetTeamList = Spring.GetTeamList
 local armoredTurrets = {}
 local discoveredUnits = {}
-local armoredStates = {}
-
-local CHECKABLE = -1
-local UNARMORED = 0
-local ARMORED = 1
+local watchList = {}
 local CHECK_INTERVAL = math.floor(Game.gameSpeed * 0.5)
+local allyTeamRepresentative = {}
+
+for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
+	local teamIDs = Spring.GetTeamList(allyTeamID)
+	if teamIDs and #teamIDs > 0 then
+		local representativeTeam = teamIDs[1]
+		allyTeamRepresentative[allyTeamID] = representativeTeam
+	end
+end
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.customParams and unitDef.customParams.decoy_when_closed and unitDef.customParams.decoyfor then
@@ -36,20 +41,21 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	end
 end	
 
-local function flagTeam(unitID, teamID)
+local function flagAllyTeam(unitID, allyTeamID)
 	if not discoveredUnits[unitID] then
 		discoveredUnits[unitID] = {}
 	end
-	if discoveredUnits[unitID][teamID] then
+
+	local teamIDs = spGetTeamList(allyTeamID)
+	if not teamIDs then
 		return
 	end
+
 	local unitDefID = spGetUnitDefID(unitID)
-	for _, checkTeamID in ipairs(Spring.GetTeamList()) do
-		if spAreTeamsAllied(teamID, checkTeamID) then
-			discoveredUnits[unitID][checkTeamID] = true
-			local paramKey = "decoyRevealed_team" .. checkTeamID
-			spSetUnitRulesParam(unitID, paramKey, unitDefID, { public = true })
-		end
+	for _, teamID in ipairs(teamIDs) do
+		discoveredUnits[unitID][teamID] = true
+		local paramKey = "decoyRevealed_team" .. teamID
+		spSetUnitRulesParam(unitID, paramKey, unitDefID, { public = true })
 	end
 end
 
@@ -82,29 +88,18 @@ function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attac
 	end
 
 	local attackerTeamID = spGetUnitTeam(attackerID)
-	local state = armoredStates[targetID]
-
-	if not state or state == CHECKABLE then
-		local isArmored = spGetUnitArmored(targetID)
-		state = isArmored and ARMORED or UNARMORED
-		armoredStates[targetID] = state
-	end
-
-	if state == UNARMORED then
-		flagTeam(targetID, attackerTeamID)
-		return true, priority
-	end
-
 	local canTarget = (discoveredUnits[targetID] and discoveredUnits[targetID][attackerTeamID]) or false
 	return canTarget, priority
 end
 
 function gadget:GameFrame(frame)
 	if frame % CHECK_INTERVAL == 0 then
-		for unitID, state in pairs(armoredStates) do
-			if state ~= CHECKABLE then
-				local isArmored = spGetUnitArmored(unitID)
-				armoredStates[unitID] = isArmored and ARMORED or CHECKABLE
+		for unitID, allyTeams in pairs(watchList) do
+			if not spGetUnitArmored(unitID) then
+				for allyTeam in pairs(allyTeams) do
+					flagAllyTeam(unitID, allyTeam)
+				end
+				watchList[unitID] = nil
 			end
 		end
 	end
@@ -112,11 +107,39 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	discoveredUnits[unitID] = nil
-	armoredStates[unitID] = nil
+	watchList[unitID] = nil
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if armoredTurrets[unitDefID] then
 		discoveredUnits[unitID] = {}
+	end
+end
+
+function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+	if not armoredTurrets[unitDefID] then
+		return
+	end
+
+	local representativeTeam = allyTeamRepresentative[allyTeam]
+	if not representativeTeam or discoveredUnits[unitID] and representativeTeam and discoveredUnits[unitID][representativeTeam] then
+		return
+	end
+
+	if not spGetUnitArmored(unitID) then
+		flagAllyTeam(unitID, allyTeam)
+	else
+		watchList[unitID] = watchList[unitID] or {}
+		watchList[unitID][allyTeam] = true
+	end
+end
+
+function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+	if not armoredTurrets[unitDefID] then
+		return
+	end
+
+	if watchList[unitID] then
+		watchList[unitID][allyTeam] = nil
 	end
 end
