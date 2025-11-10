@@ -25,7 +25,7 @@ local armoredTurrets = {}
 local discoveredUnits = {}
 local armoredStates = {}
 
-local UNKNOWN = -1
+local CHECKABLE = -1
 local UNARMORED = 0
 local ARMORED = 1
 local CHECK_INTERVAL = math.floor(Game.gameSpeed * 0.5)
@@ -51,7 +51,6 @@ local function flagTeam(unitID, teamID)
 			spSetUnitRulesParam(unitID, paramKey, unitDefID, { public = true })
 		end
 	end
-	armoredStates[unitID] = UNKNOWN
 end
 
 function gadget:Initialize()
@@ -85,7 +84,7 @@ function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attac
 	local attackerTeamID = spGetUnitTeam(attackerID)
 	local state = armoredStates[targetID]
 
-	if not state or state == UNKNOWN then
+	if not state or state == CHECKABLE then
 		local isArmored = spGetUnitArmored(targetID)
 		state = isArmored and ARMORED or UNARMORED
 		armoredStates[targetID] = state
@@ -103,9 +102,9 @@ end
 function gadget:GameFrame(frame)
 	if frame % CHECK_INTERVAL == 0 then
 		for unitID, state in pairs(armoredStates) do
-			if state ~= UNARMORED then
+			if state ~= CHECKABLE then
 				local isArmored = spGetUnitArmored(unitID)
-				armoredStates[unitID] = isArmored and ARMORED or UNARMORED
+				armoredStates[unitID] = isArmored and ARMORED or CHECKABLE
 			end
 		end
 	end
