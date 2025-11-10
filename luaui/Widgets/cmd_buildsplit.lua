@@ -20,8 +20,8 @@ local spGetSpectatingState = Spring.GetSpectatingState
 
 local floor = math.floor
 local spTestBuildOrder = Spring.TestBuildOrder
-local spGetSelUnitCount = spGetSelectedUnitsCount
-local spGetSelUnitsSorted = spGetSelectedUnitsSorted
+local spGetSelUnitCount = Spring.GetSelectedUnitsCount
+local spGetSelUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
 local activeModifier = false

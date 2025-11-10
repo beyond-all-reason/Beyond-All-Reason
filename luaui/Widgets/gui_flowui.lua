@@ -551,22 +551,6 @@ WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pb
 		{ color1[1], color1[2], color1[3], opaque and 1 or color1[4] },
 		{ color1[1], color1[2], color1[3], opaque and 1 or color1[4] })
 
-	-- Layer 1.1: Black feathered inner outline
-	local pad = bgpadding * 0.5
-	-- WG.FlowUI.Draw.RectRoundOutline(
-	-- 	px, py, sx, sy,
-	-- 	cs, pad,
-	-- 	tl, tr, br, bl,
-	-- 	{ 0,0,0, 0.25 }, { 0,0,0, 0 }
-	-- )
-	-- pad = bgpadding
-	-- WG.FlowUI.Draw.RectRoundOutline(
-	-- 	px, py, sx, sy,
-	-- 	cs, pad,
-	-- 	tl, tr, br, bl,
-	-- 	{ 0,0,0, 0.0 }, { 0,0,0, 0.2 }
-	-- )
-
 	-- Layer 2: Main element with gradient (replaces the old "element" layer)
 	cs = cs * 0.6
 	local elemAlpha = opaque and opacity or color2[4] * 1.25
@@ -656,6 +640,7 @@ WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pb
 		tl, tr, br, bl,
 		{ 1, 1, 1, outlineAlpha }, { 1, 1, 1, 0 }
 	)
+
 end
 
 --[[
@@ -687,35 +672,46 @@ WG.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr
 	local sxPad = bgpadding * (sx < WG.FlowUI.vsx and 1 or 0) * (ptr or 1)
 	local syPad = bgpadding * (sy < WG.FlowUI.vsy and 1 or 0) * (ptl or 1)
 
-	local glossHeight = mathFloor((sy-py)*0.5)
+	local glossHeight = mathFloor((sy-py)*0.4)
 	local cs = bgpadding * 1.6
 
 	-- Layer 1: Background with gradient
 	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, tl, tr, br, bl, color1, color2)
 
+
 	-- Layer 2: Combined top gloss (merges the old top edge highlight + top half gloss + top extended gloss)
 	-- Alpha values tuned to match original brightness from overlapping layers
-	local topGlossAlpha = 0.2 * glossMult
+	local topGlossAlpha = 0.18 * glossMult
 	WG.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - glossHeight, sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0,
 		{ 1, 1, 1, 0 },
 		{ 1, 1, 1, topGlossAlpha })
 
-	-- Layer 3: Enhanced top edge highlight (thin bright edge at the very top)
-	WG.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - (bgpadding*2.5), sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0,
-		{ 1, 1, 1, 0 },
-		{ 1, 1, 1, 0.08 * glossMult })
+	-- -- Layer 3: Enhanced top edge highlight (thin bright edge at the very top)
+	-- WG.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - (bgpadding*2.5), sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0,
+	-- 	{ 1, 1, 1, 0 },
+	-- 	{ 1, 1, 1, 0.08 * glossMult })
 
 	-- Layer 4: Combined bottom gloss (merges the three overlapping bottom gloss layers)
 	-- Alpha values tuned to match original brightness from overlapping layers
-	local bottomGlossAlpha = 0.1 * glossMult
+	local bottomGlossAlpha = 0.075 * glossMult
 	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, bgpadding, 0, 0, br, bl,
 		{ 1, 1, 1, bottomGlossAlpha },
 		{ 1, 1, 1, 0 })
 
-	-- Layer 5: Bottom edge highlight (thin edge at the very bottom)
-	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + (bgpadding*2), bgpadding, 0, 0, br, bl,
-		{ 1, 1, 1, 0.04 * glossMult },
-		{ 1, 1, 1, 0 })
+	-- -- Layer 5: Bottom edge highlight (thin edge at the very bottom)
+	-- WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + (bgpadding*2), bgpadding, 0, 0, br, bl,
+	-- 	{ 1, 1, 1, 0.04 * glossMult },
+	-- 	{ 1, 1, 1, 0 })
+
+	-- Layer 6: White feathered inner outline glow
+	local outlineWidth = 7
+	local outlineAlpha = opaque and 0.12 or 0.06
+	WG.FlowUI.Draw.RectRoundOutline(
+		px + pxPad, py + pyPad, sx - sxPad, sy - syPad,
+		cs, outlineWidth,
+		tl, tr, br, bl,
+		{ 1, 1, 1, outlineAlpha }, { 1, 1, 1, 0 }
+	)
 end
 
 -- This was broken out from an internal "Unit" function, to allow drawing similar style icons in other places

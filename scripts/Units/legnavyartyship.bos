@@ -107,7 +107,7 @@ AimWeapon1(heading, pitch)
 	set-signal-mask SIGNAL_AIM1;
 	aimDir1  = heading;
 	turn turretHeadingPivot1 to y-axis heading speed <30.0>;
-	turn turretPitchPivot1 to x-axis <0.0> - pitch speed <5.0>;
+	turn turretPitchPivot1 to x-axis <0.0> - pitch speed <15.0>;
 	if (get ABS(wpn1_lasthead - heading)> <20>)
 	{
 		wait-for-turn turretHeadingPivot1 around y-axis;
@@ -145,7 +145,7 @@ AimWeapon2(heading, pitch)
 	set-signal-mask SIGNAL_AIM2;
 	aimDir2 = heading;
 	turn turretHeadingPivot2 to y-axis heading speed <30.0>;
-	turn turretPitchPivot2 to x-axis <0.0> - pitch speed <5.0>;
+	turn turretPitchPivot2 to x-axis <0.0> - pitch speed <15.0>;
 	if (get ABS(wpn1_lasthead - heading)> <20>)
 	{
 		wait-for-turn turretHeadingPivot2 around y-axis;
