@@ -103,7 +103,16 @@ local default_return_values = {
 
 -- Localize often used methods.
 local pairs = pairs
+local ipairs = ipairs
 local table_remove = table.remove
+local type = type
+local setmetatable = setmetatable
+local setfenv = setfenv
+local unpack = unpack
+local error = error
+local pcall = pcall
+local loadstring = loadstring
+local tostring = tostring
 
 local co_create = coroutine.create
 local co_resume = coroutine.resume
@@ -117,6 +126,9 @@ local sp_GetGameFrame = Spring.GetGameFrame
 local sp_GetUnitWeaponState = Spring.GetUnitWeaponState
 local sp_SetUnitWeaponState = Spring.SetUnitWeaponState
 local sp_SetUnitShieldState = Spring.SetUnitShieldState
+local sp_GetUnitDefID = Spring.GetUnitDefID
+local sp_GetAllUnits = Spring.GetAllUnits
+local sp_GetUnitPieceMap = Spring.GetUnitPieceMap
 
 -- Keep local reference to engine's CallAsUnit/WaitForMove/WaitForTurn,
 -- as we overwrite them with (safer) framework version later on.
@@ -185,10 +197,18 @@ local units = {}
 -- top of the stack (index #activeUnitStack)
 local activeUnitStack = {}
 
-local function PushActiveUnitID(unitID)   activeUnitStack[#activeUnitStack + 1] = unitID   end
-local function PopActiveUnitID()   activeUnitStack[#activeUnitStack] = nil   end
-local function GetActiveUnitID()   return activeUnitStack[#activeUnitStack]   end
-local function GetActiveUnit()   return units[GetActiveUnitID()]   end
+local function PushActiveUnitID(unitID)
+	local n = #activeUnitStack + 1
+	activeUnitStack[n] = unitID
+end
+
+local function PopActiveUnitID()
+	activeUnitStack[#activeUnitStack] = nil
+end
+
+local function GetActiveUnit()
+	return units[activeUnitStack[#activeUnitStack]]
+end
 
 
 --[[
@@ -264,16 +284,12 @@ end
 local function AnimFinished(waitingForAnim, piece, axis)
 	local index = piece * 3 + axis
 	local wthreads = waitingForAnim[index]
-	local wthread = nil
 
 	if wthreads then
-		waitingForAnim[index] = {}
+		waitingForAnim[index] = nil
 
-		while (#wthreads > 0) do	
-			wthread = wthreads[#wthreads]
-			wthreads[#wthreads] = nil
-
-			WakeUp(wthread)
+		for i = #wthreads, 1, -1 do
+			WakeUp(wthreads[i])
 		end
 	end
 end
@@ -281,15 +297,13 @@ end
 -- MoveFinished and TurnFinished are put in every script by the framework.
 -- They resume the threads which were waiting for the move/turn.
 local function MoveFinished(piece, axis)
-	local activeUnit = GetActiveUnit()
-	local activeAnim = activeUnit.waitingForMove
-	return AnimFinished(activeAnim, piece, axis)
+	local activeUnit = units[activeUnitStack[#activeUnitStack]]
+	return AnimFinished(activeUnit.waitingForMove, piece, axis)
 end
 
 local function TurnFinished(piece, axis)
-	local activeUnit = GetActiveUnit()
-	local activeAnim = activeUnit.waitingForTurn
-	return AnimFinished(activeAnim, piece, axis)
+	local activeUnit = units[activeUnitStack[#activeUnitStack]]
+	return AnimFinished(activeUnit.waitingForTurn, piece, axis)
 end
 
 --------------------------------------------------------------------------------
@@ -315,12 +329,13 @@ end
 local function WaitForAnim(threads, waitingForAnim, piece, axis)
 	local index = piece * 3 + axis
 	local wthreads = waitingForAnim[index]
-	if (not wthreads) then
+	if not wthreads then
 		wthreads = {}
 		waitingForAnim[index] = wthreads
 	end
 	local thread = threads[co_running() or error("not in a thread", 2)]
-	wthreads[#wthreads+1] = thread
+	local n = #wthreads + 1
+	wthreads[n] = thread
 	thread.container = wthreads
 	-- yield the running thread:
 	-- it will be resumed once the wait finished (in AnimFinished).
@@ -330,7 +345,7 @@ end
 -- overwrites engine's WaitForMove
 function Spring.UnitScript.WaitForMove(piece, axis)
 	if sp_WaitForMove(piece, axis) then
-		local activeUnit = GetActiveUnit()
+		local activeUnit = units[activeUnitStack[#activeUnitStack]]
 		return WaitForAnim(activeUnit.threads, activeUnit.waitingForMove, piece, axis)
 	end
 end
@@ -338,7 +353,7 @@ end
 -- overwrites engine's WaitForTurn
 function Spring.UnitScript.WaitForTurn(piece, axis)
 	if sp_WaitForTurn(piece, axis) then
-		local activeUnit = GetActiveUnit()
+		local activeUnit = units[activeUnitStack[#activeUnitStack]]
 		return WaitForAnim(activeUnit.threads, activeUnit.waitingForTurn, piece, axis)
 	end
 end
@@ -346,19 +361,20 @@ end
 
 
 function Spring.UnitScript.Sleep(milliseconds)
-	local n = floor(milliseconds / 33)
-	if (n <= 0) then n = 1 end
+	local n = floor(milliseconds * 0.03030303) -- faster than division by 33
+	if n <= 0 then n = 1 end
 	n = n + sp_GetGameFrame()
 	local zzz = sleepers[n]
-	if (not zzz) then
+	if not zzz then
 		zzz = {}
 		sleepers[n] = zzz
 	end
 
-	local activeUnit = GetActiveUnit() or error("[Sleep] no active unit on stack?", 2)
+	local activeUnit = units[activeUnitStack[#activeUnitStack]] or error("[Sleep] no active unit on stack?", 2)
 	local activeThread = activeUnit.threads[co_running() or error("[Sleep] not in a thread?", 2)]
 
-	zzz[#zzz+1] = activeThread
+	local m = #zzz + 1
+	zzz[m] = activeThread
 	activeThread.container = zzz
 	-- yield the running thread:
 	-- it will be resumed in frame #n (in gadget:GameFrame).
@@ -368,11 +384,17 @@ end
 
 
 function Spring.UnitScript.StartThread(fun, ...)
-	local activeUnit = GetActiveUnit()
+	local activeUnit = units[activeUnitStack[#activeUnitStack]]
 	local co = co_create(fun)
 	-- signal_mask is inherited from current thread, if any
-	local thd = co_running() and activeUnit.threads[co_running()]
-	local sigmask = thd and thd.signal_mask or 0
+	local running = co_running()
+	local sigmask = 0
+	if running then
+		local thd = activeUnit.threads[running]
+		if thd then
+			sigmask = thd.signal_mask
+		end
+	end
 	local thread = {
 		thread = co,
 		signal_mask = sigmask,
@@ -391,7 +413,7 @@ function Spring.UnitScript.StartThread(fun, ...)
 end
 
 local function SetOnError(fun)
-	local activeUnit = GetActiveUnit()
+	local activeUnit = units[activeUnitStack[#activeUnitStack]]
 	local activeThread = activeUnit.threads[co_running()]
 	if activeThread then
 		activeThread.onerror = fun
@@ -399,27 +421,31 @@ local function SetOnError(fun)
 end
 
 function Spring.UnitScript.SetSignalMask(mask)
-	local activeUnit = GetActiveUnit()
+	local activeUnit = units[activeUnitStack[#activeUnitStack]]
 	local activeThread = activeUnit.threads[co_running() or error("[SetSignalMask] not in a thread", 2)]
 	activeThread.signal_mask = mask
 end
 
 function Spring.UnitScript.Signal(mask)
-	local activeUnit = GetActiveUnit()
+	local activeUnit = units[activeUnitStack[#activeUnitStack]]
 
 	-- beware, unsynced loop order
 	-- (doesn't matter here as long as all threads get removed)
 	if type(mask) == "number" then
 		for _,thread in pairs(activeUnit.threads) do
-			local signal_mask = thread.signal_mask
-			if (type(signal_mask) == "number" and bit_and(signal_mask, mask) ~= 0 and thread.container) then
-				RemoveTableElement(thread.container, thread)
+			local container = thread.container
+			if container then
+				local signal_mask = thread.signal_mask
+				if type(signal_mask) == "number" and bit_and(signal_mask, mask) ~= 0 then
+					RemoveTableElement(container, thread)
+				end
 			end
 		end
 	else
 		for _,thread in pairs(activeUnit.threads) do
-			if (thread.signal_mask == mask and thread.container) then
-				RemoveTableElement(thread.container, thread)
+			local container = thread.container
+			if container and thread.signal_mask == mask then
+				RemoveTableElement(container, thread)
 			end
 		end
 	end
@@ -556,10 +582,10 @@ function gadget:Initialize()
 	end
 
 	-- Fake UnitCreated events for existing units. (for '/luarules reload')
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = sp_GetAllUnits()
 	for i=1,#allUnits do
 		local unitID = allUnits[i]
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+		gadget:UnitCreated(unitID, sp_GetUnitDefID(unitID))
 	end
 end
 
@@ -685,7 +711,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 	-- expensive inside unit scripts, but this can be worked around easily
 	-- by localizing the necessary globals.
 
-	local pieces = Spring.GetUnitPieceMap(unitID)
+	local pieces = sp_GetUnitPieceMap(unitID)
 	local env = {
 		unitID = unitID,
 		unitDefID = unitDefID,
@@ -700,9 +726,13 @@ function gadget:UnitCreated(unitID, unitDefID)
 	end
 
 	env.piece = function(...)
+		local args = {...}
 		local p = {}
-		for _,name in ipairs{...} do
-			p[#p+1] = pieces[name] or error("piece not found: " .. tostring(name), 2)
+		local n = 0
+		for i = 1, #args do
+			local name = args[i]
+			n = n + 1
+			p[n] = pieces[name] or error("piece not found: " .. tostring(name), 2)
 		end
 		return unpack(p)
 	end
@@ -721,25 +751,26 @@ function gadget:UnitCreated(unitID, unitDefID)
 
 	-- AimWeapon/AimShield is required for a functional weapon/shield,
 	-- so it doesn't hurt to not check other weapons.
+	local numWeapons = #ud.weapons
 	if ((not callins.AimWeapon and callins.AimWeapon1) or
 	    (not callins.AimShield and callins.AimShield1)) then
 		for j=1,#weapon_funcs do
 			local name = weapon_funcs[j]
 			local dispatch = {}
 			local n = 0
-			for i=1,#ud.weapons do
+			for i=1,numWeapons do
 				local fun = callins[name .. i]
 				if fun then
 					dispatch[i] = fun
 					n = n + 1
 				end
 			end
-			if (n == #ud.weapons) then
+			if n == numWeapons then
 				-- optimized case
 				callins[name] = function(w, ...)
 					return dispatch[w](...)
 				end
-			elseif (n > 0) then
+			elseif n > 0 then
 				-- needed for QueryWeapon / AimFromWeapon to return -1
 				-- while AimWeapon / AimShield should return false, etc.
 				local ret = default_return_values[name]
@@ -762,11 +793,11 @@ function gadget:UnitCreated(unitID, unitDefID)
 
 	-- Wrap everything so activeUnit get's set properly.
 	for k,v in pairs(callins) do
-		local fun = callins[k]
+		local fun = v
 
 		callins[k] = function(...)
 			PushActiveUnitID(unitID)
-			ret = fun(...)
+			local ret = fun(...)
 			PopActiveUnitID()
 
 			return ret
