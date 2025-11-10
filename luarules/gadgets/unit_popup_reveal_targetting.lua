@@ -20,11 +20,16 @@ local spGetUnitCOBValue = Spring.GetUnitCOBValue
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetTeamList = Spring.GetTeamList
 
 local COB_ARMORED = COB.ARMORED
 local armoredTurrets = {}
 local discoveredUnits = {}
+local armoredStates = {}
+
+local UNKNOWN = -1
+local UNARMORED = 0
+local ARMORED = 1
+local CHECK_INTERVAL = math.floor(Game.gameSpeed * 0.5)
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.customParams and unitDef.customParams.concealed_when_closed then
@@ -33,29 +38,26 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 end	
 
 local function flagTeamAndAllies(unitID, teamID)
-	discoveredUnits[unitID] = discoveredUnits[unitID] or {}
-
+	if not discoveredUnits[unitID] then
+		discoveredUnits[unitID] = {}
+	end
 	if discoveredUnits[unitID][teamID] then
 		return
 	end
-
-	local teamList = spGetTeamList()
-	for i = 1, #teamList do
-		local checkedTeamID = teamList[i]
+	for _, checkedTeamID in ipairs(Spring.GetTeamList()) do
 		if spAreTeamsAllied(teamID, checkedTeamID) then
 			discoveredUnits[unitID][checkedTeamID] = true
 		end
 	end
+	armoredStates[unitID] = UNKNOWN
 end
 
 function gadget:Initialize()
-
 	for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		if weaponDef.range > 0 and not weaponDef.name:find("fake") then
 			Script.SetWatchAllowTarget(weaponDefID, true)
 		end
 	end
-
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		if not Spring.GetUnitIsBeingBuilt(unitID) then
 			local unitDefID = spGetUnitDefID(unitID)
@@ -68,26 +70,41 @@ end
 
 function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
 	local priority = defPriority or 1.0
-
 	local targetDefID = spGetUnitDefID(targetID)
 	if not targetDefID or not armoredTurrets[targetDefID] then
 		return true, priority
 	end
 
 	local attackerTeamID = spGetUnitTeam(attackerID)
+	local state = armoredStates[targetID]
 
-	local cobValue = spGetUnitCOBValue(targetID, COB_ARMORED)
-	if cobValue and cobValue == 0 then
+	if not state or state == UNKNOWN then
+		local cobValue = spGetUnitCOBValue(targetID, COB_ARMORED)
+		state = cobValue == 0 and UNARMORED or ARMORED
+		armoredStates[targetID] = state
+	end
+
+	if state == UNARMORED then
 		flagTeamAndAllies(targetID, attackerTeamID)
 		return true, priority
 	end
 
-	local hasDiscovery = discoveredUnits[targetID] and discoveredUnits[targetID][attackerTeamID] or false
-	return hasDiscovery, priority
+	return (discoveredUnits[targetID] and discoveredUnits[targetID][attackerTeamID]) or false, priority
+end
+
+function gadget:GameFrame(frame)
+	if frame % CHECK_INTERVAL == 0 then
+		for unitID, state in pairs(armoredStates) do
+			if state ~= UNARMORED then
+				armoredStates[unitID] = (spGetUnitCOBValue(unitID, COB_ARMORED) == 0) and UNARMORED or ARMORED
+			end
+		end
+	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	discoveredUnits[unitID] = nil
+	armoredStates[unitID] = nil
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
