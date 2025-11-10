@@ -136,6 +136,12 @@ void main() {
 }
 ]]
 --------------------------------------------------------------------------------
+---
+
+local plot = function () end  
+if tracy and tracy.LuaTracyPlot then 
+  plot = tracy.LuaTracyPlot
+end
 
 
 function widget:Initialize()
@@ -244,6 +250,38 @@ function widget:GameFramePost()
   --spEcho("GameFramePost", spGetGameFrame())
 end
 
+
+local lastSwapBuffersTimeOffset = 0
+local function SwapBuffersEnd()
+  plot("timeOffsetAtSwap", lastSwapBuffersTimeOffset)
+  lastSwapBuffersTimeOffset = Spring.GetFrameTimeOffset()
+end
+
+-- Important: Either a GameFrame or an Update constitutes a SwapBuffersEnd, to be frank. 
+-- A GameFrame constititutes a SwapBuffersEnd if there was an update between two GameFrames.
+-- An Update constitutes a SwapBuffersEnd if there was no GameFrame right before it.
+-- So, we have to display our last timeOffset in either of those callins.
+local previousCaller = "Update"
+local previousTimeOffset = 0
+local function EstimateSwapBuffersEnd(caller)
+  if caller == "GameFrame" then
+    -- GameFrame was called, so this is a SwapBuffersEnd only if there was an Update before it.
+    if previousCaller ~= "GameFrame" then
+      SwapBuffersEnd()
+    end
+  else -- "Update"
+    if previousCaller ~= "GameFrame" then
+      SwapBuffersEnd()  
+      -- GameFrame was called before, so this is NOT a SwapBuffersEnd
+    else
+      lastSwapBuffersTimeOffset = Spring.GetFrameTimeOffset()
+    end
+  end
+  previousCaller = caller
+end
+
+
+local lastSimFrameTimer = Spring.GetTimerMicros()
 function widget:GameFrame(n)
   nowEvent("GameFrame")
   wasgameframe =  wasgameframe + 1
@@ -252,6 +290,11 @@ function widget:GameFrame(n)
 	--spEcho(drawspergameframe, "draws instead of 2", n)
   end
   drawspergameframe = 0
+  local nowTimer   = Spring.GetTimerMicros()
+  local simFrameCadence = spDiffTimers(nowTimer, lastSimFrameTimer) -- in MILLISECONDS
+  lastSimFrameTimer = nowTimer
+  plot("simframecadence", simFrameCadence)
+  EstimateSwapBuffersEnd("GameFrame")
 end
 
 function widget:DrawGenesis()
@@ -262,8 +305,23 @@ function widget:DrawScreenPost()
   nowEvent("DrawScreenPost")
 end
 
+local wallTime = Spring.GetTimer()
+local baseSimTime = Spring.GetGameFrame()/30.0
+local simToWallExpSmooth = 0
+local simToWallExpSpread = 0
 function widget:Update() 
-  nowEvent("Update")
+  local frameTimeOffset = Spring.GetFrameTimeOffset()
+  local gf = Spring.GetGameFrame()
+  plot("timeoffset", frameTimeOffset)
+  local simTime = ((gf + frameTimeOffset)/30.0) - baseSimTime
+  local newWallTime = Spring.GetTimer()
+  newWallTime =  spDiffTimers(newWallTime, wallTime)
+  local simWallDelta = (simTime - newWallTime) * 30.0
+  simToWallExpSmooth = simToWallExpSmooth * 0.99 + simWallDelta * 0.01
+  simToWallExpSpread = simToWallExpSpread * 0.99 + mathAbs(simWallDelta - simToWallExpSmooth) * 0.01
+  plot ("simToWallExpSpread", simToWallExpSpread )
+  plot ("simWallDelta",simWallDelta )
+  EstimateSwapBuffersEnd("Update")
 end
 
 function widget:DrawScreen()
