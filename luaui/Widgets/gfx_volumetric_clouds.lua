@@ -110,10 +110,6 @@ local LuaShader 			 = gl.LuaShader
 local spGetCameraPosition    = Spring.GetCameraPosition
 local spGetWind              = Spring.GetWind
 
-local function spEcho(words)
-	Spring.Echo('<Volumetric Clouds> '..words)
-end
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -174,7 +170,7 @@ function widget:ViewResize()
 
 
 	if depthTexture == nil or fogTexture == nil then
-		spEcho("Removing fog widget, bad depth texture")
+		Spring.Echo("<Volumetric Clouds> Removing fog widget, bad depth texture")
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -564,7 +560,7 @@ local function init()
 		}, "Volumetric Clouds Depth Shader")
 
 		if not depthShader:Initialize() then
-			spEcho("Bad shader, reverting to non-GLSL widget.")
+			Spring.Echo("<Volumetric Clouds> Bad shader, reverting to non-GLSL widget.")
 			enabled = false
 		end
 	end
