@@ -40,7 +40,7 @@ return {
 			buildinggrounddecaltype = "decals/armclaw_aoplane.dds",
 			decoyfor = "armdrag",
 			model_author = "Beherith",
-			neutral_when_closed = true,
+			concealed_when_closed = true,
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
 			subfolder = "ArmBuildings/LandDefenceOffence",

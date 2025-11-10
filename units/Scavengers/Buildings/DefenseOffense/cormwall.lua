@@ -34,7 +34,7 @@ return {
 		upright = true,
 		yardmap = "ffff",
 		customparams = {
-			neutral_when_closed = true,
+			concealed_when_closed = true,
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/corfort_aoplane.dds",
 			buildinggrounddecalsizey = 4,
