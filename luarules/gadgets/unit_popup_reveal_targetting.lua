@@ -16,12 +16,10 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local spGetUnitCOBValue = Spring.GetUnitCOBValue
+local spGetUnitArmored = Spring.GetUnitArmored
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spAreTeamsAllied = Spring.AreTeamsAllied
-
-local COB_ARMORED = COB.ARMORED
 local armoredTurrets = {}
 local discoveredUnits = {}
 local armoredStates = {}
@@ -79,8 +77,8 @@ function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attac
 	local state = armoredStates[targetID]
 
 	if not state or state == UNKNOWN then
-		local cobValue = spGetUnitCOBValue(targetID, COB_ARMORED)
-		state = cobValue == 0 and UNARMORED or ARMORED
+		local isArmored = spGetUnitArmored(targetID)
+		state = isArmored and ARMORED or UNARMORED
 		armoredStates[targetID] = state
 	end
 
@@ -96,7 +94,8 @@ function gadget:GameFrame(frame)
 	if frame % CHECK_INTERVAL == 0 then
 		for unitID, state in pairs(armoredStates) do
 			if state ~= UNARMORED then
-				armoredStates[unitID] = (spGetUnitCOBValue(unitID, COB_ARMORED) == 0) and UNARMORED or ARMORED
+				local isArmored = spGetUnitArmored(unitID)
+				armoredStates[unitID] = isArmored and ARMORED or UNARMORED
 			end
 		end
 	end
