@@ -50,7 +50,7 @@ return {
 		},
 		featuredefs = {
 			dead = {
-				autoreclaimable = 0,
+				autoreclaimable = 1,
 				blocking = true,
 				category = "corpses",
 				collisionvolumeoffsets = "0.0 2.37060546837e-06 -0.0625",
