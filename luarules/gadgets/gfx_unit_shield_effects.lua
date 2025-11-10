@@ -649,11 +649,6 @@ local function InitializeShader()
 	local shaderCompiled = shieldShader:Initialize()
 	if not shaderCompiled then
 		Spring.Echo("Shield shader failed to compile!")
-		local shaderLog = shieldShader:GetLog()
-		if shaderLog and shaderLog ~= "" then
-			Spring.Echo("Shader compilation log:")
-			Spring.Echo(shaderLog)
-		end
 		shieldShader = nil
 		return false
 	end
