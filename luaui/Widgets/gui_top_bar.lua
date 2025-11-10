@@ -268,6 +268,9 @@ function widget:ViewResize()
 		dlistResValuesBar[res] = glDeleteList(dlistResValuesBar[res])
 	end
 
+	-- Reset lastValueWidth so display lists are recreated with new dimensions
+	lastValueWidth = { metal = -1, energy = -1 }
+
 	init()
 end
 
@@ -541,7 +544,7 @@ local function updateResbarText(res, force)
 	if not showResourceBars then
 		return
 	end
-	
+
 	-- used to flashing resbar area (tinting)
 	if not dlistResbar[res][4] or force then
 		if dlistResbar[res][4] then
@@ -695,7 +698,7 @@ local function updateResbar(res)
 	if not showResourceBars then
 		return
 	end
-	
+
 	local area = resbarArea[res]
 
 	if dlistResbar[res][1] then
@@ -720,6 +723,23 @@ local function updateResbar(res)
 	end
 	shareSliderWidth = mathCeil(shareSliderWidth)
 
+	-- Always update barArea so glow calculations work correctly even when refreshUi is false
+	if not resbarDrawinfo[res] then
+		resbarDrawinfo[res] = {}
+	end
+	resbarDrawinfo[res].barArea = barArea
+	-- Always update barTexRect so it has current coordinates
+	resbarDrawinfo[res].barTexRect = { barArea[1], barArea[2], barArea[1] + ((r[res][1] / r[res][2]) * barWidth), barArea[4] }
+
+	-- Ensure barColor is initialized
+	if not resbarDrawinfo[res].barColor then
+		if res == 'metal' then
+			resbarDrawinfo[res].barColor = { 1, 1, 1, 1 }
+		else
+			resbarDrawinfo[res].barColor = { 1, 1, 0, 1 }
+		end
+	end
+
 	if refreshUi then
 		if res == 'metal' then
 			resbarDrawinfo[res].barColor = { 1, 1, 1, 1 }
@@ -729,9 +749,10 @@ local function updateResbar(res)
 		resbarDrawinfo[res].barArea = barArea
 
 		resbarDrawinfo[res].barTexRect = { barArea[1], barArea[2], barArea[1] + ((r[res][1] / r[res][2]) * barWidth), barArea[4] }
-		resbarDrawinfo[res].barGlowMiddleTexRect = { resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[3], resbarDrawinfo[res].barTexRect[4] + glowSize }
-		resbarDrawinfo[res].barGlowLeftTexRect = { resbarDrawinfo[res].barTexRect[1] - (glowSize * 2.5), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[4] + glowSize }
-		resbarDrawinfo[res].barGlowRightTexRect = { resbarDrawinfo[res].barTexRect[3] + (glowSize * 2.5), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[3], resbarDrawinfo[res].barTexRect[4] + glowSize }
+		-- Glow rectangles should be relative to barArea, not barTexRect, so they don't shift when resource values change
+		resbarDrawinfo[res].barGlowMiddleTexRect = { barArea[1], barArea[2] - glowSize, barArea[3], barArea[4] + glowSize }
+		resbarDrawinfo[res].barGlowLeftTexRect = { barArea[1] - (glowSize * 2.5), barArea[2] - glowSize, barArea[1], barArea[4] + glowSize }
+		resbarDrawinfo[res].barGlowRightTexRect = { barArea[3], barArea[2] - glowSize, barArea[3] + (glowSize * 2.5), barArea[4] + glowSize }
 
 		resbarDrawinfo[res].textCurrent = { short(r[res][1]), barArea[1] + barWidth / 2, barArea[2] + barHeight * 1.8, (height / 2.5) * widgetScale, 'ocd' }
 		resbarDrawinfo[res].textStorage = { "\255\150\150\150" .. short(r[res][2]), barArea[3], barArea[2] + barHeight * 2.1, (height / 3.2) * widgetScale, 'ord' }
@@ -748,6 +769,8 @@ local function updateResbar(res)
 	end
 
 	dlistResbar[res][1] = glCreateList(function()
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
 		-- Icon
 		glColor(1, 1, 1, 1)
 		local iconPadding = math_floor((area[4] - area[2]) / 7)
@@ -767,19 +790,43 @@ local function updateResbar(res)
 		-- Bar background
 		local addedSize = math_floor(((barArea[4] - barArea[2]) * 0.15) + 0.5)
 		local borderSize = 1
-		RectRound(barArea[1] - edgeWidth + borderSize, barArea[2] - edgeWidth + borderSize, barArea[3] + edgeWidth - borderSize, barArea[4] + edgeWidth - borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0,0,0, 0.1 }, { 0,0,0, 0.13 })
+		RectRound(barArea[1] - edgeWidth + borderSize, barArea[2] - edgeWidth + borderSize, barArea[3] + edgeWidth - borderSize, barArea[4] + edgeWidth - borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0,0,0, 0.15 }, { 0,0,0, 0.2 })
+
+		-- bar dark outline
+		local featherHeight = addedSize*5.5
+		WG.FlowUI.Draw.RectRoundOutline(
+			barArea[1] - addedSize - featherHeight - edgeWidth, barArea[2] - addedSize - featherHeight - edgeWidth, barArea[3] + addedSize + featherHeight + edgeWidth, barArea[4] + addedSize + featherHeight + edgeWidth,
+			barHeight * 0.8, featherHeight,
+			1,1,1,1,
+			{ 0,0,0, 0 }, { 0,0,0, 0.2 }
+		)
+		featherHeight = addedSize
+		WG.FlowUI.Draw.RectRoundOutline(
+			barArea[1] - addedSize - featherHeight - edgeWidth, barArea[2] - addedSize - featherHeight - edgeWidth, barArea[3] + addedSize + featherHeight + edgeWidth, barArea[4] + addedSize + featherHeight + edgeWidth,
+			featherHeight*1.5, featherHeight,
+			1,1,1,1,
+			{ 0,0,0, 0 }, { 0,0,0, 0.6 }
+		)
+		-- bar inner light outline
+		WG.FlowUI.Draw.RectRoundOutline(
+			barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth,
+			barHeight * 0.33, barHeight * 0.1,
+			1,1,1,1,
+			{ 1, 1, 1, 0.27 }, { 1, 1, 1, 0 }
+		)
 
 		glTexture(textures.noiseBackground)
-		glColor(1,1,1, 0.16)
+		glColor(1,1,1, 0.75)
 		TexturedRectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, barWidth*0.33, 0)
 		glTexture(false)
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0.1 })
 		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 1, 1, { 0.15, 0.15, 0.15, 0.17 }, { 0.8, 0.8, 0.8, 0.13 })
-		-- gloss
-		RectRound(barArea[1] - addedSize, barArea[2] + addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.06 })
-		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[2] + addedSize + addedSize + addedSize, barHeight * 0.2, 0, 0, 1, 1, { 1, 1, 1, 0.1 }, { 1, 1, 1, 0.0 })
+		-- -- gloss
+		RectRound(barArea[1] - addedSize, barArea[2] + addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.05 })
+		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[2] + addedSize + (addedSize*1.5), barHeight * 0.2, 0, 0, 1, 1, { 1, 1, 1, 0.08 }, { 1, 1, 1, 0.0 })
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
 	end)
 
 	dlistResbar[res][2] = glCreateList(function()
@@ -849,7 +896,7 @@ local function updateResbarValues(res, update)
 	if not showResourceBars then
 		return
 	end
-	
+
 	if update then
 		local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2] -- only read values if update is needed
 		local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1] -- only read values if update is needed
@@ -883,14 +930,22 @@ local function updateResbarValues(res, update)
 				local borderSize = 1
 				RectRound(resbarDrawinfo[res].barTexRect[1]+borderSize, resbarDrawinfo[res].barTexRect[2]+borderSize, resbarDrawinfo[res].barTexRect[1] + valueWidth-borderSize, resbarDrawinfo[res].barTexRect[4]-borderSize, barSize, 1, 1, 1, 1, { 0,0,0, 0.1 }, { 0,0,0, 0.17 })
 
-				-- Bar value glow
+				-- Bar value glow (recalculate glow rects dynamically based on current bar fill)
+				local barLeft = resbarDrawinfo[res].barArea[1]
+				local barTop = resbarDrawinfo[res].barArea[2]
+				local barBottom = resbarDrawinfo[res].barArea[4]
+				local currentGlowRight = barLeft + valueWidth
+
 				glBlending(GL_SRC_ALPHA, GL_ONE)
 				glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
 				glTexture(textures.barGlowCenter)
-				DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4], 0.008)
+				-- Middle glow follows the filled portion
+				DrawRect(barLeft, barTop - glowSize, currentGlowRight, barBottom + glowSize, 0.008)
 				glTexture(textures.barGlowEdge)
-				DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4], 0.008)
-				DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth) + (glowSize * 3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
+				-- Left edge glow
+				DrawRect(barLeft - (glowSize * 2.5), barTop - glowSize, barLeft, barBottom + glowSize, 0.008)
+				-- Right edge glow follows the filled portion
+				DrawRect(currentGlowRight + (glowSize * 3), barTop - glowSize, currentGlowRight, barBottom + glowSize, 0.008)
 				glTexture(false)
 
 				if res == 'metal' then
@@ -909,7 +964,7 @@ local function updateResbarValues(res, update)
 			if dlistEnergyGlow then glDeleteList(dlistEnergyGlow) end
 
 			dlistEnergyGlow = glCreateList(function()
-				-- energy flow effect
+				-- energy glow effect
 				glColor(1,1,1, 0.33)
 				glBlending(GL_SRC_ALPHA, GL_ONE)
 				glTexture(textures.energyGlow)
@@ -1280,7 +1335,7 @@ local function drawResBars()
 	if not showResourceBars then
 		return
 	end
-	
+
 	glPushMatrix()
 
 	local update = false
