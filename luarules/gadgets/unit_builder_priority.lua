@@ -375,7 +375,10 @@ function gadget:GameFrame(n)
 			if spValidUnitID(builderID) and spGetUnitIsBuilding(builderID) == builtUnit then
 				local suspend = Spring.GetTeamRulesParam(teamID, "suspendbuilderpriority")
 				if not isTeamSavingMetal(teamID) and suspend == 0 then
-					spSetUnitBuildSpeed(builderID, currentBuildSpeed[builderID])
+					local buildSpeed = currentBuildSpeed[builderID] or realBuildSpeed[builderID]
+					if buildSpeed then
+						spSetUnitBuildSpeed(builderID, buildSpeed)
+					end
 				end
 			end
 		end
