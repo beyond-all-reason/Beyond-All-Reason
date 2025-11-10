@@ -14,10 +14,6 @@ function widget:GetInfo()
   }
 end
 
-
--- Localized Spring API for performance
-local spEcho = Spring.Echo
-
 local enabled = true
 
 local opacityMult = 1
@@ -63,7 +59,7 @@ local function convertAltitude(input, default)
 		local percent = input:match("(%d+)%%")
 		result = gnd_max * (percent / 100)
 	end
-	--spEcho(result)
+	--Spring.Echo(result)
 	return result
 end
 
@@ -115,7 +111,7 @@ local spGetCameraPosition    = Spring.GetCameraPosition
 local spGetWind              = Spring.GetWind
 
 local function spEcho(words)
-	spEcho('<Volumetric Clouds> '..words)
+	Spring.Echo('<Volumetric Clouds> '..words)
 end
 
 --------------------------------------------------------------------------------
