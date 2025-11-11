@@ -105,7 +105,9 @@ local function updateUnitConversion(unitID, amount, e)
 end
 
 local function UpdateMetalMakers(teamID, energyUse)
-	if energyUse <= 0 or teamActiveMM[teamID] == 0 then
+	-- Only skip if there are no converters at all (nothing to turn on or off)
+	-- We need to process even when energyUse <= 0 to turn off active converters
+	if teamActiveMM[teamID] == 0 and energyUse <= 0 then
 		return
 	end
 	
