@@ -37,7 +37,7 @@ local showOption = 3
 ]]
 
 --Metal value font
-local numberColor = {1, 1, 1, 0.75}
+local numberColor = {1, 1, 1, 0.9}
 local fontSizeMin = 30
 local fontSizeMax = 180
 
@@ -99,6 +99,15 @@ local spGetCameraVectors = Spring.GetCameraVectors
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Data
+
+local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = math.min(1.5, (0.5 + (vsx*vsy / 5700000)))
+local fontfileSize = 100
+local fontfileOutlineSize = 26
+local fontfileOutlineStrength = 0.15
+--spEcho("Loading Font",fontfile,fontfileSize*fontfileScale,fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local screenx, screeny
 local clusterizingNeeded = false
@@ -941,10 +950,10 @@ local function DrawFeatureClusterText()
 		glRotate(cachedCameraFacing, 0, 0, 1)
 
 		glColor(numberColor)
-		glText(featureClusters[clusterID].text, 0, 0, featureClusters[clusterID].font, "cv") --cvo for outline
+		glText(featureClusters[clusterID].text, 0, 0, featureClusters[clusterID].font, "cvo")
 
 		glPopMatrix()
-		end
+	end
 end
 
 --------------------------------------------------------------------------------
