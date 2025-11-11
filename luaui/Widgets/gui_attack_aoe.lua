@@ -15,6 +15,7 @@ end
 
 -- Localized functions for performance
 local mathMax = math.max
+local mathMin = math.min
 local mathSqrt = math.sqrt
 local mathSin = math.sin
 local mathCos = math.cos
@@ -38,6 +39,8 @@ local circleDivs = 96
 local minSpread = 8 --weapons with this spread or less are ignored
 local numAoECircles = 9
 local pointSizeMult = 2048
+local minCircleAlpha = 0.15
+local salvoAnimationSpeed = 0.1
 
 --------------------------------------------------------------------------------
 --vars
@@ -48,7 +51,7 @@ local hasSelection = false
 local attackUnitDefID, manualFireUnitDefID
 local attackUnitID, manualFireUnitID
 local circleList
-local secondPart = 0
+local pulsePhase = 0
 local mouseDistance = 1000
 
 local selectionChanged
@@ -217,9 +220,19 @@ local function DrawCircle(x, y, z, radius)
 	glPopMatrix()
 end
 
-local function GetSecondPart(offset)
-	local result = secondPart + (offset or 0)
-	return result - floor(result)
+local function GetPulsePhase(offset, reversePhase)
+	local result = pulsePhase + (offset or 0)
+	result = result - math.floor(result)
+
+	local scaledResult = (1 - minCircleAlpha) * result
+
+	if reversePhase then
+		-- Value between 0 and (1 - minCircleAlpha)
+		return scaledResult
+	else
+		-- Value between minCircleAlpha and 1
+		return minCircleAlpha + scaledResult
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -242,7 +255,7 @@ local function SetupUnitDef(unitDefID, unitDef)
 					-- for now, just handling tremor sector fire
 					if weaponDef.customParams.speceffect == "sector_fire" then
 						if not weaponInfo[unitDefID] then
-							weaponInfo[unitDefID] = { type = "sector"}
+							weaponInfo[unitDefID] = { type = "sector" }
 						end
 						weaponInfo[unitDefID].type = "sector"
 						weaponInfo[unitDefID].sector_angle = tonumber(weaponDef.customParams.spread_angle)
@@ -394,14 +407,21 @@ end
 --------------------------------------------------------------------------------
 --aoe
 --------------------------------------------------------------------------------
+local function DrawAoE(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alphaMult, offset, reversePhase)
+	local phase = GetPulsePhase(offset, reversePhase)
 
-local function DrawAoE(tx, ty, tz, aoe, ee, alphaMult, offset, requiredEnergy)
+	if reversePhase then
+		phase = 1 - phase
+	end
+
 	glLineWidth(mathMax(aoeLineWidthMult * aoe / mouseDistance, 0.5))
-
 	for i = 1, numAoECircles do
-		local proportion = i / (numAoECircles + 1)
-		local radius = aoe * proportion
-		local alpha = aoeColor[4] * (1 - proportion) / (1 - proportion * ee) * (1 - GetSecondPart(offset or 0)) * (alphaMult or 1)
+		local proportionCircle = i / numAoECircles
+		local proportionAlpha = (i - 1) / numAoECircles -- to avoid situation where (1 - proportionAlpha) == 0
+		local radius = aoe * proportionCircle
+		local alphaForCurrentCircle = (1 - proportionAlpha) / (1 - (proportionAlpha * edgeEffectiveness))
+		local alpha = aoeColor[4] * alphaForCurrentCircle * phase * (alphaMult or 1)
+
 		if requiredEnergy and select(1, Spring.GetTeamResources(spGetMyTeamID(), 'energy')) < requiredEnergy then
 			glColor(aoeColorNoEnergy[1], aoeColorNoEnergy[2], aoeColorNoEnergy[3], alpha)
 		else
@@ -438,7 +458,7 @@ local function DrawNoExplode(aoe, fx, fy, fz, tx, ty, tz, range, requiredEnergy)
 
 	local vertices = { { fx + wx, fy, fz + wz }, { fx + ex + wx, ty, fz + ez + wz },
 					   { fx - wx, fy, fz - wz }, { fx + ex - wx, ty, fz + ez - wz } }
-	local alpha = (1 - GetSecondPart()) * aoeColor[4]
+	local alpha = GetPulsePhase() * aoeColor[4]
 
 	if requiredEnergy and select(1, Spring.GetTeamResources(spGetMyTeamID(), 'energy')) < requiredEnergy then
 		glColor(aoeColorNoEnergy[1], aoeColorNoEnergy[2], aoeColorNoEnergy[3], alpha)
@@ -741,7 +761,7 @@ local function DrawDroppedScatter(aoe, ee, scatter, v, fx, fy, fz, tx, ty, tz, s
 		if py_c < 0 then
 			py_c = 0
 		end
-		DrawAoE(px_c, py_c, pz_c, aoe, ee, alphaMult, -delay)
+		DrawAoE(px_c, py_c, pz_c, aoe, ee, nil, alphaMult, -salvoAnimationSpeed * i, true)
 		glColor(scatterColor[1], scatterColor[2], scatterColor[3], scatterColor[4] * alphaMult)
 		glLineWidth(0.5 + scatterLineWidthMult / mouseDistance)
 		DrawCircle(px_c, py_c, pz_c, currScatter)
@@ -896,8 +916,8 @@ end
 
 local selChangedSec = 0
 function widget:Update(dt)
-	secondPart = secondPart + dt
-	secondPart = secondPart - floor(secondPart)
+	pulsePhase = pulsePhase + dt
+	pulsePhase = pulsePhase - floor(pulsePhase)
 
 	selChangedSec = selChangedSec + dt
 	if selectionChanged and selChangedSec > 0.15 then
