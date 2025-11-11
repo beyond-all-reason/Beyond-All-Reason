@@ -4,7 +4,7 @@ function widget:GetInfo()
 	return {
 		name      = "Reclaim Field Highlight",
 		desc      = "Highlights clusters of reclaimable material",
-		author    = "ivand, refactored by esainane, edited for BAR by Lexon and efrec",
+		author    = "ivand, refactored by esainane, edited for BAR by Lexon, efrec and Floris",
 		date      = "2024",
 		license   = "public",
 		layer     = 1000,
@@ -44,6 +44,11 @@ local fontSizeMax = 180
 --Field color
 local reclaimColor = {0, 0, 0, 0.16}
 local reclaimEdgeColor = {1, 1, 1, 0.18}
+
+--Fill settings
+local fillAlpha = 0.065 -- Base fill layer opacity
+local gradientAlpha = 0.14 -- Gradient fill layer opacity at edges
+local gradientInnerRadius = 0.66 -- Distance from center where gradient starts (0.25 = 25% from center, 75% towards center from edge)
 
 --Update rate, in seconds
 local checkFrequency = 1/2
@@ -396,12 +401,68 @@ do
 			ymax = max(ymax, points[2].y)
 		end
 
-		local convexHull = {
-			{ x = cluster.xmin, y = ymax, z = cluster.zmin },
-			{ x = cluster.xmax, y = ymax, z = cluster.zmin },
-			{ x = cluster.xmax, y = ymax, z = cluster.zmax },
-			{ x = cluster.xmin, y = ymax, z = cluster.zmax },
-		}
+		-- Create expanded bounding box with rounded corners
+		local expandDist = 80
+		local cornerRadius = 60 -- radius for the rounded corners
+
+		-- Calculate the straight edge positions
+		local xmin = cluster.xmin - expandDist
+		local xmax = cluster.xmax + expandDist
+		local zmin = cluster.zmin - expandDist
+		local zmax = cluster.zmax + expandDist
+
+		-- Create rounded rectangle going counter-clockwise from bottom-left
+		local convexHull = {}
+		local cornerSegments = 12 -- more segments = smoother corners
+		local angleStep = (math.pi * 0.5) / cornerSegments -- 90 degrees per corner
+
+		-- Bottom edge with left corner (180° to 270°)
+		local baseAngle = math.pi
+		local leftCenterX = xmin + cornerRadius
+		local bottomCenterZ = zmin + cornerRadius
+		for i = 0, cornerSegments do
+			local angle = baseAngle + i * angleStep
+			convexHull[#convexHull + 1] = {
+				x = leftCenterX + cornerRadius * math.cos(angle),
+				y = ymax,
+				z = bottomCenterZ + cornerRadius * math.sin(angle)
+			}
+		end
+
+		-- Right edge with bottom corner (270° to 360°)
+		baseAngle = math.pi * 1.5
+		local rightCenterX = xmax - cornerRadius
+		for i = 1, cornerSegments do
+			local angle = baseAngle + i * angleStep
+			convexHull[#convexHull + 1] = {
+				x = rightCenterX + cornerRadius * math.cos(angle),
+				y = ymax,
+				z = bottomCenterZ + cornerRadius * math.sin(angle)
+			}
+		end
+
+		-- Top edge with right corner (0° to 90°)
+		baseAngle = 0
+		local topCenterZ = zmax - cornerRadius
+		for i = 1, cornerSegments do
+			local angle = baseAngle + i * angleStep
+			convexHull[#convexHull + 1] = {
+				x = rightCenterX + cornerRadius * math.cos(angle),
+				y = ymax,
+				z = topCenterZ + cornerRadius * math.sin(angle)
+			}
+		end
+
+		-- Left edge with top corner (90° to 180°)
+		baseAngle = math.pi * 0.5
+		for i = 1, cornerSegments do
+			local angle = baseAngle + i * angleStep
+			convexHull[#convexHull + 1] = {
+				x = leftCenterX + cornerRadius * math.cos(angle),
+				y = ymax,
+				z = topCenterZ + cornerRadius * math.sin(angle)
+			}
+		end
 
 		local hullArea = cluster.dx * cluster.dz
 
@@ -417,10 +478,82 @@ do
 		return 0.5 * abs(totalArea + points[#points].x * points[1].z - points[#points].z * points[1].x)
 	end
 
+	-- Expand hull outward by a margin and create rounded corners
+	local function expandAndSmoothHull(hull, expandDist, cornerSegments)
+		if not hull or #hull < 3 then return hull end
+
+		local n = #hull
+		local smoothed = {}
+		local invCornerSegments = 1 / cornerSegments
+		local arcRadius = expandDist * 0.6
+
+		-- Process each vertex to create rounded corners
+		for i = 1, n do
+			local prev = hull[i == 1 and n or i - 1]
+			local curr = hull[i]
+			local next = hull[i == n and 1 or i + 1]
+
+			-- Vector from prev to curr (incoming edge)
+			local dx1, dz1 = curr.x - prev.x, curr.z - prev.z
+			local len1 = sqrt(dx1 * dx1 + dz1 * dz1)
+			if len1 > 0 then
+				dx1, dz1 = dx1 / len1, dz1 / len1
+			end
+
+			-- Vector from curr to next (outgoing edge)
+			local dx2, dz2 = next.x - curr.x, next.z - curr.z
+			local len2 = sqrt(dx2 * dx2 + dz2 * dz2)
+			if len2 > 0 then
+				dx2, dz2 = dx2 / len2, dz2 / len2
+			end
+
+			-- Perpendicular vectors (normals pointing outward - to the right of edge direction)
+			local nx1, nz1 = -dz1, dx1
+			local nx2, nz2 = -dz2, dx2
+
+			-- Calculate the angle between edges
+			local dotProduct = dx1 * dx2 + dz1 * dz2
+			local angle = math.acos(clamp(dotProduct, -1, 1))
+
+			-- Expand distance adjusted for corner angle
+			local expandFactor = 1.0 / max(0.3, math.sin(angle * 0.5))
+			expandFactor = min(expandFactor, 2.5)
+			local actualExpand = expandDist * expandFactor
+
+			-- Pre-calculate normal deltas
+			local dnx = nx2 - nx1
+			local dnz = nz2 - nz1
+			local currX, currY, currZ = curr.x, curr.y, curr.z
+
+			-- Create arc between normals around the corner
+			for seg = 0, cornerSegments do
+				local t = seg * invCornerSegments
+
+				-- Interpolate between the two normals
+				local nx = nx1 + dnx * t
+				local nz = nz1 + dnz * t
+				local nlen = sqrt(nx * nx + nz * nz)
+				if nlen > 0 then
+					nx, nz = nx / nlen, nz / nlen
+				end
+
+				-- Create point on the arc
+				smoothed[#smoothed + 1] = {
+					x = currX + nx * actualExpand,
+					y = currY,
+					z = currZ + nz * actualExpand
+				}
+			end
+		end
+
+		return smoothed
+	end
+
 	processCluster = function (cluster, clusterID, points)
 		getReclaimTotal(cluster, points)
 
 		local convexHull, hullArea
+		local usedBoundingBox = false
 		if #points >= 3 then
 			tableSort(points, sortMonotonic) -- Moved to avoid repeating the sort.
 			if #points >= 60 then
@@ -438,6 +571,15 @@ do
 		-- Replace lines and sets of one or two with a bounding box.
 		if hullArea < areaTextMin then
 			convexHull, hullArea = BoundingBox(cluster, points)
+			usedBoundingBox = true
+		end
+
+		-- Apply expansion and smoothing to make blob-like shapes
+		-- Only apply if we didn't use BoundingBox (which already has rounded corners)
+		-- expandDist: how much to expand outward (in elmos)
+		-- cornerSegments: number of segments per rounded corner (higher = smoother)
+		if not usedBoundingBox and convexHull and #convexHull >= 3 then
+			convexHull = expandAndSmoothHull(convexHull, 80, 12)
 		end
 
 		featureConvexHulls[clusterID] = convexHull
@@ -665,26 +807,130 @@ local function DrawHullVertices(hull)
 	end
 end
 
-local drawFeatureConvexHullSolidList
-local function DrawFeatureConvexHullSolid()
-	glPolygonMode(GL.FRONT_AND_BACK, GL.FILL)
+-- Simple ear clipping triangulation for arbitrary polygons
+local function triangulatePoly(hull)
+	if #hull < 3 then return {} end
+
+	local triangles = {}
+	local verts = {}
+	for i = 1, #hull do
+		verts[i] = i
+	end
+
+	-- Simple fan triangulation for convex or near-convex shapes
+	-- Since our hulls should be convex after expansion, this is safe
+	local v1 = hull[1]
+	for i = 2, #hull - 1 do
+		triangles[#triangles + 1] = {v1, hull[i], hull[i + 1]}
+	end
+
+	return triangles
+end
+
+local function DrawHullVerticesTriangulated(hull)
+	if #hull < 3 then return end
+
+	-- Use simple fan triangulation which works for convex shapes
+	local first = hull[1]
+	for j = 2, #hull - 1 do
+		glVertex(first.x, first.y, first.z)
+		glVertex(hull[j].x, hull[j].y, hull[j].z)
+		glVertex(hull[j+1].x, hull[j+1].y, hull[j+1].z)
+	end
+end
+
+-- Draw gradient fill from center (transparent) to configurable radius (gradientAlpha)
+-- Also fills the inner area with fillAlpha
+local function DrawHullVerticesGradient(hull, center)
+	local hullCount = #hull
+	if hullCount < 3 then return end
+
+	-- Pre-calculate color components to avoid table lookups
+	local r, g, b = reclaimColor[1], reclaimColor[2], reclaimColor[3]
+	local cx, cy, cz = center.x, center.y, center.z
+	local innerRadius = gradientInnerRadius
+
+	-- Calculate the inner boundary using configurable radius
+	local innerPoints = {}
+	for i = 1, hullCount do
+		local hullPoint = hull[i]
+		local dx = hullPoint.x - cx
+		local dz = hullPoint.z - cz
+		-- gradientInnerRadius controls where gradient starts from center
+		innerPoints[i] = {
+			x = cx + dx * innerRadius,
+			y = hullPoint.y,
+			z = cz + dz * innerRadius
+		}
+	end
+
+	-- First, fill the inner area with solid fillAlpha (fan triangulation from center)
+	glColor(r, g, b, fillAlpha)
+	local innerCount = #innerPoints
+	for j = 1, innerCount do
+		local nextIdx = (j == innerCount) and 1 or (j + 1)
+		local inner = innerPoints[j]
+		local innerNext = innerPoints[nextIdx]
+		glVertex(cx, cy, cz)
+		glVertex(inner.x, inner.y, inner.z)
+		glVertex(innerNext.x, innerNext.y, innerNext.z)
+	end
+
+	-- Then draw gradient triangles between inner (fillAlpha) and outer (gradientAlpha) rings
+	for j = 1, hullCount do
+		local nextIdx = (j == hullCount) and 1 or (j + 1)
+		local inner = innerPoints[j]
+		local innerNext = innerPoints[nextIdx]
+		local outer = hull[j]
+		local outerNext = hull[nextIdx]
+
+		-- Triangle 1: inner[j] -> outer[j] -> inner[next]
+		glColor(r, g, b, fillAlpha)
+		glVertex(inner.x, inner.y, inner.z)
+
+		glColor(r, g, b, gradientAlpha)
+		glVertex(outer.x, outer.y, outer.z)
+
+		glColor(r, g, b, fillAlpha)
+		glVertex(innerNext.x, innerNext.y, innerNext.z)
+
+		-- Triangle 2: inner[next] -> outer[j] -> outer[next]
+		glColor(r, g, b, fillAlpha)
+		glVertex(innerNext.x, innerNext.y, innerNext.z)
+
+		glColor(r, g, b, gradientAlpha)
+		glVertex(outer.x, outer.y, outer.z)
+
+		glColor(r, g, b, gradientAlpha)
+		glVertex(outerNext.x, outerNext.y, outerNext.z)
+	end
+end
+
+local drawFeatureConvexHullGradientList
+local function DrawFeatureConvexHullGradient()
 	for i = 1, #featureConvexHulls do
-		glBeginEnd(GL.TRIANGLE_FAN, DrawHullVertices, featureConvexHulls[i])
+		if featureConvexHulls[i] and featureClusters[i].center then
+			glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, featureConvexHulls[i], featureClusters[i].center)
+		end
 	end
 end
 
 local drawFeatureConvexHullEdgeList
 local function DrawFeatureConvexHullEdge()
-	glPolygonMode(GL.FRONT_AND_BACK, GL.LINE)
 	for i = 1, #featureConvexHulls do
-		glBeginEnd(GL.LINE_LOOP, DrawHullVertices, featureConvexHulls[i])
+		local hull = featureConvexHulls[i]
+		if hull and #hull > 0 then
+			glBeginEnd(GL.LINE_LOOP, DrawHullVertices, hull)
+		end
 	end
-	glPolygonMode(GL.FRONT_AND_BACK, GL.FILL)
 end
 
 local drawFeatureClusterTextList
+local cachedCameraFacing = 0
 local function DrawFeatureClusterText()
-	local cameraFacing = math.atan2(-camUpVector[1], -camUpVector[3]) * (180 / math.pi)
+	-- Cache camera facing calculation
+	cachedCameraFacing = math.atan2(-camUpVector[1], -camUpVector[3]) * (180 / math.pi)
+
 	for clusterID = 1, #featureClusters do
 		local center = featureClusters[clusterID].center
 
@@ -692,7 +938,7 @@ local function DrawFeatureClusterText()
 
 		glTranslate(center.x, center.y, center.z)
 		glRotate(-90, 1, 0, 0)
-		glRotate(cameraFacing, 0, 0, 1)
+		glRotate(cachedCameraFacing, 0, 0, 1)
 
 		glColor(numberColor)
 		glText(featureClusters[clusterID].text, 0, 0, featureClusters[clusterID].font, "cv") --cvo for outline
@@ -740,8 +986,8 @@ function widget:Shutdown()
 
 	WG['reclaimfieldhighlight'] = nil -- todo: register/deregister, right?
 
-	if drawFeatureConvexHullSolidList ~= nil then
-		glDeleteList(drawFeatureConvexHullSolidList)
+	if drawFeatureConvexHullGradientList ~= nil then
+		glDeleteList(drawFeatureConvexHullGradientList)
 	end
 	if drawFeatureConvexHullEdgeList ~= nil then
 		glDeleteList(drawFeatureConvexHullEdgeList)
@@ -824,15 +1070,15 @@ function widget:GameFrame(frame)
 	end
 
 	if redrawingNeeded == true then
-		if drawFeatureConvexHullSolidList ~= nil then
-			glDeleteList(drawFeatureConvexHullSolidList)
-			drawFeatureConvexHullSolidList = nil
+		if drawFeatureConvexHullGradientList ~= nil then
+			glDeleteList(drawFeatureConvexHullGradientList)
+			drawFeatureConvexHullGradientList = nil
 		end
 		if drawFeatureConvexHullEdgeList ~= nil then
 			glDeleteList(drawFeatureConvexHullEdgeList)
 			drawFeatureConvexHullEdgeList = nil
 		end
-		drawFeatureConvexHullSolidList = glCreateList(DrawFeatureConvexHullSolid) -- number, list id
+		drawFeatureConvexHullGradientList = glCreateList(DrawFeatureConvexHullGradient)
 		drawFeatureConvexHullEdgeList = glCreateList(DrawFeatureConvexHullEdge)
 	end
 
@@ -949,13 +1195,17 @@ function widget:DrawWorldPreUnit()
 	end
 
 	glDepthTest(false)
-
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	if drawFeatureConvexHullSolidList ~= nil then
-		glColor(reclaimColor)
-		glCallList(drawFeatureConvexHullSolidList)
+
+	-- Draw gradient layer with inner fill
+	if drawFeatureConvexHullGradientList ~= nil then
+		glPushMatrix()
+		glTranslate(0, -1, 0) -- Push down by 1 unit
+		glCallList(drawFeatureConvexHullGradientList)
+		glPopMatrix()
 	end
 
+	-- Draw edge on top at normal height
 	if drawFeatureConvexHullEdgeList ~= nil then
 		glLineWidth(6.0 / cameraScale)
 		glColor(reclaimEdgeColor)
