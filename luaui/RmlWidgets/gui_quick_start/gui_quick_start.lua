@@ -216,12 +216,16 @@ local function createBudgetBarElements()
 	
 	local warningTextElement = widgetState.document:GetElementById("qs-warning-text")
 	local factoryTextElement = widgetState.document:GetElementById("qs-factory-text")
-	
+	local refundOverlayElement = widgetState.document:GetElementById("qs-budget-refund-overlay")
+
 	if warningTextElement then
 		widgetState.warningElements.warningText = warningTextElement
 	end
 	if factoryTextElement then
 		widgetState.warningElements.factoryText = factoryTextElement
+	end
+	if refundOverlayElement then
+		widgetState.refundOverlayElement = refundOverlayElement
 	end
 end
 
@@ -445,7 +449,17 @@ local function updateDataModel(forceUpdate)
 			wgPregameUIDraft.removeReadyCondition(QUICK_START_CONDITION_KEY)
 		end
 	end
-	
+
+	-- Control refund overlay visibility: show if budget is between 1-threshold, hide otherwise
+	if widgetState.refundOverlayElement then
+		local shouldShowRefund = currentBudgetRemaining > 0 and currentBudgetRemaining <= budgetThreshold
+		if shouldShowRefund then
+			widgetState.refundOverlayElement:SetAttribute("style", "opacity: 1;")
+		else
+			widgetState.refundOverlayElement:SetAttribute("style", "opacity: 0;")
+		end
+	end
+
 	for key, value in pairs(modelUpdate) do
 		widgetState.dmHandle[key] = value
 	end

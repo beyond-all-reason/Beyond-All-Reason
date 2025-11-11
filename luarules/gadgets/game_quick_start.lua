@@ -35,6 +35,7 @@ local INSTANT_BUILD_RANGE = modOptions.override_quick_start_range > 0 and modOpt
 
 local QUICK_START_COST_ENERGY = 400      --will be deducted from commander's energy upon start.
 local QUICK_START_COST_METAL = 800       --will be deducted from commander's metal upon start.
+local READY_REFUNDABLE_BUDGET = 500       -- Budget threshold when players are allowed to "ready" the game
 local quickStartAmountConfig = {
 	small = 800,
 	normal = 1200,
@@ -289,6 +290,7 @@ local function getCommanderBuildQueue(commanderID)
 			local isTraversable = traversabilityGrid.canMoveToPosition(commanderID, spawnParams.x, spawnParams.z, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
 			if distance <= INSTANT_BUILD_RANGE and isTraversable then
 				table.insert(spawnQueue, spawnParams)
+				comData.hasBuildsIntercepted = true
 				if cmd.tag then
 					table.insert(commandsToRemove, cmd.tag)
 				end
@@ -630,9 +632,10 @@ local function generateBuildCommands(commanderID)
 
 		if ((buildType == "mex" and not isMetalMap) and not refreshAndCheckAvailableMexSpots(commanderID)) then
 			shouldQueue = false
-		elseif cost > budgetRemaining then
+		elseif comData.hasBuildsIntercepted and budgetRemaining <= READY_REFUNDABLE_BUDGET or cost > budgetRemaining then
 			shouldQueue = false
-			Spring.AddTeamResource(comData.teamID, "metal", budgetRemaining)
+			local refundAmount = budgetRemaining
+			Spring.AddTeamResource(comData.teamID, "metal", refundAmount)
 			comData.budget = comData.budget - budgetRemaining
 			break
 		end
@@ -906,7 +909,15 @@ function gadget:Initialize()
 	Spring.SetGameRulesParam("quickStartBudgetBase", finalBudget)
 	Spring.SetGameRulesParam("quickStartFactoryDiscountAmount", FACTORY_DISCOUNT)
 	local cheapestEconomicCost = calculateCheapestEconomicStructure()
-	Spring.SetGameRulesParam("quickStartBudgetThresholdToAllowStart", cheapestEconomicCost)
+	local anyCommanderHasBuildsIntercepted = false
+	for commanderID, comData in pairs(commanders) do
+		if comData.hasBuildsIntercepted then
+			anyCommanderHasBuildsIntercepted = true
+			break
+		end
+	end
+	local budgetThresholdToAllowStart = not anyCommanderHasBuildsIntercepted and READY_REFUNDABLE_BUDGET or cheapestEconomicCost
+	Spring.SetGameRulesParam("quickStartBudgetThresholdToAllowStart", budgetThresholdToAllowStart)
 	if modOptions.quick_start ~= "factory_discount_only" then
 		Spring.SetGameRulesParam("overridePregameBuildDistance", INSTANT_BUILD_RANGE)
 	end
