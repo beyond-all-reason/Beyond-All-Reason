@@ -193,18 +193,7 @@ else
 	end
 
 	local commanderLastDamaged = {}
-	local unitLostOrDamagedCooldowns = { -- We set it all to 0 to not delay the first occurence of the notif by any means
-		RadarLost = 0, -- 30
-		MexLost = 0, -- 30
-		UnitLost = 0, -- 60
-		CommanderUnderAttack = 0, -- 10
-		CommanderTakingHeavyDamage = 0, -- 10
-		UnitsUnderAttack = 0, -- 60
-		BaseUnderAttack = 0, -- 30
 
-		-- Special
-		LrpcTargetUnits = 0, -- 60
-	}
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 		if unitTeam == myTeamID and isLrpc[attackerDefID] and attackerTeam and GetAllyTeamID(attackerTeam) ~= myAllyTeamID then
 			BroadcastEvent("NotificationEvent", 'LrpcTargetUnits', tostring(myPlayerID))
@@ -216,9 +205,10 @@ else
 			if isCommander[unitDefID] then
 				local health, maxhealth = Spring.GetUnitHealth(unitID)
 				local healthPercent = health/maxhealth
-				BroadcastEvent("NotificationEvent", 'CommanderUnderAttack', tostring(myPlayerID))
 				if healthPercent < 0.2 then
 					BroadcastEvent("NotificationEvent", 'ComHeavyDamage', tostring(myPlayerID))
+				else
+					BroadcastEvent("NotificationEvent", 'CommanderUnderAttack', tostring(myPlayerID))
 				end
 			elseif isBuilding[unitDefID] == true and (not isMex[unitDefID]) and (not hasWeapons[unitDefID]) then
 				BroadcastEvent("NotificationEvent", 'BaseUnderAttack', tostring(myPlayerID))
@@ -229,11 +219,7 @@ else
 	end
 
 	function gadget:GameFrame(frame)
-		if frame%30 == 15 then
-			for index, value in pairs(unitLostOrDamagedCooldowns) do
-				unitLostOrDamagedCooldowns[index] = value - 1
-			end
-		end
+
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
