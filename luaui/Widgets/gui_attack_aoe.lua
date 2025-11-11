@@ -15,7 +15,6 @@ end
 
 -- Localized functions for performance
 local mathMax = math.max
-local mathMin = math.min
 local mathSqrt = math.sqrt
 local mathSin = math.sin
 local mathCos = math.cos
@@ -37,10 +36,27 @@ local scatterColor = { 1, 1, 0, 1 }
 local scatterLineWidthMult = 1024
 local circleDivs = 96
 local minSpread = 8 --weapons with this spread or less are ignored
-local numAoECircles = 9
 local pointSizeMult = 2048
-local minCircleAlpha = 0.15
+local minAlpha = 0.4
+local maxFilledCircleAlpha = 0.5
 local salvoAnimationSpeed = 0.1
+local waveDuration = 0.35
+local fadeDuration = 1 - waveDuration
+local ringDamageLevels = { 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1 } -- draw aoe rings for these damage levels
+local aoeDiskBandCount = 16
+local ringWaveTriggerTimes = {}
+local diskWaveTriggerTimes = {}
+local unitCircles = {}
+for i, _ in ipairs(ringDamageLevels) do
+	ringWaveTriggerTimes[i] = (i / #ringDamageLevels) * waveDuration
+end
+for i = 1, aoeDiskBandCount do
+	diskWaveTriggerTimes[i] = (i / aoeDiskBandCount) * waveDuration
+end
+for i = 0, circleDivs do
+	local theta = 2 * mathPi * i / circleDivs
+	unitCircles[i] = { mathCos(theta), mathSin(theta) }
+end
 
 --------------------------------------------------------------------------------
 --vars
@@ -91,7 +107,7 @@ local glVertex = gl.Vertex
 local GL_LINES = GL.LINES
 local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_POINTS = GL.POINTS
-local PI = mathPi
+local GL_TRIANGLE_STRIP = GL.TRIANGLE_STRIP
 local atan2 = mathAtan2
 local cos = mathCos
 local sin = mathSin
@@ -125,6 +141,9 @@ end
 --------------------------------------------------------------------------------
 -- utility functions
 --------------------------------------------------------------------------------
+local function lerp(a, b, time)
+	return b - (b - a) * time
+end
 
 local function ToBool(x)
 	return x and x ~= 0 and x ~= "false"
@@ -201,8 +220,8 @@ end
 
 local function UnitCircleVertices()
 	for i = 1, circleDivs do
-		local theta = 2 * PI * i / circleDivs
-		glVertex(cos(theta), 0, sin(theta))
+		local uc = unitCircles[i]
+		glVertex(uc[1], 0, uc[2])
 	end
 end
 
@@ -220,19 +239,8 @@ local function DrawCircle(x, y, z, radius)
 	glPopMatrix()
 end
 
-local function GetPulsePhase(offset, reversePhase)
-	local result = pulsePhase + (offset or 0)
-	result = result - math.floor(result)
-
-	local scaledResult = (1 - minCircleAlpha) * result
-
-	if reversePhase then
-		-- Value between 0 and (1 - minCircleAlpha)
-		return scaledResult
-	else
-		-- Value between minCircleAlpha and 1
-		return minCircleAlpha + scaledResult
-	end
+local function ResetPulsePhase()
+	pulsePhase = 0
 end
 
 --------------------------------------------------------------------------------
@@ -407,28 +415,97 @@ end
 --------------------------------------------------------------------------------
 --aoe
 --------------------------------------------------------------------------------
-local function DrawAoE(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alphaMult, offset, reversePhase)
-	local phase = GetPulsePhase(offset, reversePhase)
-
-	if reversePhase then
-		phase = 1 - phase
+local function SetAoeColor(alphaFactor, requiredEnergy)
+	if requiredEnergy and select(1, Spring.GetTeamResources(spGetMyTeamID(), 'energy')) < requiredEnergy then
+		glColor(aoeColorNoEnergy[1], aoeColorNoEnergy[2], aoeColorNoEnergy[3], aoeColorNoEnergy[4] * alphaFactor)
+	else
+		glColor(aoeColor[1], aoeColor[2], aoeColor[3], aoeColor[4] * alphaFactor)
 	end
+end
 
-	glLineWidth(mathMax(aoeLineWidthMult * aoe / mouseDistance, 0.5))
-	for i = 1, numAoECircles do
-		local proportionCircle = i / numAoECircles
-		local proportionAlpha = (i - 1) / numAoECircles -- to avoid situation where (1 - proportionAlpha) == 0
-		local radius = aoe * proportionCircle
-		local alphaForCurrentCircle = (1 - proportionAlpha) / (1 - (proportionAlpha * edgeEffectiveness))
-		local alpha = aoeColor[4] * alphaForCurrentCircle * phase * (alphaMult or 1)
+local function GetRadiusForDamageLevel(aoe, damageLevel, edgeEffectiveness)
+	local denominator = 1 - (damageLevel * edgeEffectiveness)
+	if denominator == 0 then
+		return aoe
+	end
+	local radius = aoe * (1 - damageLevel) / denominator
+	if radius < 0 then
+		radius = 0
+	elseif radius > aoe then
+		radius = aoe
+	end
+	return radius
+end
 
-		if requiredEnergy and select(1, Spring.GetTeamResources(spGetMyTeamID(), 'energy')) < requiredEnergy then
-			glColor(aoeColorNoEnergy[1], aoeColorNoEnergy[2], aoeColorNoEnergy[3], alpha)
+local function GetAlphaFactorForRing(minAlpha, maxAlpha, index, phase, alphaMult, triggerTimes)
+	maxAlpha = maxAlpha or 1
+	alphaMult = alphaMult or 1
+	local result
+
+	-- First ring does not blink
+	if index == 1 then
+		result = maxAlpha
+	elseif phase < waveDuration then
+		if phase >= triggerTimes[index] then
+			result = maxAlpha
 		else
-			glColor(aoeColor[1], aoeColor[2], aoeColor[3], alpha)
+			result = minAlpha
 		end
-		DrawCircle(tx, ty, tz, radius)
+	else
+		local fadeProgress = (phase - waveDuration) / fadeDuration
+		result = lerp(minAlpha, maxAlpha, fadeProgress)
 	end
+
+	return result * alphaMult
+end
+
+local function DrawAoeDisk(tx, ty, tz, aoe, requiredEnergy, alphaMult, phase)
+	alphaMult = alphaMult or 1
+	glPushMatrix()
+	glTranslate(tx, ty, tz)
+	glBeginEnd(GL_TRIANGLE_STRIP, function()
+		for idx = 1, aoeDiskBandCount do
+			local innerRing = aoe * (idx - 1) / aoeDiskBandCount
+			local outerRing = aoe * idx / aoeDiskBandCount
+			local alphaFactor = GetAlphaFactorForRing(minAlpha, maxFilledCircleAlpha, idx, phase, alphaMult, diskWaveTriggerTimes)
+
+			SetAoeColor(alphaFactor, requiredEnergy)
+			for i = 0, circleDivs do
+				local unitCircle = unitCircles[i]
+				glVertex(unitCircle[1] * outerRing, 0, unitCircle[2] * outerRing)
+				glVertex(unitCircle[1] * innerRing, 0, unitCircle[2] * innerRing)
+			end
+		end
+	end)
+	glPopMatrix()
+end
+
+local function DrawAoeRings(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alphaMult, phase)
+	for ringIndex, damageLevel in ipairs(ringDamageLevels) do
+		local ringRadius = GetRadiusForDamageLevel(aoe, damageLevel, edgeEffectiveness)
+		local alphaFactor = GetAlphaFactorForRing(damageLevel, damageLevel + 0.2, ringIndex, phase, alphaMult, ringWaveTriggerTimes)
+		SetAoeColor(alphaFactor, requiredEnergy)
+		DrawCircle(tx, ty, tz, ringRadius)
+	end
+end
+
+local function DrawAoE(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alphaMult, phaseOffset)
+	glLineWidth(mathMax(aoeLineWidthMult * aoe / mouseDistance, 0.5))
+	alphaMult = alphaMult or 1
+
+	local phase = pulsePhase + (phaseOffset or 0)
+	phase = phase - floor(phase)
+
+	if edgeEffectiveness == 1 then
+		DrawAoeDisk(tx, ty, tz, aoe, requiredEnergy, alphaMult, phase)
+	else
+		DrawAoeRings(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alphaMult, phase)
+	end
+
+	-- draw a max radius outline for clarity
+	SetAoeColor(1, requiredEnergy)
+	glLineWidth(1)
+	DrawCircle(tx, ty, tz, aoe)
 
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
@@ -458,7 +535,7 @@ local function DrawNoExplode(aoe, fx, fy, fz, tx, ty, tz, range, requiredEnergy)
 
 	local vertices = { { fx + wx, fy, fz + wz }, { fx + ex + wx, ty, fz + ez + wz },
 					   { fx - wx, fy, fz - wz }, { fx + ex - wx, ty, fz + ez - wz } }
-	local alpha = GetPulsePhase() * aoeColor[4]
+	local alpha = lerp(minAlpha, 1, pulsePhase) * aoeColor[4]
 
 	if requiredEnergy and select(1, Spring.GetTeamResources(spGetMyTeamID(), 'energy')) < requiredEnergy then
 		glColor(aoeColorNoEnergy[1], aoeColorNoEnergy[2], aoeColorNoEnergy[3], alpha)
@@ -761,7 +838,7 @@ local function DrawDroppedScatter(aoe, ee, scatter, v, fx, fy, fz, tx, ty, tz, s
 		if py_c < 0 then
 			py_c = 0
 		end
-		DrawAoE(px_c, py_c, pz_c, aoe, ee, nil, alphaMult, -salvoAnimationSpeed * i, true)
+		DrawAoE(px_c, py_c, pz_c, aoe, ee, nil, alphaMult, -salvoAnimationSpeed * i)
 		glColor(scatterColor[1], scatterColor[2], scatterColor[3], scatterColor[4] * alphaMult)
 		glLineWidth(0.5 + scatterLineWidthMult / mouseDistance)
 		DrawCircle(px_c, py_c, pz_c, currScatter)
@@ -820,6 +897,7 @@ end
 
 function widget:DrawWorldPreUnit()
 	if not hasSelection then
+		ResetPulsePhase()
 		return
 	end
 
@@ -834,17 +912,20 @@ function widget:DrawWorldPreUnit()
 		info = weaponInfo[attackUnitDefID]
 		aimingUnitID = attackUnitID
 	else
+		ResetPulsePhase()
 		return
 	end
 
 	mouseDistance = GetMouseDistance() or 1000
 	local tx, ty, tz = GetMouseTargetPosition(true)
 	if (not tx) then
+		ResetPulsePhase()
 		return
 	end
 
 	local fx, fy, fz = GetUnitPosition(aimingUnitID)
 	if (not fx) then
+		ResetPulsePhase()
 		return
 	end
 
@@ -876,6 +957,7 @@ function widget:DrawWorldPreUnit()
 
 		DrawSectorScatter(angle, shortfall, rangeMax, fx, fy, fz, tx, ty, tz)
 
+		ResetPulsePhase()
 		return
 	end
 
