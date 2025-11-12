@@ -210,7 +210,7 @@ else
 				else
 					BroadcastEvent("NotificationEvent", 'CommanderUnderAttack', tostring(myPlayerID))
 				end
-			elseif isBuilding[unitDefID] == true and (not isMex[unitDefID]) and (not hasWeapons[unitDefID]) then
+			elseif isBuilding[unitDefID] == true and (not isMex[unitDefID]) and (not hasWeapons[unitDefID]) and (not isRadar[unitDefID]) then
 				BroadcastEvent("NotificationEvent", 'BaseUnderAttack', tostring(myPlayerID))
 			elseif isBuilding[unitDefID] == false then
 				BroadcastEvent("NotificationEvent", 'UnitsUnderAttack', tostring(myPlayerID))

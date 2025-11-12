@@ -43,6 +43,11 @@ local idleBuilderNotificationDelay = 10 * 30    -- (in gameframes)
 local tutorialPlayLimit = 2        -- display the same tutorial message only this many times in total (max is always 1 play per game)
 local updateCommandersFrames = Game.gameSpeed * 5
 
+local victoryConditionAllyID = 999
+if not (spGetSpectatingState() or Spring.IsReplay()) then
+	victoryConditionAllyID = Spring.GetLocalAllyTeamID()
+end
+
 --------------------------------------------------------------------------------
 
 local wavFileLengths = VFS.Include('sounds/sound_file_lengths.lua')
@@ -98,10 +103,6 @@ for k, file in ipairs(files) do
 end
 if not voiceSetFound then
 	voiceSet = defaultVoiceSet
-end
-
-local function addNotification(name, soundFiles, minDelay, i18nTextID, tutorial, soundEffect)
-
 end
 
 -- load and parse sound files/notifications
@@ -985,9 +986,30 @@ function widget:GameStart()
 	queueNotification('GameStarted', true)
 end
 
-function widget:GameOver()
+function widget:GameOver(winningAllyTeams)
 	gameover = true
-	queueNotification('BattleEnded',true)
+	if victoryConditionAllyID ~= 999 then
+		gameOverState = "defeat"
+		for i = 1, #winningAllyTeams do
+			if winningAllyTeams[i] == victoryConditionAllyID then
+				gameOverState = "victory"
+			end
+		end
+	else
+		gameOverState = "neutral"
+	end
+
+	if (not winningAllyTeams) or (winningAllyTeams and #winningAllyTeams == 0) then
+		gameOverState = "neutral"
+	end
+
+	if gameOverState == "victory" then
+		queueNotification('BattleVictory',true)
+	elseif gameOverState == "defeat" then
+		queueNotification('BattleDefeat',true)
+	else
+		queueNotification('BattleEnded',true)
+	end
 	--widgetHandler:RemoveWidget()
 end
 
