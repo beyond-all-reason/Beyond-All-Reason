@@ -28,17 +28,20 @@ local spGetGroundHeight = Spring.GetGroundHeight
 --------------------------------------------------------------------------------
 --config
 --------------------------------------------------------------------------------
-local numScatterPoints = 32
 local aoeColor = { 1, 0, 0, 1 }
 local aoeColorNoEnergy = { 1, 1, 0, 1 }
-local aoeLineWidthMult = 64
+local junoColor = { 0.87, 0.94, 0.40, 1 }
+local empColor = { 0.65, 0.65, 1, 1 }
 local scatterColor = { 1, 1, 0, 1 }
+
+local numScatterPoints = 32
+local aoeLineWidthMult = 64
 local scatterLineWidthMult = 1024
 local circleDivs = 96
 local minSpread = 8 --weapons with this spread or less are ignored
 local pointSizeMult = 2048
-local minAlpha = 0.4
-local maxFilledCircleAlpha = 0.5
+local maxFilledCircleAlpha = 0.2
+local minFilledCircleAlpha = 0.1
 local salvoAnimationSpeed = 0.1
 local waveDuration = 0.35
 local fadeDuration = 1 - waveDuration
@@ -314,6 +317,7 @@ local function SetupUnitDef(unitDefID, unitDef)
 	local mobile = unitDef.speed > 0
 	local waterWeapon = maxWeaponDef.waterWeapon
 	local ee = maxWeaponDef.edgeEffectiveness
+	local paralyzer = maxWeaponDef.paralyzer
 
 	if weaponType == "DGun" then
 		weaponTable[unitDefID] = { type = "dgun", range = maxWeaponDef.range, unitname = unitDef.name, requiredEnergy = maxWeaponDef.energyCost }
@@ -367,6 +371,13 @@ local function SetupUnitDef(unitDefID, unitDef)
 	weaponTable[unitDefID].mobile = mobile
 	weaponTable[unitDefID].waterWeapon = waterWeapon
 	weaponTable[unitDefID].ee = ee
+
+	if paralyzer then
+		weaponTable[unitDefID].customColor = empColor
+	elseif string.find(maxWeaponDef.name, "juno_pulse") then
+		weaponTable[unitDefID].customColor = junoColor
+	end
+
 end
 
 local function SetupDisplayLists()
@@ -415,12 +426,16 @@ end
 --------------------------------------------------------------------------------
 --aoe
 --------------------------------------------------------------------------------
-local function SetAoeColor(alphaFactor, requiredEnergy)
-	if requiredEnergy and select(1, Spring.GetTeamResources(spGetMyTeamID(), 'energy')) < requiredEnergy then
-		glColor(aoeColorNoEnergy[1], aoeColorNoEnergy[2], aoeColorNoEnergy[3], aoeColorNoEnergy[4] * alphaFactor)
+local function SetAoeColor(alphaFactor, requiredEnergy, customColor)
+	local color
+	if customColor then
+		color = customColor
+	elseif requiredEnergy and select(1, Spring.GetTeamResources(spGetMyTeamID(), 'energy')) < requiredEnergy then
+		color = aoeColorNoEnergy
 	else
-		glColor(aoeColor[1], aoeColor[2], aoeColor[3], aoeColor[4] * alphaFactor)
+		color = aoeColor
 	end
+	glColor(color[1], color[2], color[3], color[4] * alphaFactor)
 end
 
 local function GetRadiusForDamageLevel(aoe, damageLevel, edgeEffectiveness)
@@ -459,7 +474,7 @@ local function GetAlphaFactorForRing(minAlpha, maxAlpha, index, phase, alphaMult
 	return result * alphaMult
 end
 
-local function DrawAoeDisk(tx, ty, tz, aoe, requiredEnergy, alphaMult, phase)
+local function DrawAoeDisk(tx, ty, tz, aoe, requiredEnergy, alphaMult, phase, customColor)
 	alphaMult = alphaMult or 1
 	glPushMatrix()
 	glTranslate(tx, ty, tz)
@@ -467,9 +482,9 @@ local function DrawAoeDisk(tx, ty, tz, aoe, requiredEnergy, alphaMult, phase)
 		for idx = 1, aoeDiskBandCount do
 			local innerRing = aoe * (idx - 1) / aoeDiskBandCount
 			local outerRing = aoe * idx / aoeDiskBandCount
-			local alphaFactor = GetAlphaFactorForRing(minAlpha, maxFilledCircleAlpha, idx, phase, alphaMult, diskWaveTriggerTimes)
+			local alphaFactor = GetAlphaFactorForRing(minFilledCircleAlpha, maxFilledCircleAlpha, idx, phase, alphaMult, diskWaveTriggerTimes)
 
-			SetAoeColor(alphaFactor, requiredEnergy)
+			SetAoeColor(alphaFactor, requiredEnergy, customColor)
 			for i = 0, circleDivs do
 				local unitCircle = unitCircles[i]
 				glVertex(unitCircle[1] * outerRing, 0, unitCircle[2] * outerRing)
@@ -480,16 +495,16 @@ local function DrawAoeDisk(tx, ty, tz, aoe, requiredEnergy, alphaMult, phase)
 	glPopMatrix()
 end
 
-local function DrawAoeRings(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alphaMult, phase)
+local function DrawAoeRings(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alphaMult, phase, customColor)
 	for ringIndex, damageLevel in ipairs(ringDamageLevels) do
 		local ringRadius = GetRadiusForDamageLevel(aoe, damageLevel, edgeEffectiveness)
 		local alphaFactor = GetAlphaFactorForRing(damageLevel, damageLevel + 0.2, ringIndex, phase, alphaMult, ringWaveTriggerTimes)
-		SetAoeColor(alphaFactor, requiredEnergy)
+		SetAoeColor(alphaFactor, requiredEnergy, customColor)
 		DrawCircle(tx, ty, tz, ringRadius)
 	end
 end
 
-local function DrawAoE(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alphaMult, phaseOffset)
+local function DrawAoE(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alphaMult, phaseOffset, customColor)
 	glLineWidth(mathMax(aoeLineWidthMult * aoe / mouseDistance, 0.5))
 	alphaMult = alphaMult or 1
 
@@ -497,13 +512,13 @@ local function DrawAoE(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alpha
 	phase = phase - floor(phase)
 
 	if edgeEffectiveness == 1 then
-		DrawAoeDisk(tx, ty, tz, aoe, requiredEnergy, alphaMult, phase)
+		DrawAoeDisk(tx, ty, tz, aoe, requiredEnergy, alphaMult, phase, customColor)
 	else
-		DrawAoeRings(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alphaMult, phase)
+		DrawAoeRings(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alphaMult, phase, customColor)
 	end
 
 	-- draw a max radius outline for clarity
-	SetAoeColor(1, requiredEnergy)
+	SetAoeColor(1, requiredEnergy, customColor)
 	glLineWidth(1)
 	DrawCircle(tx, ty, tz, aoe)
 
@@ -535,7 +550,7 @@ local function DrawNoExplode(aoe, fx, fy, fz, tx, ty, tz, range, requiredEnergy)
 
 	local vertices = { { fx + wx, fy, fz + wz }, { fx + ex + wx, ty, fz + ez + wz },
 					   { fx - wx, fy, fz - wz }, { fx + ex - wx, ty, fz + ez - wz } }
-	local alpha = lerp(minAlpha, 1, pulsePhase) * aoeColor[4]
+	local alpha = lerp(minFilledCircleAlpha, 1, pulsePhase) * aoeColor[4]
 
 	if requiredEnergy and select(1, Spring.GetTeamResources(spGetMyTeamID(), 'energy')) < requiredEnergy then
 		glColor(aoeColorNoEnergy[1], aoeColorNoEnergy[2], aoeColorNoEnergy[3], alpha)
@@ -935,16 +950,6 @@ function widget:DrawWorldPreUnit()
 
 	local weaponType = info.type
 
-	-- Engine draws weapon range circles for attack, but does not for manual fire
-	-- For some reason, DGun weapon type has effective range slightly higher than weapon range,
-	-- so its range circle is handled separately
-	if manualFire and weaponType ~= 'dgun' then
-		glColor(1, 0, 0, 0.75)
-		glLineWidth(1.5)
-		glDrawGroundCircle(fx, fy, fz, info.range, circleDivs)
-		glColor(1, 1, 1, 1)
-	end
-
 	-- tremor customdef weapon
 	if (weaponType == "sector") then
 		local angle = info.sector_angle
@@ -984,7 +989,7 @@ function widget:DrawWorldPreUnit()
 	elseif weaponType == "dgun" then
 		DrawDGun(info.aoe, fx, fy, fz, tx, ty, tz, info.range, info.requiredEnergy, info.unitname)
 	else
-		DrawAoE(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
+		DrawAoE(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy, 1, 0, info.customColor)
 	end
 end
 
