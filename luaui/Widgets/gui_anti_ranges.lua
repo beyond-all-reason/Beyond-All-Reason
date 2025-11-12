@@ -4,7 +4,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
     return {
         name      = "Anti Ranges",
-        desc      = "Draws circle to show anti defence ranges (options: /antiranges_glow, antiranges_fade)",
+        desc      = "Draws circle to show anti defence ranges (options: /antiranges_fill, antiranges_fade)",
         author    = "[teh]decay, Floris",
         date      = "25 january 2015",
         license   = "GNU GPL, v2 or later",
@@ -16,7 +16,6 @@ end
 
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
 
 -- project page on github: https://github.com/jamerlan/gui_mobile_anti_defence_range
 
@@ -24,13 +23,13 @@ local spEcho = Spring.Echo
 -- v2 [teh]decay:  Add water antinukes
 -- v3 Floris:  added normal anti, changed widget name, optional glow, optional fadeout on closeup, changed line thickness and opacity, empty anti uses different color
 -- v4 grotful: Removed hardcoded unit lists, added function to find anti-nuke units in unitDefs
-
+-- v5 SuperKitowiec: Added /antiranges_fill option which highlights whole area covered by AN
 
 --------------------------------------------------------------------------------
 -- Console commands
 --------------------------------------------------------------------------------
 
---/antiranges_glow		-- toggles a faint glow on the line
+--/antiranges_fill		-- toggles a faint glow on the line
 --/antiranges_fade		-- toggles hiding of ranges when zoomed in
 
 --------------------------------------------------------------------------------
@@ -45,9 +44,10 @@ local emptyStockpileColor		= {1,0.33,0}
 local unfinishedStockpileColor	= {1,0,0.75}
 local empdStockpileColor		= {0.1,0,1}
 local empdStockpileColor2		= {0.7,0,1}
-local showLineGlow2				= false
+local showFilledCircles 		= false
 local fadeOnCloseup        		= true
 local fadeStartDistance			= 3500
+local circleDivs 				= 96
 
 --------------------------------------------------------------------------------
 -- Speedups
@@ -57,6 +57,21 @@ local glColor					= gl.Color
 local glDepthTest				= gl.DepthTest
 local glLineWidth				= gl.LineWidth
 local glDrawGroundCircle		= gl.DrawGroundCircle
+local glPushMatrix				= gl.PushMatrix
+local glTranslate				= gl.Translate
+local glScale					= gl.Scale
+local glVertex					= gl.Vertex
+local glBeginEnd				= gl.BeginEnd
+local glPopMatrix				= gl.PopMatrix
+local glClear 					= gl.Clear
+local glStencilTest 			= gl.StencilTest
+local glStencilMask 			= gl.StencilMask
+local glStencilOp 				= gl.StencilOp
+
+local GL_TRIANGLE_FAN			= GL.TRIANGLE_FAN
+local GL_STENCIL_BUFFER_BIT 	= GL.STENCIL_BUFFER_BIT
+local GL_KEEP               	= 0x1E00 --GL.KEEP
+local GL_REPLACE            	= GL.REPLACE
 
 local spGetUnitDefID			= Spring.GetUnitDefID
 local spGetUnitPosition			= Spring.GetUnitPosition
@@ -64,7 +79,8 @@ local spGetPositionLosState 	= Spring.GetPositionLosState
 local spGetCameraPosition		= Spring.GetCameraPosition
 local spGetUnitStockpile		= Spring.GetUnitStockpile
 local spGetAllUnits    			= Spring.GetAllUnits
-local GetUnitIsStunned     		= Spring.GetUnitIsStunned
+local spEcho 					= Spring.Echo
+local spGetUnitIsStunned 		= Spring.GetUnitIsStunned
 
 local antiInLos					= {}
 local antiOutLos				= {}
@@ -108,6 +124,20 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+local function beginNoOverlap()
+	glClear(GL_STENCIL_BUFFER_BIT)
+	glStencilTest(true)
+	glStencilMask(255)
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE)
+end
+
+local function endNoOverlap()
+	glStencilTest(false)
+	glStencilMask(255)
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+	glClear(GL_STENCIL_BUFFER_BIT)
+end
+
 function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
     if Spring.IsGUIHidden() then return end
@@ -122,7 +152,7 @@ function widget:DrawWorldPreUnit()
     end
 
     glDepthTest(true)
-
+	beginNoOverlap()
     for uID, pos in pairs(antiInLos) do
         local x, y, z = spGetUnitPosition(uID)
         if x ~= nil and y ~= nil and z ~= nil and Spring.IsSphereInView(x, y, z, pos[4]) then
@@ -143,8 +173,25 @@ function widget:DrawWorldPreUnit()
 			drawCircle(uID, pos[4], pos[1], pos[2], pos[3], camX, camY, camZ)
         end
     end
+	endNoOverlap()
 end
 
+local function drawFilledCircle(x, y, z, radius)
+	glPushMatrix()
+	glDepthTest(false)
+	glTranslate(x, y, z)
+	glScale(radius, radius, radius)
+	local function FilledUnitCircleVertices()
+		glVertex(0, 0, 0)
+		for i = 0, circleDivs do
+			local theta = 2 * math.pi * i / circleDivs
+			glVertex(math.cos(theta), 0, math.sin(theta))
+		end
+	end
+	glBeginEnd(GL_TRIANGLE_FAN, FilledUnitCircleVertices)
+	glDepthTest(true)
+	glPopMatrix()
+end
 
 function drawCircle(uID, coverageRange, x, y, z, camX, camY, camZ)
 	local camDistance = diag(camX-x, camY-y, camZ-z)
@@ -166,7 +213,7 @@ function drawCircle(uID, coverageRange, x, y, z, camX, camY, camZ)
 		local numStockpiled, numStockpileQued, stockpileBuild = spGetUnitStockpile(uID)
 		local circleColor = emptyStockpileColor
 
-		local _,stunned,inbuild = GetUnitIsStunned(uID)
+		local _,stunned,inbuild = spGetUnitIsStunned(uID)
 		if stunned then
 			if os.clock()%0.66 > 0.33 then
 				circleColor = empdStockpileColor
@@ -185,15 +232,15 @@ function drawCircle(uID, coverageRange, x, y, z, camX, camY, camZ)
 			end
 		end
 
-		--[[
-		if showLineGlow2 then
-			glLineWidth(10)
-			glColor(circleColor[1],circleColor[2],circleColor[3], .016*lineOpacityMultiplier)
-			glDrawGroundCircle(x, y, z, coverageRange, 128)
-		end]]--
 		glColor(circleColor[1],circleColor[2],circleColor[3], .55*lineOpacityMultiplier)
 		glLineWidth(3.5-lineWidthMinus)
 		glDrawGroundCircle(x, y, z, coverageRange, 128)
+
+		if showFilledCircles then
+			glColor(circleColor[1],circleColor[2],circleColor[3], .20*lineOpacityMultiplier)
+			drawFilledCircle(x, y, z, coverageRange)
+		end
+
 	end
 end
 
@@ -264,23 +311,23 @@ end
 
 function widget:GetConfigData(data)
     return {
-		showLineGlow2 = showLineGlow2,
+		showFilledCircles = showFilledCircles,
 		fadeOnCloseup = fadeOnCloseup
 	}
 end
 
 function widget:SetConfigData(data)
-    if data.showLineGlow2 ~= nil 		then  showLineGlow2			= data.showLineGlow2 end
-    if data.fadeOnCloseup ~= nil 		then  fadeOnCloseup			= data.fadeOnCloseup end
+    if data.showFilledCircles ~= nil 		then  showFilledCircles 	= data.showFilledCircles end
+    if data.fadeOnCloseup ~= nil 			then  fadeOnCloseup			= data.fadeOnCloseup end
 end
 
 function widget:TextCommand(command)
-    if (string.find(command, "antiranges_glow", nil, true) == 1  and  string.len(command) == 15) then
-		showLineGlow2 = not showLineGlow2
-		if showLineGlow2 then
-			spEcho("Anti Ranges:  Glow on")
+    if (string.find(command, "antiranges_fill", nil, true) == 1  and  string.len(command) == 15) then
+		showFilledCircles = not showFilledCircles
+		if showFilledCircles then
+			spEcho("Anti Ranges:  Fill on")
 		else
-			spEcho("Anti Ranges:  Glow off")
+			spEcho("Anti Ranges:  Fill off")
 		end
 	end
     if (string.find(command, "antiranges_fade", nil, true) == 1  and  string.len(command) == 15) then
