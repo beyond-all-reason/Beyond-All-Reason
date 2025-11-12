@@ -103,15 +103,6 @@ local spGetCameraVectors = Spring.GetCameraVectors
 --------------------------------------------------------------------------------
 -- Data
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = math.min(1.5, (0.5 + (vsx*vsy / 5700000)))
-local fontfileSize = 100
-local fontfileOutlineSize = 26
-local fontfileOutlineStrength = 0.15
---spEcho("Loading Font",fontfile,fontfileSize*fontfileScale,fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-
 local screenx, screeny
 local clusterizingNeeded = false
 local redrawingNeeded = false
@@ -408,11 +399,6 @@ do
 	end
 
 	local function BoundingBox(cluster, points)
-		local ymax = points[1].y
-		if #points == 2 then
-			ymax = max(ymax, points[2].y)
-		end
-
 		-- Calculate max radius of wrecks
 		local maxRadius = 0
 		for i = 1, #points do
@@ -435,10 +421,12 @@ do
 			local segments = 8
 			for i = 0, segments - 1 do
 				local angle = (i / segments) * math.pi * 2
+				local x = cx + math.cos(angle) * radius
+				local z = cz + math.sin(angle) * radius
 				convexHull[i + 1] = {
-					x = cx + math.cos(angle) * radius,
-					y = ymax,
-					z = cz + math.sin(angle) * radius
+					x = x,
+					y = max(0, spGetGroundHeight(x, z)),
+					z = z
 				}
 			end
 		elseif #points == 2 then
@@ -460,11 +448,20 @@ do
 				-- Width scales with wreck radius
 				local width = maxRadius * 1.1 + 8
 
+				local x1 = p1.x + px * width
+				local z1 = p1.z + pz * width
+				local x2 = p2.x + px * width
+				local z2 = p2.z + pz * width
+				local x3 = p2.x - px * width
+				local z3 = p2.z - pz * width
+				local x4 = p1.x - px * width
+				local z4 = p1.z - pz * width
+
 				convexHull = {
-					{ x = p1.x + px * width, y = ymax, z = p1.z + pz * width },
-					{ x = p2.x + px * width, y = ymax, z = p2.z + pz * width },
-					{ x = p2.x - px * width, y = ymax, z = p2.z - pz * width },
-					{ x = p1.x - px * width, y = ymax, z = p1.z - pz * width }
+					{ x = x1, y = max(0, spGetGroundHeight(x1, z1)), z = z1 },
+					{ x = x2, y = max(0, spGetGroundHeight(x2, z2)), z = z2 },
+					{ x = x3, y = max(0, spGetGroundHeight(x3, z3)), z = z3 },
+					{ x = x4, y = max(0, spGetGroundHeight(x4, z4)), z = z4 }
 				}
 			else
 				-- Fall back to simple box if points are too close
@@ -475,10 +472,10 @@ do
 				local zmax = cluster.zmax + expandDist
 
 				convexHull = {
-					{ x = xmin, y = ymax, z = zmin },
-					{ x = xmax, y = ymax, z = zmin },
-					{ x = xmax, y = ymax, z = zmax },
-					{ x = xmin, y = ymax, z = zmax }
+					{ x = xmin, y = max(0, spGetGroundHeight(xmin, zmin)), z = zmin },
+					{ x = xmax, y = max(0, spGetGroundHeight(xmax, zmin)), z = zmin },
+					{ x = xmax, y = max(0, spGetGroundHeight(xmax, zmax)), z = zmax },
+					{ x = xmin, y = max(0, spGetGroundHeight(xmin, zmax)), z = zmax }
 				}
 			end
 		end
@@ -538,10 +535,13 @@ do
 			local expandFactor = sinHalfAngle > 0.3 and (1.0 / sinHalfAngle) or 3.0
 			expandFactor = min(expandFactor, 3.0)
 
+			local newX = curr.x + nx * expandDist * expandFactor
+			local newZ = curr.z + nz * expandDist * expandFactor
+
 			expanded[i] = {
-				x = curr.x + nx * expandDist * expandFactor,
-				y = curr.y,
-				z = curr.z + nz * expandDist * expandFactor
+				x = newX,
+				y = max(0, spGetGroundHeight(newX, newZ)),
+				z = newZ
 			}
 		end
 
@@ -567,10 +567,15 @@ do
 				local c2 = -1.5 * t3 + 2.0 * t2 + 0.5 * t
 				local c3 = 0.5 * t3 - 0.5 * t2
 
+				local newX = c0 * p0.x + c1 * p1.x + c2 * p2.x + c3 * p3.x
+				local newZ = c0 * p0.z + c1 * p1.z + c2 * p2.z + c3 * p3.z
+				-- Interpolate Y smoothly using the spline
+				local newY = c0 * p0.y + c1 * p1.y + c2 * p2.y + c3 * p3.y
+
 				smoothed[#smoothed + 1] = {
-					x = c0 * p0.x + c1 * p1.x + c2 * p2.x + c3 * p3.x,
-					y = p1.y,
-					z = c0 * p0.z + c1 * p1.z + c2 * p2.z + c3 * p3.z
+					x = newX,
+					y = newY,
+					z = newZ
 				}
 			end
 		end
