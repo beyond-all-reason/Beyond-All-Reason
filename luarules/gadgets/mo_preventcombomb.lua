@@ -40,7 +40,7 @@ local cantFall = {}
 local commCountCache = {}
 local commCountCacheFrame = -1
 
-local COM_BLAST = WeaponDefNames['commanderexplosion'].identifier
+local COM_BLAST = WeaponDefNames['commanderexplosion'].id
 
 local isCommander = {}
 local commanderDefIDs = {}
