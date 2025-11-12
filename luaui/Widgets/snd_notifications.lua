@@ -515,12 +515,12 @@ function widget:Initialize()
 				local m = #notification[event].voiceFiles > 1 and mathRandom(1, #notification[event].voiceFiles) or 1
 				if notification[event].voiceFiles[m] then
 					Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, 'ui')
-					if notification[event].soundEffect then
-						Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
-					end
 				else
 					spEcho('notification "'..event..'" missing sound file: #'..m)
 				end
+			end
+			if notification[event].soundEffect then
+				Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
 			end
 			if displayMessages and WG['messages'] and notification[event].textID then
 				WG['messages'].addMessage(Spring.I18N(notification[event].textID))
@@ -895,9 +895,9 @@ local function playNextSound()
 				else
 					spEcho('notification "'..event..'" missing sound file: #'..m)
 				end
-				if notification[event].soundEffect then
-					Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
-				end
+			end
+			if notification[event].soundEffect then
+				Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
 			end
 			if displayMessages and WG['messages'] and notification[event].textID then
 				WG['messages'].addMessage(Spring.I18N(notification[event].textID))
