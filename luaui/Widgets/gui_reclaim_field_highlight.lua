@@ -116,7 +116,7 @@ local screenx, screeny
 local clusterizingNeeded = false
 local redrawingNeeded = false
 
-local epsilon = 300
+local epsilon = 360 -- Clustering distance - increased to merge nearby fields and prevent overlaps
 local epsilonSq = epsilon*epsilon
 local minFeatureMetal = 9 -- armflea reclaim value, probably
 if UnitDefNames.armflea then
