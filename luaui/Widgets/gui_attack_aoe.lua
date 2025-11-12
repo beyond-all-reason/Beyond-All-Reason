@@ -246,6 +246,10 @@ local function ResetPulsePhase()
 	pulsePhase = 0
 end
 
+local function SetColor(alphaFactor, color)
+	glColor(color[1], color[2], color[3], color[4] * alphaFactor)
+end
+
 --------------------------------------------------------------------------------
 --initialization
 --------------------------------------------------------------------------------
@@ -321,6 +325,8 @@ local function SetupUnitDef(unitDefID, unitDef)
 
 	if weaponType == "DGun" then
 		weaponTable[unitDefID] = { type = "dgun", range = maxWeaponDef.range, unitname = unitDef.name, requiredEnergy = maxWeaponDef.energyCost }
+	elseif string.find(maxWeaponDef.name, "juno_pulse") then
+		weaponTable[unitDefID] = { type = "juno", isMiniJuno = string.find(maxWeaponDef.name, "juno_pulse_mini") }
 	elseif maxWeaponDef.cylinderTargeting >= 100 then
 		weaponTable[unitDefID] = { type = "orbital", scatter = scatter }
 	elseif weaponType == "Cannon" then
@@ -365,19 +371,15 @@ local function SetupUnitDef(unitDefID, unitDef)
 	if maxWeaponDef.energyCost > 0 then
 		weaponTable[unitDefID].requiredEnergy = maxWeaponDef.energyCost
 	end
+	if paralyzer then
+		weaponTable[unitDefID].customColor = empColor
+	end
 
 	weaponTable[unitDefID].aoe = aoe
 	weaponTable[unitDefID].cost = cost
 	weaponTable[unitDefID].mobile = mobile
 	weaponTable[unitDefID].waterWeapon = waterWeapon
 	weaponTable[unitDefID].ee = ee
-
-	if paralyzer then
-		weaponTable[unitDefID].customColor = empColor
-	elseif string.find(maxWeaponDef.name, "juno_pulse") then
-		weaponTable[unitDefID].customColor = junoColor
-	end
-
 end
 
 local function SetupDisplayLists()
@@ -435,7 +437,7 @@ local function SetAoeColor(alphaFactor, requiredEnergy, customColor)
 	else
 		color = aoeColor
 	end
-	glColor(color[1], color[2], color[3], color[4] * alphaFactor)
+	SetColor(alphaFactor, color)
 end
 
 local function GetRadiusForDamageLevel(aoe, damageLevel, edgeEffectiveness)
@@ -452,13 +454,13 @@ local function GetRadiusForDamageLevel(aoe, damageLevel, edgeEffectiveness)
 	return radius
 end
 
-local function GetAlphaFactorForRing(minAlpha, maxAlpha, index, phase, alphaMult, triggerTimes)
+local function GetAlphaFactorForRing(minAlpha, maxAlpha, index, phase, alphaMult, triggerTimes, blinkEachRing)
 	maxAlpha = maxAlpha or 1
 	alphaMult = alphaMult or 1
 	local result
 
 	-- First ring does not blink
-	if index == 1 then
+	if not blinkEachRing and index == 1 then
 		result = maxAlpha
 	elseif phase < waveDuration then
 		if phase >= triggerTimes[index] then
@@ -521,6 +523,49 @@ local function DrawAoE(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alpha
 	SetAoeColor(1, requiredEnergy, customColor)
 	glLineWidth(1)
 	DrawCircle(tx, ty, tz, aoe)
+
+	glColor(1, 1, 1, 1)
+	glLineWidth(1)
+end
+
+local function DrawJuno(tx, ty, tz, aoe)
+	local phase = pulsePhase + (phaseOffset or 0)
+	phase = phase - floor(phase)
+
+	local damageOverTimeRange = 450 -- defined in unit_juno_rework_damage.lua - "outer radius of area denial ring"
+	local impactSpan = aoe - damageOverTimeRange
+
+	glPushMatrix()
+	glTranslate(tx, ty, tz)
+	glBeginEnd(GL_TRIANGLE_STRIP, function()
+		SetColor(maxFilledCircleAlpha, junoColor)
+		for i = 0, circleDivs do
+			local unitCircle = unitCircles[i]
+			glVertex(unitCircle[1] * damageOverTimeRange, 0, unitCircle[2] * damageOverTimeRange)
+			glVertex(0, 0, 0)
+		end
+	end)
+	glBeginEnd(GL_TRIANGLE_STRIP, function()
+		for idx = 1, aoeDiskBandCount do
+			local innerRing = damageOverTimeRange + (impactSpan * (idx - 1) / aoeDiskBandCount)
+			local outerRing = damageOverTimeRange + (impactSpan * idx / aoeDiskBandCount)
+
+			local alphaFactor = GetAlphaFactorForRing(minFilledCircleAlpha, maxFilledCircleAlpha, idx, phase, 1, diskWaveTriggerTimes, true)
+
+			SetColor(alphaFactor, junoColor)
+			for i = 0, circleDivs do
+				local unitCircle = unitCircles[i]
+				glVertex(unitCircle[1] * outerRing, 0, unitCircle[2] * outerRing)
+				glVertex(unitCircle[1] * innerRing, 0, unitCircle[2] * innerRing)
+			end
+		end
+	end)
+	glPopMatrix()
+
+	SetColor(1, junoColor)
+	glLineWidth(1)
+	DrawCircle(tx, ty, tz, aoe) -- impact radius outline
+	DrawCircle(tx, ty, tz, damageOverTimeRange) -- area denial ring outline
 
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
@@ -988,6 +1033,13 @@ function widget:DrawWorldPreUnit()
 		DrawOrbitalScatter(info.scatter, tx, ty, tz)
 	elseif weaponType == "dgun" then
 		DrawDGun(info.aoe, fx, fy, fz, tx, ty, tz, info.range, info.requiredEnergy, info.unitname)
+	elseif weaponType == "juno" then
+		-- mini juno (from legion bomber) has no expanded impact area
+		if info.isMiniJuno then
+			DrawAoE(tx, ty, tz, info.aoe, 1, 0, 1, 0, junoColor)
+		else
+			DrawJuno(tx, ty, tz, info.aoe)
+		end
 	else
 		DrawAoE(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy, 1, 0, info.customColor)
 	end
