@@ -813,7 +813,7 @@ end
 --------------------------------------------------------------------------------
 --dropped
 --------------------------------------------------------------------------------
-local function DrawDroppedScatter(aoe, ee, scatter, v, fx, fy, fz, tx, ty, tz, salvoSize, salvoDelay)
+local function DrawDropped(aoe, ee, v, fx, fy, fz, tx, ty, tz, salvoSize, salvoDelay)
 	local dx = tx - fx
 	local dz = tz - fz
 
@@ -823,7 +823,6 @@ local function DrawDroppedScatter(aoe, ee, scatter, v, fx, fy, fz, tx, ty, tz, s
 		return
 	end
 
-	local currScatter = scatter * v * sqrt(2 * fy / g)
 	local alphaMult = v * salvoDelay / aoe
 	if alphaMult > 1 then
 		alphaMult = 1
@@ -839,9 +838,6 @@ local function DrawDroppedScatter(aoe, ee, scatter, v, fx, fy, fz, tx, ty, tz, s
 			py_c = 0
 		end
 		DrawAoE(px_c, py_c, pz_c, aoe, ee, nil, alphaMult, -salvoAnimationSpeed * i)
-		glColor(scatterColor[1], scatterColor[2], scatterColor[3], scatterColor[4] * alphaMult)
-		glLineWidth(0.5 + scatterLineWidthMult / mouseDistance)
-		DrawCircle(px_c, py_c, pz_c, currScatter)
 	end
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
@@ -978,7 +974,7 @@ function widget:DrawWorldPreUnit()
 		DrawAoE(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
 		DrawDirectScatter(info.scatter, fx, fy, fz, tx, ty, tz, info.range, GetUnitRadius(aimingUnitID))
 	elseif (weaponType == "dropped") then
-		DrawDroppedScatter(info.aoe, info.ee, info.scatter, info.v, fx, info.h, fz, tx, ty, tz, info.salvoSize, info.salvoDelay)
+		DrawDropped(info.aoe, info.ee, info.v, fx, info.h, fz, tx, ty, tz, info.salvoSize, info.salvoDelay)
 	elseif (weaponType == "wobble") then
 		DrawAoE(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
 		DrawWobbleScatter(info.scatter, fx, fy, fz, tx, ty, tz, info.rangeScatter, info.range)
