@@ -54,7 +54,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 	local spSetUnitRulesParam = Spring.SetUnitRulesParam
-	local spGetUnitCommands = Spring.GetUnitCommands
 	local spGetUnitCommandCount = Spring.GetUnitCommandCount
 	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 	local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
@@ -66,7 +65,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetAllUnits = Spring.GetAllUnits
 
 	local tremove = table.remove
-	local tableInsert = table.insert
 
 	local diag = math.diag
 	local pairsNext = next
@@ -155,11 +153,12 @@ if gadgetHandler:IsSyncedCode() then
 		if not weaponList then
 			return
 		end
+		local isUnitTarget = type(target) == "number"
 		for weaponID in pairsNext, weaponList do
 			--GetUnitWeaponTryTarget tests both target type validity and target to be reachable for the moment
-			if tonumber(target) and CallAsTeam(teamID, spGetUnitWeaponTryTarget, unitID, weaponID, target) then
+			if isUnitTarget and CallAsTeam(teamID, spGetUnitWeaponTryTarget, unitID, weaponID, target) then
 				return weaponID
-			elseif not tonumber(target) and CallAsTeam(teamID, spGetUnitWeaponTestTarget, unitID, weaponID, target[1], target[2], target[3]) and CallAsTeam(teamID, spGetUnitWeaponTestRange, unitID, weaponID, target[1], target[2], target[3]) then
+			elseif not isUnitTarget and CallAsTeam(teamID, spGetUnitWeaponTestTarget, unitID, weaponID, target[1], target[2], target[3]) and CallAsTeam(teamID, spGetUnitWeaponTestRange, unitID, weaponID, target[1], target[2], target[3]) then
 				if CallAsTeam(teamID, spGetUnitWeaponHaveFreeLineOfFire, unitID, weaponID, nil, nil, nil, target[1], target[2], target[3]) then
 					return weaponID
 				end
@@ -168,7 +167,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function checkTarget(unitID, target)
-		return (tonumber(target) and spValidUnitID(target) and not AreUnitsAllied(unitID, target)) or (not tonumber(target) and target)
+		local isUnitTarget = type(target) == "number"
+		return (isUnitTarget and spValidUnitID(target) and not AreUnitsAllied(unitID, target)) or (not isUnitTarget and target)
 	end
 
 	local function setTarget(unitID, targetData)
@@ -182,33 +182,37 @@ if gadgetHandler:IsSyncedCode() then
 				return false
 			end
 		end
-		if tonumber(targetData.target) then
-			if not spSetUnitTarget(unitID, targetData.target, false, targetData.userTarget) then
+		
+		local target = targetData.target
+		local isUnitTarget = type(target) == "number"
+		
+		if isUnitTarget then
+			if not spSetUnitTarget(unitID, target, false, targetData.userTarget) then
 				return false
 			end
 
-			spSetUnitRulesParam(unitID, "targetID", targetData.target)
+			spSetUnitRulesParam(unitID, "targetID", target)
 			spSetUnitRulesParam(unitID, "targetCoordX", -1)
 			spSetUnitRulesParam(unitID, "targetCoordY", -1)
 			spSetUnitRulesParam(unitID, "targetCoordZ", -1)
 
-		elseif not tonumber(targetData.target) then
-
-			if not spSetUnitTarget(unitID, targetData.target[1], targetData.target[2], targetData.target[3], false, targetData.userTarget) then
+		else
+			if not spSetUnitTarget(unitID, target[1], target[2], target[3], false, targetData.userTarget) then
 				return false
 			end
 
 			spSetUnitRulesParam(unitID, "targetID", -1)
-			spSetUnitRulesParam(unitID, "targetCoordX", targetData.target[1])
-			spSetUnitRulesParam(unitID, "targetCoordY", targetData.target[2])
-			spSetUnitRulesParam(unitID, "targetCoordZ", targetData.target[3])
+			spSetUnitRulesParam(unitID, "targetCoordX", target[1])
+			spSetUnitRulesParam(unitID, "targetCoordY", target[2])
+			spSetUnitRulesParam(unitID, "targetCoordZ", target[3])
 		end
 		return true
 	end
 
 	local function removeUnseenTarget(targetData, attackerAllyTeam)
-		if not targetData.alwaysSeen and tonumber(targetData.target) and spValidUnitID(targetData.target) then
-			local los = spGetUnitLosState(targetData.target, attackerAllyTeam, true)
+		local target = targetData.target
+		if not targetData.alwaysSeen and type(target) == "number" and spValidUnitID(target) then
+			local los = spGetUnitLosState(target, attackerAllyTeam, true)
 			if not los or (los % 4 == 0) then
 				return true
 			end
@@ -227,10 +231,11 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.ZoneBeginN(string.format("sendTargetsToUnsynced %d", unitID))
 		for index, targetData in ipairs(unitTargets[unitID].targets) do
 			if not targetData.sent then
-				if tonumber(targetData.target) then
-					SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, targetData.target)
+				local target = targetData.target
+				if type(target) == "number" then
+					SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, target)
 				else
-					SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, targetData.target[1], targetData.target[2], targetData.target[3])
+					SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, target[1], target[2], target[3])
 				end
 				targetData.sent = true
 			end
@@ -249,21 +254,20 @@ if gadgetHandler:IsSyncedCode() then
 			local stride = 8
 			for index, targetData in ipairs(unitTargets[unitID].targets) do
 				if not targetData.sent then
+					local target = targetData.target
 					data[count + 1] = unitID
 					data[count + 2] = index
 					data[count + 3] = targetData.alwaysSeen
 					data[count + 4] = targetData.ignoreStop
 					data[count + 5] = targetData.userTarget
-					if tonumber(targetData.target) then
-						data[count + 6] = targetData.target
+					if type(target) == "number" then
+						data[count + 6] = target
 						data[count + 7] = -1
 						data[count + 8] = -1
-						--SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, targetData.target)
 					else
-						data[count + 6] = targetData.target[1]
-						data[count + 7] = targetData.target[2]
-						data[count + 8] = targetData.target[3]
-						--SendToUnsynced("targetList", unitID, index, targetData.alwaysSeen, targetData.ignoreStop, targetData.userTarget, targetData.target[1], targetData.target[2], targetData.target[3])
+						data[count + 6] = target[1]
+						data[count + 7] = target[2]
+						data[count + 8] = target[3]
 					end
 					targetData.sent = true
 				end
@@ -612,7 +616,19 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag)
-		processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+		-- Early exit: only process target-related commands or if unit has targets/paused targets
+		local isTargetCommand = cmdID == CMD_UNIT_SET_TARGET_NO_GROUND or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE or cmdID == CMD_UNIT_CANCEL_TARGET
+		local hasTargetData = unitTargets[unitID] or pausedTargets[unitID]
+
+		if not isTargetCommand and not hasTargetData then
+			return
+		end
+
+		-- Only process target commands through processCommand
+		if isTargetCommand then
+			processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+		end
+
 		if cmdID == CMD_STOP then
 			if unitTargets[unitID] and not unitTargets[unitID].ignoreStop then
 				removeUnit(unitID)
@@ -621,15 +637,26 @@ if gadgetHandler:IsSyncedCode() then
 				pausedTargets[unitID] = nil
 			end
 		else
-			local activeCommandIsDgun = spGetUnitCommandCount(unitID) ~= 0 and spGetUnitCommands(unitID, 1)[1].id == CMD_DGUN
-			if pausedTargets[unitID] and not activeCommandIsDgun then
-				if waitingForInsertRemoval[unitID] then
-					waitingForInsertRemoval[unitID] = nil
-				else
-					unpauseTargetting(unitID)
+			-- Optimize: only check for dgun if we have paused targets or unit targets
+			if hasTargetData then
+				local cmdCount = spGetUnitCommandCount(unitID)
+				local activeCommandIsDgun = false
+
+				if cmdCount ~= 0 then
+					-- Use GetUnitCurrentCommand instead of GetUnitCommands - much faster
+					local currentCmdID = spGetUnitCurrentCommand(unitID)
+					activeCommandIsDgun = (currentCmdID == CMD_DGUN)
 				end
-			elseif not pausedTargets[unitID] and activeCommandIsDgun then
-				pauseTargetting(unitID)
+
+				if pausedTargets[unitID] and not activeCommandIsDgun then
+					if waitingForInsertRemoval[unitID] then
+						waitingForInsertRemoval[unitID] = nil
+					else
+						unpauseTargetting(unitID)
+					end
+				elseif not pausedTargets[unitID] and activeCommandIsDgun then
+					pauseTargetting(unitID)
+				end
 			end
 		end
 	end
@@ -673,16 +700,26 @@ if gadgetHandler:IsSyncedCode() then
 		if n % 5 == 4 then
 			for unitID, unitData in pairsNext, unitTargets do
 				local targetIndex
-				for index, targetData in ipairs(unitData.targets) do
+				local targets = unitData.targets
+				-- Check each target and find first valid one
+				for index = 1, #targets do
+					local targetData = targets[index]
 					if not checkTarget(unitID, targetData.target) then
-						removeTarget(unitID, index)
-					else
-						if setTarget(unitID, targetData) then
-							targetIndex = index
-							break
-						end
+						-- Mark for removal, but don't remove during iteration
+						targetData.invalid = true
+					elseif not targetData.invalid and setTarget(unitID, targetData) then
+						targetIndex = index
+						break
 					end
 				end
+				
+				-- Remove invalid targets in reverse order
+				for index = #targets, 1, -1 do
+					if targets[index].invalid then
+						removeTarget(unitID, index)
+					end
+				end
+				
 				if unitData.currentIndex ~= targetIndex then
 					unitData.currentIndex = targetIndex
 					SendToUnsynced("targetIndex", unitID, targetIndex)
@@ -692,8 +729,10 @@ if gadgetHandler:IsSyncedCode() then
 
 		if n % USEEN_UPDATE_FREQUENCY == 0 then
 			for unitID, unitData in pairsNext, unitTargets do
-				for index, targetData in ipairs(unitData.targets) do
-					if removeUnseenTarget(targetData, unitData.allyTeam) then
+				local targets = unitData.targets
+				-- Iterate backwards to safely handle removals
+				for index = #targets, 1, -1 do
+					if removeUnseenTarget(targets[index], unitData.allyTeam) then
 						removeTarget(unitID, index)
 					end
 				end
@@ -874,13 +913,14 @@ else	-- UNSYNCED
 
 		if targetData and targetData.userTarget then
 			local target = targetData.target
+			local isUnitTarget = type(target) == "number"
 
-			if tonumber(target) and spValidUnitID(target) then
+			if isUnitTarget and spValidUnitID(target) then
 				local _, _, _, x2, y2, z2 = spGetUnitPosition(target, false, true)
 				drawUnitTarget(target, x2, y2, z2)
-			elseif target and not tonumber(target) then
+			elseif not isUnitTarget and target then
 				-- 3d coordinate target
-				local x2, y2, z2 = unpack(target)
+				local x2, y2, z2 = target[1], target[2], target[3]
 				drawUnitTarget(x2+y2+z2, x2, y2, z2)
 			end
 		end

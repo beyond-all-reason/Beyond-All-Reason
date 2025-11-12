@@ -13,7 +13,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local mathRandom = math.random
 local tableSort = table.sort
@@ -37,11 +36,10 @@ local silentTime = 0.7    -- silent time between queued notifications
 local globalVolume = 0.7
 local playTrackedPlayerNotifs = false
 local muteWhenIdle = true
-local idleTime = 10        -- after this much sec: mark user as idle
+--local idleTime = 10        -- after this much sec: mark user as idle
 local displayMessages = true
 local spoken = true
 local idleBuilderNotificationDelay = 10 * 30    -- (in gameframes)
-local lowpowerThreshold = 7        -- if there is X secs a low power situation
 local tutorialPlayLimit = 2        -- display the same tutorial message only this many times in total (max is always 1 play per game)
 local updateCommandersFrames = Game.gameSpeed * 5
 
@@ -103,17 +101,7 @@ if not voiceSetFound then
 end
 
 local function addNotification(name, soundFiles, minDelay, i18nTextID, tutorial, soundEffect)
-	notification[name] = {
-		delay = minDelay,
-		textID = i18nTextID,
-		voiceFiles = soundFiles,
-		tutorial = tutorial,
-		soundEffect = soundEffect,
-	}
-	notificationList[name] = true
-	if not tutorial then
-		notificationOrder[#notificationOrder + 1] = name
-	end
+
 end
 
 -- load and parse sound files/notifications
@@ -122,6 +110,7 @@ if VFS.FileExists(soundFolder .. 'config.lua') then
 	local voicesetNotificationTable = VFS.Include(soundFolder .. 'config.lua')
 	notificationTable = table.merge(notificationTable, voicesetNotificationTable)
 end
+
 for notifID, notifDef in pairs(notificationTable) do
 	local notifTexts = {}
 	local notifSounds = {}
@@ -141,7 +130,21 @@ for notifID, notifDef in pairs(notificationTable) do
 			notifSounds[currentEntry] = defaultSoundFolder .. notifID .. '.wav'
 		end
 	end
-	addNotification(notifID, notifSounds, notifDef.delay or 2, notifTexts[1], notifDef.tutorial, notifDef.soundEffect) -- bandaid, picking text from first variation always.
+
+	notification[notifID] = {
+		delay = notifDef.delay or 2,
+		stackedDelay = notifDef.stackedDelay, -- reset delay even with failed play
+		textID = notifTexts[1],
+		voiceFiles = notifSounds,
+		tutorial = notifDef.tutorial,
+		soundEffect = notifDef.soundEffect,
+		resetOtherEventDelay = notifDef.resetOtherEventDelay,
+	}
+
+	notificationList[notifID] = true
+	if not notifDef.tutorial then
+		notificationOrder[#notificationOrder + 1] = notifID
+	end
 end
 
 local unitsOfInterestNames = {
@@ -201,7 +204,6 @@ local nextSoundQueued = 0
 local hasBuildMex = false
 local hasBuildEnergy = false
 local taggedUnitsOfInterest = {}
-local lowpowerDuration = 0
 local idleBuilder = {}
 local commanders = {}
 local commandersDamages = {}
@@ -216,7 +218,6 @@ local spIsUnitInView = Spring.IsUnitInView
 local spGetUnitHealth = Spring.GetUnitHealth
 
 local isIdle = false
-local lastUserInputTime = os.clock()
 local lastMouseX, lastMouseY = spGetMouseState()
 
 local isSpec = spGetSpectatingState()
@@ -378,6 +379,10 @@ local function queueNotification(event, forceplay)
 						soundQueue[#soundQueue + 1] = event
 					end
 				end
+
+				if notification[event].stackedDelay then
+					LastPlay[event] = spGetGameFrame()
+				end
 			end
 		end
 	end
@@ -522,6 +527,10 @@ function widget:Initialize()
 		end
 	end
 
+	WG['notifications'].resetEventDelay = function(event)
+		LastPlay[event] = spGetGameFrame()
+	end
+
 	if Spring.Utilities.Gametype.IsRaptors() and Spring.Utilities.Gametype.IsScavengers() then
 		queueNotification('RaptorsAndScavsMixed')
 	end
@@ -575,14 +584,7 @@ function widget:GameFrame(gf)
 
 		-- low power check
 		if e_currentLevel and (e_currentLevel / e_storage) < 0.025 and e_currentLevel < 3000 then
-			lowpowerDuration = lowpowerDuration + 1
-			if lowpowerDuration >= lowpowerThreshold then
-				queueNotification('LowPower')
-				lowpowerDuration = 0
-
-				-- increase next low power delay
-				notification["LowPower"].delay = notification["LowPower"].delay + 15
-			end
+			queueNotification('LowPower')
 		end
 
 		-- idle builder check
@@ -619,6 +621,10 @@ end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	if not displayMessages and not spoken then
+		return
+	end
+
+	if (not spIsUnitAllied(unitID)) or unitTeam == gaiaTeamID then
 		return
 	end
 
@@ -896,7 +902,11 @@ local function playNextSound()
 				WG['messages'].addMessage(Spring.I18N(notification[event].textID))
 			end
 		end
+
 		LastPlay[event] = spGetGameFrame()
+		if notification[event].resetOtherEventDelay then
+			LastPlay[notification[event].resetOtherEventDelay] = spGetGameFrame()
+		end
 
 		-- for tutorial event: log number of plays
 		if notification[event].tutorial then
@@ -942,11 +952,11 @@ function widget:Update(dt)
 		end
 		lastMouseX, lastMouseY = mouseX, mouseY
 		-- set user idle when no mouse movement or no commands have been given
-		if lastUserInputTime < os.clock() - idleTime then
-			isIdle = true
-		else
+		--if lastUserInputTime < os.clock() - idleTime then
+		--	isIdle = true
+		--else
 			isIdle = false
-		end
+		--end
 		if WG['rejoin'] and WG['rejoin'].showingRejoining() then
 			isIdle = true
 		end

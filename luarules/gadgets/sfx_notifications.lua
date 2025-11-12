@@ -193,24 +193,10 @@ else
 	end
 
 	local commanderLastDamaged = {}
-	local unitLostOrDamagedCooldowns = { -- We set it all to 0 to not delay the first occurence of the notif by any means
-		RadarLost = 0, -- 30
-		MexLost = 0, -- 30
-		UnitLost = 0, -- 60
-		CommanderUnderAttack = 0, -- 10
-		CommanderTakingHeavyDamage = 0, -- 10
-		UnitsUnderAttack = 0, -- 60
-		BaseUnderAttack = 0, -- 30
 
-		-- Special
-		LrpcTargetUnits = 0, -- 60
-	}
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 		if unitTeam == myTeamID and isLrpc[attackerDefID] and attackerTeam and GetAllyTeamID(attackerTeam) ~= myAllyTeamID then
-			if unitLostOrDamagedCooldowns["LrpcTargetUnits"] <= 0 then
-				BroadcastEvent("NotificationEvent", 'LrpcTargetUnits', tostring(myPlayerID))
-			end
-			unitLostOrDamagedCooldowns["LrpcTargetUnits"] = 60
+			BroadcastEvent("NotificationEvent", 'LrpcTargetUnits', tostring(myPlayerID))
 		end
 		if isCommander[unitDefID] then
 			commanderLastDamaged[unitID] = Spring.GetGameFrame()
@@ -219,65 +205,39 @@ else
 			if isCommander[unitDefID] then
 				local health, maxhealth = Spring.GetUnitHealth(unitID)
 				local healthPercent = health/maxhealth
-				if healthPercent >= 0.2 and unitLostOrDamagedCooldowns["CommanderUnderAttack"] <= 0 then
+				if healthPercent < 0.2 then
+					BroadcastEvent("NotificationEvent", 'ComHeavyDamage', tostring(myPlayerID))
+				else
 					BroadcastEvent("NotificationEvent", 'CommanderUnderAttack', tostring(myPlayerID))
 				end
-				if healthPercent < 0.2 then
-					if unitLostOrDamagedCooldowns["CommanderTakingHeavyDamage"] <= 0 then
-						BroadcastEvent("NotificationEvent", 'ComHeavyDamage', tostring(myPlayerID))
-					end
-					unitLostOrDamagedCooldowns["CommanderTakingHeavyDamage"] = 10
-				end
-				unitLostOrDamagedCooldowns["CommanderUnderAttack"] = 10
 			elseif isBuilding[unitDefID] == true and (not isMex[unitDefID]) and (not hasWeapons[unitDefID]) then
-				if unitLostOrDamagedCooldowns["BaseUnderAttack"] <= 0 then
-					BroadcastEvent("NotificationEvent", 'BaseUnderAttack', tostring(myPlayerID))
-				end
-				unitLostOrDamagedCooldowns["BaseUnderAttack"] = 30
+				BroadcastEvent("NotificationEvent", 'BaseUnderAttack', tostring(myPlayerID))
 			elseif isBuilding[unitDefID] == false then
-				if unitLostOrDamagedCooldowns["UnitsUnderAttack"] <= 0 then
-					BroadcastEvent("NotificationEvent", 'UnitsUnderAttack', tostring(myPlayerID))
-				end
-				unitLostOrDamagedCooldowns["UnitsUnderAttack"] = 60
+				BroadcastEvent("NotificationEvent", 'UnitsUnderAttack', tostring(myPlayerID))
 			end
 		end
 	end
 
 	function gadget:GameFrame(frame)
-		if frame%30 == 15 then
-			for index, value in pairs(unitLostOrDamagedCooldowns) do
-				unitLostOrDamagedCooldowns[index] = value - 1
-			end
-		end
+
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-		local unitInView = Spring.IsUnitInView(unitID)
+		--local unitInView = Spring.IsUnitInView(unitID)
 
 		-- if own and not killed by yourself
 		if not isSpec and unitTeam == myTeamID and attackerTeam and attackerTeam ~= unitTeam then -- and not unitInView
 			if isRadar[unitDefID] then
-				if unitLostOrDamagedCooldowns["RadarLost"] <= 0 then
-					local event = isRadar[unitDefID] > 2800 and 'AdvRadarLost' or 'RadarLost'
-					BroadcastEvent("NotificationEvent", event, tostring(myPlayerID))
-					unitLostOrDamagedCooldowns["UnitLost"] = 60
-				end
-				unitLostOrDamagedCooldowns["RadarLost"] = 30
+				local event = isRadar[unitDefID] > 2800 and 'AdvRadarLost' or 'RadarLost'
+				BroadcastEvent("NotificationEvent", event, tostring(myPlayerID))
 				return
 			end
 			if isMex[unitDefID] then
-				if unitLostOrDamagedCooldowns["MexLost"] <= 0 then
-					BroadcastEvent("NotificationEvent", "MetalExtractorLost", tostring(myPlayerID))
-					unitLostOrDamagedCooldowns["UnitLost"] = 60
-				end
-				unitLostOrDamagedCooldowns["MexLost"] = 30
+				BroadcastEvent("NotificationEvent", "MetalExtractorLost", tostring(myPlayerID))
 				return
 			end
 			if not isCommander[unitDefID] then
-				if unitLostOrDamagedCooldowns["UnitLost"] <= 0 then
-					BroadcastEvent("NotificationEvent", "UnitLost", tostring(myPlayerID))
-				end
-				unitLostOrDamagedCooldowns["UnitLost"] = 60
+				BroadcastEvent("NotificationEvent", "UnitLost", tostring(myPlayerID))
 				return
 			end
 		end

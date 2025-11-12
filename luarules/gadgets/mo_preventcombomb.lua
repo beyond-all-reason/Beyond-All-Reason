@@ -1,5 +1,3 @@
-local gadgetEnabled = true
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -10,7 +8,7 @@ function gadget:GetInfo()
 		date      = "Aug 31, 2009",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
-		enabled   = gadgetEnabled
+		enabled   = true,
 	}
 end
 
@@ -22,54 +20,64 @@ local GetTeamInfo = Spring.GetTeamInfo
 local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitHealth = Spring.GetUnitHealth
 local GetGroundHeight = Spring.GetGroundHeight
-local MoveCtrl = Spring.MoveCtrl
+local GetTeamUnitDefCount = Spring.GetTeamUnitDefCount
+local GetTeamList = Spring.GetTeamList
+local MoveCtrlEnable = Spring.MoveCtrl.Enable
+local MoveCtrlDisable = Spring.MoveCtrl.Disable
+local MoveCtrlSetPosition = Spring.MoveCtrl.SetPosition
 local GetGameFrame = Spring.GetGameFrame
 local DestroyUnit = Spring.DestroyUnit
-local UnitTeam = Spring.GetUnitTeam
+local GetUnitTeam = Spring.GetUnitTeam
 local math_random = math.random
 
 local immuneDgunList = {}
 local ctrlCom = {}
 local cantFall = {}
 
+-- Cache for commander counts per team per frame
+local commCountCache = {}
+local commCountCacheFrame = -1
+
 local COM_BLAST = WeaponDefNames['commanderexplosion'].id
 
-local isDGUN = {}
 local isCommander = {}
-for udefID, def in pairs(UnitDefs) do
-	if def.customParams.iscommander then
-		isCommander[udefID] = true
-		if WeaponDefNames[ def.name..'_disintegrator' ] then
-			isDGUN[ WeaponDefNames[ def.name..'_disintegrator' ].id ] = true
-		else
-			--Spring.Echo('ERROR: preventcombomb: No disintegrator weapon found for: '..def.name)
-			isCommander[udefID] = nil
-		end
-	end
-end
-
-local isCommander = {}
+local commanderDefIDs = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
+		commanderDefIDs[#commanderDefIDs + 1] = unitDefID
 	end
 end
 
 local function CommCount(unitTeam)
-	local teamsInAllyID = {}
-	local allyteamlist = Spring.GetAllyTeamList()
-	for ct, allyTeamID in pairs(allyteamlist) do
-		teamsInAllyID[allyTeamID] = Spring.GetTeamList(allyTeamID) -- [1] = teamID,
+	local currentFrame = GetGameFrame()
+	
+	-- Use cached result if available for this frame
+	if commCountCacheFrame == currentFrame and commCountCache[unitTeam] then
+		return commCountCache[unitTeam]
 	end
-	-- Spring.Echo(teamsInAllyID[currentAllyTeamID])
-	local count = 0
+	
+	-- Clear cache if this is a new frame
+	if commCountCacheFrame ~= currentFrame then
+		commCountCache = {}
+		commCountCacheFrame = currentFrame
+	end
+	
 	local allyTeamID = select(6, GetTeamInfo(unitTeam, false))
-	for _, teamID in pairs(teamsInAllyID[allyTeamID]) do -- [_] = teamID,
-		for unitDefID,_ in pairs(isCommander) do
-			count = count + Spring.GetTeamUnitDefCount(teamID, unitDefID)
+	local teamsInAlly = GetTeamList(allyTeamID)
+	
+	local count = 0
+	if teamsInAlly then
+		for i = 1, #teamsInAlly do
+			local teamID = teamsInAlly[i]
+			for j = 1, #commanderDefIDs do
+				count = count + GetTeamUnitDefCount(teamID, commanderDefIDs[j])
+			end
 		end
 	end
-	-- Spring.Echo(currentAllyTeamID..","..count)
+	
+	-- Cache the result
+	commCountCache[unitTeam] = count
 	return count
 end
 
@@ -80,40 +88,39 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	end
 
 	if weaponID == COM_BLAST then
-		local hp,_ = GetUnitHealth(unitID)
-		hp = hp or 0
-		local combombDamage = hp-200-math_random(1,10)
+		local hp = GetUnitHealth(unitID)
+		if not hp then
+			return damage
+		end
+		
+		local combombDamage = hp - 200 - math_random(1, 10)
 		if combombDamage < 0 then
 			combombDamage = 0
-		elseif combombDamage > hp*0.33 then
-			combombDamage = hp*0.33
+		elseif combombDamage > hp * 0.33 then
+			combombDamage = hp * 0.33
 		end
 		if combombDamage > damage then
 			combombDamage = damage
 		end
 
-		if isDGUN[weaponID] then
-			if immuneDgunList[unitID] then
-				-- immune
-				return 0, 0
-			elseif isCommander[attackerDefID] and isCommander[unitDefID] and CommCount(UnitTeam(unitID)) <= 1 and attackerID and CommCount(UnitTeam(attackerID)) <= 1 then
-				-- make unitID immune to DGun, kill attackerID
-				immuneDgunList[unitID] = GetGameFrame() + 45
-				DestroyUnit(attackerID,false,false,unitID)
-				return combombDamage, 0
-			end
-		elseif weaponID == COM_BLAST and isCommander[unitDefID] and CommCount(UnitTeam(unitID)) <= 1 and attackerID and CommCount(UnitTeam(attackerID)) <= 1 then
-			if unitID ~= attackerID then
-				-- make unitID immune to DGun
-				immuneDgunList[unitID] = GetGameFrame() + 45
-				--prevent falling damage to the unitID, and lock position
-				MoveCtrl.Enable(unitID)
-				ctrlCom[unitID] = GetGameFrame() + 30
-				cantFall[unitID] = GetGameFrame() + 30
-				return combombDamage, 0
-			else
-				--com blast hurts the attackerID
-				return damage
+		if weaponID == COM_BLAST and isCommander[unitDefID] and attackerID then
+			local unitTeamID = GetUnitTeam(unitID)
+			local attackerTeamID = GetUnitTeam(attackerID)
+			
+			if unitTeamID and attackerTeamID and CommCount(unitTeamID) <= 1 and CommCount(attackerTeamID) <= 1 then
+				if unitID ~= attackerID then
+					-- make unitID immune to DGun
+					local currentFrame = GetGameFrame()
+					immuneDgunList[unitID] = currentFrame + 45
+					--prevent falling damage to the unitID, and lock position
+					MoveCtrlEnable(unitID)
+					ctrlCom[unitID] = currentFrame + 30
+					cantFall[unitID] = currentFrame + 30
+					return combombDamage, 0
+				else
+					--com blast hurts the attackerID
+					return damage
+				end
 			end
 		end
 	end
@@ -121,29 +128,29 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 end
 
 function gadget:GameFrame(currentFrame)
-	for unitID,expirationTime in pairs(immuneDgunList) do
+	-- Process all expired entries in a single pass
+	for unitID, expirationTime in pairs(immuneDgunList) do
 		if currentFrame > expirationTime then
 			immuneDgunList[unitID] = nil
 		end
 	end
-	for unitID,expirationTime in pairs(ctrlCom) do
+	
+	for unitID, expirationTime in pairs(ctrlCom) do
 		if currentFrame > expirationTime then
-			--if the game was actually a draw then this unitID is not valid anymore
-			--if that is the case then just remove it from the cantFall list and clear the ctrlCom flag
-			local x,_,z = GetUnitPosition(unitID)
+			local x, _, z = GetUnitPosition(unitID)
 			if x then
-				local y = GetGroundHeight(x,z)
-				MoveCtrl.SetPosition(unitID, x,y,z)
-				MoveCtrl.Disable(unitID)
+				local y = GetGroundHeight(x, z)
+				MoveCtrlSetPosition(unitID, x, y, z)
+				MoveCtrlDisable(unitID)
 				cantFall[unitID] = currentFrame + 220
 			else
 				cantFall[unitID] = nil
 			end
-
 			ctrlCom[unitID] = nil
 		end
 	end
-	for unitID,expirationTime in pairs(cantFall) do
+	
+	for unitID, expirationTime in pairs(cantFall) do
 		if currentFrame > expirationTime then
 			cantFall[unitID] = nil
 		end
