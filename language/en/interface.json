@@ -854,6 +854,8 @@
 			"exp": "Exp",
 			"open": "Open",
 			"closed": "Closed",
+			"reactive": "Reactive",
+			"restore": "restore",
 			"maxhp": "max HP",
 			"health": "health",
 			"assist": "Assist",

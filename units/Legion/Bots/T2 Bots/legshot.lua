@@ -40,6 +40,8 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
+			gui_reactive_armor_health = 4000,
+			gui_reactive_armor_restore = 20,
 		},
 		featuredefs = {
 			dead = {

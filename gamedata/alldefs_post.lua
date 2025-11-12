@@ -89,6 +89,16 @@ function UnitDef_Post(name, uDef)
 		uDef.minCollisionSpeed = 75 / Game.gameSpeed -- define the minimum velocity(speed) required for all units to suffer fall/collision damage.
 	end
 
+	local customparams = uDef.customparams or {}
+	if customparams.gui_reactive_armor_health then
+		if not uDef.damagemodifier or uDef.damagemodifier == 1 then
+			customparams.gui_reactive_armor_health = nil
+			customparams.gui_reactive_armor_restore = nil
+		elseif not customparams.gui_reactive_armor_restore then
+			customparams.gui_reactive_armor_health = nil
+		end
+	end
+
 	-- Event Model Replacements: ----------------------------------------------------------------------------- 
 
 	-- April Fools

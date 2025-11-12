@@ -497,12 +497,15 @@ local function drawStats(uDefID, uID)
 		DrawText(texts.open..":", format(texts.maxhp..": %d", maxHP) )
 
 		if armoredMultiple and armoredMultiple ~= 1 then
-			DrawText(texts.closed..":", format(" +%d%%, "..texts.maxhp..": %d", (1/armoredMultiple-1) *100,maxHP/armoredMultiple))
+			DrawText(texts.closed..":", format(" +%d%%, %s: %d", (1 / armoredMultiple - 1) * 100, texts.maxhp, maxHP / armoredMultiple))
+
+			if uDef.customParams.gui_reactive_armor_health then
+				DrawText(texts.reactive..":", format("%d %s, %d%s %s", uDef.customParams.gui_reactive_armor_health, texts.health, uDef.customParams.gui_reactive_armor_restore, texts.s, texts.restore))
+			end
 		end
 	end
 
 	cY = cY - fontSize
-
 
 	------------------------------------------------------------------------------------
 	-- Transportable

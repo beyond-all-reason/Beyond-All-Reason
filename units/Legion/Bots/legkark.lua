@@ -42,6 +42,8 @@ return {
 			subfolder = "Legion/Bots",
 			weapon1turretx = 200,
 			weapon1turrety = 200,
+			gui_reactive_armor_health = 300,
+			gui_reactive_armor_restore = 15,
 		},
 		featuredefs = {
 			dead = {

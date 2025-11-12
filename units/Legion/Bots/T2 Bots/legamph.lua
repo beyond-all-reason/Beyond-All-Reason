@@ -48,6 +48,8 @@ return {
 			unitgroup = "weaponsub",
 			--iswatervariable = true,
 			speedfactorwater = "1.3",
+			gui_reactive_armor_health = 750,
+			gui_reactive_armor_restore = 17,
 		},
 		featuredefs = {
 			dead = {
