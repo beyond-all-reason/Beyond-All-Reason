@@ -17,57 +17,12 @@ end
 -- Localized functions for performance
 local mathFloor = math.floor
 local mathRandom = math.random
-local mathCeil = math.ceil
-local mathAbs = math.abs
-local mathCos = math.cos
-local mathRad = math.rad
-local mathSin = math.sin
-local mathPi = math.pi
-local osClock = os.clock
-local select = select
-local pairs = pairs
-local ipairs = ipairs
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetTeamList = Spring.GetTeamList
-local spGetAllyTeamList = Spring.GetAllyTeamList
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetTeamStartPosition = Spring.GetTeamStartPosition
-local spWorldToScreenCoords = Spring.WorldToScreenCoords
-local spGetTimer = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetAllyTeamStartBox = Spring.GetAllyTeamStartBox
-local spGetGaiaTeamID = Spring.GetGaiaTeamID
-local spGetGroundExtremes = Spring.GetGroundExtremes
-local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
-local spHaveAdvShading = Spring.HaveAdvShading
-local spIsReplay = Spring.IsReplay
-
--- Localized GL functions
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
-local glScale = gl.Scale
-local glBlending = gl.Blending
-local glCulling = gl.Culling
-local glDepthTest = gl.DepthTest
-local glDepthMask = gl.DepthMask
-local glTexture = gl.Texture
-local glDeleteList = gl.DeleteList
-local glCreateList = gl.CreateList
-local glDeleteFont = gl.DeleteFont
-local glLoadFont = gl.LoadFont
-
--- Localized GL constants
-local GL_SRC_ALPHA = GL.SRC_ALPHA
-local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
-local GL_TRIANGLES = GL.TRIANGLES
-local GL_SHADER_STORAGE_BUFFER = GL.SHADER_STORAGE_BUFFER
 
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
@@ -76,22 +31,19 @@ if Game.startPosType ~= 2 then
 	return false
 end
 
-local spGetModOptions = Spring.GetModOptions
-local draftMode = spGetModOptions().draft_mode
+local draftMode = Spring.GetModOptions().draft_mode
 
-local spGetConfigString = Spring.GetConfigString
-local fontfile = "fonts/" .. spGetConfigString("bar_font", "Poppins-Regular.otf")
-local spGetViewGeometry = Spring.GetViewGeometry
-local vsx, vsy = spGetViewGeometry()
+local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
+local vsx, vsy = Spring.GetViewGeometry()
 local fontfileScale = 0.5 + (vsx * vsy / 5700000)
 local fontfileSize = 50
 local fontfileOutlineSize = 8
 local fontfileOutlineStrength = 1.65
 local fontfileOutlineStrength2 = 10
-local font = glLoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-local shadowFont = glLoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.5)
-local fontfile2 = "fonts/" .. spGetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local font2 = glLoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength2)
+local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
+local shadowFont = gl.LoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.5)
+local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength2)
 
 local useThickLeterring = false
 local fontSize = 18
@@ -102,17 +54,17 @@ local infotextFontsize = 13
 
 local commanderNameList = {}
 local usedFontSize = fontSize
-spEcho(spGetMiniMapGeometry())
+spEcho(Spring.GetMiniMapGeometry())
 local widgetScale = (1 + (vsx * vsy / 5500000))
 local startPosRatio = 0.0001
 local startPosScale
 if getCurrentMiniMapRotationOption() == ROTATION.DEG_90 or getCurrentMiniMapRotationOption() == ROTATION.DEG_270 then
-	startPosScale = (vsx*startPosRatio) / select(4, spGetMiniMapGeometry())
+	startPosScale = (vsx*startPosRatio) / select(4, Spring.GetMiniMapGeometry())
 else
-	startPosScale = (vsx*startPosRatio) / select(3, spGetMiniMapGeometry())
+	startPosScale = (vsx*startPosRatio) / select(3, Spring.GetMiniMapGeometry())
 end
 
-local isSpec = spGetSpectatingState() or spIsReplay()
+local isSpec = spGetSpectatingState() or Spring.IsReplay()
 local myTeamID = spGetMyTeamID()
 
 
@@ -122,7 +74,7 @@ local amPlaced = false
 
 local gaiaTeamID
 
-local startTimer = spGetTimer()
+local startTimer = Spring.GetTimer()
 local lastRot = -1 --TODO: switch this to use MiniMapRotationChanged Callin when it is added to Engine
 
 local infotextList
@@ -143,10 +95,8 @@ local coopStartPoints = {}	-- will contain data passed through by coop gadget
 --------------------------------------------------------------------------------
 
 local function assignTeamColors()
-	local teams = spGetTeamList()
-	local teamsLen = #teams
-	for i = 1, teamsLen do
-		local teamID = teams[i]
+	local teams = Spring.GetTeamList()
+	for _, teamID in pairs(teams) do
 		local r, g, b = GetTeamColor(teamID)
 		teamColors[teamID] = r .. "_" .. g  .. "_" ..  b
 	end
@@ -195,12 +145,10 @@ end
 
 local function drawName(x, y, name, teamID)
 	-- not optimal, everytime you move camera the x and y are different so it has to recreate the drawlist
-	local floorX = mathFloor(x)
-	local floorY = mathFloor(y)
-	if commanderNameList[teamID] == nil or commanderNameList[teamID]['x'] ~= floorX or commanderNameList[teamID]['y'] ~= floorY then
+	if commanderNameList[teamID] == nil or commanderNameList[teamID]['x'] ~= mathFloor(x) or commanderNameList[teamID]['y'] ~= mathFloor(y) then
 		-- using floor because the x and y values had a a tiny change each frame
 		if commanderNameList[teamID] ~= nil then
-			glDeleteList(commanderNameList[teamID]['list'])
+			gl.DeleteList(commanderNameList[teamID]['list'])
 		end
 		createCommanderNameList(x, y, name, teamID)
 	end
@@ -208,14 +156,13 @@ local function drawName(x, y, name, teamID)
 end
 
 local function createInfotextList()
-	local spI18N = Spring.I18N
-	local infotext = spI18N('ui.startSpot.anywhere')
-	local infotextBoxes = spI18N('ui.startSpot.startbox')
+	local infotext = Spring.I18N('ui.startSpot.anywhere')
+	local infotextBoxes = Spring.I18N('ui.startSpot.startbox')
 
 	if infotextList then
-		glDeleteList(infotextList)
+		gl.DeleteList(infotextList)
 	end
-	infotextList = glCreateList(function()
+	infotextList = gl.CreateList(function()
 		font:Begin()
 		font:SetTextColor(0.9, 0.9, 0.9, 1)
 		if draftMode == nil or draftMode == "disabled" then
@@ -291,7 +238,7 @@ local shaderSourceCache = {
 			ALPHA = 0.5,
 			NUM_POLYGONS = 0,
 			NUM_POINTS = 0,
-			MAX_STEEPNESS = 0.587785252292473, -- math.cos(math.rad(54))
+			MAX_STEEPNESS = math.cos(math.rad(54)),
 			SCAV_ALLYTEAM_ID = scavengerAIAllyTeamID, -- these neatly become undefined if not present
 			RAPTOR_ALLYTEAM_ID = raptorsAIAllyTeamID,
 		},
@@ -324,29 +271,29 @@ local startConeShader = nil
 
 local function DrawStartPolygons(inminimap)
 
-	local _, advMapShading = spHaveAdvShading()
+	local _, advMapShading = Spring.HaveAdvShading()
 
 	if advMapShading then
-		glTexture(0, "$map_gbuffer_zvaltex")
+		gl.Texture(0, "$map_gbuffer_zvaltex")
 	else
 		if WG['screencopymanager'] and WG['screencopymanager'].GetDepthCopy() then
-			glTexture(0, WG['screencopymanager'].GetDepthCopy())
+			gl.Texture(0, WG['screencopymanager'].GetDepthCopy())
 		else
 			spEcho("Start Polygons: Adv map shading not available, and no depth copy available")
 			return
 		end
 	end
 
-	glTexture(1, "$normals")
-	glTexture(2, "$heightmap")-- Texture file
-	glTexture(3, scavengerStartBoxTexture)
-	glTexture(4, raptorStartBoxTexture)
+	gl.Texture(1, "$normals")
+	gl.Texture(2, "$heightmap")-- Texture file
+	gl.Texture(3, scavengerStartBoxTexture)
+	gl.Texture(4, raptorStartBoxTexture)
 
 	startPolygonBuffer:BindBufferRange(4)
 
-	glCulling(true)
-	glDepthTest(false)
-	glDepthMask(false)
+	gl.Culling(true)
+	gl.DepthTest(false)
+	gl.DepthMask(false)
 
 	startPolygonShader:Activate()
 
@@ -354,16 +301,16 @@ local function DrawStartPolygons(inminimap)
 	startPolygonShader:SetUniformInt("isMiniMap", inminimap and 1 or 0)
 
 	startPolygonShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
-	startPolygonShader:SetUniformInt("myAllyTeamID", spGetMyAllyTeamID() or -1)
+	startPolygonShader:SetUniformInt("myAllyTeamID", Spring.GetMyAllyTeamID() or -1)
 
-	fullScreenRectVAO:DrawArrays(GL_TRIANGLES)
+	fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
 	startPolygonShader:Deactivate()
-	glTexture(1, false)
-	glTexture(2, false)
-	glTexture(3, false)
-	glTexture(4, false)
-	glCulling(false)
-	glDepthTest(false)
+	gl.Texture(1, false)
+	gl.Texture(2, false)
+	gl.Texture(3, false)
+	gl.Texture(4, false)
+	gl.Culling(false)
+	gl.DepthTest(false)
 end
 
 local function DrawStartCones(inminimap)
@@ -380,16 +327,13 @@ end
 
 local function InitStartPolygons()
 	local gaiaAllyTeamID
-	if spGetGaiaTeamID() then
-		gaiaAllyTeamID = select(6, spGetTeamInfo(spGetGaiaTeamID() , false))
+	if Spring.GetGaiaTeamID() then
+		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID() , false))
 	end
-	local allyTeamList = spGetAllyTeamList()
-	local allyTeamListLen = #allyTeamList
-	for i = 1, allyTeamListLen do
-		local teamID = allyTeamList[i]
+	for i, teamID in ipairs(Spring.GetAllyTeamList()) do
 		if teamID ~= gaiaAllyTeamID then
 			--and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
-			local xn, zn, xp, zp = spGetAllyTeamStartBox(teamID)
+			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
 			--spEcho("Allyteam",teamID,"startbox",xn, zn, xp, zp)
 			StartPolygons[teamID] = {{xn, zn}, {xp, zn}, {xp, zp}, {xn, zp}}
 		end
@@ -421,9 +365,8 @@ local function InitStartPolygons()
 
 	shaderSourceCache.shaderConfig.NUM_BOXES = #StartPolygons
 
-	local minY, maxY = spGetGroundExtremes()
-	local spGetModOption = Spring.GetModOption
-	local waterlevel = (spGetModOption and spGetModOption('map_waterlevel')) or 0
+	local minY, maxY = Spring.GetGroundExtremes()
+	local waterlevel = (Spring.GetModOption and Spring.GetModOptions().map_waterlevel) or 0
 	if waterlevel > 0 then
 		minY = minY - waterlevel
 		maxY = maxY - waterlevel
@@ -514,7 +457,7 @@ function widget:Initialize()
 
 	assignTeamColors()
 
-	gaiaTeamID = spGetGaiaTeamID()
+	gaiaTeamID = Spring.GetGaiaTeamID()
 
 	createInfotextList()
 
@@ -522,27 +465,24 @@ function widget:Initialize()
 end
 
 local function removeTeamLists()
-	local teamList = spGetTeamList()
-	local teamListLen = #teamList
-	for i = 1, teamListLen do
-		local teamID = teamList[i]
+	for _, teamID in ipairs(Spring.GetTeamList()) do
 		if commanderNameList[teamID] ~= nil then
-			glDeleteList(commanderNameList[teamID].list)
+			gl.DeleteList(commanderNameList[teamID].list)
 		end
 	end
 	commanderNameList = {}
 end
 
 local function removeLists()
-	glDeleteList(infotextList)
+	gl.DeleteList(infotextList)
 	removeTeamLists()
 end
 
 function widget:Shutdown()
 	removeLists()
-	glDeleteFont(font)
-	glDeleteFont(font2)
-	glDeleteFont(shadowFont)
+	gl.DeleteFont(font)
+	gl.DeleteFont(font2)
+	gl.DeleteFont(shadowFont)
 	widgetHandler:DeregisterGlobal('GadgetCoopStartPoint')
 end
 
@@ -559,26 +499,23 @@ end
 
 local cacheTable = {}
 function widget:DrawWorld()
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
-	local time = spDiffTimers(spGetTimer(), startTimer)
+	local time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
 
 	InstanceVBOTable.clearInstanceTable(startConeVBOTable)
 	-- show the team start positions
-	local teamList = spGetTeamList()
-	local teamListLen = #teamList
-	for i = 1, teamListLen do
-		local teamID = teamList[i]
-		local playerID = select(2, spGetTeamInfo(teamID, false))
-		local _, _, spec = spGetPlayerInfo(playerID, false)
+	for _, teamID in ipairs(Spring.GetTeamList()) do
+		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
+		local _, _, spec = Spring.GetPlayerInfo(playerID, false)
 		if not spec and teamID ~= gaiaTeamID then
-			local x, y, z = spGetTeamStartPosition(teamID)
+			local x, y, z = Spring.GetTeamStartPosition(teamID)
 			if coopStartPoints[playerID] then
 				x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
 			end
 			if x ~= nil and x > 0 and z > 0 and y > -500 then
 				local r, g, b = GetTeamColor(teamID)
-				local alpha = 0.5 + mathAbs(((time * 3) % 1) - 0.5)
+				local alpha = 0.5 + math.abs(((time * 3) % 1) - 0.5)
 				cacheTable[1], cacheTable[2], cacheTable[3], cacheTable[4] = x, y, z, 1
 				cacheTable[5], cacheTable[6], cacheTable[7], cacheTable[8] = r, g, b, alpha
 				pushElementInstance(startConeVBOTable,
@@ -599,20 +536,17 @@ end
 
 function widget:DrawScreenEffects()
 	-- show the names over the team start positions
-	local teamList = spGetTeamList()
-	local teamListLen = #teamList
-	for i = 1, teamListLen do
-		local teamID = teamList[i]
-		local playerID = select(2, spGetTeamInfo(teamID, false))
-		local name, _, spec = spGetPlayerInfo(playerID, false)
+	for _, teamID in ipairs(Spring.GetTeamList()) do
+		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
+		local name, _, spec = Spring.GetPlayerInfo(playerID, false)
 		name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 		if name ~= nil and not spec and teamID ~= gaiaTeamID then
-			local x, y, z = spGetTeamStartPosition(teamID)
+			local x, y, z = Spring.GetTeamStartPosition(teamID)
 			if coopStartPoints[playerID] then
 				x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
 			end
 			if x ~= nil and x > 0 and z > 0 and y > -500 then
-				local sx, sy, sz = spWorldToScreenCoords(x, y + 120, z)
+				local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
 				if sz < 1 then
 					drawName(sx, sy, name, teamID)
 				end
@@ -623,11 +557,11 @@ end
 
 function widget:DrawScreen()
 	if not isSpec then
-		glPushMatrix()
+		gl.PushMatrix()
 		gl.Translate(vsx / 2, vsy / 6.2, 0)
-		glScale(1 * widgetScale, 1 * widgetScale, 1)
+		gl.Scale(1 * widgetScale, 1 * widgetScale, 1)
 		gl.CallList(infotextList)
-		glPopMatrix()
+		gl.PopMatrix()
 	end
 end
 
@@ -646,20 +580,20 @@ function widget:ViewResize(x, y)
 
 	local currRot = getCurrentMiniMapRotationOption()
 	if currRot == ROTATION.DEG_90 or currRot == ROTATION.DEG_270 then
-		startPosScale = (vsx*startPosRatio) / select(4, spGetMiniMapGeometry())
+		startPosScale = (vsx*startPosRatio) / select(4, Spring.GetMiniMapGeometry())
 	else
-		startPosScale = (vsx*startPosRatio) / select(3, spGetMiniMapGeometry())
+		startPosScale = (vsx*startPosRatio) / select(3, Spring.GetMiniMapGeometry())
 	end
 	removeTeamLists()
 	usedFontSize = fontSize * widgetScale
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then
 		fontfileScale = newFontfileScale
-		glDeleteFont(font)
-		glDeleteFont(shadowFont)
-		font = glLoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-		font2 = glLoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength2)
-		shadowFont = glLoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.6)
+		gl.DeleteFont(font)
+		gl.DeleteFont(shadowFont)
+		font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
+		font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength2)
+		shadowFont = gl.LoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.6)
 		createInfotextList()
 	end
 end
@@ -678,11 +612,11 @@ function widget:Update(delta)
 		widgetHandler:RemoveWidget()
 	end
 	if not placeVoiceNotifTimer then
-		placeVoiceNotifTimer = osClock() + 30
+		placeVoiceNotifTimer = os.clock() + 30
 	end
 
 	if draftMode == nil or draftMode == "disabled" then -- otherwise draft mod will play it instead
-		if not isSpec and not amPlaced and not playedChooseStartLoc and placeVoiceNotifTimer < osClock() and WG['notifications'] then
+		if not isSpec and not amPlaced and not playedChooseStartLoc and placeVoiceNotifTimer < os.clock() and WG['notifications'] then
 			playedChooseStartLoc = true
 			WG['notifications'].addEvent('ChooseStartLoc', true)
 		end
@@ -696,10 +630,8 @@ function widget:Update(delta)
 		local detectedChanges = false
 		local oldTeamColors = teamColors
 		assignTeamColors()
-		local teams = spGetTeamList()
-		local teamsLen = #teams
-		for i = 1, teamsLen do
-			local teamID = teams[i]
+		local teams = Spring.GetTeamList()
+		for _, teamID in pairs(teams) do
 			if oldTeamColors[teamID] ~= teamColors[teamID] then
 				detectedChanges = true
 			end
