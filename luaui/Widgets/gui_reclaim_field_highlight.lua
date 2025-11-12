@@ -88,6 +88,7 @@ local spGetCameraPosition = Spring.GetCameraPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetFeatureResources = Spring.GetFeatureResources
 local spGetFeatureVelocity = Spring.GetFeatureVelocity
+local spGetFeatureRadius = Spring.GetFeatureRadius
 local spGetGroundHeight = Spring.GetGroundHeight
 local spIsGUIHidden = Spring.IsGUIHidden
 local spTraceScreenRay = Spring.TraceScreenRay
@@ -410,9 +411,20 @@ do
 			ymax = max(ymax, points[2].y)
 		end
 
+		-- Calculate max radius of wrecks
+		local maxRadius = 0
+		for i = 1, #points do
+			if points[i].radius and points[i].radius > maxRadius then
+				maxRadius = points[i].radius
+			end
+		end
+
 		-- Create expanded bounding box with rounded corners
-		local expandDist = 80
-		local cornerRadius = 60 -- radius for the rounded corners
+		-- Smaller expansion for single wrecks, normal for 2 wrecks
+		-- Add wreck radius to expansion to ensure full coverage
+		local baseExpandDist = (#points == 1) and 20 or 65
+		local expandDist = baseExpandDist + maxRadius
+		local cornerRadius = (#points == 1) and 30 or 60
 
 		-- Calculate the straight edge positions
 		local xmin = cluster.xmin - expandDist
@@ -1109,12 +1121,14 @@ function widget:FeatureCreated(featureID, allyTeamID)
 	local metal = spGetFeatureResources(featureID)
 	if metal >= minFeatureMetal then
 		local x, y, z = spGetFeaturePosition(featureID)
+		local radius = spGetFeatureRadius(featureID) or 0
 		local feature = {
 			fid   = featureID,
 			metal = metal,
 			x     = x,
 			y     = max(0, y),
 			z     = z,
+			radius = radius,
 		}
 
 		-- To deal with e.g. raptor eggs spawning at altitude ~20:
