@@ -62,6 +62,14 @@ return {
 		delay = 1,
 		soundEffect = "GameEnd",
 	},
+	BattleVictory = {
+		delay = 1,
+		soundEffect = "GameEnd",
+	},
+	BattleDefeat = {
+		delay = 1,
+		soundEffect = "GameEnd",
+	},
 	GamePaused = {
 		delay = 1,
 	},

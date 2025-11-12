@@ -97,14 +97,14 @@ function widget:PlayerChanged(playerID)
             if (not PlayersInformationMemory[playerName].resigned) and PlayersInformationMemory[playerName].allyTeamID == Spring.GetLocalAllyTeamID() and not spGetSpectatingState() then
                 if Differences.spectator then
                     --spEcho("Teammate Resigned", playerName, spGetGameFrame())
-                    WG['notifications'].queueNotification("TeammateResigned")
+                    WG['notifications'].queueNotification("TeammateResigned", true)
                     PlayersInformationMemory[playerName].resigned = true
 
                     -- TeammateResigned
                 end
                 if PlayersInformationMemory[playerName].hasDisconnected and (not (Differences.spectator or PlayersInformationMemory[playerName].spectator)) then
                     --spEcho("Teammate Reconnected", playerName, spGetGameFrame())
-                    WG['notifications'].queueNotification("TeammateReconnected")
+                    WG['notifications'].queueNotification("TeammateReconnected", true)
                     PlayersInformationMemory[playerName].hasDisconnected = false
                     -- TeammateReconnected
                 end
@@ -125,11 +125,11 @@ function widget:PlayerRemoved(playerID)
             if (not PlayersInformationMemory[playerName].spectator) and (not PlayersInformationMemory[playerName].resigned) and PlayersInformationMemory[playerName].allyTeamID == Spring.GetLocalAllyTeamID() and not spGetSpectatingState()then
                 if PlayersInformationMemory[playerName].timingout then
                     --spEcho("Teammate Timedout", playerName, spGetGameFrame())
-                    WG['notifications'].queueNotification("TeammateTimedout")
+                    WG['notifications'].queueNotification("TeammateTimedout", true)
                     -- TeammateTimedout
                 else
                     --spEcho("Teammate Disconnected", playerName, spGetGameFrame())
-                    WG['notifications'].queueNotification("TeammateDisconnected")
+                    WG['notifications'].queueNotification("TeammateDisconnected", true)
                     -- TeammateDisconnected
                 end
                 PlayersInformationMemory[playerName].hasDisconnected = true

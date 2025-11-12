@@ -71,6 +71,8 @@
 			"chooseStartLoc": "Please Choose Your Starting Location",
 			"gameStarted": "Battle, Started",
 			"battleEnded": "Battle, Ended",
+			"battleVictory": "Victory!",
+			"battleDefeat": "Defeat!",
 			"gamePaused": "Battle, Paused",
 			"gameUnpaused": "Battle, Resumed",
 			"teammateCaughtUp": "Friendly Player, Caught Up",
