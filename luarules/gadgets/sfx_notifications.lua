@@ -300,9 +300,9 @@ else
 						if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
 
 						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < Spring.GetGameFrame()) then
-							BroadcastEvent("NotificationEvent", "SpectatorCommanderSelfD", tostring(player), true)
+							BroadcastEvent("NotificationEvent", "NeutralCommanderSelfD", tostring(player), true)
 						else
-							BroadcastEvent("NotificationEvent", "SpectatorCommanderDied", tostring(player), true)
+							BroadcastEvent("NotificationEvent", "NeutralCommanderDied", tostring(player), true)
 						end
 					end
 				end
@@ -312,9 +312,9 @@ else
 						if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
 
 						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < Spring.GetGameFrame()) then
-							BroadcastEvent("NotificationEvent", "SpectatorCommanderSelfD", tostring(player), true)
+							BroadcastEvent("NotificationEvent", "NeutralCommanderSelfD", tostring(player), true)
 						else
-							BroadcastEvent("NotificationEvent", "SpectatorCommanderDied", tostring(player), true)
+							BroadcastEvent("NotificationEvent", "NeutralCommanderDied", tostring(player), true)
 						end
 					end
 				end
