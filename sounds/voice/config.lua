@@ -26,11 +26,11 @@ return {
 		delay = 1,
 		soundEffect = "FriendlyComDead",
 	},
-	SpectatorCommanderDied = {
+	NeutralCommanderDied = {
 		delay = 1,
 		soundEffect = "NeutralComDead",
 	},
-	SpectatorCommanderSelfD = {
+	NeutralCommanderSelfD = {
 		delay = 1,
 		soundEffect = "NeutralComDead",
 	},
@@ -62,9 +62,18 @@ return {
 		delay = 1,
 		soundEffect = "GameEnd",
 	},
+	BattleVictory = {
+		delay = 1,
+		soundEffect = "GameEnd",
+	},
+	BattleDefeat = {
+		delay = 1,
+		soundEffect = "GameEnd",
+	},
 	GamePaused = {
 		delay = 1,
 	},
+
 	TeammateCaughtUp = {
 		delay = 5,
 	},
@@ -81,6 +90,44 @@ return {
 		delay = 5,
 	},
 	TeammateTimedout = {
+		delay = 5,
+	},
+
+	EnemyPlayerCaughtUp = {
+		delay = 5,
+	},
+	EnemyPlayerDisconnected = {
+		delay = 5,
+	},
+	EnemyPlayerLagging = {
+		delay = 5,
+	},
+	EnemyPlayerReconnected = {
+		delay = 5,
+	},
+	EnemyPlayerResigned = {
+		delay = 5,
+	},
+	EnemyPlayerTimedout = {
+		delay = 5,
+	},
+
+	NeutralPlayerCaughtUp = {
+		delay = 5,
+	},
+	NeutralPlayerDisconnected = {
+		delay = 5,
+	},
+	NeutralPlayerLagging = {
+		delay = 5,
+	},
+	NeutralPlayerReconnected = {
+		delay = 5,
+	},
+	NeutralPlayerResigned = {
+		delay = 5,
+	},
+	NeutralPlayerTimedout = {
 		delay = 5,
 	},
 	RaptorsAndScavsMixed = {

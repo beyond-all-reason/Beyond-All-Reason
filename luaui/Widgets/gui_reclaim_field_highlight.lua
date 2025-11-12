@@ -46,9 +46,12 @@ local reclaimColor = {0, 0, 0, 0.16}
 local reclaimEdgeColor = {1, 1, 1, 0.18}
 
 --Fill settings
-local fillAlpha = 0.065 -- Base fill layer opacity
+local fillAlpha = 0.06 -- Base fill layer opacity
 local gradientAlpha = 0.14 -- Gradient fill layer opacity at edges
-local gradientInnerRadius = 0.66 -- Distance from center where gradient starts (0.25 = 25% from center, 75% towards center from edge)
+local gradientInnerRadius = 0.75 -- Distance from center where gradient starts (0.25 = 25% from center, 75% towards center from edge)
+
+--Field expansion settings
+local expansionMultiplier = 1.0 -- Global multiplier for all field expansions (adjust to make fields larger/smaller)
 
 --Update rate, in seconds
 local checkFrequency = 1/2
@@ -76,7 +79,6 @@ local glCreateList = gl.CreateList
 local glDeleteList = gl.DeleteList
 local glDepthTest = gl.DepthTest
 local glLineWidth = gl.LineWidth
-local glPolygonMode = gl.PolygonMode
 local glPopMatrix = gl.PopMatrix
 local glPushMatrix = gl.PushMatrix
 local glRotate = gl.Rotate
@@ -114,7 +116,7 @@ local screenx, screeny
 local clusterizingNeeded = false
 local redrawingNeeded = false
 
-local epsilon = 300
+local epsilon = 360 -- Clustering distance - increased to merge nearby fields and prevent overlaps
 local epsilonSq = epsilon*epsilon
 local minFeatureMetal = 9 -- armflea reclaim value, probably
 if UnitDefNames.armflea then
@@ -419,70 +421,66 @@ do
 			end
 		end
 
-		-- Create expanded bounding box with rounded corners
-		-- Smaller expansion for single wrecks, normal for 2 wrecks
-		-- Add wreck radius to expansion to ensure full coverage
-		local baseExpandDist = (#points == 1) and 20 or 65
-		local expandDist = baseExpandDist + maxRadius
-		local cornerRadius = (#points == 1) and 30 or 60
+		-- Ensure minimum radius for visibility
+		maxRadius = max(maxRadius, 20)
 
-		-- Calculate the straight edge positions
-		local xmin = cluster.xmin - expandDist
-		local xmax = cluster.xmax + expandDist
-		local zmin = cluster.zmin - expandDist
-		local zmax = cluster.zmax + expandDist
+		local convexHull
 
-		-- Create rounded rectangle going counter-clockwise from bottom-left
-		local convexHull = {}
-		local cornerSegments = 12 -- more segments = smoother corners
-		local angleStep = (math.pi * 0.5) / cornerSegments -- 90 degrees per corner
+		if #points == 1 then
+			-- Single wreck: create a circle-like shape with more points for smoothing
+			local cx, cz = points[1].x, points[1].z
+			-- Base size on wreck radius with moderate margin
+			local radius = maxRadius * 1.2 + 10
+			convexHull = {}
+			local segments = 8
+			for i = 0, segments - 1 do
+				local angle = (i / segments) * math.pi * 2
+				convexHull[i + 1] = {
+					x = cx + math.cos(angle) * radius,
+					y = ymax,
+					z = cz + math.sin(angle) * radius
+				}
+			end
+		elseif #points == 2 then
+			-- Two wrecks: create elongated shape oriented along the line between them
+			local p1, p2 = points[1], points[2]
+			local cx, cz = (p1.x + p2.x) * 0.5, (p1.z + p2.z) * 0.5
 
-		-- Bottom edge with left corner (180° to 270°)
-		local baseAngle = math.pi
-		local leftCenterX = xmin + cornerRadius
-		local bottomCenterZ = zmin + cornerRadius
-		for i = 0, cornerSegments do
-			local angle = baseAngle + i * angleStep
-			convexHull[#convexHull + 1] = {
-				x = leftCenterX + cornerRadius * math.cos(angle),
-				y = ymax,
-				z = bottomCenterZ + cornerRadius * math.sin(angle)
-			}
-		end
+			-- Vector between the two wrecks
+			local dx, dz = p2.x - p1.x, p2.z - p1.z
+			local dist = sqrt(dx * dx + dz * dz)
 
-		-- Right edge with bottom corner (270° to 360°)
-		baseAngle = math.pi * 1.5
-		local rightCenterX = xmax - cornerRadius
-		for i = 1, cornerSegments do
-			local angle = baseAngle + i * angleStep
-			convexHull[#convexHull + 1] = {
-				x = rightCenterX + cornerRadius * math.cos(angle),
-				y = ymax,
-				z = bottomCenterZ + cornerRadius * math.sin(angle)
-			}
-		end
+			if dist > 0.1 then
+				-- Normalize
+				dx, dz = dx / dist, dz / dist
 
-		-- Top edge with right corner (0° to 90°)
-		baseAngle = 0
-		local topCenterZ = zmax - cornerRadius
-		for i = 1, cornerSegments do
-			local angle = baseAngle + i * angleStep
-			convexHull[#convexHull + 1] = {
-				x = rightCenterX + cornerRadius * math.cos(angle),
-				y = ymax,
-				z = topCenterZ + cornerRadius * math.sin(angle)
-			}
-		end
+				-- Perpendicular vector
+				local px, pz = -dz, dx
 
-		-- Left edge with top corner (90° to 180°)
-		baseAngle = math.pi * 0.5
-		for i = 1, cornerSegments do
-			local angle = baseAngle + i * angleStep
-			convexHull[#convexHull + 1] = {
-				x = leftCenterX + cornerRadius * math.cos(angle),
-				y = ymax,
-				z = topCenterZ + cornerRadius * math.sin(angle)
-			}
+				-- Width scales with wreck radius
+				local width = maxRadius * 1.1 + 8
+
+				convexHull = {
+					{ x = p1.x + px * width, y = ymax, z = p1.z + pz * width },
+					{ x = p2.x + px * width, y = ymax, z = p2.z + pz * width },
+					{ x = p2.x - px * width, y = ymax, z = p2.z - pz * width },
+					{ x = p1.x - px * width, y = ymax, z = p1.z - pz * width }
+				}
+			else
+				-- Fall back to simple box if points are too close
+				local expandDist = maxRadius * 1.2 + 10
+				local xmin = cluster.xmin - expandDist
+				local xmax = cluster.xmax + expandDist
+				local zmin = cluster.zmin - expandDist
+				local zmax = cluster.zmax + expandDist
+
+				convexHull = {
+					{ x = xmin, y = ymax, z = zmin },
+					{ x = xmax, y = ymax, z = zmin },
+					{ x = xmax, y = ymax, z = zmax },
+					{ x = xmin, y = ymax, z = zmax }
+				}
+			end
 		end
 
 		local hullArea = cluster.dx * cluster.dz
@@ -499,70 +497,80 @@ do
 		return 0.5 * abs(totalArea + points[#points].x * points[1].z - points[#points].z * points[1].x)
 	end
 
-	-- Expand hull outward by a margin and create rounded corners
+	-- Expand hull outward by a margin and create rounded corners with Catmull-Rom smoothing
 	local function expandAndSmoothHull(hull, expandDist, cornerSegments)
 		if not hull or #hull < 3 then return hull end
 
 		local n = #hull
-		local smoothed = {}
-		local invCornerSegments = 1 / cornerSegments
-		local arcRadius = expandDist * 0.6
 
-		-- Process each vertex to create rounded corners
+		-- First pass: expand all vertices outward
+		local expanded = {}
 		for i = 1, n do
 			local prev = hull[i == 1 and n or i - 1]
 			local curr = hull[i]
 			local next = hull[i == n and 1 or i + 1]
 
-			-- Vector from prev to curr (incoming edge)
+			-- Calculate edge vectors
 			local dx1, dz1 = curr.x - prev.x, curr.z - prev.z
 			local len1 = sqrt(dx1 * dx1 + dz1 * dz1)
-			if len1 > 0 then
-				dx1, dz1 = dx1 / len1, dz1 / len1
-			end
+			if len1 > 0 then dx1, dz1 = dx1 / len1, dz1 / len1 end
 
-			-- Vector from curr to next (outgoing edge)
 			local dx2, dz2 = next.x - curr.x, next.z - curr.z
 			local len2 = sqrt(dx2 * dx2 + dz2 * dz2)
-			if len2 > 0 then
-				dx2, dz2 = dx2 / len2, dz2 / len2
-			end
+			if len2 > 0 then dx2, dz2 = dx2 / len2, dz2 / len2 end
 
-			-- Perpendicular vectors (normals pointing outward - to the right of edge direction)
+			-- Calculate outward normals
 			local nx1, nz1 = -dz1, dx1
 			local nx2, nz2 = -dz2, dx2
 
-			-- Calculate the angle between edges
+			-- Average normal (bisector)
+			local nx = (nx1 + nx2) * 0.5
+			local nz = (nz1 + nz2) * 0.5
+			local nlen = sqrt(nx * nx + nz * nz)
+			if nlen > 0 then
+				nx, nz = nx / nlen, nz / nlen
+			end
+
+			-- Adjust expansion based on corner sharpness
 			local dotProduct = dx1 * dx2 + dz1 * dz2
 			local angle = math.acos(clamp(dotProduct, -1, 1))
+			local sinHalfAngle = math.sin(angle * 0.5)
+			local expandFactor = sinHalfAngle > 0.3 and (1.0 / sinHalfAngle) or 3.0
+			expandFactor = min(expandFactor, 3.0)
 
-			-- Expand distance adjusted for corner angle
-			local expandFactor = 1.0 / max(0.3, math.sin(angle * 0.5))
-			expandFactor = min(expandFactor, 2.5)
-			local actualExpand = expandDist * expandFactor
+			expanded[i] = {
+				x = curr.x + nx * expandDist * expandFactor,
+				y = curr.y,
+				z = curr.z + nz * expandDist * expandFactor
+			}
+		end
 
-			-- Pre-calculate normal deltas
-			local dnx = nx2 - nx1
-			local dnz = nz2 - nz1
-			local currX, currY, currZ = curr.x, curr.y, curr.z
+		-- Second pass: Apply Catmull-Rom spline interpolation for smooth curves
+		local smoothed = {}
+		local segmentsPerEdge = cornerSegments
 
-			-- Create arc between normals around the corner
-			for seg = 0, cornerSegments do
-				local t = seg * invCornerSegments
+		for i = 1, n do
+			local p0 = expanded[i == 1 and n or i - 1]
+			local p1 = expanded[i]
+			local p2 = expanded[i == n and 1 or i + 1]
+			local p3 = expanded[(i + 1) % n + 1]
 
-				-- Interpolate between the two normals
-				local nx = nx1 + dnx * t
-				local nz = nz1 + dnz * t
-				local nlen = sqrt(nx * nx + nz * nz)
-				if nlen > 0 then
-					nx, nz = nx / nlen, nz / nlen
-				end
+			-- Catmull-Rom spline between p1 and p2
+			for seg = 0, segmentsPerEdge - 1 do
+				local t = seg / segmentsPerEdge
+				local t2 = t * t
+				local t3 = t2 * t
 
-				-- Create point on the arc
+				-- Catmull-Rom basis
+				local c0 = -0.5 * t3 + t2 - 0.5 * t
+				local c1 = 1.5 * t3 - 2.5 * t2 + 1.0
+				local c2 = -1.5 * t3 + 2.0 * t2 + 0.5 * t
+				local c3 = 0.5 * t3 - 0.5 * t2
+
 				smoothed[#smoothed + 1] = {
-					x = currX + nx * actualExpand,
-					y = currY,
-					z = currZ + nz * actualExpand
+					x = c0 * p0.x + c1 * p1.x + c2 * p2.x + c3 * p3.x,
+					y = p1.y,
+					z = c0 * p0.z + c1 * p1.z + c2 * p2.z + c3 * p3.z
 				}
 			end
 		end
@@ -575,6 +583,16 @@ do
 
 		local convexHull, hullArea
 		local usedBoundingBox = false
+		local maxRadius = 0
+
+		-- Calculate max wreck radius for scaling
+		for i = 1, #points do
+			if points[i].radius and points[i].radius > maxRadius then
+				maxRadius = points[i].radius
+			end
+		end
+		maxRadius = max(maxRadius, 20)
+
 		if #points >= 3 then
 			tableSort(points, sortMonotonic) -- Moved to avoid repeating the sort.
 			if #points >= 60 then
@@ -596,11 +614,20 @@ do
 		end
 
 		-- Apply expansion and smoothing to make blob-like shapes
-		-- Only apply if we didn't use BoundingBox (which already has rounded corners)
+		-- Apply to all cases including BoundingBox for smooth organic shapes
 		-- expandDist: how much to expand outward (in elmos)
 		-- cornerSegments: number of segments per rounded corner (higher = smoother)
-		if not usedBoundingBox and convexHull and #convexHull >= 3 then
-			convexHull = expandAndSmoothHull(convexHull, 80, 12)
+		if convexHull and #convexHull >= 3 then
+			-- Scale expansion with wreck size for proportional fields
+			local expansion
+			if #points == 1 then
+				expansion = (maxRadius * 0.9 + 20) * expansionMultiplier  -- Expansion for single wrecks
+			elseif usedBoundingBox then
+				expansion = (maxRadius * 0.75 + 18) * expansionMultiplier  -- Expansion for two wrecks
+			else
+				expansion = (maxRadius * 1.2 + 45) * expansionMultiplier  -- Expansion for clusters
+			end
+			convexHull = expandAndSmoothHull(convexHull, expansion, 20)
 		end
 
 		featureConvexHulls[clusterID] = convexHull
@@ -999,6 +1026,8 @@ function widget:Initialize()
 	end
 
 	camUpVector = spGetCameraVectors().up
+
+	widget:SelectionChanged(Spring.GetSelectedUnits())
 end
 
 function widget:Shutdown()
