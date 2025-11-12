@@ -1,5 +1,3 @@
-local gadgetEnabled = true
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -10,7 +8,7 @@ function gadget:GetInfo()
 		date      = "Aug 31, 2009",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
-		enabled   = gadgetEnabled
+		enabled   = true,
 	}
 end
 
