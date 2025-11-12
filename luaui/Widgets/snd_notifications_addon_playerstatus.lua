@@ -15,6 +15,8 @@ local spGetSpectatingState = Spring.GetSpectatingState
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetLocalAllyTeamID = Spring.GetLocalAllyTeamID
 
+local gameOver = false
+
 PlayersInformationMemory = {}
 
 function UpdatePlayerData(playerID)
@@ -59,7 +61,7 @@ end
 UpdateTimer = 0
 function widget:Update(dt)
     UpdateTimer = UpdateTimer+dt
-    if UpdateTimer >= 1 then
+    if UpdateTimer >= 1 and (not gameOver) then
         UpdateTimer = UpdateTimer - 1
         for playerName, data in pairs(PlayersInformationMemory) do
             local ping = select(6, spGetPlayerInfo(data.id))
@@ -98,7 +100,7 @@ function widget:Initialize()
 end
 
 function widget:PlayerChanged(playerID)
-    if playerID then
+    if playerID and (not gameOver) then
         local playerName = select(1, spGetPlayerInfo(playerID))
         local Differences = {}
         if PlayersInformationMemory[playerName] then
@@ -133,7 +135,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:PlayerRemoved(playerID)
-    if playerID then
+    if playerID and (not gameOver) then
         local playerName = select(1, spGetPlayerInfo(playerID))
         --local Differences = {}
         if PlayersInformationMemory[playerName] then
@@ -163,4 +165,8 @@ function widget:PlayerRemoved(playerID)
 
         UpdatePlayerData(playerID)
     end
+end
+
+function widget:GameOver(winningAllyTeams)
+    gameOver = true
 end
