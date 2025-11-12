@@ -1228,6 +1228,15 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	screenx, screeny = widgetHandler:GetViewSizes()
+	
+	-- Recreate text display list after resize to prevent mangled text
+	if drawFeatureClusterTextList ~= nil then
+		glDeleteList(drawFeatureClusterTextList)
+		drawFeatureClusterTextList = nil
+	end
+	if #featureClusters > 0 then
+		drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
+	end
 end
 
 function widget:DrawWorld()
