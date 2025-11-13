@@ -125,6 +125,11 @@ local dirtyClustersList = {} -- Reusable table for dirty clusters in UpdateFeatu
 local affectedFeaturesList = {} -- Reusable table for regional clustering
 local affectedClustersList = {} -- Reusable table for regional clustering
 
+-- Cache to avoid redundant Spring API calls
+local lastFlyingCheckFrame = 0 -- Track when we last checked flying features
+local validityCheckCounter = 0 -- Rotating counter for validity checks in GameFrame
+local lastCameraCheckFrame = 0 -- Track when we last checked camera up vector
+
 local epsilon = 340 -- Clustering distance - increased to merge nearby fields and prevent overlaps
 local epsilonSq = epsilon*epsilon
 local minFeatureMetal = 9 -- armflea reclaim value, probably
@@ -135,6 +140,7 @@ end
 local baseCheckFrequency = math.round(checkFrequency * Game.gameSpeed)
 checkFrequency = baseCheckFrequency
 local lastFeatureCount = 0
+local cachedKnownFeaturesCount = 0 -- Cached count to avoid iterating all features
 
 local minTextAreaLength = (epsilon / 2 + fontSizeMin) / 2
 local areaTextMin = 3000
@@ -1052,31 +1058,46 @@ local function RemoveFeature(featureID)
 	end
 	featureNeighborsMatrix[featureID] = nil
 	knownFeatures[featureID] = nil
+	cachedKnownFeaturesCount = cachedKnownFeaturesCount - 1
 end
 
 local function UpdateFeatureReclaim()
+	-- Only check a subset of features per frame to reduce API calls
+	-- We rotate through features over multiple frames
 	local removed = false
 	local removeCount = 0
 	local dirtyCount = 0
 
+	-- Sample rate: check ~10% of features per frame (or all if < 50 features)
+	-- Use cached count instead of iterating all features
+	local featureCount = cachedKnownFeaturesCount
+
+	local checkInterval = math.max(1, math.floor(featureCount / 50)) -- Check every Nth feature
+	local checkCounter = 0
+
 	for fid, fInfo in pairs(knownFeatures) do
-		local metal = spGetFeatureResources(fid)
-		if not metal or metal < minFeatureMetal then
-			removeCount = removeCount + 1
-			toRemoveFeatures[removeCount] = fid
-			removed = true
-		elseif fInfo.metal ~= metal then
-			if fInfo.cid then
-				local cid = fInfo.cid
-				-- Only add to dirty list if not already there
-				if not dirtyClustersList[cid] then
-					dirtyCount = dirtyCount + 1
-					dirtyClustersList[cid] = true
+		-- Rotating check: only check some features per frame
+		checkCounter = checkCounter + 1
+		if checkCounter % checkInterval == 0 or featureCount <= 50 then
+			-- Check this feature this frame
+			local metal = spGetFeatureResources(fid)
+			if not metal or metal < minFeatureMetal then
+				removeCount = removeCount + 1
+				toRemoveFeatures[removeCount] = fid
+				removed = true
+			elseif fInfo.metal ~= metal then
+				if fInfo.cid then
+					local cid = fInfo.cid
+					-- Only add to dirty list if not already there
+					if not dirtyClustersList[cid] then
+						dirtyCount = dirtyCount + 1
+						dirtyClustersList[cid] = true
+					end
+					local thisCluster = featureClusters[cid]
+					thisCluster.metal = thisCluster.metal - fInfo.metal + metal
 				end
-				local thisCluster = featureClusters[cid]
-				thisCluster.metal = thisCluster.metal - fInfo.metal + metal
+				fInfo.metal = metal
 			end
-			fInfo.metal = metal
 		end
 	end
 
@@ -1410,6 +1431,7 @@ function widget:Initialize()
 	featureClusters = {}
 	featureConvexHulls = {}
 	opticsObject = Optics.new()
+	cachedKnownFeaturesCount = 0 -- Reset cached count
 
 	for _, featureID in ipairs(Spring.GetAllFeatures()) do
 		widget:FeatureCreated(featureID)
@@ -1477,11 +1499,9 @@ function widget:GameFrame(frame)
 
 	-- Dynamically adjust check frequency based on feature count
 	-- Only recalculate every 30 frames to avoid overhead
+	-- Use cached count instead of iterating all features
 	if frame % 30 == 0 then
-		local currentFeatureCount = 0
-		for _ in pairs(knownFeatures) do
-			currentFeatureCount = currentFeatureCount + 1
-		end
+		local currentFeatureCount = cachedKnownFeaturesCount
 
 		-- Adjust frequency based on feature count thresholds
 		if currentFeatureCount ~= lastFeatureCount then
@@ -1504,59 +1524,95 @@ function widget:GameFrame(frame)
 
 	local featuresAdded = false
 
-	-- Process flying features first (fast path)
-	if next(flyingFeatures) then
+	-- Process flying features (check less frequently - every 3 frames)
+	-- Flying features are rare, no need to check every single frame
+	if next(flyingFeatures) and (frame - lastFlyingCheckFrame) >= 3 then
+		lastFlyingCheckFrame = frame
 		for featureID, fInfo in pairs(flyingFeatures) do
-			local _,_,_, vw = spGetFeatureVelocity(featureID)
-			if vw <= 1e-3 then
-				flyingFeatures[featureID] = nil
-				local x, y, z = spGetFeaturePosition(featureID)
-				if x then -- Validate feature still exists
-					fInfo.x, fInfo.y, fInfo.z = x, y, z
+			-- Quick validation before API call
+			if Spring.ValidFeatureID(featureID) then
+				local _,_,_, vw = spGetFeatureVelocity(featureID)
+				if vw then
+					-- Feature still exists and has velocity data
+					if vw <= 1e-3 then
+						flyingFeatures[featureID] = nil
+						local x, y, z = spGetFeaturePosition(featureID)
+						if x then -- Validate feature still exists
+							fInfo.x, fInfo.y, fInfo.z = x, y, z
 
-					-- Mark region as dirty for regional reclustering
-					MarkRegionDirty(x, z)
+							-- Mark region as dirty for regional reclustering
+							MarkRegionDirty(x, z)
 
-					local M = featureNeighborsMatrix
-					local M_newFeature = {}
-					local reachDistSq, epsilonSq = mathHuge, epsilonSq
-					for fid2, feat2 in pairs(knownFeatures) do
-						local dx, dz = x - feat2.x, z - feat2.z
-						local distSq = dx * dx + dz * dz
-						if distSq <= epsilonSq then
-							M[fid2][featureID] = distSq
-							M_newFeature[fid2] = distSq
-							if distSq < reachDistSq then
-								reachDistSq = distSq
+							local M = featureNeighborsMatrix
+							local M_newFeature = {}
+							local reachDistSq, epsilonSq = mathHuge, epsilonSq
+							for fid2, feat2 in pairs(knownFeatures) do
+								local dx, dz = x - feat2.x, z - feat2.z
+								local distSq = dx * dx + dz * dz
+								if distSq <= epsilonSq then
+									M[fid2][featureID] = distSq
+									M_newFeature[fid2] = distSq
+									if distSq < reachDistSq then
+										reachDistSq = distSq
+									end
+									if feat2.rd == nil or distSq < feat2.rd then
+										feat2.rd = distSq
+									end
+								end
 							end
-							if feat2.rd == nil or distSq < feat2.rd then
-								feat2.rd = distSq
+							featureNeighborsMatrix[featureID] = M_newFeature
+							if reachDistSq < epsilonSq then
+								fInfo.rd = reachDistSq
 							end
+							knownFeatures[featureID] = fInfo
+							cachedKnownFeaturesCount = cachedKnownFeaturesCount + 1
+							featuresAdded = true
+						else
+							-- Feature was destroyed while flying
+							flyingFeatures[featureID] = nil
 						end
 					end
-					featureNeighborsMatrix[featureID] = M_newFeature
-					if reachDistSq < epsilonSq then
-						fInfo.rd = reachDistSq
-					end
-					knownFeatures[featureID] = fInfo
-					featuresAdded = true
 				else
-					-- Feature was destroyed while flying
+					-- Feature no longer exists
 					flyingFeatures[featureID] = nil
 				end
+			else
+				-- Feature ID is invalid
+				flyingFeatures[featureID] = nil
 			end
 		end
 	end
 
 	if featuresAdded or clusterizingNeeded then
 		-- Batch remove invalid features using reusable table
+		-- Use rotating checks to avoid checking ALL features every cycle
 		local removeCount = 0
+
+		-- Use cached count instead of iterating all features
+		local featureCount = cachedKnownFeaturesCount
+
+		-- Calculate check interval: check at minimum 50 features, but sample more if fewer total
+		local checkInterval = max(1, floor(featureCount / 50))
+		validityCheckCounter = validityCheckCounter + 1
+
 		for fid, fInfo in pairs(knownFeatures) do
-			local metal = spGetFeatureResources(fid)
-			if not metal or metal < minFeatureMetal then
-				removeCount = removeCount + 1
-				toRemoveFeatures[removeCount] = fid
+			-- Rotating check: only validate a subset of features per frame
+			-- Always check if featureCount is small, otherwise use rotating pattern
+			if checkInterval == 1 or (validityCheckCounter % checkInterval == 0) then
+				-- Quick validity check first (much cheaper than GetFeatureResources)
+				if not Spring.ValidFeatureID(fid) then
+					removeCount = removeCount + 1
+					toRemoveFeatures[removeCount] = fid
+				else
+					-- Only call GetFeatureResources if feature is valid
+					local metal = spGetFeatureResources(fid)
+					if not metal or metal < minFeatureMetal then
+						removeCount = removeCount + 1
+						toRemoveFeatures[removeCount] = fid
+					end
+				end
 			end
+			validityCheckCounter = validityCheckCounter + 1
 		end
 
 		-- Remove in separate loop to avoid iterator issues
@@ -1616,9 +1672,18 @@ function widget:GameFrame(frame)
 	end
 
 	-- Text is always redrawn to rotate it facing the camera.
-	local camUpVectorNew = spGetCameraVectors().up
-	if redrawingNeeded or camUpVector[1] ~= camUpVectorNew[1] or camUpVector[3] ~= camUpVectorNew[3] then
-		camUpVector = camUpVectorNew
+	-- Only check camera vector every few frames or when redrawing - it rarely changes
+	local cameraChanged = false
+	if redrawingNeeded or (frame - lastCameraCheckFrame) >= 5 then
+		local camUpVectorNew = spGetCameraVectors().up
+		if camUpVector[1] ~= camUpVectorNew[1] or camUpVector[3] ~= camUpVectorNew[3] then
+			camUpVector = camUpVectorNew
+			cameraChanged = true
+		end
+		lastCameraCheckFrame = frame
+	end
+
+	if cameraChanged or redrawingNeeded then
 		if drawFeatureClusterTextList ~= nil then
 			glDeleteList(drawFeatureClusterTextList)
 			drawFeatureClusterTextList = nil
@@ -1683,6 +1748,7 @@ function widget:FeatureCreated(featureID, allyTeamID)
 		feature.rd = reachDistSq
 	end
 	knownFeatures[featureID] = feature
+	cachedKnownFeaturesCount = cachedKnownFeaturesCount + 1
 	clusterizingNeeded = true
 end
 function widget:FeatureDestroyed(featureID, allyTeamID)
