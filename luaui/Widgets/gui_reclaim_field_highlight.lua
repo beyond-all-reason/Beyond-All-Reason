@@ -1116,7 +1116,10 @@ local function UpdateFeatureReclaim()
 	elseif dirtyCount > 0 then
 		redrawingNeeded = true
 		for cid in pairs(dirtyClustersList) do
-			featureClusters[cid].text = string.formatSI(featureClusters[cid].metal)
+			local cluster = featureClusters[cid]
+			if cluster then
+				cluster.text = string.formatSI(cluster.metal)
+			end
 			dirtyClustersList[cid] = nil -- Clear as we go
 		end
 	end
