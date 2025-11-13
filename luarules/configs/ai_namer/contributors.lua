@@ -88,7 +88,7 @@ local ContributorAINames = {
 	"IceShotTheSheriff",
     "Tom Fyuri",
     "Vache",
-	"Varunda",
+	"varunda",
     "Volshok",
     "Watch The Fort",
     "Xehrath",
