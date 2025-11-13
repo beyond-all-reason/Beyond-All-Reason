@@ -948,8 +948,6 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 	local cs = cs~=nil and cs or mathMax(1, mathFloor((sx-px) * 0.024))
 	borderOpacity = borderOpacity or 0.1
 
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-
 	-- Layer 1: Draw unit texture
 	if texture then
 		gl.Texture(texture)
