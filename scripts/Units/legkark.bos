@@ -6,7 +6,7 @@ piece 	base, torso, lshoulder, rshoulder, lsleeve, rsleeve, lbarrel, heatraycoil
 		armorlshoulder, armorrshoulder, armorlsleeve, armortorso, armorflleg, armorfrleg, armorblleg, armorbrleg, 
 		torsopivot, aimx, lflare1, lflare2, rflare;
 
-static-var  isMoving, isAiming, restore_delay, gun_1, wpn1_lasthead, moveSpeed, tdamage, shieldup, torsoHeading, shotcount;
+static-var  isMoving, isAiming, restore_delay, gun_1, wpn1_lasthead, moveSpeed, torsoHeading, shotcount;
 
 // signal definitions
 #define SIGNAL_AIM1			2
@@ -370,59 +370,43 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 {
 	signal SIGNAL_REPAIR;
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
-	tdamage = dmg + tdamage;
-	start-script repairShield();
-	if ((tdamage > 30000) AND (shieldup == 1))
-	{
-		// Start Animation: Break Shield; Only explode 2 pieces to reduce clutter
-		explode armortorso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode armorlsleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		
-		hide armortorso;
-		hide armorflleg;
-		hide armorfrleg;
-		hide armorrshoulder;
-		hide armorlsleeve;
-		// End Animation
-		
-		set ARMORED to 0;
-		shieldup = 0;
-		
-	}
 	return (100); //return damage percent
 }
 
-// Restore this units hume shield after 15000ms / 15 seconds, restore armored state
-repairShield()
+ReactiveArmorBroken(delay)
+	// only explode 2 pieces to reduce clutter
+	explode armortorso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode armorlsleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+
+	hide armortorso;
+	hide armorflleg;
+	hide armorfrleg;
+	hide armorrshoulder;
+	hide armorlsleeve;
+}
+
+ReactiveArmorRestoring(duration)
 {
 	set-signal-mask SIGNAL_REPAIR;
-	sleep 11000;
-	
-	// Start Animation: 5 second countdown
+
 	show armorflleg;
 	emit-sfx 1024 + 1 from armorflleg;
-	sleep 1000;
+	sleep 6000 / duration;
 	
 	show armorfrleg;
 	emit-sfx 1024 + 1 from armorfrleg;
-	sleep 1000;
+	sleep 6000 / duration;
 	
 	show armorrshoulder;
 	emit-sfx 1024 + 1 from armorrshoulder;
-	sleep 1000;
+	sleep 6000 / duration;
 	
 	show armorlsleeve;
 	emit-sfx 1024 + 1 from armorlsleeve;
-	sleep 1000;
+	sleep 6000 / duration;
 	
 	show armortorso;
 	emit-sfx 1024 + 1 from armortorso;
-	// End Animation
-	
-	// Reset shield status 
-	shieldup = 1;
-	set ARMORED to 1;
-	tdamage = 0;
 }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -470,9 +454,6 @@ Create()
 	
 	torsoHeading = 0;
 	gun_1 = 0;
-	tdamage = 0;
-	shieldup = 1;
-	set ARMORED to 1;
 	animSpeed = 5;
 	shotcount = 0;
 	
