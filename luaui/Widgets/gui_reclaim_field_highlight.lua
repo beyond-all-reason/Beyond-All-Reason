@@ -39,7 +39,7 @@ local showOption = 3
 --Metal value font
 local numberColor = {1, 1, 1, 0.9}
 local fontSizeMin = 30
-local fontSizeMax = 180
+local fontSizeMax = 140
 
 --Field color
 local reclaimColor = {0, 0, 0, 0.16}
@@ -51,10 +51,19 @@ local gradientAlpha = 0.14 -- Gradient fill layer opacity at edges
 local gradientInnerRadius = 0.75 -- Distance from center where gradient starts (0.25 = 25% from center, 75% towards center from edge)
 
 --Field expansion settings
-local expansionMultiplier = 1.0 -- Global multiplier for all field expansions (adjust to make fields larger/smaller)
+local expansionMultiplier = 0.35 -- Global multiplier for all field expansions (adjust to make fields larger/smaller)
+
+--Smoothing settings
+local enableSmoothing = true -- Enable smooth rounded edges with Catmull-Rom interpolation
+local smoothingSegments = 5 -- Number of segments per edge
+-- Note: Smoothing can be toggled at runtime via:
+--   WG['reclaimfieldhighlight'].setEnableSmoothing(true/false)
+--   WG['reclaimfieldhighlight'].setSmoothingSegments(value)
+-- Lower values = better performance, sharper edges (e.g., 4-8 for low-end systems)
+-- Higher values = smoother, more organic shapes (e.g., 20-30 for high-end systems)
 
 --Update rate, in seconds
-local checkFrequency = 1/2
+local checkFrequency = 0.5
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -103,27 +112,35 @@ local spGetCameraVectors = Spring.GetCameraVectors
 --------------------------------------------------------------------------------
 -- Data
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = math.min(1.5, (0.5 + (vsx*vsy / 5700000)))
-local fontfileSize = 100
-local fontfileOutlineSize = 26
-local fontfileOutlineStrength = 0.15
---spEcho("Loading Font",fontfile,fontfileSize*fontfileScale,fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-
 local screenx, screeny
 local clusterizingNeeded = false
 local redrawingNeeded = false
+local dirtyRegions = {} -- Track which regions need reclustering
+local dirtyClusters = {} -- Track which specific clusters need redrawing
+local useRegionalUpdates = true -- Enable regional optimization
 
-local epsilon = 360 -- Clustering distance - increased to merge nearby fields and prevent overlaps
+-- Reusable tables to reduce allocations in GameFrame
+local toRemoveFeatures = {} -- Reusable table for batching feature removals
+local dirtyClustersList = {} -- Reusable table for dirty clusters in UpdateFeatureReclaim
+local affectedFeaturesList = {} -- Reusable table for regional clustering
+local affectedClustersList = {} -- Reusable table for regional clustering
+
+-- Cache to avoid redundant Spring API calls
+local lastFlyingCheckFrame = 0 -- Track when we last checked flying features
+local validityCheckCounter = 0 -- Rotating counter for validity checks in GameFrame
+local lastCameraCheckFrame = 0 -- Track when we last checked camera up vector
+
+local epsilon = 340 -- Clustering distance - increased to merge nearby fields and prevent overlaps
 local epsilonSq = epsilon*epsilon
 local minFeatureMetal = 9 -- armflea reclaim value, probably
 if UnitDefNames.armflea then
 	local small = FeatureDefNames[UnitDefNames.armflea.corpse]
 	minFeatureMetal = small and small.metal or minFeatureMetal
 end
-checkFrequency = math.round(checkFrequency * Game.gameSpeed)
+local baseCheckFrequency = math.round(checkFrequency * Game.gameSpeed)
+checkFrequency = baseCheckFrequency
+local lastFeatureCount = 0
+local cachedKnownFeaturesCount = 0 -- Cached count to avoid iterating all features
 
 local minTextAreaLength = (epsilon / 2 + fontSizeMin) / 2
 local areaTextMin = 3000
@@ -408,11 +425,6 @@ do
 	end
 
 	local function BoundingBox(cluster, points)
-		local ymax = points[1].y
-		if #points == 2 then
-			ymax = max(ymax, points[2].y)
-		end
-
 		-- Calculate max radius of wrecks
 		local maxRadius = 0
 		for i = 1, #points do
@@ -435,10 +447,12 @@ do
 			local segments = 8
 			for i = 0, segments - 1 do
 				local angle = (i / segments) * math.pi * 2
+				local x = cx + math.cos(angle) * radius
+				local z = cz + math.sin(angle) * radius
 				convexHull[i + 1] = {
-					x = cx + math.cos(angle) * radius,
-					y = ymax,
-					z = cz + math.sin(angle) * radius
+					x = x,
+					y = max(0, spGetGroundHeight(x, z)),
+					z = z
 				}
 			end
 		elseif #points == 2 then
@@ -460,11 +474,20 @@ do
 				-- Width scales with wreck radius
 				local width = maxRadius * 1.1 + 8
 
+				local x1 = p1.x + px * width
+				local z1 = p1.z + pz * width
+				local x2 = p2.x + px * width
+				local z2 = p2.z + pz * width
+				local x3 = p2.x - px * width
+				local z3 = p2.z - pz * width
+				local x4 = p1.x - px * width
+				local z4 = p1.z - pz * width
+
 				convexHull = {
-					{ x = p1.x + px * width, y = ymax, z = p1.z + pz * width },
-					{ x = p2.x + px * width, y = ymax, z = p2.z + pz * width },
-					{ x = p2.x - px * width, y = ymax, z = p2.z - pz * width },
-					{ x = p1.x - px * width, y = ymax, z = p1.z - pz * width }
+					{ x = x1, y = max(0, spGetGroundHeight(x1, z1)), z = z1 },
+					{ x = x2, y = max(0, spGetGroundHeight(x2, z2)), z = z2 },
+					{ x = x3, y = max(0, spGetGroundHeight(x3, z3)), z = z3 },
+					{ x = x4, y = max(0, spGetGroundHeight(x4, z4)), z = z4 }
 				}
 			else
 				-- Fall back to simple box if points are too close
@@ -475,10 +498,10 @@ do
 				local zmax = cluster.zmax + expandDist
 
 				convexHull = {
-					{ x = xmin, y = ymax, z = zmin },
-					{ x = xmax, y = ymax, z = zmin },
-					{ x = xmax, y = ymax, z = zmax },
-					{ x = xmin, y = ymax, z = zmax }
+					{ x = xmin, y = max(0, spGetGroundHeight(xmin, zmin)), z = zmin },
+					{ x = xmax, y = max(0, spGetGroundHeight(xmax, zmin)), z = zmin },
+					{ x = xmax, y = max(0, spGetGroundHeight(xmax, zmax)), z = zmax },
+					{ x = xmin, y = max(0, spGetGroundHeight(xmin, zmax)), z = zmax }
 				}
 			end
 		end
@@ -497,13 +520,202 @@ do
 		return 0.5 * abs(totalArea + points[#points].x * points[1].z - points[#points].z * points[1].x)
 	end
 
-	-- Expand hull outward by a margin and create rounded corners with Catmull-Rom smoothing
-	local function expandAndSmoothHull(hull, expandDist, cornerSegments)
+	-- Subdivide long edges in hull to ensure smooth expansion
+	local function subdivideHull(hull, maxEdgeLength)
+		if not hull or #hull < 3 then return hull end
+
+		local subdivided = {}
+		local n = #hull
+
+		for i = 1, n do
+			local curr = hull[i]
+			local next = hull[i == n and 1 or i + 1]
+
+			-- Add current vertex
+			subdivided[#subdivided + 1] = {x = curr.x, y = curr.y, z = curr.z}
+
+			-- Calculate edge length
+			local dx = next.x - curr.x
+			local dz = next.z - curr.z
+			local edgeLen = sqrt(dx * dx + dz * dz)
+
+			-- If edge is long, subdivide it
+			if edgeLen > maxEdgeLength then
+				local numSegments = math.ceil(edgeLen / maxEdgeLength)
+				for j = 1, numSegments - 1 do
+					local t = j / numSegments
+					local interpX = curr.x + dx * t
+					local interpZ = curr.z + dz * t
+					subdivided[#subdivided + 1] = {
+						x = interpX,
+						y = max(0, spGetGroundHeight(interpX, interpZ)),
+						z = interpZ
+					}
+				end
+			end
+		end
+
+		return subdivided
+	end
+
+	-- Create a smooth elliptical hull based on oriented bounding ellipse
+	local function createSmoothEllipse(hull, expandDist)
 		if not hull or #hull < 3 then return hull end
 
 		local n = #hull
 
-		-- First pass: expand all vertices outward
+		-- Calculate centroid
+		local cx, cz = 0, 0
+		for i = 1, n do
+			cx = cx + hull[i].x
+			cz = cz + hull[i].z
+		end
+		cx = cx / n
+		cz = cz / n
+
+		-- Calculate covariance matrix for PCA (Principal Component Analysis)
+		local covXX, covXZ, covZZ = 0, 0, 0
+		for i = 1, n do
+			local dx = hull[i].x - cx
+			local dz = hull[i].z - cz
+			covXX = covXX + dx * dx
+			covXZ = covXZ + dx * dz
+			covZZ = covZZ + dz * dz
+		end
+		covXX = covXX / n
+		covXZ = covXZ / n
+		covZZ = covZZ / n
+
+		-- Calculate eigenvalues and eigenvectors for oriented ellipse
+		local trace = covXX + covZZ
+		local det = covXX * covZZ - covXZ * covXZ
+		local eigenval1 = trace / 2 + sqrt(max(0, trace * trace / 4 - det))
+		local eigenval2 = trace / 2 - sqrt(max(0, trace * trace / 4 - det))
+
+		-- Eigenvector for the major axis
+		local evx, evz
+		if abs(covXZ) > 0.0001 then
+			evx = eigenval1 - covZZ
+			evz = covXZ
+			local evlen = sqrt(evx * evx + evz * evz)
+			if evlen > 0 then
+				evx, evz = evx / evlen, evz / evlen
+			end
+		else
+			evx, evz = 1, 0
+		end
+
+		-- Calculate initial extents along principal axes
+		local maxMajor, maxMinor = 0, 0
+		for i = 1, n do
+			local dx = hull[i].x - cx
+			local dz = hull[i].z - cz
+			-- Project onto principal axes
+			local projMajor = abs(dx * evx + dz * evz)
+			local projMinor = abs(-dx * evz + dz * evx)
+			if projMajor > maxMajor then maxMajor = projMajor end
+			if projMinor > maxMinor then maxMinor = projMinor end
+		end
+
+		-- Ensure minimum aspect ratio for very elongated shapes
+		if maxMajor > 0 and maxMinor / maxMajor < 0.3 then
+			maxMinor = maxMajor * 0.3
+		end
+
+		-- Add expansion
+		maxMajor = maxMajor + expandDist
+		maxMinor = maxMinor + expandDist
+
+		-- Iteratively adjust radii to ensure all points are inside with minimal overshoot
+		-- This finds the minimum bounding ellipse that contains all points
+		local maxIterations = 5
+		for iter = 1, maxIterations do
+			local maxExcess = 0
+			local needsAdjustment = false
+
+			for i = 1, n do
+				local dx = hull[i].x - cx
+				local dz = hull[i].z - cz
+				-- Project onto principal axes
+				local projMajor = dx * evx + dz * evz
+				local projMinor = -dx * evz + dz * evx
+
+				-- Calculate how far outside the ellipse this point is
+				local normalizedDist = (projMajor * projMajor) / (maxMajor * maxMajor) +
+				                       (projMinor * projMinor) / (maxMinor * maxMinor)
+
+				if normalizedDist > 1.0 then
+					needsAdjustment = true
+					local excess = sqrt(normalizedDist)
+					if excess > maxExcess then
+						maxExcess = excess
+					end
+				end
+			end
+
+			-- If all points are inside, we're done
+			if not needsAdjustment then
+				break
+			end
+
+			-- Grow the ellipse just enough to contain all points
+			-- Use smaller incremental adjustments to avoid overshooting
+			local adjustmentFactor = 1.0 + (maxExcess - 1.0) * 0.5  -- Grow by half the needed amount
+			maxMajor = maxMajor * adjustmentFactor
+			maxMinor = maxMinor * adjustmentFactor
+		end
+
+		-- Final safety margin
+		maxMajor = maxMajor * 1.02
+		maxMinor = maxMinor * 1.02
+
+		-- Generate smooth ellipse points
+		local numPoints = enableSmoothing and smoothingSegments * 4 or n
+		local ellipse = {}
+		for i = 0, numPoints - 1 do
+			local angle = (i / numPoints) * 2 * math.pi
+			local localX = maxMajor * math.cos(angle)
+			local localZ = maxMinor * math.sin(angle)
+
+			-- Rotate back to world orientation
+			local worldX = cx + localX * evx - localZ * evz
+			local worldZ = cz + localX * evz + localZ * evx
+
+			ellipse[i + 1] = {
+				x = worldX,
+				y = max(0, spGetGroundHeight(worldX, worldZ)),
+				z = worldZ
+			}
+		end
+
+		return ellipse
+	end
+
+	-- Expand hull outward by a margin and create rounded corners with Catmull-Rom smoothing
+	local function expandAndSmoothHull(hull, expandDist)
+		if not hull or #hull < 3 then return hull end
+
+		-- Subdivide long edges first to ensure smooth, even expansion
+		-- Use expandDist as guide for max edge length (want multiple points per expansion distance)
+		local maxEdgeLength = max(expandDist * 1.5, 80)  -- At least one subdivision per ~expansion distance
+		hull = subdivideHull(hull, maxEdgeLength)
+
+		local n = #hull
+
+		-- Calculate centroid for radial expansion
+		local cx, cz = 0, 0
+		for i = 1, n do
+			cx = cx + hull[i].x
+			cz = cz + hull[i].z
+		end
+		cx = cx / n
+		cz = cz / n
+
+		if not enableSmoothing then
+			--return hull
+		end
+
+		-- First pass: expand all vertices outward using a blend of radial and normal-based expansion
 		local expanded = {}
 		for i = 1, n do
 			local prev = hull[i == 1 and n or i - 1]
@@ -531,23 +743,54 @@ do
 				nx, nz = nx / nlen, nz / nlen
 			end
 
-			-- Adjust expansion based on corner sharpness
+			-- Radial direction from centroid (for more circular expansion)
+			local rx = curr.x - cx
+			local rz = curr.z - cz
+			local rlen = sqrt(rx * rx + rz * rz)
+			if rlen > 0 then
+				rx, rz = rx / rlen, rz / rlen
+			end
+
+			-- Blend normal and radial directions for smoother, more circular expansion
+			-- Higher weight on radial = more circular/blob-like
+			local blendWeight = 0.7  -- 70% radial, 30% normal-based
+			local finalNx = nx * (1 - blendWeight) + rx * blendWeight
+			local finalNz = nz * (1 - blendWeight) + rz * blendWeight
+			local finalLen = sqrt(finalNx * finalNx + finalNz * finalNz)
+			if finalLen > 0 then
+				finalNx, finalNz = finalNx / finalLen, finalNz / finalLen
+			end
+
+			-- Use more uniform expansion (less dependency on corner sharpness)
 			local dotProduct = dx1 * dx2 + dz1 * dz2
 			local angle = math.acos(clamp(dotProduct, -1, 1))
 			local sinHalfAngle = math.sin(angle * 0.5)
-			local expandFactor = sinHalfAngle > 0.3 and (1.0 / sinHalfAngle) or 3.0
-			expandFactor = min(expandFactor, 3.0)
+			-- Reduced the influence of corner sharpness for more uniform expansion
+			local expandFactor = sinHalfAngle > 0.4 and (1.0 / sinHalfAngle) or 2.5
+			expandFactor = clamp(expandFactor, 1.0, 2.0)  -- Tighter range for more uniformity
+
+			local newX = curr.x + finalNx * expandDist * expandFactor
+			local newZ = curr.z + finalNz * expandDist * expandFactor
 
 			expanded[i] = {
-				x = curr.x + nx * expandDist * expandFactor,
-				y = curr.y,
-				z = curr.z + nz * expandDist * expandFactor
+				x = newX,
+				y = max(0, spGetGroundHeight(newX, newZ)),
+				z = newZ
 			}
+		end
+
+		if not enableSmoothing then
+			return expanded
+		end
+
+		-- If smoothing disabled, return expanded hull directly
+		if smoothingSegments <= 0 then
+			return expanded
 		end
 
 		-- Second pass: Apply Catmull-Rom spline interpolation for smooth curves
 		local smoothed = {}
-		local segmentsPerEdge = cornerSegments
+		local segmentsPerEdge = smoothingSegments
 
 		for i = 1, n do
 			local p0 = expanded[i == 1 and n or i - 1]
@@ -567,10 +810,15 @@ do
 				local c2 = -1.5 * t3 + 2.0 * t2 + 0.5 * t
 				local c3 = 0.5 * t3 - 0.5 * t2
 
+				local newX = c0 * p0.x + c1 * p1.x + c2 * p2.x + c3 * p3.x
+				local newZ = c0 * p0.z + c1 * p1.z + c2 * p2.z + c3 * p3.z
+				-- Interpolate Y smoothly using the spline
+				local newY = c0 * p0.y + c1 * p1.y + c2 * p2.y + c3 * p3.y
+
 				smoothed[#smoothed + 1] = {
-					x = c0 * p0.x + c1 * p1.x + c2 * p2.x + c3 * p3.x,
-					y = p1.y,
-					z = c0 * p0.z + c1 * p1.z + c2 * p2.z + c3 * p3.z
+					x = newX,
+					y = newY,
+					z = newZ
 				}
 			end
 		end
@@ -616,18 +864,21 @@ do
 		-- Apply expansion and smoothing to make blob-like shapes
 		-- Apply to all cases including BoundingBox for smooth organic shapes
 		-- expandDist: how much to expand outward (in elmos)
-		-- cornerSegments: number of segments per rounded corner (higher = smoother)
 		if convexHull and #convexHull >= 3 then
 			-- Scale expansion with wreck size for proportional fields
+			-- Increased expansion values for more encompassing, uniform fields
 			local expansion
 			if #points == 1 then
-				expansion = (maxRadius * 0.9 + 20) * expansionMultiplier  -- Expansion for single wrecks
+				expansion = (maxRadius * 1.5 + 35) * expansionMultiplier  -- Expansion for single wrecks
 			elseif usedBoundingBox then
-				expansion = (maxRadius * 0.75 + 18) * expansionMultiplier  -- Expansion for two wrecks
+				expansion = (maxRadius * 1.5 + 40) * expansionMultiplier  -- Expansion for two wrecks
 			else
-				expansion = (maxRadius * 1.2 + 45) * expansionMultiplier  -- Expansion for clusters
+				expansion = (maxRadius * 1.8 + 65) * expansionMultiplier  -- Expansion for clusters
 			end
-			convexHull = expandAndSmoothHull(convexHull, expansion, 20)
+
+			-- Always use the standard expand+smooth method which follows the hull shape
+			-- The ellipse approach was too rigid and caused overshooting
+			convexHull = expandAndSmoothHull(convexHull, expansion)
 		end
 
 		featureConvexHulls[clusterID] = convexHull
@@ -727,61 +978,239 @@ end
 --------------------------------------------------------------------------------
 -- Feature Tracking
 
+local function MarkRegionDirty(x, z, radius)
+	-- Mark a spatial region as needing reclustering
+	if not useRegionalUpdates then return end
+
+	local newRadius = radius or epsilon * 2
+	local merged = false
+
+	-- Try to merge with existing dirty regions to reduce fragmentation
+	for i = 1, #dirtyRegions do
+		local region = dirtyRegions[i]
+		local dx, dz = x - region.x, z - region.z
+		local dist = sqrt(dx * dx + dz * dz)
+
+		-- If regions overlap or are very close, merge them
+		if dist <= (region.radius + newRadius) then
+			-- Expand existing region to cover both
+			local furthestDist = dist + newRadius
+			if furthestDist > region.radius then
+				-- Move center toward the midpoint and expand radius
+				local totalRadius = max(region.radius, furthestDist)
+				region.radius = totalRadius
+			end
+			merged = true
+			break
+		end
+	end
+
+	-- Add as new region if not merged
+	if not merged then
+		dirtyRegions[#dirtyRegions + 1] = {x = x, z = z, radius = newRadius}
+	end
+end
+
+local function IsInDirtyRegion(x, z)
+	if not useRegionalUpdates or #dirtyRegions == 0 then return true end
+	for i = 1, #dirtyRegions do
+		local region = dirtyRegions[i]
+		local dx, dz = x - region.x, z - region.z
+		if dx * dx + dz * dz <= region.radius * region.radius then
+			return true
+		end
+	end
+	return false
+end
+
 local function RemoveFeature(featureID)
+	local feature = knownFeatures[featureID]
+	if not feature then return end
+
+	-- Mark region as dirty for regional reclustering
+	MarkRegionDirty(feature.x, feature.z)
+
+	-- Mark cluster as dirty for redrawing
+	if feature.cid then
+		dirtyClusters[feature.cid] = true
+	end
+
 	local neighbors = featureNeighborsMatrix[featureID]
 	local epsilonSq = epsilonSq
 	for nid, distSq in pairs(neighbors) do
 		-- Update the reachability of neighbors linked through this point.
 		local neighbor = knownFeatures[nid]
-		if neighbor.rd == distSq then
-			local nextNeighbors = featureNeighborsMatrix[nid]
-			nextNeighbors[featureID] = nil
-			local reachDistSq = mathHuge
-			for fid2, distSq2 in pairs(nextNeighbors) do
-				if distSq2 < reachDistSq then
-					reachDistSq = distSq2
+		if neighbor then
+			if neighbor.rd == distSq then
+				local nextNeighbors = featureNeighborsMatrix[nid]
+				nextNeighbors[featureID] = nil
+				local reachDistSq = mathHuge
+				for fid2, distSq2 in pairs(nextNeighbors) do
+					if distSq2 < reachDistSq then
+						reachDistSq = distSq2
+					end
 				end
+				neighbor.rd = (reachDistSq <= epsilonSq and reachDistSq) or nil
+			else
+				featureNeighborsMatrix[nid][featureID] = nil
 			end
-			neighbor.rd = (reachDistSq <= epsilonSq and reachDistSq) or nil
-		else
-			featureNeighborsMatrix[nid][featureID] = nil
 		end
 	end
 	featureNeighborsMatrix[featureID] = nil
 	knownFeatures[featureID] = nil
+	cachedKnownFeaturesCount = cachedKnownFeaturesCount - 1
 end
 
 local function UpdateFeatureReclaim()
-	local dirty, removed = {}, false
+	-- Only check a subset of features per frame to reduce API calls
+	-- We rotate through features over multiple frames
+	local removed = false
+	local removeCount = 0
+	local dirtyCount = 0
+
+	-- Sample rate: check ~10% of features per frame (or all if < 50 features)
+	-- Use cached count instead of iterating all features
+	local featureCount = cachedKnownFeaturesCount
+
+	local checkInterval = math.max(1, math.floor(featureCount / 50)) -- Check every Nth feature
+	local checkCounter = 0
+
 	for fid, fInfo in pairs(knownFeatures) do
-		local metal = spGetFeatureResources(fid)
-		if metal >= minFeatureMetal then
-			if fInfo.metal ~= metal then
+		-- Rotating check: only check some features per frame
+		checkCounter = checkCounter + 1
+		if checkCounter % checkInterval == 0 or featureCount <= 50 then
+			-- Check this feature this frame
+			local metal = spGetFeatureResources(fid)
+			if not metal or metal < minFeatureMetal then
+				removeCount = removeCount + 1
+				toRemoveFeatures[removeCount] = fid
+				removed = true
+			elseif fInfo.metal ~= metal then
 				if fInfo.cid then
-					dirty[fInfo.cid] = true
-					local thisCluster = featureClusters[fInfo.cid]
+					local cid = fInfo.cid
+					-- Only add to dirty list if not already there
+					if not dirtyClustersList[cid] then
+						dirtyCount = dirtyCount + 1
+						dirtyClustersList[cid] = true
+					end
+					local thisCluster = featureClusters[cid]
 					thisCluster.metal = thisCluster.metal - fInfo.metal + metal
 				end
 				fInfo.metal = metal
 			end
-		else
-			RemoveFeature(fid)
-			removed = true
 		end
+	end
+
+	-- Remove in separate loop to avoid iterator issues
+	for i = 1, removeCount do
+		RemoveFeature(toRemoveFeatures[i])
+	end
+
+	-- Clear reusable table
+	for i = 1, removeCount do
+		toRemoveFeatures[i] = nil
 	end
 
 	if removed then
 		clusterizingNeeded = true
-	elseif next(dirty) then
+	elseif dirtyCount > 0 then
 		redrawingNeeded = true
-		for ii in pairs(dirty) do
-			featureClusters[ii].text = string.formatSI(featureClusters[ii].metal)
+		for cid in pairs(dirtyClustersList) do
+			featureClusters[cid].text = string.formatSI(featureClusters[cid].metal)
+			dirtyClustersList[cid] = nil -- Clear as we go
 		end
 	end
 end
 
 local function ClusterizeFeatures()
-	opticsObject:Run()
+	if useRegionalUpdates and #dirtyRegions > 0 then
+		-- Regional reclustering: only recluster features in dirty regions
+		-- Reuse tables instead of allocating new ones
+		local affectedCount = 0
+		local clusterCount = 0
+
+		-- Find all features in dirty regions
+		for fid, feature in pairs(knownFeatures) do
+			if IsInDirtyRegion(feature.x, feature.z) then
+				affectedCount = affectedCount + 1
+				affectedFeaturesList[affectedCount] = fid
+				if feature.cid then
+					local cid = feature.cid
+					if not affectedClustersList[cid] then
+						clusterCount = clusterCount + 1
+						affectedClustersList[cid] = true
+					end
+				end
+			end
+		end
+
+		-- If too many features affected, fall back to full reclustering
+		if affectedCount > 200 then -- Threshold for full recluster
+			-- Clear reusable tables
+			for i = 1, affectedCount do
+				affectedFeaturesList[i] = nil
+			end
+			for cid in pairs(affectedClustersList) do
+				affectedClustersList[cid] = nil
+			end
+
+			-- Fall through to full clustering
+			useRegionalUpdates = false
+			opticsObject:Run()
+			useRegionalUpdates = true
+			-- Clear dirty regions array
+			for i = 1, #dirtyRegions do
+				dirtyRegions[i] = nil
+			end
+			-- Clear dirty clusters table
+			for cid in pairs(dirtyClusters) do
+				dirtyClusters[cid] = nil
+			end
+			clusterizingNeeded = false
+			redrawingNeeded = true
+			return
+		end
+
+		-- Remove affected clusters and reset cluster IDs for affected features
+		for cid in pairs(affectedClustersList) do
+			featureClusters[cid] = nil
+			featureConvexHulls[cid] = nil
+			affectedClustersList[cid] = nil -- Clear as we go
+		end
+
+		for i = 1, affectedCount do
+			local fid = affectedFeaturesList[i]
+			local feature = knownFeatures[fid]
+			if feature then
+				feature.cid = nil
+			end
+			affectedFeaturesList[i] = nil -- Clear as we go
+		end
+
+		-- Re-run clustering (it will create new cluster IDs)
+		opticsObject:Run()
+
+		-- Clear dirty regions array
+		for i = 1, #dirtyRegions do
+			dirtyRegions[i] = nil
+		end
+		-- Clear dirty clusters table
+		for cid in pairs(dirtyClusters) do
+			dirtyClusters[cid] = nil
+		end
+	else
+		-- Full reclustering
+		opticsObject:Run()
+		-- Clear dirty regions array
+		for i = 1, #dirtyRegions do
+			dirtyRegions[i] = nil
+		end
+		-- Clear dirty clusters table
+		for cid in pairs(dirtyClusters) do
+			dirtyClusters[cid] = nil
+		end
+	end
+
 	clusterizingNeeded = false
 	redrawingNeeded = true
 end
@@ -852,38 +1281,6 @@ local cameraScale = 1
 local function DrawHullVertices(hull)
 	for j = 1, #hull do
 		glVertex(hull[j].x, hull[j].y, hull[j].z)
-	end
-end
-
--- Simple ear clipping triangulation for arbitrary polygons
-local function triangulatePoly(hull)
-	if #hull < 3 then return {} end
-
-	local triangles = {}
-	local verts = {}
-	for i = 1, #hull do
-		verts[i] = i
-	end
-
-	-- Simple fan triangulation for convex or near-convex shapes
-	-- Since our hulls should be convex after expansion, this is safe
-	local v1 = hull[1]
-	for i = 2, #hull - 1 do
-		triangles[#triangles + 1] = {v1, hull[i], hull[i + 1]}
-	end
-
-	return triangles
-end
-
-local function DrawHullVerticesTriangulated(hull)
-	if #hull < 3 then return end
-
-	-- Use simple fan triangulation which works for convex shapes
-	local first = hull[1]
-	for j = 2, #hull - 1 do
-		glVertex(first.x, first.y, first.z)
-		glVertex(hull[j].x, hull[j].y, hull[j].z)
-		glVertex(hull[j+1].x, hull[j+1].y, hull[j+1].z)
 	end
 end
 
@@ -1012,6 +1409,20 @@ function widget:Initialize()
 	WG['reclaimfieldhighlight'].setShowOption = function(value)
 		showOption = value
 	end
+	WG['reclaimfieldhighlight'].getEnableSmoothing = function()
+		return enableSmoothing
+	end
+	WG['reclaimfieldhighlight'].setEnableSmoothing = function(value)
+		enableSmoothing = value
+		clusterizingNeeded = true -- Force recluster with new settings
+	end
+	WG['reclaimfieldhighlight'].getSmoothingSegments = function()
+		return smoothingSegments
+	end
+	WG['reclaimfieldhighlight'].setSmoothingSegments = function(value)
+		smoothingSegments = clamp(value, 4, 40) -- Clamp to reasonable range
+		clusterizingNeeded = true -- Force recluster with new settings
+	end
 
 	-- Start/restart feature clustering.
 	knownFeatures = {}
@@ -1020,6 +1431,7 @@ function widget:Initialize()
 	featureClusters = {}
 	featureConvexHulls = {}
 	opticsObject = Optics.new()
+	cachedKnownFeaturesCount = 0 -- Reset cached count
 
 	for _, featureID in ipairs(Spring.GetAllFeatures()) do
 		widget:FeatureCreated(featureID)
@@ -1048,13 +1460,23 @@ function widget:Shutdown()
 end
 
 function widget:GetConfigData(data)
-    return { showOption = showOption }
+    return {
+		showOption = showOption,
+		enableSmoothing = enableSmoothing,
+		smoothingSegments = smoothingSegments
+	}
 end
 
 function widget:SetConfigData(data)
 	if data.showOption ~= nil then
 		showOption = data.showOption
 	end
+	-- if data.enableSmoothing ~= nil then
+	-- 	enableSmoothing = data.enableSmoothing
+	-- end
+	-- if data.smoothingSegments ~= nil then
+	-- 	smoothingSegments = clamp(data.smoothingSegments, 4, 40)
+	-- end
 end
 
 function widget:Update(dt)
@@ -1071,71 +1493,197 @@ function widget:Update(dt)
 end
 
 function widget:GameFrame(frame)
-	if drawEnabled == false or frame % checkFrequency ~= 0 then
+	if drawEnabled == false then
+		return
+	end
+
+	-- Dynamically adjust check frequency based on feature count
+	-- Only recalculate every 30 frames to avoid overhead
+	-- Use cached count instead of iterating all features
+	if frame % 30 == 0 then
+		local currentFeatureCount = cachedKnownFeaturesCount
+
+		-- Adjust frequency based on feature count thresholds
+		if currentFeatureCount ~= lastFeatureCount then
+			lastFeatureCount = currentFeatureCount
+			if currentFeatureCount < 500 then
+				checkFrequency = baseCheckFrequency -- Normal frequency
+			elseif currentFeatureCount < 1500 then
+				checkFrequency = baseCheckFrequency * 2 -- 500-1500 features: 2x slower
+			elseif currentFeatureCount < 3000 then
+				checkFrequency = baseCheckFrequency * 3 -- 1500-3000 features: 3x slower
+			else
+				checkFrequency = baseCheckFrequency * 4 -- 3000+ features: 4x slower
+			end
+		end
+	end
+
+	if frame % checkFrequency ~= 0 then
 		return
 	end
 
 	local featuresAdded = false
-	for featureID, fInfo in pairs(flyingFeatures) do
-		local _,_,_, vw = spGetFeatureVelocity(featureID)
-		if vw <= 1e-3 then
-			flyingFeatures[featureID] = nil
-			local x, y, z = spGetFeaturePosition(featureID)
-			fInfo.x, fInfo.y, fInfo.z = x, y, z
-			local M = featureNeighborsMatrix
-			local M_newFeature = {}
-			local reachDistSq, epsilonSq = mathHuge, epsilonSq
-			for fid2, feat2 in pairs(knownFeatures) do
-				local distSq = (x - feat2.x)^2 + (z - feat2.z)^2
-				if distSq <= epsilonSq then
-					M[fid2][featureID] = distSq
-					M_newFeature[fid2] = distSq
-					if distSq < reachDistSq then
-						reachDistSq = distSq
+
+	-- Process flying features (check less frequently - every 3 frames)
+	-- Flying features are rare, no need to check every single frame
+	if next(flyingFeatures) and (frame - lastFlyingCheckFrame) >= 3 then
+		lastFlyingCheckFrame = frame
+		for featureID, fInfo in pairs(flyingFeatures) do
+			-- Quick validation before API call
+			if Spring.ValidFeatureID(featureID) then
+				local _,_,_, vw = spGetFeatureVelocity(featureID)
+				if vw then
+					-- Feature still exists and has velocity data
+					if vw <= 1e-3 then
+						flyingFeatures[featureID] = nil
+						local x, y, z = spGetFeaturePosition(featureID)
+						if x then -- Validate feature still exists
+							fInfo.x, fInfo.y, fInfo.z = x, y, z
+
+							-- Mark region as dirty for regional reclustering
+							MarkRegionDirty(x, z)
+
+							local M = featureNeighborsMatrix
+							local M_newFeature = {}
+							local reachDistSq, epsilonSq = mathHuge, epsilonSq
+							for fid2, feat2 in pairs(knownFeatures) do
+								local dx, dz = x - feat2.x, z - feat2.z
+								local distSq = dx * dx + dz * dz
+								if distSq <= epsilonSq then
+									M[fid2][featureID] = distSq
+									M_newFeature[fid2] = distSq
+									if distSq < reachDistSq then
+										reachDistSq = distSq
+									end
+									if feat2.rd == nil or distSq < feat2.rd then
+										feat2.rd = distSq
+									end
+								end
+							end
+							featureNeighborsMatrix[featureID] = M_newFeature
+							if reachDistSq < epsilonSq then
+								fInfo.rd = reachDistSq
+							end
+							knownFeatures[featureID] = fInfo
+							cachedKnownFeaturesCount = cachedKnownFeaturesCount + 1
+							featuresAdded = true
+						else
+							-- Feature was destroyed while flying
+							flyingFeatures[featureID] = nil
+						end
 					end
-					if feat2.rd == nil or distSq < feat2.rd then
-						feat2.rd = distSq
-					end
+				else
+					-- Feature no longer exists
+					flyingFeatures[featureID] = nil
 				end
+			else
+				-- Feature ID is invalid
+				flyingFeatures[featureID] = nil
 			end
-			featureNeighborsMatrix[featureID] = M_newFeature
-			if reachDistSq < epsilonSq then
-				fInfo.rd = reachDistSq
-			end
-			knownFeatures[featureID] = fInfo
-			featuresAdded = true
 		end
 	end
 
 	if featuresAdded or clusterizingNeeded then
+		-- Batch remove invalid features using reusable table
+		-- Use rotating checks to avoid checking ALL features every cycle
+		local removeCount = 0
+
+		-- Use cached count instead of iterating all features
+		local featureCount = cachedKnownFeaturesCount
+
+		-- Calculate check interval: check at minimum 50 features, but sample more if fewer total
+		local checkInterval = max(1, floor(featureCount / 50))
+		validityCheckCounter = validityCheckCounter + 1
+
 		for fid, fInfo in pairs(knownFeatures) do
-			local metal = spGetFeatureResources(fid)
-			if metal < minFeatureMetal then
-				RemoveFeature(fid)
+			-- Rotating check: only validate a subset of features per frame
+			-- Always check if featureCount is small, otherwise use rotating pattern
+			if checkInterval == 1 or (validityCheckCounter % checkInterval == 0) then
+				-- Quick validity check first (much cheaper than GetFeatureResources)
+				if not Spring.ValidFeatureID(fid) then
+					removeCount = removeCount + 1
+					toRemoveFeatures[removeCount] = fid
+				else
+					-- Only call GetFeatureResources if feature is valid
+					local metal = spGetFeatureResources(fid)
+					if not metal or metal < minFeatureMetal then
+						removeCount = removeCount + 1
+						toRemoveFeatures[removeCount] = fid
+					end
+				end
 			end
+			validityCheckCounter = validityCheckCounter + 1
 		end
+
+		-- Remove in separate loop to avoid iterator issues
+		for i = 1, removeCount do
+			RemoveFeature(toRemoveFeatures[i])
+		end
+
+		-- Clear the reusable table
+		for i = 1, removeCount do
+			toRemoveFeatures[i] = nil
+		end
+
 		ClusterizeFeatures()
 	else
 		UpdateFeatureReclaim()
 	end
 
 	if redrawingNeeded == true then
-		if drawFeatureConvexHullGradientList ~= nil then
-			glDeleteList(drawFeatureConvexHullGradientList)
-			drawFeatureConvexHullGradientList = nil
+		-- Check if we can do incremental redraw
+		local dirtyCount = 0
+		for _ in pairs(dirtyClusters) do
+			dirtyCount = dirtyCount + 1
 		end
-		if drawFeatureConvexHullEdgeList ~= nil then
-			glDeleteList(drawFeatureConvexHullEdgeList)
-			drawFeatureConvexHullEdgeList = nil
+
+		-- If only a few clusters changed and we have existing lists, try incremental update
+		if dirtyCount > 0 and dirtyCount < 10 and drawFeatureConvexHullGradientList ~= nil then
+			-- For now, still do full redraw but this marks where we could optimize further
+			-- Future: Could maintain per-cluster display lists
+			if drawFeatureConvexHullGradientList ~= nil then
+				glDeleteList(drawFeatureConvexHullGradientList)
+				drawFeatureConvexHullGradientList = nil
+			end
+			if drawFeatureConvexHullEdgeList ~= nil then
+				glDeleteList(drawFeatureConvexHullEdgeList)
+				drawFeatureConvexHullEdgeList = nil
+			end
+			drawFeatureConvexHullGradientList = glCreateList(DrawFeatureConvexHullGradient)
+			drawFeatureConvexHullEdgeList = glCreateList(DrawFeatureConvexHullEdge)
+		else
+			-- Full redraw
+			if drawFeatureConvexHullGradientList ~= nil then
+				glDeleteList(drawFeatureConvexHullGradientList)
+				drawFeatureConvexHullGradientList = nil
+			end
+			if drawFeatureConvexHullEdgeList ~= nil then
+				glDeleteList(drawFeatureConvexHullEdgeList)
+				drawFeatureConvexHullEdgeList = nil
+			end
+			drawFeatureConvexHullGradientList = glCreateList(DrawFeatureConvexHullGradient)
+			drawFeatureConvexHullEdgeList = glCreateList(DrawFeatureConvexHullEdge)
 		end
-		drawFeatureConvexHullGradientList = glCreateList(DrawFeatureConvexHullGradient)
-		drawFeatureConvexHullEdgeList = glCreateList(DrawFeatureConvexHullEdge)
+
+		-- Clear dirtyClusters table instead of reallocating
+		for cid in pairs(dirtyClusters) do
+			dirtyClusters[cid] = nil
+		end
 	end
 
 	-- Text is always redrawn to rotate it facing the camera.
-	local camUpVectorNew = spGetCameraVectors().up
-	if redrawingNeeded or camUpVector[1] ~= camUpVectorNew[1] or camUpVector[3] ~= camUpVector[3] then
-		camUpVector = camUpVectorNew
+	-- Only check camera vector every few frames or when redrawing - it rarely changes
+	local cameraChanged = false
+	if redrawingNeeded or (frame - lastCameraCheckFrame) >= 5 then
+		local camUpVectorNew = spGetCameraVectors().up
+		if camUpVector[1] ~= camUpVectorNew[1] or camUpVector[3] ~= camUpVectorNew[3] then
+			camUpVector = camUpVectorNew
+			cameraChanged = true
+		end
+		lastCameraCheckFrame = frame
+	end
+
+	if cameraChanged or redrawingNeeded then
 		if drawFeatureClusterTextList ~= nil then
 			glDeleteList(drawFeatureClusterTextList)
 			drawFeatureClusterTextList = nil
@@ -1148,53 +1696,61 @@ end
 
 function widget:FeatureCreated(featureID, allyTeamID)
 	local metal = spGetFeatureResources(featureID)
-	if metal >= minFeatureMetal then
-		local x, y, z = spGetFeaturePosition(featureID)
-		local radius = spGetFeatureRadius(featureID) or 0
-		local feature = {
-			fid   = featureID,
-			metal = metal,
-			x     = x,
-			y     = max(0, y),
-			z     = z,
-			radius = radius,
-		}
-
-		-- To deal with e.g. raptor eggs spawning at altitude ~20:
-		if y > 0 then
-			local elevation = spGetGroundHeight(x, z)
-			if elevation > 0 and y > elevation + 2 then
-				flyingFeatures[featureID] = feature
-				return -- Delay clusterizing until stationary.
-			end
-		end
-
-		-- Assuming the feature's motion is highly likely negligible:
-		local M = featureNeighborsMatrix
-		local M_newFeature = {}
-		local reachDistSq, epsilonSq = mathHuge, epsilonSq
-		for fid2, feat2 in pairs(knownFeatures) do
-			local distSq = (x - feat2.x)^2 + (z - feat2.z)^2
-			if distSq <= epsilonSq then
-				M[fid2][featureID] = distSq
-				M_newFeature[fid2] = distSq
-				if distSq < reachDistSq then
-					reachDistSq = distSq
-				end
-				if feat2.rd == nil or distSq < feat2.rd then
-					feat2.rd = distSq
-				end
-			end
-		end
-		featureNeighborsMatrix[featureID] = M_newFeature
-		if reachDistSq < epsilonSq then
-			feature.rd = reachDistSq
-		end
-		knownFeatures[featureID] = feature
-		clusterizingNeeded = true
+	if not metal or metal < minFeatureMetal then
+		return
 	end
-end
 
+	local x, y, z = spGetFeaturePosition(featureID)
+	if not x then return end
+
+	-- Mark region as dirty for regional reclustering
+	MarkRegionDirty(x, z)
+
+	local radius = spGetFeatureRadius(featureID) or 0
+	local feature = {
+		fid   = featureID,
+		metal = metal,
+		x     = x,
+		y     = max(0, y),
+		z     = z,
+		radius = radius,
+	}
+
+	-- To deal with e.g. raptor eggs spawning at altitude ~20:
+	if y > 0 then
+		local elevation = spGetGroundHeight(x, z)
+		if elevation and elevation > 0 and y > elevation + 2 then
+			flyingFeatures[featureID] = feature
+			return -- Delay clusterizing until stationary.
+		end
+	end
+
+	-- Assuming the feature's motion is highly likely negligible:
+	local M = featureNeighborsMatrix
+	local M_newFeature = {}
+	local reachDistSq, epsilonSq = mathHuge, epsilonSq
+	for fid2, feat2 in pairs(knownFeatures) do
+		local dx, dz = x - feat2.x, z - feat2.z
+		local distSq = dx * dx + dz * dz
+		if distSq <= epsilonSq then
+			M[fid2][featureID] = distSq
+			M_newFeature[fid2] = distSq
+			if distSq < reachDistSq then
+				reachDistSq = distSq
+			end
+			if feat2.rd == nil or distSq < feat2.rd then
+				feat2.rd = distSq
+			end
+		end
+	end
+	featureNeighborsMatrix[featureID] = M_newFeature
+	if reachDistSq < epsilonSq then
+		feature.rd = reachDistSq
+	end
+	knownFeatures[featureID] = feature
+	cachedKnownFeaturesCount = cachedKnownFeaturesCount + 1
+	clusterizingNeeded = true
+end
 function widget:FeatureDestroyed(featureID, allyTeamID)
 	if knownFeatures[featureID] ~= nil then
 		RemoveFeature(featureID)
@@ -1223,6 +1779,15 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	screenx, screeny = widgetHandler:GetViewSizes()
+
+	-- Recreate text display list after resize to prevent mangled text
+	if drawFeatureClusterTextList ~= nil then
+		glDeleteList(drawFeatureClusterTextList)
+		drawFeatureClusterTextList = nil
+	end
+	if #featureClusters > 0 then
+		drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
+	end
 end
 
 function widget:DrawWorld()
