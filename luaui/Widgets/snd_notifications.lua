@@ -1003,6 +1003,7 @@ function widget:GameOver(winningAllyTeams)
 		gameOverState = "neutral"
 	end
 
+	soundQueue = {}
 	if gameOverState == "victory" then
 		queueNotification('BattleVictory',true)
 	elseif gameOverState == "defeat" then
