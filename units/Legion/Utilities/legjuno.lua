@@ -144,6 +144,7 @@ return {
 					stockpilelimit = 20,
 					nofire = true,
 					water_splash = 0, -- juno can explode on water
+					junotype = "base",
 				},
 				damage = {
 					default = 1,

@@ -322,11 +322,12 @@ local function SetupUnitDef(unitDefID, unitDef)
 	local waterWeapon = maxWeaponDef.waterWeapon
 	local ee = maxWeaponDef.edgeEffectiveness
 	local paralyzer = maxWeaponDef.paralyzer
+	local junoType = maxWeaponDef.customParams and maxWeaponDef.customParams.junotype
 
 	if weaponType == "DGun" then
 		weaponTable[unitDefID] = { type = "dgun", range = maxWeaponDef.range, unitname = unitDef.name, requiredEnergy = maxWeaponDef.energyCost }
-	elseif string.find(maxWeaponDef.name, "juno_pulse") then
-		weaponTable[unitDefID] = { type = "juno", isMiniJuno = string.find(maxWeaponDef.name, "juno_pulse_mini") }
+	elseif junoType then
+		weaponTable[unitDefID] = { type = "juno", isMiniJuno = junoType == "mini" }
 	elseif maxWeaponDef.cylinderTargeting >= 100 then
 		weaponTable[unitDefID] = { type = "orbital", scatter = scatter }
 	elseif weaponType == "Cannon" then
@@ -529,11 +530,10 @@ local function DrawAoE(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alpha
 end
 
 local function DrawJuno(tx, ty, tz, aoe)
-	local phase = pulsePhase + (phaseOffset or 0)
-	phase = phase - floor(phase)
+	local phase = pulsePhase - floor(pulsePhase)
 
-	local damageOverTimeRange = 450 -- defined in unit_juno_rework_damage.lua - "outer radius of area denial ring"
-	local impactSpan = aoe - damageOverTimeRange
+	local areaDenialRadius = 450 -- defined in unit_juno_damage.lua - "outer radius of area denial ring"
+	local impactRingWidth = aoe - areaDenialRadius
 
 	glPushMatrix()
 	glTranslate(tx, ty, tz)
@@ -541,14 +541,14 @@ local function DrawJuno(tx, ty, tz, aoe)
 		SetColor(maxFilledCircleAlpha, junoColor)
 		for i = 0, circleDivs do
 			local unitCircle = unitCircles[i]
-			glVertex(unitCircle[1] * damageOverTimeRange, 0, unitCircle[2] * damageOverTimeRange)
+			glVertex(unitCircle[1] * areaDenialRadius, 0, unitCircle[2] * areaDenialRadius)
 			glVertex(0, 0, 0)
 		end
 	end)
 	glBeginEnd(GL_TRIANGLE_STRIP, function()
 		for idx = 1, aoeDiskBandCount do
-			local innerRing = damageOverTimeRange + (impactSpan * (idx - 1) / aoeDiskBandCount)
-			local outerRing = damageOverTimeRange + (impactSpan * idx / aoeDiskBandCount)
+			local innerRing = areaDenialRadius + (impactRingWidth * (idx - 1) / aoeDiskBandCount)
+			local outerRing = areaDenialRadius + (impactRingWidth * idx / aoeDiskBandCount)
 
 			local alphaFactor = GetAlphaFactorForRing(minFilledCircleAlpha, maxFilledCircleAlpha, idx, phase, 1, diskWaveTriggerTimes, true)
 
@@ -565,7 +565,7 @@ local function DrawJuno(tx, ty, tz, aoe)
 	SetColor(1, junoColor)
 	glLineWidth(1)
 	DrawCircle(tx, ty, tz, aoe) -- impact radius outline
-	DrawCircle(tx, ty, tz, damageOverTimeRange) -- area denial ring outline
+	DrawCircle(tx, ty, tz, areaDenialRadius) -- area denial ring outline
 
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
