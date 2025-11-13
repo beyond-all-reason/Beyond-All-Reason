@@ -25,5 +25,6 @@ RUN export $(cat $BAR_CONFIG_ENV | xargs) && ./download-maps.sh
 COPY ./startscript.txt .
 COPY ./springsettings.cfg .
 COPY --chmod=755 ./start.sh .
+COPY --chmod=755 ./wrap_start.sh .
 
-ENTRYPOINT ./start.sh /bar /bar/startscript.txt
+ENTRYPOINT ./wrap_start.sh /bar /bar/startscript.txt
