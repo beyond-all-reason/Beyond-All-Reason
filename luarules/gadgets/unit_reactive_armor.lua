@@ -256,7 +256,6 @@ local function updateArmoredUnits(frame)
 		if frameCheck <= frame then
 			local countdown = data.countdown
 			data.countdown = countdown - interval
-			frameCheck = math.max(frameCheck, frame + countdown - interval)
 
 			for i = countdown, countdown - interval + 1, -1 do
 				if data[i] then
