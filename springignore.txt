@@ -7,3 +7,4 @@
 /.git
 /.svn
 /recoil-lua-library
+/lux.toml
