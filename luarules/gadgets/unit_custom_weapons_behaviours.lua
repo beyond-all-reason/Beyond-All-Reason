@@ -36,6 +36,7 @@ local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitWeaponState = Spring.GetUnitWeaponState
 local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 local spSetProjectilePosition = Spring.SetProjectilePosition
 local spSetProjectileTarget = Spring.SetProjectileTarget
@@ -60,6 +61,7 @@ local projectiles = {}
 local projectilesData = {}
 
 local gameFrame = 0
+local resultCaches = {}
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
@@ -263,18 +265,43 @@ end
 -- Based on retarget
 -- Uses no weapon customParams.
 
+resultCaches.guidance = {} -- ownerID = <isFiring, guidanceType, guidanceTarget>
+
 specialEffectFunction.guidance = function(projectileID)
 	if spGetProjectileTimeToLive(projectileID) > 0 then
 		local ownerID = spGetProjectileOwnerID(projectileID)
 
 		if not ownerID then
 			return true
-		elseif Spring.GetUnitWeaponState(ownerID, 1, "nextSalvo") + 1 < gameFrame then
-			return false -- The targeting laser provides guidance only when firing.
+		end
+
+		local results = resultCaches.guidance[ownerID]
+
+		if not results then
+			results = {}
+			results.guidance[ownerID] = results
+			if spGetUnitWeaponState(ownerID, 1, "nextSalvo") + 1 < gameFrame then
+				results[1] = false
+				return false -- The targeting laser provides guidance only when firing.
+			else
+				results[1] = true
+			end
+		elseif not results[1] then
+			return false
+		end
+
+		local guidanceType, guidanceTarget
+
+		if results[2] == nil then
+			local _; -- declare a local sink var for unused values
+			guidanceType, _, guidanceTarget = spGetUnitWeaponTarget(ownerID, 1)
+			results[2] = guidanceType or false
+			results[3] = guidanceTarget or false
+		else
+			guidanceType, guidanceTarget = results[2], results[3]
 		end
 
 		local targetType, missileTarget = spGetProjectileTarget(projectileID)
-		local guidanceType, _, guidanceTarget = spGetUnitWeaponTarget(ownerID, 1)
 
 		if guidanceTarget then
 			if not equalTargets(guidanceTarget, missileTarget) then
@@ -512,6 +539,11 @@ end
 
 function gadget:GameFrame(frame)
 	gameFrame = frame
+
+	for key in pairs(resultCaches) do
+		resultCaches[key] = {}
+	end
+
 	for projectileID, effect in pairs(projectiles) do
 		if effect(projectileID) then
 			projectiles[projectileID] = nil
