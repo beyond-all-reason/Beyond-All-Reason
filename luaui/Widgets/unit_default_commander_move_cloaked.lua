@@ -94,10 +94,9 @@ function widget:Update(dt)
 					-- 5=cloak https://recoilengine.org/docs/lua-api/#Spring.GetUnitStates
 					if select(5, spGetUnitStates(unitID,false,true)) then
 						cloakedComSelected = true
-						break
+						return
 					end
 				end
-				if cloakedComSelected then break end
 			end
 		end
 	end

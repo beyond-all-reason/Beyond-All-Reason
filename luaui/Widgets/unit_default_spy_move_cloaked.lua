@@ -17,10 +17,11 @@ end
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetGameFrame = Spring.GetGameFrame
 
-local spGetSelectedUnitsSorted = spGetSelectedUnitsSorted
+local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
+local spGetMyTeamID = Spring.GetMyTeamID
 local spGetUnitStates = Spring.GetUnitStates
 
-local spies  = {}
+local idIsSpy = {}
 
 local spyNames = {
 	'armspy',
@@ -30,13 +31,14 @@ local spyNames = {
 
 for _, spyName in ipairs(spyNames) do
 	if UnitDefNames[spyName] then
-		spies[UnitDefNames[spyName].id] = true
+		idIsSpy[UnitDefNames[spyName].id] = true
 	end
 end
 
 local gameStarted, selectionChanged
 
 local CMD_MOVE = CMD.MOVE
+local CMD_CLOAK = 37382
 
 function maybeRemoveSelf()
     if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
@@ -54,16 +56,12 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-    if #spies == 0 then
-	    widgetHandler:RemoveWidget()
-	    return
-    end
     if Spring.IsReplay() or spGetGameFrame() > 0 then
         maybeRemoveSelf()
     end
 end
 
-local spySelected = false
+local cloakedSpySelected = false
 local selectedUnitsCount = spGetSelectedUnitsCount()
 function widget:SelectionChanged(sel)
 	selectionChanged = true
@@ -79,26 +77,33 @@ function widget:Update(dt)
 
 		selectedUnitsCount = spGetSelectedUnitsCount()
 
-		spySelected = false
-		if selectedUnitsCount > 0 and selectedUnitsCount <= 12 then  -- above a little amount we aren't micro-ing spies anymore...
-			local selectedUnittypes = spGetSelectedUnitsSorted()
-			for spyDefID in pairs(spies) do
-				if selectedUnittypes[spyDefID] then
-					for _,unitID in pairs(selectedUnittypes[spyDefID]) do
-						if select(5,spGetUnitStates(unitID,false,true)) then	-- 5=cloak
-							spySelected = true
-							break
-						end
+		cloakedSpySelected = false
+		-- above a little amount we aren't micro-ing spies anymore...
+		if selectedUnitsCount == 0 or selectedUnitsCount > 12 then return end
+
+		local selectedUnitTypes = spGetSelectedUnitsSorted()
+		for unitDefID, units in pairs(selectedUnitTypes) do
+			if idIsSpy[unitDefID] then
+				for _, unitID in pairs(units) do
+					-- 5=cloak https://recoilengine.org/docs/lua-api/#Spring.GetUnitStates
+					if select(5, spGetUnitStates(unitID,false,true)) then
+						cloakedSpySelected = true
+						return
 					end
 				end
-				if spySelected then break end
 			end
 		end
 	end
 end
 
+function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+	if (cmdID == CMD_CLOAK) and (idIsSpy[unitDefID]) and (teamID == spGetMyTeamID()) then
+        selectionChanged = true
+    end
+end
+
 function widget:DefaultCommand()
-	if spySelected then
+	if cloakedSpySelected then
 		return CMD_MOVE
 	end
 end
