@@ -99,6 +99,10 @@ function widget:GameFrame(frame)
 				}
 			end
 		end
+		if #widgets == 0 then
+			widgetHandler:RemoveWidget(self)
+			return
+		end
 	end
 
 	local hashesThisFrame = 0
