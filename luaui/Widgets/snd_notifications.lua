@@ -115,6 +115,7 @@ end
 for notifID, notifDef in pairs(notificationTable) do
 	local notifTexts = {}
 	local notifSounds = {}
+	local notifSoundsSpecial = {}
 	local currentEntry = 1
 	notifTexts[currentEntry] = 'tips.notifications.' .. string.sub(notifID, 1, 1):lower() .. string.sub(notifID, 2)
 	if VFS.FileExists(soundFolder .. notifID .. '.wav') then
@@ -126,9 +127,26 @@ for notifID, notifDef in pairs(notificationTable) do
 			notifSounds[currentEntry] = soundFolder .. notifID .. i .. '.wav'
 		end
 	end
+
 	if useDefaultVoiceFallback and #notifSounds == 0 then
 		if VFS.FileExists(defaultSoundFolder .. notifID .. '.wav') then
 			notifSounds[currentEntry] = defaultSoundFolder .. notifID .. '.wav'
+		end
+		for i = 1, 20 do
+			if VFS.FileExists(defaultSoundFolder .. notifID .. i .. '.wav') then
+				currentEntry = currentEntry + 1
+				notifSounds[currentEntry] = defaultSoundFolder .. notifID .. i .. '.wav'
+			end
+		end
+	end
+
+	if VFS.FileExists(soundFolder .. notifID .. '_rare' .. '.wav') then
+		notifSoundsSpecial[currentEntry] = soundFolder .. notifID .. '.wav'
+	end
+	for i = 1, 20 do
+		if VFS.FileExists(soundFolder .. notifID .. '_rare' .. i .. '.wav') then
+			currentEntry = currentEntry + 1
+			notifSoundsSpecial[currentEntry] = soundFolder .. notifID .. '_rare' .. i .. '.wav'
 		end
 	end
 
@@ -137,6 +155,7 @@ for notifID, notifDef in pairs(notificationTable) do
 		stackedDelay = notifDef.stackedDelay, -- reset delay even with failed play
 		textID = notifTexts[1],
 		voiceFiles = notifSounds,
+		voiceFilesRare = notifSoundsSpecial,
 		tutorial = notifDef.tutorial,
 		soundEffect = notifDef.soundEffect,
 		resetOtherEventDelay = notifDef.resetOtherEventDelay,
@@ -513,7 +532,10 @@ function widget:Initialize()
 		if notification[event] then
 			if notification[event].voiceFiles and #notification[event].voiceFiles > 0 then
 				local m = #notification[event].voiceFiles > 1 and mathRandom(1, #notification[event].voiceFiles) or 1
-				if notification[event].voiceFiles[m] then
+				local mRare = #notification[event].voiceFilesRare > 1 and mathRandom(1, #notification[event].voiceFilesRare) or 1
+				if math.random() < 0.05 and notification[event].voiceFilesRare[mRare] then
+					Spring.PlaySoundFile(notification[event].voiceFilesRare[mRare], globalVolume, 'ui')
+				elseif notification[event].voiceFiles[m] then
 					Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, 'ui')
 				else
 					spEcho('notification "'..event..'" missing sound file: #'..m)
@@ -881,10 +903,18 @@ local function playNextSound()
 	if #soundQueue > 0 then
 		local event = soundQueue[1]
 		if not muteWhenIdle or not isIdle or notification[event].tutorial then
-			local m = 1
 			if spoken and #notification[event].voiceFiles > 0 then
 				local m = #notification[event].voiceFiles > 1 and mathRandom(1, #notification[event].voiceFiles) or 1
-				if notification[event].voiceFiles[m] then
+				local mRare = #notification[event].voiceFilesRare > 1 and mathRandom(1, #notification[event].voiceFilesRare) or 1
+				if math.random() < 0.05 and notification[event].voiceFilesRare[mRare] then
+					Spring.PlaySoundFile(notification[event].voiceFilesRare[mRare], globalVolume, 'ui')
+					local duration = wavFileLengths[string.sub(notification[event].voiceFilesRare[mRare], 8)]
+					if not duration then
+						duration = ReadWAV(notification[event].voiceFilesRare[mRare])
+						duration = duration.Length
+					end
+					nextSoundQueued = sec + (duration or 3) + silentTime
+				elseif notification[event].voiceFiles[m] then
 					Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, 'ui')
 					local duration = wavFileLengths[string.sub(notification[event].voiceFiles[m], 8)]
 					if not duration then
