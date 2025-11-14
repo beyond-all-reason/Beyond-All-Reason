@@ -41,7 +41,6 @@ return {
 		customparams = {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			--paralyzemultiplier = 0,
 			subfolder = "Legion/Ships/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
@@ -209,8 +208,6 @@ return {
 				customparams = {
 					cluster_def = 'cluster_munition_secondary',
 					cluster_number = 4,
-					exclude_preaim = true,
-					smart_priority = true,
 				},
 				damage = {
 					default = 175,
