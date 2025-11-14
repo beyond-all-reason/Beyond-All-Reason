@@ -189,7 +189,7 @@ return {
 				avoidfeature = false,
 				avoidneutral = true,
                 avoidfriendly = false,
-				cegtag = "starfire_arty",
+				cegtag = "starfire_tiny",
                 collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
