@@ -343,7 +343,7 @@ local function refreshUnitInfo()
 			end
 			if weaponDef.damages then
 				if unitDef.name == 'armfido' then
-					unitExempt = true
+					unitExempt = false
 					if i==2 then                                --Calculating using second weapon only
 						local defDmg = weaponDef.damages[0]      		--Damage to default armor category
 						calculateWeaponDPS(weaponDef, defDmg)
