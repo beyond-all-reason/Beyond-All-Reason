@@ -1130,15 +1130,18 @@ function widget:GameFrame(n)
 
 		-- todo: armor should be completely different but idk how to set up a new bar type
 		for unitID, oldArmorValue in pairs(unitReactiveArmorWatch) do
-			-- The unit has a "reactiveArmorHealth" value iff it has armor remaining
-			local armorHealth = Spring.GetUnitRulesParam(unitID, "reactiveArmorHealth")
-			if not armorHealth then
-				removeBarFromUnit(unitID, "shield", "unitReactiveArmorWatch")
-				unitReactiveArmorWatch[unitID] = false
-			elseif armorHealth ~= oldArmorValue then
-				uniformcache[1] = armorHealth / unitDefReactiveArmor[spGetUnitDefID(unitID)]
-				gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
-				unitReactiveArmorWatch[unitID] = armorHealth
+			local newArmorValue = Spring.GetUnitRulesParam(unitID, "reactiveArmorHealth")
+			if newArmorValue ~= oldArmorValue then
+				if newArmorValue == nil then
+					removeBarFromUnit(unitID, "shield", "unitReactiveArmorWatch")
+				else
+					if not newArmorValue then
+						newArmorValue = 0
+					end
+					uniformcache[1] = newArmorValue / unitDefReactiveArmor[spGetUnitDefID(unitID)]
+					gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
+				end
+				unitReactiveArmorWatch[unitID] = newArmorValue
 			end
 		end
 	end
