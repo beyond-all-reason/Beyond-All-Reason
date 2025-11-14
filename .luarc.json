@@ -30,7 +30,24 @@
       "luaui/TestsExamples"
     ],
     "library": [
-      "recoil-lua-library"
+      "recoil-lua-library",
+      "luarules",
+      "luaui",
+      "spec",
+      "types",
+      ".lux/5.1/test_dependencies/5.1/01a3c364614bddff7370223a5a9c4580f8e62d144384148444c518ec5367a59b-mediator_lua@1.1.2-0/src",
+      ".lux/5.1/test_dependencies/5.1/287e827f4a088d41bba04af5f61a13614346c16fe8150eb7c4246e67d6fd163e-lua-term@0.8-1/src",
+      ".lux/5.1/test_dependencies/5.1/316ac0b30e04e86a253d64886f3b110bd0508267474e6b58a3b973bd6857dbf4-penlight@1.14.0-3/src",
+      ".lux/5.1/test_dependencies/5.1/455cd98d50c6191a9685cffcda4ce783efbb957934625e134c39f43bd5df6818-luassert@1.9.0-1/src",
+      ".lux/5.1/test_dependencies/5.1/47b12edcdc032232157ace97bddf34bddd17f6f458095885e62bbd602ad9e9ec-luasystem@0.6.3-1/src",
+      ".lux/5.1/test_dependencies/5.1/4e9592a499c9ced4f8ce366db9db7d9c0dd1424ea8d4c8c16c1550ea3a61a696-say@1.4.1-3/src",
+      ".lux/5.1/test_dependencies/5.1/6ce29c2c535c40246c386c056f24689344cddb56ec397473931431e6b67694d2-say@1.4.1-3/src",
+      ".lux/5.1/test_dependencies/5.1/832fd9862ce671c0c9777855d4c8b19f9ad9c2679fb5466c3a183785a51b76b0-luafilesystem@1.8.0-1/src",
+      ".lux/5.1/test_dependencies/5.1/8925c25e69bb2ef4a2007b536827894dfcca7c1ff54572256002997105acb847-inspect@3.1.3-0/src",
+      ".lux/5.1/test_dependencies/5.1/a6c5176043cb3de56336b7de119443dbb3d9e024be1d50e06289ad4b4959a2da-lua_cliargs@3.0.2-1/src",
+      ".lux/5.1/test_dependencies/5.1/e4f17b9e67313bbd5e90f425672fc8998dd0bfa43335f7c57ed2de7a799e07a6-dkjson@2.8-1/src",
+      ".lux/5.1/test_dependencies/5.1/fa396ffe12257288dc0716c35d37ecff7c262c8b242e95906777055a08419940-busted@2.2.0-1/src",
+      ".lux/5.1/test_dependencies/5.1/fd314d02e320aea863d0e3d2105fc515bd41704f3ef68c947cf074313878e8c2-luassert@1.9.0-1/src"
     ]
   }
 }
