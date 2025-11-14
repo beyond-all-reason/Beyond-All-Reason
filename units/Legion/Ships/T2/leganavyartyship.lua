@@ -194,7 +194,7 @@ return {
 				explosiongenerator = "custom:ministarfire-explosion",
 				gravityaffected = "true",
 				impulsefactor = 0.5,
-				name = "Heavy Long-Range Cluster Plasma Cannon",
+				name = "Heavy Artillery Cluster Plasma Cannon",
 				noselfdamage = true,
 				range = 1600,
 				reloadtime = 1.8,
