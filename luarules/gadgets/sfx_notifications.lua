@@ -242,7 +242,7 @@ else
 			end
 		end
 
-		if isCommander[unitDefID] then
+		if isCommander[unitDefID] and not select(3, Spring.GetTeamInfo(unitTeam)) then
 			local myComCount = 0
 			local allyComCount = 0
 			local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)

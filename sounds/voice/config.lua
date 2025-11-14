@@ -223,34 +223,44 @@ return {
 
 	-- Unit Ready
 	RagnarokIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	CalamityIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	StarfallIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	AstraeusIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	SolinvictusIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	TitanIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	ThorIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	JuggernautIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	BehemothIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	FlagshipIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	Tech2UnitReady = {
 		delay = 9999999,
@@ -282,10 +292,12 @@ return {
 		delay = 9999999,
 	},
 	EnemyDetected = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	AircraftDetected = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	MinesDetected = {
 		delay = 60,
