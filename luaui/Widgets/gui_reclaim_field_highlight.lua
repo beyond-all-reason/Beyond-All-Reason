@@ -39,7 +39,7 @@ local showOption = 3
 --Metal value font
 local numberColor = {1, 1, 1, 0.9}
 local fontSizeMin = 30
-local fontSizeMax = 140
+local fontSizeMax = 110
 
 --Field color
 local reclaimColor = {0, 0, 0, 0.16}
@@ -857,8 +857,27 @@ do
 
 		-- Replace lines and sets of one or two with a bounding box.
 		if hullArea < areaTextMin then
-			convexHull, hullArea = BoundingBox(cluster, points)
-			usedBoundingBox = true
+			local boundingConvex, boundingArea = BoundingBox(cluster, points)
+			-- Only replace if BoundingBox succeeded
+			if boundingConvex and #boundingConvex >= 3 then
+				convexHull, hullArea = boundingConvex, boundingArea
+				usedBoundingBox = true
+			elseif not convexHull or #convexHull < 3 then
+				-- Fallback: create simple box from cluster dimensions if no hull exists
+				local expandDist = maxRadius * 1.2 + 10
+				local xmin = cluster.xmin - expandDist
+				local xmax = cluster.xmax + expandDist
+				local zmin = cluster.zmin - expandDist
+				local zmax = cluster.zmax + expandDist
+				convexHull = {
+					{ x = xmin, y = max(0, spGetGroundHeight(xmin, zmin)), z = zmin },
+					{ x = xmax, y = max(0, spGetGroundHeight(xmax, zmin)), z = zmin },
+					{ x = xmax, y = max(0, spGetGroundHeight(xmax, zmax)), z = zmax },
+					{ x = xmin, y = max(0, spGetGroundHeight(xmin, zmax)), z = zmax }
+				}
+				hullArea = (xmax - xmin) * (zmax - zmin)
+				usedBoundingBox = true
+			end
 		end
 
 		-- Apply expansion and smoothing to make blob-like shapes
@@ -878,7 +897,11 @@ do
 
 			-- Always use the standard expand+smooth method which follows the hull shape
 			-- The ellipse approach was too rigid and caused overshooting
-			convexHull = expandAndSmoothHull(convexHull, expansion)
+			local expandedHull = expandAndSmoothHull(convexHull, expansion)
+			-- Ensure we don't lose the hull if expansion fails
+			if expandedHull and #expandedHull >= 3 then
+				convexHull = expandedHull
+			end
 		end
 
 		featureConvexHulls[clusterID] = convexHull
