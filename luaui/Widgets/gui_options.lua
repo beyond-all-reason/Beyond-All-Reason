@@ -4713,6 +4713,19 @@ function init()
 		  end,
 		},
 
+		{ id = "skip_allied_upgrade", group = "game", category = types.basic, name = Spring.I18N('ui.settings.option.skip_allied_upgrade'), type = "bool", value = (WG['skip_allied_upgrade'] and WG['skip_allied_upgrade'].shouldFilterByDefault), description = Spring.I18N('ui.settings.option.skip_allied_upgrade_descr'),
+		  onload = function(i)
+			  loadWidgetData("Skip Allied Upgrade Toggle", "skip_allied_upgrade", { 'shouldFilterByDefault' })
+		  end,
+		  onchange = function(i, value)
+			  if widgetHandler.configData["Skip Allied Upgrade Toggle"] == nil then
+				  widgetHandler.configData["Skip Allied Upgrade Toggle"] = {}
+			  end
+			  widgetHandler.configData["Skip Allied Upgrade Toggle"].shouldFilterByDefault = value
+			  saveOptionValue('Skip Allied Upgrade Toggle', 'skip_allied_upgrade', 'setShouldFilterByDefault', { 'shouldFilterByDefault' }, value)
+		  end,
+		},
+
 		{ id = "label_ui_cloak", group = "game", name = Spring.I18N('ui.settings.option.label_cloak'), category = types.basic },
 		{ id = "label_ui_cloak_spacer", group = "game", category = types.basic },
 
