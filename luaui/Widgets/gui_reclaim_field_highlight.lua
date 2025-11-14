@@ -130,7 +130,7 @@ local lastFlyingCheckFrame = 0 -- Track when we last checked flying features
 local validityCheckCounter = 0 -- Rotating counter for validity checks in GameFrame
 local lastCameraCheckFrame = 0 -- Track when we last checked camera up vector
 
-local epsilon = 340 -- Clustering distance - increased to merge nearby fields and prevent overlaps
+local epsilon = 320 -- Clustering distance - increased to merge nearby fields and prevent overlaps
 local epsilonSq = epsilon*epsilon
 local minFeatureMetal = 9 -- armflea reclaim value, probably
 if UnitDefNames.armflea then
@@ -141,6 +141,12 @@ local baseCheckFrequency = math.round(checkFrequency * Game.gameSpeed)
 checkFrequency = baseCheckFrequency
 local lastFeatureCount = 0
 local cachedKnownFeaturesCount = 0 -- Cached count to avoid iterating all features
+
+-- Track timing for pre-gamestart updates
+local preGameStartTimer = 0
+local preGameStartCheckInterval = checkFrequency / Game.gameSpeed -- Convert frames to seconds
+local gameStarted = false
+local artificialFrame = 0 -- Artificial frame counter for pre-gamestart
 
 local minTextAreaLength = (epsilon / 2 + fontSizeMin) / 2
 local areaTextMin = 3000
@@ -1505,21 +1511,10 @@ function widget:SetConfigData(data)
 	-- end
 end
 
-function widget:Update(dt)
-	if UpdateDrawEnabled() == true then
-		local cx, cy, cz = spGetCameraPosition()
-		local desc, w = spTraceScreenRay(screenx / 2, screeny / 2, true)
-		if desc ~= nil then
-			local cameraDist = min(64000000, (cx-w[1])^2 + (cy-w[2])^2 + (cz-w[3])^2)
-			cameraScale = sqrt(sqrt(cameraDist) / 600) --number is an "optimal" view distance
-		else
-			cameraScale = 1.0
-		end
-	end
-end
-
-function widget:GameFrame(frame)
-	if drawEnabled == false then
+-- Core update logic extracted to be called from both Update and GameFrame
+local function UpdateReclaimFields(frame)
+	-- Before gamestart, always show reclaim fields regardless of settings
+	if drawEnabled == false and gameStarted then
 		return
 	end
 
@@ -1720,6 +1715,40 @@ function widget:GameFrame(frame)
 	redrawingNeeded = false
 end
 
+function widget:Update(dt)
+	-- Update camera scale before gamestart OR when enabled after gamestart
+	if not gameStarted or UpdateDrawEnabled() == true then
+		local cx, cy, cz = spGetCameraPosition()
+		local desc, w = spTraceScreenRay(screenx / 2, screeny / 2, true)
+		if desc ~= nil then
+			local cameraDist = min(64000000, (cx-w[1])^2 + (cy-w[2])^2 + (cz-w[3])^2)
+			cameraScale = sqrt(sqrt(cameraDist) / 600) --number is an "optimal" view distance
+		else
+			cameraScale = 1.0
+		end
+	end
+
+	-- Before gamestart, we need to manually trigger reclaim field updates
+	if not gameStarted then
+		preGameStartTimer = preGameStartTimer + dt
+		if preGameStartTimer >= preGameStartCheckInterval then
+			preGameStartTimer = 0
+			-- Increment artificial frame counter
+			artificialFrame = artificialFrame + checkFrequency
+			-- Call the update logic with our artificial frame
+			UpdateReclaimFields(artificialFrame)
+		end
+	end
+end
+
+function widget:GameFrame(frame)
+	-- Mark that the game has started
+	gameStarted = true
+
+	-- Use the extracted update logic
+	UpdateReclaimFields(frame)
+end
+
 function widget:FeatureCreated(featureID, allyTeamID)
 	local metal = spGetFeatureResources(featureID)
 	if not metal or metal < minFeatureMetal then
@@ -1817,7 +1846,8 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 
 function widget:DrawWorld()
-	if drawEnabled == false or spIsGUIHidden() == true then
+	-- Before gamestart, always show; after gamestart, check drawEnabled
+	if spIsGUIHidden() == true or (gameStarted and drawEnabled == false) then
 		return
 	end
 
@@ -1833,7 +1863,8 @@ function widget:DrawWorld()
 end
 
 function widget:DrawWorldPreUnit()
-	if drawEnabled == false or spIsGUIHidden() == true then
+	-- Before gamestart, always show; after gamestart, check drawEnabled
+	if spIsGUIHidden() == true or (gameStarted and drawEnabled == false) then
 		return
 	end
 
