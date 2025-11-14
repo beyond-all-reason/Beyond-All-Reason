@@ -163,7 +163,7 @@ return {
 				explosiongenerator = "custom:ministarfire-explosion",
 				gravityaffected = "true",
 				impulsefactor = 0.5,
-				name = "Plasma Burst",
+				name = "Plasma Cluster Burst",
 				noselfdamage = true,
 				maxvelocity = 720,
 				range = 110,
