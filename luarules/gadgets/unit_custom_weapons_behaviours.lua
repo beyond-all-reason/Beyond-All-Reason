@@ -59,6 +59,8 @@ local weaponDefEffect = {}
 local projectiles = {}
 local projectilesData = {}
 
+local gameFrame = 0
+
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
 
@@ -123,6 +125,16 @@ end
 local function isProjectileInWater(projectileID)
 	local _, positionY = spGetProjectilePosition(projectileID)
 	return positionY <= 0
+end
+
+local function equalTargets(target1, target2)
+	return target1 == target2 or (
+		type(target1) == "table" and
+		type(target2) == "table" and
+		target1[1] == target2[1] and
+		target1[2] == target2[2] and
+		target1[3] == target2[3]
+	)
 end
 
 local getProjectileArgs
@@ -252,29 +264,31 @@ end
 -- Uses no weapon customParams.
 
 specialEffectFunction.guidance = function(projectileID)
-
 	if spGetProjectileTimeToLive(projectileID) > 0 then
-		local targetType, target= spGetProjectileTarget(projectileID)
 		local ownerID = spGetProjectileOwnerID(projectileID)
-		local lasing = spGetUnitWeaponTarget (ownerID, 1)
-		if lasing ~= 0 then
-			local ownerTargetType, _, ownerTarget = spGetUnitWeaponTarget(ownerID, 1)
-			
-			if target ~= ownerTarget then
-				-- Hardcoded to retarget only from the primary weapon and only units or ground
-			
-				if ownerTargetType == 1 then
-					spSetProjectileTarget(projectileID, ownerTarget, targetedUnit)
-				elseif ownerTargetType == 2 then
-					spSetProjectileTarget(projectileID, ownerTarget[1], ownerTarget[2], ownerTarget[3])
+
+		if not ownerID then
+			return true
+		elseif Spring.GetUnitWeaponState(ownerID, 1, "nextSalvo") + 1 < gameFrame then
+			return false -- The targeting laser provides guidance only when firing.
+		end
+
+		local targetType, missileTarget = spGetProjectileTarget(projectileID)
+		local guidanceType, _, guidanceTarget = spGetUnitWeaponTarget(ownerID, 1)
+
+		if guidanceTarget then
+			if not equalTargets(guidanceTarget, missileTarget) then
+				if guidanceType == 1 then
+					spSetProjectileTarget(projectileID, guidanceTarget, targetedUnit)
+				elseif guidanceType == 2 then
+					spSetProjectileTarget(projectileID, guidanceTarget[1], guidanceTarget[2], guidanceTarget[3])
 				end
 			end
-		return false
-		else	
-			spSetProjectileTarget(projectileID, 9999999, 9999999)
-			return false
+		elseif targetType == targetedUnit then
+			spSetProjectileTarget(projectileID, spGetUnitPosition(missileTarget))
 		end
-		
+
+		return false
 	else
 		return true
 	end
@@ -478,6 +492,7 @@ function gadget:Initialize()
 		for weaponDefID in pairs(weaponDefEffect) do
 			Script.SetWatchProjectile(weaponDefID, true)
 		end
+		gameFrame = Spring.GetGameFrame()
 	else
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No custom weapons found.")
 		gadgetHandler:RemoveGadget(self)
@@ -496,6 +511,7 @@ function gadget:ProjectileDestroyed(projectileID)
 end
 
 function gadget:GameFrame(frame)
+	gameFrame = frame
 	for projectileID, effect in pairs(projectiles) do
 		if effect(projectileID) then
 			projectiles[projectileID] = nil
