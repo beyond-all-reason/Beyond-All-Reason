@@ -130,6 +130,7 @@ ExecuteRestoreAfterDelay()
 			aimy1velocity = AIMY1_RESTORE_SPEED;
 		}
 		turn mainTurretHeadingPivot to y-axis aimy1position speed 30 * AIMY1_RESTORE_SPEED;
+        turn mainTurretHousing to x-axis <0.0> speed <45.0>;
 		sleep 30;
 	}
 	aimy1velocity = 0;
@@ -146,6 +147,9 @@ RestoreAfterDelay()
 {
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
+    start-script RestoreAfterDelay2();
+    start-script RestoreAfterDelay3();
+    start-script RestoreAfterDelay4();
 }
 
 RestoreAfterDelay2()
