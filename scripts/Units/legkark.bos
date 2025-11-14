@@ -458,7 +458,7 @@ ReactiveArmorRestore3()
 ReactiveArmorRestore4()
 {
 	show armorflleg;
-	emit-sfx 1024 + 1 from armorfrleg;
+	emit-sfx 1024 + 1 from armorflleg;
 }
 ReactiveArmorRestore5()
 {
