@@ -235,7 +235,7 @@ local function restoreUnitArmor(unitID, piece)
 		defData.call(unitID, defData[armorRestoreMethod][piece])
 	end
 
-	if piece <= 1 or piece == true then
+	if piece == true or piece <= 1 then
 		unitArmorFrames[unitID] = nil
 		unitArmorHealth[unitID] = defData.health
 		defData.call(unitID, armorRestoreMethod)
