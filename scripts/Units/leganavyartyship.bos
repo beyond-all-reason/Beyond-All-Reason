@@ -130,7 +130,6 @@ ExecuteRestoreAfterDelay()
 			aimy1velocity = AIMY1_RESTORE_SPEED;
 		}
 		turn mainTurretHeadingPivot to y-axis aimy1position speed 30 * AIMY1_RESTORE_SPEED;
-        turn mainTurretHousing to x-axis <0.0> speed <45.0>;
 		sleep 30;
 	}
 	aimy1velocity = 0;
@@ -147,9 +146,6 @@ RestoreAfterDelay()
 {
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
-    start-script RestoreAfterDelay2();
-    start-script RestoreAfterDelay3();
-    start-script RestoreAfterDelay4();
 }
 
 RestoreAfterDelay2()
@@ -276,30 +272,30 @@ Shot1()
     if(whichGunMain == 0){
         if(whichBarrelMain == 0){
             emit-sfx 1024 + 0 from leftTopFlare1;
-            move leftTopBarrel1 to z-axis [-15] now;
+            move leftTopBarrel1 to z-axis [-10] now;
             sleep 1;
-            move leftTopBarrel1 to z-axis [0] speed [15];
+            move leftTopBarrel1 to z-axis [0] speed [10];
             whichBarrelMain = 1;
         }
         else if(whichBarrelMain == 1){
             emit-sfx 1024 + 0 from rightTopFlare1;
-            move rightTopBarrel1 to z-axis [-15] now;
+            move rightTopBarrel1 to z-axis [-10] now;
             sleep 1;
-            move rightTopBarrel1 to z-axis [0] speed [15];
+            move rightTopBarrel1 to z-axis [0] speed [10];
             whichBarrelMain = 2;
         }
         else if(whichBarrelMain == 2){
             emit-sfx 1024 + 0 from leftBottomFlare1;
-            move leftBottomBarrel1 to z-axis [-15] now;
+            move leftBottomBarrel1 to z-axis [-10] now;
             sleep 1;
-            move leftBottomBarrel1 to z-axis [0] speed [15];
+            move leftBottomBarrel1 to z-axis [0] speed [10];
             whichBarrelMain = 3;
         }
         else if(whichBarrelMain == 3){
             emit-sfx 1024 + 0 from rightBottomFlare1;
-            move rightBottomBarrel1 to z-axis [-15] now;
+            move rightBottomBarrel1 to z-axis [-10] now;
             sleep 1;
-            move rightBottomBarrel1 to z-axis [0] speed [15];
+            move rightBottomBarrel1 to z-axis [0] speed [10];
             whichBarrelMain = 0;
             whichGunMain = 1;
         }
@@ -307,30 +303,30 @@ Shot1()
 	else if(whichGunMain == 1){
         if(whichBarrelMain == 0){
             emit-sfx 1024 + 0 from leftTopFlare2;
-            move leftTopBarrel2 to z-axis [-15] now;
+            move leftTopBarrel2 to z-axis [-10] now;
             sleep 1;
-            move leftTopBarrel2 to z-axis [0] speed [15];
+            move leftTopBarrel2 to z-axis [0] speed [10];
             whichBarrelMain = 1;
         }
         else if(whichBarrelMain == 1){
             emit-sfx 1024 + 0 from rightTopFlare2;
-            move rightTopBarrel2 to z-axis [-15] now;
+            move rightTopBarrel2 to z-axis [-10] now;
             sleep 1;
-            move rightTopBarrel2 to z-axis [0] speed [15];
+            move rightTopBarrel2 to z-axis [0] speed [10];
             whichBarrelMain = 2;
         }
         else if(whichBarrelMain == 2){
             emit-sfx 1024 + 0 from leftBottomFlare2;
-            move leftBottomBarrel2 to z-axis [-15] now;
+            move leftBottomBarrel2 to z-axis [-10] now;
             sleep 1;
-            move leftBottomBarrel2 to z-axis [0] speed [15];
+            move leftBottomBarrel2 to z-axis [0] speed [10];
             whichBarrelMain = 3;
         }
         else if(whichBarrelMain == 3){
             emit-sfx 1024 + 0 from rightBottomFlare2;
-            move rightBottomBarrel2 to z-axis [-15] now;
+            move rightBottomBarrel2 to z-axis [-10] now;
             sleep 1;
-            move rightBottomBarrel2 to z-axis [0] speed [15];
+            move rightBottomBarrel2 to z-axis [0] speed [10];
             whichBarrelMain = 0;
             whichGunMain = 0;
         }
@@ -356,7 +352,7 @@ QueryWeapon2(pieceIndex)
         pieceIndex = flare1Left1;
     }
     else if(whichBarrelLeft1 == 1){
-        pieceIndex = flare2Left2;
+        pieceIndex = flare2Left1;
     }
 }
 
@@ -364,7 +360,7 @@ AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM_2;
 	set-signal-mask SIGNAL_AIM_2;
-	if( heading < <-165> OR heading > <125> )
+	if( heading < <-165> OR heading > <120> )
 	{
 		return (0);
 	}
@@ -380,9 +376,9 @@ FireWeapon2()
 {
     if(whichBarrelLeft1 == 0){
         emit-sfx 1024 + 1 from flare1Left1;
-        move barrel1Left1 to z-axis [-10] now;
+        move barrel1Left1 to z-axis [-5] now;
         sleep 1;
-        move barrel1Left1 to z-axis [0] speed [10];
+        move barrel1Left1 to z-axis [0] speed [5];
         whichBarrelLeft1 = 1;
     }
     else if(whichBarrelLeft1 == 1){
@@ -407,7 +403,7 @@ QueryWeapon3(pieceIndex)
         pieceIndex = flare1Right;
     }
     else if(whichBarrelRight == 1){
-        pieceIndex = flare2Left2;
+        pieceIndex = flare2Right;
     }
 }
 
@@ -431,13 +427,13 @@ FireWeapon3()
 {
     if(whichBarrelRight == 0){
         emit-sfx 1024 + 1 from flare1Right;
-        move barrel1Right to z-axis [-10] now;
+        move barrel1Right to z-axis [-5] now;
         sleep 1;
-        move barrel1Right to z-axis [0] speed [10];
+        move barrel1Right to z-axis [0] speed [5];
         whichBarrelRight = 1;
     }
     else if(whichBarrelRight == 1){
-        emit-sfx 1024 + 1 from flare1Right;
+        emit-sfx 1024 + 1 from flare2Right;
         move barrel2Right to z-axis [-10] now;
         sleep 1;
         move barrel2Right to z-axis [0] speed [10];
@@ -481,10 +477,10 @@ AimWeapon4(heading, pitch)
 FireWeapon4()
 {
     if(whichBarrelLeft2 == 0){
-        emit-sfx 1024 + 1 from flare2Left1;
-        move barrel1Left2 to z-axis [-10] now;
+        emit-sfx 1024 + 1 from flare1Left2;
+        move barrel1Left2 to z-axis [-5] now;
         sleep 1;
-        move barrel1Left2 to z-axis [0] speed [10];
+        move barrel1Left2 to z-axis [0] speed [5];
         whichBarrelLeft2 = 1;
     }
     else if(whichBarrelLeft2 == 1){
