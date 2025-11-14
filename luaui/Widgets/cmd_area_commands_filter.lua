@@ -1,8 +1,9 @@
 local widget = widget ---@type RulesUnsyncedCallins
 
 -- When performing an area command for one of the `allowedCommands` below:
--- - If Ctrl is pressed and hovering over a unit, targets all units with the same alliance (enemy/allied) in the area.
--- - If Alt is pressed and hovering over a unit, targets all units that share the same unitdefid in the area.
+-- - If enemy unit is targeted then targetAllegiance=ENEMY_UNITS otherwise targetAllegiance=targetTeamId
+-- - If Ctrl is pressed and hovering over a unit, targets all units in the area. For wrecks, it targets all wrecks with the same tech level
+-- - If Alt is pressed and hovering over a unit, targets all units that share the same unitDefId in the area.
 -- - If Meta is pressed, orders are put in front of the order queue.
 -- - If Meta and Shift are pressed, splits orders between selected units. Orders are placed at the end of the queue
 function widget:GetInfo()
@@ -29,20 +30,23 @@ local spWorldToScreenCoords = Spring.WorldToScreenCoords
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetUnitTeam = Spring.GetUnitTeam
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetUnitArrayCentroid = Spring.GetUnitArrayCentroid
 local spGetFeatureResurrect = Spring.GetFeatureResurrect
-local spGetUnitTeam = Spring.GetUnitTeam
-local spAreTeamsAllied = Spring.AreTeamsAllied
 
-local myTeamID
+local ENEMY_UNITS = Spring.ENEMY_UNITS
+local ALLY_UNITS = Spring.ALLY_UNITS
+local ALL_UNITS = Spring.ALL_UNITS
+local FEATURE = "feature"
+local UNIT = "unit"
+
 local myAllyTeamID
 
 ---------------------------------------------------------------------------------------
@@ -303,10 +307,11 @@ local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirs
 end
 
 local function giveOrders(cmdId, selectedUnits, filteredTargets, options)
-	local count = 0
-	for _, targetId in ipairs(filteredTargets) do
+	local firstTarget = true
+	local selectedUnitsLen = #selectedUnits
+	for i, targetId in ipairs(filteredTargets) do
 		local cmdOpts = {}
-		if count > 0 or options.shift then
+		if not firstTarget or options.shift then
 			tableInsert(cmdOpts, "shift")
 		end
 		if options.meta and not options.shift then
@@ -314,7 +319,11 @@ local function giveOrders(cmdId, selectedUnits, filteredTargets, options)
 		else
 			spGiveOrderToUnitArray(selectedUnits, cmdId, { targetId }, cmdOpts)
 		end
-		count = count + 1
+		firstTarget = false
+		if i * selectedUnitsLen > 1000 then
+			Spring.Log(widget:GetInfo().name, LOG.WARNING, "Command count exceeded, target selection may be incomplete")
+			return
+		end
 	end
 end
 
@@ -373,62 +382,64 @@ local function loadUnitsHandler(cmdId, selectedUnits, filteredTargets, options)
 	end
 end
 
-local FEATURE = "feature"
-local UNIT = "unit"
-
 ---@class CommandConfig
 ---@field handle function
 ---@field allowedTargetTypes table
----@field skipAlliedUnits? boolean
+---@field targetAllegiance number AllUnits = -1, MyUnits = -2, AllyUnits = -3, EnemyUnits = -4
+
+local function commandConfig(targetTypes, targetAllegiance, handler)
+	local allowedTargetTypes = {}
+	for _, targetType in ipairs(targetTypes) do
+		allowedTargetTypes[targetType] = true
+	end
+	local config = {} --- @type CommandConfig
+	config.handle = handler or defaultHandler
+	config.allowedTargetTypes = allowedTargetTypes
+	config.targetAllegiance = targetAllegiance
+	return config
+end
 
 ---@type table<number, CommandConfig>
 local allowedCommands = {
-	[CMD.ATTACK] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true }, skipAlliedUnits = true },
-	[CMD.GUARD] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true } },
-	[CMD.RECLAIM] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true, [FEATURE] = true } },
-	[CMD.REPAIR] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true } },
-	[CMD.CAPTURE] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true } },
-	[GameCMD.UNIT_SET_TARGET] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true } },
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = { handle = defaultHandler, allowedTargetTypes = { [UNIT] = true } },
-	[CMD.RESURRECT] = { handle = defaultHandler, allowedTargetTypes = { [FEATURE] = true } },
-	[CMD.LOAD_UNITS] = { handle = loadUnitsHandler, allowedTargetTypes = { [UNIT] = true } },
+	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS),
+	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS),
+	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS),
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS),
+	[CMD.GUARD] = commandConfig({ UNIT }, ALLY_UNITS),
+	[CMD.REPAIR] = commandConfig({ UNIT }, ALLY_UNITS),
+	[CMD.RECLAIM] = commandConfig({ UNIT, FEATURE }, ALL_UNITS),
+	[CMD.LOAD_UNITS] = commandConfig({ UNIT }, ALL_UNITS, loadUnitsHandler),
+	[CMD.RESURRECT] = commandConfig({ FEATURE }),
 }
 
-local function filterUnits(targetId, cmdX, cmdZ, radius, options, skipAlliedUnits)
+local function filterUnits(targetId, cmdX, cmdZ, radius, options, targetAllegiance)
+	local alt = options.alt
+	local ctrl = options.ctrl
 	local filteredTargets = {}
 	local unitDefId = spGetUnitDefID(targetId)
 	if not unitDefId then
 		return nil
 	end
 
-	local isEnemyTarget = (spGetUnitAllyTeam(targetId) ~= myAllyTeamID)
-
-	local unitsInArea
-	if isEnemyTarget then
-		unitsInArea = spGetUnitsInCylinder(cmdX, cmdZ, radius, Spring.ENEMY_UNITS)
-	elseif not skipAlliedUnits then
-		local nearbyUnits = spGetUnitsInCylinder(cmdX, cmdZ, radius)
-		if not nearbyUnits then
-			return nil
-		end
-
-		unitsInArea = {}
-		for i = 1, #nearbyUnits do
-			local unitID = nearbyUnits[i]
-			if spAreTeamsAllied(spGetUnitTeam(unitID), myTeamID) then
-				unitsInArea[#unitsInArea + 1] = unitID
-			end
-		end
-
-		if #unitsInArea == 0 then
-			return nil
-		end
+	local isEnemyTarget = spGetUnitAllyTeam(targetId) ~= myAllyTeamID
+	if isEnemyTarget and targetAllegiance ~= ALL_UNITS and targetAllegiance ~= ENEMY_UNITS then
+		-- targeting enemy when only allies are allowed
+		return nil
 	end
+
+	if isEnemyTarget then
+		targetAllegiance = ENEMY_UNITS
+	else
+		targetAllegiance = spGetUnitTeam(targetId)
+	end
+
+	local unitsInArea = spGetUnitsInCylinder(cmdX, cmdZ, radius, targetAllegiance)
+
 	if not unitsInArea then
 		return nil
 	end
 
-	if options.ctrl then
+	if ctrl then
 		return unitsInArea
 	end
 
@@ -438,14 +449,18 @@ local function filterUnits(targetId, cmdX, cmdZ, radius, options, skipAlliedUnit
 			tableInsert(filteredTargets, unitID)
 		end
 	end
+
 	return filteredTargets
 end
 
-local function filterFeatures(targetId, cmdX, cmdZ, radius, options)
-	if not options.alt then
-		return nil
-	end
+local function getTechLevel(unitDefName)
+	local unitDef = UnitDefNames[unitDefName]
+	return unitDef and unitDef.customParams.techlevel
+end
 
+local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitDefName)
+	local alt = options.alt
+	local ctrl = options.ctrl
 	local filteredTargets = {}
 	local featureDefId = spGetFeatureDefID(targetId)
 	if not featureDefId then
@@ -457,13 +472,31 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options)
 		return nil
 	end
 
+	local targetTechLevel
+	if ctrl then
+		targetTechLevel = getTechLevel(targetUnitDefName)
+	end
+
 	for i = 1, #featuresInArea do
 		local featureId = featuresInArea[i]
-		if spGetFeatureDefID(featureId) == featureDefId then
-			-- featureId is normalised to Game.maxUnits + featureId because of:
-			-- https://springrts.com/wiki/Lua_CMDs#CMDTYPE.ICON_UNIT_FEATURE_OR_AREA
-			-- "expect 1 parameter in return (unitid or Game.maxUnits+featureid)"
-			featureId = Game.maxUnits + featureId
+		local shouldInsert = false
+		if alt and spGetFeatureDefID(featureId) == featureDefId then
+			shouldInsert = true
+		elseif ctrl then
+			local unitDefName = spGetFeatureResurrect(featureId)
+			local unitTechLevel = getTechLevel(unitDefName)
+			if unitTechLevel == targetTechLevel then
+				shouldInsert = true
+			end
+		end
+		if shouldInsert then
+			if not Engine.FeatureSupport.noOffsetForFeatureID then
+				-- featureId is normalised to Game.maxUnits + featureId because of:
+				-- https://springrts.com/wiki/Lua_CMDs#CMDTYPE.ICON_UNIT_FEATURE_OR_AREA
+				-- "expect 1 parameter in return (unitd or Game.maxUnits+featureid)"
+				-- offset due to be removed in future engine version
+				featureId = featureId + Game.maxUnits
+			end
 			tableInsert(filteredTargets, featureId)
 		end
 	end
@@ -500,14 +533,14 @@ function widget:CommandNotify(cmdId, params, options)
 	local filteredTargets
 
 	if targetType == UNIT then
-		filteredTargets = filterUnits(targetId, cmdX, cmdZ, radius, options, currentCommand.skipAlliedUnits)
+		filteredTargets = filterUnits(targetId, cmdX, cmdZ, radius, options, currentCommand.targetAllegiance)
 	elseif targetType == FEATURE then
-		local featureDefName = spGetFeatureResurrect(targetId)
+		local unitDefName = spGetFeatureResurrect(targetId)
 		-- filter only wrecks which can be resurrected
-		if featureDefName == nil or featureDefName == "" then
+		if unitDefName == nil or unitDefName == "" then
 			return false
 		end
-		filteredTargets = filterFeatures(targetId, cmdX, cmdZ, radius, options)
+		filteredTargets = filterFeatures(targetId, cmdX, cmdZ, radius, options, unitDefName)
 	end
 
 	if not filteredTargets or #filteredTargets == 0 then
@@ -522,7 +555,6 @@ local function initialize()
 	if spGetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
-	myTeamID = spGetMyTeamID()
 	myAllyTeamID = spGetMyAllyTeamID()
 end
 
