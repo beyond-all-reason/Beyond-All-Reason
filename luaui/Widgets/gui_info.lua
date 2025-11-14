@@ -342,14 +342,7 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].maxCoverage = math.max(unitDefInfo[unitDefID].maxCoverage or 1, weaponDef.coverageRange)
 			end
 			if weaponDef.damages then
-				if unitDef.name == 'armfido' then
-					unitExempt = false
-					if i==2 then                                --Calculating using second weapon only
-						local defDmg = weaponDef.damages[0]      		--Damage to default armor category
-						calculateWeaponDPS(weaponDef, defDmg)
-					end
-
-				elseif unitDef.name == 'armamb' or unitDef.name == 'cortoast' then -- weapons with low/high traj, this list is incomplete
+				if unitDef.name == 'armamb' or unitDef.name == 'cortoast' then -- weapons with low/high traj, this list is incomplete
 					unitExempt = true
 					if i==1 then                                --Calculating using first weapon only
 						calculateWeaponDPS(weaponDef, weaponDef.damages[0]) --Damage to default armor category
