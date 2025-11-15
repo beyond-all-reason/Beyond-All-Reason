@@ -36,6 +36,8 @@ local spGetTeamInfo = Spring.GetTeamInfo
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetAIInfo = Spring.GetAIInfo
 local ColorString = Spring.Utilities.Color.ToString
+local ordinals = VFS.Include('common/ordinal.lua')
+local ordinalFunc = ordinals.en -- default to English
 
 local DEFAULT_MAX_ROUNDS = 7
 local DEFAULT_POINTS_CAP = 100
@@ -284,7 +286,7 @@ local function buildLeaderboardRow(team, rank, isEliminated, isDead)
 	
 	local rankDiv = widgetState.document:CreateElement("div")
 	rankDiv.class_name = "scoreboard-rank"
-	rankDiv.inner_rml = tostring(rank)
+	rankDiv.inner_rml = ordinalFunc(rank)
 	
 	local nameDiv = widgetState.document:CreateElement("div")
 	nameDiv.class_name = "scoreboard-name"
@@ -863,7 +865,7 @@ local function updatePlayerDisplay()
 		end
 		
 		if playerRank > 0 then
-			rankDisplayText = spI18N('ui.territorialDomination.rank.display', { rank = playerRank })
+			rankDisplayText = ordinalFunc(playerRank) .. spI18N('ui.territorialDomination.rank.place')
 		end
 		
 	local playerCombinedScore = currentScore + projectedPoints
@@ -1115,6 +1117,9 @@ function widget:Initialize()
 	end
 
 	widgetState.dmHandle = dmHandle
+
+	local language = Spring.GetConfigString('language', 'en')
+	ordinalFunc = ordinals[language] or ordinals.en
 
 	local document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
 	if not document then
