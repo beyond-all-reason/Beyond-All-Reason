@@ -734,9 +734,8 @@
 				"worth": "Territories are worth %{points}pts"
 			},
 			"scoreboard": {
-				"title": "Scoreboard",
+				"title": "Leaderboard",
 				"viewLeaderboard": "View leaderboard",
-				"headerRank": "Rank",
 				"headerTeam": "Team",
 				"headerScore": "Score",
 				"headerTerritories": "Territories",

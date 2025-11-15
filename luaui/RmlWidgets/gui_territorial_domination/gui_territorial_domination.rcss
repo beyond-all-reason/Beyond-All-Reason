@@ -400,13 +400,13 @@ body {
 .scoreboard-content {
 	position: relative;
 	z-index: 2001;
-	background-color: rgba(50, 50, 50, 60);
+	background-color: rgba(50, 50, 50, 180);
 	border-radius: 0.56vh;
 	border-width: 0.14vh;
 	border-color: rgba(30, 30, 30, 150);
 	padding: 12dp;
-	min-width: 600dp;
-	max-width: 900dp;
+	min-width: 450dp;
+	max-width: 675dp;
 	overflow-y: auto;
 	pointer-events: auto;
 	decorator: image("/luaui/images/stripes-small.png" repeat);
@@ -431,7 +431,7 @@ body {
 	font-size: 24dp;
 	font-weight: bold;
 	text-align: center;
-	margin-bottom: 12dp;
+	margin-bottom: 0dp;
 	font-effect: outline(1dp #000000CC);
 	position: relative;
 	z-index: 2;
@@ -487,8 +487,12 @@ body {
 
 .scoreboard-header-previous,
 .scoreboard-header-territories,
+.scoreboard-header-score,
 .scoreboard-header-gains,
 .scoreboard-header-total,
+.scoreboard-score,
+.scoreboard-score-breakdown,
+.scoreboard-score-total,
 .scoreboard-previous,
 .scoreboard-territories,
 .scoreboard-gains,
@@ -502,6 +506,7 @@ body {
 	width: auto;
 }
 
+.scoreboard-header-score,
 .scoreboard-header-previous,
 .scoreboard-header-territories,
 .scoreboard-header-gains,
@@ -509,11 +514,24 @@ body {
 	font-size: 14dp;
 }
 
+.scoreboard-score,
 .scoreboard-previous,
-.scoreboard-territories,
 .scoreboard-gains,
 .scoreboard-total {
 	font-size: 16dp;
+}
+
+.scoreboard-territories {
+	font-size: 18dp;
+}
+
+.scoreboard-score-breakdown {
+	font-size: 14dp;
+	color: rgba(180, 180, 180, 255);
+}
+
+.scoreboard-score-total {
+	font-size: 18dp;
 }
 
 .scoreboard-table-wrapper {
@@ -538,6 +556,7 @@ body {
 
 .scoreboard-column-headers > .scoreboard-header-rank {
 	padding: 8dp 8dp 2dp 8dp;
+	width: 24dp;
 }
 
 .scoreboard-column-headers > .scoreboard-header-name {
@@ -547,6 +566,7 @@ body {
 	padding-right: 20dp;
 }
 
+.scoreboard-column-headers > .scoreboard-header-score,
 .scoreboard-column-headers > .scoreboard-header-previous,
 .scoreboard-column-headers > .scoreboard-header-territories,
 .scoreboard-column-headers > .scoreboard-header-gains,
@@ -580,6 +600,7 @@ body {
 .scoreboard-team-row > .scoreboard-rank {
 	padding: 8dp 8dp;
 	vertical-align: middle;
+	width: 24dp;
 }
 
 .scoreboard-team-row > .scoreboard-name {
@@ -593,6 +614,7 @@ body {
 	vertical-align: top;
 }
 
+.scoreboard-team-row > .scoreboard-score,
 .scoreboard-team-row > .scoreboard-previous,
 .scoreboard-team-row > .scoreboard-territories,
 .scoreboard-team-row > .scoreboard-gains,
@@ -665,10 +687,15 @@ body {
 	display: none;
 }
 
+.scoreboard-elimination-empty-cell {
+	display: table-cell;
+	padding: 8dp;
+}
+
 .scoreboard-elimination-separator-text {
 	color: #ffffff;
 	font-family: Exo 2;
-	font-size: 16dp;
+	font-size: 18dp;
 	font-weight: bold;
 	text-align: center;
 	font-effect: outline(1dp #000000CC);

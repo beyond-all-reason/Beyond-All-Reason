@@ -52,16 +52,17 @@
 				<div id="leaderboard-header" class="scoreboard-header">!!ui.territorialDomination.scoreboard.title</div>
 				<div id="leaderboard-table-wrapper" class="scoreboard-table-wrapper">
 					<div id="leaderboard-column-headers" class="scoreboard-column-headers">
-						<div class="scoreboard-header-rank">!!ui.territorialDomination.scoreboard.headerRank</div>
+						<div class="scoreboard-header-rank"></div>
 						<div class="scoreboard-header-name">!!ui.territorialDomination.scoreboard.headerTeam</div>
-						<div class="scoreboard-header-previous">!!ui.territorialDomination.scoreboard.headerScore</div>
+						<div class="scoreboard-header-score">!!ui.territorialDomination.scoreboard.headerScore</div>
 						<div class="scoreboard-header-territories">!!ui.territorialDomination.scoreboard.headerTerritories</div>
-						<div class="scoreboard-header-gains">!!ui.territorialDomination.scoreboard.headerGains</div>
-						<div class="scoreboard-header-total">!!ui.territorialDomination.scoreboard.headerTotal</div>
 					</div>
 					<div id="leaderboard-teams" class="scoreboard-teams"></div>
 					<div id="elimination-separator" class="scoreboard-elimination-separator hidden">
+						<div class="scoreboard-elimination-empty-cell"></div>
 						<div id="elimination-separator-text" class="scoreboard-elimination-separator-text">!!ui.territorialDomination.scoreboard.eliminationThreshold</div>
+						<div class="scoreboard-elimination-empty-cell"></div>
+						<div class="scoreboard-elimination-empty-cell"></div>
 					</div>
 					<div id="leaderboard-eliminated" class="scoreboard-eliminated"></div>
 				</div>

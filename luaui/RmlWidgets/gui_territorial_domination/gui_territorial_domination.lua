@@ -306,33 +306,34 @@ local function buildLeaderboardRow(team, rank, isEliminated, isDead)
 		nameDiv.inner_rml = team.name or ""
 	end
 	
-	local previousScoreDiv = widgetState.document:CreateElement("div")
-	previousScoreDiv.class_name = "scoreboard-previous"
+	local combinedScoreDiv = widgetState.document:CreateElement("div")
+	combinedScoreDiv.class_name = "scoreboard-score"
+
+	local breakdownSpan = widgetState.document:CreateElement("span")
+	breakdownSpan.class_name = "scoreboard-score-breakdown"
 	local previousScore = team.score or 0
-	previousScoreDiv.inner_rml = tostring(previousScore) .. "pts"
-	
+	local gains = team.projectedPoints or 0
+	breakdownSpan.inner_rml = tostring(previousScore) .. " + " .. tostring(gains) .. " = "
+
+	local totalSpan = widgetState.document:CreateElement("span")
+	totalSpan.class_name = "scoreboard-score-total"
+	local totalScore = previousScore + gains
+	totalSpan.inner_rml = tostring(totalScore) .. "pts"
+
+	combinedScoreDiv:AppendChild(breakdownSpan)
+	combinedScoreDiv:AppendChild(totalSpan)
+
 	local dataModel = widgetState.dmHandle
 	local territoryCount = team.territoryCount or 0
-	
+
 	local territoriesDiv = widgetState.document:CreateElement("div")
 	territoriesDiv.class_name = "scoreboard-territories"
 	territoriesDiv.inner_rml = tostring(territoryCount)
-	
-	local gainsDiv = widgetState.document:CreateElement("div")
-	gainsDiv.class_name = "scoreboard-gains"
-	gainsDiv.inner_rml = tostring(team.projectedPoints or 0) .. "pts"
-	
-	local totalDiv = widgetState.document:CreateElement("div")
-	totalDiv.class_name = "scoreboard-total"
-	local totalScore = previousScore + (team.projectedPoints or 0)
-	totalDiv.inner_rml = tostring(totalScore) .. "pts"
-	
+
 	row:AppendChild(rankDiv)
 	row:AppendChild(nameDiv)
-	row:AppendChild(previousScoreDiv)
+	row:AppendChild(combinedScoreDiv)
 	row:AppendChild(territoriesDiv)
-	row:AppendChild(gainsDiv)
-	row:AppendChild(totalDiv)
 	
 	return row
 end
