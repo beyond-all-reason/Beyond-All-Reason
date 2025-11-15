@@ -104,7 +104,20 @@ static-var
 ;
 
 // Signal definitions
-#define SIGNAL_MOVE 1
+    #define SIGNAL_MOVE 1
+    #define SIGNAL_AIM1 4
+    #define SIGNAL_AIM2 8
+    #define SIGNAL_AIM3 16
+    #define SIGNAL_AIM4 32
+    #define SIGNAL_AIM5 64
+    #define SIGNAL_AIM6 128
+    #define SIGNAL_AIM7 256
+    #define SIGNAL_AIM8 512
+    #define SIGNAL_AIM9 1024
+    #define SIGNAL_AIM10 2048
+    #define SIGNAL_AIM11 4096
+    #define SIGNAL_AIM12 8192
+#define SIGNAL_AIM13 16384
 
 
 #define RB_MASS 60
@@ -390,6 +403,7 @@ StopMoving()
 
 //////////////////////////////////////////////////////////////// WEAPON FUNCTIONS
 
+//targeting system
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = targetingWeaponHeadingPivot;
@@ -438,63 +452,59 @@ AimWeapon1(heading, pitch)
 // 	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
 // }
 
+
+// right heatray
 AimFromWeapon2(pieceIndex)
 {
-	pieceIndex = tur2;
+	pieceIndex = heatrayRightPitchPivot;
 }
 
 QueryWeapon2(pieceIndex)
 {
-	pieceIndex = flare2;
+	pieceIndex = heatrayFlareRight;
 }
 
 AimWeapon2(heading, pitch)
 {
-	signal 4;
-	set-signal-mask 4;
-	if( heading < -29491 OR heading > 29491 )
-	{
-		return (0);
-	}
-	turn tur2 to y-axis heading speed <150.0>;
-	wait-for-turn tur2 around y-axis;
-	start-script RestoreAfterDelay2();
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+    turn heatrayRightPitchPivot to y-axis heading - mainTurretHeadingVar speed <50>;
+    wait-for-turn heatrayRightPitchPivot around y-axis;
+	wait-for-turn targetingWeaponHeadingPivot around y-axis;
+	start-script RestoreAfterDelayHR1();
 	return (1);
 }
 
 FireWeapon2()
 {
-	sleep 180;
-	turn gun2 to z-axis <120> speed <400>;
-	sleep 1000 * <120> / <400>;
-	turn gun2 to z-axis <0.0> now;
+
 }
 
+// left heatray
 AimFromWeapon3(pieceIndex)
 {
-	pieceIndex = tur3;
+	pieceIndex = heatrayLeftPitchPivot;
 }
 
 QueryWeapon3(pieceIndex)
 {
-	pieceIndex = flare3a + gun_2;
+	pieceIndex = heatrayFlareLeft;
 }
 
 AimWeapon3(heading, pitch)
 {
-	signal 8;
-	set-signal-mask 8;
-	turn tur3 to y-axis heading speed <200.0>;
-	turn sleeves3 to x-axis <0.0> - pitch speed <150.0>;
-	wait-for-turn tur3 around y-axis;
-	wait-for-turn sleeves3 around x-axis;
-	start-script RestoreAfterDelay3();
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
+    turn heatrayLeftPitchPivot to y-axis heading - mainTurretHeadingVar speed <50>;
+    wait-for-turn heatrayLeftPitchPivot around y-axis;
+	wait-for-turn targetingWeaponHeadingPivot around y-axis;
+	start-script RestoreAfterDelayHR1();
 	return (1);
 }
 
 FireWeapon3()
 {
-	gun_2 = !gun_2;
+
 }
 
 AimFromWeapon4(pieceIndex)

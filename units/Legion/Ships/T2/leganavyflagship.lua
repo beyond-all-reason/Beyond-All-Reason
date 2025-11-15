@@ -285,6 +285,7 @@ return {
 				onlytargetcategory = "SURFACE",
 				fastautoretargeting = true,
 				burstControlWhenOutOfArc = 2,
+				slaveto = 1,
 			},
 			[3] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
@@ -292,6 +293,7 @@ return {
 				onlytargetcategory = "SURFACE",
 				fastautoretargeting = true,
 				burstControlWhenOutOfArc = 2,
+				slaveto = 1,
 			},
 			-- deck railguns
 			[4] = {
