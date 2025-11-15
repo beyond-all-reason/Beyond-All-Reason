@@ -35,7 +35,7 @@ local INSTANT_BUILD_RANGE = modOptions.override_quick_start_range > 0 and modOpt
 
 local QUICK_START_COST_ENERGY = 400      --will be deducted from commander's energy upon start.
 local QUICK_START_COST_METAL = 800       --will be deducted from commander's metal upon start.
-local READY_REFUNDABLE_BUDGET = 500       -- Budget threshold when players are allowed to "ready" the game
+local READY_REFUNDABLE_BUDGET = 800       -- Budget threshold when players are allowed to "ready" the game
 local quickStartAmountConfig = {
 	small = 800,
 	normal = 1200,
@@ -908,6 +908,7 @@ function gadget:Initialize()
 	local finalBudget = modOptions.override_quick_start_resources > 0 and modOptions.override_quick_start_resources or immediateBudget
 	Spring.SetGameRulesParam("quickStartBudgetBase", finalBudget)
 	Spring.SetGameRulesParam("quickStartFactoryDiscountAmount", FACTORY_DISCOUNT)
+	Spring.SetGameRulesParam("quickStartMetalDeduction", QUICK_START_COST_METAL)
 	local cheapestEconomicCost = calculateCheapestEconomicStructure()
 	local anyCommanderHasBuildsIntercepted = false
 	for commanderID, comData in pairs(commanders) do

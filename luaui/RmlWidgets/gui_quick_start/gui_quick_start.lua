@@ -22,6 +22,8 @@ if not modOptions or not modOptions.quick_start then
 	return false
 end
 
+local startingMetal = modOptions.startmetal or 1000
+
 local shouldRunWidget = modOptions.quick_start == "enabled" or
 	modOptions.quick_start == "factory_discount" or
 	(modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
@@ -97,6 +99,7 @@ local initialModel = {
 	deductionAmount3 = "",
 	deductionAmount4 = "",
 	deductionAmount5 = "",
+	actualStartingMetal = 0,
 }
 
 local function calculateBudgetWithDiscount(unitDefID, factoryDiscountAmount, shouldApplyDiscount, isFirstFactory)
@@ -134,6 +137,7 @@ local function getCachedGameRules()
 		cachedGameRules.factoryDiscountAmount = spGetGameRulesParam("quickStartFactoryDiscountAmount") or 0
 		cachedGameRules.instantBuildRange = spGetGameRulesParam("overridePregameBuildDistance") or DEFAULT_INSTANT_BUILD_RANGE
 		cachedGameRules.budgetThresholdToAllowStart = spGetGameRulesParam("quickStartBudgetThresholdToAllowStart") or 0
+		cachedGameRules.metalDeduction = spGetGameRulesParam("quickStartMetalDeduction") or 800
 		lastRulesUpdate = currentTime
 	end
 	return cachedGameRules
@@ -306,6 +310,8 @@ local function computeProjectedUsage()
 	local budgetRemaining = math.max(0, gameRules.budgetTotal - budgetUsed)
 	local budgetPercent = gameRules.budgetTotal > 0 and math.max(0, math.min(100, (budgetRemaining / gameRules.budgetTotal) * 100)) or 0
 	local projectedPercent = gameRules.budgetTotal > 0 and math.max(0, math.min(100, (budgetProjected / gameRules.budgetTotal) * 100)) or 0
+	local metalDeduction = gameRules.metalDeduction or 800
+	local actualStartingMetal = startingMetal - metalDeduction + budgetRemaining
 
 	return {
 		budgetTotal = gameRules.budgetTotal,
@@ -314,6 +320,7 @@ local function computeProjectedUsage()
 		budgetPercent = budgetPercent,
 		budgetProjected = budgetProjected,
 		budgetProjectedPercent = projectedPercent,
+		actualStartingMetal = actualStartingMetal,
 	}
 end
 
@@ -450,9 +457,9 @@ local function updateDataModel(forceUpdate)
 		end
 	end
 
-	-- Control refund overlay visibility: show if budget is between 1-threshold, hide otherwise
+	-- Control refund overlay visibility: show if budget is between 0-threshold, hide otherwise
 	if widgetState.refundOverlayElement then
-		local shouldShowRefund = currentBudgetRemaining > 0 and currentBudgetRemaining <= budgetThreshold
+		local shouldShowRefund = currentBudgetRemaining >= 0 and currentBudgetRemaining <= budgetThreshold
 		if shouldShowRefund then
 			widgetState.refundOverlayElement:SetAttribute("style", "opacity: 1;")
 		else
@@ -481,6 +488,9 @@ local function updateDataModel(forceUpdate)
 		end
 
 		updateUIElementText(widgetState.document, "qs-budget-value-left", tostring(budgetRemaining))
+
+		local actualStartingMetal = math.floor(widgetState.dmHandle.actualStartingMetal or 0)
+		updateUIElementText(widgetState.document, "qs-budget-refund-overlay", "You will start with " .. actualStartingMetal .. " metal.")
 	end
 end
 
