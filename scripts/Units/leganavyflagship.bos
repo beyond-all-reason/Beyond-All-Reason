@@ -543,16 +543,18 @@ AimWeapon4(heading, pitch)
 {
 	signal SIGNAL_AIM4;
 	set-signal-mask SIGNAL_AIM4;
-	if(heading < <-15> OR heading > <165>)
-	{
-		return (0);
-	}
-	turn frontRailgun1HeadingPivot to y-axis heading speed <150.0>;
-    turn frontRailgun1PitchPivot to x-axis (-1 * pitch) speed <15.0>;
-	wait-for-turn frontRailgun1HeadingPivot around y-axis;
-    wait-for-turn frontRailgun1PitchPivot around x-axis;
-	start-script RestoreAfterDelayFRRG();
-	return (1);
+
+    if (heading < <15> AND heading > <-165>){
+        turn frontRailgun1HeadingPivot to y-axis heading speed <150.0>;
+        turn frontRailgun1PitchPivot to x-axis (-1 * pitch) speed <15.0>;
+        wait-for-turn frontRailgun1HeadingPivot around y-axis;
+        wait-for-turn frontRailgun1PitchPivot around x-axis;
+        start-script RestoreAfterDelayFRRG();
+        return (1);
+    }
+    else{
+        return (0);
+    }
 }
 
 FireWeapon4()
@@ -575,16 +577,18 @@ AimWeapon5(heading, pitch)
 {
 	signal SIGNAL_AIM5;
 	set-signal-mask SIGNAL_AIM5;
-	if(heading < <15> OR heading > <-165>)
-	{
-		return (0);
-	}
-	turn frontRailgun2HeadingPivot to y-axis heading speed <150.0>;
-    turn frontRailgun2PitchPivot to x-axis (-1 * pitch) speed <15.0>;
-	wait-for-turn frontRailgun2HeadingPivot around y-axis;
-    wait-for-turn frontRailgun2PitchPivot around x-axis;
-	start-script RestoreAfterDelayFRRG();
-	return (1);
+
+    if (heading > <-15> AND heading < <165>){
+        turn frontRailgun2HeadingPivot to y-axis heading speed <150.0>;
+        turn frontRailgun2PitchPivot to x-axis (-1 * pitch) speed <15.0>;
+        wait-for-turn frontRailgun2HeadingPivot around y-axis;
+        wait-for-turn frontRailgun2PitchPivot around x-axis;
+        start-script RestoreAfterDelayFLRG();
+        return (1);
+    }
+    else{
+        return (0);
+    }
 }
 
 FireWeapon5()
@@ -592,64 +596,251 @@ FireWeapon5()
 
 }
 
-// AimFromWeapon5(pieceIndex)
-// {
-// 	pieceIndex = tur6;
-// }
+//rear right railgun
+AimFromWeapon6(pieceIndex)
+{
+	pieceIndex = rearRailgun1;
+}
 
-// QueryWeapon5(pieceIndex)
-// {
-// 	pieceIndex = flare6;
-// }
+QueryWeapon6(pieceIndex)
+{
+	pieceIndex = rearRailgun1Flare1;
+}
 
-// AimWeapon5(heading, pitch)
-// {
-// 	signal 32;
-// 	set-signal-mask 32;
-// 	if( heading < -29491 OR heading > 29491 OR heading > -3277 AND heading < 3277 )
-// 	{
-// 		return (0);
-// 	}
-// 	turn tur6 to y-axis heading speed <150.0>;
-// 	wait-for-turn tur6 around y-axis;
-// 	start-script RestoreAfterDelay2();
-// 	return (1);
-// }
+AimWeapon6(heading, pitch)
+{
+	signal SIGNAL_AIM6;
+	set-signal-mask SIGNAL_AIM6;
+	if(heading > <-10> AND heading < <165>)
+	{
+		return (0);
+	}
+	turn rearRailgun1HeadingPivot to y-axis heading speed <150.0>;
+    turn rearRailgun1PitchPivot to x-axis (-1 * pitch) speed <15.0>;
+	wait-for-turn rearRailgun1HeadingPivot around y-axis;
+    wait-for-turn rearRailgun1PitchPivot around x-axis;
+	start-script RestoreAfterDelayRRRG();
+	return (1);
+}
 
-// FireWeapon5()
-// {
-// 	sleep 180;
-// 	turn gun6 to z-axis <120> speed <400>;
-// 	sleep 1000 * <120> / <400>;
-// 	turn gun6 to z-axis <0.0> now;
-// }
+FireWeapon6()
+{
 
-// AimFromWeapon6(pieceIndex)
-// {
-// 	pieceIndex = tur4;
-// }
+}
 
-// QueryWeapon6(pieceIndex)
-// {
-// 	pieceIndex = flare4a + gun_3;
-// }
+//rear left railgun
+AimFromWeapon7(pieceIndex)
+{
+	pieceIndex = rearRailgun2;
+}
 
-// AimWeapon6(heading, pitch)
-// {
-// 	signal 64;
-// 	set-signal-mask 64;
-// 	turn tur4 to y-axis heading speed <200.0>;
-// 	turn sleeves4 to x-axis <0.0> - pitch speed <150.0>;
-// 	wait-for-turn tur4 around y-axis;
-// 	wait-for-turn sleeves4 around x-axis;
-// 	start-script RestoreAfterDelay3();
-// 	return (1);
-// }
+QueryWeapon7(pieceIndex)
+{
+	pieceIndex = rearRailgun2Flare1;
+}
 
-// FireWeapon6()
-// {
-// 	gun_3 = !gun_3;
-// }
+AimWeapon7(heading, pitch)
+{
+	signal SIGNAL_AIM7;
+	set-signal-mask SIGNAL_AIM7;
+	if(heading < <10> AND heading > <-165>)
+	{
+		return (0);
+	}
+	turn rearRailgun2HeadingPivot to y-axis heading speed <150.0>;
+    turn rearRailgun2PitchPivot to x-axis (-1 * pitch) speed <15.0>;
+	wait-for-turn rearRailgun2HeadingPivot around y-axis;
+    wait-for-turn rearRailgun2PitchPivot around x-axis;
+	start-script RestoreAfterDelayRLRG();
+	return (1);
+}
+
+FireWeapon7()
+{
+
+}
+
+//rightgun1
+AimFromWeapon8(pieceIndex)
+{
+	pieceIndex = rightGun1;
+}
+
+QueryWeapon8(pieceIndex)
+{
+	pieceIndex = rightGun1Flare1;
+}
+
+AimWeapon8(heading, pitch)
+{
+	signal SIGNAL_AIM8;
+	set-signal-mask SIGNAL_AIM8;
+	if(heading > <55> AND heading < <150>)
+	{
+		return (0);
+	}
+	turn rightGun1 to y-axis heading speed <150.0>;
+	wait-for-turn rightGun1 around y-axis;
+	start-script RestoreAfterDelayRG1();
+	return (1);
+}
+
+FireWeapon8()
+{
+
+}
+
+//rightgun2
+AimFromWeapon9(pieceIndex)
+{
+	pieceIndex = rightGun2;
+}
+
+QueryWeapon9(pieceIndex)
+{
+	pieceIndex = rightGun2Flare1;
+}
+
+AimWeapon9(heading, pitch)
+{
+	signal SIGNAL_AIM9;
+	set-signal-mask SIGNAL_AIM9;
+	if(heading > <35> AND heading < <145>)
+	{
+		return (0);
+	}
+	turn rightGun2 to y-axis heading speed <150.0>;
+	wait-for-turn rightGun2 around y-axis;
+	start-script RestoreAfterDelayRG2();
+	return (1);
+}
+
+FireWeapon9()
+{
+
+}
+
+//rightgun3
+AimFromWeapon10(pieceIndex)
+{
+	pieceIndex = rightGun3;
+}
+
+QueryWeapon10(pieceIndex)
+{
+	pieceIndex = rightGun3Flare1;
+}
+
+AimWeapon10(heading, pitch)
+{
+	signal SIGNAL_AIM10;
+	set-signal-mask SIGNAL_AIM10;
+	if(heading > <35> AND heading < <145>)
+	{
+		return (0);
+	}
+	turn rightGun3 to y-axis heading speed <150.0>;
+	wait-for-turn rightGun3 around y-axis;
+	start-script RestoreAfterDelayRG1();
+	return (1);
+}
+
+FireWeapon10()
+{
+
+}
+
+//
+
+//leftgun1
+AimFromWeapon11(pieceIndex)
+{
+	pieceIndex = leftGun1;
+}
+
+QueryWeapon11(pieceIndex)
+{
+	pieceIndex = leftGun1Flare1;
+}
+
+AimWeapon11(heading, pitch)
+{
+	signal SIGNAL_AIM8;
+	set-signal-mask SIGNAL_AIM8;
+	if(heading < <-55> AND heading > <-150>)
+	{
+		return (0);
+	}
+	turn leftGun1 to y-axis heading speed <150.0>;
+	wait-for-turn leftGun1 around y-axis;
+	start-script RestoreAfterDelayRG1();
+	return (1);
+}
+
+FireWeapon11()
+{
+
+}
+
+//leftgun2
+AimFromWeapon12(pieceIndex)
+{
+	pieceIndex = leftGun2;
+}
+
+QueryWeapon12(pieceIndex)
+{
+	pieceIndex = leftGun2Flare1;
+}
+
+AimWeapon12(heading, pitch)
+{
+	signal SIGNAL_AIM9;
+	set-signal-mask SIGNAL_AIM9;
+	if(heading < <-35> AND heading > <-145>)
+	{
+		return (0);
+	}
+	turn leftGun2 to y-axis heading speed <150.0>;
+	wait-for-turn leftGun2 around y-axis;
+	start-script RestoreAfterDelayRG2();
+	return (1);
+}
+
+FireWeapon12()
+{
+
+}
+
+//leftgun3
+AimFromWeapon13(pieceIndex)
+{
+	pieceIndex = leftGun3;
+}
+
+QueryWeapon13(pieceIndex)
+{
+	pieceIndex = leftGun3Flare1;
+}
+
+AimWeapon13(heading, pitch)
+{
+	signal SIGNAL_AIM10;
+	set-signal-mask SIGNAL_AIM10;
+	if(heading < <-35> AND heading > <-145>)
+	{
+		return (0);
+	}
+	turn leftGun3 to y-axis heading speed <150.0>;
+	wait-for-turn leftGun3 around y-axis;
+	start-script RestoreAfterDelayRG1();
+	return (1);
+}
+
+FireWeapon13()
+{
+
+}
 
 Killed(severity, corpsetype)
 {
