@@ -135,12 +135,12 @@ local options = {
         desc    =
         "Configures the grace period and the amount of time in minutes it takes to reach the maximum required territory.",
         type    = "list",
-        def     = "30-Minutes",
+        def     = "24-Minutes",
         section = "options_main",
         items   = {
             { key = "18-Minutes", name = "3 Rounds, 18 Minutes",  desc = "Early tech emphasis, mathmathically certain comeback, elimination unlikely." },
-            { key = "24-Minutes",  name = "4 Rounds, 24 Minutes",  desc = "Mid/late-game tech, comebacks a significant factor,eliminations uncommon" },
-            { key = "30-Minutes", name = "5 Rounds, 30 Minutes(Default)", desc = "Late-game tech, comebacks less significant, eliminations likely" },
+            { key = "24-Minutes",  name = "4 Rounds, 24 Minutes(Default)",  desc = "Mid/late-game tech, comebacks a significant factor,eliminations uncommon" },
+            { key = "30-Minutes", name = "5 Rounds, 30 Minutes", desc = "Late-game tech, comebacks less significant, eliminations likely" },
             { key = "42-Minutes",   name = "7 Rounds, 42 Minutes",   desc = "Super lategame tech, eliminations extremely likely" },
         }
     },
