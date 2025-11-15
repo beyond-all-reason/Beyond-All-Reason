@@ -242,7 +242,7 @@ end
 
 local function getCommanderPosition(myTeamID)
 	local commanderX, commanderY, commanderZ = Spring.GetTeamStartPosition(myTeamID)
-	return commanderX or 0, commanderY or 0, commanderZ or 0
+	return commanderX or 0, commanderZ or 0
 end
 
 local function computeProjectedUsage()
@@ -253,7 +253,7 @@ local function computeProjectedUsage()
 
 	local budgetUsed = 0
 	local firstFactoryPlaced = false
-	local commanderX, commanderY, commanderZ = getCommanderPosition(myTeamID)
+	local commanderX, commanderZ = getCommanderPosition(myTeamID)
 
 	if pregame and #pregame > 0 then
 		for i = 1, #pregame do
@@ -349,7 +349,7 @@ local function updateAllCostOverrides()
 	local buildQueue = wgPregameBuild and wgPregameBuild.getBuildQueue and wgPregameBuild.getBuildQueue() or {}
 
 	local factoryAlreadyPlaced = false
-	local commanderX, commanderY, commanderZ = getCommanderPosition(myTeamID)
+	local commanderX, commanderZ = getCommanderPosition(myTeamID)
 
 	for i = 1, #buildQueue do
 		local queueItem = buildQueue[i]
@@ -437,29 +437,30 @@ local function updateDataModel(forceUpdate)
 	widgetState.lastQueueLength = currentQueueLength
 	widgetState.lastBudgetRemaining = currentBudgetRemaining
 	
-	local myTeamID = spGetMyTeamID()
 	local gameRules = getCachedGameRules()
 	local budgetThreshold = gameRules.budgetThresholdToAllowStart or 0
-	local hasUnallocatedBudget = currentBudgetRemaining > budgetThreshold
-	
+	local budgetUsed = modelUpdate.budgetUsed or 0
+	local noBudgetUsed = budgetUsed == 0
+	local insufficientBudgetSpent = currentBudgetRemaining > budgetThreshold
+	local shouldBlockReady = noBudgetUsed or insufficientBudgetSpent
+
 	if wgPregameUI and wgPregameUI.addReadyCondition and wgPregameUI.removeReadyCondition then
-		if hasUnallocatedBudget then
+		if shouldBlockReady then
 			wgPregameUI.addReadyCondition(QUICK_START_CONDITION_KEY, "ui.quickStart.unallocatedBudget")
 		else
 			wgPregameUI.removeReadyCondition(QUICK_START_CONDITION_KEY)
 		end
 	end
 	if wgPregameUIDraft and wgPregameUIDraft.addReadyCondition and wgPregameUIDraft.removeReadyCondition then
-		if hasUnallocatedBudget then
+		if shouldBlockReady then
 			wgPregameUIDraft.addReadyCondition(QUICK_START_CONDITION_KEY, "ui.quickStart.unallocatedBudget")
 		else
 			wgPregameUIDraft.removeReadyCondition(QUICK_START_CONDITION_KEY)
 		end
 	end
 
-	-- Control refund overlay visibility: show if budget is between 0-threshold, hide otherwise
 	if widgetState.refundOverlayElement then
-		local shouldShowRefund = currentBudgetRemaining >= 0 and currentBudgetRemaining <= budgetThreshold
+		local shouldShowRefund = not noBudgetUsed and currentBudgetRemaining <= budgetThreshold
 		if shouldShowRefund then
 			widgetState.refundOverlayElement:SetAttribute("style", "opacity: 1;")
 		else
@@ -504,7 +505,7 @@ local function getBuildQueueSpawnStatus(buildQueue, selectedBuildData)
 	
 	local remainingBudget = gameRules.budgetTotal
 	local firstFactoryPlaced = false
-	local commanderX, commanderY, commanderZ = getCommanderPosition(myTeamID)
+	local commanderX, commanderZ = getCommanderPosition(myTeamID)
 	
 	if buildQueue and #buildQueue > 0 then
 		for i = 1, #buildQueue do
