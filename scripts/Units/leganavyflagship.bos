@@ -2,90 +2,52 @@
 #include "../recoil_common_includes.h"
 
 piece
-    leftGun1,
-    leftGun1Barrel2,
-    leftGun1Barrel1,
-    leftGun2,
-    leftGun2Barrel2,
-    leftGun2Barrel1,
-    leftGun3Barrel2,
-    leftGun3Barrel1,
-    leftGun3,
-    rightGun3Barrel1,
-    rightGun3Barrel2,
-    rightGun3,
-    rightGun2Barrel1,
-    rightGun2Barrel2,
-    rightGun2,
-    rightGun1Barrel1,
-    rightGun1Barrel2,
-    rightGun1,
-    heatrayPlatingRight,
-    heatrayRight,
-    torus1,
-    torus2,
+    wake,
     torus3,
+    torus2,
+    torus1,
     targetingWeaponPitchPivot,
     targetingWeaponHeadingPivot,
-    base,
-    frontRailgun1,
-    frontRailgun1HeadingPivot,
-    frontRailgun1PitchPivot,
-    frontRail1TopLeft,
-    frontRail1BottomLeft,
-    frontRail1TopRight,
-    frontRail1BottomRight,
-    frontRailgun2,
-    frontRailgun2HeadingPivot,
-    frontRailgun2PitchPivot,
-    frontRail2TopLeft,
-    frontRail2BottomLeft,
-    frontRail2TopRight,
-    frontRail2BottomRight,
-    rearRailgun1,
-    rearRailgun1HeadingPivot,
-    rearRailgun1PitchPivot,
-    rearRail1TopLeft,
-    rearRail1BottomLeft,
-    rearRail1TopRight,
-    rearRail1BottomRight,
-    rearRailgun2,
-    rearRailgun2HeadingPivot,
-    rearRailgun2PitchPivot,
-    rearRail2TopLeft,
-    rearRail2BottomLeft,
-    rearRail2TopRight,
-    rearRail2BottomRight,
-    heatrayPlatingLeft,
-    heatrayLeft,
     heatrayRightPitchPivot,
+    heatrayRight,
+    heatrayPlatingRight,
+    heatrayPlatingLeft,
     heatrayLeftPitchPivot,
-    frontRailgun1Flare1,
-    frontRailgun1Flare2,
-    frontRailgun2Flare1,
-    frontRailgun2Flare2,
-    rearRailgun1Flare1,
-    rearRailgun1Flare2,
-    rearRailgun2Flare2,
-    rearRailgun2Flare1,
+    heatrayLeft,
     heatrayFlareRight,
     heatrayFlareLeft,
-    rightGun1Flare1,
-    rightGun1Flare2,
-    rightGun2Flare1,
-    rightGun2Flare2,
-    rightGun3Flare1,
-    rightGun3Flare2,
-    leftGun1Flare1,
-    leftGun1Flare2,
-    leftGun2Flare1,
-    leftGun2Flare2,
-    leftGun3Flare1,
-    leftGun3Flare2,
-    bow,
-    wake,
     engineSpurt,
-    aimbit
+    bow,
+    base,
+    aimbit,
+    frontRailgun1PitchPivot,
+    frontRailgun1HeadingPivot,
+    frontRailgun1,
+    frontRailgun1Rail3,
+    frontRailgun1Rail2,
+    frontRailgun1Rail1,
+    frontRailgun2PitchPivot,
+    frontRailgun2HeadingPivot,
+    frontRailgun2,
+    frontRailgun2Rail3,
+    frontRailgun2Rail1,
+    frontRailgun2Rail2,
+    rearRailgun1PitchPivot,
+    rearRailgun1HeadingPivot,
+    rearRailgun1,
+    rearRailgun1Rail3,
+    rearRailgun1Rail2,
+    rearRailgun1Rail1,
+    rearRailgun2PitchPivot,
+    rearRailgun2HeadingPivot,
+    rearRailgun2,
+    frontRail1TopRight3,
+    rearRailgun2Rail1,
+    rearRailgun2Rail2,
+    frontRailgun1Flare,
+    frontRailgun2Flare,
+    rearRailgun1Flare,
+    rearRailgun2Flare
 ;
 
 
@@ -536,7 +498,7 @@ AimFromWeapon4(pieceIndex)
 
 QueryWeapon4(pieceIndex)
 {
-	pieceIndex = frontRailgun1Flare1;
+	pieceIndex = frontRailgun1Flare;
 }
 
 AimWeapon4(heading, pitch)
@@ -570,7 +532,7 @@ AimFromWeapon5(pieceIndex)
 
 QueryWeapon5(pieceIndex)
 {
-	pieceIndex = frontRailgun2Flare1;
+	pieceIndex = frontRailgun2Flare;
 }
 
 AimWeapon5(heading, pitch)
@@ -604,7 +566,7 @@ AimFromWeapon6(pieceIndex)
 
 QueryWeapon6(pieceIndex)
 {
-	pieceIndex = rearRailgun1Flare1;
+	pieceIndex = rearRailgun1Flare;
 }
 
 AimWeapon6(heading, pitch)
@@ -636,7 +598,7 @@ AimFromWeapon7(pieceIndex)
 
 QueryWeapon7(pieceIndex)
 {
-	pieceIndex = rearRailgun2Flare1;
+	pieceIndex = rearRailgun2Flare;
 }
 
 AimWeapon7(heading, pitch)
@@ -660,187 +622,187 @@ FireWeapon7()
 
 }
 
-//rightgun1
-AimFromWeapon8(pieceIndex)
-{
-	pieceIndex = rightGun1;
-}
+// //rightgun1
+// AimFromWeapon8(pieceIndex)
+// {
+// 	pieceIndex = rightGun1;
+// }
 
-QueryWeapon8(pieceIndex)
-{
-	pieceIndex = rightGun1Flare1;
-}
+// QueryWeapon8(pieceIndex)
+// {
+// 	pieceIndex = rightGun1Flare1;
+// }
 
-AimWeapon8(heading, pitch)
-{
-	signal SIGNAL_AIM8;
-	set-signal-mask SIGNAL_AIM8;
-	if(heading > <-55> OR heading < <-145>)
-	{
-		return (0);
-	}
-	turn rightGun1 to y-axis heading speed <150.0>;
-	wait-for-turn rightGun1 around y-axis;
-	start-script RestoreAfterDelayRG1();
-	return (1);
-}
+// AimWeapon8(heading, pitch)
+// {
+// 	signal SIGNAL_AIM8;
+// 	set-signal-mask SIGNAL_AIM8;
+// 	if(heading > <-55> OR heading < <-145>)
+// 	{
+// 		return (0);
+// 	}
+// 	turn rightGun1 to y-axis heading speed <150.0>;
+// 	wait-for-turn rightGun1 around y-axis;
+// 	start-script RestoreAfterDelayRG1();
+// 	return (1);
+// }
 
-FireWeapon8()
-{
+// FireWeapon8()
+// {
 
-}
+// }
 
-//rightgun2
-AimFromWeapon9(pieceIndex)
-{
-	pieceIndex = rightGun2;
-}
+// //rightgun2
+// AimFromWeapon9(pieceIndex)
+// {
+// 	pieceIndex = rightGun2;
+// }
 
-QueryWeapon9(pieceIndex)
-{
-	pieceIndex = rightGun2Flare1;
-}
+// QueryWeapon9(pieceIndex)
+// {
+// 	pieceIndex = rightGun2Flare1;
+// }
 
-AimWeapon9(heading, pitch)
-{
-	signal SIGNAL_AIM9;
-	set-signal-mask SIGNAL_AIM9;
-	if(heading > <-35> OR heading < <-145>)
-	{
-		return (0);
-	}
-	turn rightGun2 to y-axis heading speed <150.0>;
-	wait-for-turn rightGun2 around y-axis;
-	start-script RestoreAfterDelayRG2();
-	return (1);
-}
+// AimWeapon9(heading, pitch)
+// {
+// 	signal SIGNAL_AIM9;
+// 	set-signal-mask SIGNAL_AIM9;
+// 	if(heading > <-35> OR heading < <-145>)
+// 	{
+// 		return (0);
+// 	}
+// 	turn rightGun2 to y-axis heading speed <150.0>;
+// 	wait-for-turn rightGun2 around y-axis;
+// 	start-script RestoreAfterDelayRG2();
+// 	return (1);
+// }
 
-FireWeapon9()
-{
+// FireWeapon9()
+// {
 
-}
+// }
 
-//rightgun3
-AimFromWeapon10(pieceIndex)
-{
-	pieceIndex = rightGun3;
-}
+// //rightgun3
+// AimFromWeapon10(pieceIndex)
+// {
+// 	pieceIndex = rightGun3;
+// }
 
-QueryWeapon10(pieceIndex)
-{
-	pieceIndex = rightGun3Flare1;
-}
+// QueryWeapon10(pieceIndex)
+// {
+// 	pieceIndex = rightGun3Flare1;
+// }
 
-AimWeapon10(heading, pitch)
-{
-	signal SIGNAL_AIM10;
-	set-signal-mask SIGNAL_AIM10;
-	if(heading > <-35> OR heading < <-145>)
-	{
-		return (0);
-	}
-	turn rightGun3 to y-axis heading speed <150.0>;
-	wait-for-turn rightGun3 around y-axis;
-	start-script RestoreAfterDelayRG3();
-	return (1);
-}
+// AimWeapon10(heading, pitch)
+// {
+// 	signal SIGNAL_AIM10;
+// 	set-signal-mask SIGNAL_AIM10;
+// 	if(heading > <-35> OR heading < <-145>)
+// 	{
+// 		return (0);
+// 	}
+// 	turn rightGun3 to y-axis heading speed <150.0>;
+// 	wait-for-turn rightGun3 around y-axis;
+// 	start-script RestoreAfterDelayRG3();
+// 	return (1);
+// }
 
-FireWeapon10()
-{
+// FireWeapon10()
+// {
 
-}
+// }
 
-//
+// //
 
-//leftgun1
-AimFromWeapon11(pieceIndex)
-{
-	pieceIndex = leftGun1;
-}
+// //leftgun1
+// AimFromWeapon11(pieceIndex)
+// {
+// 	pieceIndex = leftGun1;
+// }
 
-QueryWeapon11(pieceIndex)
-{
-	pieceIndex = leftGun1Flare1;
-}
+// QueryWeapon11(pieceIndex)
+// {
+// 	pieceIndex = leftGun1Flare1;
+// }
 
-AimWeapon11(heading, pitch)
-{
-	signal SIGNAL_AIM11;
-	set-signal-mask SIGNAL_AIM11;
-	if(heading < <55> OR heading > <145>)
-	{
-		return (0);
-	}
-	turn leftGun1 to y-axis heading speed <150.0>;
-	wait-for-turn leftGun1 around y-axis;
-	start-script RestoreAfterDelayLG1();
-	return (1);
-}
+// AimWeapon11(heading, pitch)
+// {
+// 	signal SIGNAL_AIM11;
+// 	set-signal-mask SIGNAL_AIM11;
+// 	if(heading < <55> OR heading > <145>)
+// 	{
+// 		return (0);
+// 	}
+// 	turn leftGun1 to y-axis heading speed <150.0>;
+// 	wait-for-turn leftGun1 around y-axis;
+// 	start-script RestoreAfterDelayLG1();
+// 	return (1);
+// }
 
-FireWeapon11()
-{
+// FireWeapon11()
+// {
 
-}
+// }
 
-//leftgun2
-AimFromWeapon12(pieceIndex)
-{
-	pieceIndex = leftGun2;
-}
+// //leftgun2
+// AimFromWeapon12(pieceIndex)
+// {
+// 	pieceIndex = leftGun2;
+// }
 
-QueryWeapon12(pieceIndex)
-{
-	pieceIndex = leftGun2Flare1;
-}
+// QueryWeapon12(pieceIndex)
+// {
+// 	pieceIndex = leftGun2Flare1;
+// }
 
-AimWeapon12(heading, pitch)
-{
-	signal SIGNAL_AIM12;
-	set-signal-mask SIGNAL_AIM12;
-	if(heading < <35> OR heading > <145>)
-	{
-		return (0);
-	}
-	turn leftGun2 to y-axis heading speed <150.0>;
-	wait-for-turn leftGun2 around y-axis;
-	start-script RestoreAfterDelayLG2();
-	return (1);
-}
+// AimWeapon12(heading, pitch)
+// {
+// 	signal SIGNAL_AIM12;
+// 	set-signal-mask SIGNAL_AIM12;
+// 	if(heading < <35> OR heading > <145>)
+// 	{
+// 		return (0);
+// 	}
+// 	turn leftGun2 to y-axis heading speed <150.0>;
+// 	wait-for-turn leftGun2 around y-axis;
+// 	start-script RestoreAfterDelayLG2();
+// 	return (1);
+// }
 
-FireWeapon12()
-{
+// FireWeapon12()
+// {
 
-}
+// }
 
-//leftgun3
-AimFromWeapon13(pieceIndex)
-{
-	pieceIndex = leftGun3;
-}
+// //leftgun3
+// AimFromWeapon13(pieceIndex)
+// {
+// 	pieceIndex = leftGun3;
+// }
 
-QueryWeapon13(pieceIndex)
-{
-	pieceIndex = leftGun3Flare1;
-}
+// QueryWeapon13(pieceIndex)
+// {
+// 	pieceIndex = leftGun3Flare1;
+// }
 
-AimWeapon13(heading, pitch)
-{
-	signal SIGNAL_AIM13;
-	set-signal-mask SIGNAL_AIM13;
-	if(heading < <35> OR heading > <145>)
-	{
-		return (0);
-	}
-	turn leftGun3 to y-axis heading speed <150.0>;
-	wait-for-turn leftGun3 around y-axis;
-	start-script RestoreAfterDelayLG3();
-	return (1);
-}
+// AimWeapon13(heading, pitch)
+// {
+// 	signal SIGNAL_AIM13;
+// 	set-signal-mask SIGNAL_AIM13;
+// 	if(heading < <35> OR heading > <145>)
+// 	{
+// 		return (0);
+// 	}
+// 	turn leftGun3 to y-axis heading speed <150.0>;
+// 	wait-for-turn leftGun3 around y-axis;
+// 	start-script RestoreAfterDelayLG3();
+// 	return (1);
+// }
 
-FireWeapon13()
-{
+// FireWeapon13()
+// {
 
-}
+// }
 
 Killed(severity, corpsetype)
 {
