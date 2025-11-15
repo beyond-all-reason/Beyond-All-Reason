@@ -195,11 +195,13 @@ ExecuteRestoreAfterDelay()
 		if (aimy1position > 0 ) {
 			aimy1position = aimy1position - AIMY1_RESTORE_SPEED;
 			aimy1velocity = (-1) * AIMY1_RESTORE_SPEED;
+            sleep 1;
 		}
 		else
 		{
 			aimy1position = aimy1position + AIMY1_RESTORE_SPEED;
 			aimy1velocity = AIMY1_RESTORE_SPEED;
+            sleep 1;
 		}
 		turn targetingWeaponHeadingPivot to y-axis aimy1position speed 30 * AIMY1_RESTORE_SPEED;
 		sleep 30;
@@ -212,6 +214,7 @@ ExecuteRestoreAfterDelayHR1(){
     if (Stunned) {
         return (1);
     }
+    sleep 1;
     //code for resting 1st heatray turret heading
 }
 
@@ -219,6 +222,7 @@ ExecuteRestoreAfterDelayHR2(){
     if (Stunned) {
         return (1);
     }
+    sleep 1;
     //code for resting 2nd heatray turret heading
 }
 
@@ -227,6 +231,7 @@ ExecuteRestoreAfterDelayFRRG(){
     if (Stunned) {
         return (1);
     }
+    sleep 1;
     //code for resting front right railgun
 }
 
@@ -234,6 +239,7 @@ ExecuteRestoreAfterDelayFLRG(){
     if (Stunned) {
         return (1);
     }
+    sleep 1;
     //code for resting front left railgun
 }
 
@@ -241,6 +247,7 @@ ExecuteRestoreAfterDelayRRRG(){
     if (Stunned) {
         return (1);
     }
+    sleep 1;
     //code for resting rear right railgun
 }
 
@@ -248,6 +255,7 @@ ExecuteRestoreAfterDelayRLRG(){
     if (Stunned) {
         return (1);
     }
+    sleep 1;
     //code for resting rear left railgun
 }
 
@@ -256,6 +264,7 @@ ExecuteRestoreAfterDelayRG1(){
     if (Stunned) {
         return (1);
     }
+    sleep 1;
     //code for resting right gun 1
 }
 
@@ -263,6 +272,7 @@ ExecuteRestoreAfterDelayRG2(){
     if (Stunned) {
         return (1);
     }
+    sleep 1;
     //code for resting right gun 2
 }
 
@@ -270,6 +280,7 @@ ExecuteRestoreAfterDelayRG3(){
     if (Stunned) {
         return (1);
     }
+    sleep 1;
     //code for resting right gun 3
 }
 
@@ -277,6 +288,7 @@ ExecuteRestoreAfterDelayLG1(){
     if (Stunned) {
         return (1);
     }
+    sleep 1;
     //code for resting left gun 1
 }
 
@@ -284,6 +296,7 @@ ExecuteRestoreAfterDelayLG2(){
     if (Stunned) {
         return (1);
     }
+    sleep 1;
     //code for resting left gun 2
 }
 
@@ -291,6 +304,7 @@ ExecuteRestoreAfterDelayLG3(){
     if (Stunned) {
         return (1);
     }
+    sleep 1;
     //code for resting left gun 3
 }
 
@@ -470,10 +484,10 @@ AimWeapon2(heading, pitch)
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
     wait-for-turn targetingWeaponHeadingPivot around y-axis;
-    turn heatrayRightPitchPivot to y-axis heading - mainTurretHeadingVar speed <50>;
+    turn heatrayRightPitchPivot to y-axis heading - mainTurretHeadingVar speed <6>;
     turn targetingWeaponPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <25.0>;
-    wait-for-turn heatrayRightPitchPivot around y-axis;
-    wait-for-turn targetingWeaponPitchPivot around x-axis;
+    //wait-for-turn heatrayRightPitchPivot around y-axis;
+    //wait-for-turn targetingWeaponPitchPivot around x-axis;
 	start-script RestoreAfterDelayHR1();
 	return (1);
 }
@@ -498,12 +512,12 @@ AimWeapon3(heading, pitch)
 {
 	signal SIGNAL_AIM3;
 	set-signal-mask SIGNAL_AIM3;
-    wait-for-turn targetingWeaponHeadingPivot around y-axis;
-    turn heatrayLeftPitchPivot to y-axis heading - mainTurretHeadingVar speed <50>;
+    //wait-for-turn targetingWeaponHeadingPivot around y-axis;
+    turn heatrayLeftPitchPivot to y-axis heading - mainTurretHeadingVar speed <6>;
     turn targetingWeaponPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <25.0>;
-    wait-for-turn heatrayLeftPitchPivot around y-axis;
-    wait-for-turn targetingWeaponPitchPivot around x-axis;
-	start-script RestoreAfterDelayHR1();
+    //wait-for-turn heatrayLeftPitchPivot around y-axis;
+    //wait-for-turn targetingWeaponPitchPivot around x-axis;
+	start-script RestoreAfterDelayHR2();
 	return (1);
 }
 
