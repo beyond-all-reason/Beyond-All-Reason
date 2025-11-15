@@ -594,7 +594,7 @@ local function showRoundEndPopup(roundNumber, isFinalRound)
 
 	territoryInfoElement.inner_rml = spI18N('ui.territorialDomination.roundOverPopup.territoryWorth', { points = pointsPerTerritory })
 
-	if eliminationThreshold > 0 then
+	if eliminationThreshold > 0 and not isFinalRound then
 		eliminationInfoElement.inner_rml = spI18N('ui.territorialDomination.roundOverPopup.eliminationBelow', { threshold = eliminationThreshold })
 	else
 		eliminationInfoElement.inner_rml = ""
