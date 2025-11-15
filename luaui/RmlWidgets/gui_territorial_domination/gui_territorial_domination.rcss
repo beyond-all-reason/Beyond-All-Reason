@@ -241,6 +241,7 @@ body {
 	font-weight: bold;
 	text-align: center;
 	font-effect: outline(1dp #000000CC);
+	align-self: flex-end;
 }
 
 .scorepanel-current-score.warning {
