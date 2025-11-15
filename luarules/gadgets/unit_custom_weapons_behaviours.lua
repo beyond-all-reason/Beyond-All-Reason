@@ -285,7 +285,7 @@ specialEffectFunction.guidance = function(projectileID)
 				spGetUnitWeaponState(ownerID, 1, "nextSalvo") + 1 >= gameFrame,
 				spGetUnitWeaponTarget(ownerID, 1)
 			}
-			results.guidance[ownerID] = results
+			resultCaches.guidance[ownerID] = results
 		end
 
 		if results[1] and results[2] then
