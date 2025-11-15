@@ -25,7 +25,6 @@ local tableSort = table.sort
 	In addition to options below you can bind "reclaim_highlight" action to a key
 	and show reclaim when that key is pressed
 ------------------------------------------------------------------------------]]
-local showOption = 3
 --[[
 	From settings (gui_options.lua)
 	1 - always enabled
@@ -34,28 +33,46 @@ local showOption = 3
 	4 - resbot selected
 	5 - reclaim order active
 	6 - disabled
+
+	-- Pre-gamestart: shows both metal+energy always regardless of these settings
 ]]
+local showOption = 3
+local showEnergyOption = 3 -- Same options as showOption, but for energy fields
+local showEnergyFields = true -- Show energy reclaim fields separately
 
 --Metal value font
-local numberColor = {1, 1, 1, 0.9}
+local numberColor = {0.9, 0.9, 0.9, 1}
+local energyNumberColor = {0.95, 0.9, 0, 1}
 local fontSizeMin = 30
-local fontSizeMax = 140
+local fontSizeMax = 110
 
 --Field color
 local reclaimColor = {0, 0, 0, 0.16}
 local reclaimEdgeColor = {1, 1, 1, 0.18}
 
+--Energy field color (yellowish tint)
+local energyReclaimColor = {0.8, 0.8, 0, 0.16}
+local energyReclaimEdgeColor = {1, 1, 0, 0.18}
+
+--Energy field settings
+local energyOpacityMultiplier = 0.44 -- Multiplier for energy field opacity (relative to metal fields)
+local energyTextSizeMultiplier = 0.5 -- Multiplier for energy text size (relative to metal text)
+local preGameStartOpacityMultiplier = 1.4 -- Global opacity multiplier for all fields before gamestart
+local preGameStartMetalOpacityMultiplier = 1.2 -- Additional multiplier for metal field opacity before gamestart (stacks with global)
+-- Note: Energy features (trees, geo spots) are static map features that typically don't change after gamestart.
+-- The code optimizes by clustering energy fields once at gamestart and then skipping energy processing afterward.
+
 --Fill settings
-local fillAlpha = 0.06 -- Base fill layer opacity
-local gradientAlpha = 0.14 -- Gradient fill layer opacity at edges
+local fillAlpha = 0.055 -- Base fill layer opacity
+local gradientAlpha = 0.13 -- Gradient fill layer opacity at edges
 local gradientInnerRadius = 0.75 -- Distance from center where gradient starts (0.25 = 25% from center, 75% towards center from edge)
 
 --Field expansion settings
-local expansionMultiplier = 0.35 -- Global multiplier for all field expansions (adjust to make fields larger/smaller)
+local expansionMultiplier = 0.3 -- Global multiplier for all field expansions (adjust to make fields larger/smaller)
 
 --Smoothing settings
 local enableSmoothing = true -- Enable smooth rounded edges with Catmull-Rom interpolation
-local smoothingSegments = 5 -- Number of segments per edge
+local smoothingSegments = 4 -- Number of segments per edge
 -- Note: Smoothing can be toggled at runtime via:
 --   WG['reclaimfieldhighlight'].setEnableSmoothing(true/false)
 --   WG['reclaimfieldhighlight'].setSmoothingSegments(value)
@@ -63,7 +80,11 @@ local smoothingSegments = 5 -- Number of segments per edge
 -- Higher values = smoother, more organic shapes (e.g., 20-30 for high-end systems)
 
 --Update rate, in seconds
-local checkFrequency = 0.5
+local checkFrequency = 0.6
+
+local epsilon = 300 -- Clustering distance - increased to merge nearby fields and prevent overlaps
+
+local minFeatureValue = 9
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -100,6 +121,7 @@ local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetFeatureResources = Spring.GetFeatureResources
 local spGetFeatureVelocity = Spring.GetFeatureVelocity
 local spGetFeatureRadius = Spring.GetFeatureRadius
+local spValidFeatureID = Spring.ValidFeatureID
 local spGetGroundHeight = Spring.GetGroundHeight
 local spIsGUIHidden = Spring.IsGUIHidden
 local spTraceScreenRay = Spring.TraceScreenRay
@@ -115,13 +137,20 @@ local spGetCameraVectors = Spring.GetCameraVectors
 local screenx, screeny
 local clusterizingNeeded = false
 local redrawingNeeded = false
+local forceFullRedraw = false
 local dirtyRegions = {} -- Track which regions need reclustering
 local dirtyClusters = {} -- Track which specific clusters need redrawing
+local dirtyEnergyClusters = {} -- Track which specific energy clusters need redrawing
 local useRegionalUpdates = true -- Enable regional optimization
 
 -- Reusable tables to reduce allocations in GameFrame
 local toRemoveFeatures = {} -- Reusable table for batching feature removals
+local pendingFeatureDestructions = {} -- Queue for batching FeatureDestroyed calls
+local pendingDestructionCount = 0 -- Count of pending destructions
+local pendingFeatureCreations = {} -- Queue for batching FeatureCreated calls
+local pendingCreationCount = 0 -- Count of pending creations
 local dirtyClustersList = {} -- Reusable table for dirty clusters in UpdateFeatureReclaim
+local dirtyEnergyClustersListList = {} -- Reusable table for dirty energy clusters in UpdateFeatureReclaim
 local affectedFeaturesList = {} -- Reusable table for regional clustering
 local affectedClustersList = {} -- Reusable table for regional clustering
 
@@ -130,23 +159,33 @@ local lastFlyingCheckFrame = 0 -- Track when we last checked flying features
 local validityCheckCounter = 0 -- Rotating counter for validity checks in GameFrame
 local lastCameraCheckFrame = 0 -- Track when we last checked camera up vector
 
-local epsilon = 340 -- Clustering distance - increased to merge nearby fields and prevent overlaps
 local epsilonSq = epsilon*epsilon
-local minFeatureMetal = 9 -- armflea reclaim value, probably
-if UnitDefNames.armflea then
-	local small = FeatureDefNames[UnitDefNames.armflea.corpse]
-	minFeatureMetal = small and small.metal or minFeatureMetal
-end
 local baseCheckFrequency = math.round(checkFrequency * Game.gameSpeed)
 checkFrequency = baseCheckFrequency
 local lastFeatureCount = 0
 local cachedKnownFeaturesCount = 0 -- Cached count to avoid iterating all features
+
+-- Catch-up detection: track GameFrame calls per second to detect reconnection catch-up
+local gameFrameCallCount = 0
+local lastGameFrameTrackTime = Spring.GetTimer()
+local gameFramesPerSecond = 30 -- Normal rate
+local featureCountMultiplier = 1 -- Multiplier based on feature count
+local catchUpMultiplier = 1 -- Multiplier during catch-up
+
+-- Track timing for pre-gamestart updates
+local preGameStartTimer = 0
+local preGameStartCheckInterval = checkFrequency / Game.gameSpeed -- Convert frames to seconds
+local gameStarted = false
+local artificialFrame = 0 -- Artificial frame counter for pre-gamestart
+local initialClusteringDone = false -- Track if we've done initial clustering pre-gamestart
+local allEnergyFieldsDrained = false -- Track if all energy has been reclaimed to skip energy rendering
 
 local minTextAreaLength = (epsilon / 2 + fontSizeMin) / 2
 local areaTextMin = 3000
 local areaTextRange = (1.75 * minTextAreaLength * (fontSizeMax / fontSizeMin)) ^ 2 - areaTextMin
 
 local drawEnabled = false
+local drawEnergyEnabled = false
 local actionActive = false
 local reclaimerSelected = false
 local resBotSelected = false
@@ -169,6 +208,14 @@ local featureClusters
 local featureConvexHulls
 local featureNeighborsMatrix
 local opticsObject
+
+-- Energy field tables (separate clustering)
+local energyFeatureClusters
+local energyFeatureConvexHulls
+
+-- Per-cluster display lists for incremental updates
+local clusterDisplayLists = {} -- {[cid] = {gradient = listID, edge = listID, text = listID}}
+local energyClusterDisplayLists = {} -- {[energyCid] = {gradient = listID, edge = listID, text = listID}}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -243,13 +290,13 @@ end
 
 local processCluster
 do
-	local function getReclaimTotal(cluster, points)
-		local metal = 0
+	local function getReclaimTotal(cluster, points, resourceType)
+		local total = 0
 		for j = 1, #points do
-			metal = metal + points[j].metal
+			total = total + points[j][resourceType]
 		end
-		cluster.metal = metal
-		cluster.text = string.formatSI(metal)
+		cluster[resourceType] = total
+		cluster.text = string.formatSI(total)
 	end
 
 	local function getClusterDimensions(cluster, points)
@@ -826,8 +873,8 @@ do
 		return smoothed
 	end
 
-	processCluster = function (cluster, clusterID, points)
-		getReclaimTotal(cluster, points)
+	processCluster = function (cluster, clusterID, points, resourceType, targetHulls)
+		getReclaimTotal(cluster, points, resourceType or "metal")
 
 		local convexHull, hullArea
 		local usedBoundingBox = false
@@ -857,8 +904,27 @@ do
 
 		-- Replace lines and sets of one or two with a bounding box.
 		if hullArea < areaTextMin then
-			convexHull, hullArea = BoundingBox(cluster, points)
-			usedBoundingBox = true
+			local boundingConvex, boundingArea = BoundingBox(cluster, points)
+			-- Only replace if BoundingBox succeeded
+			if boundingConvex and #boundingConvex >= 3 then
+				convexHull, hullArea = boundingConvex, boundingArea
+				usedBoundingBox = true
+			elseif not convexHull or #convexHull < 3 then
+				-- Fallback: create simple box from cluster dimensions if no hull exists
+				local expandDist = maxRadius * 1.2 + 10
+				local xmin = cluster.xmin - expandDist
+				local xmax = cluster.xmax + expandDist
+				local zmin = cluster.zmin - expandDist
+				local zmax = cluster.zmax + expandDist
+				convexHull = {
+					{ x = xmin, y = max(0, spGetGroundHeight(xmin, zmin)), z = zmin },
+					{ x = xmax, y = max(0, spGetGroundHeight(xmax, zmin)), z = zmin },
+					{ x = xmax, y = max(0, spGetGroundHeight(xmax, zmax)), z = zmax },
+					{ x = xmin, y = max(0, spGetGroundHeight(xmin, zmax)), z = zmax }
+				}
+				hullArea = (xmax - xmin) * (zmax - zmin)
+				usedBoundingBox = true
+			end
 		end
 
 		-- Apply expansion and smoothing to make blob-like shapes
@@ -878,10 +944,14 @@ do
 
 			-- Always use the standard expand+smooth method which follows the hull shape
 			-- The ellipse approach was too rigid and caused overshooting
-			convexHull = expandAndSmoothHull(convexHull, expansion)
+			local expandedHull = expandAndSmoothHull(convexHull, expansion)
+			-- Ensure we don't lose the hull if expansion fails
+			if expandedHull and #expandedHull >= 3 then
+				convexHull = expandedHull
+			end
 		end
 
-		featureConvexHulls[clusterID] = convexHull
+		targetHulls[clusterID] = convexHull
 
 		cluster.area = hullArea
 		local areaSize = clamp((hullArea - 2 * areaTextMin) / areaTextRange, 0, 1)
@@ -896,14 +966,17 @@ end
 local Optics = {}
 do
 	local unprocessed -- Intermediate table for processing points
+	local currentResourceType -- Track which resource type we're clustering for
 
 	---Get ready for a clustering run
 	local function Setup()
-		featureClusters = {}
-		featureConvexHulls = {}
+		-- Note: featureClusters/featureConvexHulls are set externally
 		unprocessed = {}
 		for fid, feature in pairs(knownFeatures) do
-			unprocessed[fid] = true
+			-- Only include features that have this resource type
+			if feature[currentResourceType] and feature[currentResourceType] >= minFeatureValue then
+				unprocessed[fid] = true
+			end
 		end
 	end
 
@@ -925,7 +998,20 @@ do
 	local function Run()
 		Setup()
 
-		local clusterID = #featureClusters
+		-- Set the appropriate target tables based on resource type
+		local targetClusters, targetHulls
+		local cidField
+		if currentResourceType == "energy" then
+			targetClusters = energyFeatureClusters
+			targetHulls = energyFeatureConvexHulls
+			cidField = "energyCid"
+		else
+			targetClusters = featureClusters
+			targetHulls = featureConvexHulls
+			cidField = "cid"
+		end
+
+		local clusterID = #targetClusters
 		local featureID = next(unprocessed)
 		while featureID do
 			-- Start a new cluster.
@@ -933,10 +1019,10 @@ do
 			local members = { point }
 			local cluster = { members = members }
 			clusterID = clusterID + 1
-			featureClusters[clusterID] = cluster
+			targetClusters[clusterID] = cluster
 
 			-- Process visited points, like so.
-			point.cid = clusterID
+			point[cidField] = clusterID
 			unprocessed[featureID] = nil
 
 			-- Process immediate neighbors.
@@ -949,7 +1035,7 @@ do
 			while neighbor do
 				local point = neighbor[2] -- [1] = priority, [2] = point
 				members[#members+1] = point
-				point.cid = clusterID
+				point[cidField] = clusterID
 
 				local nextNeighbors = featureNeighborsMatrix[point.fid]
 				Update(nextNeighbors, point, seedsPQ)
@@ -961,14 +1047,28 @@ do
 
 		-- Post-process each cluster.
 		for cid = 1, clusterID do
-			local cluster = featureClusters[cid]
-			processCluster(cluster, cid, cluster.members)
+			local cluster = targetClusters[cid]
+			processCluster(cluster, cid, cluster.members, currentResourceType, targetHulls)
+		end
+
+		-- Store results in the correct global tables
+		if currentResourceType == "energy" then
+			energyFeatureClusters = targetClusters
+			energyFeatureConvexHulls = targetHulls
+		else
+			featureClusters = targetClusters
+			featureConvexHulls = targetHulls
 		end
 	end
 
 	function Optics.new()
 		local object = setmetatable({}, {
-			__index = { Run = Run, }
+			__index = {
+				Run = Run,
+				SetResourceType = function(self, resourceType)
+					currentResourceType = resourceType
+				end
+			}
 		})
 		return object
 	end
@@ -1023,6 +1123,68 @@ local function IsInDirtyRegion(x, z)
 	return false
 end
 
+-- Forward declarations for per-cluster display list management
+local DeleteClusterDisplayList
+local CreateClusterDisplayList
+
+local function AddFeature(featureID)
+	local metal, _, energy = spGetFeatureResources(featureID)
+	if (not metal or metal < minFeatureValue) and (not energy or energy < minFeatureValue) then
+		return
+	end
+
+	local x, y, z = spGetFeaturePosition(featureID)
+	if not x then return end
+
+	-- Mark region as dirty for regional reclustering
+	MarkRegionDirty(x, z)
+
+	local radius = spGetFeatureRadius(featureID) or 0
+	local feature = {
+		fid   = featureID,
+		metal = metal or 0,
+		energy = energy or 0,
+		x     = x,
+		y     = max(0, y),
+		z     = z,
+		radius = radius,
+	}
+
+	-- To deal with e.g. raptor eggs spawning at altitude ~20:
+	if y > 0 then
+		local elevation = spGetGroundHeight(x, z)
+		if elevation and elevation > 0 and y > elevation + 2 then
+			flyingFeatures[featureID] = feature
+			return -- Delay clusterizing until stationary.
+		end
+	end
+
+	-- Assuming the feature's motion is highly likely negligible:
+	local M = featureNeighborsMatrix
+	local M_newFeature = {}
+	local reachDistSq, epsilonSq = mathHuge, epsilonSq
+	for fid2, feat2 in pairs(knownFeatures) do
+		local dx, dz = x - feat2.x, z - feat2.z
+		local distSq = dx * dx + dz * dz
+		if distSq <= epsilonSq then
+			M[fid2][featureID] = distSq
+			M_newFeature[fid2] = distSq
+			if distSq < reachDistSq then
+				reachDistSq = distSq
+			end
+			if feat2.rd == nil or distSq < feat2.rd then
+				feat2.rd = distSq
+			end
+		end
+	end
+	featureNeighborsMatrix[featureID] = M_newFeature
+	if reachDistSq < epsilonSq then
+		feature.rd = reachDistSq
+	end
+	knownFeatures[featureID] = feature
+	cachedKnownFeaturesCount = cachedKnownFeaturesCount + 1
+end
+
 local function RemoveFeature(featureID)
 	local feature = knownFeatures[featureID]
 	if not feature then return end
@@ -1030,9 +1192,18 @@ local function RemoveFeature(featureID)
 	-- Mark region as dirty for regional reclustering
 	MarkRegionDirty(feature.x, feature.z)
 
-	-- Mark cluster as dirty for redrawing
+	-- Mark metal cluster as dirty for redrawing
+	-- Don't delete display list here - it will be recreated in the redrawing section
 	if feature.cid then
 		dirtyClusters[feature.cid] = true
+		redrawingNeeded = true
+	end
+
+	-- Mark energy cluster as dirty for redrawing
+	-- Don't delete display list here - it will be recreated in the redrawing section
+	if feature.energyCid then
+		dirtyEnergyClusters[feature.energyCid] = true
+		redrawingNeeded = true
 	end
 
 	local neighbors = featureNeighborsMatrix[featureID]
@@ -1067,36 +1238,74 @@ local function UpdateFeatureReclaim()
 	local removed = false
 	local removeCount = 0
 	local dirtyCount = 0
+	local dirtyEnergyCount = 0
 
 	-- Sample rate: check ~10% of features per frame (or all if < 50 features)
 	-- Use cached count instead of iterating all features
 	local featureCount = cachedKnownFeaturesCount
 
-	local checkInterval = math.max(1, math.floor(featureCount / 50)) -- Check every Nth feature
+	-- ALWAYS check all features to ensure data consistency
+	-- This prevents stale values from causing incorrect cluster totals
+	local checkInterval = 1
+
 	local checkCounter = 0
+	local featuresChecked = 0
+
+	-- Determine what needs updating based on visibility
+	-- Use cached values to avoid function call overhead
+	local needMetalUpdates = drawEnabled
+	local needEnergyUpdates = drawEnergyEnabled
 
 	for fid, fInfo in pairs(knownFeatures) do
-		-- Rotating check: only check some features per frame
+		-- Check features based on interval
 		checkCounter = checkCounter + 1
-		if checkCounter % checkInterval == 0 or featureCount <= 50 then
+		if checkCounter % checkInterval == 0 or featureCount <= 500 then
+			featuresChecked = featuresChecked + 1
 			-- Check this feature this frame
-			local metal = spGetFeatureResources(fid)
-			if not metal or metal < minFeatureMetal then
+			local metal, _, energy = spGetFeatureResources(fid)
+
+			-- Only remove feature when BOTH metal AND energy are below threshold
+			-- This prevents energy fields from disappearing when only metal is reclaimed
+			local metalDepleted = not metal or metal < minFeatureValue
+			local energyDepleted = not energy or energy < minFeatureValue
+			if metalDepleted and energyDepleted then
 				removeCount = removeCount + 1
 				toRemoveFeatures[removeCount] = fid
 				removed = true
-			elseif fInfo.metal ~= metal then
-				if fInfo.cid then
-					local cid = fInfo.cid
-					-- Only add to dirty list if not already there
-					if not dirtyClustersList[cid] then
-						dirtyCount = dirtyCount + 1
-						dirtyClustersList[cid] = true
+			else
+				-- Update metal if changed (only if metal fields are visible)
+				if needMetalUpdates and metal and fInfo.metal ~= metal then
+					if fInfo.cid then
+						local cid = fInfo.cid
+						if not dirtyClusters[cid] then
+							dirtyCount = dirtyCount + 1
+							dirtyClusters[cid] = true
+							-- Don't delete display list here - let it continue showing old visuals
+							-- until the new one is created (prevents flickering)
+						end
+						local thisCluster = featureClusters[cid]
+						thisCluster.metal = thisCluster.metal - fInfo.metal + metal
 					end
-					local thisCluster = featureClusters[cid]
-					thisCluster.metal = thisCluster.metal - fInfo.metal + metal
+					fInfo.metal = metal
 				end
-				fInfo.metal = metal
+				-- Update energy if changed (only if energy fields are visible)
+				if needEnergyUpdates and energy and fInfo.energy ~= energy then
+					if fInfo.energyCid then
+						local energyCid = fInfo.energyCid
+						local thisCluster = energyFeatureClusters[energyCid]
+						if thisCluster then
+							if not dirtyEnergyClusters[energyCid] then
+								dirtyEnergyCount = dirtyEnergyCount + 1
+								dirtyEnergyClusters[energyCid] = true
+								-- Don't delete display list here - let it continue showing old visuals
+								-- until the new one is created (prevents flickering)
+							end
+							-- Incremental update: subtract old value, add new value
+							thisCluster.energy = thisCluster.energy - fInfo.energy + energy
+						end
+					end
+					fInfo.energy = energy
+				end
 			end
 		end
 	end
@@ -1113,16 +1322,71 @@ local function UpdateFeatureReclaim()
 
 	if removed then
 		clusterizingNeeded = true
-	elseif dirtyCount > 0 then
+	elseif dirtyCount > 0 or dirtyEnergyCount > 0 then
 		redrawingNeeded = true
-		for cid in pairs(dirtyClustersList) do
-			local cluster = featureClusters[cid]
-			if cluster then
-				cluster.text = string.formatSI(cluster.metal)
+
+		-- Update metal cluster text (only if metal fields are visible)
+		if needMetalUpdates then
+			for cid in pairs(dirtyClusters) do
+				local cluster = featureClusters[cid]
+				if cluster then
+					cluster.text = string.formatSI(cluster.metal)
+				end
 			end
-			dirtyClustersList[cid] = nil -- Clear as we go
+		end
+
+		-- Update energy cluster text (only if energy fields are visible)
+		if needEnergyUpdates then
+			for energyCid in pairs(dirtyEnergyClusters) do
+				local energyCluster = energyFeatureClusters[energyCid]
+				if energyCluster then
+					energyCluster.text = string.formatSI(energyCluster.energy)
+				end
+			end
 		end
 	end
+end
+
+-- Check if all energy fields have been drained
+local function CheckAllEnergyDrained()
+	if allEnergyFieldsDrained or not showEnergyFields then
+		return -- Already marked as drained or energy fields disabled
+	end
+
+	-- Check if there are any features with energy remaining
+	local totalEnergy = 0
+	local featuresWithEnergy = 0
+	for fid, feature in pairs(knownFeatures) do
+		if feature.energy and feature.energy > 0 then
+			totalEnergy = totalEnergy + feature.energy
+			featuresWithEnergy = featuresWithEnergy + 1
+		end
+	end
+
+	if featuresWithEnergy > 0 then
+		return -- Found energy, not all drained
+	end
+
+	-- All energy is drained, disable energy rendering
+	allEnergyFieldsDrained = true
+
+	-- Clean up energy display lists
+	if drawEnergyConvexHullGradientList ~= nil then
+		glDeleteList(drawEnergyConvexHullGradientList)
+		drawEnergyConvexHullGradientList = nil
+	end
+	if drawEnergyConvexHullEdgeList ~= nil then
+		glDeleteList(drawEnergyConvexHullEdgeList)
+		drawEnergyConvexHullEdgeList = nil
+	end
+	if drawEnergyClusterTextList ~= nil then
+		glDeleteList(drawEnergyClusterTextList)
+		drawEnergyClusterTextList = nil
+	end
+
+	-- Clear energy data structures
+	energyFeatureClusters = {}
+	energyFeatureConvexHulls = {}
 end
 
 local function ClusterizeFeatures()
@@ -1131,6 +1395,7 @@ local function ClusterizeFeatures()
 		-- Reuse tables instead of allocating new ones
 		local affectedCount = 0
 		local clusterCount = 0
+		local energyClusterCount = 0
 
 		-- Find all features in dirty regions
 		for fid, feature in pairs(knownFeatures) do
@@ -1141,6 +1406,13 @@ local function ClusterizeFeatures()
 					local cid = feature.cid
 					if not affectedClustersList[cid] then
 						clusterCount = clusterCount + 1
+						affectedClustersList[cid] = true
+					end
+				end
+				if feature.energyCid then
+					local cid = feature.energyCid
+					if not affectedClustersList[cid] then
+						energyClusterCount = energyClusterCount + 1
 						affectedClustersList[cid] = true
 					end
 				end
@@ -1159,7 +1431,21 @@ local function ClusterizeFeatures()
 
 			-- Fall through to full clustering
 			useRegionalUpdates = false
+
+			-- Cluster metal
+			featureClusters = {}
+			featureConvexHulls = {}
+			opticsObject:SetResourceType("metal")
 			opticsObject:Run()
+
+			-- Always cluster energy fields when clustering is needed
+			if showEnergyFields then
+				energyFeatureClusters = {}
+				energyFeatureConvexHulls = {}
+				opticsObject:SetResourceType("energy")
+				opticsObject:Run()
+			end
+
 			useRegionalUpdates = true
 			-- Clear dirty regions array
 			for i = 1, #dirtyRegions do
@@ -1169,29 +1455,51 @@ local function ClusterizeFeatures()
 			for cid in pairs(dirtyClusters) do
 				dirtyClusters[cid] = nil
 			end
+			for cid in pairs(dirtyEnergyClusters) do
+				dirtyEnergyClusters[cid] = nil
+			end
 			clusterizingNeeded = false
 			redrawingNeeded = true
 			return
 		end
 
 		-- Remove affected clusters and reset cluster IDs for affected features
+		-- Remove affected METAL clusters (affectedClustersList contains metal cluster IDs only)
 		for cid in pairs(affectedClustersList) do
 			featureClusters[cid] = nil
 			featureConvexHulls[cid] = nil
 			affectedClustersList[cid] = nil -- Clear as we go
 		end
 
+		-- Reset cluster IDs for affected features
 		for i = 1, affectedCount do
 			local fid = affectedFeaturesList[i]
 			local feature = knownFeatures[fid]
 			if feature then
 				feature.cid = nil
+				-- Also reset energy cluster IDs
+				if feature.energyCid and energyFeatureClusters[feature.energyCid] then
+					energyFeatureClusters[feature.energyCid] = nil
+					energyFeatureConvexHulls[feature.energyCid] = nil
+				end
+				feature.energyCid = nil
 			end
 			affectedFeaturesList[i] = nil -- Clear as we go
 		end
 
 		-- Re-run clustering (it will create new cluster IDs)
+		featureClusters = {}
+		featureConvexHulls = {}
+		opticsObject:SetResourceType("metal")
 		opticsObject:Run()
+
+		-- Always cluster energy fields when clustering is needed
+		if showEnergyFields then
+			energyFeatureClusters = {}
+			energyFeatureConvexHulls = {}
+			opticsObject:SetResourceType("energy")
+			opticsObject:Run()
+		end
 
 		-- Clear dirty regions array
 		for i = 1, #dirtyRegions do
@@ -1201,9 +1509,24 @@ local function ClusterizeFeatures()
 		for cid in pairs(dirtyClusters) do
 			dirtyClusters[cid] = nil
 		end
+		for cid in pairs(dirtyEnergyClusters) do
+			dirtyEnergyClusters[cid] = nil
+		end
 	else
 		-- Full reclustering
+		featureClusters = {}
+		featureConvexHulls = {}
+		opticsObject:SetResourceType("metal")
 		opticsObject:Run()
+
+		-- Always cluster energy fields when clustering is needed
+		if showEnergyFields then
+			energyFeatureClusters = {}
+			energyFeatureConvexHulls = {}
+			opticsObject:SetResourceType("energy")
+			opticsObject:Run()
+		end
+
 		-- Clear dirty regions array
 		for i = 1, #dirtyRegions do
 			dirtyRegions[i] = nil
@@ -1211,11 +1534,19 @@ local function ClusterizeFeatures()
 		-- Clear dirty clusters table
 		for cid in pairs(dirtyClusters) do
 			dirtyClusters[cid] = nil
+		end
+		for cid in pairs(dirtyEnergyClusters) do
+			dirtyEnergyClusters[cid] = nil
 		end
 	end
 
 	clusterizingNeeded = false
 	redrawingNeeded = true
+
+	-- Check if all energy has been drained after clustering
+	if gameStarted and showEnergyFields and not allEnergyFieldsDrained then
+		CheckAllEnergyDrained()
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -1269,8 +1600,66 @@ do
 	}
 
 	UpdateDrawEnabled = function ()
+		local previousDrawEnabled = drawEnabled
 		drawEnabled = showOptionFunctions[showOption]()
+		-- If visibility changed from false to true, force a full display list recreation
+		if not previousDrawEnabled and drawEnabled then
+			redrawingNeeded = true
+			forceFullRedraw = true
+		end
 		return drawEnabled
+	end
+end
+
+local UpdateDrawEnergyEnabled -- Similar to UpdateDrawEnabled but for energy fields
+do
+	local function always()
+		return true
+	end
+
+	local function onMapDrawMode()
+		return actionActive == true or spGetMapDrawMode() == 'metal'
+	end
+
+	local function onSelectReclaimer()
+		return actionActive == true or reclaimerSelected == true or onMapDrawMode() == true
+	end
+
+	local function onSelectResurrector()
+		return actionActive == true or resBotSelected == true or onMapDrawMode() == true
+	end
+
+	local function onActiveCommand()
+		if actionActive == true or onMapDrawMode() == true then
+			return true
+		else
+			local _, _, _, cmdName = spGetActiveCommand()
+			return (cmdName and cmdName == 'Reclaim')
+		end
+	end
+
+	local showEnergyOptionFunctions = {
+		--[[1]] always,
+		--[[2]] onMapDrawMode,
+		--[[3]] onSelectReclaimer,
+		--[[4]] onSelectResurrector,
+		--[[5]] onActiveCommand,
+		--[[6]] function() return false end, -- disabled
+	}
+
+	UpdateDrawEnergyEnabled = function ()
+		local previousDrawEnergyEnabled = drawEnergyEnabled
+		if not showEnergyFields then
+			drawEnergyEnabled = false
+			return false
+		end
+		drawEnergyEnabled = showEnergyOptionFunctions[showEnergyOption]()
+		-- If visibility changed from false to true, force a full display list recreation
+		if not previousDrawEnergyEnabled and drawEnergyEnabled then
+			redrawingNeeded = true
+			forceFullRedraw = true
+		end
+		return drawEnergyEnabled
 	end
 end
 
@@ -1289,14 +1678,19 @@ end
 
 -- Draw gradient fill from center (transparent) to configurable radius (gradientAlpha)
 -- Also fills the inner area with fillAlpha
-local function DrawHullVerticesGradient(hull, center)
+local function DrawHullVerticesGradient(hull, center, colors)
 	local hullCount = #hull
 	if hullCount < 3 then return end
 
-	-- Pre-calculate color components to avoid table lookups
-	local r, g, b = reclaimColor[1], reclaimColor[2], reclaimColor[3]
+	-- Use provided colors or default to metal colors
+	local reclaimCol = colors and colors.fill or reclaimColor
+	local r, g, b = reclaimCol[1], reclaimCol[2], reclaimCol[3]
 	local cx, cy, cz = center.x, center.y, center.z
 	local innerRadius = gradientInnerRadius
+
+	-- Use custom alpha values if provided, otherwise use defaults
+	local fillAlphaValue = colors and colors.fillAlpha or fillAlpha
+	local gradientAlphaValue = colors and colors.gradientAlpha or gradientAlpha
 
 	-- Calculate the inner boundary using configurable radius
 	local innerPoints = {}
@@ -1313,7 +1707,7 @@ local function DrawHullVerticesGradient(hull, center)
 	end
 
 	-- First, fill the inner area with solid fillAlpha (fan triangulation from center)
-	glColor(r, g, b, fillAlpha)
+	glColor(r, g, b, fillAlphaValue)
 	local innerCount = #innerPoints
 	for j = 1, innerCount do
 		local nextIdx = (j == innerCount) and 1 or (j + 1)
@@ -1333,32 +1727,129 @@ local function DrawHullVerticesGradient(hull, center)
 		local outerNext = hull[nextIdx]
 
 		-- Triangle 1: inner[j] -> outer[j] -> inner[next]
-		glColor(r, g, b, fillAlpha)
+		glColor(r, g, b, fillAlphaValue)
 		glVertex(inner.x, inner.y, inner.z)
 
-		glColor(r, g, b, gradientAlpha)
+		glColor(r, g, b, gradientAlphaValue)
 		glVertex(outer.x, outer.y, outer.z)
 
-		glColor(r, g, b, fillAlpha)
+		glColor(r, g, b, fillAlphaValue)
 		glVertex(innerNext.x, innerNext.y, innerNext.z)
 
 		-- Triangle 2: inner[next] -> outer[j] -> outer[next]
-		glColor(r, g, b, fillAlpha)
+		glColor(r, g, b, fillAlphaValue)
 		glVertex(innerNext.x, innerNext.y, innerNext.z)
 
-		glColor(r, g, b, gradientAlpha)
+		glColor(r, g, b, gradientAlphaValue)
 		glVertex(outer.x, outer.y, outer.z)
 
-		glColor(r, g, b, gradientAlpha)
+		glColor(r, g, b, gradientAlphaValue)
 		glVertex(outerNext.x, outerNext.y, outerNext.z)
 	end
 end
 
+-- Helper functions for per-cluster display list management
+DeleteClusterDisplayList = function(cid, isEnergy)
+	local displayLists = isEnergy and energyClusterDisplayLists or clusterDisplayLists
+	local clusterData = displayLists[cid]
+	if clusterData then
+		if clusterData.gradient then
+			glDeleteList(clusterData.gradient)
+		end
+		if clusterData.edge then
+			glDeleteList(clusterData.edge)
+		end
+		if clusterData.text then
+			glDeleteList(clusterData.text)
+		end
+		displayLists[cid] = nil
+	end
+end
+
+CreateClusterDisplayList = function(cid, isEnergy)
+	local displayLists = isEnergy and energyClusterDisplayLists or clusterDisplayLists
+	local clusters = isEnergy and energyFeatureClusters or featureClusters
+	local hulls = isEnergy and energyFeatureConvexHulls or featureConvexHulls
+
+	local cluster = clusters[cid]
+	local hull = hulls[cid]
+	if not cluster or not hull or not cluster.center then
+		return
+	end
+
+	-- Delete existing display list if present
+	DeleteClusterDisplayList(cid, isEnergy)
+
+	-- Create new display lists for this cluster
+	local clusterData = {}
+
+	-- Create gradient fill display list
+	clusterData.gradient = glCreateList(function()
+		local colors = nil
+		if isEnergy then
+			-- Energy field colors with opacity multiplier
+			local energyMult = not gameStarted and preGameStartOpacityMultiplier or energyOpacityMultiplier
+			colors = {
+				fill = energyReclaimColor,
+				fillAlpha = fillAlpha * energyMult,
+				gradientAlpha = gradientAlpha * energyMult
+			}
+		elseif not gameStarted then
+			-- Metal field colors with pre-gamestart multiplier
+			local totalMultiplier = preGameStartOpacityMultiplier * preGameStartMetalOpacityMultiplier
+			colors = {
+				fill = reclaimColor,
+				fillAlpha = fillAlpha * totalMultiplier,
+				gradientAlpha = gradientAlpha * totalMultiplier
+			}
+		end
+		glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, hull, cluster.center, colors)
+	end)
+
+	-- Create edge display list
+	clusterData.edge = glCreateList(function()
+		glBeginEnd(GL.LINE_LOOP, DrawHullVertices, hull)
+	end)
+
+	displayLists[cid] = clusterData
+end
+
 local drawFeatureConvexHullGradientList
 local function DrawFeatureConvexHullGradient()
+	-- Apply opacity multiplier for metal fields when before gamestart
+	local metalColors = nil
+	if not gameStarted then
+		-- Stack global pre-gamestart multiplier with metal-specific multiplier
+		local totalMultiplier = preGameStartOpacityMultiplier * preGameStartMetalOpacityMultiplier
+		metalColors = {
+			fill = reclaimColor,
+			fillAlpha = fillAlpha * totalMultiplier,
+			gradientAlpha = gradientAlpha * totalMultiplier
+		}
+	end
 	for i = 1, #featureConvexHulls do
 		if featureConvexHulls[i] and featureClusters[i].center then
-			glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, featureConvexHulls[i], featureClusters[i].center)
+			glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, featureConvexHulls[i], featureClusters[i].center, metalColors)
+		end
+	end
+end
+
+local drawEnergyConvexHullGradientList
+local function DrawEnergyConvexHullGradient()
+	-- Apply opacity multiplier to energy field fill and gradient
+	-- Include global pre-gamestart multiplier when before gamestart
+	local energyMultiplier = energyOpacityMultiplier
+	if not gameStarted then
+		energyMultiplier = energyMultiplier * preGameStartOpacityMultiplier
+	end
+	local energyColors = {
+		fill = energyReclaimColor,
+		fillAlpha = fillAlpha * energyMultiplier,
+		gradientAlpha = gradientAlpha * energyMultiplier
+	}
+	for i = 1, #energyFeatureConvexHulls do
+		if energyFeatureConvexHulls[i] and energyFeatureClusters[i].center then
+			glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, energyFeatureConvexHulls[i], energyFeatureClusters[i].center, energyColors)
 		end
 	end
 end
@@ -1373,23 +1864,125 @@ local function DrawFeatureConvexHullEdge()
 	end
 end
 
+local drawEnergyConvexHullEdgeList
+local function DrawEnergyConvexHullEdge()
+	for i = 1, #energyFeatureConvexHulls do
+		local hull = energyFeatureConvexHulls[i]
+		if hull and #hull > 0 then
+			glBeginEnd(GL.LINE_LOOP, DrawHullVertices, hull)
+		end
+	end
+end
+
 local drawFeatureClusterTextList
+local drawEnergyClusterTextList
 local cachedCameraFacing = 0
+
+-- Track text positions to avoid overlaps
+local drawnTextPositions = {}
+
+local function WouldTextOverlap(x, z, fontSize)
+	local threshold = fontSize * 1.5 -- Distance threshold for overlap detection
+	for i = 1, #drawnTextPositions do
+		local pos = drawnTextPositions[i]
+		local dx = x - pos.x
+		local dz = z - pos.z
+		local distSq = dx * dx + dz * dz
+		if distSq < threshold * threshold then
+			return true, pos
+		end
+	end
+	return false, nil
+end
+
+local function FindNonOverlappingPosition(baseX, baseZ, fontSize)
+	-- Try offsets in a spiral pattern
+	local offsets = {
+		{0, fontSize * 1.5},
+		{0, -fontSize * 1.5},
+		{fontSize * 1.5, 0},
+		{-fontSize * 1.5, 0},
+		{fontSize * 1.2, fontSize * 1.2},
+		{-fontSize * 1.2, fontSize * 1.2},
+		{fontSize * 1.2, -fontSize * 1.2},
+		{-fontSize * 1.2, -fontSize * 1.2},
+	}
+
+	for i = 1, #offsets do
+		local testX = baseX + offsets[i][1]
+		local testZ = baseZ + offsets[i][2]
+		if not WouldTextOverlap(testX, testZ, fontSize) then
+			return testX, testZ
+		end
+	end
+
+	-- If all positions overlap, use larger offset
+	return baseX + fontSize * 2.5, baseZ
+end
+
 local function DrawFeatureClusterText()
 	-- Cache camera facing calculation
 	cachedCameraFacing = math.atan2(-camUpVector[1], -camUpVector[3]) * (180 / math.pi)
 
+	-- Clear tracked positions
+	for i = 1, #drawnTextPositions do
+		drawnTextPositions[i] = nil
+	end
+
 	for clusterID = 1, #featureClusters do
 		local center = featureClusters[clusterID].center
+		local fontSize = featureClusters[clusterID].font
+
+		-- Check for overlap and adjust position if needed
+		local textX, textZ = center.x, center.z
+		local overlaps = WouldTextOverlap(textX, textZ, fontSize)
+		if overlaps then
+			textX, textZ = FindNonOverlappingPosition(textX, textZ, fontSize)
+		end
+
+		-- Track this text position
+		drawnTextPositions[#drawnTextPositions + 1] = {x = textX, z = textZ, fontSize = fontSize}
 
 		glPushMatrix()
 
-		glTranslate(center.x, center.y, center.z)
+		glTranslate(textX, center.y, textZ)
 		glRotate(-90, 1, 0, 0)
 		glRotate(cachedCameraFacing, 0, 0, 1)
 
 		glColor(numberColor)
-		glText(featureClusters[clusterID].text, 0, 0, featureClusters[clusterID].font, "cvo")
+		glText(featureClusters[clusterID].text, 0, 0, fontSize, "cvo")
+
+		glPopMatrix()
+	end
+end
+
+local function DrawEnergyClusterText()
+	-- Use same camera facing
+	-- Note: drawnTextPositions already populated by metal text
+
+	for clusterID = 1, #energyFeatureClusters do
+		local center = energyFeatureClusters[clusterID].center
+		local fontSize = energyFeatureClusters[clusterID].font * energyTextSizeMultiplier
+
+		-- Check for overlap and adjust position if needed
+		local textX, textZ = center.x, center.z
+		local overlaps = WouldTextOverlap(textX, textZ, fontSize)
+		if overlaps then
+			textX, textZ = FindNonOverlappingPosition(textX, textZ, fontSize)
+		end
+
+		-- Track this text position
+		drawnTextPositions[#drawnTextPositions + 1] = {x = textX, z = textZ, fontSize = fontSize}
+
+		glPushMatrix()
+
+		glTranslate(textX, center.y, textZ)
+		glRotate(-90, 1, 0, 0)
+		glRotate(cachedCameraFacing, 0, 0, 1)
+
+		-- Use yellowish color for energy text (lower blue value = more saturated yellow)
+		glColor(energyNumberColor[1], energyNumberColor[2], energyNumberColor[3], energyNumberColor[4])
+		glText(energyFeatureClusters[clusterID].text, 0, 0, fontSize, "cvo")
 
 		glPopMatrix()
 	end
@@ -1401,6 +1994,16 @@ end
 
 function widget:Initialize()
 	screenx, screeny = widgetHandler:GetViewSizes()
+
+	-- Initialize camera scale early to avoid thick lines on first draw
+	local cx, cy, cz = spGetCameraPosition()
+	local desc, w = spTraceScreenRay(screenx / 2, screeny / 2, true)
+	if desc ~= nil then
+		local cameraDist = min(64000000, (cx-w[1])^2 + (cy-w[2])^2 + (cz-w[3])^2)
+		cameraScale = sqrt(sqrt(cameraDist) / 600)
+	else
+		cameraScale = 1.0
+	end
 
 	widgetHandler:AddAction("reclaim_highlight", enableHighlight, nil, "p")
 	widgetHandler:AddAction("reclaim_highlight", disableHighlight, nil, "r")
@@ -1426,6 +2029,19 @@ function widget:Initialize()
 		smoothingSegments = clamp(value, 4, 40) -- Clamp to reasonable range
 		clusterizingNeeded = true -- Force recluster with new settings
 	end
+	WG['reclaimfieldhighlight'].getShowEnergyFields = function()
+		return showEnergyFields
+	end
+	WG['reclaimfieldhighlight'].setShowEnergyFields = function(value)
+		showEnergyFields = value
+		clusterizingNeeded = true -- Force recluster with new settings
+	end
+	WG['reclaimfieldhighlight'].getShowEnergyOption = function()
+		return showEnergyOption
+	end
+	WG['reclaimfieldhighlight'].setShowEnergyOption = function(value)
+		showEnergyOption = value
+	end
 
 	-- Start/restart feature clustering.
 	knownFeatures = {}
@@ -1433,6 +2049,8 @@ function widget:Initialize()
 	featureNeighborsMatrix = {}
 	featureClusters = {}
 	featureConvexHulls = {}
+	energyFeatureClusters = {}
+	energyFeatureConvexHulls = {}
 	opticsObject = Optics.new()
 	cachedKnownFeaturesCount = 0 -- Reset cached count
 
@@ -1451,6 +2069,15 @@ function widget:Shutdown()
 
 	WG['reclaimfieldhighlight'] = nil -- todo: register/deregister, right?
 
+	-- Clean up per-cluster display lists
+	for cid in pairs(clusterDisplayLists) do
+		DeleteClusterDisplayList(cid, false)
+	end
+	for cid in pairs(energyClusterDisplayLists) do
+		DeleteClusterDisplayList(cid, true)
+	end
+
+	-- Clean up old monolithic display lists (for compatibility)
 	if drawFeatureConvexHullGradientList ~= nil then
 		glDeleteList(drawFeatureConvexHullGradientList)
 	end
@@ -1460,19 +2087,36 @@ function widget:Shutdown()
 	if drawFeatureClusterTextList ~= nil then
 		glDeleteList(drawFeatureClusterTextList)
 	end
+	if drawEnergyConvexHullGradientList ~= nil then
+		glDeleteList(drawEnergyConvexHullGradientList)
+	end
+	if drawEnergyConvexHullEdgeList ~= nil then
+		glDeleteList(drawEnergyConvexHullEdgeList)
+	end
+	if drawEnergyClusterTextList ~= nil then
+		glDeleteList(drawEnergyClusterTextList)
+	end
 end
 
 function widget:GetConfigData(data)
     return {
 		showOption = showOption,
+		showEnergyOption = showEnergyOption,
 		enableSmoothing = enableSmoothing,
-		smoothingSegments = smoothingSegments
+		smoothingSegments = smoothingSegments,
+		showEnergyFields = showEnergyFields
 	}
 end
 
 function widget:SetConfigData(data)
 	if data.showOption ~= nil then
 		showOption = data.showOption
+	end
+	if data.showEnergyOption ~= nil then
+		showEnergyOption = data.showEnergyOption
+	end
+	if data.showEnergyFields ~= nil then
+		showEnergyFields = data.showEnergyFields
 	end
 	-- if data.enableSmoothing ~= nil then
 	-- 	enableSmoothing = data.enableSmoothing
@@ -1482,21 +2126,34 @@ function widget:SetConfigData(data)
 	-- end
 end
 
-function widget:Update(dt)
-	if UpdateDrawEnabled() == true then
-		local cx, cy, cz = spGetCameraPosition()
-		local desc, w = spTraceScreenRay(screenx / 2, screeny / 2, true)
-		if desc ~= nil then
-			local cameraDist = min(64000000, (cx-w[1])^2 + (cy-w[2])^2 + (cz-w[3])^2)
-			cameraScale = sqrt(sqrt(cameraDist) / 600) --number is an "optimal" view distance
-		else
-			cameraScale = 1.0
+-- Core update logic extracted to be called from both Update and GameFrame
+local function UpdateReclaimFields(frame)
+	-- Process batched feature creations first
+	if pendingCreationCount > 0 then
+		for i = 1, pendingCreationCount do
+			local featureID = pendingFeatureCreations[i]
+			AddFeature(featureID)
+			pendingFeatureCreations[i] = nil
 		end
+		pendingCreationCount = 0
+		clusterizingNeeded = true
 	end
-end
+	
+	-- Process batched feature destructions
+	if pendingDestructionCount > 0 then
+		for i = 1, pendingDestructionCount do
+			local featureID = pendingFeatureDestructions[i]
+			if knownFeatures[featureID] then
+				RemoveFeature(featureID)
+			end
+			pendingFeatureDestructions[i] = nil
+		end
+		pendingDestructionCount = 0
+		clusterizingNeeded = true
+	end
 
-function widget:GameFrame(frame)
-	if drawEnabled == false then
+	-- Before gamestart, always show reclaim fields regardless of settings
+	if drawEnabled == false and gameStarted then
 		return
 	end
 
@@ -1510,14 +2167,16 @@ function widget:GameFrame(frame)
 		if currentFeatureCount ~= lastFeatureCount then
 			lastFeatureCount = currentFeatureCount
 			if currentFeatureCount < 500 then
-				checkFrequency = baseCheckFrequency -- Normal frequency
+				featureCountMultiplier = 1 -- Normal frequency
 			elseif currentFeatureCount < 1500 then
-				checkFrequency = baseCheckFrequency * 2 -- 500-1500 features: 2x slower
+				featureCountMultiplier = 2 -- 500-1500 features: 2x slower
 			elseif currentFeatureCount < 3000 then
-				checkFrequency = baseCheckFrequency * 3 -- 1500-3000 features: 3x slower
+				featureCountMultiplier = 3 -- 1500-3000 features: 3x slower
 			else
-				checkFrequency = baseCheckFrequency * 4 -- 3000+ features: 4x slower
+				featureCountMultiplier = 4 -- 3000+ features: 4x slower
 			end
+			-- Apply both multipliers (feature count and catch-up)
+			checkFrequency = math.ceil(baseCheckFrequency * featureCountMultiplier * catchUpMultiplier)
 		end
 	end
 
@@ -1533,7 +2192,7 @@ function widget:GameFrame(frame)
 		lastFlyingCheckFrame = frame
 		for featureID, fInfo in pairs(flyingFeatures) do
 			-- Quick validation before API call
-			if Spring.ValidFeatureID(featureID) then
+			if spValidFeatureID(featureID) then
 				local _,_,_, vw = spGetFeatureVelocity(featureID)
 				if vw then
 					-- Feature still exists and has velocity data
@@ -1586,6 +2245,12 @@ function widget:GameFrame(frame)
 		end
 	end
 
+	-- Always check for feature value updates, even if clustering is needed
+	-- This ensures energy/metal values are tracked incrementally
+	if not (featuresAdded or clusterizingNeeded) then
+		UpdateFeatureReclaim()
+	end
+
 	if featuresAdded or clusterizingNeeded then
 		-- Batch remove invalid features using reusable table
 		-- Use rotating checks to avoid checking ALL features every cycle
@@ -1603,13 +2268,16 @@ function widget:GameFrame(frame)
 			-- Always check if featureCount is small, otherwise use rotating pattern
 			if checkInterval == 1 or (validityCheckCounter % checkInterval == 0) then
 				-- Quick validity check first (much cheaper than GetFeatureResources)
-				if not Spring.ValidFeatureID(fid) then
+				if not spValidFeatureID(fid) then
 					removeCount = removeCount + 1
 					toRemoveFeatures[removeCount] = fid
 				else
 					-- Only call GetFeatureResources if feature is valid
-					local metal = spGetFeatureResources(fid)
-					if not metal or metal < minFeatureMetal then
+					local metal, _, energy = spGetFeatureResources(fid)
+					-- Only remove if BOTH metal AND energy are below threshold
+					local metalDepleted = not metal or metal < minFeatureValue
+					local energyDepleted = not energy or energy < minFeatureValue
+					if metalDepleted and energyDepleted then
 						removeCount = removeCount + 1
 						toRemoveFeatures[removeCount] = fid
 					end
@@ -1629,49 +2297,77 @@ function widget:GameFrame(frame)
 		end
 
 		ClusterizeFeatures()
-	else
-		UpdateFeatureReclaim()
 	end
 
 	if redrawingNeeded == true then
-		-- Check if we can do incremental redraw
-		local dirtyCount = 0
+		-- Count dirty clusters for both metal and energy
+		local dirtyMetalCount = 0
+		local dirtyEnergyCount = 0
 		for _ in pairs(dirtyClusters) do
-			dirtyCount = dirtyCount + 1
+			dirtyMetalCount = dirtyMetalCount + 1
+		end
+		for _ in pairs(dirtyEnergyClusters) do
+			dirtyEnergyCount = dirtyEnergyCount + 1
 		end
 
-		-- If only a few clusters changed and we have existing lists, try incremental update
-		if dirtyCount > 0 and dirtyCount < 10 and drawFeatureConvexHullGradientList ~= nil then
-			-- For now, still do full redraw but this marks where we could optimize further
-			-- Future: Could maintain per-cluster display lists
-			if drawFeatureConvexHullGradientList ~= nil then
-				glDeleteList(drawFeatureConvexHullGradientList)
-				drawFeatureConvexHullGradientList = nil
+		-- Incremental update: recreate only dirty cluster display lists
+		-- This is much faster than redrawing everything
+		-- Force full redraw when visibility changes or when there are too many dirty clusters
+		local useIncrementalUpdate = not forceFullRedraw and ((dirtyMetalCount > 0 and dirtyMetalCount < 20) or (dirtyEnergyCount > 0 and dirtyEnergyCount < 20))
+
+		if useIncrementalUpdate then
+			-- Recreate only dirty metal clusters
+			for cid in pairs(dirtyClusters) do
+				if featureClusters[cid] then
+					CreateClusterDisplayList(cid, false)
+				end
 			end
-			if drawFeatureConvexHullEdgeList ~= nil then
-				glDeleteList(drawFeatureConvexHullEdgeList)
-				drawFeatureConvexHullEdgeList = nil
+
+			-- Recreate only dirty energy clusters
+			for cid in pairs(dirtyEnergyClusters) do
+				if energyFeatureClusters[cid] then
+					CreateClusterDisplayList(cid, true)
+				end
 			end
-			drawFeatureConvexHullGradientList = glCreateList(DrawFeatureConvexHullGradient)
-			drawFeatureConvexHullEdgeList = glCreateList(DrawFeatureConvexHullEdge)
 		else
-			-- Full redraw
-			if drawFeatureConvexHullGradientList ~= nil then
-				glDeleteList(drawFeatureConvexHullGradientList)
-				drawFeatureConvexHullGradientList = nil
+			-- Too many dirty clusters, first draw, or visibility changed - do full redraw
+			-- Clear all existing per-cluster display lists
+			for cid in pairs(clusterDisplayLists) do
+				DeleteClusterDisplayList(cid, false)
 			end
-			if drawFeatureConvexHullEdgeList ~= nil then
-				glDeleteList(drawFeatureConvexHullEdgeList)
-				drawFeatureConvexHullEdgeList = nil
+			for cid in pairs(energyClusterDisplayLists) do
+				DeleteClusterDisplayList(cid, true)
 			end
-			drawFeatureConvexHullGradientList = glCreateList(DrawFeatureConvexHullGradient)
-			drawFeatureConvexHullEdgeList = glCreateList(DrawFeatureConvexHullEdge)
+
+			-- Recreate all metal cluster display lists (if metal fields are visible)
+			if drawEnabled then
+				for cid = 1, #featureClusters do
+					if featureClusters[cid] then
+						CreateClusterDisplayList(cid, false)
+					end
+				end
+			end
+
+			-- Recreate all energy cluster display lists (if energy fields are visible)
+			if drawEnergyEnabled and showEnergyFields and not allEnergyFieldsDrained then
+				for cid = 1, #energyFeatureClusters do
+					if energyFeatureClusters[cid] then
+						CreateClusterDisplayList(cid, true)
+					end
+				end
+			end
 		end
 
-		-- Clear dirtyClusters table instead of reallocating
+		-- Clear dirtyClusters table
 		for cid in pairs(dirtyClusters) do
 			dirtyClusters[cid] = nil
 		end
+		for cid in pairs(dirtyEnergyClusters) do
+			dirtyEnergyClusters[cid] = nil
+		end
+
+		-- Reset force full redraw flag
+		forceFullRedraw = false
 	end
 
 	-- Text is always redrawn to rotate it facing the camera.
@@ -1692,73 +2388,98 @@ function widget:GameFrame(frame)
 			drawFeatureClusterTextList = nil
 		end
 		drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
+
+		-- Recreate energy text if enabled and not all drained
+		-- Always recreate when redrawing is needed (e.g., when energy values change from reclaim)
+		if showEnergyFields and not allEnergyFieldsDrained and #energyFeatureClusters > 0 then
+			if drawEnergyClusterTextList ~= nil then
+				glDeleteList(drawEnergyClusterTextList)
+				drawEnergyClusterTextList = nil
+			end
+			drawEnergyClusterTextList = glCreateList(DrawEnergyClusterText)
+		end
 	end
 
 	redrawingNeeded = false
 end
 
+function widget:Update(dt)
+	-- Update camera scale before gamestart OR when enabled after gamestart
+	-- Pre-gamestart: only update until initial clustering is done
+	if (not gameStarted and not initialClusteringDone) or (gameStarted and UpdateDrawEnabled() or UpdateDrawEnergyEnabled()) then
+		local cx, cy, cz = spGetCameraPosition()
+		local desc, w = spTraceScreenRay(screenx / 2, screeny / 2, true)
+		local cameraDist = 35000000
+		if desc ~= nil then
+			cameraDist = min(64000000, (cx-w[1])^2 + (cy-w[2])^2 + (cz-w[3])^2)
+		end
+		cameraScale = sqrt(sqrt(cameraDist) / 600) --number is an "optimal" view distance
+	end
+	-- Before gamestart, we need to manually trigger reclaim field updates
+	-- But only do it once since features don't change until game starts
+	if not gameStarted and not initialClusteringDone then
+		preGameStartTimer = preGameStartTimer + dt
+		if preGameStartTimer >= preGameStartCheckInterval then
+			preGameStartTimer = 0
+			-- Increment artificial frame counter
+			artificialFrame = artificialFrame + checkFrequency
+			-- Call the update logic with our artificial frame
+			UpdateReclaimFields(artificialFrame)
+			-- Mark as done so we don't keep updating
+			initialClusteringDone = true
+		end
+	end
+end
+
+function widget:GameFrame(frame)
+	-- Mark that the game has started
+	gameStarted = true
+
+	-- Track GameFrame calls per second to detect catch-up (reconnection)
+	gameFrameCallCount = gameFrameCallCount + 1
+	local currentTime = Spring.GetTimer()
+	local elapsedSeconds = Spring.DiffTimers(currentTime, lastGameFrameTrackTime)
+
+	if elapsedSeconds >= 1.0 then
+		-- Update game frames per second
+		gameFramesPerSecond = gameFrameCallCount / elapsedSeconds
+		gameFrameCallCount = 0
+		lastGameFrameTrackTime = currentTime
+
+		-- Adjust checkFrequency based on game speed
+		-- During catch-up, gameFramesPerSecond can be 100+, so increase checkFrequency proportionally
+		-- Normal is 30fps, so if we're at 120fps during catch-up, multiply checkFrequency by 4
+		-- When back to normal speed (<=45fps), restore base frequency
+		if gameFramesPerSecond <= 45 then
+			-- Normal speed - no catch-up multiplier
+			catchUpMultiplier = 1
+		else
+			-- Catch-up mode - increase frequency proportionally to maintain same real-time update rate
+			catchUpMultiplier = math.min(gameFramesPerSecond / 30, 7)
+		end
+
+		-- Apply both multipliers (feature count and catch-up)
+		checkFrequency = math.ceil(baseCheckFrequency * featureCountMultiplier * catchUpMultiplier)
+
+	end
+
+	-- Use the extracted update logic
+	UpdateReclaimFields(frame)
+end
+
 function widget:FeatureCreated(featureID, allyTeamID)
-	local metal = spGetFeatureResources(featureID)
-	if not metal or metal < minFeatureMetal then
-		return
-	end
-
-	local x, y, z = spGetFeaturePosition(featureID)
-	if not x then return end
-
-	-- Mark region as dirty for regional reclustering
-	MarkRegionDirty(x, z)
-
-	local radius = spGetFeatureRadius(featureID) or 0
-	local feature = {
-		fid   = featureID,
-		metal = metal,
-		x     = x,
-		y     = max(0, y),
-		z     = z,
-		radius = radius,
-	}
-
-	-- To deal with e.g. raptor eggs spawning at altitude ~20:
-	if y > 0 then
-		local elevation = spGetGroundHeight(x, z)
-		if elevation and elevation > 0 and y > elevation + 2 then
-			flyingFeatures[featureID] = feature
-			return -- Delay clusterizing until stationary.
-		end
-	end
-
-	-- Assuming the feature's motion is highly likely negligible:
-	local M = featureNeighborsMatrix
-	local M_newFeature = {}
-	local reachDistSq, epsilonSq = mathHuge, epsilonSq
-	for fid2, feat2 in pairs(knownFeatures) do
-		local dx, dz = x - feat2.x, z - feat2.z
-		local distSq = dx * dx + dz * dz
-		if distSq <= epsilonSq then
-			M[fid2][featureID] = distSq
-			M_newFeature[fid2] = distSq
-			if distSq < reachDistSq then
-				reachDistSq = distSq
-			end
-			if feat2.rd == nil or distSq < feat2.rd then
-				feat2.rd = distSq
-			end
-		end
-	end
-	featureNeighborsMatrix[featureID] = M_newFeature
-	if reachDistSq < epsilonSq then
-		feature.rd = reachDistSq
-	end
-	knownFeatures[featureID] = feature
-	cachedKnownFeaturesCount = cachedKnownFeaturesCount + 1
-	clusterizingNeeded = true
+	-- Batch feature creations instead of processing immediately
+	-- This significantly improves performance during catch-up when hundreds of features are created per frame
+	pendingCreationCount = pendingCreationCount + 1
+	pendingFeatureCreations[pendingCreationCount] = featureID
 end
 function widget:FeatureDestroyed(featureID, allyTeamID)
+	-- Batch feature destructions instead of processing immediately
+	-- This significantly improves performance during catch-up when hundreds of features are destroyed per frame
 	if knownFeatures[featureID] ~= nil then
-		RemoveFeature(featureID)
-		clusterizingNeeded = true
-	else
+		pendingDestructionCount = pendingDestructionCount + 1
+		pendingFeatureDestructions[pendingDestructionCount] = featureID
+	elseif flyingFeatures[featureID] then
 		flyingFeatures[featureID] = nil
 	end
 end
@@ -1791,47 +2512,126 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	if #featureClusters > 0 then
 		drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
 	end
+
+	if showEnergyFields then
+		if drawEnergyClusterTextList ~= nil then
+			glDeleteList(drawEnergyClusterTextList)
+			drawEnergyClusterTextList = nil
+		end
+		if #energyFeatureClusters > 0 then
+			drawEnergyClusterTextList = glCreateList(DrawEnergyClusterText)
+		end
+	end
 end
 
 function widget:DrawWorld()
-	if drawEnabled == false or spIsGUIHidden() == true then
+	-- Before gamestart, always show; after gamestart, check drawEnabled
+	if spIsGUIHidden() == true then
+		return
+	end
+
+	-- Determine if we should show metal and energy fields
+	local showMetal = not gameStarted or drawEnabled
+	local showEnergy = (not gameStarted or (showEnergyFields and UpdateDrawEnergyEnabled())) and not allEnergyFieldsDrained
+
+	if not showMetal and not showEnergy then
 		return
 	end
 
 	glDepthTest(false)
-
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
-	if drawFeatureClusterTextList ~= nil then
+	-- Draw metal text
+	if showMetal and drawFeatureClusterTextList ~= nil then
 		glCallList(drawFeatureClusterTextList)
+	end
+
+	-- Draw energy text
+	if showEnergy and drawEnergyClusterTextList ~= nil then
+		glCallList(drawEnergyClusterTextList)
 	end
 
 	glDepthTest(true)
 end
 
 function widget:DrawWorldPreUnit()
-	if drawEnabled == false or spIsGUIHidden() == true then
+	-- Before gamestart, always show; after gamestart, check drawEnabled
+	if spIsGUIHidden() == true then
 		return
 	end
 
+	-- Determine if we should show metal and energy fields
+	local showMetal = not gameStarted or drawEnabled
+	local showEnergy = (not gameStarted or (showEnergyFields and UpdateDrawEnergyEnabled())) and not allEnergyFieldsDrained
+
+	if not showMetal and not showEnergy then
+		return
+	end
+
+	-- Reset GL state at the start
 	glDepthTest(false)
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
-	-- Draw gradient layer with inner fill
-	if drawFeatureConvexHullGradientList ~= nil then
+	glLineWidth(6.0 / cameraScale)
+
+	-- Draw metal gradient layer with inner fill (per-cluster display lists)
+	if showMetal then
 		glPushMatrix()
 		glTranslate(0, -1, 0) -- Push down by 1 unit
-		glCallList(drawFeatureConvexHullGradientList)
+		for cid, clusterData in pairs(clusterDisplayLists) do
+			if clusterData.gradient then
+				glCallList(clusterData.gradient)
+			end
+		end
 		glPopMatrix()
 	end
 
-	-- Draw edge on top at normal height
-	if drawFeatureConvexHullEdgeList ~= nil then
-		glLineWidth(6.0 / cameraScale)
-		glColor(reclaimEdgeColor)
-		glCallList(drawFeatureConvexHullEdgeList)
-		glLineWidth(1.0)
+	-- Draw metal edge on top at normal height (per-cluster display lists)
+	if showMetal then
+		-- Apply opacity multiplier to metal edge color when before gamestart
+		if not gameStarted then
+			local r, g, b, a = reclaimEdgeColor[1], reclaimEdgeColor[2], reclaimEdgeColor[3], reclaimEdgeColor[4]
+			-- Stack global pre-gamestart multiplier with metal-specific multiplier
+			glColor(r, g, b, a * preGameStartOpacityMultiplier * preGameStartMetalOpacityMultiplier)
+		else
+			glColor(reclaimEdgeColor)
+		end
+		for cid, clusterData in pairs(clusterDisplayLists) do
+			if clusterData.edge then
+				glCallList(clusterData.edge)
+			end
+		end
 	end
 
+	-- Draw energy gradient layer with inner fill (per-cluster display lists)
+	if showEnergy then
+		glPushMatrix()
+		glTranslate(0, -1, 0) -- Push down by 1 unit
+		for cid, clusterData in pairs(energyClusterDisplayLists) do
+			if clusterData.gradient then
+				glCallList(clusterData.gradient)
+			end
+		end
+		glPopMatrix()
+	end
+
+	-- Draw energy edge on top at normal height (per-cluster display lists)
+	if showEnergy then
+		-- Apply opacity multiplier to energy edge color
+		-- Include global pre-gamestart multiplier when before gamestart
+		local r, g, b, a = energyReclaimEdgeColor[1], energyReclaimEdgeColor[2], energyReclaimEdgeColor[3], energyReclaimEdgeColor[4]
+		local energyMultiplier = energyOpacityMultiplier
+		if not gameStarted then
+			energyMultiplier = energyMultiplier * preGameStartOpacityMultiplier
+		end
+		glColor(r, g, b, a * energyMultiplier)
+		for cid, clusterData in pairs(energyClusterDisplayLists) do
+			if clusterData.edge then
+				glCallList(clusterData.edge)
+			end
+		end
+	end
+
+	glLineWidth(1.0)
 	glDepthTest(true)
 end

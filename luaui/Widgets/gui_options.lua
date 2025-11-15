@@ -4185,17 +4185,23 @@ function init()
 
 		{ id = "givenunits", group = "ui", category = types.advanced, widget = "Given Units", name = Spring.I18N('ui.settings.option.givenunits'), type = "bool", value = GetWidgetToggleValue("Given Units"), description = Spring.I18N('ui.settings.option.givenunits_descr') },
 
-		{ id = "reclaimfieldhighlight", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = Spring.I18N('ui.settings.option.reclaimfieldhighlight'), type = "select", options = { Spring.I18N('ui.settings.option.reclaimfieldhighlight_always'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_resource'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_reclaimer'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_resbot'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_order'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_disabled') }, value = 3, description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_descr'),
+		{ id = "reclaimfieldhighlight", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = Spring.I18N('ui.settings.option.reclaimfieldhighlight'), type = "bool", description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_descr') },
+
+		{ id = "reclaimfieldhighlight_metal", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.reclaimfieldhighlight_metal'), type = "select", options = reclaimFieldHighlightOptions, value = 3, description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_metal_descr'),
 			onload = function(i)
-				loadWidgetData("Reclaim Field Highlight", "reclaimfieldhighlight", { 'showOption' })
+				loadWidgetData("Reclaim Field Highlight", "reclaimfieldhighlight_metal", { 'showOption' })
 			end,
 			onchange = function(i, value)
-				if widgetHandler.orderList["Reclaim Field Highlight"] and widgetHandler.orderList["Reclaim Field Highlight"] >= 0.5 then
-					widgetHandler:EnableWidget("Reclaim Field Highlight")
-					saveOptionValue('Reclaim Field Highlight', 'reclaimfieldhighlight', 'setShowOption', { 'showOption' }, value)
-				else
-					saveOptionValue('Reclaim Field Highlight', 'reclaimfieldhighlight', 'setShowOption', { 'showOption' }, value)
-				end
+				saveOptionValue('Reclaim Field Highlight', 'reclaimfieldhighlight', 'setShowOption', { 'showOption' }, value)
+			end,
+		},
+
+		{ id = "reclaimfieldhighlight_energy", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.reclaimfieldhighlight_energy'), type = "select", options = reclaimFieldHighlightOptions, value = 3, description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_energy_descr'),
+			onload = function(i)
+				loadWidgetData("Reclaim Field Highlight", "reclaimfieldhighlight_energy", { 'showEnergyOption' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Reclaim Field Highlight', 'reclaimfieldhighlight', 'setShowEnergyOption', { 'showEnergyOption' }, value)
 			end,
 		},
 
