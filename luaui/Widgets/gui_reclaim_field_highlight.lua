@@ -86,6 +86,9 @@ local epsilon = 300 -- Clustering distance - increased to merge nearby fields an
 
 local minFeatureValue = 9
 
+-- Maximum cluster size in elmos - clusters larger than this will be split into sub-clusters
+local maxClusterSize = 3000 -- Adjust this value: smaller = more sub-clusters, larger = fewer but bigger fields
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Speedups
@@ -314,6 +317,10 @@ do
 		cx, cz = cx / #points, cz / #points
 		cx, cz = (xmin + 2 * cx + xmax) / 4, (zmin + 2 * cz + zmax) / 4
 		cluster.center = { x = cx, y = max(0, spGetGroundHeight(cx, cz)) + 2, z = cz }
+
+		-- Store dimensions for potential splitting later
+		cluster.width = xmax - xmin
+		cluster.depth = zmax - zmin
 
 		-- I keep shuffling this around to different places. Just do it here:
 		local dx, dz = xmax - xmin, zmax - zmin
@@ -871,7 +878,49 @@ do
 		return smoothed
 	end
 
-	processCluster = function (cluster, clusterID, points, resourceType, targetHulls)
+	-- Split a large cluster into smaller sub-clusters using spatial subdivision
+	local function splitLargeCluster(points, clusterWidth, clusterDepth)
+		-- Calculate how many subdivisions we need
+		local xDivisions = math.ceil(clusterWidth / maxClusterSize)
+		local zDivisions = math.ceil(clusterDepth / maxClusterSize)
+
+		-- If no splitting needed, return nil
+		if xDivisions <= 1 and zDivisions <= 1 then
+			return nil
+		end
+
+		-- Find bounds of all points
+		local xmin, xmax, zmin, zmax = mathHuge, -mathHuge, mathHuge, -mathHuge
+		for i = 1, #points do
+			local x, z = points[i].x, points[i].z
+			xmin = min(xmin, x)
+			xmax = max(xmax, x)
+			zmin = min(zmin, z)
+			zmax = max(zmax, z)
+		end
+
+		-- Create grid cells
+		local cellWidth = (xmax - xmin) / xDivisions
+		local cellDepth = (zmax - zmin) / zDivisions
+		local subClusters = {}
+
+		-- Assign each point to a grid cell
+		for i = 1, #points do
+			local point = points[i]
+			local cellX = math.min(math.floor((point.x - xmin) / cellWidth), xDivisions - 1)
+			local cellZ = math.min(math.floor((point.z - zmin) / cellDepth), zDivisions - 1)
+			local cellKey = cellX * zDivisions + cellZ + 1
+
+			if not subClusters[cellKey] then
+				subClusters[cellKey] = {}
+			end
+			table.insert(subClusters[cellKey], point)
+		end
+
+		return subClusters
+	end
+
+	processCluster = function (cluster, clusterID, points, resourceType, targetHulls, targetClusters, nextClusterId)
 		getReclaimTotal(cluster, points, resourceType or "metal")
 
 		local convexHull, hullArea
@@ -895,6 +944,33 @@ do
 			end
 			hullArea = polygonArea(convexHull)
 			getClusterDimensions(cluster, convexHull)
+
+			-- Check if cluster is too large and needs splitting
+			if targetClusters and nextClusterId and (cluster.width > maxClusterSize or cluster.depth > maxClusterSize) then
+				-- Split this cluster into sub-clusters
+				local subClusters = splitLargeCluster(points, cluster.width, cluster.depth)
+				if subClusters then
+					-- Process each sub-cluster and collect them
+					local newClusters = {}
+					local subClusterIndex = nextClusterId
+					for _, subPoints in pairs(subClusters) do
+						if #subPoints >= 3 then -- Only process sub-clusters with enough points
+							local subCluster = {}
+							subCluster.members = subPoints
+							processCluster(subCluster, subClusterIndex, subPoints, resourceType, targetHulls, nil, nil)
+							table.insert(newClusters, subCluster)
+							subClusterIndex = subClusterIndex + 1
+						end
+					end
+					-- Return sub-clusters to be added to main array
+					if #newClusters > 0 then
+						-- Don't create hull for original cluster
+						targetHulls[clusterID] = nil
+						cluster.font = 0 -- Hide text for split cluster
+						return newClusters
+					end
+				end
+			end
 		else
 			hullArea = 0
 			getClusterDimensions(cluster, points)
@@ -1044,9 +1120,17 @@ do
 		end
 
 		-- Post-process each cluster.
+		local nextClusterId = clusterID + 1 -- Track next available cluster ID for splits
 		for cid = 1, clusterID do
 			local cluster = targetClusters[cid]
-			processCluster(cluster, cid, cluster.members, currentResourceType, targetHulls)
+			local newClusters = processCluster(cluster, cid, cluster.members, currentResourceType, targetHulls, targetClusters, nextClusterId)
+			if newClusters then
+				-- Cluster was split - add sub-clusters to arrays
+				for i = 1, #newClusters do
+					targetClusters[nextClusterId] = newClusters[i]
+					nextClusterId = nextClusterId + 1
+				end
+			end
 		end
 
 		-- Store results in the correct global tables
