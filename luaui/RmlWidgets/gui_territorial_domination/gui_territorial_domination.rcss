@@ -256,7 +256,9 @@ body {
 	height: 44dp;
 	border-width: 2dp;
 	border-color: #ffffff;
-	background-color: rgba(50, 50, 50, 255);
+	border-radius: 6dp;
+	background-color: rgba(30, 30, 30, 255);
+	decorator: vertical-gradient( #FFFFFF27 #00000097 );
 	position: absolute;
 	right: 0;
 	cursor: pointer;
@@ -469,16 +471,10 @@ body {
 	text-align: left;
 }
 
-.scoreboard-header-previous,
 .scoreboard-header-territories,
 .scoreboard-header-score,
-.scoreboard-header-gains,
-.scoreboard-header-total,
 .scoreboard-score,
-.scoreboard-previous,
-.scoreboard-territories,
-.scoreboard-gains,
-.scoreboard-total {
+.scoreboard-territories {
 	color: #ffffff;
 	font-family: Exo 2;
 	font-weight: bold;
@@ -489,17 +485,11 @@ body {
 }
 
 .scoreboard-header-score,
-.scoreboard-header-previous,
-.scoreboard-header-territories,
-.scoreboard-header-gains,
-.scoreboard-header-total {
+.scoreboard-header-territories {
 	font-size: 14dp;
 }
 
-.scoreboard-score,
-.scoreboard-previous,
-.scoreboard-gains,
-.scoreboard-total {
+.scoreboard-score {
 	font-size: 16dp;
 }
 
@@ -546,10 +536,7 @@ body {
 }
 
 .scoreboard-column-headers > .scoreboard-header-score,
-.scoreboard-column-headers > .scoreboard-header-previous,
-.scoreboard-column-headers > .scoreboard-header-territories,
-.scoreboard-column-headers > .scoreboard-header-gains,
-.scoreboard-column-headers > .scoreboard-header-total {
+.scoreboard-column-headers > .scoreboard-header-territories {
 	padding-left: 12dp;
 	padding-right: 12dp;
 }
@@ -602,10 +589,7 @@ body {
 }
 
 .scoreboard-team-row > .scoreboard-score,
-.scoreboard-team-row > .scoreboard-previous,
-.scoreboard-team-row > .scoreboard-territories,
-.scoreboard-team-row > .scoreboard-gains,
-.scoreboard-team-row > .scoreboard-total {
+.scoreboard-team-row > .scoreboard-territories {
 	padding-left: 12dp;
 	padding-right: 12dp;
 	vertical-align: middle;
@@ -632,10 +616,7 @@ body {
 }
 
 .scoreboard-team-row.eliminated .scoreboard-rank,
-.scoreboard-team-row.eliminated .scoreboard-previous,
-.scoreboard-team-row.eliminated .scoreboard-territories,
-.scoreboard-team-row.eliminated .scoreboard-gains,
-.scoreboard-team-row.eliminated .scoreboard-total {
+.scoreboard-team-row.eliminated .scoreboard-territories {
 	color: #888888;
 	font-effect: outline(1dp #00000080);
 }
