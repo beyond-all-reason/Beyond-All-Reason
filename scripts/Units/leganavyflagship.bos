@@ -98,7 +98,7 @@ static-var
     frontRailgun1WhichBarrel,
     frontRailgun2WhichBarrel,
     rearRailgun1WhichBarrel,
-    rearRailgun2WhichBarel
+    rearRailgun2WhichBarrel
 ;
 
 // Signal definitions
@@ -125,42 +125,36 @@ static-var
 
 Create()
 {
-	hide engine;
-	hide bow;
-	hide wake;
-	hide flare2;
-	hide flare5;
-	hide flare6;
-	hide flare3a;
-	hide flare3b;
-	hide flare1b;
-	hide flare1d;
-	hide flare1c;
-	hide flare1a;
-	hide flare4b;
-	hide flare4a;
 	set ARMORED to 1;
-	hide flare1a;
-	hide flare1b;
-	hide flare1c;
-	hide flare1d;
-	hide flare3a;
-	hide flare3b;
-	hide flare4a;
-	hide flare4b;
-	hide flare2;
-	hide flare5;
-	hide flare6;
-	gun_1 = 0;
-	gun_3 = 0;
-	gun_2 = 0;
-	restore_delay = 3000;	
+
+    rightGun1WhichBarrel = 0;
+    rightGun2WhichBarrel = 0;
+    rightGun3WhichBarrel = 0;
+    leftGun1WhichBarrel = 0;
+    leftGun2WhichBarrel = 0;
+    leftGun3WhichBarrel = 0;
+    frontRailgun1WhichBarrel = 0;
+    frontRailgun2WhichBarrel = 0;
+    rearRailgun1WhichBarrel = 0;
+    rearRailgun2WhichBarrel = 0;
+
+	restore_delay = 3000;
+
+    turn rearRailgun1 to y-axis <-180> now;
+    turn rearRailgun2 to y-axis <-180> now;
+
+    turn rightGun1 to y-axis <90> now;
+    turn rightGun2 to y-axis <90> now;
+    turn rightGun3 to y-axis <90> now;
+
+    turn leftGun1 to y-axis <-90> now;
+    turn leftGun2 to y-axis <-90> now;
+    turn leftGun3 to y-axis <-90> now;
 
 	start-script CATT1_Init();
 	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script BoatPhysics();
-	spin radar around y-axis speed <60.0>;
 }
 
 SetMaxReloadTime(reloadMS)
@@ -172,12 +166,13 @@ static-var  Stunned;
 static-var aimy1velocity, aimy1target, aimy1position, gameFrame;
 
 #define AIMY1_RESTORE_SPEED <1.0>
+//aiming system restore
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
         return (1);
     }
-	turn sleeves1 to x-axis <0.0> speed <45.0>;
+	turn targetingWeaponPitchPivot to x-axis <0.0> speed <45.0>;
 	while ( get ABS(aimy1position) > AIMY1_RESTORE_SPEED){
 		if (aimy1position > 0 ) {
 			aimy1position = aimy1position - AIMY1_RESTORE_SPEED;
@@ -188,10 +183,97 @@ ExecuteRestoreAfterDelay()
 			aimy1position = aimy1position + AIMY1_RESTORE_SPEED;
 			aimy1velocity = AIMY1_RESTORE_SPEED;
 		}
-		turn tur1 to y-axis aimy1position speed 30 * AIMY1_RESTORE_SPEED;
+		turn targetingWeaponHeadingPivot to y-axis aimy1position speed 30 * AIMY1_RESTORE_SPEED;
 		sleep 30;
 	}
 	aimy1velocity = 0;
+}
+
+// heatray restores
+ExecuteRestoreAfterDelayHR1(){
+    if (Stunned) {
+        return (1);
+    }
+    //code for resting 1st heatray turret heading
+}
+
+ExecuteRestoreAfterDelayHR2(){
+    if (Stunned) {
+        return (1);
+    }
+    //code for resting 2nd heatray turret heading
+}
+
+// railgun restores
+ExecuteRestoreAfterDelayFRRG(){
+    if (Stunned) {
+        return (1);
+    }
+    //code for resting front right railgun
+}
+
+ExecuteRestoreAfterDelayFLRG(){
+    if (Stunned) {
+        return (1);
+    }
+    //code for resting front left railgun
+}
+
+ExecuteRestoreAfterDelayRRRG(){
+    if (Stunned) {
+        return (1);
+    }
+    //code for resting rear right railgun
+}
+
+ExecuteRestoreAfterDelayRLRG(){
+    if (Stunned) {
+        return (1);
+    }
+    //code for resting rear left railgun
+}
+
+//machine gun restores
+ExecuteRestoreAfterDelayRG1(){
+    if (Stunned) {
+        return (1);
+    }
+    //code for resting right gun 1
+}
+
+ExecuteRestoreAfterDelayRG2(){
+    if (Stunned) {
+        return (1);
+    }
+    //code for resting right gun 2
+}
+
+ExecuteRestoreAfterDelayRG3(){
+    if (Stunned) {
+        return (1);
+    }
+    //code for resting right gun 3
+}
+
+ExecuteRestoreAfterDelayLG1(){
+    if (Stunned) {
+        return (1);
+    }
+    //code for resting left gun 1
+}
+
+ExecuteRestoreAfterDelayLG2(){
+    if (Stunned) {
+        return (1);
+    }
+    //code for resting left gun 2
+}
+
+ExecuteRestoreAfterDelayLG3(){
+    if (Stunned) {
+        return (1);
+    }
+    //code for resting left gun 3
 }
 
 SetStunned(State)
@@ -199,12 +281,84 @@ SetStunned(State)
     Stunned = State;
 	if (!Stunned) {
 	    start-script ExecuteRestoreAfterDelay();
+        start-script ExecuteRestoreAfterDelayHR1();
+        start-script ExecuteRestoreAfterDelayHR2();
+        start-script ExecuteRestoreAfterDelayFRRG();
+        start-script ExecuteRestoreAfterDelayFLRG();
+        start-script ExecuteRestoreAfterDelayRRRG();
+        start-script ExecuteRestoreAfterDelayRLRG();
+        start-script ExecuteRestoreAfterDelayRG1();
+        start-script ExecuteRestoreAfterDelayRG2();
+        start-script ExecuteRestoreAfterDelayRG3();
+        start-script ExecuteRestoreAfterDelayLG1();
+        start-script ExecuteRestoreAfterDelayLG2();
+        start-script ExecuteRestoreAfterDelayLG3();
 	}
 }
 RestoreAfterDelay()
 {
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
+}
+RestoreAfterDelayHR1()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelayHR1();
+}
+RestoreAfterDelayHR2()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelayHR2();
+}
+RestoreAfterDelayFRRG()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelayFRRG();
+}
+RestoreAfterDelayFLRG()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelayFLRG();
+}
+RestoreAfterDelayRRRG()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelayRRRG();
+}
+RestoreAfterDelayRLRG()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelayRLRG();
+}
+RestoreAfterDelayRG1()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelayRG1();
+}
+RestoreAfterDelayRG2()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelayRG2();
+}
+RestoreAfterDelayRG3()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelayRG3();
+}
+RestoreAfterDelayLG1()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelayLG1();
+}
+RestoreAfterDelayLG2()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelayLG2();
+}
+RestoreAfterDelayLG3()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelayLG3();
 }
 
 RestoreAfterDelay2()
@@ -251,7 +405,7 @@ StopMoving()
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = tur1;
+	pieceIndex = targetingWeaponHeadingPivot;
 }
 
 QueryWeapon1(pieceIndex)
@@ -266,7 +420,7 @@ QueryWeapon1(pieceIndex)
 // A high precision requirement can result in overshoots if desired 
 // Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 
-#define CATT1_PIECE_Y tur1
+#define CATT1_PIECE_Y targetingWeaponHeadingPivot
 
 #define CATT1_MAX_VELOCITY <3.0>
 #define CATT1_ACCELERATION <0.12>
@@ -286,7 +440,7 @@ AimWeapon1(heading, pitch)
 	set-signal-mask SIGNAL_AIM1;
 	aimDir1 = heading;
 	//We can do this any time
-	turn sleeves1 to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <25.0>;
+	turn targetingWeaponPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <25.0>;
 	
 	call-script CATT1_Aim(heading,pitch);
 	return (1);
