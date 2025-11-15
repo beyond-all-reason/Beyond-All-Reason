@@ -7,7 +7,7 @@ function widget:GetInfo()
 	author	= "Catcow, BrainDamage",
 	date	= "11/14/25",
 	license	= "GNU GPL, v2 or later",
-	layer	= -999999,
+	layer	= 0,
 	enabled	= true,
 	}
 end
