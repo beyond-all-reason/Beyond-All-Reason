@@ -299,18 +299,30 @@ return {
 			[4] = {
 				def = "leg_experimental_railgun",
 				onlytargetcategory = "NOTSUB",
+				maindir = "0.966 0 0.259",
+				burstControlWhenOutOfArc = 2,
+				maxangledif = 180,
 			},
 			[5] = {
 				def = "leg_experimental_railgun",
 				onlytargetcategory = "NOTSUB",
+				maindir = "-0.966 0 0.259",
+				burstControlWhenOutOfArc = 2,
+				maxangledif = 180,
 			},
 			[6] = {
 				def = "leg_experimental_railgun",
 				onlytargetcategory = "NOTSUB",
+				maindir = "0.966 0 -0.259",
+				burstControlWhenOutOfArc = 2,
+				maxangledif = 180,
 			},
 			[7] = {
 				def = "leg_experimental_railgun",
 				onlytargetcategory = "NOTSUB",
+				maindir = "-0.966 0 -0.259",
+				burstControlWhenOutOfArc = 2,
+				maxangledif = 180,
 			},
 			-- broadside machine guns
 			[8] = {
