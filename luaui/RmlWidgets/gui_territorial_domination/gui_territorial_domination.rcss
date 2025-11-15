@@ -312,33 +312,39 @@ body {
 }
 
 .popup-round-end {
-	position: absolute;
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100vw;
+	height: 100vh;
 	z-index: 2000;
 	pointer-events: none;
-	display: none;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: transparent;
 	opacity: 0;
-	left: 50vw;
-	top: 50vh;
-	transform: translate(-50%, -50%);
+}
+
+.popup-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 6dp;
+	padding: 20dp;
+	text-align: center;
 	background-color: transparent;
 	border-width: 0dp;
 	border-color: transparent;
 	border-radius: 0dp;
-	padding: 0dp;
-	text-align: center;
-	min-width: 0dp;
 }
 
 .popup-round-end.visible {
-	display: block;
 	opacity: 1;
 	transform: scale(1) translateY(0);
-	animation: popup-fade-in 0.5s cubic-out;
 }
 
-.popup-round-end.fade-out {
-	animation: popup-fade-out 0.5s cubic-in;
-}
 
 @keyframes popup-fade-in {
 	from {
@@ -351,25 +357,44 @@ body {
 	}
 }
 
-@keyframes popup-fade-out {
-	from {
-		opacity: 1;
-		transform: scale(1) translateY(0);
-	}
-	to {
-		opacity: 0;
-		transform: scale(0.8) translateY(-20dp);
-	}
-}
 
 .popup-text {
 	color: #ffffff;
 	font-weight: bold;
 	font-family: Exo 2;
-	font-size: 31dp;
+	font-size: 54dp;
 	text-align: center;
-	white-space: nowrap;
-	font-effect: outline(1.5dp #000000CC);
+	font-effect: outline(4dp rgba(0, 0, 0, 140));
+	margin-bottom: 12dp;
+	width: 100%;
+	display: block;
+}
+
+.popup-territory-info {
+	color: #ffffff;
+	font-weight: bold;
+	font-family: Exo 2;
+	font-size: 24dp;
+	text-align: center;
+	font-effect: outline(3dp rgba(0, 0, 0, 140));
+	margin-bottom: 8dp;
+	width: 100%;
+	display: block;
+}
+
+.popup-elimination-info {
+	color: #ffffff;
+	font-weight: bold;
+	font-family: Exo 2;
+	font-size: 24dp;
+	text-align: center;
+	font-effect: outline(3dp rgba(0, 0, 0, 140));
+	width: 100%;
+	display: block;
+}
+
+.popup-elimination-info:empty {
+	display: none;
 }
 .scoreboard-panel {
 	position: fixed;
@@ -448,7 +473,6 @@ body {
 	font-effect: outline(1dp #000000CC);
 	text-align: center;
 	width: auto;
-	min-width: auto;
 }
 
 .scoreboard-header-rank {
@@ -480,8 +504,7 @@ body {
 	white-space: normal;
 	display: table-cell;
 	vertical-align: top;
-	overflow-wrap: break-word;
-	word-wrap: break-word;
+	word-break: break-word;
 	max-width: 320dp;
 	min-width: 160dp;
 	overflow: hidden;
@@ -503,7 +526,6 @@ body {
 	font-effect: outline(1dp #000000CC);
 	white-space: nowrap;
 	width: auto;
-	min-width: auto;
 }
 
 .scoreboard-header-previous,
@@ -522,8 +544,6 @@ body {
 
 .scoreboard-table-wrapper {
 	display: table;
-	border-spacing: 0;
-	table-layout: auto;
 	width: auto;
 	position: relative;
 	z-index: 2;
@@ -594,8 +614,7 @@ body {
 	min-width: 160dp;
 	padding-right: 20dp;
 	padding-left: 8dp;
-	word-wrap: break-word;
-	overflow-wrap: break-word;
+	word-break: break-word;
 	overflow: hidden;
 	vertical-align: top;
 }
@@ -636,7 +655,7 @@ body {
 }
 
 .scoreboard-team-row.eliminated .scoreboard-name .scoreboard-player-name {
-	color: #888888 !important;
+	color: #888888;
 	font-effect: outline(1dp #00000080);
 }
 
@@ -649,7 +668,6 @@ body {
 	display: block;
 	margin-bottom: 2dp;
 	overflow: hidden;
-	text-overflow: ellipsis;
 	max-width: 100%;
 	box-sizing: border-box;
 	text-align: left;
@@ -682,6 +700,5 @@ body {
 	font-effect: outline(1dp #000000CC);
 	display: table-cell;
 	padding: 8dp;
-	column-span: all;
 	white-space: nowrap;
 }

@@ -18,7 +18,6 @@ end
 
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
-
 if Spring.Utilities.Gametype.IsRaptors() or Spring.Utilities.Gametype.IsScavengers() then return false end
 
 local MODEL_NAME = "territorial_score_model"
@@ -46,8 +45,7 @@ local DEFAULT_COLOR_VALUE = 0.5
 local SECONDS_PER_MINUTE = 60
 local COUNTDOWN_ALERT_THRESHOLD = 60
 local COUNTDOWN_WARNING_THRESHOLD = 10
-local ROUND_END_POPUP_DELAY = 3
-local POPUP_FADE_OUT_DURATION = 0.5
+local ROUND_END_POPUP_DELAY = 5
 
 local UPDATE_INTERVAL = 0.5
 local SCORE_UPDATE_INTERVAL = 2.0
@@ -55,6 +53,18 @@ local SCORE_UPDATE_INTERVAL = 2.0
 local TIME_ZERO_STRING = "0:00"
 local KEY_ESCAPE = 27
 local AESTHETIC_POINTS_MULTIPLIER = 10 -- because bigger number feels good, and to help destinguish points from territory counts in round 1.
+
+local DEFAULT_PANEL_HEIGHT = 240
+local LEADERBOARD_GAP_BASE = 50
+local LEADERBOARD_GAP_SPECTATOR = 25
+
+local COLOR_BACKGROUND_ALPHA = 35
+local COLOR_BYTE_MAX = 255
+local DEFAULT_TEAM_COLOR = 0.5
+
+local MIN_TEAM_LIST_SIZE = 1
+local MAX_DATA_ITEMS = 10
+local MAX_ALLY_TEAMS = 8
 
 local GAIA_ALLY_TEAM_ID = select(6, spGetTeamInfo(spGetGaiaTeamID()))
 
@@ -71,7 +81,6 @@ local widgetState = {
 	popupState = {
 		isVisible = false,
 		showTime = 0,
-		fadeOutStartTime = nil,
 	},
 	cachedData = {
 		allyTeams = {},
@@ -163,15 +172,15 @@ local function fetchAllyTeamPlayerNames(allyTeamID)
 			local name = getAIName(teamID)
 			local r, g, b = spGetTeamColor(teamID)
 			if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
-				local anonymousColorR = Spring.GetConfigInt("anonymousColorR", 255) / 255
-				local anonymousColorG = Spring.GetConfigInt("anonymousColorG", 0) / 255
-				local anonymousColorB = Spring.GetConfigInt("anonymousColorB", 0) / 255
+				local anonymousColorR = Spring.GetConfigInt("anonymousColorR", COLOR_BYTE_MAX) / COLOR_BYTE_MAX
+				local anonymousColorG = Spring.GetConfigInt("anonymousColorG", 0) / COLOR_BYTE_MAX
+				local anonymousColorB = Spring.GetConfigInt("anonymousColorB", 0) / COLOR_BYTE_MAX
 				r, g, b = anonymousColorR, anonymousColorG, anonymousColorB
 			end
 			
-			local rByte = math.floor(r * 255)
-			local gByte = math.floor(g * 255)
-			local bByte = math.floor(b * 255)
+			local rByte = math.floor(r * COLOR_BYTE_MAX)
+			local gByte = math.floor(g * COLOR_BYTE_MAX)
+			local bByte = math.floor(b * COLOR_BYTE_MAX)
 			local colorHex = string.format("#%02X%02X%02X", rByte, gByte, bByte)
 			
 			table.insert(playerNames, {
@@ -188,15 +197,15 @@ local function fetchAllyTeamPlayerNames(allyTeamID)
 				
 				local r, g, b = spGetTeamColor(teamID)
 				if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
-					local anonymousColorR = Spring.GetConfigInt("anonymousColorR", 255) / 255
-					local anonymousColorG = Spring.GetConfigInt("anonymousColorG", 0) / 255
-					local anonymousColorB = Spring.GetConfigInt("anonymousColorB", 0) / 255
+					local anonymousColorR = Spring.GetConfigInt("anonymousColorR", COLOR_BYTE_MAX) / COLOR_BYTE_MAX
+					local anonymousColorG = Spring.GetConfigInt("anonymousColorG", 0) / COLOR_BYTE_MAX
+					local anonymousColorB = Spring.GetConfigInt("anonymousColorB", 0) / COLOR_BYTE_MAX
 					r, g, b = anonymousColorR, anonymousColorG, anonymousColorB
 				end
 				
-				local rByte = math.floor(r * 255)
-				local gByte = math.floor(g * 255)
-				local bByte = math.floor(b * 255)
+				local rByte = math.floor(r * COLOR_BYTE_MAX)
+				local gByte = math.floor(g * COLOR_BYTE_MAX)
+				local bByte = math.floor(b * COLOR_BYTE_MAX)
 				local colorHex = string.format("#%02X%02X%02X", rByte, gByte, bByte)
 				
 				table.insert(playerNames, {
@@ -277,11 +286,11 @@ local function buildLeaderboardRow(team, rank, isEliminated, isDead)
 		row:SetClass("eliminated", true)
 	end
 	
-	local teamColor = team.color or { r = 0.5, g = 0.5, b = 0.5 }
-	local rByte = math.floor(teamColor.r * 255)
-	local gByte = math.floor(teamColor.g * 255)
-	local bByte = math.floor(teamColor.b * 255)
-	local bgColor = string.format("rgba(%d, %d, %d, 35)", rByte, gByte, bByte)
+	local teamColor = team.color or { r = DEFAULT_TEAM_COLOR, g = DEFAULT_TEAM_COLOR, b = DEFAULT_TEAM_COLOR }
+	local rByte = math.floor(teamColor.r * COLOR_BYTE_MAX)
+	local gByte = math.floor(teamColor.g * COLOR_BYTE_MAX)
+	local bByte = math.floor(teamColor.b * COLOR_BYTE_MAX)
+	local bgColor = string.format("rgba(%d, %d, %d, %d)", rByte, gByte, bByte, COLOR_BACKGROUND_ALPHA)
 	row:SetAttribute("style", "background-color: " .. bgColor .. ";")
 	
 	local rankDiv = widgetState.document:CreateElement("div")
@@ -319,7 +328,7 @@ local function buildLeaderboardRow(team, rank, isEliminated, isDead)
 	
 	local territoriesDiv = widgetState.document:CreateElement("div")
 	territoriesDiv.class_name = "scoreboard-territories"
-	territoriesDiv.inner_rml = "x" .. territoryCount
+	territoriesDiv.inner_rml = tostring(territoryCount)
 	
 	local gainsDiv = widgetState.document:CreateElement("div")
 	gainsDiv.class_name = "scoreboard-gains"
@@ -467,43 +476,43 @@ end
 
 local function calculateUILayout()
 	if not widgetState.document then return end
-	
+
 	local tdRootElement = widgetState.document:GetElementById("td-root")
 	if not tdRootElement then return end
-	
+
 	local advPlayerListAPI = WG['advplayerlist_api']
 	if not advPlayerListAPI or not advPlayerListAPI.GetPosition then
 		widgetState.hasValidAdvPlayerListPosition = false
 		checkDocumentVisibility()
 		return
 	end
-	
+
 	local apiAbsPosition = advPlayerListAPI.GetPosition()
 	if not apiAbsPosition or #apiAbsPosition < 4 then
 		widgetState.hasValidAdvPlayerListPosition = false
 		checkDocumentVisibility()
 		return
 	end
-	
+
 	widgetState.hasValidAdvPlayerListPosition = true
-	
+
 	local screenWidth, screenHeight = Spring.GetViewGeometry()
 	if not screenWidth or screenWidth <= 0 then
 		return
 	end
-	
+
 	local GL_BASE_WIDTH = 1920
 	local GL_BASE_HEIGHT = 1080
 	local scaleX = screenWidth / GL_BASE_WIDTH
 	local scaleY = screenHeight / GL_BASE_HEIGHT
-	
+
 	local leaderboardTop = apiAbsPosition[1]
-	local gap = (50 + (spGetSpectatingState() and 25 or 0)) * scaleY
-	local panelHeight = tdRootElement.offset_height or 240
-	
+	local gap = (LEADERBOARD_GAP_BASE + (spGetSpectatingState() and LEADERBOARD_GAP_SPECTATOR or 0)) * scaleY
+	local panelHeight = tdRootElement.offset_height or DEFAULT_PANEL_HEIGHT
+
 	local leaderboardTopCss = screenHeight - leaderboardTop
 	local desiredBottomCss = leaderboardTopCss - gap
-	
+
 	if desiredBottomCss >= 0 and desiredBottomCss < screenHeight then
 		local topVh = (desiredBottomCss / screenHeight) * 100
 		local newStyle = string.format("left: 100vw; top: %.2fvh; transform: translate(-100%%, -100%%);", topVh)
@@ -513,7 +522,8 @@ local function calculateUILayout()
 		local newStyle = string.format("left: 100vw; top: %.2fvh; transform: translate(-100%%, -100%%);", fallbackTopVh)
 		tdRootElement:SetAttribute("style", newStyle)
 	end
-	
+
+
 	checkDocumentVisibility()
 end
 
@@ -521,7 +531,7 @@ local function createDataHash(data)
 	if type(data) == "table" then
 		local hash = ""
 		if #data > 0 then
-			for i = 1, math.min(#data, 10) do
+			for i = 1, math.min(#data, MAX_DATA_ITEMS) do
 				local item = data[i]
 				if type(item) == "table" and item.score and item.projectedPoints then
 					hash = hash .. tostring(item.score) .. ":" .. tostring(item.projectedPoints) .. "|"
@@ -533,15 +543,6 @@ local function createDataHash(data)
 	return tostring(data)
 end
 
-local function createTeamOrderHash(allyTeams)
-	local hash = ""
-	for i = 1, math.min(#allyTeams, 8) do
-		local team = allyTeams[i]
-		local total = (team.score or 0) + (team.projectedPoints or 0)
-		hash = hash .. tostring(team.allyTeamID) .. ":" .. tostring(total) .. "|"
-	end
-	return hash
-end
 
 local function hasDataChanged(newData, cacheTable, cacheKey)
 	local newHash = createDataHash(newData)
@@ -574,7 +575,9 @@ local function showRoundEndPopup(roundNumber, isFinalRound)
 
 	local popupElement = widgetState.document:GetElementById("round-end-popup")
 	local popupTextElement = widgetState.document:GetElementById("popup-text")
-	if not popupElement or not popupTextElement then return end
+	local territoryInfoElement = widgetState.document:GetElementById("popup-territory-info")
+	local eliminationInfoElement = widgetState.document:GetElementById("popup-elimination-info")
+	if not popupElement or not popupTextElement or not territoryInfoElement or not eliminationInfoElement then return end
 
 	local popupText = ""
 	if isFinalRound then
@@ -597,20 +600,26 @@ local function showRoundEndPopup(roundNumber, isFinalRound)
 	end
 
 	popupTextElement.inner_rml = popupText
+
+	local dataModel = widgetState.dmHandle
+	local pointsPerTerritory = (dataModel and dataModel.pointsPerTerritory) or 0
+	local eliminationThreshold = (dataModel and dataModel.eliminationThreshold) or 0
+
+	territoryInfoElement.inner_rml = spI18N('ui.territorialDomination.roundOverPopup.territoryWorth', { points = pointsPerTerritory })
+
+	if eliminationThreshold > 0 then
+		eliminationInfoElement.inner_rml = spI18N('ui.territorialDomination.roundOverPopup.eliminationBelow', { threshold = eliminationThreshold })
+	else
+		eliminationInfoElement.inner_rml = ""
+	end
+
 	popupElement.class_name = "popup-round-end visible"
 	widgetState.popupState.isVisible = true
 	widgetState.popupState.showTime = os.clock()
+	Spring.PlaySoundFile("sounds/global-events/scavlootdrop.wav", 0.8, 'ui')
+	Spring.PlaySoundFile("sounds/replies/servlrg3.wav", 1.0, 'ui')
 end
 
-local function completePopupFadeOut()
-	if not widgetState.document then return end
-
-	local popupElement = widgetState.document:GetElementById("round-end-popup")
-	if popupElement then
-		popupElement.class_name = "popup-round-end"
-	end
-	widgetState.popupState.fadeOutStartTime = nil
-end
 
 local function hideRoundEndPopup()
 	if not widgetState.document then return end
@@ -618,8 +627,7 @@ local function hideRoundEndPopup()
 	local popupElement = widgetState.document:GetElementById("round-end-popup")
 	if not popupElement then return end
 
-	popupElement.class_name = "popup-round-end fade-out"
-	widgetState.popupState.fadeOutStartTime = os.clock()
+	popupElement.class_name = "popup-round-end"
 	widgetState.popupState.isVisible = false
 end
 
@@ -628,7 +636,7 @@ local function getSelectedPlayerTeam()
 	if not myAllyTeamID then return nil end
 	
 	local teamList = spGetTeamList(myAllyTeamID)
-	if not teamList or #teamList == 0 then return nil end
+	if not teamList or #teamList < MIN_TEAM_LIST_SIZE then return nil end
 	
 	local firstTeamID = teamList[1]
 	local score = spGetTeamRulesParam(firstTeamID, "territorialDominationScore") or 0
@@ -901,7 +909,7 @@ local function updatePlayerDisplay()
 	
 	dataModel.territoryCount = "x" .. territoryCount
 	dataModel.territoryPoints = projectedPoints
-	dataModel.pointsPerTerritory = pointsPerTerritory
+	dataModel.pointsPerTerritory = tostring(pointsPerTerritory)
 	dataModel.territoryWorthText = spI18N('ui.territorialDomination.territories.worth', { points = pointsPerTerritory })
 	dataModel.currentScore = currentScore
 	dataModel.combinedScore = currentScore + projectedPoints
@@ -1051,7 +1059,7 @@ local function updateDataModel()
 	if scoresChanged or roundChanged then
 		dataModel.allyTeams = allyTeams
 		dataModel.currentRound = roundInfo.currentRound
-		dataModel.roundEndTime = roundInfo.roundEndTime
+		dataModel.roundEndTime = tostring(roundInfo.roundEndTime)
 		dataModel.maxRounds = roundInfo.maxRounds
 		dataModel.pointsCap = roundInfo.pointsCap
 		dataModel.prevHighestScore = roundInfo.prevHighestScore
@@ -1083,7 +1091,7 @@ local function updateDataModel()
 
 		if roundInfo.isFinalRound and previousTimeRemaining > 0 and roundInfo.timeRemainingSeconds <= 0 then
 			showRoundEndPopup(roundInfo.currentRound, true)
-		elseif previousRound ~= roundInfo.currentRound and previousRound > 0 then
+		elseif previousRound ~= roundInfo.currentRound and (previousRound > 0 or roundInfo.currentRound == 1) then
 			showRoundEndPopup(roundInfo.currentRound, false)
 		end
 	end
@@ -1208,7 +1216,6 @@ function widget:Shutdown()
 	end
 
 	widgetState.rmlContext = nil
-	widgetState.popupState.fadeOutStartTime = nil
 end
 
 function widget:Update()
@@ -1232,12 +1239,8 @@ function widget:Update()
 	end
 
 	if widgetState.popupState.isVisible then
-		if currentOSClock - widgetState.popupState.showTime >= ROUND_END_POPUP_DELAY then
+		if os.clock() - widgetState.popupState.showTime >= ROUND_END_POPUP_DELAY then
 			hideRoundEndPopup()
-		end
-	elseif widgetState.popupState.fadeOutStartTime then
-		if currentOSClock - widgetState.popupState.fadeOutStartTime >= POPUP_FADE_OUT_DURATION then
-			completePopupFadeOut()
 		end
 	end
 

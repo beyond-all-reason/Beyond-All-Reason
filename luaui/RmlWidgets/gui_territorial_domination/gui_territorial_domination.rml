@@ -36,8 +36,12 @@
 				</div>
 			</div>
 		</div>
-		<div id="round-end-popup" class="popup-round-end">
-			<div id="popup-text" class="popup-text"></div>
+		<div id="round-end-popup" class="popup-round-end" data-model="territorial_score_model">
+			<div class="popup-content">
+				<div id="popup-text" class="popup-text"></div>
+				<div id="popup-territory-info" class="popup-territory-info"></div>
+				<div id="popup-elimination-info" class="popup-elimination-info"></div>
+			</div>
 		</div>
 		<div id="leaderboard-panel" class="scoreboard-panel hidden" data-model="territorial_score_model">
 			<div id="leaderboard-overlay" class="scoreboard-overlay"></div>

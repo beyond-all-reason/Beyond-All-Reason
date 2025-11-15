@@ -695,7 +695,9 @@
 				"victory": "Victory",
 				"defeat": "Defeat",
 				"round": "Round %{roundNumber}",
-				"finalRound": "Final Round"
+				"finalRound": "Final Round",
+				"territoryWorth": "Territories are worth %{points} points each",
+				"eliminationBelow": "Elimination below %{threshold}!"
 			},
 			"round": {
 				"display": "Round %{currentRound}",
