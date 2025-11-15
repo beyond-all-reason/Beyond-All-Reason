@@ -55,7 +55,7 @@ local CLOAKED_UNIT_POWER_MULTIPLIER = 0
 local STATIC_UNIT_POWER_MULTIPLIER = 3
 local COMMANDER_POWER_MULTIPLIER = 1000
 local MAX_INITIAL_POINTS_CAP = 300
-local AESTHETIC_POINTS_MULTIPLIER = 10 --to be consistent with gui_territorial_domination.lua
+local AESTHETIC_POINTS_MULTIPLIER = 2 --to be consistent with gui_territorial_domination.lua
 
 local MAX_PROGRESS = 1.0
 local STARTING_PROGRESS = 0
@@ -559,18 +559,19 @@ end
 local function updateProjectedPoints()
 	for allyID in pairs(allyTeamsWatch) do
 		local projectedScore = 0
+		local territoryCount = 0
 		if not gameOver then
 			for gridID, data in pairs(captureGrid) do
 				if data.progress > OWNERSHIP_THRESHOLD and data.allyOwnerID == allyID then
 					projectedScore = projectedScore + currentRound * AESTHETIC_POINTS_MULTIPLIER
+					territoryCount = territoryCount + 1
 				end
 			end
 		end
 		projectedAllyTeamPoints[allyID] = projectedScore
-	end
-	for allyID, projectedScore in pairs(projectedAllyTeamPoints) do
 		for teamID, _ in pairs(allyTeamsWatch[allyID] or {}) do
 			Spring.SetTeamRulesParam(teamID, "territorialDominationProjectedPoints", projectedScore, {public = true})
+			Spring.SetTeamRulesParam(teamID, "territorialDominationTerritoryCount", territoryCount, {public = true})
 		end
 	end
 end

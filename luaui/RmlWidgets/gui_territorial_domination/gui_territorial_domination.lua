@@ -52,7 +52,7 @@ local SCORE_UPDATE_INTERVAL = 2.0
 
 local TIME_ZERO_STRING = "0:00"
 local KEY_ESCAPE = 27
-local AESTHETIC_POINTS_MULTIPLIER = 10 -- because bigger number feels good, and to help destinguish points from territory counts in round 1.
+local AESTHETIC_POINTS_MULTIPLIER = 2 -- because bigger number feels good, and to help destinguish points from territory counts in round 1.
 
 local DEFAULT_PANEL_HEIGHT = 240
 local LEADERBOARD_GAP_BASE = 50
@@ -312,9 +312,7 @@ local function buildLeaderboardRow(team, rank, isEliminated, isDead)
 	previousScoreDiv.inner_rml = tostring(previousScore) .. "pts"
 	
 	local dataModel = widgetState.dmHandle
-	local currentRound = (dataModel and dataModel.currentRound) or 1
-	local pointsPerTerritory = currentRound > 0 and currentRound * AESTHETIC_POINTS_MULTIPLIER or AESTHETIC_POINTS_MULTIPLIER
-	local territoryCount = pointsPerTerritory > 0 and math.floor((team.projectedPoints or 0) / pointsPerTerritory) or 0
+	local territoryCount = team.territoryCount or 0
 	
 	local territoriesDiv = widgetState.document:CreateElement("div")
 	territoriesDiv.class_name = "scoreboard-territories"
@@ -629,13 +627,15 @@ local function getSelectedPlayerTeam()
 	local firstTeamID = teamList[1]
 	local score = spGetTeamRulesParam(firstTeamID, "territorialDominationScore") or 0
 	local projectedPoints = spGetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0
-	
+	local territoryCount = spGetTeamRulesParam(firstTeamID, "territorialDominationTerritoryCount") or 0
+
 	return {
 		name = getAllyTeamPlayerNames(myAllyTeamID),
 		allyTeamID = myAllyTeamID,
 		firstTeamID = firstTeamID,
 		score = score,
 		projectedPoints = projectedPoints,
+		territoryCount = territoryCount,
 		color = getAllyTeamColor(myAllyTeamID),
 		rank = spGetTeamRulesParam(firstTeamID, "territorialDominationDisplayRank") or 1,
 		teamCount = #teamList,
@@ -666,14 +666,16 @@ local function updateAllyTeamData()
 			local firstTeamID = nil
 			local score = 0
 			local projectedPoints = 0
+			local territoryCount = 0
 			local hasAliveTeam = false
 			local teamCount = 0
-			
+
 			if hasTeamList then
 				firstTeamID = teamList[1]
 				score = spGetTeamRulesParam(firstTeamID, "territorialDominationScore") or 0
 				projectedPoints = spGetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0
-				
+				territoryCount = spGetTeamRulesParam(firstTeamID, "territorialDominationTerritoryCount") or 0
+
 				for j = 1, #teamList do
 					local _, _, isDead = spGetTeamInfo(teamList[j])
 					if not isDead then
@@ -696,6 +698,7 @@ local function updateAllyTeamData()
 					firstTeamID = existingTeam.firstTeamID
 					score = existingTeam.score or 0
 					projectedPoints = existingTeam.projectedPoints or 0
+					territoryCount = existingTeam.territoryCount or 0
 					teamCount = existingTeam.teamCount or 0
 				end
 			end
@@ -711,6 +714,7 @@ local function updateAllyTeamData()
 				firstTeamID = firstTeamID,
 				score = score,
 				projectedPoints = projectedPoints,
+				territoryCount = territoryCount,
 				color = getAllyTeamColor(allyTeamID),
 				rank = rank,
 				teamCount = teamCount,
@@ -843,7 +847,7 @@ local function updatePlayerDisplay()
 	local currentRound = dataModel.currentRound or 0
 	local pointsPerTerritory = currentRound > 0 and currentRound * AESTHETIC_POINTS_MULTIPLIER or AESTHETIC_POINTS_MULTIPLIER
 	local projectedPoints = selectedTeam.projectedPoints or 0
-	local territoryCount = pointsPerTerritory > 0 and math.floor(projectedPoints / pointsPerTerritory) or 0
+	local territoryCount = selectedTeam.territoryCount or 0
 	local currentScore = selectedTeam.score or 0
 	local teamName = selectedTeam.name or ""
 	local eliminationThreshold = dataModel.prevHighestScore or 0
