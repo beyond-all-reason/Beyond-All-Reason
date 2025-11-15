@@ -149,8 +149,6 @@ local pendingFeatureDestructions = {} -- Queue for batching FeatureDestroyed cal
 local pendingDestructionCount = 0 -- Count of pending destructions
 local pendingFeatureCreations = {} -- Queue for batching FeatureCreated calls
 local pendingCreationCount = 0 -- Count of pending creations
-local dirtyClustersList = {} -- Reusable table for dirty clusters in UpdateFeatureReclaim
-local dirtyEnergyClustersListList = {} -- Reusable table for dirty energy clusters in UpdateFeatureReclaim
 local affectedFeaturesList = {} -- Reusable table for regional clustering
 local affectedClustersList = {} -- Reusable table for regional clustering
 
@@ -2138,7 +2136,7 @@ local function UpdateReclaimFields(frame)
 		pendingCreationCount = 0
 		clusterizingNeeded = true
 	end
-	
+
 	-- Process batched feature destructions
 	if pendingDestructionCount > 0 then
 		for i = 1, pendingDestructionCount do
@@ -2340,7 +2338,7 @@ local function UpdateReclaimFields(frame)
 			end
 
 			-- Recreate all metal cluster display lists (if metal fields are visible)
-			if drawEnabled then
+			if drawEnabled or not gameStarted then
 				for cid = 1, #featureClusters do
 					if featureClusters[cid] then
 						CreateClusterDisplayList(cid, false)
@@ -2349,7 +2347,7 @@ local function UpdateReclaimFields(frame)
 			end
 
 			-- Recreate all energy cluster display lists (if energy fields are visible)
-			if drawEnergyEnabled and showEnergyFields and not allEnergyFieldsDrained then
+			if (drawEnergyEnabled and showEnergyFields and not allEnergyFieldsDrained) or not gameStarted then
 				for cid = 1, #energyFeatureClusters do
 					if energyFeatureClusters[cid] then
 						CreateClusterDisplayList(cid, true)
