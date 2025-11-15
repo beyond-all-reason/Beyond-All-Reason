@@ -2,16 +2,19 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-	name	= "Spy move/reclaim defaults",
-	desc	= "prevents accidental spy decloak\nmakes move the default command for spies when cloaked",
-	author	= "BrainDamage",
-	date	= "-",
-	license	= "WTFPL and horses",
+	name	= "Cloaked Buildpower Default Move",
+	desc	= "Prevents accidental reclaim, load, and attack commands on cloaked units\nMakes move the default command for commanders, decoys, and spies when cloaked",
+	author	= "Catcow, BrainDamage",
+	date	= "11/14/25",
+	license	= "GNU GPL, v2 or later",
 	layer	= -999999,
 	enabled	= true,
 	}
 end
 
+-- NOTE: This was initially only for spy bots and made only by BrainDamage,
+--       but Catcow updated it to abstractly include commanders and decoys
+--       and anything else that cloaks, builds, and moves
 
 -- Localized Spring API for performance
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
@@ -21,17 +24,10 @@ local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetUnitStates = Spring.GetUnitStates
 
-local idIsSpy = {}
-
-local spyNames = {
-	'armspy',
-	'corspy',
-	'legaspy',
-}
-
-for _, spyName in ipairs(spyNames) do
-	if UnitDefNames[spyName] then
-		idIsSpy[UnitDefNames[spyName].id] = true
+local idCanBuildCloakMove = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.canCloak and unitDef.canReclaim and unitDef.canMove then
+		idCanBuildCloakMove[unitDefID] = true
 	end
 end
 
@@ -40,28 +36,28 @@ local gameStarted, selectionChanged
 local CMD_MOVE = CMD.MOVE
 local CMD_CLOAK = 37382
 
-function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
-        widgetHandler:RemoveWidget()
-    end
+local function maybeRemoveSelf()
+	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+		widgetHandler:RemoveWidget()
+	end
 end
 
 function widget:GameStart()
-    gameStarted = true
-    maybeRemoveSelf()
+	gameStarted = true
+	maybeRemoveSelf()
 end
 
 function widget:PlayerChanged(playerID)
-    maybeRemoveSelf()
+	maybeRemoveSelf()
 end
 
 function widget:Initialize()
-    if Spring.IsReplay() or spGetGameFrame() > 0 then
-        maybeRemoveSelf()
-    end
+	if Spring.IsReplay() or spGetGameFrame() > 0 then
+		maybeRemoveSelf()
+	end
 end
 
-local cloakedSpySelected = false
+local cloakedBuilderMovableSelected = false
 local selectedUnitsCount = spGetSelectedUnitsCount()
 function widget:SelectionChanged(sel)
 	selectionChanged = true
@@ -77,17 +73,17 @@ function widget:Update(dt)
 
 		selectedUnitsCount = spGetSelectedUnitsCount()
 
-		cloakedSpySelected = false
-		-- above a little amount we aren't micro-ing spies anymore...
-		if selectedUnitsCount == 0 or selectedUnitsCount > 12 then return end
+		cloakedBuilderMovableSelected = false
+		-- above a little amount we likely aren't micro-ing cloaked things anymore...
+		if selectedUnitsCount == 0 or selectedUnitsCount > 20 then return end
 
 		local selectedUnitTypes = spGetSelectedUnitsSorted()
 		for unitDefID, units in pairs(selectedUnitTypes) do
-			if idIsSpy[unitDefID] then
+			if idCanBuildCloakMove[unitDefID] then
 				for _, unitID in pairs(units) do
 					-- 5=cloak https://recoilengine.org/docs/lua-api/#Spring.GetUnitStates
 					if select(5, spGetUnitStates(unitID,false,true)) then
-						cloakedSpySelected = true
+						cloakedBuilderMovableSelected = true
 						return
 					end
 				end
@@ -97,13 +93,13 @@ function widget:Update(dt)
 end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-	if (cmdID == CMD_CLOAK) and (idIsSpy[unitDefID]) and (teamID == spGetMyTeamID()) then
-        selectionChanged = true
-    end
+	if (cmdID == CMD_CLOAK) and (idCanBuildCloakMove[unitDefID]) and (teamID == spGetMyTeamID()) then
+		selectionChanged = true
+	end
 end
 
 function widget:DefaultCommand()
-	if cloakedSpySelected then
+	if cloakedBuilderMovableSelected then
 		return CMD_MOVE
 	end
 end
