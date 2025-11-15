@@ -84,7 +84,8 @@ piece
     leftGun3Flare2,
     bow,
     wake,
-    engineSpurt
+    engineSpurt,
+    aimbit
 ;
 
 
@@ -98,7 +99,8 @@ static-var
     frontRailgun1WhichBarrel,
     frontRailgun2WhichBarrel,
     rearRailgun1WhichBarrel,
-    rearRailgun2WhichBarrel
+    rearRailgun2WhichBarrel,
+    mainTurretHeadingVar
 ;
 
 // Signal definitions
@@ -121,7 +123,7 @@ static-var
 
 #include "../bar_ships_common.h"
 
-
+//////////////////////////////////////////////////////////////// CREATE FUNCTION
 
 Create()
 {
@@ -156,6 +158,8 @@ Create()
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script BoatPhysics();
 }
+
+//////////////////////////////////////////////////////////////// RESTORE FUNCTIONS
 
 SetMaxReloadTime(reloadMS)
 {
@@ -361,23 +365,6 @@ RestoreAfterDelayLG3()
 	start-script ExecuteRestoreAfterDelayLG3();
 }
 
-RestoreAfterDelay2()
-{
-	sleep restore_delay;
-	turn tur2 to y-axis <0.0> speed <100.0>;
-	turn tur5 to y-axis <0.0> speed <100.0>;
-	turn tur6 to y-axis <0.0> speed <100.0>;
-}
-
-RestoreAfterDelay3()
-{
-	sleep restore_delay;
-	turn tur3 to y-axis <0.0> speed <125.0>;
-	turn sleeves3 to x-axis <0.0> speed <125.0>;
-	turn tur4 to y-axis <0.0> speed <125.0>;
-	turn sleeves4 to x-axis <0.0> speed <125.0>;
-}
-
 waveSplash()
 {
 	while( TRUE )
@@ -401,7 +388,7 @@ StopMoving()
 
 }
 
-
+//////////////////////////////////////////////////////////////// WEAPON FUNCTIONS
 
 AimFromWeapon1(pieceIndex)
 {
@@ -410,7 +397,7 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = flare1a + gun_1;
+	pieceIndex = torus3;
 }
 
 
@@ -438,7 +425,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	aimDir1 = heading;
+	mainTurretHeadingVar = heading;
 	//We can do this any time
 	turn targetingWeaponPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <25.0>;
 	
@@ -446,53 +433,10 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-FireWeapon1()
-{
-	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
-}
-
-Shot1()
-{
-	if( gun_1 == 0 )
-	{
-	    emit-sfx 1024 + 0 from flare1a;
-		move barrel1a to z-axis [-2.0] speed [500.0];
-		sleep 100;
-		move barrel1a to z-axis [0.0] speed [3.0];
-		gun_1 = 1; 
-		// unfortunately, while the EndBurstX() habit prevents single shot units from swapping barrels after the Friendly-Fire check, 
-		// you still have to sleep at least 1 frame for per-burst-shot barrel swaps
-	}
-	else if( gun_1 == 1 )
-	{
-	    emit-sfx 1024 + 0 from flare1b;
-		move barrel1b to z-axis [-2.0] speed [500.0];
-		sleep 100;
-		move barrel1b to z-axis [0.0] speed [3.0];
-		gun_1 = 2; 
-	}
-	else if( gun_1 == 2 )
-	{
-	    emit-sfx 1024 + 0 from flare1c;
-		move barrel1c to z-axis [-2.0] speed [500.0];
-		sleep 100;
-		move barrel1c to z-axis [0.0] speed [3.0];
-		gun_1 = 3; 
-	}
-	else if( gun_1 == 3 )
-	{
-	    emit-sfx 1024 + 0 from flare1d;
-		move barrel1d to z-axis [-2.0] speed [500.0];
-		sleep 100;
-		move barrel1d to z-axis [0.0] speed [3.0];
-		gun_1 = 0; 
-	}
-}
-
-EndBurst1()
-{
-	gun_1 = 0; //Makes sure barrel is properly reset even if the burst is interrupted
-}
+// FireWeapon1()
+// {
+// 	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+// }
 
 AimFromWeapon2(pieceIndex)
 {
