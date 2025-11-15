@@ -145,6 +145,10 @@ local useRegionalUpdates = true -- Enable regional optimization
 
 -- Reusable tables to reduce allocations in GameFrame
 local toRemoveFeatures = {} -- Reusable table for batching feature removals
+local pendingFeatureDestructions = {} -- Queue for batching FeatureDestroyed calls
+local pendingDestructionCount = 0 -- Count of pending destructions
+local pendingFeatureCreations = {} -- Queue for batching FeatureCreated calls
+local pendingCreationCount = 0 -- Count of pending creations
 local dirtyClustersList = {} -- Reusable table for dirty clusters in UpdateFeatureReclaim
 local dirtyEnergyClustersListList = {} -- Reusable table for dirty energy clusters in UpdateFeatureReclaim
 local affectedFeaturesList = {} -- Reusable table for regional clustering
@@ -160,6 +164,13 @@ local baseCheckFrequency = math.round(checkFrequency * Game.gameSpeed)
 checkFrequency = baseCheckFrequency
 local lastFeatureCount = 0
 local cachedKnownFeaturesCount = 0 -- Cached count to avoid iterating all features
+
+-- Catch-up detection: track GameFrame calls per second to detect reconnection catch-up
+local gameFrameCallCount = 0
+local lastGameFrameTrackTime = Spring.GetTimer()
+local gameFramesPerSecond = 30 -- Normal rate
+local featureCountMultiplier = 1 -- Multiplier based on feature count
+local catchUpMultiplier = 1 -- Multiplier during catch-up
 
 -- Track timing for pre-gamestart updates
 local preGameStartTimer = 0
@@ -1116,6 +1127,64 @@ end
 local DeleteClusterDisplayList
 local CreateClusterDisplayList
 
+local function AddFeature(featureID)
+	local metal, _, energy = spGetFeatureResources(featureID)
+	if (not metal or metal < minFeatureValue) and (not energy or energy < minFeatureValue) then
+		return
+	end
+
+	local x, y, z = spGetFeaturePosition(featureID)
+	if not x then return end
+
+	-- Mark region as dirty for regional reclustering
+	MarkRegionDirty(x, z)
+
+	local radius = spGetFeatureRadius(featureID) or 0
+	local feature = {
+		fid   = featureID,
+		metal = metal or 0,
+		energy = energy or 0,
+		x     = x,
+		y     = max(0, y),
+		z     = z,
+		radius = radius,
+	}
+
+	-- To deal with e.g. raptor eggs spawning at altitude ~20:
+	if y > 0 then
+		local elevation = spGetGroundHeight(x, z)
+		if elevation and elevation > 0 and y > elevation + 2 then
+			flyingFeatures[featureID] = feature
+			return -- Delay clusterizing until stationary.
+		end
+	end
+
+	-- Assuming the feature's motion is highly likely negligible:
+	local M = featureNeighborsMatrix
+	local M_newFeature = {}
+	local reachDistSq, epsilonSq = mathHuge, epsilonSq
+	for fid2, feat2 in pairs(knownFeatures) do
+		local dx, dz = x - feat2.x, z - feat2.z
+		local distSq = dx * dx + dz * dz
+		if distSq <= epsilonSq then
+			M[fid2][featureID] = distSq
+			M_newFeature[fid2] = distSq
+			if distSq < reachDistSq then
+				reachDistSq = distSq
+			end
+			if feat2.rd == nil or distSq < feat2.rd then
+				feat2.rd = distSq
+			end
+		end
+	end
+	featureNeighborsMatrix[featureID] = M_newFeature
+	if reachDistSq < epsilonSq then
+		feature.rd = reachDistSq
+	end
+	knownFeatures[featureID] = feature
+	cachedKnownFeaturesCount = cachedKnownFeaturesCount + 1
+end
+
 local function RemoveFeature(featureID)
 	local feature = knownFeatures[featureID]
 	if not feature then return end
@@ -1701,19 +1770,19 @@ CreateClusterDisplayList = function(cid, isEnergy)
 	local displayLists = isEnergy and energyClusterDisplayLists or clusterDisplayLists
 	local clusters = isEnergy and energyFeatureClusters or featureClusters
 	local hulls = isEnergy and energyFeatureConvexHulls or featureConvexHulls
-	
+
 	local cluster = clusters[cid]
 	local hull = hulls[cid]
 	if not cluster or not hull or not cluster.center then
 		return
 	end
-	
+
 	-- Delete existing display list if present
 	DeleteClusterDisplayList(cid, isEnergy)
-	
+
 	-- Create new display lists for this cluster
 	local clusterData = {}
-	
+
 	-- Create gradient fill display list
 	clusterData.gradient = glCreateList(function()
 		local colors = nil
@@ -1736,12 +1805,12 @@ CreateClusterDisplayList = function(cid, isEnergy)
 		end
 		glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, hull, cluster.center, colors)
 	end)
-	
+
 	-- Create edge display list
 	clusterData.edge = glCreateList(function()
 		glBeginEnd(GL.LINE_LOOP, DrawHullVertices, hull)
 	end)
-	
+
 	displayLists[cid] = clusterData
 end
 
@@ -2007,7 +2076,7 @@ function widget:Shutdown()
 	for cid in pairs(energyClusterDisplayLists) do
 		DeleteClusterDisplayList(cid, true)
 	end
-	
+
 	-- Clean up old monolithic display lists (for compatibility)
 	if drawFeatureConvexHullGradientList ~= nil then
 		glDeleteList(drawFeatureConvexHullGradientList)
@@ -2059,6 +2128,30 @@ end
 
 -- Core update logic extracted to be called from both Update and GameFrame
 local function UpdateReclaimFields(frame)
+	-- Process batched feature creations first
+	if pendingCreationCount > 0 then
+		for i = 1, pendingCreationCount do
+			local featureID = pendingFeatureCreations[i]
+			AddFeature(featureID)
+			pendingFeatureCreations[i] = nil
+		end
+		pendingCreationCount = 0
+		clusterizingNeeded = true
+	end
+	
+	-- Process batched feature destructions
+	if pendingDestructionCount > 0 then
+		for i = 1, pendingDestructionCount do
+			local featureID = pendingFeatureDestructions[i]
+			if knownFeatures[featureID] then
+				RemoveFeature(featureID)
+			end
+			pendingFeatureDestructions[i] = nil
+		end
+		pendingDestructionCount = 0
+		clusterizingNeeded = true
+	end
+
 	-- Before gamestart, always show reclaim fields regardless of settings
 	if drawEnabled == false and gameStarted then
 		return
@@ -2074,14 +2167,16 @@ local function UpdateReclaimFields(frame)
 		if currentFeatureCount ~= lastFeatureCount then
 			lastFeatureCount = currentFeatureCount
 			if currentFeatureCount < 500 then
-				checkFrequency = baseCheckFrequency -- Normal frequency
+				featureCountMultiplier = 1 -- Normal frequency
 			elseif currentFeatureCount < 1500 then
-				checkFrequency = baseCheckFrequency * 2 -- 500-1500 features: 2x slower
+				featureCountMultiplier = 2 -- 500-1500 features: 2x slower
 			elseif currentFeatureCount < 3000 then
-				checkFrequency = baseCheckFrequency * 3 -- 1500-3000 features: 3x slower
+				featureCountMultiplier = 3 -- 1500-3000 features: 3x slower
 			else
-				checkFrequency = baseCheckFrequency * 4 -- 3000+ features: 4x slower
+				featureCountMultiplier = 4 -- 3000+ features: 4x slower
 			end
+			-- Apply both multipliers (feature count and catch-up)
+			checkFrequency = math.ceil(baseCheckFrequency * featureCountMultiplier * catchUpMultiplier)
 		end
 	end
 
@@ -2219,7 +2314,7 @@ local function UpdateReclaimFields(frame)
 		-- This is much faster than redrawing everything
 		-- Force full redraw when visibility changes or when there are too many dirty clusters
 		local useIncrementalUpdate = not forceFullRedraw and ((dirtyMetalCount > 0 and dirtyMetalCount < 20) or (dirtyEnergyCount > 0 and dirtyEnergyCount < 20))
-		
+
 		if useIncrementalUpdate then
 			-- Recreate only dirty metal clusters
 			for cid in pairs(dirtyClusters) do
@@ -2227,7 +2322,7 @@ local function UpdateReclaimFields(frame)
 					CreateClusterDisplayList(cid, false)
 				end
 			end
-			
+
 			-- Recreate only dirty energy clusters
 			for cid in pairs(dirtyEnergyClusters) do
 				if energyFeatureClusters[cid] then
@@ -2243,7 +2338,7 @@ local function UpdateReclaimFields(frame)
 			for cid in pairs(energyClusterDisplayLists) do
 				DeleteClusterDisplayList(cid, true)
 			end
-			
+
 			-- Recreate all metal cluster display lists (if metal fields are visible)
 			if drawEnabled then
 				for cid = 1, #featureClusters do
@@ -2252,7 +2347,7 @@ local function UpdateReclaimFields(frame)
 					end
 				end
 			end
-			
+
 			-- Recreate all energy cluster display lists (if energy fields are visible)
 			if drawEnergyEnabled and showEnergyFields and not allEnergyFieldsDrained then
 				for cid = 1, #energyFeatureClusters do
@@ -2270,7 +2365,7 @@ local function UpdateReclaimFields(frame)
 		for cid in pairs(dirtyEnergyClusters) do
 			dirtyEnergyClusters[cid] = nil
 		end
-		
+
 		-- Reset force full redraw flag
 		forceFullRedraw = false
 	end
@@ -2340,73 +2435,51 @@ function widget:GameFrame(frame)
 	-- Mark that the game has started
 	gameStarted = true
 
+	-- Track GameFrame calls per second to detect catch-up (reconnection)
+	gameFrameCallCount = gameFrameCallCount + 1
+	local currentTime = Spring.GetTimer()
+	local elapsedSeconds = Spring.DiffTimers(currentTime, lastGameFrameTrackTime)
+
+	if elapsedSeconds >= 1.0 then
+		-- Update game frames per second
+		gameFramesPerSecond = gameFrameCallCount / elapsedSeconds
+		gameFrameCallCount = 0
+		lastGameFrameTrackTime = currentTime
+
+		-- Adjust checkFrequency based on game speed
+		-- During catch-up, gameFramesPerSecond can be 100+, so increase checkFrequency proportionally
+		-- Normal is 30fps, so if we're at 120fps during catch-up, multiply checkFrequency by 4
+		-- When back to normal speed (<=45fps), restore base frequency
+		if gameFramesPerSecond <= 45 then
+			-- Normal speed - no catch-up multiplier
+			catchUpMultiplier = 1
+		else
+			-- Catch-up mode - increase frequency proportionally to maintain same real-time update rate
+			catchUpMultiplier = math.min(gameFramesPerSecond / 30, 7)
+		end
+
+		-- Apply both multipliers (feature count and catch-up)
+		checkFrequency = math.ceil(baseCheckFrequency * featureCountMultiplier * catchUpMultiplier)
+
+	end
+
 	-- Use the extracted update logic
 	UpdateReclaimFields(frame)
 end
 
 function widget:FeatureCreated(featureID, allyTeamID)
-	local metal, _, energy = spGetFeatureResources(featureID)
-	if (not metal or metal < minFeatureValue) and (not energy or energy < minFeatureValue) then
-		return
-	end
-
-	local x, y, z = spGetFeaturePosition(featureID)
-	if not x then return end
-
-	-- Mark region as dirty for regional reclustering
-	MarkRegionDirty(x, z)
-
-	local radius = spGetFeatureRadius(featureID) or 0
-	local feature = {
-		fid   = featureID,
-		metal = metal or 0,
-		energy = energy or 0,
-		x     = x,
-		y     = max(0, y),
-		z     = z,
-		radius = radius,
-	}
-
-	-- To deal with e.g. raptor eggs spawning at altitude ~20:
-	if y > 0 then
-		local elevation = spGetGroundHeight(x, z)
-		if elevation and elevation > 0 and y > elevation + 2 then
-			flyingFeatures[featureID] = feature
-			return -- Delay clusterizing until stationary.
-		end
-	end
-
-	-- Assuming the feature's motion is highly likely negligible:
-	local M = featureNeighborsMatrix
-	local M_newFeature = {}
-	local reachDistSq, epsilonSq = mathHuge, epsilonSq
-	for fid2, feat2 in pairs(knownFeatures) do
-		local dx, dz = x - feat2.x, z - feat2.z
-		local distSq = dx * dx + dz * dz
-		if distSq <= epsilonSq then
-			M[fid2][featureID] = distSq
-			M_newFeature[fid2] = distSq
-			if distSq < reachDistSq then
-				reachDistSq = distSq
-			end
-			if feat2.rd == nil or distSq < feat2.rd then
-				feat2.rd = distSq
-			end
-		end
-	end
-	featureNeighborsMatrix[featureID] = M_newFeature
-	if reachDistSq < epsilonSq then
-		feature.rd = reachDistSq
-	end
-	knownFeatures[featureID] = feature
-	cachedKnownFeaturesCount = cachedKnownFeaturesCount + 1
-	clusterizingNeeded = true
+	-- Batch feature creations instead of processing immediately
+	-- This significantly improves performance during catch-up when hundreds of features are created per frame
+	pendingCreationCount = pendingCreationCount + 1
+	pendingFeatureCreations[pendingCreationCount] = featureID
 end
 function widget:FeatureDestroyed(featureID, allyTeamID)
+	-- Batch feature destructions instead of processing immediately
+	-- This significantly improves performance during catch-up when hundreds of features are destroyed per frame
 	if knownFeatures[featureID] ~= nil then
-		RemoveFeature(featureID)
-		clusterizingNeeded = true
-	else
+		pendingDestructionCount = pendingDestructionCount + 1
+		pendingFeatureDestructions[pendingDestructionCount] = featureID
+	elseif flyingFeatures[featureID] then
 		flyingFeatures[featureID] = nil
 	end
 end
