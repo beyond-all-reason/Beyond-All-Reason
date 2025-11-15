@@ -226,20 +226,7 @@ local moveDatas = {
 		badslope = 36,
 		badwaterslope = 255,
 		crushstrength = 252,
-		footprintx = 7,
-		footprintz = 7,
-		maxslope = 36,
-		slopeMod = 18,
-		maxwaterslope = 255,
-	},
-
-	-- leganavybattleship
-	HOVER7 = {
-		badslope = 36,
-		badwaterslope = 255,
-		crushstrength = 252,
-		footprintx = 7,
-		footprintz = 7,
+		footprint = 7,
 		maxslope = 36,
 		slopeMod = 18,
 		maxwaterslope = 255,
