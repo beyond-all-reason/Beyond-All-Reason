@@ -735,8 +735,6 @@
 				"headerTotal": "Total",
 				"eliminationThreshold": "Elimination Threshold"
 			},
-			"danger": "DANGER",
-			"defeated": "DEFEATED",
 			"eliminationBelow": "Elimination Below %{value}"
 		},
 		"loadScreen": {

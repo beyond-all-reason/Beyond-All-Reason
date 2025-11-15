@@ -64,7 +64,6 @@ local DEFAULT_TEAM_COLOR = 0.5
 
 local MIN_TEAM_LIST_SIZE = 1
 local MAX_DATA_ITEMS = 10
-local MAX_ALLY_TEAMS = 8
 
 local GAIA_ALLY_TEAM_ID = select(6, spGetTeamInfo(spGetGaiaTeamID()))
 
@@ -87,14 +86,7 @@ local widgetState = {
 		roundInfo = {},
 		lastTimeHash = "",
 	},
-	lastSpectatingState = nil,
 	lastPointsCap = 0,
-	lastRoundEndTime = 0,
-	lastCurrentRound = 0,
-	lastMaxRounds = 0,
-	lastTimeRemaining = "",
-	lastRoundDisplayText = "",
-	lastCountdownWarning = false,
 	lastAllyTeamCount = 0,
 	lastTeamOrderHash = "",
 	lastGameTime = 0,
@@ -102,12 +94,10 @@ local widgetState = {
 	lastTimeRemainingSeconds = 0,
 	leaderboardPanel = nil,
 	isLeaderboardVisible = false,
-	lastRoundScores = {},
 	cachedPlayerNames = {},
 	cachedTeamColors = {},
 	knownAllyTeamIDs = {},
 	hasCachedInitialNames = false,
-	isGamePaused = false,
 	hasValidAdvPlayerListPosition = false,
 }
 
@@ -456,8 +446,6 @@ local function checkDocumentVisibility()
 	local _, _, isClientPaused, _ = Spring.GetGameState()
 	local isGameStarted = currentTime > 0
 	local shouldShow = pointsCap and pointsCap > 0 and isGameStarted and not isClientPaused and not widgetState.hiddenByLobby and widgetState.hasValidAdvPlayerListPosition
-	
-	widgetState.isGamePaused = isClientPaused
 	
 	if widgetState.document then
 		if shouldShow and not widgetState.isDocumentVisible then
@@ -1043,12 +1031,6 @@ local function updateDataModel()
 	local roundChanged = hasDataChanged(roundInfo, widgetState.cachedData, "roundInfo")
 	local timeChanged = hasDataChanged(math.floor(roundInfo.timeRemainingSeconds or 0), widgetState.cachedData, "lastTimeHash")
 
-	if roundChanged and previousRound > 0 and roundInfo.currentRound > previousRound then
-		for i = 1, #allyTeams do
-			local team = allyTeams[i]
-			widgetState.lastRoundScores[team.allyTeamID] = team.score
-		end
-	end
 	
 	if roundChanged and (dataModel.currentRound or 0) ~= roundInfo.currentRound then
 		resetCache()
