@@ -72,7 +72,7 @@ local expansionMultiplier = 0.3 -- Global multiplier for all field expansions (a
 
 --Smoothing settings
 local enableSmoothing = true -- Enable smooth rounded edges with Catmull-Rom interpolation
-local smoothingSegments = 5 -- Number of segments per edge
+local smoothingSegments = 4 -- Number of segments per edge
 -- Note: Smoothing can be toggled at runtime via:
 --   WG['reclaimfieldhighlight'].setEnableSmoothing(true/false)
 --   WG['reclaimfieldhighlight'].setSmoothingSegments(value)
@@ -80,8 +80,11 @@ local smoothingSegments = 5 -- Number of segments per edge
 -- Higher values = smoother, more organic shapes (e.g., 20-30 for high-end systems)
 
 --Update rate, in seconds
-local checkFrequency = 0.5
-local featureCheckRotation = 0 -- Persistent counter for rotating through features
+local checkFrequency = 0.6
+
+local epsilon = 300 -- Clustering distance - increased to merge nearby fields and prevent overlaps
+
+local minFeatureValue = 9
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -118,6 +121,7 @@ local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetFeatureResources = Spring.GetFeatureResources
 local spGetFeatureVelocity = Spring.GetFeatureVelocity
 local spGetFeatureRadius = Spring.GetFeatureRadius
+local spValidFeatureID = Spring.ValidFeatureID
 local spGetGroundHeight = Spring.GetGroundHeight
 local spIsGUIHidden = Spring.IsGUIHidden
 local spTraceScreenRay = Spring.TraceScreenRay
@@ -150,13 +154,7 @@ local lastFlyingCheckFrame = 0 -- Track when we last checked flying features
 local validityCheckCounter = 0 -- Rotating counter for validity checks in GameFrame
 local lastCameraCheckFrame = 0 -- Track when we last checked camera up vector
 
-local epsilon = 300 -- Clustering distance - increased to merge nearby fields and prevent overlaps
 local epsilonSq = epsilon*epsilon
-local minFeatureMetal = 9 -- armflea reclaim value, probably
-if UnitDefNames.armflea then
-	local small = FeatureDefNames[UnitDefNames.armflea.corpse]
-	minFeatureMetal = small and small.metal or minFeatureMetal
-end
 local baseCheckFrequency = math.round(checkFrequency * Game.gameSpeed)
 checkFrequency = baseCheckFrequency
 local lastFeatureCount = 0
@@ -175,6 +173,7 @@ local areaTextMin = 3000
 local areaTextRange = (1.75 * minTextAreaLength * (fontSizeMax / fontSizeMin)) ^ 2 - areaTextMin
 
 local drawEnabled = false
+local drawEnergyEnabled = false
 local actionActive = false
 local reclaimerSelected = false
 local resBotSelected = false
@@ -959,7 +958,7 @@ do
 		unprocessed = {}
 		for fid, feature in pairs(knownFeatures) do
 			-- Only include features that have this resource type
-			if feature[currentResourceType] and feature[currentResourceType] >= minFeatureMetal then
+			if feature[currentResourceType] and feature[currentResourceType] >= minFeatureValue then
 				unprocessed[fid] = true
 			end
 		end
@@ -1170,6 +1169,11 @@ local function UpdateFeatureReclaim()
 	local checkCounter = 0
 	local featuresChecked = 0
 
+	-- Determine what needs updating based on visibility
+	-- Use cached values to avoid function call overhead
+	local needMetalUpdates = drawEnabled
+	local needEnergyUpdates = drawEnergyEnabled
+
 	for fid, fInfo in pairs(knownFeatures) do
 		-- Check features based on interval
 		checkCounter = checkCounter + 1
@@ -1180,15 +1184,15 @@ local function UpdateFeatureReclaim()
 
 			-- Only remove feature when BOTH metal AND energy are below threshold
 			-- This prevents energy fields from disappearing when only metal is reclaimed
-			local metalDepleted = not metal or metal < minFeatureMetal
-			local energyDepleted = not energy or energy < minFeatureMetal
+			local metalDepleted = not metal or metal < minFeatureValue
+			local energyDepleted = not energy or energy < minFeatureValue
 			if metalDepleted and energyDepleted then
 				removeCount = removeCount + 1
 				toRemoveFeatures[removeCount] = fid
 				removed = true
 			else
-				-- Update metal if changed
-				if metal and fInfo.metal ~= metal then
+				-- Update metal if changed (only if metal fields are visible)
+				if needMetalUpdates and metal and fInfo.metal ~= metal then
 					if fInfo.cid then
 						local cid = fInfo.cid
 						if not dirtyClustersList[cid] then
@@ -1200,8 +1204,8 @@ local function UpdateFeatureReclaim()
 					end
 					fInfo.metal = metal
 				end
-				-- Update energy if changed - use incremental updates
-				if energy and fInfo.energy ~= energy then
+				-- Update energy if changed (only if energy fields are visible)
+				if needEnergyUpdates and energy and fInfo.energy ~= energy then
 					if fInfo.energyCid then
 						local energyCid = fInfo.energyCid
 						local thisCluster = energyFeatureClusters[energyCid]
@@ -1235,23 +1239,36 @@ local function UpdateFeatureReclaim()
 	elseif dirtyCount > 0 or dirtyEnergyCount > 0 then
 		redrawingNeeded = true
 
-		-- Update metal cluster text
-		for cid in pairs(dirtyClustersList) do
-			local cluster = featureClusters[cid]
-			if cluster then
-				cluster.text = string.formatSI(cluster.metal)
+		-- Update metal cluster text (only if metal fields are visible)
+		if needMetalUpdates then
+			for cid in pairs(dirtyClustersList) do
+				local cluster = featureClusters[cid]
+				if cluster then
+					cluster.text = string.formatSI(cluster.metal)
+				end
+				dirtyClustersList[cid] = nil -- Clear as we go
 			end
-			dirtyClustersList[cid] = nil -- Clear as we go
+		else
+			-- Clear dirty list even if not updating text
+			for cid in pairs(dirtyClustersList) do
+				dirtyClustersList[cid] = nil
+			end
 		end
 
-		-- Update energy cluster text
-		-- Even after gamestart, we need to update text as features are reclaimed
-		for energyCid in pairs(dirtyEnergyClustersListList) do
-			local energyCluster = energyFeatureClusters[energyCid]
-			if energyCluster then
-				energyCluster.text = string.formatSI(energyCluster.energy)
+		-- Update energy cluster text (only if energy fields are visible)
+		if needEnergyUpdates then
+			for energyCid in pairs(dirtyEnergyClustersListList) do
+				local energyCluster = energyFeatureClusters[energyCid]
+				if energyCluster then
+					energyCluster.text = string.formatSI(energyCluster.energy)
+				end
+				dirtyEnergyClustersListList[energyCid] = nil -- Clear as we go
 			end
-			dirtyEnergyClustersListList[energyCid] = nil -- Clear as we go
+		else
+			-- Clear dirty list even if not updating text
+			for energyCid in pairs(dirtyEnergyClustersListList) do
+				dirtyEnergyClustersListList[energyCid] = nil
+			end
 		end
 	end
 end
@@ -1552,9 +1569,11 @@ do
 
 	UpdateDrawEnergyEnabled = function ()
 		if not showEnergyFields then
+			drawEnergyEnabled = false
 			return false
 		end
-		return showEnergyOptionFunctions[showEnergyOption]()
+		drawEnergyEnabled = showEnergyOptionFunctions[showEnergyOption]()
+		return drawEnergyEnabled
 	end
 end
 
@@ -1986,7 +2005,7 @@ local function UpdateReclaimFields(frame)
 		lastFlyingCheckFrame = frame
 		for featureID, fInfo in pairs(flyingFeatures) do
 			-- Quick validation before API call
-			if Spring.ValidFeatureID(featureID) then
+			if spValidFeatureID(featureID) then
 				local _,_,_, vw = spGetFeatureVelocity(featureID)
 				if vw then
 					-- Feature still exists and has velocity data
@@ -2062,15 +2081,15 @@ local function UpdateReclaimFields(frame)
 			-- Always check if featureCount is small, otherwise use rotating pattern
 			if checkInterval == 1 or (validityCheckCounter % checkInterval == 0) then
 				-- Quick validity check first (much cheaper than GetFeatureResources)
-				if not Spring.ValidFeatureID(fid) then
+				if not spValidFeatureID(fid) then
 					removeCount = removeCount + 1
 					toRemoveFeatures[removeCount] = fid
 				else
 					-- Only call GetFeatureResources if feature is valid
 					local metal, _, energy = spGetFeatureResources(fid)
 					-- Only remove if BOTH metal AND energy are below threshold
-					local metalDepleted = not metal or metal < minFeatureMetal
-					local energyDepleted = not energy or energy < minFeatureMetal
+					local metalDepleted = not metal or metal < minFeatureValue
+					local energyDepleted = not energy or energy < minFeatureValue
 					if metalDepleted and energyDepleted then
 						removeCount = removeCount + 1
 						toRemoveFeatures[removeCount] = fid
@@ -2235,7 +2254,7 @@ end
 
 function widget:FeatureCreated(featureID, allyTeamID)
 	local metal, _, energy = spGetFeatureResources(featureID)
-	if (not metal or metal < minFeatureMetal) and (not energy or energy < minFeatureMetal) then
+	if (not metal or metal < minFeatureValue) and (not energy or energy < minFeatureValue) then
 		return
 	end
 
@@ -2355,7 +2374,6 @@ function widget:DrawWorld()
 	end
 
 	glDepthTest(false)
-
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- Draw metal text
