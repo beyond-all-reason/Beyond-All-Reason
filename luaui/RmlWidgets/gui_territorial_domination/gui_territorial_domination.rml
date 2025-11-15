@@ -20,10 +20,7 @@
 			</div>
 			<div id="territory-info" class="scorepanel-territory-info">
 				<div id="leaderboard-button" class="scorepanel-leaderboard-icon">
-					<div class="scorepanel-leaderboard-icon-line scorepanel-leaderboard-icon-line-top"></div>
-					<div class="scorepanel-leaderboard-icon-line scorepanel-leaderboard-icon-line-middle"></div>
-					<div class="scorepanel-leaderboard-icon-line scorepanel-leaderboard-icon-line-bottom"></div>
-					<div class="scorepanel-leaderboard-icon-line scorepanel-leaderboard-icon-line-bottommost"></div>
+					<img class="scorepanel-leaderboard-icon-image" src="/luaui/images/flowui_gl4/game-icons--podium.png" />
 				</div>
 				<div id="territory-info-row" class="scorepanel-territory-info-row">
 					<div id="territory-icon" class="scorepanel-territory-icon">
@@ -61,6 +58,7 @@
 					<div id="elimination-separator" class="scoreboard-elimination-separator hidden">
 						<div class="scoreboard-elimination-empty-cell"></div>
 						<div id="elimination-separator-text" class="scoreboard-elimination-separator-text">!!ui.territorialDomination.scoreboard.eliminationThreshold</div>
+						<div class="scoreboard-elimination-empty-cell"></div>
 						<div class="scoreboard-elimination-empty-cell"></div>
 						<div class="scoreboard-elimination-empty-cell"></div>
 					</div>
