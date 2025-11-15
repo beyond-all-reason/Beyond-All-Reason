@@ -26,6 +26,7 @@ local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetGameFrame = Spring.GetGameFrame
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 
 --Changelog
 --1.4: fixed text alignment, changed layer cause other widgets are eating events otherwise (e.g. smartselect)
