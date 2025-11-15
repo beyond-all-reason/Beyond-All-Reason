@@ -188,7 +188,6 @@ return {
 			leg_experimental_railgun = {
 				areaofeffect = 80,
 				avoidfeature = false,
-				burst = 2,
 				burstrate = 0.33,	-- this is controlled in the animation script
 				burnblow = false,
 				cegtag = "railgun",
@@ -198,7 +197,7 @@ return {
 				cratermult = 0,
 				duration = 0.12,
 				edgeeffectiveness = 0.90,
-				energypershot = 1200,
+				energypershot = 600,
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				firestarter = 1,
 				hardstop = true,
