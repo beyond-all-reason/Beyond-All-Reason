@@ -899,7 +899,7 @@ local function updatePlayerDisplay()
 		dataModel.isFinalRound = isFinalRound
 	end
 	
-	dataModel.territoryCount = "x" .. territoryCount
+	dataModel.territoryCount = territoryCount .. " x " .. pointsPerTerritory .. "pts"
 	dataModel.territoryPoints = projectedPoints
 	dataModel.pointsPerTerritory = tostring(pointsPerTerritory)
 	dataModel.territoryWorthText = spI18N('ui.territorialDomination.territories.worth', { points = pointsPerTerritory })

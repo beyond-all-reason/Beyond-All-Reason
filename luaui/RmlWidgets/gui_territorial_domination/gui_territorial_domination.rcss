@@ -14,7 +14,7 @@ body {
 	pointer-events: auto;
 	font-family: Exo 2;
 	width: 240dp;
-	height: 240dp;
+	height: 204dp;
 	overflow: visible;
 	box-sizing: border-box;
 	padding: 6dp 12dp;
@@ -88,7 +88,7 @@ body {
 .scorepanel-rank-display {
 	color: #ffffff;
 	font-family: Exo 2;
-	font-size: 24dp;
+	font-size: 22dp;
 	font-weight: bold;
 	text-align: left;
 	font-effect: outline(1dp #000000CC);
@@ -142,6 +142,7 @@ body {
 	text-align: center;
 	position: relative;
 	z-index: 2;
+	margin-top: 10dp;
 	font-effect: outline(1dp #000000CC);
 }
 
@@ -166,11 +167,16 @@ body {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 2dp;
+	gap: 4dp;
 	font-weight: bold;
 	margin-top: 6dp;
 	position: relative;
 	z-index: 2;
+}
+
+.scorepanel-territory-points {
+	align-self: center;
+	margin-right: 44dp;
 }
 
 .scorepanel-territory-info-row {
@@ -178,6 +184,10 @@ body {
 	align-items: center;
 	justify-content: center;
 	gap: 8dp;
+	position: relative;
+	width: 100%;
+	margin-right: 44dp;
+	box-sizing: border-box;
 }
 
 .scorepanel-territory-icon {
@@ -224,17 +234,6 @@ body {
 	font-effect: outline(1dp #000000CC);
 }
 
-.scorepanel-territory-worth {
-	color: #ffffff;
-	font-family: Exo 2;
-	font-size: 16dp;
-	opacity: 0.8;
-	margin-bottom: 6dp;
-	text-align: center;
-	font-effect: outline(1dp #000000CC);
-}
-
-
 .scorepanel-current-score {
 	color: #ffffff;
 	font-family: Exo 2;
@@ -252,33 +251,48 @@ body {
 	animation: countdown-pulse 0.5s cubic-in-out infinite;
 }
 
-.scorepanel-leaderboard-button {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	gap: 6dp;
-	color: #ffffff;
-	font-family: Exo 2;
-	font-size: 16dp;
-	font-weight: bold;
+.scorepanel-leaderboard-icon {
+	width: 44dp;
+	height: 44dp;
+	border-width: 2dp;
+	border-color: #ffffff;
+	border-style: solid;
+	background-color: rgba(128, 128, 128, 128);
+	position: absolute;
+	right: 0;
 	cursor: pointer;
-	padding: 6dp;
-	margin-bottom: 6dp;
-	border-radius: 4dp;
-	position: relative;
-	z-index: 2;
-	margin-top: 4dp;
+	box-sizing: border-box;
 	transition: background-color 0.2s;
-	background-color: rgba(255, 255, 255, 40);
+	z-index: 2;
 }
 
-.scorepanel-leaderboard-button:hover {
+.scorepanel-leaderboard-icon:hover {
 	background-color: rgba(255, 255, 255, 80);
 }
 
-.scorepanel-leaderboard-text {
-	color: #ffffff;
-	font-effect: outline(1dp #000000CC);
+.scorepanel-leaderboard-icon-line {
+	position: absolute;
+	left: 49%;
+	width: 80%;
+	height: 2dp;
+	transform: translate(-50%, -50%);
+	background-color: #ffffff;
+}
+
+.scorepanel-leaderboard-icon-line-top {
+	top: 20%;
+}
+
+.scorepanel-leaderboard-icon-line-middle {
+	top: 40%;
+}
+
+.scorepanel-leaderboard-icon-line-bottom {
+	top: 60%;
+}
+
+.scorepanel-leaderboard-icon-line-bottommost {
+	top: 80%;
 }
 
 .popup-round-end {
