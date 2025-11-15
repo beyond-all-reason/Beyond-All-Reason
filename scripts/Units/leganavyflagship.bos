@@ -156,8 +156,8 @@ Create()
 
 	restore_delay = 3000;
 
-    turn rearRailgun1 to y-axis <-180> now;
-    turn rearRailgun2 to y-axis <-180> now;
+    turn rearRailgun1HeadingPivot to y-axis <-180> now;
+    turn rearRailgun2HeadingPivot to y-axis <-180> now;
 
     turn rightGun1 to y-axis <-90> now;
     turn rightGun2 to y-axis <-90> now;
@@ -403,6 +403,7 @@ waveSplash()
 		turn base to x-axis <0.0> speed <1.0>;
 		move base to y-axis [0.0] speed [0.17];
 		wait-for-turn base around x-axis;
+        sleep 1;
 	}
 }
 
@@ -483,7 +484,7 @@ AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-    wait-for-turn targetingWeaponHeadingPivot around y-axis;
+    //wait-for-turn targetingWeaponHeadingPivot around y-axis;
     turn heatrayRightPitchPivot to y-axis heading - mainTurretHeadingVar speed <6>;
     turn targetingWeaponPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <25.0>;
     //wait-for-turn heatrayRightPitchPivot around y-axis;
