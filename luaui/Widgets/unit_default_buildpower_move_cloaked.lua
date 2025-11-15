@@ -14,7 +14,7 @@ end
 
 -- NOTE: This was initially only for spy bots and made only by BrainDamage,
 --       but Catcow updated it to abstractly include commanders and decoys
---       and anything else that cloaks, builds, and moves
+--       and anything else that cloaks, builds, and moves. Also likely more efficient
 
 -- Localized Spring API for performance
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
@@ -31,7 +31,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local gameStarted, selectionChanged
+local gameStarted
 
 local CMD_MOVE = CMD.MOVE
 local CMD_CLOAK = 37382
@@ -58,43 +58,36 @@ function widget:Initialize()
 end
 
 local cloakedBuilderMovableSelected = false
-local selectedUnitsCount = spGetSelectedUnitsCount()
-function widget:SelectionChanged(sel)
-	selectionChanged = true
-end
 
-local selChangedSec = 0
-function widget:Update(dt)
+local function update()
+	Spring.Echo('update')
+	local selectedUnitsCount = spGetSelectedUnitsCount()
 
-	selChangedSec = selChangedSec + dt
-	if selectionChanged and selChangedSec>0.1 then
-		selChangedSec = 0
-		selectionChanged = nil
+	cloakedBuilderMovableSelected = false
+	-- above a little amount we likely aren't micro-ing cloaked things anymore...
+	if selectedUnitsCount == 0 or selectedUnitsCount > 20 then return end
 
-		selectedUnitsCount = spGetSelectedUnitsCount()
-
-		cloakedBuilderMovableSelected = false
-		-- above a little amount we likely aren't micro-ing cloaked things anymore...
-		if selectedUnitsCount == 0 or selectedUnitsCount > 20 then return end
-
-		local selectedUnitTypes = spGetSelectedUnitsSorted()
-		for unitDefID, units in pairs(selectedUnitTypes) do
-			if idCanBuildCloakMove[unitDefID] then
-				for _, unitID in pairs(units) do
-					-- 5=cloak https://recoilengine.org/docs/lua-api/#Spring.GetUnitStates
-					if select(5, spGetUnitStates(unitID,false,true)) then
-						cloakedBuilderMovableSelected = true
-						return
-					end
+	local selectedUnitTypes = spGetSelectedUnitsSorted()
+	for unitDefID, units in pairs(selectedUnitTypes) do
+		if idCanBuildCloakMove[unitDefID] then
+			for _, unitID in pairs(units) do
+				-- 5=cloak https://recoilengine.org/docs/lua-api/#Spring.GetUnitStates
+				if select(5, spGetUnitStates(unitID,false,true)) then
+					cloakedBuilderMovableSelected = true
+					return
 				end
 			end
 		end
 	end
 end
 
+function widget:SelectionChanged(sel)
+	update()
+end
+
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	if (cmdID == CMD_CLOAK) and (idCanBuildCloakMove[unitDefID]) and (teamID == spGetMyTeamID()) then
-		selectionChanged = true
+		update()
 	end
 end
 
