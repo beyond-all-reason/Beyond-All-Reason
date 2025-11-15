@@ -52,12 +52,6 @@ piece
 
 
 static-var
-    rightGun1WhichBarrel,
-    rightGun2WhichBarrel,
-    rightGun3WhichBarrel,
-    leftGun1WhichBarrel,
-    leftGun2WhichBarrel,
-    leftGun3WhichBarrel,
     frontRailgun1WhichBarrel,
     frontRailgun2WhichBarrel,
     rearRailgun1WhichBarrel,
@@ -74,13 +68,8 @@ static-var
     #define SIGNAL_AIM4 32
     #define SIGNAL_AIM5 64
     #define SIGNAL_AIM6 128
-    #define SIGNAL_AIM7 256
-    #define SIGNAL_AIM8 512
-    #define SIGNAL_AIM9 1024
-    #define SIGNAL_AIM10 2048
-    #define SIGNAL_AIM11 4096
-    #define SIGNAL_AIM12 8192
-#define SIGNAL_AIM13 16384
+#define SIGNAL_AIM7 256
+
 
 
 #define RB_MASS 60
@@ -105,12 +94,6 @@ Create()
 {
 	set ARMORED to 1;
 
-    rightGun1WhichBarrel = 0;
-    rightGun2WhichBarrel = 0;
-    rightGun3WhichBarrel = 0;
-    leftGun1WhichBarrel = 0;
-    leftGun2WhichBarrel = 0;
-    leftGun3WhichBarrel = 0;
     frontRailgun1WhichBarrel = 0;
     frontRailgun2WhichBarrel = 0;
     rearRailgun1WhichBarrel = 0;
@@ -120,14 +103,6 @@ Create()
 
     turn rearRailgun1HeadingPivot to y-axis <-180> now;
     turn rearRailgun2HeadingPivot to y-axis <-180> now;
-
-    turn rightGun1 to y-axis <-90> now;
-    turn rightGun2 to y-axis <-90> now;
-    turn rightGun3 to y-axis <-90> now;
-
-    turn leftGun1 to y-axis <90> now;
-    turn leftGun2 to y-axis <90> now;
-    turn leftGun3 to y-axis <90> now;
 
 	start-script CATT1_Init();
 	start-script InitRockBoat();
@@ -221,55 +196,6 @@ ExecuteRestoreAfterDelayRLRG(){
     //code for resting rear left railgun
 }
 
-//machine gun restores
-ExecuteRestoreAfterDelayRG1(){
-    if (Stunned) {
-        return (1);
-    }
-    sleep 1;
-    //code for resting right gun 1
-}
-
-ExecuteRestoreAfterDelayRG2(){
-    if (Stunned) {
-        return (1);
-    }
-    sleep 1;
-    //code for resting right gun 2
-}
-
-ExecuteRestoreAfterDelayRG3(){
-    if (Stunned) {
-        return (1);
-    }
-    sleep 1;
-    //code for resting right gun 3
-}
-
-ExecuteRestoreAfterDelayLG1(){
-    if (Stunned) {
-        return (1);
-    }
-    sleep 1;
-    //code for resting left gun 1
-}
-
-ExecuteRestoreAfterDelayLG2(){
-    if (Stunned) {
-        return (1);
-    }
-    sleep 1;
-    //code for resting left gun 2
-}
-
-ExecuteRestoreAfterDelayLG3(){
-    if (Stunned) {
-        return (1);
-    }
-    sleep 1;
-    //code for resting left gun 3
-}
-
 SetStunned(State)
 {
     Stunned = State;
@@ -281,12 +207,6 @@ SetStunned(State)
         start-script ExecuteRestoreAfterDelayFLRG();
         start-script ExecuteRestoreAfterDelayRRRG();
         start-script ExecuteRestoreAfterDelayRLRG();
-        start-script ExecuteRestoreAfterDelayRG1();
-        start-script ExecuteRestoreAfterDelayRG2();
-        start-script ExecuteRestoreAfterDelayRG3();
-        start-script ExecuteRestoreAfterDelayLG1();
-        start-script ExecuteRestoreAfterDelayLG2();
-        start-script ExecuteRestoreAfterDelayLG3();
 	}
 }
 RestoreAfterDelay()
@@ -323,36 +243,6 @@ RestoreAfterDelayRLRG()
 {
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelayRLRG();
-}
-RestoreAfterDelayRG1()
-{
-	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelayRG1();
-}
-RestoreAfterDelayRG2()
-{
-	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelayRG2();
-}
-RestoreAfterDelayRG3()
-{
-	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelayRG3();
-}
-RestoreAfterDelayLG1()
-{
-	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelayLG1();
-}
-RestoreAfterDelayLG2()
-{
-	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelayLG2();
-}
-RestoreAfterDelayLG3()
-{
-	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelayLG3();
 }
 
 waveSplash()
