@@ -256,7 +256,6 @@ body {
 	height: 44dp;
 	border-width: 2dp;
 	border-color: #ffffff;
-	border-style: solid;
 	background-color: rgba(128, 128, 128, 128);
 	position: absolute;
 	right: 0;
