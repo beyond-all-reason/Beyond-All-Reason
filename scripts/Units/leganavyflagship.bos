@@ -675,7 +675,7 @@ AimWeapon8(heading, pitch)
 {
 	signal SIGNAL_AIM8;
 	set-signal-mask SIGNAL_AIM8;
-	if(heading > <55> AND heading < <150>)
+	if(heading > <-55> OR heading < <-145>)
 	{
 		return (0);
 	}
@@ -705,7 +705,7 @@ AimWeapon9(heading, pitch)
 {
 	signal SIGNAL_AIM9;
 	set-signal-mask SIGNAL_AIM9;
-	if(heading > <35> AND heading < <145>)
+	if(heading > <-35> OR heading < <-145>)
 	{
 		return (0);
 	}
@@ -735,13 +735,13 @@ AimWeapon10(heading, pitch)
 {
 	signal SIGNAL_AIM10;
 	set-signal-mask SIGNAL_AIM10;
-	if(heading > <35> AND heading < <145>)
+	if(heading > <-35> OR heading < <-145>)
 	{
 		return (0);
 	}
 	turn rightGun3 to y-axis heading speed <150.0>;
 	wait-for-turn rightGun3 around y-axis;
-	start-script RestoreAfterDelayRG1();
+	start-script RestoreAfterDelayRG3();
 	return (1);
 }
 
@@ -765,15 +765,15 @@ QueryWeapon11(pieceIndex)
 
 AimWeapon11(heading, pitch)
 {
-	signal SIGNAL_AIM8;
-	set-signal-mask SIGNAL_AIM8;
-	if(heading < <-55> AND heading > <-150>)
+	signal SIGNAL_AIM11;
+	set-signal-mask SIGNAL_AIM11;
+	if(heading < <55> OR heading > <145>)
 	{
 		return (0);
 	}
 	turn leftGun1 to y-axis heading speed <150.0>;
 	wait-for-turn leftGun1 around y-axis;
-	start-script RestoreAfterDelayRG1();
+	start-script RestoreAfterDelayLG1();
 	return (1);
 }
 
@@ -795,15 +795,15 @@ QueryWeapon12(pieceIndex)
 
 AimWeapon12(heading, pitch)
 {
-	signal SIGNAL_AIM9;
-	set-signal-mask SIGNAL_AIM9;
-	if(heading < <-35> AND heading > <-145>)
+	signal SIGNAL_AIM12;
+	set-signal-mask SIGNAL_AIM12;
+	if(heading < <35> OR heading > <145>)
 	{
 		return (0);
 	}
 	turn leftGun2 to y-axis heading speed <150.0>;
 	wait-for-turn leftGun2 around y-axis;
-	start-script RestoreAfterDelayRG2();
+	start-script RestoreAfterDelayLG2();
 	return (1);
 }
 
@@ -825,15 +825,15 @@ QueryWeapon13(pieceIndex)
 
 AimWeapon13(heading, pitch)
 {
-	signal SIGNAL_AIM10;
-	set-signal-mask SIGNAL_AIM10;
-	if(heading < <-35> AND heading > <-145>)
+	signal SIGNAL_AIM13;
+	set-signal-mask SIGNAL_AIM13;
+	if(heading < <35> OR heading > <145>)
 	{
 		return (0);
 	}
 	turn leftGun3 to y-axis heading speed <150.0>;
 	wait-for-turn leftGun3 around y-axis;
-	start-script RestoreAfterDelayRG1();
+	start-script RestoreAfterDelayLG3();
 	return (1);
 }
 

@@ -251,7 +251,7 @@ return {
 				name = "Twin Rapid-fire Machine Guns",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
-				proximitypriority = 1,
+				proximitypriority = 0,
 				range = 351,
 				reloadtime = 0.4,
 				rgbcolor = "1 0.95 0.4",
