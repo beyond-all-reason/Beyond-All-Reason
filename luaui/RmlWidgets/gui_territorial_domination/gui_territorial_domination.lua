@@ -338,6 +338,20 @@ local function buildLeaderboardRow(team, rank, isEliminated, isDead)
 	return row
 end
 
+local function calculateDisplayRanks(teams)
+	local currentRank = 1
+	local previousScore = nil
+	for i = 1, #teams do
+		local team = teams[i]
+		local combinedScore = (team.score or 0) + (team.projectedPoints or 0)
+		if previousScore ~= nil and combinedScore ~= previousScore then
+			currentRank = currentRank + 1
+		end
+		team.displayRank = currentRank
+		previousScore = combinedScore
+	end
+end
+
 local function updateLeaderboard()
 	if not widgetState.document then return end
 	
@@ -398,7 +412,8 @@ local function updateLeaderboard()
 	
 	for i = 1, #livingTeams do
 		local entry = livingTeams[i]
-		local row = buildLeaderboardRow(entry.team, entry.rank, false, not entry.team.isAlive)
+		local displayRank = entry.team.displayRank or i
+		local row = buildLeaderboardRow(entry.team, displayRank, false, not entry.team.isAlive)
 		teamsContainer:AppendChild(row)
 	end
 	
@@ -412,7 +427,8 @@ local function updateLeaderboard()
 	if #eliminatedTeams > 0 then
 		for i = 1, #eliminatedTeams do
 			local entry = eliminatedTeams[i]
-			local row = buildLeaderboardRow(entry.team, entry.rank, true, not entry.team.isAlive)
+			local displayRank = entry.team.displayRank or entry.rank or i
+			local row = buildLeaderboardRow(entry.team, displayRank, true, not entry.team.isAlive)
 			eliminatedContainer:AppendChild(row)
 		end
 	end
@@ -734,6 +750,8 @@ local function updateAllyTeamData()
 		return a.allyTeamID < b.allyTeamID
 	end)
 
+	calculateDisplayRanks(validAllyTeams)
+
 	widgetState.allyTeamData = validAllyTeams
 	return validAllyTeams
 end
@@ -859,8 +877,9 @@ local function updatePlayerDisplay()
 	
 	if allyTeams and #allyTeams > 0 then
 		for i = 1, #allyTeams do
-			if allyTeams[i].allyTeamID == selectedTeam.allyTeamID then
-				playerRank = i
+			local team = allyTeams[i]
+			if team.allyTeamID == selectedTeam.allyTeamID then
+				playerRank = team.displayRank or i
 				break
 			end
 		end
