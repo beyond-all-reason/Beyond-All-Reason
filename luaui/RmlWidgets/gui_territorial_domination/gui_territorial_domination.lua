@@ -120,7 +120,6 @@ local initialModel = {
 	teamName = "",
 	eliminationThreshold = 0,
 	rankDisplayText = "",
-	advanceText = "",
 	eliminationText = "",
 	isAboveElimination = false,
 	isFinalRound = false,
@@ -309,7 +308,7 @@ local function buildLeaderboardRow(team, rank, isEliminated, isDead)
 	local previousScoreDiv = widgetState.document:CreateElement("div")
 	previousScoreDiv.class_name = "scoreboard-previous"
 	local previousScore = team.score or 0
-	previousScoreDiv.inner_rml = tostring(previousScore) .. "p"
+	previousScoreDiv.inner_rml = tostring(previousScore) .. "pts"
 	
 	local dataModel = widgetState.dmHandle
 	local currentRound = (dataModel and dataModel.currentRound) or 1
@@ -318,16 +317,16 @@ local function buildLeaderboardRow(team, rank, isEliminated, isDead)
 	
 	local territoriesDiv = widgetState.document:CreateElement("div")
 	territoriesDiv.class_name = "scoreboard-territories"
-	territoriesDiv.inner_rml = tostring(territoryCount)
+	territoriesDiv.inner_rml = "x" .. territoryCount
 	
 	local gainsDiv = widgetState.document:CreateElement("div")
 	gainsDiv.class_name = "scoreboard-gains"
-	gainsDiv.inner_rml = tostring(team.projectedPoints or 0) .. "p"
+	gainsDiv.inner_rml = tostring(team.projectedPoints or 0) .. "pts"
 	
 	local totalDiv = widgetState.document:CreateElement("div")
 	totalDiv.class_name = "scoreboard-total"
 	local totalScore = previousScore + (team.projectedPoints or 0)
-	totalDiv.inner_rml = tostring(totalScore) .. "p"
+	totalDiv.inner_rml = tostring(totalScore) .. "pts"
 	
 	row:AppendChild(rankDiv)
 	row:AppendChild(nameDiv)
@@ -854,7 +853,6 @@ local function updatePlayerDisplay()
 	local allyTeams = widgetState.allyTeamData
 	local playerRank = 1
 	local rankDisplayText = ""
-	local advanceText = ""
 	
 	if allyTeams and #allyTeams > 0 then
 		for i = 1, #allyTeams do
@@ -894,40 +892,12 @@ local function updatePlayerDisplay()
 		isAboveElimination = true
 	end
 		
-		if playerRank == 1 then
-			if #allyTeams > 1 then
-				local secondPlaceScore = (allyTeams[2].score or 0) + (allyTeams[2].projectedPoints or 0)
-				local leadingMargin = playerCombinedScore - secondPlaceScore
-				if leadingMargin > 0 then
-					advanceText = spI18N('ui.territorialDomination.advancement.leadingBy', { points = leadingMargin })
-				elseif leadingMargin == 0 then
-					advanceText = spI18N('ui.territorialDomination.advancement.onePointToAdvance')
-				else
-					advanceText = ""
-				end
-			else
-				advanceText = ""
-			end
-		else
-			local aheadTeam = allyTeams[playerRank - 1]
-			local aheadScore = (aheadTeam.score or 0) + (aheadTeam.projectedPoints or 0)
-			local pointsNeeded = aheadScore - playerCombinedScore + AESTHETIC_POINTS_MULTIPLIER
-			if aheadScore == playerCombinedScore then
-				advanceText = spI18N('ui.territorialDomination.advancement.onePointToAdvance')
-			elseif pointsNeeded > 0 then
-				advanceText = spI18N('ui.territorialDomination.advancement.pointsToAdvance', { points = pointsNeeded })
-			else
-				advanceText = ""
-			end
-		end
-		
-		dataModel.advanceText = advanceText
 		dataModel.eliminationText = eliminationText
 		dataModel.isAboveElimination = isAboveElimination
 		dataModel.isFinalRound = isFinalRound
 	end
 	
-	dataModel.territoryCount = territoryCount
+	dataModel.territoryCount = "x" .. territoryCount
 	dataModel.territoryPoints = projectedPoints
 	dataModel.pointsPerTerritory = pointsPerTerritory
 	dataModel.territoryWorthText = spI18N('ui.territorialDomination.territories.worth', { points = pointsPerTerritory })
@@ -946,14 +916,6 @@ local function updatePlayerDisplay()
 		end
 	end
 	
-	local advanceTextElement = widgetState.document:GetElementById("advance-text")
-	if advanceTextElement then
-		if dataModel.advanceText ~= "" then
-			advanceTextElement:SetClass("hidden", false)
-		else
-			advanceTextElement:SetClass("hidden", true)
-		end
-	end
 	
 	local eliminationWarningElement = widgetState.document:GetElementById("elimination-warning")
 	local currentScoreElement = widgetState.document:GetElementById("current-score")

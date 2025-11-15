@@ -17,13 +17,13 @@ body {
 	height: 240dp;
 	overflow: visible;
 	box-sizing: border-box;
-	padding: 6dp;
+	padding: 6dp 12dp;
 	decorator: image("/luaui/images/stripes-small.png" repeat);
 	image-color: rgba(40, 40, 40, 109);
 	left: 87.25vw;
 	top: 100vh;
 	transform: translate(-100%, -100%);
-	gap: 4dp;
+	gap: 6dp;
 }
 
 .scorepanel-gradient-overlay {
@@ -40,27 +40,36 @@ body {
 
 .scorepanel-header-info {
 	display: flex;
-	justify-content: space-between;
-	align-items: flex-start;
+	flex-direction: column;
+	align-items: center;
+	gap: 6dp;
 	flex-shrink: 0;
-	margin-bottom: 2dp;
 	position: relative;
 	z-index: 2;
 	background-color: transparent;
 }
 
-.scorepanel-left-header {
+.scorepanel-top-header-row {
 	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 2dp;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
 }
 
-.scorepanel-right-header {
+.scorepanel-bottom-header-row {
 	display: flex;
-	flex-direction: column;
-	align-items: flex-end;
-	gap: 2dp;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+}
+
+.scorepanel-header-divider {
+	width: 100%;
+	height: 2dp;
+	background-color:rgb(124, 124, 124);
+	margin: 6dp 0;
+	position: relative;
+	z-index: 3;
 }
 
 .scorepanel-round-display {
@@ -68,7 +77,7 @@ body {
 	font-family: Exo 2;
 	font-size: 19dp;
 	font-weight: bold;
-	text-align: right;
+	text-align: left;
 	font-effect: outline(1dp #000000CC);
 }
 
@@ -79,7 +88,7 @@ body {
 .scorepanel-rank-display {
 	color: #ffffff;
 	font-family: Exo 2;
-	font-size: 19dp;
+	font-size: 24dp;
 	font-weight: bold;
 	text-align: left;
 	font-effect: outline(1dp #000000CC);
@@ -131,15 +140,21 @@ body {
 	display: none;
 }
 
+.scorepanel-bottom-section {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
 .scorepanel-elimination-warning {
 	color: #ffffff;
 	font-family: Exo 2;
 	font-size: 16dp;
 	font-weight: bold;
-	padding: 6dp;
+	padding: 6dp 9dp;
 	border-radius: 4dp;
 	text-align: center;
-	margin-bottom: 4dp;
 	position: relative;
 	z-index: 2;
 	font-effect: outline(1dp #000000CC);
@@ -173,7 +188,7 @@ body {
 	align-items: center;
 	gap: 2dp;
 	font-weight: bold;
-	margin-bottom: 4dp;
+	margin-top: 6dp;
 	position: relative;
 	z-index: 2;
 }
@@ -182,7 +197,7 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 6dp;
+	gap: 8dp;
 }
 
 .scorepanel-territory-icon {
@@ -253,7 +268,7 @@ body {
 .scorepanel-current-score {
 	color: #ffffff;
 	font-family: Exo 2;
-	font-size: 24dp;
+	font-size: 19dp;
 	font-weight: bold;
 	text-align: center;
 	font-effect: outline(1dp #000000CC);
@@ -278,6 +293,7 @@ body {
 	font-weight: bold;
 	cursor: pointer;
 	padding: 6dp;
+	margin-bottom: 6dp;
 	border-radius: 4dp;
 	position: relative;
 	z-index: 2;

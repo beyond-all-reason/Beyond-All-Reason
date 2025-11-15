@@ -711,21 +711,16 @@
 			"rank": {
 				"display": "Rank %{rank}"
 			},
-			"advancement": {
-				"leadingBy": "Leading by %{points}",
-				"pointsToAdvance": "%{points}p to advance",
-				"onePointToAdvance": "1p to advance"
-			},
 			"elimination": {
-				"aboveElimination": "%{points}p above elimination",
-				"belowElimination": "%{points}p below elimination",
-				"zeroAboveElimination": "0p above elimination",
+				"aboveElimination": "%{points}pts above elimination",
+				"belowElimination": "%{points}pts below elimination",
+				"zeroAboveElimination": "0pts above elimination",
 				"eliminationsNextRound": "Eliminations next round",
 				"finalRound": "Final Round",
-				"threshold": "Elimination Threshold: %{threshold}p"
+				"threshold": "Elimination Threshold: %{threshold}pts"
 			},
 			"territories": {
-				"worth": "Territories are worth %{points}p"
+				"worth": "Territories are worth %{points}pts"
 			},
 			"scoreboard": {
 				"title": "Scoreboard",

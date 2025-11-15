@@ -8,32 +8,32 @@
 		<div id="td-root" class="scorepanel-root" data-model="territorial_score_model">
 			<div id="td-gradient-overlay" class="scorepanel-gradient-overlay"></div>
 			<div id="header-info" class="scorepanel-header-info">
-				<div id="left-header" class="scorepanel-left-header">
+				<div id="top-header-row" class="scorepanel-top-header-row">
 					<div id="rank-display" class="scorepanel-rank-display">{{rankDisplayText}}</div>
-					<div id="advance-text" class="scorepanel-advance-text">{{advanceText}}</div>
+					<div id="current-score" class="scorepanel-current-score">{{combinedScore}}pts</div>
 				</div>
-				<div id="right-header" class="scorepanel-right-header">
+				<div id="header-divider" class="scorepanel-header-divider"></div>
+				<div id="bottom-header-row" class="scorepanel-bottom-header-row">
 					<div id="round-display" class="scorepanel-round-display">{{roundDisplayText}}</div>
 					<div id="time-display" class="scorepanel-time-display">{{timeRemaining}}</div>
 				</div>
 			</div>
 			<div id="territory-info" class="scorepanel-territory-info">
-				<div id="territory-worth" class="scorepanel-territory-worth">{{territoryWorthText}}</div>
 				<div id="territory-info-row" class="scorepanel-territory-info-row">
 					<div id="territory-icon" class="scorepanel-territory-icon">
 						<div class="scorepanel-territory-icon-square scorepanel-territory-icon-square-tl"></div>
 						<div class="scorepanel-territory-icon-square scorepanel-territory-icon-square-br"></div>
 					</div>
 					<div id="territory-count" class="scorepanel-territory-count">{{territoryCount}}</div>
-					<div id="territory-points" class="scorepanel-territory-points">+{{territoryPoints}}p</div>
+					<div id="territory-points" class="scorepanel-territory-points">+{{territoryPoints}}pts</div>
 				</div>
+				<div id="territory-worth" class="scorepanel-territory-worth">{{territoryWorthText}}</div>
 			</div>
-			<div id="score-section" class="scorepanel-score-section">
-				<div id="current-score" class="scorepanel-current-score">{{combinedScore}}p</div>
-			</div>
-			<div id="elimination-warning" class="scorepanel-elimination-warning">{{eliminationText}}</div>
-			<div id="leaderboard-button" class="scorepanel-leaderboard-button">
-				<span id="leaderboard-text" class="scorepanel-leaderboard-text">!!ui.territorialDomination.scoreboard.viewLeaderboard</span>
+			<div id="bottom-section" class="scorepanel-bottom-section">
+				<div id="elimination-warning" class="scorepanel-elimination-warning">{{eliminationText}}</div>
+				<div id="leaderboard-button" class="scorepanel-leaderboard-button">
+					<span id="leaderboard-text" class="scorepanel-leaderboard-text">!!ui.territorialDomination.scoreboard.viewLeaderboard</span>
+				</div>
 			</div>
 		</div>
 		<div id="round-end-popup" class="popup-round-end">
