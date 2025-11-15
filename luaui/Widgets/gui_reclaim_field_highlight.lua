@@ -137,6 +137,7 @@ local spGetCameraVectors = Spring.GetCameraVectors
 local screenx, screeny
 local clusterizingNeeded = false
 local redrawingNeeded = false
+local forceFullRedraw = false
 local dirtyRegions = {} -- Track which regions need reclustering
 local dirtyClusters = {} -- Track which specific clusters need redrawing
 local dirtyEnergyClusters = {} -- Track which specific energy clusters need redrawing
@@ -200,6 +201,10 @@ local opticsObject
 -- Energy field tables (separate clustering)
 local energyFeatureClusters
 local energyFeatureConvexHulls
+
+-- Per-cluster display lists for incremental updates
+local clusterDisplayLists = {} -- {[cid] = {gradient = listID, edge = listID, text = listID}}
+local energyClusterDisplayLists = {} -- {[energyCid] = {gradient = listID, edge = listID, text = listID}}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -1107,6 +1112,10 @@ local function IsInDirtyRegion(x, z)
 	return false
 end
 
+-- Forward declarations for per-cluster display list management
+local DeleteClusterDisplayList
+local CreateClusterDisplayList
+
 local function RemoveFeature(featureID)
 	local feature = knownFeatures[featureID]
 	if not feature then return end
@@ -1115,13 +1124,17 @@ local function RemoveFeature(featureID)
 	MarkRegionDirty(feature.x, feature.z)
 
 	-- Mark metal cluster as dirty for redrawing
+	-- Don't delete display list here - it will be recreated in the redrawing section
 	if feature.cid then
 		dirtyClusters[feature.cid] = true
+		redrawingNeeded = true
 	end
 
 	-- Mark energy cluster as dirty for redrawing
+	-- Don't delete display list here - it will be recreated in the redrawing section
 	if feature.energyCid then
 		dirtyEnergyClusters[feature.energyCid] = true
+		redrawingNeeded = true
 	end
 
 	local neighbors = featureNeighborsMatrix[featureID]
@@ -1195,9 +1208,11 @@ local function UpdateFeatureReclaim()
 				if needMetalUpdates and metal and fInfo.metal ~= metal then
 					if fInfo.cid then
 						local cid = fInfo.cid
-						if not dirtyClustersList[cid] then
+						if not dirtyClusters[cid] then
 							dirtyCount = dirtyCount + 1
-							dirtyClustersList[cid] = true
+							dirtyClusters[cid] = true
+							-- Don't delete display list here - let it continue showing old visuals
+							-- until the new one is created (prevents flickering)
 						end
 						local thisCluster = featureClusters[cid]
 						thisCluster.metal = thisCluster.metal - fInfo.metal + metal
@@ -1210,9 +1225,11 @@ local function UpdateFeatureReclaim()
 						local energyCid = fInfo.energyCid
 						local thisCluster = energyFeatureClusters[energyCid]
 						if thisCluster then
-							if not dirtyEnergyClustersListList[energyCid] then
+							if not dirtyEnergyClusters[energyCid] then
 								dirtyEnergyCount = dirtyEnergyCount + 1
-								dirtyEnergyClustersListList[energyCid] = true
+								dirtyEnergyClusters[energyCid] = true
+								-- Don't delete display list here - let it continue showing old visuals
+								-- until the new one is created (prevents flickering)
 							end
 							-- Incremental update: subtract old value, add new value
 							thisCluster.energy = thisCluster.energy - fInfo.energy + energy
@@ -1241,33 +1258,21 @@ local function UpdateFeatureReclaim()
 
 		-- Update metal cluster text (only if metal fields are visible)
 		if needMetalUpdates then
-			for cid in pairs(dirtyClustersList) do
+			for cid in pairs(dirtyClusters) do
 				local cluster = featureClusters[cid]
 				if cluster then
 					cluster.text = string.formatSI(cluster.metal)
 				end
-				dirtyClustersList[cid] = nil -- Clear as we go
-			end
-		else
-			-- Clear dirty list even if not updating text
-			for cid in pairs(dirtyClustersList) do
-				dirtyClustersList[cid] = nil
 			end
 		end
 
 		-- Update energy cluster text (only if energy fields are visible)
 		if needEnergyUpdates then
-			for energyCid in pairs(dirtyEnergyClustersListList) do
+			for energyCid in pairs(dirtyEnergyClusters) do
 				local energyCluster = energyFeatureClusters[energyCid]
 				if energyCluster then
 					energyCluster.text = string.formatSI(energyCluster.energy)
 				end
-				dirtyEnergyClustersListList[energyCid] = nil -- Clear as we go
-			end
-		else
-			-- Clear dirty list even if not updating text
-			for energyCid in pairs(dirtyEnergyClustersListList) do
-				dirtyEnergyClustersListList[energyCid] = nil
 			end
 		end
 	end
@@ -1526,7 +1531,13 @@ do
 	}
 
 	UpdateDrawEnabled = function ()
+		local previousDrawEnabled = drawEnabled
 		drawEnabled = showOptionFunctions[showOption]()
+		-- If visibility changed from false to true, force a full display list recreation
+		if not previousDrawEnabled and drawEnabled then
+			redrawingNeeded = true
+			forceFullRedraw = true
+		end
 		return drawEnabled
 	end
 end
@@ -1568,11 +1579,17 @@ do
 	}
 
 	UpdateDrawEnergyEnabled = function ()
+		local previousDrawEnergyEnabled = drawEnergyEnabled
 		if not showEnergyFields then
 			drawEnergyEnabled = false
 			return false
 		end
 		drawEnergyEnabled = showEnergyOptionFunctions[showEnergyOption]()
+		-- If visibility changed from false to true, force a full display list recreation
+		if not previousDrawEnergyEnabled and drawEnergyEnabled then
+			redrawingNeeded = true
+			forceFullRedraw = true
+		end
 		return drawEnergyEnabled
 	end
 end
@@ -1660,6 +1677,72 @@ local function DrawHullVerticesGradient(hull, center, colors)
 		glColor(r, g, b, gradientAlphaValue)
 		glVertex(outerNext.x, outerNext.y, outerNext.z)
 	end
+end
+
+-- Helper functions for per-cluster display list management
+DeleteClusterDisplayList = function(cid, isEnergy)
+	local displayLists = isEnergy and energyClusterDisplayLists or clusterDisplayLists
+	local clusterData = displayLists[cid]
+	if clusterData then
+		if clusterData.gradient then
+			glDeleteList(clusterData.gradient)
+		end
+		if clusterData.edge then
+			glDeleteList(clusterData.edge)
+		end
+		if clusterData.text then
+			glDeleteList(clusterData.text)
+		end
+		displayLists[cid] = nil
+	end
+end
+
+CreateClusterDisplayList = function(cid, isEnergy)
+	local displayLists = isEnergy and energyClusterDisplayLists or clusterDisplayLists
+	local clusters = isEnergy and energyFeatureClusters or featureClusters
+	local hulls = isEnergy and energyFeatureConvexHulls or featureConvexHulls
+	
+	local cluster = clusters[cid]
+	local hull = hulls[cid]
+	if not cluster or not hull or not cluster.center then
+		return
+	end
+	
+	-- Delete existing display list if present
+	DeleteClusterDisplayList(cid, isEnergy)
+	
+	-- Create new display lists for this cluster
+	local clusterData = {}
+	
+	-- Create gradient fill display list
+	clusterData.gradient = glCreateList(function()
+		local colors = nil
+		if isEnergy then
+			-- Energy field colors with opacity multiplier
+			local energyMult = not gameStarted and preGameStartOpacityMultiplier or energyOpacityMultiplier
+			colors = {
+				fill = energyReclaimColor,
+				fillAlpha = fillAlpha * energyMult,
+				gradientAlpha = gradientAlpha * energyMult
+			}
+		elseif not gameStarted then
+			-- Metal field colors with pre-gamestart multiplier
+			local totalMultiplier = preGameStartOpacityMultiplier * preGameStartMetalOpacityMultiplier
+			colors = {
+				fill = reclaimColor,
+				fillAlpha = fillAlpha * totalMultiplier,
+				gradientAlpha = gradientAlpha * totalMultiplier
+			}
+		end
+		glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, hull, cluster.center, colors)
+	end)
+	
+	-- Create edge display list
+	clusterData.edge = glCreateList(function()
+		glBeginEnd(GL.LINE_LOOP, DrawHullVertices, hull)
+	end)
+	
+	displayLists[cid] = clusterData
 end
 
 local drawFeatureConvexHullGradientList
@@ -1917,6 +2000,15 @@ function widget:Shutdown()
 
 	WG['reclaimfieldhighlight'] = nil -- todo: register/deregister, right?
 
+	-- Clean up per-cluster display lists
+	for cid in pairs(clusterDisplayLists) do
+		DeleteClusterDisplayList(cid, false)
+	end
+	for cid in pairs(energyClusterDisplayLists) do
+		DeleteClusterDisplayList(cid, true)
+	end
+	
+	-- Clean up old monolithic display lists (for compatibility)
 	if drawFeatureConvexHullGradientList ~= nil then
 		glDeleteList(drawFeatureConvexHullGradientList)
 	end
@@ -2113,74 +2205,74 @@ local function UpdateReclaimFields(frame)
 	end
 
 	if redrawingNeeded == true then
-		-- Check if we can do incremental redraw
-		local dirtyCount = 0
+		-- Count dirty clusters for both metal and energy
+		local dirtyMetalCount = 0
+		local dirtyEnergyCount = 0
 		for _ in pairs(dirtyClusters) do
-			dirtyCount = dirtyCount + 1
+			dirtyMetalCount = dirtyMetalCount + 1
+		end
+		for _ in pairs(dirtyEnergyClusters) do
+			dirtyEnergyCount = dirtyEnergyCount + 1
 		end
 
-		-- If only a few clusters changed and we have existing lists, try incremental update
-		if dirtyCount > 0 and dirtyCount < 10 and drawFeatureConvexHullGradientList ~= nil then
-			-- For now, still do full redraw but this marks where we could optimize further
-			-- Future: Could maintain per-cluster display lists
-			if drawFeatureConvexHullGradientList ~= nil then
-				glDeleteList(drawFeatureConvexHullGradientList)
-				drawFeatureConvexHullGradientList = nil
-			end
-			if drawFeatureConvexHullEdgeList ~= nil then
-				glDeleteList(drawFeatureConvexHullEdgeList)
-				drawFeatureConvexHullEdgeList = nil
-			end
-			drawFeatureConvexHullGradientList = glCreateList(DrawFeatureConvexHullGradient)
-			drawFeatureConvexHullEdgeList = glCreateList(DrawFeatureConvexHullEdge)
-
-			-- Redraw energy fields if enabled and not all drained
-			-- Always recreate when dirty (values changed from reclaim)
-			if showEnergyFields and not allEnergyFieldsDrained and #energyFeatureClusters > 0 then
-				if drawEnergyConvexHullGradientList ~= nil then
-					glDeleteList(drawEnergyConvexHullGradientList)
-					drawEnergyConvexHullGradientList = nil
+		-- Incremental update: recreate only dirty cluster display lists
+		-- This is much faster than redrawing everything
+		-- Force full redraw when visibility changes or when there are too many dirty clusters
+		local useIncrementalUpdate = not forceFullRedraw and ((dirtyMetalCount > 0 and dirtyMetalCount < 20) or (dirtyEnergyCount > 0 and dirtyEnergyCount < 20))
+		
+		if useIncrementalUpdate then
+			-- Recreate only dirty metal clusters
+			for cid in pairs(dirtyClusters) do
+				if featureClusters[cid] then
+					CreateClusterDisplayList(cid, false)
 				end
-				if drawEnergyConvexHullEdgeList ~= nil then
-					glDeleteList(drawEnergyConvexHullEdgeList)
-					drawEnergyConvexHullEdgeList = nil
+			end
+			
+			-- Recreate only dirty energy clusters
+			for cid in pairs(dirtyEnergyClusters) do
+				if energyFeatureClusters[cid] then
+					CreateClusterDisplayList(cid, true)
 				end
-				drawEnergyConvexHullGradientList = glCreateList(DrawEnergyConvexHullGradient)
-				drawEnergyConvexHullEdgeList = glCreateList(DrawEnergyConvexHullEdge)
 			end
 		else
-			-- Full redraw
-			if drawFeatureConvexHullGradientList ~= nil then
-				glDeleteList(drawFeatureConvexHullGradientList)
-				drawFeatureConvexHullGradientList = nil
+			-- Too many dirty clusters, first draw, or visibility changed - do full redraw
+			-- Clear all existing per-cluster display lists
+			for cid in pairs(clusterDisplayLists) do
+				DeleteClusterDisplayList(cid, false)
 			end
-			if drawFeatureConvexHullEdgeList ~= nil then
-				glDeleteList(drawFeatureConvexHullEdgeList)
-				drawFeatureConvexHullEdgeList = nil
+			for cid in pairs(energyClusterDisplayLists) do
+				DeleteClusterDisplayList(cid, true)
 			end
-			drawFeatureConvexHullGradientList = glCreateList(DrawFeatureConvexHullGradient)
-			drawFeatureConvexHullEdgeList = glCreateList(DrawFeatureConvexHullEdge)
-
-			-- Redraw energy fields if enabled and not all drained
-			-- Always recreate when dirty (values changed from reclaim)
-			if showEnergyFields and not allEnergyFieldsDrained and #energyFeatureClusters > 0 then
-				if drawEnergyConvexHullGradientList ~= nil then
-					glDeleteList(drawEnergyConvexHullGradientList)
-					drawEnergyConvexHullGradientList = nil
+			
+			-- Recreate all metal cluster display lists (if metal fields are visible)
+			if drawEnabled then
+				for cid = 1, #featureClusters do
+					if featureClusters[cid] then
+						CreateClusterDisplayList(cid, false)
+					end
 				end
-				if drawEnergyConvexHullEdgeList ~= nil then
-					glDeleteList(drawEnergyConvexHullEdgeList)
-					drawEnergyConvexHullEdgeList = nil
+			end
+			
+			-- Recreate all energy cluster display lists (if energy fields are visible)
+			if drawEnergyEnabled and showEnergyFields and not allEnergyFieldsDrained then
+				for cid = 1, #energyFeatureClusters do
+					if energyFeatureClusters[cid] then
+						CreateClusterDisplayList(cid, true)
+					end
 				end
-				drawEnergyConvexHullGradientList = glCreateList(DrawEnergyConvexHullGradient)
-				drawEnergyConvexHullEdgeList = glCreateList(DrawEnergyConvexHullEdge)
 			end
 		end
 
-		-- Clear dirtyClusters table instead of reallocating
+		-- Clear dirtyClusters table
 		for cid in pairs(dirtyClusters) do
 			dirtyClusters[cid] = nil
 		end
+		for cid in pairs(dirtyEnergyClusters) do
+			dirtyEnergyClusters[cid] = nil
+		end
+		
+		-- Reset force full redraw flag
+		forceFullRedraw = false
 	end
 
 	-- Text is always redrawn to rotate it facing the camera.
@@ -2409,16 +2501,20 @@ function widget:DrawWorldPreUnit()
 
 	glLineWidth(6.0 / cameraScale)
 
-	-- Draw metal gradient layer with inner fill
-	if showMetal and drawFeatureConvexHullGradientList ~= nil then
+	-- Draw metal gradient layer with inner fill (per-cluster display lists)
+	if showMetal then
 		glPushMatrix()
 		glTranslate(0, -1, 0) -- Push down by 1 unit
-		glCallList(drawFeatureConvexHullGradientList)
+		for cid, clusterData in pairs(clusterDisplayLists) do
+			if clusterData.gradient then
+				glCallList(clusterData.gradient)
+			end
+		end
 		glPopMatrix()
 	end
 
-	-- Draw metal edge on top at normal height
-	if showMetal and drawFeatureConvexHullEdgeList ~= nil then
+	-- Draw metal edge on top at normal height (per-cluster display lists)
+	if showMetal then
 		-- Apply opacity multiplier to metal edge color when before gamestart
 		if not gameStarted then
 			local r, g, b, a = reclaimEdgeColor[1], reclaimEdgeColor[2], reclaimEdgeColor[3], reclaimEdgeColor[4]
@@ -2427,19 +2523,27 @@ function widget:DrawWorldPreUnit()
 		else
 			glColor(reclaimEdgeColor)
 		end
-		glCallList(drawFeatureConvexHullEdgeList)
+		for cid, clusterData in pairs(clusterDisplayLists) do
+			if clusterData.edge then
+				glCallList(clusterData.edge)
+			end
+		end
 	end
 
-	-- Draw energy gradient layer with inner fill
-	if showEnergy and drawEnergyConvexHullGradientList ~= nil then
+	-- Draw energy gradient layer with inner fill (per-cluster display lists)
+	if showEnergy then
 		glPushMatrix()
 		glTranslate(0, -1, 0) -- Push down by 1 unit
-		glCallList(drawEnergyConvexHullGradientList)
+		for cid, clusterData in pairs(energyClusterDisplayLists) do
+			if clusterData.gradient then
+				glCallList(clusterData.gradient)
+			end
+		end
 		glPopMatrix()
 	end
 
-	-- Draw energy edge on top at normal height
-	if showEnergy and drawEnergyConvexHullEdgeList ~= nil then
+	-- Draw energy edge on top at normal height (per-cluster display lists)
+	if showEnergy then
 		-- Apply opacity multiplier to energy edge color
 		-- Include global pre-gamestart multiplier when before gamestart
 		local r, g, b, a = energyReclaimEdgeColor[1], energyReclaimEdgeColor[2], energyReclaimEdgeColor[3], energyReclaimEdgeColor[4]
@@ -2448,7 +2552,11 @@ function widget:DrawWorldPreUnit()
 			energyMultiplier = energyMultiplier * preGameStartOpacityMultiplier
 		end
 		glColor(r, g, b, a * energyMultiplier)
-		glCallList(drawEnergyConvexHullEdgeList)
+		for cid, clusterData in pairs(energyClusterDisplayLists) do
+			if clusterData.edge then
+				glCallList(clusterData.edge)
+			end
+		end
 	end
 
 	glLineWidth(1.0)
