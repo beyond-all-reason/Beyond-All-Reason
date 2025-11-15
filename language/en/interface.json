@@ -709,7 +709,7 @@
 				"ally": "Ally %{allyNumber}"
 			},
 			"rank": {
-				"place": " place"
+				"display": "Rank %{rank}"
 			},
 			"elimination": {
 				"aboveElimination": "%{points}pts above elimination",
