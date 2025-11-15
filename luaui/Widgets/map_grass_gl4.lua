@@ -21,7 +21,7 @@ function widget:GetInfo()
     enabled   = not isPotatoGpu,
   }
 end
-    
+
 
 -- Localized functions for performance
 local mathAbs = math.abs
@@ -105,7 +105,7 @@ local grassConfig = {
   },
   grassBladeColorTex = "LuaUI/Images/luagrass/grass_field_medit_flowering.dds.cached.dds", -- rgb + alpha transp
   mapGrassColorModTex = "$grass", -- by default this means that grass will be colorized with the minimap
-  grassWindPerturbTex = "bitmaps/Lups/perlin_noise.jpg", -- rgba of various frequencies of perlin noise?
+  grassWindPerturbTex = "bitmaps/GPL/perlin_noise.jpg", -- rgba of various frequencies of perlin noise?
   grassWindMult = 4.5, -- how 'strong' the perturbation effect is
   maxWindSpeed = 20, -- the fastest the wind noise texture will ever move,
   -- The grassdisttex overrides the default map grass, if specified!
@@ -114,7 +114,7 @@ local grassConfig = {
 
 local nightFactor = {1,1,1,1}
 
-local distanceMult = 0.4 
+local distanceMult = 0.4
 
 --------------------------------------------------------------------------------
 -- map custom config
@@ -148,7 +148,7 @@ else
   end
 end
 spEcho("Map is",Game.mapName)
-  
+
 -----------------------Old Map Overrides-------------------
 local mapoverrides  = {
   ["DSDR 4.0"] = {
@@ -294,7 +294,7 @@ local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see th
 
 		VBOLayout= {  {id = 0, name = "pos_u"},{id = 1, name = "norm_v"}}
 		local compactVBO = {}
-		for v = 1, grassPatchVBOsize do 
+		for v = 1, grassPatchVBOsize do
 			compactVBO[8 * (v-1) + 1] = VBOData[17 * (v-1) + 1] -- px
 			compactVBO[8 * (v-1) + 2] = VBOData[17 * (v-1) + 2] -- py
 			compactVBO[8 * (v-1) + 3] = VBOData[17 * (v-1) + 3] -- pz
@@ -304,7 +304,7 @@ local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see th
 			compactVBO[8 * (v-1) + 7] = VBOData[17 * (v-1) + 6] -- nz
 			compactVBO[8 * (v-1) + 8] = VBOData[17 * (v-1) + 14] -- v
 		end
-		VBOData = compactVBO  
+		VBOData = compactVBO
 	end
 
 	grassPatchVBO:Define(
@@ -313,19 +313,19 @@ local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see th
 	)
 	--spEcho("VBODATA #", grassPatchSize, #VBOData)
 
-	-- Try making an indexVBO too 
+	-- Try making an indexVBO too
 	-- NOTE THAT THIS DOES NOT WORK YET!
 	grassPatchIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER,false) -- order is 1 2 3 3 4 1
 	grassPatchIndexVBO:Define(grassPatchVBOsize * 6) -- 6 indices per patch
 	local indexVBO = {}
-	for i = 1, grassPatchVBOsize do 
+	for i = 1, grassPatchVBOsize do
 		local baseidx = 6*(i-1)
-		indexVBO[baseidx + 1] = baseidx 
+		indexVBO[baseidx + 1] = baseidx
 		indexVBO[baseidx + 2] = baseidx + 1
 		indexVBO[baseidx + 3] = baseidx + 2
 		indexVBO[baseidx + 4] = baseidx + 2
 		indexVBO[baseidx + 5] = baseidx + 3
-		indexVBO[baseidx + 6] = baseidx 
+		indexVBO[baseidx + 6] = baseidx
 	end
 	grassPatchIndexVBO:Upload(indexVBO)
 
@@ -1130,7 +1130,7 @@ function widget:DrawWorldPreUnit()
 	grassShader:SetUniform("nightFactor", nightFactor[1], nightFactor[2], nightFactor[3], nightFactor[4])
 
 
-	-- NOTE THAT INDEXED DRAWING DOESNT WORK YET! 
+	-- NOTE THAT INDEXED DRAWING DOESNT WORK YET!
  	grassVAO:DrawArrays(GL.TRIANGLES, grassPatchVBOsize, 0, instanceCount, startInstanceIndex)
 
     if placementMode and Spring.GetGameFrame()%30 == 0 then spEcho("Drawing",instanceCount,"grass patches") end

@@ -89,27 +89,27 @@ local unitlist = {
 
 
 local legionUnitlist = {
-	--{'cormakr','legfmkr'},
-	--{'cordrag','corfdrag'},
-	--{'cormstor', 'coruwms'},
-	--{'corestor', 'coruwes'},
-	--{'legrl','corfrt'},--
+	{'legeconv','legfeconv'},
+	{'legdrag','legfdrag'},
+	{'legmstor', 'leguwmstore'},
+	{'legestor', 'leguwestore'},
+	{'legrl','legfrl'},
 	{'leghp','legfhp'},
-	--{'legrad','corfrad'},--asym pairs cannot overlap with core placeholders
-	--{'legmg','corfhlt'},--
-	--{'cortarg','corfatf'},
+	{'legrad','legfrad'},
+	--{'legmg','legfmg'},
+	{'legsolar','legtide'},
+	{'leglab','legsy'},
+	{'leglht','legtl'},
+	{'leghive', 'legfhive'},
+	{'legnanotc','legnanotcplat'},
+	{'legvp','legamsub'},
+	{'leggeo','leguwgeo'},
+	--{'cortarg','corfatf'}, --asym pairs cannot overlap with core placeholders
 	--{'cormmkr','coruwmmm'},
 	--{'corfus','coruwfus'},
 	--{'corflak','corenaa'},
 	--{'cormoho','coruwmme'},--does this combo actually manifest on anything...?
-	{'legsolar','legtide'},
-	--{'leglab','corsy'},--soon(tm)
-	{'leglht','legtl'},
-	{'leghive', 'legfhive'},
-	--{'cornanotc','cornanotcplat'},
-	{'legvp','legamsub'},
 	--{'corap','corplat'},
-	--{'corgeo','coruwgeo'},
 	--{'corageo','coruwageo'},
 }
 
@@ -146,6 +146,21 @@ local function setPreGamestartDefID(uDefID)
 	if WG["pregame-build"] and WG["pregame-build"].setPreGamestartDefID then
 		WG["pregame-build"].setPreGamestartDefID(uDefID)
 	end
+end
+
+-- returns true if the given unitDefID can be built by the pregame start unit
+local function canSelectPreGameDef(uDefID)
+	local myTeamID = Spring.GetMyTeamID()
+	local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+	if not startDefID or not UnitDefs[startDefID] or not UnitDefs[startDefID].buildOptions then
+		return false
+	end
+	for _, opt in ipairs(UnitDefs[startDefID].buildOptions) do
+		if opt == uDefID then
+			return true
+		end
+	end
+	return false
 end
 
 -- returns the unitDefID of the selected building, or false if there is no selected building
@@ -241,7 +256,10 @@ function widget:DrawWorld()
 	if pos[2] < 0.01 then
 		if isGround then
 			if isPregame then
-				setPreGamestartDefID(alt)
+				-- Only change the pregame selection if the start unit can build the alternative
+				if canSelectPreGameDef(alt) then
+					setPreGamestartDefID(alt)
+				end
 			else
 				SetActiveCommand('buildunit_'..name)
 			end
@@ -249,7 +267,10 @@ function widget:DrawWorld()
 	else
 		if not isGround then
 			if isPregame then
-				setPreGamestartDefID(alt)
+				-- Only change the pregame selection if the start unit can build the alternative
+				if canSelectPreGameDef(alt) then
+					setPreGamestartDefID(alt)
+				end
 			else
 				SetActiveCommand('buildunit_'..unitName[alt])
 			end

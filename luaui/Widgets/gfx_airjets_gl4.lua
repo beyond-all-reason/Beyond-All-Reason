@@ -71,8 +71,8 @@ local autoUpdate = false
 local enableLights = true
 local lightMult = 1.4
 
-local texture1 = "bitmaps/GPL/Lups/perlin_noise.jpg"    -- noise texture
-local texture2 = ":c:bitmaps/gpl/lups/jet2.bmp"        -- shape
+local texture1 = "bitmaps/GPL/perlin_noise.jpg"    -- noise texture
+local texture2 = ":c:bitmaps/gpl/jet2.bmp"        -- shape
 
 local effectDefs = VFS.Include("luaui/configs/airjet_effects.lua")
 
@@ -193,7 +193,7 @@ layout (location = 5) in uvec4 instData; // unitID, teamID, ??
 out DataVS {
 	vec4 texCoords;
 	vec4 jetcolor;
-	
+
 	#if (DEBUG == 1)
 		vec4 debug0;
 		vec4 debug1;
@@ -265,7 +265,7 @@ bool vertexClipped(vec4 clipspace, float tolerance) {
 void main()
 {
 
-	#if USEQUATERNIONS == 0	
+	#if USEQUATERNIONS == 0
 	uint baseIndex = instData.x; // grab the correct offset into UnitPieces SSBO
 		mat4 modelMatrix = UnitPieces[baseIndex]; //Find our matrix
 		mat4 pieceMatrix = mat4mix(mat4(1.0), UnitPieces[baseIndex + pieceIndex + 1u], modelMatrix[3][3]);
@@ -780,7 +780,7 @@ function widget:Initialize()
 	end
 end
 
-if autoUpdate then 
+if autoUpdate then
 	function widget:DrawScreen()
 		--spEcho("drawprintf", jetShader.DrawPrintf, jetShader.printf)
 		if jetShader.DrawPrintf then jetShader.DrawPrintf() end

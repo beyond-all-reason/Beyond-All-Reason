@@ -285,6 +285,9 @@ function widget:Initialize()
 	WG["pregame-build"].getBuildQueue = function()
 		return buildQueue
 	end
+	WG["pregame-build"].getBuildPositions = function()
+		return buildModeState.buildPositions
+	end
 	widgetHandler:RegisterGlobal("GetPreGameDefID", WG["pregame-build"].getPreGameDefID)
 	widgetHandler:RegisterGlobal("GetBuildQueue", WG["pregame-build"].getBuildQueue)
 end

@@ -13,7 +13,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local mathRandom = math.random
 local tableSort = table.sort
@@ -37,13 +36,17 @@ local silentTime = 0.7    -- silent time between queued notifications
 local globalVolume = 0.7
 local playTrackedPlayerNotifs = false
 local muteWhenIdle = true
-local idleTime = 10        -- after this much sec: mark user as idle
+--local idleTime = 10        -- after this much sec: mark user as idle
 local displayMessages = true
 local spoken = true
 local idleBuilderNotificationDelay = 10 * 30    -- (in gameframes)
-local lowpowerThreshold = 7        -- if there is X secs a low power situation
 local tutorialPlayLimit = 2        -- display the same tutorial message only this many times in total (max is always 1 play per game)
 local updateCommandersFrames = Game.gameSpeed * 5
+
+local victoryConditionAllyID = 999
+if not (spGetSpectatingState() or Spring.IsReplay()) then
+	victoryConditionAllyID = Spring.GetLocalAllyTeamID()
+end
 
 --------------------------------------------------------------------------------
 
@@ -102,29 +105,17 @@ if not voiceSetFound then
 	voiceSet = defaultVoiceSet
 end
 
-local function addNotification(name, soundFiles, minDelay, i18nTextID, tutorial, soundEffect)
-	notification[name] = {
-		delay = minDelay,
-		textID = i18nTextID,
-		voiceFiles = soundFiles,
-		tutorial = tutorial,
-		soundEffect = soundEffect,
-	}
-	notificationList[name] = true
-	if not tutorial then
-		notificationOrder[#notificationOrder + 1] = name
-	end
-end
-
 -- load and parse sound files/notifications
 local notificationTable = VFS.Include('sounds/voice/config.lua')
 if VFS.FileExists(soundFolder .. 'config.lua') then
 	local voicesetNotificationTable = VFS.Include(soundFolder .. 'config.lua')
 	notificationTable = table.merge(notificationTable, voicesetNotificationTable)
 end
+
 for notifID, notifDef in pairs(notificationTable) do
 	local notifTexts = {}
 	local notifSounds = {}
+	local notifSoundsSpecial = {}
 	local currentEntry = 1
 	notifTexts[currentEntry] = 'tips.notifications.' .. string.sub(notifID, 1, 1):lower() .. string.sub(notifID, 2)
 	if VFS.FileExists(soundFolder .. notifID .. '.wav') then
@@ -136,12 +127,44 @@ for notifID, notifDef in pairs(notificationTable) do
 			notifSounds[currentEntry] = soundFolder .. notifID .. i .. '.wav'
 		end
 	end
+
 	if useDefaultVoiceFallback and #notifSounds == 0 then
 		if VFS.FileExists(defaultSoundFolder .. notifID .. '.wav') then
 			notifSounds[currentEntry] = defaultSoundFolder .. notifID .. '.wav'
 		end
+		for i = 1, 20 do
+			if VFS.FileExists(defaultSoundFolder .. notifID .. i .. '.wav') then
+				currentEntry = currentEntry + 1
+				notifSounds[currentEntry] = defaultSoundFolder .. notifID .. i .. '.wav'
+			end
+		end
 	end
-	addNotification(notifID, notifSounds, notifDef.delay or 2, notifTexts[1], notifDef.tutorial, notifDef.soundEffect) -- bandaid, picking text from first variation always.
+
+	if VFS.FileExists(soundFolder .. notifID .. '_rare' .. '.wav') then
+		notifSoundsSpecial[currentEntry] = soundFolder .. notifID .. '.wav'
+	end
+	for i = 1, 20 do
+		if VFS.FileExists(soundFolder .. notifID .. '_rare' .. i .. '.wav') then
+			currentEntry = currentEntry + 1
+			notifSoundsSpecial[currentEntry] = soundFolder .. notifID .. '_rare' .. i .. '.wav'
+		end
+	end
+
+	notification[notifID] = {
+		delay = notifDef.delay or 2,
+		stackedDelay = notifDef.stackedDelay, -- reset delay even with failed play
+		textID = notifTexts[1],
+		voiceFiles = notifSounds,
+		voiceFilesRare = notifSoundsSpecial,
+		tutorial = notifDef.tutorial,
+		soundEffect = notifDef.soundEffect,
+		resetOtherEventDelay = notifDef.resetOtherEventDelay,
+	}
+
+	notificationList[notifID] = true
+	if not notifDef.tutorial then
+		notificationOrder[#notificationOrder + 1] = notifID
+	end
 end
 
 local unitsOfInterestNames = {
@@ -201,7 +224,6 @@ local nextSoundQueued = 0
 local hasBuildMex = false
 local hasBuildEnergy = false
 local taggedUnitsOfInterest = {}
-local lowpowerDuration = 0
 local idleBuilder = {}
 local commanders = {}
 local commandersDamages = {}
@@ -216,7 +238,6 @@ local spIsUnitInView = Spring.IsUnitInView
 local spGetUnitHealth = Spring.GetUnitHealth
 
 local isIdle = false
-local lastUserInputTime = os.clock()
 local lastMouseX, lastMouseY = spGetMouseState()
 
 local isSpec = spGetSpectatingState()
@@ -378,6 +399,10 @@ local function queueNotification(event, forceplay)
 						soundQueue[#soundQueue + 1] = event
 					end
 				end
+
+				if notification[event].stackedDelay then
+					LastPlay[event] = spGetGameFrame()
+				end
 			end
 		end
 	end
@@ -507,19 +532,26 @@ function widget:Initialize()
 		if notification[event] then
 			if notification[event].voiceFiles and #notification[event].voiceFiles > 0 then
 				local m = #notification[event].voiceFiles > 1 and mathRandom(1, #notification[event].voiceFiles) or 1
-				if notification[event].voiceFiles[m] then
+				local mRare = #notification[event].voiceFilesRare > 1 and mathRandom(1, #notification[event].voiceFilesRare) or 1
+				if math.random() < 0.05 and notification[event].voiceFilesRare[mRare] then
+					Spring.PlaySoundFile(notification[event].voiceFilesRare[mRare], globalVolume, 'ui')
+				elseif notification[event].voiceFiles[m] then
 					Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, 'ui')
-					if notification[event].soundEffect then
-						Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
-					end
 				else
 					spEcho('notification "'..event..'" missing sound file: #'..m)
 				end
+			end
+			if notification[event].soundEffect then
+				Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
 			end
 			if displayMessages and WG['messages'] and notification[event].textID then
 				WG['messages'].addMessage(Spring.I18N(notification[event].textID))
 			end
 		end
+	end
+
+	WG['notifications'].resetEventDelay = function(event)
+		LastPlay[event] = spGetGameFrame()
 	end
 
 	if Spring.Utilities.Gametype.IsRaptors() and Spring.Utilities.Gametype.IsScavengers() then
@@ -575,14 +607,7 @@ function widget:GameFrame(gf)
 
 		-- low power check
 		if e_currentLevel and (e_currentLevel / e_storage) < 0.025 and e_currentLevel < 3000 then
-			lowpowerDuration = lowpowerDuration + 1
-			if lowpowerDuration >= lowpowerThreshold then
-				queueNotification('LowPower')
-				lowpowerDuration = 0
-
-				-- increase next low power delay
-				notification["LowPower"].delay = notification["LowPower"].delay + 15
-			end
+			queueNotification('LowPower')
 		end
 
 		-- idle builder check
@@ -619,6 +644,10 @@ end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	if not displayMessages and not spoken then
+		return
+	end
+
+	if (not spIsUnitAllied(unitID)) or unitTeam == gaiaTeamID then
 		return
 	end
 
@@ -874,10 +903,18 @@ local function playNextSound()
 	if #soundQueue > 0 then
 		local event = soundQueue[1]
 		if not muteWhenIdle or not isIdle or notification[event].tutorial then
-			local m = 1
 			if spoken and #notification[event].voiceFiles > 0 then
 				local m = #notification[event].voiceFiles > 1 and mathRandom(1, #notification[event].voiceFiles) or 1
-				if notification[event].voiceFiles[m] then
+				local mRare = #notification[event].voiceFilesRare > 1 and mathRandom(1, #notification[event].voiceFilesRare) or 1
+				if math.random() < 0.05 and notification[event].voiceFilesRare[mRare] then
+					Spring.PlaySoundFile(notification[event].voiceFilesRare[mRare], globalVolume, 'ui')
+					local duration = wavFileLengths[string.sub(notification[event].voiceFilesRare[mRare], 8)]
+					if not duration then
+						duration = ReadWAV(notification[event].voiceFilesRare[mRare])
+						duration = duration.Length
+					end
+					nextSoundQueued = sec + (duration or 3) + silentTime
+				elseif notification[event].voiceFiles[m] then
 					Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, 'ui')
 					local duration = wavFileLengths[string.sub(notification[event].voiceFiles[m], 8)]
 					if not duration then
@@ -888,15 +925,19 @@ local function playNextSound()
 				else
 					spEcho('notification "'..event..'" missing sound file: #'..m)
 				end
-				if notification[event].soundEffect then
-					Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
-				end
+			end
+			if notification[event].soundEffect then
+				Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
 			end
 			if displayMessages and WG['messages'] and notification[event].textID then
 				WG['messages'].addMessage(Spring.I18N(notification[event].textID))
 			end
 		end
+
 		LastPlay[event] = spGetGameFrame()
+		if notification[event].resetOtherEventDelay then
+			LastPlay[notification[event].resetOtherEventDelay] = spGetGameFrame()
+		end
 
 		-- for tutorial event: log number of plays
 		if notification[event].tutorial then
@@ -942,11 +983,11 @@ function widget:Update(dt)
 		end
 		lastMouseX, lastMouseY = mouseX, mouseY
 		-- set user idle when no mouse movement or no commands have been given
-		if lastUserInputTime < os.clock() - idleTime then
-			isIdle = true
-		else
+		--if lastUserInputTime < os.clock() - idleTime then
+		--	isIdle = true
+		--else
 			isIdle = false
-		end
+		--end
 		if WG['rejoin'] and WG['rejoin'].showingRejoining() then
 			isIdle = true
 		end
@@ -975,9 +1016,31 @@ function widget:GameStart()
 	queueNotification('GameStarted', true)
 end
 
-function widget:GameOver()
+function widget:GameOver(winningAllyTeams)
 	gameover = true
-	queueNotification('BattleEnded',true)
+	if victoryConditionAllyID ~= 999 then
+		gameOverState = "defeat"
+		for i = 1, #winningAllyTeams do
+			if winningAllyTeams[i] == victoryConditionAllyID then
+				gameOverState = "victory"
+			end
+		end
+	else
+		gameOverState = "neutral"
+	end
+
+	if (not winningAllyTeams) or (winningAllyTeams and #winningAllyTeams == 0) then
+		gameOverState = "neutral"
+	end
+
+	soundQueue = {}
+	if gameOverState == "victory" then
+		queueNotification('BattleVictory',true)
+	elseif gameOverState == "defeat" then
+		queueNotification('BattleDefeat',true)
+	else
+		queueNotification('BattleEnded',true)
+	end
 	--widgetHandler:RemoveWidget()
 end
 

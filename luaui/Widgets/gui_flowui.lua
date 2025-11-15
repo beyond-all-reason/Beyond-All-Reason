@@ -620,6 +620,27 @@ WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pb
 		gl.Color(1, 1, 1, tileopacity * (opaque and 1.33 or 1))
 		WG.FlowUI.Draw.TexturedRectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, bgtexSize, (px+pxPad)/WG.FlowUI.vsx/bgtexSize, (py+pyPad)/WG.FlowUI.vsy/bgtexSize, "luaui/images/backgroundtile.png")
 	end
+
+	-- Layer 10: White feathered inner outline
+	local outlineWidth = 2
+	local outlineAlpha = opaque and 0.2 or 0.11
+	WG.FlowUI.Draw.RectRoundOutline(
+		px + pxPad, py + pyPad, sx - sxPad, sy - syPad,
+		cs, outlineWidth,
+		tl, tr, br, bl,
+		{ 1, 1, 1, outlineAlpha }, { 1, 1, 1, 0 }
+	)
+
+	-- Layer 11: White feathered inner outline glow
+	local outlineWidth = 16
+	local outlineAlpha = opaque and 0.08 or 0.04
+	WG.FlowUI.Draw.RectRoundOutline(
+		px + pxPad, py + pyPad, sx - sxPad, sy - syPad,
+		cs, outlineWidth,
+		tl, tr, br, bl,
+		{ 1, 1, 1, outlineAlpha }, { 1, 1, 1, 0 }
+	)
+
 end
 
 --[[
@@ -651,7 +672,7 @@ WG.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr
 	local sxPad = bgpadding * (sx < WG.FlowUI.vsx and 1 or 0) * (ptr or 1)
 	local syPad = bgpadding * (sy < WG.FlowUI.vsy and 1 or 0) * (ptl or 1)
 
-	local glossHeight = mathFloor((sy-py)*0.5)
+	local glossHeight = mathFloor((sy-py)*0.4)
 	local cs = bgpadding * 1.6
 
 	-- Layer 1: Background with gradient
@@ -659,27 +680,37 @@ WG.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr
 
 	-- Layer 2: Combined top gloss (merges the old top edge highlight + top half gloss + top extended gloss)
 	-- Alpha values tuned to match original brightness from overlapping layers
-	local topGlossAlpha = 0.2 * glossMult
+	local topGlossAlpha = 0.18 * glossMult
 	WG.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - glossHeight, sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0,
 		{ 1, 1, 1, 0 },
 		{ 1, 1, 1, topGlossAlpha })
 
-	-- Layer 3: Enhanced top edge highlight (thin bright edge at the very top)
-	WG.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - (bgpadding*2.5), sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0,
-		{ 1, 1, 1, 0 },
-		{ 1, 1, 1, 0.08 * glossMult })
+	-- -- Layer 3: Enhanced top edge highlight (thin bright edge at the very top)
+	-- WG.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - (bgpadding*2.5), sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0,
+	-- 	{ 1, 1, 1, 0 },
+	-- 	{ 1, 1, 1, 0.08 * glossMult })
 
 	-- Layer 4: Combined bottom gloss (merges the three overlapping bottom gloss layers)
 	-- Alpha values tuned to match original brightness from overlapping layers
-	local bottomGlossAlpha = 0.1 * glossMult
+	local bottomGlossAlpha = 0.075 * glossMult
 	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, bgpadding, 0, 0, br, bl,
 		{ 1, 1, 1, bottomGlossAlpha },
 		{ 1, 1, 1, 0 })
 
-	-- Layer 5: Bottom edge highlight (thin edge at the very bottom)
-	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + (bgpadding*2), bgpadding, 0, 0, br, bl,
-		{ 1, 1, 1, 0.04 * glossMult },
-		{ 1, 1, 1, 0 })
+	-- -- Layer 5: Bottom edge highlight (thin edge at the very bottom)
+	-- WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + (bgpadding*2), bgpadding, 0, 0, br, bl,
+	-- 	{ 1, 1, 1, 0.04 * glossMult },
+	-- 	{ 1, 1, 1, 0 })
+
+	-- Layer 6: White feathered inner outline glow
+	local outlineWidth = 7
+	local outlineAlpha = opaque and 0.12 or 0.06
+	WG.FlowUI.Draw.RectRoundOutline(
+		px + pxPad, py + pyPad, sx - sxPad, sy - syPad,
+		cs, outlineWidth,
+		tl, tr, br, bl,
+		{ 1, 1, 1, outlineAlpha }, { 1, 1, 1, 0 }
+	)
 end
 
 -- This was broken out from an internal "Unit" function, to allow drawing similar style icons in other places
@@ -759,6 +790,146 @@ WG.FlowUI.Draw.TexRectRound = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  of
 end
 
 --[[
+	RectRoundOutline
+		draw a rectangular outline with feathered edges and proper corner cutoffs
+	params
+		px, py, sx, sy = left, bottom, right, top
+		cs = corner size
+		outlineWidth = width of the outline/feather
+		tl, tr, br, bl = enable/disable corners for TopLeft, TopRight, BottomRight, BottomLeft (default: 1)
+		outerColor = color for the outside edge
+		innerColor = color for the inside edge (for feathering)
+]]
+WG.FlowUI.Draw.RectRoundOutline = function(px, py, sx, sy, cs, outlineWidth, tl, tr, br, bl, outerColor, innerColor)
+	local function DrawRectRoundOutline(px, py, sx, sy, cs, outlineWidth, tl, tr, br, bl, outerColor, innerColor)
+		local tl = tl or 1
+		local tr = tr or 1
+		local br = br or 1
+		local bl = bl or 1
+
+		-- Outer rectangle coordinates
+		local ox1, oy1, ox2, oy2 = px, py, sx, sy
+		-- Inner rectangle coordinates
+		local ix1, iy1, ix2, iy2 = px + outlineWidth, py + outlineWidth, sx - outlineWidth, sy - outlineWidth
+
+		-- Ensure inner rectangle is valid
+		if ix1 >= ix2 or iy1 >= iy2 then
+			-- If outline is too wide, just draw a solid rectangle
+			WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, tl, tr, br, bl, outerColor)
+			return
+		end
+
+		local innerCs = mathMax(0, cs - outlineWidth)
+
+		-- Draw the outline by drawing quads between outer and inner rectangles
+
+		-- Mid section (top and bottom strips)
+		-- Top strip
+		gl.Color(outerColor)
+		gl.Vertex(ox1 + cs, oy2, 0)
+		gl.Vertex(ox2 - cs, oy2, 0)
+		gl.Color(innerColor)
+		gl.Vertex(ix2 - innerCs, iy2, 0)
+		gl.Vertex(ix1 + innerCs, iy2, 0)
+
+		-- Bottom strip
+		gl.Color(innerColor)
+		gl.Vertex(ix1 + innerCs, iy1, 0)
+		gl.Vertex(ix2 - innerCs, iy1, 0)
+		gl.Color(outerColor)
+		gl.Vertex(ox2 - cs, oy1, 0)
+		gl.Vertex(ox1 + cs, oy1, 0)
+
+		-- Left and right strips
+		-- Left strip
+		gl.Color(outerColor)
+		gl.Vertex(ox1, oy1 + cs, 0)
+		gl.Vertex(ox1, oy2 - cs, 0)
+		gl.Color(innerColor)
+		gl.Vertex(ix1, iy2 - innerCs, 0)
+		gl.Vertex(ix1, iy1 + innerCs, 0)
+
+		-- Right strip
+		gl.Color(innerColor)
+		gl.Vertex(ix2, iy1 + innerCs, 0)
+		gl.Vertex(ix2, iy2 - innerCs, 0)
+		gl.Color(outerColor)
+		gl.Vertex(ox2, oy2 - cs, 0)
+		gl.Vertex(ox2, oy1 + cs, 0)
+
+		-- Corner pieces
+		-- Bottom left corner
+		if bl == 1 then
+			gl.Color(outerColor)
+			gl.Vertex(ox1 + cs, oy1, 0)
+			gl.Vertex(ox1, oy1 + cs, 0)
+			gl.Color(innerColor)
+			gl.Vertex(ix1, iy1 + innerCs, 0)
+			gl.Vertex(ix1 + innerCs, iy1, 0)
+		else
+			gl.Color(outerColor)
+			gl.Vertex(ox1, oy1, 0)
+			gl.Vertex(ox1, oy1 + cs, 0)
+			gl.Color(innerColor)
+			gl.Vertex(ix1, iy1 + innerCs, 0)
+			gl.Vertex(ix1, iy1, 0)
+		end
+
+		-- Bottom right corner
+		if br == 1 then
+			gl.Color(innerColor)
+			gl.Vertex(ix2 - innerCs, iy1, 0)
+			gl.Vertex(ix2, iy1 + innerCs, 0)
+			gl.Color(outerColor)
+			gl.Vertex(ox2, oy1 + cs, 0)
+			gl.Vertex(ox2 - cs, oy1, 0)
+		else
+			gl.Color(innerColor)
+			gl.Vertex(ix2, iy1, 0)
+			gl.Vertex(ix2, iy1 + innerCs, 0)
+			gl.Color(outerColor)
+			gl.Vertex(ox2, oy1 + cs, 0)
+			gl.Vertex(ox2, oy1, 0)
+		end
+
+		-- Top left corner
+		if tl == 1 then
+			gl.Color(innerColor)
+			gl.Vertex(ix1, iy2 - innerCs, 0)
+			gl.Vertex(ix1 + innerCs, iy2, 0)
+			gl.Color(outerColor)
+			gl.Vertex(ox1 + cs, oy2, 0)
+			gl.Vertex(ox1, oy2 - cs, 0)
+		else
+			gl.Color(innerColor)
+			gl.Vertex(ix1, iy2, 0)
+			gl.Vertex(ix1, iy2 - innerCs, 0)
+			gl.Color(outerColor)
+			gl.Vertex(ox1, oy2 - cs, 0)
+			gl.Vertex(ox1, oy2, 0)
+		end
+
+		-- Top right corner
+		if tr == 1 then
+			gl.Color(outerColor)
+			gl.Vertex(ox2 - cs, oy2, 0)
+			gl.Vertex(ox2, oy2 - cs, 0)
+			gl.Color(innerColor)
+			gl.Vertex(ix2, iy2 - innerCs, 0)
+			gl.Vertex(ix2 - innerCs, iy2, 0)
+		else
+			gl.Color(outerColor)
+			gl.Vertex(ox2, oy2, 0)
+			gl.Vertex(ox2, oy2 - cs, 0)
+			gl.Color(innerColor)
+			gl.Vertex(ix2, iy2 - innerCs, 0)
+			gl.Vertex(ix2, iy2, 0)
+		end
+	end
+	gl.BeginEnd(GL.QUADS, DrawRectRoundOutline, px, py, sx, sy, cs, outlineWidth, tl, tr, br, bl, outerColor, innerColor)
+end
+
+--[[
 	Unit
 		draw a unit buildpic
 	params
@@ -775,7 +946,6 @@ end
 WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  borderSize, borderOpacity,  texture, radarTexture, groupTexture, price, queueCount)
 	local borderSize = borderSize~=nil and borderSize or mathMin(mathMax(1, mathFloor((sx-px) * 0.024)), mathFloor((WG.FlowUI.vsy*0.0015)+0.5))	-- set default with upper limit
 	local cs = cs~=nil and cs or mathMax(1, mathFloor((sx-px) * 0.024))
-	local halfSize = ((sx-px) * 0.5)
 	borderOpacity = borderOpacity or 0.1
 
 	-- Layer 1: Draw unit texture
@@ -787,6 +957,14 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 		gl.Texture(false)
 	end
 
+	-- Layer 1.1: background base outline (feathered)
+	local baseOutlineWidth = mathMax(1, mathFloor(((sx-px) + (sy-py)) * 0.022))
+	WG.FlowUI.Draw.RectRoundOutline(
+		px-baseOutlineWidth, py-baseOutlineWidth, sx+baseOutlineWidth, sy+baseOutlineWidth, cs*2, baseOutlineWidth,
+		tl, tr, br, bl,
+		{ 0, 0, 0, 0 }, { 0, 0, 0, 0.22 }
+	)
+
 	-- Layer 2: Darken bottom gradient (creates depth)
 	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 0, 0, 1, 1, { 0, 0, 0, 0.2 }, { 0, 0, 0, 0 })
 
@@ -796,22 +974,21 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 	-- Top shine gradient
 	WG.FlowUI.Draw.RectRound(px, sy-((sy-py)*0.4), sx, sy, cs, 1, 1, 0, 0, {1, 1, 1, 0}, {1, 1, 1, 0.06})
 
-	-- Feathered edge highlight (merged with border when borderSize > 0)
+	-- Feathered edge highlight using rectangular outline
 	if borderSize > 0 then
 		-- Combined feather edge and border into single call
-		WG.FlowUI.Draw.RectRoundCircle(
-			px + halfSize,
-			py + halfSize,
-			halfSize, cs*0.7, halfSize - borderSize,
-			{ 1, 1, 1, borderOpacity }, { 1, 1, 1, borderOpacity + 0.04 }
+		WG.FlowUI.Draw.RectRoundOutline(
+			px, py, sx, sy, cs*0.7, borderSize,
+			tl, tr, br, bl,
+			{ 1, 1, 1, borderOpacity + 0.04 }, { 1, 1, 1, borderOpacity }
 		)
 	else
 		-- Just the feather edge when no border
-		WG.FlowUI.Draw.RectRoundCircle(
-			px + halfSize,
-			py + halfSize,
-			halfSize, cs*0.7, halfSize*0.82,
-			{ 1, 1, 1, 0 }, { 1, 1, 1, 0.04 }
+		local featherWidth = mathMax(1, mathFloor(((sx-px) + (sy-py)) * 0.015))
+		WG.FlowUI.Draw.RectRoundOutline(
+			px, py, sx, sy, cs*0.7, featherWidth,
+			tl, tr, br, bl,
+			{ 1, 1, 1, 0.04 }, { 1, 1, 1, 0 }
 		)
 	end
 
@@ -942,15 +1119,22 @@ end
 WG.FlowUI.Draw.SliderKnob = function(x, y, radius, color)
 	local color = color or {0.95,0.95,0.95,1}
 	local color1 = {color[1]*0.55, color[2]*0.55, color[3]*0.55, color[4]}
-	local edgeWidth = mathMax(1, mathFloor(radius * 0.05))
 	local cs = mathMax(1.1, radius*0.15)
 
 	-- faint dark outline edge
-	WG.FlowUI.Draw.RectRound(x-radius-edgeWidth, y-radius-edgeWidth, x+radius+edgeWidth, y+radius+edgeWidth, cs, 1,1,1,1, {0,0,0,0.1})
+	local edgeWidth = mathMax(1, mathFloor(radius * 0.05))
+	WG.FlowUI.Draw.RectRound(x-radius-edgeWidth, y-radius-edgeWidth, x+radius+edgeWidth, y+radius+edgeWidth, cs, 1,1,1,1, {0,0,0,0.12})
+	local edgeWidth = mathMax(2, mathFloor(radius * 0.3))
+	WG.FlowUI.Draw.RectRoundOutline(x-radius-edgeWidth, y-radius-edgeWidth, x+radius+edgeWidth, y+radius+edgeWidth, cs, edgeWidth, 1, 1, 1, 1, {0,0,0,0}, {0,0,0,0.17})
 	-- knob
 	WG.FlowUI.Draw.RectRound(x-radius, y-radius, x+radius, y+radius, cs, 1,1,1,1, color1, color)
+
 	-- lighten knob inside edges
-	WG.FlowUI.Draw.RectRoundCircle(x, y, radius, cs*0.5, radius*0.85, {1,1,1,0.1})
+	gl.Blending(GL.SRC_ALPHA, GL.ONE)
+	local innerOutlineWidth = radius * 0.17
+	WG.FlowUI.Draw.RectRoundOutline(x-radius, y-radius, x+radius, y+radius, cs, innerOutlineWidth, 1, 1, 1, 1, {1,1,1,0.22}, {1,1,1,0})
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+
 end
 
 --[[

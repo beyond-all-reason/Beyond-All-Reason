@@ -24,7 +24,7 @@ local spGetViewGeometry = Spring.GetViewGeometry
 -- GUIshader - Done -- dont care if its not sharpened, in fact!
 -- CAS - Done
 -- TODO:
-	-- LUPS distortionFBO - hard because large areas might have a noticable lack of sharpening...
+	-- distortionFBO - hard because large areas might have a noticable lack of sharpening...
 
 -- Code snippet to use if you want to request a copy:
 -- also note that the first copy will return nil, as its all black!
@@ -41,7 +41,7 @@ local spGetViewGeometry = Spring.GetViewGeometry
 ]]--
 
 -- Also provide a depth copy too!
--- For correct render order, the depth copy should be requested before things like healthbars. 
+-- For correct render order, the depth copy should be requested before things like healthbars.
 -- Why do we even return nil for our first copy?
 
 local ScreenCopy
@@ -75,8 +75,8 @@ function widget:ViewResize()
 		wrap_s = GL.CLAMP,
 		wrap_t = GL.CLAMP,
 	})
-	if not ScreenCopy then spEcho("ScreenCopy Manager failed to create a ScreenCopy") end 
-	if not DepthCopy then spEcho("ScreenCopy Manager failed to create a DepthCopy") end 
+	if not ScreenCopy then spEcho("ScreenCopy Manager failed to create a ScreenCopy") end
+	if not DepthCopy then spEcho("ScreenCopy Manager failed to create a DepthCopy") end
 end
 
 local function GetScreenCopy()

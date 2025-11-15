@@ -1238,9 +1238,9 @@ local options = {
         section = "options_extra",
         items 	= {
             { key = "default", 	name = "Default", desc = "Uses the default amount based on game mode" },
-            { key = "small", 	name = "Small", desc = "1000 Base Budget" },
-            { key = "normal", 	name = "Normal", desc = "1500 Base Budget" },
-            { key = "large", 	name = "Large", desc = "3000 Base Budget" },
+            { key = "small", 	name = "Small", desc = "800 Base Budget" },
+            { key = "normal", 	name = "Normal", desc = "1200 Base Budget" },
+            { key = "large", 	name = "Large", desc = "2400 Base Budget" },
         }
     },
 
