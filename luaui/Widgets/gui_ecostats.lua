@@ -707,7 +707,7 @@ local function makeTeamCompositionList()
 		end
 		prevAreaRect = areaRect
 
-		if (not uiBgTex or rectAreaChange) and areaRect[4] then
+		if (not uiBgTex or rectAreaChange) and areaRect[1] and areaRect[2] and areaRect[3] and areaRect[4] then
 			if uiBgTex then
 				gl.DeleteTexture(uiBgTex)
 			end
