@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 16384,
 		buildpic = "leganavyflagship.DDS",
-		buildtime = 210000,
+		buildtime = 190000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -24 5",
 		collisionvolumescales = "80 80 186",
