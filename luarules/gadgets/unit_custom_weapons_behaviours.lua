@@ -29,6 +29,7 @@ local distance3dSquared = math.distance3dSquared
 local spDeleteProjectile = Spring.DeleteProjectile
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetGroundNormal = Spring.GetGroundNormal
+local spGetProjectileDefID = Spring.GetProjectileDefID
 local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileTarget = Spring.GetProjectileTarget
@@ -181,6 +182,8 @@ weaponCustomParamKeys.cruise = {
 	lockon_dist       = toPositiveNumber, -- Within this radius, disables the auto ground clearance.
 }
 
+local _; -- sink var for unused values
+local float3 = { 0, 0, 0 }
 local function applyCruiseCorrection(projectileID, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
 	local normalX, normalY, normalZ = spGetGroundNormal(positionX, positionZ)
 	local codirection = velocityX * normalX + velocityY * normalY + velocityZ * normalZ
@@ -191,41 +194,55 @@ end
 
 specialEffectFunction.cruise = function(params, projectileID)
 	if spGetProjectileTimeToLive(projectileID) > 0 then
-		local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
-		local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
 		local targetType, target = spGetProjectileTarget(projectileID)
-
-		local targetX, targetY, targetZ
 		if targetType == targetedUnit then
-			local _; -- declare a local sink var for unused values
-			_, _, _, targetX, targetY, targetZ = spGetUnitPosition(target, false, true)
-		elseif targetType == targetedGround then
-			targetX, targetY, targetZ = target[1], target[2], target[3]
+			_, _, _, float3[1], float3[2], float3[3] = spGetUnitPosition(target, false, true)
+			target = float3
 		end
 
 		local distance = params.lockon_dist
+		local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
 
-		if distance * distance < distance3dSquared(positionX, positionY, positionZ, targetX, targetY, targetZ) then
+		if distance * distance < distance3dSquared(positionX, positionY, positionZ, target[1], target[2], target[3]) then
 			local cruiseHeight = spGetGroundHeight(positionX, positionZ) + params.cruise_min_height
-
+			local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
 			if positionY < cruiseHeight then
-				projectilesData[projectileID] = true
 				applyCruiseCorrection(projectileID, positionX, cruiseHeight, positionZ, velocityX, velocityY, velocityZ)
-			elseif projectilesData[projectileID]
-				and positionY > cruiseHeight
-				and velocityY > speed * -0.25 -- Avoid going into steep dives, e.g. after cliffs.
-			then
-				applyCruiseCorrection(projectileID, positionX, cruiseHeight, positionZ, velocityX, velocityY, velocityZ)
+				-- Change over to second-phase attitude controls:
+				projectiles[projectileID] = weaponDefEffect[-1 - spGetProjectileDefID(projectileID)]
 			end
-
 			return false
 		end
 	end
-
-	projectilesData[projectileID] = nil
-
 	return true
 end
+
+-- Second-phase `cruise` effect, adding a ground-following behavior.
+local cruiseEngaged = {
+	__call = function(params, projectileID)
+		if spGetProjectileTimeToLive(projectileID) > 0 then
+			local targetType, target = spGetProjectileTarget(projectileID)
+			if targetType == targetedUnit then
+				_, _, _, float3[1], float3[2], float3[3] = spGetUnitPosition(target, false, true)
+				target = float3
+			end
+
+			local distance = params.lockon_dist
+			local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
+
+			if distance * distance < distance3dSquared(positionX, positionY, positionZ, target[1], target[2], target[3]) then
+				local cruiseHeight = spGetGroundHeight(positionX, positionZ) + params.cruise_min_height
+				local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
+				-- Follow the ground when it slopes away, but not over steep drops, e.g. sheer cliffs.
+				if (positionY < cruiseHeight) or (velocityY > speed * -0.25 and positionY > cruiseHeight) then
+					applyCruiseCorrection(projectileID, positionX, cruiseHeight, positionZ, velocityX, velocityY, velocityZ)
+				end
+				return false
+			end
+		end
+		return true
+	end
+}
 
 -- Retarget
 -- Missile guidance behavior that changes the projectile's target when its intended target is destroyed.
@@ -498,6 +515,11 @@ function gadget:Initialize()
 				if next(effectParams) then
 					-- When configured to a weapon's customParams, call the effect with its `params`:
 					weaponDefEffect[weaponDefID] = setmetatable(effectParams, metatables[effectName])
+
+					if effectName == "cruise" then
+						effectParams = table.copy(effectParams)
+						weaponDefEffect[-1 - weaponDefID] = setmetatable(effectParams, cruiseEngaged)
+					end
 				else
 					-- Otherwise, call the effect directly (skips the `params` arg):
 					weaponDefEffect[weaponDefID] = specialEffectFunction[effectName]
@@ -525,7 +547,6 @@ end
 
 function gadget:ProjectileDestroyed(projectileID)
 	projectiles[projectileID] = nil
-	projectilesData[projectileID] = nil
 end
 
 function gadget:GameFrame(frame)
