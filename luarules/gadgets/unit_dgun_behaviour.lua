@@ -123,7 +123,7 @@ function gadget:GameFrame(frame)
 			local horizontalMagnitude = mathSqrt(dx ^ 2 + dz ^ 2)
 
 			-- Safeguard against division by zero (when projectile has no horizontal velocity)
-			if horizontalMagnitude > 0.001 and speed > 0 then
+			if horizontalMagnitude > 1e-5 and speed > 0 then
 				local norm = speed / horizontalMagnitude
 				local ndx = dx * norm
 				local ndz = dz * norm
