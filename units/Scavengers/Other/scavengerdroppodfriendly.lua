@@ -73,7 +73,6 @@ return {
 				smoketrail = 1,
 				soundhit = "scavspawn",
 				startvelocity = 2000, -- === weaponvelocity to ensure consistent speed
-				targetborder = 0.75,
 				turret = 1,
 				weaponacceleration = 450,
 				weapontimer = 2,

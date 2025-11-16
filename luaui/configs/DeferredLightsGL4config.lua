@@ -3428,6 +3428,53 @@ local unitLights = {
 							lifetime = 0, sustain = 0, selfshadowing = 0},
 		},
 	},
+	['leganavyradjamship']={
+		cloaklightred = {
+			lightType = 'point',
+			pieceName = 'cloaklight',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 16,
+							color2r = 0.6, color2g = 0, color2b = 0, colortime = 30,
+							r = 1, g = 0, b = 0, a = 0.9,
+							modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+		greenbloba = {
+			lightType = 'point',
+			pieceName = 'radarlight1',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.15,
+				modelfactor = 0.4, specular = 0.9, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+		greenblobb = {
+			lightType = 'point',
+			pieceName = 'radarlight2',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.15,
+				modelfactor = 0.4, specular = 0.9, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+		greenblobc = {
+			lightType = 'point',
+			pieceName = 'radarlight3',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.15,
+				modelfactor = 0.4, specular = 0.9, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+		greenblobd = {
+			lightType = 'point',
+			pieceName = 'radarlight4',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.15,
+				modelfactor = 0.4, specular = 0.9, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	['armveil'] = {
 		cloaklightred = {
 				lightType = 'point',
@@ -12534,6 +12581,62 @@ local unitLights = {
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = 1, g = 0.5, b = 0.1, a = 0.8,
 							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+	},
+	['legsy'] = {
+		nanolight1 = {
+			lightType = 'point',
+			pieceName = 'beam1',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.3,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+		nanolight2 = {
+			lightType = 'point',
+			pieceName = 'beam2',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.3,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+		nanolight3 = {
+			lightType = 'point',
+			pieceName = 'beam3',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.3,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+		nanolight4 = {
+			lightType = 'point',
+			pieceName = 'beam4',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.3,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+		buildlight = { -- this is the lightname
+			lightType = 'cone',
+			pieceName = 'domelight_emit',
+			lightConfig = { posx = 1, posy = 0, posz = 0, radius = 32,
+							dirx = 1, diry = 0, dirz = 0, theta = 0.99000001,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+		buildlight2 = { -- this is the lightname
+			lightType = 'cone',
+			pieceName = 'domelight_emit',
+			lightConfig = { posx = -1, posy = 0, posz = 0, radius = 32,
+							dirx = -1, diry = 0, dirz = 0, theta = 0.99000001,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 10,
 							lifetime = 0, sustain = 0, selfshadowing = 0},
 		},
 	},
@@ -32232,6 +32335,94 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['legnavyconship']={
+		nanolight1 = {
+			lightType = 'point',
+			pieceName = 'nanoFlare',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.3,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		--spin lights
+		buildlight1a = { --top spinning light
+			lightType = 'cone',
+			pieceName = 'conLight1a',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+							dirx = 0, diry = 0, dirz = 1, theta = 0.99000001,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 1,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 8,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		buildlight1b = { --top spinning light
+			lightType = 'cone',
+			pieceName = 'conLight1b',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.99000001,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 1,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 8,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		buildlight2a = { --top spinning light
+			lightType = 'cone',
+			pieceName = 'conLight2a',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+							dirx = 0, diry = 0, dirz = 1, theta = 0.99000001,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 1,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 8,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		buildlight2b = { --top spinning light
+			lightType = 'cone',
+			pieceName = 'conLight2b',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.99000001,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 1,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 8,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	['legnavyrezsub']={
+		nanolight1 = {
+			lightType = 'point',
+			pieceName = 'nanoFlare',
+			lightConfig = { posx = 0, posy = 0, posz = -1.5, radius = 25,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.25,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		nanolight2 = {
+			lightType = 'point',
+			pieceName = 'nanoFlare',
+			lightConfig = { posx = 0, posy = 0, posz = -1.5, radius = 15,
+							color2r = 0, color2g = 0, color2b = 0, colortime = -1,
+							r = -1, g = 1, b = 1, a = 0.35,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	['legnavyaaship']={
+		greenblobA = {
+			lightType = 'point',
+			pieceName = 'dishA',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.1,
+				modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+		greenblobB = {
+			lightType = 'point',
+			pieceName = 'dishA',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 5,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.3,
+				modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+	},
 	['legaca']={
 		nanolight1 = {
 			lightType = 'point',
@@ -38861,8 +39052,6 @@ local fraction = 5
 local day = tonumber(os.date("%d"))
 if day <= 25 then
 	fraction = fraction + (25 - day)
-else
-	fraction = fraction + ((day - 25) * 5)
 end
 local xmaslightbase = {
 			fraction = fraction,
@@ -38886,7 +39075,7 @@ local xmaslightbase = {
 -- White Fire Remake 1.3
 -- Ice Scream v2.5.1
 -- add colorful xmas lights to a percentage of certain snowy trees
-if os.date("%m") == "12" and os.date("%d") >= "12" then --and  os.date("%d") <= "26"
+if Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] then --and  os.date("%d") <= "26"
 	local snowy_tree_keys = {allpinesb_ad0 = 60, __tree_fir_tall_3 = 60, __tree_fir_ = 60}
 	local xmasColors = {
 		[1] = {234,13,13}, -- red

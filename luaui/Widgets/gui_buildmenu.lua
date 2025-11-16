@@ -13,6 +13,17 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSpectatingState = Spring.GetSpectatingState
+
 include("keysym.h.lua")
 
 local pairs = pairs
@@ -21,11 +32,14 @@ local tonumber = tonumber
 local string_format = string.format
 local table_invert = table.invert
 local pcall = pcall
+--- CHANGE START ---
+-- Helper function to clear a table without creating garbage, using the standard Lua method.
 local function clearTable(t)
 	for k in pairs(t) do
 		t[k] = nil
 	end
 end
+--- CHANGE END ---
 
 SYMKEYS = table_invert(KEYSYMS)
 
@@ -83,11 +97,13 @@ local buildmenuShows = false
 local refreshBuildmenu = true
 
 local costOverrides = {}
-local blockOverride = {}
-local selectionUpdateCountdown = 0  -- The debouncer timer, for selection changes only
+--[[ MODIFICATION START ]]
+-- New state variables for the robust update system
+local selectionUpdateTime = 0  -- Time-based debouncer for selection changes
 local raceConditionUpdateCountdown = 0 -- Timer for race conditions
 local forceRefreshNextFrame = false   -- The failsafe retry flag
 local refreshRetryCounter = 0       -- Failsafe counter to prevent infinite retries
+--[[ MODIFICATION END ]]
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -96,9 +112,9 @@ local playSounds = true
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
-local ordermenuLeft = math.floor(vsx / 5)
+local ordermenuLeft = mathFloor(vsx / 5)
 local advplayerlistLeft = vsx * 0.8
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
@@ -106,8 +122,8 @@ local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 
 local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
 
-local isSpec = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
+local isSpec = spGetSpectatingState()
+local myTeamID = spGetMyTeamID()
 
 local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 
@@ -131,10 +147,23 @@ local cmdsCount = 0
 local currentPage = 1
 local pages = 1
 local paginatorRects = {}
-local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
+local preGamestartPlayer = spGetGameFrame() == 0 and not isSpec
 
 local unitDefToCellMap = {}
 local cellQuotas = {}
+
+-- Reusable tables to reduce allocations in hot paths
+local cmdUnitdefsTemp = {}
+local selBuilderDefsTemp1 = {}
+local selBuilderDefsTemp2 = {}
+local currentSelBuilderDefs = selBuilderDefsTemp1  -- Track which temp table is current
+local buildCycleTemp = {}
+local emptyParams = {}
+
+-- Cache for expensive Spring API calls
+local cachedActiveCmdDescs = nil
+local cachedActiveCmdDescsTime = 0
+local activeCmdDescsCacheDelay = 0.05  -- Cache for 50ms
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -184,9 +213,9 @@ local SelectedUnitsCount = spGetSelectedUnitsCount()
 local string_sub = string.sub
 local os_clock = os.clock
 
-local math_floor = math.floor
+local math_floor = mathFloor
 local math_ceil = math.ceil
-local math_max = math.max
+local math_max = mathMax
 local math_min = math.min
 
 local glTexture = gl.Texture
@@ -197,6 +226,16 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_DST_ALPHA = GL.DST_ALPHA
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
+
+-- Helper function for cached Spring API calls (must be after localizations)
+local function getCachedActiveCmdDescs()
+	local now = os_clock()
+	if not cachedActiveCmdDescs or (now - cachedActiveCmdDescsTime) > activeCmdDescsCacheDelay then
+		cachedActiveCmdDescs = spGetActiveCmdDescs()
+		cachedActiveCmdDescsTime = now
+	end
+	return cachedActiveCmdDescs
+end
 
 local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner
 
@@ -263,8 +302,8 @@ local function checkGuishader(force)
 end
 
 function widget:PlayerChanged(playerID)
-	isSpec = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
+	isSpec = spGetSpectatingState()
+	myTeamID = spGetMyTeamID()
 end
 
 local function UpdateGridGeometry()
@@ -341,56 +380,49 @@ local function UpdateGridGeometry()
 end
 
 local function RefreshCommands()
-	cmds = {}
-	cmdsCount = 0
-
-	-- Debug: Check unit costs for a few sample units
-	if units and units.unitMetalCost then
-		local sampleUnit = UnitDefNames.armcom
-		if sampleUnit then
-			Spring.Echo("[BuildMenu Debug] RefreshCommands - armcom metal cost: " .. tostring(units.unitMetalCost[sampleUnit.id]) .. ", energy cost: " .. tostring(units.unitEnergyCost[sampleUnit.id]))
-		end
-		local sampleUnit2 = UnitDefNames.armlab
-		if sampleUnit2 then
-			Spring.Echo("[BuildMenu Debug] RefreshCommands - armlab metal cost: " .. tostring(units.unitMetalCost[sampleUnit2.id]) .. ", energy cost: " .. tostring(units.unitEnergyCost[sampleUnit2.id]))
-		end
+	-- Clear and reuse cmds table instead of creating new one
+	for i = #cmds, 1, -1 do
+		cmds[i] = nil
 	end
+	cmdsCount = 0
 
 	if preGamestartPlayer then
 		if startDefID then
 
-			local cmdUnitdefs = {}
+			-- Clear and reuse temp table instead of creating new one
+			clearTable(cmdUnitdefsTemp)
 			for i, udefid in ipairs(unitBuildOptions[startDefID]) do
-				cmdUnitdefs[udefid] = i
+				cmdUnitdefsTemp[udefid] = i
 			end
 			for k, uDefID in ipairs(units.unitOrder) do
-				if cmdUnitdefs[uDefID] then
+				if cmdUnitdefsTemp[uDefID] then
 					cmdsCount = cmdsCount + 1
 					-- mimmick output of spGetActiveCmdDescs
 					cmds[cmdsCount] = {
 						id = uDefID * -1,
 						name = unitName[uDefID],
-						params = {}
+						params = emptyParams
 					}
 				end
 			end
 		end
 	else
 
-		local activeCmdDescs = spGetActiveCmdDescs()
+		local activeCmdDescs = getCachedActiveCmdDescs()
 		if smartOrderUnits then
-			local cmdUnitdefs = {}
+			-- Clear and reuse temp table instead of creating new one
+			clearTable(cmdUnitdefsTemp)
 			for index, cmd in ipairs(activeCmdDescs) do
 				if type(cmd) == "table" then
 					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
-						cmdUnitdefs[cmd.id * -1] = index
+						cmdUnitdefsTemp[cmd.id * -1] = index
 					end
 				end
 			end
 			for k, uDefID in ipairs(units.unitOrder) do
-				if cmdUnitdefs[uDefID] then
+				if cmdUnitdefsTemp[uDefID] then
 					cmdsCount = cmdsCount + 1
-					cmds[cmdsCount] = activeCmdDescs[cmdUnitdefs[uDefID]]
+					cmds[cmdsCount] = activeCmdDescs[cmdUnitdefsTemp[uDefID]]
 				end
 			end
 		else
@@ -405,18 +437,24 @@ local function RefreshCommands()
 		end
 	end
 
+	--[[ MODIFICATION START ]]
+	-- Failsafe check with reset logic
 	if (not preGamestartPlayer) and cmdsCount == 0 and selectedBuilderCount > 0 then
 		forceRefreshNextFrame = true
-		refreshRetryCounter = 10
+		refreshRetryCounter = 10 -- Set a retry limit
 	else
+		-- On success, explicitly cancel any ongoing retry
 		forceRefreshNextFrame = false
 		refreshRetryCounter = 0
 	end
+	--[[ MODIFICATION END ]]
 
 	UpdateGridGeometry()
 
+	--- CHANGE START ---
 	clearTable(unitDefToCellMap)
 	clearTable(cellQuotas)
+	--- CHANGE END ---
 
 	local numCellsPerPage = rows * colls
 	local startCellID = numCellsPerPage * (currentPage - 1)
@@ -458,7 +496,7 @@ local function clear()
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
 	font2 = WG['fonts'].getFont(2)
@@ -552,6 +590,8 @@ end
 local sec = 0
 local prevSelBuilderDefs = {}
 function widget:Update(dt)
+	--[[ MODIFICATION START ]]
+	-- Check failsafe retry flag
 	if forceRefreshNextFrame and refreshRetryCounter > 0 then
 		doUpdate = true
 		refreshRetryCounter = refreshRetryCounter - 1
@@ -560,14 +600,23 @@ function widget:Update(dt)
 		end
 	end
 
-	if selectionUpdateCountdown > 0 then
-		selectionUpdateCountdown = selectionUpdateCountdown - 1
-		if selectionUpdateCountdown == 0 then
+	-- Debounced selection update logic (time-based)
+	if selectionUpdateTime > 0 then
+		local now = os_clock()
+		if now >= selectionUpdateTime then
+			selectionUpdateTime = 0
+			-- The old `updateSelection = false` is no longer needed
+			-- The rest of the original logic from `if updateSelection` block is moved here
 			selectedBuilders = {}
 			selectedBuilderCount = 0
 			local prevSelectedFactoryCount = selectedFactoryCount
 			selectedFactoryCount = 0
-			local selBuilderDefs = {}
+
+			-- Swap to the other temp table (ping-pong buffering)
+			local prevSelBuilderDefs = currentSelBuilderDefs
+			currentSelBuilderDefs = (currentSelBuilderDefs == selBuilderDefsTemp1) and selBuilderDefsTemp2 or selBuilderDefsTemp1
+			clearTable(currentSelBuilderDefs)
+
 			SelectedUnitsCount = spGetSelectedUnitsCount()
 			if SelectedUnitsCount > 0 then
 				local sel = Spring.GetSelectedUnits()
@@ -575,12 +624,12 @@ function widget:Update(dt)
 					local uDefID = spGetUnitDefID(unitID)
 					if units.isFactory[uDefID] then
 						selectedFactoryCount = selectedFactoryCount + 1
-						selBuilderDefs[uDefID] = true
+						currentSelBuilderDefs[uDefID] = true
 					end
 					if units.isBuilder[uDefID] then
 						selectedBuilders[unitID] = true
 						selectedBuilderCount = selectedBuilderCount + 1
-						selBuilderDefs[uDefID] = true
+						currentSelBuilderDefs[uDefID] = true
 					end
 				end
 
@@ -590,17 +639,17 @@ function widget:Update(dt)
 
 				-- check if builder type selection actually differs from previous selection
 				if not doUpdate then
-					if #selBuilderDefs ~= #prevSelBuilderDefs then
+					if #currentSelBuilderDefs ~= #prevSelBuilderDefs then
 						doUpdate = true
 					else
 						for uDefID, _ in pairs(prevSelBuilderDefs) do
-							if not selBuilderDefs[uDefID] then
+							if not currentSelBuilderDefs[uDefID] then
 								doUpdate = true
 								break
 							end
 						end
 						if not doUpdate then
-							for uDefID, _ in pairs(selBuilderDefs) do
+							for uDefID, _ in pairs(currentSelBuilderDefs) do
 								if not prevSelBuilderDefs[uDefID] then
 									doUpdate = true
 									break
@@ -610,7 +659,6 @@ function widget:Update(dt)
 					end
 				end
 			end
-			prevSelBuilderDefs = selBuilderDefs
 		end
 	end
 	--[[ MODIFICATION END ]]
@@ -730,19 +778,19 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 			end
 			return price
 		end
-		
+
 		local costOverride = costOverrides and costOverrides[uDefID]
-		
+
 		if costOverride then
 			local topValue = costOverride.top and costOverride.top.value or units.unitMetalCost[uDefID]
 			local bottomValue = costOverride.bottom and costOverride.bottom.value or units.unitEnergyCost[uDefID]
-			
+
 			if costOverride.top and not costOverride.top.disabled then
 				local costColor = costOverride.top.color or "\255\100\255\100"
 				if disabled then
 					costColor = costOverride.top.colorDisabled or "\255\100\200\100"
 				end
-				local costPrice = AddSpaces(math.floor(topValue))
+				local costPrice = AddSpaces(mathFloor(topValue))
 				local costPriceText = costColor .. costPrice
 				font2:Print(costPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
 			elseif not costOverride.top then
@@ -750,13 +798,13 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 				local metalPrice = AddSpaces(units.unitMetalCost[uDefID])
 				font2:Print(metalColor .. metalPrice, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
 			end
-			
+
 			if costOverride.bottom and not costOverride.bottom.disabled then
 				local costColor = costOverride.bottom.color or "\255\255\255\000"
 				if disabled then
 					costColor = costOverride.bottom.colorDisabled or "\255\135\135\135"
 				end
-				local costPrice = AddSpaces(math.floor(bottomValue))
+				local costPrice = AddSpaces(mathFloor(bottomValue))
 				local costPriceText = costColor .. costPrice
 				font2:Print(costPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
 			elseif not costOverride.bottom then
@@ -827,7 +875,9 @@ function drawBuildmenu()
 	local contentWidth = activeArea[3] - activeArea[1]
 	local paginatorCellHeight = math_floor(contentHeight - (rows * cellSize))
 
+	--- CHANGE START ---
 	clearTable(cellRects)
+	--- CHANGE END ---
 
 	local numCellsPerPage = rows * colls
 	local cellRectID = numCellsPerPage * (currentPage - 1)
@@ -867,9 +917,7 @@ function drawBuildmenu()
 			local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
 			local usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 
-			local uDefID = cmds[cellRectID].id * -1
-			local isDisabled = units.unitRestricted[uDefID] or (blockOverride[uDefID] and next(blockOverride[uDefID]))
-			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, isDisabled)
+			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[cmds[cellRectID].id * -1])
 		end
 	end
 
@@ -908,7 +956,7 @@ function widget:DrawScreen()
 	-- refresh buildmenu if active cmd changed
 	local prevActiveCmd = activeCmd
 
-	if Spring.GetGameFrame() == 0 and WG['pregame-build'] then
+	if spGetGameFrame() == 0 and WG['pregame-build'] then
 		activeCmd = WG["pregame-build"] and WG["pregame-build"].getPreGameDefID()
 		if activeCmd then
 			activeCmd = unitName[activeCmd]
@@ -1120,7 +1168,7 @@ function widget:DrawScreen()
 								end
 								cellColor = { 1, 0.85, 0.2, 0.25 }
 							end
-							if not (units.unitRestricted[uDefID] or (blockOverride[uDefID] and next(blockOverride[uDefID]))) then
+							if not (units.unitRestricted[uDefID]) then
 
 								local unsetShowPrice
 								if not showPrice then
@@ -1130,8 +1178,7 @@ function widget:DrawScreen()
 
 								-- re-draw cell with hover zoom (and price shown)
 								font2:Begin(useRenderToTexture)
-								local isDisabled = units.unitRestricted[uDefID] or (blockOverride[uDefID] and next(blockOverride[uDefID]))
-								drawCell(hoveredCellID, usedZoom, cellColor, isDisabled)
+								drawCell(hoveredCellID, usedZoom, cellColor, units.unitRestricted[uDefID])
 								font2:End()
 
 								if unsetShowPrice then
@@ -1171,7 +1218,7 @@ end
 function widget:DrawWorld()
 
 	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
-	if Spring.GetGameFrame() > 0 then
+	if spGetGameFrame() > 0 then
 		widgetHandler:RemoveWidgetCallIn('DrawWorld', self)
 		return
 	end
@@ -1199,7 +1246,22 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdPara
 end
 
 function widget:SelectionChanged(sel)
-	selectionUpdateCountdown = 2
+	--[[ MODIFICATION START ]]
+	-- Adaptive throttling: increase delay based on selection size
+	local selCount = #sel
+	local throttleDelay = 0.01
+	if selCount >= 300 then
+		throttleDelay = 0.03
+	elseif selCount >= 160 then
+		throttleDelay = 0.02
+	elseif selCount >= 80 then
+		throttleDelay = 0.015
+	end
+
+	selectionUpdateTime = os_clock() + throttleDelay
+	-- Invalidate cached commands on selection change
+	cachedActiveCmdDescs = nil
+	--[[ MODIFICATION END ]]
 end
 
 local function unbindBuildUnits()
@@ -1245,7 +1307,7 @@ local function updateQuotaNumber(unitDefID, count)
 				quotas[builderID] = quotas[builderID] or {}
 				quotas[builderID][unitDefID] = quotas[builderID][unitDefID] or 0
 				local prev = quotas[builderID][unitDefID]
-				quotas[builderID][unitDefID] = math.max(quotas[builderID][unitDefID] + (count or 0), 0)
+				quotas[builderID][unitDefID] = mathMax(quotas[builderID][unitDefID] + (count or 0), 0)
 				quotaChanged = quotaChanged or prev ~= quotas[builderID][unitDefID]
 			end
 		end
@@ -1291,8 +1353,8 @@ function widget:MousePress(x, y, button)
 			end
 			if not disableInput then
 				for cellRectID, cellRect in pairs(cellRects) do
-					local uDefID = -cmds[cellRectID].id
-					if cmds[cellRectID] and cmds[cellRectID].id and unitTranslatedHumanName[uDefID] and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (units.unitRestricted[uDefID] or (blockOverride[uDefID] and next(blockOverride[uDefID]))) then
+					if cmds[cellRectID] and cmds[cellRectID].id and unitTranslatedHumanName[-cmds[cellRectID].id] and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (units.unitRestricted[-cmds[cellRectID].id]) then
+						local uDefID = cmds[cellRectID].id  --WARNING: THIS IS -unitDefID, not unitDefID
 						local setQuotas = isOnQuotaBuildMode(-uDefID)
 						local alt, ctrl, meta, shift = Spring.GetModKeyState()
 						if button ~= 3 then
@@ -1314,19 +1376,40 @@ function widget:MousePress(x, y, button)
 								end
 							end
 						else
-							if cmds[cellRectID].params[1] and playSounds then
-								-- has queue
-								Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
-							end
-							if setQuotas and not alt then
+							local queueCount = tonumber(cmds[cellRectID].params[1] or 0)
+
+							local function decreaseQuota()
 								if changeQuotas(-uDefID, modKeyMultiplier.right) and playSounds then
 									Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
 								end
-							else
+							end
+
+							local function decreaseQueue()
+								if queueCount > 0 and playSounds then
+									Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
+								end
 								if preGamestartPlayer then
 									setPreGamestartDefID(cmds[cellRectID].id * -1)
 								elseif spGetCmdDescIndex(cmds[cellRectID].id) then
 									Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id), 3, false, true, Spring.GetModKeyState())
+								end
+							end
+
+							local isQuotaMode = setQuotas and not alt
+							local quotaInfo = cellQuotas[-uDefID]
+							local currentQuota = (quotaInfo and quotaInfo.quota) or 0
+
+							if isQuotaMode then
+								if currentQuota > 0 then
+									decreaseQuota()
+								else
+									decreaseQueue()
+								end
+							else
+								if queueCount > 0 then
+									decreaseQueue()
+								else
+									decreaseQuota()
 								end
 							end
 						end
@@ -1346,7 +1429,7 @@ end
 local function buildUnitHandler(_, _, _, data)
 	-- sanity check
 	if not preGamestartPlayer then return end
-	if units.unitRestricted[data.unitDefID] or (blockOverride[data.unitDefID] and next(blockOverride[data.unitDefID])) then return end
+	if units.unitRestricted[data.unitDefID] then return end
 
 	if not unitName[startDefID] or not comBuildOptions[unitName[startDefID]] or not comBuildOptions[unitName[startDefID]][data.unitDefID] then return end
 
@@ -1383,24 +1466,27 @@ local function buildUnitHandler(_, _, _, data)
 	-- didnt find a suitable binding to cycle from
 	if not (pressedKey or pressedScan) then return end
 
-	local buildCycle = {}
+	-- Clear and reuse temp table instead of creating new one
+	clearTable(buildCycleTemp)
+	local buildCycleCount = 0
 	for _, keybind in ipairs(Spring.GetKeyBindings(pressedKey, pressedScan)) do
 		if string_sub(keybind.command, 1, 10) == 'buildunit_' then
 			local uDefName = string_sub(keybind.command, 11)
 			local uDef = UnitDefNames[uDefName]
 	        if uDef then -- prevents crashing when trying to access unloaded units (legion)
-	            if comBuildOptions[unitName[startDefID]][uDef.id] and not (units.unitRestricted[uDef.id] or (blockOverride[uDef.id] and next(blockOverride[uDef.id]))) then
-	                table.insert(buildCycle, uDef.id)
+	            if comBuildOptions[unitName[startDefID]][uDef.id] and not units.unitRestricted[uDef.id] then
+	                buildCycleCount = buildCycleCount + 1
+	                buildCycleTemp[buildCycleCount] = uDef.id
 	            end
         	end
 		end
 	end
 
-	if #buildCycle == 0 then return end
+	if buildCycleCount == 0 then return end
 
 	local buildCycleIndex
-	for i, v in ipairs(buildCycle) do
-		if v == selBuildQueueDefID then
+	for i = 1, buildCycleCount do
+		if buildCycleTemp[i] == selBuildQueueDefID then
 			buildCycleIndex = i
 			break
 		end
@@ -1412,9 +1498,9 @@ local function buildUnitHandler(_, _, _, data)
 	end
 
 	buildCycleIndex = buildCycleIndex + 1
-	if buildCycleIndex > #buildCycle then buildCycleIndex = 1 end
+	if buildCycleIndex > buildCycleCount then buildCycleIndex = 1 end
 
-	setPreGamestartDefID(buildCycle[buildCycleIndex])
+	setPreGamestartDefID(buildCycleTemp[buildCycleIndex])
 
 	return true
 end
@@ -1428,7 +1514,7 @@ local function bindBuildUnits(widget)
 
 	for _, comDefName in ipairs({ "armcom", "corcom" }) do
 		for _, buildOption in ipairs(UnitDefNames[comDefName].buildOptions) do
-			if not (units.unitRestricted[buildOption] or (blockOverride[buildOption] and next(blockOverride[buildOption]))) then
+			if not units.unitRestricted[buildOption] then
 				local unitDefName = unitName[buildOption]
 
 				comBuildOptions[comDefName][buildOption] = true
@@ -1584,58 +1670,7 @@ function widget:Initialize()
 				costOverrides[defID] = nil
 			end
 		end
-	end
-
-	WG['buildmenu'].addBlockReason = function(unitDefID, reason)
-		if unitDefID and reason then
-			blockOverride[unitDefID] = blockOverride[unitDefID] or {}
-			blockOverride[unitDefID][reason] = true
-			doUpdate = true
-			refreshBuildmenu = true
-		end
-	end
-
-	WG['buildmenu'].removeBlockReason = function(unitDefID, reason)
-		if not unitDefID then
-			return
-		end
-
-		if not blockOverride[unitDefID] then
-			return
-		end
-
-		if reason then
-			blockOverride[unitDefID][reason] = nil
-		else
-			blockOverride[unitDefID] = nil
-		end
-
-		doUpdate = true
-		refreshBuildmenu = true
-	end
-
-WG['buildmenu'].clearBlockReasons = function(unitDefID)
-	if unitDefID then
-		Spring.Echo("[BuildMenu Debug] clearBlockReasons called for specific unit: " .. tostring(unitDefID))
-		blockOverride[unitDefID] = nil
-	else
-		Spring.Echo("[BuildMenu Debug] clearBlockReasons called for ALL units")
-		for defID in pairs(blockOverride) do
-			blockOverride[defID] = nil
-		end
-	end
-	doUpdate = true
-	clear()
-end
-
-	WG['buildmenu'].getBlockedUnits = function()
-		local blocked = {}
-		for unitDefID, reasons in pairs(blockOverride) do
-			if next(reasons) then
-				blocked[unitDefID] = reasons
-			end
-		end
-		return blocked
+		clear()
 	end
 end
 

@@ -10,6 +10,13 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 --[[
 	Minimap Rotation Manager
 	-----------------------------------------------
@@ -68,7 +75,7 @@ local function minimapRotateHandler(_, _, args)
 	local module = args[1]
 	if module == "mode" then
 		if not args[2] then
-			Spring.Echo("[MinimapManager] No mode specified. Available modes: none, autoFlip|180, autoRotate|90")
+			spEcho("[MinimapManager] No mode specified. Available modes: none, autoFlip|180, autoRotate|90")
 			return
 		end
 
@@ -82,12 +89,12 @@ local function minimapRotateHandler(_, _, args)
 
 		local newMode = modeMap[args[2]]
 		if not newMode then
-			Spring.Echo("[MinimapManager] Invalid mode specified: " .. args[2] .. ". Available modes: none, autoFlip|180, autoRotate|90")
+			spEcho("[MinimapManager] Invalid mode specified: " .. args[2] .. ". Available modes: none, autoFlip|180, autoRotate|90")
 			return
 		end
 
 		WG['options'].applyOptionValue("minimaprotation", newMode)
-		Spring.Echo("[MinimapManager] Mode set to " .. args[2])
+		spEcho("[MinimapManager] Mode set to " .. args[2])
 		return true
 
 	elseif module == "set" then
@@ -96,7 +103,7 @@ local function minimapRotateHandler(_, _, args)
 		local absoluteArg = args[3] == "absolute"
 
 		if not rotationArg or rotationArg % 90 ~= 0 then
-			Spring.Echo("[MinimapManager] Rotation must be a multiple of 90. Received: " .. rotationArg)
+			spEcho("[MinimapManager] Rotation must be a multiple of 90. Received: " .. rotationArg)
 			return
 		end
 
@@ -107,13 +114,13 @@ local function minimapRotateHandler(_, _, args)
 			newRotation = rotationIndex * HALFPI
 		else
 			local currentRotation = spGetMiniRot()
-			local currentIndex = math.floor((currentRotation / HALFPI + 0.5) % 4)
+			local currentIndex = mathFloor((currentRotation / HALFPI + 0.5) % 4)
 			newRotation = ((currentIndex + rotationIndex) % 4) * HALFPI
 		end
 
 		if not trackingLock then
 			trackingLock = true
-			Spring.Echo("[MinimapManager] Auto-tracking locked during manual rotation")
+			spEcho("[MinimapManager] Auto-tracking locked during manual rotation")
 		end
 
 		spSetMiniRot(newRotation)
@@ -121,10 +128,10 @@ local function minimapRotateHandler(_, _, args)
 
 	elseif module == "toggleTracking" then
 		trackingLock = not trackingLock
-		Spring.Echo("[MinimapManager] Tracking lock is now " .. (trackingLock and "enabled" or "disabled"))
+		spEcho("[MinimapManager] Tracking lock is now " .. (trackingLock and "enabled" or "disabled"))
 		return true
 	else
-		Spring.Echo("[MinimapManager] Invalid module. Usage: mode [none|autoFlip/180|autoRotate/90], set [degrees] [absolute], toggleLock")
+		spEcho("[MinimapManager] Invalid module. Usage: mode [none|autoFlip/180|autoRotate/90], set [degrees] [absolute], toggleLock")
 	end
 end
 
@@ -167,9 +174,9 @@ function widget:CameraRotationChanged(_, roty)
 	if mode == CameraRotationModes.none or trackingLock then return end
 	local newRot
 	if mode == CameraRotationModes.autoFlip then
-		newRot = PI * math.floor((roty/PI) + 0.5)
+		newRot = PI * mathFloor((roty/PI) + 0.5)
 	elseif mode == CameraRotationModes.autoRotate then
-		newRot = HALFPI * (math.floor((roty/HALFPI) + 0.5) % 4)
+		newRot = HALFPI * (mathFloor((roty/HALFPI) + 0.5) % 4)
 	end
 	if newRot ~= prevSnap then
 		prevSnap = newRot

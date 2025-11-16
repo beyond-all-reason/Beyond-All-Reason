@@ -139,6 +139,15 @@
 			"playerCamera": "Player Camera",
 			"playerCameraTooltip": "Follow player camera perspective and apply selections"
 		},
+		"pip": {
+			"tooltip": "Toggle Picture-in-Picture",
+			"switch": "Switch view with main view",
+			"track": "Track selected units",
+			"move": "Move window",
+			"resize": "Resize window",
+			"minimize": "Minimize",
+			"maximize": "Maximize"
+		},
 		"teamEconomy": {
 			"tooltipTitle": "Team Income",
 			"tooltip": "Total metal/energy income\n(Lighter portion is income from reclaiming)"
@@ -696,7 +705,6 @@
 			"scoreBarTooltip": "Capture territories to fill this bar.\nIf the bar drops below the skull,\nyou will be eliminated."
 		},
 		"loadScreen": {
-			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly.",
 			"lowRamWarning": "%{textColor}Your system has below the recommended %{warnColor}12GB memory %{textColor}.     Try running with lower settings if you encounter out-of-memory crashes"
 		},
 		"initialSpawn": {
@@ -1184,10 +1192,10 @@
 				"soundtrackaprilfools_descr": "Toggle April Fools event music ON and OFF.",
 				"soundtrackaprilfoolspostevent": "April fools Soundtrack Post Event",
 				"soundtrackaprilfoolspostevent_descr": "Toggle April Fools event music ON and OFF.",
-				"soundtrackspooktober": "Spooktober Soundtrack",
-				"soundtrackspooktober_descr": "Toggle Spooktober event music ON and OFF.",
-				"soundtrackspooktoberpostevent": "Spooktober Soundtrack Post Event",
-				"soundtrackspooktoberpostevent_descr": "Toggle Spooktober event music ON and OFF.",
+				"soundtrackhalloween": "Halloween Soundtrack",
+				"soundtrackhalloween_descr": "Toggle Halloween event music ON and OFF.",
+				"soundtrackhalloweenpostevent": "Halloween Soundtrack Post Event",
+				"soundtrackhalloweenpostevent_descr": "Toggle Halloween event music ON and OFF.",
 				"soundtrackxmas": "Christmas Soundtrack",
 				"soundtrackxmas_descr": "Toggle Christmas event music ON and OFF.",
 				"soundtrackxmaspostevent": "Christmas Soundtrack Post Event",
@@ -1345,6 +1353,10 @@
 				"gridmenu_autoselectfirst_descr": "When selecting a category, automatically activate the first option within that category",
 				"gridmenu_labbuildmode": "Factory build mode hotkeys",
 				"gridmenu_labbuildmode_descr": "To use lab building hotkeys, build mode needs to be activated first",
+				"gridmenu_ctrlkeymodifier": "Ctrl hotkey modifier",
+				"gridmenu_ctrlkeymodifier_descr": "When holding down control key and using hotkeys to queue units, queue this many units.",
+				"gridmenu_shiftkeymodifier": "Shift hotkey modifier",
+				"gridmenu_shiftkeymodifier_descr": "When holding down shift key and using hotkeys to queue units, queue this many units.",
 				"keylayout": "Keyboard Layout",
 				"keylayout_descr": "Set the keyboard layout",
 				"keybindings": "Keybind Preset",
@@ -1716,7 +1728,11 @@
 				"language": "Language",
 				"language_english_unit_names": "Display unit names in English",
 				"reclaimfieldhighlight": "Reclaim Field Highlight",
-				"reclaimfieldhighlight_descr": "Highlights clusters of reclaimable metal",
+				"reclaimfieldhighlight_descr": "Highlights clusters of reclaimable metal and/or energy",
+				"reclaimfieldhighlight_metal": "metal",
+				"reclaimfieldhighlight_metal_descr": "When to show metal reclaim fields",
+				"reclaimfieldhighlight_energy": "energy",
+				"reclaimfieldhighlight_energy_descr": "When to show energy reclaim fields (trees, geo spots)",
 				"reclaimfieldhighlight_always": "Always enabled",
 				"reclaimfieldhighlight_resource": "Resource view only",
 				"reclaimfieldhighlight_reclaimer": "Reclaimer selected",

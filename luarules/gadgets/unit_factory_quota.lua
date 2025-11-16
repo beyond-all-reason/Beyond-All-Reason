@@ -16,6 +16,12 @@ function gadget:GetInfo()
 	}
 end
 
+local SpringFindUnitCmdDesc = Spring.FindUnitCmdDesc
+local SpringEditUnitCmdDesc = Spring.EditUnitCmdDesc
+local SpringInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
+local SpringGetAllUnits = Spring.GetAllUnits
+local SpringGetUnitDefID = Spring.GetUnitDefID
+
 local CMD_QUOTA_BUILD_TOGGLE = GameCMD.QUOTA_BUILD_TOGGLE
 
 local isFactory = {}
@@ -36,10 +42,10 @@ local factoryQuotaCmdDesc = {
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 	-- accepts: CMD_QUOTA_BUILD_TOGGLE
 	if isFactory[unitDefID] then
-        local cmdDescID = Spring.FindUnitCmdDesc(unitID, CMD_QUOTA_BUILD_TOGGLE)
+        local cmdDescID = SpringFindUnitCmdDesc(unitID, CMD_QUOTA_BUILD_TOGGLE)
         if cmdDescID then
             factoryQuotaCmdDesc.params[1] = cmdParams[1]
-            Spring.EditUnitCmdDesc(unitID, cmdDescID, {params = factoryQuotaCmdDesc.params})
+            SpringEditUnitCmdDesc(unitID, cmdDescID, {params = factoryQuotaCmdDesc.params})
         end
 		return false  -- command was used
 	end
@@ -49,13 +55,15 @@ end
 function gadget:UnitCreated(unitID, unitDefID, _)
 	if isFactory[unitDefID] then
 		factoryQuotaCmdDesc.params[1] = 0
-		Spring.InsertUnitCmdDesc(unitID, factoryQuotaCmdDesc)
+		SpringInsertUnitCmdDesc(unitID, factoryQuotaCmdDesc)
 	end
 end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_QUOTA_BUILD_TOGGLE)
-	for _, unitID in ipairs(Spring.GetAllUnits()) do -- handle /luarules reload
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+	local allUnits = SpringGetAllUnits()
+	for i = 1, #allUnits do
+		local unitID = allUnits[i]
+		gadget:UnitCreated(unitID, SpringGetUnitDefID(unitID))
 	end
 end

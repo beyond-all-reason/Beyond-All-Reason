@@ -14,6 +14,16 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathAbs = math.abs
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetCameraPosition = Spring.GetCameraPosition
+local spEcho = Spring.Echo
+
 --------------------------- INFO -------------------------------
 -- You can also add an exponential component to the load in ms with a second number param to the /****frameload commands
 
@@ -40,8 +50,8 @@ function widget:Initialize()
 	timerstart = Spring.GetTimer()
 	timerold = Spring.GetTimer()
 	viewSizeX, viewSizeY = gl.GetViewSizes()
-	--simtime = Spring.GetGameFrame()/30
-	camX, camY, camZ = Spring.GetCameraPosition()
+	--simtime = spGetGameFrame()/30
+	camX, camY, camZ = spGetCameraPosition()
 end
 
 local gameframeload = 0
@@ -53,7 +63,7 @@ local drawcounthist = {}
 
 local function Loadms(millisecs, spread)
 	if spread ~= nil then millisecs = millisecs + math.min(10*spread, -1.0 * spread * math.log(1.0 - math.random())) end
-	--Spring.Echo(millisecs)
+	--spEcho(millisecs)
 	local starttimer = Spring.GetTimer()
 	local nowtimer
 	for i = 1, 10000000 do
@@ -62,7 +72,7 @@ local function Loadms(millisecs, spread)
 			break
 		end
 	end
-	--Spring.Echo("Load millisecs = ", Spring.DiffTimers(nowtimer,starttimer)*1000)
+	--spEcho("Load millisecs = ", Spring.DiffTimers(nowtimer,starttimer)*1000)
 end
 
 function widget:TextCommand(command)
@@ -74,13 +84,13 @@ function widget:TextCommand(command)
 	if words and words[1] == "gameframeload" then
 		gameframeload = tonumber(words[2]) or 0
 		gameframespread = tonumber(words[3]) or 0
-		Spring.Echo("Setting gameframeload to ", gameframeload, "spread", gameframespread)
+		spEcho("Setting gameframeload to ", gameframeload, "spread", gameframespread)
 	end
 
 	if words and words[1] == "drawframeload" then
 		drawframeload = tonumber(words[2]) or 0
 		drawframespread = tonumber(words[3]) or 0
-		Spring.Echo("Setting drawframeload to ", drawframeload, "spread", drawframespread)
+		spEcho("Setting drawframeload to ", drawframeload, "spread", drawframespread)
 	end
 
 end
@@ -103,7 +113,7 @@ function widget:GameFrame(n)
   wasgameframe =  wasgameframe + 1
   gameFrameHappened = true
   if drawspergameframe ~= 2 then
-	--Spring.Echo(drawspergameframe, "draws instead of 2", n)
+	--spEcho(drawspergameframe, "draws instead of 2", n)
   end
   actualdrawspergameframe = drawspergameframe
   drawspergameframe = 0
@@ -120,19 +130,19 @@ local alpha = 0.01
 local drawduration
 
 --- CTO uniformity
-lastdrawCTO = Spring.GetGameFrame()
+lastdrawCTO = spGetGameFrame()
 averageCTO = 0
 spreadCTO = 0
 
 function widget:DrawScreen()
-	local newcamx, newcamy, newcamz = Spring.GetCameraPosition()
+	local newcamx, newcamy, newcamz = spGetCameraPosition()
 	local deltacam = math.sqrt(math.pow(newcamx- camX,2) + math.pow(newcamz - camZ, 2))-- + math.pow(newcamy - camY, 2))
 	cammovemean = (camalpha) * deltacam + (1.0 - camalpha) * cammovemean
-	cammovespread = camalpha * math.abs(cammovemean - deltacam) + (1.0 - camalpha) * cammovespread
+	cammovespread = camalpha * mathAbs(cammovemean - deltacam) + (1.0 - camalpha) * cammovespread
 	camX = newcamx
 	camY = newcamy
 	camZ = newcamz
-	local camerarelativejitter = cammovespread / math.max(cammovemean, 0.001)
+	local camerarelativejitter = cammovespread / mathMax(cammovemean, 0.001)
 
 	drawspergameframe = drawspergameframe + 1
 	local drawpersimframe = math.floor(Spring.GetFPS()/30.0 +0.5 )
@@ -142,15 +152,15 @@ function widget:DrawScreen()
 	drawtimesmooth = spDiffTimers(timernew, drawtimer) + correctionfactor
 	local smoothsimtime = (simtime + fto) / 30
 	local deltajitter = smoothsimtime - drawtimesmooth
-	avgjitter = (1.0 - alpha) * avgjitter + math.abs(alpha * deltajitter)
+	avgjitter = (1.0 - alpha) * avgjitter + mathAbs(alpha * deltajitter)
 	correctionfactor = correctionfactor + deltajitter * alpha
 
 	timerold = timernew
 
-	local currdrawCTO = Spring.GetGameFrame() + fto
+	local currdrawCTO = spGetGameFrame() + fto
 	local currCTOdelta = currdrawCTO - lastdrawCTO
 	lastdrawCTO = currdrawCTO
-	spreadCTO = (1.0 - alpha) * spreadCTO + alpha * math.abs(averageCTO - currCTOdelta)
+	spreadCTO = (1.0 - alpha) * spreadCTO + alpha * mathAbs(averageCTO - currCTOdelta)
 	averageCTO = (1.0 - alpha ) * averageCTO + alpha * currCTOdelta
 
 	drawcounthist[actualdrawspergameframe] = (drawcounthist[actualdrawspergameframe] or 0) + 1
@@ -170,7 +180,7 @@ function widget:DrawScreen()
 	local text = ''
 	gl.Color(1.0, 1.0, 1.0, 1.0)
 	text = text .. string.format("DrawFrame FTODelta = %.3f  FTO = %.3f\n", currCTOdelta, fto)
-	local drawhisttotal = math.max(1,(
+	local drawhisttotal = mathMax(1,(
 	(drawcounthist[1] or 0 ) + (drawcounthist[2] or 0 ) + (drawcounthist[3] or 0) + (drawcounthist[4] or 0 ) ) )
 	text = text .. string.format("dshist [1:%d, 2:%d, 3:%d, 4:%d, 5:%d, 6:%d] \n", 
 		(drawcounthist[1] or 0) , 

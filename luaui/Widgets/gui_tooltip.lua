@@ -12,6 +12,15 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathCeil = math.ceil
+local mathFloor = math.floor
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spGetViewGeometry = Spring.GetViewGeometry
+
 --[[
 
 -- Availible API functions:
@@ -33,13 +42,13 @@ local cfgFontSize = 14
 local xOffset = 12
 local yOffset = -xOffset
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 local widgetScale = 1
 local usedFontSize = cfgFontSize
 
 local spGetMouseState = Spring.GetMouseState
-local math_floor = math.floor
-local math_ceil = math.ceil
+local math_floor = mathFloor
+local math_ceil = mathCeil
 local math_isInRect = math.isInRect
 local string_lines = string.lines
 
@@ -141,16 +150,16 @@ function widget:Update(dt)
 end
 
 function widget:ViewResize(x, y)
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 
 	font, loadedFontSize = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(2, 1.6)
 
 	widgetScale = (1 + ((vsy - 850) / 900)) * (0.95 + (ui_scale - 1) / 2.5)
 	usedFontSize = cfgFontSize * widgetScale
-	yOffset = -math.floor(xOffset*0.5) - usedFontSize
+	yOffset = -mathFloor(xOffset*0.5) - usedFontSize
 
-	bgpadding = math.ceil(WG.FlowUI.elementPadding * 0.66)
+	bgpadding = mathCeil(WG.FlowUI.elementPadding * 0.66)
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 
@@ -170,8 +179,8 @@ local function drawTooltip(name, x, y)
 	local paddingH = math_floor(9.5 * widgetScale)
 	local paddingW = math_floor(paddingH * 1.42)
 
-	local addX = math.floor(vsx*0.33)	-- temp add something so flowui doesnt think its near screen edge
-	local addY = math.floor(vsy*0.5)	-- temp add something so flowui doesnt think its near screen edge
+	local addX = mathFloor(vsx*0.33)	-- temp add something so flowui doesnt think its near screen edge
+	local addY = mathFloor(vsy*0.5)	-- temp add something so flowui doesnt think its near screen edge
 
 	if not tooltips[name].dlist then
 		tooltips[name].dlist = gl.CreateList(function()
@@ -183,14 +192,14 @@ local function drawTooltip(name, x, y)
 			local maxWidth = 0
 			local maxHeight = 0
 			if tooltips[name].title and tooltips[name].title ~= '' then
-				maxWidth = math_ceil(math.max(maxWidth, (font:GetTextWidth(tooltips[name].title) * titleFontSize)))
+				maxWidth = math_ceil(mathMax(maxWidth, (font:GetTextWidth(tooltips[name].title) * titleFontSize)))
 				maxHeight = math_ceil(maxHeight + (titleFontSize * 1.22))
 			end
 			if tooltips[name].value and tooltips[name].value ~= '' then
 				-- get text dimentions
 				lines = string_lines(tooltips[name].value)
 				for i, line in ipairs(lines) do
-					maxWidth = math_ceil(math.max(maxWidth, (font:GetTextWidth(line) * fontSize)))
+					maxWidth = math_ceil(mathMax(maxWidth, (font:GetTextWidth(line) * fontSize)))
 					maxHeight = math_ceil(maxHeight + lineHeight)
 				end
 			end

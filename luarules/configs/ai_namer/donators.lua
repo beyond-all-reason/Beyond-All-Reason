@@ -15,6 +15,7 @@ local DonatorAINames = {
     "[SMRT]RobotRobert03",
     "aeon",
     "Aknaroth",
+    "Aldreagon", --$40
     "Anteep", --$40
     "badosu",
     "Barscrewl",
@@ -26,6 +27,7 @@ local DonatorAINames = {
     "catraxx",
     "Chrono",
     "Coresample",
+	"CorgiCommander",
     "dallabill",
     "danielquinn",
     "Dave",
@@ -35,9 +37,11 @@ local DonatorAINames = {
     "FishouseMike",
     "FlorisXIV",
     "fluxtux",
+	"frozenclaw",
     "gamerangela911",
     "Glass",
     "greggy4485",
+	"Heally",
     "Hershy",
     "ISolox",
     "Jaedrik",
@@ -50,6 +54,7 @@ local DonatorAINames = {
     "keithphw",
     "Kelin",
     "Kodiak",
+    "LethalSpirit",
     "L0v3",
     "Lightjohn",
     "LoloJojo",
@@ -66,6 +71,7 @@ local DonatorAINames = {
     "obliterator",
     "OmegaWolf",
     "outerorbit",
+    "panzerjaeger",
     "Poops",
     "Prime_Federator",
     "principal",
@@ -101,6 +107,7 @@ local DonatorAINames = {
     "Zee1158", --$60
     "Zerpiederp",
     "zGeneral",
+	"[Zoteling]",
 }
 
 return DonatorAINames

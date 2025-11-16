@@ -12,6 +12,15 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spGetMouseState = Spring.GetMouseState
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local L_DEPRECATED = LOG.DEPRECATED
 
 local titlecolor = "\255\190\190\190"
@@ -25,7 +34,7 @@ local TEAM_RESIGN_VOTE_PATTERN = "called a vote for command \"resign ([^%s]+) TE
 local voteEndDelay = 4
 local voteTimeout = 75	-- fallback timeout in case vote is aborted undetected
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
@@ -101,10 +110,10 @@ local function StartVote(name)	-- when called without params its just to refresh
 		end
 
 		local color1, color2, w
-		local x, y, b = Spring.GetMouseState()
+		local x, y, b = spGetMouseState()
 
-		local width = math.floor((vsy / 6) * ui_scale) * 2	-- *2 so it ensures number can be divided cleanly by 2
-		local height = math.floor((vsy / 23) * ui_scale) * 2		-- *2 so it ensures number can be divided cleanly by 2
+		local width = mathFloor((vsy / 6) * ui_scale) * 2	-- *2 so it ensures number can be divided cleanly by 2
+		local height = mathFloor((vsy / 23) * ui_scale) * 2		-- *2 so it ensures number can be divided cleanly by 2
 
 		local progressbarHeight = math.ceil(height * 0.055)
 
@@ -114,8 +123,8 @@ local function StartVote(name)	-- when called without params its just to refresh
 			width = minWidth
 		end
 
-		local buttonMargin = math.floor(width / 32)
-		local buttonHeight = math.floor(height * 0.55)
+		local buttonMargin = mathFloor(width / 32)
+		local buttonHeight = mathFloor(height * 0.55)
 		if not eligibleToVote or minimized then
 			height = height - buttonHeight
 		end
@@ -124,31 +133,31 @@ local function StartVote(name)	-- when called without params its just to refresh
 			height = height + 1
 		end
 
-		local xpos = math.floor(width / 2)
-		local ypos = math.floor(vsy - (height / 2))
+		local xpos = mathFloor(width / 2)
+		local ypos = mathFloor(vsy - (height / 2))
 
 		if WG['topbar'] ~= nil then
 			local topbarArea = WG['topbar'].GetPosition()
-			xpos = math.floor(topbarArea[1] + (width/2) + widgetSpaceMargin + ((topbarArea[3] - topbarArea[1])/2))
-			ypos = math.floor(topbarArea[2] - widgetSpaceMargin - (height / 2))
+			xpos = mathFloor(topbarArea[1] + (width/2) + widgetSpaceMargin + ((topbarArea[3] - topbarArea[1])/2))
+			ypos = mathFloor(topbarArea[2] - widgetSpaceMargin - (height / 2))
 		end
 
 		hovered = nil
 
 		windowArea = { xpos - (width / 2), ypos - (height / 2), xpos + (width / 2), ypos + (height / 2) }
-		closeButtonArea = { (xpos + (width / 2)) - (height / 2), ypos + math.floor(height / 6), xpos + (width / 2), ypos + (height / 2)}
+		closeButtonArea = { (xpos + (width / 2)) - (height / 2), ypos + mathFloor(height / 6), xpos + (width / 2), ypos + (height / 2)}
 		yesButtonArea = { xpos - (width / 2) + buttonMargin, ypos - (height / 2) + buttonMargin + progressbarHeight, xpos - (buttonMargin / 2), ypos - (height / 2) + buttonHeight - buttonMargin + progressbarHeight }
 		noButtonArea = { xpos + (buttonMargin / 2), ypos - (height / 2) + buttonMargin + progressbarHeight, xpos + (width / 2) - buttonMargin, ypos - (height / 2) + buttonHeight - buttonMargin + progressbarHeight}
 
 		if not voteEndText then
-			UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+			UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 		end
 
 		-- progress bar
 		if votesEligible then
 			if votesRequired then
 				-- progress bar: required for
-				w = math.floor(((windowArea[3] - windowArea[1] - bgpadding - bgpadding) / votesEligible) * votesRequired)
+				w = mathFloor(((windowArea[3] - windowArea[1] - bgpadding - bgpadding) / votesEligible) * votesRequired)
 				color1 = { 0, 0.6, 0, 0.1 }
 				color2 = { 0, 1, 0, 0.1 }
 				RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[1] + bgpadding + w, windowArea[2] + bgpadding + progressbarHeight, elementCorner*0.6, 0, 0, 0, 1, color1, color2)
@@ -162,7 +171,7 @@ local function StartVote(name)	-- when called without params its just to refresh
 
 			-- progress bar: for
 			if votesCountYes > 0 then
-				w = math.floor(((windowArea[3] - windowArea[1] - bgpadding - bgpadding) / votesEligible) * votesCountYes)
+				w = mathFloor(((windowArea[3] - windowArea[1] - bgpadding - bgpadding) / votesEligible) * votesCountYes)
 				color1 = { 0, 0.33, 0, 1 }
 				color2 = { 0, 0.6, 0, 1 }
 				RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[1] + bgpadding + w, windowArea[2] + bgpadding + progressbarHeight, elementCorner*0.6, 0, 0, 0, 1, color1, color2)
@@ -176,7 +185,7 @@ local function StartVote(name)	-- when called without params its just to refresh
 			end
 			-- progress bar: against
 			if votesCountNo > 0 then
-				w = math.floor(((windowArea[3] - windowArea[1] - bgpadding - bgpadding) / votesEligible) * votesCountNo)
+				w = mathFloor(((windowArea[3] - windowArea[1] - bgpadding - bgpadding) / votesEligible) * votesCountNo)
 				color1 = { 0.33, 0, 0, 1 }
 				color2 = { 0.6, 0, 0, 1 }
 				RectRound(windowArea[3] - bgpadding - w, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[2] + bgpadding + progressbarHeight, elementCorner*0.6, 0, 0, 1, 0, color1, color2)
@@ -262,7 +271,7 @@ local function StartVote(name)	-- when called without params its just to refresh
 		end
 
 		if voteEndText then
-			UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+			UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 			font:Begin()
 			font:Print(titlecolor .. voteEndText, windowArea[1] + ((windowArea[3] - windowArea[1]) / 2), windowArea[2] + ((windowArea[4] - windowArea[2]) / 2)-(fontSize*0.3), fontSize*1.1, "con")
 			font:End()
@@ -286,7 +295,7 @@ local function MinimizeVote()
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 
 	widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding
@@ -565,7 +574,7 @@ function widget:DrawScreen()
 	if voteDlist then
 		if not WG['topbar'] or not WG['topbar'].showingQuit() then
 			if eligibleToVote then
-				local x, y, b = Spring.GetMouseState()
+				local x, y, b = spGetMouseState()
 				if hovered then
 					StartVote()	-- refresh
 				elseif windowArea and math_isInRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then

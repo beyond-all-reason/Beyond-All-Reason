@@ -93,6 +93,7 @@ local spAddUnitDamage          = Spring.AddUnitDamage
 local spDeleteProjectile       = Spring.DeleteProjectile
 local spDestroyFeature         = Spring.DestroyFeature
 local spValidFeatureID         = Spring.ValidFeatureID
+local spValidUnitID            = Spring.ValidUnitID
 
 local armorDefault = Game.armorTypes.default
 local armorShields = Game.armorTypes.shields
@@ -397,13 +398,10 @@ local function _GameFramePost(collisionList)
 
 			if shieldNumber then
 				local deleted, damage = addShieldDamage(targetID, shieldNumber, damageDealt, weapon.weaponID, projectileID)
-				damageLeft = deleted and 0 or damageLeft - damage / damageDealt - penalty -- shields force falloff
+				damageLeft = deleted and 0 or damageLeft - penalty - damage / damageDealt -- shields force falloff
 			else
-				damageLeft = damageLeft - penalty - (hasFalloff and collision.health / damageBase or 0)
-
 				if isTargetUnit then
 					local impulse = damageBase * factor * falloffRatio(damageLeft, 1) -- inverse ratio
-					setVelocityControl(targetID, true)
 					spAddUnitDamage(
 						targetID,
 						damageDealt,
@@ -414,6 +412,7 @@ local function _GameFramePost(collisionList)
 						penetrator.dirY * impulse,
 						penetrator.dirZ * impulse
 					)
+					setVelocityControl(targetID, true)
 				else
 					local health = collision.health - damageDealt
 					if health > 1 then
@@ -422,6 +421,7 @@ local function _GameFramePost(collisionList)
 						spDestroyFeature(targetID)
 					end
 				end
+				damageLeft = damageLeft - penalty - (hasFalloff and collision.health / damageBase or 0)
 			end
 
 			if damageArmor * damageLeft > 1 and damageBase >= collision.healthMax * damageThreshold then
@@ -501,24 +501,33 @@ function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, 
 end
 
 function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+	if not spValidUnitID(shieldUnitID) then
+		return
+	end
+
 	local penetrator = projectiles[projectileID]
-	if penetrator then
-		local damage = penetrator.params[armorShields]
-		if damage > 1 then
-			projectileHits[projectileID] = penetrator
-			local state, health = spGetUnitShieldState(shieldUnitID, shieldWeaponIndex)
-			local collisions = penetrator.collisions
-			collisions[#collisions+1] = {
-				targetID  = shieldUnitID,
-				shieldID  = shieldWeaponIndex,
-				armorType = armorShields,
-				healthMax = health,
-				damage    = damage,
-				hitX      = hitX,
-				hitY      = hitY,
-				hitZ      = hitZ,
-			}
-		end
+	if not penetrator then
+		return
+	end
+
+	local damage = penetrator.params[armorShields]
+	if damage <= 1 then
 		return true
 	end
+
+	projectileHits[projectileID] = penetrator
+	local state, health = spGetUnitShieldState(shieldUnitID, shieldWeaponIndex)
+	local collisions = penetrator.collisions
+	collisions[#collisions+1] = {
+		targetID  = shieldUnitID,
+		shieldID  = shieldWeaponIndex,
+		armorType = armorShields,
+		healthMax = health,
+		damage    = damage,
+		hitX      = hitX,
+		hitY      = hitY,
+		hitZ      = hitZ,
+	}
+
+	return true
 end
