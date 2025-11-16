@@ -676,7 +676,12 @@ body {
 	font-weight: bold;
 	text-align: center;
 	font-effect: outline(1dp #000000CC);
-	display: table-cell;
 	padding: 8dp;
 	white-space: nowrap;
+	width: 100%;
+}
+
+.scoreboard-elimination-separator {
+	width: 100%;
+	text-align: center;
 }
