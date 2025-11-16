@@ -21,11 +21,6 @@ local mathMax = math.max
 local spGetMouseState = Spring.GetMouseState
 local spGetViewGeometry = Spring.GetViewGeometry
 
--- Localized gl functions for performance
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
-local glCallList = gl.CallList
-
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1
 
 local L_DEPRECATED = LOG.DEPRECATED
@@ -69,6 +64,7 @@ local votesCountYes = 0
 local votesCountNo = 0
 local minimized = false
 local voteStartTime
+local needsTextureRefresh = false
 
 local function isTeamPlayer(playerName)
 	local players = Spring.GetPlayerList()
@@ -87,20 +83,21 @@ local function CloseVote()
 	voteEndTime = nil
 	voteEndText = nil
 	voteStartTime = nil
+	votesRequired = nil
+	votesEligible = nil
+	votesCountYes = 0
+	votesCountNo = 0
+	minimized = false
+	voteName = nil
+	weAreVoteOwner = nil
+	eligibleToVote = false
+	needsTextureRefresh = false
 	if voteDlist then
-		votesRequired = nil
-		votesEligible = nil
-		votesCountYes = 0
-		votesCountNo = 0
-		minimized = false
-		voteDlist = nil
-		voteName = nil
-		weAreVoteOwner = nil
-		eligibleToVote = false
-		if WG['guishader'] then
-			WG['guishader'].DeleteDlist('voteinterface')
-		end
 		gl.DeleteList(voteDlist)
+		voteDlist = nil
+	end
+	if WG['guishader'] then
+		WG['guishader'].DeleteDlist('voteinterface')
 	end
 	if uiBgTex then
 		gl.DeleteTexture(uiBgTex)
@@ -124,8 +121,8 @@ local function drawContent()
 
 	local width = windowArea[3] - windowArea[1]
 	local height = windowArea[4] - windowArea[2]
-	local progressbarHeight = math.ceil(height * 0.055)
-	local fontSize = (height / 5) * 0.85
+	local progressbarHeight = math.ceil(height * 0.11)
+	local fontSize = (height / 2.5) * 0.85
 
 	local color1, color2, w
 
@@ -292,6 +289,64 @@ local function drawContent()
 	gl.Color(1, 1, 1, 1)
 end
 
+local function refreshTextures()
+	if not windowArea then
+		return
+	end
+
+	local width = windowArea[3] - windowArea[1]
+	local height = windowArea[4] - windowArea[2]
+
+	-- Render using render-to-texture
+	if useRenderToTexture then
+		local w = mathFloor(width)
+		local h = mathFloor(height)
+		if w >= 1 and h >= 1 then
+			-- Clean up old textures
+			if uiBgTex then
+				gl.DeleteTexture(uiBgTex)
+				uiBgTex = nil
+			end
+			if uiTex then
+				gl.DeleteTexture(uiTex)
+				uiTex = nil
+			end
+
+			-- Create background texture
+			uiBgTex = gl.CreateTexture(w, h, {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+			gl.R2tHelper.RenderToTexture(uiBgTex,
+				function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / width, 2 / height, 0)
+					gl.Translate(-windowArea[1], -windowArea[2], 0)
+					drawBackground()
+				end,
+				useRenderToTexture
+			)
+
+			-- Create content texture
+			uiTex = gl.CreateTexture(w, h, {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+			gl.R2tHelper.RenderToTexture(uiTex,
+				function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / width, 2 / height, 0)
+					gl.Translate(-windowArea[1], -windowArea[2], 0)
+					drawContent()
+				end,
+				useRenderToTexture
+			)
+		end
+	end
+end
+
 local function StartVote(name)	-- when called without params its just to refresh (when hovering over buttons)
 	if name then
 		CloseVote()
@@ -358,50 +413,16 @@ local function StartVote(name)	-- when called without params its just to refresh
 		ypos - (height / 2) + buttonMargin + progressbarHeight, xpos + (width / 2) - buttonMargin,
 		ypos - (height / 2) + buttonHeight - buttonMargin + progressbarHeight}
 
-	-- Render using either render-to-texture or display lists
-	if useRenderToTexture then
-		local w = mathFloor(width)
-		local h = mathFloor(height)
-		if w >= 1 and h >= 1 then
-			-- Create background texture
-			uiBgTex = gl.CreateTexture(w, h, {
-				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
-				fbo = true,
-			})
-			gl.R2tHelper.RenderToTexture(uiBgTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / width, 2 / height, 0)
-					gl.Translate(-windowArea[1], -windowArea[2], 0)
-					drawBackground()
-				end,
-				useRenderToTexture
-			)
-
-			-- Create content texture
-			uiTex = gl.CreateTexture(w, h, {
-				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
-				fbo = true,
-			})
-			gl.R2tHelper.RenderToTexture(uiTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / width, 2 / height, 0)
-					gl.Translate(-windowArea[1], -windowArea[2], 0)
-					drawContent()
-				end,
-				useRenderToTexture
-			)
-		end
-	else
-		-- Use display lists
+	-- Use display lists for non-R2T mode
+	if not useRenderToTexture then
 		voteDlist = gl.CreateList(function()
 			drawBackground()
 			drawContent()
 		end)
 	end
+
+	-- Flag that textures need to be refreshed in DrawScreen
+	needsTextureRefresh = true
 
 	-- background blur
 	if WG['guishader'] then
@@ -585,7 +606,7 @@ function widget:AddConsoleLine(lines, priority)
 					end
 
 
-				elseif voteDlist and not voteEndTime then
+				elseif voteName and not voteEndTime then
 					-- > [teh]cluster1[00] * Vote for command "stop" passed.
 					-- > [teh]cluster1[01] * Vote for command "forcestart" passed (delay expired, away vote mode activated for ArkanisLupus,ROBOTRONIC,d
 					if sfind(line, "* Vote for command", nil, true) then
@@ -614,7 +635,7 @@ function widget:AddConsoleLine(lines, priority)
 				end
 
 				-- > [teh]cluster1[00] * 10 users allowed to vote.
-				if voteDlist and sfind(slower(line), " users allowed to vote.", nil, true) then
+				if voteName and sfind(slower(line), " users allowed to vote.", nil, true) then
 					local text = ssub(line, sfind(slower(line), "* ", nil, true)+2, sfind(slower(line), " users allowed to vote.", nil, true)-1)
 					if text then
 						votesEligible = tonumber(text)
@@ -624,7 +645,7 @@ function widget:AddConsoleLine(lines, priority)
 				-- > [teh]cluster1[00] * Vote in progress: "stop" [y:1/4, n:1/3] (43s remaining)
 				-- > [teh]cluster2[00] * Vote in progress: "resign Raghna TEAM" [y:2/4(3), n:0/2(3)] (57s remaining)
 				-- > [teh]cluster2[00] * Vote in progress: "resign [teh]Teddy TEAM" [y:1/1(4), n:0/1(3), votes:1/3] (40s remaining)
-				if voteDlist and sfind(slower(line), "vote in progress:", nil, true) then
+				if voteName and sfind(slower(line), "vote in progress:", nil, true) then
 					local text = ssub(line, sfind(slower(line), "vote in progress:", nil, true)+18)
 					text = ssub(text, sfind(text, "\" [", nil, true)+3)
 					text = ssub(text, 1,  sfind(text, "]", nil, true)-1)
@@ -667,7 +688,7 @@ function widget:AddConsoleLine(lines, priority)
 end
 
 function widget:MousePress(x, y, button)
-	if voteDlist and eligibleToVote and not voteEndText and button == 1 then
+	if voteName and eligibleToVote and not voteEndText and button == 1 then
 		if math_isInRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then
 			if not weAreVoteOwner and math_isInRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) then
 				Spring.SendCommands("say !vote y")
@@ -694,7 +715,13 @@ function widget:Shutdown()
 end
 
 function widget:DrawScreen()
-	if voteDlist or uiBgTex or uiTex then
+	if voteDlist or uiBgTex or uiTex or needsTextureRefresh then
+		-- Refresh textures if needed (only in DrawScreen where R2T is allowed)
+		if needsTextureRefresh and useRenderToTexture then
+			refreshTextures()
+			needsTextureRefresh = false
+		end
+
 		if not WG['topbar'] or not WG['topbar'].showingQuit() then
 			if eligibleToVote then
 				local x, y = spGetMouseState()
