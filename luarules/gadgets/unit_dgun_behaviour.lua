@@ -35,7 +35,7 @@ local dgunDef = {}
 local dgunTimeouts = {}
 local dgunShieldPenetrations = {}
 
-for weaponDefID = 1, #WeaponDefs do
+for weaponDefID = 0, #WeaponDefs do
 	local weaponDef = WeaponDefs[weaponDefID]
 	if weaponDef.type == 'DGun' then
 		Script.SetWatchProjectile(weaponDefID, true)
