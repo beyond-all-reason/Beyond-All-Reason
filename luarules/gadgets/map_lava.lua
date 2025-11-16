@@ -36,6 +36,12 @@ if gadgetHandler:IsSyncedCode() then
 	local DAMAGE_RATE = 10 -- frames
 	local lavaDamage = lava.damage * (DAMAGE_RATE / gameSpeed)
 	local lavaDamageFeatures = lava.damageFeatures
+	if lavaDamageFeatures then
+		if not tonumber(lavaDamageFeatures) then
+			lavaDamageFeatures = 0.1
+		end
+		lavaDamageFeatures = lavaDamageFeatures * (DAMAGE_RATE / gameSpeed)
+	end
 
 	-- ceg effects
 	local lavaEffectBurst = lava.effectBurst
@@ -43,7 +49,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- speedups
 	local spAddUnitDamage = Spring.AddUnitDamage
-	local spAddFeatureDamage = Spring.AddFeatureDamage
 	local spDestroyFeature = Spring.DestroyFeature
 	local spGetAllUnits = Spring.GetAllUnits
 	local spGetFeatureDefID = Spring.GetFeatureDefID
@@ -176,7 +181,13 @@ if gadgetHandler:IsSyncedCode() then
 				if not geoThermal[FeatureDefID] then
 					x,y,z = spGetFeaturePosition(featureID)
 					if (y and y < lavaLevel) then
-						spAddFeatureDamage(featureID, lavaDamage, 0, gaiaTeamID)
+						local _, maxMetal, _, maxEnergy, reclaimLeft = spGetFeatureResources (featureID)
+						reclaimLeft = reclaimLeft - lavaDamageFeatures
+						if reclaimLeft <= 0 then
+							spDestroyFeature(featureID)
+						else
+							spSetFeatureResources(featureID, maxMetal*reclaimLeft, maxEnergy*reclaimLeft, nil, reclaimLeft)
+						end
 						spSpawnCEG(lavaEffectDamage, x, y+5, z)
 					end
 				end
