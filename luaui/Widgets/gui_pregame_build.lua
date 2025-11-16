@@ -47,6 +47,8 @@ local buildModeState = {
 	spacing = 0,
 }
 
+local prevShiftState = false
+
 local isSpec = Spring.GetSpectatingState()
 local myTeamID = spGetMyTeamID()
 local preGamestartPlayer = spGetGameFrame() == 0 and not isSpec
@@ -630,7 +632,7 @@ end
 local UPDATE_PERIOD = 1 / 30
 local updateTime = 0
 function widget:Update(dt)
-	if not preGamestartPlayer or not selBuildQueueDefID then
+	if not preGamestartPlayer then
 		return
 	end
 	
@@ -641,7 +643,13 @@ function widget:Update(dt)
 	updateTime = 0
 	
 	local x, y, leftButton = spGetMouseState()
-	
+
+	local _, _, _, shift = Spring.GetModKeyState()
+	if prevShiftState and not shift and selBuildQueueDefID then
+		setPreGamestartDefID(nil)
+	end
+	prevShiftState = shift
+
 	if not leftButton then
 		if buildModeState.startPosition and #buildModeState.buildPositions > 0 then
 			local newBuildQueue = {}
