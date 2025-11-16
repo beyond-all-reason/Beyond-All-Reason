@@ -866,7 +866,12 @@ function gadget:DrawWorld()
 						glUniformInt(uImpactCount, hitPointCount)
 						for j = 1, hitPointCount do
 							local hit = hitData[j]
-							glUniform(impactInfoUniformCache[j], hit.x, hit.y, hit.z, hit.aoe)
+							-- Safeguard against NaN values
+							local aoe = hit.aoe
+							if aoe ~= aoe or aoe == math.huge or aoe == -math.huge then
+								aoe = 0
+							end
+							glUniform(impactInfoUniformCache[j], hit.x, hit.y, hit.z, aoe)
 						end
 					end
 				end
