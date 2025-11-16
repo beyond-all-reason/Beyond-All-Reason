@@ -20,7 +20,7 @@ end
 -- Localization ----------------------------------------------------------------
 
 local math_random = math.random
-local math_sqrt = math.sqrt
+local math_clamp = math.clamp
 local math_cos = math.cos
 local math_sin = math.sin
 local math_pi = math.pi
@@ -179,6 +179,7 @@ end
 
 weaponCustomParamKeys.cruise = {
 	cruise_min_height = toPositiveNumber, -- Minimum ground clearance. Checked each frame, but no lookahead.
+	cruise_max_height = toPositiveNumber, -- Maximum ground clearance. Checked each frame, but no lookahead.
 	lockon_dist       = toPositiveNumber, -- Within this radius, disables the auto ground clearance.
 }
 
@@ -231,10 +232,11 @@ local cruiseEngaged = {
 			local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
 
 			if distance * distance < distance3dSquared(positionX, positionY, positionZ, target[1], target[2], target[3]) then
-				local cruiseHeight = spGetGroundHeight(positionX, positionZ) + params.cruise_min_height
+				local elevation = spGetGroundHeight(positionX, positionZ)
+				local cruiseHeight = math_clamp(positionY, elevation + params.cruise_min_height, elevation + params.cruise_max_height)
 				local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
 				-- Follow the ground when it slopes away, but not over steep drops, e.g. sheer cliffs.
-				if (positionY < cruiseHeight) or (velocityY > speed * -0.25 and positionY > cruiseHeight) then
+				if positionY ~= cruiseHeight and (positionY > cruiseHeight or velocityY > speed * -0.25) then
 					applyCruiseCorrection(projectileID, positionX, cruiseHeight, positionZ, velocityX, velocityY, velocityZ)
 				end
 				return false
