@@ -154,6 +154,7 @@ for notifID, notifDef in pairs(notificationTable) do
 		delay = notifDef.delay or 2,
 		stackedDelay = notifDef.stackedDelay, -- reset delay even with failed play
 		textID = notifTexts[1],
+		notext = notifDef.notext,
 		voiceFiles = notifSounds,
 		voiceFilesRare = notifSoundsSpecial,
 		tutorial = notifDef.tutorial,
@@ -929,7 +930,7 @@ local function playNextSound()
 			if notification[event].soundEffect then
 				Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
 			end
-			if displayMessages and WG['messages'] and notification[event].textID then
+			if displayMessages and WG['messages'] and notification[event].textID and (not notification[event].notext) then
 				WG['messages'].addMessage(Spring.I18N(notification[event].textID))
 			end
 		end

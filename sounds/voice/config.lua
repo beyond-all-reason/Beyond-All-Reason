@@ -6,6 +6,7 @@ EventName = {
 	resetOtherEventDelay = string - Name of 'fallback' event that will get it's delay reset. 
 							For example, UnitLost, is a general notif for losing units, but we have MetalExtractorLost, or RadarLost. I want those to reset UnitLost as well.
 	soundEffect = string - Sound Effect to play alongside the notification, located in 'sounds/voice-soundeffects'
+	notext = bool - hide the text part of the notification
 	tutorial = bool - Sound effect used for the tutorial messages, there's a whole different handling of those. (WIP)
 }
 ]]
