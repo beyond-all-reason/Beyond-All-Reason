@@ -13,6 +13,11 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetMouseState = Spring.GetMouseState
+local spGetCameraPosition = Spring.GetCameraPosition
+
 local offscreenDelay = 3
 local idleDelay = Spring.GetConfigInt("LimitIdleFpsDelay", 60)
 local vsyncValueActive = Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1)
@@ -22,8 +27,8 @@ local limitFpsWhenIdle = Spring.GetConfigInt("LimitIdleFps", 0) == 1
 
 local restrictFps = false
 local lastUserInputTime = os.clock()
-local lastMouseX, lastMouseY = Spring.GetMouseState()
-local prevCamX, prevCamY, prevCamZ = Spring.GetCameraPosition()
+local lastMouseX, lastMouseY = spGetMouseState()
+local prevCamX, prevCamY, prevCamZ = spGetCameraPosition()
 local lastMouseOffScreen = false
 local chobbyInterface = false
 
@@ -71,13 +76,13 @@ function widget:Update(dt)
 
 	if not chobbyInterface then
 		local prevRestrictFps = restrictFps
-		local mouseX, mouseY, lmb, mmb, rmb, mouseOffScreen, cameraPanMode  = Spring.GetMouseState()
+		local mouseX, mouseY, lmb, mmb, rmb, mouseOffScreen, cameraPanMode  = spGetMouseState()
 		if mouseX ~= lastMouseX or mouseY ~= lastMouseY or lmb or mmb or rmb  then
 			lastMouseX, lastMouseY = mouseX, mouseY
 			lastUserInputTime = os.clock()
 		end
 
-		local camX, camY, camZ = Spring.GetCameraPosition()
+		local camX, camY, camZ = spGetCameraPosition()
 		if camX ~= prevCamX or  camY ~= prevCamY or  camZ ~= prevCamZ  then
 			prevCamX, prevCamY, prevCamZ = camX, camY, camZ
 			lastUserInputTime = os.clock()

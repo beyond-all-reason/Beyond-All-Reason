@@ -211,7 +211,7 @@ if gadgetHandler:IsSyncedCode() then
 		local players = Spring.GetPlayerList()
 		for i = 1,#players do
 			local player = players[i]
-			local name, active, spectator, teamID, allyTeamID = Spring.GetPlayerInfo(player)
+			local name, active, spectator, teamID, allyTeamID = Spring.GetPlayerInfo(player, false)
 			if allyTeamID == scavAllyTeamID and (not spectator) then
 				Spring.AssignPlayerToTeam(player, scavTeamID)
 				local units = GetTeamUnits(teamID)
@@ -225,7 +225,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		local scavAllies = Spring.GetTeamList(scavAllyTeamID)
 		for i = 1,#scavAllies do
-			local _,_,_,AI = Spring.GetTeamInfo(scavAllies[i])
+			local _,_,_,AI = Spring.GetTeamInfo(scavAllies[i], false)
 			local LuaAI = Spring.GetTeamLuaAI(scavAllies[i])
 			if (AI or LuaAI) and scavAllies[i] ~= scavTeamID then
 				local units = GetTeamUnits(scavAllies[i])

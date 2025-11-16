@@ -13,6 +13,16 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMin = math.min
+local mathRandom = math.random
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spEcho = Spring.Echo
+
 -- Notes and TODO
 -- yes these are geometry shader decals
 -- we are gonna try to smaple heightmap
@@ -190,13 +200,13 @@ local shaderLargeSourceCache = {
 }
 
 local function goodbye(reason)
-  Spring.Echo("DrawPrimitiveAtUnits GL4 widget exiting with reason: "..reason)
+  spEcho("DrawPrimitiveAtUnits GL4 widget exiting with reason: "..reason)
   widgetHandler:RemoveWidget()
 end
 
 local function initGL4( DPATname)
 	hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
-	if hasBadCulling then Spring.Echo("Decals GL4 detected AMD + Linux platform, attempting to fix culling") end
+	if hasBadCulling then spEcho("Decals GL4 detected AMD + Linux platform, attempting to fix culling") end
 	decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
 	decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache)
 
@@ -279,7 +289,7 @@ local decalRemoveList = {} -- maps instanceID's of decals that need to be batch 
 
 local decalToArea = {} -- maps instanceID to a position key on the map
 local areaDecals = {} -- {positionkey = {decallist, totalarea},}
-local floor = math.floor
+local floor = mathFloor
 
 local function hashPos(mapx, mapz) -- packs XZ into 1000*x + z
 	if mapx == nil or mapz == nil then
@@ -322,7 +332,7 @@ end
 
 local function CheckDecalAreaSaturation(posx, posz, width, length)
 	local hash = hashPos(posx,posz)
-	--Spring.Echo(hash,posx,posz, next(areaDecals))
+	--spEcho(hash,posx,posz, next(areaDecals))
 	if not hash then
 		return false
 	else
@@ -354,11 +364,11 @@ function widget:Update() -- this is pointlessly expensive!
 		end
 	end
 	if updatePositionX == nil or updatePositionZ == nil then
-		Spring.Echo("updatePositionX == nil or updatePositionZ == nil")
+		spEcho("updatePositionX == nil or updatePositionZ == nil")
 		return
 	end
 	local hash = hashPos(updatePositionX, updatePositionZ)
-	--Spring.Echo("Updateing smoothness at",updatePositionX, updatePositionZ)
+	--spEcho("Updateing smoothness at",updatePositionX, updatePositionZ)
 	local step = areaResolution/ 16
 	local totalsmoothness = 0
 	local prevHeight = spGetGroundHeight(updatePositionX, updatePositionZ)
@@ -377,7 +387,7 @@ end
 local function DrawSmoothness()
 	gl.Color(1,1,1,1)
 	for areaHash, areaInfo in pairs(areaDecals) do
-		--Spring.Echo(areaHash, areaInfo.x, areaInfo.y, areaInfo.z)
+		--spEcho(areaHash, areaInfo.x, areaInfo.y, areaInfo.z)
 		if Spring.IsSphereInView(areaInfo.x, areaInfo.y, areaInfo.z, 128) then
 			gl.PushMatrix()
 			local text = string.format("Smoothness = %d",areaInfo.smoothness)
@@ -426,37 +436,37 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 
 	if CheckDecalAreaSaturation(posx, posz, width, length) then
 		if autoupdate then
-			Spring.Echo("Map area is oversaturated with decals!", posx, posz, width, length)
+			spEcho("Map area is oversaturated with decals!", posx, posz, width, length)
 		end
 		return nil
 	else
 
 	end
 
-	spawnframe = spawnframe or Spring.GetGameFrame()
-	--Spring.Echo(decaltexturename, atlassedImages[decaltexturename], atlasColorAlpha)
+	spawnframe = spawnframe or spGetGameFrame()
+	--spEcho(decaltexturename, atlassedImages[decaltexturename], atlasColorAlpha)
 	local p,q,s,t = 0,1,0,1
 
-	--Spring.Echo(decaltexturename) --used for displaying which decal texture is spawned
+	--spEcho(decaltexturename) --used for displaying which decal texture is spawned
 	if atlas[decaltexturename] == nil then
-		Spring.Echo("Tried to spawn a decal gl4 with a texture not present in the atlas:",decaltexturename)
+		spEcho("Tried to spawn a decal gl4 with a texture not present in the atlas:",decaltexturename)
 	else
 		local uvs = atlas[decaltexturename]
 		p,q,s,t = uvs[1], uvs[2], uvs[3], uvs[4]
 	end
 
 	local posy = Spring.GetGroundHeight(posx, posz)
-	--Spring.Echo (unitDefID,decalInfo.texfile, width, length, alpha)
+	--spEcho (unitDefID,decalInfo.texfile, width, length, alpha)
 	-- match the vertex shader on lifetime:
 	-- 	float currentAlpha = min(1.0, (lifetonow / FADEINTIME))  * alphastart - lifetonow* alphadecay;
 	--  currentAlpha = min(currentAlpha, lengthwidthrotation.w);
-	local lifetime = math.floor(alphastart/alphadecay)
+	local lifetime = mathFloor(alphastart/alphadecay)
 	decalIndex = decalIndex + 1
 	local targetVBO = decalVBO
 
-	if math.min(width,length) > extralargesizeThreshold then
+	if mathMin(width,length) > extralargesizeThreshold then
 		targetVBO = decalExtraLargeVBO
-	elseif math.min(width,length) > largesizethreshold then
+	elseif mathMin(width,length) > largesizethreshold then
 		targetVBO = decalLargeVBO
 	end
 
@@ -502,7 +512,7 @@ local function DrawDecals()
 
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
-		--Spring.Echo(decalVBO.usedElements,decalLargeVBO.usedElements)
+		--spEcho(decalVBO.usedElements,decalLargeVBO.usedElements)
 		if hasBadCulling then
 			glCulling(false)
 		else
@@ -531,7 +541,7 @@ local function DrawDecals()
 		end
 
 		if decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
-			--Spring.Echo("large elements:", decalLargeVBO.usedElements)
+			--spEcho("large elements:", decalLargeVBO.usedElements)
 			decalLargeShader:Activate()
 			--decalLargeShader:SetUniform("fadeDistance",disticon * 1000)
 			if decalLargeVBO.usedElements > 0 then
@@ -553,7 +563,7 @@ end
 function widget:TextCommand(command)
 	if string.find(command, "decalsgl4stats", nil, true) then
 		local tricount = 4*4*2 * decalVBO.usedElements + resolution*resolution*2*decalLargeVBO.usedElements + 4*4*resolution*resolution*2*decalExtraLargeVBO.usedElements
-		Spring.Echo(string.format("Small decal = %d, Medium decal = %d, Large decal = %d, tris = %d",
+		spEcho(string.format("Small decal = %d, Medium decal = %d, Large decal = %d, tris = %d",
 			decalVBO.usedElements,
 			decalLargeVBO.usedElements,
 			decalExtraLargeVBO.usedElements,
@@ -562,7 +572,7 @@ function widget:TextCommand(command)
 	end
 	if string.find(command, "decalsgl4skipdraw", nil, true) then
 		skipdraw = not skipdraw
-		Spring.Echo("Decals GL4 skipdraw set to", skipdraw)
+		spEcho("Decals GL4 skipdraw set to", skipdraw)
 		return true
 	end
 	return false
@@ -618,7 +628,7 @@ function widget:GameFrame(n)
 		decalRemoveList = {}
 
 		if autoupdate and removed > 0 then
-			Spring.Echo("Removed",removed,"decals from decal instance tables: s=",decalVBO.usedElements,' l=', decalLargeVBO.usedElements,'xl=', decalExtraLargeVBO.usedElements, "Tot=", totalDecalCount, "Rem=",numDecalsToRemove)
+			spEcho("Removed",removed,"decals from decal instance tables: s=",decalVBO.usedElements,' l=', decalLargeVBO.usedElements,'xl=', decalExtraLargeVBO.usedElements, "Tot=", totalDecalCount, "Rem=",numDecalsToRemove)
 		end
 		if decalVBO.dirty then 	uploadAllElements(	decalVBO) end
 		if decalLargeVBO.dirty then 	uploadAllElements(	decalLargeVBO) end
@@ -634,7 +644,7 @@ local function randtablechoice (t)
 			i = i+1
 		end
 	end
-	local randi = math.floor(math.random()*i)
+	local randi = mathFloor(mathRandom()*i)
 	local j = 0
 	for k,v in pairs(t) do
 		if type(v) == "table" and j > randi then return k,v end
@@ -805,7 +815,7 @@ for weaponDefID=1, #WeaponDefs do
 			elseif string.find(weaponDef.name, 'disintegratorxl') then
 				textures = { "t_groundcrack_21_a.tga", "t_groundcrack_16_a.tga" }
 				alphadecay = 0.004
-				radius = radius * 1.7 --* (math.random() * 20 + 0.2)
+				radius = radius * 1.7 --* (mathRandom() * 20 + 0.2)
 				radiusVariation = 1.65
 				heatdecay = 0.75
 				glowsustain = 30
@@ -841,7 +851,7 @@ for weaponDefID=1, #WeaponDefs do
 
 		elseif string.find(weaponDef.name, 'acid') then
 			textures = { "t_groundcrack_26_a.tga" }
-			radius = (radius * 5)-- * (math.random() * 0.15 + 0.85)
+			radius = (radius * 5)-- * (mathRandom() * 0.15 + 0.85)
 			alpha = 6
 			heatstart = 500
 			heatdecay = 10
@@ -891,7 +901,7 @@ for weaponDefID=1, #WeaponDefs do
 
 		elseif string.find(weaponDef.name, 'death_acid') then
 			textures = { "t_groundcrack_26_a.tga" }
-			radius = (radius * 5.5)-- * (math.random() * 0.25 + 0.75)
+			radius = (radius * 5.5)-- * (mathRandom() * 0.25 + 0.75)
 			alpha = 6
 			heatstart = 550
 			heatdecay = 0.1
@@ -902,7 +912,7 @@ for weaponDefID=1, #WeaponDefs do
 
 		elseif string.find(weaponDef.name, 'flamebug') then
 			textures = { "t_groundcrack_23_a.tga", "t_groundcrack_24_a.tga", "t_groundcrack_25_a.tga", "t_groundcrack_27_a.tga" }
-			radius = (radius * 5)-- * (math.random() * 0.7 + 0.52)
+			radius = (radius * 5)-- * (mathRandom() * 0.7 + 0.52)
 			alpha = 15
 			heatstart = 500
 			heatdecay = 0.12
@@ -917,7 +927,7 @@ for weaponDefID=1, #WeaponDefs do
 			if string.find(weaponDef.name, 'flamebug') then
 				radius = (radius * 5)
 			else
-				radius = (radius * 10)-- * (math.random() * 0.7 + 0.52)
+				radius = (radius * 10)-- * (mathRandom() * 0.7 + 0.52)
 				alpha = 15
 				heatstart = 500
 				heatdecay = 0.12
@@ -930,7 +940,7 @@ for weaponDefID=1, #WeaponDefs do
 
 		elseif string.find(weaponDef.name, 'bloodyeggs') then
 			textures = { "t_groundcrack_23_a.tga" }
-			radius = (radius * 1.5)-- * (math.random() * 1.2 + 0.25)
+			radius = (radius * 1.5)-- * (mathRandom() * 1.2 + 0.25)
 			alpha = 10
 			heatstart = 490
 			heatdecay = 0.1
@@ -941,7 +951,7 @@ for weaponDefID=1, #WeaponDefs do
 
 		elseif string.find(weaponDef.name, 'dodo') then
 			textures = { "t_groundcrack_23_a.tga", "t_groundcrack_24_a.tga" }
-			radius = (radius * 1.2)-- * (math.random() * 0.15 + 0.85)
+			radius = (radius * 1.2)-- * (mathRandom() * 0.15 + 0.85)
 			alpha = 10
 			heatstart = 490
 			heatdecay = 0.1
@@ -951,7 +961,7 @@ for weaponDefID=1, #WeaponDefs do
 
 		elseif string.find(weaponDef.name, 'armagmheat') then
 			textures = { "t_groundcrack_10_a.tga" }
-			radius = (radius * 1.6)-- * (math.random() * 0.15 + 0.85)
+			radius = (radius * 1.6)-- * (mathRandom() * 0.15 + 0.85)
 			alpha = 1
 			heatstart = 6500
 			heatdecay = 0.5
@@ -962,7 +972,7 @@ for weaponDefID=1, #WeaponDefs do
 		elseif string.find(weaponDef.name, 'corkorg_laser') then
 			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga", "t_groundcrack_10_a.tga" }
 			alphadecay = 0.004
-			radius = radius * 1.1 --* (math.random() * 20 + 0.2)
+			radius = radius * 1.1 --* (mathRandom() * 20 + 0.2)
 			radiusVariation = 0.3
 			heatstart = 6800
 			heatdecay = 0.75
@@ -985,7 +995,7 @@ for weaponDefID=1, #WeaponDefs do
 		elseif string.find(weaponDef.name, 'starfire') then
 			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_09_a.tga", "t_groundcrack_10_a.tga" }
 			alphadecay = 0.003
-			radius = radius * 1.2 --* (math.random() * 20 + 0.2)
+			radius = radius * 1.2 --* (mathRandom() * 20 + 0.2)
 			radiusVariation = 0.6
 			heatstart = 9000
 			heatdecay = 2.5
@@ -1032,7 +1042,7 @@ for weaponDefID=1, #WeaponDefs do
 end
 
 function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	local random = math.random
+	local random = mathRandom
 	local params = weaponConfig[weaponID]
 	if not params then
 		return
@@ -1746,7 +1756,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 ]]--
 local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, heading)
-	--Spring.Echo("Widgetside UnitScriptDecal", unitID, unitDefID, whichDecal, posx,posz, heading)
+	--spEcho("Widgetside UnitScriptDecal", unitID, unitDefID, whichDecal, posx,posz, heading)
 	if Spring.ValidUnitID(unitID) and Spring.GetUnitIsDead(unitID) == false and UnitScriptDecals[unitDefID] and UnitScriptDecals[unitDefID][whichDecal] then
 		local decalTable =  UnitScriptDecals[unitDefID][whichDecal]
 
@@ -1792,12 +1802,12 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 
 			decalCache[10] = decalTable.alphadecay / lifeTimeMult
 
-			local spawnframe = Spring.GetGameFrame()
+			local spawnframe = spGetGameFrame()
 			decalCache[16] = spawnframe
 
-			local lifetime = math.floor(decalTable.alphastart/decalCache[10])
+			local lifetime = mathFloor(decalTable.alphastart/decalCache[10])
 			decalIndex = decalIndex + 1
-			--Spring.Echo(decalIndex)
+			--spEcho(decalIndex)
 			pushElementInstance(
 				decalVBO, -- push into this Instance VBO Table
 				decalCache, -- params
@@ -1831,22 +1841,22 @@ function widget:Initialize()
 	if autoupdate then
 		math.randomseed(1)
 		for i= 1, 100 do
-			local w = math.random() * 15 + 7
+			local w = mathRandom() * 15 + 7
 			w = w * w
 			local texture =  randtablechoice(atlas)
-			--Spring.Echo(texture)
+			--spEcho(texture)
 			AddDecal(
 				texture,
-				Game.mapSizeX * math.random() * 1.0, --posx
-				Game.mapSizeZ * math.random() * 1.0, --posz
-				math.random() * 6.28, -- rotation
+				Game.mapSizeX * mathRandom() * 1.0, --posx
+				Game.mapSizeZ * mathRandom() * 1.0, --posz
+				mathRandom() * 6.28, -- rotation
 				w, -- width
 				w, --height
-				math.random() * 10000, -- heatstart
-				math.random() * 1, -- heatdecay
-				math.random() * 1.0 + 1.0, -- alphastart
-				math.random() * 0.001, -- alphadecay
-				math.random() * 0.3 + 0.7 -- maxalpha
+				mathRandom() * 10000, -- heatstart
+				mathRandom() * 1, -- heatdecay
+				mathRandom() * 1.0 + 1.0, -- alphastart
+				mathRandom() * 0.001, -- alphadecay
+				mathRandom() * 0.3 + 0.7 -- maxalpha
 			)
 		end
 	end
@@ -1861,8 +1871,8 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('AddDecalGL4', WG['decalsgl4'].AddDecalGL4)
 	widgetHandler:RegisterGlobal('RemoveDecalGL4', WG['decalsgl4'].RemoveDecalGL4)
 	widgetHandler:RegisterGlobal('UnitScriptDecal', UnitScriptDecal)
-	--Spring.Echo(string.format("Decals GL4 loaded %d textures in %.3fs",numFiles, Spring.DiffTimers(Spring.GetTimer(), t0)))
-	--Spring.Echo("Trying to access _G[NightModeParams]", _G["NightModeParams"])
+	--spEcho(string.format("Decals GL4 loaded %d textures in %.3fs",numFiles, Spring.DiffTimers(Spring.GetTimer(), t0)))
+	--spEcho("Trying to access _G[NightModeParams]", _G["NightModeParams"])
 
 	--pre-optimize UnitScriptDecals:
 	for unitDefID, UnitScriptDecalSet in pairs(UnitScriptDecals) do
@@ -1870,7 +1880,7 @@ function widget:Initialize()
 			local p,q,s,t = 0,1,0,1
 
 			if atlas[decalTable.texture] == nil then
-				Spring.Echo("Tried to spawn a decal gl4 with a texture not present in the atlas:",decalTable.texture)
+				spEcho("Tried to spawn a decal gl4 with a texture not present in the atlas:",decalTable.texture)
 			else
 				local uvs = atlas[decalTable.texture]
 				p,q,s,t = uvs[1], uvs[2], uvs[3], uvs[4]
@@ -1903,7 +1913,7 @@ end
 
 function widget:SunChanged()
 	--local nmp = _G["NightModeParams"]
-	--Spring.Echo("widget:SunChanged()",nmp)
+	--spEcho("widget:SunChanged()",nmp)
 end
 
 function widget:ShutDown()

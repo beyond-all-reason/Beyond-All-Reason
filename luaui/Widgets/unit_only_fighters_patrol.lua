@@ -27,10 +27,15 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMyTeamID = Spring.GetMyTeamID
+
 local stop_builders = true -- Whever to stop builders or not. Set to true if you dont use factory guard widget.
 
 local GetUnitCommands = Spring.GetUnitCommands
-local myTeamID = Spring.GetMyTeamID()
+local myTeamID = spGetMyTeamID()
 
 local gameStarted
 
@@ -86,7 +91,7 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 end
 
 function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
+    if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
         widgetHandler:RemoveWidget()
     end
 end
@@ -97,12 +102,12 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged(playerID)
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = spGetMyTeamID()
     maybeRemoveSelf()
 end
 
 function widget:Initialize()
-    if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+    if Spring.IsReplay() or spGetGameFrame() > 0 then
         maybeRemoveSelf()
     end
 end

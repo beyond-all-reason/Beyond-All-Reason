@@ -125,6 +125,11 @@ local labGrids = {
 		"corpship", "corroy", "", "",                    -- frigate, destroyer, transport ("cortship",)
 		"corsub", "", "corpt",                            -- sub, missile boat
 	},
+	legsy = {
+		"legnavyconship", "legnavyrezsub", "legnavyscout", "",               -- T1 sea con, rez sub, supporter, missile boat
+		"legnavyfrigate", "legnavydestro", "legnavyartyship", "",       -- frigate, destroyer, transport ("cortship",)
+		"legnavysub", "", "legnavyaaship",                            -- sub, missile boat
+	},
 	-- T2 boats
 	armasy = {
 		"armacsub", "armmls", "armcrus", "armmship",         -- T2 con sub, naval engineer, cruiser, rocket ship
@@ -362,7 +367,7 @@ local unitGrids = {
 			{ },                                             -- empty
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },        -- bot lab, veh lab, air lab, shipyard
 			{ },                                             -- empty row
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
@@ -430,7 +435,7 @@ local unitGrids = {
 			{ },                                             -- empty
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },        -- bot lab, veh lab, air lab, shipyard
 			{ },                                             -- empty row
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
@@ -895,7 +900,7 @@ local unitGrids = {
 			{ },                                             -- empty
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },        -- bot lab, veh lab, air lab, shipyard
 			{ },                                             -- empty row
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
@@ -917,7 +922,7 @@ local unitGrids = {
 			{ },                                            -- empty
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },        -- bot lab, veh lab, air lab, shipyard
 			{ },                                             -- empty row
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
@@ -939,7 +944,7 @@ local unitGrids = {
 			{ "legjuno", "legrad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },        -- bot lab, veh lab, air lab, shipyard
 			{ "legnanotc", "leginfestor", "legnanotcplat",}, -- nano, infestor, floating nano
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
@@ -961,7 +966,7 @@ local unitGrids = {
 			{ "legjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },        -- bot lab, veh lab, air lab, shipyard
 			{ "legnanotc", "leginfestor", "legnanotcplat",}, -- nano, infestor, floating nano
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
@@ -983,7 +988,7 @@ local unitGrids = {
 			{ "legjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },        -- bot lab, veh lab, air lab, shipyard
 			{ "legnanotc", "leginfestor", "legnanotcplat",}, -- nano, infestor, floating nano
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
@@ -1005,7 +1010,7 @@ local unitGrids = {
 			{ "legjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },        -- bot lab, veh lab, air lab, shipyard
 			{ "legnanotc", "leginfestor", "legnanotcplat",}, -- nano, infestor, floating nano
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
@@ -1027,7 +1032,7 @@ local unitGrids = {
 			{ "legjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },        -- bot lab, veh lab, air lab, shipyard
 			{ "legnanotc", "leginfestor", "legnanotcplat",}, -- nano, infestor, floating nano
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
@@ -1049,7 +1054,7 @@ local unitGrids = {
 			{ "legjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },        -- bot lab, veh lab, air lab, shipyard
 			{ "legnanotc", "leginfestor", "legnanotcplat",}, -- nano, infestor, floating nano
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
@@ -1071,7 +1076,7 @@ local unitGrids = {
 			{ "legjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },        -- bot lab, veh lab, air lab, shipyard
 			{ "legnanotc", "leginfestor", "legnanotcplat",}, -- nano, infestor, floating nano
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
@@ -1093,7 +1098,7 @@ local unitGrids = {
 			{ "legjuno", "legarad", "legstronghold"},         -- juno, radar, t2 transport
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },        -- bot lab, veh lab, air lab, shipyard
 			{ "legnanotc", "leginfestor", "legnanotcplat",}, -- nano, infestor, floating nano
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
@@ -1161,7 +1166,7 @@ local unitGrids = {
 			{ "legjuno", },                                   -- juno
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },         -- bot lab, veh lab, air lab, shipyard
 			{ "legnanotc", "legalab", },                      -- nano, T2 lab
 			{ "leghp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
@@ -1230,7 +1235,7 @@ local unitGrids = {
 			{ "legjuno", },                                   -- juno
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },         -- bot lab, veh lab, air lab, shipyard
 			{ "legnanotc", "coralab", },                      -- nano, T2 lab
 			{ "leghp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
@@ -1298,7 +1303,7 @@ local unitGrids = {
 			{ "legjuno", },                                   -- juno
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },         -- bot lab, veh lab, air lab, shipyard
 			{ "legnanotc", "legaap", },                      -- nano, T2 lab
 			{ "leghp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
@@ -1345,6 +1350,28 @@ local unitGrids = {
 			{ "corsy", "corvp", "corap", "corlab",  },        -- shipyard, vehicle lab, air lab, bot lab
 			{ "cornanotcplat", "corasy", },                   -- floating nano, T2 shipyard
 			{ "corfhp", "", "coramsub", "corplat",  },        -- floating hover, amphibious lab, seaplane lab
+		}
+	},
+
+	legnavyconship = {
+		{
+			{ "legmex", "legtide","" },                         -- mex, tidal
+			{ "legfeconv", "leggeo", "legmext15", },                         -- floating T1 converter, geo , t1.5 mex
+			{ "leguwestore", "leguwmstore", },                        -- uw e stor, uw m stor
+		},
+		{
+			{ "legtl", "legfmg", "legnavaldefturret", "legdtr" },             -- offshore torp launcher, floating HLT
+			{ "legfrl", },                                    -- floating AA
+			{ "legctl", "legcluster", },                 		  -- coastal torp launcher, punisher, flame turret
+		},
+		{
+			{ "legfrad", "legeyes", "legfdrag", },            -- floating radar, perimeter camera, shark's teeth
+			{ "", "legdrag", "", "" },           -- dragon's teeth
+		},
+		{
+			{ "legsy", "legvp", "legap", "leglab",  },        -- shipyard, vehicle lab, air lab, bot lab
+			{ "legnanotcplat", "corasy", },                   -- floating nano, T2 shipyard
+			{ "legfhp", "", "legamphlab", "corplat",  },        -- floating hover, amphibious lab, seaplane lab
 		}
 	},
 
@@ -1415,7 +1442,7 @@ local unitGrids = {
 			{ "legjuno", },                                   -- juno
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },         -- bot lab, veh lab, air lab, shipyard
 			{ "legnanotc", "legavp", "legnanotcplat", "corasy", },      -- nano, T2 veh lab, floating nano
 			{ "leghp", "legfhp", "legamphlab", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
@@ -1537,7 +1564,7 @@ local unitGrids = {
 			{ "legjuno", },                                   -- juno
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },         -- bot lab, veh lab, air lab, shipyard
 			{ "legnanotc", "legavp", "legnanotcplat", },      -- nano, T2 veh lab, floating nano
 			{ "leghp", "legfhp", "legamphlab", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
@@ -1863,7 +1890,7 @@ local unitGrids = {
 			{ "legdeflector", },                                     -- anti-nuke, shield
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy" },                                       -- T1 lab,
+			{ "leglab", "legvp", "legap", "legsy" },                                       -- T1 lab,
 			{ "legnanotc", "legaap", "leggant" },                           -- T3 lab, T2 lab
 			{ "", "leghaap", "", "" },                                     -- seaplane lab (aircon only)
 		}
@@ -1932,7 +1959,7 @@ local unitGrids = {
 			{ "legdeflector", },                                     -- anti-nuke, shield
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy" },                                       -- T1 lab,
+			{ "leglab", "legvp", "legap", "legsy" },                                       -- T1 lab,
 			{ "legnanotc", "legalab", "leggant" },                           -- T3 lab, T2 lab
 			{ "", "leghalab", "", "" },                                     -- seaplane lab (aircon only)
 		}
@@ -2001,7 +2028,7 @@ local unitGrids = {
 			{ "legdeflector", },                                     -- anti-nuke, shield
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy" },                                       -- T1 lab,
+			{ "leglab", "legvp", "legap", "legsy" },                                       -- T1 lab,
 			{ "legnanotc", "legavp", "leggant" },                           -- T3 lab, T2 lab
 			{ "", "leghavp", "", "" },                                     -- seaplane lab (aircon only)
 		}
@@ -2250,18 +2277,18 @@ local unitGrids = {
 			{ },                                                      --
 		},
 		{
-			{ "legdtr", "legstr", "legacluster", },               -- dragon's jaw, strider, t2 cluster arty
-			{ "legflak", "legrhapsis", "legaabot", "leggob", },    -- Ravager Flak, Rhapsis, T1 aa bot, Goblin
-			{ "legctl", "legfloat", },               				-- coastal torp launcher, triton
+			{ "legdtr", "legstr", "legacluster", },               	  -- dragon's jaw, strider, t2 cluster arty
+			{ "legflak", "legrhapsis", "legaabot", "leggob", },    	  -- Ravager Flak, Rhapsis, T1 aa bot, Goblin
+			{ "legctl", "legnavyfrigate", },               			  -- coastal torp launcher, frigate
 		},
 		{
-			{ "legarad", "legeyes", "legforti", "legajam", },        -- adv radar, camera, wall, adv jammer
+			{ "legarad", "legeyes", "legforti", "legajam", },         -- adv radar, camera, wall, adv jammer
 			{ },                                                      --
 			{ },                                          			  -- med mine
 		},
 		{
 			{ "leglab", "legck", },                                   -- bot lab, bot con
-			{ "legnanotc", "legch", },                                -- nano, hover con (for now)
+			{ "legnanotc", "legnavyconship", },                       -- nano, naval con
 			{ },                                      				  --
 		}
 	},
@@ -2284,7 +2311,7 @@ local unitGrids = {
 			{ "legjuno", },                                   -- juno
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },         -- bot lab, veh lab, air lab, shipyard
 			{ "legnanotc", "coralab", },                      -- nano, T2 lab
 			{ "leghp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}

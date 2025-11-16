@@ -14,6 +14,18 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+local tableInsert = table.insert
+
+-- Localized Spring API for performance
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+local spGetSpectatingState = Spring.GetSpectatingState
+local spEcho = Spring.Echo
+
 local texts = {}
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua")) and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
 local gameName = Game.gameName
@@ -57,9 +69,9 @@ if damageStats and damageStats[gameName] and damageStats[gameName].team then
 			end
 		end
 	end
-	--Spring.Echo("1st = "..  highestUnitDef .. ", ".. rate)
-	--Spring.Echo("2nd = "..  scndhighestUnitDef .. ", ".. scndRate)
-	--Spring.Echo("3rd = "..  thirdhighestUnitDef .. ", ".. thirdRate)
+	--spEcho("1st = "..  highestUnitDef .. ", ".. rate)
+	--spEcho("2nd = "..  scndhighestUnitDef .. ", ".. scndRate)
+	--spEcho("3rd = "..  thirdhighestUnitDef .. ", ".. thirdRate)
 end
 
 include("keysym.h.lua")
@@ -128,8 +140,8 @@ local buildColor = '\255\128\255\128' -- Light green
 
 local simSpeed = Game.gameSpeed
 
-local max = math.max
-local floor = math.floor
+local max = mathMax
+local floor = mathFloor
 local ceil = math.ceil
 local format = string.format
 local char = string.char
@@ -162,7 +174,7 @@ local maxWidth = 0
 local textBuffer = {}
 local textBufferCount = 0
 
-local spec = Spring.GetSpectatingState()
+local spec = spGetSpectatingState()
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousName = '?????'
@@ -284,7 +296,7 @@ function widget:Shutdown()
 end
 
 function widget:PlayerChanged()
-	spec = Spring.GetSpectatingState()
+	spec = spGetSpectatingState()
 end
 
 function init()
@@ -324,12 +336,12 @@ function widget:ViewResize(n_vsx,n_vsy)
 	init()
 end
 
-local selectedUnits = Spring.GetSelectedUnits()
-local selectedUnitsCount = Spring.GetSelectedUnitsCount()
+local selectedUnits = spGetSelectedUnits()
+local selectedUnitsCount = spGetSelectedUnitsCount()
 if useSelection then
 	function widget:SelectionChanged(sel)
 		selectedUnits = sel
-		selectedUnitsCount = Spring.GetSelectedUnitsCount()
+		selectedUnitsCount = spGetSelectedUnitsCount()
 	end
 end
 
@@ -403,15 +415,15 @@ local function drawStats(uDefID, uID)
 		local mTotal = uDef.metalCost
 		local eTotal = uDef.energyCost
 		local buildRem = 1 - buildProg
-		local mRem = math.floor(mTotal * buildRem)
-		local eRem = math.floor(eTotal * buildRem)
+		local mRem = mathFloor(mTotal * buildRem)
+		local eRem = mathFloor(eTotal * buildRem)
 		local mEta = (mRem - mCur) / (mInc + mRec)
 		local eEta = (eRem - eCur) / (eInc + eRec)
 
 		DrawText(texts.prog..":", format("%d%%", 100 * buildProg))
 		DrawText(texts.metal..":", format("%d / %d (" .. yellow .. "%d" .. white .. ", %ds)", mTotal * buildProg, mTotal, mRem, mEta))
 		DrawText(texts.energy..":", format("%d / %d (" .. yellow .. "%d" .. white .. ", %ds)", eTotal * buildProg, eTotal, eRem, eEta))
-		--DrawText("MaxBP:", format(white .. '%d', buildRem * uDef.buildTime / math.max(mEta, eEta)))
+		--DrawText("MaxBP:", format(white .. '%d', buildRem * uDef.buildTime / mathMax(mEta, eEta)))
 		cY = cY - fontSize
 	end
 
@@ -478,14 +490,22 @@ local function drawStats(uDefID, uID)
 			DrawText(texts.emp..':', blue .. texts.immune)
 		else
 			local resist = 100 - (paralyzeMult * 100)
-			DrawText(texts.emp..':', blue .. math.floor(resist) .. "% " .. white .. texts.resist)
+			DrawText(texts.emp..':', blue .. mathFloor(resist) .. "% " .. white .. texts.resist)
 		end
 	end
 	if maxHP then
-		DrawText(texts.open..":", format(texts.maxhp..": %d", maxHP) )
+		DrawText(texts.open..":", format("%s: %d", texts.maxhp, maxHP))
 
 		if armoredMultiple and armoredMultiple ~= 1 then
-			DrawText(texts.closed..":", format(" +%d%%, "..texts.maxhp..": %d", (1/armoredMultiple-1) *100,maxHP/armoredMultiple))
+			local message = format("%s: %d (+%d%%)", texts.maxhp, maxHP / armoredMultiple, 100 * (1 / armoredMultiple - 1))
+			if uDef.customParams.reactive_armor_health then
+				message = message .. (", %d to break, %d%s to restore"):format(
+					uDef.customParams.reactive_armor_health,
+					uDef.customParams.reactive_armor_restore,
+					texts.s
+				)
+			end
+			DrawText(texts.closed..":", message)
 		end
 	end
 
@@ -696,13 +716,13 @@ local function drawStats(uDefID, uID)
 							modifiers[rate] = { defaultName }
 							defaultRate = rate
 						else
-							table.insert(modifiers[rate], catName)
+							tableInsert(modifiers[rate], catName)
 						end
 					end
 				end
 
 				local sorted = {}
-				for k ,_ in pairs(modifiers) do table.insert(sorted, k) end
+				for k ,_ in pairs(modifiers) do tableInsert(sorted, k) end
 				table.sort(sorted, function(a, b) return a > b end) -- descending sort
 
 				if defaultRate ~= 0 then --FIXME: This is a temporary fix, ideally bogus weapons should not be listed.
@@ -791,7 +811,7 @@ local function drawStats(uDefID, uID)
 		text = text .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   ".. GetTeamColorCode(uTeam) .. GetTeamName(uTeam) .. grey .. effectivenessRate
 	end
 	local backgroundRect = {floor(cX-bgpadding), ceil(cYstart-bgpadding), floor(cX+(font:GetTextWidth(text)*titleFontSize)+(titleFontSize*3.5)), floor(cYstart+(titleFontSize*1.8)+bgpadding)}
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1,1,1,0, 1,1,0,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1,1,1,0, 1,1,0,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 	if WG['guishader'] then
 		guishaderEnabled = true
 		WG['guishader'].InsertScreenDlist( gl.CreateList( function()
@@ -801,7 +821,7 @@ local function drawStats(uDefID, uID)
 
 	-- icon
 	if uID then
-		local iconPadding = math.max(1, math.floor(bgpadding*0.8))
+		local iconPadding = mathMax(1, mathFloor(bgpadding*0.8))
 		glColor(1,1,1,1)
 		UiUnit(
 			backgroundRect[1]+bgpadding+iconPadding, backgroundRect[2]+iconPadding, backgroundRect[1]+(backgroundRect[4]-backgroundRect[2])-iconPadding, backgroundRect[4]-bgpadding-iconPadding,
@@ -820,7 +840,7 @@ local function drawStats(uDefID, uID)
 	font:End()
 
 	-- stats
-	UiElement(floor(cX-bgpadding), ceil(cY+(fontSize/3)+(bgpadding*0.3)), ceil(cX+maxWidth+bgpadding), ceil(cYstart-bgpadding), 0,1,1,1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	UiElement(floor(cX-bgpadding), ceil(cY+(fontSize/3)+(bgpadding*0.3)), ceil(cX+maxWidth+bgpadding), ceil(cYstart-bgpadding), 0,1,1,1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 
 	if WG['guishader'] then
 		guishaderEnabled = true

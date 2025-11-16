@@ -160,6 +160,16 @@ if Spring.GetConfigInt("version", 0) < version then
 
 	Spring.SetConfigInt("ui_rendertotexture", 1)
 end
+version = 8
+if Spring.GetConfigInt("version", 0) < version then
+	Spring.SetConfigInt("version", version)
+
+	local voiceset = Spring.GetConfigString("voiceset", '')
+	if voiceset == 'en/allison' then
+		Spring.SetConfigString("voiceset", 'en/cephis')
+	end
+end
+
 
 -- apply the old pre-engine implementation stored camera minimum zoom level
 local oldMinCamHeight = Spring.GetConfigInt("MinimumCameraHeight", -1)

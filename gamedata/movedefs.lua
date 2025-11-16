@@ -124,10 +124,10 @@ local moveDatas = {
 		depthModParams = depthModCrawlingBombs,
 	},
 
-	--critter_crab raptor_land_spiker_basic_t2_v1 cormando raptor_land_spiker_basic_t4_v1 armaak corcrash raptorems2_spectre armjeth coramph coraak
+	--critter_crab cormando armaak corcrash armjeth coramph coraak
 	ABOT3 = {
 		crushstrength = CRUSH.LARGE,
-		depthmod = 0,
+		depthMod = 0,
 		footprint = 3,
 		maxslope = SLOPE.DIFFICULT,
 		maxwaterdepth = DEPTH.AMPHIBIOUS,
@@ -137,7 +137,7 @@ local moveDatas = {
 	-- corgarp armbeaver armmar corparrow armprow corseal corsala cormuskrat armcroc armpincer corintr legassistdrone_land corassistdrone armassistdrone legotter corphantom
 	ATANK3 = {
 		crushstrength = CRUSH.MEDIUM + 5,
-		depthmod = 0,
+		depthMod = 0,
 		footprint = 3,
 		maxslope = SLOPE.DIFFICULT,
 		slopeMod = SLOPE_MOD.MODERATE,
@@ -219,6 +219,18 @@ local moveDatas = {
 		maxslope = SLOPE.DIFFICULT,
 		slopeMod = SLOPE_MOD.MODERATE,
 		maxwaterslope = SLOPE.MAXIMUM,
+	},
+
+	-- leganavybattleship
+	HOVER7 = {
+		badslope = 36,
+		badwaterslope = 255,
+		crushstrength = 252,
+		footprintx = 7,
+		footprintz = 7,
+		maxslope = 36,
+		slopeMod = 18,
+		maxwaterslope = 255,
 	},
 
 	-- cormlv armmflash corgator legmrv  leghades leghelops armfav corfav armconsul armlatnk cortorch legmrrv
@@ -306,7 +318,7 @@ local moveDatas = {
 	-- corshiva armmar armbanth legjav
 	HABOT5 = {
 		crushstrength = CRUSH.HEAVY + 2,
-		depthmod = 0,
+		depthMod = 0,
 		footprint = 5,
 		maxslope = SLOPE.DIFFICULT,
 		maxwaterdepth = DEPTH.AMPHIBIOUS,
@@ -323,7 +335,7 @@ local moveDatas = {
 	-- corkorg legeheatraymech
 	VBOT6 = {
 		crushstrength = CRUSH.HUGE,
-		depthmod = 0,
+		depthMod = 0,
 		footprint = 6,
 		maxslope = SLOPE.DIFFICULT,
 		maxwaterdepth = DEPTH.AMPHIBIOUS,
@@ -356,6 +368,7 @@ local moveDatas = {
 		maxslope = SLOPE.MAXIMUM,
 		maxwaterslope = SLOPE.MAXIMUM,
 		speedModClass = SPEED_CLASS.Hover,
+		overrideUnitWaterline = false,
 	},
 	-- raptor_land_swarmer_heal_t1_v1 raptor_land_swarmer_basic_t4_v2 raptor_land_swarmer_spectre_t4_v1 raptor_land_swarmer_basic_t4_v1 raptor_land_swarmer_emp_t2_v1 raptor_land_swarmer_basic_t1_v1 raptor_land_kamikaze_emp_t2_v1 raptor_land_spiker_basic_t4_v1
 	--raptor_land_kamikaze_emp_t4_v1 raptor_land_spiker_basic_t2_v1 raptor_land_swarmer_basic_t3_v2 raptor_land_swarmer_basic_t3_v1 raptor_land_swarmer_basic_t3_v3 raptor_land_swarmer_basic_t2_v4 raptor_land_swarmer_basic_t2_v3 raptor_land_swarmer_basic_t2_v2 raptor_land_swarmer_basic_t2_v1 raptor_land_swarmer_brood_t3_v1 raptor_land_swarmer_brood_t4_v1
@@ -370,6 +383,7 @@ local moveDatas = {
 		slopeMod = SLOPE_MOD.MODERATE,
 		maxwaterslope = SLOPE.MAXIMUM,
 		speedModClass = SPEED_CLASS.Hover,
+		overrideUnitWaterline = false,
 	},
 	-- raptor_land_assault_emp_t2_v1 raptoracidassualt raptor_land_assault_basic_t2_v1 raptor_land_assault_basic_t2_v3 raptor_land_swarmer_basic_t2_v2 raptor_land_assault_spectre_t2_v1
 	RAPTORBIGHOVER = {
@@ -381,6 +395,7 @@ local moveDatas = {
 		slopeMod = SLOPE_MOD.MODERATE,
 		maxwaterslope = SLOPE.MAXIMUM,
 		speedModClass = SPEED_CLASS.Hover,
+		overrideUnitWaterline = false,
 	},
 	-- raptor_land_assault_spectre_t4_v1 raptora2 raptor_land_assault_basic_t4_v2
 	RAPTORBIG2HOVER = {
@@ -392,6 +407,7 @@ local moveDatas = {
 		slopeMod = SLOPE_MOD.MODERATE,
 		maxwaterslope = SLOPE.MAXIMUM,
 		speedModClass = SPEED_CLASS.Hover,
+		overrideUnitWaterline = false,
 	},
 	-- raptor_allterrain_swarmer_basic_t2_v1 raptor_allterrain_swarmer_basic_t4_v1 raptor_allterrain_swarmer_basic_t3_v1 raptor_allterrain_swarmer_acid_t2_v1 raptor_allterrain_swarmer_fire_t2_v1 raptor_6legged_I raptoreletricalallterrain
 	RAPTORALLTERRAINHOVER = {
@@ -401,6 +417,7 @@ local moveDatas = {
 		maxwaterdepth = DEPTH.AMPHIBIOUS,
 		maxwaterslope = SLOPE.EXTREME,
 		speedModClass = SPEED_CLASS.Hover,
+		overrideUnitWaterline = false,
 	},
 	-- raptor_allterrain_arty_basic_t2_v1 raptor_allterrain_arty_acid_t2_v1 raptor_allterrain_arty_acid_t4_v1 raptor_allterrain_arty_emp_t2_v1 raptor_allterrain_arty_emp_t4_v1 raptor_allterrain_arty_brood_t2_v1 raptoracidalllterrrainassual
 	--raptor_allterrain_swarmer_emp_t2_v1assualt raptor_allterrain_assault_basic_t2_v1 raptoraallterraina1 raptoraallterrain1c raptoraallterrain1b
@@ -411,6 +428,7 @@ local moveDatas = {
 		maxwaterdepth = DEPTH.AMPHIBIOUS,
 		maxwaterslope = SLOPE.EXTREME,
 		speedModClass = SPEED_CLASS.Hover,
+		overrideUnitWaterline = false,
 	},
 	-- raptor_allterrain_arty_basic_t4_v1 raptor_allterrain_arty_brood_t4_v1 raptorapexallterrainassualt raptorapexallterrainassualtb
 	RAPTORALLTERRAINBIG2HOVER = {
@@ -420,9 +438,10 @@ local moveDatas = {
 		maxwaterdepth = DEPTH.AMPHIBIOUS,
 		maxwaterslope = SLOPE.EXTREME,
 		speedModClass = SPEED_CLASS.Hover,
+		overrideUnitWaterline = false,
 	},
 
-	-- leghive armnanotc cornanotc cornanotcplat  raptor_worm_green raptor_turret_acid_t2_v1 raptor_turret_meteor_t4_v1
+	-- leghive armnanotc cornanotc cornanotcplat
 	NANO = {
 		crushstrength = CRUSH.NONE,
 		footprint = 3,
@@ -452,7 +471,7 @@ local moveDatas = {
 	-- armpwt4 corakt4 armmeatball armassimilator armlunchbox
 	EPICBOT = {
 		crushstrength = CRUSH.MASSIVE,
-		depthmod = 0,
+		depthMod = 0,
 		footprint = 4,
 		maxslope = SLOPE.DIFFICULT,
 		maxwaterdepth = DEPTH.MAXIMUM,
@@ -462,7 +481,7 @@ local moveDatas = {
 	-- corgolt4 armrattet4
 	EPICVEH = {
 		crushstrength = CRUSH.MASSIVE,
-		depthmod = 0,
+		depthMod = 0,
 		footprint = 5,
 		maxslope = SLOPE.DIFFICULT,
 		slopeMod = SLOPE_MOD.MODERATE,
@@ -483,7 +502,7 @@ local moveDatas = {
 	-- armvadert4 armsptkt4 corkargenetht4
 	EPICALLTERRAIN = {
 		crushstrength = CRUSH.MASSIVE,
-		depthmod = 0,
+		depthMod = 0,
 		footprint = 5,
 		maxslope = SLOPE.MAXIMUM,
 		maxwaterdepth = DEPTH.MAXIMUM,
@@ -572,13 +591,18 @@ for moveName, moveData in pairs(moveDatas) do
 		minwaterdepth          = moveData.minwaterdepth,
 		slopeMod               = moveData.slopeMod,
 		speedModClass          = moveData.speedModClass,
+		subMarine 			   = moveData.subMarine,
+		overrideUnitWaterline  = moveData.overrideUnitWaterline,
 	}
+
+	
 
 	setMaxSlope(moveDef)
 
 	if validate(moveDef) then
 		defs[#defs + 1] = moveDef
 	end
+
 end
 
 return defs

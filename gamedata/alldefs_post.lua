@@ -172,15 +172,11 @@ function UnitDef_Post(name, uDef)
 		if uDef.sounds.ok then
 			uDef.sounds.ok = nil
 		end
-	end
 
-	if uDef.sounds then
 		if uDef.sounds.select then
 			uDef.sounds.select = nil
 		end
-	end
 
-	if uDef.sounds then
 		if uDef.sounds.activate then
 			uDef.sounds.activate = nil
 		end
@@ -189,6 +185,10 @@ function UnitDef_Post(name, uDef)
 		end
 		if uDef.sounds.build then
 			uDef.sounds.build = nil
+		end
+
+		if uDef.sounds.underattack then
+			uDef.sounds.underattack = nil
 		end
 	end
 
@@ -1230,7 +1230,7 @@ function UnitDef_Post(name, uDef)
 			corch = { ["corfhlt"] = "cornavaldefturret" },
 			cormuskrat = { ["corfhlt"] = "cornavaldefturret" },
 			corcsa = { ["corfhlt"] = "cornavaldefturret" },
-			legcs = { ["legfmg"]  = "legnavaldefturret" },
+			legnavyconship = { ["legfmg"]  = "legnavaldefturret" },
 			legch = { ["legfmg"]  = "legnavaldefturret" },
 			legotter = { ["legfmg"]  = "legnavaldefturret" },
 			armacsub = { ["armkraken"]  = "armanavaldefturret" },

@@ -154,6 +154,7 @@ return {
 				edgeeffectiveness = 0.15,
 				energypershot = 500,
 				explosiongenerator = "custom:genericshellexplosion-sniper",
+				gravityaffected = "true",
 				impactonly = true,
 				impulsefactor = 0.234,
 				intensity = 0.75,

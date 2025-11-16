@@ -25,7 +25,16 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetAllUnits = Spring.GetAllUnits
 local spEcho = Spring.Echo
 
-local floor = math.floor
+-- Localize frequently used functions
+local mathFloor = math.floor
+local mathAbs = math.abs
+local mathMin = math.min
+local stringFormat = string.format
+local tableInsert = table.insert
+local tableRemove = table.remove
+local pairs = pairs
+local ipairs = ipairs
+local osClock = os.clock
 
 --------------------------------------------------------------------------------
 -- Constants
@@ -65,13 +74,54 @@ local eventCallbacks = {
 
 local elapsedSeconds = 0
 local lastUpdateTime = 0
+local nextUpdateTime = 0.12
 local periodicCheckCounter = 1
+
+-- Reusable table for checkBuilder to reduce allocations
+local tempCurrentCommands = {}
+
+-- Pool for buildCommand objects to reduce allocations
+local buildCommandPool = {}
+local poolSize = 0
+
+local function getBuildCommand()
+	if poolSize > 0 then
+		local cmd = buildCommandPool[poolSize]
+		buildCommandPool[poolSize] = nil
+		poolSize = poolSize - 1
+		return cmd
+	end
+	return {}
+end
+
+local function recycleBuildCommand(cmd)
+	-- Clear the command data
+	cmd.builderCount = nil
+	cmd.unitDefId = nil
+	cmd.teamId = nil
+	cmd.positionX = nil
+	cmd.positionY = nil
+	cmd.positionZ = nil
+	cmd.rotation = nil
+	if cmd.builderIds then
+		for k in pairs(cmd.builderIds) do
+			cmd.builderIds[k] = nil
+		end
+	end
+	
+	-- Return to pool
+	poolSize = poolSize + 1
+	buildCommandPool[poolSize] = cmd
+end
 
 --------------------------------------------------------------------------------
 -- Setup
 --------------------------------------------------------------------------------
 
-for unitDefId, unitDefinition in ipairs(UnitDefs) do
+-- Cache builder unit defs for faster lookup
+local unitDefsLen = #UnitDefs
+for unitDefId = 1, unitDefsLen do
+	local unitDefinition = UnitDefs[unitDefId]
 	if unitDefinition.isBuilder and not unitDefinition.isFactory and unitDefinition.buildOptions[1] then
 		buildersList[unitDefId] = true
 	end
@@ -82,32 +132,37 @@ end
 --------------------------------------------------------------------------------
 
 local function notifyEvent(eventName, ...)
-	for _, callback in pairs(eventCallbacks[eventName] or {}) do
-		callback(...)
+	local callbacks = eventCallbacks[eventName]
+	if callbacks then
+		local callbacksLen = #callbacks
+		for i = 1, callbacksLen do
+			callbacks[i](...)
+		end
 	end
 end
 
 ---@param eventName string
 ---@param callback function()
 local function registerCallback(eventName, callback)
-	if eventCallbacks[eventName] then
-		table.insert(eventCallbacks[eventName], callback)
+	local callbacks = eventCallbacks[eventName]
+	if callbacks then
+		tableInsert(callbacks, callback)
+		---@class BuilderQueueEventCallback
+		return {eventName = eventName, callback = callback}
 	else
 		spEcho("Warn: Unknown event name " .. eventName)
+		return nil
 	end
-	---@class BuilderQueueEventCallback
-	local callbackEntry = {}
-	callbackEntry.eventName = eventName
-	callbackEntry.callback = callback
-	return callbackEntry
 end
 
 local function unregisterCallback(eventName, callback)
-	if eventCallbacks[eventName] then
-		for i, registeredCallback in ipairs(eventCallbacks[eventName]) do
-			if registeredCallback == callback then
-				table.remove(eventCallbacks[eventName], i)
-				break
+	local callbacks = eventCallbacks[eventName]
+	if callbacks then
+		local callbacksLen = #callbacks
+		for i = 1, callbacksLen do
+			if callbacks[i] == callback then
+				tableRemove(callbacks, i)
+				return
 			end
 		end
 	else
@@ -120,7 +175,8 @@ end
 --------------------------------------------------------------------------------
 ---
 local function generateId(unitDefId, positionX, positionZ)
-	return string.format('%s_%s_%s', unitDefId, positionX, positionZ)
+	-- Direct concatenation is faster than string.format for simple cases
+	return unitDefId .. '_' .. positionX .. '_' .. positionZ
 end
 
 local function removeBuilderFromCommand(commandId, unitId)
@@ -131,6 +187,7 @@ local function removeBuilderFromCommand(commandId, unitId)
 		if command.builderCount == 0 then
 			local commandData = command
 			buildCommands[commandId] = nil
+			recycleBuildCommand(commandData)
 			notifyEvent(Event.onBuildCommandRemoved, commandId, commandData)
 		end
 	end
@@ -154,58 +211,74 @@ local function checkBuilder(unitId)
 		return
 	end
 
-	local currentCommands = {}
-	local queue = spGetUnitCommands(unitId, math.min(queueDepth, MAX_QUEUE_DEPTH))
+	-- Reuse table instead of creating new one every call
+	local currentCommands = tempCurrentCommands
+	-- Clear previous data
+	for k in pairs(currentCommands) do
+		currentCommands[k] = nil
+	end
+
+	local queue = spGetUnitCommands(unitId, mathMin(queueDepth, MAX_QUEUE_DEPTH))
 
 	-- Step 1: Process the current queue and identify active commands
-	for i = 1, #queue do
+	local queueLen = #queue
+	for i = 1, queueLen do
 		local queueCommand = queue[i]
-		if queueCommand.id < 0 then
-			local unitDefId = math.abs(queueCommand.id)
-			local positionX = floor(queueCommand.params[1])
-			local positionZ = floor(queueCommand.params[3])
+		local cmdId = queueCommand.id
+		if cmdId < 0 then
+			local unitDefId = mathAbs(cmdId)
+			local params = queueCommand.params
+			local positionX = mathFloor(params[1])
+			local positionZ = mathFloor(params[3])
 			local commandId = generateId(unitDefId, positionX, positionZ)
 
 			currentCommands[commandId] = true
 
 			if commandIdToCreatedUnitIdMap[commandId] == nil then
 				local isNewCommand = false
-				if buildCommands[commandId] == nil then
-					local buildCommand = {} --- @class BuildCommandEntry
+				local buildCommand = buildCommands[commandId]
+				if buildCommand == nil then
+					buildCommand = getBuildCommand() --- @class BuildCommandEntry
 					buildCommand.builderCount = 0
 					buildCommand.unitDefId = unitDefId
 					buildCommand.teamId = spGetUnitTeam(unitId)
 					buildCommand.positionX = positionX
-					buildCommand.positionY = floor(queueCommand.params[2])
+					buildCommand.positionY = mathFloor(params[2])
 					buildCommand.positionZ = positionZ
-					buildCommand.rotation = floor(queueCommand.params[4])
-					buildCommand.builderIds = {}
+					buildCommand.rotation = params[4] and mathFloor(params[4]) or 0
+					buildCommand.builderIds = buildCommand.builderIds or {}
 					buildCommands[commandId] = buildCommand
 					isNewCommand = true
 				end
 
-				if not buildCommands[commandId].builderIds[unitId] then
-					buildCommands[commandId].builderIds[unitId] = true
-					buildCommands[commandId].builderCount = buildCommands[commandId].builderCount + 1
+				if not buildCommand.builderIds[unitId] then
+					buildCommand.builderIds[unitId] = true
+					buildCommand.builderCount = buildCommand.builderCount + 1
 				end
 
 				if isNewCommand then
-					notifyEvent(Event.onBuildCommandAdded, commandId, buildCommands[commandId])
+					notifyEvent(Event.onBuildCommandAdded, commandId, buildCommand)
 				end
 			end
 		end
 	end
 
 	-- Step 2: Compare old commands with current commands to find what was removed
-	if unitBuildCommands[unitId] then
-		for oldCommandId, _ in pairs(unitBuildCommands[unitId]) do
+	local oldCommands = unitBuildCommands[unitId]
+	if oldCommands then
+		for oldCommandId, _ in pairs(oldCommands) do
 			if not currentCommands[oldCommandId] then
 				removeBuilderFromCommand(oldCommandId, unitId)
 			end
 		end
 	end
 
-	unitBuildCommands[unitId] = currentCommands
+	-- Store current commands for this unit (create new table since we reuse tempCurrentCommands)
+	local commandsCopy = {}
+	for cmdId in pairs(currentCommands) do
+		commandsCopy[cmdId] = true
+	end
+	unitBuildCommands[unitId] = commandsCopy
 end
 
 local function clearUnit(unitId)
@@ -217,11 +290,14 @@ local function clearUnit(unitId)
 	buildCommands[commandId] = nil
 	commandIdToCreatedUnitIdMap[commandId] = nil
 	createdUnitIdToCommandIdMap[unitId] = nil
+	if commandData then
+		recycleBuildCommand(commandData)
+	end
 	notifyEvent(Event.onUnitFinished, unitId, commandId, commandData)
 end
 
 local function processNewBuildCommands()
-	local currentTime = os.clock()
+	local currentTime = osClock()
 	for unitId, commandClockTime in pairs(unitsAwaitingCommandProcessing) do
 		if currentTime > commandClockTime then
 			checkBuilder(unitId)
@@ -249,7 +325,8 @@ local function resetStateAndReinitialize()
 
 	-- Re-scan all units
 	local allUnits = spGetAllUnits()
-	for i = 1, #allUnits do
+	local allUnitsLen = #allUnits
+	for i = 1, allUnitsLen do
 		local unitId = allUnits[i]
 		if buildersList[spGetUnitDefID(unitId)] then
 			checkBuilder(unitId)
@@ -291,8 +368,8 @@ end
 
 function widget:Update(dt)
 	elapsedSeconds = elapsedSeconds + dt
-	if elapsedSeconds > lastUpdateTime + 0.12 then
-		lastUpdateTime = elapsedSeconds
+	if elapsedSeconds > nextUpdateTime then
+		nextUpdateTime = elapsedSeconds + 0.12
 		processNewBuildCommands()
 		periodicBuilderCheck()
 	end
@@ -308,14 +385,14 @@ end
 
 function widget:UnitCommand(unitId, unitDefId)
 	if buildersList[unitDefId] then
-		unitsAwaitingCommandProcessing[unitId] = os.clock() + 0.13
+		unitsAwaitingCommandProcessing[unitId] = osClock() + 0.13
 	end
 end
 
 function widget:UnitCreated(unitId, unitDefId)
 	local x, _, z = spGetUnitPosition(unitId)
 	if x then
-		local commandId = generateId(unitDefId, floor(x), floor(z))
+		local commandId = generateId(unitDefId, mathFloor(x), mathFloor(z))
 		local commandData = buildCommands[commandId]
 		buildCommands[commandId] = nil
 		commandIdToCreatedUnitIdMap[commandId] = unitId
