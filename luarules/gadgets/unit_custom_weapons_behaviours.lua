@@ -218,7 +218,7 @@ specialEffectFunction.cruise = function(params, projectileID)
 	return true
 end
 
--- Second-phase `cruise` effect, adding a ground-following behavior.
+-- Second-phase `cruise` effect, adding a ground-following behavior that uses `cruise_max_height`.
 local cruiseEngaged = {
 	__call = function(params, projectileID)
 		if spGetProjectileTimeToLive(projectileID) > 0 then
