@@ -57,7 +57,9 @@ static-var
     rearRailgun1WhichBarrel,
     rearRailgun2WhichBarrel,
     mainTurretHeadingVar,
-    restore_delay
+    restore_delay, 
+	aimAdj, 
+	oldsteerheading
 ;
 
 // Signal definitions
@@ -90,6 +92,17 @@ static-var
 
 //////////////////////////////////////////////////////////////// CREATE FUNCTION
 
+Steering(heading, steery, currentSpeed)
+{
+	while(1)
+	{
+		heading = get HEADING;
+		aimAdj = (heading - oldsteerheading);
+		sleep 33;
+		oldsteerheading = heading;
+	}
+}
+
 Create()
 {
 	set ARMORED to 1;
@@ -100,7 +113,8 @@ Create()
     rearRailgun2WhichBarrel = 0;
 
 	restore_delay = 3000;
-
+	aimAdj = 0;	
+	
     turn rearRailgun1HeadingPivot to y-axis <-180> now;
     turn rearRailgun2HeadingPivot to y-axis <-180> now;
 
@@ -108,6 +122,7 @@ Create()
 	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script BoatPhysics();
+	start-script Steering();
 }
 
 //////////////////////////////////////////////////////////////// RESTORE FUNCTIONS
@@ -144,6 +159,7 @@ ExecuteRestoreAfterDelay()
 		sleep 30;
 	}
 	aimy1velocity = 0;
+	aimAdj = 0;	
 }
 
 // heatray restores
@@ -307,7 +323,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	mainTurretHeadingVar = heading;
+	mainTurretHeadingVar = heading + 2*aimAdj;
 	//We can do this any time
 	//turn targetingWeaponPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <25.0>;
 	
