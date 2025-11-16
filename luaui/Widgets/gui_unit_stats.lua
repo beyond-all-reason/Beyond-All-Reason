@@ -494,10 +494,18 @@ local function drawStats(uDefID, uID)
 		end
 	end
 	if maxHP then
-		DrawText(texts.open..":", format(texts.maxhp..": %d", maxHP) )
+		DrawText(texts.open..":", format("%s: %d", texts.maxhp, maxHP))
 
 		if armoredMultiple and armoredMultiple ~= 1 then
-			DrawText(texts.closed..":", format(" +%d%%, "..texts.maxhp..": %d", (1/armoredMultiple-1) *100,maxHP/armoredMultiple))
+			local message = format("%s: %d (+%d%%)", texts.maxhp, maxHP / armoredMultiple, 100 * (1 / armoredMultiple - 1))
+			if uDef.customParams.reactive_armor_health then
+				message = message .. (", %d to break, %d%s to restore"):format(
+					uDef.customParams.reactive_armor_health,
+					uDef.customParams.reactive_armor_restore,
+					texts.s
+				)
+			end
+			DrawText(texts.closed..":", message)
 		end
 	end
 

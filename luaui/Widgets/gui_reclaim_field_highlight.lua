@@ -57,7 +57,7 @@ local energyReclaimEdgeColor = {1, 1, 0, 0.18}
 --Energy field settings
 local energyOpacityMultiplier = 0.44 -- Multiplier for energy field opacity (relative to metal fields)
 local energyTextSizeMultiplier = 0.5 -- Multiplier for energy text size (relative to metal text)
-local preGameStartOpacityMultiplier = 1.4 -- Global opacity multiplier for all fields before gamestart
+local preGameStartOpacityMultiplier = 1.2 -- Global opacity multiplier for all fields before gamestart
 local preGameStartMetalOpacityMultiplier = 1.2 -- Additional multiplier for metal field opacity before gamestart (stacks with global)
 -- Note: Energy features (trees, geo spots) are static map features that typically don't change after gamestart.
 -- The code optimizes by clustering energy fields once at gamestart and then skipping energy processing afterward.
