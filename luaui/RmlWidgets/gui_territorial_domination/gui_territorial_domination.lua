@@ -377,7 +377,7 @@ local function updateLeaderboard()
 	if not allyTeams or #allyTeams == 0 then return end
 	
 	local dataModel = widgetState.dmHandle
-	local eliminationThreshold = (dataModel and dataModel.prevHighestScore) or 0
+	local eliminationThreshold = spGetGameRulesParam("territorialDominationPrevHighestScore") or 0
 	
 	local livingTeams = {}
 	local eliminatedTeams = {}

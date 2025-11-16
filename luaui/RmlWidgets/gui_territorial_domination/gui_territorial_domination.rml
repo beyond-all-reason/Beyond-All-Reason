@@ -56,7 +56,10 @@
 					</div>
 					<div id="leaderboard-teams" class="scoreboard-teams"></div>
 					<div id="elimination-separator" class="scoreboard-elimination-separator hidden">
+						<div class="scoreboard-elimination-empty-cell"></div>
 						<div id="elimination-separator-text" class="scoreboard-elimination-separator-text">!!ui.territorialDomination.scoreboard.eliminationThreshold</div>
+						<div class="scoreboard-elimination-empty-cell"></div>
+						<div class="scoreboard-elimination-empty-cell"></div>
 					</div>
 					<div id="leaderboard-eliminated" class="scoreboard-eliminated"></div>
 				</div>

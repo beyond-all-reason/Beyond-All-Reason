@@ -669,6 +669,11 @@ body {
 	padding: 8dp;
 }
 
+.scoreboard-elimination-separator > * {
+	display: table-cell;
+	vertical-align: middle;
+}
+
 .scoreboard-elimination-separator-text {
 	color: #ffffff;
 	font-family: Exo 2;
@@ -678,7 +683,6 @@ body {
 	font-effect: outline(1dp #000000CC);
 	padding: 8dp;
 	white-space: nowrap;
-	width: 100%;
 }
 
 .scoreboard-elimination-separator {
