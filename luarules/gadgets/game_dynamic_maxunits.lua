@@ -58,6 +58,10 @@ local mathFloor = math.floor
 local mathMin = math.min
 
 function gadget:Initialize()
+	if Spring.GetGameFrame() > 0 then
+		return
+	end
+
 	-- Ensure Gaia team always get their maxunits
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID, false))
