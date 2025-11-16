@@ -197,11 +197,36 @@ function gadget:GameFrame(frame)
 		local adjustedT2Threshold = techBlockingPerTeam and t2TechThreshold or (t2TechThreshold * activeTeamCount)
 		local adjustedT3Threshold = techBlockingPerTeam and t3TechThreshold or (t3TechThreshold * activeTeamCount)
 
+		local previousAllyTechLevel = spGetTeamRulesParam(teamList[1], "tech_level") or 1
 		local techLevel = 1
 		if totalTechPoints >= adjustedT3Threshold then
 			techLevel = 3
+			if techLevel > previousAllyTechLevel then
+				for _, teamID in ipairs(teamList) do
+					if not ignoredTeams[teamID] then
+						local players = Spring.GetPlayerList(teamID)
+						if players then
+							for _, playerID in ipairs(players) do
+								SendToUnsynced("NotificationEvent", "Tech3TeamReached", tostring(playerID))
+							end
+						end
+					end
+				end
+			end
 		elseif totalTechPoints >= adjustedT2Threshold then
 			techLevel = 2
+			if techLevel > previousAllyTechLevel then
+				for _, teamID in ipairs(teamList) do
+					if not ignoredTeams[teamID] then
+						local players = Spring.GetPlayerList(teamID)
+						if players then
+							for _, playerID in ipairs(players) do
+								SendToUnsynced("NotificationEvent", "Tech2TeamReached", tostring(playerID))
+							end
+						end
+					end
+				end
+			end
 		end
 
 		for teamID, currentTechPoints in pairs(teamTechPoints) do
