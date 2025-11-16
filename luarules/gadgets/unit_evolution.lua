@@ -95,7 +95,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function reAssignAssists(newUnit,oldUnit)
 		local allUnits = Spring.GetAllUnits(newUnit)
 		for _,unitID in pairs(allUnits) do
-			if GG.GetUnitTarget(unitID) == oldUnit and newUnit then
+			if GG.GetUnitTarget and GG.GetUnitTarget(unitID) == oldUnit and newUnit then
 				GG.SetUnitTarget(unitID, newUnit)
 			end
 
