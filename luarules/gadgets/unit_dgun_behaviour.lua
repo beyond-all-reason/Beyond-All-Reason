@@ -128,9 +128,6 @@ function gadget:GameFrame(frame)
 				local ndx = dx * norm
 				local ndz = dz * norm
 				spSetProjectileVelocity(proID, ndx, 0, ndz)
-			else
-				-- If no horizontal velocity, keep projectile stationary on ground
-				spSetProjectileVelocity(proID, 0, 0, 0)
 			end
 
 			groundedDGuns[proID] = true
