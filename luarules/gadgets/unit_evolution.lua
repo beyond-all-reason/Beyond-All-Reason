@@ -409,7 +409,7 @@ if gadgetHandler:IsSyncedCode() then
 			local unitID = toCheckUnitIDs[lastCheckIndex].id
 			local evolution = evolutionMetaList[unitID]
 
-			if not combatCheckUpdate(unitID, evolution, currentTime)
+			if evolution and not combatCheckUpdate(unitID, evolution, currentTime)
 				and not spGetUnitTransporter(unitID)
 				and (isEvolutionTimePassed(evolution, currentTime) or isEvolutionPowerPassed(evolution)) then
 					evolve(unitID)
