@@ -17,10 +17,6 @@ if not gadgetHandler:IsSyncedCode() then
 		gadgetHandler:AddSyncAction("NotificationEvent", BroadcastEvent)
 	end
 
-    ---@param _ number Sync action ID (ignored)
-    ---@param event string Notification event name (e.g., "commanderDetected", "EnemyCommanderDied"). Must match an event defined in sounds/voice/config.lua
-    ---@param player string|number Player ID as string or number
-    ---@param forceplay boolean|nil If true, forces the notification to play regardless of player filtering
     function BroadcastEvent(_,event, player, forceplay)
 		if Script.LuaUI("NotificationEvent") and (forceplay or (tonumber(player) and ((tonumber(player) == Spring.GetMyPlayerID()) or Spring.GetSpectatingState()))) then
 			if forceplay then
@@ -37,8 +33,8 @@ GG["notifications"] = {}
 ---@param event string Notification event name (e.g., "commanderDetected", "EnemyCommanderDied"). Must match an event defined in sounds/voice/config.lua with properties: delay (integer), stackedDelay (bool), resetOtherEventDelay (string), soundEffect (string), notext (bool), tutorial (bool)
 ---@param idtype "playerID"|"teamID"|"allyTeamID" Type of ID to target: "playerID" for specific player, "teamID" for all players on a team, "allyTeamID" for all players in an ally team
 ---@param id number|string PlayerID, TeamID, or AllyTeamID (converted to number internally)
----@param forceplay boolean|nil If true, forces the notification to play regardless of player filtering and cooldown delays
-GG["notifications"].queueNotification = function(event, idtype, id, forceplay)
+---@param forceplay boolean|nil If true, skips spectator check and allows playing in pregame
+GG["notifications"].queueNotification =  function(event, idtype, id, forceplay)
     local playerIDs = {}
     id = tonumber(id)
 
