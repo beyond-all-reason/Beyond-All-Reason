@@ -1369,7 +1369,7 @@ function PlayNewTrack(paused)
 			currentTrackList = eventWarLowTracks
 			currentTrackListString = "eventWarLow"
 			songsSinceEvent = 0
-			if mathRandom() <= 0.5 and playInterlude == false then playInterlude = true else playInterlude = false end
+			if mathRandom() <= 0.25 and playInterlude == false then playInterlude = true else playInterlude = false end
 		else
 			currentTrackList = warlowTracks
 			currentTrackListString = "warLow"
@@ -1384,7 +1384,7 @@ function PlayNewTrack(paused)
 			currentTrackList = eventPeaceTracks
 			currentTrackListString = "eventPeace"
 			songsSinceEvent = 0
-			if mathRandom() <= 0.75 and playInterlude == false then playInterlude = true else playInterlude = false end
+			if mathRandom() <= 0.375 and playInterlude == false then playInterlude = true else playInterlude = false end
 		else
 			currentTrackList = peaceTracks
 			currentTrackListString = "peace"
