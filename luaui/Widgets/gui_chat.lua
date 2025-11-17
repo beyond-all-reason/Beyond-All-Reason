@@ -1962,11 +1962,15 @@ function widget:DrawScreen()
 				uiTex = nil
 			end
 			rttArea = {consoleActivationArea[1], activationArea[2]+floor(vsy*(scrollingPosY-posY)), consoleActivationArea[3], consoleActivationArea[4]}
-			uiTex = gl.CreateTexture(mathFloor(rttArea[3]-rttArea[1]), mathFloor(rttArea[4]-rttArea[2]), {
-				target = GL.TEXTURE_2D,
-				format = GL.ALPHA,
-				fbo = true,
-			})
+			local texWidth = mathFloor(rttArea[3]-rttArea[1])
+			local texHeight = mathFloor(rttArea[4]-rttArea[2])
+			if texWidth > 0 and texHeight > 0 then
+				uiTex = gl.CreateTexture(texWidth, texHeight, {
+					target = GL.TEXTURE_2D,
+					format = GL.ALPHA,
+					fbo = true,
+				})
+			end
 		end
 		if uiTex then
 			if lastDrawUiUpdate+2 < clock() then	-- this is to make sure stuff times out/clears respecting lineTTL

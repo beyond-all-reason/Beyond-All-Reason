@@ -1366,7 +1366,9 @@ local function UpdateFeatureReclaim()
 							-- until the new one is created (prevents flickering)
 						end
 						local thisCluster = featureClusters[cid]
-						thisCluster.metal = thisCluster.metal - fInfo.metal + metal
+						if thisCluster then
+							thisCluster.metal = thisCluster.metal - fInfo.metal + metal
+						end
 					end
 					fInfo.metal = metal
 				end
