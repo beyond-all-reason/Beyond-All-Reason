@@ -139,6 +139,15 @@
 			"playerCamera": "Player Camera",
 			"playerCameraTooltip": "Follow player camera perspective and apply selections"
 		},
+		"pip": {
+			"tooltip": "Toggle Picture-in-Picture",
+			"switch": "Switch view with main view",
+			"track": "Track selected units",
+			"move": "Move window",
+			"resize": "Resize window",
+			"minimize": "Minimize",
+			"maximize": "Maximize"
+		},
 		"teamEconomy": {
 			"tooltipTitle": "Team Income",
 			"tooltip": "Total metal/energy income\n(Lighter portion is income from reclaiming)"
@@ -803,7 +812,7 @@
 			"factions": {
 				"arm": "Outsmart your foes with tactical finesse",
 				"cor": "Smash your foes with brute force",
-				"leg": "This faction is still a work in progress",
+				"leg": "Overwhelm your foes with rapid assault tactics",
 				"random": "Picks a Random out of the available options"
 			}
 		},
@@ -1719,7 +1728,11 @@
 				"language": "Language",
 				"language_english_unit_names": "Display unit names in English",
 				"reclaimfieldhighlight": "Reclaim Field Highlight",
-				"reclaimfieldhighlight_descr": "Highlights clusters of reclaimable metal",
+				"reclaimfieldhighlight_descr": "Highlights clusters of reclaimable metal and/or energy",
+				"reclaimfieldhighlight_metal": "metal",
+				"reclaimfieldhighlight_metal_descr": "When to show metal reclaim fields",
+				"reclaimfieldhighlight_energy": "energy",
+				"reclaimfieldhighlight_energy_descr": "When to show energy reclaim fields (trees, geo spots)",
 				"reclaimfieldhighlight_always": "Always enabled",
 				"reclaimfieldhighlight_resource": "Resource view only",
 				"reclaimfieldhighlight_reclaimer": "Reclaimer selected",

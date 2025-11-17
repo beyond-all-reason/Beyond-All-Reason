@@ -73,7 +73,7 @@ return {
 			[30] = "legfhp",
 			[31] = "legamphlab",
 			[32] = "corplat",
-			[33] = "corsy",
+			[33] = "legsy",
 			[34] = "legtide",
 			[35] = "leguwmstore",
 			[36] = "leguwestore",

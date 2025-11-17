@@ -95,7 +95,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function reAssignAssists(newUnit,oldUnit)
 		local allUnits = Spring.GetAllUnits(newUnit)
 		for _,unitID in pairs(allUnits) do
-			if GG.GetUnitTarget(unitID) == oldUnit and newUnit then
+			if GG.GetUnitTarget and GG.GetUnitTarget(unitID) == oldUnit and newUnit then
 				GG.SetUnitTarget(unitID, newUnit)
 			end
 
@@ -200,6 +200,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		spSetUnitRulesParam(unitID, "unit_evolved", newUnitID, PRIVATE)
+
+		if GG.quick_start and GG.quick_start.transferCommanderData then
+			GG.quick_start.transferCommanderData(unitID, newUnitID)
+		end
 
 		SendToUnsynced("unit_evolve_finished", unitID, newUnitID, announcement,announcementSize)
 		if evolution.evolution_health_transfer == "full" then

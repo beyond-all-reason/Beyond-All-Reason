@@ -115,6 +115,7 @@ return {
 				cylindertargeting = 1,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
+				gravityaffected = "true",
 				impactonly = 1,
 				impulsefactor = 1.1,
 				name = "Anti-swarm g2g gauss-impulse guns",

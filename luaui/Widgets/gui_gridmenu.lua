@@ -1998,11 +1998,11 @@ local function drawCell(rect)
 	-- price
 	if metalPrice then
 		local costOverride = costOverrides and costOverrides[uid]
-		
+
 		if costOverride then
 			local topValue = costOverride.top and costOverride.top.value or metalPrice
 			local bottomValue = costOverride.bottom and costOverride.bottom.value or energyPrice
-			
+
 			if costOverride.top and not costOverride.top.disabled then
 				local costColor = costOverride.top.color or "\255\100\255\100"
 				if disabled then
@@ -2028,7 +2028,7 @@ local function drawCell(rect)
 					"ro"
 				)
 			end
-			
+
 			if costOverride.bottom and not costOverride.bottom.disabled then
 				local costColor = costOverride.bottom.color or "\255\255\255\000"
 				if disabled then
@@ -2414,6 +2414,7 @@ end
 local function drawBuildMenu()
 	font2:Begin(useRenderToTexture)
 	font2:SetTextColor(1,1,1,1)
+	font2:SetOutlineColor(0,0,0,1)
 
 	local drawBackScreen = (currentCategory and not builderIsFactory)
 		or (builderIsFactory and useLabBuildMode and labBuildModeActive)

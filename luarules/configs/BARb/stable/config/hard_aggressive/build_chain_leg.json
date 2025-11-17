@@ -3,8 +3,8 @@
 	"porcupine": {
 		"unit": {
 		//             0          1           		2          		3          		4         5          6                7		   		8          	 	9
-			"legion": ["leglht",  "cortl",    		"legrl",   		"leghive", 		"legmg",  "legdtr",  "legrhapsis",    "leglupara", 	"legbombard", 	"coratl",
-					   "legflak", "legacluster", 	"legbastion", 	"legcluster",  	"legabm", "legtarg", "legdeflector",  "corptl"]
+			"legion": ["leglht",  "legtl",    		"legrl",   		"leghive", 		"legmg",  "legdtr",  "legrhapsis",    "leglupara", 	"legbombard", 	"coratl",
+					   "legflak", "legacluster", 	"legbastion", 	"legcluster",  	"legabm", "legtarg", "legdeflector"]
 		},
 	
 		"superweapon": {

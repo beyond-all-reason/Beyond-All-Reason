@@ -57,12 +57,12 @@
 				"role": ["static"],
 				"build_speed": 6.0
 			},
-			//"legsy": {
-			//	"role": ["static"],
-			//	"build_speed": 8.0, //bp 165
-			//	"build_mod": 1000.0,
-			//	"limit": 1
-			//},
+			"legsy": {
+				"role": ["static"],
+				"build_speed": 8.0, //bp 165
+				"build_mod": 1000.0,
+				"limit": 1
+			},
 			//"legasy": {
 			//	"role": ["static"],
 			//	"build_speed": 15.0,  //bp 300
@@ -146,13 +146,12 @@
 				"role":["static"],
 				"since": 120
 			},
-			//"corjuno":{
-			//	"role":["super", "static"],
-			//	"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-			// "power": 1.0, 
-			// "power": 1.0,
-			//	"since": 900
-			//},			
+			"legjuno":{
+				"role":["super", "static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+			 	"power": 1.0,
+				"since": 900
+			},			
 			"legdtr": {
 				"role": ["static"]
 			},
@@ -200,12 +199,6 @@
 			"legdeflector": {
 				"role": ["static"]
 			},
-			//"leggatet3": {
-			//	"role": ["static"],
-			//	"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-			// "power": 1.0, 
-			// "power": 1.0
-			//},
 			"legrwall": {
 				"role": ["static"]
 			},
@@ -247,39 +240,33 @@
 				"limit": 1
 			},
 	// T1 Sea Defenses -- Legion
-			//"corfrad": {
-			//	"role": ["static"],
-			//	"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-			// "power": 1.0, 
-			// "power": 1.0
-			//},
-			//"cordl": {
-			//	"role": ["static"],
-			//	"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-			// "power": 1.0, 
-			// "power": 1.0
-			//},
-			//"corfhlt": {
-			//	"role": ["static"],
-			//	"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-			// "power": 1.0, 
-			// "power": 1.0
-			//	"since": 360,
-			//	"limit": 3
-			//},
-			//"corfrt": {
-			//	"role": ["anti_air"],
-			//	"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-			// "power": 1.0, 
-			// "power": 1.0,
-			//	"power": 1.0
-			//},
-			//"cortl": {
-			//	"role": ["static"],
-			//	"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-			// "power": 1.0, 
-			// "power": 1.0
-			//},
+			"legfrad": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+			 	"power": 1.0
+			},
+			"legctl": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+			 	"power": 1.0
+			},
+			"legfmg": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+			 	"power": 1.0, 
+				"since": 360,
+				"limit": 3
+			},
+			"legfrl": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legtl": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+			 	"power": 1.0
+			},
 	// T2 Sea Defenses -- Legion
 			//"corason": {
 			//	"role": ["static"],
@@ -315,12 +302,120 @@
 			//	"power": 1.0
 			//},
 
-			"armgeo": {
+//########################################################################################################################
+//####|| Static Economy -- Legion  ||#####################################################################################
+//########################################################################################################################
+			
+			//Land T1 Economy
+			"legmex" : {
 				"role": ["static"]
 			},
+			"legmext15" : {			//disabled -- lack of efficiency
+				"role": ["static"],
+				"since": 9999
+			},
+			"legeconv": {
+				"role": ["static"],
+				"since": 30
+			},
+			"legmstor" : {
+				"role": ["static"],
+				"since": 300,
+				"limit": 1
+			},
+			"legwin": {
+				"role": ["static"]
+			},
+			"legsolar" : {
+				"role": ["static"],
+				"limit": 4
+			},
+			"legadvsol" : {
+				"role": ["static"],
+				"limit": 6
+			},
+			"leggeo" : {
+				"role": ["static"]
+			},
+			"legestor" : {
+				"role": ["static"],
+				"since": 300,
+				"limit": 1
+			},
+			//Sea T1 Economy
+			"legfeconv" : {
+				"role": ["static"]
+			},
+			"leguwmstore" : {
+				"role": ["static"],
+				"since": 9999
+			},
+			"legtide": {
+				"role": ["static"]
+			},
+			"leguwestore" : {
+				"role": ["static"],
+				"since": 9999,
+				"limit": 1
+			},
+			//Land T2 Economy
+			"legmoho" : {
+				"role": ["static"]
+			},
+			"legadveconv" : {
+				"role": ["static"]
+			},
+			"legamstor" : {
+				"role": ["static"],
+				"limit": 1,
+				"since": 1200
+			},
+			"legageo" : {
+				"role": ["static"]
+			},
+			"legrampart" : {
+				"role": ["static"]
+			},
+			/*"cormexp" : {
+				"role": ["static"],
+				"build_mod": 500,
+				"limit":0
+			},*/
+			"legfus" : {
+				"role": ["static"]
+			},
+			"legafus" : {
+				"role": ["static"]
+			},
+			"legadvestore" : {
+				"role": ["static"],
+				"since": 1200
+			},
+			/*"coruwfus" : {
+				"role": ["static"],
+				"build_mod": 4000
+			},
+			"coruwms" : {
+				"role": ["static"],
+				"since": 500,
+				"limit": 1
+			},
+			"coruwadvms" : {
+				"role": ["static"],
+				"limit": 1
+			},
+			"coruwes" : {
+				"role": ["static"],
+				"since": 240,
+				"limit": 1
+			},*/
 
 	// Walls (Neutral BARbAI Refuse to Shoot (Only T2+T3 can break through Running over)) -- Needs a Revamp or a Rework to make non neutral
 			"legdrag": {
+				"role": ["static"],
+				"ignore": true
+			},
+			"legfdrag": {
 				"role": ["static"],
 				"ignore": true
 			},
@@ -410,6 +505,11 @@
 				"role": ["builder"],
 				"limit": 10,
 				"build_speed": 8.0
+			},
+			"legnavyconship": {
+				"role": ["builder"],
+				"limit": 6,
+				"build_speed": 4.0
 			},
 			"legmlv": {
 				"role": ["support"],
@@ -663,6 +763,47 @@
 			},
 			"legatorpbomber": {
 				"role": ["anti_sub", "air"]
+			},
+
+			// LEGION SEA
+
+			"legnavyrezsub": {
+				"role": ["support"],
+				"attribute": ["rare"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legnavyaaship": {
+				"role": ["scout", "anti_air", "raider"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legnavyscout": {
+				"role": ["scout"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legnavyfrigate": {
+				"role": ["assault", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legnavydestro": {
+				"role": ["skirmish", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legnavyartyship": {
+				"role": ["artillery"],
+				"attribute": ["support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legnavysub": {
+				"role": ["sub"],
+				"attribute": ["anti_sub"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
 			},
 	
 			// LEGION HOVERS

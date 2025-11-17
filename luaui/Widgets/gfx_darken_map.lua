@@ -17,6 +17,10 @@ function widget:GetInfo()
 end
 
 
+
+-- Localized Spring API for performance
+local spGetCameraPosition = Spring.GetCameraPosition
+
 local darknessvalue = 0
 local maxDarkness = 0.6
 
@@ -25,7 +29,7 @@ local maxDarkness = 0.6
 
 local features
 
-local camX, camY, camZ = Spring.GetCameraPosition()
+local camX, camY, camZ = spGetCameraPosition()
 local camDirX,camDirY,camDirZ = Spring.GetCameraDirection()
 
 function widget:Shutdown()
@@ -57,10 +61,10 @@ end
 
 
 local prevCam = {}
-prevCam[1],prevCam[2],prevCam[3] = Spring.GetCameraPosition()
+prevCam[1],prevCam[2],prevCam[3] = spGetCameraPosition()
 function widget:Update(dt)
     if darknessvalue >= 0.01 then
-        camX, camY, camZ = Spring.GetCameraPosition()
+        camX, camY, camZ = spGetCameraPosition()
         camDirX,camDirY,camDirZ = Spring.GetCameraDirection()
     end
 end

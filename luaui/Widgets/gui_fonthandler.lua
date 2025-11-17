@@ -12,7 +12,15 @@ function widget:GetInfo()
 	}
 end
 
-local vsx,vsy = Spring.GetViewGeometry()
+
+-- Localized functions for performance
+local mathFloor = math.floor
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+local spGetViewGeometry = Spring.GetViewGeometry
+
+local vsx,vsy = spGetViewGeometry()
 
 local defaultFont = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local defaultFont2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -49,15 +57,15 @@ function widget:Update(dt)
 	-- 	for id,font in pairs(fonts) do
 	-- 		i = i + 1
 	-- 		if string.find(id, 'Exo') then
-	-- 			Spring.Echo(id)
+	-- 			spEcho(id)
 	-- 		end
 	-- 	end
 	-- 	for id,font in pairs(fonts) do
 	-- 		if not string.find(id, 'Exo') then
-	-- 			Spring.Echo(id)
+	-- 			spEcho(id)
 	-- 		end
 	-- 	end
-	-- 	Spring.Echo(i)
+	-- 	spEcho(i)
 	-- end
 
 	if sceduledDeleteFontsClock and sceduledDeleteFontsClock < os.clock() then
@@ -75,7 +83,7 @@ function widget:Initialize()
 		gl.AddFallbackFont('fallbacks/SourceHanSans-Regular.ttc')
 	end
 
-	vsx,vsy = Spring.GetViewGeometry()
+	vsx,vsy = spGetViewGeometry()
 	widget:ViewResize(vsx, vsy, true)
 
 	WG['fonts'] = {}
@@ -87,8 +95,8 @@ function widget:Initialize()
 		elseif file == 3 then
 			file = defaultFont3
 		end
-		size = math.floor((defaultSize * (size and size or 1) + 0.5))
-		outlineSize = math.floor((defaultSize * (outlineSize and outlineSize or defaultOutlineSize)) + 0.5)
+		size = mathFloor((defaultSize * (size and size or 1) + 0.5))
+		outlineSize = mathFloor((defaultSize * (outlineSize and outlineSize or defaultOutlineSize)) + 0.5)
 		outlineStrength = (outlineStrength and outlineStrength or defaultOutlineStrength)
 
 		local id = file..'_'..size..'_'..outlineSize..'_'..outlineStrength
@@ -100,7 +108,7 @@ function widget:Initialize()
 end
 
 function widget:ViewResize(vsx, vsy, init)
-	vsx,vsy = Spring.GetViewGeometry()
+	vsx,vsy = spGetViewGeometry()
 	local newFontScale = (vsy / 1080) * ui_scale
 
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
