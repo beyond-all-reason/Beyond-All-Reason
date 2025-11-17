@@ -1614,8 +1614,6 @@ function widget:GameOver(winningAllyTeams)
 	if (not winningAllyTeams) or (winningAllyTeams and #winningAllyTeams == 0) then
 		gameOverState = "neutral"
 	end
-
-	spEcho("gameOverState", gameOverState)
 end
 
 function widget:GetConfigData(data)

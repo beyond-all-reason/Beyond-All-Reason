@@ -1,3 +1,17 @@
+--[[
+EventName = {
+	delay = integrer - Minimum seconds that have to pass to play this notification again.
+	stackedDelay = bool - Reset the delay even when attempted to play the notif under cooldown. 
+							Useful for stuff you want to be able to hear often, but not repeatedly if the condition didn't change.
+	resetOtherEventDelay = string - Name of 'fallback' event that will get it's delay reset. 
+							For example, UnitLost, is a general notif for losing units, but we have MetalExtractorLost, or RadarLost. I want those to reset UnitLost as well.
+	soundEffect = string - Sound Effect to play alongside the notification, located in 'sounds/voice-soundeffects'
+	notext = bool - hide the text part of the notification
+	tutorial = bool - Sound effect used for the tutorial messages, there's a whole different handling of those. (WIP)
+}
+]]
+
+
 return {
 
 	-- Commanders
@@ -13,16 +27,17 @@ return {
 		delay = 1,
 		soundEffect = "FriendlyComDead",
 	},
-	SpectatorCommanderDied = {
+	NeutralCommanderDied = {
 		delay = 1,
 		soundEffect = "NeutralComDead",
 	},
-	SpectatorCommanderSelfD = {
+	NeutralCommanderSelfD = {
 		delay = 1,
 		soundEffect = "NeutralComDead",
 	},
 	ComHeavyDamage = {
-		delay = 12,
+		delay = 10,
+		stackedDelay = true,
 		soundEffect = "CommanderHeavilyDamaged",
 	},
 	TeamDownLastCommander = {
@@ -48,9 +63,18 @@ return {
 		delay = 1,
 		soundEffect = "GameEnd",
 	},
+	BattleVictory = {
+		delay = 1,
+		soundEffect = "GameEnd",
+	},
+	BattleDefeat = {
+		delay = 1,
+		soundEffect = "GameEnd",
+	},
 	GamePaused = {
 		delay = 1,
 	},
+
 	TeammateCaughtUp = {
 		delay = 5,
 	},
@@ -69,6 +93,44 @@ return {
 	TeammateTimedout = {
 		delay = 5,
 	},
+
+	EnemyPlayerCaughtUp = {
+		delay = 5,
+	},
+	EnemyPlayerDisconnected = {
+		delay = 5,
+	},
+	EnemyPlayerLagging = {
+		delay = 5,
+	},
+	EnemyPlayerReconnected = {
+		delay = 5,
+	},
+	EnemyPlayerResigned = {
+		delay = 5,
+	},
+	EnemyPlayerTimedout = {
+		delay = 5,
+	},
+
+	NeutralPlayerCaughtUp = {
+		delay = 5,
+	},
+	NeutralPlayerDisconnected = {
+		delay = 5,
+	},
+	NeutralPlayerLagging = {
+		delay = 5,
+	},
+	NeutralPlayerReconnected = {
+		delay = 5,
+	},
+	NeutralPlayerResigned = {
+		delay = 5,
+	},
+	NeutralPlayerTimedout = {
+		delay = 5,
+	},
 	RaptorsAndScavsMixed = {
 		delay = 15,
 	},
@@ -78,7 +140,9 @@ return {
 		delay = 90,
 	},
 	BaseUnderAttack = {
-		delay = 5,
+		delay = 30,
+		stackedDelay = true,
+		resetOtherEventDelay = "UnitsUnderAttack",
 		soundEffect = "UnitUnderAttack",
 	},
 	UnitsCaptured = {
@@ -88,48 +152,64 @@ return {
 		delay = 5,
 	},
 	CommanderUnderAttack = {
-		delay = 5,
+		delay = 10,
+		stackedDelay = true,
+		resetOtherEventDelay = "UnitsUnderAttack",
 		soundEffect = "CommanderUnderAttack",
 	},
 	UnitsUnderAttack = {
-		delay = 5,
+		delay = 60,
+		stackedDelay = true,
 		soundEffect = "UnitUnderAttack",
 	},
 	UnitLost = {
-		delay = 5,
+		delay = 60,
+		stackedDelay = true,
 		soundEffect = "UnitUnderAttack",
 	},
 	RadarLost = {
-		delay = 5,
+		delay = 30,
+		stackedDelay = true,
+		resetOtherEventDelay = "UnitLost",
 		soundEffect = "UnitUnderAttack",
 	},
 	AdvancedRadarLost = {
-		delay = 5,
+		delay = 30,
+		stackedDelay = true,
+		resetOtherEventDelay = "UnitLost",
 		soundEffect = "UnitUnderAttack",
 	},
 	MetalExtractorLost = {
-		delay = 5,
+		delay = 30,
+		stackedDelay = true,
+		resetOtherEventDelay = "UnitLost",
 		soundEffect = "UnitUnderAttack",
 	},
 
 	-- Resources
 	YouAreOverflowingMetal = {
-		delay = 80,
+		delay = 60,
+		stackedDelay = true,
 	},
 	WholeTeamWastingMetal = {
-		delay = 120,
+		delay = 60,
+		stackedDelay = true,
 	},
 	WholeTeamWastingEnergy = {
-		delay = 240,
+		delay = 120,
+		stackedDelay = true,
 	},
 	YouAreWastingMetal = {
-		delay = 120,
+		delay = 60,
+		stackedDelay = true,
 	},
 	YouAreWastingEnergy = {
-		delay = 240,
+		delay = 120,
+		stackedDelay = true,
 	},
 	LowPower = {
-		delay = 50,
+		delay = 10,
+		stackedDelay = true,
 	},
 
 	-- Alerts
@@ -138,39 +218,50 @@ return {
 		soundEffect = "NukeAlert",
 	},
 	LrpcTargetUnits = {
-		delay = 5,
+		delay = 30,
+		stackedDelay = true,
 	},
 
 	-- Unit Ready
 	RagnarokIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	CalamityIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	StarfallIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	AstraeusIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	SolinvictusIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	TitanIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	ThorIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	JuggernautIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	BehemothIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	FlagshipIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	Tech2UnitReady = {
 		delay = 9999999,
@@ -202,67 +293,88 @@ return {
 		delay = 9999999,
 	},
 	EnemyDetected = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	AircraftDetected = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	MinesDetected = {
-		delay = 200,
+		delay = 60,
+		stackedDelay = true,
 	},
 	StealthyUnitsDetected = {
-		delay = 55,
+		delay = 30,
+		stackedDelay = true,
 	},
 	LrpcDetected = {
 		delay = 25,
+		stackedDelay = true,
 	},
 	EmpSiloDetected = {
 		delay = 25,
+		stackedDelay = true,
 	},
 	TacticalNukeSiloDetected = {
 		delay = 25,
+		stackedDelay = true,
 	},
 	LongRangeNapalmLauncherDetected = {
 		delay = 25,
+		stackedDelay = true,
 	},
 	NuclearSiloDetected = {
 		delay = 25,
+		stackedDelay = true,
 	},
 	CalamityDetected = {
 		delay = 25,
+		stackedDelay = true,
 	},
 	RagnarokDetected = {
 		delay = 25,
+		stackedDelay = true,
 	},
 	StarfallDetected = {
 		delay = 25,
+		stackedDelay = true,
 	},
 	NuclearBomberDetected = {
 		delay = 60,
+		stackedDelay = true,
 	},
 	BehemothDetected = {
-		delay = 300,
+		delay = 120,
+		stackedDelay = true,
 	},
 	SolinvictusDetected = {
-		delay = 300,
+		delay = 120,
+		stackedDelay = true,
 	},
 	JuggernautDetected = {
-		delay = 300,
+		delay = 120,
+		stackedDelay = true,
 	},
 	TitanDetected = {
-		delay = 300,
+		delay = 120,
+		stackedDelay = true,
 	},
 	ThorDetected = {
-		delay = 300,
+		delay = 120,
+		stackedDelay = true,
 	},
 	FlagshipDetected = {
-		delay = 300,
+		delay = 120,
+		stackedDelay = true,
 	},
 	AstraeusDetected = {
-		delay = 300,
+		delay = 120,
+		stackedDelay = true,
 	},
 	AirTransportDetected = {
-		delay = 300,
+		delay = 120,
+		stackedDelay = true,
 	},
 
 	-- Lava

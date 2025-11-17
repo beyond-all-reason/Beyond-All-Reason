@@ -236,6 +236,12 @@ local function AddUnit(unitID, unitDefID)
 		return
 	end
 
+	-- Validate shield capacity
+	if not def.shieldCapacity or def.shieldCapacity <= 0 then
+		Spring.Echo("Warning: Shield unit " .. unitDefID .. " has invalid capacity: " .. tostring(def.shieldCapacity))
+		return
+	end
+
 	local shieldInfo = table.copy(def.config)
 	shieldInfo.unit = unitID
 	shieldInfo.shieldCapacity = def.shieldCapacity
@@ -597,8 +603,23 @@ end
 local function InitializeShader()
 	local LuaShader = gl.LuaShader
 
+	-- Check if shader files exist
+	if not VFS.FileExists("shaders/ShieldSphereColor.vert") then
+		Spring.Echo("Shield shader error: shaders/ShieldSphereColor.vert not found!")
+		return false
+	end
+	if not VFS.FileExists("shaders/ShieldSphereColor.frag") then
+		Spring.Echo("Shield shader error: shaders/ShieldSphereColor.frag not found!")
+		return false
+	end
+
 	local shieldShaderVert = VFS.LoadFile("shaders/ShieldSphereColor.vert")
 	local shieldShaderFrag = VFS.LoadFile("shaders/ShieldSphereColor.frag")
+
+	if not shieldShaderVert or not shieldShaderFrag then
+		Spring.Echo("Shield shader error: Failed to load shader files!")
+		return false
+	end
 
 	shieldShaderFrag = shieldShaderFrag:gsub("###DEPTH_CLIP01###", (Platform.glSupportClipSpaceControl and "1" or "0"))
 	shieldShaderFrag = shieldShaderFrag:gsub("###MAX_POINTS###", MAX_POINTS)
@@ -628,6 +649,14 @@ local function InitializeShader()
 	local shaderCompiled = shieldShader:Initialize()
 	if not shaderCompiled then
 		Spring.Echo("Shield shader failed to compile!")
+		shieldShader = nil
+		return false
+	end
+
+	-- Verify shader object is valid
+	if not shieldShader or not shieldShader.uniformLocations then
+		Spring.Echo("Shield shader object is invalid after initialization!")
+		shieldShader = nil
 		return false
 	end
 
@@ -671,6 +700,11 @@ end
 
 function gadget:DrawWorld()
 	if not shieldShader then
+		return
+	end
+
+	-- Additional safety check to ensure shader is actually usable
+	if not shieldShader.uniformLocations or not uTranslationScale then
 		return
 	end
 
@@ -787,31 +821,41 @@ function gadget:DrawWorld()
 				glUniformInt(uEffects, info.optionX)
 
 				local _, charge = spGetUnitShieldState(unitID)
-				if charge then
-					local frac = charge / (info.shieldCapacity or 10000)
+				if charge and info.shieldCapacity and info.shieldCapacity > 0 then
+					local frac = charge / info.shieldCapacity
 
 					if frac > 1 then frac = 1 elseif frac < 0 then frac = 0 end
+					
+					-- Additional NaN safety check
+					if frac ~= frac then frac = 0 end -- NaN check (NaN != NaN)
+					
 					local fracinv = 1.0 - frac
 
 					local colormap1 = info.colormap1[1]
 					local colormap2 = info.colormap1[2]
 
-					local col1r = frac * colormap1[1] + fracinv * colormap2[1]
-					local col1g = frac * colormap1[2] + fracinv * colormap2[2]
-					local col1b = frac * colormap1[3] + fracinv * colormap2[3]
-					local col1a = frac * colormap1[4] + fracinv * colormap2[4]
+					-- Safety check for colormap values
+					if colormap1 and colormap2 and colormap1[1] and colormap2[1] then
+						local col1r = frac * colormap1[1] + fracinv * colormap2[1]
+						local col1g = frac * colormap1[2] + fracinv * colormap2[2]
+						local col1b = frac * colormap1[3] + fracinv * colormap2[3]
+						local col1a = frac * colormap1[4] + fracinv * colormap2[4]
 
-					glUniform(uColor1, col1r, col1g, col1b, col1a)
+						glUniform(uColor1, col1r, col1g, col1b, col1a)
+					end
 
 					colormap1 = info.colormap2[1]
 					colormap2 = info.colormap2[2]
 
-					col1r = frac * colormap1[1] + fracinv * colormap2[1]
-					col1g = frac * colormap1[2] + fracinv * colormap2[2]
-					col1b = frac * colormap1[3] + fracinv * colormap2[3]
-					col1a = frac * colormap1[4] + fracinv * colormap2[4]
+					-- Safety check for colormap values
+					if colormap1 and colormap2 and colormap1[1] and colormap2[1] then
+						local col1r = frac * colormap1[1] + fracinv * colormap2[1]
+						local col1g = frac * colormap1[2] + fracinv * colormap2[2]
+						local col1b = frac * colormap1[3] + fracinv * colormap2[3]
+						local col1a = frac * colormap1[4] + fracinv * colormap2[4]
 
-					glUniform(uColor2, col1r, col1g, col1b, col1a)
+						glUniform(uColor2, col1r, col1g, col1b, col1a)
+					end
 				end
 
 				-- Impact animation
@@ -822,7 +866,12 @@ function gadget:DrawWorld()
 						glUniformInt(uImpactCount, hitPointCount)
 						for j = 1, hitPointCount do
 							local hit = hitData[j]
-							glUniform(impactInfoUniformCache[j], hit.x, hit.y, hit.z, hit.aoe)
+							-- Safeguard against NaN values
+							local aoe = hit.aoe
+							if aoe ~= aoe or aoe == math.huge or aoe == -math.huge then
+								aoe = 0
+							end
+							glUniform(impactInfoUniformCache[j], hit.x, hit.y, hit.z, aoe)
 						end
 					end
 				end

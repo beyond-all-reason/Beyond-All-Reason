@@ -21,6 +21,8 @@ local mathMax = math.max
 local spGetMouseState = Spring.GetMouseState
 local spGetViewGeometry = Spring.GetViewGeometry
 
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1
+
 local L_DEPRECATED = LOG.DEPRECATED
 
 local titlecolor = "\255\190\190\190"
@@ -53,6 +55,7 @@ local RectRound, UiElement, UiButton, bgpadding, elementCorner, widgetSpaceMargi
 local voteDlist, font, font2, gameStarted, dlistGuishader
 local weAreVoteOwner, hovered, voteName, windowArea, closeButtonArea, yesButtonArea, noButtonArea
 local voteEndTime, voteEndText
+local uiBgTex, uiTex
 
 local eligibleToVote = false
 
@@ -61,6 +64,7 @@ local votesCountYes = 0
 local votesCountNo = 0
 local minimized = false
 local voteStartTime
+local needsTextureRefresh = false
 
 local function isTeamPlayer(playerName)
 	local players = Spring.GetPlayerList()
@@ -79,20 +83,267 @@ local function CloseVote()
 	voteEndTime = nil
 	voteEndText = nil
 	voteStartTime = nil
+	votesRequired = nil
+	votesEligible = nil
+	votesCountYes = 0
+	votesCountNo = 0
+	minimized = false
+	voteName = nil
+	weAreVoteOwner = nil
+	eligibleToVote = false
+	needsTextureRefresh = false
 	if voteDlist then
-		votesRequired = nil
-		votesEligible = nil
-		votesCountYes = 0
-		votesCountNo = 0
-		minimized = false
-		voteDlist = nil
-		voteName = nil
-		weAreVoteOwner = nil
-		eligibleToVote = false
-		if WG['guishader'] then
-			WG['guishader'].DeleteDlist('voteinterface')
-		end
 		gl.DeleteList(voteDlist)
+		voteDlist = nil
+	end
+	if WG['guishader'] then
+		WG['guishader'].DeleteDlist('voteinterface')
+	end
+	if uiBgTex then
+		gl.DeleteTexture(uiBgTex)
+		uiBgTex = nil
+	end
+	if uiTex then
+		gl.DeleteTexture(uiTex)
+		uiTex = nil
+	end
+end
+
+local function drawBackground()
+	if not voteEndText then
+		UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1,
+			mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	end
+end
+
+local function drawContent()
+	local x, y = spGetMouseState()
+
+	local width = windowArea[3] - windowArea[1]
+	local height = windowArea[4] - windowArea[2]
+	local progressbarHeight = math.ceil(height * 0.11)
+	local fontSize = (height / 2.5) * 0.85
+
+	local color1, color2, w
+
+	-- progress bar
+	if votesEligible then
+		if votesRequired then
+			-- progress bar: required for
+			w = mathFloor(((width - bgpadding - bgpadding) / votesEligible) * votesRequired)
+			color1 = { 0, 0.6, 0, 0.1 }
+			color2 = { 0, 1, 0, 0.1 }
+			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding,
+				windowArea[1] + bgpadding + w, windowArea[2] + bgpadding + progressbarHeight,
+				elementCorner*0.6, 0, 0, 0, 1, color1, color2)
+			if votesEligible ~= votesRequired then
+				-- progress bar: required minority against
+				color1 = { 0.6, 0, 0, 0.1 }
+				color2 = { 1, 0, 0, 0.1 }
+				RectRound(windowArea[1] + bgpadding + w, windowArea[2] + bgpadding,
+					windowArea[3] - bgpadding, windowArea[2] + bgpadding + progressbarHeight,
+					elementCorner*0.6, 0, 0, 1, 0, color1, color2)
+			end
+		end
+
+		-- progress bar: for
+		if votesCountYes > 0 then
+			w = mathFloor(((width - bgpadding - bgpadding) / votesEligible) * votesCountYes)
+			color1 = { 0, 0.33, 0, 1 }
+			color2 = { 0, 0.6, 0, 1 }
+			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding,
+				windowArea[1] + bgpadding + w, windowArea[2] + bgpadding + progressbarHeight,
+				elementCorner*0.6, 0, 0, 0, 1, color1, color2)
+			-- highlight
+			color1 = { 1, 1, 1, 0 }
+			color2 = { 1, 1, 1, 0.15 }
+			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding + (progressbarHeight/2),
+				windowArea[1] + bgpadding + w, windowArea[2] + bgpadding + progressbarHeight,
+				0, 0, 0, 0, 1, color1, color2)
+			color1 = { 1, 1, 1, 0.08 }
+			color2 = { 1, 1, 1, 0 }
+			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding,
+				windowArea[1] + bgpadding + w, windowArea[2] + bgpadding + (progressbarHeight/2),
+				0, 0, 0, 0, 1, color1, color2)
+		end
+		-- progress bar: against
+		if votesCountNo > 0 then
+			w = mathFloor(((width - bgpadding - bgpadding) / votesEligible) * votesCountNo)
+			color1 = { 0.33, 0, 0, 1 }
+			color2 = { 0.6, 0, 0, 1 }
+			RectRound(windowArea[3] - bgpadding - w, windowArea[2] + bgpadding,
+				windowArea[3] - bgpadding, windowArea[2] + bgpadding + progressbarHeight,
+				elementCorner*0.6, 0, 0, 1, 0, color1, color2)
+			-- highlight
+			color1 = { 1, 1, 1, 0 }
+			color2 = { 1, 1, 1, 0.15 }
+			RectRound(windowArea[3] - bgpadding - w, windowArea[2] + bgpadding + (progressbarHeight/2),
+				windowArea[3] - bgpadding, windowArea[2] + bgpadding + progressbarHeight,
+				0, 0, 0, 1, 0, color1, color2)
+			color1 = { 1, 1, 1, 0.08 }
+			color2 = { 1, 1, 1, 0 }
+			RectRound(windowArea[3] - bgpadding - w, windowArea[2] + bgpadding,
+				windowArea[3] - bgpadding, windowArea[2] + bgpadding + (progressbarHeight/2),
+				0, 0, 0, 1, 0, color1, color2)
+		end
+
+		-- progress bar: highlight
+		color1 = { 1, 1, 1, 0 }
+		color2 = { 1, 1, 1, 0.085 }
+		RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding + (progressbarHeight/2),
+			windowArea[3] - bgpadding, windowArea[2] + bgpadding + progressbarHeight,
+			0, 0, 0, 0, 0, color1, color2)
+		color1 = { 1, 1, 1, 0.023 }
+		color2 = { 1, 1, 1, 0 }
+		RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding,
+			windowArea[3] - bgpadding, windowArea[2] + bgpadding + (progressbarHeight/2),
+			0, 0, 0, 0, 0, color1, color2)
+	end
+
+	gl.Color(0, 0, 0, 1)
+
+	-- vote name
+	font:Begin()
+	font:Print(titlecolor .. voteName,
+		windowArea[1] + ((windowArea[3] - windowArea[1]) / 2),
+		windowArea[4] - bgpadding - bgpadding - bgpadding - fontSize, fontSize, "con")
+	font:End()
+
+	if eligibleToVote and not minimized and not voteEndText then
+
+		-- ESC
+		if math_isInRect(x, y, closeButtonArea[1], closeButtonArea[2],
+				closeButtonArea[3], closeButtonArea[4]) then
+			hovered = 'esc'
+			color1 = { 0.6, 0.6, 0.6, 0.6 }
+			color2 = { 1, 1, 1, 0.6 }
+		else
+			color1 = { 0.6, 0.6, 0.6, 0.08 }
+			color2 = { 1, 1, 1, 0.08 }
+		end
+		RectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding,
+			closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding,
+			elementCorner*0.66, 0, 1, 0, 1, color1, color2)
+		font2:Begin()
+		font2:SetOutlineColor(1, 1, 1, 0.2)
+		font2:SetTextColor(0, 0, 0, 0.7)
+		font2:Print("\255\000\000\000X",
+			closeButtonArea[1] + ((closeButtonArea[3] - closeButtonArea[1]) / 2),
+			closeButtonArea[2] + ((closeButtonArea[4] - closeButtonArea[2]) / 2) - (fontSize / 3),
+			fontSize, "cn")
+
+		-- NO / End Vote
+		if math_isInRect(x, y, noButtonArea[1], noButtonArea[2],
+				noButtonArea[3], noButtonArea[4]) then
+			hovered = 'n'
+			color1 = { 0.5, 0.07, 0.07, 0.8 }
+			color2 = { 0.7, 0.1, 0.1, 0.8 }
+		else
+			color1 = { 0.4, 0, 0, 0.75 }
+			color2 = { 0.5, 0, 0, 0.75 }
+		end
+		UiButton(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4],
+			1,1,1,1, 1,1,1,1, nil, color1, color2, elementCorner*0.4)
+
+		local buttonFontSize = fontSize * 0.85
+		font2:SetOutlineColor(0, 0, 0, 0.4)
+		font2:SetTextColor(1, 1, 1, 1)
+		font2:Print((weAreVoteOwner and Spring.I18N('ui.voting.endVote')
+				or Spring.I18N('ui.voting.no')),
+			noButtonArea[1] + ((noButtonArea[3] - noButtonArea[1]) / 2),
+			noButtonArea[2] + ((noButtonArea[4] - noButtonArea[2]) / 2) - (buttonFontSize / 3),
+			buttonFontSize, "con")
+
+		-- YES
+		if not weAreVoteOwner then
+			if math_isInRect(x, y, yesButtonArea[1], yesButtonArea[2],
+					yesButtonArea[3], yesButtonArea[4]) then
+				hovered = 'y'
+				color1 = { 0.035, 0.4, 0.035, 0.8 }
+				color2 = { 0.05, 0.6, 0.5, 0.8 }
+			else
+				color1 = { 0, 0.4, 0, 0.38 }
+				color2 = { 0, 0.5, 0, 0.38 }
+			end
+			UiButton(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4],
+				1,1,1,1, 1,1,1,1, nil, color1, color2, elementCorner*0.4)
+			font2:Print(Spring.I18N('ui.voting.yes'),
+				yesButtonArea[1] + ((yesButtonArea[3] - yesButtonArea[1]) / 2),
+				yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) / 2) - (buttonFontSize / 3),
+				buttonFontSize, "con")
+		end
+		font2:End()
+	end
+
+	if voteEndText then
+		UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4],
+			1,1,1,1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+		font:Begin()
+		font:Print(titlecolor .. voteEndText,
+			windowArea[1] + ((windowArea[3] - windowArea[1]) / 2),
+			windowArea[2] + ((windowArea[4] - windowArea[2]) / 2)-(fontSize*0.3),
+			fontSize*1.1, "con")
+		font:End()
+	end
+
+	gl.Color(1, 1, 1, 1)
+end
+
+local function refreshTextures()
+	if not windowArea then
+		return
+	end
+
+	local width = windowArea[3] - windowArea[1]
+	local height = windowArea[4] - windowArea[2]
+
+	-- Render using render-to-texture
+	if useRenderToTexture then
+		local w = mathFloor(width)
+		local h = mathFloor(height)
+		if w >= 1 and h >= 1 then
+			-- Clean up old textures
+			if uiBgTex then
+				gl.DeleteTexture(uiBgTex)
+				uiBgTex = nil
+			end
+			if uiTex then
+				gl.DeleteTexture(uiTex)
+				uiTex = nil
+			end
+
+			-- Create background texture
+			uiBgTex = gl.CreateTexture(w, h, {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+			gl.R2tHelper.RenderToTexture(uiBgTex,
+				function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / width, 2 / height, 0)
+					gl.Translate(-windowArea[1], -windowArea[2], 0)
+					drawBackground()
+				end,
+				useRenderToTexture
+			)
+
+			-- Create content texture
+			uiTex = gl.CreateTexture(w, h, {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+			gl.R2tHelper.RenderToTexture(uiTex,
+				function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / width, 2 / height, 0)
+					gl.Translate(-windowArea[1], -windowArea[2], 0)
+					drawContent()
+				end,
+				useRenderToTexture
+			)
+		end
 	end
 end
 
@@ -103,182 +354,75 @@ local function StartVote(name)	-- when called without params its just to refresh
 	if voteDlist then
 		gl.DeleteList(voteDlist)
 	end
+	if uiBgTex then
+		gl.DeleteTexture(uiBgTex)
+		uiBgTex = nil
+	end
+	if uiTex then
+		gl.DeleteTexture(uiTex)
+		uiTex = nil
+	end
 	voteStartTime = os.clock()
-	voteDlist = gl.CreateList(function()
-		if name then
-			voteName = name
-		end
 
-		local color1, color2, w
-		local x, y, b = spGetMouseState()
+	if name then
+		voteName = name
+	end
 
-		local width = mathFloor((vsy / 6) * ui_scale) * 2	-- *2 so it ensures number can be divided cleanly by 2
-		local height = mathFloor((vsy / 23) * ui_scale) * 2		-- *2 so it ensures number can be divided cleanly by 2
+	local x, y = spGetMouseState()
 
-		local progressbarHeight = math.ceil(height * 0.055)
+	local width = mathFloor((vsy / 6) * ui_scale) * 2	-- *2 so it ensures number can be divided cleanly by 2
+	local height = mathFloor((vsy / 23) * ui_scale) * 2	-- *2 so it ensures number can be divided cleanly by 2
 
-		local fontSize = height / 5    -- title only
-		local minWidth = font:GetTextWidth('  ' .. voteName .. '  ') * fontSize
-		if width < minWidth then
-			width = minWidth
-		end
+	local progressbarHeight = math.ceil(height * 0.055)
 
-		local buttonMargin = mathFloor(width / 32)
-		local buttonHeight = mathFloor(height * 0.55)
-		if not eligibleToVote or minimized then
-			height = height - buttonHeight
-		end
-		-- make sure height is dividable by 2
-		if height % 2 == 1 then
-			height = height + 1
-		end
+	local fontSize = height / 5    -- title only
+	local minWidth = font:GetTextWidth('  ' .. voteName .. '  ') * fontSize
+	if width < minWidth then
+		width = minWidth
+	end
 
-		local xpos = mathFloor(width / 2)
-		local ypos = mathFloor(vsy - (height / 2))
+	local buttonMargin = mathFloor(width / 32)
+	local buttonHeight = mathFloor(height * 0.55)
+	if not eligibleToVote or minimized then
+		height = height - buttonHeight
+	end
+	-- make sure height is dividable by 2
+	if height % 2 == 1 then
+		height = height + 1
+	end
 
-		if WG['topbar'] ~= nil then
-			local topbarArea = WG['topbar'].GetPosition()
-			xpos = mathFloor(topbarArea[1] + (width/2) + widgetSpaceMargin + ((topbarArea[3] - topbarArea[1])/2))
-			ypos = mathFloor(topbarArea[2] - widgetSpaceMargin - (height / 2))
-		end
+	local xpos = mathFloor(width / 2)
+	local ypos = mathFloor(vsy - (height / 2))
 
-		hovered = nil
+	if WG['topbar'] ~= nil then
+		local topbarArea = WG['topbar'].GetPosition()
+		xpos = mathFloor(topbarArea[1] + (width/2) + widgetSpaceMargin
+			+ ((topbarArea[3] - topbarArea[1])/2))
+		ypos = mathFloor(topbarArea[2] - widgetSpaceMargin - (height / 2))
+	end
 
-		windowArea = { xpos - (width / 2), ypos - (height / 2), xpos + (width / 2), ypos + (height / 2) }
-		closeButtonArea = { (xpos + (width / 2)) - (height / 2), ypos + mathFloor(height / 6), xpos + (width / 2), ypos + (height / 2)}
-		yesButtonArea = { xpos - (width / 2) + buttonMargin, ypos - (height / 2) + buttonMargin + progressbarHeight, xpos - (buttonMargin / 2), ypos - (height / 2) + buttonHeight - buttonMargin + progressbarHeight }
-		noButtonArea = { xpos + (buttonMargin / 2), ypos - (height / 2) + buttonMargin + progressbarHeight, xpos + (width / 2) - buttonMargin, ypos - (height / 2) + buttonHeight - buttonMargin + progressbarHeight}
+	hovered = nil
 
-		if not voteEndText then
-			UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
-		end
+	windowArea = { xpos - (width / 2), ypos - (height / 2), xpos + (width / 2), ypos + (height / 2) }
+	closeButtonArea = { (xpos + (width / 2)) - (height / 2), ypos + mathFloor(height / 6),
+		xpos + (width / 2), ypos + (height / 2)}
+	yesButtonArea = { xpos - (width / 2) + buttonMargin,
+		ypos - (height / 2) + buttonMargin + progressbarHeight, xpos - (buttonMargin / 2),
+		ypos - (height / 2) + buttonHeight - buttonMargin + progressbarHeight }
+	noButtonArea = { xpos + (buttonMargin / 2),
+		ypos - (height / 2) + buttonMargin + progressbarHeight, xpos + (width / 2) - buttonMargin,
+		ypos - (height / 2) + buttonHeight - buttonMargin + progressbarHeight}
 
-		-- progress bar
-		if votesEligible then
-			if votesRequired then
-				-- progress bar: required for
-				w = mathFloor(((windowArea[3] - windowArea[1] - bgpadding - bgpadding) / votesEligible) * votesRequired)
-				color1 = { 0, 0.6, 0, 0.1 }
-				color2 = { 0, 1, 0, 0.1 }
-				RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[1] + bgpadding + w, windowArea[2] + bgpadding + progressbarHeight, elementCorner*0.6, 0, 0, 0, 1, color1, color2)
-				if votesEligible ~= votesRequired then
-					-- progress bar: required minority against
-					color1 = { 0.6, 0, 0, 0.1 }
-					color2 = { 1, 0, 0, 0.1 }
-					RectRound(windowArea[1] + bgpadding + w, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[2] + bgpadding + progressbarHeight, elementCorner*0.6, 0, 0, 1, 0, color1, color2)
-				end
-			end
+	-- Use display lists for non-R2T mode
+	if not useRenderToTexture then
+		voteDlist = gl.CreateList(function()
+			drawBackground()
+			drawContent()
+		end)
+	end
 
-			-- progress bar: for
-			if votesCountYes > 0 then
-				w = mathFloor(((windowArea[3] - windowArea[1] - bgpadding - bgpadding) / votesEligible) * votesCountYes)
-				color1 = { 0, 0.33, 0, 1 }
-				color2 = { 0, 0.6, 0, 1 }
-				RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[1] + bgpadding + w, windowArea[2] + bgpadding + progressbarHeight, elementCorner*0.6, 0, 0, 0, 1, color1, color2)
-				-- highlight
-				color1 = { 1, 1, 1, 0 }
-				color2 = { 1, 1, 1, 0.15 }
-				RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding + (progressbarHeight/2), windowArea[1] + bgpadding + w, windowArea[2] + bgpadding + progressbarHeight, 0, 0, 0, 0, 1, color1, color2)
-				color1 = { 1, 1, 1, 0.08 }
-				color2 = { 1, 1, 1, 0 }
-				RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[1] + bgpadding + w, windowArea[2] + bgpadding + (progressbarHeight/2), 0, 0, 0, 0, 1, color1, color2)
-			end
-			-- progress bar: against
-			if votesCountNo > 0 then
-				w = mathFloor(((windowArea[3] - windowArea[1] - bgpadding - bgpadding) / votesEligible) * votesCountNo)
-				color1 = { 0.33, 0, 0, 1 }
-				color2 = { 0.6, 0, 0, 1 }
-				RectRound(windowArea[3] - bgpadding - w, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[2] + bgpadding + progressbarHeight, elementCorner*0.6, 0, 0, 1, 0, color1, color2)
-				-- highlight
-				color1 = { 1, 1, 1, 0 }
-				color2 = { 1, 1, 1, 0.15 }
-				RectRound(windowArea[3] - bgpadding - w, windowArea[2] + bgpadding + (progressbarHeight/2), windowArea[3] - bgpadding, windowArea[2] + bgpadding + progressbarHeight, 0, 0, 0, 1, 0, color1, color2)
-				color1 = { 1, 1, 1, 0.08 }
-				color2 = { 1, 1, 1, 0 }
-				RectRound(windowArea[3] - bgpadding - w, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[2] + bgpadding + (progressbarHeight/2), 0, 0, 0, 1, 0, color1, color2)
-			end
-
-			-- progress bar: highlight
-			color1 = { 1, 1, 1, 0 }
-			color2 = { 1, 1, 1, 0.085 }
-			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding + (progressbarHeight/2), windowArea[3] - bgpadding, windowArea[2] + bgpadding + progressbarHeight, 0, 0, 0, 0, 0, color1, color2)
-			color1 = { 1, 1, 1, 0.023 }
-			color2 = { 1, 1, 1, 0 }
-			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[2] + bgpadding + (progressbarHeight/2), 0, 0, 0, 0, 0, color1, color2)
-		end
-
-		fontSize = fontSize * 0.85
-		gl.Color(0, 0, 0, 1)
-
-		-- vote name
-		font:Begin()
-		font:Print(titlecolor .. voteName, windowArea[1] + ((windowArea[3] - windowArea[1]) / 2), windowArea[4] - bgpadding - bgpadding - bgpadding - fontSize, fontSize, "con")
-		font:End()
-
-		if eligibleToVote and not minimized and not voteEndText then
-
-			-- ESC
-			local color1, color2
-			if math_isInRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4]) then
-				hovered = 'esc'
-				color1 = { 0.6, 0.6, 0.6, 0.6 }
-				color2 = { 1, 1, 1, 0.6 }
-			else
-				color1 = { 0.6, 0.6, 0.6, 0.08 }
-				color2 = { 1, 1, 1, 0.08 }
-			end
-			RectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, elementCorner*0.66, 0, 1, 0, 1, color1, color2)
-			font2:Begin()
-			font2:SetOutlineColor(1, 1, 1, 0.2)
-			font2:SetTextColor(0, 0, 0, 0.7)
-			font2:Print("\255\000\000\000X", closeButtonArea[1] + ((closeButtonArea[3] - closeButtonArea[1]) / 2), closeButtonArea[2] + ((closeButtonArea[4] - closeButtonArea[2]) / 2) - (fontSize / 3), fontSize, "cn")
-
-			-- NO / End Vote
-			local color1, color2, mult
-			if math_isInRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) then
-				hovered = 'n'
-				color1 = { 0.5, 0.07, 0.07, 0.8 }
-				color2 = { 0.7, 0.1, 0.1, 0.8 }
-				mult = 1.15
-			else
-				color1 = { 0.4, 0, 0, 0.75 }
-				color2 = { 0.5, 0, 0, 0.75 }
-				mult = 1
-			end
-			UiButton(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, elementCorner*0.4)
-
-			fontSize = fontSize * 0.85
-			font2:SetOutlineColor(0, 0, 0, 0.4)
-			font2:SetTextColor(1, 1, 1, 1)
-			font2:Print((weAreVoteOwner and Spring.I18N('ui.voting.endVote') or Spring.I18N('ui.voting.no')), noButtonArea[1] + ((noButtonArea[3] - noButtonArea[1]) / 2), noButtonArea[2] + ((noButtonArea[4] - noButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
-
-			-- YES
-			if not weAreVoteOwner then
-				if math_isInRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) then
-					hovered = 'y'
-					color1 = { 0.035, 0.4, 0.035, 0.8 }
-					color2 = { 0.05, 0.6, 0.5, 0.8 }
-					mult = 1.15
-				else
-					color1 = { 0, 0.4, 0, 0.38 }
-					color2 = { 0, 0.5, 0, 0.38 }
-					mult = 1
-				end
-				UiButton(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, elementCorner*0.4)
-				font2:Print(Spring.I18N('ui.voting.yes'), yesButtonArea[1] + ((yesButtonArea[3] - yesButtonArea[1]) / 2), yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
-			end
-			font2:End()
-		end
-
-		if voteEndText then
-			UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
-			font:Begin()
-			font:Print(titlecolor .. voteEndText, windowArea[1] + ((windowArea[3] - windowArea[1]) / 2), windowArea[2] + ((windowArea[4] - windowArea[2]) / 2)-(fontSize*0.3), fontSize*1.1, "con")
-			font:End()
-		end
-
-		gl.Color(1, 1, 1, 1)
-	end)
+	-- Flag that textures need to be refreshed in DrawScreen
+	needsTextureRefresh = true
 
 	-- background blur
 	if WG['guishader'] then
@@ -462,7 +606,7 @@ function widget:AddConsoleLine(lines, priority)
 					end
 
 
-				elseif voteDlist and not voteEndTime then
+				elseif voteName and not voteEndTime then
 					-- > [teh]cluster1[00] * Vote for command "stop" passed.
 					-- > [teh]cluster1[01] * Vote for command "forcestart" passed (delay expired, away vote mode activated for ArkanisLupus,ROBOTRONIC,d
 					if sfind(line, "* Vote for command", nil, true) then
@@ -491,7 +635,7 @@ function widget:AddConsoleLine(lines, priority)
 				end
 
 				-- > [teh]cluster1[00] * 10 users allowed to vote.
-				if voteDlist and sfind(slower(line), " users allowed to vote.", nil, true) then
+				if voteName and sfind(slower(line), " users allowed to vote.", nil, true) then
 					local text = ssub(line, sfind(slower(line), "* ", nil, true)+2, sfind(slower(line), " users allowed to vote.", nil, true)-1)
 					if text then
 						votesEligible = tonumber(text)
@@ -501,7 +645,7 @@ function widget:AddConsoleLine(lines, priority)
 				-- > [teh]cluster1[00] * Vote in progress: "stop" [y:1/4, n:1/3] (43s remaining)
 				-- > [teh]cluster2[00] * Vote in progress: "resign Raghna TEAM" [y:2/4(3), n:0/2(3)] (57s remaining)
 				-- > [teh]cluster2[00] * Vote in progress: "resign [teh]Teddy TEAM" [y:1/1(4), n:0/1(3), votes:1/3] (40s remaining)
-				if voteDlist and sfind(slower(line), "vote in progress:", nil, true) then
+				if voteName and sfind(slower(line), "vote in progress:", nil, true) then
 					local text = ssub(line, sfind(slower(line), "vote in progress:", nil, true)+18)
 					text = ssub(text, sfind(text, "\" [", nil, true)+3)
 					text = ssub(text, 1,  sfind(text, "]", nil, true)-1)
@@ -544,7 +688,7 @@ function widget:AddConsoleLine(lines, priority)
 end
 
 function widget:MousePress(x, y, button)
-	if voteDlist and eligibleToVote and not voteEndText and button == 1 then
+	if voteName and eligibleToVote and not voteEndText and button == 1 then
 		if math_isInRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then
 			if not weAreVoteOwner and math_isInRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) then
 				Spring.SendCommands("say !vote y")
@@ -571,22 +715,46 @@ function widget:Shutdown()
 end
 
 function widget:DrawScreen()
-	if voteDlist then
+	if voteDlist or uiBgTex or uiTex or needsTextureRefresh then
+		-- Refresh textures if needed (only in DrawScreen where R2T is allowed)
+		if needsTextureRefresh and useRenderToTexture then
+			refreshTextures()
+			needsTextureRefresh = false
+		end
+
 		if not WG['topbar'] or not WG['topbar'].showingQuit() then
 			if eligibleToVote then
-				local x, y, b = spGetMouseState()
+				local x, y = spGetMouseState()
 				if hovered then
 					StartVote()	-- refresh
-				elseif windowArea and math_isInRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then
-					if not weAreVoteOwner and math_isInRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) or
-						math_isInRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) or
-						math_isInRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4])
+				elseif windowArea and math_isInRect(x, y, windowArea[1], windowArea[2],
+						windowArea[3], windowArea[4]) then
+					if not weAreVoteOwner and math_isInRect(x, y, yesButtonArea[1],
+							yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) or
+						math_isInRect(x, y, noButtonArea[1], noButtonArea[2],
+							noButtonArea[3], noButtonArea[4]) or
+						math_isInRect(x, y, closeButtonArea[1], closeButtonArea[2],
+							closeButtonArea[3], closeButtonArea[4])
 					then
 						StartVote()	-- refresh
 					end
 				end
 			end
-			gl.CallList(voteDlist)
+
+			if useRenderToTexture then
+				if uiBgTex then
+					gl.R2tHelper.BlendTexRect(uiBgTex, windowArea[1], windowArea[2],
+						windowArea[3], windowArea[4], useRenderToTexture)
+				end
+				if uiTex then
+					gl.R2tHelper.BlendTexRect(uiTex, windowArea[1], windowArea[2],
+						windowArea[3], windowArea[4], useRenderToTexture)
+				end
+			else
+				if voteDlist then
+					gl.CallList(voteDlist)
+				end
+			end
 		end
 	end
 end

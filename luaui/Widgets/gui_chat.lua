@@ -448,6 +448,8 @@ local autocompletePlayernames = {}
 local playernames = {}
 local playersList = Spring.GetPlayerList()
 
+local chatProcessors = {}
+
 local autocompleteUnitNames = {}
 local autocompleteUnitCodename = {}
 local uniqueHumanNames = {}
@@ -614,8 +616,15 @@ local function setCurrentChatLine(line)
 	end
 end
 
-local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID)
+local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID, noProcessors)
 	chatLineID = chatLineID and chatLineID or #chatLines + 1
+
+	if not noProcessors then
+		for _, processor in pairs(chatProcessors) do
+			if text == nil then break end
+			text = processor(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID)
+		end
+	end
 
 	if not text or text == '' then return end
 
@@ -2598,6 +2607,17 @@ function widget:Initialize()
 	WG['chat'].setFontsize = function(value)
 		fontsizeMult = value
 		widget:ViewResize()
+	end
+	WG['chat'].addChatLine = function(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID)
+		addChatLine(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID, true)
+	end
+	WG['chat'].addChatProcessor = function(id, func)
+		if type(func) == 'function' then
+			chatProcessors[id] = func
+		end
+	end
+	WG['chat'].removeChatProcessor = function(id)
+		chatProcessors[id] = nil
 	end
 
 	for orgLineID, params in ipairs(orgLines) do
