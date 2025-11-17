@@ -185,8 +185,10 @@ weaponCustomParamKeys.cruise = {
 
 local _; -- sink var for unused values
 local float3 = { 0, 0, 0 }
-local function applyCruiseCorrection(projectileID, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
-	local normalX, normalY, normalZ = spGetGroundNormal(positionX, positionZ)
+local useSmoothMeshHeight = 50 -- the switch height, not the actual mesh height, see below
+
+local function applyCruiseCorrection(projectileID, positionX, positionY, positionZ, groundHeight, velocityX, velocityY, velocityZ)
+	local normalX, normalY, normalZ = spGetGroundNormal(positionX, positionZ, groundHeight >= useSmoothMeshHeight)
 	local codirection = velocityX * normalX + velocityY * normalY + velocityZ * normalZ
 	velocityY = velocityY - normalY * codirection -- NB: can be a little strong on uneven terrain
 	spSetProjectilePosition(projectileID, positionX, positionY, positionZ)
@@ -205,10 +207,11 @@ specialEffectFunction.cruise = function(params, projectileID)
 		local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
 
 		if distance * distance < distance3dSquared(positionX, positionY, positionZ, target[1], target[2], target[3]) then
-			local cruiseHeight = spGetGroundHeight(positionX, positionZ) + params.cruise_min_height
-			local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
+			local elevation = spGetGroundHeight(positionX, positionZ)
+			local cruiseHeight = elevation + params.cruise_min_height
 			if positionY < cruiseHeight then
-				applyCruiseCorrection(projectileID, positionX, cruiseHeight, positionZ, velocityX, velocityY, velocityZ)
+				local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
+				applyCruiseCorrection(projectileID, positionX, cruiseHeight, positionZ, elevation, velocityX, velocityY, velocityZ)
 				-- Change over to second-phase attitude controls:
 				projectiles[projectileID] = weaponDefEffect[-1 - spGetProjectileDefID(projectileID)]
 			end
@@ -237,7 +240,7 @@ local cruiseEngaged = {
 				local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
 				-- Follow the ground when it slopes away, but not over steep drops, e.g. sheer cliffs.
 				if positionY ~= cruiseHeight and (positionY > cruiseHeight or velocityY > speed * -0.25) then
-					applyCruiseCorrection(projectileID, positionX, cruiseHeight, positionZ, velocityX, velocityY, velocityZ)
+					applyCruiseCorrection(projectileID, positionX, cruiseHeight, positionZ, elevation, velocityX, velocityY, velocityZ)
 				end
 				return false
 			end
