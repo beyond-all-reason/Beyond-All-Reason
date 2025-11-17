@@ -316,8 +316,8 @@ Shot3(zero) {
 }
 
 FireWeapon3(){
-    spin missilePod1 around y-axis speed <900>;
-    stop-spin missilePod1 around y-axis decelerate <45>;
+    spin missilePod2 around y-axis speed <900>;
+    stop-spin missilePod2 around y-axis decelerate <45>;
 }
 
 
