@@ -77,8 +77,8 @@ local spGetSpectatingState = Spring.GetSpectatingState
 local SharedEnums = VFS.Include('sharing_modes/shared_enums.lua')
 local TeamTransfer = VFS.Include('common/luaUtilities/team_transfer/team_transfer_unsynced.lua')
 local ResourceTransfer = TeamTransfer.Resources
-local ApiExtensions = VFS.Include('common/luaUtilities/team_transfer/gui_advplayerlist_api_extensions.lua')
-local Helpers = VFS.Include('common/luaUtilities/team_transfer/gui_advplayerlist_helpers.lua')
+local ApiExtensions = VFS.Include('common/luaUtilities/team_transfer/gui_advplayerlist/api_extensions.lua')
+local Helpers = VFS.Include('common/luaUtilities/team_transfer/gui_advplayerlist/helpers.lua')
 
 --------------------------------------------------------------------------------
 -- Config
@@ -2087,7 +2087,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                                 end
                             end
                         end
-                        if m_share.active and not dead and not hideShareIcons and (unitPolicy and metalPolicy and energyPolicy) then
+                        if ModuleRefs.share.active and not dead and not hideShareIcons and (unitPolicy and metalPolicy and energyPolicy) then
                             DrawShareButtons(posY, unitPolicy, metalPolicy, energyPolicy, unitValidationResult)
                             if tipY then
                                 ShareTip(mouseX, unitPolicy, metalPolicy, energyPolicy, unitValidationResult)
@@ -2230,7 +2230,7 @@ local function DrawSharingIconOverlay(posY, enabled, offsetX)
     if enabled then
         gl_Texture(false)
         gl_Color(1, 1, 1, 0.12)
-        DrawRect(m_share.posX + widgetPosX + offsetX, posY, m_share.posX + widgetPosX + offsetX + (16*playerScale), posY + (16*playerScale))
+        DrawRect(ModuleRefs.share.posX + widgetPosX + offsetX, posY, ModuleRefs.share.posX + widgetPosX + offsetX + (16*playerScale), posY + (16*playerScale))
         gl_Color(1, 1, 1, 1)
     end
 
@@ -2238,7 +2238,7 @@ local function DrawSharingIconOverlay(posY, enabled, offsetX)
     if not enabled then
         gl_Texture(false)
         gl_Color(0, 0, 0, 0.45)
-        DrawRect(m_share.posX + widgetPosX + offsetX, posY, m_share.posX + widgetPosX + offsetX + (16*playerScale), posY + (16*playerScale))
+        DrawRect(ModuleRefs.share.posX + widgetPosX + offsetX, posY, ModuleRefs.share.posX + widgetPosX + offsetX + (16*playerScale), posY + (16*playerScale))
         gl_Color(1, 1, 1, 1)
     end
 end
@@ -2250,7 +2250,7 @@ function DrawShareButtons(posY, unitPolicy, metalPolicy, energyPolicy, unitValid
     gl_Texture(pics["energyPic"])
     DrawRect(ModuleRefs.share.posX + widgetPosX + (17*playerScale), posY, ModuleRefs.share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale))
     gl_Texture(pics["metalPic"])
-    DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale))
+    DrawRect(ModuleRefs.share.posX + widgetPosX + (33*playerScale), posY, ModuleRefs.share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale))
 
     local shareButtonEnabled = unitPolicy.canShare and (not unitValidationResult or unitValidationResult.status ~= SharedEnums.UnitValidationOutcome.Failure)
     DrawSharingIconOverlay(posY, shareButtonEnabled, 1 * playerScale)
@@ -2481,7 +2481,7 @@ function DrawCountry(country, posY)
     if country ~= nil and country ~= "??" and VFS.FileExists(imgDir .. "flags/"  .. string.upper(country) .. flagsExt) then
         gl_Texture(imgDir .. "flags/" .. string.upper(country) .. flagsExt)
         gl_Color(1, 1, 1, 1)
-        DrawRect(m_country.posX + widgetPosX + (3*playerScale), posY + (8*playerScale) - ((flagHeight/2)*playerScale), m_country.posX + widgetPosX + (17*playerScale), posY + (8*playerScale) + ((flagHeight/2)*playerScale))
+        DrawRect(ModuleRefs.country.posX + widgetPosX + (3*playerScale), posY + (8*playerScale) - ((flagHeight/2)*playerScale), ModuleRefs.country.posX + widgetPosX + (17*playerScale), posY + (8*playerScale) + ((flagHeight/2)*playerScale))
     end
 end
 
@@ -2863,11 +2863,11 @@ function NameTip(mouseX, playerID, accountID, nameIsAlias)
 end
 
 function ShareTip(mouseX, unitPolicy, metalPolicy, energyPolicy, unitValidationResult)
-    if mouseX >= widgetPosX + (m_share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (17*playerScale)) * widgetScale then
+    if mouseX >= widgetPosX + (ModuleRefs.share.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (ModuleRefs.share.posX + (17*playerScale)) * widgetScale then
         tipText = TeamTransfer.Units.TooltipText(unitPolicy, unitValidationResult)
-    elseif mouseX >= widgetPosX + (m_share.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (35*playerScale)) * widgetScale then
+    elseif mouseX >= widgetPosX + (ModuleRefs.share.posX + (19*playerScale)) * widgetScale and mouseX <= widgetPosX + (ModuleRefs.share.posX + (35*playerScale)) * widgetScale then
         tipText = ResourceTransfer.TooltipText(energyPolicy)
-    elseif mouseX >= widgetPosX + (m_share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_share.posX + (53*playerScale)) * widgetScale then
+    elseif mouseX >= widgetPosX + (ModuleRefs.share.posX + (37*playerScale)) * widgetScale and mouseX <= widgetPosX + (ModuleRefs.share.posX + (53*playerScale)) * widgetScale then
         tipText = ResourceTransfer.TooltipText(metalPolicy)
     end
     tipTextTime = os.clock()
@@ -3010,7 +3010,7 @@ local function RenderShareSliderText(posY, player, resourceType, baseOffset)
         local received, sent = ResourceTransfer.CalculateSenderTaxedAmount(policyResult, shareAmount)
         label = "S:" .. ResourceTransfer.FormatNumberForUI(sent) .. "→R:" .. ResourceTransfer.FormatNumberForUI(received)
     end
-    local textXRight = m_share.posX + widgetPosX + (baseOffset * playerScale) - (4 * playerScale)
+    local textXRight = ModuleRefs.share.posX + widgetPosX + (baseOffset * playerScale) - (4 * playerScale)
     local fontSize = 14
     local pad = 4 * playerScale
     local textWidth = font:GetTextWidth(label) * fontSize
