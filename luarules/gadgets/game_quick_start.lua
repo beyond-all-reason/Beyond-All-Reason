@@ -283,24 +283,26 @@ local function getCommanderBuildQueue(commanderID)
 	local totalBudgetCost = 0
 	for i, cmd in ipairs(commands) do
 		if isBuildCommand(cmd.id) then
-			local spawnParams = { id = -cmd.id, x = cmd.params[1], y = cmd.params[2], z = cmd.params[3], facing = cmd
-			.params[4] or 1, cmdTag = cmd.tag }
+			local spawnParams = { id = unitDefID, x = cmd.params[1], y = cmd.params[2], z = cmd.params[3], facing = cmd.params[4] or 1, cmdTag = cmd.tag }
+			local unitDefID = -cmd.id
+			local unitDef = unitDefs[unitDefID]
 			local distance = distance2d(comData.spawnX, comData.spawnZ, spawnParams.x, spawnParams.z)
 			local isTraversable = traversabilityGrid.canMoveToPosition(commanderID, spawnParams.x, spawnParams.z, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
+
 			if distance <= INSTANT_BUILD_RANGE and isTraversable then
+				local budgetCost = defMetergies[unitDefID] or 0
+				budgetCost = max(budgetCost - getFactoryDiscount(unitDef, commanderID), 0)
+
+				if totalBudgetCost + budgetCost > comData.budget then
+					comData.commandsToRemove = commandsToRemove
+					return spawnQueue
+				end
+
 				table.insert(spawnQueue, spawnParams)
 				if cmd.tag then
 					table.insert(commandsToRemove, cmd.tag)
 				end
-				local unitDefID = -cmd.id
-				local unitDef = unitDefs[unitDefID]
-				local budgetCost = defMetergies[unitDefID] or 0
-				budgetCost = max(budgetCost - getFactoryDiscount(unitDef, commanderID), 0)
 				totalBudgetCost = totalBudgetCost + budgetCost
-				if totalBudgetCost > comData.budget then
-					comData.commandsToRemove = commandsToRemove
-					return spawnQueue
-				end
 			end
 		end
 	end

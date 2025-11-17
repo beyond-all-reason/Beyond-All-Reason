@@ -1350,7 +1350,7 @@ function PlayNewTrack(paused)
 		currentTrackListString = "bossFight"
 		playInterlude = false
 	elseif warMeter >= warHighLevel then
-		if #eventWarHighTracks > 0 and songsSinceEvent > mathRandom(1,4) then
+		if #eventWarHighTracks > 0 and songsSinceEvent > mathRandom(math.max(0, 2 - #eventWarHighTracks), math.max(1, 5 - #eventWarHighTracks)) then
 			currentTrackList = eventWarHighTracks
 			currentTrackListString = "eventWarHigh"
 			songsSinceEvent = 0
@@ -1361,30 +1361,30 @@ function PlayNewTrack(paused)
 			playInterlude = true
 		end
 	elseif warMeter >= warLowLevel then
-		if #eventWarLowTracks > 0 and songsSinceEvent > mathRandom(1,4) then
-			currentTrackList = eventWarLowTracks
-			currentTrackListString = "eventWarLow"
-			songsSinceEvent = 0
-			if mathRandom() <= 0.5 and playInterlude == false then playInterlude = true else playInterlude = false end
-		elseif #interludeTracks > 0 and playInterlude then
+		if #interludeTracks > 0 and playInterlude then
 			currentTrackList = interludeTracks
 			currentTrackListString = "interlude"
 			playInterlude = false
+		elseif #eventWarLowTracks > 0 and songsSinceEvent > mathRandom(math.max(0, 2 - #eventWarLowTracks), math.max(1, 5 - #eventWarLowTracks)) then
+			currentTrackList = eventWarLowTracks
+			currentTrackListString = "eventWarLow"
+			songsSinceEvent = 0
+			if mathRandom() <= 0.25 and playInterlude == false then playInterlude = true else playInterlude = false end
 		else
 			currentTrackList = warlowTracks
 			currentTrackListString = "warLow"
 			if mathRandom() <= 0.5 and playInterlude == false then playInterlude = true else playInterlude = false end
 		end
 	else
-		if #eventPeaceTracks > 0 and songsSinceEvent > mathRandom(1,4) then
-			currentTrackList = eventPeaceTracks
-			currentTrackListString = "eventPeace"
-			songsSinceEvent = 0
-			if mathRandom() <= 0.75 and playInterlude == false then playInterlude = true else playInterlude = false end
-		elseif #interludeTracks > 0 and playInterlude then
+		if #interludeTracks > 0 and playInterlude then
 			currentTrackList = interludeTracks
 			currentTrackListString = "interlude"
 			playInterlude = false
+		elseif #eventPeaceTracks > 0 and songsSinceEvent > mathRandom(math.max(0, 2 - #eventPeaceTracks), math.max(1, 5 - #eventPeaceTracks)) then
+			currentTrackList = eventPeaceTracks
+			currentTrackListString = "eventPeace"
+			songsSinceEvent = 0
+			if mathRandom() <= 0.375 and playInterlude == false then playInterlude = true else playInterlude = false end
 		else
 			currentTrackList = peaceTracks
 			currentTrackListString = "peace"

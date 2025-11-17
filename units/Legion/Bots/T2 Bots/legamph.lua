@@ -172,6 +172,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small-uw",
+				firesubmersed = false,
 				flighttime = 1.75,
 				gravityaffected = "true",
 				groundbounce = true,
