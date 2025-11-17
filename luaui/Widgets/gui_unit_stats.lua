@@ -417,8 +417,10 @@ local function drawStats(uDefID, uID)
 		local buildRem = 1 - buildProg
 		local mRem = mathFloor(mTotal * buildRem)
 		local eRem = mathFloor(eTotal * buildRem)
-		local mEta = (mRem - mCur) / (mInc + mRec)
-		local eEta = (eRem - eCur) / (eInc + eRec)
+		local mIncome = mInc + mRec
+		local eIncome = eInc + eRec
+		local mEta = mIncome > 0 and (mRem - mCur) / mIncome or 0
+		local eEta = eIncome > 0 and (eRem - eCur) / eIncome or 0
 
 		DrawText(texts.prog..":", format("%d%%", 100 * buildProg))
 		DrawText(texts.metal..":", format("%d / %d (" .. yellow .. "%d" .. white .. ", %ds)", mTotal * buildProg, mTotal, mRem, mEta))
