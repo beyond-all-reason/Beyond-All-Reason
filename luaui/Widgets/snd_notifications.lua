@@ -1067,6 +1067,7 @@ function widget:GetConfigData(data)
 		tutorialMode = tutorialMode,
 		tutorialPlayed = tutorialPlayed,
 		tutorialPlayedThisGame = tutorialPlayedThisGame,
+		
 	}
 end
 
