@@ -13,6 +13,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+
 local spGetUnitDefID         = Spring.GetUnitDefID
 local spGetUnitPosition      = Spring.GetUnitPosition
 local spGetUnitsInCylinder   = Spring.GetUnitsInCylinder
@@ -134,7 +138,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 end
 
 function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
+	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -149,7 +153,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+	if Spring.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 end

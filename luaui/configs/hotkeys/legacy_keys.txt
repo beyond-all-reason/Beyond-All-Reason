@@ -176,6 +176,8 @@ bind sc_x buildunit_armtide
 bind Shift+sc_x buildunit_armtide
 bind sc_x buildunit_cortide
 bind Shift+sc_x buildunit_cortide
+bind sc_x buildunit_legtide
+bind Shift+sc_x buildunit_legtide
 bind sc_x buildunit_armuwfus
 bind Shift+sc_x buildunit_armuwfus
 bind sc_x buildunit_coruwfus
@@ -222,6 +224,8 @@ bind sc_c buildunit_armtl
 bind Shift+sc_c buildunit_armtl
 bind sc_c buildunit_cortl
 bind Shift+sc_c buildunit_cortl
+bind sc_c buildunit_legtl
+bind Shift+sc_c buildunit_legtl
 bind sc_c buildunit_armsonar
 bind Shift+sc_c buildunit_armsonar
 bind sc_c buildunit_corsonar
@@ -230,10 +234,14 @@ bind sc_c buildunit_armfrad
 bind Shift+sc_c buildunit_armfrad
 bind sc_c buildunit_corfrad
 bind Shift+sc_c buildunit_corfrad
+bind sc_c buildunit_legfrad
+bind Shift+sc_c buildunit_legfrad
 bind sc_c buildunit_armfrt
 bind Shift+sc_c buildunit_armfrt
 bind sc_c buildunit_corfrt
 bind Shift+sc_c buildunit_corfrt
+bind sc_c buildunit_legfrl
+bind Shift+sc_c buildunit_legfrl
 bind sc_v buildunit_armnanotc
 bind Shift+sc_v buildunit_armnanotc
 bind sc_v buildunit_armnanotcplat
@@ -266,6 +274,8 @@ bind sc_v buildunit_armsy
 bind Shift+sc_v buildunit_armsy
 bind sc_v buildunit_corsy
 bind Shift+sc_v buildunit_corsy
+bind sc_v buildunit_legsy
+bind Shift+sc_v buildunit_legsy
 
 // numpad movement
 bind numpad2 moveback

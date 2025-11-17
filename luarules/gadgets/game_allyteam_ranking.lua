@@ -39,67 +39,68 @@ end
 local spGetTeamResources = Spring.GetTeamResources
 local spGetTeamList = Spring.GetTeamList
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local mathFloor = math.floor
+local tableSort = table.sort
 
 local unitCost = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitCost[unitDefID] = math.floor(unitDef.metalCost + (unitDef.energyCost / 65))
+	unitCost[unitDefID] = mathFloor(unitDef.metalCost + (unitDef.energyCost / 65))
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if unitTeam ~= GaiaTeamID then
-		local allyTeamID = teamAllyteam[unitTeam]
-		if spGetUnitIsBeingBuilt(unitID) then
-			unfinishedUnits[allyTeamID][unitID] = unitDefID
-		else
-			allyteamCost[allyTeamID] = allyteamCost[allyTeamID] + unitCost[unitDefID]
-		end
+	local allyTeamID = teamAllyteam[unitTeam]
+	if not allyTeamID then return end
+	if spGetUnitIsBeingBuilt(unitID) then
+		unfinishedUnits[allyTeamID][unitID] = unitDefID
+	else
+		allyteamCost[allyTeamID] = allyteamCost[allyTeamID] + unitCost[unitDefID]
 	end
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if unitTeam ~= GaiaTeamID then
-		local allyTeamID = teamAllyteam[unitTeam]
-		if unfinishedUnits[allyTeamID][unitID] then
-			allyteamCost[allyTeamID] = allyteamCost[allyTeamID] + unitCost[unitDefID]
-			unfinishedUnits[allyTeamID][unitID] = nil
-		end
+	local allyTeamID = teamAllyteam[unitTeam]
+	if not allyTeamID then return end
+	if unfinishedUnits[allyTeamID][unitID] then
+		allyteamCost[allyTeamID] = allyteamCost[allyTeamID] + unitCost[unitDefID]
+		unfinishedUnits[allyTeamID][unitID] = nil
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	if unitTeam ~= GaiaTeamID then
-		local allyTeamID = teamAllyteam[unitTeam]
-		if unfinishedUnits[allyTeamID][unitID] then
-			unfinishedUnits[allyTeamID][unitID] = nil
-		else
-			allyteamCost[allyTeamID] = allyteamCost[allyTeamID] - unitCost[unitDefID]
-		end
+	local allyTeamID = teamAllyteam[unitTeam]
+	if not allyTeamID then return end
+	if unfinishedUnits[allyTeamID][unitID] then
+		unfinishedUnits[allyTeamID][unitID] = nil
+	else
+		allyteamCost[allyTeamID] = allyteamCost[allyTeamID] - unitCost[unitDefID]
 	end
 end
 
 function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	if unitTeam ~= GaiaTeamID then
-		local allyTeamID = teamAllyteam[unitTeam]
-		if spGetUnitIsBeingBuilt(unitID) then
-			local oldAllyTeamID = teamAllyteam[oldTeam]
-			unfinishedUnits[oldAllyTeamID][unitID] = nil
-			unfinishedUnits[allyTeamID][unitID] = unitDefID
-		else
-			allyteamCost[allyTeamID] = allyteamCost[allyTeamID] + unitCost[unitDefID]
-		end
+	local allyTeamID = teamAllyteam[unitTeam]
+	local oldAllyTeamID = teamAllyteam[oldTeam]
+	if not allyTeamID or not oldAllyTeamID then return end
+
+	if spGetUnitIsBeingBuilt(unitID) then
+		unfinishedUnits[oldAllyTeamID][unitID] = nil
+		unfinishedUnits[allyTeamID][unitID] = unitDefID
+	else
+		allyteamCost[oldAllyTeamID] = allyteamCost[oldAllyTeamID] - unitCost[unitDefID]
+		allyteamCost[allyTeamID] = allyteamCost[allyTeamID] + unitCost[unitDefID]
 	end
 end
 
 function gadget:UnitTaken(unitID, unitDefID, unitTeam, oldTeam)
-	if unitTeam ~= GaiaTeamID then
-		local allyTeamID = teamAllyteam[unitTeam]
-		if spGetUnitIsBeingBuilt(unitID) then
-			local oldAllyTeamID = teamAllyteam[oldTeam]
-			unfinishedUnits[oldAllyTeamID][unitID] = nil
-			unfinishedUnits[allyTeamID][unitID] = unitDefID
-		else
-			allyteamCost[allyTeamID] = allyteamCost[allyTeamID] - unitCost[unitDefID]
-		end
+	local allyTeamID = teamAllyteam[unitTeam]
+	local oldAllyTeamID = teamAllyteam[oldTeam]
+	if not allyTeamID or not oldAllyTeamID then return end
+
+	if spGetUnitIsBeingBuilt(unitID) then
+		unfinishedUnits[oldAllyTeamID][unitID] = nil
+		unfinishedUnits[allyTeamID][unitID] = unitDefID
+	else
+		allyteamCost[oldAllyTeamID] = allyteamCost[oldAllyTeamID] + unitCost[unitDefID]
+		allyteamCost[allyTeamID] = allyteamCost[allyTeamID] - unitCost[unitDefID]
 	end
 end
 
@@ -117,10 +118,10 @@ function gadget:GameFrame(gf)
 				-- get current resources in storage
 				local totalResCost = 0
 				local teamList = spGetTeamList(allyTeamID)
-				for _, teamID in ipairs(teamList) do
-					local availableMetal = spGetTeamResources(teamID, "metal")
-					local availableEnergy = spGetTeamResources(teamID, "energy")
-					totalResCost = math.floor(totalResCost + availableMetal + (availableEnergy / 65))
+				for i = 1, #teamList do
+					local availableMetal = spGetTeamResources(teamList[i], "metal")
+					local availableEnergy = spGetTeamResources(teamList[i], "energy")
+					totalResCost = mathFloor(totalResCost + availableMetal + (availableEnergy / 65))
 				end
 				-- get unfinished units worth
 				local totalConstructionCost = 0
@@ -129,12 +130,12 @@ function gadget:GameFrame(gf)
 					if not completeness then	-- this shouldnt occur
 						unfinishedUnits[allyTeamID][unitID] = nil
 					else
-						totalConstructionCost = totalConstructionCost + math.floor(unitCost[unitDefID] * completeness)
+						totalConstructionCost = totalConstructionCost + mathFloor(unitCost[unitDefID] * completeness)
 					end
 				end
 				temp[#temp+1] = { allyTeamID = allyTeamID, totalCost = totalCost + totalResCost + totalConstructionCost }
 			end
-			table.sort(temp, function(m1, m2)
+			tableSort(temp, function(m1, m2)
 				return m1.totalCost > m2.totalCost
 			end)
 			local rankingChanged = false

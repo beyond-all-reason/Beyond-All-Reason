@@ -12,6 +12,14 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local timeNotation = 24
@@ -32,9 +40,9 @@ local top, left, bottom, right = 0,0,0,0
 
 local passedTime = 0
 local textWidthClock = 0
-local gameframe = Spring.GetGameFrame()
+local gameframe = spGetGameFrame()
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
 local RectRound, UiElement, elementCorner
 
@@ -51,9 +59,9 @@ local function drawContent()
 	local titleColor = '\255\210\210\210'
 	local valueColor = '\255\245\245\245'
 	local prevGameframe = gameframe
-	gameframe = Spring.GetGameFrame()
-	local minutes = math.floor((gameframe / 30 / 60))
-	local seconds = math.floor((gameframe - ((minutes*60)*30)) / 30)
+	gameframe = spGetGameFrame()
+	local minutes = mathFloor((gameframe / 30 / 60))
+	local seconds = mathFloor((gameframe - ((minutes*60)*30)) / 30)
 	if seconds == 0 then
 		seconds = '00'
 	elseif seconds < 10 then
@@ -104,7 +112,7 @@ local function refreshUiDrawing()
 	if right-left >= 1 and top-bottom >= 1 then
 		if useRenderToTexture then
 			if not uiBgTex then
-				uiBgTex = gl.CreateTexture(math.floor(right-left), math.floor(top-bottom), {
+				uiBgTex = gl.CreateTexture(mathFloor(right-left), mathFloor(top-bottom), {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
@@ -129,7 +137,7 @@ local function refreshUiDrawing()
 		end
 		if useRenderToTexture then
 			if not uiTex then
-				uiTex = gl.CreateTexture(math.floor(right-left), math.floor(top-bottom), {	--*(vsy<1400 and 2 or 1)
+				uiTex = gl.CreateTexture(mathFloor(right-left), mathFloor(top-bottom), {	--*(vsy<1400 and 2 or 1)
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
@@ -225,7 +233,7 @@ function widget:Update(dt)
 end
 
 function widget:ViewResize(newX,newY)
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 
 	font = WG['fonts'].getFont()
 

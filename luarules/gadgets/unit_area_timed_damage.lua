@@ -61,6 +61,7 @@ local max                     = math.max
 local min                     = math.min
 local floor                   = math.floor
 local sqrt                    = math.sqrt
+local round                   = math.round
 local diag                    = math.diag
 local normalize               = math.normalize
 
@@ -75,15 +76,26 @@ local spGetUnitPosition       = Spring.GetUnitPosition
 local spGetUnitsInCylinder    = Spring.GetUnitsInCylinder
 local spSetFeatureHealth      = Spring.SetFeatureHealth
 local spSpawnCEG              = Spring.SpawnCEG
+local spGetAllFeatures        = Spring.GetAllFeatures
+local spGetFeatureDefID       = Spring.GetFeatureDefID
+local spGetAllUnits           = Spring.GetAllUnits
+local spGetUnitIsBeingBuilt   = Spring.GetUnitIsBeingBuilt
+local spGetUnitHealth         = Spring.GetUnitHealth
+local spDestroyFeature        = Spring.DestroyFeature
+local stringFind              = string.find
+local stringGsub              = string.gsub
+local stringLower             = string.lower
+local tableInsert             = table.insert
+local tableRemove             = table.remove
 
 local gameSpeed               = Game.gameSpeed
 
 --------------------------------------------------------------------------------
 -- Local variables -------------------------------------------------------------
 
-local frameInterval = math.round(Game.gameSpeed * damageInterval)
-local frameCegShift = math.round(Game.gameSpeed * damageInterval * 0.5)
-local frameWaitTime = math.round(Game.gameSpeed * factoryWaitTime)
+local frameInterval = round(Game.gameSpeed * damageInterval)
+local frameCegShift = round(Game.gameSpeed * damageInterval * 0.5)
+local frameWaitTime = round(Game.gameSpeed * factoryWaitTime)
 
 local timedDamageWeapons = {}
 local unitDamageImmunity = {}
@@ -120,9 +132,9 @@ local function getExplosionParams(def, prefix)
     }
     params.damage = tonumber(params.damage) * (frameInterval/Game.gameSpeed)
     params.frames = tonumber(params.frames) * Game.gameSpeed
-    params.frames = math.round(params.frames / frameInterval) * frameInterval
+    params.frames = round(params.frames / frameInterval) * frameInterval
     params.range = tonumber(params.range)
-    params.resistance = string.lower(params.resistance)
+    params.resistance = stringLower(params.resistance)
     return params
 end
 
@@ -130,9 +142,9 @@ local function getNearestCEG(params)
     local ceg, range = params.ceg, params.range
 
     -- We can't check properties of the ceg, so use the name to compare 'size'. Yes, "that is bad".
-    if string.find(ceg, "-"..math.floor(range).."-", nil, true) then
-        local _, _, _, namedRange = string.find(ceg, regexCegToRadius, nil, true)
-        if tonumber(namedRange) == math.floor(range) then
+    if stringFind(ceg, "-"..floor(range).."-", nil, true) then
+        local _, _, _, namedRange = stringFind(ceg, regexCegToRadius, nil, true)
+        if tonumber(namedRange) == floor(range) then
             return ceg, range
         end
     end
@@ -148,7 +160,7 @@ local function getNearestCEG(params)
         end
     end
     if sizeBest < math.huge then
-        ceg = string.gsub(ceg, regexDigits, sizeBest, 1)
+        ceg = stringGsub(ceg, regexDigits, sizeBest, 1)
         return ceg, sizeBest
     end
 end
@@ -215,7 +227,7 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
         }
 
         local index = bisectDamage(frameExplosions, area.damage, 1, #frameExplosions)
-        table.insert(frameExplosions, index, area)
+        tableInsert(frameExplosions, index, area)
     end
 end
 
@@ -364,14 +376,14 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
                         spSetFeatureHealth(featureID, health)
                         featDamageTaken[featureID] = damageTaken + damageDealt
                     else
-                        Spring.DestroyFeature(featureID)
+                        spDestroyFeature(featureID)
                     end
                 end
             end
         end
 
         if area.endFrame <= gameFrame then
-            table.remove(timedAreas, index)
+            tableRemove(timedAreas, index)
         end
     end
 
@@ -472,8 +484,9 @@ function gadget:Initialize()
     end
 
     featDamageImmunity = {}
-    for _, featureID in ipairs(Spring.GetAllFeatures()) do
-        local featureDefID = Spring.GetFeatureDefID(featureID)
+    for i = 1, #spGetAllFeatures() do
+        local featureID = spGetAllFeatures()[i]
+        local featureDefID = spGetFeatureDefID(featureID)
         local featureDef = FeatureDefs[featureDefID]
         if featureDef.indestructible or featureDef.geoThermal then
             featDamageImmunity[featureID] = true
@@ -499,9 +512,11 @@ function gadget:Initialize()
         isNewUnit = {}
 		local progressMax = 0.05 -- Assuming 20s build time. Any guess is fine (for /luarules reload).
 		local beingBuilt, progress, health, healthMax, framesRemaining
-        for _, unitID in ipairs(Spring.GetAllUnits()) do
-            beingBuilt, progress = Spring.GetUnitIsBeingBuilt(unitID)
-			health, healthMax = Spring.GetUnitHealth(unitID)
+        local allUnits = spGetAllUnits()
+        for i = 1, #allUnits do
+            local unitID = allUnits[i]
+            beingBuilt, progress = spGetUnitIsBeingBuilt(unitID)
+			health, healthMax = spGetUnitHealth(unitID)
             if beingBuilt and min(progress, health / healthMax) <= progressMax then
                 framesRemaining = frameInterval * (1 - 0.5 * min(progress, health / healthMax) / progressMax)
                 isNewUnit[unitID] = frameNumber + max(1, framesRemaining)

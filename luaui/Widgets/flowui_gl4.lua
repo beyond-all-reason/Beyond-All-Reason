@@ -15,6 +15,16 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+local mathMin = math.min
+local mathRandom = math.random
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
@@ -157,7 +167,7 @@ local Layers = {} -- A sorted list of Layer objects, each containing its own tex
 local LayerDrawOrder = {} --
 
 
-local floor = math.floor
+local floor = mathFloor
 -- what if I enabled LEFT, RIGHT, TOP, BOTTOM?
 -- and calced X,Y, W,H from it?
 
@@ -285,7 +295,7 @@ local function newElement(o) -- This table contains the default properties
 			element.depth = 0.5 - obj.treedepth * 0.002
 		end
 		if parent.VBO then
-			--Spring.Echo("Setting VBO of ",obj.name,'from parent', parent.name,'to', parent.VBO.myName)
+			--spEcho("Setting VBO of ",obj.name,'from parent', parent.name,'to', parent.VBO.myName)
 			obj.VBO = parent.VBO
 		end
 		if parent.layer then
@@ -328,14 +338,14 @@ function metaElement:UpdateTextPosition(newtext) -- for internal use only!
 	if newtext.alignment == nil then return end
 	--Spring.Debug.TraceFullEcho(nil,nil,nil,newtext.alignment)
 	if self.textalignments[newtext.alignment] == nil then
-		Spring.Echo("Text alignment for",newtext.text, "is invalid:", newtext.alignment)
+		spEcho("Text alignment for",newtext.text, "is invalid:", newtext.alignment)
 		--return
 	end
 	local elementwidth = self.right - self.left
 	local elementheight = self.top - self.bottom
 	local alignInteger = tonumber(newtext.alignment) or self.textalignments[newtext.alignment] or 5 --default center
 
-	if debugmode then Spring.Echo(newtext.alignment, newtext.text, newtext.textwidth, newtext.textheight, elementwidth, elementheight) end
+	if debugmode then spEcho(newtext.alignment, newtext.text, newtext.textwidth, newtext.textheight, elementwidth, elementheight) end
 	--if true then return end
 	--X coord
 	if alignInteger % 3 == 1 then -- left
@@ -392,7 +402,7 @@ end
 
 -- returns number of texts drawn, can also just count them
 function metaElement:DrawText(px,py,onlycount) -- parentx,parenty
-	--Spring.Echo(self)
+	--spEcho(self)
 	local count = 0
 	if self.textelements and not self.hidden then
 		for i, text in ipairs(self.textelements) do
@@ -400,7 +410,7 @@ function metaElement:DrawText(px,py,onlycount) -- parentx,parenty
 				font:Print(text.text, text.ox + self.left, text.oy + self.bottom, text.fontsize, text.textoptions)
 			end
 			count = count + 1
-			--Spring.Echo(text.text,text.ox, px, text.oy, py)
+			--spEcho(text.text,text.ox, px, text.oy, py)
 		end
 	end
 	if self.children then
@@ -416,12 +426,12 @@ function metaElement:GetElementUnderMouse(mx,my,depth)
 	depth = depth or 1
 	local hit = false
 	self.x = 1
-	--Spring.Echo("Testing",depth, self.name, self.left,self.right,self.top,self.bottom)
+	--spEcho("Testing",depth, self.name, self.left,self.right,self.top,self.bottom)
 	if mx >= self.left and mx <= self.right and my <= self.top and my >= self.bottom then hit = true end
-	--Spring.Echo("result:",hit)
+	--spEcho("result:",hit)
 	if hit == false then return nil end
 
-	--Spring.Echo("Testing",self.name, self.left,self.right,self.top,self.bottom)
+	--spEcho("Testing",self.name, self.left,self.right,self.top,self.bottom)
 	local childHit
 	if self.children then
 		for _, childElement in pairs(self.children) do -- assume no overlap between children, hit-first
@@ -435,7 +445,7 @@ end
 
 -- Will set all children to that visibility state too!
 function metaElement:SetVisibility(newvisibility)
-	--Spring.Echo("SetVisibility", self.name, newvisibility)
+	--spEcho("SetVisibility", self.name, newvisibility)
 	if newvisibility == false then
 		self.hidden = true -- this is for hit tests
 	else
@@ -457,7 +467,7 @@ function metaElement:UpdateVBOKeys(keyname, value, delta)
 			local VBO = self.VBO or rectRoundVBO
 			local success = getElementInstanceData(VBO, instanceKey, self.vboCache) -- this is empty! probbly instance does not exist in this
 			if success == nil then
-				Spring.Echo("element not found",self.name, VBO.myName,instanceKey)
+				spEcho("element not found",self.name, VBO.myName,instanceKey)
 				Spring.Debug.TraceFullEcho()
 			end
 
@@ -505,7 +515,7 @@ function metaElement:Reposition(dx, dy)
 		-- move text
 		if self.textelements then
 			for i, textelement in ipairs(self.textelements) do
-				--Spring.Echo(Spring.GetDrawFrame(),"repos", self.name, textelement.text)
+				--spEcho(Spring.GetDrawFrame(),"repos", self.name, textelement.text)
 				--textelement.ox = textelement.ox + dx
 				--textelement.oy = textelement.oy + dy
 			end
@@ -521,7 +531,7 @@ function metaElement:Reposition(dx, dy)
 end
 
 function metaElement:Destroy(depth)
-	--Spring.Echo("Destroying",self.name)
+	--spEcho("Destroying",self.name)
 	depth = (depth or 0 ) + 1
 	-- 1. hide self and children
 	self:SetVisibility(false)
@@ -545,7 +555,7 @@ function metaElement:Destroy(depth)
 	if (depth == 1) then
 		local VBO = self.VBO or rectRoundVBO
 		if VBO.destroyedElements * 3 > VBO.usedElements then
-			--Spring.Echo("Compacting")
+			--spEcho("Compacting")
 			VBO:compact()
 		end
 	end
@@ -554,7 +564,7 @@ function metaElement:Destroy(depth)
 		self.parent.children[self.name] = nil
 		self.parent = nil
 	else
-		Spring.Echo("Tried to destroy an orphan element", self.name)
+		spEcho("Tried to destroy an orphan element", self.name)
 	end
 
 
@@ -601,7 +611,7 @@ end
 
 function metaElement:NewButton(o) -- yay this objs shit again!
 	local obj = newElement(o)
-	--Spring.Echo(obj.name, obj.left, obj.right, obj.top, obj.bottom)
+	--spEcho(obj.name, obj.left, obj.right, obj.top, obj.bottom)
 	--parent, VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
 	obj.instanceKeys = Draw.Button( obj.VBO or rectRoundVBO, obj.name, obj.depth, obj.left, obj.bottom, obj.right, obj.top,
 		obj.tl or 1, obj.tr or 1, obj.br or 1, obj.bl or 1,  obj.ptl or 1, obj.ptr or 1, obj.pbr or 1, obj.pbl or 1,  obj.opacity or 1, 		obj.color1, obj.color2, obj.bgpadding or 3)
@@ -635,10 +645,10 @@ function metaElement:NewSlider(o)
 	o.MouseEvents = {
 		left = function(obj, mx, my)
 			-- get the offset of within the click?
-			local wratio = math.max(0,math.min(1.0,(mx - obj.left) / (obj.right - obj.left)))
+			local wratio = mathMax(0,mathMin(1.0,(mx - obj.left) / (obj.right - obj.left)))
 			local newvalue = math.round(obj.min + wratio * (obj.max-obj.min), obj.digits)
 			local newright = ((newvalue - obj.min) / (obj.max - obj.min)) *(obj.right - obj.left) + obj.left
-			if debugmode then Spring.Echo("left clicked", obj.name, mx, wratio, newvalue, newright) end
+			if debugmode then spEcho("left clicked", obj.name, mx, wratio, newvalue, newright) end
 			obj.updateValue(obj, newvalue, obj.index)
 			obj:UpdateVBOKeys('right', newright)
 		end,
@@ -646,7 +656,7 @@ function metaElement:NewSlider(o)
 			obj.updateValue(obj, obj.defaultvalue, obj.index, " <D>")
 			local newright = ((obj.value - obj.min) / (obj.max - obj.min)) *(obj.right - obj.left) + obj.left
 			obj:UpdateVBOKeys('right', newright)
-			if debugmode then  Spring.Echo("right clicked", obj.name, mx, my, newright, obj.value) end
+			if debugmode then  spEcho("right clicked", obj.name, mx, my, newright, obj.value) end
 		end,
 		hover = function (obj,mx,my)
 			if obj.tooltip and WG and WG['tooltip'] and WG['tooltip'].ShowTooltip then
@@ -657,9 +667,9 @@ function metaElement:NewSlider(o)
 	o.MouseEvents.drag = o.MouseEvents.left
 
 	local obj = newElement(o)
-	Spring.Echo('slidervboname',obj.VBO.myName)
+	spEcho('slidervboname',obj.VBO.myName)
 	obj.updateValue = function (obj, newvalue, index, tag)
-		if debugmode then  Spring.Echo("updateValue", obj.name, newvalue, index, tag, obj.valuetarget) end
+		if debugmode then  spEcho("updateValue", obj.name, newvalue, index, tag, obj.valuetarget) end
 		local oldvalue = obj.value
 		if newvalue == nil then return end
 		obj.value = newvalue
@@ -682,7 +692,7 @@ function metaElement:NewSlider(o)
 	if obj.VBO.dirty then uploadAllElements(obj.VBO) end
 
 	local defaultPos = ((obj.value - obj.min) / (obj.max - obj.min)) *(obj.right - obj.left) + obj.left
-	--Spring.Echo("Slider defaults",obj.value, obj.min, obj.max, obj.right, obj.left,defaultPos)
+	--spEcho("Slider defaults",obj.value, obj.min, obj.max, obj.right, obj.left,defaultPos)
 	obj:UpdateVBOKeys('right', defaultPos)
 
 	return obj
@@ -765,7 +775,7 @@ function metaElement:NewWindow(o)
 		tooltip = "Drag the window here",
 		textelements = {{text = o.windowtitle or "Draggy boi", fontsize = 16, alignment = 'top'},},
 		MouseEvents= {drag = function (obj, mx, my, lastmx, lastmy)
-			--Spring.Echo(obj.name, 'drag', mx, lastmx, my, lastmy)
+			--spEcho(obj.name, 'drag', mx, lastmx, my, lastmy)
 			obj.layer:Reposition(mx - lastmx, my - lastmy) --- ooooh this is really nasty
 			--obj.layer.scissorLayer[1] = obj.layer.scissorLayer[1] + mx - lastmx
 			--obj.layer.scissorLayer[2] = obj.layer.scissorLayer[2] + my - lastmy
@@ -784,7 +794,7 @@ function metaElement:NewWindow(o)
 		MouseEvents = {left = function(obj, mx, my)
 			-- hide all children below top
 			-- initstate
-			Spring.Echo(obj.name, 'minimize')
+			spEcho(obj.name, 'minimize')
 			obj.minimized = not obj.minimized
 			--obj.parent:UpdateVBOKeys('bottom', nil, obj.minimized and (obj.delta) or (-1* obj.delta))
 			local siblings = obj.parent.parent.children
@@ -804,7 +814,7 @@ function metaElement:NewWindow(o)
 		tooltip = "close",
 		textelements = {{text = "X", fontsize = 16, alignment = 'center'},},
 		MouseEvents = {left = function(obj, mx, my)
-			Spring.Echo(obj.name, "close")
+			spEcho(obj.name, "close")
 			obj.parent.parent:Destroy()
 			end}
 	})
@@ -832,7 +842,7 @@ function metaElement:NewWindow(o)
 					value = 3,
 					defaultvalue = 3,
 					valuetarget = nil,
-					callbackfunc = function (name,val) Spring.Echo(name,val) end ,
+					callbackfunc = function (name,val) spEcho(name,val) end ,
 					index = i,
 				})
 				i = i+1
@@ -910,12 +920,12 @@ local function uiUpdate(mx,my,left,middle,right)
 	end
 
 	if lasthitelement ~= elementundercursor and elementundercursor then
-		--Spring.Echo("hit",elementundercursor.name, elementundercursor.left, elementundercursor.right, elementundercursor.bottom, -elementundercursor.top)
+		--spEcho("hit",elementundercursor.name, elementundercursor.left, elementundercursor.right, elementundercursor.bottom, -elementundercursor.top)
 	end
 
 	lasthitelement = elementundercursor
 	if elementundercursor and elementundercursor.MouseEvents then
-		--Spring.Echo(elementundercursor, elementundercursor.name)
+		--spEcho(elementundercursor, elementundercursor.name)
 		if left and left ~= lastmouse.left then
 			if elementundercursor.MouseEvents.left then
 				elementundercursor.MouseEvents.left(elementundercursor,mx,my)
@@ -964,7 +974,7 @@ local function RefreshText() -- make this a member of layer class?
 				if Layer.textDisplayList then gl.DeleteList(Layer.textDisplayList) end
 				local textcount = Layer:DrawText(0,0,true)
 				if textcount >0 then
-					--Spring.Echo(Spring.GetDrawFrame(),"layer text rebuilt", layername)
+					--spEcho(Spring.GetDrawFrame(),"layer text rebuilt", layername)
 					Layer.textDisplayList = gl.CreateList(
 						function ()
 						font:Begin()
@@ -986,9 +996,9 @@ end
 local function DrawText()
 	--if true then return end
 	if useTextDisplayList then
-		--Spring.Echo("ROOT.textChanged",ROOT.textChanged)
+		--spEcho("ROOT.textChanged",ROOT.textChanged)
 		if textDisplayList == nil or ROOT.textChanged then
-			--Spring.Echo("Textchanged rebuilding display lists")
+			--spEcho("Textchanged rebuilding display lists")
 			ROOT.textChanged = false
 			textDisplayList = gl.CreateList(function ()
 			font:Begin()
@@ -1027,7 +1037,7 @@ local sliderListConfig = {
 	height = 32,
 	valuetarget = sliderValues,
 	sliderParamsList = sliderParamsList,
-	callbackfunc = function (a,b,c) Spring.Echo("Callback",a,b,c) end,
+	callbackfunc = function (a,b,c) spEcho("Callback",a,b,c) end,
 }
 
 local function requestWidgetLayer(widgetLayerParameters)
@@ -1109,8 +1119,8 @@ local function makeSliderList(sliderListConfig)
 		top = bottom + (i + 1) * sliderheight,
 		parent = container,
 		MouseEvents = {left = function()
-			Spring.Echo("Exporting Settings")
-			Spring.Echo(valuetarget)
+			spEcho("Exporting Settings")
+			spEcho(valuetarget)
 		end},
 		textelements = {{text = "Export "..sliderListConfig.name, fontsize = 16, alignment = 'center'},},
 	})
@@ -1127,7 +1137,7 @@ local function makebuttonarray()
 					right = 190 + 100*i,
 					top = 340 + 50 *j,
 					parent = ROOT,
-					MouseEvents = {left = function() Spring.Echo("left clicked",i,j) end},
+					MouseEvents = {left = function() spEcho("left clicked",i,j) end},
 					textelements = {{text = "mytext"..tostring(i).."-"..tostring(j),ox = 0, oy= 16,fontsize = 16,textoptions = 'B'},},
 
 				})
@@ -1148,7 +1158,7 @@ local function makeunitbuttonarray()
 	-- what can my boy build?
 	local unitDef = UnitDefs[UnitDefNames['armcom'].id]
 	for k,v in pairs(unitDef.buildOptions) do
-		Spring.Echo(k,v)
+		spEcho(k,v)
 	end
 	local n = 3
 	local s = 110
@@ -1159,7 +1169,7 @@ local function makeunitbuttonarray()
 			if unitDef.buildOptions[idx] then
 				local thisunitdefid = unitDef.buildOptions[idx]
 				local newbtn = metaElement:NewUiUnit({
-						name = "unitbutton"..tostring(math.random()),
+						name = "unitbutton"..tostring(mathRandom()),
 						LEFT = 1000 + s*i,
 						BOTTOM = 100 + s *j,
 						right = 1000 + s*(i + 1),
@@ -1173,10 +1183,10 @@ local function makeunitbuttonarray()
 						MouseEvents = {left = function(obj)
 								local instanceKeys = ''
 								for i, instanceKey in ipairs(obj.instanceKeys) do instanceKeys = instanceKeys .. "," .. tostring(instanceKey) end
-								Spring.Echo("left clicked unit",obj.name, instanceKeys)
+								spEcho("left clicked unit",obj.name, instanceKeys)
 						end,
 							right = function(obj)
-								Spring.Echo("right clicked", obj.name)
+								spEcho("right clicked", obj.name)
 								obj:Destroy()
 							end
 						},
@@ -1221,11 +1231,11 @@ local function AddRecursivelySplittingButton()
 						parent = obj,
 						})
 
-				Spring.Echo("left clicked unit",obj.name, instanceKeys)
+				spEcho("left clicked unit",obj.name, instanceKeys)
 		end,
 			right = function(obj)
 				-- destroy self
-				Spring.Echo("right clicked", obj.name)
+				spEcho("right clicked", obj.name)
 				obj:Destroy()
 			end
 		},
@@ -1593,7 +1603,7 @@ void main() {
 
 
 local function goodbye(reason)
-  Spring.Echo(widget:GetInfo().name .." widget exiting with reason: "..reason)
+  spEcho(widget:GetInfo().name .." widget exiting with reason: "..reason)
   widgetHandler:RemoveWidget(self)
 end
 
@@ -1615,17 +1625,17 @@ local function makeRectRoundVBO(name)
 	if rectRoundVBO == nil then goodbye("Failed to create rectRoundVBO") end
 
 	for i = 1, 0 do
-		local l = math.floor(math.random() * vsx/2)
-		local b = math.floor(math.random() * vsy/2)
-		local r = math.floor(l + math.random() * vsx/4)
-		local t = math.floor(b + math.random() * vsx/4)
+		local l = mathFloor(mathRandom() * vsx/2)
+		local b = mathFloor(mathRandom() * vsy/2)
+		local r = mathFloor(l + mathRandom() * vsx/4)
+		local t = mathFloor(b + mathRandom() * vsx/4)
 		local VBOData = {
 			l,b,r,t,
-			math.random() * 10, math.random() *20, math.random() * 30, math.random() * 40,
-			math.random() , math.random(), math.random() , math.random() ,
-			math.random() , math.random(), math.random() , math.random() ,
-			0,0,1,1, --math.random() , math.random(), math.random() , math.random() ,
-			math.random() , math.random(), math.random() , math.random() ,
+			mathRandom() * 10, mathRandom() *20, mathRandom() * 30, mathRandom() * 40,
+			mathRandom() , mathRandom(), mathRandom() , mathRandom() ,
+			mathRandom() , mathRandom(), mathRandom() , mathRandom() ,
+			0,0,1,1, --mathRandom() , mathRandom(), mathRandom() , mathRandom() ,
+			mathRandom() , mathRandom(), mathRandom() , mathRandom() ,
 			0,0,0,0,
 		}
 
@@ -1662,16 +1672,16 @@ local function makeShaders()
 		},
 		"rectRoundShader GL4"
 	)
-	--Spring.Echo("GS ############################################################ \n",gsSrc)
+	--spEcho("GS ############################################################ \n",gsSrc)
 	shaderCompiled = rectRoundShader:Initialize()
 	if not shaderCompiled then
 		goodbye("Failed to compile rectRoundShader GL4 ")
 
-		--Spring.Echo("VS ############################################################ \n",vsSrc)
-		--Spring.Echo("GS ############################################################ \n",gsSrc)
-		--Spring.Echo("FS ############################################################ \n",fsSrc)
+		--spEcho("VS ############################################################ \n",vsSrc)
+		--spEcho("GS ############################################################ \n",gsSrc)
+		--spEcho("FS ############################################################ \n",fsSrc)
 	else
-		Spring.Echo("Compile OK"	)
+		spEcho("Compile OK"	)
 	end
 
 end
@@ -1738,8 +1748,8 @@ Draw.RectRound = function (VBO, instanceID, z, px, py, sx, sy,  cs,  tl, tr, br,
 	if c1 == nil then c1 = {1.0,1.0,1.0,1.0} end
 	if c2 == nil then c2 = c1 end
 	progress = progress or 1
-	--Spring.Echo(c1)
-	--Spring.Echo(c2)
+	--spEcho(c1)
+	--spEcho(c2)
 
 	--cs = 10
 	local VBOData = {
@@ -1841,8 +1851,8 @@ end
 
 ]]
 Draw.RectRoundCircle = function (VBO, instanceID, z, x, y, radius, cs, centerOffset, c1, c2) -- returns table of instanceIDs
-	Spring.Echo("Draw.RectRoundCircle", x, y, radius, cs, centerOffset, c1, c2)
-	Spring.Echo(radius, radius - centerOffset)
+	spEcho("Draw.RectRoundCircle", x, y, radius, cs, centerOffset, c1, c2)
+	spEcho(radius, radius - centerOffset)
 	if z == nil then z = 0.5 end  -- fools depth sort
 	if c1 == nil then c1 = {1.0,1.0,1.0,1.0} end
 	if c2 == nil then c2 = c1 end
@@ -1898,7 +1908,7 @@ Draw.Element = function(VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl
 	local glossMult = 1 + (2 - (opacity * 1.5))
 	local tileopacity = Spring.GetConfigFloat("ui_tileopacity", 0.014)
 	local bgtexScale = Spring.GetConfigFloat("ui_tilescale", 7)
-	local bgtexSize = math.floor(WG.FlowUI.elementPadding * bgtexScale)
+	local bgtexSize = mathFloor(WG.FlowUI.elementPadding * bgtexScale)
 
 	local tl = tl or 1
 	local tr = tr or 1
@@ -1922,7 +1932,7 @@ Draw.Element = function(VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl
 
 	-- gloss on top and bottom of the button, very faint
 	--gl.Blending(GL.SRC_ALPHA, GL.ONE)
-	local glossHeight = math.floor(0.02 * WG.FlowUI.vsy * ui_scale)
+	local glossHeight = mathFloor(0.02 * WG.FlowUI.vsy * ui_scale)
 	-- top
 	local topgloss = Draw.RectRound(VBO, nil, z-0.002,px + pxPad, sy - syPad - glossHeight, sx - sxPad, sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.07 * glossMult })
 	-- bottom
@@ -1971,7 +1981,7 @@ Draw.Button = function(VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl,
 	local opacity = opacity or 1
 	local color1 = color1 or { 0, 0, 0, opacity}
 	local color2 = color2 or { 1, 1, 1, opacity * 0.1}
-	local bgpadding = math.floor(bgpadding or WG.FlowUI.buttonPadding*0.5)
+	local bgpadding = mathFloor(bgpadding or WG.FlowUI.buttonPadding*0.5)
 	local glossMult = 1 + (2 - (opacity * 1.5))
 
 	local tl = tl or 1
@@ -2000,8 +2010,8 @@ Draw.Button = function(VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl,
 
 	-- gloss
 	--gl.Blending(GL.SRC_ALPHA, GL.ONE)
-	local glossHeight = math.floor((sy-py)*0.5)
-	local gloss1 = Draw.RectRound(VBO, nil, z-0.002,px + pxPad, sy - syPad - math.floor((sy-py)*0.5), sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0, { 1, 1, 1, 0.03 }, { 1, 1, 1, 0.1 * glossMult })
+	local glossHeight = mathFloor((sy-py)*0.5)
+	local gloss1 = Draw.RectRound(VBO, nil, z-0.002,px + pxPad, sy - syPad - mathFloor((sy-py)*0.5), sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0, { 1, 1, 1, 0.03 }, { 1, 1, 1, 0.1 * glossMult })
 	local gloss2 = Draw.RectRound(VBO, nil, z-0.002,px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, bgpadding, 0, 0, br, bl, { 1, 1, 1, 0.03 * glossMult }, { 1 ,1 ,1 , 0 })
 	local gloss3 = Draw.RectRound(VBO, nil, z-0.002,px + pxPad, py + pyPad, sx - sxPad, py + pyPad + ((sy-py)*0.2), bgpadding, 0, 0, br, bl, { 1,1,1, 0.02 * glossMult }, { 1,1,1, 0 })
 	local gloss4 = Draw.RectRound(VBO, nil, z-0.002,px + pxPad, sy- ((sy-py)*0.5), sx - sxPad, sy, bgpadding, tl, tr, 0, 0, { 1,1,1, 0 }, { 1,1,1, 0.07 * glossMult })
@@ -2025,8 +2035,8 @@ end
 		queueCount
 ]]
 Draw.Unit = function(VBO, instanceID, z, px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  borderSize, borderOpacity,  texture, radarTexture, groupTexture, price, queueCount)
-	local borderSize = borderSize~=nil and borderSize or math.min(math.max(1, math.floor((sx-px) * 0.024)), math.floor((WG.FlowUI.vsy*0.0015)+0.5))	-- set default with upper limit
-	local cs = cs~=nil and cs or math.max(1, math.floor((sx-px) * 0.024))
+	local borderSize = borderSize~=nil and borderSize or mathMin(mathMax(1, mathFloor((sx-px) * 0.024)), mathFloor((WG.FlowUI.vsy*0.0015)+0.5))	-- set default with upper limit
+	local cs = cs~=nil and cs or mathMax(1, mathFloor((sx-px) * 0.024))
 
 	-- draw unit
 	--[[
@@ -2087,7 +2097,7 @@ Draw.Unit = function(VBO, instanceID, z, px, py, sx, sy,  cs,  tl, tr, br, bl,  
 	--gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	if groupTexture then
-		local iconSize = math.floor((sx - px) * 0.3)
+		local iconSize = mathFloor((sx - px) * 0.3)
 		--gl.Color(1, 1, 1, 0.9)
 		--gl.Texture(groupTexture)
 		--gl.TexRect(px, sy - iconSize, px + iconSize, sy)
@@ -2100,8 +2110,8 @@ Draw.Unit = function(VBO, instanceID, z, px, py, sx, sy,  cs,  tl, tr, br, bl,  
 
 	end
 	if radarTexture then
-		local iconSize = math.floor((sx - px) * 0.25)
-		local iconPadding = math.floor((sx - px) * 0.03)
+		local iconSize = mathFloor((sx - px) * 0.25)
+		local iconPadding = mathFloor((sx - px) * 0.03)
 		--gl.Color(1, 1, 1, 0.9)
 		--gl.Texture(radarTexture)
 		--gl.TexRect(sx - iconPadding - iconSize, py + iconPadding, sx - iconPadding, py + iconPadding + iconSize)
@@ -2117,10 +2127,10 @@ Draw.Unit = function(VBO, instanceID, z, px, py, sx, sy,  cs,  tl, tr, br, bl,  
 		cnt = cnt + 1
 	end
 	if cnt < 7 then
-		Spring.Echo("Some elements not spawned in ",texture)
+		spEcho("Some elements not spawned in ",texture)
 
 		for k,v in pairs(elementIDs) do
-			Spring.Echo(k,v)
+			spEcho(k,v)
 		end
 	end
 	return elementIDs
@@ -2137,12 +2147,12 @@ end
 ]]
 Draw.Scroller = function(VBO, instanceID, z, px, py, sx, sy, contentHeight, position)
 	if z == nil then z = 0.5 end
-	local padding = math.floor(((sx-px)*0.25) + 0.5)
+	local padding = mathFloor(((sx-px)*0.25) + 0.5)
 	local sliderHeight =  (sy - py - padding - padding) / contentHeight
 	--if sliderHeight < 1 then
 	position = position or 0
-	sliderHeight = math.floor((sliderHeight * (sy - py)) + 0.5)
-	local sliderPos = math.floor((sy - ((sy - py) * (position / contentHeight))) + 0.5)
+	sliderHeight = mathFloor((sliderHeight * (sy - py)) + 0.5)
+	local sliderPos = mathFloor((sy - ((sy - py) * (position / contentHeight))) + 0.5)
 
 	-- background
 	local background = Draw.RectRound(VBO, nil, z, px, py, sx, sy, (sx-px)*0.2, 1,1,1,1, { 0,0,0,0.2 })
@@ -2164,7 +2174,7 @@ end
 ]]
 Draw.Toggle = function(VBO, instanceID, z, px, py, sx, sy, state)
 	local cs = (sy-py)*0.1
-	local edgeWidth = math.max(1, math.floor((sy-py) * 0.1))
+	local edgeWidth = mathMax(1, mathFloor((sy-py) * 0.1))
 
 	-- faint dark outline edge
 	local outlineedge = Draw.RectRound(VBO, nil, z - 0.000, px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.05 })
@@ -2180,9 +2190,9 @@ Draw.Toggle = function(VBO, instanceID, z, px, py, sx, sy, state)
 	--gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- draw state
-	local padding = math.floor((sy-py)*0.2)
-	local radius = math.floor((sy-py)/2) - padding
-	local y = math.floor(py + ((sy-py)/2))
+	local padding = mathFloor((sy-py)*0.2)
+	local radius = mathFloor((sy-py)/2) - padding
+	local y = mathFloor(py + ((sy-py)/2))
 	local x, color, glowMult
 	if state == true or state == 1 then		-- on
 		x = sx - padding - radius
@@ -2193,7 +2203,7 @@ Draw.Toggle = function(VBO, instanceID, z, px, py, sx, sy, state)
 		color = {0.95,0.66,0.66,1}
 		glowMult = 0.3
 	else		-- in between
-		x = math.floor(px + ((sx-px)*0.42))
+		x = mathFloor(px + ((sx-px)*0.42))
 		color = {1,0.9,0.7,1}
 		glowMult = 0.6
 	end
@@ -2237,8 +2247,8 @@ Draw.SliderKnob = function(VBO, instanceID, z, x, y, radius, color)
 	if z == nil then z = 0.5 end
 	local color = color or {0.95,0.95,0.95,1}
 	local color1 = {color[1]*0.55, color[2]*0.55, color[3]*0.55, color[4]}
-	local edgeWidth = math.max(1, math.floor(radius * 0.05))
-	local cs = math.max(1.1, radius*0.15)
+	local edgeWidth = mathMax(1, mathFloor(radius * 0.05))
+	local cs = mathMax(1.1, radius*0.15)
 
 	-- faint dark outline edge
 	local outline = Draw.RectRound(VBO, nil, z - 0.000, x-radius-edgeWidth, y-radius-edgeWidth, x+radius+edgeWidth, y+radius+edgeWidth, cs, 1,1,1,1, {0,0,0,0.1})
@@ -2263,7 +2273,7 @@ Draw.Slider = function(VBO, instanceID, z, px, py, sx, sy, steps, min, max)
 	if z == nil then z = 0.5 end
 
 	local cs = (sy-py)*0.25
-	local edgeWidth = math.max(1, math.floor((sy-py) * 0.1))
+	local edgeWidth = mathMax(1, mathFloor((sy-py) * 0.1))
 	-- faint dark outline edge
 	local darkoutline = Draw.RectRound(VBO, nil, z - 0.000, px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.05 })
 	-- top
@@ -2281,14 +2291,14 @@ Draw.Slider = function(VBO, instanceID, z, px, py, sx, sy, steps, min, max)
 			max = steps[#steps]
 			numSteps = #steps
 			for _,value in pairs(steps) do
-				processedSteps[#processedSteps+1] = math.floor((px + (sliderWidth*((value-min)/(max-min)))) + 0.5)
+				processedSteps[#processedSteps+1] = mathFloor((px + (sliderWidth*((value-min)/(max-min)))) + 0.5)
 			end
 			-- remove first step at the bar start
 			processedSteps[1] = nil
 		elseif min and max then
 			numSteps = (max-min)/steps
 			for i=1, numSteps do
-				processedSteps[#processedSteps+1] = math.floor((px + (sliderWidth/numSteps) * (#processedSteps+1)) + 0.5)
+				processedSteps[#processedSteps+1] = mathFloor((px + (sliderWidth/numSteps) * (#processedSteps+1)) + 0.5)
 				i = i + 1
 			end
 		end
@@ -2297,8 +2307,8 @@ Draw.Slider = function(VBO, instanceID, z, px, py, sx, sy, steps, min, max)
 
 		-- dont bother when steps too small
 		if numSteps and numSteps < (sliderWidth/7) then
-			local stepSizeLeft = math.max(1, math.floor(sliderWidth*0.01))
-			local stepSizeRight = math.floor(sliderWidth*0.005)
+			local stepSizeLeft = mathMax(1, mathFloor(sliderWidth*0.01))
+			local stepSizeRight = mathFloor(sliderWidth*0.005)
 			for _,posX in pairs(processedSteps) do
 				local step = Draw.RectRound(VBO, nil, z - 0.001 * #instanceIDs,posX-stepSizeLeft, py+1, posX+stepSizeRight, sy-1, stepSizeLeft, 1,1,1,1, { 0.12,0.12,0.12,0.22 }, { 0,0,0,0.22 })
 				instanceIDs[#instanceIDs + 1] = step
@@ -2328,7 +2338,7 @@ end
 Draw.Selector = function(VBO, instanceID, z, px, py, sx, sy)
 	z = z or 0.5
 	local cs = (sy-py)*0.1
-	local edgeWidth = math.max(1, math.floor((sy-py) * 0.1))
+	local edgeWidth = mathMax(1, mathFloor((sy-py) * 0.1))
 
 	-- faint dark outline edge
 	local darkoutline = Draw.RectRound(VBO, nil, z - 0.00, px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.05 })
@@ -2363,7 +2373,7 @@ end
 Draw.SelectHighlight = function(VBO, instanceID, z, px, py, sx, sy,  cs, opacity, color)
 	z = z or 0.5
 	local cs = cs or (sy-py)*0.08
-	local edgeWidth = math.max(1, math.floor((WG.FlowUI.vsy*0.001)))
+	local edgeWidth = mathMax(1, mathFloor((WG.FlowUI.vsy*0.001)))
 	local opacity = opacity or 0.35
 	local color = color or {1,1,1}
 
@@ -2460,14 +2470,14 @@ function widget:Update()
 			end
 			if aclear then nonoverlapping[LayerDrawOrder[a]] = true end
 		end
-		--Spring.Echo("overlaps:", numoverlapping)
+		--spEcho("overlaps:", numoverlapping)
 	end
 end
 
 local function DrawLayer(layername)
 	local Layer = Layers[layername]
 	if Layer.VBO.dirty then uploadAllElements(Layer.VBO) end
-	--Spring.Echo(Layer.name, Layer.VBO.usedElements)
+	--spEcho(Layer.name, Layer.VBO.usedElements)
 	rectRoundShader:SetUniformFloat("scissorLayer", Layer.scissorLayer[1], Layer.scissorLayer[2], Layer.scissorLayer[3], Layer.scissorLayer[4])
 	rectRoundShader:SetUniformFloat("scrollScale", Layer.scrollScale[1], Layer.scrollScale[2], Layer.scrollScale[3], Layer.scrollScale[4])
 	Layer.VBO.instanceVAO:DrawArrays(GL.POINTS,Layer.VBO.usedElements, 0, nil, 0)
@@ -2480,14 +2490,14 @@ function widget:DrawScreen()
 	end
 	if elems < 0  then
 		elems = elems+1
-		local x = math.floor(math.random()*vsx)
-		local y = math.floor(math.random()*vsy)
-		local s = math.floor(math.random()*35+70)
+		local x = mathFloor(mathRandom()*vsx)
+		local y = mathFloor(mathRandom()*vsy)
+		local s = mathFloor(mathRandom()*35+70)
 		local w = x+s*2
 		local h = y+s
-		local r = math.random()
+		local r = mathRandom()
 		if r < 0.1 then
-			--btninstance = Draw.Button(rectRoundVBO, nil, 0.4, x,y,w,h, 1,1,1,1, 1,1,1,1, nil, { math.random(), math.random(), math.random(), 0.8 }, { math.random(), math.random(), math.random(), 0.8 },  WG.FlowUI.elementCorner*0.4)
+			--btninstance = Draw.Button(rectRoundVBO, nil, 0.4, x,y,w,h, 1,1,1,1, 1,1,1,1, nil, { mathRandom(), mathRandom(), mathRandom(), 0.8 }, { mathRandom(), mathRandom(), mathRandom(), 0.8 },  WG.FlowUI.elementCorner*0.4)
 		elseif r < 0.2 then
 			btninstance = Draw.Button(rectRoundVBO, nil, 0.4, x,y,w,h, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, {0.2, 0.8, 0.2, 0.8 }, WG.FlowUI.elementCorner * 0.5)
 			--Draw.SelectHighlight(rectRoundVBO, nil, 0.5, x,y,w,h,1)
