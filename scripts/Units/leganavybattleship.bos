@@ -2,8 +2,6 @@
 #include "../recoil_common_includes.h"
 #include "../opencloseanim.h"
 
-// piece  flarea, barrelb1, barrelb2, barrelb3, base, guna, turreta, turretb,
-//        flareb1, flareb2, flareb3, wake, bow, sleeveb1, sleeveb2, sleeveb3, sleevea, barrela1, barrela2, barrela3;
 
 piece
 	upperLegFL,
@@ -104,10 +102,8 @@ static-var deltaheading, newchassisheading, chassisheading, restore_position, ai
 #define RB_RECOIL_ENERGY_1 150
 #define RB_RECOIL_ENERGY_2 150
 #define RB_BOWSPLASH_PIECE bow
-// #define RB_WAKESPLASH_PIECE base
 
 #include "../bar_ships_common.h"
-// #include "../unit_hitbyweaponid_and_smoke.h"
 
 //-------------------------------CONSTANT ACCELERATION mainTurretHousing TURNING---------------------------
 // MaxVelocity and acceleration are in degrees per frame (not second!)
@@ -130,6 +126,7 @@ static-var  isMoving, isAiming, inWaterForm,
 /////////////////////////////////////////////////////////////// WALK CYCLE
 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
+// this iteration cannot ever use a while loop or else memory leak will happen, every if statement is perfectly timed
 static-var animSpeed, animFramesPerKeyframe;
 //#define SIGNAL_MOVE 1
 Walk() {//
@@ -1398,8 +1395,10 @@ Wake()
 	{
 	if( isInWater )
 		{
-        	emit-sfx 1024+1 from base;
-        	if (bowtime AND isMoving and isInWater) emit-sfx 1024 + 2 from wake;
+        	if (bowtime AND isMoving and isInWater){
+				emit-sfx 1024 + 1 from wake;
+				emit-sfx 1024 + 2 from bow;
+			}
         	bowtime = !bowtime;
         	waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
         	if( waketime < 20 ) waketime = 20;
@@ -1662,7 +1661,7 @@ QueryWeapon1(pieceIndex)
 	}
 }
 
-///////// riot cannon mode
+///////// land cannon mode switch
 
 AimWeapon2(heading, pitch)
 {
