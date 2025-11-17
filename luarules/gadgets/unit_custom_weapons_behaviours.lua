@@ -271,7 +271,7 @@ specialEffectFunction.guidance = function(projectileID)
 	if spGetProjectileTimeToLive(projectileID) > 0 then
 		local ownerID = spGetProjectileOwnerID(projectileID)
 
-		if not ownerID then
+		if spGetUnitIsDead(ownerID) ~= false then
 			return true
 		end
 
