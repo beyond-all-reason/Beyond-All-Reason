@@ -282,7 +282,7 @@ specialEffectFunction.guidance = function(projectileID)
 			-- Guidance weapon must be the primary and have burst/reload > 1 frame.
 			-- This is hackish but works well to prevent spammy retargeting anyway.
 			results = {
-				spGetUnitWeaponState(ownerID, 1, "nextSalvo") + 1 >= gameFrame,
+				(spGetUnitWeaponState(ownerID, 1, "nextSalvo") or 0) + 1 >= gameFrame,
 				spGetUnitWeaponTarget(ownerID, 1)
 			}
 			resultCaches.guidance[ownerID] = results
