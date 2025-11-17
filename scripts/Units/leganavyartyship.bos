@@ -259,6 +259,7 @@ AimWeapon1(heading, pitch)
 	turn mainTurretHousing to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <25.0>;
 	
 	call-script CATT1_Aim(heading,pitch);
+    start-script RestoreAfterDelay();
 	return (1);
 }
 

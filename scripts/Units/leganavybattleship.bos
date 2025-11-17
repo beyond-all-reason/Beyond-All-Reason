@@ -1597,6 +1597,7 @@ AimWeapon1(heading, pitch)
 		}
 	}
 	else{
+		start-script RestoreAfterDelay();
 		return (0);
 	}
 
@@ -1688,6 +1689,7 @@ AimWeapon2(heading, pitch)
 		}
 	}
 	else{
+		start-script RestoreAfterDelay();
 		return (0);
 	}
 }
@@ -1756,12 +1758,12 @@ AimWeapon3(heading, pitch)
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-	turn frontGunStrut to y-axis heading speed <120.0>;
+	turn frontTurretHeadingTurret to y-axis heading speed <120.0>;
 	turn frontTurretPitchPivot to x-axis <0.0> - pitch speed <25.0>;
 	if (get ABS(last_primary_heading2 - heading)> <20>)
 	{
 		// seems to take 3 frames for wait-for-turn to process
-		wait-for-turn frontGunStrut around y-axis;
+		wait-for-turn frontTurretHeadingTurret around y-axis;
 		wait-for-turn frontTurretPitchPivot around x-axis;
 	}
 	last_primary_heading2 = heading;
@@ -1778,7 +1780,7 @@ FireWeapon3()
 
 AimFromWeapon3(pieceIndex)
 {
-	pieceIndex = frontGunStrut;
+	pieceIndex = frontTurretHeadingTurret;
 }
 
 QueryWeapon3(pieceIndex)
@@ -1790,12 +1792,12 @@ AimWeapon4(heading, pitch)
 {
 	signal SIGNAL_AIM3;
 	set-signal-mask SIGNAL_AIM3;
-	turn rearGunStrut to y-axis <180> + heading speed <120.0>;
+	turn rearTurretHeadingPivot to y-axis <180> - heading speed <120.0>;
 	turn rearTurretPitchPivot to x-axis <0.0> - pitch speed <25.0>;
 	if (get ABS(last_primary_heading3 - heading)> <20>)
 	{
 		// seems to take 3 frames for wait-for-turn to process
-		wait-for-turn rearGunStrut around y-axis;
+		wait-for-turn rearTurretHeadingPivot around y-axis;
 		wait-for-turn rearTurretPitchPivot around x-axis;
 	}
 	last_primary_heading3 = heading;
@@ -1812,7 +1814,7 @@ FireWeapon4()
 
 AimFromWeapon4(pieceIndex)
 {
-	pieceIndex = rearGunStrut;
+	pieceIndex = rearTurretHeadingPivot;
 }
 
 QueryWeapon4(pieceIndex)
