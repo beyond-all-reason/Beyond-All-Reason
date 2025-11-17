@@ -298,6 +298,32 @@ local options = {
 		column	= 1.76,
 	},
     {
+        key		= "stun_unit_after_sharing",
+        name	= "Stun Units After Sharing",
+        desc	= "Stun Units After Sharing",
+        type	= "list",
+        def		= "off",
+        section	= "options_main",
+        items	= {
+            { key= "off",  name= "Normal Unit Sharing", desc="Allow all shared units to be used immediately."},
+            { key= "stun_eco_and_con", name= "Stun Eco and Construction Units", 	desc="Sharing of economy, factory, and all construction units temporarily stuns the unit for several seconds."},
+            { key= "stun_all", name= "Stun all shared units", desc="Sharing any unit temporarily disables the unit for several seconds."},            
+        }
+    },
+    {
+        key    	= "stun_units_after_transfer_duration_seconds",
+        name   	= "Stun Duration After Share".."\255\128\128\128".." [seconds]",
+        desc   	= "The amount of time units will be stunned after transfer (in seconds)\n"..
+					"Set to [0] to turn off. Range: 0 - 60 seconds",
+        type   	= "number",
+        section	= "options_main",
+        def    	= 0,
+        min    	= 0,
+        max    	= 60,
+        step   	= 1,
+        column	= 1,
+    },
+    {
         key     = "sub_header",
         section = "options_main",
         type    = "separator",
