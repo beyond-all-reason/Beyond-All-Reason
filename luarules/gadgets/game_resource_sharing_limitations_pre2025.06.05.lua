@@ -26,8 +26,22 @@ end
 -- localized functions
 local SpSetTeamShareLevel = Spring.SetTeamShareLevel
 local SpShareTeamResource = Spring.ShareTeamResource
-local SpUseTeamResource = Spring.UseTeamResource
-local SpAddTeamResource = Spring.AddTeamResource
+
+local SilentAdd = function (teamID, resType, amount)
+	local current = Spring.GetTeamResources(teamID, resType)
+	Spring.SetTeamResource(teamID, resType, current + amount)
+end
+
+local SilentUse = function (teamID, resType, amount)
+	local current = Spring.GetTeamResources(teamID, resType)
+	if current >= amount then
+		Spring.SetTeamResource(teamID, resType, current - amount)
+		return true
+	else
+		return false
+	end
+end
+
 
 
 -- localized lists
@@ -40,15 +54,15 @@ local ForcedRequests = {}
 local lastRecv = {}
 local lastSent = {}
 local lastExcess = {}
-local teamOverflowedLastFrame = {}
-local allyTeamOverflowedLastFrame = {}
+local availableTeamOverflow = {}
+local totalAvailableAllyTeamOverflow = {}
 
 for _, teamID in pairs(teamList) do
-	teamOverflowedLastFrame[teamID] = {metal = 0, energy = 0} -- set to 0 for gamestart
-	lastRecv[teamID] = {metal = 0, energy = 0}
-	lastSent[teamID] = {metal = 0, energy = 0}
-	lastExcess[teamID] = {metal = 0, energy = 0}
-	if disable_overflow or sharing_tax > 0 then -- force to 1.0 when mod option is enabled
+	local _, _, curExcessedM, curRecvM, curSentM = Spring.GetTeamResourceStats(teamID, "m")
+	local _, _, curExcessedE, curRecvE, curSentE = Spring.GetTeamResourceStats(teamID, "e")
+	availableTeamOverflow[teamID] = {metal = 0, energy = 0} -- set to 0 for gamestart
+	lastExcess[teamID] = {metal = curExcessedM, energy = curExcessedE}
+	if disable_overflow then -- force to 1.0 when mod option is enabled
 		SpSetTeamShareLevel(teamID, "metal", 1.0)
 		SpSetTeamShareLevel(teamID, "energy", 1.0)
 	end
@@ -56,108 +70,129 @@ end
 
 for _, allyTeam in pairs(allyTeamList) do
 	allyteamTeamList[allyTeam] = Spring.GetTeamList(allyTeam) -- register our allyteamTeamLists
-	allyTeamOverflowedLastFrame[allyTeam] = {metal = 0, energy = 0} -- set to 0 for game start
+	totalAvailableAllyTeamOverflow[allyTeam] = {metal = 0, energy = 0} -- set to 0 for game start
+end
+
+function GetAvailableUnderShare(teamID, resType)
+	local current, storage,_,_,_,share = Spring.GetTeamResources(teamID, resType)
+	return (storage*share) - current
 end
 
 function GetAvailableStorage(teamID, resType)
-	local current, storage = Spring.GetTeamResources(teamID, resType)
-	return math.max(0, storage - current)
-end
-
-function GG.ForcedResourceSharing(senderTeamId, receiverTeamId, resourceType, amount) -- set this as a global function in case we need some ways to override current limitations
-	local hash = Hash(senderTeamId, receiverTeamId, resourceType, amount) -- we hash, then register, then send a new ShareRequest with the proper value, which will be validated by our allowResourceTransfer process
-	if resourceType == "m" then
-		resourceType = "metal"
-	elseif resourceType == "e" then
-		resourceType = "energy"
-	end
-	ForcedRequests[hash] = true
-	SpShareTeamResource(senderTeamId, receiverTeamId, resourceType, amount)
-	lastSent[senderTeamId][resourceType] = lastSent[senderTeamId][resourceType] + amount
-	lastRecv[receiverTeamId][resourceType] = lastRecv[receiverTeamId][resourceType] + amount
-end
-
-function Hash(senderTeamId, receiverTeamId, resourceType, amount)
-	local frame = Spring.GetGameFrame()
-	local str = frame .. senderTeamId .. receiverTeamId .. resourceType .. amount
-	return str
+	local current, storage,_,_,_,share = Spring.GetTeamResources(teamID, resType)
+	return math.max(0,storage - current)
 end
 
 function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType, amount) 
-
-	-- other sharing restrictions have to happen before this one
-	-- so this is never actually called if anything else has been preventing the share from happening.
-	-- By the time a "sharing process" have reached this, this means the share is legal, so sending a new request from here with the same params should no be an issue.
-	-- So it just means we need a higher layer than other restrictions
-
-	local hash = Hash(senderTeamId, receiverTeamId, resourceType, amount)
-	if ForcedRequests[hash] == true then
-		ForcedRequests[hash] = nil
-		return true
-	end
 	if disable_manual_resource_sharing then
 		return false
 	end
-	SpUseTeamResource(senderTeamId, resourceType, sharing_tax * amount) -- we apply the tax here and not within ForcedResourceSharing because ForcedResourceSharing is supposed to be a method that bypasses AllowResourceTransfer process
-	GG.ForcedResourceSharing(senderTeamId, receiverTeamId, resourceType, (1 - sharing_tax) * amount)
+	SilentUse(senderTeamId, resourceType, sharing_tax * amount) -- we apply the tax here and not within ForcedResourceSharing because ForcedResourceSharing is supposed to be a method that bypasses AllowResourceTransfer process
+	SpShareTeamResource(senderTeamId, receiverTeamId, resourceType, amount) -- 2025.06.11 should not trigger allowresourcetransfer anymore ++
 	return false
 end
 
-if (sharing_tax > 0 or disable_overflow) then -- only enable this part if we need to manage overflow
+-- reimplemented overflow here, even without tax; so from now on it should always be on
 
+	function Leak(allyTeam)
+	
+		local resTypes = {"metal", "energy"}
+		local totalAvailableAllyTeamUnderShare = {metal = 0, energy = 0}
+		local availableTeamUnderShare = {}
 
-	function KillOverflow(teamID, resType, amount) -- cancel the overflow from last slowUpdate
-		if amount > 0 then
-			local curr = Spring.GetTeamResources(teamID, resType)
-			Spring.SetTeamResource(teamID, string.sub(resType, 1, 1), curr - amount)
-		end
-	end
+		-- STEP 1; REFUND OWNED EXCESS + ASSESS UNDERSHARE CAPACITIES + FUND OVERSHARE EXCESS
 
-	function Leak(allyTeam, metal, energy)
-		if metal == 0 then metal = nil end
-		if energy == 0 then energy = nil end
-
-		local preTaxValue = {metal = metal, energy = energy}
-		local totalAvailableAllyTeamStorages = {metal = 0, energy = 0}
-		local availableTeamStorage = {}
-
-		for _, teamID in pairs(allyteamTeamList[allyTeam]) do -- 1st iteration's goal is to assess the available storage
-			availableTeamStorage[teamID] = {}
-			for resType, excess in pairs(preTaxValue) do -- this only runs if excess ~= nil so we're not processing null excess
-				local availableStorage = GetAvailableStorage(teamID, resType)
-				if teamOverflowedLastFrame[teamID][resType] > 0 and availableStorage > 0 then -- this can happen because we do not process excess in real time, we have to do it because otherwise we might tax the same "resource" twice
-					local shareBack = math.min(teamOverflowedLastFrame[teamID][resType], availableStorage)
-					SpAddTeamResource(teamID, resType, shareBack)
-					availableStorage = availableStorage - shareBack
-					teamOverflowedLastFrame[teamID][resType] = teamOverflowedLastFrame[teamID][resType] - shareBack
-					allyTeamOverflowedLastFrame[allyTeam][resType] = allyTeamOverflowedLastFrame[allyTeam][resType] - shareBack
-					preTaxValue[resType] = preTaxValue[resType] - shareBack
+		for _, teamID in pairs(allyteamTeamList[allyTeam]) do
+			availableTeamUnderShare[teamID] = {}
+			for _, resType in pairs(resTypes) do
+			
+				local availableUnderShare = GetAvailableUnderShare(teamID, resType)
+				
+				if availableUnderShare > 0 then -- POSITIVE AVAILABLE UNDERSHARE; START REFUNDING AS MUCH AS POSSIBLE
+					local shareBack = math.min(availableTeamOverflow[teamID][resType], availableUnderShare) -- AMOUNT TO SHARE BACK
+					SilentAdd(teamID, resType, shareBack) -- SILENTLY add
+					
+					availableUnderShare = availableUnderShare - shareBack -- REMOVE FROM AVAILABLE STORAGE
+					
+					availableTeamOverflow[teamID][resType] = availableTeamOverflow[teamID][resType] - shareBack -- REMOVE FROM OWN AVAILABLE RESOURCES
+					totalAvailableAllyTeamOverflow[allyTeam][resType] = totalAvailableAllyTeamOverflow[allyTeam][resType] - shareBack -- REMOVE FROM TOTAL ALLYTEAM AVAILABLE RESOURCES
+					
+					
+				elseif availableUnderShare < 0 then -- NEGATIVE AVAILABLE UNDERSHARE; REMOVE RESOURCES TO FUND SHARE POOL
+					local funds = math.abs(availableUnderShare) -- AMOUNT TO REMOVE TO REACH %SHARE VALUE
+					
+					SilentUse(teamID, resType, funds) -- SILENTLY use
+					
+					availableTeamOverflow[teamID][resType] = availableTeamOverflow[teamID][resType] + funds -- ADD TO OWN AVAILABLE RESOURCES
+					totalAvailableAllyTeamOverflow[allyTeam][resType] = totalAvailableAllyTeamOverflow[allyTeam][resType] + funds  -- ADD TO TOTAL ALLYTEAM AVAILABLE RESOURCES
+					availableUnderShare = 0 -- NO UNDERSHARE STORAGE AVAILABLE
 				end
-				availableTeamStorage[teamID][resType] = availableStorage
-				totalAvailableAllyTeamStorages[resType] = totalAvailableAllyTeamStorages[resType] + availableStorage
+				
+				-- ADD AVAILABLE UNDERSHARE VALUES AFTER 1st CORRECTIONS
+				availableTeamUnderShare[teamID][resType] = availableUnderShare
+				totalAvailableAllyTeamUnderShare[resType] = totalAvailableAllyTeamUnderShare[resType] + availableUnderShare
 			end
 		end
 
-		if preTaxValue.metal == 0 then preTaxValue.metal = nil end -- if our shareBack process left 0 excess, we again filter out null excesses to avoid needless processing
-		if preTaxValue.energy == 0 then preTaxValue.energy = nil end
+		-- STEP 2: FILL EVERYONE IN THE TEAM UP TO THEIR INDIVIDUAL %SHARE CURSOR 
+		for _, resType in pairs(resTypes) do
+			if totalAvailableAllyTeamOverflow[allyTeam][resType] > 0 then -- WE HAVE RESOURCES OF THIS TYPE TO SHARE // SKIP
+				if totalAvailableAllyTeamUnderShare[resType] > 0 then -- WE HAVE ROOM TO RECEIVE MORE RESOURCES OF THIS TYPE
+					local costToFill = (totalAvailableAllyTeamUnderShare[resType]) / (1-sharing_tax) -- AMOUNT OF RESOURCES TO SEND IF WE WANT TO FILL EVERYONE			
+					local globalPercent = math.min(1,(totalAvailableAllyTeamOverflow[allyTeam][resType]) / costToFill) -- PERCENT OF EVERYONE'S UNDERSHARE STORAGE THAT WE SHOULD BE ABLE TO FILL
 
-		for resType, excess in pairs(preTaxValue) do -- 2nd iteration: either available storage is null and we just reset counters, or is non null and we add resources then reset counters
-			if totalAvailableAllyTeamStorages[resType] <= 0 then
-				for _, teamID in pairs(allyteamTeamList[allyTeam]) do
-					teamOverflowedLastFrame[teamID][resType] = 0 -- just reset counter
-				end
-			else	
-				local postTaxValue = excess * (1 - sharing_tax)
-				local percent = math.min(1, postTaxValue / totalAvailableAllyTeamStorages[resType])
-				local SharedAmount = 0
-				for _, teamID in pairs(allyteamTeamList[allyTeam]) do
-					local aftTaxAmount = percent * availableTeamStorage[teamID][resType]
-					local preTaxAmount = aftTaxAmount / (1 - sharing_tax)
-					SpAddTeamResource(teamID, resType, aftTaxAmount)
-					teamOverflowedLastFrame[teamID][resType] = 0
+					for _, receiverTeamID in pairs (allyteamTeamList[allyTeam]) do
+					
+						local receivedAmount = globalPercent * availableTeamUnderShare[receiverTeamID][resType] -- AMOUNT THAT WILL BE CREDITED TO RECEIVER TEAM (after tax)
+						local sentAmount = receivedAmount / (1-sharing_tax) -- AMOUNT THAT WILL BE REMOVED FROM TEAMS SHARING POOL (before tax)
+						local personalPercent = sentAmount / totalAvailableAllyTeamOverflow[allyTeam][resType] -- PARTICIPATION OF EACH TEAM IN THE CURRENT SHARING PROCESS
+
+						for _,senderTeamID in pairs (allyteamTeamList[allyTeam]) do -- WE CYCLE THROUGH SENDERS ASWELL AS WE NEED TO REMOVE FROM THEIR SHARING POOL PROPORTIONALLY
+							local SenderUsed = personalPercent * availableTeamOverflow[senderTeamID][resType] -- COMPUTE SENT AMOUNT FROM SENDERTEAM
+							availableTeamOverflow[senderTeamID][resType] = availableTeamOverflow[senderTeamID][resType] - SenderUsed -- REMOVE FROM HIS SHARING POOL
+						end
+						SilentAdd(receiverTeamID, resType, receivedAmount) -- ADD RECEIVED AMOUNT TO RECEIVER TEAM
+						totalAvailableAllyTeamOverflow[allyTeam][resType] = totalAvailableAllyTeamOverflow[allyTeam][resType] - receivedAmount -- REMOVE FROM TOTAL ALLYTEAM SHARING POOL
+					end
 				end
 			end
-			allyTeamOverflowedLastFrame[allyTeam][resType] = 0
+			local availableTeamStorage = {}
+			local totalAvailableAllyteamStorage = 0
+			if totalAvailableAllyTeamOverflow[allyTeam][resType] > 0 then -- WE STILL HAVE MORE RESOURCES OF THIS TYPE TO SHARE // SKIP
+				-- STEP 3: REFUND OWNED SHAREPOOL AND ASSESS AVAILABLE STORAGES	
+				for _, teamID in pairs(allyteamTeamList[allyTeam]) do
+					local myStorage = GetAvailableStorage(teamID, resType)
+					local myExcess = availableTeamOverflow[teamID][resType]
+					if myExcess > 0 and myStorage > 0 then -- I STILL HAVE EXCESS TO FUND MYSELF
+						local toFund = math.min(myStorage, myExcess) -- VALUE TO FUND MYSELF (= taxless refund)
+						SilentAdd(teamID, resType, toFund) -- SILENTLY ADD VALUE
+						availableTeamOverflow[teamID][resType] = availableTeamOverflow[teamID][resType] - toFund -- REMOVE FROM OWN AVAILABLE SHARE POOL
+						totalAvailableAllyTeamOverflow[allyTeam][resType] = totalAvailableAllyTeamOverflow[allyTeam][resType] - toFund -- REMOVE FROM TOTAL ALLYTEAM AVAILABLE SHARE POOL
+						
+						local remainingStorage = GetAvailableStorage(teamID, resType) -- REMAINING STORAGE AFTER REFUND
+						
+						totalAvailableAllyteamStorage = totalAvailableAllyteamStorage + remainingStorage -- ADD TO TOTAL ALLYTEAM AVAILABLE STORAGE
+						availableTeamStorage[teamID] = (availableTeamStorage[teamID] or 0) + remainingStorage -- ADD TO OWN AVAILABLE STORAGE
+					end
+				end
+			end
+			if totalAvailableAllyTeamOverflow[allyTeam][resType] > 0 then -- WE STILL HAVE MORE RESOURCES OF THIS TYPE TO SHARE // SKIP
+				if totalAvailableAllyteamStorage > 0 then -- WE STILL HAVE MORE STORAGES TO FILL
+					-- STEP 4: ATTEMPT TO FILL OTHERS' STORAGE WITH WHATEVER EXCESS REMAINS
+					local availableAfterTax = totalAvailableAllyTeamOverflow[allyTeam][resType] * (1-sharing_tax) -- AMOUNT OF RESOURCES THAT CAN BE RECEIVED
+					local percent = math.min(1,availableAfterTax / (totalAvailableAllyteamStorage)) -- PERCENT OF EVERYONE'S STORAGE THAT WE SHOULD BE ABLE TO FILL
+					
+					for _,teamID in pairs(allyteamTeamList[allyTeam]) do
+						-- WE DONT NEED TO REMOVE FROM SENDERS' SHARE POOL UNTIL WE CAN ADD STATISTICS; WHEN ADDTEAMRESOURCESTATS IS UP WE WILL NEED TO ITERATE THROUGH SENDERS ASWELL
+						availableTeamStorage[teamID] = (availableTeamStorage[teamID] or 0)
+						SilentAdd(teamID, resType, availableTeamStorage[teamID] * percent) -- SILENTLY ADD TO RECEIVER TEAM
+					end
+				end
+			end
+			for _, teamID in pairs(allyteamTeamList[allyTeam]) do
+				availableTeamOverflow[teamID][resType] = 0 -- RESET COUNTERS FOR ALL TEAM MEMBERS
+			end
+			totalAvailableAllyTeamOverflow[allyTeam][resType] = 0 -- RESET ALLYTEAM COUNTER
 		end
 	end
 
@@ -165,25 +200,25 @@ if (sharing_tax > 0 or disable_overflow) then -- only enable this part if we nee
 		if f % 30 == 0 then
 			for _, teamID in pairs(teamList) do
 				local _, _, _, _, _, allyTeam = Spring.GetTeamInfo(teamID)
-				local _, _, curExcessedM, curRecvM, curSentM = Spring.GetTeamResourceStats(teamID, "m")
-				local _, _, curExcessedE, curRecvE, curSentE = Spring.GetTeamResourceStats(teamID, "e")
-				local diffRecvM, diffRecvE, diffExcessM, diffExcessE, diffSentM, diffSentE = curRecvM - lastRecv[teamID].metal, curRecvE - lastRecv[teamID].energy, curExcessedM - lastExcess[teamID].metal, curExcessedE - lastExcess[teamID].energy, curSentM - lastSent[teamID].metal, curSentE - lastSent[teamID].energy
-				KillOverflow(teamID, "metal", diffRecvM)
-				KillOverflow(teamID, "energy", diffRecvE)
-				local overFlowedE, overFlowedM = diffExcessE + diffSentE, diffExcessM + diffSentM
-				allyTeamOverflowedLastFrame[allyTeam].energy, allyTeamOverflowedLastFrame[allyTeam].metal  = allyTeamOverflowedLastFrame[allyTeam].energy + overFlowedE, allyTeamOverflowedLastFrame[allyTeam].metal + overFlowedM
-				teamOverflowedLastFrame[teamID].energy, teamOverflowedLastFrame[teamID].metal  = overFlowedE, overFlowedM
-				lastRecv[teamID].metal,lastRecv[teamID].energy, lastExcess[teamID].metal,lastExcess[teamID].energy, lastSent[teamID].metal, lastSent[teamID].energy = curRecvM, curRecvE,curExcessedM, curExcessedE, curSentM, curSentE
+				local _, _, curExcessedM = Spring.GetTeamResourceStats(teamID, "m")
+				local _, _, curExcessedE = Spring.GetTeamResourceStats(teamID, "e")
+				local diffExcessM, diffExcessE = curExcessedM - lastExcess[teamID].metal, curExcessedE - lastExcess[teamID].energy
+				local overFlowedE, overFlowedM = diffExcessE, diffExcessM
+				totalAvailableAllyTeamOverflow[allyTeam].energy, totalAvailableAllyTeamOverflow[allyTeam].metal  = totalAvailableAllyTeamOverflow[allyTeam].energy + overFlowedE, totalAvailableAllyTeamOverflow[allyTeam].metal + overFlowedM
+				availableTeamOverflow[teamID].energy, availableTeamOverflow[teamID].metal  = overFlowedE, overFlowedM
+				lastExcess[teamID].metal,lastExcess[teamID].energy = curExcessedM, curExcessedE
 			end
 			if not disable_overflow then -- reapply overflow only if not disabled
 				for _, allyTeam in pairs(allyTeamList) do
-					Leak(allyTeam, allyTeamOverflowedLastFrame[allyTeam].metal, allyTeamOverflowedLastFrame[allyTeam].energy)
+					Leak(allyTeam)
 				end
 			end
 		end
 	end
 
-	function gadget:AllowResourceLevel()
-		return false
+	function gadget:AllowResourceLevel(teamID, resType, level)
+		if disable_overflow then
+			return false
+		end
+		return true
 	end
-end
