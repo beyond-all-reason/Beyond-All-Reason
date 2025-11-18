@@ -71,10 +71,8 @@ local gradientInnerRadius = 0.75 -- Distance from center where gradient starts (
 local expansionMultiplier = 0.3 -- Global multiplier for all field expansions (adjust to make fields larger/smaller)
 
 --Smoothing settings
-local enableSmoothing = true -- Enable smooth rounded edges with Catmull-Rom interpolation
 local smoothingSegments = 4 -- Number of segments per edge
 -- Note: Smoothing can be toggled at runtime via:
---   WG['reclaimfieldhighlight'].setEnableSmoothing(true/false)
 --   WG['reclaimfieldhighlight'].setSmoothingSegments(value)
 -- Lower values = better performance, sharper edges (e.g., 4-8 for low-end systems)
 -- Higher values = smoother, more organic shapes (e.g., 20-30 for high-end systems)
@@ -148,15 +146,8 @@ local cachedCameraFOV = 45 -- Default FOV
 local lastCameraUpdateFrame = -999
 
 -- Text display list caching - tracks last camera facing angle for text rotation
-local cameraFacingChangeThreshold = 3 -- Degrees - recreate text if camera rotates more than this (increased from 2 for less frequent updates)
 local minTextUpdateIntervalFrames = 15 -- Minimum frames between text display list recreations per cluster (~0.5s at 30fps)
-
--- Return minimal signed difference between two angles in degrees (-180..180)
-local function AngleDiff(a, b)
-	local diff = (a - b) % 360
-	if diff > 180 then diff = diff - 360 end
-	return diff
-end
+local immediateFadeChangeThreshold = 0.05 -- Small fade changes above this should update immediately for responsiveness
 
 -- Check if a point is within the camera view frustum
 local function IsInCameraView(x, y, z, radius, currentFrame)
@@ -848,139 +839,6 @@ do
 		return subdivided
 	end
 
-	-- Create a smooth elliptical hull based on oriented bounding ellipse
-	local function createSmoothEllipse(hull, expandDist)
-		if not hull or #hull < 3 then return hull end
-
-		local n = #hull
-
-		-- Calculate centroid
-		local cx, cz = 0, 0
-		for i = 1, n do
-			cx = cx + hull[i].x
-			cz = cz + hull[i].z
-		end
-		cx = cx / n
-		cz = cz / n
-
-		-- Calculate covariance matrix for PCA (Principal Component Analysis)
-		local covXX, covXZ, covZZ = 0, 0, 0
-		for i = 1, n do
-			local dx = hull[i].x - cx
-			local dz = hull[i].z - cz
-			covXX = covXX + dx * dx
-			covXZ = covXZ + dx * dz
-			covZZ = covZZ + dz * dz
-		end
-		covXX = covXX / n
-		covXZ = covXZ / n
-		covZZ = covZZ / n
-
-		-- Calculate eigenvalues and eigenvectors for oriented ellipse
-		local trace = covXX + covZZ
-		local det = covXX * covZZ - covXZ * covXZ
-		local eigenval1 = trace / 2 + sqrt(max(0, trace * trace / 4 - det))
-		local eigenval2 = trace / 2 - sqrt(max(0, trace * trace / 4 - det))
-
-		-- Eigenvector for the major axis
-		local evx, evz
-		if abs(covXZ) > 0.0001 then
-			evx = eigenval1 - covZZ
-			evz = covXZ
-			local evlen = sqrt(evx * evx + evz * evz)
-			if evlen > 0 then
-				evx, evz = evx / evlen, evz / evlen
-			end
-		else
-			evx, evz = 1, 0
-		end
-
-		-- Calculate initial extents along principal axes
-		local maxMajor, maxMinor = 0, 0
-		for i = 1, n do
-			local dx = hull[i].x - cx
-			local dz = hull[i].z - cz
-			-- Project onto principal axes
-			local projMajor = abs(dx * evx + dz * evz)
-			local projMinor = abs(-dx * evz + dz * evx)
-			if projMajor > maxMajor then maxMajor = projMajor end
-			if projMinor > maxMinor then maxMinor = projMinor end
-		end
-
-		-- Ensure minimum aspect ratio for very elongated shapes
-		if maxMajor > 0 and maxMinor / maxMajor < 0.3 then
-			maxMinor = maxMajor * 0.3
-		end
-
-		-- Add expansion
-		maxMajor = maxMajor + expandDist
-		maxMinor = maxMinor + expandDist
-
-		-- Iteratively adjust radii to ensure all points are inside with minimal overshoot
-		-- This finds the minimum bounding ellipse that contains all points
-		local maxIterations = 5
-		for iter = 1, maxIterations do
-			local maxExcess = 0
-			local needsAdjustment = false
-
-			for i = 1, n do
-				local dx = hull[i].x - cx
-				local dz = hull[i].z - cz
-				-- Project onto principal axes
-				local projMajor = dx * evx + dz * evz
-				local projMinor = -dx * evz + dz * evx
-
-				-- Calculate how far outside the ellipse this point is
-				local normalizedDist = (projMajor * projMajor) / (maxMajor * maxMajor) +
-				                       (projMinor * projMinor) / (maxMinor * maxMinor)
-
-				if normalizedDist > 1.0 then
-					needsAdjustment = true
-					local excess = sqrt(normalizedDist)
-					if excess > maxExcess then
-						maxExcess = excess
-					end
-				end
-			end
-
-			-- If all points are inside, we're done
-			if not needsAdjustment then
-				break
-			end
-
-			-- Grow the ellipse just enough to contain all points
-			-- Use smaller incremental adjustments to avoid overshooting
-			local adjustmentFactor = 1.0 + (maxExcess - 1.0) * 0.5  -- Grow by half the needed amount
-			maxMajor = maxMajor * adjustmentFactor
-			maxMinor = maxMinor * adjustmentFactor
-		end
-
-		-- Final safety margin
-		maxMajor = maxMajor * 1.02
-		maxMinor = maxMinor * 1.02
-
-		-- Generate smooth ellipse points
-		local numPoints = enableSmoothing and smoothingSegments * 4 or n
-		local ellipse = {}
-		for i = 0, numPoints - 1 do
-			local angle = (i / numPoints) * 2 * math.pi
-			local localX = maxMajor * math.cos(angle)
-			local localZ = maxMinor * math.sin(angle)
-
-			-- Rotate back to world orientation
-			local worldX = cx + localX * evx - localZ * evz
-			local worldZ = cz + localX * evz + localZ * evx
-
-			ellipse[i + 1] = {
-				x = worldX,
-				y = max(0, spGetGroundHeight(worldX, worldZ)),
-				z = worldZ
-			}
-		end
-
-		return ellipse
-	end
-
 	-- Expand hull outward by a margin and create rounded corners with Catmull-Rom smoothing
 	local function expandAndSmoothHull(hull, expandDist)
 		if not hull or #hull < 3 then return hull end
@@ -1000,10 +858,6 @@ do
 		end
 		cx = cx / n
 		cz = cz / n
-
-		if not enableSmoothing then
-			--return hull
-		end
 
 		-- First pass: expand all vertices outward using a blend of radial and normal-based expansion
 		local expanded = {}
@@ -1067,10 +921,6 @@ do
 				y = max(0, spGetGroundHeight(newX, newZ)),
 				z = newZ
 			}
-		end
-
-		if not enableSmoothing then
-			return expanded
 		end
 
 		-- If smoothing disabled, return expanded hull directly
@@ -1693,10 +1543,6 @@ local function CheckAllEnergyDrained()
 	allEnergyFieldsDrained = true
 
 	-- Clean up energy display lists
-	if drawEnergyConvexHullGradientList ~= nil then
-		glDeleteList(drawEnergyConvexHullGradientList)
-		drawEnergyConvexHullGradientList = nil
-	end
 	if drawEnergyConvexHullEdgeList ~= nil then
 		glDeleteList(drawEnergyConvexHullEdgeList)
 		drawEnergyConvexHullEdgeList = nil
@@ -2235,6 +2081,16 @@ local function TextDisplayListNeedsUpdate(cid, isEnergy, cameraFacing, fadeMult)
 	end
 
 	local currentFrame = Spring.GetGameFrame()
+	-- If fade changed noticeably (small immediate threshold), update immediately for responsive transparency
+	local fadeDiff = math.abs(fadeMult - meta.fade)
+	if fadeMult >= 0.95 and meta.fade >= 0.95 then
+		-- Both fully opaque, no need to update unless fade drops below threshold
+		return false
+	end
+	if fadeDiff > immediateFadeChangeThreshold then
+		return true
+	end
+
 	if meta.lastUpdateFrame and (currentFrame - meta.lastUpdateFrame) < minTextUpdateIntervalFrames then
 		-- Too soon to re-create the text display list again
 		return false
@@ -2244,79 +2100,14 @@ local function TextDisplayListNeedsUpdate(cid, isEnergy, cameraFacing, fadeMult)
 	-- text is rotated at draw time. This avoids frequent re-creation while
 	-- swaying the camera. Previously we compared facing angles here.
 
-	-- Check if fade amount changed significantly
-	-- If both old and new fade are near full opacity (>0.95), don't recreate for tiny fade changes
-	local fadeDiff = math.abs(fadeMult - meta.fade)
-	if fadeMult >= 0.95 and meta.fade >= 0.95 then
-		-- Both fully opaque, no need to update unless fade drops below threshold
-		return false
-	elseif fadeDiff > 0.15 then
-		-- Significant fade change (15% threshold to reduce updates during camera movement)
+	-- Check if fade amount changed significantly (larger threshold for non-immediate updates)
+	if fadeDiff > 0.15 then
 		return true
 	end
 
 	return false
 end
 
-local drawFeatureConvexHullGradientList
-local function DrawFeatureConvexHullGradient()
-	-- Apply opacity multiplier for metal fields when before gamestart
-	local metalColors = nil
-	if not gameStarted then
-		-- Stack global pre-gamestart multiplier with metal-specific multiplier
-		local totalMultiplier = preGameStartOpacityMultiplier * preGameStartMetalOpacityMultiplier
-		metalColors = {
-			fill = reclaimColor,
-			fillAlpha = fillAlpha * totalMultiplier,
-			gradientAlpha = gradientAlpha * totalMultiplier
-		}
-	end
-	for i = 1, #featureConvexHulls do
-		if featureConvexHulls[i] and featureClusters[i].center then
-			glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, featureConvexHulls[i], featureClusters[i].center, metalColors)
-		end
-	end
-end
-
-local drawEnergyConvexHullGradientList
-local function DrawEnergyConvexHullGradient()
-	-- Apply opacity multiplier to energy field fill and gradient
-	-- Include global pre-gamestart multiplier when before gamestart
-	local energyMultiplier = energyOpacityMultiplier
-	if not gameStarted then
-		energyMultiplier = energyMultiplier * preGameStartOpacityMultiplier
-	end
-	local energyColors = {
-		fill = energyReclaimColor,
-		fillAlpha = fillAlpha * energyMultiplier,
-		gradientAlpha = gradientAlpha * energyMultiplier
-	}
-	for i = 1, #energyFeatureConvexHulls do
-		if energyFeatureConvexHulls[i] and energyFeatureClusters[i].center then
-			glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, energyFeatureConvexHulls[i], energyFeatureClusters[i].center, energyColors)
-		end
-	end
-end
-
-local drawFeatureConvexHullEdgeList
-local function DrawFeatureConvexHullEdge()
-	for i = 1, #featureConvexHulls do
-		local hull = featureConvexHulls[i]
-		if hull and #hull > 0 then
-			glBeginEnd(GL.LINE_LOOP, DrawHullVertices, hull)
-		end
-	end
-end
-
-local drawEnergyConvexHullEdgeList
-local function DrawEnergyConvexHullEdge()
-	for i = 1, #energyFeatureConvexHulls do
-		local hull = energyFeatureConvexHulls[i]
-		if hull and #hull > 0 then
-			glBeginEnd(GL.LINE_LOOP, DrawHullVertices, hull)
-		end
-	end
-end
 
 local drawFeatureClusterTextList
 local drawEnergyClusterTextList
@@ -2459,13 +2250,6 @@ function widget:Initialize()
 	WG['reclaimfieldhighlight'].setShowOption = function(value)
 		showOption = value
 	end
-	WG['reclaimfieldhighlight'].getEnableSmoothing = function()
-		return enableSmoothing
-	end
-	WG['reclaimfieldhighlight'].setEnableSmoothing = function(value)
-		enableSmoothing = value
-		clusterizingNeeded = true -- Force recluster with new settings
-	end
 	WG['reclaimfieldhighlight'].getSmoothingSegments = function()
 		return smoothingSegments
 	end
@@ -2561,9 +2345,6 @@ function widget:Shutdown()
 	if drawFeatureClusterTextList ~= nil then
 		glDeleteList(drawFeatureClusterTextList)
 	end
-	if drawEnergyConvexHullGradientList ~= nil then
-		glDeleteList(drawEnergyConvexHullGradientList)
-	end
 	if drawEnergyConvexHullEdgeList ~= nil then
 		glDeleteList(drawEnergyConvexHullEdgeList)
 	end
@@ -2576,7 +2357,6 @@ function widget:GetConfigData(data)
     return {
 		showOption = showOption,
 		showEnergyOption = showEnergyOption,
-		enableSmoothing = enableSmoothing,
 		smoothingSegments = smoothingSegments,
 		showEnergyFields = showEnergyFields,
 		fadeStartDistance = fadeStartDistance,
@@ -2600,9 +2380,6 @@ function widget:SetConfigData(data)
 	if data.fadeEndDistance ~= nil then
 		--fadeEndDistance = data.fadeEndDistance
 	end
-	-- if data.enableSmoothing ~= nil then
-	-- 	enableSmoothing = data.enableSmoothing
-	-- end
 	-- if data.smoothingSegments ~= nil then
 	-- 	smoothingSegments = clamp(data.smoothingSegments, 4, 40)
 	-- end
@@ -3123,8 +2900,6 @@ function widget:DrawWorld()
 
 	glDepthTest(false)
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-
-	local currentFrame = Spring.GetGameFrame()
 
 	local currentFrame = Spring.GetGameFrame()
 
