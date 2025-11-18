@@ -43,7 +43,6 @@ local defaultData = {
         shareSlider = 100,
         sent = 0,
         received = 0,
-        excess = 0,
     },
     energy = {
         current = 1000,
@@ -54,7 +53,6 @@ local defaultData = {
         shareSlider = 100,
         sent = 0,
         received = 0,
-        excess = 0,
     },
 }
 

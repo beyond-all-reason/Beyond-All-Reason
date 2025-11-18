@@ -40,6 +40,13 @@
 ---@field sent number
 ---@field received number
 
+---@class TeamResourceData
+---@field id number
+---@field allyTeam number
+---@field isDead boolean
+---@field metal ResourceData
+---@field energy ResourceData
+
 ---@class TeamData
 ---@field id number
 ---@field name string

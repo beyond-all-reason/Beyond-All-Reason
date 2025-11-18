@@ -104,3 +104,27 @@
 
 ---@class PolicyActionContext : PolicyContext
 ---@field transferCategory string SharedEnums.TransferCategory
+
+---@class EconomyShareMember
+---@field teamId number
+---@field allyTeam number
+---@field resourceType ResourceType
+---@field resource ResourceData
+---@field current number
+---@field storage number
+---@field shareCursor number
+---@field remainingTaxFreeAllowance number
+---@field cumulativeSent number
+---@field threshold number
+---@field target number?
+
+---@class EconomyFlowLedger
+---@field received number
+---@field sent number
+---@field untaxed number
+---@field taxed number
+
+---@class EconomyWaterFillSolution
+---@field targetLift number
+---@field needs table<number, number>
+---@field supply table<number, number>

@@ -341,7 +341,7 @@ function SB:BuildSpring()
 
         GetTeamResources = function(teamID, resourceType)
             local data = getTeamResourceData(teamID, resourceType)
-            return data.current, data.storage, data.pull, data.income, data.expense, data.share, data.sent, data.received, data.excess
+            return data.current, data.storage, data.pull, data.income, data.expense, data.share, data.sent, data.received
         end,
         -- Convenience accessors for tests
         __getInitialUnits = function()
