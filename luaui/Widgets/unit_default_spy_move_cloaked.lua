@@ -56,7 +56,6 @@ end
 local cloakedBuilderMovableSelected = false
 
 local function update()
-	Spring.Echo('update')
 	local selectedUnitsCount = spGetSelectedUnitsCount()
 
 	cloakedBuilderMovableSelected = false
