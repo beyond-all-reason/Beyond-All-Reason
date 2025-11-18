@@ -22,6 +22,8 @@ end
 -- Localized functions for performance
 local tableInsert = table.insert
 local tableSort = table.sort
+local mathFloor = math.floor
+local mathMax = math.max
 
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
 local spGetSelectedUnits = Spring.GetSelectedUnits
@@ -46,6 +48,8 @@ local ALLY_UNITS = Spring.ALLY_UNITS
 local ALL_UNITS = Spring.ALL_UNITS
 local FEATURE = "feature"
 local UNIT = "unit"
+
+local commandLimit = 2000
 
 local myAllyTeamID
 
@@ -306,7 +310,8 @@ local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirs
 	end)
 end
 
-local function giveOrders(cmdId, selectedUnits, filteredTargets, options)
+local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCommands)
+	maxCommands = maxCommands or commandLimit
 	local firstTarget = true
 	local selectedUnitsLen = #selectedUnits
 	for i, targetId in ipairs(filteredTargets) do
@@ -320,8 +325,7 @@ local function giveOrders(cmdId, selectedUnits, filteredTargets, options)
 			spGiveOrderToUnitArray(selectedUnits, cmdId, { targetId }, cmdOpts)
 		end
 		firstTarget = false
-		if i * selectedUnitsLen > 1000 then
-			Spring.Log(widget:GetInfo().name, LOG.WARNING, "Command count exceeded, target selection may be incomplete")
+		if i * selectedUnitsLen > maxCommands then
 			return
 		end
 	end
@@ -342,11 +346,14 @@ end
 
 --- Each unit gets a chunk of the queue
 local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
+	local selectedUnitsLen = #selectedUnits
+	local maxAllowedTargetsPerUnit = mathMax(mathFloor(commandLimit / selectedUnitsLen), 1)
+
 	local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
 		local selectedUnitTable = { selectedUnitId }
 		sortTargetsByDistance(selectedUnitTable, targets, true)
-		giveOrders(cmdId, selectedUnitTable, targets, options)
+		giveOrders(cmdId, selectedUnitTable, targets, options, maxAllowedTargetsPerUnit)
 	end
 end
 
@@ -479,10 +486,8 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitD
 
 	for i = 1, #featuresInArea do
 		local featureId = featuresInArea[i]
-		local shouldInsert = false
-		if alt and spGetFeatureDefID(featureId) == featureDefId then
-			shouldInsert = true
-		elseif ctrl then
+		local shouldInsert = alt and spGetFeatureDefID(featureId) == featureDefId
+		if ctrl then
 			local unitDefName = spGetFeatureResurrect(featureId)
 			local unitTechLevel = getTechLevel(unitDefName)
 			if unitTechLevel == targetTechLevel then
