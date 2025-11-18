@@ -12,10 +12,6 @@ function widget:GetInfo()
 	}
 end
 
--- NOTE: This was initially only for spy bots and made only by BrainDamage,
---       but Catcow updated it to abstractly include commanders and decoys
---       and anything else that cloaks, builds, and moves. Also likely more efficient
-
 -- Localized Spring API for performance
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetGameFrame = Spring.GetGameFrame
@@ -34,7 +30,7 @@ end
 local gameStarted
 
 local CMD_MOVE = CMD.MOVE
-local CMD_CLOAK = 37382
+local CMD_WANT_CLOAK = GameCMD.WANT_CLOAK
 
 local function maybeRemoveSelf()
 	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
@@ -71,8 +67,8 @@ local function update()
 	for unitDefID, units in pairs(selectedUnitTypes) do
 		if idCanBuildCloakMove[unitDefID] then
 			for _, unitID in pairs(units) do
-				-- 5=cloak https://recoilengine.org/docs/lua-api/#Spring.GetUnitStates
-				if select(5, spGetUnitStates(unitID,false,true)) then
+				local _, _, _, _, cloak = spGetUnitStates(unitID, false, true)
+				if cloak then
 					cloakedBuilderMovableSelected = true
 					return
 				end
@@ -86,7 +82,7 @@ function widget:SelectionChanged(sel)
 end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-	if (cmdID == CMD_CLOAK) and (idCanBuildCloakMove[unitDefID]) and (teamID == spGetMyTeamID()) then
+	if (cmdID == CMD_WANT_CLOAK) and (idCanBuildCloakMove[unitDefID]) and (teamID == spGetMyTeamID()) then
 		update()
 	end
 end
