@@ -89,6 +89,10 @@ local minFeatureValue = 9
 -- Maximum cluster size in elmos - clusters larger than this will be split into sub-clusters
 local maxClusterSize = 3000 -- Adjust this value: smaller = more sub-clusters, larger = fewer but bigger fields
 
+-- Distance-based fade settings (in elmos - Spring units)
+local fadeStartDistance = 4500 -- Distance where fields start to fade out
+local fadeEndDistance = 7000 -- Distance where fields stop rendering completely (must be > fadeStartDistance)
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Speedups
@@ -135,6 +139,95 @@ local spGetCameraVectors = Spring.GetCameraVectors
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+-- Helper Functions for Culling and Fading
+
+-- Cached camera state to avoid recalculating every frame
+local cachedCameraX, cachedCameraY, cachedCameraZ = 0, 0, 0
+local cachedCameraForward = {0, 0, 0}
+local cachedCameraRight = {0, 0, 0}
+local cachedCameraUp = {0, 0, 0}
+local cachedCameraFOV = 45 -- Default FOV
+local cachedCameraAspect = 1.78 -- Default 16:9
+local lastCameraUpdateFrame = -999
+
+-- Check if a point is within the camera view frustum
+local function IsInCameraView(x, y, z, radius, currentFrame)
+	-- Update camera state cache (do this only once per frame)
+	if currentFrame ~= lastCameraUpdateFrame then
+		cachedCameraX, cachedCameraY, cachedCameraZ = spGetCameraPosition()
+		local camVectors = spGetCameraVectors()
+		cachedCameraForward = camVectors.forward
+		cachedCameraRight = camVectors.right
+		cachedCameraUp = camVectors.up
+		-- Approximate FOV based on camera state (Spring doesn't expose FOV directly)
+		-- For now use a conservative value that covers most camera angles
+		cachedCameraFOV = 70 -- Degrees, conservative estimate
+		if screenx and screeny and screeny > 0 then
+			cachedCameraAspect = screenx / screeny
+		end
+		lastCameraUpdateFrame = currentFrame
+	end
+
+	-- Vector from camera to point
+	local dx = x - cachedCameraX
+	local dy = y - cachedCameraY
+	local dz = z - cachedCameraZ
+	local distSq = dx*dx + dy*dy + dz*dz
+	local dist = sqrt(distSq)
+
+	-- Skip if too far away (beyond fade distance + radius) - early out
+	if dist > fadeEndDistance + radius then
+		return false, dist
+	end
+
+	-- Simple distance-based check - if very close, always visible
+	if dist < 500 then
+		return true, dist
+	end
+
+	-- Normalize direction vector
+	if dist < 0.01 then return true, dist end -- Camera is at the point
+	local invDist = 1.0 / dist
+	dx, dy, dz = dx * invDist, dy * invDist, dz * invDist
+
+	-- Check if point is behind camera (dot product with forward vector)
+	local dotForward = dx * cachedCameraForward[1] + dy * cachedCameraForward[2] + dz * cachedCameraForward[3]
+	if dotForward < -0.1 then -- Behind camera
+		return false, dist
+	end
+
+	-- Simplified frustum check - use a conservative bounding sphere approach
+	-- This is much faster than full frustum plane testing
+	-- Calculate angular distance from camera forward direction
+	local angleFromCenter = math.acos(clamp(dotForward, -1, 1))
+
+	-- Conservative FOV check with margin for radius
+	local maxAngle = math.rad(cachedCameraFOV * 0.7) -- Use 70% of FOV for conservative visible area
+	local marginAngle = math.atan(radius / max(dist, 1))
+
+	if angleFromCenter > maxAngle + marginAngle then
+		return false, dist
+	end
+
+	return true, dist
+end
+
+-- Calculate opacity multiplier based on distance
+local function GetDistanceFadeMultiplier(dist)
+	if dist <= fadeStartDistance then
+		return 1.0 -- Full opacity
+	elseif dist >= fadeEndDistance then
+		return 0.0 -- Completely faded
+	else
+		-- Linear fade between start and end
+		local fadeRange = fadeEndDistance - fadeStartDistance
+		local fadeProgress = (dist - fadeStartDistance) / fadeRange
+		return 1.0 - fadeProgress
+	end
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 -- Data
 
 local screenx, screeny
@@ -159,6 +252,15 @@ local affectedClustersList = {} -- Reusable table for regional clustering
 local lastFlyingCheckFrame = 0 -- Track when we last checked flying features
 local validityCheckCounter = 0 -- Rotating counter for validity checks in GameFrame
 local lastCameraCheckFrame = 0 -- Track when we last checked camera up vector
+
+-- Per-frame visibility and distance cache to avoid redundant calculations
+local clusterVisibilityCache = {} -- {[cid] = {frame, inView, dist, fadeMult}}
+local energyClusterVisibilityCache = {} -- {[energyCid] = {frame, inView, dist, fadeMult}}
+local lastVisibilityCacheFrame = -1
+
+-- Get cached visibility for a cluster (call once per frame per cluster)
+-- Forward declare this early since it's used in draw functions
+local GetClusterVisibility
 
 local epsilonSq = epsilon*epsilon
 local baseCheckFrequency = math.round(checkFrequency * Game.gameSpeed)
@@ -217,6 +319,26 @@ local energyFeatureConvexHulls
 -- Per-cluster display lists for incremental updates
 local clusterDisplayLists = {} -- {[cid] = {gradient = listID, edge = listID, text = listID}}
 local energyClusterDisplayLists = {} -- {[energyCid] = {gradient = listID, edge = listID, text = listID}}
+
+-- Per-cluster state tracking to detect when recreating display lists is actually needed
+local clusterStateHashes = {} -- {[cid] = hash} - tracks cluster data state
+local energyClusterStateHashes = {} -- {[energyCid] = hash} - tracks energy cluster data state
+
+-- Helper function to compute a simple hash/signature of cluster state
+local function ComputeClusterStateHash(cluster, hull)
+	if not cluster or not hull then return 0 end
+	-- Hash based on: member count, total value, center position, hull vertex count
+	-- This is a simple hash - not cryptographic, just for change detection
+	local memberCount = cluster.members and #cluster.members or 0
+	local value = cluster.metal or cluster.energy or 0
+	local cx = cluster.center and cluster.center.x or 0
+	local cy = cluster.center and cluster.center.y or 0
+	local cz = cluster.center and cluster.center.z or 0
+	local hullSize = #hull
+
+	-- Simple hash combination (good enough for change detection)
+	return memberCount * 1000000 + floor(value) * 1000 + floor(cx + cz) + hullSize * 100 + floor(cy)
+end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -282,6 +404,55 @@ do
 		})
 		return pq
 	end
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Visibility caching helper function
+
+-- Get cached visibility for a cluster (call once per frame per cluster)
+GetClusterVisibility = function(cid, isEnergy, currentFrame)
+	local cache = isEnergy and energyClusterVisibilityCache or clusterVisibilityCache
+	local clusters = isEnergy and energyFeatureClusters or featureClusters
+
+	-- Check if we have a valid cache for this frame
+	local cached = cache[cid]
+	if cached and cached.frame == currentFrame then
+		return cached.inView, cached.dist, cached.fadeMult
+	end
+
+	-- Compute visibility for this cluster
+	local cluster = clusters[cid]
+	if not cluster or not cluster.center then
+		return false, 0, 0
+	end
+
+	local center = cluster.center
+	-- Pre-compute cluster radius once (cache it in the cluster if not present)
+	if not cluster.radius then
+		cluster.radius = sqrt((cluster.dx or 0)^2 + (cluster.dz or 0)^2) / 2
+	end
+
+	local inView, dist = IsInCameraView(center.x, center.y, center.z, cluster.radius, currentFrame)
+	local fadeMult = 0
+
+	if inView then
+		fadeMult = GetDistanceFadeMultiplier(dist)
+		-- Early reject if too faded
+		if fadeMult < 0.01 then
+			inView = false
+		end
+	end
+
+	-- Cache the result
+	cache[cid] = {
+		frame = currentFrame,
+		inView = inView,
+		dist = dist,
+		fadeMult = fadeMult
+	}
+
+	return inView, dist, fadeMult
 end
 
 --------------------------------------------------------------------------------
@@ -1835,6 +2006,7 @@ end
 -- Helper functions for per-cluster display list management
 DeleteClusterDisplayList = function(cid, isEnergy)
 	local displayLists = isEnergy and energyClusterDisplayLists or clusterDisplayLists
+	local stateHashes = isEnergy and energyClusterStateHashes or clusterStateHashes
 	local clusterData = displayLists[cid]
 	if clusterData then
 		if clusterData.gradient then
@@ -1848,18 +2020,33 @@ DeleteClusterDisplayList = function(cid, isEnergy)
 		end
 		displayLists[cid] = nil
 	end
+	-- Clear state hash too
+	stateHashes[cid] = nil
 end
 
 CreateClusterDisplayList = function(cid, isEnergy)
 	local displayLists = isEnergy and energyClusterDisplayLists or clusterDisplayLists
 	local clusters = isEnergy and energyFeatureClusters or featureClusters
 	local hulls = isEnergy and energyFeatureConvexHulls or featureConvexHulls
+	local stateHashes = isEnergy and energyClusterStateHashes or clusterStateHashes
 
 	local cluster = clusters[cid]
 	local hull = hulls[cid]
 	if not cluster or not hull or not cluster.center then
 		return
 	end
+
+	-- Compute new state hash
+	local newHash = ComputeClusterStateHash(cluster, hull)
+	local oldHash = stateHashes[cid]
+
+	-- Only recreate if state actually changed
+	if oldHash and oldHash == newHash then
+		return -- No change, keep existing display list
+	end
+
+	-- Update state hash
+	stateHashes[cid] = newHash
 
 	-- Delete existing display list if present
 	DeleteClusterDisplayList(cid, isEnergy)
@@ -2126,6 +2313,22 @@ function widget:Initialize()
 	WG['reclaimfieldhighlight'].setShowEnergyOption = function(value)
 		showEnergyOption = value
 	end
+	WG['reclaimfieldhighlight'].getFadeStartDistance = function()
+		return fadeStartDistance
+	end
+	WG['reclaimfieldhighlight'].setFadeStartDistance = function(value)
+		fadeStartDistance = max(100, value)
+		-- Ensure start < end
+		if fadeStartDistance >= fadeEndDistance then
+			fadeEndDistance = fadeStartDistance + 1000
+		end
+	end
+	WG['reclaimfieldhighlight'].getFadeEndDistance = function()
+		return fadeEndDistance
+	end
+	WG['reclaimfieldhighlight'].setFadeEndDistance = function(value)
+		fadeEndDistance = max(fadeStartDistance + 100, value)
+	end
 
 	-- Start/restart feature clustering.
 	knownFeatures = {}
@@ -2188,7 +2391,9 @@ function widget:GetConfigData(data)
 		showEnergyOption = showEnergyOption,
 		enableSmoothing = enableSmoothing,
 		smoothingSegments = smoothingSegments,
-		showEnergyFields = showEnergyFields
+		showEnergyFields = showEnergyFields,
+		fadeStartDistance = fadeStartDistance,
+		fadeEndDistance = fadeEndDistance
 	}
 end
 
@@ -2201,6 +2406,12 @@ function widget:SetConfigData(data)
 	end
 	if data.showEnergyFields ~= nil then
 		showEnergyFields = data.showEnergyFields
+	end
+	if data.fadeStartDistance ~= nil then
+		--fadeStartDistance = data.fadeStartDistance
+	end
+	if data.fadeEndDistance ~= nil then
+		--fadeEndDistance = data.fadeEndDistance
 	end
 	-- if data.enableSmoothing ~= nil then
 	-- 	enableSmoothing = data.enableSmoothing
@@ -2625,14 +2836,94 @@ function widget:DrawWorld()
 	glDepthTest(false)
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
-	-- Draw metal text
-	if showMetal and drawFeatureClusterTextList ~= nil then
-		glCallList(drawFeatureClusterTextList)
+	local currentFrame = Spring.GetGameFrame()
+
+	-- Draw metal text with culling and fading
+	if showMetal then
+		-- Cache camera facing calculation
+		cachedCameraFacing = math.atan2(-camUpVector[1], -camUpVector[3]) * (180 / math.pi)
+
+		-- Clear tracked positions
+		for i = 1, #drawnTextPositions do
+			drawnTextPositions[i] = nil
+		end
+
+		for clusterID = 1, #featureClusters do
+			local cluster = featureClusters[clusterID]
+			if cluster and cluster.center then
+				-- Use cached visibility check
+				local inView, dist, fadeMult = GetClusterVisibility(clusterID, false, currentFrame)
+
+				if inView and fadeMult > 0.01 then
+					local center = cluster.center
+					local fontSize = cluster.font
+
+					-- Check for overlap and adjust position if needed
+					local textX, textZ = center.x, center.z
+					local overlaps = WouldTextOverlap(textX, textZ, fontSize)
+					if overlaps then
+						textX, textZ = FindNonOverlappingPosition(textX, textZ, fontSize)
+					end
+
+					-- Track this text position
+					drawnTextPositions[#drawnTextPositions + 1] = {x = textX, z = textZ, fontSize = fontSize}
+
+					glPushMatrix()
+
+					glTranslate(textX, center.y, textZ)
+					glRotate(-90, 1, 0, 0)
+					glRotate(cachedCameraFacing, 0, 0, 1)
+
+					-- Apply fade to text alpha
+					-- When fading, remove outline to avoid semi-transparent shadow issues
+					local textOptions = fadeMult >= 0.95 and "cvo" or "cv"
+					glColor(numberColor[1], numberColor[2], numberColor[3], numberColor[4] * fadeMult)
+					glText(cluster.text, 0, 0, fontSize, textOptions)
+
+					glPopMatrix()
+				end
+			end
+		end
 	end
 
-	-- Draw energy text
-	if showEnergy and drawEnergyClusterTextList ~= nil then
-		glCallList(drawEnergyClusterTextList)
+	-- Draw energy text with culling and fading
+	if showEnergy then
+		for clusterID = 1, #energyFeatureClusters do
+			local cluster = energyFeatureClusters[clusterID]
+			if cluster and cluster.center then
+				-- Use cached visibility check
+				local inView, dist, fadeMult = GetClusterVisibility(clusterID, true, currentFrame)
+
+				if inView and fadeMult > 0.01 then
+					local center = cluster.center
+					local fontSize = cluster.font * energyTextSizeMultiplier
+
+					-- Check for overlap and adjust position if needed
+					local textX, textZ = center.x, center.z
+					local overlaps = WouldTextOverlap(textX, textZ, fontSize)
+					if overlaps then
+						textX, textZ = FindNonOverlappingPosition(textX, textZ, fontSize)
+					end
+
+					-- Track this text position
+					drawnTextPositions[#drawnTextPositions + 1] = {x = textX, z = textZ, fontSize = fontSize}
+
+					glPushMatrix()
+
+					glTranslate(textX, center.y, textZ)
+					glRotate(-90, 1, 0, 0)
+					glRotate(cachedCameraFacing, 0, 0, 1)
+
+					-- Use yellowish color for energy text with fade
+					-- When fading, remove outline to avoid semi-transparent shadow issues
+					local textOptions = fadeMult >= 0.95 and "cvo" or "cv"
+					glColor(energyNumberColor[1], energyNumberColor[2], energyNumberColor[3], energyNumberColor[4] * fadeMult)
+					glText(cluster.text, 0, 0, fontSize, textOptions)
+
+					glPopMatrix()
+				end
+			end
+		end
 	end
 
 	glDepthTest(true)
@@ -2658,60 +2949,82 @@ function widget:DrawWorldPreUnit()
 
 	glLineWidth(6.0 / cameraScale)
 
-	-- Draw metal gradient layer with inner fill (per-cluster display lists)
+	local currentFrame = Spring.GetGameFrame()
+
+	-- Draw metal gradient layer with inner fill (per-cluster display lists) with culling and fading
 	if showMetal then
 		glPushMatrix()
 		glTranslate(0, -1, 0) -- Push down by 1 unit
 		for cid, clusterData in pairs(clusterDisplayLists) do
 			if clusterData.gradient then
-				glCallList(clusterData.gradient)
+				-- Use cached visibility check
+				local inView, dist, fadeMult = GetClusterVisibility(cid, false, currentFrame)
+
+				if inView and fadeMult > 0.01 then
+					glCallList(clusterData.gradient)
+				end
 			end
 		end
 		glPopMatrix()
 	end
 
-	-- Draw metal edge on top at normal height (per-cluster display lists)
+	-- Draw metal edge on top at normal height (per-cluster display lists) with culling and fading
 	if showMetal then
-		-- Apply opacity multiplier to metal edge color when before gamestart
-		if not gameStarted then
-			local r, g, b, a = reclaimEdgeColor[1], reclaimEdgeColor[2], reclaimEdgeColor[3], reclaimEdgeColor[4]
-			-- Stack global pre-gamestart multiplier with metal-specific multiplier
-			glColor(r, g, b, a * preGameStartOpacityMultiplier * preGameStartMetalOpacityMultiplier)
-		else
-			glColor(reclaimEdgeColor)
-		end
 		for cid, clusterData in pairs(clusterDisplayLists) do
 			if clusterData.edge then
-				glCallList(clusterData.edge)
+				-- Use cached visibility check
+				local inView, dist, fadeMult = GetClusterVisibility(cid, false, currentFrame)
+
+				if inView and fadeMult > 0.01 then
+					-- Apply opacity multiplier to metal edge color with fade
+					if not gameStarted then
+						local r, g, b, a = reclaimEdgeColor[1], reclaimEdgeColor[2], reclaimEdgeColor[3], reclaimEdgeColor[4]
+						-- Stack global pre-gamestart multiplier with metal-specific multiplier and fade
+						glColor(r, g, b, a * preGameStartOpacityMultiplier * preGameStartMetalOpacityMultiplier * fadeMult)
+					else
+						local r, g, b, a = reclaimEdgeColor[1], reclaimEdgeColor[2], reclaimEdgeColor[3], reclaimEdgeColor[4]
+						glColor(r, g, b, a * fadeMult)
+					end
+					glCallList(clusterData.edge)
+				end
 			end
 		end
 	end
 
-	-- Draw energy gradient layer with inner fill (per-cluster display lists)
+	-- Draw energy gradient layer with inner fill (per-cluster display lists) with culling and fading
 	if showEnergy then
 		glPushMatrix()
 		glTranslate(0, -1, 0) -- Push down by 1 unit
 		for cid, clusterData in pairs(energyClusterDisplayLists) do
 			if clusterData.gradient then
-				glCallList(clusterData.gradient)
+				-- Use cached visibility check
+				local inView, dist, fadeMult = GetClusterVisibility(cid, true, currentFrame)
+
+				if inView and fadeMult > 0.01 then
+					glCallList(clusterData.gradient)
+				end
 			end
 		end
 		glPopMatrix()
 	end
 
-	-- Draw energy edge on top at normal height (per-cluster display lists)
+	-- Draw energy edge on top at normal height (per-cluster display lists) with culling and fading
 	if showEnergy then
-		-- Apply opacity multiplier to energy edge color
-		-- Include global pre-gamestart multiplier when before gamestart
-		local r, g, b, a = energyReclaimEdgeColor[1], energyReclaimEdgeColor[2], energyReclaimEdgeColor[3], energyReclaimEdgeColor[4]
-		local energyMultiplier = energyOpacityMultiplier
-		if not gameStarted then
-			energyMultiplier = energyMultiplier * preGameStartOpacityMultiplier
-		end
-		glColor(r, g, b, a * energyMultiplier)
 		for cid, clusterData in pairs(energyClusterDisplayLists) do
 			if clusterData.edge then
-				glCallList(clusterData.edge)
+				-- Use cached visibility check
+				local inView, dist, fadeMult = GetClusterVisibility(cid, true, currentFrame)
+
+				if inView and fadeMult > 0.01 then
+					-- Apply opacity multiplier to energy edge color with fade
+					local r, g, b, a = energyReclaimEdgeColor[1], energyReclaimEdgeColor[2], energyReclaimEdgeColor[3], energyReclaimEdgeColor[4]
+					local energyMultiplier = energyOpacityMultiplier
+					if not gameStarted then
+						energyMultiplier = energyMultiplier * preGameStartOpacityMultiplier
+					end
+					glColor(r, g, b, a * energyMultiplier * fadeMult)
+					glCallList(clusterData.edge)
+				end
 			end
 		end
 	end
