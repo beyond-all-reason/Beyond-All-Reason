@@ -12,10 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-
--- Localized functions for performance
-local tableSort = table.sort
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Options
@@ -57,10 +53,6 @@ local energyReclaimEdgeColor = {1, 1, 0, 0.18}
 --Energy field settings
 local energyOpacityMultiplier = 0.44 -- Multiplier for energy field opacity (relative to metal fields)
 local energyTextSizeMultiplier = 0.5 -- Multiplier for energy text size (relative to metal text)
-local preGameStartOpacityMultiplier = 1.2 -- Global opacity multiplier for all fields before gamestart
-local preGameStartMetalOpacityMultiplier = 1.2 -- Additional multiplier for metal field opacity before gamestart (stacks with global)
--- Note: Energy features (trees, geo spots) are static map features that typically don't change after gamestart.
--- The code optimizes by clustering energy fields once at gamestart and then skipping energy processing afterward.
 
 --Fill settings
 local fillAlpha = 0.055 -- Base fill layer opacity
@@ -77,8 +69,7 @@ local smoothingSegments = 4 -- Number of segments per edge
 -- Lower values = better performance, sharper edges (e.g., 4-8 for low-end systems)
 -- Higher values = smoother, more organic shapes (e.g., 20-30 for high-end systems)
 
---Update rate, in seconds
-local checkFrequency = 0.6
+local checkFrequency = 0.66	-- Update rate, in seconds
 
 local epsilon = 300 -- Clustering distance - increased to merge nearby fields and prevent overlaps
 
@@ -92,8 +83,10 @@ local fadeStartDistance = 4500 -- Distance where fields start to fade out
 local fadeEndDistance = 7000 -- Distance where fields stop rendering completely (must be > fadeStartDistance)
 
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 -- Speedups
+--------------------------------------------------------------------------------
+
+local tableSort = table.sort
 
 local insert = table.insert
 local remove = table.remove
@@ -136,8 +129,8 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetCameraVectors = Spring.GetCameraVectors
 
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 -- Helper Functions for Culling and Fading
+--------------------------------------------------------------------------------
 
 -- Cached camera state to avoid recalculating every frame
 local cachedCameraX, cachedCameraY, cachedCameraZ = 0, 0, 0
@@ -248,7 +241,7 @@ local deferredFeatureDestructions = {} -- Features destroyed outside view
 local deferredCreationCount = 0
 local deferredDestructionCount = 0
 local deferOutOfViewUpdates = true -- Config: defer processing features outside view
-local outOfViewMargin = 500 -- Elmos margin beyond fade distance to still process immediately (reduced from 1000)
+local outOfViewMargin = 350 -- Elmos margin beyond fade distance to still process immediately (reduced from 1000)
 local lastDeferredProcessFrame = 0
 local deferredProcessInterval = 60 -- Process deferred updates every 60 frames (~2 seconds)
 
@@ -260,7 +253,6 @@ local lastCameraCheckFrame = 0 -- Track when we last checked camera up vector
 -- Per-frame visibility and distance cache to avoid redundant calculations
 local clusterVisibilityCache = {} -- {[cid] = {frame, inView, dist, fadeMult}}
 local energyClusterVisibilityCache = {} -- {[energyCid] = {frame, inView, dist, fadeMult}}
-local lastVisibilityCacheFrame = -1
 
 -- Get cached visibility for a cluster (call once per frame per cluster)
 -- Forward declare this early since it's used in draw functions
@@ -283,8 +275,7 @@ local allEnergyFieldsDrained = false -- Track if all energy has been reclaimed t
 
 -- Track if game has started (GameFrame has been called)
 local gameStarted = false
-local updateTimer = 0
-local updateInterval = 0.1 -- Update every 0.1 seconds when GameFrame isn't running
+local initialized = false
 
 local minTextAreaLength = (epsilon / 2 + fontSizeMin) / 2
 local areaTextMin = 3000
@@ -2220,168 +2211,6 @@ local function DrawEnergyClusterText()
 	end
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- Widget call-ins
-
-function widget:Initialize()
-	screenx, screeny = widgetHandler:GetViewSizes()
-
-	-- Initialize camera scale early to avoid thick lines on first draw
-	local cx, cy, cz = spGetCameraPosition()
-	local desc, w = spTraceScreenRay(screenx / 2, screeny / 2, true)
-	if desc ~= nil then
-		local cameraDist = min(64000000, (cx-w[1])^2 + (cy-w[2])^2 + (cz-w[3])^2)
-		cameraScale = sqrt(sqrt(cameraDist) / 600)
-	else
-		cameraScale = 1.0
-	end
-
-	widgetHandler:AddAction("reclaim_highlight", enableHighlight, nil, "p")
-	widgetHandler:AddAction("reclaim_highlight", disableHighlight, nil, "r")
-
-	WG['reclaimfieldhighlight'] = {}
-	WG['reclaimfieldhighlight'].getShowOption = function()
-		return showOption
-	end
-	WG['reclaimfieldhighlight'].setShowOption = function(value)
-		showOption = value
-	end
-	WG['reclaimfieldhighlight'].getSmoothingSegments = function()
-		return smoothingSegments
-	end
-	WG['reclaimfieldhighlight'].setSmoothingSegments = function(value)
-		smoothingSegments = clamp(value, 4, 40) -- Clamp to reasonable range
-		clusterizingNeeded = true -- Force recluster with new settings
-	end
-	WG['reclaimfieldhighlight'].getShowEnergyFields = function()
-		return showEnergyFields
-	end
-	WG['reclaimfieldhighlight'].setShowEnergyFields = function(value)
-		showEnergyFields = value
-		clusterizingNeeded = true -- Force recluster with new settings
-	end
-	WG['reclaimfieldhighlight'].getShowEnergyOption = function()
-		return showEnergyOption
-	end
-	WG['reclaimfieldhighlight'].setShowEnergyOption = function(value)
-		showEnergyOption = value
-	end
-	WG['reclaimfieldhighlight'].getFadeStartDistance = function()
-		return fadeStartDistance
-	end
-	WG['reclaimfieldhighlight'].setFadeStartDistance = function(value)
-		fadeStartDistance = max(100, value)
-		-- Ensure start < end
-		if fadeStartDistance >= fadeEndDistance then
-			fadeEndDistance = fadeStartDistance + 1000
-		end
-	end
-	WG['reclaimfieldhighlight'].getFadeEndDistance = function()
-		return fadeEndDistance
-	end
-	WG['reclaimfieldhighlight'].setFadeEndDistance = function(value)
-		fadeEndDistance = max(fadeStartDistance + 100, value)
-	end
-
-	-- Deferred update settings
-	WG['reclaimfieldhighlight'].getDeferOutOfViewUpdates = function()
-		return deferOutOfViewUpdates
-	end
-	WG['reclaimfieldhighlight'].setDeferOutOfViewUpdates = function(value)
-		deferOutOfViewUpdates = value
-	end
-	WG['reclaimfieldhighlight'].getOutOfViewMargin = function()
-		return outOfViewMargin
-	end
-	WG['reclaimfieldhighlight'].setOutOfViewMargin = function(value)
-		outOfViewMargin = max(0, value)
-	end
-
-	-- Start/restart feature clustering.
-	knownFeatures = {}
-	flyingFeatures = {}
-	featureNeighborsMatrix = {}
-	featureClusters = {}
-	featureConvexHulls = {}
-	energyFeatureClusters = {}
-	energyFeatureConvexHulls = {}
-	opticsObject = Optics.new()
-	cachedKnownFeaturesCount = 0 -- Reset cached count
-
-	for _, featureID in ipairs(Spring.GetAllFeatures()) do
-		widget:FeatureCreated(featureID)
-	end
-
-	camUpVector = spGetCameraVectors().up
-
-	widget:SelectionChanged(Spring.GetSelectedUnits())
-end
-
-function widget:Shutdown()
-	widgetHandler:RemoveAction("reclaim_highlight", "p")
-	widgetHandler:RemoveAction("reclaim_highlight", "r")
-
-	WG['reclaimfieldhighlight'] = nil -- todo: register/deregister, right?
-
-	-- Clean up per-cluster display lists
-	for cid in pairs(clusterDisplayLists) do
-		DeleteClusterDisplayList(cid, false)
-	end
-	for cid in pairs(energyClusterDisplayLists) do
-		DeleteClusterDisplayList(cid, true)
-	end
-
-	-- Clean up old monolithic display lists (for compatibility)
-	if drawFeatureConvexHullGradientList ~= nil then
-		glDeleteList(drawFeatureConvexHullGradientList)
-	end
-	if drawFeatureConvexHullEdgeList ~= nil then
-		glDeleteList(drawFeatureConvexHullEdgeList)
-	end
-	if drawFeatureClusterTextList ~= nil then
-		glDeleteList(drawFeatureClusterTextList)
-	end
-	if drawEnergyConvexHullEdgeList ~= nil then
-		glDeleteList(drawEnergyConvexHullEdgeList)
-	end
-	if drawEnergyClusterTextList ~= nil then
-		glDeleteList(drawEnergyClusterTextList)
-	end
-end
-
-function widget:GetConfigData(data)
-    return {
-		showOption = showOption,
-		showEnergyOption = showEnergyOption,
-		smoothingSegments = smoothingSegments,
-		showEnergyFields = showEnergyFields,
-		fadeStartDistance = fadeStartDistance,
-		fadeEndDistance = fadeEndDistance
-	}
-end
-
-function widget:SetConfigData(data)
-	if data.showOption ~= nil then
-		showOption = data.showOption
-	end
-	if data.showEnergyOption ~= nil then
-		showEnergyOption = data.showEnergyOption
-	end
-	if data.showEnergyFields ~= nil then
-		showEnergyFields = data.showEnergyFields
-	end
-	if data.fadeStartDistance ~= nil then
-		--fadeStartDistance = data.fadeStartDistance
-	end
-	if data.fadeEndDistance ~= nil then
-		--fadeEndDistance = data.fadeEndDistance
-	end
-	-- if data.smoothingSegments ~= nil then
-	-- 	smoothingSegments = clamp(data.smoothingSegments, 4, 40)
-	-- end
-end
-
 -- Process deferred features that may have come into view
 local function ProcessDeferredFeatures(frame)
 	if (deferredCreationCount == 0 and deferredDestructionCount == 0) or
@@ -2640,7 +2469,8 @@ local function UpdateReclaimFields(frame)
 			for cid in pairs(dirtyClusters) do
 				if featureClusters[cid] then
 					local inView, dist, fadeMult = GetClusterVisibility(cid, false, frame)
-					if inView and fadeMult > 0.01 then
+					-- Pre-gamestart: always create metal display lists
+					if (not gameStarted and inView) or (inView and fadeMult > 0.01) then
 						CreateClusterDisplayList(cid, false)
 					else
 						-- Delete geometry display lists if cluster is out of view, but keep text to avoid churn
@@ -2680,7 +2510,8 @@ local function UpdateReclaimFields(frame)
 				for cid = 1, #featureClusters do
 					if featureClusters[cid] then
 						local inView, dist, fadeMult = GetClusterVisibility(cid, false, frame)
-						if inView and fadeMult > 0.01 then
+						-- Pre-gamestart: always create metal display lists
+						if (not gameStarted and inView) or (inView and fadeMult > 0.01) then
 							CreateClusterDisplayList(cid, false)
 						end
 					end
@@ -2743,6 +2574,169 @@ local function UpdateReclaimFields(frame)
 	end
 
 	redrawingNeeded = false
+	initialized = true
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Widget call-ins
+
+function widget:Initialize()
+	screenx, screeny = widgetHandler:GetViewSizes()
+
+	-- Initialize camera scale early to avoid thick lines on first draw
+	local cx, cy, cz = spGetCameraPosition()
+	local desc, w = spTraceScreenRay(screenx / 2, screeny / 2, true)
+	if desc ~= nil then
+		local cameraDist = min(64000000, (cx-w[1])^2 + (cy-w[2])^2 + (cz-w[3])^2)
+		cameraScale = sqrt(sqrt(cameraDist) / 600)
+	else
+		cameraScale = 1.0
+	end
+
+	widgetHandler:AddAction("reclaim_highlight", enableHighlight, nil, "p")
+	widgetHandler:AddAction("reclaim_highlight", disableHighlight, nil, "r")
+
+	WG['reclaimfieldhighlight'] = {}
+	WG['reclaimfieldhighlight'].getShowOption = function()
+		return showOption
+	end
+	WG['reclaimfieldhighlight'].setShowOption = function(value)
+		showOption = value
+	end
+	WG['reclaimfieldhighlight'].getSmoothingSegments = function()
+		return smoothingSegments
+	end
+	WG['reclaimfieldhighlight'].setSmoothingSegments = function(value)
+		smoothingSegments = clamp(value, 4, 40) -- Clamp to reasonable range
+		clusterizingNeeded = true -- Force recluster with new settings
+	end
+	WG['reclaimfieldhighlight'].getShowEnergyFields = function()
+		return showEnergyFields
+	end
+	WG['reclaimfieldhighlight'].setShowEnergyFields = function(value)
+		showEnergyFields = value
+		clusterizingNeeded = true -- Force recluster with new settings
+	end
+	WG['reclaimfieldhighlight'].getShowEnergyOption = function()
+		return showEnergyOption
+	end
+	WG['reclaimfieldhighlight'].setShowEnergyOption = function(value)
+		showEnergyOption = value
+	end
+	WG['reclaimfieldhighlight'].getFadeStartDistance = function()
+		return fadeStartDistance
+	end
+	WG['reclaimfieldhighlight'].setFadeStartDistance = function(value)
+		fadeStartDistance = max(100, value)
+		-- Ensure start < end
+		if fadeStartDistance >= fadeEndDistance then
+			fadeEndDistance = fadeStartDistance + 1000
+		end
+	end
+	WG['reclaimfieldhighlight'].getFadeEndDistance = function()
+		return fadeEndDistance
+	end
+	WG['reclaimfieldhighlight'].setFadeEndDistance = function(value)
+		fadeEndDistance = max(fadeStartDistance + 100, value)
+	end
+
+	-- Deferred update settings
+	WG['reclaimfieldhighlight'].getDeferOutOfViewUpdates = function()
+		return deferOutOfViewUpdates
+	end
+	WG['reclaimfieldhighlight'].setDeferOutOfViewUpdates = function(value)
+		deferOutOfViewUpdates = value
+	end
+	WG['reclaimfieldhighlight'].getOutOfViewMargin = function()
+		return outOfViewMargin
+	end
+	WG['reclaimfieldhighlight'].setOutOfViewMargin = function(value)
+		outOfViewMargin = max(0, value)
+	end
+
+	-- Start/restart feature clustering.
+	knownFeatures = {}
+	flyingFeatures = {}
+	featureNeighborsMatrix = {}
+	featureClusters = {}
+	featureConvexHulls = {}
+	energyFeatureClusters = {}
+	energyFeatureConvexHulls = {}
+	opticsObject = Optics.new()
+	cachedKnownFeaturesCount = 0 -- Reset cached count
+
+	for _, featureID in ipairs(Spring.GetAllFeatures()) do
+		widget:FeatureCreated(featureID)
+	end
+
+	camUpVector = spGetCameraVectors().up
+
+	widget:SelectionChanged(Spring.GetSelectedUnits())
+end
+
+function widget:Shutdown()
+	widgetHandler:RemoveAction("reclaim_highlight", "p")
+	widgetHandler:RemoveAction("reclaim_highlight", "r")
+
+	WG['reclaimfieldhighlight'] = nil -- todo: register/deregister, right?
+
+	-- Clean up per-cluster display lists
+	for cid in pairs(clusterDisplayLists) do
+		DeleteClusterDisplayList(cid, false)
+	end
+	for cid in pairs(energyClusterDisplayLists) do
+		DeleteClusterDisplayList(cid, true)
+	end
+
+	-- Clean up old monolithic display lists (for compatibility)
+	if drawFeatureConvexHullGradientList ~= nil then
+		glDeleteList(drawFeatureConvexHullGradientList)
+	end
+	if drawFeatureConvexHullEdgeList ~= nil then
+		glDeleteList(drawFeatureConvexHullEdgeList)
+	end
+	if drawFeatureClusterTextList ~= nil then
+		glDeleteList(drawFeatureClusterTextList)
+	end
+	if drawEnergyConvexHullEdgeList ~= nil then
+		glDeleteList(drawEnergyConvexHullEdgeList)
+	end
+	if drawEnergyClusterTextList ~= nil then
+		glDeleteList(drawEnergyClusterTextList)
+	end
+end
+
+function widget:GetConfigData(data)
+    return {
+		showOption = showOption,
+		showEnergyOption = showEnergyOption,
+		smoothingSegments = smoothingSegments,
+		showEnergyFields = showEnergyFields,
+		fadeStartDistance = fadeStartDistance,
+		fadeEndDistance = fadeEndDistance
+	}
+end
+
+function widget:SetConfigData(data)
+	if data.showOption ~= nil then
+		showOption = data.showOption
+	end
+	if data.showEnergyOption ~= nil then
+		showEnergyOption = data.showEnergyOption
+	end
+	if data.showEnergyFields ~= nil then
+		showEnergyFields = data.showEnergyFields
+	end
+	if data.fadeStartDistance ~= nil then
+		--fadeStartDistance = data.fadeStartDistance
+	end
+	if data.fadeEndDistance ~= nil then
+		--fadeEndDistance = data.fadeEndDistance
+	end
+	-- if data.smoothingSegments ~= nil then
+	-- 	smoothingSegments = clamp(data.smoothingSegments, 2, 10)
+	-- end
 end
 
 function widget:Update(dt)
@@ -2758,19 +2752,12 @@ function widget:Update(dt)
 	end
 
 	-- Before GameFrame starts being called, manually process updates
-	if not gameStarted then
-		updateTimer = updateTimer + dt
-		if updateTimer >= updateInterval then
-			updateTimer = 0
-			-- Call UpdateReclaimFields with a simulated frame number
-			local simulatedFrame = Spring.GetGameFrame()
-			UpdateReclaimFields(simulatedFrame)
-		end
+	if not gameStarted and not initialized then
+		UpdateReclaimFields(0)
 	end
 end
 
 function widget:GameFrame(frame)
-	-- Mark that GameFrame is now being called
 	gameStarted = true
 
 	-- Track GameFrame calls per second to detect catch-up (reconnection)
@@ -2778,13 +2765,12 @@ function widget:GameFrame(frame)
 	local currentTime = Spring.GetTimer()
 	local elapsedSeconds = Spring.DiffTimers(currentTime, lastGameFrameTrackTime)
 
+	-- update checkFrequency based on game catch up speed and feature count
 	if elapsedSeconds >= 1.0 then
-		-- Update game frames per second
 		gameFramesPerSecond = gameFrameCallCount / elapsedSeconds
 		gameFrameCallCount = 0
 		lastGameFrameTrackTime = currentTime
 
-		-- Adjust checkFrequency based on game speed
 		-- During catch-up, gameFramesPerSecond can be 100+, so increase checkFrequency proportionally
 		-- Normal is 30fps, so if we're at 120fps during catch-up, multiply checkFrequency by 4
 		-- When back to normal speed (<=45fps), restore base frequency
@@ -2800,14 +2786,14 @@ function widget:GameFrame(frame)
 		checkFrequency = math.ceil(baseCheckFrequency * featureCountMultiplier * catchUpMultiplier)
 	end
 
-	-- Use the extracted update logic
 	UpdateReclaimFields(frame)
 end
 
 function widget:FeatureCreated(featureID, allyTeamID)
 	-- Check if feature is near the camera view
 	local x, y, z = spGetFeaturePosition(featureID)
-	if x and deferOutOfViewUpdates and not IsPositionNearView(x, y, z) then
+	-- Pre-gamestart: process all features immediately to discover all metal fields
+	if x and gameStarted and deferOutOfViewUpdates and not IsPositionNearView(x, y, z) then
 		-- Defer processing for out-of-view features
 		deferredCreationCount = deferredCreationCount + 1
 		deferredFeatureCreations[deferredCreationCount] = featureID
@@ -2819,10 +2805,12 @@ function widget:FeatureCreated(featureID, allyTeamID)
 	pendingCreationCount = pendingCreationCount + 1
 	pendingFeatureCreations[pendingCreationCount] = featureID
 end
+
 function widget:FeatureDestroyed(featureID, allyTeamID)
 	-- Check if feature is near the camera view (use known position if available)
 	local feature = knownFeatures[featureID]
-	if feature and deferOutOfViewUpdates and not IsPositionNearView(feature.x, feature.y, feature.z) then
+	-- Pre-gamestart: process all features immediately to discover all metal fields
+	if feature and gameStarted and deferOutOfViewUpdates and not IsPositionNearView(feature.x, feature.y, feature.z) then
 		-- Defer processing for out-of-view features
 		deferredDestructionCount = deferredDestructionCount + 1
 		deferredFeatureDestructions[deferredDestructionCount] = featureID
