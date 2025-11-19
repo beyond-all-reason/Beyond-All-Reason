@@ -14,6 +14,11 @@ function widget:GetInfo()
   }
 end
 
+
+-- Localized Spring API for performance
+local spGetUnitDefID = Spring.GetUnitDefID
+local spEcho = Spring.Echo
+
 -- TODO: correctly track add/remove per vbotable
 -- Dont Allow mixed types, it will fuck with textures anyway
 -- need 4 vbos:
@@ -262,7 +267,7 @@ for i= 1, 14 do instanceCache[i] = 0 end
 ---@return uniqueID number a unique handler ID number that you should store and call StopDrawUnitGL4(uniqueID) with to stop drawing it
 local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, teamID, teamcoloroverride, highlight, updateID, ownerID)
 
-	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+	unitDefID = unitDefID or spGetUnitDefID(unitID)
 
 	px = px or 0 
 	py = py or 0
@@ -282,11 +287,11 @@ local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, team
 	if ownerID then owners[updateID] = ownerID end
 	
 	local DrawUnitVBOTable
-	--Spring.Echo("DrawUnitGL4", objecttype, UnitDefs[unitDefID].name, unitID, "to uniqueID", uniqueID,"elemID", elementID)
+	--spEcho("DrawUnitGL4", objecttype, UnitDefs[unitDefID].name, unitID, "to uniqueID", uniqueID,"elemID", elementID)
 	if corUnitDefIDs[unitDefID] then DrawUnitVBOTable = corDrawUnitVBOTable
 	elseif armUnitDefIDs[unitDefID] then DrawUnitVBOTable = armDrawUnitVBOTable
 	else
-		Spring.Echo("DrawUnitGL4 : The given unitDefID", unitDefID, UnitDefs[unitDefID].name, "is neither arm nor cor, only those two are supported at the moment")
+		spEcho("DrawUnitGL4 : The given unitDefID", unitDefID, UnitDefs[unitDefID].name, "is neither arm nor cor, only those two are supported at the moment")
 		Spring.Debug.TraceFullEcho(nil,nil,nil,"DrawUnitGL4")
 		return nil
 	end
@@ -337,12 +342,12 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID,
 	local DrawUnitShapeVBOTable = unitDeftoUnitShapeVBOTable[unitDefID]
 	
 	if not DrawUnitShapeVBOTable then 
-		Spring.Echo("DrawUnitShapeGL4: The given unitDefID", unitDefID,  UnitDefs[unitDefID].name, "is missing a target DrawUnitShapeVBOTable")
+		spEcho("DrawUnitShapeGL4: The given unitDefID", unitDefID,  UnitDefs[unitDefID].name, "is missing a target DrawUnitShapeVBOTable")
 		Spring.Debug.TraceFullEcho(nil,nil,nil,"DrawUnitGL4")
 		return nil
 	end
 	uniqueIDtoUnitShapeVBOTable[uniqueID] = DrawUnitShapeVBOTable
-	--Spring.Echo("DrawUnitShapeGL4", "unitDefID", unitDefID, UnitDefs[unitDefID].name, "to unitDefID", uniqueID,"elemID", elementID)
+	--spEcho("DrawUnitShapeGL4", "unitDefID", unitDefID, UnitDefs[unitDefID].name, "to unitDefID", uniqueID,"elemID", elementID)
 	
 	instanceCache[1], instanceCache[2], instanceCache[3], instanceCache[4] = px, py, pz, rotationY
 	instanceCache[5], instanceCache[6], instanceCache[7], instanceCache[8] = alpha, 1, teamcoloroverride, highlight
@@ -368,11 +373,11 @@ local function StopDrawUnitGL4(uniqueID)
 	elseif armDrawUnitVBOTable.instanceIDtoIndex[uniqueID] then
 		popElementInstance(armDrawUnitVBOTable, uniqueID)
 	else
-		Spring.Echo("Unable to remove what you wanted in StopDrawUnitGL4", uniqueID)
+		spEcho("Unable to remove what you wanted in StopDrawUnitGL4", uniqueID)
 	end
 	local owner = owners[uniqueID]
 	owners[uniqueID] = nil
-	--Spring.Echo("Popped element", uniqueID)
+	--spEcho("Popped element", uniqueID)
 	return owner
 end
 
@@ -386,19 +391,19 @@ local function StopDrawUnitShapeGL4(uniqueID)
 		if DrawUnitShapeVBOTable.instanceIDtoIndex[uniqueID] then
 			popElementInstance(DrawUnitShapeVBOTable, uniqueID) 
 		else
-			Spring.Echo("DrawUnitShapeGL4: the given uniqueID", uniqueID," is not present in the DrawUnitShapeVBOTable", DrawUnitShapeVBOTable.vboname, "that we expected it to be in" )
+			spEcho("DrawUnitShapeGL4: the given uniqueID", uniqueID," is not present in the DrawUnitShapeVBOTable", DrawUnitShapeVBOTable.vboname, "that we expected it to be in" )
 		end
 		
 	else
 	
-		Spring.Echo("DrawUnitShapeGL4: the given uniqueID", uniqueID," is not present in the uniqueIDtoUnitShapeVBOTable, it might already have been removed?")	
+		spEcho("DrawUnitShapeGL4: the given uniqueID", uniqueID," is not present in the uniqueIDtoUnitShapeVBOTable, it might already have been removed?")	
 	end
 	
 	uniqueIDtoUnitShapeVBOTable[uniqueID] = nil
 	
 	local owner = owners[uniqueID]
 	owners[uniqueID] = nil
-	--Spring.Echo("Popped element", uniqueID)
+	--spEcho("Popped element", uniqueID)
 	return owner
 end
 
@@ -420,7 +425,7 @@ local function StopDrawAll(ownerID)
 				if DrawUnitShapeVBOTable.instanceIDtoIndex[uniqueID] then
 					popElementInstance(DrawUnitShapeVBOTable, uniqueID) 
 				else
-					Spring.Echo("DrawUnitShapeGL4 StopDrawAll: the given uniqueID", uniqueID," is not present in the DrawUnitShapeVBOTable", DrawUnitShapeVBOTable.vboname, "that we expected it to be in" )
+					spEcho("DrawUnitShapeGL4 StopDrawAll: the given uniqueID", uniqueID," is not present in the DrawUnitShapeVBOTable", DrawUnitShapeVBOTable.vboname, "that we expected it to be in" )
 				end
 			end 
 			
@@ -441,7 +446,7 @@ if TESTMODE then
 	function widget:UnitCreated(unitID, unitDefID)
 		unitIDtoUniqueID[unitID] =  DrawUnitGL4(unitID, unitDefID,  0, 0, 0, math.random()*2, 0.6)
 		local px, py, pz = Spring.GetUnitPosition(unitID)
-		unitDefIDtoUniqueID[unitID] = DrawUnitShapeGL4(Spring.GetUnitDefID(unitID), px+20, py + 50, pz+20, 0, 0.6)
+		unitDefIDtoUniqueID[unitID] = DrawUnitShapeGL4(spGetUnitDefID(unitID), px+20, py + 50, pz+20, 0, 0.6)
 	end
 
 	function widget:UnitDestroyed(unitID)
@@ -496,7 +501,7 @@ function widget:Initialize()
 	-- This section is for automatically creating all vbos for all posible tex combos.
 	-- However it is disabled here, as there are only 4 true tex combos, as defined above in tex1ToVBOx
 	--for unitDefID, tex1 in pairs(unitDefIDtoTex1) do 
-	--	if not tex1ToVBO[tex1] then Spring.Echo("DrawUnitShape unique tex1 is",tex1) end
+	--	if not tex1ToVBO[tex1] then spEcho("DrawUnitShape unique tex1 is",tex1) end
 	--	tex1ToVBO[tex1] = true 
 	--end 
 	
@@ -551,7 +556,7 @@ function widget:Initialize()
 	local unitshaderCompiled = unitShader:Initialize()
 	local unitshapeshaderCompiled = unitShapeShader:Initialize()
 	if unitshaderCompiled ~= true or  unitshapeshaderCompiled ~= true then
-		Spring.Echo("DrawUnitShape shader compilation failed", unitshaderCompiled, unitshapeshaderCompiled)
+		spEcho("DrawUnitShape shader compilation failed", unitshaderCompiled, unitshapeshaderCompiled)
 		widgetHandler:RemoveWidget()
 	end
 	if TESTMODE then

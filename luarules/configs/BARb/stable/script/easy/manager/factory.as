@@ -22,6 +22,7 @@ string legalab ("legalab");
 string legvp   ("legvp");
 string legavp  ("legavp");
 string legap   ("legap");
+string legsy   ("legsy");
 
 int switchInterval = MakeSwitchInterval();
 int switchFrame = 0;

@@ -12,6 +12,14 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMin = math.min
+
+-- Localized Spring API for performance
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld
@@ -23,16 +31,16 @@ local maxAllowedWidth = 0.26
 local maxAllowedHeight = 0.32
 local leftClickMove = true
 
-local vsx, vsy, _, vpy = Spring.GetViewGeometry()
+local vsx, vsy, _, vpy = spGetViewGeometry()
 
 local minimized = false
 local maximized = false
 
 local maxHeight = maxAllowedHeight
 local ratio = Game.mapX / Game.mapY
-local maxWidth = math.min(maxHeight * ratio, maxAllowedWidth * (vsx / vsy))
-local usedWidth = math.floor(maxWidth * vsy)
-local usedHeight = math.floor(maxHeight * vsy)
+local maxWidth = mathMin(maxHeight * ratio, maxAllowedWidth * (vsx / vsy))
+local usedWidth = mathFloor(maxWidth * vsy)
+local usedHeight = mathFloor(maxHeight * vsy)
 local backgroundRect = { 0, 0, 0, 0 }
 
 local delayedSetup = false
@@ -59,7 +67,7 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader then
 			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4], elementCorner)
+				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner)
 			end)
 			WG['guishader'].InsertDlist(dlistGuishader, 'minimap')
 		end
@@ -92,7 +100,7 @@ function widget:ViewResize()
 		return
 	end
 
-	vsx, vsy, _, vpy = Spring.GetViewGeometry()
+	vsx, vsy, _, vpy = spGetViewGeometry()
 
 	elementPadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
@@ -105,15 +113,15 @@ function widget:ViewResize()
 		maxAllowedWidth = (topbarArea[1] - elementMargin - elementPadding) / vsx
 	end
 
-	maxWidth = math.min(maxAllowedHeight * ratio, maxAllowedWidth * (vsx / vsy))
+	maxWidth = mathMin(maxAllowedHeight * ratio, maxAllowedWidth * (vsx / vsy))
 	if maxWidth >= maxAllowedWidth * (vsx / vsy) then
 		maxHeight = maxWidth / ratio
 	else
 		maxHeight = maxAllowedHeight
 	end
 
-	usedWidth = math.floor(maxWidth * vsy)
-	usedHeight = math.floor(maxHeight * vsy)
+	usedWidth = mathFloor(maxWidth * vsy)
+	usedHeight = mathFloor(maxHeight * vsy)
 
 	backgroundRect = { 0, vsy - (usedHeight) - elementPadding, usedWidth + elementPadding, vsy }
 
@@ -144,7 +152,7 @@ function widget:Initialize()
 		return usedHeight + elementPadding
 	end
 	WG['minimap'].getMaxHeight = function()
-		return math.floor(maxAllowedHeight * vsy), maxAllowedHeight
+		return mathFloor(maxAllowedHeight * vsy), maxAllowedHeight
 	end
 	WG['minimap'].setMaxHeight = function(value)
 		maxAllowedHeight = value
@@ -257,7 +265,7 @@ function widget:DrawScreen()
 		end
 		if useRenderToTexture then
 			if not uiBgTex and backgroundRect[3]-backgroundRect[1] >= 1 and backgroundRect[4]-backgroundRect[2] >= 1 then
-				uiBgTex = gl.CreateTexture(math.floor(backgroundRect[3]-backgroundRect[1]), math.floor(backgroundRect[4]-backgroundRect[2]), {
+				uiBgTex = gl.CreateTexture(mathFloor(backgroundRect[3]-backgroundRect[1]), mathFloor(backgroundRect[4]-backgroundRect[2]), {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,

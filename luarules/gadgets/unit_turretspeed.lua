@@ -44,10 +44,16 @@ in bos. noone uses that.
 
 if not gadgetHandler:IsSyncedCode() then return end
 
+local spGetAllUnits = Spring.GetAllUnits
+local spGetUnitDefID = Spring.GetUnitDefID
+local spCallCOBScript = Spring.CallCOBScript
+local stringFind = string.find
+local stringLower = string.lower
+
 local unitConf = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	local weapons = unitDef.weapons
-	if weapons and not string.find((string.lower(unitDef.scriptName)), "lua") then
+	if weapons and not stringFind((stringLower(unitDef.scriptName)), "lua", 1, true) then
 		for weaponID, weapon in pairs(weapons) do
 			local customParamName = 'weapon'..weaponID..'turret'
 			if unitDef.customParams[customParamName..'x'] and unitDef.customParams[customParamName..'y'] then
@@ -63,16 +69,17 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:Initialize()
-	for ct, unitID in pairs(Spring.GetAllUnits()) do
-		local udefID = Spring.GetUnitDefID(unitID)
-		gadget:UnitCreated(unitID, udefID)
+	local allUnits = spGetAllUnits()
+	for i = 1, #allUnits do
+		local unitID = allUnits[i]
+		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
 	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
 	if unitConf[unitDefID] then
 		for i=1, #unitConf[unitDefID] do
-			Spring.CallCOBScript(unitID, unitConf[unitDefID][i][1], unitConf[unitDefID][i][2], unitConf[unitDefID][i][3], unitConf[unitDefID][i][4])
+			spCallCOBScript(unitID, unitConf[unitDefID][i][1], unitConf[unitDefID][i][2], unitConf[unitDefID][i][3], unitConf[unitDefID][i][4])
 		end
 	end
 end

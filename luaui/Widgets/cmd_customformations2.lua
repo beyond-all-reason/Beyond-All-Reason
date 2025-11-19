@@ -15,6 +15,11 @@ function widget:GetInfo()
     }
 end
 
+
+-- Localized Spring API for performance
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+
 -- Behavior:
 -- To give a line command: select command, then right click & drag
 -- To give a command within an area: select command, then left click and drag
@@ -108,6 +113,7 @@ local dimmAlpha = 0 -- The current alpha of dimming line
 local pathCandidate = false -- True if we should start a path on mouse move
 local draggingPath = false -- True if we are dragging a path for unit(s) to follow
 local lastPathPos = nil -- The last point added to the path, used for min-distance check
+local pathPositions = {} -- All positions added to the path, used to prevent overlapping commands
 
 local overriddenCmd = nil -- The command we ignored in favor of move
 local overriddenTarget = nil -- The target (for params) we ignored
@@ -173,8 +179,8 @@ local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 
 local keyShift = 304
-local selectedUnits = Spring.GetSelectedUnits()
-local selectedUnitsCount = Spring.GetSelectedUnitsCount()
+local selectedUnits = spGetSelectedUnits()
+local selectedUnitsCount = spGetSelectedUnitsCount()
 
 --------------------------------------------------------------------------------
 -- Helper Functions
@@ -185,7 +191,7 @@ local function GetModKeys()
     if spGetInvertQueueKey() then -- Shift inversion
         shift = not shift
     end
-    
+
     -- Check if PiP widget wants to force shift for right-click drags
     if WG.pipForceShift then
         shift = true
@@ -387,7 +393,7 @@ end
 
 function widget:SelectionChanged(sel)
     selectedUnits = sel
-    selectedUnitsCount = Spring.GetSelectedUnitsCount()
+    selectedUnitsCount = spGetSelectedUnitsCount()
 end
 
 
@@ -466,6 +472,9 @@ function widget:MousePress(mx, my, mButton)
     -- Is this line a path candidate (We don't do a path off an overriden command)
 	pathCandidate = (not overriddenCmd) and selectedUnitsCount==1 and (not shift or repeatForSingleUnit)
 
+    -- Initialize path positions tracking
+    pathPositions = {}
+
     return true
 end
 
@@ -506,6 +515,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 
             GiveNotifyingOrder(usingCmd, pos, cmdOpts)
             lastPathPos = pos
+            pathPositions[1] = {pos[1], pos[2], pos[3]}
 
             draggingPath = true
         end
@@ -516,11 +526,26 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
             local dx, dz = pos[1] - lastPathPos[1], pos[3] - lastPathPos[3]
             if (dx*dx + dz*dz) > minPathSpacingSq then
 
-                local alt, ctrl, meta, shift = GetModKeys()
-                local cmdOpts = GetCmdOpts(false, ctrl, meta, true, usingRMB) -- using alt uses springs box formation, so we set it off always
+                -- Check if this position is too close to any previously added path position
+                local tooClose = false
+                for i = 1, #pathPositions do
+                    local prevPos = pathPositions[i]
+                    local pdx, pdz = pos[1] - prevPos[1], pos[3] - prevPos[3]
+                    if (pdx*pdx + pdz*pdz) <= minPathSpacingSq then
+                        tooClose = true
+                        break
+                    end
+                end
 
-                GiveNotifyingOrder(usingCmd, pos, cmdOpts)
-                lastPathPos = pos
+                -- Only add command if it's not too close to any previous position
+                if not tooClose then
+                    local alt, ctrl, meta, shift = GetModKeys()
+                    local cmdOpts = GetCmdOpts(false, ctrl, meta, true, usingRMB)
+
+                    GiveNotifyingOrder(usingCmd, pos, cmdOpts)
+                    lastPathPos = pos
+                    pathPositions[#pathPositions + 1] = {pos[1], pos[2], pos[3]}
+                end
             end
         end
     end
@@ -1372,7 +1397,7 @@ function widget:Initialize()
 	WG.customformations.setRepeatForSingleUnit = function(value)
 		repeatForSingleUnit = value
 	end
-	
+
 	-- External formation dragging API (for PIP window, etc.)
 	WG.customformations.StartFormation = function(worldPos, cmdID, fromMinimap)
 		-- Reset state
@@ -1383,14 +1408,15 @@ function widget:Initialize()
 		pathCandidate = false
 		draggingPath = false
 		lastPathPos = nil
+		pathPositions = {}
 		overriddenCmd = nil
 		overriddenTarget = nil
-		
+
 		-- Set command
 		usingCmd = cmdID or CMD_MOVE
 		usingRMB = true
 		inMinimap = fromMinimap or false
-		
+
 		-- Add first node
 		if AddFNode(worldPos) then
 			local alt, ctrl, meta, shift = spGetModKeyState()
@@ -1399,18 +1425,18 @@ function widget:Initialize()
 		end
 		return false
 	end
-	
+
 	WG.customformations.AddFormationNode = function(worldPos)
 		if #fNodes == 0 then return false end
-		
+
 		local added = AddFNode(worldPos)
-		
+
 		-- Start drawing when we have 2+ nodes
 		if #fNodes == 2 then
 			widgetHandler:UpdateWidgetCallIn("DrawWorld", self)
 			widgetHandler:UpdateWidgetCallIn("DrawInMiniMap", self)
 		end
-		
+
 		-- Path handling
 		if #fNodes > 1 and pathCandidate then
 			local minDist = minPathSpacingSq
@@ -1418,41 +1444,57 @@ function widget:Initialize()
 				local dx, dz = worldPos[1] - lastPathPos[1], worldPos[3] - lastPathPos[3]
 				local distSq = dx * dx + dz * dz
 				if distSq >= minDist then
-					draggingPath = true
-					local alt, ctrl, meta, shift = GetModKeys()
-					local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, usingRMB)
-					GiveNotifyingOrder(usingCmd, worldPos, cmdOpts)
-					lastPathPos = worldPos
+					-- Check if this position is too close to any previously added path position
+					local tooClose = false
+					for i = 1, #pathPositions do
+						local prevPos = pathPositions[i]
+						local pdx, pdz = worldPos[1] - prevPos[1], worldPos[3] - prevPos[3]
+						if (pdx*pdx + pdz*pdz) <= minPathSpacingSq then
+							tooClose = true
+							break
+						end
+					end
+
+					-- Only add command if it's not too close to any previous position
+					if not tooClose then
+						draggingPath = true
+						local alt, ctrl, meta, shift = GetModKeys()
+						local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, usingRMB)
+						GiveNotifyingOrder(usingCmd, worldPos, cmdOpts)
+						lastPathPos = worldPos
+						pathPositions[#pathPositions + 1] = {worldPos[1], worldPos[2], worldPos[3]}
+					end
 				end
 			else
 				lastPathPos = worldPos
+				pathPositions[1] = {worldPos[1], worldPos[2], worldPos[3]}
 			end
 		end
-		
+
 		return added
 	end
-	
+
 	WG.customformations.EndFormation = function(worldPos, cmdID)
 		if #fNodes == 0 then return false end
-		
+
 		-- Add final position
 		if worldPos then
 			AddFNode(worldPos)
 		end
-		
+
 		-- Determine if we used the formation
 		local usingFormation = not draggingPath
 		local result = false
-		
+
 		if usingFormation then
 			local alt, ctrl, meta, shift = GetModKeys()
 			local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, usingRMB)
-			
+
 			-- Get drag threshold
 			local selectionThreshold = Spring.GetConfigInt("MouseDragFrontCommandThreshold") or 20
 			local dragDelta = selectionThreshold -- Approximate for external callers
 			local adjustedMinFormationLength = max(dragDelta, minFormationLength)
-			
+
 			if fDists[#fNodes] < adjustedMinFormationLength or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64*(selectedUnitsCount - 1)) then
 				-- Single-click style order
 				if usingCmd == CMD_MOVE and #fNodes > 0 then
@@ -1470,7 +1512,7 @@ function widget:Initialize()
 					else
 						orders = GetOrdersNoX(interpNodes, mUnits, #mUnits, shift and not meta)
 					end
-					
+
 					local unitArr = {}
 					local orderArr = {}
 					if meta then
@@ -1500,7 +1542,7 @@ function widget:Initialize()
 				end
 			end
 		end
-		
+
 		-- Show dimming line
 		if #fNodes > 1 then
 			dimmCmd = usingCmd
@@ -1508,39 +1550,40 @@ function widget:Initialize()
 			dimmAlpha = 1.0
 			widgetHandler:UpdateWidgetCallIn("Update", self)
 		end
-		
+
 		-- Reset
 		fNodes = {}
 		fDists = {}
 		draggingPath = false
-		
+
 		return result
 	end
-	
+
 	WG.customformations.CancelFormation = function()
 		fNodes = {}
 		fDists = {}
 		draggingPath = false
 		pathCandidate = false
+		pathPositions = {}
 		return true
 	end
-	
+
 	WG.customformations.IsFormationActive = function()
 		return #fNodes > 0
 	end
-	
+
 	WG.customformations.GetFormationNodes = function()
 		return fNodes
 	end
-	
+
 	WG.customformations.GetFormationCommand = function()
 		return usingCmd
 	end
-	
+
 	WG.customformations.GetFormationLineLength = function()
 		return lineLength
 	end
-	
+
 	WG.customformations.GetSelectedUnitsCount = function()
 		return selectedUnitsCount
 	end

@@ -26,6 +26,7 @@ local unitOrderTable = {
 
 	['armcs']          = 001180, --SHIPS
 	['corcs']          = 001190,
+	['legnavyconship'] = 001191,
 
 	['armch']          = 002000, --HOVER
 	['corch']          = 002050,
@@ -41,6 +42,7 @@ local unitOrderTable = {
 
 	['armrecl']        = 002300, --REZ SUBS
 	['correcl']        = 002350,
+	['legnavyrezsub']  = 002351,
 
 	['armack']         = 002400,
 	['corack']         = 002450,
@@ -362,18 +364,21 @@ local unitOrderTable = {
 	-- WATER SCOUTS
 	['armpt']          = 009000, --SCOUTS AA
 	['coresupp']       = 009010,
-	['legpontus']       = 009015,
+	['legnavyaaship']       = 009015,
 
 	-- T1 WATER ATTACK
 	['armdecade']      = 009100, --FAST
 	['corpt']          = 009110,
-	['legvelite']      = 009120,
+	['legnavyscout']      = 009120,
 
 	['armpship']       = 009200, --MAIN BATTLE
 	['corpship']       = 009210,
-	['leghastatus']    = 009210,
+	['legnavyfrigate']       = 009211,
+	['legnavydestro']    = 009212,
 	['armroy']         = 009220,
 	['corroy']         = 009230,
+
+	['legnavyartyship']         = 009231,
 
 	-- T2 WATER ATTACK
 	['armlship']       = 009280, --ANTISWARM
@@ -415,6 +420,7 @@ local unitOrderTable = {
 	['corseap']        = 009810,
 	['armsub']         = 009820,
 	['corsub']         = 009830,
+	['legnavysub']         = 009831,
 
 	['armlance']       = 009900,
 	['cortitan']       = 009910,
@@ -752,7 +758,7 @@ local unitOrderTable = {
 
    ['armsy']          = 211100,
    ['corsy']          = 211200,
-   ['legjim']          = 211300,
+   ['legsy']          = 211300,
    ['armfhp']         = 212100,
    ['corfhp']         = 212200,
    ['legfhp']         = 212250,

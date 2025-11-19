@@ -36,6 +36,7 @@ local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitWeaponState = Spring.GetUnitWeaponState
 local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 local spSetProjectilePosition = Spring.SetProjectilePosition
 local spSetProjectileTarget = Spring.SetProjectileTarget
@@ -58,6 +59,9 @@ local weaponDefEffect = {}
 
 local projectiles = {}
 local projectilesData = {}
+
+local gameFrame = 0
+local resultCaches = {}
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
@@ -123,6 +127,16 @@ end
 local function isProjectileInWater(projectileID)
 	local _, positionY = spGetProjectilePosition(projectileID)
 	return positionY <= 0
+end
+
+local function equalTargets(target1, target2)
+	return target1 == target2 or (
+		type(target1) == "table" and
+		type(target2) == "table" and
+		target1[1] == target2[1] and
+		target1[2] == target2[2] and
+		target1[3] == target2[3]
+	)
 end
 
 local getProjectileArgs
@@ -251,30 +265,48 @@ end
 -- Based on retarget
 -- Uses no weapon customParams.
 
-specialEffectFunction.guidance = function(projectileID)
+resultCaches.guidance = {} -- ownerID = <isFiring, guidanceType, userTarget, guidanceTarget>
 
+specialEffectFunction.guidance = function(projectileID)
 	if spGetProjectileTimeToLive(projectileID) > 0 then
-		local targetType, target= spGetProjectileTarget(projectileID)
 		local ownerID = spGetProjectileOwnerID(projectileID)
-		local lasing = spGetUnitWeaponTarget (ownerID, 1)
-		if lasing ~= 0 then
-			local ownerTargetType, _, ownerTarget = spGetUnitWeaponTarget(ownerID, 1)
-			
-			if target ~= ownerTarget then
-				-- Hardcoded to retarget only from the primary weapon and only units or ground
-			
-				if ownerTargetType == 1 then
-					spSetProjectileTarget(projectileID, ownerTarget, targetedUnit)
-				elseif ownerTargetType == 2 then
-					spSetProjectileTarget(projectileID, ownerTarget[1], ownerTarget[2], ownerTarget[3])
+
+		if spGetUnitIsDead(ownerID) ~= false then
+			return true
+		end
+
+		local targetType, missileTarget = spGetProjectileTarget(projectileID)
+		local results = resultCaches.guidance[ownerID]
+
+		if not results then
+			-- Guidance weapon must be the primary and have burst/reload > 1 frame.
+			-- This is hackish but works well to prevent spammy retargeting anyway.
+			results = {
+				(spGetUnitWeaponState(ownerID, 1, "nextSalvo") or 0) + 1 >= gameFrame,
+				spGetUnitWeaponTarget(ownerID, 1)
+			}
+			resultCaches.guidance[ownerID] = results
+		end
+
+		if results[1] and results[2] then
+			local guidanceType, guidanceTarget = results[2], results[4]
+			if not equalTargets(guidanceTarget, missileTarget) then
+				if guidanceType == 1 then
+					spSetProjectileTarget(projectileID, guidanceTarget, targetedUnit)
+					return false
+				elseif guidanceType == 2 then
+					spSetProjectileTarget(projectileID, guidanceTarget[1], guidanceTarget[2], guidanceTarget[3])
+					return false
 				end
 			end
-		return false
-		else	
-			spSetProjectileTarget(projectileID, 9999999, 9999999)
-			return false
 		end
-		
+
+		-- Guidance weapon is not firing, its target is invalid or lost, and so on.
+		if targetType == targetedUnit then
+			spSetProjectileTarget(projectileID, spGetUnitPosition(missileTarget))
+		end
+
+		return false
 	else
 		return true
 	end
@@ -478,6 +510,7 @@ function gadget:Initialize()
 		for weaponDefID in pairs(weaponDefEffect) do
 			Script.SetWatchProjectile(weaponDefID, true)
 		end
+		gameFrame = Spring.GetGameFrame()
 	else
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No custom weapons found.")
 		gadgetHandler:RemoveGadget(self)
@@ -496,6 +529,12 @@ function gadget:ProjectileDestroyed(projectileID)
 end
 
 function gadget:GameFrame(frame)
+	gameFrame = frame
+
+	for key in pairs(resultCaches) do
+		resultCaches[key] = {}
+	end
+
 	for projectileID, effect in pairs(projectiles) do
 		if effect(projectileID) then
 			projectiles[projectileID] = nil

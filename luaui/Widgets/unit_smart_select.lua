@@ -12,6 +12,13 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld
 local selectApi = VFS.Include("luaui/Include/select_api.lua")
 
@@ -61,10 +68,10 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitNoSelect = Spring.GetUnitNoSelect
 
 local GaiaTeamID = Spring.GetGaiaTeamID()
-local selectedUnits = Spring.GetSelectedUnits()
+local selectedUnits = spGetSelectedUnits()
 
-local spec = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
+local spec = spGetSpectatingState()
+local myTeamID = spGetMyTeamID()
 
 local ignoreUnits = {}
 local combatFilter = {}
@@ -93,7 +100,7 @@ for udid, udef in pairs(UnitDefs) do
 end
 
 local dualScreen
-local vpy = select(Spring.GetViewGeometry(), 4)
+local vpy = select(spGetViewGeometry(), 4)
 local referenceSelection = {}
 local referenceSelectionTypes = {}
 
@@ -135,7 +142,7 @@ end
 
 function widget:ViewResize()
 	dualScreen = Spring.GetMiniMapDualScreen()
-	_, _, _, vpy = Spring.GetViewGeometry()
+	_, _, _, vpy = spGetViewGeometry()
 end
 
 function widget:SelectionChanged(sel)
@@ -186,8 +193,8 @@ local function mousePress(x, y, button, hasMouseOwner)  --function widget:MouseP
 end
 
 function widget:PlayerChanged()
-	spec = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
+	spec = spGetSpectatingState()
+	myTeamID = spGetMyTeamID()
 end
 
 local sec = 0
@@ -407,7 +414,7 @@ function widget:Update(dt)
 	elseif (mods.append or mods.all) then  -- append units inside selection rectangle to current selection
 		spSelectUnitArray(newSelection)
 		spSelectUnitArray(mouseSelection, true)
-		selectedUnits = Spring.GetSelectedUnits()
+		selectedUnits = spGetSelectedUnits()
 
 	elseif #mouseSelection > 0 then  -- select units inside selection rectangle
 		selectedUnits = mouseSelection
@@ -455,7 +462,7 @@ function widget:Initialize()
 	-- Function to set the reference selection for external box selections
 	WG.SmartSelect_SetReference = function()
 		externalSelectionReference = {}
-		local current = Spring.GetSelectedUnits()
+		local current = spGetSelectedUnits()
 		for i = 1, #current do
 			externalSelectionReference[current[i]] = true
 		end

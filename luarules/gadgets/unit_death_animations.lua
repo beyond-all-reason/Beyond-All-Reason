@@ -16,6 +16,15 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local spSetUnitBlocking = Spring.SetUnitBlocking
+local spSetUnitIconDraw = Spring.SetUnitIconDraw
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spMoveCtrlEnable = Spring.MoveCtrl.Enable
+local spMoveCtrlDisable = Spring.MoveCtrl.Disable
+local spMoveCtrlSetVelocity = Spring.MoveCtrl.SetVelocity
+local stringFind = string.find
+local tableCopy = table.copy
+
 local units = {
 	corkarg = true,
 	corthud = true,
@@ -33,7 +42,7 @@ local units = {
 	corak = true,
 	corck = true,
 }
-local unitsCopy = table.copy(units)
+local unitsCopy = tableCopy(units)
 for name,v in pairs(unitsCopy) do
 	units[name..'_scav'] = true
 end
@@ -43,7 +52,7 @@ for udid, ud in pairs(UnitDefs) do
 		hasDeathAnim[udid] = true
 	end
 	-- almost all raptors have dying anims
-	if string.find(ud.name, "raptor") or (ud.customParams.subfolder and ud.customParams.subfolder == "other/raptors") then
+	if stringFind(ud.name, "raptor", 1, true) or (ud.customParams.subfolder and ud.customParams.subfolder == "other/raptors") then
 		hasDeathAnim[udid] = true
 	end
 end
@@ -58,11 +67,11 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 	if hasDeathAnim[unitDefID] then
-    	Spring.SetUnitBlocking(unitID,false) -- non blocking while dying
-		Spring.SetUnitIconDraw(unitID, false) -- dont draw icons
-		Spring.GiveOrderToUnit(unitID, CMD_STOP, 0, 0)
-		Spring.MoveCtrl.Enable(unitID)
-		Spring.MoveCtrl.SetVelocity(unitID, 0, 0, 0)
+    	spSetUnitBlocking(unitID, false) -- non blocking while dying
+		spSetUnitIconDraw(unitID, false) -- dont draw icons
+		spGiveOrderToUnit(unitID, CMD_STOP, 0, 0)
+		spMoveCtrlEnable(unitID)
+		spMoveCtrlSetVelocity(unitID, 0, 0, 0)
     	dyingUnits[unitID] = true
 	end
 end
@@ -74,7 +83,7 @@ end
 
 function gadget:RenderUnitDestroyed(unitID, unitDefID, unitTeam) --called when killed anim finishes
 	if dyingUnits[unitID] then
-		Spring.MoveCtrl.Disable(unitID) -- just in case, not sure if it's needed
+		spMoveCtrlDisable(unitID) -- just in case, not sure if it's needed
 		dyingUnits[unitID] = nil
 	end
 end

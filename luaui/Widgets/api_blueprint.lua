@@ -28,6 +28,17 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathAbs = math.abs
+local mathFloor = math.floor
+local mathMax = math.max
+local mathMin = math.min
+local mathSin = math.sin
+local mathCos = math.cos
+local mathPi = math.pi
+local tableInsert = table.insert
+
 -- types
 -- =====
 
@@ -81,7 +92,7 @@ end
 ---@return Point
 local function subtractPoints(a, b)
 	local result = {}
-	for i = 1, math.max(#a, #b) do
+	for i = 1, mathMax(#a, #b) do
 		result[i] = (a[i] or 0) - (b[i] or 0)
 	end
 	return result
@@ -102,8 +113,8 @@ local function rotatePointXZ(point, center, angle)
 	}
 
 	-- Perform the rotation
-	rotatedPoint[1] = translatedPoint[1] * math.cos(angle) - translatedPoint[3] * math.sin(angle)
-	rotatedPoint[3] = translatedPoint[1] * math.sin(angle) + translatedPoint[3] * math.cos(angle)
+	rotatedPoint[1] = translatedPoint[1] * mathCos(angle) - translatedPoint[3] * mathSin(angle)
+	rotatedPoint[3] = translatedPoint[1] * mathSin(angle) + translatedPoint[3] * mathCos(angle)
 
 	-- Translate the point back to its original position
 	rotatedPoint[1] = rotatedPoint[1] + center[1]
@@ -126,7 +137,7 @@ local function rotateBlueprint(bp, facing)
 					position = rotatePointXZ(
 						bpu.position,
 						{ 0, 0, 0 },
-						-facing * (math.pi / 2)
+						-facing * (mathPi / 2)
 					),
 					facing = (bpu.facing + facing) % 4
 				}
@@ -313,10 +324,10 @@ local function getUnitsBounds(units)
 			local bzMin = unit.position[3] - bh / 2
 			local bzMax = unit.position[3] + bh / 2
 
-			acc.xMin = acc.xMin and math.min(acc.xMin, bxMin) or bxMin
-			acc.xMax = acc.xMax and math.max(acc.xMax, bxMax) or bxMax
-			acc.zMin = acc.zMin and math.min(acc.zMin, bzMin) or bzMin
-			acc.zMax = acc.zMax and math.max(acc.zMax, bzMax) or bzMax
+			acc.xMin = acc.xMin and mathMin(acc.xMin, bxMin) or bxMin
+			acc.xMax = acc.xMax and mathMax(acc.xMax, bxMax) or bxMax
+			acc.zMin = acc.zMin and mathMin(acc.zMin, bzMin) or bzMin
+			acc.zMax = acc.zMax and mathMax(acc.zMax, bzMax) or bzMax
 
 			return acc
 		end,
@@ -352,16 +363,16 @@ local function snapBlueprint(blueprint, pos, facing)
 	local xSize, zSize = getBlueprintDimensions(blueprint, facing or 0)
 
 	-- snap build-positions to 16-elmo grid
-	if math.floor(xSize / 16) % 2 > 0 then
-		result[1] = math.floor((pos[1]) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE;
+	if mathFloor(xSize / 16) % 2 > 0 then
+		result[1] = mathFloor((pos[1]) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE;
 	else
-		result[1] = math.floor((pos[1] + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE;
+		result[1] = mathFloor((pos[1] + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE;
 	end
 
-	if math.floor(zSize / 16) % 2 > 0 then
-		result[3] = math.floor((pos[3]) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE;
+	if mathFloor(zSize / 16) % 2 > 0 then
+		result[3] = mathFloor((pos[3]) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE + SQUARE_SIZE;
 	else
-		result[3] = math.floor((pos[3] + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE;
+		result[3] = mathFloor((pos[3] + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE;
 	end
 
 	return result;
@@ -399,11 +410,11 @@ local function calculateSteps(blueprint, startPos, endPos, spacing)
 	local xSize = bxSize + SQUARE_SIZE * spacing * 2
 	local zSize = bzSize + SQUARE_SIZE * spacing * 2
 
-	local xNum = math.floor((math.abs(delta[1]) + xSize * 1.4) / xSize)
-	local zNum = math.floor((math.abs(delta[3]) + zSize * 1.4) / zSize)
+	local xNum = mathFloor((mathAbs(delta[1]) + xSize * 1.4) / xSize)
+	local zNum = mathFloor((mathAbs(delta[3]) + zSize * 1.4) / zSize)
 
-	local xStep = math.floor((delta[1] > 0) and xSize or -xSize)
-	local zStep = math.floor((delta[3] > 0) and zSize or -zSize)
+	local xStep = mathFloor((delta[1] > 0) and xSize or -xSize)
+	local zStep = mathFloor((delta[3] > 0) and zSize or -zSize)
 
 	return xStep, zStep, xNum, zNum, delta
 end
@@ -419,7 +430,7 @@ local function getBuildPositionsLine(blueprint, startPos, endPos, spacing)
 
 	local xStep, zStep, xNum, zNum, delta = calculateSteps(blueprint, startPos, endPos, spacing)
 
-	local xDominatesZ = math.abs(delta[1]) > math.abs(delta[3])
+	local xDominatesZ = mathAbs(delta[1]) > mathAbs(delta[3])
 
 	if xDominatesZ then
 		zStep = xStep * delta[3] / (delta[1] ~= 0 and delta[1] or 1)
@@ -441,7 +452,7 @@ local function getBuildPositionsSnapLine(blueprint, startPos, endPos, spacing)
 
 	local xStep, zStep, xNum, zNum, delta = calculateSteps(blueprint, startPos, endPos, spacing)
 
-	local xDominatesZ = math.abs(delta[1]) > math.abs(delta[3])
+	local xDominatesZ = mathAbs(delta[1]) > mathAbs(delta[3])
 
 	if xDominatesZ then
 		zStep = 0
@@ -620,13 +631,13 @@ local function createInstancesForPosition(blueprint, teamID, copyPosition, posit
 				true,
 				true
 			)
-			table.insert(instanceIDs[positionKey].outline, outlineInstanceID)
+			tableInsert(instanceIDs[positionKey].outline, outlineInstanceID)
 
 			-- building
-			table.insert(instanceIDs[positionKey].unit, WG.DrawUnitShapeGL4(
+			tableInsert(instanceIDs[positionKey].unit, WG.DrawUnitShapeGL4(
 				unit.unitDefID,
 				sx, sy, sz,
-				unit.facing * (math.pi / 2),
+				unit.facing * (mathPi / 2),
 				UNIT_ALPHA,
 				teamID,
 				nil,
@@ -816,7 +827,7 @@ local function createBlueprintFromSerialized(serializedBlueprint)
 
 	for _, serializedUnit in ipairs(serializedBlueprint.units) do
 		local unitDefID = UnitDefNames[serializedUnit.unitName] and UnitDefNames[serializedUnit.unitName].id
-		table.insert(result.units, {
+		tableInsert(result.units, {
 			blueprintUnitID = WG['cmd_blueprint'].nextBlueprintUnitID(),
 			position = serializedUnit.position,
 			facing = serializedUnit.facing,

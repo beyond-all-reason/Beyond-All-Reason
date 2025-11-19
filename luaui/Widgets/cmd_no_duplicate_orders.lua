@@ -25,6 +25,10 @@ function widget:GetInfo()
   }
 end
 
+
+-- Localized functions for performance
+local mathCeil = math.ceil
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -58,7 +62,7 @@ end
 
 local function toLocString(posX,posY,posZ)
 	if not posZ then return end
-	return (math.ceil(posX - 0.5) .. "_" .. math.ceil(posZ - 0.5))
+	return (mathCeil(posX - 0.5) .. "_" .. mathCeil(posZ - 0.5))
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
