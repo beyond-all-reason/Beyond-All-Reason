@@ -93,14 +93,27 @@ if gadgetHandler:IsSyncedCode() then
 		[CMD.ATTACK] = true,
 	}
 
+	-- Searches through all units' commands to find assist type assignments and reassigns those commands to the new unit
+	-- If we have already fetched commands in this frame we use the command cache
+	-- If we didnt find an assignment we remove the unit from the unit cache
 	local function reAssignAssists(newUnit, oldUnit)
-		allUnits = allUnits or table.invert(Spring.GetAllUnits(newUnit))
-		for unitID, cmds in pairs(allUnits) do
+		local allUnitIDs = {}
+		if not allUnits then
+			allUnitIDs = Spring.GetAllUnits() or {}
+			allUnits = {}
+		end
+
+		for i = 1, #allUnitIDs, 1 do
+			local unitID = allUnitIDs[i]
 			if GG.GetUnitTarget and GG.GetUnitTarget(unitID) == oldUnit and newUnit then
 				GG.SetUnitTarget(unitID, newUnit)
 			end
 
-			cmds = type(cmds) == 'number' and (Spring.GetUnitCommands(unitID, -1) or {}) or cmds
+			if not allUnits[unitID] then
+				allUnits[unitID] = Spring.GetUnitCommands(unitID, -1) or {}
+			end
+			local cmds = allUnits[unitID] or {}
+
 			local foundAssignmentCommand = false
 			for j = 1, #cmds do
 				local cmd = cmds[j]
