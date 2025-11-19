@@ -190,6 +190,8 @@ do
 	responseRatio = (1 + 1 / frames - 1 / (frames ^ 2)) / frames -- via taylor expansion
 end
 
+local cruiseEngagedDefs = {}
+
 local _; -- sink var for unused values
 local float3 = { 0, 0, 0 }
 
@@ -206,6 +208,7 @@ local function applyCruiseCorrection(projectileID, elevation, cruiseHeight, posi
 	return false -- for tail call
 end
 
+-- First-phase `cruise` effect, using a ground-avoidance behavior that uses `cruise_min_height`.
 specialEffectFunction.cruise = function(params, projectileID)
 	if spGetProjectileTimeToLive(projectileID) > 0 then
 		local targetType, target = spGetProjectileTarget(projectileID)
@@ -221,9 +224,8 @@ specialEffectFunction.cruise = function(params, projectileID)
 			local elevation = spGetGroundHeight(positionX, positionZ)
 			local cruiseHeight = elevation + params.cruise_min_height
 			if positionY < cruiseHeight then
+				projectiles[projectileID] = cruiseEngagedDefs[spGetProjectileDefID(projectileID)]
 				local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
-				-- Change over to second-phase attitude controls:
-				projectiles[projectileID] = weaponDefEffect[-1 - spGetProjectileDefID(projectileID)]
 				return applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
 			end
 			return false
@@ -233,32 +235,30 @@ specialEffectFunction.cruise = function(params, projectileID)
 end
 
 -- Second-phase `cruise` effect, adding a ground-following behavior that uses `cruise_max_height`.
-local cruiseEngaged = {
-	__call = function(params, projectileID)
-		if spGetProjectileTimeToLive(projectileID) > 0 then
-			local targetType, target = spGetProjectileTarget(projectileID)
-			if targetType == targetedUnit then
-				_, _, _, float3[1], float3[2], float3[3] = spGetUnitPosition(target, false, true)
-				target = float3
-			end
-
-			local distance = params.lockon_dist
-			local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
-
-			if distance * distance < distance3dSquared(positionX, positionY, positionZ, target[1], target[2], target[3]) then
-				local elevation = spGetGroundHeight(positionX, positionZ)
-				local cruiseHeight = math_clamp(positionY, elevation + params.cruise_min_height, elevation + params.cruise_max_height)
-				local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
-				-- Follow the ground when it slopes away, but not over steep drops, e.g. sheer cliffs.
-				if positionY ~= cruiseHeight and (positionY > cruiseHeight or velocityY > speed * -0.25) then
-					return applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
-				end
-				return false
-			end
+local function cruiseEngaged(params, projectileID)
+	if spGetProjectileTimeToLive(projectileID) > 0 then
+		local targetType, target = spGetProjectileTarget(projectileID)
+		if targetType == targetedUnit then
+			_, _, _, float3[1], float3[2], float3[3] = spGetUnitPosition(target, false, true)
+			target = float3
 		end
-		return true
+
+		local distance = params.lockon_dist
+		local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
+
+		if distance * distance < distance3dSquared(positionX, positionY, positionZ, target[1], target[2], target[3]) then
+			local elevation = spGetGroundHeight(positionX, positionZ)
+			local cruiseHeight = math_clamp(positionY, elevation + params.cruise_min_height, elevation + params.cruise_max_height)
+			local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
+			-- Follow the ground when it slopes away, but not over steep drops, e.g. sheer cliffs.
+			if positionY ~= cruiseHeight and (positionY > cruiseHeight or velocityY > speed * -0.25) then
+				return applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
+			end
+			return false
+		end
 	end
-}
+	return true
+end
 
 -- Retarget
 -- Missile guidance behavior that changes the projectile's target when its intended target is destroyed.
@@ -523,6 +523,9 @@ function gadget:Initialize()
 		metatables[effectName] = { __call = effectFunction }
 	end
 
+	-- cruise speceffect has extra stages with their own effect:
+	local cruiseEngagedMetatable = { __call = cruiseEngaged }
+
 	for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		if weaponDef.customParams.speceffect then
 			local effectName, effectParams = parseCustomParams(weaponDef)
@@ -533,8 +536,7 @@ function gadget:Initialize()
 					weaponDefEffect[weaponDefID] = setmetatable(effectParams, metatables[effectName])
 
 					if effectName == "cruise" then
-						effectParams = table.copy(effectParams)
-						weaponDefEffect[-1 - weaponDefID] = setmetatable(effectParams, cruiseEngaged)
+						cruiseEngagedDefs[weaponDefID] = setmetatable(table.copy(effectParams), cruiseEngagedMetatable)
 					end
 				else
 					-- Otherwise, call the effect directly (skips the `params` arg):
