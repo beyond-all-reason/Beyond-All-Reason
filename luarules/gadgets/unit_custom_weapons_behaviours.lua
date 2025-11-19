@@ -183,16 +183,27 @@ weaponCustomParamKeys.cruise = {
 	lockon_dist       = toPositiveNumber, -- Within this radius, disables the auto ground clearance.
 }
 
+local useSmoothMeshHeight = 40 -- altitude to switch between actual and smoothed terrain normals
+local responseRatio = 0 -- response smoothing
+do
+	local frames = math.round(0.15 * Game.gameSpeed) -- spread the response over N frames
+	responseRatio = (1 + 1 / frames - 1 / (frames ^ 2)) / frames -- via taylor expansion
+end
+
 local _; -- sink var for unused values
 local float3 = { 0, 0, 0 }
-local useSmoothMeshHeight = 50 -- the switch height, not the actual mesh height, see below
 
-local function applyCruiseCorrection(projectileID, positionX, positionY, positionZ, groundHeight, velocityX, velocityY, velocityZ)
-	local normalX, normalY, normalZ = spGetGroundNormal(positionX, positionZ, groundHeight >= useSmoothMeshHeight)
-	local codirection = velocityX * normalX + velocityY * normalY + velocityZ * normalZ
-	velocityY = velocityY - normalY * codirection -- NB: can be a little strong on uneven terrain
+local function applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
+	local responseY = 0
+	if elevation > 0 then
+		local normalX, normalY, normalZ = spGetGroundNormal(positionX, positionZ, cruiseHeight - elevation >= useSmoothMeshHeight)
+		responseY = velocityY - normalY * (velocityX * normalX + velocityY * normalY + velocityZ * normalZ)
+	end
+	velocityY = velocityY + (responseY - velocityY) * responseRatio
+	positionY = positionY + (cruiseHeight - positionY) * responseRatio
 	spSetProjectilePosition(projectileID, positionX, positionY, positionZ)
 	spSetProjectileVelocity(projectileID, velocityX, velocityY, velocityZ)
+	return false -- for tail call
 end
 
 specialEffectFunction.cruise = function(params, projectileID)
@@ -211,9 +222,9 @@ specialEffectFunction.cruise = function(params, projectileID)
 			local cruiseHeight = elevation + params.cruise_min_height
 			if positionY < cruiseHeight then
 				local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
-				applyCruiseCorrection(projectileID, positionX, cruiseHeight, positionZ, elevation, velocityX, velocityY, velocityZ)
 				-- Change over to second-phase attitude controls:
 				projectiles[projectileID] = weaponDefEffect[-1 - spGetProjectileDefID(projectileID)]
+				return applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
 			end
 			return false
 		end
@@ -240,7 +251,7 @@ local cruiseEngaged = {
 				local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
 				-- Follow the ground when it slopes away, but not over steep drops, e.g. sheer cliffs.
 				if positionY ~= cruiseHeight and (positionY > cruiseHeight or velocityY > speed * -0.25) then
-					applyCruiseCorrection(projectileID, positionX, cruiseHeight, positionZ, elevation, velocityX, velocityY, velocityZ)
+					return applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
 				end
 				return false
 			end
