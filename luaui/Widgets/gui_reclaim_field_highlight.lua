@@ -279,13 +279,12 @@ local gameFramesPerSecond = 30 -- Normal rate
 local featureCountMultiplier = 1 -- Multiplier based on feature count
 local catchUpMultiplier = 1 -- Multiplier during catch-up
 
--- Track timing for pre-gamestart updates
-local preGameStartTimer = 0
-local preGameStartCheckInterval = checkFrequency / Game.gameSpeed -- Convert frames to seconds
-local gameStarted = false
-local artificialFrame = 0 -- Artificial frame counter for pre-gamestart
-local initialClusteringDone = false -- Track if we've done initial clustering pre-gamestart
 local allEnergyFieldsDrained = false -- Track if all energy has been reclaimed to skip energy rendering
+
+-- Track if game has started (GameFrame has been called)
+local gameStarted = false
+local updateTimer = 0
+local updateInterval = 0.1 -- Update every 0.1 seconds when GameFrame isn't running
 
 local minTextAreaLength = (epsilon / 2 + fontSizeMin) / 2
 local areaTextMin = 3000
@@ -473,22 +472,21 @@ GetClusterVisibility = function(cid, isEnergy, currentFrame)
 		return false, 0, 0
 	end
 
-	local center = cluster.center
-	-- Pre-compute cluster radius once (cache it in the cluster if not present)
-	if not cluster.radius then
-		cluster.radius = sqrt((cluster.dx or 0)^2 + (cluster.dz or 0)^2) / 2
-	end
-
-	-- Before game start, always show reclaim fields (both metal and energy)
-	-- This ensures the map preview shows all resource fields before gameplay begins
-	if not gameStarted then
+	-- Pre-gamestart: show all metal fields regardless of camera position/distance
+	if not gameStarted and not isEnergy then
 		cache[cid] = {
 			frame = currentFrame,
 			inView = true,
 			dist = 0,
-			fadeMult = 1.0
+			fadeMult = 1
 		}
-		return true, 0, 1.0
+		return true, 0, 1
+	end
+
+	local center = cluster.center
+	-- Pre-compute cluster radius once (cache it in the cluster if not present)
+	if not cluster.radius then
+		cluster.radius = sqrt((cluster.dx or 0)^2 + (cluster.dz or 0)^2) / 2
 	end
 
 	local inView, dist = IsInCameraView(center.x, center.y, center.z, cluster.radius, currentFrame)
@@ -1521,8 +1519,8 @@ end
 
 -- Check if all energy fields have been drained
 local function CheckAllEnergyDrained()
-	if allEnergyFieldsDrained or not showEnergyFields then
-		return -- Already marked as drained or energy fields disabled
+	if not showEnergyFields then
+		return -- Energy fields disabled
 	end
 
 	-- Check if there are any features with energy remaining
@@ -1536,7 +1534,9 @@ local function CheckAllEnergyDrained()
 	end
 
 	if featuresWithEnergy > 0 then
-		return -- Found energy, not all drained
+		-- Found energy, not all drained
+		allEnergyFieldsDrained = false
+		return
 	end
 
 	-- All energy is drained, disable energy rendering
@@ -1712,7 +1712,7 @@ local function ClusterizeFeatures()
 	redrawingNeeded = true
 
 	-- Check if all energy has been drained after clustering
-	if gameStarted and showEnergyFields and not allEnergyFieldsDrained then
+	if showEnergyFields and not allEnergyFieldsDrained then
 		CheckAllEnergyDrained()
 	end
 end
@@ -1769,7 +1769,12 @@ do
 
 	UpdateDrawEnabled = function ()
 		local previousDrawEnabled = drawEnabled
-		drawEnabled = showOptionFunctions[showOption]()
+		-- Before game starts, always enable drawing regardless of user settings
+		if not gameStarted then
+			drawEnabled = true
+		else
+			drawEnabled = showOptionFunctions[showOption]()
+		end
 		-- If visibility changed from false to true, force a full display list recreation
 		if not previousDrawEnabled and drawEnabled then
 			redrawingNeeded = true
@@ -1991,19 +1996,11 @@ CreateClusterDisplayList = function(cid, isEnergy)
 		local colors = nil
 		if isEnergy then
 			-- Energy field colors with opacity multiplier
-			local energyMult = not gameStarted and preGameStartOpacityMultiplier or energyOpacityMultiplier
+			local energyMult = energyOpacityMultiplier
 			colors = {
 				fill = energyReclaimColor,
 				fillAlpha = fillAlpha * energyMult,
 				gradientAlpha = gradientAlpha * energyMult
-			}
-		elseif not gameStarted then
-			-- Metal field colors with pre-gamestart multiplier
-			local totalMultiplier = preGameStartOpacityMultiplier * preGameStartMetalOpacityMultiplier
-			colors = {
-				fill = reclaimColor,
-				fillAlpha = fillAlpha * totalMultiplier,
-				gradientAlpha = gradientAlpha * totalMultiplier
 			}
 		end
 		glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, hull, cluster.center, colors)
@@ -2472,8 +2469,7 @@ local function UpdateReclaimFields(frame)
 		clusterizingNeeded = true
 	end
 
-	-- Before gamestart, always show reclaim fields regardless of settings
-	if drawEnabled == false and gameStarted then
+	if drawEnabled == false then
 		return
 	end
 
@@ -2620,6 +2616,10 @@ local function UpdateReclaimFields(frame)
 	end
 
 	if redrawingNeeded == true then
+		-- Update draw enabled states before creating display lists
+		UpdateDrawEnabled()
+		UpdateDrawEnergyEnabled()
+
 		-- Count dirty clusters for both metal and energy
 		local dirtyMetalCount = 0
 		local dirtyEnergyCount = 0
@@ -2676,7 +2676,7 @@ local function UpdateReclaimFields(frame)
 			end
 
 			-- Recreate metal cluster display lists only for visible clusters (if metal fields are visible)
-			if drawEnabled or not gameStarted then
+			if drawEnabled then
 				for cid = 1, #featureClusters do
 					if featureClusters[cid] then
 						local inView, dist, fadeMult = GetClusterVisibility(cid, false, frame)
@@ -2688,7 +2688,7 @@ local function UpdateReclaimFields(frame)
 			end
 
 			-- Recreate energy cluster display lists only for visible clusters (if energy fields are visible)
-			if (drawEnergyEnabled and showEnergyFields and not allEnergyFieldsDrained) or not gameStarted then
+			if drawEnergyEnabled and showEnergyFields and not allEnergyFieldsDrained then
 				for cid = 1, #energyFeatureClusters do
 					if energyFeatureClusters[cid] then
 						local inView, dist, fadeMult = GetClusterVisibility(cid, true, frame)
@@ -2746,9 +2746,8 @@ local function UpdateReclaimFields(frame)
 end
 
 function widget:Update(dt)
-	-- Update camera scale before gamestart OR when enabled after gamestart
-	-- Pre-gamestart: only update until initial clustering is done
-	if (not gameStarted and not initialClusteringDone) or (gameStarted and UpdateDrawEnabled() or UpdateDrawEnergyEnabled()) then
+	-- Update camera scale when enabled
+	if UpdateDrawEnabled() or UpdateDrawEnergyEnabled() then
 		local cx, cy, cz = spGetCameraPosition()
 		local desc, w = spTraceScreenRay(screenx / 2, screeny / 2, true)
 		local cameraDist = 35000000
@@ -2757,24 +2756,21 @@ function widget:Update(dt)
 		end
 		cameraScale = sqrt(sqrt(cameraDist) / 600) --number is an "optimal" view distance
 	end
-	-- Before gamestart, we need to manually trigger reclaim field updates
-	-- But only do it once since features don't change until game starts
-	if not gameStarted and not initialClusteringDone then
-		preGameStartTimer = preGameStartTimer + dt
-		if preGameStartTimer >= preGameStartCheckInterval then
-			preGameStartTimer = 0
-			-- Increment artificial frame counter
-			artificialFrame = artificialFrame + checkFrequency
-			-- Call the update logic with our artificial frame
-			UpdateReclaimFields(artificialFrame)
-			-- Mark as done so we don't keep updating
-			initialClusteringDone = true
+
+	-- Before GameFrame starts being called, manually process updates
+	if not gameStarted then
+		updateTimer = updateTimer + dt
+		if updateTimer >= updateInterval then
+			updateTimer = 0
+			-- Call UpdateReclaimFields with a simulated frame number
+			local simulatedFrame = Spring.GetGameFrame()
+			UpdateReclaimFields(simulatedFrame)
 		end
 	end
 end
 
 function widget:GameFrame(frame)
-	-- Mark that the game has started
+	-- Mark that GameFrame is now being called
 	gameStarted = true
 
 	-- Track GameFrame calls per second to detect catch-up (reconnection)
@@ -2802,7 +2798,6 @@ function widget:GameFrame(frame)
 
 		-- Apply both multipliers (feature count and catch-up)
 		checkFrequency = math.ceil(baseCheckFrequency * featureCountMultiplier * catchUpMultiplier)
-
 	end
 
 	-- Use the extracted update logic
@@ -2891,8 +2886,8 @@ function widget:DrawWorld()
 	end
 
 	-- Determine if we should show metal and energy fields
-	local showMetal = not gameStarted or drawEnabled
-	local showEnergy = (not gameStarted or (showEnergyFields and UpdateDrawEnergyEnabled())) and not allEnergyFieldsDrained
+	local showMetal = drawEnabled
+	local showEnergy = showEnergyFields and UpdateDrawEnergyEnabled() and not allEnergyFieldsDrained
 
 	if not showMetal and not showEnergy then
 		return
@@ -3006,8 +3001,8 @@ function widget:DrawWorldPreUnit()
 	end
 
 	-- Determine if we should show metal and energy fields
-	local showMetal = not gameStarted or drawEnabled
-	local showEnergy = (not gameStarted or (showEnergyFields and UpdateDrawEnergyEnabled())) and not allEnergyFieldsDrained
+	local showMetal = drawEnabled
+	local showEnergy = showEnergyFields and UpdateDrawEnergyEnabled() and not allEnergyFieldsDrained
 
 	if not showMetal and not showEnergy then
 		return
@@ -3055,12 +3050,7 @@ function widget:DrawWorldPreUnit()
 					if clusterData and clusterData.edge then
 						-- Apply opacity multiplier to metal edge color with fade
 						local r, g, b, a = reclaimEdgeColor[1], reclaimEdgeColor[2], reclaimEdgeColor[3], reclaimEdgeColor[4]
-						if not gameStarted then
-							-- Stack global pre-gamestart multiplier with metal-specific multiplier and fade
-							glColor(r, g, b, a * preGameStartOpacityMultiplier * preGameStartMetalOpacityMultiplier * cached.fadeMult)
-						else
-							glColor(r, g, b, a * cached.fadeMult)
-						end
+						glColor(r, g, b, a * cached.fadeMult)
 						glCallList(clusterData.edge)
 					end
 				end
@@ -3103,11 +3093,7 @@ function widget:DrawWorldPreUnit()
 					if clusterData and clusterData.edge then
 						-- Apply opacity multiplier to energy edge color with fade
 						local r, g, b, a = energyReclaimEdgeColor[1], energyReclaimEdgeColor[2], energyReclaimEdgeColor[3], energyReclaimEdgeColor[4]
-						local energyMultiplier = energyOpacityMultiplier
-						if not gameStarted then
-							energyMultiplier = energyMultiplier * preGameStartOpacityMultiplier
-						end
-						glColor(r, g, b, a * energyMultiplier * cached.fadeMult)
+						glColor(r, g, b, a * energyOpacityMultiplier * cached.fadeMult)
 						glCallList(clusterData.edge)
 					end
 				end
