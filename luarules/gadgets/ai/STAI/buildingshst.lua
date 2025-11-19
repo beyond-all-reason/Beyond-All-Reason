@@ -16,6 +16,9 @@ function BuildingsHST:Init()
 	self.roles = {}
 	self.allyMex = {}
 	self:DontBuildOnMetalOrGeoSpots()
+
+	-- Shared rectangle helper so we can test pure logic without spinning up AI.
+	self.factoryRect = VFS.Include('common/stai_factory_rect.lua')
 end
 
 function BuildingsHST:GetFacing(p)
@@ -499,32 +502,18 @@ end
 function BuildingsHST:CalculateRect(rect)
 	local unitName = rect.unitName
 	local unitTable = self.ai.armyhst.unitTable
+	local outsets = self.factoryRect.getOutsets(unitName, unitTable, self.ai.armyhst.factoryExitSides)
 
-	-- Prefer the explicit lane definition when we have it.
-	if self.ai.armyhst.factoryExitSides[unitName] ~= nil and self.ai.armyhst.factoryExitSides[unitName] ~= 0 then
+	-- Known exit side -> factory lane handling
+	if outsets == nil and self.ai.armyhst.factoryExitSides[unitName] ~= nil and self.ai.armyhst.factoryExitSides[unitName] ~= 0 then
 		self:CalculateFactoryLane(rect)
 		return
 	end
 
+	-- Default / factory apron path.
 	local position = rect.position
-
-	-- If it's a factory (has build options) but we don't know its exit side,
-	-- reserve a generous apron around it. This avoids the AI placing other
-	-- structures in front of the factory doors and blocking produced units
-	-- from leaving, which tends to happen in late-game bases.
-	if unitTable[unitName] and unitTable[unitName].buildOptions then
-		local outX = unitTable[unitName].xsize * 6
-		local outZ = unitTable[unitName].zsize * 9
-		rect.x1 = position.x - outX
-		rect.z1 = position.z - outZ
-		rect.x2 = position.x + outX
-		rect.z2 = position.z + outZ
-		return
-	end
-
-	-- Default rectangle for non-factories.
-	local outX = unitTable[unitName].xsize * 4
-	local outZ = unitTable[unitName].zsize * 4
+	local outX = outsets.outX
+	local outZ = outsets.outZ
 	rect.x1 = position.x - outX
 	rect.z1 = position.z - outZ
 	rect.x2 = position.x + outX
