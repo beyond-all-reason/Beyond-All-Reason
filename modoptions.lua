@@ -1269,17 +1269,17 @@ local options = {
     },
 
     {
-        key 	= "override_quick_start_resources",
-        name 	= "Override Quick Start Resources",
-        desc   	= "Override the quick start starting resources. Set to 0 to use default behavior.",
-        type 	= "number",
-        def 	= 0,
-        min 	= 100,
-        max 	= 10000,
-        step 	= 1,
-        section = "options_extra",
-        hidden 	= true,
-    },
+	key 	= "override_quick_start_resources",
+	name 	= "Override Quick Start Resources",
+	desc   	= "Override the quick start starting resources. Set to 0 to use default behavior.",
+	type 	= "number",
+	def 	= 0,
+	min 	= 0,
+	max 	= 10000,
+	step 	= 1,
+	section = "options_extra",
+	hidden 	= true,
+},
 
     {
         key     = "sub_header",
