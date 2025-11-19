@@ -7,7 +7,8 @@ ENV BAR_CONFIG_JSON=./config.json
 ENV BAR_CONFIG_ENV=./config.env
 
 RUN apt-get update && \
-    apt-get install -y curl jq 7zip
+    apt-get install -y curl jq p7zip-full && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p maps games engine
 
