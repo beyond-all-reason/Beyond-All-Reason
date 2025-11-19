@@ -22,6 +22,8 @@ local shouldRunGadget = modOptions and modOptions.quick_start and (
 )
 if not shouldRunGadget then return false end
 
+local overrideQuickStartRange = tonumber(modOptions.override_quick_start_range) or 0
+
 local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" or 
 	modOptions.quick_start == "factory_discount_only" or
 	(modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
@@ -29,7 +31,6 @@ local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" 
 
 ----------------------------Configuration----------------------------------------
 local FACTORY_DISCOUNT_MULTIPLIER = 0.90 -- The factory discount will be the budget cost of the cheapest listed factory multiplied by this value.
-
 
 local QUICK_START_COST_ENERGY = 400      --will be deducted from commander's energy upon start.
 local QUICK_START_COST_METAL = 800       --will be deducted from commander's metal upon start.
@@ -58,7 +59,7 @@ local quickStartAmountConfig = {
 local configKey = modOptions.quick_start_amount or "normal"
 local selectedConfig = quickStartAmountConfig[configKey] or quickStartAmountConfig.normal
 local BUDGET = selectedConfig.budget
-local INSTANT_BUILD_RANGE = modOptions.override_quick_start_range > 0 and modOptions.override_quick_start_range or selectedConfig.range
+local INSTANT_BUILD_RANGE = overrideQuickStartRange > 0 and overrideQuickStartRange or selectedConfig.range
 local BASE_GENERATION_RANGE = selectedConfig.baseGenerationRange
 local TRAVERSABILITY_GRID_GENERATION_RANGE = selectedConfig.traversabilityGridRange
 
