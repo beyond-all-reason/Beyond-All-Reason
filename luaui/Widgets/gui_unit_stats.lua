@@ -502,7 +502,7 @@ local function drawStats(uDefID, uID)
 			local message = format("%s: %d (+%d%%)", texts.maxhp, maxHP / armoredMultiple, 100 * (1 / armoredMultiple - 1))
 			if uDef.customParams.reactive_armor_health then
 				message = message .. (", %d to break, %d%s to restore"):format(
-					uDef.customParams.reactive_armor_health,
+					uDef.customParams.reactive_armor_health / armoredMultiple,
 					uDef.customParams.reactive_armor_restore,
 					texts.s
 				)
