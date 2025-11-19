@@ -124,6 +124,8 @@
 ---@field untaxed number
 ---@field taxed number
 
+---@alias EconomyFlowSummary table<number, table<ResourceType, EconomyFlowLedger>>
+
 ---@class EconomyWaterFillSolution
 ---@field targetLift number
 ---@field needs table<number, number>

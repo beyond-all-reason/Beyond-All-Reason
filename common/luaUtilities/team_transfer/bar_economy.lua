@@ -64,7 +64,7 @@ end
 ---@return table<number, EconomyShareMember[]>
 local function collectMembers(teamsList, resourceType, thresholds, springRepo)
   local grouped = {}
-  local field = resourceType == ResourceType.METAL and "metal" or "energy"
+  local field = resourceType == ResourceType.METAL and ResourceType.METAL or ResourceType.ENERGY
   for _, team in ipairs(teamsList) do
     if not team.isDead then
       local teamId = team.id
@@ -325,15 +325,17 @@ end
 ---@param springRepo ISpring
 ---@param teamsList TeamResourceData[]
 ---@return TeamResourceData[]
+---@return EconomyFlowSummary
 function Gadgets.ProcessEconomy(springRepo, teamsList)
   if not teamsList or #teamsList == 0 then
-    return teamsList
+    return teamsList, {}
   end
 
   resetTickFields(teamsList)
 
   local taxRate, thresholds = getTaxConfig(springRepo)
   local cumulativeUpdates = {}
+  local allLedgers = {}
 
   for _, resourceType in ipairs(RESOURCE_TYPES) do
     local groups = collectMembers(teamsList, resourceType, thresholds, springRepo)
@@ -345,6 +347,21 @@ function Gadgets.ProcessEconomy(springRepo, teamsList)
       local lift = resolveLift(members, taxRate)
       local ledgers = allocateGroup(members, lift, taxRate)
       for teamId, ledger in pairs(ledgers) do
+        local perTeam = allLedgers[teamId]
+        if not perTeam then
+          perTeam = {}
+          allLedgers[teamId] = perTeam
+        end
+        local summary = perTeam[resourceType]
+        if not summary then
+          summary = { sent = 0, received = 0, untaxed = 0, taxed = 0 }
+          perTeam[resourceType] = summary
+        end
+        summary.sent = summary.sent + ledger.sent
+        summary.received = summary.received + ledger.received
+        summary.untaxed = summary.untaxed + ledger.untaxed
+        summary.taxed = summary.taxed + ledger.taxed
+
         if ledger.sent > EPSILON then
           local member = memberById[teamId]
           local perResource = cumulativeUpdates[teamId]
@@ -362,7 +379,7 @@ function Gadgets.ProcessEconomy(springRepo, teamsList)
     updateCumulative(springRepo, cumulativeUpdates)
   end
 
-  return teamsList
+  return teamsList, allLedgers
 end
 
 return Gadgets

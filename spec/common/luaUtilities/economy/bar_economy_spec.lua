@@ -26,6 +26,14 @@ local function buildTeams(builders)
   return teams
 end
 
+local function flowFor(flows, teamId, resourceType)
+  local perTeam = flows[teamId]
+  assert(perTeam, string.format("missing flow summary for team %s", tostring(teamId)))
+  local summary = perTeam[resourceType]
+  assert(summary, string.format("missing flow summary for team %s resource %s", tostring(teamId), tostring(resourceType)))
+  return summary
+end
+
 local function modOptions(opts)
   return {
     [SharedEnums.ModOptions.TaxResourceSharingAmount] = opts.taxRate or 0,
@@ -70,7 +78,7 @@ describe("Bar economy ProcessEconomy", function()
     }, { teamA, teamB, teamC })
 
     local teamsList = buildTeams({ teamA, teamB, teamC })
-    BarEconomy.ProcessEconomy(spring, teamsList)
+    local _, flows = BarEconomy.ProcessEconomy(spring, teamsList)
 
     local a = teamsList[1].metal
     local b = teamsList[2].metal
@@ -87,6 +95,13 @@ describe("Bar economy ProcessEconomy", function()
     assert.is_near(0, a.received, 1e-6)
     assert.is_near(0, b.received, 1e-6)
     assert.is_near(366.67, c.received, 0.02)
+
+    local aFlow = flowFor(flows, teamA.id, SharedEnums.ResourceType.METAL)
+    local bFlow = flowFor(flows, teamB.id, SharedEnums.ResourceType.METAL)
+    local cFlow = flowFor(flows, teamC.id, SharedEnums.ResourceType.METAL)
+    assert.is_near(233.33, aFlow.taxed, 0.02)
+    assert.is_near(133.33, bFlow.taxed, 0.02)
+    assert.is_near(0, cFlow.taxed, 1e-6)
 
     local cumulativeKey = ResourceShared.GetCumulativeParam(SharedEnums.ResourceType.METAL)
     assert.is_near(a.sent, spring.GetTeamRulesParam(teamA.id, cumulativeKey), 0.02)
@@ -113,7 +128,7 @@ describe("Bar economy ProcessEconomy", function()
     }, { teamA, teamB })
 
     local teamsList = buildTeams({ teamA, teamB })
-    BarEconomy.ProcessEconomy(spring, teamsList)
+    local _, flows = BarEconomy.ProcessEconomy(spring, teamsList)
 
     local a = teamsList[1].metal
     local b = teamsList[2].metal
@@ -126,6 +141,13 @@ describe("Bar economy ProcessEconomy", function()
     assert.is_near(0, b.sent, 1e-6)
     assert.is_near(33.33, b.received, 0.02)
     assert.is_near(a.sent - b.received, 33.33, 0.05)
+
+    local aFlow = flowFor(flows, teamA.id, SharedEnums.ResourceType.METAL)
+    local bFlow = flowFor(flows, teamB.id, SharedEnums.ResourceType.METAL)
+    assert.is_near(33.33, aFlow.taxed, 0.05)
+    assert.is_near(0, aFlow.untaxed, 1e-6)
+    assert.is_near(0, bFlow.taxed, 1e-6)
+    assert.is_near(33.33, bFlow.received, 0.05)
 
     local cumulativeKey = ResourceShared.GetCumulativeParam(SharedEnums.ResourceType.METAL)
     assert.is_near(a.sent, spring.GetTeamRulesParam(teamA.id, cumulativeKey), 0.02)
@@ -151,7 +173,7 @@ describe("Bar economy ProcessEconomy", function()
     }, { teamA, teamB })
 
     local teamsList = buildTeams({ teamA, teamB })
-    BarEconomy.ProcessEconomy(spring, teamsList)
+    local _, flows = BarEconomy.ProcessEconomy(spring, teamsList)
 
     local a = teamsList[1].metal
     local b = teamsList[2].metal
@@ -163,6 +185,12 @@ describe("Bar economy ProcessEconomy", function()
     assert.is_near(0, a.received, 1e-6)
     assert.is_near(0, b.sent, 1e-6)
     assert.is_near(100, b.received, 0.01)
+
+    local aFlow = flowFor(flows, teamA.id, SharedEnums.ResourceType.METAL)
+    local bFlow = flowFor(flows, teamB.id, SharedEnums.ResourceType.METAL)
+    assert.is_near(0, aFlow.taxed, 1e-6)
+    assert.is_near(100, aFlow.untaxed, 0.01)
+    assert.is_near(100, bFlow.received, 0.01)
 
     local cumulativeKey = ResourceShared.GetCumulativeParam(SharedEnums.ResourceType.METAL)
     assert.is_near(100, spring.GetTeamRulesParam(teamA.id, cumulativeKey), 0.01)
