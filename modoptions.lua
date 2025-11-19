@@ -506,6 +506,19 @@ local options = {
     },
 
     {
+        key		= "wreckage_metal_ratio",
+        name	= "Unit Wreck Metal Percentage",
+        desc	= "Percent of unit metal that is left in its wrecks (and heaps)",
+        hidden 	= true,
+        type	= "number",
+        section	= "options",
+        def		= 0.6,
+        min		= 0.2,
+        max		= 0.8,
+        step	= 0.05,
+    },
+
+    {
         key		= "coop",
         name	= "Cooperative mode",
         desc	= "Adds extra commanders to id-sharing teams, 1 com per player",
