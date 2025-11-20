@@ -167,9 +167,19 @@ AimWeapon2(heading, pitch)
 		currentAim = heading;
 		return (1);	
 	}
-	else{
+	else if (pitch > <30>){
+		turn turretHeadingPivot2 to y-axis heading speed <30.0>;
+		turn turretPitchPivot2 to x-axis <0.0> - pitch speed <15.0>;
+		if (get ABS(wpn1_lasthead - heading)> <20>)
+		{
+			wait-for-turn turretHeadingPivot2 around y-axis;
+			wait-for-turn turretPitchPivot2 around x-axis;
+		}
 		start-script RestoreAfterDelay2();
 		currentAim = heading;
+		return (1);	
+	}
+	else{
 		return (0);
 	}
 
