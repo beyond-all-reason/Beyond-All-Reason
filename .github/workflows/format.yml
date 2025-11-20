@@ -1,0 +1,40 @@
+name: Auto-format with lx fmt
+
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+
+jobs:
+  format:
+    name: Format Code
+    runs-on: ubuntu-latest
+    permissions:
+      # Required for git-auto-commit-action to commit changes
+      contents: write
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # checkout the head ref (required for git-auto-commit-action to work correctly on PRs)
+          ref: ${{ github.head_ref }}
+          # Fetch full history for better git operations if needed, though usually shallow is fine for fmt
+          fetch-depth: 0
+
+      - name: Install Lux
+        run: |
+          curl -fsSL https://lux.lumen-labs.org/install.sh | sh
+          echo "$HOME/.lux/bin" >> $GITHUB_PATH
+
+      - name: Run lx fmt
+        run: lx fmt
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "style: auto-format with lx fmt"
+          file_pattern: "."
+          # Optional: Prevent infinite loops if you have other workflows triggered by push
+          # commit_options: '--no-verify' 

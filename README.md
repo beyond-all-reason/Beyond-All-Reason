@@ -77,6 +77,28 @@ Follow the [Lux Getting Started Guide](https://lux.lumen-labs.org/tutorial/getti
 
 Or follow the Cargo instructions to manually build [on the Lux Github](https://github.com/lumen-oss/lux?tab=readme-ov-file#wrench-building-from-source)
 
+### Formatting and Linting
+
+We recommend setting up a Git hook to run `lx check`, `lx lint` and `lx fmt` before each commit to ensure that you never forget to lint and format your code.
+
+To set up a Git hook, create a file called `.git/hooks/pre-commit` in your project directory with the following content:
+
+```bash
+#!/bin/sh
+
+lx check
+lx lint
+lx fmt
+```
+
+Make sure to make the file executable:
+
+```bash
+chmod +x .git/hooks/pre-commit
+```
+
+See Lux [Guides](https://lux.lumen-labs.org/guides/formatting-linting#git-hooks) for more information.
+
 ### Install Project Packages
 
 From the repo root (where `lux.toml` lives):

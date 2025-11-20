@@ -1,0 +1,31 @@
+name: Lint and Type Check
+
+on:
+  pull_request:
+    branches: [ master, main ]
+  push:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Lux Check & Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Lux
+        run: |
+          curl -fsSL https://lux.lumen-labs.org/install.sh | sh
+          echo "$HOME/.lux/bin" >> $GITHUB_PATH
+
+      - name: Install Dependencies
+        run: lux update
+
+      - name: Run Type Check (lx check)
+        run: lx check
+
+      - name: Run Linter (lx lint)
+        run: lx lint
+
