@@ -506,15 +506,28 @@ local options = {
     },
 
     {
-        key		= "wreckage_metal_ratio",
-        name	= "Unit Wreck Metal Percentage",
-        desc	= "Percent of unit metal that is left in its wrecks (and heaps)",
+        key		= "wreck_metal_ratio",
+        name	= "Wreck Metal Percent",
+        desc	= "Percent of unit metal that is left in its wrecks",
         hidden 	= true,
         type	= "number",
         section	= "options",
         def		= 0.6,
         min		= 0, -- see usage in alldefs_post when changing actual bounds
         max		= 1,
+        step	= 0.05,
+    },
+
+    {
+        key		= "heap_metal_ratio",
+        name	= "Heap Metal Percent",
+        desc	= "Percent of unit metal that is left in its heaps",
+        hidden 	= true,
+        type	= "number",
+        section	= "options",
+        def		= 0.25,
+        min		= 0,
+        max		= 1, -- bounded in alldefs_post to wreck_metal_ratio
         step	= 0.05,
     },
 

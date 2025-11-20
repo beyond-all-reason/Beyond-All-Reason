@@ -43,15 +43,8 @@ end
 
 local modOptions = Spring.GetModOptions()
 
-local wreckMetalRatio = 0.6
-local heapMetalRatio = 0.25
-
-if modOptions.wreckage_metal_ratio ~= 0.6 then
-	-- An actual f(x): [0,1] -> [0,1/3], with f(0.6)=0.25 would be a hermite polynomial or something
-	local low, mid, high = 0, 1 / 3, 1 -- so ignore that and do something over-simple, because, gamedev
-	wreckMetalRatio = math.clamp(modOptions.wreckage_metal_ratio, low, high)
-	heapMetalRatio = math.clamp((wreckMetalRatio + 0.15) / 3, low, mid)
-end
+local wreckMetalRatio = math.clamp(modOptions.wreck_metal_ratio, 0, 1)
+local heapMetalRatio = math.clamp(modOptions.heap_metal_ratio, 0, wreckMetalRatio)
 
 --[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
      The engine uses full frames for actual reload times, but forwards the raw
