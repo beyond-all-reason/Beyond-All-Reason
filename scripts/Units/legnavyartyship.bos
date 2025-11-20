@@ -146,14 +146,15 @@ AimWeapon2(heading, pitch)
 	set-signal-mask SIGNAL_AIM2;
 	aimDir2 = heading;
 
-	var headingAngle;
-	var currentAngle;
-	var pitchAngle;
+	// for debugging
+	// var headingAngle;
+	// var currentAngle;
+	// var pitchAngle;
 
-	headingAngle = (heading*360)/65535;
-	currentAngle = (currentAim*360)/65535;
-	pitchAngle = (pitch*360)/65535;
-	get PRINT(headingAngle, currentAngle,pitchAngle);
+	// headingAngle = (heading*360)/65535;
+	// currentAngle = (currentAim*360)/65535;
+	// pitchAngle = (pitch*360)/65535;
+	// get PRINT(headingAngle, currentAngle,pitchAngle);
 
 	if(heading > <-125> AND heading < <165>){ // check if within allowed arc to fire
 		if(currentAim < <-65> and heading > <55>){ // check if its turned too far to the right, turn to the middle first
