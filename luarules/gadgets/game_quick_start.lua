@@ -22,7 +22,9 @@ local shouldRunGadget = modOptions and modOptions.quick_start and (
 )
 if not shouldRunGadget then return false end
 
-local overrideQuickStartRange = tonumber(modOptions.override_quick_start_range) or 0
+local overridesEnabled = modOptions.enable_quickstart_overrides == true or modOptions.enable_quickstart_overrides == "1"
+local overrideQuickStartRange = tonumber(modOptions.override_quick_start_range) or 600
+local overrideQuickStartBudget = tonumber(modOptions.override_quick_start_budget) or 1200
 
 local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" or 
 	modOptions.quick_start == "factory_discount_only" or
@@ -33,7 +35,7 @@ local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" 
 local FACTORY_DISCOUNT_MULTIPLIER = 0.90 -- The factory discount will be the budget cost of the cheapest listed factory multiplied by this value.
 
 -- how far things will be be instantly built for the commander.
-local INSTANT_BUILD_RANGE = overrideQuickStartRange > 0 and overrideQuickStartRange or 600
+local INSTANT_BUILD_RANGE = (overridesEnabled and overrideQuickStartRange) or 600
 
 local QUICK_START_COST_ENERGY = 400      --will be deducted from commander's energy upon start.
 local QUICK_START_COST_METAL = 800       --will be deducted from commander's metal upon start.
@@ -547,7 +549,8 @@ local function initializeCommander(commanderID, teamID)
 
 	local currentMetal = Spring.GetTeamResources(teamID, "metal") or 0
 	local currentEnergy = Spring.GetTeamResources(teamID, "energy") or 0
-	local budget = (modOptions.override_quick_start_resources and modOptions.override_quick_start_resources > 0) and modOptions.override_quick_start_resources or quickStartAmountConfig[modOptions.quick_start_amount == "default" and "normal" or modOptions.quick_start_amount]
+	local quickStartKey = modOptions.quick_start_amount == "default" and "normal" or modOptions.quick_start_amount
+	local budget = overridesEnabled and overrideQuickStartBudget or quickStartAmountConfig[quickStartKey] or quickStartAmountConfig.normal
 
 	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
 	if not commanderX or not commanderY or not commanderZ then
@@ -906,7 +909,7 @@ function gadget:Initialize()
 	local quickStartAmount = modOptions.quick_start_amount or "normal"
 	local immediateBudget = quickStartAmountConfig[quickStartAmount] or quickStartAmountConfig.normal
 	
-	local finalBudget = modOptions.override_quick_start_resources > 0 and modOptions.override_quick_start_resources or immediateBudget
+	local finalBudget = overridesEnabled and overrideQuickStartBudget or immediateBudget
 	Spring.SetGameRulesParam("quickStartBudgetBase", finalBudget)
 	Spring.SetGameRulesParam("quickStartFactoryDiscountAmount", FACTORY_DISCOUNT)
 	local cheapestEconomicCost = calculateCheapestEconomicStructure()
