@@ -417,8 +417,10 @@ local function drawStats(uDefID, uID)
 		local buildRem = 1 - buildProg
 		local mRem = mathFloor(mTotal * buildRem)
 		local eRem = mathFloor(eTotal * buildRem)
-		local mEta = (mRem - mCur) / (mInc + mRec)
-		local eEta = (eRem - eCur) / (eInc + eRec)
+		local mIncome = mInc + mRec
+		local eIncome = eInc + eRec
+		local mEta = mIncome > 0 and (mRem - mCur) / mIncome or 0
+		local eEta = eIncome > 0 and (eRem - eCur) / eIncome or 0
 
 		DrawText(texts.prog..":", format("%d%%", 100 * buildProg))
 		DrawText(texts.metal..":", format("%d / %d (" .. yellow .. "%d" .. white .. ", %ds)", mTotal * buildProg, mTotal, mRem, mEta))
@@ -494,10 +496,18 @@ local function drawStats(uDefID, uID)
 		end
 	end
 	if maxHP then
-		DrawText(texts.open..":", format(texts.maxhp..": %d", maxHP) )
+		DrawText(texts.open..":", format("%s: %d", texts.maxhp, maxHP))
 
 		if armoredMultiple and armoredMultiple ~= 1 then
-			DrawText(texts.closed..":", format(" +%d%%, "..texts.maxhp..": %d", (1/armoredMultiple-1) *100,maxHP/armoredMultiple))
+			local message = format("%s: %d (+%d%%)", texts.maxhp, maxHP / armoredMultiple, 100 * (1 / armoredMultiple - 1))
+			if uDef.customParams.reactive_armor_health then
+				message = message .. (", %d to break, %d%s to restore"):format(
+					uDef.customParams.reactive_armor_health / armoredMultiple,
+					uDef.customParams.reactive_armor_restore,
+					texts.s
+				)
+			end
+			DrawText(texts.closed..":", message)
 		end
 	end
 

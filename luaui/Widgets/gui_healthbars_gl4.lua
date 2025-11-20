@@ -367,6 +367,7 @@ local chobbyInterface
 
 local unitDefIgnore = {} -- commanders!
 local unitDefhasShield = {} -- value is shield max power
+local unitDefReactiveArmor = {} -- value is armor health
 local unitDefCanStockpile = {} -- 0/1?
 local unitDefReload = {} -- value is max reload time
 local unitDefHeights = {} -- maps unitDefs to height
@@ -378,6 +379,7 @@ local unitEmpWatch = {}
 local unitBeingBuiltWatch = {}
 local unitCaptureWatch = {}
 local unitShieldWatch = {} -- maps unitID to last shield value
+local unitReactiveArmorWatch = {}
 local unitEmpDamagedWatch = {}
 local unitParalyzedWatch = {}
 local unitStockPileWatch = {}
@@ -511,6 +513,12 @@ for udefID, unitDef in pairs(UnitDefs) do
 	end
 	if unitDef.hideDamage == true then
 		unitDefHideDamage[udefID] = true
+	end
+
+	if not unitDefhasShield[udefID] and not unitDef.hideDamage then
+		if unitDef.customParams.reactive_armor_health and unitDef.customParams.reactive_armor_restore then
+			unitDefReactiveArmor[udefID] = tonumber(unitDef.customParams.reactive_armor_health)
+		end
 	end
 end
 
@@ -697,6 +705,14 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 		--spEcho("hasshield")
 		addBarForUnit(unitID, unitDefID, "shield", reason)
 		unitShieldWatch[unitID] = -1.0
+	elseif unitDefReactiveArmor[unitDefID] then
+		unitReactiveArmorWatch[unitID] = unitDefReactiveArmor[unitDefID]
+		addBarForUnit(unitID, unitDefID, "shield", reason)
+		local armorHealth = Spring.GetUnitRulesParam(unitID, "reactiveArmorHealth")
+		if armorHealth then
+			uniformcache[1] = armorHealth / unitDefReactiveArmor[unitDefID]
+			gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
+		end
 	end
 
 	updateReloadBar(unitID, unitDefID, reason)
@@ -762,6 +778,7 @@ local function removeBarsFromUnit(unitID, reason)
 		removeBarFromUnit(unitID, barname, reason)
 	end
 	unitShieldWatch[unitID] = nil
+	unitReactiveArmorWatch[unitID] = nil
 	unitCaptureWatch[unitID] = nil
 	unitEmpDamagedWatch[unitID] = nil
 	unitParalyzedWatch[unitID] = nil
@@ -844,6 +861,7 @@ local function init()
 	--unitBeingBuiltWatch = {}
 	unitCaptureWatch = {}
 	unitShieldWatch = {} -- maps unitID to last shield value
+	unitReactiveArmorWatch = {}
 	unitEmpDamagedWatch = {}
 	unitParalyzedWatch = {}
 	unitStockPileWatch = {}
@@ -1040,6 +1058,7 @@ end
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	unitBars = {}
 	unitShieldWatch = {}
+	unitReactiveArmorWatch = {}
 	unitCaptureWatch = {}
 	unitEmpDamagedWatch = {}
 	unitParalyzedWatch = {}
@@ -1093,7 +1112,7 @@ function widget:GameFrame(n)
 		InstanceVBOTable.locateInvalidUnits(featureHealthVBO)
 	end
 	-- Units:
-	-- check shields
+	-- check shields and armor
 	if n % 3 == 0 then
 		for unitID, oldshieldPower in pairs(unitShieldWatch) do
 			local shieldOn, shieldPower = Spring.GetUnitShieldState(unitID)
@@ -1106,6 +1125,23 @@ function widget:GameFrame(n)
 					gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
 				end
 				unitShieldWatch[unitID] = shieldPower
+			end
+		end
+
+		-- todo: armor should be completely different but idk how to set up a new bar type
+		for unitID, oldArmorValue in pairs(unitReactiveArmorWatch) do
+			local newArmorValue = Spring.GetUnitRulesParam(unitID, "reactiveArmorHealth")
+			if newArmorValue ~= oldArmorValue then
+				if newArmorValue == nil then
+					removeBarFromUnit(unitID, "shield", "unitReactiveArmorWatch")
+				else
+					if not newArmorValue then
+						newArmorValue = 0
+					end
+					uniformcache[1] = newArmorValue / unitDefReactiveArmor[spGetUnitDefID(unitID)]
+					gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
+				end
+				unitReactiveArmorWatch[unitID] = newArmorValue
 			end
 		end
 	end

@@ -139,7 +139,7 @@ local xPos = mathFloor(vsx * relXpos)
 local showButtons = true
 local autoHideButtons = false
 local showResourceBars = true
-local widgetSpaceMargin, bgpadding, RectRound, TexturedRectRound, UiElement, UiButton, UiSliderKnob
+local widgetSpaceMargin, bgpadding, RectRound, RectRoundOutline, TexturedRectRound, UiElement, UiButton, UiSliderKnob
 local updateRes = { metal = {false,false,false,false}, energy = {false,false,false,false} }
 
 -- Display Lists
@@ -246,6 +246,7 @@ function widget:ViewResize()
 	widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding
 	RectRound = WG.FlowUI.Draw.RectRound
+	RectRoundOutline = WG.FlowUI.Draw.RectRoundOutline
 	TexturedRectRound = WG.FlowUI.Draw.TexturedRectRound
 	UiElement = WG.FlowUI.Draw.Element
 	UiButton = WG.FlowUI.Draw.Button
@@ -656,6 +657,7 @@ local function updateResbarText(res, force)
 
 						RectRound(resbarArea[res][3] - textWidth, resbarArea[res][4] - 15.5 * widgetScale, resbarArea[res][3], resbarArea[res][4], 3.7 * widgetScale, 0, 0, 1, 1, color1, color2)
 						RectRound(resbarArea[res][3] - textWidth + bgpadding2, resbarArea[res][4] - 15.5 * widgetScale + bgpadding2, resbarArea[res][3] - bgpadding2, resbarArea[res][4], 2.8 * widgetScale, 0, 0, 1, 1, color3, color4)
+						RectRoundOutline(resbarArea[res][3] - textWidth + bgpadding2, resbarArea[res][4] - 15.5 * widgetScale + bgpadding2, resbarArea[res][3] - bgpadding2, resbarArea[res][4]+10, 2.8 * widgetScale, bgpadding2*1.33, 0, 0, 1, 1, {1, 1, 1, 0.15}, {1, 1, 1, 0})
 
 						font2:Begin(useRenderToTexture)
 						font2:SetTextColor(1, 0.88, 0.88, 1)
@@ -789,33 +791,34 @@ local function updateResbar(res)
 		RectRound(barArea[1] - edgeWidth + borderSize, barArea[2] - edgeWidth + borderSize, barArea[3] + edgeWidth - borderSize, barArea[4] + edgeWidth - borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0,0,0, 0.15 }, { 0,0,0, 0.2 })
 
 		-- bar dark outline
-		local featherHeight = addedSize*5.5
+		local featherHeight = addedSize*4
 		WG.FlowUI.Draw.RectRoundOutline(
 			barArea[1] - addedSize - featherHeight - edgeWidth, barArea[2] - addedSize - featherHeight - edgeWidth, barArea[3] + addedSize + featherHeight + edgeWidth, barArea[4] + addedSize + featherHeight + edgeWidth,
 			barHeight * 0.8, featherHeight,
 			1,1,1,1,
-			{ 0,0,0, 0 }, { 0,0,0, 0.2 }
+			{ 0,0,0, 0 }, { 0,0,0, 0.22 }
 		)
 		featherHeight = addedSize
 		WG.FlowUI.Draw.RectRoundOutline(
 			barArea[1] - addedSize - featherHeight - edgeWidth, barArea[2] - addedSize - featherHeight - edgeWidth, barArea[3] + addedSize + featherHeight + edgeWidth, barArea[4] + addedSize + featherHeight + edgeWidth,
 			featherHeight*1.5, featherHeight,
 			1,1,1,1,
-			{ 0,0,0, 0 }, { 0,0,0, 0.6 }
+			{ 0,0,0, 0 }, { 0,0,0, 0.66 }
 		)
+
 		-- bar inner light outline
 		WG.FlowUI.Draw.RectRoundOutline(
 			barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth,
 			barHeight * 0.33, barHeight * 0.1,
 			1,1,1,1,
-			{ 1, 1, 1, 0.27 }, { 1, 1, 1, 0 }
+			{ 1, 1, 1, 0.3 }, { 1, 1, 1, 0 }
 		)
 
+		glBlending(GL.SRC_ALPHA, GL.ONE)
 		glTexture(textures.noiseBackground)
-		gl.Color(1,1,1, 0.75)
+		gl.Color(1,1,1, 0.88)
 		TexturedRectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, barWidth*0.33, 0)
 		glTexture(false)
-		glBlending(GL.SRC_ALPHA, GL.ONE)
 		RectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0.1 })
 		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 1, 1, { 0.15, 0.15, 0.15, 0.17 }, { 0.8, 0.8, 0.8, 0.13 })
 		-- -- gloss

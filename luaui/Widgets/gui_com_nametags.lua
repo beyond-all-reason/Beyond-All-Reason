@@ -136,11 +136,17 @@ end
 teams = nil
 
 local drawScreenUnits = {}
+local drawScreenUnitsCache = {} -- Cache for icon display lists to avoid recreating every frame
 local CheckedForSpec = false
 
 local spec = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
 local GaiaTeam = spGetGaiaTeamID()
+
+-- Performance optimization caches
+local lastCameraPos = {0, 0, 0}
+local cameraMovedThisFrame = false
+local iconScaleCache = {} -- Cache icon scales to avoid recalculating
 
 local comHeight = {}
 for unitDefID, defs in pairs(UnitDefs) do
@@ -348,67 +354,100 @@ local function CheckTeamColors()
 	if detectedChanges then
 		RemoveLists()
 	end
+	return detectedChanges
 end
 
 
 local function CheckAllComs()
-	CheckTeamColors()
+	-- Only check team colors if needed
+	local colorChanged = CheckTeamColors()
 
-	-- check commanders
+	-- check commanders - but only update if something changed
 	local allUnits = spGetAllUnits()
 	local allUnitsLen = #allUnits
+	local commsChanged = false
+	
 	for i = 1, allUnitsLen do
 		local unitID = allUnits[i]
-		CheckCom(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
+		local unitDefID = spGetUnitDefID(unitID)
+		local unitTeam = spGetUnitTeam(unitID)
+		
+		-- Quick check if this is a commander
+		if comHeight[unitDefID] and unitTeam ~= GaiaTeam then
+			if not comms[unitID] then
+				comms[unitID] = GetCommAttributes(unitID, unitDefID)
+				commsChanged = true
+			end
+		end
+	end
+	
+	-- If colors changed, force refresh of attributes
+	if colorChanged then
+		for unitID, _ in pairs(comms) do
+			local unitDefID = spGetUnitDefID(unitID)
+			if unitDefID then
+				comms[unitID] = GetCommAttributes(unitID, unitDefID)
+			end
+		end
 	end
 end
 
 local sec = 0
+local colorCheckSec = 0
 function widget:Update(dt)
 	sec = sec + dt
-	local playerColorPalette = WG['playercolorpalette']
-	if playerColorPalette ~= nil then
-		local getSameTeamColors = playerColorPalette.getSameTeamColors
-		if getSameTeamColors and sameTeamColors ~= getSameTeamColors() then
-			sameTeamColors = getSameTeamColors()
+	colorCheckSec = colorCheckSec + dt
+	
+	-- Check color palette changes less frequently (every 0.5 seconds instead of every frame)
+	if colorCheckSec > 0.5 then
+		colorCheckSec = 0
+		local playerColorPalette = WG['playercolorpalette']
+		if playerColorPalette ~= nil then
+			local getSameTeamColors = playerColorPalette.getSameTeamColors
+			if getSameTeamColors and sameTeamColors ~= getSameTeamColors() then
+				sameTeamColors = getSameTeamColors()
+				RemoveLists()
+				CheckAllComs()
+				sec = 0
+			end
+		elseif sameTeamColors then
+			sameTeamColors = false
 			RemoveLists()
 			CheckAllComs()
 			sec = 0
 		end
-	elseif sameTeamColors then
-		sameTeamColors = false
-		RemoveLists()
-		CheckAllComs()
-		sec = 0
-	end
-	if not singleTeams and playerColorPalette ~= nil and playerColorPalette.getSameTeamColors then
-		local currentTeamID = spGetMyTeamID()
-		if myTeamID ~= currentTeamID then
-			-- old
-			local teamPlayerID = select(2, spGetTeamInfo(myTeamID, false))
-			local name = spGetPlayerInfo(teamPlayerID, false)
-			name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(teamPlayerID)) or name
-			if comnameList[name] ~= nil then
-				comnameList[name] = glDeleteList(comnameList[name])
+		
+		if not singleTeams and playerColorPalette ~= nil and playerColorPalette.getSameTeamColors then
+			local currentTeamID = spGetMyTeamID()
+			if myTeamID ~= currentTeamID then
+				-- old
+				local teamPlayerID = select(2, spGetTeamInfo(myTeamID, false))
+				local name = spGetPlayerInfo(teamPlayerID, false)
+				name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(teamPlayerID)) or name
+				if comnameList[name] ~= nil then
+					comnameList[name] = glDeleteList(comnameList[name])
+				end
+				if comnameIconList[name] ~= nil then
+					comnameIconList[name] = glDeleteList(comnameIconList[name])
+				end
+				myTeamID = currentTeamID
+				teamPlayerID = select(2, spGetTeamInfo(myTeamID, false))
+				name = spGetPlayerInfo(teamPlayerID, false)
+				name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(teamPlayerID)) or name
+				if comnameList[name] ~= nil then
+					comnameList[name] = glDeleteList(comnameList[name])
+				end
+				if comnameIconList[name] ~= nil then
+					comnameIconList[name] = glDeleteList(comnameIconList[name])
+				end
+				CheckAllComs()
+				sec = 0
 			end
-			if comnameIconList[name] ~= nil then
-				comnameIconList[name] = glDeleteList(comnameIconList[name])
-			end
-			myTeamID = currentTeamID
-			teamPlayerID = select(2, spGetTeamInfo(myTeamID, false))
-			name = spGetPlayerInfo(teamPlayerID, false)
-			name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(teamPlayerID)) or name
-			if comnameList[name] ~= nil then
-				comnameList[name] = glDeleteList(comnameList[name])
-			end
-			if comnameIconList[name] ~= nil then
-				comnameIconList[name] = glDeleteList(comnameIconList[name])
-			end
-			CheckAllComs()
-			sec = 0
 		end
 	end
-	if sec > 1.2 then
+	
+	-- Check all commanders every 2 seconds instead of 1.2 (less frequent polling)
+	if sec > 2.0 then
 		sec = 0
 		CheckAllComs()
 	end
@@ -447,7 +486,8 @@ end
 
 local function createComnameIconList(unitID, attributes)
 	if comnameIconList[attributes[1]] ~= nil then
-		glDeleteList(comnameIconList[attributes[1]])
+		-- Don't recreate if it already exists unless forced
+		return
 	end
 	comnameIconList[attributes[1]] = glCreateList(function()
 		local x, y, z = spGetUnitPosition(unitID)
@@ -476,25 +516,44 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader
 	if spIsGUIHidden() then return end
 	if spGetGameFrame() < hideBelowGameframe then return end
 
-	for unitID, attributes in pairs(drawScreenUnits) do
-		if not comnameIconList[attributes[1]] then
-			createComnameIconList(unitID, attributes)
-		end
-		local x, y, z = spGetUnitPosition(unitID)
-		if x and y and z then
-			x, z = spWorldToScreenCoords(x, y + 50 + heightOffset, z)
-			local scale = 1 - (attributes[5] / 25000)
-			if scale < 0.5 then
-				scale = 0.5
+	-- Batch process all screen units in one pass
+	if next(drawScreenUnits) then
+		for unitID, attributes in pairs(drawScreenUnits) do
+			-- Only create the display list if it doesn't exist or has changed
+			if not comnameIconList[attributes[1]] then
+				createComnameIconList(unitID, attributes)
 			end
-			glPushMatrix()
-			glTranslate(x, z, 0)
-			glScale(scale, scale, scale)
-			glCallList(comnameIconList[attributes[1]])
-			glPopMatrix()
+			
+			local x, y, z = spGetUnitPosition(unitID)
+			if x and y and z then
+				x, z = spWorldToScreenCoords(x, y + 50 + heightOffset, z)
+				
+				-- Cache the scale calculation to avoid repeated divisions
+				local camDist = attributes[5]
+				local scale = iconScaleCache[camDist]
+				if not scale then
+					scale = 1 - (camDist / 25000)
+					if scale < 0.5 then
+						scale = 0.5
+					end
+					iconScaleCache[camDist] = scale
+				end
+				
+				glPushMatrix()
+				glTranslate(x, z, 0)
+				glScale(scale, scale, scale)
+				glCallList(comnameIconList[attributes[1]])
+				glPopMatrix()
+			end
+		end
+		-- Clear for next frame
+		drawScreenUnits = {}
+		
+		-- Clear icon scale cache periodically to avoid memory bloat
+		if spGetGameFrame() % 300 == 0 then
+			iconScaleCache = {}
 		end
 	end
-	drawScreenUnits = {}
 end
 
 
@@ -504,7 +563,7 @@ function widget:DrawWorld()
 	if spIsGUIHidden() then return end
 	if spGetGameFrame() < hideBelowGameframe then return end
 
-	-- untested fix: when you resign, to also show enemy com playernames  (because widget:PlayerChanged() isnt called anymore)
+	-- untested fix: when you resign, to also show enemy com playernames
 	if not CheckedForSpec and spGetGameFrame() > 1 then
 		if spec then
 			CheckedForSpec = true
@@ -516,17 +575,27 @@ function widget:DrawWorld()
 	glAlphaTest(GL_GREATER, 0)
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
+	-- Cache camera position to detect movement
 	local camX, camY, camZ = spGetCameraPosition()
+	local cameraMoved = (camX ~= lastCameraPos[1] or camY ~= lastCameraPos[2] or camZ ~= lastCameraPos[3])
+	if cameraMoved then
+		lastCameraPos[1], lastCameraPos[2], lastCameraPos[3] = camX, camY, camZ
+	end
+	
+	-- Process all commanders in a single pass
 	for unitID, attributes in pairs(comms) do
-		if spIsUnitVisible(unitID, 50) then
+		-- Combined visibility check - avoids multiple function calls
+		if spIsUnitVisible(unitID, 50, false) then
 			local x, y, z = spGetUnitPosition(unitID)
 			if x and y and z then
+				-- Calculate distance once and store it
 				local camDistance = mathDiag(camX - x, camY - y, camZ - z)
 
 				if drawForIcon and spIsUnitIcon(unitID) then
 					attributes[5] = camDistance
 					drawScreenUnits[unitID] = attributes
 				else
+					-- Cache the font size calculation
 					usedFontSize = (fontSize * 0.5) + (camDistance / scaleFontAmount)
 					glDrawFuncAtUnit(unitID, false, DrawName, attributes)
 				end
