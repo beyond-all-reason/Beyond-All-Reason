@@ -698,6 +698,12 @@
 				"endless": "Endless"
 			}
 		},
+		"ordinals": {
+			"one": "%{count}st",
+			"two": "%{count}nd",
+			"few": "%{count}rd",
+			"other": "%{count}th"
+		},
 		"territorialDomination": {
 			"losingWarning1": "Allied retreat in %{seconds} seconds!",
 			"losingWarning2": "Capture %{count} more territories to avoid extraction.",
