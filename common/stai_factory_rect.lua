@@ -17,9 +17,18 @@ local function getOutsets(unitName, unitTable, factoryExitSides)
 		return nil
 	end
 
-	-- If we have a known exit side, the caller should compute a lane rectangle.
-	if factoryExitSides[unitName] ~= nil and factoryExitSides[unitName] ~= 0 then
-		return nil
+	local exitSide = factoryExitSides[unitName]
+	if exitSide ~= nil then
+		-- Non-zero exit side: caller should compute a lane rectangle.
+		if exitSide ~= 0 then
+			return nil
+		end
+
+		-- Exit side 0 marks air factories: treat like generic buildings (no lane/apron needed).
+		return {
+			outX = ut.xsize * DEFAULT_OUTSET_MULT,
+			outZ = ut.zsize * DEFAULT_OUTSET_MULT,
+		}
 	end
 
 	if ut.buildOptions then
