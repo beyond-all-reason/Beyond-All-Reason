@@ -139,8 +139,8 @@ function GG.quick_start.transferCommanderData(oldUnitID, newUnitID)
 	end
 end
 
-local function getQuotas(isMetalMap, isInWater, isGoodWind)
-	return config.quotas[isMetalMap and "metalMap" or "nonMetalMap"][isInWater and "water" or "land"]
+local function getBuildSequence(isMetalMap, isInWater, isGoodWind)
+	return config.buildSequence[isMetalMap and "metalMap" or "nonMetalMap"][isInWater and "water" or "land"]
 	[isGoodWind and "goodWind" or "badWind"]
 end
 
@@ -259,7 +259,7 @@ end
 
 local function getFactoryDiscount(unitDef, builderID)
 	if not shouldApplyFactoryDiscount then return 0 end
-	if not unitDef.isFactory then return 0 end
+	if not unitDef or not unitDef.isFactory then return 0 end
 	if commanderFactoryDiscounts[builderID] and commanderFactoryDiscounts[builderID] == true then return 0 end
 	return FACTORY_DISCOUNT
 end
@@ -283,8 +283,8 @@ local function getCommanderBuildQueue(commanderID)
 	local totalBudgetCost = 0
 	for i, cmd in ipairs(commands) do
 		if isBuildCommand(cmd.id) then
-			local spawnParams = { id = unitDefID, x = cmd.params[1], y = cmd.params[2], z = cmd.params[3], facing = cmd.params[4] or 1, cmdTag = cmd.tag }
 			local unitDefID = -cmd.id
+			local spawnParams = { id = unitDefID, x = cmd.params[1], y = cmd.params[2], z = cmd.params[3], facing = cmd.params[4] or 1, cmdTag = cmd.tag }
 			local unitDef = unitDefs[unitDefID]
 			local distance = distance2d(comData.spawnX, comData.spawnZ, spawnParams.x, spawnParams.z)
 			local isTraversable = traversabilityGrid.canMoveToPosition(commanderID, spawnParams.x, spawnParams.z, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
@@ -293,16 +293,19 @@ local function getCommanderBuildQueue(commanderID)
 				local budgetCost = defMetergies[unitDefID] or 0
 				budgetCost = max(budgetCost - getFactoryDiscount(unitDef, commanderID), 0)
 
-				if totalBudgetCost + budgetCost > comData.budget then
+				local affordableCost = min(budgetCost, comData.budget - totalBudgetCost)
+				if affordableCost > 0 then
+					table.insert(spawnQueue, spawnParams)
+					if cmd.tag then
+						table.insert(commandsToRemove, cmd.tag)
+					end
+					totalBudgetCost = totalBudgetCost + affordableCost
+				end
+
+				if totalBudgetCost >= comData.budget then
 					comData.commandsToRemove = commandsToRemove
 					return spawnQueue
 				end
-
-				table.insert(spawnQueue, spawnParams)
-				if cmd.tag then
-					table.insert(commandsToRemove, cmd.tag)
-				end
-				totalBudgetCost = totalBudgetCost + budgetCost
 			end
 		end
 	end
@@ -560,11 +563,16 @@ local function initializeCommander(commanderID, teamID)
 	local commanderName = UnitDefs[commanderDefID].name
 	local isInWater = commanderY < 0
 	local buildDefs = {}
-	for optionName, trueName in pairs(commanderNonLabOptions[commanderName]) do
-		buildDefs[optionName] = unitDefNames[trueName].id
+	local buildOptions = commanderNonLabOptions[commanderName]
+	if buildOptions then
+		for optionName, trueName in pairs(commanderNonLabOptions[commanderName]) do
+			buildDefs[optionName] = unitDefNames[trueName].id
+		end
+	else
+		return
 	end
 
-	local commanderBuildQuotas = getQuotas(isMetalMap, isInWater, isGoodWind)
+	local commanderBuildSequence = getBuildSequence(isMetalMap, isInWater, isGoodWind)
 	local buildIndex = 1
 
 	commanders[commanderID] = {
@@ -575,7 +583,7 @@ local function initializeCommander(commanderID, teamID)
 		isInWater = isInWater,
 		buildDefs = buildDefs,
 		gridLists = { other = {}, converters = {} },
-		buildQuotas = commanderBuildQuotas,
+		buildSequence = commanderBuildSequence,
 		buildIndex = buildIndex,
 		nearbyMexes = {},
 		lastCommanderX = nil,
@@ -621,9 +629,9 @@ local function generateBuildCommands(commanderID)
 	local budgetRemaining = comData.budget
 	local attempts = 0
 
-	while budgetRemaining > 0 and attempts < SAFETY_COUNT and comData.buildIndex <= #comData.buildQuotas do
+	while budgetRemaining > 0 and attempts < SAFETY_COUNT and comData.buildIndex <= #comData.buildSequence do
 		attempts = attempts + 1
-		local buildType = comData.buildQuotas[comData.buildIndex]
+		local buildType = comData.buildSequence[comData.buildIndex]
 		local unitDefID = comData.buildDefs[buildType]
 		local unitDef = unitDefs[unitDefID]
 		local discount = getFactoryDiscount(unitDef, commanderID)
@@ -633,19 +641,19 @@ local function generateBuildCommands(commanderID)
 		if ((buildType == "mex" and not isMetalMap) and not refreshAndCheckAvailableMexSpots(commanderID)) then
 			shouldQueue = false
 		elseif cost > budgetRemaining then
-			shouldQueue = false
-			Spring.AddTeamResource(comData.teamID, "metal", budgetRemaining)
-			comData.budget = comData.budget - budgetRemaining
-			break
 		end
 
 		if shouldQueue then
 			table.insert(comData.spawnQueue, 1, { id = unitDefID })
-			budgetRemaining = budgetRemaining - cost
+			if cost <= budgetRemaining then
+				budgetRemaining = budgetRemaining - cost
+			else
+				budgetRemaining = 0
+			end
 		end
 
 		comData.buildIndex = comData.buildIndex + 1
-		if comData.buildIndex > #comData.buildQuotas then
+		if comData.buildIndex > #comData.buildSequence then
 			comData.buildIndex = 1
 		end
 	end
@@ -666,7 +674,6 @@ local function tryToSpawnBuild(commanderID, unitDefID, buildX, buildY, buildZ, f
 	local unitDef, comData = unitDefs[unitDefID], commanders[commanderID]
 	local discount = getFactoryDiscount(unitDef, commanderID)
 	local cost = defMetergies[unitDefID] - discount
-	if comData.budget <= 0 then return false end
 
 	local unitID = spCreateUnit(unitDef.name, buildX, buildY, buildZ, facing, comData.teamID)
 	if not unitID then
@@ -793,7 +800,7 @@ function gadget:GameFrame(frame)
 							buildX, buildY, buildZ = getBuildSpace(commanderID, buildType)
 						end
 						local facing = buildItem.facing or comData.defaultFacing or 0
-						if buildX then
+						if buildItem.id and buildX and comData.budget > 0 then
 							local success = tryToSpawnBuild(commanderID, buildItem.id, buildX, buildY, buildZ, facing)
 							if success then
 								loop = true
