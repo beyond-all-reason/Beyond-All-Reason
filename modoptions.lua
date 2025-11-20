@@ -513,8 +513,8 @@ local options = {
         type	= "number",
         section	= "options",
         def		= 0.6,
-        min		= 0.2,
-        max		= 0.8,
+        min		= 0, -- see usage in alldefs_post for actual bounds
+        max		= 1,
         step	= 0.05,
     },
 
