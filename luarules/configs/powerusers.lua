@@ -5,6 +5,7 @@ local everything = {
 	devhelpers = true,
 	playerdata = true,
 	waterlevel = true,
+	lavalevel = true,
 	sysinfo = true,
 }
 local moderator = {
@@ -14,6 +15,7 @@ local moderator = {
 	devhelpers = false,
 	playerdata = false,
 	waterlevel = false,
+	lavalevel = false,
 	sysinfo = true,
 }
 local singleplayer = {		-- note: these permissions override others when singleplayer
@@ -22,6 +24,7 @@ local singleplayer = {		-- note: these permissions override others when singlepl
 	cmd = true,
 	devhelpers = true,
 	waterlevel = true,
+	lavalevel = true,
 	playerdata = false,
 	sysinfo = false,
 }
