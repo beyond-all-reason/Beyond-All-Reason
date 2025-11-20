@@ -17,8 +17,10 @@ jobs:
 
       - name: Install Lux
         run: |
-          curl -fsSL https://lux.lumen-labs.org/install.sh | sh
-          echo "$HOME/.lux/bin" >> $GITHUB_PATH
+          wget https://github.com/lumen-oss/lux/releases/download/v0.15.0/lx_0.15.0_x86_64.tar.gz
+          tar -xvf lx_0.15.0_x86_64.tar.gz
+          sudo mv lx /usr/local/bin/lx
+          rm lx_0.15.0_x86_64.tar.gz
 
       - name: Install Dependencies
         run: lx update
@@ -28,4 +30,17 @@ jobs:
 
       - name: Run Linter (lx lint)
         run: lx lint
+
+      - name: Verify Formatting (lx fmt)
+        run: |
+          lx fmt
+          # Check if any files were modified by lx fmt
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Code is not formatted. Please run 'lx fmt' locally and push the changes."
+            git status --porcelain
+            git diff
+            exit 1
+          else
+            echo "Code is correctly formatted."
+          fi
 
