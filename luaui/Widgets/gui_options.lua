@@ -2938,12 +2938,12 @@ function init()
 			  saveOptionValue('Notifications', 'notifications', 'setSpoken', { 'spoken' }, value)
 		  end,
 		},
-		{ id = "notifications_volume", group = "notif", category = types.basic, name = Spring.I18N('ui.settings.option.notifications_volume'), type = "slider", min = 0.05, max = 1, step = 0.05, value = 1, description = Spring.I18N('ui.settings.option.notifications_volume_descr'),
+		{ id = "notifications_volume", group = "notif", category = types.basic, name = Spring.I18N('ui.settings.option.notifications_volume'), type = "slider", min = 0.05, max = 1, step = 0.05, value = 0.7, description = Spring.I18N('ui.settings.option.notifications_volume_descr'),
 		  onload = function(i)
-			  loadWidgetData("Notifications", "notifications_volume", { 'volume' })
+			  loadWidgetData("Notifications", "notifications_volume", { 'globalVolume' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Notifications', 'notifications', 'setVolume', { 'volume' }, value)
+			  saveOptionValue('Notifications', 'notifications', 'setVolume', { 'globalVolume' }, value)
 		  end,
 		},
 		{ id = "notifications_playtrackedplayernotifs", category = types.basic, group = "notif", name = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs'), type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getPlayTrackedPlayerNotifs()), description = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs_descr'),

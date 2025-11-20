@@ -6,6 +6,7 @@ EventName = {
 	resetOtherEventDelay = string - Name of 'fallback' event that will get it's delay reset. 
 							For example, UnitLost, is a general notif for losing units, but we have MetalExtractorLost, or RadarLost. I want those to reset UnitLost as well.
 	soundEffect = string - Sound Effect to play alongside the notification, located in 'sounds/voice-soundeffects'
+	notext = bool - hide the text part of the notification
 	tutorial = bool - Sound effect used for the tutorial messages, there's a whole different handling of those. (WIP)
 }
 ]]
@@ -17,14 +18,17 @@ return {
 	EnemyCommanderDied = {
 		delay = 1,
 		soundEffect = "EnemyComDead",
+		resetOtherEventDelay = "NeutralCommanderDied",
 	},
 	FriendlyCommanderDied = {
 		delay = 1,
 		soundEffect = "FriendlyComDead",
+		resetOtherEventDelay = "NeutralCommanderDied",
 	},
 	FriendlyCommanderSelfD = {
 		delay = 1,
 		soundEffect = "FriendlyComDead",
+		resetOtherEventDelay = "NeutralCommanderSelfD",
 	},
 	NeutralCommanderDied = {
 		delay = 1,
@@ -76,40 +80,52 @@ return {
 
 	TeammateCaughtUp = {
 		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerCaughtUp",
 	},
 	TeammateDisconnected = {
 		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerDisconnected",
 	},
 	TeammateLagging = {
 		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerLagging",
 	},
 	TeammateReconnected = {
 		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerReconnected",
 	},
 	TeammateResigned = {
 		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerResigned",
 	},
 	TeammateTimedout = {
 		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerTimedout",
 	},
 
 	EnemyPlayerCaughtUp = {
 		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerCaughtUp",
 	},
 	EnemyPlayerDisconnected = {
 		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerDisconnected",
 	},
 	EnemyPlayerLagging = {
 		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerLagging",
 	},
 	EnemyPlayerReconnected = {
 		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerReconnected",
 	},
 	EnemyPlayerResigned = {
 		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerResigned",
 	},
 	EnemyPlayerTimedout = {
 		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerTimedout",
 	},
 
 	NeutralPlayerCaughtUp = {

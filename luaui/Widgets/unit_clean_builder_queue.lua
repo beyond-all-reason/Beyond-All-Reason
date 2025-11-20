@@ -154,7 +154,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		-- Skip if repeat is enabled (cached check)
 		if not IsUnitRepeatOn(builderID) then
 			local commands = GetUnitCommands(builderID, 32)
-			if commands and #commands > 0 then
+			if commands then
 				-- Scan backwards to find matching build commands
 				for j = #commands, 1, -1 do
 					local cmd = commands[j]
