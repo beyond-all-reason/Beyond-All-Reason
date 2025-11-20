@@ -19,8 +19,9 @@ jobs:
         run: |
           wget https://github.com/lumen-oss/lux/releases/download/v0.15.0/lx_0.15.0_x86_64.tar.gz
           tar -xvf lx_0.15.0_x86_64.tar.gz
-          sudo mv lx /usr/local/bin/lx
+          sudo mv usr/bin/lx /usr/local/bin/lx
           rm lx_0.15.0_x86_64.tar.gz
+          rm -rf usr
 
       - name: Install Dependencies
         run: lx update
