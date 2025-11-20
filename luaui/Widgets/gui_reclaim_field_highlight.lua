@@ -12,10 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-
--- Localized functions for performance
-local tableSort = table.sort
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Options
@@ -57,10 +53,6 @@ local energyReclaimEdgeColor = {1, 1, 0, 0.18}
 --Energy field settings
 local energyOpacityMultiplier = 0.44 -- Multiplier for energy field opacity (relative to metal fields)
 local energyTextSizeMultiplier = 0.5 -- Multiplier for energy text size (relative to metal text)
-local preGameStartOpacityMultiplier = 1.2 -- Global opacity multiplier for all fields before gamestart
-local preGameStartMetalOpacityMultiplier = 1.2 -- Additional multiplier for metal field opacity before gamestart (stacks with global)
--- Note: Energy features (trees, geo spots) are static map features that typically don't change after gamestart.
--- The code optimizes by clustering energy fields once at gamestart and then skipping energy processing afterward.
 
 --Fill settings
 local fillAlpha = 0.055 -- Base fill layer opacity
@@ -77,8 +69,7 @@ local smoothingSegments = 4 -- Number of segments per edge
 -- Lower values = better performance, sharper edges (e.g., 4-8 for low-end systems)
 -- Higher values = smoother, more organic shapes (e.g., 20-30 for high-end systems)
 
---Update rate, in seconds
-local checkFrequency = 0.6
+local checkFrequency = 0.66	-- Update rate, in seconds
 
 local epsilon = 300 -- Clustering distance - increased to merge nearby fields and prevent overlaps
 
@@ -92,8 +83,10 @@ local fadeStartDistance = 4500 -- Distance where fields start to fade out
 local fadeEndDistance = 7000 -- Distance where fields stop rendering completely (must be > fadeStartDistance)
 
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 -- Speedups
+--------------------------------------------------------------------------------
+
+local tableSort = table.sort
 
 local insert = table.insert
 local remove = table.remove
@@ -136,8 +129,8 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetCameraVectors = Spring.GetCameraVectors
 
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 -- Helper Functions for Culling and Fading
+--------------------------------------------------------------------------------
 
 -- Cached camera state to avoid recalculating every frame
 local cachedCameraX, cachedCameraY, cachedCameraZ = 0, 0, 0
@@ -248,7 +241,7 @@ local deferredFeatureDestructions = {} -- Features destroyed outside view
 local deferredCreationCount = 0
 local deferredDestructionCount = 0
 local deferOutOfViewUpdates = true -- Config: defer processing features outside view
-local outOfViewMargin = 500 -- Elmos margin beyond fade distance to still process immediately (reduced from 1000)
+local outOfViewMargin = 350 -- Elmos margin beyond fade distance to still process immediately (reduced from 1000)
 local lastDeferredProcessFrame = 0
 local deferredProcessInterval = 60 -- Process deferred updates every 60 frames (~2 seconds)
 
@@ -260,7 +253,6 @@ local lastCameraCheckFrame = 0 -- Track when we last checked camera up vector
 -- Per-frame visibility and distance cache to avoid redundant calculations
 local clusterVisibilityCache = {} -- {[cid] = {frame, inView, dist, fadeMult}}
 local energyClusterVisibilityCache = {} -- {[energyCid] = {frame, inView, dist, fadeMult}}
-local lastVisibilityCacheFrame = -1
 
 -- Get cached visibility for a cluster (call once per frame per cluster)
 -- Forward declare this early since it's used in draw functions
@@ -279,13 +271,11 @@ local gameFramesPerSecond = 30 -- Normal rate
 local featureCountMultiplier = 1 -- Multiplier based on feature count
 local catchUpMultiplier = 1 -- Multiplier during catch-up
 
--- Track timing for pre-gamestart updates
-local preGameStartTimer = 0
-local preGameStartCheckInterval = checkFrequency / Game.gameSpeed -- Convert frames to seconds
-local gameStarted = false
-local artificialFrame = 0 -- Artificial frame counter for pre-gamestart
-local initialClusteringDone = false -- Track if we've done initial clustering pre-gamestart
 local allEnergyFieldsDrained = false -- Track if all energy has been reclaimed to skip energy rendering
+
+-- Track if game has started (GameFrame has been called)
+local gameStarted = false
+local initialized = false
 
 local minTextAreaLength = (epsilon / 2 + fontSizeMin) / 2
 local areaTextMin = 3000
@@ -473,22 +463,21 @@ GetClusterVisibility = function(cid, isEnergy, currentFrame)
 		return false, 0, 0
 	end
 
-	local center = cluster.center
-	-- Pre-compute cluster radius once (cache it in the cluster if not present)
-	if not cluster.radius then
-		cluster.radius = sqrt((cluster.dx or 0)^2 + (cluster.dz or 0)^2) / 2
-	end
-
-	-- Before game start, always show reclaim fields (both metal and energy)
-	-- This ensures the map preview shows all resource fields before gameplay begins
-	if not gameStarted then
+	-- Pre-gamestart: show all metal fields regardless of camera position/distance
+	if not gameStarted and not isEnergy then
 		cache[cid] = {
 			frame = currentFrame,
 			inView = true,
 			dist = 0,
-			fadeMult = 1.0
+			fadeMult = 1
 		}
-		return true, 0, 1.0
+		return true, 0, 1
+	end
+
+	local center = cluster.center
+	-- Pre-compute cluster radius once (cache it in the cluster if not present)
+	if not cluster.radius then
+		cluster.radius = sqrt((cluster.dx or 0)^2 + (cluster.dz or 0)^2) / 2
 	end
 
 	local inView, dist = IsInCameraView(center.x, center.y, center.z, cluster.radius, currentFrame)
@@ -1521,8 +1510,8 @@ end
 
 -- Check if all energy fields have been drained
 local function CheckAllEnergyDrained()
-	if allEnergyFieldsDrained or not showEnergyFields then
-		return -- Already marked as drained or energy fields disabled
+	if not showEnergyFields then
+		return -- Energy fields disabled
 	end
 
 	-- Check if there are any features with energy remaining
@@ -1536,7 +1525,9 @@ local function CheckAllEnergyDrained()
 	end
 
 	if featuresWithEnergy > 0 then
-		return -- Found energy, not all drained
+		-- Found energy, not all drained
+		allEnergyFieldsDrained = false
+		return
 	end
 
 	-- All energy is drained, disable energy rendering
@@ -1712,7 +1703,7 @@ local function ClusterizeFeatures()
 	redrawingNeeded = true
 
 	-- Check if all energy has been drained after clustering
-	if gameStarted and showEnergyFields and not allEnergyFieldsDrained then
+	if showEnergyFields and not allEnergyFieldsDrained then
 		CheckAllEnergyDrained()
 	end
 end
@@ -1769,7 +1760,12 @@ do
 
 	UpdateDrawEnabled = function ()
 		local previousDrawEnabled = drawEnabled
-		drawEnabled = showOptionFunctions[showOption]()
+		-- Before game starts, always enable drawing regardless of user settings
+		if not gameStarted then
+			drawEnabled = true
+		else
+			drawEnabled = showOptionFunctions[showOption]()
+		end
 		-- If visibility changed from false to true, force a full display list recreation
 		if not previousDrawEnabled and drawEnabled then
 			redrawingNeeded = true
@@ -1991,19 +1987,11 @@ CreateClusterDisplayList = function(cid, isEnergy)
 		local colors = nil
 		if isEnergy then
 			-- Energy field colors with opacity multiplier
-			local energyMult = not gameStarted and preGameStartOpacityMultiplier or energyOpacityMultiplier
+			local energyMult = energyOpacityMultiplier
 			colors = {
 				fill = energyReclaimColor,
 				fillAlpha = fillAlpha * energyMult,
 				gradientAlpha = gradientAlpha * energyMult
-			}
-		elseif not gameStarted then
-			-- Metal field colors with pre-gamestart multiplier
-			local totalMultiplier = preGameStartOpacityMultiplier * preGameStartMetalOpacityMultiplier
-			colors = {
-				fill = reclaimColor,
-				fillAlpha = fillAlpha * totalMultiplier,
-				gradientAlpha = gradientAlpha * totalMultiplier
 			}
 		end
 		glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, hull, cluster.center, colors)
@@ -2223,6 +2211,372 @@ local function DrawEnergyClusterText()
 	end
 end
 
+-- Process deferred features that may have come into view
+local function ProcessDeferredFeatures(frame)
+	if (deferredCreationCount == 0 and deferredDestructionCount == 0) or
+	   (frame - lastDeferredProcessFrame < deferredProcessInterval and frame % 10 ~= 0) then
+		return
+	end
+
+	lastDeferredProcessFrame = frame
+
+	-- Process deferred creations - check if they're now in view
+	local remainingDeferred = 0
+	for i = 1, deferredCreationCount do
+		local featureID = deferredFeatureCreations[i]
+		if featureID then
+			local x, y, z = spGetFeaturePosition(featureID)
+			if x and IsPositionNearView(x, y, z) then
+				-- Now in view, process it
+				pendingCreationCount = pendingCreationCount + 1
+				pendingFeatureCreations[pendingCreationCount] = featureID
+				deferredFeatureCreations[i] = nil
+			else
+				-- Still out of view, keep it deferred but compact array
+				remainingDeferred = remainingDeferred + 1
+				if remainingDeferred ~= i then
+					deferredFeatureCreations[remainingDeferred] = featureID
+					deferredFeatureCreations[i] = nil
+				end
+			end
+		end
+	end
+	deferredCreationCount = remainingDeferred
+
+	-- Process deferred destructions - check if they're now in view
+	remainingDeferred = 0
+	for i = 1, deferredDestructionCount do
+		local featureID = deferredFeatureDestructions[i]
+		if featureID then
+			local feature = knownFeatures[featureID]
+			if not feature or IsPositionNearView(feature.x, feature.y, feature.z) then
+				-- Now in view or feature no longer exists, process it
+				if knownFeatures[featureID] then
+					pendingDestructionCount = pendingDestructionCount + 1
+					pendingFeatureDestructions[pendingDestructionCount] = featureID
+				end
+				deferredFeatureDestructions[i] = nil
+			else
+				-- Still out of view, keep it deferred but compact array
+				remainingDeferred = remainingDeferred + 1
+				if remainingDeferred ~= i then
+					deferredFeatureDestructions[remainingDeferred] = featureID
+					deferredFeatureDestructions[i] = nil
+				end
+			end
+		end
+	end
+	deferredDestructionCount = remainingDeferred
+end
+
+-- Core update logic extracted to be called from both Update and GameFrame
+local function UpdateReclaimFields(frame)
+	-- Process deferred features periodically or when they come into view
+	ProcessDeferredFeatures(frame)
+
+	-- Process batched feature creations first
+	if pendingCreationCount > 0 then
+		for i = 1, pendingCreationCount do
+			local featureID = pendingFeatureCreations[i]
+			AddFeature(featureID)
+			pendingFeatureCreations[i] = nil
+		end
+		pendingCreationCount = 0
+		clusterizingNeeded = true
+	end
+
+	-- Process batched feature destructions
+	if pendingDestructionCount > 0 then
+		for i = 1, pendingDestructionCount do
+			local featureID = pendingFeatureDestructions[i]
+			if knownFeatures[featureID] then
+				RemoveFeature(featureID)
+			end
+			pendingFeatureDestructions[i] = nil
+		end
+		pendingDestructionCount = 0
+		clusterizingNeeded = true
+	end
+
+	if drawEnabled == false then
+		return
+	end
+
+	-- Dynamically adjust check frequency based on feature count
+	-- Only recalculate every 30 frames to avoid overhead
+	-- Use cached count instead of iterating all features
+	if frame % 30 == 0 then
+		local currentFeatureCount = cachedKnownFeaturesCount
+
+		-- Adjust frequency based on feature count thresholds
+		if currentFeatureCount ~= lastFeatureCount then
+			lastFeatureCount = currentFeatureCount
+			if currentFeatureCount < 500 then
+				featureCountMultiplier = 1 -- Normal frequency
+			elseif currentFeatureCount < 1500 then
+				featureCountMultiplier = 2 -- 500-1500 features: 2x slower
+			elseif currentFeatureCount < 3000 then
+				featureCountMultiplier = 3 -- 1500-3000 features: 3x slower
+			else
+				featureCountMultiplier = 4 -- 3000+ features: 4x slower
+			end
+			-- Apply both multipliers (feature count and catch-up)
+			checkFrequency = math.ceil(baseCheckFrequency * featureCountMultiplier * catchUpMultiplier)
+		end
+	end
+
+	if frame % checkFrequency ~= 0 then
+		return
+	end
+
+	local featuresAdded = false
+
+	-- Process flying features (check less frequently - every 3 frames)
+	-- Flying features are rare, no need to check every single frame
+	if next(flyingFeatures) and (frame - lastFlyingCheckFrame) >= 3 then
+		lastFlyingCheckFrame = frame
+		for featureID, fInfo in pairs(flyingFeatures) do
+			-- Quick validation before API call
+			if spValidFeatureID(featureID) then
+				local _,_,_, vw = spGetFeatureVelocity(featureID)
+				if vw then
+					-- Feature still exists and has velocity data
+					if vw <= 1e-3 then
+						flyingFeatures[featureID] = nil
+						local x, y, z = spGetFeaturePosition(featureID)
+						if x then -- Validate feature still exists
+							fInfo.x, fInfo.y, fInfo.z = x, y, z
+
+							-- Mark region as dirty for regional reclustering
+							MarkRegionDirty(x, z)
+
+							local M = featureNeighborsMatrix
+							local M_newFeature = {}
+							local reachDistSq, epsilonSq = mathHuge, epsilonSq
+							for fid2, feat2 in pairs(knownFeatures) do
+								local dx, dz = x - feat2.x, z - feat2.z
+								local distSq = dx * dx + dz * dz
+								if distSq <= epsilonSq then
+									M[fid2][featureID] = distSq
+									M_newFeature[fid2] = distSq
+									if distSq < reachDistSq then
+										reachDistSq = distSq
+									end
+									if feat2.rd == nil or distSq < feat2.rd then
+										feat2.rd = distSq
+									end
+								end
+							end
+							featureNeighborsMatrix[featureID] = M_newFeature
+							if reachDistSq < epsilonSq then
+								fInfo.rd = reachDistSq
+							end
+							knownFeatures[featureID] = fInfo
+							cachedKnownFeaturesCount = cachedKnownFeaturesCount + 1
+							featuresAdded = true
+						else
+							-- Feature was destroyed while flying
+							flyingFeatures[featureID] = nil
+						end
+					end
+				else
+					-- Feature no longer exists
+					flyingFeatures[featureID] = nil
+				end
+			else
+				-- Feature ID is invalid
+				flyingFeatures[featureID] = nil
+			end
+		end
+	end
+
+	-- Always check for feature value updates, even if clustering is needed
+	-- This ensures energy/metal values are tracked incrementally
+	if not (featuresAdded or clusterizingNeeded) then
+		UpdateFeatureReclaim()
+	end
+
+	if featuresAdded or clusterizingNeeded then
+		-- Batch remove invalid features using reusable table
+		-- Use rotating checks to avoid checking ALL features every cycle
+		local removeCount = 0
+
+		-- Use cached count instead of iterating all features
+		local featureCount = cachedKnownFeaturesCount
+
+		-- Calculate check interval: check at minimum 50 features, but sample more if fewer total
+		local checkInterval = max(1, floor(featureCount / 50))
+		validityCheckCounter = validityCheckCounter + 1
+
+		for fid, fInfo in pairs(knownFeatures) do
+			-- Rotating check: only validate a subset of features per frame
+			-- Always check if featureCount is small, otherwise use rotating pattern
+			if checkInterval == 1 or (validityCheckCounter % checkInterval == 0) then
+				-- Quick validity check first (much cheaper than GetFeatureResources)
+				if not spValidFeatureID(fid) then
+					removeCount = removeCount + 1
+					toRemoveFeatures[removeCount] = fid
+				else
+					-- Only call GetFeatureResources if feature is valid
+					local metal, _, energy = spGetFeatureResources(fid)
+					-- Only remove if BOTH metal AND energy are below threshold
+					local metalDepleted = not metal or metal < minFeatureValue
+					local energyDepleted = not energy or energy < minFeatureValue
+					if metalDepleted and energyDepleted then
+						removeCount = removeCount + 1
+						toRemoveFeatures[removeCount] = fid
+					end
+				end
+			end
+			validityCheckCounter = validityCheckCounter + 1
+		end
+
+		-- Remove in separate loop to avoid iterator issues
+		for i = 1, removeCount do
+			RemoveFeature(toRemoveFeatures[i])
+		end
+
+		-- Clear the reusable table
+		for i = 1, removeCount do
+			toRemoveFeatures[i] = nil
+		end
+
+		ClusterizeFeatures()
+	end
+
+	if redrawingNeeded == true then
+		-- Update draw enabled states before creating display lists
+		UpdateDrawEnabled()
+		UpdateDrawEnergyEnabled()
+
+		-- Count dirty clusters for both metal and energy
+		local dirtyMetalCount = 0
+		local dirtyEnergyCount = 0
+		for _ in pairs(dirtyClusters) do
+			dirtyMetalCount = dirtyMetalCount + 1
+		end
+		for _ in pairs(dirtyEnergyClusters) do
+			dirtyEnergyCount = dirtyEnergyCount + 1
+		end
+
+		-- Incremental update: recreate only dirty cluster display lists
+		-- This is much faster than redrawing everything
+		-- Force full redraw when visibility changes or when there are too many dirty clusters
+		local useIncrementalUpdate = not forceFullRedraw and ((dirtyMetalCount > 0 and dirtyMetalCount < 20) or (dirtyEnergyCount > 0 and dirtyEnergyCount < 20))
+
+		if useIncrementalUpdate then
+			-- Recreate only dirty metal clusters that are in view
+			for cid in pairs(dirtyClusters) do
+				if featureClusters[cid] then
+					local inView, dist, fadeMult = GetClusterVisibility(cid, false, frame)
+					-- Pre-gamestart: always create metal display lists
+					if (not gameStarted and inView) or (inView and fadeMult > 0.01) then
+						CreateClusterDisplayList(cid, false)
+					else
+						-- Delete geometry display lists if cluster is out of view, but keep text to avoid churn
+						if clusterDisplayLists[cid] then
+							DeleteClusterDisplayList(cid, false, true)
+						end
+					end
+				end
+			end
+
+			-- Recreate only dirty energy clusters that are in view
+			for cid in pairs(dirtyEnergyClusters) do
+				if energyFeatureClusters[cid] then
+					local inView, dist, fadeMult = GetClusterVisibility(cid, true, frame)
+					if inView and fadeMult > 0.01 then
+						CreateClusterDisplayList(cid, true)
+					else
+						-- Delete geometry display lists if cluster is out of view, but keep text to avoid churn
+						if energyClusterDisplayLists[cid] then
+							DeleteClusterDisplayList(cid, true, true)
+						end
+					end
+				end
+			end
+		else
+			-- Too many dirty clusters, first draw, or visibility changed - do full redraw
+			-- Clear all existing per-cluster display lists
+			for cid in pairs(clusterDisplayLists) do
+				DeleteClusterDisplayList(cid, false)
+			end
+			for cid in pairs(energyClusterDisplayLists) do
+				DeleteClusterDisplayList(cid, true)
+			end
+
+			-- Recreate metal cluster display lists only for visible clusters (if metal fields are visible)
+			if drawEnabled then
+				for cid = 1, #featureClusters do
+					if featureClusters[cid] then
+						local inView, dist, fadeMult = GetClusterVisibility(cid, false, frame)
+						-- Pre-gamestart: always create metal display lists
+						if (not gameStarted and inView) or (inView and fadeMult > 0.01) then
+							CreateClusterDisplayList(cid, false)
+						end
+					end
+				end
+			end
+
+			-- Recreate energy cluster display lists only for visible clusters (if energy fields are visible)
+			if drawEnergyEnabled and showEnergyFields and not allEnergyFieldsDrained then
+				for cid = 1, #energyFeatureClusters do
+					if energyFeatureClusters[cid] then
+						local inView, dist, fadeMult = GetClusterVisibility(cid, true, frame)
+						if inView and fadeMult > 0.01 then
+							CreateClusterDisplayList(cid, true)
+						end
+					end
+				end
+			end
+		end
+
+		-- Clear dirtyClusters table
+		for cid in pairs(dirtyClusters) do
+			dirtyClusters[cid] = nil
+		end
+		for cid in pairs(dirtyEnergyClusters) do
+			dirtyEnergyClusters[cid] = nil
+		end
+
+		-- Reset force full redraw flag
+		forceFullRedraw = false
+	end
+
+	-- Text is always redrawn to rotate it facing the camera.
+	-- Only check camera vector every few frames or when redrawing - it rarely changes
+	local cameraChanged = false
+	if redrawingNeeded or (frame - lastCameraCheckFrame) >= 5 then
+		local camUpVectorNew = spGetCameraVectors().up
+		if camUpVector[1] ~= camUpVectorNew[1] or camUpVector[3] ~= camUpVectorNew[3] then
+			camUpVector = camUpVectorNew
+			cameraChanged = true
+		end
+		lastCameraCheckFrame = frame
+	end
+
+	if cameraChanged or redrawingNeeded then
+		if drawFeatureClusterTextList ~= nil then
+			glDeleteList(drawFeatureClusterTextList)
+			drawFeatureClusterTextList = nil
+		end
+		drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
+
+		-- Recreate energy text if enabled and not all drained
+		-- Always recreate when redrawing is needed (e.g., when energy values change from reclaim)
+		if showEnergyFields and not allEnergyFieldsDrained and #energyFeatureClusters > 0 then
+			if drawEnergyClusterTextList ~= nil then
+				glDeleteList(drawEnergyClusterTextList)
+				drawEnergyClusterTextList = nil
+			end
+			drawEnergyClusterTextList = glCreateList(DrawEnergyClusterText)
+		end
+	end
+
+	redrawingNeeded = false
+	initialized = true
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Widget call-ins
@@ -2381,374 +2735,13 @@ function widget:SetConfigData(data)
 		--fadeEndDistance = data.fadeEndDistance
 	end
 	-- if data.smoothingSegments ~= nil then
-	-- 	smoothingSegments = clamp(data.smoothingSegments, 4, 40)
+	-- 	smoothingSegments = clamp(data.smoothingSegments, 2, 10)
 	-- end
 end
 
--- Process deferred features that may have come into view
-local function ProcessDeferredFeatures(frame)
-	if (deferredCreationCount == 0 and deferredDestructionCount == 0) or
-	   (frame - lastDeferredProcessFrame < deferredProcessInterval and frame % 10 ~= 0) then
-		return
-	end
-
-	lastDeferredProcessFrame = frame
-
-	-- Process deferred creations - check if they're now in view
-	local remainingDeferred = 0
-	for i = 1, deferredCreationCount do
-		local featureID = deferredFeatureCreations[i]
-		if featureID then
-			local x, y, z = spGetFeaturePosition(featureID)
-			if x and IsPositionNearView(x, y, z) then
-				-- Now in view, process it
-				pendingCreationCount = pendingCreationCount + 1
-				pendingFeatureCreations[pendingCreationCount] = featureID
-				deferredFeatureCreations[i] = nil
-			else
-				-- Still out of view, keep it deferred but compact array
-				remainingDeferred = remainingDeferred + 1
-				if remainingDeferred ~= i then
-					deferredFeatureCreations[remainingDeferred] = featureID
-					deferredFeatureCreations[i] = nil
-				end
-			end
-		end
-	end
-	deferredCreationCount = remainingDeferred
-
-	-- Process deferred destructions - check if they're now in view
-	remainingDeferred = 0
-	for i = 1, deferredDestructionCount do
-		local featureID = deferredFeatureDestructions[i]
-		if featureID then
-			local feature = knownFeatures[featureID]
-			if not feature or IsPositionNearView(feature.x, feature.y, feature.z) then
-				-- Now in view or feature no longer exists, process it
-				if knownFeatures[featureID] then
-					pendingDestructionCount = pendingDestructionCount + 1
-					pendingFeatureDestructions[pendingDestructionCount] = featureID
-				end
-				deferredFeatureDestructions[i] = nil
-			else
-				-- Still out of view, keep it deferred but compact array
-				remainingDeferred = remainingDeferred + 1
-				if remainingDeferred ~= i then
-					deferredFeatureDestructions[remainingDeferred] = featureID
-					deferredFeatureDestructions[i] = nil
-				end
-			end
-		end
-	end
-	deferredDestructionCount = remainingDeferred
-end
-
--- Core update logic extracted to be called from both Update and GameFrame
-local function UpdateReclaimFields(frame)
-	-- Process deferred features periodically or when they come into view
-	ProcessDeferredFeatures(frame)
-
-	-- Process batched feature creations first
-	if pendingCreationCount > 0 then
-		for i = 1, pendingCreationCount do
-			local featureID = pendingFeatureCreations[i]
-			AddFeature(featureID)
-			pendingFeatureCreations[i] = nil
-		end
-		pendingCreationCount = 0
-		clusterizingNeeded = true
-	end
-
-	-- Process batched feature destructions
-	if pendingDestructionCount > 0 then
-		for i = 1, pendingDestructionCount do
-			local featureID = pendingFeatureDestructions[i]
-			if knownFeatures[featureID] then
-				RemoveFeature(featureID)
-			end
-			pendingFeatureDestructions[i] = nil
-		end
-		pendingDestructionCount = 0
-		clusterizingNeeded = true
-	end
-
-	-- Before gamestart, always show reclaim fields regardless of settings
-	if drawEnabled == false and gameStarted then
-		return
-	end
-
-	-- Dynamically adjust check frequency based on feature count
-	-- Only recalculate every 30 frames to avoid overhead
-	-- Use cached count instead of iterating all features
-	if frame % 30 == 0 then
-		local currentFeatureCount = cachedKnownFeaturesCount
-
-		-- Adjust frequency based on feature count thresholds
-		if currentFeatureCount ~= lastFeatureCount then
-			lastFeatureCount = currentFeatureCount
-			if currentFeatureCount < 500 then
-				featureCountMultiplier = 1 -- Normal frequency
-			elseif currentFeatureCount < 1500 then
-				featureCountMultiplier = 2 -- 500-1500 features: 2x slower
-			elseif currentFeatureCount < 3000 then
-				featureCountMultiplier = 3 -- 1500-3000 features: 3x slower
-			else
-				featureCountMultiplier = 4 -- 3000+ features: 4x slower
-			end
-			-- Apply both multipliers (feature count and catch-up)
-			checkFrequency = math.ceil(baseCheckFrequency * featureCountMultiplier * catchUpMultiplier)
-		end
-	end
-
-	if frame % checkFrequency ~= 0 then
-		return
-	end
-
-	local featuresAdded = false
-
-	-- Process flying features (check less frequently - every 3 frames)
-	-- Flying features are rare, no need to check every single frame
-	if next(flyingFeatures) and (frame - lastFlyingCheckFrame) >= 3 then
-		lastFlyingCheckFrame = frame
-		for featureID, fInfo in pairs(flyingFeatures) do
-			-- Quick validation before API call
-			if spValidFeatureID(featureID) then
-				local _,_,_, vw = spGetFeatureVelocity(featureID)
-				if vw then
-					-- Feature still exists and has velocity data
-					if vw <= 1e-3 then
-						flyingFeatures[featureID] = nil
-						local x, y, z = spGetFeaturePosition(featureID)
-						if x then -- Validate feature still exists
-							fInfo.x, fInfo.y, fInfo.z = x, y, z
-
-							-- Mark region as dirty for regional reclustering
-							MarkRegionDirty(x, z)
-
-							local M = featureNeighborsMatrix
-							local M_newFeature = {}
-							local reachDistSq, epsilonSq = mathHuge, epsilonSq
-							for fid2, feat2 in pairs(knownFeatures) do
-								local dx, dz = x - feat2.x, z - feat2.z
-								local distSq = dx * dx + dz * dz
-								if distSq <= epsilonSq then
-									M[fid2][featureID] = distSq
-									M_newFeature[fid2] = distSq
-									if distSq < reachDistSq then
-										reachDistSq = distSq
-									end
-									if feat2.rd == nil or distSq < feat2.rd then
-										feat2.rd = distSq
-									end
-								end
-							end
-							featureNeighborsMatrix[featureID] = M_newFeature
-							if reachDistSq < epsilonSq then
-								fInfo.rd = reachDistSq
-							end
-							knownFeatures[featureID] = fInfo
-							cachedKnownFeaturesCount = cachedKnownFeaturesCount + 1
-							featuresAdded = true
-						else
-							-- Feature was destroyed while flying
-							flyingFeatures[featureID] = nil
-						end
-					end
-				else
-					-- Feature no longer exists
-					flyingFeatures[featureID] = nil
-				end
-			else
-				-- Feature ID is invalid
-				flyingFeatures[featureID] = nil
-			end
-		end
-	end
-
-	-- Always check for feature value updates, even if clustering is needed
-	-- This ensures energy/metal values are tracked incrementally
-	if not (featuresAdded or clusterizingNeeded) then
-		UpdateFeatureReclaim()
-	end
-
-	if featuresAdded or clusterizingNeeded then
-		-- Batch remove invalid features using reusable table
-		-- Use rotating checks to avoid checking ALL features every cycle
-		local removeCount = 0
-
-		-- Use cached count instead of iterating all features
-		local featureCount = cachedKnownFeaturesCount
-
-		-- Calculate check interval: check at minimum 50 features, but sample more if fewer total
-		local checkInterval = max(1, floor(featureCount / 50))
-		validityCheckCounter = validityCheckCounter + 1
-
-		for fid, fInfo in pairs(knownFeatures) do
-			-- Rotating check: only validate a subset of features per frame
-			-- Always check if featureCount is small, otherwise use rotating pattern
-			if checkInterval == 1 or (validityCheckCounter % checkInterval == 0) then
-				-- Quick validity check first (much cheaper than GetFeatureResources)
-				if not spValidFeatureID(fid) then
-					removeCount = removeCount + 1
-					toRemoveFeatures[removeCount] = fid
-				else
-					-- Only call GetFeatureResources if feature is valid
-					local metal, _, energy = spGetFeatureResources(fid)
-					-- Only remove if BOTH metal AND energy are below threshold
-					local metalDepleted = not metal or metal < minFeatureValue
-					local energyDepleted = not energy or energy < minFeatureValue
-					if metalDepleted and energyDepleted then
-						removeCount = removeCount + 1
-						toRemoveFeatures[removeCount] = fid
-					end
-				end
-			end
-			validityCheckCounter = validityCheckCounter + 1
-		end
-
-		-- Remove in separate loop to avoid iterator issues
-		for i = 1, removeCount do
-			RemoveFeature(toRemoveFeatures[i])
-		end
-
-		-- Clear the reusable table
-		for i = 1, removeCount do
-			toRemoveFeatures[i] = nil
-		end
-
-		ClusterizeFeatures()
-	end
-
-	if redrawingNeeded == true then
-		-- Count dirty clusters for both metal and energy
-		local dirtyMetalCount = 0
-		local dirtyEnergyCount = 0
-		for _ in pairs(dirtyClusters) do
-			dirtyMetalCount = dirtyMetalCount + 1
-		end
-		for _ in pairs(dirtyEnergyClusters) do
-			dirtyEnergyCount = dirtyEnergyCount + 1
-		end
-
-		-- Incremental update: recreate only dirty cluster display lists
-		-- This is much faster than redrawing everything
-		-- Force full redraw when visibility changes or when there are too many dirty clusters
-		local useIncrementalUpdate = not forceFullRedraw and ((dirtyMetalCount > 0 and dirtyMetalCount < 20) or (dirtyEnergyCount > 0 and dirtyEnergyCount < 20))
-
-		if useIncrementalUpdate then
-			-- Recreate only dirty metal clusters that are in view
-			for cid in pairs(dirtyClusters) do
-				if featureClusters[cid] then
-					local inView, dist, fadeMult = GetClusterVisibility(cid, false, frame)
-					if inView and fadeMult > 0.01 then
-						CreateClusterDisplayList(cid, false)
-					else
-						-- Delete geometry display lists if cluster is out of view, but keep text to avoid churn
-						if clusterDisplayLists[cid] then
-							DeleteClusterDisplayList(cid, false, true)
-						end
-					end
-				end
-			end
-
-			-- Recreate only dirty energy clusters that are in view
-			for cid in pairs(dirtyEnergyClusters) do
-				if energyFeatureClusters[cid] then
-					local inView, dist, fadeMult = GetClusterVisibility(cid, true, frame)
-					if inView and fadeMult > 0.01 then
-						CreateClusterDisplayList(cid, true)
-					else
-						-- Delete geometry display lists if cluster is out of view, but keep text to avoid churn
-						if energyClusterDisplayLists[cid] then
-							DeleteClusterDisplayList(cid, true, true)
-						end
-					end
-				end
-			end
-		else
-			-- Too many dirty clusters, first draw, or visibility changed - do full redraw
-			-- Clear all existing per-cluster display lists
-			for cid in pairs(clusterDisplayLists) do
-				DeleteClusterDisplayList(cid, false)
-			end
-			for cid in pairs(energyClusterDisplayLists) do
-				DeleteClusterDisplayList(cid, true)
-			end
-
-			-- Recreate metal cluster display lists only for visible clusters (if metal fields are visible)
-			if drawEnabled or not gameStarted then
-				for cid = 1, #featureClusters do
-					if featureClusters[cid] then
-						local inView, dist, fadeMult = GetClusterVisibility(cid, false, frame)
-						if inView and fadeMult > 0.01 then
-							CreateClusterDisplayList(cid, false)
-						end
-					end
-				end
-			end
-
-			-- Recreate energy cluster display lists only for visible clusters (if energy fields are visible)
-			if (drawEnergyEnabled and showEnergyFields and not allEnergyFieldsDrained) or not gameStarted then
-				for cid = 1, #energyFeatureClusters do
-					if energyFeatureClusters[cid] then
-						local inView, dist, fadeMult = GetClusterVisibility(cid, true, frame)
-						if inView and fadeMult > 0.01 then
-							CreateClusterDisplayList(cid, true)
-						end
-					end
-				end
-			end
-		end
-
-		-- Clear dirtyClusters table
-		for cid in pairs(dirtyClusters) do
-			dirtyClusters[cid] = nil
-		end
-		for cid in pairs(dirtyEnergyClusters) do
-			dirtyEnergyClusters[cid] = nil
-		end
-
-		-- Reset force full redraw flag
-		forceFullRedraw = false
-	end
-
-	-- Text is always redrawn to rotate it facing the camera.
-	-- Only check camera vector every few frames or when redrawing - it rarely changes
-	local cameraChanged = false
-	if redrawingNeeded or (frame - lastCameraCheckFrame) >= 5 then
-		local camUpVectorNew = spGetCameraVectors().up
-		if camUpVector[1] ~= camUpVectorNew[1] or camUpVector[3] ~= camUpVectorNew[3] then
-			camUpVector = camUpVectorNew
-			cameraChanged = true
-		end
-		lastCameraCheckFrame = frame
-	end
-
-	if cameraChanged or redrawingNeeded then
-		if drawFeatureClusterTextList ~= nil then
-			glDeleteList(drawFeatureClusterTextList)
-			drawFeatureClusterTextList = nil
-		end
-		drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
-
-		-- Recreate energy text if enabled and not all drained
-		-- Always recreate when redrawing is needed (e.g., when energy values change from reclaim)
-		if showEnergyFields and not allEnergyFieldsDrained and #energyFeatureClusters > 0 then
-			if drawEnergyClusterTextList ~= nil then
-				glDeleteList(drawEnergyClusterTextList)
-				drawEnergyClusterTextList = nil
-			end
-			drawEnergyClusterTextList = glCreateList(DrawEnergyClusterText)
-		end
-	end
-
-	redrawingNeeded = false
-end
-
 function widget:Update(dt)
-	-- Update camera scale before gamestart OR when enabled after gamestart
-	-- Pre-gamestart: only update until initial clustering is done
-	if (not gameStarted and not initialClusteringDone) or (gameStarted and UpdateDrawEnabled() or UpdateDrawEnergyEnabled()) then
+	-- Update camera scale when enabled
+	if UpdateDrawEnabled() or UpdateDrawEnergyEnabled() then
 		local cx, cy, cz = spGetCameraPosition()
 		local desc, w = spTraceScreenRay(screenx / 2, screeny / 2, true)
 		local cameraDist = 35000000
@@ -2757,24 +2750,14 @@ function widget:Update(dt)
 		end
 		cameraScale = sqrt(sqrt(cameraDist) / 600) --number is an "optimal" view distance
 	end
-	-- Before gamestart, we need to manually trigger reclaim field updates
-	-- But only do it once since features don't change until game starts
-	if not gameStarted and not initialClusteringDone then
-		preGameStartTimer = preGameStartTimer + dt
-		if preGameStartTimer >= preGameStartCheckInterval then
-			preGameStartTimer = 0
-			-- Increment artificial frame counter
-			artificialFrame = artificialFrame + checkFrequency
-			-- Call the update logic with our artificial frame
-			UpdateReclaimFields(artificialFrame)
-			-- Mark as done so we don't keep updating
-			initialClusteringDone = true
-		end
+
+	-- Before GameFrame starts being called, manually process updates
+	if not gameStarted and not initialized then
+		UpdateReclaimFields(0)
 	end
 end
 
 function widget:GameFrame(frame)
-	-- Mark that the game has started
 	gameStarted = true
 
 	-- Track GameFrame calls per second to detect catch-up (reconnection)
@@ -2782,13 +2765,12 @@ function widget:GameFrame(frame)
 	local currentTime = Spring.GetTimer()
 	local elapsedSeconds = Spring.DiffTimers(currentTime, lastGameFrameTrackTime)
 
+	-- update checkFrequency based on game catch up speed and feature count
 	if elapsedSeconds >= 1.0 then
-		-- Update game frames per second
 		gameFramesPerSecond = gameFrameCallCount / elapsedSeconds
 		gameFrameCallCount = 0
 		lastGameFrameTrackTime = currentTime
 
-		-- Adjust checkFrequency based on game speed
 		-- During catch-up, gameFramesPerSecond can be 100+, so increase checkFrequency proportionally
 		-- Normal is 30fps, so if we're at 120fps during catch-up, multiply checkFrequency by 4
 		-- When back to normal speed (<=45fps), restore base frequency
@@ -2802,17 +2784,16 @@ function widget:GameFrame(frame)
 
 		-- Apply both multipliers (feature count and catch-up)
 		checkFrequency = math.ceil(baseCheckFrequency * featureCountMultiplier * catchUpMultiplier)
-
 	end
 
-	-- Use the extracted update logic
 	UpdateReclaimFields(frame)
 end
 
 function widget:FeatureCreated(featureID, allyTeamID)
 	-- Check if feature is near the camera view
 	local x, y, z = spGetFeaturePosition(featureID)
-	if x and deferOutOfViewUpdates and not IsPositionNearView(x, y, z) then
+	-- Pre-gamestart: process all features immediately to discover all metal fields
+	if x and gameStarted and deferOutOfViewUpdates and not IsPositionNearView(x, y, z) then
 		-- Defer processing for out-of-view features
 		deferredCreationCount = deferredCreationCount + 1
 		deferredFeatureCreations[deferredCreationCount] = featureID
@@ -2824,10 +2805,12 @@ function widget:FeatureCreated(featureID, allyTeamID)
 	pendingCreationCount = pendingCreationCount + 1
 	pendingFeatureCreations[pendingCreationCount] = featureID
 end
+
 function widget:FeatureDestroyed(featureID, allyTeamID)
 	-- Check if feature is near the camera view (use known position if available)
 	local feature = knownFeatures[featureID]
-	if feature and deferOutOfViewUpdates and not IsPositionNearView(feature.x, feature.y, feature.z) then
+	-- Pre-gamestart: process all features immediately to discover all metal fields
+	if feature and gameStarted and deferOutOfViewUpdates and not IsPositionNearView(feature.x, feature.y, feature.z) then
 		-- Defer processing for out-of-view features
 		deferredDestructionCount = deferredDestructionCount + 1
 		deferredFeatureDestructions[deferredDestructionCount] = featureID
@@ -2891,8 +2874,8 @@ function widget:DrawWorld()
 	end
 
 	-- Determine if we should show metal and energy fields
-	local showMetal = not gameStarted or drawEnabled
-	local showEnergy = (not gameStarted or (showEnergyFields and UpdateDrawEnergyEnabled())) and not allEnergyFieldsDrained
+	local showMetal = drawEnabled
+	local showEnergy = showEnergyFields and UpdateDrawEnergyEnabled() and not allEnergyFieldsDrained
 
 	if not showMetal and not showEnergy then
 		return
@@ -3006,8 +2989,8 @@ function widget:DrawWorldPreUnit()
 	end
 
 	-- Determine if we should show metal and energy fields
-	local showMetal = not gameStarted or drawEnabled
-	local showEnergy = (not gameStarted or (showEnergyFields and UpdateDrawEnergyEnabled())) and not allEnergyFieldsDrained
+	local showMetal = drawEnabled
+	local showEnergy = showEnergyFields and UpdateDrawEnergyEnabled() and not allEnergyFieldsDrained
 
 	if not showMetal and not showEnergy then
 		return
@@ -3055,12 +3038,7 @@ function widget:DrawWorldPreUnit()
 					if clusterData and clusterData.edge then
 						-- Apply opacity multiplier to metal edge color with fade
 						local r, g, b, a = reclaimEdgeColor[1], reclaimEdgeColor[2], reclaimEdgeColor[3], reclaimEdgeColor[4]
-						if not gameStarted then
-							-- Stack global pre-gamestart multiplier with metal-specific multiplier and fade
-							glColor(r, g, b, a * preGameStartOpacityMultiplier * preGameStartMetalOpacityMultiplier * cached.fadeMult)
-						else
-							glColor(r, g, b, a * cached.fadeMult)
-						end
+						glColor(r, g, b, a * cached.fadeMult)
 						glCallList(clusterData.edge)
 					end
 				end
@@ -3103,11 +3081,7 @@ function widget:DrawWorldPreUnit()
 					if clusterData and clusterData.edge then
 						-- Apply opacity multiplier to energy edge color with fade
 						local r, g, b, a = energyReclaimEdgeColor[1], energyReclaimEdgeColor[2], energyReclaimEdgeColor[3], energyReclaimEdgeColor[4]
-						local energyMultiplier = energyOpacityMultiplier
-						if not gameStarted then
-							energyMultiplier = energyMultiplier * preGameStartOpacityMultiplier
-						end
-						glColor(r, g, b, a * energyMultiplier * cached.fadeMult)
+						glColor(r, g, b, a * energyOpacityMultiplier * cached.fadeMult)
 						glCallList(clusterData.edge)
 					end
 				end

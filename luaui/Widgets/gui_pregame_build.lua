@@ -651,7 +651,7 @@ function widget:Update(dt)
 	prevShiftState = shift
 
 	if not leftButton then
-		if buildModeState.startPosition and #buildModeState.buildPositions > 0 then
+		if buildModeState.startPosition and #buildModeState.buildPositions > 0 and selBuildQueueDefID then
 			local newBuildQueue = {}
 
 			for _, buildPos in ipairs(buildModeState.buildPositions) do
