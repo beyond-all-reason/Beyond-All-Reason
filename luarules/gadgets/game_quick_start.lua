@@ -22,7 +22,7 @@ local shouldRunGadget = modOptions and modOptions.quick_start and (
 )
 if not shouldRunGadget then return false end
 
-local overrideQuickStartResources = tonumber(modOptions.override_quick_start_resources) or 0
+local overrideQuickStartResources = modOptions.override_quick_start_resources or 0
 
 local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" or 
 	modOptions.quick_start == "factory_discount_only" or
