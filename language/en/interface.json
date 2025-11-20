@@ -720,6 +720,12 @@
 				"ally": "Ally %{allyNumber}"
 			},
 			"rank": {
+				"ordinal": {
+					"one": "%{count}st",
+					"two": "%{count}nd",
+					"few": "%{count}rd",
+					"other": "%{count}th"
+				},
 				"place": " place"
 			},
 			"elimination": {
