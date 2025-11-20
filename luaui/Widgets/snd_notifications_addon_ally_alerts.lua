@@ -26,18 +26,17 @@ function widget:RecvLuaMsg(msg, playerID)
         return
     end
         
-        -- Check if the notification system is loaded
-        if WG['notifications'] and WG['notifications'].queueNotification then
+    if WG['notifications'] and WG['notifications'].queueNotification then
+        
+        -- Check which resource is being requested
+        if msg == 'alert:allyRequest:energy' then
             WG['notifications'].queueNotification("AllyRequestEnergy")
-        end
-        return true
-        
-    elseif msg == 'alert:allyRequest:metal' then
-        
-        if WG['notifications'] and WG['notifications'].queueNotification then
+            return true
+            
+        elseif msg == 'alert:allyRequest:metal' then
             WG['notifications'].queueNotification("AllyRequestMetal")
+            return true
         end
-        return true 
-        
+
     end
 end
