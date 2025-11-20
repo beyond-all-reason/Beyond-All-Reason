@@ -75,7 +75,7 @@ local epsilon = 300 -- Clustering distance - increased to merge nearby fields an
 
 local minFeatureValue = 9
 do
-	local ratio = Spring.GetModOptions().wreck_metal_ratio / 0.6 -- 0 to 1.25
+	local ratio = math.clamp(Spring.GetModOptions().wreck_metal_ratio / 0.6, 0, 1.5)
 	minFeatureValue = minFeatureValue * (0.75 + ratio * 0.25) -- gravitate toward 1
 end
 
