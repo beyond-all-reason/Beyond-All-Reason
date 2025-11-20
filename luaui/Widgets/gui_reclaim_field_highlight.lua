@@ -74,9 +74,9 @@ local checkFrequency = 0.66	-- Update rate, in seconds
 local epsilon = 300 -- Clustering distance - increased to merge nearby fields and prevent overlaps
 
 local minFeatureValue = 9
-if Spring.GetModOptions().wreckage_metal_ratio then
-	local ratio = Spring.GetModOptions().wreckage_metal_ratio / 0.6 -- 0.3333 to 1.25
-	minFeatureValue = minFeatureValue * (ratio ^ 1 / 3) -- gravitate strongly toward 1
+do
+	local ratio = Spring.GetModOptions().wreck_metal_ratio / 0.6 -- 0 to 1.25
+	minFeatureValue = minFeatureValue * (0.75 + ratio * 0.25) -- gravitate toward 1
 end
 
 -- Maximum cluster size in elmos - clusters larger than this will be split into sub-clusters
