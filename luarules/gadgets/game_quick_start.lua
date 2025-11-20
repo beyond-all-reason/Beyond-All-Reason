@@ -22,14 +22,27 @@ local shouldRunGadget = modOptions and modOptions.quick_start and (
 )
 if not shouldRunGadget then return false end
 
-local overrideQuickStartRange = tonumber(modOptions.override_quick_start_range) or 0
+local function isModOptionEnabled(value)
+	return value == true or value == 1 or value == "1" or value == "true"
+end
+
+local function getQuickStartConfigKey()
+	local quickStartAmount = modOptions.quick_start_amount
+	if not quickStartAmount or quickStartAmount == "" or quickStartAmount == "default" then
+		return "normal"
+	end
+	return quickStartAmount
+end
+
+local overridesEnabled = isModOptionEnabled(modOptions.enable_quickstart_overrides)
+local overrideQuickStartRange = overridesEnabled and tonumber(modOptions.override_quick_start_range) or nil
+local overrideQuickStartBudget = overridesEnabled and tonumber(modOptions.override_quick_start_budget) or nil
 
 local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" or 
 	modOptions.quick_start == "factory_discount_only" or
 	(modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
 
 
-----------------------------Configuration----------------------------------------
 local FACTORY_DISCOUNT_MULTIPLIER = 0.90 -- The factory discount will be the budget cost of the cheapest listed factory multiplied by this value.
 
 local QUICK_START_COST_ENERGY = 400      --will be deducted from commander's energy upon start.
@@ -56,10 +69,10 @@ local quickStartAmountConfig = {
 	},
 }
 
-local configKey = modOptions.quick_start_amount or "normal"
+local configKey = getQuickStartConfigKey()
 local selectedConfig = quickStartAmountConfig[configKey] or quickStartAmountConfig.normal
-local BUDGET = selectedConfig.budget
-local INSTANT_BUILD_RANGE = overrideQuickStartRange > 0 and overrideQuickStartRange or selectedConfig.range
+local BUDGET = overrideQuickStartBudget or selectedConfig.budget
+local INSTANT_BUILD_RANGE = overrideQuickStartRange or selectedConfig.range
 local BASE_GENERATION_RANGE = selectedConfig.baseGenerationRange
 local TRAVERSABILITY_GRID_GENERATION_RANGE = selectedConfig.traversabilityGridRange
 
@@ -580,7 +593,7 @@ local function initializeCommander(commanderID, teamID)
 
 	local currentMetal = Spring.GetTeamResources(teamID, "metal") or 0
 	local currentEnergy = Spring.GetTeamResources(teamID, "energy") or 0
-	local budget = (modOptions.override_quick_start_resources and modOptions.override_quick_start_resources > 0) and modOptions.override_quick_start_resources or BUDGET
+	local budget = BUDGET
 
 	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
 	if not commanderX or not commanderY or not commanderZ then
@@ -934,7 +947,7 @@ function gadget:Initialize()
 	metalSpotsList = GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList
 
 	local frame = Spring.GetGameFrame()
-	local finalBudget = modOptions.override_quick_start_resources > 0 and modOptions.override_quick_start_resources or BUDGET
+	local finalBudget = BUDGET
 	Spring.SetGameRulesParam("quickStartBudgetBase", finalBudget)
 	Spring.SetGameRulesParam("quickStartFactoryDiscountAmount", FACTORY_DISCOUNT)
 	Spring.SetGameRulesParam("quickStartMetalDeduction", QUICK_START_COST_METAL)
