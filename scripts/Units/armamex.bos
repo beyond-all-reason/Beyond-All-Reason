@@ -49,17 +49,6 @@ SetSpeed(windOrMetal)
 
 #define SMOKEPIECE base
 
-// this is what a pure hitbyweapon can look like, without any of the motion garbage
-// HitByWeapon() //weaponID is always 0,lasers and flamers give angles of 0
-// {
-// 	if( get BUILD_PERCENT_LEFT) return (0);
-// 	signal 2;
-// 	set-signal-mask 2;
-// 	set ACTIVATION to 0;
-// 	sleep 8000;
-// 	set ACTIVATION to 100;
-// }
-
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
