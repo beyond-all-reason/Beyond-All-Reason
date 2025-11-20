@@ -512,8 +512,11 @@ function BuildingsHST:CalculateRect(rect)
 
 	-- Default / factory apron path.
 	local position = rect.position
-	local outX = outsets.outX
-	local outZ = outsets.outZ
+	local outX = outsets and outsets.outX
+	local outZ = outsets and outsets.outZ
+	if not outX or not outZ then
+		return
+	end
 	rect.x1 = position.x - outX
 	rect.z1 = position.z - outZ
 	rect.x2 = position.x + outX
