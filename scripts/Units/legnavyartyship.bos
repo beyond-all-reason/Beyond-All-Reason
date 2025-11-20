@@ -153,9 +153,20 @@ AimWeapon2(heading, pitch)
 	headingAngle = (heading*360)/65535;
 	currentAngle = (currentAim*360)/65535;
 	pitchAngle = (pitch*360)/65535;
-	get PRINT(headingAngle, currentAim,pitchAngle);
+	get PRINT(headingAngle, currentAngle,pitchAngle);
 
-	if(heading > <-125> AND heading < <165>){
+	if(heading > <-125> AND heading < <165>){ // check if within allowed arc to fire
+		if(currentAim < <-65> and heading > <55>){ // check if its turned too far to the right, turn to the middle first
+			turn turretHeadingPivot2 to y-axis <0> speed <35>;
+			wait-for-turn turretHeadingPivot2 around y-axis;
+			currentAim = heading;
+		}
+		if(currentAim > <55> and heading < <-15>){ // check if its turned too far to the left, turn to the middle first
+			turn turretHeadingPivot2 to y-axis <0> speed <35>;
+			wait-for-turn turretHeadingPivot2 around y-axis;
+			currentAim = heading;
+		}
+		//do the appropriate turning as needed
 		turn turretHeadingPivot2 to y-axis heading speed <30.0>;
 		turn turretPitchPivot2 to x-axis <0.0> - pitch speed <15.0>;
 		if (get ABS(wpn1_lasthead - heading)> <20>)
@@ -167,6 +178,7 @@ AimWeapon2(heading, pitch)
 		currentAim = heading;
 		return (1);	
 	}
+	//if not allowed in arc of firing, as long as pitch is above 30 degrees it's fine
 	else if (pitch > <30>){
 		turn turretHeadingPivot2 to y-axis heading speed <30.0>;
 		turn turretPitchPivot2 to x-axis <0.0> - pitch speed <15.0>;
@@ -179,6 +191,7 @@ AimWeapon2(heading, pitch)
 		currentAim = heading;
 		return (1);	
 	}
+	//otherwise do not allow it to fire
 	else{
 		return (0);
 	}
