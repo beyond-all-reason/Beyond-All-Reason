@@ -21,7 +21,7 @@ jobs:
           echo "$HOME/.lux/bin" >> $GITHUB_PATH
 
       - name: Install Dependencies
-        run: lux update
+        run: lx update
 
       - name: Run Type Check (lx check)
         run: lx check

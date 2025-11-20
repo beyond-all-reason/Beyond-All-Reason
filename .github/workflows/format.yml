@@ -19,9 +19,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           # checkout the head ref (required for git-auto-commit-action to work correctly on PRs)
-          ref: ${{ github.head_ref }}
-          # Fetch full history for better git operations if needed, though usually shallow is fine for fmt
-          fetch-depth: 0
+          # Fallback to ref_name for workflow_dispatch/push
+          ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Install Lux
         run: |
