@@ -14,7 +14,7 @@ barrelFlare2,
 bow,
 wake;
 
-static-var  restore_delay, aimDir1, aimDir2, whichBarrel, wpn1_lasthead;
+static-var  restore_delay, aimDir1, aimDir2, whichBarrel, wpn1_lasthead, currentAim;
 
 // Signal definitions
 #define SIGNAL_AIM2 512
@@ -41,6 +41,7 @@ Create()
 {
 	restore_delay = 3000;
 	wpn1_lasthead = 1000000;
+	currentAim = 0;
 	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script BoatPhysics();
@@ -144,15 +145,34 @@ AimWeapon2(heading, pitch)
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
 	aimDir2 = heading;
-	turn turretHeadingPivot2 to y-axis heading speed <30.0>;
-	turn turretPitchPivot2 to x-axis <0.0> - pitch speed <15.0>;
-	if (get ABS(wpn1_lasthead - heading)> <20>)
-	{
-		wait-for-turn turretHeadingPivot2 around y-axis;
-		wait-for-turn turretPitchPivot2 around x-axis;
+
+	var headingAngle;
+	var currentAngle;
+	var pitchAngle;
+
+	headingAngle = (heading*360)/65535;
+	currentAngle = (currentAim*360)/65535;
+	pitchAngle = (pitch*360)/65535;
+	get PRINT(headingAngle, currentAim,pitchAngle);
+
+	if(heading > <-125> AND heading < <165>){
+		turn turretHeadingPivot2 to y-axis heading speed <30.0>;
+		turn turretPitchPivot2 to x-axis <0.0> - pitch speed <15.0>;
+		if (get ABS(wpn1_lasthead - heading)> <20>)
+		{
+			wait-for-turn turretHeadingPivot2 around y-axis;
+			wait-for-turn turretPitchPivot2 around x-axis;
+		}
+		start-script RestoreAfterDelay2();
+		currentAim = heading;
+		return (1);	
 	}
-	start-script RestoreAfterDelay2();
-	return (1);
+	else{
+		start-script RestoreAfterDelay2();
+		currentAim = heading;
+		return (0);
+	}
+
 }
 
 FireWeapon2()
