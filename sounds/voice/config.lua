@@ -225,7 +225,8 @@ return {
 	LowPower = {
 		delay = 10,
 		stackedDelay = true,
-	},AllyRequestEnergy = {
+	},
+	AllyRequestEnergy = {
 		delay = 10,
 		stackedDelay = true,
 		soundEffect = "AllyRequest",
