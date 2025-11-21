@@ -20,7 +20,7 @@
 			</div>
 			<div id="territory-info" class="scorepanel-territory-info">
 				<div id="leaderboard-button" class="scorepanel-leaderboard-icon">
-					<img class="scorepanel-leaderboard-icon-image" src="/luaui/images/flowui_gl4/game-icons--podium.png" />
+					<img class="scorepanel-leaderboard-icon-image" src="/luaui/images/flowui_gl4/leaderboard.png" />
 				</div>
 				<div id="territory-info-row" class="scorepanel-territory-info-row">
 					<div id="territory-icon" class="scorepanel-territory-icon">

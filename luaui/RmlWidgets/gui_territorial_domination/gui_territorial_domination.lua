@@ -35,8 +35,6 @@ local spGetTeamInfo = Spring.GetTeamInfo
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetAIInfo = Spring.GetAIInfo
 local ColorString = Spring.Utilities.Color.ToString
-local ordinals = VFS.Include('common/ordinal.lua')
-local ordinalFunc = ordinals.en -- default to English
 
 local DEFAULT_MAX_ROUNDS = 7
 local DEFAULT_POINTS_CAP = 100
@@ -285,7 +283,7 @@ local function buildLeaderboardRow(team, rank, isEliminated, isDead)
 	
 	local rankDiv = widgetState.document:CreateElement("div")
 	rankDiv.class_name = "scoreboard-rank"
-	rankDiv.inner_rml = ordinalFunc(rank)
+	rankDiv.inner_rml = "#" .. tostring(rank)
 	
 	local nameDiv = widgetState.document:CreateElement("div")
 	nameDiv.class_name = "scoreboard-name"
@@ -328,19 +326,6 @@ local function buildLeaderboardRow(team, rank, isEliminated, isDead)
 	return row
 end
 
-local function calculateDisplayRanks(teams)
-	local currentRank = 1
-	local previousScore = nil
-	for i = 1, #teams do
-		local team = teams[i]
-		local combinedScore = (team.score or 0) + (team.projectedPoints or 0)
-		if previousScore ~= nil and combinedScore ~= previousScore then
-			currentRank = currentRank + 1
-		end
-		team.displayRank = currentRank
-		previousScore = combinedScore
-	end
-end
 
 local function updateLeaderboard()
 	if not widgetState.document then return end
@@ -402,7 +387,7 @@ local function updateLeaderboard()
 	
 	for i = 1, #livingTeams do
 		local entry = livingTeams[i]
-		local displayRank = entry.team.displayRank or i
+		local displayRank = entry.team.rank or i
 		local row = buildLeaderboardRow(entry.team, displayRank, false, not entry.team.isAlive)
 		teamsContainer:AppendChild(row)
 	end
@@ -417,7 +402,7 @@ local function updateLeaderboard()
 	if #eliminatedTeams > 0 then
 		for i = 1, #eliminatedTeams do
 			local entry = eliminatedTeams[i]
-			local displayRank = entry.team.displayRank or entry.rank or i
+			local displayRank = entry.team.rank or i
 			local row = buildLeaderboardRow(entry.team, displayRank, true, not entry.team.isAlive)
 			eliminatedContainer:AppendChild(row)
 		end
@@ -732,15 +717,14 @@ local function updateAllyTeamData()
 	end
 
 	table.sort(validAllyTeams, function(a, b)
-		local aCombinedScore = (a.score or 0) + (a.projectedPoints or 0)
-		local bCombinedScore = (b.score or 0) + (b.projectedPoints or 0)
-		if aCombinedScore ~= bCombinedScore then
-			return aCombinedScore > bCombinedScore
+		local aRankingScore = (a.score or 0) + (a.projectedPoints or 0)
+		local bRankingScore = (b.score or 0) + (b.projectedPoints or 0)
+		if aRankingScore ~= bRankingScore then
+			return aRankingScore > bRankingScore
 		end
 		return a.allyTeamID < b.allyTeamID
 	end)
 
-	calculateDisplayRanks(validAllyTeams)
 
 	widgetState.allyTeamData = validAllyTeams
 	return validAllyTeams
@@ -869,13 +853,13 @@ local function updatePlayerDisplay()
 		for i = 1, #allyTeams do
 			local team = allyTeams[i]
 			if team.allyTeamID == selectedTeam.allyTeamID then
-				playerRank = team.displayRank or i
+				playerRank = team.rank or i
 				break
 			end
 		end
 		
 		if playerRank > 0 then
-			rankDisplayText = ordinalFunc(playerRank) .. spI18N('ui.territorialDomination.rank.place')
+			rankDisplayText = "#" .. tostring(playerRank) .. spI18N('ui.territorialDomination.rank.place')
 		end
 		
 	local playerCombinedScore = currentScore + projectedPoints
@@ -1123,7 +1107,6 @@ function widget:Initialize()
 	widgetState.dmHandle = dmHandle
 
 	local language = Spring.GetConfigString('language', 'en')
-	ordinalFunc = ordinals[language] or ordinals.en
 
 	local document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
 	if not document then

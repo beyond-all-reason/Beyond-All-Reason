@@ -275,11 +275,9 @@ local function setAllyTeamRanks()
 		rankedAllyScores[i] = nil
 	end
 	for allyID, scoreData in pairs(allyData) do
-		local rankingScore = scoreData.score
-		if currentRound > MAX_ROUNDS then
-			local projectedPoints = projectedAllyTeamPoints[allyID] or 0
-			rankingScore = rankingScore + projectedPoints
-		end
+		local securedScore = scoreData.score
+		local projectedPoints = projectedAllyTeamPoints[allyID] or 0
+		local rankingScore = securedScore + projectedPoints
 		table.insert(rankedAllyScores, { allyID = allyID, rankingScore = rankingScore })
 	end
 
@@ -605,8 +603,10 @@ function gadget:GameFrame(frame)
 		processNeighborsAndDecay()
 	elseif frameModulo == 2 then
 		updateProjectedPoints()
-		setAllyTeamRanks()
-		local seconds = spGetGameSeconds()
+
+	local seconds = spGetGameSeconds()
+
+	setAllyTeamRanks()
 		if seconds >= roundTimestamp or currentRound > MAX_ROUNDS then
 			local newHighestScore = 0
 			if currentRound <= MAX_ROUNDS then
