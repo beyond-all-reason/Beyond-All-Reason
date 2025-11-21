@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		desc = "Overrides default shield engine behavior.",
 		author = "SethDGamre",
 		layer = 1,
-		enabled = reworkEnabled,
+		enabled = true,
 	}
 end
 
