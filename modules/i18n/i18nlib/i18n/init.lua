@@ -8,12 +8,11 @@ local fallbackLocale = defaultLocale
 
 -- I18N_PATH is set globally
 local plural      = VFS.Include(I18N_PATH .. 'plural.lua')
-local ordinal     = VFS.Include(I18N_PATH .. 'ordinal.lua')
 local interpolate = VFS.Include(I18N_PATH .. 'interpolate.lua')
 local variants    = VFS.Include(I18N_PATH .. 'variants.lua')
 local version     = VFS.Include(I18N_PATH .. 'version.lua')
 
-i18n.plural, i18n.ordinal, i18n.interpolate, i18n.variants, i18n.version, i18n._VERSION = plural, ordinal, interpolate, variants, version, version
+i18n.plural, i18n.interpolate, i18n.variants, i18n.version, i18n._VERSION = plural, interpolate, variants, version, version
 
 
 -- private stuff
@@ -67,20 +66,11 @@ local function defaultPluralizeFunction(count)
   return plural.get(variants.root(i18n.getLocale()), count)
 end
 
-local function defaultOrdinalizeFunction(count)
-  return ordinal.get(variants.root(i18n.getLocale()), count)
-end
-
 local function pluralize(t, data)
   assertPresentOrPlural('interpolatePluralTable', 't', t)
   data = data or {}
   local count = data.count or 1
-  local plural_form
-  if data.ordinal then
-    plural_form = defaultOrdinalizeFunction(count)
-  else
-    plural_form = pluralizeFunction(count)
-  end
+  local plural_form = pluralizeFunction(count)
   return t[plural_form]
 end
 
@@ -201,7 +191,6 @@ end
 function i18n.reset()
   store = {}
   plural.reset()
-  ordinal.reset()
   i18n.setLocale(defaultLocale)
   i18n.setFallbackLocale(defaultLocale)
 end
@@ -213,11 +202,8 @@ end
 function i18n.loadFile(path)
   local success, data = pcall(function()
     local chunk = VFS.LoadFile(path, VFS.ZIP_FIRST)
-    local func = loadstring(chunk)
-    if not func then
-      error("Failed to load Lua chunk from " .. path)
-    end
-    return func()
+    x = assert(loadstring(chunk))
+    return x()
   end)
   if not success then
     Spring.Log("i18n", LOG.ERROR, "Failed to parse file " .. path .. ": ")
