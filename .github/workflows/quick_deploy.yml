@@ -1,10 +1,21 @@
 # Workflow to push the change to deploy the change to players
-# on push to master much quicker without waiting for cron jobs.
+# on push to branches much quicker without waiting for cron jobs.
 name: Deploy
 on:
   push:
     branches:
       - stable
+      - master
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: true
+        default: 'master'
+      rapid_tag:
+        description: 'Rapid tag name (e.g., stable, master, test)'
+        required: true
+        default: 'test'
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -12,11 +23,47 @@ jobs:
     permissions:
       id-token: write
     steps:
+      - name: Determine deployment parameters
+        id: params
+        run: |
+          # Determine branch and rapid tag based on trigger type
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            BRANCH="${{ github.event.inputs.branch }}"
+            RAPID_TAG="${{ github.event.inputs.rapid_tag }}"
+          else
+            BRANCH="${{ github.ref_name }}"
+            # Map branch names to rapid tags
+            case "$BRANCH" in
+              stable)
+                RAPID_TAG="stable"
+                ;;
+              master)
+                RAPID_TAG="master"
+                ;;
+              *)
+                RAPID_TAG="test"
+                ;;
+            esac
+          fi
+          
+          # Determine rapid repo name (byar for stable, byar-{tag} for others)
+          if [ "$RAPID_TAG" = "stable" ]; then
+            RAPID_REPO="byar"
+          else
+            RAPID_REPO="byar-${RAPID_TAG}"
+          fi
+          
+          echo "branch=${BRANCH}" >> $GITHUB_OUTPUT
+          echo "rapid_tag=${RAPID_TAG}" >> $GITHUB_OUTPUT
+          echo "rapid_repo=${RAPID_REPO}" >> $GITHUB_OUTPUT
+          
+          echo "Deploying branch: ${BRANCH} with rapid tag: ${RAPID_TAG} to repo: ${RAPID_REPO}"
       - name: Trigger rebuild
         run: |
           echo "$SSH_KEY" > id.key
           chmod og-rwx id.key
-          ssh -i id.key -o StrictHostKeyChecking=no debian@repos.beyondallreason.dev byar
+          ssh -i id.key -o StrictHostKeyChecking=no debian@repos.beyondallreason.dev \
+            "byar ${{ steps.params.outputs.branch }} ${{ steps.params.outputs.rapid_tag }}"
         env:
           SSH_KEY: ${{ secrets.SSH_REPOS_DEPLOY_KEY }}
       - name: Authenticate to Google Cloud
@@ -31,7 +78,7 @@ jobs:
       - name: Sync files to CDN
         run: |
           curl --fail -H "Authorization: Bearer ${{ steps.auth.outputs.id_token }}" \
-            -X POST -d '["byar"]' https://rapidsyncer-ssd-7xiouooxaa-ey.a.run.app/sync
+            -X POST -d '["${{ steps.params.outputs.rapid_repo }}"]' https://rapidsyncer-ssd-7xiouooxaa-ey.a.run.app/sync
       - name: Update CDN pointer
         run: |
           curl --fail -H "Authorization: Bearer ${{ steps.auth.outputs.id_token }}" \
