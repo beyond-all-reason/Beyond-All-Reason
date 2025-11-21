@@ -67,6 +67,7 @@ local spGetProjectileDefID    = Spring.GetProjectileDefID
 local spGetUnitDefID          = Spring.GetUnitDefID
 local spGetUnitPosition       = Spring.GetUnitPosition
 local spGetUnitRadius         = Spring.GetUnitRadius
+local spGetUnitTeam           = Spring.GetUnitTeam
 local spGetUnitsInSphere      = Spring.GetUnitsInSphere
 local spSpawnProjectile       = Spring.SpawnProjectile
 local spDeleteProjectile      = Spring.DeleteProjectile
@@ -402,6 +403,7 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 
 	local params = spawnCache
 	params.owner = attackerID or -1
+	params.team = spGetUnitTeam(attackerID)
 	params.ttl = data.weaponTtl
 	local speed = params.speed
 	local position = params.pos
