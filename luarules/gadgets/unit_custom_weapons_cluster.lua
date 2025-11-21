@@ -497,15 +497,13 @@ function gadget:GameFramePost(frame)
 end
 
 function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
-	if projectileID > -1 then
-		if clusterWeaponDefs[spGetProjectileDefID(projectileID)] then
-			local hits = projectileHitShield[projectileID]
-			if not hits then
-				hits = { shieldUnitID }
-				projectileHitShield[projectileID] = hits
-			else
-				hits[#hits + 1] = shieldUnitID
-			end
+	if projectileID > -1 and clusterWeaponDefs[spGetProjectileDefID(projectileID)] then
+		local hits = projectileHitShield[projectileID]
+		if not hits then
+			hits = { shieldUnitID }
+			projectileHitShield[projectileID] = hits
+		else
+			hits[#hits + 1] = shieldUnitID
 		end
 	end
 end
