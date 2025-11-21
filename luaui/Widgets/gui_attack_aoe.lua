@@ -31,6 +31,7 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local aoeColor = { 1, 0, 0, 1 }
 local aoeColorNoEnergy = { 1, 1, 0, 1 }
 local junoColor = { 0.87, 0.94, 0.40, 1 }
+local napalmColor = { 0.85, 0.62, 0.28, 1 }
 local empColor = { 0.65, 0.65, 1, 1 }
 local scatterColor = { 1, 1, 0, 1 }
 
@@ -322,7 +323,8 @@ local function SetupUnitDef(unitDefID, unitDef)
 	local waterWeapon = maxWeaponDef.waterWeapon
 	local ee = maxWeaponDef.edgeEffectiveness
 	local paralyzer = maxWeaponDef.paralyzer
-	local junoType = maxWeaponDef.customParams and maxWeaponDef.customParams.junotype
+	local junoType = maxWeaponDef.customParams.junotype
+	local isNapalm = maxWeaponDef.customParams.area_onhit_resistance == "fire"
 
 	if weaponType == "DGun" then
 		weaponTable[unitDefID] = { type = "dgun", range = maxWeaponDef.range, unitname = unitDef.name, requiredEnergy = maxWeaponDef.energyCost }
@@ -374,6 +376,11 @@ local function SetupUnitDef(unitDefID, unitDef)
 	end
 	if paralyzer then
 		weaponTable[unitDefID].customColor = empColor
+	end
+	if isNapalm then
+		weaponTable[unitDefID].isNapalm = true
+		weaponTable[unitDefID].napalmRange = maxWeaponDef.customParams.area_onhit_range
+		weaponTable[unitDefID].customColor = napalmColor
 	end
 
 	weaponTable[unitDefID].aoe = aoe
@@ -873,7 +880,7 @@ end
 --------------------------------------------------------------------------------
 --dropped
 --------------------------------------------------------------------------------
-local function DrawDropped(aoe, ee, v, fx, fy, fz, tx, ty, tz, salvoSize, salvoDelay)
+local function DrawDropped(aoe, ee, v, fx, fz, tx, tz, salvoSize, salvoDelay, customColor)
 	local dx = tx - fx
 	local dz = tz - fz
 
@@ -897,7 +904,7 @@ local function DrawDropped(aoe, ee, v, fx, fy, fz, tx, ty, tz, salvoSize, salvoD
 		if py_c < 0 then
 			py_c = 0
 		end
-		DrawAoE(px_c, py_c, pz_c, aoe, ee, nil, alphaMult, -salvoAnimationSpeed * i)
+		DrawAoE(px_c, py_c, pz_c, aoe, ee, nil, alphaMult, -salvoAnimationSpeed * i, customColor)
 	end
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
@@ -1014,7 +1021,7 @@ function widget:DrawWorldPreUnit()
 		else
 			trajectory = -1
 		end
-		DrawAoE(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
+		DrawAoE(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy, 1, 0, info.customColor)
 		DrawBallisticScatter(info.scatter, info.v, fx, fy, fz, tx, ty, tz, trajectory, info.range)
 	elseif (weaponType == "noexplode") then
 		DrawNoExplode(info.aoe, fx, fy, fz, tx, ty, tz, info.range, info.requiredEnergy)
@@ -1023,8 +1030,8 @@ function widget:DrawWorldPreUnit()
 	elseif (weaponType == "direct") then
 		DrawAoE(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
 		DrawDirectScatter(info.scatter, fx, fy, fz, tx, ty, tz, info.range, GetUnitRadius(aimingUnitID))
-	elseif (weaponType == "dropped") then
-		DrawDropped(info.aoe, info.ee, info.v, fx, info.h, fz, tx, ty, tz, info.salvoSize, info.salvoDelay)
+	elseif (weaponType == "dropped" and info.salvoSize and info.salvoSize > 1) then -- if there is only 1 bomb then draw regular AoE instead
+		DrawDropped(info.aoe, info.ee, info.v, fx, fz, tx, tz, info.salvoSize, info.salvoDelay, info.customColor)
 	elseif (weaponType == "wobble") then
 		DrawAoE(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
 		DrawWobbleScatter(info.scatter, fx, fy, fz, tx, ty, tz, info.rangeScatter, info.range)
@@ -1034,14 +1041,17 @@ function widget:DrawWorldPreUnit()
 	elseif weaponType == "dgun" then
 		DrawDGun(info.aoe, fx, fy, fz, tx, ty, tz, info.range, info.requiredEnergy, info.unitname)
 	elseif weaponType == "juno" then
-		-- mini juno (from legion bomber) has no expanded impact area
-		if info.isMiniJuno then
+		if info.isMiniJuno then -- mini juno (from legion bomber) has no expanded impact area
 			DrawAoE(tx, ty, tz, info.aoe, 1, 0, 1, 0, junoColor)
 		else
 			DrawJuno(tx, ty, tz, info.aoe)
 		end
 	else
 		DrawAoE(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy, 1, 0, info.customColor)
+	end
+
+	if info.isNapalm then
+		DrawAoeDisk(tx, ty, tz, info.napalmRange, info.requiredEnergy, 2, 0, info.customColor)
 	end
 end
 
