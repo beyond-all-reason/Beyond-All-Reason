@@ -6,17 +6,18 @@
 		"land": {
 			// "<energy_def>": [<lower limit>, <upper limit>, <m-income>, <e-income>, <efficiency>]
 			// limit = random(<lower limit>..<upper limit>)
-			"legwin": [200, 300],
-			"legsolar": [80, 120],
-			"legadvsol": [80, 120],
-			"legfus": [30, 40],
-			"legafus": [50, 100, 60, 3000, 6.44]
+			"armwin": [200, 300],
+			"armsolar": [80, 120],
+			"armadvsol": [80, 120],
+			"armfus": [30, 40],
+			"armafus": [50, 100, 60, 3000, 6.44]
 		},
 		"water": {
-			"legtide": [140, 250],
-			"legwin": [100, 200],
-			"legsolar": [10],
-			"legadvsol": [120, 160]
+			"armtide": [140, 250],
+			"armwin": [100, 200],
+			"armsolar": [10],
+			"armadvsol": [120, 160],
+			"armuwfus": [100, 200]
 		},
 		// income factor for energy, time is in seconds
 		// [[<start_factor>, <start_time>], [<end_factor>, <end_time>]]
@@ -33,18 +34,18 @@
 	},
 
 	"geo": {
-		"legion": "leggeo"
+		"armada": "armgeo"
 	},
 	"mex": {
-		"legion": "legmex"
+		"armada": "armmex"
 	},
 	//"terra": "armsy",
 	"assist": {
-		"legion": "legnanotc"
+		"armada": "armnanotc"
 	},
 	// Unknown UnitDef replacer
 	"default": {
-		"legion": "legwin"
+		"armada": "armwin"
 	},
 	
 	"cluster_range": 800.0,  // 950.0  // maximum distance between 2 points in hierarchical cluster

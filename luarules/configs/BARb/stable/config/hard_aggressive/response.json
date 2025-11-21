@@ -56,21 +56,28 @@
 		"ratio":      [ 0.70,     0.00,        0.70],
 		"importance": [ 15.00,    0.00,        40.00],
 		"max_percent": 0.66,
-		"eps_step": 0.00
+		"eps_step": 0.01
 	},
 	"anti_air": {
 		"vs":         ["air"],
 		"ratio":      [ 0.75],
-		"importance": [ 950.0],
-		"max_percent": 0.5,
+		"importance": [ 50.0],
+		"max_percent": 2.0,
 		"eps_step": 0.6
 	},
 	"anti_sub": {
 		"vs":         ["sub"],
-		"ratio":      [ 0.0],
-		"importance": [ 0.0],
-		"max_percent": 0.00,
+		"ratio":      [ 0.7],
+		"importance": [ 0.7],
+		"max_percent": 2.00,
 		"eps_step": 0.00
+	},
+	"anti_naval": {
+		"vs":         ["naval"],
+		"ratio":      [ 1.0],
+		"importance": [ 100.0],
+		"max_percent": 3.00,
+		"eps_step": 0.01
 	},
 	"anti_heavy": {
 		"vs":         ["heavy", "artillery", "support", "anti_heavy", "commander", "super"],
@@ -84,13 +91,13 @@
 		"ratio":      [ 2.00,    5.00,     0.00,      1.00,       2.00],
 		"importance": [ 100.00,  25.00,    0.00,      25.00,      100.00],
 		"max_percent": 0.66,
-		"eps_step": 0.00
+		"eps_step": 0.01
 	},
 	"bomber": {
-		"vs":         ["heavy", "anti_heavy", "artillery", "super"],
-		"ratio":      [ 0.00,    0.50,         0.50,        0.50],
-		"importance": [ 0.00,    50.00,        50.00,       50.00],
-		"max_percent": 0.5,
+		"vs":         ["heavy", "anti_heavy", "artillery", "super", "static"],
+		"ratio":      [ 0.00,    0.50,         0.50,        0.50, 0.90],
+		"importance": [ 0.00,    50.00,        50.00,       50.00, 70.00],
+		"max_percent": 5.00,
 		"eps_step": 0.00
 	},
 	"super": {
@@ -98,7 +105,7 @@
 		"ratio":      [ 1.00,    1.00,     0.00,      0.00,       0.00,        0.00],
 		"importance": [ 25.00,   25.00,    0.00,      0.00,       0.00,        0.00],
 		"max_percent": 0.66,
-		"eps_step": 0.00
+		"eps_step": 0.01
 	},
 	"support": {
 		"vs":         ["anti_sub"],
@@ -113,6 +120,34 @@
 		"importance": [ 1000.00,  1000.00,   1000.00],
 		"max_percent": 0.1,
 		"eps_step": 0.1
+	},
+	"juno": {
+		"vs":         ["jammer", "anti_nuke"],
+		"ratio":      [ 0.10,     0.10],
+		"importance": [ 100.00,  100.00],
+		"max_percent": 0.3,
+		"eps_step": 0
+	},
+	"jammer": {
+		"vs":         ["radar"],
+		"ratio":      [ 0.10,     0.10],
+		"importance": [ 100.00,  100.00],
+		"max_percent": 0.3,
+		"eps_step": 0
+	},
+	"emp": {
+		"vs":         ["anti_nuke", "heavy", "static"],
+		"ratio":      [ 0.10,     0.10],
+		"importance": [ 100.00,  100.00],
+		"max_percent": 0.3,
+		"eps_step": 0
+	},
+	"anti_spam": {
+		"vs":         ["spam"],
+		"ratio":      [ 0.20],
+		"importance": [ 100.00],
+		"max_percent": 0.5,
+		"eps_step": 0
 	}
 }
 }

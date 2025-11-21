@@ -39,6 +39,10 @@
 			"offset": [0, 2],
 			"yard": [-2, 8]
 		},
+		"juno": {
+			"type": ["rectangle", "special"],
+			"yard": [3, 3]
+		},
 		"fac_air": {
 			"type": ["rectangle", "factory"],
 			"yard": [-4, 42]
@@ -174,6 +178,7 @@
 		"mex2": ["armmoho", "cormoho", "armuwmme", "coruwmme", "legmoho", "legmohoconct"],
 		"converter": ["armmakr", "cormakr", "armmmkr", "cormmkr", "armfmkr", "corfmkr", "armuwmmm", "coruwmmm", "legeconv", "legadveconv"],
 		"def_low": ["armllt", "armclaw", "corllt", "cormaw", "leglht", "legdtr"],
+		"juno": ["armjuno", "corjuno", "legjuno"],
 		"caretaker": ["armnanotc", "armnanotcplat", "cornanotc", "cornanotcplat", "legnanotc", "legnanotcplat"],
 		"small": ["armrad", "corrad", "armfrad", "corfrad", "legrad"],
 		"wall": ["armdrag", "cordrag", "legdrag"]
