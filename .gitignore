@@ -6,3 +6,6 @@
 *.iml
 .project
 *.code-workspace
+/.vs/FelniousAI/FileContentIndex
+/.vs/FelniousAI/v17
+/.vs
