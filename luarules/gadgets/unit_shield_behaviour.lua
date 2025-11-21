@@ -67,6 +67,7 @@ local AOEWeaponDefIDs               = {}
 local projectileShieldHitCache      = {}
 local highestWeapDefDamages         = {}
 local armoredUnitDefs               = {}
+local destroyedUnitData             = {}
 
 local gameFrame 					= 0
 
@@ -226,7 +227,19 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if not reworkEnabled then return end --remove when shield rework is permanent
-	shieldUnitsData[unitID] = nil
+	local unitData = shieldUnitsData[unitID]
+	if unitData then
+		shieldUnitsData[unitID] = nil
+		destroyedUnitData[unitID] = unitData -- keep some shield info until the next frame
+		if not unitData.x then
+			unitData.x, unitData.y, unitData.z = spGetUnitWeaponVectors(unitID, unitData.shieldWeaponNumber)
+		end
+		-- ! testing for errors here, since the unit's weapons might get cleaned up quickly:
+		local success, state, power = pcall(spGetUnitShieldState, unitID, unitData.shieldWeaponNumber)
+		if success then
+			unitData.power = power
+		end
+	end
 	unitDefIDCache[unitID] = nil
 end
 
@@ -418,6 +431,11 @@ function gadget:GameFrame(frame)
 			lastShieldCheckedIndex = 1
 		end
 		shieldCheckEndIndex = math.min(lastShieldCheckedIndex + shieldCheckChunkSize - 1, #shieldUnitIndex)
+	end
+
+	local dud = destroyedUnitData
+	for unitID in pairs(dud) do
+		dud[unitID] = nil
 	end
 end
 
