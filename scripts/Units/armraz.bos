@@ -420,9 +420,7 @@ ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
         return (1);
-    }
-    
-	//start-script CATT1_Restore();
+    }    
 	isAiming = FALSE;
 }
 
