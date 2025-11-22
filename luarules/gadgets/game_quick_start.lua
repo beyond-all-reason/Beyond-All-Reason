@@ -877,8 +877,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 
 	local unitDef = unitDefs[unitDefID]
-	local discount = not Spring.GetTeamRulesParam(unitTeam, "quickStartFactoryDiscountUsed") and getFactoryDiscount(unitDef, builderID) or 0
-	if discount > 0  and builderID then
+	local discount = getFactoryDiscount(unitDef, builderID)
+	if discount > 0 then
 		if builderID then
 			commanderFactoryDiscounts[builderID] = true
 		end
@@ -893,7 +893,7 @@ function gadget:Initialize()
 	local minWind = Game.windMin
 	local maxWind = Game.windMax
 	for _, teamID in ipairs(Spring.GetTeamList()) do
-		Spring.SetTeamRulesParam(teamID, "quickStartFactoryDiscountUsed", nil)
+		Spring.SetTeamRulesParam(teamID, "quickStartFactoryDiscountUsed", 0)
 	end
 	isGoodWind = windFunctions.isGoodWind()
 	isMetalMap = GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].isMetalMap
