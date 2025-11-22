@@ -29,6 +29,8 @@ if Spring.GetConfigString("voiceset", 'en/cephis') == 'en/allison' then
 	Spring.SetConfigString("voiceset", 'en/cephis')
 end
 
+local windFunctions = VFS.Include('common/wind_functions.lua')
+
 local useDefaultVoiceFallback = false    -- when a voiceset has missing file, try to load the default voiceset file instead
 local playWelcome = Spring.GetConfigInt('WelcomeMessagePlayed', 0) == 0
 
@@ -231,7 +233,7 @@ local commandersDamages = {}
 local passedTime = 0
 local sec = 0
 
-local windNotGood = ((Game.windMin + Game.windMax) / 2) < 5.5
+local windNotGood = windFunctions.isWindBad()
 
 local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitDefID = Spring.GetUnitDefID
