@@ -38,6 +38,9 @@ return {
 		delay = 1,
 		soundEffect = "NeutralComDead",
 	},
+	PlayerEliminated = {
+		delay = 1,
+	},
 	ComHeavyDamage = {
 		delay = 10,
 		stackedDelay = true,
