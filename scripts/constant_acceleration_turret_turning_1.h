@@ -74,6 +74,7 @@
 #endif
 
 #ifndef WRAPDELTA
+	// Clamp changes in heading (not the heading itself) between <-180> and <180>
 	#define WRAPDELTA(ang) (((ang + 98280) % 65520) - 32760)
 #endif
 
