@@ -592,6 +592,7 @@ Create()
 	moveHands = TRUE;
 	isMoving = FALSE;
 	isAiming = FALSE;
+	call-script CATT1_Init();
 	animSpeed = 5;
 	gun_1 = 0;
 	gun_3 = 0;
@@ -722,7 +723,7 @@ FireWeapon1()
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = torso;
+	pieceIndex = aimy1;
 }
 
 AimFromWeapon2(pieceIndex)
