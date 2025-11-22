@@ -400,7 +400,7 @@ lua_UnitScriptDistortion(lightIndex, count)
 #define CATT1_RESTORE_DELAY 3000 // ms
 #define CATT1_RESTORE_SPEED <3.0> // degrees per frame
 
-#include "../constant_acceleration_turret_turning_1.h"
+#include "../constant_acceleration_turret_turning.h"
 
 
 AimFromWeapon1(pieceIndex)

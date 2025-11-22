@@ -492,7 +492,7 @@ Create()
 #define CATT1_RESTORE_DELAY 3000
 #define CATT1_RESTORE_SPEED <3.0>
 
-#include "../constant_acceleration_turret_turning_1.h"
+#include "../constant_acceleration_turret_turning.h"
 
 
 RestoreAfterDelay()

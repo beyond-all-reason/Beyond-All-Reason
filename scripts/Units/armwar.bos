@@ -367,7 +367,7 @@ EndBurst1()
 #define CATT1_RESTORE_DELAY 3000
 #define CATT1_RESTORE_SPEED <90>/30
 
-#include "../constant_acceleration_turret_turning_1.h"
+#include "../constant_acceleration_turret_turning.h"
 
 AimWeapon1(heading, pitch)
 {
