@@ -77,14 +77,14 @@
 	#define WRAPDELTA(ang) (((ang + 98280) % 65520) - 32760)
 #endif
 
-static-var CATT1velocity, CATT1position, CATT1gameFrame, CATT_isAiming, CATT_curChassisHeading, CATT_pastChassisHeading, CATT_goalHeading, CATT_delta;
+static-var CATT1velocity, CATT1position, CATT1gameFrame, CATT_isAiming, CATT_nextChassisHeading, CATT_pastChassisHeading, CATT_goalHeading, CATT_delta;
 
 CATT1_Init(){
 	CATT1velocity = 0;
 	CATT1position = 0;
 	CATT1gameFrame = 0;
 	CATT_isAiming = 0;
-	CATT_curChassisHeading = 0;
+	CATT_nextChassisHeading = 0;
 	CATT_pastChassisHeading = 0;
 	CATT_goalHeading = 0;
 	CATT_delta = 0;
@@ -139,8 +139,8 @@ CATT1_AimWithChassis(frames) // no need to signal, as threads inherit parents si
 		CATT_delta = WRAPDELTA(CATT_delta);
 		CATT_goalHeading = WRAPDELTA(CATT_goalHeading);
 
-		CATT_curChassisHeading = get HEADING; // get current heading
-		chassisVelocity = WRAPDELTA(CATT_curChassisHeading - CATT_pastChassisHeading); // get unit chassis current turning speed
+		CATT_nextChassisHeading = get HEADING; // get current heading
+		chassisVelocity = WRAPDELTA(CATT_nextChassisHeading - CATT_pastChassisHeading); // get unit chassis current turning speed
 
 		//number of frames required to decelerate to 0 speed relative to ground
 		timetozero = get ABS(CATT1velocity - chassisVelocity) / CATT1_ACCELERATION;
@@ -183,7 +183,7 @@ CATT1_AimWithChassis(frames) // no need to signal, as threads inherit parents si
 
 		// Needs to use velocity, because if we use NOW, then any previous turn speed command wont be overridden!
 		turn CATT1_PIECE_Y to y-axis CATT1position speed 30 * CATT1velocity;
-		CATT_pastChassisHeading = CATT_curChassisHeading; //track chassis heading
+		CATT_pastChassisHeading = CATT_nextChassisHeading; //track chassis heading
 		if (frames == 1) //exits if this is the 1 frame call-script from AimWeaponX->CATT1_Aim
 		{
 			return;
