@@ -19,10 +19,6 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-if sharing_tax == 0 and disable_manual_resource_sharing == false and disable_overflow == false then
-	return false
-end
-
 -- localized functions
 local SpSetTeamShareLevel = Spring.SetTeamShareLevel
 local SpShareTeamResource = Spring.ShareTeamResource
@@ -88,7 +84,7 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 		return false
 	end
 	SilentUse(senderTeamId, resourceType, sharing_tax * amount) -- we apply the tax here and not within ForcedResourceSharing because ForcedResourceSharing is supposed to be a method that bypasses AllowResourceTransfer process
-	SpShareTeamResource(senderTeamId, receiverTeamId, resourceType, amount) -- 2025.06.11 should not trigger allowresourcetransfer anymore ++
+	SpShareTeamResource(senderTeamId, receiverTeamId, resourceType, (1 - sharing_tax) * amount) -- 2025.06.11 should not trigger allowresourcetransfer anymore ++
 	return false
 end
 
