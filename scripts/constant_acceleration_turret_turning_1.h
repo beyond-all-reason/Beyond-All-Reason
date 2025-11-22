@@ -127,34 +127,33 @@ CATT1_AimWithChassis(frames) // no need to signal, as threads inherit parents si
 	var i;
 	var timetozero;
 	var deceleratethreshold;
-	var chassisVelocity;
+	var chassisTurnAngle;
 	i = 0;
 
 	while ((i < frames) OR (get ABS(CATT1velocity) > 0)) // continue turning with chassis for X frames, or until signal kill, or until velocity is zeroed
 	{
 		++i;
 
-		//Clamp CATT1position and CATT1delta between <-180>;<180>
 		CATT1position = WRAPDELTA(CATT1position);
 		CATT_delta = WRAPDELTA(CATT_delta);
 		CATT_goalHeading = WRAPDELTA(CATT_goalHeading);
 
 		CATT_nextChassisHeading = get HEADING; // get current heading
-		chassisVelocity = WRAPDELTA(CATT_nextChassisHeading - CATT_pastChassisHeading); // get unit chassis current turning speed
+		chassisTurnAngle = WRAPDELTA(CATT_nextChassisHeading - CATT_pastChassisHeading);
 
 		//number of frames required to decelerate to 0 speed relative to ground
-		timetozero = get ABS(CATT1velocity - chassisVelocity) / CATT1_ACCELERATION;
+		timetozero = get ABS(CATT1velocity - chassisTurnAngle) / CATT1_ACCELERATION;
 
 		//distance from target where we should start decelerating, always 'positive' ensured by +1 (+1 is small compared in COB angular units)
 		//if we assume we start decelerating now to zero relative speed, average speed is half of current speed, so distance is current speed *  time to slow down * 1/2
 		//minus a factor due to discrete acceleration per frame
-		deceleratethreshold = timetozero * (get ABS(CATT1velocity - chassisVelocity)) / 2 - (timetozero * CATT1_ACCELERATION / 2) + 1;
+		deceleratethreshold = timetozero * (get ABS(CATT1velocity - chassisTurnAngle)) / 2 - (timetozero * CATT1_ACCELERATION / 2) + 1;
 
 		if (ABSOLUTE_LESS_THAN(CATT_delta, deceleratethreshold)) { //we need to decelerate
-			if (CATT_delta > 0) CATT1velocity = get MAX((-1) * chassisVelocity, CATT1velocity - CATT1_ACCELERATION);
-			if (CATT_delta < 0) CATT1velocity = get MIN((-1) * chassisVelocity, CATT1velocity + CATT1_ACCELERATION);
+			if (CATT_delta > 0) CATT1velocity = get MAX((-1) * chassisTurnAngle, CATT1velocity - CATT1_ACCELERATION);
+			if (CATT_delta < 0) CATT1velocity = get MIN((-1) * chassisTurnAngle, CATT1velocity + CATT1_ACCELERATION);
 
-			if (get ABS(CATT1velocity) == get ABS(chassisVelocity)) // if turret velocity was min/max to chassisVelocity, re-accelerate it so it stays ahead of chassis
+			if (get ABS(CATT1velocity) == get ABS(chassisTurnAngle)) // if turret velocity was min/max to chassisTurnAngle, re-accelerate it so it stays ahead of chassis
 			{
 				if (CATT_delta > 0) CATT1velocity = get MIN(CATT1_MAX_VELOCITY, CATT1velocity + CATT1_ACCELERATION);
 				if (CATT_delta < 0) CATT1velocity = get MAX((-1) * CATT1_MAX_VELOCITY, CATT1velocity - CATT1_ACCELERATION);
@@ -178,7 +177,7 @@ CATT1_AimWithChassis(frames) // no need to signal, as threads inherit parents si
 
 		// Update our position with our velocity
 		CATT1position = CATT1position + CATT1velocity;
-		CATT_goalHeading = CATT_goalHeading - chassisVelocity;
+		CATT_goalHeading = CATT_goalHeading - chassisTurnAngle;
 		CATT_delta = CATT_goalHeading - CATT1position;
 
 		// Needs to use velocity, because if we use NOW, then any previous turn speed command wont be overridden!
