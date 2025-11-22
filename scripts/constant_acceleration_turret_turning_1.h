@@ -196,36 +196,35 @@ CATT1_AimWithChassis(frames) // no need to signal, as threads inherit parents si
 	#endif
 }
 
+/*
+// Set up signals in AimWeaponX(heading, pitch)
+signal SIGNAL_AIM1;
+set-signal-mask SIGNAL_AIM1;
+// Then
+call-script CATT1_Aim(heading, pitch);
+
+// and call CATT1_Init() in Create()
+*/
 CATT1_Aim(heading, pitch) {
-	/*
-	// Set up signals in AimWeaponX(heading, pitch)
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	// Then
-	call-script CATT1_Aim(heading, pitch);
+	CATT_goalHeading = heading;
 
-	// and call CATT1_Init() in Create()
-	*/
-
-	CATT_goalHeading = heading; // save heading from AimWeaponX into variable space here
-
-	if (CATT_isAiming == 0) // If this is the first time aiming in a while, initialize pastChassisHeading
+	if (CATT_isAiming == 0)
 	{
 		CATT_pastChassisHeading = get HEADING;
 	}
-	CATT_isAiming = 1; // Tell CATT we are aiming
+	CATT_isAiming = 1;
 
 	#ifdef CATT1_PIECE_X
-		turn CATT1_PIECE_X to x - axis <0.0> -pitch speed CATT1_PITCH_SPEED; // no CATT for pitch, just pitch turret up, does not block firing
+		// No CATT for pitch, so just pitch turret up, does not block firing
 		// TODO, add option to block firing if pitch is not in position?
+		turn CATT1_PIECE_X to x - axis <0.0> -pitch speed CATT1_PITCH_SPEED; // bos-parser shows error, but this is fine
 	#endif
 
-	CATT_delta = WRAPDELTA(CATT_goalHeading - CATT1position); // determine how much rotation is needed to turn and face the goal heading
+	CATT_delta = WRAPDELTA(CATT_goalHeading - CATT1position);
 	call-script CATT1_AimWithChassis(1); // run the CATT script once, when AimWeaponX is called
-	start-script CATT1_AimWithChassis(15); // then spin up a separate thread (that starts next frame) that will handle turret aiming for the other frames (for at 15 frames)
+	start-script CATT1_AimWithChassis(15); // then handle turret aiming for the other 15 frames
 
-	// while loop to check if turret is within tolerance each frame. CATT1_AimWithChassis will update delta.
-	// breaks, returns to AimWeaponX, and that passes true to engine to allow firing, when turret is within tolerance
+	// Block AimWeaponX until within turret tolerance. See CATT1_AimWithChassis.
 	while (ABSOLUTE_GREATER_THAN(CATT_delta, CATT1_PRECISION))
 	{
 		sleep 32;
