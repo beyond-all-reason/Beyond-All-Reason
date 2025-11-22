@@ -302,8 +302,8 @@ local function setAllyTeamRanks()
 	local previousScore = -1
 	local previousTerritoryCount = -1
 	for i, rankedEntry in ipairs(rankedAllyScores) do
-		if i <= 1 or rankedEntry.rankingScore ~= previousScore or rankedEntry.territoryCount ~= previousTerritoryCount then
-			currentRank = i
+		if i <= 1 or rankedEntry.rankingScore < previousScore or (rankedEntry.rankingScore == previousScore and rankedEntry.territoryCount < previousTerritoryCount) then
+			currentRank = currentRank + 1
 			previousScore = rankedEntry.rankingScore
 			previousTerritoryCount = rankedEntry.territoryCount
 		end
