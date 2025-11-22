@@ -39,6 +39,7 @@ local ColorString = Spring.Utilities.Color.ToString
 local DEFAULT_MAX_ROUNDS = 7
 local DEFAULT_POINTS_CAP = 100
 local DEFAULT_COLOR_VALUE = 0.5
+local FALLBACK_RANK = 999
 
 local SECONDS_PER_MINUTE = 60
 local COUNTDOWN_ALERT_THRESHOLD = 60
@@ -722,12 +723,7 @@ local function updateAllyTeamData()
 	end
 
 	table.sort(validAllyTeams, function(a, b)
-		local aRankingScore = (a.score or 0) + (a.projectedPoints or 0)
-		local bRankingScore = (b.score or 0) + (b.projectedPoints or 0)
-		if aRankingScore ~= bRankingScore then
-			return aRankingScore > bRankingScore
-		end
-		return a.allyTeamID < b.allyTeamID
+		return (a.rank or FALLBACK_RANK) < (b.rank or FALLBACK_RANK)
 	end)
 
 
