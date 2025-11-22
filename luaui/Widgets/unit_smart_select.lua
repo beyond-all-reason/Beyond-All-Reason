@@ -31,6 +31,7 @@ local referenceX, referenceY
 local selectBuildingsWithMobile = false		-- whether to select buildings when mobile units are inside selection rectangle
 local includeNanosAsMobile = true
 local includeBuilders = false
+local includeAntinuke = false
 
 -- selection modifiers
 local mods = {
@@ -78,6 +79,7 @@ local combatFilter = {}
 local builderFilter = {}
 local buildingFilter = {}
 local mobileFilter = {}
+local antinukeFilter = {}
 local customFilter = {}
 
 for udid, udef in pairs(UnitDefs) do
@@ -89,6 +91,7 @@ for udid, udef in pairs(UnitDefs) do
 	local builder = (udef.canReclaim and udef.reclaimSpeed > 0)  or  (udef.canResurrect and udef.resurrectSpeed > 0)  or  (udef.canRepair and udef.repairSpeed > 0) or (udef.buildOptions and udef.buildOptions[1])
 	local building = (isMobile == false)
 	local combat = (not builder) and isMobile and (#udef.weapons > 0)
+	local antinuke = udef.customParams and udef.customParams.unitgroup == "antinuke"
 
 	if string.find(udef.name, 'armspid') or string.find(udef.name, 'leginfestor') then
 		builder = false
@@ -97,6 +100,7 @@ for udid, udef in pairs(UnitDefs) do
 	builderFilter[udid] = builder
 	buildingFilter[udid] = building
 	mobileFilter[udid] = isMobile
+	antinukeFilter[udid] = antinuke
 end
 
 local dualScreen
@@ -375,7 +379,7 @@ function widget:Update(dt)
 				uid = mouseSelection[i]
 				udid = spGetUnitDefID(uid)
 				if buildingFilter[udid] == false then
-					if includeBuilders or not builderFilter[udid] then
+					if (includeBuilders or not builderFilter[udid]) and (includeAntinuke or not antinukeFilter[udid]) then
 						tmp[#tmp + 1] = uid
 					else
 						tmp2[#tmp2 + 1] = uid
@@ -592,7 +596,7 @@ function widget:Initialize()
 					uid = mouseSelection[i]
 					udid = spGetUnitDefID(uid)
 					if buildingFilter[udid] == false then
-						if includeBuilders or not builderFilter[udid] then
+						if (includeBuilders or not builderFilter[udid]) and (includeAntinuke or not antinukeFilter[udid]) then
 							tmp[#tmp + 1] = uid
 						else
 							tmp2[#tmp2 + 1] = uid
@@ -656,6 +660,12 @@ function widget:Initialize()
 	WG['smartselect'].setIncludeBuilders = function(value)
 		includeBuilders = value
 	end
+	WG['smartselect'].getIncludeAntinuke = function()
+		return includeAntinuke
+	end
+	WG['smartselect'].setIncludeAntinuke = function(value)
+		includeAntinuke = value
+	end
 
 	widget:ViewResize()
 end
@@ -664,7 +674,8 @@ function widget:GetConfigData()
 	return {
 		selectBuildingsWithMobile = selectBuildingsWithMobile,
 		includeNanosAsMobile = includeNanosAsMobile,
-		includeBuilders = includeBuilders
+		includeBuilders = includeBuilders,
+		includeAntinuke = includeAntinuke
 	}
 end
 
@@ -677,5 +688,8 @@ function widget:SetConfigData(data)
 	end
 	if data.includeBuilders ~= nil then
 		includeBuilders = data.includeBuilders
+	end
+	if data.includeAntinuke ~= nil then
+		includeAntinuke = data.includeAntinuke
 	end
 end
