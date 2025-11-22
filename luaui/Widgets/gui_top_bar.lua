@@ -454,11 +454,8 @@ local function updateWind()
 	end)
 
 	if WG['tooltip'] and refreshUi then
-		if not windFunctions.isNoWind() then
-			WG['tooltip'].AddTooltip('wind', area, Spring.I18N('ui.topbar.windspeedTooltip', { avgWindValue = avgWindValue, riskWindValue = riskWindValue, warnColor = textWarnColor }), nil, Spring.I18N('ui.topbar.windspeed'))
-		else
-			WG['tooltip'].AddTooltip('wind', area, Spring.I18N('ui.topbar.windspeedTooltip', { avgWindValue = Spring.I18N('ui.topbar.wind.nowind1'), riskWindValue = riskWindValue, warnColor = textWarnColor }), nil, Spring.I18N('ui.topbar.windspeed'))
-		end
+		local avgWindValueForTooltip = windFunctions.isNoWind() and Spring.I18N('ui.topbar.wind.nowind1') or avgWindValue
+		WG['tooltip'].AddTooltip('wind', area, Spring.I18N('ui.topbar.windspeedTooltip', { avgWindValue = avgWindValueForTooltip, riskWindValue = riskWindValue, warnColor = textWarnColor }), nil, Spring.I18N('ui.topbar.windspeed'))
 	end
 end
 
