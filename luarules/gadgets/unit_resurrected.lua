@@ -20,6 +20,7 @@ local TIMEOUT = Game.gameSpeed * 3
 local NOT_REZZING = -1 --not a positive number
 local CMD_RESURRECT = CMD.RESURRECT
 local CMD_WAIT = CMD.WAIT
+local MODULO = Game.gameSpeed
 
 local gameFrame = Spring.GetGameFrame()
 
@@ -152,7 +153,7 @@ end
 function gadget:GameFrame(frame)
 	gameFrame = frame
 
-	if frame % 10 == 0 then
+	if frame % MODULO == 0 then
 		for unitDefID, unitDefLink in pairs(unitDefLinks) do
 			for positionHash, corpseLink in pairs(unitDefLink) do
 				if corpseLink.timeout < frame then
