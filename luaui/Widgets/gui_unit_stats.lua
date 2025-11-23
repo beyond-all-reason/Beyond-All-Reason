@@ -419,13 +419,24 @@ local function drawStats(uDefID, uID)
 		local eRem = mathFloor(eTotal * buildRem)
 		local mIncome = mInc + mRec
 		local eIncome = eInc + eRec
-		local mEta = mIncome > 0 and mathMax(mRem - mCur, 0) / mIncome or 0
-		local eEta = eIncome > 0 and mathMax(eRem - eCur, 0) / eIncome or 0
+		local mEta = mIncome > 0 and (mRem - mCur) / mIncome or 0
+		local eEta = eIncome > 0 and (eRem - eCur) / eIncome or 0
 
 		DrawText(texts.prog..":", format("%d%%", 100 * buildProg))
-		DrawText(texts.metal..":", format("%d / %d (" .. yellow .. "%d" .. white .. ", %ds)", mTotal * buildProg, mTotal, mRem, mEta))
-		DrawText(texts.energy..":", format("%d / %d (" .. yellow .. "%d" .. white .. ", %ds)", eTotal * buildProg, eTotal, eRem, eEta))
-		--DrawText("MaxBP:", format(white .. '%d', buildRem * uDef.buildTime / mathMax(mEta, eEta)))
+
+		if mEta >= 0 then
+			DrawText(texts.metal..":", format("%d / %d (" .. yellow .. "%d" .. white .. ", %ds)", mTotal * buildProg, mTotal, mRem, mEta))
+		else
+			DrawText(texts.metal..":", format("%d / %d (" .. yellow .. "%d" .. white .. ")", mTotal * buildProg, mTotal, mRem))
+		end
+		
+		if eEta >= 0 then
+			DrawText(texts.energy..":", format("%d / %d (" .. yellow .. "%d" .. white .. ", %ds)", eTotal * buildProg, eTotal, eRem, eEta))
+		else
+			DrawText(texts.energy..":", format("%d / %d (" .. yellow .. "%d" .. white .. ")", eTotal * buildProg, eTotal, eRem))
+		end
+		
+			--DrawText("MaxBP:", format(white .. '%d', buildRem * uDef.buildTime / mathMax(mEta, eEta)))
 		cY = cY - fontSize
 	end
 
