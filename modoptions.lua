@@ -1546,8 +1546,8 @@ local options = {
 
     {
         key 	= "proposed_unit_reworks",
-        name 	= "Proposed Unit Reworks",
-        desc 	= "Modoption used to test balance changes that are being considered for the base game.",
+        name 	= "Season 3 balance test",
+        desc 	= "Test patch for the next season. Nerfs funneling resources into just a single T2 base, by changing some eco stats as well as nerfing units like Tzar and Fatboy. Also a variety of other changes, like an Incisor nerf and a Banshee buff. Full changelist available from newspost.",
         type 	= "bool",
         --hidden 	= true,
         section = "options_experimental",
