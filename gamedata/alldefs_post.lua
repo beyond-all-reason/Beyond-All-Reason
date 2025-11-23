@@ -89,62 +89,94 @@ function UnitDef_Post(name, uDef)
 		uDef.minCollisionSpeed = 75 / Game.gameSpeed -- define the minimum velocity(speed) required for all units to suffer fall/collision damage.
 	end
 
-	-- inidivual unit hat processing
-	do
-		if modOptions.unithats then
-			if modOptions.unithats == "april" then
-				if name == "corak" then
-					uDef.objectname = "apf/CORAK.s3o"
-				elseif name == "corllt" then
-					uDef.objectname = "apf/CORllt.s3o"
-				elseif name == "corhllt" then
-					uDef.objectname = "apf/CORhllt.s3o"
-				elseif name == "corack" then
-					uDef.objectname = "apf/CORACK.s3o"
-				elseif name == "corck" then
-					uDef.objectname = "apf/CORCK.s3o"
-				elseif name == "armpw" then
-					uDef.objectname = "apf/ARMPW.s3o"
-				elseif name == "cordemon" then
-					uDef.objectname = "apf/cordemon.s3o"
-				elseif name == "correap" then
-					uDef.objectname = "apf/correap.s3o"
-				elseif name == "corstorm" then
-					uDef.objectname = "apf/corstorm.s3o"
-				elseif name == "armcv" then
-					uDef.objectname = "apf/armcv.s3o"
-				elseif name == "armrock" then
-					uDef.objectname = "apf/armrock.s3o"
-				elseif name == "armbull" then
-					uDef.objectname = "apf/armbull.s3o"
-				elseif name == "armllt" then
-					uDef.objectname = "apf/armllt.s3o"
-				elseif name == "armwin" then
-					uDef.objectname = "apf/armwin.s3o"
-				elseif name == "armham" then
-					uDef.objectname = "apf/armham.s3o"
-				elseif name == "corwin" then
-					uDef.objectname = "apf/corwin.s3o"
-				elseif name == "corthud" then
-					uDef.objectname = "apf/corthud.s3o"
-				end
-			end
+	-- Event Model Replacements: ----------------------------------------------------------------------------- 
+
+	-- April Fools
+	if Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"] then
+		-- Something to experiment with
+		--if VFS.FileExists("units/event/aprilfools/" .. uDef.objectname) then
+		--	uDef.objectname = "units/event/aprilfools/" .. uDef.objectname
+		--end
+
+		if name == "corak" then
+			uDef.objectname = "units/event/aprilfools/CORAK.s3o"
+		elseif name == "corllt" then
+			uDef.objectname = "units/event/aprilfools/CORllt.s3o"
+		elseif name == "corhllt" then
+			uDef.objectname = "units/event/aprilfools/CORhllt.s3o"
+		elseif name == "corack" then
+			uDef.objectname = "units/event/aprilfools/CORACK.s3o"
+		elseif name == "corck" then
+			uDef.objectname = "units/event/aprilfools/CORCK.s3o"
+		elseif name == "armpw" then
+			uDef.objectname = "units/event/aprilfools/ARMPW.s3o"
+		elseif name == "cordemon" then
+			uDef.objectname = "units/event/aprilfools/cordemon.s3o"
+		--elseif name == "correap" then -- Requires Model Update
+		--	uDef.objectname = "units/event/aprilfools/correap.s3o"
+		elseif name == "corstorm" then
+			uDef.objectname = "units/event/aprilfools/corstorm.s3o"
+		elseif name == "armcv" then
+			uDef.objectname = "units/event/aprilfools/armcv.s3o"
+		elseif name == "armrock" then
+			uDef.objectname = "units/event/aprilfools/armrock.s3o"
+		elseif name == "armbull" then
+			uDef.objectname = "units/event/aprilfools/armbull.s3o"
+		elseif name == "armllt" then
+			uDef.objectname = "units/event/aprilfools/armllt.s3o"
+		elseif name == "armwin" then
+			uDef.objectname = "units/event/aprilfools/armwin.s3o"
+		elseif name == "armham" then
+			uDef.objectname = "units/event/aprilfools/armham.s3o"
+		elseif name == "corwin" then
+			uDef.objectname = "units/event/aprilfools/corwin.s3o"
+		--elseif name == "corthud" then -- Requires Model Update
+		--	uDef.objectname = "units/event/aprilfools/corthud.s3o"
 		end
 	end
+
+	-- Halloween
+	if Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"] then
+		if name == "armcom" or name == "armdecom" then
+			uDef.objectname = "units/event/halloween/armcom.s3o"
+		elseif name == "corcom" or name == "cordecom" then
+			uDef.objectname = "units/event/halloween/corcom.s3o"
+		elseif name == "legcom" or name == "legdecom" then
+			uDef.objectname = "units/event/halloween/legcom.s3o"
+
+		elseif name == "correap" then
+			uDef.objectname = "units/event/halloween/correap.s3o"
+		elseif name == "leggob" then
+			uDef.objectname = "units/event/halloween/leggob.s3o"
+		elseif name == "armrectr" then
+			uDef.objectname = "units/event/halloween/armrectr.s3o"
+		elseif name == "armspy" then
+			uDef.objectname = "units/event/halloween/armspy.s3o"
+		end
+	end
+
+	-- Xmas
+	if Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] then
+		if name == "armcom" or name == "armdecom" then
+			uDef.objectname = "units/event/xmas/armcom.s3o"
+		elseif name == "corcom" or name == "cordecom" then
+			uDef.objectname = "units/event/xmas/corcom.s3o"
+		end
+	end
+
+	---------------------------------------------------------------------------------------------------------- 
+
+
 
 	if uDef.sounds then
 		if uDef.sounds.ok then
 			uDef.sounds.ok = nil
 		end
-	end
 
-	if uDef.sounds then
 		if uDef.sounds.select then
 			uDef.sounds.select = nil
 		end
-	end
 
-	if uDef.sounds then
 		if uDef.sounds.activate then
 			uDef.sounds.activate = nil
 		end
@@ -153,6 +185,10 @@ function UnitDef_Post(name, uDef)
 		end
 		if uDef.sounds.build then
 			uDef.sounds.build = nil
+		end
+
+		if uDef.sounds.underattack then
+			uDef.sounds.underattack = nil
 		end
 	end
 
@@ -910,14 +946,14 @@ function UnitDef_Post(name, uDef)
 		HOVER2 = true,
 		HOVER3 = true,
 		HHOVER4 = true,
-		HOVER5 = true
+		AHOVER2 = true
 	}
 
 	local shipList = {
 		BOAT3 = true,
 		BOAT4 = true,
 		BOAT5 = true,
-		BOAT8 = true,
+		BOAT9 = true,
 		EPICSHIP = true
 	}
 
@@ -931,7 +967,7 @@ function UnitDef_Post(name, uDef)
 		COMMANDERBOT = true,
 		SCAVCOMMANDERBOT = true,
 		ATANK3 = true,
-		ABOT2 = true,
+		ABOT3 = true,
 		HABOT5 = true,
 		ABOTBOMB2 = true,
 		EPICBOT = true,
@@ -1164,8 +1200,7 @@ function UnitDef_Post(name, uDef)
 		--end
 
 	end
-
-
+	
 	--Air rework
 	if modOptions.air_rework == true then
 		local airReworkUnits = VFS.Include("unitbasedefs/air_rework_defs.lua")
@@ -1178,9 +1213,57 @@ function UnitDef_Post(name, uDef)
 		uDef = skyshiftUnits.skyshiftUnitTweaks(name, uDef)
 	end
 
+	-- Proposed Unit Reworks
 	if modOptions.proposed_unit_reworks == true then
 		local proposed_unit_reworks = VFS.Include("unitbasedefs/proposed_unit_reworks_defs.lua")
 		uDef = proposed_unit_reworks.proposed_unit_reworksTweaks(name, uDef)
+	end
+
+	-- Naval Balance Adjustments, if anything breaks here blame ZephyrSkies
+	if modOptions.naval_balance_tweaks == true then
+		local buildOptionReplacements = {
+			armcs = { ["armfhlt"] = "armnavaldefturret" },
+			armch = { ["armfhlt"] = "armnavaldefturret" },
+			armbeaver = { ["armfhlt"] = "armnavaldefturret" },
+			armcsa = { ["armfhlt"] = "armnavaldefturret" },
+			corcs = { ["corfhlt"] = "cornavaldefturret" },
+			corch = { ["corfhlt"] = "cornavaldefturret" },
+			cormuskrat = { ["corfhlt"] = "cornavaldefturret" },
+			corcsa = { ["corfhlt"] = "cornavaldefturret" },
+			legnavyconship = { ["legfmg"]  = "legnavaldefturret" },
+			legch = { ["legfmg"]  = "legnavaldefturret" },
+			legotter = { ["legfmg"]  = "legnavaldefturret" },
+			armacsub = { ["armkraken"]  = "armanavaldefturret" },
+			armmls = {
+				["armfhlt"]  = "armnavaldefturret",
+				["armkraken"] = "armanavaldefturret",
+			},
+			coracsub = { ["corfdoom"]  = "coranavaldefturret" },
+			cormls = {
+				["corfhlt"]  = "cornavaldefturret",
+				["corfdoom"] = "coranavaldefturret",
+			},
+		}
+
+		if buildOptionReplacements[name] then
+			local replacements = buildOptionReplacements[name]
+			for i, buildOption in ipairs(uDef.buildoptions or {}) do
+				if replacements[buildOption] then
+					uDef.buildoptions[i] = replacements[buildOption]
+				end
+			end
+		end
+
+		if name == "armfrad" then
+			uDef.sightdistance = 800
+		end
+		if name == "corfrad" then
+			uDef.sightdistance = 800
+		end
+		if name == "legfrad" then
+			uDef.sightdistance = 800
+		end
+
 	end
 
 	--Lategame Rebalance
@@ -1380,482 +1463,27 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-----------------------------
-	-- Split T2 into two Tiers --
-	-----------------------------
-	
-	if modOptions.splittiers then
-		if name == "armlab" then
-			uDef.buildoptions = {
-			[1] = "armck",
-			[2] = "armpw",
-			[3] = "armrectr",
-			[4] = "armrock",
-			[5] = "armjeth",
-			[6] = "armwar",
-			[7] = "armflea",
-			}
-		elseif name == "armap" then
-			uDef.buildoptions = {
-			[1] = "armca",
-			[2] = "armpeep",
-			[3] = "armfig",
-			[4] = "armthund",
-			[5] = "armatlas",
-			[6] = "armkam",
-			}
-		elseif name == "armalab" then
-			uDef.metalcost = 2000
-			uDef.buildoptions = {
-			[1] = "armack",
-			[2] = "armfark",
-			[3] = "armfast",
-			[4] = "armamph",
-			[5] = "armzeus",
-			[6] = "armmav",
-			[7] = "armspid",
-			[8] = "armfido",
-			[9] = "armaak",
-			[10] = "armvader",
-			[11] = "armdecom",
-			[12] = "armspy",
-		}
-		elseif name == "armavp" then
-			uDef.metalcost = 2000
-			uDef.buildoptions = {
-			[1] = "armacv",
-			[2] = "armconsul",
-			[3] = "armcroc",
-			[4] = "armlatnk",
-			[5] = "armbull",
-			[6] = "armmart",
-			[7] = "armyork",
-		}
-		elseif name == "armaap" then
-			uDef.metalcost = 2000
-			uDef.buildoptions = {
-			[1] = "armaca",
-			[2] = "armseap",			
-			[3] = "armsb",
-			[4] = "armsfig",
-			[5] = "armawac",
-			[6] = "armsaber",
-			[7] = "armhvytrans",
-		}
-		elseif name == "armplat" then
-			uDef.metalcost = 2000
-			uDef.buildoptions = {
-			[1] = "armaca",
-			[2] = "armseap",			
-			[3] = "armsb",
-			[4] = "armsfig",
-			[5] = "armawac",
-			[6] = "armsaber",
-		}		
-		elseif name == "armasy" then
-			uDef.metalcost = 2000
-			uDef.buildoptions = {
-			[1] = "armacsub",
-			[2] = "armmls",
-			[3] = "armcrus",
-			[4] = "armsubk",
-			[5] = "armaas",
-			[6] = "armantiship",
-			[7] = "armlship",
-		}
-		elseif name == "armack" then
-			uDef.metalcost = 300
-			uDef.buildoptions = {
-			[1] = "armfus",
-			[2] = "armckfus",
-			[3] = "armgmm",
-			[4] = "armuwadves",
-			[5] = "armuwadvms",
-			[6] = "armarad",
-			[7] = "armveil",
-			[8] = "armfort",
-			[9] = "armasp",
-			[10] = "armtarg",
-			[11] = "armsd",
-			[12] = "armgate",
-			[13] = "armpb",
-			[14] = "armflak",
-			[15] = "armemp",
-			[16] = "armamd",
-			[17] = "armdf",
-			[18] = "armlab",
-			[19] = "armalab",
-			[20] = "armsalab",
-			[21] = "armmoho",			
-		}
-		elseif name == "armacv" then
-			uDef.metalcost = 350
-			uDef.buildoptions = {
-			[1] = "armfus",
-			[2] = "armckfus",
-			[3] = "armgmm",
-			[4] = "armuwadves",
-			[5] = "armuwadvms",
-			[6] = "armarad",
-			[7] = "armveil",
-			[8] = "armfort",
-			[9] = "armasp",
-			[10] = "armtarg",
-			[11] = "armsd",
-			[12] = "armgate",
-			[13] = "armpb",
-			[14] = "armflak",
-			[15] = "armemp",
-			[16] = "armamd",
-			[17] = "armdf",
-			[18] = "armvp",
-			[19] = "armavp",
-			[20] = "armsavp",
-			[21] = "armmoho",
-		}
-		elseif name == "armaca" then
-			uDef.metalcost = 350
-			uDef.buildoptions = {
-			[1] = "armfus",
-			[2] = "armckfus",
-			[3] = "armgmm",
-			[4] = "armuwadves",
-			[5] = "armuwadvms",
-			[6] = "armarad",
-			[7] = "armveil",
-			[8] = "armfort",
-			[9] = "armasp",
-			[10] = "armtarg",
-			[11] = "armsd",
-			[12] = "armgate",
-			[13] = "armpb",
-			[14] = "armflak",
-			[15] = "armemp",
-			[16] = "armamd",
-			[17] = "armdf",
-			[18] = "armap",
-			[19] = "armaap",
-			[20] = "armsaap",
-			[21] = "armmoho",
-		}
-		elseif name == "armacsub" then
-			uDef.metalcost = 400
-			uDef.buildoptions = {
-			[1] = "armuwfus",
-			[2] = "armuwadves",
-			[3] = "armuwadvms",
-			[4] = "armasy",
-			[5] = "armsy",
-			[6] = "armason",
-			[7] = "armfatf",
-			[8] = "armfflak",
-			[9] = "armkraken",
-			[10] = "armfasp",
-			[11] = "armsasy",
-			[12] = "armuwmme",
-		}
-		elseif name == "armcsa" then
-			uDef.metalcost = 450
-			uDef.buildoptions = {
-			[1] = "armafus",
-			[2] = "armageo",
-			[3] = "armuwageo",
-			[4] = "armmoho",
-			[5] = "armmmkr",
-			[6] = "armanni",
-			[7] = "armmercury",
-			[8] = "armsilo",
-			[9] = "armbrtha",
-			[10] = "armvulc",
-			[11] = "armap",
-			[12] = "armaap",
-			[13] = "armsaap",
-			[14] = "armplat",
-			[15] = "armshltx",
-		}
-		elseif name == "coralab" then
-			uDef.metalcost = 2000
-			uDef.buildoptions = {
-			[1] = "corack",
-			[2] = "corfast",
-			[3] = "corpyro",
-			[4] = "coramph",
-			[5] = "corcan",
-			[6] = "cortermite",
-			[7] = "cormort",
-			[8] = "coraak",
-			[9] = "cordecom",
-			[10] = "corspy",
-		}
-		elseif name == "coravp" then
-			uDef.metalcost = 2000
-			uDef.buildoptions = {
-			[1] = "coracv",
-			[2] = "corsala",
-			[3] = "correap",
-			[4] = "cormart",
-			[5] = "corsent",
-			[6] = "cormabm",
-		}
-		elseif name == "corap" then
-			uDef.buildoptions = {
-			[1] = "corca",
-			[2] = "corfink",
-			[3] = "corveng",
-			[4] = "corshad",
-			[5] = "corvalk",
-			[6] = "corbw",
-		}
-		elseif name == "coraap" then
-			uDef.metalcost = 2000
-			uDef.buildoptions = {		
-			[1] = "coraca",
-			[2] = "corawac",
-			[3] = "corcut",
-			[4] = "corsb",
-			[5] = "corseap",
-			[6] = "corsfig",
-			[7] = "corhvytrans",
-		}
-		elseif name == "corplat" then
-			uDef.metalcost = 2000
-			uDef.buildoptions = {		
-			[1] = "coraca",
-			[2] = "corawac",
-			[3] = "corcut",
-			[4] = "corsb",
-			[5] = "corseap",
-			[6] = "corsfig",
-		}
-		elseif name == "corasy" then
-			uDef.metalcost = 2000
-			uDef.buildoptions = {		
-			[1] = "coracsub",
-			[2] = "cormls",
-			[3] = "corcrus",
-			[4] = "corshark",
-			[5] = "corarch",
-			[6] = "corantiship",
-			[7] = "corfship",
-		}
-		elseif name == "corack" then
-			uDef.metalcost = 300
-			uDef.buildoptions = {
-			[1] = "corfus",
-			[2] = "corbhmth",
-			[3] = "coruwadves",
-			[4] = "coruwadvms",
-			[5] = "corarad",
-			[6] = "corshroud",
-			[7] = "corfort",
-			[8] = "corasp",
-			[9] = "cortarg",
-			[10] = "corsd",
-			[11] = "corgate",
-			[12] = "corvipe",
-			[13] = "corflak",
-			[14] = "cortron",
-			[15] = "corfmd",
-			[16] = "corlab",
-			[17] = "coralab",
-			[18] = "corsalab",
-			[19] = "cormoho",
-		}
-		elseif name == "coracv" then
-			uDef.metalcost = 350
-			uDef.buildoptions = {
-			[1] = "corfus",
-			[2] = "corbhmth",
-			[3] = "coruwadves",
-			[4] = "coruwadvms",
-			[5] = "corarad",
-			[6] = "corshroud",
-			[7] = "corfort",
-			[8] = "corasp",
-			[9] = "cortarg",
-			[10] = "corsd",
-			[11] = "corgate",
-			[12] = "corvipe",
-			[13] = "corflak",
-			[14] = "cortron",
-			[15] = "corfmd",
-			[16] = "corvp",
-			[17] = "coravp",
-			[18] = "corsavp",
-			[19] = "cormoho",
-		}
-		elseif name == "coraca" then
-			uDef.metalcost = 350
-			uDef.buildoptions = {
-			[1] = "corfus",
-			[2] = "corbhmth",
-			[3] = "coruwadves",
-			[4] = "coruwadvms",
-			[5] = "corarad",
-			[6] = "corshroud",
-			[7] = "corfort",
-			[8] = "corasp",
-			[9] = "cortarg",
-			[10] = "corsd",
-			[11] = "corgate",
-			[12] = "corvipe",
-			[13] = "corflak",
-			[14] = "cortron",
-			[15] = "corfmd",
-			[16] = "corap",
-			[17] = "coraap",
-			[18] = "corsaap",
-			[19] = "cormoho",
-		}
-		elseif name == "coracsub" then
-			uDef.metalcost = 400
-			uDef.buildoptions = {
-			[1] = "coruwfus",
-			[2] = "coruwadves",
-			[3] = "coruwadvms",
-			[4] = "corasy",
-			[5] = "corsy",
-			[6] = "corason",
-			[7] = "corfatf",
-			[8] = "corenaa",
-			[9] = "corfdoom",
-			[10] = "corfasp",
-			[11] = "corsasy",
-			[12] = "coruwmme",
-		}
-		elseif name == "corcsa" then
-			uDef.metalcost = 450
-			uDef.buildoptions = {
-			[1] = "corafus",
-			[2] = "corageo",
-			[3] = "coruwageo",
-			[4] = "cormexp",
-			[5] = "cormmkr",
-			[6] = "cortoast",
-			[7] = "cordoom",
-			[8] = "corscreamer",
-			[9] = "corsilo",
-			[10] = "corint",
-			[11] = "corbuzz",
-			[12] = "corap",
-			[13] = "coraap",
-			[14] = "corplat",
-			[15] = "corsaap",
-			[16] = "corgant",
-		}
-		elseif name == "armfido" then
-			uDef.weapondefs.bfido.range = 600
-			uDef.health = 800
-			uDef.speed = 58
-			uDef.weapondefs.bfido.weaponvelocity = 450
-			uDef.weapondefs.bfido.reloadtime = 4
-			uDef.weapondefs.bfido.damage.default = 350			
-		elseif name == "armsptk" then
-			uDef.weapondefs.adv_rocket.range = 700
-			uDef.speed = 42
-		elseif name == "armbull" then
-			uDef.speed = 50
-			uDef.weapondefs.arm_bull.areaofeffect = 150
-			uDef.weapondefs.arm_bull.damage.default = 240
-			uDef.health = 5100
-		elseif name == "armlatnk" then
-			uDef.weapondefs.lightning.range = 260
-			uDef.health = 1300
-		elseif name == "armmart" then
-			uDef.speed = 40
-			uDef.weapondefs.arm_artillery.range = 760
-			uDef.weapondefs.arm_artillery.areaofeffect = 160
-			uDef.weapondefs.arm_artillery.damage.default = 220
-			uDef.health = 750
-		elseif name == "armhlt" then
-			uDef.weapondefs.arm_laserh1.range = 700
-			uDef.weapondefs.arm_laserh1.reloadtime = 2.7
-			uDef.weapondefs.arm_laserh1.damage.default = 580
-		elseif name == "armart" then
-			uDef.weapondefs.tawf113_weapon.range = 740
-			uDef.health = 520
-		elseif name == "armrock" then
-			uDef.weapondefs.arm_bot_rocket.range = 600
-			uDef.weapondefs.arm_bot_rocket.damage.default = 95
-			uDef.weapondefs.arm_bot_rocket.weaponvelocity = 170
-		elseif name == "armsehak" then
-			uDef.metalcost = 250
-			uDef.energycost = 9500
-			uDef.hoverattack = true
-			uDef.sightdistance = 1500
-			uDef.radardistance = 2700
-		elseif name == "armmoho" then
-			uDef.energyupkeep = 150
-			uDef.health = 850
-		elseif name == "armuwmme" then
-			uDef.energyupkeep = 150
-			uDef.health = 850
-		elseif name == "armmanni" then
-			uDef.weapondefs.atam.reloadtime = 9.2
-			uDef.weapondefs.atam.damage.default = 4600
-			uDef.weapondefs.atam.damage.commanders = 1500
-			uDef.weapondefs.atam.energypershot = 3000
-			uDef.speed = 35
-		elseif name == "cormort" then
-			uDef.weapondefs.cor_mort.damage.default = 78
-			uDef.weapondefs.cor_mort.reloadtime = 1.2
-			uDef.weapondefs.cor_mort.range = 780
-			uDef.weapondefs.cor_mort.weaponvelocity = 400
-			uDef.speed = 40
-			uDef.metalcost = 340
-			uDef.health = 700
-		elseif name == "corthud" then
-			uDef.speed = 55
-			uDef.energycost = 1600
-			uDef.metalcost = 160
-			uDef.weapondefs.arm_ham.range = 425
-		elseif name == "corstorm" then
-			uDef.weapondefs.cor_bot_rocket.range = 600
-			uDef.weapondefs.cor_bot_rocket.damage.default = 105
-			uDef.weapondefs.cor_bot_rocket.weaponvelocity = 150
-		elseif name == "corwolv" then
-			uDef.weapondefs.corwolv_gun.range = 740
-			uDef.health = 550
-		elseif name == "corhlt" then
-			uDef.weapondefs.cor_laserh1.range = 700
-			uDef.weapondefs.cor_laserh1.reloadtime = 2.4
-			uDef.weapondefs.cor_laserh1.damage.default = 392
-		elseif name == "correap" then
-			uDef.speed = 55
-			uDef.weapondefs.cor_reap.areaofeffect = 90
-			uDef.weapondefs.cor_reap.damage.default = 95
-			uDef.health = 6200
-		elseif name == "cormart" then
-			uDef.speed = 40
-			uDef.weapondefs.cor_artillery.range = 750
-			uDef.weapondefs.cor_artillery.areaofeffect = 170
-			uDef.weapondefs.cor_artillery.damage.default = 390
-			uDef.health = 850
-		elseif name == "cormoho" then
-			uDef.energyupkeep = 150
-			uDef.health = 1000
-		elseif name == "coruwmme" then
-			uDef.energyupkeep = 150
-			uDef.health = 1000
-		elseif name == "corhunt" then
-			uDef.metalcost = 250
-			uDef.energycost = 9500
-			uDef.hoverattack = true
-			uDef.sightdistance = 1500
-			uDef.radardistance = 2700
-		elseif name == "cormexp" then
-			uDef.energyupkeep = 150
-		elseif name == "cormando" then
-			uDef.weapons[1].badtargetcategory = "VTOL"
-			uDef.weapons[1].onlytargetcategory = "NOTSUB"
-			uDef.weapondefs.commando_blaster.damage.default = 150
-			uDef.weapondefs.commando_blaster.weaponvelocity = 600
-		end	
+	----------------
+	-- Tech Split --
+	----------------
+
+	if modOptions.techsplit == true then
+		local techsplitUnits = VFS.Include("unitbasedefs/techsplit_defs.lua")
+		uDef = techsplitUnits.techsplitTweaks(name, uDef)
 	end
-	
 
+	if modOptions.techsplit_balance == true then
+		local techsplit_balanceUnits = VFS.Include("unitbasedefs/techsplit_balance_defs.lua")
+		uDef = techsplit_balanceUnits.techsplit_balanceTweaks(name, uDef)
+	end
 
-
+	-- Experimental Low Priority Pacifists
+	if modOptions.experimental_low_priority_pacifists then
+		if uDef.energycost and uDef.metalcost and (not uDef.weapons or #uDef.weapons == 0) and uDef.speed and uDef.speed > 0 and 
+		(string.find(name, "arm") or string.find(name, "cor") or string.find(name, "leg")) then
+			uDef.power = uDef.power or ((uDef.metalcost + uDef.energycost / 60) * 0.1) --recreate the default power formula obtained from the spring wiki for target prioritization
+		end
+	end
 
 	-- Multipliers Modoptions
 
@@ -2013,7 +1641,6 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 	end
-
 end
 
 local function ProcessSoundDefaults(wd)
@@ -2239,12 +1866,9 @@ function WeaponDef_Post(name, wDef)
 		end
 		----------------------------------------
 
-		--Use targetborderoverride in weapondef customparams to override this global setting
 		--Controls whether the weapon aims for the center or the edge of its target's collision volume. Clamped between -1.0 - target the far border, and 1.0 - target the near border.
-		if wDef.customparams and wDef.customparams.targetborderoverride == nil then
+		if wDef.targetborder == nil then
 			wDef.targetborder = 1 --Aim for just inside the hitsphere
-		elseif wDef.customparams and wDef.customparams.targetborderoverride ~= nil then
-			wDef.targetborder = tonumber(wDef.customparams.targetborderoverride)
 		end
 
 		if wDef.craterareaofeffect then

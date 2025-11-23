@@ -161,6 +161,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 5,
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				name = "Double close-quarters gauss cannon",
 				noselfdamage = true,

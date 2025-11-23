@@ -21,7 +21,7 @@ return {
 		maxslope = 50,
 		speed = 42.3,
 		maxwaterdepth = 60,
-		movementclass = "HTBOT4",
+		movementclass = "HTBOT6",
 		mygravity = 10000,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/CORTHERMITE.s3o",

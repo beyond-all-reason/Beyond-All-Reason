@@ -1,29 +1,58 @@
+--[[
+EventName = {
+	delay = integrer - Minimum seconds that have to pass to play this notification again.
+	stackedDelay = bool - Reset the delay even when attempted to play the notif under cooldown. 
+							Useful for stuff you want to be able to hear often, but not repeatedly if the condition didn't change.
+	resetOtherEventDelay = string - Name of 'fallback' event that will get it's delay reset. 
+							For example, UnitLost, is a general notif for losing units, but we have MetalExtractorLost, or RadarLost. I want those to reset UnitLost as well.
+	soundEffect = string - Sound Effect to play alongside the notification, located in 'sounds/voice-soundeffects'
+	notext = bool - hide the text part of the notification
+	tutorial = bool - Sound effect used for the tutorial messages, there's a whole different handling of those. (WIP)
+}
+]]
+
+
 return {
 
 	-- Commanders
 	EnemyCommanderDied = {
 		delay = 1,
+		soundEffect = "EnemyComDead",
+		resetOtherEventDelay = "NeutralCommanderDied",
 	},
 	FriendlyCommanderDied = {
 		delay = 1,
+		soundEffect = "FriendlyComDead",
+		resetOtherEventDelay = "NeutralCommanderDied",
 	},
 	FriendlyCommanderSelfD = {
 		delay = 1,
+		soundEffect = "FriendlyComDead",
+		resetOtherEventDelay = "NeutralCommanderSelfD",
 	},
-	SpectatorCommanderDied = {
+	NeutralCommanderDied = {
 		delay = 1,
+		soundEffect = "NeutralComDead",
 	},
-	SpectatorCommanderSelfD = {
+	NeutralCommanderSelfD = {
+		delay = 1,
+		soundEffect = "NeutralComDead",
+	},
+	PlayerEliminated = {
 		delay = 1,
 	},
 	ComHeavyDamage = {
-		delay = 12,
+		delay = 10,
+		stackedDelay = true,
+		soundEffect = "CommanderHeavilyDamaged",
 	},
 	TeamDownLastCommander = {
 		delay = 30,
+		soundEffect = "YourTeamHasTheLastCommander",
 	},
 	YouHaveLastCommander = {
 		delay = 30,
+		soundEffect = "YouHaveTheLastCommander",
 	},
 
 	-- Game Status
@@ -38,24 +67,87 @@ return {
 	},
 	BattleEnded = {
 		delay = 1,
+		soundEffect = "GameEnd",
+	},
+	BattleVictory = {
+		delay = 1,
+		soundEffect = "GameEnd",
+	},
+	BattleDefeat = {
+		delay = 1,
+		soundEffect = "GameEnd",
 	},
 	GamePaused = {
+		delay = 1,
+	},
+
+	TeammateCaughtUp = {
+		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerCaughtUp",
+	},
+	TeammateDisconnected = {
+		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerDisconnected",
+	},
+	TeammateLagging = {
+		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerLagging",
+	},
+	TeammateReconnected = {
+		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerReconnected",
+	},
+	TeammateResigned = {
+		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerResigned",
+	},
+	TeammateTimedout = {
+		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerTimedout",
+	},
+
+	EnemyPlayerCaughtUp = {
+		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerCaughtUp",
+	},
+	EnemyPlayerDisconnected = {
+		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerDisconnected",
+	},
+	EnemyPlayerLagging = {
+		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerLagging",
+	},
+	EnemyPlayerReconnected = {
+		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerReconnected",
+	},
+	EnemyPlayerResigned = {
+		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerResigned",
+	},
+	EnemyPlayerTimedout = {
+		delay = 5,
+		resetOtherEventDelay = "NeutralPlayerTimedout",
+	},
+
+	NeutralPlayerCaughtUp = {
 		delay = 5,
 	},
-	PlayerDisconnected = {
-		delay = 1,
+	NeutralPlayerDisconnected = {
+		delay = 5,
 	},
-	PlayerAdded = {
-		delay = 1,
+	NeutralPlayerLagging = {
+		delay = 5,
 	},
-	PlayerResigned = {
-		delay = 1,
+	NeutralPlayerReconnected = {
+		delay = 5,
 	},
-	PlayerTimedout = {
-		delay = 1,
+	NeutralPlayerResigned = {
+		delay = 5,
 	},
-	PlayerReconnecting = {
-		delay = 1,
+	NeutralPlayerTimedout = {
+		delay = 5,
 	},
 	RaptorsAndScavsMixed = {
 		delay = 15,
@@ -65,74 +157,129 @@ return {
 	MaxUnitsReached = {
 		delay = 90,
 	},
+	BaseUnderAttack = {
+		delay = 30,
+		stackedDelay = true,
+		resetOtherEventDelay = "UnitsUnderAttack",
+		soundEffect = "UnitUnderAttack",
+	},
+	UnitsCaptured = {
+		delay = 5,
+	},
 	UnitsReceived = {
 		delay = 5,
 	},
+	CommanderUnderAttack = {
+		delay = 10,
+		stackedDelay = true,
+		resetOtherEventDelay = "UnitsUnderAttack",
+		soundEffect = "CommanderUnderAttack",
+	},
+	UnitsUnderAttack = {
+		delay = 60,
+		stackedDelay = true,
+		soundEffect = "UnitUnderAttack",
+	},
+	UnitLost = {
+		delay = 60,
+		stackedDelay = true,
+		soundEffect = "UnitUnderAttack",
+	},
 	RadarLost = {
-		delay = 12,
+		delay = 30,
+		stackedDelay = true,
+		resetOtherEventDelay = "UnitLost",
+		soundEffect = "UnitUnderAttack",
 	},
 	AdvancedRadarLost = {
-		delay = 12,
+		delay = 30,
+		stackedDelay = true,
+		resetOtherEventDelay = "UnitLost",
+		soundEffect = "UnitUnderAttack",
 	},
 	MetalExtractorLost = {
-		delay = 10,
+		delay = 30,
+		stackedDelay = true,
+		resetOtherEventDelay = "UnitLost",
+		soundEffect = "UnitUnderAttack",
 	},
 
 	-- Resources
 	YouAreOverflowingMetal = {
-		delay = 80,
+		delay = 60,
+		stackedDelay = true,
 	},
 	WholeTeamWastingMetal = {
 		delay = 60,
+		stackedDelay = true,
 	},
 	WholeTeamWastingEnergy = {
 		delay = 120,
+		stackedDelay = true,
+	},
+	YouAreWastingMetal = {
+		delay = 60,
+		stackedDelay = true,
+	},
+	YouAreWastingEnergy = {
+		delay = 120,
+		stackedDelay = true,
 	},
 	LowPower = {
-		delay = 50,
-	},
-	WindNotGood = {
-		delay = 9999999,
+		delay = 10,
+		stackedDelay = true,
 	},
 
 	-- Alerts
 	NukeLaunched = {
 		delay = 3,
+		soundEffect = "NukeAlert",
 	},
 	LrpcTargetUnits = {
-		delay = 9999999,
+		delay = 30,
+		stackedDelay = true,
 	},
 
 	-- Unit Ready
 	RagnarokIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	CalamityIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	StarfallIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	AstraeusIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	SolinvictusIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	TitanIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	ThorIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	JuggernautIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	BehemothIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	FlagshipIsReady = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	Tech2UnitReady = {
 		delay = 9999999,
@@ -164,84 +311,103 @@ return {
 		delay = 9999999,
 	},
 	EnemyDetected = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	AircraftDetected = {
-		delay = 9999999,
+		delay = 120,
+		stackedDelay = true,
 	},
 	MinesDetected = {
-		delay = 200,
+		delay = 60,
+		stackedDelay = true,
 	},
 	StealthyUnitsDetected = {
-		delay = 55,
+		delay = 30,
+		stackedDelay = true,
 	},
 	LrpcDetected = {
 		delay = 25,
+		stackedDelay = true,
 	},
 	EmpSiloDetected = {
 		delay = 25,
+		stackedDelay = true,
 	},
 	TacticalNukeSiloDetected = {
 		delay = 25,
+		stackedDelay = true,
+	},
+	LongRangeNapalmLauncherDetected = {
+		delay = 25,
+		stackedDelay = true,
 	},
 	NuclearSiloDetected = {
 		delay = 25,
+		stackedDelay = true,
 	},
 	CalamityDetected = {
 		delay = 25,
+		stackedDelay = true,
 	},
 	RagnarokDetected = {
 		delay = 25,
+		stackedDelay = true,
 	},
 	StarfallDetected = {
 		delay = 25,
+		stackedDelay = true,
 	},
 	NuclearBomberDetected = {
 		delay = 60,
+		stackedDelay = true,
 	},
 	BehemothDetected = {
-		delay = 300,
+		delay = 120,
+		stackedDelay = true,
 	},
 	SolinvictusDetected = {
-		delay = 300,
+		delay = 120,
+		stackedDelay = true,
 	},
 	JuggernautDetected = {
-		delay = 300,
+		delay = 120,
+		stackedDelay = true,
 	},
 	TitanDetected = {
-		delay = 300,
+		delay = 120,
+		stackedDelay = true,
 	},
 	ThorDetected = {
-		delay = 300,
+		delay = 120,
+		stackedDelay = true,
 	},
 	FlagshipDetected = {
-		delay = 300,
+		delay = 120,
+		stackedDelay = true,
 	},
 	AstraeusDetected = {
-		delay = 300,
-	},
-	TransportDetected = {
-		delay = 300,
+		delay = 120,
+		stackedDelay = true,
 	},
 	AirTransportDetected = {
-		delay = 300,
-	},
-	SeaTransportDetected = {
-		delay = 300,
+		delay = 120,
+		stackedDelay = true,
 	},
 
 	-- Lava
 	LavaRising = {
 		delay = 25,
+		soundEffect = "LavaAlert",
 	},
 	LavaDropping = {
 		delay = 25,
+		soundEffect = "LavaAlert",
 	},
 
 	-- Tutorial / tips
 	Welcome = {
 		delay = 9999999,
-		tutorial = true,
 	},
 	BuildMetal = {
 		delay = 9999999,
@@ -304,4 +470,84 @@ return {
 		delay = 9999999,
 		tutorial = true,
 	},
+
+	-- Raptors/Scavs ----------------------------------------------------------------------
+	["PvE/AntiNukeReminder"] = {
+		delay = 10,
+	},
+
+	-- Raptor Queen Hatch Progress
+	["PvE/Raptor_Queen50Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen75Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen90Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen95Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen98Ready"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_QueenIsReady"] = {
+		delay = 10,
+	},
+
+	-- Raptor Queen Health
+	["PvE/Raptor_Queen50HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen25HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen10HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_Queen5HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Raptor_QueenIsDestroyed"] = {
+		delay = 10,
+	},
+
+	-- Scavenger Boss Construction Progress
+	["PvE/Scav_Boss50Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss75Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss90Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss95Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss98Ready"] = {
+		delay = 10,
+	},
+	["PvE/Scav_BossIsReady"] = {
+		delay = 10,
+	},
+
+	-- Scavenger Boss Health
+	["PvE/Scav_Boss50HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss25HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss10HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Scav_Boss5HealthLeft"] = {
+		delay = 10,
+	},
+	["PvE/Scav_BossIsDestroyed"] = {
+		delay = 10,
+	},
+
 }

@@ -1,6 +1,6 @@
 return {
 	armaak = {
-		airsightdistance = 925,
+		airsightdistance = 1200,
 		buildpic = "ARMAAK.DDS",
 		buildtime = 7000,
 		canmove = true,
@@ -19,7 +19,7 @@ return {
 		maxdec = 0.6486,
 		maxslope = 14,
 		metalcost = 520,
-		movementclass = "ABOT2",
+		movementclass = "ABOT3",
 		movestate = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMAAK.s3o",

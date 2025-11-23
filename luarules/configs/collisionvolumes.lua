@@ -192,10 +192,10 @@ pieceCollisionVolume['legpede'] = {
 	['0']={26,28,90,0,5,-23,2,1},
 	['32']={26,28,86,0,0,7,2,1},
 }
---pieceCollisionVolume['legrail'] = {
---	['0']={40,16,38,0,10,0,2,1},
---	['2']={10,10,30,0,2,12,1,2},
---}
+pieceCollisionVolume['legrail'] = {
+	['2']={31,20,38,-0.5,-4,-4,2,1},
+	['5']={10,10,36,0,0,9,1,2},
+}
 pieceCollisionVolume['legsrail'] = {
 	['0']={55,24,55,0,12,0,1,1},
 	['7']={12,12,60,0,3,9,1,2},
@@ -252,8 +252,8 @@ pieceCollisionVolume['cortermite'] = {
 
 
 pieceCollisionVolume['correap'] = {
-	['0']={36,20,46,0,3.5,0,2,1},
-	['3']={24,14,24,0,1.875,1.5,2,1},
+	['1']={35,20,46,0,1,0,2,1},
+	['9']={19,14,20,0,2,0,2,1},
 }
 pieceCollisionVolume['corlevlr'] = {
 	['0']={31,17,31,0,3.5,0,2,1},
@@ -359,7 +359,10 @@ pieceCollisionVolume['legfloat'] = {
 	['0']={40,18,50,0,-1.5,0,2,1},
 	['8']={18,9,30,0,1,-5,2,1},
 }
-
+pieceCollisionVolume['legnavyfrigate'] = {
+	['0']={30,18,52,-1,-4,1,2,1},
+	['3']={11,13,20,0,5,0,2,1},
+}
 pieceCollisionVolume['legcar'] = {
 	['0']={34,16,46,0,-2.5,1,2,1},
 	['4']={14,12,20,0,-2,-6,2,1},
@@ -367,7 +370,7 @@ pieceCollisionVolume['legcar'] = {
 
 pieceCollisionVolume['legmed'] = {
 	['0']={48,31,69,0,0,0,2,1},
-	['1']={7,25,15,0,35,-5,2,1},
+	['1']={7,35,15,0,40,-5,2,1},
 }
 
 pieceCollisionVolume['legehovertank'] = {
@@ -375,16 +378,10 @@ pieceCollisionVolume['legehovertank'] = {
 	['20']={25,12,37,0,0,-6,2,1},
 }
 
---{60,80,60,  -- Volume X scale, Volume Y scale, Volume Z scale,
---		    0,15,0,    -- Volume X offset, Volume Y offset, Volume Z offset,
-
 pieceCollisionVolume['corsiegebreaker'] = {
-['0']={36,18,64,0,4,8,2,2},
-['1']={19,12,24,0,-2.5,-2.5,2,1},
+	['0']={36,18,64,0,4,8,2,2},
+	['1']={19,12,24,0,-2.5,-2.5,2,1},
 }
---['1']={18,14,24,0,-1,1.5,0,4},
-
-
 
 pieceCollisionVolume['armshockwave'] = {
     ['2']={22,22,22,0,10,0,1,1},
@@ -403,15 +400,6 @@ for name, v in pairs(pieceCollisionVolume) do
 	end
 end
 
-----dynamicPieceCollisionVolume['cortoast'] = {
-----	on = {
-----		['1']={40,40,40,-13,10,0,0,0},
-----		['5']={8,8,21,0,1,-2,1,2},
-----	},
-----	off = {
-----		['1']={12,58,58,-2,13,0,1,0},
-----	}
-----}
 dynamicPieceCollisionVolume['corvipe'] = {
 	on = {
 		['0']={38,26,38,0,0,0,2,0},

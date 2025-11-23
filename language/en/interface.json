@@ -119,8 +119,10 @@
 			"peace": "Peace",
 			"warlow": "Conflict",
 			"warhigh": "War",
-			"bossfight": "Boss fight",
-			"gameover": "Game over",
+			"bossfight": "Bossfight",
+			"victory": "Game Over: Victory",
+			"defeat": "Game Over: Defeat",
+			"gameover": "Game Over: Neutral",
 			"bonus": "Bonus",
 			"scavengers": "Scavengers",
 			"raptors": "Raptors",
@@ -136,6 +138,15 @@
 			"playerViewTooltip": "Only view what the player can see",
 			"playerCamera": "Player Camera",
 			"playerCameraTooltip": "Follow player camera perspective and apply selections"
+		},
+		"pip": {
+			"tooltip": "Toggle Picture-in-Picture",
+			"switch": "Switch view with main view",
+			"track": "Track selected units",
+			"move": "Move window",
+			"resize": "Resize window",
+			"minimize": "Minimize",
+			"maximize": "Maximize"
 		},
 		"teamEconomy": {
 			"tooltipTitle": "Team Income",
@@ -209,10 +220,6 @@
 			"loadunits_tooltip": "Load unit or multiple units within an area in the transport",
 			"unloadunits": "Unload units",
 			"unloadunits_tooltip": "Unload unit or multiple units within an area in the transport",
-			"landatairbase": "To Air Pad",
-			"landatairbase_tooltip": "Go to nearest Air Repair Pad",
-			"landatspecificairbase": "To Specific Air Pad",
-			"landatspecificairbase_tooltip": "Go to specific Air Repair Pad",
 			"stockpile": "Stockpile %{stockpileStatus}",
 			"stockpile_tooltip": "[ stockpiled number ] / [ target stockpile number ]",
 			"stopproduction": "Clear Queue",
@@ -251,12 +258,6 @@
 			"idlemode_tooltip": "Sets what aircraft do when idle",
 			"apLandAt_tooltip": "Sets what aircraft do when leaving air factory",
 			"csSpawning_tooltip": "Sets the spawning state of the carrier",
-			"LandAt 0": "No Retreat",
-			"LandAt 30": "Retreat 30%%",
-			"LandAt 50": "Retreat 50%%",
-			"LandAt 80": "Retreat 80%%",
-			"autorepairlevel_tooltip": "Set at which HP %% this aircraft retreats to nearest air repair pad",
-			"apAirRepair_tooltip": "Air factory: Set at which health %% an aircraft should automatically move to and land on an air repair pad",
 			"Low traj": "High Traj",
 			"High traj": "High Traj",
 			"trajectory_toggle_tooltip": "Switch artillery firing angle between low, high and automatic trajectory",
@@ -539,7 +540,7 @@
 			"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
 			"victoryCondition": "Victory condition",
 			"owncomends": "Losing your commander = losing control of your units / resigning",
-			"territorialDomination": "Territorial Domination, capture and hold enough territory to avoid defeat"
+			"territorialDomination": "Territorial Domination, survive and gain the most points to win."
 		},
 		"startSpot": {
 			"startbox": "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)",
@@ -698,13 +699,53 @@
 			}
 		},
 		"territorialDomination": {
-			"losingWarning1": "Allied retreat in %{seconds} seconds!",
-			"losingWarning2": "Capture %{count} more territories to avoid extraction.",
-			"rank": "Rank %{rank}",
-			"scoreBarTooltip": "Capture territories to fill this bar.\nIf the bar drops below the skull,\nyou will be eliminated."
+			"roundOverPopup": {
+				"gameOver": "Game Over",
+				"victory": "Victory",
+				"defeat": "Defeat",
+				"round": "Round %{roundNumber}",
+				"finalRound": "Final Round",
+				"territoryWorth": "Territories are worth %{points} points each",
+				"eliminationBelow": "Elimination below %{threshold}!"
+			},
+			"round": {
+				"display": "Round %{currentRound}",
+				"displayWithMax": "Round %{currentRound}/%{maxRounds}",
+				"displayDefault": "Round 1/%{maxRounds}",
+				"displayMax": "Round %{maxRounds}/%{maxRounds}",
+				"overtime": "Overtime",
+				"finalRound": "Final Round"
+			},
+			"team": {
+				"ally": "Ally %{allyNumber}"
+			},
+			"rank": {
+				"place": " place"
+			},
+			"elimination": {
+				"aboveElimination": "%{points}pts above elimination",
+				"belowElimination": "%{points}pts below elimination",
+				"zeroAboveElimination": "0pts above elimination",
+				"eliminationsNextRound": "Eliminations next round",
+				"finalRound": "Final Round",
+				"threshold": "Elimination Threshold: %{threshold}pts"
+			},
+			"territories": {
+				"worth": "Territories are worth %{points}pts"
+			},
+			"scoreboard": {
+				"title": "Leaderboard",
+				"viewLeaderboard": "View leaderboard",
+				"headerTeam": "Team",
+				"headerScore": "Score",
+				"headerTerritories": "Territories",
+				"headerGains": "Gains",
+				"headerTotal": "Total",
+				"eliminationThreshold": "Elimination Threshold"
+			},
+			"eliminationBelow": "Elimination Below %{value}"
 		},
 		"loadScreen": {
-			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly.",
 			"lowRamWarning": "%{textColor}Your system has below the recommended %{warnColor}12GB memory %{textColor}.     Try running with lower settings if you encounter out-of-memory crashes"
 		},
 		"initialSpawn": {
@@ -812,7 +853,7 @@
 			"factions": {
 				"arm": "Outsmart your foes with tactical finesse",
 				"cor": "Smash your foes with brute force",
-				"leg": "This faction is still a work in progress",
+				"leg": "Overwhelm your foes with rapid assault tactics",
 				"random": "Picks a Random out of the available options"
 			}
 		},
@@ -1057,6 +1098,8 @@
 				"resolution_descr": "WARNING: sometimes freezes game engine in windowed mode",
 				"vsync": "VSync",
 				"vsync_descr": "Prevent vertical screen tearing. Note this can introduce slight lag. Try adaptive for less screen draw delay.",
+				"vsync_fraction": "frame limiter",
+				"vsync_fraction_descr": "Render only a fractional number of frames\n\nPossibly only works in windowed mode",
 				"limitoffscreenfps": "Limit FPS when offscreen",
 				"limitoffscreenfps_descr": "Reduces fps when offscreen (by setting vsync to a high number)\n(for borderless window and fullscreen need engine not have focus)\nMakes your pc more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode",
 				"limitidlefps": "also limit when idle",
@@ -1180,16 +1223,24 @@
 				"snddevice": "Sound device",
 				"snddevice_descr": "Select a sound device\ndefault means your default OS playback device",
 				"soundtrack": "Soundtrack",
-				"soundtracknew": "Original soundtrack",
+				"soundtracknew": "Original Soundtrack",
 				"soundtracknew_descr": "Adds Original Soundtrack to the playlist",
 				"soundtrackold": "Modern theme",
 				"soundtrackold_descr": "Add the modern themed music to the soundtrack",
-				"soundtrackcustom": "Custom soundtrack",
+				"soundtrackcustom": "Custom Soundtrack",
 				"soundtrackcustom_descr": "Add your own .ogg or .mp3 music files to the soundtrack playlist\nPlace these .ogg/.mp3 music files in data/music/custom/ subfolders: peace/warlow/warhigh/bossfight/gameover",
 				"soundtrackaprilfools": "April Fools Soundtrack",
 				"soundtrackaprilfools_descr": "Toggle April Fools event music ON and OFF.",
-				"soundtrackaprilfoolspostevent": "April fools soundtrack post event",
+				"soundtrackaprilfoolspostevent": "April fools Soundtrack Post Event",
 				"soundtrackaprilfoolspostevent_descr": "Toggle April Fools event music ON and OFF.",
+				"soundtrackhalloween": "Halloween Soundtrack",
+				"soundtrackhalloween_descr": "Toggle Halloween event music ON and OFF.",
+				"soundtrackhalloweenpostevent": "Halloween Soundtrack Post Event",
+				"soundtrackhalloweenpostevent_descr": "Toggle Halloween event music ON and OFF.",
+				"soundtrackxmas": "Christmas Soundtrack",
+				"soundtrackxmas_descr": "Toggle Christmas event music ON and OFF.",
+				"soundtrackxmaspostevent": "Christmas Soundtrack Post Event",
+				"soundtrackxmaspostevent_descr": "Toggle Christmas event music ON and OFF.",
 				"soundtracksilence": "Silence periods",
 				"soundtracksilence_descr": "Adds no-music breaks between tracks\nto give you some time to enjoy pure sound effects\nand to make the music less repetitive.",
 				"soundtrackinterruption": "Interruptions",
@@ -1343,6 +1394,10 @@
 				"gridmenu_autoselectfirst_descr": "When selecting a category, automatically activate the first option within that category",
 				"gridmenu_labbuildmode": "Factory build mode hotkeys",
 				"gridmenu_labbuildmode_descr": "To use lab building hotkeys, build mode needs to be activated first",
+				"gridmenu_ctrlkeymodifier": "Ctrl hotkey modifier",
+				"gridmenu_ctrlkeymodifier_descr": "When holding down control key and using hotkeys to queue units, queue this many units.",
+				"gridmenu_shiftkeymodifier": "Shift hotkey modifier",
+				"gridmenu_shiftkeymodifier_descr": "When holding down shift key and using hotkeys to queue units, queue this many units.",
 				"keylayout": "Keyboard Layout",
 				"keylayout_descr": "Set the keyboard layout",
 				"keybindings": "Keybind Preset",
@@ -1714,7 +1769,11 @@
 				"language": "Language",
 				"language_english_unit_names": "Display unit names in English",
 				"reclaimfieldhighlight": "Reclaim Field Highlight",
-				"reclaimfieldhighlight_descr": "Highlights clusters of reclaimable metal",
+				"reclaimfieldhighlight_descr": "Highlights clusters of reclaimable metal and/or energy",
+				"reclaimfieldhighlight_metal": "metal",
+				"reclaimfieldhighlight_metal_descr": "When to show metal reclaim fields",
+				"reclaimfieldhighlight_energy": "energy",
+				"reclaimfieldhighlight_energy_descr": "When to show energy reclaim fields (trees, geo spots)",
 				"reclaimfieldhighlight_always": "Always enabled",
 				"reclaimfieldhighlight_resource": "Resource view only",
 				"reclaimfieldhighlight_reclaimer": "Reclaimer selected",
@@ -1773,6 +1832,12 @@
 		"quickShareToTarget": {
 			"noTarget": "No target selected",
 			"shareTo": "Share to: %{playerColor}%{player}"
+		},
+		"quickStart": {
+			"placeDiscountedFactory": "First factory is discounted",
+			"preGameResources": "Base Budget",
+			"remainingResourcesWarning": "Use the Base Budget to instantly spawn structures within range",
+			"unallocatedBudget": "Quick Start enabled: use your Base Budget first"
 		}
 	}
 }
