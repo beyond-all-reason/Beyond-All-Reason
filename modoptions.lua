@@ -1840,7 +1840,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
         max		= 10000,
         step	= 1,
     },
-
+    
     {
         key		= "startmetalstorage",
         name	= "Starting Metal Storage",
@@ -1876,6 +1876,54 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
         max		= 20000,
         step	= 1,
     },
+
+    {
+        key		= "team1extrastartmetal",
+        name	= "Team 1 Extra Starting Metal",
+        desc	= "(Range 0 - 10000). Determines extra amount of metal and metal storage that each player in team 1 will start with",
+        type	= "number",
+        section	= "options_cheats",
+        def		= 0,
+        min		= 0,
+        max		= 10000,
+        step	= 1,
+    },
+
+    {
+        key		= "team1extrastartenergy",
+        name	= "Team 1 Extra Starting Energy",
+        desc	= "(Range 0 - 10000). Determines amount of extra energy and energy storage that each player in team 1 will start with",
+        type	= "number",
+        section	= "options_cheats",
+        def		= 0,
+        min		= 0,
+        max		= 10000,
+        step	= 1,
+    },
+    {
+        key		= "team2extrastartmetal",
+        name	= "Team 2 Extra Starting Metal",
+        desc	= "(Range 0 - 10000). Determines extra amount of metal and metal storage that each player in team 2 will start with",
+        type	= "number",
+        section	= "options_cheats",
+        def		= 0,
+        min		= 0,
+        max		= 10000,
+        step	= 1,
+    },
+
+    {
+        key		= "team2extrastartenergy",
+        name	= "Team 2 Extra Starting Energy",
+        desc	= "(Range 0 - 10000). Determines amount of extra energy and energy storage that each player in team 2 will start with",
+        type	= "number",
+        section	= "options_cheats",
+        def		= 0,
+        min		= 0,
+        max		= 10000,
+        step	= 1,
+    },
+
 
     {
         key     = "sub_header",
