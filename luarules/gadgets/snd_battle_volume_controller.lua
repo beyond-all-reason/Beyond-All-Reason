@@ -56,15 +56,15 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
     if not paralyzer then
 
         if damage and damage > 0 and Spring.IsUnitInView(unitID) then
-            unitDamagedScale = unitDamagedScale*0.999
+            unitDamagedScale = unitDamagedScale*0.9995
             if damage > 1000 then
-                unitDamagedScale = unitDamagedScale*0.999
+                unitDamagedScale = unitDamagedScale*0.9995
             end
             if damage > 10000 then
-                unitDamagedScale = unitDamagedScale*0.999
+                unitDamagedScale = unitDamagedScale*0.9995
             end
             if damage > 100000 then
-                unitDamagedScale = unitDamagedScale*0.999
+                unitDamagedScale = unitDamagedScale*0.9995
             end
         end
         
