@@ -50,7 +50,7 @@ end
 
 GG.CorpseToUnitLink = GG.CorpseToUnitLink or {}
 
-local function getPositionHash(x, z)
+local function getPositionHash(x, z) -- we use hashing as a bridge between UnitDestroyed and FeatureCreated which are separated by their death animation duration.
 	x = math.floor(x)
 	z = math.floor(z)
 	return string.format("%f:%f", x, z)
