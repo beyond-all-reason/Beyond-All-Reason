@@ -28,7 +28,6 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.workertime = 600
 	end
 	if name == "coravp"	then --makes corveh same metalcost as other t2 land facs
-	then
 		uDef.metalcost = uDef.metalcost + 100
 	end
 
