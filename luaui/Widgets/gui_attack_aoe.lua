@@ -438,10 +438,7 @@ local function SetupUnitDef(unitDefID, unitDef)
 	weaponTable[unitDefID].ee = ee
 	weaponTable[unitDefID].weaponNum = maxWeaponNum
 	weaponTable[unitDefID].hasStockpile = hasStockpile
-
-	if not weaponTable[unitDefID].color then
-		weaponTable[unitDefID].color = aoeColor
-	end
+	weaponTable[unitDefID].reloadTime = maxWeaponDef.reload
 end
 
 local function SetupDisplayLists()
@@ -570,7 +567,7 @@ local function DrawDamageRings(tx, ty, tz, aoe, edgeEffectiveness, alphaMult, ph
 	end
 end
 
-local function DrawAoe(tx, ty, tz, aoe, edgeEffectiveness, alphaMult, phaseOffset, color)
+local function DrawAoe(tx, ty, tz, aoe, edgeEffectiveness, color, alphaMult, phaseOffset)
 	glLineWidth(max(aoeLineWidthMult * aoe / mouseDistance, 0.5))
 	alphaMult = alphaMult or 1
 
@@ -756,32 +753,23 @@ local function GetFadeAlpha(theta)
 	return 1 - (pow(abs(sinTheta), 2) * (1 - scatterMinAlpha))
 end
 
-local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, aimingUnitID, color)
+local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, aimingUnitID, fillColor, lineColor)
 	local scatter = info.scatter
-	if scatter == 0 then
+	if scatter < 0.01 then
 		return
 	end
 	local v = info.v
-	local isOutsideMaxRange = false
-	local shouldAddFill = true -- fixme
-	color = color or info.color
+	local isFilled = fillColor[4] > 0
 
 	-- 1. Math Setup
 	local aimDist = distance3d(tx, ty, tz, ux, uy, uz)
+	local isOutsideMaxRange = aimDist > info.range and not spGetUnitWeaponTestRange(aimingUnitID, info.weaponNum, tx, ty, tz)
 
-	if aimDist > info.range and not spGetUnitWeaponTestRange(aimingUnitID, info.weaponNum, tx, ty, tz) then
-		if info.mobile then
-			isOutsideMaxRange = true
-		else
-			return
-		end
-	end
-
-	-- If pointing outside the max range we don't want to use actual target for calculations as it will produce
-	-- misleading shape. Instead, we pretend that mouse points at the max range
 	local calc_tx, calc_ty, calc_tz = tx, ty, tz
 	local calc_dist = aimDist
 
+	-- If pointing outside the max range we don't want to use actual target for calculations as it will produce
+	-- misleading shape. Instead, we pretend that mouse points at the max range
 	if isOutsideMaxRange then
 		local factor = info.range / aimDist
 		calc_tx = ux + (tx - ux) * factor
@@ -806,7 +794,6 @@ local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, ai
 		rz = bx * inv_len
 	end
 
-	-- Physics constants
 	local v_f = v / GAME_SPEED
 	local gravity_f = -0.5 * g_f
 	local heightDiff = uy - calc_ty
@@ -854,17 +841,17 @@ local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, ai
 	local naturalRadius = calc_dist * (tan(scatter) + 0.01)
 
 	local scatterAlphaFactor = 0
-	local minScatterRadius = info.aoe * 0.5
-	local scatterRadiusThreshold = info.aoe
+	local baseThreshold = max(info.aoe, 15)
+	local minScatterRadius = baseThreshold * 0.5
 
-	if naturalRadius >= scatterRadiusThreshold then
+	if naturalRadius >= baseThreshold then
 		scatterAlphaFactor = 1
 	elseif naturalRadius > minScatterRadius then
-		scatterAlphaFactor = (naturalRadius - minScatterRadius) / (scatterRadiusThreshold - minScatterRadius)
+		scatterAlphaFactor = (naturalRadius - minScatterRadius) / (baseThreshold - minScatterRadius)
 	end
 
 	if scatterAlphaFactor <= 0 then
-		return true
+		return
 	end
 
 	local maxAxisLen = naturalRadius * 2.5
@@ -912,18 +899,18 @@ local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, ai
 	local angleStep = (pi * 2) / scatterSegments
 	glDepthTest(true)
 	-- Fill
-	if shouldAddFill then
-		local fillAlphaMult = 0.5
+	if isFilled then
+		local fillAlphaMult = 0.2
 		BeginNoOverlap()
 		glBeginEnd(GL_TRIANGLE_FAN, function()
 			local cy = spGetGroundHeight(tx, tz)
-			glColor(color[1], color[2], color[3], color[4] * fillAlphaMult * scatterAlphaFactor)
+			glColor(fillColor[1], fillColor[2], fillColor[3], fillColor[4] * fillAlphaMult * scatterAlphaFactor)
 			glVertex(tx, cy, tz)
 
 			for i = 0, scatterSegments do
 				local theta = i * angleStep
 				local fadeFactor = GetFadeAlpha(theta)
-				glColor(color[1], color[2], color[3], color[4] * fillAlphaMult * fadeFactor * scatterAlphaFactor)
+				glColor(fillColor[1], fillColor[2], fillColor[3], fillColor[4] * fillAlphaMult * fadeFactor * scatterAlphaFactor)
 
 				local cosTheta = cos(theta)
 				local sinTheta = sin(theta)
@@ -944,7 +931,7 @@ local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, ai
 		for i = 0, scatterSegments do
 			local theta = i * angleStep
 			local fadeFactor = GetFadeAlpha(theta)
-			glColor(scatterColor[1], scatterColor[2], scatterColor[3], scatterColor[4] * fadeFactor * scatterAlphaFactor)
+			glColor(lineColor[1], lineColor[2], lineColor[3], lineColor[4] * fadeFactor * scatterAlphaFactor)
 
 			local cosTheta = cos(theta)
 			local sinTheta = sin(theta)
@@ -960,7 +947,7 @@ local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, ai
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
 	glDepthTest(false)
-	return true
+	return scatterAlphaFactor
 end
 
 --------------------------------------------------------------------------------
@@ -1039,6 +1026,9 @@ end
 --direct
 --------------------------------------------------------------------------------
 local function DrawDirectScatter(scatter, ux, uy, uz, tx, ty, tz, range, unitRadius, color)
+	if scatter < 0.01 then
+		return
+	end
 	color = color or scatterColor
 	local dx = tx - ux
 	local dy = ty - uy
@@ -1113,7 +1103,7 @@ local function DrawDropped(aoe, ee, v, ux, uz, tx, tz, salvoSize, salvoDelay, co
 		if py_c < 0 then
 			py_c = 0
 		end
-		DrawAoe(px_c, py_c, pz_c, aoe, ee, nil, alphaMult, -salvoAnimationSpeed * i, color)
+		DrawAoe(px_c, py_c, pz_c, aoe, ee, color, alphaMult, -salvoAnimationSpeed * i)
 	end
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
@@ -1183,6 +1173,12 @@ function widget:DrawWorldPreUnit()
 		return
 	end
 
+	-- do not draw for static units outside the range to make it clear you can't shoot there
+	if not info.mobile and not spGetUnitWeaponTestRange(aimingUnitID, info.weaponNum, tx, ty, tz) then
+		ResetPulsePhase()
+		return
+	end
+
 	local ux, uy, uz = spGetUnitPosition(aimingUnitID)
 	if (not ux) then
 		ResetPulsePhase()
@@ -1209,19 +1205,25 @@ function widget:DrawWorldPreUnit()
 	---------------------------------------------------------
 	-- COLOR CALCULATION
 	---------------------------------------------------------
-	local baseColor = info.color or aoeColor
-	if weaponType == "juno" then baseColor = junoColor end
+	local baseColor
+	local baseFillColor
+	if weaponType == "ballistic" then
+		baseColor = info.color or aoeColor
+		baseFillColor = info.color or GetFadedColor(aoeColor, 0)
+	else
+		baseColor = info.color or aoeColor
+		baseFillColor = baseColor
+	end
 
-	local activeColor = baseColor
-	local currentDrawColor = baseColor
+	local currentBaseColor = baseColor
 	local currentScatterColor = scatterColor
+	local currentFillColor = baseFillColor or baseColor
 
-	-- If it's a stockpile weapon, we blend the colors based on Update logic
+	-- If it's a stockpile weapon, handle color transition if needed
 	if info.hasStockpile then
-		-- Blend between Gray (NoStockpile) and Real Color (baseColor)
-		-- stockpileFadeProgress is 0 when loading, 1 when ready
-		currentDrawColor = LerpColor(noStockpileColor, baseColor, stockpileFadeProgress)
+		currentBaseColor = LerpColor(noStockpileColor, baseColor, stockpileFadeProgress)
 		currentScatterColor = LerpColor(noStockpileColor, scatterColor, stockpileFadeProgress)
+		currentFillColor = LerpColor(noStockpileColor, baseFillColor, stockpileFadeProgress)
 	end
 
 	---------------------------------------------------------
@@ -1230,33 +1232,38 @@ function widget:DrawWorldPreUnit()
 
 	if (weaponType == "ballistic") then
 		local trajectory = select(7, spGetUnitStates(aimingUnitID, false, true))
-		if trajectory then trajectory = 1 else trajectory = -1 end
-
-		-- Pass the lerped colors
-		local isScatterVisible = DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, aimingUnitID, currentDrawColor, currentScatterColor)
-
-		if not (info.projectileCount > 1 or info.salvoSize > 1) or not isScatterVisible then
-			DrawAoe(tx, ty, tz, info.aoe, info.ee, 1, 0, currentDrawColor)
+		if trajectory then
+			trajectory = 1
+		else
+			trajectory = -1
 		end
+
+		local scatterAlphaFactor = DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, aimingUnitID, currentFillColor, currentScatterColor)
+		local currentAoeColor = currentBaseColor
+		if scatterAlphaFactor then
+			currentAoeColor = GetFadedColor(currentAoeColor, 1 - (scatterAlphaFactor * 0.9))
+		end
+
+		DrawAoe(tx, ty, tz, info.aoe, info.ee, currentAoeColor)
 	elseif (weaponType == "noexplode") then
 		DrawNoExplode(info.aoe, ux, uy, uz, tx, ty, tz, info.range, info.requiredEnergy)
 	elseif (weaponType == "direct") then
-		DrawAoe(tx, ty, tz, info.aoe, info.ee, 1, 0, currentDrawColor)
+		DrawAoe(tx, ty, tz, info.aoe, info.ee, currentBaseColor)
 		DrawDirectScatter(info.scatter, ux, uy, uz, tx, ty, tz, info.range, spGetUnitRadius(aimingUnitID), currentScatterColor)
 	elseif (weaponType == "dropped" and info.salvoSize and info.salvoSize > 1) then
-		DrawDropped(info.aoe, info.ee, info.v, ux, uz, tx, tz, info.salvoSize, info.salvoDelay, currentDrawColor)
+		DrawDropped(info.aoe, info.ee, info.v, ux, uz, tx, tz, info.salvoSize, info.salvoDelay, currentBaseColor)
 	elseif (weaponType == "wobble") then
-		DrawAoe(tx, ty, tz, info.aoe, info.ee, 1, 0, currentDrawColor)
+		DrawAoe(tx, ty, tz, info.aoe, info.ee, currentBaseColor)
 		DrawWobbleScatter(info.scatter, ux, uy, uz, tx, ty, tz, info.rangeScatter, info.range, currentScatterColor)
 	elseif (weaponType == "orbital") then
-		DrawAoe(tx, ty, tz, info.aoe, info.ee, 1, 0, currentDrawColor)
+		DrawAoe(tx, ty, tz, info.aoe, info.ee, currentBaseColor)
 		DrawOrbitalScatter(info.scatter, tx, ty, tz, currentScatterColor)
 	elseif weaponType == "dgun" then
 		DrawDGun(info.aoe, ux, uy, uz, tx, ty, tz, info.range, info.requiredEnergy, info.unitname)
 	elseif weaponType == "juno" and not info.isMiniJuno then
-		DrawJuno(tx, ty, tz, info.aoe, currentDrawColor)
+		DrawJuno(tx, ty, tz, info.aoe, currentBaseColor)
 	else
-		DrawAoe(tx, ty, tz, info.aoe, info.ee, 1, 0, currentDrawColor)
+		DrawAoe(tx, ty, tz, info.aoe, info.ee, currentBaseColor)
 	end
 
 	---------------------------------------------------------
