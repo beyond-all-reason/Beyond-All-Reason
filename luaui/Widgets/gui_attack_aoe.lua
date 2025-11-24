@@ -43,6 +43,8 @@ local spGetTeamResources = Spring.GetTeamResources
 local spGetUnitWeaponTestRange = Spring.GetUnitWeaponTestRange
 
 local CMD_ATTACK = CMD.ATTACK
+local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
+local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
 local CMD_MANUALFIRE = CMD.MANUALFIRE
 local CMD_MANUAL_LAUNCH = GameCMD.MANUAL_LAUNCH
 
@@ -786,9 +788,22 @@ local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, ai
 	local cosScatter = sqrt(max(0, 1 - scatter * scatter))
 
 	local naturalRadius = calc_dist * (tan(scatter) + 0.01)
-	local maxAxisLen = naturalRadius * 2.5
 
-	Spring.Echo("scatter", scatter, "aoe", info.aoe, "naturalRadius", naturalRadius)
+	local scatterAlphaFactor = 0
+	local minScatterRadius = info.aoe * 0.5
+	local scatterRadiusThreshold = shouldAddFill and 0 or info.aoe
+
+	if naturalRadius >= scatterRadiusThreshold then
+		scatterAlphaFactor = 1
+	elseif naturalRadius > minScatterRadius then
+		scatterAlphaFactor = (naturalRadius - minScatterRadius) / (scatterRadiusThreshold - minScatterRadius)
+	end
+
+	if scatterAlphaFactor <= 0 then
+		return true
+	end
+
+	local maxAxisLen = naturalRadius * 2.5
 
 	-- Yaw
 	local vx_right = bx * cosScatter + rx * scatter
@@ -829,7 +844,6 @@ local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, ai
 	----------------------------------------------------------------------------
 	-- DRAWING
 	----------------------------------------------------------------------------
-	Spring.Echo(naturalRadius, info.aoe, info.projectileCount, info.salvoSize)
 
 	local angleStep = (pi * 2) / scatterSegments
 	glDepthTest(true)
@@ -839,13 +853,13 @@ local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, ai
 		BeginNoOverlap()
 		glBeginEnd(GL_TRIANGLE_FAN, function()
 			local cy = spGetGroundHeight(tx, tz)
-			glColor(color[1], color[2], color[3], color[4] * fillAlphaMult)
+			glColor(color[1], color[2], color[3], color[4] * fillAlphaMult * scatterAlphaFactor)
 			glVertex(tx, cy, tz)
 
 			for i = 0, scatterSegments do
 				local theta = i * angleStep
 				local fadeFactor = GetFadeAlpha(theta)
-				glColor(color[1], color[2], color[3], color[4] * fillAlphaMult * fadeFactor)
+				glColor(color[1], color[2], color[3], color[4] * fillAlphaMult * fadeFactor * scatterAlphaFactor)
 
 				local cosTheta = cos(theta)
 				local sinTheta = sin(theta)
@@ -866,7 +880,7 @@ local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, ai
 		for i = 0, scatterSegments do
 			local theta = i * angleStep
 			local fadeFactor = GetFadeAlpha(theta)
-			glColor(scatterColor[1], scatterColor[2], scatterColor[3], scatterColor[4] * fadeFactor)
+			glColor(scatterColor[1], scatterColor[2], scatterColor[3], scatterColor[4] * fadeFactor * scatterAlphaFactor)
 
 			local cosTheta = cos(theta)
 			local sinTheta = sin(theta)
@@ -964,22 +978,40 @@ local function DrawDirectScatter(scatter, ux, uy, uz, tx, ty, tz, range, unitRad
 	local dy = ty - uy
 	local dz = tz - uz
 
-	local bx, by, bz, d = Normalize(dx, dy, dz)
+	local aimDirX, aimDirY, aimDirZ, dist = Normalize(dx, dy, dz)
 
-	if (not bx or d == 0 or d > range) then
+	if (not aimDirX or dist == 0 or dist > range) then
 		return
 	end
 
-	local ux = bx * unitRadius / sqrt(1 - by * by)
-	local uz = bz * unitRadius / sqrt(1 - by * by)
+	-- 1. Calculate the 2D Ground Magnitude
+	-- We need to ignore the Y component (height difference) to do
+	-- flat ground calculations for the unit radius.
+	-- sqrt(1 - y^2) is equivalent to sqrt(x^2 + z^2) for a normalized vector.
+	local groundVectorMag = sqrt(1 - aimDirY * aimDirY)
 
-	local cx = -scatter * uz
-	local cz = scatter * ux
-	local wx = -scatter * dz / sqrt(1 - by * by)
-	local wz = scatter * dx / sqrt(1 - by * by)
+	-- 2. Calculate the "Forward" offset to the Unit's Edge
+	-- This pushes the start point from the center of the unit to the perimeter
+	local edgeOffsetX = (aimDirX / groundVectorMag) * unitRadius
+	local edgeOffsetZ = (aimDirZ / groundVectorMag) * unitRadius
 
-	local vertices = { { ux + ux + cx, uy, uz + uz + cz }, { tx + wx, ty, tz + wz },
-					   { ux + ux - cx, uy, uz + uz - cz }, { tx - wx, ty, tz - wz } }
+	-- 3. Calculate the "Cone" Width
+
+	-- This makes the cone start slightly wide based on unit size and scatter
+	local startSpreadX = -scatter * edgeOffsetZ
+	local startSpreadZ =  scatter * edgeOffsetX
+
+	local targetSpreadX = -scatter * (dz / groundVectorMag)
+	local targetSpreadZ =  scatter * (dx / groundVectorMag)
+
+	-- 4. Define the Lines
+	local vertices = {
+		{ ux + edgeOffsetX + startSpreadX, uy, uz + edgeOffsetZ + startSpreadZ },
+		{ tx + targetSpreadX, ty, tz + targetSpreadZ },
+
+		{ ux + edgeOffsetX - startSpreadX, uy, uz + edgeOffsetZ - startSpreadZ },
+		{ tx - targetSpreadX, ty, tz - targetSpreadZ }
+	}
 
 	glColor(scatterColor)
 	glLineWidth(scatterLineWidthMult / mouseDistance)
@@ -1083,7 +1115,7 @@ function widget:DrawWorldPreUnit()
 		info = manualWeaponInfo[manualFireUnitDefID]
 		aimingUnitID = manualFireUnitID
 		manualFire = true
-	elseif (cmd == CMD_ATTACK and attackUnitDefID) then
+	elseif (cmd == CMD_ATTACK or cmd == CMD_UNIT_SET_TARGET or cmd == CMD_UNIT_SET_TARGET_NO_GROUND and attackUnitDefID) then
 		info = weaponInfo[attackUnitDefID]
 		aimingUnitID = attackUnitID
 	else
