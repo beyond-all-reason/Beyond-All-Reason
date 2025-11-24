@@ -25,6 +25,7 @@ local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
 include("keysym.h.lua")
+local windFunctions = VFS.Include('common/wind_functions.lua')
 
 local pairs = pairs
 local ipairs = ipairs
@@ -269,7 +270,7 @@ local modKeyMultiplier = {
 	right = -1
 }
 
-local disableWind = ((Game.windMin + Game.windMax) / 2) < 5
+local disableWind = windFunctions.isWindDisabled()
 local voidWater = false
 local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
 if success and mapinfo then
