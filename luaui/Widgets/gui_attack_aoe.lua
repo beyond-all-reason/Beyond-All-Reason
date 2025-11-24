@@ -91,6 +91,7 @@ local junoColor = { 0.87, 0.94, 0.40, 1 }
 local napalmColor = { 0.85, 0.62, 0.28, 1 }
 local empColor = { 0.65, 0.65, 1, 1 }
 local scatterColor = { 1, 1, 0, 1 }
+local noStockpileColor = { 0.88, 0.88, 0.88, 1 }
 
 local scatterMinAlpha = 0.5
 local aoeLineWidthMult = 64
@@ -349,11 +350,12 @@ local function SetupUnitDef(unitDefID, unitDef)
 	local paralyzer = maxWeaponDef.paralyzer
 	local junoType = maxWeaponDef.customParams.junotype
 	local isNapalm = maxWeaponDef.customParams.area_onhit_resistance == "fire"
+	local hasStockpile = maxWeaponDef.stockpile
 
 	if weaponType == "DGun" then
 		weaponTable[unitDefID] = { type = "dgun", range = maxWeaponDef.range, unitname = unitDef.name, requiredEnergy = maxWeaponDef.energyCost }
 	elseif junoType then
-		weaponTable[unitDefID] = { type = "juno", isMiniJuno = junoType == "mini" }
+		weaponTable[unitDefID] = { type = "juno", isMiniJuno = junoType == "mini", color = junoColor }
 	elseif maxWeaponDef.cylinderTargeting >= 100 then
 		weaponTable[unitDefID] = { type = "orbital", scatter = scatter }
 	elseif weaponType == "Cannon" then
@@ -399,16 +401,13 @@ local function SetupUnitDef(unitDefID, unitDef)
 		weaponTable[unitDefID] = { type = "direct", scatter = scatter, range = maxWeaponDef.range }
 	end
 
-	if maxWeaponDef.energyCost > 0 then
-		weaponTable[unitDefID].requiredEnergy = maxWeaponDef.energyCost
-	end
 	if paralyzer then
-		weaponTable[unitDefID].customColor = empColor
+		weaponTable[unitDefID].color = empColor
 	end
 	if isNapalm then
 		weaponTable[unitDefID].isNapalm = true
 		weaponTable[unitDefID].napalmRange = maxWeaponDef.customParams.area_onhit_range
-		weaponTable[unitDefID].customColor = napalmColor
+		weaponTable[unitDefID].color = napalmColor
 	end
 
 	weaponTable[unitDefID].aoe = aoe
@@ -417,6 +416,11 @@ local function SetupUnitDef(unitDefID, unitDef)
 	weaponTable[unitDefID].waterWeapon = waterWeapon
 	weaponTable[unitDefID].ee = ee
 	weaponTable[unitDefID].weaponNum = maxWeaponNum
+	weaponTable[unitDefID].hasStockpile = hasStockpile
+
+	if not weaponTable[unitDefID].color then
+		weaponTable[unitDefID].color = aoeColor
+	end
 end
 
 local function SetupDisplayLists()
@@ -465,18 +469,6 @@ end
 --------------------------------------------------------------------------------
 --aoe
 --------------------------------------------------------------------------------
-local function SetAoeColor(alphaFactor, requiredEnergy, customColor)
-	local color
-	if customColor then
-		color = customColor
-	elseif requiredEnergy and select(1, spGetTeamResources(spGetMyTeamID(), 'energy')) < requiredEnergy then
-		color = aoeColorNoEnergy
-	else
-		color = aoeColor
-	end
-	SetColor(alphaFactor, color)
-end
-
 local function GetRadiusForDamageLevel(aoe, damageLevel, edgeEffectiveness)
 	local denominator = 1 - (damageLevel * edgeEffectiveness)
 	if denominator == 0 then
@@ -513,7 +505,7 @@ local function GetAlphaFactorForRing(minAlpha, maxAlpha, index, phase, alphaMult
 	return result * alphaMult
 end
 
-local function DrawDisk(tx, ty, tz, aoe, requiredEnergy, alphaMult, phase, customColor)
+local function DrawAoeRange(tx, ty, tz, aoe, alphaMult, phase, color)
 	alphaMult = alphaMult or 1
 	glPushMatrix()
 	glTranslate(tx, ty, tz)
@@ -523,7 +515,7 @@ local function DrawDisk(tx, ty, tz, aoe, requiredEnergy, alphaMult, phase, custo
 			local outerRing = aoe * idx / aoeDiskBandCount
 			local alphaFactor = GetAlphaFactorForRing(minFilledCircleAlpha, maxFilledCircleAlpha, idx, phase, alphaMult, diskWaveTriggerTimes)
 
-			SetAoeColor(alphaFactor, requiredEnergy, customColor)
+			SetColor(alphaFactor, color)
 			for i = 0, circleDivs do
 				local unitCircle = unitCircles[i]
 				glVertex(unitCircle[1] * outerRing, 0, unitCircle[2] * outerRing)
@@ -534,16 +526,16 @@ local function DrawDisk(tx, ty, tz, aoe, requiredEnergy, alphaMult, phase, custo
 	glPopMatrix()
 end
 
-local function DrawAoeRings(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alphaMult, phase, customColor)
+local function DrawDamageRings(tx, ty, tz, aoe, edgeEffectiveness, alphaMult, phase, color)
 	for ringIndex, damageLevel in ipairs(ringDamageLevels) do
 		local ringRadius = GetRadiusForDamageLevel(aoe, damageLevel, edgeEffectiveness)
 		local alphaFactor = GetAlphaFactorForRing(damageLevel, damageLevel + 0.2, ringIndex, phase, alphaMult, ringWaveTriggerTimes)
-		SetAoeColor(alphaFactor, requiredEnergy, customColor)
+		SetColor(alphaFactor, color)
 		DrawCircle(tx, ty, tz, ringRadius)
 	end
 end
 
-local function DrawDamageRings(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alphaMult, phaseOffset, customColor)
+local function DrawAoe(tx, ty, tz, aoe, edgeEffectiveness, alphaMult, phaseOffset, color)
 	glLineWidth(max(aoeLineWidthMult * aoe / mouseDistance, 0.5))
 	alphaMult = alphaMult or 1
 
@@ -551,13 +543,13 @@ local function DrawDamageRings(tx, ty, tz, aoe, edgeEffectiveness, requiredEnerg
 	phase = phase - floor(phase)
 
 	if edgeEffectiveness == 1 then
-		DrawDisk(tx, ty, tz, aoe, requiredEnergy, alphaMult, phase, customColor)
+		DrawAoeRange(tx, ty, tz, aoe, alphaMult, phase, color)
 	else
-		DrawAoeRings(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alphaMult, phase, customColor)
+		DrawDamageRings(tx, ty, tz, aoe, edgeEffectiveness, alphaMult, phase, color)
 	end
 
 	-- draw a max radius outline for clarity
-	SetAoeColor(1, requiredEnergy, customColor)
+	SetColor(1, color)
 	glLineWidth(1)
 	DrawCircle(tx, ty, tz, aoe)
 
@@ -565,7 +557,7 @@ local function DrawDamageRings(tx, ty, tz, aoe, edgeEffectiveness, requiredEnerg
 	glLineWidth(1)
 end
 
-local function DrawJuno(tx, ty, tz, aoe)
+local function DrawJuno(tx, ty, tz, aoe, color)
 	local phase = pulsePhase - floor(pulsePhase)
 
 	local areaDenialRadius = 450 -- defined in unit_juno_damage.lua - "outer radius of area denial ring"
@@ -574,7 +566,7 @@ local function DrawJuno(tx, ty, tz, aoe)
 	glPushMatrix()
 	glTranslate(tx, ty, tz)
 	glBeginEnd(GL_TRIANGLE_STRIP, function()
-		SetColor(maxFilledCircleAlpha, junoColor)
+		SetColor(maxFilledCircleAlpha, color)
 		for i = 0, circleDivs do
 			local unitCircle = unitCircles[i]
 			glVertex(unitCircle[1] * areaDenialRadius, 0, unitCircle[2] * areaDenialRadius)
@@ -588,7 +580,7 @@ local function DrawJuno(tx, ty, tz, aoe)
 
 			local alphaFactor = GetAlphaFactorForRing(minFilledCircleAlpha, maxFilledCircleAlpha, idx, phase, 1, diskWaveTriggerTimes, true)
 
-			SetColor(alphaFactor, junoColor)
+			SetColor(alphaFactor, color)
 			for i = 0, circleDivs do
 				local unitCircle = unitCircles[i]
 				glVertex(unitCircle[1] * outerRing, 0, unitCircle[2] * outerRing)
@@ -598,11 +590,47 @@ local function DrawJuno(tx, ty, tz, aoe)
 	end)
 	glPopMatrix()
 
-	SetColor(1, junoColor)
+	SetColor(1, color)
 	glLineWidth(1)
 	DrawCircle(tx, ty, tz, aoe) -- impact radius outline
 	DrawCircle(tx, ty, tz, areaDenialRadius) -- area denial ring outline
 
+	glColor(1, 1, 1, 1)
+	glLineWidth(1)
+end
+
+local function DrawStockpileProgress(tx, ty, tz, aoe, buildPercent, targetColor)
+	SetColor(1, noStockpileColor)
+	glLineWidth(max(aoeLineWidthMult * aoe / 2  / mouseDistance, 0.5))
+
+	glPushMatrix()
+	glTranslate(tx, ty, tz)
+	glScale(aoe, aoe, aoe)
+
+	glCallList(circleList)
+
+	if buildPercent > 0 then
+		SetColor(1, targetColor)
+
+		local limit = floor(circleDivs * buildPercent)
+		if limit > circleDivs then limit = circleDivs end
+
+		glBeginEnd(GL_LINE_STRIP, function()
+			for i = 0, limit do
+				local v = unitCircles[i]
+				glVertex(v[1], 0, v[2])
+			end
+
+			if buildPercent < 1 then
+				local angle = 2 * pi * buildPercent
+				glVertex(cos(angle), 0, sin(angle))
+			end
+		end)
+	end
+
+	glPopMatrix()
+
+	-- Reset
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
 end
@@ -699,8 +727,8 @@ local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, ai
 	end
 	local v = info.v
 	local isOutsideMaxRange = false
-	local shouldAddFill = info.customColor ~= nil
-	local color = info.customColor
+	local shouldAddFill = true -- fixme
+	local color = info.color
 
 	-- 1. Math Setup
 	local aimDist = distance3d(tx, ty, tz, ux, uy, uz)
@@ -791,7 +819,7 @@ local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, ai
 
 	local scatterAlphaFactor = 0
 	local minScatterRadius = info.aoe * 0.5
-	local scatterRadiusThreshold = shouldAddFill and 0 or info.aoe
+	local scatterRadiusThreshold = info.aoe
 
 	if naturalRadius >= scatterRadiusThreshold then
 		scatterAlphaFactor = 1
@@ -999,10 +1027,10 @@ local function DrawDirectScatter(scatter, ux, uy, uz, tx, ty, tz, range, unitRad
 
 	-- This makes the cone start slightly wide based on unit size and scatter
 	local startSpreadX = -scatter * edgeOffsetZ
-	local startSpreadZ =  scatter * edgeOffsetX
+	local startSpreadZ = scatter * edgeOffsetX
 
 	local targetSpreadX = -scatter * (dz / groundVectorMag)
-	local targetSpreadZ =  scatter * (dx / groundVectorMag)
+	local targetSpreadZ = scatter * (dx / groundVectorMag)
 
 	-- 4. Define the Lines
 	local vertices = {
@@ -1023,7 +1051,7 @@ end
 --------------------------------------------------------------------------------
 --dropped
 --------------------------------------------------------------------------------
-local function DrawDropped(aoe, ee, v, ux, uz, tx, tz, salvoSize, salvoDelay, customColor)
+local function DrawDropped(aoe, ee, v, ux, uz, tx, tz, salvoSize, salvoDelay, color)
 	local dx = tx - ux
 	local dz = tz - uz
 
@@ -1047,7 +1075,7 @@ local function DrawDropped(aoe, ee, v, ux, uz, tx, tz, salvoSize, salvoDelay, cu
 		if py_c < 0 then
 			py_c = 0
 		end
-		DrawDamageRings(px_c, py_c, pz_c, aoe, ee, nil, alphaMult, -salvoAnimationSpeed * i, customColor)
+		DrawAoe(px_c, py_c, pz_c, aoe, ee, nil, alphaMult, -salvoAnimationSpeed * i, color)
 	end
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
@@ -1115,7 +1143,7 @@ function widget:DrawWorldPreUnit()
 		info = manualWeaponInfo[manualFireUnitDefID]
 		aimingUnitID = manualFireUnitID
 		manualFire = true
-	elseif (cmd == CMD_ATTACK or cmd == CMD_UNIT_SET_TARGET or cmd == CMD_UNIT_SET_TARGET_NO_GROUND and attackUnitDefID) then
+	elseif ((cmd == CMD_ATTACK or cmd == CMD_UNIT_SET_TARGET or cmd == CMD_UNIT_SET_TARGET_NO_GROUND) and attackUnitDefID) then
 		info = weaponInfo[attackUnitDefID]
 		aimingUnitID = attackUnitID
 	else
@@ -1157,6 +1185,20 @@ function widget:DrawWorldPreUnit()
 		return
 	end
 
+	-- choose color
+	local color = info.color
+	if weaponType == "juno" then
+		color = junoColor
+	end
+
+	local numStockpiled, buildPercent
+	if info.hasStockpile then
+		numStockpiled, _, buildPercent = Spring.GetUnitStockpile(aimingUnitID)
+		if numStockpiled == 0 then
+			color = noStockpileColor
+		end
+	end
+
 	if (weaponType == "ballistic") then
 		local trajectory = select(7, spGetUnitStates(aimingUnitID, false, true))
 		if trajectory then
@@ -1168,35 +1210,32 @@ function widget:DrawWorldPreUnit()
 
 		local hasMultipleProjectiles = info.projectileCount > 1 or info.salvoSize > 1
 		if not hasMultipleProjectiles or not isScatterVisible then
-			DrawDamageRings(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy, 1, 0, info.customColor)
+			DrawAoe(tx, ty, tz, info.aoe, info.ee, 1, 0, color)
 		end
 	elseif (weaponType == "noexplode") then
-		DrawNoExplode(info.aoe, ux, uy, uz, tx, ty, tz, info.range, info.requiredEnergy)
-	elseif (weaponType == "tracking") then
-		DrawDamageRings(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
+		DrawNoExplode(info.aoe, ux, uy, uz, tx, ty, tz, info.range, color)
 	elseif (weaponType == "direct") then
-		DrawDamageRings(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
+		DrawAoe(tx, ty, tz, info.aoe, info.ee, 1, 0, color)
 		DrawDirectScatter(info.scatter, ux, uy, uz, tx, ty, tz, info.range, spGetUnitRadius(aimingUnitID))
 	elseif (weaponType == "dropped" and info.salvoSize and info.salvoSize > 1) then
 		-- if there is only 1 bomb then draw regular AoE instead
-		DrawDropped(info.aoe, info.ee, info.v, ux, uz, tx, tz, info.salvoSize, info.salvoDelay, info.customColor)
+		DrawDropped(info.aoe, info.ee, info.v, ux, uz, tx, tz, info.salvoSize, info.salvoDelay, color)
 	elseif (weaponType == "wobble") then
-		DrawDamageRings(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
+		DrawAoe(tx, ty, tz, info.aoe, info.ee, 1, 0, color)
 		DrawWobbleScatter(info.scatter, ux, uy, uz, tx, ty, tz, info.rangeScatter, info.range)
 	elseif (weaponType == "orbital") then
-		DrawDamageRings(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
+		DrawAoe(tx, ty, tz, info.aoe, info.ee, 1, 0, color)
 		DrawOrbitalScatter(info.scatter, tx, ty, tz)
 	elseif weaponType == "dgun" then
 		DrawDGun(info.aoe, ux, uy, uz, tx, ty, tz, info.range, info.requiredEnergy, info.unitname)
-	elseif weaponType == "juno" then
-		if info.isMiniJuno then
-			-- mini juno (from legion bomber) has no expanded impact area
-			DrawDamageRings(tx, ty, tz, info.aoe, 1, 0, 1, 0, junoColor)
-		else
-			DrawJuno(tx, ty, tz, info.aoe)
-		end
+	elseif weaponType == "juno" and not info.isMiniJuno then
+		DrawJuno(tx, ty, tz, info.aoe, color)
 	else
-		DrawDamageRings(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy, 1, 0, info.customColor)
+		DrawAoe(tx, ty, tz, info.aoe, info.ee, 1, 0, color)
+	end
+
+	if info.hasStockpile and numStockpiled == 0 then
+		DrawStockpileProgress(tx, ty, tz, info.aoe, buildPercent, info.color)
 	end
 end
 
