@@ -270,7 +270,7 @@ weaponCustomParamKeys.guidance = {
 	guidance_miss_radius = toPositiveNumber,
 }
 
-local function guidanceLost(radius, projectileID, targetID)
+local function guidanceLost(projectileID, radius, targetID)
 	local tx, ty, tz
 
 	if radius > 0 then
@@ -343,7 +343,7 @@ specialEffectFunction.guidance = function(params, projectileID)
 		end
 
 		if targetType == targetedUnit then
-			guidanceLost(params.guidance_miss_radius, projectileID, target)
+			guidanceLost(projectileID, params.guidance_miss_radius, target)
 		end
 
 		return false
