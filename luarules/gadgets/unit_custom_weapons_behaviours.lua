@@ -61,7 +61,6 @@ local projectiles = {}
 local projectilesData = {}
 
 local gameFrame = 0
-local resultCaches = {}
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
@@ -265,7 +264,7 @@ end
 -- Based on retarget
 -- Uses no weapon customParams.
 
-resultCaches.guidance = {} -- ownerID = <isFiring, guidanceType, userTarget, guidanceTarget>
+local guidanceResults = {} -- ownerID = <isFiring, guidanceType, userTarget, guidanceTarget>
 
 specialEffectFunction.guidance = function(projectileID)
 	if spGetProjectileTimeToLive(projectileID) > 0 then
@@ -276,7 +275,7 @@ specialEffectFunction.guidance = function(projectileID)
 		end
 
 		local targetType, missileTarget = spGetProjectileTarget(projectileID)
-		local results = resultCaches.guidance[ownerID]
+		local results = guidanceResults[ownerID]
 
 		if not results then
 			-- Guidance weapon must be the primary and have burst/reload > 1 frame.
@@ -285,7 +284,7 @@ specialEffectFunction.guidance = function(projectileID)
 				(spGetUnitWeaponState(ownerID, 1, "nextSalvo") or 0) + 1 >= gameFrame,
 				spGetUnitWeaponTarget(ownerID, 1)
 			}
-			resultCaches.guidance[ownerID] = results
+			guidanceResults[ownerID] = results
 		end
 
 		if results[1] and results[2] then
@@ -530,10 +529,7 @@ end
 
 function gadget:GameFrame(frame)
 	gameFrame = frame
-
-	for key in pairs(resultCaches) do
-		resultCaches[key] = {}
-	end
+	guidanceResults = {}
 
 	for projectileID, effect in pairs(projectiles) do
 		if effect(projectileID) then
