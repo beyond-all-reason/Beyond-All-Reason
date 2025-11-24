@@ -104,11 +104,14 @@ local ordermenuShows = false
 -- Cache for translations to avoid repeated Spring.I18N calls
 local translationCache = {}
 local function getCachedTranslation(key, params)
-	local cacheKey = params and (key .. tostring(params)) or key
-	if not translationCache[cacheKey] then
-		translationCache[cacheKey] = Spring.I18N(key, params)
+	if params then
+		-- Don't cache when params are provided since they can vary
+		return Spring.I18N(key, params)
 	end
-	return translationCache[cacheKey]
+	if not translationCache[key] then
+		translationCache[key] = Spring.I18N(key)
+	end
+	return translationCache[key]
 end
 
 -- Throttling for command refresh

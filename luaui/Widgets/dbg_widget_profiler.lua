@@ -21,16 +21,41 @@ end
 -- Localized functions for performance
 local mathFloor = math.floor
 local mathMax = math.max
+local mathMin = math.min
 local mathRandom = math.random
+local mathExp = math.exp
 local tableSort = table.sort
+local tableInsert = table.insert
+local tableRemove = table.remove
+local stringChar = string.char
+local stringSub = string.sub
+local stringFind = string.find
+local stringLower = string.lower
+local stringFormat = string.format
+local stringGmatch = string.gmatch
+local stringMatch = string.match
+local pairs = pairs
+local next = next
+local tonumber = tonumber
+local type = type
 
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
+local spGetLuaMemUsage = Spring.GetLuaMemUsage
+local spDiffTimers = Spring.DiffTimers
+local spGetTimer = Spring.GetTimer
+local glText = gl.Text
+local glColor = gl.Color
+local glBeginText = gl.BeginText
+local glEndText = gl.EndText
+local glGetViewSizes = gl.GetViewSizes
+local glRect = gl.Rect
+local glGetTextWidth = gl.GetTextWidth
 
 local usePrefixedNames = true
 
 local tick = 0.1
-local retainSortTime = 10
+local retainSortTime = 100
 
 local minPerc = 0.005 -- above this value, we fade in how red we mark a widget
 local maxPerc = 0.02 -- above this value, we mark a widget as red
@@ -49,12 +74,6 @@ local prefixColor = {
 	map = '\255\255\255\080',
 	dbg = '\255\120\120\120',
 }
-
-local spGetLuaMemUsage = Spring.GetLuaMemUsage
-local spDiffTimers = Spring.DiffTimers
-local spGetTimer = Spring.GetTimer
-local glText = gl.Text
-local exp = math.exp
 
 local s
 local callinStats = {}
@@ -94,12 +113,34 @@ end
 spEcho("Profiler using highres timers", highres, Spring.GetConfigInt("UseHighResTimer", 0))
 
 local prefixedWnames = {}
+local widgetNameColors = {}  -- Store RGB values for background tinting
 local function ConstructPrefixedName (ghInfo)
 	local gadgetName = ghInfo.name
 	local baseName = ghInfo.basename
-	local _pos = baseName:find("_", 1, true)
-	local prefix = ((_pos and usePrefixedNames) and ((prefixColor[baseName:sub(1, _pos - 1)] and prefixColor[baseName:sub(1, _pos - 1)] or "\255\166\166\166") .. baseName:sub(1, _pos - 1) .. "     ") or "")
-	prefixedWnames[gadgetName] = prefix .. string.char(255, mathRandom(125, 255), mathRandom(125, 255), mathRandom(125, 255)) .. gadgetName .. "   "
+	local _pos = stringFind(baseName, "_", 1, true)
+	local prefix = ""
+	if _pos and usePrefixedNames then
+		local prefixKey = stringSub(baseName, 1, _pos - 1)
+		local prefixClr = prefixColor[prefixKey] or "\255\166\166\166"
+		prefix = prefixClr .. prefixKey .. "     "
+	end
+	-- Cache random color generation with more contrast
+	local r, g, b = mathRandom(30, 255), mathRandom(30, 255), mathRandom(30, 255)
+	-- Ensure at least one channel is bright for visibility and prevent too dark colors
+	local maxChannel = mathMax(r, g, b)
+	if maxChannel < 150 then
+		-- If all channels are too dark, make at least one bright
+		local brightChannel = mathRandom(1, 3)
+		if brightChannel == 1 then
+			r = mathRandom(180, 255)
+		elseif brightChannel == 2 then
+			g = mathRandom(180, 255)
+		else
+			b = mathRandom(180, 255)
+		end
+	end
+	widgetNameColors[gadgetName] = {r / 255, g / 255, b / 255}  -- Store normalized RGB
+	prefixedWnames[gadgetName] = prefix .. stringChar(255, r, g, b) .. gadgetName .. "   "
 	return prefixedWnames[gadgetName]
 end
 
@@ -107,7 +148,9 @@ local function ArrayInsert(t, f, g)
 	if f then
 		local layer = g.whInfo.layer
 		local index = 1
-		for i, v in ipairs(t) do
+		local tLen = #t
+		for i = 1, tLen do
+			local v = t[i]
 			if v == g then
 				return -- already in the table
 			end
@@ -115,15 +158,16 @@ local function ArrayInsert(t, f, g)
 				index = i + 1
 			end
 		end
-		table.insert(t, index, g)
+		tableInsert(t, index, g)
 	end
 end
 
 local function ArrayRemove(t, g)
-	for k, v in ipairs(t) do
-		if v == g then
-			table.remove(t, k)
-			-- break
+	local tLen = #t
+	for k = 1, tLen do
+		if t[k] == g then
+			tableRemove(t, k)
+			return -- Only one instance to remove
 		end
 	end
 end
@@ -131,8 +175,7 @@ end
 function widget:TextCommand(s)
 	local token = {}
 	local n = 0
-	--for w in string.gmatch(s, "%a+") do
-	for w in string.gmatch(s, "%S+") do
+	for w in stringGmatch(s, "%S+") do
 		n = n + 1
 		token[n] = w
 	end
@@ -153,6 +196,21 @@ end
 
 local function IsHook(func)
 	return listOfHooks[func]
+end
+
+-- Cache CallInsList to avoid rebuilding it multiple times
+local cachedCallInsList
+local function BuildCallInsList(wh)
+	local CallInsList = {}
+	local CallInsListCount = 0
+	for name, e in pairs(wh) do
+		local i = stringFind(name, "List", nil, true)
+		if i and type(e) == "table" then
+			CallInsListCount = CallInsListCount + 1
+			CallInsList[CallInsListCount] = stringSub(name, 1, i - 1)
+		end
+	end
+	return CallInsList
 end
 
 local wname2name = {}
@@ -209,23 +267,22 @@ local function StartHook()
 	spEcho("start profiling")
 
 	local wh = widgetHandler
-	--wh.actionHandler:AddAction("widgetprofiler", widgetprofileraction, "Configure the tick rate of the widget profiler", 't')
 
-	local CallInsList = {}
-	local CallInsListCount = 0
-	for name, e in pairs(wh) do
-		local i = name:find("List", nil, true)
-		if i and type(e) == "table" then
-			CallInsListCount = CallInsListCount + 1
-			CallInsList[CallInsListCount] = name:sub(1, i - 1)
-		end
+	-- Build and cache CallInsList
+	if not cachedCallInsList then
+		cachedCallInsList = BuildCallInsList(wh)
 	end
+	local CallInsList = cachedCallInsList
 
 	--// hook all existing callins
-	for _, callin in ipairs(CallInsList) do
+	for i = 1, #CallInsList do
+		local callin = CallInsList[i]
 		local callinGadgets = wh[callin .. "List"]
-		for _, w in ipairs(callinGadgets or {}) do
-			w[callin] = Hook(w, callin)
+		if callinGadgets then
+			for j = 1, #callinGadgets do
+				local w = callinGadgets[j]
+				w[callin] = Hook(w, callin)
+			end
 		end
 	end
 
@@ -263,7 +320,8 @@ local function StartHook()
 
 		oldInsertWidget(self, widget)
 
-		for _, callin in ipairs(CallInsList) do
+		for i = 1, #CallInsList do
+			local callin = CallInsList[i]
 			local func = widget[callin]
 			if type(func) == 'function' then
 				widget[callin] = Hook(widget, callin)
@@ -278,23 +336,20 @@ local function StopHook()
 	spEcho("stop profiling")
 
 	local wh = widgetHandler
-	--widgetHandler.RemoveAction("widgetprofiler")
-	local CallInsList = {}
-	local CallInsListCount = 0
-	for name, e in pairs(wh) do
-		local i = name:find("List", nil, true)
-		if i and type(e) == "table" then
-			CallInsListCount = CallInsListCount + 1
-			CallInsList[CallInsListCount] = name:sub(1, i - 1)
-		end
-	end
+
+	-- Use cached CallInsList
+	local CallInsList = cachedCallInsList or BuildCallInsList(wh)
 
 	--// unhook all existing callins
-	for _, callin in ipairs(CallInsList) do
+	for i = 1, #CallInsList do
+		local callin = CallInsList[i]
 		local callinWidgets = wh[callin .. "List"]
-		for _, w in ipairs(callinWidgets or {}) do
-			if w["_old" .. callin] then
-				w[callin] = w["_old" .. callin]
+		if callinWidgets then
+			for j = 1, #callinWidgets do
+				local w = callinWidgets[j]
+				if w["_old" .. callin] then
+					w[callin] = w["_old" .. callin]
+				end
 			end
 		end
 	end
@@ -320,46 +375,94 @@ end
 
 local function CalcLoad(old_load, new_load, t)
 	if t and t > 0 then
-		local exptick = exp(-tick / t)
+		local exptick = mathExp(-tick / t)
 		return old_load * exptick + new_load * (1 - exptick)
 	else
 		return new_load
 	end
 end
 
+-- Precompute constants for GetRedColourStrings
+local colorScaleFactor = (255 - 64) / 255
+local percRange = maxPerc - minPerc
+local spaceRange = maxSpace - minSpace
+
 function GetRedColourStrings(v)
 	-- tLoad is %
 	local tTime = v.tTime
 	local sLoad = v.sLoad
 	local name = v.plainname
-	local u = math.exp(-deltaTime / 5) --magic colour changing rate
+	local u = mathExp(-deltaTime / 5) --magic colour changing rate
+	local oneMinusU = 1 - u
 
+	-- Clamp tTime
 	if tTime > maxPerc then
 		tTime = maxPerc
-	end
-	if tTime < minPerc then
+	elseif tTime < minPerc then
 		tTime = minPerc
 	end
 
 	-- time
-	local new_r = (tTime - minPerc) / (maxPerc - minPerc)
-	redStrength[name .. '_time'] = redStrength[name .. '_time'] or 0
-	redStrength[name .. '_time'] = u * redStrength[name .. '_time'] + (1 - u) * new_r
-	local r, g, b = 1, 1 - redStrength[name .. "_time"] * ((255 - 64) / 255), 1 - redStrength[name .. "_time"] * ((255 - 64) / 255)
-	v.timeColourString = ColorString(r, g, b)
+	local new_r = (tTime - minPerc) / percRange
+	local timeKey = name .. '_time'
+	redStrength[timeKey] = redStrength[timeKey] or 0
+	redStrength[timeKey] = u * redStrength[timeKey] + oneMinusU * new_r
+	local timeRedStrength = redStrength[timeKey]
+	local colorFactor = 1 - timeRedStrength * colorScaleFactor
+	v.timeColourString = ColorString(1, colorFactor, colorFactor)
 
 	-- space
-	new_r = (sLoad - minSpace) / (maxSpace - minSpace)
+	new_r = (sLoad - minSpace) / spaceRange
 	if new_r > 1 then
 		new_r = 1
 	elseif new_r < 0 then
 		new_r = 0
 	end
-	redStrength[name .. '_space'] = redStrength[name .. '_space'] or 0
-	redStrength[name .. '_space'] = u * redStrength[name .. '_space'] + (1 - u) * new_r
-	g = 1 - redStrength[name .. "_space"] * ((255 - 64) / 255)
-	b = g
-	v.spaceColourString = ColorString(r, g, b)
+	local spaceKey = name .. '_space'
+	redStrength[spaceKey] = redStrength[spaceKey] or 0
+	redStrength[spaceKey] = u * redStrength[spaceKey] + oneMinusU * new_r
+	local spaceColorFactor = 1 - redStrength[spaceKey] * colorScaleFactor
+	v.spaceColourString = ColorString(1, spaceColorFactor, spaceColorFactor)
+end
+
+-- Helper function to render percentage with dimmed leading zeros
+local function DrawPercentWithDimmedZeros(colorString, value, x, y, fontSize, decimalPlaces)
+	local formatStr = '%.' .. (decimalPlaces or 3) .. 'f%%'
+	local formatted = stringFormat(formatStr, value)
+	local leadingPart, significantPart = stringMatch(formatted, '^(0%.0*)(.+)$')
+
+	if leadingPart then
+		-- Has leading zeros - render them dimmed
+		glText(colorString .. '\255\140\140\140' .. leadingPart, x, y, fontSize, "no")
+		local leadingWidth = glGetTextWidth(leadingPart) * fontSize
+		glText(colorString .. significantPart, x + leadingWidth, y, fontSize, "no")
+	else
+		-- No leading zeros - render normally
+		glText(colorString .. formatted, x, y, fontSize, "no")
+	end
+end
+
+-- Helper function to render memory allocation with dimmed leading zeros
+local function DrawMemoryWithDimmedZeros(colorString, value, x, y, fontSize, decimalPlaces, suffix)
+	local formatStr = '%.' .. (decimalPlaces or 1) .. 'f'
+	local formatted = stringFormat(formatStr, value)
+
+	-- Check if value is 0.0 (all zeros)
+	if tonumber(formatted) == 0 then
+		-- Render entire "0.0" dimmed
+		glText(colorString .. '\255\150\150\150' .. formatted .. suffix, x, y, fontSize, "no")
+	else
+		local leadingPart, significantPart = stringMatch(formatted, '^(0%.0*)(.+)$')
+		if leadingPart then
+			-- Has leading zeros - render them dimmed
+			glText(colorString .. '\255\150\150\150' .. leadingPart, x, y, fontSize, "no")
+			local leadingWidth = glGetTextWidth(leadingPart) * fontSize
+			glText(colorString .. significantPart .. suffix, x + leadingWidth, y, fontSize, "no")
+		else
+			-- No leading zeros - render normally
+			glText(colorString .. formatted .. suffix, x, y, fontSize, "no")
+		end
+	end
 end
 
 function DrawWidgetList(list, name, x, y, j, fontSize, lineSpace, maxLines, colWidth, dataColWidth)
@@ -371,21 +474,39 @@ function DrawWidgetList(list, name, x, y, j, fontSize, lineSpace, maxLines, colW
 	glText(title_colour .. name .. " WIDGETS", x + 152, y - lineSpace * j, fontSize, "no")
 	j = j + 2
 
-	for i = 1, #list do
+	local listLen = #list
+	for i = 1, listLen do
 		if j >= maxLines then
 			x = x - colWidth;
 			j = 0;
 		end
 		local v = list[i]
-		glText(v.timeColourString .. ('%.3f%%'):format(v.tLoad), x, y - lineSpace * j, fontSize, "no")
-		glText(v.spaceColourString .. ('%.1f'):format(v.sLoad) .. 'kB/s', x + dataColWidth, y - lineSpace * j, fontSize, "no")
+
+		-- Draw tinted background and colored square for widget line
+		local color = widgetNameColors[v.name]
+		if color then
+			local textY = y - lineSpace * j
+
+			-- Draw opaque colored square on the left
+			glColor(color[1], color[2], color[3], 1.0)
+			glRect(x - 12, textY - 3, x - 5, textY + fontSize - 3)
+
+			-- Draw subtle tinted background across the whole line
+			glColor(color[1], color[2], color[3], 0.25)
+			glRect(x - 5, textY - 3, x + colWidth - 15, textY + fontSize - 3)
+
+			glColor(1, 1, 1, 1)  -- Reset color
+		end
+
+		DrawPercentWithDimmedZeros(v.timeColourString, v.tLoad, x, y - lineSpace * j, fontSize)
+		DrawMemoryWithDimmedZeros(v.spaceColourString, v.sLoad, x + dataColWidth, y - lineSpace * j, fontSize, 1, 'kB/s')
 		glText(v.fullname, x + dataColWidth * 2, y - lineSpace * j, fontSize, "no")
 		j = j + 1
 	end
 
-	glText(totals_colour .. ('%.2f%%'):format(list.allOverTime), x, y - lineSpace * j, fontSize, "no")
-	glText(totals_colour .. ('%.0f'):format(list.allOverSpace) .. 'kB/s', x + dataColWidth, y - lineSpace * j, fontSize, "no")
-	glText(totals_colour .. "totals (" .. string.lower(name) .. ")", x + dataColWidth * 2, y - lineSpace * j, fontSize, "no")
+	DrawPercentWithDimmedZeros(totals_colour, list.allOverTime, x, y - lineSpace * j, fontSize, 2)
+	DrawMemoryWithDimmedZeros(totals_colour, list.allOverSpace, x + dataColWidth, y - lineSpace * j, fontSize, 0, 'kB/s')
+	glText(totals_colour .. "totals (" .. stringLower(name) .. ")", x + dataColWidth * 2, y - lineSpace * j, fontSize, "no")
 	j = j + 1
 
 	return x, j
@@ -399,7 +520,7 @@ function widget:DrawScreen()
 	local averageTime = Spring.GetConfigFloat("profiler_averagetime", 2)
 
 	-- sort & count timing
-	deltaTime = Spring.DiffTimers(spGetTimer(), startTimer, nil, highres)
+	deltaTime = spDiffTimers(spGetTimer(), startTimer, nil, highres)
 	if deltaTime >= tick then
 
 		startTimer = spGetTimer()
@@ -409,6 +530,11 @@ function widget:DrawScreen()
 		allOverSpace = 0
 		local n = 1
 		local sortByLoad = Spring.GetConfigInt("profiler_sort_by_load", 1) == 1
+
+		-- Cache FPS and frame calculation
+		local frames = mathMin(1 / tick, Spring.GetFPS()) * retainSortTime
+		local framesMinusOne = frames - 1
+
 		for wname, callins in pairs(callinStats) do
 			local t = 0 -- would call it time, but protected
 			local cmax_t = 0
@@ -416,17 +542,19 @@ function widget:DrawScreen()
 			local space = 0
 			local cmax_space = 0
 			local cmaxname_space = "-"
+
 			for cname, c in pairs(callins) do
-				t = t + c[1]
-				if c[2] > cmax_t then
-					cmax_t = c[2]
+				local c1, c2, c3, c4 = c[1], c[2], c[3], c[4]
+				t = t + c1
+				if c2 > cmax_t then
+					cmax_t = c2
 					cmaxname_t = cname
 				end
 				c[1] = 0
 
-				space = space + c[3]
-				if c[4] > cmax_space then
-					cmax_space = c[4]
+				space = space + c3
+				if c4 > cmax_space then
+					cmax_space = c4
 					cmaxname_space = cname
 				end
 				c[3] = 0
@@ -444,8 +572,7 @@ function widget:DrawScreen()
 			if not avgTLoad[wname] then
 				avgTLoad[wname] = tLoad * 0.7
 			end
-			local frames = math.min(1 / tick, Spring.GetFPS()) * retainSortTime
-			avgTLoad[wname] = ((avgTLoad[wname]*(frames-1)) + tLoad) / frames
+			avgTLoad[wname] = ((avgTLoad[wname] * framesMinusOne) + tLoad) / frames
 			local sLoad = spaceLoadAverages[wname]
 			if not sortByLoad or avgTLoad[wname] >= 0.05 or sLoad >= 5 then -- only show heavy ones
 				sortedList[n] = { name = wname2name[wname], plainname = wname, fullname = wname .. ' \255\166\166\166(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = t / deltaTime, avgTLoad = avgTLoad[wname] }
@@ -460,7 +587,8 @@ function widget:DrawScreen()
 			tableSort(sortedList, function(a, b) return a.name < b.name end)
 		end
 
-		for i = 1, #sortedList do
+		local sortedLen = #sortedList
+		for i = 1, sortedLen do
 			GetRedColourStrings(sortedList[i])
 		end
 		lm, _, gm, _, um, _, sm, _ = spGetLuaMemUsage()
@@ -479,22 +607,24 @@ function widget:DrawScreen()
 	gameList.allOverTime = 0
 	userList.allOverSpace = 0
 	gameList.allOverSpace = 0
-	for i = 1, #sortedList do
-		if userWidgets[sortedList[i].plainname] then
+	local sortedLen = #sortedList
+	for i = 1, sortedLen do
+		local item = sortedList[i]
+		if userWidgets[item.plainname] then
 			userListCount = userListCount + 1
-			userList[userListCount] = sortedList[i]
-			userList.allOverTime = userList.allOverTime + sortedList[i].tLoad
-			userList.allOverSpace = userList.allOverSpace + sortedList[i].sLoad
+			userList[userListCount] = item
+			userList.allOverTime = userList.allOverTime + item.tLoad
+			userList.allOverSpace = userList.allOverSpace + item.sLoad
 		else
 			gameListCount = gameListCount + 1
-			gameList[gameListCount] = sortedList[i]
-			gameList.allOverTime = gameList.allOverTime + sortedList[i].tLoad
-			gameList.allOverSpace = gameList.allOverSpace + sortedList[i].sLoad
+			gameList[gameListCount] = item
+			gameList.allOverTime = gameList.allOverTime + item.tLoad
+			gameList.allOverSpace = gameList.allOverSpace + item.sLoad
 		end
 	end
 
 	-- draw
-	local vsx, vsy = gl.GetViewSizes()
+	local vsx, vsy = glGetViewSizes()
 
 	local fontSize = mathMax(11, mathFloor(vsy / 90))
 	local lineSpace = fontSize + 2
@@ -506,8 +636,8 @@ function widget:DrawScreen()
 	local maxLines = mathMax(20, mathFloor(y / lineSpace) - 3)
 	local j = -1 --line number
 
-	gl.Color(1, 1, 1, 1)
-	gl.BeginText()
+	glColor(1, 1, 1, 1)
+	glBeginText()
 
 	x, j = DrawWidgetList(gameList, "GAME", x, y, j, fontSize, lineSpace, maxLines, colWidth, dataColWidth)
 	x, j = DrawWidgetList(userList, "USER", x, y, j, fontSize, lineSpace, maxLines, colWidth, dataColWidth)
@@ -522,19 +652,25 @@ function widget:DrawScreen()
 
 	j = j + 1
 	glText(totals_colour .. "total percentage of running time spent in luaui callins", x + dataColWidth * 2, y - lineSpace * j, fontSize, "no")
-	glText(totals_colour .. ('%.1f%%'):format(allOverTime), x + dataColWidth, y - lineSpace * j, fontSize, "no")
+	glText(totals_colour .. stringFormat('%.1f%%', allOverTime), x + dataColWidth, y - lineSpace * j, fontSize, "no")
 	j = j + 1
 	glText(totals_colour .. "total rate of mem allocation by luaui callins", x + dataColWidth * 2, y - lineSpace * j, fontSize, "no")
-	glText(totals_colour .. ('%.0f'):format(allOverSpace) .. 'kB/s', x + dataColWidth, y - lineSpace * j, fontSize, "no")
+	glText(totals_colour .. stringFormat('%.0f', allOverSpace) .. 'kB/s', x + dataColWidth, y - lineSpace * j, fontSize, "no")
+
+	-- Cache memory calculations
+	local gmMB = gm / 1000
+	local lmPercent = 100 * lm / gm
+	local umPercent = 100 * um / gm
+	local smPercent = 100 * sm / gm
 
 	j = j + 2
-	glText(totals_colour .. 'total lua memory usage is ' .. ('%.0f'):format(gm / 1000) .. 'MB, of which:', x, y - lineSpace * j, fontSize, "no")
+	glText(totals_colour .. 'total lua memory usage is ' .. stringFormat('%.0f', gmMB) .. 'MB, of which:', x, y - lineSpace * j, fontSize, "no")
 	j = j + 1
-	glText(totals_colour .. '  ' .. ('%.0f'):format(100 * lm / gm) .. '% is from luaui', x, y - lineSpace * j, fontSize, "no")
+	glText(totals_colour .. '  ' .. stringFormat('%.0f', lmPercent) .. '% is from luaui', x, y - lineSpace * j, fontSize, "no")
 	j = j + 1
-	glText(totals_colour .. '  ' .. ('%.0f'):format(100 * um / gm) .. '% is from unsynced states (luarules+luagaia+luaui)', x, y - lineSpace * j, fontSize, "no")
+	glText(totals_colour .. '  ' .. stringFormat('%.0f', umPercent) .. '% is from unsynced states (luarules+luagaia+luaui)', x, y - lineSpace * j, fontSize, "no")
 	j = j + 1
-	glText(totals_colour .. '  ' .. ('%.0f'):format(100 * sm / gm) .. '% is from synced states (luarules+luagaia)', x, y - lineSpace * j, fontSize, "no")
+	glText(totals_colour .. '  ' .. stringFormat('%.0f', smPercent) .. '% is from synced states (luarules+luagaia)', x, y - lineSpace * j, fontSize, "no")
 
 	j = j + 2
 	glText(title_colour .. "All data excludes load from garbage collection & executing GL calls", x, y - lineSpace * j, fontSize, "no")
@@ -546,5 +682,5 @@ function widget:DrawScreen()
 	j = j + 1
 	glText(title_colour .. "Smoothing time: " .. averageTime .. "s", x, y - lineSpace * j, fontSize, "no")
 
-	gl.EndText()
+	glEndText()
 end

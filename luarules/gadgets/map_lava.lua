@@ -36,12 +36,6 @@ if gadgetHandler:IsSyncedCode() then
 	local DAMAGE_RATE = 10 -- frames
 	local lavaDamage = lava.damage * (DAMAGE_RATE / gameSpeed)
 	local lavaDamageFeatures = lava.damageFeatures
-	if lavaDamageFeatures then
-		if not tonumber(lavaDamageFeatures) then
-			lavaDamageFeatures = 0.1
-		end
-		lavaDamageFeatures = lavaDamageFeatures * (DAMAGE_RATE / gameSpeed)
-	end
 
 	-- ceg effects
 	local lavaEffectBurst = lava.effectBurst
@@ -49,6 +43,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- speedups
 	local spAddUnitDamage = Spring.AddUnitDamage
+	local spAddFeatureDamage = Spring.AddFeatureDamage
 	local spDestroyFeature = Spring.DestroyFeature
 	local spGetAllUnits = Spring.GetAllUnits
 	local spGetFeatureDefID = Spring.GetFeatureDefID
@@ -125,11 +120,14 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function updateSlow(unitID, unitDefID, unitSlow)
-		if spMoveCtrlEnabled(unitID) then return end
+		if spMoveCtrlEnabled(unitID) then return false end
 		local slowedMaxSpeed = speedDefs[unitDefID] * unitSlow
 		local slowedTurnRate = turnDefs[unitDefID] * unitSlow
 		local slowedAccRate = accDefs[unitDefID] * unitSlow
-		spSetMoveData(unitID, {maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate})
+		local sucess = pcall(function()
+			spSetMoveData(unitID, {maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate})
+		end)
+		return sucess
 	end
 
 	-- slow down and damage unit+features in lava
@@ -154,16 +152,20 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 					if lavaUnits[unitID].slowed and (unitSlow ~= lavaUnits[unitID].currentSlow) then
-						lavaUnits[unitID].currentSlow = unitSlow
-						updateSlow(unitID, unitDefID, unitSlow)
+						local sucess = updateSlow(unitID, unitDefID, unitSlow)
+						if sucess then 
+							lavaUnits[unitID].currentSlow = unitSlow
+						end
 					end
 				spAddUnitDamage(unitID, lavaDamage, 0, gaiaTeamID, 1)
 				spSpawnCEG(lavaEffectDamage, x, y+5, z)
 				elseif lavaUnits[unitID] then -- unit exited lava
 					if lavaUnits[unitID].slowed then
-						updateSlow(unitID, unitDefID, 1)
+						local sucess = updateSlow(unitID, unitDefID, 1)
 					end
-				lavaUnits[unitID] = nil
+					if sucess then 
+						lavaUnits[unitID] = nil
+					end
 				end
 			end
 		end
@@ -174,13 +176,7 @@ if gadgetHandler:IsSyncedCode() then
 				if not geoThermal[FeatureDefID] then
 					x,y,z = spGetFeaturePosition(featureID)
 					if (y and y < lavaLevel) then
-						local _, maxMetal, _, maxEnergy, reclaimLeft = spGetFeatureResources (featureID)
-						reclaimLeft = reclaimLeft - lavaDamageFeatures
-						if reclaimLeft <= 0 then
-							spDestroyFeature(featureID)
-						else
-							spSetFeatureResources(featureID, maxMetal*reclaimLeft, maxEnergy*reclaimLeft, nil, reclaimLeft)
-						end
+						spAddFeatureDamage(featureID, lavaDamage, 0, gaiaTeamID)
 						spSpawnCEG(lavaEffectDamage, x, y+5, z)
 					end
 				end
