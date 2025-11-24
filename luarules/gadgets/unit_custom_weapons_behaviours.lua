@@ -20,10 +20,10 @@ end
 -- Localization ----------------------------------------------------------------
 
 local math_random = math.random
-local math_sqrt = math.sqrt
 local math_cos = math.cos
 local math_sin = math.sin
 local math_pi = math.pi
+local math_tau = math.tau
 local distance3dSquared = math.distance3dSquared
 
 local spDeleteProjectile = Spring.DeleteProjectile
@@ -264,51 +264,91 @@ end
 -- Based on retarget
 -- Uses no weapon customParams.
 
-local guidanceResults = {} -- ownerID = <isFiring, guidanceType, userTarget, guidanceTarget>
+-- Guidance weapon must be the primary and have burst/reload > 1 frame.
+-- This is hackish but works well to prevent spammy retargeting anyway.
+weaponCustomParamKeys.guidance = {
+	guidance_miss_radius = toPositiveNumber,
+}
 
-specialEffectFunction.guidance = function(projectileID)
+local function guidanceLost(radius, projectileID, targetID)
+	local tx, ty, tz
+
+	if radius > 0 then
+		local _, _, _, ux, uy, uz = spGetUnitPosition(targetID, false, true)
+		local elevation = max(spGetGroundHeight(ux, uz), 0)
+		local dx, dy, dz, slope = spGetGroundNormal(ux, uz, true)
+		local swerveRadius = radius * (0.25 + 0.75 * math_random())
+		local swerveAngle = math_tau * math_random()
+		local cosAngle = math_cos(swerveAngle)
+		local sinAngle = math_sin(swerveAngle)
+
+		if elevation <= 0 or slope <= 0.1 then
+			-- Scatter within a ring in the XZ plane.
+			tx = ux + swerveRadius * cosAngle
+			ty = uy
+			tz = uz + swerveRadius * sinAngle
+		else
+			-- Scatter within a ring rotated to align with terrain.
+			local ax, ay, az = 0, 1, 0
+			if dy >= 0.99 then ax, ay = 1, 0 end
+			local bx = ay * dz - az * dy
+			local by = az * dx - ax * dz
+			local bz = ax * dy - ay * dx
+			local cx = dy * bz - dz * by
+			local cy = dz * bx - dx * bz
+			local cz = dx * by - dy * bx
+			tx = ux + swerveRadius * (cosAngle + bx + sinAngle * cx)
+			ty = uy + swerveRadius * (cosAngle + by + sinAngle * cy)
+			tz = uz + swerveRadius * (cosAngle + bz + sinAngle * cz)
+		end
+	else
+		tx, ty, tz = spGetUnitPosition(targetID)
+	end
+
+	local elevation = max(spGetGroundHeight(tx, tz), 0)
+	spSetProjectileTarget(projectileID, tx, (ty - elevation < 40) and elevation or ((ty + elevation) * 0.5), tz)
+end
+
+---@class GuidanceEffectResult
+---@field [1] boolean isFiring
+---@field [2] TargetType guidanceType
+---@field [3] boolean isUserTarget
+---@field [4] integer|xyz guidanceTarget
+
+local guidanceResults = {} ---@type table<integer, GuidanceEffectResult>
+
+specialEffectFunction.guidance = function(params, projectileID)
 	if spGetProjectileTimeToLive(projectileID) > 0 then
 		local ownerID = spGetProjectileOwnerID(projectileID)
+		local targetType, target = spGetProjectileTarget(projectileID)
 
-		if spGetUnitIsDead(ownerID) ~= false then
-			return true
-		end
-
-		local targetType, missileTarget = spGetProjectileTarget(projectileID)
-		local results = guidanceResults[ownerID]
-
-		if not results then
-			-- Guidance weapon must be the primary and have burst/reload > 1 frame.
-			-- This is hackish but works well to prevent spammy retargeting anyway.
-			results = {
-				(spGetUnitWeaponState(ownerID, 1, "nextSalvo") or 0) + 1 >= gameFrame,
-				spGetUnitWeaponTarget(ownerID, 1)
-			}
-			guidanceResults[ownerID] = results
-		end
-
-		if results[1] and results[2] then
-			local guidanceType, guidanceTarget = results[2], results[4]
-			if not equalTargets(guidanceTarget, missileTarget) then
-				if guidanceType == 1 then
-					spSetProjectileTarget(projectileID, guidanceTarget, targetedUnit)
-					return false
-				elseif guidanceType == 2 then
-					spSetProjectileTarget(projectileID, guidanceTarget[1], guidanceTarget[2], guidanceTarget[3])
-					return false
+		if ownerID and spGetUnitIsDead(ownerID) == false then
+			local result = guidanceResults[ownerID]
+			if not result then
+				result = { spGetUnitWeaponState(ownerID, 1, "nextSalvo") + 1 >= gameFrame, spGetUnitWeaponTarget(ownerID, 1) } ---@diagnostic disable-line
+				guidanceResults[ownerID] = result
+			end
+			if result[1] and result[2] then
+				local guidanceType, guidanceTarget = result[2], result[4]
+				if not equalTargets(guidanceTarget, target) then
+					if guidanceType == 1 then
+						spSetProjectileTarget(projectileID, guidanceTarget, targetedUnit)
+						return false
+					elseif guidanceType == 2 then
+						spSetProjectileTarget(projectileID, guidanceTarget[1], guidanceTarget[2], guidanceTarget[3])
+						return false
+					end
 				end
 			end
 		end
 
-		-- Guidance weapon is not firing, its target is invalid or lost, and so on.
 		if targetType == targetedUnit then
-			spSetProjectileTarget(projectileID, spGetUnitPosition(missileTarget))
+			guidanceLost(params.guidance_miss_radius, projectileID, target)
 		end
 
 		return false
-	else
-		return true
 	end
+	return true
 end
 
 -- Sector fire
