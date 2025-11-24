@@ -82,6 +82,7 @@ return {
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			isdecoycommander = true,
+			continuous_aim_time = 0.17,
 		},
 		sfxtypes = {
 			explosiongenerators = {

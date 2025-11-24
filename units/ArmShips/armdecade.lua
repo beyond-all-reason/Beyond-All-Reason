@@ -37,6 +37,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmShips",
 			unitgroup = "weapon",
+			continuous_aim_time = 0.2,
 		},
 		featuredefs = {
 			dead = {

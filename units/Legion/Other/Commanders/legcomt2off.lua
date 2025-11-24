@@ -108,6 +108,7 @@ return {
 			paralyzemultiplier = 0.025,
 			subfolder = "",
 			paratrooper = true,
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

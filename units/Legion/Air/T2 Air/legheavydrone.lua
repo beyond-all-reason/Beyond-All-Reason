@@ -38,6 +38,7 @@ return {
 			subfolder = "CorAircraft",
 			drone = 1,
 			nohealthbars = 1,
+			continuous_aim_time = 0.17,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

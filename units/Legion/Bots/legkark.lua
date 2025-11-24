@@ -44,6 +44,7 @@ return {
 			weapon1turrety = 200,
 			reactive_armor_health = 300,
 			reactive_armor_restore = 15,
+			continuous_aim_time = 0.07,
 		},
 		featuredefs = {
 			dead = {

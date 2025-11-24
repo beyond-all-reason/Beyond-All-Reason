@@ -40,6 +40,7 @@ return {
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorHovercraft",
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

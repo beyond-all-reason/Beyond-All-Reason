@@ -117,6 +117,7 @@ for difficulty, stats in pairs(difficultyParams) do
 			paralyzemultiplier = 0.025,
 			subfolder = "",
 			i18nfromunit = 'scavengerbossv4',
+			continuous_aim_time = 0.13,
 		},
 		featuredefs = {
 			dead = {

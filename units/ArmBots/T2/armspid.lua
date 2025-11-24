@@ -47,6 +47,7 @@ return {
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "emp",
+			continuous_aim_time = 0.1,
 		},
 		featuredefs = {
 			dead = {
