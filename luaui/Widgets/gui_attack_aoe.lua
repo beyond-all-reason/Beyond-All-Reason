@@ -91,6 +91,7 @@ local junoColor = { 0.87, 0.94, 0.40, 1 }
 local napalmColor = { 0.85, 0.62, 0.28, 1 }
 local empColor = { 0.65, 0.65, 1, 1 }
 local scatterColor = { 1, 1, 0, 1 }
+local noStockpileColor = { 0.88, 0.88, 0.88, 1 }
 
 local scatterMinAlpha = 0.5
 local aoeLineWidthMult = 64
@@ -110,9 +111,18 @@ local aoeDiskBandCount = 16
 --------------------------------------------------------------------------------
 --vars
 --------------------------------------------------------------------------------
+local stockpileState = "done"
+local stockpileTimer = 0
+local stockpileFadeProgress = 1
+local STOCKPILE_DELAY = 0.1
+local STOCKPILE_FADE_TIME = 0.5
+local lastAimingUnitID = nil
+local lastNumStockpiled = 0
 local weaponInfo = {}
 local manualWeaponInfo = {}
 local hasSelection = false
+local isMonitoringStockpile = false
+local unitsToMonitorStockpile = {}
 local attackUnitDefID, manualFireUnitDefID
 local attackUnitID, manualFireUnitID
 local circleList
@@ -158,8 +168,22 @@ end
 --------------------------------------------------------------------------------
 -- utility functions
 --------------------------------------------------------------------------------
+local function GetFadedColor(color, alphaMult)
+	return { color[1], color[2], color[3], color[4] * alphaMult }
+end
+
 local function lerp(a, b, time)
 	return b - (b - a) * time
+end
+
+local function LerpColor(c1, c2, t)
+	local invT = 1 - t
+	return {
+		c1[1] * invT + c2[1] * t,
+		c1[2] * invT + c2[2] * t,
+		c1[3] * invT + c2[3] * t,
+		c1[4] * invT + c2[4] * t
+	}
 end
 
 local function ToBool(x)
@@ -349,11 +373,12 @@ local function SetupUnitDef(unitDefID, unitDef)
 	local paralyzer = maxWeaponDef.paralyzer
 	local junoType = maxWeaponDef.customParams.junotype
 	local isNapalm = maxWeaponDef.customParams.area_onhit_resistance == "fire"
+	local hasStockpile = maxWeaponDef.stockpile
 
 	if weaponType == "DGun" then
 		weaponTable[unitDefID] = { type = "dgun", range = maxWeaponDef.range, unitname = unitDef.name, requiredEnergy = maxWeaponDef.energyCost }
 	elseif junoType then
-		weaponTable[unitDefID] = { type = "juno", isMiniJuno = junoType == "mini" }
+		weaponTable[unitDefID] = { type = "juno", isMiniJuno = junoType == "mini", color = junoColor }
 	elseif maxWeaponDef.cylinderTargeting >= 100 then
 		weaponTable[unitDefID] = { type = "orbital", scatter = scatter }
 	elseif weaponType == "Cannon" then
@@ -399,16 +424,13 @@ local function SetupUnitDef(unitDefID, unitDef)
 		weaponTable[unitDefID] = { type = "direct", scatter = scatter, range = maxWeaponDef.range }
 	end
 
-	if maxWeaponDef.energyCost > 0 then
-		weaponTable[unitDefID].requiredEnergy = maxWeaponDef.energyCost
-	end
 	if paralyzer then
-		weaponTable[unitDefID].customColor = empColor
+		weaponTable[unitDefID].color = empColor
 	end
 	if isNapalm then
 		weaponTable[unitDefID].isNapalm = true
 		weaponTable[unitDefID].napalmRange = maxWeaponDef.customParams.area_onhit_range
-		weaponTable[unitDefID].customColor = napalmColor
+		weaponTable[unitDefID].color = napalmColor
 	end
 
 	weaponTable[unitDefID].aoe = aoe
@@ -417,6 +439,8 @@ local function SetupUnitDef(unitDefID, unitDef)
 	weaponTable[unitDefID].waterWeapon = waterWeapon
 	weaponTable[unitDefID].ee = ee
 	weaponTable[unitDefID].weaponNum = maxWeaponNum
+	weaponTable[unitDefID].hasStockpile = hasStockpile
+	weaponTable[unitDefID].reloadTime = maxWeaponDef.reload
 end
 
 local function SetupDisplayLists()
@@ -430,8 +454,29 @@ end
 --------------------------------------------------------------------------------
 --updates
 --------------------------------------------------------------------------------
-local function GetRepUnitID(unitIDs)
-	return unitIDs[1]
+local function GetUnitWithBestStockpile(unitIDs)
+	local bestUnit = unitIDs[1]
+	local maxProgress = 0
+	for _, unitId in ipairs(unitIDs) do
+		local numStockpiled, numStockpileQued, buildPercent = Spring.GetUnitStockpile(unitId)
+		if numStockpiled > 0 then
+			return unitId
+		elseif buildPercent > maxProgress then
+			maxProgress = buildPercent
+			bestUnit = unitId
+		end
+	end
+	return bestUnit
+end
+
+local function GetRepUnitID(unitIDs, info)
+	local bestUnit = unitIDs[1]
+	if info.hasStockpile then
+		isMonitoringStockpile = true
+		unitsToMonitorStockpile = unitIDs
+		bestUnit = GetUnitWithBestStockpile(unitIDs)
+	end
+	return bestUnit
 end
 
 local function UpdateSelection()
@@ -441,6 +486,8 @@ local function UpdateSelection()
 	attackUnitID = nil
 	manualFireUnitID = nil
 	hasSelection = false
+	isMonitoringStockpile = false
+	unitsToMonitorStockpile = {}
 
 	local sel = spGetSelectedUnitsSorted()
 	for unitDefID, unitIDs in pairs(sel) do
@@ -455,28 +502,32 @@ local function UpdateSelection()
 			if currCost > maxCost then
 				maxCost = currCost
 				attackUnitDefID = unitDefID
-				attackUnitID = GetRepUnitID(unitIDs)
+				attackUnitID = GetRepUnitID(unitIDs, weaponInfo[unitDefID])
 				hasSelection = true
 			end
 		end
 	end
 end
 
+local function GetActiveUnitInfo()
+	if not hasSelection then
+		return nil, nil
+	end
+
+	local _, cmd, _ = spGetActiveCommand()
+
+	if ((cmd == CMD_MANUALFIRE or cmd == CMD_MANUAL_LAUNCH) and manualFireUnitDefID) then
+		return manualWeaponInfo[manualFireUnitDefID], manualFireUnitID
+	elseif ((cmd == CMD_ATTACK or cmd == CMD_UNIT_SET_TARGET or cmd == CMD_UNIT_SET_TARGET_NO_GROUND) and attackUnitDefID) then
+		return weaponInfo[attackUnitDefID], attackUnitID
+	end
+
+	return nil, nil
+end
+
 --------------------------------------------------------------------------------
 --aoe
 --------------------------------------------------------------------------------
-local function SetAoeColor(alphaFactor, requiredEnergy, customColor)
-	local color
-	if customColor then
-		color = customColor
-	elseif requiredEnergy and select(1, spGetTeamResources(spGetMyTeamID(), 'energy')) < requiredEnergy then
-		color = aoeColorNoEnergy
-	else
-		color = aoeColor
-	end
-	SetColor(alphaFactor, color)
-end
-
 local function GetRadiusForDamageLevel(aoe, damageLevel, edgeEffectiveness)
 	local denominator = 1 - (damageLevel * edgeEffectiveness)
 	if denominator == 0 then
@@ -513,7 +564,7 @@ local function GetAlphaFactorForRing(minAlpha, maxAlpha, index, phase, alphaMult
 	return result * alphaMult
 end
 
-local function DrawDisk(tx, ty, tz, aoe, requiredEnergy, alphaMult, phase, customColor)
+local function DrawAoeRange(tx, ty, tz, aoe, alphaMult, phase, color)
 	alphaMult = alphaMult or 1
 	glPushMatrix()
 	glTranslate(tx, ty, tz)
@@ -523,7 +574,7 @@ local function DrawDisk(tx, ty, tz, aoe, requiredEnergy, alphaMult, phase, custo
 			local outerRing = aoe * idx / aoeDiskBandCount
 			local alphaFactor = GetAlphaFactorForRing(minFilledCircleAlpha, maxFilledCircleAlpha, idx, phase, alphaMult, diskWaveTriggerTimes)
 
-			SetAoeColor(alphaFactor, requiredEnergy, customColor)
+			SetColor(alphaFactor, color)
 			for i = 0, circleDivs do
 				local unitCircle = unitCircles[i]
 				glVertex(unitCircle[1] * outerRing, 0, unitCircle[2] * outerRing)
@@ -534,16 +585,16 @@ local function DrawDisk(tx, ty, tz, aoe, requiredEnergy, alphaMult, phase, custo
 	glPopMatrix()
 end
 
-local function DrawAoeRings(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alphaMult, phase, customColor)
+local function DrawDamageRings(tx, ty, tz, aoe, edgeEffectiveness, alphaMult, phase, color)
 	for ringIndex, damageLevel in ipairs(ringDamageLevels) do
 		local ringRadius = GetRadiusForDamageLevel(aoe, damageLevel, edgeEffectiveness)
 		local alphaFactor = GetAlphaFactorForRing(damageLevel, damageLevel + 0.2, ringIndex, phase, alphaMult, ringWaveTriggerTimes)
-		SetAoeColor(alphaFactor, requiredEnergy, customColor)
+		SetColor(alphaFactor, color)
 		DrawCircle(tx, ty, tz, ringRadius)
 	end
 end
 
-local function DrawDamageRings(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alphaMult, phaseOffset, customColor)
+local function DrawAoe(tx, ty, tz, aoe, edgeEffectiveness, color, alphaMult, phaseOffset)
 	glLineWidth(max(aoeLineWidthMult * aoe / mouseDistance, 0.5))
 	alphaMult = alphaMult or 1
 
@@ -551,13 +602,13 @@ local function DrawDamageRings(tx, ty, tz, aoe, edgeEffectiveness, requiredEnerg
 	phase = phase - floor(phase)
 
 	if edgeEffectiveness == 1 then
-		DrawDisk(tx, ty, tz, aoe, requiredEnergy, alphaMult, phase, customColor)
+		DrawAoeRange(tx, ty, tz, aoe, alphaMult, phase, color)
 	else
-		DrawAoeRings(tx, ty, tz, aoe, edgeEffectiveness, requiredEnergy, alphaMult, phase, customColor)
+		DrawDamageRings(tx, ty, tz, aoe, edgeEffectiveness, alphaMult, phase, color)
 	end
 
 	-- draw a max radius outline for clarity
-	SetAoeColor(1, requiredEnergy, customColor)
+	SetColor(1, color)
 	glLineWidth(1)
 	DrawCircle(tx, ty, tz, aoe)
 
@@ -565,7 +616,7 @@ local function DrawDamageRings(tx, ty, tz, aoe, edgeEffectiveness, requiredEnerg
 	glLineWidth(1)
 end
 
-local function DrawJuno(tx, ty, tz, aoe)
+local function DrawJuno(tx, ty, tz, aoe, color)
 	local phase = pulsePhase - floor(pulsePhase)
 
 	local areaDenialRadius = 450 -- defined in unit_juno_damage.lua - "outer radius of area denial ring"
@@ -574,7 +625,7 @@ local function DrawJuno(tx, ty, tz, aoe)
 	glPushMatrix()
 	glTranslate(tx, ty, tz)
 	glBeginEnd(GL_TRIANGLE_STRIP, function()
-		SetColor(maxFilledCircleAlpha, junoColor)
+		SetColor(maxFilledCircleAlpha, color)
 		for i = 0, circleDivs do
 			local unitCircle = unitCircles[i]
 			glVertex(unitCircle[1] * areaDenialRadius, 0, unitCircle[2] * areaDenialRadius)
@@ -588,7 +639,7 @@ local function DrawJuno(tx, ty, tz, aoe)
 
 			local alphaFactor = GetAlphaFactorForRing(minFilledCircleAlpha, maxFilledCircleAlpha, idx, phase, 1, diskWaveTriggerTimes, true)
 
-			SetColor(alphaFactor, junoColor)
+			SetColor(alphaFactor, color)
 			for i = 0, circleDivs do
 				local unitCircle = unitCircles[i]
 				glVertex(unitCircle[1] * outerRing, 0, unitCircle[2] * outerRing)
@@ -598,11 +649,48 @@ local function DrawJuno(tx, ty, tz, aoe)
 	end)
 	glPopMatrix()
 
-	SetColor(1, junoColor)
+	SetColor(1, color)
 	glLineWidth(1)
 	DrawCircle(tx, ty, tz, aoe) -- impact radius outline
 	DrawCircle(tx, ty, tz, areaDenialRadius) -- area denial ring outline
 
+	glColor(1, 1, 1, 1)
+	glLineWidth(1)
+end
+
+local function DrawStockpileProgress(tx, ty, tz, aoe, buildPercent, barColor, bgColor)
+	bgColor = bgColor or noStockpileColor
+	SetColor(1, bgColor)
+	glLineWidth(max(aoeLineWidthMult * aoe / 2 / mouseDistance, 0.5))
+
+	glPushMatrix()
+	glTranslate(tx, ty, tz)
+	glScale(aoe, aoe, aoe)
+
+	glCallList(circleList)
+
+	if buildPercent > 0 then
+		SetColor(1, barColor)
+
+		local limit = floor(circleDivs * buildPercent)
+		if limit > circleDivs then limit = circleDivs end
+
+		glBeginEnd(GL_LINE_STRIP, function()
+			for i = 0, limit do
+				local v = unitCircles[i]
+				glVertex(v[1], 0, v[2])
+			end
+
+			if buildPercent < 1 then
+				local angle = 2 * pi * buildPercent
+				glVertex(cos(angle), 0, sin(angle))
+			end
+		end)
+	end
+
+	glPopMatrix()
+
+	-- Reset
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
 end
@@ -692,32 +780,23 @@ local function GetFadeAlpha(theta)
 	return 1 - (pow(abs(sinTheta), 2) * (1 - scatterMinAlpha))
 end
 
-local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, aimingUnitID)
+local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, aimingUnitID, fillColor, lineColor)
 	local scatter = info.scatter
-	if scatter == 0 then
+	if scatter < 0.01 then
 		return
 	end
 	local v = info.v
-	local isOutsideMaxRange = false
-	local shouldAddFill = info.customColor ~= nil
-	local color = info.customColor
+	local isFilled = fillColor[4] > 0
 
 	-- 1. Math Setup
 	local aimDist = distance3d(tx, ty, tz, ux, uy, uz)
+	local isOutsideMaxRange = aimDist > info.range and not spGetUnitWeaponTestRange(aimingUnitID, info.weaponNum, tx, ty, tz)
 
-	if aimDist > info.range and not spGetUnitWeaponTestRange(aimingUnitID, info.weaponNum, tx, ty, tz) then
-		if info.mobile then
-			isOutsideMaxRange = true
-		else
-			return
-		end
-	end
-
-	-- If pointing outside the max range we don't want to use actual target for calculations as it will produce
-	-- misleading shape. Instead, we pretend that mouse points at the max range
 	local calc_tx, calc_ty, calc_tz = tx, ty, tz
 	local calc_dist = aimDist
 
+	-- If pointing outside the max range we don't want to use actual target for calculations as it will produce
+	-- misleading shape. Instead, we pretend that mouse points at the max range
 	if isOutsideMaxRange then
 		local factor = info.range / aimDist
 		calc_tx = ux + (tx - ux) * factor
@@ -742,7 +821,6 @@ local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, ai
 		rz = bx * inv_len
 	end
 
-	-- Physics constants
 	local v_f = v / GAME_SPEED
 	local gravity_f = -0.5 * g_f
 	local heightDiff = uy - calc_ty
@@ -790,17 +868,17 @@ local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, ai
 	local naturalRadius = calc_dist * (tan(scatter) + 0.01)
 
 	local scatterAlphaFactor = 0
-	local minScatterRadius = info.aoe * 0.5
-	local scatterRadiusThreshold = shouldAddFill and 0 or info.aoe
+	local baseThreshold = max(info.aoe, 15)
+	local minScatterRadius = baseThreshold * 0.5
 
-	if naturalRadius >= scatterRadiusThreshold then
+	if naturalRadius >= baseThreshold then
 		scatterAlphaFactor = 1
 	elseif naturalRadius > minScatterRadius then
-		scatterAlphaFactor = (naturalRadius - minScatterRadius) / (scatterRadiusThreshold - minScatterRadius)
+		scatterAlphaFactor = (naturalRadius - minScatterRadius) / (baseThreshold - minScatterRadius)
 	end
 
 	if scatterAlphaFactor <= 0 then
-		return true
+		return
 	end
 
 	local maxAxisLen = naturalRadius * 2.5
@@ -848,18 +926,18 @@ local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, ai
 	local angleStep = (pi * 2) / scatterSegments
 	glDepthTest(true)
 	-- Fill
-	if shouldAddFill then
-		local fillAlphaMult = 0.5
+	if isFilled then
+		local fillAlphaMult = 0.2
 		BeginNoOverlap()
 		glBeginEnd(GL_TRIANGLE_FAN, function()
 			local cy = spGetGroundHeight(tx, tz)
-			glColor(color[1], color[2], color[3], color[4] * fillAlphaMult * scatterAlphaFactor)
+			glColor(fillColor[1], fillColor[2], fillColor[3], fillColor[4] * fillAlphaMult * scatterAlphaFactor)
 			glVertex(tx, cy, tz)
 
 			for i = 0, scatterSegments do
 				local theta = i * angleStep
 				local fadeFactor = GetFadeAlpha(theta)
-				glColor(color[1], color[2], color[3], color[4] * fillAlphaMult * fadeFactor * scatterAlphaFactor)
+				glColor(fillColor[1], fillColor[2], fillColor[3], fillColor[4] * fillAlphaMult * fadeFactor * scatterAlphaFactor)
 
 				local cosTheta = cos(theta)
 				local sinTheta = sin(theta)
@@ -880,7 +958,7 @@ local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, ai
 		for i = 0, scatterSegments do
 			local theta = i * angleStep
 			local fadeFactor = GetFadeAlpha(theta)
-			glColor(scatterColor[1], scatterColor[2], scatterColor[3], scatterColor[4] * fadeFactor * scatterAlphaFactor)
+			glColor(lineColor[1], lineColor[2], lineColor[3], lineColor[4] * fadeFactor * scatterAlphaFactor)
 
 			local cosTheta = cos(theta)
 			local sinTheta = sin(theta)
@@ -896,7 +974,7 @@ local function DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, ai
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
 	glDepthTest(false)
-	return true
+	return scatterAlphaFactor
 end
 
 --------------------------------------------------------------------------------
@@ -954,7 +1032,8 @@ end
 --------------------------------------------------------------------------------
 --wobble
 --------------------------------------------------------------------------------
-local function DrawWobbleScatter(scatter, ux, uy, uz, tx, ty, tz, rangeScatter, range)
+local function DrawWobbleScatter(scatter, ux, uy, uz, tx, ty, tz, rangeScatter, range, color)
+	color = color or scatterColor
 	local d = distance3d(tx, ty, tz, ux, uy, uz)
 
 	glColor(scatterColor)
@@ -973,7 +1052,11 @@ end
 --------------------------------------------------------------------------------
 --direct
 --------------------------------------------------------------------------------
-local function DrawDirectScatter(scatter, ux, uy, uz, tx, ty, tz, range, unitRadius)
+local function DrawDirectScatter(scatter, ux, uy, uz, tx, ty, tz, range, unitRadius, color)
+	if scatter < 0.01 then
+		return
+	end
+	color = color or scatterColor
 	local dx = tx - ux
 	local dy = ty - uy
 	local dz = tz - uz
@@ -999,10 +1082,10 @@ local function DrawDirectScatter(scatter, ux, uy, uz, tx, ty, tz, range, unitRad
 
 	-- This makes the cone start slightly wide based on unit size and scatter
 	local startSpreadX = -scatter * edgeOffsetZ
-	local startSpreadZ =  scatter * edgeOffsetX
+	local startSpreadZ = scatter * edgeOffsetX
 
 	local targetSpreadX = -scatter * (dz / groundVectorMag)
-	local targetSpreadZ =  scatter * (dx / groundVectorMag)
+	local targetSpreadZ = scatter * (dx / groundVectorMag)
 
 	-- 4. Define the Lines
 	local vertices = {
@@ -1023,7 +1106,7 @@ end
 --------------------------------------------------------------------------------
 --dropped
 --------------------------------------------------------------------------------
-local function DrawDropped(aoe, ee, v, ux, uz, tx, tz, salvoSize, salvoDelay, customColor)
+local function DrawDropped(aoe, ee, v, ux, uz, tx, tz, salvoSize, salvoDelay, color)
 	local dx = tx - ux
 	local dz = tz - uz
 
@@ -1047,7 +1130,7 @@ local function DrawDropped(aoe, ee, v, ux, uz, tx, tz, salvoSize, salvoDelay, cu
 		if py_c < 0 then
 			py_c = 0
 		end
-		DrawDamageRings(px_c, py_c, pz_c, aoe, ee, nil, alphaMult, -salvoAnimationSpeed * i, customColor)
+		DrawAoe(px_c, py_c, pz_c, aoe, ee, color, alphaMult, -salvoAnimationSpeed * i)
 	end
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
@@ -1056,7 +1139,8 @@ end
 --------------------------------------------------------------------------------
 --orbital
 --------------------------------------------------------------------------------
-local function DrawOrbitalScatter(scatter, tx, ty, tz)
+local function DrawOrbitalScatter(scatter, tx, ty, tz, color)
+	color = color or scatterColor
 	glColor(scatterColor)
 	glLineWidth(scatterLineWidthMult / mouseDistance)
 	DrawCircle(tx, ty, tz, scatter)
@@ -1103,22 +1187,8 @@ function widget:Shutdown()
 end
 
 function widget:DrawWorldPreUnit()
-	if not hasSelection then
-		ResetPulsePhase()
-		return
-	end
-
-	local info, manualFire, aimingUnitID
-	local _, cmd, _ = spGetActiveCommand()
-
-	if ((cmd == CMD_MANUALFIRE or cmd == CMD_MANUAL_LAUNCH) and manualFireUnitDefID) then
-		info = manualWeaponInfo[manualFireUnitDefID]
-		aimingUnitID = manualFireUnitID
-		manualFire = true
-	elseif (cmd == CMD_ATTACK or cmd == CMD_UNIT_SET_TARGET or cmd == CMD_UNIT_SET_TARGET_NO_GROUND and attackUnitDefID) then
-		info = weaponInfo[attackUnitDefID]
-		aimingUnitID = attackUnitID
-	else
+	local info, aimingUnitID = GetActiveUnitInfo()
+	if not info then
 		ResetPulsePhase()
 		return
 	end
@@ -1126,6 +1196,12 @@ function widget:DrawWorldPreUnit()
 	mouseDistance = GetMouseDistance() or 1000
 	local tx, ty, tz = GetMouseTargetPosition(true)
 	if (not tx) then
+		ResetPulsePhase()
+		return
+	end
+
+	-- do not draw for static units outside the range to make it clear you can't shoot there
+	if not info.mobile and not spGetUnitWeaponTestRange(aimingUnitID, info.weaponNum, tx, ty, tz) then
 		ResetPulsePhase()
 		return
 	end
@@ -1148,14 +1224,38 @@ function widget:DrawWorldPreUnit()
 
 	-- tremor customdef weapon
 	if (weaponType == "sector") then
-		local angle = info.sector_angle
-		local shortfall = info.sector_shortfall
-		local rangeMax = info.sector_range_max
-
-		DrawSectorScatter(angle, shortfall, rangeMax, ux, uz, tx, ty, tz)
+		DrawSectorScatter(info.sector_angle, info.sector_shortfall, info.sector_range_max, ux, uz, tx, ty, tz)
 		ResetPulsePhase()
 		return
 	end
+
+	---------------------------------------------------------
+	-- COLOR CALCULATION
+	---------------------------------------------------------
+	local baseColor
+	local baseFillColor
+	if weaponType == "ballistic" then
+		baseColor = info.color or aoeColor
+		baseFillColor = info.color or GetFadedColor(aoeColor, 0)
+	else
+		baseColor = info.color or aoeColor
+		baseFillColor = baseColor
+	end
+
+	local currentBaseColor = baseColor
+	local currentScatterColor = scatterColor
+	local currentFillColor = baseFillColor or baseColor
+
+	-- If it's a stockpile weapon, handle color transition if needed
+	if info.hasStockpile then
+		currentBaseColor = LerpColor(noStockpileColor, baseColor, stockpileFadeProgress)
+		currentScatterColor = LerpColor(noStockpileColor, scatterColor, stockpileFadeProgress)
+		currentFillColor = LerpColor(noStockpileColor, baseFillColor, stockpileFadeProgress)
+	end
+
+	---------------------------------------------------------
+	-- DRAW WEAPON (Always visible, color just changes)
+	---------------------------------------------------------
 
 	if (weaponType == "ballistic") then
 		local trajectory = select(7, spGetUnitStates(aimingUnitID, false, true))
@@ -1164,39 +1264,59 @@ function widget:DrawWorldPreUnit()
 		else
 			trajectory = -1
 		end
-		local isScatterVisible = DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, aimingUnitID)
 
-		local hasMultipleProjectiles = info.projectileCount > 1 or info.salvoSize > 1
-		if not hasMultipleProjectiles or not isScatterVisible then
-			DrawDamageRings(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy, 1, 0, info.customColor)
+		local scatterAlphaFactor = DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, aimingUnitID, currentFillColor, currentScatterColor)
+		local currentAoeColor = currentBaseColor
+		if scatterAlphaFactor then
+			currentAoeColor = GetFadedColor(currentAoeColor, 1 - (scatterAlphaFactor * 0.9))
 		end
+
+		DrawAoe(tx, ty, tz, info.aoe, info.ee, currentAoeColor)
 	elseif (weaponType == "noexplode") then
 		DrawNoExplode(info.aoe, ux, uy, uz, tx, ty, tz, info.range, info.requiredEnergy)
-	elseif (weaponType == "tracking") then
-		DrawDamageRings(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
 	elseif (weaponType == "direct") then
-		DrawDamageRings(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
-		DrawDirectScatter(info.scatter, ux, uy, uz, tx, ty, tz, info.range, spGetUnitRadius(aimingUnitID))
+		DrawAoe(tx, ty, tz, info.aoe, info.ee, currentBaseColor)
+		DrawDirectScatter(info.scatter, ux, uy, uz, tx, ty, tz, info.range, spGetUnitRadius(aimingUnitID), currentScatterColor)
 	elseif (weaponType == "dropped" and info.salvoSize and info.salvoSize > 1) then
-		-- if there is only 1 bomb then draw regular AoE instead
-		DrawDropped(info.aoe, info.ee, info.v, ux, uz, tx, tz, info.salvoSize, info.salvoDelay, info.customColor)
+		DrawDropped(info.aoe, info.ee, info.v, ux, uz, tx, tz, info.salvoSize, info.salvoDelay, currentBaseColor)
 	elseif (weaponType == "wobble") then
-		DrawDamageRings(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
-		DrawWobbleScatter(info.scatter, ux, uy, uz, tx, ty, tz, info.rangeScatter, info.range)
+		DrawAoe(tx, ty, tz, info.aoe, info.ee, currentBaseColor)
+		DrawWobbleScatter(info.scatter, ux, uy, uz, tx, ty, tz, info.rangeScatter, info.range, currentScatterColor)
 	elseif (weaponType == "orbital") then
-		DrawDamageRings(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
-		DrawOrbitalScatter(info.scatter, tx, ty, tz)
+		DrawAoe(tx, ty, tz, info.aoe, info.ee, currentBaseColor)
+		DrawOrbitalScatter(info.scatter, tx, ty, tz, currentScatterColor)
 	elseif weaponType == "dgun" then
 		DrawDGun(info.aoe, ux, uy, uz, tx, ty, tz, info.range, info.requiredEnergy, info.unitname)
-	elseif weaponType == "juno" then
-		if info.isMiniJuno then
-			-- mini juno (from legion bomber) has no expanded impact area
-			DrawDamageRings(tx, ty, tz, info.aoe, 1, 0, 1, 0, junoColor)
-		else
-			DrawJuno(tx, ty, tz, info.aoe)
-		end
+	elseif weaponType == "juno" and not info.isMiniJuno then
+		DrawJuno(tx, ty, tz, info.aoe, currentBaseColor)
 	else
-		DrawDamageRings(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy, 1, 0, info.customColor)
+		DrawAoe(tx, ty, tz, info.aoe, info.ee, currentBaseColor)
+	end
+
+	---------------------------------------------------------
+	-- DRAW PROGRESS (Fades out when ready)
+	---------------------------------------------------------
+	if info.hasStockpile then
+		local numStockpiled, numStockpileQued, buildPercent = Spring.GetUnitStockpile(aimingUnitID)
+
+		-- Visual Trick: If we are in delay/fading state, force bar to look 100% full
+		if stockpileState == "delay" or stockpileState == "fading" then
+			buildPercent = 1
+		end
+
+		-- Fade out the bar as the color fades in
+		local barAlpha = 1 - stockpileFadeProgress
+
+		if barAlpha > 0 then
+			-- Use baseColor for the bar, but apply the fading alpha
+			local barColor = { baseColor[1], baseColor[2], baseColor[3], baseColor[4] * barAlpha }
+
+			-- The background ring of the progress bar should also fade out
+			local barBgColor = { noStockpileColor[1], noStockpileColor[2], noStockpileColor[3], noStockpileColor[4] * barAlpha }
+
+			-- You need to update DrawStockpileProgress to take these colors
+			DrawStockpileProgress(tx, ty, tz, info.aoe, buildPercent, barColor, barBgColor)
+		end
 	end
 end
 
@@ -1204,10 +1324,97 @@ function widget:SelectionChanged(sel)
 	selectionChanged = true
 end
 
+local function HandleStockpileProgressTransition(dt)
+	local info, aimingUnitID = GetActiveUnitInfo()
+	if not aimingUnitID or not info or not info.hasStockpile then
+		-- Not a stockpile weapon
+		stockpileFadeProgress = 1
+		stockpileState = "done"
+		return
+	end
+
+	-------------------------------------------------------
+	-- 1. HANDLE SELECTION CHANGES (Immediate State Set)
+	-------------------------------------------------------
+	if aimingUnitID ~= lastAimingUnitID then
+		lastAimingUnitID = aimingUnitID
+		local num = Spring.GetUnitStockpile(aimingUnitID)
+		lastNumStockpiled = num
+		if num > 0 then
+			stockpileState = "done"
+			stockpileFadeProgress = 1
+		else
+			stockpileState = "loading"
+			stockpileFadeProgress = 0
+		end
+	end
+
+	-------------------------------------------------------
+	-- 2. HANDLE STOCKPILE LOGIC
+	-------------------------------------------------------
+	local numStockpiled = Spring.GetUnitStockpile(aimingUnitID)
+
+	-- Detect Firing (Transition: Ready -> Loading)
+	if numStockpiled == 0 and lastNumStockpiled > 0 then
+		stockpileState = "draining"
+	end
+	lastNumStockpiled = numStockpiled
+
+	-- State Machine
+	if stockpileState == "draining" then
+		-- Fade OUT (Red -> Gray, Bar fades IN)
+		stockpileFadeProgress = stockpileFadeProgress - (dt / STOCKPILE_FADE_TIME)
+		if stockpileFadeProgress <= 0 then
+			stockpileFadeProgress = 0
+			stockpileState = "loading"
+		end
+
+	elseif numStockpiled == 0 then
+		-- Standard Loading State (Gray, Bar Visible)
+		-- Ensure we don't override "draining" if we are in it
+		if stockpileState ~= "draining" then
+			stockpileState = "loading"
+			stockpileFadeProgress = 0
+		end
+
+	elseif stockpileState == "loading" then
+		-- Just finished building (num > 0), start Delay
+		stockpileState = "delay"
+		stockpileTimer = 0
+		stockpileFadeProgress = 0
+
+	elseif stockpileState == "delay" then
+		-- Wait with full bar before fading
+		stockpileTimer = stockpileTimer + dt
+		stockpileFadeProgress = 0
+		if stockpileTimer > STOCKPILE_DELAY then
+			stockpileState = "fading"
+			stockpileTimer = 0
+		end
+
+	elseif stockpileState == "fading" then
+		-- Fade IN (Gray -> Red, Bar fades OUT)
+		stockpileTimer = stockpileTimer + dt
+		stockpileFadeProgress = stockpileTimer / STOCKPILE_FADE_TIME
+		if stockpileFadeProgress >= 1 then
+			stockpileFadeProgress = 1
+			stockpileState = "done"
+		end
+
+	else
+		-- "done"
+		stockpileFadeProgress = 1
+	end
+end
+
 local selChangedSec = 0
 function widget:Update(dt)
 	pulsePhase = pulsePhase + dt
 	pulsePhase = pulsePhase - floor(pulsePhase)
+
+	if isMonitoringStockpile then
+		attackUnitID = GetUnitWithBestStockpile(unitsToMonitorStockpile)
+	end
 
 	selChangedSec = selChangedSec + dt
 	if selectionChanged and selChangedSec > 0.15 then
@@ -1215,4 +1422,5 @@ function widget:Update(dt)
 		selectionChanged = nil
 		UpdateSelection()
 	end
+	HandleStockpileProgressTransition(dt)
 end
