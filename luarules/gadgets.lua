@@ -208,6 +208,7 @@ local callInLists = {
 	"AllowWeaponTargetCheck",
 	"AllowWeaponTarget",
 	"AllowWeaponInterceptTarget",
+	"ProcessEconomy",
 	-- unsynced
 	"DrawUnit",
 	"DrawFeature",
