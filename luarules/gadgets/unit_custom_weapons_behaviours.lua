@@ -283,7 +283,7 @@ local function guidanceLost(projectileID, radius, targetID)
 
 	if radius > 0 then
 		local _, _, _, ux, uy, uz = spGetUnitPosition(targetID, false, true)
-		local elevation = max(spGetGroundHeight(ux, uz), 0)
+		local elevation = math.max(spGetGroundHeight(ux, uz), 0)
 		local dx, dy, dz, slope = spGetGroundNormal(ux, uz, true)
 		local swerveRadius = radius * (0.25 + 0.75 * math_random())
 		local swerveAngle = math_tau * math_random()
