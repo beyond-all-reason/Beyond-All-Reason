@@ -333,7 +333,8 @@ specialEffectFunction.guidance = function(params, projectileID)
 		if ownerID and spGetUnitIsDead(ownerID) == false then
 			local result = guidanceResults[ownerID]
 			if not result then
-				result = { spGetUnitWeaponState(ownerID, 1, "nextSalvo") + 1 >= gameFrame, spGetUnitWeaponTarget(ownerID, 1) }
+				local nextSalvo = spGetUnitWeaponState(ownerID, 1, "nextSalvo")
+				result = { nextSalvo and (nextSalvo + 1 >= gameFrame) or false, spGetUnitWeaponTarget(ownerID, 1) }
 				guidanceResults[ownerID] = result
 			end
 			local hasGuidance, guidanceType, guidanceTarget = result[1], result[2], result[4]
