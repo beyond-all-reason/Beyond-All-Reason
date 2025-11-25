@@ -138,6 +138,20 @@ local function equalTargets(target1, target2)
 	)
 end
 
+---Translate between TargetType enum and byte-integer target types (why are there two?)
+---@param projectileID integer
+---@param target integer|xyz?
+---@param targetType TargetType
+local function setProjectileTarget(projectileID, target, targetType)
+	if targetType == 1 then
+		spSetProjectileTarget(projectileID, target, targetedUnit)
+		return true
+	elseif targetType == 2 then
+		spSetProjectileTarget(projectileID, target[1], target[2], target[3])
+		return true
+	end
+end
+
 local getProjectileArgs
 do
 	---@class ProjectileParams
@@ -240,15 +254,9 @@ specialEffectFunction.retarget = function(projectileID)
 		if targetType == targetedUnit then
 			if spGetUnitIsDead(target) ~= false then
 				local ownerID = spGetProjectileOwnerID(projectileID)
-
 				-- Hardcoded to retarget only from the primary weapon and only units or ground
-				local ownerTargetType, _, ownerTarget = spGetUnitWeaponTarget(ownerID, 1)
-
-				if ownerTargetType == 1 then
-					spSetProjectileTarget(projectileID, ownerTarget, targetedUnit)
-				elseif ownerTargetType == 2 then
-					spSetProjectileTarget(projectileID, ownerTarget[1], ownerTarget[2], ownerTarget[3])
-				end
+				local ownerTargetType, fromUser, ownerTarget = spGetUnitWeaponTarget(ownerID, 1)
+				setProjectileTarget(projectileID, ownerTarget, ownerTargetType)
 			end
 			return false
 		end
@@ -330,14 +338,11 @@ specialEffectFunction.guidance = function(params, projectileID)
 			end
 			local hasGuidance, guidanceType, guidanceTarget = result[1], result[2], result[4]
 
-			if hasGuidance and guidanceTarget and not equalTargets(guidanceTarget, target) then
-				if guidanceType == 1 then
-					spSetProjectileTarget(projectileID, guidanceTarget, targetedUnit)
-					return false
-				elseif guidanceType == 2 then
-					spSetProjectileTarget(projectileID, guidanceTarget[1], guidanceTarget[2], guidanceTarget[3])
-					return false
-				end
+			if hasGuidance and guidanceTarget and
+				not equalTargets(guidanceTarget, target) and
+				setProjectileTarget(projectileID, guidanceTarget, guidanceType)
+			then
+				return false
 			end
 		end
 
