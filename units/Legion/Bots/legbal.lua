@@ -131,7 +131,7 @@ return {
 				soundhitwet = "splshbig",
 				soundstart = "rocklit1",
 				startvelocity = 230,
-				sprayangle = 606,
+				sprayangle = 1010,
 				texture1 = "null",
 				texture2 = "smoketraildark",
 				trajectoryheight = 0.66,
