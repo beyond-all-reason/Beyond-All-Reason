@@ -131,7 +131,7 @@ return {
 				soundhitwet = "splshbig",
 				soundstart = "rocklit1",
 				startvelocity = 230,
-				sprayangle = 301,
+				sprayangle = 606,
 				texture1 = "null",
 				texture2 = "smoketraildark",
 				trajectoryheight = 0.66,
@@ -147,7 +147,7 @@ return {
 				customparams = {
 					projectile_destruction_method = "explode",
 					--projectile_destruction_method = "descend",
-					overrange_distance = 1200,
+					overrange_distance = 1205,
 				},
 			},
 		},
