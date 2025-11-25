@@ -101,6 +101,8 @@ return {
 		},
 		weapondefs = {
 			leg_bot_rocket = {
+				accuracy = 33,
+				sprayangle = 1010,
 				areaofeffect = 210,
 				avoidfeature = false,
 				cegtag = "missiletrailsmall-simple",
@@ -131,7 +133,6 @@ return {
 				soundhitwet = "splshbig",
 				soundstart = "rocklit1",
 				startvelocity = 230,
-				sprayangle = 1010,
 				texture1 = "null",
 				texture2 = "smoketraildark",
 				trajectoryheight = 0.66,
