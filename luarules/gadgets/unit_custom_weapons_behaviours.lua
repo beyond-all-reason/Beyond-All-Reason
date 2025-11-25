@@ -267,7 +267,7 @@ end
 -- Guidance weapon must be the primary and have burst/reload > 1 frame.
 -- This is hackish but works well to prevent spammy retargeting anyway.
 weaponCustomParamKeys.guidance = {
-	guidance_miss_radius = toPositiveNumber,
+	guidance_lost_radius = toPositiveNumber,
 }
 
 local function guidanceLost(projectileID, radius, targetID)
@@ -343,7 +343,7 @@ specialEffectFunction.guidance = function(params, projectileID)
 		end
 
 		if targetType == targetedUnit then
-			guidanceLost(projectileID, params.guidance_miss_radius, target)
+			guidanceLost(projectileID, params.guidance_lost_radius, target)
 		end
 
 		return false
