@@ -312,8 +312,8 @@ end
 ---@class GuidanceEffectResult
 ---@field [1] boolean isFiring
 ---@field [2] TargetType guidanceType
----@field [3] boolean isUserTarget
----@field [4] integer|xyz guidanceTarget
+---@field [3] boolean? isUserTarget, nil when guidanceType is `0`
+---@field [4] integer|xyz? guidanceTarget, nil when guidanceType is `0`
 
 local guidanceResults = {} ---@type table<integer, GuidanceEffectResult>
 
@@ -325,7 +325,7 @@ specialEffectFunction.guidance = function(params, projectileID)
 		if ownerID and spGetUnitIsDead(ownerID) == false then
 			local result = guidanceResults[ownerID]
 			if not result then
-				result = { spGetUnitWeaponState(ownerID, 1, "nextSalvo") + 1 >= gameFrame, spGetUnitWeaponTarget(ownerID, 1) } ---@diagnostic disable-line
+				result = { spGetUnitWeaponState(ownerID, 1, "nextSalvo") + 1 >= gameFrame, spGetUnitWeaponTarget(ownerID, 1) }
 				guidanceResults[ownerID] = result
 			end
 			if result[1] and result[2] then
