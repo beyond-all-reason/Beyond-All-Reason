@@ -19,6 +19,7 @@ end
 --------------------------------------------------------------------------------
 -- Localization ----------------------------------------------------------------
 
+local math_max = math.max
 local math_random = math.random
 local math_cos = math.cos
 local math_sin = math.sin
@@ -113,7 +114,7 @@ end
 
 local function toPositiveNumber(value)
 	value = tonumber(value)
-	return value and math.max(0, value) or nil
+	return value and math_max(0, value) or nil
 end
 
 --- Weapon behaviors -----------------------------------------------------------
@@ -283,7 +284,7 @@ local function guidanceLost(projectileID, radius, targetID)
 
 	if radius > 0 then
 		local _, _, _, ux, uy, uz = spGetUnitPosition(targetID, false, true)
-		local elevation = math.max(spGetGroundHeight(ux, uz), 0)
+		local elevation = math_max(spGetGroundHeight(ux, uz), 0)
 		local dx, dy, dz, slope = spGetGroundNormal(ux, uz, true)
 		local swerveRadius = radius * (0.25 + 0.75 * math_random())
 		local swerveAngle = math_tau * math_random()
@@ -313,7 +314,7 @@ local function guidanceLost(projectileID, radius, targetID)
 		tx, ty, tz = spGetUnitPosition(targetID)
 	end
 
-	local elevation = max(spGetGroundHeight(tx, tz), 0)
+	local elevation = math_max(spGetGroundHeight(tx, tz), 0)
 	spSetProjectileTarget(projectileID, tx, (ty - elevation < 40) and elevation or ((ty + elevation) * 0.5), tz)
 end
 
