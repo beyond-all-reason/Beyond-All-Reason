@@ -96,8 +96,8 @@ for udid, udef in pairs(UnitDefs) do
 	local builder = (udef.canReclaim and udef.reclaimSpeed > 0)  or  (udef.canResurrect and udef.resurrectSpeed > 0)  or  (udef.canRepair and udef.repairSpeed > 0) or (udef.buildOptions and udef.buildOptions[1])
 	local building = (isMobile == false)
 	local combat = (not builder) and isMobile and (#udef.weapons > 0)
-	local isUtil = udef.customParams and udef.customParams.unitgroup == "util"
-	local antinuke = udef.customParams and udef.customParams.unitgroup == "antinuke"
+	local isUtil = udef.customParams.unitgroup == "util"
+	local antinuke = isMobile and udef.customParams.unitgroup == "antinuke"
 	local radar = isMobile and isUtil and udef.radarDistance > 0
 	local jammer = isMobile and isUtil and udef.radarDistanceJam > 0
 
