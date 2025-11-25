@@ -121,6 +121,8 @@ local lastNumStockpiled = 0
 local weaponInfo = {}
 local manualWeaponInfo = {}
 local hasSelection = false
+local isMonitoringStockpile = false
+local unitsToMonitorStockpile = {}
 local attackUnitDefID, manualFireUnitDefID
 local attackUnitID, manualFireUnitID
 local circleList
@@ -452,8 +454,29 @@ end
 --------------------------------------------------------------------------------
 --updates
 --------------------------------------------------------------------------------
-local function GetRepUnitID(unitIDs)
-	return unitIDs[1]
+local function GetUnitWithBestStockpile(unitIDs)
+	local bestUnit = unitIDs[1]
+	local maxProgress = 0
+	for _, unitId in ipairs(unitIDs) do
+		local numStockpiled, numStockpileQued, buildPercent = Spring.GetUnitStockpile(unitId)
+		if numStockpiled > 0 then
+			return unitId
+		elseif buildPercent > maxProgress then
+			maxProgress = buildPercent
+			bestUnit = unitId
+		end
+	end
+	return bestUnit
+end
+
+local function GetRepUnitID(unitIDs, info)
+	local bestUnit = unitIDs[1]
+	if info.hasStockpile then
+		isMonitoringStockpile = true
+		unitsToMonitorStockpile = unitIDs
+		bestUnit = GetUnitWithBestStockpile(unitIDs)
+	end
+	return bestUnit
 end
 
 local function UpdateSelection()
@@ -463,6 +486,8 @@ local function UpdateSelection()
 	attackUnitID = nil
 	manualFireUnitID = nil
 	hasSelection = false
+	isMonitoringStockpile = false
+	unitsToMonitorStockpile = {}
 
 	local sel = spGetSelectedUnitsSorted()
 	for unitDefID, unitIDs in pairs(sel) do
@@ -477,7 +502,7 @@ local function UpdateSelection()
 			if currCost > maxCost then
 				maxCost = currCost
 				attackUnitDefID = unitDefID
-				attackUnitID = GetRepUnitID(unitIDs)
+				attackUnitID = GetRepUnitID(unitIDs, weaponInfo[unitDefID])
 				hasSelection = true
 			end
 		end
@@ -485,14 +510,16 @@ local function UpdateSelection()
 end
 
 local function GetActiveUnitInfo()
-	if not hasSelection then return nil, nil end
+	if not hasSelection then
+		return nil, nil
+	end
 
 	local _, cmd, _ = spGetActiveCommand()
 
 	if ((cmd == CMD_MANUALFIRE or cmd == CMD_MANUAL_LAUNCH) and manualFireUnitDefID) then
-		return manualWeaponInfo[manualFireUnitDefID], manualFireUnitID, true
+		return manualWeaponInfo[manualFireUnitDefID], manualFireUnitID
 	elseif ((cmd == CMD_ATTACK or cmd == CMD_UNIT_SET_TARGET or cmd == CMD_UNIT_SET_TARGET_NO_GROUND) and attackUnitDefID) then
-		return weaponInfo[attackUnitDefID], attackUnitID, false
+		return weaponInfo[attackUnitDefID], attackUnitID
 	end
 
 	return nil, nil
@@ -1297,7 +1324,7 @@ function widget:SelectionChanged(sel)
 	selectionChanged = true
 end
 
-local function HandleStockpileTransition(dt)
+local function HandleStockpileProgressTransition(dt)
 	local info, aimingUnitID = GetActiveUnitInfo()
 	if not aimingUnitID or not info or not info.hasStockpile then
 		-- Not a stockpile weapon
@@ -1385,11 +1412,15 @@ function widget:Update(dt)
 	pulsePhase = pulsePhase + dt
 	pulsePhase = pulsePhase - floor(pulsePhase)
 
+	if isMonitoringStockpile then
+		attackUnitID = GetUnitWithBestStockpile(unitsToMonitorStockpile)
+	end
+
 	selChangedSec = selChangedSec + dt
 	if selectionChanged and selChangedSec > 0.15 then
 		selChangedSec = 0
 		selectionChanged = nil
 		UpdateSelection()
 	end
-	HandleStockpileTransition(dt)
+	HandleStockpileProgressTransition(dt)
 end
