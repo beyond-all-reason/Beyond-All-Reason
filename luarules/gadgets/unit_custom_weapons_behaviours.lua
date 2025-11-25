@@ -297,9 +297,9 @@ local function guidanceLost(projectileID, radius, targetID)
 			local cx = dy * bz - dz * by
 			local cy = dz * bx - dx * bz
 			local cz = dx * by - dy * bx
-			tx = ux + swerveRadius * (cosAngle + bx + sinAngle * cx)
-			ty = uy + swerveRadius * (cosAngle + by + sinAngle * cy)
-			tz = uz + swerveRadius * (cosAngle + bz + sinAngle * cz)
+			tx = ux + swerveRadius * (cosAngle * bx + sinAngle * cx)
+			ty = uy + swerveRadius * (cosAngle * by + sinAngle * cy)
+			tz = uz + swerveRadius * (cosAngle * bz + sinAngle * cz)
 		end
 	else
 		tx, ty, tz = spGetUnitPosition(targetID)
