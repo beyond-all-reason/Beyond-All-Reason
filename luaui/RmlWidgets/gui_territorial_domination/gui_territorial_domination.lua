@@ -392,7 +392,7 @@ local function updateLeaderboard()
 		teamsContainer:AppendChild(row)
 	end
 	
-	if eliminationThreshold > 0 then
+	if eliminationThreshold > 0 and dataModel and not dataModel.isFinalRound then
 		separatorTextElement.inner_rml = spI18N('ui.territorialDomination.elimination.threshold', { threshold = eliminationThreshold })
 		separatorElement:SetClass("hidden", false)
 	else
