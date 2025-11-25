@@ -273,7 +273,7 @@ function gadget:GameFrame(frame)
 	end
 end
 
-
+-- TODO: restore ability to do `/luarules reload`, maybe readd MetaUnitAdded
 -- function gadget:Initialize()
 -- 	for _, teamID in ipairs(Spring.GetTeamList()) do
 -- 		local unitList = Spring.GetTeamUnits(teamID)
