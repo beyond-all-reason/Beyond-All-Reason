@@ -1,0 +1,51 @@
+-- It would be better if LuaSyncedCtrl published this interface for us, until then we cope
+-- It would be better if LuaSyncedCtrl published this interface for us, until then we cope
+---@class ISpring
+---@field CMD table Spring command constants
+---@field GetModOptions fun(): table
+---@field GetGameFrame fun(): number, any
+---@field IsCheatingEnabled fun(): boolean
+---@field Log fun(tag: string, level: string, msg: string)
+---@field GetTeamRulesParam fun(teamID: number, key: string): any
+---@field SetTeamRulesParam fun(teamID: number, key: string, value: any, losAccess: boolean?)
+---@field GetTeamResources fun(teamID: number, resourceType: string): number?, number?, number?, number?, number?, number?, number?, number?, number?
+---@field GetPlayerInfo fun(playerID)
+---@field GetTeamList fun(): TeamData[]?
+---@field GetPlayerList fun(): number[]
+---@field GetPlayerListUnpacked fun(): TeamData[]?
+---@field GetPlayerIdsList fun(): number[]?
+---@field AreTeamsAllied fun(team1ID: number, team2ID: number): boolean
+---@field GetTeamUnits fun(teamID: number): number[]?
+---@field GetUnitTeam fun(unitID: number): number?
+---@field GetUnitDefID fun(unitID: number): number?
+---@field GetUnitDefs fun(): table<string, UnitWrapper>
+---@field GiveOrderToUnit fun(unitID: number, commandID: number, params: table, options: table)
+---@field AddTeamResource fun(teamID: number, resourceType: string, amount: number)
+---@field ValidUnitID fun(unitID: number): boolean
+---@field TransferUnit fun(unitID: number, newTeamID: number, given: boolean): boolean
+---@field GetUnitDefNames fun(): table<string, { id: number }>
+
+
+---@class UnitWrapper
+---@field unitDefId string
+---@field unitDef table? -- Populated by SpringBuilder with real unit definition data
+---@field [string] any Additional unit definition properties when loaded
+
+---@class ResourceData
+---@field current number
+---@field storage number
+---@field pull number
+---@field income number
+---@field expense number
+---@field shareSlider number
+---@field sent number
+---@field received number
+
+---@class TeamData
+---@field id number
+---@field name string
+---@field leader number
+---@field isDead boolean
+---@field isAI boolean
+---@field side string
+---@field allyTeam number
