@@ -155,6 +155,18 @@ function DefinitionsModule.defineUnitCategories()
     Spring.Log("BlueprintDefs", LOG.INFO, string.format("Defined %d categories covering %d units. END", categoryCount, unitCount))
 end
 
+function DefinitionsModule.getCategory(unitDefID)
+    return DefinitionsModule.unitCategories[unitDefID]
+end
+
+---Calculate default energy transfer data for pipeline context
+---@param categoryName string BUILDING_CATEGORIES.METAL_STORAGE
+---@param side_enum string SIDES_ENUM.ARM
+---@return string unitDefId
+function DefinitionsModule.getUnitByCategory(categoryName, side_enum)
+    return DefinitionsModule.categoryUnits[categoryName][side_enum]
+end
+
 DefinitionsModule.defineUnitCategories() -- Call it once to populate the module table
 
-return DefinitionsModule 
+return DefinitionsModule

@@ -7,3 +7,8 @@ summary = "Beyond All Reason Game Code."
 maintainer = "BAR Team"
 labels = [ "BAR" ]
 license = "GPLv2"
+
+[test_dependencies]
+busted = "2.2.0"
+luassert = "1.9.0"
+inspect = "3.1.3-0"
