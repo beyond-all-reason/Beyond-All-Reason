@@ -31,6 +31,7 @@ local referenceX, referenceY
 local selectBuildingsWithMobile = false		-- whether to select buildings when mobile units are inside selection rectangle
 local includeNanosAsMobile = true
 local includeBuilders = false
+local includeAntinuke = false
 local includeRadar = false
 local includeJammer = false
 
@@ -80,6 +81,8 @@ local combatFilter = {}
 local builderFilter = {}
 local buildingFilter = {}
 local mobileFilter = {}
+local utilFilter = {}
+local antinukeFilter = {}
 local radarFilter = {}
 local jammerFilter = {}
 local customFilter = {}
@@ -93,8 +96,10 @@ for udid, udef in pairs(UnitDefs) do
 	local builder = (udef.canReclaim and udef.reclaimSpeed > 0)  or  (udef.canResurrect and udef.resurrectSpeed > 0)  or  (udef.canRepair and udef.repairSpeed > 0) or (udef.buildOptions and udef.buildOptions[1])
 	local building = (isMobile == false)
 	local combat = (not builder) and isMobile and (#udef.weapons > 0)
-	local radar = udef.customParams and udef.customParams.unitgroup == "util" and udef.radarDistance > 0
-	local jammer = udef.customParams and udef.customParams.unitgroup == "util" and udef.radarDistanceJam > 0
+	local isUtil = udef.customParams and udef.customParams.unitgroup == "util"
+	local antinuke = udef.customParams and udef.customParams.unitgroup == "antinuke"
+	local radar = isMobile and isUtil and udef.radarDistance > 0
+	local jammer = isMobile and isUtil and udef.radarDistanceJam > 0
 
 	if string.find(udef.name, 'armspid') or string.find(udef.name, 'leginfestor') then
 		builder = false
@@ -103,8 +108,25 @@ for udid, udef in pairs(UnitDefs) do
 	builderFilter[udid] = builder
 	buildingFilter[udid] = building
 	mobileFilter[udid] = isMobile
+	utilFilter[udid] = isUtil
+	antinukeFilter[udid] = antinuke
 	radarFilter[udid] = radar
 	jammerFilter[udid] = jammer
+end
+
+local function smartSelectIncludeFilter(udid)
+	local smartSelectFilters = {
+		{include = includeBuilders, filter = builderFilter},
+		{include = includeAntinuke, filter = antinukeFilter},
+		{include = includeRadar, filter = radarFilter},
+		{include = includeJammer, filter = jammerFilter}
+	}
+    for _, unit in ipairs(smartSelectFilters) do
+        if not unit.include and unit.filter[udid] then
+            return false
+        end
+    end
+    return true
 end
 
 local dualScreen
@@ -377,23 +399,23 @@ function widget:Update(dt)
 		end
 
 		if mobiles then
-			tmp = {}
-			local tmp2 = {}
+			local included = {}
+			local excluded = {}
 			for i = 1, #mouseSelection do
 				uid = mouseSelection[i]
 				udid = spGetUnitDefID(uid)
 				if buildingFilter[udid] == false then
-					if (includeBuilders or not builderFilter[udid]) and (includeRadar or not radarFilter[udid]) and (includeJammer or not jammerFilter[udid]) then
-						tmp[#tmp + 1] = uid
+					if smartSelectIncludeFilter(udid) then
+						included[#included + 1] = uid
 					else
-						tmp2[#tmp2 + 1] = uid
+						excluded[#excluded + 1] = uid
 					end
 				end
 			end
-			if #tmp == 0 then
-				tmp = tmp2
+			if #included == 0 then
+				included = excluded
 			end
-			mouseSelection = tmp
+			mouseSelection = included
 		end
 	end
 
@@ -594,23 +616,23 @@ function widget:Initialize()
 			end
 			
 			if mobiles then
-				tmp = {}
-				local tmp2 = {}
+				local included = {}
+				local excluded = {}
 				for i = 1, #mouseSelection do
 					uid = mouseSelection[i]
 					udid = spGetUnitDefID(uid)
 					if buildingFilter[udid] == false then
-						if (includeBuilders or not builderFilter[udid]) and (includeRadar or not radarFilter[udid]) and (includeJammer or not jammerFilter[udid]) then
-							tmp[#tmp + 1] = uid
+						if smartSelectIncludeFilter(udid) then
+							included[#included + 1] = uid
 						else
-							tmp2[#tmp2 + 1] = uid
+							excluded[#excluded + 1] = uid
 						end
 					end
 				end
-				if #tmp == 0 then
-					tmp = tmp2
+				if #included == 0 then
+					included = excluded
 				end
-				mouseSelection = tmp
+				mouseSelection = included
 			end
 		end
 		
@@ -664,6 +686,12 @@ function widget:Initialize()
 	WG['smartselect'].setIncludeBuilders = function(value)
 		includeBuilders = value
 	end
+	WG['smartselect'].getIncludeAntinuke = function()
+		return includeAntinuke
+	end
+	WG['smartselect'].setIncludeAntinuke = function(value)
+		includeAntinuke = value
+	end
 	WG['smartselect'].getIncludeRadar = function()
 		return includeRadar
 	end
@@ -685,6 +713,7 @@ function widget:GetConfigData()
 		selectBuildingsWithMobile = selectBuildingsWithMobile,
 		includeNanosAsMobile = includeNanosAsMobile,
 		includeBuilders = includeBuilders,
+		includeAntinuke = includeAntinuke,
 		includeRadar = includeRadar,
 		includeJammer = includeJammer
 	}
@@ -699,6 +728,9 @@ function widget:SetConfigData(data)
 	end
 	if data.includeBuilders ~= nil then
 		includeBuilders = data.includeBuilders
+	end
+	if data.includeAntinuke ~= nil then
+		includeAntinuke = data.includeAntinuke
 	end
 	if data.includeRadar ~= nil then
 		includeRadar = data.includeRadar

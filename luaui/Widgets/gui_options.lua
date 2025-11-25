@@ -4605,6 +4605,13 @@ function init()
 			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeBuilders', { 'includeBuilders' }, value)
 		  end,
 		},
+		{ id = "smartselect_includeantinuke", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.smartselect_includeantinuke'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.smartselect_includeantinuke_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeAntinuke', { 'includeAntinuke' }, value)
+		  end,
+		},
 		{ id = "smartselect_includeradar", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.smartselect_includeradar'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.smartselect_includeradar_descr'),
 		  onload = function(i)
 		  end,
@@ -6438,11 +6445,13 @@ function init()
 	if WG['smartselect'] == nil then
 		options[getOptionByID('smartselect_includebuildings')] = nil
 		options[getOptionByID('smartselect_includebuilders')] = nil
+		options[getOptionByID('smartselect_includeantinuke')] = nil
 		options[getOptionByID('smartselect_includeradar')] = nil
 		options[getOptionByID('smartselect_includejammer')] = nil
 	else
 		options[getOptionByID('smartselect_includebuildings')].value = WG['smartselect'].getIncludeBuildings()
 		options[getOptionByID('smartselect_includebuilders')].value = WG['smartselect'].getIncludeBuilders()
+		options[getOptionByID('smartselect_includeantinuke')].value = WG['smartselect'].getIncludeAntinuke()
 		options[getOptionByID('smartselect_includeradar')].value = WG['smartselect'].getIncludeRadar()
 		options[getOptionByID('smartselect_includejammer')].value = WG['smartselect'].getIncludeJammer()
 	end
