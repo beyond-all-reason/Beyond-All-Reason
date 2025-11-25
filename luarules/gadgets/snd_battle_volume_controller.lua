@@ -24,7 +24,7 @@ local cameraScale = 1
 local unitDamagedScale = 1
 function gadget:Update(dt)
     timer = timer + dt
-    if timer > 0.5 then
+    if timer > 0.2 then
         timer = 0
         local camera = Spring.GetCameraState()
         if camera.name == "spring" then
@@ -34,7 +34,7 @@ function gadget:Update(dt)
         elseif camera.name == "rot" or camera.name == "fps" or camera.name == "free" then
             cameraHeight = camera.py
         end
-
+        cameraHeight = (cameraHeight/2) * tonumber(Spring.GetConfigFloat("snd_zoomVolume", 1.00))
         VolumeSetting = tonumber(Spring.GetConfigInt("snd_volbattle_options", 100))
     end
 
