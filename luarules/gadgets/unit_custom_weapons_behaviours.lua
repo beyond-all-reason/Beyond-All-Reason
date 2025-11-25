@@ -328,8 +328,8 @@ specialEffectFunction.guidance = function(params, projectileID)
 				result = { spGetUnitWeaponState(ownerID, 1, "nextSalvo") + 1 >= gameFrame, spGetUnitWeaponTarget(ownerID, 1) }
 				guidanceResults[ownerID] = result
 			end
-			if result[1] and result[2] then
-				local guidanceType, guidanceTarget = result[2], result[4]
+			local isFiring, guidanceType, guidanceTarget = result[1], result[2], result[4]
+			if isFiring and guidanceTarget then
 				if not equalTargets(guidanceTarget, target) then
 					if guidanceType == 1 then
 						spSetProjectileTarget(projectileID, guidanceTarget, targetedUnit)
