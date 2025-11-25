@@ -2796,6 +2796,14 @@ function init()
 		  end,
 		},
 
+		{ id = "sndzoomvolume", group = "sound", category = types.advanced, name = Spring.I18N('ui.settings.option.sndzoomvolume'), type = "slider", min = 0, max = 3, step = 0.01, value = tonumber(Spring.GetConfigFloat("snd_zoomVolume", 1.00) or 1.00), description = Spring.I18N('ui.settings.option.sndzoomvolume_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigFloat("snd_zoomVolume", value)
+		  end,
+		},
+
 		{ id = "muteoffscreen", group = "sound", category = types.advanced, name = Spring.I18N('ui.settings.option.muteoffscreen'), type = "bool", value = (Spring.GetConfigInt("muteOffscreen", 0) == 1), description = Spring.I18N('ui.settings.option.muteoffscreen_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("muteOffscreen", (value and 1 or 0))
