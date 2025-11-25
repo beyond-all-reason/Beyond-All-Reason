@@ -134,7 +134,12 @@ local function slowWatchBuilder(builderID)
 end
 
 local function shouldIssueBuggeroff(builderTeam, unitID, unitDefID, x, z, radius)
-	if Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID), builderTeam) == false then
+	local unitTeam = Spring.GetUnitTeam(unitID)
+	if not unitTeam then
+		return false
+	end
+	
+	if Spring.AreTeamsAllied(unitTeam, builderTeam) == false then
 		return false
 	end
 
