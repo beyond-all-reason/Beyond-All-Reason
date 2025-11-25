@@ -1,0 +1,42 @@
+name: Lint and Type Check
+
+on:
+  pull_request:
+    branches: [ master, main ]
+  push:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Lux Check & Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Lux
+        run: cargo install lux-cli --locked
+
+      - name: Install Dependencies
+        run: lx update
+
+      - name: Run Type Check (lx check)
+        run: lx check
+
+      - name: Run Linter (lx lint)
+        run: lx lint
+
+      - name: Verify Formatting (lx fmt)
+        run: |
+          lx fmt .
+          # Check if any files were modified by lx fmt
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Code is not formatted. Please run 'lx fmt' locally and push the changes."
+            git status --porcelain
+            git diff
+            exit 1
+          else
+            echo "Code is correctly formatted."
+          fi
+
