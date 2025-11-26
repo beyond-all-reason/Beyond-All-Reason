@@ -202,7 +202,7 @@ local function gadget_removeSelectionVolume()
 end
 
 local function gadget_restoreSelectionVolume()
-	if isVolumeHidden and selectClickTime <= 0 and not inActiveCommand then
+	if isVolumeHidden and selectedUnitID then
 		restoreSelectionVolume(selectedUnitID)
 	end
 end
