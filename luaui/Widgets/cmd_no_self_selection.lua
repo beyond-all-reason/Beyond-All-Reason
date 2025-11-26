@@ -190,13 +190,13 @@ local function traceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeS
 	return description, result
 end
 
-local function gadget_removeSelectionVolume()
+local function naiveRemoveSelectionVolume()
 	if not isVolumeHidden and selectedUnitID and selectClickTime <= 0 and not inActiveCommand then
 		removeSelectionVolume(selectedUnitID)
 	end
 end
 
-local function gadget_restoreSelectionVolume()
+local function naiveRestoreSelectionVolume()
 	if isVolumeHidden and selectedUnitID then
 		restoreSelectionVolume(selectedUnitID)
 	end
@@ -205,14 +205,12 @@ end
 function widget:Initialize()
 	WG.SpringTraceScreenRay = sp_TraceScreenRay
 	Spring.TraceScreenRay = traceScreenRay
-	widgetHandler:RegisterGlobal("RemoveSelectionVolume", gadget_removeSelectionVolume)
-	widgetHandler:RegisterGlobal("RestoreSelectionVolume", gadget_restoreSelectionVolume)
+	widgetHandler:RegisterGlobal("RemoveSelectionVolume", naiveRemoveSelectionVolume)
+	widgetHandler:RegisterGlobal("RestoreSelectionVolume", naiveRestoreSelectionVolume)
 end
 
 function widget:Shutdown()
-	if isVolumeHidden and selectedUnitID then
-		restoreSelectionVolume(selectedUnitID)
-	end
+	naiveRestoreSelectionVolume()
 	Spring.TraceScreenRay = sp_TraceScreenRay
 	widgetHandler:DeregisterGlobal("RemoveSelectionVolume")
 	widgetHandler:DeregisterGlobal("RestoreSelectionVolume")
