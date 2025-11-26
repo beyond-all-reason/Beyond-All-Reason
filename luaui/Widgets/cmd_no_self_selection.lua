@@ -161,6 +161,8 @@ function widget:ActiveCommandChanged(cmdid, type)
 	end
 end
 
+-- Interwupget communications and compatability
+
 ---Get information about a ray traced from screen to world position.
 --
 -- This method is an override of the engine-provided TraceScreenRay,
@@ -190,9 +192,23 @@ local function traceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeS
 	return description, result
 end
 
+local function gadget_removeSelectionVolume()
+	if not isVolumeHidden and selectedUnitID then
+		removeSelectionVolume(selectedUnitID)
+	end
+end
+
+local function gadget_restoreSelectionVolume()
+	if isVolumeHidden and selectClickTime <= 0 and not inActiveCommand then
+		restoreSelectionVolume(selectedUnitID)
+	end
+end
+
 function widget:Initialize()
 	WG.SpringTraceScreenRay = sp_TraceScreenRay
 	Spring.TraceScreenRay = traceScreenRay
+	widgetHandler:RegisterGlobal("RemoveSelectionVolume", gadget_removeSelectionVolume)
+	widgetHandler:RegisterGlobal("RestoreSelectionVolume", gadget_restoreSelectionVolume)
 end
 
 function widget:Shutdown()
@@ -200,4 +216,6 @@ function widget:Shutdown()
 	if isVolumeHidden and selectedUnitID then
 		restoreSelectionVolume(selectedUnitID)
 	end
+	widgetHandler:DeregisterGlobal("RemoveSelectionVolume")
+	widgetHandler:DeregisterGlobal("RestoreSelectionVolume")
 end
