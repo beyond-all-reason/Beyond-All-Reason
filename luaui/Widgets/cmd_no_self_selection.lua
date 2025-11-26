@@ -215,10 +215,10 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	Spring.TraceScreenRay = sp_TraceScreenRay
 	if isVolumeHidden and selectedUnitID then
 		restoreSelectionVolume(selectedUnitID)
 	end
+	Spring.TraceScreenRay = sp_TraceScreenRay
 	widgetHandler:DeregisterGlobal("RemoveSelectionVolume")
 	widgetHandler:DeregisterGlobal("RestoreSelectionVolume")
 end
