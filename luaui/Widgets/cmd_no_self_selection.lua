@@ -179,7 +179,7 @@ end
 ---@return ("unit"|"feature"|"ground"|"sky")? description of traced object or position
 ---@return (integer|xyz)? result unitID or featureID (integer), or position triple (xyz)
 local function traceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset)
-	local hiddenID = not onlyCoords and isVolumeHidden and selectedUnitID
+	local hiddenID = not onlyCoords and not useMinimap and isVolumeHidden and selectedUnitID
 
 	if hiddenID then
 		restoreSelectionVolume(hiddenID)
