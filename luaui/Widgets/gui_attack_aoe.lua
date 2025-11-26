@@ -79,83 +79,128 @@ local GL_KEEP = GL.KEEP
 local GL_REPLACE = GL.REPLACE
 local GL_NOTEQUAL = GL.NOTEQUAL
 
-local GAME_SPEED = 30
+--------------------------------------------------------------------------------
+-- CONFIGURATION
+--------------------------------------------------------------------------------
+local Config = {
+	General = {
+		gameSpeed = 30,
+		minSpread = 8, --weapons with this spread or less are ignored
+	},
+	Colors = {
+		aoe = { 1, 0, 0, 1 },
+		noEnergy = { 1, 1, 0, 1 },
+		juno = { 0.87, 0.94, 0.40, 1 },
+		napalm = { 0.85, 0.62, 0.28, 1 },
+		emp = { 0.65, 0.65, 1, 1 },
+		scatter = { 1, 1, 0, 1 },
+		noStockpile = { 0.88, 0.88, 0.88, 1 },
+	},
+	Render = {
+		scatterMinAlpha = 0.5,
+		scatterLineWidthMult = 1024,
+		scatterSegments = 64,
+		aoeLineWidthMult = 64,
+		aoeDiskBandCount = 16,
+		circleDivs = 96,
+		pointSizeMult = 2048,
+		maxFilledCircleAlpha = 0.2,
+		minFilledCircleAlpha = 0.1,
+		ringDamageLevels = { 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1 }, -- draw aoe rings for these damage levels
+	},
+	Animation = {
+		salvoSpeed = 0.1,
+		waveDuration = 0.35,
+		fadeDuration = 0, -- Calculated below
+	}
+}
+
+-- Derived Constants
+Config.Animation.fadeDuration = 1 - Config.Animation.waveDuration
 local g = Game.gravity
-local g_f = g / GAME_SPEED / GAME_SPEED
+local gravityPerFrame = g / Config.General.gameSpeed / Config.General.gameSpeed
 
 --------------------------------------------------------------------------------
---config
+-- STATE & CACHE
 --------------------------------------------------------------------------------
-local aoeColor = { 1, 0, 0, 1 }
-local aoeColorNoEnergy = { 1, 1, 0, 1 }
-local junoColor = { 0.87, 0.94, 0.40, 1 }
-local napalmColor = { 0.85, 0.62, 0.28, 1 }
-local empColor = { 0.65, 0.65, 1, 1 }
-local scatterColor = { 1, 1, 0, 1 }
-local noStockpileColor = { 0.88, 0.88, 0.88, 1 }
+local State = {
+	weaponInfos = {},       ---@type table<number, WeaponInfo>
+	manualWeaponInfos = {}, ---@type table<number, WeaponInfo>
 
-local scatterMinAlpha = 0.5
-local aoeLineWidthMult = 64
-local scatterLineWidthMult = 1024
-local circleDivs = 96
-local scatterSegments = 64
-local minSpread = 8 --weapons with this spread or less are ignored
-local pointSizeMult = 2048
-local maxFilledCircleAlpha = 0.2
-local minFilledCircleAlpha = 0.1
-local salvoAnimationSpeed = 0.1
-local waveDuration = 0.35
-local fadeDuration = 1 - waveDuration
-local ringDamageLevels = { 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1 } -- draw aoe rings for these damage levels
-local aoeDiskBandCount = 16
+	-- Selection State
+	hasSelection = false,
+	selectionChanged = nil,
+	selChangedSec = 0,
+
+	-- Unit Logic State
+	isMonitoringStockpile = false,
+	unitsToMonitorStockpile = {},
+	attackUnitDefID = nil,
+	manualFireUnitDefID = nil,
+	attackUnitID = nil,
+	manualFireUnitID = nil,
+
+	-- Animation State
+	pulsePhase = 0,
+	circleList = 0,
+
+	-- Precalculated Unit Properties
+	UnitCache = {
+		cost = {},
+		isAir = {},
+		isShip = {},
+		isUnderwater = {},
+		isHover = {},
+	},
+
+	-- Precalculated Math
+	Calculated = {
+		ringWaveTriggerTimes = {},
+		diskWaveTriggerTimes = {},
+		unitCircles = {}, -- Unit circle vertices
+	},
+
+	-- Reusable Render Data Container (prevents GC)
+	aimData = {
+		info = nil,
+		unitID = 0,
+		dist = 0,
+		source = { x = 0, y = 0, z = 0 },
+		target = { x = 0, y = 0, z = 0 },
+		colors = { base = nil, fill = nil, scatter = nil, aoe = nil }
+	}
+}
 
 --------------------------------------------------------------------------------
---vars
+-- Initialization Loops
 --------------------------------------------------------------------------------
-local weaponInfos = {} ---@type table<number, WeaponInfo>
-local manualWeaponInfos = {} ---@type table<number, WeaponInfo>
-local hasSelection = false
-local isMonitoringStockpile = false
-local unitsToMonitorStockpile = {}
-local attackUnitDefID, manualFireUnitDefID
-local attackUnitID, manualFireUnitID
-local circleList
-local pulsePhase = 0
-local selectionChanged
-local unitCost = {}
-local isAirUnit = {}
-local isShip = {}
-local isUnderwater = {}
-local isHover = {}
-local ringWaveTriggerTimes = {}
-local diskWaveTriggerTimes = {}
-local unitCircles = {}
 for udid, ud in pairs(UnitDefs) do
-	unitCost[udid] = ud.cost
+	State.UnitCache.cost[udid] = ud.cost
 	if ud.isAirUnit then
-		isAirUnit[udid] = ud.isAirUnit
+		State.UnitCache.isAir[udid] = ud.isAirUnit
 	end
 	if ud.modCategories then
 		if ud.modCategories.ship then
-			isShip[udid] = true
+			State.UnitCache.isShip[udid] = true
 		end
 		if ud.modCategories.underwater then
-			isUnderwater[udid] = true
+			State.UnitCache.isUnderwater[udid] = true
 		end
 		if ud.modCategories.hover then
-			isHover[udid] = true
+			State.UnitCache.isHover[udid] = true
 		end
 	end
 end
-for i, _ in ipairs(ringDamageLevels) do
-	ringWaveTriggerTimes[i] = (i / #ringDamageLevels) * waveDuration
+
+for i, _ in ipairs(Config.Render.ringDamageLevels) do
+	State.Calculated.ringWaveTriggerTimes[i] = (i / #Config.Render.ringDamageLevels) * Config.Animation.waveDuration
 end
-for i = 1, aoeDiskBandCount do
-	diskWaveTriggerTimes[i] = (i / aoeDiskBandCount) * waveDuration
+for i = 1, Config.Render.aoeDiskBandCount do
+	State.Calculated.diskWaveTriggerTimes[i] = (i / Config.Render.aoeDiskBandCount) * Config.Animation.waveDuration
 end
-for i = 0, circleDivs do
-	local theta = 2 * pi * i / circleDivs
-	unitCircles[i] = { cos(theta), sin(theta) }
+for i = 0, Config.Render.circleDivs do
+	local theta = 2 * pi * i / Config.Render.circleDivs
+	State.Calculated.unitCircles[i] = { cos(theta), sin(theta) }
 end
 
 --------------------------------------------------------------------------------
@@ -310,7 +355,8 @@ local function GetMouseTargetPosition(dgun)
 				local unitDefID = spGetUnitDefID(mouseTarget)
 				local mouseTargetType2, mouseTarget2 = spTraceScreenRay(tx, ty, true)
 				if mouseTarget2 then
-					if isAirUnit[unitDefID] or isShip[unitDefID] or isUnderwater[unitDefID] or (spGetGroundHeight(mouseTarget2[1], mouseTarget2[3]) < 0 and isHover[unitDefID]) then
+					local uc = State.UnitCache
+					if uc.isAir[unitDefID] or uc.isShip[unitDefID] or uc.isUnderwater[unitDefID] or (spGetGroundHeight(mouseTarget2[1], mouseTarget2[3]) < 0 and uc.isHover[unitDefID]) then
 						return spGetUnitPosition(mouseTarget)
 					else
 						return mouseTarget2[1], mouseTarget2[2], mouseTarget2[3]
@@ -344,8 +390,10 @@ local function GetMouseDistance()
 end
 
 local function UnitCircleVertices()
-	for i = 1, circleDivs do
-		local uc = unitCircles[i]
+	local divs = Config.Render.circleDivs
+	local circles = State.Calculated.unitCircles
+	for i = 1, divs do
+		local uc = circles[i]
 		glVertex(uc[1], 0, uc[2])
 	end
 end
@@ -359,14 +407,14 @@ local function DrawCircle(x, y, z, radius)
 	glTranslate(x, y, z)
 	glScale(radius, radius, radius)
 
-	glCallList(circleList)
+	glCallList(State.circleList)
 
 	glPopMatrix()
 end
 
 -- we don't want to start in the middle of animation when enabling the command
 local function ResetPulseAnimation()
-	pulsePhase = 0
+	State.pulsePhase = 0
 end
 
 local function SetColor(alphaFactor, color)
@@ -408,7 +456,7 @@ local function ParseCustomParams(unitDef)
 end
 
 local function FindBestWeapon(unitDef)
-	local maxSpread = minSpread
+	local maxSpread = Config.General.minSpread
 	local bestDef, bestNum
 
 	for weaponNum, weapon in ipairs(unitDef.weapons) do
@@ -454,12 +502,12 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 
 	-- Colors and Special Properties
 	if weaponDef.paralyzer then
-		info.color = empColor
+		info.color = Config.Colors.emp
 	end
 	if weaponDef.customParams.area_onhit_resistance == "fire" then
 		info.isNapalm = true
 		info.napalmRange = weaponDef.customParams.area_onhit_range
-		info.color = napalmColor
+		info.color = Config.Colors.napalm
 	end
 
 	-- Type Classification
@@ -471,7 +519,7 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 	elseif weaponDef.customParams.junotype then
 		info.type = "juno"
 		info.isMiniJuno = (weaponDef.customParams.junotype == "mini")
-		info.color = junoColor
+		info.color = Config.Colors.juno
 	elseif weaponDef.cylinderTargeting >= 100 then
 		info.type = "orbital"
 		info.scatter = scatter
@@ -537,7 +585,7 @@ local function SetupUnitDef(unitDefID, unitDef)
 	-- 1. Check for custom sector fire
 	local sectorInfo = ParseCustomParams(unitDef)
 	if sectorInfo then
-		weaponInfos[unitDefID] = sectorInfo
+		State.weaponInfos[unitDefID] = sectorInfo
 		return
 	end
 
@@ -552,18 +600,18 @@ local function SetupUnitDef(unitDefID, unitDef)
 
 	-- 4. Assign to correct table (Manual vs Standard)
 	if maxWeaponDef.manualFire and unitDef.canManualFire then
-		manualWeaponInfos[unitDefID] = info
+		State.manualWeaponInfos[unitDefID] = info
 	else
-		weaponInfos[unitDefID] = info
+		State.weaponInfos[unitDefID] = info
 	end
 end
 
 local function SetupDisplayLists()
-	circleList = glCreateList(DrawUnitCircle)
+	State.circleList = glCreateList(DrawUnitCircle)
 end
 
 local function DeleteDisplayLists()
-	glDeleteList(circleList)
+	glDeleteList(State.circleList)
 end
 
 --------------------------------------------------------------------------------
@@ -587,8 +635,8 @@ end
 local function GetRepUnitID(unitIDs, info)
 	local bestUnit = unitIDs[1]
 	if info.hasStockpile then
-		isMonitoringStockpile = true
-		unitsToMonitorStockpile = unitIDs
+		State.isMonitoringStockpile = true
+		State.unitsToMonitorStockpile = unitIDs
 		bestUnit = GetUnitWithBestStockpile(unitIDs)
 	end
 	return bestUnit
@@ -596,29 +644,29 @@ end
 
 local function UpdateSelection()
 	local maxCost = 0
-	manualFireUnitDefID = nil
-	attackUnitDefID = nil
-	attackUnitID = nil
-	manualFireUnitID = nil
-	hasSelection = false
-	isMonitoringStockpile = false
-	unitsToMonitorStockpile = {}
+	State.manualFireUnitDefID = nil
+	State.attackUnitDefID = nil
+	State.attackUnitID = nil
+	State.manualFireUnitID = nil
+	State.hasSelection = false
+	State.isMonitoringStockpile = false
+	State.unitsToMonitorStockpile = {}
 
 	local sel = spGetSelectedUnitsSorted()
 	for unitDefID, unitIDs in pairs(sel) do
-		if manualWeaponInfos[unitDefID] then
-			manualFireUnitDefID = unitDefID
-			manualFireUnitID = unitIDs[1]
-			hasSelection = true
+		if State.manualWeaponInfos[unitDefID] then
+			State.manualFireUnitDefID = unitDefID
+			State.manualFireUnitID = unitIDs[1]
+			State.hasSelection = true
 		end
 
-		if weaponInfos[unitDefID] then
-			local currCost = unitCost[unitDefID] * #unitIDs
+		if State.weaponInfos[unitDefID] then
+			local currCost = State.UnitCache.cost[unitDefID] * #unitIDs
 			if currCost > maxCost then
 				maxCost = currCost
-				attackUnitDefID = unitDefID
-				attackUnitID = GetRepUnitID(unitIDs, weaponInfos[unitDefID])
-				hasSelection = true
+				State.attackUnitDefID = unitDefID
+				State.attackUnitID = GetRepUnitID(unitIDs, State.weaponInfos[unitDefID])
+				State.hasSelection = true
 			end
 		end
 	end
@@ -626,16 +674,16 @@ end
 
 ---@return WeaponInfo, number
 local function GetActiveUnitInfo()
-	if not hasSelection then
+	if not State.hasSelection then
 		return nil, nil
 	end
 
 	local _, cmd, _ = spGetActiveCommand()
 
-	if ((cmd == CMD_MANUALFIRE or cmd == CMD_MANUAL_LAUNCH) and manualFireUnitDefID) then
-		return manualWeaponInfos[manualFireUnitDefID], manualFireUnitID
-	elseif ((cmd == CMD_ATTACK or cmd == CMD_UNIT_SET_TARGET or cmd == CMD_UNIT_SET_TARGET_NO_GROUND) and attackUnitDefID) then
-		return weaponInfos[attackUnitDefID], attackUnitID
+	if ((cmd == CMD_MANUALFIRE or cmd == CMD_MANUAL_LAUNCH) and State.manualFireUnitDefID) then
+		return State.manualWeaponInfos[State.manualFireUnitDefID], State.manualFireUnitID
+	elseif ((cmd == CMD_ATTACK or cmd == CMD_UNIT_SET_TARGET or cmd == CMD_UNIT_SET_TARGET_NO_GROUND) and State.attackUnitDefID) then
+		return State.weaponInfos[State.attackUnitDefID], State.attackUnitID
 	end
 
 	return nil, nil
@@ -661,6 +709,8 @@ end
 local function GetAlphaFactorForRing(minAlpha, maxAlpha, index, phase, alphaMult, triggerTimes, blinkEachRing)
 	maxAlpha = maxAlpha or 1
 	alphaMult = alphaMult or 1
+	local waveDuration = Config.Animation.waveDuration
+	local fadeDuration = Config.Animation.fadeDuration
 	local result
 
 	-- First ring does not blink
@@ -682,17 +732,24 @@ end
 
 local function DrawAoeRange(tx, ty, tz, aoe, alphaMult, phase, color)
 	alphaMult = alphaMult or 1
+	local bandCount = Config.Render.aoeDiskBandCount
+	local triggerTimes = State.Calculated.diskWaveTriggerTimes
+	local maxAlpha = Config.Render.maxFilledCircleAlpha
+	local minAlpha = Config.Render.minFilledCircleAlpha
+	local circles = State.Calculated.unitCircles
+	local divs = Config.Render.circleDivs
+
 	glPushMatrix()
 	glTranslate(tx, ty, tz)
 	glBeginEnd(GL_TRIANGLE_STRIP, function()
-		for idx = 1, aoeDiskBandCount do
-			local innerRing = aoe * (idx - 1) / aoeDiskBandCount
-			local outerRing = aoe * idx / aoeDiskBandCount
-			local alphaFactor = GetAlphaFactorForRing(minFilledCircleAlpha, maxFilledCircleAlpha, idx, phase, alphaMult, diskWaveTriggerTimes)
+		for idx = 1, bandCount do
+			local innerRing = aoe * (idx - 1) / bandCount
+			local outerRing = aoe * idx / bandCount
+			local alphaFactor = GetAlphaFactorForRing(minAlpha, maxAlpha, idx, phase, alphaMult, triggerTimes)
 
 			SetColor(alphaFactor, color)
-			for i = 0, circleDivs do
-				local unitCircle = unitCircles[i]
+			for i = 0, divs do
+				local unitCircle = circles[i]
 				glVertex(unitCircle[1] * outerRing, 0, unitCircle[2] * outerRing)
 				glVertex(unitCircle[1] * innerRing, 0, unitCircle[2] * innerRing)
 			end
@@ -702,9 +759,12 @@ local function DrawAoeRange(tx, ty, tz, aoe, alphaMult, phase, color)
 end
 
 local function DrawDamageRings(tx, ty, tz, aoe, edgeEffectiveness, alphaMult, phase, color)
-	for ringIndex, damageLevel in ipairs(ringDamageLevels) do
+	local damageLevels = Config.Render.ringDamageLevels
+	local triggerTimes = State.Calculated.ringWaveTriggerTimes
+
+	for ringIndex, damageLevel in ipairs(damageLevels) do
 		local ringRadius = GetRadiusForDamageLevel(aoe, damageLevel, edgeEffectiveness)
-		local alphaFactor = GetAlphaFactorForRing(damageLevel, damageLevel + 0.2, ringIndex, phase, alphaMult, ringWaveTriggerTimes)
+		local alphaFactor = GetAlphaFactorForRing(damageLevel, damageLevel + 0.2, ringIndex, phase, alphaMult, triggerTimes)
 		SetColor(alphaFactor, color)
 		DrawCircle(tx, ty, tz, ringRadius)
 	end
@@ -718,10 +778,10 @@ local function DrawAoe(data, baseColorOverride, targetOverride, ringAlphaMult, p
 	local tx, ty, tz = target.x, target.y, target.z
 	local aoe, edgeEffectiveness = data.info.aoe, data.info.ee
 
-	glLineWidth(max(aoeLineWidthMult * aoe / dist, 0.5))
+	glLineWidth(max(Config.Render.aoeLineWidthMult * aoe / dist, 0.5))
 	ringAlphaMult = ringAlphaMult or 1
 
-	local phase = pulsePhase + (phaseOffset or 0)
+	local phase = State.pulsePhase + (phaseOffset or 0)
 	phase = phase - floor(phase)
 
 	if edgeEffectiveness == 1 then
@@ -743,32 +803,39 @@ end
 local function DrawJunoArea(data)
 	local tx, ty, tz = data.target.x, data.target.y, data.target.z
 	local aoe = data.info.aoe
-	local phase = pulsePhase - floor(pulsePhase)
+	local phase = State.pulsePhase - floor(State.pulsePhase)
 	local color = data.colors.base
 
-	local areaDenialRadius = 450 -- defined in unit_juno_damage.lua - "outer radius of area denial ring"
+	local bandCount = Config.Render.aoeDiskBandCount
+	local triggerTimes = State.Calculated.diskWaveTriggerTimes
+	local maxAlpha = Config.Render.maxFilledCircleAlpha
+	local minAlpha = Config.Render.minFilledCircleAlpha
+	local circles = State.Calculated.unitCircles
+	local divs = Config.Render.circleDivs
+
+	local areaDenialRadius = 450 -- defined in unit_juno_damage.lua
 	local impactRingWidth = aoe - areaDenialRadius
 
 	glPushMatrix()
 	glTranslate(tx, ty, tz)
 	glBeginEnd(GL_TRIANGLE_STRIP, function()
-		SetColor(maxFilledCircleAlpha, color)
-		for i = 0, circleDivs do
-			local unitCircle = unitCircles[i]
+		SetColor(maxAlpha, color)
+		for i = 0, divs do
+			local unitCircle = circles[i]
 			glVertex(unitCircle[1] * areaDenialRadius, 0, unitCircle[2] * areaDenialRadius)
 			glVertex(0, 0, 0)
 		end
 	end)
 	glBeginEnd(GL_TRIANGLE_STRIP, function()
-		for idx = 1, aoeDiskBandCount do
-			local innerRing = areaDenialRadius + (impactRingWidth * (idx - 1) / aoeDiskBandCount)
-			local outerRing = areaDenialRadius + (impactRingWidth * idx / aoeDiskBandCount)
+		for idx = 1, bandCount do
+			local innerRing = areaDenialRadius + (impactRingWidth * (idx - 1) / bandCount)
+			local outerRing = areaDenialRadius + (impactRingWidth * idx / bandCount)
 
-			local alphaFactor = GetAlphaFactorForRing(minFilledCircleAlpha, maxFilledCircleAlpha, idx, phase, 1, diskWaveTriggerTimes, true)
+			local alphaFactor = GetAlphaFactorForRing(minAlpha, maxAlpha, idx, phase, 1, triggerTimes, true)
 
 			SetColor(alphaFactor, color)
-			for i = 0, circleDivs do
-				local unitCircle = unitCircles[i]
+			for i = 0, divs do
+				local unitCircle = circles[i]
 				glVertex(unitCircle[1] * outerRing, 0, unitCircle[2] * outerRing)
 				glVertex(unitCircle[1] * innerRing, 0, unitCircle[2] * innerRing)
 			end
@@ -789,28 +856,30 @@ local function DrawStockpileProgress(data, buildPercent, barColor, bgColor)
 	local dist = data.dist
 	local aoe = data.info.aoe
 	local tx, ty, tz = data.target.x, data.target.y, data.target.z
+	local circles = State.Calculated.unitCircles
+	local divs = Config.Render.circleDivs
 
-	bgColor = bgColor or noStockpileColor
+	bgColor = bgColor or Config.Colors.noStockpile
 	SetColor(1, bgColor)
-	glLineWidth(max(aoeLineWidthMult * aoe / 2 / dist, 2))
+	glLineWidth(max(Config.Render.aoeLineWidthMult * aoe / 2 / dist, 2))
 
 	glPushMatrix()
 	glTranslate(tx, ty, tz)
 	glScale(aoe, aoe, aoe)
 
-	glCallList(circleList)
+	glCallList(State.circleList)
 
 	if buildPercent > 0 then
 		SetColor(1, barColor)
 
-		local limit = floor(circleDivs * buildPercent)
-		if limit > circleDivs then
-			limit = circleDivs
+		local limit = floor(divs * buildPercent)
+		if limit > divs then
+			limit = divs
 		end
 
 		glBeginEnd(GL_LINE_STRIP, function()
 			for i = 0, limit do
-				local v = unitCircles[i]
+				local v = circles[i]
 				glVertex(v[1], 0, v[2])
 			end
 
@@ -861,15 +930,18 @@ local function DrawNoExplode(data, overrideSource)
 
 	local vertices = { { ux + wx, uy, uz + wz }, { ux + ex + wx, ty, uz + ez + wz },
 					   { ux - wx, uy, uz - wz }, { ux + ex - wx, ty, uz + ez - wz } }
-	local alpha = lerp(minFilledCircleAlpha, 1, pulsePhase) * aoeColor[4]
+
+	local colorAoe = Config.Colors.aoe
+	local colorNoEnergy = Config.Colors.noEnergy
+	local alpha = lerp(Config.Render.minFilledCircleAlpha, 1, State.pulsePhase) * colorAoe[4]
 
 	if requiredEnergy and select(1, spGetTeamResources(spGetMyTeamID(), 'energy')) < requiredEnergy then
-		glColor(aoeColorNoEnergy[1], aoeColorNoEnergy[2], aoeColorNoEnergy[3], alpha)
+		glColor(colorNoEnergy[1], colorNoEnergy[2], colorNoEnergy[3], alpha)
 	else
-		glColor(aoeColor[1], aoeColor[2], aoeColor[3], alpha)
+		glColor(colorAoe[1], colorAoe[2], colorAoe[3], alpha)
 	end
 
-	glLineWidth(1 + (scatterLineWidthMult / dist))
+	glLineWidth(1 + (Config.Render.scatterLineWidthMult / dist))
 
 	glBeginEnd(GL_LINES, VertexList, vertices)
 
@@ -916,13 +988,19 @@ local function GetBallisticVector(v, dx, dy, dz, trajectory)
 	return Normalize(bx, by, bz)
 end
 
-local function GetFadeAlpha(theta)
+-- todo isnt it too complex?
+local function GetFadeAlpha(theta, minAlpha)
 	local sinTheta = sin(theta)
-	return 1 - (pow(abs(sinTheta), 2) * (1 - scatterMinAlpha))
+	return 1 - (pow(abs(sinTheta), 2) * (1 - minAlpha))
 end
 
 ---@param data AttackIndicatorData
 local function DrawBallisticScatter(data)
+	local scatterSegments = Config.Render.scatterSegments
+	local scatterLineWidthMult = Config.Render.scatterLineWidthMult
+	local scatterMinAlpha = Config.Render.scatterMinAlpha
+	local gameSpeed = Config.General.gameSpeed
+
 	local info = data.info
 	local ux, uy, uz = data.source.x, data.source.y, data.source.z
 	local tx, ty, tz = data.target.x, data.target.y, data.target.z
@@ -973,8 +1051,8 @@ local function DrawBallisticScatter(data)
 		rz = bx * inv_len
 	end
 
-	local v_f = v / GAME_SPEED
-	local gravity_f = -0.5 * g_f
+	local v_f = v / gameSpeed
+	local gravity_f = -0.5 * gravityPerFrame
 	local heightDiff = uy - calc_ty
 
 	local function GetImpactPoint(dirX, dirY, dirZ)
@@ -1096,7 +1174,7 @@ local function DrawBallisticScatter(data)
 
 			for i = 0, scatterSegments do
 				local theta = i * angleStep
-				local fadeFactor = GetFadeAlpha(theta)
+				local fadeFactor = GetFadeAlpha(theta, scatterMinAlpha)
 				glColor(fillColor[1], fillColor[2], fillColor[3], fillColor[4] * fillAlphaMult * fadeFactor * scatterAlphaFactor)
 
 				local cosTheta = cos(theta)
@@ -1117,7 +1195,7 @@ local function DrawBallisticScatter(data)
 	glBeginEnd(GL_LINE_LOOP, function()
 		for i = 0, scatterSegments do
 			local theta = i * angleStep
-			local fadeFactor = GetFadeAlpha(theta)
+			local fadeFactor = GetFadeAlpha(theta, scatterMinAlpha)
 			glColor(lineColor[1], lineColor[2], lineColor[3], lineColor[4] * fadeFactor * scatterAlphaFactor)
 
 			local cosTheta = cos(theta)
@@ -1185,9 +1263,9 @@ local function DrawSectorScatter(data)
 	end
 	bars[count] = { px + vx2, ty, pz + vz2 }
 	count = count + 1
-	glLineWidth(scatterLineWidthMult / dist)
-	glPointSize(pointSizeMult / dist)
-	glColor(scatterColor)
+	glLineWidth(Config.Render.scatterLineWidthMult / dist)
+	glPointSize(Config.Render.pointSizeMult / dist)
+	glColor(Config.Colors.scatter)
 	glDepthTest(false)
 	glBeginEnd(GL_LINE_STRIP, VertexList, bars)
 	glDepthTest(true)
@@ -1210,8 +1288,8 @@ local function DrawWobbleScatter(data)
 
 	local d = distance3d(tx, ty, tz, ux, uy, uz)
 
-	glColor(scatterColor)
-	glLineWidth(scatterLineWidthMult / dist)
+	glColor(Config.Colors.scatter)
+	glLineWidth(Config.Render.scatterLineWidthMult / dist)
 	if d and range then
 		if d <= range then
 			DrawCircle(tx, ty, tz, rangeScatter * d + scatter)
@@ -1277,8 +1355,8 @@ local function DrawDirectScatter(data)
 		{ tx - targetSpreadX, ty, tz - targetSpreadZ }
 	}
 
-	glColor(data.colors.scatter)
-	glLineWidth(scatterLineWidthMult / dist)
+	glColor(Config.Colors.scatter)
+	glLineWidth(Config.Render.scatterLineWidthMult / dist)
 	glBeginEnd(GL_LINES, VertexList, vertices)
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
@@ -1312,6 +1390,8 @@ local function DrawDropped(data)
 		ringAlphaMult = 1
 	end
 
+	local salvoAnimationSpeed = Config.Animation.salvoSpeed
+
 	for i = 1, info.salvoSize do
 		local delay = info.salvoDelay * (i - (info.salvoSize + 1) / 2)
 		local dist = info.v * delay
@@ -1336,8 +1416,8 @@ local function DrawOrbitalScatter(data)
 	local tx, ty, tz = data.target.x, data.target.y, data.target.z
 	local dist = data.dist
 
-	glColor(scatterColor)
-	glLineWidth(scatterLineWidthMult / dist)
+	glColor(Config.Colors.scatter)
+	glLineWidth(Config.Render.scatterLineWidthMult / dist)
 	DrawCircle(tx, ty, tz, scatter)
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
@@ -1350,6 +1430,7 @@ local function DrawDGun(data)
 	local unitName = data.info.unitname
 	local aoe = data.info.aoe
 	local range = data.info.range
+	local divs = Config.Render.circleDivs
 
 	local angle = atan2(ux - tx, uz - tz) + (pi / 2.1)
 	local dx, dz, offset_x, offset_z = ux, uz, 0, 0
@@ -1369,24 +1450,13 @@ local function DrawDGun(data)
 	glDepthTest(true)
 	glColor(1, 0, 0, 0.75)
 	glLineWidth(1.5)
-	glDrawGroundCircle(ux, uy, uz, range + (aoe * 0.7), circleDivs)
+	glDrawGroundCircle(ux, uy, uz, range + (aoe * 0.7), divs)
 	glColor(1, 1, 1, 1)
 end
 
 --------------------------------------------------------------------------------
 -- Drawing Dispatch
 --------------------------------------------------------------------------------
-
--- Reusable context table to reduce garbage collection
----@class AttackIndicatorData
-local aimData = {
-	info = nil,
-	unitID = 0,
-	dist = 0,
-	source = { x = 0, y = 0, z = 0 },
-	target = { x = 0, y = 0, z = 0 },
-	colors = { base = nil, fill = nil, scatter = nil, aoe = nil }
-}
 
 ---@param data AttackIndicatorData
 local function DrawBallistic(data)
@@ -1474,6 +1544,8 @@ function widget:DrawWorldPreUnit()
 		return
 	end
 
+	local aimData = State.aimData
+
 	aimData.info = weaponInfo
 	aimData.unitID = aimingUnitID
 	aimData.dist = GetMouseDistance() or 1000
@@ -1491,8 +1563,11 @@ function widget:DrawWorldPreUnit()
 	aimData.target.x, aimData.target.y, aimData.target.z = tx, ty, tz
 
 	-- Color Calculation
-	local baseColor = weaponInfo.color or aoeColor
-	local baseFillColor = weaponInfo.color or ((weaponInfo.type == "ballistic") and GetFadedColor(aoeColor, 0)) or aoeColor
+	local baseColor = weaponInfo.color or Config.Colors.aoe
+	local baseFillColor = weaponInfo.color or ((weaponInfo.type == "ballistic") and GetFadedColor(Config.Colors.aoe, 0)) or Config.Colors.aoe
+
+	local noStockpileColor = Config.Colors.noStockpile
+	local scatterColor = Config.Colors.scatter
 
 	if weaponInfo.hasStockpile then
 		local progress = StockpileSystem.fadeProgress
@@ -1525,22 +1600,21 @@ function widget:DrawWorldPreUnit()
 end
 
 function widget:SelectionChanged(sel)
-	selectionChanged = true
+	State.selectionChanged = true
 end
 
-local selChangedSec = 0
 function widget:Update(dt)
-	pulsePhase = pulsePhase + dt
-	pulsePhase = pulsePhase - floor(pulsePhase)
+	local pulsePhase = State.pulsePhase + dt
+	State.pulsePhase = pulsePhase - floor(pulsePhase)
 
-	if isMonitoringStockpile then
-		attackUnitID = GetUnitWithBestStockpile(unitsToMonitorStockpile)
+	if State.isMonitoringStockpile then
+		State.attackUnitID = GetUnitWithBestStockpile(State.unitsToMonitorStockpile)
 	end
 
-	selChangedSec = selChangedSec + dt
-	if selectionChanged and selChangedSec > 0.15 then
-		selChangedSec = 0
-		selectionChanged = nil
+	State.selChangedSec = State.selChangedSec + dt
+	if State.selectionChanged and State.selChangedSec > 0.15 then
+		State.selChangedSec = 0
+		State.selectionChanged = nil
 		UpdateSelection()
 	end
 
