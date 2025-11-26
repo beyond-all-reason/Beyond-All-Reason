@@ -62,7 +62,7 @@ end
 -- other unit underneath themselves will have their selection volumes shrunk to zero radius.
 local function removeSelectionVolume(unitID)
 	-- The xyz scale and volume shape are not kept; we want an unambiguous point volume.
-	local _, _, _, ox, oy, oz, _, cont, axis = Spring.GetUnitSelectionVolumeData(unitID)
+	local _, _, _, ox, oy, oz, _, cont, axis = sp_GetUnitSelectionVolumeData(unitID)
 	local shape = 1 -- spherical volume
 	sp_SetUnitSelectionVolumeData(unitID, 0, 0, 0, ox, oy, oz, shape, cont, axis)
 	isVolumeHidden = true
