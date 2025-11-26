@@ -50,7 +50,6 @@ local inActiveCommand = false
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
 
----@param unitID integer
 local function cacheSelectionVolume(unitID)
 	restoreVolumeData = { sp_GetUnitSelectionVolumeData(unitID) }
 end
@@ -61,7 +60,6 @@ end
 --
 -- Since the camera can be rotated to extreme perspectives, even units that do not allow any
 -- other unit underneath themselves will have their selection volumes shrunk to zero radius.
----@param unitID integer
 local function removeSelectionVolume(unitID)
 	-- The xyz scale and volume shape are not kept; we want an unambiguous point volume.
 	local _, _, _, ox, oy, oz, _, cont, axis = Spring.GetUnitSelectionVolumeData(unitID)
@@ -70,19 +68,16 @@ local function removeSelectionVolume(unitID)
 	isVolumeHidden = true
 end
 
----@param unitID integer
 local function restoreSelectionVolume(unitID)
 	sp_SetUnitSelectionVolumeData(unitID, unpack(restoreVolumeData))
 	isVolumeHidden = false
 end
 
----@return boolean
 local function inDoubleClickDistance(mx, my)
 	return cx and math_abs(mx - cx) + math_abs(my - cy) <= doubleClickDist or false
 end
 
 ---Determine the time delay to apply an effect so that double clicks can register.
----@return number
 local function getSingleClickDuration()
 	local mx, my, leftButton = sp_GetMouseState()
 
