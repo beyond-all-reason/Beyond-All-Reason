@@ -277,7 +277,8 @@ local function DrawCircle(x, y, z, radius)
 	glPopMatrix()
 end
 
-local function ResetPulsePhase()
+-- we don't want to start in the middle of animation when enabling the command
+local function ResetPulseAnimation()
 	pulsePhase = 0
 end
 
@@ -661,7 +662,7 @@ end
 local function DrawStockpileProgress(tx, ty, tz, aoe, buildPercent, barColor, bgColor)
 	bgColor = bgColor or noStockpileColor
 	SetColor(1, bgColor)
-	glLineWidth(max(aoeLineWidthMult * aoe / 2 / mouseDistance, 0.5))
+	glLineWidth(max(aoeLineWidthMult * aoe / 2 / mouseDistance, 2))
 
 	glPushMatrix()
 	glTranslate(tx, ty, tz)
@@ -1172,6 +1173,114 @@ local function DrawDGun(aoe, ux, uy, uz, tx, ty, tz, range, requiredEnergy, unit
 end
 
 --------------------------------------------------------------------------------
+-- Drawing Dispatch
+--------------------------------------------------------------------------------
+
+-- Reusable context table to reduce garbage collection
+---@class AttackIndicatorData
+local aimData = {
+	info = nil,
+	unitID = 0,
+	dist = 0,
+	source = { x = 0, y = 0, z = 0 },
+	target = { x = 0, y = 0, z = 0 },
+	colors = { base = nil, fill = nil, scatter = nil, aoe = nil }
+}
+
+---@param data AttackIndicatorData
+local function HandleSector(data)
+	DrawSectorScatter(data.info.sector_angle, data.info.sector_shortfall, data.info.sector_range_max,
+		data.source.x, data.source.z, data.target.x, data.target.y, data.target.z)
+end
+
+---@param data AttackIndicatorData
+local function HandleBallistic(data)
+	local trajectory = select(7, spGetUnitStates(data.unitID, false, true)) and 1 or -1
+	local info = data.info
+	local scatterAlphaFactor = DrawBallisticScatter(info, data.source.x, data.source.y, data.source.z,
+		data.target.x, data.target.y, data.target.z, trajectory, data.unitID, data.colors.fill, data.colors.scatter)
+
+	local currentAoeColor = data.colors.base
+	if scatterAlphaFactor then
+		currentAoeColor = GetFadedColor(currentAoeColor, 1 - (scatterAlphaFactor * 0.9))
+	end
+	DrawAoe(data.target.x, data.target.y, data.target.z, info.aoe, info.ee, currentAoeColor)
+end
+
+---@param data AttackIndicatorData
+local function HandleNoExplode(data)
+	DrawNoExplode(data.info.aoe, data.source.x, data.source.y, data.source.z,
+		data.target.x, data.target.y, data.target.z,
+		data.info.range, data.info.requiredEnergy)
+end
+
+---@param data AttackIndicatorData
+local function HandleDirect(data)
+	DrawAoe(data.target.x, data.target.y, data.target.z, data.info.aoe, data.info.ee, data.colors.base)
+	DrawDirectScatter(data.info.scatter, data.source.x, data.source.y, data.source.z,
+		data.target.x, data.target.y, data.target.z,
+		data.info.range, spGetUnitRadius(data.unitID), data.colors.scatter)
+end
+
+---@param data AttackIndicatorData
+local function HandleDropped(data)
+	if data.info.salvoSize and data.info.salvoSize > 1 then
+		DrawDropped(data.info.aoe, data.info.ee, data.info.v,
+			data.source.x, data.source.z, data.target.x, data.target.z,
+			data.info.salvoSize, data.info.salvoDelay, data.colors.base)
+	else
+		DrawAoe(data.target.x, data.target.y, data.target.z, data.info.aoe, data.info.ee, data.colors.base)
+	end
+end
+
+---@param data AttackIndicatorData
+local function HandleWobble(data)
+	DrawAoe(data.target.x, data.target.y, data.target.z, data.info.aoe, data.info.ee, data.colors.base)
+	DrawWobbleScatter(data.info.scatter, data.source.x, data.source.y, data.source.z,
+		data.target.x, data.target.y, data.target.z,
+		data.info.rangeScatter, data.info.range, data.colors.scatter)
+end
+
+---@param data AttackIndicatorData
+local function HandleOrbital(data)
+	DrawAoe(data.target.x, data.target.y, data.target.z, data.info.aoe, data.info.ee, data.colors.base)
+	DrawOrbitalScatter(data.info.scatter, data.target.x, data.target.y, data.target.z, data.colors.scatter)
+end
+
+---@param data AttackIndicatorData
+local function HandleDGun(data)
+	DrawDGun(data.info.aoe, data.source.x, data.source.y, data.source.z,
+		data.target.x, data.target.y, data.target.z,
+		data.info.range, data.info.requiredEnergy, data.info.unitname)
+end
+
+---@param data AttackIndicatorData
+local function HandleJuno(data)
+	if not data.info.isMiniJuno then
+		DrawJuno(data.target.x, data.target.y, data.target.z, data.info.aoe, data.colors.base)
+	else
+		DrawAoe(data.target.x, data.target.y, data.target.z, data.info.aoe, data.info.ee, data.colors.base)
+	end
+end
+
+---@param data AttackIndicatorData
+local function HandleDefault(data)
+	DrawAoe(data.target.x, data.target.y, data.target.z, data.info.aoe, data.info.ee, data.colors.base)
+end
+
+local WeaponTypeHandlers = {
+	sector      = HandleSector,
+	ballistic   = HandleBallistic,
+	noexplode   = HandleNoExplode,
+	direct      = HandleDirect,
+	dropped     = HandleDropped,
+	wobble      = HandleWobble,
+	orbital     = HandleOrbital,
+	dgun        = HandleDGun,
+	juno        = HandleJuno
+}
+
+--------------------------------------------------------------------------------
 --callins
 --------------------------------------------------------------------------------
 
@@ -1189,132 +1298,73 @@ end
 function widget:DrawWorldPreUnit()
 	local info, aimingUnitID = GetActiveUnitInfo()
 	if not info then
-		ResetPulsePhase()
+		ResetPulseAnimation()
 		return
 	end
 
-	mouseDistance = GetMouseDistance() or 1000
 	local tx, ty, tz = GetMouseTargetPosition(true)
 	if (not tx) then
-		ResetPulsePhase()
+		ResetPulseAnimation()
 		return
 	end
 
-	-- do not draw for static units outside the range to make it clear you can't shoot there
+	-- Range check for static units
 	if not info.mobile and not spGetUnitWeaponTestRange(aimingUnitID, info.weaponNum, tx, ty, tz) then
-		ResetPulsePhase()
+		ResetPulseAnimation()
 		return
 	end
 
 	local ux, uy, uz = spGetUnitPosition(aimingUnitID)
 	if (not ux) then
-		ResetPulsePhase()
+		ResetPulseAnimation()
 		return
 	end
 
+	aimData.info = info
+	aimData.unitID = aimingUnitID
+	aimData.dist = GetMouseDistance() or 1000
+	mouseDistance = aimData.dist -- fixme Update global for legacy access in draw funcs
+
+	-- Adjust Source Position
 	if (not info.mobile) then
 		uy = uy + spGetUnitRadius(aimingUnitID)
 	end
+	aimData.source.x, aimData.source.y, aimData.source.z = ux, uy, uz
 
+	-- Adjust Target Position
 	if not info.waterWeapon and ty < 0 then
 		ty = 0
 	end
+	aimData.target.x, aimData.target.y, aimData.target.z = tx, ty, tz
 
-	local weaponType = info.type
+	-- --- Color Calculation ---
+	local baseColor = info.color or aoeColor
+	local baseFillColor = info.color or ((info.type == "ballistic") and GetFadedColor(aoeColor, 0)) or aoeColor
 
-	-- tremor customdef weapon
-	if (weaponType == "sector") then
-		DrawSectorScatter(info.sector_angle, info.sector_shortfall, info.sector_range_max, ux, uz, tx, ty, tz)
-		ResetPulsePhase()
-		return
-	end
-
-	---------------------------------------------------------
-	-- COLOR CALCULATION
-	---------------------------------------------------------
-	local baseColor
-	local baseFillColor
-	if weaponType == "ballistic" then
-		baseColor = info.color or aoeColor
-		baseFillColor = info.color or GetFadedColor(aoeColor, 0)
-	else
-		baseColor = info.color or aoeColor
-		baseFillColor = baseColor
-	end
-
-	local currentBaseColor = baseColor
-	local currentScatterColor = scatterColor
-	local currentFillColor = baseFillColor or baseColor
-
-	-- If it's a stockpile weapon, handle color transition if needed
 	if info.hasStockpile then
-		currentBaseColor = LerpColor(noStockpileColor, baseColor, stockpileFadeProgress)
-		currentScatterColor = LerpColor(noStockpileColor, scatterColor, stockpileFadeProgress)
-		currentFillColor = LerpColor(noStockpileColor, baseFillColor, stockpileFadeProgress)
-	end
-
-	---------------------------------------------------------
-	-- DRAW WEAPON (Always visible, color just changes)
-	---------------------------------------------------------
-
-	if (weaponType == "ballistic") then
-		local trajectory = select(7, spGetUnitStates(aimingUnitID, false, true))
-		if trajectory then
-			trajectory = 1
-		else
-			trajectory = -1
-		end
-
-		local scatterAlphaFactor = DrawBallisticScatter(info, ux, uy, uz, tx, ty, tz, trajectory, aimingUnitID, currentFillColor, currentScatterColor)
-		local currentAoeColor = currentBaseColor
-		if scatterAlphaFactor then
-			currentAoeColor = GetFadedColor(currentAoeColor, 1 - (scatterAlphaFactor * 0.9))
-		end
-
-		DrawAoe(tx, ty, tz, info.aoe, info.ee, currentAoeColor)
-	elseif (weaponType == "noexplode") then
-		DrawNoExplode(info.aoe, ux, uy, uz, tx, ty, tz, info.range, info.requiredEnergy)
-	elseif (weaponType == "direct") then
-		DrawAoe(tx, ty, tz, info.aoe, info.ee, currentBaseColor)
-		DrawDirectScatter(info.scatter, ux, uy, uz, tx, ty, tz, info.range, spGetUnitRadius(aimingUnitID), currentScatterColor)
-	elseif (weaponType == "dropped" and info.salvoSize and info.salvoSize > 1) then
-		DrawDropped(info.aoe, info.ee, info.v, ux, uz, tx, tz, info.salvoSize, info.salvoDelay, currentBaseColor)
-	elseif (weaponType == "wobble") then
-		DrawAoe(tx, ty, tz, info.aoe, info.ee, currentBaseColor)
-		DrawWobbleScatter(info.scatter, ux, uy, uz, tx, ty, tz, info.rangeScatter, info.range, currentScatterColor)
-	elseif (weaponType == "orbital") then
-		DrawAoe(tx, ty, tz, info.aoe, info.ee, currentBaseColor)
-		DrawOrbitalScatter(info.scatter, tx, ty, tz, currentScatterColor)
-	elseif weaponType == "dgun" then
-		DrawDGun(info.aoe, ux, uy, uz, tx, ty, tz, info.range, info.requiredEnergy, info.unitname)
-	elseif weaponType == "juno" and not info.isMiniJuno then
-		DrawJuno(tx, ty, tz, info.aoe, currentBaseColor)
+		aimData.colors.base = LerpColor(noStockpileColor, baseColor, stockpileFadeProgress)
+		aimData.colors.scatter = LerpColor(noStockpileColor, scatterColor, stockpileFadeProgress)
+		aimData.colors.fill = LerpColor(noStockpileColor, baseFillColor, stockpileFadeProgress)
 	else
-		DrawAoe(tx, ty, tz, info.aoe, info.ee, currentBaseColor)
+		aimData.colors.base = baseColor
+		aimData.colors.scatter = scatterColor
+		aimData.colors.fill = baseFillColor
 	end
 
-	---------------------------------------------------------
-	-- DRAW PROGRESS (Fades out when ready)
-	---------------------------------------------------------
-	if info.hasStockpile then
-		local numStockpiled, numStockpileQued, buildPercent = Spring.GetUnitStockpile(aimingUnitID)
+	(WeaponTypeHandlers[info.type] or HandleDefault)(aimData)
 
-		-- Visual Trick: If we are in delay/fading state, force bar to look 100% full
+	-- --- Draw Stockpile Progress ---
+	if info.hasStockpile then
+		local numStockpiled, _, buildPercent = Spring.GetUnitStockpile(aimingUnitID)
+
 		if stockpileState == "delay" or stockpileState == "fading" then
 			buildPercent = 1
 		end
 
-		-- Fade out the bar as the color fades in
 		local barAlpha = 1 - stockpileFadeProgress
-
 		if barAlpha > 0 then
-			-- Use baseColor for the bar, but apply the fading alpha
 			local barColor = { baseColor[1], baseColor[2], baseColor[3], baseColor[4] * barAlpha }
-
-			-- The background ring of the progress bar should also fade out
 			local barBgColor = { noStockpileColor[1], noStockpileColor[2], noStockpileColor[3], noStockpileColor[4] * barAlpha }
-
-			-- You need to update DrawStockpileProgress to take these colors
 			DrawStockpileProgress(tx, ty, tz, info.aoe, buildPercent, barColor, barBgColor)
 		end
 	end
