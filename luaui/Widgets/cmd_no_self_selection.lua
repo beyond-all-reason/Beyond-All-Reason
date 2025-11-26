@@ -196,7 +196,7 @@ local function traceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeS
 end
 
 local function gadget_removeSelectionVolume()
-	if not isVolumeHidden and selectedUnitID then
+	if not isVolumeHidden and selectedUnitID and selectClickTime <= 0 and not inActiveCommand then
 		removeSelectionVolume(selectedUnitID)
 	end
 end
