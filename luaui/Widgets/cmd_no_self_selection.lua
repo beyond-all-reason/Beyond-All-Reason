@@ -74,7 +74,7 @@ local function restoreSelectionVolume(unitID)
 end
 
 local function inDoubleClickDistance(mx, my)
-	return cx and math_abs(mx - cx) + math_abs(my - cy) <= doubleClickDist or false
+	return cx and math_abs(mx - cx) + math_abs(my - cy) <= doubleClickDist
 end
 
 ---Determine the time delay to apply an effect so that double clicks can register.
