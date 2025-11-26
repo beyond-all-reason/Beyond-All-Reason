@@ -14,18 +14,23 @@ end
 
 -- Localized functions for performance
 local max = math.max
+local min = math.min
 local sqrt = math.sqrt
 local sin = math.sin
 local cos = math.cos
 local atan2 = math.atan2
 local pi = math.pi
+local tau = math.tau
 local floor = math.floor
 local tan = math.tan
 local abs = math.abs
 local pow = math.pow
+local lerp = math.mix
 local distance2d = math.distance2d
 local distance2dSquared = math.distance2dSquared
 local distance3d = math.distance3d
+local normalize = math.normalize
+local ceil = math.ceil
 
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -84,8 +89,8 @@ local GL_NOTEQUAL = GL.NOTEQUAL
 --------------------------------------------------------------------------------
 local Config = {
 	General = {
-		gameSpeed = 30,
-		minSpread = 8, --weapons with this spread or less are ignored
+		gameSpeed = Game.gameSpeed,
+		minSpread = 8, -- weapons with this spread or less are ignored
 	},
 	Colors = {
 		aoe = { 1, 0, 0, 1 },
@@ -106,7 +111,7 @@ local Config = {
 		pointSizeMult = 2048,
 		maxFilledCircleAlpha = 0.2,
 		minFilledCircleAlpha = 0.1,
-		ringDamageLevels = { 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1 }, -- draw aoe rings for these damage levels
+		ringDamageLevels = { 0.8, 0.6, 0.4, 0.2 }, -- draw aoe rings for these damage levels
 	},
 	Animation = {
 		salvoSpeed = 0.1,
@@ -118,7 +123,7 @@ local Config = {
 -- Derived Constants
 Config.Animation.fadeDuration = 1 - Config.Animation.waveDuration
 local g = Game.gravity
-local gravityPerFrame = g / Config.General.gameSpeed / Config.General.gameSpeed
+local gravityPerFrame = g / pow(Config.General.gameSpeed, 2)
 
 --------------------------------------------------------------------------------
 -- STATE & CACHE
@@ -128,15 +133,14 @@ local gravityPerFrame = g / Config.General.gameSpeed / Config.General.gameSpeed
 ---@field weaponInfo WeaponInfo
 local defaultAimData = {
 	weaponInfo = nil,
-	unitID = 0,
-	dist = 0,
+	unitID = nil,
+	distanceFromCamera = nil,
 	source = { x = 0, y = 0, z = 0 },
 	target = { x = 0, y = 0, z = 0 },
 	colors = {
 		base = { 0, 0, 0, 0 },
 		fill = { 0, 0, 0, 0 },
 		scatter = { 0, 0, 0, 0 },
-		aoe = { 0, 0, 0, 0 }
 	}
 }
 
@@ -210,7 +214,7 @@ for i = 1, Config.Render.aoeDiskBandCount do
 	State.Calculated.diskWaveTriggerTimes[i] = (i / Config.Render.aoeDiskBandCount) * Config.Animation.waveDuration
 end
 for i = 0, Config.Render.circleDivs do
-	local theta = 2 * pi * i / Config.Render.circleDivs
+	local theta = tau * i / Config.Render.circleDivs
 	State.Calculated.unitCircles[i] = { cos(theta), sin(theta) }
 end
 
@@ -320,16 +324,15 @@ local function GetFadedColor(color, alphaMult)
 	return { color[1], color[2], color[3], color[4] * alphaMult }
 end
 
-local function Lerp(a, b, time)
-	return b - (b - a) * time
+local function FadeColorInPlace(color, alphaMult)
+	color[4] = color[4] * alphaMult
 end
 
-local function LerpColorInPlace(c1, c2, t, out)
-	local invT = 1 - t
-	out[1] = c1[1] * invT + c2[1] * t
-	out[2] = c1[2] * invT + c2[2] * t
-	out[3] = c1[3] * invT + c2[3] * t
-	out[4] = c1[4] * invT + c2[4] * t
+local function LerpColorInPlace(sourceColor, targetColor, t, out)
+	out[1] = lerp(sourceColor[1], targetColor[1], t)
+	out[2] = lerp(sourceColor[2], targetColor[2], t)
+	out[3] = lerp(sourceColor[3], targetColor[3], t)
+	out[4] = lerp(sourceColor[4], targetColor[4], t)
 end
 
 local function CopyColor(target, source)
@@ -343,7 +346,7 @@ local function ToBool(x)
 	return x and x ~= 0 and x ~= "false"
 end
 
-local function Normalize(x, y, z)
+local function GetNormalizedAndMagnitude(x, y, z)
 	local mag = distance3d(x, y, z, 0, 0, 0)
 	if mag == 0 then
 		return nil
@@ -387,40 +390,52 @@ end
 -- BALLISTICS HELPERS
 --------------------------------------------------------------------------------
 --- Calculates the launch vector to hit a target (dx, dy, dz) with speed v
-local function GetBallisticVector(v, dx, dy, dz, trajectory, gravity)
-	local dr_sq = distance2dSquared(dx, dz, 0, 0)
-	local dr = sqrt(dr_sq)
+--- @param trajectoryMode number low (-1) or high (1) trajectory
+local function GetBallisticVector(initialSpeed, dx, dy, dz, trajectoryMode)
 
-	local d_sq = dr_sq + dy * dy
+	local horizontalDistSq = distance2dSquared(dx, dz, 0, 0)
+	local horizontalDist = sqrt(horizontalDistSq)
 
-	if d_sq == 0 then
-		return 0, v * trajectory, 0
+	local totalDistSq = horizontalDistSq + dy * dy
+
+	if totalDistSq == 0 then
+		return 0, initialSpeed * trajectoryMode, 0
 	end
 
-	local root1 = v * v * v * v - 2 * v * v * gravity * dy - gravity * gravity * dr_sq
-	if root1 < 0 then
+	local speedSq = pow(initialSpeed, 2)
+	local speedQuad = pow(speedSq, 2)
+	local gravitySq = pow(g, 2)
+
+	local discriminant = speedQuad - 2 * speedSq * g * dy - gravitySq * horizontalDistSq
+
+	-- Check if the target is reachable
+	if discriminant < 0 then
 		return nil
 	end
 
-	local root2 = 2 * dr_sq * d_sq * (v * v - gravity * dy - trajectory * sqrt(root1))
+	local rootValue = sqrt(discriminant)
 
-	if root2 < 0 then
+	local horizontalSpeedSqNumerator = 2 * horizontalDistSq * totalDistSq * (speedSq - g * dy - trajectoryMode * rootValue)
+
+	if horizontalSpeedSqNumerator < 0 then
 		return nil
 	end
 
-	local vr = sqrt(root2) / (2 * d_sq)
-	local vy
+	local horizontalSpeed = sqrt(horizontalSpeedSqNumerator) / (2 * totalDistSq)
 
-	if vr == 0 then
-		vy = v
+	local verticalSpeed
+
+	if horizontalSpeed == 0 then
+		verticalSpeed = initialSpeed
 	else
-		vy = vr * dy / dr + dr * gravity / (2 * vr)
+		verticalSpeed = horizontalSpeed * dy / horizontalDist + horizontalDist * g / (2 * horizontalSpeed)
 	end
 
-	local bx = dx * vr / dr
-	local bz = dz * vr / dr
-	local by = vy
-	return Normalize(bx, by, bz)
+	local launchVecX = dx * horizontalSpeed / horizontalDist
+	local launchVecZ = dz * horizontalSpeed / horizontalDist
+	local launchVecY = verticalSpeed
+
+	return normalize(launchVecX, launchVecY, launchVecZ)
 end
 
 --- Calculates where a projectile with specific velocity vector will intersect the target plane
@@ -616,7 +631,7 @@ local function FindBestWeapon(unitDef)
 end
 
 ---@return WeaponInfo
-local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
+local function BuildWeaponInfo(unitDef, weaponDef, weaponNum, unitDefID)
 	---@class WeaponInfo
 	local info = {}
 	local weaponType = weaponDef.type
@@ -654,9 +669,6 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 		info.type = "juno"
 		info.isMiniJuno = (weaponDef.customParams.junotype == "mini")
 		info.color = Config.Colors.juno
-	elseif weaponDef.cylinderTargeting >= 100 then
-		info.type = "orbital"
-		info.scatter = scatter
 	elseif weaponType == "Cannon" then
 		info.type = "ballistic"
 		info.scatter = scatter
@@ -665,15 +677,16 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 		info.projectileCount = weaponDef.projectiles or 1
 		info.salvoSize = weaponDef.salvoSize or 1
 	elseif weaponType == "MissileLauncher" then
-		local turnRate = weaponDef.tracks and weaponDef.turnRate or 0
-		if weaponDef.wobble > turnRate * 1.4 then
+		local turnRate = weaponDef.turnRate or 0
+		if weaponDef.wobble > turnRate * 1.5 then
 			info.type = "wobble"
-			info.scatter = (weaponDef.wobble - weaponDef.turnRate) * weaponDef.projectilespeed * Config.General.gameSpeed * 16
-			info.rangeScatter = (8 * weaponDef.wobble - weaponDef.turnRate)
+			info.wobble = weaponDef.wobble
+			info.turnRate = turnRate
+			info.v = weaponDef.projectilespeed
+			info.startVelocity = weaponDef.startvelocity or 0
 			info.range = weaponDef.range
-		elseif weaponDef.wobble > turnRate then
-			info.type = "wobble"
-			info.scatter = (weaponDef.wobble - weaponDef.turnRate) * weaponDef.projectilespeed * Config.General.gameSpeed * 16
+			info.trajectoryHeight = weaponDef.trajectoryHeight
+			info.overrangeDistance = tonumber(weaponDef.customParams.overrange_distance)
 		elseif weaponDef.tracks then
 			info.type = "tracking"
 		else
@@ -721,7 +734,7 @@ local function SetupUnitDef(unitDefID, unitDef)
 		return
 	end
 
-	local info = BuildWeaponInfo(unitDef, maxWeaponDef, maxWeaponNum)
+	local info = BuildWeaponInfo(unitDef, maxWeaponDef, maxWeaponNum, unitDefID)
 
 	if maxWeaponDef.manualFire and unitDef.canManualFire then
 		State.manualWeaponInfos[unitDefID] = info
@@ -848,7 +861,7 @@ local function GetAlphaFactorForRing(minAlpha, maxAlpha, index, phase, alphaMult
 		end
 	else
 		local fadeProgress = (phase - waveDuration) / fadeDuration
-		result = Lerp(minAlpha, maxAlpha, fadeProgress)
+		result = lerp(minAlpha, maxAlpha, fadeProgress)
 	end
 
 	return result * alphaMult
@@ -896,13 +909,12 @@ end
 
 ---@param data IndicatorDrawData
 local function DrawAoe(data, baseColorOverride, targetOverride, ringAlphaMult, phaseOffset)
-	local dist = data.dist
 	local color = baseColorOverride or data.colors.base
 	local target = targetOverride or data.target
 	local tx, ty, tz = target.x, target.y, target.z
 	local aoe, edgeEffectiveness = data.weaponInfo.aoe, data.weaponInfo.ee
 
-	glLineWidth(max(Config.Render.aoeLineWidthMult * aoe / dist, 0.5))
+	glLineWidth(max(Config.Render.aoeLineWidthMult * aoe / data.distanceFromCamera, 0.5))
 	ringAlphaMult = ringAlphaMult or 1
 
 	local phase = State.pulsePhase + (phaseOffset or 0)
@@ -976,8 +988,9 @@ local function DrawJunoArea(data)
 	glLineWidth(1)
 end
 
+---@param data IndicatorDrawData
 local function DrawStockpileProgress(data, buildPercent, barColor, bgColor)
-	local dist = data.dist
+	local dist = data.distanceFromCamera
 	local aoe = data.weaponInfo.aoe
 	local tx, ty, tz = data.target.x, data.target.y, data.target.z
 	local circles = State.Calculated.unitCircles
@@ -1008,7 +1021,7 @@ local function DrawStockpileProgress(data, buildPercent, barColor, bgColor)
 			end
 
 			if buildPercent < 1 then
-				local angle = 2 * pi * buildPercent
+				local angle = tau * buildPercent
 				glVertex(cos(angle), 0, sin(angle))
 			end
 		end)
@@ -1031,13 +1044,12 @@ local function DrawNoExplode(data, overrideSource)
 	local aoe = data.weaponInfo.aoe
 	local range = data.weaponInfo.range
 	local requiredEnergy = data.weaponInfo.requiredEnergy
-	local dist = data.dist
 
 	local dx = tx - ux
 	local dy = ty - uy
 	local dz = tz - uz
 
-	local bx, by, bz, len = Normalize(dx, dy, dz)
+	local bx, by, bz, len = GetNormalizedAndMagnitude(dx, dy, dz)
 
 	if not bx or len > range then
 		return
@@ -1056,7 +1068,7 @@ local function DrawNoExplode(data, overrideSource)
 
 	local colorAoe = Config.Colors.aoe
 	local colorNoEnergy = Config.Colors.noEnergy
-	local alpha = Lerp(Config.Render.minFilledCircleAlpha, 1, State.pulsePhase) * colorAoe[4]
+	local alpha = lerp(Config.Render.minFilledCircleAlpha, 1, State.pulsePhase) * colorAoe[4]
 
 	if requiredEnergy and select(1, spGetTeamResources(spGetMyTeamID(), 'energy')) < requiredEnergy then
 		glColor(colorNoEnergy[1], colorNoEnergy[2], colorNoEnergy[3], alpha)
@@ -1064,7 +1076,7 @@ local function DrawNoExplode(data, overrideSource)
 		glColor(colorAoe[1], colorAoe[2], colorAoe[3], alpha)
 	end
 
-	glLineWidth(1 + (Config.Render.scatterLineWidthMult / dist))
+	glLineWidth(1 + (Config.Render.scatterLineWidthMult / data.distanceFromCamera))
 
 	glBeginEnd(GL_LINES, VertexList, vertices)
 
@@ -1091,7 +1103,6 @@ local function DrawBallisticScatter(data)
 	local weaponInfo = data.weaponInfo
 	local ux, uy, uz = data.source.x, data.source.y, data.source.z
 	local tx, ty, tz = data.target.x, data.target.y, data.target.z
-	local dist = data.dist
 	local aimingUnitID = data.unitID
 	local fillColor, lineColor = data.colors.fill, data.colors.scatter
 	local trajectory = select(7, spGetUnitStates(aimingUnitID, false, true)) and 1 or -1
@@ -1208,7 +1219,7 @@ local function DrawBallisticScatter(data)
 		EndNoOverlap()
 	end
 
-	glLineWidth(scatterLineWidthMult / dist)
+	glLineWidth(scatterLineWidthMult / data.distanceFromCamera)
 	glBeginEnd(GL_LINE_LOOP, function()
 		for i = 0, scatterSegments do
 			local theta = i * angleStep
@@ -1240,7 +1251,7 @@ local function DrawSectorScatter(data)
 	local angle = data.weaponInfo.sector_angle
 	local shortfall = data.weaponInfo.sector_shortfall
 	local rangeMax = data.weaponInfo.sector_range_max
-	local dist = data.dist
+	local distanceFromCamera = data.distanceFromCamera
 
 	local bars = {}
 	local vx = tx - ux
@@ -1278,8 +1289,8 @@ local function DrawSectorScatter(data)
 	end
 	bars[count] = { px + vx2, ty, pz + vz2 }
 	count = count + 1
-	glLineWidth(Config.Render.scatterLineWidthMult / dist)
-	glPointSize(Config.Render.pointSizeMult / dist)
+	glLineWidth(Config.Render.scatterLineWidthMult / distanceFromCamera)
+	glPointSize(Config.Render.pointSizeMult / distanceFromCamera)
 	glColor(Config.Colors.scatter)
 	glDepthTest(false)
 	glBeginEnd(GL_LINE_STRIP, VertexList, bars)
@@ -1292,20 +1303,191 @@ end
 --------------------------------------------------------------------------------
 -- WOBBLE
 --------------------------------------------------------------------------------
----@param data IndicatorDrawData
+local function GetAnnularSectorVertices(ux, uz, aimAngle, halfAngle, rMin, rMax, segments)
+	local vertices = {}
+	local count = 1
+	-- Dynamic segment count based on size of the arc to keep it smooth
+	local arcLength = rMax * halfAngle * 2
+	if segments == nil then
+		segments = ceil(arcLength / 20) -- 1 segment per 20 elmo
+		if segments < 8 then segments = 8 end
+		if segments > 64 then segments = 64 end
+	end
+
+	local step = (halfAngle * 2) / segments
+
+	-- 1. Outer Arc (Clockwise)
+	for i = 0, segments do
+		local theta = (aimAngle + halfAngle) - (i * step)
+		local px = ux + (sin(theta) * rMax)
+		local pz = uz + (cos(theta) * rMax)
+		local py = spGetGroundHeight(px, pz)
+		vertices[count] = { px, py, pz }
+		count = count + 1
+	end
+
+	-- 2. Inner Arc (Counter-Clockwise)
+	for i = 0, segments do
+		local theta = (aimAngle - halfAngle) + (i * step)
+		local px = ux + (sin(theta) * rMin)
+		local pz = uz + (cos(theta) * rMin)
+		local py = spGetGroundHeight(px, pz)
+		vertices[count] = { px, py, pz }
+		count = count + 1
+	end
+
+	return vertices
+end
+
+
+--- At the moment used only by Catapult (0 path correction) and Thanatos (some path correction) and it's tweaked
+--- to work well for both of them. It's very likely that it will have to be tweaked if their weapondefs change or
+--- new unit will be introduced
+--- @param data IndicatorDrawData
 local function DrawWobbleScatter(data)
-	local scatter = data.weaponInfo.scatter
+	local ux, uy, uz = data.source.x, data.source.y, data.source.z
 	local tx, ty, tz = data.target.x, data.target.y, data.target.z
-	local rangeScatter = data.weaponInfo.rangeScatter
-	local dist = data.dist
 
-	local ctx, cty, ctz, clampedDist = GetClampedTarget(data)
+	local range = data.weaponInfo.range
+	local wobble = data.weaponInfo.wobble or 0
+	local turnRate = data.weaponInfo.turnRate or 0
+	local projSpeed = data.weaponInfo.v or 500
+	local trajectoryHeight = data.weaponInfo.trajectoryHeight or 0
 
-	glColor(Config.Colors.scatter)
-	glLineWidth(Config.Render.scatterLineWidthMult / dist)
-	DrawCircle(tx, ty, tz, rangeScatter * clampedDist + scatter)
+	--------------------------------------------------------------------------------
+	-- CALIBRATION (aka magic numbers)
+	--------------------------------------------------------------------------------
+	-- Constant that converts engine wobble units (e.g. 0.006) into visual radians.
+	-- Calibrated so the drawing matches observed in-game spread
+	local SPREAD_CALIBRATION = 12.0
+	-- Because wobble is random chaos, the deviation does not grow linearly with flight time.
+	-- A low exponent prevents long-range shots from drawing impossibly wide cones.
+	local TIME_EXPONENT = 0.20
+	-- A multiplier applied to the TurnRate when fighting Wobble.
+	-- A value of 2.0 means active guidance is twice as effective at reducing
+	-- spread as the raw numbers suggest.
+	local GUIDANCE_EFFICIENCY = 2.0
+	-- Controls how much height advantage reduces the forward spread.
+	-- Higher = height advantage tightens the shape more aggressively.
+	local ELEVATION_IMPACT_FACTOR = 8
+	--------------------------------------------------------------------------------
+
+	-- 1. Clamp Aim Distance
+	local dist = distance2d(ux, uz, tx, tz)
+	local clampedDist = min(dist, range)
+
+	-- 2. Calculate Flight Duration
+	local arcFactor = 1.0 + (trajectoryHeight * 0.5)
+	local flightFrames = (clampedDist * arcFactor) / projSpeed
+	if flightFrames < 1 then
+		flightFrames = 1
+	end
+
+	-- Range factor (% of maxDistance) for Bias interpolation
+	local maxFlightFrames = (range * arcFactor) / projSpeed
+	local rangeFactor = maxFlightFrames > 0 and (flightFrames / maxFlightFrames) or 0
+
+	-- 3. Calculate Net Wobble
+	local netWobble = max(0, wobble - (turnRate * GUIDANCE_EFFICIENCY))
+
+	if netWobble <= 0.0001 then
+		return
+	end
+
+	-- 4. Calculate Angle
+	local timeFactor = pow(flightFrames, TIME_EXPONENT)
+	local spreadAngle = netWobble * SPREAD_CALIBRATION * timeFactor
+
+	if spreadAngle > 1.2 then spreadAngle = 1.2 end
+	if spreadAngle < 0.02 then spreadAngle = 0.02 end
+
+	-- 5. Calculate Shape Biases
+	local spreadRadius = clampedDist * tan(spreadAngle)
+
+	local guidance = wobble > 0 and turnRate / wobble or 0
+
+	-- FORWARD BIAS (Overshoot)
+	-- Projectiles go up before turning towards the ground which always makes them overshoot at close distance
+	local closeRangeBias = (trajectoryHeight - guidance) * 3.0
+
+	local maxRangeBias = trajectoryHeight * (1.0 - guidance)
+	if guidance > 0 then
+		maxRangeBias = maxRangeBias * 0.5
+	end
+
+	local forwardBias = lerp(closeRangeBias, maxRangeBias, rangeFactor)
+
+	-- If we are above the target, the impact angle is steeper, reducing overshoot.
+	if uy > ty then
+		local heightDiff = uy - ty
+		local slope = heightDiff / max(1, clampedDist)
+		local trajectoryDamping = 1.0 + trajectoryHeight
+		local elevationCorrection = (slope * ELEVATION_IMPACT_FACTOR) / trajectoryDamping
+		Spring.Echo(elevationCorrection)
+		forwardBias = max(0, forwardBias - elevationCorrection)
+	end
+
+	-- BACKWARD BIAS (Undershoot)
+	-- Increases linearly with range
+	local backwardBias = ((trajectoryHeight + guidance) * rangeFactor) * 0.5
+
+	-- Apply Biases
+	local rMax = dist + (spreadRadius * forwardBias)
+	local rMin = dist - (spreadRadius * backwardBias)
+
+	-- 6. Clamps and Draw
+	if rMin < 50 then rMin = 50 end
+
+	-- Handle Over-range. Using lower overrangeDistance because projectiles won't reach it most of the time
+	local overrange = data.weaponInfo.overrangeDistance * 0.9 or (range * 1.15)
+	-- ensure overrange is actually larger than range
+	if overrange < range then overrange = range * 1.05 end
+
+	-- If we are aiming past the clamp limit, we push the overrange wall back
+	-- This keeps the shape "squashed" against the wall exactly as it is at max range
+	if dist > clampedDist then
+		overrange = overrange + (dist - clampedDist)
+	end
+
+	if rMax > overrange then rMax = overrange end
+	if rMin >= rMax then rMin = rMax - 10 end
+
+	-- 7. Recalculate Draw Angle for Over-range
+	-- If we use the original 'spreadAngle' at distance 'dist', the cone will get wider.
+	-- We want the physical width (spreadRadius) to stay the same as it was at 'clampedDist'.
+	if dist > clampedDist then
+		spreadAngle = atan2(spreadRadius, dist)
+	end
+
+	local dx = tx - ux
+	local dz = tz - uz
+	local aimAngle = atan2(dx, dz)
+
+	local vertices = GetAnnularSectorVertices(ux, uz, aimAngle, spreadAngle, rMin, rMax)
+
+	local spreadAlphaFactor = 0
+	local baseThreshold = max(data.weaponInfo.aoe * 2, 50)
+	local minSpreadRadius = baseThreshold * 0.5
+
+	local visualSpreadRadius = max(spreadRadius, spreadRadius * forwardBias)
+
+	if visualSpreadRadius >= baseThreshold then
+		spreadAlphaFactor = 1
+	elseif visualSpreadRadius > minSpreadRadius then
+		spreadAlphaFactor = (visualSpreadRadius - minSpreadRadius) / (baseThreshold - minSpreadRadius)
+	end
+
+	if spreadAlphaFactor <= 0 then
+		return 0
+	end
+
+	SetColor(spreadAlphaFactor, data.colors.scatter)
+	glLineWidth(max(1, Config.Render.scatterLineWidthMult / data.distanceFromCamera))
+	glBeginEnd(GL_LINE_LOOP, VertexList, vertices)
+
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
+	return spreadAlphaFactor
 end
 
 --------------------------------------------------------------------------------
@@ -1319,18 +1501,16 @@ local function DrawDirectScatter(data)
 	end
 	local ux, uy, uz = data.source.x, data.source.y, data.source.z
 	local unitRadius = spGetUnitRadius(data.unitID)
-	local dist = data.dist
 
-	-- We ignore the returned distance 'd' here because we recalc it for normalization below
 	local ctx, cty, ctz = GetClampedTarget(data)
 
 	local dx = ctx - ux
 	local dy = cty - uy
 	local dz = ctz - uz
 
-	local aimDirX, aimDirY, aimDirZ, d = Normalize(dx, dy, dz)
+	local aimDirX, aimDirY, aimDirZ, len = GetNormalizedAndMagnitude(dx, dy, dz)
 
-	if d == 0 or not aimDirX then
+	if len == 0 or not aimDirX then
 		return
 	end
 
@@ -1357,7 +1537,7 @@ local function DrawDirectScatter(data)
 	}
 
 	glColor(Config.Colors.scatter)
-	glLineWidth(Config.Render.scatterLineWidthMult / dist)
+	glLineWidth(Config.Render.scatterLineWidthMult / data.distanceFromCamera)
 	glBeginEnd(GL_LINES, VertexList, vertices)
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
@@ -1380,7 +1560,7 @@ local function DrawDropped(data)
 	local dx = tx - ux
 	local dz = tz - uz
 
-	local bx, _, bz = Normalize(dx, 0, dz)
+	local bx, _, bz = normalize(dx, 0, dz)
 
 	if (not bx) then
 		return
@@ -1404,22 +1584,6 @@ local function DrawDropped(data)
 		end
 		DrawAoe(data, nil, { x = x, y = y, z = z }, ringAlphaMult, -salvoAnimationSpeed * i)
 	end
-	glColor(1, 1, 1, 1)
-	glLineWidth(1)
-end
-
---------------------------------------------------------------------------------
--- ORBITAL
---------------------------------------------------------------------------------
----@param data IndicatorDrawData
-local function DrawOrbitalScatter(data)
-	local scatter = data.weaponInfo.scatter
-	local tx, ty, tz = data.target.x, data.target.y, data.target.z
-	local dist = data.dist
-
-	glColor(Config.Colors.scatter)
-	glLineWidth(Config.Render.scatterLineWidthMult / dist)
-	DrawCircle(tx, ty, tz, scatter)
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
 end
@@ -1474,14 +1638,9 @@ end
 
 ---@param data IndicatorDrawData
 local function DrawWobble(data)
+	local scatterAlphaFactor = DrawWobbleScatter(data) or 0
+	FadeColorInPlace(data.colors.base, 1 - (scatterAlphaFactor * 0.5))
 	DrawAoe(data)
-	DrawWobbleScatter(data)
-end
-
----@param data IndicatorDrawData
-local function DrawOrbital(data)
-	DrawAoe(data)
-	DrawOrbitalScatter(data)
 end
 
 ---@param data IndicatorDrawData
@@ -1500,7 +1659,6 @@ local WeaponTypeHandlers = {
 	direct = DrawDirect,
 	dropped = DrawDropped,
 	wobble = DrawWobble,
-	orbital = DrawOrbital,
 	dgun = DrawDGun,
 	juno = DrawJuno
 }
@@ -1549,7 +1707,7 @@ function widget:DrawWorldPreUnit()
 
 	aimData.weaponInfo = weaponInfo
 	aimData.unitID = aimingUnitID
-	aimData.dist = GetMouseDistance() or 1000
+	aimData.distanceFromCamera = GetMouseDistance() or 1000
 
 	if (not weaponInfo.mobile) then
 		uy = uy + spGetUnitRadius(aimingUnitID)
