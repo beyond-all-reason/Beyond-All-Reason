@@ -179,7 +179,7 @@ end
 ---@return ("unit"|"feature"|"ground"|"sky")? description of traced object or position
 ---@return (integer|xyz)? result unitID or featureID (integer), or position triple (xyz)
 local function traceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset)
-	-- Spring.TraceScreenRay also accepts arguments (screenX, screenY, heightOffset), so check onlyCoords for explicit boolean `true`.
+	-- Explicitly check onlyCoords because `TraceScreenRay` accepts arguments (screenX, screenY, heightOffset).
 	local hiddenID = (onlyCoords ~= true) and not useMinimap and isVolumeHidden and selectedUnitID
 
 	if hiddenID then
