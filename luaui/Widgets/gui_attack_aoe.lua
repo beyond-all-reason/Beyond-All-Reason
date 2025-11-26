@@ -125,9 +125,9 @@ local gravityPerFrame = g / Config.General.gameSpeed / Config.General.gameSpeed
 --------------------------------------------------------------------------------
 
 ---@class IndicatorDrawData
----@field info WeaponInfo
+---@field weaponInfo WeaponInfo
 local defaultAimData = {
-	info = nil,
+	weaponInfo = nil,
 	unitID = 0,
 	dist = 0,
 	source = { x = 0, y = 0, z = 0 },
@@ -141,7 +141,7 @@ local defaultAimData = {
 }
 
 local State = {
-	weaponInfos = {},       ---@type table<number, WeaponInfo>
+	weaponInfos = {}, ---@type table<number, WeaponInfo>
 	manualWeaponInfos = {}, ---@type table<number, WeaponInfo>
 
 	-- Selection State
@@ -358,6 +358,31 @@ local function VertexList(points)
 	end
 end
 
+-- Clamp the max range for scatter calculations
+---@param data IndicatorDrawData
+local function GetClampedTarget(data)
+	local ux, uy, uz = data.source.x, data.source.y, data.source.z
+	local tx, ty, tz = data.target.x, data.target.y, data.target.z
+	local range, unitID, weaponNum = data.weaponInfo.range, data.unitID, data.weaponInfo.weaponNum
+
+	local aimDist = distance3d(tx, ty, tz, ux, uy, uz)
+
+	-- If the engine says we can hit it, don't clamp
+	if spGetUnitWeaponTestRange(unitID, weaponNum, tx, ty, tz) then
+		return tx, ty, tz, aimDist
+	end
+
+	if aimDist > range then
+		local factor = range / aimDist
+		local cx = ux + (tx - ux) * factor
+		local cz = uz + (tz - uz) * factor
+		local cy = spGetGroundHeight(cx, cz)
+		return cx, cy, cz, range
+	end
+
+	return tx, ty, tz, aimDist
+end
+
 --------------------------------------------------------------------------------
 -- BALLISTICS HELPERS
 --------------------------------------------------------------------------------
@@ -564,24 +589,6 @@ end
 --------------------------------------------------------------------------------
 -- INITIALIZATION LOGIC
 --------------------------------------------------------------------------------
-
-local function ParseCustomParams(unitDef)
-	for ii, weapon in ipairs(unitDef.weapons) do
-		if weapon.weaponDef then
-			local weaponDef = WeaponDefs[weapon.weaponDef]
-			if weaponDef and weaponDef.customParams and weaponDef.customParams.speceffect == "sector_fire" then
-				return {
-					type = "sector",
-					sector_angle = tonumber(weaponDef.customParams.spread_angle),
-					sector_shortfall = tonumber(weaponDef.customParams.max_range_reduction),
-					sector_range_max = weaponDef.range
-				}
-			end
-		end
-	end
-	return nil
-end
-
 local function FindBestWeapon(unitDef)
 	local maxSpread = Config.General.minSpread
 	local bestDef, bestNum
@@ -654,19 +661,19 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 		info.type = "ballistic"
 		info.scatter = scatter
 		info.range = weaponDef.range
-		info.v = weaponDef.projectilespeed * 30
+		info.v = weaponDef.projectilespeed * Config.General.gameSpeed
 		info.projectileCount = weaponDef.projectiles or 1
 		info.salvoSize = weaponDef.salvoSize or 1
 	elseif weaponType == "MissileLauncher" then
 		local turnRate = weaponDef.tracks and weaponDef.turnRate or 0
 		if weaponDef.wobble > turnRate * 1.4 then
 			info.type = "wobble"
-			info.scatter = (weaponDef.wobble - weaponDef.turnRate) * weaponDef.projectilespeed * 30 * 16
+			info.scatter = (weaponDef.wobble - weaponDef.turnRate) * weaponDef.projectilespeed * Config.General.gameSpeed * 16
 			info.rangeScatter = (8 * weaponDef.wobble - weaponDef.turnRate)
 			info.range = weaponDef.range
 		elseif weaponDef.wobble > turnRate then
 			info.type = "wobble"
-			info.scatter = (weaponDef.wobble - weaponDef.turnRate) * weaponDef.projectilespeed * 30 * 16
+			info.scatter = (weaponDef.wobble - weaponDef.turnRate) * weaponDef.projectilespeed * Config.General.gameSpeed * 16
 		elseif weaponDef.tracks then
 			info.type = "tracking"
 		else
@@ -893,7 +900,7 @@ local function DrawAoe(data, baseColorOverride, targetOverride, ringAlphaMult, p
 	local color = baseColorOverride or data.colors.base
 	local target = targetOverride or data.target
 	local tx, ty, tz = target.x, target.y, target.z
-	local aoe, edgeEffectiveness = data.info.aoe, data.info.ee
+	local aoe, edgeEffectiveness = data.weaponInfo.aoe, data.weaponInfo.ee
 
 	glLineWidth(max(Config.Render.aoeLineWidthMult * aoe / dist, 0.5))
 	ringAlphaMult = ringAlphaMult or 1
@@ -919,7 +926,7 @@ end
 ---@param data IndicatorDrawData
 local function DrawJunoArea(data)
 	local tx, ty, tz = data.target.x, data.target.y, data.target.z
-	local aoe = data.info.aoe
+	local aoe = data.weaponInfo.aoe
 	local phase = State.pulsePhase - floor(State.pulsePhase)
 	local color = data.colors.base
 
@@ -971,7 +978,7 @@ end
 
 local function DrawStockpileProgress(data, buildPercent, barColor, bgColor)
 	local dist = data.dist
-	local aoe = data.info.aoe
+	local aoe = data.weaponInfo.aoe
 	local tx, ty, tz = data.target.x, data.target.y, data.target.z
 	local circles = State.Calculated.unitCircles
 	local divs = Config.Render.circleDivs
@@ -1021,9 +1028,9 @@ local function DrawNoExplode(data, overrideSource)
 	local source = overrideSource or data.source
 	local ux, uy, uz = source.x, source.y, source.z
 	local tx, ty, tz = data.target.x, data.target.y, data.target.z
-	local aoe = data.info.aoe
-	local range = data.info.range
-	local requiredEnergy = data.info.requiredEnergy
+	local aoe = data.weaponInfo.aoe
+	local range = data.weaponInfo.range
+	local requiredEnergy = data.weaponInfo.requiredEnergy
 	local dist = data.dist
 
 	local dx = tx - ux
@@ -1081,7 +1088,7 @@ local function DrawBallisticScatter(data)
 	local scatterMinAlpha = Config.Render.scatterMinAlpha
 	local gameSpeed = Config.General.gameSpeed
 
-	local info = data.info
+	local weaponInfo = data.weaponInfo
 	local ux, uy, uz = data.source.x, data.source.y, data.source.z
 	local tx, ty, tz = data.target.x, data.target.y, data.target.z
 	local dist = data.dist
@@ -1089,31 +1096,19 @@ local function DrawBallisticScatter(data)
 	local fillColor, lineColor = data.colors.fill, data.colors.scatter
 	local trajectory = select(7, spGetUnitStates(aimingUnitID, false, true)) and 1 or -1
 
-	local scatter = info.scatter
+	local scatter = weaponInfo.scatter
 	if scatter < 0.01 then return end
 
-	local v = info.v
+	local v = weaponInfo.v
 	local isFilled = fillColor[4] > 0
 
 	-- 1. Math Setup
-	local aimDist = distance3d(tx, ty, tz, ux, uy, uz)
-	local isOutsideMaxRange = aimDist > info.range and not spGetUnitWeaponTestRange(aimingUnitID, info.weaponNum, tx, ty, tz)
-
-	local calc_tx, calc_ty, calc_tz = tx, ty, tz
-	local calc_dist = aimDist
-
-	if isOutsideMaxRange then
-		local factor = info.range / aimDist
-		calc_tx = ux + (tx - ux) * factor
-		calc_tz = uz + (tz - uz) * factor
-		calc_ty = spGetGroundHeight(calc_tx, calc_tz)
-		calc_dist = info.range
-	end
-
+	local calc_tx, calc_ty, calc_tz, calc_dist = GetClampedTarget(data)
 	local dx, dy, dz = calc_tx - ux, calc_ty - uy, calc_tz - uz
-
 	local bx, by, bz, _ = GetBallisticVector(v, dx, dy, dz, trajectory, g)
-	if not bx then return end
+	if not bx then
+		return
+	end
 
 	-- 2. Create Orthonormal Basis
 	local rx, ry, rz
@@ -1136,7 +1131,7 @@ local function DrawBallisticScatter(data)
 	----------------------------------------------------------------------------
 	local naturalRadius = calc_dist * (tan(scatter) + 0.01)
 	local scatterAlphaFactor = 0
-	local baseThreshold = max(info.aoe, 15)
+	local baseThreshold = max(weaponInfo.aoe, 15)
 	local minScatterRadius = baseThreshold * 0.5
 
 	if naturalRadius >= baseThreshold then
@@ -1242,9 +1237,9 @@ end
 local function DrawSectorScatter(data)
 	local ux, uz = data.source.x, data.source.z
 	local tx, ty, tz = data.target.x, data.target.y, data.target.z
-	local angle = data.info.sector_angle
-	local shortfall = data.info.sector_shortfall
-	local rangeMax = data.info.sector_range_max
+	local angle = data.weaponInfo.sector_angle
+	local shortfall = data.weaponInfo.sector_shortfall
+	local rangeMax = data.weaponInfo.sector_range_max
 	local dist = data.dist
 
 	local bars = {}
@@ -1299,24 +1294,16 @@ end
 --------------------------------------------------------------------------------
 ---@param data IndicatorDrawData
 local function DrawWobbleScatter(data)
-	local scatter = data.info.scatter
-	local ux, uy, uz = data.source.x, data.source.y, data.source.z
+	local scatter = data.weaponInfo.scatter
 	local tx, ty, tz = data.target.x, data.target.y, data.target.z
-	local rangeScatter = data.info.rangeScatter
-	local range = data.info.range
+	local rangeScatter = data.weaponInfo.rangeScatter
 	local dist = data.dist
 
-	local d = distance3d(tx, ty, tz, ux, uy, uz)
+	local ctx, cty, ctz, clampedDist = GetClampedTarget(data)
 
 	glColor(Config.Colors.scatter)
 	glLineWidth(Config.Render.scatterLineWidthMult / dist)
-	if d and range then
-		if d <= range then
-			DrawCircle(tx, ty, tz, rangeScatter * d + scatter)
-		end
-	else
-		DrawCircle(tx, ty, tz, scatter)
-	end
+	DrawCircle(tx, ty, tz, rangeScatter * clampedDist + scatter)
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
 end
@@ -1326,52 +1313,47 @@ end
 --------------------------------------------------------------------------------
 ---@param data IndicatorDrawData
 local function DrawDirectScatter(data)
-	local scatter = data.info.scatter
+	local scatter = data.weaponInfo.scatter
 	if scatter < 0.01 then
 		return
 	end
 	local ux, uy, uz = data.source.x, data.source.y, data.source.z
-	local tx, ty, tz = data.target.x, data.target.y, data.target.z
-	local range = data.info.range
 	local unitRadius = spGetUnitRadius(data.unitID)
 	local dist = data.dist
 
-	local dx = tx - ux
-	local dy = ty - uy
-	local dz = tz - uz
+	-- We ignore the returned distance 'd' here because we recalc it for normalization below
+	local ctx, cty, ctz = GetClampedTarget(data)
+
+	local dx = ctx - ux
+	local dy = cty - uy
+	local dz = ctz - uz
 
 	local aimDirX, aimDirY, aimDirZ, d = Normalize(dx, dy, dz)
 
-	if (not aimDirX or d == 0 or d > range) then
+	if d == 0 or not aimDirX then
 		return
 	end
 
-	-- 1. Calculate the 2D Ground Magnitude
-	-- We need to ignore the Y component (height difference) to do
-	-- flat ground calculations for the unit radius.
-	-- sqrt(1 - y^2) is equivalent to sqrt(x^2 + z^2) for a normalized vector.
+	-- We need to ignore the height difference
 	local groundVectorMag = sqrt(1 - aimDirY * aimDirY)
 
-	-- 2. Calculate the "Forward" offset to the Unit's Edge
-	-- This pushes the start point from the center of the unit to the perimeter
+	-- Push the start point from the center of the unit to the perimeter
 	local edgeOffsetX = (aimDirX / groundVectorMag) * unitRadius
 	local edgeOffsetZ = (aimDirZ / groundVectorMag) * unitRadius
 
-	-- 3. Calculate the "Cone" Width
-
-	-- This makes the cone start slightly wide based on unit size and scatter
 	local startSpreadX = -scatter * edgeOffsetZ
 	local startSpreadZ = scatter * edgeOffsetX
 
 	local targetSpreadX = -scatter * (dz / groundVectorMag)
 	local targetSpreadZ = scatter * (dx / groundVectorMag)
 
+	-- Use Clamped Targets (ctx, cty, ctz) for drawing the tip of the cone
 	local vertices = {
 		{ ux + edgeOffsetX + startSpreadX, uy, uz + edgeOffsetZ + startSpreadZ },
-		{ tx + targetSpreadX, ty, tz + targetSpreadZ },
+		{ ctx + targetSpreadX, cty, ctz + targetSpreadZ },
 
 		{ ux + edgeOffsetX - startSpreadX, uy, uz + edgeOffsetZ - startSpreadZ },
-		{ tx - targetSpreadX, ty, tz - targetSpreadZ }
+		{ ctx - targetSpreadX, cty, ctz - targetSpreadZ }
 	}
 
 	glColor(Config.Colors.scatter)
@@ -1386,8 +1368,8 @@ end
 --------------------------------------------------------------------------------
 ---@param data IndicatorDrawData
 local function DrawDropped(data)
-	local info = data.info
-	if not info.salvoSize or info.salvoSize <= 1 then
+	local weaponInfo = data.weaponInfo
+	if not weaponInfo.salvoSize or weaponInfo.salvoSize <= 1 then
 		DrawAoe(data)
 		return
 	end
@@ -1404,16 +1386,16 @@ local function DrawDropped(data)
 		return
 	end
 
-	local ringAlphaMult = info.v * info.salvoDelay / info.aoe
+	local ringAlphaMult = weaponInfo.v * weaponInfo.salvoDelay / weaponInfo.aoe
 	if ringAlphaMult > 1 then
 		ringAlphaMult = 1
 	end
 
 	local salvoAnimationSpeed = Config.Animation.salvoSpeed
 
-	for i = 1, info.salvoSize do
-		local delay = info.salvoDelay * (i - (info.salvoSize + 1) / 2)
-		local dist = info.v * delay
+	for i = 1, weaponInfo.salvoSize do
+		local delay = weaponInfo.salvoDelay * (i - (weaponInfo.salvoSize + 1) / 2)
+		local dist = weaponInfo.v * delay
 		local x = dist * bx + tx
 		local z = dist * bz + tz
 		local y = spGetGroundHeight(x, z)
@@ -1431,7 +1413,7 @@ end
 --------------------------------------------------------------------------------
 ---@param data IndicatorDrawData
 local function DrawOrbitalScatter(data)
-	local scatter = data.info.scatter
+	local scatter = data.weaponInfo.scatter
 	local tx, ty, tz = data.target.x, data.target.y, data.target.z
 	local dist = data.dist
 
@@ -1445,10 +1427,10 @@ end
 ---@param data IndicatorDrawData
 local function DrawDGun(data)
 	local ux, uy, uz = data.source.x, data.source.y, data.source.z
-	local tx, ty, tz = data.target.x, data.target.y, data.target.z
-	local unitName = data.info.unitname
-	local aoe = data.info.aoe
-	local range = data.info.range
+	local tx, tz = data.target.x, data.target.z
+	local unitName = data.weaponInfo.unitname
+	local aoe = data.weaponInfo.aoe
+	local range = data.weaponInfo.range
 	local divs = Config.Render.circleDivs
 
 	local angle = atan2(ux - tx, uz - tz) + (pi / 2.1)
@@ -1504,7 +1486,7 @@ end
 
 ---@param data IndicatorDrawData
 local function DrawJuno(data)
-	if not data.info.isMiniJuno then
+	if not data.weaponInfo.isMiniJuno then
 		DrawJunoArea(data)
 	else
 		DrawAoe(data)
@@ -1565,7 +1547,7 @@ function widget:DrawWorldPreUnit()
 
 	local aimData = State.aimData
 
-	aimData.info = weaponInfo
+	aimData.weaponInfo = weaponInfo
 	aimData.unitID = aimingUnitID
 	aimData.dist = GetMouseDistance() or 1000
 
