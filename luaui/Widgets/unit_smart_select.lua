@@ -90,9 +90,11 @@ for udid, udef in pairs(UnitDefs) do
 	local building = (isMobile == false)
 	local combat = (not builder) and isMobile and (#udef.weapons > 0)
 
-	if string.find(udef.name, 'armspid') or string.find(udef.name, 'leginfestor') then
+	local selectableAsCombat = udef.customParams and udef.customParams.selectable_as_combat_unit
+	if selectableAsCombat then
 		builder = false
 	end
+
 	combatFilter[udid] = combat
 	builderFilter[udid] = builder
 	buildingFilter[udid] = building

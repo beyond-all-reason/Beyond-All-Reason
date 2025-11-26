@@ -44,6 +44,7 @@ return {
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.2,
+			selectable_as_combat_unit = true,
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "emp",
