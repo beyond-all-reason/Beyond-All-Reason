@@ -96,7 +96,7 @@ end
 
 function gadget:TeamDied(deadTeamID)
 	-- For now, this is our only source of TransferTeamMaxUnits after init.
-	for _, teamID in pairs(Spring.GetTeamList() or {}) do
+	for _, teamID in pairs(Spring.GetTeamList()) do
 		teamMaxUnits[teamID] = getTeamMaxUnits(teamID)
 	end
 end
