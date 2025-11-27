@@ -105,11 +105,11 @@ function gadget:Initialize()
 	teamMaxUnits = {}
 	teamReaimTimes = {}
 
-	for _, teamID in pairs(Spring.GetTeamList() or {}) do
+	for _, teamID in pairs(Spring.GetTeamList()) do
 		teamMaxUnits[teamID] = getTeamMaxUnits(teamID)
 		teamReaimTimes[teamID] = 0
 
-		for _, unitID in pairs(Spring.GetTeamUnits(teamID) or {}) do
+		for _, unitID in pairs(Spring.GetTeamUnits(teamID)) do
 			gadget:MetaUnitAdded(unitID, Spring.GetUnitDefID(unitID), teamID)
 		end
 	end
