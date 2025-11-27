@@ -17,7 +17,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local reaimTimeMax = 0.5 ---@type number Caps dynamic reaim times and filters unitDefs. In seconds.
-local spamRatingBase = 400 ---@type integer Each team's reaimtime increases by 1 each X units made.
+local spamRatingBase = 400 ---@type integer Each team's reaimtime increases by 1 frame each X units made.
 local spamRatingMax = 1000 ---@type integer Sets the minimum performance penalty for spammed units.
 local unitCapDefault = 2400 ---@type integer The per-team unit cap we assume in these spam ratings.
 
