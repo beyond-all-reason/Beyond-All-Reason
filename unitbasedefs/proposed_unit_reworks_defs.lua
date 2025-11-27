@@ -35,7 +35,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	or uDef.canmove and tonumber(uDef.customparams.techlevel) == 3 and uDef.energycost and uDef.metalcost and uDef.buildtime
 	or uDef.customparams.subfolder == "ArmSeaplanes" or uDef.customparams.subfolder == "CorSeaplanes" then
 		uDef.buildtime = 1.1* uDef.buildtime + (uDef.metalcost*60 + uDef.energycost) / 20  
-		if uDef.buildtime < 20000 then
+		if uDef.buildtime < 15000 then
 			uDef.buildtime = math.ceil(uDef.buildtime * 0.002) * 500
 		elseif uDef.buildtime < 100000 then
 			uDef.buildtime = math.ceil(uDef.buildtime * 0.001) * 1000
