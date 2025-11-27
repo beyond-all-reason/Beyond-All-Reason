@@ -149,6 +149,7 @@ return {
 			[1] = {
 				def = "festorbeam",
 				onlytargetcategory = "SURFACE",
+				burstControlWhenOutOfArc = 1,
 			},
 		},
 	},
