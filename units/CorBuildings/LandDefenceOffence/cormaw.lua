@@ -40,7 +40,7 @@ return {
 			buildinggrounddecaltype = "decals/cormaw_aoplane.dds",
 			decoyfor = "cormaw",
 			model_author = "Mr Bob",
-			neutral_when_closed = true,
+			decoy_when_closed = true,
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
@@ -49,7 +49,6 @@ return {
 		},
 		featuredefs = {
 			dead = {
-				autoreclaimable = 0,
 				blocking = true,
 				category = "corpses",
 				collisionvolumeoffsets = "0.0 0.0149960864258 0.116882324219",
