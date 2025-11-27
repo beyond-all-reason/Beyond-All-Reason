@@ -25,7 +25,6 @@ local math_floor = math.floor
 local math_max = math.max
 local math_clamp = math.clamp
 
-local spGetTeamLuaAI = Spring.GetTeamLuaAI
 local spGetTeamMaxUnits = Spring.GetTeamMaxUnits
 local spSetUnitWeaponState = Spring.SetUnitWeaponState
 
@@ -57,15 +56,11 @@ end
 
 local teamMaxUnits = {}
 local teamReaimTimes = {}
-
-local function isNonPlayerEnemyTeam(teamID)
-	local luaAI = spGetTeamLuaAI(teamID)
-	return luaAI and (luaAI:find("Scavenger") or luaAI:find("Raptor")) -- seems not-clean tbh
-end
+local pveTeamID = Spring.Utilities.GetRaptorTeamID() or Spring.Utilities.GetScavTeamID()
 
 local function getTeamMaxUnits(teamID)
 	local actual = spGetTeamMaxUnits(teamID)
-	local reference = isNonPlayerEnemyTeam(teamID) and unitCapNonPlayer or unitCapReference
+	local reference = teamID == pveTeamID and unitCapNonPlayer or unitCapReference
 	return actual and (math_max(actual, reference) + reference) * 0.5 or reference
 end
 
