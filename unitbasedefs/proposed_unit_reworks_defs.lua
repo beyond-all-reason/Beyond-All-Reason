@@ -156,6 +156,12 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.emg.weaponvelocity = 1000
 		uDef.weapondefs.emg.areaofeffect = 40
 	end
+	if name == "armfast" then
+		uDef.weapondefs.arm_fast.weaponvelocity = 600
+		uDef.weapondefs.arm_fast.flighttime = 0.47
+		uDef.metalc0st = 160
+		uDef.energycost = 3800
+	end
 
 	return uDef
 end
