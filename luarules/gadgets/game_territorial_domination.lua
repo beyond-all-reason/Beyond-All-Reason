@@ -298,26 +298,30 @@ local function setAllyTeamRanks()
 	end)
 
 	topLivingRankedScoreIndex = math.huge
-	local currentRank = 1
+	local currentRank = 0
 	local previousScore = -1
 	local previousTerritoryCount = -1
-	for i, rankedEntry in ipairs(rankedAllyScores) do
-		if i <= 1 or rankedEntry.rankingScore < previousScore or (rankedEntry.rankingScore == previousScore and rankedEntry.territoryCount < previousTerritoryCount) then
-			currentRank = currentRank + 1
-			previousScore = rankedEntry.rankingScore
-			previousTerritoryCount = rankedEntry.territoryCount
-		end
-		local allyID = rankedEntry.allyID
-		allyData[allyID].rank = currentRank
-		for teamID in pairs(allyTeamsWatch[allyID] or {}) do
-			local isDead = select(3, spGetTeamInfo(teamID))
-			if not isDead and i < topLivingRankedScoreIndex then
-				topLivingRankedScoreIndex = i
+
+	if next(rankedAllyScores) then
+		for i, rankedEntry in ipairs(rankedAllyScores) do
+			if i == 1 or rankedEntry.rankingScore < previousScore or (rankedEntry.rankingScore == previousScore and rankedEntry.territoryCount < previousTerritoryCount) then
+				currentRank = currentRank + 1
+				previousScore = rankedEntry.rankingScore
+				previousTerritoryCount = rankedEntry.territoryCount
 			end
+			local allyID = rankedEntry.allyID
+			allyData[allyID].rank = currentRank
+			for teamID in pairs(allyTeamsWatch[allyID] or {}) do
+				local isDead = select(3, spGetTeamInfo(teamID))
+				if not isDead and i < topLivingRankedScoreIndex then
+					topLivingRankedScoreIndex = i
+				end
+			end
+			Spring.SetTeamRulesParam(allyData[allyID].representativeTeamID, "territorialDominationDisplayRank", currentRank, {public = true})
 		end
-		Spring.SetTeamRulesParam(allyData[allyID].representativeTeamID, "territorialDominationDisplayRank", currentRank, {public = true})
+	else
+		topLivingRankedScoreIndex = currentRank
 	end
-	Spring.SetGameRulesParam("territorialDominationTopLivingRankedScoreIndex", topLivingRankedScoreIndex)
 end
 
 local function processLivingTeams()

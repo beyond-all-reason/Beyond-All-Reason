@@ -392,7 +392,7 @@ local function updateLeaderboard()
 		teamsContainer:AppendChild(row)
 	end
 	
-	if eliminationThreshold > 0 then
+	if eliminationThreshold > 0 and dataModel and not dataModel.isFinalRound then
 		separatorTextElement.inner_rml = spI18N('ui.territorialDomination.elimination.threshold', { threshold = eliminationThreshold })
 		separatorElement:SetClass("hidden", false)
 	else
@@ -459,14 +459,28 @@ local function calculateUILayout()
 	if not tdRootElement then return end
 
 	local advPlayerListAPI = WG['advplayerlist_api']
-	if not advPlayerListAPI or not advPlayerListAPI.GetPosition then
+	local topElement = nil
+
+	if WG['playertv'] and WG['playertv'].GetPosition and (WG['playertv'].isActive == nil or WG['playertv'].isActive()) then
+		topElement = WG['playertv']
+	elseif WG['displayinfo'] and WG['displayinfo'].GetPosition then
+		topElement = WG['displayinfo']
+	elseif WG['unittotals'] and WG['unittotals'].GetPosition then
+		topElement = WG['unittotals']
+	elseif WG['music'] and WG['music'].GetPosition then
+		topElement = WG['music']
+	elseif advPlayerListAPI and advPlayerListAPI.GetPosition then
+		topElement = advPlayerListAPI
+	end
+
+	if not topElement then
 		widgetState.hasValidAdvPlayerListPosition = false
 		checkDocumentVisibility()
 		return
 	end
 
-	local apiAbsPosition = advPlayerListAPI.GetPosition()
-	if not apiAbsPosition or #apiAbsPosition < 4 then
+	local apiAbsPosition = topElement.GetPosition()
+	if not apiAbsPosition then
 		widgetState.hasValidAdvPlayerListPosition = false
 		checkDocumentVisibility()
 		return
@@ -479,16 +493,10 @@ local function calculateUILayout()
 		return
 	end
 
-	local GL_BASE_WIDTH = 1920
-	local GL_BASE_HEIGHT = 1080
-	local scaleX = screenWidth / GL_BASE_WIDTH
-	local scaleY = screenHeight / GL_BASE_HEIGHT
-
 	local leaderboardTop = apiAbsPosition[1]
-	local gap = LEADERBOARD_GAP_BASE * scaleY
 
-	local leaderboardTopCss = screenHeight - leaderboardTop
-	local desiredBottomCss = leaderboardTopCss - gap
+	local anchorTopCss = screenHeight - leaderboardTop
+	local desiredBottomCss = anchorTopCss
 
 	if desiredBottomCss >= 0 and desiredBottomCss < screenHeight then
 		local topVh = (desiredBottomCss / screenHeight) * 100
