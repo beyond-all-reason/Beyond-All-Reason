@@ -130,7 +130,7 @@ return {
 				firestarter = 1,
 				hardstop = true,
 				impactonly = true,
-				impulsefactor = 3.22,
+				impulsefactor = 5.22,
 				intensity = 0.8,
 				name = "Siege Rail Accelerator",
 				noexplode = true,
