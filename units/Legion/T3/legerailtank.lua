@@ -137,7 +137,7 @@ return {
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				projectiles = 3,
-				range = 1400,
+				range = 1490,
 				reloadtime = 2.88,
 				rgbcolor = "0.34 0.64 0.94",
 				soundhit = "mavgun3",
