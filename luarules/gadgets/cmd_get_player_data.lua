@@ -20,8 +20,8 @@ end
 --------------------------------------------------------------------------------
 
 local screenshotWidthLq = 360
-local screenshotWidth = 720	-- must be lower than screenshotWidthHq (else it gets higher color range too)
-local screenshotWidthHq = 960 -- (gets higher color range)
+local screenshotWidth = 640
+local screenshotWidthHq = 960
 
 --------------------------------------------------------------------------------
 
@@ -76,10 +76,9 @@ else
 	local userconfigComplete, queueScreenshot, queueScreenShotHeight, queueScreenShotHeightBatch, queueScreenShotH, queueScreenShotHmax
 	local queueScreenShotWidth, queueScreenshotGameframe, queueScreenShotPixels, queueScreenShotBroadcastChars, queueScreenShotCharsPerBroadcast, pixels
 	local queueScreenShotTexture -- Texture to store the captured and downscaled framebuffer
-	local queueScreenShotQuality -- Quality mode: 'hq' = 4:2:0 chroma (5-bit), 'normal' = 4:2:0 chroma (4-bit)
 
 	-- Screenshot display variables
-	local screenshotVars = {} -- containing: finished, width, height, gameframe, data, dataLast, dlist, pixels, player, filename, saved, saveQueued, posX, posY, quality
+	local screenshotVars = {} -- containing: finished, width, height, gameframe, data, dataLast, dlist, texture, player, filename, saved, saveQueued, posX, posY, quality
 	local totalTime = 0
 	local screenshotCompressedBytes = 0
 
@@ -253,9 +252,6 @@ else
 		queueScreenShotHeightBatch = 3
 		local requestingPlayer = tonumber(parts[2])
 
-		-- Set quality mode: HQ uses 5+5+5 bits (32 levels), normal uses 4+4+4 bits (16 levels)
-		queueScreenShotQuality = (queueScreenShotWidth >= screenshotWidthHq) and 'hq' or 'normal'
-
 		queueScreenshot = true
 		queueScreenshotGameframe = Spring.GetGameFrame()
 		queueScreenShotHeight = math.min(math.floor(queueScreenShotWidth * (vsy / vsx)), vsy)
@@ -406,90 +402,43 @@ else
 							-- Read single row with RGB format
 							local pixelData = gl.ReadPixels(0, currentRow, queueScreenShotWidth, 1, GL.RGB)
 							if pixelData then
-								if queueScreenShotQuality == 'hq' then
-									-- HQ mode: 4:2:0 chroma subsampling with 5-bit precision
-									for pixelIdx = 1, #pixelData, 2 do
-										local pixel1 = pixelData[pixelIdx]
-										local r1, g1, b1 = pixel1[1] or 0, pixel1[2] or 0, pixel1[3] or 0
-										local y1 = 0.299 * r1 + 0.587 * g1 + 0.114 * b1
-										local y1_q = math.floor(y1 * 31 + 0.5) -- 5 bits
+								-- 4:2:0 chroma subsampling with 5-bit precision
+								for pixelIdx = 1, #pixelData, 2 do
+									local pixel1 = pixelData[pixelIdx]
+									local r1, g1, b1 = pixel1[1] or 0, pixel1[2] or 0, pixel1[3] or 0
+									local y1 = 0.299 * r1 + 0.587 * g1 + 0.114 * b1
+									local y1_q = math.floor(y1 * 31 + 0.5) -- 5 bits
 
-										if pixelIdx + 1 <= #pixelData then
-											local pixel2 = pixelData[pixelIdx + 1]
-											local r2, g2, b2 = pixel2[1] or 0, pixel2[2] or 0, pixel2[3] or 0
-											local y2 = 0.299 * r2 + 0.587 * g2 + 0.114 * b2
-											local y2_q = math.floor(y2 * 31 + 0.5) -- 5 bits
+									if pixelIdx + 1 <= #pixelData then
+										local pixel2 = pixelData[pixelIdx + 1]
+										local r2, g2, b2 = pixel2[1] or 0, pixel2[2] or 0, pixel2[3] or 0
+										local y2 = 0.299 * r2 + 0.587 * g2 + 0.114 * b2
+										local y2_q = math.floor(y2 * 31 + 0.5) -- 5 bits
 
-											-- Average RGB for chroma
-											local r_avg = (r1 + r2) * 0.5
-											local g_avg = (g1 + g2) * 0.5
-											local b_avg = (b1 + b2) * 0.5
-											local y_avg = 0.299 * r_avg + 0.587 * g_avg + 0.114 * b_avg
-											local u = (b_avg - y_avg) * 0.492 + 0.5
-											local v = (r_avg - y_avg) * 0.877 + 0.5
-											local u_q = math.floor(u * 31 + 0.5) -- 5 bits
-											local v_q = math.floor(v * 31 + 0.5) -- 5 bits
+										-- Average RGB for chroma
+										local r_avg = (r1 + r2) * 0.5
+										local g_avg = (g1 + g2) * 0.5
+										local b_avg = (b1 + b2) * 0.5
+										local y_avg = 0.299 * r_avg + 0.587 * g_avg + 0.114 * b_avg
+										local u = (b_avg - y_avg) * 0.492 + 0.5
+										local v = (r_avg - y_avg) * 0.877 + 0.5
+										local u_q = math.floor(u * 31 + 0.5) -- 5 bits
+										local v_q = math.floor(v * 31 + 0.5) -- 5 bits
 
-											-- Pack as 4 chars: Y1, Y2, U, V (each 5-bit)
-											queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 4
-											queueScreenShotPixels[#queueScreenShotPixels + 1] = DEC_CHAR(y1_q) .. DEC_CHAR(y2_q) .. DEC_CHAR(u_q) .. DEC_CHAR(v_q)
-										else
-											-- Odd pixel: Y, U, V in 3 chars
-											local u = (b1 - y1) * 0.492 + 0.5
-											local v = (r1 - y1) * 0.877 + 0.5
-											local u_q = math.floor(u * 31 + 0.5)
-											local v_q = math.floor(v * 31 + 0.5)
-
-											queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 3
-											queueScreenShotPixels[#queueScreenShotPixels + 1] = DEC_CHAR(y1_q) .. DEC_CHAR(u_q) .. DEC_CHAR(v_q)
-										end
-									end
+										-- Pack as 4 chars: Y1, Y2, U, V (each 5-bit)
+										queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 4
+										queueScreenShotPixels[#queueScreenShotPixels + 1] = DEC_CHAR(y1_q) .. DEC_CHAR(y2_q) .. DEC_CHAR(u_q) .. DEC_CHAR(v_q)
 									else
-										-- Normal mode: 4:2:0 chroma subsampling with 4-bit precision
-										for pixelIdx = 1, #pixelData, 2 do
-											local pixel1 = pixelData[pixelIdx]
-											local r1, g1, b1 = pixel1[1] or 0, pixel1[2] or 0, pixel1[3] or 0
-											local y1 = 0.299 * r1 + 0.587 * g1 + 0.114 * b1
-											local y1_q = math.floor(y1 * 15 + 0.5) -- 4 bits
+										-- Odd pixel: Y, U, V in 3 chars
+										local u = (b1 - y1) * 0.492 + 0.5
+										local v = (r1 - y1) * 0.877 + 0.5
+										local u_q = math.floor(u * 31 + 0.5)
+										local v_q = math.floor(v * 31 + 0.5)
 
-											if pixelIdx + 1 <= #pixelData then
-												local pixel2 = pixelData[pixelIdx + 1]
-												local r2, g2, b2 = pixel2[1] or 0, pixel2[2] or 0, pixel2[3] or 0
-												local y2 = 0.299 * r2 + 0.587 * g2 + 0.114 * b2
-												local y2_q = math.floor(y2 * 15 + 0.5) -- 4 bits
-
-												-- Average RGB for chroma
-												local r_avg = (r1 + r2) * 0.5
-												local g_avg = (g1 + g2) * 0.5
-												local b_avg = (b1 + b2) * 0.5
-												local y_avg = 0.299 * r_avg + 0.587 * g_avg + 0.114 * b_avg
-												local u = (b_avg - y_avg) * 0.492 + 0.5
-												local v = (r_avg - y_avg) * 0.877 + 0.5
-												local u_q = math.floor(u * 15 + 0.5) -- 4 bits
-												local v_q = math.floor(v * 15 + 0.5) -- 4 bits
-
-												-- Pack Y1(4) + Y2(4) + U(4) + V(4) = 16 bits into 3 chars (18 bits, 2 padding)
-												local c1 = y1_q * 4 + math.floor(y2_q / 4)
-												local c2 = (y2_q % 4) * 16 + u_q
-												local c3 = v_q * 4  -- 4 bits used, 2 bits padding
-
-												queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 3
-												queueScreenShotPixels[#queueScreenShotPixels + 1] = DEC_CHAR(c1) .. DEC_CHAR(c2) .. DEC_CHAR(c3)
-											else
-												-- Odd pixel: Y + U + V in 2 chars
-												local u = (b1 - y1) * 0.492 + 0.5
-												local v = (r1 - y1) * 0.877 + 0.5
-												local u_q = math.floor(u * 15 + 0.5)
-												local v_q = math.floor(v * 15 + 0.5)
-
-												local c1 = y1_q * 4 + math.floor(u_q / 4)
-												local c2 = (u_q % 4) * 16 + v_q
-
-												queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 2
-												queueScreenShotPixels[#queueScreenShotPixels + 1] = DEC_CHAR(c1) .. DEC_CHAR(c2)
-											end
-										end
+										queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 3
+										queueScreenShotPixels[#queueScreenShotPixels + 1] = DEC_CHAR(y1_q) .. DEC_CHAR(u_q) .. DEC_CHAR(v_q)
 									end
+								end
 							end
 						end
 					end
@@ -507,7 +456,7 @@ else
 				if queueScreenShotH >= queueScreenShotHeight then
 					finished = '1'
 				end
-				local data = finished .. ';' .. queueScreenShotWidth .. ';' .. queueScreenShotHeight .. ';' .. queueScreenshotGameframe .. ';' .. queueScreenShotQuality .. ';' .. table.concat(queueScreenShotPixels)
+				local data = finished .. ';' .. queueScreenShotWidth .. ';' .. queueScreenShotHeight .. ';' .. queueScreenshotGameframe .. ';' .. table.concat(queueScreenShotPixels)
 				local sendtoauthedplayer = '0'
 				local message = 'pd' .. validation .. sendtoauthedplayer .. 'screenshot;' .. VFS.ZlibCompress(data)
 				Spring.SendLuaRulesMsg(message)
@@ -539,170 +488,95 @@ else
 		return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 	end
 
-	function toPixels(str, quality)
+	function toPixels(str)
 		local chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/"
 		local pixels = {}
 		local pixelsCount = 0
 
-		if quality == 'hq' then
-			-- HQ mode: Decode 4:2:0 chroma subsampling with 5-bit precision
-			local i = 1
-			while i <= string.len(str) do
-				if i + 3 <= string.len(str) then
-					-- Decode 4 chars = Y1, Y2, U, V (2 pixels)
-					local val = {}
-					for j = 0, 3 do
-						local c = string.sub(str, i + j, i + j)
-						for ci = 1, string.len(chars) do
-							if c == string.sub(chars, ci, ci) then
-								val[j + 1] = ci - 1
-								break
-							end
-						end
-					end
+		-- Build reverse lookup table for faster character decoding
+		local charLookup = {}
+		for ci = 1, 64 do
+			charLookup[string.sub(chars, ci, ci)] = ci - 1
+		end
 
-					if val[1] and val[2] and val[3] and val[4] then
-						-- Extract Y, U, V (5-bit each)
-						local y1 = val[1] / 31
-						local y2 = val[2] / 31
-						local u = val[3] / 31 - 0.5
-						local v = val[4] / 31 - 0.5
+		-- Decode 4:2:0 chroma subsampling with 5-bit precision
+		local i = 1
+		local strLen = string.len(str)
+		while i <= strLen do
+			if i + 3 <= strLen then
+				-- Decode 4 chars = Y1, Y2, U, V (2 pixels)
+				local c1, c2, c3, c4 = string.byte(str, i, i + 3)
+				local val1 = charLookup[string.char(c1)]
+				local val2 = charLookup[string.char(c2)]
+				local val3 = charLookup[string.char(c3)]
+				local val4 = charLookup[string.char(c4)]
 
-						-- YUV to RGB for pixel 1
-						local r1 = y1 + v / 0.877
-						local g1 = y1 - 0.395 * u / 0.492 - 0.581 * v / 0.877
-						local b1 = y1 + u / 0.492
+				if val1 and val2 and val3 and val4 then
+					-- Extract Y, U, V (5-bit each)
+					local y1 = val1 / 31
+					local y2 = val2 / 31
+					local u = val3 / 31 - 0.5
+					local v = val4 / 31 - 0.5
 
-						-- YUV to RGB for pixel 2
-						local r2 = y2 + v / 0.877
-						local g2 = y2 - 0.395 * u / 0.492 - 0.581 * v / 0.877
-						local b2 = y2 + u / 0.492
+					-- YUV to RGB for pixel 1
+					local v_r = v / 0.877
+					local u_b = u / 0.492
+					local u_g = 0.395 * u / 0.492
+					local v_g = 0.581 * v / 0.877
 
-						-- Clamp values to [0,1]
-						r1 = math.max(0, math.min(1, r1))
-						g1 = math.max(0, math.min(1, g1))
-						b1 = math.max(0, math.min(1, b1))
-						r2 = math.max(0, math.min(1, r2))
-						g2 = math.max(0, math.min(1, g2))
-						b2 = math.max(0, math.min(1, b2))
+					local r1 = y1 + v_r
+					local g1 = y1 - u_g - v_g
+					local b1 = y1 + u_b
 
-						pixelsCount = pixelsCount + 1
-						pixels[pixelsCount] = {r1, g1, b1}
-						pixelsCount = pixelsCount + 1
-						pixels[pixelsCount] = {r2, g2, b2}
-					end
-					i = i + 4
-				elseif i + 2 <= string.len(str) then
-					-- Odd pixel: Y, U, V in 3 chars
-					local val = {}
-					for j = 0, 2 do
-						local c = string.sub(str, i + j, i + j)
-						for ci = 1, string.len(chars) do
-							if c == string.sub(chars, ci, ci) then
-								val[j + 1] = ci - 1
-								break
-							end
-						end
-					end
+					-- YUV to RGB for pixel 2
+					local r2 = y2 + v_r
+					local g2 = y2 - u_g - v_g
+					local b2 = y2 + u_b
 
-					if val[1] and val[2] and val[3] then
-						local y = val[1] / 31
-						local u = val[2] / 31 - 0.5
-						local v = val[3] / 31 - 0.5
+					-- Clamp values to [0,1]
+					r1 = r1 < 0 and 0 or (r1 > 1 and 1 or r1)
+					g1 = g1 < 0 and 0 or (g1 > 1 and 1 or g1)
+					b1 = b1 < 0 and 0 or (b1 > 1 and 1 or b1)
+					r2 = r2 < 0 and 0 or (r2 > 1 and 1 or r2)
+					g2 = g2 < 0 and 0 or (g2 > 1 and 1 or g2)
+					b2 = b2 < 0 and 0 or (b2 > 1 and 1 or b2)
 
-						local r = y + v / 0.877
-						local g = y - 0.395 * u / 0.492 - 0.581 * v / 0.877
-						local b = y + u / 0.492
-
-						r = math.max(0, math.min(1, r))
-						g = math.max(0, math.min(1, g))
-						b = math.max(0, math.min(1, b))
-
-						pixelsCount = pixelsCount + 1
-						pixels[pixelsCount] = {r, g, b}
-					end
-					i = i + 3
-				else
-					break
+					pixelsCount = pixelsCount + 1
+					pixels[pixelsCount] = {r1, g1, b1}
+					pixelsCount = pixelsCount + 1
+					pixels[pixelsCount] = {r2, g2, b2}
 				end
-			end
-		else
-			-- Normal mode: Decode 4-bit chroma subsampling
-			local i = 1
-			while i <= string.len(str) do
-				if i + 2 <= string.len(str) then
-					-- Decode 3 chars = Y1, Y2, U, V (2 pixels)
-					local val = {}
-					for j = 0, 2 do
-						local c = string.sub(str, i + j, i + j)
-						for ci = 1, string.len(chars) do
-							if c == string.sub(chars, ci, ci) then
-								val[j + 1] = ci - 1
-								break
-							end
-						end
-					end
+				i = i + 4
+			elseif i + 2 <= strLen then
+				-- Odd pixel: Y, U, V in 3 chars
+				local c1, c2, c3 = string.byte(str, i, i + 2)
+				local val1 = charLookup[string.char(c1)]
+				local val2 = charLookup[string.char(c2)]
+				local val3 = charLookup[string.char(c3)]
 
-					if val[1] and val[2] and val[3] then
-						local y1 = math.floor(val[1] / 4) / 15
-						local y2 = ((val[1] % 4) * 4 + math.floor(val[2] / 16)) / 15
-						local u = (val[2] % 16) / 15 - 0.5
-						local v = math.floor(val[3] / 4) / 15 - 0.5
-						-- YUV to RGB
-						local r1 = y1 + v / 0.877
-						local g1 = y1 - 0.395 * u / 0.492 - 0.581 * v / 0.877
-						local b1 = y1 + u / 0.492
-						local r2 = y2 + v / 0.877
-						local g2 = y2 - 0.395 * u / 0.492 - 0.581 * v / 0.877
-						local b2 = y2 + u / 0.492
-						-- Clamp
-						r1 = math.max(0, math.min(1, r1))
-						g1 = math.max(0, math.min(1, g1))
-						b1 = math.max(0, math.min(1, b1))
-						r2 = math.max(0, math.min(1, r2))
-						g2 = math.max(0, math.min(1, g2))
-						b2 = math.max(0, math.min(1, b2))
+				if val1 and val2 and val3 then
+					local y = val1 / 31
+					local u = val2 / 31 - 0.5
+					local v = val3 / 31 - 0.5
 
-						pixelsCount = pixelsCount + 1
-						pixels[pixelsCount] = {r1, g1, b1}
-						pixelsCount = pixelsCount + 1
-						pixels[pixelsCount] = {r2, g2, b2}
-					end
-					i = i + 3
-				elseif i + 1 <= string.len(str) then
-					-- Odd pixel: Y, U, V in 2 chars
-					local val = {}
-					for j = 0, 1 do
-						local c = string.sub(str, i + j, i + j)
-						for ci = 1, string.len(chars) do
-							if c == string.sub(chars, ci, ci) then
-								val[j + 1] = ci - 1
-								break
-							end
-						end
-					end
+					local r = y + v / 0.877
+					local g = y - 0.395 * u / 0.492 - 0.581 * v / 0.877
+					local b = y + u / 0.492
 
-					if val[1] and val[2] then
-						local y = math.floor(val[1] / 4) / 15
-						local u = ((val[1] % 4) * 4 + math.floor(val[2] / 16)) / 15 - 0.5
-						local v = (val[2] % 16) / 15 - 0.5
-						local r = math.max(0, math.min(1, y + v / 0.877))
-						local g = math.max(0, math.min(1, y - 0.395 * u / 0.492 - 0.581 * v / 0.877))
-						local b = math.max(0, math.min(1, y + u / 0.492))
+					r = r < 0 and 0 or (r > 1 and 1 or r)
+					g = g < 0 and 0 or (g > 1 and 1 or g)
+					b = b < 0 and 0 or (b > 1 and 1 or b)
 
-						pixelsCount = pixelsCount + 1
-						pixels[pixelsCount] = {r, g, b}
-					end
-					i = i + 2
-				else
-					break
+					pixelsCount = pixelsCount + 1
+					pixels[pixelsCount] = {r, g, b}
 				end
+				i = i + 3
+			else
+				break
 			end
 		end
 		return pixels
-	end
-
-	function PlayerDataBroadcast(playerName, msg)
+	end	function PlayerDataBroadcast(playerName, msg)
 		local data = ''
 		local count = 0
 		local startPos = 0
@@ -741,37 +615,35 @@ else
 						elseif count == 3 then
 							screenshotVars.height = tonumber(string.sub(data, startPos, i - 1))
 							startPos = i + 1
-						elseif count == 4 then
-							screenshotVars.gameframe = tonumber(string.sub(data, startPos, i - 1))
-							startPos = i + 1
-						elseif count == 5 then
-							screenshotVars.quality = string.sub(data, startPos, i - 1)
-							if not screenshotVars.data then
-								screenshotVars.data = string.sub(data, i + 1)
-							else
-								screenshotVars.data = screenshotVars.data .. string.sub(data, i + 1)
-							end
-							break
+					elseif count == 4 then
+						screenshotVars.gameframe = tonumber(string.sub(data, startPos, i - 1))
+						if not screenshotVars.data then
+							screenshotVars.data = string.sub(data, i + 1)
+						else
+							screenshotVars.data = screenshotVars.data .. string.sub(data, i + 1)
 						end
+						break
 					end
 				end
-				data = nil
-				screenshotVars.dataLast = totalTime
+			end
+			data = nil
+			screenshotVars.dataLast = totalTime
 
-				if screenshotVars.finished or totalTime - 4000 > screenshotVars.dataLast then
-					screenshotVars.finished = true
-					local compressedKB = screenshotCompressedBytes / 1024
-					Spring.Echo(string.format("Received screenshot from %s (%.0f KB compressed, increased replay size)", playerName, compressedKB))
-					screenshotCompressedBytes = 0
-					local minutes = math.floor((screenshotVars.gameframe / 30 / 60))
-					local seconds = math.floor((screenshotVars.gameframe - ((minutes * 60) * 30)) / 30)
-					if seconds == 0 then
-						seconds = '00'
-					elseif seconds < 10 then
-						seconds = '0' .. seconds
-					end
-					screenshotVars.pixels = toPixels(screenshotVars.data, screenshotVars.quality)
-					screenshotVars.player = playerName
+			if screenshotVars.finished or totalTime - 4000 > screenshotVars.dataLast then
+				screenshotVars.finished = true
+				local compressedKB = screenshotCompressedBytes / 1024
+				Spring.Echo(string.format("Received screenshot from %s (%.0f KB compressed, increased replay size)", playerName, compressedKB))
+				screenshotCompressedBytes = 0
+
+				local minutes = math.floor((screenshotVars.gameframe / 30 / 60))
+				local seconds = math.floor((screenshotVars.gameframe - ((minutes * 60) * 30)) / 30)
+				if seconds == 0 then
+					seconds = '00'
+				elseif seconds < 10 then
+					seconds = '0' .. seconds
+				end
+
+				screenshotVars.pixels = toPixels(screenshotVars.data)					screenshotVars.player = playerName
 					screenshotVars.filename = "gameframe_" .. screenshotVars.gameframe .. "_" .. minutes .. '.' .. seconds .. "_" .. playerName
 
 					-- Get team color for player name
@@ -792,36 +664,8 @@ else
 					screenshotVars.saveQueued = true
 					screenshotVars.posX = (vsx - screenshotVars.width * uiScale) / 2
 					screenshotVars.posY = (vsy - screenshotVars.height * uiScale) / 2
-					screenshotVars.dlist = gl.CreateList(function()
-						gl.PushMatrix()
-						gl.Translate(screenshotVars.posX, screenshotVars.posY, 0)
-						gl.Scale(uiScale, uiScale, 0)
-
-						gl.Color(0, 0, 0, 0.66)
-						local margin = 2.6
-						gl.Rect(-margin, -margin, screenshotVars.width + margin + margin, screenshotVars.height + 15 + margin + margin)
-						gl.Color(1, 1, 1, 0.025)
-						gl.Rect(0, 0, screenshotVars.width, screenshotVars.height + 12 + margin + margin)
-
-						font:Begin()
-						font:Print("\255\160\160\160"..screenshotVars.filename .. '.png', screenshotVars.width - 4, screenshotVars.height + 6.5, 11, "orn")
-						local tc = screenshotVars.teamColor
-						font:Print(string.char(255, math.floor(tc[1] * 255), math.floor(tc[2] * 255), math.floor(tc[3] * 255)) .. screenshotVars.player, 4, screenshotVars.height + 6.5, 11, "on")
-						font:End()
-						local row = 0
-						local col = 0
-						for p = 1, #screenshotVars.pixels do
-							gl.Color(screenshotVars.pixels[p][1], screenshotVars.pixels[p][2], screenshotVars.pixels[p][3], 1)
-							gl.Rect(col, row, col + 1, row + 1)
-							col = col + 1
-							if col >= screenshotVars.width then
-								col = 0
-								row = row + 1
-							end
-						end
-						gl.PopMatrix()
-					end)
-					screenshotVars.pixels = nil
+					-- Pixels will be converted to texture in DrawScreen()
+					screenshotVars.needsTextureCreation = true
 					screenshotVars.data = nil
 					screenshotVars.finished = nil
 				end
@@ -836,21 +680,59 @@ else
 				end
 
 			if playerID == myPlayerID then
-				local gameframe = Spring.GetGameFrame()					local filename = 'playerdata_' .. msgType .. 's.txt'
-					local filedata = ''
-					if VFS.FileExists(filename) then
-						filedata = tostring(VFS.LoadFile(filename))
-					end
-					local file = assert(io.open(filename, 'w'), 'Unable to save ' .. filename)
-					file:write(filedata .. '-----------------------------------------------------\n----  GameFrame: ' .. gameframe .. '  Player: ' .. playerName .. '\n-----------------------------------------------------\n' .. VFS.ZlibDecompress(data) .. "\n\n\n\n\n\n")
-					file:close()
-					Spring.Echo('Added ' .. msgType .. ' to ' .. filename)
+				local gameframe = Spring.GetGameFrame()
+				local filename = 'playerdata_' .. msgType .. 's.txt'
+				local filedata = ''
+				if VFS.FileExists(filename) then
+					filedata = tostring(VFS.LoadFile(filename))
 				end
+				local file = assert(io.open(filename, 'w'), 'Unable to save ' .. filename)
+				file:write(filedata .. '-----------------------------------------------------\n----  GameFrame: ' .. gameframe .. '  Player: ' .. playerName .. '\n-----------------------------------------------------\n' .. VFS.ZlibDecompress(data) .. "\n\n\n\n\n\n")
+				file:close()
+				Spring.Echo('Added ' .. msgType .. ' to ' .. filename)
 			end
 		end
 	end
+end
 
 	function gadget:DrawScreen()
+		-- Create display list on first draw after receiving data
+		if screenshotVars.needsTextureCreation and screenshotVars.pixels then
+			screenshotVars.dlist = gl.CreateList(function()
+				gl.PushMatrix()
+				gl.Translate(screenshotVars.posX, screenshotVars.posY, 0)
+				gl.Scale(uiScale, uiScale, 0)
+
+				gl.Color(0, 0, 0, 0.66)
+				local margin = 2.6
+				gl.Rect(-margin, -margin, screenshotVars.width + margin + margin, screenshotVars.height + 15 + margin + margin)
+				gl.Color(1, 1, 1, 0.025)
+				gl.Rect(0, 0, screenshotVars.width, screenshotVars.height + 12 + margin + margin)
+
+				local row = 0
+				local col = 0
+				for p = 1, #screenshotVars.pixels do
+					gl.Color(screenshotVars.pixels[p][1], screenshotVars.pixels[p][2], screenshotVars.pixels[p][3], 1)
+					gl.Rect(col, row, col + 1, row + 1)
+					col = col + 1
+					if col >= screenshotVars.width then
+						col = 0
+						row = row + 1
+					end
+				end
+
+				font:Begin()
+				font:Print("\255\160\160\160"..screenshotVars.filename .. '.png', screenshotVars.width - 4, screenshotVars.height + 6.5, 11, "orn")
+				local tc = screenshotVars.teamColor
+				font:Print(string.char(255, math.floor(tc[1] * 255), math.floor(tc[2] * 255), math.floor(tc[3] * 255)) .. screenshotVars.player, 4, screenshotVars.height + 6.5, 11, "on")
+				font:End()
+
+				gl.PopMatrix()
+			end)
+
+			screenshotVars.needsTextureCreation = nil
+		end
+
 		if screenshotVars.dlist then
 			gl.CallList(screenshotVars.dlist)
 
