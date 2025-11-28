@@ -48,6 +48,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 				unitWeaponCount[unitDefID] = #unitDef.weapons
 			end
 		end
+		-- Every combat unit gets a spam score for adjusting each team's reaimTime. However:
+		-- Actual amount of reaimTime each unit of one unitDef is worth depends on its team.
 		local spamCount = tonumber(unitDef.customParams.continuous_aim_spam) or spamRatingBase
 		local spamScore = 1 / math.clamp(spamCount, 1, spamRatingMax) -- as reaimTime per unit
 		unitSpamRating[unitDefID] = spamScore * unitCapDefault -- as reaimTime/(unit/maxunits)
@@ -61,6 +63,7 @@ local pveTeamID = Spring.Utilities.GetRaptorTeamID() or Spring.Utilities.GetScav
 local function getTeamMaxUnits(teamID)
 	local actual = spGetTeamMaxUnits(teamID)
 	local reference = teamID == pveTeamID and unitCapNonPlayer or unitCapReference
+	-- Gravitate toward the reference value and don't allow any actual < reference.
 	return actual and (math_max(actual, reference) + reference) * 0.5 or reference
 end
 
