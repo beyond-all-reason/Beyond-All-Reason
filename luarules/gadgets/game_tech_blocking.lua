@@ -51,7 +51,8 @@ end
 local allyWatch = {}
 local xpGenerators = {}
 local techCoreUnits = {}
-local allyGains = {}
+local allyXPGains = {}
+local allyTechCorePoints = {}
 
 local removeGadget = true
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -63,11 +64,13 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			blockTechDefs[unitDefID] = techLevel
 		end
 		if customParams.tech_points_gain then
+			Spring.Echo("Tech points gain found for ", unitDef.name, ": ", tostring(customParams.tech_points_gain))
 			removeGadget = false
 			local techXP = tonumber(customParams.tech_points_gain)
 			techPointsGeneratorDefs[unitDefID] = techXP
 		end
 		if customParams.tech_core_value then
+			Spring.Echo("Tech core value found for ", unitDef.name, ": ", tostring(customParams.tech_core_value))
 			removeGadget = false
 			local coreValue = tonumber(customParams.tech_core_value)
 			techCoreValueDefs[unitDefID] = coreValue
@@ -82,6 +85,20 @@ local allyTeamList = Spring.GetAllyTeamList()
 for _, allyTeamID in ipairs(allyTeamList) do
 	local teamList = Spring.GetTeamList(allyTeamID)
 	allyWatch[allyTeamID] = teamList
+end
+
+local function increaseTechLevel(teamList, notificationEvent, techLevel)
+	for _, teamID in ipairs(teamList) do
+		if not ignoredTeams[teamID] then
+			local players = Spring.GetPlayerList(teamID)
+			if players then
+				for _, playerID in ipairs(players) do
+					SendToUnsynced("NotificationEvent", notificationEvent, tostring(playerID))
+				end
+			end
+			spSetTeamRulesParam(teamID, "tech_level", techLevel)
+		end
+	end
 end
 
 function gadget:Initialize()
@@ -109,7 +126,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		local allyTeam = spGetUnitAllyTeam(unitID)
 		for _, teamID in ipairs(allyWatch[allyTeam]) do
 			local currentPoints = spGetTeamRulesParam(teamID, "tech_points") or 0
-			allyGains[teamID] = (allyGains[teamID] or currentPoints) + power * unitCreationRewardMultiplier
+			allyXPGains[teamID] = (allyXPGains[teamID] or currentPoints) + power * unitCreationRewardMultiplier
 		end
 	end
 	if techPointsGeneratorDefs[unitDefID] and not ignoredTeams[unitTeam] then
@@ -120,7 +137,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		local coreValue = techCoreValueDefs[unitDefID]
 		for _, teamID in ipairs(allyWatch[allyTeam]) do
 			local currentPoints = spGetTeamRulesParam(teamID, "tech_points") or 0
-			allyGains[teamID] = (allyGains[teamID] or currentPoints) + coreValue
+			allyXPGains[teamID] = (allyXPGains[teamID] or currentPoints) + coreValue
 		end
 		techCoreUnits[unitID] = {value = coreValue, allyTeam = allyTeam}
 	end
@@ -140,11 +157,11 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 		if coreData.allyTeam ~= newAllyTeam then
 			for _, teamID in ipairs(allyWatch[coreData.allyTeam]) do
 				local currentPoints = spGetTeamRulesParam(teamID, "tech_points") or 0
-				allyGains[teamID] = (allyGains[teamID] or currentPoints) - coreData.value
+				allyXPGains[teamID] = (allyXPGains[teamID] or currentPoints) - coreData.value
 			end
 			for _, teamID in ipairs(allyWatch[newAllyTeam]) do
 				local currentPoints = spGetTeamRulesParam(teamID, "tech_points") or 0
-				allyGains[teamID] = (allyGains[teamID] or currentPoints) + coreData.value
+				allyXPGains[teamID] = (allyXPGains[teamID] or currentPoints) + coreData.value
 			end
 			techCoreUnits[unitID].allyTeam = newAllyTeam
 		end
@@ -157,7 +174,7 @@ function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 		local coreData = techCoreUnits[unitID]
 		for _, teamID in ipairs(allyWatch[coreData.allyTeam]) do
 			local currentPoints = spGetTeamRulesParam(teamID, "tech_points") or 0
-			allyGains[teamID] = (allyGains[teamID] or currentPoints) - coreData.value
+			allyXPGains[teamID] = (allyXPGains[teamID] or currentPoints) - coreData.value
 		end
 		techCoreUnits[unitID] = nil
 	end
@@ -170,67 +187,46 @@ function gadget:GameFrame(frame)
 
 	for unitID, data in pairs(xpGenerators) do
 		for _, teamID in ipairs(allyWatch[data.allyTeam]) do
-			local currentTechPoints = spGetTeamRulesParam(teamID, "tech_points") or 0
-			allyGains[teamID] = (allyGains[teamID] or currentTechPoints) + data.gain
+			allyXPGains[data.allyTeam] = (allyXPGains[data.allyTeam] or 0) + data.gain
 		end
 	end
 
-	for teamID, gain in pairs(allyGains) do
-		spSetTeamRulesParam(teamID, "tech_points", math.floor(gain))
+	allyTechCorePoints = {}
+	for unitID, data in pairs(techCoreUnits) do
+		allyTechCorePoints[data.allyTeam] = (allyTechCorePoints[data.allyTeam] or 0) + data.value
 	end
-	allyGains = {}
+
 
 	for allyTeamID, teamList in pairs(allyWatch) do
-		local totalTechPoints = 0
+		local techCorePoints = allyTechCorePoints[allyTeamID] or 0
+		local techXPPoints = allyXPGains[allyTeamID] or 0
+		local totalTechPoints = techCorePoints + techXPPoints
 		local activeTeamCount = 0
-		local teamTechPoints = {}
 
 		for _, teamID in ipairs(teamList) do
 			if not ignoredTeams[teamID] then
-				local currentTechPoints = spGetTeamRulesParam(teamID, "tech_points") or 0
-				teamTechPoints[teamID] = currentTechPoints
-				totalTechPoints = totalTechPoints + currentTechPoints
 				activeTeamCount = activeTeamCount + 1
+				spSetTeamRulesParam(teamID, "tech_points", totalTechPoints)
 			end
 		end
 
 		local adjustedT2Threshold = techBlockingPerTeam and t2TechThreshold or (t2TechThreshold * activeTeamCount)
 		local adjustedT3Threshold = techBlockingPerTeam and t3TechThreshold or (t3TechThreshold * activeTeamCount)
 
-		local previousAllyTechLevel = spGetTeamRulesParam(teamList[1], "tech_level") or 1
-		local techLevel = 1
-		if totalTechPoints >= adjustedT3Threshold then
-			techLevel = 3
-			if techLevel > previousAllyTechLevel then
-				for _, teamID in ipairs(teamList) do
-					if not ignoredTeams[teamID] then
-						local players = Spring.GetPlayerList(teamID)
-						if players then
-							for _, playerID in ipairs(players) do
-								SendToUnsynced("NotificationEvent", "Tech3TeamReached", tostring(playerID))
-							end
-						end
-					end
+		if activeTeamCount > 0 then
+			local previousAllyTechLevel = spGetTeamRulesParam(teamList[1], "tech_level") or 1
+			local techLevel = 1
+			if totalTechPoints >= adjustedT3Threshold then
+				techLevel = 3
+				if techLevel > previousAllyTechLevel then
+					increaseTechLevel(teamList, "Tech3TeamReached", techLevel)
+				end
+			elseif totalTechPoints >= adjustedT2Threshold then
+				techLevel = 2
+				if techLevel > previousAllyTechLevel then
+					increaseTechLevel(teamList, "Tech2TeamReached", techLevel)
 				end
 			end
-		elseif totalTechPoints >= adjustedT2Threshold then
-			techLevel = 2
-			if techLevel > previousAllyTechLevel then
-				for _, teamID in ipairs(teamList) do
-					if not ignoredTeams[teamID] then
-						local players = Spring.GetPlayerList(teamID)
-						if players then
-							for _, playerID in ipairs(players) do
-								SendToUnsynced("NotificationEvent", "Tech2TeamReached", tostring(playerID))
-							end
-						end
-					end
-				end
-			end
-		end
-
-		for teamID, currentTechPoints in pairs(teamTechPoints) do
-			spSetTeamRulesParam(teamID, "tech_level", techLevel)
 		end
 	end
 end

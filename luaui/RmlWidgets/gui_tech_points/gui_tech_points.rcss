@@ -40,6 +40,12 @@
     decorator: vertical-gradient(rgba(121, 121, 121, 0.62) #585757);
 }
 
+/* Negative progress style (red) */
+.tech-points-fill.negative-progress {
+    background-color: #aa0000;
+    decorator: vertical-gradient(rgba(255, 50, 50, 0.62) #aa0000);
+}
+
 /* Text container for header and number */
 .tech-text-container {
     position: absolute;

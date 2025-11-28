@@ -91,20 +91,34 @@ end
 
 local function calculateProgressPercent(currentPoints, nextThreshold, currentTechLevel, t2Threshold, t3Threshold)
 	if nextThreshold <= 0 then
-		return 0
+		return 0, false
 	end
 
-	if currentPoints >= t3Threshold then
-		return 100
+	if currentTechLevel >= 3 then
+		return 100, false
 	end
 
-	if currentPoints >= t2Threshold then
-		local progressInT2 = (currentPoints - t2Threshold) / (t3Threshold - t2Threshold) * 100
-		return math.min(100, progressInT2)
+	if currentTechLevel >= 2 then
+		if currentPoints >= t3Threshold then
+			return 100, false
+		end
+		if currentPoints < t2Threshold then
+			local deficit = t2Threshold - currentPoints
+			local maxDeficit = t2Threshold 
+			local deficitPercent = math.min(100, (deficit / maxDeficit) * 100)
+			return deficitPercent, true
+		end
+		local progressInT2 = math.max(0, (currentPoints - t2Threshold) / (t3Threshold - t2Threshold) * 100)
+		return math.min(100, progressInT2), false
 	end
 
-	local progressInT1 = currentPoints / t2Threshold * 100
-	return math.min(100, progressInT1)
+	if currentPoints < 0 then
+		local deficitPercent = math.min(100, (math.abs(currentPoints) / 100) * 100)
+		return deficitPercent, true
+	end
+
+	local progressInT1 = math.max(0, currentPoints / t2Threshold * 100)
+	return math.min(100, progressInT1), false
 end
 
 local function updateTechPointsData()
@@ -121,25 +135,30 @@ local function updateTechPointsData()
 	local currentTechPoints = spGetTeamRulesParam(myTeamID, "tech_points")
 	if currentTechPoints == nil then currentTechPoints = 0 end
 	currentTechPoints = tonumber(currentTechPoints) or 0
+
+	local techLevel = spGetTeamRulesParam(myTeamID, "tech_level") or 1
+	techLevel = tonumber(techLevel) or 1
+
 	local t2Threshold = modOptions.t2_tech_threshold or 100
 	local t3Threshold = modOptions.t3_tech_threshold or 1000
 
-	local techLevel = 1
-	if currentTechPoints >= t3Threshold then
-		techLevel = 3
-	elseif currentTechPoints >= t2Threshold then
-		techLevel = 2
+	local nextThreshold
+	if techLevel >= 3 then
+		nextThreshold = t3Threshold
+	elseif techLevel >= 2 then
+		nextThreshold = t3Threshold
+	else
+		nextThreshold = t2Threshold
 	end
 
-	local nextThreshold = calculateNextThreshold(currentTechPoints, t2Threshold, t3Threshold)
-
-	local progressPercent = calculateProgressPercent(currentTechPoints, nextThreshold, techLevel, t2Threshold, t3Threshold)
+	local progressPercent, isNegative = calculateProgressPercent(currentTechPoints, nextThreshold, techLevel, t2Threshold, t3Threshold)
 
 	return {
 		techLevel = techLevel,
 		currentTechPoints = math.floor(currentTechPoints),
 		nextThreshold = nextThreshold,
 		progressPercent = progressPercent,
+		isNegative = isNegative,
 	}
 end
 
@@ -181,15 +200,12 @@ local function updateBlocking()
 	local currentTechPoints = spGetTeamRulesParam(myTeamID, "tech_points")
 	if currentTechPoints == nil then currentTechPoints = 0 end
 	currentTechPoints = tonumber(currentTechPoints) or 0
+
+	local techLevel = spGetTeamRulesParam(myTeamID, "tech_level") or 1
+	techLevel = tonumber(techLevel) or 1
+
 	local t2Threshold = modOptions.t2_tech_threshold or 100
 	local t3Threshold = modOptions.t3_tech_threshold or 1000
-
-	local techLevel = 1
-	if currentTechPoints >= t3Threshold then
-		techLevel = 3
-	elseif currentTechPoints >= t2Threshold then
-		techLevel = 2
-	end
 
 	techLevelChanged = techLevelChanged == true or techLevel ~= widgetState.previousTechLevel
 	local techPointsChangedSignificantly = math.abs(currentTechPoints - widgetState.previousTechPoints) >= 10
@@ -288,6 +304,13 @@ local function updateUI()
 
 	if widgetState.fillElement then
 		local heightValue = string.format("%.1f%%", data.progressPercent)
+		
+		if data.isNegative then
+			widgetState.fillElement:SetClass("negative-progress", true)
+		else
+			widgetState.fillElement:SetClass("negative-progress", false)
+		end
+		
 		widgetState.fillElement:SetAttribute("style", "height: " .. heightValue)
 	end
 
