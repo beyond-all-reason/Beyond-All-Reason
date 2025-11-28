@@ -21,9 +21,13 @@ end
 
 local screenshotWidthLq = 480
 local screenshotWidth = 720	-- must be lower than screenshotWidthHq (else it gets higher color range too)
-local screenshotWidthHq = 960 -- (gets higher color range)
+local screenshotWidthHq = 920 -- (gets higher color range)
 
 --------------------------------------------------------------------------------
+
+local isSingleplayer = Spring.Utilities.Gametype.IsSinglePlayer()
+
+
 if gadgetHandler:IsSyncedCode() then
 
 	local charset = {}
@@ -77,6 +81,7 @@ else
 	-- Screenshot display variables
 	local screenshotVars = {} -- containing: finished, width, height, gameframe, data, dataLast, dlist, pixels, player, filename, saved, saveQueued, posX, posY, quality
 	local totalTime = 0
+	local screenshotCompressedBytes = 0
 
 	-- Font
 	local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -196,7 +201,7 @@ else
 			end
 		elseif string.sub(msg, 1, 13) == 'getscreenshot' then
 			local _, _, mySpec = Spring.GetPlayerInfo(myPlayerID, false)
-			if not mySpec and myPlayerName ~= 'Player' then
+			if not mySpec and not isSingleplayer then
 				Spring.SendMessageToPlayer(player, 'Taking screenshots is disabled when you are a player')
 				return
 			end
@@ -234,7 +239,6 @@ else
 	local sec = 0
 	local screenshotInitialized = false
 	local screenshotCaptured = false
-	local totalBytesTransmitted = 0
 
 	function StartScreenshot(_, msg)
 		local parts = {}
@@ -262,7 +266,6 @@ else
 		queueScreenShotCharsPerBroadcast = 9000
 		screenshotInitialized = false
 		screenshotCaptured = false
-		totalBytesTransmitted = 0
 		sec = 0
 		--Spring.Echo("Starting screenshot capture: " .. queueScreenShotWidth .. "x" .. queueScreenShotHeight)
 	end
@@ -472,12 +475,9 @@ else
 				local data = finished .. ';' .. queueScreenShotWidth .. ';' .. queueScreenShotHeight .. ';' .. queueScreenshotGameframe .. ';' .. queueScreenShotQuality .. ';' .. table.concat(queueScreenShotPixels)
 				local sendtoauthedplayer = '0'
 				local message = 'pd' .. validation .. sendtoauthedplayer .. 'screenshot;' .. VFS.ZlibCompress(data)
-				local messageBytes = string.len(message)
-				totalBytesTransmitted = totalBytesTransmitted + messageBytes
 				Spring.SendLuaRulesMsg(message)
 				queueScreenShotBroadcastChars = 0
 				queueScreenShotPixels = {}
-				pixels = nil
 				data = nil
 				if finished == '1' then
 					-- Clean up the texture
@@ -488,8 +488,6 @@ else
 					queueScreenshot = nil
 					screenshotInitialized = false
 					screenshotCaptured = false
-					local kilobytes = totalBytesTransmitted / 1024
-					--Spring.Echo(string.format("Completed screenshot capture and sending. Total transmitted: %.2f KB (%d bytes)", kilobytes, totalBytesTransmitted))
 				end
 			end
 		end
@@ -497,7 +495,7 @@ else
 
 	function SendToReceiver(_, msg)
 		local _, _, mySpec = Spring.GetPlayerInfo(myPlayerID, false)
-		if authorized and (mySpec or myPlayerName == 'Player' or string.sub(msg, 1, 1) == '1') then
+		if authorized and (mySpec or isSingleplayer or string.sub(msg, 1, 1) == '1') then
 			PlayerDataBroadcast(myPlayerName, string.sub(msg, 2))
 		end
 	end
@@ -621,6 +619,8 @@ else
 
 		if data then
 			if msgType == 'screenshot' then
+				local compressedSize = string.len(data)
+				screenshotCompressedBytes = screenshotCompressedBytes + compressedSize
 				data = VFS.ZlibDecompress(data)
 				count = 0
 				for i = 1, string.len(data) do
@@ -655,6 +655,9 @@ else
 
 				if screenshotVars.finished or totalTime - 4000 > screenshotVars.dataLast then
 					screenshotVars.finished = true
+					local compressedKB = screenshotCompressedBytes / 1024
+					Spring.Echo(string.format("Received screenshot from %s (%.0f KB compressed, increased replay size)", playerName, compressedKB))
+					screenshotCompressedBytes = 0
 					local minutes = math.floor((screenshotVars.gameframe / 30 / 60))
 					local seconds = math.floor((screenshotVars.gameframe - ((minutes * 60) * 30)) / 30)
 					if seconds == 0 then
