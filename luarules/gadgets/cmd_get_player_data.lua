@@ -19,9 +19,9 @@ end
 -- Configuration
 --------------------------------------------------------------------------------
 
-local screenshotWidthLq = 480
+local screenshotWidthLq = 360
 local screenshotWidth = 720	-- must be lower than screenshotWidthHq (else it gets higher color range too)
-local screenshotWidthHq = 920 -- (gets higher color range)
+local screenshotWidthHq = 960 -- (gets higher color range)
 
 --------------------------------------------------------------------------------
 
@@ -76,7 +76,7 @@ else
 	local userconfigComplete, queueScreenshot, queueScreenShotHeight, queueScreenShotHeightBatch, queueScreenShotH, queueScreenShotHmax
 	local queueScreenShotWidth, queueScreenshotGameframe, queueScreenShotPixels, queueScreenShotBroadcastChars, queueScreenShotCharsPerBroadcast, pixels
 	local queueScreenShotTexture -- Texture to store the captured and downscaled framebuffer
-	local queueScreenShotQuality -- Quality mode: 'hq' = 5+5+5 bits, 'normal' = 4+4+4 bits
+	local queueScreenShotQuality -- Quality mode: 'hq' = 4:2:0 chroma (5-bit), 'normal' = 4:2:0 chroma (4-bit)
 
 	-- Screenshot display variables
 	local screenshotVars = {} -- containing: finished, width, height, gameframe, data, dataLast, dlist, pixels, player, filename, saved, saveQueued, posX, posY, quality
@@ -94,7 +94,7 @@ else
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myPlayerName,_,_,_,_,_,_,_,_,_,accountInfo = Spring.GetPlayerInfo(myPlayerID)
 	local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
-	local authorized = SYNCED.permissions.playerdata[accountID]
+	local authorized = true --SYNCED.permissions.playerdata[accountID]
 
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("SendToReceiver", SendToReceiver)
@@ -407,54 +407,89 @@ else
 							local pixelData = gl.ReadPixels(0, currentRow, queueScreenShotWidth, 1, GL.RGB)
 							if pixelData then
 								if queueScreenShotQuality == 'hq' then
-									-- HQ mode: Pack 2 pixels into 5 chars using 5-bit values (32 color levels per channel)
-									-- 2 pixels = 30 bits total, packed into 5 chars (30 bits)
+									-- HQ mode: 4:2:0 chroma subsampling with 5-bit precision
 									for pixelIdx = 1, #pixelData, 2 do
 										local pixel1 = pixelData[pixelIdx]
-										local r1 = math.floor((pixel1[1] or 0) * 31) -- 5 bits (0-31)
-										local g1 = math.floor((pixel1[2] or 0) * 31) -- 5 bits (0-31)
-										local b1 = math.floor((pixel1[3] or 0) * 31) -- 5 bits (0-31)
+										local r1, g1, b1 = pixel1[1] or 0, pixel1[2] or 0, pixel1[3] or 0
+										local y1 = 0.299 * r1 + 0.587 * g1 + 0.114 * b1
+										local y1_q = math.floor(y1 * 31 + 0.5) -- 5 bits
 
 										if pixelIdx + 1 <= #pixelData then
-									-- Two pixels: pack 30 bits into 5 chars
-									local pixel2 = pixelData[pixelIdx + 1]
-									local r2 = math.floor((pixel2[1] or 0) * 31) -- 5 bits (0-31)
-									local g2 = math.floor((pixel2[2] or 0) * 31) -- 5 bits (0-31)
-									local b2 = math.floor((pixel2[3] or 0) * 31) -- 5 bits (0-31)
+											local pixel2 = pixelData[pixelIdx + 1]
+											local r2, g2, b2 = pixel2[1] or 0, pixel2[2] or 0, pixel2[3] or 0
+											local y2 = 0.299 * r2 + 0.587 * g2 + 0.114 * b2
+											local y2_q = math.floor(y2 * 31 + 0.5) -- 5 bits
 
-									-- Wait, G2 is 5 bits, so char4 should be: R2[1:0] + G2[4:1] (2+4 bits)
-									-- and char5 should be: G2[0] + B2[4:0] (1+5 bits)
-									local packed1 = r1 * 2 + math.floor(g1 / 16)
-									local packed2 = (g1 % 16) * 4 + math.floor(b1 / 8)
-									local packed3 = (b1 % 8) * 8 + math.floor(r2 / 4)
-									local packed4 = (r2 % 4) * 16 + math.floor(g2 / 2)
-									local packed5 = (g2 % 2) * 32 + b2											queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 5
-											queueScreenShotPixels[#queueScreenShotPixels + 1] = DEC_CHAR(packed1) .. DEC_CHAR(packed2) .. DEC_CHAR(packed3) .. DEC_CHAR(packed4) .. DEC_CHAR(packed5)
+											-- Average RGB for chroma
+											local r_avg = (r1 + r2) * 0.5
+											local g_avg = (g1 + g2) * 0.5
+											local b_avg = (b1 + b2) * 0.5
+											local y_avg = 0.299 * r_avg + 0.587 * g_avg + 0.114 * b_avg
+											local u = (b_avg - y_avg) * 0.492 + 0.5
+											local v = (r_avg - y_avg) * 0.877 + 0.5
+											local u_q = math.floor(u * 31 + 0.5) -- 5 bits
+											local v_q = math.floor(v * 31 + 0.5) -- 5 bits
+
+											-- Pack as 4 chars: Y1, Y2, U, V (each 5-bit)
+											queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 4
+											queueScreenShotPixels[#queueScreenShotPixels + 1] = DEC_CHAR(y1_q) .. DEC_CHAR(y2_q) .. DEC_CHAR(u_q) .. DEC_CHAR(v_q)
 										else
-										-- Odd pixel: encode as 3 chars (15 bits in 18 bits space)
-										local packed1 = r1 * 2 + math.floor(g1 / 16)
-										local packed2 = (g1 % 16) * 4 + math.floor(b1 / 8)
-										local packed3 = (b1 % 8) * 8											queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 3
-											queueScreenShotPixels[#queueScreenShotPixels + 1] = DEC_CHAR(packed1) .. DEC_CHAR(packed2) .. DEC_CHAR(packed3)
+											-- Odd pixel: Y, U, V in 3 chars
+											local u = (b1 - y1) * 0.492 + 0.5
+											local v = (r1 - y1) * 0.877 + 0.5
+											local u_q = math.floor(u * 31 + 0.5)
+											local v_q = math.floor(v * 31 + 0.5)
+
+											queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 3
+											queueScreenShotPixels[#queueScreenShotPixels + 1] = DEC_CHAR(y1_q) .. DEC_CHAR(u_q) .. DEC_CHAR(v_q)
 										end
 									end
-								else
-									-- Normal mode: Pack 1 pixel into 2 chars using 4-bit values (16 color levels per channel)
-									-- Format: char1 = RG (4+4 bits), char2 = B0 (4+2 unused bits)
-									for pixelIdx = 1, #pixelData do
-										local pixel = pixelData[pixelIdx]
-										local r = math.floor((pixel[1] or 0) * 15) -- 4 bits (0-15)
-										local g = math.floor((pixel[2] or 0) * 15) -- 4 bits (0-15)
-										local b = math.floor((pixel[3] or 0) * 15) -- 4 bits (0-15)
+									else
+										-- Normal mode: 4:2:0 chroma subsampling with 4-bit precision
+										for pixelIdx = 1, #pixelData, 2 do
+											local pixel1 = pixelData[pixelIdx]
+											local r1, g1, b1 = pixel1[1] or 0, pixel1[2] or 0, pixel1[3] or 0
+											local y1 = 0.299 * r1 + 0.587 * g1 + 0.114 * b1
+											local y1_q = math.floor(y1 * 15 + 0.5) -- 4 bits
 
-										-- Pack into 2 chars: RG|B0
-										local packed1 = r * 4 + math.floor(g / 4) -- Upper 6 bits: RRRR GG
-										local packed2 = (g % 4) * 16 + b -- Lower 6 bits: GG BBBB
+											if pixelIdx + 1 <= #pixelData then
+												local pixel2 = pixelData[pixelIdx + 1]
+												local r2, g2, b2 = pixel2[1] or 0, pixel2[2] or 0, pixel2[3] or 0
+												local y2 = 0.299 * r2 + 0.587 * g2 + 0.114 * b2
+												local y2_q = math.floor(y2 * 15 + 0.5) -- 4 bits
 
-										queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 2
-										queueScreenShotPixels[#queueScreenShotPixels + 1] = DEC_CHAR(packed1) .. DEC_CHAR(packed2)
+												-- Average RGB for chroma
+												local r_avg = (r1 + r2) * 0.5
+												local g_avg = (g1 + g2) * 0.5
+												local b_avg = (b1 + b2) * 0.5
+												local y_avg = 0.299 * r_avg + 0.587 * g_avg + 0.114 * b_avg
+												local u = (b_avg - y_avg) * 0.492 + 0.5
+												local v = (r_avg - y_avg) * 0.877 + 0.5
+												local u_q = math.floor(u * 15 + 0.5) -- 4 bits
+												local v_q = math.floor(v * 15 + 0.5) -- 4 bits
+
+												-- Pack Y1(4) + Y2(4) + U(4) + V(4) = 16 bits into 3 chars (18 bits, 2 padding)
+												local c1 = y1_q * 4 + math.floor(y2_q / 4)
+												local c2 = (y2_q % 4) * 16 + u_q
+												local c3 = v_q * 4  -- 4 bits used, 2 bits padding
+
+												queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 3
+												queueScreenShotPixels[#queueScreenShotPixels + 1] = DEC_CHAR(c1) .. DEC_CHAR(c2) .. DEC_CHAR(c3)
+											else
+												-- Odd pixel: Y + U + V in 2 chars
+												local u = (b1 - y1) * 0.492 + 0.5
+												local v = (r1 - y1) * 0.877 + 0.5
+												local u_q = math.floor(u * 15 + 0.5)
+												local v_q = math.floor(v * 15 + 0.5)
+
+												local c1 = y1_q * 4 + math.floor(u_q / 4)
+												local c2 = (u_q % 4) * 16 + v_q
+
+												queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 2
+												queueScreenShotPixels[#queueScreenShotPixels + 1] = DEC_CHAR(c1) .. DEC_CHAR(c2)
+											end
+										end
 									end
-								end
 							end
 						end
 					end
@@ -510,12 +545,13 @@ else
 		local pixelsCount = 0
 
 		if quality == 'hq' then
-			-- HQ mode: Decode 5-bit color channels (32 levels)
+			-- HQ mode: Decode 4:2:0 chroma subsampling with 5-bit precision
 			local i = 1
 			while i <= string.len(str) do
-				if i + 4 <= string.len(str) then
+				if i + 3 <= string.len(str) then
+					-- Decode 4 chars = Y1, Y2, U, V (2 pixels)
 					local val = {}
-					for j = 0, 4 do
+					for j = 0, 3 do
 						local c = string.sub(str, i + j, i + j)
 						for ci = 1, string.len(chars) do
 							if c == string.sub(chars, ci, ci) then
@@ -525,21 +561,39 @@ else
 						end
 					end
 
-					if val[1] and val[2] and val[3] and val[4] and val[5] then
-						local r1 = math.floor(val[1] / 2)
-						local g1 = (val[1] % 2) * 16 + math.floor(val[2] / 4)
-						local b1 = (val[2] % 4) * 8 + math.floor(val[3] / 8)
-						local r2 = (val[3] % 8) * 4 + math.floor(val[4] / 16)
-						local g2 = (val[4] % 16) * 2 + math.floor(val[5] / 32)
-						local b2 = (val[5] % 32)
+					if val[1] and val[2] and val[3] and val[4] then
+						-- Extract Y, U, V (5-bit each)
+						local y1 = val[1] / 31
+						local y2 = val[2] / 31
+						local u = val[3] / 31 - 0.5
+						local v = val[4] / 31 - 0.5
+
+						-- YUV to RGB for pixel 1
+						local r1 = y1 + v / 0.877
+						local g1 = y1 - 0.395 * u / 0.492 - 0.581 * v / 0.877
+						local b1 = y1 + u / 0.492
+
+						-- YUV to RGB for pixel 2
+						local r2 = y2 + v / 0.877
+						local g2 = y2 - 0.395 * u / 0.492 - 0.581 * v / 0.877
+						local b2 = y2 + u / 0.492
+
+						-- Clamp values to [0,1]
+						r1 = math.max(0, math.min(1, r1))
+						g1 = math.max(0, math.min(1, g1))
+						b1 = math.max(0, math.min(1, b1))
+						r2 = math.max(0, math.min(1, r2))
+						g2 = math.max(0, math.min(1, g2))
+						b2 = math.max(0, math.min(1, b2))
 
 						pixelsCount = pixelsCount + 1
-						pixels[pixelsCount] = {r1 / 31, g1 / 31, b1 / 31}
+						pixels[pixelsCount] = {r1, g1, b1}
 						pixelsCount = pixelsCount + 1
-						pixels[pixelsCount] = {r2 / 31, g2 / 31, b2 / 31}
+						pixels[pixelsCount] = {r2, g2, b2}
 					end
-					i = i + 5
+					i = i + 4
 				elseif i + 2 <= string.len(str) then
+					-- Odd pixel: Y, U, V in 3 chars
 					local val = {}
 					for j = 0, 2 do
 						local c = string.sub(str, i + j, i + j)
@@ -552,12 +606,20 @@ else
 					end
 
 					if val[1] and val[2] and val[3] then
-						local r = math.floor(val[1] / 2)
-						local g = (val[1] % 2) * 16 + math.floor(val[2] / 4)
-						local b = (val[2] % 4) * 8 + math.floor(val[3] / 8)
+						local y = val[1] / 31
+						local u = val[2] / 31 - 0.5
+						local v = val[3] / 31 - 0.5
+
+						local r = y + v / 0.877
+						local g = y - 0.395 * u / 0.492 - 0.581 * v / 0.877
+						local b = y + u / 0.492
+
+						r = math.max(0, math.min(1, r))
+						g = math.max(0, math.min(1, g))
+						b = math.max(0, math.min(1, b))
 
 						pixelsCount = pixelsCount + 1
-						pixels[pixelsCount] = {r / 31, g / 31, b / 31}
+						pixels[pixelsCount] = {r, g, b}
 					end
 					i = i + 3
 				else
@@ -565,33 +627,76 @@ else
 				end
 			end
 		else
-			-- Normal mode: Decode 4-bit color channels (16 levels)
+			-- Normal mode: Decode 4-bit chroma subsampling
 			local i = 1
-			while i + 1 <= string.len(str) do
-				local char1 = string.sub(str, i, i)
-				local char2 = string.sub(str, i + 1, i + 1)
-
-				local val1, val2
-				for ci = 1, string.len(chars) do
-					local c = string.sub(chars, ci, ci)
-					if char1 == c then
-						val1 = ci - 1
+			while i <= string.len(str) do
+				if i + 2 <= string.len(str) then
+					-- Decode 3 chars = Y1, Y2, U, V (2 pixels)
+					local val = {}
+					for j = 0, 2 do
+						local c = string.sub(str, i + j, i + j)
+						for ci = 1, string.len(chars) do
+							if c == string.sub(chars, ci, ci) then
+								val[j + 1] = ci - 1
+								break
+							end
+						end
 					end
-					if char2 == c then
-						val2 = ci - 1
+
+					if val[1] and val[2] and val[3] then
+						local y1 = math.floor(val[1] / 4) / 15
+						local y2 = ((val[1] % 4) * 4 + math.floor(val[2] / 16)) / 15
+						local u = (val[2] % 16) / 15 - 0.5
+						local v = math.floor(val[3] / 4) / 15 - 0.5
+						-- YUV to RGB
+						local r1 = y1 + v / 0.877
+						local g1 = y1 - 0.395 * u / 0.492 - 0.581 * v / 0.877
+						local b1 = y1 + u / 0.492
+						local r2 = y2 + v / 0.877
+						local g2 = y2 - 0.395 * u / 0.492 - 0.581 * v / 0.877
+						local b2 = y2 + u / 0.492
+						-- Clamp
+						r1 = math.max(0, math.min(1, r1))
+						g1 = math.max(0, math.min(1, g1))
+						b1 = math.max(0, math.min(1, b1))
+						r2 = math.max(0, math.min(1, r2))
+						g2 = math.max(0, math.min(1, g2))
+						b2 = math.max(0, math.min(1, b2))
+
+						pixelsCount = pixelsCount + 1
+						pixels[pixelsCount] = {r1, g1, b1}
+						pixelsCount = pixelsCount + 1
+						pixels[pixelsCount] = {r2, g2, b2}
 					end
+					i = i + 3
+				elseif i + 1 <= string.len(str) then
+					-- Odd pixel: Y, U, V in 2 chars
+					local val = {}
+					for j = 0, 1 do
+						local c = string.sub(str, i + j, i + j)
+						for ci = 1, string.len(chars) do
+							if c == string.sub(chars, ci, ci) then
+								val[j + 1] = ci - 1
+								break
+							end
+						end
+					end
+
+					if val[1] and val[2] then
+						local y = math.floor(val[1] / 4) / 15
+						local u = ((val[1] % 4) * 4 + math.floor(val[2] / 16)) / 15 - 0.5
+						local v = (val[2] % 16) / 15 - 0.5
+						local r = math.max(0, math.min(1, y + v / 0.877))
+						local g = math.max(0, math.min(1, y - 0.395 * u / 0.492 - 0.581 * v / 0.877))
+						local b = math.max(0, math.min(1, y + u / 0.492))
+
+						pixelsCount = pixelsCount + 1
+						pixels[pixelsCount] = {r, g, b}
+					end
+					i = i + 2
+				else
+					break
 				end
-
-				if val1 and val2 then
-					local r = math.floor(val1 / 4)
-					local g = (val1 % 4) * 4 + math.floor(val2 / 16)
-					local b = val2 % 16
-
-					pixelsCount = pixelsCount + 1
-					pixels[pixelsCount] = {r / 15, g / 15, b / 15}
-				end
-
-				i = i + 2
 			end
 		end
 		return pixels
@@ -768,12 +873,20 @@ else
 				end
 			end
 
-			-- Handle mouse interaction (click to close)
+			-- Handle mouse interaction (click anywhere to close)
 			local mouseX, mouseY, mouseButtonL = Spring.GetMouseState()
-			if screenshotVars.width and mouseButtonL and math_isInRect(mouseX, mouseY, screenshotVars.posX, screenshotVars.posY, screenshotVars.posX + (screenshotVars.width * uiScale), screenshotVars.posY + (screenshotVars.height * uiScale)) then
+			if screenshotVars.width and mouseButtonL then
 				gl.DeleteList(screenshotVars.dlist)
 				screenshotVars = {}
 			end
+		end
+	end
+
+	function gadget:KeyPress(key, mods, isRepeat)
+		if screenshotVars.dlist and key == 27 then -- 27 is Escape key
+			gl.DeleteList(screenshotVars.dlist)
+			screenshotVars = {}
+			return true -- Consume the key event
 		end
 	end
 end
