@@ -70,6 +70,7 @@ local widgetState = {
 	popupEndTime = 0,
 	gameStartTime = nil,
 	initialPopupShown = false,
+	lastBlockingTechLevel = 1,
 }
 
 local initialModel = {
@@ -79,14 +80,20 @@ local initialModel = {
 	progressPercent = 0,
 }
 
-local function calculateNextThreshold(currentPoints, t2Threshold, t3Threshold)
-	if currentPoints >= t3Threshold then
-		return t3Threshold
-	elseif currentPoints >= t2Threshold then
-		return t3Threshold
-	else
-		return t2Threshold
-	end
+local function getTechData()
+	local myTeamID = spGetMyTeamID()
+	if not myTeamID then return 1, 0, 100, 1000 end
+
+	local currentTechPoints = spGetTeamRulesParam(myTeamID, "tech_points")
+	currentTechPoints = tonumber(currentTechPoints) or 0
+
+	local techLevel = spGetTeamRulesParam(myTeamID, "tech_level")
+	techLevel = tonumber(techLevel) or 1
+
+	local t2Threshold = modOptions.t2_tech_threshold or 100
+	local t3Threshold = modOptions.t3_tech_threshold or 1000
+
+	return techLevel, currentTechPoints, t2Threshold, t3Threshold
 end
 
 local function calculateProgressPercent(currentPoints, nextThreshold, currentTechLevel, t2Threshold, t3Threshold)
@@ -122,25 +129,7 @@ local function calculateProgressPercent(currentPoints, nextThreshold, currentTec
 end
 
 local function updateTechPointsData()
-	local myTeamID = spGetMyTeamID()
-	if not myTeamID then
-		return {
-			techLevel = 1,
-			currentTechPoints = 0,
-			nextThreshold = 100,
-			progressPercent = 0,
-		}
-	end
-
-	local currentTechPoints = spGetTeamRulesParam(myTeamID, "tech_points")
-	if currentTechPoints == nil then currentTechPoints = 0 end
-	currentTechPoints = tonumber(currentTechPoints) or 0
-
-	local techLevel = spGetTeamRulesParam(myTeamID, "tech_level") or 1
-	techLevel = tonumber(techLevel) or 1
-
-	local t2Threshold = modOptions.t2_tech_threshold or 100
-	local t3Threshold = modOptions.t3_tech_threshold or 1000
+	local techLevel, currentTechPoints, t2Threshold, t3Threshold = getTechData()
 
 	local nextThreshold
 	if techLevel >= 3 then
@@ -192,22 +181,9 @@ local function updateBlocking()
 		return
 	end
 
-	local myTeamID = spGetMyTeamID()
-	if not myTeamID then
-		return
-	end
+	local techLevel, currentTechPoints = getTechData()
 
-	local currentTechPoints = spGetTeamRulesParam(myTeamID, "tech_points")
-	if currentTechPoints == nil then currentTechPoints = 0 end
-	currentTechPoints = tonumber(currentTechPoints) or 0
-
-	local techLevel = spGetTeamRulesParam(myTeamID, "tech_level") or 1
-	techLevel = tonumber(techLevel) or 1
-
-	local t2Threshold = modOptions.t2_tech_threshold or 100
-	local t3Threshold = modOptions.t3_tech_threshold or 1000
-
-	techLevelChanged = techLevelChanged == true or techLevel ~= widgetState.previousTechLevel
+	techLevelChanged = techLevelChanged == true or techLevel ~= widgetState.lastBlockingTechLevel
 	local techPointsChangedSignificantly = math.abs(currentTechPoints - widgetState.previousTechPoints) >= 10
 
 	if techLevelChanged or techPointsChangedSignificantly then
@@ -240,8 +216,39 @@ local function updateBlocking()
 			end
 		end
 
-		widgetState.previousTechLevel = techLevel
+		widgetState.lastBlockingTechLevel = techLevel
 		widgetState.previousTechPoints = currentTechPoints
+	end
+end
+
+local function updatePopups(techLevel)
+	if not widgetState.initialPopupShown and widgetState.gameStartTime and (popupsEnabled or Spring.GetGameFrame() > POPUP_DELAY_FRAMES) then
+		popupsEnabled = true
+		if widgetState.document then
+			updateUIElementText(widgetState.document, "tech-level-popup", spI18N("ui.techBlocking.techPopup.level1"))
+		end
+		if widgetState.popupElement then
+			widgetState.popupElement:SetClass("show-popup", true)
+		end
+		widgetState.initialPopupShown = true
+		widgetState.popupEndTime = os.clock() + 3.0
+	elseif techLevel ~= widgetState.previousTechLevel then
+		local popupKey = "ui.techBlocking.techPopup.level" .. tostring(techLevel)
+		if widgetState.document then
+			updateUIElementText(widgetState.document, "tech-level-popup", spI18N(popupKey))
+		end
+		if widgetState.popupElement then
+			widgetState.popupElement:SetClass("show-popup", true)
+		end
+		widgetState.previousTechLevel = techLevel
+		widgetState.popupEndTime = os.clock() + 3.0
+	end
+
+	if widgetState.popupEndTime > 0 and os.clock() >= widgetState.popupEndTime then
+		if widgetState.popupElement then
+			widgetState.popupElement:SetClass("show-popup", false)
+		end
+		widgetState.popupEndTime = 0
 	end
 end
 
@@ -252,44 +259,7 @@ local function updateUI()
 
 	local data = updateTechPointsData()
 
-	updateBlocking()
-
-	if not widgetState.initialPopupShown and widgetState.gameStartTime and (popupsEnabled or Spring.GetGameFrame() > POPUP_DELAY_FRAMES) then
-		popupsEnabled = true
-		local popupText = spI18N("ui.techBlocking.techPopup.level1")
-		if widgetState.document then
-			updateUIElementText(widgetState.document, "tech-level-popup", popupText)
-		end
-
-		if widgetState.popupElement then
-			widgetState.popupElement:SetClass("show-popup", true)
-		end
-
-		widgetState.initialPopupShown = true
-		widgetState.popupEndTime = os.clock() + 3.0
-	end
-
-	if data.techLevel ~= widgetState.previousTechLevel then
-		local popupKey = "ui.techBlocking.techPopup.level" .. tostring(data.techLevel)
-		local popupText = spI18N(popupKey)
-		if widgetState.document then
-			updateUIElementText(widgetState.document, "tech-level-popup", popupText)
-		end
-
-		if widgetState.popupElement then
-			widgetState.popupElement:SetClass("show-popup", true)
-		end
-
-		widgetState.previousTechLevel = data.techLevel
-		widgetState.popupEndTime = os.clock() + 3.0
-	end
-
-	if widgetState.popupEndTime > 0 and os.clock() >= widgetState.popupEndTime then
-		if widgetState.popupElement then
-			widgetState.popupElement:SetClass("show-popup", false)
-		end
-		widgetState.popupEndTime = 0
-	end
+	updatePopups(data.techLevel)
 
 	if widgetState.dmHandle then
 		widgetState.dmHandle.techLevel = data.techLevel

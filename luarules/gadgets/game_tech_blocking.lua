@@ -135,10 +135,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if techCoreValueDefs[unitDefID] and not ignoredTeams[unitTeam] then
 		local allyTeam = spGetUnitAllyTeam(unitID)
 		local coreValue = techCoreValueDefs[unitDefID]
-		for _, teamID in ipairs(allyWatch[allyTeam]) do
-			local currentPoints = spGetTeamRulesParam(teamID, "tech_points") or 0
-			allyXPGains[teamID] = (allyXPGains[teamID] or currentPoints) + coreValue
-		end
+		-- We only store the unit; points are summed dynamically in GameFrame
 		techCoreUnits[unitID] = {value = coreValue, allyTeam = allyTeam}
 	end
 end
@@ -152,32 +149,14 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 		xpGenerators[unitID] = {gain = techPointsGeneratorDefs[unitDefID], allyTeam = spGetUnitAllyTeam(unitID)}
 	end
 	if techCoreUnits[unitID] then
-		local coreData = techCoreUnits[unitID]
 		local newAllyTeam = spGetUnitAllyTeam(unitID)
-		if coreData.allyTeam ~= newAllyTeam then
-			for _, teamID in ipairs(allyWatch[coreData.allyTeam]) do
-				local currentPoints = spGetTeamRulesParam(teamID, "tech_points") or 0
-				allyXPGains[teamID] = (allyXPGains[teamID] or currentPoints) - coreData.value
-			end
-			for _, teamID in ipairs(allyWatch[newAllyTeam]) do
-				local currentPoints = spGetTeamRulesParam(teamID, "tech_points") or 0
-				allyXPGains[teamID] = (allyXPGains[teamID] or currentPoints) + coreData.value
-			end
-			techCoreUnits[unitID].allyTeam = newAllyTeam
-		end
+		techCoreUnits[unitID].allyTeam = newAllyTeam
 	end
 end
 
 function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	xpGenerators[unitID] = nil
-	if techCoreUnits[unitID] then
-		local coreData = techCoreUnits[unitID]
-		for _, teamID in ipairs(allyWatch[coreData.allyTeam]) do
-			local currentPoints = spGetTeamRulesParam(teamID, "tech_points") or 0
-			allyXPGains[teamID] = (allyXPGains[teamID] or currentPoints) - coreData.value
-		end
-		techCoreUnits[unitID] = nil
-	end
+	techCoreUnits[unitID] = nil
 end
 
 function gadget:GameFrame(frame)
