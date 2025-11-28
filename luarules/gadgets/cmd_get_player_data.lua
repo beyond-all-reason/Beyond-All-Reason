@@ -57,13 +57,13 @@ if gadgetHandler:IsSyncedCode() then
 			local name = Spring.GetPlayerInfo(player, false)
 			local data = string.sub(msg, 6)
 			local playerallowed = string.sub(msg, 5, 5)
-
 			SendToUnsynced("SendToReceiver", playerallowed .. name .. ";" .. data)
 			return true
 		elseif msg:sub(1, 2) == "ss" then
 			-- Screenshot request from synced
+			-- Format: "ss" + width + ";" + requestingPlayerID
 			local screenshotData = string.sub(msg, 3)
-			SendToUnsynced("StartScreenshot", screenshotData)
+			SendToUnsynced("StartScreenshot", screenshotData .. ";" .. player)
 			return true
 		end
 	end
@@ -199,11 +199,6 @@ else
 				end
 			end
 		elseif string.sub(msg, 1, 13) == 'getscreenshot' then
-			local _, _, mySpec = Spring.GetPlayerInfo(myPlayerID, false)
-			if not mySpec and not isSingleplayer then
-				Spring.SendMessageToPlayer(player, 'Taking screenshots is disabled when you are a player')
-				return
-			end
 			local width = screenshotWidth
 			local playerName = string.sub(msg, 15)
 			if string.sub(msg, 1, 15) == 'getscreenshothq' then
@@ -251,6 +246,15 @@ else
 		queueScreenShotWidth = math.min(tonumber(parts[1]), vsx)
 		queueScreenShotHeightBatch = 3
 		local requestingPlayer = tonumber(parts[2])
+
+		-- Check if requesting player is authorized spectator
+		local _, _, requestingSpec = Spring.GetPlayerInfo(requestingPlayer, false)
+		local _, _, mySpec = Spring.GetPlayerInfo(myPlayerID, false)
+
+		-- Allow screenshot if: singleplayer OR (I'm a spec) OR (requesting player is authorized spec)
+		if not isSingleplayer and not mySpec and not (requestingSpec and authorized) then
+			return  -- Silently reject if conditions not met
+		end
 
 		queueScreenshot = true
 		queueScreenshotGameframe = Spring.GetGameFrame()
@@ -576,7 +580,9 @@ else
 			end
 		end
 		return pixels
-	end	function PlayerDataBroadcast(playerName, msg)
+	end
+
+	function PlayerDataBroadcast(playerName, msg)
 		local data = ''
 		local count = 0
 		local startPos = 0
@@ -615,35 +621,35 @@ else
 						elseif count == 3 then
 							screenshotVars.height = tonumber(string.sub(data, startPos, i - 1))
 							startPos = i + 1
-					elseif count == 4 then
-						screenshotVars.gameframe = tonumber(string.sub(data, startPos, i - 1))
-						if not screenshotVars.data then
-							screenshotVars.data = string.sub(data, i + 1)
-						else
-							screenshotVars.data = screenshotVars.data .. string.sub(data, i + 1)
+						elseif count == 4 then
+							screenshotVars.gameframe = tonumber(string.sub(data, startPos, i - 1))
+							if not screenshotVars.data then
+								screenshotVars.data = string.sub(data, i + 1)
+							else
+								screenshotVars.data = screenshotVars.data .. string.sub(data, i + 1)
+							end
+							break
 						end
-						break
 					end
 				end
-			end
-			data = nil
-			screenshotVars.dataLast = totalTime
+				data = nil
+				screenshotVars.dataLast = totalTime
 
-			if screenshotVars.finished or totalTime - 4000 > screenshotVars.dataLast then
-				screenshotVars.finished = true
-				local compressedKB = screenshotCompressedBytes / 1024
-				Spring.Echo(string.format("Received screenshot from %s (%.0f KB, increased replay size)", playerName, compressedKB))
-				screenshotCompressedBytes = 0
+				if screenshotVars.finished or totalTime - 4000 > screenshotVars.dataLast then
+					screenshotVars.finished = true
+					local compressedKB = screenshotCompressedBytes / 1024
+					Spring.Echo(string.format("Received screenshot from %s (%.0f KB, increased replay size)", playerName, compressedKB))
+					screenshotCompressedBytes = 0
 
-				local minutes = math.floor((screenshotVars.gameframe / 30 / 60))
-				local seconds = math.floor((screenshotVars.gameframe - ((minutes * 60) * 30)) / 30)
-				if seconds == 0 then
-					seconds = '00'
-				elseif seconds < 10 then
-					seconds = '0' .. seconds
-				end
+					local minutes = math.floor((screenshotVars.gameframe / 30 / 60))
+					local seconds = math.floor((screenshotVars.gameframe - ((minutes * 60) * 30)) / 30)
+					if seconds == 0 then
+						seconds = '00'
+					elseif seconds < 10 then
+						seconds = '0' .. seconds
+					end
 
-				screenshotVars.pixels = toPixels(screenshotVars.data)					screenshotVars.player = playerName
+					screenshotVars.pixels = toPixels(screenshotVars.data)					screenshotVars.player = playerName
 					screenshotVars.filename = "gameframe_" .. screenshotVars.gameframe .. "_" .. minutes .. '.' .. seconds .. "_" .. playerName
 
 					-- Get team color for player name
@@ -669,31 +675,31 @@ else
 					screenshotVars.data = nil
 					screenshotVars.finished = nil
 				end
-			elseif msgType == 'infolog' or msgType == 'config' then
-				local playerID
-				for i = 1, string.len(data) do
-					if string.sub(data, i, i) == ';' then
-						playerID = tonumber(string.sub(data, 1, i - 1))
-						data = string.sub(data, i + 1)
-						break
+				elseif msgType == 'infolog' or msgType == 'config' then
+					local playerID
+					for i = 1, string.len(data) do
+						if string.sub(data, i, i) == ';' then
+							playerID = tonumber(string.sub(data, 1, i - 1))
+							data = string.sub(data, i + 1)
+							break
+						end
 					end
-				end
 
-			if playerID == myPlayerID then
-				local gameframe = Spring.GetGameFrame()
-				local filename = 'playerdata_' .. msgType .. 's.txt'
-				local filedata = ''
-				if VFS.FileExists(filename) then
-					filedata = tostring(VFS.LoadFile(filename))
+				if playerID == myPlayerID then
+					local gameframe = Spring.GetGameFrame()
+					local filename = 'playerdata_' .. msgType .. 's.txt'
+					local filedata = ''
+					if VFS.FileExists(filename) then
+						filedata = tostring(VFS.LoadFile(filename))
+					end
+					local file = assert(io.open(filename, 'w'), 'Unable to save ' .. filename)
+					file:write(filedata .. '-----------------------------------------------------\n----  GameFrame: ' .. gameframe .. '  Player: ' .. playerName .. '\n-----------------------------------------------------\n' .. VFS.ZlibDecompress(data) .. "\n\n\n\n\n\n")
+					file:close()
+					Spring.Echo('Added ' .. msgType .. ' to ' .. filename)
 				end
-				local file = assert(io.open(filename, 'w'), 'Unable to save ' .. filename)
-				file:write(filedata .. '-----------------------------------------------------\n----  GameFrame: ' .. gameframe .. '  Player: ' .. playerName .. '\n-----------------------------------------------------\n' .. VFS.ZlibDecompress(data) .. "\n\n\n\n\n\n")
-				file:close()
-				Spring.Echo('Added ' .. msgType .. ' to ' .. filename)
 			end
 		end
 	end
-end
 
 	function gadget:DrawScreen()
 		-- Create display list on first draw after receiving data
