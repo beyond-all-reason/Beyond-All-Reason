@@ -50,7 +50,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		end
 		local spamCount = tonumber(unitDef.customParams.continuous_aim_spam) or spamRatingBase
 		local spamScore = 1 / math.clamp(spamCount, 1, spamRatingMax) -- as reaimTime per unit
-		unitSpamRating[unitDefID] = spamScore * unitCapDefault -- as reaimTime/unit/max units
+		unitSpamRating[unitDefID] = spamScore * unitCapDefault -- as reaimTime/(unit/maxunits)
 	end
 end
 
