@@ -105,7 +105,7 @@ return {
 		weapondefs = {
 			lrpc = {
 				accuracy = 100,
-				sprayangle = 150,
+				sprayangle = 750,
 				areaofeffect = 195,
 				avoidfeature = false,
 				avoidfriendly = false,
