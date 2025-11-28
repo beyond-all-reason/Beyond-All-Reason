@@ -762,6 +762,13 @@ function widget:MousePress(mx, my, button)
 	end
 	local _, _, meta, shift = Spring.GetModKeyState()
 
+	if button == 3 and selBuildQueueDefID then
+		setPreGamestartDefID(nil)
+		buildModeState.startPosition = nil
+		buildModeState.buildPositions = {}
+		return true
+	end
+
 	if button == 3 and shift then
 		local x, y, _ = spGetMouseState()
 		local _, pos = spTraceScreenRay(x, y, true, false, false, true)
@@ -959,12 +966,6 @@ function widget:MousePress(mx, my, button)
 		end
 
 		return true
-	end
-
-	if button == 3 then
-		setPreGamestartDefID(nil)
-		buildModeState.startPosition = nil
-		buildModeState.buildPositions = {}
 	end
 
 	if button == 1 and #buildQueue > 0 and buildQueue[1][1]>0 then
