@@ -3488,6 +3488,7 @@ function widget:MouseRelease(x, y, button)
         if energyPlayer ~= nil then
             -- share energy/metal mouse release
             if energyPlayer.team == myTeamID then
+                Spring.SendLuaUIMsg('alert:allyRequest:energy', 'allies')
                 if shareAmount == 0 then
                     --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needEnergy'))
 					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needEnergy')
@@ -3510,6 +3511,7 @@ function widget:MouseRelease(x, y, button)
 
         if metalPlayer ~= nil and shareAmount then
             if metalPlayer.team == myTeamID then
+                Spring.SendLuaUIMsg('alert:allyRequest:metal', 'allies')
                 if shareAmount == 0 then
                     --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetal'))
 					Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needMetal')
