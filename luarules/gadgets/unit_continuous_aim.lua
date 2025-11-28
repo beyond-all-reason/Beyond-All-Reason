@@ -83,9 +83,9 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:MetaUnitRemoved(unitID, unitDefID, teamID)
+function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	if unitSpamRating[unitDefID] then
-		teamReaimTimes[teamID] = teamReaimTimes[teamID] - unitSpamRating[unitDefID]
+		teamReaimTimes[unitTeam] = teamReaimTimes[unitTeam] - unitSpamRating[unitDefID] / teamMaxUnits[unitTeam]
 	end
 end
 
