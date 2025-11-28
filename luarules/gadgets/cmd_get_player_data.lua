@@ -197,8 +197,8 @@ else
 		elseif string.sub(msg, 1, 13) == 'getscreenshot' then
 			local _, _, mySpec = Spring.GetPlayerInfo(myPlayerID, false)
 			if not mySpec and myPlayerName ~= 'Player' then
-				--Spring.SendMessageToPlayer(player, 'Taking screenshots is disabled when you are a player')
-				--return
+				Spring.SendMessageToPlayer(player, 'Taking screenshots is disabled when you are a player')
+				return
 			end
 			local width = screenshotWidth
 			local playerName = string.sub(msg, 15)
@@ -680,27 +680,27 @@ else
 						end
 					end
 					screenshotVars.teamColor = (r and g and b) and {r, g, b} or {1, 1, 1}
-
 					screenshotVars.saved = nil
-				screenshotVars.saveQueued = true
-				screenshotVars.posX = (vsx - screenshotVars.width * uiScale) / 2
-				screenshotVars.posY = (vsy - screenshotVars.height * uiScale) / 2
-				screenshotVars.dlist = gl.CreateList(function()
+					screenshotVars.saveQueued = true
+					screenshotVars.posX = (vsx - screenshotVars.width * uiScale) / 2
+					screenshotVars.posY = (vsy - screenshotVars.height * uiScale) / 2
+					screenshotVars.dlist = gl.CreateList(function()
 						gl.PushMatrix()
 						gl.Translate(screenshotVars.posX, screenshotVars.posY, 0)
 						gl.Scale(uiScale, uiScale, 0)
 
 						gl.Color(0, 0, 0, 0.66)
-						local margin = 2
+						local margin = 2.6
 						gl.Rect(-margin, -margin, screenshotVars.width + margin + margin, screenshotVars.height + 15 + margin + margin)
-					gl.Color(1, 1, 1, 0.025)
-					gl.Rect(0, 0, screenshotVars.width, screenshotVars.height + 12 + margin + margin)
+						gl.Color(1, 1, 1, 0.025)
+						gl.Rect(0, 0, screenshotVars.width, screenshotVars.height + 12 + margin + margin)
 
-					font:Begin()
-					font:Print("\255\160\160\160"..screenshotVars.filename .. '.png', screenshotVars.width - 4, screenshotVars.height + 6.5, 11, "orn")
-					local tc = screenshotVars.teamColor
-					font:Print(string.char(255, math.floor(tc[1] * 255), math.floor(tc[2] * 255), math.floor(tc[3] * 255)) .. screenshotVars.player, 4, screenshotVars.height + 6.5, 11, "on")
-					font:End()						local row = 0
+						font:Begin()
+						font:Print("\255\160\160\160"..screenshotVars.filename .. '.png', screenshotVars.width - 4, screenshotVars.height + 6.5, 11, "orn")
+						local tc = screenshotVars.teamColor
+						font:Print(string.char(255, math.floor(tc[1] * 255), math.floor(tc[2] * 255), math.floor(tc[3] * 255)) .. screenshotVars.player, 4, screenshotVars.height + 6.5, 11, "on")
+						font:End()
+						local row = 0
 						local col = 0
 						for p = 1, #screenshotVars.pixels do
 							gl.Color(screenshotVars.pixels[p][1], screenshotVars.pixels[p][2], screenshotVars.pixels[p][3], 1)
@@ -747,7 +747,7 @@ else
 			gl.CallList(screenshotVars.dlist)
 
 			-- Handle screenshot saving (needs 2 frames to properly capture)
-			local margin = 1.9 * uiScale
+			local margin = 2 * uiScale
 			local left = screenshotVars.posX - margin
 			local bottom = screenshotVars.posY - margin
 			local width = (screenshotVars.width * uiScale) + margin + margin + margin
