@@ -135,7 +135,6 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if techCoreValueDefs[unitDefID] and not ignoredTeams[unitTeam] then
 		local allyTeam = spGetUnitAllyTeam(unitID)
 		local coreValue = techCoreValueDefs[unitDefID]
-		-- We only store the unit; points are summed dynamically in GameFrame
 		techCoreUnits[unitID] = {value = coreValue, allyTeam = allyTeam}
 	end
 end
