@@ -93,7 +93,7 @@ else
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myPlayerName,_,_,_,_,_,_,_,_,_,accountInfo = Spring.GetPlayerInfo(myPlayerID)
 	local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
-	local authorized = true --SYNCED.permissions.playerdata[accountID]
+	local authorized = SYNCED.permissions.playerdata[accountID]
 
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("SendToReceiver", SendToReceiver)
@@ -632,7 +632,7 @@ else
 			if screenshotVars.finished or totalTime - 4000 > screenshotVars.dataLast then
 				screenshotVars.finished = true
 				local compressedKB = screenshotCompressedBytes / 1024
-				Spring.Echo(string.format("Received screenshot from %s (%.0f KB compressed, increased replay size)", playerName, compressedKB))
+				Spring.Echo(string.format("Received screenshot from %s (%.0f KB, increased replay size)", playerName, compressedKB))
 				screenshotCompressedBytes = 0
 
 				local minutes = math.floor((screenshotVars.gameframe / 30 / 60))
