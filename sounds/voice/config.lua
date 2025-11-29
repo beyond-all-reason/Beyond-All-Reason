@@ -44,6 +44,12 @@ return {
 	YourTeamEliminated = {
 		delay = 2,
 	},
+	GainedLead = {
+		delay = 20,
+	},
+	LostLead = {
+		delay = 20,
+	},
 	PlayerEliminated = {
 		delay = 1,
 	},

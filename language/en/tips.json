@@ -70,6 +70,8 @@
 			"youHaveLastCommander": "Warning! You Are The Last Commander Of Your Team!",
 			"enemyTeamEliminated": "Enemy Eliminated",
 			"yourTeamEliminated": "You Have Been Eliminated",
+			"gainedLead": "You Are In The Lead",
+			"lostLead": "You Lost The Lead",
 			"chooseStartLoc": "Please Choose Your Starting Location",
 			"gameStarted": "Battle, Started",
 			"battleEnded": "Battle, Ended",
