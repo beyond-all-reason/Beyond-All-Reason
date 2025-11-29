@@ -104,8 +104,8 @@ return {
 		},
 		weapondefs = {
 			lrpc = {
-				accuracy = 100,
-				sprayangle = 750,
+				accuracy = 7,
+				sprayangle = 150,
 				areaofeffect = 395,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -136,7 +136,7 @@ return {
 				soundstartvolume = 24,
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 2200,
+				weaponvelocity = 1900,
 				customparams = {
 					cluster_def = 'cluster_munition',
 					cluster_number = 18,
@@ -148,7 +148,7 @@ return {
 				},
 			},
 			cluster_munition = {
-				areaofeffect = 115,
+				areaofeffect = 155,
 				avoidfeature = false,
 				cegtag = "ministarfire",
 				craterboost = 0,
@@ -158,7 +158,7 @@ return {
 				gravityaffected = "true",
 				hightrajectory = 1,
 				impulsefactor = 1.55,
-		        mygravity = 3,
+		        mygravity = 2,
 				name = "Plasma Burst",
 				noselfdamage = true,
 				maxvelocity = 1420,
