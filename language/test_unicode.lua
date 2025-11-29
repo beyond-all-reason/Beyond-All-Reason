@@ -81,6 +81,7 @@ return {
 				gpuMemory = "GPU Memory: %{gpuUsage}%%",
 				pointClickTooltip = "Click to go to the last point set by the player",
 				aiName = "%{name} (AI)",
+				aiPlaceMe = "Place me!",
 				chat = {
 					needSupport = "I need unit support!",
 					needEnergy = "I need energy!",

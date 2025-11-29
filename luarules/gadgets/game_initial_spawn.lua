@@ -184,7 +184,7 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Start Point Guesser
 	----------------------------------------------------------------
-	include("luarules/gadgets/lib_startpoint_guesser.lua") -- start point guessing routines
+	VFS.Include("common/lib_startpoint_guesser.lua")
 
 	----------------------------------------------------------------
 	-- FFA start points (provided by `game_ffa_start_setup`)
@@ -310,6 +310,32 @@ if gadgetHandler:IsSyncedCode() then
 
 		if not playerIsSpec and (draftMode ~= nil and draftMode ~= "disabled") then
 			DraftRecvLuaMsg(msg, playerID, playerIsSpec, playerTeam, allyTeamID)
+		end
+		
+		if string.sub(msg, 1, 17) == "aiPlacedPosition:" then
+			local data = string.sub(msg, 18)
+			local teamID, x, z = string.match(data, "(%d+):([%d%.]+):([%d%.]+)")
+			if teamID and x and z then
+				teamID = tonumber(teamID)
+				x = tonumber(x)
+				z = tonumber(z)
+
+				local _, _, _, _, _, aiAllyTeamID = Spring.GetTeamInfo(teamID, false)
+				local _, _, senderIsSpec, senderTeam, senderAllyTeamID = spGetPlayerInfo(playerID, false)
+
+				if senderIsSpec or aiAllyTeamID ~= senderAllyTeamID then
+					return false
+				end
+
+				if x == 0 and z == 0 then
+					spSetTeamRulesParam(teamID, "aiPlacedX", nil, { public = true })
+					spSetTeamRulesParam(teamID, "aiPlacedZ", nil, { public = true })
+				else
+					spSetTeamRulesParam(teamID, "aiPlacedX", x, { public = true })
+					spSetTeamRulesParam(teamID, "aiPlacedZ", z, { public = true })
+				end
+				return true
+			end
 		end
 	end
 
@@ -544,17 +570,21 @@ if gadgetHandler:IsSyncedCode() then
 	local function spawnRegularly(teamID, allyTeamID)
 		local x, _, z = Spring.GetTeamStartPosition(teamID)
 		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
-
-		-- if its choose-in-game mode, see if we need to autoplace anyone
-		if Game.startPosType == 2 then
-			if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
-				-- guess points for the ones classified in startPointTable as not genuine
-				x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
-			else
-				-- fallback
-				if x <= 0 or z <= 0 then
-					x = (xmin + xmax) / 2
-					z = (zmin + zmax) / 2
+		
+		local aiPlacedX = spGetTeamRulesParam(teamID, "aiPlacedX")
+		local aiPlacedZ = spGetTeamRulesParam(teamID, "aiPlacedZ")
+		if aiPlacedX and aiPlacedZ then
+			x = aiPlacedX
+			z = aiPlacedZ
+		else
+			if Game.startPosType == 2 then
+				if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
+					x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
+				else
+					if x <= 0 or z <= 0 then
+						x = (xmin + xmax) / 2
+						z = (zmin + zmax) / 2
+					end
 				end
 			end
 		end
@@ -566,6 +596,15 @@ if gadgetHandler:IsSyncedCode() then
 	-- Spawning
 	----------------------------------------------------------------
 	function gadget:GameStart()
+		-- Add manually placed AI positions to startPointTable for spacing calculations
+		for teamID, allyTeamID in pairs(teams) do
+			local aiPlacedX = spGetTeamRulesParam(teamID, "aiPlacedX")
+			local aiPlacedZ = spGetTeamRulesParam(teamID, "aiPlacedZ")
+			if aiPlacedX and aiPlacedZ then
+				startPointTable[teamID] = {aiPlacedX, aiPlacedZ}
+			end
+		end
+
 		-- if this a FFA match with automatic spawning (i.e. no start boxes) and a list of start points was provided by
 		-- `game_ffa_start_setup` for the ally teams in this match
 		if isFFA and Game.startPosType == 1 and GG.ffaStartPoints then

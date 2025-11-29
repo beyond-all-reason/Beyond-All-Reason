@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "trepan, jK, Beherith",
 		date = "2007-2009",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = -1,
 		enabled = true,
 		depends = {'gl4'}
 	}
@@ -27,9 +27,6 @@ local spGetSpectatingState = Spring.GetSpectatingState
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
-if Game.startPosType ~= 2 then
-	return false
-end
 
 local draftMode = Spring.GetModOptions().draft_mode
 
@@ -89,7 +86,12 @@ local glCallList = gl.CallList
 local hasStartbox = false
 
 local teamColors = {}
-local coopStartPoints = {}	-- will contain data passed through by coop gadget
+local coopStartPoints = {}
+local aiPlacementMode = nil
+local aiPlacedPositions = {}
+local aiPredictedPositions = {}
+
+VFS.Include("common/lib_startpoint_guesser.lua")
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -454,6 +456,19 @@ function widget:Initialize()
 	end
 
 	widgetHandler:RegisterGlobal('GadgetCoopStartPoint', CoopStartPoint)
+	
+	local function GetAIPlacedPositions()
+		local myAllyTeamID = Spring.GetMyAllyTeamID()
+		local alliedPositions = {}
+		for teamID, pos in pairs(aiPlacedPositions) do
+			local _, _, _, _, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
+			if teamAllyTeamID == myAllyTeamID then
+				alliedPositions[teamID] = pos
+			end
+		end
+		return alliedPositions
+	end
+	widgetHandler:RegisterGlobal('GetAIPlacedPositions', GetAIPlacedPositions)
 
 	assignTeamColors()
 
@@ -484,6 +499,7 @@ function widget:Shutdown()
 	gl.DeleteFont(font2)
 	gl.DeleteFont(shadowFont)
 	widgetHandler:DeregisterGlobal('GadgetCoopStartPoint')
+	widgetHandler:DeregisterGlobal('GetAIPlacedPositions')
 end
 
 --------------------------------------------------------------------------------
@@ -504,30 +520,45 @@ function widget:DrawWorld()
 	local time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
 
 	InstanceVBOTable.clearInstanceTable(startConeVBOTable)
-	-- show the team start positions
+	local myAllyTeamID = Spring.GetMyAllyTeamID()
 	for _, teamID in ipairs(Spring.GetTeamList()) do
-		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
-		local _, _, spec = Spring.GetPlayerInfo(playerID, false)
-		if not spec and teamID ~= gaiaTeamID then
-			local x, y, z = Spring.GetTeamStartPosition(teamID)
-			if coopStartPoints[playerID] then
-				x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
-			end
-			if x ~= nil and x > 0 and z > 0 and y > -500 then
-				local r, g, b = GetTeamColor(teamID)
-				local alpha = 0.5 + math.abs(((time * 3) % 1) - 0.5)
-				cacheTable[1], cacheTable[2], cacheTable[3], cacheTable[4] = x, y, z, 1
-				cacheTable[5], cacheTable[6], cacheTable[7], cacheTable[8] = r, g, b, alpha
-				pushElementInstance(startConeVBOTable,
-					cacheTable,
-					nil, nil, true)
-				if teamID == myTeamID then
-					amPlaced = true
+		if teamID ~= gaiaTeamID then
+			local _, _, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
+			local playerID = select(2, Spring.GetTeamInfo(teamID, false))
+			local _, _, spec = Spring.GetPlayerInfo(playerID, false)
+			
+			if teamAllyTeamID == myAllyTeamID then
+				local x, y, z = Spring.GetTeamStartPosition(teamID)
+				if coopStartPoints[playerID] then
+					x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
+				end
+				if aiPlacedPositions[teamID] then
+					x = aiPlacedPositions[teamID].x
+					z = aiPlacedPositions[teamID].z
+					y = Spring.GetGroundHeight(x, z)
+				elseif aiPredictedPositions[teamID] then
+					x = aiPredictedPositions[teamID].x
+					z = aiPredictedPositions[teamID].z
+					y = Spring.GetGroundHeight(x, z)
+				end
+				
+				if (not spec or isAI) and teamID ~= gaiaTeamID then
+					if x ~= nil and x > 0 and z > 0 and y > -500 then
+						local r, g, b = GetTeamColor(teamID)
+						local alpha = 0.5 + math.abs(((time * 3) % 1) - 0.5)
+						cacheTable[1], cacheTable[2], cacheTable[3], cacheTable[4] = x, y, z, 1
+						cacheTable[5], cacheTable[6], cacheTable[7], cacheTable[8] = r, g, b, alpha
+						pushElementInstance(startConeVBOTable,
+							cacheTable,
+							nil, nil, true)
+						if teamID == myTeamID then
+							amPlaced = true
+						end
+					end
 				end
 			end
 		end
 	end
-
 
 	InstanceVBOTable.uploadAllElements(startConeVBOTable)
 
@@ -535,20 +566,50 @@ function widget:DrawWorld()
 end
 
 function widget:DrawScreenEffects()
-	-- show the names over the team start positions
+	local myAllyTeamID = Spring.GetMyAllyTeamID()
 	for _, teamID in ipairs(Spring.GetTeamList()) do
-		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
-		local name, _, spec = Spring.GetPlayerInfo(playerID, false)
-		name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-		if name ~= nil and not spec and teamID ~= gaiaTeamID then
-			local x, y, z = Spring.GetTeamStartPosition(teamID)
-			if coopStartPoints[playerID] then
-				x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
-			end
-			if x ~= nil and x > 0 and z > 0 and y > -500 then
-				local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
-				if sz < 1 then
-					drawName(sx, sy, name, teamID)
+		if teamID ~= gaiaTeamID then
+			local _, _, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
+			local playerID = select(2, Spring.GetTeamInfo(teamID, false))
+			local name, _, spec = Spring.GetPlayerInfo(playerID, false)
+			
+			if teamAllyTeamID == myAllyTeamID then
+				if isAI then
+					local _, _, _, aiName, _, options = Spring.GetAIInfo(teamID)
+					local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
+					if niceName then
+						name = niceName
+						if Spring.Utilities.ShowDevUI() and options and options.profile then
+							name = name .. " [" .. options.profile .. "]"
+						end
+					else
+						name = aiName or name
+					end
+					name = Spring.I18N('ui.playersList.aiName', { name = name })
+				else
+					name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
+				end
+				
+				if name ~= nil and (not spec or isAI) and teamID ~= gaiaTeamID then
+					local x, y, z = Spring.GetTeamStartPosition(teamID)
+					if coopStartPoints[playerID] then
+						x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
+					end
+					if aiPlacedPositions[teamID] then
+						x = aiPlacedPositions[teamID].x
+						z = aiPlacedPositions[teamID].z
+						y = Spring.GetGroundHeight(x, z)
+					elseif aiPredictedPositions[teamID] then
+						x = aiPredictedPositions[teamID].x
+						z = aiPredictedPositions[teamID].z
+						y = Spring.GetGroundHeight(x, z)
+					end
+					if x ~= nil and x > 0 and z > 0 and y > -500 then
+						local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
+						if sz < 1 then
+							drawName(sx, sy, name, teamID)
+						end
+					end
 				end
 			end
 		end
@@ -601,6 +662,8 @@ end
 -- reset needed when waterlevel has changed by gadget (modoption)
 
 local sec = 0
+local updateCounter = 0
+local lastKnownPlacements = {}
 function widget:Update(delta)
 	local currRot = getCurrentMiniMapRotationOption()
 	if lastRot ~= currRot then
@@ -615,7 +678,7 @@ function widget:Update(delta)
 		placeVoiceNotifTimer = os.clock() + 30
 	end
 
-	if draftMode == nil or draftMode == "disabled" then -- otherwise draft mod will play it instead
+	if draftMode == nil or draftMode == "disabled" then
 		if not isSpec and not amPlaced and not playedChooseStartLoc and placeVoiceNotifTimer < os.clock() and WG['notifications'] then
 			playedChooseStartLoc = true
 			WG['notifications'].addEvent('ChooseStartLoc', true)
@@ -626,7 +689,6 @@ function widget:Update(delta)
 	if sec > 1 then
 		sec = 0
 
-		-- check if team colors have changed
 		local detectedChanges = false
 		local oldTeamColors = teamColors
 		assignTeamColors()
@@ -641,4 +703,151 @@ function widget:Update(delta)
 			removeLists()
 		end
 	end
+	
+	if spGetGameFrame() <= 0 and Game.startPosType == 2 then
+		updateCounter = updateCounter + 1
+		if updateCounter % 30 == 0 then
+			local currentPlacements = {}
+			
+			for _, teamID in ipairs(Spring.GetTeamList()) do
+				if teamID ~= gaiaTeamID then
+					local x, y, z = Spring.GetTeamStartPosition(teamID)
+					local playerID = select(2, Spring.GetTeamInfo(teamID, false))
+					if coopStartPoints[playerID] then
+						x, z = coopStartPoints[playerID][1], coopStartPoints[playerID][3]
+					end
+					if aiPlacedPositions[teamID] then
+						x, z = aiPlacedPositions[teamID].x, aiPlacedPositions[teamID].z
+					end
+					if x and x > 0 and z and z > 0 then
+						currentPlacements[teamID] = {x = x, z = z}
+					end
+				end
+			end
+			
+			local hasChanges = false
+			for teamID, placement in pairs(currentPlacements) do
+				if not lastKnownPlacements[teamID] or 
+				   lastKnownPlacements[teamID].x ~= placement.x or 
+				   lastKnownPlacements[teamID].z ~= placement.z then
+					hasChanges = true
+					break
+				end
+			end
+			
+			for teamID, placement in pairs(lastKnownPlacements) do
+				if not currentPlacements[teamID] then
+					hasChanges = true
+					break
+				end
+			end
+			
+			if hasChanges then
+				lastKnownPlacements = currentPlacements
+				
+				aiPredictedPositions = {}
+				local startPointTable = {}
+				for teamID, placement in pairs(currentPlacements) do
+					startPointTable[teamID] = {placement.x, placement.z}
+				end
+				
+				for _, teamID in ipairs(Spring.GetTeamList()) do
+					if teamID ~= gaiaTeamID then
+						local _, _, _, isAI, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
+						if isAI and not aiPlacedPositions[teamID] then
+							local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyTeamID)
+							local x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
+							if x and x > 0 and z and z > 0 then
+								aiPredictedPositions[teamID] = {x = x, z = z}
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function widget:RecvLuaMsg(msg)
+	if string.sub(msg, 1, 16) == "aiPlacementMode:" then
+		local teamID = tonumber(string.sub(msg, 17))
+		if teamID then
+			aiPlacementMode = teamID
+		end
+	elseif string.sub(msg, 1, 18) == "aiPlacementCancel:" then
+		aiPlacementMode = nil
+	elseif string.sub(msg, 1, 20) == "aiPlacementComplete:" then
+		local data = string.sub(msg, 21)
+		local teamID, x, z = string.match(data, "(%d+):([%d%.]+):([%d%.]+)")
+		if teamID and x and z then
+			teamID = tonumber(teamID)
+			x = tonumber(x)
+			z = tonumber(z)
+			if x == 0 and z == 0 then
+				aiPlacedPositions[teamID] = nil
+			else
+				aiPlacedPositions[teamID] = {x = x, z = z}
+			end
+		end
+	end
+end
+
+function widget:MousePress(x, y, button)
+	if spGetGameFrame() > 0 then
+		return false
+	end
+	
+	if button == 3 then
+		if aiPlacementMode then
+			aiPlacementMode = nil
+			Spring.SendLuaUIMsg("aiPlacementCancel:")
+			return true
+		else
+			local traceType, pos = Spring.TraceScreenRay(x, y, true)
+			if traceType == "ground" then
+				local worldX, worldY, worldZ = pos[1], pos[2], pos[3]
+				local myAllyTeamID = Spring.GetMyAllyTeamID()
+				local CONE_CLICK_RADIUS = 150
+				
+				for teamID, placedPos in pairs(aiPlacedPositions) do
+					if placedPos.x and placedPos.z then
+						local _, _, _, isAI, _, aiAllyTeamID = Spring.GetTeamInfo(teamID, false)
+						if isAI and aiAllyTeamID == myAllyTeamID then
+							local dx = worldX - placedPos.x
+							local dz = worldZ - placedPos.z
+							local distance = math.sqrt(dx * dx + dz * dz)
+							
+							if distance <= CONE_CLICK_RADIUS then
+								aiPlacedPositions[teamID] = nil
+								Spring.SendLuaRulesMsg("aiPlacedPosition:" .. teamID .. ":0:0")
+								Spring.SendLuaUIMsg("aiPlacementComplete:" .. teamID .. ":0:0")
+								return true
+							end
+						end
+					end
+				end
+			end
+		end
+	elseif button == 1 then
+		if aiPlacementMode then
+			local traceType, pos = Spring.TraceScreenRay(x, y, true)
+			if traceType == "ground" then
+				local worldX, worldY, worldZ = pos[1], pos[2], pos[3]
+				local aiTeamID = aiPlacementMode
+				local _, _, _, _, _, aiAllyTeamID = Spring.GetTeamInfo(aiTeamID, false)
+				
+				local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(aiAllyTeamID)
+				if xmin < xmax and zmin < zmax then
+					if worldX >= xmin and worldX <= xmax and worldZ >= zmin and worldZ <= zmax then
+						aiPlacedPositions[aiTeamID] = {x = worldX, z = worldZ}
+						Spring.SendLuaRulesMsg("aiPlacedPosition:" .. aiTeamID .. ":" .. worldX .. ":" .. worldZ)
+						Spring.SendLuaUIMsg("aiPlacementComplete:" .. aiTeamID .. ":" .. worldX .. ":" .. worldZ)
+						aiPlacementMode = nil
+						return true
+					end
+				end
+			end
+		end
+	end
+	return false
 end
