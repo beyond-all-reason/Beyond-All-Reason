@@ -67,6 +67,7 @@ return {
 	-- Game Status
 	ChooseStartLoc = {
 		delay = 90,
+		notext = true,
 	},
 	GameStarted = {
 		delay = 1,
