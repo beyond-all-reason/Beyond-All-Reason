@@ -50,9 +50,6 @@ return {
 	LostLead = {
 		delay = 20,
 	},
-	PlayerEliminated = {
-		delay = 1,
-	},
 	ComHeavyDamage = {
 		delay = 10,
 		stackedDelay = true,
