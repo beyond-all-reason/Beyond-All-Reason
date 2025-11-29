@@ -78,6 +78,15 @@ local options = {
     },
 
     {
+        key    	= "allowunitcontrolwidgets",
+        name   	= "Allow Custom 'Unit Control' Widgets",
+        desc   	= "Allow custom user 'unit control' widgets or disallow them",
+        type   	= "bool",
+        def    	= true,
+        section	= "options_main",
+    },
+
+    {
         key    	= "allowpausegameplay",
         name   	= "Allow Commands While Paused",
         desc   	= "Allow giving unit commands while paused",
