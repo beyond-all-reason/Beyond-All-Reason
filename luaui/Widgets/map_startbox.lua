@@ -721,6 +721,19 @@ function widget:Update(delta)
 	if spGetGameFrame() <= 0 and Game.startPosType == 2 then
 		updateCounter = updateCounter + 1
 		if updateCounter % 30 == 0 then
+			for _, teamID in ipairs(Spring.GetTeamList()) do
+				if teamID ~= gaiaTeamID then
+					local _, _, _, isAI = Spring.GetTeamInfo(teamID, false)
+					if isAI then
+						local rpX = Spring.GetTeamRulesParam(teamID, "aiPlacedX")
+						local rpZ = Spring.GetTeamRulesParam(teamID, "aiPlacedZ")
+						if rpX and rpZ then
+							aiPlacedPositions[teamID] = {x = rpX, z = rpZ}
+						end
+					end
+				end
+			end
+
 			local currentPlacements = {}
 			
 			for _, teamID in ipairs(Spring.GetTeamList()) do

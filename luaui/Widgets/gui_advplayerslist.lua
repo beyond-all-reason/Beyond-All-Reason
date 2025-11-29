@@ -214,9 +214,12 @@ local pingLevelData = {
 -- Time Variables
 --------------------------------------------------------------------------------
 
-local blink = true
-local lastTime = 0
-local now = 0
+local nameState = {
+	blink = true,
+	lastTime = 0,
+	now = 0,
+	aiPlaceMeText = "Place me!"
+}
 
 local timeCounter = 9
 local timeFastCounter = 9
@@ -886,8 +889,14 @@ local function speclistCmd(_, _, params)
 	CreateLists()
 end
 
+function widget:LanguageChanged()
+    nameState.aiPlaceMeText = Spring.I18N('ui.playersList.aiPlaceMe')
+end
+
 function widget:Initialize()
 	widget:ViewResize()
+
+	nameState.aiPlaceMeText = Spring.I18N('ui.playersList.aiPlaceMe')
 
 	widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
 	widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
@@ -1935,15 +1944,15 @@ end
 
 function CheckTime()
     local period = 0.5
-    now = os.clock()
-    if now > (lastTime + period) then
-        lastTime = now
+    nameState.now = os.clock()
+    if nameState.now > (nameState.lastTime + period) then
+        nameState.lastTime = nameState.now
         CheckPlayersChange()
-        blink = not blink
+        nameState.blink = not nameState.blink
         for playerID = 0, specOffset-1 do
             if player[playerID] ~= nil then
                 if player[playerID].pointTime ~= nil then
-                    if player[playerID].pointTime <= now then
+                    if player[playerID].pointTime <= nameState.now then
                         player[playerID].pointX = nil
                         player[playerID].pointY = nil
                         player[playerID].pointZ = nil
@@ -1951,12 +1960,12 @@ function CheckTime()
                     end
                 end
                 if player[playerID].pencilTime ~= nil then
-                    if player[playerID].pencilTime <= now then
+                    if player[playerID].pencilTime <= nameState.now then
                         player[playerID].pencilTime = nil
                     end
                 end
                 if player[playerID].eraserTime ~= nil then
-                    if player[playerID].eraserTime <= now then
+                    if player[playerID].eraserTime <= nameState.now then
                         player[playerID].eraserTime = nil
                     end
                 end
@@ -2252,7 +2261,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 
     -- keyboard/mouse activity
     if lastActivity[playerID] ~= nil and type(lastActivity[playerID]) == "number" then
-        alphaActivity = math.clamp((8 - mathFloor(now - lastActivity[playerID])) / 5.5, 0, 1)
+        alphaActivity = math.clamp((8 - mathFloor(nameState.now - lastActivity[playerID])) / 5.5, 0, 1)
         alphaActivity = 0.33 + (alphaActivity * 0.21)
         alpha = alphaActivity
     end
@@ -2404,7 +2413,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
             if m_point.active then
                 if player[playerID].pointTime ~= nil then
                     if player[playerID].allyteam == myAllyTeamID or mySpecStatus then
-                        DrawPoint(posY, player[playerID].pointTime - now)
+                        DrawPoint(posY, player[playerID].pointTime - nameState.now)
                         if tipY then
                             PointTip(mouseX)
                         end
@@ -2412,12 +2421,12 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                 end
                 if player[playerID].pencilTime ~= nil then
                     if player[playerID].allyteam == myAllyTeamID or mySpecStatus then
-                        DrawPencil(posY, player[playerID].pencilTime - now)
+                        DrawPencil(posY, player[playerID].pencilTime - nameState.now)
                     end
                 end
                 if player[playerID].eraserTime ~= nil then
                     if player[playerID].allyteam == myAllyTeamID or mySpecStatus then
-                        DrawEraser(posY, player[playerID].eraserTime - now)
+                        DrawEraser(posY, player[playerID].eraserTime - nameState.now)
                     end
                 end
             end
@@ -2428,7 +2437,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 end
 
 function DrawTakeSignal(posY)
-    if blink then
+    if nameState.blink then
         -- Draws a blinking rectangle if the player of the same team left (/take option)
         gl_Color(0.7, 0.7, 0.7)
         gl_Texture(pics["arrowPic"])
@@ -2784,7 +2793,7 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
 		local aiAllyTeam = player[playerID].allyteam
 		isAlliedAI = (aiAllyTeam == myAllyTeamID)
 		if (isAlliedAI or Spring.IsCheatingEnabled()) and lastActivity.aiBlinkState then
-			nameText = Spring.I18N('ui.playersList.aiPlaceMe')
+			nameText = nameState.aiPlaceMeText
 		end
 	end
 	
@@ -3397,7 +3406,7 @@ function widget:MousePress(x, y, button)
                             if IsOnRect(x, y, m_share.posX + widgetPosX + (1*playerScale), posY, m_share.posX + widgetPosX + (17*playerScale), posY + (playerOffset*playerScale)) then
                                 -- share units button
                                 if release ~= nil then
-                                    if release >= now then
+                                    if release >= nameState.now then
                                         if clickedPlayer.team == myTeamID then
                                             --Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.needSupport'))
 											Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needSupport')
@@ -3408,7 +3417,7 @@ function widget:MousePress(x, y, button)
                                     end
                                     release = nil
                                 else
-                                    firstclick = now + 1
+                                    firstclick = nameState.now + 1
                                 end
                                 return true
                             end
@@ -4083,11 +4092,11 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz)
             player[playerID].pointX = px
             player[playerID].pointY = py
             player[playerID].pointZ = pz
-            player[playerID].pointTime = now + pointDuration
+            player[playerID].pointTime = nameState.now + pointDuration
         elseif cmdType == 'line' then
-            player[playerID].pencilTime = now + pencilDuration
+            player[playerID].pencilTime = nameState.now + pencilDuration
         elseif cmdType == 'erase' then
-            player[playerID].eraserTime = now + pencilDuration
+            player[playerID].eraserTime = nameState.now + pencilDuration
         end
     end
 end
