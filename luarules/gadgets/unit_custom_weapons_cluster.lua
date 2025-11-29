@@ -50,6 +50,7 @@ local waterDepthCoef = 0.1       -- reduce "separation" from ground in water by 
 
 local DirectionsUtil = VFS.Include("LuaRules/Gadgets/Include/DirectionsUtil.lua")
 
+local clamp = math.clamp
 local max   = math.max
 local min   = math.min
 local rand  = math.random
@@ -58,17 +59,24 @@ local sqrt  = math.sqrt
 local cos   = math.cos
 local sin   = math.sin
 local atan2 = math.atan2
+local distsq = math.distance3dSquared
 
 local spGetGroundHeight       = Spring.GetGroundHeight
 local spGetGroundNormal       = Spring.GetGroundNormal
+local spGetProjectileDefID    = Spring.GetProjectileDefID
 local spGetUnitDefID          = Spring.GetUnitDefID
 local spGetUnitPosition       = Spring.GetUnitPosition
 local spGetUnitRadius         = Spring.GetUnitRadius
+local spGetUnitTeam           = Spring.GetUnitTeam
 local spGetUnitsInSphere      = Spring.GetUnitsInSphere
 local spSpawnProjectile       = Spring.SpawnProjectile
+local spDeleteProjectile      = Spring.DeleteProjectile
 
 local gameSpeed  = Game.gameSpeed
 local mapGravity = Game.gravity / (gameSpeed * gameSpeed) * -1
+
+local addShieldDamage = GG.AddShieldDamage
+local getShieldPosition = GG.GetUnitShieldPosition
 
 --------------------------------------------------------------------------------
 -- Initialize ------------------------------------------------------------------
@@ -235,6 +243,8 @@ for _, data in pairs(clusterWeaponDefs) do
 end
 DirectionsUtil.ProvisionDirections(maxDataNum)
 
+local projectileHitShield = {}
+
 --------------------------------------------------------------------------------
 -- Functions -------------------------------------------------------------------
 
@@ -245,12 +255,6 @@ local waterFullDeflection = 0.85 -- 1 - vertical response loss
 ---Water is generally incompressible so acts like solid terrain of lower density
 -- when it takes hard impacts or impulses. We take a fast estimate of its added
 -- bulk to the solid terrain below and shift the surface direction toward level.
----@param slope number in radians? in what? is this [0, 1]?
----@param elevation number in elmos, always negative
----@return number percentX
----@return number percentY
----@return number percentZ
----@return number depth
 local function getWaterDeflection(slope, elevation)
 	elevation = max(elevation * waterDepthCoef, waterDepthDeflects)
 	local waterDeflectFraction = min(1, elevation / waterDepthDeflects)
@@ -265,8 +269,52 @@ local function getWaterDeflection(slope, elevation)
 	end
 end
 
+---Shields can overlap with units, terrain, and other shields, so we should avoid both:
+-- (1) exaggerating other responses by adding new responses in the same direction, and
+-- (2) destructively negating other strong responses (> 1) when opposite in direction.
+local function getShieldDeflection(dx, dy, dz, shieldUnits)
+	local ox, oy, oz = dx, dy, dz
+	local responseMax = max(1, diag(ox, oy, oz))
+
+	-- Current code does not detect all shields that should have been "hit" via AOE,
+	-- but multiple hits, while rare, can and do happen, still, in typical gameplay.
+	for _, shieldUnitID in pairs(shieldUnits) do
+		local sx, sy, sz, radius = getShieldPosition(shieldUnitID)
+
+		if sx then
+			sx, sy, sz = dx + (x - sx) / radius, dy + (y - sy) / radius, dz + (z - sz) / radius
+			local response = diag(sx, sy, sz)
+			local limitMin, limitMax = 1, responseMax
+
+			if limitMax > 1 then
+				-- Limits above 1 are in the direction of the original response,
+				-- with the limits at 90 degrees from that direction equal to 1,
+				-- and the limits facing > 90 degrees away from it less than 1.
+				local codirection = (ox * sx + oy * sy + oz * sz) / limitMax
+				if codirection < 0 then
+					limitMin = min(-codirection, limitMin)
+					limitMax = 1
+					codirection = codirection + 1
+				end
+				limitMax = clamp(codirection, limitMin, limitMax)
+			end
+
+			-- Shields can overlap units, terrain, and other shields, so
+			-- they need to avoid exaggerating other existing responses.
+			if response > limitMax and response > 0 then
+				local ratio = limitMax / response
+				sx, sy, sz = sx * ratio, sy * ratio, sz * ratio
+			end
+
+			dx, dy, dz = sx, sy, sz
+		end
+	end
+
+	return dx, dy, dz
+end
+
 ---Deflection from solid terrain and unit collider surfaces plus water by depth.
-local function getSurfaceDeflection(x, y, z)
+local function getSurfaceDeflection(x, y, z, shieldUnits)
 	local elevation = spGetGroundHeight(x, z)
 	local separation = y - elevation
 	local dx, dy, dz, slope = spGetGroundNormal(x, z, true)
@@ -327,6 +375,11 @@ local function getSurfaceDeflection(x, y, z)
 		end
 	end
 
+	-- Additional deflection from shields, which are solid-terrain-like.
+	if shieldUnits then
+		dx, dy, dz = getShieldDeflection(dx, dy, dz, shieldUnits)
+	end
+
 	return dx, dy, dz
 end
 
@@ -337,6 +390,11 @@ local function inheritMomentum(projectileID)
 	return vx * scale, vy * scale, vz * scale
 end
 
+local function isInShield(px, py, pz, shieldUnitID)
+	local sx, sy, sz, sr = getShieldPosition(shieldUnitID)
+	return sx and distsq(px, py, pz, sx, sy, sz) < sr * sr
+end
+
 local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 	local clusterDefID = data.weaponID
 	local projectileCount = data.number
@@ -345,11 +403,13 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 
 	local params = spawnCache
 	params.owner = attackerID or -1
+	params.team = spGetUnitTeam(attackerID)
 	params.ttl = data.weaponTtl
 	local speed = params.speed
 	local position = params.pos
 
-	local deflectX, deflectY, deflectZ = getSurfaceDeflection(x, y, z)
+	local shieldUnits = projectileHitShield[projectileID]
+	local deflectX, deflectY, deflectZ = getSurfaceDeflection(x, y, z, shieldUnits)
 
 	if y - spGetGroundHeight(x, z) < 1 then
 		-- Only inherit momentum vs terrain hits so we do not bounce
@@ -386,11 +446,21 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 		speed[2] = velocityY
 		speed[3] = velocityZ
 
-		position[1] = x + velocityX * gameSpeed / 2
-		position[2] = y + velocityY * gameSpeed / 2
-		position[3] = z + velocityZ * gameSpeed / 2
+		position[1] = x + velocityX * gameSpeed * 0.33
+		position[2] = y + velocityY * gameSpeed * 0.33
+		position[3] = z + velocityZ * gameSpeed * 0.33
 
-		spSpawnProjectile(clusterDefID, params)
+		local spawnedID = spSpawnProjectile(clusterDefID, params)
+
+		-- Close heavy units can push cluster shots back into the shield.
+		if shieldUnits and spawnedID then
+			for _, shieldUnitID in pairs(shieldUnits) do
+				if isInShield(position[1], position[2], position[3], shieldUnitID) then
+					addShieldDamage(shieldUnitID, nil, clusterDefID, spawnedID)
+					spDeleteProjectile(spawnedID) -- so delete with no ceremony
+				end
+			end
+		end
 	end
 end
 
@@ -407,11 +477,33 @@ function gadget:Initialize()
 	for weaponDefID in pairs(clusterWeaponDefs) do
 		Script.SetWatchExplosion(weaponDefID, true)
 	end
+
+	addShieldDamage = GG.AddShieldDamage
+	getShieldPosition = GG.GetUnitShieldPosition
 end
 
 function gadget:Explosion(weaponDefID, x, y, z, attackerID, projectileID)
 	local weaponData = clusterWeaponDefs[weaponDefID]
 	if weaponData then
 		spawnClusterProjectiles(weaponData, x, y, z, attackerID, projectileID)
+	end
+end
+
+function gadget:GameFramePost(frame)
+	local phs = projectileHitShield
+	for projectileID in pairs(phs) do
+		phs[projectileID] = nil
+	end
+end
+
+function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+	if projectileID > -1 and clusterWeaponDefs[spGetProjectileDefID(projectileID)] then
+		local hits = projectileHitShield[projectileID]
+		if not hits then
+			hits = { shieldUnitID }
+			projectileHitShield[projectileID] = hits
+		else
+			hits[#hits + 1] = shieldUnitID
+		end
 	end
 end
