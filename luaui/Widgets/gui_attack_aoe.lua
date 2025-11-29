@@ -498,6 +498,102 @@ local function GetMouseDistance()
 end
 
 --------------------------------------------------------------------------------
+-- TEXTURE & SHADER STATE
+--------------------------------------------------------------------------------
+local noiseTexture = nil
+local smokeShader = nil
+local timeUniformLoc = nil -- [[ NEW ]] Stores the ID for the "time" variable
+local centerUniformLoc = nil -- [[ NEW ]]
+
+-- Generates a random noise texture in memory
+local function CreateNoiseTexture()
+	local size = 255
+	local data = {}
+	for i = 1, size * size do
+		local val = math.random(0, 255) -- Full range 0-255
+		data[i] = {val, val, val, 255}
+	end
+
+	return gl.CreateTexture(size, size, {
+		border = false,
+		min_filter = GL.LINEAR,
+		mag_filter = GL.LINEAR,
+		wrap_s = GL.REPEAT,
+		wrap_t = GL.REPEAT,
+	}, data)
+end
+
+local function CreateSmokeShader()
+	local shader = gl.CreateShader({
+		vertex = [[
+            varying vec4 worldPos;
+            varying vec4 vColor;
+
+            void main() {
+                worldPos = gl_Vertex;
+                gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+                vColor = gl_Color;
+            }
+        ]],
+		fragment = [[
+            uniform sampler2D tex0;
+            uniform float time;
+            uniform vec2 center;
+
+            varying vec4 worldPos;
+            varying vec4 vColor;
+
+            void main() {
+                // Coordinate setup
+                vec2 relativePos = worldPos.xz - center;
+                vec2 coord = relativePos * 0.0015;
+
+                // Motion Layers
+                vec2 motion1 = vec2(time * 0.02, time * 0.01);
+                vec2 motion2 = vec2(time * -0.015, time * 0.02);
+
+                vec2 coord2 = vec2(coord.x * 0.86 - coord.y * 0.5, coord.x * 0.5 + coord.y * 0.86);
+
+                // Sample texture
+                float noise1 = texture2D(tex0, coord + motion1).r;
+                float noise2 = texture2D(tex0, coord2 + motion2).r;
+
+                // (FIX) Add noise instead of multiplying. This keeps values high (no dark gaps).
+                float combinedNoise = (noise1 + noise2) * 0.5;
+
+                // (FIX) Gentle contrast. Don't cut holes.
+                // Just highlight the peaks slightly.
+                float highlight = smoothstep(0.4, 0.9, combinedNoise);
+
+                gl_FragColor = vColor;
+
+                // Add the noise as a white "shimmer" on top of the base color
+                // This makes it look like a shifting surface
+                gl_FragColor.rgb += vec3(highlight * 0.15);
+
+                // (FIX) Keep Alpha consistent.
+                // We use the base alpha from Lua, multiplied slightly by noise for texture,
+                // but we clamp it so it never creates a full gap.
+                gl_FragColor.a *= (0.8 + 0.3 * combinedNoise);
+            }
+        ]],
+		uniformInt = {
+			tex0 = 0,
+		},
+		uniformFloat = {
+			time = 0.0,
+		}
+	})
+
+	if not shader then
+		Spring.Echo("AOE SHADER ERROR:")
+		Spring.Echo(gl.GetShaderLog())
+	end
+
+	return shader
+end
+
+--------------------------------------------------------------------------------
 -- RENDER HELPERS
 --------------------------------------------------------------------------------
 
@@ -806,7 +902,7 @@ local function GetAlphaFactorForRing(minAlpha, maxAlpha, index, phase, alphaMult
 		end
 	else
 		local fadeProgress = (phase - waveDuration) / fadeDuration
-		result = lerp(minAlpha, maxAlpha, fadeProgress)
+		result = lerp(maxAlpha, minAlpha, fadeProgress)
 	end
 
 	return result * alphaMult
@@ -1262,17 +1358,42 @@ local function DrawBallisticScatter(data)
 	----------------------------------------------------------------------------
 	-- DRAWING
 	----------------------------------------------------------------------------
-	SetColor(scatterAlphaFactor, lineColor)
-	glLineWidth(math.max(1, scatterLineWidthMult / data.distanceFromCamera))
 
-	glBeginEnd(GL_LINE_LOOP, VertexList, vertices)
-
+	-- 1. DRAW FILL with SHADER
 	if isFilled then
 		BeginNoOverlap()
-		glColor(fillColor[1], fillColor[2], fillColor[3], fillColor[4] * 0.2 * scatterAlphaFactor)
+
+		glColor(fillColor[1], fillColor[2], fillColor[3], fillColor[4] * 0.4 * scatterAlphaFactor)
+		if smokeShader and noiseTexture then
+			gl.Texture(0, noiseTexture)
+			gl.UseShader(smokeShader)
+
+			if timeUniformLoc then
+				gl.Uniform(timeUniformLoc, os.clock())
+			end
+
+			-- [[ NEW ]] Send the Mouse/Target position to the shader
+			-- This anchors the smoke texture to the target cursor.
+			if centerUniformLoc then
+				gl.Uniform(centerUniformLoc, tx, tz)
+			end
+		end
+
+		-- Draw the geometry
 		DrawAnnularSectorFill(ux, uz, aimAngle, spreadAngle, rMin, rMax)
+
+		if smokeShader and noiseTexture then
+			gl.UseShader(0)
+			gl.Texture(0, false)
+		end
+
 		EndNoOverlap()
 	end
+
+	-- 2. DRAW OUTLINE (Standard lines)
+	SetColor(scatterAlphaFactor, lineColor)
+	glLineWidth(math.max(1, scatterLineWidthMult / data.distanceFromCamera))
+	glBeginEnd(GL_LINE_LOOP, VertexList, vertices)
 
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
@@ -1672,10 +1793,22 @@ function widget:Initialize()
 		SetupUnitDef(unitDefID, unitDef)
 	end
 	SetupDisplayLists()
+
+	smokeShader = CreateSmokeShader()
+	if smokeShader then
+		timeUniformLoc = gl.GetUniformLocation(smokeShader, "time")
+		-- [[ NEW ]] Get the location for the center position
+		centerUniformLoc = gl.GetUniformLocation(smokeShader, "center")
+	end
+	noiseTexture = CreateNoiseTexture()
 end
 
 function widget:Shutdown()
 	DeleteDisplayLists()
+
+	-- [[ NEW CLEANUP ]]
+	if smokeShader then gl.DeleteShader(smokeShader) end
+	if noiseTexture then gl.DeleteTexture(noiseTexture) end
 end
 
 function widget:DrawWorldPreUnit()
