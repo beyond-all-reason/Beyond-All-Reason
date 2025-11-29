@@ -416,8 +416,14 @@ local function defeatAlly(allyID)
 			local x, y, z = spGetUnitPosition(unitID)
 			spSpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
 			spPlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
-			Spring.SetUnitRulesParam(unitID, "gameModeCommanderEliminated", 1)
 			GG.ComSpawnDefoliate(x, y, z)
+
+			local allPlayers = Spring.GetPlayerList()
+			for _, playerID in ipairs(allPlayers) do
+				local _, _, _, _, playerAllyID = Spring.GetPlayerInfo(playerID, false)
+				local notificationEvent = (playerAllyID == allyID) and "YourTeamEliminated" or "EnemyTeamEliminated"
+				SendToUnsynced("NotificationEvent", notificationEvent, tostring(playerID))
+			end
 		end
 	end
 	for teamID in pairs(allyTeamsWatch[allyID] or {}) do
