@@ -1120,6 +1120,33 @@ local function GetScatterImpact(ux, uz, calc_tx, calc_tz, v_f, gravity_f, height
 	end
 end
 
+local function DrawAnnularSectorFill(ux, uz, aimAngle, halfAngle, rMin, rMax)
+	local arcLength = rMax * halfAngle * 2
+	local segments = ceil(arcLength / 20)
+	if segments < 8 then segments = 8 end
+	if segments > 64 then segments = 64 end
+
+	local step = (halfAngle * 2) / segments
+
+	glBeginEnd(GL_TRIANGLE_STRIP, function()
+		for i = 0, segments do
+			local theta = (aimAngle - halfAngle) + (i * step)
+			local sinT, cosT = sin(theta), cos(theta)
+
+			-- Inner point
+			local px_in = ux + (sinT * rMin)
+			local pz_in = uz + (cosT * rMin)
+			local py_in = spGetGroundHeight(px_in, pz_in)
+			glVertex(px_in, py_in, pz_in)
+
+			-- Outer point
+			local px_out = ux + (sinT * rMax)
+			local pz_out = uz + (cosT * rMax)
+			local py_out = spGetGroundHeight(px_out, pz_out)
+			glVertex(px_out, py_out, pz_out)
+		end
+	end)
+end
 
 ---@param data IndicatorDrawData
 local function DrawBallisticScatter(data)
@@ -1241,20 +1268,10 @@ local function DrawBallisticScatter(data)
 	glBeginEnd(GL_LINE_LOOP, VertexList, vertices)
 
 	if isFilled then
-		-- Optional: Fill logic using similar fan approach if desired,
-		-- but GetAnnularSectorVertices returns a loop suited for GL_LINE_LOOP.
-		-- If fill is needed, you'd need a separate vertex generation for TRIANGLE_FAN or STRIP.
-		-- Reusing the line vertices for a simple fill:
-		local fillAlphaMult = 1
-
-		Spring.Echo(fillColor[4] * fillAlphaMult * scatterAlphaFactor)
-		glColor(fillColor[1], fillColor[2], fillColor[3], fillColor[4] * fillAlphaMult * scatterAlphaFactor)
-
-		-- To fill correctly without overlap, we need a fan from center or strip.
-		-- Approximate fill using the calculated vertices as a fan (imperfect but usually fine for floor projection)
-		-- or just draw the loop with blending.
-		-- For strict filled sectors, we usually need center point + outer arc + inner arc.
-		-- Given existing code used TRIANGLE_FAN, let's skip complex fill generation unless critical.
+		BeginNoOverlap()
+		glColor(fillColor[1], fillColor[2], fillColor[3], fillColor[4] * 0.2 * scatterAlphaFactor)
+		DrawAnnularSectorFill(ux, uz, aimAngle, spreadAngle, rMin, rMax)
+		EndNoOverlap()
 	end
 
 	glColor(1, 1, 1, 1)
