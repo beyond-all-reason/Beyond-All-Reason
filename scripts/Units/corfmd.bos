@@ -6,7 +6,7 @@
 piece  base, dbl, dbr, dtr, dtl, dummy,
 greendbr, greendtr, greendtl, greendbl, orangelight;
 
-static-var  restore_delay, missiles_stockpiled, isOpen;
+static-var  restore_delay, missiles_stockpiled;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -22,7 +22,6 @@ Create()
 	hide greendtr;
 	hide greendbl;
 	show orangelight;
-	isOpen = FALSE;
 }
 
 #define BASEPIECE base
@@ -38,13 +37,12 @@ Activate()
 	move dtl to x-axis [-8] speed [8];
 	move dtl to z-axis [8] speed [8];
 	move dtr to x-axis [8] speed [8];
-	move dtr to z-axis [8] speed [8];
+	move dtr to z-axis [8] speed [8];	
 	wait-for-move dtr along z-axis;
 }
 
 Deactivate()
 {
-	isOpen = FALSE;
 	move dbl to x-axis [0] speed [8];
 	move dbl to z-axis [0] speed [8];
 	move dbr to x-axis [0] speed [8];
@@ -52,7 +50,7 @@ Deactivate()
 	move dtl to x-axis [0] speed [8];
 	move dtl to z-axis [0] speed [8];
 	move dtr to x-axis [0] speed [8];
-	move dtr to z-axis [0] speed [8];
+	move dtr to z-axis [0] speed [8];	
 }
 
 SetMaxReloadTime(reloadMS)
@@ -65,11 +63,7 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 
-	if( !isOpen )
-	{
-		call-script Activate();
-		isOpen = TRUE;
-	}
+	call-script Activate();
 
 	return (1);
 }

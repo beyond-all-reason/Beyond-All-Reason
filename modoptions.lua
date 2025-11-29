@@ -122,26 +122,37 @@ local options = {
         items   = {
             { key = "neverend", name = "Never ending",             desc = "Teams are never eliminated",                       lock = { "territorial_domination_config" } },
             { key = "com",     name = "Kill all enemy Commanders", desc = "When a team has no Commanders left, it loses",     lock = { "territorial_domination_config" } },
-            { key= "territorial_domination",  name= "Territorial Domination",     desc="Teams earn points by capturing territory to stay in the game. At the end of the final round, the team with the most points wins.", unlock = {"territorial_domination_config"} },
+            --{ key= "territorial_domination",  name= "Territorial Domination",     desc="Teams race to capture territory against an ever-increasing quota to stay in the game. Commander retreat or death results in defeat.", unlock = {"territorial_domination_config"} },
             { key = "builders", name = "Kill all Builders",        desc = "When a team has no builders left, it loses",       lock = { "territorial_domination_config" } },
             { key = "killall", name = "Kill everything",           desc = "Every last unit must be eliminated, no exceptions!", lock = { "territorial_domination_config" } },
             { key = "own_com", name = "Player resign on Com death", desc = "When player commander dies, you auto-resign.",    lock = { "territorial_domination_config" } },
         }
     },
 
+    --temporary, uncomment the added deathmode entry and delete entries related to temp_enable_territorial_domination once beta is over.
+    {
+        key     = "temp_enable_territorial_domination",
+        name    = "Territorial Domination V0.1",
+        desc    = "Enable experimental Territorial Domination gamemode",
+        hidden  = true,
+        type    = "bool",
+        section = "options_main",
+        unlock  = { "territorial_domination_config" },
+        def     = false,
+    },
+
     {
         key     = "territorial_domination_config",
-        name    = "Territorial Domination Length",
+        name    = "Territorial Domination Duration",
         desc    =
         "Configures the grace period and the amount of time in minutes it takes to reach the maximum required territory.",
         type    = "list",
-        def     = "24_minutes",
+        def     = "default",
         section = "options_main",
         items   = {
-            { key = "18_minutes", name = "3 Rounds, 18 Minutes",  desc = "Early tech emphasis, mathmathically certain comeback, elimination unlikely." },
-            { key = "24_minutes",  name = "4 Rounds, 24 Minutes(Default)",  desc = "Mid/late-game tech, comebacks a significant factor,eliminations uncommon" },
-            { key = "30_minutes", name = "5 Rounds, 30 Minutes", desc = "Late-game tech, comebacks less significant, eliminations likely" },
-            { key = "42_minutes",   name = "7 Rounds, 42 Minutes",   desc = "Super lategame tech, eliminations extremely likely" },
+            { key = "short",  name = "Short",  desc = "6 minutes grace period, 18 minute until the maximum territory is required" },
+            { key = "default", name = "Default", desc = "6 minutes grace period, 24 minute until the maximum territory is required" },
+            { key = "long",   name = "Long",   desc = "6 minutes grace period, 36 minute until the maximum territory is required" },
         }
     },
 

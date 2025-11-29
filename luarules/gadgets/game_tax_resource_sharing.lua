@@ -86,7 +86,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 			return true
 		end
 		targetTeam = Spring.GetUnitTeam(targetID)
-		if targetTeam and unitTeam ~= targetTeam and Spring.AreTeamsAllied(unitTeam, targetTeam) then
+		if unitTeam ~= targetTeam and Spring.AreTeamsAllied(unitTeam, targetTeam) then
 			return false
 		end
 	-- Also block guarding allied units that can reclaim

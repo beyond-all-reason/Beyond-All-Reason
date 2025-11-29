@@ -5,7 +5,7 @@
 
 piece  base, heatray, lcheek, ldownbackleg, ldownloeg, lfin1, lfin2, lfin3, lfin4, lfin5, lfoot, lfootback, lheatsinkflap, lupbackleg, lupleg, neck, rcheek, rdownbackleg, rdownleg, rfin1, rfin2, rfin3, rfin4, rfin5, rfoot, rfootback, rheatsinkflap, rupbackleg, rupleg, tail1, tail2, tailbase, tailtip, topcheek, torpedolauncha, torpedotube, torpaimflare, torpaimx, heatrayaimflare, heatray_xy, lvent, rvent;
 
-static-var  isInWater, inWaterForm, isMoving, isAiming, restore_delay, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy, gun_deploy, explosions, shieldup, timeLeft, targetswap, isfiring, gameframe, lastfired, timer, firetime;
+static-var  isInWater, inWaterForm, isMoving, isAiming, restore_delay, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy, gun_deploy, ldamage, lshieldup, rdamage, rshieldup, timeLeft, targetswap, isfiring, gameframe, lastfired, timer, firetime;
 
 static-var  Stunned;
 
@@ -25,8 +25,9 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 #define SIG_AIM				2
 #define SIG_AIM_3			8
 #define SIG_MOVE			16
-#define SIG_RESTORE			32
-#define SIG_LIGHT			64
+#define SIG_REPAIR			32
+#define SIG_RESTORE			64
+#define SIG_LIGHT			128
 
 //Very important, keep the turn neck to y-axis while aiming, it counter-rotates the head, so the heatray stays on target. Without, the head would be rotated by the torso and the heatray must constantly retarget.
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
@@ -1334,7 +1335,10 @@ Create()
 	gun_deploy = FALSE;
 	inWaterForm = 0;
 	isInWater = FALSE;
-	shieldup = 1;
+	ldamage = 0;
+	lshieldup = 1;
+	rdamage = 0;
+	rshieldup = 1;
 	set ARMORED to 1;
 	
 	call-script TB_Init();
@@ -1455,119 +1459,148 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 // Disable armored state when 1500 damage is taken
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
+	signal SIG_REPAIR;
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
+	//get PRINT(anglex, anglez, weaponid, dmg);
+	//FIXME: Directional Armor.
+	ldamage = dmg + ldamage;
+	/*if (anglez < 0) {
+		ldamage = dmg + ldamage;  }
+	if (anglez > 0) {
+		rdamage = dmg + rdamage; }*/
+	start-script repairShield();
+	//750, about 1/4th of max HP
+	if ((ldamage > 75000) AND (lshieldup == 1))
+	{
+		// Start Animation: Break Shield;
+		explode rfin1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfin3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfin5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfin2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfin3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfin4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
+		hide rfin1;
+		hide lfin2;
+		hide rfin3;
+		hide lfin3;
+		hide rfin5;
+		hide lfin4;
+		// End Animation
+		set ARMORED to 0;
+		lshieldup = 0;
+	}
+/*	if ((ldamage > 75000) AND (lshieldup == 1))
+	{
+		// Start Animation: Break Shield; Only explode 2 pieces to reduce clutter
+		explode lfin2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfin3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfin4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
+		hide lfin2;
+		hide lfin3;
+		hide lfin4;
+		// End Animation
+		set ARMORED to 0;
+		lshieldup = 0;
+	}
+	if ((rdamage > 75000) AND (rshieldup == 1))
+	{
+		// Start Animation: Break Shield; Only explode 2 pieces to reduce clutter
+		explode rfin1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfin3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfin5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
+		hide rfin1;
+		hide rfin3;
+		hide rfin5;
+		// End Animation
+		set ARMORED to 0;
+		rshieldup = 0;
+	}*/
 	return (100); //return damage percent
 }
 
-// Set armored state at begin/end of animations
-
-ReactiveArmorBreak()
+// Restore this units hume shield after 15000ms / 15 seconds, restore armored state
+repairShield()
 {
-	set ARMORED to 0;
-	shieldup = 0;
-}
+	set-signal-mask SIG_REPAIR;
+	sleep 11000;
+	if (lshieldup == 0)
+	{
+		show lfin2;
+		emit-sfx 1024 + 0 from lfin2;
+		sleep 1000;
 
-ReactiveArmorRestore()
-{
-	shieldup = 1;
+		show lfin3;
+		emit-sfx 1024 + 0 from lfin3;
+		sleep 1000;
+
+		show lfin4;
+		emit-sfx 1024 + 0 from lfin4;
+		sleep 1000;
+		
+		//FIXME:Directional Armor
+		show rfin1;
+		emit-sfx 1024 + 0 from rfin1;
+		sleep 1000;
+		
+		show rfin3;
+		emit-sfx 1024 + 0 from rfin3;
+		sleep 1000;
+		
+		show rfin5;
+		emit-sfx 1024 + 0 from rfin5;
+		sleep 1000;
+	}
+	/*if (lshieldup == 0)
+	{
+		show lfin2;
+		emit-sfx 1024 + 0 from lfin2;
+		sleep 1000;
+
+		show lfin3;
+		emit-sfx 1024 + 0 from lfin3;
+		sleep 1000;
+
+		show lfin4;
+		emit-sfx 1024 + 0 from lfin4;
+		sleep 1000;
+	}
+	if (rshieldup == 0)
+	{
+		show rfin1;
+		emit-sfx 1024 + 0 from rfin1;
+		sleep 1000;
+		
+		show rfin3;
+		emit-sfx 1024 + 0 from rfin3;
+		sleep 1000;
+		
+		show rfin5;
+		emit-sfx 1024 + 0 from rfin5;
+		sleep 1000;
+	}*/
+	// Reset shield status 
+	lshieldup = 1;
+	rshieldup = 1;
 	set ARMORED to 1;
+	ldamage = 0;
+	rdamage = 0;
 }
 
-// Break pieces individually from damage:
 
-LimitExplosions()
+
+/*StartMoving()
 {
-	while (TRUE)
-	{
-		explosions = 0;
-		sleep 85;
-	}
+	isMoving = isMoving * -1;
 }
 
-ReactiveArmorBreak1()
+StopMoving()
 {
-	hide lfin2;
-	++explosions;
-	explode lfin2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-}
-ReactiveArmorBreak2()
-{
-	hide rfin1;
-	++explosions;
-	if (explosions == 1)
-	{
-		explode rfin1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-	}
-}
-ReactiveArmorBreak3()
-{
-	hide lfin3;
-	++explosions;
-	if (explosions == 1 OR explosions == 3)
-	{
-		explode lfin3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-	}
-}
-ReactiveArmorBreak4()
-{
-	hide rfin3;
-	++explosions;
-	if (explosions == 1 OR explosions == 3)
-	{
-		explode rfin3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-	}
-}
-ReactiveArmorBreak5()
-{
-	hide lfin4;
-	++explosions;
-	if (explosions == 1 OR explosions == 3 OR explosions == 5)
-	{
-		explode lfin4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-	}
-}
-ReactiveArmorBreak6()
-{
-	hide rfin5;
-	++explosions;
-	if (explosions == 1 OR explosions == 3 OR explosions == 5)
-	{
-		explode rfin5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-	}
-}
-
-// Restore pieces individually over time:
-
-ReactiveArmorRestore1()
-{
-	show rfin5;
-	emit-sfx 1024 + 1 from rfin5;
-}
-ReactiveArmorRestore2()
-{
-	show lfin4;
-	emit-sfx 1024 + 1 from lfin4;
-}
-ReactiveArmorRestore3()
-{
-	show rfin3;
-	emit-sfx 1024 + 1 from rfin3;
-}
-ReactiveArmorRestore4()
-{
-	show lfin3;
-	emit-sfx 1024 + 1 from lfin3;
-}
-ReactiveArmorRestore5()
-{
-	show rfin1;
-	emit-sfx 1024 + 1 from rfin1;
-}
-ReactiveArmorRestore6()
-{
-	show lfin2;
-	emit-sfx 1024 + 1 from lfin2;
-}
+	isMoving = isMoving * -1;
+	call-script StopWalking();
+}*/
 
 SweetSpot(piecenum)
 {

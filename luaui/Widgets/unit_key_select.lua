@@ -16,9 +16,7 @@ local selectApi = VFS.Include("luaui/Include/select_api.lua")
 
 local function handleSetCommand(_, commandDef)
 	local command = selectApi.getCommand(commandDef)
-	if command then
-		command()
-	end
+	command()
 end
 
 function widget:Initialize()

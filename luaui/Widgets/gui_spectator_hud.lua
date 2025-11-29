@@ -292,8 +292,8 @@ local function buildUnitDefs()
 	end
 
 	local function isArmyUnit(unitDefID, unitDef)
-		local isArmyUnit = #unitDef.weapons > 0 and unitDef.speed > 0
-		return isArmyUnit and not isCommander(unitDefId, unitDef)
+		-- anything with a least one weapon and speed above zero is considered an army unit
+		return unitDef.weapons and (#unitDef.weapons > 0) and unitDef.speed and (unitDef.speed > 0)
 	end
 
 	local function isDefenseUnit(unitDefID, unitDef)
@@ -348,10 +348,6 @@ local function buildUnitDefs()
 	end
 end
 
-local function deleteUnitDefs()
-	unitDefsToTrack = {}
-end
-
 local function addToUnitCache(teamID, unitID, unitDefID)
 	local function addToUnitCacheInternal(cache, teamID, unitID, value)
 		if unitCache[teamID][cache] then
@@ -396,10 +392,6 @@ local function addToUnitCache(teamID, unitID, unitDefID)
 		addToUnitCacheInternal("economyBuildings", teamID, unitID,
 					   unitDefsToTrack.economyBuildingDefs[unitDefID])
 	end
-end
-
-local function deleteUnitCache()
-	unitCache = {}
 end
 
 local function removeFromUnitCache(teamID, unitID, unitDefID)
@@ -657,25 +649,23 @@ local function buildAllyTeamTable()
 			allyTeamTable[allyTeamIndex] = {}
 
 			local teamList = Spring.GetTeamList(allyID)
-			if teamList and teamList[1] then
-				local colorCaptain = (playerData[teamList[1]] and playerData[teamList[1]].color) or { Spring.GetTeamColor(teamList[1]) }
-				allyTeamTable[allyTeamIndex].color = colorCaptain
-				allyTeamTable[allyTeamIndex].colorBar = makeDarkerColor(colorCaptain, constants.darkerBarsFactor)
-				allyTeamTable[allyTeamIndex].colorLine = makeDarkerColor(colorCaptain, constants.darkerLinesFactor)
-				allyTeamTable[allyTeamIndex].colorKnobSide = makeDarkerColor(colorCaptain, constants.darkerSideKnobsFactor)
-				allyTeamTable[allyTeamIndex].colorKnobMiddle = makeDarkerColor(colorCaptain, constants.darkerMiddleKnobFactor)
-				allyTeamTable[allyTeamIndex].name = string.format("Team %d", allyID)
+			local colorCaptain = playerData[teamList[1]].color
+			allyTeamTable[allyTeamIndex].color = colorCaptain
+			allyTeamTable[allyTeamIndex].colorBar = makeDarkerColor(colorCaptain, constants.darkerBarsFactor)
+			allyTeamTable[allyTeamIndex].colorLine = makeDarkerColor(colorCaptain, constants.darkerLinesFactor)
+			allyTeamTable[allyTeamIndex].colorKnobSide = makeDarkerColor(colorCaptain, constants.darkerSideKnobsFactor)
+			allyTeamTable[allyTeamIndex].colorKnobMiddle = makeDarkerColor(colorCaptain, constants.darkerMiddleKnobFactor)
+			allyTeamTable[allyTeamIndex].name = string.format("Team %d", allyID)
 
-				allyTeamTable[allyTeamIndex].teams = {}
+			allyTeamTable[allyTeamIndex].teams = {}
 
-				local teamIndex = 1
-				for _,teamID in ipairs(teamList) do
-					allyTeamTable[allyTeamIndex].teams[teamIndex] = teamID
-					teamIndex = teamIndex + 1
-				end
-
-				allyTeamIndex = allyTeamIndex + 1
+			local teamIndex = 1
+			for _,teamID in ipairs(teamList) do
+				allyTeamTable[allyTeamIndex].teams[teamIndex] = teamID
+				teamIndex = teamIndex + 1
 			end
+
+			allyTeamIndex = allyTeamIndex + 1
 		end
 	end
 end
@@ -1168,6 +1158,9 @@ local function drawBars()
 end
 
 local function drawText()
+	local indexLeft = teamOrder and teamOrder[1] or 1
+	local indexRight = teamOrder and teamOrder[2] or 2
+
 	gl.R2tHelper.BlendTexRect(titleTexture, titleDimensions.left, widgetDimensions.bottom, titleDimensions.right, widgetDimensions.top, true)
 	gl.R2tHelper.BlendTexRect(statsTexture, knobDimensions.leftKnobLeft, widgetDimensions.bottom, knobDimensions.rightKnobRight, widgetDimensions.top, true)
 end
@@ -1683,11 +1676,6 @@ local function addSideKnobs()
 	local indexLeft = teamOrder and teamOrder[1] or 1
 	local indexRight = teamOrder and teamOrder[2] or 2
 
-	-- Safety check: ensure allyTeamTable entries exist
-	if not allyTeamTable or not allyTeamTable[indexLeft] or not allyTeamTable[indexRight] then
-		return
-	end
-
 	for metricIndex,_ in ipairs(metricsEnabled) do
 		local bottom = widgetDimensions.top - metricIndex * metricDimensions.height
 		local knobBottom = bottom + knobDimensions.padding
@@ -1883,8 +1871,6 @@ local function init()
 end
 
 local function deInit()
-	deleteUnitDefs()
-	deleteUnitCache()
 	deleteMetricDisplayLists()
 	deleteKnobVAO()
 	deleteTextures()

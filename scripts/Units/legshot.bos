@@ -29,7 +29,7 @@ topFlare,
 bottomFlare,
 torsoPivot;
 
-static-var  bMoving, bAiming, restore_delay, wpn1_lasthead, currentSpeed, movespeed, explosions, shieldup, whichBarrel;
+static-var  bMoving, bAiming, restore_delay, wpn1_lasthead, currentSpeed, movespeed, tdamage, shieldup, whichBarrel;
 
 static-var  animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 // Signal definitions
@@ -284,132 +284,89 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 {
 	signal SIGNAL_REPAIR;
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
+	tdamage = dmg + tdamage;
+	start-script repairShield();
+	if ((tdamage > 40000) AND (shieldup == 1))
+	{
+		// Start Animation: Break Shield; Only explode 2 pieces to reduce clutter
+		explode leftPlate type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rightPlate type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode logoPlate type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
+		hide leftPlate;
+		hide rightPlate;
+		hide logoPlate;
+		hide legTopPlateR;
+		hide legTopPlateL;
+		hide legBottomPlateL;
+		hide legBottomPlateR;
+		// End Animation
+		
+		set ARMORED to 0;
+		shieldup = 0;
+	}
 	return (100); //return damage percent
 }
 
-// Set armored state at begin/end of animations
-
-ReactiveArmorBreak()
+// Restore this units hume shield after 20000ms / 20 seconds, restore armored state
+repairShield()
 {
-	set ARMORED to 0;
-	shieldup = 0;
-}
-
-ReactiveArmorRestore()
-{
-	shieldup = 1;
-	set ARMORED to 1;
-}
-
-// Break pieces individually from damage:
-
-LimitExplosions()
-{
-	while (TRUE)
-	{
-		explosions = 0;
-		sleep 85;
-	}
-}
-
-ReactiveArmorBreak1()
-{
-	hide legBottomPlateR;
-	++explosions;
-	explode legBottomPlateR type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-}
-ReactiveArmorBreak2()
-{
-	hide legBottomPlateL;
-	++explosions;
-	if (explosions == 1)
-	{
-		explode legBottomPlateL type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-	}
-}
-ReactiveArmorBreak3()
-{
-	hide leftPlate;
-	++explosions;
-	if (explosions == 1 OR explosions == 3)
-	{
-		explode leftPlate type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-	}
-}
-ReactiveArmorBreak4()
-{
-	hide legTopPlateL;
-	++explosions;
-	if (explosions == 1 OR explosions == 3)
-	{
-		explode legTopPlateL type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-	}
-}
-ReactiveArmorBreak5()
-{
-	hide legTopPlateR;
-	++explosions;
-	if (explosions == 1 OR explosions == 3 OR explosions == 5)
-	{
-		explode legTopPlateR type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-	}
-}
-ReactiveArmorBreak6()
-{
-	hide logoPlate;
-	++explosions;
-	if (explosions == 1 OR explosions == 3 OR explosions == 5)
-	{
-		explode logoPlate type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-	}
-}
-ReactiveArmorBreak7()
-{
-	hide rightPlate;
-	++explosions;
-	if (explosions == 1 OR explosions == 3 OR explosions == 5)
-	{
-		explode rightPlate type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-	}
-}
-
-// Restore pieces individually over time:
-
-ReactiveArmorRestore1()
-{
-	show rightPlate;
-	emit-sfx 1024 + 1 from rightPlate;
-}
-ReactiveArmorRestore2()
-{
-	show logoPlate;
-	emit-sfx 1024 + 1 from logoPlate;
-}
-ReactiveArmorRestore3()
-{
-	show legTopPlateR;
-	emit-sfx 1024 + 1 from legTopPlateR;
-}
-ReactiveArmorRestore4()
-{
-	show legTopPlateL;
-	emit-sfx 1024 + 1 from legTopPlateL;
-}
-ReactiveArmorRestore5()
-{
-	show leftPlate;
-	emit-sfx 1024 + 1 from leftPlate;
-}
-ReactiveArmorRestore6()
-{
-	show legBottomPlateL;
-	emit-sfx 1024 + 1 from legBottomPlateL;
-}
-ReactiveArmorRestore7()
-{
+	set-signal-mask SIGNAL_REPAIR;
+	sleep 14000;
+	
+	// Start Animation: 5 second countdown
 	show legBottomPlateR;
 	emit-sfx 1024 + 1 from legBottomPlateR;
+	sleep 1000;
+	
+	show legBottomPlateL;
+	emit-sfx 1024 + 1 from legBottomPlateL;
+	sleep 1000;
+	
+	show legTopPlateL;
+	emit-sfx 1024 + 1 from legTopPlateL;
+	sleep 1000;
+	
+	show legTopPlateR;
+	emit-sfx 1024 + 1 from legTopPlateR;
+	sleep 1000;
+	
+	show leftPlate;
+	emit-sfx 1024 + 1 from leftPlate;
+	sleep 1000;
+
+	show rightPlate;
+	emit-sfx 1024 + 1 from rightPlate;
+	sleep 1000;
+
+	show logoPlate;
+	emit-sfx 1024 + 1 from logoPlate;
+	// End Animation
+	
+	// Reset shield status 
+	shieldup = 1;
+	set ARMORED to 1;
+	tdamage = 0;
 }
+
+
+/////////////////
+// HitByWeaponId(anglex, anglez, weaponid, dmg)	// angle[x|z] is always [-500;500], damage is multiplied by 100
+// {
+// 	tdamage = dmg + tdamage;
+// 	if ((tdamage > 50000) AND (shieldup == 1))
+// 	{
+// 		explode leftPlate type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;	
+// 		explode rightPlate type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;	
+// 		explode logoPlate type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;	
+// 		hide leftPlate;
+// 		hide rightPlate;
+// 		hide logoPlate;
+// 		set ARMORED to 0;
+// 		shieldup = 0;
+// 	}
+// 	return (100);
+// }
 
 Create()
 {
@@ -419,6 +376,7 @@ Create()
 	moveSpeed = get MAX_SPEED;
 	animSpeed = 9;
 	restore_delay = 10000;
+	tdamage = 0;
 	shieldup = 1;
 	set ARMORED to 1;
 	whichBarrel = 0;
@@ -446,9 +404,14 @@ ExecuteRestoreAfterDelay()
 	turn gunSleeve to x-axis <0.000000> speed <90.000000>;
 	wait-for-turn torsoPivot around y-axis;
 	wait-for-turn gunSleeve around x-axis;
+	// show leftPlate;
+	// show rightPlate;
+	// show logoPlate;
+	tdamage = 0;	
+	// set ARMORED to 1;
+	// shieldup = 1;
 	bAiming = FALSE;
 }
-
 SetStunned(State)
 {
     Stunned = State;

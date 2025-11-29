@@ -13,11 +13,7 @@ end
 
 local modOptions = Spring.GetModOptions()
 local isSynced = gadgetHandler:IsSyncedCode()
-if modOptions.deathmode ~= "territorial_domination" or isSynced then return false end
-
-if Spring.Utilities.Gametype.IsRaptors() or Spring.Utilities.Gametype.IsScavengers() then
-	return false
-end
+if (modOptions.deathmode ~= "territorial_domination" and not modOptions.temp_enable_territorial_domination) or isSynced then return false end
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -63,6 +59,8 @@ local previousAllyID = nil
 local allyColors = {}
 
 local blankColor = { 0.5, 0.5, 0.5, 0.0 }
+local enemyColor = { 1, 0, 0, SQUARE_ALPHA }
+local alliedColor = { 0, 1, 0, SQUARE_ALPHA }
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local glDepthTest = gl.DepthTest
@@ -440,7 +438,7 @@ end
 
 local function getSquareVisibility(newAllyOwnerID, oldAllyOwnerID, visibilityArray)
 	if amSpectating or newAllyOwnerID == myAllyID then
-		return true
+		return true, false
 	end
 
 	local isCurrentlyVisible = false
@@ -448,12 +446,14 @@ local function getSquareVisibility(newAllyOwnerID, oldAllyOwnerID, visibilityArr
 		isCurrentlyVisible = string.sub(visibilityArray, myAllyID + 1, myAllyID + 1) == "1"
 	end
 
-	return isCurrentlyVisible
+	local shouldResetColor = oldAllyOwnerID == myAllyID and newAllyOwnerID ~= myAllyID
+
+	return isCurrentlyVisible, shouldResetColor
 end
 
 local function notifyCapture(gridID)
 	local gridData = captureGrid[gridID]
-	return not amSpectating and not gridData.playedCapturedSound and gridData.newProgress > OWNERSHIP_THRESHOLD
+	return not amSpectating and gridData.allyOwnerID == myAllyID and not gridData.playedCapturedSound and gridData.newProgress > OWNERSHIP_THRESHOLD
 end
 
 local function doCaptureEffects(gridID)
@@ -469,9 +469,15 @@ local function updateGridSquareColor(gridData)
 
 	if gridData.allyOwnerID == gaiaAllyTeamID then
 		gridData.currentColor = blankColor
-	else
+	elseif amSpectating then
 		allyColors[gaiaAllyTeamID] = blankColor
 		gridData.currentColor = allyColors[gridData.allyOwnerID] or blankColor
+	else
+		if gridData.allyOwnerID == myAllyID then
+			gridData.currentColor = alliedColor
+		else
+			gridData.currentColor = enemyColor
+		end
 	end
 end
 
@@ -484,7 +490,11 @@ local function processSpectatorModeChange()
 		myAllyID = currentAllyID
 
 		for gridID, gridSquareData in pairs(captureGrid) do
-			gridSquareData.isVisible, _ = getSquareVisibility(gridSquareData.allyOwnerID, gridSquareData.allyOwnerID, gridSquareData.visibilityArray)
+			local resetColor = false
+			gridSquareData.isVisible, resetColor = getSquareVisibility(gridSquareData.allyOwnerID, gridSquareData.allyOwnerID, gridSquareData.visibilityArray)
+			if resetColor then
+				gridSquareData.currentColor = blankColor
+			end
 		end
 	end
 	previousAllyID = myAllyID
@@ -516,7 +526,7 @@ end
 function gadget:RecvFromSynced(messageName, ...)
 	if messageName == "InitializeGridSquare" then
 		local gridID, allyOwnerID, progress, gridMidpointX, gridMidpointZ, visibilityArray = ...
-		local isVisible = getSquareVisibility(allyOwnerID, allyOwnerID, visibilityArray)
+		local isVisible, _ = getSquareVisibility(allyOwnerID, allyOwnerID, visibilityArray)
 		captureGrid[gridID] = {
 			visibilityArray = visibilityArray,
 			allyOwnerID = allyOwnerID,
@@ -540,7 +550,7 @@ function gadget:RecvFromSynced(messageName, ...)
 			gridData.visibilityArray = visibilityArray
 			gridData.allyOwnerID = allyOwnerID
 
-			gridData.isVisible = getSquareVisibility(allyOwnerID, oldAllyOwnerID, visibilityArray)
+			gridData.isVisible, _ = getSquareVisibility(allyOwnerID, oldAllyOwnerID, visibilityArray)
 			if progress < ignoredProgress and oldAllyOwnerID == myAllyID then
 				gridData.newProgress = 0
 				gridData.allyOwnerID = gaiaAllyTeamID --hidden

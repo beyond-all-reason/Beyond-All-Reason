@@ -95,7 +95,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function reAssignAssists(newUnit,oldUnit)
 		local allUnits = Spring.GetAllUnits(newUnit)
 		for _,unitID in pairs(allUnits) do
-			if GG.GetUnitTarget and GG.GetUnitTarget(unitID) == oldUnit and newUnit then
+			if GG.GetUnitTarget(unitID) == oldUnit and newUnit then
 				GG.SetUnitTarget(unitID, newUnit)
 			end
 
@@ -409,7 +409,7 @@ if gadgetHandler:IsSyncedCode() then
 			local unitID = toCheckUnitIDs[lastCheckIndex].id
 			local evolution = evolutionMetaList[unitID]
 
-			if evolution and not combatCheckUpdate(unitID, evolution, currentTime)
+			if not combatCheckUpdate(unitID, evolution, currentTime)
 				and not spGetUnitTransporter(unitID)
 				and (isEvolutionTimePassed(evolution, currentTime) or isEvolutionPowerPassed(evolution)) then
 					evolve(unitID)

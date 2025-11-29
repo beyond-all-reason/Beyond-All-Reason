@@ -1,5 +1,6 @@
 return {
 	flamebug_death = {
+		weaponType = "Cannon",
 		areaofeffect = 64,
 		camerashake = 48,
 		edgeeffectiveness = 0.9,

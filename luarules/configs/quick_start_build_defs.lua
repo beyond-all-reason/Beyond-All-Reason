@@ -46,7 +46,7 @@ local quickStartConfig = {
 		landEnergyStorage = "other",
 		waterEnergyStorage = "other",
 	},
-	buildSequence = {
+	quotas = {
 		["metalMap"] = {
 			["land"] = {
 				["badWind"] = {

@@ -1,3 +1,5 @@
+local gadgetEnabled = true
+
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -8,7 +10,7 @@ function gadget:GetInfo()
 		date      = "Aug 31, 2009",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
-		enabled   = true,
+		enabled   = gadgetEnabled
 	}
 end
 
@@ -38,7 +40,7 @@ local cantFall = {}
 local commCountCache = {}
 local commCountCacheFrame = -1
 
-local COM_BLAST = WeaponDefNames['commanderexplosion'].id
+local COM_BLAST = WeaponDefNames['commanderexplosion'].identifier
 
 local isCommander = {}
 local commanderDefIDs = {}

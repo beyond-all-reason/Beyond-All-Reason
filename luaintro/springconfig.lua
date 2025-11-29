@@ -219,6 +219,11 @@ Spring.SetConfigInt("MouseDragCircleCommandThreshold", baseDragThreshold + 16)
 Spring.SetConfigInt("MouseDragBoxCommandThreshold", baseDragThreshold + 16)
 Spring.SetConfigInt("MouseDragFrontCommandThreshold", baseDragThreshold + 16)
 
+-- These config ints control some multithreading functionality, and are now set to their enabled state for performance
+Spring.SetConfigInt("AnimationMT", 1)
+Spring.SetConfigInt("UpdateBoundingVolumeMT", 1)
+Spring.SetConfigInt("UpdateWeaponVectorsMT", 1)
+
 Spring.SetConfigInt("MaxFontTries", 5)
 Spring.SetConfigInt("UseFontConfigLib", 1)
 

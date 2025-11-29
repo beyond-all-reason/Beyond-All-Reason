@@ -74,12 +74,6 @@ local function cacheUnitIcons()
 	gl.Translate(vsx, 0, 0)
 end
 
-function widget:Initialize()
-	if spGetGameFrame() > 200 then
-		widgetHandler:RemoveWidget()
-		return
-	end
-end
 
 function widget:DrawScreen()
 	if not delayedCacheUnitIcons and spGetGameFrame() > 0 then
@@ -105,7 +99,7 @@ function widget:DrawScreen()
 		gl.Translate(vsx, 0, 0)
 	end
 
-	if not cachedUnitIcons and spGetGameFrame() == 0 then
+	if (not cachedUnitIcons) and spGetGameFrame() == 0 then
 		cachedUnitIcons = true
 		cacheUnitIcons()
 	end

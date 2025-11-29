@@ -129,19 +129,17 @@ local function clashesWithBuildQueue(uid, pos)
 	else
 		for i = 1, #units do
 			local queue = Spring.GetUnitCommands(units[i], 100)
-			if queue then
-				for j=1, #queue do
-					local command = queue[j]
-					local id = command.id and command.id or command[1]
-					if id < 0 then
-						local x = command.params and command.params[1] or command[2]
-						local y = command.params and command.params[2] or command[3]
-						local z = command.params and command.params[3] or command[4]
-						local facing = command.params and command.params[4] or 1
-						local buildData = { -id, x, y, z, facing }
-						if DoBuildingsClash(newBuildData, buildData) then
-							return true
-						end
+			for j=1, #queue do
+				local command = queue[j]
+				local id = command.id and command.id or command[1]
+				if id < 0 then
+					local x = command.params and command.params[1] or command[2]
+					local y = command.params and command.params[2] or command[3]
+					local z = command.params and command.params[3] or command[4]
+					local facing = command.params and command.params[4] or 1
+					local buildData = { -id, x, y, z, facing }
+					if DoBuildingsClash(newBuildData, buildData) then
+						return true
 					end
 				end
 			end

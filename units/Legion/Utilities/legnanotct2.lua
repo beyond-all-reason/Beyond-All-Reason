@@ -24,7 +24,6 @@ return {
 		footprintz = 4,
 		idleautoheal = 5,
 		idletime = 1800,
-		leavesghost = true,
 		mass = 5100,
 		health = 2200,
 		maxslope = 10,

@@ -44,12 +44,6 @@ local function GetSLerpedPoint(x1, y1, z1, x2, y2, z2, w1, w2)
 
 	local A = math.acos(dotP)
 	local sinA = math.sin(A)
-	
-	-- Safeguard against division by zero
-	if sinA == 0 or (w1 + w2) == 0 then
-		return x1, y1, z1
-	end
-	
 	local w = 1.0 - (w1 / (w1 + w2))
 
 	local x = (math.sin((1.0 - w) * A) * x1 + math.sin(w * A) * x2) / sinA
@@ -840,28 +834,22 @@ function gadget:DrawWorld()
 					local colormap1 = info.colormap1[1]
 					local colormap2 = info.colormap1[2]
 
-					-- Safety check for colormap values
-					if colormap1 and colormap2 and colormap1[1] and colormap2[1] then
-						local col1r = frac * colormap1[1] + fracinv * colormap2[1]
-						local col1g = frac * colormap1[2] + fracinv * colormap2[2]
-						local col1b = frac * colormap1[3] + fracinv * colormap2[3]
-						local col1a = frac * colormap1[4] + fracinv * colormap2[4]
+					local col1r = frac * colormap1[1] + fracinv * colormap2[1]
+					local col1g = frac * colormap1[2] + fracinv * colormap2[2]
+					local col1b = frac * colormap1[3] + fracinv * colormap2[3]
+					local col1a = frac * colormap1[4] + fracinv * colormap2[4]
 
-						glUniform(uColor1, col1r, col1g, col1b, col1a)
-					end
+					glUniform(uColor1, col1r, col1g, col1b, col1a)
 
 					colormap1 = info.colormap2[1]
 					colormap2 = info.colormap2[2]
 
-					-- Safety check for colormap values
-					if colormap1 and colormap2 and colormap1[1] and colormap2[1] then
-						local col1r = frac * colormap1[1] + fracinv * colormap2[1]
-						local col1g = frac * colormap1[2] + fracinv * colormap2[2]
-						local col1b = frac * colormap1[3] + fracinv * colormap2[3]
-						local col1a = frac * colormap1[4] + fracinv * colormap2[4]
+					col1r = frac * colormap1[1] + fracinv * colormap2[1]
+					col1g = frac * colormap1[2] + fracinv * colormap2[2]
+					col1b = frac * colormap1[3] + fracinv * colormap2[3]
+					col1a = frac * colormap1[4] + fracinv * colormap2[4]
 
-						glUniform(uColor2, col1r, col1g, col1b, col1a)
-					end
+					glUniform(uColor2, col1r, col1g, col1b, col1a)
 				end
 
 				-- Impact animation
@@ -872,12 +860,7 @@ function gadget:DrawWorld()
 						glUniformInt(uImpactCount, hitPointCount)
 						for j = 1, hitPointCount do
 							local hit = hitData[j]
-							-- Safeguard against NaN values
-							local aoe = hit.aoe
-							if aoe ~= aoe or aoe == math.huge or aoe == -math.huge then
-								aoe = 0
-							end
-							glUniform(impactInfoUniformCache[j], hit.x, hit.y, hit.z, aoe)
+							glUniform(impactInfoUniformCache[j], hit.x, hit.y, hit.z, hit.aoe)
 						end
 					end
 				end

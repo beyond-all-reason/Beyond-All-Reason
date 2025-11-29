@@ -6,7 +6,6 @@ EventName = {
 	resetOtherEventDelay = string - Name of 'fallback' event that will get it's delay reset. 
 							For example, UnitLost, is a general notif for losing units, but we have MetalExtractorLost, or RadarLost. I want those to reset UnitLost as well.
 	soundEffect = string - Sound Effect to play alongside the notification, located in 'sounds/voice-soundeffects'
-	notext = bool - hide the text part of the notification
 	tutorial = bool - Sound effect used for the tutorial messages, there's a whole different handling of those. (WIP)
 }
 ]]
@@ -18,37 +17,22 @@ return {
 	EnemyCommanderDied = {
 		delay = 1,
 		soundEffect = "EnemyComDead",
-		resetOtherEventDelay = "NeutralCommanderDied",
 	},
 	FriendlyCommanderDied = {
 		delay = 1,
 		soundEffect = "FriendlyComDead",
-		resetOtherEventDelay = "NeutralCommanderDied",
 	},
 	FriendlyCommanderSelfD = {
 		delay = 1,
 		soundEffect = "FriendlyComDead",
-		resetOtherEventDelay = "NeutralCommanderSelfD",
 	},
-	NeutralCommanderDied = {
+	SpectatorCommanderDied = {
 		delay = 1,
 		soundEffect = "NeutralComDead",
 	},
-	NeutralCommanderSelfD = {
+	SpectatorCommanderSelfD = {
 		delay = 1,
 		soundEffect = "NeutralComDead",
-	},
-	EnemyTeamEliminated = {
-		delay = 2,
-	},
-	YourTeamEliminated = {
-		delay = 2,
-	},
-	GainedLead = {
-		delay = 20,
-	},
-	LostLead = {
-		delay = 20,
 	},
 	ComHeavyDamage = {
 		delay = 10,
@@ -78,84 +62,25 @@ return {
 		delay = 1,
 		soundEffect = "GameEnd",
 	},
-	BattleVictory = {
-		delay = 1,
-		soundEffect = "GameEnd",
-	},
-	BattleDefeat = {
-		delay = 1,
-		soundEffect = "GameEnd",
-	},
 	GamePaused = {
 		delay = 1,
 	},
-
 	TeammateCaughtUp = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerCaughtUp",
 	},
 	TeammateDisconnected = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerDisconnected",
 	},
 	TeammateLagging = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerLagging",
 	},
 	TeammateReconnected = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerReconnected",
 	},
 	TeammateResigned = {
 		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerResigned",
 	},
 	TeammateTimedout = {
-		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerTimedout",
-	},
-
-	EnemyPlayerCaughtUp = {
-		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerCaughtUp",
-	},
-	EnemyPlayerDisconnected = {
-		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerDisconnected",
-	},
-	EnemyPlayerLagging = {
-		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerLagging",
-	},
-	EnemyPlayerReconnected = {
-		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerReconnected",
-	},
-	EnemyPlayerResigned = {
-		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerResigned",
-	},
-	EnemyPlayerTimedout = {
-		delay = 5,
-		resetOtherEventDelay = "NeutralPlayerTimedout",
-	},
-
-	NeutralPlayerCaughtUp = {
-		delay = 5,
-	},
-	NeutralPlayerDisconnected = {
-		delay = 5,
-	},
-	NeutralPlayerLagging = {
-		delay = 5,
-	},
-	NeutralPlayerReconnected = {
-		delay = 5,
-	},
-	NeutralPlayerResigned = {
-		delay = 5,
-	},
-	NeutralPlayerTimedout = {
 		delay = 5,
 	},
 	RaptorsAndScavsMixed = {
@@ -251,44 +176,34 @@ return {
 
 	-- Unit Ready
 	RagnarokIsReady = {
-		delay = 120,
-		stackedDelay = true,
+		delay = 9999999,
 	},
 	CalamityIsReady = {
-		delay = 120,
-		stackedDelay = true,
+		delay = 9999999,
 	},
 	StarfallIsReady = {
-		delay = 120,
-		stackedDelay = true,
+		delay = 9999999,
 	},
 	AstraeusIsReady = {
-		delay = 120,
-		stackedDelay = true,
+		delay = 9999999,
 	},
 	SolinvictusIsReady = {
-		delay = 120,
-		stackedDelay = true,
+		delay = 9999999,
 	},
 	TitanIsReady = {
-		delay = 120,
-		stackedDelay = true,
+		delay = 9999999,
 	},
 	ThorIsReady = {
-		delay = 120,
-		stackedDelay = true,
+		delay = 9999999,
 	},
 	JuggernautIsReady = {
-		delay = 120,
-		stackedDelay = true,
+		delay = 9999999,
 	},
 	BehemothIsReady = {
-		delay = 120,
-		stackedDelay = true,
+		delay = 9999999,
 	},
 	FlagshipIsReady = {
-		delay = 120,
-		stackedDelay = true,
+		delay = 9999999,
 	},
 	Tech2UnitReady = {
 		delay = 9999999,
@@ -320,12 +235,10 @@ return {
 		delay = 9999999,
 	},
 	EnemyDetected = {
-		delay = 120,
-		stackedDelay = true,
+		delay = 9999999,
 	},
 	AircraftDetected = {
-		delay = 120,
-		stackedDelay = true,
+		delay = 9999999,
 	},
 	MinesDetected = {
 		delay = 60,
