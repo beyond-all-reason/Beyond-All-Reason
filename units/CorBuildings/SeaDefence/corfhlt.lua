@@ -34,6 +34,7 @@ return {
 			removewait = true,
 			subfolder = "CorBuildings/SeaDefence",
 			unitgroup = "weapon",
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

@@ -39,6 +39,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBots/t2",
 			techlevel = 2,
+			continuous_aim_time = 0.07,
 		},
 		featuredefs = {
 			dead = {

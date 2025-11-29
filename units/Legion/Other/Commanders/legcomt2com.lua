@@ -99,6 +99,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

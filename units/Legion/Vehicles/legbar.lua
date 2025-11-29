@@ -52,6 +52,7 @@ return {
 			subfolder = "CorVehicles/T2",
 			weapon1turretx = 30,
 			weapon1turrety = 40,
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {
