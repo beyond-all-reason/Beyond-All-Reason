@@ -925,8 +925,6 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function gadget:Initialize()
-	local minWind = Game.windMin
-	local maxWind = Game.windMax
 	for _, teamID in ipairs(Spring.GetTeamList()) do
 		Spring.SetTeamRulesParam(teamID, "quickStartFactoryDiscountUsed", nil)
 	end
