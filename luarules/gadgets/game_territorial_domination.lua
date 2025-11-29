@@ -16,25 +16,25 @@ local isSynced = gadgetHandler:IsSyncedCode()
 if modOptions.deathmode ~= "territorial_domination" or not isSynced then return false end
 
 local territorialDominationConfig = {
-	["18-Minutes"] = {
+	["18_minutes"] = {
 		maxRounds = 3,
 		minutesPerRound = 6,
 	},
-	["24-Minutes"] = {
+	["24_minutes"] = {
 		maxRounds = 4,
 		minutesPerRound = 6,
 	},
-	["30-Minutes"] = {
+	["30_minutes"] = {
 		maxRounds = 5,
 		minutesPerRound = 6,
 	},
-	["42-Minutes"] = {
+	["42_minutes"] = {
 		maxRounds = 7,
 		minutesPerRound = 6,
 	}
 }
 
-local config = territorialDominationConfig[modOptions.territorial_domination_config] or territorialDominationConfig["30-Minutes"]
+local config = territorialDominationConfig[modOptions.territorial_domination_config] or territorialDominationConfig["30_minutes"]
 local MAX_ROUNDS = config.maxRounds
 local ROUND_SECONDS = 60 * config.minutesPerRound
 local DEBUGMODE = false
@@ -54,7 +54,6 @@ local FLYING_UNIT_POWER_MULTIPLIER = 0.01
 local CLOAKED_UNIT_POWER_MULTIPLIER = 0
 local STATIC_UNIT_POWER_MULTIPLIER = 3
 local COMMANDER_POWER_MULTIPLIER = 1000
-local MAX_INITIAL_POINTS_CAP = 300
 local AESTHETIC_POINTS_MULTIPLIER = 2 --to be consistent with gui_territorial_domination.lua
 
 local MAX_PROGRESS = 1.0
@@ -101,7 +100,6 @@ local gameOver = false
 local allyTeamsCount = 0
 local previousRoundHighestScore = 0
 local topLivingRankedScoreIndex = 1
-local inOvertime = false
 
 local allyTeamsWatch = {}
 local unitWatchDefs = {}
@@ -413,11 +411,19 @@ local function defeatAlly(allyID)
 			killQueue[killFrame] = killQueue[killFrame] or {}
 			killQueue[killFrame][unitID] = true
 
+			Spring.SetUnitRulesParam(unitID, "muteDestructionNotification", 1)
+
 			local x, y, z = spGetUnitPosition(unitID)
 			spSpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
 			spPlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
-			Spring.SetUnitRulesParam(unitID, "gameModeCommanderEliminated", 1)
 			GG.ComSpawnDefoliate(x, y, z)
+
+			local allPlayers = Spring.GetPlayerList()
+			for _, playerID in ipairs(allPlayers) do
+				local _, _, _, _, playerAllyID = Spring.GetPlayerInfo(playerID, false)
+				local notificationEvent = (playerAllyID == allyID) and "YourTeamEliminated" or "EnemyTeamEliminated"
+				SendToUnsynced("NotificationEvent", notificationEvent, tostring(playerID))
+			end
 		end
 	end
 	for teamID in pairs(allyTeamsWatch[allyID] or {}) do
@@ -610,9 +616,6 @@ function gadget:GameFrame(frame)
 
 	if frameModulo == 0 then
 		processLivingTeams()
-		if currentRound > MAX_ROUNDS and not gameOver then
-			inOvertime = true
-		end
 		for gridID, data in pairs(captureGrid) do
 			processGridSquareCapture(gridID)
 		end
