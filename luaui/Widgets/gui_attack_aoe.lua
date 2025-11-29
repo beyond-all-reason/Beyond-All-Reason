@@ -386,95 +386,40 @@ local function GetClampedTarget(data)
 	return tx, ty, tz, aimDist
 end
 
---------------------------------------------------------------------------------
--- BALLISTICS HELPERS
---------------------------------------------------------------------------------
---- Calculates the launch vector to hit a target (dx, dy, dz) with speed v
---- @param trajectoryMode number low (-1) or high (1) trajectory
-local function GetBallisticVector(initialSpeed, dx, dy, dz, trajectoryMode)
-
-	local horizontalDistSq = distance2dSquared(dx, dz, 0, 0)
-	local horizontalDist = sqrt(horizontalDistSq)
-
-	local totalDistSq = horizontalDistSq + dy * dy
-
-	if totalDistSq == 0 then
-		return 0, initialSpeed * trajectoryMode, 0
+local function GetAnnularSectorVertices(ux, uz, aimAngle, halfAngle, rMin, rMax, segments)
+	local vertices = {}
+	local count = 1
+	-- Dynamic segment count based on size of the arc to keep it smooth
+	local arcLength = rMax * halfAngle * 2
+	if segments == nil then
+		segments = ceil(arcLength / 20) -- 1 segment per 20 elmo
+		if segments < 8 then segments = 8 end
+		if segments > 64 then segments = 64 end
 	end
 
-	local speedSq = pow(initialSpeed, 2)
-	local speedQuad = pow(speedSq, 2)
-	local gravitySq = pow(g, 2)
+	local step = (halfAngle * 2) / segments
 
-	local discriminant = speedQuad - 2 * speedSq * g * dy - gravitySq * horizontalDistSq
-
-	-- Check if the target is reachable
-	if discriminant < 0 then
-		return nil
+	-- 1. Outer Arc (Clockwise)
+	for i = 0, segments do
+		local theta = (aimAngle + halfAngle) - (i * step)
+		local px = ux + (sin(theta) * rMax)
+		local pz = uz + (cos(theta) * rMax)
+		local py = spGetGroundHeight(px, pz)
+		vertices[count] = { px, py, pz }
+		count = count + 1
 	end
 
-	local rootValue = sqrt(discriminant)
-
-	local horizontalSpeedSqNumerator = 2 * horizontalDistSq * totalDistSq * (speedSq - g * dy - trajectoryMode * rootValue)
-
-	if horizontalSpeedSqNumerator < 0 then
-		return nil
+	-- 2. Inner Arc (Counter-Clockwise)
+	for i = 0, segments do
+		local theta = (aimAngle - halfAngle) + (i * step)
+		local px = ux + (sin(theta) * rMin)
+		local pz = uz + (cos(theta) * rMin)
+		local py = spGetGroundHeight(px, pz)
+		vertices[count] = { px, py, pz }
+		count = count + 1
 	end
 
-	local horizontalSpeed = sqrt(horizontalSpeedSqNumerator) / (2 * totalDistSq)
-
-	local verticalSpeed
-
-	if horizontalSpeed == 0 then
-		verticalSpeed = initialSpeed
-	else
-		verticalSpeed = horizontalSpeed * dy / horizontalDist + horizontalDist * g / (2 * horizontalSpeed)
-	end
-
-	local launchVecX = dx * horizontalSpeed / horizontalDist
-	local launchVecZ = dz * horizontalSpeed / horizontalDist
-	local launchVecY = verticalSpeed
-
-	return normalize(launchVecX, launchVecY, launchVecZ)
-end
-
---- Calculates where a projectile with specific velocity vector will intersect the target plane
-local function GetScatterImpact(ux, uz, calc_tx, calc_tz, v_f, gravity_f, heightDiff, dirX, dirY, dirZ)
-	local velY = dirY * v_f
-	local a = gravity_f
-	local b = velY
-	local discriminant = b * b - 4 * a * heightDiff
-
-	if discriminant >= 0 then
-		local sqrtDisc = sqrt(discriminant)
-		local t1 = (-b - sqrtDisc) / (2 * a)
-		local t2 = (-b + sqrtDisc) / (2 * a)
-
-		local x1 = ux + (dirX * v_f * t1)
-		local z1 = uz + (dirZ * v_f * t1)
-		local x2 = ux + (dirX * v_f * t2)
-		local z2 = uz + (dirZ * v_f * t2)
-
-		local d1 = distance2dSquared(x1, z1, calc_tx, calc_tz)
-		local d2 = distance2dSquared(x2, z2, calc_tx, calc_tz)
-
-		if t1 < 0 then return x2, z2 end
-		if t2 < 0 then return x1, z1 end
-
-		if d1 < d2 then
-			return x1, z1
-		else
-			return x2, z2
-		end
-	else
-		local flatDist = distance2d(calc_tx, calc_tz, ux, uz)
-		local dirFlat = distance2d(dirX, dirZ, 0, 0)
-		if dirFlat > 0.0001 then
-			local scale = flatDist / dirFlat
-			return ux + (dirX * scale), uz + (dirZ * scale)
-		end
-		return calc_tx, calc_tz
-	end
+	return vertices
 end
 
 --------------------------------------------------------------------------------
@@ -827,7 +772,7 @@ local function GetActiveUnitInfo()
 end
 
 --------------------------------------------------------------------------------
--- AOE RENDERING
+-- AOE
 --------------------------------------------------------------------------------
 local function GetRadiusForDamageLevel(aoe, damageLevel, edgeEffectiveness)
 	local denominator = 1 - (damageLevel * edgeEffectiveness)
@@ -1085,19 +1030,127 @@ local function DrawNoExplode(data, overrideSource)
 end
 
 --------------------------------------------------------------------------------
--- BALLISTICS RENDERING
+-- BALLISTIC
 --------------------------------------------------------------------------------
+--- Calculates the launch vector to hit a target (dx, dy, dz) with speed v
+--- @param trajectoryMode number low (-1) or high (1) trajectory
+local function GetBallisticVector(initialSpeed, dx, dy, dz, trajectoryMode)
 
-local function GetFadeAlpha(theta, minAlpha)
-	local sinTheta = sin(theta)
-	return 1 - (pow(abs(sinTheta), 2) * (1 - minAlpha))
+	local horizontalDistSq = distance2dSquared(dx, dz, 0, 0)
+	local horizontalDist = sqrt(horizontalDistSq)
+
+	local totalDistSq = horizontalDistSq + dy * dy
+
+	if totalDistSq == 0 then
+		return 0, initialSpeed * trajectoryMode, 0
+	end
+
+	local speedSq = pow(initialSpeed, 2)
+	local speedQuad = pow(speedSq, 2)
+	local gravitySq = pow(g, 2)
+
+	local discriminant = speedQuad - 2 * speedSq * g * dy - gravitySq * horizontalDistSq
+
+	-- Check if the target is reachable
+	if discriminant < 0 then
+		return nil
+	end
+
+	local rootValue = sqrt(discriminant)
+
+	local horizontalSpeedSqNumerator = 2 * horizontalDistSq * totalDistSq * (speedSq - g * dy - trajectoryMode * rootValue)
+
+	if horizontalSpeedSqNumerator < 0 then
+		return nil
+	end
+
+	local horizontalSpeed = sqrt(horizontalSpeedSqNumerator) / (2 * totalDistSq)
+
+	local verticalSpeed
+
+	if horizontalSpeed == 0 then
+		verticalSpeed = initialSpeed
+	else
+		verticalSpeed = horizontalSpeed * dy / horizontalDist + horizontalDist * g / (2 * horizontalSpeed)
+	end
+
+	local launchVecX = dx * horizontalSpeed / horizontalDist
+	local launchVecZ = dz * horizontalSpeed / horizontalDist
+	local launchVecY = verticalSpeed
+
+	return normalize(launchVecX, launchVecY, launchVecZ)
+end
+
+--- Calculates where a projectile with specific velocity vector will intersect the target plane
+local function GetScatterImpact(ux, uz, calc_tx, calc_tz, v_f, gravity_f, heightDiff, dirX, dirY, dirZ)
+	local velY = dirY * v_f
+	local a = gravity_f
+	local b = velY
+	local discriminant = b * b - 4 * a * heightDiff
+
+	if discriminant >= 0 then
+		local sqrtDisc = sqrt(discriminant)
+		local t1 = (-b - sqrtDisc) / (2 * a)
+		local t2 = (-b + sqrtDisc) / (2 * a)
+
+		local x1 = ux + (dirX * v_f * t1)
+		local z1 = uz + (dirZ * v_f * t1)
+		local x2 = ux + (dirX * v_f * t2)
+		local z2 = uz + (dirZ * v_f * t2)
+
+		local d1 = distance2dSquared(x1, z1, calc_tx, calc_tz)
+		local d2 = distance2dSquared(x2, z2, calc_tx, calc_tz)
+
+		if t1 < 0 then return x2, z2 end
+		if t2 < 0 then return x1, z1 end
+
+		if d1 < d2 then
+			return x1, z1
+		else
+			return x2, z2
+		end
+	else
+		local flatDist = distance2d(calc_tx, calc_tz, ux, uz)
+		local dirFlat = distance2d(dirX, dirZ, 0, 0)
+		if dirFlat > 0.0001 then
+			local scale = flatDist / dirFlat
+			return ux + (dirX * scale), uz + (dirZ * scale)
+		end
+		return calc_tx, calc_tz
+	end
+end
+
+local function DrawAnnularSectorFill(ux, uz, aimAngle, halfAngle, rMin, rMax)
+	local arcLength = rMax * halfAngle * 2
+	local segments = ceil(arcLength / 20)
+	if segments < 8 then segments = 8 end
+	if segments > 64 then segments = 64 end
+
+	local step = (halfAngle * 2) / segments
+
+	glBeginEnd(GL_TRIANGLE_STRIP, function()
+		for i = 0, segments do
+			local theta = (aimAngle - halfAngle) + (i * step)
+			local sinT, cosT = sin(theta), cos(theta)
+
+			-- Inner point
+			local px_in = ux + (sinT * rMin)
+			local pz_in = uz + (cosT * rMin)
+			local py_in = spGetGroundHeight(px_in, pz_in)
+			glVertex(px_in, py_in, pz_in)
+
+			-- Outer point
+			local px_out = ux + (sinT * rMax)
+			local pz_out = uz + (cosT * rMax)
+			local py_out = spGetGroundHeight(px_out, pz_out)
+			glVertex(px_out, py_out, pz_out)
+		end
+	end)
 end
 
 ---@param data IndicatorDrawData
 local function DrawBallisticScatter(data)
-	local scatterSegments = Config.Render.scatterSegments
 	local scatterLineWidthMult = Config.Render.scatterLineWidthMult
-	local scatterMinAlpha = Config.Render.scatterMinAlpha
 	local gameSpeed = Config.General.gameSpeed
 
 	local weaponInfo = data.weaponInfo
@@ -1114,6 +1167,7 @@ local function DrawBallisticScatter(data)
 	local isFilled = fillColor[4] > 0
 
 	-- 1. Math Setup
+	-- We calculate the physical spread at the gun's max effective range (or current target if closer).
 	local calc_tx, calc_ty, calc_tz, calc_dist = GetClampedTarget(data)
 	local dx, dy, dz = calc_tx - ux, calc_ty - uy, calc_tz - uz
 	local bx, by, bz, _ = GetBallisticVector(v, dx, dy, dz, trajectory, g)
@@ -1155,7 +1209,7 @@ local function DrawBallisticScatter(data)
 
 	local maxAxisLen = naturalRadius * 2.5
 
-	-- Yaw Axis
+	-- Width
 	local vx_right = bx * cosScatter + rx * scatter
 	local vy_right = by * cosScatter + ry * scatter
 	local vz_right = bz * cosScatter + rz * scatter
@@ -1164,13 +1218,8 @@ local function DrawBallisticScatter(data)
 	local axisRightX = hx_right - calc_tx
 	local axisRightZ = hz_right - calc_tz
 	local lenRight = distance2d(axisRightX, axisRightZ, 0, 0)
-	if lenRight > maxAxisLen then
-		local scale = maxAxisLen / lenRight
-		axisRightX = axisRightX * scale
-		axisRightZ = axisRightZ * scale
-	end
 
-	-- Pitch Axis
+	-- Length
 	local up_x = ry * bz - rz * by
 	local up_y = rz * bx - rx * bz
 	local up_z = rx * by - ry * bx
@@ -1183,61 +1232,50 @@ local function DrawBallisticScatter(data)
 	local axisUpX = hx_up - calc_tx
 	local axisUpZ = hz_up - calc_tz
 	local lenUp = distance2d(axisUpX, axisUpZ, 0, 0)
-	if lenUp > maxAxisLen then
-		local scale = maxAxisLen / lenUp
-		axisUpX = axisUpX * scale
-		axisUpZ = axisUpZ * scale
-	end
+
+	if lenRight > maxAxisLen then lenRight = maxAxisLen end
+	if lenUp > maxAxisLen then lenUp = maxAxisLen end
+
+	----------------------------------------------------------------------------
+	-- SHAPE GENERATION
+	----------------------------------------------------------------------------
+
+	-- Actual Cursor Distance
+	local dist = distance2d(ux, uz, tx, tz)
+
+	-- Map ballistic dimensions to Sector parameters centered on cursor
+	local rMax = dist + lenUp
+	local rMin = dist - lenUp
+
+	-- Prevent drawing behind the unit
+	if rMin < 50 then rMin = 50 end
+
+	-- Calculate Draw Angle:
+	-- We want the visual cone width to match the physical width (lenRight).
+	-- atan2(opposite, adjacent) -> atan2(width, distance)
+	local spreadAngle = atan2(lenRight, dist)
+
+	-- Generate Vertices
+	local aimAngle = atan2(tx - ux, tz - uz)
+	local vertices = GetAnnularSectorVertices(ux, uz, aimAngle, spreadAngle, rMin, rMax)
 
 	----------------------------------------------------------------------------
 	-- DRAWING
 	----------------------------------------------------------------------------
-	local angleStep = (pi * 2) / scatterSegments
-	glDepthTest(true)
+	SetColor(scatterAlphaFactor, lineColor)
+	glLineWidth(math.max(1, scatterLineWidthMult / data.distanceFromCamera))
+
+	glBeginEnd(GL_LINE_LOOP, VertexList, vertices)
 
 	if isFilled then
-		local fillAlphaMult = 0.2
 		BeginNoOverlap()
-		glBeginEnd(GL_TRIANGLE_FAN, function()
-			local cy = spGetGroundHeight(tx, tz)
-			glColor(fillColor[1], fillColor[2], fillColor[3], fillColor[4] * fillAlphaMult * scatterAlphaFactor)
-			glVertex(tx, cy, tz)
-
-			for i = 0, scatterSegments do
-				local theta = i * angleStep
-				local fadeFactor = GetFadeAlpha(theta, scatterMinAlpha)
-				glColor(fillColor[1], fillColor[2], fillColor[3], fillColor[4] * fillAlphaMult * fadeFactor * scatterAlphaFactor)
-
-				local cosTheta, sinTheta = cos(theta), sin(theta)
-				local px = tx + (axisRightX * cosTheta) + (axisUpX * sinTheta)
-				local pz = tz + (axisRightZ * cosTheta) + (axisUpZ * sinTheta)
-				local py = spGetGroundHeight(px, pz)
-
-				glVertex(px, py, pz)
-			end
-		end)
+		glColor(fillColor[1], fillColor[2], fillColor[3], fillColor[4] * 0.2 * scatterAlphaFactor)
+		DrawAnnularSectorFill(ux, uz, aimAngle, spreadAngle, rMin, rMax)
 		EndNoOverlap()
 	end
 
-	glLineWidth(scatterLineWidthMult / data.distanceFromCamera)
-	glBeginEnd(GL_LINE_LOOP, function()
-		for i = 0, scatterSegments do
-			local theta = i * angleStep
-			local fadeFactor = GetFadeAlpha(theta, scatterMinAlpha)
-			glColor(lineColor[1], lineColor[2], lineColor[3], lineColor[4] * fadeFactor * scatterAlphaFactor)
-
-			local cosTheta, sinTheta = cos(theta), sin(theta)
-			local px = tx + (axisRightX * cosTheta) + (axisUpX * sinTheta)
-			local pz = tz + (axisRightZ * cosTheta) + (axisUpZ * sinTheta)
-			local py = spGetGroundHeight(px, pz)
-
-			glVertex(px, py, pz)
-		end
-	end)
-
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
-	glDepthTest(false)
 	return scatterAlphaFactor
 end
 
@@ -1303,43 +1341,6 @@ end
 --------------------------------------------------------------------------------
 -- WOBBLE
 --------------------------------------------------------------------------------
-local function GetAnnularSectorVertices(ux, uz, aimAngle, halfAngle, rMin, rMax, segments)
-	local vertices = {}
-	local count = 1
-	-- Dynamic segment count based on size of the arc to keep it smooth
-	local arcLength = rMax * halfAngle * 2
-	if segments == nil then
-		segments = ceil(arcLength / 20) -- 1 segment per 20 elmo
-		if segments < 8 then segments = 8 end
-		if segments > 64 then segments = 64 end
-	end
-
-	local step = (halfAngle * 2) / segments
-
-	-- 1. Outer Arc (Clockwise)
-	for i = 0, segments do
-		local theta = (aimAngle + halfAngle) - (i * step)
-		local px = ux + (sin(theta) * rMax)
-		local pz = uz + (cos(theta) * rMax)
-		local py = spGetGroundHeight(px, pz)
-		vertices[count] = { px, py, pz }
-		count = count + 1
-	end
-
-	-- 2. Inner Arc (Counter-Clockwise)
-	for i = 0, segments do
-		local theta = (aimAngle - halfAngle) + (i * step)
-		local px = ux + (sin(theta) * rMin)
-		local pz = uz + (cos(theta) * rMin)
-		local py = spGetGroundHeight(px, pz)
-		vertices[count] = { px, py, pz }
-		count = count + 1
-	end
-
-	return vertices
-end
-
-
 --- At the moment used only by Catapult (0 path correction) and Thanatos (some path correction) and it's tweaked
 --- to work well for both of them. It's very likely that it will have to be tweaked if their weapondefs change or
 --- new unit will be introduced
@@ -1423,7 +1424,6 @@ local function DrawWobbleScatter(data)
 		local slope = heightDiff / max(1, clampedDist)
 		local trajectoryDamping = 1.0 + trajectoryHeight
 		local elevationCorrection = (slope * ELEVATION_IMPACT_FACTOR) / trajectoryDamping
-		Spring.Echo(elevationCorrection)
 		forwardBias = max(0, forwardBias - elevationCorrection)
 	end
 
@@ -1626,7 +1626,7 @@ end
 ---@param data IndicatorDrawData
 local function DrawBallistic(data)
 	local scatterAlphaFactor = DrawBallisticScatter(data)
-	local baseColorOverride = scatterAlphaFactor and GetFadedColor(data.colors.base, 1 - (scatterAlphaFactor * 0.9))
+	local baseColorOverride = scatterAlphaFactor and GetFadedColor(data.colors.base, 1 - (scatterAlphaFactor * 0.7))
 	DrawAoe(data, baseColorOverride)
 end
 
