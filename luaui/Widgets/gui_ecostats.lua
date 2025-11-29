@@ -707,11 +707,13 @@ local function makeTeamCompositionList()
 		end
 		prevAreaRect = areaRect
 
-		if (not uiBgTex or rectAreaChange) and areaRect[4] then
+		local texWidth = areaRect[1] and areaRect[3] and mathFloor(areaRect[3]-areaRect[1]) or 0
+		local texHeight = areaRect[2] and areaRect[4] and mathFloor(areaRect[4]-areaRect[2]) or 0
+		if (not uiBgTex or rectAreaChange) and texWidth > 0 and texHeight > 0 then
 			if uiBgTex then
 				gl.DeleteTexture(uiBgTex)
 			end
-			uiBgTex = gl.CreateTexture(mathFloor(areaRect[3]-areaRect[1]), mathFloor(areaRect[4]-areaRect[2]), {
+			uiBgTex = gl.CreateTexture(texWidth, texHeight, {
 				target = GL.TEXTURE_2D,
 				format = GL.ALPHA,
 				fbo = true,
@@ -719,7 +721,7 @@ local function makeTeamCompositionList()
 			if uiTex then
 				gl.DeleteTexture(uiTex)
 			end
-			uiTex = gl.CreateTexture(mathFloor(areaRect[3]-areaRect[1]), mathFloor(areaRect[4]-areaRect[2]), {
+			uiTex = gl.CreateTexture(texWidth, texHeight, {
 				target = GL.TEXTURE_2D,
 				format = GL.ALPHA,
 				fbo = true,

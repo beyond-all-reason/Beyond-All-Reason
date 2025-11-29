@@ -40,6 +40,7 @@ local stringSub = string.sub
 local stringFind = string.find
 local stringLower = string.lower
 local stringFormat = string.format
+local stringMatch = string.match
 local pairs = pairs
 local ipairs = ipairs
 local next = next
@@ -61,6 +62,7 @@ local prefixColor = {
 	dbg = '\255\120\120\120',
 }
 local prefixedGnames = {}
+local gadgetNameColors = {}  -- Store RGB values for background tinting
 local function ConstructPrefixedName (ghInfo)
 	local gadgetName = ghInfo.name
 	local baseName = ghInfo.basename
@@ -71,8 +73,22 @@ local function ConstructPrefixedName (ghInfo)
 		local prefixClr = prefixColor[prefixKey] or "\255\166\166\166"
 		prefix = prefixClr .. prefixKey .. "     "
 	end
-	-- Cache random color generation
-	local r, g, b = mathRandom(100, 255), mathRandom(100, 255), mathRandom(100, 255)
+	-- Cache random color generation with more contrast
+	local r, g, b = mathRandom(30, 255), mathRandom(30, 255), mathRandom(30, 255)
+	-- Ensure at least one channel is bright for visibility and prevent too dark colors
+	local maxChannel = mathMax(r, g, b)
+	if maxChannel < 150 then
+		-- If all channels are too dark, make at least one bright
+		local brightChannel = mathRandom(1, 3)
+		if brightChannel == 1 then
+			r = mathRandom(180, 255)
+		elseif brightChannel == 2 then
+			g = mathRandom(180, 255)
+		else
+			b = mathRandom(180, 255)
+		end
+	end
+	gadgetNameColors[gadgetName] = {r / 255, g / 255, b / 255}  -- Store normalized RGB
 	prefixedGnames[gadgetName] = prefix .. stringChar(255, r, g, b) .. gadgetName .. "   "
 	return prefixedGnames[gadgetName]
 end
@@ -243,7 +259,7 @@ local function BuildCallInsList()
 			CallInsList[CallInsListCount] = stringSub(key, 1, i - 1)
 		end
 	end
-	
+
 	return CallInsList
 end
 
@@ -566,7 +582,7 @@ else
 			local space = 0
 			local cmax_space = 0
 			local cmaxname_space = "-"
-			
+
 			for cname, c in pairs(callins) do
 				local c1, c2, c3, c4 = c[1], c[2], c[3], c[4]
 				t = t + c1
@@ -683,11 +699,76 @@ else
 		)
 	end
 
+	-- Helper function to render percentage with dimmed leading zeros
+	local function DrawPercentWithDimmedZeros(colorString, value, x, y, fontSize, decimalPlaces)
+		local formatStr = '%.' .. (decimalPlaces or 3) .. 'f%%'
+		local formatted = stringFormat(formatStr, value)
+		local leadingPart, significantPart = stringMatch(formatted, '^(0%.0*)(.+)$')
+
+		if leadingPart then
+			-- Has leading zeros - render them dimmed
+			gl.Text(colorString .. '\255\150\150\150' .. leadingPart, x, y, fontSize, "no")
+			local leadingWidth = gl.GetTextWidth(leadingPart) * fontSize
+			gl.Text(colorString .. significantPart, x + leadingWidth, y, fontSize, "no")
+		else
+			-- No leading zeros - render normally
+			gl.Text(colorString .. formatted, x, y, fontSize, "no")
+		end
+	end
+
+	-- Helper function to render memory allocation with dimmed leading zeros and right-alignment
+	local function DrawMemoryWithDimmedZeros(colorString, value, x, y, fontSize, decimalPlaces, suffix)
+		local formatStr = '%.' .. (decimalPlaces or 1) .. 'f'
+		local formatted = stringFormat(formatStr, value)
+		local fullText = formatted .. suffix
+
+		-- Calculate total width for right alignment with left padding
+		local totalWidth = gl.GetTextWidth(fullText) * fontSize
+		local rightAlignedX = x + (dataColWidth * 0.75) - totalWidth  -- Adjust to 75% to add more spacing
+
+		-- Check if value is 0.0 (all zeros)
+		if tonumber(formatted) == 0 then
+			-- Render entire "0.0" dimmed and right-aligned
+			gl.Text(colorString .. '\255\150\150\150' .. fullText, rightAlignedX, y, fontSize, "no")
+		else
+			local leadingPart, significantPart = stringMatch(formatted, '^(0%.0*)(.+)$')
+			if leadingPart then
+				-- Has leading zeros - render them dimmed and right-aligned
+				gl.Text(colorString .. '\255\150\150\150' .. leadingPart, rightAlignedX, y, fontSize, "no")
+				local leadingWidth = gl.GetTextWidth(leadingPart) * fontSize
+				gl.Text(colorString .. significantPart .. suffix, rightAlignedX + leadingWidth, y, fontSize, "no")
+			else
+				-- No leading zeros - render normally and right-aligned
+				gl.Text(colorString .. fullText, rightAlignedX, y, fontSize, "no")
+			end
+		end
+	end
+
 	-- Spacing above indicates the number of blank lines left. spacingAbove = 0 will still result in a line break.
-	local function Line(spacingAbove, color, col1String, col2String, col3String, color2, color3)
+	local function Line(spacingAbove, color, col1String, col2String, col3String, color2, color3, gadgetName)
 		local advance = 1 + spacingAbove
 		RequireSpace(advance)
 		currentLineIndex = currentLineIndex + advance
+
+		-- Draw tinted background and colored square for gadget line
+		if gadgetName then
+			local gadgetColor = gadgetNameColors[gadgetName]
+			if gadgetColor then
+				local x = initialX - currentColumnIndex * colWidth
+				local textY = initialY - lineSpace * currentLineIndex
+
+				-- Draw opaque colored square on the left
+				gl.Color(gadgetColor[1], gadgetColor[2], gadgetColor[3], 1.0)
+				gl.Rect(x - 12, textY - 3, x - 5, textY + fontSize - 3)
+
+				-- Draw subtle tinted background across the whole line
+				gl.Color(gadgetColor[1], gadgetColor[2], gadgetColor[3], 0.25)
+				gl.Rect(x - 5, textY - 3, x + colWidth - 15, textY + fontSize - 3)
+
+				gl.Color(1, 1, 1, 1)  -- Reset color
+			end
+		end
+
 		if col1String then
 			Text(color, col1String, 0)
 		end
@@ -727,14 +808,76 @@ else
 			local tColour = v.tColourString
 			local sColour = v.sColourString
 
-			Line(0, tColour, stringFormat('%.3f%%', tLoad), stringFormat('%.02f', sLoad) .. 'kB/s', gname, sColour)
+			-- Draw line with background and dimmed zeros
+			RequireSpace(1)
+			currentLineIndex = currentLineIndex + 1
+
+			-- Draw tinted background and colored square for gadget line
+			local gadgetColor = gadgetNameColors[v.name]
+			if not gadgetColor then
+				-- Generate color on-the-fly if not already generated
+				local r, g, b = mathRandom(30, 255), mathRandom(30, 255), mathRandom(30, 255)
+				local maxChannel = mathMax(r, g, b)
+				if maxChannel < 150 then
+					local brightChannel = mathRandom(1, 3)
+					if brightChannel == 1 then
+						r = mathRandom(180, 255)
+					elseif brightChannel == 2 then
+						g = mathRandom(180, 255)
+					else
+						b = mathRandom(180, 255)
+					end
+				end
+				gadgetColor = {r / 255, g / 255, b / 255}
+				gadgetNameColors[v.name] = gadgetColor
+			end
+
+			if gadgetColor then
+				local x = initialX - currentColumnIndex * colWidth
+				local textY = initialY - lineSpace * currentLineIndex
+
+				-- Draw opaque colored square on the left
+				gl.Color(gadgetColor[1], gadgetColor[2], gadgetColor[3], 1.0)
+				gl.Rect(x - 12, textY - 3, x - 5, textY + fontSize - 3)
+
+				-- Draw subtle tinted background across the whole line
+				gl.Color(gadgetColor[1], gadgetColor[2], gadgetColor[3], 0.25)
+				gl.Rect(x - 5, textY - 3, x + colWidth - 15, textY + fontSize - 3)
+
+				gl.Color(1, 1, 1, 1)  -- Reset color
+			end
+
+			-- Draw percentage with dimmed zeros
+			DrawPercentWithDimmedZeros(tColour, tLoad,
+				initialX + dataColWidth * 0 - currentColumnIndex * colWidth,
+				initialY - lineSpace * currentLineIndex,
+				fontSize, 3)
+
+			-- Draw memory with dimmed zeros
+			DrawMemoryWithDimmedZeros(sColour, sLoad,
+				initialX + dataColWidth * 1 - currentColumnIndex * colWidth,
+				initialY - lineSpace * currentLineIndex,
+				fontSize, 1, 'kB/s')
+
+			-- Draw gadget name
+			Text(tColour, gname, 2)
 		end
 
-		Line(0, totals_colour,
-			stringFormat('%.3f%%', list.allOverTime),
-			stringFormat('%.0f', list.allOverSpace) .. 'kB/s',
-			"totals (" .. stringLower(name) .. ")"
-		)
+		RequireSpace(1)
+		currentLineIndex = currentLineIndex + 1
+
+		-- Draw totals with dimmed zeros
+		DrawPercentWithDimmedZeros(totals_colour, list.allOverTime,
+			initialX + dataColWidth * 0 - currentColumnIndex * colWidth,
+			initialY - lineSpace * currentLineIndex,
+			fontSize, 3)
+
+		DrawMemoryWithDimmedZeros(totals_colour, list.allOverSpace,
+			initialX + dataColWidth * 1 - currentColumnIndex * colWidth,
+			initialY - lineSpace * currentLineIndex,
+			fontSize, 1, 'kB/s')
+
+		Text(totals_colour, "totals (" .. stringLower(name) .. ")", 2)
 	end
 
 	--------------------------------------------------------------------------------

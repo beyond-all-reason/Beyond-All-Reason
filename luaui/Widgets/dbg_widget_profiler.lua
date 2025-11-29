@@ -33,6 +33,7 @@ local stringFind = string.find
 local stringLower = string.lower
 local stringFormat = string.format
 local stringGmatch = string.gmatch
+local stringMatch = string.match
 local pairs = pairs
 local next = next
 local tonumber = tonumber
@@ -48,11 +49,13 @@ local glColor = gl.Color
 local glBeginText = gl.BeginText
 local glEndText = gl.EndText
 local glGetViewSizes = gl.GetViewSizes
+local glRect = gl.Rect
+local glGetTextWidth = gl.GetTextWidth
 
 local usePrefixedNames = true
 
 local tick = 0.1
-local retainSortTime = 10
+local retainSortTime = 100
 
 local minPerc = 0.005 -- above this value, we fade in how red we mark a widget
 local maxPerc = 0.02 -- above this value, we mark a widget as red
@@ -110,6 +113,7 @@ end
 spEcho("Profiler using highres timers", highres, Spring.GetConfigInt("UseHighResTimer", 0))
 
 local prefixedWnames = {}
+local widgetNameColors = {}  -- Store RGB values for background tinting
 local function ConstructPrefixedName (ghInfo)
 	local gadgetName = ghInfo.name
 	local baseName = ghInfo.basename
@@ -120,8 +124,22 @@ local function ConstructPrefixedName (ghInfo)
 		local prefixClr = prefixColor[prefixKey] or "\255\166\166\166"
 		prefix = prefixClr .. prefixKey .. "     "
 	end
-	-- Cache random color generation
-	local r, g, b = mathRandom(125, 255), mathRandom(125, 255), mathRandom(125, 255)
+	-- Cache random color generation with more contrast
+	local r, g, b = mathRandom(30, 255), mathRandom(30, 255), mathRandom(30, 255)
+	-- Ensure at least one channel is bright for visibility and prevent too dark colors
+	local maxChannel = mathMax(r, g, b)
+	if maxChannel < 150 then
+		-- If all channels are too dark, make at least one bright
+		local brightChannel = mathRandom(1, 3)
+		if brightChannel == 1 then
+			r = mathRandom(180, 255)
+		elseif brightChannel == 2 then
+			g = mathRandom(180, 255)
+		else
+			b = mathRandom(180, 255)
+		end
+	end
+	widgetNameColors[gadgetName] = {r / 255, g / 255, b / 255}  -- Store normalized RGB
 	prefixedWnames[gadgetName] = prefix .. stringChar(255, r, g, b) .. gadgetName .. "   "
 	return prefixedWnames[gadgetName]
 end
@@ -407,6 +425,46 @@ function GetRedColourStrings(v)
 	v.spaceColourString = ColorString(1, spaceColorFactor, spaceColorFactor)
 end
 
+-- Helper function to render percentage with dimmed leading zeros
+local function DrawPercentWithDimmedZeros(colorString, value, x, y, fontSize, decimalPlaces)
+	local formatStr = '%.' .. (decimalPlaces or 3) .. 'f%%'
+	local formatted = stringFormat(formatStr, value)
+	local leadingPart, significantPart = stringMatch(formatted, '^(0%.0*)(.+)$')
+
+	if leadingPart then
+		-- Has leading zeros - render them dimmed
+		glText(colorString .. '\255\140\140\140' .. leadingPart, x, y, fontSize, "no")
+		local leadingWidth = glGetTextWidth(leadingPart) * fontSize
+		glText(colorString .. significantPart, x + leadingWidth, y, fontSize, "no")
+	else
+		-- No leading zeros - render normally
+		glText(colorString .. formatted, x, y, fontSize, "no")
+	end
+end
+
+-- Helper function to render memory allocation with dimmed leading zeros
+local function DrawMemoryWithDimmedZeros(colorString, value, x, y, fontSize, decimalPlaces, suffix)
+	local formatStr = '%.' .. (decimalPlaces or 1) .. 'f'
+	local formatted = stringFormat(formatStr, value)
+
+	-- Check if value is 0.0 (all zeros)
+	if tonumber(formatted) == 0 then
+		-- Render entire "0.0" dimmed
+		glText(colorString .. '\255\150\150\150' .. formatted .. suffix, x, y, fontSize, "no")
+	else
+		local leadingPart, significantPart = stringMatch(formatted, '^(0%.0*)(.+)$')
+		if leadingPart then
+			-- Has leading zeros - render them dimmed
+			glText(colorString .. '\255\150\150\150' .. leadingPart, x, y, fontSize, "no")
+			local leadingWidth = glGetTextWidth(leadingPart) * fontSize
+			glText(colorString .. significantPart .. suffix, x + leadingWidth, y, fontSize, "no")
+		else
+			-- No leading zeros - render normally
+			glText(colorString .. formatted .. suffix, x, y, fontSize, "no")
+		end
+	end
+end
+
 function DrawWidgetList(list, name, x, y, j, fontSize, lineSpace, maxLines, colWidth, dataColWidth)
 	if j >= maxLines - 5 then
 		x = x - colWidth;
@@ -423,14 +481,31 @@ function DrawWidgetList(list, name, x, y, j, fontSize, lineSpace, maxLines, colW
 			j = 0;
 		end
 		local v = list[i]
-		glText(v.timeColourString .. stringFormat('%.3f%%', v.tLoad), x, y - lineSpace * j, fontSize, "no")
-		glText(v.spaceColourString .. stringFormat('%.1f', v.sLoad) .. 'kB/s', x + dataColWidth, y - lineSpace * j, fontSize, "no")
+
+		-- Draw tinted background and colored square for widget line
+		local color = widgetNameColors[v.name]
+		if color then
+			local textY = y - lineSpace * j
+
+			-- Draw opaque colored square on the left
+			glColor(color[1], color[2], color[3], 1.0)
+			glRect(x - 12, textY - 3, x - 5, textY + fontSize - 3)
+
+			-- Draw subtle tinted background across the whole line
+			glColor(color[1], color[2], color[3], 0.25)
+			glRect(x - 5, textY - 3, x + colWidth - 15, textY + fontSize - 3)
+
+			glColor(1, 1, 1, 1)  -- Reset color
+		end
+
+		DrawPercentWithDimmedZeros(v.timeColourString, v.tLoad, x, y - lineSpace * j, fontSize)
+		DrawMemoryWithDimmedZeros(v.spaceColourString, v.sLoad, x + dataColWidth, y - lineSpace * j, fontSize, 1, 'kB/s')
 		glText(v.fullname, x + dataColWidth * 2, y - lineSpace * j, fontSize, "no")
 		j = j + 1
 	end
 
-	glText(totals_colour .. stringFormat('%.2f%%', list.allOverTime), x, y - lineSpace * j, fontSize, "no")
-	glText(totals_colour .. stringFormat('%.0f', list.allOverSpace) .. 'kB/s', x + dataColWidth, y - lineSpace * j, fontSize, "no")
+	DrawPercentWithDimmedZeros(totals_colour, list.allOverTime, x, y - lineSpace * j, fontSize, 2)
+	DrawMemoryWithDimmedZeros(totals_colour, list.allOverSpace, x + dataColWidth, y - lineSpace * j, fontSize, 0, 'kB/s')
 	glText(totals_colour .. "totals (" .. stringLower(name) .. ")", x + dataColWidth * 2, y - lineSpace * j, fontSize, "no")
 	j = j + 1
 

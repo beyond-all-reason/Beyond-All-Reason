@@ -623,7 +623,7 @@ WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pb
 
 	-- Layer 10: White feathered inner outline
 	local outlineWidth = 2
-	local outlineAlpha = opaque and 0.15 or 0.07
+	local outlineAlpha = opaque and 0.2 or 0.11
 	WG.FlowUI.Draw.RectRoundOutline(
 		px + pxPad, py + pyPad, sx - sxPad, sy - syPad,
 		cs, outlineWidth,
@@ -677,7 +677,6 @@ WG.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr
 
 	-- Layer 1: Background with gradient
 	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, tl, tr, br, bl, color1, color2)
-
 
 	-- Layer 2: Combined top gloss (merges the old top edge highlight + top half gloss + top extended gloss)
 	-- Alpha values tuned to match original brightness from overlapping layers
@@ -958,6 +957,14 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 		gl.Texture(false)
 	end
 
+	-- Layer 1.1: background base outline (feathered)
+	local baseOutlineWidth = mathMax(1, mathFloor(((sx-px) + (sy-py)) * 0.022))
+	WG.FlowUI.Draw.RectRoundOutline(
+		px-baseOutlineWidth, py-baseOutlineWidth, sx+baseOutlineWidth, sy+baseOutlineWidth, cs*2, baseOutlineWidth,
+		tl, tr, br, bl,
+		{ 0, 0, 0, 0 }, { 0, 0, 0, 0.22 }
+	)
+
 	-- Layer 2: Darken bottom gradient (creates depth)
 	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 0, 0, 1, 1, { 0, 0, 0, 0.2 }, { 0, 0, 0, 0 })
 
@@ -1112,15 +1119,22 @@ end
 WG.FlowUI.Draw.SliderKnob = function(x, y, radius, color)
 	local color = color or {0.95,0.95,0.95,1}
 	local color1 = {color[1]*0.55, color[2]*0.55, color[3]*0.55, color[4]}
-	local edgeWidth = mathMax(1, mathFloor(radius * 0.05))
 	local cs = mathMax(1.1, radius*0.15)
 
 	-- faint dark outline edge
-	WG.FlowUI.Draw.RectRound(x-radius-edgeWidth, y-radius-edgeWidth, x+radius+edgeWidth, y+radius+edgeWidth, cs, 1,1,1,1, {0,0,0,0.1})
+	local edgeWidth = mathMax(1, mathFloor(radius * 0.05))
+	WG.FlowUI.Draw.RectRound(x-radius-edgeWidth, y-radius-edgeWidth, x+radius+edgeWidth, y+radius+edgeWidth, cs, 1,1,1,1, {0,0,0,0.12})
+	local edgeWidth = mathMax(2, mathFloor(radius * 0.3))
+	WG.FlowUI.Draw.RectRoundOutline(x-radius-edgeWidth, y-radius-edgeWidth, x+radius+edgeWidth, y+radius+edgeWidth, cs, edgeWidth, 1, 1, 1, 1, {0,0,0,0}, {0,0,0,0.17})
 	-- knob
 	WG.FlowUI.Draw.RectRound(x-radius, y-radius, x+radius, y+radius, cs, 1,1,1,1, color1, color)
+
 	-- lighten knob inside edges
-	WG.FlowUI.Draw.RectRoundCircle(x, y, radius, cs*0.5, radius*0.85, {1,1,1,0.1})
+	gl.Blending(GL.SRC_ALPHA, GL.ONE)
+	local innerOutlineWidth = radius * 0.17
+	WG.FlowUI.Draw.RectRoundOutline(x-radius, y-radius, x+radius, y+radius, cs, innerOutlineWidth, 1, 1, 1, 1, {1,1,1,0.22}, {1,1,1,0})
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+
 end
 
 --[[

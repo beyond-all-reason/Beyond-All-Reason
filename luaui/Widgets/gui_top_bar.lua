@@ -86,6 +86,7 @@ local tidalWaveAnimationHeight = 10
 local windRotation = 0
 local minWind = Game.windMin
 local maxWind = Game.windMax
+local windFunctions = VFS.Include('common/wind_functions.lua')
 
 -- Commanders
 local allyComs = 0
@@ -139,7 +140,7 @@ local xPos = mathFloor(vsx * relXpos)
 local showButtons = true
 local autoHideButtons = false
 local showResourceBars = true
-local widgetSpaceMargin, bgpadding, RectRound, TexturedRectRound, UiElement, UiButton, UiSliderKnob
+local widgetSpaceMargin, bgpadding, RectRound, RectRoundOutline, TexturedRectRound, UiElement, UiButton, UiSliderKnob
 local updateRes = { metal = {false,false,false,false}, energy = {false,false,false,false} }
 
 -- Display Lists
@@ -246,6 +247,7 @@ function widget:ViewResize()
 	widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding
 	RectRound = WG.FlowUI.Draw.RectRound
+	RectRoundOutline = WG.FlowUI.Draw.RectRoundOutline
 	TexturedRectRound = WG.FlowUI.Draw.TexturedRectRound
 	UiElement = WG.FlowUI.Draw.Element
 	UiButton = WG.FlowUI.Draw.Button
@@ -394,21 +396,12 @@ local function updateComs(forceText)
 end
 
 local function updateWindRisk()
-	-- precomputed percentage of time wind is less than 6, from wind random monte carlo simulation, given minWind and maxWind
-	local riskWind = {[0]={[1]="100",[2]="100",[3]="100",[4]="100",[5]="100",[6]="100",[7]="56",[8]="42",[9]="33",[10]="27",[11]="22",[12]="18.5",[13]="15.8",[14]="13.6",[15]="11.8",[16]="10.4",[17]="9.2",[18]="8.2",[19]="7.4",[20]="6.7",[21]="6.0",[22]="5.5",[23]="5.0",[24]="4.6",[25]="4.3",[26]="4.0",[27]="3.7",[28]="3.4",[29]="3.2",[30]="3.0",},[1]={[2]="100",[3]="100",[4]="100",[5]="100",[6]="100",[7]="56",[8]="42",[9]="33",[10]="27",[11]="22",[12]="18.5",[13]="15.7",[14]="13.6",[15]="11.8",[16]="10.4",[17]="9.2",[18]="8.2",[19]="7.4",[20]="6.7",[21]="6.0",[22]="5.5",[23]="5.0",[24]="4.6",[25]="4.3",[26]="4.0",[27]="3.7",[28]="3.4",[29]="3.2",[30]="3.0",},[2]={[3]="100",[4]="100",[5]="100",[6]="100",[7]="55",[8]="42",[9]="33",[10]="27",[11]="22",[12]="18.4",[13]="15.6",[14]="13.5",[15]="11.8",[16]="10.4",[17]="9.2",[18]="8.2",[19]="7.4",[20]="6.6",[21]="6.0",[22]="5.5",[23]="5.0",[24]="4.6",[25]="4.3",[26]="3.9",[27]="3.6",[28]="3.4",[29]="3.1",[30]="2.9",},[3]={[4]="100",[5]="100",[6]="100",[7]="53",[8]="40",[9]="32",[10]="25",[11]="21",[12]="17.8",[13]="15.2",[14]="13.2",[15]="11.5",[16]="10.2",[17]="9.1",[18]="8.1",[19]="7.3",[20]="6.6",[21]="6.0",[22]="5.4",[23]="5.0",[24]="4.6",[25]="4.2",[26]="3.9",[27]="3.6",[28]="3.4",[29]="3.1",[30]="2.9",},[4]={[5]="100",[6]="100",[7]="49",[8]="36",[9]="29",[10]="23",[11]="19.4",[12]="16.4",[13]="14.0",[14]="12.2",[15]="10.8",[16]="9.6",[17]="8.6",[18]="7.7",[19]="7.0",[20]="6.3",[21]="5.8",[22]="5.3",[23]="4.8",[24]="4.4",[25]="4.1",[26]="3.8",[27]="3.5",[28]="3.3",[29]="3.0",[30]="2.8",},[5]={[6]="100",[7]="41",[8]="30",[9]="24",[10]="19.5",[11]="16.2",[12]="13.9",[13]="11.9",[14]="10.4",[15]="9.3",[16]="8.3",[17]="7.5",[18]="6.8",[19]="6.2",[20]="5.7",[21]="5.2",[22]="4.8",[23]="4.4",[24]="4.1",[25]="3.8",[26]="3.5",[27]="3.2",[28]="3.0",[29]="2.8",[30]="2.6",},[6]={[7]="16.0",[8]="12.4",[9]="10.5",[10]="9.0",[11]="8.0",[12]="7.3",[13]="6.6",[14]="6.0",[15]="5.5",[16]="5.1",[17]="4.7",[18]="4.4",[19]="4.2",[20]="3.9",[21]="3.6",[22]="3.4",[23]="3.2",[24]="3.0",[25]="2.8",[26]="2.7",[27]="2.5",[28]="2.4",[29]="2.2",[30]="2.1",},}
-
-	-- pull wind risk from precomputed table, if it exists
-	if riskWind[minWind] then riskWindValue = riskWind[minWind][maxWind] end
-
-	-- fallback approximation
-	if not riskWindValue then
-		if minWind + maxWind >= 0.5 then riskWindValue = "0" else riskWindValue = "100" end
-	end
+	riskWindValue = windFunctions.getWindRisk()
 end
 
 local function updateAvgWind()
 	-- precomputed average wind values, from wind random monte carlo simulation, given minWind and maxWind
-	local avgWind = {[0]={[1]="0.8",[2]="1.5",[3]="2.2",[4]="3.0",[5]="3.7",[6]="4.5",[7]="5.2",[8]="6.0",[9]="6.7",[10]="7.5",[11]="8.2",[12]="9.0",[13]="9.7",[14]="10.4",[15]="11.2",[16]="11.9",[17]="12.7",[18]="13.4",[19]="14.2",[20]="14.9",[21]="15.7",[22]="16.4",[23]="17.2",[24]="17.9",[25]="18.6",[26]="19.2",[27]="19.6",[28]="20.0",[29]="20.4",[30]="20.7",},[1]={[2]="1.6",[3]="2.3",[4]="3.0",[5]="3.8",[6]="4.5",[7]="5.2",[8]="6.0",[9]="6.7",[10]="7.5",[11]="8.2",[12]="9.0",[13]="9.7",[14]="10.4",[15]="11.2",[16]="11.9",[17]="12.7",[18]="13.4",[19]="14.2",[20]="14.9",[21]="15.7",[22]="16.4",[23]="17.2",[24]="17.9",[25]="18.6",[26]="19.2",[27]="19.6",[28]="20.0",[29]="20.4",[30]="20.7",},[2]={[3]="2.6",[4]="3.2",[5]="3.9",[6]="4.6",[7]="5.3",[8]="6.0",[9]="6.8",[10]="7.5",[11]="8.2",[12]="9.0",[13]="9.7",[14]="10.5",[15]="11.2",[16]="12.0",[17]="12.7",[18]="13.4",[19]="14.2",[20]="14.9",[21]="15.7",[22]="16.4",[23]="17.2",[24]="17.9",[25]="18.6",[26]="19.2",[27]="19.6",[28]="20.0",[29]="20.4",[30]="20.7",},[3]={[4]="3.6",[5]="4.2",[6]="4.8",[7]="5.5",[8]="6.2",[9]="6.9",[10]="7.6",[11]="8.3",[12]="9.0",[13]="9.8",[14]="10.5",[15]="11.2",[16]="12.0",[17]="12.7",[18]="13.5",[19]="14.2",[20]="15.0",[21]="15.7",[22]="16.4",[23]="17.2",[24]="17.9",[25]="18.7",[26]="19.2",[27]="19.7",[28]="20.0",[29]="20.4",[30]="20.7",},[4]={[5]="4.6",[6]="5.2",[7]="5.8",[8]="6.4",[9]="7.1",[10]="7.8",[11]="8.5",[12]="9.2",[13]="9.9",[14]="10.6",[15]="11.3",[16]="12.1",[17]="12.8",[18]="13.5",[19]="14.3",[20]="15.0",[21]="15.7",[22]="16.5",[23]="17.2",[24]="18.0",[25]="18.7",[26]="19.2",[27]="19.7",[28]="20.1",[29]="20.4",[30]="20.7",},[5]={[6]="5.5",[7]="6.1",[8]="6.8",[9]="7.4",[10]="8.0",[11]="8.7",[12]="9.4",[13]="10.1",[14]="10.8",[15]="11.5",[16]="12.2",[17]="12.9",[18]="13.6",[19]="14.4",[20]="15.1",[21]="15.8",[22]="16.5",[23]="17.3",[24]="18.0",[25]="18.8",[26]="19.3",[27]="19.7",[28]="20.1",[29]="20.4",[30]="20.7",},[6]={[7]="6.5",[8]="7.1",[9]="7.7",[10]="8.4",[11]="9.0",[12]="9.7",[13]="10.3",[14]="11.0",[15]="11.7",[16]="12.4",[17]="13.1",[18]="13.8",[19]="14.5",[20]="15.2",[21]="15.9",[22]="16.7",[23]="17.4",[24]="18.1",[25]="18.8",[26]="19.4",[27]="19.8",[28]="20.2",[29]="20.5",[30]="20.8",},[7]={[8]="7.5",[9]="8.1",[10]="8.7",[11]="9.3",[12]="10.0",[13]="10.6",[14]="11.3",[15]="11.9",[16]="12.6",[17]="13.3",[18]="14.0",[19]="14.7",[20]="15.4",[21]="16.1",[22]="16.8",[23]="17.5",[24]="18.2",[25]="19.0",[26]="19.5",[27]="19.9",[28]="20.3",[29]="20.6",[30]="20.9",},[8]={[9]="8.5",[10]="9.1",[11]="9.7",[12]="10.3",[13]="11.0",[14]="11.6",[15]="12.2",[16]="12.9",[17]="13.6",[18]="14.2",[19]="14.9",[20]="15.6",[21]="16.3",[22]="17.0",[23]="17.7",[24]="18.4",[25]="19.1",[26]="19.6",[27]="20.0",[28]="20.4",[29]="20.7",[30]="21.0",},[9]={[10]="9.5",[11]="10.1",[12]="10.7",[13]="11.3",[14]="11.9",[15]="12.6",[16]="13.2",[17]="13.8",[18]="14.5",[19]="15.2",[20]="15.8",[21]="16.5",[22]="17.2",[23]="17.9",[24]="18.6",[25]="19.3",[26]="19.8",[27]="20.2",[28]="20.5",[29]="20.8",[30]="21.1",},[10]={[11]="10.5",[12]="11.1",[13]="11.7",[14]="12.3",[15]="12.9",[16]="13.5",[17]="14.2",[18]="14.8",[19]="15.4",[20]="16.1",[21]="16.8",[22]="17.4",[23]="18.1",[24]="18.8",[25]="19.5",[26]="20.0",[27]="20.4",[28]="20.7",[29]="21.0",[30]="21.2",},[11]={[12]="11.5",[13]="12.1",[14]="12.7",[15]="13.3",[16]="13.9",[17]="14.5",[18]="15.1",[19]="15.8",[20]="16.4",[21]="17.1",[22]="17.7",[23]="18.4",[24]="19.1",[25]="19.7",[26]="20.2",[27]="20.6",[28]="20.9",[29]="21.2",[30]="21.4",},[12]={[13]="12.5",[14]="13.1",[15]="13.6",[16]="14.2",[17]="14.9",[18]="15.5",[19]="16.1",[20]="16.7",[21]="17.4",[22]="18.0",[23]="18.7",[24]="19.3",[25]="20.0",[26]="20.4",[27]="20.8",[28]="21.1",[29]="21.4",[30]="21.6",},[13]={[14]="13.5",[15]="14.1",[16]="14.6",[17]="15.2",[18]="15.8",[19]="16.5",[20]="17.1",[21]="17.7",[22]="18.4",[23]="19.0",[24]="19.6",[25]="20.3",[26]="20.7",[27]="21.1",[28]="21.4",[29]="21.6",[30]="21.8",},[14]={[15]="14.5",[16]="15.0",[17]="15.6",[18]="16.2",[19]="16.8",[20]="17.4",[21]="18.1",[22]="18.7",[23]="19.3",[24]="20.0",[25]="20.6",[26]="21.0",[27]="21.3",[28]="21.6",[29]="21.8",[30]="22.0",},[15]={[16]="15.5",[17]="16.0",[18]="16.6",[19]="17.2",[20]="17.8",[21]="18.4",[22]="19.0",[23]="19.6",[24]="20.3",[25]="20.9",[26]="21.3",[27]="21.6",[28]="21.9",[29]="22.1",[30]="22.3",},[16]={[17]="16.5",[18]="17.0",[19]="17.6",[20]="18.2",[21]="18.8",[22]="19.4",[23]="20.0",[24]="20.6",[25]="21.3",[26]="21.7",[27]="21.9",[28]="22.2",[29]="22.4",[30]="22.5",},[17]={[18]="17.5",[19]="18.0",[20]="18.6",[21]="19.2",[22]="19.8",[23]="20.4",[24]="21.0",[25]="21.6",[26]="22.0",[27]="22.3",[28]="22.5",[29]="22.7",[30]="22.8",},[18]={[19]="18.5",[20]="19.0",[21]="19.6",[22]="20.2",[23]="20.8",[24]="21.4",[25]="22.0",[26]="22.4",[27]="22.6",[28]="22.8",[29]="23.0",[30]="23.1",},[19]={[20]="19.5",[21]="20.0",[22]="20.6",[23]="21.2",[24]="21.8",[25]="22.4",[26]="22.7",[27]="22.9",[28]="23.1",[29]="23.2",[30]="23.4",},[20]={[21]="20.4",[22]="21.0",[23]="21.6",[24]="22.2",[25]="22.8",[26]="23.1",[27]="23.3",[28]="23.4",[29]="23.6",[30]="23.7",},[21]={[22]="21.4",[23]="22.0",[24]="22.6",[25]="23.2",[26]="23.5",[27]="23.6",[28]="23.8",[29]="23.9",[30]="24.0",},[22]={[23]="22.4",[24]="23.0",[25]="23.6",[26]="23.8",[27]="24.0",[28]="24.1",[29]="24.2",[30]="24.2",},[23]={[24]="23.4",[25]="24.0",[26]="24.2",[27]="24.4",[28]="24.4",[29]="24.5",[30]="24.5",},[24]={[25]="24.4",[26]="24.6",[27]="24.7",[28]="24.7",[29]="24.8",[30]="24.8",},}
+	local avgWind = windFunctions.averageWindLookup
 
 	-- pull average wind from precomputed table, if it exists
 	if avgWind[minWind] then avgWindValue = avgWind[minWind][maxWind] end
@@ -441,7 +434,7 @@ local function updateWind()
 		if not useRenderToTexture then
 			-- min and max wind
 			local fontsize = (height / 3.7) * widgetScale
-			if minWind+maxWind >= 0.5 then
+			if not windFunctions.isNoWind() then
 				font2:Begin(useRenderToTexture)
 				font2:SetOutlineColor(0,0,0,1)
 				font2:Print("\255\210\210\210" .. minWind, windArea[3] - (2.8 * widgetScale), windArea[4] - (4.5 * widgetScale) - (fontsize / 2), fontsize, 'or')
@@ -461,7 +454,8 @@ local function updateWind()
 	end)
 
 	if WG['tooltip'] and refreshUi then
-		WG['tooltip'].AddTooltip('wind', area, Spring.I18N('ui.topbar.windspeedTooltip', { avgWindValue = avgWindValue, riskWindValue = riskWindValue, warnColor = textWarnColor }), nil, Spring.I18N('ui.topbar.windspeed'))
+		local avgWindValueForTooltip = windFunctions.isNoWind() and Spring.I18N('ui.topbar.wind.nowind1') or avgWindValue
+		WG['tooltip'].AddTooltip('wind', area, Spring.I18N('ui.topbar.windspeedTooltip', { avgWindValue = avgWindValueForTooltip, riskWindValue = riskWindValue, warnColor = textWarnColor }), nil, Spring.I18N('ui.topbar.windspeed'))
 	end
 end
 
@@ -656,6 +650,7 @@ local function updateResbarText(res, force)
 
 						RectRound(resbarArea[res][3] - textWidth, resbarArea[res][4] - 15.5 * widgetScale, resbarArea[res][3], resbarArea[res][4], 3.7 * widgetScale, 0, 0, 1, 1, color1, color2)
 						RectRound(resbarArea[res][3] - textWidth + bgpadding2, resbarArea[res][4] - 15.5 * widgetScale + bgpadding2, resbarArea[res][3] - bgpadding2, resbarArea[res][4], 2.8 * widgetScale, 0, 0, 1, 1, color3, color4)
+						RectRoundOutline(resbarArea[res][3] - textWidth + bgpadding2, resbarArea[res][4] - 15.5 * widgetScale + bgpadding2, resbarArea[res][3] - bgpadding2, resbarArea[res][4]+10, 2.8 * widgetScale, bgpadding2*1.33, 0, 0, 1, 1, {1, 1, 1, 0.15}, {1, 1, 1, 0})
 
 						font2:Begin(useRenderToTexture)
 						font2:SetTextColor(1, 0.88, 0.88, 1)
@@ -789,33 +784,34 @@ local function updateResbar(res)
 		RectRound(barArea[1] - edgeWidth + borderSize, barArea[2] - edgeWidth + borderSize, barArea[3] + edgeWidth - borderSize, barArea[4] + edgeWidth - borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0,0,0, 0.15 }, { 0,0,0, 0.2 })
 
 		-- bar dark outline
-		local featherHeight = addedSize*5.5
+		local featherHeight = addedSize*4
 		WG.FlowUI.Draw.RectRoundOutline(
 			barArea[1] - addedSize - featherHeight - edgeWidth, barArea[2] - addedSize - featherHeight - edgeWidth, barArea[3] + addedSize + featherHeight + edgeWidth, barArea[4] + addedSize + featherHeight + edgeWidth,
 			barHeight * 0.8, featherHeight,
 			1,1,1,1,
-			{ 0,0,0, 0 }, { 0,0,0, 0.2 }
+			{ 0,0,0, 0 }, { 0,0,0, 0.22 }
 		)
 		featherHeight = addedSize
 		WG.FlowUI.Draw.RectRoundOutline(
 			barArea[1] - addedSize - featherHeight - edgeWidth, barArea[2] - addedSize - featherHeight - edgeWidth, barArea[3] + addedSize + featherHeight + edgeWidth, barArea[4] + addedSize + featherHeight + edgeWidth,
 			featherHeight*1.5, featherHeight,
 			1,1,1,1,
-			{ 0,0,0, 0 }, { 0,0,0, 0.6 }
+			{ 0,0,0, 0 }, { 0,0,0, 0.66 }
 		)
+
 		-- bar inner light outline
 		WG.FlowUI.Draw.RectRoundOutline(
 			barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth,
 			barHeight * 0.33, barHeight * 0.1,
 			1,1,1,1,
-			{ 1, 1, 1, 0.27 }, { 1, 1, 1, 0 }
+			{ 1, 1, 1, 0.3 }, { 1, 1, 1, 0 }
 		)
 
+		glBlending(GL.SRC_ALPHA, GL.ONE)
 		glTexture(textures.noiseBackground)
-		gl.Color(1,1,1, 0.75)
+		gl.Color(1,1,1, 0.88)
 		TexturedRectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, barWidth*0.33, 0)
 		glTexture(false)
-		glBlending(GL.SRC_ALPHA, GL.ONE)
 		RectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0.1 })
 		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 1, 1, { 0.15, 0.15, 0.15, 0.17 }, { 0.8, 0.8, 0.8, 0.13 })
 		-- -- gloss
@@ -1718,7 +1714,7 @@ local function drawUi()
 
 	-- min and max wind
 	local fontsize = (height / 3.7) * widgetScale
-	if minWind+maxWind >= 0.5 then
+	if not windFunctions.isNoWind() then
 		font2:Begin(useRenderToTexture)
 		font2:Print("\255\210\210\210" .. minWind, windArea[3] - (2.8 * widgetScale), windArea[4] - (4.5 * widgetScale) - (fontsize / 2), fontsize, 'or')
 		font2:Print("\255\210\210\210" .. maxWind, windArea[3] - (2.8 * widgetScale), windArea[2] + (4.5 * widgetScale), fontsize, 'or')
@@ -1861,7 +1857,7 @@ function widget:DrawScreen()
 
 		-- current wind
 		if not useRenderToTexture then
-			if gameFrame > 0 and minWind+maxWind >= 0.5 then
+			if gameFrame > 0 and not windFunctions.isNoWind() then
 				if not dlistWindText[currentWind] then
 					local fontSize = (height / 2.66) * widgetScale
 					dlistWindText[currentWind] = glCreateList(function()
@@ -1887,7 +1883,7 @@ function widget:DrawScreen()
 	end
 
 	-- current wind
-	if gameFrame > 0 and (minWind+maxWind >= 0.5 or refreshUi) then
+	if gameFrame > 0 and not windFunctions.isNoWind() then
 		if useRenderToTexture then
 			if currentWind ~= prevWind or refreshUi then
 				prevWind = currentWind
