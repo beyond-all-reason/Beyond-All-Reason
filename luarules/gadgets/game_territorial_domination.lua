@@ -16,25 +16,25 @@ local isSynced = gadgetHandler:IsSyncedCode()
 if modOptions.deathmode ~= "territorial_domination" or not isSynced then return false end
 
 local territorialDominationConfig = {
-	["18-Minutes"] = {
+	["18_minutes"] = {
 		maxRounds = 3,
 		minutesPerRound = 6,
 	},
-	["24-Minutes"] = {
+	["24_minutes"] = {
 		maxRounds = 4,
 		minutesPerRound = 6,
 	},
-	["30-Minutes"] = {
+	["30_minutes"] = {
 		maxRounds = 5,
 		minutesPerRound = 6,
 	},
-	["42-Minutes"] = {
+	["42_minutes"] = {
 		maxRounds = 7,
 		minutesPerRound = 6,
 	}
 }
 
-local config = territorialDominationConfig[modOptions.territorial_domination_config] or territorialDominationConfig["30-Minutes"]
+local config = territorialDominationConfig[modOptions.territorial_domination_config] or territorialDominationConfig["30_minutes"]
 local MAX_ROUNDS = config.maxRounds
 local ROUND_SECONDS = 60 * config.minutesPerRound
 local DEBUGMODE = false
