@@ -1641,6 +1641,19 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 	end
+
+	-- Deduplicate buildoptions (various modoptions or later mods can add the same units)
+	if uDef.buildoptions then
+		local seen = {}
+		local dedupedBuildoptions = {}
+		for _, unitName in ipairs(uDef.buildoptions) do
+			if not seen[unitName] then
+				seen[unitName] = true
+				dedupedBuildoptions[#dedupedBuildoptions + 1] = unitName
+			end
+		end
+		uDef.buildoptions = dedupedBuildoptions
+	end
 end
 
 local function ProcessSoundDefaults(wd)
