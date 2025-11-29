@@ -1,0 +1,9 @@
+package = "Beyond All Reason"
+version = "0.1.0"
+lua = "=5.1"
+
+[description]
+summary = "Beyond All Reason Game Code."
+maintainer = "BAR Team"
+labels = [ "BAR" ]
+license = "GPLv2"
