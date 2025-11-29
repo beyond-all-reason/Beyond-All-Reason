@@ -16,6 +16,9 @@ function BuildingsHST:Init()
 	self.roles = {}
 	self.allyMex = {}
 	self:DontBuildOnMetalOrGeoSpots()
+
+	-- Shared rectangle helper so we can test pure logic without spinning up AI.
+	self.factoryRect = VFS.Include('common/stai_factory_rect.lua')
 end
 
 function BuildingsHST:GetFacing(p)
@@ -498,13 +501,22 @@ end
 
 function BuildingsHST:CalculateRect(rect)
 	local unitName = rect.unitName
-	if self.ai.armyhst.factoryExitSides[unitName] ~= nil and self.ai.armyhst.factoryExitSides[unitName] ~= 0 then
+	local unitTable = self.ai.armyhst.unitTable
+	local outsets = self.factoryRect.getOutsets(unitName, unitTable, self.ai.armyhst.factoryExitSides)
+
+	-- Known exit side -> factory lane handling
+	if outsets == nil and self.ai.armyhst.factoryExitSides[unitName] ~= nil and self.ai.armyhst.factoryExitSides[unitName] ~= 0 then
 		self:CalculateFactoryLane(rect)
 		return
 	end
+
+	-- Default / factory apron path.
 	local position = rect.position
-	local outX = self.ai.armyhst.unitTable[unitName].xsize * 4
-	local outZ = self.ai.armyhst.unitTable[unitName].zsize * 4
+	local outX = outsets and outsets.outX
+	local outZ = outsets and outsets.outZ
+	if not outX or not outZ then
+		return
+	end
 	rect.x1 = position.x - outX
 	rect.z1 = position.z - outZ
 	rect.x2 = position.x + outX
