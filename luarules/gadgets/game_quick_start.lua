@@ -283,6 +283,8 @@ local function getCommanderBuildQueue(commanderID)
 	local comData = commanders[commanderID]
 	local commands = spGetUnitCommands(commanderID, ALL_COMMANDS)
 	local totalBudgetCost = 0
+	local discountUsedLocal = commanderFactoryDiscounts[commanderID]
+
 	for i, cmd in ipairs(commands) do
 		if isBuildCommand(cmd.id) then
 			local unitDefID = -cmd.id
@@ -292,28 +294,30 @@ local function getCommanderBuildQueue(commanderID)
 			local isTraversable = traversabilityGrid.canMoveToPosition(commanderID, spawnParams.x, spawnParams.z, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
 
 			if distance <= INSTANT_BUILD_RANGE and isTraversable then
+				local budgetCost = defMetergies[unitDefID] or 0
+				
+				local currentDiscount = 0
+				if shouldApplyFactoryDiscount and unitDef.isFactory and not discountUsedLocal then
+					currentDiscount = FACTORY_DISCOUNT
+				end
+				
+				budgetCost = max(budgetCost - currentDiscount, 0)
+				
+				if currentDiscount > 0 then
+					discountUsedLocal = true
+				end
+
 				table.insert(spawnQueue, spawnParams)
 				comData.hasBuildsIntercepted = true
-				if cmd.tag then
-					table.insert(commandsToRemove, cmd.tag)
-				end
-				local unitDefID = -cmd.id
-				local unitDef = unitDefs[unitDefID]
-				local budgetCost = defMetergies[unitDefID] or 0
-				budgetCost = max(budgetCost - getFactoryDiscount(unitDef, commanderID), 0)
-
-				local affordableCost = min(budgetCost, comData.budget - totalBudgetCost)
-				if affordableCost > 0 then
-					table.insert(spawnQueue, spawnParams)
-					if cmd.tag then
-						table.insert(commandsToRemove, cmd.tag)
-					end
-					totalBudgetCost = totalBudgetCost + affordableCost
-				end
-
-				if totalBudgetCost >= comData.budget then
+				
+				totalBudgetCost = totalBudgetCost + budgetCost
+				if totalBudgetCost > comData.budget then
 					comData.commandsToRemove = commandsToRemove
 					return spawnQueue
+				end
+				
+				if cmd.tag then
+					table.insert(commandsToRemove, cmd.tag)
 				end
 			end
 		end
@@ -941,6 +945,7 @@ function gadget:Initialize()
 			local unitTeam = spGetUnitTeam(unitID)
 			if boostableCommanders[unitDefinitionID] then
 				initializeCommander(unitID, unitTeam)
+				queuedCommanders[unitTeam] = nil
 			end
 		end
 	end
