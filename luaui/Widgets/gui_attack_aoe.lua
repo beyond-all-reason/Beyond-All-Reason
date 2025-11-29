@@ -73,12 +73,12 @@ local glStencilMask = gl.StencilMask
 local glStencilFunc = gl.StencilFunc
 local glStencilOp = gl.StencilOp
 local glClear = gl.Clear
+local LuaShader = gl.LuaShader
 
 local GL_LINES = GL.LINES
 local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_LINE_STRIP = GL.LINE_STRIP
 local GL_TRIANGLE_STRIP = GL.TRIANGLE_STRIP
-local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
 local GL_STENCIL_BUFFER_BIT = GL.STENCIL_BUFFER_BIT
 local GL_KEEP = GL.KEEP
 local GL_REPLACE = GL.REPLACE
@@ -90,13 +90,14 @@ local GL_NOTEQUAL = GL.NOTEQUAL
 local Config = {
 	General = {
 		gameSpeed = Game.gameSpeed,
-		minSpread = 8, -- weapons with this spread or less are ignored
+		minSpread = 8,
 	},
 	Colors = {
 		aoe = { 1, 0, 0, 1 },
+		none = { 0, 0, 0, 0 },
 		noEnergy = { 1, 1, 0, 1 },
 		juno = { 0.87, 0.94, 0.40, 1 },
-		napalm = { 0.85, 0.62, 0.28, 1 },
+		napalm = { 0.92, 0.62, 0.31, 1 },
 		emp = { 0.65, 0.65, 1, 1 },
 		scatter = { 1, 1, 0, 1 },
 		noStockpile = { 0.88, 0.88, 0.88, 1 },
@@ -111,12 +112,19 @@ local Config = {
 		pointSizeMult = 2048,
 		maxFilledCircleAlpha = 0.2,
 		minFilledCircleAlpha = 0.1,
-		ringDamageLevels = { 0.8, 0.6, 0.4, 0.2 }, -- draw aoe rings for these damage levels
+		ringDamageLevels = { 0.8, 0.6, 0.4, 0.2 },
+	},
+	BallisticArc = {
+		simStep = 4, -- Higher = less CPU, lower = smoother curve
+		alpha = 0.3, -- Base line opacity
+		maxDepth = 80, -- Depth range for color blending
+		overshoot = 0, -- Draw 20% past the target
+		startFadeGap = 100, -- Distance from muzzle before line becomes visible
 	},
 	Animation = {
 		salvoSpeed = 0.1,
 		waveDuration = 0.35,
-		fadeDuration = 0, -- Calculated below
+		fadeDuration = 0,
 	}
 }
 
@@ -124,6 +132,26 @@ local Config = {
 Config.Animation.fadeDuration = 1 - Config.Animation.waveDuration
 local g = Game.gravity
 local gravityPerFrame = g / pow(Config.General.gameSpeed, 2)
+
+--------------------------------------------------------------------------------
+-- TEXTURE & SHADER STATE
+--------------------------------------------------------------------------------
+local napalmShader
+local shaderSourceCache = {
+	shaderName = 'AoE Napalm Shader',
+	vssrcpath = "LuaUI/Shaders/gui_attack_aoe_napalm.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/gui_attack_aoe_napalm.frag.glsl",
+	uniformInt = {
+		tex0 = 0,
+	},
+	uniformFloat = {
+		time = 0.0,
+		center = { 0, 0 },
+		u_color = { 1, 0, 0, 0.5 },
+	},
+	shaderConfig = {
+	}
+}
 
 --------------------------------------------------------------------------------
 -- STATE & CACHE
@@ -328,14 +356,16 @@ local function FadeColorInPlace(color, alphaMult)
 	color[4] = color[4] * alphaMult
 end
 
-local function LerpColorInPlace(sourceColor, targetColor, t, out)
+local function LerpColor(sourceColor, targetColor, t, out)
+	out = out or { 0, 0, 0, 0 }
 	out[1] = lerp(sourceColor[1], targetColor[1], t)
 	out[2] = lerp(sourceColor[2], targetColor[2], t)
 	out[3] = lerp(sourceColor[3], targetColor[3], t)
 	out[4] = lerp(sourceColor[4], targetColor[4], t)
+	return out
 end
 
-local function CopyColor(target, source)
+local function CopyColor(source, target)
 	target[1] = source[1]
 	target[2] = source[2]
 	target[3] = source[3]
@@ -576,12 +606,14 @@ local function FindBestWeapon(unitDef)
 end
 
 ---@return WeaponInfo
-local function BuildWeaponInfo(unitDef, weaponDef, weaponNum, unitDefID)
+local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 	---@class WeaponInfo
 	local info = {}
 	local weaponType = weaponDef.type
 	local scatter = weaponDef.accuracy + weaponDef.sprayAngle
 
+	info.weaponHeight = nil -- weaponY - unitY when weapon is ready to shoot. Will be cached in real time.
+	info.reloadWeaponHeightFrame = -1 -- weaponHeight will be precise only when weapon wasn't in middle of reload so have to reload it if it was cached at wrong time
 	info.aoe = weaponDef.damageAreaOfEffect
 	info.cost = unitDef.cost
 	info.mobile = unitDef.speed > 0
@@ -621,6 +653,7 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum, unitDefID)
 		info.v = weaponDef.projectilespeed * Config.General.gameSpeed
 		info.projectileCount = weaponDef.projectiles or 1
 		info.salvoSize = weaponDef.salvoSize or 1
+		info.salvoSize = weaponDef.customParams.avoidGround
 	elseif weaponType == "MissileLauncher" then
 		local turnRate = weaponDef.turnRate or 0
 		if weaponDef.wobble > turnRate * 1.5 then
@@ -679,7 +712,7 @@ local function SetupUnitDef(unitDefID, unitDef)
 		return
 	end
 
-	local info = BuildWeaponInfo(unitDef, maxWeaponDef, maxWeaponNum, unitDefID)
+	local info = BuildWeaponInfo(unitDef, maxWeaponDef, maxWeaponNum)
 
 	if maxWeaponDef.manualFire and unitDef.canManualFire then
 		State.manualWeaponInfos[unitDefID] = info
@@ -766,9 +799,9 @@ local function GetActiveUnitInfo()
 		return State.manualWeaponInfos[State.manualFireUnitDefID], State.manualFireUnitID
 	elseif ((cmd == CMD_ATTACK or cmd == CMD_UNIT_SET_TARGET or cmd == CMD_UNIT_SET_TARGET_NO_GROUND) and State.attackUnitDefID) then
 		return State.weaponInfos[State.attackUnitDefID], State.attackUnitID
+	else
+		return nil, nil
 	end
-
-	return nil, nil
 end
 
 --------------------------------------------------------------------------------
@@ -806,7 +839,7 @@ local function GetAlphaFactorForRing(minAlpha, maxAlpha, index, phase, alphaMult
 		end
 	else
 		local fadeProgress = (phase - waveDuration) / fadeDuration
-		result = lerp(minAlpha, maxAlpha, fadeProgress)
+		result = lerp(maxAlpha, minAlpha, fadeProgress)
 	end
 
 	return result * alphaMult
@@ -840,7 +873,10 @@ local function DrawAoeRange(tx, ty, tz, aoe, alphaMult, phase, color)
 	glPopMatrix()
 end
 
-local function DrawDamageRings(tx, ty, tz, aoe, edgeEffectiveness, alphaMult, phase, color)
+---@param data IndicatorDrawData
+local function DrawDamageRings(data, alphaMult, phase, color)
+	local tx, ty, tz = target.x, target.y, target.z
+	local aoe, edgeEffectiveness = data.weaponInfo.aoe, data.weaponInfo.ee
 	local damageLevels = Config.Render.ringDamageLevels
 	local triggerTimes = State.Calculated.ringWaveTriggerTimes
 
@@ -868,7 +904,7 @@ local function DrawAoe(data, baseColorOverride, targetOverride, ringAlphaMult, p
 	if edgeEffectiveness == 1 then
 		DrawAoeRange(tx, ty, tz, aoe, ringAlphaMult, phase, color)
 	else
-		DrawDamageRings(tx, ty, tz, aoe, edgeEffectiveness, ringAlphaMult, phase, color)
+		DrawDamageRings(data, ringAlphaMult, phase, color)
 	end
 
 	-- draw a max radius outline for clarity
@@ -1011,16 +1047,18 @@ local function DrawNoExplode(data, overrideSource)
 	local vertices = { { ux + wx, uy, uz + wz }, { ux + ex + wx, ty, uz + ez + wz },
 					   { ux - wx, uy, uz - wz }, { ux + ex - wx, ty, uz + ez - wz } }
 
-	local colorAoe = Config.Colors.aoe
-	local colorNoEnergy = Config.Colors.noEnergy
-	local alpha = lerp(Config.Render.minFilledCircleAlpha, 1, State.pulsePhase) * colorAoe[4]
+	local color
+	local alpha
 
 	if requiredEnergy and select(1, spGetTeamResources(spGetMyTeamID(), 'energy')) < requiredEnergy then
-		glColor(colorNoEnergy[1], colorNoEnergy[2], colorNoEnergy[3], alpha)
+		color = Config.Colors.noEnergy
+		alpha = lerp(0, 1, State.pulsePhase)
 	else
-		glColor(colorAoe[1], colorAoe[2], colorAoe[3], alpha)
+		alpha = lerp(0.5, 1, State.pulsePhase)
+		color = data.colors.base
 	end
 
+	SetColor(alpha, color)
 	glLineWidth(1 + (Config.Render.scatterLineWidthMult / data.distanceFromCamera))
 
 	glBeginEnd(GL_LINES, VertexList, vertices)
@@ -1081,6 +1119,9 @@ local function GetBallisticVector(initialSpeed, dx, dy, dz, trajectoryMode)
 	return normalize(launchVecX, launchVecY, launchVecZ)
 end
 
+--------------------------------------------
+-- TRAJECTORY ARC
+--------------------------------------------------------------------------------
 --- Calculates where a projectile with specific velocity vector will intersect the target plane
 local function GetScatterImpact(ux, uz, calc_tx, calc_tz, v_f, gravity_f, heightDiff, dirX, dirY, dirZ)
 	local velY = dirY * v_f
@@ -1122,9 +1163,10 @@ end
 
 local function DrawAnnularSectorFill(ux, uz, aimAngle, halfAngle, rMin, rMax)
 	local arcLength = rMax * halfAngle * 2
-	local segments = ceil(arcLength / 20)
-	if segments < 8 then segments = 8 end
-	if segments > 64 then segments = 64 end
+	local segments = ceil(arcLength)
+
+	if segments < 32 then segments = 32 end
+	if segments > 256 then segments = 256 end
 
 	local step = (halfAngle * 2) / segments
 
@@ -1161,10 +1203,11 @@ local function DrawBallisticScatter(data)
 	local trajectory = select(7, spGetUnitStates(aimingUnitID, false, true)) and 1 or -1
 
 	local scatter = weaponInfo.scatter
-	if scatter < 0.01 then return end
+	if scatter < 0.01 then
+		return 0
+	end
 
 	local v = weaponInfo.v
-	local isFilled = fillColor[4] > 0
 
 	-- 1. Math Setup
 	-- We calculate the physical spread at the gun's max effective range (or current target if closer).
@@ -1172,7 +1215,7 @@ local function DrawBallisticScatter(data)
 	local dx, dy, dz = calc_tx - ux, calc_ty - uy, calc_tz - uz
 	local bx, by, bz, _ = GetBallisticVector(v, dx, dy, dz, trajectory, g)
 	if not bx then
-		return
+		return 0
 	end
 
 	-- 2. Create Orthonormal Basis
@@ -1205,7 +1248,9 @@ local function DrawBallisticScatter(data)
 		scatterAlphaFactor = (naturalRadius - minScatterRadius) / (baseThreshold - minScatterRadius)
 	end
 
-	if scatterAlphaFactor <= 0 then return end
+	if scatterAlphaFactor <= 0 then
+		return 0
+	end
 
 	local maxAxisLen = naturalRadius * 2.5
 
@@ -1262,17 +1307,26 @@ local function DrawBallisticScatter(data)
 	----------------------------------------------------------------------------
 	-- DRAWING
 	----------------------------------------------------------------------------
-	SetColor(scatterAlphaFactor, lineColor)
-	glLineWidth(math.max(1, scatterLineWidthMult / data.distanceFromCamera))
 
-	glBeginEnd(GL_LINE_LOOP, VertexList, vertices)
-
-	if isFilled then
+	if weaponInfo.isNapalm then
 		BeginNoOverlap()
-		glColor(fillColor[1], fillColor[2], fillColor[3], fillColor[4] * 0.2 * scatterAlphaFactor)
-		DrawAnnularSectorFill(ux, uz, aimAngle, spreadAngle, rMin, rMax)
+		if napalmShader then
+			napalmShader:Activate()
+			napalmShader:SetUniform("time", os.clock())
+			napalmShader:SetUniform("center", tx, tz)
+			napalmShader:SetUniform("u_color", fillColor[1], fillColor[2], fillColor[3], 0.5 * scatterAlphaFactor)
+
+			DrawAnnularSectorFill(ux, uz, aimAngle, spreadAngle, rMin, rMax)
+
+			napalmShader:Deactivate()
+		end
 		EndNoOverlap()
 	end
+
+	-- 2. DRAW OUTLINE (Standard lines)
+	SetColor(scatterAlphaFactor, lineColor)
+	glLineWidth(max(1, scatterLineWidthMult / data.distanceFromCamera))
+	glBeginEnd(GL_LINE_LOOP, VertexList, vertices)
 
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
@@ -1392,7 +1446,7 @@ local function DrawWobbleScatter(data)
 	local netWobble = max(0, wobble - (turnRate * GUIDANCE_EFFICIENCY))
 
 	if netWobble <= 0.0001 then
-		return
+		return 0
 	end
 
 	-- 4. Calculate Angle
@@ -1593,7 +1647,6 @@ local function DrawDGun(data)
 	local ux, uy, uz = data.source.x, data.source.y, data.source.z
 	local tx, tz = data.target.x, data.target.z
 	local unitName = data.weaponInfo.unitname
-	local aoe = data.weaponInfo.aoe
 	local range = data.weaponInfo.range
 	local divs = Config.Render.circleDivs
 
@@ -1615,19 +1668,18 @@ local function DrawDGun(data)
 	glDepthTest(true)
 	glColor(1, 0, 0, 0.75)
 	glLineWidth(1.5)
-	glDrawGroundCircle(ux, uy, uz, range + (aoe * 0.7), divs)
+	glDrawGroundCircle(ux, uy, uz, range, divs)
 	glColor(1, 1, 1, 1)
 end
 
 --------------------------------------------------------------------------------
 -- DRAWING DISPATCH
 --------------------------------------------------------------------------------
-
 ---@param data IndicatorDrawData
 local function DrawBallistic(data)
 	local scatterAlphaFactor = DrawBallisticScatter(data)
-	local baseColorOverride = scatterAlphaFactor and GetFadedColor(data.colors.base, 1 - (scatterAlphaFactor * 0.7))
-	DrawAoe(data, baseColorOverride)
+	FadeColorInPlace(data.colors.base, 1 - (scatterAlphaFactor * 0.7))
+	DrawAoe(data)
 end
 
 ---@param data IndicatorDrawData
@@ -1638,7 +1690,7 @@ end
 
 ---@param data IndicatorDrawData
 local function DrawWobble(data)
-	local scatterAlphaFactor = DrawWobbleScatter(data) or 0
+	local scatterAlphaFactor = DrawWobbleScatter(data)
 	FadeColorInPlace(data.colors.base, 1 - (scatterAlphaFactor * 0.5))
 	DrawAoe(data)
 end
@@ -1666,12 +1718,12 @@ local WeaponTypeHandlers = {
 --------------------------------------------------------------------------------
 -- CALLINS
 --------------------------------------------------------------------------------
-
 function widget:Initialize()
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		SetupUnitDef(unitDefID, unitDef)
 	end
 	SetupDisplayLists()
+	napalmShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0)
 end
 
 function widget:Shutdown()
@@ -1721,20 +1773,20 @@ function widget:DrawWorldPreUnit()
 
 	-- Color Calculation
 	local baseColor = weaponInfo.color or Config.Colors.aoe
-	local baseFillColor = weaponInfo.color or ((weaponInfo.type == "ballistic") and GetFadedColor(Config.Colors.aoe, 0)) or Config.Colors.aoe
+	local baseFillColor = weaponInfo.color or Config.Colors.none
 	local noStockpileColor = Config.Colors.noStockpile
 	local scatterColor = Config.Colors.scatter
 
 	if weaponInfo.hasStockpile then
 		local progress = StockpileSystem.fadeProgress
-		LerpColorInPlace(noStockpileColor, baseColor, progress, aimData.colors.base)
-		LerpColorInPlace(noStockpileColor, scatterColor, progress, aimData.colors.scatter)
-		LerpColorInPlace(noStockpileColor, baseFillColor, progress, aimData.colors.fill)
+		LerpColor(noStockpileColor, baseColor, progress, aimData.colors.base)
+		LerpColor(noStockpileColor, scatterColor, progress, aimData.colors.scatter)
+		LerpColor(noStockpileColor, baseFillColor, progress, aimData.colors.fill)
 	else
 		-- Copy to avoid creating new tables
-		CopyColor(aimData.colors.base, baseColor)
-		CopyColor(aimData.colors.fill, baseFillColor)
-		CopyColor(aimData.colors.scatter, scatterColor)
+		CopyColor(baseColor, aimData.colors.base)
+		CopyColor(baseFillColor, aimData.colors.fill)
+		CopyColor(scatterColor, aimData.colors.scatter)
 	end
 
 	(WeaponTypeHandlers[weaponInfo.type] or DrawAoe)(aimData)
@@ -1747,11 +1799,11 @@ function widget:DrawWorldPreUnit()
 			buildPercent = 1
 		end
 
-		local barAlpha = 1 - StockpileSystem.fadeProgress
-		if barAlpha > 0 then
-			local barColor = { baseColor[1], baseColor[2], baseColor[3], baseColor[4] * barAlpha }
-			local barBgColor = { noStockpileColor[1], noStockpileColor[2], noStockpileColor[3], noStockpileColor[4] * barAlpha }
-			DrawStockpileProgress(aimData, buildPercent, barColor, barBgColor)
+		local loadingBarAlpha = 1 - StockpileSystem.fadeProgress
+		if loadingBarAlpha > 0 then
+			local loadingBarColor = GetFadedColor(baseColor, loadingBarAlpha)
+			local loadingBarBgColor = GetFadedColor(noStockpileColor, loadingBarAlpha)
+			DrawStockpileProgress(aimData, buildPercent, loadingBarColor, loadingBarBgColor)
 		end
 	end
 end
