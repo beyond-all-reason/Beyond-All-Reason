@@ -68,6 +68,7 @@
 			"comHeavyDamage": "Tu comandante está bajo fuego enemigo intenso",
 			"teamDownLastCommander": "Aviso: A tu equipo solo le queda un comandante.",
 			"youHaveLastCommander": "Aviso: eres el último comandante.",
+			"chooseStartLoc": "Elige tu ubicación inicial",
 			"gameStarted": "Batalla iniciada",
 			"battleEnded": "Batalla finalizada",
 			"gamePaused": "En pausa",

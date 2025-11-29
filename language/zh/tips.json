@@ -68,6 +68,7 @@
 			"comHeavyDamage": "你的指挥官正受到成吨的伤害!",
 			"teamDownLastCommander": "警告：你的团队只剩下最后一名指挥官。",
 			"youHaveLastCommander": "警告：你是最后一名指挥官。",
+			"chooseStartLoc": "请选择你的起始位置",
 			"gameStarted": "战斗开始",
 			"battleEnded": "战斗结束",
 			"gamePaused": "游戏已暂停",

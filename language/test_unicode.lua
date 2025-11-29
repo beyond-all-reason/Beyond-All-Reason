@@ -700,6 +700,7 @@ return {
 				enemyCommanderDied = "An enemy commander has died",
 				friendlyCommanderDied = "A friendly commander has died",
 				comHeavyDamage = "Your commander is receiving heavy damage",
+				chooseStartLoc = "Choose your starting location",
 				gameStarted = "started",
 				gamePause = "paused",
 				playerDisconnected = "A player has disconnected",
