@@ -120,7 +120,6 @@ function widget:Update(dt)
 
 	-- Don't do anything with cloaked units
 	if #selectedUnits == 1 and unitIsCloaked(selectedUnits[1]) then
-		clearGhostBuild()
 		return
 	end
 

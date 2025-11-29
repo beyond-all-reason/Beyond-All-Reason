@@ -22,7 +22,6 @@ return {
 		health = 2200,
 		idleautoheal = 5,
 		idletime = 1800,
-		leavesghost = true,
 		mass = 5100,
 		maxacc = 0,
 		maxdec = 4.5,

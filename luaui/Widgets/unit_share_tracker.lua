@@ -195,7 +195,7 @@ function widget:DrawScreen()
 					v[6].v[1], v[6].v[2] = sx - highlightLineMax, sy
 					v[7].v[1], v[7].v[2] = sx + highlightLineMin, sy
 					v[8].v[1], v[8].v[2] = sx + highlightLineMax, sy
-
+					
 					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 					glRect(sx - defs.highlightSize, sy - defs.highlightSize, sx + defs.highlightSize, sy + defs.highlightSize)
 					glShape(GL_LINES, v)
@@ -210,12 +210,8 @@ function widget:DrawScreen()
 						sx = sMidX - sx
 						sy = sMidY - sy
 					end
-					local xDiff = mathAbs(sx - sMidX)
-					local yDiff = mathAbs(sy - sMidY)
-					if xDiff < 0.001 then xDiff = 0.001 end
-					if yDiff < 0.001 then yDiff = 0.001 end
-					local xRatio = sMidX / xDiff
-					local yRatio = sMidY / yDiff
+					local xRatio = sMidX / mathAbs(sx - sMidX)
+					local yRatio = sMidY / mathAbs(sy - sMidY)
 					local edgeDist, textX, textY, textOptions
 					local v = edgeVertices
 					if xRatio < yRatio then
@@ -359,7 +355,7 @@ function widget:DrawInMiniMap(sx, sy)
 			else
 				local alpha = blinkAlpha(blinkOnMinimapAlphaMin, blinkOnMinimapAlphaMax)
 				glColor(defs.r, defs.g, defs.b, alpha)
-
+				
 				-- Update reusable vertex table
 				local v = minimapVertices
 				v[1].v[1], v[1].v[2] = x, y - minimapHighlightLineMin
@@ -370,7 +366,7 @@ function widget:DrawInMiniMap(sx, sy)
 				v[6].v[1], v[6].v[2] = x - minimapHighlightLineMax, y
 				v[7].v[1], v[7].v[2] = x + minimapHighlightLineMin, y
 				v[8].v[1], v[8].v[2] = x + minimapHighlightLineMax, y
-
+				
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 				glRect(x - minimapHighlightSize, y - minimapHighlightSize, x + minimapHighlightSize, y + minimapHighlightSize)
 				glShape(GL_LINES, v)

@@ -7,7 +7,7 @@ function gadget:GetInfo()
 		author = "SethDGamre",
 		date = "2024.12.7",
 		license = "GNU GPL, v2 or later",
-		layer = 1, --must layer after cmd_area_commands_filter.lua (and unit_alt_set_target_type.lua I assume?)
+		layer = 1, --must layer after unit_set_target_by_type.lua
 		enabled = true
 	}
 end
@@ -181,7 +181,7 @@ local function queueSwitchFrame(attackerID, data, defData, setState)
 		local idealAddition = defData.reloadFrames - idealSubtraction
 		local maxSubtraction = gameSpeed * 2 -- so that very slow reloading units don't refuse to switch within too large of a time frame
 		local idealFrame
-
+		
 		updatePredictedShotFrame(attackerID, data, defData)
 
 		if data.predictedShotFrame < gameFrame then
@@ -200,7 +200,7 @@ local function queueSwitchFrame(attackerID, data, defData, setState)
 			end
 
 		end
-
+		
 		data.state = setState
 		if data.state == PRIORITY_AIMINGSTATE then
 			data.switchCooldownFrame = gameFrame + priorityCooldownFrames
@@ -327,7 +327,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 				toggleState = AUTO_TOGGLESTATE
 			}
 			spCallCOBScript(unitID, smartUnits[unitID].setStateScriptID, 0, PRIORITY_AIMINGSTATE)
-
+			
 			smartUnitDefs[unitDefID].smartCmdDesc.params[1] = AUTO_TOGGLESTATE
 			spInsertUnitCmdDesc(unitID, smartUnitDefs[unitDefID].smartCmdDesc)
 		end
@@ -344,7 +344,7 @@ function gadget:GameFrame(frame)
 		for attackerID in pairs(smartUnits) do
 			updateAimingState(attackerID)
 		end
-	end
+	end 
 	local switchModeQueue = modeSwitchFrames[frame]
 	if switchModeQueue then
 		for unitID, setState in pairs(switchModeQueue) do

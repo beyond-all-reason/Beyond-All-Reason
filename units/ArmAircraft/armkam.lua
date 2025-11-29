@@ -87,7 +87,6 @@ return {
 				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:plasmahit-small",
 				firestarter = 100,
-				gravityaffected = "true",
 				impulsefactor = 0.123,
 				intensity = 0.66,
 				name = "Rapid-fire close-quarters a2g plasma guns",

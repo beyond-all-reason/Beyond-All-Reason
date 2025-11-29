@@ -92,7 +92,7 @@ function widget:LanguageChanged()
 		key = 'killAllUnits'
 	elseif deathmode == "builders" then
 		key = 'killAllBuilders'
-	elseif deathmode == "territorial_domination" and not Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers() then
+	elseif deathmode == "territorial_domination" or Spring.GetModOptions().temp_enable_territorial_domination then
 		key = 'territorialDomination'
 	else
 		key = 'killAllCommanders'

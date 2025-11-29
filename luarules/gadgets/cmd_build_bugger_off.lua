@@ -21,6 +21,7 @@ local gameSpeed = Game.gameSpeed
 
 local shouldNotBuggeroff = {}
 local cachedUnitDefs = {}
+local cachedBuilderTeams = {}
 local mostRecentCommandFrame = {}
 local gameFrame = 0
 local unitSpeedMax = 0
@@ -134,12 +135,7 @@ local function slowWatchBuilder(builderID)
 end
 
 local function shouldIssueBuggeroff(builderTeam, unitID, unitDefID, x, z, radius)
-	local unitTeam = Spring.GetUnitTeam(unitID)
-	if not unitTeam then
-		return false
-	end
-	
-	if Spring.AreTeamsAllied(unitTeam, builderTeam) == false then
+	if Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID), builderTeam) == false then
 		return false
 	end
 
@@ -208,7 +204,7 @@ function gadget:GameFrame(frame)
 			-- if there are many units in the way, they may cause a traffic jam and need to clear more room.
 			builderRadiusOffsets[builderID] = builderRadiusOffsets[builderID] + BUGGEROFF_RADIUS_INCREMENT
 
-				for _, interferingID in ipairs(interferingUnits) do
+			for _, interferingID in ipairs(interferingUnits) do
 				if builderID ~= interferingID and not visitedUnits[interferingID] and Spring.GetUnitIsBeingBuilt(interferingID) == false then
 					-- Only buggeroff from one build site at a time
 					visitedUnits[interferingID] = true
@@ -216,7 +212,7 @@ function gadget:GameFrame(frame)
 					local unitDefID  = Spring.GetUnitDefID(interferingID)
 					local unitRadius = cachedUnitDefs[unitDefID].radius
 					local areaRadius = math.max(buggerOffRadius, buildDefRadius + unitRadius)
-					if shouldIssueBuggeroff(builderTeam, interferingID, unitDefID, targetX, targetZ, areaRadius) then
+					if shouldIssueBuggeroff(cachedBuilderTeams[builderID], interferingID, unitDefID, targetX, targetZ, areaRadius) then
 						local vx, vy, vz = Spring.GetUnitVelocity(interferingID)
 						unitX, unitZ = unitX + vx * BUGGEROFF_LOOKAHEAD, unitZ + vz * BUGGEROFF_LOOKAHEAD
 						local sendX, sendZ = math.closestPointOnCircle(targetX, targetZ, buggerOffRadius + unitRadius, unitX, unitZ)
@@ -273,9 +269,23 @@ function gadget:GameFrame(frame)
 	end
 end
 
--- TODO: restore ability to do `/luarules reload`, maybe readd MetaUnitAdded
+function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	if cachedUnitDefs[unitDefID].isBuilder then
+		cachedBuilderTeams[unitID] = unitTeam
+	end
+end
+
+function gadget:Initialize()
+	for _, teamID in ipairs(Spring.GetTeamList()) do
+		local unitList = Spring.GetTeamUnits(teamID)
+		for _, unitID in ipairs(unitList) do
+			gadget:MetaUnitAdded(unitID, Spring.GetUnitDefID(unitID), teamID)
+		end
+	end
+end
 
 function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	cachedBuilderTeams[unitID] = nil
 	if cachedUnitDefs[unitDefID].isBuilder then
 		removeBuilder(unitID)
 	end

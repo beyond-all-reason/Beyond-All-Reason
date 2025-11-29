@@ -1,7 +1,7 @@
 return {
 	legnavyscout = {
-		maxacc = 0.085,
-		maxdec = 0.085,
+		maxacc = 0.08,
+		maxdec = 0.08,
 		buildangle = 16384,
 		energycost = 1600,
 		metalcost = 120,
@@ -19,7 +19,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 700,
-		speed = 97,
+		speed = 93,
 		minwaterdepth = 12,
 		movementclass = "BOAT3",
 		nochasecategory = "UNDERWATER VTOL",

@@ -340,6 +340,10 @@ local function hideWarnings()
 end
 
 local function updateAllCostOverrides()
+	if not wgBuildMenu or not wgGridMenu then
+		return
+	end
+
 	local myTeamID = spGetMyTeamID()
 	local gameRules = getCachedGameRules()
 	local buildQueue = wgPregameBuild and wgPregameBuild.getBuildQueue and wgPregameBuild.getBuildQueue() or {}
@@ -382,10 +386,10 @@ local function updateAllCostOverrides()
 			}
 		}
 
-		if wgBuildMenu and wgBuildMenu.setCostOverride then
+		if wgBuildMenu.setCostOverride then
 			wgBuildMenu.setCostOverride(unitDefID, costOverride)
 		end
-		if wgGridMenu and wgGridMenu.setCostOverride then
+		if wgGridMenu.setCostOverride then
 			wgGridMenu.setCostOverride(unitDefID, costOverride)
 		end
 	end

@@ -18,7 +18,6 @@ local GetUnitDefID       = Spring.GetUnitDefID
 local GetTeamUnits       = Spring.GetTeamUnits
 local GetMyTeamID        = Spring.GetMyTeamID
 local GetSpectatingState = Spring.GetSpectatingState
-local GetUnitsInCylinder = Spring.GetUnitsInCylinder
 
 local CMD_REMOVE         = CMD.REMOVE
 local CMD_REPEAT         = CMD.REPEAT
@@ -30,38 +29,14 @@ local isBuilding         = {}
 local builderDefs        = {}
 local myTeamID           = GetMyTeamID()
 
--- Calculate maximum build distance from all builder units + margin
-local maxBuildDistance   = 0
-for udid, ud in pairs(UnitDefs) do
-	if ud.isBuilder and ud.buildDistance then
-		maxBuildDistance = math.max(maxBuildDistance, ud.buildDistance)
-	end
-end
-local SEARCH_RADIUS      = maxBuildDistance + 200  -- Max build distance + safety margin
-
--- Cache repeat status to avoid repeated cmdDescs lookups
-local repeatStatus       = {}
--- Reusable table for nearby builders to reduce allocations
-local nearbyBuilders     = {}
-
 local function IsUnitRepeatOn(unitID)
-	if repeatStatus[unitID] ~= nil then
-		return repeatStatus[unitID]
-	end
-
 	local cmdDescs = GetUnitCmdDescs(unitID)
-	if not cmdDescs then
-		repeatStatus[unitID] = false
-		return false
-	end
+	if not cmdDescs then return false end
 	for _, desc in ipairs(cmdDescs) do
 		if desc.id == CMD_REPEAT then
-			local isOn = desc.params and desc.params[1] == "1"
-			repeatStatus[unitID] = isOn
-			return isOn
+			return desc.params and desc.params[1] == "1"
 		end
 	end
-	repeatStatus[unitID] = false
 	return false
 end
 
@@ -105,20 +80,11 @@ end
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if unitTeam == myTeamID and builderDefs[unitDefID] then
 		trackedBuilders[unitID] = true
-		repeatStatus[unitID] = nil
 	end
 end
 
 function widget:UnitDestroyed(unitID)
 	trackedBuilders[unitID] = nil
-	repeatStatus[unitID] = nil
-end
-
-function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID)
-	-- Invalidate repeat cache when command changes
-	if trackedBuilders[unitID] and cmdID == CMD_REPEAT then
-		repeatStatus[unitID] = nil
-	end
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -127,54 +93,19 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 
 	local x, _, z = GetUnitPosition(unitID)
-	if not x then return end
 
-	-- Use spatial query to only check nearby units instead of all builders
-	local nearbyUnits = GetUnitsInCylinder(x, z, SEARCH_RADIUS)
-	if not nearbyUnits or #nearbyUnits == 0 then return end
-
-	-- Clear and reuse nearbyBuilders table to reduce allocations
-	local builderCount = 0
-	for i = 1, #nearbyUnits do
-		local nearbyID = nearbyUnits[i]
-		if trackedBuilders[nearbyID] then
-			builderCount = builderCount + 1
-			nearbyBuilders[builderCount] = nearbyID
-		end
-	end
-
-	if builderCount == 0 then return end
-
-	local targetCmdID = -unitDefID
-
-	-- Process only nearby builders
-	for i = 1, builderCount do
-		local builderID = nearbyBuilders[i]
-
-		-- Skip if repeat is enabled (cached check)
+	for builderID in pairs(trackedBuilders) do
 		if not IsUnitRepeatOn(builderID) then
 			local commands = GetUnitCommands(builderID, 32)
-			if commands then
-				-- Scan backwards to find matching build commands
-				for j = #commands, 1, -1 do
-					local cmd = commands[j]
-					-- Only check build commands for this specific unitDefID
-					if cmd.id == targetCmdID then
-						local params = cmd.params
-						if params and params[1] and params[3] then
-							if coordsMatch(x, z, params[1], params[3], REMOVE_TOLERANCE) then
-								GiveOrderToUnit(builderID, CMD_REMOVE, { cmd.tag }, {})
-								break -- Only remove first matching command per builder
-							end
-						end
+			for i = #commands, 1, -1 do
+				local cmd = commands[i]
+				if cmd.id < 0 and -cmd.id == unitDefID then
+					local bx, bz = cmd.params[1], cmd.params[3]
+					if coordsMatch(x, z, bx, bz, REMOVE_TOLERANCE) then
+						GiveOrderToUnit(builderID, CMD_REMOVE, { cmd.tag }, {})
 					end
 				end
 			end
 		end
-	end
-
-	-- Clear table for next use
-	for i = 1, builderCount do
-		nearbyBuilders[i] = nil
 	end
 end

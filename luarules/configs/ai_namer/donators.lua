@@ -54,7 +54,6 @@ local DonatorAINames = {
     "keithphw",
     "Kelin",
     "Kodiak",
-    "LethalSpirit",
     "L0v3",
     "Lightjohn",
     "LoloJojo",

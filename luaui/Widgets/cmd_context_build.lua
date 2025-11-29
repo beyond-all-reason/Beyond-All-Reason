@@ -89,27 +89,27 @@ local unitlist = {
 
 
 local legionUnitlist = {
-	{'legeconv','legfeconv'},
-	{'legdrag','legfdrag'},
-	{'legmstor', 'leguwmstore'},
-	{'legestor', 'leguwestore'},
-	{'legrl','legfrl'},
+	--{'cormakr','legfmkr'},
+	--{'cordrag','corfdrag'},
+	--{'cormstor', 'coruwms'},
+	--{'corestor', 'coruwes'},
+	--{'legrl','corfrt'},--
 	{'leghp','legfhp'},
-	{'legrad','legfrad'},
-	--{'legmg','legfmg'},
-	{'legsolar','legtide'},
-	{'leglab','legsy'},
-	{'leglht','legtl'},
-	{'leghive', 'legfhive'},
-	{'legnanotc','legnanotcplat'},
-	{'legvp','legamsub'},
-	{'leggeo','leguwgeo'},
-	--{'cortarg','corfatf'}, --asym pairs cannot overlap with core placeholders
+	--{'legrad','corfrad'},--asym pairs cannot overlap with core placeholders
+	--{'legmg','corfhlt'},--
+	--{'cortarg','corfatf'},
 	--{'cormmkr','coruwmmm'},
 	--{'corfus','coruwfus'},
 	--{'corflak','corenaa'},
 	--{'cormoho','coruwmme'},--does this combo actually manifest on anything...?
+	{'legsolar','legtide'},
+	--{'leglab','corsy'},--soon(tm)
+	{'leglht','legtl'},
+	{'leghive', 'legfhive'},
+	--{'cornanotc','cornanotcplat'},
+	{'legvp','legamsub'},
 	--{'corap','corplat'},
+	--{'corgeo','coruwgeo'},
 	--{'corageo','coruwageo'},
 }
 

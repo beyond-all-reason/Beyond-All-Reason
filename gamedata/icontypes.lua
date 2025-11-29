@@ -397,7 +397,7 @@ local icontypes = {
 	},
 	legnavyscout = {
 		bitmap = "icons/ship_raid.png",
-		size = 1.05
+		size = 0.89999998
 	},
 	legnavyfrigate = {
 		bitmap = "icons/ship_torpedo.png",

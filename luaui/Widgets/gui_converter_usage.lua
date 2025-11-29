@@ -179,21 +179,19 @@ function widget:GameFrame()
 
     local myTeamID = spGetMyTeamID()
     eConverted = spGetTeamRulesParam(myTeamID, "mmUse")
-	if eConverted then
-		mConverted = eConverted * spGetTeamRulesParam(myTeamID, "mmAvgEffi")
-		eConvertedMax = spGetTeamRulesParam(myTeamID, "mmCapacity")
-		converterUse = 0
+    mConverted = eConverted * spGetTeamRulesParam(myTeamID, "mmAvgEffi")
+    eConvertedMax = spGetTeamRulesParam(myTeamID, "mmCapacity")
+    converterUse = 0
 
-		if eConvertedMax <= 0 then return end
+    if eConvertedMax <= 0 then return end
 
-		converterUse = floor(100 * eConverted / eConvertedMax)
-		eConverted = floor(eConverted)
-		mConvertedRemainder = mConvertedRemainder + (mConverted - floor(mConverted))
-		mConverted = floor(mConverted)
-		if mConvertedRemainder >= 1 then
-			mConverted = mConverted + 1
-			mConvertedRemainder = mConvertedRemainder - 1
-		end
+    converterUse = floor(100 * eConverted / eConvertedMax)
+    eConverted = floor(eConverted)
+    mConvertedRemainder = mConvertedRemainder + (mConverted - floor(mConverted))
+    mConverted = floor(mConverted)
+    if mConvertedRemainder >= 1 then
+      mConverted = mConverted + 1
+      mConvertedRemainder = mConvertedRemainder - 1
     end
 end
 
@@ -206,7 +204,7 @@ function widget:Update(dt)
 
     sec = 0
 
-    if eConvertedMax and eConvertedMax > 0 then
+    if eConvertedMax > 0 then
         updateUI()
         return
     end
