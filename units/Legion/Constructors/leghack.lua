@@ -63,7 +63,7 @@ return {
 			[23] = "leghalab",
 			[26] = "legvp",
 			[27] = "legap",
-			[28] = "corsy",
+			[28] = "legsy",
 			[29] = "legnanotc",
 			[30] = "legfus",
 			[31] = "legsd",

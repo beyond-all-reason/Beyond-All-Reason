@@ -27,7 +27,7 @@ return {
 		health = 44,
 		maxslope = 65,
 		speed = 13.5,
-		movementclass = "ABOT2",
+		movementclass = "ABOT3",
 		movestate = -1,
 		noautofire = false,
 		nochasecategory = "MOBILE ",

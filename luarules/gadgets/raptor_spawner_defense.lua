@@ -199,7 +199,7 @@ if gadgetHandler:IsSyncedCode() then
 		local players = Spring.GetPlayerList()
 		for i = 1,#players do
 			local player = players[i]
-			local name, active, spectator, teamID, allyTeamID = Spring.GetPlayerInfo(player)
+			local name, active, spectator, teamID, allyTeamID = Spring.GetPlayerInfo(player, false)
 			if allyTeamID == raptorAllyTeamID and (not spectator) then
 				Spring.AssignPlayerToTeam(player, raptorTeamID)
 				local units = GetTeamUnits(teamID)
@@ -213,7 +213,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		local raptorAllies = Spring.GetTeamList(raptorAllyTeamID)
 		for i = 1,#raptorAllies do
-			local _,_,_,AI = Spring.GetTeamInfo(raptorAllies[i])
+			local _,_,_,AI = Spring.GetTeamInfo(raptorAllies[i], false)
 			local LuaAI = Spring.GetTeamLuaAI(raptorAllies[i])
 			if (AI or LuaAI) and raptorAllies[i] ~= raptorTeamID then
 				local units = GetTeamUnits(raptorAllies[i])
@@ -2061,8 +2061,14 @@ if gadgetHandler:IsSyncedCode() then
 				Spring.SetGameRulesParam("BossFightStarted", 0)
 				if Spring.GetModOptions().raptor_endless then
 					updateDifficultyForSurvival()
+					Spring.SetGameRulesParam("raptorQueenAnger", 0)
+					Spring.SetGameRulesParam("raptorQueenHealth", 0)
+					Spring.SetGameRulesParam("raptorTechAnger", 0)
 				else
 					gameOver = GetGameFrame() + 200
+					Spring.SetGameRulesParam("raptorQueenAnger", 0)
+					Spring.SetGameRulesParam("raptorQueenHealth", 0)
+					Spring.SetGameRulesParam("raptorTechAnger", 0)
 					spawnQueue = {}
 
 					if not killedRaptorsAllyTeam then

@@ -37,7 +37,7 @@ local function DefCat(enumKey, unitTable) -- Made local to definitions.lua
 end
 
 function DefinitionsModule.defineUnitCategories()
-    Spring.Log("BlueprintDefs", LOG.INFO, "Defining static unit categories START...")
+    Spring.Log("BlueprintDefs", LOG.DEBUG, "Defining static unit categories START...")
     local SIDES = DefinitionsModule.SIDES -- Use SIDES from the module
 
     -- Clear existing tables (important if this function could be called multiple times on the same module instance, though typically not)
@@ -85,8 +85,6 @@ function DefinitionsModule.defineUnitCategories()
     DefCat("ADVANCED_SHIPYARD", {[SIDES.ARMADA]="armasy", [SIDES.CORTEX]="corasy", [SIDES.LEGION]="legasy"})
     DefCat("HOVER_PLATFORM", {[SIDES.ARMADA]="armhp", [SIDES.CORTEX]="corhp", [SIDES.LEGION]="leghp"})
     DefCat("AMPHIBIOUS_COMPLEX", {[SIDES.ARMADA]="armamsub", [SIDES.CORTEX]="coramsub", [SIDES.LEGION]="coramsub"})
-    DefCat("AIR_REPAIR_PAD", {[SIDES.ARMADA]="armasp", [SIDES.CORTEX]="corasp", [SIDES.LEGION]="legasp"})
-    DefCat("FLOATING_AIR_REPAIR_PAD", {[SIDES.ARMADA]="armfasp", [SIDES.CORTEX]="corfasp", [SIDES.LEGION]="legfasp"})
     DefCat("EXPIREMENTAL_GANTRY", {[SIDES.ARMADA]="armshltx", [SIDES.CORTEX]="corgant", [SIDES.LEGION]="leggant"})
     DefCat("UW_EXPIREMENTAL_GANTRY", {[SIDES.ARMADA]="armshltxuw", [SIDES.CORTEX]="corgantuw", [SIDES.LEGION]="leggant"})
     DefCat("SEAPLANE_PLATFORM", {[SIDES.ARMADA]="armplat", [SIDES.CORTEX]="corplat", [SIDES.LEGION]="corplat"})
@@ -154,7 +152,7 @@ function DefinitionsModule.defineUnitCategories()
     end
     local categoryCount = 0
     for _ in pairs(DefinitionsModule.UNIT_CATEGORIES) do categoryCount = categoryCount + 1 end
-    Spring.Log("BlueprintDefs", LOG.INFO, string.format("Defined %d categories covering %d units. END", categoryCount, unitCount))
+    Spring.Log("BlueprintDefs", LOG.DEBUG, string.format("Defined %d categories covering %d units. END", categoryCount, unitCount))
 end
 
 DefinitionsModule.defineUnitCategories() -- Call it once to populate the module table

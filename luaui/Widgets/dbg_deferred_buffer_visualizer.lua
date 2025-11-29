@@ -12,6 +12,11 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local myshader = nil
 local myshaderDebgDrawLoc = nil
 local myshaderTexture0Loc = nil
@@ -53,7 +58,7 @@ deferredbuffer_info= ({
 local currentbuffer = 13 -- starts with model_gbuffer_normtex
 
 local function RemoveMe(msg)
-	Spring.Echo(msg)
+	spEcho(msg)
 	widgetHandler:RemoveWidget()
 end
 
@@ -194,7 +199,7 @@ function widget:Initialize()
 	if hasdeferredrendering == false then
 		RemoveMe("[deferred buffer visualizer] removing widget, AllowDeferred Model and Map Rendering is required")
 	end
-	local vsx, vsy = Spring.GetViewGeometry()
+	local vsx, vsy = spGetViewGeometry()
 	local GL_DEPTH_COMPONENT24 = 0x81A6
 	
 	local GL_DEPTH_COMPONENT   = 0x1902
@@ -205,7 +210,7 @@ function widget:Initialize()
 		min_filter = GL.NEAREST,
 		mag_filter = GL.NEAREST,
 	})
-	if depthCopyTex == nil then Spring.Echo("Failed to allocate the depth texture", vsx,vsy) end 
+	if depthCopyTex == nil then spEcho("Failed to allocate the depth texture", vsx,vsy) end 
 	MakeShader()
 end
 
@@ -217,7 +222,7 @@ function widget:Shutdown()
 end
 
 function widget:DrawWorld()
-	local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+	local vsx, vsy, vpx, vpy = spGetViewGeometry()
 	
 	gl.CopyToTexture(depthCopyTex, 0, 0, vpx, vpy, vsx, vsy) -- the original screen image
 

@@ -25,6 +25,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+
 local spSetCameraOffset = Spring.SetCameraOffset
 local spSetShockFrontFactors = Spring.SetShockFrontFactors
 local math_random = math.random
@@ -46,7 +50,7 @@ local distAdj = 100
 function widget:Initialize()
 
 	-- required for ShockFront() call-ins
-	-- (threshold uses the 1/d^2 power)
+	-- (threshold uses the 1/d*d power)
 	spSetShockFrontFactors(minArea, minPower, distAdj)
 
 	WG['camerashake'] = {}
@@ -54,7 +58,7 @@ function widget:Initialize()
 		return powerScale
 	end
 	WG['camerashake'].setStrength = function(value)
-		powerScale = math.floor(value)
+		powerScale = mathFloor(value)
 		if powerScale <= 0 then
 			minPower = 0
 		else
@@ -141,7 +145,7 @@ end
 
 function widget:SetConfigData(data)
 	if data.powerScale ~= nil then
-		powerScale = math.floor(data.powerScale)
+		powerScale = mathFloor(data.powerScale)
 		if powerScale <= 0 then
 			minPower = 0
 		else

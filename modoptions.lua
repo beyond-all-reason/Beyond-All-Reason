@@ -122,37 +122,26 @@ local options = {
         items   = {
             { key = "neverend", name = "Never ending",             desc = "Teams are never eliminated",                       lock = { "territorial_domination_config" } },
             { key = "com",     name = "Kill all enemy Commanders", desc = "When a team has no Commanders left, it loses",     lock = { "territorial_domination_config" } },
-            --{ key= "territorial_domination",  name= "Territorial Domination",     desc="Teams race to capture territory against an ever-increasing quota to stay in the game. Commander retreat or death results in defeat.", unlock = {"territorial_domination_config"} },
+            { key= "territorial_domination",  name= "Territorial Domination",     desc="Teams earn points by capturing territory to stay in the game. At the end of the final round, the team with the most points wins.", unlock = {"territorial_domination_config"} },
             { key = "builders", name = "Kill all Builders",        desc = "When a team has no builders left, it loses",       lock = { "territorial_domination_config" } },
             { key = "killall", name = "Kill everything",           desc = "Every last unit must be eliminated, no exceptions!", lock = { "territorial_domination_config" } },
             { key = "own_com", name = "Player resign on Com death", desc = "When player commander dies, you auto-resign.",    lock = { "territorial_domination_config" } },
         }
     },
 
-    --temporary, uncomment the added deathmode entry and delete entries related to temp_enable_territorial_domination once beta is over.
-    {
-        key     = "temp_enable_territorial_domination",
-        name    = "Territorial Domination V0.1",
-        desc    = "Enable experimental Territorial Domination gamemode",
-        hidden  = true,
-        type    = "bool",
-        section = "options_main",
-        unlock  = { "territorial_domination_config" },
-        def     = false,
-    },
-
     {
         key     = "territorial_domination_config",
-        name    = "Territorial Domination Duration",
+        name    = "Territorial Domination Length",
         desc    =
         "Configures the grace period and the amount of time in minutes it takes to reach the maximum required territory.",
         type    = "list",
-        def     = "default",
+        def     = "24_minutes",
         section = "options_main",
         items   = {
-            { key = "short",  name = "Short",  desc = "6 minutes grace period, 18 minute until the maximum territory is required" },
-            { key = "default", name = "Default", desc = "6 minutes grace period, 24 minute until the maximum territory is required" },
-            { key = "long",   name = "Long",   desc = "6 minutes grace period, 36 minute until the maximum territory is required" },
+            { key = "18_minutes", name = "3 Rounds, 18 Minutes",  desc = "Early tech emphasis, mathmathically certain comeback, elimination unlikely." },
+            { key = "24_minutes",  name = "4 Rounds, 24 Minutes(Default)",  desc = "Mid/late-game tech, comebacks a significant factor,eliminations uncommon" },
+            { key = "30_minutes", name = "5 Rounds, 30 Minutes", desc = "Late-game tech, comebacks less significant, eliminations likely" },
+            { key = "42_minutes",   name = "7 Rounds, 42 Minutes",   desc = "Super lategame tech, eliminations extremely likely" },
         }
     },
 
@@ -867,36 +856,6 @@ local options = {
         type    = "separator",
     },
 
-    --{
-    --	key    	= "xmas",
-    --	name   	= "Holiday decorations",
-    --	desc   	= "Various  holiday decorations",
-    --	type   	= "bool",
-    --	def    	= true,
-    --	section	= "options_extra",
-    --},
-
-	-- {
-	-- 	key		= "unithats",
-	-- 	name	= "Unit Hats",
-	-- 	desc	= "Unit Hats, for the current season",
-	-- 	type	= "list",
-	-- 	def		= "disabled",
-	-- 	items	= {
-	-- 		{ key = "disabled",	name = "Disabled" },
-	-- 		{ key = "april", 	name = "Silly", 		desc = "An assortment of foolish and silly hats >:3" },
-	-- 	},
-	-- 	section	= "options_extra",
-	-- },
-	--{
-	--	key		= "easter_egg_hunt",
-	--	name	= "Easter Eggs Hunt",
-	--	desc	= "Easter Eggs are spawned around the map! Time to go on an Easter Egg hunt! (5 metal 50 energy per)",
-	--	type	= "bool",
-	--	def		= false,
-	--	section	= "options_extra",
-	--},
-
 
     {
         key    	= "experimentalextraunits",
@@ -942,7 +901,7 @@ local options = {
         type   	= "bool",
         def    	= false,
         section	= "options_extra",
-        unlock  = {"map_lavatiderhythm", "map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell"},
+        unlock  = {"map_lavatiderhythm", "map_lavatidemode", "map_lavahighlevel", "map_lavahighdwell", "map_lavalowlevel", "map_lavalowdwell","map_tweaklava"},
         lock    = {"sub_header_lava3", "sub_header_lava4"},
         bitmask = 1,
     },
@@ -977,15 +936,15 @@ local options = {
 
     {
         key     = "map_lavatidemode",
-        name	= "Lava Start Position",
-        desc	= "Toggle whether lava starts at high or low tide",
+        name	= "Lava Tide Mode",
+        desc	= "Toggle whether lava starts at high or low tide.",
         hidden	= false,
         type	= "list",
         def		= "lavastartlow",
         section	= "options_extra",
         items	= {
-            { key= "lavastartlow", 	name= "Low", desc= "Lava starts at low tide" },
-            { key= "lavastarthigh",	name= "High",desc= "Lava starts at high tide" },
+            { key= "lavastartlow", 	name= "Start Low", desc= "Lava starts at low tide" },
+            { key= "lavastarthigh",	name= "Start High",desc= "Lava starts at high tide" },
         }
     },
 
@@ -1009,7 +968,7 @@ local options = {
         type 	= "number",
         def 	= 60,
         min 	= 1,
-        max 	= 10000,
+        max 	= 30000,
         step 	= 1,
         section = "options_extra",
         column	= 2.0,
@@ -1035,10 +994,21 @@ local options = {
         type 	= "number",
         def 	= 300,
         min 	= 1,
-        max 	= 10000,
+        max 	= 30000,
         step 	= 1,
         section = "options_extra",
         column	= 2.0,
+    },
+
+    {
+        key 	= "map_tweaklava",
+        name 	= "Advanced Tide Rhythm",
+        desc 	= "Table with format {MapHeight (elmo), Rate (elmo/s), Dwell Time (s)}, e.g. {0, 6, 60},{100, 3, 20}",
+        hidden 	= true,
+        hint    = "{Lava Height, Rise/Fall Rate, Dwell Time}",
+        type 	= "string",
+        def 	= "",
+        section = "options_extra",
     },
 
     { key = "sub_header_lava1", section = "options_extra", type    = "subheader", name = "",},
@@ -1252,7 +1222,7 @@ local options = {
         items 	= {
             { key = "default", 	name = "Default", lock = {"quick_start_amount"}, desc = "Default settings for game modes." },
             { key = "enabled", name = "Enabled", unlock = {"quick_start_amount"}, desc = "Quick Start alone, deducts 400 energy and 800 metal from starting resources." },
-            { key = "factory_discount", name = "Enabled: Discounted First Factory", desc = 
+            { key = "factory_discount", name = "Enabled: Discounted First Factory", desc =
             "Quick Start The commander's first factory is discounted at any time. Deducts 400 energy and 800 metal from starting resources.", unlock = {"quick_start_amount"} },
             { key = "factory_discount_only", name = "First Factory Discount Only", desc = "No base budget, only first factory discount. No deduction from starting resources.", lock = {"quick_start_amount"} },
             { key = "disabled", name = "Disabled", desc = "Disabled quick start for all game modes.", lock = {"quick_start_amount"} },
@@ -1268,9 +1238,9 @@ local options = {
         section = "options_extra",
         items 	= {
             { key = "default", 	name = "Default", desc = "Uses the default amount based on game mode" },
-            { key = "small", 	name = "Small", desc = "1000 Base Budget" },
-            { key = "normal", 	name = "Normal", desc = "1500 Base Budget" },
-            { key = "large", 	name = "Large", desc = "3000 Base Budget" },
+            { key = "small", 	name = "Small", desc = "800 Base Budget" },
+            { key = "normal", 	name = "Normal", desc = "1200 Base Budget" },
+            { key = "large", 	name = "Large", desc = "2400 Base Budget" },
         }
     },
 
@@ -1305,7 +1275,7 @@ local options = {
         section = "options_extra",
         type    = "separator",
     },
-    
+
     {
         key 	= "assistdronesenabled", -- TODO, turn this into booleam modoption
         name 	= "Commander Drones",
@@ -1418,7 +1388,7 @@ local options = {
     {
         key     = "seasonal_surprise",
         name    = "Seasonal Surprise",
-        desc    = "Happy spooktober!",
+        desc    = "Happy Halloween!",
         type    = "bool",
         def     = false,
         section = "options_extra",
@@ -1473,7 +1443,7 @@ local options = {
     },
 
     -- Hidden Tests
-	
+
     {
         key     = "techsplit",
         name    = "Tech Split",
@@ -1503,7 +1473,16 @@ local options = {
         section = "options_experimental",
         def  	= false,
     },
-    
+
+    {
+        key    	= "experimental_low_priority_pacifists",
+        name   	= "Low Priority Pacifists",
+        desc   	= "Makes the automatic target priority of non-combat mobile units much lower, so they must be intentionally targeted.",
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= false,
+    },
+
     {
         key 	= "lategame_rebalance",
         name 	= "Lategame Rebalance",
@@ -1569,6 +1548,16 @@ local options = {
         key 	= "proposed_unit_reworks",
         name 	= "Proposed Unit Reworks",
         desc 	= "Modoption used to test balance changes that are being considered for the base game.",
+        type 	= "bool",
+        --hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key 	= "naval_balance_tweaks",
+        name 	= "Proposed Naval Balance Tweaks",
+        desc 	= "Modoption used to test specific balance adjustments dedicated towards naval units.",
         type 	= "bool",
         --hidden 	= true,
         section = "options_experimental",
@@ -1691,12 +1680,17 @@ local options = {
     },
     {
         key     = "dummyboolfeelfreetotouch",
-        name    = "dummy to hide the faction limiter",
-        desc    = "This is a dummy to hide the faction limiter from the text field, it needs to exploit or work around some flaws to hide it...",
+        name    = "dummy to hide some modoptions",
+        desc    = "This is a dummy to hide some modoptions to not bloat the changed options panel with unneeded information",
         section = "dev",
         type    = "bool",
-        unlock  = {"dummyboolfeelfreetotouch", "factionlimiter"},
+        -- This doesn't have a default on purpse, do not add one
+        unlock  = {"dummyboolfeelfreetotouch", "factionlimiter", "date_year", "date_month", "date_day", "date_hour"},
     },
+    { key     = "date_year", name    = "Year", desc    = "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten", section = "dev", type = "number", def = 0, min = 0, max = 3000, step = 1, },
+    { key     = "date_month", name    = "Month", desc    = "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten", section = "dev", type = "number", def = 0, min = 0, max = 12, step = 1, },
+    { key     = "date_day", name    = "Day", desc    = "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten", section = "dev", type = "number", def = 0, min = 0, max = 31, step = 1, },
+    { key     = "date_hour", name    = "Hour", desc    = "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten", section = "dev", type = "number", def = 0, min = 0, max = 24, step = 1, },
     {
         key     = "factionlimiter",
         name    = "Faction Limiter:".."\255\255\191\76".." ON\n".."\255\125\125\125".."BITMASK",
@@ -2127,6 +2121,16 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		section = "options_cheats",
 		type	= "bool",
 		def		= false,
+	},
+
+    {
+		key		= "holiday_events",
+		name	= "Enable Holiday Events",
+		desc	= "",
+		section = "options_cheats",
+		type	= "bool",
+		def		= true,
+        hidden  = true,
 	},
 
 }

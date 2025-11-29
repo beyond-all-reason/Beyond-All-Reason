@@ -12,6 +12,11 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+local spGetUnitTeam = Spring.GetUnitTeam
+
 -- Configurable Parts:
 local texture = "luaui/images/backgroundtile.png"
 
@@ -67,11 +72,11 @@ local function AddPrimitiveAtUnit(unitID, unitDefID)
 		numVertices = 2
 	end
 	
-	--Spring.Echo(unitID,radius,radius, Spring.GetUnitTeam(unitID), numvertices, 1, gf)
+	--spEcho(unitID,radius,radius, spGetUnitTeam(unitID), numvertices, 1, gf)
 	pushElementInstance(
 		selectionVBO, -- push into this Instance VBO Table
 			{length, width, cornersize, additionalheight,  -- lengthwidthcornerheight
-			Spring.GetUnitTeam(unitID), -- teamID
+			spGetUnitTeam(unitID), -- teamID
 			numVertices, -- how many trianges should we make
 			gf, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
 			0, 1, 0, 1, -- These are our default UV atlas tranformations
@@ -86,7 +91,7 @@ local drawFrame = 0
 function widget:DrawWorldPreUnit()
 	drawFrame = drawFrame + 1
 	if selectionVBO.usedElements > 0 then 
-		if drawFrame % 100 == 0 then Spring.Echo("selectionVBO.usedElements",selectionVBO.usedElements) end
+		if drawFrame % 100 == 0 then spEcho("selectionVBO.usedElements",selectionVBO.usedElements) end
 		local disticon = Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		--gl.Culling(false)
 		disticon = disticon * 27 -- should be sqrt(750) but not really
@@ -131,27 +136,27 @@ function widget:UnitCreated(unitID)
 end
 
 function widget:UnitDestroyed(unitID)
-	--Spring.Echo("UnitDestroyed",unitID)
+	--spEcho("UnitDestroyed",unitID)
 	RemovePrimitive(unitID)
 end
 
 function widget:RenderUnitDestroyed(unitID)
-	--Spring.Echo("RenderUnitDestroyed",unitID)
+	--spEcho("RenderUnitDestroyed",unitID)
 	RemovePrimitive(unitID)
 end
 
 function widget:UnitEnteredLos(unitID)
-	--Spring.Echo("UnitLeftLos",unitID)
+	--spEcho("UnitLeftLos",unitID)
 	AddPrimitiveAtUnit(unitID)
 end
 
 function widget:UnitLeftLos(unitID)
-	--Spring.Echo("UnitLeftLos",unitID)
+	--spEcho("UnitLeftLos",unitID)
 	RemovePrimitive(unitID)
 end
 
 function widget:UnitDestroyedByTeam(unitID, unitDefID, unitTeam, attackerTeamID)
-	--Spring.Echo("UnitDestroyedByTeam",unitID)
+	--spEcho("UnitDestroyedByTeam",unitID)
 	RemovePrimitive(unitID)
 end
 

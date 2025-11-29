@@ -23,7 +23,7 @@ return {
 		maxslope = 17,
 		maxwaterdepth = 22,
 		metalcost = 210,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		objectname = "Units/CORFAST.s3o",
 		script = "Units/CORFAST.cob",
 		seismicsignature = 0,

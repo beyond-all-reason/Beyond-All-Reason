@@ -128,8 +128,6 @@ local show = false
 local prevShow = show
 local manualChange = true
 
-local guishaderIntensity = 0.0035
-
 local spGetGroundHeight = Spring.GetGroundHeight
 
 local os_clock = os.clock
@@ -439,6 +437,7 @@ local function cancelChatInput()
 	if selectOptionsList then
 		selectOptionsList = glDeleteList(selectOptionsList)
 	end
+	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil	--widgetHandler:DisownText()
 	if doReinit then
 		init()
@@ -714,14 +713,15 @@ function DrawWindow()
 	-- draw navigation... backward/forward
 	if totalColumns > maxShownColumns then
 		local buttonSize = 35 * widgetScale
-		local buttonMargin = 8 * widgetScale
+		local buttonMarginX = 15 * widgetScale
+		local buttonMarginY = 10 * widgetScale
 		local startX = x + screenWidth
-		local startY = screenY - screenHeight + buttonMargin
+		local startY = screenY - screenHeight + buttonMarginY
 
 		glColor(1, 1, 1, 1)
 
 		if (startColumn - 1) + maxShownColumns < totalColumns then
-			optionButtonForward = { startX - buttonSize - buttonMargin, startY, startX - buttonMargin, startY + buttonSize }
+			optionButtonForward = { startX - buttonSize - buttonMarginX, startY, startX - buttonMarginX, startY + buttonSize }
 			glColor(1, 1, 1, 1)
 			glTexture(forwardTex)
 			glTexRect(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4])
@@ -732,13 +732,9 @@ function DrawWindow()
 		end
 
 		font:SetTextColor(1, 1, 1, 0.4)
-		font:Print(math.ceil(startColumn / maxShownColumns) .. ' / ' .. math.ceil(totalColumns / maxShownColumns), startX - (buttonSize * 2.6) - buttonMargin, startY + buttonSize / 2.6, buttonSize / 2.4, "rn")
+		font:Print(math.ceil(startColumn / maxShownColumns) .. ' / ' .. math.ceil(totalColumns / maxShownColumns), startX - (buttonSize * 2.6) - buttonMarginX, startY + buttonSize / 2.6, buttonSize / 2.4, "rn")
 		if startColumn > 1 then
-			if optionButtonForward == nil then
-				optionButtonBackward = { startX - buttonSize - buttonMargin, startY, startX - buttonMargin, startY + buttonSize }
-			else
-				optionButtonBackward = { startX - (buttonSize * 2) - buttonMargin - (buttonMargin / 1.5), startY, startX - (buttonSize * 1) - buttonMargin - (buttonMargin / 1.5), startY + buttonSize }
-			end
+			optionButtonBackward = { startX - (buttonSize * 2) - buttonMarginX - (buttonMarginX / 1.5), startY, startX - (buttonSize * 1) - buttonMarginX - (buttonMarginX / 1.5), startY + buttonSize }
 			glColor(1, 1, 1, 1)
 			glTexture(backwardTex)
 			glTexRect(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4])
@@ -1967,7 +1963,6 @@ function init()
 			distortioneffects = true,
 		 	snow = true,
 		 	particles = 20000,
-		 	guishader = guishaderIntensity,
 			decalsgl4 = 1,
 		 	decals = 2,
 			shadowslider = 4,
@@ -1988,7 +1983,6 @@ function init()
 			distortioneffects = true,
 			snow = true,
 			particles = 30000,
-			guishader = guishaderIntensity,
 			decalsgl4 = 1,
 			decals = 3,
 			shadowslider = 5,
@@ -2009,7 +2003,6 @@ function init()
 			distortioneffects = true,
 			snow = true,
 			particles = 40000,
-			guishader = guishaderIntensity,
 			decalsgl4 = 1,
 			decals = 4,
 			shadowslider = 6,
@@ -2733,11 +2726,11 @@ function init()
 			  Spring.SetConfigInt("snd_volgeneral", value)
 		  end,
 		},
-		{ id = "sndvolbattle", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolbattle'), type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volbattle", 1) or 100),
+		{ id = "sndvolbattle", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolbattle'), type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volbattle_options", 100) or 100),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("snd_volbattle", value)
+			  Spring.SetConfigInt("snd_volbattle_options", value)
 		  end,
 		},
 		{ id = "sndvolui", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolui'), type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volui", 1) or 100),
@@ -2803,6 +2796,14 @@ function init()
 		  end,
 		},
 
+		{ id = "sndzoomvolume", group = "sound", category = types.advanced, name = Spring.I18N('ui.settings.option.sndzoomvolume'), type = "slider", min = 0, max = 3, step = 0.01, value = tonumber(Spring.GetConfigFloat("snd_zoomVolume", 1.00) or 1.00), description = Spring.I18N('ui.settings.option.sndzoomvolume_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigFloat("snd_zoomVolume", value)
+		  end,
+		},
+
 		{ id = "muteoffscreen", group = "sound", category = types.advanced, name = Spring.I18N('ui.settings.option.muteoffscreen'), type = "bool", value = (Spring.GetConfigInt("muteOffscreen", 0) == 1), description = Spring.I18N('ui.settings.option.muteoffscreen_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("muteOffscreen", (value and 1 or 0))
@@ -2849,18 +2850,18 @@ function init()
 			end
 		end
 		},
-		{ id = "soundtrackSpooktober", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackspooktober'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackSpooktober', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackspooktober_descr'),
+		{ id = "soundtrackHalloween", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackhalloween'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackHalloween', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackhalloween_descr'),
 			onchange = function(i, value)
-				Spring.SetConfigInt('UseSoundtrackSpooktober', value and 1 or 0)
+				Spring.SetConfigInt('UseSoundtrackHalloween', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
 					WG['music'].RefreshTrackList()
 					init()
 				end
 			end
 		},
-		{ id = "soundtrackSpooktoberPostEvent", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackspooktoberpostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackSpooktoberPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackspooktoberpostevent_descr'),
+		{ id = "soundtrackHalloweenPostEvent", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackhalloweenpostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackHalloweenPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackhalloweenpostevent_descr'),
 		onchange = function(i, value)
-			Spring.SetConfigInt('UseSoundtrackSpooktoberPostEvent', value and 1 or 0)
+			Spring.SetConfigInt('UseSoundtrackHalloweenPostEvent', value and 1 or 0)
 			if WG['music'] and WG['music'].RefreshTrackList then
 				WG['music'].RefreshTrackList()
 				init()
@@ -2945,12 +2946,12 @@ function init()
 			  saveOptionValue('Notifications', 'notifications', 'setSpoken', { 'spoken' }, value)
 		  end,
 		},
-		{ id = "notifications_volume", group = "notif", category = types.basic, name = Spring.I18N('ui.settings.option.notifications_volume'), type = "slider", min = 0.05, max = 1, step = 0.05, value = 1, description = Spring.I18N('ui.settings.option.notifications_volume_descr'),
+		{ id = "notifications_volume", group = "notif", category = types.basic, name = Spring.I18N('ui.settings.option.notifications_volume'), type = "slider", min = 0.05, max = 1, step = 0.05, value = 0.7, description = Spring.I18N('ui.settings.option.notifications_volume_descr'),
 		  onload = function(i)
-			  loadWidgetData("Notifications", "notifications_volume", { 'volume' })
+			  loadWidgetData("Notifications", "notifications_volume", { 'globalVolume' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Notifications', 'notifications', 'setVolume', { 'volume' }, value)
+			  saveOptionValue('Notifications', 'notifications', 'setVolume', { 'globalVolume' }, value)
 		  end,
 		},
 		{ id = "notifications_playtrackedplayernotifs", category = types.basic, group = "notif", name = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs'), type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getPlayTrackedPlayerNotifs()), description = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs_descr'),
@@ -3087,6 +3088,20 @@ function init()
 		  end,
 		},
 
+		{ id = "gridmenu_ctrlkeymodifier", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_ctrlkeymodifier'), type = "slider", min = -20, max = 100, step = 1, value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getCtrlKeyModifier ~= nil and WG['gridmenu'].getCtrlKeyModifier()), description = Spring.I18N('ui.settings.option.gridmenu_ctrlkeymodifier_descr'),
+		  onload = function()
+		  end,
+		  onchange = function(_, value)
+			  saveOptionValue('Grid menu', 'gridmenu', 'setCtrlKeyModifier', { 'ctrlKeyModifier' }, value)
+		  end,
+		},
+		{ id = "gridmenu_shiftkeymodifier", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_shiftkeymodifier'), type = "slider", min = -20, max = 100, step = 1, value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getShiftKeyModifier ~= nil and WG['gridmenu'].getShiftKeyModifier()), description = Spring.I18N('ui.settings.option.gridmenu_shiftkeymodifier_descr'),
+		  onload = function()
+		  end,
+		  onchange = function(_, value)
+			  saveOptionValue('Grid menu', 'gridmenu', 'setShiftKeyModifier', { 'ShiftKeyModifier' }, value)
+		  end,
+		},
 
 		{ id = "label_ui_cursor", group = "control", name = Spring.I18N('ui.settings.option.label_cursor'), category = types.basic },
 		{ id = "label_ui_cursor_spacer", group = "control", category = types.basic },
@@ -3426,29 +3441,6 @@ function init()
 		  end,
 		},
 
-		--{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guishader'), type = "slider", min = 0, max = 0.005, steps = {0, 1, 2, 3, 4, 5, 6}, value = guishaderIntensity, description = '',
-		--  onload = function(i)
-		--	  loadWidgetData("GUI Shader", "guishader", { 'blurIntensity' })
-		--	  if type(options[getOptionByID('guishader')].value) ~= 'number' then
-		--		  options[getOptionByID('guishader')].value = 0
-		--	  end
-		--  end,
-		--  onchange = function(i, value)
-		--	  if type(value) == 'number' then
-		--		  guishaderIntensity = value
-		--		  saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', { 'blurIntensity' }, value)
-		--	  end
-		--	  if value <= 0.000001 then
-		--		  if GetWidgetToggleValue('GUI Shader') then
-		--			  widgetHandler:DisableWidget('GUI Shader')
-		--		  end
-		--	  else
-		--		  if not GetWidgetToggleValue('GUI Shader') then
-		--			  widgetHandler:EnableWidget('GUI Shader')
-		--		  end
-		--	  end
-		--  end,
-		--},
 		{ id = "guishader", group = "ui", category = types.basic, widget = "GUI Shader", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guishader'), type = "bool", value = GetWidgetToggleValue("GUI Shader") },
 
 		{ id = "rendertotexture", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.rendertotexture'), type = "bool", value = Spring.GetConfigInt("ui_rendertotexture", 1) == 1, description = Spring.I18N('ui.settings.option.rendertotexture_descr'),
@@ -4201,17 +4193,23 @@ function init()
 
 		{ id = "givenunits", group = "ui", category = types.advanced, widget = "Given Units", name = Spring.I18N('ui.settings.option.givenunits'), type = "bool", value = GetWidgetToggleValue("Given Units"), description = Spring.I18N('ui.settings.option.givenunits_descr') },
 
-		{ id = "reclaimfieldhighlight", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = Spring.I18N('ui.settings.option.reclaimfieldhighlight'), type = "select", options = { Spring.I18N('ui.settings.option.reclaimfieldhighlight_always'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_resource'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_reclaimer'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_resbot'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_order'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_disabled') }, value = 3, description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_descr'),
+		{ id = "reclaimfieldhighlight", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = Spring.I18N('ui.settings.option.reclaimfieldhighlight'), type = "bool", description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_descr') },
+
+		{ id = "reclaimfieldhighlight_metal", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.reclaimfieldhighlight_metal'), type = "select", options = reclaimFieldHighlightOptions, value = 3, description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_metal_descr'),
 			onload = function(i)
-				loadWidgetData("Reclaim Field Highlight", "reclaimfieldhighlight", { 'showOption' })
+				loadWidgetData("Reclaim Field Highlight", "reclaimfieldhighlight_metal", { 'showOption' })
 			end,
 			onchange = function(i, value)
-				if widgetHandler.orderList["Reclaim Field Highlight"] and widgetHandler.orderList["Reclaim Field Highlight"] >= 0.5 then
-					widgetHandler:EnableWidget("Reclaim Field Highlight")
-					saveOptionValue('Reclaim Field Highlight', 'reclaimfieldhighlight', 'setShowOption', { 'showOption' }, value)
-				else
-					saveOptionValue('Reclaim Field Highlight', 'reclaimfieldhighlight', 'setShowOption', { 'showOption' }, value)
-				end
+				saveOptionValue('Reclaim Field Highlight', 'reclaimfieldhighlight', 'setShowOption', { 'showOption' }, value)
+			end,
+		},
+
+		{ id = "reclaimfieldhighlight_energy", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.reclaimfieldhighlight_energy'), type = "select", options = reclaimFieldHighlightOptions, value = 3, description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_energy_descr'),
+			onload = function(i)
+				loadWidgetData("Reclaim Field Highlight", "reclaimfieldhighlight_energy", { 'showEnergyOption' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Reclaim Field Highlight', 'reclaimfieldhighlight', 'setShowEnergyOption', { 'showEnergyOption' }, value)
 			end,
 		},
 
@@ -5975,6 +5973,10 @@ function init()
 		options[getOptionByID('gridmenu_alwaysreturn')] = nil
 		options[getOptionByID('gridmenu_autoselectfirst')] = nil
 		options[getOptionByID('gridmenu_labbuildmode')] = nil
+		options[getOptionByID('gridmenu_ctrlclickmodifier')] = nil
+		options[getOptionByID('gridmenu_shiftclickmodifier')] = nil
+		options[getOptionByID('gridmenu_ctrlkeymodifier')] = nil
+		options[getOptionByID('gridmenu_shiftkeymodifier')] = nil
 	end
 
 	if spectatorHUDConfigOptions[options[getOptionByID('spectator_hud_config')].value] ~= Spring.I18N('ui.settings.option.spectator_hud_config_custom') then
@@ -5992,21 +5994,21 @@ function init()
 		options[getOptionByID('spectator_hud_metric_damageDealt')] = nil
 	end
 
-	if (not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7)) then
+	if not Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"] then
 		options[getOptionByID('soundtrackAprilFools')] = nil
 		Spring.SetConfigInt("UseSoundtrackAprilFools", 1)
 	else
 		options[getOptionByID('soundtrackAprilFoolsPostEvent')] = nil
 	end
 
-	if (not (tonumber(os.date("%m")) == 10 and tonumber(os.date("%d")) >= 17)) then
-		options[getOptionByID('soundtrackSpooktober')] = nil
-		Spring.SetConfigInt("UseSoundtrackSpooktober", 1)
+	if not Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"] then
+		options[getOptionByID('soundtrackHalloween')] = nil
+		Spring.SetConfigInt("UseSoundtrackHalloween", 1)
 	else
-		options[getOptionByID('soundtrackSpooktoberPostEvent')] = nil
+		options[getOptionByID('soundtrackHalloweenPostEvent')] = nil
 	end
 
-	if (not (tonumber(os.date("%m")) == 12 and tonumber(os.date("%d")) >= 12)) then
+	if not Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] then
 		options[getOptionByID('soundtrackXmas')] = nil
 		Spring.SetConfigInt("UseSoundtrackXmas", 1)
 	else
@@ -6053,8 +6055,9 @@ function init()
 
 	-- check if cus is disabled by auto disable cus widget (in case options widget has been reloaded)
 	if getOptionByID('sun_y') then
-		if select(2, gl.GetSun("pos")) < options[getOptionByID('sun_y')].min then
-			Spring.SetSunDirection(select(1, gl.GetSun("pos")), options[getOptionByID('sun_y')].min, select(3, gl.GetSun("pos")))
+		local sunX, sunY, sunZ = gl.GetSun("pos")
+		if sunY < options[getOptionByID('sun_y')].min then
+			Spring.SetSunDirection(sunX, options[getOptionByID('sun_y')].min, sunZ)
 		end
 	end
 
@@ -6144,7 +6147,6 @@ function init()
 				widgetHandler:DisableWidget(options[id].widget)
 			end
 			options[id] = nil
-			options[getOptionByID('guishader')] = nil
 
 			id = getOptionByID('dof')
 			if id and GetWidgetToggleValue(options[id].widget) then
@@ -6260,7 +6262,7 @@ function init()
 
 	-- add sound notification sets
 	if getOptionByID('notifications_set') then
-		local voiceset = Spring.GetConfigString("voiceset", 'en/allison')
+		local voiceset = Spring.GetConfigString("voiceset", 'en/cephis')
 		local currentVoiceSetOption
 		local sets = {}
 		local languageDirs = VFS.SubDirs('sounds/voice', '*')
@@ -6819,11 +6821,6 @@ function widget:Initialize()
 		-- 	Spring.SetConfigInt("snd_volmusic", 50)
 		-- end
 
-		-- enable advanced model shading
-		if Spring.GetConfigInt("AdvModelShading", 0) ~= 1 then
-			Spring.SetConfigInt("AdvModelShading", 1)
-			Spring.SendCommands("advmodelshading 1")
-		end
 		-- enable normal mapping
 		if Spring.GetConfigInt("NormalMapping", 0) ~= 1 then
 			Spring.SetConfigInt("NormalMapping", 1)
@@ -7007,7 +7004,6 @@ function widget:GetConfigData()
 		show = show,
 		waterDetected = waterDetected,
 		customPresets = customPresets,
-		guishaderIntensity = guishaderIntensity,
 		changesRequireRestart = changesRequireRestart,
 		requireRestartDefaults = requireRestartDefaults,
 
@@ -7045,9 +7041,6 @@ function widget:SetConfigData(data)
 	end
 	if data.cameraPanTransitionTime ~= nil then
 		cameraPanTransitionTime = data.cameraPanTransitionTime
-	end
-	if data.guishaderIntensity then
-		guishaderIntensity = data.guishaderIntensity
 	end
 	if data.edgeMoveWidth then
 		edgeMoveWidth = data.edgeMoveWidth

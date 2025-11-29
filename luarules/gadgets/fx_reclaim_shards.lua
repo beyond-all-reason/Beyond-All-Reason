@@ -23,18 +23,25 @@ local random = math.random
 local cegs = { "reclaimshards1", "reclaimshards2", "reclaimshards3" }
 local featureList = {}
 local cegList = {}
+local processedFeatures = {} -- Track features we've already processed to avoid redundant work
 
 for featureDefID, featureDef in pairs(FeatureDefs) do
 	if featureDef.customParams.fromunit and featureDef.model and featureDef.model.maxx then
-		featureList[featureDefID] = {
-			minX = math.max(math.floor(featureDef.model.minx * 0.66), -500),	-- capping values to prevent and error on too large interval in math.random() param #2
-			maxX = math.min(math.floor(featureDef.model.maxx * 0.66), 500),
-			minZ = math.max(math.floor(featureDef.model.minz * 0.66), -500),
-			maxZ = math.min(math.floor(featureDef.model.maxz * 0.66), 500),
-			y = math.floor(featureDef.model.maxy * 0.66)
-		}
-		if featureList[featureDefID].minX == featureList[featureDefID].maxX or featureList[featureDefID].minZ == featureList[featureDefID].maxZ  then
-			featureList[featureDefID] = nil
+		local minX = math.max(math.floor(featureDef.model.minx * 0.66), -500) -- capping values to prevent and error on too large interval in math.random() param #2
+		local maxX = math.min(math.floor(featureDef.model.maxx * 0.66), 500)
+		local minZ = math.max(math.floor(featureDef.model.minz * 0.66), -500)
+		local maxZ = math.min(math.floor(featureDef.model.maxz * 0.66), 500)
+
+		if minX ~= maxX and minZ ~= maxZ then
+			featureList[featureDefID] = {
+				minX = minX,
+				maxX = maxX,
+				minZ = minZ,
+				maxZ = maxZ,
+				y = math.floor(featureDef.model.maxy * 0.66),
+				rangeX = maxX - minX, -- Pre-calculate range to avoid subtraction in hot path
+				rangeZ = maxZ - minZ
+			}
 		end
 	end
 end
@@ -49,15 +56,29 @@ function gadget:GameFrame(n)
 end
 
 function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
-	if not cegList[featureID] then
-		local params = featureList[featureDefID] or nil
-		if params then
+	local params = featureList[featureDefID]
+	if params then
+		-- Cache position on first call to avoid repeated GetFeaturePosition calls
+		if not processedFeatures[featureID] then
 			local x, y, z = GetFeaturePosition(featureID)
-			x = x + params.minX + ((-params.minX + params.maxX) * random())
-			z = z + params.minZ + ((-params.minZ + params.maxZ) * random())
-			y = y + params.y
-			cegList[featureID] = { ceg = cegs[random(1, #cegs)], x = x, y = y, z = z }
+			processedFeatures[featureID] = {
+				x = x,
+				y = y + params.y,
+				z = z,
+				params = params
+			}
 		end
+
+		-- Spawn CEG every step, but use cached position data
+		local cached = processedFeatures[featureID]
+		local x = cached.x + cached.params.minX + (cached.params.rangeX * random())
+		local z = cached.z + cached.params.minZ + (cached.params.rangeZ * random())
+		cegList[featureID] = { ceg = cegs[random(1, #cegs)], x = x, y = cached.y, z = z }
 	end
 	return true
+end
+
+function gadget:FeatureDestroyed(featureID)
+	processedFeatures[featureID] = nil
+	cegList[featureID] = nil
 end
