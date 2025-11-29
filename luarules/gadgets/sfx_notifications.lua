@@ -221,7 +221,7 @@ else
 			end
 		end
 
-		if isCommander[unitDefID] and not select(3, Spring.GetTeamInfo(unitTeam)) then
+		if isCommander[unitDefID] and not select(3, Spring.GetTeamInfo(unitTeam)) and not Spring.GetUnitRulesParam(unitID, "muteDestructionNotification") then
 			local myComCount = 0
 			local allyComCount = 0
 			local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)

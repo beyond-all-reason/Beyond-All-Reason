@@ -54,7 +54,6 @@ local FLYING_UNIT_POWER_MULTIPLIER = 0.01
 local CLOAKED_UNIT_POWER_MULTIPLIER = 0
 local STATIC_UNIT_POWER_MULTIPLIER = 3
 local COMMANDER_POWER_MULTIPLIER = 1000
-local MAX_INITIAL_POINTS_CAP = 300
 local AESTHETIC_POINTS_MULTIPLIER = 2 --to be consistent with gui_territorial_domination.lua
 
 local MAX_PROGRESS = 1.0
@@ -101,7 +100,6 @@ local gameOver = false
 local allyTeamsCount = 0
 local previousRoundHighestScore = 0
 local topLivingRankedScoreIndex = 1
-local inOvertime = false
 
 local allyTeamsWatch = {}
 local unitWatchDefs = {}
@@ -413,6 +411,8 @@ local function defeatAlly(allyID)
 			killQueue[killFrame] = killQueue[killFrame] or {}
 			killQueue[killFrame][unitID] = true
 
+			Spring.SetUnitRulesParam(unitID, "muteDestructionNotification", 1)
+
 			local x, y, z = spGetUnitPosition(unitID)
 			spSpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
 			spPlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
@@ -616,9 +616,6 @@ function gadget:GameFrame(frame)
 
 	if frameModulo == 0 then
 		processLivingTeams()
-		if currentRound > MAX_ROUNDS and not gameOver then
-			inOvertime = true
-		end
 		for gridID, data in pairs(captureGrid) do
 			processGridSquareCapture(gridID)
 		end
