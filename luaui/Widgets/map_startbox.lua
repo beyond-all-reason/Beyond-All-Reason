@@ -474,6 +474,20 @@ function widget:Initialize()
 
 	gaiaTeamID = Spring.GetGaiaTeamID()
 
+	-- Fetch existing AI placements
+	for _, teamID in ipairs(Spring.GetTeamList()) do
+		if teamID ~= gaiaTeamID then
+			local _, _, _, isAI, _, _ = Spring.GetTeamInfo(teamID, false)
+			if isAI then
+				local x = Spring.GetTeamRulesParam(teamID, "aiPlacedX")
+				local z = Spring.GetTeamRulesParam(teamID, "aiPlacedZ")
+				if x and z then
+					aiPlacedPositions[teamID] = {x = x, z = z}
+				end
+			end
+		end
+	end
+
 	createInfotextList()
 
 	InitStartPolygons()
