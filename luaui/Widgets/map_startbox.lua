@@ -462,7 +462,7 @@ function widget:Initialize()
 		local alliedPositions = {}
 		for teamID, pos in pairs(aiPlacedPositions) do
 			local _, _, _, _, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
-			if teamAllyTeamID == myAllyTeamID then
+			if teamAllyTeamID == myAllyTeamID or Spring.IsCheatingEnabled() then
 				alliedPositions[teamID] = pos
 			end
 		end
@@ -526,8 +526,8 @@ function widget:DrawWorld()
 			local _, _, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
 			local playerID = select(2, Spring.GetTeamInfo(teamID, false))
 			local _, _, spec = Spring.GetPlayerInfo(playerID, false)
-			
-			if teamAllyTeamID == myAllyTeamID then
+
+			if teamAllyTeamID == myAllyTeamID or Spring.IsCheatingEnabled() then
 				local x, y, z = Spring.GetTeamStartPosition(teamID)
 				if coopStartPoints[playerID] then
 					x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
@@ -572,8 +572,8 @@ function widget:DrawScreenEffects()
 			local _, _, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
 			local playerID = select(2, Spring.GetTeamInfo(teamID, false))
 			local name, _, spec = Spring.GetPlayerInfo(playerID, false)
-			
-			if teamAllyTeamID == myAllyTeamID then
+
+			if teamAllyTeamID == myAllyTeamID or Spring.IsCheatingEnabled() then
 				if isAI then
 					local _, _, _, aiName, _, options = Spring.GetAIInfo(teamID)
 					local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
@@ -812,7 +812,7 @@ function widget:MousePress(x, y, button)
 				for teamID, placedPos in pairs(aiPlacedPositions) do
 					if placedPos.x and placedPos.z then
 						local _, _, _, isAI, _, aiAllyTeamID = Spring.GetTeamInfo(teamID, false)
-						if isAI and aiAllyTeamID == myAllyTeamID then
+						if isAI and (aiAllyTeamID == myAllyTeamID or Spring.IsCheatingEnabled()) then
 							local dx = worldX - placedPos.x
 							local dz = worldZ - placedPos.z
 							local distance = math.sqrt(dx * dx + dz * dz)

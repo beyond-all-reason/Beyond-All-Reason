@@ -2783,7 +2783,7 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
 	if isAI and not gameStarted and not mySpecStatus then
 		local aiAllyTeam = player[playerID].allyteam
 		isAlliedAI = (aiAllyTeam == myAllyTeamID)
-		if isAlliedAI and lastActivity.aiBlinkState then
+		if (isAlliedAI or Spring.IsCheatingEnabled()) and lastActivity.aiBlinkState then
 			nameText = Spring.I18N('ui.playersList.aiPlaceMe')
 		end
 	end
@@ -3466,7 +3466,7 @@ function widget:MousePress(x, y, button)
                                 Spring_SendCommands("toggleignore " .. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name))
                                 return true
                             end
-                            if not gameStarted and clickedPlayer.ai and clickedPlayer.allyteam == myAllyTeamID then
+                            if not gameStarted and clickedPlayer.ai and (clickedPlayer.allyteam == myAllyTeamID or Spring.IsCheatingEnabled()) then
                                 local aiTeamID = clickedPlayer.team
                                 if i >= specOffset then
                                     aiTeamID = i - specOffset

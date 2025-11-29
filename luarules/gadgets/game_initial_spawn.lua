@@ -323,7 +323,7 @@ if gadgetHandler:IsSyncedCode() then
 				local _, _, _, _, _, aiAllyTeamID = Spring.GetTeamInfo(teamID, false)
 				local _, _, senderIsSpec, senderTeam, senderAllyTeamID = spGetPlayerInfo(playerID, false)
 
-				if senderIsSpec or aiAllyTeamID ~= senderAllyTeamID then
+				if senderIsSpec or (aiAllyTeamID ~= senderAllyTeamID and not Spring.IsCheatingEnabled()) then
 					return false
 				end
 

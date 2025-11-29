@@ -100,6 +100,7 @@
 			"gpuMemory": "GPU Memory: %{gpuUsage}%%",
 			"pointClickTooltip": "Click to go to the last point set by the player",
 			"aiName": "%{name} (AI)",
+			"aiPlaceMe": "Place me!",
 			"desynced": "desynced",
 			"chat": {
 				"needSupport": "I need unit support!",
