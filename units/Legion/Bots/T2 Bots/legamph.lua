@@ -48,6 +48,8 @@ return {
 			unitgroup = "weaponsub",
 			--iswatervariable = true,
 			speedfactorwater = "1.3",
+			reactive_armor_health = 750,
+			reactive_armor_restore = 17,
 		},
 		featuredefs = {
 			dead = {
@@ -170,6 +172,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small-uw",
+				firesubmersed = false,
 				flighttime = 1.75,
 				gravityaffected = "true",
 				groundbounce = true,

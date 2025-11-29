@@ -101,6 +101,29 @@ local function GetSaveDescText(saveFile)
 		.. "\n" .. WriteDate(saveFile.date)
 end
 
+local function FindFirstEmptySaveSlot()
+	-- Find the first unused save slot number (e.g., save001, save002, etc.)
+	local saveFiles = VFS.DirList(SAVE_DIR, "*.lua")
+	local usedSlots = {}
+
+	for _, path in ipairs(saveFiles) do
+		local filename = string.sub(path, SAVE_DIR_LENGTH, -5)
+		local slotNum = string.match(filename, "^save(%d+)$")
+		if slotNum then
+			usedSlots[tonumber(slotNum)] = true
+		end
+	end
+
+	-- Find first empty slot starting from 1
+	for i = 1, 999 do
+		if not usedSlots[i] then
+			return i
+		end
+	end
+
+	return 1 -- fallback
+end
+
 local function SaveGame(filename, description, requireOverwrite)
 	if WG.Analytics and WG.Analytics.SendRepeatEvent then
 		WG.Analytics.SendRepeatEvent("game_start:savegame", filename)

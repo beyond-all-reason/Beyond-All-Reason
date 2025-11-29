@@ -827,7 +827,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 						spSetUnitStockpile(carrierUnitID, stockpile, stockpilepercentage)
 						spGiveOrderToUnit(carrierUnitID, CMD.STOCKPILE, {}, 0)
 					end
-					carrierMetaList[carrierUnitID].stockpilecount = carrierMetaList[carrierUnitID].stockpilecount - 1
+					if carrierMetaList[carrierUnitID] then
+						carrierMetaList[carrierUnitID].stockpilecount = carrierMetaList[carrierUnitID].stockpilecount - 1
+					end
 
 				end
 			end
@@ -1112,6 +1114,9 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	local perpendicularvectorx, perpendicularvectorz
 	if targetx and carrierx then
 		magnitude = diag((carrierx-targetx), (carrierz-targetz))
+		if magnitude == 0 then
+			magnitude = 0.0001
+		end
 		targetvectorx, targetvectorz = targetx-carrierx, targetz-carrierz
 		targetvectorx, targetvectorz = carrierMetaData.attackFormationOffset*targetvectorx/100, carrierMetaData.attackFormationOffset*targetvectorz/100
 		perpendicularvectorx, perpendicularvectorz = -targetvectorz, targetvectorx
@@ -1434,6 +1439,9 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 								end
 								-- local vx, vy, vz = GetDirectionalVector(landingspeed, subx, px, suby, py, subz, pz)
 								local magnitude = diag((subx-px), (suby-py), (subz-pz))
+								if magnitude == 0 then
+									magnitude = 0.0001
+								end
 								local vx, vy, vz = px-subx, py-suby, pz-subz
 								vx, vy, vz = landingspeed*vx/magnitude, landingspeed*vy/magnitude, landingspeed*vz/magnitude
 								spSetUnitVelocity(subUnitID, vx, vy, vz)
@@ -1441,6 +1449,9 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 								local landingspeed = carrierMetaList[unitID].dockHelperSpeed
 								-- local vx, vy, vz = GetDirectionalVector(carrierMetaList[unitID].dockHelperSpeed, subx, px, suby, py, subz, pz)
 								local magnitude = diag((subx-px), (suby-py), (subz-pz))
+								if magnitude == 0 then
+									magnitude = 0.0001
+								end
 								local vx, vy, vz = px-subx, py-suby, pz-subz
 								vx, vy, vz = landingspeed*vx/magnitude, landingspeed*vy/magnitude, landingspeed*vz/magnitude
 								Spring.MoveCtrl.Enable(subUnitID)

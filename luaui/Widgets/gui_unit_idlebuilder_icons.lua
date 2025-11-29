@@ -28,7 +28,7 @@ local unitScope = {} -- table of teamid to table of stallable unitID : unitDefID
 local idleUnitList = {}
 
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGetFactoryCommands = Spring.GetFactoryCommands
+local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
 local spGetUnitTeam = Spring.GetUnitTeam
 local spec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
@@ -119,7 +119,7 @@ local function updateIcons()
 	local gf = spGetGameFrame()
 	local queue
 	for unitID, unitDefID in pairs(unitScope) do
-		queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 0) or spGetUnitCommandCount(unitID, 0)
+		queue = unitConf[unitDefID][3] and spGetFactoryCommandCount(unitID) or spGetUnitCommandCount(unitID)
 		if queue == 0 then
 			if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
 				if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
