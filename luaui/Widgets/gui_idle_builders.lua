@@ -49,10 +49,11 @@ local widgetSpaceMargin, backgroundPadding, elementCorner, RectRound, UiElement,
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+
 local spGetMouseState = Spring.GetMouseState
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGetFactoryCommands = Spring.GetFactoryCommands
-local myTeamID = spGetMyTeamID()
+local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
+local myTeamID = Spring.GetMyTeamID()
 
 local floor = mathFloor
 local ceil = math.ceil
@@ -306,7 +307,7 @@ local function updateList(force)
 	idleList = {}
 	local queue
 	for unitID, unitDefID in pairs(unitList) do
-		queue = unitConf[unitDefID] and spGetFactoryCommands(unitID, 0) or spGetUnitCommandCount(unitID, 0)
+		queue = unitConf[unitDefID] and spGetFactoryCommandCount(unitID) or spGetUnitCommandCount(unitID)
 		if queue == 0 then
 			if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
 				if idleList[unitDefID] then
