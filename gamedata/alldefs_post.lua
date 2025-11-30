@@ -498,6 +498,22 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	-- Tech Blocking System -------------------------------------------------------------------------------------------------------------------------
+	if modOptions.tech_blocking and uDef.customparams then
+		local techLevel = uDef.customparams.techlevel or 1
+		if uDef.buildoptions and #uDef.buildoptions > 0 and (not uDef.speed or uDef.speed == 0) then
+			if techLevel == 1 then
+				uDef.customparams.tech_points_gain = uDef.customparams.tech_points_gain or 1
+			elseif techLevel == 2 then
+				uDef.customparams.tech_points_gain = uDef.customparams.tech_points_gain or 6
+				uDef.customparams.tech_build_blocked_until_level = uDef.customparams.tech_build_blocked_until_level or 2
+			elseif techLevel == 3 then
+				uDef.customparams.tech_points_gain = uDef.customparams.tech_points_gain or 9
+				uDef.customparams.tech_build_blocked_until_level = uDef.customparams.tech_build_blocked_until_level or 3
+			end
+		end
+	end
+
 	-- Extra Units ----------------------------------------------------------------------------------------------------------------------------------
 	if modOptions.experimentalextraunits then
 		-- Armada T1 Land Constructors
