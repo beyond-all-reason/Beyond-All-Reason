@@ -63,13 +63,13 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			local techLevel = tonumber(customParams.tech_build_blocked_until_level)
 			blockTechDefs[unitDefID] = techLevel
 		end
-		if customParams.tech_points_gain and customParams.tech_points_gain > 0 then
+		if customParams.tech_points_gain and tonumber(customParams.tech_points_gain) > 0 then
 			Spring.Echo("Tech points gain found for ", unitDef.name, ": ", tostring(customParams.tech_points_gain))
 			removeGadget = false
 			local techXP = tonumber(customParams.tech_points_gain)
 			techPointsGeneratorDefs[unitDefID] = techXP
 		end
-		if customParams.tech_core_value and customParams.tech_core_value > 0 then
+		if customParams.tech_core_value and tonumber(customParams.tech_core_value) > 0 then
 			Spring.Echo("Tech core value found for ", unitDef.name, ": ", tostring(customParams.tech_core_value))
 			removeGadget = false
 			local coreValue = tonumber(customParams.tech_core_value)
