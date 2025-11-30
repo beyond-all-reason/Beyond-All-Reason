@@ -90,7 +90,7 @@ local GL_NOTEQUAL = GL.NOTEQUAL
 local Config = {
 	General = {
 		gameSpeed = Game.gameSpeed,
-		minSpread = 8, -- weapons with this spread or less are ignored
+		minSpread = 8,
 	},
 	Colors = {
 		aoe = { 1, 0, 0, 1 },
@@ -100,6 +100,9 @@ local Config = {
 		emp = { 0.65, 0.65, 1, 1 },
 		scatter = { 1, 1, 0, 1 },
 		noStockpile = { 0.88, 0.88, 0.88, 1 },
+		-- [[ NEW: Trajectory Colors ]]
+		arcBlocked = { 1, 0.2, 0, 0.6 },   -- Reddish when path is blocked
+		arcClear = { 1, 1, 0, 0.6 },       -- Yellowish when clear
 	},
 	Render = {
 		scatterMinAlpha = 0.5,
@@ -111,12 +114,20 @@ local Config = {
 		pointSizeMult = 2048,
 		maxFilledCircleAlpha = 0.2,
 		minFilledCircleAlpha = 0.1,
-		ringDamageLevels = { 0.8, 0.6, 0.4, 0.2 }, -- draw aoe rings for these damage levels
+		ringDamageLevels = { 0.8, 0.6, 0.4, 0.2 },
+	},
+	-- [[ NEW: Trajectory Settings ]]
+	Arc = {
+		simStep = 4,             -- Higher = less CPU, lower = smoother curve
+		alpha = 0.3,             -- Base line opacity
+		mixRange = 40,           -- Depth range for color blending (air vs underground)
+		overshoot = 0,         -- Draw 20% past the target
+		startFadeGap = 100,      -- Distance from muzzle before line becomes visible
 	},
 	Animation = {
 		salvoSpeed = 0.1,
 		waveDuration = 0.35,
-		fadeDuration = 0, -- Calculated below
+		fadeDuration = 0,
 	}
 }
 
@@ -1177,6 +1188,138 @@ local function GetBallisticVector(initialSpeed, dx, dy, dz, trajectoryMode)
 	return normalize(launchVecX, launchVecY, launchVecZ)
 end
 
+-- fixme use lerp
+local function MixColorResult(c1, c2, factor)
+	-- Returns r, g, b, a
+	if factor <= 0 then return c1[1], c1[2], c1[3], c1[4] end
+	if factor >= 1 then return c2[1], c2[2], c2[3], c2[4] end
+	return c1[1] + (c2[1] - c1[1]) * factor,
+	c1[2] + (c2[2] - c1[2]) * factor,
+	c1[3] + (c2[3] - c1[3]) * factor,
+	c1[4] + (c2[4] - c1[4]) * factor
+end
+
+---@param data IndicatorDrawData
+--------------------------------------------------------------------------------
+-- TRAJECTORY ARC
+--------------------------------------------------------------------------------
+---@param data IndicatorDrawData
+--------------------------------------------------------------------------------
+-- TRAJECTORY ARC
+--------------------------------------------------------------------------------
+---@param data IndicatorDrawData
+local function DrawBallisticTrajectory(data)
+	local info = data.weaponInfo
+	local ux, uy, uz = data.source.x, data.source.y, data.source.z
+	local tx, ty, tz = data.target.x, data.target.y, data.target.z
+	local aimingUnitID = data.unitID
+
+	-- 1. Setup
+	local trajectoryState = select(7, spGetUnitStates(aimingUnitID, false, true))
+	local trajectory = trajectoryState and 1 or -1
+
+	local dx, dy, dz = tx - ux, ty - uy, tz - uz
+	local bx, by, bz = GetBallisticVector(info.v, dx, dy, dz, trajectory)
+	if not bx then return end
+
+	-- 2. Constants
+	local gameSpeed = Config.General.gameSpeed
+	local v_f = info.v / gameSpeed
+	local g_f = gravityPerFrame
+
+	local vx, vy, vz = bx * v_f, by * v_f, bz * v_f
+	local px, py, pz = ux, uy, uz
+	-- Store "Last" position for interpolation
+	local lx, ly, lz = px, py, pz
+
+	local simStep = Config.Arc.simStep
+	local g_step = g_f * simStep
+
+	local distTarget = distance3d(ux, uy, uz, tx, ty, tz)
+	local distTargetSq = distTarget * distTarget
+
+	local colBlocked = Config.Colors.arcBlocked
+	local baseAlpha = Config.Arc.alpha
+	local fadeHeight = Config.Arc.mixRange or 40
+
+	-- [FIX 1] Safety Zone: Don't trigger obstacle warning if we are this close to impact
+	-- This prevents the line from appearing just because it's landing on the ground.
+	local safetyZone = 0
+
+	local isVisible = false
+
+	gl.LineWidth(4)
+	glBeginEnd(GL_LINE_STRIP, function()
+		local maxIter = 1000
+
+		for i = 1, maxIter do
+			-- Record last pos
+			lx, ly, lz = px, py, pz
+
+			-- Integrate
+			px = px + vx * simStep
+			py = py + vy * simStep
+			pz = pz + vz * simStep
+			vy = vy - g_step
+
+			local currentDistSq = (px - ux)^2 + (py - uy)^2 + (pz - uz)^2
+
+			-- [FIX 2] Interpolation for smooth end
+			-- If we passed the target, calculate the exact crossing point and stop.
+			if currentDistSq >= distTargetSq then
+				if isVisible then
+					-- Linear Interpolation (Lerp) to find point exactly at target distance
+					local currentDist = sqrt(currentDistSq)
+					local lastDist = sqrt((lx - ux)^2 + (ly - uy)^2 + (lz - uz)^2)
+					local fraction = (distTarget - lastDist) / (currentDist - lastDist)
+
+					local ix = lx + (px - lx) * fraction
+					local iy = ly + (py - ly) * fraction
+					local iz = lz + (pz - lz) * fraction
+
+					glColor(colBlocked[1], colBlocked[2], colBlocked[3], baseAlpha) -- Full alpha at end
+					glVertex(ix, iy, iz)
+				end
+				break
+			end
+
+			-- Terrain Collision Check
+			local gwh = spGetGroundHeight(px, pz)
+			local depth = gwh - py
+
+			-- [FIX 1 Logic] Trigger visibility ONLY if we are outside the safety zone
+			local distRemaining = distTarget - sqrt(currentDistSq)
+
+			if distRemaining > safetyZone then
+				-- We are far from target, check for obstacles
+				if depth > -fadeHeight then
+					isVisible = true
+				end
+			end
+
+			if isVisible then
+				local alphaFactor = 1
+
+				-- Fade in logic
+				if depth <= 0 then
+					alphaFactor = (depth + fadeHeight) / fadeHeight
+				end
+				-- Note: If depth > 0 (underground), factor stays 1.
+
+				local finalAlpha = baseAlpha * alphaFactor
+
+				if finalAlpha > 0.01 then
+					glColor(colBlocked[1], colBlocked[2], colBlocked[3], finalAlpha)
+					glVertex(px, py, pz)
+				end
+			end
+
+			if py < -500 then break end
+		end
+	end)
+	gl.LineWidth(1)
+end
+
 --- Calculates where a projectile with specific velocity vector will intersect the target plane
 local function GetScatterImpact(ux, uz, calc_tx, calc_tz, v_f, gravity_f, heightDiff, dirX, dirY, dirZ)
 	local velY = dirY * v_f
@@ -1218,9 +1361,11 @@ end
 
 local function DrawAnnularSectorFill(ux, uz, aimAngle, halfAngle, rMin, rMax)
 	local arcLength = rMax * halfAngle * 2
-	local segments = ceil(arcLength / 20)
-	if segments < 8 then segments = 8 end
-	if segments > 64 then segments = 64 end
+	local segments = ceil(arcLength)
+
+	if segments < 32 then segments = 32 end
+	if segments > 256 then segments = 256 end
+	Spring.Echo(segments)
 
 	local step = (halfAngle * 2) / segments
 
@@ -1746,6 +1891,7 @@ end
 
 ---@param data IndicatorDrawData
 local function DrawBallistic(data)
+	DrawBallisticTrajectory(data)
 	local scatterAlphaFactor = DrawBallisticScatter(data)
 	local baseColorOverride = scatterAlphaFactor and GetFadedColor(data.colors.base, 1 - (scatterAlphaFactor * 0.7))
 	DrawAoe(data, baseColorOverride)
@@ -1797,7 +1943,6 @@ function widget:Initialize()
 	smokeShader = CreateSmokeShader()
 	if smokeShader then
 		timeUniformLoc = gl.GetUniformLocation(smokeShader, "time")
-		-- [[ NEW ]] Get the location for the center position
 		centerUniformLoc = gl.GetUniformLocation(smokeShader, "center")
 	end
 	noiseTexture = CreateNoiseTexture()
