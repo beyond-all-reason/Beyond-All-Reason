@@ -325,7 +325,7 @@ function widget:Update(dt)
 	end
 
 	-- only select new units identical to those already selected
-	if mods.same and #referenceSelection > 0 then
+	if mods.same and next(referenceSelectionTypes) ~= nil then
 		tmp = {}
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
@@ -553,7 +553,7 @@ function widget:Initialize()
 		end
 		
 		-- Apply same-type filter if active
-		if mods.same and #referenceSelection > 0 then
+		if mods.same and next(referenceSelectionTypes) ~= nil then
 			tmp = {}
 			for i = 1, #mouseSelection do
 				uid = mouseSelection[i]
