@@ -1442,6 +1442,54 @@ local options = {
         def  	= false,
     },
 
+    {
+        key    	= "experimental_low_priority_pacifists",
+        name   	= "Low Priority Pacifists",
+        desc   	= "Makes the automatic target priority of non-combat mobile units much lower, so they must be intentionally targeted.",
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= false,
+    },
+
+	{
+        key    	= "experimental_unit_surfboxes",
+        name   	= "Fish in a Barrel",
+        desc   	= "Scouts submerged in very shallow water can be shot and killed",
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= false,
+    },
+
+    {
+        key    	= "shieldsrework",
+        name   	= "Shields Rework v2.0",
+        desc   	= "Shields block plasma. Overkill damage is absorbed. Shield is down for the duration required to recharge the overkill damage at normal energy cost.",
+        type   	= "bool",
+        hidden 	= false,
+        section = "options_experimental",
+        def  	= false,
+    },
+
+    {
+        key 	= "proposed_unit_reworks",
+        name 	= "Proposed Unit Reworks",
+        desc 	= "Modoption used to test balance changes that are being considered for the base game.",
+        type 	= "bool",
+        --hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key 	= "naval_balance_tweaks",
+        name 	= "Proposed Naval Balance Tweaks",
+        desc 	= "Modoption used to test specific balance adjustments dedicated towards naval units.",
+        type 	= "bool",
+        --hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
+
     -- Hidden Tests
 
     {
@@ -1462,25 +1510,6 @@ local options = {
         hidden  = true,
         section = "options_experimental",
         def     = false,
-    },
-
-    {
-        key    	= "shieldsrework",
-        name   	= "Shields Rework v2.0",
-        desc   	= "Shields block plasma. Overkill damage is absorbed. Shield is down for the duration required to recharge the overkill damage at normal energy cost.",
-        type   	= "bool",
-        hidden 	= false,
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
-        key    	= "experimental_low_priority_pacifists",
-        name   	= "Low Priority Pacifists",
-        desc   	= "Makes the automatic target priority of non-combat mobile units much lower, so they must be intentionally targeted.",
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
     },
 
     {
@@ -1542,26 +1571,6 @@ local options = {
         hidden 	= true,
         section = "options_experimental",
         def  	= false,
-    },
-
-    {
-        key 	= "proposed_unit_reworks",
-        name 	= "Proposed Unit Reworks",
-        desc 	= "Modoption used to test balance changes that are being considered for the base game.",
-        type 	= "bool",
-        --hidden 	= true,
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "naval_balance_tweaks",
-        name 	= "Proposed Naval Balance Tweaks",
-        desc 	= "Modoption used to test specific balance adjustments dedicated towards naval units.",
-        type 	= "bool",
-        --hidden 	= true,
-        section = "options_experimental",
-        def 	= false,
     },
 
     {
