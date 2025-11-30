@@ -110,7 +110,6 @@ local function UpdatePolicyCache(frame)
 	if frame < lastPolicyUpdate + POLICY_UPDATE_RATE then
 		return
 	end
-	lastPolicyUpdate = frame
 
 	local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
 	local resultFactory = ResourceTransfer.BuildResultFactory(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY])
