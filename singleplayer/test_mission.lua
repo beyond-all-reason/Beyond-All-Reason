@@ -7,6 +7,7 @@ local triggers = {
 		type = triggerTypes.TimeElapsed,
 		settings = {
 			repeating = true,
+			maxRepeats = 3,
 		},
 		parameters = {
 			gameFrame = 1,
@@ -15,7 +16,15 @@ local triggers = {
 		actions = { 'spawnConBots', 'moveConBots' },
 	},
 
-	despawnConBotsAsKilled = {
+	spawnThors = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 150,
+		},
+		actions = { 'spawnThors' },
+	},
+
+	at200 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			gameFrame = 200,
@@ -23,7 +32,7 @@ local triggers = {
 		actions = { 'despawnConBotsAsKilled', 'messageBotsKilled' },
 	},
 
-	despawnConBotsSelfD = {
+	at480 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			gameFrame = 480,
@@ -31,7 +40,7 @@ local triggers = {
 		actions = { 'despawnConBotsSelfD', 'messageBotsSelfD' },
 	},
 
-	despawnConBotsReclaimed = {
+	at760 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			gameFrame = 760,
@@ -39,7 +48,7 @@ local triggers = {
 		actions = { 'despawnConBotsReclaimed', 'messageBotsReclaimed' },
 	},
 
-	gameEnd = {
+	at900 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			gameFrame = 900,
@@ -55,7 +64,21 @@ local actions = {
 			name = 'con-bots',
             unitDefName = 'corck',
 			teamID = 0,
-			positions = {{ x = 1800, z = 1600 }, { x = 1900, z = 1600 }},
+			position = { x = 1800, z = 1600 },
+			quantity = 9,
+			facing = 'n',
+			alert = true,
+		},
+	},
+
+	spawnThors = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+            unitDefName = 'armthor',
+			teamID = 0,
+			position = { x = 1800, z = 2100 },
+			quantity = 11,
+			spacing = 100,
 			facing = 'n',
 			alert = true,
 		},

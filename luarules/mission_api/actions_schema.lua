@@ -102,21 +102,30 @@ local parameters = {
 			type = 'number'
 		},
 		[4] = {
-			name = 'positions',
+			name = 'position',
 			required = true,
 			type = 'table'
 		},
 		[5] = {
+			name = 'quantity',
+			required = false,
+			type = 'number',		},
+		[6] = {
+			name = 'spacing',
+			required = false,
+			type = 'number'
+		},
+		[7] = {
 			name = 'facing',
 			required = true,
 			type = 'string'
 		},
-		[6] = {
+		[8] = {
 			name = 'construction',
 			required = false,
 			type = 'boolean'
 		},
-		[7] = {
+		[9] = {
 			name = 'alert',
 			required = false,
 			type = 'boolean'
