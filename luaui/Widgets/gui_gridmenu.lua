@@ -164,6 +164,7 @@ local blockOverride = {}
 -------------------------------------------------------------------------------
 
 include("keysym.h.lua")
+local windFunctions = VFS.Include('common/wind_functions.lua')
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
@@ -1298,6 +1299,9 @@ function widget:Initialize()
 	doUpdateClock = os.clock()
 
 	units.checkGeothermalFeatures()
+	if windFunctions.isWindDisabled() then
+		units.restrictWindUnits(true)
+	end
 
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_key", gridmenuKeyHandler, nil, "pR")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_category", gridmenuCategoryHandler, nil, "p")

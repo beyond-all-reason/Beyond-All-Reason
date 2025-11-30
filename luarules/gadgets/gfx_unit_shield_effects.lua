@@ -44,6 +44,12 @@ local function GetSLerpedPoint(x1, y1, z1, x2, y2, z2, w1, w2)
 
 	local A = math.acos(dotP)
 	local sinA = math.sin(A)
+	
+	-- Safeguard against division by zero
+	if sinA == 0 or (w1 + w2) == 0 then
+		return x1, y1, z1
+	end
+	
 	local w = 1.0 - (w1 / (w1 + w2))
 
 	local x = (math.sin((1.0 - w) * A) * x1 + math.sin(w * A) * x2) / sinA
@@ -866,7 +872,12 @@ function gadget:DrawWorld()
 						glUniformInt(uImpactCount, hitPointCount)
 						for j = 1, hitPointCount do
 							local hit = hitData[j]
-							glUniform(impactInfoUniformCache[j], hit.x, hit.y, hit.z, hit.aoe)
+							-- Safeguard against NaN values
+							local aoe = hit.aoe
+							if aoe ~= aoe or aoe == math.huge or aoe == -math.huge then
+								aoe = 0
+							end
+							glUniform(impactInfoUniformCache[j], hit.x, hit.y, hit.z, aoe)
 						end
 					end
 				end
