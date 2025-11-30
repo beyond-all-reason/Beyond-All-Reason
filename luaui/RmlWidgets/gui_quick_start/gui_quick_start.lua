@@ -22,6 +22,8 @@ if not modOptions or not modOptions.quick_start then
 	return false
 end
 
+local startingMetal = modOptions.startmetal or 1000
+
 local shouldRunWidget = modOptions.quick_start == "enabled" or
 	modOptions.quick_start == "factory_discount" or
 	(modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
@@ -97,6 +99,7 @@ local initialModel = {
 	deductionAmount3 = "",
 	deductionAmount4 = "",
 	deductionAmount5 = "",
+	actualStartingMetal = 0,
 }
 
 local function calculateBudgetWithDiscount(unitDefID, factoryDiscountAmount, shouldApplyDiscount, isFirstFactory)
@@ -134,6 +137,7 @@ local function getCachedGameRules()
 		cachedGameRules.factoryDiscountAmount = spGetGameRulesParam("quickStartFactoryDiscountAmount") or 0
 		cachedGameRules.instantBuildRange = spGetGameRulesParam("overridePregameBuildDistance") or DEFAULT_INSTANT_BUILD_RANGE
 		cachedGameRules.budgetThresholdToAllowStart = spGetGameRulesParam("quickStartBudgetThresholdToAllowStart") or 0
+		cachedGameRules.metalDeduction = spGetGameRulesParam("quickStartMetalDeduction") or 800
 		lastRulesUpdate = currentTime
 	end
 	return cachedGameRules
@@ -216,12 +220,16 @@ local function createBudgetBarElements()
 	
 	local warningTextElement = widgetState.document:GetElementById("qs-warning-text")
 	local factoryTextElement = widgetState.document:GetElementById("qs-factory-text")
-	
+	local refundOverlayElement = widgetState.document:GetElementById("qs-budget-refund-overlay")
+
 	if warningTextElement then
 		widgetState.warningElements.warningText = warningTextElement
 	end
 	if factoryTextElement then
 		widgetState.warningElements.factoryText = factoryTextElement
+	end
+	if refundOverlayElement then
+		widgetState.refundOverlayElement = refundOverlayElement
 	end
 end
 
@@ -234,7 +242,7 @@ end
 
 local function getCommanderPosition(myTeamID)
 	local commanderX, commanderY, commanderZ = Spring.GetTeamStartPosition(myTeamID)
-	return commanderX or 0, commanderY or 0, commanderZ or 0
+	return commanderX or 0, commanderZ or 0
 end
 
 local function computeProjectedUsage()
@@ -245,7 +253,7 @@ local function computeProjectedUsage()
 
 	local budgetUsed = 0
 	local firstFactoryPlaced = false
-	local commanderX, commanderY, commanderZ = getCommanderPosition(myTeamID)
+	local commanderX, commanderZ = getCommanderPosition(myTeamID)
 
 	if pregame and #pregame > 0 then
 		for i = 1, #pregame do
@@ -302,6 +310,8 @@ local function computeProjectedUsage()
 	local budgetRemaining = math.max(0, gameRules.budgetTotal - budgetUsed)
 	local budgetPercent = gameRules.budgetTotal > 0 and math.max(0, math.min(100, (budgetRemaining / gameRules.budgetTotal) * 100)) or 0
 	local projectedPercent = gameRules.budgetTotal > 0 and math.max(0, math.min(100, (budgetProjected / gameRules.budgetTotal) * 100)) or 0
+	local metalDeduction = gameRules.metalDeduction or 800
+	local actualStartingMetal = startingMetal - metalDeduction + budgetRemaining
 
 	return {
 		budgetTotal = gameRules.budgetTotal,
@@ -310,6 +320,7 @@ local function computeProjectedUsage()
 		budgetPercent = budgetPercent,
 		budgetProjected = budgetProjected,
 		budgetProjectedPercent = projectedPercent,
+		actualStartingMetal = actualStartingMetal,
 	}
 end
 
@@ -334,7 +345,7 @@ local function updateAllCostOverrides()
 	local buildQueue = wgPregameBuild and wgPregameBuild.getBuildQueue and wgPregameBuild.getBuildQueue() or {}
 
 	local factoryAlreadyPlaced = false
-	local commanderX, commanderY, commanderZ = getCommanderPosition(myTeamID)
+	local commanderX, commanderZ = getCommanderPosition(myTeamID)
 
 	for i = 1, #buildQueue do
 		local queueItem = buildQueue[i]
@@ -422,26 +433,37 @@ local function updateDataModel(forceUpdate)
 	widgetState.lastQueueLength = currentQueueLength
 	widgetState.lastBudgetRemaining = currentBudgetRemaining
 	
-	local myTeamID = spGetMyTeamID()
 	local gameRules = getCachedGameRules()
 	local budgetThreshold = gameRules.budgetThresholdToAllowStart or 0
-	local hasUnallocatedBudget = currentBudgetRemaining > budgetThreshold
-	
+	local budgetUsed = modelUpdate.budgetUsed or 0
+	local noBudgetUsed = budgetUsed == 0
+	local insufficientBudgetSpent = currentBudgetRemaining > budgetThreshold
+	local shouldBlockReady = noBudgetUsed or insufficientBudgetSpent
+
 	if wgPregameUI and wgPregameUI.addReadyCondition and wgPregameUI.removeReadyCondition then
-		if hasUnallocatedBudget then
+		if shouldBlockReady then
 			wgPregameUI.addReadyCondition(QUICK_START_CONDITION_KEY, "ui.quickStart.unallocatedBudget")
 		else
 			wgPregameUI.removeReadyCondition(QUICK_START_CONDITION_KEY)
 		end
 	end
 	if wgPregameUIDraft and wgPregameUIDraft.addReadyCondition and wgPregameUIDraft.removeReadyCondition then
-		if hasUnallocatedBudget then
+		if shouldBlockReady then
 			wgPregameUIDraft.addReadyCondition(QUICK_START_CONDITION_KEY, "ui.quickStart.unallocatedBudget")
 		else
 			wgPregameUIDraft.removeReadyCondition(QUICK_START_CONDITION_KEY)
 		end
 	end
-	
+
+	if widgetState.refundOverlayElement then
+		local shouldShowRefund = not noBudgetUsed and currentBudgetRemaining <= budgetThreshold
+		if shouldShowRefund then
+			widgetState.refundOverlayElement:SetAttribute("style", "opacity: 1;")
+		else
+			widgetState.refundOverlayElement:SetAttribute("style", "opacity: 0;")
+		end
+	end
+
 	for key, value in pairs(modelUpdate) do
 		widgetState.dmHandle[key] = value
 	end
@@ -463,6 +485,9 @@ local function updateDataModel(forceUpdate)
 		end
 
 		updateUIElementText(widgetState.document, "qs-budget-value-left", tostring(budgetRemaining))
+
+		local actualStartingMetal = math.floor(widgetState.dmHandle.actualStartingMetal or 0)
+		updateUIElementText(widgetState.document, "qs-budget-refund-overlay", "You will start with " .. actualStartingMetal .. " metal.")
 	end
 end
 
@@ -476,7 +501,7 @@ local function getBuildQueueSpawnStatus(buildQueue, selectedBuildData)
 	
 	local remainingBudget = gameRules.budgetTotal
 	local firstFactoryPlaced = false
-	local commanderX, commanderY, commanderZ = getCommanderPosition(myTeamID)
+	local commanderX, commanderZ = getCommanderPosition(myTeamID)
 	
 	if buildQueue and #buildQueue > 0 then
 		for i = 1, #buildQueue do
