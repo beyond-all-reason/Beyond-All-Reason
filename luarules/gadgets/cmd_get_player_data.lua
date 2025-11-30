@@ -244,15 +244,17 @@ else
 
 		-- Clamp screenshot width to screen width
 		queueScreenShotWidth = math.min(tonumber(parts[1]), vsx)
-		queueScreenShotHeightBatch = 3
+		queueScreenShotHeightBatch = math.max(1, math.ceil(1500 / queueScreenShotWidth))
 		local requestingPlayer = tonumber(parts[2])
 
 		-- Check if requesting player is authorized spectator
 		local _, _, requestingSpec = Spring.GetPlayerInfo(requestingPlayer, false)
 		local _, _, mySpec = Spring.GetPlayerInfo(myPlayerID, false)
 
-		-- Allow screenshot if: singleplayer OR (I'm a spec) OR (requesting player is authorized spec)
-		if not isSingleplayer and not mySpec and not (requestingSpec and authorized) then
+		-- Allow screenshot if: singleplayer OR (I'm a spec) OR (requesting player is a spec)
+		-- Note: Authorization check happens on the requesting player's side when they send the command
+
+		if not isSingleplayer and not requestingSpec then
 			return  -- Silently reject if conditions not met
 		end
 
@@ -488,10 +490,6 @@ else
 		end
 	end
 
-	local function math_isInRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-		return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
-	end
-
 	function toPixels(str)
 		local chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/"
 		local pixels = {}
@@ -649,8 +647,15 @@ else
 						seconds = '0' .. seconds
 					end
 
-					screenshotVars.pixels = toPixels(screenshotVars.data)					screenshotVars.player = playerName
-					screenshotVars.filename = "gameframe_" .. screenshotVars.gameframe .. "_" .. minutes .. '.' .. seconds .. "_" .. playerName
+					screenshotVars.pixels = toPixels(screenshotVars.data)
+					screenshotVars.player = playerName
+					screenshotVars.filename = playerName .. "_" .. minutes .. '.' .. seconds
+					if Spring.GetModOptions().date_year then
+						screenshotVars.filename = Spring.GetModOptions().date_year .. "-" .. Spring.GetModOptions().date_month .. "-" .. Spring.GetModOptions().date_day .. "_".. screenshotVars.filename
+					else
+						screenshotVars.filename = "_" .. screenshotVars.filename
+					end
+					screenshotVars.filename = string.gsub(screenshotVars.filename, '[<>:"/\\|?*]', '_')
 
 					-- Get team color for player name
 					local playerList = Spring.GetPlayerList()
@@ -666,7 +671,6 @@ else
 						end
 					end
 					screenshotVars.teamColor = (r and g and b) and {r, g, b} or {1, 1, 1}
-					screenshotVars.saved = nil
 					screenshotVars.saveQueued = true
 					screenshotVars.posX = (vsx - screenshotVars.width * uiScale) / 2
 					screenshotVars.posY = (vsy - screenshotVars.height * uiScale) / 2
@@ -705,15 +709,11 @@ else
 		-- Create display list on first draw after receiving data
 		if screenshotVars.needsTextureCreation and screenshotVars.pixels then
 			screenshotVars.dlist = gl.CreateList(function()
-				gl.PushMatrix()
-				gl.Translate(screenshotVars.posX, screenshotVars.posY, 0)
-				gl.Scale(uiScale, uiScale, 0)
-
 				gl.Color(0, 0, 0, 0.66)
-				local margin = 2.6
-				gl.Rect(-margin, -margin, screenshotVars.width + margin + margin, screenshotVars.height + 15 + margin + margin)
+				local margin = 3
+				gl.Rect(-margin, -margin, screenshotVars.width + margin, screenshotVars.height + 17 + margin)
 				gl.Color(1, 1, 1, 0.025)
-				gl.Rect(0, 0, screenshotVars.width, screenshotVars.height + 12 + margin + margin)
+				gl.Rect(0, 0, screenshotVars.width, screenshotVars.height + 17)
 
 				local row = 0
 				local col = 0
@@ -732,33 +732,37 @@ else
 				local tc = screenshotVars.teamColor
 				font:Print(string.char(255, math.floor(tc[1] * 255), math.floor(tc[2] * 255), math.floor(tc[3] * 255)) .. screenshotVars.player, 4, screenshotVars.height + 6.5, 11, "on")
 				font:End()
-
-				gl.PopMatrix()
 			end)
 
 			screenshotVars.needsTextureCreation = nil
 		end
 
 		if screenshotVars.dlist then
-			gl.CallList(screenshotVars.dlist)
-
-			-- Handle screenshot saving (needs 2 frames to properly capture)
-			local margin = 2 * uiScale
-			local left = screenshotVars.posX - margin
-			local bottom = screenshotVars.posY - margin
-			local width = (screenshotVars.width * uiScale) + margin + margin + margin
-			local height = (screenshotVars.height * uiScale) + margin + margin + margin + (15 * uiScale)
-
 			if screenshotVars.saveQueued then
-				if not screenshotVars.saved then
-					screenshotVars.saved = 'next'
-				elseif screenshotVars.saved == 'next' then
-					screenshotVars.saved = 'done'
-					local file = 'screenshots/' .. screenshotVars.filename .. '.png'
-					gl.SaveImage(left, bottom, width, height, file)
-					Spring.Echo('Screenshot saved to: ' .. file)
-					screenshotVars.saveQueued = nil
-				end
+				-- Render at 1:1 scale for saving at a temporary location
+				local tempX = 0
+				local tempY = 0
+				gl.PushMatrix()
+				gl.Translate(tempX, tempY, 0)
+				gl.CallList(screenshotVars.dlist)
+				gl.PopMatrix()
+
+				local margin = 3
+				local left = 0 - margin
+				local bottom = 0 - margin
+				local width = screenshotVars.width + margin + margin
+				local height = screenshotVars.height + margin + margin + 17
+				local file = 'screenshots/' .. screenshotVars.filename .. '.png'
+				gl.SaveImage(left, bottom, width, height, file)
+				Spring.Echo('Screenshot saved to: ' .. file)
+				screenshotVars.saveQueued = nil
+			else
+				-- Normal rendering with scaling
+				gl.PushMatrix()
+				gl.Translate(screenshotVars.posX, screenshotVars.posY, 0)
+				gl.Scale(uiScale, uiScale, 0)
+				gl.CallList(screenshotVars.dlist)
+				gl.PopMatrix()
 			end
 
 			-- Handle mouse interaction (click anywhere to close)
