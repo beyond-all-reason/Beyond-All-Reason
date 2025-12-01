@@ -108,13 +108,10 @@ local Config = {
 		lightning = { 0.4, 0.5, 1, 1 },
 	},
 	Render = {
-		scatterMinAlpha = 0.5,
 		scatterLineWidthMult = 1024,
-		scatterSegments = 64,
 		aoeLineWidthMult = 64,
 		aoeDiskBandCount = 16,
 		circleDivs = 96,
-		pointSizeMult = 2048,
 		maxFilledCircleAlpha = 0.4,
 		minFilledCircleAlpha = 0.2,
 		ringDamageLevels = { 0.8, 0.6, 0.4, 0.2 },
@@ -615,6 +612,7 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 		info.isNapalm = true
 		info.napalmRange = weaponDef.customParams.area_onhit_range
 		info.color = Config.Colors.napalm
+		info.ee = 1 -- we don't want damage drop-off rings on napalm because the area denial is the important part
 	end
 
 	if weaponType == "DGun" then
@@ -681,7 +679,7 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 		info.range = weaponDef.range
 	elseif weaponType == "LightningCannon" then
 		info.type = "lightning"
-		info.ee = 1 -- we don't want fall off rings on lightning weapons because it works differently
+		info.ee = 1 -- we don't want damage drop-off rings on lightning weapons because it works differently
 		info.range = weaponDef.range
 		info.aoe = tonumber(weaponDef.customParams.spark_range)
 		info.color = Config.Colors.lightning
@@ -1037,7 +1035,7 @@ local function DrawNoExplode(data, overrideSource)
 
 	local bx, by, bz, len = GetNormalizedAndMagnitude(dx, dy, dz)
 
-	local br = math.diag(bx, bz)
+	local br = diag(bx, bz)
 
 	local wx = -aoe * bz / br
 	local wz = aoe * bx / br
