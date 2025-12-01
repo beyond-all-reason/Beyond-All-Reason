@@ -15,12 +15,14 @@ piece  	base, 	turretBaseHeadingPivot,
 				rightFlare,
 				helperStrut;
 
-static-var  restore_delay, last_gun_heading, guncount, shotcount;
+static-var  restore_delay, last_gun_heading, last_gun_pitch, guncount;
+
 
 
 // Signal definitions	
 #define SIG_AIM				2
-#define SIG_FIRE 			4
+#define SIG_AIM_2			4
+#define SIG_AIM_3			8
 
 
 #define BASEPIECE base
@@ -29,6 +31,7 @@ static-var  restore_delay, last_gun_heading, guncount, shotcount;
 #define UNITSIZE 9
 #define MAXTILT 100
 
+#define BURSTRATE 330
 
 StartMoving()
 {
@@ -46,7 +49,7 @@ StopMoving()
 
 Create()
 {
-	restore_delay = 3000;
+	restore_delay = 4500;
 
 	show rightFlare;
 	show midFlare;
@@ -63,14 +66,11 @@ Create()
 	move railBotLeft	to y-axis [1] now;
 	move railBotRight	to y-axis [1] now;
 	move railBotMid		to y-axis [1] now;
+	
+	last_gun_pitch = 0xbadface;
+	last_gun_heading = 0xbadface;
 
-	guncount = 4;
-	shotcount = 0;
-}
-
-SetMaxReloadTime(Func_Var_1)
-{
-	restore_delay = Func_Var_1 * 2;
+	guncount = 1;
 }
 
 static-var  Stunned;
@@ -84,10 +84,11 @@ ExecuteRestoreAfterDelay()
 	turn turretBaseHeadingPivot to y-axis <0> speed <45>;
 	turn turretStrutPivotPitch to x-axis <0> speed <20>;
 	move helperStrut to y-axis [0] speed [6];
+	
+	last_gun_pitch = 0xbadface;
+	last_gun_heading = 0xbadface;
 
-	guncount = 4;
-
-	//guncount = 1;
+	guncount = 1;
 }
 
 SetStunned(State)
@@ -107,27 +108,42 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	if(-1*pitch < <-45>){
-		move helperStrut to y-axis [6] speed [6];
+
+	while( guncount != 1)
+	{
+		sleep 10;
+	}
+	if( guncount == 1)
+	{
+		if(-1*pitch < <-45>)
+		{
+			move helperStrut to y-axis [6] speed [6];
+		}
+		else
+		{
+			move helperStrut to y-axis [0] speed [6];
+		}
 		turn turretBaseHeadingPivot to y-axis heading speed <45.000000>;
 		turn turretStrutPivotPitch to x-axis <0.000000> - pitch speed <25.000000>;
-		wait-for-turn turretBaseHeadingPivot around y-axis;
-		wait-for-turn turretStrutPivotPitch around x-axis;
+		
 		start-script RestoreAfterDelay();
+		
+		if ((last_gun_heading == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(last_gun_heading - heading), <5>)  OR (last_gun_pitch == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(last_gun_pitch - pitch), <3>))
+		{
+			last_gun_heading = 0xbadface;
+			last_gun_pitch = 0xbadface;
+			wait-for-turn turretBaseHeadingPivot around y-axis;
+			wait-for-turn turretStrutPivotPitch around x-axis;
+			last_gun_heading = heading;
+			last_gun_pitch = pitch;
+			return (0);
+		}
+		
+		last_gun_pitch = pitch;
 		last_gun_heading = heading;
+		
 		return (1);
 	}
-	else{
-		move helperStrut to y-axis [0] speed [6];
-		turn turretBaseHeadingPivot to y-axis heading speed <45.000000>;
-		turn turretStrutPivotPitch to x-axis <0.000000> - pitch speed <25.000000>;
-		wait-for-turn turretBaseHeadingPivot around y-axis;
-		wait-for-turn turretStrutPivotPitch around x-axis;
-		start-script RestoreAfterDelay();
-		last_gun_heading = heading;
-		return (1);
-	}
-	
 }
 
 Rock_Main_Cannon()
@@ -142,54 +158,14 @@ Rock_Main_Cannon()
 
 FirePrimary()
 {
-	return(0);
-	move railTopRight	to y-axis [-1] now;
-	move railTopLeft	to y-axis [-1] now;
-	move railTopMid		to y-axis [-1] now;
-	move railBotLeft	to y-axis [1] now;
-	move railBotRight	to y-axis [1] now;
-	move railBotMid		to y-axis [1] now;
-
-}
-
-Shot1(zero){
-	signal SIG_FIRE;
-	set-signal-mask SIG_FIRE;
-	if(guncount == 4){
-		emit-sfx 1024 + 0 from rightFlare;
-		//call-script lua_UnitScriptLight(1, shotcount);
-		move railTopRight	to y-axis [0] now;
-		move railBotRight	to y-axis [0] now;
-		guncount = 6;
-		call-script Rock_Main_Cannon();
-		move railTopRight	to y-axis [-1] 	speed [0.33];
-		move railBotRight	to y-axis [1] 	speed [0.33];
-		sleep 330;
-	}
-	if(guncount == 6){
-		emit-sfx 1024 + 0 from midFlare;
-		//call-script lua_UnitScriptLight(2, shotcount);
-		move railTopMid	to y-axis [0] now;
-		move railBotMid	to y-axis [0] now;
-		guncount = 8;
-		call-script Rock_Main_Cannon();
-		move railTopMid	to y-axis [-1] 	speed [0.33];
-		move railBotMid	to y-axis [1] 	speed [0.33];
-		sleep 330;
-		
-	}
-	if(guncount == 8){
-		emit-sfx 1024 + 0 from leftFlare;
-		//call-script lua_UnitScriptLight(3, shotcount);
-		move railTopLeft	to y-axis [0] now;
-		move railBotLeft	to y-axis [0] now;
-		guncount = 4;
-		call-script Rock_Main_Cannon();
-		move railTopLeft	to y-axis [-1] 	speed [0.33];
-		move railBotLeft	to y-axis [1] 	speed [0.33];
-		sleep 330;
-		
-	}
+	emit-sfx 1024 + 0 from rightFlare;
+	move railTopRight	to y-axis [0] now;
+	move railBotRight	to y-axis [0] now;
+	call-script Rock_Main_Cannon();
+	move railTopRight	to y-axis [-1] 	speed [0.33];
+	move railBotRight	to y-axis [1] 	speed [0.33];
+	sleep (BURSTRATE - 200);
+	guncount = 2;
 }
 
 AimFromPrimary(piecenum)
@@ -200,17 +176,137 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
+	piecenum = rightFlare;
+}
 
-	if(guncount == 4){
-		piecenum = leftFlare;
-	}
-	else if (guncount ==  6){
-		piecenum = rightFlare;
-	}
-	else if (guncount == 8){
-		piecenum = midFlare;
-	}
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
 
+	while( guncount != 2)
+	{
+		sleep 10;
+	}
+	if( guncount == 2)
+	{
+		if(-1*pitch < <-45>)
+		{
+			move helperStrut to y-axis [6] speed [6];
+		}
+		else
+		{
+			move helperStrut to y-axis [0] speed [6];
+		}
+		turn turretBaseHeadingPivot to y-axis heading speed <45.000000>;
+		turn turretStrutPivotPitch to x-axis <0.000000> - pitch speed <25.000000>;
+		
+		start-script RestoreAfterDelay();
+		
+		if ((last_gun_heading == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(last_gun_heading - heading), <5>)  OR (last_gun_pitch == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(last_gun_pitch - pitch), <3>))
+		{
+			last_gun_heading = 0xbadface;
+			last_gun_pitch = 0xbadface;
+			wait-for-turn turretBaseHeadingPivot around y-axis;
+			wait-for-turn turretStrutPivotPitch around x-axis;
+			last_gun_heading = heading;
+			last_gun_pitch = pitch;
+			return (0);
+		}
+		
+		last_gun_pitch = pitch;
+		last_gun_heading = heading;
+		
+		return (1);
+	}
+}
+
+FireSecondary()
+{
+	emit-sfx 1024 + 0 from midFlare;
+	move railTopMid	to y-axis [0] now;
+	move railBotMid	to y-axis [0] now;
+	call-script Rock_Main_Cannon();
+	move railTopMid	to y-axis [-1] 	speed [0.33];
+	move railBotMid	to y-axis [1] 	speed [0.33];
+	sleep (BURSTRATE - 200);
+	guncount = 3;
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = turretStrutPivotPitch;
+	return (0);
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = midFlare;
+}
+
+AimTertiary(heading, pitch)
+{
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+
+	while( guncount != 3)
+	{
+		sleep 10;
+	}
+	if( guncount == 3)
+	{
+		if(-1*pitch < <-45>)
+		{
+			move helperStrut to y-axis [6] speed [6];
+		}
+		else
+		{
+			move helperStrut to y-axis [0] speed [6];
+		}
+		turn turretBaseHeadingPivot to y-axis heading speed <45.000000>;
+		turn turretStrutPivotPitch to x-axis <0.000000> - pitch speed <25.000000>;
+		
+		start-script RestoreAfterDelay();
+		
+		if ((last_gun_heading == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(last_gun_heading - heading), <5>)  OR (last_gun_pitch == 0xbadface)  OR ABSOLUTE_GREATER_THAN(WRAPDELTA(last_gun_pitch - pitch), <3>))
+		{
+			last_gun_heading = 0xbadface;
+			last_gun_pitch = 0xbadface;
+			wait-for-turn turretBaseHeadingPivot around y-axis;
+			wait-for-turn turretStrutPivotPitch around x-axis;
+			last_gun_heading = heading;
+			last_gun_pitch = pitch;
+			return (0);
+		}
+		
+		last_gun_pitch = pitch;
+		last_gun_heading = heading;
+		
+		return (1);
+	}
+}
+
+FireTertiary()
+{
+	emit-sfx 1024 + 0 from leftFlare;
+	move railTopLeft	to y-axis [0] now;
+	move railBotLeft	to y-axis [0] now;
+	call-script Rock_Main_Cannon();
+	move railTopLeft	to y-axis [-1] 	speed [0.33];
+	move railBotLeft	to y-axis [1] 	speed [0.33];
+	sleep (BURSTRATE - 200);
+	guncount = 1;
+}
+
+AimFromTertiary(piecenum)
+{
+	piecenum = turretStrutPivotPitch;
+	return (0);
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = leftFlare;
 }
 
 SweetSpot(piecenum)

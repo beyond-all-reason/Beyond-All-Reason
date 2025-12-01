@@ -23,7 +23,7 @@ return {
 		maxslope = 20,
 		maxwaterdepth = 25,
 		metalcost = 120,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		objectname = "Units/CORCK.s3o",
 		script = "Units/CORCK.cob",
 		seismicsignature = 0,

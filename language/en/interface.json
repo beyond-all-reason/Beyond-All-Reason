@@ -119,8 +119,10 @@
 			"peace": "Peace",
 			"warlow": "Conflict",
 			"warhigh": "War",
-			"bossfight": "Boss fight",
-			"gameover": "Game over",
+			"bossfight": "Bossfight",
+			"victory": "Game Over: Victory",
+			"defeat": "Game Over: Defeat",
+			"gameover": "Game Over: Neutral",
 			"bonus": "Bonus",
 			"scavengers": "Scavengers",
 			"raptors": "Raptors",
@@ -136,6 +138,15 @@
 			"playerViewTooltip": "Only view what the player can see",
 			"playerCamera": "Player Camera",
 			"playerCameraTooltip": "Follow player camera perspective and apply selections"
+		},
+		"pip": {
+			"tooltip": "Toggle Picture-in-Picture",
+			"switch": "Switch view with main view",
+			"track": "Track selected units",
+			"move": "Move window",
+			"resize": "Resize window",
+			"minimize": "Minimize",
+			"maximize": "Maximize"
 		},
 		"teamEconomy": {
 			"tooltipTitle": "Team Income",
@@ -210,11 +221,11 @@
 			"unloadunits": "Unload units",
 			"unloadunits_tooltip": "Unload unit or multiple units within an area in the transport",
 			"transport_to": "Transport to",
-			"transport_to_tooltip":"Add a order for transport to transport this unit",
-			"auto_transport":"Fullfill transport orders",
-			"auto_transport_tooltip":"Determines if this transports fullfills transport orders from other units",
-			"Ignore Orders":"Manual",
-			"Fullfill Orders":"Automatic",
+			"transport_to_tooltip": "Add a order for transport to transport this unit",
+			"auto_transport": "Fullfill transport orders",
+			"auto_transport_tooltip": "Determines if this transports fullfills transport orders from other units",
+			"Ignore Orders": "Manual",
+			"Fullfill Orders": "Automatic",
 			"landatairbase": "To Air Pad",
 			"landatairbase_tooltip": "Go to nearest Air Repair Pad",
 			"stockpile": "Stockpile %{stockpileStatus}",
@@ -229,7 +240,6 @@
 			"sellunit_tooltip": "Toggle currently selected units for sale, allies will be able to buy them",
 			"For Sale": "For Sale",
 			"Not For Sale": "Not For Sale",
-
 			"Fire at will": "Fire at will",
 			"Hold fire": "Hold fire",
 			"Return fire": "Return fire",
@@ -255,12 +265,6 @@
 			"idlemode_tooltip": "Sets what aircraft do when idle",
 			"apLandAt_tooltip": "Sets what aircraft do when leaving air factory",
 			"csSpawning_tooltip": "Sets the spawning state of the carrier",
-			"LandAt 0": "No Retreat",
-			"LandAt 30": "Retreat 30%%",
-			"LandAt 50": "Retreat 50%%",
-			"LandAt 80": "Retreat 80%%",
-			"autorepairlevel_tooltip": "Set at which HP %% this aircraft retreats to nearest air repair pad",
-			"apAirRepair_tooltip": "Air factory: Set at which health %% an aircraft should automatically move to and land on an air repair pad",
 			"Low traj": "High Traj",
 			"High traj": "High Traj",
 			"trajectory_toggle_tooltip": "Switch artillery firing angle between low, high and automatic trajectory",
@@ -307,7 +311,7 @@
 		"keybinds": {
 			"title": "Keybinds",
 			"disclaimer": "These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!",
-			"howtochangekeybinds":"To change them: in Settings/Control tab, set Keybindings to Custom to create the BAR/data/uikeys.txt file.\nEdit this file and type /keyreload in chat to reload them.",
+			"howtochangekeybinds": "To change them: in Settings/Control tab, set Keybindings to Custom to create the BAR/data/uikeys.txt file.\nEdit this file and type /keyreload in chat to reload them.",
 			"chat": {
 				"title": "Chat",
 				"send": "Send chat message",
@@ -543,7 +547,7 @@
 			"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
 			"victoryCondition": "Victory condition",
 			"owncomends": "Losing your commander = losing control of your units / resigning",
-			"territorialDomination": "Territorial Domination, capture and hold enough territory to avoid defeat"
+			"territorialDomination": "Territorial Domination\nAvoid commander elimination by gaining the most points"
 		},
 		"startSpot": {
 			"startbox": "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)",
@@ -555,7 +559,7 @@
 			"heightTitle": "Height",
 			"heightmap": "[%{keyset}] Displays a different color for every height level",
 			"pathingTitle": "Traversability",
-			"pathing":"[%{keyset}] Shows where the selected unit can move, Green: okay, Red: problematic, Purple: can't move",
+			"pathing": "[%{keyset}] Shows where the selected unit can move, Green: okay, Red: problematic, Purple: can't move",
 			"resourcesTitle": "Resources",
 			"resources": "[%{keyset}] Highlights metal spots in green and geothermal vents in yellow.\n    Occupied metal spots are shown in red."
 		},
@@ -575,6 +579,7 @@
 			"title": "Game info",
 			"engine": "Engine",
 			"engineVersionError": "engine version error",
+			"decodefailed": "decode failed",
 			"size": "Size",
 			"gravity": "Gravity",
 			"hardness": "Hardness",
@@ -596,14 +601,14 @@
 			"airWave1": "Flying Raptors, incoming!",
 			"airWave2": "%{unitCount} Raptors!",
 			"queenIsAngry1": {
-				"one"   : "The Queen is here!",
-				"other" : "The Queens are here!"
+				"one": "The Queen is here!",
+				"other": "The Queens are here!"
 			},
 			"queenIsAngry2": "Prepare yourself for the final battle!",
 			"queenResistant": "The Queen is becoming resistant to %{unit} attacks!",
-			"resistanceUnits":{
-				"one"   : "The Queen is becoming resistant to:",
-				"other" : "The Queens are becoming resistant to:"
+			"resistanceUnits": {
+				"one": "The Queen is becoming resistant to:",
+				"other": "The Queens are becoming resistant to:"
 			},
 			"wave1": "Wave %{waveNumber}",
 			"wave2": "%{unitCount} Raptors!",
@@ -616,17 +621,17 @@
 			"queenAngerAggression": "Player Aggression: +%{value}%%/s",
 			"queenAngerEco": "Economy: +%{value}%%/s",
 			"queenETA": {
-				"one"   : "Queen arrives in: %{time}.",
-				"other" : "%{count} queens arrive in: %{time}"
+				"one": "Queen arrives in: %{time}.",
+				"other": "%{count} queens arrive in: %{time}"
 			},
 			"queenHealth": {
-				"one"   : "Queen Health: %{health}%%",
-				"other" : "Queen Healths: %{health}%%"
+				"one": "Queen Health: %{health}%%",
+				"other": "Queen Healths: %{health}%%"
 			},
 			"queensKilled": "Queens Killed: %{nKilled}/%{nTotal}",
 			"queenResistantToList": {
-				"one"   : "Queen is resistant to:",
-				"other" : "Queens are resistant to:"
+				"one": "Queen is resistant to:",
+				"other": "Queens are resistant to:"
 			},
 			"gracePeriod": "Grace Period: %{time}",
 			"burrowCount": "Burrows: %{count}",
@@ -650,14 +655,14 @@
 			"firstWave1": "The Scavengers have arrived!",
 			"firstWave2": "Get ready to defend yourself!",
 			"bossIsAngry1": {
-				"one"   : "The Boss is here!",
-				"other" : "The Bosses are here!"
+				"one": "The Boss is here!",
+				"other": "The Bosses are here!"
 			},
 			"bossIsAngry2": "Prepare yourself for the final battle!",
 			"bossResistant": "The Boss is becoming resistant to %{unit} attacks!",
 			"resistanceUnits": {
-				"one"   : "The Boss is becoming resistant to:",
-				"other" : "The Bosses are becoming resistant to:"
+				"one": "The Boss is becoming resistant to:",
+				"other": "The Bosses are becoming resistant to:"
 			},
 			"wave1": "Wave %{waveNumber}",
 			"wave2": "%{unitCount} Scavs!",
@@ -670,17 +675,17 @@
 			"bossAngerAggression": "Player Aggression: +%{value}%%/s",
 			"bossAngerEco": "Economy: +%{value}%%/s",
 			"bossETA": {
-				"one"   : "Boss arrives in: %{time}.",
-				"other" : "%{count} bosses arrive in: %{time}"
+				"one": "Boss arrives in: %{time}.",
+				"other": "%{count} bosses arrive in: %{time}"
 			},
 			"bossHealth": {
-				"one"   : "Boss Health: %{health}%%",
-				"other" : "Boss Healths: %{health}%%"
+				"one": "Boss Health: %{health}%%",
+				"other": "Boss Healths: %{health}%%"
 			},
 			"bossesKilled": "Bosses Killed: %{nKilled}/%{nTotal}",
 			"bossResistantToList": {
-				"one"   : "Boss is resistant to:",
-				"other" : "Bosses are resistant to:"
+				"one": "Boss is resistant to:",
+				"other": "Bosses are resistant to:"
 			},
 			"gracePeriod": "Grace Period: %{time}",
 			"burrowCount": "Burrows: %{count}",
@@ -701,13 +706,53 @@
 			}
 		},
 		"territorialDomination": {
-			"losingWarning1": "Allied retreat in %{seconds} seconds!",
-			"losingWarning2": "Capture %{count} more territories to avoid extraction.",
-			"rank": "Rank %{rank}",
-			"scoreBarTooltip": "Capture territories to fill this bar.\nIf the bar drops below the skull,\nyou will be eliminated."
+			"roundOverPopup": {
+				"gameOver": "Game Over",
+				"victory": "Victory",
+				"defeat": "Defeat",
+				"round": "Round %{roundNumber}",
+				"finalRound": "Final Round",
+				"territoryWorth": "Territories are worth %{points} points each",
+				"eliminationBelow": "Elimination below %{threshold}!"
+			},
+			"round": {
+				"display": "Round %{currentRound}",
+				"displayWithMax": "Round %{currentRound}/%{maxRounds}",
+				"displayDefault": "Round 1/%{maxRounds}",
+				"displayMax": "Round %{maxRounds}/%{maxRounds}",
+				"overtime": "Overtime",
+				"finalRound": "Final Round"
+			},
+			"team": {
+				"ally": "Ally %{allyNumber}"
+			},
+			"rank": {
+				"place": " place"
+			},
+			"elimination": {
+				"aboveElimination": "%{points}pts above elimination",
+				"belowElimination": "%{points}pts below elimination",
+				"zeroAboveElimination": "0pts above elimination",
+				"eliminationsNextRound": "Eliminations next round",
+				"finalRound": "Final Round",
+				"threshold": "Elimination Threshold: %{threshold}pts"
+			},
+			"territories": {
+				"worth": "Territories are worth %{points}pts"
+			},
+			"scoreboard": {
+				"title": "Leaderboard",
+				"viewLeaderboard": "View leaderboard",
+				"headerTeam": "Team",
+				"headerScore": "Score",
+				"headerTerritories": "Territories",
+				"headerGains": "Gains",
+				"headerTotal": "Total",
+				"eliminationThreshold": "Elimination Threshold"
+			},
+			"eliminationBelow": "Elimination Below %{value}"
 		},
 		"loadScreen": {
-			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly.",
 			"lowRamWarning": "%{textColor}Your system has below the recommended %{warnColor}12GB memory %{textColor}.     Try running with lower settings if you encounter out-of-memory crashes"
 		},
 		"initialSpawn": {
@@ -766,7 +811,7 @@
 		},
 		"moveAttackNotify": {
 			"underAttack": "%{unit} is being attacked!",
-			"cantMove":"%{unit}: Can't reach destination!"
+			"cantMove": "%{unit}: Can't reach destination!"
 		},
 		"unitShare": {
 			"shared": "shared %{units} to %{name}",
@@ -815,7 +860,7 @@
 			"factions": {
 				"arm": "Outsmart your foes with tactical finesse",
 				"cor": "Smash your foes with brute force",
-				"leg": "This faction is still a work in progress",
+				"leg": "Overwhelm your foes with rapid assault tactics",
 				"random": "Picks a Random out of the available options"
 			}
 		},
@@ -963,15 +1008,15 @@
 			"metalIncome_title": "Metal Income",
 			"metalIncome_tooltip": "Metal income per second",
 			"energyConversionMetalIncome_title": "Metal Conversion",
-			"energyConversionMetalIncome_tooltip": "Metal income from energy conversion" ,
+			"energyConversionMetalIncome_tooltip": "Metal income from energy conversion",
 			"energyIncome_title": "Energy Income",
 			"energyIncome_tooltip": "Energy income per second",
 			"buildPower_title": "Build Power",
 			"buildPower_tooltip": "Build power at disposal",
 			"metalProduced_title": "Metal Produced",
-			"metalProduced_tooltip": "Total metal produced" ,
+			"metalProduced_tooltip": "Total metal produced",
 			"energyProduced_title": "Energy Produced",
-			"energyProduced_tooltip": "Total energy produced" ,
+			"energyProduced_tooltip": "Total energy produced",
 			"metalExcess_title": "Metal Excess",
 			"metalExcess_tooltip": "Total metal excess",
 			"energyExcess_title": "Energy Excess",
@@ -1060,12 +1105,16 @@
 				"resolution_descr": "WARNING: sometimes freezes game engine in windowed mode",
 				"vsync": "VSync",
 				"vsync_descr": "Prevent vertical screen tearing. Note this can introduce slight lag. Try adaptive for less screen draw delay.",
+				"vsync_fraction": "frame limiter",
+				"vsync_fraction_descr": "Render only a fractional number of frames\n\nPossibly only works in windowed mode",
 				"limitoffscreenfps": "Limit FPS when offscreen",
 				"limitoffscreenfps_descr": "Reduces fps when offscreen (by setting vsync to a high number)\n(for borderless window and fullscreen need engine not have focus)\nMakes your pc more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode",
 				"limitidlefps": "also limit when idle",
 				"limitidlefps_descr": "Reduces fps when idle for a minute (by setting vsync to a high number)\nCamera movement will break idle mode",
 				"msaa": "Anti Aliasing",
 				"msaa_descr": "Enables multisample anti-aliasing. NOTE: Can be expensive!",
+				"supersampling": "supersampling",
+				"supersampling_descr": "Enables supersampling anti-aliasing.\nNeeds anti-aliasing to be enabled.\n\nNOTE: Can be very expensive and can also make things look more blurry!",
 				"cas_sharpness": "Sharpness",
 				"cas_sharpness_descr": "How much sharpening should be applied to 3d world space",
 				"sepiatone": "Color filters",
@@ -1181,16 +1230,24 @@
 				"snddevice": "Sound device",
 				"snddevice_descr": "Select a sound device\ndefault means your default OS playback device",
 				"soundtrack": "Soundtrack",
-				"soundtracknew": "Original soundtrack",
+				"soundtracknew": "Original Soundtrack",
 				"soundtracknew_descr": "Adds Original Soundtrack to the playlist",
 				"soundtrackold": "Modern theme",
 				"soundtrackold_descr": "Add the modern themed music to the soundtrack",
-				"soundtrackcustom": "Custom soundtrack",
+				"soundtrackcustom": "Custom Soundtrack",
 				"soundtrackcustom_descr": "Add your own .ogg or .mp3 music files to the soundtrack playlist\nPlace these .ogg/.mp3 music files in data/music/custom/ subfolders: peace/warlow/warhigh/bossfight/gameover",
 				"soundtrackaprilfools": "April Fools Soundtrack",
 				"soundtrackaprilfools_descr": "Toggle April Fools event music ON and OFF.",
-				"soundtrackaprilfoolspostevent": "April fools soundtrack post event",
+				"soundtrackaprilfoolspostevent": "April fools Soundtrack Post Event",
 				"soundtrackaprilfoolspostevent_descr": "Toggle April Fools event music ON and OFF.",
+				"soundtrackhalloween": "Halloween Soundtrack",
+				"soundtrackhalloween_descr": "Toggle Halloween event music ON and OFF.",
+				"soundtrackhalloweenpostevent": "Halloween Soundtrack Post Event",
+				"soundtrackhalloweenpostevent_descr": "Toggle Halloween event music ON and OFF.",
+				"soundtrackxmas": "Christmas Soundtrack",
+				"soundtrackxmas_descr": "Toggle Christmas event music ON and OFF.",
+				"soundtrackxmaspostevent": "Christmas Soundtrack Post Event",
+				"soundtrackxmaspostevent_descr": "Toggle Christmas event music ON and OFF.",
 				"soundtracksilence": "Silence periods",
 				"soundtracksilence_descr": "Adds no-music breaks between tracks\nto give you some time to enjoy pure sound effects\nand to make the music less repetitive.",
 				"soundtrackinterruption": "Interruptions",
@@ -1208,6 +1265,8 @@
 				"sndunitsound_desc": "Unit response sounds",
 				"sndairabsorption": "Air absorption",
 				"sndairabsorption_descr": "Air absorption is basically a low-pass filter relative to distance between\nsound source and listener, so when in your base or zoomed out, front battles\nwill be heard as only low frequencies",
+				"sndzoomvolume": "Zoom fadeout",
+				"sndzoomvolume_descr": "How much the battle sounds volume should fade out with zoom.",
 				"muteoffscreen": "Mute when offscreen",
 				"muteoffscreen_descr": "Game will mute itself when mouse is offscreen until you return",
 				"sndvolmusic": "music",
@@ -1331,8 +1390,11 @@
 				"minimapiconsize": "icon scale",
 				"minimapleftclick": "left click moves camera",
 				"minimapleftclick_descr": "Left mouse button will move the camera (it is middle mouse by default)\nwhen disabled: left click(drag) will be selecting units.",
-				"minimapcanflip": "auto flip",
-				"minimapcanflip_descr": "will automatically flip the minimap when camera perspective is from the other side",
+				"minimaprotation": "rotation mode",
+				"minimaprotation_descr": "Choose between no rotations or automatic flipping (180 degree) or automatic rotation (90 degree)",
+				"minimaprotation_none": "None",
+				"minimaprotation_autoflip": "Auto Flip 180 Degree",
+				"minimaprotation_autorotate": "Auto Rotate 90 Degree",
 				"gridmenu": "Use Gridmenu",
 				"gridmenu_descr": "Alternative build menu, designed for comprehensive hotkey use",
 				"gridmenu_alwaysreturn": "Grid always returns to categories",
@@ -1341,6 +1403,10 @@
 				"gridmenu_autoselectfirst_descr": "When selecting a category, automatically activate the first option within that category",
 				"gridmenu_labbuildmode": "Factory build mode hotkeys",
 				"gridmenu_labbuildmode_descr": "To use lab building hotkeys, build mode needs to be activated first",
+				"gridmenu_ctrlkeymodifier": "Ctrl hotkey modifier",
+				"gridmenu_ctrlkeymodifier_descr": "When holding down control key and using hotkeys to queue units, queue this many units.",
+				"gridmenu_shiftkeymodifier": "Shift hotkey modifier",
+				"gridmenu_shiftkeymodifier_descr": "When holding down shift key and using hotkeys to queue units, queue this many units.",
 				"keylayout": "Keyboard Layout",
 				"keylayout_descr": "Set the keyboard layout",
 				"keybindings": "Keybind Preset",
@@ -1712,7 +1778,11 @@
 				"language": "Language",
 				"language_english_unit_names": "Display unit names in English",
 				"reclaimfieldhighlight": "Reclaim Field Highlight",
-				"reclaimfieldhighlight_descr": "Highlights clusters of reclaimable metal",
+				"reclaimfieldhighlight_descr": "Highlights clusters of reclaimable metal and/or energy",
+				"reclaimfieldhighlight_metal": "metal",
+				"reclaimfieldhighlight_metal_descr": "When to show metal reclaim fields",
+				"reclaimfieldhighlight_energy": "energy",
+				"reclaimfieldhighlight_energy_descr": "When to show energy reclaim fields (trees, geo spots)",
 				"reclaimfieldhighlight_always": "Always enabled",
 				"reclaimfieldhighlight_resource": "Resource view only",
 				"reclaimfieldhighlight_reclaimer": "Reclaimer selected",
@@ -1771,6 +1841,13 @@
 		"quickShareToTarget": {
 			"noTarget": "No target selected",
 			"shareTo": "Share to: %{playerColor}%{player}"
+		},
+		"quickStart": {
+			"placeDiscountedFactory": "First factory is discounted",
+			"preGameResources": "Base Budget",
+			"refundNotification": "Remaining budget will be refunded as Metal.",
+			"remainingResourcesWarning": "Use the Base Budget to instantly spawn structures within range",
+			"unallocatedBudget": "Quick Start enabled: use your Base Budget first"
 		}
 	}
 }

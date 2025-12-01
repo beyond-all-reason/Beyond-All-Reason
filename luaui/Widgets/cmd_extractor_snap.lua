@@ -13,6 +13,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathAbs = math.abs
+
 include("keysym.h.lua")
 
 local spGetActiveCommand = Spring.GetActiveCommand
@@ -109,8 +113,8 @@ local function clashesWithBuildQueue(uid, pos)
 		local w1, h1 = GetBuildingDimensions(buildData1[1], buildData1[5])
 		local w2, h2 = GetBuildingDimensions(buildData2[1], buildData2[5])
 
-		return math.abs(buildData1[2] - buildData2[2]) < w1 + w2 and
-			math.abs(buildData1[4] - buildData2[4]) < h1 + h2
+		return mathAbs(buildData1[2] - buildData2[2]) < w1 + w2 and
+			mathAbs(buildData1[4] - buildData2[4]) < h1 + h2
 	end
 
 	local buildFacing = Spring.GetBuildFacing()
@@ -125,17 +129,19 @@ local function clashesWithBuildQueue(uid, pos)
 	else
 		for i = 1, #units do
 			local queue = Spring.GetUnitCommands(units[i], 100)
-			for j=1, #queue do
-				local command = queue[j]
-				local id = command.id and command.id or command[1]
-				if id < 0 then
-					local x = command.params and command.params[1] or command[2]
-					local y = command.params and command.params[2] or command[3]
-					local z = command.params and command.params[3] or command[4]
-					local facing = command.params and command.params[4] or 1
-					local buildData = { -id, x, y, z, facing }
-					if DoBuildingsClash(newBuildData, buildData) then
-						return true
+			if queue then
+				for j=1, #queue do
+					local command = queue[j]
+					local id = command.id and command.id or command[1]
+					if id < 0 then
+						local x = command.params and command.params[1] or command[2]
+						local y = command.params and command.params[2] or command[3]
+						local z = command.params and command.params[3] or command[4]
+						local facing = command.params and command.params[4] or 1
+						local buildData = { -id, x, y, z, facing }
+						if DoBuildingsClash(newBuildData, buildData) then
+							return true
+						end
 					end
 				end
 			end
@@ -233,7 +239,7 @@ function widget:Update()
 		end
 
 		buildCmd[1] = cmd
-		local newUnitShape = { math.abs(buildingId), cmd[2], cmd[3], cmd[4], cmd[5], cmd[6] }
+		local newUnitShape = { mathAbs(buildingId), cmd[2], cmd[3], cmd[4], cmd[5], cmd[6] }
 		-- check equality by position
 		if unitShape and (unitShape[2] ~= newUnitShape[2] or unitShape[3] ~= newUnitShape[3] or unitShape[4] ~= newUnitShape[4]) then
 			if WG.StopDrawUnitShapeGL4 then

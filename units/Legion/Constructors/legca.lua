@@ -46,8 +46,6 @@ return {
 			"legmex",
 			"legmext15",
 			"legeconv",
-			"corasp",
-			"corfasp",
 			"legaap",
 			"leglab",
 			"legvp",
@@ -67,7 +65,7 @@ return {
 			"legctl",
 			"legjam",
 			"legjuno",
-			"corsy",
+			"legsy",
 			"leghive",
 		},
 		customparams = {

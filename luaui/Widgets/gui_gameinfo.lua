@@ -12,6 +12,15 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+local tableInsert = table.insert
+
+-- Localized Spring API for performance
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local titlecolor = "\255\255\205\100"
 local keycolor = ""
 local valuecolor = "\255\255\255\255"
@@ -102,9 +111,13 @@ for key, value in pairs(modoptions) do
 			changedModoptions[key] = tostring(value)
 		else
 			if string.find(key, 'tweakdefs') then
-				changedModoptions[key] = '\n' .. string.base64Decode(value)
+				local decodeSuccess, postsFuncStr = pcall(string.base64Decode, value)
+				changedModoptions[key] = '\n' .. (decodeSuccess and postsFuncStr or '\255\255\100\100 - '..Spring.I18N('ui.gameInfo.decodefailed').. ' - ')
 			else
-				local success, tweaks = pcall(Spring.Utilities.CustomKeyToUsefulTable, value)
+        local dataRaw = string.gsub(value, '_', '=')
+				local decodeSuccess, postsFuncStr = pcall(string.base64Decode, dataRaw)
+				local success, tweaks = pcall(Spring.Utilities.SafeLuaTableParser, postsFuncStr)
+
 				if success and type(tweaks) == "table" then
 					local text = ''
 					for name, ud in pairs(tweaks) do
@@ -127,7 +140,7 @@ local function SortFunc(myTable)
 	local function pairsByKeys(t, f)
 		local a = {}
 		for n in pairs(t) do
-			table.insert(a, n)
+			tableInsert(a, n)
 		end
 		table.sort(a, f)
 		local i = 0      -- iterator variable
@@ -143,7 +156,7 @@ local function SortFunc(myTable)
 	end
 	local t = {}
 	for key,value in pairsByKeys(myTable) do
-		table.insert(t, { key = key, value = value })
+		tableInsert(t, { key = key, value = value })
 	end
 	return t
 end
@@ -159,7 +172,7 @@ local screenWidth = screenWidthOrg
 
 local startLine = 1
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 local screenX = (vsx * 0.5) - (screenWidth / 2)
 local screenY = (vsy * 0.5) + (screenHeight / 2)
 
@@ -177,14 +190,14 @@ local showOnceMore = false        -- used because of GUI shader delay
 local RectRound, UiElement, UiScroller, elementCorner
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 	widgetScale = (vsy / 1080)
 
-	screenHeight = math.floor(screenHeightOrg * widgetScale)
-	screenWidth = math.floor(screenWidthOrg * widgetScale)
+	screenHeight = mathFloor(screenHeightOrg * widgetScale)
+	screenWidth = mathFloor(screenWidthOrg * widgetScale)
 
-	screenX = math.floor((vsx * 0.5) - (screenWidth / 2))
-	screenY = math.floor((vsy * 0.5) + (screenHeight / 2))
+	screenX = mathFloor((vsx * 0.5) - (screenWidth / 2))
+	screenY = mathFloor((vsy * 0.5) + (screenHeight / 2))
 
 	font, loadedFontSize = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(2)
@@ -216,7 +229,7 @@ function DrawTextarea(x, y, width, height, scrollbar)
 	local fontColorCommand = { 0.9, 0.6, 0.2, 1 }
 
 	local textRightOffset = scrollbar and scrollbarMargin + scrollbarWidth + scrollbarWidth or 0
-	maxLines = math.floor(height / (lineSeparator + fontSizeTitle))
+	maxLines = mathFloor(height / (lineSeparator + fontSizeTitle))
 
 	-- textarea scrollbar
 	if scrollbar then
@@ -226,10 +239,10 @@ function DrawTextarea(x, y, width, height, scrollbar)
 			local scrollbarBottom = y - scrollbarOffsetBottom - height + scrollbarMargin
 
 			UiScroller(
-				math.floor(x + width - scrollbarMargin - scrollbarWidth),
-				math.floor(scrollbarBottom - (scrollbarWidth - scrollbarPosWidth)),
-				math.floor(x + width - scrollbarMargin),
-				math.floor(scrollbarTop + (scrollbarWidth - scrollbarPosWidth)),
+				mathFloor(x + width - scrollbarMargin - scrollbarWidth),
+				mathFloor(scrollbarBottom - (scrollbarWidth - scrollbarPosWidth)),
+				mathFloor(x + width - scrollbarMargin),
+				mathFloor(scrollbarTop + (scrollbarWidth - scrollbarPosWidth)),
 				(#fileLines-1) * (lineSeparator + fontSizeTitle),
 				(startLine-1) * (lineSeparator + fontSizeTitle)
 			)
@@ -288,10 +301,10 @@ end
 function DrawWindow()
 	-- title
 	local titleFontSize = 18 * widgetScale
-	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(Spring.I18N('ui.gameInfo.title')) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
+	titleRect = { screenX, screenY, mathFloor(screenX + (font2:GetTextWidth(Spring.I18N('ui.gameInfo.title')) * titleFontSize) + (titleFontSize*1.5)), mathFloor(screenY + (titleFontSize*1.7)) }
 
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
-	gl.Color(0, 0, 0, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	gl.Color(0, 0, 0, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 
 	font2:Begin()

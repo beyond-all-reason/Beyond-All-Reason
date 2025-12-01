@@ -12,6 +12,14 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathAtan2 = math.atan2
+
+-- Localized Spring API for performance
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
+
 -- TODO: hide (enemy) cursor light when not specfullview
 
 local cursorSize = 11
@@ -70,8 +78,8 @@ local alliedCursorsTime = {}        -- for API purpose
 local usedCursorSize = cursorSize
 local allycursorDrawList = {}
 local myPlayerID = Spring.GetMyPlayerID()
-local _, fullview = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
+local _, fullview = spGetSpectatingState()
+local myTeamID = spGetMyTeamID()
 local isReplay = Spring.IsReplay()
 
 local allyCursor = ":n:LuaUI/Images/allycursor.dds"
@@ -103,37 +111,11 @@ local function deleteDlists()
 	allycursorDrawList = {}
 end
 
-local function GetLights(beamLights, beamLightCount, pointLights, pointLightCount)
-	if not Spring.IsGUIHidden() then
-		for playerID, cursor in pairs(cursors) do
-			if teamColors[playerID] and not cursor[8] and notIdle[playerID] then
-				local params = { param = {} }
-				params.px, params.py, params.pz = cursor[1], cursor[2], cursor[3]
-				params.param.r, params.param.g, params.param.b = teamColors[playerID][1], teamColors[playerID][2], teamColors[playerID][3]
-				params.colMult = 0.4 * lightStrengthMult
-				params.param.radius = 1000 * lightRadiusMult
-				params.py = params.py + 50
-				pointLightCount = pointLightCount + 1
-				pointLights[pointLightCount] = params
-			end
-		end
-	end
-	return beamLights, beamLightCount, pointLights, pointLightCount
-end
-
 local function updateSpecList(init)
 	specList = {}
 	local t = Spring.GetPlayerList()
 	for _, playerID in ipairs(t) do
 		specList[playerID] = select(3, spGetPlayerInfo(playerID, false))
-	end
-
-	-- update deferred lights function
-	if not init and addLights and WG.DeferredLighting_RegisterFunction then
-		if functionID and WG.DeferredLighting_UnRegisterFunction then
-			WG.DeferredLighting_UnRegisterFunction(functionID)
-		end
-		functionID = WG.DeferredLighting_RegisterFunction(GetLights)
 	end
 end
 
@@ -243,15 +225,6 @@ function widget:Initialize()
 	WG['allycursors'] = {}
 	WG['allycursors'].setLights = function(value)
 		addLights = value
-		if value then
-			if WG.DeferredLighting_RegisterFunction then
-				functionID = WG.DeferredLighting_RegisterFunction(GetLights)
-			end
-		else
-			if functionID and WG.DeferredLighting_UnRegisterFunction then
-				WG.DeferredLighting_UnRegisterFunction(functionID)
-			end
-		end
 		deleteDlists()
 	end
 	WG['allycursors'].getLights = function()
@@ -259,33 +232,15 @@ function widget:Initialize()
 	end
 	WG['allycursors'].setLightStrength = function(value)
 		lightStrengthMult = value
-		if functionID and WG.DeferredLighting_UnRegisterFunction then
-			WG.DeferredLighting_UnRegisterFunction(functionID)
-		end
-		if WG.DeferredLighting_RegisterFunction then
-			functionID = WG.DeferredLighting_RegisterFunction(GetLights)
-		end
 	end
 	WG['allycursors'].getLightStrength = function()
 		return lightStrengthMult
 	end
 	WG['allycursors'].setLightRadius = function(value)
 		lightRadiusMult = value
-		if functionID and WG.DeferredLighting_UnRegisterFunction then
-			WG.DeferredLighting_UnRegisterFunction(functionID)
-		end
-		if WG.DeferredLighting_RegisterFunction then
-			functionID = WG.DeferredLighting_RegisterFunction(GetLights)
-		end
 	end
 	WG['allycursors'].setLightSelfShadowing = function(value)
 		lightSelfShadowing = value
-		if functionID and WG.DeferredLighting_UnRegisterFunction then
-			WG.DeferredLighting_UnRegisterFunction(functionID)
-		end
-		if WG.DeferredLighting_RegisterFunction then
-			functionID = WG.DeferredLighting_RegisterFunction(GetLights)
-		end
 	end
 	WG['allycursors'].getLightRadius = function()
 		return lightRadiusMult
@@ -324,23 +279,16 @@ function widget:Initialize()
 	for _, playerID in ipairs(pList) do
 		alliedCursorsTime[playerID] = now
 	end
-	if addLights and WG.DeferredLighting_RegisterFunction then
-		functionID = WG.DeferredLighting_RegisterFunction(GetLights)
-	end
-
 end
 
 function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('MouseCursorEvent')
 	deleteDlists()
-	if functionID and WG.DeferredLighting_UnRegisterFunction then
-		WG.DeferredLighting_UnRegisterFunction(functionID)
-	end
 	WG['allycursors'] = nil
 end
 
 function widget:PlayerChanged(playerID)
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = spGetMyTeamID()
 	local _, _, isSpec, teamID = spGetPlayerInfo(playerID, false)
 	specList[playerID] = isSpec
 	local r, g, b = spGetTeamColor(teamID)
@@ -437,13 +385,13 @@ end
 local function getCameraRotationY()
 	local x, y, z = Spring.GetCameraDirection()
 
-	local length = math.sqrt(x^2 + y^2 + z^2)
+	local length = math.sqrt(x*x + y*y + z*z)
 
 	-- We are only concerned with rotY
 	x = x/length;
 	z = z/length;
 
-	return math.deg(math.atan2(x, -z))
+	return math.deg(mathAtan2(x, -z))
 
 	-- General implementation
 	--
@@ -451,7 +399,7 @@ local function getCameraRotationY()
 	-- y = y/length;
 	-- z = z/length;
 
-	-- return math.acos(y), math.atan2(x, -z), 0;
+	-- return math.acos(y), mathAtan2(x, -z), 0;
 end
 
 local function DrawCursor(playerID, wx, wy, wz, camX, camY, camZ, opacity)
@@ -589,7 +537,7 @@ function widget:DrawWorldPreUnit()
 		return
 	end
 
-	fullview = select(2, Spring.GetSpectatingState())
+	fullview = select(2, spGetSpectatingState())
 
 	gl.DepthTest(GL.ALWAYS)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)

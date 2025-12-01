@@ -10,7 +10,7 @@ local conf = {
 	swirlAmp = 0.003,
 	tideAmplitude = 3,
 	tidePeriod = 50,
-	tideRhythm = { { 1, 0.05, 5*6000 } },
+	tideRhythm = { { 1, 1.5, 5*6000 } },
 }
 
 return conf

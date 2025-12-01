@@ -13,6 +13,20 @@ function widget:GetInfo()
     }
 end
 
+
+-- Localized functions for performance
+local mathCeil = math.ceil
+local mathFloor = math.floor
+local mathMax = math.max
+local mathMin = math.min
+local tableSort = table.sort
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMouseState = Spring.GetMouseState
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSpectatingState = Spring.GetSpectatingState
+
 --[[Changelog
 	before v8.0 developed outside of BA by Marmoth
 	v9.0  (Bluestone): modifications to deal with twice as many players/specs; specs are rendered in a small font and cpu/ping does not show for them.
@@ -63,7 +77,7 @@ end
 -- Config
 --------------------------------------------------------------------------------
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
@@ -77,7 +91,7 @@ local minWidth = 170	-- for the sake of giving the addons some room
 local hideDeadAllyTeams = true
 local absoluteResbarValues = false
 
-local curFrame = Spring.GetGameFrame()
+local curFrame = spGetGameFrame()
 
 local font, font2
 
@@ -100,7 +114,7 @@ local Spring_ShareResources = Spring.ShareResources
 local Spring_GetTeamUnitCount = Spring.GetTeamUnitCount
 local Spring_GetTeamResources = Spring.GetTeamResources
 local Spring_SendCommands = Spring.SendCommands
-local Spring_GetMouseState = Spring.GetMouseState
+local Spring_GetMouseState = spGetMouseState
 local Spring_GetAIInfo = Spring.GetAIInfo
 local Spring_GetTeamRulesParam = Spring.GetTeamRulesParam
 local Spring_GetMyTeamID = Spring.GetMyTeamID
@@ -249,7 +263,7 @@ local myPlayerID = Spring.GetMyPlayerID()
 local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local myTeamID = Spring.GetLocalTeamID()
 local myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
-local mySpecStatus, fullView, _ = Spring.GetSpectatingState()
+local mySpecStatus, fullView, _ = spGetSpectatingState()
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 --General players/spectator count and tables
@@ -271,7 +285,7 @@ local teamSideThree = "legion"
 local absentName = " --- "
 
 local gameStarted = false
-local gameStartRefreshed = Spring.GetGameFrame() > 30
+local gameStartRefreshed = spGetGameFrame() > 30
 
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
@@ -583,7 +597,7 @@ local isPvE = Spring.Utilities.Gametype.IsPvE()
 
 function SetModulesPositionX()
     m_name.width = SetMaxPlayerNameWidth()
-    table.sort(modules, function(v1, v2)
+    tableSort(modules, function(v1, v2)
         return v1.position < v2.position
     end)
     local pos = 1
@@ -639,7 +653,7 @@ function SetMaxPlayerNameWidth()
     local maxWidth = 14 * (font2 and font2:GetTextWidth(absentName) or 100) + 8 -- 8 is minimal width
 
     for _, wplayer in ipairs(t) do
-        local name, _, spec, teamID = Spring_GetPlayerInfo(wplayer)
+        local name, _, spec, teamID = Spring_GetPlayerInfo(wplayer, false)
         name = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(wplayer) or name
         if not select(4, Spring_GetTeamInfo(teamID, false)) then
             -- is not AI?
@@ -781,10 +795,10 @@ function widget:PlayerChanged(playerID)
     myTeamID = Spring.GetLocalTeamID()
     myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
     -- UNTESTED: reset original color names for the player, cause they can be wrong depending on the anonymous mode
-    if anonymousMode and playerID == myPlayerID and not mySpecStatus and Spring.GetSpectatingState() then
+    if anonymousMode and playerID == myPlayerID and not mySpecStatus and spGetSpectatingState() then
         SetOriginalColourNames()
     end
-    mySpecStatus, fullView, _ = Spring.GetSpectatingState()
+    mySpecStatus, fullView, _ = spGetSpectatingState()
     if mySpecStatus then
         hideShareIcons = true
     end
@@ -820,13 +834,13 @@ local function rankTeamPlayers()
                     local history = Spring_GetTeamStatsHistory(teamID,range)
                     if history then
                         history = history[#history]
-                        scores[allyTeamID][#scores[allyTeamID]+1] = { teamID = teamID, score = math.floor((history.metalUsed + history.energyUsed/60 + history.damageDealt) / 1000) }
+                        scores[allyTeamID][#scores[allyTeamID]+1] = { teamID = teamID, score = mathFloor((history.metalUsed + history.energyUsed/60 + history.damageDealt) / 1000) }
                     end
                 end
             end
 
             if scores[allyTeamID] and (mySpecStatus or not hoverPlayerlist or allyTeamID ~= myAllyTeamID) then
-                table.sort(scores[allyTeamID], function(m1, m2)
+                tableSort(scores[allyTeamID], function(m1, m2)
                     return m1.score > m2.score
                 end)
                 local ranking = {}
@@ -879,8 +893,8 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('RankingEvent', RankingEvent)
 	UpdateRecentBroadcasters()
 
-	mySpecStatus, fullView, _ = Spring.GetSpectatingState()
-	if Spring.GetGameFrame() <= 0 then
+	mySpecStatus, fullView, _ = spGetSpectatingState()
+	if spGetGameFrame() <= 0 then
 		if mySpecStatus and not alwaysHideSpecs then
 			specListShow = true
 		else
@@ -891,7 +905,7 @@ function widget:Initialize()
 		Spring.SendCommands("info 0")
 	end
 
-	if Spring.GetGameFrame() > 0 then
+	if spGetGameFrame() > 0 then
 		gameStarted = true
 	end
 
@@ -1093,7 +1107,7 @@ function GetAliveAllyTeams()
     aliveAllyTeams = {}
     local allteams = Spring_GetTeamList()
     teamN = table.maxn(allteams) - 1 --remove gaia
-	local gf = Spring.GetGameFrame()
+	local gf = spGetGameFrame()
     for i = 0, teamN - 1 do
         local _, _, isDead, _, _, allyTeam = Spring_GetTeamInfo(i, false)
         if not isDead or gf == 0 then
@@ -1104,7 +1118,7 @@ end
 
 function round(num, idp)
     local mult = 10 ^ (idp or 0)
-    return math.floor(num * mult + 0.5) / mult
+    return mathFloor(num * mult + 0.5) / mult
 end
 
 function GetSkill(playerID)
@@ -1129,11 +1143,16 @@ function GetSkill(playerID)
             local tsRed, tsGreen, tsBlue = 222, 222, 222
             if osSigma then
                 local color = math.clamp(1-((tonumber(osSigma-2) * 0.4)-1), 0.5, 1)
-                color = math.max(0.75, color * color)
-                local color2 = math.max(0.75, color * color)
-                tsRed, tsGreen, tsBlue = math.floor(255 * color), math.floor(255 * color2), math.floor(255 * color2)
+                color = mathMax(0.75, color * color)
+                local color2 = mathMax(0.75, color * color)
+                tsRed, tsGreen, tsBlue = mathFloor(255 * color), mathFloor(255 * color2), mathFloor(255 * color2)
             end
-            osSkill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. osSkill
+            if not osSigma or tonumber(osSigma) > 6.65 then
+                osSkill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. "??"
+            else
+                osSkill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. osSkill
+            end
+
         end
     else
         osSkill = "\255" .. string.char(160) .. string.char(160) .. string.char(160) .. "?"
@@ -1181,8 +1200,8 @@ function CreatePlayer(playerID)
         energy, energyStorage, _, energyIncome, _, energyShare = Spring_GetTeamResources(tteam, "energy")
         metal, metalStorage, _, metalIncome, _, metalShare = Spring_GetTeamResources(tteam, "metal")
         if energy then
-            energy = math.floor(energy)
-            metal = math.floor(metal)
+            energy = mathFloor(energy)
+            metal = mathFloor(metal)
             if energy < 0 then
                 energy = 0
             end
@@ -1197,7 +1216,8 @@ function CreatePlayer(playerID)
     return {
         rank = trank,
         skill = osSkillFormatted,
-        name = tname,
+        name = pname,
+		orgname = tname,
 		nameIsAlias = isAliasName,
         team = tteam,
         allyteam = tallyteam,
@@ -1280,8 +1300,8 @@ function CreatePlayerFromTeam(teamID)
     if aliveAllyTeams[tallyteam] ~= nil and (mySpecStatus or myAllyTeamID == tallyteam) then
         energy, energyStorage, _, energyIncome, _, energyShare = Spring_GetTeamResources(teamID, "energy")
         metal, metalStorage, _, metalIncome, _, metalShare = Spring_GetTeamResources(teamID, "metal")
-        energy = math.floor(energy or 0)
-        metal = math.floor(metal or 0)
+        energy = mathFloor(energy or 0)
+        metal = mathFloor(metal or 0)
         if energy < 0 then
             energy = 0
         end
@@ -1294,6 +1314,7 @@ function CreatePlayerFromTeam(teamID)
         rank = 8, -- "don't know which" value
         skill = "",
         name = tname,
+		orgname = tname,
         team = teamID,
         allyteam = tallyteam,
         red = tred,
@@ -1332,8 +1353,8 @@ function UpdatePlayerResources()
 						-- need to be there for when you do /specfullview
 						energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0, 0, 0, 0, 0, 0
 					else
-						energy = math.floor(energy)
-						metal = math.floor(metal)
+						energy = mathFloor(energy)
+						metal = mathFloor(metal)
 						if energy < 0 then
 							energy = 0
 						end
@@ -1420,14 +1441,14 @@ function SortList()
         end
     end
     -- hide enemies when there are more than 40 teams on startup
-    if not initiated and Spring.GetGameFrame() == 0 then
+    if not initiated and spGetGameFrame() == 0 then
         initiated = true
         if aliveTeams > 40 then
             enemyListShow = false
         end
     end
     local deadTeamSize = 0.66
-    playerScale = math.min(1, 35 / (aliveTeams+(deadTeams*deadTeamSize)))
+    playerScale = mathMin(1, 35 / (aliveTeams+(deadTeams*deadTeamSize)))
     if #Spring_GetAllyTeamList() > 24 then
         playerScale = playerScale - 0.05 - (playerScale * ((#Spring_GetAllyTeamList()-2)/200))  -- reduce size some more when mega ffa
     end
@@ -1577,7 +1598,7 @@ function SortPlayers(teamID, allyTeamID, vOffset)
             drawListOffset[#drawListOffset + 1] = vOffset
             drawList[#drawList + 1] = specOffset + teamID  -- no players team
             player[specOffset + teamID].posY = vOffset
-            if Spring.GetGameFrame() > 0 then
+            if spGetGameFrame() > 0 then
                 player[specOffset + teamID].totake = IsTakeable(teamID)
             end
         end
@@ -1673,6 +1694,9 @@ function widget:DrawScreen()
    		end
 	end
 
+	-- Push matrix to preserve GL state for other widgets
+	gl.PushMatrix()
+	
     local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
     local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
     gl.Scale(widgetScale, widgetScale, 0)
@@ -1695,7 +1719,7 @@ function widget:DrawScreen()
 
     -- handle/draw hover highlight
     local posY
-    local x, y, b = Spring.GetMouseState()
+    local x, y, b = spGetMouseState()
     for _, i in ipairs(drawList) do
         if i > -1 then -- and i < specOffset
             posY = widgetPosY + widgetHeight - (player[i].posY or 0)
@@ -1712,9 +1736,13 @@ function widget:DrawScreen()
         gl_CallList(ShareSlider)
     end
 
-    local scaleReset = widgetScale / widgetScale / widgetScale
-    gl.Translate(-scaleDiffX, -scaleDiffY, 0)
-    gl.Scale(scaleReset, scaleReset, 0)
+	-- Pop matrix to restore GL state for other widgets
+	gl.PopMatrix()
+	
+	-- Reset GL state to clean defaults for other widgets
+	gl.Color(1, 1, 1, 1)
+	gl.Texture(false)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
 -- old funcion called from wherever but it must run in DrawScreen now so we scedule its execution
@@ -1784,10 +1812,10 @@ function CreateBackground()
     local TRcornerX = widgetPosX + widgetWidth + margin
     local TRcornerY = widgetPosY + widgetHeight - 1 + margin
 
-    local absLeft = math.floor(BLcornerX - ((widgetPosX - BLcornerX) * (widgetScale - 1)))
-    local absBottom = math.floor(BLcornerY - ((widgetPosY - BLcornerY) * (widgetScale - 1)))
-    local absRight = math.ceil(TRcornerX - ((widgetPosX - TRcornerX) * (widgetScale - 1)))
-    local absTop = math.ceil(TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale - 1)))
+    local absLeft = mathFloor(BLcornerX - ((widgetPosX - BLcornerX) * (widgetScale - 1)))
+    local absBottom = mathFloor(BLcornerY - ((widgetPosY - BLcornerY) * (widgetScale - 1)))
+    local absRight = mathCeil(TRcornerX - ((widgetPosX - TRcornerX) * (widgetScale - 1)))
+    local absTop = mathCeil(TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale - 1)))
 
     local prevApiAbsPosition = apiAbsPosition
     if prevApiAbsPosition[1] ~= absTop or prevApiAbsPosition[2] ~= absLeft or prevApiAbsPosition[3] ~= absBottom then
@@ -1819,7 +1847,7 @@ function CreateBackground()
         if WG['guishader'] then
             BackgroundGuishader = gl_DeleteList(BackgroundGuishader)
             BackgroundGuishader = gl_CreateList(function()
-                RectRound(absLeft, absBottom, absRight, absTop, elementCorner, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
+                RectRound(absLeft, absBottom, absRight, absTop, elementCorner, mathMin(paddingLeft, paddingTop), mathMin(paddingTop, paddingRight), mathMin(paddingRight, paddingBottom), mathMin(paddingBottom, paddingLeft))
             end)
             WG['guishader'].InsertDlist(BackgroundGuishader, 'advplayerlist', true)
         end
@@ -1838,7 +1866,7 @@ function CreateBackground()
 				gl.DeleteTexture(mainListBgTex)
 				mainListBgTex = nil
 			end
-			local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
+			local width, height = mathFloor(apiAbsPosition[4]-apiAbsPosition[2]), mathFloor(apiAbsPosition[1]-apiAbsPosition[3])
 			if not mainListBgTex and width > 0 and height > 0 then
 				mainListBgTex = gl.CreateTexture(width, height, {
 					target = GL.TEXTURE_2D,
@@ -1848,7 +1876,7 @@ function CreateBackground()
 				gl.R2tHelper.RenderToTexture(mainListBgTex, function()
 					gl.LoadIdentity()
 					gl.Ortho(absLeft, absRight, absBottom, absTop, 0, 1000)
-					UiElement(absLeft, absBottom, absRight, absTop, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
+					UiElement(absLeft, absBottom, absRight, absTop, mathMin(paddingLeft, paddingTop), mathMin(paddingTop, paddingRight), mathMin(paddingRight, paddingBottom), mathMin(paddingBottom, paddingLeft))
 				end, useRenderToTexture)
 			end
 		else
@@ -1856,7 +1884,7 @@ function CreateBackground()
 				Background = gl_DeleteList(Background)
 			end
 			Background = gl_CreateList(function()
-				UiElement(absLeft, absBottom, absRight, absTop, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
+				UiElement(absLeft, absBottom, absRight, absTop, mathMin(paddingLeft, paddingTop), mathMin(paddingTop, paddingRight), mathMin(paddingRight, paddingBottom), mathMin(paddingBottom, paddingLeft))
 				gl_Color(1, 1, 1, 1)
 			end)
 		end
@@ -1878,7 +1906,7 @@ function UpdateResources()
 			else
 				maxShareAmount = Spring_GetTeamResources(myTeamID, "energy")
 				local energy, energyStorage, _, _, _, shareSliderPos = Spring_GetTeamResources(energyPlayer.team, "energy")
-				maxShareAmount = math.min(maxShareAmount, ((energyStorage*shareSliderPos) - energy))
+				maxShareAmount = mathMin(maxShareAmount, ((energyStorage*shareSliderPos) - energy))
                 shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
                 shareAmount = shareAmount - (shareAmount % 1)
             end
@@ -1893,7 +1921,7 @@ function UpdateResources()
             else
                 maxShareAmount = Spring_GetTeamResources(myTeamID, "metal")
 				local metal, metalStorage, _, _, _, shareSliderPos = Spring_GetTeamResources(metalPlayer.team, "metal")
-				maxShareAmount = math.min(maxShareAmount, ((metalStorage*shareSliderPos) - metal))
+				maxShareAmount = mathMin(maxShareAmount, ((metalStorage*shareSliderPos) - metal))
                 shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
                 shareAmount = shareAmount - (shareAmount % 1)
             end
@@ -1944,7 +1972,7 @@ function drawMainList()
                 specAmount = ""
             end
             DrawLabel(" ".. Spring.I18N('ui.playersList.spectators', { amount = specAmount }), drawListOffset[i], specListShow)
-            if Spring.GetGameFrame() <= 0 then
+            if spGetGameFrame() <= 0 then
                 if specListShow then
                     DrawLabelTip( Spring.I18N('ui.playersList.hideSpecs'), drawListOffset[i], 95)
                 else
@@ -1968,7 +1996,7 @@ function drawMainList()
                 else
                     DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
                 end
-                if Spring.GetGameFrame() <= 0 then
+                if spGetGameFrame() <= 0 then
                     if enemyListShow then
                         DrawLabelTip( Spring.I18N('ui.playersList.hideEnemies'), drawListOffset[i], 95)
                     else
@@ -1981,7 +2009,7 @@ function drawMainList()
             leaderboardOffset = drawListOffset[i]
         elseif drawObject == -2 then
             DrawLabel(" " .. Spring.I18N('ui.playersList.allies'), drawListOffset[i], true)
-            if Spring.GetGameFrame() <= 0 then
+            if spGetGameFrame() <= 0 then
                 DrawLabelTip(Spring.I18N('ui.playersList.trackPlayer'), drawListOffset[i], 46)
             end
         elseif drawObject == -1 then
@@ -2029,7 +2057,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
     local active, spec
     local playerList = Spring_GetPlayerList()
     for _, playerID in ipairs(playerList) do
-        _, active, spec = Spring_GetPlayerInfo(playerID)
+        _, active, spec = Spring_GetPlayerInfo(playerID, false)
         if active and spec then
             numberOfSpecs = numberOfSpecs + 1
         end
@@ -2041,7 +2069,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
         if teamID ~= gaiaTeamID then
             _, playerID, _, isAiTeam, _, allyTeamID = Spring_GetTeamInfo(teamID, false)
             if aliveAllyTeams[allyTeamID] then
-                _, active = Spring_GetPlayerInfo(playerID)
+                _, active = Spring_GetPlayerInfo(playerID, false)
                 if active or isAiTeam then
                     if allyTeamID ~= myAllyTeamID then
                         numberOfEnemies = numberOfEnemies + 1
@@ -2058,7 +2086,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
     if onlyMainList then
         if useRenderToTexture then
             if not mainListTex then
-				local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
+				local width, height = mathFloor(apiAbsPosition[4]-apiAbsPosition[2]), mathFloor(apiAbsPosition[1]-apiAbsPosition[3])
 				if width > 0 and height > 0 then
 					mainListTex = gl.CreateTexture(width, height, {	--*(vsy<1400 and 2 or 1)
 						target = GL.TEXTURE_2D,
@@ -2090,7 +2118,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
     if onlyMainList2 then
         if useRenderToTexture then
             if not mainList2Tex then
-				local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
+				local width, height = mathFloor(apiAbsPosition[4]-apiAbsPosition[2]), mathFloor(apiAbsPosition[1]-apiAbsPosition[3])
 				if width > 0 and height > 0 then
 						mainList2Tex = gl.CreateTexture(width, height, {	--*(vsy<1400 and 2 or 1)
 						target = GL.TEXTURE_2D,
@@ -2220,13 +2248,13 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 
     -- keyboard/mouse activity
     if lastActivity[playerID] ~= nil and type(lastActivity[playerID]) == "number" then
-        alphaActivity = math.clamp((8 - math.floor(now - lastActivity[playerID])) / 5.5, 0, 1)
+        alphaActivity = math.clamp((8 - mathFloor(now - lastActivity[playerID])) / 5.5, 0, 1)
         alphaActivity = 0.33 + (alphaActivity * 0.21)
         alpha = alphaActivity
     end
     -- camera activity
     if recentBroadcasters[playerID] ~= nil and type(recentBroadcasters[playerID]) == "number" then
-        local alphaCam =  math.clamp((13 - math.floor(recentBroadcasters[playerID])) / 8.5, 0, 1)
+        local alphaCam =  math.clamp((13 - mathFloor(recentBroadcasters[playerID])) / 8.5, 0, 1)
         alpha = 0.33 + (alphaCam * 0.42)
         if alpha < alphaActivity then
             alpha = alphaActivity
@@ -2435,8 +2463,8 @@ end
 
 function DrawResources(energy, energyStorage, energyShare, energyConversion, metal, metalStorage, metalShare, posY, dead, maxAllyTeamEnergyStorage, maxAllyTeamMetalStorage)
     -- limit to prevent going out of bounds when losing storage
-    energy = math.min(energy, energyStorage)
-    metal = math.min(metal, metalStorage)
+    energy = mathMin(energy, energyStorage)
+    metal = mathMin(metal, metalStorage)
     local bordersize = 0.75
     local paddingLeft = 2 * playerScale
     local paddingRight = 2 * playerScale
@@ -2557,7 +2585,7 @@ function DrawIncome(energy, metal, posY, dead)
 	font:SetOutlineColor(0.18, 0.18, 0.18, 1)
     if energy > 0 then
         font:Print(
-                '\255\255\255\050' .. string.formatSI(math.floor(energy)),
+                '\255\255\255\050' .. string.formatSI(mathFloor(energy)),
                 m_income.posX + widgetPosX + m_income.width - 2,
                 posY + ((fontsize*0.2)*sizeMult) + (dead and 1 or 0),
                 fontsize,
@@ -2566,7 +2594,7 @@ function DrawIncome(energy, metal, posY, dead)
     end
     if metal > 0 then
         font:Print(
-                '\255\235\235\235' .. string.formatSI(math.floor(metal)),
+                '\255\235\235\235' .. string.formatSI(mathFloor(metal)),
                 m_income.posX + widgetPosX + m_income.width - 2,
                 posY + ((fontsize*1.15)*sizeMult) + (dead and 1 or 0),
                 fontsize,
@@ -2787,15 +2815,21 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
     --desynced = playerID == 1
     local pScale = (0.5+playerScale)*0.67  --dont scale too much for the already smaller bonus font
 	if desynced then
+        if dark then
+            font2:SetOutlineColor(0, 0, 0, 1)
+        end
 		font2:SetTextColor(1,0.45,0.45,1)
 		font2:Print(Spring.I18N('ui.playersList.desynced'), m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
 	elseif player[playerID] and not player[playerID].dead and player[playerID].incomeMultiplier and player[playerID].incomeMultiplier ~= 1 then
+        if dark then
+            font2:SetOutlineColor(0, 0, 0, 1)
+        end
         if player[playerID].incomeMultiplier > 1 then
             font2:SetTextColor(0.5,1,0.5,1)
-            font2:Print('+'..math.floor((player[playerID].incomeMultiplier-1+0.005)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
+            font2:Print('+'..mathFloor((player[playerID].incomeMultiplier-1+0.005)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
         else
             font2:SetTextColor(1,0.5,0.5,1)
-            font2:Print(math.floor((player[playerID].incomeMultiplier-1+0.005)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
+            font2:Print(mathFloor((player[playerID].incomeMultiplier-1+0.005)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
         end
     end
     font2:End()
@@ -2931,7 +2965,7 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, fps)
         if fps > 99 then
             fps = 99
         end
-        grayvalue = 0.88 - (math.min(fps, 99) / 350)
+        grayvalue = 0.88 - (mathMin(fps, 99) / 350)
         if fps < 0 then
             fps = 0
             greyvalue = 1
@@ -3065,40 +3099,40 @@ end
 function ResourcesTip(mouseX, energy, energyStorage, energyIncome, metal, metalStorage, metalIncome, name, teamID)
     if mouseX >= widgetPosX + (m_resources.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_resources.posX + (m_resources.width*playerScale)) * widgetScale then
         if energy > 1000 then
-            energy = math.floor(energy / 100) * 100
+            energy = mathFloor(energy / 100) * 100
         else
-            energy = math.floor(energy / 10) * 10
+            energy = mathFloor(energy / 10) * 10
         end
         if metal > 1000 then
-            metal = math.floor(metal / 100) * 100
+            metal = mathFloor(metal / 100) * 100
         else
-            metal = math.floor(metal / 10) * 10
+            metal = mathFloor(metal / 10) * 10
         end
         if energyIncome == nil then
             energyIncome = 0
             metalIncome = 0
         end
-        energyIncome = math.floor(energyIncome)
-        metalIncome = math.floor(metalIncome)
+        energyIncome = mathFloor(energyIncome)
+        metalIncome = mathFloor(metalIncome)
         if energyIncome > 1000 then
-            energyIncome = math.floor(energyIncome / 100) * 100
+            energyIncome = mathFloor(energyIncome / 100) * 100
         elseif energyIncome > 100 then
-            energyIncome = math.floor(energyIncome / 10) * 10
+            energyIncome = mathFloor(energyIncome / 10) * 10
         end
         if metalIncome > 200 then
-            metalIncome = math.floor(metalIncome / 10) * 10
+            metalIncome = mathFloor(metalIncome / 10) * 10
         end
         if energy >= 10000 then
-            energy =  Spring.I18N('ui.playersList.thousands', { number = math.floor(energy / 1000) })
+            energy =  Spring.I18N('ui.playersList.thousands', { number = mathFloor(energy / 1000) })
         end
         if metal >= 10000 then
-            metal = Spring.I18N('ui.playersList.thousands', { number = math.floor(metal / 1000) })
+            metal = Spring.I18N('ui.playersList.thousands', { number = mathFloor(metal / 1000) })
         end
         if energyIncome >= 10000 then
-            energyIncome = Spring.I18N('ui.playersList.thousands', { number = math.floor(energyIncome / 1000) })
+            energyIncome = Spring.I18N('ui.playersList.thousands', { number = mathFloor(energyIncome / 1000) })
         end
         if metalIncome >= 10000 then
-            metalIncome = Spring.I18N('ui.playersList.thousands', { number = math.floor(metalIncome / 1000) })
+            metalIncome = Spring.I18N('ui.playersList.thousands', { number = mathFloor(metalIncome / 1000) })
         end
         tipTextTitle = (spec and "\255\240\240\240" or colourNames(teamID)) .. name
         tipText = "\255\255\255\255+" .. metalIncome.. "\n\255\255\255\255" .. metal .. "\n\255\255\255\000" .. energy .. "\n\255\255\255\000+" .. energyIncome
@@ -3112,21 +3146,21 @@ function IncomeTip(mouseX, energyIncome, metalIncome, name, teamID)
             energyIncome = 0
             metalIncome = 0
         end
-        energyIncome = math.floor(energyIncome)
-        metalIncome = math.floor(metalIncome)
+        energyIncome = mathFloor(energyIncome)
+        metalIncome = mathFloor(metalIncome)
         if energyIncome > 1000 then
-            energyIncome = math.floor(energyIncome / 100) * 100
+            energyIncome = mathFloor(energyIncome / 100) * 100
         elseif energyIncome > 100 then
-            energyIncome = math.floor(energyIncome / 10) * 10
+            energyIncome = mathFloor(energyIncome / 10) * 10
         end
         if metalIncome > 200 then
-            metalIncome = math.floor(metalIncome / 10) * 10
+            metalIncome = mathFloor(metalIncome / 10) * 10
         end
         if energyIncome >= 10000 then
-            energyIncome = Spring.I18N('ui.playersList.thousands', { number = math.floor(energyIncome / 1000) })
+            energyIncome = Spring.I18N('ui.playersList.thousands', { number = mathFloor(energyIncome / 1000) })
         end
         if metalIncome >= 10000 then
-            metalIncome = Spring.I18N('ui.playersList.thousands', { number = math.floor(metalIncome / 1000) })
+            metalIncome = Spring.I18N('ui.playersList.thousands', { number = mathFloor(metalIncome / 1000) })
         end
         tipTextTitle = (spec and "\255\240\240\240" or colourNames(teamID)) .. name
         tipText = Spring.I18N('ui.playersList.resincome') .. "\n\255\255\255\000+" .. energyIncome .. "\n\255\255\255\255+" .. metalIncome
@@ -3193,7 +3227,7 @@ function CreateShareSlider()
                 DrawRect(m_share.posX + widgetPosX + (17*playerScale), posY + sliderPosition, m_share.posX + widgetPosX + (33*playerScale), posY + (16*playerScale) + sliderPosition)
                 gl_Texture(false)
 				gl_Color(0.45,0.45,0.45,1)
-				RectRound(math.floor(m_share.posX + widgetPosX - (28*playerScale)), math.floor(posY - 1 + sliderPosition), math.floor(m_share.posX + widgetPosX + (19*playerScale)), math.floor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
+				RectRound(mathFloor(m_share.posX + widgetPosX - (28*playerScale)), mathFloor(posY - 1 + sliderPosition), mathFloor(m_share.posX + widgetPosX + (19*playerScale)), mathFloor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
 				font:Print("\255\255\255\255"..shareAmount, m_share.posX + widgetPosX - (5*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
             elseif metalPlayer ~= nil then
                 posY = widgetPosY + widgetHeight - metalPlayer.posY
@@ -3203,7 +3237,7 @@ function CreateShareSlider()
                 DrawRect(m_share.posX + widgetPosX + (33*playerScale), posY + sliderPosition, m_share.posX + widgetPosX + (49*playerScale), posY + (16*playerScale) + sliderPosition)
                 gl_Texture(false)
 				gl_Color(0.45,0.45,0.45,1)
-				RectRound(math.floor(m_share.posX + widgetPosX - (12*playerScale)), math.floor(posY - 1 + sliderPosition), math.floor(m_share.posX + widgetPosX + (35*playerScale)), math.floor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
+				RectRound(mathFloor(m_share.posX + widgetPosX - (12*playerScale)), mathFloor(posY - 1 + sliderPosition), mathFloor(m_share.posX + widgetPosX + (35*playerScale)), mathFloor(posY + (17*playerScale) + sliderPosition), 2.5*playerScale)
 				font:Print("\255\255\255\255"..shareAmount, m_share.posX + widgetPosX + (11*playerScale), posY + (3*playerScale) + sliderPosition, 14, "ocn")
             end
             font:End()
@@ -3325,7 +3359,7 @@ function widget:MousePress(x, y, button)
                             if clickedPlayer.totake then
                                 if IsOnRect(x, y, widgetPosX - 57, posY, widgetPosX - 12, posY + 17) then
                                     --take button
-                                    Take(clickedPlayer.team, clickedPlayer.name, i)
+                                    Take(clickedPlayer.team, clickedPlayer.orgname or clickedPlayer.name, i)
                                     return true
                                 end
                             end
@@ -3464,8 +3498,8 @@ function widget:MouseRelease(x, y, button)
             elseif shareAmount > 0 then
                 Spring_ShareResources(energyPlayer.team, "energy", shareAmount)
                 --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveEnergy', { amount = shareAmount, name = energyPlayer.name }))
-				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy:amount='..shareAmount..':name='..energyPlayer.name)
-                WG.sharedEnergyFrame = Spring.GetGameFrame()
+				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy:amount='..shareAmount..':name='..(energyPlayer.orgname or energyPlayer.name))
+                WG.sharedEnergyFrame = spGetGameFrame()
             end
             sliderOrigin = nil
             maxShareAmount = nil
@@ -3486,8 +3520,8 @@ function widget:MouseRelease(x, y, button)
             elseif shareAmount > 0 then
                 Spring_ShareResources(metalPlayer.team, "metal", shareAmount)
                 --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveMetal', { amount = shareAmount, name = metalPlayer.name }))
-				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal:amount='..shareAmount..':name='..metalPlayer.name)
-                WG.sharedMetalFrame = Spring.GetGameFrame()
+				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal:amount='..shareAmount..':name='..(metalPlayer.orgname or metalPlayer.name))
+                WG.sharedMetalFrame = spGetGameFrame()
             end
             sliderOrigin = nil
             maxShareAmount = nil
@@ -3552,7 +3586,7 @@ function widget:GetConfigData()
             m_active_Table = m_active_Table,
             specListShow = specListShow,
             enemyListShow = enemyListShow,
-            gameFrame = Spring.GetGameFrame(),
+            gameFrame = spGetGameFrame(),
             lastSystemData = lastSystemData,
             alwaysHideSpecs = alwaysHideSpecs,
             transitionTime = transitionTime,
@@ -3618,7 +3652,7 @@ function widget:SetConfigData(data)
         end
     end
 
-    if Spring.GetGameFrame() > 0 then
+    if spGetGameFrame() > 0 then
         if data.originalColourNames then
             originalColourNames = data.originalColourNames
         end
@@ -3657,7 +3691,7 @@ function widget:SetConfigData(data)
 
     SetModulesPositionX()
 
-    if data.lastSystemData ~= nil and data.gameFrame ~= nil and data.gameFrame <= Spring.GetGameFrame() and data.gameFrame > Spring.GetGameFrame() - 300 then
+    if data.lastSystemData ~= nil and data.gameFrame ~= nil and data.gameFrame <= spGetGameFrame() and data.gameFrame > spGetGameFrame() - 300 then
         lastSystemData = data.lastSystemData
     end
 end
@@ -3742,7 +3776,7 @@ function CheckPlayersChange()
 			player[i].desynced = desynced
         end
 
-        if teamID and Spring.GetGameFrame() > 0 then
+        if teamID and spGetGameFrame() > 0 then
             local totake = IsTakeable(teamID)
             player[i].totake = totake
             if totake then
@@ -3785,7 +3819,7 @@ function Take(teamID, name, i)
     reportTake = true
     tookTeamID = teamID
     tookTeamName = name
-    tookFrame = Spring.GetGameFrame()
+    tookFrame = spGetGameFrame()
     Spring_SendCommands("luarules take2 " .. teamID)
 end
 
@@ -3810,7 +3844,7 @@ end
 
 function widget:Update(delta)
     --handles takes & related messages
-    local mx, my = Spring.GetMouseState()
+    local mx, my = spGetMouseState()
     hoverPlayerlist = false
     if math_isInRect(mx, my, apiAbsPosition[2] - 1, apiAbsPosition[3] - 1, apiAbsPosition[4] + 1, apiAbsPosition[1] + 1 ) then
         hoverPlayerlist = true
@@ -3850,8 +3884,8 @@ function widget:Update(delta)
 
     timeCounter = timeCounter + delta
     timeFastCounter = timeFastCounter + delta
-    curFrame = Spring.GetGameFrame()
-    mySpecStatus, fullView, _ = Spring.GetSpectatingState()
+    curFrame = spGetGameFrame()
+    mySpecStatus, fullView, _ = spGetSpectatingState()
 
     if scheduledSpecFullView ~= nil then
         -- this is needed else the minimap/world doesnt update properly
@@ -3880,7 +3914,7 @@ function widget:Update(delta)
 				end
             end
 			if detailedToSay then
-				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.takeTeam:name='..tookTeamName..':units='..math.floor(afterU)..':energy='..math.floor(afterE)..':metal='..math.floor(afterE))
+				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.takeTeam:name='..tookTeamName..':units='..mathFloor(afterU)..':energy='..mathFloor(afterE)..':metal='..mathFloor(afterE))
 			else
 				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.takeTeam:name='..tookTeamName)
 			end
@@ -3942,7 +3976,7 @@ function updateWidgetScale()
 end
 
 function widget:ViewResize()
-    vsx, vsy = Spring.GetViewGeometry()
+    vsx, vsy = spGetViewGeometry()
 
     bgpadding = WG.FlowUI.elementPadding
     elementCorner = WG.FlowUI.elementCorner
@@ -3963,9 +3997,9 @@ function widget:ViewResize()
 		--AdvPlayersListAtlas:Delete()
 	end
 
-	local cellheight = math.max(32, math.ceil(math.max(font.size, font2.size) + 4))
-	local cellwidth = math.ceil(cellheight*1.25)
-	local cellcount = math.ceil(math.sqrt(32+32 + 200))
+	local cellheight = mathMax(32, mathCeil(mathMax(font.size, font2.size) + 4))
+	local cellwidth = mathCeil(cellheight*1.25)
+	local cellcount = mathCeil(math.sqrt(32+32 + 200))
 	local atlasconfig = {sizex = cellheight * cellcount, sizey =  cellwidth*cellcount, xresolution = cellheight, yresolution = cellwidth, name = "AdvPlayersListAtlas", defaultfont = {font = font, options = 'o'}}
 	AdvPlayersListAtlas = MakeAtlasOnDemand(atlasconfig)
 	for i = 0, 99 do

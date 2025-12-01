@@ -136,7 +136,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasfirerc",
 				soundtrigger = 1,
-				targetborder = 0.2,
 				thickness = 2.4,
 				tolerance = 4500,
 				turret = true,
@@ -144,7 +143,7 @@ return {
 				weaponvelocity = 920,
 				damage = {
 					default = 116,
-					vtol = 58,
+					vtol = 22,
 				},
 			},
 		},

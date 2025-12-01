@@ -22,7 +22,7 @@ local singleplayer = {		-- note: these permissions override others when singlepl
 	cmd = true,
 	devhelpers = true,
 	waterlevel = true,
-	playerdata = false,
+	playerdata = true,
 	sysinfo = false,
 }
 
@@ -49,4 +49,6 @@ return {
 	[21114] = moderator,	-- [FH]Amojini
 	[168817] = moderator,	-- SongbirdOfChirping
 	[57158] = moderator,	-- Endorphins
+	[132545] = moderator,	-- Praedyth
+	[88808] = moderator,	-- Shadowisperke
 }

@@ -13,6 +13,17 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMin = math.min
+
+-- Localized Spring API for performance
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMouseState = Spring.GetMouseState
+local spEcho = Spring.Echo
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local LineTypes = {
@@ -90,8 +101,8 @@ local lastLineUnitShare
 local lastDrawUiUpdate = os.clock()
 
 local myName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-local mySpec = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
+local mySpec = spGetSpectatingState()
+local myTeamID = spGetMyTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 local font, font2, font3, chobbyInterface, hovering
@@ -128,8 +139,8 @@ local maxPlayernameWidth = 50
 local maxTimeWidth = 20
 local lineSpaceWidth = 24*widgetScale
 local lineMaxWidth = 0
-local lineHeight = math.floor(usedFontSize*lineHeightMult)
-local consoleLineHeight = math.floor(usedConsoleFontSize*lineHeightMult)
+local lineHeight = mathFloor(usedFontSize*lineHeightMult)
+local consoleLineHeight = mathFloor(usedConsoleFontSize*lineHeightMult)
 local consoleLineMaxWidth = 0
 local backgroundPadding = usedFontSize
 local gameOver = false
@@ -172,7 +183,7 @@ local glColor          = gl.Color
 
 local string_lines = string.lines
 local math_isInRect = math.isInRect
-local floor = math.floor
+local floor = mathFloor
 local clock = os.clock
 local schar = string.char
 local slen = string.len
@@ -191,7 +202,6 @@ local soundErrors = {}
 local autocompleteCommands = {
 	-- engine
 	'advmapshading',
-	'advmodelshading',
 	'aicontrol',
 	'aikill',
 	'ailist',
@@ -404,6 +414,20 @@ local autocompleteCommands = {
 	'luarules killteam',
 	'luarules globallos',
 
+	-- zombie commands
+	'luarules zombiesetallgaia',
+	'luarules zombiequeueallcorpses',
+	'luarules zombieautospawn 0',
+	'luarules zombieclearspawns',
+	'luarules zombiepacify 0',
+	'luarules zombiesuspendorders 0',
+	'luarules zombieaggroteam 0',
+	'luarules zombieaggroally 0',
+	'luarules zombiekillall',
+	'luarules zombieclearallorders',
+	'luarules zombiedebug 0',
+	'luarules zombiemode normal',
+
 	-- widgets
 	'luaui reload',
 	'luaui disable',
@@ -423,6 +447,8 @@ local autocompleteText
 local autocompletePlayernames = {}
 local playernames = {}
 local playersList = Spring.GetPlayerList()
+
+local chatProcessors = {}
 
 local autocompleteUnitNames = {}
 local autocompleteUnitCodename = {}
@@ -497,7 +523,7 @@ for i = 1, #teams do
 		if isAiTeam then
 			teamNames[teamID] = aiName
 		else
-			local name, _, spec, _ = spGetPlayerInfo(playerID)
+			local name, _, spec, _ = spGetPlayerInfo(playerID, false)
 			name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 			if not spec then
 				teamNames[teamID] = name
@@ -590,8 +616,15 @@ local function setCurrentChatLine(line)
 	end
 end
 
-local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID)
+local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID, noProcessors)
 	chatLineID = chatLineID and chatLineID or #chatLines + 1
+
+	if not noProcessors then
+		for _, processor in pairs(chatProcessors) do
+			if text == nil then break end
+			text = processor(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID)
+		end
+	end
 
 	if not text or text == '' then return end
 
@@ -701,6 +734,7 @@ local function cancelChatInput()
 		WG['guishader'].RemoveRect('chatinput')
 		WG['guishader'].RemoveRect('chatinputautocomplete')
 	end
+	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil	-- non handler = true: widgetHandler:DisownText()
 	updateDrawUi = true
 end
@@ -1088,7 +1122,7 @@ local function addLastUnitShareMessage()
 			-- Player1 shared units to Player2: 5 Wind Turbine
 			lastLineUnitShare = unitShare
 			local line = oldTeamName .. ' shared units to ' .. newTeamName .. ': ' .. shareDescription
-			Spring.Echo(line)
+			spEcho(line)
 		end
 	end
 	lastUnitShare = nil
@@ -1321,14 +1355,18 @@ function widget:Update(dt)
 			ignoredAccounts = table.copy(WG.ignoredAccounts)
 		end
 
-		-- detect spectator filter change
+		-- add settings option commands
 		if not addedOptionsList and WG['options'] and WG['options'].getOptionsList then
 			local optionsList = WG['options'].getOptionsList()
-			addedOptionsList = true
-			for i, option in ipairs(optionsList) do
-				autocompleteCommands[#autocompleteCommands+1] = 'option '..option
+			if optionsList and #optionsList > 0 then
+				addedOptionsList = true
+				for i, option in ipairs(optionsList) do
+					autocompleteCommands[#autocompleteCommands+1] = 'option '..option
+				end
 			end
 		end
+
+		-- detect spectator filter change
 		if hideSpecChat ~= (Spring.GetConfigInt('HideSpecChat', 0) == 1) or hideSpecChatPlayer ~= (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1) then
 			hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
 			HideSpecChatPlayer = (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1)
@@ -1344,7 +1382,7 @@ function widget:Update(dt)
 		end
 	end
 
-	local x,y,_ = Spring.GetMouseState()
+	local x,y,_ = spGetMouseState()
 
 	if topbarArea then
 		scrollingPosY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (lineHeight*maxLinesScroll)) / vsy
@@ -1417,15 +1455,15 @@ local function drawChatInput()
 			end
 			local modeTextPosX = floor(activationArea[1]+elementPadding+elementPadding+leftOffset)
 			local textPosX = floor(modeTextPosX + (usedFont:GetTextWidth(modeText) * inputFontSize) + leftOffset + inputFontSize)
-			local textCursorWidth = 1 + math.floor(inputFontSize / 14)
+			local textCursorWidth = 1 + mathFloor(inputFontSize / 14)
 			if inputTextInsertActive then
-				textCursorWidth = math.floor(textCursorWidth * 5)
+				textCursorWidth = mathFloor(textCursorWidth * 5)
 			end
 			local textCursorPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, inputTextPosition)) * inputFontSize)
 
 			-- background
 			local r,g,b,a
-			local inputAlpha = math.min(0.36, ui_opacity*0.66)
+			local inputAlpha = mathMin(0.36, ui_opacity*0.66)
 			local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText..(autocompleteText and autocompleteText or '')) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/3)))
 			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, nil,nil,nil,nil, nil,nil,nil,nil, inputAlpha)
 			if WG['guishader'] then
@@ -1525,7 +1563,7 @@ local function drawChatInput()
 				local lettersWidth = floor(usedFont:GetTextWidth(letters) * inputFontSize * scale)
 				local xPos = floor(textPosX + textCursorPos - lettersWidth)
 				local yPos =  activationArea[2]+chatlogHeightDiff-distance-inputHeight
-				local height = (autocLineHeight * math.min(allowMultiAutocompleteMax, #autocompleteWords-1) + leftOffset) + (#autocompleteWords > allowMultiAutocompleteMax+1 and autocLineHeight or 0)
+				local height = (autocLineHeight * mathMin(allowMultiAutocompleteMax, #autocompleteWords-1) + leftOffset) + (#autocompleteWords > allowMultiAutocompleteMax+1 and autocLineHeight or 0)
 				glColor(0,0,0,inputAlpha)
 				RectRound(xPos-leftOffset, yPos-height, x2-elementMargin, yPos, elementCorner*0.6, 0,0,1,1)
 				if WG['guishader'] then
@@ -1576,7 +1614,7 @@ local drawTextInput = function()
 			glCallList(textInputDlist)
 			drawChatInputCursor()
 			-- button hover
-			local x,y,b = Spring.GetMouseState()
+			local x,y,b = spGetMouseState()
 			if inputButtonRect[1] and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
 				Spring.SetMouseCursor('cursornormal')
 				glColor(1,1,1,0.075)
@@ -1791,7 +1829,7 @@ function widget:DrawScreen()
 	if not chatLines[1] and not consoleLines[1] then return end
 
 	local _, ctrl, _, _ = Spring.GetModKeyState()
-	local x,y,b = Spring.GetMouseState()
+	local x,y,b = spGetMouseState()
 	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
 	if hovering and WG['guishader'] then
 		WG['guishader'].RemoveRect('chat')
@@ -1924,11 +1962,15 @@ function widget:DrawScreen()
 				uiTex = nil
 			end
 			rttArea = {consoleActivationArea[1], activationArea[2]+floor(vsy*(scrollingPosY-posY)), consoleActivationArea[3], consoleActivationArea[4]}
-			uiTex = gl.CreateTexture(math.floor(rttArea[3]-rttArea[1]), math.floor(rttArea[4]-rttArea[2]), {
-				target = GL.TEXTURE_2D,
-				format = GL.ALPHA,
-				fbo = true,
-			})
+			local texWidth = mathFloor(rttArea[3]-rttArea[1])
+			local texHeight = mathFloor(rttArea[4]-rttArea[2])
+			if texWidth > 0 and texHeight > 0 then
+				uiTex = gl.CreateTexture(texWidth, texHeight, {
+					target = GL.TEXTURE_2D,
+					format = GL.ALPHA,
+					fbo = true,
+				})
+			end
 		end
 		if uiTex then
 			if lastDrawUiUpdate+2 < clock() then	-- this is to make sure stuff times out/clears respecting lineTTL
@@ -1992,7 +2034,7 @@ local function autocomplete(text, fresh)
 					end
 				end
 				if not found then
-					--Spring.Echo('"'..textAction..'"')
+					--spEcho('"'..textAction..'"')
 					autocompleteCommands[#autocompleteCommands+1] = textAction
 				end
 			end
@@ -2320,7 +2362,7 @@ function widget:MouseWheel(up, value)
 end
 
 function widget:WorldTooltip(ttType,data1,data2,data3)
-	local x,y,_ = Spring.GetMouseState()
+	local x,y,_ = spGetMouseState()
 	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
 	if #chatLines > 0 and math_isInRect(x, y, activationArea[1],activationArea[2]+chatlogHeightDiff,activationArea[3],activationArea[4]) then
 		return I18N.scroll
@@ -2379,7 +2421,7 @@ function widget:ViewResize()
 	maxTimeWidth = font3:GetTextWidth('00:00') * usedFontSize
 	lineSpaceWidth = 24*widgetScale
 	lineHeight = floor(usedFontSize*lineHeightMult)
-	consoleLineHeight = math.floor(usedConsoleFontSize*lineHeightMult)
+	consoleLineHeight = mathFloor(usedConsoleFontSize*lineHeightMult)
 	backgroundPadding = elementPadding + floor(lineHeight*0.5)
 
 	local posY2 = 0.94
@@ -2413,8 +2455,8 @@ function widget:ViewResize()
 end
 
 function widget:PlayerChanged(playerID)
-	mySpec = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
+	mySpec = spGetSpectatingState()
+	myTeamID = spGetMyTeamID()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	if mySpec and inputMode == 'a:' then
 		inputMode = 's:'
@@ -2462,9 +2504,9 @@ local function hidespecchatCmd(_, _, params)
 	end
 	Spring.SetConfigInt('HideSpecChat', hideSpecChat and 1 or 0)
 	if hideSpecChat then
-		Spring.Echo("Hiding all spectator chat")
+		spEcho("Hiding all spectator chat")
 	else
-		Spring.Echo("Showing all spectator chat again")
+		spEcho("Showing all spectator chat again")
 	end
 end
 
@@ -2476,9 +2518,9 @@ local function hidespecchatplayerCmd(_, _, params)
 	end
 	Spring.SetConfigInt('HideSpecChatPlayer', hideSpecChatPlayer and 1 or 0)
 	if hideSpecChat then
-		Spring.Echo("Hiding all spectator chat when player")
+		spEcho("Hiding all spectator chat when player")
 	else
-		Spring.Echo("Showing all spectator chat when player again")
+		spEcho("Showing all spectator chat when player again")
 	end
 end
 
@@ -2486,9 +2528,9 @@ local function preventhistorymodeCmd(_, _, params)
 	showHistoryWhenCtrlShift = not showHistoryWhenCtrlShift
 	enableShortcutClick = not enableShortcutClick
 	if not showHistoryWhenCtrlShift then
-		Spring.Echo("Preventing toggling historymode via CTRL+SHIFT")
+		spEcho("Preventing toggling historymode via CTRL+SHIFT")
 	else
-		Spring.Echo("Enabled toggling historymode via CTRL+SHIFT")
+		spEcho("Enabled toggling historymode via CTRL+SHIFT")
 	end
 end
 
@@ -2569,6 +2611,17 @@ function widget:Initialize()
 	WG['chat'].setFontsize = function(value)
 		fontsizeMult = value
 		widget:ViewResize()
+	end
+	WG['chat'].addChatLine = function(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID)
+		addChatLine(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID, true)
+	end
+	WG['chat'].addChatProcessor = function(id, func)
+		if type(func) == 'function' then
+			chatProcessors[id] = func
+		end
+	end
+	WG['chat'].removeChatProcessor = function(id)
+		chatProcessors[id] = nil
 	end
 
 	for orgLineID, params in ipairs(orgLines) do

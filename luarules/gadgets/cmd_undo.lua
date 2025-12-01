@@ -13,6 +13,10 @@ function gadget:GetInfo()
 	}
 end
 
+if #Spring.GetTeamList()-1 <= 64 then
+	return
+end
+
 -- usage: /luarules undo #teamid #maxSecondsAgo (#receivingteamid)
 
 -- only works when being spectator and you werent a player before
@@ -21,16 +25,20 @@ end
 local cmdname = 'undo'
 
 local rememberGameframes = 9000 -- 9000 -> 5 minutes
+local mathFloor = math.floor
+local mathRandom = math.random
+local tableInsert = table.insert
+local stringChar = string.char
 
 if gadgetHandler:IsSyncedCode() then
 	local charset = {}  do -- [0-9a-zA-Z]
-		for c = 48, 57  do table.insert(charset, string.char(c)) end
-		for c = 65, 90  do table.insert(charset, string.char(c)) end
-		for c = 97, 122 do table.insert(charset, string.char(c)) end
+		for c = 48, 57  do tableInsert(charset, stringChar(c)) end
+		for c = 65, 90  do tableInsert(charset, stringChar(c)) end
+		for c = 97, 122 do tableInsert(charset, stringChar(c)) end
 	end
 	local function randomString(length)
 		if not length or length <= 0 then return '' end
-		return randomString(length - 1) .. charset[math.random(1, #charset)]
+		return randomString(length - 1) .. charset[mathRandom(1, #charset)]
 	end
 	local validation = randomString(2)
 	_G.validationUndo = validation
@@ -206,7 +214,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 		if safeguardedUnits[unitDefID] and attackerTeam and Spring.AreTeamsAllied(unitTeam, attackerTeam) then
 			if dgunDef[weaponID] or weaponUnitSelfd[weaponID] or not Spring.GetUnitNearestEnemy(unitID, 1000) then
-				local _, playerID, _, victimIsAi = Spring.GetTeamInfo(attackerTeam, false)
+				local _, playerID, _, victimIsAi = Spring.GetTeamInfo(unitTeam, false)
 				local name = Spring.GetPlayerInfo(playerID,false)
 				if victimIsAi and Spring.GetGameRulesParam('ainame_' .. unitTeam) then
 					name = Spring.GetGameRulesParam('ainame_' .. unitTeam)..' (AI)'

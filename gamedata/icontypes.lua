@@ -115,10 +115,6 @@ local icontypes = {
 		bitmap = "icons/radar_t2.png",
 		size = 1.25999999
 	},
-	armasp = {
-		bitmap = "icons/armasp_2.4.png",
-		size = 2.51999998
-	},
 	armassimilator = {
 		bitmap = "icons/bot_t3.png",
 		size = 1.99499989
@@ -335,10 +331,6 @@ local icontypes = {
 		bitmap = "icons/engineer_small.png",
 		size = 0.94499993
 	},
-	armfasp = {
-		bitmap = "icons/armasp_2.4.png",
-		size = 2.51999998
-	},
 	armfast = {
 		bitmap = "icons/bot_t2_raid.png",
 		size = 1.15499997
@@ -378,6 +370,66 @@ local icontypes = {
 	armfhlt = {
 		bitmap = "icons/defence_1_laser.png",
 		size = 1.3
+	},
+	armnavaldefturret = {
+		bitmap = "icons/defence_t15_gauss_impulse.png",
+		size = 1.6
+	},
+	cornavaldefturret = {
+		bitmap = "icons/defence_t15_plasma_aoe.png",
+		size = 1.6
+	},
+	legnavaldefturret = {
+		bitmap = "icons/defence_t15_rocket.png",
+		size = 1.6
+	},
+	legsy = {
+		bitmap = "icons/factory_ship.png",
+		size = 1.52250004
+	},
+	legnavyconship = {
+		bitmap = "icons/ship_worker.png",
+		size = 1.39649999
+	},
+	legnavyaaship = {
+		bitmap = "icons/ship_aa.png",
+		size = 1.14999998
+	},
+	legnavyscout = {
+		bitmap = "icons/ship_raid.png",
+		size = 1.05
+	},
+	legnavyfrigate = {
+		bitmap = "icons/ship_torpedo.png",
+		size = 1.25999999
+	},
+	legnavydestro = {
+		bitmap = "icons/ship_laser_drones.png",
+		size = 1.51199996
+	},
+	legnavysub = {
+		bitmap = "icons/sub.png",
+		size = 1.0
+	},
+	legnavyartyship = {
+		bitmap = "icons/ship_t15_artillery_mediumtraj.png",
+		size = 1.6
+	},
+	legnavyrezsub = {
+		bitmap = "icons/sub_rez.png",
+		size = 1.64299989
+	},
+	armanavaldefturret = {
+		bitmap = "icons/armanni.png",
+		size = 2.0
+	},
+	coranavaldefturret = {
+		bitmap = "icons/defence_t2_aoe_plasma_laser.png",
+		size = 2.0
+	},
+	leganavaldefturret = {
+		bitmap = "icons/defence_t2_shotgun_mg.png",
+		size = 2.0
 	},
 	armfhp = {
 		bitmap = "icons/factory_hover.png",
@@ -647,6 +699,7 @@ local icontypes = {
 		bitmap = "icons/metalstorage.png",
 		size = 1.10249984
 	},
+
 	armnanotc = {
 		bitmap = "icons/nanot1.png",
 		size = 0.96599996
@@ -955,10 +1008,6 @@ local icontypes = {
 		bitmap = "icons/armthor.png",
 		size = 2.4000001
 	},
-	armthovr = {
-		bitmap = "icons/hovertrans.png",
-		size = 1.78499997
-	},
 	armthund = {
 		bitmap = "icons/air_bomber.png",
 		size = 1.41750002
@@ -978,10 +1027,6 @@ local icontypes = {
 	armtorps = {
 		bitmap = "icons/ship.png",
 		size = 1.25999999
-	},
-	armtship = {
-		bitmap = "icons/shiptrans.png",
-		size = 2.0999999
 	},
 	armtrident = {
 		bitmap = "icons/ship_t2_dronecarry.png",
@@ -1235,10 +1280,6 @@ local icontypes = {
 		bitmap = "icons/radar_t2.png",
 		size = 1.25999999
 	},
-	corasp = {
-		bitmap = "icons/corasp_2.4.png",
-		size = 2.51999998
-	},
 	corassistdrone = {
 		bitmap = "icons/air_assistdrone.png",
 		size = 0.85000002
@@ -1447,10 +1488,6 @@ local icontypes = {
 		bitmap = "icons/eye.png",
 		size = 0.89249998
 	},
-	corfasp = {
-		bitmap = "icons/corasp_2.4.png",
-		size = 2.51999998
-	},
 	corfast = {
 		bitmap = "icons/corfast_1.3.png",
 		size = 1.16999996
@@ -1630,10 +1667,6 @@ local icontypes = {
 	corint = {
 		bitmap = "icons/corint.png",
 		size = 2.41499972
-	},
-	corintr = {
-		bitmap = "icons/corintr.png",
-		size = 2.0999999
 	},
 	corjamt = {
 		bitmap = "icons/jammer.png",
@@ -2091,10 +2124,6 @@ local icontypes = {
 		bitmap = "icons/corthermite.png",
 		size = 2.42499924
 	},
-	corthovr = {
-		bitmap = "icons/hovertrans.png",
-		size = 1.78499997
-	},
 	corthud = {
 		bitmap = "icons/bot_plasma_t1.png",
 		size = 1.10249984
@@ -2126,10 +2155,6 @@ local icontypes = {
 	cortron = {
 		bitmap = "icons/tacnuke.png",
 		size = 1.88999987
-	},
-	cortship = {
-		bitmap = "icons/shiptrans.png",
-		size = 2.0999999
 	},
 	coruwadves = {
 		bitmap = "icons/energystorage_t2.png",
@@ -2292,6 +2317,10 @@ local icontypes = {
 		size = 1.93749986
 	},
 	legeheatraymech = {
+		bitmap = "icons/t3_solinvictus.png",
+		size = 3.46499968
+	},
+	legeheatraymech_old = {
 		bitmap = "icons/t3_solinvictus.png",
 		size = 3.46499968
 	},
@@ -3668,6 +3697,130 @@ local icontypes = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
+
+	-- T2 split
+
+	armhaca = {
+		bitmap = "icons/shipengineer.png",
+		size = 2.31
+	},
+
+	armhack = {
+		bitmap = "icons/bot_t2_worker.png",
+		size = 2.31
+	},
+
+	armhacs = {
+		bitmap = "icons/vehicle_t2_worker.png",
+		size = 2.31
+	},
+
+	armhacv = {
+		bitmap = "icons/vehicle_t2_worker.png",
+		size = 2.31
+	},
+
+	corhaca = {
+		bitmap = "icons/air_t2_worker.png",
+		size = 2.31
+	},
+
+	corhack = {
+		bitmap = "icons/bot_t2_worker.png",
+		size = 2.31
+	},
+
+	corhacs = {
+		bitmap = "icons/shipengineer.png",
+		size = 2.31
+	},
+
+	corhacv = {
+		bitmap = "icons/vehicle_t2_worker.png",
+		size = 2.31
+	},
+
+	leghaca = {
+		bitmap = "icons/air_t2_worker.png",
+		size = 2.31
+	},
+
+	leghack = {
+		bitmap = "icons/bot_t2_worker.png",
+		size = 2.31
+	},
+
+	leghacv = {
+		bitmap = "icons/vehicle_t2_worker.png",
+		size = 2.31
+	},
+
+
+	armhaap = {
+		bitmap = "icons/factory_air_t2.png",
+		size = 2.6
+	},
+	armhaapuw = {
+		bitmap = "icons/factory_air_t2.png",
+		size = 2.6
+	},
+
+	armhalab = {
+		bitmap = "icons/factory_bot_t2.png",
+		size = 2.6
+	},
+
+	armhavp = {
+		bitmap = "icons/factory_vehicle_t2.png",
+		size = 2.6
+	},
+
+	armhasy = {
+		bitmap = "icons/factory_ship_t2.png",
+		size = 2.6
+	},
+
+	
+	corhaap = {
+		bitmap = "icons/factory_air_t2.png",
+		size = 2.6
+	},
+
+	corhaapuw = {
+		bitmap = "icons/factory_air_t2.png",
+		size = 2.6
+	},
+	
+	corhalab = {
+		bitmap = "icons/factory_bot_t2.png",
+		size = 2.6
+	},
+
+	corhavp = {
+		bitmap = "icons/factory_vehicle_t2.png",
+		size = 2.6
+	},
+
+	corhasy = {
+		bitmap = "icons/factory_ship_t2.png",
+		size = 2.6
+	},
+
+	leghaap = {
+		bitmap = "icons/factory_air_t2.png",
+		size = 2.6
+	},
+
+	leghalab = {
+		bitmap = "icons/factory_bot_t2.png",
+		size = 2.6
+	},
+
+	leghavp = {
+		bitmap = "icons/factory_vehicle_t2.png",
+		size = 2.6
+	},
+	
 
 	blank = {
 		bitmap = "icons/blank.png",

@@ -16,6 +16,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local spSetUnitWeaponState = Spring.SetUnitWeaponState
+local tableCopy = table.copy
+
 
 local convertedUnitsNames = {
 	-- value is reaimtime in frames, engine default is 15
@@ -60,6 +63,7 @@ local convertedUnitsNames = {
 	['armcrus'] = 5,
 	['corsala'] = 6,
 	['corsiegebreaker'] = 5,
+	['legerailtank'] = 9,
 
 	-- the following units get a faster reaimtime to counteract their turret acceleration
 	['armthor'] = 4,
@@ -130,11 +134,15 @@ local convertedUnitsNames = {
 	['legaskirmtank'] = 5,
 	['legaheattank'] = 3,
 	['legeheatraymech'] = 1,
+	['legtriariusdrone'] = 1,
+	['legnavydestro'] = 4,
+	['legeheatraymech_old'] = 1,
 	['legbunk'] = 3,
 	['legrwall'] = 4,
 	['legjav'] = 1,
 	['legeshotgunmech'] = 3,
 	['legehovertank'] = 4,
+	['armanavaldefturret'] = 4,
 }
 --add entries for scavboss
 local scavengerBossV4Table = {'scavengerbossv4_veryeasy', 'scavengerbossv4_easy', 'scavengerbossv4_normal', 'scavengerbossv4_hard', 'scavengerbossv4_veryhard', 'scavengerbossv4_epic',
@@ -180,14 +188,14 @@ local spamThreshold = 100
 local maxReAimTime = 15
 
 -- add for scavengers copies
-local convertedUnitsCopy = table.copy(convertedUnits)
+local convertedUnitsCopy = tableCopy(convertedUnits)
 for id, v in pairs(convertedUnitsCopy) do
 	if UnitDefNames[UnitDefs[id].name..'_scav'] then
 		convertedUnits[UnitDefNames[UnitDefs[id].name..'_scav'].id] = v
 	end
 end
 
-local spamUnitsTeamsCopy = table.copy(spamUnitsTeams)
+local spamUnitsTeamsCopy = tableCopy(spamUnitsTeams)
 for id,v in pairs(spamUnitsTeamsCopy) do
 	if UnitDefNames[UnitDefs[id].name..'_scav'] then
 		spamUnitsTeams[UnitDefNames[UnitDefs[id].name..'_scav'].id] = {}
@@ -239,7 +247,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
 				-- NOTE: this will prevent unit from firing if it does not IMMEDIATELY return from AimWeapon (no sleeps, not wait for turns!)
 				-- So you have to manually check in script if it is at the desired heading
 				-- https://springrts.com/phpbb/viewtopic.php?t=36654
-				Spring.SetUnitWeaponState(unitID, id, "reaimTime", currentReaimTime)
+				spSetUnitWeaponState(unitID, id, "reaimTime", currentReaimTime)
 			end
 		end
 	end
