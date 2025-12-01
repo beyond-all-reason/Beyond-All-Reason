@@ -15,13 +15,13 @@ varying vec4 vColor;
 const float NOISE_SCALE = 0.005;
 
 // 2. SPEED: [UPDATED] Very slow drift now (Fire from above doesn't "run" away)
-const vec2 SCROLL_SPEED = vec2(0.2, -0.2);
+const vec2 SCROLL_SPEED = vec2(0.1, -0.1);
 
 // 3. CONTRAST: 1.0 = Blurry/Flat. 0.0 = Sharp edges.
-const float SHARPNESS = 0.5;
+const float SHARPNESS = 0.2;
 
 // 4. VISIBILITY:
-const float OPACITY_MIN = 0.5;
+const float OPACITY_MIN = 0.7;
 const float OPACITY_MAX = 1;
 
 // 5. DETAIL: 0.0 to 1.0
