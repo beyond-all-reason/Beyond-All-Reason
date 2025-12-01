@@ -174,8 +174,8 @@ local defaultAimData = {
 }
 
 local State = {
-	weaponInfos = {}, ---@type table<number, WeaponInfo>
-	manualWeaponInfos = {}, ---@type table<number, WeaponInfo>
+	weaponInfos = {}, ---@type table<number, WeaponInfos>
+	manualWeaponInfos = {}, ---@type table<number, WeaponInfos>
 
 	-- Selection State
 	hasSelection = false,
@@ -582,8 +582,10 @@ end
 --------------------------------------------------------------------------------
 local function FindBestWeapon(unitDef)
 	local maxSpread = Config.General.minSpread
+	-- best = highest spread or lightning weapon
 	local bestManual = { maxSpread = maxSpread }
 	local best = { maxSpread = maxSpread }
+	local bestRange = { range = 0 }
 
 	for weaponNum, weapon in ipairs(unitDef.weapons) do
 		if weapon.weaponDef then
@@ -593,24 +595,38 @@ local function FindBestWeapon(unitDef)
 					and not (weaponDef.type == "Shield")
 					and not ToBool(weaponDef.interceptor)
 					and not string.find(weaponDef.name, "flak", nil, true)
-				local weaponTable = best
-				if weaponDef.manualFire and unitDef.canManualFire then
-					weaponTable = bestManual
-				end
 
-				local currentSpread = max(weaponDef.damageAreaOfEffect, weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle))
+				if isValid then
+					if weaponDef.manualFire and unitDef.canManualFire then
+						local currentSpread = max(weaponDef.damageAreaOfEffect, weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle))
+						if currentSpread > bestManual.maxSpread then
+							bestManual.maxSpread = currentSpread
+							bestManual.weaponDef = weaponDef
+							bestManual.weaponNum = weaponNum
+						end
+					else
+						-- Primary (highest spread)
+						local currentSpread = max(weaponDef.damageAreaOfEffect, weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle))
+						if (weaponDef.damageAreaOfEffect > best.maxSpread
+							or weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle) > best.maxSpread
+							or weaponDef.type == "LightningCannon") then
+							best.maxSpread = currentSpread
+							best.weaponDef = weaponDef
+							best.weaponNum = weaponNum
+						end
 
-				if isValid and (weaponDef.damageAreaOfEffect > weaponTable.maxSpread
-					or weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle) > weaponTable.maxSpread
-					or weaponDef.type == "LightningCannon") then
-					weaponTable.maxSpread = currentSpread
-					weaponTable.weaponDef = weaponDef
-					weaponTable.weaponNum = weaponNum
+						-- Secondary (highest range)
+						if weaponDef.range > bestRange.range then
+							bestRange.range = weaponDef.range
+							bestRange.weaponDef = weaponDef
+							bestRange.weaponNum = weaponNum
+						end
+					end
 				end
 			end
 		end
 	end
-	return best, bestManual
+	return best, bestManual, bestRange
 end
 
 ---@return WeaponInfo
@@ -720,14 +736,24 @@ local function SetupUnitDef(unitDefID, unitDef)
 		return
 	end
 
-	local best, bestManual = FindBestWeapon(unitDef)
+	local best, bestManual, longestRange = FindBestWeapon(unitDef)
 	if best.weaponDef then
-		local info = BuildWeaponInfo(unitDef, best.weaponDef, best.weaponNum)
-		State.weaponInfos[unitDefID] = info
+		local infoPrimary = BuildWeaponInfo(unitDef, best.weaponDef, best.weaponNum)
+		local infoSecondary
+
+		if longestRange.weaponDef and longestRange.weaponNum ~= best.weaponNum and longestRange.weaponDef.range > best.weaponDef.range then
+			infoSecondary = BuildWeaponInfo(unitDef, longestRange.weaponDef, longestRange.weaponNum)
+		end
+
+		---@class WeaponInfos
+		State.weaponInfos[unitDefID] = {
+			primary = infoPrimary,
+			secondary = infoSecondary
+		}
 	end
 	if bestManual.weaponDef then
 		local info = BuildWeaponInfo(unitDef, bestManual.weaponDef, bestManual.weaponNum)
-		State.manualWeaponInfos[unitDefID] = info
+		State.manualWeaponInfos[unitDefID] = { primary = info }
 	end
 
 end
@@ -782,7 +808,7 @@ local function UpdateSelection()
 	for unitDefID, unitIDs in pairs(sel) do
 		if State.manualWeaponInfos[unitDefID] then
 			State.manualFireUnitDefID = unitDefID
-			State.manualFireUnitID = unitIDs[1]
+			State.manualFireUnitID = GetRepUnitID(unitIDs, State.manualWeaponInfos[unitDefID].primary)
 			State.hasSelection = true
 		end
 
@@ -791,14 +817,14 @@ local function UpdateSelection()
 			if currCost > maxCost then
 				maxCost = currCost
 				State.attackUnitDefID = unitDefID
-				State.attackUnitID = GetRepUnitID(unitIDs, State.weaponInfos[unitDefID])
+				State.attackUnitID = GetRepUnitID(unitIDs, State.weaponInfos[unitDefID].primary)
 				State.hasSelection = true
 			end
 		end
 	end
 end
 
----@return WeaponInfo, number
+---@return WeaponInfos, number
 local function GetActiveUnitInfo()
 	if not State.hasSelection then
 		return nil, nil
@@ -1742,8 +1768,8 @@ function widget:Shutdown()
 end
 
 function widget:DrawWorldPreUnit()
-	local weaponInfo, aimingUnitID = GetActiveUnitInfo()
-	if not weaponInfo then
+	local weaponInfos, aimingUnitID = GetActiveUnitInfo()
+	if not weaponInfos then
 		ResetPulseAnimation()
 		return
 	end
@@ -1754,14 +1780,20 @@ function widget:DrawWorldPreUnit()
 		return
 	end
 
-	-- Do not draw if unit can't move and targeting outside the range
-	if not weaponInfo.mobile and not spGetUnitWeaponTestRange(aimingUnitID, weaponInfo.weaponNum, tx, ty, tz) then
+	local ux, uy, uz = spGetUnitPosition(aimingUnitID)
+	if (not ux) then
 		ResetPulseAnimation()
 		return
 	end
 
-	local ux, uy, uz = spGetUnitPosition(aimingUnitID)
-	if (not ux) then
+	local weaponInfo = weaponInfos.primary
+	local dist = distance3d(ux, uy, uz, tx, ty, tz)
+	if weaponInfos.secondary and dist > weaponInfo.range then
+		weaponInfo = weaponInfos.secondary
+	end
+
+	-- Do not draw if unit can't move and targeting outside the range
+	if not weaponInfo.mobile and not spGetUnitWeaponTestRange(aimingUnitID, weaponInfo.weaponNum, tx, ty, tz) then
 		ResetPulseAnimation()
 		return
 	end
@@ -1838,6 +1870,7 @@ function widget:Update(dt)
 		UpdateSelection()
 	end
 
-	local weaponInfo, aimingUnitID = GetActiveUnitInfo()
+	local weaponInfos, aimingUnitID = GetActiveUnitInfo()
+	local weaponInfo = weaponInfos and weaponInfos.primary or nil
 	StockpileSystem:Update(dt, aimingUnitID, weaponInfo and weaponInfo.hasStockpile)
 end
