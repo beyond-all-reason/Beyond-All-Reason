@@ -33,7 +33,6 @@ local function getQuickStartConfigKey()
 	end
 	return quickStartAmount
 end
-
 local overridesEnabled = isModOptionEnabled(modOptions.enable_quickstart_overrides)
 local overrideQuickStartRange = overridesEnabled and tonumber(modOptions.override_quick_start_range) or nil
 local overrideQuickStartBudget = overridesEnabled and tonumber(modOptions.override_quick_start_budget) or nil
