@@ -353,14 +353,6 @@ local function processLivingTeams()
 	end
 end
 
-local function setAllyGridToGaia(allyID)
-	for gridID, data in pairs(captureGrid) do
-		if data.allyOwnerID == allyID then
-			data.allyOwnerID = gaiaAllyTeamID
-			data.progress = STARTING_PROGRESS
-		end
-	end
-end
 
 local function createGridSquareData(x, z)
 	local originX = x * GRID_SIZE
@@ -617,6 +609,12 @@ function gadget:GameFrame(frame)
 	if frameModulo == 0 then
 		processLivingTeams()
 		for gridID, data in pairs(captureGrid) do
+			if data.allyOwnerID ~= gaiaAllyTeamID and not allyTeamsWatch[data.allyOwnerID] then
+				data.allyOwnerID = gaiaAllyTeamID
+				data.progress = STARTING_PROGRESS
+			end
+		end
+		for gridID, data in pairs(captureGrid) do
 			processGridSquareCapture(gridID)
 		end
 	elseif frameModulo == 1 then
@@ -734,12 +732,4 @@ end
 
 function gadget:UnitLeftAir(unitID, unitDefID, unitTeam)
 	flyingUnits[unitID] = nil
-end
-
-function gadget:TeamDied(teamID)
-	local allyID = select(6, spGetTeamInfo(teamID))
-	setAllyGridToGaia(allyID)
-	for _, teamIDInAlly in pairs(Spring.GetTeamList(allyID) or {}) do
-		Spring.SetTeamRulesParam(teamIDInAlly, "territorialDominationProjectedPoints", 0, {public = true})
-	end
 end
