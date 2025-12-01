@@ -101,6 +101,7 @@ local Config = {
 		emp = { 0.65, 0.65, 1, 1 },
 		scatter = { 1, 1, 0, 1 },
 		noStockpile = { 0.88, 0.88, 0.88, 1 },
+		lightning = { 0.5, 0.5, 1, 1 },
 	},
 	Render = {
 		scatterMinAlpha = 0.5,
@@ -581,7 +582,8 @@ end
 --------------------------------------------------------------------------------
 local function FindBestWeapon(unitDef)
 	local maxSpread = Config.General.minSpread
-	local bestDef, bestNum
+	local bestManual = { maxSpread = maxSpread }
+	local best = { maxSpread = maxSpread }
 
 	for weaponNum, weapon in ipairs(unitDef.weapons) do
 		if weapon.weaponDef then
@@ -591,18 +593,24 @@ local function FindBestWeapon(unitDef)
 					and not (weaponDef.type == "Shield")
 					and not ToBool(weaponDef.interceptor)
 					and not string.find(weaponDef.name, "flak", nil, true)
+				local weaponTable = best
+				if weaponDef.manualFire and unitDef.canManualFire then
+					weaponTable = bestManual
+				end
 
 				local currentSpread = max(weaponDef.damageAreaOfEffect, weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle))
 
-				if isValid and (weaponDef.damageAreaOfEffect > maxSpread or weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle) > maxSpread) then
-					maxSpread = currentSpread
-					bestDef = weaponDef
-					bestNum = weaponNum
+				if isValid and (weaponDef.damageAreaOfEffect > weaponTable.maxSpread
+					or weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle) > weaponTable.maxSpread
+					or weaponDef.type == "LightningCannon") then
+					weaponTable.maxSpread = currentSpread
+					weaponTable.weaponDef = weaponDef
+					weaponTable.weaponNum = weaponNum
 				end
 			end
 		end
 	end
-	return bestDef, bestNum
+	return best, bestManual
 end
 
 ---@return WeaponInfo
@@ -693,6 +701,11 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 	elseif weaponType == "Flame" then
 		info.type = "noexplode"
 		info.range = weaponDef.range
+	elseif weaponType == "LightningCannon" then
+		info.type = "lightning"
+		info.range = weaponDef.range
+		info.aoe = tonumber(weaponDef.customParams.spark_range)
+		info.color = Config.Colors.lightning
 	else
 		info.type = "direct"
 		info.scatter = scatter
@@ -707,18 +720,16 @@ local function SetupUnitDef(unitDefID, unitDef)
 		return
 	end
 
-	local maxWeaponDef, maxWeaponNum = FindBestWeapon(unitDef)
-	if not maxWeaponDef then
-		return
-	end
-
-	local info = BuildWeaponInfo(unitDef, maxWeaponDef, maxWeaponNum)
-
-	if maxWeaponDef.manualFire and unitDef.canManualFire then
-		State.manualWeaponInfos[unitDefID] = info
-	else
+	local best, bestManual = FindBestWeapon(unitDef)
+	if best.weaponDef then
+		local info = BuildWeaponInfo(unitDef, best.weaponDef, best.weaponNum)
 		State.weaponInfos[unitDefID] = info
 	end
+	if bestManual.weaponDef then
+		local info = BuildWeaponInfo(unitDef, bestManual.weaponDef, bestManual.weaponNum)
+		State.manualWeaponInfos[unitDefID] = info
+	end
+
 end
 
 local function SetupDisplayLists()
@@ -875,7 +886,7 @@ end
 
 ---@param data IndicatorDrawData
 local function DrawDamageRings(data, alphaMult, phase, color)
-	local tx, ty, tz = target.x, target.y, target.z
+	local tx, ty, tz = data.target.x, data.target.y, data.target.z
 	local aoe, edgeEffectiveness = data.weaponInfo.aoe, data.weaponInfo.ee
 	local damageLevels = Config.Render.ringDamageLevels
 	local triggerTimes = State.Calculated.ringWaveTriggerTimes
@@ -1712,7 +1723,7 @@ local WeaponTypeHandlers = {
 	dropped = DrawDropped,
 	wobble = DrawWobble,
 	dgun = DrawDGun,
-	juno = DrawJuno
+	juno = DrawJuno,
 }
 
 --------------------------------------------------------------------------------
