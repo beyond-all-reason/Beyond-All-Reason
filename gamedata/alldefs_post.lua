@@ -1219,6 +1219,13 @@ function UnitDef_Post(name, uDef)
 		uDef = proposed_unit_reworks.proposed_unit_reworksTweaks(name, uDef)
 	end
 
+	-- Temporary fix for multi-unit transport capacity overfill
+	if modOptions.fixtransportermultiload == true then
+		if basename == "armdfly" or basename == "corseah" then
+			uDef.transportcapacity = 8
+		end
+	end
+
 	-- Naval Balance Adjustments, if anything breaks here blame ZephyrSkies
 	if modOptions.naval_balance_tweaks == true then
 		local buildOptionReplacements = {

@@ -10,8 +10,8 @@
 	FixedRNGSeed = 1;
   [MODOPTIONS]
   {
-    debugcommands=1:cheat|2:godmode|3:globallos|30:runtestsheadless;
-		deathmode=neverend;
+    debugcommands=1:cheat|2:godmode|3:devlua|4:globallos|30:runtestsheadless \"unit_transport.*\";
+        deathmode=neverend;
   }
   [ALLYTEAM0]
   {
