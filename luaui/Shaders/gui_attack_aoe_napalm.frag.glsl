@@ -12,20 +12,20 @@ varying vec4 vColor;
 // =======================================================================
 
 // 1. SIZE: Lower = Bigger clouds
-const float NOISE_SCALE = 0.05;
+const float NOISE_SCALE = 0.005;
 
 // 2. SPEED: [UPDATED] Very slow drift now (Fire from above doesn't "run" away)
-const vec2 SCROLL_SPEED = vec2(0.9, -0.9);
+const vec2 SCROLL_SPEED = vec2(0.2, -0.2);
 
 // 3. CONTRAST: 1.0 = Blurry/Flat. 0.0 = Sharp edges.
-const float SHARPNESS = 1;
+const float SHARPNESS = 0.5;
 
 // 4. VISIBILITY:
 const float OPACITY_MIN = 0.5;
-const float OPACITY_MAX = 0.8;
+const float OPACITY_MAX = 1;
 
 // 5. DETAIL: 0.0 to 1.0
-const float DETAIL_STRENGTH = 0.2;
+const float DETAIL_STRENGTH = 0.4;
 
 // 6. ACCENT COLOR (The 2nd color - "hot" parts).
 const vec3 ACCENT_COLOR = vec3(1.0, 0.91, 0.29);
@@ -34,11 +34,11 @@ const vec3 ACCENT_COLOR = vec3(1.0, 0.91, 0.29);
 const float COLOR_MIX_AMOUNT = 0.1;
 
 // 8. WIND WOBBLE (Randomness)
-const float WOBBLE_STRENGTH = 0;
-const float WOBBLE_FREQ = 0;
+const float WOBBLE_STRENGTH = 0.1;
+const float WOBBLE_FREQ = 0.5;
 
 // How fast does it grow/shrink?
-const float PULSE_SPEED = 0;
+const float PULSE_SPEED = 1;
 
 // How much does the size change? (0.0 = None, 0.5 = Massive pulsing)
 const float PULSE_AMPLITUDE = 0.001;
@@ -83,8 +83,8 @@ void main() {
     vec2 wander = vec2(sin(time * WOBBLE_FREQ), cos(time * WOBBLE_FREQ * 2));
 
     // Combine them
-    vec2 flow =baseFlow + ( wander * WOBBLE_STRENGTH);
-//    vec2 flow = time*vec2(1,1);
+    vec2 flow =baseFlow + (wander * WOBBLE_STRENGTH);
+    //    vec2 flow = time*vec2(1,1);
 
     // ----------------------
 
