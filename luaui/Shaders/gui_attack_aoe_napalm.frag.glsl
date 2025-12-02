@@ -21,8 +21,8 @@ const vec2 SCROLL_SPEED = vec2(0.1, -0.1);
 const float SHARPNESS = 0.2;
 
 // 4. VISIBILITY:
-const float OPACITY_MIN = 0.7;
-const float OPACITY_MAX = 1;
+const float OPACITY_MIN = 0.35;
+const float OPACITY_MAX = 0.5;
 
 // 5. DETAIL: 0.0 to 1.0
 const float DETAIL_STRENGTH = 0.4;
