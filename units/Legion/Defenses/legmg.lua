@@ -1,7 +1,7 @@
 return {
 	legmg = {
 		maxacc = 0,
-		airsightdistance = 650,
+		airsightdistance = 1500,
 		maxdec = 0,
 		buildangle = 32768,
 		energycost = 5500,
@@ -17,17 +17,17 @@ return {
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
+		idleautoheal = 45,
+		idletime = 100,
 		mass = 7500,
-		health = 2350,
-		maxslope = 10,
+		health = 22350,
+		maxslope = 28,
 		maxwaterdepth = 0,
 		objectname = "Units/LEGMG.s3o",
 		script = "Units/LEGMG.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
-		sightdistance = 525,
+		sightdistance = 1225,
 		yardmap = "ooooooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
@@ -106,8 +106,8 @@ return {
 		},
 		weapondefs = {
 			armmg_weapon = {
-				accuracy = 7,
-				areaofeffect = 16,
+				accuracy = 5,
+				areaofeffect = 316,
 				avoidfeature = false,
 				burst = 6,
 				burstrate = 0.066,
@@ -118,15 +118,16 @@ return {
 				duration = 0.05,
 				edgeeffectiveness = 0.85,
 				explosiongenerator = "custom:plasmahit-sparkonly",
-				fallOffRate = 0.2,
+				fallOffRate = 0.02,
 				firestarter = 0,
-				impulsefactor = 1.5,
-				intensity = 0.8,
+				impulsefactor = 2.52,
+				intensity = 0.6, --0.8
 				name = "Heavy Rapid-fire Machine Gun",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
+				projectiles = 3 --projectiles = 1
 				proximitypriority = 1,
-				range = 575,
+				range = 1475,
 				reloadtime = 0.4,
 				rgbcolor = "1 0.95 0.4",
 				soundhit = "bimpact3",
@@ -137,20 +138,20 @@ return {
 				sprayangle = 968,
 				texture1 = "shot",
 				texture2 = "empty",
-				thickness = 3.0,
+				thickness = 2.35, --3
 				tolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 958,
 				damage = {
-					default = 18,
-					vtol = 18,
+					default = 58, --18
+					vtol = 58, --18
 				},
 			},
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				--badtargetcategory = "VTOL",
 				def = "armmg_WEAPON",
 				onlytargetcategory = "NOTSUB",
 				burstControlWhenOutOfArc = 2,
