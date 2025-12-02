@@ -123,7 +123,7 @@ local Spring_GetTeamStatsHistory = Spring.GetTeamStatsHistory
 
 local ColorString = Spring.Utilities.Color.ToString
 local ColorArray = Spring.Utilities.Color.ToIntArray
-local ColorIsDark = Spring.Utilities.Color.ColorIsDark
+local LegacyColorIsDark = Spring.Utilities.Color.LegacyColorIsDark
 
 local gl_Texture = gl.Texture
 local gl_Color = gl.Color
@@ -1224,7 +1224,7 @@ function CreatePlayer(playerID)
         red = tred,
         green = tgreen,
         blue = tblue,
-        dark = ColorIsDark(tred, tgreen, tblue),
+        dark = LegacyColorIsDark(tred, tgreen, tblue),
         side = tside,
         pingLvl = tpingLvl,
         cpuLvl = tcpuLvl,
@@ -1320,7 +1320,7 @@ function CreatePlayerFromTeam(teamID)
         red = tred,
         green = tgreen,
         blue = tblue,
-        dark = ColorIsDark(tred, tgreen, tblue),
+        dark = LegacyColorIsDark(tred, tgreen, tblue),
         side = tside,
         totake = ttotake,
         dead = tdead,
@@ -3740,7 +3740,7 @@ function CheckPlayersChange()
 				else
 					player[i].red, player[i].green, player[i].blue = Spring_GetTeamColor(teamID)
 				end
-                player[i].dark = ColorIsDark(player[i].red, player[i].green, player[i].blue)
+                player[i].dark = LegacyColorIsDark(player[i].red, player[i].green, player[i].blue)
                 player[i].skill = GetSkill(i)
                 sorting = true
             end
