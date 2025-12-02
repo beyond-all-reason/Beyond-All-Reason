@@ -63,55 +63,31 @@ float noise(vec2 p) {
 }
 
 void main() {
-    // 1. Setup Base Coordinates
+    // 1. Setup Coordinates & Pulse
     vec2 uv = (worldPos.xz - center) * NOISE_SCALE;
 
-    // Calculate a "breathing" factor based on time
-    // oscillates between 0.9 and 1.1 (based on Amplitude)
+    // Pulse effect (zoom in/out slightly)
     float pulse = 1.0 + sin(time * PULSE_SPEED) * PULSE_AMPLITUDE;
-
-    // Apply pulse to zoom in/out of the noise texture
     uv *= pulse;
-    // -------------------------
 
-    // --- MOVEMENT LOGIC ---
-
-    // Base flow (Slow drift)
+    // 2. Movement Logic
     vec2 baseFlow = time * SCROLL_SPEED;
+    vec2 wander   = vec2(sin(time * WOBBLE_FREQ), cos(time * WOBBLE_FREQ * 2.0));
+    vec2 flow     = baseFlow + (wander * WOBBLE_STRENGTH);
 
-    // Random Wander (Snake/Wobble)
-    vec2 wander = vec2(sin(time * WOBBLE_FREQ), cos(time * WOBBLE_FREQ * 2));
-
-    // Combine them
-    vec2 flow =baseFlow + (wander * WOBBLE_STRENGTH);
-    //    vec2 flow = time*vec2(1,1);
-
-    // ----------------------
-
-    // 2. Generate 3 Layers of Noise (Fractal Brownian Motion)
-
-    // Layer 1: Base Shape (Big, Slow)
+    // 3. Noise Generation
     float n1 = noise(uv - flow);
-
-    // Layer 2: Medium Detail (2x smaller, 1.5x faster)
     float n2 = noise(uv * 2.0 + flow * 1.5);
-
-    // Layer 3: Fine Grit/Shimmer (4x smaller, 3.0x faster)
     float n3 = noise(uv * 4.0 + flow * 3.0);
 
-    // 3. Mix Layers
     float weightedNoise = (n1 * 0.5) + (n2 * 0.3) + (n3 * DETAIL_STRENGTH);
+    weightedNoise /= (0.8 + DETAIL_STRENGTH);
 
-    // Normalize
-    weightedNoise = weightedNoise / (0.8 + DETAIL_STRENGTH);
-
-    // 4. Apply Sharpness
+    // 4. Sharpness & Alpha
     float density = smoothstep(0.5 - (0.5 * SHARPNESS), 0.5 + (0.5 * SHARPNESS), weightedNoise);
-
-    // 5. Final Output
     float finalAlpha = mix(OPACITY_MIN, OPACITY_MAX, density);
 
-    // Mix Colors
+    // 5. Final Color
     vec3 mixedColor = mix(vColor.rgb, ACCENT_COLOR, density * COLOR_MIX_AMOUNT);
 
     gl_FragColor = vec4(mixedColor, vColor.a * finalAlpha);
