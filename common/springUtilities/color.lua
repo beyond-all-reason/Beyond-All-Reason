@@ -45,18 +45,18 @@ end
 local function RgbToY(r, g, b)
 	-- Convert Gamma corrected RGB (0-1) to the Y' relative luminance of XYZ
 
-    -- Normalize and linearize RGB values
+    -- Linearize the RGB values
     local linearR = RgbToLinear(r)
     local linearG = RgbToLinear(g)
     local linearB = RgbToLinear(b)
 
-	-- Y part of the XYZ
+	-- Compute the Y' component of XYZ
     return linearR * 0.2126729 + linearG * 0.7151522 + linearB * 0.0721750
 end
 
 local function ColorIsDark(red, green, blue)
     -- Determines if the (player) color is dark (i.e. if a white outline is needed)
-	-- Input color is the gamma corrected RGB (0-1) color
+	-- Input color is a gamma corrected RGB (0-1) color
 
 	-- Luminance of less than 0.2 was found to get good results on the BAR color palette
 	return RgbToY(red, green, blue) < 0.2
