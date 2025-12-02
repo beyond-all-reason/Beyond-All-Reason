@@ -214,12 +214,9 @@ local pingLevelData = {
 -- Time Variables
 --------------------------------------------------------------------------------
 
-local nameState = {
-	blink = true,
-	lastTime = 0,
-	now = 0,
-	aiPlaceMeText = "Place me!"
-}
+local blink = true
+local lastTime = 0
+local now = 0
 
 local timeCounter = 9
 local timeFastCounter = 9
@@ -256,10 +253,6 @@ local lastFpsData = {}
 local lastApmData = {}
 local lastSystemData = {}
 local lastGpuMemData = {}
-lastActivity.aiPlacementMode = nil
-lastActivity.aiBlinkTimer = 0
-lastActivity.aiBlinkInterval = 1.5
-lastActivity.aiBlinkState = true
 
 --------------------------------------------------------------------------------
 -- Players counts and info
@@ -889,14 +882,8 @@ local function speclistCmd(_, _, params)
 	CreateLists()
 end
 
-function widget:LanguageChanged()
-    nameState.aiPlaceMeText = Spring.I18N('ui.playersList.aiPlaceMe')
-end
-
 function widget:Initialize()
 	widget:ViewResize()
-
-	nameState.aiPlaceMeText = Spring.I18N('ui.playersList.aiPlaceMe')
 
 	widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
 	widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
@@ -1944,15 +1931,15 @@ end
 
 function CheckTime()
     local period = 0.5
-    nameState.now = os.clock()
-    if nameState.now > (nameState.lastTime + period) then
-        nameState.lastTime = nameState.now
+    now = os.clock()
+    if now > (lastTime + period) then
+        lastTime = now
         CheckPlayersChange()
-        nameState.blink = not nameState.blink
+        blink = not blink
         for playerID = 0, specOffset-1 do
             if player[playerID] ~= nil then
                 if player[playerID].pointTime ~= nil then
-                    if player[playerID].pointTime <= nameState.now then
+                    if player[playerID].pointTime <= now then
                         player[playerID].pointX = nil
                         player[playerID].pointY = nil
                         player[playerID].pointZ = nil
@@ -1960,12 +1947,12 @@ function CheckTime()
                     end
                 end
                 if player[playerID].pencilTime ~= nil then
-                    if player[playerID].pencilTime <= nameState.now then
+                    if player[playerID].pencilTime <= now then
                         player[playerID].pencilTime = nil
                     end
                 end
                 if player[playerID].eraserTime ~= nil then
-                    if player[playerID].eraserTime <= nameState.now then
+                    if player[playerID].eraserTime <= now then
                         player[playerID].eraserTime = nil
                     end
                 end
@@ -2261,7 +2248,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 
     -- keyboard/mouse activity
     if lastActivity[playerID] ~= nil and type(lastActivity[playerID]) == "number" then
-        alphaActivity = math.clamp((8 - mathFloor(nameState.now - lastActivity[playerID])) / 5.5, 0, 1)
+        alphaActivity = math.clamp((8 - mathFloor(now - lastActivity[playerID])) / 5.5, 0, 1)
         alphaActivity = 0.33 + (alphaActivity * 0.21)
         alpha = alphaActivity
     end
@@ -2413,7 +2400,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
             if m_point.active then
                 if player[playerID].pointTime ~= nil then
                     if player[playerID].allyteam == myAllyTeamID or mySpecStatus then
-                        DrawPoint(posY, player[playerID].pointTime - nameState.now)
+                        DrawPoint(posY, player[playerID].pointTime - now)
                         if tipY then
                             PointTip(mouseX)
                         end
@@ -2421,12 +2408,12 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                 end
                 if player[playerID].pencilTime ~= nil then
                     if player[playerID].allyteam == myAllyTeamID or mySpecStatus then
-                        DrawPencil(posY, player[playerID].pencilTime - nameState.now)
+                        DrawPencil(posY, player[playerID].pencilTime - now)
                     end
                 end
                 if player[playerID].eraserTime ~= nil then
                     if player[playerID].allyteam == myAllyTeamID or mySpecStatus then
-                        DrawEraser(posY, player[playerID].eraserTime - nameState.now)
+                        DrawEraser(posY, player[playerID].eraserTime - now)
                     end
                 end
             end
@@ -2437,7 +2424,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 end
 
 function DrawTakeSignal(posY)
-    if nameState.blink then
+    if blink then
         -- Draws a blinking rectangle if the player of the same team left (/take option)
         gl_Color(0.7, 0.7, 0.7)
         gl_Texture(pics["arrowPic"])
@@ -2787,16 +2774,6 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
     end
 
     local nameText = name
-	local isAI = player[playerID] and player[playerID].ai
-	local isAlliedAI = false
-	if isAI and not gameStarted and not mySpecStatus then
-		local aiAllyTeam = player[playerID].allyteam
-		isAlliedAI = (aiAllyTeam == myAllyTeamID)
-		if (isAlliedAI or Spring.IsCheatingEnabled()) and lastActivity.aiBlinkState then
-			nameText = nameState.aiPlaceMeText
-		end
-	end
-	
 	if WG.playernames and not player[playerID].history then
 		player[playerID].history = WG.playernames.getAccountHistory(accountID) or {}
 	end
@@ -2808,10 +2785,6 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
 		nameText = " " .. nameText
 	end
 	nameText = nameText .. willSub
-	
-	if isAlliedAI and lastActivity.aiPlacementMode == team then
-		nameText = "\255\255\255\255" .. nameText .. "\255\255\255\255"
-	end
 
     -- includes readystate icon if factions arent shown
     local xPadding = 0
@@ -3303,15 +3276,6 @@ function widget:MousePress(x, y, button)
         forceMainListRefresh = true
     end
 
-    if button == 3 then
-        if lastActivity.aiPlacementMode then
-            lastActivity.aiPlacementMode = nil
-            Spring.SendLuaUIMsg("aiPlacementCancel:")
-            forceMainListRefresh = true
-            return true
-        end
-    end
-
     if button == 1 then
         local alt, ctrl, meta, shift = Spring.GetModKeyState()
         sliderPosition = nil
@@ -3341,10 +3305,8 @@ function widget:MousePress(x, y, button)
             -- i = object #
             if i > -1 then
                 clickedPlayer = player[i]
-                if clickedPlayer then
-                    clickedPlayer.id = i
-                    posY = widgetPosY + widgetHeight - (clickedPlayer.posY or 0)
-                end
+                clickedPlayer.id = i
+                posY = widgetPosY + widgetHeight - (clickedPlayer.posY or 0)
             end
 
             if mySpecStatus then
@@ -3406,7 +3368,7 @@ function widget:MousePress(x, y, button)
                             if IsOnRect(x, y, m_share.posX + widgetPosX + (1*playerScale), posY, m_share.posX + widgetPosX + (17*playerScale), posY + (playerOffset*playerScale)) then
                                 -- share units button
                                 if release ~= nil then
-                                    if release >= nameState.now then
+                                    if release >= now then
                                         if clickedPlayer.team == myTeamID then
                                             --Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.needSupport'))
 											Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needSupport')
@@ -3417,7 +3379,7 @@ function widget:MousePress(x, y, button)
                                     end
                                     release = nil
                                 else
-                                    firstclick = nameState.now + 1
+                                    firstclick = now + 1
                                 end
                                 return true
                             end
@@ -3438,25 +3400,23 @@ function widget:MousePress(x, y, button)
                     t = true
                 else
                     t = false
-                    if i > -1 then
-                        if i < specOffset then
-                            --chat button
-                            if m_chat.active then
-                                if IsOnRect(x, y, m_chat.posX + widgetPosX + 1, posY, m_chat.posX + widgetPosX + 17, posY + (playerOffset*playerScale)) then
-                                    Spring_SendCommands("chatall", "pastetext /w " .. clickedPlayer.name .. ' \1')
-                                    return true
-                                end
+                    if i > -1 and i < specOffset then
+                        --chat button
+                        if m_chat.active then
+                            if IsOnRect(x, y, m_chat.posX + widgetPosX + 1, posY, m_chat.posX + widgetPosX + 17, posY + (playerOffset*playerScale)) then
+                                Spring_SendCommands("chatall", "pastetext /w " .. clickedPlayer.name .. ' \1')
+                                return true
                             end
-                            --ally button
-                            if m_alliance.active and drawAllyButton and not mySpecStatus and player[i] ~= nil and player[i].dead ~= true and i ~= myPlayerID then
-                                if IsOnRect(x, y, m_alliance.posX + widgetPosX + 1, posY, m_alliance.posX + widgetPosX + m_alliance.width, posY + (playerOffset*playerScale)) then
-                                    if Spring_AreTeamsAllied(player[i].team, myTeamID) then
-                                        Spring_SendCommands("ally " .. player[i].allyteam .. " 0")
-                                    else
-                                        Spring_SendCommands("ally " .. player[i].allyteam .. " 1")
-                                    end
-                                    return true
+                        end
+                        --ally button
+                        if m_alliance.active and drawAllyButton and not mySpecStatus and player[i] ~= nil and player[i].dead ~= true and i ~= myPlayerID then
+                            if IsOnRect(x, y, m_alliance.posX + widgetPosX + 1, posY, m_alliance.posX + widgetPosX + m_alliance.width, posY + (playerOffset*playerScale)) then
+                                if Spring_AreTeamsAllied(player[i].team, myTeamID) then
+                                    Spring_SendCommands("ally " .. player[i].allyteam .. " 0")
+                                else
+                                    Spring_SendCommands("ally " .. player[i].allyteam .. " 1")
                                 end
+                                return true
                             end
                         end
                         --point
@@ -3470,29 +3430,18 @@ function widget:MousePress(x, y, button)
                                 end
                             end
                         end
+                        --name
                         if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + 12) then
                             if ctrl then
                                 Spring_SendCommands("toggleignore " .. (clickedPlayer.accountID and clickedPlayer.accountID or clickedPlayer.name))
                                 return true
                             end
-                            if not gameStarted and clickedPlayer.ai and (clickedPlayer.allyteam == myAllyTeamID or Spring.IsCheatingEnabled()) then
-                                local aiTeamID = clickedPlayer.team
-                                if i >= specOffset then
-                                    aiTeamID = i - specOffset
-                                end
-                                lastActivity.aiPlacementMode = aiTeamID
-                                Spring.SendLuaUIMsg("aiPlacementMode:" .. aiTeamID)
-                                forceMainListRefresh = true
-                                return true
-                            end
-                            if i < specOffset and (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
+                            if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
                                 LockCamera(clickedPlayer.team)
                                 prevClickedPlayer = {}
                                 return true
                             end
-                            if i < specOffset then
-                                prevClickedPlayer = clickedPlayer
-                            end
+                            prevClickedPlayer = clickedPlayer
                         end
                     end
                 end
@@ -3503,18 +3452,6 @@ function widget:MousePress(x, y, button)
     if hoverPlayerlist then
         return true
     end
-end
-
-function widget:KeyPress(key)
-    if key == 27 then -- ESC
-        if lastActivity.aiPlacementMode then
-            lastActivity.aiPlacementMode = nil
-            Spring.SendLuaUIMsg("aiPlacementCancel:")
-            forceMainListRefresh = true
-            return true
-        end
-    end
-    return false
 end
 
 function widget:MouseMove(x, y, dx, dy, button)
@@ -3949,20 +3886,6 @@ function widget:Update(delta)
     timeFastCounter = timeFastCounter + delta
     curFrame = spGetGameFrame()
     mySpecStatus, fullView, _ = spGetSpectatingState()
-    
-    if not gameStarted then
-        lastActivity.aiBlinkTimer = lastActivity.aiBlinkTimer + delta
-        if lastActivity.aiBlinkTimer >= lastActivity.aiBlinkInterval then
-            lastActivity.aiBlinkTimer = 0
-            lastActivity.aiBlinkState = not lastActivity.aiBlinkState
-            forceMainListRefresh = true
-        end
-    else
-        if lastActivity.aiPlacementMode then
-            lastActivity.aiPlacementMode = nil
-            forceMainListRefresh = true
-        end
-    end
 
     if scheduledSpecFullView ~= nil then
         -- this is needed else the minimap/world doesnt update properly
@@ -4092,43 +4015,11 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz)
             player[playerID].pointX = px
             player[playerID].pointY = py
             player[playerID].pointZ = pz
-            player[playerID].pointTime = nameState.now + pointDuration
+            player[playerID].pointTime = now + pointDuration
         elseif cmdType == 'line' then
-            player[playerID].pencilTime = nameState.now + pencilDuration
+            player[playerID].pencilTime = now + pencilDuration
         elseif cmdType == 'erase' then
-            player[playerID].eraserTime = nameState.now + pencilDuration
-        end
-    end
-end
-
-function widget:RecvLuaMsg(msg)
-    if string.sub(msg, 1, 16) == "aiPlacementMode:" then
-        local teamID = tonumber(string.sub(msg, 17))
-        if teamID then
-            lastActivity.aiPlacementMode = teamID
-            forceMainListRefresh = true
-        end
-    elseif string.sub(msg, 1, 18) == "aiPlacementCancel:" then
-        lastActivity.aiPlacementMode = nil
-        forceMainListRefresh = true
-    elseif string.sub(msg, 1, 20) == "aiPlacementComplete:" then
-        local data = string.sub(msg, 21)
-        local teamID, x, z = string.match(data, "(%d+):([%d%.]+):([%d%.]+)")
-        if teamID and x and z then
-            teamID = tonumber(teamID)
-            x = tonumber(x)
-            z = tonumber(z)
-            local _, _, _, _, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
-            if teamAllyTeamID == myAllyTeamID then
-                if player[teamID + specOffset] then
-                    player[teamID + specOffset].placedX = x
-                    player[teamID + specOffset].placedZ = z
-                end
-            end
-            if lastActivity.aiPlacementMode == teamID then
-                lastActivity.aiPlacementMode = nil
-            end
-            forceMainListRefresh = true
+            player[playerID].eraserTime = now + pencilDuration
         end
     end
 end
