@@ -64,9 +64,30 @@ end
 local isSpec = spGetSpectatingState() or Spring.IsReplay()
 local myTeamID = spGetMyTeamID()
 
+local CONE_CLICK_RADIUS = 300
+
 
 local placeVoiceNotifTimer = false
 local playedChooseStartLoc = false
+
+local function GetAIName(teamID)
+	local _, _, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
+	if isAI then
+		local _, _, _, aiName, _, options = Spring.GetAIInfo(teamID)
+		local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
+		if niceName then
+			aiName = niceName
+			if Spring.Utilities.ShowDevUI() and options and options.profile then
+				aiName = aiName .. " [" .. options.profile .. "]"
+			end
+		end
+		return Spring.I18N('ui.playersList.aiName', { name = aiName })
+	else
+		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
+		local name = Spring.GetPlayerInfo(playerID, false)
+		return ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
+	end
+end
 local amPlaced = false
 
 local gaiaTeamID
@@ -90,6 +111,11 @@ local coopStartPoints = {}
 local aiPlacementMode = nil
 local aiPlacedPositions = {}
 local aiPredictedPositions = {}
+
+-- Dragging state
+local draggingTeamID = nil
+local dragOffsetX = 0
+local dragOffsetZ = 0
 
 VFS.Include("common/lib_startpoint_guesser.lua")
 
@@ -457,17 +483,17 @@ function widget:Initialize()
 
 	widgetHandler:RegisterGlobal('GadgetCoopStartPoint', CoopStartPoint)
 	
-	local function GetAIPlacedPositions()
-		local myAllyTeamID = Spring.GetMyAllyTeamID()
-		local alliedPositions = {}
-		for teamID, pos in pairs(aiPlacedPositions) do
-			local _, _, _, _, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
-			if teamAllyTeamID == myAllyTeamID or Spring.IsCheatingEnabled() then
-				alliedPositions[teamID] = pos
-			end
+local function GetAIPlacedPositions()
+	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	local alliedPositions = {}
+	for teamID, pos in pairs(aiPlacedPositions) do
+		local _, _, _, _, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
+		if teamAllyTeamID == myAllyTeamID or Spring.IsCheatingEnabled() then
+			alliedPositions[teamID] = pos
 		end
-		return alliedPositions
 	end
+	return alliedPositions
+end
 	widgetHandler:RegisterGlobal('GetAIPlacedPositions', GetAIPlacedPositions)
 
 	assignTeamColors()
@@ -546,7 +572,16 @@ function widget:DrawWorld()
 				if coopStartPoints[playerID] then
 					x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
 				end
-				if aiPlacedPositions[teamID] then
+				if draggingTeamID == teamID then
+					-- During dragging, use cursor position with drag offset
+					local mouseX, mouseY = Spring.GetMouseState()
+					local traceType, pos = Spring.TraceScreenRay(mouseX, mouseY, true)
+					if traceType == "ground" then
+						x = pos[1] + dragOffsetX
+						z = pos[3] + dragOffsetZ
+						y = pos[2]
+					end
+				elseif aiPlacedPositions[teamID] then
 					x = aiPlacedPositions[teamID].x
 					z = aiPlacedPositions[teamID].z
 					y = Spring.GetGroundHeight(x, z)
@@ -609,7 +644,16 @@ function widget:DrawScreenEffects()
 					if coopStartPoints[playerID] then
 						x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
 					end
-					if aiPlacedPositions[teamID] then
+					if draggingTeamID == teamID then
+						-- During dragging, use cursor position with drag offset
+						local mouseX, mouseY = Spring.GetMouseState()
+						local traceType, pos = Spring.TraceScreenRay(mouseX, mouseY, true)
+						if traceType == "ground" then
+							x = pos[1] + dragOffsetX
+							z = pos[3] + dragOffsetZ
+							y = pos[2]
+						end
+					elseif aiPlacedPositions[teamID] then
 						x = aiPlacedPositions[teamID].x
 						z = aiPlacedPositions[teamID].z
 						y = Spring.GetGroundHeight(x, z)
@@ -812,8 +856,14 @@ function widget:RecvLuaMsg(msg)
 			z = tonumber(z)
 			if x == 0 and z == 0 then
 				aiPlacedPositions[teamID] = nil
+				local playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+				local aiName = GetAIName(teamID)
+				Spring.SendMessage(Spring.I18N('ui.startbox.aiStartLocationRemoved', { playerName = playerName, aiName = aiName }))
 			else
 				aiPlacedPositions[teamID] = {x = x, z = z}
+				local playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+				local aiName = GetAIName(teamID)
+				Spring.SendMessage(Spring.I18N('ui.startbox.aiStartLocationChanged', { playerName = playerName, aiName = aiName }))
 			end
 		end
 	end
@@ -823,7 +873,55 @@ function widget:MousePress(x, y, button)
 	if spGetGameFrame() > 0 then
 		return false
 	end
-	
+
+	-- Cancel dragging if active and not continuing with left mouse
+	if draggingTeamID and button ~= 1 then
+		draggingTeamID = nil
+		dragOffsetX = 0
+		dragOffsetZ = 0
+		return true
+	end
+
+	-- Check for AI cone dragging
+	if button == 1 then
+		local traceType, pos = Spring.TraceScreenRay(x, y, true)
+		if traceType == "ground" then
+			local worldX, worldY, worldZ = pos[1], pos[2], pos[3]
+			local myAllyTeamID = Spring.GetMyAllyTeamID()
+
+			-- Check if clicking on an AI cone (both placed and predicted positions)
+			for teamID, _ in pairs(Spring.GetTeamList()) do
+				local _, _, _, isAI, _, aiAllyTeamID = Spring.GetTeamInfo(teamID, false)
+				if isAI and (aiAllyTeamID == myAllyTeamID or Spring.IsCheatingEnabled()) then
+					local coneX, coneZ
+
+					-- Check placed positions first, then predicted positions
+					if aiPlacedPositions[teamID] and aiPlacedPositions[teamID].x and aiPlacedPositions[teamID].z then
+						coneX = aiPlacedPositions[teamID].x
+						coneZ = aiPlacedPositions[teamID].z
+					elseif aiPredictedPositions[teamID] and aiPredictedPositions[teamID].x and aiPredictedPositions[teamID].z then
+						coneX = aiPredictedPositions[teamID].x
+						coneZ = aiPredictedPositions[teamID].z
+					end
+
+					if coneX and coneZ then
+						local dx = worldX - coneX
+						local dz = worldZ - coneZ
+						local distance = math.sqrt(dx * dx + dz * dz)
+
+						if distance <= CONE_CLICK_RADIUS then
+							-- Start dragging this AI
+							draggingTeamID = teamID
+							dragOffsetX = coneX - worldX
+							dragOffsetZ = coneZ - worldZ
+							return true
+						end
+					end
+				end
+			end
+		end
+	end
+
 	if button == 3 then
 		if aiPlacementMode then
 			aiPlacementMode = nil
@@ -834,8 +932,7 @@ function widget:MousePress(x, y, button)
 			if traceType == "ground" then
 				local worldX, worldY, worldZ = pos[1], pos[2], pos[3]
 				local myAllyTeamID = Spring.GetMyAllyTeamID()
-				local CONE_CLICK_RADIUS = 150
-				
+
 				for teamID, placedPos in pairs(aiPlacedPositions) do
 					if placedPos.x and placedPos.z then
 						local _, _, _, isAI, _, aiAllyTeamID = Spring.GetTeamInfo(teamID, false)
@@ -876,5 +973,52 @@ function widget:MousePress(x, y, button)
 			end
 		end
 	end
+	return false
+end
+
+function widget:MouseMove(x, y, dx, dy, button)
+	if draggingTeamID then
+		-- Prevent other interactions while dragging
+		return true
+	end
+	return false
+end
+
+function widget:MouseRelease(x, y, button)
+	if spGetGameFrame() > 0 then
+		return false
+	end
+
+	if button == 1 and draggingTeamID then
+		local traceType, pos = Spring.TraceScreenRay(x, y, true)
+		if traceType == "ground" then
+			local worldX, worldY, worldZ = pos[1], pos[2], pos[3]
+			local finalX = worldX + dragOffsetX
+			local finalZ = worldZ + dragOffsetZ
+
+			local _, _, _, _, _, aiAllyTeamID = Spring.GetTeamInfo(draggingTeamID, false)
+			local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(aiAllyTeamID)
+
+			-- Check if the final position is valid (within start box)
+			if xmin < xmax and zmin < zmax then
+				if finalX >= xmin and finalX <= xmax and finalZ >= zmin and finalZ <= zmax then
+					-- Valid position, place the AI
+					aiPlacedPositions[draggingTeamID] = {x = finalX, z = finalZ}
+					Spring.SendLuaRulesMsg("aiPlacedPosition:" .. draggingTeamID .. ":" .. finalX .. ":" .. finalZ)
+					Spring.SendLuaUIMsg("aiPlacementComplete:" .. draggingTeamID .. ":" .. finalX .. ":" .. finalZ)
+				else
+					-- Invalid position, keep original position
+					-- Could optionally show a message here
+				end
+			end
+		end
+
+		-- End dragging regardless
+		draggingTeamID = nil
+		dragOffsetX = 0
+		dragOffsetZ = 0
+		return true
+	end
+
 	return false
 end

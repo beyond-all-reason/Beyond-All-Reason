@@ -114,6 +114,10 @@
 				"takeTeamAmount": "I took %{name}: %{units} units, %{energy} energy and %{metal} metal."
 			}
 		},
+		"startbox": {
+			"aiStartLocationRemoved": "%{playerName} removed %{aiName} start location.",
+			"aiStartLocationChanged": "%{playerName} changed %{aiName} start location."
+		},
 		"music": {
 			"menu": "Menu",
 			"loading": "Loading",
