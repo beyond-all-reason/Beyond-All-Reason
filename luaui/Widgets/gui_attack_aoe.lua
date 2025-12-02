@@ -479,23 +479,21 @@ local function DrawAnnularSector(mode, ux, uz, aimAngle, halfAngle, rMin, rMax, 
 	end
 end
 
-local function RenderScatterShape(data, ux, uz, ty, aimAngle, spreadAngle, rMin, rMax, alphaFactor)
+---@param data IndicatorDrawData
+local function DrawScatterShape(data, ux, uz, ty, aimAngle, spreadAngle, rMin, rMax, alphaFactor)
 	if alphaFactor <= 0 then return end
 
-	if data.weaponInfo.isNapalm then
+	if data.weaponInfo.shader then
 		local fillColor = data.colors.fill
-		BeginNoOverlap()
-		if napalmShader then
-			napalmShader:Activate()
-			napalmShader:SetUniform("time", os.clock())
-			napalmShader:SetUniform("center", data.target.x, data.target.z)
-			napalmShader:SetUniform("u_color", fillColor[1], fillColor[2], fillColor[3], 0.5 * alphaFactor)
+		local shader = data.weaponInfo.shader
+		shader:Activate()
+		shader:SetUniform("time", os.clock())
+		shader:SetUniform("center", data.target.x, data.target.z)
+		shader:SetUniform("u_color", fillColor[1], fillColor[2], fillColor[3], fillColor[4] * alphaFactor)
 
-			glBeginEnd(GL_TRIANGLE_STRIP, DrawAnnularSector, FILL, ux, uz, aimAngle, spreadAngle, rMin, rMax, ty)
+		glBeginEnd(GL_TRIANGLE_STRIP, DrawAnnularSector, FILL, ux, uz, aimAngle, spreadAngle, rMin, rMax, ty)
 
-			napalmShader:Deactivate()
-		end
-		EndNoOverlap()
+		shader:Deactivate()
 	end
 
 	-- Draw Outline
@@ -612,9 +610,8 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 		info.isNapalm = true
 		info.napalmRange = weaponDef.customParams.area_onhit_range
 		info.color = Config.Colors.napalm
-		info.ee = 1 -- we don't want damage drop-off rings on napalm because the area denial is the important part
+		info.shader = napalmShader
 	end
-
 	if weaponType == "DGun" then
 		info.type = "dgun"
 		info.range = weaponDef.range
@@ -847,15 +844,36 @@ local function GetAlphaFactorForRing(minAlpha, maxAlpha, index, phase, alphaMult
 	return result * alphaMult
 end
 
-local function DrawAoeRange(tx, ty, tz, aoe, alphaMult, phase, color)
-	alphaMult = alphaMult or 1
+local function DrawAoeShaderFill(shader, tx, ty, tz, color, aoe)
+	local circles = State.Calculated.unitCircles
+	local divs = Config.Render.circleDivs
+
+	shader:Activate()
+	shader:SetUniform("time", os.clock())
+	shader:SetUniform("center", tx, tz)
+	shader:SetUniform("u_color", color[1], color[2], color[3], color[4])
+
+	glBeginEnd(GL.TRIANGLE_FAN, function()
+		glVertex(tx, ty, tz)
+
+		for i = 0, divs do
+			local cx = tx + (circles[i][1] * aoe)
+			local cz = tz + (circles[i][2] * aoe)
+			glVertex(cx, ty, cz)
+		end
+	end)
+
+	shader:Deactivate()
+	glColor(1, 1, 1, 1)
+end
+
+local function DrawAoePulseFill(tx, ty, tz, color, alphaMult, aoe, phase)
 	local bandCount = Config.Render.aoeDiskBandCount
 	local triggerTimes = State.Calculated.diskWaveTriggerTimes
 	local maxAlpha = Config.Render.maxFilledCircleAlpha
 	local minAlpha = Config.Render.minFilledCircleAlpha
-	local circles = State.Calculated.unitCircles
 	local divs = Config.Render.circleDivs
-
+	local circles = State.Calculated.unitCircles
 	glPushMatrix()
 	glTranslate(tx, ty, tz)
 	glBeginEnd(GL_TRIANGLE_STRIP, function()
@@ -875,7 +893,15 @@ local function DrawAoeRange(tx, ty, tz, aoe, alphaMult, phase, color)
 	glPopMatrix()
 end
 
-local function DrawDamageRings(tx, ty, tz, aoe, edgeEffectiveness, alphaMult, phase, color)
+local function DrawFilledAoeCircle(tx, ty, tz, aoe, alphaMult, phase, color, shader)
+	if shader then
+		DrawAoeShaderFill(shader, tx, ty, tz, color, aoe, phase)
+	else
+		DrawAoePulseFill(tx, ty, tz, color, alphaMult or 1, aoe, phase)
+	end
+end
+
+local function DrawAoeDamageRings(tx, ty, tz, aoe, edgeEffectiveness, alphaMult, phase, color)
 	local damageLevels = Config.Render.ringDamageLevels
 	local triggerTimes = State.Calculated.ringWaveTriggerTimes
 
@@ -900,10 +926,10 @@ local function DrawAoe(data, baseColorOverride, targetOverride, ringAlphaMult, p
 	local phase = State.pulsePhase + (phaseOffset or 0)
 	phase = phase - floor(phase)
 
-	if edgeEffectiveness == 1 then
-		DrawAoeRange(tx, ty, tz, aoe, ringAlphaMult, phase, color)
+	if edgeEffectiveness == 1 or data.weaponInfo.shader then
+		DrawFilledAoeCircle(tx, ty, tz, aoe, ringAlphaMult, phase, color, data.weaponInfo.shader)
 	else
-		DrawDamageRings(tx, ty, tz, aoe, edgeEffectiveness, ringAlphaMult, phase, color)
+		DrawAoeDamageRings(tx, ty, tz, aoe, edgeEffectiveness, ringAlphaMult, phase, color)
 	end
 
 	-- draw a max radius outline for clarity
@@ -1200,8 +1226,8 @@ local function DrawBallisticScatter(data)
 	local ux, uy, uz = data.source.x, data.source.y, data.source.z
 	local tx, ty, tz = data.target.x, data.target.y, data.target.z
 	local aimingUnitID = data.unitID
-	local fillColor, lineColor = data.colors.fill, data.colors.scatter
 	local trajectory = select(7, spGetUnitStates(aimingUnitID, false, true)) and 1 or -1
+	local aoe = weaponInfo.aoe
 
 	local scatter = weaponInfo.scatter
 	if scatter < 0.01 then
@@ -1239,20 +1265,6 @@ local function DrawBallisticScatter(data)
 	-- AXIS CALCULATION
 	----------------------------------------------------------------------------
 	local naturalRadius = calc_dist * (tan(scatter) + 0.01)
-	local scatterAlphaFactor = 0
-	local baseThreshold = max(weaponInfo.aoe, 15)
-	local minScatterRadius = baseThreshold * 0.5
-
-	if naturalRadius >= baseThreshold then
-		scatterAlphaFactor = 1
-	elseif naturalRadius > minScatterRadius then
-		scatterAlphaFactor = (naturalRadius - minScatterRadius) / (baseThreshold - minScatterRadius)
-	end
-
-	if scatterAlphaFactor <= 0 then
-		return 0
-	end
-
 	local maxAxisLen = naturalRadius * 2.5
 
 	-- Width
@@ -1263,7 +1275,8 @@ local function DrawBallisticScatter(data)
 
 	local axisRightX = hx_right - calc_tx
 	local axisRightZ = hz_right - calc_tz
-	local lenRight = diag(axisRightX, axisRightZ)
+	-- to avoid situation when scatter is visible but is narrower than aoe
+	local lenRight = max(diag(axisRightX, axisRightZ), aoe)
 
 	-- Length
 	local up_x = ry * bz - rz * by
@@ -1281,6 +1294,25 @@ local function DrawBallisticScatter(data)
 
 	if lenRight > maxAxisLen then lenRight = maxAxisLen end
 	if lenUp > maxAxisLen then lenUp = maxAxisLen end
+
+	----------------------------------------------------------------------------
+	-- VISIBILITY
+	----------------------------------------------------------------------------
+	local scatterAlphaFactor = 0
+	local minScatterRadius = max(weaponInfo.aoe, 15) * 0.7
+	local baseThreshold = minScatterRadius * 2
+
+	local scatterSize = max(naturalRadius, lenUp)
+
+	if scatterSize >= baseThreshold then
+		scatterAlphaFactor = 1
+	elseif scatterSize > minScatterRadius then
+		scatterAlphaFactor = (scatterSize - minScatterRadius) / (baseThreshold - minScatterRadius)
+	end
+
+	if scatterAlphaFactor <= 0 then
+		return 0
+	end
 
 	----------------------------------------------------------------------------
 	-- SHAPE GENERATION
@@ -1304,7 +1336,7 @@ local function DrawBallisticScatter(data)
 
 	local aimAngle = atan2(tx - ux, tz - uz)
 
-	RenderScatterShape(data, ux, uz, ty, aimAngle, spreadAngle, rMin, rMax, scatterAlphaFactor)
+	DrawScatterShape(data, ux, uz, ty, aimAngle, spreadAngle, rMin, rMax, scatterAlphaFactor)
 
 	return scatterAlphaFactor
 end
@@ -1340,7 +1372,7 @@ local function DrawSectorScatter(data)
 
 	local aimAngle = atan2(tx - ux, tz - uz)
 
-	RenderScatterShape(data, ux, uz, ty, aimAngle, halfAngle, rMin, rMax, 1)
+	DrawScatterShape(data, ux, uz, ty, aimAngle, halfAngle, rMin, rMax, 1)
 end
 
 --------------------------------------------------------------------------------
@@ -1470,7 +1502,7 @@ local function DrawWobbleScatter(data)
 		spreadAlphaFactor = (visualSpreadRadius - minSpreadRadius) / (baseThreshold - minSpreadRadius)
 	end
 
-	RenderScatterShape(data, ux, uz, ty, aimAngle, spreadAngle, rMin, rMax, spreadAlphaFactor)
+	DrawScatterShape(data, ux, uz, ty, aimAngle, spreadAngle, rMin, rMax, spreadAlphaFactor)
 
 	return spreadAlphaFactor
 end
@@ -1579,7 +1611,7 @@ end
 ---@param data IndicatorDrawData
 local function DrawBallistic(data)
 	local scatterAlphaFactor = DrawBallisticScatter(data)
-	FadeColorInPlace(data.colors.base, 1 - (scatterAlphaFactor * 0.7))
+	FadeColorInPlace(data.colors.base, 1 - scatterAlphaFactor)
 	DrawAoe(data)
 end
 
@@ -1620,11 +1652,12 @@ local WeaponTypeHandlers = {
 -- CALLINS
 --------------------------------------------------------------------------------
 function widget:Initialize()
+	-- shader has to be created before setting up unit defs
+	napalmShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0)
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		SetupUnitDef(unitDefID, unitDef)
 	end
 	SetupDisplayLists()
-	napalmShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0)
 end
 
 function widget:Shutdown()
