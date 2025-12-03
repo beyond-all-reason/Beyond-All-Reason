@@ -1,5 +1,8 @@
 local widget = widget ---@type Widget
 
+-- AI placement status cache for immediate UI updates
+local aiPlacementStatus = {}
+
 function widget:GetInfo()
 	return {
 		name = "Start Boxes",
@@ -70,7 +73,7 @@ local CONE_CLICK_RADIUS = 300
 local placeVoiceNotifTimer = false
 local playedChooseStartLoc = false
 
-local function GetAIName(teamID)
+local function GetAINamePlain(teamID)
 	local _, _, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
 	if isAI then
 		local _, _, _, aiName, _, options = Spring.GetAIInfo(teamID)
@@ -87,6 +90,24 @@ local function GetAIName(teamID)
 		local name = Spring.GetPlayerInfo(playerID, false)
 		return ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 	end
+end
+
+local function GetAIName(teamID)
+	local formattedName = GetAINamePlain(teamID)
+	-- Check if AI has manually placed position (use cached status for immediate updates)
+	local hasPlacement = aiPlacementStatus[teamID]
+	if hasPlacement == nil then
+		-- Fallback to team rules params if not cached
+		local aiPlacedX = Spring.GetTeamRulesParam(teamID, "aiPlacedX")
+		local aiPlacedZ = Spring.GetTeamRulesParam(teamID, "aiPlacedZ")
+		hasPlacement = aiPlacedX and aiPlacedZ and aiPlacedX > 0 and aiPlacedZ > 0
+	end
+	if hasPlacement then
+		formattedName = formattedName .. "\n🔒"
+	else
+		---formattedName = formattedName .. "\n🔓"
+	end
+	return formattedName
 end
 local amPlaced = false
 
@@ -139,6 +160,7 @@ local function createCommanderNameList(x, y, name, teamID)
 	commanderNameList[teamID] = {}
 	commanderNameList[teamID]['x'] = mathFloor(x)
 	commanderNameList[teamID]['y'] = mathFloor(y)
+	commanderNameList[teamID]['name'] = name
 	commanderNameList[teamID]['list'] = gl.CreateList(function()
 		local r, g, b = GetTeamColor(teamID)
 		local outlineColor = { 0, 0, 0, 1 }
@@ -173,8 +195,8 @@ end
 
 local function drawName(x, y, name, teamID)
 	-- not optimal, everytime you move camera the x and y are different so it has to recreate the drawlist
-	if commanderNameList[teamID] == nil or commanderNameList[teamID]['x'] ~= mathFloor(x) or commanderNameList[teamID]['y'] ~= mathFloor(y) then
-		-- using floor because the x and y values had a a tiny change each frame
+	if commanderNameList[teamID] == nil or commanderNameList[teamID]['x'] ~= mathFloor(x) or commanderNameList[teamID]['y'] ~= mathFloor(y) or commanderNameList[teamID]['name'] ~= name then
+		-- using floor because the x and y values had a a tiny change each frame, or name changed (e.g. lock symbol added)
 		if commanderNameList[teamID] ~= nil then
 			gl.DeleteList(commanderNameList[teamID]['list'])
 		end
@@ -507,8 +529,11 @@ end
 			if isAI then
 				local x = Spring.GetTeamRulesParam(teamID, "aiPlacedX")
 				local z = Spring.GetTeamRulesParam(teamID, "aiPlacedZ")
-				if x and z then
+				if x and z and x > 0 and z > 0 then
 					aiPlacedPositions[teamID] = {x = x, z = z}
+					aiPlacementStatus[teamID] = true
+				else
+					aiPlacementStatus[teamID] = false
 				end
 			end
 		end
@@ -624,17 +649,7 @@ function widget:DrawScreenEffects()
 
 			if teamAllyTeamID == myAllyTeamID or Spring.IsCheatingEnabled() then
 				if isAI then
-					local _, _, _, aiName, _, options = Spring.GetAIInfo(teamID)
-					local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
-					if niceName then
-						name = niceName
-						if Spring.Utilities.ShowDevUI() and options and options.profile then
-							name = name .. " [" .. options.profile .. "]"
-						end
-					else
-						name = aiName or name
-					end
-					name = Spring.I18N('ui.playersList.aiName', { name = name })
+					name = GetAIName(teamID)
 				else
 					name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 				end
@@ -856,13 +871,15 @@ function widget:RecvLuaMsg(msg)
 			z = tonumber(z)
 			if x == 0 and z == 0 then
 				aiPlacedPositions[teamID] = nil
+				aiPlacementStatus[teamID] = false -- Update cache immediately
 				local playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-				local aiName = GetAIName(teamID)
+				local aiName = GetAINamePlain(teamID)
 				Spring.SendMessage(Spring.I18N('ui.startbox.aiStartLocationRemoved', { playerName = playerName, aiName = aiName }))
 			else
 				aiPlacedPositions[teamID] = {x = x, z = z}
+				aiPlacementStatus[teamID] = true -- Update cache immediately
 				local playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-				local aiName = GetAIName(teamID)
+				local aiName = GetAINamePlain(teamID)
 				Spring.SendMessage(Spring.I18N('ui.startbox.aiStartLocationChanged', { playerName = playerName, aiName = aiName }))
 			end
 		end
