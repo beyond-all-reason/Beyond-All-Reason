@@ -25,7 +25,7 @@ return {
 		script = "Units/CORVALK.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 260,
+		sightdistance = 430,
 		speed = 198,
 		transportcapacity = 1,
 		transportmass = 750,
@@ -35,11 +35,11 @@ return {
 		turnrate = 550,
 		verticalspeed = 3.75,
 		customparams = {
+			crashable = 0,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "CorAircraft",
-			crashable = 0,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

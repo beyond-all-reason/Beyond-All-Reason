@@ -3,18 +3,24 @@
 
 piece  lflare, rflare, torso, aimy, turret, aimx, sleeve, rbarrel, lbarrel, thighfl, thighfr, thighbl, thighbr, legfl, legfr, legbl, legbr, footfl, footfr, footbl, footbr, stompfl, stompfr, stompbl, stompbr;
 
-static-var  isMoving, isAiming,  restore_delay, gun_1, reload;
+// this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
+static-var  isAiming, restore_delay, gun_1, reload, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, stepcount;
 
 // Signal definitions
 #define SIGNAL_AIM1 2
 
-lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+lua_UnitScriptDecal(lightIndex, xpos, zpos, heading) 
 {
 	return 0;
 }
 
-// this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
+lua_UnitScriptDistortion(lightIndex, xpos, zpos, heading)
+{
+	return 0;
+}
+
+
+
 #define SIGNAL_MOVE 1
 Walk() {// For C:\Users\logst\Downloads\BAR\corsumo anim.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	set-signal-mask SIGNAL_MOVE;
@@ -107,7 +113,10 @@ Walk() {// For C:\Users\logst\Downloads\BAR\corsumo anim.blend Created by https:
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:20
-			emit-sfx 1024 + 0 from footfl;
+			emit-sfx 1024 + 0 from stompfl;
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(stompfl) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(stompfl) & 0x0000ffff),   get HEADING(0));
+			call-script lua_UnitScriptDistortion(1, stepcount);
+			stepcount = stepcount + 1;
 			turn footbl to x-axis <11.369138> speed <699.298092> / animSpeed; 
 			turn footbr to x-axis <31.101844> speed <922.765097> / animSpeed; 
 			turn footfl to x-axis <22.842716> speed <440.632878> / animSpeed; 
@@ -137,7 +146,9 @@ Walk() {// For C:\Users\logst\Downloads\BAR\corsumo anim.blend Created by https:
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:25
-			emit-sfx 1024 + 0 from footbr;
+			emit-sfx 1024 + 0 from stompbr;
+			call-script lua_UnitScriptDistortion(2, stepcount);
+			stepcount = stepcount + 1;
 			turn footbl to x-axis <-0.755344> speed <363.734480> / animSpeed; 
 			turn footbr to x-axis <13.427968> speed <530.216256> / animSpeed; 
 			turn footfl to x-axis <10.562421> speed <368.408852> / animSpeed; 
@@ -285,7 +296,10 @@ Walk() {// For C:\Users\logst\Downloads\BAR\corsumo anim.blend Created by https:
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:50
-			emit-sfx 1024 + 0 from footfr;
+			emit-sfx 1024 + 0 from stompfr;
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(stompfr) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(stompfr) & 0x0000ffff),   get HEADING(0));
+			call-script lua_UnitScriptDistortion(3, stepcount);
+			stepcount = stepcount + 1;
 			turn footbl to x-axis <31.101844> speed <922.765097> / animSpeed; 
 			turn footbr to x-axis <11.369138> speed <699.298092> / animSpeed; 
 			turn footfl to x-axis <-8.540977> speed <12.420306> / animSpeed; 
@@ -315,7 +329,9 @@ Walk() {// For C:\Users\logst\Downloads\BAR\corsumo anim.blend Created by https:
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:55
-			emit-sfx 1024 + 0 from footbl;
+			emit-sfx 1024 + 0 from stompbl;
+			call-script lua_UnitScriptDistortion(4, stepcount);
+			stepcount = stepcount + 1;
 			turn footbl to x-axis <13.427968> speed <530.216256> / animSpeed; 
 			turn footbr to x-axis <-0.755344> speed <363.734480> / animSpeed; 
 			turn footfl to x-axis <-6.467911> speed <62.191984> / animSpeed; 
@@ -466,6 +482,7 @@ Create()
 	gun_1 = 0;
 	reload = 0;
 	restore_delay = 8000;
+	stepcount = 0;
 }
 
 SetMaxReloadTime(reloadMS)
@@ -506,16 +523,22 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	if( gun_1 == 0 )
+	if( gun_1 == 1 )
 	{
 		move rbarrel to z-axis [-4] now;
 		move rbarrel to z-axis [0] speed (reload*6);
+		emit-sfx 4096 + 1 from rbarrel;
 	}
 	else
 	{
 		move lbarrel to z-axis [-4] now;
 		move lbarrel to z-axis [0] speed (reload*6);
+		emit-sfx 4096 + 1 from lbarrel;
 	}
+}
+
+EndBurst1()
+{
 	gun_1 = !gun_1;
 }
 

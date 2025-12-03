@@ -29,7 +29,7 @@ return {
 		maxwaterdepth = 112,
 		metalcost = 135,
 		mincloakdistance = 75,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		movestate = 0,
 		objectname = "Units/ARMSPY.s3o",
 		onoffable = false,
@@ -50,6 +50,7 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
+			paralyzemultiplier = 0,
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "buildert2",
@@ -134,6 +135,9 @@ return {
 				waterweapon = true,
 				weapontype = "Melee",
 				weaponvelocity = 100000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},

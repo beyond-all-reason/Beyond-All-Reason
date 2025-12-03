@@ -87,7 +87,6 @@ if gadgetHandler:IsSyncedCode() then
 	local GetFeaturePosition = Spring.GetFeaturePosition
 	local GetFeatureHealth = Spring.GetFeatureHealth
 	local GetFeatureDirection = Spring.GetFeatureDirection
-  local GetGroundHeight = Spring.GetGroundHeight
 	local GetFeatureResources = Spring.GetFeatureResources
 	local SetFeatureDirection = Spring.SetFeatureDirection
 	local SetFeatureBlocking = Spring.SetFeatureBlocking
@@ -110,13 +109,13 @@ if gadgetHandler:IsSyncedCode() then
 			geothermals[featureDefID] = featureDefID
 		end
 
-		if featureDef.name:find('treetype') == nil then
+		--if featureDef.name:find('treetype') == nil then
 			treeName[featureDefID] = featureDef.name
 			treeMass[featureDefID] = math.max(1, featureDef.mass)
 			if featureDef.collisionVolume then
 				treeScaleY[featureDefID] = featureDef.collisionVolume.scaleY
 			end
-		end
+		--end
 	end
 
 	local unitMass = {}
@@ -144,11 +143,6 @@ if gadgetHandler:IsSyncedCode() then
 			local dx, dy, dz = GetFeatureDirection(tree)
 			if true and fx ~= nil then
 
-				local ppx, ppy, ppz
-
-
-					local fire = false
-					local remainingMetal, maxMetal, remainingEnergy, maxEnergy, reclaimLeft = GetFeatureResources(tree)
 					local dissapearSpeed = 1.7
 					local size = 'medium'
 					if treeScaleY[featureDefID] then
@@ -165,7 +159,6 @@ if gadgetHandler:IsSyncedCode() then
 					local destroyFrame = GetGameFrame() + falltime + 150 + (dissapearSpeed * 4000)
 
 				local dmg = treeMass[featureDefID] * 2
-				local name = treeName[featureDefID]
 				Spring.SetFeatureResources(0,0,0,0)
 				Spring.SetFeatureNoSelect(tree, true)
 				Spring.PlaySoundFile("treefall", 2, fx, fy, fz, 'sfx')
@@ -298,7 +291,6 @@ if gadgetHandler:IsSyncedCode() then
 							fire = true
 						end
 					end
-					local name = treeName[featureDefID]
 					Spring.SetFeatureResources(0,0,0,0)
 					Spring.SetFeatureNoSelect(featureID, true)
 					Spring.PlaySoundFile("treefall", 2, fx, fy, fz, 'sfx')

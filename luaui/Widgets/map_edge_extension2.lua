@@ -14,6 +14,10 @@ function widget:GetInfo()
   }
 end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- fix seams?
@@ -47,8 +51,9 @@ local normalTex = '$ssmf_normals'
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -515,8 +520,6 @@ local numPoints
 local mirrorParams = {}
 
 
-VFS.Include(luaShaderDir.."instancevbotable.lua")
-
 function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
@@ -585,8 +588,8 @@ function widget:Initialize()
 		{id = 1, name = "mirrorParams", size = 4},
 	})
 	
-	local planeVBO, numVertices = makePlaneVBO(1,1,Game.mapSizeX/gridSizeDeferred,Game.mapSizeZ/gridSizeDeferred)
-	local planeIndexVBO, numIndices =  makePlaneIndexVBO(Game.mapSizeX/gridSizeDeferred,Game.mapSizeZ/gridSizeDeferred)
+	local planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1,1,Game.mapSizeX/gridSizeDeferred,Game.mapSizeZ/gridSizeDeferred)
+	local planeIndexVBO, numIndices =  InstanceVBOTable.makePlaneIndexVBO(Game.mapSizeX/gridSizeDeferred,Game.mapSizeZ/gridSizeDeferred)
 	planeVAO = gl.GetVAO()
 	planeVAO:AttachVertexBuffer(planeVBO)
 	planeVAO:AttachIndexBuffer(planeIndexVBO)
@@ -594,7 +597,7 @@ function widget:Initialize()
 
 
 	hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == false)
-	--Spring.Echo(gsSrc)
+	--spEcho(gsSrc)
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	gsSrc = gsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
@@ -808,7 +811,7 @@ end
 
 
 function widget:DrawGroundDeferred()
-	--Spring.Echo("widget:DrawGroundDeferred")
+	--spEcho("widget:DrawGroundDeferred")
 	if #mirrorParams == 0 then
 		return
 	end

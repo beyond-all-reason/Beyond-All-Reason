@@ -12,12 +12,22 @@ function widget:GetInfo()
    }
 end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+local spGetUnitTeam = Spring.GetUnitTeam
+
 local myvisibleUnits = {} -- table of unitID : unitDefID
 
 local unitTrackerVBO = nil
 local unitTrackerShader = nil
 local luaShaderDir = "LuaUI/Include/"
 local texture = "luaui/images/solid.png"
+
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local function initGL4()
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
@@ -34,8 +44,8 @@ end
 
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
-	Spring.Echo("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam)
-	local teamID = Spring.GetUnitTeam(unitID) or 0 
+	spEcho("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam)
+	local teamID = spGetUnitTeam(unitID) or 0 
 	local gf = Spring.GetGameFrame()
 	myvisibleUnits[unitID] = unitDefID
 	pushElementInstance(
@@ -56,15 +66,15 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	Spring.Echo("widget:VisibleUnitsChanged",extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(unitTrackerVBO)
+	spEcho("widget:VisibleUnitsChanged",extVisibleUnits, extNumVisibleUnits)
+	InstanceVBOTable.clearInstanceTable(unitTrackerVBO)
 	for unitID, unitDefID in pairs(extVisibleUnits) do 
-		widget:VisibleUnitAdded(unitID, unitDefID, Spring.GetUnitTeam(unitID))
+		widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID))
 	end
 end
 
 function widget:VisibleUnitRemoved(unitID)
-	Spring.Echo("widget:VisibleUnitRemoved",unitID)
+	spEcho("widget:VisibleUnitRemoved",unitID)
 	if unitTrackerVBO.instanceIDtoIndex[unitID] then 
 		popElementInstance(unitTrackerVBO, unitID)
 		myvisibleUnits[unitID] = nil

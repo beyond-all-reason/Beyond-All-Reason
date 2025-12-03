@@ -547,7 +547,7 @@ SetStunned(State)
 
 RestoreAfterDelay()
 {
-	set-signal-mask SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1 | SIGNAL_AIM2;
 	sleep 2000;
 	if (!isBuilding)
 	{
@@ -570,14 +570,16 @@ ExecuteRestoreAfterDelay()
 	turn aimy1 to  y-axis <0> speed <100.0>; 
 	spin aaturret around y-axis speed <33>; 
 	turn aabarrel to  x-axis <-30> speed <100.0>;
-	
+	if (!isMoving)
+	{
 	turn larm to x-axis <15> speed <95.0000>; 
 	turn rarm to x-axis <15> speed <95.0000>; 
 	turn lhand to x-axis <30> speed <95.0000>; 
 	turn rhand to x-axis <30> speed <95.0000>; 
 	
 	turn lshoulder to y-axis <10> speed <95.0000>; 
-	turn rshoulder to y-axis <-10> speed <95.0000>; 
+	turn rshoulder to y-axis <-10> speed <95.0000>;
+	}
 }
 
 // Call this from StopMoving()!
@@ -714,6 +716,11 @@ AimFromWeapon2(piecenum)
 
 AimWeapon2(heading, pitch)
 {
+	//get PRINT(get GROUND_WATER_HEIGHT(get UNIT_XZ));
+	if( get GROUND_WATER_HEIGHT(get UNIT_XZ) > -2500000 )
+    {
+     return (0);
+    }	
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
 	turn aaturret to y-axis heading - torsoRot speed <250.0>;

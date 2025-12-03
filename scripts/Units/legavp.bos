@@ -30,8 +30,7 @@ SmokeItUp()
 		sleep 45;
 		emit-sfx 258 from smokePoint;
 		sleep 500;
-}
-
+	}
 }
 
 Create()

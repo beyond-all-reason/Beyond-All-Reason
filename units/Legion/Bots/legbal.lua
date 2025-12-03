@@ -20,7 +20,7 @@ return {
 		maxslope = 14,
 		speed = 43.5,
 		maxwaterdepth = 21,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGBAL.s3o",
 		script = "Units/LEGBAL.cob",
@@ -100,7 +100,7 @@ return {
 			},
 		},
 		weapondefs = {
-			cor_bot_rocket = {
+			leg_bot_rocket = {
 				areaofeffect = 70,
 				avoidfeature = false,
 				cegtag = "missiletrailsmall-simple",
@@ -148,7 +148,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "COR_BOT_ROCKET",
+				def = "LEG_BOT_ROCKET",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

@@ -14,6 +14,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 -- Shameless port from https://gist.github.com/martymcmodding/30304c4bffa6e2bd2eb59ff8bb09d135
 
 -----------------------------------------------------------------
@@ -27,11 +31,6 @@ end
 local glTexture		 = gl.Texture
 local glBlending	 = gl.Blending
 
------------------------------------------------------------------
--- File path Constants
------------------------------------------------------------------
-
-local luaShaderDir = "LuaUI/Include/"
 
 -----------------------------------------------------------------
 -- Shader Sources
@@ -217,7 +216,7 @@ void main( )
 -- Global Variables
 -----------------------------------------------------------------
 
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
 
 local screenCopyTex
 local glassShader
@@ -246,7 +245,7 @@ function widget:Initialize()
 		return 
 	end
 	if gl.CreateShader == nil then
-		Spring.Echo("glass: createshader not supported, removing")
+		spEcho("glass: createshader not supported, removing")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -265,7 +264,7 @@ function widget:Initialize()
 
 	local shaderCompiled = glassShader:Initialize()
 	if not shaderCompiled then
-			Spring.Echo("Failed to compile Contrast Adaptive Sharpen shader, removing widget")
+			spEcho("Failed to compile Contrast Adaptive Sharpen shader, removing widget")
 			widgetHandler:RemoveWidget()
 			return
 	end
@@ -305,18 +304,18 @@ function widget:FeatureDestroyed(featureID, allyTeam)
 		local fx, fy, fz = Spring.GetFeaturePosition(featureID)
 		local featureHealth = Spring.GetFeatureHealth(featureID)
 		local mr, mm, er, em, rl = Spring.GetFeatureResources(featureID) 
-		Spring.Echo("Reclaiming that was probably not a good idea...", featureHealth, mr, mm, er, em, rl )
+		spEcho("Reclaiming that was probably not a good idea...", featureHealth, mr, mm, er, em, rl )
 		if featureHealth > 0 and er == 0 then 
 			local unitsnearby = Spring.GetUnitsInCylinder(fx,fz, 170, myteamid)
 			for i, unitID in ipairs(unitsnearby) do 
-				--Spring.Echo("nearby", unitID)
+				--spEcho("nearby", unitID)
 				local unitDefID = Spring.GetUnitDefID(unitID) 
-				--Spring.Echo("nearby", unitID, UnitDefs[unitDefID].name)
+				--spEcho("nearby", unitID, UnitDefs[unitDefID].name)
 				if UnitDefs[unitDefID].name == 'armcom' or UnitDefs[unitDefID].name == 'corcom' then
 					if effectOn == false then 
 						effectOn = true
 						effectStart = os.clock()
-						--Spring.Echo("Effect started")
+						--spEcho("Effect started")
 					end
 				end
 			end
@@ -331,7 +330,7 @@ function widget:DrawScreenEffects()
 			screenCopyTex = WG['screencopymanager'].GetScreenCopy()
 		else
 			--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
-			Spring.Echo("Missing Screencopy Manager, exiting",  WG['screencopymanager'] )
+			spEcho("Missing Screencopy Manager, exiting",  WG['screencopymanager'] )
 			widgetHandler:RemoveWidget()
 			return false
 		end

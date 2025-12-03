@@ -112,6 +112,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:laserhit-small-yellow",
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				intensity = 0.7,
 				name = "Rapid-fire close-quarters plasma turret",
@@ -128,6 +129,9 @@ return {
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 9,
 					vtol = 2,

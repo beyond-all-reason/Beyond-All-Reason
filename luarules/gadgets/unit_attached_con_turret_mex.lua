@@ -19,12 +19,17 @@ local legmohoconDefID = UnitDefNames["legmohocon"] and UnitDefNames["legmohocon"
 local legmohoconctDefID = UnitDefNames["legmohoconct"] and UnitDefNames["legmohoconct"].id
 local legmohoconDefIDScav = UnitDefNames["legmohocon_scav"] and UnitDefNames["legmohocon_scav"].id
 local legmohoconctDefIDScav = UnitDefNames["legmohoconct_scav"] and UnitDefNames["legmohoconct_scav"].id
+local mexesToSwap = {}
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-
 	if unitDefID ~= legmohoconDefID and unitDefID ~= legmohoconDefIDScav then
         return
     end
+
+	mexesToSwap[unitID] = {unitDefID = unitDefID, unitTeam = unitTeam, frame = Spring.GetGameFrame() + 1}
+end
+
+local function swapMex(unitID, unitDefID, unitTeam)
 	local scav = ""
 	if UnitDefs[unitDefID].customParams.isscavenger or unitTeam == Spring.Utilities.GetScavTeamID() then scav = "_scav" end
 	--Spring.Echo("isScav", UnitDefs[unitDefID].customParams.isscavenger, scav)
@@ -32,39 +37,53 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	local facing = Spring.GetUnitBuildFacing(unitID)
 	local buildTime, metalCost, energyCost = Spring.GetUnitCosts(unitID)
 	local health = Spring.GetUnitHealth(unitID)																-- saves location, rotation, cost and health of mex
-	local original = Spring.GetUnitNearestAlly(unitID) 
-	local orgbuildTime, orgmetalCost, orgenergyCost = Spring.GetUnitCosts(original)							-- gets metal cost of thing you are building over
-  Spring.SetUnitHealth(unitID, {build = 0.5}) -- HAX required to make BARbarians not crash for now.
-	local imex_id = Spring.CreateUnit("legmohoconin" .. scav,xx,yy,zz,facing,Spring.GetUnitTeam(unitID) )			-- creates imex on where mex was
-	--Spring.Echo(unitID, original, orgmetalCost)
-	if not Spring.GetUnitIsDead(unitID) then																-- if you build this over something then it doesnt remove mex, this removes and reclaims it
-		Spring.DestroyUnit(unitID, false, true)
-		Spring.AddTeamResource(unitTeam, "metal", metalCost)
-		Spring.UseTeamResource(unitTeam, "metal", orgmetalCost)												-- for some reason the unit you build it over gets reclaimed twice, this removes the excess
+	local original = Spring.GetUnitNearestAlly(unitID)
+	local orgExtractMetal = 0
+	if original then
+		local orgbuildTime, orgmetalCost, orgenergyCost = Spring.GetUnitCosts(original)							-- gets metal cost of thing you are building over
+		local imex_id = Spring.CreateUnit("legmohoconin" .. scav,xx,yy,zz,facing,Spring.GetUnitTeam(unitID) )			-- creates imex on where mex was
+		--Spring.Echo(unitID, original, orgmetalCost)
+		if not Spring.GetUnitIsDead(unitID) then																-- if you build this over something then it doesnt remove mex, this removes and reclaims it
+			Spring.DestroyUnit(unitID, false, true)
+			Spring.AddTeamResource(unitTeam, "metal", metalCost)
+			Spring.UseTeamResource(unitTeam, "metal", orgmetalCost)												-- for some reason the unit you build it over gets reclaimed twice, this removes the excess
+			orgExtractMetal = Spring.GetUnitMetalExtraction(original)
+		end
+		Spring.UseTeamResource(unitTeam, "metal", metalCost)												-- creating imex reclaims mex, this removes the metal that would give. DestroyUnit doesnt prevent the reclaim
+		if not imex_id then																					-- check incase the imex fails to spawn, removes and refunds the unit
+			Spring.DestroyUnit(unitID, false, true)
+			Spring.AddTeamResource(unitTeam, "metal", metalCost)
+			Spring.AddTeamResource(unitTeam, "energy", energyCost)
+			return
+		end
+		Spring.SetUnitBlocking(imex_id, true, true, false)													-- makes imex non interactive
+		Spring.SetUnitNoSelect(imex_id,true)
+		local nano_id = Spring.CreateUnit("legmohoconct" .. scav,xx,yy,zz,facing,Spring.GetUnitTeam(imex_id) )		-- creates con on imex
+		--Spring.Echo('nano_id', nano_id)
+		if not nano_id then																							-- check incase the con fails to spawn, removes and refunds the unit
+			Spring.DestroyUnit(unitID, false, true)
+			Spring.DestroyUnit(imex_id, false, true)
+			Spring.AddTeamResource(unitTeam, "metal", metalCost)
+			Spring.AddTeamResource(unitTeam, "energy", energyCost)
+			return
+		end
+		Spring.UnitAttach(imex_id,nano_id,6)																-- attaches con to imex
+		Spring.SetUnitHealth(nano_id, health)																-- sets con health to be the same as mex
+		local extractMetal = Spring.GetUnitMetalExtraction(unitID)											-- moves the metal extraction from imex to turret.
+		Spring.SetUnitResourcing(nano_id, "umm", (extractMetal + orgExtractMetal))
+		Spring.SetUnitResourcing(imex_id, "umm", (-extractMetal - orgExtractMetal))
+		Spring.SetUnitStealth (nano_id, true) 
+
+		mexesToSwap[unitID] = nil
 	end
-	Spring.UseTeamResource(unitTeam, "metal", metalCost)												-- creating imex reclaims mex, this removes the metal that would give. DestroyUnit doesnt prevent the reclaim
-	if not imex_id then																					-- check incase the imex fails to spawn, removes and refunds the unit
-		Spring.DestroyUnit(unitID, false, true)
-		Spring.AddTeamResource(unitTeam, "metal", metalCost)
-		Spring.AddTeamResource(unitTeam, "energy", energyCost)
-		return
+end
+
+function gadget:GameFrame(frame)
+	for unitID, unitData in pairs(mexesToSwap) do
+		if frame > unitData.frame then
+			swapMex(unitID, unitData.unitDefID, unitData.unitTeam)
+		end
 	end
-	Spring.SetUnitBlocking(imex_id, true, true, false)													-- makes imex non interactive
-	Spring.SetUnitNoSelect(imex_id,true)
-	local nano_id = Spring.CreateUnit("legmohoconct" .. scav,xx,yy,zz,facing,Spring.GetUnitTeam(imex_id) )		-- creates con on imex
-	--Spring.Echo('nano_id', nano_id)
-	if not nano_id then																							-- check incase the con fails to spawn, removes and refunds the unit
-		Spring.DestroyUnit(unitID, false, true)
-		Spring.DestroyUnit(imex_id, false, true)
-		Spring.AddTeamResource(unitTeam, "metal", metalCost)
-		Spring.AddTeamResource(unitTeam, "energy", energyCost)
-		return
-	end
-	Spring.UnitAttach(imex_id,nano_id,6)																-- attaches con to imex
-	Spring.SetUnitHealth(nano_id, health)																-- sets con health to be the same as mex
-	local extractMetal = Spring.GetUnitMetalExtraction(unitID)											-- moves the metal extraction from imex to turret.
-	Spring.SetUnitResourcing(nano_id, "umm", extractMetal)
-	Spring.SetUnitResourcing(imex_id, "umm", (-extractMetal))
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
@@ -77,7 +96,7 @@ end
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 
 	if unitDefID ~= legmohoconctDefID and unitDefID ~= legmohoconctDefIDScav then
-        return 
+        return
     end
 	local health,maxHealth = Spring.GetUnitHealth(unitID)
 	if health-damage < 0 then																		-- when damaged and killed
@@ -104,5 +123,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
     end
 	if Spring.GetUnitTransporter(unitID) then
 		Spring.DestroyUnit(Spring.GetUnitTransporter(unitID), false, true)
+	end
+	for destroyedUnitID, destroyedUnitData in pairs(mexesToSwap) do
+		if unitID == destroyedUnitID then
+			mexesToSwap[destroyedUnitID] = nil
+		end
 	end
 end

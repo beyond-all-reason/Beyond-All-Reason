@@ -1,0 +1,36 @@
+// Mono-space font required
+{
+"economy": {
+	"energy": {
+		// If land area >= 40% of the map then "land" config used, "water" otherwise
+		"land": {
+			// "<energy_def>": [<lower limit>, <upper limit>, <m-income>, <e-income>, <efficiency>]
+			// limit = random(<lower limit>..<upper limit>)
+			"legwin": [10, 20],
+			"legsolar": [50, 100, 0, 0, 0.030],
+			"legadvsol": [12, 16, 30, 1000, 0.200],
+			"legfus": [1, 2],
+			"legafus": [12, 50]
+		},
+		"water": {
+			"legtide": [140, 250]
+		}
+	},
+
+	"geo": {
+		"legion": "leggeo"
+	},
+	"mex": {
+		"legion": "legmex"
+	},
+	//"terra": "armsy",
+	"assist": {
+		"legion": "legnanotc"
+	},
+
+	// Unknown UnitDef replacer
+	"default": {
+		"legion": "legwin"
+	}
+}
+}

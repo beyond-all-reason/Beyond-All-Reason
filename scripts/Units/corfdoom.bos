@@ -1,127 +1,74 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, base2, base3, flarer1, flarer2, body1, turretg, boreg, barrelg, flareg, neck,
  turretb, boreb, barrelb, flareb, turretr, borer, barrelr, aimpoint;
 
-static-var  closed, gun_3, restore_delay, Static_Var_3, Static_Var_7, Static_Var_8,
-				aimdir, statechg_DesiredState, statechg_StateChanging;
+static-var  isOpen, gun_3, restore_delay, Static_Var_3, Static_Var_7, Static_Var_8,
+				aimdir;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
-#define SIG_AIM_3			8
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3 1024
+
+#include "../opencloseanim.h"
+
+#define WATER_ROCK_UNITSIZE 17
+#include "../floatmotion.h"
+
+
+#define BASEPIECE base
+#define MAXTILT 200
+#define UNITSIZE 10
+#define RECOIL_POWER 10000
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
 // MaxVelocity and acceleration are in degrees per frame (not second!)
 // Jerk is the minimum velocity of the turret
 // A high precision requirement can result in overshoots if desired 
-// (c) CC BY NC ND Beherith mysterme@gmail.com
-#define MAX_AIMY1_VELOCITY <3.00>
-#define AIMY1_ACCELERATION <0.16>
-#define AIMY1_JERK <0.5>
-#define AIMY1_PRECISION <1.2>
-#define AIMY1_RESTORE_SPEED <1.0>
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 
-static-var timetozero, deceleratethreshold;
-static-var Stunned;
+#define CATT1_PIECE_X turretb
+#define CATT1_PIECE_Y turretb
 
-static-var aimy1delta, aimy1velocity, aimy1target, aimy1position, gameFrame1;
+#define CATT1_MAX_VELOCITY <3.0>
+#define CATT1_ACCELERATION <0.16>
+#define CATT1_JERK <0.5>
+#define CATT1_PRECISION <1.2>
+#define CATT1_RESTORE_SPEED <1.0>
+#define CATT1_PITCH_SPEED <85>
 
-#define MAX_AIMY2_VELOCITY <6.00>
-#define AIMY2_ACCELERATION <0.4>
-#define AIMY2_JERK <1.2>
-#define AIMY2_PRECISION <1.2>
-#define AIMY2_RESTORE_SPEED <1.0>
-static-var aimy2delta, aimy2velocity, aimy2target, aimy2position, gameFrame2;
+#include "../constant_acceleration_turret_turning_1.h"
 
-#define BASEPIECE base
-#define HITSPEED <25.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 7
-#define MAXTILT 200
+#define CATT2_PIECE_X turretg
+#define CATT2_PIECE_Y body1
 
-RockOnWaves()
+#define CATT2_MAX_VELOCITY <6.0>
+#define CATT2_ACCELERATION <0.4>
+#define CATT2_JERK <1.5>
+#define CATT2_PRECISION <1.2>
+#define CATT2_RESTORE_SPEED <1.0>
+#define CATT2_PITCH_SPEED <150>
+
+#include "../constant_acceleration_turret_turning_2.h"
+
+
+
+Open()
 {
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while(( get ABS( rockAng ) )< <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*5;
-			turn base to z-axis rockAng speed rockSpeed*5;
-			wait-for-turn base around x-axis;
-			wait-for-turn base around z-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
+	set ARMORED to 0;
 
-ProjXPW(Func_Var_1, Func_Var_2)
-{
-	if( Func_Var_2 < -21840 )
-	{
-		Static_Var_7 = Func_Var_1 * ( Func_Var_2 + 32760 ) / 10920;
-	}
-	else if( Func_Var_2 > 21840 )
-	{
-		Static_Var_7 = Func_Var_1 * ( 32760 - Func_Var_2 ) / 10920;
-	}
-	else if( Func_Var_2 < -10920 )
-	{
-		Static_Var_7 = 0 - Func_Var_1;
-	}
-	else if( Func_Var_2 > 10920 )
-	{
-		Static_Var_7 = Func_Var_1;
-	}
-	else
-	{
-		Static_Var_7 = Func_Var_1 * Func_Var_2 / 10920;
-	}
-}
-
-RockZ(Func_Var_1, Func_Var_2)
-{
-	signal 4096;
-	set-signal-mask 4096;
-	call-script ProjXPW(10920 / Func_Var_2,Func_Var_1);
-	Static_Var_8 = Static_Var_8 + Static_Var_7;
-	Static_Var_7 = get ABS(Static_Var_8);
-	while( Static_Var_7 > 91 )
-	{
-		turn base to z-axis Static_Var_8 speed Static_Var_7 * <0.0125>;
-		wait-for-turn base around z-axis;
-		Static_Var_8 = Static_Var_8 * -1 / 2;
-		Static_Var_7 = get ABS(Static_Var_8);
-	}
-	turn base to z-axis <0.000000> speed <1.5>;
-}
-
-activatescr()
-{
-	if( TRUE )
-	{
 		move body1 to y-axis [0] speed [90];
 		move turretb to y-axis [-14] speed [90];
 		wait-for-move turretb along y-axis;
 		wait-for-move body1 along y-axis;
-	}
-	if( TRUE )
-	{
+
 		move turretb to y-axis [0] speed [90];
 		wait-for-move turretb along y-axis;
-	}
-	if( TRUE )
-	{
+
 		move borer to z-axis [0] speed [30];
 		move barrelr to z-axis [0] speed [20];
 		turn turretg to x-axis <0> speed <180>;
@@ -132,103 +79,47 @@ activatescr()
 		wait-for-turn turretb around x-axis;
 		wait-for-move borer along y-axis;
 		wait-for-turn turretg around x-axis;
-	}
+
 	sleep 22;
-	closed = FALSE;
+	isOpen = TRUE;
 }
 
-deactivatescr()
+Close()
 {
-	closed = TRUE;
-	if( TRUE )
-	{
-		turn turretb to x-axis <0> speed <180>;
-		turn turretg to x-axis <0> speed <180>;
-		turn turretr to y-axis <0> speed <180>;	
-		turn body1 to y-axis <0> speed <180>;	
-		aimy1position = 0;
-		turn turretb to y-axis <0> speed <180>;	
-		aimy2position = 0;
-		move turretb to y-axis [-14] speed [90];
-		wait-for-turn turretb around x-axis;
-		wait-for-turn turretg around x-axis;
-		wait-for-turn turretr around x-axis;
-		wait-for-move turretb along y-axis;
-	}
-	if( TRUE )
-	{
-		move boreb to z-axis [-6] speed [12];
-		move barrelb to z-axis [-9] speed [18];
-		turn turretg to x-axis <180> speed <180>;
-		move boreg to z-axis [-12] speed [24];
-		move barrelg to z-axis [-4] speed [10];
-		move borer to z-axis [-15] speed [30];
-		move barrelr to z-axis [-10] speed [20];
-		wait-for-move borer along y-axis;
-		wait-for-turn turretg around x-axis;
-	}
-	if( TRUE )
-	{
-		move turretb to y-axis [-28] speed [90];
-		move body1 to y-axis [-14] speed [90];
-		wait-for-move turretb along y-axis;
-		wait-for-move body1 along y-axis;
-	}
+	isOpen = FALSE;
+
+	turn turretb to x-axis <0> speed <180>;
+	turn turretg to x-axis <0> speed <180>;
+	turn turretr to y-axis <0> speed <180>;	
+	turn body1 to y-axis <0> speed <180>;	
+	turn turretb to y-axis <0> speed <180>;	
+	move turretb to y-axis [-14] speed [90];
+	wait-for-turn turretb around x-axis;
+	wait-for-turn turretg around x-axis;
+	wait-for-turn turretr around x-axis;
+	wait-for-move turretb along y-axis;
+
+	move boreb to z-axis [-6] speed [12];
+	move barrelb to z-axis [-9] speed [18];
+	turn turretg to x-axis <180> speed <180>;
+	move boreg to z-axis [-12] speed [24];
+	move barrelg to z-axis [-4] speed [10];
+	move borer to z-axis [-15] speed [30];
+	move barrelr to z-axis [-10] speed [20];
+	wait-for-move borer along y-axis;
+	wait-for-turn turretg around x-axis;
+
+	move turretb to y-axis [-28] speed [90];
+	move body1 to y-axis [-14] speed [90];
+	wait-for-move turretb along y-axis;
+	wait-for-move body1 along y-axis;
 
 	wait-for-turn body1 around x-axis;
 	wait-for-turn turretb around x-axis;
-	sleep 22;
-}
-
-Go()
-{
-
-	set ARMORED to 0;
-	if( !Static_Var_3 )
-	{
-		call-script activatescr();
-	}
-	Static_Var_3 = 1;
-}
-
-Stop()
-{
-	Static_Var_3 = 0;
-	call-script deactivatescr();
 	set ARMORED to 1;
-
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
+	
+	start-script CATT1_Init();
+	start-script CATT2_Init();
 }
 
 Create()
@@ -243,247 +134,133 @@ Create()
     hide flareb;
     hide flareg;
 	gun_3 = 0;
-	closed = FALSE;
-	call-script InitState();
+	isOpen = TRUE;
 	Static_Var_3 = 0;
 	restore_delay = 2000;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
-	start-script RequestState(0);
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script FloatMotion(1);
+	start-script OpenCloseAnim(1);
+	start-script CATT1_Init();
+	start-script CATT2_Init();
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+
 
 
 Activate()
 {
-	start-script RequestState(0);
+
+	start-script OpenCloseAnim(1);
 }
 
 Deactivate()
 {
-	signal SIG_AIM;
-	signal SIG_AIM_2;
-	signal SIG_AIM_3;
-	start-script RequestState(1);
+	signal SIGNAL_AIM1;
+	signal SIGNAL_AIM2;
+	signal SIGNAL_AIM3;
+	start-script OpenCloseAnim(0);
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 4;
+	restore_delay = reloadMS * 4;
 }
 
 AimWeapon1(heading, pitch)
 {
-	if (closed == TRUE)
+	if (!isOpen)
 	{
 		return (0);
 	}	
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	//We can do this any time
-	turn turretb to x-axis <0.000000> - pitch speed <85.000000>;
 	aimDir = heading;
-	aimy1target = heading;
-	aimy1delta = aimy1target - aimy1position;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	//We can do this any time
 
-	
-	while( ( get ABS(aimy1delta) > AIMY1_PRECISION ) OR (get ABS(aimy1velocity) > AIMY1_JERK)){
-		if (gameFrame1 != get(GAME_FRAME)){ //this is to make sure we dont get double-called, as previous aimweapon thread runs before new aimweaponthread can signal-kill previous one 
-			gameFrame1 = get(GAME_FRAME);
-	
-			//Clamp aimy1position and aimy1delta between <-180>;<180>
-			while (aimy1position >  <180>) aimy1position = aimy1position - <360>;
-			while (aimy1position < <-180>) aimy1position = aimy1position + <360>;
-			while (aimy1delta >  <180>) aimy1delta = aimy1delta - <360>;
-			while (aimy1delta < <-180>) aimy1delta = aimy1delta + <360>;
-		
-			//number of frames required to decelerate to 0
-			timetozero = get ABS(aimy1velocity) / AIMY1_ACCELERATION;
-			
-			//distance from target where we should start decelerating, always 'positive'
-			//pos = t * v - (t*(t-1)*a/2)
-			deceleratethreshold = timetozero * (get ABS(aimy1velocity)) - (timetozero * (timetozero - 1) * AIMY1_ACCELERATION / 2); 
-			
-			//get PRINT ( aimy1delta , deceleratethreshold, aimy1velocity, timetozero );
-			
-			if (get ABS(aimy1delta) <= deceleratethreshold){ //we need to decelerate
-				if (aimy1velocity > 0) aimy1velocity = aimy1velocity - AIMY1_ACCELERATION;
-				else 				   aimy1velocity = aimy1velocity + AIMY1_ACCELERATION;
-			}	
-			else //we need to accelerate
-			{
-				if (aimy1delta > 0) aimy1velocity = get MIN(       MAX_AIMY1_VELOCITY, aimy1velocity + AIMY1_ACCELERATION); 
-				else                aimy1velocity = get MAX((-1) * MAX_AIMY1_VELOCITY, aimy1velocity - AIMY1_ACCELERATION);
-			}
-			
-			//Apply jerk at very low velocities
-			if (get ABS(aimy1velocity) < AIMY1_JERK){
-				if ((aimy1delta >        AIMY1_JERK)) aimy1velocity =        AIMY1_JERK;
-				if ((aimy1delta < (-1) * AIMY1_JERK)) aimy1velocity = (-1) * AIMY1_JERK;
-			}
-			
-			aimy1position = aimy1position + aimy1velocity; 
-			turn turretb to y-axis aimy1position now;
-			aimy1delta = aimy1target - aimy1position ; 	
-		}
-		sleep 30;		
-	}
-	aimy1velocity = 0;
+	call-script CATT1_Aim(heading,pitch);
+
 	return (1);
 }
 
 
 AimWeapon2(heading, pitch)
 {
-	if (closed == TRUE)
+	if (!isOpen)
 	{
 		return (0);
 	}	
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
-	//We can do this any time
-	turn turretg to x-axis <0.000000> - pitch speed <85.000000>;
-	
-	aimy2target = heading;
-	aimy2delta = aimy2target - aimy2position;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 
-	
-	while( ( get ABS(aimy2delta) > AIMY2_PRECISION ) OR (get ABS(aimy2velocity) > AIMY2_JERK)){
-		if (gameFrame2 != get(GAME_FRAME)){ //this is to make sure we dont get double-called, as previous aimweapon thread runs before new aimweaponthread can signal-kill previous one 
-			gameFrame2 = get(GAME_FRAME);
-	
-			//Clamp aimy2position and aimy2delta between <-180>;<180>
-			while (aimy2position >  <180>) aimy2position = aimy2position - <360>;
-			while (aimy2position < <-180>) aimy2position = aimy2position + <360>;
-			while (aimy2delta >  <180>) aimy2delta = aimy2delta - <360>;
-			while (aimy2delta < <-180>) aimy2delta = aimy2delta + <360>;
-		
-			//number of frames required to decelerate to 0
-			timetozero = get ABS(aimy2velocity) / AIMY2_ACCELERATION;
-			
-			//distance from target where we should start decelerating, always 'positive'
-			//pos = t * v - (t*(t-1)*a/2)
-			deceleratethreshold = timetozero * (get ABS(aimy2velocity)) - (timetozero * (timetozero - 1) * AIMY2_ACCELERATION / 2); 
-			
-			//get PRINT ( aimy2delta , deceleratethreshold, aimy2velocity, timetozero );
-			
-			if (get ABS(aimy2delta) <= deceleratethreshold){ //we need to decelerate
-				if (aimy2velocity > 0) aimy2velocity = aimy2velocity - AIMY2_ACCELERATION;
-				else 				   aimy2velocity = aimy2velocity + AIMY2_ACCELERATION;
-			}	
-			else //we need to accelerate
-			{
-				if (aimy2delta > 0) aimy2velocity = get MIN(       MAX_AIMY2_VELOCITY, aimy2velocity + AIMY2_ACCELERATION); 
-				else                aimy2velocity = get MAX((-1) * MAX_AIMY2_VELOCITY, aimy2velocity - AIMY2_ACCELERATION);
-			}
-			
-			//Apply jerk at very low velocities
-			if (get ABS(aimy2velocity) < AIMY2_JERK){
-				if ((aimy2delta >        AIMY2_JERK)) aimy2velocity =        AIMY2_JERK;
-				if ((aimy2delta < (-1) * AIMY2_JERK)) aimy2velocity = (-1) * AIMY2_JERK;
-			}
-			
-			aimy2position = aimy2position + aimy2velocity; 
-			turn body1 to y-axis aimy2position now;
-			aimy2delta = aimy2target - aimy2position ; 	
-		}
-		sleep 30;		
-	}
-	aimy2velocity = 0;
+	call-script CATT2_Aim(heading,pitch);
 	return (1);
 }
 
-AimTertiary(heading, pitch)
+AimWeapon3(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
-	while( !Static_Var_3 )
+	signal SIGNAL_AIM3;
+	set-signal-mask SIGNAL_AIM3;
+	while( !isOpen )
 	{
 		sleep 250;
 	}
-	turn turretr to y-axis heading speed <500.000000>;
+	turn turretr to y-axis heading speed <500.0>;
 	wait-for-turn turretr around y-axis;
 
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
-	start-script RockZ(-27,aimDir);
 	emit-sfx 1024 + 0 from flareb;
-	move boreb to z-axis [-4.000000] speed [500.000000];
-	move barrelb to z-axis [-4.000000] speed [500.000000];
+	move boreb to z-axis [-4.0] speed [500.0];
+	move barrelb to z-axis [-4.0] speed [500.0];
 	sleep 150;
-	move boreb to z-axis [0.000000] speed [3.000000];
-	move barrelb to z-axis [0.000000] speed [3.000000];
+	move boreb to z-axis [0.0] speed [3.0];
+	move barrelb to z-axis [0.0] speed [3.0];
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	sleep 150;
 }
 
-FireTertiary()
+FireWeapon3()
 {
-	if( gun_3 == 0 )
-	{
-		gun_3 = 1;
-		return (0);
-	}
-	else
-	{
-		
-	   	gun_3 = 0 ;
-		return (0);
-	}
+	gun_3 = !gun_3;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimpoint;
+	pieceIndex = aimpoint;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = body1;
+	pieceIndex = body1;
 }
 
-AimFromTertiary(piecenum)
+AimFromWeapon3(pieceIndex)
 {
-	piecenum = turretr;
+	pieceIndex = turretr;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flareb;
+	pieceIndex = flareb;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = flareg;
+	pieceIndex = flareg;
 }
 
-QueryTertiary(piecenum)
+QueryWeapon3(pieceIndex)
 {
-	if( gun_3 == 0 )
-	{
-		piecenum = flarer1;
-	}
-	else
-	{
-		piecenum = flarer2;
-	}
-	
+	pieceIndex = flarer1 + gun_3;	
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

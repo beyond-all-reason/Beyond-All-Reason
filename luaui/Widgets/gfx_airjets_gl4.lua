@@ -17,6 +17,16 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+
+-- Localized Spring API for performance
+local spGetUnitDefID = Spring.GetUnitDefID
+local spEcho = Spring.Echo
+local spGetAllUnits = Spring.GetAllUnits
+local spGetSpectatingState = Spring.GetSpectatingState
+
 -- TODO:
 -- reflections
 -- piece matrix
@@ -30,6 +40,8 @@ end
 --------------------------------------------------------------------------------
 -- 'Speedups'
 --------------------------------------------------------------------------------
+---
+
 
 local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitPieceMap = Spring.GetUnitPieceMap
@@ -53,400 +65,16 @@ local spValidUnitID = Spring.ValidUnitID
 --------------------------------------------------------------------------------
 -- Configuration
 --------------------------------------------------------------------------------
+---
+local autoUpdate = false
 
 local enableLights = true
 local lightMult = 1.4
 
-local texture1 = "bitmaps/GPL/Lups/perlin_noise.jpg"    -- noise texture
-local texture2 = ":c:bitmaps/gpl/lups/jet2.bmp"        -- shape
+local texture1 = "bitmaps/GPL/perlin_noise.jpg"    -- noise texture
+local texture2 = ":c:bitmaps/gpl/jet2.bmp"        -- shape
 
-local effectDefs = {
-
-	-- land vechs
-	["cortorch"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 5, length = 24, piece = "thruster1", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 8, length = 32, piece = "thruster2", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 12, length = 64, piece = "thruster3", light = 1 },
-	},
-
-	-- scouts
-	["armpeep"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet1" },
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet2" },
-	},
-	["corfink"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 2.3, length = 18, piece = "thrusta" },
-		{ color = { 0.7, 0.4, 0.1 }, width = 2.3, length = 18, piece = "thrustb" },
-	},
-	-- fighters
-	["armfig"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 45, piece = "thrust" },
-	},
-	["corveng"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 3.3, length = 24, piece = "thrust1" },
-		{ color = { 0.7, 0.4, 0.1 }, width = 3.3, length = 24, piece = "thrust2" },
-	},
-	["armsfig"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 25, piece = "thrust" },
-	},
-	["armsfig2"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 8, length = 45, piece = "thrust" },
-	},
-	["corsfig"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 32, piece = "thrust" },
-	},
-	["corsfig2"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 8, length = 45, piece = "thrust" },
-	},
-	["armhawk"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrust" },
-	},
-	["corvamp"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrusta" },
-	},
-	["legfig"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 15, piece = "thrust" },
-	},
-	["legionnaire"] = {
-		{ color = { 0.2, 0.4, 0.5 }, width = 3.5, length = 30, piece = "thrusta" },
-	},
-	["legvenator"] = {
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "lthrust" },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "rthrust" },
-	},
-	-- radar
-	["armawac"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 30, piece = "thrust", light = 1 },
-	},
-	["corawac"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 30, piece = "lthrust", light = 1 },
-		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 30, piece = "mthrust", light = 1 },
-		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 30, piece = "rthrust", light = 1 },
-	},
-	["legwhisper"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 30, piece = "thrust", light = 1 },
-	},
-	["corhunt"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 37, piece = "thrust", light = 1 },
-	},
-	--["armsehak"] = {
-	--	{ color = { 0.2, 0.8, 0.2 }, width = 3.5, length = 37, piece = "thrust", light = 1 },
-	--},
-	--drones
-
-	["armdroneold"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustl", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustr", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 8, piece = "thrustm", light = 1 }, --, xzVelocity = 1.5 -- removed xzVelocity else the other thrusters get disabled as well
-	},
-	["armdrone"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustl", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustr", light = 1 },
-	},
-	["armtdrone"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustl", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustr", light = 1 },
-	},
-	-- transports
-	["armatlas"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 12, piece = "thrustl", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 12, piece = "thrustr", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 15, piece = "thrustm", light = 1 }, --, xzVelocity = 1.5 -- removed xzVelocity else the other thrusters get disabled as well
-	},
-	["armhvytrans"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 15, piece = "thrustfl", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 15, piece = "thrustfr", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 15, piece = "thrustbl", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 15, piece = "thrustbr", light = 1 }, --, xzVelocity = 1.5 -- removed xzVelocity else the other thrusters get disabled as well
-	},
-	["corvalk"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust1", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust3", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust2", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust4", emitVector = { 0, 1, 0 }, light = 1 },
-	},
-	["corhvytrans"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrustfl", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrustfr", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrustbl", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrustbr", emitVector = { 0, 1, 0 }, light = 1 },
-	},
-	["armdfly"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrusta", xzVelocity = 1.5, light = 1 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrustb", xzVelocity = 1.5, light = 1 },
-	},
-	["corseah"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrra", emitVector = { 0, 1, 0 }, light = 0.75 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.75 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.75 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.75 },
-	},
-	["legatrans"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "rightGroundThrust", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "leftGroundThrust", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 17, piece = "rightMainThrust", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 17, piece = "leftMainThrust", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 8.5, piece = "rightMiniThrust", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 8.5, piece = "leftMiniThrust", emitVector = { 0, 1, 0 }, light = 1 },
-	},
-	["legstronghold"] = {
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "bthrust1", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "bthrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "lthrust1", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "lthrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "rthrust1", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "rthrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
-	},
-
-	-- gunships
-	["armkam"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 28, piece = "thrusta", xzVelocity = 1.5, light = 1, emitVector = { 0, 1, 0 } },
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 28, piece = "thrustb", xzVelocity = 1.5, light = 1, emitVector = { 0, 1, 0 } },
-	},
-	["armblade"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 25, piece = "thrust", light = 1, xzVelocity = 1.5 },
-	},
-	["legmos"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 2, length = 16, piece = "thrust", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
-	},
-	["legmost3"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 32, piece = "thrust", emitVector = { 0, 0, -1 }, xzVelocity = 3, light = 1 },
-	},
-	["legheavydrone"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 2, length = 16, piece = "thrusttrail", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
-	},
-	["corape"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 4, length = 16, piece = "rthrust", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 4, length = 16, piece = "lthrust", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
-		--{color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="lhthrust1", emitVector= {1,0,0}, light=1},
-		--{color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="rhthrust2", emitVector= {1,0,0}, light=1},
-		--{color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="lhthrust2", emitVector= {-1,0,0}, light=1},
-		--{color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="rhthrust1", emitVector= {-1,0,0}, light=1},
-	},
-	["armseap"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 35, piece = "thrustm", light = 1 },
-	},
-	["corseap"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 32, piece = "thrust", light = 1 },
-	},
-	["corcrw"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrra", emitVector = { 0, 1, -1 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrla", emitVector = { 0, 1, -1 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfra", emitVector = { 0, 1, -1 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfla", emitVector = { 0, 1, -1 }, light = 0.6 },
-	},
-	["corcrwh"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrra", emitVector = { 0, 1, -1 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrla", emitVector = { 0, 1, -1 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfra", emitVector = { 0, 1, -1 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfla", emitVector = { 0, 1, -1 }, light = 0.6 },
-	},
-	["corcrwt4"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 19, length = 50, piece = "thrustrra", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 19, length = 50, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 17, length = 44, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 17, length = 44, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.6 },
-	},
-	["legfort"] = {
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust1", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust3", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust4", emitVector = { 0, 1, 0 }, light = 0.6 },
-
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust5", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust6", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust7", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust8", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 32, piece = "thrust9", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 32, piece = "thrust10", emitVector = { 1, 1, 0 }, light = 0.6 },
-	},
-	["legfortt4"] = {
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust1", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust3", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust4", emitVector = { 0, 1, 0 }, light = 0.6 },
-
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust5", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust6", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust7", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust8", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 12, length = 64, piece = "thrust9", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 12, length = 64, piece = "thrust10", emitVector = { 1, 1, 0 }, light = 0.6 },
-	},
-	["corcut"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 3.7, length = 15, piece = "thrusta", light = 1 },
-		{ color = { 0.2, 0.8, 0.2 }, width = 3.7, length = 15, piece = "thrustb", light = 1 },
-	},
-	--["armbrawl"] = {
-	--	{ color = { 0.1, 0.4, 0.6 }, width = 3.7, length = 15, piece = "thrust1", light = 1 },
-	--	{ color = { 0.1, 0.4, 0.6 }, width = 3.7, length = 15, piece = "thrust2", light = 1 },
-	--},
-
-	-- bladewing
-	["corbw"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 1.8, length = 7.5, piece = "thrusta" },
-		{ color = { 0.1, 0.4, 0.6 }, width = 1.8, length = 7.5, piece = "thrustb" },
-	},
-	["cordroneold"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrusta" },
-		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrustb" },
-	},
-	["cordrone"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrusta" },
-		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrustb" },
-	},
-	["cortdrone"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrusta" },
-		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrustb" },
-	},
-
-	-- bombers
-	["armstil"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 40, piece = "thrusta", light = 1 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 40, piece = "thrustb", light = 1 },
-	},
-	["armthund"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 17, piece = "thrust1", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 17, piece = "thrust2" },
-		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 17, piece = "thrust3" },
-		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 17, piece = "thrust4", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 25, piece = "thrustc", light = 1.3 },
-	},
-	["armthundt4"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 9, length = 60, piece = "thrust1", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 9, length = 60, piece = "thrust2" },
-		{ color = { 0.7, 0.4, 0.1 }, width = 9, length = 60, piece = "thrust3" },
-		{ color = { 0.7, 0.4, 0.1 }, width = 9, length = 60, piece = "thrust4", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 85, piece = "thrustc", light = 1.3 },
-	},
-	["armpnix"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 7, length = 35, piece = "thrusta", light = 1 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 7, length = 35, piece = "thrustb", light = 1 },
-	},
-	["corshad"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 24, piece = "thrusta1", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 24, piece = "thrusta2", light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 5, length = 33, piece = "thrustb", light = 1 },
-	},
-	["armliche"] = {
-		{ color = { 0.8, 0.15, 0.15 }, width = 3.5, length = 44, piece = "thrusta", light = 1 },
-		{ color = { 0.8, 0.15, 0.15 }, width = 3.5, length = 44, piece = "thrustb", light = 1 },
-		{ color = { 0.8, 0.15, 0.15 }, width = 3.5, length = 44, piece = "thrustc", light = 1 },
-	},
-	["armlichet4"] = {
-		{ color = { 0.8, 0.15, 0.15 }, width = 10.5, length = 132, piece = "thrusta", light = 1.5 },
-		{ color = { 0.8, 0.15, 0.15 }, width = 10.5, length = 132, piece = "thrustb", light = 1.5 },
-		{ color = { 0.8, 0.15, 0.15 }, width = 10.5, length = 132, piece = "thrustc", light = 1.5 },
-	},
-	["cortitan"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta1", light = 1 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta2", light = 1 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrustb1", light = 1 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrustb2", light = 1 },
-	},
-	["armlance"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 40, piece = "thrust1", light = 1 },
-	},
-	["corhurc"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 8, length = 50, piece = "thrustb", light = 1 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta1" },
-		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta2" },
-	},
-	["legnap"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 8, length = 50, piece = "thrustb", light = 1 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta1" },
-		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta2" },
-	},
-	["legcib"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 25, piece = "lThrust", light = 1.3 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 25, piece = "rThrust", light = 1.3 },
-	},
-	["legkam"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 25, piece = "thrust", light = 1 },
-	},
-	["legatorpbomber"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 25, piece = "rightAJet", light = 1 },
-		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 25, piece = "leftAJet", light = 1 },
-		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 19, piece = "rightBJet", light = 1 },
-		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 19, piece = "leftBJet", light = 1 },
-	},
-	["armsb"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 36, piece = "thrustc", light = 1 },
-		{ color = { 0.2, 0.8, 0.2 }, width = 2.2, length = 18, piece = "thrusta", light = 1 },
-		{ color = { 0.2, 0.8, 0.2 }, width = 2.2, length = 18, piece = "thrustb", light = 1 },
-	},
-	["corsb"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "thrusta", light = 1 },
-		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "thrustb", light = 1 },
-	},
-	["legmineb"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "lthrusttrail", light = 1 },
-		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "rthrusttrail", light = 1 },
-	},
-	["cords"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "flarefl", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "flarefr", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "flarebl", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "flarebr", emitVector = { 0, 1, 0 }, light = 0.6 },
-	},
-	["legphoenix"] = {
-		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 36, piece = "rthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 36, piece = "rrthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 36, piece = "lthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 36, piece = "llthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
-	},
-	["leglts"] = {
-		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 32, piece = "lthrust", emitVector = { 0, 1, 0 }, light = 0.5 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 32, piece = "rthrust", emitVector = { 0, 1, 0 }, light = 0.5 },
-	},
-	-- construction
-	["armca"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 24, piece = "thrust", xzVelocity = 1.2 },
-	},
-	["armaca"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 6, length = 22, piece = "thrust", xzVelocity = 1.2 },
-	},
-	["corca"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 4, length = 15, piece = "thrust", xzVelocity = 1.2 },
-	},
-	["legca"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 4, length = 15, piece = "mainThrust", xzVelocity = 1.2 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 2, length = 7, piece = "thrustA", xzVelocity = 1.2 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 2, length = 7, piece = "thrustB", xzVelocity = 1.2 },
-	},
-	["coraca"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 6, length = 22, piece = "thrust", xzVelocity = 1.2 },
-	},
-	["armcsa"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 17, piece = "thrusta" },
-		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 17, piece = "thrustb" },
-	},
-	["corcsa"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 17, piece = "thrust1" },
-		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 17, piece = "thrust2" },
-	},
-
-
-	-- flying ships
-	["armfepocht4"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 27, piece = "thrustl1", light = 0.62 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 27, piece = "thrustr1", light = 0.62 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 17, length = 38, piece = "thrustl2", light = 0.62 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 17, length = 38, piece = "thrustr2", light = 0.62 },
-	},
-	["corfblackhyt4"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 14, length = 27, piece = "thrustl1", light = 0.62 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 14, length = 27, piece = "thrustr1", light = 0.62 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 19, length = 38, piece = "thrustl2", light = 0.62 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 19, length = 38, piece = "thrustr2", light = 0.62 },
-	},
-	["cordronecarryair"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 25, piece = "thrustl1", light = 0.58 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 25, piece = "thrustr1", light = 0.58 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 25, piece = "thrustl2", light = 0.58 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 13, length = 25, piece = "thrustr2", light = 0.58 },
-	},
-}
+local effectDefs = VFS.Include("luaui/configs/airjet_effects.lua")
 
 local function deepcopy(orig)
 	local orig_type = type(orig)
@@ -467,8 +95,8 @@ for name, effects in pairs(effectDefs) do
 	if UnitDefNames[name] then
 		-- make length and width smaller cause will enlarge when in full effect
 		for i, effect in pairs(effects) do
-			effect.length = math.floor(effect.length * 0.8)
-			effect.width = math.floor(effect.width * 0.92)
+			effect.length = mathFloor(effect.length * 0.8)
+			effect.width = mathFloor(effect.width * 0.92)
 		end
 
 		-- create scavenger variant
@@ -519,7 +147,7 @@ local shaders
 local lastGameFrame = Spring.GetGameFrame()
 local updateSec = 0
 
-local spec, fullview = Spring.GetSpectatingState()
+local spec, fullview = spGetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 local enabled = true
@@ -533,9 +161,12 @@ local lighteffectsEnabled = false -- TODO (enableLights and WG['lighteffects'] ~
 local jetInstanceVBO = nil
 local jetShader = nil
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+
+local drawInstanceVBO     = gl.InstanceVBOTable.drawInstanceVBO
+local popElementInstance  = gl.InstanceVBOTable.popElementInstance
+local pushElementInstance = gl.InstanceVBOTable.pushElementInstance
+
 
 local vsSrc =
 [[#version 420
@@ -556,13 +187,19 @@ layout (location = 3) in vec3 color;
 layout (location = 4) in uint pieceIndex;
 layout (location = 5) in uvec4 instData; // unitID, teamID, ??
 
+//__DEFINES__
+//__ENGINEUNIFORMBUFFERDEFS__
 
 out DataVS {
 	vec4 texCoords;
 	vec4 jetcolor;
+
+	#if (DEBUG == 1)
+		vec4 debug0;
+		vec4 debug1;
+	#endif
 };
 
-//__ENGINEUNIFORMBUFFERDEFS__
 
 struct SUniformsBuffer {
     uint composite; //     u8 drawFlag; u8 unused1; u16 id;
@@ -584,9 +221,14 @@ struct SUniformsBuffer {
 layout(std140, binding=1) readonly buffer UniformsBuffer {
     SUniformsBuffer uni[];
 };
-layout(std140, binding=0) readonly buffer MatrixBuffer {
-	mat4 UnitPieces[];
-};
+
+#if USEQUATERNIONS == 0
+	layout(std140, binding=0) readonly buffer MatrixBuffer {
+		mat4 UnitPieces[];
+	};
+#else
+	//__QUATERNIONDEFS__
+#endif
 
 
 mat4 rotationMatrix(vec3 axis, float angle)
@@ -619,14 +261,23 @@ bool vertexClipped(vec4 clipspace, float tolerance) {
          any(greaterThan(clipspace.xyz, clipspace.www * tolerance));
 }
 
-#line 10468
+#line 10253
 void main()
 {
+
+	#if USEQUATERNIONS == 0
 	uint baseIndex = instData.x; // grab the correct offset into UnitPieces SSBO
+		mat4 modelMatrix = UnitPieces[baseIndex]; //Find our matrix
+		mat4 pieceMatrix = mat4mix(mat4(1.0), UnitPieces[baseIndex + pieceIndex + 1u], modelMatrix[3][3]);
+		mat4 worldMat = modelMatrix * pieceMatrix;
+	#else
+		Transform pieceWorldTX = GetPieceWorldTransform(instData.x, pieceIndex);
+		mat4 worldMat = TransformToMatrix(pieceWorldTX);
 
-	mat4 modelMatrix = UnitPieces[baseIndex]; //Find our matrix
-
-	mat4 pieceMatrix = mat4mix(mat4(1.0), UnitPieces[baseIndex + pieceIndex + 1u], modelMatrix[3][3]);
+		//worldMat = mat4(1.0); // TODO: remove this line when quaternions are working
+		//worldMat[3].xyz = uni[instData.y].drawPos.xyz;
+		//worldMat[3].xyz = pieceWorldTX.trSc.xyz;
+	#endif
 
 	vec4 speedvector = uni[instData.y].speed;
 
@@ -634,9 +285,6 @@ void main()
 	modulatedsize.y *= clamp(speedvector.y * 0.5 + 1.0 , 0.66, 2.0); // make the jet shorter/longer based on Y velocity
 	// modulatedsize += rndVec3.xy * modulatedsize * 0.25; // not very pretty
 	vec4 vertexPos = vec4(position_xy_uv.x * modulatedsize.x * 2.0, 0, position_xy_uv.y*modulatedsize.y * 0.66 ,1.0);
-
-	mat4 worldMat = modelMatrix * pieceMatrix;
-	//worldMat = modelMatrix;
 
 
 	mat4 worldMatInv = transpose(worldMat);
@@ -675,6 +323,10 @@ void main()
 	if (reflectionPass > 0) {  // when reflecting, dont reflect underwater jets
 		if (worldPos.y < -5.0) jetcolor = vec4(0.0);
 	}
+	#if (DEBUG == 1)
+		debug0 = vec4(worldPos.xyz, 1.0);
+		debug1 = vec4(worldCamPos.xyz, 1.0);
+	#endif
 	/*
 		// VISIBILITY CULLING
 		if (length(worldCamPos.xyz - worldPos.xyz) >  iconDistance) jetcolor.a = 0; // disable if unit is further than icondist
@@ -694,6 +346,7 @@ local fsSrc =
 uniform sampler2D noiseMap;
 uniform sampler2D mask;
 
+//__DEFINES__
 //__ENGINEUNIFORMBUFFERDEFS__
 
 
@@ -703,6 +356,10 @@ uniform int reflectionPass = 0;
 in DataVS {
 	vec4 texCoords;
 	vec4 jetcolor;
+	#if DEBUG == 1
+		vec4 debug0;
+		vec4 debug1;
+	#endif
 };
 
 out vec4 fragColor;
@@ -710,7 +367,6 @@ out vec4 fragColor;
 void main(void)
 {
 		vec2 displacement = texCoords.pq;
-
 		vec2 txCoord = texCoords.st;
 		txCoord.s += (texture(noiseMap, displacement * DISTORTION * 20.0).y - 0.5) * 40.0 * DISTORTION;
 		txCoord.t +=  texture(noiseMap, displacement).x * (1.0-texCoords.t)        * 15.0 * DISTORTION;
@@ -724,26 +380,24 @@ void main(void)
 		fragColor.rgba *= jetcolor.a;
 		//fragColor.rgba = vec4(1.0);
 		if (reflectionPass > 0) fragColor.rgba *= 3.0;
+		#if (DEBUG == 1)
+			fragColor.rgba = max(fragColor.rgba, vec4(0.2));
+		#endif
 
 }
 ]]
 
 local function goodbye(reason)
-  Spring.Echo("Airjet GL4 widget exiting with reason: "..reason)
+  spEcho("Airjet GL4 widget exiting with reason: "..reason)
   widgetHandler:RemoveWidget()
 end
 
-local function initGL4()
 
-	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	jetShader =  LuaShader(
-    {
-      vertex = vsSrc,
-      fragment = fsSrc,
-      --geometry = gsSrc, no geom shader for now
-      uniformInt = {
+local jetShaderSourceCache = {
+	vsSrc = vsSrc,
+	fsSrc = fsSrc,
+	shaderName = "JetShader GL4",
+	uniformInt = {
         noiseMap = 0,
         mask = 1,
         },
@@ -751,26 +405,32 @@ local function initGL4()
         --jetuniforms = {1,1,1,1}, --unused
 		--iconDistance = 1,
       },
-    },
-    "jetShader GL4"
-  )
-  local shaderCompiled = jetShader:Initialize()
-  if not shaderCompiled then goodbye("Failed to compile jetShader GL4 ") end
-  local quadVBO,numVertices = makeRectVBO(-1,0,1,-1,0,1,1,0) --(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
-  local jetInstanceVBOLayout = {
-		  {id = 1, name = 'widthlengthtime', size = 3}, -- widthlength
-		  {id = 2, name = 'emitdir', size = 3}, --  emit dir
-		  {id = 3, name = 'color', size = 3}, --- color
-		  {id = 4, name = 'pieceIndex', type = GL.UNSIGNED_INT, size= 1},
-		  {id = 5, name = 'instData', type = GL.UNSIGNED_INT, size= 4},
-		}
-  jetInstanceVBO = makeInstanceVBOTable(jetInstanceVBOLayout,256, "jetInstanceVBO", 5)
-  jetInstanceVBO.numVertices = numVertices
-  jetInstanceVBO.vertexVBO = quadVBO
-  jetInstanceVBO.VAO = makeVAOandAttach(jetInstanceVBO.vertexVBO, jetInstanceVBO.instanceVBO)
-  jetInstanceVBO.primitiveType = GL.TRIANGLES
-  jetInstanceVBO.indexVBO = makeRectIndexVBO()
-  jetInstanceVBO.VAO:AttachIndexBuffer(jetInstanceVBO.indexVBO)
+	shaderConfig = {
+		USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
+		DEBUG = autoUpdate and "1" or "0",
+	},
+	forceupdate = true, -- otherwise file-less defines are not updated
+}
+
+local function initGL4()
+	jetShader = LuaShader.CheckShaderUpdates(jetShaderSourceCache)
+	--spEcho(jetShader.shaderParams.vertex)
+	if not jetShader then goodbye("Failed to compile jetShader GL4 ") end
+	local quadVBO,numVertices = gl.InstanceVBOTable.makeRectVBO(-1,0,1,-1,0,1,1,0) --(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
+	local jetInstanceVBOLayout = {
+			{id = 1, name = 'widthlengthtime', size = 3}, -- widthlength
+			{id = 2, name = 'emitdir', size = 3}, --  emit dir
+			{id = 3, name = 'color', size = 3}, --- color
+			{id = 4, name = 'pieceIndex', type = GL.UNSIGNED_INT, size= 1},
+			{id = 5, name = 'instData', type = GL.UNSIGNED_INT, size= 4},
+			}
+	jetInstanceVBO = gl.InstanceVBOTable.makeInstanceVBOTable(jetInstanceVBOLayout,256, "jetInstanceVBO", 5)
+	jetInstanceVBO.numVertices = numVertices
+	jetInstanceVBO.vertexVBO = quadVBO
+	jetInstanceVBO.VAO = gl.InstanceVBOTable.makeVAOandAttach(jetInstanceVBO.vertexVBO, jetInstanceVBO.instanceVBO)
+	jetInstanceVBO.primitiveType = GL.TRIANGLES
+	jetInstanceVBO.indexVBO = gl.InstanceVBOTable.makeRectIndexVBO()
+	jetInstanceVBO.VAO:AttachIndexBuffer(jetInstanceVBO.indexVBO)
 end
 
 --------------------------------------------------------------------------------
@@ -792,7 +452,7 @@ local function ValidateUnitIDs(unitIDkeys)
 		end
 	end
 	if numunitids- validunitids > 0 then
-		Spring.Echo("Airjets GL4", numunitids, "Valid", numunitids- validunitids, "invalid", invalidstr)
+		spEcho("Airjets GL4", numunitids, "Valid", numunitids- validunitids, "invalid", invalidstr)
 	end
 end
 
@@ -802,7 +462,7 @@ local function DrawParticles(isReflection)
 	-- validate unitID buffer
 	drawframe = drawframe + 1
 	--if drawframe %99 == 1 then
-		--Spring.Echo("Numairjets", jetInstanceVBO.usedElements)
+		--spEcho("Numairjets", jetInstanceVBO.usedElements)
 	--end
 
 	if jetInstanceVBO.usedElements > 0 then
@@ -850,7 +510,7 @@ local function FinishInitialization(unitID, effectDef)
 	for i = 1, #effectDef do
 		local fx = effectDef[i]
 		if fx.piece then
-			--Spring.Echo("FinishInitialization", fx.piece, pieceMap[fx.piece])
+			--spEcho("FinishInitialization", fx.piece, pieceMap[fx.piece])
 			fx.piecenum = pieceMap[fx.piece]
 		end
 		fx.width = fx.width*1.2
@@ -860,7 +520,7 @@ local function FinishInitialization(unitID, effectDef)
 end
 
 local function Activate(unitID, unitDefID, who, when)
-	--Spring.Echo(Spring.GetGameFrame(), who, "Activate(unitID, unitDefID)",unitID, unitDefID)
+	--spEcho(Spring.GetGameFrame(), who, "Activate(unitID, unitDefID)",unitID, unitDefID)
 
 	if not effectDefs[unitDefID].finishedInit then
 		FinishInitialization(unitID, effectDefs[unitDefID])
@@ -912,7 +572,7 @@ local function Deactivate(unitID, unitDefID, who)
 end
 
 local function RemoveUnit(unitID, unitDefID, unitTeamID)
-	--Spring.Echo("RemoveUnit(unitID, unitDefID, unitTeamID)",unitID, unitDefID, unitTeamID)
+	--spEcho("RemoveUnit(unitID, unitDefID, unitTeamID)",unitID, unitDefID, unitTeamID)
 	if effectDefs[unitDefID] and type(unitID) == 'number' then	-- checking for type(unitID) because we got: Error in RenderUnitDestroyed(): [string "LuaUI/Widgets/gfx_airjets_gl4.lua"]:812: attempt to concatenate local 'unitID' (a table value)
 		Deactivate(unitID, unitDefID, "died")
 		inactivePlanes[unitID] = nil
@@ -944,7 +604,7 @@ function widget:Update(dt)
 			local inactivecnt = 0
 			for i, v in pairs(inactivePlanes) do inactivecnt = inactivecnt + 1 end
 			for i, v in pairs(activePlanes) do activecnt = activecnt + 1 end
-			Spring.Echo( Spring.GetGameFrame (), "airjetcount", jetInstanceVBO.usedElements, "active:", activecnt, "inactive", inactivecnt)
+			spEcho( Spring.GetGameFrame (), "airjetcount", jetInstanceVBO.usedElements, "active:", activecnt, "inactive", inactivecnt)
 		end
 		]]--
 		ValidateUnitIDs(jetInstanceVBO.indextoUnitID)
@@ -984,8 +644,8 @@ function widget:Update(dt)
 	local prevLighteffectsEnabled = lighteffectsEnabled
 	lighteffectsEnabled = (enableLights and WG['lighteffects'] ~= nil and WG['lighteffects'].enableThrusters)
 	if lighteffectsEnabled ~= prevLighteffectsEnabled then
-		for _, unitID in ipairs(Spring.GetAllUnits()) do
-			local unitDefID = Spring.GetUnitDefID(unitID)
+		for _, unitID in ipairs(spGetAllUnits()) do
+			local unitDefID = spGetUnitDefID(unitID)
 			RemoveUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 			AddUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 		end
@@ -995,27 +655,27 @@ end
 function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 	if fullview then return end
 	if spValidUnitID(unitID) then
-		unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
-		--Spring.Echo("UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)",unitID, unitTeam, allyTeam, unitDefID)
+		unitDefID = unitDefID or spGetUnitDefID(unitID)
+		--spEcho("UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)",unitID, unitTeam, allyTeam, unitDefID)
 		AddUnit(unitID, unitDefID, unitTeam)
 	end
 end
 
 function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 	if not fullview then
-		unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
-		--Spring.Echo("UnitLeftLos(unitID, unitDefID, unitTeam)",unitID, unitTeam, allyTeam, unitDefID)
+		unitDefID = unitDefID or spGetUnitDefID(unitID)
+		--spEcho("UnitLeftLos(unitID, unitDefID, unitTeam)",unitID, unitTeam, allyTeam, unitDefID)
 		RemoveUnit(unitID, unitDefID, unitTeam)
 	end
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
-	--Spring.Echo("UnitCreated(unitID, unitDefID, unitTeam)",unitID, unitDefID, unitTeam)
+	--spEcho("UnitCreated(unitID, unitDefID, unitTeam)",unitID, unitDefID, unitTeam)
 	AddUnit(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	--Spring.Echo("UnitDestroyed(unitID, unitDefID, unitTeam)",unitID, unitDefID, unitTeam)
+	--spEcho("UnitDestroyed(unitID, unitDefID, unitTeam)",unitID, unitDefID, unitTeam)
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
 
@@ -1024,7 +684,7 @@ function widget:CrashingAircraft(unitID, unitDefID, teamID)
 end
 
 function widget:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
-	--Spring.Echo("RenderUnitDestroyed(unitID, unitDefID, unitTeam)",unitID, unitDefID, unitTeam)
+	--spEcho("RenderUnitDestroyed(unitID, unitDefID, unitTeam)",unitID, unitDefID, unitTeam)
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
 
@@ -1042,7 +702,7 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeamId)
 end
 
 function widget:Update(dt)
-	--spec, fullview = Spring.GetSpectatingState()
+	--spec, fullview = spGetSpectatingState()
 end
 
 function widget:DrawWorld()
@@ -1058,16 +718,16 @@ local function reInitialize()
 	activePlanes = {}
 	inactivePlanes = {}
 	lights = {}
-	clearInstanceTable(jetInstanceVBO)
+	gl.InstanceVBOTable.clearInstanceTable(jetInstanceVBO)
 
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
+	for _, unitID in ipairs(spGetAllUnits()) do
+		local unitDefID = spGetUnitDefID(unitID)
 		AddUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 	end
 end
 
 function widget:PlayerChanged(playerID)
-	local currentspec, currentfullview = Spring.GetSpectatingState()
+	local currentspec, currentfullview = spGetSpectatingState()
 	local currentAllyTeamID = Spring.GetMyAllyTeamID()
 	local reinit = false
 	if (currentspec ~= spec) or
@@ -1075,7 +735,7 @@ function widget:PlayerChanged(playerID)
 		((currentAllyTeamID ~= myAllyTeamID) and not currentfullview)  -- our ALLYteam changes, and we are not in fullview
 		then
 		-- do the actual reinit stuff:
-		--Spring.Echo("Airjets reinit")
+		--spEcho("Airjets reinit")
 		reinit = true
 	end
 
@@ -1120,6 +780,12 @@ function widget:Initialize()
 	end
 end
 
+if autoUpdate then
+	function widget:DrawScreen()
+		--spEcho("drawprintf", jetShader.DrawPrintf, jetShader.printf)
+		if jetShader.DrawPrintf then jetShader.DrawPrintf() end
+	end
+end
 
 function widget:Shutdown()
 	for unitID, unitDefID in pairs(activePlanes) do

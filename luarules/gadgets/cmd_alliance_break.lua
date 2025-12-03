@@ -30,8 +30,8 @@ if gadgetHandler:IsSyncedCode() then
 	local ValidUnitID = Spring.ValidUnitID
 	local min = math.min
 
-	local CMD_UNIT_SET_TARGET = 34923
-	local CMD_UNIT_SET_TARGET_RECTANGLE = 34925
+	local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
+	local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
 	local CMD_ATTACK = CMD.ATTACK
 	local CMD_LOOPBACKATTACK = CMD.LOOPBACKATTACK
 	local CMD_MANUALFIRE = CMD.MANUALFIRE
@@ -153,7 +153,8 @@ else
 
 	-- Dynamic alliances are not supported for AI teams
 	local function getTeamLeaderName(teamID)
-		return GetPlayerInfo(select(2, GetTeamInfo(teamID, false)), false)
+		local leaderPlayerID = select(2, GetTeamInfo(teamID, false))
+		return GetPlayerInfo(leaderPlayerID, false)
 	end
 
 	local function allianceMade(_, teamA, teamB)

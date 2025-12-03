@@ -147,6 +147,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				name = "Long-range g2g gauss cannon",
 				noselfdamage = true,
@@ -194,6 +195,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					norangering = 1,
+				},
 				damage = {
 					default = 75,
 					vtol = 8,

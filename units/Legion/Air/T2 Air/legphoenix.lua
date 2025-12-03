@@ -33,7 +33,7 @@ return {
 		script = "Units/legphoenix.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
-		sightdistance = 300,
+		sightdistance = 430,
 		speedtofront = 0.063,
 		turnradius = 64,
 		turnrate = 400,
@@ -183,6 +183,7 @@ return {
 				customparams = {
 					bogus = 1,
 					nodecal = 1,
+					water_splash = 0, -- targetting weapon aircraftbomb
 				},
 			},
 			legphsound = {

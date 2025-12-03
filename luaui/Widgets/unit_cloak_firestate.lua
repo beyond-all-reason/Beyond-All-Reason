@@ -15,18 +15,21 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetMyTeamID = Spring.GetMyTeamID
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-VFS.Include('luarules/configs/customcmds.h.lua')
 
 -- Speedups
 local GiveOrderToUnit   = Spring.GiveOrderToUnit
 local GetUnitStates     = Spring.GetUnitStates
-local CMD_CLOAK         = CMD_WANT_CLOAK
+local CMD_WANT_CLOAK    = GameCMD.WANT_CLOAK
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-local myTeam = Spring.GetMyTeamID()
+local myTeam = spGetMyTeamID()
 
 local exceptionList = { --add exempt units here
 	"armmine1",
@@ -61,7 +64,7 @@ local decloakFireState = {} --stores the desired fire state when decloaked of ea
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	if teamID ~= myTeam then return end
 
-	if cmdID == CMD_CLOAK and cmdParams[1] ~= nil then -- is cloak command
+	if cmdID == CMD_WANT_CLOAK and cmdParams[1] ~= nil then -- is cloak command
 		if exceptionArray[unitDefID] or string.find(UnitDefs[unitDefID].name, "_scav") then return end -- don't do anything for these units
 
 		if cmdParams[1] == 1 then -- store current fire state and cloak
@@ -112,7 +115,7 @@ local function maybeRemoveSelf()
 end
 
 function widget:Initialize()
-	myTeam = Spring.GetMyTeamID()
+	myTeam = spGetMyTeamID()
 	maybeRemoveSelf()
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		widget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
@@ -120,6 +123,6 @@ function widget:Initialize()
 end
 
 function widget:PlayerChanged()
-	myTeam = Spring.GetMyTeamID()
+	myTeam = spGetMyTeamID()
 	maybeRemoveSelf()
 end

@@ -13,6 +13,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 -- Key Idea: make a 1/2 or 1/4 sized texture 'stencil buffer' that can be used for units and features.
 -- Draw features first at 0.5, then units at 1.0, clear if no draw happened
 -- Make this shared the same way screencopy texture is shared, via an api
@@ -33,9 +37,10 @@ local addRadius = 10
 -----------------------------------------------------------------
 -- GL4 Backend Stuff
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+local popElementInstance = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local vsSrc =  [[
 #version 420
@@ -189,7 +194,7 @@ void main(void)
 ]]
 
 local function goodbye(reason)
-	Spring.Echo("Unit Stencil GL4 widget exiting with reason: "..reason)
+	spEcho("Unit Stencil GL4 widget exiting with reason: "..reason)
 end
 local resolution = 4
 local vsx, vsy  
@@ -235,7 +240,7 @@ local function InitDrawPrimitiveAtUnit(modifiedShaderConf, DPATname)
 		return
 	end
 
-	unitStencilVBO = makeInstanceVBOTable(
+	unitStencilVBO = InstanceVBOTable.makeInstanceVBOTable(
 		{
 			{id = 0, name = 'unitModelMinXYZ', size = 4},
 			{id = 1, name = 'unitModelMaxXYZ', size = 4},
@@ -249,7 +254,7 @@ local function InitDrawPrimitiveAtUnit(modifiedShaderConf, DPATname)
 	unitStencilVBO.VAO  = gl.GetVAO()
 	unitStencilVBO.VAO:AttachVertexBuffer(unitStencilVBO.instanceVBO)
 
-    featureStencilVBO = makeInstanceVBOTable(
+    featureStencilVBO = InstanceVBOTable.makeInstanceVBOTable(
 		{
 			{id = 0, name = 'unitModelMinXYZ', size = 4},
 			{id = 1, name = 'unitModelMaxXYZ', size = 4},
@@ -275,7 +280,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID)
             unitDef.model.maxx,  unitDef.model.maxy, unitDef.model.maxz,
         }
         local dimsXYZ  = unitDimensionsXYZ[unitDefID]
-        --Spring.Echo(dimsXYZ[1], dimsXYZ[2], dimsXYZ[3], dimsXYZ[4], dimsXYZ[5], dimsXYZ[6])
+        --spEcho(dimsXYZ[1], dimsXYZ[2], dimsXYZ[3], dimsXYZ[4], dimsXYZ[5], dimsXYZ[6])
     end
     local dimsXYZ  = unitDimensionsXYZ[unitDefID]
 	
@@ -293,7 +298,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID)
 	)
 end
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(unitStencilVBO)
+	InstanceVBOTable.clearInstanceTable(unitStencilVBO)
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		widget:VisibleUnitAdded(unitID, unitDefID)
 	end
@@ -307,7 +312,7 @@ end
 
 function widget:FeatureCreated(featureID, allyTeam)
     local featureDefID = Spring.GetFeatureDefID(featureID)
-    --Spring.Echo(featureDefID, featureID)
+    --spEcho(featureDefID, featureID)
 
     if featureDimensionsXYZ[featureDefID] == nil then
         local featureDef = FeatureDefs[featureDefID]
@@ -318,7 +323,7 @@ function widget:FeatureCreated(featureID, allyTeam)
             }
             if (dimsXYZ[4] - dimsXYZ[1]) < 1 then return end -- goddamned geovents
             featureDimensionsXYZ[featureDefID] =dimsXYZ
-            --Spring.Echo(dimsXYZ[1], dimsXYZ[2], dimsXYZ[3], dimsXYZ[4], dimsXYZ[5], dimsXYZ[6])
+            --spEcho(dimsXYZ[1], dimsXYZ[2], dimsXYZ[3], dimsXYZ[4], dimsXYZ[5], dimsXYZ[6])
         else
             return
         end
@@ -414,7 +419,8 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if unitFeatureStencilTex then gl.DeleteTexture(unitFeatureStencilTex) end
+	gl.DeleteTexture(unitFeatureStencilTex)
+	unitFeatureStencilTex = nil
 	WG['unitstencilapi'] = nil
 	widgetHandler:DeregisterGlobal('GetUnitStencilTexture')
 end

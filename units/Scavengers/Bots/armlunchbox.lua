@@ -127,7 +127,6 @@ return {
 				soundhit = "xplomed2",
 				soundhitwet = "splslrg",
 				soundstart = "cannhvy5",
-				targetborder = 1,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,

@@ -1,15 +1,13 @@
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
-
+#include "../recoil_common_includes.h"
 piece  tube1, tube2, base, wake;
 
 static-var  gun_1;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 
+//#define DEBUG
+//#include "../debug.h"
 
 #define BASEPIECE base
 #define HITSPEED <25.0>
@@ -28,14 +26,24 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
 	wait-for-turn BASEPIECE around z-axis;
 	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
+	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 4;
+	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 4;
 }
+
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
 	return (100); //return damage percent
 }
+
+
+#define TB_BASE base 
+#define TB_TURNRATE <30.0> 
+#define TB_TILT_X <-0.32>
+#define TB_BANK_Z <0.5> // Do not define this if you dont want banking
+#define TB_WAKE_PIECE wake
+#define TB_WAKE_FOAM 1024 + 1
+#include "../tilt_bank_submarine.h"
 
 
 Create()
@@ -44,51 +52,49 @@ Create()
 	hide wake;
 	hide tube2;
 	gun_1 = tube1;
+	call-script TB_Init();
 }
 
-StartMoving()
+StartMoving(reversing)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 0 from wake;
-		sleep 250;
-		emit-sfx 1024 + 0 from wake;
-		emit-sfx 1024 + 1 from wake;
-		sleep 250;
-	}
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
 }
 
 StopMoving()
-{
-	signal SIG_MOVE;
+{	
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = gun_1;
+	pieceIndex = gun_1;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return(1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
+	if (gun_1 == tube2){
+		emit-sfx 1024 + 2 from tube1;
+	}
+	else if (gun_1 == tube1){
+		emit-sfx 1024 + 2 from tube2;
+	}
 	gun_1 = !gun_1;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = gun_1;
+	pieceIndex = gun_1;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {
@@ -98,7 +104,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode tube1 type BITMAPONLY | NOHEATCLOUD;
 		explode tube2 type BITMAPONLY | NOHEATCLOUD;
-		//explode wake type BITMAPONLY | NOHEATCLOUD;
+		
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -107,7 +113,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode tube1 type FIRE | SMOKE | NOHEATCLOUD;
 		explode tube2 type FIRE | SMOKE | NOHEATCLOUD;
-		//explode wake type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -116,13 +122,13 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode tube1 type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
 		explode tube2 type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
-		//explode wake type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode tube1 type EXPLODE_ON_HIT | FIRE |  NOHEATCLOUD;
 		explode tube2 type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
-		//explode wake type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
 	return corpsetype;
 }

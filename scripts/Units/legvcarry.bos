@@ -3,7 +3,9 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, center, plate, pad1, pad2, pad3, pad4, drone1, drone2, drone3, drone4;
+// piece  base, center, plate, pad1, pad2, pad3, pad4, drone1, drone2, drone3, drone4;
+piece chassis, lfTrack, rfTrack, rrTrack, lrTrack, dirtRight, dirtLeft, targetingTower, targetLightFlash, targetLightGlow, rotationPad,
+pad1, pad2, pad3, pad4, pad5, pad6, drone1, drone2, drone3, drone4, drone5, drone6;
 
 static-var  moveSpeed, currentSpeed, animSpeed, terrain, restore_delay;
 
@@ -22,7 +24,7 @@ UnitSpeed()
 }
 
 
-#define BASEPIECE base
+#define BASEPIECE chassis
 #define HITSPEED <55.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 6
@@ -33,6 +35,13 @@ Create()
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
 	restore_delay = 200;
+	move drone1 to y-axis [0] now;
+	move drone2 to y-axis [0] now;
+	move drone3 to y-axis [0] now;
+	move drone4 to y-axis [0] now;
+	move drone5 to y-axis [0] now;
+	move drone6 to y-axis [0] now;
+	spin rotationPad around y-axis speed <10> accelerate <1>;
 }
 
 setSFXoccupy(state)
@@ -71,7 +80,7 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	start-script RestoreAfterDelay();
-	return (1);
+	return (0);
 }
 
 FirePrimary()
@@ -81,17 +90,17 @@ FirePrimary()
 
 QueryPrimary(piecenum)
 {
-	piecenum = plate;
+	piecenum = targetLightFlash;
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = plate;
+	piecenum = targetLightFlash;
 }
 
 SweetSpot(piecenum)
 {
-	piecenum = base;
+	piecenum = chassis;
 }
 
 Killed(severity, corpsetype)
@@ -99,22 +108,45 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode chassis type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode chassis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
+}
+
+
+
+Dronedocked(arg1, dockpiece, arg2, arg3)
+{
+	var piece_xz;
+	var piece_angle;
+	var base_xz;
+	
+	base_xz = get PIECE_XZ(rotationPad);
+	
+	if(dockpiece == 8){piece_xz = get PIECE_XZ(drone1);}
+	if(dockpiece == 10){piece_xz = get PIECE_XZ(drone2);}
+	if(dockpiece == 12){piece_xz = get PIECE_XZ(drone3);}
+	if(dockpiece == 14){piece_xz = get PIECE_XZ(drone4);}
+	if(dockpiece == 16){piece_xz = get PIECE_XZ(drone5);}
+	if(dockpiece == 18){piece_xz = get PIECE_XZ(drone6);}
+	
+	piece_angle = get XZ_ATAN(piece_xz-base_xz);
+	
+	arg1 = piece_angle + <180>;
+	return 1234;
 }
