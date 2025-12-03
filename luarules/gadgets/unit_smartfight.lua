@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Smart Fight",
-		desc = "Stable Release. Robust nil-checks. Global Capture Safety. Purple Visuals.",
+		desc = "Fight command with smart filtering to avoid attacking capture targets",
 		author = "Slouse",
 		date = "03-12-2025",
 		license = "GNU GPL, v2 or later",
@@ -18,7 +18,7 @@ local CMD_MOVE       = CMD.MOVE
 local CMD_ATTACK     = CMD.ATTACK
 local CMD_REMOVE     = CMD.REMOVE
 local CMD_CAPTURE    = CMD.CAPTURE
-local OPT_INTERNAL   = {"alt", "internal"} -- Hide from UI
+local OPT_INTERNAL   = {"alt", "internal"}
 
 --------------------------------------------------------------------------------
 -- SYNCED CODE
@@ -43,7 +43,6 @@ if gadgetHandler:IsSyncedCode() then
 	local commandUpdateQueue = {}
 	local activeUnits = {}
 	
-	-- Global Safety Registries
 	local activeCapturers = {}
 	local protectedTargets = {}
 
@@ -95,7 +94,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	-- CRASH-PROOF ALLOW WEAPON TARGET
 	function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defaultPriority)
 		-- 1. Safety Checks (Nil Handling)
 		if not targetID or not attackerID then return true, defaultPriority end
@@ -106,7 +104,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- 3. Anti-Grief: Only block if Attacker & Capturer are SAME TEAM
 		local attackerTeam = spGetUnitTeam(attackerID)
-		if not attackerTeam then return true, defaultPriority end -- Safety
+		if not attackerTeam then return true, defaultPriority end
 		
 		if attackerTeam ~= capturingTeam then return true, defaultPriority end
 		
@@ -184,7 +182,7 @@ if gadgetHandler:IsSyncedCode() then
 							end
 						end
 					end
-				end -- End LOS check
+				end
 			end
 		end
 		return bestTarget
@@ -194,13 +192,11 @@ if gadgetHandler:IsSyncedCode() then
 		if cmdID ~= CMD_SMARTFIGHT then return false end
 		if commandUpdateQueue[unitID] then return true, false end
 
-		-- Validate Params
 		if not cmdParams or #cmdParams < 3 then
-			-- Fallback to unit click
 			if cmdParams and #cmdParams == 1 and spValidUnitID(cmdParams[1]) then
 				spGiveOrderToUnit(unitID, CMD_ATTACK,cmdParams[1])
 			end
-			return true, true -- Finish command
+			return true, true
 		end
 
 		local targetX, targetY, targetZ = cmdParams[1], cmdParams[2], cmdParams[3]
@@ -234,7 +230,6 @@ if gadgetHandler:IsSyncedCode() then
 		for unitID, task in pairs(commandUpdateQueue) do
 			if spValidUnitID(unitID) and task.type == "GENERATE_PATH" then
 				for _, pos in ipairs(task.moves) do
-					-- INTERNAL OPTION: Hides lines from engine drawer
 					spGiveOrderToUnit(unitID, CMD_INSERT, {0, CMD_MOVE, 0, pos[1], pos[2], pos[3]}, OPT_INTERNAL)
 				end
 			end
@@ -282,6 +277,7 @@ if gadgetHandler:IsSyncedCode() then
 									spGiveOrderToUnit(unitID, CMD_INSERT, {1, CMD_MOVE, 0, returnX, returnY, returnZ}, OPT_INTERNAL)
 								end
 							end
+						-- STATE: ATTACKING (Found target)
 						elseif cmd1.id == CMD_ATTACK then
 							local targetID = cmd1.params[1]
 							local unitMoveState = spGetUnitStates(unitID).movestate
@@ -343,7 +339,6 @@ else
 	local glVertex           = gl.Vertex
 	local GL_LINE_STRIP      = GL.LINE_STRIP
 
-	-- Fight Purple
 	local LINE_COLOR = {0.6, 0.2, 0.9, 0.7} 
 
 	function gadget:Initialize()
@@ -397,7 +392,7 @@ else
 								if cmd.params and #cmd.params >= 3 then
 									glVertex(cmd.params[1], cmd.params[2], cmd.params[3])
 								end
-								break -- End line here
+								break
 							end
 						end
 					end)
