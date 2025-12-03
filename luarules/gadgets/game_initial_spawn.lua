@@ -328,11 +328,10 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 				if x == 0 and z == 0 then
-					spSetTeamRulesParam(teamID, "aiPlacedX", nil, { public = true })
-					spSetTeamRulesParam(teamID, "aiPlacedZ", nil, { public = true })
+					Spring.SetTeamStartPosition(teamID, -1, -1, -1) -- Reset position
 				else
-					spSetTeamRulesParam(teamID, "aiPlacedX", x, { public = true })
-					spSetTeamRulesParam(teamID, "aiPlacedZ", z, { public = true })
+					local y = spGetGroundHeight(x, z)
+					Spring.SetTeamStartPosition(teamID, x, y, z)
 				end
 				return true
 			end
@@ -571,20 +570,17 @@ if gadgetHandler:IsSyncedCode() then
 		local x, _, z = Spring.GetTeamStartPosition(teamID)
 		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
 		
-		local aiPlacedX = spGetTeamRulesParam(teamID, "aiPlacedX")
-		local aiPlacedZ = spGetTeamRulesParam(teamID, "aiPlacedZ")
-		if aiPlacedX and aiPlacedZ then
-			x = aiPlacedX
-			z = aiPlacedZ
-		else
-			if Game.startPosType == 2 then
-				if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
-					x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
-				else
-					if x <= 0 or z <= 0 then
-						x = (xmin + xmax) / 2
-						z = (zmin + zmax) / 2
-					end
+		-- AI placement is now handled by directly updating team start position
+		if Game.startPosType == 2 then
+			if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
+				-- If no valid start point (AI or player), guess one
+				-- Note: For AIs, if they were placed, startPointTable will be populated in GameStart
+				-- or updated via aiPlacedPosition message, so this will only run for unplaced entities
+				x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
+			else
+				if x <= 0 or z <= 0 then
+					x = (xmin + xmax) / 2
+					z = (zmin + zmax) / 2
 				end
 			end
 		end
@@ -598,10 +594,9 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameStart()
 		-- Add manually placed AI positions to startPointTable for spacing calculations
 		for teamID, allyTeamID in pairs(teams) do
-			local aiPlacedX = spGetTeamRulesParam(teamID, "aiPlacedX")
-			local aiPlacedZ = spGetTeamRulesParam(teamID, "aiPlacedZ")
-			if aiPlacedX and aiPlacedZ then
-				startPointTable[teamID] = {aiPlacedX, aiPlacedZ}
+			local x, _, z = Spring.GetTeamStartPosition(teamID)
+			if x > 0 and z > 0 then
+				startPointTable[teamID] = {x, z}
 			end
 		end
 

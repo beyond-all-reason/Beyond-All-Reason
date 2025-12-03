@@ -96,9 +96,8 @@ local function GetAIName(teamID)
 	local formattedName = GetAINamePlain(teamID)
 	local hasPlacement = aiPlacementStatus[teamID]
 	if hasPlacement == nil then
-		local aiPlacedX = Spring.GetTeamRulesParam(teamID, "aiPlacedX")
-		local aiPlacedZ = Spring.GetTeamRulesParam(teamID, "aiPlacedZ")
-		hasPlacement = aiPlacedX and aiPlacedZ and aiPlacedX > 0 and aiPlacedZ > 0
+		local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
+		hasPlacement = startX and startZ and startX > 0 and startZ > 0
 	end
 	if hasPlacement then
 		formattedName = formattedName .. "\n🔒"
@@ -522,10 +521,9 @@ end
 		if teamID ~= gaiaTeamID then
 			local _, _, _, isAI, _, _ = Spring.GetTeamInfo(teamID, false)
 			if isAI then
-				local x = Spring.GetTeamRulesParam(teamID, "aiPlacedX")
-				local z = Spring.GetTeamRulesParam(teamID, "aiPlacedZ")
-				if x and z and x > 0 and z > 0 then
-					aiPlacedPositions[teamID] = {x = x, z = z}
+				local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
+				if startX and startZ and startX > 0 and startZ > 0 then
+					aiPlacedPositions[teamID] = {x = startX, z = startZ}
 					aiPlacementStatus[teamID] = true
 				else
 					aiPlacementStatus[teamID] = false
@@ -784,10 +782,9 @@ function widget:Update(delta)
 				if teamID ~= gaiaTeamID then
 					local _, _, _, isAI = Spring.GetTeamInfo(teamID, false)
 					if isAI then
-						local rpX = Spring.GetTeamRulesParam(teamID, "aiPlacedX")
-						local rpZ = Spring.GetTeamRulesParam(teamID, "aiPlacedZ")
-						if rpX and rpZ then
-							aiPlacedPositions[teamID] = {x = rpX, z = rpZ}
+						local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
+						if startX and startZ and startX > 0 and startZ > 0 then
+							aiPlacedPositions[teamID] = {x = startX, z = startZ}
 						end
 					end
 				end
