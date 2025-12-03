@@ -75,7 +75,7 @@ return {
 			cor_bot_rocket = {
 				areaofeffect = 150,
 				avoidfeature = false,
-				projectiles = 1,
+				projectiles = 3, --1
 				collideFriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -89,7 +89,7 @@ return {
 				model = "legsmallrocket.s3o",
 				name = "Rockets",
 				noselfdamage = true,
-				range = 1190,
+				range = 1290,
 				reloadtime = 0.7,
 				smoketrail = true,
 				smokePeriod = 7,
@@ -119,7 +119,7 @@ return {
 					stockpilelimit = 9,
 				},
 				damage = {
-					default = 44,
+					default = 44, --44
 				},
 			},
 		},
