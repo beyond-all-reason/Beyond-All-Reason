@@ -320,8 +320,8 @@ if gadgetHandler:IsSyncedCode() then
 				x = tonumber(x)
 				z = tonumber(z)
 
-			local _, _, _, _, _, aiAllyTeamID = Spring.GetTeamInfo(teamID, false)
-			local playerName, _, senderIsSpec, senderTeam, senderAllyTeamID = spGetPlayerInfo(playerID, false)
+				local _, _, _, _, _, aiAllyTeamID = Spring.GetTeamInfo(teamID, false)
+				local _, _, senderIsSpec, senderTeam, senderAllyTeamID = spGetPlayerInfo(playerID, false)
 
 			if senderIsSpec or (aiAllyTeamID ~= senderAllyTeamID and not Spring.IsCheatingEnabled()) then
 				return false
