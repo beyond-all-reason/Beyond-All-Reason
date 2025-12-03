@@ -93,7 +93,7 @@ return {
 				name = "Birdshot Cannon",
 				noselfdamage = true,
 				predictboost = 1,
-				projectiles = 24,--3
+				projectiles = 12,--3
 				range = 1490,
 				reloadtime = 2.5,
 				rgbcolor = "1 0.75 0.25",
@@ -102,7 +102,7 @@ return {
 				soundhitwet = "splshsml",
 				soundstart = "flakfire",
 				soundstartvolume = 6,
-				sprayangle = 200,
+				sprayangle = 260,-200
 				turret = true,
 				weapontimer = 1,
 				weapontype = "Cannon",
