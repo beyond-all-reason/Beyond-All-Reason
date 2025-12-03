@@ -123,7 +123,7 @@ return {
 				weapontype = "AircraftBomb",
 				customparams = {
 					bogus = 1,
-					spawns_name = "legmine1",
+					spawns_name = "legmine3",
 					spawns_surface = "LAND",
 					stockpilelimit = 1,
 				},
