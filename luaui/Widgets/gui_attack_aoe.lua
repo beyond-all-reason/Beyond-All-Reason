@@ -145,10 +145,8 @@ local Cache = {
 
 	UnitProperties = {
 		cost = {},
-		isAir = {},
-		isShip = {},
-		isUnderwater = {},
 		isHover = {},
+		isPassThrough = {},
 	},
 
 	Calculated = {
@@ -192,21 +190,20 @@ local State = {
 }
 
 for udid, ud in pairs(UnitDefs) do
-	Cache.UnitProperties.cost[udid] = ud.cost
+	local isPassThrough = false
 	if ud.isAirUnit then
-		Cache.UnitProperties.isAir[udid] = ud.isAirUnit
+		isPassThrough = true
 	end
 	if ud.modCategories then
-		if ud.modCategories.ship then
-			Cache.UnitProperties.isShip[udid] = true
-		end
-		if ud.modCategories.underwater then
-			Cache.UnitProperties.isUnderwater[udid] = true
+		if ud.modCategories.ship or ud.modCategories.underwater then
+			isPassThrough = true
 		end
 		if ud.modCategories.hover then
 			Cache.UnitProperties.isHover[udid] = true
 		end
 	end
+	Cache.UnitProperties.isPassThrough[udid] = isPassThrough
+	Cache.UnitProperties.cost[udid] = ud.cost
 end
 
 for i, _ in ipairs(Config.Render.ringDamageLevels) do
@@ -249,38 +246,37 @@ end
 
 local function GetMouseTargetPosition(dgun)
 	local tx, ty = spGetMouseState()
-	local type, target = spTraceScreenRay(tx, ty)
+	local targetType, target = spTraceScreenRay(tx, ty)
 
-	if not type or not target then
+	if not targetType or not target then
 		return nil
 	end
 
 	local forceGround = false
 
-	if type == "ground" then
+	if targetType == "ground" then
 		return target[1], target[2], target[3]
 
-	elseif type == "feature" then
+	elseif targetType == "feature" then
 		forceGround = true
 
-	elseif type == "unit" then
+	elseif targetType == "unit" then
 		local isAlly = spIsUnitAllied(target)
 
 		local dgunNoAlly = WG['dgunnoally']
 		local attackNoAlly = WG['attacknoally']
-		local dgunNoEnemy = WG['dgunnoenety']
-		local attackNoEnemy = WG['attacknoenety']
+		local dgunNoEnemy = WG['dgunnoenemy']
 
 		-- Determine if we should ignore this unit based on mode (dgun vs attack)
 		local ignoreAlly = (dgun and dgunNoAlly) or (not dgun and attackNoAlly)
-		local ignoreEnemy = (dgun and dgunNoEnemy) or (not dgun and attackNoEnemy)
+		local ignoreEnemy = dgun and dgunNoEnemy
 
-		if isAlly and ignoreAlly then
-			forceGround = true
-		elseif not isAlly and ignoreEnemy then
+		if isAlly then
+			forceGround = ignoreAlly
+		elseif ignoreEnemy then
 			local unitDefID = spGetUnitDefID(target)
 			local uc = Cache.UnitProperties
-			local isPassThrough = uc.isAir[unitDefID] or uc.isShip[unitDefID] or uc.isUnderwater[unitDefID]
+			local isPassThrough = uc.isPassThrough[unitDefID]
 
 			if not isPassThrough and uc.isHover[unitDefID] then
 				local _, pos = spTraceScreenRay(tx, ty, true)
@@ -358,14 +354,12 @@ local function CopyColor(source, target)
 end
 
 local function ToBool(x)
-	return x ~= nil and x and x ~= 0 and x ~= "false"
+	return x and x ~= 0 and x ~= "false"
 end
 
 local function GetNormalizedAndMagnitude(x, y, z)
 	local mag = distance3d(x, y, z, 0, 0, 0)
-	if mag == 0 then
-		return nil
-	else
+	if mag ~= 0 then
 		return x / mag, y / mag, z / mag, mag
 	end
 end
