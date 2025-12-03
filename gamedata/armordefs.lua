@@ -98,8 +98,6 @@ local armorDefs = {
 		"armamph",
 		"armanac",
 		"armap",
-		"armasp",
-		"armfasp",
 		"armbrtha",
 		"armch",
 		"armck",
@@ -164,7 +162,6 @@ local armorDefs = {
 		"armstump",
 		"armsy",
 		"armtarg",
-		"armthovr",
 		"armtide",
 		"armuwes",
 		"armuwfus",
@@ -177,18 +174,19 @@ local armorDefs = {
 		"armzeus",
 		"armamsub",
 		"corjuno",
+		"legjuno",
 		"corageo",
 		"legageo",
 		"armconsul",
+		"legafcv",
 		"coraak",
+		"legadvaabot",
 		"corack",
 		"coracv",
 		"coradvsol",
 		"corah",
 		"corak",
 		"corap",
-		"corasp",
-		"corfasp",
 		"corbhmth",
 		"legrampart",
 		"corbuzz",
@@ -196,6 +194,7 @@ local armorDefs = {
 		"corch",
 		"corck",
 		"corcrash",
+		"legaabot",
 		"corcv",
 		"cordrag",
 		"corestor",
@@ -205,12 +204,14 @@ local armorDefs = {
 		"corfdrag",
 		"corfgate",
 		"corfhlt",
+		"legfmg",
 		"corfhp",
 		"corfmkr",
-		"legfmkr",
+		"legfeconv",
 		"corforge",
 		"corfort",
 		"corfrt",
+		"legfrl",
 		"corftiger",
 		"corgate",
 		"corgator",
@@ -235,6 +236,7 @@ local armorDefs = {
 		"cormwall",
 		"legrwall",
 		"cornecro",
+		"legrezbot",
 		"corplat",
 		"corphantom",
 		"corprinter",
@@ -249,9 +251,9 @@ local armorDefs = {
 		"corsolar",
 		"corstorm",
 		"corsy",
+		"legsy",
 		"cortarg",
 		"cortermite",
-		"corthovr",
 		"cortorch",
 		"corthud",
 		"cortide",
@@ -262,6 +264,8 @@ local armorDefs = {
 		"coruwmme",
 		"coruwmmm",
 		"coruwms",
+		"leguwestore",
+		"leguwmstore",
 		"corvipe",
 		"corvp",
 		"corvroc",
@@ -284,7 +288,6 @@ local armorDefs = {
 		"corparrow",
 		"corseal",
 		"corsala",
-		"corintr",
 		"armmar",
 		"corshiva",
         "cormadsam",
@@ -296,8 +299,10 @@ local armorDefs = {
         "armspy",
 		"cormando",
 		"corspy",
+		"legaspy",
         "armdl",
 		"cordl",
+		"legctl",
         "armfflak",
 		"armflak",
 		"armyork",
@@ -325,6 +330,7 @@ local armorDefs = {
 		"coreter",
 		"coreyes",
 		"corfrad",
+		"legfrad",
 		"corjamt",
 		"corrad",
 		"corshroud",
@@ -408,6 +414,7 @@ local armorDefs = {
 		"legcluster",
 		"legbastion",
 		"legbombard",
+		"legapopupdef",
 		"legperdition",
 		"legstarfall",
 		"legflak",
@@ -419,10 +426,11 @@ local armorDefs = {
 		"legfus",
 
 		"coruwgeo",
+		"leguwgeo",
 		"coruwageo",
 		"armuwgeo",
 		"armuwageo",
-		"legamsub",
+		"legamphlab",
 
 		"legcv",
 		"legck",
@@ -450,7 +458,17 @@ local armorDefs = {
 		"scavdrag",
 		"scavfort",
 		"legmohocon",
-		"legmohoconct"
+		"legmohoconct",
+		"leghrk",
+		"legfdrag",
+
+		"armnavaldefturret",
+		"cornavaldefturret",
+		"legnavaldefturret",
+		"armanavaldefturret",
+		"coranavaldefturret",
+		"leganavaldefturret",
+
 	},
 	mines = {
 		"armfmine3",
@@ -528,6 +546,7 @@ local armorDefs = {
 		"cordroneold",
 		"legdrone",
 		"legheavydrone",
+		"legheavydronesmall",
 		"raptor_air_bomber_basic_t1_v1",
 		"raptor_air_bomber_basic_t2_v1",
 		"raptor_air_bomber_basic_t2_v2",
@@ -576,6 +595,7 @@ local armorDefs = {
 		"corvamp",
 		"legfig",
 		"legionnaire",
+		"legafigdef",
 		"legvenator",
 		"legphoenix",
 		"legstronghold",
@@ -606,6 +626,11 @@ local armorDefs = {
 		"leghastatusalt",
 		"legoptio",
 		"legpontus",
+
+		"legnavyscout",
+		"legnavyfrigate",
+		"legnavyaaship",
+		"legnavyconship",
 	},
 
 	hvyboats = {
@@ -623,12 +648,14 @@ local armorDefs = {
 		"cormship",
 		"armcarry",
 		"corcarry",
-		"armtship",
-		"cortship",
 		"armbats",
 		"corbats",
 		"armepoch",
+		"corprince",
 		"corblackhy",
+
+		"legnavydestro",
+		"legnavyartyship",
 	},
 
 	subs = {
@@ -643,10 +670,13 @@ local armorDefs = {
         "coracsub",
 		"armrecl",
 		"correcl",
+		"legnavyrezsub",
 		"coronager",
 		"cordesolator",
 		"armexcalibur",
 		"armseadragon",
+
+		"legnavysub",
 	},
 
 	raptor =
@@ -727,5 +757,24 @@ for category, names in pairs(armorDefs) do
 end
 
 table.mergeInPlace(armorDefs, scavArmorDefs)
+
+local function clearArmorDef(unitDefName)
+	for _, category in pairs(armorDefs) do
+		if table.removeFirst(category, unitDefName) then
+			return
+		end
+	end
+end
+
+-- expose armor defs to custom params
+for unitName, unitDef in pairs (DEFS.unitDefs) do
+	if unitDef.customparams and unitDef.customparams.armordef then
+		local defCategory = armorDefs[unitDef.customparams.armordef]
+		if defCategory then
+			clearArmorDef(unitName)
+			defCategory[#defCategory+1] = unitName
+		end
+	end
+end
 
 return armorDefs

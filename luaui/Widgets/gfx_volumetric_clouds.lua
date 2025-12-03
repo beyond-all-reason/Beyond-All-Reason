@@ -59,7 +59,7 @@ local function convertAltitude(input, default)
 		local percent = input:match("(%d+)%%")
 		result = gnd_max * (percent / 100)
 	end
-	--Spring.Echo(result)
+	--spEcho(result)
 	return result
 end
 
@@ -104,20 +104,12 @@ local glBlending             = gl.Blending
 local glCopyToTexture        = gl.CopyToTexture
 local glCreateShader         = gl.CreateShader
 local glCreateTexture        = gl.CreateTexture
-local glDeleteShader         = gl.DeleteShader
 local glDeleteTexture        = gl.DeleteTexture
-local glGetShaderLog         = gl.GetShaderLog
-local glGetUniformLocation   = gl.GetUniformLocation
 local glTexture              = gl.Texture
-local glUniform              = gl.Uniform
-local glUniformMatrix        = gl.UniformMatrix
-local glUseShader            = gl.UseShader
+local LuaShader 			 = gl.LuaShader
 local spGetCameraPosition    = Spring.GetCameraPosition
 local spGetWind              = Spring.GetWind
-
-local function spEcho(words)
-	Spring.Echo('<Volumetric Clouds> '..words)
-end
+local spEcho				 = Spring.Echo
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -159,15 +151,15 @@ function widget:ViewResize()
 		glDeleteTexture(depthTexture)
 	end
 
-	if fogTexture then
-		glDeleteTexture(fogTexture)
-	end
-
 	depthTexture = glCreateTexture(vsx, vsy, {
 		format = GL_DEPTH_COMPONENT24,
 		min_filter = GL_NEAREST,
 		mag_filter = GL_NEAREST,
 	})
+
+	if fogTexture then
+		glDeleteTexture(fogTexture)
+	end
 
 	fogTexture = glCreateTexture(vsx / 4, vsy / 4, {
 		min_filter = GL.LINEAR,
@@ -178,8 +170,8 @@ function widget:ViewResize()
 	})
 
 
-	if depthTexture == nil then
-		spEcho("Removing fog widget, bad depth texture")
+	if depthTexture == nil or fogTexture == nil then
+		spEcho("<Volumetric Clouds> Removing fog widget, bad depth texture")
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -536,7 +528,7 @@ end
 local function init()
 
 	if depthShader then
-		glDeleteShader(depthShader)
+		depthShader:Finalize()
 	end
 
 	fragSrc = fragSrc:format(
@@ -550,7 +542,7 @@ local function init()
 	fragSrc = fragSrc:gsub("###CLAMP_TO_MAP###", tostring((cloudsClamp and 1) or 0))
 
 	if enabled then
-		depthShader = glCreateShader({
+		depthShader = LuaShader({
 			vertex = vertSrc,
 			fragment = fragSrc,
 			uniformInt = {
@@ -558,19 +550,19 @@ local function init()
 				tex1 = 1,
 				tex2 = 2,
 			},
-		})
+			uniformFloat = {
+				eyePos = {0,0,0},
+				viewProjectionInv = {0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,1}, -- will be set later;
+				offset = {0,0,0}, -- will be set later;
+				sundir = {0,0,0}, -- will be set later;
+				suncolor = {0,0,0}, -- will be set later;
+				time = 0
+			},
+		}, "Volumetric Clouds Depth Shader")
 
-		spEcho(glGetShaderLog())
-		if not depthShader then
-			spEcho("Bad shader, reverting to non-GLSL widget.")
+		if not depthShader:Initialize() then
+			spEcho("<Volumetric Clouds> Bad shader, reverting to non-GLSL widget.")
 			enabled = false
-		else
-			uniformEyePos       = glGetUniformLocation(depthShader, 'eyePos')
-			uniformViewPrjInv   = glGetUniformLocation(depthShader, 'viewProjectionInv')
-			uniformOffset       = glGetUniformLocation(depthShader, 'offset')
-			uniformSundir       = glGetUniformLocation(depthShader, 'sundir')
-			uniformSunColor     = glGetUniformLocation(depthShader, 'suncolor')
-			uniformTime         = glGetUniformLocation(depthShader, 'time')
 		end
 	end
 end
@@ -608,10 +600,12 @@ end
 function widget:Shutdown()
 	glDeleteTexture(depthTexture)
 	glDeleteTexture(fogTexture)
-	if glDeleteShader then
-		glDeleteShader(depthShader)
+	depthTexture, fogTexture = nil, nil
+	if depthShader then
+		depthShader:Finalize()
 	end
 	glDeleteTexture(noiseTex)
+	glDeleteTexture(noiseTex3D)
 end
 
 
@@ -632,25 +626,27 @@ local function DrawFogNew()
 	glCopyToTexture(depthTexture, 0, 0, vpx, vpy, vsx, vsy) --FIXME scale down?
 
 	-- setup the shader and its uniform values
-	glUseShader(depthShader)
+	depthShader:Activate()
 
-	-- set uniforms
-	glUniform(uniformEyePos, spGetCameraPosition())
-	glUniform(uniformOffset, offsetX, offsetY, offsetZ)
+		-- set uniforms
+		depthShader:SetUniform("eyePos", spGetCameraPosition())
+		depthShader:SetUniform("offset", offsetX, offsetY, offsetZ)
 
-	glUniform(uniformSundir, sunDir[1], sunDir[2], sunDir[3])
-	glUniform(uniformSunColor, sunCol[1], sunCol[2], sunCol[3])
+		depthShader:SetUniform("sundir", sunDir[1], sunDir[2], sunDir[3])
+		depthShader:SetUniform("suncolor", sunCol[1], sunCol[2], sunCol[3])
 
-	glUniform(uniformTime, Spring.GetGameSeconds() * speed)
+		depthShader:SetUniform("time", Spring.GetGameSeconds() * speed)
 
-	glUniformMatrix(uniformViewPrjInv,  "viewprojectioninverse")
+		depthShader:SetUniformMatrix("viewProjectionInv", "viewprojectioninverse")
 
-	-- TODO: completely reset the texture before applying shader
-	-- TODO: figure out why it disappears in some places
-	-- maybe add a switch to make it high-res direct-render
-	gl.RenderToTexture(fogTexture, renderToTextureFunc)
+		--glUniformMatrix(uniformViewPrjInv,  "viewprojectioninverse")
 
-	glUseShader(0)
+		-- TODO: completely reset the texture before applying shader
+		-- TODO: figure out why it disappears in some places
+		-- maybe add a switch to make it high-res direct-render
+		gl.RenderToTexture(fogTexture, renderToTextureFunc)
+
+	depthShader:Deactivate()
 end
 
 

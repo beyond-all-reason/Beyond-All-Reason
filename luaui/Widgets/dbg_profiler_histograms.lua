@@ -17,9 +17,15 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathRandom = math.random
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spEcho = Spring.Echo
+
 ---------------------------Speedups-----------------------------
-local spGetTimer = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers
 local spGetProfilerTimeRecord = Spring.GetProfilerTimeRecord
 ---------------------------Internal vars---------------------------
 local timerstart = nil
@@ -31,13 +37,7 @@ local boundingbox = {vsx/4, vsy/4, 3*vsx/4, 3*vsy/4}
 
 local histShader = nil
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
-local maxframes = 500
-
-local rectInstanceTable = nil
-local rectInstancePtr = 0
+local LuaShader = gl.LuaShader
 
 local vsSrc = [[
 #version 420
@@ -117,7 +117,7 @@ local function createhistogram(name)
 		numtoobig = 0,
 		mean = 0,
 		linewidth = 2,
-		color = {math.random(),math.random(),math.random(),1},
+		color = {mathRandom(),mathRandom(),mathRandom(),1},
 	}
 	for i=1,bincount do 
 		newhist.data[i] = 0
@@ -228,14 +228,14 @@ function widget:Initialize()
 
 	local shaderCompiled = histShader:Initialize()
 	if not shaderCompiled then
-	 Spring.Echo("Failed to compile shaders for: frame grapher v2")
+	 spEcho("Failed to compile shaders for: frame grapher v2")
 	 widgetHandler:RemoveWidget(self)
 	end
 	timerstart = Spring.GetTimer()
 	timerold = Spring.GetTimer()
 	
 	for k,v in pairs(Spring.GetProfilerRecordNames()) do 
-		--Spring.Echo(k,v)
+		--spEcho(k,v)
 		profilerecords[k] = v
 		histograms[v] = createhistogram(v)
 	end
@@ -251,8 +251,8 @@ local function PrintRecord(name)
 	
 	-- so last frame dt === 
 	
-	local gf = Spring.GetGameFrame()
-	Spring.Echo(gf, 'P:', name, total, current, maxdt, time, peak)
+	local gf = spGetGameFrame()
+	spEcho(gf, 'P:', name, total, current, maxdt, time, peak)
 end
 
 local function GetRecordCurrent(name)
@@ -283,7 +283,7 @@ function widget:DrawScreen()
 	for name, _ in pairs(actives) do 
 		local hist = histograms[name]
 		if hist then 
-			if Spring.GetGameFrame()%30 == 0 then
+			if spGetGameFrame()%30 == 0 then
 				updateVBO(hist)
 			end
 			gl.LineWidth(hist.linewidth)
@@ -295,7 +295,7 @@ function widget:DrawScreen()
 end
 
 function widget:DbgTimingInfo(eventname, starttime, endtime)
-	--Spring.Echo("DbgTimingInfo",eventname, starttime, endtime)
+	--spEcho("DbgTimingInfo",eventname, starttime, endtime)
 end
 
 function widget:TextCommand(command)
@@ -303,14 +303,14 @@ function widget:TextCommand(command)
 		local name = string.sub(command, string.len("histogram") +2)
 		if histograms[name] then 
 			if actives[name] then 
-				Spring.Echo("Disabling histogram for",name)
+				spEcho("Disabling histogram for",name)
 				actives[name] = nil 
 			else
-				Spring.Echo("Enabling histogram for",name)
+				spEcho("Enabling histogram for",name)
 				actives[name] = true 		
 			end
 		else
-			Spring.Echo("Unknown histogram name:",name)
+			spEcho("Unknown histogram name:",name)
 		end
 	end
 end

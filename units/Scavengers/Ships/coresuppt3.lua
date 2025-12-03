@@ -22,7 +22,7 @@ return {
 		health = 89000,
 		speed = 75.0,
 		minwaterdepth = 12,
-		movementclass = "EPICSHIP",
+		movementclass = "BOAT9",
 		nochasecategory = "UNDERWATER VTOL",
 		objectname = "Units/scavboss/CORESUPPT3.s3o",
 		script = "Units/scavboss/CORESUPPT3.cob",
@@ -129,6 +129,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					commanders = 1200,
 					default = 5500,

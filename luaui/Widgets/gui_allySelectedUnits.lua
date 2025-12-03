@@ -14,6 +14,12 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMyTeamID = Spring.GetMyTeamID
+
 local showAsSpectator = true
 local selectPlayerUnits = true	-- when lockcamera player
 local hideBelowGameframe = 100
@@ -27,6 +33,11 @@ local platterOpacity = 0.1
 local useHexagons = true
 
 ----------------------------------------------------------------------------
+
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
 
 local selectionVBO = nil
 local selectShader = nil
@@ -45,7 +56,7 @@ local GL_STENCIL_BUFFER_BIT = GL.STENCIL_BUFFER_BIT
 local GL_REPLACE            = GL.REPLACE
 local GL_POINTS				= GL.POINTS
 
-local spGetUnitDefID        = Spring.GetUnitDefID
+local spGetUnitDefID        = spGetUnitDefID
 local spGetPlayerInfo       = Spring.GetPlayerInfo
 local spGetSpectatingState	= Spring.GetSpectatingState
 
@@ -55,7 +66,7 @@ for i,playerID in pairs(Spring.GetPlayerList()) do
 end
 
 local spec, fullview = spGetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
+local myTeamID = spGetMyTeamID()
 local myAllyTeam = Spring.GetMyAllyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local selectedUnits = {}
@@ -69,7 +80,7 @@ local unitCanFly = {}
 local unitBuilding = {}
 local sizeAdd = -(lineSize*1.5)
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitScale[unitDefID] = (7.5 * ( unitDef.xsize^2 + unitDef.zsize^2 ) ^ 0.5) + 8
+	unitScale[unitDefID] = (7.5 * ( unitDef.xsize*unitDef.xsize + unitDef.zsize*unitDef.zsize ) ^ 0.5) + 8
 	unitScale[unitDefID] = unitScale[unitDefID] + sizeAdd
 	if unitDef.canFly then
 		unitCanFly[unitDefID] = true
@@ -92,7 +103,7 @@ local instanceCache = {
 	}
 
 local function AddPrimitiveAtUnit(unitID)
-	local unitDefID = Spring.GetUnitDefID(unitID)
+	local unitDefID = spGetUnitDefID(unitID)
 	if unitDefID == nil then return end -- these cant be selected
 
 	local numVertices = useHexagons and 6 or 64
@@ -115,8 +126,8 @@ local function AddPrimitiveAtUnit(unitID)
 	end
 	instanceCache[1], instanceCache[2], instanceCache[3], instanceCache[4] = length, width, cornersize, additionalheight
 	instanceCache[5] = spGetUnitTeam(unitID)
-	instanceCache[7] = Spring.GetGameFrame()
-	
+	instanceCache[7] = spGetGameFrame()
+
 	pushElementInstance(
 		selectionVBO, -- push into this Instance VBO Table
 		instanceCache,
@@ -233,7 +244,7 @@ function widget:PlayerChanged(playerID)
 		widgetHandler:RemoveWidget()
 		return
 	end
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = spGetMyTeamID()
 	myAllyTeam = Spring.GetMyAllyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
 
@@ -272,7 +283,7 @@ function widget:VisibleUnitRemoved(unitID)
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(selectionVBO)
+	InstanceVBOTable.clearInstanceTable(selectionVBO)
 	for unitID, drawn in pairs(selectedUnits) do
 		removeUnit(unitID)
 	end
@@ -352,7 +363,7 @@ end
 
 local drawFrame = 0
 function widget:DrawWorldPreUnit()
-	if Spring.GetGameFrame() < hideBelowGameframe then return end
+	if spGetGameFrame() < hideBelowGameframe then return end
 
 	if Spring.IsGUIHidden() then return end
 

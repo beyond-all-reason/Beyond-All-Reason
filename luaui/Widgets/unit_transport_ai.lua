@@ -15,6 +15,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local tableInsert = table.insert
+
 local CONST_IGNORE_BUILDERS = false -- should automated factory transport ignore builders?
 local CONST_IGNORE_GROUNDSCOUTS = true -- should automated factory transport ignore scouts?
 local CONST_HEIGHT_MULTIPLIER = 3 -- how many times to multiply height difference when evaluating distance
@@ -22,7 +26,7 @@ local CONST_TRANSPORT_PICKUPTIME = 9 -- how long (in seconds) does transport lan
 local CONST_PRIORITY_BENEFIT = 10000 -- how much more important are priority transfers
 local CONST_BENEFIT_LIMIT = 5  -- what is the lowest benefit treshold to use transport (in sec difference with transport against without it)
 local CONST_TRANSPORT_STOPDISTANCE = 150 -- how close by has transport be to stop the unit
-local CONST_UNLOAD_RADIUS = 200 -- how big is the radious for unload command for factory transports
+local CONST_UNLOAD_RADIUS = 400 -- how big is the radious for unload command for factory transports
 
 local idleTransports = {} -- list of idle transports key = id, value = {defid}
 local waitingUnits = {} -- list of units waiting for traqnsport - key = unitID, {unit state, unitDef, factory}
@@ -43,7 +47,6 @@ local myTeamID
 
 local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitDefID = Spring.GetUnitDefID
-local Echo = Spring.Echo
 local GetPlayerInfo = Spring.GetPlayerInfo
 local GetUnitCommands = Spring.GetUnitCommands
 local GetUnitSeparation = Spring.GetUnitSeparation
@@ -223,7 +226,6 @@ end]]--
 
 function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	if teamID == myTeamID then
-		--     Echo("unit destroyed " ..unitID)
 		idleTransports[unitID] = nil
 		priorityUnits[unitID] = nil
 		local tuid = GetToPickUnit(unitID)
@@ -260,7 +262,6 @@ function AddTransport(unitID, unitDefID)
 	if isTransport[unitDefID] then
 		-- and IsIdle(unitID)
 		idleTransports[unitID] = unitDefID
-		--Echo ("transport added " .. unitID)
 		return true
 	end
 	return false
@@ -286,12 +287,10 @@ function widget:UnitIdle(unitID, unitDefID, teamID)
 			local marked = GetToPickTransport(unitID)
 			if waitingUnits[unitID] ~= nil then
 				-- unit was waiting for transport and now its suddenly idle (stopped) - delete it
-				--        Echo("waiting unit idle "..unitID)
 				waitingUnits[unitID] = nil
 			end
 
 			if marked ~= 0 then
-				--        Echo("to pick unit idle "..unitID)
 				DeleteToPickTran(marked)
 				GiveOrderToUnit(marked, CMD.STOP, {}, 0)  -- and stop it (when it becomes idle it will be assigned)
 			end
@@ -308,7 +307,6 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 			return
 		end
 		if isTransportable[unitDefID] and not userOrders then
-			--      Echo ("new unit from factory "..unitID)
 			local commands = GetUnitCommands(unitID, 20)
 			for i = 1, #commands do
 				local v = commands[i]
@@ -357,9 +355,7 @@ function widget:Update(deltaTime)
 	local todel = {}
 	local todelCount = 0
 	for i, d in pairs(priorityUnits) do
-		--    Echo ("checking prio " ..i)
 		if IsEmbarkCommand(i) then
-			--      Echo ("prio called " ..i)
 			waitingUnits[i] = { ST_PRIORITY, d }
 			AssignTransports(0, i)
 			todelCount = todelCount + 1
@@ -390,7 +386,6 @@ function StopCloseUnits()
 						local ud = GetUnitDefDimensions(ud)
 						if fd ~= nil and ud ~= nil then
 							if GetUnitSeparation(unitID, val[3], true) < fd.radius + ud.radius then
-								--                Echo ("Cant stop - too close to factory")
 								canStop = false
 							end
 						end
@@ -417,7 +412,6 @@ function widget:UnitLoaded(unitID, unitDefID, teamID, transportID)
 		return
 	end
 
-	--  Echo("unit loaded " .. transportID .. " " ..unitID)
 	local torev = {}
 	local torevCount = 0
 	local vl = nil
@@ -458,7 +452,7 @@ function widget:UnitLoaded(unitID, unitDefID, teamID, transportID)
 						opts[#opts + 1] = "right"
 					end
 					storedQueue[unitID][#storedQueue[unitID] + 1] = { v.id, v.params, opts }
-					--table.insert(storedQueue[unitID], {v.id, v.params, opts})
+					--tableInsert(storedQueue[unitID], {v.id, v.params, opts})
 				end
 			end
 		end
@@ -505,13 +499,11 @@ function CanTransport(transportID, unitID)
 	end
 	if unitXsize[udef] > unitTransportSize[tdef] * 2 then
 		-- unit size check
-		--    Echo ("size failed")
 		return false
 	end
 
 	local trans = GetUnitIsTransporting(transportID) -- capacity check
 	if unitTransportCapacity[tdef] <= #trans then
-		--    Echo ("count failed")
 		return false
 	end
 
@@ -520,7 +512,6 @@ function CanTransport(transportID, unitID)
 		mass = mass + unitMass[GetUnitDefID(a)]
 	end
 	if mass > unitTransportMass[tdef] then
-		--    Echo ("mass failed")
 		return false
 	end
 	return true
@@ -529,7 +520,6 @@ end
 function AssignTransports(transportID, unitID)
 	local best = {}
 	local bestCount = 0
-	--  Echo ("assigning " .. transportID .. " " ..unitID)
 	if transportID ~= 0 then
 		local transpeed = unitSpeed[GetUnitDefID(transportID)]
 		for id, val in pairs(waitingUnits) do
@@ -543,7 +533,6 @@ function AssignTransports(transportID, unitID)
 				if val[1] == ST_PRIORITY then
 					benefit = benefit + CONST_PRIORITY_BENEFIT
 				end
-				--       Echo ("   "..transportID .. " " .. id .. "  " .. benefit)
 
 				if benefit > CONST_BENEFIT_LIMIT then
 					bestCount = bestCount + 1
@@ -566,7 +555,6 @@ function AssignTransports(transportID, unitID)
 					benefit = benefit + CONST_PRIORITY_BENEFIT
 				end
 
-				--         Echo ("   "..id.. " " .. unitID .. "  " .. benefit)
 
 				if benefit > CONST_BENEFIT_LIMIT then
 					bestCount = bestCount + 1
@@ -588,7 +576,6 @@ function AssignTransports(transportID, unitID)
 		if (used[tid] == nil and used[uid] == nil) then
 			used[tid] = 1
 			used[uid] = 1
-			--      Echo ("ordering " .. tid .. " " .. uid )
 
 			if (waitingUnits[uid][1] == ST_PRIORITY) then
 				AddToPick(tid, uid, ST_PRIORITY)
@@ -658,7 +645,7 @@ function widget:KeyPress(key, modifier, isRepeat)
   if (key == KEYSYMS.Q and not modifier.ctrl) then
     if (not modifier.alt) then
       local opts = {"alt"}
-      if (modifier.shift) then table.insert(opts, "shift") end
+      if (modifier.shift) then tableInsert(opts, "shift") end
 
       for _, id in ipairs(GetSelectedUnits()) do -- embark
         local def = GetUnitDefID(id)
@@ -669,7 +656,7 @@ function widget:KeyPress(key, modifier, isRepeat)
       end
     else
       local opts = {"alt", "ctrl"}
-      if (modifier.shift) then table.insert(opts, "shift") end
+      if (modifier.shift) then tableInsert(opts, "shift") end
       for _, id in ipairs(GetSelectedUnits()) do --disembark
         local def = GetUnitDefID(id)
         if (isTransportable[def]  or isFactory[def]) then GiveOrderToUnit(id, CMD.WAIT, {}, opts) end

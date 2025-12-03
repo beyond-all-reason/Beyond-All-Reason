@@ -23,7 +23,7 @@ return {
 		maxslope = 14,
 		maxwaterdepth = 20,
 		metalcost = 9000,
-		movementclass = "HTANK5",
+		movementclass = "HTANK7",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMTHOR.s3o",
 		script = "Units/ARMTHOR.cob",
@@ -148,6 +148,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 300,
 				},
@@ -233,6 +236,7 @@ return {
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
 				customparams = {
+					noattackrangearc = 1,
 					spark_ceg = "genericshellexplosion-splash-large-lightning",
 					spark_forkdamage = "0.25",
 					spark_maxunits = "5",

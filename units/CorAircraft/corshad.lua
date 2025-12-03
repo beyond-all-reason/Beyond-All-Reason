@@ -30,7 +30,7 @@ return {
 		script = "Units/CORSHAD.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 169,
+		sightdistance = 430,
 		speed = 234,
 		speedtofront = 0.06183,
 		turnradius = 64,
@@ -80,7 +80,6 @@ return {
 		},
 		weapondefs = {
 			corbomb = {
-				accuracy = 500,
 				areaofeffect = 168,
 				avoidfeature = false,
 				burst = 5,

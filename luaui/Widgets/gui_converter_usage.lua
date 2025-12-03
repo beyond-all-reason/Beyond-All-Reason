@@ -12,10 +12,13 @@ function widget:GetInfo()
     }
   end
 
+
+-- Localized Spring API for performance
+local spGetMouseState = Spring.GetMouseState
+
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
 
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font2
 
 local RectRound, UiElement
@@ -49,16 +52,17 @@ local converterUse
 local formatOptions = { showSign = true }
 
 local function updateUI()
-    local freeArea = WG['topbar'].GetFreeArea()
-    widgetScale = freeArea[5]
-    area[1] = freeArea[1]
-    area[2] = freeArea[2]
-    area[3] = freeArea[1] + floor(90 * widgetScale)
-    if area[3] > freeArea[3] then
-        area[3] = freeArea[3]
-    end
-    area[4] = freeArea[4]
-
+	if WG['topbar'] then
+		local freeArea = WG['topbar'].GetFreeArea()
+		widgetScale = freeArea[5]
+		area[1] = freeArea[1]
+		area[2] = freeArea[2]
+		area[3] = freeArea[1] + floor(90 * widgetScale)
+		if area[3] > freeArea[3] then
+			area[3] = freeArea[3]
+		end
+		area[4] = freeArea[4]
+	end
 	if dlistGuishader ~= nil then
 		if WG['guishader'] then
 			WG['guishader'].RemoveDlist('converter_usage')
@@ -123,7 +127,7 @@ function widget:DrawScreen()
         glCallList(dlistCU)
     end
     if area[1] then
-        local x, y = Spring.GetMouseState()
+        local x, y = spGetMouseState()
         if math.isInRect(x, y, area[1], area[2], area[3], area[4]) then
             Spring.SetMouseCursor('cursornormal')
         end
@@ -132,7 +136,7 @@ end
 
 function widget:MousePress(x, y, button)
     if area[1] then
-        local x, y = Spring.GetMouseState()
+        local x, y = spGetMouseState()
         if math.isInRect(x, y, area[1], area[2], area[3], area[4]) then
             return true
         end
@@ -158,7 +162,7 @@ function widget:ViewResize()
     RectRound = WG.FlowUI.Draw.RectRound
     UiElement = WG.FlowUI.Draw.Element
 
-    font2 = WG['fonts'].getFont(fontfile2)
+    font2 = WG['fonts'].getFont(2)
 end
 
 function widget:Initialize()
@@ -175,19 +179,21 @@ function widget:GameFrame()
 
     local myTeamID = spGetMyTeamID()
     eConverted = spGetTeamRulesParam(myTeamID, "mmUse")
-    mConverted = eConverted * spGetTeamRulesParam(myTeamID, "mmAvgEffi")
-    eConvertedMax = spGetTeamRulesParam(myTeamID, "mmCapacity")
-    converterUse = 0
+	if eConverted then
+		mConverted = eConverted * spGetTeamRulesParam(myTeamID, "mmAvgEffi")
+		eConvertedMax = spGetTeamRulesParam(myTeamID, "mmCapacity")
+		converterUse = 0
 
-    if eConvertedMax <= 0 then return end
+		if eConvertedMax <= 0 then return end
 
-    converterUse = floor(100 * eConverted / eConvertedMax)
-    eConverted = floor(eConverted)
-    mConvertedRemainder = mConvertedRemainder + (mConverted - floor(mConverted))
-    mConverted = floor(mConverted)
-    if mConvertedRemainder >= 1 then
-      mConverted = mConverted + 1
-      mConvertedRemainder = mConvertedRemainder - 1
+		converterUse = floor(100 * eConverted / eConvertedMax)
+		eConverted = floor(eConverted)
+		mConvertedRemainder = mConvertedRemainder + (mConverted - floor(mConverted))
+		mConverted = floor(mConverted)
+		if mConvertedRemainder >= 1 then
+			mConverted = mConverted + 1
+			mConvertedRemainder = mConvertedRemainder - 1
+		end
     end
 end
 
@@ -200,7 +206,7 @@ function widget:Update(dt)
 
     sec = 0
 
-    if eConvertedMax > 0 then
+    if eConvertedMax and eConvertedMax > 0 then
         updateUI()
         return
     end

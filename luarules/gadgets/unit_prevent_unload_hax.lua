@@ -30,7 +30,6 @@ local SpGetUnitPosition = Spring.GetUnitPosition
 local SpGetGameFrame = Spring.GetGameFrame
 local SpSetUnitPhysics = Spring.SetUnitPhysics
 local SpSetUnitDirection = Spring.SetUnitDirection
-local SpGetUnitIsDead = Spring.GetUnitIsDead
 
 local unloadedUnits = {}
 
@@ -69,7 +68,7 @@ function gadget:GameFrame(frame)
             SpSetUnitPhysics(unitID,data.px,data.py,data.pz,0,0,0,0,0,0,0,0,0)
             SpSetUnitDirection(unitID,data.dx,data.dy,data.dz)
             --Spring.GiveOrderToUnit(unitID,CMD.MOVE,{data.px+10*data.dx,data.py,data.pz+10*data.dz},CMD.OPT_SHIFT)
-            data = nil
+            unloadedUnits[unitID] = nil
         end
     end
 end

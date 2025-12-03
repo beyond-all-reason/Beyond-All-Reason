@@ -13,6 +13,13 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathSin = math.sin
+local mathCos = math.cos
+local mathPi = math.pi
+local tableInsert = table.insert
+
 --[[
 Spectator HUD is a widget that displays various game metrics. It is only enabled in spectator mode and only works when
 spectating a game between two allyTeams (excluding Gaia). The widget is drawn at the top-right corner of the screen.
@@ -51,8 +58,7 @@ metrics or changing from spectating view to player view.
 local viewScreenWidth
 local viewScreenHeight
 
-local includeDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(includeDir .. "LuaShader.lua")
+local LuaShader = gl.LuaShader
 
 local mathfloor = math.floor
 local mathabs = math.abs
@@ -286,20 +292,22 @@ local function buildUnitDefs()
 	end
 
 	local function isArmyUnit(unitDefID, unitDef)
-		-- anything with a least one weapon and speed above zero is considered an army unit
-		return unitDef.weapons and (#unitDef.weapons > 0) and unitDef.speed and (unitDef.speed > 0)
+		local isArmyUnit = #unitDef.weapons > 0 and unitDef.speed > 0
+		return isArmyUnit and not isCommander(unitDefId, unitDef)
 	end
 
 	local function isDefenseUnit(unitDefID, unitDef)
 		return unitDef.weapons and (#unitDef.weapons > 0) and (not unitDef.speed or (unitDef.speed == 0))
 	end
 
-	local function isUtilityUnit(unitDefID, unitDef)
-		return unitDef.customParams.unitgroup == 'util'
-	end
-
 	local function isEconomyBuilding(unitDefID, unitDef)
 		return (unitDef.customParams.unitgroup == 'metal') or (unitDef.customParams.unitgroup == 'energy')
+	end
+
+	local function isUtilityUnit(unitDefID, unitDef)
+		-- anything that is not economy, army, or defense is considered utility
+		-- thus, utility serves as a catch-all for unit value that does not fall into the other categories
+		return not (isEconomyBuilding(unitDefID, unitDef) or isArmyUnit(unitDefID, unitDef) or isDefenseUnit(unitDefID, unitDef))
 	end
 
 	unitDefsToTrack = {}
@@ -338,6 +346,10 @@ local function buildUnitDefs()
 			unitDefsToTrack.economyBuildingDefs[unitDefID] = { unitDef.metalCost, unitDef.energyCost }
 		end
 	end
+end
+
+local function deleteUnitDefs()
+	unitDefsToTrack = {}
 end
 
 local function addToUnitCache(teamID, unitID, unitDefID)
@@ -384,6 +396,10 @@ local function addToUnitCache(teamID, unitID, unitDefID)
 		addToUnitCacheInternal("economyBuildings", teamID, unitID,
 					   unitDefsToTrack.economyBuildingDefs[unitDefID])
 	end
+end
+
+local function deleteUnitCache()
+	unitCache = {}
 end
 
 local function removeFromUnitCache(teamID, unitID, unitDefID)
@@ -543,6 +559,7 @@ local function buildPlayerData()
 				if playerID and playerID[1] then
 					-- it's a player
 					playerName = select(1, Spring.GetPlayerInfo(playerID[1], false))
+					playerName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID[1])) or playerName
 				else
 					local aiName = Spring.GetGameRulesParam("ainame_" .. teamID)
 					if aiName then
@@ -640,23 +657,25 @@ local function buildAllyTeamTable()
 			allyTeamTable[allyTeamIndex] = {}
 
 			local teamList = Spring.GetTeamList(allyID)
-			local colorCaptain = playerData[teamList[1]].color
-			allyTeamTable[allyTeamIndex].color = colorCaptain
-			allyTeamTable[allyTeamIndex].colorBar = makeDarkerColor(colorCaptain, constants.darkerBarsFactor)
-			allyTeamTable[allyTeamIndex].colorLine = makeDarkerColor(colorCaptain, constants.darkerLinesFactor)
-			allyTeamTable[allyTeamIndex].colorKnobSide = makeDarkerColor(colorCaptain, constants.darkerSideKnobsFactor)
-			allyTeamTable[allyTeamIndex].colorKnobMiddle = makeDarkerColor(colorCaptain, constants.darkerMiddleKnobFactor)
-			allyTeamTable[allyTeamIndex].name = string.format("Team %d", allyID)
+			if teamList and teamList[1] then
+				local colorCaptain = (playerData[teamList[1]] and playerData[teamList[1]].color) or { Spring.GetTeamColor(teamList[1]) }
+				allyTeamTable[allyTeamIndex].color = colorCaptain
+				allyTeamTable[allyTeamIndex].colorBar = makeDarkerColor(colorCaptain, constants.darkerBarsFactor)
+				allyTeamTable[allyTeamIndex].colorLine = makeDarkerColor(colorCaptain, constants.darkerLinesFactor)
+				allyTeamTable[allyTeamIndex].colorKnobSide = makeDarkerColor(colorCaptain, constants.darkerSideKnobsFactor)
+				allyTeamTable[allyTeamIndex].colorKnobMiddle = makeDarkerColor(colorCaptain, constants.darkerMiddleKnobFactor)
+				allyTeamTable[allyTeamIndex].name = string.format("Team %d", allyID)
 
-			allyTeamTable[allyTeamIndex].teams = {}
+				allyTeamTable[allyTeamIndex].teams = {}
 
-			local teamIndex = 1
-			for _,teamID in ipairs(teamList) do
-				allyTeamTable[allyTeamIndex].teams[teamIndex] = teamID
-				teamIndex = teamIndex + 1
+				local teamIndex = 1
+				for _,teamID in ipairs(teamList) do
+					allyTeamTable[allyTeamIndex].teams[teamIndex] = teamID
+					teamIndex = teamIndex + 1
+				end
+
+				allyTeamIndex = allyTeamIndex + 1
 			end
-
-			allyTeamIndex = allyTeamIndex + 1
 		end
 	end
 end
@@ -730,7 +749,7 @@ local function calculateWidgetDimensions()
 	widgetDimensions.distanceFromTopBar = mathfloor(defaults.widgetDimensions.distanceFromTopBar * scaleMultiplier)
 	if WG['topbar'] and WG['topbar'].getShowButtons() then
 		local topBarPosition = WG['topbar'].GetPosition()
-		widgetDimensions.top = topBarPosition[2] - widgetDimensions.distanceFromTopBar
+		widgetDimensions.top = topBarPosition[2] -- widgetDimensions.distanceFromTopBar
 	else
 		widgetDimensions.top = viewScreenHeight
 	end
@@ -1149,71 +1168,40 @@ local function drawBars()
 end
 
 local function drawText()
-	local indexLeft = teamOrder and teamOrder[1] or 1
-	local indexRight = teamOrder and teamOrder[2] or 2
-
-	gl.Color(textColorWhite)
-	gl.Texture(titleTexture)
-	gl.TexRect(
-		titleDimensions.left,
-		widgetDimensions.bottom,
-		titleDimensions.right,
-		widgetDimensions.top,
-		false,
-		true
-	)
-	gl.Texture(false)
-
-	gl.Texture(statsTexture)
-	gl.TexRect(
-		knobDimensions.leftKnobLeft,
-		widgetDimensions.bottom,
-		knobDimensions.rightKnobRight,
-		widgetDimensions.top,
-		false,
-		true
-	)
-	gl.Texture(false)
+	gl.R2tHelper.BlendTexRect(titleTexture, titleDimensions.left, widgetDimensions.bottom, titleDimensions.right, widgetDimensions.top, true)
+	gl.R2tHelper.BlendTexRect(statsTexture, knobDimensions.leftKnobLeft, widgetDimensions.bottom, knobDimensions.rightKnobRight, widgetDimensions.top, true)
 end
 
 local function doTitleTexture()
 	local function drawTitlesToTexture()
-		-- This may be unnecessary, but without initializing the texture like this I've seen some weird fragments that
-		-- look like the texture would have old drawings.
-		gl.Blending(GL.ONE, GL.ZERO)
-		gl.Color(1, 1, 1, 0.0)
-		gl.Rect(-titleDimensions.width, -widgetDimensions.height, titleDimensions.width, widgetDimensions.height)
-
-		gl.PushMatrix()
 		gl.Translate(-1, -1, 0)
 		gl.Scale(
 			2 / titleDimensions.width,
 			2 / widgetDimensions.height,
 			0
 		)
-		font:Begin()
-			font:SetTextColor(textColorWhite)
+		font:Begin(true)
+		font:SetTextColor(textColorWhite)
 
-			for metricIndex,metric in ipairs(metricsEnabled) do
-				local bottom = widgetDimensions.height - metricIndex * metricDimensions.height
+		for metricIndex,metric in ipairs(metricsEnabled) do
+			local bottom = widgetDimensions.height - metricIndex * metricDimensions.height
 
-				local textHCenter = titleDimensions.widthHalf
-				local textVCenter = bottom + titleDimensions.verticalCenterOffset
-				local textText = metricsEnabled[metricIndex].text
+			local textHCenter = titleDimensions.widthHalf
+			local textVCenter = bottom + titleDimensions.verticalCenterOffset
+			local textText = metricsEnabled[metricIndex].text
 
-				font:Print(
-					textText,
-					textHCenter,
-					textVCenter,
-					titleDimensions.fontSize,
-					'cvo'
-				)
-			end
+			font:Print(
+				textText,
+				textHCenter,
+				textVCenter,
+				titleDimensions.fontSize,
+				'cvo'
+			)
+		end
 		font:End()
-		gl.PopMatrix()
 	end
 
-	gl.RenderToTexture(titleTexture, drawTitlesToTexture)
+	gl.R2tHelper.RenderToTexture(titleTexture, drawTitlesToTexture,	true)
 end
 
 local function updateStatsTexture()
@@ -1238,19 +1226,13 @@ local function updateStatsTexture()
 		local statsTextureWidth = knobDimensions.rightKnobRight - knobDimensions.leftKnobLeft
 		local statsTextureHeight = widgetDimensions.height
 
-		-- Remove everything we drew previously
-		gl.Blending(GL.ONE, GL.ZERO)
-		gl.Color(1, 1, 1, 0.0)
-		gl.Rect(-statsTextureWidth, -statsTextureHeight, statsTextureWidth, statsTextureHeight)
-
-		gl.PushMatrix()
 		gl.Translate(-1, -1, 0)
 		gl.Scale(
 			2 / statsTextureWidth,
 			2 / statsTextureHeight,
 			0
 		)
-		font:Begin()
+		font:Begin(true)
 			font:SetTextColor(textColorWhite)
 
 			local indexLeft = teamOrder and teamOrder[1] or 1
@@ -1322,10 +1304,9 @@ local function updateStatsTexture()
 				)
 			end
 		font:End()
-		gl.PopMatrix()
 	end
 
-	gl.RenderToTexture(statsTexture, drawStatsToTexture)
+	gl.R2tHelper.RenderToTexture(statsTexture, drawStatsToTexture, true)
 end
 
 local function updateTextTextures()
@@ -1337,8 +1318,16 @@ local function updateTextTextures()
 	updateStatsTexture()
 end
 
-local function createMetricDisplayLists()
+local function deleteMetricDisplayLists()
+	for _,metricDisplayList in ipairs(metricDisplayLists) do
+		gl.DeleteList(metricDisplayList)
+	end
 	metricDisplayLists = {}
+	displayListsChanged = true
+end
+
+local function createMetricDisplayLists()
+	deleteMetricDisplayLists()
 
 	local left = widgetDimensions.left
 	local right = widgetDimensions.right
@@ -1352,18 +1341,13 @@ local function createMetricDisplayLists()
 				bottom,
 				right,
 				top,
-				1, 1, 1, 1,
-				1, 1, 1, 1
+				metricIndex == 1 and 0 or 1, 0, 0, 1,
+				0 or 1, 1, 1, 1
 			)
 		end)
-		table.insert(metricDisplayLists, newDisplayList)
+		tableInsert(metricDisplayLists, newDisplayList)
 	end
-end
-
-local function deleteMetricDisplayLists()
-	for _,metricDisplayList in ipairs(metricDisplayLists) do
-		gl.DeleteList(metricDisplayList)
-	end
+	displayListsChanged = true
 end
 
 local function createKnobVertices(vertexMatrix, left, bottom, right, top, cornerRadius, cornerTriangleAmount)
@@ -1374,10 +1358,10 @@ local function createKnobVertices(vertexMatrix, left, bottom, right, top, corner
 		vertexMatrix[startIndex+2] = 0
 		vertexMatrix[startIndex+3] = 1
 
-		local alpha = math.pi / 2 / cornerTriangleAmount
+		local alpha = mathPi / 2 / cornerTriangleAmount
 		for sliceIndex=0,cornerTriangleAmount do
-			local x = originX + cornerRadiusX * (math.cos(startAngle + alpha * sliceIndex))
-			local y = originY + cornerRadiusY * (math.sin(startAngle + alpha * sliceIndex))
+			local x = originX + cornerRadiusX * (mathCos(startAngle + alpha * sliceIndex))
+			local y = originY + cornerRadiusY * (mathSin(startAngle + alpha * sliceIndex))
 
 			local vertexIndex = startIndex + (sliceIndex+1)*4
 
@@ -1424,7 +1408,7 @@ local function createKnobVertices(vertexMatrix, left, bottom, right, top, corner
 	addCornerVertices(
 		vertexMatrix,
 		vertexIndex,
-		math.pi/2,
+		mathPi/2,
 		leftOpenGL + cornerRadiusX,
 		topOpenGL - cornerRadiusY,
 		cornerRadiusX,
@@ -1492,7 +1476,7 @@ local function createKnobVertices(vertexMatrix, left, bottom, right, top, corner
 	addCornerVertices(
 		vertexMatrix,
 		vertexIndex,
-		math.pi,
+		mathPi,
 		leftOpenGL + cornerRadiusX,
 		bottomOpenGL + cornerRadiusY,
 		cornerRadiusX,
@@ -1515,7 +1499,7 @@ local function createKnobVertices(vertexMatrix, left, bottom, right, top, corner
 	addCornerVertices(
 		vertexMatrix,
 		vertexIndex,
-		-math.pi/2,
+		-mathPi/2,
 		rightOpenGL - cornerRadiusX,
 		bottomOpenGL + cornerRadiusY,
 		cornerRadiusX,
@@ -1529,20 +1513,20 @@ end
 local function insertKnobIndices(indexData, vertexStartIndex, cornerTriangleAmount)
 	local function insertCornerIndices(currentVertexOffset)
 		for i=1,cornerTriangleAmount do
-			table.insert(indexData, currentVertexOffset + 0)
-			table.insert(indexData, currentVertexOffset + i)
-			table.insert(indexData, currentVertexOffset + i+1)
+			tableInsert(indexData, currentVertexOffset + 0)
+			tableInsert(indexData, currentVertexOffset + i)
+			tableInsert(indexData, currentVertexOffset + i+1)
 		end
 		return currentVertexOffset + cornerTriangleAmount + 2
 	end
 
 	local function insertRectangleIndices(currentVertexOffset)
-		table.insert(indexData, currentVertexOffset)
-		table.insert(indexData, currentVertexOffset+1)
-		table.insert(indexData, currentVertexOffset+2)
-		table.insert(indexData, currentVertexOffset+1)
-		table.insert(indexData, currentVertexOffset+2)
-		table.insert(indexData, currentVertexOffset+3)
+		tableInsert(indexData, currentVertexOffset)
+		tableInsert(indexData, currentVertexOffset+1)
+		tableInsert(indexData, currentVertexOffset+2)
+		tableInsert(indexData, currentVertexOffset+1)
+		tableInsert(indexData, currentVertexOffset+2)
+		tableInsert(indexData, currentVertexOffset+3)
 		return currentVertexOffset + 4
 	end
 
@@ -1671,10 +1655,10 @@ local function addKnob(knobVAO, left, bottom, color)
 	local instanceData = {}
 
 	-- posBias
-	table.insert(instanceData, coordinateScreenXToOpenGL(left)+1.0)
-	table.insert(instanceData, coordinateScreenYToOpenGL(bottom)+1.0)
-	table.insert(instanceData, 0.0)
-	table.insert(instanceData, 0.0)
+	tableInsert(instanceData, coordinateScreenXToOpenGL(left)+1.0)
+	tableInsert(instanceData, coordinateScreenYToOpenGL(bottom)+1.0)
+	tableInsert(instanceData, 0.0)
+	tableInsert(instanceData, 0.0)
 
 	-- aKnobColor
 	instanceData[5] = color[1]
@@ -1698,6 +1682,11 @@ end
 local function addSideKnobs()
 	local indexLeft = teamOrder and teamOrder[1] or 1
 	local indexRight = teamOrder and teamOrder[2] or 2
+
+	-- Safety check: ensure allyTeamTable entries exist
+	if not allyTeamTable or not allyTeamTable[indexLeft] or not allyTeamTable[indexRight] then
+		return
+	end
 
 	for metricIndex,_ in ipairs(metricsEnabled) do
 		local bottom = widgetDimensions.top - metricIndex * metricDimensions.height
@@ -1894,6 +1883,8 @@ local function init()
 end
 
 local function deInit()
+	deleteUnitDefs()
+	deleteUnitCache()
 	deleteMetricDisplayLists()
 	deleteKnobVAO()
 	deleteTextures()
@@ -1966,6 +1957,14 @@ function widget:Shutdown()
 
 	if shader then
 		shader:Finalize()
+	end
+	if guishaderDlist then
+		if WG['guishader'] then
+			WG['guishader'].DeleteDlist('spechud')
+		else
+			gl.DeleteList(guishaderDlist)
+		end
+		guishaderDlist = nil
 	end
 end
 
@@ -2048,7 +2047,7 @@ function widget:GameFrame(frameNum)
 					accumulator.z = accumulator.z + z
 				end
 				local startAverage= { x = accumulator.x / #teamList, z = accumulator.z / #teamList }
-				table.insert(teamStartAverages, { allyID, startAverage })
+				tableInsert(teamStartAverages, { allyID, startAverage })
 			end
 		end
 
@@ -2056,8 +2055,8 @@ function widget:GameFrame(frameNum)
 
 		-- sort averages and create team order (from left to right)
 		table.sort(teamStartAverages, function (left, right)
-			return ((left[2].x * math.cos(rotY) + left[2].z * math.sin(rotY)) <
-					(right[2].x * math.cos(rotY) + right[2].z * math.sin(rotY)))
+			return ((left[2].x * mathCos(rotY) + left[2].z * mathSin(rotY)) <
+					(right[2].x * mathCos(rotY) + right[2].z * mathSin(rotY)))
 		end)
 		teamOrder = {}
 		for i,teamStart in ipairs(teamStartAverages) do
@@ -2108,7 +2107,7 @@ function widget:Update(dt)
 end
 
 function widget:DrawGenesis()
-	if (not widgetEnabled) or (not haveFullView) then
+	if not widgetEnabled or not haveFullView then
 		return
 	end
 
@@ -2119,8 +2118,27 @@ function widget:DrawGenesis()
 end
 
 function widget:DrawScreen()
-	if (not widgetEnabled) or (not haveFullView) then
+
+	if not widgetEnabled or not haveFullView then
+		if WG['guishader'] and guishaderDlist then
+			WG['guishader'].DeleteDlist('spechud')
+			guishaderDlist = nil
+		end
 		return
+	end
+
+	if WG['guishader'] and (displayListsChanged or not guishaderDlist) then
+		if guishaderDlist then
+			gl.DeleteList(guishaderDlist)
+			guishaderDlist = nil
+		end
+		guishaderDlist = gl.CreateList(function ()
+			for _, metricDisplayList in ipairs(metricDisplayLists) do
+				gl.CallList(metricDisplayList)
+			end
+		end)
+		WG['guishader'].InsertDlist(guishaderDlist, 'spechud')
+		displayListsChanged = nil
 	end
 
 	for _, metricDisplayList in ipairs(metricDisplayLists) do

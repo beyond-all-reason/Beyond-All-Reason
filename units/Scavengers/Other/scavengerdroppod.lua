@@ -79,7 +79,6 @@ return {
 				soundstart = "scavspawn",
 				soundhit = "scavdropspawn",
 				startvelocity = 1,
-				targetborder = 0.75,
 				texture1 = "null",
 				texture2 = "smoketrailaaflak",
 				turret = 1,

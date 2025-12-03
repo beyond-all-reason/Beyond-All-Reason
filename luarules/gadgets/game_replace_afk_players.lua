@@ -33,6 +33,8 @@ if gadgetHandler:IsSyncedCode() then
 	-- idealDiff is used if possible, validDiff as fall-back, otherwise no
 	local validDiff = 6
 	local idealDiff = 3
+	local mathAbs = math.abs
+	local mathRandom = math.random
 
 	local substitutes = {}
 	local players = {}
@@ -128,10 +130,11 @@ if gadgetHandler:IsSyncedCode() then
 			for subID, subts in pairs(substitutesLocal) do
 				local _, active, spec = Spring.GetPlayerInfo(subID, false)
 				if active and spec then
-					if math.abs(ts - subts) <= validDiff then
+					local tsDiff = mathAbs(ts - subts)
+					if tsDiff <= validDiff then
 						validSubs[#validSubs + 1] = subID
 					end
-					if math.abs(ts - subts) <= idealDiff then
+					if tsDiff <= idealDiff then
 						idealSubs[#idealSubs + 1] = subID
 					end
 				end
@@ -142,9 +145,9 @@ if gadgetHandler:IsSyncedCode() then
 				-- choose who
 				local sID
 				if #idealSubs > 0 then
-					sID = (#idealSubs > 1) and idealSubs[math.random(1, #idealSubs)] or idealSubs[1]
+					sID = (#idealSubs > 1) and idealSubs[mathRandom(1, #idealSubs)] or idealSubs[1]
 				else
-					sID = (#validSubs > 1) and validSubs[math.random(1, #validSubs)] or validSubs[1]
+					sID = (#validSubs > 1) and validSubs[mathRandom(1, #validSubs)] or validSubs[1]
 				end
 
 				if real then
@@ -254,7 +257,7 @@ else
 	end
 
 	local function MarkStartPoint(_, x, y, z, name, teamID)
-		local _, _, spec = Spring.GetPlayerInfo(myPlayerID)
+		local _, _, spec = Spring.GetPlayerInfo(myPlayerID, false)
 		if not spec then
 			Spring.MarkerAddPoint(x, y, z, colourNames(teamID) .. name, true)
 			revealed = true

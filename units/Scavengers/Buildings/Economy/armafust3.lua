@@ -31,8 +31,8 @@ return {
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 16,
-			buildinggrounddecalsizey = 16,
+			buildinggrounddecalsizex = 18,
+			buildinggrounddecalsizey = 18,
 			buildinggrounddecaltype = "decals/armafus_aoplane.dds",
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",

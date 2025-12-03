@@ -19,10 +19,28 @@ end
 	- Decorations are things like hats and xmas baubles an should be invulnerable
 ]]--
 
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetUnitArmored = Spring.GetUnitArmored
+local spAreTeamsAllied = Spring.AreTeamsAllied
+local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
+
+local CMD_ATTACK = CMD.ATTACK
+local CMD_MOVE = CMD.MOVE
+local CMD_RECLAIM = CMD.RECLAIM
+local CMD_REPAIR = CMD.REPAIR
+
 local isBuilder = {}
-local unitSize = {}
 local isObject = {}
+local isClosedObject = {}
 local isDecoration = {}
+local canAttack = {}
+local canMove = {}
+local canReclaim = {}
+local canRepair = {}
+local unitSize = {}
+
 for udefID,def in ipairs(UnitDefs) do
     if def.customParams.objectify then
         isObject[udefID] = true
@@ -34,19 +52,38 @@ for udefID,def in ipairs(UnitDefs) do
 		isBuilder[udefID] = true
 	end
 	unitSize[udefID] = { ((def.xsize*8)+8)/2, ((def.zsize*8)+8)/2 }
-end
 
+	-- NB: This is `true` for e.g. constructors if `canattack = false` is not set. -- todo
+	-- Spring.Echo("ATTACK", UnitDefs[selectedID].name, UnitDefs[selectedID].canAttack)
+	-- So add an additional check that the unit has any actual, effective weapons.
+	if def.canAttack and def.maxWeaponRange > 0 then
+		canAttack[udefID] = true
+	end
+	if def.canMove then
+		canMove[udefID] = true
+	end
+	if def.canReclaim then
+		canReclaim[udefID] = true
+	end
+	if def.canRepair then
+		canRepair[udefID] = true
+	end
+	if def.customParams.decoyfor and def.customParams.neutral_when_closed then
+		local coy = UnitDefNames[def.customParams.decoyfor]
+		if coy ~= nil and coy.customParams.objectify then
+			isClosedObject[udefID] = true
+		end
+	end
+end
 
 if gadgetHandler:IsSyncedCode() then
 
 	local numDecorations = 0
 	local numObjects = 0
 
-	local CMD_ATTACK = CMD.ATTACK
-	local spGetUnitDefID = Spring.GetUnitDefID
-
 	function gadget:Initialize()
-		gadgetHandler:RegisterAllowCommand(CMD.ANY)
+		gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
+		gadgetHandler:RegisterAllowCommand(CMD.BUILD)
 		for _, unitID in pairs(Spring.GetAllUnits()) do
 			gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
 		end
@@ -123,14 +160,14 @@ if gadgetHandler:IsSyncedCode() then
 			if cmdID == CMD_ATTACK then
 				if cmdParams and #cmdParams == 1 then
 					local uDefID = spGetUnitDefID(cmdParams[1])
-					if isObject[uDefID] or isDecoration[uDefID] then
+					if isDecoration[uDefID] then
 						return false
 					end
 				end
 
 			-- remove any decoration that is blocking a queued build order
 			elseif cmdID < 0 and numDecorations > 0 then
-				if cmdParams[3] and isBuilder[spGetUnitDefID(unitID)] then
+				if cmdParams[3] and isBuilder[unitDefID] then
 					local udefid = math.abs(cmdID)
 					local units = Spring.GetUnitsInBox(cmdParams[1]-unitSize[udefid][1],cmdParams[2]-200,cmdParams[3]-unitSize[udefid][2],cmdParams[1]+unitSize[udefid][1],cmdParams[2]+50,cmdParams[3]+unitSize[udefid][2])
 					for i=1, #units do
@@ -150,20 +187,80 @@ if gadgetHandler:IsSyncedCode() then
 else -- UNSYNCED
 
 
-    local CMD_MOVE = CMD.MOVE
-    local spGetUnitDefID = Spring.GetUnitDefID
+	local myAllyTeam = Spring.GetMyAllyTeamID()
+	local spectating = Spring.GetSpectatingState()
+	function gadget:PlayerChanged(playerID)
+		myAllyTeam = Spring.GetMyAllyTeamID()
+		spectating = Spring.GetSpectatingState()
+	end
 
-    function gadget:DefaultCommand(type, id, cmd)
-		if type == "unit" and cmd ~= CMD_MOVE then
-			local uDefID = spGetUnitDefID(id)
-			if isObject[uDefID] or isDecoration[uDefID] then
-				-- make sure a command given on top of a objectified/decoration unit is a move command
-				if select(4, Spring.GetUnitHealth(id)) == 1 then
-					return CMD_MOVE
+	-- "predicate" tables are checked in their index order
+	-- with early returns when the first check is matched:
+	local allyBeingBuilt = {
+		{ check = canRepair, command = CMD_REPAIR }, -- so this is the priority
+		{ check = canMove,   command = CMD_MOVE }, -- and this is the fallback
+	}
+	local allyObjectUnit = {
+		{ check = canReclaim, command = CMD_RECLAIM },
+		{ check = canMove,    command = CMD_MOVE },
+	}
+	local hideEnemyDecoy = {
+		{ check = canAttack,  command = CMD_ATTACK },
+		{ check = canReclaim, command = CMD_RECLAIM },
+		{ check = canMove,    command = CMD_MOVE },
+	}
+
+	local function scanSelection(predicates)
+		local canExecute = {}
+		for unitDefID in pairs(spGetSelectedUnitsCounts()) do
+			for j = 1, #predicates do
+				if predicates[j].check[unitDefID] then
+					if j == 1 then
+						return predicates[j].command
+					end
+					canExecute[j] = true
 				end
 			end
+		end
+		for i = 2, #predicates do
+			if canExecute[i] then
+				return predicates[i].command
+			end
+		end
+	end
+
+	-- Don't auto-guard units like walls and don't reveal enemy decoys:
+	local function getUnitHoverCommand(unitID, unitDefID, fromCommand)
+		if isDecoration[unitDefID] then
+			return CMD_MOVE
+		end
+
+		local objectUnit = isObject[unitDefID]
+		local decoyState = isClosedObject[unitDefID] and spGetUnitArmored(unitID)
+		local beingBuilt = spGetUnitIsBeingBuilt(unitID)
+		local inAlliance = spAreTeamsAllied(spGetUnitAllyTeam(unitID), myAllyTeam)
+
+		if beingBuilt then
+			if inAlliance and objectUnit and fromCommand ~= CMD_REPAIR then
+				return scanSelection(allyBeingBuilt)
+			end
+		else
+			if inAlliance then
+				if objectUnit and fromCommand ~= CMD_RECLAIM then
+					return scanSelection(allyObjectUnit)
+				end
+			elseif objectUnit or decoyState then
+				-- Many BAR units "canAttack" atm, but not really. Do not filter on CMD_ATTACK. -- todo
+				-- Attack > Reclaim > Move
+				return scanSelection(hideEnemyDecoy)
+			end
+		end
+	end
+
+    function gadget:DefaultCommand(type, id, cmd)
+		if type == "unit" and not spectating then
+			return getUnitHoverCommand(id, spGetUnitDefID(id), cmd)
 		end
     end
 
 end
-

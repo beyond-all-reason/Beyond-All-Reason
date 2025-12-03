@@ -12,10 +12,17 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetUnitDefID = Spring.GetUnitDefID
+local spEcho = Spring.Echo
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetAllUnits = Spring.GetAllUnits
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local iconsize = 1
 local iconoffset = 24
 
-local falloffDistance = 1300
 local cutoffDistance = 2300
 
 local distanceMult = 1
@@ -26,18 +33,23 @@ local usedIconsize = iconsize * iconsizeMult
 local maximumRankXP = 0.8
 local numRanks = #VFS.DirList('LuaUI/Images/ranks', '*.png')
 local rankTextures = {}
-local unitRanks = {}
 for i = 1,numRanks do
 	rankTextures[i] = 'LuaUI/Images/ranks/rank'..i..'.png'
 end
 local xpPerLevel = maximumRankXP/(numRanks-1)
 
 local unitHeights = {}
+local spec, fullview = spGetSpectatingState()
 
 -- GL4 stuff:
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 local atlasID = nil
 local atlasSize = 2048
-local atlassedImages = {}
+--local atlassedImages = {}
 
 local rankVBO = nil
 local rankShader = nil
@@ -48,12 +60,12 @@ local debugmode = false
 local function addDirToAtlas(atlas, path)
 	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
 	local files = VFS.DirList(path, '*.png')
-	if debugmode then Spring.Echo("Adding",#files, "images to atlas from", path) end
+	if debugmode then spEcho("Adding",#files, "images to atlas from", path) end
 	for i=1, #files do
 		if imgExts[string.sub(files[i],-3,-1)] then
 			gl.AddAtlasTexture(atlas,files[i])
-			atlassedImages[files[i]] = true
-			--if debugmode then Spring.Echo("added", files[i]) end
+			--atlassedImages[files[i]] = true
+			--if debugmode then spEcho("added", files[i]) end
 		end
 	end
 end
@@ -63,16 +75,15 @@ local function makeAtlas()
 	addDirToAtlas(atlasID, "LuaUI/Images/ranks")
 	local result = gl.FinalizeTextureAtlas(atlasID)
 	if debugmode then
-		--Spring.Echo("atlas result", result)
+		--spEcho("atlas result", result)
 	end
 end
 
-local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
-local GetUnitDefID = Spring.GetUnitDefID
+local GetUnitDefID = spGetUnitDefID
 local GetUnitExperience = Spring.GetUnitExperience
-local GetAllUnits = Spring.GetAllUnits
+local GetAllUnits = spGetAllUnits
 local IsUnitAllied = Spring.IsUnitAllied
-local GetSpectatingState = Spring.GetSpectatingState
+local GetUnitTeam = spGetUnitTeam
 
 local glDepthTest = gl.DepthTest
 local glDepthMask = gl.DepthMask
@@ -81,12 +92,20 @@ local glTexture = gl.Texture
 
 local GL_GREATER = GL.GREATER
 
+local ignoreTeams = {}
+for _, teamID in ipairs(Spring.GetTeamList()) do
+	if select(4, Spring.GetTeamInfo(teamID,false)) then	-- is AI?
+		local luaAI = Spring.GetTeamLuaAI(teamID)
+		if luaAI and luaAI ~= "" and (string.find(luaAI, 'Scavengers') or string.find(luaAI, 'Raptors')) then
+			ignoreTeams[teamID] = true
+		end
+	end
+end
+
 local unitIconMult = {}
-local isAirUnit = {}
-for udid, unitDef in pairs(UnitDefs) do
-	unitIconMult[udid] = math.clamp((Spring.GetUnitDefDimensions(udid).radius / 40) + math.min(unitDef.power / 400, 2), 1.25, 1.4)
-	if unitDef.canFly then
-		isAirUnit[udid] = true
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if not unitDef.customParams.drone then
+		unitIconMult[unitDefID] = math.clamp((Spring.GetUnitDefDimensions(unitDefID).radius / 40) + math.min(unitDef.power / 400, 2), 1.25, 1.4)
 	end
 end
 
@@ -118,21 +137,18 @@ for i = 1, 18 do vbocachetable[i] = 0 end -- init this caching table to preserve
 local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, flash)
 	if debugmode then Spring.Debug.TraceEcho("add",unitID,reason) end
 	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then
-		if debugmode then Spring.Echo("Warning: Rank Icons GL4 attempted to add an invalid unitID:", unitID) end
+		if debugmode then spEcho("Warning: Rank Icons GL4 attempted to add an invalid unitID:", unitID) end
 		return nil
 	end
 	local gf = (flash and Spring.GetGameFrame()) or 0
-	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+	unitDefID = unitDefID or spGetUnitDefID(unitID)
 
 	--if unitDefID == nil or unitDefIDtoDecalInfo[unitDefID] == nil then return end -- these cant have plates
 	--local decalInfo = unitDefIDtoDecalInfo[unitDefID]
 
 	--local texname = "unittextures/decals/".. UnitDefs[unitDefID].name .. "_aoplane.dds" --unittextures/decals/armllt_aoplane.dds
 
-	local numVertices = 4 -- default to circle
-	local additionalheight = 0
-
-	--Spring.Echo (rank, rankTextures[rank], unitIconMult[unitDefID])
+	--spEcho (rank, rankTextures[rank], unitIconMult[unitDefID])
 	local p,q,s,t = gl.GetAtlasTexture(atlasID, rankTextures[rank])
 
 	vbocachetable[1] = usedIconsize -- length
@@ -140,7 +156,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, fla
 	vbocachetable[3] = 0 -- cornersize
 	vbocachetable[4] = (unitHeights[unitDefID] or iconoffset) - 8 + ((debugmode and math.random()*16 ) or 0)-- height
 
-	--vbocachetable[5] = 0 -- Spring.GetUnitTeam(unitID)
+	--vbocachetable[5] = 0 -- spGetUnitTeam(unitID)
 	vbocachetable[6] = 4 -- numvertices
 
 	vbocachetable[7] = gf-(doRefresh and 200 or 0) -- gameframe for animations
@@ -161,19 +177,6 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, fla
 		true, -- update existing element
 		noUpload, -- noupload, dont use unless you know what you want to batch push/pop
 		unitID) -- last one should be UNITID!
-end
-
-local function ProcessAllUnits()
-	clearInstanceTable(rankVBO)
-	local units = Spring.GetAllUnits()
-	--Spring.Echo("Refreshing Ground Plates", #units)
-	for _, unitID in ipairs(units) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
-		if unitDefID then
-			updateUnitRank(unitID, unitDefID, true)
-		end
-	end
-	uploadAllElements(rankVBO)
 end
 
 local function RemovePrimitive(unitID,reason)
@@ -230,16 +233,33 @@ local function getRank(unitDefID, xp)
 end
 
 local function updateUnitRank(unitID, unitDefID, noUpload)
-	local currentRank = unitRanks[unitID]
+	if not unitIconMult[unitDefID] or ignoreTeams[GetUnitTeam(unitID)] then
+		return
+	end
 	local xp = GetUnitExperience(unitID)
 	if xp then
 		local newrank = getRank(unitDefID, xp)
-		unitRanks[unitID] = newrank
 		if newrank > 1 then
 			AddPrimitiveAtUnit(unitID, unitDefID, noUpload, "updateUnitRank", newrank, false)
 		end
-
 	end
+end
+
+local function ProcessAllUnits()
+	InstanceVBOTable.clearInstanceTable(rankVBO)
+	local units = spGetAllUnits()
+	--spEcho("Refreshing Ground Plates", #units)
+	for _, unitID in ipairs(units) do
+		local unitDefID = spGetUnitDefID(unitID)
+		if unitDefID then
+			updateUnitRank(unitID, unitDefID, true)
+		end
+	end
+	InstanceVBOTable.uploadAllElements(rankVBO)
+end
+
+function widget:PlayerChanged(playerID)
+	spec, fullview = spGetSpectatingState()
 end
 
 
@@ -293,7 +313,10 @@ end
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
-function widget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldXP)
+function widget:UnitExperience(unitID, unitDefID, teamID, xp, oldXP)
+	if not unitIconMult[unitDefID] or ignoreTeams[teamID] then
+		return
+	end
 	if xp < 0 then
 		xp = 0
 	end
@@ -305,64 +328,34 @@ function widget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldXP)
 	local oldRank = getRank(unitDefID, oldXP)
 
 	if oldRank < rank then
-		unitRanks[unitID] = rank
 		RemovePrimitive(unitID, "promoted")
 		AddPrimitiveAtUnit(unitID, unitDefID, false, "promoted", rank, 1)
 	end
 end
 
---[[
--- Switch over to API
-function widget:UnitCreated(unitID, unitDefID, unitTeam)
-	if IsUnitAllied(unitID) or GetSpectatingState() then
-		updateUnitRank(unitID, GetUnitDefID(unitID))
-	end
-end
-
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	unitRanks[unitID] = nil
+function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	RemovePrimitive(unitID, "UnitDestroyed")
 end
 
-function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	if isAirUnit[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-		widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	end
-end
-
-function widget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
-	if not IsUnitAllied(unitID) and not GetSpectatingState() then
-		unitRanks[unitID] = nil
-		RemovePrimitive(unitID, "UnitGiven")
-	end
-end
-]]--
-
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
-	if IsUnitAllied(unitID) or GetSpectatingState() then
+	if fullview or IsUnitAllied(unitID) then
 		updateUnitRank(unitID, GetUnitDefID(unitID))
 	end
 end
 
 function widget:VisibleUnitRemoved(unitID) -- E.g. when a unit dies
-	unitRanks[unitID] = nil
 	RemovePrimitive(unitID, "UnitDestroyed")
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(rankVBO)
+	InstanceVBOTable.clearInstanceTable(rankVBO)
 	doRefresh = true
-	unitRanks = {}
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		updateUnitRank(unitID, unitDefID, true)
 	end
-	uploadAllElements(rankVBO)
+	InstanceVBOTable.uploadAllElements(rankVBO)
 	doRefresh = false
 end
-
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
-
 
 
 function widget:DrawWorld()
@@ -374,8 +367,7 @@ function widget:DrawWorld()
 		doRefresh = false
 	end
 	if rankVBO.usedElements > 0 then
-		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
-		--Spring.Echo(rankVBO.usedElements)
+		--spEcho(rankVBO.usedElements)
 		--gl.Culling(GL.BACK)
 
 		glDepthMask(true)

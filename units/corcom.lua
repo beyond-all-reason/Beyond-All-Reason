@@ -19,7 +19,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		energycost = 26000,
-		energymake = 25,
+		energymake = 30,
 		energystorage = 500,
 		explodeas = "commanderexplosion",
 		footprintx = 3,
@@ -40,7 +40,7 @@ return {
 		movementclass = "COMMANDERBOT",
 		movestate = 0,
 		nochasecategory = "ALL",
-		objectname = "Units/CORCOM"..(Spring.GetModOptions().xmas and '-XMAS' or '')..".s3o",
+		objectname = "Units/CORCOM.s3o",
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
@@ -238,6 +238,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					norangering= 1,
+				},
 				damage = {
 					default = 200,
 					subs = 100,

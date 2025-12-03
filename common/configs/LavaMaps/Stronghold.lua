@@ -22,7 +22,7 @@ local config = {
        fogHeight = 36,
        fogAbove = 0.1,
        fogDistortion = 2.0,
-       tideRhym = { { 4, 0.05, 5*6000 } },
+       tideRhythm = { { 4, 1.5, 5*6000 } },
 }
 
 return config

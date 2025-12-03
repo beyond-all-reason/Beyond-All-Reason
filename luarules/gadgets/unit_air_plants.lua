@@ -21,8 +21,8 @@ local FindUnitCmdDesc = Spring.FindUnitCmdDesc
 local InsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 local SetUnitNeutral = Spring.SetUnitNeutral
-local CMD_AUTOREPAIRLEVEL = CMD.AUTOREPAIRLEVEL
 local CMD_IDLEMODE = CMD.IDLEMODE
+local CMD_LAND_AT = GameCMD.LAND_AT
 
 local isAirplantNames = {
 	corap = true,
@@ -55,7 +55,7 @@ local plantList = {}
 local buildingUnits = {}
 
 local landCmd = {
-	id = 34569,
+	id = CMD_LAND_AT,
 	name = "apLandAt",
 	action = "apLandAt",
 	type = CMDTYPE.ICON_MODE,
@@ -63,23 +63,13 @@ local landCmd = {
 	params = { '1', ' Fly ', 'Land' }
 }
 
-local airCmd = {
-	id = 34570,
-	name = "apAirRepair",
-	action = "apAirRepair",
-	type = CMDTYPE.ICON_MODE,
-	tooltip = "return to base and land on air repair pad below this health percentage",
-	params = { '1', 'LandAt 0', 'LandAt 30', 'LandAt 50', 'LandAt 80' }
-}
-
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if isAirplant[unitDefID] then
+		landCmd.params[1] = 1
+		plantList[unitID] = 1
 		InsertUnitCmdDesc(unitID, 500, landCmd)
-		InsertUnitCmdDesc(unitID, 500, airCmd)
-		plantList[unitID] = { landAt = 1, repairAt = 1 }
 	elseif plantList[builderID] then
-		GiveOrderToUnit(unitID, CMD_AUTOREPAIRLEVEL, { plantList[builderID].repairAt }, 0)
-		GiveOrderToUnit(unitID, CMD_IDLEMODE, {plantList[builderID].landAt}, 0)
+		GiveOrderToUnit(unitID, CMD_IDLEMODE, plantList[builderID], 0)
 		SetUnitNeutral(unitID, true)
 		buildingUnits[unitID] = true
 	end
@@ -97,25 +87,15 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(34569) -- LandAt
-	gadgetHandler:RegisterAllowCommand(34570) -- AirRepair
+	gadgetHandler:RegisterAllowCommand(CMD_LAND_AT)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if isAirplant[unitDefID] and plantList[unitID] then
-		if cmdID == 34569 then -- LandAt
-			local cmdDescID = FindUnitCmdDesc(unitID, 34569)
-			landCmd.params[1] = cmdParams[1]
-			EditUnitCmdDesc(unitID, cmdDescID, landCmd)
-			plantList[unitID].landAt = cmdParams[1]
-			landCmd.params[1] = 1
-		else -- cmdID == 34570  -- AirRepair
-			local cmdDescID = FindUnitCmdDesc(unitID, 34570)
-			airCmd.params[1] = cmdParams[1]
-			EditUnitCmdDesc(unitID, cmdDescID, airCmd)
-			plantList[unitID].repairAt = cmdParams[1]
-			airCmd.params[1] = 1
-		end
+		local cmdDescID = FindUnitCmdDesc(unitID, CMD_LAND_AT)
+		landCmd.params[1] = cmdParams[1]
+		EditUnitCmdDesc(unitID, cmdDescID, landCmd)
+		plantList[unitID] = cmdParams[1]
 		return false
 	end
 	return true

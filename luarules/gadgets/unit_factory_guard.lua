@@ -26,11 +26,11 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spInsertUnitCmdDesc  = Spring.InsertUnitCmdDesc
 local spEditUnitCmdDesc    = Spring.EditUnitCmdDesc
 local spFindUnitCmdDesc    = Spring.FindUnitCmdDesc
+local spTestMoveOrder = Spring.TestMoveOrder
 
+local CMD_FACTORY_GUARD = GameCMD.FACTORY_GUARD
 local CMD_GUARD = CMD.GUARD
 local CMD_MOVE = CMD.MOVE
-
-include("luarules/configs/customcmds.h.lua")
 
 local factoryGuardCmdDesc = {
 	id = CMD_FACTORY_GUARD,
@@ -134,14 +134,14 @@ local function GuardFactory(unitID, unitDefID, factID, factDefID)
 	local OrderUnit = spGiveOrderToUnit
 
 	OrderUnit(unitID, CMD_MOVE, { x + dx, y, z + dz }, { "" })
-	if Spring.TestMoveOrder(unitDefID, x + dx + rx, y, z + dz + rz) then
+	if spTestMoveOrder(unitDefID, x + dx + rx, y, z + dz + rz) then
 		OrderUnit(unitID, CMD_MOVE, { x + dx + rx, y, z + dz + rz }, { "shift" })
-		if Spring.TestMoveOrder(unitDefID, x + rx, y, z + rz) then
+		if spTestMoveOrder(unitDefID, x + rx, y, z + rz) then
 			OrderUnit(unitID, CMD_MOVE, { x + rx, y, z + rz }, { "shift" })
 		end
-	elseif Spring.TestMoveOrder(unitDefID, x + dx - rx, y, z + dz - rz) then
+	elseif spTestMoveOrder(unitDefID, x + dx - rx, y, z + dz - rz) then
 		OrderUnit(unitID, CMD_MOVE, { x + dx - rx, y, z + dz - rz }, { "shift" })
-		if Spring.TestMoveOrder(unitDefID, x - rx, y, z - rz) then
+		if spTestMoveOrder(unitDefID, x - rx, y, z - rz) then
 			OrderUnit(unitID, CMD_MOVE, { x - rx, y, z - rz }, { "shift" })
 		end
 	end
@@ -178,8 +178,9 @@ end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_FACTORY_GUARD)
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+	local allUnits = Spring.GetAllUnits()
+	for i = 1, #allUnits do
+		gadget:UnitCreated(allUnits[i], Spring.GetUnitDefID(allUnits[i]))
 	end
 end
 --------------------------------------------------------------------------------

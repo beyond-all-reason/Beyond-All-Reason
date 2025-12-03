@@ -6,7 +6,7 @@ local passed = true
 
 
 function skip()
-	return Spring.GetGameFrame() <= 0
+	return Spring.GetGameFrame() <= 0 or not Platform.gl
 end
 
 function setup()

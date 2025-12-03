@@ -20,6 +20,7 @@ end
 
 local spSetUnitWeaponState = Spring.SetUnitWeaponState
 local spSetUnitMaxRange = Spring.SetUnitMaxRange
+local unpack = unpack
 local gainsRangeFromXp = {}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -33,8 +34,9 @@ function gadget:Initialize()
 end
 
 function gadget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldxp)
-	if gainsRangeFromXp[unitDefID] then
-		local rangeXPScale, originalRange = unpack(gainsRangeFromXp[unitDefID])
+	local rangeData = gainsRangeFromXp[unitDefID]
+	if rangeData then
+		local rangeXPScale, originalRange = unpack(rangeData)
 		local limitXP = ((3 * xp) / (1 + 3 * xp)) * rangeXPScale
 		local newRange = originalRange * (1 + limitXP)
 

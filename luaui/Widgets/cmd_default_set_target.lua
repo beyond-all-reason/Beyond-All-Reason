@@ -12,9 +12,13 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+
 local rebindKeys = false
 
-local CMD_UNIT_SET_TARGET = 34923
+local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
 
 local IsUnitAllied = Spring.IsUnitAllied
 local GetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
@@ -32,7 +36,7 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 local function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
+	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 		return true
 	end
@@ -48,7 +52,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+	if Spring.IsReplay() or spGetGameFrame() > 0 then
 		if maybeRemoveSelf() then return end
 	end
 

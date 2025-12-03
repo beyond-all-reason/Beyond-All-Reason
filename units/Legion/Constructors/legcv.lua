@@ -68,10 +68,10 @@ return {
 			"legrl",
 			"legrhapsis",
 			"leglupara",
-			"cordl",
+			"legctl",
 			"legjam",
-			"corjuno",
-			"corsy",
+			"legjuno",
+			"legsy",
 			"leghive",
 		},
 		customparams = {

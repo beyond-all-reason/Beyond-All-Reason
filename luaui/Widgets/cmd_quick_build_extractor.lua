@@ -8,14 +8,15 @@ function widget:GetInfo()
 		version = "1.0",
 		date = "Jan 2024",
 		license = "GNU GPL, v2 or later",
-		handler = true,
 		layer = 1000,
 		enabled = true
 	}
 end
 
-local CMD_MOVE = CMD.MOVE
-local CMD_GUARD = CMD.GUARD
+
+-- Localized Spring API for performance
+local spTraceScreenRay = Spring.TraceScreenRay
+
 local CMD_RECLAIM = CMD.RECLAIM
 
 local spGetActiveCommand = Spring.GetActiveCommand
@@ -119,6 +120,7 @@ function widget:Update(dt)
 
 	-- Don't do anything with cloaked units
 	if #selectedUnits == 1 and unitIsCloaked(selectedUnits[1]) then
+		clearGhostBuild()
 		return
 	end
 
@@ -139,7 +141,7 @@ function widget:Update(dt)
 
 	-- First check unit under cursor. If it's an extractor, see if there's valid upgrades
 	-- If it's not an extractor, simply exit
-	local type, rayParams = Spring.TraceScreenRay(mx, my)
+	local type, rayParams = spTraceScreenRay(mx, my)
 	local unitUuid = type == 'unit' and rayParams
 	local unitDefID = type == 'unit' and spGetUnitDefID(rayParams)
 
@@ -171,7 +173,7 @@ function widget:Update(dt)
 		end
 	elseif not metalMap then
 		-- If no valid units, check cursor position against extractor spots
-		local _, groundPos = Spring.TraceScreenRay(mx, my, true, false, false, true)
+		local _, groundPos = spTraceScreenRay(mx, my, true, false, false, true)
 		if not groundPos or not groundPos[1] then
 			clearGhostBuild()
 			return

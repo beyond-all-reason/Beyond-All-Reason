@@ -10,7 +10,7 @@ local conf = {
 	fogDistortion = 2.0,
 	tideAmplitude = 0.3,
 	tidePeriod = 1000,
-	tideRhym = { { -1, 0.05, 5*6000 } },
+	tideRhythm = { { -1, 1.5, 5*6000 } },
 }
 
 return conf
