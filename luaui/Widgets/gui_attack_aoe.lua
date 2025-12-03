@@ -322,6 +322,18 @@ end
 --------------------------------------------------------------------------------
 -- UTILITY FUNCTIONS
 --------------------------------------------------------------------------------
+local function GetSizeBasedAlpha(currentSize, minRadius)
+	local maxRadius = minRadius * 2
+
+	if currentSize >= maxRadius then
+		return 1
+	elseif currentSize <= minRadius then
+		return 0
+	else
+		return (currentSize - minRadius) / (maxRadius - minRadius)
+	end
+end
+
 local function FadeColorInPlace(color, alphaMult)
 	color[4] = color[4] * alphaMult
 end
@@ -552,23 +564,17 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 	local weaponType = weaponDef.type
 	local scatter = weaponDef.accuracy + weaponDef.sprayAngle
 
-	info.weaponHeight = nil -- weaponY - unitY when weapon is ready to shoot. Will be cached in real time.
-	info.reloadWeaponHeightFrame = -1 -- weaponHeight will be precise only when weapon wasn't in middle of reload so have to reload it if it was cached at wrong time
 	info.aoe = weaponDef.damageAreaOfEffect
-	info.cost = unitDef.cost
 	info.mobile = unitDef.speed > 0
 	info.waterWeapon = ToBool(weaponDef.waterWeapon)
 	info.ee = weaponDef.edgeEffectiveness
 	info.weaponNum = weaponNum
 	info.hasStockpile = weaponDef.stockpile
-	info.reloadTime = weaponDef.reload
 
 	if weaponDef.paralyzer then
 		info.color = Config.Colors.emp
 	end
 	if weaponDef.customParams.area_onhit_resistance == "fire" then
-		info.isNapalm = true
-		info.napalmRange = weaponDef.customParams.area_onhit_range
 		info.color = Config.Colors.napalm
 		info.shader = napalmShader
 	end
@@ -593,15 +599,14 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 		info.v = weaponDef.projectilespeed * Config.General.gameSpeed
 		info.projectileCount = weaponDef.projectiles or 1
 		info.salvoSize = weaponDef.salvoSize or 1
-		info.salvoSize = weaponDef.customParams.avoidGround
 	elseif weaponType == "MissileLauncher" then
 		local turnRate = weaponDef.turnRate or 0
+		-- Missile wobbles only when turn rate is too small to counter it
 		if weaponDef.wobble > turnRate * 1.5 then
 			info.type = "wobble"
 			info.wobble = weaponDef.wobble
 			info.turnRate = turnRate
 			info.v = weaponDef.projectilespeed
-			info.startVelocity = weaponDef.startvelocity or 0
 			info.range = weaponDef.range
 			info.trajectoryHeight = weaponDef.trajectoryHeight
 			info.overrangeDistance = tonumber(weaponDef.customParams.overrange_distance)
@@ -616,7 +621,6 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 		info.type = "dropped"
 		info.scatter = scatter
 		info.v = unitDef.speed
-		info.h = unitDef.cruiseAltitude
 		info.salvoSize = weaponDef.salvoSize
 		info.salvoDelay = weaponDef.salvoDelay
 	elseif weaponType == "StarburstLauncher" then
@@ -689,22 +693,20 @@ end
 --------------------------------------------------------------------------------
 local function GetUnitWithBestStockpile(unitIDs)
 	local bestUnit = unitIDs[1]
-	local maxScore = -1
-
-	for i = 1, #unitIDs do
-		local unitID = unitIDs[i]
-		local numStockpiled, _, buildPercent = spGetUnitStockpile(unitID)
-		-- check both to ensure result doesn't rely on the current order of unitIDs
-		local score = numStockpiled + buildPercent
-		if score > maxScore then
-			maxScore = score
-			bestUnit = unitID
+	local maxProgress = 0
+	for _, unitId in ipairs(unitIDs) do
+		local numStockpiled, numStockpileQued, buildPercent = spGetUnitStockpile(unitId)
+		if numStockpiled > 0 then
+			return unitId
+		elseif buildPercent > maxProgress then
+			maxProgress = buildPercent
+			bestUnit = unitId
 		end
 	end
 	return bestUnit
 end
 
-local function GetRepUnitID(unitIDs, info)
+local function GetBestUnitID(unitIDs, info)
 	local bestUnit = unitIDs[1]
 	if info.hasStockpile then
 		State.isMonitoringStockpile = true
@@ -728,7 +730,7 @@ local function UpdateSelection()
 	for unitDefID, unitIDs in pairs(sel) do
 		if Cache.manualWeaponInfos[unitDefID] then
 			State.manualFireUnitDefID = unitDefID
-			State.manualFireUnitID = GetRepUnitID(unitIDs, Cache.manualWeaponInfos[unitDefID].primary)
+			State.manualFireUnitID = GetBestUnitID(unitIDs, Cache.manualWeaponInfos[unitDefID].primary)
 			State.hasSelection = true
 		end
 
@@ -737,7 +739,7 @@ local function UpdateSelection()
 			if currCost > maxCost then
 				maxCost = currCost
 				State.attackUnitDefID = unitDefID
-				State.attackUnitID = GetRepUnitID(unitIDs, Cache.weaponInfos[unitDefID].primary)
+				State.attackUnitID = GetBestUnitID(unitIDs, Cache.weaponInfos[unitDefID].primary)
 				State.hasSelection = true
 			end
 		end
@@ -1260,17 +1262,9 @@ local function DrawBallisticScatter(data)
 	----------------------------------------------------------------------------
 	-- VISIBILITY
 	----------------------------------------------------------------------------
-	local scatterAlphaFactor = 0
-	local minScatterRadius = max(weaponInfo.aoe, 15) * 0.7
-	local baseThreshold = minScatterRadius * 2
-
 	local scatterSize = max(naturalRadius, lenUp)
-
-	if scatterSize >= baseThreshold then
-		scatterAlphaFactor = 1
-	elseif scatterSize > minScatterRadius then
-		scatterAlphaFactor = (scatterSize - minScatterRadius) / (baseThreshold - minScatterRadius)
-	end
+	local minScatterRadius = max(weaponInfo.aoe, 15) * 0.7
+	local scatterAlphaFactor = GetSizeBasedAlpha(scatterSize, minScatterRadius)
 
 	if scatterAlphaFactor <= 0 then
 		return 0
@@ -1316,8 +1310,8 @@ local function DrawSectorScatter(data)
 
 	local dist = distance2d(ux, uz, tx, tz)
 
-	local angleDeg = weaponInfo.sector_angle or 30
-	local shortfall = weaponInfo.sector_shortfall or 0
+	local angleDeg = weaponInfo.sector_angle
+	local shortfall = weaponInfo.sector_shortfall
 	local defaultSpreadAngle = (angleDeg / 2) * (pi / 180)
 
 	local rMax = dist
@@ -1452,17 +1446,9 @@ local function DrawWobbleScatter(data)
 	local dz = tz - uz
 	local aimAngle = atan2(dx, dz)
 
-	local spreadAlphaFactor = 0
-	local baseThreshold = max(data.weaponInfo.aoe * 2, 50)
-	local minSpreadRadius = baseThreshold * 0.5
-
 	local visualSpreadRadius = max(spreadRadius, spreadRadius * forwardBias)
-
-	if visualSpreadRadius >= baseThreshold then
-		spreadAlphaFactor = 1
-	elseif visualSpreadRadius > minSpreadRadius then
-		spreadAlphaFactor = (visualSpreadRadius - minSpreadRadius) / (baseThreshold - minSpreadRadius)
-	end
+	local minSpreadRadius = max(data.weaponInfo.aoe, 25)
+	local spreadAlphaFactor = GetSizeBasedAlpha(visualSpreadRadius, minSpreadRadius)
 
 	DrawScatterShape(data, ux, uz, ty, aimAngle, spreadAngle, rMin, rMax, spreadAlphaFactor)
 
@@ -1692,9 +1678,7 @@ function widget:DrawWorldPreUnit()
 	end
 
 	local handleWeaponType = WeaponTypeHandlers[weaponInfo.type] or DrawAoe
-	glDepthTest(false)
 	handleWeaponType(aimData)
-	glDepthTest(true)
 
 	-- Draw Stockpile Progress
 	if weaponInfo.hasStockpile then
