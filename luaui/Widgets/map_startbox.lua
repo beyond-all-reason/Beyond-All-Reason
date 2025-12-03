@@ -10,7 +10,7 @@ function widget:GetInfo()
 		author = "trepan, jK, Beherith",
 		date = "2007-2009",
 		license = "GNU GPL, v2 or later",
-		layer = -1,
+		layer = 0,
 		enabled = true,
 		depends = {'gl4'}
 	}
@@ -94,18 +94,14 @@ end
 
 local function GetAIName(teamID)
 	local formattedName = GetAINamePlain(teamID)
-	-- Check if AI has manually placed position (use cached status for immediate updates)
 	local hasPlacement = aiPlacementStatus[teamID]
 	if hasPlacement == nil then
-		-- Fallback to team rules params if not cached
 		local aiPlacedX = Spring.GetTeamRulesParam(teamID, "aiPlacedX")
 		local aiPlacedZ = Spring.GetTeamRulesParam(teamID, "aiPlacedZ")
 		hasPlacement = aiPlacedX and aiPlacedZ and aiPlacedX > 0 and aiPlacedZ > 0
 	end
 	if hasPlacement then
 		formattedName = formattedName .. "\n🔒"
-	else
-		---formattedName = formattedName .. "\n🔓"
 	end
 	return formattedName
 end
@@ -133,7 +129,6 @@ local aiPlacementMode = nil
 local aiPlacedPositions = {}
 local aiPredictedPositions = {}
 
--- Dragging state
 local draggingTeamID = nil
 local dragOffsetX = 0
 local dragOffsetZ = 0
@@ -510,7 +505,7 @@ local function GetAIPlacedPositions()
 	local alliedPositions = {}
 	for teamID, pos in pairs(aiPlacedPositions) do
 		local _, _, _, _, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
-		if teamAllyTeamID == myAllyTeamID or Spring.IsCheatingEnabled() then
+		if teamAllyTeamID == myAllyTeamID or Spring.IsCheatingEnabled() or isSpec then
 			alliedPositions[teamID] = pos
 		end
 	end
@@ -591,42 +586,44 @@ function widget:DrawWorld()
 			local _, _, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
 			local playerID = select(2, Spring.GetTeamInfo(teamID, false))
 			local _, _, spec = Spring.GetPlayerInfo(playerID, false)
+			local isCheating = Spring.IsCheatingEnabled()
 
-			if teamAllyTeamID == myAllyTeamID or Spring.IsCheatingEnabled() then
-				local x, y, z = Spring.GetTeamStartPosition(teamID)
-				if coopStartPoints[playerID] then
-					x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
-				end
-				if draggingTeamID == teamID then
-					-- During dragging, use cursor position with drag offset
-					local mouseX, mouseY = Spring.GetMouseState()
-					local traceType, pos = Spring.TraceScreenRay(mouseX, mouseY, true)
-					if traceType == "ground" then
-						x = pos[1] + dragOffsetX
-						z = pos[3] + dragOffsetZ
-						y = pos[2]
+			if teamAllyTeamID == myAllyTeamID or isCheating or isSpec then
+				if not (isAI and not (amPlaced or isSpec or isCheating)) then
+					local x, y, z = Spring.GetTeamStartPosition(teamID)
+					if coopStartPoints[playerID] then
+						x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
 					end
-				elseif aiPlacedPositions[teamID] then
-					x = aiPlacedPositions[teamID].x
-					z = aiPlacedPositions[teamID].z
-					y = Spring.GetGroundHeight(x, z)
-				elseif aiPredictedPositions[teamID] then
-					x = aiPredictedPositions[teamID].x
-					z = aiPredictedPositions[teamID].z
-					y = Spring.GetGroundHeight(x, z)
-				end
-				
-				if (not spec or isAI) and teamID ~= gaiaTeamID then
-					if x ~= nil and x > 0 and z > 0 and y > -500 then
-						local r, g, b = GetTeamColor(teamID)
-						local alpha = 0.5 + math.abs(((time * 3) % 1) - 0.5)
-						cacheTable[1], cacheTable[2], cacheTable[3], cacheTable[4] = x, y, z, 1
-						cacheTable[5], cacheTable[6], cacheTable[7], cacheTable[8] = r, g, b, alpha
-						pushElementInstance(startConeVBOTable,
-							cacheTable,
-							nil, nil, true)
-						if teamID == myTeamID then
-							amPlaced = true
+					if draggingTeamID == teamID then
+						local mouseX, mouseY = Spring.GetMouseState()
+						local traceType, pos = Spring.TraceScreenRay(mouseX, mouseY, true)
+						if traceType == "ground" then
+							x = pos[1] + dragOffsetX
+							z = pos[3] + dragOffsetZ
+							y = pos[2]
+						end
+					elseif aiPlacedPositions[teamID] then
+						x = aiPlacedPositions[teamID].x
+						z = aiPlacedPositions[teamID].z
+						y = Spring.GetGroundHeight(x, z)
+					elseif aiPredictedPositions[teamID] then
+						x = aiPredictedPositions[teamID].x
+						z = aiPredictedPositions[teamID].z
+						y = Spring.GetGroundHeight(x, z)
+					end
+					
+					if (not spec or isAI) and teamID ~= gaiaTeamID then
+						if x ~= nil and x > 0 and z > 0 and y > -500 then
+							local r, g, b = GetTeamColor(teamID)
+							local alpha = 0.5 + math.abs(((time * 3) % 1) - 0.5)
+							cacheTable[1], cacheTable[2], cacheTable[3], cacheTable[4] = x, y, z, 1
+							cacheTable[5], cacheTable[6], cacheTable[7], cacheTable[8] = r, g, b, alpha
+							pushElementInstance(startConeVBOTable,
+								cacheTable,
+								nil, nil, true)
+							if teamID == myTeamID then
+								amPlaced = true
+							end
 						end
 					end
 				end
@@ -646,41 +643,44 @@ function widget:DrawScreenEffects()
 			local _, _, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
 			local playerID = select(2, Spring.GetTeamInfo(teamID, false))
 			local name, _, spec = Spring.GetPlayerInfo(playerID, false)
+			local cheatingEnabled = Spring.IsCheatingEnabled()
 
-			if teamAllyTeamID == myAllyTeamID or Spring.IsCheatingEnabled() then
-				if isAI then
-					name = GetAIName(teamID)
-				else
-					name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-				end
-				
-				if name ~= nil and (not spec or isAI) and teamID ~= gaiaTeamID then
-					local x, y, z = Spring.GetTeamStartPosition(teamID)
-					if coopStartPoints[playerID] then
-						x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
+			if teamAllyTeamID == myAllyTeamID or Spring.IsCheatingEnabled() or isSpec then
+				if not (isAI and not (amPlaced or isSpec or Spring.IsCheatingEnabled())) then
+					if isAI then
+						name = GetAIName(teamID)
+					else
+						name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 					end
-					if draggingTeamID == teamID then
-						-- During dragging, use cursor position with drag offset
-						local mouseX, mouseY = Spring.GetMouseState()
-						local traceType, pos = Spring.TraceScreenRay(mouseX, mouseY, true)
-						if traceType == "ground" then
-							x = pos[1] + dragOffsetX
-							z = pos[3] + dragOffsetZ
-							y = pos[2]
+					
+					if name ~= nil and (not spec or isAI) and teamID ~= gaiaTeamID then
+						local x, y, z = Spring.GetTeamStartPosition(teamID)
+						if coopStartPoints[playerID] then
+							x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
 						end
-					elseif aiPlacedPositions[teamID] then
-						x = aiPlacedPositions[teamID].x
-						z = aiPlacedPositions[teamID].z
-						y = Spring.GetGroundHeight(x, z)
-					elseif aiPredictedPositions[teamID] then
-						x = aiPredictedPositions[teamID].x
-						z = aiPredictedPositions[teamID].z
-						y = Spring.GetGroundHeight(x, z)
-					end
-					if x ~= nil and x > 0 and z > 0 and y > -500 then
-						local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
-						if sz < 1 then
-							drawName(sx, sy, name, teamID)
+						if draggingTeamID == teamID then
+							-- During dragging, use cursor position with drag offset
+							local mouseX, mouseY = Spring.GetMouseState()
+							local traceType, pos = Spring.TraceScreenRay(mouseX, mouseY, true)
+							if traceType == "ground" then
+								x = pos[1] + dragOffsetX
+								z = pos[3] + dragOffsetZ
+								y = pos[2]
+							end
+						elseif aiPlacedPositions[teamID] then
+							x = aiPlacedPositions[teamID].x
+							z = aiPlacedPositions[teamID].z
+							y = Spring.GetGroundHeight(x, z)
+						elseif aiPredictedPositions[teamID] then
+							x = aiPredictedPositions[teamID].x
+							z = aiPredictedPositions[teamID].z
+							y = Spring.GetGroundHeight(x, z)
+						end
+						if x ~= nil and x > 0 and z > 0 and y > -500 then
+							local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
+							if sz < 1 then
+								drawName(sx, sy, name, teamID)
+							end
 						end
 					end
 				end
