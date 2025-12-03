@@ -5,6 +5,7 @@ end
 local floor = math.floor
 local math_pow = math.pow
 local schar = string.char
+local Spring_GetConfigInt =  Spring.GetConfigInt
 
 local colorIndicator = Game.textColorCodes.Color
 local colorAndOutlineIndicator = Game.textColorCodes.ColorAndOutline
@@ -36,6 +37,8 @@ end
 
 local function RgbToLinear(c)
 	-- Convert Gamma corrected RGB (0-1) to linear RGB
+
+	-- See https://en.wikipedia.org/wiki/SRGB#From_sRGB_to_CIE_XYZ for an explanation of this transfert function
     if c <= 0.04045 then
         return c / 12.92
     end
@@ -58,13 +61,14 @@ local function ColorIsDark(red, green, blue)
     -- Determines if the (player) color is dark (i.e. if a white outline is needed)
 	-- Input color is a gamma corrected RGB (0-1) color
 
-	-- Luminance of less than 0.2 was found to get good results on the BAR color palette
-	return RgbToY(red, green, blue) < 0.2
-end
-
-local function LegacyColorIsDark(red, green, blue)
-    -- (Deprecated) Determines if the (player) color is dark (i.e. if a white outline is needed)
-    return red + green * 1.2 + blue * 0.4 < 0.65
+	-- If the option EnableWhiteOutline is enabled, a threshold of 0.125 is used otherwise 0.07 is used.
+	-- 0.07 was selected because its the lower than all 16 colors in the BAR 8v8 color palette. So if the colors
+	-- is from this palette the color is never considered dark and thus never gets a white outline.
+	local threshold = 0.07
+	if Spring_GetConfigInt("EnableWhiteOutline", 0) == 1 then
+		threshold = 0.125
+	end
+	return RgbToY(red, green, blue) < threshold
 end
 
 return {
@@ -72,5 +76,4 @@ return {
 	ToStringEx = ColorStringEx,
 	ToIntArray = ColorArray,
 	ColorIsDark = ColorIsDark,
-	LegacyColorIsDark = LegacyColorIsDark,
 }

@@ -123,7 +123,7 @@ local Spring_GetTeamStatsHistory = Spring.GetTeamStatsHistory
 
 local ColorString = Spring.Utilities.Color.ToString
 local ColorArray = Spring.Utilities.Color.ToIntArray
-local LegacyColorIsDark = Spring.Utilities.Color.LegacyColorIsDark
+local ColorIsDark = Spring.Utilities.Color.ColorIsDark
 
 local gl_Texture = gl.Texture
 local gl_Color = gl.Color
@@ -1224,7 +1224,7 @@ function CreatePlayer(playerID)
         red = tred,
         green = tgreen,
         blue = tblue,
-        dark = LegacyColorIsDark(tred, tgreen, tblue),
+        dark = ColorIsDark(tred, tgreen, tblue),
         side = tside,
         pingLvl = tpingLvl,
         cpuLvl = tcpuLvl,
@@ -1320,7 +1320,7 @@ function CreatePlayerFromTeam(teamID)
         red = tred,
         green = tgreen,
         blue = tblue,
-        dark = LegacyColorIsDark(tred, tgreen, tblue),
+        dark = ColorIsDark(tred, tgreen, tblue),
         side = tside,
         totake = ttotake,
         dead = tdead,
@@ -2797,7 +2797,7 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
     local fontsize = (isAbsent and 9 or 14) * math.clamp(1+((1-(vsy/1200))*0.5), 1, 1.2)
     fontsize = fontsize * (playerScale + ((1-playerScale)*0.25))
     if dark then
-        font2:SetOutlineColor(0.75, 0.75, 0.75, 1)
+        font2:SetOutlineColor(0.9, 0.9, 0.9, 1)
     else
         font2:SetOutlineColor(0, 0, 0, 1)
     end
@@ -3740,7 +3740,7 @@ function CheckPlayersChange()
 				else
 					player[i].red, player[i].green, player[i].blue = Spring_GetTeamColor(teamID)
 				end
-                player[i].dark = LegacyColorIsDark(player[i].red, player[i].green, player[i].blue)
+                player[i].dark = ColorIsDark(player[i].red, player[i].green, player[i].blue)
                 player[i].skill = GetSkill(i)
                 sorting = true
             end
@@ -3988,7 +3988,13 @@ function widget:ViewResize()
     updateWidgetScale()
 
 	font = WG['fonts'].getFont()
-    font2 = WG['fonts'].getFont(2, 1.5)
+    
+    -- When EnableWhiteOutline is true, increase the outline size and weight
+	if Spring.GetConfigInt("EnableWhiteOutline", 0) == 1 then
+        font2 = WG['fonts'].getFont(2, 1.5, 0.25, 15.)
+    else
+        font2 = WG['fonts'].getFont(2, 1.5)
+    end
 	--local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
     --font2 = WG['fonts'].getFont(2, 1.1, 0.2 * outlineMult, 1.7+(outlineMult*0.2))
 
