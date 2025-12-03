@@ -121,11 +121,10 @@ return {
 				fallOffRate = 0.02,
 				firestarter = 0,
 				impulsefactor = 2.52,
-				intensity = 0.6, --0.8
+				intensity = 0.8, --0.8
 				name = "Heavy Rapid-fire Machine Gun",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
-				projectiles = 3 --projectiles = 1
 				proximitypriority = 1,
 				range = 1475,
 				reloadtime = 0.4,
@@ -138,7 +137,7 @@ return {
 				sprayangle = 968,
 				texture1 = "shot",
 				texture2 = "empty",
-				thickness = 2.35, --3
+				thickness = 2, --3
 				tolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
