@@ -40,6 +40,7 @@ local gameCommands = {
 	HOUND_WEAPON_TOGGLE = 37383, -- unused
 	SMART_TOGGLE = 37384,
 	AREA_ATTACK_GROUND = 39954,
+	SMARTFIGHT = 39955,
 
 	-- terraform
 	RAW_MOVE = 39812,

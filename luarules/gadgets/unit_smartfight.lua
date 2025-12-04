@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
-local CMD_SMARTFIGHT = 39955
+local CMD_SMARTFIGHT = CMD.SMARTFIGHT
 local CMD_INSERT     = CMD.INSERT
 local CMD_MOVE       = CMD.MOVE
 local CMD_ATTACK     = CMD.ATTACK
