@@ -69,7 +69,7 @@ return {
 			heat_ray = {
 				areaofeffect = 8,
 				avoidfeature = false,
-				--beamtime = 0.33,--0.33,
+				--beamtime = 0.33,
 				beamburst = true,
 				burst = 10,
 				burstrate = 0.03,
