@@ -207,9 +207,9 @@ if gadgetHandler:IsSyncedCode() then
 		-- Safety check: Unit might have died this frame
 		if not unitX then return true, false end
 
-		local distSq = (unitX - targetX)^2 + (unitZ - targetZ)^2
+		local dist = math.diag(unitX - targetX, unitZ - targetZ)
 		-- We've arrived at the destination, end the command
-		if distSq < 10000 then
+		if dist < 100 then
 			activeUnits[unitID] = nil
 			return true, true
 		end
