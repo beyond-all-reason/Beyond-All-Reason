@@ -126,7 +126,7 @@ return {
 					force = 6.5,
 					intercepttype = 1,
 					power = 32050,
-					powerregen = 5200,
+					powerregen = 1200,
 					powerregenenergy = 562.5,
 					radius = 1550,
 					repulser = true,
