@@ -32,6 +32,7 @@ local distance3d = math.distance3d
 local normalize = math.normalize
 local ceil = math.ceil
 local diag = math.diag
+local rad = math.rad
 
 local osClock = os.clock
 
@@ -85,6 +86,7 @@ local Config = {
 	General = {
 		gameSpeed = Game.gameSpeed,
 		minSpread = 8,
+		minRingRadius = 1,
 	},
 	Colors = {
 		aoe = { 1, 0, 0, 1 },
@@ -244,66 +246,82 @@ end
 -- MOUSE LOGIC
 --------------------------------------------------------------------------------
 
-local function GetMouseTargetPosition(dgun)
-	local tx, ty = spGetMouseState()
-	local targetType, target = spTraceScreenRay(tx, ty)
+local function GetMouseTargetPosition(weaponType)
+	local isDgun = weaponType == "dgun"
+	local mx, my = spGetMouseState()
+	local targetType, target = spTraceScreenRay(mx, my)
 
 	if not targetType or not target then
 		return nil
 	end
 
-	local forceGround = false
+	local groundPositionCache
+	local function GetGroundPosition()
+		if groundPositionCache ~= nil then
+			return groundPositionCache
+		end
+		local _, pos = spTraceScreenRay(mx, my, true)
+		groundPositionCache = pos or false
+		return groundPositionCache
+	end
 
 	if targetType == "ground" then
 		return target[1], target[2], target[3]
-
-	elseif targetType == "feature" then
-		forceGround = true
-
-	elseif targetType == "unit" then
-		local isAlly = spIsUnitAllied(target)
-
-		local dgunNoAlly = WG['dgunnoally']
-		local attackNoAlly = WG['attacknoally']
-		local dgunNoEnemy = WG['dgunnoenemy']
-
-		-- Determine if we should ignore this unit based on mode (dgun vs attack)
-		local ignoreAlly = (dgun and dgunNoAlly) or (not dgun and attackNoAlly)
-		local ignoreEnemy = dgun and dgunNoEnemy
-
-		if isAlly then
-			forceGround = ignoreAlly
-		elseif ignoreEnemy then
-			local unitDefID = spGetUnitDefID(target)
-			local uc = Cache.UnitProperties
-			local isPassThrough = uc.isPassThrough[unitDefID]
-
-			if not isPassThrough and uc.isHover[unitDefID] then
-				local _, pos = spTraceScreenRay(tx, ty, true)
-				if pos and spGetGroundHeight(pos[1], pos[3]) < 0 then
-					isPassThrough = true
-				end
-			end
-
-			if not isPassThrough then
-				forceGround = true
-			else
-				return spGetUnitPosition(target)
-			end
-		else
-			return spGetUnitPosition(target)
-		end
 	end
 
-	if forceGround then
-		local _, groundTarget = spTraceScreenRay(tx, ty, true)
-		if groundTarget then
-			return groundTarget[1], groundTarget[2], groundTarget[3]
+	if targetType == "feature" then
+		local groundPosition = GetGroundPosition()
+		if groundPosition then
+			return groundPosition[1], groundPosition[2], groundPosition[3]
 		end
 		return nil
 	end
 
-	return target[1], target[2], target[3]
+	if targetType == "unit" then
+		local unitID = target
+		local isAlly = spIsUnitAllied(unitID)
+
+		local ignoreAlly = (isDgun and WG['dgunnoally']) or (not isDgun and WG['attacknoally'])
+		local ignoreEnemy = (isDgun and WG['dgunnoenemy'])
+
+		if isAlly then
+			if ignoreAlly then
+				local groundPosition = GetGroundPosition()
+				if groundPosition then
+					return groundPosition[1], groundPosition[2], groundPosition[3]
+				end
+				return nil
+			else
+				return spGetUnitPosition(unitID)
+			end
+		end
+
+		if not ignoreEnemy then
+			return spGetUnitPosition(unitID)
+		end
+
+		local unitDefID = spGetUnitDefID(unitID)
+		local unitProperties = Cache.UnitProperties
+		local isPassThrough = unitProperties.isPassThrough[unitDefID]
+
+		if not isPassThrough and unitProperties.isHover[unitDefID] then
+			local groundPosition = GetGroundPosition()
+			if groundPosition and spGetGroundHeight(groundPosition[1], groundPosition[3]) < 0 then
+				isPassThrough = true
+			end
+		end
+
+		if isPassThrough then
+			return spGetUnitPosition(unitID)
+		else
+			local groundPosition = GetGroundPosition()
+			if groundPosition then
+				return groundPosition[1], groundPosition[2], groundPosition[3]
+			end
+		end
+	end
+
+	return nil
 end
 
 local function GetMouseDistance()
@@ -504,7 +522,7 @@ local function FindBestWeapon(unitDef)
 	local bestManual = { maxSpread = maxSpread }
 	local best = { maxSpread = maxSpread }
 	local bestRange = { range = 0 }
-	local validWeapons = {}
+	local validSecondaryWeapons = {}
 
 	for weaponNum, weapon in ipairs(unitDef.weapons) do
 		if weapon.weaponDef then
@@ -516,7 +534,6 @@ local function FindBestWeapon(unitDef)
 					and not string.find(weaponDef.name, "flak", nil, true)
 
 				if isValid then
-					validWeapons[weaponNum] = weaponDef
 					if weaponDef.manualFire and unitDef.canManualFire then
 						local currentSpread = max(weaponDef.damageAreaOfEffect, weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle))
 						if currentSpread > bestManual.maxSpread then
@@ -526,6 +543,7 @@ local function FindBestWeapon(unitDef)
 						end
 					else
 						-- Primary (highest spread)
+						validSecondaryWeapons[weaponNum] = weaponDef
 						local currentSpread = max(weaponDef.damageAreaOfEffect, weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle))
 						if (weaponDef.damageAreaOfEffect > best.maxSpread
 							or weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle) > best.maxSpread
@@ -540,11 +558,13 @@ local function FindBestWeapon(unitDef)
 		end
 	end
 	-- Secondary (highest range)
-	for weaponNum, weaponDef in pairs(validWeapons) do
-		if not weaponDef.manualFire and ToBool(weaponDef.waterWeapon) == ToBool(best.waterWeapon) and weaponDef.range > bestRange.range then
-			bestRange.range = weaponDef.range
-			bestRange.weaponDef = weaponDef
-			bestRange.weaponNum = weaponNum
+	if best.weaponDef then
+		for weaponNum, weaponDef in pairs(validSecondaryWeapons) do
+			if weaponDef.waterWeapon == best.weaponDef.waterWeapon and weaponDef.range > bestRange.range then
+				bestRange.range = weaponDef.range
+				bestRange.weaponDef = weaponDef
+				bestRange.weaponNum = weaponNum
+			end
 		end
 	end
 
@@ -560,7 +580,7 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 
 	info.aoe = weaponDef.damageAreaOfEffect
 	info.mobile = unitDef.speed > 0
-	info.waterWeapon = ToBool(weaponDef.waterWeapon)
+	info.waterWeapon = weaponDef.waterWeapon
 	info.ee = weaponDef.edgeEffectiveness
 	info.weaponNum = weaponNum
 	info.hasStockpile = weaponDef.stockpile
@@ -722,16 +742,16 @@ local function UpdateSelection()
 
 	local sel = spGetSelectedUnitsSorted()
 	for unitDefID, unitIDs in pairs(sel) do
-		if Cache.manualWeaponInfos[unitDefID] then
-			State.manualFireUnitDefID = unitDefID
-			State.manualFireUnitID = GetBestUnitID(unitIDs, Cache.manualWeaponInfos[unitDefID].primary)
-			State.hasSelection = true
-		end
+		local currCost = Cache.UnitProperties.cost[unitDefID] * #unitIDs
+		if currCost > maxCost then
+			maxCost = currCost
+			if Cache.manualWeaponInfos[unitDefID] then
+				State.manualFireUnitDefID = unitDefID
+				State.manualFireUnitID = GetBestUnitID(unitIDs, Cache.manualWeaponInfos[unitDefID].primary)
+				State.hasSelection = true
+			end
 
-		if Cache.weaponInfos[unitDefID] then
-			local currCost = Cache.UnitProperties.cost[unitDefID] * #unitIDs
-			if currCost > maxCost then
-				maxCost = currCost
+			if Cache.weaponInfos[unitDefID] then
 				State.attackUnitDefID = unitDefID
 				State.attackUnitID = GetBestUnitID(unitIDs, Cache.weaponInfos[unitDefID].primary)
 				State.hasSelection = true
@@ -862,9 +882,13 @@ end
 local function DrawAoeDamageRings(tx, ty, tz, aoe, edgeEffectiveness, alphaMult, phase, color)
 	local damageLevels = Config.Render.ringDamageLevels
 	local triggerTimes = Cache.Calculated.ringWaveTriggerTimes
+	local minRingRadius = Config.General.minRingRadius
 
 	for ringIndex, damageLevel in ipairs(damageLevels) do
 		local ringRadius = GetRadiusForDamageLevel(aoe, damageLevel, edgeEffectiveness)
+		if ringRadius < minRingRadius then
+			return
+		end
 		local alphaFactor = GetAlphaFactorForRing(damageLevel, damageLevel + 0.4, ringIndex, phase, alphaMult, triggerTimes)
 		SetGlColor(alphaFactor, color)
 		DrawCircle(tx, ty, tz, ringRadius)
@@ -1070,7 +1094,7 @@ local function DrawDGun(data)
 		offset_z = (cos(angle) * 10)
 		dx = ux - offset_x
 		dz = uz - offset_z
-	elseif unitName == 'corcom' then
+	elseif unitName == 'corcom' or unitName == 'legcom' then
 		offset_x = (sin(angle) * 14)
 		offset_z = (cos(angle) * 14)
 		dx = ux + offset_x
@@ -1277,7 +1301,6 @@ local function DrawBallisticScatter(data)
 
 	-- Prevent drawing behind the unit
 	if rMin < 50 then rMin = 50 end
-	if rMin > rMax then rMin = rMax - 50 end
 
 	-- Calculate Draw Angle:
 	-- We want the visual cone width to match the physical width (lenRight).
@@ -1306,7 +1329,7 @@ local function DrawSectorScatter(data)
 
 	local angleDeg = weaponInfo.sector_angle
 	local shortfall = weaponInfo.sector_shortfall
-	local defaultSpreadAngle = (angleDeg / 2) * (pi / 180)
+	local defaultSpreadAngle = rad(angleDeg)
 
 	local rMax = dist
 	local spreadAngle = defaultSpreadAngle
@@ -1417,9 +1440,8 @@ local function DrawWobbleScatter(data)
 	if rMin < 50 then rMin = 50 end
 
 	-- Using lower overrangeDistance because projectiles won't reach it most of the time
-	local overrange = data.weaponInfo.overrangeDistance * 0.9 or (range * 1.15)
-	-- ensure overrange is actually larger than range
-	if overrange < range then overrange = range * 1.05 end
+	-- but ensure it's actually larger than the range
+	local overrange = max(data.weaponInfo.overrangeDistance * 0.9, range * 1.05)
 
 	-- If we are aiming past the clamp limit, we scale the overrange accordingly
 	-- This keeps the indicator shaped exactly as it is at max range
@@ -1612,7 +1634,7 @@ function widget:DrawWorldPreUnit()
 		return
 	end
 
-	local tx, ty, tz = GetMouseTargetPosition(true)
+	local tx, ty, tz = GetMouseTargetPosition(weaponInfos.primary.type)
 	if not tx then
 		ResetPulseAnimation()
 		return
