@@ -62,7 +62,9 @@ InterceptorOff
 local autoReload = false
 
 ---------------------------------------------------------------------------------------------------------------------------
--- Bindable action:   cursor_range_toggle
+-- Bindable actions:	cursor_range_toggle - Toggles display of the attack range of the unit under the mouse cursor.
+-- 						attack_range_inc - Cycle to next attack range display config for current unit type.
+-- 						attack_range_dec - Cycle to previous attack range display config for current unit type.
 -- The widget's individual unit type's display setup is saved in LuaUI/config/AttackRangeConfig2.lua
 ---------------------------------------------------------------------------------------------------------------------------
 local shift_only = false -- only show ranges when shift is held down
@@ -785,7 +787,7 @@ local function InitializeBuilders()
 end
 
 local function makeShaders()
-	attackRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0)
+	attackRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0) or attackRangeShader
 	if not attackRangeShader then
 		goodbye("Failed to compile attackRangeShader GL4 ")
 		return false
@@ -819,122 +821,6 @@ local function initGL4()
 	return makeShaders()
 end
 
-local function toggleShowSelectedRanges(on)
-	if show_selected_weapon_ranges == on then return end
-	show_selected_weapon_ranges = on
-end
-
-local function toggleCursorRange(_, _, args)
-	cursor_unit_range = not cursor_unit_range
-	spEcho("Cursor unit range set to: " .. (cursor_unit_range and "ON" or "OFF"))
-end
-
-function widget:PlayerChanged(playerID)
-    myAllyTeamID = Spring.GetLocalAllyTeamID()
-    myTeamID = Spring.GetLocalTeamID()
-
-	InitializeBuilders()
-end
-
-function widget:Initialize()
-	initUnitList()
-
-	if initGL4() == false then
-		widgetHandler:RemoveWidget(self)
-		return
-	end
-
-	unitTogglesChunked = unitTogglesChunked or {}
-	for i, v in pairs(unitTogglesChunked) do
-		unitToggles[i] = v
-	end
-
-	widgetHandler:AddAction("cursor_range_toggle", toggleCursorRange, nil, "p")
-
-	myAllyTeam = Spring.GetMyAllyTeamID()
-	myTeamID = spGetMyTeamID()
-
-	updateSelection = true
-	local _, _, _, shift = GetModKeyState()
-	if shift_only and not shift then
-		toggleShowSelectedRanges(false)
-	end
-	InitializeBuilders()
-
-	WG.attackrange = {}
-	WG.attackrange.getShiftOnly = function()
-		return shift_only
-	end
-	WG.attackrange.setShiftOnly = function(value)
-		shift_only = value
-		widget:Initialize()
-	end
-	WG.attackrange.getCursorUnitRange = function()
-		return cursor_unit_range
-	end
-	WG.attackrange.setCursorUnitRange = function(value)
-		cursor_unit_range = value
-		widget:Initialize()
-	end
-	WG.attackrange.getNumRangesMult = function()
-		return selectionDisableThresholdMult
-	end
-	WG.attackrange.setNumRangesMult = function(value)
-		selectionDisableThresholdMult = value
-	end
-end
-
-function widget:Shutdown()
-	widgetHandler:RemoveAction("cursor_range_toggle", "p")
-end
-
-local gameFrame = 0
-
-function widget:GameFrame(gf)
-	gameFrame = gf
-end
-
-local function RefreshSelectedUnits()
-	local newSelUnits = {}
-	for i, unitID in ipairs(selectedUnits) do
-		newSelUnits[unitID] = true
-		if not selUnits[unitID] and selUnitCount < mathFloor(selectionDisableThreshold * selectionDisableThresholdMult) then
-			AddSelectedUnit(unitID)
-		end
-	end
-	for unitID, _ in pairs(selUnits) do
-		if not newSelUnits[unitID] then
-			RemoveSelectedUnit(unitID)
-		end
-	end
-	selUnits = newSelUnits
-end
-
-local function UpdateSelectedUnits()
-	selectedUnits = GetSelectedUnits()
-	selUnitCount = #selectedUnits
-	updateSelection = false
-
-	RefreshSelectedUnits()
-end
-
--- whether to draw the build range of all builders - only happens when isBuilding
-local function DrawBuilders()
-	if isBuilding then
-		for unitID, _ in pairs(builders) do
-			if not selUnits[unitID] then
-				AddSelectedUnit(unitID)
-			end
-		end
-	else -- not building, we remove all builders that aren't selected
-		for unitID, _ in pairs(builders) do
-			if not selUnits[unitID] then
-				RemoveSelectedUnit(unitID)
-			end
-		end
-	end
-end
-
 -- refresh all display according to toggle status
 local function RefreshEverything()
 	-- what about just reinitialize?
@@ -948,8 +834,18 @@ local function RefreshEverything()
 	widget:Initialize()
 end
 
+local function toggleShowSelectedRanges(on)
+	if show_selected_weapon_ranges == on then return end
+	show_selected_weapon_ranges = on
+end
+
+local function toggleCursorRange(_, _, args)
+	cursor_unit_range = not cursor_unit_range
+	spEcho("Cursor unit range set to: " .. (cursor_unit_range and "ON" or "OFF"))
+end
+
 -- direction should be 1 or -1 (next or previous bitmap value)
-local function CycleUnitDisplay(direction)
+local function cycleUnitDisplay(direction)
 	if (selUnitCount > 1) or (selUnitCount == 0) then
 		spEcho("Please select only one unit to change display setting!")
 		return
@@ -1005,15 +901,130 @@ local function CycleUnitDisplay(direction)
 	RefreshEverything()
 end
 
+local function cycleUnitDisplayHandler(_, _, _, data)
+	local data = data or {}
+	local direction = data["direction"]
+	cycleUnitDisplay(direction)
+end
+
+local function cycleUnitDisplayDec()
+	local direction = -1
+	cycleUnitDisplay(direction)
+end
+
+function widget:PlayerChanged(playerID)
+    myAllyTeamID = Spring.GetLocalAllyTeamID()
+    myTeamID = Spring.GetLocalTeamID()
+
+	InitializeBuilders()
+end
+
+function widget:Initialize()
+	initUnitList()
+
+	if initGL4() == false then
+		widgetHandler:RemoveWidget(self)
+		return
+	end
+
+	unitTogglesChunked = unitTogglesChunked or {}
+	for i, v in pairs(unitTogglesChunked) do
+		unitToggles[i] = v
+	end
+
+	widgetHandler:AddAction("cursor_range_toggle", toggleCursorRange, nil, "p")
+	widgetHandler:AddAction("attack_range_inc", cycleUnitDisplayHandler, {direction = 1}, "p")
+	widgetHandler:AddAction("attack_range_dec", cycleUnitDisplayHandler, {direction = -1}, "p")
+
+	myAllyTeam = Spring.GetMyAllyTeamID()
+	myTeamID = spGetMyTeamID()
+
+	updateSelection = true
+	local _, _, _, shift = GetModKeyState()
+	if shift_only and not shift then
+		toggleShowSelectedRanges(false)
+	end
+	InitializeBuilders()
+
+	WG.attackrange = {}
+	WG.attackrange.getShiftOnly = function()
+		return shift_only
+	end
+	WG.attackrange.setShiftOnly = function(value)
+		shift_only = value
+		widget:Initialize()
+	end
+	WG.attackrange.getCursorUnitRange = function()
+		return cursor_unit_range
+	end
+	WG.attackrange.setCursorUnitRange = function(value)
+		cursor_unit_range = value
+		widget:Initialize()
+	end
+	WG.attackrange.getNumRangesMult = function()
+		return selectionDisableThresholdMult
+	end
+	WG.attackrange.setNumRangesMult = function(value)
+		selectionDisableThresholdMult = value
+	end
+end
+
+function widget:Shutdown()
+	widgetHandler:RemoveAction("cursor_range_toggle", "p")
+	widgetHandler:RemoveAction("attack_range_inc", "p")
+	widgetHandler:RemoveAction("attack_range_dec", "p")
+end
+
+local gameFrame = 0
+
+function widget:GameFrame(gf)
+	gameFrame = gf
+end
+
+local function RefreshSelectedUnits()
+	local newSelUnits = {}
+	for i, unitID in ipairs(selectedUnits) do
+		newSelUnits[unitID] = true
+		if not selUnits[unitID] and selUnitCount < mathFloor(selectionDisableThreshold * selectionDisableThresholdMult) then
+			AddSelectedUnit(unitID)
+		end
+	end
+	for unitID, _ in pairs(selUnits) do
+		if not newSelUnits[unitID] then
+			RemoveSelectedUnit(unitID)
+		end
+	end
+	selUnits = newSelUnits
+end
+
+local function UpdateSelectedUnits()
+	selectedUnits = GetSelectedUnits()
+	selUnitCount = #selectedUnits
+	updateSelection = false
+
+	RefreshSelectedUnits()
+end
+
+-- whether to draw the build range of all builders - only happens when isBuilding
+local function DrawBuilders()
+	if isBuilding then
+		for unitID, _ in pairs(builders) do
+			if not selUnits[unitID] then
+				AddSelectedUnit(unitID)
+			end
+		end
+	else -- not building, we remove all builders that aren't selected
+		for unitID, _ in pairs(builders) do
+			if not selUnits[unitID] then
+				RemoveSelectedUnit(unitID)
+			end
+		end
+	end
+end
+
 function widget:KeyPress(key, mods, isRepeat)
 	if key == 304 then
 		shifted = true
-	end
-	if key == 46 and mods.alt then
-		CycleUnitDisplay(1) -- cycle forward
-	end
-	if key == 44 and mods.alt then
-		CycleUnitDisplay(-1) -- cycle backward
 	end
 end
 
