@@ -121,7 +121,7 @@ return {
 			[1] = {
 				--badtargetcategory = "NOTAIR",
 				def = "birdshot",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL SURFACE",
 				maindir = "0 0 1",
 				maxangledif = 35,--25
 				fastautoretargeting = true,
