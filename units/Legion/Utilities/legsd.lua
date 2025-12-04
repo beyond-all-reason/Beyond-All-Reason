@@ -18,7 +18,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		levelground = false,
-		maxslope = 10,
+		maxslope = 33,
 		maxwaterdepth = 0,
 		metalcost = 710,
 		objectname = "Units/LEGSD.s3o",
