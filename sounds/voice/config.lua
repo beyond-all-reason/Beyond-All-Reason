@@ -38,8 +38,17 @@ return {
 		delay = 1,
 		soundEffect = "NeutralComDead",
 	},
-	PlayerEliminated = {
-		delay = 1,
+	EnemyTeamEliminated = {
+		delay = 2,
+	},
+	YourTeamEliminated = {
+		delay = 2,
+	},
+	GainedLead = {
+		delay = 20,
+	},
+	LostLead = {
+		delay = 20,
 	},
 	ComHeavyDamage = {
 		delay = 10,
