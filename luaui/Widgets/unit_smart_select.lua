@@ -101,9 +101,10 @@ for udid, udef in pairs(UnitDefs) do
 	local radar = isMobile and isUtil and udef.radarDistance > 0
 	local jammer = isMobile and isUtil and udef.radarDistanceJam > 0
 
-	if string.find(udef.name, 'armspid') or string.find(udef.name, 'leginfestor') then
+	if udef.customParams.selectable_as_combat_unit then
 		builder = false
 	end
+
 	combatFilter[udid] = combat
 	builderFilter[udid] = builder
 	buildingFilter[udid] = building
