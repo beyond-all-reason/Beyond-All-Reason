@@ -30,16 +30,37 @@ local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" 
 ----------------------------Configuration----------------------------------------
 local FACTORY_DISCOUNT_MULTIPLIER = 0.90 -- The factory discount will be the budget cost of the cheapest listed factory multiplied by this value.
 
--- how far things will be be instantly built for the commander.
-local INSTANT_BUILD_RANGE = modOptions.override_quick_start_range > 0 and modOptions.override_quick_start_range or 600
 
 local QUICK_START_COST_ENERGY = 400      --will be deducted from commander's energy upon start.
 local QUICK_START_COST_METAL = 800       --will be deducted from commander's metal upon start.
+local READY_REFUNDABLE_BUDGET = 800       -- Budget threshold when players are allowed to "ready" the game
 local quickStartAmountConfig = {
-	small = 800,
-	normal = 1200,
-	large = 2400,
+	small = {
+		budget = 800,
+		range = 435,
+		baseGenerationRange = 435,
+		traversabilityGridRange = 480 --must match the value in gui_quick_start.lua. It has to be slightly larger than the instant build range to account for traversability_grid snapping at TRAVERSABILITY_GRID_RESOLUTION intervals
+	},
+	normal = {
+		budget = 1200,
+		range = 435,
+		baseGenerationRange = 435,
+		traversabilityGridRange = 480
+	},
+	large = {
+		budget = 2400,
+		range = 600,
+		baseGenerationRange = 500,
+		traversabilityGridRange = 544
+	},
 }
+
+local configKey = modOptions.quick_start_amount or "normal"
+local selectedConfig = quickStartAmountConfig[configKey] or quickStartAmountConfig.normal
+local BUDGET = selectedConfig.budget
+local INSTANT_BUILD_RANGE = modOptions.override_quick_start_range > 0 and modOptions.override_quick_start_range or selectedConfig.range
+local BASE_GENERATION_RANGE = selectedConfig.baseGenerationRange
+local TRAVERSABILITY_GRID_GENERATION_RANGE = selectedConfig.traversabilityGridRange
 
 local BUILD_TIME_VALUE_CONVERSION_MULTIPLIER = 1/300 --300 being a representative of commander workertime, statically defined so future com unitdef adjustments don't change this.
 local ENERGY_VALUE_CONVERSION_MULTIPLIER = 1/60 --60 being the energy conversion rate of t2 energy converters, statically defined so future changes not to affect this.
@@ -54,7 +75,6 @@ local UNOCCUPIED = 2
 local BUILD_SPACING = 64
 local COMMANDER_NO_GO_DISTANCE = 100
 local CONVERTER_GRID_DISTANCE = 200
-local BASE_GENERATION_RANGE = 500
 local FACTORY_DISCOUNT = math.huge
 local MAP_CENTER_X = Game.mapSizeX / 2
 local MAP_CENTER_Z = Game.mapSizeZ / 2
@@ -69,7 +89,6 @@ local BUILT_ENOUGH_FOR_FULL = 0.9
 local MAX_HEIGHT_DIFFERENCE = 100
 local DEFAULT_FACING = 0
 local INITIAL_BUILD_PROGRESS = 0.01
-local TRAVERSABILITY_GRID_GENERATION_RANGE = 576 --must match the value in gui_quick_start.lua. It has to be slightly larger than the instant build range to account for traversability_grid snapping at TRAVERSABILITY_GRID_RESOLUTION intervals
 local TRAVERSABILITY_GRID_RESOLUTION = 32
 local GRID_CHECK_RESOLUTION_MULTIPLIER = 1
 
@@ -282,6 +301,8 @@ local function getCommanderBuildQueue(commanderID)
 	local comData = commanders[commanderID]
 	local commands = spGetUnitCommands(commanderID, ALL_COMMANDS)
 	local totalBudgetCost = 0
+	local discountUsedLocal = commanderFactoryDiscounts[commanderID]
+
 	for i, cmd in ipairs(commands) do
 		if isBuildCommand(cmd.id) then
 			local unitDefID = -cmd.id
@@ -292,20 +313,29 @@ local function getCommanderBuildQueue(commanderID)
 
 			if distance <= INSTANT_BUILD_RANGE and isTraversable then
 				local budgetCost = defMetergies[unitDefID] or 0
-				budgetCost = max(budgetCost - getFactoryDiscount(unitDef, commanderID), 0)
-
-				local affordableCost = min(budgetCost, comData.budget - totalBudgetCost)
-				if affordableCost > 0 then
-					table.insert(spawnQueue, spawnParams)
-					if cmd.tag then
-						table.insert(commandsToRemove, cmd.tag)
-					end
-					totalBudgetCost = totalBudgetCost + affordableCost
+				
+				local currentDiscount = 0
+				if shouldApplyFactoryDiscount and unitDef.isFactory and not discountUsedLocal then
+					currentDiscount = FACTORY_DISCOUNT
+				end
+				
+				budgetCost = max(budgetCost - currentDiscount, 0)
+				
+				if currentDiscount > 0 then
+					discountUsedLocal = true
 				end
 
-				if totalBudgetCost >= comData.budget then
+				table.insert(spawnQueue, spawnParams)
+				comData.hasBuildsIntercepted = true
+				
+				totalBudgetCost = totalBudgetCost + budgetCost
+				if totalBudgetCost > comData.budget then
 					comData.commandsToRemove = commandsToRemove
 					return spawnQueue
+				end
+				
+				if cmd.tag then
+					table.insert(commandsToRemove, cmd.tag)
 				end
 			end
 		end
@@ -549,7 +579,7 @@ local function initializeCommander(commanderID, teamID)
 
 	local currentMetal = Spring.GetTeamResources(teamID, "metal") or 0
 	local currentEnergy = Spring.GetTeamResources(teamID, "energy") or 0
-	local budget = (modOptions.override_quick_start_resources and modOptions.override_quick_start_resources > 0) and modOptions.override_quick_start_resources or quickStartAmountConfig[modOptions.quick_start_amount == "default" and "normal" or modOptions.quick_start_amount]
+	local budget = (modOptions.override_quick_start_resources and modOptions.override_quick_start_resources > 0) and modOptions.override_quick_start_resources or BUDGET
 
 	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
 	if not commanderX or not commanderY or not commanderZ then
@@ -641,7 +671,12 @@ local function generateBuildCommands(commanderID)
 
 		if ((buildType == "mex" and not isMetalMap) and not refreshAndCheckAvailableMexSpots(commanderID)) then
 			shouldQueue = false
-		elseif cost > budgetRemaining then
+		elseif comData.hasBuildsIntercepted and budgetRemaining <= READY_REFUNDABLE_BUDGET or cost > budgetRemaining then
+			shouldQueue = false
+			local refundAmount = budgetRemaining
+			Spring.AddTeamResource(comData.teamID, "metal", refundAmount)
+			comData.budget = comData.budget - budgetRemaining
+			break
 		end
 
 		if shouldQueue then
@@ -890,8 +925,6 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function gadget:Initialize()
-	local minWind = Game.windMin
-	local maxWind = Game.windMax
 	for _, teamID in ipairs(Spring.GetTeamList()) do
 		Spring.SetTeamRulesParam(teamID, "quickStartFactoryDiscountUsed", nil)
 	end
@@ -900,14 +933,20 @@ function gadget:Initialize()
 	metalSpotsList = GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList
 
 	local frame = Spring.GetGameFrame()
-	local quickStartAmount = modOptions.quick_start_amount or "normal"
-	local immediateBudget = quickStartAmountConfig[quickStartAmount] or quickStartAmountConfig.normal
-	
-	local finalBudget = modOptions.override_quick_start_resources > 0 and modOptions.override_quick_start_resources or immediateBudget
+	local finalBudget = modOptions.override_quick_start_resources > 0 and modOptions.override_quick_start_resources or BUDGET
 	Spring.SetGameRulesParam("quickStartBudgetBase", finalBudget)
 	Spring.SetGameRulesParam("quickStartFactoryDiscountAmount", FACTORY_DISCOUNT)
+	Spring.SetGameRulesParam("quickStartMetalDeduction", QUICK_START_COST_METAL)
 	local cheapestEconomicCost = calculateCheapestEconomicStructure()
-	Spring.SetGameRulesParam("quickStartBudgetThresholdToAllowStart", cheapestEconomicCost)
+	local anyCommanderHasBuildsIntercepted = false
+	for commanderID, comData in pairs(commanders) do
+		if comData.hasBuildsIntercepted then
+			anyCommanderHasBuildsIntercepted = true
+			break
+		end
+	end
+	local budgetThresholdToAllowStart = not anyCommanderHasBuildsIntercepted and READY_REFUNDABLE_BUDGET or cheapestEconomicCost
+	Spring.SetGameRulesParam("quickStartBudgetThresholdToAllowStart", budgetThresholdToAllowStart)
 	if modOptions.quick_start ~= "factory_discount_only" then
 		Spring.SetGameRulesParam("overridePregameBuildDistance", INSTANT_BUILD_RANGE)
 	end
@@ -919,6 +958,7 @@ function gadget:Initialize()
 			local unitTeam = spGetUnitTeam(unitID)
 			if boostableCommanders[unitDefinitionID] then
 				initializeCommander(unitID, unitTeam)
+				queuedCommanders[unitTeam] = nil
 			end
 		end
 	end
