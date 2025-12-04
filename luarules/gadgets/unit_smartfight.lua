@@ -37,6 +37,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitNeutral      = Spring.GetUnitNeutral
 	local spGetGroundHeight     = Spring.GetGroundHeight
 	local spGetUnitStates       = Spring.GetUnitStates
+	local spIsUnitInLos 		= Spring.IsUnitInLos
 	
 	local gaiaTeamID = spGetGaiaTeamID()
 	
@@ -163,7 +164,7 @@ if gadgetHandler:IsSyncedCode() then
 			if spValidUnitID(targetID) then
 				
 				-- LOS CHECK: Is this unit visible to my ALLYTEAM? (Visual OR Radar)
-				local unitInLOS = Spring.IsUnitInLos(targetID, allyTeamID)
+				local unitInLOS = spIsUnitInLos(targetID, allyTeamID)
 
 				if unitInLOS then
 					local capturingTeam = protectedTargets[targetID]
@@ -293,7 +294,6 @@ if gadgetHandler:IsSyncedCode() then
 							end
 
 							if stopAttack then
-								Spring.Echo("Stopping Attack")
 								spGiveOrderToUnit(unitID, CMD_REMOVE, CMD_ATTACK, {"alt"})
 							end
 						end
@@ -339,7 +339,7 @@ else
 	local glVertex           = gl.Vertex
 	local GL_LINE_STRIP      = GL.LINE_STRIP
 
-	local LINE_COLOR = {0.6, 0.2, 0.9, 0.7} 
+	local LINE_COLOR = {0.6, 0.2, 0.9, 0.7}
 
 	function gadget:Initialize()
 		Spring.SetCustomCommandDrawData(CMD_SMARTFIGHT, CMDTYPE.ICON_UNIT_OR_MAP, LINE_COLOR, true)
