@@ -99,7 +99,7 @@ return {
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				fallOffRate = 0.0,
 				firestarter = 0,
-				impulsefactor = 1.5,
+				impulsefactor = 1.95,
 				intensity = 0.6, --0.8
 				minIntensity = 0.2, --0.8
 				name = "Heavy A2A Gatling Guns",
