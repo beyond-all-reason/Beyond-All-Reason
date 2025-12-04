@@ -1847,6 +1847,14 @@
 			"refundNotification": "Remaining budget will be refunded as Metal.",
 			"remainingResourcesWarning": "Use the Base Budget to instantly spawn structures within range",
 			"unallocatedBudget": "Quick Start enabled: use your Base Budget first"
+		},
+		"techBlocking": {
+			"techLevel": "TECH",
+			"techPopup": {
+				"level1": "Tech Level 1",
+				"level2": "Tech Level 2",
+				"level3": "Tech Level 3"
+			}
 		}
 	}
 }
