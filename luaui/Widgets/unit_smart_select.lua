@@ -90,8 +90,7 @@ for udid, udef in pairs(UnitDefs) do
 	local building = (isMobile == false)
 	local combat = (not builder) and isMobile and (#udef.weapons > 0)
 
-	local selectableAsCombat = udef.customParams and udef.customParams.selectable_as_combat_unit
-	if selectableAsCombat then
+	if udef.customParams.selectable_as_combat_unit then
 		builder = false
 	end
 
