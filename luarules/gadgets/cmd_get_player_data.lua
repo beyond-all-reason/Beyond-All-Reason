@@ -1,6 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -53,17 +50,17 @@ if gadgetHandler:IsSyncedCode() then
 	_G.validationPlayerData = validation
 
 	function gadget:RecvLuaMsg(msg, player)
-		if msg:sub(1, 2) == "pd" and msg:sub(3, 4) == validation then
+		if msg:sub(1, 2) == "sd" and msg:sub(3, 4) == validation then
 			local name = Spring.GetPlayerInfo(player, false)
 			local data = string.sub(msg, 6)
 			local playerallowed = string.sub(msg, 5, 5)
-			SendToUnsynced("SendToReceiver", playerallowed .. name .. ";" .. data)
+			SendToUnsynced("ReceiveScreenshot", playerallowed .. name .. ";" .. data)
 			return true
 		elseif msg:sub(1, 2) == "ss" then
 			-- Screenshot request from synced
-			-- Format: "ss" + width + ";" + requestingPlayerID
-			local screenshotData = string.sub(msg, 3)
-			SendToUnsynced("StartScreenshot", screenshotData .. ";" .. player)
+			-- Format: "ss" + width + ";" + targetPlayerID, then append requestingPlayerID
+			local screenshotData = string.sub(msg, 3) .. ";" .. player
+			SendToUnsynced("StartScreenshot", screenshotData)
 			return true
 		end
 	end
@@ -73,7 +70,7 @@ else
 	local validation = SYNCED.validationPlayerData
 
 	-- Screenshot capture variables
-	local userconfigComplete, queueScreenshot, queueScreenShotHeight, queueScreenShotHeightBatch, queueScreenShotH, queueScreenShotHmax
+	local queueScreenshot, queueScreenShotHeight, queueScreenShotHeightBatch, queueScreenShotH, queueScreenShotHmax
 	local queueScreenShotWidth, queueScreenshotGameframe, queueScreenShotPixels, queueScreenShotBroadcastChars, queueScreenShotCharsPerBroadcast, pixels
 	local queueScreenShotTexture -- Texture to store the captured and downscaled framebuffer
 
@@ -96,8 +93,11 @@ else
 	local authorized = SYNCED.permissions.playerdata[accountID]
 
 	function gadget:Initialize()
-		gadgetHandler:AddSyncAction("SendToReceiver", SendToReceiver)
+		gadgetHandler:AddSyncAction("ReceiveScreenshot", ReceiveScreenshot)
 		gadgetHandler:AddSyncAction("StartScreenshot", StartScreenshot)
+		gadgetHandler:AddChatAction('getscreenshot', GetScreenshot, "")
+		gadgetHandler:AddChatAction('getscreenshotlq', GetScreenshotLq, "")
+		gadgetHandler:AddChatAction('getscreenshothq', GetScreenshotHq, "")
 		gadget:ViewResize()
 	end
 
@@ -108,6 +108,9 @@ else
 		if font then
 			gl.DeleteFont(font)
 		end
+		gadgetHandler:RemoveChatAction('getscreenshot')
+		gadgetHandler:RemoveChatAction('getscreenshotlq')
+		gadgetHandler:RemoveChatAction('getscreenshothq')
 	end
 
 	function gadget:ViewResize()
@@ -125,94 +128,43 @@ else
 		totalTime = totalTime + (dt * 1000)
 	end
 
-	function lines(str)
-		local t = {}
-		local function helper(line)
-			table.insert(t, line)
-			return ""
+	local function getPlayerIdFromName(targetPlayerName)
+		for _, pID in ipairs(Spring.GetPlayerList()) do
+			local name = Spring.GetPlayerInfo(pID, false)
+			if name == targetPlayerName then
+				return pID
+			end
 		end
-		helper((str:gsub("(.-)\r?\n", helper)))
-		return t
+		return nil
 	end
 
-	function gadget:GotChatMsg(msg, player)
+	local function requestScreenshot(targetPlayerName, width)
 		if not authorized then
 			return
 		end
-		if string.sub(msg, 1, 9) == "getconfig" then
-			local playerName = string.sub(msg, 11)
-			if playerName == myPlayerName then
-				local data = VFS.LoadFile("LuaUI/Config/BYAR.lua")
-				if data then
-					data = string.sub(data, 1, 200000)
-					local sendtoauthedplayer = '1'
-					Spring.SendLuaRulesMsg('pd' .. validation .. sendtoauthedplayer .. 'config;' .. player .. ';' .. VFS.ZlibCompress(data))
-				end
-			end
-		elseif string.sub(msg, 1, 10) == "getinfolog" then
-			local playerName = string.sub(msg, 12)
-			if playerName == myPlayerName then
-				local userconfig
-				local data = ''
-				local skipline = false
-				local fileLines = lines(VFS.LoadFile("infolog.txt"))
-				local maxLines = 2000
-				for i, line in ipairs(fileLines) do
-					if i > maxLines then
-						break
-					end
-					if not userconfig and string.find(line, '============== <User Config> ==============', nil, true) then
-						userconfig = ''
-					end
-					if not userconfigComplete then
-						if userconfig then
-							if string.find(line, '============== </User Config> ==============', nil, true) then
-								userconfig = userconfig .. '============== </User Config> ==============\n'
-								userconfigComplete = true
-							else
-								userconfig = userconfig .. line .. '\n'
-							end
-						end
-					else
-						skipline = false
-						-- filter paths for privacy reasons
-						if string.find(line, 'Using read-', nil, true) or
-							string.find(line, 'Scanning: ', nil, true) or
-							string.find(line, 'Recording demo to: ', nil, true) or
-							string.find(line, 'Loading StartScript from: ', nil, true) or
-							string.find(line, 'Writing demo: ', nil, true) or
-							string.find(line, 'command-line args: ', nil, true) or
-							string.find(line, 'Using configuration source: ', nil, true)
-						then
-							skipline = true
-						end
-						if not skipline then
-							data = data .. line .. '\n'
-						end
-					end
-				end
-				data = userconfig .. data
-				if data then
-					data = string.sub(data, 1, 250000)
-					local sendtoauthedplayer = '1'
-					Spring.SendLuaRulesMsg('pd' .. validation .. sendtoauthedplayer .. 'infolog;' .. player .. ';' .. VFS.ZlibCompress(data))
-				end
-			end
-		elseif string.sub(msg, 1, 13) == 'getscreenshot' then
-			local width = screenshotWidth
-			local playerName = string.sub(msg, 15)
-			if string.sub(msg, 1, 15) == 'getscreenshothq' then
-				width = screenshotWidthHq
-				playerName = string.sub(msg, 17)
-			elseif string.sub(msg, 1, 15) == 'getscreenshotlq' then
-				width = screenshotWidthLq
-				playerName = string.sub(msg, 17)
-			end
-			if playerName == myPlayerName then
-				-- Send message to synced code, which will forward to unsynced
-				Spring.SendLuaRulesMsg("ss" .. width .. ";" .. player)
-			end
+		if not targetPlayerName then
+			return
 		end
+		local targetPlayerID = getPlayerIdFromName(targetPlayerName)
+		if not targetPlayerID then
+			Spring.Echo("Player not found: " .. targetPlayerName)
+			return
+		end
+		-- Send message to synced code, which will forward to unsynced
+		-- Format: width;targetPlayerID (requestingPlayerID comes from RecvLuaMsg player param)
+		Spring.SendLuaRulesMsg("ss" .. width .. ";" .. targetPlayerID)
+	end
+
+	function GetScreenshot(_, line, words, player)
+		requestScreenshot(words[1], screenshotWidth)
+	end
+
+	function GetScreenshotLq(_, line, words, player)
+		requestScreenshot(words[1], screenshotWidthLq)
+	end
+
+	function GetScreenshotHq(_, line, words, player)
+		requestScreenshot(words[1], screenshotWidthHq)
 	end
 
 	-- Optimized encoding using base64 charset (6 bits per char)
@@ -239,24 +191,32 @@ else
 		for part in string.gmatch(msg, "[^;]+") do
 			parts[#parts + 1] = part
 		end
+		local width = tonumber(parts[1])
+		local targetPlayerID = tonumber(parts[2])
+		local requestingPlayerID = tonumber(parts[3]) -- Appended by synced RecvLuaMsg from player param
 
-		local vsx, vsy = Spring.GetViewGeometry()
+		-- Only capture if this client's player ID matches the target
+		if not targetPlayerID or targetPlayerID ~= myPlayerID then
+			return
+		end
 
-		-- Clamp screenshot width to screen width
-		queueScreenShotWidth = math.min(tonumber(parts[1]), vsx)
-		queueScreenShotHeightBatch = math.max(1, math.ceil(1500 / queueScreenShotWidth))
-		local requestingPlayer = tonumber(parts[2])
+		-- Check if requesting player is authorized
+		if not requestingPlayerID then
+			return
+		end
 
-		-- Check if requesting player is authorized spectator
-		local _, _, requestingSpec = Spring.GetPlayerInfo(requestingPlayer, false)
+		local _, _, requestingSpec = Spring.GetPlayerInfo(requestingPlayerID, false)
 		local _, _, mySpec = Spring.GetPlayerInfo(myPlayerID, false)
 
-		-- Allow screenshot if: singleplayer OR (I'm a spec) OR (requesting player is a spec)
-		-- Note: Authorization check happens on the requesting player's side when they send the command
-
-		if not isSingleplayer and not requestingSpec then
+		-- Allow screenshot if: singleplayer OR (requesting player is a spec) OR (I'm a spec)
+		if not isSingleplayer and not requestingSpec and not mySpec then
 			return  -- Silently reject if conditions not met
 		end
+
+		-- Clamp screenshot width to screen width
+		local vsx, vsy = Spring.GetViewGeometry()
+		queueScreenShotWidth = math.min(width, vsx)
+		queueScreenShotHeightBatch = math.max(1, math.ceil(1500 / queueScreenShotWidth))
 
 		queueScreenshot = true
 		queueScreenshotGameframe = Spring.GetGameFrame()
@@ -464,7 +424,7 @@ else
 				end
 				local data = finished .. ';' .. queueScreenShotWidth .. ';' .. queueScreenShotHeight .. ';' .. queueScreenshotGameframe .. ';' .. table.concat(queueScreenShotPixels)
 				local sendtoauthedplayer = '0'
-				local message = 'pd' .. validation .. sendtoauthedplayer .. 'screenshot;' .. VFS.ZlibCompress(data)
+				local message = 'sd' .. validation .. sendtoauthedplayer .. 'screenshot;' .. VFS.ZlibCompress(data)
 				Spring.SendLuaRulesMsg(message)
 				queueScreenShotBroadcastChars = 0
 				queueScreenShotPixels = {}
@@ -483,7 +443,7 @@ else
 		end
 	end
 
-	function SendToReceiver(_, msg)
+	function ReceiveScreenshot(_, msg)
 		local _, _, mySpec = Spring.GetPlayerInfo(myPlayerID, false)
 		if authorized and (mySpec or isSingleplayer or string.sub(msg, 1, 1) == '1') then
 			PlayerDataBroadcast(myPlayerName, string.sub(msg, 2))
@@ -678,28 +638,6 @@ else
 					screenshotVars.needsTextureCreation = true
 					screenshotVars.data = nil
 					screenshotVars.finished = nil
-				end
-				elseif msgType == 'infolog' or msgType == 'config' then
-					local playerID
-					for i = 1, string.len(data) do
-						if string.sub(data, i, i) == ';' then
-							playerID = tonumber(string.sub(data, 1, i - 1))
-							data = string.sub(data, i + 1)
-							break
-						end
-					end
-
-				if playerID == myPlayerID then
-					local gameframe = Spring.GetGameFrame()
-					local filename = 'playerdata_' .. msgType .. 's.txt'
-					local filedata = ''
-					if VFS.FileExists(filename) then
-						filedata = tostring(VFS.LoadFile(filename))
-					end
-					local file = assert(io.open(filename, 'w'), 'Unable to save ' .. filename)
-					file:write(filedata .. '-----------------------------------------------------\n----  GameFrame: ' .. gameframe .. '  Player: ' .. playerName .. '\n-----------------------------------------------------\n' .. VFS.ZlibDecompress(data) .. "\n\n\n\n\n\n")
-					file:close()
-					Spring.Echo('Added ' .. msgType .. ' to ' .. filename)
 				end
 			end
 		end
