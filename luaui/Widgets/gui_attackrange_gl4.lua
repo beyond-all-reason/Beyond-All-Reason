@@ -773,7 +773,7 @@ local function AddSelectedUnit(unitID, mouseover, newRange)
 			end
 			collections[unitID].vaokeys[instanceID] = vaokey
 			if newRange then
-				scalingUnitParams[unitID].oldRange[instanceID] = oldRange[unitID][j]	-- Need to compare unique IDs to prevent bugs from mouseovers.
+				scalingUnitParams[unitID].oldRange[instanceID] = oldRange[unitID][j]
 			end
 		end
 	end
@@ -1029,7 +1029,7 @@ local function RefreshEverything()
 	selectedUnits = {}
 	selUnits = {}
 	mouseovers = {}
-	unitRangeScale = { selections = {}, mouseovers = {} } -- stores info for units with scaling ranges
+	unitRangeScale = { selections = {}, mouseovers = {} }
 	numScalingUnits = 0
 
 	widget:Initialize()
