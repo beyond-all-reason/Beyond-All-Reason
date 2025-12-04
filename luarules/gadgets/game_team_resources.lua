@@ -4,7 +4,7 @@ function gadget:GetInfo()
     return {
         name = 'Team Resourcing',
         desc = 'Sets up team resources',
-        author = 'Niobium', -- Updated by Maxie12
+        author = 'Niobium, Maxie12',
         date = 'May 2011',  -- November 2025
         license = 'GNU GPL, v2 or later',
         layer = 1,
