@@ -25,12 +25,14 @@ local OPT_INTERNAL   = {"alt", "internal"}
 --------------------------------------------------------------------------------
 if gadgetHandler:IsSyncedCode() then
 
+	local spAreTeamsAllied		= Spring.AreTeamsAllied
 	local spGetUnitPosition     = Spring.GetUnitPosition
 	local spGetUnitCommands     = Spring.GetUnitCommands
 	local spGiveOrderToUnit     = Spring.GiveOrderToUnit
 	local spGetUnitTeam         = Spring.GetUnitTeam
 	local spGetUnitAllyTeam     = Spring.GetUnitAllyTeam
 	local spValidUnitID         = Spring.ValidUnitID
+	local spGetUnitDefID		= Spring.GetUnitDefID
 	local spGetUnitSeparation   = Spring.GetUnitSeparation
 	local spGetUnitHealth       = Spring.GetUnitHealth
 	local spGetGaiaTeamID       = Spring.GetGaiaTeamID
@@ -137,7 +139,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function GetBestTarget(unitID)
 		local teamID = spGetUnitTeam(unitID)
 		local allyTeamID = spGetUnitAllyTeam(unitID)
-		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitDefID = spGetUnitDefID(unitID)
 		if not unitDefID then return nil end
 		
 		local unitDef = UnitDefs[unitDefID]
@@ -175,7 +177,7 @@ if gadgetHandler:IsSyncedCode() then
 						local isGaia = (targetTeam == gaiaTeamID)
 						local isNeutral = spGetUnitNeutral(targetID)
 						
-						if (not isGaia) and (not isNeutral) and (not Spring.AreTeamsAllied(teamID, targetTeam)) then
+						if (not isGaia) and (not isNeutral) and (not spAreTeamsAllied(teamID, targetTeam)) then
 							local dist = spGetUnitSeparation(unitID, targetID, true) or math.huge
 							if dist < bestDist then
 								bestDist = dist
@@ -231,7 +233,7 @@ if gadgetHandler:IsSyncedCode() then
 		for unitID, task in pairs(commandUpdateQueue) do
 			if spValidUnitID(unitID) and task.type == "GENERATE_PATH" then
 				for _, pos in ipairs(task.moves) do
-					spGiveOrderToUnit(unitID, CMD_INSERT, {0, CMD_MOVE, 0, pos[1], pos[2], pos[3]}, OPT_INTERNAL)
+					spGiveOrderToUnit(unitID, CMD_INSERT, {0, CMD_MOVE, CMD.OPT_INTERNAL, pos[1], pos[2], pos[3]}, {"alt"})
 				end
 			end
 			commandUpdateQueue[unitID] = nil
@@ -263,8 +265,8 @@ if gadgetHandler:IsSyncedCode() then
 								
 								if unitX and pathData then
 
-								-- 1. Insert ATTACK command (Slot 0 - Immediate)
-									spGiveOrderToUnit(unitID, CMD_INSERT, {0, CMD_ATTACK, 0, target}, OPT_INTERNAL)
+									-- 1. Insert ATTACK command (Slot 0 - Immediate)
+									spGiveOrderToUnit(unitID, CMD_INSERT, {0, CMD_ATTACK, CMD.OPT_INTERNAL, target}, {"alt"})
 								
 									-- 2. Calculate return point on line based on CURRENT position
 									local returnX, returnZ, _ = GetClosestPointOnLine(
@@ -275,7 +277,7 @@ if gadgetHandler:IsSyncedCode() then
 									local returnY = spGetGroundHeight(returnX, returnZ)
 									
 									-- 3. Insert Return MOVE command (Slot 1 - After the Attack)
-									spGiveOrderToUnit(unitID, CMD_INSERT, {1, CMD_MOVE, 0, returnX, returnY, returnZ}, OPT_INTERNAL)
+									spGiveOrderToUnit(unitID, CMD_INSERT, {1, CMD_MOVE, CMD.OPT_INTERNAL, returnX, returnY, returnZ}, {"alt"})
 								end
 							end
 						-- STATE: ATTACKING (Found target)
@@ -329,78 +331,7 @@ if gadgetHandler:IsSyncedCode() then
 -- UNSYNCED CODE (Visuals)
 --------------------------------------------------------------------------------
 else
-
-	local spGetUnitCommands  = Spring.GetUnitCommands
-	local spGetSelectedUnits = Spring.GetSelectedUnits
-	local spGetUnitPosition  = Spring.GetUnitPosition
-	local glLineWidth        = gl.LineWidth
-	local glColor            = gl.Color
-	local glBeginEnd         = gl.BeginEnd
-	local glVertex           = gl.Vertex
-	local GL_LINE_STRIP      = GL.LINE_STRIP
-	
-	local LINE_COLOR = {0.6, 0.2, 0.9, 0.7}
-
 	function gadget:Initialize()
 		Spring.SetCustomCommandDrawData(CMD_SMARTFIGHT, CMDTYPE.ICON_UNIT_OR_MAP, LINE_COLOR, true)
 	end
-
-	--[[function gadget:DrawWorld()
-		local selectedUnits = spGetSelectedUnits()
-		if #selectedUnits == 0 then return end
-		
-		glLineWidth(1.5)
-		glColor(LINE_COLOR)
-
-		for _, unitID in ipairs(selectedUnits) do
-			local cmds = spGetUnitCommands(unitID, -1)
-			
-			local hasSmartFight = false
-			if cmds then
-				for _, cmd in ipairs(cmds) do
-					if cmd.id == CMD_SMARTFIGHT then hasSmartFight = true break end
-				end
-			end
-
-			if hasSmartFight then
-				local unitX, unitY, unitZ = spGetUnitPosition(unitID)
-				
-				if unitX and unitY and unitZ then
-					glBeginEnd(GL_LINE_STRIP, function()
-						glVertex(unitX, unitY, unitZ)
-						for _, cmd in ipairs(cmds) do
-							-- Move Command
-							if cmd.id == CMD.MOVE then
-								if cmd.params and #cmd.params >= 3 then
-									glVertex(cmd.params[1], cmd.params[2], cmd.params[3])
-								end
-							-- Attack Command
-							elseif cmd.id == CMD.ATTACK then
-								if cmd.params then
-									if #cmd.params == 1 then 
-										local targetID = cmd.params[1]
-										if Spring.ValidUnitID(targetID) then
-											local targetX, targetY, targetZ = Spring.GetUnitPosition(targetID)
-											if targetX then glVertex(targetX, targetY, targetZ) end
-										end
-									elseif #cmd.params >= 3 then
-										glVertex(cmd.params[1], cmd.params[2], cmd.params[3])
-									end
-								end
-							-- Main SmartFight Command
-							elseif cmd.id == CMD_SMARTFIGHT then
-								if cmd.params and #cmd.params >= 3 then
-									glVertex(cmd.params[1], cmd.params[2], cmd.params[3])
-								end
-								break
-							end
-						end
-					end)
-				end
-			end
-		end
-		
-		glColor(1, 1, 1, 1)
-		glLineWidth(1.0)
-	end--]]
 end
