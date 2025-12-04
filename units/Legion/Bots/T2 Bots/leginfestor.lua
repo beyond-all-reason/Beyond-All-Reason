@@ -47,6 +47,7 @@ return {
 			model_author = "Zath (model), Tuerk (animation)",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.2,
+			selectable_as_combat_unit = true,
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			selectionscalemult = 1,
@@ -149,6 +150,7 @@ return {
 			[1] = {
 				def = "festorbeam",
 				onlytargetcategory = "SURFACE",
+				burstControlWhenOutOfArc = 1,
 			},
 		},
 	},
