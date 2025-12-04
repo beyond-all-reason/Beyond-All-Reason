@@ -32,7 +32,7 @@ bind          Any+space  commandinsert prepend_between // prepend command into t
 
 // attackrange keys
 bind           alt+sc_. attack_range_inc        // cycle to next attack range display config for current unit type.
-bind       alt+sc_comma attack_range_dnc        // cycle to previous attack range display config for current unit type.
+bind       alt+sc_comma attack_range_dec        // cycle to previous attack range display config for current unit type.
 //bind           alt+sc_/ cursor_range_toggle     // toggles display of the attack range of the unit under the mouse cursor.
 
 // common chat keys
