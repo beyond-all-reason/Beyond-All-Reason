@@ -338,14 +338,14 @@ else
 	local glBeginEnd         = gl.BeginEnd
 	local glVertex           = gl.Vertex
 	local GL_LINE_STRIP      = GL.LINE_STRIP
-
+	
 	local LINE_COLOR = {0.6, 0.2, 0.9, 0.7}
 
 	function gadget:Initialize()
 		Spring.SetCustomCommandDrawData(CMD_SMARTFIGHT, CMDTYPE.ICON_UNIT_OR_MAP, LINE_COLOR, true)
 	end
 
-	function gadget:DrawWorld()
+	--[[function gadget:DrawWorld()
 		local selectedUnits = spGetSelectedUnits()
 		if #selectedUnits == 0 then return end
 		
@@ -402,5 +402,5 @@ else
 		
 		glColor(1, 1, 1, 1)
 		glLineWidth(1.0)
-	end
+	end--]]
 end
