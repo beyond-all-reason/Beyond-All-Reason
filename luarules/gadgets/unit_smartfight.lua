@@ -18,7 +18,6 @@ local CMD_MOVE       = CMD.MOVE
 local CMD_ATTACK     = CMD.ATTACK
 local CMD_REMOVE     = CMD.REMOVE
 local CMD_CAPTURE    = CMD.CAPTURE
-local OPT_INTERNAL   = {"alt", "internal"}
 
 --------------------------------------------------------------------------------
 -- SYNCED CODE
