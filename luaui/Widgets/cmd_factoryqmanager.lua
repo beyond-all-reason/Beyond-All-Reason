@@ -83,6 +83,7 @@ local lastBoxX = nil
 local lastBoxY = nil
 local boxCoords = {}
 local curModId = nil
+local renderPresets = false
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -204,15 +205,6 @@ end
 
 function widget:PlayerChanged(playerID)
 	maybeRemoveSelf()
-end
-
-function widget:Initialize()
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
-		maybeRemoveSelf()
-	end
-	widget:ViewResize()
-
-	curModId = string.upper(Game.gameShortName or "")
 end
 
 -- Included FactoryClear Lua widget
@@ -374,69 +366,31 @@ function loadQueue(unitId, unitDef, groupNo)
 	end
 end
 
-function widget:KeyPress(key, modifier, isRepeat)
-	local mode = nil
+local function factoryPresetKeyHandler(_, _, args)
+	args = args or {}
+	local mode = args[1]
+
+	if mode == "clear" then
+		ClearFactoryQueues()
+	end
+	local key = args[2]
 	local selUnit, unitDef = getSingleFactory()
+	local gr = tonumber(key)
 
-	if selUnit == nil and unitDef == nil then
-		return false
-	end
+	if selUnit == nil then return end
 
-	if modifier.meta and modifier.alt then
-		mode = 1 --write
-	elseif (modifier.meta) then
-		mode = 2 --read
-
-		if key == KEYSYMS.C then
-			ClearFactoryQueues()
-		end
-	else
-		return false
+	if mode == "write" then
+		saveQueue(selUnit, unitDef, gr)
+	elseif mode == "read" then
+		loadQueue(selUnit, unitDef, gr)
 	end
 
-	--asert(mode ~= nil)
-	local gr = -2
-	if key == KEYSYMS.N_0 then
-		gr = 0
-	end
-	if key == KEYSYMS.N_1 then
-		gr = 1
-	end
-	if key == KEYSYMS.N_2 then
-		gr = 2
-	end
-	if key == KEYSYMS.N_3 then
-		gr = 3
-	end
-	if key == KEYSYMS.N_4 then
-		gr = 4
-	end
-	if key == KEYSYMS.N_5 then
-		gr = 5
-	end
-	if key == KEYSYMS.N_6 then
-		gr = 6
-	end
-	if key == KEYSYMS.N_7 then
-		gr = 7
-	end
-	if key == KEYSYMS.N_8 then
-		gr = 8
-	end
-	if key == KEYSYMS.N_9 then
-		gr = 9
-	end
-	--if key == KEYSYMS.BACKSLASH then gr = -1 end
+end
 
-	if gr ~= -2 then
-		if mode == 1 then
-			saveQueue(selUnit, unitDef, gr)
-		elseif mode == 2 then
-			loadQueue(selUnit, unitDef, gr)
-		end
-	end
-
-	return true;
+local function factoryPresetRender(_, _, _, data)
+	data = data or {}
+	renderPresets = data[1]
+	return false 	
 end
 
 function CalcDrawCoords(unitId, heightAll)
@@ -639,11 +593,24 @@ function DrawBoxes()
 
 end
 
+function widget:Initialize()
+	if Spring.IsReplay() or spGetGameFrame() > 0 then
+		maybeRemoveSelf()
+	end
+	widget:ViewResize()
+
+	curModId = string.upper(Game.gameShortName or "")
+
+	widgetHandler:AddAction("factory_preset", factoryPresetKeyHandler, nil, "p")
+	widgetHandler:AddAction("factory_preset_show", factoryPresetRender, {true}, "p")
+	widgetHandler:AddAction("factory_preset_show", factoryPresetRender, {false}, "r")
+end
+
 function widget:Update()
 	local now = Spring.GetGameSeconds()
 	local timediff = now - lastGameSeconds
 
-	if select(3, spGetModKeyState()) then
+	if renderPresets then
 		-- meta (space)
 		if alpha < 1.0 then
 			alpha = alpha + timediff / drawFadeTime

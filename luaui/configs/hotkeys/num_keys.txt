@@ -95,3 +95,27 @@ bind Ctrl+Alt+6 group selecttoggle 6
 bind Ctrl+Alt+7 group selecttoggle 7
 bind Ctrl+Alt+8 group selecttoggle 8
 bind Ctrl+Alt+9 group selecttoggle 9
+
+bind meta+alt+0 factory_preset write 0
+bind meta+alt+1 factory_preset write 1
+bind meta+alt+2 factory_preset write 2
+bind meta+alt+3 factory_preset write 3
+bind meta+alt+4 factory_preset write 4
+bind meta+alt+5 factory_preset write 5
+bind meta+alt+6 factory_preset write 6
+bind meta+alt+7 factory_preset write 7
+bind meta+alt+8 factory_preset write 8
+bind meta+alt+9 factory_preset write 9
+
+bind meta+0 factory_preset read 0
+bind meta+1 factory_preset read 1
+bind meta+2 factory_preset read 2
+bind meta+3 factory_preset read 3
+bind meta+4 factory_preset read 4
+bind meta+5 factory_preset read 5
+bind meta+6 factory_preset read 6
+bind meta+7 factory_preset read 7
+bind meta+8 factory_preset read 8
+bind meta+9 factory_preset read 9
+
+bind any+sc_space factory_preset_show
