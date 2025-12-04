@@ -89,12 +89,12 @@ return {
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				impulsefactor = 1.22,
-				intensity = 3,--3
+				intensity = 1,--3
 				name = "Birdshot Cannon",
 				noselfdamage = true,
 				predictboost = 1,
-				projectiles = 9,--3
-				range = 1490,
+				projectiles = 12,--3
+				range = 1390,
 				reloadtime = 2.5,
 				rgbcolor = "1 0.75 0.25",
 				size = 2,--2
@@ -102,7 +102,7 @@ return {
 				soundhitwet = "splshsml",
 				soundstart = "flakfire",
 				soundstartvolume = 6,
-				sprayangle = 200,-200
+				sprayangle = 200,--200
 				turret = true,
 				weapontimer = 1,
 				weapontype = "Cannon",
@@ -119,13 +119,13 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "NOTAIR",
+				--badtargetcategory = "NOTAIR",
 				def = "birdshot",
 				onlytargetcategory = "VTOL SURFACE",
 				maindir = "0 0 1",
-				maxangledif = 25,--25
+				maxangledif = 45,--25
 				fastautoretargeting = true,
-				weaponAimAdjustPriority = 20,--20
+				weaponAimAdjustPriority = 40,--20
 			},
 		},
 	},
