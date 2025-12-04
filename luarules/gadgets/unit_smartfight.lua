@@ -54,9 +54,9 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		gadgetHandler:RegisterCMDID(CMD_SMARTFIGHT)
 		
-		-- Watch weapons for mobile units only (Optimization)
+		-- Watch all weapons for target filtering
 		for unitDefID, unitDef in pairs(UnitDefs) do
-			if unitDef.canMove and (not unitDef.isBuilding) and unitDef.weapons then
+			if unitDef.weapons then
 				for _, weapon in ipairs(unitDef.weapons) do
 					if weapon.weaponDef then
 						Script.SetWatchWeapon(weapon.weaponDef, true)
