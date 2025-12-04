@@ -1,9 +1,9 @@
 return {
 	legvenator = {
-		maxacc= 1.2,
-		airsightdistance = 1600,
+		maxacc= 0.6,
+		airsightdistance = 1400,
 		blocking = false,
-		maxdec = 0.2275,
+		maxdec = 0.0675,
 		energycost = 3200,
 		metalcost = 110,
 		buildpic = "legvenator.DDS",
@@ -17,12 +17,12 @@ return {
 		footprintz = 2,
 		maxaileron = 0.01488,
 		maxbank = 0.7,
-		health = 12210,
+		health = 2210,
 		maxelevator = 0.01113,
 		maxpitch = 0.525,
 		maxrudder = 0.00463,
 		maxslope = 22,
-		speed = 510,
+		speed = 450,
 		maxwaterdepth = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/legvenator.s3o",
@@ -43,7 +43,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
-			attacksafetydistance = 500,
+			attacksafetydistance = 300,
 			fighter = 1,
 		},
 		sfxtypes = {
@@ -80,7 +80,7 @@ return {
 		},
 		weapondefs = {
 			birdshot = {
-				areaofeffect = 300,
+				areaofeffect = 200,
 				avoidfeature = false,
 				burnblow = true,
 				craterboost = 0,
@@ -89,7 +89,7 @@ return {
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				impulsefactor = 1.22,
-				intensity = 1,--3
+				intensity = 3,--3
 				name = "Birdshot Cannon",
 				noselfdamage = true,
 				predictboost = 1,
@@ -102,7 +102,7 @@ return {
 				soundhitwet = "splshsml",
 				soundstart = "flakfire",
 				soundstartvolume = 6,
-				sprayangle = 260,-200
+				sprayangle = 200,-200
 				turret = true,
 				weapontimer = 1,
 				weapontype = "Cannon",
@@ -119,13 +119,13 @@ return {
 		},
 		weapons = {
 			[1] = {
-				--badtargetcategory = "NOTAIR",
+				badtargetcategory = "NOTAIR",
 				def = "birdshot",
 				onlytargetcategory = "VTOL SURFACE",
 				maindir = "0 0 1",
-				maxangledif = 35,--25
+				maxangledif = 25,--25
 				fastautoretargeting = true,
-				weaponAimAdjustPriority = 30,--20
+				weaponAimAdjustPriority = 20,--20
 			},
 		},
 	},
