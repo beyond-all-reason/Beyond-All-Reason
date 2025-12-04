@@ -34,7 +34,6 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.99,
 		turnrate = 900,
-		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
 			model_author = "Tharsis",
