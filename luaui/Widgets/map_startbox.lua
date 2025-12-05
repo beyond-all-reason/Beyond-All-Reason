@@ -95,7 +95,7 @@ local hasStartbox = false
 
 local teamColors = {}
 local coopStartPoints = {}	-- will contain data passed through by coop gadget
-local aiPlacementMode = nil
+local aiCurrentlyBeingPlaced = nil
 local aiPlacedPositions = {}
 local aiPredictedPositions = {}
 
@@ -862,10 +862,10 @@ function widget:RecvLuaMsg(msg)
 	if string.sub(msg, 1, 16) == "aiPlacementMode:" then
 		local teamID = tonumber(string.sub(msg, 17))
 		if teamID then
-			aiPlacementMode = teamID
+			aiCurrentlyBeingPlaced = teamID
 		end
 	elseif string.sub(msg, 1, 18) == "aiPlacementCancel:" then
-		aiPlacementMode = nil
+		aiCurrentlyBeingPlaced = nil
 	elseif string.sub(msg, 1, 20) == "aiPlacementComplete:" then
 		local data = string.sub(msg, 21)
 		local teamID, x, z = string.match(data, "(%d+):([%d%.]+):([%d%.]+)")
@@ -943,8 +943,8 @@ function widget:MousePress(x, y, button)
 	end
 
 	if button == 3 then
-		if aiPlacementMode then
-			aiPlacementMode = nil
+		if aiCurrentlyBeingPlaced then
+			aiCurrentlyBeingPlaced = nil
 			Spring.SendLuaUIMsg("aiPlacementCancel:")
 			return true
 		else
@@ -972,11 +972,11 @@ function widget:MousePress(x, y, button)
 			end
 		end
 	elseif button == 1 then
-		if aiPlacementMode then
+		if aiCurrentlyBeingPlaced then
 			local traceType, pos = Spring.TraceScreenRay(x, y, true)
 			if traceType == "ground" then
 				local worldX, worldY, worldZ = pos[1], pos[2], pos[3]
-				local aiTeamID = aiPlacementMode
+				local aiTeamID = aiCurrentlyBeingPlaced
 				local _, _, _, _, _, aiAllyTeamID = Spring.GetTeamInfo(aiTeamID, false)
 				
 				local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(aiAllyTeamID)
@@ -985,7 +985,7 @@ function widget:MousePress(x, y, button)
 						aiPlacedPositions[aiTeamID] = {x = worldX, z = worldZ}
 						Spring.SendLuaRulesMsg("aiPlacedPosition:" .. aiTeamID .. ":" .. worldX .. ":" .. worldZ)
 						Spring.SendLuaUIMsg("aiPlacementComplete:" .. aiTeamID .. ":" .. worldX .. ":" .. worldZ)
-						aiPlacementMode = nil
+						aiCurrentlyBeingPlaced = nil
 						return true
 					end
 				end
