@@ -270,11 +270,12 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- keep track of choosing faction ingame
 	function gadget:RecvLuaMsg(msg, playerID)
+		local _, _, playerIsSpec, playerTeam, allyTeamID = spGetPlayerInfo(playerID, false)
+		
 		local startUnit = false
 		if string.sub(msg, 1, string.len("changeStartUnit")) == "changeStartUnit" then
 			startUnit = tonumber(msg:match(changeStartUnitRegex))
 		end
-		local _, _, playerIsSpec, playerTeam, allyTeamID = spGetPlayerInfo(playerID, false)
 		if isUnitValid(startUnit, allyTeamID) then
 			if not playerIsSpec then
 				playerStartingUnits[playerID] = startUnit
@@ -331,9 +332,8 @@ if gadgetHandler:IsSyncedCode() then
 				z = tonumber(z)
 
 				local aiAllyTeamID = select(6, Spring.GetTeamInfo(teamID, false))
-				local _, _, senderIsSpec, senderTeam, senderAllyTeamID = spGetPlayerInfo(playerID, false)
 
-			if senderIsSpec or (aiAllyTeamID ~= senderAllyTeamID and not Spring.IsCheatingEnabled()) then
+			if playerIsSpec or (aiAllyTeamID ~= allyTeamID and not Spring.IsCheatingEnabled()) then
 				return false
 			end
 
