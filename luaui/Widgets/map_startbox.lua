@@ -140,6 +140,7 @@ local dragOffsetX = 0
 local dragOffsetZ = 0
 
 local myAllyTeamID = Spring.GetMyAllyTeamID()
+local gameFrame = 0
 
 VFS.Include("common/lib_startpoint_guesser.lua")
 
@@ -696,7 +697,7 @@ function widget:DrawScreen()
 end
 
 function widget:DrawInMiniMap(sx, sz)
-	if spGetGameFrame() > 1 then
+	if gameFrame > 1 then
 		widgetHandler:RemoveWidget()
 	end
 
@@ -735,13 +736,14 @@ local updateCounter = 0
 local lastKnownPlacements = {}
 function widget:Update(delta)
 	myAllyTeamID = Spring.GetMyAllyTeamID()
+	gameFrame = spGetGameFrame()
 	local currRot = getCurrentMiniMapRotationOption()
 	if lastRot ~= currRot then
 		lastRot = currRot
 		widget:ViewResize(vsx, vsy)
 		return
 	end
-	if spGetGameFrame() > 1 then
+	if gameFrame > 1 then
 		widgetHandler:RemoveWidget()
 	end
 	if not placeVoiceNotifTimer then
@@ -775,7 +777,7 @@ function widget:Update(delta)
 		end
 	end
 	
-	if spGetGameFrame() <= 0 and Game.startPosType == 2 then
+	if gameFrame <= 0 and Game.startPosType == 2 then
 		updateCounter = updateCounter + 1
 		if updateCounter % 30 == 0 then
 			for _, teamID in ipairs(Spring.GetTeamList()) do
@@ -892,7 +894,7 @@ function widget:RecvLuaMsg(msg)
 end
 
 function widget:MousePress(x, y, button)
-	if spGetGameFrame() > 0 then
+	if gameFrame > 0 then
 		return false
 	end
 
@@ -1005,7 +1007,7 @@ function widget:MouseMove(x, y, dx, dy, button)
 end
 
 function widget:MouseRelease(x, y, button)
-	if spGetGameFrame() > 0 then
+	if gameFrame > 0 then
 		return false
 	end
 
