@@ -907,11 +907,6 @@ local function cycleUnitDisplayHandler(_, _, _, data)
 	cycleUnitDisplay(direction)
 end
 
-local function cycleUnitDisplayDec()
-	local direction = -1
-	cycleUnitDisplay(direction)
-end
-
 function widget:PlayerChanged(playerID)
     myAllyTeamID = Spring.GetLocalAllyTeamID()
     myTeamID = Spring.GetLocalTeamID()
