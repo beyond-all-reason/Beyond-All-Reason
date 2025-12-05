@@ -65,7 +65,7 @@ local idrawY = 650
 local igroupLabelXOff = 17
 local igroupLabelYOff = 10
 
-local drawFadeTime = 0.5
+local drawFadeTime = 0.15
 local loadedBorderDisplayTime = 1.0
 
 local repeatIcon = "LuaUI/Images/repeat.png"
@@ -525,7 +525,7 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 			font:SetTextColor(1, 1, 1, alpha)
 			font:Print("...", x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "nd")
 		else
-			gl.Color(1,1,1 ,1)
+			gl.Color(1,1,1 ,mathMax(alpha, 0.8))
 			UiUnit(
 				x + boxIconBorder + xOff, y - boxHeight + boxIconBorder, x + boxHeight - boxIconBorder + xOff, y - boxIconBorder,
 				nil,
