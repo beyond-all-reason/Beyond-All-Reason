@@ -113,7 +113,7 @@ return {
 				craterareaofeffect = 116,
 				craterboost = 0.1,
 				cratermult = 0.1,
-				burst = 6,
+				burst = 3,
 				burstrate = 0.5,
 				edgeeffectiveness = 0.75,
 				energypershot = 6000,
@@ -122,7 +122,7 @@ return {
 				heightboostfactor = 8,
 				hightrajectory = 1,
 				impulsefactor = 4.39,
-		        mygravity = 0.61,
+		        mygravity = 0.51,
 				leadbonus = 0,
 				model = "legbomb.s3o",
 				name = "Long-Range g2g Heavy Cluster Plasma Cannon",
@@ -141,7 +141,7 @@ return {
 				weaponvelocity = 1400,
 				customparams = {
 					cluster_def = 'cluster_munition',
-					cluster_number = 6,
+					cluster_number = 8,
 				},
 				damage = {
 					default = 900,
