@@ -1478,7 +1478,7 @@ local options = {
     
     {
         key		= "tech_blocking_per_team",
-        name   	= "Thresholds are per player",
+        name   	= "Multiply Threshold by Player Count",
         desc   	= "If enabled, tech thresholds are per player. If disabled thresholds are absolute for the whole team",
         type   	= "bool",
         section	= "options_experimental",
