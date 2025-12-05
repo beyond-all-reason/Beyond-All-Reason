@@ -190,7 +190,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			spSetUnitMoveGoal(unitID, targetX, targetY, targetZ, 16)
 			local dist = math.diag(unitX - targetX, unitZ - targetZ)
-			if dist < 100 then
+			if dist < goalRadius then
 				-- We arrived! Remove returnPos to be clean
 				data.returnPos = nil
 				SendToUnsynced("SMARTFIGHT_CLEAR", unitID)
@@ -291,7 +291,6 @@ if gadgetHandler:IsSyncedCode() then
 										SendToUnsynced("SMARTFIGHT_RET_POS", unitID, returnX, returnY, returnZ)
 										
 										-- 3. Insert DUMMY REPOSITION Command (Slot 1)
-										-- No params passed to engine = No lines drawn.
 										spGiveOrderToUnit(unitID, CMD_INSERT, {1, CMD_REPOSITION, 0}, {"alt"})
 									end
 								end
