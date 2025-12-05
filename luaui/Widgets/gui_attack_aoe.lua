@@ -1031,7 +1031,7 @@ local function DrawNoExplode(data, overrideSource)
 	local dy = ty - uy
 	local dz = tz - uz
 
-	local bx, by, bz, len = GetNormalizedAndMagnitude(dx, dy, dz)
+	local bx, by, bz = normalize(dx, dy, dz)
 
 	local br = diag(bx, bz)
 
