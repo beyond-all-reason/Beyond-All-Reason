@@ -998,14 +998,16 @@ else	-- UNSYNCED
 		local units = {}
 		if action == 'removenearbyunits' then
 			local mx,my = Spring.GetMouseState()
-			local targetType, pos = Spring.TraceScreenRay(mx,my)
+			local targetType, pos = Spring.TraceScreenRay(mx,my,true)
 			if type(pos) == 'table' then
 				units = Spring.GetUnitsInSphere(pos[1], pos[2], pos[3], words[1] and words[1] or 24, words[2] and words[2] or nil)
 			end
 		else
 			if not words[1] and action == 'transferunits' then
 				local mx,my = Spring.GetMouseState()
+				Script.LuaUI.RestoreSelectionVolume() -- Fence calls to TraceScreenRay without onlyCoords == true.
 				local targetType, unitID = Spring.TraceScreenRay(mx,my)
+				Script.LuaUI.RemoveSelectionVolume()
 				if targetType == 'unit' then
 					words[1] = Spring.GetUnitTeam(unitID)
 				end
