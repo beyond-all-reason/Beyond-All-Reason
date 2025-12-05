@@ -406,7 +406,7 @@ function gadget:Initialize()
 		unitArmorHealth[unitID] = armorHealth or nil
 		if armorFrames or not armorHealth or armorHealth < armor.health then
 			unitArmorFrames[unitID] = getArmorRestoreFrames(armor, armorFrames)
-			regenerateFrame[unitID] = combatUntil or combatEndFrame -- ?? why is this not set
+			regenerateFrame[unitID] = combatUntil or combatEndFrame
 		end
 
 		if debugReloads then
