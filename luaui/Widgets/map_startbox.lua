@@ -27,6 +27,10 @@ local spGetSpectatingState = Spring.GetSpectatingState
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
+if Game.startPosType ~= 2 then
+	return false
+end
+
 local draftMode = Spring.GetModOptions().draft_mode
 local allowEnemyAIPlacement = Spring.GetModOptions().allow_enemy_ai_spawn_placement
 
