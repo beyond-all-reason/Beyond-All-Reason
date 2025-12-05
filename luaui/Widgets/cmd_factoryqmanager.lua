@@ -1,5 +1,5 @@
 include("keysym.h.lua")
-local versionNumber = 1.4
+local versionNumber = 1.5
 
 local widget = widget ---@type Widget
 
@@ -7,7 +7,7 @@ function widget:GetInfo()
 	return {
 		name = "FactoryQ Manager",
 		desc = "Saves and Loads Factory Queues. Load: Meta+[0-9], Save: Alt+Meta+[0-9] (v" .. string.format("%.1f", versionNumber) .. ")",
-		author = "very_bad_soldier",
+		author = "very_bad_soldier, Chronographer",
 		date = "Jul 6, 2008",
 		license = "GNU GPL, v2 or later",
 		layer = -9000,
@@ -29,10 +29,11 @@ local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 
 --Changelog
+--1.5: added repeat icon and bindable keybind actions to activate
 --1.4: fixed text alignment, changed layer cause other widgets are eating events otherwise (e.g. smartselect)
 --1.3: fixed for 0.83
 --1.21:
---added: Press Meta+C to clear currently selected factories queue
+--added: Press Meta+C to clear currently selected factories queue -- Removed, use stopproduction instead
 --added: some speedups, but its still quite hungry will displaying menu
 
 --1.2:
@@ -372,9 +373,6 @@ local function factoryPresetKeyHandler(_, _, args)
 	args = args or {}
 	local mode = args[1]
 
-	if mode == "clear" then
-		ClearFactoryQueues()
-	end
 	local key = args[2]
 	local selUnit, unitDef = getSingleFactory()
 	local gr = tonumber(key)
