@@ -139,6 +139,8 @@ local draggingTeamID = nil
 local dragOffsetX = 0
 local dragOffsetZ = 0
 
+local myAllyTeamID = Spring.GetMyAllyTeamID()
+
 VFS.Include("common/lib_startpoint_guesser.lua")
 
 --------------------------------------------------------------------------------
@@ -352,7 +354,7 @@ local function DrawStartPolygons(inminimap)
 	startPolygonShader:SetUniformInt("isMiniMap", inminimap and 1 or 0)
 
 	startPolygonShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
-	startPolygonShader:SetUniformInt("myAllyTeamID", Spring.GetMyAllyTeamID() or -1)
+	startPolygonShader:SetUniformInt("myAllyTeamID", myAllyTeamID or -1)
 
 	fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
 	startPolygonShader:Deactivate()
@@ -534,7 +536,6 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('GadgetCoopStartPoint', CoopStartPoint)
 	
 local function GetAIPlacedPositions()
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
 	local alliedPositions = {}
 	for teamID, pos in pairs(aiPlacedPositions) do
 		local _, _, _, _, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
@@ -553,7 +554,6 @@ end
 
 	gaiaTeamID = Spring.GetGaiaTeamID()
 
-	-- Fetch existing AI placements
 	for _, teamID in ipairs(Spring.GetTeamList()) do
 		if teamID ~= gaiaTeamID then
 			local _, _, _, isAI, _, _ = Spring.GetTeamInfo(teamID, false)
@@ -627,7 +627,7 @@ function widget:DrawWorld()
 	local time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
 
 	InstanceVBOTable.clearInstanceTable(startConeVBOTable)
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	-- show the team start positions
 	for _, teamID in ipairs(Spring.GetTeamList()) do
 		if teamID ~= gaiaTeamID then
 			local _, playerID, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
@@ -660,7 +660,6 @@ end
 
 function widget:DrawScreenEffects()
 	-- show the names over the team start positions
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
 	for _, teamID in ipairs(Spring.GetTeamList()) do
 		if teamID ~= gaiaTeamID then
 			local _, playerID, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
@@ -735,6 +734,7 @@ local sec = 0
 local updateCounter = 0
 local lastKnownPlacements = {}
 function widget:Update(delta)
+	myAllyTeamID = Spring.GetMyAllyTeamID()
 	local currRot = getCurrentMiniMapRotationOption()
 	if lastRot ~= currRot then
 		lastRot = currRot
@@ -845,7 +845,6 @@ function widget:Update(delta)
 				for _, teamID in ipairs(Spring.GetTeamList()) do
 					if teamID ~= gaiaTeamID then
 						local _, _, _, isAI, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
-						local myAllyTeamID = Spring.GetMyAllyTeamID()
 						if isAI and not aiPlacedPositions[teamID] and (allyTeamID == myAllyTeamID or isSpec or Spring.IsCheatingEnabled()) then
 							local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyTeamID)
 							local x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
@@ -910,7 +909,6 @@ function widget:MousePress(x, y, button)
 		local traceType, pos = Spring.TraceScreenRay(x, y, true)
 		if traceType == "ground" then
 			local worldX, worldY, worldZ = pos[1], pos[2], pos[3]
-			local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 			-- Check if clicking on an AI cone (both placed and predicted positions)
 			for teamID, _ in pairs(Spring.GetTeamList()) do
@@ -954,7 +952,6 @@ function widget:MousePress(x, y, button)
 			local traceType, pos = Spring.TraceScreenRay(x, y, true)
 			if traceType == "ground" then
 				local worldX, worldY, worldZ = pos[1], pos[2], pos[3]
-				local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 				for teamID, placedPos in pairs(aiPlacedPositions) do
 					if placedPos.x and placedPos.z then
