@@ -139,6 +139,7 @@ return {
 				soundhit = "xplosml3",
 				soundhitwet = "splshbig",
 				soundstart = "corraid",
+				trajectoryHeight = 1,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 900,
