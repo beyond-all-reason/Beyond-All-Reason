@@ -75,38 +75,6 @@ local CONE_CLICK_RADIUS = 75
 local placeVoiceNotifTimer = false
 local playedChooseStartLoc = false
 
-local function GetAIName(teamID, includeLock)
-	local _, playerID, _, isAI = Spring.GetTeamInfo(teamID, false)
-	local formattedName
-
-	if isAI then
-		local _, _, _, aiName, _, options = Spring.GetAIInfo(teamID)
-		local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
-		if niceName then
-			aiName = niceName
-			if Spring.Utilities.ShowDevUI() and options and options.profile then
-				aiName = aiName .. " [" .. options.profile .. "]"
-			end
-		end
-		formattedName = Spring.I18N('ui.playersList.aiName', { name = aiName })
-
-		if includeLock then
-			local hasPlacement = aiPlacementStatus[teamID]
-			if hasPlacement == nil then
-				local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
-				hasPlacement = (startX and startZ and startX > 0 and startZ > 0) or Spring.GetTeamRulesParam(teamID, "aiManualPlacement")
-			end
-			if hasPlacement then
-				formattedName = formattedName .. "\n🔒"
-			end
-		end
-	else
-		local name = Spring.GetPlayerInfo(playerID, false)
-		formattedName = (WG.playernames and WG.playernames.getPlayername and WG.playernames.getPlayername(playerID)) or name
-	end
-
-	return formattedName
-end
 local amPlaced = false
 
 local gaiaTeamID
@@ -142,6 +110,39 @@ VFS.Include("common/lib_startpoint_guesser.lua")
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+local function GetAIName(teamID, includeLock)
+	local _, playerID, _, isAI = Spring.GetTeamInfo(teamID, false)
+	local formattedName
+
+	if isAI then
+		local _, _, _, aiName, _, options = Spring.GetAIInfo(teamID)
+		local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
+		if niceName then
+			aiName = niceName
+			if Spring.Utilities.ShowDevUI() and options and options.profile then
+				aiName = aiName .. " [" .. options.profile .. "]"
+			end
+		end
+		formattedName = Spring.I18N('ui.playersList.aiName', { name = aiName })
+
+		if includeLock then
+			local hasPlacement = aiPlacementStatus[teamID]
+			if hasPlacement == nil then
+				local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
+				hasPlacement = (startX and startZ and startX > 0 and startZ > 0) or Spring.GetTeamRulesParam(teamID, "aiManualPlacement")
+			end
+			if hasPlacement then
+				formattedName = formattedName .. "\n🔒"
+			end
+		end
+	else
+		local name = Spring.GetPlayerInfo(playerID, false)
+		formattedName = (WG.playernames and WG.playernames.getPlayername and WG.playernames.getPlayername(playerID)) or name
+	end
+
+	return formattedName
+end
 
 local function assignTeamColors()
 	local teams = Spring.GetTeamList()
