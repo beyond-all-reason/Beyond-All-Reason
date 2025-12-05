@@ -1319,7 +1319,7 @@ local function DrawSectorScatter(data)
 
 	local angleDeg = weaponInfo.sector_angle
 	local shortfall = weaponInfo.sector_shortfall
-	local defaultSpreadAngle = rad(angleDeg)
+	local defaultSpreadAngle = rad(angleDeg / 2)
 
 	local rMax = dist
 	local spreadAngle = defaultSpreadAngle
