@@ -13,6 +13,7 @@ function gadget:GetInfo()
 end
 
 local CMD_SMARTFIGHT = GameCMD.SMARTFIGHT
+local CMD_REPOSITION = GameCMD.REPOSITION
 local CMD_INSERT     = CMD.INSERT
 local CMD_MOVE       = CMD.MOVE
 local CMD_ATTACK     = CMD.ATTACK
@@ -39,8 +40,11 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetGroundHeight     = Spring.GetGroundHeight
 	local spGetUnitStates       = Spring.GetUnitStates
 	local spIsUnitInLos 		= Spring.IsUnitInLos
+	local spSetUnitMoveGoal		= Spring.SetUnitMoveGoal
 	
 	local gaiaTeamID = spGetGaiaTeamID()
+
+	local goalRadius = 100
 	
 	local commandUpdateQueue = {}
 	local activeUnits = {}
@@ -55,7 +59,7 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RegisterCMDID(CMD_SMARTFIGHT)
 		
 		-- Watch all weapons for target filtering
-		for unitDefID, unitDef in pairs(UnitDefs) do
+		for _, unitDef in pairs(UnitDefs) do
 			if unitDef.weapons then
 				for _, weapon in ipairs(unitDef.weapons) do
 					if weapon.weaponDef then
@@ -174,6 +178,28 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+		if cmdID == CMD_REPOSITION then
+			-- Logic: Read coordinates from Lua Table, Drive Unit manually.
+			local data = activeUnits[unitID]
+			
+			-- If lost data, abort command
+			if not data or not data.returnPos then return true, true end
+
+			local targetX, targetY, targetZ = data.returnPos.x, data.returnPos.y, data.returnPos.z
+			local unitX, _, unitZ = spGetUnitPosition(unitID)
+
+			spSetUnitMoveGoal(unitID, targetX, targetY, targetZ, 16)
+			local dist = math.diag(unitX - targetX, unitZ - targetZ)
+			if dist < 100 then
+				-- We arrived! Remove returnPos to be clean
+				data.returnPos = nil
+				SendToUnsynced("SMARTFIGHT_CLEAR", unitID)
+				return true, true -- Command Finished
+			end
+
+			return true, false
+		end
+		
 		if cmdID ~= CMD_SMARTFIGHT then return false end
 		if commandUpdateQueue[unitID] then return true, false end
 
@@ -192,7 +218,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		local dist = math.diag(unitX - targetX, unitZ - targetZ)
 		-- We've arrived at the destination, end the command
-		if dist < 100 then
+		if dist < goalRadius then
 			activeUnits[unitID] = nil
 			return true, true
 		end
@@ -215,7 +241,7 @@ if gadgetHandler:IsSyncedCode() then
 		for unitID, task in pairs(commandUpdateQueue) do
 			if spValidUnitID(unitID) and task.type == "GENERATE_PATH" then
 				for _, pos in ipairs(task.moves) do
-					spGiveOrderToUnit(unitID, CMD_INSERT, {0, CMD_MOVE, CMD.OPT_INTERNAL, pos[1], pos[2], pos[3]}, {"alt"})
+					spSetUnitMoveGoal(unitID, pos[1], pos[2], pos[3], 16)
 				end
 			end
 			commandUpdateQueue[unitID] = nil
@@ -239,27 +265,35 @@ if gadgetHandler:IsSyncedCode() then
 						local cmd1 = cmds[1]
 						
 						-- STATE: MOVING (Searching for targets)
-						if cmd1.id == CMD_MOVE then
+						if cmd1.id ~= CMD_ATTACK then
 							local target = GetBestTarget(unitID)
-
 							if target then
-								local unitX, _, unitZ = spGetUnitPosition(unitID)
-								
-								if unitX and pathData then
+								local unitStates = spGetUnitStates(unitID)
+								local isHoldPos = (unitStates and unitStates.movestate == 0)
 
-									-- 1. Insert ATTACK command (Slot 0 - Immediate)
-									spGiveOrderToUnit(unitID, CMD_INSERT, {0, CMD_ATTACK, CMD.OPT_INTERNAL, target}, {"alt"})
-								
-									-- 2. Calculate return point on line based on CURRENT position
-									local returnX, returnZ, _ = math.getClosestPositionOnLine(
-										pathData.startX, pathData.startZ,
-										pathData.endX, pathData.endZ,
-										unitX, unitZ
-									)
-									local returnY = spGetGroundHeight(returnX, returnZ)
+								if not isHoldPos then
+									local unitX, _, unitZ = spGetUnitPosition(unitID)
 									
-									-- 3. Insert Return MOVE command (Slot 1 - After the Attack)
-									spGiveOrderToUnit(unitID, CMD_INSERT, {1, CMD_MOVE, CMD.OPT_INTERNAL, returnX, returnY, returnZ}, {"alt"})
+									if unitX and pathData then
+										-- 1. Insert ATTACK command (Slot 0)
+										spGiveOrderToUnit(unitID, CMD_INSERT, {0, CMD_ATTACK, 0, target}, {"alt"})
+										
+										-- 2. Calculate return point and STORE IN LUA
+										local returnX, returnZ, _ = math.getClosestPositionOnLine(
+											pathData.startX, pathData.startZ,
+											pathData.endX, pathData.endZ,
+											unitX, unitZ
+										)
+										local returnY = spGetGroundHeight(returnX, returnZ)
+										
+										-- Store for Fallback usage
+										pathData.returnPos = {x=returnX, y=returnY, z=returnZ}
+										SendToUnsynced("SMARTFIGHT_RET_POS", unitID, returnX, returnY, returnZ)
+										
+										-- 3. Insert DUMMY REPOSITION Command (Slot 1)
+										-- No params passed to engine = No lines drawn.
+										spGiveOrderToUnit(unitID, CMD_INSERT, {1, CMD_REPOSITION, 0}, {"alt"})
+									end
 								end
 							end
 						-- STATE: ATTACKING (Found target)
@@ -293,6 +327,7 @@ if gadgetHandler:IsSyncedCode() then
 		activeUnits[unitID] = nil
 		commandUpdateQueue[unitID] = nil
 		if activeCapturers[unitID] then activeCapturers[unitID] = nil end
+		SendToUnsynced("SMARTFIGHT_CLEAR", unitID)
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID)
@@ -313,7 +348,115 @@ if gadgetHandler:IsSyncedCode() then
 -- UNSYNCED CODE (Visuals)
 --------------------------------------------------------------------------------
 else
-	function gadget:Initialize()
-		Spring.SetCustomCommandDrawData(CMD_SMARTFIGHT, CMDTYPE.ICON_UNIT_OR_MAP, LINE_COLOR, true)
+	local spGetUnitCommands  = Spring.GetUnitCommands
+	local spGetSelectedUnits = Spring.GetSelectedUnits
+	local spGetUnitPosition  = Spring.GetUnitPosition
+	local spGetUnitDefID     = Spring.GetUnitDefID
+	local glLineWidth        = gl.LineWidth
+	local glColor            = gl.Color
+	local glBeginEnd         = gl.BeginEnd
+	local glVertex           = gl.Vertex
+	local GL_LINE_STRIP      = GL.LINE_STRIP
+
+	local LINE_COLOR = {0.5, 0.5, 1.0, 0.55}
+
+	local returnPositions = {}
+
+	function gadget:RecvFromSynced(event, unitID, x, y, z)
+		if event == "SMARTFIGHT_RET_POS" then
+			returnPositions[unitID] = {x, y, z}
+		elseif event == "SMARTFIGHT_CLEAR" then
+			returnPositions[unitID] = nil
+		end
+	end
+
+		function gadget:DrawWorld()
+		local selectedUnits = spGetSelectedUnits()
+		if #selectedUnits == 0 then return end
+		
+		-- 1. DATA GATHERING PHASE
+		local linesToDraw = {} 
+		
+		for _, unitID in ipairs(selectedUnits) do
+			local cmds = spGetUnitCommands(unitID, -1)
+			
+			local hasSmartFight = false
+			if cmds then
+				for _, cmd in ipairs(cmds) do
+					if cmd.id == CMD_SMARTFIGHT then hasSmartFight = true break end
+				end
+			end
+
+			if hasSmartFight then
+				local linePoints = {}
+				local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+				
+				if unitX then
+					local udID = spGetUnitDefID(unitID)
+					local yOffset = 0
+					if udID then yOffset = (UnitDefs[udID].height or 0) * 0.5 end
+
+					linePoints[#linePoints+1] = {unitX, unitY + yOffset, unitZ}
+					
+					for _, cmd in ipairs(cmds) do
+						-- Attacks
+						if cmd.id == CMD.ATTACK then
+							if cmd.params then
+								if #cmd.params == 1 then 
+									local targetID = cmd.params[1]
+									if Spring.ValidUnitID(targetID) then
+										local targetX, targetY, targetZ = Spring.GetUnitPosition(targetID)
+										if targetX then 
+											local tUD = spGetUnitDefID(targetID)
+											local tOff = 0
+											if tUD then tOff = (UnitDefs[tUD].height or 0) * 0.5 end
+											linePoints[#linePoints+1] = {targetX, targetY + tOff, targetZ}
+										end
+									end
+								elseif #cmd.params >= 3 then 
+									linePoints[#linePoints+1] = {cmd.params[1], cmd.params[2], cmd.params[3]}
+								end
+							end
+						
+						-- Smart Fight
+						elseif cmd.id == CMD_SMARTFIGHT then
+							if cmd.params and #cmd.params >= 3 then
+								linePoints[#linePoints+1] = {cmd.params[1], cmd.params[2], cmd.params[3]}
+							end
+							break
+						
+						-- REPOSITION
+						elseif cmd.id == CMD_REPOSITION then
+							local returnPos = returnPositions[unitID]
+							if returnPos then
+								linePoints[#linePoints+1] = {returnPos[1], returnPos[2], returnPos[3]}
+							end
+						end
+					end
+					
+					if #linePoints > 1 then
+						linesToDraw[#linesToDraw+1] = linePoints
+					end
+				end
+			end
+		end
+		
+		-- 2. DRAWING PHASE
+		if #linesToDraw > 0 then
+			glLineWidth(1.5)
+			glColor(LINE_COLOR)
+
+			for _, points in ipairs(linesToDraw) do
+				glBeginEnd(GL_LINE_STRIP, function()
+					for i = 1, #points do
+						local p = points[i]
+						glVertex(p[1], p[2], p[3])
+					end
+				end)
+			end
+			
+			glColor(1, 1, 1, 1)
+			glLineWidth(1.0)
+		end
 	end
 end
