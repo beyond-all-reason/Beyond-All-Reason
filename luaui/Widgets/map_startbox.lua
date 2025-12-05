@@ -27,7 +27,6 @@ local spGetSpectatingState = Spring.GetSpectatingState
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
-
 local draftMode = Spring.GetModOptions().draft_mode
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
@@ -65,7 +64,7 @@ end
 local isSpec = spGetSpectatingState() or Spring.IsReplay()
 local myTeamID = spGetMyTeamID()
 
-local CONE_CLICK_RADIUS = 300
+local CONE_CLICK_RADIUS = 75
 
 
 local placeVoiceNotifTimer = false
@@ -121,7 +120,7 @@ local glCallList = gl.CallList
 local hasStartbox = false
 
 local teamColors = {}
-local coopStartPoints = {}
+local coopStartPoints = {}	-- will contain data passed through by coop gadget
 local aiPlacementMode = nil
 local aiPlacedPositions = {}
 local aiPredictedPositions = {}
