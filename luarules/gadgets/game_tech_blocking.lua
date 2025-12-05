@@ -187,9 +187,6 @@ function gadget:GameFrame(frame)
 
 		local adjustedT2Threshold = techBlockingPerTeam and (t2TechThreshold * activeTeamCount) or t2TechThreshold
 		local adjustedT3Threshold = techBlockingPerTeam and (t3TechThreshold * activeTeamCount) or t3TechThreshold
-
-		local thresholdMultiplier = techBlockingPerTeam and activeTeamCount or 1
-		Spring.Echo("activeTeamCount", activeTeamCount, "totalTechPoints", totalTechPoints, "adjustedT2Threshold", adjustedT2Threshold, "adjustedT3Threshold", adjustedT3Threshold, "multiplier", thresholdMultiplier, "per-team blocking", techBlockingPerTeam)
 		if activeTeamCount > 0 then
 			local previousAllyTechLevel = spGetTeamRulesParam(teamList[1], "tech_level") or 1
 			local techLevel = 1
