@@ -573,12 +573,9 @@ if gadgetHandler:IsSyncedCode() then
 		local x, _, z = Spring.GetTeamStartPosition(teamID)
 		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
 		
-		-- AI placement is now handled by directly updating team start position
 		if Game.startPosType == SPAWN_CHOOSE_IN_GAME then
 			if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
-				-- If no valid start point (AI or player), guess one
-				-- Note: For AIs, if they were placed, startPointTable will be populated in GameStart
-				-- or updated via aiPlacedPosition message, so this will only run for unplaced entities
+				-- guess points for the ones classified in startPointTable as not genuine
 				x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
 			else
 				if x <= 0 or z <= 0 then
