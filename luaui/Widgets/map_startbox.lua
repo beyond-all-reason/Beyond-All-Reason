@@ -75,8 +75,10 @@ local CONE_CLICK_RADIUS = 75
 local placeVoiceNotifTimer = false
 local playedChooseStartLoc = false
 
-local function GetAINamePlain(teamID)
-	local _, playerID, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
+local function GetAIName(teamID, includeLock)
+	local _, playerID, _, isAI = Spring.GetTeamInfo(teamID, false)
+	local formattedName
+
 	if isAI then
 		local _, _, _, aiName, _, options = Spring.GetAIInfo(teamID)
 		local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
@@ -86,29 +88,23 @@ local function GetAINamePlain(teamID)
 				aiName = aiName .. " [" .. options.profile .. "]"
 			end
 		end
-		return Spring.I18N('ui.playersList.aiName', { name = aiName })
-	else
-		local name = Spring.GetPlayerInfo(playerID, false)
-		return ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-	end
-end
+		formattedName = Spring.I18N('ui.playersList.aiName', { name = aiName })
 
-local function GetAIName(teamID)
-	local formattedName = GetAINamePlain(teamID)
-	local hasPlacement = aiPlacementStatus[teamID]
-	if hasPlacement == nil then
-		local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
-		hasPlacement = startX and startZ and startX > 0 and startZ > 0
-		if not hasPlacement then
-			local aiManualPlacement = Spring.GetTeamRulesParam(teamID, "aiManualPlacement")
-			if aiManualPlacement then
-				hasPlacement = true
+		if includeLock then
+			local hasPlacement = aiPlacementStatus[teamID]
+			if hasPlacement == nil then
+				local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
+				hasPlacement = (startX and startZ and startX > 0 and startZ > 0) or Spring.GetTeamRulesParam(teamID, "aiManualPlacement")
+			end
+			if hasPlacement then
+				formattedName = formattedName .. "\n🔒"
 			end
 		end
+	else
+		local name = Spring.GetPlayerInfo(playerID, false)
+		formattedName = (WG.playernames and WG.playernames.getPlayername and WG.playernames.getPlayername(playerID)) or name
 	end
-	if hasPlacement then
-		formattedName = formattedName .. "\n🔒"
-	end
+
 	return formattedName
 end
 local amPlaced = false
@@ -667,7 +663,7 @@ function widget:DrawScreenEffects()
 			local name, _, spec = Spring.GetPlayerInfo(playerID, false)
 
 			if isAI then
-				name = GetAIName(teamID)
+				name = GetAIName(teamID, true)
 			else
 				name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 			end
@@ -880,13 +876,13 @@ function widget:RecvLuaMsg(msg)
 				aiPlacedPositions[teamID] = nil
 				aiPlacementStatus[teamID] = false -- Update cache immediately
 				local playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-				local aiName = GetAINamePlain(teamID)
+				local aiName = GetAIName(teamID)
 				Spring.SendMessage(Spring.I18N('ui.startbox.aiStartLocationRemoved', { playerName = playerName, aiName = aiName }))
 			else
 				aiPlacedPositions[teamID] = {x = x, z = z}
 				aiPlacementStatus[teamID] = true -- Update cache immediately
 				local playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-				local aiName = GetAINamePlain(teamID)
+				local aiName = GetAIName(teamID)
 				Spring.SendMessage(Spring.I18N('ui.startbox.aiStartLocationChanged', { playerName = playerName, aiName = aiName }))
 			end
 		end
