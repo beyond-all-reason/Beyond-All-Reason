@@ -1,8 +1,5 @@
 local widget = widget ---@type Widget
 
--- AI placement status cache for immediate UI updates
-local aiPlacementStatus = {}
-
 function widget:GetInfo()
 	return {
 		name = "Start Boxes",
@@ -53,6 +50,7 @@ local shadowOpacity = 0.35
 local infotextFontsize = 13
 
 local commanderNameList = {}
+local aiPlacementStatus = {}
 local usedFontSize = fontSize
 spEcho(Spring.GetMiniMapGeometry())
 local widgetScale = (1 + (vsx * vsy / 5500000))
