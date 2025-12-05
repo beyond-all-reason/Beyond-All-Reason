@@ -100,14 +100,14 @@ return {
 		},
 		weapondefs = {
 			starfire = {
-				accuracy = 0,
-				areaofeffect = 256,
+				accuracy = 0,--0
+				areaofeffect = 556,--256
 				avoidfeature = false,
 				avoidfriendly = false,
 				avoidground = false,
-				burst = 61,
+				burst = 126,
 				burstrate = 0.01,
-				sprayangle = 500,
+				sprayangle = 400,
 				highTrajectory = 1,
 				cegtag = "starfire",
 				collidefriendly = false,
@@ -119,10 +119,10 @@ return {
 				tolerance = 364,
 				explosiongenerator = "custom:starfire-explosion",
 				gravityaffected = "true",
-				impulsefactor = 0.5,
+				impulsefactor = 9.5,
 				name = "Starfire Barrage Launcher",
 				noselfdamage = true,
-				range = 6100,
+				range = 7800,
 				reloadtime = 18,
 				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "rflrpcexplo",
@@ -132,7 +132,7 @@ return {
 				turret = true,
 				weapontimer = 14,
 				weapontype = "Cannon",
-				weaponvelocity = 900,
+				weaponvelocity = 1100,
 				--customparams = {
 				--	stockpilelimit = 1,
 				--},
