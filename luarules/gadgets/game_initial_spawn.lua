@@ -286,7 +286,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- DEBUG: Assign random start positions to all players including AIs
 		if Game.startPosType == 2 then
-			debugAssignRandomStartPositions()
+			--debugAssignRandomStartPositions()
 		end
 
 		-- mark all players as 'not yet placed' and 'not yet readied'

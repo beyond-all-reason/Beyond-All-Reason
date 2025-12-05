@@ -493,6 +493,33 @@ end
 
 --------------------------------------------------------------------------------
 
+local function GetEffectiveStartPosition(teamID)
+	local _, playerID, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
+	local x, y, z = Spring.GetTeamStartPosition(teamID)
+
+	if coopStartPoints[playerID] then
+		x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
+	end
+
+	if draggingTeamID == teamID then
+		local mouseX, mouseY = Spring.GetMouseState()
+		local traceType, pos = Spring.TraceScreenRay(mouseX, mouseY, true)
+		if traceType == "ground" then
+			x = pos[1] + dragOffsetX
+			z = pos[3] + dragOffsetZ
+			y = pos[2]
+		end
+	elseif aiPlacedPositions[teamID] then
+		x, z = aiPlacedPositions[teamID].x, aiPlacedPositions[teamID].z
+		y = Spring.GetGroundHeight(x, z)
+	elseif aiPredictedPositions[teamID] then
+		x, z = aiPredictedPositions[teamID].x, aiPredictedPositions[teamID].z
+		y = Spring.GetGroundHeight(x, z)
+	end
+
+	return x, y, z
+end
+
 function widget:Initialize()
 	-- only show at the beginning
 	if spGetGameFrame() > 1 then
@@ -514,6 +541,9 @@ local function GetAIPlacedPositions()
 	return alliedPositions
 end
 	widgetHandler:RegisterGlobal('GetAIPlacedPositions', GetAIPlacedPositions)
+
+	WG['map_startbox'] = {}
+	WG['map_startbox'].GetEffectiveStartPosition = GetEffectiveStartPosition
 
 	assignTeamColors()
 
@@ -572,6 +602,7 @@ function widget:Shutdown()
 	gl.DeleteFont(shadowFont)
 	widgetHandler:DeregisterGlobal('GadgetCoopStartPoint')
 	widgetHandler:DeregisterGlobal('GetAIPlacedPositions')
+	WG['map_startbox'] = nil
 end
 
 --------------------------------------------------------------------------------
@@ -598,29 +629,10 @@ function widget:DrawWorld()
 			local _, playerID, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
 			local _, _, spec = Spring.GetPlayerInfo(playerID, false)
 
-					local x, y, z = Spring.GetTeamStartPosition(teamID)
-					if coopStartPoints[playerID] then
-						x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
-					end
-					if draggingTeamID == teamID then
-						local mouseX, mouseY = Spring.GetMouseState()
-						local traceType, pos = Spring.TraceScreenRay(mouseX, mouseY, true)
-						if traceType == "ground" then
-							x = pos[1] + dragOffsetX
-							z = pos[3] + dragOffsetZ
-							y = pos[2]
-						end
-					elseif aiPlacedPositions[teamID] then
-						x = aiPlacedPositions[teamID].x
-						z = aiPlacedPositions[teamID].z
-						y = Spring.GetGroundHeight(x, z)
-					elseif aiPredictedPositions[teamID] then
-						x = aiPredictedPositions[teamID].x
-						z = aiPredictedPositions[teamID].z
-						y = Spring.GetGroundHeight(x, z)
-					end
-					
-					if (not spec or isAI) and teamID ~= gaiaTeamID then
+			local x, y, z = GetEffectiveStartPosition(teamID)
+
+			if (not spec or isAI) and teamID ~= gaiaTeamID and
+			   (not isAI or teamAllyTeamID == myAllyTeamID or isSpec or allowEnemyAIPlacement) then
 						if x ~= nil and x > 0 and z > 0 and y > -500 then
 							local r, g, b = GetTeamColor(teamID)
 							local alpha = 0.5 + math.abs(((time * 3) % 1) - 0.5)
@@ -650,39 +662,19 @@ function widget:DrawScreenEffects()
 			local _, playerID, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
 			local name, _, spec = Spring.GetPlayerInfo(playerID, false)
 
-					if isAI then
-						name = GetAIName(teamID)
-					else
-						name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-					end
-					
-					if name ~= nil and (not spec or isAI) and teamID ~= gaiaTeamID then
-						local x, y, z = Spring.GetTeamStartPosition(teamID)
-						if coopStartPoints[playerID] then
-							x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
-						end
-						if draggingTeamID == teamID then
-							-- During dragging, use cursor position with drag offset
-							local mouseX, mouseY = Spring.GetMouseState()
-							local traceType, pos = Spring.TraceScreenRay(mouseX, mouseY, true)
-							if traceType == "ground" then
-								x = pos[1] + dragOffsetX
-								z = pos[3] + dragOffsetZ
-								y = pos[2]
-							end
-						elseif aiPlacedPositions[teamID] then
-							x = aiPlacedPositions[teamID].x
-							z = aiPlacedPositions[teamID].z
-							y = Spring.GetGroundHeight(x, z)
-						elseif aiPredictedPositions[teamID] then
-							x = aiPredictedPositions[teamID].x
-							z = aiPredictedPositions[teamID].z
-							y = Spring.GetGroundHeight(x, z)
-						end
-						if x ~= nil and x > 0 and z > 0 and y > -500 then
-							local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
-							if sz < 1 then
-								drawName(sx, sy, name, teamID)
+			if isAI then
+				name = GetAIName(teamID)
+			else
+				name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
+			end
+
+			if name ~= nil and (not spec or isAI) and teamID ~= gaiaTeamID and
+			   (not isAI or teamAllyTeamID == myAllyTeamID or isSpec or allowEnemyAIPlacement) then
+				local x, y, z = GetEffectiveStartPosition(teamID)
+				if x ~= nil and x > 0 and z > 0 and y > -500 then
+					local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
+					if sz < 1 then
+						drawName(sx, sy, name, teamID)
 					end
 				end
 			end
