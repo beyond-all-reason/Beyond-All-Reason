@@ -212,7 +212,7 @@ local function createInfotextList()
 	infotextList = gl.CreateList(function()
 		font:Begin()
 		font:SetTextColor(0.9, 0.9, 0.9, 1)
-		if draftMode == nil or draftMode == "disabled" then
+		if draftMode == nil or draftMode == "disabled" then -- otherwise draft mod will play it instead
 			font:Print(hasStartbox and infotextBoxes or infotext, 0, 0, infotextFontsize * widgetScale, "cno")
 		end
 		font:End()
@@ -755,6 +755,7 @@ function widget:Update(delta)
 	if sec > 1 then
 		sec = 0
 
+		-- check if team colors have changed
 		local detectedChanges = false
 		local oldTeamColors = teamColors
 		assignTeamColors()
