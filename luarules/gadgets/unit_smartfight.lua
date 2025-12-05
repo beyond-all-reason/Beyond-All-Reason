@@ -316,7 +316,7 @@ if gadgetHandler:IsSyncedCode() then
 		if UnitDefs[unitDefID].canFight then
 			local cmdDesc = {
 				id      = CMD_SMARTFIGHT,
-				type    = CMDTYPE.ICON_UNIT_OR_MAP,
+				type    = CMDTYPE.ICON_MAP,
 				name    = 'Smart Fight',
 				action  = 'smartfight',
 				tooltip = 'Fight command. Ignores captured units.',
