@@ -540,7 +540,7 @@
 			"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
 			"victoryCondition": "Victory condition",
 			"owncomends": "Losing your commander = losing control of your units / resigning",
-			"territorialDomination": "Territorial Domination, capture and hold enough territory to avoid defeat"
+			"territorialDomination": "Territorial Domination\nAvoid commander elimination by gaining the most points"
 		},
 		"startSpot": {
 			"startbox": "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)",
@@ -699,10 +699,51 @@
 			}
 		},
 		"territorialDomination": {
-			"losingWarning1": "Allied retreat in %{seconds} seconds!",
-			"losingWarning2": "Capture %{count} more territories to avoid extraction.",
-			"rank": "Rank %{rank}",
-			"scoreBarTooltip": "Capture territories to fill this bar.\nIf the bar drops below the skull,\nyou will be eliminated."
+			"roundOverPopup": {
+				"gameOver": "Game Over",
+				"victory": "Victory",
+				"defeat": "Defeat",
+				"round": "Round %{roundNumber}",
+				"finalRound": "Final Round",
+				"territoryWorth": "Territories are worth %{points} points each",
+				"eliminationBelow": "Elimination below %{threshold}!"
+			},
+			"round": {
+				"display": "Round %{currentRound}",
+				"displayWithMax": "Round %{currentRound}/%{maxRounds}",
+				"displayDefault": "Round 1/%{maxRounds}",
+				"displayMax": "Round %{maxRounds}/%{maxRounds}",
+				"overtime": "Overtime",
+				"finalRound": "Final Round"
+			},
+			"team": {
+				"ally": "Ally %{allyNumber}"
+			},
+			"rank": {
+				"place": " place"
+			},
+			"elimination": {
+				"aboveElimination": "%{points}pts above elimination",
+				"belowElimination": "%{points}pts below elimination",
+				"zeroAboveElimination": "0pts above elimination",
+				"eliminationsNextRound": "Eliminations next round",
+				"finalRound": "Final Round",
+				"threshold": "Elimination Threshold: %{threshold}pts"
+			},
+			"territories": {
+				"worth": "Territories are worth %{points}pts"
+			},
+			"scoreboard": {
+				"title": "Leaderboard",
+				"viewLeaderboard": "View leaderboard",
+				"headerTeam": "Team",
+				"headerScore": "Score",
+				"headerTerritories": "Territories",
+				"headerGains": "Gains",
+				"headerTotal": "Total",
+				"eliminationThreshold": "Elimination Threshold"
+			},
+			"eliminationBelow": "Elimination Below %{value}"
 		},
 		"loadScreen": {
 			"lowRamWarning": "%{textColor}Your system has below the recommended %{warnColor}12GB memory %{textColor}.     Try running with lower settings if you encounter out-of-memory crashes"
@@ -812,7 +853,7 @@
 			"factions": {
 				"arm": "Outsmart your foes with tactical finesse",
 				"cor": "Smash your foes with brute force",
-				"leg": "This faction is still a work in progress",
+				"leg": "Overwhelm your foes with rapid assault tactics",
 				"random": "Picks a Random out of the available options"
 			}
 		},
@@ -1217,6 +1258,8 @@
 				"sndunitsound_desc": "Unit response sounds",
 				"sndairabsorption": "Air absorption",
 				"sndairabsorption_descr": "Air absorption is basically a low-pass filter relative to distance between\nsound source and listener, so when in your base or zoomed out, front battles\nwill be heard as only low frequencies",
+				"sndzoomvolume": "Zoom fadeout",
+				"sndzoomvolume_descr": "How much the battle sounds volume should fade out with zoom.",
 				"muteoffscreen": "Mute when offscreen",
 				"muteoffscreen_descr": "Game will mute itself when mouse is offscreen until you return",
 				"sndvolmusic": "music",
@@ -1628,6 +1671,12 @@
 				"smartselect_includebuildings_descr": "When rectangle-drag-selecting an area, include building units too?\n\nDisabled: non-mobile units will be excluded (hold Shift to override)\nNote: Construction Turrets will always be selected",
 				"smartselect_includebuilders": "include builders (if above is off)",
 				"smartselect_includebuilders_descr": "When rectangle-drag-selecting an area, exclude builder units (hold Shift to override)",
+				"smartselect_includeantinuke": "include antinuke units (if above is off)",
+				"smartselect_includeantinuke_descr": "When rectangle-drag-selecting an area, exclude antinuke units (hold Shift to override)",
+				"smartselect_includeradar": "include radar units (if above is off)",
+				"smartselect_includeradar_descr": "When rectangle-drag-selecting an area, exclude radar units (hold Shift to override)",
+				"smartselect_includejammer": "include jammer units (if above is off)",
+				"smartselect_includejammer_descr": "When rectangle-drag-selecting an area, exclude jammer units (hold Shift to override)",
 				"onlyfighterspatrol": "Only fighters patrol",
 				"onlyfighterspatrol_descr": "Only fighters obey a factory's patrol route after leaving airlab.",
 				"fightersfly": "Set fighters on Fly mode",
@@ -1795,8 +1844,17 @@
 		"quickStart": {
 			"placeDiscountedFactory": "First factory is discounted",
 			"preGameResources": "Base Budget",
+			"refundNotification": "Remaining budget will be refunded as Metal.",
 			"remainingResourcesWarning": "Use the Base Budget to instantly spawn structures within range",
 			"unallocatedBudget": "Quick Start enabled: use your Base Budget first"
+		},
+		"techBlocking": {
+			"techLevel": "TECH",
+			"techPopup": {
+				"level1": "Tech Level 1",
+				"level2": "Tech Level 2",
+				"level3": "Tech Level 3"
+			}
 		}
 	}
 }

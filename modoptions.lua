@@ -122,37 +122,26 @@ local options = {
         items   = {
             { key = "neverend", name = "Never ending",             desc = "Teams are never eliminated",                       lock = { "territorial_domination_config" } },
             { key = "com",     name = "Kill all enemy Commanders", desc = "When a team has no Commanders left, it loses",     lock = { "territorial_domination_config" } },
-            --{ key= "territorial_domination",  name= "Territorial Domination",     desc="Teams race to capture territory against an ever-increasing quota to stay in the game. Commander retreat or death results in defeat.", unlock = {"territorial_domination_config"} },
+            { key= "territorial_domination",  name= "Territorial Domination",     desc="Teams earn points by capturing territory to stay in the game. At the end of the final round, the team with the most points wins.", unlock = {"territorial_domination_config"} },
             { key = "builders", name = "Kill all Builders",        desc = "When a team has no builders left, it loses",       lock = { "territorial_domination_config" } },
             { key = "killall", name = "Kill everything",           desc = "Every last unit must be eliminated, no exceptions!", lock = { "territorial_domination_config" } },
             { key = "own_com", name = "Player resign on Com death", desc = "When player commander dies, you auto-resign.",    lock = { "territorial_domination_config" } },
         }
     },
 
-    --temporary, uncomment the added deathmode entry and delete entries related to temp_enable_territorial_domination once beta is over.
-    {
-        key     = "temp_enable_territorial_domination",
-        name    = "Territorial Domination V0.1",
-        desc    = "Enable experimental Territorial Domination gamemode",
-        hidden  = true,
-        type    = "bool",
-        section = "options_main",
-        unlock  = { "territorial_domination_config" },
-        def     = false,
-    },
-
     {
         key     = "territorial_domination_config",
-        name    = "Territorial Domination Duration",
+        name    = "Territorial Domination Length",
         desc    =
         "Configures the grace period and the amount of time in minutes it takes to reach the maximum required territory.",
         type    = "list",
-        def     = "default",
+        def     = "24_minutes",
         section = "options_main",
         items   = {
-            { key = "short",  name = "Short",  desc = "6 minutes grace period, 18 minute until the maximum territory is required" },
-            { key = "default", name = "Default", desc = "6 minutes grace period, 24 minute until the maximum territory is required" },
-            { key = "long",   name = "Long",   desc = "6 minutes grace period, 36 minute until the maximum territory is required" },
+            { key = "18_minutes", name = "3 Rounds, 18 Minutes",  desc = "Early tech emphasis, mathmathically certain comeback, elimination unlikely." },
+            { key = "24_minutes",  name = "4 Rounds, 24 Minutes(Default)",  desc = "Mid/late-game tech, comebacks a significant factor,eliminations uncommon" },
+            { key = "30_minutes", name = "5 Rounds, 30 Minutes", desc = "Late-game tech, comebacks less significant, eliminations likely" },
+            { key = "42_minutes",   name = "7 Rounds, 42 Minutes",   desc = "Super lategame tech, eliminations extremely likely" },
         }
     },
 
@@ -1451,6 +1440,61 @@ local options = {
         type   	= "bool",
         section = "options_experimental",
         def  	= false,
+    },
+
+    {
+        key		= "tech_blocking",
+        name   	= "Tech Blocking",
+        desc   	= "Enable tech level blocking system that prevents building units until sufficient tech points are accumulated",
+        type   	= "bool",
+        section	= "options_experimental",
+        def    	= false,
+        unlock  = {"t2_tech_threshold", "t3_tech_threshold", "unit_creation_reward_multiplier", "tech_blocking_per_team"},
+    },
+
+    {
+        key		= "t2_tech_threshold",
+        name   	= "Tech 2 Threshold",
+        desc   	= "Amount of tech points required to unlock Tech 2 units",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 720,
+        min    	= 1,
+        max    	= 100000,
+        step   	= 1,
+    },
+
+    {
+        key		= "t3_tech_threshold",
+        name   	= "Tech 3 Threshold",
+        desc   	= "Amount of tech points required to unlock Tech 3 units",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 4920,
+        min    	= 1,
+        max    	= 100000,
+        step   	= 1,
+    },
+    
+    {
+        key		= "tech_blocking_per_team",
+        name   	= "Multiply Threshold by Player Count",
+        desc   	= "If enabled, tech thresholds are per player. If disabled thresholds are absolute for the whole team",
+        type   	= "bool",
+        section	= "options_experimental",
+        def    	= true,
+    },
+
+    {
+        key		= "unit_creation_reward_multiplier",
+        name   	= "Unit Creation Reward Multiplier",
+        desc   	= "Multiplier for tech points gained when creating units (0 = disabled, units give no bonus tech points)",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 0,
+        min    	= 0,
+        max    	= 1.0,
+        step   	= 0.001,
     },
 
     -- Hidden Tests

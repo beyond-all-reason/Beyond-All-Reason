@@ -29,6 +29,8 @@ if Spring.GetConfigString("voiceset", 'en/cephis') == 'en/allison' then
 	Spring.SetConfigString("voiceset", 'en/cephis')
 end
 
+local windFunctions = VFS.Include('common/wind_functions.lua')
+
 local useDefaultVoiceFallback = false    -- when a voiceset has missing file, try to load the default voiceset file instead
 local playWelcome = Spring.GetConfigInt('WelcomeMessagePlayed', 0) == 0
 
@@ -115,8 +117,9 @@ end
 for notifID, notifDef in pairs(notificationTable) do
 	local notifTexts = {}
 	local notifSounds = {}
-	local notifSoundsSpecial = {}
+	local notifSoundsRare = {}
 	local currentEntry = 1
+	local currentEntryRare = 1
 	notifTexts[currentEntry] = 'tips.notifications.' .. string.sub(notifID, 1, 1):lower() .. string.sub(notifID, 2)
 	if VFS.FileExists(soundFolder .. notifID .. '.wav') then
 		notifSounds[currentEntry] = soundFolder .. notifID .. '.wav'
@@ -141,12 +144,12 @@ for notifID, notifDef in pairs(notificationTable) do
 	end
 
 	if VFS.FileExists(soundFolder .. notifID .. '_rare' .. '.wav') then
-		notifSoundsSpecial[currentEntry] = soundFolder .. notifID .. '.wav'
+		notifSoundsRare[currentEntryRare] = soundFolder .. notifID .. '.wav'
 	end
 	for i = 1, 20 do
 		if VFS.FileExists(soundFolder .. notifID .. '_rare' .. i .. '.wav') then
-			currentEntry = currentEntry + 1
-			notifSoundsSpecial[currentEntry] = soundFolder .. notifID .. '_rare' .. i .. '.wav'
+			currentEntryRare = currentEntryRare + 1
+			notifSoundsRare[currentEntryRare] = soundFolder .. notifID .. '_rare' .. i .. '.wav'
 		end
 	end
 
@@ -154,8 +157,9 @@ for notifID, notifDef in pairs(notificationTable) do
 		delay = notifDef.delay or 2,
 		stackedDelay = notifDef.stackedDelay, -- reset delay even with failed play
 		textID = notifTexts[1],
+		notext = notifDef.notext,
 		voiceFiles = notifSounds,
-		voiceFilesRare = notifSoundsSpecial,
+		voiceFilesRare = notifSoundsRare,
 		tutorial = notifDef.tutorial,
 		soundEffect = notifDef.soundEffect,
 		resetOtherEventDelay = notifDef.resetOtherEventDelay,
@@ -230,7 +234,7 @@ local commandersDamages = {}
 local passedTime = 0
 local sec = 0
 
-local windNotGood = ((Game.windMin + Game.windMax) / 2) < 5.5
+local windNotGood = windFunctions.isWindBad()
 
 local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -929,7 +933,7 @@ local function playNextSound()
 			if notification[event].soundEffect then
 				Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
 			end
-			if displayMessages and WG['messages'] and notification[event].textID then
+			if displayMessages and WG['messages'] and notification[event].textID and (not notification[event].notext) then
 				WG['messages'].addMessage(Spring.I18N(notification[event].textID))
 			end
 		end
@@ -1066,6 +1070,7 @@ function widget:GetConfigData(data)
 		tutorialMode = tutorialMode,
 		tutorialPlayed = tutorialPlayed,
 		tutorialPlayedThisGame = tutorialPlayedThisGame,
+		
 	}
 end
 

@@ -47,6 +47,8 @@ local buildModeState = {
 	spacing = 0,
 }
 
+local prevShiftState = false
+
 local isSpec = Spring.GetSpectatingState()
 local myTeamID = spGetMyTeamID()
 local preGamestartPlayer = spGetGameFrame() == 0 and not isSpec
@@ -74,6 +76,7 @@ local BUILD_SQUARE_SIZE = SQUARE_SIZE * 2
 local BUILDING_COUNT_FUDGE_FACTOR = 1.4
 local BUILDING_DETECTION_TOLERANCE = 10
 local HALF = 0.5
+local MAX_DRAG_BUILD_COUNT = 200
 
 local function buildFacingHandler(command, line, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
@@ -334,6 +337,17 @@ local function fillRow(startX, startZ, stepX, stepZ, count, facing)
 	return result
 end
 
+local function truncateBuildPositions(result)
+	if #result > MAX_DRAG_BUILD_COUNT then
+		local truncated = {}
+		for i = 1, MAX_DRAG_BUILD_COUNT do
+			truncated[i] = result[i]
+		end
+		return truncated
+	end
+	return result
+end
+
 local function calculateBuildingPlacementSteps(unitDefID, startPos, endPos, spacing, facing)
 	local buildingWidth, buildingHeight = GetBuildingDimensions(unitDefID, facing)
 	local delta = { x = endPos.x - startPos.x, z = endPos.z - startPos.z }
@@ -378,7 +392,8 @@ local function getBuildPositionsLine(unitDefID, facing, startPos, endPos, spacin
 		xStep = zStep * delta.x / (delta.z ~= 0 and delta.z or 1)
 	end
 
-	return fillRow(snappedStart.x, snappedStart.z, xStep, zStep, xGreaterThanZ and xCount or zCount, facing)
+	local result = fillRow(snappedStart.x, snappedStart.z, xStep, zStep, xGreaterThanZ and xCount or zCount, facing)
+	return truncateBuildPositions(result)
 end
 
 local function getBuildPositionsGrid(unitDefID, facing, startPos, endPos, spacing)
@@ -401,8 +416,8 @@ local function getBuildPositionsGrid(unitDefID, facing, startPos, endPos, spacin
 		end
 		currentRowZ = currentRowZ + zStep
 	end
-	
-	return result
+
+	return truncateBuildPositions(result)
 end
 
 local function getBuildPositionsBox(unitDefID, facing, startPos, endPos, spacing)
@@ -431,8 +446,8 @@ local function getBuildPositionsBox(unitDefID, facing, startPos, endPos, spacing
 	elseif zCount == 1 then
 		table.append(result, fillRow(snappedStart.x, snappedStart.z, xStep, 0, xCount, facing))
 	end
-	
-	return result
+
+	return truncateBuildPositions(result)
 end
 
 local function getBuildPositionsAround(unitDefID, facing, target)
@@ -630,7 +645,7 @@ end
 local UPDATE_PERIOD = 1 / 30
 local updateTime = 0
 function widget:Update(dt)
-	if not preGamestartPlayer or not selBuildQueueDefID then
+	if not preGamestartPlayer then
 		return
 	end
 	
@@ -641,9 +656,15 @@ function widget:Update(dt)
 	updateTime = 0
 	
 	local x, y, leftButton = spGetMouseState()
-	
+
+	local _, _, _, shift = Spring.GetModKeyState()
+	if prevShiftState and not shift and selBuildQueueDefID then
+		setPreGamestartDefID(nil)
+	end
+	prevShiftState = shift
+
 	if not leftButton then
-		if buildModeState.startPosition and #buildModeState.buildPositions > 0 then
+		if buildModeState.startPosition and #buildModeState.buildPositions > 0 and selBuildQueueDefID then
 			local newBuildQueue = {}
 
 			for _, buildPos in ipairs(buildModeState.buildPositions) do
@@ -753,6 +774,24 @@ function widget:MousePress(mx, my, button)
 		return
 	end
 	local _, _, meta, shift = Spring.GetModKeyState()
+
+	if button == 3 and selBuildQueueDefID then
+		setPreGamestartDefID(nil)
+		buildModeState.startPosition = nil
+		buildModeState.buildPositions = {}
+		return true
+	end
+
+	if button == 3 and shift then
+		local x, y, _ = spGetMouseState()
+		local _, pos = spTraceScreenRay(x, y, true, false, false, true)
+		if pos and pos[1] then
+			local buildData = { -CMD.MOVE, pos[1], pos[2], pos[3], nil }
+
+			buildQueue[#buildQueue + 1] = buildData
+		end
+		return true
+	end
 
 	if not selBuildQueueDefID then
 		return false
@@ -942,12 +981,6 @@ function widget:MousePress(mx, my, button)
 		return true
 	end
 
-	if button == 3 then
-		setPreGamestartDefID(nil)
-		buildModeState.startPosition = nil
-		buildModeState.buildPositions = {}
-	end
-
 	if button == 1 and #buildQueue > 0 and buildQueue[1][1]>0 then
 		local _, pos = spTraceScreenRay(mx, my, true, false, false, isUnderwater(startDefID))
 		if not pos then
@@ -957,16 +990,6 @@ function widget:MousePress(mx, my, button)
 
 		if DoBuildingsClash({ startDefID, cbx, cby, cbz, 1 }, buildQueue[1]) then
 			return true
-		end
-	end
-
-	if button == 3 and shift then
-		local x, y, _ = spGetMouseState()
-		local _, pos = spTraceScreenRay(x, y, true, false, false, true)
-		if pos and pos[1] then
-			local buildData = { -CMD.MOVE, pos[1], pos[2], pos[3], nil }
-
-			buildQueue[#buildQueue + 1] = buildData
 		end
 	end
 

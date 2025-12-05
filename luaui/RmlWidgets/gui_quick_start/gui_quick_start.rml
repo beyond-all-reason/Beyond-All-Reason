@@ -7,6 +7,7 @@
         <div id="qs-budget-overlay" class="qs-budget-overlay">
             <div id="qs-budget-container" class="qs-budget-container">
                 <div id="qs-budget-gradient-overlay" class="qs-budget-gradient-overlay"></div>
+                <div id="qs-budget-refund-overlay" class="qs-budget-refund-overlay"></div>
                 <div id="qs-budget-header" class="qs-budget-header"></div>
                 <div class="qs-budget-row">
                     <img id="qs-budget-icon" class="qs-budget-icon" src="/luaui/images/flowui_gl4/metalenergy.png" width="32" height="32" />

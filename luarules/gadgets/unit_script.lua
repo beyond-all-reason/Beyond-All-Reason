@@ -135,6 +135,7 @@ local sp_GetUnitPieceMap = Spring.GetUnitPieceMap
 local sp_CallAsUnit  = Spring.UnitScript.CallAsUnit
 local sp_WaitForMove = Spring.UnitScript.WaitForMove
 local sp_WaitForTurn = Spring.UnitScript.WaitForTurn
+local sp_WaitForScale = Spring.UnitScript.WaitForScale
 local sp_SetPieceVisibility = Spring.UnitScript.SetPieceVisibility
 local sp_SetDeathScriptFinished = Spring.UnitScript.SetDeathScriptFinished
 
@@ -158,13 +159,13 @@ Data structure to administrate the threads of each managed unit.
 We store a set of all threads for each unit, and in two separate tables
 the threads which are waiting for a turn or move animation to finish.
 
-The 'thread' stored in waitingForMove/waitingForTurn/sleepers is the table
+The 'thread' stored in waitingForMove/waitingForTurn/waitingForScale/sleepers is the table
 wrapping the actual coroutine object.  This way the signal_mask etc. is
 available too.
 
 The threads table is a weak table.  This saves us from having to manually clean
 up dead threads: any thread which is not sleeping or waiting is in none of
-(sleepers,waitingForMove,waitingForTurn) => it is only in the threads table
+(sleepers,waitingForMove,waitingForTurn,waitingForScale) => it is only in the threads table
 => garbage collector will harvest it because the table is weak.
 
 Beware the threads are indexed by thread (coroutine), so careless
@@ -175,6 +176,7 @@ Format: {
 		env = {},  -- the unit's environment table
 		waitingForMove = { [piece*3+axis] = thread, ... },
 		waitingForTurn = { [piece*3+axis] = thread, ... },
+		waitingForScale = { [piece] = thread, ... },
 		threads = {
 			[thread] = {
 				thread = thread,      -- the coroutine object
@@ -282,14 +284,18 @@ end
 
 -- Helper for MoveFinished and TurnFinished
 local function AnimFinished(waitingForAnim, piece, axis)
-	local index = piece * 3 + axis
+	local index = axis and (piece * 3 + axis) or piece
 	local wthreads = waitingForAnim[index]
+	local wthread = nil
 
 	if wthreads then
-		waitingForAnim[index] = nil
+		waitingForAnim[index] = {}
 
-		for i = #wthreads, 1, -1 do
-			WakeUp(wthreads[i])
+		while (#wthreads > 0) do	
+			wthread = wthreads[#wthreads]
+			wthreads[#wthreads] = nil
+
+			WakeUp(wthread)
 		end
 	end
 end
@@ -304,6 +310,12 @@ end
 local function TurnFinished(piece, axis)
 	local activeUnit = units[activeUnitStack[#activeUnitStack]]
 	return AnimFinished(activeUnit.waitingForTurn, piece, axis)
+end
+
+local function ScaleFinished(piece)
+	local activeUnit = GetActiveUnit()
+	local activeAnim = activeUnit.waitingForScale
+	return AnimFinished(activeAnim, piece)
 end
 
 --------------------------------------------------------------------------------
@@ -327,15 +339,14 @@ end
 -- Helper for WaitForMove and WaitForTurn
 -- Unsafe, because it does not check whether the animation to wait for actually exists.
 local function WaitForAnim(threads, waitingForAnim, piece, axis)
-	local index = piece * 3 + axis
+	local index = axis and (piece * 3 + axis) or piece
 	local wthreads = waitingForAnim[index]
-	if not wthreads then
+	if (not wthreads) then
 		wthreads = {}
 		waitingForAnim[index] = wthreads
 	end
 	local thread = threads[co_running() or error("not in a thread", 2)]
-	local n = #wthreads + 1
-	wthreads[n] = thread
+	wthreads[#wthreads+1] = thread
 	thread.container = wthreads
 	-- yield the running thread:
 	-- it will be resumed once the wait finished (in AnimFinished).
@@ -358,6 +369,13 @@ function Spring.UnitScript.WaitForTurn(piece, axis)
 	end
 end
 
+-- overwrites engine's WaitForScale
+function Spring.UnitScript.WaitForScale(piece)
+	if sp_WaitForScale(piece) then
+		local activeUnit = GetActiveUnit()
+		return WaitForAnim(activeUnit.threads, activeUnit.waitingForScale, piece)
+	end
+end
 
 
 function Spring.UnitScript.Sleep(milliseconds)
@@ -747,6 +765,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 	-- Add framework callins.
 	callins.MoveFinished = MoveFinished
 	callins.TurnFinished = TurnFinished
+	callins.ScaleFinished = ScaleFinished
 	callins.Destroy = Destroy
 
 	-- AimWeapon/AimShield is required for a functional weapon/shield,
@@ -813,6 +832,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 		unitID = unitID,
 		waitingForMove = {},
 		waitingForTurn = {},
+		waitingForScale = {},
 		threads = setmetatable({}, {__mode = "kv"}), -- weak table
 	}
 
