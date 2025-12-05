@@ -21,15 +21,14 @@ end
 
 local armorBreakMethod = "ReactiveArmorBreak"
 local armorRestoreMethod = "ReactiveArmorRestore"
-local unitCombatDuration = math.round(5 * Game.gameSpeed) -- ! Can conflict with units' restore times.
+local unitCombatDuration = math.round(5 * Game.gameSpeed) -- Also sets the minimum `reactive_armor_restore`.
 local unitUpdateInterval = math.round((1 / 6) * Game.gameSpeed)
 
 -- Localization
 
 local table_new = table.new
 local math_floor = math.floor
-local math_max = math.max
-local math_min = math.min
+local math_clamp = math.clamp
 
 local spCallCobScript = Spring.CallCOBScript
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -176,17 +175,22 @@ local function getArmorRestoreFrames(defData, duration)
 	end
 end
 
-local function doArmorDamage(unitID, unitDefID, damage)
+local function doArmorDamage(unitID, defData, damage)
 	local armorHealthOld = unitArmorHealth[unitID]
-	local defData = armoredUnitDefs[unitDefID]
+	local armorHealthMax = defData.health
+	local armorPieceCount = defData.pieces
 
-	if not armorHealthOld or not defData then
+	if damage > 0 then
+		regenerateFrame[unitID] = combatEndFrame
+	elseif armorHealthOld == armorHealthMax then
 		return false
 	end
 
-	local armorHealthNew = armorHealthOld - damage
-	local armorHealthMax = defData.health
-	local armorPieceCount = defData.pieces
+	if armorHealthOld == nil then
+		return false -- neither damage nor repair occurs when armor is broken
+	end
+
+	local armorHealthNew = math_clamp(armorHealthOld - damage, 0, armorHealthMax)
 
 	if armorPieceCount > 1 then
 		local armorPieceOld = math_floor(armorPieceCount * (armorHealthMax - armorHealthOld) / armorHealthMax)
@@ -197,12 +201,12 @@ local function doArmorDamage(unitID, unitDefID, damage)
 
 			if damage > 0 then
 				startPiece = armorPieceOld + 1
-				lastPiece = math_min(armorPieceNew, armorPieceCount)
+				lastPiece = armorPieceNew
 				step = 1
 				pieceMethods = defData[armorBreakMethod]
 			else
 				startPiece = armorPieceOld
-				lastPiece = math_max(armorPieceNew + 1, 1)
+				lastPiece = armorPieceNew + 1
 				step = -1
 				pieceMethods = defData[armorRestoreMethod]
 			end
@@ -213,16 +217,35 @@ local function doArmorDamage(unitID, unitDefID, damage)
 		end
 	end
 
-	if armorHealthNew <= 0 then
+	local armorRestoreFrames = unitArmorFrames[unitID]
+
+	if armorHealthNew == 0 then
 		unitArmorHealth[unitID] = nil
-		defData.call(unitID, damage > 0 and armorBreakMethod or armorRestoreMethod)
-		spSetUnitRulesParam(unitID, "reactiveArmorHealth", false)
-	else
-		unitArmorHealth[unitID] = math_min(armorHealthNew, armorHealthMax) -- limit healing
+		spSetUnitRulesParam(unitID, "reactiveArmorHealth", false) -- not 0 to hide healthbar
+		defData.call(unitID, armorBreakMethod)
+
+		if armorRestoreFrames then
+			armorRestoreFrames.countdown = defData.frames
+		else
+			unitArmorFrames[unitID] = getArmorRestoreFrames(defData)
+		end
+	elseif armorHealthNew < armorHealthMax then
+		unitArmorHealth[unitID] = armorHealthNew
 		spSetUnitRulesParam(unitID, "reactiveArmorHealth", armorHealthNew)
 
-		if damage > 0 and not unitArmorFrames[unitID] then
-			unitArmorFrames[unitID] = getArmorRestoreFrames(defData)
+		if armorRestoreFrames then
+			local frames, framesMax = armorRestoreFrames.countdown, defData.frames
+			armorRestoreFrames.countdown = math_clamp(frames + math_floor(framesMax * damage / defData.health), 0, framesMax)
+		elseif not armorRestoreFrames and damage > 0 then
+			unitArmorFrames[unitID] = getArmorRestoreFrames(defData) -- start armor restore timer
+		end
+	else
+		unitArmorHealth[unitID] = armorHealthMax
+		spSetUnitRulesParam(unitID, "reactiveArmorHealth", armorHealthMax)
+
+		if armorRestoreFrames then
+			unitArmorFrames[unitID] = nil
+			defData.call(unitID, armorRestoreMethod)
 		end
 	end
 
@@ -245,23 +268,18 @@ local function restoreUnitArmor(unitID, piece)
 end
 
 local function updateArmoredUnits(frame)
-	local interval = unitUpdateInterval -- localize
-	local regenerate = regenerateFrame -- localize
+	local regenerate, interval = regenerateFrame, unitUpdateInterval -- localize
 
 	-- Error correction for (n-1) frames inaccuracy:
 	frame = frame - math_floor((interval - 1) * 0.5)
 
 	for unitID, data in pairs(unitArmorFrames) do
-		local frameCheck = regenerate[unitID] or 0
-
-		if frameCheck <= frame then
+		if regenerate[unitID] <= frame then
 			local countdown = data.countdown
 			data.countdown = countdown - interval
-
 			for i = countdown, countdown - interval + 1, -1 do
 				if data[i] then
 					restoreUnitArmor(unitID, data[i])
-					data[i] = nil -- may as well
 				end
 			end
 		end
@@ -302,7 +320,6 @@ end
 
 function gadget:GameFrame(frame)
 	gameFrame = frame
-
 	combatEndFrame = frame + unitCombatDuration
 
 	if frame % unitUpdateInterval == 0 then
@@ -327,17 +344,21 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	if armoredUnitDefs[unitDefID] and not paralyzer and damage > 0 then
-		doArmorDamage(unitID, unitDefID, damage)
-		regenerateFrame[unitID] = combatEndFrame
+	if not paralyzer and damage > 0 and armoredUnitDefs[unitDefID] then
+		doArmorDamage(unitID, armoredUnitDefs[unitDefID], damage)
 	end
 end
 
 -- Lifecycle
 
----Damage (or repair!) a unit's reactive armor directly, without damaging the unit.
+---Damages or repairs a unit's reactive armor without changing unit health.
 GG.AddReactiveArmorDamage = function(unitID, damage)
-	return doArmorDamage(unitID, spGetUnitDefID(unitID), damage)
+	local unitDefData = armoredUnitDefs[spGetUnitDefID(unitID)]
+	if unitDefData and damage ~= 0 then
+		return doArmorDamage(unitID, unitDefData, damage)
+	else
+		return false
+	end
 end
 
 ---Get the current armor health remaining of a unit with reactive armor.
