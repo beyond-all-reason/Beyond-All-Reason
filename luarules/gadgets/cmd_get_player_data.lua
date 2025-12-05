@@ -53,9 +53,12 @@ if gadgetHandler:IsSyncedCode() then
 		if msg:sub(3, 4) == validation then
 			if msg:sub(1, 2) == "sd" then
 				local name = Spring.GetPlayerInfo(player, false)
-				local data = string.sub(msg, 5)
-				local playerallowed = string.sub(msg, 5, 5)
-				SendToUnsynced("ReceiveScreenshot", playerallowed .. name .. ";" .. data)
+				-- Extract requestingPlayerID from position 5 onwards until first semicolon
+				local semicolonPos = string.find(msg, ";", 5)
+				local requestingPlayerID = string.sub(msg, 5, semicolonPos - 1)
+				-- Everything after first semicolon (includes "screenshot;" + compressed data)
+				local data = string.sub(msg, semicolonPos + 1)
+				SendToUnsynced("ReceiveScreenshot", requestingPlayerID .. ";" .. name .. ";" .. data)
 				return true
 			elseif msg:sub(1, 2) == "ss" then
 				-- Screenshot request from synced
@@ -75,6 +78,7 @@ else
 	local queueScreenshot, queueScreenShotHeight, queueScreenShotHeightBatch, queueScreenShotH, queueScreenShotHmax
 	local queueScreenShotWidth, queueScreenshotGameframe, queueScreenShotPixels, queueScreenShotBroadcastChars, queueScreenShotCharsPerBroadcast, pixels
 	local queueScreenShotTexture -- Texture to store the captured and downscaled framebuffer
+	local queueScreenShotRequestingPlayerID -- ID of the player who requested this screenshot
 
 	-- Screenshot display variables
 	local screenshotVars = {} -- containing: finished, width, height, gameframe, data, dataLast, dlist, texture, player, filename, saved, saveQueued, posX, posY, quality
@@ -228,6 +232,7 @@ else
 		queueScreenShotPixels = {}
 		queueScreenShotBroadcastChars = 0
 		queueScreenShotCharsPerBroadcast = 7000
+		queueScreenShotRequestingPlayerID = requestingPlayerID
 		screenshotInitialized = false
 		screenshotCaptured = false
 		sec = 0
@@ -425,7 +430,7 @@ else
 					finished = '1'
 				end
 				local data = finished .. ';' .. queueScreenShotWidth .. ';' .. queueScreenShotHeight .. ';' .. queueScreenshotGameframe .. ';' .. table.concat(queueScreenShotPixels)
-				local message = "sd" .. validation .. "screenshot;" .. VFS.ZlibCompress(data)
+				local message = "sd" .. validation .. queueScreenShotRequestingPlayerID .. ";screenshot;" .. VFS.ZlibCompress(data)
 				Spring.SendLuaRulesMsg(message)
 				queueScreenShotBroadcastChars = 0
 				queueScreenShotPixels = {}
@@ -444,9 +449,38 @@ else
 	end
 
 	function ReceiveScreenshot(_, msg)
+		-- Extract requestingPlayerID from the message
+		local semicolonPos = string.find(msg, ";")
+		if not semicolonPos then
+			return
+		end
+		local requestingPlayerID = tonumber(string.sub(msg, 1, semicolonPos - 1))
+
+		-- Only process if this client is the requester
+		if requestingPlayerID ~= myPlayerID then
+			return
+		end
+
+		-- Extract playerName and data (data includes "screenshot;" + compressed content)
+		local remainingMsg = string.sub(msg, semicolonPos + 1)
+		local secondSemicolonPos = string.find(remainingMsg, ";")
+		if not secondSemicolonPos then
+			return
+		end
+		local playerName = string.sub(remainingMsg, 1, secondSemicolonPos - 1)
+		local data = string.sub(remainingMsg, secondSemicolonPos + 1)
+
 		local _, _, mySpec = Spring.GetPlayerInfo(myPlayerID, false)
-		if authorized and (mySpec or isSingleplayer or string.sub(msg, 1, 1) == '1') then
-			PlayerDataBroadcast(myPlayerName, string.sub(msg, 2))
+		-- data format is "screenshot;compressed_data", and PlayerDataBroadcast expects "playerName;msgType;data"
+		-- So we need to prepend playerName to the data
+		local fullMsg = playerName .. ";" .. data
+
+		-- Check authorization - extract first char of compressed data to check if it's '1'
+		local thirdSemicolonPos = string.find(data, ";")
+		local screenshotTypeCheck = thirdSemicolonPos and string.sub(data, thirdSemicolonPos + 1, thirdSemicolonPos + 1) or ""
+
+		if authorized and (mySpec or isSingleplayer or screenshotTypeCheck == '1') then
+			PlayerDataBroadcast(myPlayerName, fullMsg)
 		end
 	end
 
