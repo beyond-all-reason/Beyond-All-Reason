@@ -50,6 +50,9 @@ if gadgetHandler:IsSyncedCode() then
 	local validStartUnits = {}
 
 	local RANDOM_DUMMY = UnitDefNames.dummycom and UnitDefNames.dummycom.id
+	local SPAWN_FIXED = 0
+	local SPAWN_CHOOSE_BEFORE_GAME = 1
+	local SPAWN_CHOOSE_IN_GAME = 2
 
 	local getValidRandom, isUnitValid
 
@@ -196,7 +199,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- Draft Spawn Order -- only enabled when startPosType is 2
 	----------------------------------------------------------------
 	local draftMode = Spring.GetModOptions().draft_mode
-	if (Game.startPosType == 2) and (draftMode ~= nil and draftMode ~= "disabled") then
+	if (Game.startPosType == SPAWN_CHOOSE_IN_GAME) and (draftMode ~= nil and draftMode ~= "disabled") then
 		include("luarules/gadgets/game_draft_spawn_order.lua")
 	else
 		draftMode = nil
@@ -320,7 +323,7 @@ if gadgetHandler:IsSyncedCode() then
 				x = tonumber(x)
 				z = tonumber(z)
 
-				local _, _, _, _, _, aiAllyTeamID = Spring.GetTeamInfo(teamID, false)
+				local aiAllyTeamID = select(6, Spring.GetTeamInfo(teamID, false))
 				local _, _, senderIsSpec, senderTeam, senderAllyTeamID = spGetPlayerInfo(playerID, false)
 
 			if senderIsSpec or (aiAllyTeamID ~= senderAllyTeamID and not Spring.IsCheatingEnabled()) then
@@ -571,7 +574,7 @@ if gadgetHandler:IsSyncedCode() then
 		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
 		
 		-- AI placement is now handled by directly updating team start position
-		if Game.startPosType == 2 then
+		if Game.startPosType == SPAWN_CHOOSE_IN_GAME then
 			if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
 				-- If no valid start point (AI or player), guess one
 				-- Note: For AIs, if they were placed, startPointTable will be populated in GameStart
@@ -602,20 +605,20 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- if this a FFA match with automatic spawning (i.e. no start boxes) and a list of start points was provided by
 		-- `game_ffa_start_setup` for the ally teams in this match
-		if isFFA and Game.startPosType == 1 and GG.ffaStartPoints then
+		if isFFA and Game.startPosType == SPAWN_CHOOSE_BEFORE_GAME and GG.ffaStartPoints then
 			Spring.Log(gadget:GetInfo().name, LOG.INFO, "spawn using FFA start points config")
 			for teamID, allyTeamID in pairs(teams) do
 				spawnUsingFFAStartPoints(teamID, allyTeamID)
 			end
 		else
 			-- otherwise default to spawning regularly
-			if Game.startPosType == 2 then
+			if Game.startPosType == SPAWN_CHOOSE_IN_GAME then
 				Spring.Log(gadget:GetInfo().name, LOG.INFO,
 					"manual spawning based on positions chosen by players in start boxes")
-			elseif Game.startPosType == 1 then
+			elseif Game.startPosType == SPAWN_CHOOSE_BEFORE_GAME then
 				Spring.Log(gadget:GetInfo().name, LOG.INFO,
 					"automatic spawning using default map start positions, in random order")
-			elseif Game.startPosType == 0 then
+			elseif Game.startPosType == SPAWN_FIXED then
 				Spring.Log(gadget:GetInfo().name, LOG.INFO,
 					"automatic spawning using default map start positions, in fixed order")
 			end
