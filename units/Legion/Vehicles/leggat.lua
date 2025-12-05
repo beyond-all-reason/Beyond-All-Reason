@@ -48,6 +48,7 @@ return {
 			subfolder = "Legion/Vehicles",
 			weapon1turretx = 45,
 			weapon1turrety = 80,
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {
