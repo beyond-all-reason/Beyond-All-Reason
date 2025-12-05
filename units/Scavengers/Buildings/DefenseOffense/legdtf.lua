@@ -44,10 +44,10 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
+			decoy_when_closed = true,
 		},
 		featuredefs = {
 			dead = {
-				autoreclaimable = 0,
 				blocking = true,
 				category = "corpses",
 				collisionvolumeoffsets = "0.0 0.0149960864258 0.116882324219",
