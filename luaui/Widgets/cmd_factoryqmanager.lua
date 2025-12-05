@@ -67,6 +67,8 @@ local igroupLabelYOff = 10
 local drawFadeTime = 0.5
 local loadedBorderDisplayTime = 1.0
 
+local repeatIcon = "LuaUI/Images/repeat.png"
+
 --------------------------------------------------------------------------------
 --INTERNAL USE
 --------------------------------------------------------------------------------
@@ -436,7 +438,7 @@ function DrawBoxTitle(x, y, alpha, unitDef, selUnit)
 	local text = unitDef.translatedHumanName
 
 	font:Begin()
-	font:SetTextColor(0, 1, 0, alpha or 1)
+	font:SetTextColor(0.5, 1, 0.5, alpha or 1)
 	font:Print(text, x + boxHeightTitle + titleTextXOff, y - boxHeightTitle / 2.0 - titleTextYOff, fontSizeTitle, "nd0")
 	font:End()
 end
@@ -490,7 +492,12 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 
 	font:Begin()
 	--Draw group Label
-	font:SetTextColor(1.0, 0.5, 0, alpha or 1)
+	if  queue[facRepeatIdx] == nil or queue[facRepeatIdx] == true then
+		font:SetTextColor(0, 1, 0, alpha or 1)
+	else
+		font:SetTextColor(1, 1, 1, alpha or 1)
+	end
+	
 	font:Print(groupNo, x + groupLabelXOff, y - boxHeight / 2.0 - groupLabelYOff, fontSizeGroup, "cdn")
 	xOff = xOff + groupLabelMargin
 
@@ -513,6 +520,23 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 			font:Print(unitCount, x + (boxHeight*0.5) - boxIconBorder + xOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "cndo")
 		end
 		xOff = xOff + boxHeight - boxIconBorder - boxIconBorder + unitIconSpacing
+	end
+
+	if queue[facRepeatIdx] == nil or queue[facRepeatIdx] == true then 
+		if x + boxHeight + boxIconBorder + xOff + boxHeight + unitIconSpacing > x + boxWidth then
+			font:SetTextColor(1, 1, 1, alpha)
+			font:Print("...", x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "nd")
+		else
+			gl.Color(1,1,1 ,1)
+			UiUnit(
+				x + boxIconBorder + xOff, y - boxHeight + boxIconBorder, x + boxHeight - boxIconBorder + xOff, y - boxIconBorder,
+				nil,
+				1,1,1,1,
+				0.08,
+				nil, nil,
+				repeatIcon
+			)
+		end
 	end
 
 	--draw "loaded" text
