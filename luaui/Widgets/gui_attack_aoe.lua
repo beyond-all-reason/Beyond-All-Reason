@@ -148,7 +148,7 @@ local Cache = {
 	UnitProperties = {
 		cost = {},
 		isHover = {},
-		isPassThrough = {},
+		alwaysTargetUnit = {},
 	},
 
 	Calculated = {
@@ -179,6 +179,7 @@ local State = {
 	selChangedSec = 0,
 
 	isMonitoringStockpile = false,
+	isStockpileForManualFire = false,
 	unitsToMonitorStockpile = {},
 	attackUnitDefID = nil,
 	manualFireUnitDefID = nil,
@@ -192,19 +193,19 @@ local State = {
 }
 
 for udid, ud in pairs(UnitDefs) do
-	local isPassThrough = false
+	local alwaysTargetUnit = false
 	if ud.isAirUnit then
-		isPassThrough = true
+		alwaysTargetUnit = true
 	end
 	if ud.modCategories then
 		if ud.modCategories.ship or ud.modCategories.underwater then
-			isPassThrough = true
+			alwaysTargetUnit = true
 		end
 		if ud.modCategories.hover then
 			Cache.UnitProperties.isHover[udid] = true
 		end
 	end
-	Cache.UnitProperties.isPassThrough[udid] = isPassThrough
+	Cache.UnitProperties.alwaysTargetUnit[udid] = alwaysTargetUnit
 	Cache.UnitProperties.cost[udid] = ud.cost
 end
 
@@ -245,7 +246,6 @@ end
 --------------------------------------------------------------------------------
 -- MOUSE LOGIC
 --------------------------------------------------------------------------------
-
 local function GetMouseTargetPosition(weaponType)
 	local isDgun = weaponType == "dgun"
 	local mx, my = spGetMouseState()
@@ -280,45 +280,35 @@ local function GetMouseTargetPosition(weaponType)
 	if targetType == "unit" then
 		local unitID = target
 		local isAlly = spIsUnitAllied(unitID)
+		local shouldIgnoreUnit = false
 
-		local ignoreAlly = (isDgun and WG['dgunnoally']) or (not isDgun and WG['attacknoally'])
-		local ignoreEnemy = (isDgun and WG['dgunnoenemy'])
-
-		if isAlly then
-			if ignoreAlly then
-				local groundPosition = GetGroundPosition()
-				if groundPosition then
-					return groundPosition[1], groundPosition[2], groundPosition[3]
-				end
-				return nil
-			else
-				return spGetUnitPosition(unitID)
-			end
-		end
-
-		if not ignoreEnemy then
-			return spGetUnitPosition(unitID)
-		end
-
-		local unitDefID = spGetUnitDefID(unitID)
-		local unitProperties = Cache.UnitProperties
-		local isPassThrough = unitProperties.isPassThrough[unitDefID]
-
-		if not isPassThrough and unitProperties.isHover[unitDefID] then
-			local groundPosition = GetGroundPosition()
-			if groundPosition and spGetGroundHeight(groundPosition[1], groundPosition[3]) < 0 then
-				isPassThrough = true
-			end
-		end
-
-		if isPassThrough then
-			return spGetUnitPosition(unitID)
+		if isDgun then
+			shouldIgnoreUnit = (isAlly and WG['dgunnoally']) or (not isAlly and WG['dgunnoenemy'])
 		else
-			local groundPosition = GetGroundPosition()
-			if groundPosition then
-				return groundPosition[1], groundPosition[2], groundPosition[3]
-			end
+			shouldIgnoreUnit = (isAlly and WG['attacknoally'])
 		end
+
+		if not shouldIgnoreUnit then
+			return spGetUnitPosition(unitID)
+		end
+
+		local unitProperties = Cache.UnitProperties
+		local unitDefID = spGetUnitDefID(unitID)
+
+		if unitProperties.alwaysTargetUnit[unitDefID] then
+			return spGetUnitPosition(unitID)
+		end
+
+		local groundPosition = GetGroundPosition()
+		if not groundPosition then
+			return nil
+		end
+
+		if unitProperties.isHover[unitDefID] and spGetGroundHeight(groundPosition[1], groundPosition[3]) < 0 then
+			return spGetUnitPosition(unitID)
+		end
+
+		return groundPosition[1], groundPosition[2], groundPosition[3]
 	end
 
 	return nil
@@ -720,9 +710,10 @@ local function GetUnitWithBestStockpile(unitIDs)
 	return bestUnit
 end
 
-local function GetBestUnitID(unitIDs, info)
+local function GetBestUnitID(unitIDs, info, isManual)
 	local bestUnit = unitIDs[1]
 	if info.hasStockpile then
+		State.isStockpileForManualFire = isManual
 		State.isMonitoringStockpile = true
 		State.unitsToMonitorStockpile = unitIDs
 		bestUnit = GetUnitWithBestStockpile(unitIDs)
@@ -732,6 +723,7 @@ end
 
 local function UpdateSelection()
 	local maxCost = 0
+	local maxCostManual = 0
 	State.manualFireUnitDefID = nil
 	State.attackUnitDefID = nil
 	State.attackUnitID = nil
@@ -743,19 +735,17 @@ local function UpdateSelection()
 	local sel = spGetSelectedUnitsSorted()
 	for unitDefID, unitIDs in pairs(sel) do
 		local currCost = Cache.UnitProperties.cost[unitDefID] * #unitIDs
-		if currCost > maxCost then
+		if Cache.manualWeaponInfos[unitDefID] and currCost > maxCostManual then
+			maxCostManual = currCost
+			State.manualFireUnitDefID = unitDefID
+			State.manualFireUnitID = GetBestUnitID(unitIDs, Cache.manualWeaponInfos[unitDefID].primary, true)
+			State.hasSelection = true
+		end
+		if Cache.weaponInfos[unitDefID] and currCost > maxCost then
 			maxCost = currCost
-			if Cache.manualWeaponInfos[unitDefID] then
-				State.manualFireUnitDefID = unitDefID
-				State.manualFireUnitID = GetBestUnitID(unitIDs, Cache.manualWeaponInfos[unitDefID].primary)
-				State.hasSelection = true
-			end
-
-			if Cache.weaponInfos[unitDefID] then
-				State.attackUnitDefID = unitDefID
-				State.attackUnitID = GetBestUnitID(unitIDs, Cache.weaponInfos[unitDefID].primary)
-				State.hasSelection = true
-			end
+			State.attackUnitDefID = unitDefID
+			State.attackUnitID = GetBestUnitID(unitIDs, Cache.weaponInfos[unitDefID].primary)
+			State.hasSelection = true
 		end
 	end
 end
@@ -1717,7 +1707,11 @@ function widget:Update(dt)
 	State.pulsePhase = pulsePhase - floor(pulsePhase)
 
 	if State.isMonitoringStockpile then
-		State.attackUnitID = GetUnitWithBestStockpile(State.unitsToMonitorStockpile)
+		if State.isStockpileForManualFire then
+			State.manualFireUnitID = GetUnitWithBestStockpile(State.unitsToMonitorStockpile)
+		else
+			State.attackUnitID = GetUnitWithBestStockpile(State.unitsToMonitorStockpile)
+		end
 	end
 
 	State.selChangedSec = State.selChangedSec + dt
