@@ -26,6 +26,7 @@ local unitUpdateInterval = math.round((1 / 6) * Game.gameSpeed)
 
 -- Localization
 
+local table_new = table.new
 local math_floor = math.floor
 local math_max = math.max
 local math_min = math.min
@@ -150,22 +151,22 @@ end
 
 -- Local state
 
-local unitArmorHealth = table.new(0, 2 ^ 6) -- (Positive) health in each unit's reactive armor health pools
-local unitArmorFrames = table.new(0, 2 ^ 6) -- Set of frames when the unit's armor pieces will be recovered
-local regenerateFrame = table.new(0, 2 ^ 6) -- Next frame that the unit will begin or resume armor recovery
+local unitArmorHealth = table_new(0, 2 ^ 6) -- (Positive) health in each unit's reactive armor health pools
+local unitArmorFrames = table_new(0, 2 ^ 6) -- Set of frames when the unit's armor pieces will be recovered
+local regenerateFrame = table_new(0, 2 ^ 6) -- Next frame that the unit will begin or resume armor recovery
 
 local gameFrame = 0
 local combatEndFrame = gameFrame + unitCombatDuration
 
 ---@return table<"countdown"|integer, integer> restoreFrames
-local function getArmorRestoreFrames(defData)
+local function getArmorRestoreFrames(defData, duration)
 	local armorPieceCount = defData.pieces
-	local restoreDuration = defData.frames
+	local restoreDuration = duration or defData.frames
 
 	if armorPieceCount == 1 then
 		return { countdown = restoreDuration, [0] = true } -- special case
 	else
-		local frames = table.new(0, armorPieceCount + 1)
+		local frames = table_new(0, armorPieceCount + 1)
 		frames.countdown = restoreDuration
 		for piece = 1, armorPieceCount do
 			local framesRemaining = gameSpeed * (piece - 1)
@@ -267,6 +268,36 @@ local function updateArmoredUnits(frame)
 	end
 end
 
+local debugReloads = false
+
+local function getUnitDebugInfo(unitID)
+	local unitDefID = spGetUnitDefID(unitID)
+	local x, y, z = Spring.GetUnitPosition(unitID)
+	return {
+		x = x,
+		y = y,
+		z = z,
+		unitID        = unitID,
+		unitDefID     = unitDefID,
+		unitDefName   = UnitDefs[unitDefID].name,
+		unitDefParams = armoredUnitDefs[unitDefID] or "none",
+		health        = Spring.GetUnitHealth(unitID),
+		armorFrames   = unitArmorFrames[unitID] or "nil",
+		armorHealth   = unitArmorHealth[unitID] or "nil",
+		inCombatUntil = regenerateFrame[unitID] or "nil",
+		unitCountdown = unitArmorFrames[unitID] and unitArmorFrames[unitID].countdown or "nil",
+	}
+end
+
+local function showDebugInfo(unitID)
+	local info = getUnitDebugInfo(unitID)
+	if info.unitCountdown then
+		local display = ("hp:%s res:%s"):format(tostring(info.armorHealth), tostring(info.unitCountdown))
+		Spring.MarkerAddPoint(info.x, info.y, info.z, display)
+		Spring.Echo("Reactive Armor", info)
+	end
+end
+
 -- Engine callins
 
 function gadget:GameFrame(frame)
@@ -328,51 +359,60 @@ function gadget:Initialize()
 		return
 	end
 
-	-- We handle `/luarules reload` mostly correctly except for out-of-combat timers.
+	local spGetUnitRulesParam = Spring.GetUnitRulesParam
 
-	-- See getArmorRestoreFrames. This might be its poor copy.
-	local function resetArmorRestoreFrames(defData, progress)
-		local pieces = defData.pieces
-		local frames = defData.frames
-		if pieces == 1 then
-			return { countdown = frames, [0] = true }
-		else
-			local restoreFrames = table.new(0, pieces + 1)
-			restoreFrames.countdown = frames
-			for piece = 1, pieces do
-				local framesRemaining = gameSpeed * (piece - 1)
-				if framesRemaining <= frames then
-					restoreFrames[framesRemaining] = piece
-				end
-			end
-			return restoreFrames
+	local function reloadUnitState(unitID, unitDefID, unitTeam)
+		if Spring.GetUnitIsBeingBuilt(unitID) then
+			return
+		end
+
+		local armorHealth = spGetUnitRulesParam(unitID, "reactiveArmorHealth")
+		local armorFrames = spGetUnitRulesParam(unitID, "reactiveArmorFrames")
+		local combatUntil = spGetUnitRulesParam(unitID, "unitIsInCombatUntil")
+		gadget:UnitFinished(unitID, unitDefID, unitTeam)
+		spSetUnitRulesParam(unitID, "reactiveArmorFrames", nil)
+		spSetUnitRulesParam(unitID, "unitIsInCombatUntil", nil)
+
+		local armor = armoredUnitDefs[unitDefID]
+		if not armor then
+			return -- invalid unit script removed in g:UnitFinished
+		end
+
+		armorHealth = armorHealth and math_clamp(armorHealth, 1, armor.health) or false
+		armorFrames = armorFrames and math_clamp(armorFrames, 0, armor.frames) or false
+
+		spSetUnitRulesParam(unitID, "reactiveArmorHealth", armorHealth)
+		unitArmorHealth[unitID] = armorHealth or nil
+		if armorFrames or not armorHealth or armorHealth < armor.health then
+			unitArmorFrames[unitID] = getArmorRestoreFrames(armor, armorFrames)
+			regenerateFrame[unitID] = combatUntil or combatEndFrame -- ?? why is this not set
+		end
+
+		if debugReloads then
+			showDebugInfo(unitID)
 		end
 	end
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		if not Spring.GetUnitIsBeingBuilt(unitID) then
-			local defData = armoredUnitDefs[spGetUnitDefID(unitID)]
-
-			if defData then
-				local armorHealth = Spring.GetUnitRulesParam(unitID, "reactiveArmorHealth")
-
-				gadget:UnitFinished(unitID, spGetUnitDefID(unitID)) -- replaces rules params
-
-				if armorHealth and armorHealth < defData.health then
-					unitArmorFrames[unitID] = nil -- we forget our next regeneration frame :c
-					unitArmorHealth[unitID] = armorHealth
-					spSetUnitRulesParam(unitID, "reactiveArmorHealth", armorHealth)
-				else
-					unitArmorFrames[unitID] = resetArmorRestoreFrames(defData)
-					unitArmorHealth[unitID] = nil
-					spSetUnitRulesParam(unitID, "reactiveArmorHealth", false)
-				end
-			end
+		if armoredUnitDefs[spGetUnitDefID(unitID)] then
+			reloadUnitState(unitID, spGetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
 		end
 	end
 end
 
+local isLuaRulesReload = true
+
+function gadget:GameOver(winningAllyTeams)
+	isLuaRulesReload = false
+end
+
 function gadget:Shutdown()
-	GG.AddReactiveArmorDamage = function() return false end
-	GG.GetReactiveArmorHealth = function() end
+	if isLuaRulesReload then
+		for unitID, data in pairs(unitArmorFrames) do
+			spSetUnitRulesParam(unitID, "reactiveArmorFrames", data.countdown)
+			spSetUnitRulesParam(unitID, "unitIsInCombatUntil", regenerateFrame[unitID])
+		end
+	end
+	GG.AddReactiveArmorDamage = nil
+	GG.GetReactiveArmorHealth = nil
 end
