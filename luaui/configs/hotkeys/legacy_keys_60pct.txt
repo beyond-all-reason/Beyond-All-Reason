@@ -5,6 +5,9 @@
 keyload luaui/configs/hotkeys/chat_and_ui_keys.txt
 keyload luaui/configs/hotkeys/num_keys.txt
 
+unbindaction factory_preset
+unbindaction factory_preset_show
+
 bind Any+sc_h sharedialog
 bind sc_i customgameinfo
 

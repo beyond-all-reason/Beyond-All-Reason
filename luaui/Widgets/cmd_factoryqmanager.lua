@@ -379,9 +379,9 @@ local function factoryPresetKeyHandler(_, _, args)
 
 	if selUnit == nil then return end
 
-	if mode == "write" then
+	if mode == "save" then
 		saveQueue(selUnit, unitDef, gr)
-	elseif mode == "read" then
+	elseif mode == "load" then
 		loadQueue(selUnit, unitDef, gr)
 	end
 
@@ -647,6 +647,11 @@ function widget:SetConfigData(data)
 	if data ~= nil then
 		savedQueues = data
 	end
+end
+
+function widget:Shutdown()
+	widgetHandler:RemoveAction("factory_preset")
+	widgetHandler:RemoveAction("factory_preset_show")
 end
 
 function printDebug(value)
