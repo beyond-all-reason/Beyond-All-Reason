@@ -1815,6 +1815,15 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     },
 
     {
+        key     = "allow_enemy_ai_spawn_placement",
+        name    = "Allow Hostile AI Spawn Placement",
+        desc    = "When enabled, allows enemy allyteams to view and place enemy AI start positions during the pregame",
+        type    = "bool",
+        def     = false,
+        section = "options_cheats",
+    },
+
+    {
         key     = "sub_header",
         section = "options_cheats",
         type    = "separator",

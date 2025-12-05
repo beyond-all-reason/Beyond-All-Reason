@@ -44,6 +44,8 @@ if gadgetHandler:IsSyncedCode() then
 	local startUnitParamName = 'startUnit'
 	local closeSpawnDist = 350
 
+	local allowEnemyAIPlacement = Spring.GetModOptions().allow_enemy_ai_spawn_placement
+
 	----------------------------------------------------------------
 	-- Vars
 	----------------------------------------------------------------
@@ -212,6 +214,46 @@ if gadgetHandler:IsSyncedCode() then
 		draftMode = nil
 	end
 
+	local function debugAssignRandomStartPositions()
+		local gaiaTeamID = Spring.GetGaiaTeamID()
+		local teamList = Spring.GetTeamList()
+
+		for i = 1, #teamList do
+			local teamID = teamList[i]
+			if teamID ~= gaiaTeamID then
+				local _, _, _, isAI, _, teamAllyID = spGetTeamInfo(teamID, false)
+				local playerID = select(2, spGetTeamInfo(teamID, false))
+
+				-- Get start box for this ally team
+				local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(teamAllyID)
+
+				-- If no start box, use full map
+				if xmin >= xmax or zmin >= zmax then
+					xmin, zmin, xmax, zmax = 0, 0, Game.mapSizeX, Game.mapSizeZ
+				end
+
+				-- Generate random position within start box
+				local x = xmin + mathRandom() * (xmax - xmin)
+				local z = zmin + mathRandom() * (zmax - zmin)
+				local y = spGetGroundHeight(x, z)
+
+				-- Set the start position
+				Spring.SetTeamStartPosition(teamID, x, y, z)
+				if isAI and allowEnemyAIPlacement then
+					Spring.SetTeamRulesParam(teamID, "aiManualPlacement", x .. "," .. z, {public=true})
+				end
+				startPointTable[teamID] = {x, z}
+
+				-- Set ready state: AIs are forcibly ready, players are placed but unready (waiting for ready button)
+				if isAI then
+					Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", READYSTATE_READY_FORCED)
+				else
+					Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", READYSTATE_PLACED_UNREADY)
+				end
+			end
+		end
+	end
+
 	----------------------------------------------------------------
 	-- Initialize
 	----------------------------------------------------------------
@@ -240,6 +282,11 @@ if gadgetHandler:IsSyncedCode() then
 		teamsCount = 0
 		for k, v in pairs(teams) do
 			teamsCount = teamsCount + 1
+		end
+
+		-- DEBUG: Assign random start positions to all players including AIs
+		if Game.startPosType == 2 then
+			debugAssignRandomStartPositions()
 		end
 
 		-- mark all players as 'not yet placed' and 'not yet readied'
@@ -333,17 +380,23 @@ if gadgetHandler:IsSyncedCode() then
 
 				local aiAllyTeamID = select(6, Spring.GetTeamInfo(teamID, false))
 
-			if playerIsSpec or (aiAllyTeamID ~= allyTeamID and not Spring.IsCheatingEnabled()) then
+			if playerIsSpec or (aiAllyTeamID ~= allyTeamID and not allowEnemyAIPlacement) then
 				return false
 			end
 
 				if x == 0 and z == 0 then
 					Spring.SetTeamStartPosition(teamID, -1, -1, -1) -- Reset position
 					startPointTable[teamID] = nil
+					if allowEnemyAIPlacement then
+						spSetTeamRulesParam(teamID, "aiManualPlacement", nil)
+					end
 				else
 					local y = spGetGroundHeight(x, z)
 					Spring.SetTeamStartPosition(teamID, x, y, z)
 					startPointTable[teamID] = {x, z}
+					if allowEnemyAIPlacement then
+						spSetTeamRulesParam(teamID, "aiManualPlacement", x .. "," .. z, {public=true})
+					end
 				end
 				return true
 			end

@@ -28,6 +28,7 @@ local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
 local draftMode = Spring.GetModOptions().draft_mode
+local allowEnemyAIPlacement = Spring.GetModOptions().allow_enemy_ai_spawn_placement
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx, vsy = Spring.GetViewGeometry()
@@ -71,7 +72,7 @@ local placeVoiceNotifTimer = false
 local playedChooseStartLoc = false
 
 local function GetAINamePlain(teamID)
-	local _, _, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
+	local _, playerID, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
 	if isAI then
 		local _, _, _, aiName, _, options = Spring.GetAIInfo(teamID)
 		local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
@@ -83,7 +84,6 @@ local function GetAINamePlain(teamID)
 		end
 		return Spring.I18N('ui.playersList.aiName', { name = aiName })
 	else
-		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
 		local name = Spring.GetPlayerInfo(playerID, false)
 		return ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 	end
@@ -95,6 +95,12 @@ local function GetAIName(teamID)
 	if hasPlacement == nil then
 		local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
 		hasPlacement = startX and startZ and startX > 0 and startZ > 0
+		if not hasPlacement then
+			local aiManualPlacement = Spring.GetTeamRulesParam(teamID, "aiManualPlacement")
+			if aiManualPlacement then
+				hasPlacement = true
+			end
+		end
 	end
 	if hasPlacement then
 		formattedName = formattedName .. "\n🔒"
@@ -501,7 +507,7 @@ local function GetAIPlacedPositions()
 	local alliedPositions = {}
 	for teamID, pos in pairs(aiPlacedPositions) do
 		local _, _, _, _, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
-		if teamAllyTeamID == myAllyTeamID or Spring.IsCheatingEnabled() or isSpec then
+		if teamAllyTeamID == myAllyTeamID or allowEnemyAIPlacement or isSpec then
 			alliedPositions[teamID] = pos
 		end
 	end
@@ -519,9 +525,20 @@ end
 			local _, _, _, isAI, _, _ = Spring.GetTeamInfo(teamID, false)
 			if isAI then
 				local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
-				if startX and startZ and startX > 0 and startZ > 0 then
-					aiPlacedPositions[teamID] = {x = startX, z = startZ}
-					aiPlacementStatus[teamID] = true
+				local aiManualPlacement = Spring.GetTeamRulesParam(teamID, "aiManualPlacement")
+				
+				if (startX and startZ and startX > 0 and startZ > 0) or aiManualPlacement then
+					if aiManualPlacement then
+						local mx, mz = string.match(aiManualPlacement, "([%d%.]+),([%d%.]+)")
+						if mx and mz then
+							startX, startZ = tonumber(mx), tonumber(mz)
+						end
+					end
+					
+					if startX and startZ then
+						aiPlacedPositions[teamID] = {x = startX, z = startZ}
+						aiPlacementStatus[teamID] = true
+					end
 				else
 					aiPlacementStatus[teamID] = false
 				end
@@ -578,13 +595,9 @@ function widget:DrawWorld()
 	local myAllyTeamID = Spring.GetMyAllyTeamID()
 	for _, teamID in ipairs(Spring.GetTeamList()) do
 		if teamID ~= gaiaTeamID then
-			local _, _, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
-			local playerID = select(2, Spring.GetTeamInfo(teamID, false))
+			local _, playerID, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
 			local _, _, spec = Spring.GetPlayerInfo(playerID, false)
-			local isCheating = Spring.IsCheatingEnabled()
 
-			if teamAllyTeamID == myAllyTeamID or isCheating or isSpec then
-				if not (isAI and not (amPlaced or isSpec or isCheating)) then
 					local x, y, z = Spring.GetTeamStartPosition(teamID)
 					if coopStartPoints[playerID] then
 						x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
@@ -618,8 +631,6 @@ function widget:DrawWorld()
 								nil, nil, true)
 							if teamID == myTeamID then
 								amPlaced = true
-							end
-						end
 					end
 				end
 			end
@@ -632,16 +643,13 @@ function widget:DrawWorld()
 end
 
 function widget:DrawScreenEffects()
+	-- show the names over the team start positions
 	local myAllyTeamID = Spring.GetMyAllyTeamID()
 	for _, teamID in ipairs(Spring.GetTeamList()) do
 		if teamID ~= gaiaTeamID then
-			local _, _, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
-			local playerID = select(2, Spring.GetTeamInfo(teamID, false))
+			local _, playerID, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
 			local name, _, spec = Spring.GetPlayerInfo(playerID, false)
-			local cheatingEnabled = Spring.IsCheatingEnabled()
 
-			if teamAllyTeamID == myAllyTeamID or Spring.IsCheatingEnabled() or isSpec then
-				if not (isAI and not (amPlaced or isSpec or Spring.IsCheatingEnabled())) then
 					if isAI then
 						name = GetAIName(teamID)
 					else
@@ -675,8 +683,6 @@ function widget:DrawScreenEffects()
 							local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
 							if sz < 1 then
 								drawName(sx, sy, name, teamID)
-							end
-						end
 					end
 				end
 			end
@@ -782,6 +788,14 @@ function widget:Update(delta)
 						local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
 						if startX and startZ and startX > 0 and startZ > 0 then
 							aiPlacedPositions[teamID] = {x = startX, z = startZ}
+						else
+							local aiManualPlacement = Spring.GetTeamRulesParam(teamID, "aiManualPlacement")
+							if aiManualPlacement then
+								local mx, mz = string.match(aiManualPlacement, "([%d%.]+),([%d%.]+)")
+								if mx and mz then
+									aiPlacedPositions[teamID] = {x = tonumber(mx), z = tonumber(mz)}
+								end
+							end
 						end
 					end
 				end
@@ -834,7 +848,8 @@ function widget:Update(delta)
 				for _, teamID in ipairs(Spring.GetTeamList()) do
 					if teamID ~= gaiaTeamID then
 						local _, _, _, isAI, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
-						if isAI and not aiPlacedPositions[teamID] then
+						local myAllyTeamID = Spring.GetMyAllyTeamID()
+						if isAI and not aiPlacedPositions[teamID] and (allyTeamID == myAllyTeamID or isSpec or Spring.IsCheatingEnabled()) then
 							local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyTeamID)
 							local x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
 							if x and x > 0 and z and z > 0 then
@@ -903,7 +918,7 @@ function widget:MousePress(x, y, button)
 			-- Check if clicking on an AI cone (both placed and predicted positions)
 			for teamID, _ in pairs(Spring.GetTeamList()) do
 				local _, _, _, isAI, _, aiAllyTeamID = Spring.GetTeamInfo(teamID, false)
-				if isAI and (aiAllyTeamID == myAllyTeamID or Spring.IsCheatingEnabled()) then
+				if isAI and (aiAllyTeamID == myAllyTeamID or allowEnemyAIPlacement) then
 					local coneX, coneZ
 
 					-- Check placed positions first, then predicted positions
@@ -947,7 +962,7 @@ function widget:MousePress(x, y, button)
 				for teamID, placedPos in pairs(aiPlacedPositions) do
 					if placedPos.x and placedPos.z then
 						local _, _, _, isAI, _, aiAllyTeamID = Spring.GetTeamInfo(teamID, false)
-						if isAI and (aiAllyTeamID == myAllyTeamID or Spring.IsCheatingEnabled()) then
+						if isAI and (aiAllyTeamID == myAllyTeamID or allowEnemyAIPlacement) then
 							local dx = worldX - placedPos.x
 							local dz = worldZ - placedPos.z
 							local distance = math.sqrt(dx * dx + dz * dz)
