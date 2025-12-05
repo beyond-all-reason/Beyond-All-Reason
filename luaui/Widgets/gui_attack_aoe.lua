@@ -94,10 +94,10 @@ local Config = {
 		noEnergy = { 1, 1, 0, 1 },
 		juno = { 0.87, 0.94, 0.40, 1 },
 		napalm = { 0.92, 0.62, 0.31, 1 },
-		emp = { 0.65, 0.65, 1, 1 },
+		emp = { 0.5, 0.5, 1, 1 },
 		scatter = { 1, 1, 0, 1 },
 		noStockpile = { 0.88, 0.88, 0.88, 1 },
-		lightning = { 0.4, 0.5, 1, 1 },
+		lightning = { 0.0, 0.5, 1.0, 1 },
 	},
 	Render = {
 		scatterLineWidthMult = 1024,
