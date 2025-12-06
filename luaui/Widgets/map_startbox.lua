@@ -56,7 +56,6 @@ local infotextFontsize = 13
 local commanderNameList = {}
 local aiPlacementStatus = {}
 local usedFontSize = fontSize
-spEcho(Spring.GetMiniMapGeometry())
 local widgetScale = (1 + (vsx * vsy / 5500000))
 local startPosRatio = 0.0001
 local startPosScale
@@ -106,7 +105,6 @@ local dragOffsetZ = 0
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local gameFrame = 0
 
--- Mouse button constants
 local LEFT_BUTTON = 1
 local RIGHT_BUTTON = 3
 
