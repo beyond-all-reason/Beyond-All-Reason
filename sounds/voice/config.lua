@@ -238,6 +238,16 @@ return {
 		delay = 10,
 		stackedDelay = true,
 	},
+	AllyRequestEnergy = {
+		delay = 10,
+		stackedDelay = true,
+		soundEffect = "AllyRequest",
+	},
+	AllyRequestMetal = {
+		delay = 10,
+		stackedDelay = true,
+		soundEffect = "AllyRequest",
+	},
 
 	-- Alerts
 	NukeLaunched = {
