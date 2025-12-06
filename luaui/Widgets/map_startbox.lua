@@ -111,7 +111,7 @@ VFS.Include("common/lib_startpoint_guesser.lua")
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local function GetAIName(teamID, includeLock)
+local function getAIName(teamID, includeLock)
 	local _, playerID, _, isAI = Spring.GetTeamInfo(teamID, false)
 	local formattedName
 
@@ -120,9 +120,6 @@ local function GetAIName(teamID, includeLock)
 		local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
 		if niceName then
 			aiName = niceName
-			if Spring.Utilities.ShowDevUI() and options and options.profile then
-				aiName = aiName .. " [" .. options.profile .. "]"
-			end
 		end
 		formattedName = Spring.I18N('ui.playersList.aiName', { name = aiName })
 
@@ -497,8 +494,8 @@ end
 
 --------------------------------------------------------------------------------
 
-local function GetEffectiveStartPosition(teamID)
-	local _, playerID, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
+local function getEffectiveStartPosition(teamID)
+	local playerID = select(2, Spring.GetTeamInfo(teamID, false))
 	local x, y, z = Spring.GetTeamStartPosition(teamID)
 
 	if coopStartPoints[playerID] then
@@ -532,21 +529,9 @@ function widget:Initialize()
 	end
 
 	widgetHandler:RegisterGlobal('GadgetCoopStartPoint', CoopStartPoint)
-	
-local function GetAIPlacedPositions()
-	local alliedPositions = {}
-	for teamID, pos in pairs(aiPlacedPositions) do
-		local _, _, _, _, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
-		if teamAllyTeamID == myAllyTeamID or allowEnemyAIPlacement or isSpec then
-			alliedPositions[teamID] = pos
-		end
-	end
-	return alliedPositions
-end
-	widgetHandler:RegisterGlobal('GetAIPlacedPositions', GetAIPlacedPositions)
 
 	WG['map_startbox'] = {}
-	WG['map_startbox'].GetEffectiveStartPosition = GetEffectiveStartPosition
+	WG['map_startbox'].GetEffectiveStartPosition = getEffectiveStartPosition
 
 	assignTeamColors()
 
@@ -603,7 +588,6 @@ function widget:Shutdown()
 	gl.DeleteFont(font2)
 	gl.DeleteFont(shadowFont)
 	widgetHandler:DeregisterGlobal('GadgetCoopStartPoint')
-	widgetHandler:DeregisterGlobal('GetAIPlacedPositions')
 	WG['map_startbox'] = nil
 end
 
@@ -631,7 +615,7 @@ function widget:DrawWorld()
 			local _, playerID, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
 			local _, _, spec = Spring.GetPlayerInfo(playerID, false)
 
-			local x, y, z = GetEffectiveStartPosition(teamID)
+			local x, y, z = getEffectiveStartPosition(teamID)
 
 			if (not spec or isAI) and teamID ~= gaiaTeamID and
 			   (not isAI or teamAllyTeamID == myAllyTeamID or isSpec or allowEnemyAIPlacement) then
@@ -664,14 +648,14 @@ function widget:DrawScreenEffects()
 			local name, _, spec = Spring.GetPlayerInfo(playerID, false)
 
 			if isAI then
-				name = GetAIName(teamID, true)
+				name = getAIName(teamID, true)
 			else
 				name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 			end
 
 			if name ~= nil and (not spec or isAI) and teamID ~= gaiaTeamID and
 			   (not isAI or teamAllyTeamID == myAllyTeamID or isSpec or allowEnemyAIPlacement) then
-				local x, y, z = GetEffectiveStartPosition(teamID)
+				local x, y, z = getEffectiveStartPosition(teamID)
 				if x ~= nil and x > 0 and z > 0 and y > -500 then
 					local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
 					if sz < 1 then
@@ -877,13 +861,13 @@ function widget:RecvLuaMsg(msg)
 				aiPlacedPositions[teamID] = nil
 				aiPlacementStatus[teamID] = false -- Update cache immediately
 				local playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-				local aiName = GetAIName(teamID)
+				local aiName = getAIName(teamID)
 				Spring.SendMessage(Spring.I18N('ui.startbox.aiStartLocationRemoved', { playerName = playerName, aiName = aiName }))
 			else
 				aiPlacedPositions[teamID] = {x = x, z = z}
 				aiPlacementStatus[teamID] = true -- Update cache immediately
 				local playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-				local aiName = GetAIName(teamID)
+				local aiName = getAIName(teamID)
 				Spring.SendMessage(Spring.I18N('ui.startbox.aiStartLocationChanged', { playerName = playerName, aiName = aiName }))
 			end
 		end
