@@ -21,7 +21,6 @@ local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 local SharedConfig = VFS.Include("common/luaUtilities/economy/shared_config.lua")
 local ContextFactoryModule = VFS.Include("common/luaUtilities/team_transfer/context_factory.lua")
 local ResourceTransfer = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_synced.lua")
-local ResourceApi = VFS.Include("common/luaUtilities/economy/bar_economy.lua")
 
 local ResourceType = SharedEnums.ResourceType
 
@@ -39,27 +38,27 @@ function GG.SetTeamResourceData(teamID, resourceData)
 end
 
 function GG.SetTeamResource(teamID, resource, amount)
-	return ResourceApi.setTeamResource(springRepo, teamID, resource, amount)
+	return BarEconomy.setTeamResource(springRepo, teamID, resource, amount)
 end
 
 function GG.GetTeamResources(teamID, resource)
-	return ResourceApi.getTeamResources(springRepo, teamID, resource)
+	return BarEconomy.getTeamResources(springRepo, teamID, resource)
 end
 
 function GG.AddTeamResource(teamID, resource, amount)
-	return ResourceApi.addTeamResource(springRepo, teamID, resource, amount)
+	return BarEconomy.addTeamResource(springRepo, teamID, resource, amount)
 end
 
 function GG.ShareTeamResource(teamID, targetTeamID, resource, amount)
-	return ResourceApi.shareTeamResource(springRepo, teamID, targetTeamID, resource, amount)
+	return BarEconomy.shareTeamResource(springRepo, teamID, targetTeamID, resource, amount)
 end
 
 function GG.SetTeamShareLevel(teamID, resource, level)
-	return ResourceApi.setTeamShareLevel(springRepo, teamID, resource, level)
+	return BarEconomy.setTeamShareLevel(springRepo, teamID, resource, level)
 end
 
 function GG.GetTeamShareLevel(teamID, resource)
-	return ResourceApi.getTeamShareLevel(springRepo, teamID, resource)
+	return BarEconomy.getTeamShareLevel(springRepo, teamID, resource)
 end
 
 local contextFactory = ContextFactoryModule.create(springRepo)

@@ -154,6 +154,8 @@ function DefinitionsModule.defineUnitCategories()
     for _ in pairs(DefinitionsModule.UNIT_CATEGORIES) do categoryCount = categoryCount + 1 end
     Spring.Log("BlueprintDefs", LOG.DEBUG, string.format("Defined %d categories covering %d units. END", categoryCount, unitCount))
 
+end
+
 function DefinitionsModule.getCategory(unitDefID)
     return DefinitionsModule.unitCategories[unitDefID]
 end
