@@ -17,10 +17,10 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local TIMEOUT = Game.gameSpeed * 3
-local NOT_REZZING = -1 --not a positive number
+local NOT_REZZING = -1 -- negative to be an invalid featureID
 local CMD_RESURRECT = CMD.RESURRECT
 local CMD_WAIT = CMD.WAIT
-local MODULO = Game.gameSpeed
+local UPDATE_INTERVAL = Game.gameSpeed
 
 local gameFrame = Spring.GetGameFrame()
 
@@ -28,7 +28,7 @@ local spGetUnitHealth = Spring.GetUnitHealth
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 
-local unitDefLinks = {}
+local corpseRegistryByDefID = {}
 local rezUnitDefs = {}
 local rezzingUnits = {}
 local isBuilding = {}
@@ -58,10 +58,10 @@ local function getPositionHash(x, z) -- we use hashing as a bridge between UnitD
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	local unitDefLink = unitDefLinks[unitDefID]
+	local unitDefLink = corpseRegistryByDefID[unitDefID]
 	if not unitDefLink then
 		unitDefLink = {}
-		unitDefLinks[unitDefID] = unitDefLink
+		corpseRegistryByDefID[unitDefID] = unitDefLink
 	end
 	local x, y, z = Spring.GetUnitPosition(unitID)
 	if not x then
@@ -96,7 +96,7 @@ function gadget:FeatureCreated(featureID, allyTeam)
 		end
 
 		local x, y, z = Spring.GetFeaturePosition(featureID)
-		local unitDefLink = unitDefLinks[resurrectUnitDefID]
+		local unitDefLink = corpseRegistryByDefID[resurrectUnitDefID]
 		if unitDefLink and x then
 			local positionHash = getPositionHash(x, z)
 			local corpseLink = unitDefLink[positionHash]
@@ -131,30 +131,27 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 			spGiveOrderToUnit(unitID, CMD_WAIT, {}, 0)
 		end
 	end
-	local corpseLinkFeatureID = rezzingUnits[builderID]
+
+	local corpseLinkFeatureID = rezzingUnits[builderID] ~= NOT_REZZING and rezzingUnits[builderID] or nil
 	if corpseLinkFeatureID then
+		local rezRulesParam = Spring.GetUnitRulesParam(unitID, "resurrected")
+		if rezRulesParam == nil then
+			Spring.SetUnitRulesParam(unitID, "resurrected", 1, {inlos=true})
+			Spring.SetUnitHealth(unitID, Spring.GetUnitHealth(unitID) * 0.05)
+		end
+
 		if GG.CorpseToUnitLink[corpseLinkFeatureID] then
-			local rezRulesParam = Spring.GetUnitRulesParam(unitID, "resurrected")
-			if rezRulesParam == nil then
-				Spring.SetUnitRulesParam(unitID, "resurrected", 1, {inlos=true})
-				Spring.SetUnitHealth(unitID, Spring.GetUnitHealth(unitID) * 0.05)
-			end
 			Spring.SetUnitExperience(unitID, GG.CorpseToUnitLink[corpseLinkFeatureID].xp)
 		end
 	end
 end
 
-function gadget:unitDestroyed(unitID, unitDefID, unitTeam)
-	rezzingUnits[unitID] = nil
-	toBeUnWaited[unitID] = nil
-	prevHealth[unitID] = nil
-end
 
 function gadget:GameFrame(frame)
 	gameFrame = frame
 
-	if frame % MODULO == 0 then
-		for unitDefID, unitDefLink in pairs(unitDefLinks) do
+	if frame % UPDATE_INTERVAL == 0 then
+		for unitDefID, unitDefLink in pairs(corpseRegistryByDefID) do
 			for positionHash, corpseLink in pairs(unitDefLink) do
 				if corpseLink.timeout < frame then
 					unitDefLink[positionHash] = nil
@@ -186,6 +183,8 @@ function gadget:GameFrame(frame)
 		if currentTask == CMD_RESURRECT and targetID then
 			local featureID = targetID - Game.maxUnits
 			rezzingUnits[unitID] = featureID
+		else
+			rezzingUnits[unitID] = NOT_REZZING
 		end
 	end
 end
