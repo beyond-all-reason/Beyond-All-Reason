@@ -5,14 +5,27 @@ function widget:GetInfo()
 	return {
 		name = "Builder Priority",
 		desc = "Allows to set builders (nanos, labs and cons) on low or high priority mode",
-		author = "[teh]decay",
+		author = "[teh]decay, Chronographer",
 		date = "20 aug 2015",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		version = 8,
+		version = 8.1,
 		enabled = true
 	}
 end
+
+--[[------------------------------------------------------------------------------
+
+Usage:
+Bind actions to a key of your choice in /Beyond-All-Reason/data/uikeys.txt
+priority 		will toggle the selected builders between low and high priority mode.
+priority low 	will set the selected builders to low priority mode.
+priority high 	will set the selected builders to high priority mode.
+
+e.g. 
+bind sc_comma,sc_comma 	priority low
+bind sc_comma 			priority high
+--]]------------------------------------------------------------------------------
 
 
 -- Localized Spring API for performance
@@ -24,6 +37,7 @@ local CMD_PRIORITY = GameCMD.PRIORITY
 -- symbol localization optimization for engine calls
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetSelectedUnits = Spring.GetSelectedUnits
 
 local myTeamID = spGetMyTeamID()
 
@@ -66,6 +80,25 @@ local function toggleUnit(unitID, passive)
 	else
 		spGiveOrderToUnit(unitID, CMD_PRIORITY, { 1 }, 0)
 	end
+end
+
+local function priorityKeyHandler(_,_,args)
+	local selectedUnits = spGetSelectedUnits()
+	if not selectedUnits then
+		return
+	end
+	local passive
+
+	if args and args[1] == "high" then
+		passive = false
+	elseif args and args[1] == "low" then
+		passive = true
+	end
+
+	for i = 1, #selectedUnits do
+		toggleUnit(selectedUnits[i], passive)
+	end
+	return true
 end
 
 local function classifyUnit(unitID, unitDefID)
@@ -156,10 +189,14 @@ function widget:Initialize()
 		local unitDefID = spGetUnitDefID(unitID)
 		classifyUnit(unitID, unitDefID)
 	end
+
+	widgetHandler:AddAction("priority", priorityKeyHandler, nil, "p")
 end
 
 function widget:Shutdown()
 	WG.builderpriority = nil
+
+	widgetHandler:RemoveAction("priority")
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeamID)
