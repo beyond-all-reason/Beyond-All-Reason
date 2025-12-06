@@ -532,6 +532,17 @@ local options = {
         def     =  true,
     },
 
+    {
+        key     = "raptors_dev_channel_link",
+        name    = "Development Discussion",
+        desc    = "Raptors development discussion.",
+        section = "raptor_defense_options",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/781097030692110346",
+        width   = 300,
+        column  = 2,
+    },
+
 	{
 		key		= "sub_header",
 		name	= "To Play Add a Raptors AI to the enemy Team: [Add AI], [RaptorsDefense AI]",
@@ -700,6 +711,17 @@ local options = {
         section = "scav_defense_options",
         type    = "subheader",
         def     =  true,
+    },
+
+    {
+        key     = "scavengers_dev_channel_link",
+        name    = "Development Discussion",
+        desc    = "Scavengers development discussion.",
+        section = "scav_defense_options",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/659550298653589504",
+        width   = 300,
+        column  = 2,
     },
 
 	{
@@ -1122,6 +1144,17 @@ local options = {
     },
 
     {
+        key     = "evocom_feedback_thread_link",
+        name    = "Feedback thread",
+        desc    = "Discord discussion about Evolving Commanders.",
+        section = "options_extra",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1233887661291343913",
+        width   = 250,
+        column  = 2,
+    },
+
+    {
         key 	= "evocomlevelupmethod",
         name 	= "EvoCom: Leveling Method",
         desc   	= "Dynamic: Commanders evolve to keep up with the highest power player. Timed: Static Evolution Rate",
@@ -1227,6 +1260,17 @@ local options = {
             { key = "factory_discount_only", name = "First Factory Discount Only", desc = "No base budget, only first factory discount. No deduction from starting resources.", lock = {"quick_start_amount"} },
             { key = "disabled", name = "Disabled", desc = "Disabled quick start for all game modes.", lock = {"quick_start_amount"} },
         }
+    },
+
+    {
+        key     = "quick_start_link",
+        name    = "Feedback thread",
+        desc    = "Discord discussion about quick start.",
+        section = "options_extra",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1413936809980858408",
+        width   = 250,
+        column  = 2,
     },
 
     {
@@ -1451,6 +1495,18 @@ local options = {
         def    	= false,
         unlock  = {"t2_tech_threshold", "t3_tech_threshold", "unit_creation_reward_multiplier", "tech_blocking_per_team"},
     },
+    
+    {
+
+          key     = "experimentallegionfaction_link",
+        name    = "Development Discussion",
+        desc    = "Discord discussion about Legion faction.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1063217502898884701",
+        width   = 300,
+        column  = 2,
+    },
 
     {
         key		= "t2_tech_threshold",
@@ -1539,6 +1595,17 @@ local options = {
     },
 
     {
+        key     = "experimental_low_priority_pacifists_link",
+        name    = "Feedback thread",
+        desc    = "Discord discussion about low priority pacifists.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1434671940223766679",
+        width   = 250,
+        column  = 2,
+    },
+
+    {
         key 	= "lategame_rebalance",
         name 	= "Lategame Rebalance",
         desc 	= "T2 defenses and anti-air is weaker, giving more time for late T2 strategies to be effective.  Early T3 unit prices increased. Increased price of calamity/ragnarock by 20% so late T3 has more time to be effective.",
@@ -1610,6 +1677,17 @@ local options = {
     },
 
     {
+        key     = "proposed_unit_reworks_link",
+        name    = "Feedback thread",
+        desc    = "Discord discussion about proposed unit reworks.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1415750332419543193",
+        width   = 250,
+        column  = 2,
+    },
+
+    {
         key 	= "naval_balance_tweaks",
         name 	= "Proposed Naval Balance Tweaks",
         desc 	= "Modoption used to test specific balance adjustments dedicated towards naval units.",
@@ -1617,6 +1695,17 @@ local options = {
         --hidden 	= true,
         section = "options_experimental",
         def 	= false,
+    },
+
+    {
+        key     = "naval_balance_tweaks_link",
+        name    = "Feedback thread",
+        desc    = "Discord discussion about naval balance tweaks.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1428031834045939833",
+        width   = 250,
+        column  = 2,
     },
 
     {
