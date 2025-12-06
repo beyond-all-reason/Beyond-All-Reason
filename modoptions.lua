@@ -541,6 +541,8 @@ local options = {
         link    = "https://discord.com/channels/549281623154229250/781097030692110346",
         width   = 300,
         column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
     },
 
 	{
@@ -722,6 +724,8 @@ local options = {
         link    = "https://discord.com/channels/549281623154229250/659550298653589504",
         width   = 300,
         column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
     },
 
 	{
@@ -1152,6 +1156,8 @@ local options = {
         link    = "https://discord.com/channels/549281623154229250/1233887661291343913",
         width   = 250,
         column  = 2,
+        linkheight = 325,
+        linkwidth = 350,
     },
 
     {
@@ -1271,6 +1277,8 @@ local options = {
         link    = "https://discord.com/channels/549281623154229250/1413936809980858408",
         width   = 250,
         column  = 2,
+        linkheight = 325,
+        linkwidth = 350,
     },
 
     {
@@ -1495,6 +1503,8 @@ local options = {
         link    = "https://discord.com/channels/549281623154229250/1063217502898884701",
         width   = 300,
         column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
     },
 
     {
@@ -1602,6 +1612,8 @@ local options = {
         link    = "https://discord.com/channels/549281623154229250/1434671940223766679",
         width   = 250,
         column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
     },
 
     {
@@ -1684,6 +1696,8 @@ local options = {
         link    = "https://discord.com/channels/549281623154229250/1415750332419543193",
         width   = 250,
         column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
     },
 
     {
@@ -1705,6 +1719,8 @@ local options = {
         link    = "https://discord.com/channels/549281623154229250/1428031834045939833",
         width   = 250,
         column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
     },
 
     {
