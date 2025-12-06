@@ -1063,7 +1063,7 @@ function widget:DrawScreen()
 					local infotext = Spring.I18N('ui.startSpot.anywhere')
 					local infotextBoxes = Spring.I18N('ui.startSpot.startbox')
 					font:Begin()
-					font:Print(DMDefaultColorString .. infotextBoxes or infotext, vsx * 0.5, vsy * 0.18, 15.0 * uiScale, "co")
+					font:Print(DMDefaultColorString .. infotextBoxes or infotext, vsx * 0.5, vsy * 0.20315, 15.0 * uiScale, "co")
 					font:End()
 				end -- and if the player doens't have green box? not tell them anything?
 			end
