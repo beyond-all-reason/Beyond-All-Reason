@@ -1581,6 +1581,9 @@ local options = {
         type 	= "bool",
         section = "options_experimental",
         def 	= false,
+        unlock  = {
+            "allow_enemy_ai_spawn_placement", --remove when map_startbox_experimental/game_initial_spawn_experimental experiment is over
+        },
     },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
