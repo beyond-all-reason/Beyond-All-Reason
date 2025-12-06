@@ -118,6 +118,7 @@ return {
 				weaponvelocity = 300,
 				customparams = {
 					nofire = true,
+					junotype = "mini",
 				},
 				damage = {
 					default = 1,

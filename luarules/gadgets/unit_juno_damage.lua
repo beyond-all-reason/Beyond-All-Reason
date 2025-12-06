@@ -57,19 +57,19 @@ if gadgetHandler:IsSyncedCode() then
 		['legaradk'] = true,
 		['legajamk'] = true,
 		['legfrad'] = true,
-		
+
 		['armmine1'] = true,
 		['armmine2'] = true,
 		['armmine3'] = true,
-		['armfmine3'] = true,	
+		['armfmine3'] = true,
 		['cormine1'] = true,
 		['cormine2'] = true,
-		['cormine3'] = true,		
-		['cormine4'] = true,		
-		['corfmine3'] = true,	
+		['cormine3'] = true,
+		['cormine4'] = true,
+		['corfmine3'] = true,
 		['legmine1'] = true,
 		['legmine2'] = true,
-		['legmine3'] = true,		
+		['legmine3'] = true,
 
 		['corfav'] = true,
 		['armfav'] = true,
@@ -134,7 +134,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	--config -- see also in unsynced
-	local radius = 450 --outer radius of area denial ring
+	local radius = 450 --outer radius of area denial ring. This value is used in gui_attack_aoe.lua, make sure to keep them in sync
 	local width = 30 --width of area denial ring
 	local effectlength = 30 --how long area denial lasts, in seconds
 	local fadetime = 2 --how long fade in/out effect lasts, in seconds
