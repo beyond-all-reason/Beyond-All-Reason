@@ -731,7 +731,7 @@ function widget:Update(delta)
 		placeVoiceNotifTimer = os.clock() + 30
 	end
 
-	if draftMode == nil or draftMode == "disabled" then
+	if draftMode == nil or draftMode == "disabled" then -- otherwise draft mod will play it instead
 		if not isSpec and not amPlaced and not playedChooseStartLoc and placeVoiceNotifTimer < os.clock() and WG['notifications'] then
 			playedChooseStartLoc = true
 			WG['notifications'].addEvent('ChooseStartLoc', true)
