@@ -152,7 +152,7 @@ return {
 				},
 			},
 			cluster_munition = {
-				areaofeffect = 495,
+				areaofeffect = 295,
 				avoidfeature = false,
 				cegtag = "ministarfire",
 				craterboost = 0,
