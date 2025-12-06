@@ -145,7 +145,7 @@ return {
 				texture1 = "null",
 				texture2 = "smoketrailbar",
 				trajectoryheight = 2,
-				turnrate = 300,
+				turnrate = 500,
 				turret = true,
 				weaponacceleration = 150,
 				weapontype = "MissileLauncher",
