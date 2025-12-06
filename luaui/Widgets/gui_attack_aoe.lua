@@ -97,7 +97,6 @@ local Config = {
 		emp = { 0.5, 0.5, 1, 1 },
 		scatter = { 1, 1, 0, 1 },
 		noStockpile = { 0.88, 0.88, 0.88, 1 },
-		lightning = { 0.0, 0.5, 1.0, 1 },
 	},
 	Render = {
 		scatterLineWidthMult = 1024,
@@ -647,7 +646,6 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 		info.ee = 1 -- we don't want damage drop-off rings on lightning weapons because it works differently
 		info.range = weaponDef.range
 		info.aoe = tonumber(weaponDef.customParams.spark_range)
-		info.color = Config.Colors.lightning
 	else
 		info.type = "direct"
 		info.scatter = scatter
