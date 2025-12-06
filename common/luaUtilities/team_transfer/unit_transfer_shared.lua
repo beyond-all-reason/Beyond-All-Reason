@@ -9,7 +9,6 @@ local FieldTypes = PolicyShared.FieldTypes
 Shared.UnitPolicyFields = {
   canShare = FieldTypes.boolean,
   sharingMode = FieldTypes.string,
-  allowTakeBypass = FieldTypes.boolean,
 }
 
 ---Validate a list of unitIds under current mode
@@ -98,7 +97,6 @@ function Shared.GetCachedPolicyResult(senderTeamId, receiverTeamId, springApi)
       receiverTeamId = receiverTeamId,
       canShare = false,
       sharingMode = SharedEnums.UnitSharingMode.Disabled,
-      allowTakeBypass = false
     }
   end
 

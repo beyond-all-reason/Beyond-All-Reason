@@ -141,7 +141,11 @@ end
 function Shared.GetCumulativeSent(teamId, resourceType, springApi)
   local param = Shared.GetCumulativeParam(resourceType)
   local spring = springApi or Spring
-  return tonumber(spring.GetTeamRulesParam(teamId, param)) or 0
+  local value = spring.GetTeamRulesParam(teamId, param)
+  if value == nil then
+    return 0
+  end
+  return tonumber(value) or 0
 end
 
 return Shared

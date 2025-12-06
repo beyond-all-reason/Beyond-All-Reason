@@ -9,26 +9,6 @@ local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 local ContextFactory = {}
 
 ---@param springRepo ISpring
----@param teamID number
----@param resourceType string
----@return ResourceData Complete resource data for the team
-local function getTeamResourcesUnpacked(springRepo, teamID, resourceType)
-  local current, storage, pull, income, expense, share, sent, received = springRepo.GetTeamResources(teamID,
-    resourceType)
-
-  return {
-    current = current,
-    storage = storage,
-    pull = pull,
-    income = income,
-    expense = expense,
-    shareSlider = share,
-    sent = sent,
-    received = received
-  }
-end
-
----@param springRepo ISpring
 ---@return table Context factory with closures
 function ContextFactory.create(springRepo)
   ---Create context with optional extensions
@@ -37,21 +17,16 @@ function ContextFactory.create(springRepo)
   ---@param extensions? table Additional fields to merge
   ---@return table Context
   local function buildContext(senderTeamID, receiverTeamID, extensions)
-    local senderMetal = getTeamResourcesUnpacked(springRepo, senderTeamID, SharedEnums.ResourceType.METAL)
-    local senderEnergy = getTeamResourcesUnpacked(springRepo, senderTeamID, SharedEnums.ResourceType.ENERGY)
-    local receiverMetal = getTeamResourcesUnpacked(springRepo, receiverTeamID, SharedEnums.ResourceType.METAL)
-    local receiverEnergy = getTeamResourcesUnpacked(springRepo, receiverTeamID, SharedEnums.ResourceType.ENERGY)
-
     ---@type TeamResources
     local senderResources = {
-      metal = senderMetal,
-      energy = senderEnergy
+      metal = springRepo.GetTeamResourceData(senderTeamID, SharedEnums.ResourceType.METAL),
+      energy = springRepo.GetTeamResourceData(senderTeamID, SharedEnums.ResourceType.ENERGY)
     }
 
     ---@type TeamResources
     local receiverResources = {
-      metal = receiverMetal,
-      energy = receiverEnergy
+      metal = springRepo.GetTeamResourceData(receiverTeamID, SharedEnums.ResourceType.METAL),
+      energy = springRepo.GetTeamResourceData(receiverTeamID, SharedEnums.ResourceType.ENERGY)
     }
 
     ---@type PolicyContext

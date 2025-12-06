@@ -1,11 +1,56 @@
 local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 local Comms = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_comms.lua")
 local Shared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_shared.lua")
+local WaterfillSolver = VFS.Include("common/luaUtilities/economy/bar_economy_waterfill_solver.lua")
+
+local ResourceType = SharedEnums.ResourceType
 
 local Gadgets = {
   SendTransferChatMessages = Comms.SendTransferChatMessages,
 }
 Gadgets.__index = Gadgets
+
+local RESOURCE_NAME_TO_TYPE = {
+  [ResourceType.METAL] = ResourceType.METAL,
+  [ResourceType.ENERGY] = ResourceType.ENERGY,
+  metal = ResourceType.METAL,
+  m = ResourceType.METAL,
+  e = ResourceType.ENERGY,
+  energy = ResourceType.ENERGY,
+}
+
+local STORAGE_NAME_TO_TYPE = {
+  ms = ResourceType.METAL,
+  metalStorage = ResourceType.METAL,
+  es = ResourceType.ENERGY,
+  energyStorage = ResourceType.ENERGY,
+}
+
+local function ResolveResource(resource)
+  if resource == nil then
+    error("resource identifier is required", 3)
+  end
+
+  local storageType = STORAGE_NAME_TO_TYPE[resource]
+  if storageType then
+    return storageType, true
+  end
+
+  local resolved = RESOURCE_NAME_TO_TYPE[resource]
+  if resolved then
+    return resolved, false
+  end
+
+  error(("unsupported resource identifier '%s'"):format(tostring(resource)), 3)
+end
+
+local function EnsureResourceType(resource)
+  local resolved, isStorage = ResolveResource(resource)
+  if isStorage then
+    error("resource identifier requires a resource type (metal or energy)", 3)
+  end
+  return resolved
+end
 
 -- Determine if a team is a non-player team (Gaia or AI-controlled)
 local function isNonPlayerTeam(springRepo, teamId)
@@ -55,7 +100,6 @@ function Gadgets.ResourceTransfer(ctx)
   local policyResult = ctx.policyResult
   local desiredAmount = ctx.desiredAmount
   if (not policyResult or not policyResult.canShare) or (not desiredAmount or desiredAmount <= 0) then
-    print("inside")
     ---@type ResourceTransferResult
     return {
       success = false,
@@ -167,6 +211,13 @@ function Gadgets.RegisterPostTransfer(ctx, transferResult)
   local cumulativeParam = Shared.GetCumulativeParam(ctx.resourceType)
   local cumulativeSent = tonumber(ctx.springRepo.GetTeamRulesParam(transferResult.senderTeamId, cumulativeParam))
   ctx.springRepo.SetTeamRulesParam(ctx.senderTeamId, cumulativeParam, cumulativeSent + transferResult.sent)
+end
+
+---@param springRepo ISpring
+---@param teamsList TeamResourceData[]
+---@param frame number?
+function Gadgets.ProcessEconomy(springRepo, teamsList, frame)
+  return WaterfillSolver.ProcessEconomy(springRepo, teamsList, frame)
 end
 
 ---@param springRepo ISpring
