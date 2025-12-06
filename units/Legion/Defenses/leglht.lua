@@ -165,6 +165,7 @@ return {
 				badtargetcategory = "MOBILE",
 				def = "LEG_BOT_ROCKET",
 				onlytargetcategory = "NOTSUB",
+				fastAutoRetargeting = true,
 			},
 		},
 	},
