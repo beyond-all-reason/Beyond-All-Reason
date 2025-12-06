@@ -1,0 +1,279 @@
+{
+  "version": "1.0.0",
+  "test_dependencies": {
+    "rocks": {
+      "01a3c364614bddff7370223a5a9c4580f8e62d144384148444c518ec5367a59b": {
+        "name": "mediator_lua",
+        "version": "1.1.2-0",
+        "pinned": false,
+        "opt": false,
+        "dependencies": [],
+        "constraint": ">=1.1.1",
+        "binaries": [],
+        "source": "luarocks_rockspec+https://luarocks.org/",
+        "source_url": {
+          "type": "url",
+          "url": "https://github.com/Olivine-Labs/mediator_lua/archive/v1.1.2-0.tar.gz"
+        },
+        "hashes": {
+          "rockspec": "sha256-dR3r7+CqAPqTwK5jcZIgVSiemUiwIx0UMMIUEY/bPzs=",
+          "source": "sha256-+vWFn9IIG+Tp5PuIc6LcZffv8/2T1t0U2mX44SP8/5s="
+        }
+      },
+      "287e827f4a088d41bba04af5f61a13614346c16fe8150eb7c4246e67d6fd163e": {
+        "name": "lua-term",
+        "version": "0.8-1",
+        "pinned": false,
+        "opt": false,
+        "dependencies": [],
+        "constraint": ">=0.1",
+        "binaries": [],
+        "source": "luarocks_rockspec+https://luarocks.org/",
+        "source_url": {
+          "type": "url",
+          "url": "https://github.com/hoelzro/lua-term/archive/0.08.tar.gz"
+        },
+        "hashes": {
+          "rockspec": "sha256-QB/befI0oJBIBdaM+a+zuQT8dTk0f+ZDLQxq1IekSJw=",
+          "source": "sha256-j/lPOQ6p2YxzRpk3PKOwzlANZRsqscuNfSM2/Ft5ze0="
+        }
+      },
+      "316ac0b30e04e86a253d64886f3b110bd0508267474e6b58a3b973bd6857dbf4": {
+        "name": "penlight",
+        "version": "1.14.0-3",
+        "pinned": false,
+        "opt": false,
+        "dependencies": [
+          "832fd9862ce671c0c9777855d4c8b19f9ad9c2679fb5466c3a183785a51b76b0"
+        ],
+        "constraint": ">=1.3.2",
+        "binaries": [],
+        "source": "luarocks_rockspec+https://luarocks.org/",
+        "source_url": {
+          "type": "git",
+          "url": "https://github.com/lunarmodules/penlight.git",
+          "ref": "1.14.0"
+        },
+        "hashes": {
+          "rockspec": "sha256-8ckXDAqsbgL9zOIH3b4HOxasdAXGzBnr+bR6nkAHrOE=",
+          "source": "sha256-4zAt0GgQEkg9toaUaDn3ST3RvjLUDsuOzrKi9lhq0fQ="
+        }
+      },
+      "455cd98d50c6191a9685cffcda4ce783efbb957934625e134c39f43bd5df6818": {
+        "name": "luassert",
+        "version": "1.9.0-1",
+        "pinned": false,
+        "opt": false,
+        "dependencies": [
+          "4e9592a499c9ced4f8ce366db9db7d9c0dd1424ea8d4c8c16c1550ea3a61a696"
+        ],
+        "constraint": ">=1.9.0",
+        "binaries": [],
+        "source": "luarocks_rockspec+https://luarocks.org/",
+        "source_url": {
+          "type": "git",
+          "url": "https://github.com/lunarmodules/luassert.git",
+          "ref": "v1.9.0"
+        },
+        "hashes": {
+          "rockspec": "sha256-rTPvF/GK/jMnH/q4wbwTCGBFELWh+JcvHeOCFAbIf64=",
+          "source": "sha256-jjdB95Vr5iVsh5T7E84WwZMW6/5H2k2R/ny2VBs2l3I="
+        }
+      },
+      "47b12edcdc032232157ace97bddf34bddd17f6f458095885e62bbd602ad9e9ec": {
+        "name": "luasystem",
+        "version": "0.6.3-1",
+        "pinned": false,
+        "opt": false,
+        "dependencies": [],
+        "constraint": ">=0.2.0",
+        "binaries": [],
+        "source": "luarocks_rockspec+https://luarocks.org/",
+        "source_url": {
+          "type": "git",
+          "url": "https://github.com/lunarmodules/luasystem.git",
+          "ref": "v0.6.3"
+        },
+        "hashes": {
+          "rockspec": "sha256-TAprv90NktNCgtoH3wHuRZS+FHvUCNZ2XcDvu23OFX8=",
+          "source": "sha256-8d2835/EcyDJX9yTn6MTfaZryjY1wkSP+IIIKGPDXMk="
+        }
+      },
+      "4e9592a499c9ced4f8ce366db9db7d9c0dd1424ea8d4c8c16c1550ea3a61a696": {
+        "name": "say",
+        "version": "1.4.1-3",
+        "pinned": false,
+        "opt": false,
+        "dependencies": [],
+        "constraint": ">=1.4.0",
+        "binaries": [],
+        "source": "luarocks_rockspec+https://luarocks.org/",
+        "source_url": {
+          "type": "git",
+          "url": "https://github.com/lunarmodules/say.git",
+          "ref": "v1.4.1"
+        },
+        "hashes": {
+          "rockspec": "sha256-WFKt1iWeyjO9A8SG0KUX8tkS9JvMqoVM8CKBUguuK0Y=",
+          "source": "sha256-IjNkK1leVtYgbEjUqguVMjbdW+0BHAOCE0pazrVuF50="
+        }
+      },
+      "6ce29c2c535c40246c386c056f24689344cddb56ec397473931431e6b67694d2": {
+        "name": "say",
+        "version": "1.4.1-3",
+        "pinned": false,
+        "opt": false,
+        "dependencies": [],
+        "constraint": ">=1.4",
+        "binaries": [],
+        "source": "luarocks_rockspec+https://luarocks.org/",
+        "source_url": {
+          "type": "git",
+          "url": "https://github.com/lunarmodules/say.git",
+          "ref": "v1.4.1"
+        },
+        "hashes": {
+          "rockspec": "sha256-WFKt1iWeyjO9A8SG0KUX8tkS9JvMqoVM8CKBUguuK0Y=",
+          "source": "sha256-IjNkK1leVtYgbEjUqguVMjbdW+0BHAOCE0pazrVuF50="
+        }
+      },
+      "832fd9862ce671c0c9777855d4c8b19f9ad9c2679fb5466c3a183785a51b76b0": {
+        "name": "luafilesystem",
+        "version": "1.8.0-1",
+        "pinned": false,
+        "opt": false,
+        "dependencies": [],
+        "constraint": null,
+        "binaries": [],
+        "source": "luarocks_rockspec+https://luarocks.org/",
+        "source_url": {
+          "type": "git",
+          "url": "https://github.com/keplerproject/luafilesystem",
+          "ref": "v1_8_0"
+        },
+        "hashes": {
+          "rockspec": "sha256-ylWfvz35v68L9Sa92bQHDfFylaS7PEmZr62cBfRU06I=",
+          "source": "sha256-pEA+Z1pkykWLTT6NHQ5lo8roOh2P0fiHtnK+byTkF5o="
+        }
+      },
+      "8925c25e69bb2ef4a2007b536827894dfcca7c1ff54572256002997105acb847": {
+        "name": "inspect",
+        "version": "3.1.3-0",
+        "pinned": false,
+        "opt": false,
+        "dependencies": [],
+        "constraint": "==3.1.3",
+        "binaries": [],
+        "source": "luarocks_rockspec+https://luarocks.org/",
+        "source_url": {
+          "type": "url",
+          "url": "https://github.com/kikito/inspect.lua/archive/v3.1.3.tar.gz"
+        },
+        "hashes": {
+          "rockspec": "sha256-2sbysjYqvjgdqqkkSPw1GHUpN8deV8FUZeqCX6VYO8Y=",
+          "source": "sha256-QzhqYT+ZFhhq9JGfNjkti42tjEQopfjIXrrICsunHus="
+        }
+      },
+      "a6c5176043cb3de56336b7de119443dbb3d9e024be1d50e06289ad4b4959a2da": {
+        "name": "lua_cliargs",
+        "version": "3.0.2-1",
+        "pinned": false,
+        "opt": false,
+        "dependencies": [],
+        "constraint": "==3.0",
+        "binaries": [
+          "lint",
+          "watch-tests.sh",
+          "release",
+          "docs",
+          "coverage"
+        ],
+        "source": "luarocks_rockspec+https://luarocks.org/",
+        "source_url": {
+          "type": "git",
+          "url": "https://github.com/lunarmodules/lua_cliargs.git",
+          "ref": "v3.0.2"
+        },
+        "hashes": {
+          "rockspec": "sha256-7qJVHj/KebRkOmK8pxNspNeuXIksdExjKrNhdWOy474=",
+          "source": "sha256-wL3qBQ8Lu3q8DK2Kaeo1dgzIHd8evaxFYJg47CcQiSg="
+        }
+      },
+      "e4f17b9e67313bbd5e90f425672fc8998dd0bfa43335f7c57ed2de7a799e07a6": {
+        "name": "dkjson",
+        "version": "2.8-1",
+        "pinned": false,
+        "opt": false,
+        "dependencies": [],
+        "constraint": ">=2.1.0",
+        "binaries": [],
+        "source": "luarocks_rockspec+https://luarocks.org/",
+        "source_url": {
+          "type": "url",
+          "url": "http://dkolf.de/dkjson-lua/dkjson-2.8.tar.gz"
+        },
+        "hashes": {
+          "rockspec": "sha256-arasJeX7yQ2Rg70RyepiGNvLdiyQz8Wn4HXrdTEIBBg=",
+          "source": "sha256-JOjNO+uRwchh63uz+8m9QYu/+a1KpdBHGBYlgjajFTI="
+        }
+      },
+      "fa396ffe12257288dc0716c35d37ecff7c262c8b242e95906777055a08419940": {
+        "name": "busted",
+        "version": "2.2.0-1",
+        "pinned": false,
+        "opt": false,
+        "dependencies": [
+          "a6c5176043cb3de56336b7de119443dbb3d9e024be1d50e06289ad4b4959a2da",
+          "47b12edcdc032232157ace97bddf34bddd17f6f458095885e62bbd602ad9e9ec",
+          "e4f17b9e67313bbd5e90f425672fc8998dd0bfa43335f7c57ed2de7a799e07a6",
+          "6ce29c2c535c40246c386c056f24689344cddb56ec397473931431e6b67694d2",
+          "455cd98d50c6191a9685cffcda4ce783efbb957934625e134c39f43bd5df6818",
+          "287e827f4a088d41bba04af5f61a13614346c16fe8150eb7c4246e67d6fd163e",
+          "316ac0b30e04e86a253d64886f3b110bd0508267474e6b58a3b973bd6857dbf4",
+          "01a3c364614bddff7370223a5a9c4580f8e62d144384148444c518ec5367a59b"
+        ],
+        "constraint": "==2.2.0",
+        "binaries": [
+          "busted",
+          "busted"
+        ],
+        "source": "luarocks_rockspec+https://luarocks.org/",
+        "source_url": {
+          "type": "git",
+          "url": "https://github.com/lunarmodules/busted.git",
+          "ref": "v2.2.0"
+        },
+        "hashes": {
+          "rockspec": "sha256-zj6KqOotJVv+BaqYLin0yifoNTVWvg3oeByQyiiZn0A=",
+          "source": "sha256-5LxPqmoUwR3XaIToKUgap0L/sNS9uOV080MIenyLnl8="
+        }
+      },
+      "fd314d02e320aea863d0e3d2105fc515bd41704f3ef68c947cf074313878e8c2": {
+        "name": "luassert",
+        "version": "1.9.0-1",
+        "pinned": false,
+        "opt": false,
+        "dependencies": [
+          "4e9592a499c9ced4f8ce366db9db7d9c0dd1424ea8d4c8c16c1550ea3a61a696"
+        ],
+        "constraint": "==1.9.0",
+        "binaries": [],
+        "source": "luarocks_rockspec+https://luarocks.org/",
+        "source_url": {
+          "type": "git",
+          "url": "https://github.com/lunarmodules/luassert.git",
+          "ref": "v1.9.0"
+        },
+        "hashes": {
+          "rockspec": "sha256-rTPvF/GK/jMnH/q4wbwTCGBFELWh+JcvHeOCFAbIf64=",
+          "source": "sha256-jjdB95Vr5iVsh5T7E84WwZMW6/5H2k2R/ny2VBs2l3I="
+        }
+      }
+    },
+    "entrypoints": [
+      "8925c25e69bb2ef4a2007b536827894dfcca7c1ff54572256002997105acb847",
+      "fa396ffe12257288dc0716c35d37ecff7c262c8b242e95906777055a08419940",
+      "fd314d02e320aea863d0e3d2105fc515bd41704f3ef68c947cf074313878e8c2"
+    ]
+  }
+}
