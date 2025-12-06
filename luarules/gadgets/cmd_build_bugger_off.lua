@@ -273,15 +273,7 @@ function gadget:GameFrame(frame)
 	end
 end
 
-
-function gadget:Initialize()
-	for _, teamID in ipairs(Spring.GetTeamList()) do
-		local unitList = Spring.GetTeamUnits(teamID)
-		for _, unitID in ipairs(unitList) do
-			gadget:MetaUnitAdded(unitID, Spring.GetUnitDefID(unitID), teamID)
-		end
-	end
-end
+-- TODO: restore ability to do `/luarules reload`, maybe readd MetaUnitAdded
 
 function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	if cachedUnitDefs[unitDefID].isBuilder then
