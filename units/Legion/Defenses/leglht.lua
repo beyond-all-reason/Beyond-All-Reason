@@ -111,7 +111,7 @@ return {
 		weapondefs = {
 			leg_bot_rocket = {
 				accuracy = 33,
-				sprayangle = 1030,
+				sprayangle = 1111,
 				areaofeffect = 270,
 				avoidfeature = false,
 				cegtag = "missiletrailsmall-simple",
@@ -127,7 +127,7 @@ return {
 				model = "leglargerocket.s3o",
 				name = "Rockets",
 				noselfdamage = true,
-				--predictboost = 1,
+				predictboost = 1,
 				projectiles = 3,
 				range = 1260,
 				reloadtime = 1.9,
