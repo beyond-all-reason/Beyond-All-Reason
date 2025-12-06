@@ -1595,6 +1595,19 @@ local options = {
     },
 
     {
+        key     = "shieldsrework_community_poll_link",
+        name    = "Community Poll",
+        desc    = "A referendum to gauge community sentiment about whether or not it should be integrated into the regular game.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1429782218997497946",
+        width   = 200,
+        column  = 1.65,
+        linkheight = 375,
+        linkwidth = 350,
+    },
+
+    {
         key    	= "experimental_low_priority_pacifists",
         name   	= "Low Priority Pacifists",
         desc   	= "Makes the automatic target priority of non-combat mobile units much lower, so they must be intentionally targeted.",
