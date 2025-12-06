@@ -3,8 +3,11 @@
 
 local Sides = require("gamedata/sides_enum")
 local Definitions = require("luaui/Include/blueprint_substitution/definitions")
+local ResourceDataBuilder = VFS.Include("spec/builders/resource_data_builder.lua")
 
 local sequence = require("spec/builders/sequence")
+
+local nextPlayerId = sequence.sequence("player_id", { start = 100, format = function(_, n) return n end })
 
 ---@class TeamBuilder
 ---@field id number Team ID assigned by SpringBuilder
@@ -34,31 +37,21 @@ local defaultData = {
     allyTeam = 0,
     units = {},
     players = {},
-    metal = {
-        current = 1000,
-        storage = 1000,
-        pull = 0,
-        income = 0,
-        expense = 0,
-        shareSlider = 100,
-        sent = 0,
-        received = 0,
-        excess = 0,
-    },
-    energy = {
-        current = 1000,
-        storage = 1000,
-        pull = 0,
-        income = 0,
-        expense = 0,
-        shareSlider = 100,
-        sent = 0,
-        received = 0,
-        excess = 0,
-    },
+	metal = ResourceDataBuilder.new()
+		:WithCurrent(1000)
+		:WithStorage(1000)
+		:WithShareSlider(100)
+		:WithResourceType("metal")
+		:Build(),
+	energy = ResourceDataBuilder.new()
+		:WithCurrent(1000)
+		:WithStorage(1000)
+		:WithShareSlider(100)
+		:WithResourceType("energy")
+		:Build(),
 }
 
-local nextTeamId = sequence.sequence("team_id", { start = 0, format = function(p, n) return tostring(n) end })
+local nextTeamId = sequence.sequence("team_id", { start = 0, format = function(_, n) return n end })
 local nextUnitId = sequence.sequence("unit_id", { start = 1, format = function(p, n) return tostring(n) end })
 
 function TeamBuilder.new()
@@ -75,15 +68,16 @@ function TeamBuilder.new()
         end
     end
 
-    -- Assign unique ID immediately to prevent collisions
+    -- Assign unique IDs - team ID and player ID are deliberately different
     instance.id = tonumber(nextTeamId())
-    instance.leader = instance.id
+    local defaultLeaderPlayerId = tonumber(nextPlayerId())
+    instance.leader = defaultLeaderPlayerId
     instance.allyTeam = instance.id
 
     -- Initialize default leader player for this team
     instance.players = {
         {
-            id = instance.leader,
+            id = defaultLeaderPlayerId,
             name = instance.playerName,
             active = true,
             spectator = false,
@@ -98,6 +92,22 @@ function TeamBuilder.new()
     }
 
     return setmetatable(instance, { __index = TeamBuilder })
+end
+
+function TeamBuilder:WithID(teamID)
+    if type(teamID) ~= "number" then
+        error("TeamBuilder:WithID requires a numeric teamID")
+    end
+    self.id = teamID
+    return self
+end
+
+function TeamBuilder:WithAllyTeam(allyTeamID)
+    if type(allyTeamID) ~= "number" then
+        error("TeamBuilder:WithAllyTeam requires a numeric allyTeamID")
+    end
+    self.allyTeam = allyTeamID
+    return self
 end
 
 function TeamBuilder:Build()

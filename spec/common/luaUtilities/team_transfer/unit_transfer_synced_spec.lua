@@ -205,7 +205,6 @@ describe("UnitTransfer #action", function()
                 policyResult = {
                     canShare = true,
                     sharingMode = SharedEnums.UnitSharingMode.Enabled,
-                    allowTakeBypass = false,
                     senderTeamId = sender.id,
                     receiverTeamId = receiver.id,
                 },
@@ -256,7 +255,6 @@ describe("UnitTransfer #action", function()
                 policyResult = {
                     canShare = true,
                     sharingMode = SharedEnums.UnitSharingMode.Enabled,
-                    allowTakeBypass = false,
                     senderTeamId = sender.id,
                     receiverTeamId = receiver.id,
                 },
@@ -302,7 +300,6 @@ describe("UnitTransfer #action", function()
                 policyResult = {
                     canShare = true,
                     sharingMode = SharedEnums.UnitSharingMode.Enabled,
-                    allowTakeBypass = false,
                     senderTeamId = sender.id,
                     receiverTeamId = receiver.id,
                 },
@@ -365,7 +362,6 @@ describe("UnitTransfer #action", function()
                 policyResult = {
                     canShare = false,
                     sharingMode = SharedEnums.UnitSharingMode.Disabled,
-                    allowTakeBypass = false,
                     senderTeamId = sender.id,
                     receiverTeamId = receiver.id,
                 },
@@ -383,7 +379,6 @@ describe("UnitTransfer #action", function()
             local policyResult = {
                 canShare = false,
                 sharingMode = SharedEnums.UnitSharingMode.Disabled,
-                allowTakeBypass = false,
                 senderTeamId = sender.id,
                 receiverTeamId = receiver.id,
             }
@@ -458,7 +453,6 @@ describe("UnitTransfer #action", function()
                 policyResult = {
                     canShare = true,
                     sharingMode = SharedEnums.UnitSharingMode.Enabled,
-                    allowTakeBypass = false,
                     senderTeamId = sender.id,
                     receiverTeamId = receiver.id,
                 },
@@ -503,7 +497,6 @@ describe("UnitTransfer #action", function()
                 policyResult = {
                     canShare = true,
                     sharingMode = SharedEnums.UnitSharingMode.Enabled,
-                    allowTakeBypass = false,
                     senderTeamId = sender.id,
                     receiverTeamId = receiver.id,
                 },

@@ -1,7 +1,6 @@
 local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 local Shared = VFS.Include("common/luaUtilities/team_transfer/unit_transfer_shared.lua")
 local PolicyShared = VFS.Include("common/luaUtilities/team_transfer/team_transfer_cache.lua")
-local Hack = VFS.Include("common/luaUtilities/team_transfer/take_hack.lua")
 
 local Synced = {
   ValidateUnits = Shared.ValidateUnits,
@@ -13,14 +12,12 @@ local Synced = {
 ---@return UnitPolicyResult
 function Synced.GetPolicy(ctx)
   local mode = ctx.springRepo.GetModOptions().unit_sharing_mode
-  local allowTakeBypass = Hack.CheckTakeCondition(ctx.springRepo, ctx.senderTeamId, ctx.receiverTeamId)
   local canShare = ctx.areAlliedTeams and mode ~= SharedEnums.UnitSharingMode.Disabled
   return {
     canShare = canShare,
     senderTeamId = ctx.senderTeamId,
     receiverTeamId = ctx.receiverTeamId,
     sharingMode = mode,
-    allowTakeBypass = allowTakeBypass,
   }
 end
 

@@ -1,6 +1,10 @@
 local gadget = gadget ---@type Gadget
 
+local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+
 function gadget:GetInfo()
+	local modOptValue = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedAssistMode]
+	local assistEnabled = modOptValue == SharedEnums.AlliedAssistMode.Enabled
 	return {
 		name    = 'Disable Assist Ally Construction',
 		desc    = 'Disable assisting allied units (e.g. labs and units/buildings under construction) when modoption is enabled',
@@ -8,20 +12,15 @@ function gadget:GetInfo()
 		date    = 'April 2024',
 		license = 'GNU GPL, v2 or later',
 		layer   = 0,
-		enabled = Spring.GetModOptions().disable_assist_ally_construction,
+		enabled = not assistEnabled,
 	}
 end
-
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local assistEnabled = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedAssistMode] == SharedEnums.AlliedAssistMode.Enabled
-if assistEnabled then
-	return false
-end
+Spring.Echo("[AlliedAssistMode] Gadget loaded - will block guard/assist commands to allies")
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
@@ -32,7 +31,7 @@ local CMD_INSERT = CMD.INSERT
 
 local gaiaTeam = Spring.GetGaiaTeamID()
 
-local canBuildStep = {} -- i.e. anything that spends resources when assisted
+local canBuildStep = {}
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	canBuildStep[unitDefID] = unitDef.isFactory or (unitDef.isBuilder and (unitDef.canBuild or unitDef.canAssist))
 end
@@ -49,7 +48,7 @@ function gadget:Initialize()
 end
 
 local params = { 0, 0, 0 }
-local EMPTY = {} -- stupid
+local EMPTY = {}
 
 local function resolveCommand(cmdID, cmdParams)
 	local p = params
