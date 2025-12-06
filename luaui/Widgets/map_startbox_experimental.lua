@@ -524,6 +524,28 @@ local function getEffectiveStartPosition(teamID)
 	return x, y, z
 end
 
+local function drawSpawnDistanceCircles()
+	local closeSpawnDist = 350 -- Must match value from game_initial_spawn_experimental.lua
+	gl.Color(0.6, 0.6, 0.6, 0.4)
+	for _, teamID in ipairs(Spring.GetTeamList()) do
+		if teamID ~= gaiaTeamID and teamID ~= myTeamID then
+			local _, playerID, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
+			local _, _, spec = Spring.GetPlayerInfo(playerID, false)
+
+			local x, y, z = getEffectiveStartPosition(teamID)
+
+			if (not spec or isAI) and teamID ~= gaiaTeamID and
+			   (not isAI or teamAllyTeamID == myAllyTeamID or isSpec or allowEnemyAIPlacement) then
+				if x ~= nil and x > 0 and z > 0 and y > -500 then
+					if not isAI or aiPlacedPositions[teamID] then
+						gl.DrawGroundCircle(x, y, z, closeSpawnDist, 32)
+					end
+				end
+			end
+		end
+	end
+end
+
 function widget:Initialize()
 	-- only show at the beginning
 	if spGetGameFrame() > 1 then
@@ -641,6 +663,8 @@ function widget:DrawWorld()
 	InstanceVBOTable.uploadAllElements(startConeVBOTable)
 
 	DrawStartCones(false)
+
+	drawSpawnDistanceCircles()
 end
 
 function widget:DrawScreenEffects()
@@ -687,6 +711,7 @@ function widget:DrawInMiniMap(sx, sz)
 
 	DrawStartPolygons(true)
 	DrawStartCones(true)
+
 end
 
 function widget:ViewResize(x, y)
