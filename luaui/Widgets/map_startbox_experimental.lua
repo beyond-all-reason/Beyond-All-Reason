@@ -89,6 +89,8 @@ local ColorIsDark = Spring.Utilities.Color.ColorIsDark
 
 local glTranslate = gl.Translate
 local glCallList = gl.CallList
+local glPushMatrix = gl.PushMatrix
+local glPopMatrix = gl.PopMatrix
 
 local hasStartbox = false
 
@@ -157,12 +159,11 @@ function widget:PlayerChanged(playerID)
 	myTeamID = spGetMyTeamID()
 end
 
-local function createCommanderNameList(x, y, name, teamID)
+local function createCommanderNameList(name, teamID)
 	commanderNameList[teamID] = {}
-	commanderNameList[teamID]['x'] = mathFloor(x)
-	commanderNameList[teamID]['y'] = mathFloor(y)
 	commanderNameList[teamID]['name'] = name
 	commanderNameList[teamID]['list'] = gl.CreateList(function()
+		local x, y = 0, 0
 		local r, g, b = GetTeamColor(teamID)
 		local outlineColor = { 0, 0, 0, 1 }
 		if ColorIsDark(r, g, b) then
@@ -195,15 +196,16 @@ local function createCommanderNameList(x, y, name, teamID)
 end
 
 local function drawName(x, y, name, teamID)
-	-- not optimal, everytime you move camera the x and y are different so it has to recreate the drawlist
-	if commanderNameList[teamID] == nil or commanderNameList[teamID]['x'] ~= mathFloor(x) or commanderNameList[teamID]['y'] ~= mathFloor(y) or commanderNameList[teamID]['name'] ~= name then
-		-- using floor because the x and y values had a a tiny change each frame, or name changed (e.g. lock symbol added)
+	if commanderNameList[teamID] == nil or commanderNameList[teamID]['name'] ~= name then
 		if commanderNameList[teamID] ~= nil then
 			gl.DeleteList(commanderNameList[teamID]['list'])
 		end
-		createCommanderNameList(x, y, name, teamID)
+		createCommanderNameList(name, teamID)
 	end
+	glPushMatrix()
+	glTranslate(mathFloor(x), mathFloor(y), 0)
 	glCallList(commanderNameList[teamID]['list'])
+	glPopMatrix()
 end
 
 local function createInfotextList()
@@ -497,7 +499,13 @@ end
 
 --------------------------------------------------------------------------------
 
+local posCache = {}
+
 local function getEffectiveStartPosition(teamID)
+	if posCache[teamID] then
+		return posCache[teamID][1], posCache[teamID][2], posCache[teamID][3]
+	end
+
 	local playerID = select(2, Spring.GetTeamInfo(teamID, false))
 	local x, y, z = Spring.GetTeamStartPosition(teamID)
 
@@ -521,6 +529,7 @@ local function getEffectiveStartPosition(teamID)
 		y = Spring.GetGroundHeight(x, z)
 	end
 
+	posCache[teamID] = {x, y, z}
 	return x, y, z
 end
 
@@ -629,6 +638,7 @@ end
 
 local cacheTable = {}
 function widget:DrawWorld()
+	posCache = {}
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	local time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
