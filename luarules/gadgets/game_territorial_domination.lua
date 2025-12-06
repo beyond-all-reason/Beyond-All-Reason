@@ -315,7 +315,7 @@ local function setAllyTeamRanks()
 					topLivingRankedScoreIndex = i
 				end
 			end
-			Spring.SetTeamRulesParam(allyData[allyID].representativeTeamID, "territorialDominationDisplayRank", currentRank, {public = true})
+			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_rank", currentRank)
 		end
 	else
 		topLivingRankedScoreIndex = currentRank
@@ -337,12 +337,7 @@ local function processLivingTeams()
 				allyTeamsWatch[allyID] = allyTeamsWatch[allyID] or {}
 				allyTeamsWatch[allyID][teamID] = true
 				if not allyData[allyID] then
-					local teamListForAlly = Spring.GetTeamList(allyID) or {}
-					local representativeTeamID = teamListForAlly[1]
-					allyData[allyID] = { score = 0, rank = 1, representativeTeamID = representativeTeamID }
-				elseif not allyData[allyID].representativeTeamID then
-					local teamListForAlly = Spring.GetTeamList(allyID) or {}
-					allyData[allyID].representativeTeamID = teamListForAlly[1]
+					allyData[allyID] = { score = 0, rank = 1 }
 				end
 			end
 		end
@@ -418,12 +413,8 @@ local function defeatAlly(allyID)
 			end
 		end
 	end
-	for teamID in pairs(allyTeamsWatch[allyID] or {}) do
-		local isDead = select(3, spGetTeamInfo(teamID))
-		if not isDead then
-			Spring.SetTeamRulesParam(teamID, "territorialDominationProjectedPoints", 0, {public = true})
-		end
-	end
+	
+	Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", 0)
 end
 
 local function addProgress(gridID, progressChange, winningAllyID, delayDecay)
@@ -572,7 +563,7 @@ local function processNeighborsAndDecay()
 end
 
 local function updateProjectedPoints()
-	for allyID in pairs(allyTeamsWatch) do
+	for allyID, allyInfo in pairs(allyData) do
 		local projectedScore = 0
 		local territoryCount = 0
 		for gridID, data in pairs(captureGrid) do
@@ -582,19 +573,14 @@ local function updateProjectedPoints()
 			end
 		end
 
+		projectedAllyTeamPoints[allyID] = projectedScore
+
 		if not gameOver and (currentRound <= MAX_ROUNDS) then
-			for teamID, _ in pairs(allyTeamsWatch[allyID] or {}) do
-				projectedAllyTeamPoints[allyID] = projectedScore
-				Spring.SetTeamRulesParam(teamID, "territorialDominationProjectedPoints", projectedScore, {public = true})
-			end
+			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", projectedScore)
 		else
-			for teamID, _ in pairs(allyTeamsWatch[allyID] or {}) do
-				Spring.SetTeamRulesParam(teamID, "territorialDominationProjectedPoints", 0, {public = true})
-			end
+			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", 0)
 		end
-		for teamID, _ in pairs(allyTeamsWatch[allyID] or {}) do
-			Spring.SetTeamRulesParam(teamID, "territorialDominationTerritoryCount", territoryCount, {public = true})
-		end
+		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_territoryCount", territoryCount)
 	end
 end
 
@@ -665,9 +651,7 @@ function gadget:GameFrame(frame)
 		Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
 		
 		for allyID, scoreData in pairs(allyData) do
-			for teamID, _ in pairs(allyTeamsWatch[allyID] or {}) do
-				Spring.SetTeamRulesParam(teamID, "territorialDominationScore", scoreData.score, {public = true})
-			end
+			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_score", scoreData.score)
 		end
 	end
 
@@ -691,10 +675,8 @@ function gadget:Initialize()
 
 	processLivingTeams()
 	for allyID in pairs(allyTeamsWatch) do
-		local teamListForAlly = Spring.GetTeamList(allyID) or {}
-		local representativeTeamID = teamListForAlly[1]
 		if not allyData[allyID] then
-			allyData[allyID] = { score = 0, rank = 1, representativeTeamID = representativeTeamID }
+			allyData[allyID] = { score = 0, rank = 1 }
 		end
 	end
 
@@ -705,14 +687,16 @@ function gadget:Initialize()
 	end
 
 	allTeams = Spring.GetTeamList()
-	for _, teamID in pairs(allTeams) do
-		Spring.SetTeamRulesParam(teamID, "territorialDominationDisplayRank", 1, {public = true})
-	end
 	
 	updateProjectedPoints()
 	
 	Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
 	Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
+	
+	for allyID in pairs(allyTeamsWatch) do
+		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_score", 0)
+		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_rank", 1)
+	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
