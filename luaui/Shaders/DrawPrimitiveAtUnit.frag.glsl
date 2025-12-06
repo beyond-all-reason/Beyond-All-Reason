@@ -13,6 +13,7 @@ uniform float iconDistance = 20000.0;
 in DataGS {
 	vec4 g_color;
 	vec4 g_uv;
+	float g_invalid;
 };
 
 uniform sampler2D DrawPrimitiveAtUnitTexture;

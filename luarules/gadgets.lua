@@ -109,6 +109,7 @@ local callInLists = {
 	"GameOver",
 	"GameID",
 	"TeamDied",
+	"TeamShare",
 
 	"PlayerAdded",
 	"PlayerChanged",
@@ -208,6 +209,7 @@ local callInLists = {
 	"AllowWeaponTargetCheck",
 	"AllowWeaponTarget",
 	"AllowWeaponInterceptTarget",
+	"ProcessEconomy",
 	-- unsynced
 	"DrawUnit",
 	"DrawFeature",
@@ -1312,6 +1314,13 @@ end
 function gadgetHandler:TeamDied(teamID)
 	for _, g in ipairs(self.TeamDiedList) do
 		g:TeamDied(teamID)
+	end
+	return
+end
+
+function gadgetHandler:TeamShare(teamID, targetTeamID, metalShare, energyShare)
+	for _, g in ipairs(self.TeamShareList) do
+		g:TeamShare(teamID, targetTeamID, metalShare, energyShare)
 	end
 	return
 end

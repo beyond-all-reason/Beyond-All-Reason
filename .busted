@@ -1,0 +1,43 @@
+return {
+
+  default = {
+    -- add your project roots to Lua’s package.path for tests
+    -- This is necessary during the initial phase of the Lux rollout
+    --   where we don't have a project root and `src/` directory in accordance with canonical lua rock/package structure
+    --   https://github.com/beyond-all-reason/Beyond-All-Reason/pull/6005#issuecomment-3504830009
+    lpath = table.concat({
+      "./?.lua", "./?/init.lua",
+      "common/?.lua", "common/?/init.lua",
+      "common/luaUtilities/?.lua", "common/luaUtilities/?/init.lua",
+      "luarules/?.lua", "luarules/?/init.lua",
+      "luaui/?.lua", "luaui/?/init.lua",
+      "spec/?.lua", "spec/?/init.lua",
+    }, ";")
+  },
+  -- Default configuration
+  verbose = true,
+  output = "utfTerminal",
+  pattern = "_spec",
+  ROOT = { "spec/" },
+
+  -- Named tasks
+  _all = {
+    verbose = true,
+    output = "utfTerminal",
+    pattern = "_spec",
+    helper = "spec/spec_helper.lua",
+    ROOT = { "spec/" }
+  },
+  unit = {
+    verbose = true,
+    ROOT = { "spec/" }
+  },
+  coverage = {
+    verbose = true,
+    output = "utfTerminal",
+    pattern = "_spec",
+    helper = "spec/spec_helper.lua",
+    coverage = true,
+    ROOT = { "spec/" }
+  }
+}
