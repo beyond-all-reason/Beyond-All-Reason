@@ -771,13 +771,21 @@ function widget:Update(delta)
 						local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
 						if startX and startZ and startX > 0 and startZ > 0 then
 							aiPlacedPositions[teamID] = {x = startX, z = startZ}
+							aiPlacementStatus[teamID] = true
 						else
 							local aiManualPlacement = Spring.GetTeamRulesParam(teamID, "aiManualPlacement")
 							if aiManualPlacement then
 								local mx, mz = string.match(aiManualPlacement, "([%d%.]+),([%d%.]+)")
 								if mx and mz then
 									aiPlacedPositions[teamID] = {x = tonumber(mx), z = tonumber(mz)}
+									aiPlacementStatus[teamID] = true
+								else
+									aiPlacedPositions[teamID] = nil
+									aiPlacementStatus[teamID] = false
 								end
+							else
+								aiPlacedPositions[teamID] = nil
+								aiPlacementStatus[teamID] = false
 							end
 						end
 					end
@@ -862,13 +870,13 @@ function widget:RecvLuaMsg(msg)
 			z = tonumber(z)
 			if x == 0 and z == 0 then
 				aiPlacedPositions[teamID] = nil
-				aiPlacementStatus[teamID] = false -- Update cache immediately
+				aiPlacementStatus[teamID] = false
 				local playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 				local aiName = getAIName(teamID)
 				Spring.SendMessage(Spring.I18N('ui.startbox.aiStartLocationRemoved', { playerName = playerName, aiName = aiName }))
 			else
 				aiPlacedPositions[teamID] = {x = x, z = z}
-				aiPlacementStatus[teamID] = true -- Update cache immediately
+				aiPlacementStatus[teamID] = true
 				local playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 				local aiName = getAIName(teamID)
 				Spring.SendMessage(Spring.I18N('ui.startbox.aiStartLocationChanged', { playerName = playerName, aiName = aiName }))
@@ -931,9 +939,7 @@ function widget:MousePress(x, y, button)
 		local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(aiAllyTeamID)
 		if xmin < xmax and zmin < zmax then
 			if worldX >= xmin and worldX <= xmax and worldZ >= zmin and worldZ <= zmax then
-				aiPlacedPositions[aiTeamID] = {x = worldX, z = worldZ}
 				Spring.SendLuaRulesMsg("aiPlacedPosition:" .. aiTeamID .. ":" .. worldX .. ":" .. worldZ)
-				Spring.SendLuaUIMsg("aiPlacementComplete:" .. aiTeamID .. ":" .. worldX .. ":" .. worldZ)
 				aiCurrentlyBeingPlaced = nil
 				return true
 			end
@@ -987,9 +993,7 @@ function widget:MouseRelease(x, y, button)
 
 			if xmin < xmax and zmin < zmax then
 				if finalX >= xmin and finalX <= xmax and finalZ >= zmin and finalZ <= zmax then
-					aiPlacedPositions[draggingTeamID] = {x = finalX, z = finalZ}
 					Spring.SendLuaRulesMsg("aiPlacedPosition:" .. draggingTeamID .. ":" .. finalX .. ":" .. finalZ)
-					Spring.SendLuaUIMsg("aiPlacementComplete:" .. draggingTeamID .. ":" .. finalX .. ":" .. finalZ)
 				end
 			end
 		end
