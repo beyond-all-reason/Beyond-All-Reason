@@ -115,8 +115,8 @@
 			}
 		},
 		"startbox": {
-			"aiStartLocationRemoved": "%{playerName} removed %{aiName} start location.",
-			"aiStartLocationChanged": "%{playerName} changed %{aiName} start location."
+			"aiStartLocationRemoved": "%{playerName} removed %{aiName} start location",
+			"aiStartLocationChanged": "%{playerName} changed %{aiName} start location"
 		},
 		"music": {
 			"menu": "Menu",
@@ -761,7 +761,7 @@
 			"unlock": "Unlock Position",
 			"startCountdown": "Game starting in %{time}...",
 			"choosePoint": "Please choose a start point!",
-			"tooClose": "You cannot place your start position too close to another player"
+			"tooClose": "Start location is too close to another player"
 		},
 		"draftOrderMod": {
 			"teamPlacement": "Team Placement",

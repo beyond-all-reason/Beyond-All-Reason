@@ -193,6 +193,42 @@ if gadgetHandler:IsSyncedCode() then
 	GG.teamStartPoints = teamStartPoints
 	local startPointTable = {}
 
+	local function validateAndSnapPosition(x, z, teamID, allyTeamID, playerID)
+		local snappedX, snappedZ = x, z
+		local closestDistSq = math.huge
+		local closestSX, closestSZ
+
+		for otherTeamID, startpoint in pairs(startPointTable) do
+			local sx, sz = startpoint[1], startpoint[2]
+			local distSq = (x - sx) ^ 2 + (z - sz) ^ 2
+			local sameTeam = (teamID == otherTeamID)
+			local sameAllyTeam = (allyTeamID == select(6, spGetTeamInfo(otherTeamID, false)))
+
+			if (sx > 0) and sameAllyTeam and not sameTeam and distSq <= closeSpawnDist ^ 2 then
+				if distSq < closestDistSq then
+					closestDistSq = distSq
+					closestSX, closestSZ = sx, sz
+				end
+			end
+		end
+
+		if closestSX then
+			local dist = math.sqrt(closestDistSq)
+			if dist > 0 then
+				local dirX = (x - closestSX) / dist
+				local dirZ = (z - closestSZ) / dist
+				snappedX = closestSX + dirX * closeSpawnDist
+				snappedZ = closestSZ + dirZ * closeSpawnDist
+
+				if playerID then
+					SendToUnsynced("PositionTooClose", playerID)
+				end
+			end
+		end
+
+		return snappedX, snappedZ
+	end
+
 	----------------------------------------------------------------
 	-- Start Point Guesser
 	----------------------------------------------------------------
@@ -383,6 +419,7 @@ if gadgetHandler:IsSyncedCode() then
 			if playerIsSpec or (aiAllyTeamID ~= allyTeamID and not allowEnemyAIPlacement) then
 				return false
 			end
+				x, z = validateAndSnapPosition(x, z, teamID, aiAllyTeamID, playerID)
 
 				if x == 0 and z == 0 then
 					Spring.SetTeamStartPosition(teamID, -1, -1, -1) -- Reset position
@@ -491,15 +528,12 @@ if gadgetHandler:IsSyncedCode() then
 		-- Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", readyState)
 		local is_player_ready = Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")
 
-		for otherTeamID, startpoint in pairs(startPointTable) do
-			local sx, sz = startpoint[1], startpoint[2]
-			local tooClose = ((x - sx) ^ 2 + (z - sz) ^ 2 <= closeSpawnDist ^ 2)
-			local sameTeam = (teamID == otherTeamID)
-			local sameAllyTeam = (allyTeamID == select(6, spGetTeamInfo(otherTeamID, false)))
-			if (sx > 0) and tooClose and sameAllyTeam and not sameTeam then
-				SendToUnsynced("PositionTooClose", playerID)
-				return false
-			end
+		local snappedX, snappedZ = validateAndSnapPosition(x, z, teamID, allyTeamID, playerID)
+
+		if snappedX ~= x or snappedZ ~= z then
+			local y = spGetGroundHeight(snappedX, snappedZ)
+			Spring.SetTeamStartPosition(teamID, snappedX, y, snappedZ)
+			return false
 		end
 
 		-- record table of starting points for startpoint assist to use

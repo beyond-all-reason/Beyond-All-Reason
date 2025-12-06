@@ -106,6 +106,10 @@ local dragOffsetZ = 0
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local gameFrame = 0
 
+-- Mouse button constants
+local LEFT_BUTTON = 1
+local RIGHT_BUTTON = 3
+
 VFS.Include("common/lib_startpoint_guesser.lua")
 
 --------------------------------------------------------------------------------
@@ -895,111 +899,91 @@ function widget:MousePress(x, y, button)
 		return false
 	end
 
-	-- Cancel dragging if active and not continuing with left mouse
-	if draggingTeamID and button ~= 1 then
+	if draggingTeamID and button ~= LEFT_BUTTON then
 		draggingTeamID = nil
 		dragOffsetX = 0
 		dragOffsetZ = 0
 		return true
 	end
 
-	-- Check for AI cone dragging
-	if button == 1 then
-		local traceType, pos = Spring.TraceScreenRay(x, y, true)
-		if traceType == "ground" then
-			local worldX, worldY, worldZ = pos[1], pos[2], pos[3]
-
-			-- Check if clicking on an AI cone (both placed and predicted positions)
-			for teamID, _ in pairs(Spring.GetTeamList()) do
-				local _, _, _, isAI, _, aiAllyTeamID = Spring.GetTeamInfo(teamID, false)
-				if isAI and (aiAllyTeamID == myAllyTeamID or allowEnemyAIPlacement) then
-					local coneX, coneZ
-
-					-- Check placed positions first, then predicted positions
-					if aiPlacedPositions[teamID] and aiPlacedPositions[teamID].x and aiPlacedPositions[teamID].z then
-						coneX = aiPlacedPositions[teamID].x
-						coneZ = aiPlacedPositions[teamID].z
-					elseif aiPredictedPositions[teamID] and aiPredictedPositions[teamID].x and aiPredictedPositions[teamID].z then
-						coneX = aiPredictedPositions[teamID].x
-						coneZ = aiPredictedPositions[teamID].z
-					end
-
-					if coneX and coneZ then
-						local dx = worldX - coneX
-						local dz = worldZ - coneZ
-						local distance = math.sqrt(dx * dx + dz * dz)
-
-						if distance <= CONE_CLICK_RADIUS then
-							-- Start dragging this AI
-							draggingTeamID = teamID
-							dragOffsetX = coneX - worldX
-							dragOffsetZ = coneZ - worldZ
-							return true
-						end
-					end
-				end
-			end
-		end
+	if button ~= LEFT_BUTTON and button ~= RIGHT_BUTTON then
+		return false
 	end
 
-	if button == 3 then
+	local traceType, pos = Spring.TraceScreenRay(x, y, true)
+	if traceType ~= "ground" then
+		return false
+	end
+	local worldX, worldY, worldZ = pos[1], pos[2], pos[3]
+
+	if button == RIGHT_BUTTON then
 		if aiCurrentlyBeingPlaced then
 			aiCurrentlyBeingPlaced = nil
 			Spring.SendLuaUIMsg("aiPlacementCancel:")
 			return true
-		else
-			local traceType, pos = Spring.TraceScreenRay(x, y, true)
-			if traceType == "ground" then
-				local worldX, worldY, worldZ = pos[1], pos[2], pos[3]
-
-				for teamID, placedPos in pairs(aiPlacedPositions) do
-					if placedPos.x and placedPos.z then
-						local _, _, _, isAI, _, aiAllyTeamID = Spring.GetTeamInfo(teamID, false)
-						if isAI and (aiAllyTeamID == myAllyTeamID or allowEnemyAIPlacement) then
-							local dx = worldX - placedPos.x
-							local dz = worldZ - placedPos.z
-							local distance = math.sqrt(dx * dx + dz * dz)
-							
-							if distance <= CONE_CLICK_RADIUS then
-								aiPlacedPositions[teamID] = nil
-								Spring.SendLuaRulesMsg("aiPlacedPosition:" .. teamID .. ":0:0")
-								Spring.SendLuaUIMsg("aiPlacementComplete:" .. teamID .. ":0:0")
-								return true
-							end
-						end
-					end
-				end
-			end
 		end
-	elseif button == 1 then
-		if aiCurrentlyBeingPlaced then
-			local traceType, pos = Spring.TraceScreenRay(x, y, true)
-			if traceType == "ground" then
-				local worldX, worldY, worldZ = pos[1], pos[2], pos[3]
-				local aiTeamID = aiCurrentlyBeingPlaced
-				local _, _, _, _, _, aiAllyTeamID = Spring.GetTeamInfo(aiTeamID, false)
-				
-				local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(aiAllyTeamID)
-				if xmin < xmax and zmin < zmax then
-					if worldX >= xmin and worldX <= xmax and worldZ >= zmin and worldZ <= zmax then
-						aiPlacedPositions[aiTeamID] = {x = worldX, z = worldZ}
-						Spring.SendLuaRulesMsg("aiPlacedPosition:" .. aiTeamID .. ":" .. worldX .. ":" .. worldZ)
-						Spring.SendLuaUIMsg("aiPlacementComplete:" .. aiTeamID .. ":" .. worldX .. ":" .. worldZ)
-						aiCurrentlyBeingPlaced = nil
+
+		for teamID, placedPos in pairs(aiPlacedPositions) do
+			if placedPos.x and placedPos.z then
+				local _, _, _, isAI, _, aiAllyTeamID = Spring.GetTeamInfo(teamID, false)
+				if isAI and (aiAllyTeamID == myAllyTeamID or allowEnemyAIPlacement) then
+					local dx = worldX - placedPos.x
+					local dz = worldZ - placedPos.z
+					if (dx * dx + dz * dz) <= (CONE_CLICK_RADIUS * CONE_CLICK_RADIUS) then
+						aiPlacedPositions[teamID] = nil
+						Spring.SendLuaRulesMsg("aiPlacedPosition:" .. teamID .. ":0:0")
+						Spring.SendLuaUIMsg("aiPlacementComplete:" .. teamID .. ":0:0")
 						return true
 					end
 				end
 			end
 		end
+		return false
 	end
-	return false
-end
 
-function widget:MouseMove(x, y, dx, dy, button)
-	if draggingTeamID then
-		-- Prevent other interactions while dragging
-		return true
+	if aiCurrentlyBeingPlaced then
+		local aiTeamID = aiCurrentlyBeingPlaced
+		local _, _, _, _, _, aiAllyTeamID = Spring.GetTeamInfo(aiTeamID, false)
+		
+		local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(aiAllyTeamID)
+		if xmin < xmax and zmin < zmax then
+			if worldX >= xmin and worldX <= xmax and worldZ >= zmin and worldZ <= zmax then
+				aiPlacedPositions[aiTeamID] = {x = worldX, z = worldZ}
+				Spring.SendLuaRulesMsg("aiPlacedPosition:" .. aiTeamID .. ":" .. worldX .. ":" .. worldZ)
+				Spring.SendLuaUIMsg("aiPlacementComplete:" .. aiTeamID .. ":" .. worldX .. ":" .. worldZ)
+				aiCurrentlyBeingPlaced = nil
+				return true
+			end
+		end
+		return false
 	end
+
+	for teamID, _ in pairs(Spring.GetTeamList()) do
+		local _, _, _, isAI, _, aiAllyTeamID = Spring.GetTeamInfo(teamID, false)
+		if isAI and (aiAllyTeamID == myAllyTeamID or allowEnemyAIPlacement) then
+			local coneX, coneZ
+			local placedPos = aiPlacedPositions[teamID]
+			local predictedPos = aiPredictedPositions[teamID]
+
+			if placedPos and placedPos.x and placedPos.z then
+				coneX, coneZ = placedPos.x, placedPos.z
+			elseif predictedPos and predictedPos.x and predictedPos.z then
+				coneX, coneZ = predictedPos.x, predictedPos.z
+			end
+
+			if coneX and coneZ then
+				local dx = worldX - coneX
+				local dz = worldZ - coneZ
+				if (dx * dx + dz * dz) <= (CONE_CLICK_RADIUS * CONE_CLICK_RADIUS) then
+					draggingTeamID = teamID
+					dragOffsetX = coneX - worldX
+					dragOffsetZ = coneZ - worldZ
+					return true
+				end
+			end
+		end
+	end
+
 	return false
 end
 
@@ -1008,7 +992,7 @@ function widget:MouseRelease(x, y, button)
 		return false
 	end
 
-	if button == 1 and draggingTeamID then
+	if button == LEFT_BUTTON and draggingTeamID then
 		local traceType, pos = Spring.TraceScreenRay(x, y, true)
 		if traceType == "ground" then
 			local worldX, worldY, worldZ = pos[1], pos[2], pos[3]
@@ -1018,21 +1002,15 @@ function widget:MouseRelease(x, y, button)
 			local _, _, _, _, _, aiAllyTeamID = Spring.GetTeamInfo(draggingTeamID, false)
 			local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(aiAllyTeamID)
 
-			-- Check if the final position is valid (within start box)
 			if xmin < xmax and zmin < zmax then
 				if finalX >= xmin and finalX <= xmax and finalZ >= zmin and finalZ <= zmax then
-					-- Valid position, place the AI
 					aiPlacedPositions[draggingTeamID] = {x = finalX, z = finalZ}
 					Spring.SendLuaRulesMsg("aiPlacedPosition:" .. draggingTeamID .. ":" .. finalX .. ":" .. finalZ)
 					Spring.SendLuaUIMsg("aiPlacementComplete:" .. draggingTeamID .. ":" .. finalX .. ":" .. finalZ)
-				else
-					-- Invalid position, keep original position
-					-- Could optionally show a message here
 				end
 			end
 		end
 
-		-- End dragging regardless
 		draggingTeamID = nil
 		dragOffsetX = 0
 		dragOffsetZ = 0
