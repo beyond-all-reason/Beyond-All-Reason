@@ -1547,11 +1547,21 @@ local options = {
     {
         key 	= "proposed_unit_reworks",
         name 	= "Season 3 balance test",
-        desc 	= "Test patch for the next season. Nerfs funneling resources into just a single T2 base, by changing eco stats as well as nerfing units like Tzar and Fatboy. Also a variety of other changes, like an Incisor nerf and a Banshee buff. Full changelist available at https://gist.github.com/Mitvit/66d5061f88fb1bd7558aa728be225052 ",
+        desc 	= "Test balance patch for the upcoming season. Nerfs funneling resources into just a single T2 base, by changing eco stats as well as nerfing units like Tzar and Fatboy. Also a variety of other changes, like an Incisor nerf and a Banshee buff. Full changelist below",
         type 	= "bool",
         --hidden 	= true,
         section = "options_experimental",
         def 	= false,
+    },
+    {
+        key     = "link",
+        name    = "Season 3 Changelog link",
+        desc    = "Season 3 balance test changelog",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://gist.github.com/Mitvit/66d5061f88fb1bd7558aa728be225052",
+        width   = 250,
+        column  = 2,
     },
 
     {
