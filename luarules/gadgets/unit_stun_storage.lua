@@ -16,8 +16,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spGetTeamResources = Spring.GetTeamResources
-local spSetTeamResource = Spring.SetTeamResource
+local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local ResourceType = SharedEnums.ResourceType
+
 
 local paralyzedUnits = {}
 
@@ -52,12 +53,22 @@ end
 
 local function restoreStorage(unitID, unitDefID, teamID)
 	if storageDefs[unitDefID].metal then
-		local _, totalStorage = spGetTeamResources(teamID, "metal")
-		spSetTeamResource(teamID, "ms", totalStorage + storageDefs[unitDefID].metal)
+		local _, totalStorage = GG.GetTeamResources(teamID, "metal")
+		GG.SetTeamResourceData(teamID, {
+			[ResourceType.METAL] = {
+				resourceType = ResourceType.METAL,
+				storage = totalStorage + storageDefs[unitDefID].metal,
+			},
+		})
 	end
 	if storageDefs[unitDefID].energy then
-		local _, totalStorage = spGetTeamResources(teamID, "energy")
-		spSetTeamResource(teamID, "es", totalStorage + storageDefs[unitDefID].energy)
+		local _, totalStorage = GG.GetTeamResources(teamID, "energy")
+		GG.SetTeamResourceData(teamID, {
+			[ResourceType.ENERGY] = {
+				resourceType = ResourceType.ENERGY,
+				storage = totalStorage + storageDefs[unitDefID].energy,
+			},
+		})
 	end
 	paralyzedUnits[unitID] = nil
 end
@@ -65,12 +76,22 @@ end
 local function reduceStorage(unitID, unitDefID, teamID)
 	paralyzedUnits[unitID] = unitDefID
 	if storageDefs[unitDefID].metal then
-		local _, totalStorage = spGetTeamResources(teamID, "metal")
-		spSetTeamResource(teamID, "ms", totalStorage - storageDefs[unitDefID].metal)
+		local _, totalStorage = GG.GetTeamResources(teamID, "metal")
+		GG.SetTeamResourceData(teamID, {
+			[ResourceType.METAL] = {
+				resourceType = ResourceType.METAL,
+				storage = totalStorage - storageDefs[unitDefID].metal,
+			},
+		})
 	end
 	if storageDefs[unitDefID].energy then
-		local _, totalStorage = spGetTeamResources(teamID, "energy")
-		spSetTeamResource(teamID, "es", totalStorage - storageDefs[unitDefID].energy)
+		local _, totalStorage = GG.GetTeamResources(teamID, "energy")
+		GG.SetTeamResourceData(teamID, {
+			[ResourceType.ENERGY] = {
+				resourceType = ResourceType.ENERGY,
+				storage = totalStorage - storageDefs[unitDefID].energy,
+			},
+		})
 	end
 end
 

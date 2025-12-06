@@ -16,6 +16,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local ResourceType = SharedEnums.ResourceType
+
 local minStorageMetal = 1000
 local minStorageEnergy = 1000
 local mathMax = math.max
@@ -53,11 +56,11 @@ local function setup(addResources)
 				commanderMinEnergy = com.energyStorage or 0
 			end
 
-			Spring.SetTeamResource(teamID, 'ms', mathMax(minStorageMetal, startMetalStorage * multiplier, startMetal * multiplier, commanderMinMetal))
-			Spring.SetTeamResource(teamID, 'es',  mathMax(minStorageEnergy, startEnergyStorage * multiplier, startEnergy * multiplier, commanderMinEnergy))
+			GG.SetTeamResource(teamID, 'ms', mathMax(minStorageMetal, startMetalStorage * multiplier, startMetal * multiplier, commanderMinMetal))
+			GG.SetTeamResource(teamID, 'es',  mathMax(minStorageEnergy, startEnergyStorage * multiplier, startEnergy * multiplier, commanderMinEnergy))
 			if addResources then
-				Spring.SetTeamResource(teamID, 'm', startMetal * multiplier)
-				Spring.SetTeamResource(teamID, 'e', startEnergy * multiplier)
+				GG.SetTeamResource(teamID, 'm', startMetal * multiplier)
+				GG.SetTeamResource(teamID, 'e', startEnergy * multiplier)
 			end
 		end
 	else
@@ -72,11 +75,11 @@ local function setup(addResources)
 				commanderMinEnergy = com.energyStorage or 0
 			end
 
-			Spring.SetTeamResource(teamID, 'ms', mathMax(minStorageMetal, startMetalStorage, startMetal, commanderMinMetal))
-			Spring.SetTeamResource(teamID, 'es',  mathMax(minStorageEnergy, startEnergyStorage,  startEnergy, commanderMinEnergy))
+			GG.SetTeamResource(teamID, 'ms', mathMax(minStorageMetal, startMetalStorage, startMetal, commanderMinMetal))
+			GG.SetTeamResource(teamID, 'es',  mathMax(minStorageEnergy, startEnergyStorage,  startEnergy, commanderMinEnergy))
 			if addResources then
-				Spring.SetTeamResource(teamID, 'm', startMetal)
-				Spring.SetTeamResource(teamID, 'e', startEnergy)
+				GG.SetTeamResource(teamID, 'm', startMetal)
+				GG.SetTeamResource(teamID, 'e', startEnergy)
 			end
 		end
 	end
@@ -95,8 +98,8 @@ function gadget:GameStart()
 end
 
 function gadget:TeamDied(teamID)
-	Spring.SetTeamShareLevel(teamID, 'metal', 0)
-	Spring.SetTeamShareLevel(teamID, 'energy', 0)
+	GG.SetTeamShareLevel(teamID, 'metal', 0)
+	GG.SetTeamShareLevel(teamID, 'energy', 0)
 end
 
 

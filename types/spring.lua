@@ -19,7 +19,13 @@
 ---@field GetUnitDefID fun(unitID: number): number?
 ---@field GetUnitDefs fun(): table<string, UnitWrapper>
 ---@field GiveOrderToUnit fun(unitID: number, commandID: number, params: table, options: table)
----@field AddTeamResource fun(teamID: number, resourceType: string, amount: number)
+---@field AddTeamResource fun(teamID: number, resourceType: ResourceName, amount: number) @deprecated Use SetTeamResourceData when game_economy is enabled
+---@field ShareTeamResource fun(teamID_src: number, teamID_recv: number, resourceType: ResourceName, amount: number) @deprecated Use ProcessEconomy when game_economy is enabled
+---@field GetTeamResourceData fun(teamID: number, resource: ResourceName): ResourceData
+---@field SetTeamResourceData fun(teamID: number, data: ResourceData)
+---@field GetGaiaTeamID fun(): number
+---@field GetTeamInfo fun(teamID: number, getUnread: boolean?): string, number, boolean, boolean, string, number, table, number, number
+---@field GetTeamLuaAI fun(teamID: number): string?
 ---@field ValidUnitID fun(unitID: number): boolean
 ---@field TransferUnit fun(unitID: number, newTeamID: number, given: boolean): boolean
 ---@field GetUnitDefNames fun(): table<string, { id: number }>
@@ -30,15 +36,27 @@
 ---@field unitDef table? -- Populated by SpringBuilder with real unit definition data
 ---@field [string] any Additional unit definition properties when loaded
 
+---@alias ResourceName "metal"|"m"|"energy"|"e"
+---@alias StorageName "metalStorage"|"ms"|"energyStorage"|"es"
+
 ---@class ResourceData
----@field current number
----@field storage number
----@field pull number
----@field income number
----@field expense number
----@field shareSlider number
----@field sent number
----@field received number
+---@field resourceType ResourceName resource type identifier
+---@field current number current stockpile
+---@field storage number max storage capacity
+---@field pull number requested usage
+---@field income number production income
+---@field expense number expenditure
+---@field shareSlider number share threshold slider (0-1)
+---@field sent number? resources sent this frame
+---@field received number? resources received this frame
+---@field excess number? excess dumped this frame
+
+---@class TeamResourceData
+---@field id number
+---@field allyTeam number
+---@field isDead boolean
+---@field metal ResourceData
+---@field energy ResourceData
 
 ---@class TeamData
 ---@field id number
