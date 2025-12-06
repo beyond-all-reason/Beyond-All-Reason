@@ -128,6 +128,7 @@ return {
 				movingaccuracy = 600,
 				name = "CatapultRockets",
 				noselfdamage = true,
+				predictboost = 1,
 				proximitypriority = -1,
 				range = 1290,
 				reloadtime = 1.9,
