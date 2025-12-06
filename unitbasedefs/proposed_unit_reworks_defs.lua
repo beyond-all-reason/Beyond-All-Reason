@@ -15,15 +15,16 @@ local function proposed_unit_reworksTweaks(name, uDef)
 
 	if name == "armnanotc" or name == "armnanotcplat" 
 	or name == "cornanotc" or name == "cornanotcplat"
+	or name == "legnanotc" or name == "legnanotcplat"
 	then
-		uDef.metalcost = 250
-		uDef.energycost = 3000
+		uDef.metalcost = 230
 	end
 
 	if name == "armaap" or name == "armalab" or name == "armasy" or name == "armavp"
 	or name == "coraap" or name == "coralab" or name == "corasy" or name == "coravp"
+	or name == "legaap" or name == "legalab" or name == "legasy" or name == "legavp"
 	then
-		uDef.metalcost = uDef.metalcost - 400
+		uDef.metalcost = uDef.metalcost - 300
 		uDef.buildtime = uDef.buildtime * 1.5
 		uDef.workertime = 600
 	end
@@ -82,15 +83,15 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	--	uDef.buildtime = math.ceil(uDef.buildtime * 0.0012) * 1000 
 	--end
 
-	if name == "armamsub" or name == "coramsub" then
+	if name == "armamsub" or name == "coramsub" or name == "legamphlab" then
 		uDef.workertime = 300
 	end
 
-	if name == "armplat" or name == "corplat" then
+	if name == "armplat" or name == "corplat" or name == "legplat" then
 		uDef.workertime = 300
 	end
 
-	if name == "armshltxuw" or name == "armshltx" or name == "corgantuw" or name == "corgant" then
+	if name == "armshltxuw" or name == "armshltx" or name == "corgantuw" or name == "corgant" or name == "leggant" then
 		uDef.workertime = 1800
 	end
 	
@@ -116,9 +117,9 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.metalcost = 400
 	end
 
-	if name == "armconsul" or name == "armfark" or name == "corfast" or name == "armmls" or name == "cormls"then
-		uDef.metalcost = math.ceil(uDef.metalcost * 1.1 / 5) * 5
-	end
+	--if name == "armconsul" or name == "armfark" or name == "corfast" or name == "armmls" or name == "cormls"then
+	--	uDef.metalcost = math.ceil(uDef.metalcost * 1.1 / 5) * 5
+	--end
 
 	if name == "armspy" or name == "corspy" then
 		uDef.buildtime = 12000
@@ -149,18 +150,25 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	if name == "corfav" then
 		uDef.weapondefs.cor_laser.reloadtime = 1.1
 	end
-	if name == "corlevlr" then
-		uDef.weapondefs.corlevlr_weapon.flighttime = 0.47
-	end
+	--if name == "corlevlr" then
+	--	uDef.weapondefs.corlevlr_weapon.flighttime = 0.47
+	--end
 	if name == "armkam" then
 		uDef.weapondefs.emg.weaponvelocity = 1000
 		uDef.weapondefs.emg.areaofeffect = 40
+	end
+		if name == "armbrawl" then
+		uDef.weapondefs.vtol_emg.weaponvelocity = 1000
+		uDef.weapondefs.vtol_emg.areaofeffect = 40
 	end
 	if name == "armfast" then
 		uDef.weapondefs.arm_fast.weaponvelocity = 600
 		uDef.weapondefs.arm_fast.flighttime = 0.47
 		uDef.metalc0st = 160
 		uDef.energycost = 3800
+	end
+	if name == "armbull" then
+		uDef.speed = 62
 	end
 
 	return uDef
