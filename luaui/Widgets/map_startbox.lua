@@ -68,9 +68,6 @@ end
 local isSpec = spGetSpectatingState() or Spring.IsReplay()
 local myTeamID = spGetMyTeamID()
 
-local CONE_CLICK_RADIUS = 75
-
-
 local placeVoiceNotifTimer = false
 local playedChooseStartLoc = false
 
@@ -105,6 +102,7 @@ local dragOffsetZ = 0
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local gameFrame = 0
 
+local CONE_CLICK_RADIUS = 75
 local LEFT_BUTTON = 1
 local RIGHT_BUTTON = 3
 
