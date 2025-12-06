@@ -192,7 +192,7 @@
 			"manuallaunch_tooltip": "Launch a missile at a target",
 			"patrol": "Patrol",
 			"patrol_tooltip": "Patrol along one or more waypoints",
-			"fight": "Fight",
+			"fight": "Engage",
 			"fight_tooltip": "Order units to take action while moving to a position",
 			"resurrect": "Resurrect",
 			"resurrect_tooltip": "Revive wrecks to become units again (click-drag for area)",
