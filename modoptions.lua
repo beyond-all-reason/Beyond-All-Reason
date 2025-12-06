@@ -1485,6 +1485,17 @@ local options = {
         section = "options_experimental",
         def  	= false,
     },
+    
+    {
+        key     = "experimentallegionfaction_link",
+        name    = "Development Discussion",
+        desc    = "Discord discussion about Legion faction.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1063217502898884701",
+        width   = 300,
+        column  = 2,
+    },
 
     {
         key		= "tech_blocking",
@@ -1496,18 +1507,6 @@ local options = {
         unlock  = {"t2_tech_threshold", "t3_tech_threshold", "unit_creation_reward_multiplier", "tech_blocking_per_team"},
     },
     
-    {
-
-          key     = "experimentallegionfaction_link",
-        name    = "Development Discussion",
-        desc    = "Discord discussion about Legion faction.",
-        section = "options_experimental",
-        type    = "link",
-        link    = "https://discord.com/channels/549281623154229250/1063217502898884701",
-        width   = 300,
-        column  = 2,
-    },
-
     {
         key		= "t2_tech_threshold",
         name   	= "Tech 2 Threshold",
