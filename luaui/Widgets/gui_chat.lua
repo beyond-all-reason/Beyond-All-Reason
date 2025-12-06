@@ -2400,12 +2400,18 @@ function widget:ViewResize()
 	usedConsoleFontSize = usedFontSize*consoleFontSizeMult
 
 	font = WG['fonts'].getFont()
-    font2 = WG['fonts'].getFont(2)
+
+	-- When EnableWhiteOutline is true, increase the outline size and weight
+	if Spring.GetConfigInt("EnableWhiteOutline", 0) == 1 then
+		font2 = WG['fonts'].getFont(2, 1., 0.15, 15.)
+	else
+		font2 = WG['fonts'].getFont(2)
+	end
 	font3 = WG['fonts'].getFont(3)
 
 	--local outlineMult = math.clamp(1+((1-(vsy/1400))*0.9), 1, 1.5)
 	--font = WG['fonts'].getFont(1, 1, 0.22 * outlineMult, 2+(outlineMult*0.25))
-    --font2 = WG['fonts'].getFont(2, 1, 0.22 * outlineMult, 2+(outlineMult*0.25))
+	--font2 = WG['fonts'].getFont(2, 1, 0.22 * outlineMult, 2+(outlineMult*0.25))
 
 	-- get longest player name and calc its width
 	local namePrefix = '(s)'
