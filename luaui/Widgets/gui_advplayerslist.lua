@@ -2254,8 +2254,8 @@ function DrawShareButtons(posY, unitPolicy, metalPolicy, energyPolicy, unitValid
 
     local shareButtonEnabled = unitPolicy.canShare and (not unitValidationResult or unitValidationResult.status ~= SharedEnums.UnitValidationOutcome.Failure)
     DrawSharingIconOverlay(posY, shareButtonEnabled, 1 * playerScale)
-    DrawSharingIconOverlay(posY, energyPolicy.canShare, 17 * playerScale)
-    DrawSharingIconOverlay(posY, metalPolicy.canShare, 33 * playerScale)
+    DrawSharingIconOverlay(posY, energyPolicy.amountSendable > 0, 17 * playerScale)
+    DrawSharingIconOverlay(posY, metalPolicy.amountSendable > 0, 33 * playerScale)
 
     gl_Texture(false)
 end
@@ -3008,7 +3008,7 @@ local function RenderShareSliderText(posY, player, resourceType, baseOffset)
     else
         -- For taxed cases, show explicit sent -> received breakdown
         local received, sent = ResourceTransfer.CalculateSenderTaxedAmount(policyResult, shareAmount)
-        label = "S:" .. ResourceTransfer.FormatNumberForUI(sent) .. "→R:" .. ResourceTransfer.FormatNumberForUI(received)
+        label = "(Sent→Received) " .. ResourceTransfer.FormatNumberForUI(sent) .. "→" .. ResourceTransfer.FormatNumberForUI(received)
     end
     local textXRight = ModuleRefs.share.posX + widgetPosX + (baseOffset * playerScale) - (4 * playerScale)
     local fontSize = 14

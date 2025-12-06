@@ -1,4 +1,7 @@
 -- Ensure TeamData type is available
+local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local ResourceType = SharedEnums.ResourceType
+
 VFS.Include("spec/builders/team_builder.lua")
 VFS.Include("common/stringFunctions.lua")
 VFS.Include("common.tablefunctions.lua")
@@ -126,7 +129,7 @@ end
 ---@return SpringBuilder
 function SB.new()
     return setmetatable({
-        modOptions = {},
+        modOptions = { game_economy = "1" },
         teamRulesParams = {}, -- teamID -> paramName -> value
         teams = {}, -- teamID -> TeamData from team builders
         logMessages = {},
@@ -141,7 +144,11 @@ end
 ---@param options table
 ---@return SpringBuilder
 function SB:WithModOptions(options)
-    self.modOptions = options
+    self.modOptions = self.modOptions or {}
+    for key, value in pairs(options or {}) do
+        self.modOptions[key] = value
+    end
+    self.modOptions.game_economy = "1"
     return self
 end
 
@@ -151,6 +158,7 @@ end
 ---@return SpringBuilder
 function SB:WithModOption(key, value)
     self.modOptions[key] = value
+    self.modOptions.game_economy = "1"
     return self
 end
 
@@ -242,28 +250,57 @@ function SB:BuildSpring()
     -- Use the team rules params configured via WithTeamRulesParam
     local rulesParams = instance.teamRulesParams
 
-    -- Helper function for getting team resource data
-    local function getTeamResourceData(teamID, resourceType)
+    local function ensureTeam(teamID)
         if type(teamID) ~= "number" then
             error(string.format("TeamID must be a number, got %s: %s", type(teamID), tostring(teamID)))
         end
-        if type(resourceType) ~= "string" then
-            error(string.format("ResourceType must be a string, got %s: %s", type(resourceType), tostring(resourceType)))
-        end
-
-        -- Require team builder data - no fallbacks allowed
         local teamBuilder = builtTeams[teamID]
         if not teamBuilder then
             error(string.format("TeamBuilder not found for teamID %d. Use SpringBuilder:WithTeam(teamBuilder) to configure teams properly.", teamID))
         end
+        return teamBuilder
+    end
 
-        if resourceType == "metal" then
-            return teamBuilder.metal
-        elseif resourceType == "energy" then
-            return teamBuilder.energy
-        else
-            error(string.format("Unknown resource type: %s", resourceType))
+    local function normalizeResourceType(resourceType)
+        if resourceType == ResourceType.METAL then
+            return ResourceType.METAL
         end
+        if resourceType == ResourceType.ENERGY then
+            return ResourceType.ENERGY
+        end
+        error(string.format("Unknown resource type: %s", tostring(resourceType)))
+    end
+
+    local function getResourceStore(teamID, resourceType)
+        local team = ensureTeam(teamID)
+        local normalized = normalizeResourceType(resourceType)
+        if normalized == ResourceType.METAL then
+            return team.metal, normalized
+        end
+        return team.energy, normalized
+    end
+
+    local resourceSetCalls = {}
+
+    local function recordSetCall(teamID, resourceType, data)
+        table.insert(resourceSetCalls, {
+            teamID = teamID,
+            resource = resourceType,
+            data = table.copy(data or {}),
+        })
+    end
+
+    local function applyResourcePatch(teamID, resourceType, patch)
+        if type(patch) ~= "table" then
+            error("ResourceData patch must be a table")
+        end
+
+        local store, normalized = getResourceStore(teamID, resourceType)
+        for key, value in pairs(patch) do
+            store[key] = value
+        end
+        store.resourceType = normalized
+        recordSetCall(teamID, normalized, patch)
     end
 
     local mock = {
@@ -298,21 +335,13 @@ function SB:BuildSpring()
             rulesParams[teamID][key] = value
         end,
         GetTeamList = function()
-            local teams = {}
+            local teamIds = {}
             local i = 1
-            for _, teamData in pairs(builtTeams) do
-                teams[i] = {
-                    id = teamData.id,
-                    name = teamData.playerName or ("Team " .. teamData.id),
-                    leader = teamData.leader or teamData.id,
-                    isDead = teamData.isDead or false,
-                    isAI = not teamData.isHuman,
-                    side = teamData.side or "arm",
-                    allyTeam = teamData.allyTeam or teamData.id,
-                }
+            for teamId, _ in pairs(builtTeams) do
+                teamIds[i] = teamId
                 i = i + 1
             end
-            return teams
+            return teamIds
         end,
         GetPlayerInfo = function(playerID, getPlayerOpts)
             for _, teamData in pairs(builtTeams) do
@@ -340,8 +369,8 @@ function SB:BuildSpring()
         end,
 
         GetTeamResources = function(teamID, resourceType)
-            local data = getTeamResourceData(teamID, resourceType)
-            return data.current, data.storage, data.pull, data.income, data.expense, data.share, data.sent, data.received, data.excess
+            local data = getResourceStore(teamID, resourceType)
+            return data.current, data.storage, data.pull, data.income, data.expense, data.shareSlider, data.sent, data.received
         end,
         -- Convenience accessors for tests
         __getInitialUnits = function()
@@ -394,6 +423,32 @@ function SB:BuildSpring()
 
     -- Make built teams accessible for testing/debugging
     mock._builtTeams = builtTeams
+    mock.setDataCalls = resourceSetCalls
+    mock.__resourceSetCalls = resourceSetCalls
+    function mock.__clearResourceDataCalls()
+        for i = #resourceSetCalls, 1, -1 do
+            resourceSetCalls[i] = nil
+        end
+    end
+
+    function mock.GetTeamResourceData(teamID, resourceType)
+        local data = getResourceStore(teamID, resourceType)
+        return table.copy(data)
+    end
+
+    function mock.SetTeamResourceData(teamID, resourceData)
+        if type(resourceData) ~= "table" then
+            error("SetTeamResourceData expects a ResourceData table")
+        end
+
+        local resourceType = resourceData.resourceType
+        if resourceType == nil then
+            error("ResourceData table must include resourceType")
+        end
+
+        local normalizedType = normalizeResourceType(resourceType)
+        applyResourcePatch(teamID, normalizedType, resourceData)
+    end
 
     -- Add functions that reference other functions in the table
     mock.GetPlayerList = function(teamID)

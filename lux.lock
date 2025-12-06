@@ -59,6 +59,25 @@
           "source": "sha256-4zAt0GgQEkg9toaUaDn3ST3RvjLUDsuOzrKi9lhq0fQ="
         }
       },
+      "3b3d395f3fb9f72fec6e61ddca4f99228008e0fe4aa433b4823e9f50f4d93d84": {
+        "name": "luafilesystem",
+        "version": "1.8.0-1",
+        "pinned": false,
+        "opt": false,
+        "dependencies": [],
+        "constraint": "==1.8.0",
+        "binaries": [],
+        "source": "luarocks_rockspec+https://luarocks.org/",
+        "source_url": {
+          "type": "git",
+          "url": "https://github.com/keplerproject/luafilesystem",
+          "ref": "v1_8_0"
+        },
+        "hashes": {
+          "rockspec": "sha256-ylWfvz35v68L9Sa92bQHDfFylaS7PEmZr62cBfRU06I=",
+          "source": "sha256-pEA+Z1pkykWLTT6NHQ5lo8roOh2P0fiHtnK+byTkF5o="
+        }
+      },
       "455cd98d50c6191a9685cffcda4ce783efbb957934625e134c39f43bd5df6818": {
         "name": "luassert",
         "version": "1.9.0-1",
@@ -271,6 +290,7 @@
       }
     },
     "entrypoints": [
+      "3b3d395f3fb9f72fec6e61ddca4f99228008e0fe4aa433b4823e9f50f4d93d84",
       "8925c25e69bb2ef4a2007b536827894dfcca7c1ff54572256002997105acb847",
       "fa396ffe12257288dc0716c35d37ecff7c262c8b242e95906777055a08419940",
       "fd314d02e320aea863d0e3d2105fc515bd41704f3ef68c947cf074313878e8c2"

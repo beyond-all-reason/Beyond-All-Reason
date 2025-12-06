@@ -1,29 +1,40 @@
 local gadget = gadget ---@type Gadget
 
+local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+
 function gadget:GetInfo()
+	local modOptValue = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedAssistMode]
+	local assistEnabled = modOptValue == SharedEnums.AlliedAssistMode.Enabled
 	return {
 		name    = 'Disable Assist Ally Construction',
 		desc    = 'Disable assisting allied units (e.g. labs and units/buildings under construction) when modoption is enabled',
 		author  = 'Rimilel',
 		date    = 'April 2024',
 		license = 'GNU GPL, v2 or later',
+<<<<<<< HEAD
 		layer   = 1, -- after unit_mex_upgrade_reclaimer and unit_geo_upgrade_reclaimer
 		enabled = Spring.GetModOptions().disable_assist_ally_construction or Spring.GetModOptions().easytax,
+=======
+		layer   = 0,
+		enabled = not assistEnabled,
+>>>>>>> 57b5dc0bb9 (feat: auditable economy with waterfill solver)
 	}
 end
-
-local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+<<<<<<< HEAD
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local assistEnabled = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedAssistMode] == SharedEnums.AlliedAssistMode.Enabled
 if assistEnabled then
 	return false
 end
+=======
+Spring.Echo("[AlliedAssistMode] Gadget loaded - will block guard/assist commands to allies")
+>>>>>>> 57b5dc0bb9 (feat: auditable economy with waterfill solver)
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
@@ -46,8 +57,12 @@ local builderMoveStateCmdDesc = {
 
 local gaiaTeam = Spring.GetGaiaTeamID()
 
+<<<<<<< HEAD
 local isFactory = {}
 local canBuildStep = {} -- i.e. anything that spends resources when assisted
+=======
+local canBuildStep = {}
+>>>>>>> 57b5dc0bb9 (feat: auditable economy with waterfill solver)
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	isFactory[unitDefID] = unitDef.isFactory
 	canBuildStep[unitDefID] = unitDef.isFactory or (unitDef.isBuilder and (unitDef.canBuild or unitDef.canAssist))

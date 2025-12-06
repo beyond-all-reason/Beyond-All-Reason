@@ -9,6 +9,9 @@ M.FieldTypes = {
   number = "number",
 }
 
+-- Pooled buffer for serialization (avoids table allocation per call)
+local serializeBuffer = {}
+
 ---Generate base key for policy caching using TransferCategory
 ---@param receiverId number
 ---@param transferCategory string SharedEnums.TransferCategory enum value
@@ -19,26 +22,32 @@ function M.MakeBaseKey(receiverId, transferCategory)
 end
 
 --- Serialize an object using a fields schema into a colon-delimited string
+--- Uses a pooled buffer to avoid table allocation per call
 --- @param fields table<string,string> fieldName -> FieldTypes
 --- @param obj table
 --- @return string
 function M.Serialize(fields, obj)
-  local parts = {}
+  -- Clear the buffer (set size to 0)
+  local n = 0
   for fieldName, fieldType in pairs(fields) do
     local v = obj[fieldName]
     if v ~= nil then
       if fieldType == M.FieldTypes.boolean then
         v = v and "1" or "0"
-      elseif fieldType == M.FieldTypes.string then
-        v = tostring(v)
       else
         v = tostring(v)
       end
-      parts[#parts+1] = fieldName
-      parts[#parts+1] = v
+      n = n + 1
+      serializeBuffer[n] = fieldName
+      n = n + 1
+      serializeBuffer[n] = v
     end
   end
-  return table.concat(parts, ":")
+  -- Clear any leftover entries from previous calls
+  for i = n + 1, #serializeBuffer do
+    serializeBuffer[i] = nil
+  end
+  return table.concat(serializeBuffer, ":")
 end
 
 --- Deserialize a colon-delimited string into a table using a fields schema
@@ -78,5 +87,7 @@ function M.Deserialize(fields, serialized, extras)
 end
 
 return M
+
+
 
 

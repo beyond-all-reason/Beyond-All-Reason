@@ -305,7 +305,7 @@ local options = {
 			{ key = SharedEnums.UnitSharingMode.T2Cons, name = "T2 Constructor Sharing Only", desc = "Only T2 constructors can be shared between allies" },
 			{ key = SharedEnums.UnitSharingMode.CombatUnits, name = "Combat Units Only", desc = "Only combat units can be shared (no economic units, factories, or constructors)" },
 			{ key = SharedEnums.UnitSharingMode.CombatT2Cons, name = "Combat Units + T2 Constructors", desc = "Combat units and T2 constructors can be shared" },
-			{ key = SharedEnums.UnitSharingMode.Economic, name = "Economic Units Only", desc = "Only combat units can be shared (no economic units, factories, or constructors)" },
+			{ key = SharedEnums.UnitSharingMode.Economic, name = "Economic Units Only", desc = "All economic mobile units can be shared but no combat units" },
 			{ key = SharedEnums.UnitSharingMode.EconomicPlusBuildings, name = "Economic Units and Buildings", desc = "All economic units and resource production buildings can be shared but no combat units" },
 			{ key = SharedEnums.UnitSharingMode.Disabled, name = "Disabled", desc = "No unit sharing allowed" },
 		},
@@ -384,7 +384,7 @@ local options = {
 		column	= 1,
 		items	= {
 			{ key = SharedEnums.AlliedAssistMode.Disabled, name = "Disabled", desc = "Units cannot assist allied construction and repair" },
-			{ key = SharedEnums.AlliedAssistMode.Enabled,  name = "Enabled Automation Restricted",  desc = "Units can assist allied construction and repair" },
+			{ key = SharedEnums.AlliedAssistMode.Enabled,  name = "Enabled",  desc = "Units can assist allied construction and repair" },
 		},
 	},
 	{

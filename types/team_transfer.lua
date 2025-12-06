@@ -2,7 +2,7 @@
 -- Minimal types focused on IntelliSense support and keeping the linter honest
 
 ---@alias TransferCategory "metal_transfer" | "energy_transfer" | "unit_transfer" | "guard_transfer" | "repair_transfer" | "reclaim_transfer"
----@alias ResourceType "metal" | "energy"
+---@alias ResourceType ResourceName
 
 ---@class ValidationResult
 ---@field ok boolean
@@ -18,7 +18,6 @@
 ---@class UnitPolicyResult : PolicyResult
 ---@field canShare boolean
 ---@field sharingMode string
----@field allowTakeBypass boolean
 
 ---@class UnitTransferContext : PolicyActionContext
 ---@field unitIds number[]
@@ -104,3 +103,29 @@
 
 ---@class PolicyActionContext : PolicyContext
 ---@field transferCategory string SharedEnums.TransferCategory
+
+---@class EconomyShareMember
+---@field teamId number
+---@field allyTeam number
+---@field resourceType ResourceType
+---@field resource ResourceData
+---@field current number effective current = resource.current + resource.excess
+---@field storage number
+---@field shareCursor number
+---@field remainingTaxFreeAllowance number
+---@field cumulativeSent number
+---@field threshold number
+---@field target number?
+
+---@class EconomyFlowLedger
+---@field received number
+---@field sent number
+---@field untaxed number
+---@field taxed number
+
+---@alias EconomyFlowSummary table<number, table<ResourceType, EconomyFlowLedger>>
+
+---@class EconomyWaterFillSolution
+---@field targetLift number
+---@field needs table<number, number>
+---@field supply table<number, number>

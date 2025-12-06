@@ -98,7 +98,7 @@ function Comms.SendTransferChatMessages(transferResult, policyResult)
       receivedAmount = math.floor(transferResult.received),
       sentAmount = FormatNumberForUI(transferResult.sent),
       taxRatePercentage = FormatNumberForUI(policyResult.taxRate * 100 + 0.5),
-      sentAmountUntaxed = FormatNumberForUI(cumulativeUntaxed),
+      sentAmountUntaxed = FormatNumberForUI(cumulativeUntaxed + transferResult.untaxed),
       resourceShareThreshold = FormatNumberForUI(policyResult.resourceShareThreshold),
       resourceType = resourceType,
     }

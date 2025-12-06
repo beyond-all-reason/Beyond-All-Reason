@@ -627,6 +627,7 @@ local function initializeCommander(commanderID, teamID)
 
 	local currentMetal = Spring.GetTeamResources(teamID, "metal") or 0
 	local currentEnergy = Spring.GetTeamResources(teamID, "energy") or 0
+	local budget = (modOptions.override_quick_start_resources and modOptions.override_quick_start_resources > 0) and modOptions.override_quick_start_resources or quickStartAmountConfig[modOptions.quick_start_amount == "default" and "normal" or modOptions.quick_start_amount]
 
 	local commanderX, commanderY, commanderZ = spGetUnitPosition(commanderID)
 	if not commanderX or not commanderY or not commanderZ then
@@ -669,8 +670,8 @@ local function initializeCommander(commanderID, teamID)
 		unitDefID = commanderDefID
 	}
 
-	Spring.SetTeamResource(teamID, "metal", max(0, currentMetal - QUICK_START_COST_METAL))
-	Spring.SetTeamResource(teamID, "energy", max(0, currentEnergy - QUICK_START_COST_ENERGY))
+	GG.SetTeamResource(teamID, "metal", max(0, currentMetal - QUICK_START_COST_METAL))
+	GG.SetTeamResource(teamID, "energy", max(0, currentEnergy - QUICK_START_COST_ENERGY))
 
 	local comData = commanders[commanderID]
 	comData.spawnX, comData.spawnY, comData.spawnZ = spGetUnitPosition(commanderID)
@@ -906,7 +907,7 @@ function gadget:GameFrame(frame)
 	if initialized and allDiscountsUsed and not running and allBuildsCompleted then
 		for commanderID, comData in pairs(commanders) do
 			if comData.budget and comData.budget > 0 then
-				Spring.AddTeamResource(comData.teamID, "metal", comData.budget)
+				GG.AddTeamResource(comData.teamID, "metal", comData.budget)
 			end
 		end
 		gadgetHandler:RemoveGadget()

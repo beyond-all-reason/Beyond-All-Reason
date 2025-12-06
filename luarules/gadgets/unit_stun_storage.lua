@@ -16,8 +16,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spGetTeamResources = Spring.GetTeamResources
-local spSetTeamResource = Spring.SetTeamResource
+local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+local ResourceType = SharedEnums.ResourceType
+
 
 local paralyzedUnits = {}
 
