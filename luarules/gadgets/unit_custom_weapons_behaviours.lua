@@ -37,6 +37,7 @@ local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitWeaponState = Spring.GetUnitWeaponState
 local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 local spSetProjectilePosition = Spring.SetProjectilePosition
@@ -161,26 +162,28 @@ do
 		speed   = { 0, 0, 0 },
 		gravity = gravityPerFrame,
 		ttl     = 3000,
+		owner   = -1,
+		team    = -1,
 	}
 
 	---@return integer weaponDefID
 	---@return ProjectileParams projectileParams
 	---@return number parentSpeed
 	getProjectileArgs = function(params, projectileID)
-		local weaponDefID = params.speceffect_def
-
 		local projectileParams = projectileParams
+		projectileParams.cegTag = params.cegtag
+		projectileParams.model = params.model
+		local weaponDefID = params.speceffect_def
+		local ownerID = spGetProjectileOwnerID(projectileID)
+		projectileParams.owner = ownerID or -1
+		projectileParams.team = spGetUnitTeam(ownerID) or -1
 
 		local pos = projectileParams.pos
 		pos[1], pos[2], pos[3] = spGetProjectilePosition(projectileID)
 
 		local vel = projectileParams.speed
-		local parentSpeed
+		local parentSpeed;
 		vel[1], vel[2], vel[3], parentSpeed = spGetProjectileVelocity(projectileID)
-
-		projectileParams.owner = spGetProjectileOwnerID(projectileID)
-		projectileParams.cegTag = params.cegtag
-		projectileParams.model = params.model
 
 		return weaponDefID, projectileParams, parentSpeed
 	end

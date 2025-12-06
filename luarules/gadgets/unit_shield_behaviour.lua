@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		desc = "Overrides default shield engine behavior.",
 		author = "SethDGamre",
 		layer = 1,
-		enabled = reworkEnabled,
+		enabled = true,
 	}
 end
 
@@ -44,16 +44,16 @@ local spSetUnitShieldRechargeDelay  = Spring.SetUnitShieldRechargeDelay
 local spDeleteProjectile            = Spring.DeleteProjectile
 local spGetProjectileDefID          = Spring.GetProjectileDefID
 local spGetUnitPosition             = Spring.GetUnitPosition
+local spGetUnitWeaponVectors        = Spring.GetUnitWeaponVectors
 local spGetUnitsInSphere            = Spring.GetUnitsInSphere
 local spGetProjectilesInRectangle   = Spring.GetProjectilesInRectangle
 local spGetProjectilesInSphere   	= Spring.GetProjectilesInSphere
 local spAreTeamsAllied              = Spring.AreTeamsAllied
 local spGetUnitIsActive             = Spring.GetUnitIsActive
+local spGetUnitIsDead               = Spring.GetUnitIsDead
 local spUseUnitResource             = Spring.UseUnitResource
 local spSetUnitRulesParam           = Spring.SetUnitRulesParam
 local spGetUnitArmored              = Spring.GetUnitArmored
-local mathMax                       = math.max
-local mathCeil                      = math.ceil
 
 local shieldUnitDefs                = {}
 local shieldUnitsData               = {}
@@ -67,6 +67,7 @@ local AOEWeaponDefIDs               = {}
 local projectileShieldHitCache      = {}
 local highestWeapDefDamages         = {}
 local armoredUnitDefs               = {}
+local destroyedUnitData             = {}
 
 local gameFrame 					= 0
 
@@ -138,6 +139,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if not reworkEnabled then break end --remove when shield rework is permanent
 	if unitDef.customParams.shield_radius then
 		local data = {}
+
+		data.isStationary = unitDef.isImmobile and unitDef.cantBeTransported
 		data.shieldRadius = tonumber(unitDef.customParams.shield_radius)
 
 		for i, weaponsData in pairs(unitDef.weapons) do
@@ -148,6 +151,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 				data.shieldPowerRegenEnergy = wDefData.shieldPowerRegenEnergy
 			end
 		end
+
 		shieldUnitDefs[unitDefID] = data
 	end
 
@@ -205,7 +209,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if not reworkEnabled then return end --remove when shield rework is permanent
 	local data = shieldUnitDefs[unitDefID]
 	if data then
-		shieldUnitsData[unitID] = {
+		local unitData = {
 			shieldPowerRegen = data.shieldPowerRegen,
 			shieldPowerRegenEnergy = data.shieldPowerRegenEnergy,
 			shieldWeaponNumber = data.shieldWeaponNumber, -- This is replaced with the real shieldWeaponNumber as soon as the shield is damaged
@@ -217,6 +221,12 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			shieldDownTime = 0,
 			maxDownTime = 0
 		}
+		shieldUnitsData[unitID] = unitData
+
+		if data.isStationary then
+			data.x, data.y, data.z = spGetUnitWeaponVectors(unitID, unitData.shieldWeaponNumber)
+		end
+
 		setCoveredUnits(unitID)
 	end
 
@@ -226,7 +236,19 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if not reworkEnabled then return end --remove when shield rework is permanent
-	shieldUnitsData[unitID] = nil
+	local unitData = shieldUnitsData[unitID]
+	if unitData then
+		shieldUnitsData[unitID] = nil
+		destroyedUnitData[unitID] = unitData -- keep some shield info until the next frame
+		if not unitData.x then
+			unitData.x, unitData.y, unitData.z = spGetUnitWeaponVectors(unitID, unitData.shieldWeaponNumber)
+		end
+		-- ! testing for errors here, since the unit's weapons might get cleaned up quickly:
+		local success, state, power = pcall(spGetUnitShieldState, unitID, unitData.shieldWeaponNumber)
+		if success then
+			unitData.power = power
+		end
+	end
 	unitDefIDCache[unitID] = nil
 end
 
@@ -419,6 +441,11 @@ function gadget:GameFrame(frame)
 		end
 		shieldCheckEndIndex = math.min(lastShieldCheckedIndex + shieldCheckChunkSize - 1, #shieldUnitIndex)
 	end
+
+	local dud = destroyedUnitData
+	for unitID in pairs(dud) do
+		dud[unitID] = nil
+	end
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID,
@@ -497,6 +524,7 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 		end
 	end
 end
+
 ---Shield controller API for other gadgets to generate and process their own shield damage events.
 local function addShieldDamage(shieldUnitID, damage, weaponDefID, projectileID, beamEmitterWeaponNum, beamEmitterUnitID)
 	local projectileDestroyed, damageMitigated = false, 0
@@ -521,9 +549,47 @@ local function addShieldDamage(shieldUnitID, damage, weaponDefID, projectileID, 
 	return projectileDestroyed, damageMitigated
 end
 
-function gadget:Initialize()
-	GG.AddShieldDamage = addShieldDamage
+---@return number? x xyz, emitter point of the shield weapon
+---@return number? y
+---@return number? z
+---@return number? shieldRadius though the shield may be inactive
+local function getShieldPositionData(shieldUnitID)
+	local unitData = shieldUnitsData[shieldUnitID] or destroyedUnitData[shieldUnitID]
+	if unitData then
+		if unitData.x then
+			return unitData.x, unitData.y, unitData.z, unitData.radius
+		else
+			local x, y, z = spGetUnitWeaponVectors(shieldUnitID, unitData.shieldWeaponNumber)
+			return x, y, z, unitData.radius
+		end
+	end
+end
 
+---@return integer state 0 := DISABLED, 1 := ENABLED
+---@return number shieldHealthRemaining including the (hidden) damage done this frame so far
+local function getUnitShieldState(shieldUnitID)
+	local unitData = shieldUnitsData[shieldUnitID] or destroyedUnitData[shieldUnitID]
+	if unitData and unitData.shieldEnabled then
+		local power
+		if spGetUnitIsDead(shieldUnitID) == false then
+			local state;
+			state, power = spGetUnitShieldState(shieldUnitID, unitData.shieldWeaponNumber)
+		else
+			power = unitData.power -- todo: not sure that this works at all
+		end
+		-- Damage is applied late in the rework, effectively giving infinite HP for one frame.
+		-- Still, we report that the shield is enabled (1), and its "actual" power remaining.
+		return 1, power and mathMax(power - unitData.shieldDamage, 0) or -1
+	else
+		return 0, 0
+	end
+end
+
+GG.AddShieldDamage = addShieldDamage
+GG.GetUnitShieldPosition = getShieldPositionData
+GG.GetUnitShieldState = reworkEnabled and getUnitShieldState or spGetUnitShieldState
+
+function gadget:Initialize()
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		local unitTeam = Spring.GetUnitTeam(unitID)
@@ -533,4 +599,6 @@ end
 
 function gadget:ShutDown()
 	GG.AddShieldDamage = nil
+	GG.GetUnitShieldState = nil
+	GG.GetUnitShieldPosition = nil
 end
