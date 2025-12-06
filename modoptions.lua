@@ -540,7 +540,7 @@ local options = {
         type    = "link",
         link    = "https://discord.com/channels/549281623154229250/781097030692110346",
         width   = 300,
-        column  = 2,
+        column  = 1.65,
     },
 
 	{
@@ -721,7 +721,7 @@ local options = {
         type    = "link",
         link    = "https://discord.com/channels/549281623154229250/659550298653589504",
         width   = 300,
-        column  = 2,
+        column  = 1.65,
     },
 
 	{
@@ -1494,7 +1494,7 @@ local options = {
         type    = "link",
         link    = "https://discord.com/channels/549281623154229250/1063217502898884701",
         width   = 300,
-        column  = 2,
+        column  = 1.65,
     },
 
     {
@@ -1601,7 +1601,7 @@ local options = {
         type    = "link",
         link    = "https://discord.com/channels/549281623154229250/1434671940223766679",
         width   = 250,
-        column  = 2,
+        column  = 1.65,
     },
 
     {
@@ -1683,7 +1683,7 @@ local options = {
         type    = "link",
         link    = "https://discord.com/channels/549281623154229250/1415750332419543193",
         width   = 250,
-        column  = 2,
+        column  = 1.65,
     },
 
     {
@@ -1704,7 +1704,7 @@ local options = {
         type    = "link",
         link    = "https://discord.com/channels/549281623154229250/1428031834045939833",
         width   = 250,
-        column  = 2,
+        column  = 1.65,
     },
 
     {
