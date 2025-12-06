@@ -110,7 +110,7 @@ return {
 		},
 		weapondefs = {
 			leg_bot_rocket = {
-				areaofeffect = 96,
+				areaofeffect = 126,
 				avoidfeature = false,
 				burst = 6,
 				burstrate = 0.25,
@@ -118,19 +118,19 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				dance = 24,
-				edgeeffectiveness = 0.65,
+				edgeeffectiveness = 0.75,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				firestarter = 70,
-				flighttime = 4,
-				impulsefactor = 2,
+				flighttime = 4.3,
+				impulsefactor = 2.02,
 				metalpershot = 0,
 				model = "legsmallrocket.s3o",
-				movingaccuracy = 900,
+				movingaccuracy = 600,
 				name = "CatapultRockets",
 				noselfdamage = true,
 				proximitypriority = -1,
 				range = 1290,
-				reloadtime = 9,
+				reloadtime = 1.9,
 				smokecolor = 0.5,
 				smokeperiod = 4,
 				smokesize = 8.5,
@@ -151,7 +151,7 @@ return {
 				weaponvelocity = 600,
 				wobble = 1500,
 				damage = {
-					default = 150,
+					default = 50,
 				},
 				customparams = {
 					projectile_destruction_method = "explode",
@@ -161,7 +161,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "MOBILE",
 				def = "LEG_BOT_ROCKET",
 				onlytargetcategory = "NOTSUB",
 			},
