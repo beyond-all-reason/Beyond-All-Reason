@@ -1160,7 +1160,12 @@ function widget:DrawWorld()
 	local id
 	for i = 1, #teamList do
 		local teamID = teamList[i]
-		local tsx, tsy, tsz = Spring.GetTeamStartPosition(teamID)
+		local tsx, tsy, tsz
+		if WG['map_startbox'] and WG['map_startbox'].GetEffectiveStartPosition then
+			tsx, tsy, tsz = WG['map_startbox'].GetEffectiveStartPosition(teamID)
+		else
+			tsx, tsy, tsz = Spring.GetTeamStartPosition(teamID)
+		end
 		if tsx and tsx > 0 then
 			local startUnitDefID = Spring.GetTeamRulesParam(teamID, 'startUnit')
 			if startUnitDefID then
