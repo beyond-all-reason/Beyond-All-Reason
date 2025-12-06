@@ -27,7 +27,7 @@ return {
 		script = "Units/LEGLHT.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
-		sightdistance = 494,
+		sightdistance = 894,
 		yardmap = "oooo",
 		customparams = {
 			usebuildinggrounddecal = true,
@@ -111,8 +111,8 @@ return {
 		weapondefs = {
 			leg_bot_rocket = {
 				accuracy = 33,
-				sprayangle = 1010,
-				areaofeffect = 250,
+				sprayangle = 1030,
+				areaofeffect = 270,
 				avoidfeature = false,
 				cegtag = "missiletrailsmall-simple",
 				craterareaofeffect = 0,
