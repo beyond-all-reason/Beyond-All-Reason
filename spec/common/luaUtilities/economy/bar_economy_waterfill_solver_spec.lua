@@ -1,7 +1,7 @@
 local Builders = VFS.Include("spec/builders/index.lua")
 local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 local ResourceShared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_shared.lua")
-local BarEconomy = VFS.Include("common/luaUtilities/team_transfer/bar_economy.lua")
+local BarEconomy = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_synced.lua")
 
 local function normalizeAllies(teams, allyTeamId)
   for i = 1, #teams do

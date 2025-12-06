@@ -2,8 +2,8 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "BAR Economy Controller",
-		desc      = "Controls resource sharing via Water-Fill algorithm",
+		name      = "Resource Transfer Controller",
+		desc      = "Controls resource transfers via Water-Fill algorithm",
 		author    = "Antigravity",
 		date      = "2024",
 		license   = "GPL-v2",
@@ -16,7 +16,6 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local BarEconomy = VFS.Include("common/luaUtilities/team_transfer/bar_economy.lua")
 local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 local SharedConfig = VFS.Include("common/luaUtilities/economy/shared_config.lua")
 local ContextFactoryModule = VFS.Include("common/luaUtilities/team_transfer/context_factory.lua")
@@ -38,27 +37,28 @@ function GG.SetTeamResourceData(teamID, resourceData)
 end
 
 function GG.SetTeamResource(teamID, resource, amount)
-	return BarEconomy.setTeamResource(springRepo, teamID, resource, amount)
+	return springRepo.SetTeamResource(teamID, resource, amount)
 end
 
 function GG.GetTeamResources(teamID, resource)
-	return BarEconomy.getTeamResources(springRepo, teamID, resource)
+	return springRepo.GetTeamResources(teamID, resource)
 end
 
 function GG.AddTeamResource(teamID, resource, amount)
-	return BarEconomy.addTeamResource(springRepo, teamID, resource, amount)
+	return springRepo.AddTeamResource(teamID, resource, amount)
 end
 
 function GG.ShareTeamResource(teamID, targetTeamID, resource, amount)
-	return BarEconomy.shareTeamResource(springRepo, teamID, targetTeamID, resource, amount)
+	return ResourceTransfer.ShareTeamResource(springRepo, teamID, targetTeamID, resource, amount)
 end
 
 function GG.SetTeamShareLevel(teamID, resource, level)
-	return BarEconomy.setTeamShareLevel(springRepo, teamID, resource, level)
+	return springRepo.SetTeamShareLevel(teamID, resource, level)
 end
 
 function GG.GetTeamShareLevel(teamID, resource)
-	return BarEconomy.getTeamShareLevel(springRepo, teamID, resource)
+	local _, _, _, _, _, share = springRepo.GetTeamResources(teamID, resource)
+	return share
 end
 
 local contextFactory = ContextFactoryModule.create(springRepo)
@@ -118,7 +118,7 @@ end
 ---@param teams TeamResourceData[]
 ---@return table<number, TeamResourceData>
 function gadget:ProcessEconomy(frame, teams)
-	local updatedTeams, allLedgers = BarEconomy.ProcessEconomy(springRepo, teams)
+	local updatedTeams, allLedgers = ResourceTransfer.ProcessEconomy(springRepo, teams)
 	
 	local result = {}
 	for _, team in ipairs(updatedTeams) do
