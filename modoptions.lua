@@ -1574,6 +1574,15 @@ local options = {
         def 	= false,
     },
 
+    {
+        key 	= "experimental_ai_spawns",
+        name 	= "Show/Move AI Spawns",
+        desc 	= "Enables experimental AI spawn placement and movement features. Allows players to see and manually adjust AI starting positions.",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+    },
+
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Unused Options
