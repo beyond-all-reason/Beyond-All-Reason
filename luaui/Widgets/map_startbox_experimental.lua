@@ -526,7 +526,7 @@ end
 
 local function drawSpawnDistanceCircles()
 	local closeSpawnDist = 350 -- Must match value from game_initial_spawn_experimental.lua
-	gl.Color(0.6, 0.6, 0.6, 0.4)
+	gl.Color(1.0, 0.0, 0.0, 0.3)
 	for _, teamID in ipairs(Spring.GetTeamList()) do
 		if teamID ~= gaiaTeamID and teamID ~= myTeamID then
 			local _, playerID, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
