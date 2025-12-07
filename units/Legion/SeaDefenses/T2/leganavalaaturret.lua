@@ -30,7 +30,7 @@ return {
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
 			model_author = "Tharsis, ZephyrSkies",
-			normaltex = "unittextures/leg_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
 			subfolder = "Legion/SeaDefenses/T2",
 			techlevel = 2,

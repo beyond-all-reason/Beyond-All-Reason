@@ -37,7 +37,7 @@ return {
 			cvbuildable = true,
 			geothermal = 1,
 			model_author = "Tharsis, ZephyrSkies",
-			normaltex = "unittextures/cor_normal.dds",
+			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
 			subfolder = "Legion/SeaEconomy/T2",

@@ -36,7 +36,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecaltype = "decals/leganavalsonarstation_aoplane.dds",
 			model_author = "ZephyrSkies (Model), JjackVII (Concept Art)",
-			normaltex = "unittextures/cor_normal.dds",
+			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
 			subfolder = "Legion/SeaUtility/T2",

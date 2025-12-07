@@ -71,6 +71,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[0] = "custom:subbubbles",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

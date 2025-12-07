@@ -8,39 +8,34 @@ piece  base, flap1, flap2;
 static-var isOpen1, isOpen2;
 
 bubbleItUp(){
-    if (isOpen1 == 1){
-        while (TRUE){
-            emit-sfx 1024 + 0 from flap1;
-            sleep 500;
+    while (TRUE){
+        if (isOpen1 == 1){
+            emit-sfx 259 from flap1;
+            sleep 50;
         }
-        sleep 1;
-    }
-    if (isOpen2 == 1){
-        while (TRUE){
-            emit-sfx 1024 + 0 from flap2;
-            sleep 500;
+        if (isOpen2 == 1){
+            emit-sfx 259 from flap2;
+            sleep 50;
         }
-        sleep 1;
-    }
-    else {
-        sleep 1;
-        return (0);
+        else{
+            sleep 1;
+        }
     }
 }
 
 flapAnim(){
     while (TRUE){
-        turn flap1 to x-axis <0> speed <60>;
+        turn flap1 to x-axis <0> speed <45>;
         isOpen1 = 1;
-        sleep 2000;
-        turn flap2 to x-axis <0> speed <30>;
+        sleep 1000;
+        turn flap2 to x-axis <0> speed <45>;
         isOpen2 = 1;
-        sleep 4000;
-        turn flap1 to x-axis <-100> speed <60>;
         sleep 2000;
+        turn flap1 to x-axis <100> speed <45>;
+        sleep 1000;
         isOpen1 = 0;
-        turn flap2 to x-axis <-85> speed <30>;
-        sleep 2000;
+        turn flap2 to x-axis <85> speed <45>;
+        sleep 1000;
         isOpen2 = 0;
         sleep 2000;
     }
@@ -49,9 +44,8 @@ flapAnim(){
 
 Create()
 {
-	return (0);
-    turn flap1 to x-axis <-100> now;
-    turn flap2 to x-axis <-85> now;
+    turn flap1 to x-axis <100> now;
+    turn flap2 to x-axis <85> now;
 
     isOpen1 = 0;
     isOpen2 = 0;

@@ -32,8 +32,11 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	turn turretHeadingPivot to y-axis heading speed <80.016484>;
-	wait-for-turn turretPitchPivot around y-axis;
+    turn turretPitchPivot to x-axis -1*pitch speed <40>;
+	wait-for-turn turretHeadingPivot around y-axis;
+    wait-for-turn turretPitchPivot around x-axis;
 	return (1);
+
 }
 
 FireWeapon1()

@@ -72,9 +72,9 @@ repeatsmoke()
 	while (TRUE)
 	{
 		sleep(166);
-		emit-sfx 257 from exhaust1;
-		emit-sfx 257 from exhaust2;
-		emit-sfx 257 from exhaust3;
+		emit-sfx 259 from exhaust1;
+		emit-sfx 259 from exhaust2;
+		emit-sfx 259 from exhaust3;
 	}
 }
 
