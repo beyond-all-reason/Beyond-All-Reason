@@ -35,7 +35,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
 			techlevel = 2,
-			subfolder = "Legion/SeaDefenses",
+			subfolder = "Legion/SeaDefenses/T2",
 		},
 		featuredefs = {
 			dead = {
