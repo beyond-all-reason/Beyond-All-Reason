@@ -93,6 +93,15 @@ local function getTechData()
 	local t2Threshold = modOptions.t2_tech_threshold or 100
 	local t3Threshold = modOptions.t3_tech_threshold or 1000
 
+	local techBlockingPerTeam = modOptions.tech_blocking_per_team
+	if techBlockingPerTeam then
+		local myAllyTeamID = Spring.GetMyAllyTeamID()
+		local teamList = Spring.GetTeamList(myAllyTeamID)
+		local activeTeamCount = #teamList
+		t2Threshold = t2Threshold * activeTeamCount
+		t3Threshold = t3Threshold * activeTeamCount
+	end
+
 	return techLevel, currentTechPoints, t2Threshold, t3Threshold
 end
 

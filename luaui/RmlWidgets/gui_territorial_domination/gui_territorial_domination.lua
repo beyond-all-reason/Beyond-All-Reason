@@ -53,9 +53,6 @@ local TIME_ZERO_STRING = "0:00"
 local KEY_ESCAPE = 27
 local AESTHETIC_POINTS_MULTIPLIER = 2 -- because bigger number feels good, and to help destinguish points from territory counts in round 1.
 
-local DEFAULT_PANEL_HEIGHT = 240
-local LEADERBOARD_GAP_BASE = 75
-
 local COLOR_BACKGROUND_ALPHA = 35
 local COLOR_BYTE_MAX = 255
 local DEFAULT_TEAM_COLOR = 0.5
@@ -632,9 +629,9 @@ local function getSelectedPlayerTeam()
 	if not teamList or #teamList < MIN_TEAM_LIST_SIZE then return nil end
 	
 	local firstTeamID = teamList[1]
-	local score = spGetTeamRulesParam(firstTeamID, "territorialDominationScore") or 0
-	local projectedPoints = spGetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0
-	local territoryCount = spGetTeamRulesParam(firstTeamID, "territorialDominationTerritoryCount") or 0
+	local score = spGetGameRulesParam("territorialDomination_ally_" .. myAllyTeamID .. "_score") or 0
+	local projectedPoints = spGetGameRulesParam("territorialDomination_ally_" .. myAllyTeamID .. "_projectedPoints") or 0
+	local territoryCount = spGetGameRulesParam("territorialDomination_ally_" .. myAllyTeamID .. "_territoryCount") or 0
 
 	return {
 		name = getAllyTeamPlayerNames(myAllyTeamID),
@@ -644,7 +641,7 @@ local function getSelectedPlayerTeam()
 		projectedPoints = projectedPoints,
 		territoryCount = territoryCount,
 		color = getAllyTeamColor(myAllyTeamID),
-		rank = spGetTeamRulesParam(firstTeamID, "territorialDominationDisplayRank") or 1,
+		rank = spGetGameRulesParam("territorialDomination_ally_" .. myAllyTeamID .. "_rank") or 1,
 		teamCount = #teamList,
 		teamList = teamList,
 	}
@@ -665,24 +662,20 @@ local function updateAllyTeamData()
 	end
 	
 	for allyTeamID, _ in pairs(widgetState.knownAllyTeamIDs) do
-		if allyTeamID == GAIA_ALLY_TEAM_ID then
-			-- Skip GAIA team
-		else
+		if allyTeamID ~= GAIA_ALLY_TEAM_ID then
 			local teamList = spGetTeamList(allyTeamID)
 			local hasTeamList = teamList and #teamList > 0
 			local firstTeamID = nil
-			local score = 0
-			local projectedPoints = 0
-			local territoryCount = 0
+			local score = spGetGameRulesParam("territorialDomination_ally_" .. allyTeamID .. "_score") or 0
+			local projectedPoints = spGetGameRulesParam("territorialDomination_ally_" .. allyTeamID .. "_projectedPoints") or 0
+			local territoryCount = spGetGameRulesParam("territorialDomination_ally_" .. allyTeamID .. "_territoryCount") or 0
+			local rank = spGetGameRulesParam("territorialDomination_ally_" .. allyTeamID .. "_rank") or 1
 			local hasAliveTeam = false
 			local teamCount = 0
 
 			if hasTeamList then
 				firstTeamID = teamList[1]
-				score = spGetTeamRulesParam(firstTeamID, "territorialDominationScore") or 0
-				projectedPoints = spGetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0
-				territoryCount = spGetTeamRulesParam(firstTeamID, "territorialDominationTerritoryCount") or 0
-
+				
 				for j = 1, #teamList do
 					local _, _, isDead = spGetTeamInfo(teamList[j])
 					if not isDead then
@@ -703,16 +696,8 @@ local function updateAllyTeamData()
 				
 				if existingTeam then
 					firstTeamID = existingTeam.firstTeamID
-					score = existingTeam.score or 0
-					projectedPoints = existingTeam.projectedPoints or 0
-					territoryCount = existingTeam.territoryCount or 0
 					teamCount = existingTeam.teamCount or 0
 				end
-			end
-
-			local rank = 1
-			if firstTeamID then
-				rank = spGetTeamRulesParam(firstTeamID, "territorialDominationDisplayRank") or 1
 			end
 
 			table.insert(validAllyTeams, {

@@ -548,7 +548,7 @@ function widget:Initialize()
 			if notification[event].soundEffect then
 				Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
 			end
-			if displayMessages and WG['messages'] and notification[event].textID then
+			if displayMessages and WG['messages'] and notification[event].textID and not notification[event].notext then
 				WG['messages'].addMessage(Spring.I18N(notification[event].textID))
 			end
 		end
