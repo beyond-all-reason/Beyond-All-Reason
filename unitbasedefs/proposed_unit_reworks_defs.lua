@@ -67,6 +67,13 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.buildtime = 59000
 	end
 
+	if name == "legfus" then
+		uDef.energymake = 950
+		uDef.metalcost = 4000
+		uDef.energycost = 25000
+		uDef.buildtime = 66000
+	end
+
 	if name == "armckfus" then
 		uDef.energymake = 750
 		uDef.metalcost = 3650
