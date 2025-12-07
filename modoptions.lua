@@ -1516,6 +1516,19 @@ local options = {
         def    	= false,
         unlock  = {"t2_tech_threshold", "t3_tech_threshold", "unit_creation_reward_multiplier", "tech_blocking_per_team"},
     },
+
+    {
+        key     = "tech_blocking_link",
+        name    = "Feedback thread",
+        desc    = "Discord discussion about Tech Blocking.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1447221656228728942/1447221656228728942",
+        width   = 215,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
+    },
     
     {
         key		= "t2_tech_threshold",
@@ -1712,12 +1725,12 @@ local options = {
 
     {
         key     = "proposed_unit_reworks_link",
-        name    = "Feedback thread",
-        desc    = "Discord discussion about proposed unit reworks.",
+        name    = "Change List",
+        desc    = "Github pull request with all the changes listed.",
         section = "options_experimental",
         type    = "link",
-        link    = "https://discord.com/channels/549281623154229250/1415750332419543193",
-        width   = 215,
+        link    = "https://github.com/beyond-all-reason/Beyond-All-Reason/pull/6301",
+        width   = 200,
         column  = 1.65,
         linkheight = 325,
         linkwidth = 350,
