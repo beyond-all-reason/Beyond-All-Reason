@@ -47,6 +47,7 @@ local lowpriorityNanos = true
 local lowpriorityCons = false
 
 -- controlled units by category
+local builders = {}
 local builderLabs = {}
 local builderNanos = {}
 local builderCons = {}
@@ -96,13 +97,17 @@ local function priorityKeyHandler(_,_,args)
 	end
 
 	for i = 1, #selectedUnits do
-		toggleUnit(selectedUnits[i], passive)
+		if builders[selectedUnits[i]] then
+			toggleUnit(selectedUnits[i], passive)
+		end
 	end
 	return true
 end
 
 local function classifyUnit(unitID, unitDefID)
-	if unitIsBuilder[unitDefID] and not unitIsCommander[unitDefID] then
+	if unitIsBuilder[unitDefID] then
+		builders[unitID] = true
+		if unitIsCommander[unitDefID] then return end
 		if unitIsNano[unitDefID] then
 			builderNanos[unitID] = true
 			toggleUnit(unitID, lowpriorityNanos)
