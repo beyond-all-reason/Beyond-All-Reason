@@ -50,11 +50,12 @@ local DECAY_DELAY_FRAMES = Game.gameSpeed * 10
 
 local MAX_EMPTY_IMPEDANCE_POWER = 25
 local MIN_EMPTY_IMPEDANCE_MULTIPLIER = 0.80
-local FLYING_UNIT_POWER_MULTIPLIER = 0.01
+local FLYING_UNIT_POWER_MULTIPLIER = 0.1
 local CLOAKED_UNIT_POWER_MULTIPLIER = 0
 local STATIC_UNIT_POWER_MULTIPLIER = 3
 local COMMANDER_POWER_MULTIPLIER = 1000
 local AESTHETIC_POINTS_MULTIPLIER = 2 --to be consistent with gui_territorial_domination.lua
+local MIN_UNIT_POWER = 3
 
 local MAX_PROGRESS = 1.0
 local STARTING_PROGRESS = 0
@@ -123,7 +124,7 @@ for defID, def in pairs(UnitDefs) do
 			defData.power = defData.power * STATIC_UNIT_POWER_MULTIPLIER
 		end
 		if def.customParams and def.customParams.objectify then
-			defData.power = 0
+			defData.power = nil
 		end
 	end
 	unitWatchDefs[defID] = defData
@@ -457,19 +458,23 @@ local function processGridSquareCapture(gridID)
 			local allyTeam = spGetUnitAllyTeam(unitID)
 
 			if unitData and unitData.power and allyTeamsWatch[allyTeam] then
-				hasUnits = true
 				local power = unitData.power
-				if flyingUnits[unitID] then
-					power = power * FLYING_UNIT_POWER_MULTIPLIER
-				end
-				if commandersDefs[unitDefID] then
-					power = power * COMMANDER_POWER_MULTIPLIER
-				end
-				if spGetUnitIsCloaked(unitID) then
-					power = power * CLOAKED_UNIT_POWER_MULTIPLIER
-				end
+				if power then
+					hasUnits = true
+					if flyingUnits[unitID] then
+						power = power * FLYING_UNIT_POWER_MULTIPLIER
+					end
+					if commandersDefs[unitDefID] then
+						power = power * COMMANDER_POWER_MULTIPLIER
+					end
+					if spGetUnitIsCloaked(unitID) then
+						power = power * CLOAKED_UNIT_POWER_MULTIPLIER
+					end
 
-				allyPowers[allyTeam] = (allyPowers[allyTeam] or 0) + power
+					power = math.max(power, MIN_UNIT_POWER)
+
+					allyPowers[allyTeam] = (allyPowers[allyTeam] or 0) + power
+				end
 			end
 		end
 	end
