@@ -158,7 +158,7 @@ return {
 				name = "Close-quarters light g2g laser",
 				noselfdamage = true,
 				proximitypriority = -1,
-				range = 480,
+				range = 490,
 				reloadtime = 0.46667,
 				rgbcolor = "1 0 0",
 				soundhitdry = "",
