@@ -1555,7 +1555,7 @@ local options = {
     },
     {
         key     = "link",
-        name    = "Season 3 Changelog link",
+        name    = "Season 3 Changelog",
         desc    = "Season 3 balance test changelog",
         section = "options_experimental",
         type    = "link",
