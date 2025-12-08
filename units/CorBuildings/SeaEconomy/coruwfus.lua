@@ -7,7 +7,7 @@ return {
 		canrepeat = false,
 		corpse = "DEAD",
 		energycost = 34000,
-		energymake = 1220,
+		energymake = 1920,
 		energystorage = 2500,
 		explodeas = "fusionExplosion-uw",
 		footprintx = 5,

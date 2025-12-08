@@ -10,7 +10,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.95,
 		energycost = 69000,
-		energymake = 3300,
+		energymake = 4300,
 		energystorage = 15000,
 		explodeas = "customfusionexplo",
 		footprintx = 6,

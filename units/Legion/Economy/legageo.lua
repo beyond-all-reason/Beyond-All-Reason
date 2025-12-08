@@ -12,7 +12,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 86 96",
 		collisionvolumetype = "cylY",
-		energymake = 1250,
+		energymake = 1950,
 		energystorage = 24000,
 		explodeas = "customfusionexplo",
 		footprintx = 5,

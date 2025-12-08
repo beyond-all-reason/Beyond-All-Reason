@@ -10,7 +10,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.95,
 		energycost = 550000,
-		energymake = 30000,
+		energymake = 44000,
 		energystorage = 150000,
 		explodeas = "ScavComBossExplo",
 		footprintx = 12,

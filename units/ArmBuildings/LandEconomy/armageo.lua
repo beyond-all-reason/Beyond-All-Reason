@@ -9,7 +9,7 @@ return {
 		collisionvolumescales = "107 77 107",
 		collisionvolumetype = "CylY",
 		energycost = 27000,
-		energymake = 1250,
+		energymake = 1950,
 		energystorage = 24000,
 		explodeas = "customfusionexplo",
 		footprintx = 5,
