@@ -30,6 +30,7 @@ return {
 		selfdestructas = "WallExplosionWater",
 		selfdestructcountdown = 1,
 		sightdistance = 1,
+		stealth = false,
 		waterline = 8,
 		yardmap = "oooo",
 		customparams = {
