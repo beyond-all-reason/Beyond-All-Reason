@@ -98,7 +98,7 @@ return {
 				duration = 0.015,
 				edgeeffectiveness = 0.85,
 				explosiongenerator = "custom:plasmahit-sparkonly",
-				fallOffRate = 0.12,
+				fallOffRate = 0.02,
 				firestarter = 0,
 				impulsefactor = 1.5,
 				intensity = 0.3,
