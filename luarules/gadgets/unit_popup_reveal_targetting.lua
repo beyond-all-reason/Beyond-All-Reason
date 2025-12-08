@@ -21,11 +21,14 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local spGetTeamList = Spring.GetTeamList
-local armoredTurrets = {}
+local popupDefs = {}
+local objectifyDefs = {}
 local discoveredUnits = {}
 local watchList = {}
 local CHECK_INTERVAL = math.floor(Game.gameSpeed * 0.5)
-local allyTeamRepresentative = {}
+local allyTeamRepresentative = {} --need to replace with something less fragile zzz
+local scavengerTeamID = Spring.Utilities.GetScavTeamID()
+local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
 
 for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 	local teamIDs = Spring.GetTeamList(allyTeamID)
@@ -36,8 +39,12 @@ for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 end
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
-	if unitDef.customParams and unitDef.customParams.decoy_when_closed and unitDef.customParams.decoyfor then
-		armoredTurrets[unitDefID] = true
+	if unitDef.customParams then
+		if unitDef.customParams.decoy_when_closed and unitDef.customParams.decoyfor then
+			popupDefs[unitDefID] = true
+		elseif unitDef.customParams.objectify then
+			objectifyDefs[unitDefID] = true
+		end
 	end
 end	
 
@@ -68,7 +75,7 @@ function gadget:Initialize()
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		if not Spring.GetUnitIsBeingBuilt(unitID) then
 			local unitDefID = spGetUnitDefID(unitID)
-			if armoredTurrets[unitDefID] then
+			if popupDefs[unitDefID] then
 				discoveredUnits[unitID] = {}
 				for _, teamID in ipairs(Spring.GetTeamList()) do
 					local paramKey = "decoyRevealed_team" .. teamID
@@ -83,11 +90,15 @@ function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attac
 	local priority = defPriority or 1.0
 	local targetDefID = spGetUnitDefID(targetID)
 
-	if not targetDefID or not armoredTurrets[targetDefID] then
+	if not targetDefID or (not popupDefs[targetDefID] and not objectifyDefs[targetDefID]) then
 		return true, priority
 	end
 
 	local attackerTeamID = spGetUnitTeam(attackerID)
+	if attackerTeamID == scavengerTeamID or attackerTeamID == raptorTeamID then
+		return true, priority
+	end
+
 	local canTarget = (discoveredUnits[targetID] and discoveredUnits[targetID][attackerTeamID]) or false
 	return canTarget, priority
 end
@@ -111,13 +122,13 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if armoredTurrets[unitDefID] then
+	if popupDefs[unitDefID] then
 		discoveredUnits[unitID] = {}
 	end
 end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	if not armoredTurrets[unitDefID] then
+	if not popupDefs[unitDefID] then
 		return
 	end
 
@@ -135,7 +146,7 @@ function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 end
 
 function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
-	if not armoredTurrets[unitDefID] then
+	if not popupDefs[unitDefID] then
 		return
 	end
 
