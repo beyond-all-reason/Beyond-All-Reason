@@ -631,28 +631,28 @@ local unitDeaths = {
 
 
 	decoycommander = {
-		AreaOfEffect = 48,
-		cameraShake = 48,
+		AreaOfEffect = 488,
+		cameraShake = 488,
 		impulsefactor = impulsefactor,
 		soundhit = "xplomed2",
 		soundstart = "largegun",
 		explosiongenerator = "custom:decoycommander",
 		damage = {
-			default = 20,
+			default = 12088,
 		},
 		customparams = {
 			unitexplosion = 1,
 		}
 	},
 	decoycommanderSelfd = {
-		AreaOfEffect = 96,
-		cameraShake = 96,
+		AreaOfEffect = 968,
+		cameraShake = 968,
 		impulsefactor = impulsefactor,
 		soundhit = "xplomed2",
 		soundstart = "largegun",
 		explosiongenerator = "custom:decoycommander-selfd",
 		damage = {
-			default = 310,
+			default = 23310,
 		},
 		customparams = {
 			unitexplosion = 1,
