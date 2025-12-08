@@ -16,7 +16,7 @@ return {
 		damagemodifier = 0.5,
 		energystorage = 50,
 		-- negative energyupkeep means it's conditional so when unit is off won't produce
-		energyupkeep = -20,
+		energyupkeep = -33,
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 5,
 		footprintz = 5,
