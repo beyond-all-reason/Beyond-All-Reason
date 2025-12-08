@@ -769,12 +769,13 @@ end
 -- expose armor defs to custom params
 for unitName, unitDef in pairs (DEFS.unitDefs) do
 	if unitDef.customparams and unitDef.customparams.armordef then
+		local lowerCaseArmorDef = unitDef.customparams.armordef:lower()
 		clearArmorDef(unitName)
-		local defCategory = armorDefs[unitDef.customparams.armordef]
+		local defCategory = armorDefs[lowerCaseArmorDef]
 		if defCategory then
 			defCategory[#defCategory+1] = unitName
 		else
-			armorDefs[unitDef.customparams.armordef] = {unitName}
+			armorDefs[lowerCaseArmorDef] = {unitName}
 		end
 	end
 end
