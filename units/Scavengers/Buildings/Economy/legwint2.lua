@@ -12,7 +12,8 @@ return {
 		collisionvolumescales = "68 178 68",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		energystorage = 5,
+		energystorage = 33.3,
+		energyupkeep = -120,
 		explodeas = "windboom",
 		footprintx = 6,
 		footprintz = 6,
@@ -35,7 +36,7 @@ return {
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'energy',
-			energymultiplier = 10, --Doesn't work for some reason. Acts like "energymultiplier = 1". Build cost is reduced 10x, until It's fixed.
+			energymultiplier = 20, --Doesn't work for some reason. Acts like "energymultiplier = 1". Build cost is reduced 10x, until It's fixed.
 			model_author = "Yzch",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
