@@ -53,9 +53,6 @@ local TIME_ZERO_STRING = "0:00"
 local KEY_ESCAPE = 27
 local AESTHETIC_POINTS_MULTIPLIER = 2 -- because bigger number feels good, and to help destinguish points from territory counts in round 1.
 
-local DEFAULT_PANEL_HEIGHT = 240
-local LEADERBOARD_GAP_BASE = 75
-
 local COLOR_BACKGROUND_ALPHA = 35
 local COLOR_BYTE_MAX = 255
 local DEFAULT_TEAM_COLOR = 0.5
@@ -95,6 +92,7 @@ local widgetState = {
 	cachedPlayerNames = {},
 	cachedTeamColors = {},
 	knownAllyTeamIDs = {},
+	lastWasInLead = false,
 	hasCachedInitialNames = false,
 	hasValidAdvPlayerListPosition = false,
 }
@@ -392,7 +390,7 @@ local function updateLeaderboard()
 		teamsContainer:AppendChild(row)
 	end
 	
-	if eliminationThreshold > 0 then
+	if eliminationThreshold > 0 and dataModel and not dataModel.isFinalRound then
 		separatorTextElement.inner_rml = spI18N('ui.territorialDomination.elimination.threshold', { threshold = eliminationThreshold })
 		separatorElement:SetClass("hidden", false)
 	else
@@ -459,14 +457,28 @@ local function calculateUILayout()
 	if not tdRootElement then return end
 
 	local advPlayerListAPI = WG['advplayerlist_api']
-	if not advPlayerListAPI or not advPlayerListAPI.GetPosition then
+	local topElement = nil
+
+	if WG['playertv'] and WG['playertv'].GetPosition and (WG['playertv'].isActive == nil or WG['playertv'].isActive()) then
+		topElement = WG['playertv']
+	elseif WG['displayinfo'] and WG['displayinfo'].GetPosition then
+		topElement = WG['displayinfo']
+	elseif WG['unittotals'] and WG['unittotals'].GetPosition then
+		topElement = WG['unittotals']
+	elseif WG['music'] and WG['music'].GetPosition then
+		topElement = WG['music']
+	elseif advPlayerListAPI and advPlayerListAPI.GetPosition then
+		topElement = advPlayerListAPI
+	end
+
+	if not topElement then
 		widgetState.hasValidAdvPlayerListPosition = false
 		checkDocumentVisibility()
 		return
 	end
 
-	local apiAbsPosition = advPlayerListAPI.GetPosition()
-	if not apiAbsPosition or #apiAbsPosition < 4 then
+	local apiAbsPosition = topElement.GetPosition()
+	if not apiAbsPosition then
 		widgetState.hasValidAdvPlayerListPosition = false
 		checkDocumentVisibility()
 		return
@@ -479,16 +491,10 @@ local function calculateUILayout()
 		return
 	end
 
-	local GL_BASE_WIDTH = 1920
-	local GL_BASE_HEIGHT = 1080
-	local scaleX = screenWidth / GL_BASE_WIDTH
-	local scaleY = screenHeight / GL_BASE_HEIGHT
-
 	local leaderboardTop = apiAbsPosition[1]
-	local gap = LEADERBOARD_GAP_BASE * scaleY
 
-	local leaderboardTopCss = screenHeight - leaderboardTop
-	local desiredBottomCss = leaderboardTopCss - gap
+	local anchorTopCss = screenHeight - leaderboardTop
+	local desiredBottomCss = anchorTopCss
 
 	if desiredBottomCss >= 0 and desiredBottomCss < screenHeight then
 		local topVh = (desiredBottomCss / screenHeight) * 100
@@ -623,9 +629,9 @@ local function getSelectedPlayerTeam()
 	if not teamList or #teamList < MIN_TEAM_LIST_SIZE then return nil end
 	
 	local firstTeamID = teamList[1]
-	local score = spGetTeamRulesParam(firstTeamID, "territorialDominationScore") or 0
-	local projectedPoints = spGetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0
-	local territoryCount = spGetTeamRulesParam(firstTeamID, "territorialDominationTerritoryCount") or 0
+	local score = spGetGameRulesParam("territorialDomination_ally_" .. myAllyTeamID .. "_score") or 0
+	local projectedPoints = spGetGameRulesParam("territorialDomination_ally_" .. myAllyTeamID .. "_projectedPoints") or 0
+	local territoryCount = spGetGameRulesParam("territorialDomination_ally_" .. myAllyTeamID .. "_territoryCount") or 0
 
 	return {
 		name = getAllyTeamPlayerNames(myAllyTeamID),
@@ -635,7 +641,7 @@ local function getSelectedPlayerTeam()
 		projectedPoints = projectedPoints,
 		territoryCount = territoryCount,
 		color = getAllyTeamColor(myAllyTeamID),
-		rank = spGetTeamRulesParam(firstTeamID, "territorialDominationDisplayRank") or 1,
+		rank = spGetGameRulesParam("territorialDomination_ally_" .. myAllyTeamID .. "_rank") or 1,
 		teamCount = #teamList,
 		teamList = teamList,
 	}
@@ -656,24 +662,20 @@ local function updateAllyTeamData()
 	end
 	
 	for allyTeamID, _ in pairs(widgetState.knownAllyTeamIDs) do
-		if allyTeamID == GAIA_ALLY_TEAM_ID then
-			-- Skip GAIA team
-		else
+		if allyTeamID ~= GAIA_ALLY_TEAM_ID then
 			local teamList = spGetTeamList(allyTeamID)
 			local hasTeamList = teamList and #teamList > 0
 			local firstTeamID = nil
-			local score = 0
-			local projectedPoints = 0
-			local territoryCount = 0
+			local score = spGetGameRulesParam("territorialDomination_ally_" .. allyTeamID .. "_score") or 0
+			local projectedPoints = spGetGameRulesParam("territorialDomination_ally_" .. allyTeamID .. "_projectedPoints") or 0
+			local territoryCount = spGetGameRulesParam("territorialDomination_ally_" .. allyTeamID .. "_territoryCount") or 0
+			local rank = spGetGameRulesParam("territorialDomination_ally_" .. allyTeamID .. "_rank") or 1
 			local hasAliveTeam = false
 			local teamCount = 0
 
 			if hasTeamList then
 				firstTeamID = teamList[1]
-				score = spGetTeamRulesParam(firstTeamID, "territorialDominationScore") or 0
-				projectedPoints = spGetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0
-				territoryCount = spGetTeamRulesParam(firstTeamID, "territorialDominationTerritoryCount") or 0
-
+				
 				for j = 1, #teamList do
 					local _, _, isDead = spGetTeamInfo(teamList[j])
 					if not isDead then
@@ -694,16 +696,8 @@ local function updateAllyTeamData()
 				
 				if existingTeam then
 					firstTeamID = existingTeam.firstTeamID
-					score = existingTeam.score or 0
-					projectedPoints = existingTeam.projectedPoints or 0
-					territoryCount = existingTeam.territoryCount or 0
 					teamCount = existingTeam.teamCount or 0
 				end
-			end
-
-			local rank = 1
-			if firstTeamID then
-				rank = spGetTeamRulesParam(firstTeamID, "territorialDominationDisplayRank") or 1
 			end
 
 			table.insert(validAllyTeams, {
@@ -964,6 +958,21 @@ local function updatePlayerDisplay()
 			currentScoreElement:SetClass("warning", false)
 			currentScoreElement:SetClass("pulsing", false)
 		end
+	end
+
+	local isNowInLead = isPlayerInFirstPlace()
+
+	if isNowInLead ~= widgetState.lastWasInLead then
+		if isNowInLead then
+			if WG['notifications'] and WG['notifications'].addEvent then
+				WG['notifications'].addEvent('GainedLead', false)
+			end
+		else
+			if WG['notifications'] and WG['notifications'].addEvent then
+				WG['notifications'].addEvent('LostLead', false)
+			end
+		end
+		widgetState.lastWasInLead = isNowInLead
 	end
 end
 

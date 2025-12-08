@@ -134,7 +134,12 @@ local function slowWatchBuilder(builderID)
 end
 
 local function shouldIssueBuggeroff(builderTeam, unitID, unitDefID, x, z, radius)
-	if Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID), builderTeam) == false then
+	local unitTeam = Spring.GetUnitTeam(unitID)
+	if not unitTeam then
+		return false
+	end
+	
+	if Spring.AreTeamsAllied(unitTeam, builderTeam) == false then
 		return false
 	end
 
@@ -268,15 +273,7 @@ function gadget:GameFrame(frame)
 	end
 end
 
-
-function gadget:Initialize()
-	for _, teamID in ipairs(Spring.GetTeamList()) do
-		local unitList = Spring.GetTeamUnits(teamID)
-		for _, unitID in ipairs(unitList) do
-			gadget:MetaUnitAdded(unitID, Spring.GetUnitDefID(unitID), teamID)
-		end
-	end
-end
+-- TODO: restore ability to do `/luarules reload`, maybe readd MetaUnitAdded
 
 function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	if cachedUnitDefs[unitDefID].isBuilder then

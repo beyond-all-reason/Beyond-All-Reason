@@ -135,13 +135,13 @@ local options = {
         desc    =
         "Configures the grace period and the amount of time in minutes it takes to reach the maximum required territory.",
         type    = "list",
-        def     = "24-Minutes",
+        def     = "24_minutes",
         section = "options_main",
         items   = {
-            { key = "18-Minutes", name = "3 Rounds, 18 Minutes",  desc = "Early tech emphasis, mathmathically certain comeback, elimination unlikely." },
-            { key = "24-Minutes",  name = "4 Rounds, 24 Minutes(Default)",  desc = "Mid/late-game tech, comebacks a significant factor,eliminations uncommon" },
-            { key = "30-Minutes", name = "5 Rounds, 30 Minutes", desc = "Late-game tech, comebacks less significant, eliminations likely" },
-            { key = "42-Minutes",   name = "7 Rounds, 42 Minutes",   desc = "Super lategame tech, eliminations extremely likely" },
+            { key = "18_minutes", name = "3 Rounds, 18 Minutes",  desc = "Early tech emphasis, mathmathically certain comeback, elimination unlikely." },
+            { key = "24_minutes",  name = "4 Rounds, 24 Minutes(Default)",  desc = "Mid/late-game tech, comebacks a significant factor,eliminations uncommon" },
+            { key = "30_minutes", name = "5 Rounds, 30 Minutes", desc = "Late-game tech, comebacks less significant, eliminations likely" },
+            { key = "42_minutes",   name = "7 Rounds, 42 Minutes",   desc = "Super lategame tech, eliminations extremely likely" },
         }
     },
 
@@ -1442,6 +1442,61 @@ local options = {
         def  	= false,
     },
 
+    {
+        key		= "tech_blocking",
+        name   	= "Tech Blocking",
+        desc   	= "Enable tech level blocking system that prevents building units until sufficient tech points are accumulated",
+        type   	= "bool",
+        section	= "options_experimental",
+        def    	= false,
+        unlock  = {"t2_tech_threshold", "t3_tech_threshold", "unit_creation_reward_multiplier", "tech_blocking_per_team"},
+    },
+
+    {
+        key		= "t2_tech_threshold",
+        name   	= "Tech 2 Threshold",
+        desc   	= "Amount of tech points required to unlock Tech 2 units",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 720,
+        min    	= 1,
+        max    	= 100000,
+        step   	= 1,
+    },
+
+    {
+        key		= "t3_tech_threshold",
+        name   	= "Tech 3 Threshold",
+        desc   	= "Amount of tech points required to unlock Tech 3 units",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 4920,
+        min    	= 1,
+        max    	= 100000,
+        step   	= 1,
+    },
+    
+    {
+        key		= "tech_blocking_per_team",
+        name   	= "Multiply Threshold by Player Count",
+        desc   	= "If enabled, tech thresholds are per player. If disabled thresholds are absolute for the whole team",
+        type   	= "bool",
+        section	= "options_experimental",
+        def    	= true,
+    },
+
+    {
+        key		= "unit_creation_reward_multiplier",
+        name   	= "Unit Creation Reward Multiplier",
+        desc   	= "Multiplier for tech points gained when creating units (0 = disabled, units give no bonus tech points)",
+        type   	= "number",
+        section	= "options_experimental",
+        def    	= 0,
+        min    	= 0,
+        max    	= 1.0,
+        step   	= 0.001,
+    },
+
     -- Hidden Tests
 
     {
@@ -1546,12 +1601,22 @@ local options = {
 
     {
         key 	= "proposed_unit_reworks",
-        name 	= "Proposed Unit Reworks",
-        desc 	= "Modoption used to test balance changes that are being considered for the base game.",
+        name 	= "Season 3 balance test",
+        desc 	= "Test balance patch for the upcoming season. Nerfs funneling resources into just a single T2 base, by changing eco stats as well as nerfing units like Tzar and Fatboy. Also a variety of other changes, like an Incisor nerf and a Banshee buff. Full changelist below",
         type 	= "bool",
         --hidden 	= true,
         section = "options_experimental",
         def 	= false,
+    },
+    {
+        key     = "link",
+        name    = "Changelog",
+        desc    = "Season 3 balance test changelog",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://gist.github.com/Mitvit/66d5061f88fb1bd7558aa728be225052",
+        width   = 250,
+        column  = 2,
     },
 
     {

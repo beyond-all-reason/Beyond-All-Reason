@@ -54,8 +54,8 @@ local infotextFontsize = 13
 
 local commanderNameList = {}
 local usedFontSize = fontSize
-spEcho(Spring.GetMiniMapGeometry())
 local widgetScale = (1 + (vsx * vsy / 5500000))
+spEcho(Spring.GetMiniMapGeometry())
 local startPosRatio = 0.0001
 local startPosScale
 if getCurrentMiniMapRotationOption() == ROTATION.DEG_90 or getCurrentMiniMapRotationOption() == ROTATION.DEG_270 then
