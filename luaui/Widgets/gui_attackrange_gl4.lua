@@ -594,7 +594,6 @@ local mouseovers = {} -- mirroring selections, but for mouseovers
 local unitsOnOff = {} -- unit weapon toggle states, tracked from CommandNotify (also building on off status)
 local unitRangeScale = { selections = {}, mouseovers = {} } -- stores info for units with scaling ranges
 local numScalingUnits = 0
-local rangeUpdate = false
 local myTeam = spGetMyTeamID()
 
 -- mirrors functionality of UnitDetected
@@ -714,7 +713,7 @@ local function AddSelectedUnit(unitID, mouseover, newRange)
 
 		local ringParams = {}
 		if newRange then
-			for i = 2, 17 do
+			for i = 2, 17 do	-- See line 405.
 			ringParams[i] = unitDefRings[unitDefID]['rings'][j][i]	-- Preserves default range from unitDefs for use with enemy units.
 			end
 			ringParams[1] = newRange[j]
@@ -1112,15 +1111,21 @@ function widget:KeyRelease(key, mods, isRepeat)
 	end
 end
 
+local timeSinceLastRangeUpdate = 0
 function widget:Update(dt)
 	if updateSelection and gameFrame % 3 == 0 then
 		UpdateSelectedUnits()
 	end
 
-	if gameFrame % 90 == 0 then rangeUpdate = true end	-- This prevents the next check from executing twice on the same frame.
-	if gameFrame % 90 == 1 and numScalingUnits > 0 and rangeUpdate == true then
-		updateScalingRange()
-		rangeUpdate = false
+	if numScalingUnits > 0 then
+		timeSinceLastRangeUpdate = timeSinceLastRangeUpdate + dt
+	else
+		timeSinceLastRangeUpdate = 0
+	end
+
+	if timeSinceLastRangeUpdate > 3.0 then
+		updateScalingRange()			-- This function is relatively expensive, so we only run it when we need to.
+		timeSinceLastRangeUpdate = 0
 	end
 
 	if show_selected_weapon_ranges and cursor_unit_range and gameFrame % 3 == 1 then
