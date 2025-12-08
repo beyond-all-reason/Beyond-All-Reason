@@ -254,7 +254,7 @@ local function initUnitList()
 		['armfrt'] = { weapons = { 'air' } },  --floating rocket laucher
 		['armfflak'] = { weapons = { 'air' } },  --floating flak AA
 		['armatl'] = { weapons = { 'ground' } }, --adv torpedo launcher
-		['armkraken'] = { weapons = { 'cannon' } }, --adv torpedo launcher  
+		['armkraken'] = { weapons = { 'cannon' } }, --adv torpedo launcher
 
 		['armamb'] = { weapons = { 'cannon' } }, --ambusher 'cannon'
 		['armpb'] = { weapons = { 'ground' } }, --pitbull 'cannon'
@@ -550,7 +550,7 @@ local function initGL4()
 	largeCircleVBO = InstanceVBOTable.makeCircleVBO(largeCircleSegments)
 	for i,defRangeClass in ipairs(defenseRangeClasses) do
 		defenseRangeVAOs[defRangeClass] = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout,16,defRangeClass .. "_defenserange_gl4")
-		if defRangeClass:find("nuke", nil, true) or defRangeClass:find("lrpc", nil, true) then --defRangeClass:find("cannon", nil, true) or 
+		if defRangeClass:find("nuke", nil, true) or defRangeClass:find("lrpc", nil, true) then --defRangeClass:find("cannon", nil, true) or
 			defenseRangeVAOs[defRangeClass].vertexVBO = largeCircleVBO
 			defenseRangeVAOs[defRangeClass].numVertices = largeCircleSegments
 		else
@@ -623,9 +623,9 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 	local addedrings = 0
 	for i, weaponType in pairs(unitDefRings[unitDefID]['weapons']) do
 		local allystring = alliedUnit and "ally" or "enemy"
-		-- We want to continue to maintain ally lists, because these ally lists will be 
-		if buttonConfig[allystring][weaponType] or (colorConfig.drawAllyCategoryBuildQueue and (allystring == "ally")) then 
-			
+		-- We want to continue to maintain ally lists, because these ally lists will be
+		if buttonConfig[allystring][weaponType] or (colorConfig.drawAllyCategoryBuildQueue and (allystring == "ally")) then
+
 			--local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
 
 			local weaponID = i
@@ -922,21 +922,21 @@ function widget:Update(dt)
 		buildUnitDefID = nil
 	end
 
-	if (cmdID ~= nil and (cmdID < 0)) then 
+	if (cmdID ~= nil and (cmdID < 0)) then
 		buildUnitDefID = -1* cmdID
 		if unitDefRings[buildUnitDefID] then
 			local rings = unitDefRings[buildUnitDefID]
-			-- only add to ally, independent of buttonconfig (ugh) 
-			-- todo, this wont show the respective attack range ring if the button for it is off. 
+			-- only add to ally, independent of buttonconfig (ugh)
+			-- todo, this wont show the respective attack range ring if the button for it is off.
 			-- Ergo we should rather gate addition on buttonConfig in visibleUnitCreated
 			-- instead of during the draw pass
 
 			local mx, my, lp, mp, rp, offscreen = Spring.GetMouseState()
 			local _, coords = Spring.TraceScreenRay(mx, my, true)
-			--spEcho(cmdID, "Attempting to draw rings at") 
+			--spEcho(cmdID, "Attempting to draw rings at")
 			--spEcho(mx, my, coords[1], coords[2], coords[3])
-			
-			if coords and coords[1] and coords[2] and coords[3] then 
+
+			if coords and coords[1] and coords[2] and coords[3] then
 				local bpx, bpy, bpz = Spring.Pos2BuildPos(buildUnitDefID, coords[1], coords[2], coords[3])
 				local allystring = 'ally'
 				for i, weaponType in pairs(unitDefRings[buildUnitDefID]['weapons']) do
@@ -947,15 +947,17 @@ function widget:Update(dt)
                       or colorConfig.drawAllyCategoryBuildQueue
                    then
                        local ringParams = unitDefRings[buildUnitDefID]['rings'][i]
-                       cacheTable[1] = bpx
-                       cacheTable[2] = ringParams[18]
-                       cacheTable[3] = bpz
-                       for j = 1,13 do
-                           cacheTable[j+3] = ringParams[j]
+                       if ringParams then
+                           cacheTable[1] = bpx
+                           cacheTable[2] = ringParams[18]
+                           cacheTable[3] = bpz
+                           for j = 1,13 do
+                               cacheTable[j+3] = ringParams[j]
+                           end
+                           local vaokey    = allystring .. weaponType
+                           local instanceID = 2000000 + 100000 * i + buildUnitDefID
+                           pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, true)
                        end
-                       local vaokey    = allystring .. weaponType
-                       local instanceID = 2000000 + 100000 * i + buildUnitDefID
-                       pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, true)
                    end
                end
 			end
@@ -1009,8 +1011,8 @@ local function DRAWRINGS(primitiveType, linethickness, classes, alpha)
 			local iT = defenseRangeVAOs[defRangeClass]
 
 			 -- if we might have queued buildings here, and we already discarded addition of unwanted rings based on buttonConfig in visibleUnitCreated
-				
-			if iT.usedElements > 0 and (buttonConfig[allyState][wt] or buildDrawOverride[wt]) then 
+
+			if iT.usedElements > 0 and (buttonConfig[allyState][wt] or buildDrawOverride[wt]) then
 				defenseRangeShader:SetUniform("cannonmode",colorConfig[wt].cannonMode and 1 or 0)
 				defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig[wt][alpha])
 				if linethickness then

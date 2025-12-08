@@ -30,12 +30,14 @@ local CRUSH = {
 }
 
 local DEPTH = {
-	NONE       = 0,
-	SHALLOW    = 10, -- add unit size tolerances to this value
-	SUBMERGED  = 15,
-	AMPHIBIOUS = 5000,
-	MAXIMUM    = 9999, -- aribitrary limit
-	DEFAULT    = 1000000,
+	NONE		= 0,
+	TICK		= 5,
+	MIN_SHALLOW = 8,  -- default minimum for ships
+	MAX_SHALLOW = Spring.GetModOptions().proposed_unit_reworks == true and 20 or 22, -- default maximum for land units
+	SUBMERGED	= 15, -- minimum depth for subs and huge ships
+	AMPHIBIOUS	= 5000,
+	MAXIMUM		= 9999, -- aribitrary limit
+	DEFAULT		= 1000000,
 }
 
 local SLOPE = {
@@ -149,20 +151,20 @@ local moveDatas = {
 	BOAT3 = {
 		crushstrength = CRUSH.LIGHT - 1,
 		footprint = 3,
-		minwaterdepth = DEPTH.SHALLOW - 2,
+		minwaterdepth = DEPTH.MIN_SHALLOW,
 	},
 	--armmls armroy armaas corrsub corroy armship coracsub armserp  corpship  corarch
 	BOAT4 = {
 		crushstrength = CRUSH.LIGHT - 1,
 		footprint = 4,
-		minwaterdepth = DEPTH.SHALLOW - 2,
+		minwaterdepth = DEPTH.MIN_SHALLOW,
 	},
 	-- cruisers / missile ships / transport ships
 	-- armtship cormship corcrus armmship cortship armcrus
 	BOAT5 = {
 		crushstrength = CRUSH.SMALL - 2,
 		footprint = 5,
-		minwaterdepth = DEPTH.SHALLOW,
+		minwaterdepth = DEPTH.MIN_SHALLOW,
 	},
 	-- armcarry armdronecarry armepoch corblackhy armbats corbats corcarry cordronecarry corsentinel armtrident coresuppt3
 	BOAT9 = {
@@ -238,7 +240,7 @@ local moveDatas = {
 		footprint = 2,
 		maxslope = SLOPE.MINIMUM,
 		slopeMod = SLOPE_MOD.MODERATE,
-		maxwaterdepth = DEPTH.SHALLOW + 12,
+		maxwaterdepth = DEPTH.MAX_SHALLOW,
 		depthModParams = depthModGeneric,
 	},
 	-- armjam corraid armjanus armsam armstump corwolv legcv corsent coreter corcv  cormist legrail legacv armacv armgremlin armmlv
@@ -248,7 +250,7 @@ local moveDatas = {
 		footprint = 3,
 		maxslope = SLOPE.MINIMUM,
 		slopeMod = SLOPE_MOD.MODERATE,
-		maxwaterdepth = DEPTH.SHALLOW + 12,
+		maxwaterdepth = DEPTH.MAX_SHALLOW,
 		depthModParams = depthModGeneric,
 	},
 
@@ -258,7 +260,7 @@ local moveDatas = {
 		footprint = 3,
 		maxslope = SLOPE.MINIMUM,
 		slopeMod = SLOPE_MOD.SLOW,
-		maxwaterdepth = DEPTH.SHALLOW + 12,
+		maxwaterdepth = DEPTH.MAX_SHALLOW,
 		depthModParams = depthModGeneric,
 	},
 	-- corgol leginf corban cortrem armmanni armmerl legkeres legmed corsiegebreaker
@@ -267,7 +269,7 @@ local moveDatas = {
 		footprint = 4,
 		maxslope = SLOPE.MINIMUM,
 		slopeMod = SLOPE_MOD.VERY_SLOW,
-		maxwaterdepth = DEPTH.SHALLOW + 12,
+		maxwaterdepth = DEPTH.MAX_SHALLOW,
 		depthModParams = depthModGeneric,
 	},
 	-- armthor
@@ -276,7 +278,7 @@ local moveDatas = {
 		footprint = 7,
 		maxslope = SLOPE.MODERATE,
 		slopeMod = SLOPE_MOD.GLACIAL,
-		maxwaterdepth = DEPTH.SHALLOW + 14,
+		maxwaterdepth = DEPTH.MAX_SHALLOW,
 		depthModParams = depthModGeneric,
 	},
 
@@ -286,7 +288,7 @@ local moveDatas = {
 		crushstrength = CRUSH.TINY,
 		footprint = 2,
 		maxslope = SLOPE.DIFFICULT,
-		maxwaterdepth = DEPTH.SHALLOW * 0.5,
+		maxwaterdepth = DEPTH.TICKSHALLOW,
 		depthModParams = depthModGeneric,
 	},
 	--cornecro leggob legkark armpw armfark armrectr corak corfast corspy leglob armspy
@@ -294,7 +296,7 @@ local moveDatas = {
 		crushstrength = CRUSH.SMALL - 3,
 		footprint = 2,
 		maxslope = SLOPE.DIFFICULT,
-		maxwaterdepth = DEPTH.SHALLOW + 12,
+		maxwaterdepth = DEPTH.MAX_SHALLOW,
 		depthModParams = depthModGeneric,
 	},
 	--  armfido leggstr corhrk armmav armfast armzeus
@@ -302,7 +304,7 @@ local moveDatas = {
 		crushstrength = CRUSH.MEDIUM,
 		footprint = 3,
 		maxslope = SLOPE.DIFFICULT,
-		maxwaterdepth = DEPTH.SHALLOW + 12,
+		maxwaterdepth = DEPTH.MAX_SHALLOW,
 		depthModParams = depthModGeneric,
 	},
 
@@ -311,7 +313,7 @@ local moveDatas = {
 		crushstrength = CRUSH.HEAVY + 2,
 		footprint = 4,
 		maxslope = SLOPE.DIFFICULT,
-		maxwaterdepth = DEPTH.SHALLOW + 16,
+		maxwaterdepth = DEPTH.MAX_SHALLOW,
 		depthModParams = depthModGeneric,
 	},
 	-- corshiva armmar armbanth legjav
@@ -328,7 +330,7 @@ local moveDatas = {
 		crushstrength = CRUSH.HEAVY + 2,
 		footprint = 6,
 		maxslope = SLOPE.MAXIMUM,
-		maxwaterdepth = DEPTH.SHALLOW + 12,
+		maxwaterdepth = DEPTH.MAX_SHALLOW,
 		depthModParams = depthModGeneric,
 	},
 	-- corkorg legeheatraymech
@@ -345,14 +347,14 @@ local moveDatas = {
 		crushstrength = CRUSH.HUGE,
 		footprint = 7,
 		maxslope = SLOPE.DIFFICULT,
-		maxwaterdepth = DEPTH.SHALLOW + 20,
+		maxwaterdepth = DEPTH.MAX_SHALLOW,
 		depthModParams = depthModGeneric,
 	},
 	-- legsrail armscab armsptk cortermite armspid pbr_cube  dbg_sphere_fullmetal _dbgsphere leginfestor
 	TBOT3 = {
 		crushstrength = CRUSH.SMALL - 3,
 		footprint = 3,
-		maxwaterdepth = DEPTH.SHALLOW + 12,
+		maxwaterdepth = DEPTH.MAX_SHALLOW,
 		depthModParams = depthModGeneric,
 	},
 
@@ -493,7 +495,7 @@ local moveDatas = {
 		crushstrength = CRUSH.MASSIVE,
 		footprint = 5,
 		maxslope = SLOPE.MAXIMUM,
-		minwaterdepth = DEPTH.SHALLOW + 2,
+		minwaterdepth = DEPTH.SUBMERGED,
 		maxwaterdepth = DEPTH.MAXIMUM,
 		maxwaterslope = SLOPE.MAXIMUM,
 		speedModClass = SPEED_CLASS.Ship,

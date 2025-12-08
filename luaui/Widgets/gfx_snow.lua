@@ -148,7 +148,7 @@ end
 local function removeSnow()
 	removeParticleLists()
 	if shader ~= nil then
-		glDeleteShader(shader)
+		shader:Finalize()
 		shader = nil
 	end
 end
@@ -207,11 +207,12 @@ local function init()
 			uniform float scale;
 			uniform vec3 speed;
 			uniform vec3 camPos;
+			out vec4 vertexColor;
 			void main(void)
 			{
 				vec3 scalePos = vec3(gl_Vertex) * scale;
 
-				gl_FrontColor = vec4(0.8,0.8,0.9,0.66 * cos(scalePos.y));
+				vertexColor = vec4(0.8,0.8,0.9,0.66 * cos(scalePos.y));
 
 				vec3 pos = scalePos - mod(camPos, scale);
 				pos.y -= time * 0.5 * (speed.x * (2.0 + gl_Vertex.w));
@@ -238,6 +239,16 @@ local function init()
 				gl_PointSize = (1.0 + gl_Vertex.w) * 5000.0 / length(eyePos);
 
 				gl_Position = gl_ProjectionMatrix * eyePos;
+			}
+		]],
+		fragment = [[
+			#version 150 compatibility
+			uniform sampler2D tex0;
+			in vec4 vertexColor;
+			out vec4 fragColor;
+			void main(void)
+			{
+				fragColor = texture(tex0, gl_PointCoord) * vertexColor;
 			}
 		]],
 		uniformFloat = {

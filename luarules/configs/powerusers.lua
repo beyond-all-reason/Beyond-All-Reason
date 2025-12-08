@@ -22,7 +22,7 @@ local singleplayer = {		-- note: these permissions override others when singlepl
 	cmd = true,
 	devhelpers = true,
 	waterlevel = true,
-	playerdata = false,
+	playerdata = true,
 	sysinfo = false,
 }
 

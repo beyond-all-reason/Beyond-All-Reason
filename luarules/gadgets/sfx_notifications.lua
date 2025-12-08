@@ -221,7 +221,7 @@ else
 			end
 		end
 
-		if isCommander[unitDefID] and not select(3, Spring.GetTeamInfo(unitTeam)) then
+		if isCommander[unitDefID] and not select(3, Spring.GetTeamInfo(unitTeam)) and not Spring.GetUnitRulesParam(unitID, "muteDestructionNotification") then
 			local myComCount = 0
 			local allyComCount = 0
 			local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
@@ -277,7 +277,6 @@ else
 				for ct, player in pairs (players) do
 					if tostring(player) then
 						if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
-
 						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < Spring.GetGameFrame()) then
 							GG["notifications"].queueNotification("NeutralCommanderSelfD", "playerID", tostring(player), true)
 						else
@@ -289,7 +288,6 @@ else
 				for ct, player in pairs (players) do
 					if tostring(player) then
 						if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
-
 						elseif not attackerTeam and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < Spring.GetGameFrame()) then
 							GG["notifications"].queueNotification("NeutralCommanderSelfD", "playerID", tostring(player), true)
 						else

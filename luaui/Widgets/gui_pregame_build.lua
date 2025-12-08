@@ -76,6 +76,7 @@ local BUILD_SQUARE_SIZE = SQUARE_SIZE * 2
 local BUILDING_COUNT_FUDGE_FACTOR = 1.4
 local BUILDING_DETECTION_TOLERANCE = 10
 local HALF = 0.5
+local MAX_DRAG_BUILD_COUNT = 200
 
 local function buildFacingHandler(command, line, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
@@ -336,6 +337,17 @@ local function fillRow(startX, startZ, stepX, stepZ, count, facing)
 	return result
 end
 
+local function truncateBuildPositions(result)
+	if #result > MAX_DRAG_BUILD_COUNT then
+		local truncated = {}
+		for i = 1, MAX_DRAG_BUILD_COUNT do
+			truncated[i] = result[i]
+		end
+		return truncated
+	end
+	return result
+end
+
 local function calculateBuildingPlacementSteps(unitDefID, startPos, endPos, spacing, facing)
 	local buildingWidth, buildingHeight = GetBuildingDimensions(unitDefID, facing)
 	local delta = { x = endPos.x - startPos.x, z = endPos.z - startPos.z }
@@ -380,7 +392,8 @@ local function getBuildPositionsLine(unitDefID, facing, startPos, endPos, spacin
 		xStep = zStep * delta.x / (delta.z ~= 0 and delta.z or 1)
 	end
 
-	return fillRow(snappedStart.x, snappedStart.z, xStep, zStep, xGreaterThanZ and xCount or zCount, facing)
+	local result = fillRow(snappedStart.x, snappedStart.z, xStep, zStep, xGreaterThanZ and xCount or zCount, facing)
+	return truncateBuildPositions(result)
 end
 
 local function getBuildPositionsGrid(unitDefID, facing, startPos, endPos, spacing)
@@ -403,8 +416,8 @@ local function getBuildPositionsGrid(unitDefID, facing, startPos, endPos, spacin
 		end
 		currentRowZ = currentRowZ + zStep
 	end
-	
-	return result
+
+	return truncateBuildPositions(result)
 end
 
 local function getBuildPositionsBox(unitDefID, facing, startPos, endPos, spacing)
@@ -433,8 +446,8 @@ local function getBuildPositionsBox(unitDefID, facing, startPos, endPos, spacing
 	elseif zCount == 1 then
 		table.append(result, fillRow(snappedStart.x, snappedStart.z, xStep, 0, xCount, facing))
 	end
-	
-	return result
+
+	return truncateBuildPositions(result)
 end
 
 local function getBuildPositionsAround(unitDefID, facing, target)
@@ -651,7 +664,7 @@ function widget:Update(dt)
 	prevShiftState = shift
 
 	if not leftButton then
-		if buildModeState.startPosition and #buildModeState.buildPositions > 0 then
+		if buildModeState.startPosition and #buildModeState.buildPositions > 0 and selBuildQueueDefID then
 			local newBuildQueue = {}
 
 			for _, buildPos in ipairs(buildModeState.buildPositions) do
@@ -761,6 +774,13 @@ function widget:MousePress(mx, my, button)
 		return
 	end
 	local _, _, meta, shift = Spring.GetModKeyState()
+
+	if button == 3 and selBuildQueueDefID then
+		setPreGamestartDefID(nil)
+		buildModeState.startPosition = nil
+		buildModeState.buildPositions = {}
+		return true
+	end
 
 	if button == 3 and shift then
 		local x, y, _ = spGetMouseState()
@@ -959,12 +979,6 @@ function widget:MousePress(mx, my, button)
 		end
 
 		return true
-	end
-
-	if button == 3 then
-		setPreGamestartDefID(nil)
-		buildModeState.startPosition = nil
-		buildModeState.buildPositions = {}
 	end
 
 	if button == 1 and #buildQueue > 0 and buildQueue[1][1]>0 then
