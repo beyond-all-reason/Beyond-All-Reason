@@ -1,6 +1,6 @@
 return {
 	lightning_chain = {
-		areaofeffect = 8,
+		areaofeffect = 48,
 				avoidfeature = false,
 				beamttl = 1,
 				craterareaofeffect = 0,
