@@ -6,7 +6,7 @@ return {
 		canrepeat = false,
 		corpse = "DEAD",
 		energycost = 1700,
-		energystorage = 6000,
+		energystorage = 60000,
 		explodeas = "largeBuildingExplosionGeneric-uw",
 		footprintx = 4,
 		footprintz = 4,

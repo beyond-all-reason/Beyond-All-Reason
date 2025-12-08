@@ -11,7 +11,7 @@ return {
 		damagemodifier = 0.95,
 		energycost = 550000,
 		energymake = 30000,
-		energystorage = 90000,
+		energystorage = 150000,
 		explodeas = "ScavComBossExplo",
 		footprintx = 12,
 		footprintz = 12,

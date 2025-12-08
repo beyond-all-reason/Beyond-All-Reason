@@ -19,7 +19,7 @@ return {
 		maxslope = 20,
 		maxwaterdepth = 9999,
 		metalcost = 760,
-		metalstorage = 10000,
+		metalstorage = 100000,
 		objectname = "Units/CORUWADVMS.s3o",
 		script = "Units/CORUWADVMS.cob",
 		seismicsignature = 0,

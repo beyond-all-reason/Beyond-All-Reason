@@ -19,7 +19,7 @@ return {
 		health = 11200,
 		maxslope = 20,
 		maxwaterdepth = 9999,
-		metalstorage = 10000,
+		metalstorage = 100000,
 		objectname = "Units/legamstor.s3o",
 		script = "Units/legamstor.cob",
 		seismicsignature = 0,

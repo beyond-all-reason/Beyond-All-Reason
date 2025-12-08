@@ -11,7 +11,7 @@ return {
 		damagemodifier = 0.95,
 		energycost = 69000,
 		energymake = 3300,
-		energystorage = 9000,
+		energystorage = 15000,
 		explodeas = "customfusionexplo",
 		footprintx = 6,
 		footprintz = 6,
