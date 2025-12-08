@@ -1885,6 +1885,10 @@ function WeaponDef_Post(name, wDef)
 		--Controls whether the weapon aims for the center or the edge of its target's collision volume. Clamped between -1.0 - target the far border, and 1.0 - target the near border.
 		if wDef.targetborder == nil then
 			wDef.targetborder = 1 --Aim for just inside the hitsphere
+
+			if wDef.weapontype == "BeamLaser" or wDef.weapontype == "LightningCannon" then
+				wDef.targetborder = 0.33 --approximates in current engine with bugged calculation, to targetborder = 1. 
+			end
 		end
 
 		if wDef.craterareaofeffect then
