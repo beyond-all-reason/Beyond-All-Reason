@@ -21,11 +21,26 @@ local CMD_RESURRECT = CMD.RESURRECT
 local CMD_WAIT = CMD.WAIT
 local UPDATE_INTERVAL = Game.gameSpeed
 
-local gameFrame = Spring.GetGameFrame()
-
+local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+local spGetFeatureRulesParam = Spring.GetFeatureRulesParam
+local spSetUnitRulesParam = Spring.SetUnitRulesParam
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitWorkerTask = Spring.GetUnitWorkerTask
+local spSetUnitHealth = Spring.SetUnitHealth
+local spSetUnitExperience = Spring.SetUnitExperience
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitExperience = Spring.GetUnitExperience
+local spGetFeaturePosition = Spring.GetFeaturePosition
+local spGetFeatureResurrect = Spring.GetFeatureResurrect
+local spSetFeatureRulesParam = Spring.SetFeatureRulesParam
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetAllUnits = Spring.GetAllUnits
+local spGetUnitRulesParam = Spring.GetUnitRulesParam
+
+local gameFrame = spGetGameFrame()
 
 local corpseRegistryByDefID = {}
 local rezUnitDefs = {}
@@ -47,7 +62,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-GG.CorpseToUnitLink = GG.CorpseToUnitLink or {}
 
 local function getPositionHash(x, z) -- we use hashing as a bridge between UnitDestroyed and FeatureCreated which are separated by their death animation duration.
 	x = math.floor(x)
@@ -61,11 +75,11 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		unitDefLink = {}
 		corpseRegistryByDefID[unitDefID] = unitDefLink
 	end
-	local x, y, z = Spring.GetUnitPosition(unitID)
+	local x, y, z = spGetUnitPosition(unitID)
 	if not x then
 		return
 	end
-	local xp = Spring.GetUnitExperience(unitID)
+	local xp = spGetUnitExperience(unitID)
 	local positionHash = getPositionHash(x, z)
 	unitDefLink[positionHash] = {
 		deadUnitID = unitID,
@@ -80,7 +94,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:FeatureCreated(featureID, allyTeam)
-	local resurrectData = Spring.GetFeatureResurrect(featureID)
+	local resurrectData = spGetFeatureResurrect(featureID)
 	if resurrectData then
 		local resurrectUnitName = resurrectData
 		local resurrectUnitDefID
@@ -93,34 +107,26 @@ function gadget:FeatureCreated(featureID, allyTeam)
 			end
 		end
 
-		local x, y, z = Spring.GetFeaturePosition(featureID)
+		local x, y, z = spGetFeaturePosition(featureID)
 		local unitDefLink = corpseRegistryByDefID[resurrectUnitDefID]
 		if unitDefLink and x then
 			local positionHash = getPositionHash(x, z)
 			local corpseLink = unitDefLink[positionHash]
 			if corpseLink then
-				GG.CorpseToUnitLink[featureID] = {
-					deadUnitID = corpseLink.deadUnitID,
-					unitTeam = corpseLink.unitTeam,
-					xp = corpseLink.xp,
-					attackerID = corpseLink.attackerID,
-					attackerDefID = corpseLink.attackerDefID,
-					attackerTeam = corpseLink.attackerTeam,
-					attackerWeaponDefID = corpseLink.attackerWeaponDefID,
-				}
+				spSetFeatureRulesParam(featureID, "corpse_deadUnitID", corpseLink.deadUnitID)
+				spSetFeatureRulesParam(featureID, "corpse_unitTeam", corpseLink.unitTeam)
+				spSetFeatureRulesParam(featureID, "corpse_xp", corpseLink.xp)
+				spSetFeatureRulesParam(featureID, "killerID", corpseLink.attackerID)
+				spSetFeatureRulesParam(featureID, "killerTeam", corpseLink.attackerTeam)
 				unitDefLink[positionHash] = nil
 			end
 		end
 	end
 end
 
-function gadget:FeatureDestroyed(featureID, allyTeam)
-	GG.CorpseToUnitLink[featureID] = nil
-end
-
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if builderID then
-		if rezUnitDefs[Spring.GetUnitDefID(builderID)] then
+		if rezUnitDefs[spGetUnitDefID(builderID)] then
 			if (not isBuilding[unitDefID]) and (not isBuilder[unitDefID]) then
 				toBeUnWaited[unitID] = true
 				prevHealth[unitID] = 0
@@ -128,18 +134,24 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 			end
 		end
 
-		local cmdID, targetID = Spring.GetUnitWorkerTask(builderID)
+		local cmdID, targetID = spGetUnitWorkerTask(builderID)
 		if cmdID == CMD_RESURRECT and targetID then
 			local corpseLinkFeatureID = targetID - Game.maxUnits
 			if corpseLinkFeatureID then
-				local rezRulesParam = Spring.GetUnitRulesParam(unitID, "resurrected")
+				local rezRulesParam = spGetUnitRulesParam(unitID, "resurrected")
 				if rezRulesParam == nil then
-					Spring.SetUnitRulesParam(unitID, "resurrected", 1, {inlos=true})
-					Spring.SetUnitHealth(unitID, Spring.GetUnitHealth(unitID) * 0.05)
+					spSetUnitRulesParam(unitID, "resurrected", 1, {inlos=true})
+					spSetUnitHealth(unitID, spGetUnitHealth(unitID) * 0.05)
 				end
 
-				if GG.CorpseToUnitLink[corpseLinkFeatureID] then
-					Spring.SetUnitExperience(unitID, GG.CorpseToUnitLink[corpseLinkFeatureID].xp)
+				spSetUnitRulesParam(unitID, "priorlife_deadUnitID", spGetFeatureRulesParam(corpseLinkFeatureID, "corpse_deadUnitID"), {inlos=true})
+				spSetUnitRulesParam(unitID, "priorlife_unitTeam", spGetFeatureRulesParam(corpseLinkFeatureID, "corpse_unitTeam"), {inlos=true})
+				local xp = spGetFeatureRulesParam(corpseLinkFeatureID, "corpse_xp")
+				spSetUnitRulesParam(unitID, "priorlife_xp", xp, {inlos=true})
+				spSetUnitRulesParam(unitID, "priorlife_killerID", spGetFeatureRulesParam(corpseLinkFeatureID, "killerID"), {inlos=true})
+				spSetUnitRulesParam(unitID, "priorlife_killerTeam", spGetFeatureRulesParam(corpseLinkFeatureID, "killerTeam"), {inlos=true})
+				if xp then
+					spSetUnitExperience(unitID, tonumber(xp))
 				end
 			end
 		end
@@ -180,10 +192,10 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:Initialize()
-	local allUnits = Spring.GetAllUnits()
+	local allUnits = spGetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+		gadget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
 	end
 end
 
