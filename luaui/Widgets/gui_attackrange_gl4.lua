@@ -672,7 +672,6 @@ local function AddSelectedUnit(unitID, mouseover, newRange)
 			if not newRange[weaponNum] then	-- Prevent unnecessary duplicate engine calls.
 				newRange[weaponNum] = spGetUnitWeaponState(unitID, weaponNum, "range")
 			end
-			oldRange[unitID][weaponNum] = {true, true}
 			oldRange[unitID][weaponNum] = {weaponNum, newRange[weaponNum]}
 		end
 	end
