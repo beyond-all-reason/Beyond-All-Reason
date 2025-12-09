@@ -4,7 +4,7 @@ return {
 		craterboost = 0,
 		cratermult = 0,
 		edgeeffectiveness = 0.45,
-		explosiongenerator = "custom:newnukehuge",
+		explosiongenerator = "custom:genericunitexplosion-gigantic-dirty",
 		impulsefactor = 4,
 		name = "WimpyCrawlingBomb",
 		range = 500,
