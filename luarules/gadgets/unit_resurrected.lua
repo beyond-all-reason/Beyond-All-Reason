@@ -19,6 +19,8 @@ end
 local TIMEOUT = Game.gameSpeed * 3
 local CMD_RESURRECT = CMD.RESURRECT
 local CMD_WAIT = CMD.WAIT
+local CMD_FIRE_STATE = CMD.FIRE_STATE
+local CMD_MOVE_STATE = CMD.MOVE_STATE
 local UPDATE_INTERVAL = Game.gameSpeed
 
 local spGetGameFrame = Spring.GetGameFrame
@@ -33,6 +35,7 @@ local spSetUnitHealth = Spring.SetUnitHealth
 local spSetUnitExperience = Spring.SetUnitExperience
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitExperience = Spring.GetUnitExperience
+local spGetUnitStates = Spring.GetUnitStates
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetFeatureResurrect = Spring.GetFeatureResurrect
 local spSetFeatureRulesParam = Spring.SetFeatureRulesParam
@@ -80,6 +83,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		return
 	end
 	local xp = spGetUnitExperience(unitID)
+	local unitStates = spGetUnitStates(unitID)
 	local positionHash = getPositionHash(x, z)
 	unitDefLink[positionHash] = {
 		deadUnitID = unitID,
@@ -89,6 +93,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		attackerDefID = attackerDefID,
 		attackerTeam = attackerTeam,
 		attackerWeaponDefID = weaponDefID,
+		firestate = unitStates.firestate,
+		movestate = unitStates.movestate,
 		timeout = gameFrame + TIMEOUT
 	}
 end
@@ -118,6 +124,8 @@ function gadget:FeatureCreated(featureID, allyTeam)
 				spSetFeatureRulesParam(featureID, "corpse_xp", corpseLink.xp)
 				spSetFeatureRulesParam(featureID, "killerID", corpseLink.attackerID)
 				spSetFeatureRulesParam(featureID, "killerTeam", corpseLink.attackerTeam)
+				spSetFeatureRulesParam(featureID, "restored_firestate", corpseLink.firestate)
+				spSetFeatureRulesParam(featureID, "restored_movestate", corpseLink.movestate)
 				unitDefLink[positionHash] = nil
 			end
 		end
@@ -150,6 +158,14 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 				spSetUnitRulesParam(unitID, "priorlife_xp", xp, {inlos=true})
 				spSetUnitRulesParam(unitID, "priorlife_killerID", spGetFeatureRulesParam(corpseLinkFeatureID, "killerID"), {inlos=true})
 				spSetUnitRulesParam(unitID, "priorlife_killerTeam", spGetFeatureRulesParam(corpseLinkFeatureID, "killerTeam"), {inlos=true})
+				local firestate = spGetFeatureRulesParam(corpseLinkFeatureID, "restored_firestate")
+				local movestate = spGetFeatureRulesParam(corpseLinkFeatureID, "restored_movestate")
+				if firestate then
+					spGiveOrderToUnit(unitID, CMD_FIRE_STATE, {tonumber(firestate)}, 0)
+				end
+				if movestate then
+					spGiveOrderToUnit(unitID, CMD_MOVE_STATE, {tonumber(movestate)}, 0)
+				end
 				if xp then
 					spSetUnitExperience(unitID, tonumber(xp))
 				end
