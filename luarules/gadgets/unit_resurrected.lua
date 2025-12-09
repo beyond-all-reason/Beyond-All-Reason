@@ -17,7 +17,6 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local TIMEOUT = Game.gameSpeed * 3
-local NOT_REZZING = -1 -- negative to be an invalid featureID
 local CMD_RESURRECT = CMD.RESURRECT
 local CMD_WAIT = CMD.WAIT
 local UPDATE_INTERVAL = Game.gameSpeed
@@ -30,7 +29,6 @@ local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 
 local corpseRegistryByDefID = {}
 local rezUnitDefs = {}
-local rezzingUnits = {}
 local isBuilding = {}
 local isBuilder = {}
 local toBeUnWaited = {}
@@ -121,27 +119,29 @@ function gadget:FeatureDestroyed(featureID, allyTeam)
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if rezUnitDefs[unitDefID] then
-		rezzingUnits[unitID] = NOT_REZZING
-	end
-	if builderID and rezUnitDefs[Spring.GetUnitDefID(builderID)] then
-		if (not isBuilding[unitDefID]) and (not isBuilder[unitDefID]) then
-			toBeUnWaited[unitID] = true
-			prevHealth[unitID] = 0
-			spGiveOrderToUnit(unitID, CMD_WAIT, {}, 0)
-		end
-	end
-
-	local corpseLinkFeatureID = rezzingUnits[builderID] ~= NOT_REZZING and rezzingUnits[builderID] or nil
-	if corpseLinkFeatureID then
-		local rezRulesParam = Spring.GetUnitRulesParam(unitID, "resurrected")
-		if rezRulesParam == nil then
-			Spring.SetUnitRulesParam(unitID, "resurrected", 1, {inlos=true})
-			Spring.SetUnitHealth(unitID, Spring.GetUnitHealth(unitID) * 0.05)
+	if builderID then
+		if rezUnitDefs[Spring.GetUnitDefID(builderID)] then
+			if (not isBuilding[unitDefID]) and (not isBuilder[unitDefID]) then
+				toBeUnWaited[unitID] = true
+				prevHealth[unitID] = 0
+				spGiveOrderToUnit(unitID, CMD_WAIT, {}, 0)
+			end
 		end
 
-		if GG.CorpseToUnitLink[corpseLinkFeatureID] then
-			Spring.SetUnitExperience(unitID, GG.CorpseToUnitLink[corpseLinkFeatureID].xp)
+		local cmdID, targetID = Spring.GetUnitWorkerTask(builderID)
+		if cmdID == CMD_RESURRECT and targetID then
+			local corpseLinkFeatureID = targetID - Game.maxUnits
+			if corpseLinkFeatureID then
+				local rezRulesParam = Spring.GetUnitRulesParam(unitID, "resurrected")
+				if rezRulesParam == nil then
+					Spring.SetUnitRulesParam(unitID, "resurrected", 1, {inlos=true})
+					Spring.SetUnitHealth(unitID, Spring.GetUnitHealth(unitID) * 0.05)
+				end
+
+				if GG.CorpseToUnitLink[corpseLinkFeatureID] then
+					Spring.SetUnitExperience(unitID, GG.CorpseToUnitLink[corpseLinkFeatureID].xp)
+				end
+			end
 		end
 	end
 end
@@ -175,16 +175,6 @@ function gadget:GameFrame(frame)
 					prevHealth[unitID] = health
 				end
 			end
-		end
-	end
-
-	for unitID, rezzing in pairs(rezzingUnits) do
-		local currentTask, targetID = Spring.GetUnitWorkerTask(unitID)
-		if currentTask == CMD_RESURRECT and targetID then
-			local featureID = targetID - Game.maxUnits
-			rezzingUnits[unitID] = featureID
-		else
-			rezzingUnits[unitID] = NOT_REZZING
 		end
 	end
 end
