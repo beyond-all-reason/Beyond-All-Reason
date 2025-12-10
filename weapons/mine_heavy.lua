@@ -1,8 +1,8 @@
 return {
 	mine_heavy = {
-		areaofeffect = 530,--330
-		craterboost = 0,
-		cratermult = 0,
+		areaofeffect = 1000,
+		craterboost = 1,
+		cratermult = 1000,
 		edgeeffectiveness = 0.75,
 		explosiongenerator = "custom:genericunitexplosion-large-dirty",
 		impulsefactor = 4.8,--0.8
@@ -13,7 +13,7 @@ return {
 		soundstart = "largegun",
 		weaponvelocity = 450,--250
 		damage = {
-			default = 22202,
+			default = 19202,
 			mines = 1,
 		},
 	},
