@@ -39,7 +39,8 @@ end
 local function spawnUnits(name, unitDefName, teamID, position, quantity, spacing, facing, construction, alert)
 	if name and not trackedUnits[name] then trackedUnits[name] = {} end
 
-	local positions = generateGridPositions(position, quantity or 1, spacing or 50)
+	local defaultSpacing = 50 -- Enough for most units
+	local positions = generateGridPositions(position, quantity or 1, spacing or defaultSpacing)
 
 	for _, pos in pairs(positions) do
 		pos.y = Spring.GetGroundHeight(pos.x, pos.z)
