@@ -3,7 +3,7 @@ return {
 		areaofeffect = 1000,
 		craterboost = 1,
 		cratermult = 1000,
-		edgeeffectiveness = 0.75,
+		edgeeffectiveness = 0.45,
 		explosiongenerator = "custom:genericunitexplosion-large-dirty",
 		impulsefactor = 4.8,--0.8
 		name = "HeavyMine",
