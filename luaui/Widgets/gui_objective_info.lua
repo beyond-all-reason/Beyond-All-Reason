@@ -2,7 +2,7 @@ function widget:GetInfo()
 	return {
 		name    = "Objective Info",
 		desc    = "Displays information about game objectives.",
-		author  = "Floris",
+		author  = "Floris, SethDGamre",
 		date    = "Jan 2020",
 		license = "GNU GPL, v2 or later",
 		layer   = -99990,
