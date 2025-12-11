@@ -8,6 +8,7 @@ function gadget:GetInfo()
         date      = "4 November 2025",
         license   = "GNU GPL, v2 or later",
         layer     = 5,
+        handler   = true,
         enabled   = true
     }
 end
@@ -99,7 +100,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	}
 end
 
-function gadget:FeatureCreated(featureID, allyTeam)
+
+local function GetPriorUnitID(featureID)
 	local resurrectData = spGetFeatureResurrect(featureID)
 	if resurrectData then
 		local resurrectUnitName = resurrectData
@@ -120,13 +122,11 @@ function gadget:FeatureCreated(featureID, allyTeam)
 			local corpseLink = unitDefLink[positionHash]
 			if corpseLink then
 				spSetFeatureRulesParam(featureID, "corpse_deadUnitID", corpseLink.deadUnitID)
-				spSetFeatureRulesParam(featureID, "corpse_unitTeam", corpseLink.unitTeam)
 				spSetFeatureRulesParam(featureID, "corpse_xp", corpseLink.xp)
-				spSetFeatureRulesParam(featureID, "killerID", corpseLink.attackerID)
-				spSetFeatureRulesParam(featureID, "killerTeam", corpseLink.attackerTeam)
 				spSetFeatureRulesParam(featureID, "restored_firestate", corpseLink.firestate)
 				spSetFeatureRulesParam(featureID, "restored_movestate", corpseLink.movestate)
 				unitDefLink[positionHash] = nil
+				return corpseLink.deadUnitID
 			end
 		end
 	end
@@ -153,11 +153,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 				end
 
 				spSetUnitRulesParam(unitID, "priorlife_deadUnitID", spGetFeatureRulesParam(corpseLinkFeatureID, "corpse_deadUnitID"), {inlos=true})
-				spSetUnitRulesParam(unitID, "priorlife_unitTeam", spGetFeatureRulesParam(corpseLinkFeatureID, "corpse_unitTeam"), {inlos=true})
 				local xp = spGetFeatureRulesParam(corpseLinkFeatureID, "corpse_xp")
-				spSetUnitRulesParam(unitID, "priorlife_xp", xp, {inlos=true})
-				spSetUnitRulesParam(unitID, "priorlife_killerID", spGetFeatureRulesParam(corpseLinkFeatureID, "killerID"), {inlos=true})
-				spSetUnitRulesParam(unitID, "priorlife_killerTeam", spGetFeatureRulesParam(corpseLinkFeatureID, "killerTeam"), {inlos=true})
 				local firestate = spGetFeatureRulesParam(corpseLinkFeatureID, "restored_firestate")
 				local movestate = spGetFeatureRulesParam(corpseLinkFeatureID, "restored_movestate")
 				if firestate then
@@ -207,11 +203,23 @@ function gadget:GameFrame(frame)
 	end
 end
 
+local originalFeatureCreated
+
 function gadget:Initialize()
 	local allUnits = spGetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		gadget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
 	end
+
+	originalFeatureCreated = gadgetHandler.FeatureCreated
+	gadgetHandler.FeatureCreated = function(self, featureID, allyTeam, sourceID)
+		local priorUnitID = sourceID or GetPriorUnitID(featureID)
+		originalFeatureCreated(self, featureID, allyTeam, priorUnitID)
+	end
+end
+
+function gadget:Shutdown()
+	gadgetHandler.FeatureCreated = originalFeatureCreated
 end
 
