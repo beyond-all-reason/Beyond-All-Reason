@@ -49,7 +49,7 @@ end
 
 local function initializeObjectives()
 	if scavengersAIEnabled then
-		loadObjectivesText("scavengers", false)
+		loadObjectivesText("scavengersMoveObjective", false)
 	end
 	-- add additional if statements to add objectives here. Multiple objective entries work but it's best to only do one at a time.
 end
