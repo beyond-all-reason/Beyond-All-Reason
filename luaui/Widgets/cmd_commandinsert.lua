@@ -15,6 +15,16 @@ function widget:GetInfo()
   }
 end
 
+
+-- Localized functions for performance
+local tableInsert = table.insert
+
+-- Localized Spring API for performance
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetGameFrame = Spring.GetGameFrame
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spEcho = Spring.Echo
+
 local math_sqrt = math.sqrt
 
 local modifiers = {
@@ -30,7 +40,7 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged()
-    if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
+    if Spring.GetSpectatingState() and spGetGameFrame() > 0 then
         widgetHandler:RemoveWidget()
     end
 end
@@ -56,7 +66,7 @@ local function releaseHandler(_, _, args)
 end
 
 function widget:Initialize()
-    if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+    if Spring.IsReplay() or spGetGameFrame() > 0 then
         widget:PlayerChanged()
     end
 
@@ -90,12 +100,12 @@ end
 function table.tostring( tbl )
   local result, done = {}, {}
   for k, v in ipairs( tbl ) do
-    table.insert( result, table.val_to_str( v ) )
+    tableInsert( result, table.val_to_str( v ) )
     done[ k ] = true
   end
   for k, v in pairs( tbl ) do
     if not done[ k ] then
-      table.insert( result,
+      tableInsert( result,
         table.key_to_str( k ) .. "=" .. table.val_to_str( v ) )
     end
   end
@@ -105,7 +115,7 @@ end
 
 local function GetUnitOrFeaturePosition(id)
 	if id < Game.maxUnits then
-		return Spring.GetUnitPosition(id)
+		return spGetUnitPosition(id)
 	else
 		return Spring.GetFeaturePosition(id - Game.maxUnits)
 	end
@@ -133,6 +143,8 @@ function widget:CommandNotify(id, params, options)
   if options.alt then opt = opt + CMD.OPT_ALT end
   if options.ctrl then opt = opt + CMD.OPT_CTRL end
   if options.right then opt = opt + CMD.OPT_RIGHT end
+  -- options.meta not forwarded since we're doing insert with it
+  -- and don't want to alias with engine at the same time.
   if options.shift then
     opt = opt + CMD.OPT_SHIFT
 
@@ -160,16 +172,16 @@ function widget:CommandNotify(id, params, options)
   for i=1,#units do
     local unit_id = units[i]
     local commands = Spring.GetUnitCommands(unit_id,100)
-    local px,py,pz = Spring.GetUnitPosition(unit_id)
+    local px,py,pz = spGetUnitPosition(unit_id)
     local min_dlen = 1000000
     local insert_pos = 0
     for j=1,#commands do
       local command = commands[j]
-      --Spring.Echo("cmd:"..table.tostring(command))
+      --spEcho("cmd:"..table.tostring(command))
       local px2,py2,pz2 = GetCommandPos(command)
       if px2 and px2>-1 then
         local dlen = math_sqrt(((px2-cx)*(px2-cx)) + ((py2-cy)*(py2-cy)) + ((pz2-cz)*(pz2-cz))) + math_sqrt(((px-cx)*(px-cx)) + ((py-cy)*(py-cy)) + ((pz-cz)*(pz-cz))) - math_sqrt((((px2-px)*(px2-px)) + ((py2-py)*(py2-py)) + ((pz2-pz)*(pz2-pz))))
-        --Spring.Echo("dlen "..dlen)
+        --spEcho("dlen "..dlen)
         if dlen < min_dlen then
           min_dlen = dlen
           insert_pos = j
@@ -182,10 +194,10 @@ function widget:CommandNotify(id, params, options)
     if dlen < min_dlen then
       --options.meta=nil
       --options.shift=true
-      --Spring.GiveOrderToUnit(unit_id,id,params,options)
-      Spring.GiveOrderToUnit(unit_id, id, params, {"shift"})
+      --spGiveOrderToUnit(unit_id,id,params,options)
+      spGiveOrderToUnit(unit_id, id, params, {"shift"})
     else
-      Spring.GiveOrderToUnit(unit_id, CMD.INSERT, {insert_pos-1, id, opt, unpack(params)}, {"alt"})
+      spGiveOrderToUnit(unit_id, CMD.INSERT, {insert_pos-1, id, opt, unpack(params)}, {"alt"})
     end
   end
 

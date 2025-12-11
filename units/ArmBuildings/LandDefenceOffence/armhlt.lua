@@ -2,7 +2,7 @@ return {
 	armhlt = {
 		buildangle = 8192,
 		buildpic = "ARMHLT.DDS",
-		buildtime = 12500,
+		buildtime = 11300,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 11 0",
 		collisionvolumescales = "36 88 36",
@@ -125,7 +125,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "Lasrmas2",
 				soundtrigger = 1,
-				targetmoveerror = 0.2,
 				thickness = 3,
 				tolerance = 10000,
 				turret = true,

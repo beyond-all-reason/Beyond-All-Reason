@@ -135,11 +135,13 @@ function DamageHST:UnitDead(engineUnit)
 end
 
 function DamageHST:VisualDBG()
-	local ch = 1
- 	self.map:EraseAll(ch)
+	
+ 	
 	if not self.ai.drawDebug then
 		return
 	end
+	local ch = 1
+	self.map:EraseAll(ch)
 	local colours = self.ai.tool.COLOURS
 	for id,damaged in pairs(self.isDamaged) do
 		damaged:EraseHighlight(nil, nil, ch )

@@ -1,14 +1,12 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  base, torp1, torp2, bubbles1, bubbles2, bubbles3 ;
+piece  base, torp1, torp2, bubbles1, bubbles2, bubbles3;
 
 static-var  gun_1;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 
 
 #define BASEPIECE base
@@ -28,14 +26,24 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
 	wait-for-turn BASEPIECE around z-axis;
 	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
+	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 4;
+	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 4;
 }
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
 	return (100); //return damage percent
 }
+
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <-0.32>
+#define TB_BANK_Z <0.5> // Do not define this if you dont want banking
+#define TB_WAKE_PIECE bubbles1
+#define TB_WAKE_FOAM 1024 + 1
+#define TB_WAKE_PIECE2 bubbles2
+#define TB_WAKE_PIECE3 bubbles3
+#include "../tilt_bank_submarine.h"
 
 
 Create()
@@ -46,66 +54,62 @@ Create()
 	hide bubbles3;
 	hide bubbles1;
 	gun_1 = torp1;
+	call-script TB_Init();
 }
 
-StartMoving()
+StartMoving(reversing)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	while( TRUE )
-	{
-		emit-sfx 259 from bubbles1;
-		emit-sfx 259 from bubbles2;
-		emit-sfx 259 from bubbles3;
-		sleep 300;
-	}
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+
+	START_TILTBANK;
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	if( gun_1 == 1 )
 	{
+		emit-sfx 1024 + 2 from torp2;
 		gun_1 = torp2;
 		return (0);
 	}
 	if( gun_1 == 2 )
 	{
+		emit-sfx 1024 + 2 from torp1;
 		gun_1 = torp1;
 		return (0);
 	}
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 1 )
 	{
-		piecenum = torp1;
+		pieceIndex = torp1;
 	}
 	if( gun_1 == 2 )
 	{
-		piecenum = torp2;
+		pieceIndex = torp2;
 	}
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

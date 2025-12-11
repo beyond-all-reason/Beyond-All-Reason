@@ -27,7 +27,7 @@ return {
 		movementclass = "UBOAT4",
 		objectname = "Units/armseadragon.s3o",
 		radardistance = 50,
-		script = "Units/armseadragon_clean.cob",
+		script = "Units/armseadragon.cob",
 		seismicsignature = 0,
 		selfdestructas = "nukeBuildingSelfd",
 		sightdistance = 400,
@@ -141,11 +141,11 @@ return {
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 100,
-				damage = {
-					default = 0,
-				},
 				customparams = {
 					scavforcecommandfire = true,
+				},
+				damage = {
+					default = 0,
 				},
 			},
 			sdmssl = {

@@ -1,29 +1,8 @@
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  flare1, flare2, base, thrust, cowl, fan;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, gun_1;
-
-
-activatescr()
-{
-	spin fan around y-axis speed <200> accelerate <10>;
-	turn cowl to x-axis <90> speed <30>;
-	sleep 1000;
-	return (0);
-}
-
-deactivatescr()
-{
-
-	stop-spin fan around y-axis decelerate <10>;
-	turn cowl to x-axis <0> speed <30>;
-	sleep 1000;
-	return (0);
-}
+static-var  gun_1;
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -31,122 +10,48 @@ deactivatescr()
 #define UNITSIZE 1
 #define MAXTILT 100
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-static-var maxSpeed, currentSpeed;
-BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
-{
-	currentSpeed = (get CURRENT_SPEED);
-	maxSpeed = (get MAX_SPEED);
+#define BARRELROLLSPEEED <200>
+#include "../air_barrelroll.h"
 	
-	while (TRUE){
-		sleep 2000;
-		currentSpeed = (get CURRENT_SPEED);
-		//get PRINT(maxSpeed, currentSpeed, Static_Var_1);
-		if( Rand( 1, 5 ) == 1 AND (maxSpeed < (currentSpeed+100) ) )
-		{
-			turn base to z-axis <240.054945> speed <120.027473>;
-			wait-for-turn base around z-axis;
-			turn base to z-axis <120.027473> speed <180.043956>;
-			wait-for-turn base around z-axis;
-			turn base to z-axis <0.000000> speed <120.027473>;
-		}
-	}
-}
-
 Create()
 {
 	hide thrust;
 	hide flare1;
 	hide flare2;
-	Static_Var_1 = 0;
-	gun_1 = 1;
-	call-script InitState();
+	gun_1 = 0;
+	
 	start-script BarrelRoll();
-	return (0);
 }
 
 Activate()
 {
 	show thrust;
-	start-script RequestState(0);
-	return (0);
+	spin fan around y-axis speed <200> accelerate <10>;
+	turn cowl to x-axis <90> speed <30>;
 }
 
 Deactivate()
 {
 	hide thrust;
-	start-script RequestState(1);
-	return (0);
+	stop-spin fan around y-axis decelerate <10>;
+	turn cowl to x-axis <0> speed <30>;
 }
 
-
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return (1);
 }
-QueryPrimary(piecenum)
+
+QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 1 )
-	{
-		piecenum = flare1;
-	}
-	if( gun_1 == 2 )
-	{
-		piecenum = flare2;
-	}
-}
-FirePrimary()
-{
-	if( gun_1 == 1 )
-	{
-	    gun_1 = 2;
-		return (0);
-	}
-	if( gun_1 == 2 )
-	{
-	    gun_1 = 1;
-		return (0);
-	}
+	pieceIndex = flare1 + gun_1;
 }
 
-SweetSpot(piecenum)
+FireWeapon1()
 {
-	piecenum = base;
-	return (0);
+	gun_1 = !gun_1;
 }
+
 
 Killed(severity, corpsetype)
 {

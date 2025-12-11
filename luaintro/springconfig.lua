@@ -4,6 +4,11 @@
 
 Spring.SetConfigString("SplashScreenDir", "./MenuLoadscreens")
 
+-- ghost icons dimming, override engine default but allow user setting
+if Spring.GetConfigFloat("UnitGhostIconsDimming", 0.5) == 0.5 then
+	Spring.SetConfigFloat("UnitGhostIconsDimming", 0.75)
+end
+
 -- set default unit rendering vars
 Spring.SetConfigFloat("tonemapA", 4.75)
 Spring.SetConfigFloat("tonemapB", 0.75)
@@ -32,15 +37,8 @@ Spring.SetConfigInt("CubeTexSizeReflection", 1024)
 -- disable grass
 Spring.SetConfigInt("GrassDetail", 0)
 
--- adv unit shading
-if not tonumber(Spring.GetConfigInt("AdvUnitShading",0) or 0) then
-	Spring.SetConfigInt("AdvUnitShading", 1)
-end
-
 -- adv map shading
---if not tonumber(Spring.GetConfigInt("AdvMapShading",0) or 0) then
---	Spring.SetConfigInt("AdvMapShading", 1)
---end
+Spring.SetConfigInt("AdvMapShading", 1)
 
 -- make sure default/minimum ui opacity is set
 if Spring.GetConfigFloat("ui_opacity", 0.6) < 0.3 then
@@ -112,10 +110,6 @@ Spring.SetConfigInt("BumpWaterTexSizeReflection", 1024)
 
 Spring.SetConfigFloat("CrossAlpha", 0)	-- will be in effect next launch
 
-if Spring.GetConfigInt("AdvModelShading", 0) ~= 1 then
-	Spring.SetConfigInt("AdvModelShading", 1)
-end
-
 if not Spring.GetConfigFloat("UnitIconFadeAmount") then
 	Spring.SetConfigFloat("UnitIconFadeAmount", 0.1)
 end
@@ -160,13 +154,22 @@ if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("CamSpringMinZoomDistance", 300)
 	Spring.SetConfigInt("OverheadMinZoomDistance", 300)
 end
-version = 6
+version = 7
 if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("version", version)
 
-	-- disabling for now
-	Spring.SetConfigInt("ui_rendertotexture", 0)
+	Spring.SetConfigInt("ui_rendertotexture", 1)
 end
+version = 8
+if Spring.GetConfigInt("version", 0) < version then
+	Spring.SetConfigInt("version", version)
+
+	local voiceset = Spring.GetConfigString("voiceset", '')
+	if voiceset == 'en/allison' then
+		Spring.SetConfigString("voiceset", 'en/cephis')
+	end
+end
+
 
 -- apply the old pre-engine implementation stored camera minimum zoom level
 local oldMinCamHeight = Spring.GetConfigInt("MinimumCameraHeight", -1)
@@ -176,8 +179,10 @@ if oldMinCamHeight ~= -1 then
 	Spring.SetConfigInt("OverheadMinZoomDistance", oldMinCamHeight)
 end
 
+-- in case we forget to save it once again
+Spring.SetConfigInt("version", version)
 
-Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
+Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1))
 
 -- Configure sane keychain settings, this is to provide a standard experience
 -- for users that is acceptable
@@ -214,16 +219,10 @@ Spring.SetConfigInt("MouseDragCircleCommandThreshold", baseDragThreshold + 16)
 Spring.SetConfigInt("MouseDragBoxCommandThreshold", baseDragThreshold + 16)
 Spring.SetConfigInt("MouseDragFrontCommandThreshold", baseDragThreshold + 16)
 
--- These config ints control some multithreading functionality, and are now set to their enabled state for performance
-Spring.SetConfigInt("AnimationMT", 1)
-Spring.SetConfigInt("UpdateBoundingVolumeMT", 1)
-Spring.SetConfigInt("UpdateWeaponVectorsMT", 1)
+Spring.SetConfigInt("MaxFontTries", 5)
+Spring.SetConfigInt("UseFontConfigLib", 1)
 
--- Breaking/limiting the curse of RA 𓀀 𓀁 𓀂 𓀃 𓀄 𓀅 𓀆 𓀇 𓀈 𓀉 𓀊 𓀋 𓀌 𓀍 𓀎 𓀏 𓀐 𓀑 𓀒 𓀓 𓀔 𓀕 𓀖
-Spring.SetConfigInt("MaxFontTries", 0)
-Spring.SetConfigInt("UseFontConfigLib", 0)
-
-local language = Spring.GetConfigString("language", 'en')
-if language ~= 'en' and language ~= 'fr' then
-	Spring.SetConfigString("language", 'en')
-end
+--local language = Spring.GetConfigString("language", 'en')
+--if language ~= 'en' and language ~= 'fr' then
+--	Spring.SetConfigString("language", 'en')
+--end

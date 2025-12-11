@@ -26,6 +26,7 @@ local unitOrderTable = {
 
 	['armcs']          = 001180, --SHIPS
 	['corcs']          = 001190,
+	['legnavyconship'] = 001191,
 
 	['armch']          = 002000, --HOVER
 	['corch']          = 002050,
@@ -33,6 +34,7 @@ local unitOrderTable = {
 
 	['armrectr']       = 002100, --REZ BOTS
 	['cornecro']       = 002150,
+	['legrezbot']      = 002151,
 
 	['armmlv']         = 002200, --MINELAYERS
 	['cormlv']         = 002250,
@@ -40,6 +42,7 @@ local unitOrderTable = {
 
 	['armrecl']        = 002300, --REZ SUBS
 	['correcl']        = 002350,
+	['legnavyrezsub']  = 002351,
 
 	['armack']         = 002400,
 	['corack']         = 002450,
@@ -62,6 +65,7 @@ local unitOrderTable = {
 	['legaceb']        = 003250,
 
 	['armconsul']      = 003300, --VEH
+	['legafcv']        = 003305, --VEH
 	['corprinter']     = 003325, --VEH
 	['corvac']		   = 003326, --VEH
 	['corvacct']       = 003327, --VEH
@@ -78,6 +82,7 @@ local unitOrderTable = {
 
 	['armspy']         = 003900, --SPIES
 	['corspy']         = 004000,
+	['legaspy']         = 004001,
 	['corphantom']     = 004010,
 
 	-- AIR SCOUTS LAND UNARMED
@@ -87,12 +92,15 @@ local unitOrderTable = {
 	['corhunt']        = 004060,
 	['armawac']        = 004050,
 	['corawac']        = 004060,
+	['legwhisper']     = 004061,
 
 	-- SCOUTS/UTILITY LAND
 	['armmark']        = 004100,
 	['corvoyr']        = 004110,
+	['legaradk']       = 004115,
 	['armaser']        = 004120,
 	['corspec']        = 004130,
+	['legajamk']       = 004135,
 
 	['armseer']        = 004200,
 	['corvrad']        = 004210,
@@ -111,6 +119,7 @@ local unitOrderTable = {
 	['armhawk']        = 004310, --FIGHTERS T2
 	['corvamp']        = 004315,
 	['legionnaire']    = 004316,
+	['legafigdef']     = 004316,
 	['legvenator']     = 004317,
 	['armsfig2']       = 004316, -- T2 Heavy Fighter (air rework mod)
 	['corsfig2']       = 004317,
@@ -225,7 +234,7 @@ local unitOrderTable = {
 	['corgatreap']     = 006350,
 
 	['corhrk']         = 006400, --ROCKETS
-	['armmerl']        = 006410,
+	['leghrk']         = 006410,
 	['corvroc']        = 006420,
 	['armmerl']        = 006430,
 	['legavroc']       = 006435,
@@ -265,6 +274,7 @@ local unitOrderTable = {
 
 	['armamph']        = 006900, --LAND + AMPHIBIOUS
 	['coramph']        = 006910,
+	['legamph']        = 006915,
 	['armcroc']        = 006920,
 	['corseal']        = 006930,
 	['corsala']        = 006935,
@@ -282,7 +292,8 @@ local unitOrderTable = {
 	['armraz']         		= 007020,
 	['corkarg']        		= 007030,
 	['armvang']        		= 007040,
-	['legelrpcmech']       	= 007041,
+	['legeallterrainmech']  = 007041,
+	['legelrpcmech']       	= 007042,
 	['corshiva']       		= 007050,
 	['legkeres']	   		= 007051,
 	['legerailtank']   		= 007052,
@@ -298,6 +309,7 @@ local unitOrderTable = {
 	--T3 HOVER
 	['armlun']         = 007100, --hover
 	['corsok']         = 007110, --hover
+	['legehovertank']  = 007111, --hover
 
 	--T4 LAND ATTACK (SCAVS)
 	['armmeatball']    = 007200,
@@ -326,8 +338,10 @@ local unitOrderTable = {
 	-- LAND AA
 	['armjeth']        = 008000,
 	['corcrash']       = 008010,
+	['legaabot']       = 008011,
 	['armaak']         = 008020,
 	['coraak']         = 008030,
+	['legadvaabot']    = 008031,
 
 	['armyork']        = 008200,
 	['corsent']        = 008210,
@@ -350,18 +364,21 @@ local unitOrderTable = {
 	-- WATER SCOUTS
 	['armpt']          = 009000, --SCOUTS AA
 	['coresupp']       = 009010,
-	['legpontus']       = 009015,
+	['legnavyaaship']       = 009015,
 
 	-- T1 WATER ATTACK
 	['armdecade']      = 009100, --FAST
 	['corpt']          = 009110,
-	['legvelite']      = 009120,
+	['legnavyscout']      = 009120,
 
 	['armpship']       = 009200, --MAIN BATTLE
 	['corpship']       = 009210,
-	['leghastatus']    = 009210,
+	['legnavyfrigate']       = 009211,
+	['legnavydestro']    = 009212,
 	['armroy']         = 009220,
 	['corroy']         = 009230,
+
+	['legnavyartyship']         = 009231,
 
 	-- T2 WATER ATTACK
 	['armlship']       = 009280, --ANTISWARM
@@ -386,6 +403,7 @@ local unitOrderTable = {
 
 	['armdecadet3']    = 009450, --SCAV SHIPS
 	['coresuppt3']     = 009460,
+	['corprince']      = 009461,
 	['armpshipt3']     = 009470,
 	['corslrpc']       = 009480,
 
@@ -402,6 +420,7 @@ local unitOrderTable = {
 	['corseap']        = 009810,
 	['armsub']         = 009820,
 	['corsub']         = 009830,
+	['legnavysub']         = 009831,
 
 	['armlance']       = 009900,
 	['cortitan']       = 009910,
@@ -426,14 +445,6 @@ local unitOrderTable = {
 	['armhvytrans']      = 010515,
 	['leglts']      = 010520,
 	['legatrans']      = 010525,
-
-	['armtship']       = 010540,
-	['cortship']       = 010550,
-
-	['armthovr']       = 010560,
-	['corthovr']       = 010570,
-
-	['corintr']        = 010600,
 
 	['armdfly']        = 010610,
 	['corseah']        = 010620,
@@ -495,16 +506,16 @@ local unitOrderTable = {
 
    --ECO NRG GEOS
    ['armgeo']         = 101200,
-   ['armuwgeo']       = 101201,
+   --['armuwgeo']       = 101201,
    ['corgeo']         = 101250,
    --['coruwgeo']       = 101251,
    ['leggeo']         = 101275,
    ['armgmm']         = 101300,
    ['legageo']        = 101325,
    ['corageo']        = 101350,
-   ['coruwageo']      = 101351,
+   --['coruwageo']      = 101351,
    ['armageo']        = 101400,
-   ['armuwageo']      = 101401,
+   --['armuwageo']      = 101401,
    ['corbhmth']       = 101450,
    ['legrampart']       = 101475,
 
@@ -563,9 +574,6 @@ local unitOrderTable = {
    ['corapt3']        = 102725, --scavengers
 
    --UTILITIES
-   ['armasp']         = 102800, --AIR REPAIR PADS
-   ['corasp']         = 102825,
-   ['corfasp']         = 102826,
 
    ['armeyes']        = 103000,
    ['coreyes']        = 103050,
@@ -584,6 +592,7 @@ local unitOrderTable = {
    ['legajam']        = 103451,
    ['armjuno']        = 103500,
    ['corjuno']        = 103550,
+   ['legjuno']        = 103551,
 
    ['armsd']          = 103600,
    ['corsd']          = 103625,
@@ -649,6 +658,7 @@ local unitOrderTable = {
    ['armpb']          = 107100,
    ['corvipe']        = 107200,
    ['legbombard']     = 107250,
+   ['legapopupdef']   = 107251,
    ['armamb']         = 107300,
    ['cortoast']       = 107400,
    ['legacluster']	  = 107450,
@@ -691,6 +701,7 @@ local unitOrderTable = {
    --DEFENSES TO WATER
    ['armdl']          = 155000,
    ['cordl']          = 155500,
+   ['legctl']         = 155501,
 
    --DEFENSES MISSILE LAUNCHERS
    ['armemp']         = 165000,
@@ -710,13 +721,14 @@ local unitOrderTable = {
    --WATER ECO NRG CONVERTERS
    ['armfmkr']        = 200400,
    ['corfmkr']        = 200500,
-   ['legfmkr']        = 200550,
+   ['legfeconv']        = 200550,
    ['armuwmmm']       = 200600,
    ['coruwmmm']       = 200700,
 
    --WATER ECO METAL STORAGE
    ['armuwms']        = 201000,
    ['coruwms']        = 201500,
+   ['leguwmstore']    = 201501,
 
    --WATER ECO NRG GENS
    ['armtide']        = 203000,
@@ -726,8 +738,9 @@ local unitOrderTable = {
    --WATER ECO NRG GEOS
    ['armuwgeo']       = 204000,
    ['coruwgeo']       = 204100,
-   ['armuwageo']       = 204500,
-   ['coruwageo']       = 204600,
+   ['leguwgeo']       = 204101,
+   ['armuwageo']      = 204500,
+   ['coruwageo']      = 204600,
 
    --WATER ECO NRG FUSIONS
    ['armuwfus']       = 205000,
@@ -736,6 +749,7 @@ local unitOrderTable = {
    --WATER ECO NRG STORAGE
    ['armuwes']        = 207000,
    ['coruwes']        = 207500,
+   ['leguwestore']    = 207501,
 
    --WATER CONSTRUCTION
    ['armnanotcplat']  = 210000,
@@ -744,13 +758,13 @@ local unitOrderTable = {
 
    ['armsy']          = 211100,
    ['corsy']          = 211200,
-   ['legjim']          = 211300,
+   ['legsy']          = 211300,
    ['armfhp']         = 212100,
    ['corfhp']         = 212200,
    ['legfhp']         = 212250,
    ['armamsub']       = 213100,
    ['coramsub']       = 213200,
-   ['legamsub']       = 213250,
+   ['legamphlab']       = 213250,
    ['armplat']        = 214100,
    ['corplat']        = 214200,
    	--T2
@@ -765,9 +779,8 @@ local unitOrderTable = {
    ['corfmine3']      = 217200,
 
    --WATER UTILITIES
-   ['armfasp']        = 220000,
-   ['corfasp']        = 220050,
    ['armfrad']        = 220100,
+   ['legfrad']        = 220101,
    ['corfrad']        = 220150,
    ['armason']        = 220200,
    ['corason']        = 220250,
@@ -777,21 +790,34 @@ local unitOrderTable = {
    --WATER DEFENSES LAND
    ['armfdrag']       = 230100,
    ['corfdrag']       = 230200,
+   ['legfdrag']       = 230250,
    ['armfhlt']        = 230300,
    ['corfhlt']        = 230400,
+   ['legfmg']        = 230401,
+
+   ['armnavaldefturret']	= 230301,
+   ['cornavaldefturret']	= 230401,
+   ['legnavaldefturret']	= 230402,
+
    ['legfhive']        = 230450,
    ['armkraken']      = 230500,
    ['corfdoom']       = 230600,
 
+   ['armanavaldefturret']	= 230451,
+   ['coranavaldefturret']	= 230501,
+   ['leganavaldefturret']	= 230601,
+
    --WATER DEFENSES AA
    ['armfrt']         = 255100,
    ['corfrt']         = 255200,
+   ['legfrl']         = 255200,
    ['armfflak']       = 255300,
    ['corenaa']        = 255400,
 
    --WATER DEFENSES NAVAL
    ['armtl']          = 260300,
    ['cortl']          = 260400,
+   ['legtl']          = 260401,
    ['armatl']         = 260500,
    ['coratl']         = 260600,
 }

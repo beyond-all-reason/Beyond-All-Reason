@@ -1,13 +1,12 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-#define SIG_BUILD	2
+#define SIGNAL_MOVE 1
+#define SIGNAL_BUILD 2
 
 piece  base, track, arm1, arm2, turret, beam, door, nano, cagelight, cagelight_emit ;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, notBuilding, bMoving;
+static-var  readyToBuild, isMoving;
 
 
 #define BASEPIECE base
@@ -15,99 +14,60 @@ static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, notBuil
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 3
 #define MAXTILT 100
-
-#include "unit_hitbyweaponid_and_smoke.h"
-
-Go()
-{
-	set INBUILDSTANCE to 1;
-	turn arm1 to x-axis <60> speed <180>;
-	turn arm2 to x-axis <30> speed <180>;
-	wait-for-turn arm1 around x-axis;
-	turn door to x-axis <90> speed <180>;
-	move beam to y-axis [5] speed [10];
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	hide cagelight_emit;
-	turn cagelight to y-axis <0> speed <1000>;
-
-	move beam to y-axis [0] speed [10];
-	turn turret to z-axis <0> speed <180>;
-	turn door to x-axis <0> speed <180>;
-	wait-for-turn door around x-axis;
-	turn arm1 to x-axis <-90> speed <180>;
-	turn arm2 to x-axis <105> speed <180>;
-	turn door to x-axis <0> speed <180>;
-
-}
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
+
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.1>
+#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
 
 Create()
 {
 	hide nano;
 	hide cagelight_emit;
-	bMoving = FALSE;
-	notBuilding = 1;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
+	readyToBuild = 0;
 	turn arm1 to x-axis <-90> speed <180>;
 	turn arm2 to x-axis <105> speed <180>;
+	call-script TB_Init();
 }
 
-
-Activate()
+StartMoving(reversing)
 {
-	start-script RequestState(0);
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
 }
 
-Deactivate()
+StopMoving()
 {
-	start-script RequestState(1);
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
-
 
 StartBuilding(heading, pitch)
 {
-	show nano;
-//get PRINT(heading,pitch,get GAME_FRAME,0);
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
-	turn turret to z-axis heading speed <360.000000>;
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+
+	if (!readyToBuild) {
+		turn arm1 to x-axis <60> speed <180>;
+		turn arm2 to x-axis <30> speed <180>;
+		wait-for-turn arm1 around x-axis;
+
+		turn door to x-axis <90> speed <180>;
+		move beam to y-axis [5] speed [10];
+		wait-for-move beam along y-axis;
+
+		readyToBuild = TRUE;
+	}
+
+	turn turret to z-axis heading speed <360.0>;
 	wait-for-turn turret around z-axis;
-//	turn arm2 to x-axis <0> - pitch speed <360.000000>;  //up/down movement not working correct
+//	turn arm2 to x-axis <0> - pitch speed <360.0>;  //up/down movement not working correct
 //	wait-for-turn arm2 around x-axis;
 	set INBUILDSTANCE to 1;
 	show cagelight_emit;
@@ -117,33 +77,36 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
 	hide nano;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
 	hide cagelight_emit;
 	turn cagelight to y-axis <0> speed <1000>;
 	sleep 6000;
-	set-signal-mask 0;
-	signal SIG_BUILD;	
-	start-script RequestState(1);
+	
+	set INBUILDSTANCE to 0;
+	readyToBuild = FALSE;
+
+
+	move beam to y-axis [0] speed [10];
+	turn turret to z-axis <0> speed <180>;
+	turn door to x-axis <0> speed <180>;
+
+	wait-for-turn door around x-axis;
+	turn arm1 to x-axis <-90> speed <180>;
+	turn arm2 to x-axis <105> speed <180>;
+	turn door to x-axis <0> speed <180>;
 }
 
 
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = beam;
+	pieceIndex = beam;
 }
 
-TargetHeading(Func_Var_1)
-{
-	Static_Var_1 = 0 - Func_Var_1;
-}
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
 Killed(severity, corpsetype)
 {

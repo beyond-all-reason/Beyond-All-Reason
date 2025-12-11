@@ -16,6 +16,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local spSetUnitWeaponState = Spring.SetUnitWeaponState
+local tableCopy = table.copy
+
 
 local convertedUnitsNames = {
 	-- value is reaimtime in frames, engine default is 15
@@ -26,7 +29,7 @@ local convertedUnitsNames = {
 	['armflea'] = 2,
 	['armrock'] = 2,
 	['armham'] = 2,
-	['armwar'] = 2,
+	['armwar'] = 6,
 	['armjeth'] = 2,
 	['corfav'] = 3,
 	['corak'] = 2,
@@ -35,6 +38,7 @@ local convertedUnitsNames = {
 	['corcrash'] = 5,
 	['legkark'] = 2,
 	['corkark'] = 2,
+	['cordeadeye'] =2,
 	['armsnipe'] = 2,
 	['armfido'] = 3,
 	['armfboy'] = 2,
@@ -51,7 +55,7 @@ local convertedUnitsNames = {
 	['cormort'] = 2,
 	['corpyro'] = 2,
 	['cortermite'] = 2,
-	['armraz'] = 2,
+	['armraz'] = 1,
 	['armmar'] = 3,
 	['armbanth'] = 1,
 	['corkorg'] = 1,
@@ -59,6 +63,7 @@ local convertedUnitsNames = {
 	['armcrus'] = 5,
 	['corsala'] = 6,
 	['corsiegebreaker'] = 5,
+	['legerailtank'] = 9,
 
 	-- the following units get a faster reaimtime to counteract their turret acceleration
 	['armthor'] = 4,
@@ -78,7 +83,7 @@ local convertedUnitsNames = {
 	['corpun'] = 5,
 	['cortoast'] = 5,
 	['corbats'] = 5,
-	['corblackhy'] = 5,
+	['corblackhy'] = 6,
 	['corscreamer'] = 5,
 	['corcom'] = 5,
 	['armcom'] = 5,
@@ -98,7 +103,7 @@ local convertedUnitsNames = {
 	['legah'] = 5,
 	['legbal'] = 5,
 	['legbastion'] = 5,
-	['legcen'] = 2,
+	['legcen'] = 3,
 	['legfloat'] = 5,
 	['leggat'] = 5,
 	['leggob'] = 5,
@@ -116,20 +121,28 @@ local convertedUnitsNames = {
 	['legcomoff'] = 5,
 	['legcomt2off'] = 5,
 	['legcomt2com'] = 5,
-	['legstr'] = 5,
+	['legstr'] = 3,
+	['legamph'] = 4,
 	['legbart'] = 5,
 	['legmrv'] = 5,
 	['legsco'] = 5,
 	['leegmech'] = 5,
 	['legionnaire'] = 5,
+	['legafigdef'] = 5,
 	['legvenator'] = 5,
     ['legmed'] = 5,
+	['legaskirmtank'] = 5,
 	['legaheattank'] = 3,
 	['legeheatraymech'] = 1,
-	['legbunk'] = 5,
+	['legtriariusdrone'] = 1,
+	['legnavydestro'] = 4,
+	['legeheatraymech_old'] = 1,
+	['legbunk'] = 3,
 	['legrwall'] = 4,
 	['legjav'] = 1,
 	['legeshotgunmech'] = 3,
+	['legehovertank'] = 4,
+	['armanavaldefturret'] = 4,
 }
 --add entries for scavboss
 local scavengerBossV4Table = {'scavengerbossv4_veryeasy', 'scavengerbossv4_easy', 'scavengerbossv4_normal', 'scavengerbossv4_hard', 'scavengerbossv4_veryhard', 'scavengerbossv4_epic',
@@ -175,14 +188,14 @@ local spamThreshold = 100
 local maxReAimTime = 15
 
 -- add for scavengers copies
-local convertedUnitsCopy = table.copy(convertedUnits)
+local convertedUnitsCopy = tableCopy(convertedUnits)
 for id, v in pairs(convertedUnitsCopy) do
 	if UnitDefNames[UnitDefs[id].name..'_scav'] then
 		convertedUnits[UnitDefNames[UnitDefs[id].name..'_scav'].id] = v
 	end
 end
 
-local spamUnitsTeamsCopy = table.copy(spamUnitsTeams)
+local spamUnitsTeamsCopy = tableCopy(spamUnitsTeams)
 for id,v in pairs(spamUnitsTeamsCopy) do
 	if UnitDefNames[UnitDefs[id].name..'_scav'] then
 		spamUnitsTeams[UnitDefNames[UnitDefs[id].name..'_scav'].id] = {}
@@ -234,7 +247,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
 				-- NOTE: this will prevent unit from firing if it does not IMMEDIATELY return from AimWeapon (no sleeps, not wait for turns!)
 				-- So you have to manually check in script if it is at the desired heading
 				-- https://springrts.com/phpbb/viewtopic.php?t=36654
-				Spring.SetUnitWeaponState(unitID, id, "reaimTime", currentReaimTime)
+				spSetUnitWeaponState(unitID, id, "reaimTime", currentReaimTime)
 			end
 		end
 	end

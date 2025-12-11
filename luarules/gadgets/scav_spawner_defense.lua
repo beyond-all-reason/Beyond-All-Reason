@@ -80,7 +80,7 @@ if gadgetHandler:IsSyncedCode() then
 	local t = 0 -- game time in secondstarget
 	local bossAnger = 0
 	local techAnger = 0
-	local totalBossesMaxHealth
+	local aliveBossesMaxHealth = 0
 	local playerAggression = 0
 	local playerAggressionLevel = 0
 	local playerAggressionEcoValue = 0
@@ -140,6 +140,7 @@ if gadgetHandler:IsSyncedCode() then
 	local deathQueue = {}
 	local bossResistance = {}
 	local bossIDs = {}
+	local bosses = {resistances = bossResistance, statuses = {}, playerDamages = {}}
 	local scavTeamID = Spring.Utilities.GetScavTeamID()
 	local scavAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 	local lsx1, lsz1, lsx2, lsz2
@@ -197,7 +198,7 @@ if gadgetHandler:IsSyncedCode() then
 			humanTeams[teamID] = true
 		end
 	end
-	
+
 	local gaiaTeamID = GetGaiaTeamID()
 	if not scavTeamID then
 		scavTeamID = gaiaTeamID
@@ -210,7 +211,7 @@ if gadgetHandler:IsSyncedCode() then
 		local players = Spring.GetPlayerList()
 		for i = 1,#players do
 			local player = players[i]
-			local name, active, spectator, teamID, allyTeamID = Spring.GetPlayerInfo(player)
+			local name, active, spectator, teamID, allyTeamID = Spring.GetPlayerInfo(player, false)
 			if allyTeamID == scavAllyTeamID and (not spectator) then
 				Spring.AssignPlayerToTeam(player, scavTeamID)
 				local units = GetTeamUnits(teamID)
@@ -224,7 +225,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		local scavAllies = Spring.GetTeamList(scavAllyTeamID)
 		for i = 1,#scavAllies do
-			local _,_,_,AI = Spring.GetTeamInfo(scavAllies[i])
+			local _,_,_,AI = Spring.GetTeamInfo(scavAllies[i], false)
 			local LuaAI = Spring.GetTeamLuaAI(scavAllies[i])
 			if (AI or LuaAI) and scavAllies[i] ~= scavTeamID then
 				local units = GetTeamUnits(scavAllies[i])
@@ -323,12 +324,9 @@ if gadgetHandler:IsSyncedCode() then
 	--
 	-- Difficulty
     --
-
-	local maxBurrows = ((config.maxBurrows*(1-config.scavPerPlayerMultiplier))+(config.maxBurrows*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
+	config.gracePeriodInitial = config.gracePeriod + 0
+	local maxBurrows = ((config.maxBurrows*(1-config.scavPerPlayerMultiplier))+(config.maxBurrows*config.scavPerPlayerMultiplier)*(math.min(SetCount(humanTeams), 8)))*config.scavSpawnMultiplier
 	local bossTime = (config.bossTime + config.gracePeriod)
-	if config.difficulty == config.difficulties.survival then
-		bossTime = math.ceil(bossTime*0.5)
-	end
 	local maxWaveSize = ((config.maxScavs*(1-config.scavPerPlayerMultiplier))+(config.maxScavs*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
 	local minWaveSize = ((config.minScavs*(1-config.scavPerPlayerMultiplier))+(config.minScavs*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
 	local currentMaxWaveSize = minWaveSize
@@ -345,6 +343,9 @@ if gadgetHandler:IsSyncedCode() then
 		nSpawnedBosses = 0
 		nKilledBosses = 0
 		bossResistance = {}
+		aliveBossesMaxHealth = 0
+		bosses.resistances = bossResistance
+		bosses.statuses = {}
 		SetGameRulesParam("scavBossAnger", math.floor(bossAnger))
 		SetGameRulesParam("scavTechAnger", math.floor(techAnger))
 		local nextDifficulty
@@ -373,10 +374,10 @@ if gadgetHandler:IsSyncedCode() then
 		config.maxBurrows = nextDifficulty.maxBurrows
 		config.maxXP = nextDifficulty.maxXP
 		config.angerBonus = nextDifficulty.angerBonus
-		config.bossTime = math.ceil(nextDifficulty.bossTime/endlessLoopCounter)
+		config.bossTime = math.ceil(nextDifficulty.bossTime/(endlessLoopCounter/2))
 
 		bossTime = (config.bossTime + config.gracePeriod)
-		maxBurrows = ((config.maxBurrows*(1-config.scavPerPlayerMultiplier))+(config.maxBurrows*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
+		maxBurrows = ((config.maxBurrows*(1-config.scavPerPlayerMultiplier))+(config.maxBurrows*config.scavPerPlayerMultiplier)*(math.min(SetCount(humanTeams), 8)))*config.scavSpawnMultiplier
 		maxWaveSize = ((config.maxScavs*(1-config.scavPerPlayerMultiplier))+(config.maxScavs*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
 		minWaveSize = ((config.minScavs*(1-config.scavPerPlayerMultiplier))+(config.minScavs*config.scavPerPlayerMultiplier)*SetCount(humanTeams))*config.scavSpawnMultiplier
 		config.scavSpawnRate = nextDifficulty.scavSpawnRate
@@ -441,11 +442,15 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			-- Spring.Echo("SquadLifeReport - SquadID: #".. i .. ", LifetimeRemaining: ".. squadsTable[i].squadLife)
 
-			if squadsTable[i].squadLife <= 0 then
+			if squadsTable[i].squadLife == 0 then
 				-- Spring.Echo("Life is 0, time to do some killing")
-				if SetCount(squadsTable[i].squadUnits) > 0 then
+				if SetCount(squadsTable[i].squadUnits) > 0 and SetCount(burrows) > 2 then
 					if squadsTable[i].squadBurrow and nSpawnedBosses == 0 then
-						Spring.DestroyUnit(squadsTable[i].squadBurrow, true, false)
+						if Spring.GetUnitTeam(squadsTable[i].squadBurrow) == scavTeamID then
+							Spring.DestroyUnit(squadsTable[i].squadBurrow, true, false)
+						elseif Spring.GetUnitIsDead(squadsTable[i].squadBurrow) == false then
+							squadsTable[i].squadBurrow = nil
+						end
 					end
 					-- Spring.Echo("There are some units to kill, so let's kill them")
 					-- Spring.Echo("----------------------------------------------------------------------------------------------------------------------------")
@@ -458,7 +463,9 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					for j = 1,#destroyQueue do
 						-- Spring.Echo("Destroying Unit. ID: ".. unitID .. ", Name:" .. UnitDefs[Spring.GetUnitDefID(unitID)].name)
-						Spring.DestroyUnit(destroyQueue[j], true, false)
+						if Spring.GetUnitTeam(destroyQueue[j]) == scavTeamID then
+							Spring.DestroyUnit(destroyQueue[j], true, false)
+						end
 					end
 					destroyQueue = nil
 					-- Spring.Echo("----------------------------------------------------------------------------------------------------------------------------")
@@ -566,9 +573,7 @@ if gadgetHandler:IsSyncedCode() then
 		unitTargetPool[squadID] = pickedTarget
 		squadsTable[squadID].target = pos
 		-- Spring.MarkerAddPoint (squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z, "Squad #" .. squadID .. " target")
-		local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
 		squadsTable[squadID].squadNeedsRefresh = true
-		--squadCommanderGiveOrders(squadID, targetx, targety, targetz)
 	end
 
 	function createSquad(newSquad)
@@ -700,7 +705,7 @@ if gadgetHandler:IsSyncedCode() then
 		return nearestBurrow, nearestDistance
 	end
 
-	function SpawnRandomOffWaveSquad(burrowID, attackNearestEnemy, scavType, count)
+	function SpawnRandomOffWaveSquad(burrowID, scavType, count)
 		if gameOver then
 			return
 		end
@@ -711,20 +716,17 @@ if gadgetHandler:IsSyncedCode() then
 		local squadCounter = 0
 		if scavType then
 			if not count then count = 1 end
-			squad = { count .. " " .. scavType }
-			for i, sString in pairs(squad) do
-				local nEnd, _ = string.find(sString, " ")
-				if nEnd then
-					local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
-					local unitNumber = total and math.random(1, total) or 1
-					local scavName = string.sub(sString, (nEnd + 1))
-					for j = 1, unitNumber, 1 do
-						if mRandom() <= config.spawnChance or j == 1 then
-							squadCounter = squadCounter + 1
-							table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter, attackNearestEnemy = attackNearestEnemy })
-						end
+			if UnitDefNames[scavType] then
+				for j = 1, count, 1 do
+					if mRandom() <= config.spawnChance or j == 1 then
+						squadCounter = squadCounter + 1
+						table.insert(spawnQueue, { burrow = burrowID, unitName = scavType, team = scavTeamID, squadID = squadCounter })
 					end
 				end
+			elseif not UnitDefNames[scavType] then
+				Spring.Echo("[ERROR] Invalid Scav Unit Name", scavType)
+			else
+				Spring.Echo("[ERROR] Invalid Scav Squad", scavType)
 			end
 		else
 			squadCounter = 0
@@ -791,18 +793,20 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			if squad then
-				for i, sString in pairs(squad.units) do
-					local nEnd, _ = string.find(sString, " ")
-					if nEnd then
-						local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
-						local unitNumber = total and math.random(1, total) or 1
-						local scavName = string.sub(sString, (nEnd + 1))
+				for _, squadTable in pairs(squad.units) do
+					local unitNumber = squadTable.count
+					local scavName = squadTable.unit
+					if UnitDefNames[scavName] and unitNumber and unitNumber > 0 then
 						for j = 1, unitNumber, 1 do
 							if mRandom() <= config.spawnChance or j == 1 then
 								squadCounter = squadCounter + 1
-								table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter, attackNearestEnemy = attackNearestEnemy })
+								table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
 							end
 						end
+					elseif not UnitDefNames[scavName] then
+						Spring.Echo("[ERROR] Invalid Scav Unit Name", scavName)
+					else
+						Spring.Echo("[ERROR] Invalid Scav Squad", scavName)
 					end
 				end
 			end
@@ -824,18 +828,20 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 				if squad then
-					for i, sString in pairs(squad.units) do
-						local nEnd, _ = string.find(sString, " ")
-						if nEnd then
-							local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
-							local unitNumber = total and math.random(1, total) or 1
-							local scavName = string.sub(sString, (nEnd + 1))
+					for _, squadTable in pairs(squad.units) do
+						local unitNumber = squadTable.count
+						local scavName = squadTable.unit
+						if UnitDefNames[scavName] and unitNumber and unitNumber > 0 then
 							for j = 1, unitNumber, 1 do
 								if mRandom() <= config.spawnChance or j == 1 then
 									squadCounter = squadCounter + 1
 									table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
 								end
 							end
+						elseif not UnitDefNames[scavName] then
+							Spring.Echo("[ERROR] Invalid Scav Unit Name", scavName)
+						else
+							Spring.Echo("[ERROR] Invalid Scav Squad", scavName)
 						end
 					end
 				end
@@ -879,86 +885,76 @@ if gadgetHandler:IsSyncedCode() then
 			local spawnPosX, spawnPosY, spawnPosZ
 
 			if config.burrowSpawnType ~= "avoid" then
-				if config.useScum and (canSpawnBurrow and GetGameSeconds() >= config.gracePeriod) then -- Attempt #1, find position in creep/scum (skipped if creep is disabled)
-					for _ = 1,1000 do
-						spawnPosX = mRandom(spread, MAPSIZEX - spread)
-						spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
-						spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-						canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
-						if canSpawnBurrow then
-							canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-						end
-						if canSpawnBurrow then
-							canSpawnBurrow = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
-						end
-						if canSpawnBurrow then -- this is for case where they have no startbox. We don't want them spawning on top of your stuff.
-							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
-						end
-						if canSpawnBurrow then
-							break
+				if config.useScum and (canSpawnBurrow and GetGameSeconds() >= config.gracePeriodInitial) then -- Attempt #1, find position in creep/scum (skipped if creep is disabled)
+					if spread < MAPSIZEX - spread and spread < MAPSIZEZ - spread then
+						for _ = 1,1000 do
+							spawnPosX = mRandom(spread, MAPSIZEX - spread)
+							spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
+							spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+							canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+							if canSpawnBurrow then
+								canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+							end
+							if canSpawnBurrow then
+								canSpawnBurrow = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
+							end
+							if canSpawnBurrow then -- this is for case where they have no startbox. We don't want them spawning on top of your stuff.
+								canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
+							end
+							if canSpawnBurrow then
+								break
+							end
 						end
 					end
 				end
 
 				if (not canSpawnBurrow) then -- Attempt #3 Find some good position in Spawnbox (not Startbox)
-					for _ = 1,1000 do
-						spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
-						spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
-						spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-						canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
-						if canSpawnBurrow then
-							canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-						end
-						if canSpawnBurrow then
-							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
-						end
-						if canSpawnBurrow then
-							canSpawnBurrow = positionCheckLibrary.VisibilityCheck(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, false, false)
-						end
-						if canSpawnBurrow then
-							break
+					if lsx1 + spread < lsx2 - spread and lsz1 + spread < lsz2 - spread then
+						for _ = 1,1000 do
+							spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
+							spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
+							spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+							canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+							if canSpawnBurrow then
+								canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+							end
+							if canSpawnBurrow then
+								canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
+							end
+							if canSpawnBurrow then
+								canSpawnBurrow = positionCheckLibrary.VisibilityCheck(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, false, false)
+							end
+							if canSpawnBurrow then
+								break
+							end
 						end
 					end
 				end
 
 				if (not canSpawnBurrow) then -- Attempt #2 Force spawn in Startbox, ignore any kind of player vision
-					for _ = 1,100 do
-						spawnPosX = mRandom(ScavStartboxXMin + spread, ScavStartboxXMax - spread)
-						spawnPosZ = mRandom(ScavStartboxZMin + spread, ScavStartboxZMax - spread)
-						spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-						canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
-						if canSpawnBurrow then
-							canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-						end
-						if canSpawnBurrow and noScavStartbox then -- this is for case where they have no startbox. We don't want them spawning on top of your stuff.
-							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
-						end
-						if canSpawnBurrow then
-							break
+					if ScavStartboxXMin + spread < ScavStartboxXMax - spread and ScavStartboxZMin + spread < ScavStartboxZMax - spread then
+						for _ = 1,100 do
+							spawnPosX = mRandom(ScavStartboxXMin + spread, ScavStartboxXMax - spread)
+							spawnPosZ = mRandom(ScavStartboxZMin + spread, ScavStartboxZMax - spread)
+							spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+							canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+							if canSpawnBurrow then
+								canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+							end
+							if canSpawnBurrow and noScavStartbox then -- this is for case where they have no startbox. We don't want them spawning on top of your stuff.
+								canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
+							end
+							if canSpawnBurrow then
+								break
+							end
 						end
 					end
 				end
 
 			else -- Avoid Players burrow setup. Spawns anywhere that isn't in player sensor range.
 
-				for _ = 1,100 do  -- Attempt #1 Avoid all sensors
-					spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
-					spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
-					spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-					canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
-					if canSpawnBurrow then
-						canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-					end
-					if canSpawnBurrow then
-						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
-					end
-					if canSpawnBurrow then
-						break
-					end
-				end
-
-				if (not canSpawnBurrow) then -- Attempt #2 Don't avoid radars
-					for _ = 1,100 do
+				if lsx1 + spread < lsx2 - spread and lsz1 + spread < lsz2 - spread then
+					for _ = 1,100 do  -- Attempt #1 Avoid all sensors
 						spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
 						spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
 						spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
@@ -967,28 +963,46 @@ if gadgetHandler:IsSyncedCode() then
 							canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
 						end
 						if canSpawnBurrow then
-							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, false)
+							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
 						end
 						if canSpawnBurrow then
 							break
 						end
 					end
-				end
 
-				if (not canSpawnBurrow) then -- Attempt #3 Only avoid LoS
-					for _ = 1,100 do
-						spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
-						spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
-						spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-						canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
-						if canSpawnBurrow then
-							canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+					if (not canSpawnBurrow) then -- Attempt #2 Don't avoid radars
+						for _ = 1,100 do
+							spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
+							spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
+							spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+							canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+							if canSpawnBurrow then
+								canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+							end
+							if canSpawnBurrow then
+								canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, false)
+							end
+							if canSpawnBurrow then
+								break
+							end
 						end
-						if canSpawnBurrow then
-							canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, false, false)
-						end
-						if canSpawnBurrow then
-							break
+					end
+
+					if (not canSpawnBurrow) then -- Attempt #3 Only avoid LoS
+						for _ = 1,100 do
+							spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
+							spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
+							spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+							canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+							if canSpawnBurrow then
+								canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+							end
+							if canSpawnBurrow then
+								canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, false, false)
+							end
+							if canSpawnBurrow then
+								break
+							end
 						end
 					end
 				end
@@ -998,7 +1012,7 @@ if gadgetHandler:IsSyncedCode() then
 				canSpawnBurrow = false
 			end
 
-			if (canSpawnBurrow and GetGameSeconds() < config.gracePeriod*0.9) then -- Don't spawn new burrows in existing creep during grace period - Force them to spread as much as they can..... AT LEAST THAT'S HOW IT'S SUPPOSED TO WORK, lol.
+			if (canSpawnBurrow and GetGameSeconds() < config.gracePeriodInitial*0.9) then -- Don't spawn new burrows in existing creep during grace period - Force them to spread as much as they can..... AT LEAST THAT'S HOW IT'S SUPPOSED TO WORK, lol.
 				canSpawnBurrow = not GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
 			end
 
@@ -1025,19 +1039,24 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function updateBossLife()
-		if nKilledBosses == nTotalBosses then
-			SetGameRulesParam("scavBossHealth", 0)
-			return
+		local totalHealth = 0
+		local totalMaxHealth = 0
+		aliveBossesMaxHealth = 0
+		for bossID, status in pairs(bosses.statuses) do
+			if status.isDead then
+				totalMaxHealth = totalMaxHealth + status.maxHealth
+			else
+				local health, maxHealth = GetUnitHealth(bossID)
+				table.mergeInPlace(status, {health = health, maxHealth = maxHealth})
+
+				totalHealth = totalHealth + health
+				aliveBossesMaxHealth = aliveBossesMaxHealth + maxHealth
+				totalMaxHealth = totalMaxHealth + maxHealth
+			end
 		end
 
-		local totalHealth = 0
-		totalBossesMaxHealth = 0
-		for bossID, _ in pairs(bossIDs) do
-			local health, maxHealth = GetUnitHealth(bossID)
-			totalHealth = totalHealth + health
-			totalBossesMaxHealth = totalBossesMaxHealth + maxHealth
-		end
-		SetGameRulesParam("scavBossHealth", math.floor(0.5 + ((totalHealth / totalBossesMaxHealth) * 100)))
+		SetGameRulesParam("scavBossHealth", math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100)))
+		SetGameRulesParam("pveBossInfo", Json.encode(bosses))
 	end
 
 	function SpawnBoss()
@@ -1330,12 +1349,10 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 					if squad then
-						for i, sString in pairs(squad.units) do
-							local nEnd, _ = string.find(sString, " ")
-							if nEnd then
-								local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
-								local unitNumber = total and math.random(1, total) or 1
-								local scavName = string.sub(sString, (nEnd + 1))
+						for _, squadTable in pairs(squad.units) do
+							local unitNumber = squadTable.count
+							local scavName = squadTable.unit
+							if UnitDefNames[scavName] and unitNumber and unitNumber > 0 then
 								for j = 1, unitNumber, 1 do
 									if mRandom() <= config.spawnChance or j == 1 then
 										squadCounter = squadCounter + 1
@@ -1343,6 +1360,10 @@ if gadgetHandler:IsSyncedCode() then
 										cCount = cCount + 1
 									end
 								end
+							elseif not UnitDefNames[scavName] then
+								Spring.Echo("[ERROR] Invalid Scav Unit Name", scavName)
+							else
+								Spring.Echo("[ERROR] Invalid Scav Squad", scavName)
 							end
 						end
 					end
@@ -1364,12 +1385,10 @@ if gadgetHandler:IsSyncedCode() then
 							end
 						end
 						if squad then
-							for i, sString in pairs(squad.units) do
-								local nEnd, _ = string.find(sString, " ")
-								if nEnd then
-									local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
-									local unitNumber = total and math.random(1, total) or 1
-									local scavName = string.sub(sString, (nEnd + 1))
+							for _, squadTable in pairs(squad.units) do
+								local unitNumber = squadTable.count
+								local scavName = squadTable.unit
+								if UnitDefNames[scavName] and unitNumber and unitNumber > 0 then
 									for j = 1, unitNumber, 1 do
 										if mRandom() <= config.spawnChance or j == 1 then
 											squadCounter = squadCounter + 1
@@ -1377,6 +1396,10 @@ if gadgetHandler:IsSyncedCode() then
 											cCount = cCount + 1
 										end
 									end
+								elseif not UnitDefNames[scavName] then
+									Spring.Echo("[ERROR] Invalid Scav Unit Name", scavName)
+								else
+									Spring.Echo("[ERROR] Invalid Scav Squad", scavName)
 								end
 							end
 						end
@@ -1436,22 +1459,24 @@ if gadgetHandler:IsSyncedCode() then
 		local spawnPosX, spawnPosY, spawnPosZ
 
 		if config.useScum then -- If creep/scum is enabled, only allow to spawn turrets on the creep
-			for _ = 1,5 do
-				spawnPosX = mRandom(spread, MAPSIZEX - spread)
-				spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
-				spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-				canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
-				if canSpawnStructure then
-					canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-				end
-				if canSpawnStructure then
-					canSpawnStructure = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
-				end
-				if canSpawnStructure then
-					canSpawnStructure = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
-				end
-				if canSpawnStructure then
-					break
+			if spread < MAPSIZEX - spread and spread < MAPSIZEZ - spread then
+				for _ = 1,5 do
+					spawnPosX = mRandom(spread, MAPSIZEX - spread)
+					spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
+					spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+					canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+					if canSpawnStructure then
+						canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+					end
+					if canSpawnStructure then
+						canSpawnStructure = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
+					end
+					if canSpawnStructure then
+						canSpawnStructure = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, scavAllyTeamID, true, true, true)
+					end
+					if canSpawnStructure then
+						break
+					end
 				end
 			end
 		else -- Otherwise use Scav LoS as creep with Players sensors being the safety zone
@@ -1491,8 +1516,8 @@ if gadgetHandler:IsSyncedCode() then
 		for uName, uSettings in pairs(config.scavTurrets) do
 			if not uSettings.maxBossAnger then uSettings.maxBossAnger = uSettings.minBossAnger + 100 end
 			if uSettings.minBossAnger <= waveParameters.waveTechAnger and uSettings.maxBossAnger >= waveParameters.waveTechAnger then
-				local numOfTurrets = (uSettings.spawnedPerWave*(1-config.scavPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.scavPerPlayerMultiplier)*SetCount(humanTeams)
-				local maxExisting = (uSettings.maxExisting*(1-config.scavPerPlayerMultiplier))+(uSettings.maxExisting*config.scavPerPlayerMultiplier)*SetCount(humanTeams)
+				local numOfTurrets = (uSettings.spawnedPerWave*(1-config.scavPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.scavPerPlayerMultiplier)*(math.min(SetCount(humanTeams), 8))
+				local maxExisting = (uSettings.maxExisting*(1-config.scavPerPlayerMultiplier))+(uSettings.maxExisting*config.scavPerPlayerMultiplier)*(math.min(SetCount(humanTeams), 8))
 				local maxAllowedToSpawn
 				if waveParameters.waveTechAnger <= 100 then  -- i don't know how this works but it does. scales maximum amount of turrets allowed to spawn with techAnger.
 					maxAllowedToSpawn = math.ceil(maxExisting*((waveParameters.waveTechAnger-uSettings.minBossAnger)/(math.min(100-uSettings.minBossAnger, uSettings.maxBossAnger-uSettings.minBossAnger))))
@@ -1501,7 +1526,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				--Spring.Echo(uName,"MaxExisting",maxExisting,"MaxAllowed",maxAllowedToSpawn)
 				for i = 1, math.ceil(numOfTurrets) do
-					if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriod),1) and UnitDefNames[uName] and (Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[uName].id) <= maxAllowedToSpawn) then
+					if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriodInitial),1) and UnitDefNames[uName] and (Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[uName].id) <= maxAllowedToSpawn) then
 						if i <= numOfTurrets or math.random() <= numOfTurrets%1 then
 							local attempts = 0
 							local footprintX = UnitDefNames[uName].xsize -- why the fuck is this footprint *2??????
@@ -1533,7 +1558,7 @@ if gadgetHandler:IsSyncedCode() then
 		local unitName = UnitDefs[unitDefID].name
 		if config.scavMinions[unitName] then
 			local minion = config.scavMinions[unitName][mRandom(1,#config.scavMinions[unitName])]
-			SpawnRandomOffWaveSquad(unitID, true, minion, 4)
+			SpawnRandomOffWaveSquad(unitID, minion, 4)
 		end
 	end
 
@@ -1564,7 +1589,7 @@ if gadgetHandler:IsSyncedCode() then
 				return
 			else
 				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultScavFirestate},0)
-				Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+				GG.ScavengersSpawnEffectUnitID(unitID)
 				if UnitDefs[unitDefID].canCloak then
 					Spring.GiveOrderToUnit(unitID,37382,{1},0)
 				end
@@ -1612,7 +1637,7 @@ if gadgetHandler:IsSyncedCode() then
 					--Spring.Echo("Spawning Backup Squad - Unit Damaged", Spring.GetGameFrame())
 					for i = 1, SetCount(humanTeams) do
 						if mRandom() <= config.spawnChance then
-							SpawnRandomOffWaveSquad(burrow, true)
+							SpawnRandomOffWaveSquad(burrow)
 							burrows[burrow].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
 						end
 					end
@@ -1625,19 +1650,17 @@ if gadgetHandler:IsSyncedCode() then
 				if weaponID == -1 and damage > 1 then
 					damage = 1
 				end
+				attackerDefID = tostring(attackerDefID)
 				if not bossResistance[attackerDefID] then
 					bossResistance[attackerDefID] = {
 						damage = damage * 4 * config.bossResistanceMult,
 						notify = 0
 					}
 				end
-				if not totalBossesMaxHealth then
-					updateBossLife()
-				end
-				local resistPercent = math.min((bossResistance[attackerDefID].damage) / totalBossesMaxHealth, 0.98)
+				local resistPercent = math.min((bossResistance[attackerDefID].damage) / aliveBossesMaxHealth, 0.98)
 				if resistPercent > 0.5 then
 					if bossResistance[attackerDefID].notify == 0 then
-						scavEvent("bossResistance", attackerDefID)
+						scavEvent("bossResistance", tonumber(attackerDefID))
 						bossResistance[attackerDefID].notify = 1
 						spawnCreepStructuresWave()
 					end
@@ -1645,6 +1668,7 @@ if gadgetHandler:IsSyncedCode() then
 
 				end
 				bossResistance[attackerDefID].damage = bossResistance[attackerDefID].damage + (damage * 4 * config.bossResistanceMult)
+				bossResistance[attackerDefID].percent = resistPercent
 			else
 				damage = 1
 			end
@@ -1661,10 +1685,10 @@ if gadgetHandler:IsSyncedCode() then
 				local angle = math.atan2(ux - x, uz - z)
 				local distance = mRandom(math.ceil(config.scavBehaviours.SKIRMISH[attackerDefID].distance*0.75), math.floor(config.scavBehaviours.SKIRMISH[attackerDefID].distance*1.25))
 				if config.scavBehaviours.SKIRMISH[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64) then
-					Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x, y, z)
 					Spring.SetUnitPosition(attackerID, x - (math.sin(angle) * distance), z - (math.cos(angle) * distance))
 					Spring.GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
-					Spring.SpawnCEG("scav-spawnexplo", x - (math.sin(angle) * distance), y ,z - (math.cos(angle) * distance), 0,0,0)
+					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance))
 					unitTeleportCooldown[attackerID] = Spring.GetGameFrame() + config.scavBehaviours.SKIRMISH[attackerDefID].teleportcooldown*30
 				else
 					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
@@ -1680,10 +1704,10 @@ if gadgetHandler:IsSyncedCode() then
 					local angle = math.atan2(ax - x, az - z)
 					local distance = mRandom(math.ceil(config.scavBehaviours.COWARD[unitDefID].distance*0.75), math.floor(config.scavBehaviours.COWARD[unitDefID].distance*1.25))
 					if config.scavBehaviours.COWARD[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64) then
-						Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+						GG.ScavengersSpawnEffectUnitDefID(unitDefID, x, y, z)
 						Spring.SetUnitPosition(unitID, x - (math.sin(angle) * distance), z - (math.cos(angle) * distance))
 						Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
-						Spring.SpawnCEG("scav-spawnexplo", x - (math.sin(angle) * distance), y ,z - (math.cos(angle) * distance), 0,0,0)
+						GG.ScavengersSpawnEffectUnitDefID(unitDefID, x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance))
 						unitTeleportCooldown[unitID] = Spring.GetGameFrame() + config.scavBehaviours.COWARD[unitDefID].teleportcooldown*30
 					else
 						Spring.GiveOrderToUnit(unitID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
@@ -1697,12 +1721,12 @@ if gadgetHandler:IsSyncedCode() then
 			local separation = Spring.GetUnitSeparation(unitID, attackerID)
 			if ax and separation < (config.scavBehaviours.BERSERK[unitDefID].distance or 10000) then
 				if config.scavBehaviours.BERSERK[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
-					Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+					GG.ScavengersSpawnEffectUnitDefID(unitDefID, x, y, z)
 					ax = ax + mRandom(-256,256)
 					az = az + mRandom(-256,256)
 					Spring.SetUnitPosition(unitID, ax, ay, az)
 					Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
-					Spring.SpawnCEG("scav-spawnexplo", ax, ay, az, 0,0,0)
+					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, ax, ay, az)
 					unitTeleportCooldown[unitID] = Spring.GetGameFrame() + config.scavBehaviours.BERSERK[unitDefID].teleportcooldown*30
 				else
 					Spring.GiveOrderToUnit(unitID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
@@ -1715,12 +1739,12 @@ if gadgetHandler:IsSyncedCode() then
 			local separation = Spring.GetUnitSeparation(unitID, attackerID)
 			if ax and separation < (config.scavBehaviours.BERSERK[attackerDefID].distance or 10000) then
 				if config.scavBehaviours.BERSERK[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
-					Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+					GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x, y, z)
 					ax = ax + mRandom(-256,256)
 					az = az + mRandom(-256,256)
 					Spring.SetUnitPosition(attackerID, ax, ay, az)
 					Spring.GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
-					Spring.SpawnCEG("scav-spawnexplo", ax, ay, az, 0,0,0)
+					GG.ScavengersSpawnEffectUnitDefID(unitDefID, ax, ay, az)
 					unitTeleportCooldown[attackerID] = Spring.GetGameFrame() + config.scavBehaviours.BERSERK[attackerDefID].teleportcooldown*30
 				else
 					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
@@ -1737,6 +1761,9 @@ if gadgetHandler:IsSyncedCode() then
 					SpawnMinions(unitID, Spring.GetUnitDefID(unitID))
 					SpawnMinions(unitID, Spring.GetUnitDefID(unitID))
 				end
+			end
+			if attackerTeam and attackerTeam ~= scavTeamID then
+				bosses.playerDamages[tostring(attackerTeam)] = (bosses.playerDamages[tostring(attackerTeam)] or 0) + damage
 			end
 		end
 		if unitTeam == scavTeamID or attackerTeam == scavTeamID then
@@ -1851,24 +1878,10 @@ if gadgetHandler:IsSyncedCode() then
 					Spring.SetUnitAlwaysVisible(unitID, true)
 				end
 
-				if defs.attackNearestEnemy then
-					local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 999999, false)
-					if nearestEnemy then
-						local tx,ty,tz = Spring.GetUnitPosition(nearestEnemy)
-						if tx then
-							--Spring.Echo("Gave Defensive Order")
-							GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
-							GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, 0)
-							GiveOrderToUnit(unitID, CMD.FIGHT, { tx + mRandom(-128, 128), ty, tz + mRandom(-128, 128) }, { "shift" })
-							GiveOrderToUnit(unitID, CMD.FIGHT, { tx + mRandom(-128, 128), ty, tz + mRandom(-128, 128) }, { "shift" })
-						end
-					end
-				else
-					GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
-					GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, 0)
-					GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
-					GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
-				end
+				GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+				GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, 0)
+				GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
+				GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
 
 				setScavXP(unitID)
 			end
@@ -1883,7 +1896,7 @@ if gadgetHandler:IsSyncedCode() then
 			if bossID then
 				nSpawnedBosses = nSpawnedBosses + 1
 				bossIDs[bossID] = true
-				--Spring.Echo({func="updateSpawnBoss", boss_status = {spawned = nSpawnedBosses, killed = nKilledBosses, ids = bossIDs}})
+				bosses.statuses[tostring(bossID)] = {}
 
 				local bossSquad = table.copy(squadCreationQueueDefaults)
 				bossSquad.life = 999999
@@ -1931,7 +1944,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:TrySpawnBurrow()
-		local maxSpawnRetries = math.floor((config.gracePeriod-t)/spawnRetryTimeDiv)
+		local maxSpawnRetries = math.floor((config.gracePeriodInitial-t)/spawnRetryTimeDiv)
 		local spawned = SpawnBurrow()
 		timeOfLastSpawn = t
 		if not fullySpawned then
@@ -1948,7 +1961,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if firstSpawn and spawned then
-			timeOfLastWave = (config.gracePeriod + 10) - config.scavSpawnRate
+			timeOfLastWave = (config.gracePeriodInitial + 10) - config.scavSpawnRate
 			firstSpawn = false
 		end
 	end
@@ -1958,16 +1971,12 @@ if gadgetHandler:IsSyncedCode() then
 
 		if #createUnitQueue > 0 then
 			for i = 1,#createUnitQueue do
-				local unitID = Spring.CreateUnit(createUnitQueue[i][1],createUnitQueue[i][2],createUnitQueue[i][3],createUnitQueue[i][4],createUnitQueue[i][5],createUnitQueue[i][6])
-				--if unitID then
-				--	local _, maxH = Spring.GetUnitHealth(unitID)
-				--	Spring.SetUnitHealth(unitID, maxH*0.5)
-				--end
+				Spring.CreateUnit(createUnitQueue[i][1],createUnitQueue[i][2],createUnitQueue[i][3],createUnitQueue[i][4],createUnitQueue[i][5],createUnitQueue[i][6])
 			end
 			createUnitQueue = {}
 		end
 
-		if announcedFirstWave == false and GetGameSeconds() > config.gracePeriod then
+		if announcedFirstWave == false and GetGameSeconds() > config.gracePeriodInitial then
 			scavEvent("firstWave")
 			announcedFirstWave = true
 		end
@@ -2006,11 +2015,14 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
-			techAnger = math.max(math.min((t - config.gracePeriod) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult)) - config.gracePeriod) * 100, 999), 0)
+
+			techAnger = (t - config.gracePeriodInitial) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult)) - config.gracePeriodInitial) * 100
 			techAnger = math.ceil(techAnger*((config.economyScale*0.5)+0.5))
-			if t < config.gracePeriod then
+			techAnger = math.clamp(techAnger, 0, 999)
+
+			if t < config.gracePeriodInitial then
 				bossAnger = 0
-				minBurrows = math.ceil(math.max(4, 2*SetCount(humanTeams))*(t/config.gracePeriod))
+				minBurrows = math.ceil(math.max(4, 2*(math.min(SetCount(humanTeams), 8)))*(t/config.gracePeriodInitial))
 			else
 				if nSpawnedBosses == 0 then
 					bossAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (bossTime - config.gracePeriod) * 100) + bossAngerAggressionLevel, 100), 0)
@@ -2030,18 +2042,18 @@ if gadgetHandler:IsSyncedCode() then
 			SetGameRulesParam("scavBossAnger", math.floor(bossAnger))
 			SetGameRulesParam("scavTechAnger", math.floor(techAnger))
 
-			if bossAnger >= 100 or (burrowCount <= 1 and t > config.gracePeriod) then
+			if bossAnger >= 100 or (burrowCount <= 1 and t > config.gracePeriod+60) then
 				-- check if the boss should be alive
 				updateSpawnBoss()
-				updateBossLife()
 			end
+			updateBossLife()
 
 			if burrowCount < minBurrows then
 				gadget:TrySpawnBurrow(t)
 			end
 
 			if (t > config.burrowSpawnRate and burrowCount < minBurrows and (t > timeOfLastSpawn + 10 or burrowCount == 0)) or (config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount < maxBurrows) then
-				if (config.burrowSpawnType == "initialbox") and (t > config.gracePeriod) then
+				if (config.burrowSpawnType == "initialbox") and (t > config.gracePeriodInitial) then
 					config.burrowSpawnType = "initialbox_post"
 				end
 				gadget:TrySpawnBurrow(t)
@@ -2051,7 +2063,7 @@ if gadgetHandler:IsSyncedCode() then
 				timeOfLastSpawn = t
 			end
 
-			if t > config.gracePeriod+5 then
+			if t > config.gracePeriodInitial+5 then
 				if burrowCount > 0
 				and SetCount(spawnQueue) == 0
 				and ((config.scavSpawnRate*waveParameters.waveTimeMultiplier) < (t - timeOfLastWave)) then
@@ -2152,7 +2164,7 @@ if gadgetHandler:IsSyncedCode() then
 								Spring.SetUnitHealth(unitID, {capture = 0.95})
 								Spring.SetUnitHealth(unitID, {health = maxHealth})
 								SendToUnsynced("unitCaptureFrame", unitID, 0.95)
-								Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
+								GG.ScavengersSpawnEffectUnitID(unitID)
 								Spring.SpawnCEG("scavmist", ux, uy+100, uz, 0,0,0)
 								Spring.SpawnCEG("scavradiation", ux, uy+100, uz, 0,0,0)
 								Spring.SpawnCEG("scavradiation-lightning", ux, uy+100, uz, 0,0,0)
@@ -2162,7 +2174,7 @@ if gadgetHandler:IsSyncedCode() then
 								Spring.SetUnitHealth(unitID, {capture = math.min(captureLevel+captureProgress, 1)})
 								SendToUnsynced("unitCaptureFrame", unitID, math.min(captureLevel+captureProgress, 1))
 								Spring.SpawnCEG("scaspawn-trail", ux, uy, uz, 0,0,0)
-								Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
+								GG.ScavengersSpawnEffectUnitID(unitID)
 								if math.random() <= 0.1 then
 									Spring.SpawnCEG("scavmist", ux, uy+100, uz, 0,0,0)
 								end
@@ -2173,7 +2185,7 @@ if gadgetHandler:IsSyncedCode() then
 										--Spring.Echo("Spawning Backup Squad - Unit Cloud Capture", Spring.GetGameFrame())
 										for i = 1, SetCount(humanTeams) do
 											if mRandom() <= config.spawnChance then
-												SpawnRandomOffWaveSquad(burrow, true)
+												SpawnRandomOffWaveSquad(burrow)
 												burrows[burrow].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
 											end
 										end
@@ -2234,7 +2246,7 @@ if gadgetHandler:IsSyncedCode() then
 				return
 			else
 				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultScavFirestate},0)
-				Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+				GG.ScavengersSpawnEffectUnitID(unitID)
 				if UnitDefs[unitDefID].canCloak then
 					Spring.GiveOrderToUnit(unitID,37382,{1},0)
 				end
@@ -2270,9 +2282,16 @@ if gadgetHandler:IsSyncedCode() then
 			for index, id in ipairs(squadsTable[unitSquadTable[unitID]].squadUnits) do
 				if id == unitID then
 					table.remove(squadsTable[unitSquadTable[unitID]].squadUnits, index)
+					break
 				end
 			end
 			unitSquadTable[unitID] = nil
+		end
+
+		for index, _ in ipairs(squadsTable) do
+			if squadsTable[index].squadBurrow == unitID then
+				squadsTable[index].squadBurrow = nil
+			end
 		end
 
 		squadPotentialTarget[unitID] = nil
@@ -2292,15 +2311,22 @@ if gadgetHandler:IsSyncedCode() then
 		if bossIDs[unitID] then
 			nKilledBosses = nKilledBosses + 1
 			bossIDs[unitID] = nil
-			--Spring.Echo({func="UnitDestroyed", boss_status = {spawned = nSpawnedBosses, killed = nKilledBosses, ids = bossIDs}})
+			table.mergeInPlace(bosses.statuses, {[tostring(unitID)] = {isDead = true, health = 0}})
+			SetGameRulesParam("scavBossesKilled", nKilledBosses)
 
 			if nKilledBosses >= nTotalBosses then
 				Spring.SetGameRulesParam("BossFightStarted", 0)
 
 				if Spring.GetModOptions().scav_endless then
 					updateDifficultyForSurvival()
+					Spring.SetGameRulesParam("scavBossAnger", 0)
+					Spring.SetGameRulesParam("scavBossHealth", 0)
+					Spring.SetGameRulesParam("scavTechAnger", 0)
 				else
 					gameOver = GetGameFrame() + 200
+					Spring.SetGameRulesParam("scavBossAnger", 0)
+					Spring.SetGameRulesParam("scavBossHealth", 0)
+					Spring.SetGameRulesParam("scavTechAnger", 0)
 					spawnQueue = {}
 
 					if not killedScavsAllyTeam then
@@ -2342,12 +2368,6 @@ if gadgetHandler:IsSyncedCode() then
 			for i, defs in pairs(spawnQueue) do
 				if defs.burrow == unitID then
 					spawnQueue[i] = nil
-				end
-			end
-
-			for i = 1,#squadsTable do
-				if squadsTable[i].squadBurrow == unitID then
-					squadsTable[i].squadBurrow = nil
 				end
 			end
 
@@ -2404,7 +2424,6 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 	local hasScavEvent = false
-	local mRandom = math.random
 
 	function HasScavEvent(ce)
 		hasScavEvent = (ce ~= "0")

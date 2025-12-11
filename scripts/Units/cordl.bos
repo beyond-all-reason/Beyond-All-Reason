@@ -1,14 +1,12 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, turret, flare;
 
 static-var  gun_1;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 
 #define BASEPIECE base
@@ -17,7 +15,7 @@ static-var  gun_1;
 #define UNITSIZE 6
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
@@ -26,38 +24,34 @@ Create()
 	return (0);
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <200.000000>;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn turret to y-axis heading speed <200.0>;
 	wait-for-turn turret around y-axis;
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	sleep 500;
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = turret;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {

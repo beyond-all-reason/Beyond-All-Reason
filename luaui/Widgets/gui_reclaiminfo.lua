@@ -25,6 +25,14 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+
+-- Localized Spring API for performance
+local spGetUnitDefID = Spring.GetUnitDefID
+local spTraceScreenRay = Spring.TraceScreenRay
+
 local start = false  --reclaim area cylinder drawing has been started
 local metal = 0  --metal count from features in cylinder
 local energy = 0  --energy count from features in cylinder
@@ -55,8 +63,8 @@ end
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
-	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
-	form = math.floor(vsx / 87)
+	font = WG['fonts'].getFont(1, 1.5)
+	form = mathFloor(vsx / 87)
 end
 
 local function InMinimap(x, y)
@@ -80,7 +88,7 @@ function widget:DrawScreen()
 	_, cmd, _ = Spring.GetActiveCommand()
 	x, y, b1, _, b2 = Spring.GetMouseState() --b1 = left button pressed?
 	nonground, _ = Spring.GetMouseCursor()
-	x, y = math.floor(x), math.floor(y) --TraceScreenRay needs this
+	x, y = mathFloor(x), mathFloor(y) --TraceScreenRay needs this
 	if (cmd == CMD.RECLAIM and rangestart ~= nil and b1 and b1was == false) or (nonground == "Reclaim" and b1was == false and b2 and rangestart ~= nil) then
 		if rangestart[1] == 0 and rangestart[3] == 0 then
 			local inMinimap, rx, ry = InMinimap(x, y)
@@ -93,7 +101,7 @@ function widget:DrawScreen()
 				xstart, ystart = x, y
 				start = false
 				rangestartinminimap = false
-				_, rangestart = Spring.TraceScreenRay(x, y, true) --cursor on world pos
+				_, rangestart = spTraceScreenRay(x, y, true) --cursor on world pos
 			end
 		end
 	elseif rangestart == nil and b1 then
@@ -116,7 +124,7 @@ function widget:DrawScreen()
 		if inMinimap and rangestartinminimap then
 			rangeend = MinimapToWorld(rx, ry)
 		else
-			_, rangeend = Spring.TraceScreenRay(x, y, true)
+			_, rangeend = spTraceScreenRay(x, y, true)
 		end
 
 		if rangeend == nil then
@@ -132,8 +140,8 @@ function widget:DrawScreen()
 			metal = metal + fm
 			energy = energy + fe
 		end
-		metal = math.floor(metal)
-		energy = math.floor(energy)
+		metal = mathFloor(metal)
+		energy = mathFloor(energy)
 		local text = "   " .. Spring.I18N('ui.reclaimInfo.metal', { metal = metal }) .. "\255\255\255\128" .. " " .. Spring.I18N('ui.reclaimInfo.energy', { energy = energy })
 		local textwidth = 12 * font:GetTextWidth(text)
 		if textwidth + x > vsx then
@@ -151,12 +159,12 @@ function widget:DrawScreen()
 
 	-- Unit resource info when mouse on one
 	if nonground == "Reclaim" and rangestart ~= nil and (energy == 0 or metal == 0) and b1 == false then
-		local isunit, unitID = Spring.TraceScreenRay(x, y) --if on unit pos!
+		local isunit, unitID = spTraceScreenRay(x, y) --if on unit pos!
 		if isunit == "unit" and (Spring.GetUnitHealth(unitID)) then
 			-- Getunithealth just to make sure that it is in los
-			local unitDefID = Spring.GetUnitDefID(unitID)
+			local unitDefID = spGetUnitDefID(unitID)
 			local _, buildprogress = Spring.GetUnitIsBeingBuilt(unitID)
-			metal = math.floor(unitMetalCost[unitDefID] * buildprogress)
+			metal = mathFloor(unitMetalCost[unitDefID] * buildprogress)
 			local text = "   " .. Spring.I18N('ui.reclaimInfo.metal', { metal = metal })
 			local textwidth = 12 * font:GetTextWidth(text)
 			if textwidth + x > vsx then
@@ -166,7 +174,7 @@ function widget:DrawScreen()
 				y = y - form
 			end
 			local color = "\255\255\255\255"
-			if not isReclaimable[Spring.GetUnitDefID(unitID)] then
+			if not isReclaimable[spGetUnitDefID(unitID)] then
 				color = "\255\220\10\10"
 			end
 			font:Begin()

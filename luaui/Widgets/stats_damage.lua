@@ -81,12 +81,12 @@ function RecieveStats(uDID, n, ts, dmg_dealt, dmg_rec, minutes, kills, killed_co
     info[name] = info[name] or {dmg_dealt=0,dmg_rec=0,n=0,ts=0,name=unitHumanName[uDID],minutes=0,kills=0,killed_cost=0, cost=cost}
 
     local old_n = info[name].n
-    info[name].ts = (info[name].ts * old_n + ts)/(old_n+n)
+    info[name].ts = ((info[name].ts or 0) * old_n + ts)/(old_n+n)
     info[name].dmg_dealt = ((info[name].dmg_dealt or 0) * old_n + dmg_dealt)/(old_n+n)
-    info[name].dmg_rec = (info[name].dmg_rec * old_n + dmg_rec)/(old_n+n)
-    info[name].minutes = (info[name].minutes * old_n + minutes)/(old_n+n)
-    info[name].kills = (info[name].kills * old_n + kills)/(old_n+n)
-    info[name].killed_cost = (info[name].killed_cost * old_n + killed_cost)/(old_n+n)
+    info[name].dmg_rec = ((info[name].dmg_rec or 0) * old_n + dmg_rec)/(old_n+n)
+    info[name].minutes = ((info[name].minutes or 0) * old_n + minutes)/(old_n+n)
+    info[name].kills = ((info[name].kills or 0) * old_n + kills)/(old_n+n)
+    info[name].killed_cost = ((info[name].killed_cost or 0) * old_n + killed_cost)/(old_n+n)
 
     info[name].n = info[name].n + n
 end

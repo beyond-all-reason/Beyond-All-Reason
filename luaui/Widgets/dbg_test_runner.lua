@@ -11,6 +11,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+
 if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePlayer() then
 	return
 end
@@ -50,6 +54,7 @@ local config = {
 }
 
 local testReporter = nil
+local headless = false
 
 -- utils
 -- =====
@@ -80,6 +85,7 @@ local function logEndTests(duration)
 	testReporter:endTests(duration)
 
 	testReporter:report(config.testResultsFilePath)
+	headless = false
 end
 
 local function logTestResult(testResult)
@@ -91,6 +97,7 @@ local function logTestResult(testResult)
 		testResult.label,
 		testResult.filename,
 		(testResult.result == TestResults.TEST_RESULT.PASS),
+		(testResult.result == TestResults.TEST_RESULT.SKIP),
 		testResult.milliseconds,
 		testResult.error
 	)
@@ -144,7 +151,7 @@ local function findTestFiles(directory, patterns, rootDirectory, result)
 		result = {}
 	end
 
-	for _, filename in ipairs(VFS.DirList(directory, "*", VFS.RAW_FIRST)) do
+	for _, filename in ipairs(VFS.DirList(directory, "*.lua", VFS.RAW_FIRST)) do
 		local relativePath = string.sub(filename, string.len(rootDirectory) + 1)
 		local withoutExtension = Util.removeFileExtension(relativePath)
 		if patterns == nil or #patterns == 0 or matchesPatterns(withoutExtension, patterns) then
@@ -173,6 +180,9 @@ local function findAllTestFiles(patterns)
 		for _, testFileInfo in ipairs(findTestFiles(path, patterns)) do
 			result[#result + 1] = testFileInfo
 		end
+	end
+	if headless then
+		result[#result+1] = {label="infolog", filename="common/testing/infologtest.lua"}
 	end
 	return result
 end
@@ -493,13 +503,18 @@ local function startTests(patterns)
 						   'Cheats are disabled; attempting to enable them...',
 						   'Could not enable cheats; tests cannot be run.'}
 	end
+	if not Spring.IsDevLuaEnabled() then
+		neededActions[#neededActions+1] = {'devlua',
+						   'DevLua mode disabled; attempting to enable it...',
+						   'Could not enable DevLua mode; tests cannot be run.'}
+	end
 	if Spring.GetModOptions().deathmode ~= 'neverend' and not Spring.GetGameRulesParam('testEndConditionsOverride') then
 		neededActions[#neededActions+1] = {'luarules setTestEndConditions',
 						   "Disabling end conditions...",
 						   "Could not override game end condition. Please use deathmode='neverend' game end mode. " ..
 					           "This is required in order to run tests, so that the game stays active between tests."}
 	end
-	if Spring.GetGameFrame() < 1 and not Spring.GetGameRulesParam('testEnvironmentStarting') then
+	if spGetGameFrame() < 1 and not Spring.GetGameRulesParam('testEnvironmentStarting') then
 		neededActions[#neededActions+1] = {'luarules setTestReadyPlayers',
 						   "Preparing players to start game...",
 						   'Could not prepare players. Please start game manually.'}
@@ -526,7 +541,7 @@ local function startTests(patterns)
 			return
 		end
 	end
-	if Spring.GetGameFrame() < 1 then
+	if spGetGameFrame() < 1 then
 		if not queuedStartTests then
 			queueStartTests(patterns)
 		end
@@ -577,7 +592,7 @@ local function finishTest(result)
 	result.label = result.label or activeTestState.label
 	result.filename = result.filename or activeTestState.filename
 	if activeTestState and activeTestState.startFrame and result.frames == nil then
-		result.frames = Spring.GetGameFrame() - activeTestState.startFrame
+		result.frames = spGetGameFrame() - activeTestState.startFrame
 	end
 	result.milliseconds = getTestTime()
 
@@ -624,7 +639,7 @@ local function createNestedProxy(prefix, path)
 				waitingForReturnID = returnID,
 				success = nil,
 				pendingValueOrError = nil,
-				timeoutExpireFrame = Spring.GetGameFrame() + config.returnTimeout,
+				timeoutExpireFrame = spGetGameFrame() + config.returnTimeout,
 			}
 
 			log(LOG.DEBUG, "[createNestedProxy." .. prefix .. ".send]")
@@ -655,7 +670,7 @@ SyncedRun = function(fn, timeout)
 		waitingForReturnID = returnID,
 		success = nil,
 		pendingValueOrError = nil,
-		timeoutExpireFrame = Spring.GetGameFrame() + (timeout or config.returnTimeout),
+		timeoutExpireFrame = spGetGameFrame() + (timeout or config.returnTimeout),
 	}
 
 	log(LOG.DEBUG, "[SyncedRun.send]")
@@ -681,7 +696,7 @@ Test = {
 
 		resumeState = {
 			predicate = f,
-			timeoutExpireFrame = Spring.GetGameFrame() + timeout,
+			timeoutExpireFrame = spGetGameFrame() + timeout,
 		}
 
 		local resumeOk, resumeResult = coroutine.yield()
@@ -699,10 +714,10 @@ Test = {
 	end,
 	waitFrames = function(frames)
 		log(LOG.DEBUG, "[waitFrames] " .. frames)
-		local startFrame = Spring.GetGameFrame()
+		local startFrame = spGetGameFrame()
 		Test.waitUntil(
 			function()
-				return Spring.GetGameFrame() >= (startFrame + frames)
+				return spGetGameFrame() >= (startFrame + frames)
 			end,
 			frames + 5,
 			1
@@ -993,6 +1008,7 @@ local function initializeTestEnvironment()
 		Engine = Engine,
 		Platform = Platform,
 		Game = Game,
+		GameCMD = GameCMD,
 		gl = gl,
 		GL = GL,
 		CMD = CMD,
@@ -1083,7 +1099,7 @@ local function handleReturn()
 	end
 
 	if returnState.timeoutExpireFrame ~= nil then
-		if Spring.GetGameFrame() >= returnState.timeoutExpireFrame then
+		if spGetGameFrame() >= returnState.timeoutExpireFrame then
 			-- resume took too long, result is error
 			log(LOG.DEBUG, "[handleReturn] timeout -> error")
 			return {
@@ -1130,7 +1146,7 @@ local function handleWait()
 		}
 	end
 
-	if Spring.GetGameFrame() >= resumeState.timeoutExpireFrame then
+	if spGetGameFrame() >= resumeState.timeoutExpireFrame then
 		-- resume took too long, result is error
 		log(LOG.DEBUG, "[handleWait] timeout -> error")
 		return {
@@ -1208,7 +1224,7 @@ local function step()
 			log(LOG.DEBUG, "Initializing test: " .. activeTestState.label)
 			activeTestState.environment = envOrError
 			activeTestState.coroutine = coroutine.create(activeTestState.environment.__runTestInternal)
-			activeTestState.startFrame = Spring.GetGameFrame()
+			activeTestState.startFrame = spGetGameFrame()
 
 			testTimer = Spring.GetTimer()
 		else
@@ -1283,7 +1299,7 @@ function widget:GameFrame(frame)
 end
 
 function widget:Update(dt)
-	if Spring.GetGameFrame() <= 0 then
+	if spGetGameFrame() <= 0 then
 		step()
 	else
 		widgetHandler:RemoveWidgetCallIn('Update', self)
@@ -1325,6 +1341,7 @@ function widget:Initialize()
 		self,
 		"runtestsheadless",
 		function(cmd, optLine, optWords, data, isRepeat, release, actions)
+			headless = true
 			config.noColorOutput = true
 			config.quitWhenDone = true
 			config.gameStartTestPatterns = Util.splitPhrases(optLine)

@@ -18,7 +18,8 @@
 		"static": 0.5,  // additional 64-elmo-cells for static units
 		"speed": [0.75, 4.0]  // [<64elmo_cells_speed_mod>, <max_64elmo_cells>]
 	},
-	"num_batch": 5  // quantity of mobile units in build-batch
+	"num_batch": 5,  // quantity of mobile units in build-batch
+	"anti_cap": 2.0  // probability 0.0~1.0 of AntiCapture action
 },
 
 // If unit's health drops below specified percent it will retreat
@@ -300,7 +301,7 @@
 		"role": ["static"],
 		"attribute": ["support"],
 		"limit": 1,
-		"midposoffset": [0, 0, 21],
+		"midposoffset": [0, 0, -16],
 		"build_speed": 10.0
 	},
 	"corgant": {
@@ -585,10 +586,6 @@
 		"role": ["raider", "air"],
 		"attribute": ["siege"],
 		"retreat": 0.6
-	},
-	"armasp": {
-		"role": ["static"],
-		"limit": 1
 	},
 
 	// adv aircraft - armaap
@@ -999,10 +996,6 @@
 		"attribute": ["siege"],
 		"retreat": 0.3
 	},
-	"corasp": {
-		"role": ["static"],
-		"limit": 1
-	},
 
 	// adv aircraft - coraap
 	"coraca": {
@@ -1136,7 +1129,7 @@
 		"role": ["static"],
 		"attribute": ["support"],
 		"limit": 1,
-		"midposoffset": [0, 0, 21],
+		"midposoffset": [0, 0, -16],
 		"build_speed": 10.0
 	},
 	"corlab": {

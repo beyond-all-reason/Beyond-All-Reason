@@ -12,8 +12,16 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local vsx, vsy = Spring.GetViewGeometry()
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spGetMouseState = Spring.GetMouseState
+local spGetViewGeometry = Spring.GetViewGeometry
+
+local vsx, vsy = spGetViewGeometry()
 
 local changelogFile = VFS.LoadFile("changelog.txt")
 local changelogFileHash = VFS.CalculateHash(changelogFile, 0)
@@ -33,15 +41,15 @@ local startLine = 1
 
 local centerPosX = 0.5
 local centerPosY = 0.5
-local screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
-local screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
+local screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
+local screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 local widgetScale = (vsy / 1080)
 
 local versions = {}
@@ -65,16 +73,16 @@ local math_isInRect = math.isInRect
 local font, loadedFontSize, font2, changelogList, titleRect, backgroundGuishader, changelogList, dlistcreated, show, bgpadding
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 	widgetScale = (vsy / 1080)
 
-	screenHeight = math.floor(screenHeightOrg * widgetScale)
-	screenWidth = math.floor(screenWidthOrg * widgetScale)
-	screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
-	screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
+	screenHeight = mathFloor(screenHeightOrg * widgetScale)
+	screenWidth = mathFloor(screenWidthOrg * widgetScale)
+	screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
+	screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 
 	font, loadedFontSize = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(fontfile2)
+	font2 = WG['fonts'].getFont(2)
 	bgpadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
 
@@ -122,9 +130,9 @@ function DrawSidebar(x, y, width, height)
 			font:Print(line, x + fontOffsetX, textY, fontSize, "on")
 
 			versionQuickLinks[j] = {
-				math.floor(x),
-				math.floor(textY - (versionFontSize * widgetScale * 0.66)),
-				math.floor(x + (versionWidth*widgetScale)),
+				mathFloor(x),
+				mathFloor(textY - (versionFontSize * widgetScale * 0.66)),
+				mathFloor(x + (versionWidth*widgetScale)),
 				math.ceil(textY + (versionFontSize * widgetScale * 1.21))
 			}
 
@@ -156,7 +164,7 @@ function DrawTextarea(x, y, width, height, scrollbar)
 	local fontColorLineBullet = { 0.9, 0.6, 0.2, 1 }
 
 	local textRightOffset = scrollbar and scrollbarMargin + scrollbarWidth + scrollbarWidth or 0
-	maxLines = math.floor(height / (lineSeparator + fontSizeTitle))
+	maxLines = mathFloor(height / (lineSeparator + fontSizeTitle))
 
 	-- textarea scrollbar
 	if scrollbar then
@@ -166,10 +174,10 @@ function DrawTextarea(x, y, width, height, scrollbar)
 			local scrollbarBottom = y - scrollbarOffsetBottom - height + scrollbarMargin + (scrollbarWidth - scrollbarPosWidth)
 
 			UiScroller(
-				math.floor(x + width - scrollbarMargin - scrollbarWidth),
-				math.floor(scrollbarBottom - (scrollbarWidth - scrollbarPosWidth)),
-				math.floor(x + width - scrollbarMargin),
-				math.floor(scrollbarTop + (scrollbarWidth - scrollbarPosWidth)),
+				mathFloor(x + width - scrollbarMargin - scrollbarWidth),
+				mathFloor(scrollbarBottom - (scrollbarWidth - scrollbarPosWidth)),
+				mathFloor(x + width - scrollbarMargin),
+				mathFloor(scrollbarTop + (scrollbarWidth - scrollbarPosWidth)),
 				(#changelogLines) * (lineSeparator + fontSizeTitle),
 				(startLine-1) * (lineSeparator + fontSizeTitle)
 			)
@@ -240,14 +248,14 @@ end
 
 function DrawWindow()
 	-- background
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 
 	-- title background
 	local title = Spring.I18N('ui.changelog.title')
 	local titleFontSize = 18 * widgetScale
-	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
+	titleRect = { screenX, screenY, mathFloor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), mathFloor(screenY + (titleFontSize*1.7)) }
 
-	gl.Color(0, 0, 0, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	gl.Color(0, 0, 0, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 
 	-- title
@@ -295,10 +303,10 @@ function widget:DrawScreen()
 		showOnceMore = false
 
 		-- draw button hover
-		local usedScreenX = math.floor((vsx * centerPosX) - ((screenWidth / 2) * widgetScale))
-		local usedScreenY = math.floor((vsy * centerPosY) + ((screenHeight / 2) * widgetScale))
+		local usedScreenX = mathFloor((vsx * centerPosX) - ((screenWidth / 2) * widgetScale))
+		local usedScreenY = mathFloor((vsy * centerPosY) + ((screenHeight / 2) * widgetScale))
 
-		local x, y, pressed = Spring.GetMouseState()
+		local x, y, pressed = spGetMouseState()
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 			Spring.SetMouseCursor('cursornormal')
 		end
@@ -321,7 +329,7 @@ function widget:DrawScreen()
 			end
 		end
 	elseif dlistcreated and WG['guishader'] then
-		WG['guishader'].DeleteDlist('changelog')
+		WG['guishader'].RemoveDlist('changelog')
 		dlistcreated = nil
 	end
 end
@@ -377,10 +385,10 @@ function mouseEvent(x, y, button, release)
 			-- version buttons
 			if button == 1 and release then
 				local yOffset = 24
-				local usedScreenX = math.floor((vsx * centerPosX) - ((screenWidth / 2) * widgetScale))
-				local usedScreenY = math.floor((vsy * centerPosY) + ((screenHeight / 2) * widgetScale))
+				local usedScreenX = mathFloor((vsx * centerPosX) - ((screenWidth / 2) * widgetScale))
+				local usedScreenY = mathFloor((vsy * centerPosY) + ((screenHeight / 2) * widgetScale))
 
-				local x, y = Spring.GetMouseState()
+				local x, y = spGetMouseState()
 				if changelogFile then
 					for k,v in pairs(versionQuickLinks) do
 						if math_isInRect(x, y, v[1], v[2], v[3], v[4]) then
@@ -471,7 +479,10 @@ function widget:Shutdown()
 		changelogList = nil
 	end
 	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('changelog')
+		WG['guishader'].RemoveDlist('changelog')
+	end
+	if backgroundGuishader ~= nil then
+		glDeleteList(backgroundGuishader)
 	end
 end
 

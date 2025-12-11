@@ -1,120 +1,14 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
+
+#include "../factories_common.h"
 
 piece  base,doorl,doorr ,nano1,nano2,nano3,nano4,nano5,nano6,nano7,nano8,pad, cagelight, cagelight_emit, cagelight2, cagelight_emit2;
 
-static-var  spray, statechg_DesiredState, statechg_StateChanging;
+static-var  spray;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
-
-
-
-activatescr()
-{
-	if( TRUE )
-	{
-		//move doorl to x-axis [0.0] now;
-		move doorl to x-axis [-27.0] speed [27];
-		//move doorr to x-axis [0.0] now;
-		move doorr to x-axis [27.0] speed [27];
-		wait-for-move doorl along x-axis;
-	}
-
-	sleep 6;
-}
-
-deactivatescr()
-{
-	hide cagelight_emit;
-	hide cagelight_emit2;
-	turn cagelight to y-axis <0> speed <1000>;
-	turn cagelight2 to y-axis <0> speed <1000>;
-	if( TRUE )
-	{
-		move doorl to x-axis [0.0] speed [24];
-		move doorr to x-axis [0.0] speed [24];
-		wait-for-move doorl along x-axis;
-	}
-	sleep 12;
-}
-
-
-OpenYard()
-{
-	set YARD_OPEN to 1;
-	while( !get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 1;
-	}
-	set BUGGER_OFF to 0;
-}
-
-CloseYard()
-{
-	set YARD_OPEN to 0;
-	while( get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 0;
-	}
-	set BUGGER_OFF to 0;
-}
-
-Go()
-{
-	call-script activatescr();
-	call-script OpenYard();
-	set INBUILDSTANCE to 1;
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	call-script CloseYard();
-	call-script deactivatescr();
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-			show cagelight_emit;
-			show cagelight_emit2;
-			spin cagelight around y-axis speed <200>;
-			spin cagelight2 around y-axis speed <200>;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
+#define SIGNAL_TURNON 4
 
 Create()
 {
@@ -129,68 +23,43 @@ Create()
 	hide nano2;
 	hide cagelight_emit;
 	hide cagelight_emit2;
-	spray = base;
-	call-script InitState();
+	spray = 0;
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
 
-QueryNanoPiece(piecenum)
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+QueryNanoPiece(pieceIndex)
 {
-	if( spray == 0 )
-	{
-		piecenum = nano1;
-	}
-	if( spray == 1 )
-	{
-		piecenum = nano2;
-	}
-	if( spray == 2 )
-	{
-		piecenum = nano3;
-	}
-	if( spray == 3 )
-	{
-		piecenum = nano4;
-	}
-	if( spray == 4 )
-	{
-		piecenum = nano5;
-	}
-	if( spray == 5 )
-	{
-		piecenum = nano6;
-	}
-	if( spray == 6 )
-	{
-		piecenum = nano7;
-	}
-	if( spray == 7 )
-	{
-		piecenum = nano8;
-	}
-	spray = spray +1;
-	if( spray > 7)
-	{
-		spray=0;
-	}
+	spray = (spray + 1) % 8;
+	pieceIndex = nano1 + spray;
 }
-
 
 Activate()
 {
-	signal SIG_ACTIVATE;
-	start-script RequestState(0);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	
+	move doorl to x-axis [-27.0] speed [27];
+	move doorr to x-axis [27.0] speed [27];
+	wait-for-move doorl along x-axis;
+	
+	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
-  sleep 5000;
-	set-signal-mask 0;
-	start-script RequestState(1);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	sleep 5000;
+	
+	move doorl to x-axis [0.0] speed [24];
+	move doorr to x-axis [0.0] speed [24];
+	wait-for-move doorl along x-axis;
+	
+	FACTORY_CLOSE_BUILD;
 }
 
 StartBuilding()
@@ -205,6 +74,8 @@ StartBuilding()
 	show nano8;
 	show cagelight_emit;
 	show cagelight_emit2;
+	spin cagelight around y-axis speed <200> accelerate <1>;
+	spin cagelight2 around y-axis speed <200> accelerate <1>;
 }
 
 StopBuilding()
@@ -219,22 +90,26 @@ StopBuilding()
 	hide nano8;
 	hide cagelight_emit;
 	hide cagelight_emit2;
+	
+	stop-spin cagelight around y-axis decelerate <1>;
+	stop-spin cagelight2 around y-axis decelerate <1>;
+	
+	
+	/*
 	set BUGGER_OFF to 1; // tell units to get out of here
 	set INBUILDSTANCE to 0; // we turn it off, to wait for the unit to clear the build pad (large aircraft)
 	sleep 500;   // then we wait for 0.5 sec
 	set INBUILDSTANCE to 1; // we turn it on again, as the next startbuilding and construction will begin when this is 1 again.
 	set BUGGER_OFF to 0; // ok now we dont mind if they are here
+	*/
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
+	pieceIndex = pad;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

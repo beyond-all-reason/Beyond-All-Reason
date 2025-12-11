@@ -28,7 +28,7 @@ return {
 		metalcost = 5100,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCRWH.s3o",
-		script = "Units/CORCRWH.cob",
+		script = "Units/corcrwh.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 494,
@@ -124,6 +124,9 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1250,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					vtol = 76,
 				},
@@ -169,6 +172,9 @@ return {
 				waterweapon = false,
 				weapontype = "Flame",
 				weaponvelocity = 500,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 6,
 					subs = 3,
@@ -199,12 +205,14 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrcrw2",
 				soundtrigger = 1,
-				targetmoveerror = 0,
 				thickness = 2.7,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 250,
 				},
@@ -237,12 +245,14 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrcrw1",
 				soundtrigger = 1,
-				targetmoveerror = 0,
 				thickness = 2,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 90,
 				},

@@ -1,33 +1,11 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, wheel,wheel2,frame;
 
-static-var  statechg_DesiredState, statechg_StateChanging;
 
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*5;
-			turn base to z-axis rockAng speed rockSpeed*5;
-			wait-for-turn base around x-axis;
-			wait-for-turn base around z-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
-
+#define WATER_ROCK_UNITSIZE 10
+#include "../floatmotion.h"
 
 #define BASEPIECE base
 #define HITSPEED <25.0>
@@ -35,78 +13,26 @@ RockOnWaves()
 #define UNITSIZE 2
 #define MAXTILT 200
 
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-#include "unit_hitbyweaponid_and_smoke.h"
-
-Go()
-{
-	dont-cache wheel;
-	spin wheel around z-axis speed <35.005495>;
-}
-
-Stop()
-{
-	stop-spin wheel around z-axis;
-	cache wheel;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-Create()
-{
-	dont-shade wheel;
-	call-script InitState();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	start-script RockOnWaves();
-}
 
 Activate()
 {
-	start-script RequestState(0);
+	spin wheel around z-axis speed <35.005495> accelerate <1>;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	stop-spin wheel around z-axis;
 }
 
-SweetSpot(piecenum)
+Create()
 {
-	piecenum = base;
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script FloatMotion();
+	start-script Activate();
 }
+
 
 Killed(severity, corpsetype)
 {

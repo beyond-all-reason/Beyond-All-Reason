@@ -1,1424 +1,2194 @@
-// Mono-space font required
-{
-"quota": {
-	"scout": 3,  // max scouts out of units with attribute "scout"
-	"raid": [0.01, 420.0],  // [<min>, <avg>] power of raider squad
-	"attack": 0.02,  // min power of attack group
-	"thr_mod": {
-		"attack": [0.01, 15.5],  // [<min>, <max>] enemy threat modifier for target selection of attack task
-		"defence": [0.01, 15.5],  // [<min>, <max>] enemy threat modifier for group size calculation of defence task
-		"mobile": 0.01,  // initial modifier for power of attack group based on mobile enemy threat
-		"static": 0.01,  // initial modifier for power of attack group based on static enemy threat
-		"comm": 0.01
-	},
-	// anti-air threat threshold, air factories will stop production when AA threat exceeds
-	"aa_threat": [[8, 42.0], [24, 512.0]],  // [[<map_start>, <threat_start>], [<map_end>, <threat_end>]]
-	"slack_mod": {
-		"all": 0.5,  // threat map 64-elmos slack multiplier for all units
-		"static": 0.5,  // additional 64-elmo-cells for static units
-		"speed": [0.75, 4.0]  // [<64elmo_cells_speed_mod>, <max_64elmo_cells>]
-	},
-	"num_batch": 5  // quantity of mobile units in build-batch
-},
+    // Mono-space font required
+	{
+		//attack = 0.3 means enemy threat = enemy_threat*0.3																																																																																																																																																																																																																																																			[Reworked by [SMRT]Felnious[AI]]
+		//and attack group select only targets that have threat lower than the group's power. Power is like threat, but behaviour.json has separate modifiers for threat (enemy) and power (own).
+		//with attack=0.8..1.0 AI acts more careful, if it would also fight superior enemy near own static defences then those values would be great. 
+		//But there's possibility that AI will just run from enemy till it has big enough group, but it may loose its base. So if with attack=0.8..1.0 AI is not loosing base then everything is ok and i think this range is optimal.
+	
+		"quota": {
+			"scout": 2,  // max scout units out of raiders
+			"raid": [10.0, 65.0],  // [<min>, <avg>] power of raider squad
+			"attack": 15.0,  // min power of attack group
+			"thr_mod": {				//AI attacks everything with final threat (after all calculations) <= 1
+				"attack": [1.0, 1.0],//"attack": [0.6, 0.8],  // [<min>, <max>] enemy threat multiplier for target selection of attack task |  values <1 makes enemy group seem less of an thread for ai => ai attacks stronger groups than it own | org=0.25, 0.3
+				"defence": [1.0, 1.0],//"defence": [0.3, 0.5],  // [<min>, <max>] enemy threat modifier for group size calculation of defence task; org=0.95, 0.95 | high values = low risk; low values = high risk 
+				"mobile": 1.05,  // initial modifier for power of attack group based on mobile enemy threat; org=1.05
+				"static": 1.2,  // initial modifier for power of attack group based on static enemy threat; org= 1.2
+				"comm": 0.05   // because of power of dgun
+			},
+			// anti-air threat threshold, air factories will stop production when AA threat exceeds
+			"aa_threat": [[8, 99999.0], [96, 500000.0]],  // [[<map_start>, <threat_start>], [<map_end>, <threat_end>]]
+			"slack_mod": {
+				"all": 0.05,  // threat map 64-elmos slack multiplier for all units
+				"static": 0.05,  // additional 64-elmo-cells for static units
+				"speed": [0.75, 4.0]  // [<64elmo_cells_speed_mod>, <max_64elmo_cells>]
+			},
+			"num_batch": 5, //repeat unit build if response factory build is called
+			"anti_cap": 2.0  // probability 0.0~1.0 of AntiCapture action
+		},
+	
+		// If unit's health drops below specified percent it will retreat
+		"retreat": {
+			"builder": [0.8, 0.89, 1.0],  // [<min default>, <max default>, <UnitDef modifier>] for all builders
+			"fighter": [0.5, 0.55, 1.0],  // [<min default>, <max default>, <UnitDef modifier>] for all not-builder units
+			"shield": [0.25, 0.55]  // [<empty>, <full>] shield power
+		},
+	
+	
+		// following block is all about defense
+		"defence": {
+			"infl_rad": 5,  // influenece cell radius for defendAlly map
+			"base_rad": [800.0, 1400.0],  // BASE DEFENDING RADIUS: defend if enemy within clamp(distance(lane_pos, base_pos), 1000, 2000)
+			"comm_rad": [800.0, 400.0],  // 0 distance from base ~ 1000, base_rad ~ 500.0 => comm_rad is radius within which it checks for enemy. It's largest near base and smaller at the edge of base_rad
+			"escort": [3, 1, 540]  // [<builders_count>, <defenders_count>, <escort rule until this time>]  2,2,360
+		},
+		// read of "escort":  [number of builders with defenders, number of defenders for each builder, timeframe were only escorted builders are able to expand (=build mex, porc)]
+		// base radius: ai checks if is withing base_rad. if there is enemy it checks if it is withing comm radius which is variable and depend on distance from base
+		// if there is, then ai checks speed, direction and threat on enemys position. if all conditions positive => com attacks
+	
+		//------- THREAT MODIFIERS ---------
+		// "threat"  : how ai sees enemy units
+		// "power" : how ai sees own units
+		// threat categories: air, surface (= water & land), water (= underwater), default
+		// threat roles: scout, raider, skrimish, assault, heavy, anti_heavy, artillery, super
+	
+		//when are thread modifiers needed?
+		// => basically when the simple formula dps*hp does not work to calculate the thread/power of a unit:
+		// - overshooting
+		// -inability to hit a certain target due to slow/bad aiming or inability to attack at all (cause target is air or underwater etc. )
+		// -aoe
+		// -dps of paralyzer weapons or dgun
+		
+		//MODIFIER MAINLY USED BY STRUCTURES
+		// "build_mod": 1000.0,
+			// build_mod allows to de/increase the max amount of builder individually for each building type. values > 1000 => less builders; values <1000 more builders
+			// assign builders till targeted time to build reached
+			// default value specified in economy-> build_mod
+			// goal_build_time (economy.json)= build_mod / metal_income
+		// "coolddown":1, ----- Amount of seconds when unit is not available for construction after UnitFinished
+			
+	
+//########################################################################################################################
+//####|| Evolving Commanders ||###########################################################################################
+//########################################################################################################################
 
-// If unit's health drops below specified percent it will retreat
-"retreat": {
-	"builder": [0.8, 0.89, 1.0],  // [<min default>, <max default>, <UnitDef modifier>] for all builders
-	"fighter": [0.01, 0.015, 1.0],  // [<min default>, <max default>, <UnitDef modifier>] for all not-builder units
-	"shield": [0.25, 0.55]  // [<empty>, <full>] shield power
-},
+		"behaviour": {
+			"armcom": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 5.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+			"corcom": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 5.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+//########################################################################################################################
+			"armcomlvl2": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 10.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+			"corcomlvl2": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 10.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+//########################################################################################################################
+			"armcomlvl3": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 15.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+			"corcomlvl3": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 15.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+//########################################################################################################################
+			"armcomlvl4": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 20.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+			"corcomlvl4": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 20.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+//########################################################################################################################
+			"armcomlvl5": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 25.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+			"corcomlvl5": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 25.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+//########################################################################################################################
+			"armcomlvl6": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 30.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+			"corcomlvl6": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 30.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+//########################################################################################################################
+			"armcomlvl7": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 35.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+			"corcomlvl7": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 35.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+//########################################################################################################################
+			"armcomlvl8": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 40.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+			"corcomlvl8": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 40.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+//########################################################################################################################
+			"armcomlvl9": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 45.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+			"corcomlvl9": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 45.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+//########################################################################################################################
+			"armcomlvl10": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 50.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+			"corcomlvl10": {
+				"role": ["builder"],
+				"attribute": ["commander"],
+				"build_speed": 50.0,
+				"retreat": 0.6,
+				"threat": {"air": 1.0, "surf": 1.0, "water": 1.0, "default": 1.0}
+			},
+	
+	
 
-"defence": {
-	"infl_rad": 5,  // radius in influenece cells for defendAlly map
-	"base_rad": [600.0, 1200.0],  // defend if enemy within clamp(distance(lane_pos, base_pos), 1000, 2000) radius
-	"comm_rad": [1000.0, 500.0],  // 0 distance from base ~ 1000, base_rad ~ 500.0
-	"escort": [2, 1, 600]  // [<builders_count>, <defenders_count>, <constraint_seconds>]
-},
+//########################################################################################################################
+//####|| Static Buildings ||##############################################################################################
+//########################################################################################################################
+	
+	
 
-"behaviour": {
-//	"<UnitDef>": {
-		// "role": [<main>, <enemy>, <enemy>, ...]
-		// <main> is the role to make desicions of when to build it and what task to assign
-		// <enemy> is to decide how to counter enemy unit, if missing then equals to <main>
-		// Roles: builder, scout, raider, riot, assault, skirmish, artillery, anti_air, anti_sub, anti_heavy, bomber, support, mine, transport, air, sub, static, heavy, super, commander
-		// Auto-assigned roles: builder, air, static, super, commander
-		// raider: units grouped apart from others, tries to find weak spots.
-		// riot: regular attacker, but according to response.json it is built when enemy has many raiders (in plans to make riot just con's defender).
-		// assault: regular attacker, according to response.json it is built when enemy has many statics.
-		// skirmish: regular attacker, according to response.json it is built when enemy has many riots or assaults.
-//		"role": ["builder"],
+//########################################################################################################################
+//####|| Armada Land Factories ||#########################################################################################
+//########################################################################################################################
 
-		// Attributes - optinal states; can contain roles to count it as response; if factoty has support attribute then it's back-line building.
-		// "melee" - always move close to target, disregard attack range
-		// "boost" - boost speed on retreat
-		// "no_jump" - disable jump on retreat
-		// "no_strafe" - disable gunship's strafe
-		// "stockpile" - load weapon before any task, auto-assigned
-		// "siege" - mostly use fight command instead of move
-		// "ret_hold" - hold fire on retreat
-		// "ret_fight" - fight on retreat
-		// "solo" - construction initiator, won't join task if already started
-		// "dg_cost" - DGun by metal cost instead of by threat
-		// "jump" - enable jump on regular move
-		// "onoff" - auto-assigned when "on" tag is present
-		// "vampire" - reclaim enemy units without threat check
-		// "rare" - build unit from T1 factory even when T2+ factory is available
-		// "rearm" - use CMD_FIND_PAD when weapon is not ready
-		// "no_dgun" - do not use DGun
-		// "anti_stat" - only static targets
-//		"attribute": ["boost", "no_strafe"],
+			"armlab": {
+				"role": ["builder"],
+				"build_speed": 4.0
+			},
+			"armalab": {
+				"role": ["static"],
+				"attribute": ["support"],
+				"limit": 1,
+				"build_speed": 10.0
+			},
+			"armvp": {
+				"role": ["builder"],
+				"build_speed": 5.0
+			},
+			"armavp": {
+				"role": ["static"],
+				"attribute": ["support"],
+				"limit": 1,
+				"build_speed": 10.0
+			},
+			"armhp": {
+				"role": ["builder"],
+				"build_speed": 6.0
+			},
+			
+//########################################################################################################################
+//####|| Armada Sea Factories ||##########################################################################################
+//########################################################################################################################
 
-		// Fire state (open by default)
-		// "hold" - hold fire
-		// "return" - return fire
-		// "open" - fire at will
-//		"fire_state": "open",
+			"armfhp": {
+				"role": ["builder"],
+				"build_speed": 6.0
+			},
+			"armsy": {
+				"role": ["builder"],
+				"build_speed": 5.0
+			},
+			"armasy": {
+				"role": ["builder"],
+				"attribute": ["support"],
+				"build_speed": 10.0
+			},
+			"armamsub": {
+				"role": ["builder"],
+				"build_speed": 8.0
+			},
 
-		// Per unit On state for static and mobile enemies while attacking. Not used when unspecified
-		// true = on
-		// false = off
-//		"slow_target": false,
-		// Initial on/off state on UnitFinished
-//		"on": true,
+//########################################################################################################################
+//####|| Armada Air Factories ||##########################################################################################
+//########################################################################################################################
 
-		// Overrides reloadTime in seconds
-//		"reload": 1.0,
+			"armap": {
+				"role": ["builder"],
+				"attribute": ["support"],
+				"build_speed": 5.0
+			},
+			"armaap": {
+				"role": ["static"],
+				"attribute": ["support"],
+				"limit": 1,
+				"build_speed": 10.0
+			},
+			"armplat": {
+				"role": ["builder"],
+				"attribute": ["support"],
+				"build_speed": 8.0
+			},
+			"armapt3": {
+				"role": ["static"],
+				"attribute": ["support"],
+				"build_speed": 10.0, //bp 200
+				"build_mod": 1000.0,
+				"limit": 1
+			},
 
-		// Limits number of units
-//		"limit": 20,
+//########################################################################################################################
+//####|| Armada T3 Factories ||###########################################################################################
+//########################################################################################################################
+			
+			"armshltx": {
+				"role": ["static"],
+				"attribute": ["support"],
+				"limit": 1,
+				"midposoffset": [0, 0, -16],
+				"build_speed": 10.0
+			},
+			"armshltxuw": {
+				"role": ["static"],
+				"attribute": ["support"],
+				"limit": 1,
+				"midposoffset": [0, 0, -16],
+				"build_speed": 10.0
+			},
+	
+//########################################################################################################################
+//####|| Cortex Land Factories ||#########################################################################################
+//########################################################################################################################
 
-		// Unit can be built only since specific time in seconds
-//		"since": 60,
+			"corlab": {
+				"role": ["static"],
+				"attribute": ["support"],
+				"build_speed": 15.0,  //bp 100
+				"build_mod": 1000.0,
+				"midposoffset": [-3.239746, 0, -2]
+			},
+			"coralab": {
+				"role": ["static"],
+				"attribute": ["support"],
+				"limit": 1,
+				"midposoffset": [0, 0, -4],
+				"build_speed": 10.0
+			},
+			"corvp": {
+				"role": ["builder"],
+				"attribute": ["support"],
+				"build_mod": 1000.0,
+				"build_speed": 15.0 // bp 100
+	
+			},
+			"coravp": {
+				"role": ["static"],
+				"attribute": ["support"],
+				"limit": 1,
+				"build_speed": 10.0
+			},
+			"corhp": {
+				"role": ["static"],
+				"build_mod": 1000.0,
+				"build_speed": 10.0, //bp 200
+				"limit": 1
+			},
+	
+//########################################################################################################################
+//####|| Cortex Sea Factories ||##########################################################################################
+//########################################################################################################################
 
-		// Amount of seconds when unit is not available for construction after UnitFinished
-//		"cooldown": 1,
+			"corfhp": {
+				"role": ["static"],
+				"build_speed": 10.0, //bp 200
+				"build_mod": 1000.0,
+				"limit": 1
+			},
+			"corsy": {
+				"role": ["static"],
+				"build_mod": 1000.0,
+				"build_speed": 8.0, //bp 165
+				"limit": 1
+			},
+			"corasy": {
+				"role": ["static"],
+				"build_speed": 15.0,  //bp 300
+				"build_mod": 1000.0,
+				"limit": 1
+			},
+			"coramsub": {
+				"role": ["builder"],
+				"build_speed": 7.5, //bp 150
+				"build_mod": 1000.0,
+				"limit": 1
+			},
+	
+//########################################################################################################################
+//####|| Cortex Sea Factories ||##########################################################################################
+//########################################################################################################################
 
-		// assign builders till targeted time to build reached
-		// default value specified in economy->build_mod
-		// goal_build_time = build_mod / metal_income
-//		"build_mod": 1000.0,
+			"corap": {
+				"role": ["builder"],
+				"attribute": ["support"],
+				"build_speed": 5.0
+			},
+			"coraap": {
+				"role": ["static"],
+				"attribute": ["support"],
+				"limit": 1,
+				"build_speed": 10.0
+			},
+			"corplat": {
+				"role": ["builder"],
+				"build_speed": 10.0,  //bp 200
+				"build_mod": 1000.0,
+				"limit": 1
+			},
+			"corapt3": {
+				"role": ["static"],
+				"attribute": ["support"],
+				"limit": 1,
+				"build_mod": 1000.0,
+				"build_speed": 10.0 //bp 200
+			},
 
-		// Minimum hp percent before retreat
-//		"retreat": 0.8,
-//		"retreat": [0.5, 0.9],  // random between min and max value
+//########################################################################################################################
+//####|| Cortex T3 Factories ||###########################################################################################
+//########################################################################################################################
 
-		// Ally threat multiplier
-//		"power": 1.0,
-		// Enemy threat multiplier
-//		"threat": 1.0,
-//		"threat": {
-//			"air": 0.2,
-//			"surf": 1.0,  // surface, also on water
-//			"water": 0.5,  // underwater
-//			"default": 0.9,  // for vs
-//			"vs": {
-//				"builder": 1.0,
-//				"scout": 1.0,
-//				"raider": 0.8,
-//				"assault": 0.1,
-//				"riot": 0.5,
-//				"skirmish": 0.5
-//			}
-//		},
+			"corgant": {
+				"role": ["static"],
+				"attribute": ["support"],
+				"limit": 1,
+				"build_speed": 10.0
+				
+			},
+			"corgantuw": {
+				"role": ["static"],
+				"attribute": ["support"],
+				"limit": 1,
+				"build_speed": 10.0
+			},
+	
+//########################################################################################################################
+//####|| Support Nano Construction Turrets // Assist Drones ||############################################################
+//########################################################################################################################
+	
+	// Nano - Armada
+			"armnanotc": {
+				"role": ["support"],
+				"build_mod": 500,
+				"build_speed": 8.0
+			},
+			"armnanotct2": {
+				"role": ["support"],
+				"build_mod": 500,
+				"build_speed": 16.0
+			},
+			"armnanotcplat": {
+				"role": ["support"],
+				"build_mod": 500,
+				"build_speed": 8.0
+			},
+			"armrespawn": {
+				"role": ["support"],
+				"build_mod": 500,
+				"build_speed": 8.0
+			},
+	// Nano - Cortex
+			"cornanotc": {
+				"role": ["support"],
+				"build_mod": 500,
+				"build_speed": 8.0
+			},
+			"cornanotct2": {
+				"role": ["support"],
+				"build_mod": 500,
+				"build_speed": 8.0
+			},
+			"cornanotcplat": {
+				"role": ["support"],
+				"build_mod": 500,
+				"build_speed": 8.0
+			},
+			"correspawn": {
+				"role": ["support"],
+				"build_mod": 500,
+				"build_speed": 8.0
+			},
+	//Assist Drones
+			"armassistdrone": {
+				"role": ["support"],
+				"build_mod": 500,
+				"build_speed": 8.0
+			},
+			"corassistdrone": {
+				"role": ["support"],
+				"build_mod": 500,
+				"build_speed": 8.0
+			},
+	
+//########################################################################################################################
+//####|| Static Defense -- Armada  ||#####################################################################################
+//########################################################################################################################
 
-		// Ignore enemy
-//		"ignore": false,
+	//T1 Defenses -- Armada
+			"armrad": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armjamt":{
+				"role":["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armjuno":{
+				"role":["super", "static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armclaw": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armllt": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armbeamer": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armhlt": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armguard": {
+				"role": ["static"],
+				"on": false,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armrl": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armferret": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armcir": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armdl": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+	//T2 Defenses -- Armada
+			"armarad": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armveil":{
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armsd": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0,
+				"limit": 3
+			},
+			"armtarg": {
+				"role": ["static"],
+				"limit": 3,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armgate": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armgatet3": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armpb": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armamb": {
+				"role": ["static"],
+				"on": false,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armanni": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armbrtha": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armminivulc": {
+				"role": ["super", "static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armvulc": {
+				"role": ["super", "static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armflak": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armmercury": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armemp":{
+				"role":	["super", "static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armamd":{
+				"role":	["super", "static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armsilo":{
+				"role":	["super", "static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+	// T1 Sea Defenses -- Armada
+			"armfrad": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armfhlt": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armfrt": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armtl": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+	// T2 Sea Defenses -- Armada
+			"armason": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armfatf": {
+				"role": ["static"],
+				"limit": 3,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armkraken": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armfflak": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armatl": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			
+//########################################################################################################################
+//####|| Static Defense -- Cortex  ||#####################################################################################
+//########################################################################################################################
 
-		// Difference between build-order position and unit position returned by engine.
-		// It's about midPosOffset and collisionVolumeOffsets with no way to read it.
-//		"midposoffset": [1.1, 2, -3.3],  // default = [0, 0, 0]
+		// T1 Defenses -- Cortex
+			"corrad":{
+				"role":["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corjamt":{
+				"role":["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corjuno":{
+				"role":["super", "static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},			
+			"cormaw": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corllt": {
+				"role": ["static"],
+				"midposoffset": [0, 0, 2.38],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corhllt": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corhlt": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corpun": {
+				"role": ["static"],
+				"on": false,
+				"limit": 3,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corrl": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"cormadsam": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corerad": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+	// T2 Defenses -- Cortex
+			"corarad":{
+				"role":["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corshroud":{
+				"role":["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corsd":{
+				"role":["static"],
+				"limit": 3,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"cortarg": {
+				"role": ["static"],
+				"limit": 3,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corgate": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corgatet3": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corvipe": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"cortoast": {
+				"role": ["static"],
+				"on": false,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"cordoom": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corbhmth" : {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corint": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corminibuzz": {
+				"role": ["super", "static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corbuzz": {
+				"role": ["super", "static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corflak": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corscreamer": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"cortron":{
+				"role":	["super", "static"],
+				"limit":1,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corfmd":{
+				"role":	["super", "static"],
+				"limit": 5,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corsilo":{
+				"role":	["super", "static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+	// T1 Sea Defenses -- Cortex
+			"cordl": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corfrad": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corfhlt": {
+				"role": ["static"],
+				"limit": 3,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corfrt": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"cortl": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+	// T2 Sea Defenses -- Cortex
+			"corason": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corfatf": {
+				"role": ["static"],
+				"limit": 3,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corfdoom": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corenaa": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"coratl": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
 
-		// FIXME: Temporary tag to override buildSpeed
-//		"build_speed": 10.0
-//	},
+//########################################################################################################################
+//####|| Static Economy -- Armada  ||#####################################################################################
+//########################################################################################################################
+	
+			//Land T1 Economy
+			"armmex" : {
+				"role": ["static"]
+			},
+			"armmakr" : {
+				"role": ["static"]
+			},
+			"armmstor" : {
+				"role": ["static"],
+				"since": 300,
+				"limit": 1
+			},
+			"armwin": {
+				"role": ["static"]
+			},
+			"armsolar" : {
+				"role": ["static"],
+				"limit": 4
+			},
+			"armadvsol" : {
+				"role": ["static"],
+				"limit": 6
+			},
+			"armgeo": {
+				"role": ["static"],
+				"midposoffset": [0, 0, -2]
+			},
+			"armestor" : {
+				"role": ["static"],
+				"since": 300,
+				"limit": 1
+			},
+			//Land T2 Economy
+			"armmoho" : {
+				"role": ["static"]
+			},
+			"armmmkr" : {
+				"role": ["static"]
+			},
+			"armshockwave" : {
+				"role": ["static"]
+			},
+			"armuwadvms" : {
+				"role": ["static"],
+				"since": 1200
+			},
+			"armgmm" : {
+				"role": ["static"]
+			},
+			"armageo" : {
+				"role": ["static"]
+			},
+			"armfus" : {
+				"role": ["static"],
+				"cooldown": 3
+			},
+			"armckfus" : {
+				"role": ["static"]
+			},
+			"armafus" : {
+				"role": ["static"]
+			},
+			"armuwfus" : {
+				"role": ["static"]
+			},
 
-	"armcom": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"power": 0.4,
-		"build_speed": 5.0
-	},
-	"armcomlvl2": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"build_speed": 5.4
-	},
-	"armcomlvl3": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"build_speed": 7.45
-	},
-	"armcomlvl4": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"build_speed": 9.0
-	},
-	"armcomlvl5": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"build_speed": 11.0
-	},
-	"armcomlvl6": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"build_speed": 13.5
-	},
-	"armcomlvl7": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"build_speed": 16.5
-	},
-	"armcomlvl8": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"build_speed": 20.0
-	},
-	"armcomlvl9": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"build_speed": 24.5
-	},
-	"armcomlvl10": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"build_speed": 30.0
-	},
-	"corcom": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"power": 0.4,
-		"build_speed": 5.0
-	},
-	"corcomlvl2": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"build_speed": 6.1
-	},
-	"corcomlvl3": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"build_speed": 7.5
-	},
-	"corcomlvl4": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"build_speed": 9.0
-	},
-	"corcomlvl5": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"build_speed": 11.0
-	},
-	"corcomlvl6": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"build_speed": 13.5
-	},
-	"corcomlvl7": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"build_speed": 16.5
-	},
-	"corcomlvl8": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"build_speed": 20.0
-	},
-	"corcomlvl9": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"build_speed": 24.5
-	},
-	"corcomlvl10": {
-		"role": ["builder"],
-		"attribute": ["commander"],
-		"build_speed": 30.0
-	},
+//########################################################################################################################
+//####|| Static Economy -- Cortex  ||#####################################################################################
+//########################################################################################################################
+			
+			//Land T1 Economy
+			"cormex" : {
+				"role": ["static"]
+			},
+			"corexp" : {
+				"role": ["static"]
+			},
+			"cormstor" : {
+				"role": ["static"],
+				"since": 300,
+				"limit": 1
+			},
+			"cormakr": {
+				"role": ["static"],
+				"since": 30
+			},
+			"corwin": {
+				"role": ["static"]
+			},
+			"corsolar" : {
+				"role": ["static"]
+			},
+			"coradvsol" : {
+				"role": ["static"]
+			},
+			"corgeo" : {
+				"role": ["static"]
+			},
+			"corestor" : {
+				"role": ["static"],
+				"since": 300,
+				"limit": 1
+			},
+			//Land T2 Economy
+			"cormoho" : {
+				"role": ["static"]
+			},
+			"cormmkr" : {
+				"role": ["static"]
+			},
+			"cormexp" : {
+				"role": ["static"],
+				"limit":0
+			},
+			"corfus" : {
+				"role": ["static"],
+				"cooldown": 3
+			},
+			"corafus" : {
+				"role": ["static"],
+				"cooldown": 3
+			},
+			"coruwfus" : {
+				"role": ["static"]
+			},
+			"coruwms" : {
+				"role": ["static"],
+				"since": 1200,
+				"limit": 1
+			},
+			"coruwadvms" : {
+				"role": ["static"],
+				"limit": 1
+			},
+			"corageo" : {
+				"role": ["static"],
+				"limit": 1
+			},
+			"coruwes" : {
+				"role": ["static"],
+				"since": 240,
+				"limit": 1
+			},
+	
+	
+	// Walls (Neutral BARbAI Refuse to Shoot (Only T2+T3 can break through Running over)) -- Needs a Revamp or a Rework to make non neutral
+			"armdrag": {
+				"role": ["static"]
+			},
+			"cordrag": {
+				"role": ["static"]
+			},
+			"armfort": {
+				"role": ["static"]
+			},
+			"corfort": {
+				"role": ["static"]
+			},
+	
+	// ============================================   M O B I L E    U N I T S   =======================================0
+	
+			// Mobile Unit Behaviour Modifiers
+				// "role": [<main>, <enemy>, <enemy>, ...]
+				// <main> is the role to make desicions of when to build it and what task to assign
+				// <enemy> is to decide how to counter enemy unit, if missing then equals to <main>
+	
+				// Roles: builder, scout, raider, riot, assault, skirmish, artillery, anti_air, anti_sub, anti_heavy, bomber, support, mine, transport, air, sub, static, heavy, super, commander
+				// Auto-assigned roles: builder, air, static, super, commander
+				// raider: units grouped apart from others, tries to find weak spots.
+				// riot: regular attacker, but according to response.json it is built when enemy has many raiders (1st riot is cons guardian/defender for the first 5 min)(in plans to make riot just con's defender).
+				// assault: regular attacker, according to response.json it is built when enemy has many statics.
+				// skirmish: regular attacker, according to response.json it is built when enemy has many riots or assaults. skirmish = main combat unit
+				// Bomber:	avoid AA, attack everything where group can have no more than some percent of loss (aa threat * 0.25 < bomber power). 
+					// Bombers return to airpad for repairs, cons doesn't try to repair air units
+				
+				// Attributes - optional states
+				// units with a role inside attribute gets counted by the owning ai as such
+				// "melee" - always move close to target, disregard attack range
+				// "boost" - boost speed on retreat
+				// "no_jump" - disable jump on retreat
+				// "no_strafe" - disable gunship's strafe
+				// "stockpile" - load weapon before any task, auto-assigned
+				// "siege" - mostly use fight command instead of move -  moves into range of the first enemy in its path, then fires while standing still until that enemy is destroyed. rocko with fight command is able to kill a group of llt and staying outside of range
+				// "support" - joins attack group (skirmish, assault, riot) and follow leader of that group with fight-move or guard command if melee attribute added. for factories "support" means to build factory in base radius and not on front
+				// "ret_hold" - hold fire on retreat
+				// "ret_fight" - fight on retreat | units dont retreat to repair with that attribute => bugged
+				// "solo" - unit with "solo attribute" cannot work together on a task with other units with the same attribute
+				// "dg_cost" - DGun by metal cost instead of by threat
+				// "jump" - enable jump on regular move
+				// "onoff" - auto-assigned when "on" tag is present
+				// "vampire" - reclaim enemy units without threat check
+				// "rare" - build unit from T1 factory even when T2+ factory is available
+				// "rearm" - use CMD_FIND_PAD when weapon is not ready
+				// "no_dgun" - do not use DGun
+				// "anti_stat" - only static targets
+				//"attribute": ["boost", "no_strafe"],
+	
+			// Fire state (open by default)
+				// "hold" - hold fire
+				// "return" - return fire
+				// "open" - fire at will
+				// syntax::: "fire_state": "open",
+	
+				//"on"/"off": true/false - syntax:: "on":false | use to modifiy trajectory mode for weapons
+	
+	
+			
+			//OTHER MODIFIERS
+				//		"reload": 1.0,  Overrides reloadTime in seconds
+				// 		"limit"	Limits number of units			
+				//		"since": 60, 	 	Unit can be built only since specific time in seconds
+				//		"retreat": 0.8, 	Minimum hp percent before retreat	
+				//		"pwr_mod": 1.0,		Ally threat multiplier	
+				//		"thr_mod": 1.0,		Enemy threat multiplier
+				//		"ignore": false,	Ignore enemy
+				//      "slow_target": true/false , activated the weapons switch - true to fire fast weapon on fast target (for fido)
+				// FIXME: Temporary tag to override buildSpeed
+	
+	
+			//Mobile Builders 	
+			"armck": {
+				"role": ["builder"],
+				"limit": 20,
+				"build_speed": 5.0  //bp 80
+			},
+			"corck": {
+				"role": ["builder"],
+				//"attribute": ["solo"],
+				"limit": 12,
+				"build_speed": 4.0  
+			},
 
-	// ARMADA defenses
-	"armllt": {
-		"role": ["static"]
-	},
-	"armbeamer": {
-		"role": ["static"]
-	},
-	"armhlt": {
-		"role": ["static"]
-	},
-	"armguard": {
-		"role": ["static"],
-		"attribute": ["artillery"],
-		"on": false,
-		"threat": 0.3
-	},
-	"armclaw": {
-		"role": ["static"]
-	},
-	"armrl": {
-		"role": ["anti_air"],
-		"attribute": ["anti_air"]
-	},
-	"armcir": {
-		"role": ["anti_air"]
-	},
-	"armferret": {
-		"role": ["anti_air"]
-	},
-	"armflak": {
-		"role": ["anti_air"]
-	},
-	"armmercury": {
-		"role": ["anti_air"]
-	},
-	"armtl": {
-		"role": ["static"]
-	},
-	"armatl": {
-		"role": ["static"],
-		"attribute": ["heavy"]
-	},
-	"armpb": {
-		"role": ["static"]
-	},
-	"armamb": {
-		"role": ["static"],
-		"attribute": ["artillery"],
-		"on": false
-	},
-	"armanni": {
-		"role": ["static"],
-		"attribute": ["heavy", "anti_heavy"],
-		"threat": 0.5
-	},
+			"armack": {
+				"role": ["builderT2"],
+				"attribute": ["solo"],
+				"limit": 10,
+				"build_speed": 10.0  //bp 180
+			},
+			"corack": {
+				"role": ["builderT2"],
+				"attribute": ["solo"],
+				"limit": 10,
+				"build_speed": 9.0  
+			},
 
-	// CORTEX defenses
-	"corllt": {
-		"role": ["static"],
-		"midposoffset": [0, 0, 2.38]
-	},
-	"corhllt": {
-		"role": ["static"],
-		"midposoffset": [0, 0, 3.12]
-	},
-	"corhlt": {
-		"role": ["static"]
-	},
-	"cormaw": {
-		"role": ["static"]
-	},
-	"corpun": {
-		"role": ["static"],
-		"attribute": ["artillery"],
-		"on": false,
-		"threat": 0.3
-	},
-	"corrl": {
-		"role": ["anti_air"]
-	},
-	"cormadsam": {
-		"role": ["anti_air"]
-	},
-	"corerad": {
-		"role": ["anti_air"]
-	},
-	"corflak": {
-		"role": ["anti_air"]
-	},
-	"corscreamer": {
-		"role": ["anti_air"]
-	},
-	"cortl": {
-		"role": ["static"]
-	},
-	"coratl": {
-		"role": ["static"],
-		"attribute": ["heavy"]
-	},
-	"corvipe": {
-		"role": ["static"]
-	},
-	"cortoast": {
-		"role": ["static"],
-		"attribute": ["artillery"],
-		"on": false
-	},
-	"cordoom": {
-		"role": ["static"],
-		"attribute": ["heavy", "anti_heavy"]
-	},
+			"armfark": {
+				"role": ["builder"],
+				"build_speed": 10.0,  //bp 140
+				"limit": 20
+			},
+			"corfast": {
+				"role": ["builder"],
+				"limit": 10,
+				"build_speed": 7.0,
+				"since": 1500
+			},
 
-	// Factories - that should stay near main base
-	"armalab": {
-		"role": ["static"],
-		"attribute": ["support"],
-		"limit": 1,
-		"build_speed": 10.0
-	},
-	"coralab": {
-		"role": ["static"],
-		"attribute": ["support"],
-		"limit": 1,
-		"midposoffset": [0, 0, -4],
-		"build_speed": 10.0
-	},
-	"armavp": {
-		"role": ["static"],
-		"attribute": ["support"],
-		"limit": 1,
-		"build_speed": 10.0
-	},
-	"coravp": {
-		"role": ["static"],
-		"attribute": ["support"],
-		"limit": 1,
-		"build_speed": 10.0
-	},
-	"armap": {
-		"role": ["builder"],
-		"attribute": ["support"],
-		"build_speed": 5.0
-	},
-	"corap": {
-		"role": ["builder"],
-		"attribute": ["support"],
-		"build_speed": 5.0
-	},
-	"armaap": {
-		"role": ["static"],
-		"attribute": ["support"],
-		"limit": 1,
-		"build_speed": 10.0
-	},
-	"coraap": {
-		"role": ["static"],
-		"attribute": ["support"],
-		"limit": 1,
-		"build_speed": 10.0
-	},
-	"armshltx": {
-		"role": ["static"],
-		"attribute": ["support"],
-		"limit": 1,
-		"midposoffset": [0, 0, 21],
-		"build_speed": 10.0
-	},
-	"corgant": {
-		"role": ["static"],
-		"attribute": ["support"],
-		"limit": 1,
-		"build_speed": 10.0
-	},
-	"armnanotc": {
-		"role": ["support"],
-		"build_mod": 500,
-		"build_speed": 8.0
-	},
-	"cornanotc": {
-		"role": ["support"],
-		"build_mod": 500,
-		"build_speed": 8.0
-	},
-	"armnanotcplat": {
-		"role": ["support"],
-		"build_mod": 500,
-		"build_speed": 8.0
-	},
-	"cornanotcplat": {
-		"role": ["support"],
-		"build_mod": 500,
-		"build_speed": 8.0
-	},
-	"armrad": {
-		"role": ["static"],
-		"since": 120
-	},
-	"corrad": {
-		"role": ["static"],
-		"since": 120
-	},
-	"armemp": {
-		"role": ["static"],
-		"limit": 1
-	},
-	"cortron": {
-		"role": ["static"],
-		"limit": 1
-	},
+			"armcv": {
+				"role": ["builder"],
+				"limit": 10,
+				"build_speed": 7.0  //bp 90
+			},
+			"corcv": {
+				"role": ["builder"],
+				"limit": 10,
+				"build_speed": 4.5  //bp 90
+			},
 
-	// bot - armlab
-	"armck": {
-		"role": ["builder"],
-		"limit": 20,
-		"build_speed": 5.0
-	},
-	"armpw": {
-		"role": ["raider"],
-		"attribute": ["scout"],
-		"retreat": 0.1
-	},
-	"armrectr": {
-		"role": ["rezzer"],
-		"attribute": ["rare"],
-		"limit": 20
-	},
-	"armrock": {
-		"role": ["skirmish"]
-	},
-	"armham": {
-		"role": ["assault"]
-	},
-	"armjeth": {
-		"role": ["anti_air"],
-		"limit": 30
-	},
-	"armwar": {
-		"role": ["riot"],
-		"attribute": ["skirmish"]
-	},
-	"armflea": {
-		"role": ["scout"]
-	},
+			"armbeaver": {
+				"role": ["builder"],
+				"limit": 10,
+				"build_speed": 8.0  //bp 80
+			},
+			"cormuskrat": {
+				"role": ["builder"],
+				"attribute": ["solo"],
+				"limit": 6,
+				"build_speed": 4.0
+			},
 
-	// adv bot - armalab
-	"armack": {
-		"role": ["builderT2"],
-		"attribute": ["solo"],
-		"limit": 10,
-		"build_speed": 10.0
-	},
-	"armfark": {
-		"role": ["builder"],
-		"limit": 2,
-		"build_speed": 10.0
-	},
-	"armfast": {
-		"role": ["raider"]
-	},
-	"armzeus": {
-		"role": ["assault"]
-	},
-	"armfboy": {
-		"role": ["assault", "heavy"]
-	},
-	"armmav": {
-		"role": ["riot"],
-		"attribute": ["skirmish"]
-	},
-	"armfido": {
-		"role": ["skirmish"],
-		"slow_target": true
-	},
-	"armvader": {
-		"role": ["raider"],
-		"attribute": ["melee"],
-		"retreat": 0
-	},
-	"armaak": {
-		"role": ["anti_air"]
-	},
-	"armmark": {
-		"role": ["assault"],
-		"attribute": ["support"],
-		"limit": 1
-	},
-	"armspid": {
-		"role": ["support"]
-	},
-	"armsptk": {
-		"role": ["raider"],
-		"attribute": ["siege"]
-	},
-	"armsnipe": {
-		"role": ["anti_heavy"]
-	},
-	"armamph": {
-		"role": ["raider", "anti_air"]
-	},
-	"armspy": {
-		"role": ["scout"]
-	},
+			"cormlv": {
+				"role": ["support"],
+				"limit": 0
+			},
 
-	// T3 bot - armshltx
-	"armmar": {
-		"role": ["raider", "heavy"],
-		"threat": {"air": 0.5, "water": 0.0, "surf": 0.5}
-	},
-	"armraz": {
-		"role": ["riot", "heavy"],
-		"attribute": ["melee"],
-		"threat": {"air": 0.5, "water": 0.0, "surf": 1.0},
-		"power": 1.0,
-		"retreat": 0.6
-	},
-	"armvang": {
-		"role": ["artillery", "heavy"],
-		"power": 2.0,
-		"threat": 0.2
-	},
-	"armbanth": {
-		"role": ["assault", "heavy"],
-		"attribute": ["melee"],
-		"threat": {"air": 0.0, "water": 0.0, "surf": 1.0},
-		"power": 1.2,
-		"retreat": 0.3
-	},
-	"armlun": {
-		"role": ["skirmish", "heavy"],
-		"threat": {"air": 0.0, "water": 1.0}
-	},
-	"armthor":{
-		"role":["super"],
-		"threat": {"air": 0.0, "water": 0.0, "surf": 1.0},
-		"power": 0.1, //cause of its paralyzer weaponry
-		"retreat": 0.4
-	},
+			"armacv": {
+				"role": ["builderT2"],
+				"attribute": ["solo"],
+				"limit": 10,
+				"build_speed": 10.0  //bp 250
+			},
+			"coracv": {
+				"role": ["builderT2"],
+				"attribute": ["solo"],
+				"limit": 15,
+				"build_speed": 12.5  //bp 250
+			},
 
-	// vehicles - armvp
-	"armcv": {
-		"role": ["builder"],
-		"limit": 20,
-		"build_speed": 7.0
-	},
-	"armbeaver": {
-		"role": ["builder"],
-		"limit": 10,
-		"build_speed": 8.0
-	},
-	// "armmlv": {
-	// 	"role": ["support"]
-	// },
-	"armfav": {
-		"role": ["scout"]
-	},
-	"armflash": {
-		"role": ["raider"],
-		"attribute": ["scout"]
-	},
-	"armpincer": {
-		"role": ["assault"],
-		"limit": 30
-	},
-	"armstump": {
-		"role": ["assault"]
-	},
-	"armart": {
-		"role": ["artillery"]
-	},
-	"armjanus": {
-		"role": ["skirmish"]
-	},
-	"armsam": {
-		"role": ["anti_air"],
-		"attribute": ["skirmish"]
-	},
+			"armconsul": {
+				"role": ["builder"],
+				//"attribute": ["support"],
+				"build_speed": 10.0 ,  //bp 150 	
+				"limit": 2
+			},
 
-	// adv vehicles - armavp
-	"armacv": {
-		"role": ["builderT2"],
-		"attribute": ["solo"],
-		"limit": 10,
-		"build_speed": 10.0
-	},
-	"armconsul": {
-		"role": ["builder"],
-		"limit": 2,
-		"build_speed": 10.0
-	},
-	"armlatnk": {
-		"role": ["raider"]
-	},
-	"armbull": {
-		"role": ["assault"]
-	},
-	"armmanni": {
-		"role": ["anti_heavy"],
-		"attribute": ["artillery"],
-		"limit": 20,
-		"threat": {"air": 0.0, "water": 0.0,
-			"vs": {"anti_air": 2.0, "raider": 0.5, "heavy": 2.0}
+			"armca": {
+				"role": ["builder", "air"],
+				"retreat": 0.6,
+				"limit": 25,
+				"build_speed": 5.0  //bp 60
+			},
+			"corca": {
+				"role": ["builder", "air"],
+				"retreat": 0.6,
+				"limit": 25,
+				"build_speed": 5.0
+			},
+
+			"armaca": {
+				"role": ["builder", "air"],
+				"attribute": ["solo"],
+				"retreat": 0.6,
+				"limit": 2,
+				"build_speed": 10.0  //bp 100
+			},
+			"coraca": {
+				"role": ["builder", "air"],
+				"retreat": 0.6,
+				"limit": 15,
+				"build_speed": 5.0
+			},
+
+			"armcs": {
+				"role": ["builder"],
+				"retreat": 0.6,
+				"limit": 6,
+				"build_speed": 7  //bp 125
+			},
+			"corcs": {
+				"role": ["builder"],
+				"retreat": 0.6,
+				"limit": 6,
+				"build_speed": 7.0
+			},
+
+			"armacsub": {
+				"role": ["builderT2", "sub"],
+				"attribute": ["solo"],
+				"retreat": 0.3,
+				"limit": 10,
+				"build_speed": 10.0 //bp 300
+			},
+			"coracsub": {
+				"role": ["builderT2", "sub"],
+				"attribute": ["solo"],
+				"retreat": 0.3,
+				"limit": 10,
+				"build_speed": 10.0
+			},
+
+			"armmls": {
+				"role": ["builder"],
+				"retreat": 0.5,
+				"limit": 2,
+				"build_speed": 10.0  //bp 200
+			},
+			"cormls": {
+				"role": ["builder"],
+				"retreat": 0.5,
+				"limit": 2,
+				"build_speed": 10.0  //bp 200
+			},
+
+			"armch": {
+				"role": ["builder"],
+				"limit": 10,
+				"build_speed": 8.0  //bp 110
+			},
+			"corch": {
+				"role": ["builder"],
+				"limit": 10,
+				"build_speed": 8.0
+			},
+	
+			// t1 botlab
+	
+			"armpw": {
+				"role": ["raider"],
+				"ignore": true
+			},
+			"armrectr": {
+				"role": ["support"],
+				"attribute": ["rare"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armrock": {
+				"role": ["skirmish"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armham": {
+				"role": ["assault"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armjeth": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armwar": {
+				"role": ["riot"],
+				"attribute": ["skirmish"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armflea": {
+				"role": ["scout"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "commander": 10.0, "vs": {"air": 0.0, "surf": 0.0, "water": 0.0, "commander": 10.0}},
+				"ignore": true
+			},
+	
+			// adv bot - armalab
+	
+			"armfast": {
+				"role": ["raider"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armamph": {
+				"role": ["raider", "anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armzeus": {
+				"role": ["assault"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armfboy": {
+				"role": ["assault", "heavy"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armmav": {
+				"role": ["riot"],
+				"attribute": ["skirmish"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armfido": {
+				"role": ["skirmish"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armvader": {
+				"role": ["raider"],
+				"attribute": ["melee"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armaak": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armmark": {
+				"role": ["assault"],
+				"attribute": ["support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armaser": {
+				"role": ["support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armspid": {
+				"role": ["support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armsptk": {
+				"role": ["raider"],
+				"attribute": ["siege"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0		
+			},
+			"armsnipe": {
+				"role": ["anti_heavy"],
+				"attribute": ["siege"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armscab": {
+				"role": ["support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armspy": {
+				"role": ["scout"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			
+			// T3 bot - armshltx
+	
+			"armmar": { //rauder
+				"role": ["raider", "heavy"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armlun": { //hovertank
+				"role": ["skirmish", "heavy"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armraz": { //razorback
+				"role": ["riot", "heavy"],
+				"attribute": ["melee"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armvang": { //vanguard
+				"role": ["artillery", "heavy"],
+				"attribute": ["siege"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armbanth": { //Titan
+				"role": ["assault", "heavy"],
+				"attribute": ["melee"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armthor":{ //thor
+				"role":["super"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+	
+			// vehicles - armvp
+	
+			"armmlv": {
+				"role": ["support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armfav": {
+				"role": ["scout"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armflash": {
+				"role": ["raider"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armpincer": {
+				"role": ["assault"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armstump": {
+				"role": ["assault"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armart": {
+				"role": ["artillery"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armjanus": {
+				"role": ["skirmish"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armsam": {
+				"role": ["anti_air"],
+				"attribute": ["skirmish"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+	
+			// adv vehicles - armavp
+	
+			"armlatnk": {
+				"role": ["raider"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armgremlin": {
+				"role": ["scout"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armbull": {
+				"role": ["assault"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armmanni": {
+				"role": ["anti_heavy"],
+				"attribute": ["artillery"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armmart": {
+				"role": ["artillery"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armmerl": {
+				"role": ["artillery"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armyork": {
+				"role": ["anti_air"],
+				"attribute": ["support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armseer": {
+				"role": ["assault"],
+				"attribute": ["support"],
+				"limit": 1,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armjam": {
+				"role": ["support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+
+			// aircraft - armap
+	
+			"armpeep": {
+				"role": ["scout", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armfig": {
+				"role": ["anti_air", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armthund": {
+				"role": ["bomber", "static", "assault", "anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armkam": {
+				"role": ["raider", "air"],
+				"attribute": ["siege"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+
+			// adv aircraft - armaap
+	
+			"armawac": {
+				"role": ["scout", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armhawk": {
+				"role": ["anti_air", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armpnix": {
+				"role": ["bomber", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armbrawl": {
+				"role": ["raider", "air"],
+				"attribute": ["siege"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armblade": {
+				"role": ["heavy", "air"],
+				"attribute": ["support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armstil": {
+				"role": ["bomber", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armliche": {
+				"role": ["bomber", "air"],
+				"attribute": ["heavy"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+
+			// Naval Aircrafts
+
+			"armsaber": {
+				"role": ["skirmish", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+
+			// ships - armsy
+	
+			"armrecl": {
+				"role": ["support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armpt": {
+				"role": ["scout", "anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armdecade": {
+				"role": ["raider"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armpship": {
+				"role": ["riot"],
+				"attribute": ["siege"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armsub": {
+				"role": ["sub"],
+				"attribute": ["siege"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+				
+			},
+			"armroy": {
+				"role": ["anti_sub"],
+				"attribute": ["siege"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+
+			// adv shipyard - armasy
+	
+			"armsubk": {
+				"role": ["anti_sub", "sub"]	,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armserp": {
+				"role":["sub"],
+				"attribute": ["siege"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},	
+			"armaas": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armcrus": {
+				"role": ["skirmish"],
+				"attribute": ["anti_sub"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armsjam": {
+				"role": ["support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armcarry": {
+				"role": ["support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armmship": {
+				"role": ["artillery"],
+				"attribute": ["siege"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armbats": {
+				"role": ["heavy"],
+				"attribute": ["siege"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armepoch": {
+				"role": ["artillery"],
+				"attribute": ["super"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+
+			// ARMADA HOVERS
+	
+			"armsh": {
+				"role": ["raider"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armanac": {
+				"role": ["assault"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armmh": {
+				"role": ["artillery"],
+				"limit": 6,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"armah": {
+				"role": ["anti_air"],
+				"attribute": ["skirmish"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+		
+			// CORTEX BOTLAB
+	
+			"corak": {
+				"role": ["raider"],
+				"attribute": ["scout"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"cornecro": {
+				"role": ["rezzer"],
+				"attribute": ["rare"],
+				"limit": 20,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corstorm": {
+				"role": ["skirmish"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corthud": {
+				"role": ["assault"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corcrash": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+
+			// adv bot - coralab
+	
+			"cortermite": {
+				"role": ["raider"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corpyro": {
+				"role": ["assault"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corsumo": {
+				"role": ["heavy"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corcan": {
+				"role": ["assault"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"cormort": {
+				"role": ["artillery"],
+				"attribute":["skirmish"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corhrk": {
+				"role": ["artillery"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"coraak": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"cormando": {
+				"role": ["builder"],
+				"limit": 2,
+				"build_speed": 10.0,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"cordecom": {
+				"role": ["builder"],
+				"limit": 2,
+				"build_speed": 10.0,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corroach": {
+				"role": ["assault"],
+				"attribute": ["melee"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corsktl": {
+				"role": ["assault"],
+				"attribute": ["melee"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corvoyr": {
+				"role": ["assault"],
+				"attribute": ["support"],
+				"limit": 1,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corspec": {
+				"role": ["assault"],
+				"attribute": ["support"],
+				"limit": 1,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"coramph": {
+				"role": ["raider"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corspy": {
+				"role": ["scout"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+		
+			// T3 CORTEX EXPERIMENTAL - corgant
+
+			"corsok": {
+				"role": ["skirmish"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corshiva": {
+				"role": ["assault", "heavy"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corkarg": {
+				"role": ["raider", "heavy"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corcat": {
+				"role": ["artillery", "heavy"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corkorg": {
+				"role": ["assault", "heavy"],
+				"attribute": ["melee"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corjugg": {
+				"role": ["heavy"],
+				"attribute": ["melee"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+
+			// CORTEX T1 VEHICLE - corvp
+	
+			"corfav": {
+				"role": ["scout"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corgator": {
+				"role": ["raider"],
+				"attribute": ["scout"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corgarp": {
+				"role": ["assault"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corraid": {
+				"role": ["assault"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corlevlr": {
+				"role": ["riot"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corwolv": {
+				"role": ["artillery"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"cormist": {
+				"role": ["anti_air"],
+				"attribute": ["skirmish"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+	
+			// 	CORTEX ADV VELICLE PLANT
+
+			"corseal": {
+				"role": ["raider"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corparrow": {
+				"role": ["raider"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"correap": {
+				"role": ["assault"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corgol": {
+				"role": ["heavy"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"cormart": {
+				"role": ["artillery"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corsent": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corvroc": {
+				"role": ["artillery"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corban": {
+				"role":	["skirmish"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"cortrem": {
+				"role": ["artillery", "heavy"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corvrad": {
+				"role": ["assault"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"coreter": {
+				"role": ["support"],
+				"attribute": ["support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"cormabm": {
+				"role": ["support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+	
+			// CORTEX SHIPS - corsy
+	
+			"correcl": {
+				"role": ["support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corpt": {
+				"role": ["anti_air"],
+				"attribute": ["siege"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"coresupp": {
+				"role": ["scout"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corpship": {
+				"role": ["riot"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corroy": {
+				"role": ["anti_sub"], 				//assault
+				"attribute": ["siege", "support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corsub": {
+				"role": ["raider", "sub"]		,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+		
+			// CORTEX ADV SHIPYARD - corasy
+	
+			"corshark": {
+				"role": ["anti_sub", "sub"],
+				"attribute": ["anti_sub"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corssub": {
+				"role": ["sub"],
+				"attribute": ["siege"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corarch": {
+				"role": ["anti_air"],
+				"limit": 5,
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corcrus": {
+				"role": ["skirmish"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corsjam": {
+				"role": ["support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corcarry": {
+				"role": ["support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"cormship": {
+				"role": ["artillery"],
+				"attribute": ["siege"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corbats": {
+				"role": ["heavy"],
+				"attribute": ["siege"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corblackhy": {
+				"role": ["super"],
+				"attribute": ["siege"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+	
+			// aircraft - corap
+	
+			"corfink": {
+				"role": ["scout", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corveng": {
+				"role": ["anti_air", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corshad": {
+				"role": ["bomber", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corbw": {
+				"role": ["assault", "air"],
+				"attribute": ["siege"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+		
+			// CORTEX ADV AIRCRAFT aircraft - coraap
+	
+			"corawac": {
+				"role": ["scout", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corvamp": {
+				"role": ["anti_air", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corhurc": {
+				"role": ["bomber", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corape": {
+				"role": ["assault", "air"],
+				"attribute": ["siege"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corcrwh": {
+				"role": ["heavy", "air"],
+				"attribute": ["anti_heavy"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+	
+			// CORTEX NAVAL AIRCRAFT - corplat
+
+			"corcut": {
+				"role": ["raider", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+	
+			// CORTEX HOVERS
+
+			"corsh": {
+				"role": ["raider"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corsnap": {
+				"role": ["skirmish"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"cormh": {
+				"role": ["artillery"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corah": {
+				"role": ["anti_air"],
+				"attribute":["support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"corhal": {
+				"role": ["heavy", "skirmish"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			}
+	
 		}
-	},
-	"armmart": {
-		"role": ["artillery"]
-	},
-	"armmerl": {
-		"role": ["artillery"]
-	},
-	"armyork": {
-		"role": ["anti_air"]
-	},
-	"armseer": {
-		"role": ["assault"],
-		"attribute": ["support"],
-		"limit": 1
-	},
-	"armgremlin": {
-		"role": ["scout"]
-	},
-
-	// aircraft - armap
-	"armca": {
-		"role": ["builder", "air"],
-		"retreat": 0.6,
-		"limit": 25,
-		"build_speed": 3.0
-	},
-	"armpeep": {
-		"role": ["scout", "air"]
-	},
-	"armfig": {
-		"role": ["anti_air", "air"],
-		"attribute": ["scout"]
-	},
-	"armthund": {
-		"role": ["bomber", "air"],
-		"threat": 0.1
-	},
-	"armkam": {
-		"role": ["raider", "air"],
-		"attribute": ["siege"],
-		"retreat": 0.6
-	},
-	"armasp": {
-		"role": ["static"],
-		"limit": 1
-	},
-
-	// adv aircraft - armaap
-	"armaca": {
-		"role": ["builder", "air"],
-		"retreat": 0.6,
-		"limit": 2,
-		"build_speed": 5.0
-	},
-	"armawac": {
-		"role": ["scout", "air"]
-	},
-	"armhawk": {
-		"role": ["anti_air", "air"]
-	},
-	"armpnix": {
-		"role": ["bomber", "air"]
-	},
-	"armbrawl": {
-		"role": ["raider", "air"],
-		"attribute": ["siege"],
-		"retreat": 0.5
-	},
-	"armblade": {
-		"role": ["heavy", "air"],
-		"retreat": 0.4
-	},
-	"armstil": {
-		"role": ["bomber", "air"],
-	},
-	"armliche": {
-		"role": ["bomber", "air"],
-		"attribute": ["heavy"],
-		"retreat": 0.5
-	},
-
-	// ships - armsy
-	"armcs": {
-		"role": ["builder", "air"],
-		"retreat": 0.6,
-		"limit": 6,
-		"build_speed": 7.0
-	},
-	"armrecl": {
-		"role": ["rezzer"],
-		"attribute": ["rare"],
-		"limit": 20
-	},
-	"armpt": {
-		"role": ["scout", "anti_air", "raider"]
-	},
-	"armdecade": {
-		"role": ["raider", "skirmish"]
-	},
-	"armpship": {
-		"role": ["assault", "skirmish"]
-	},
-	"armsub": {
-		"role": ["sub"],
-		"attribute": ["anti_sub"]
-	},
-	"armroy": {
-		"role": ["artillery", "assault"],
-		"attribute": ["siege"],
-		"retreat": 0.5
-	},
-
-	// adv shipyard - armasy
-	"armacsub": {
-		"role": ["builderT2", "sub"],
-		"attribute": ["solo"],
-		"retreat": 0.3,
-		"limit": 10,
-		"build_speed": 10.0
-	},
-	"armsubk": {
-		"role": ["sub"],
-		"attribute": ["anti_sub"]
-	},
-	"armaas": {
-		"role": ["anti_air"]
-	},
-	"armcrus": {
-		"role": ["assault", "skirmish"],
-		"attribute": ["anti_sub"]
-	},
-	"armcarry": {
-		"role": ["support", "heavy"],
-		"retreat": 0.75
-	},
-	"armmship": {
-		"role": ["artillery"],
-		"attribute": ["siege"],
-		"retreat": 0.5
-	},
-	"armbats": {
-		"role": ["heavy"],
-		"attribute": ["assault"],
-	},
-	"armepoch": {
-		"role": ["heavy"],
-		"attribute": ["artillery"],
-		"retreat": 0.3
-	},
-
-	// ARMADA HOVERS
-	"armch": {
-		"role": ["builder"],
-		"limit": 10,
-		"build_speed": 8.0
-	},
-	"armsh": {
-		"role": ["scout"]
-	},
-	"armanac": {
-		"role": ["assault"]
-	},
-	"armmh": {
-		"role": ["artillery"],
-		"limit": 10
-	},
-	"armah": {
-		"role": ["anti_air"],
-		"attribute": ["skirmish"]
-	},
-
-	// bot - corlab
-	"corck": {
-		"role": ["builder"],
-		"limit": 20,
-		"build_speed": 5.0
-	},
-	"corak": {
-		"role": ["raider"],
-		"attribute": ["scout"],
-		"retreat": 0.1
-	},
-	"cornecro": {
-		"role": ["rezzer"],
-		"attribute": ["rare"],
-		"limit": 20
-	},
-	"corstorm": {
-		"role": ["skirmish"]
-	},
-	"corthud": {
-		"role": ["assault"]
-	},
-	"corcrash": {
-		"role": ["anti_air"],
-		"limit": 30
-	},
-
-	// adv bot - coralab
-	"corack": {
-		"role": ["builderT2"],
-		"attribute": ["solo"],
-		"limit": 10,
-		"build_speed": 10.0
-	},
-	"corfast": {
-		"role": ["builder"],
-		"limit": 2,
-		"build_speed": 10.0
-	},
-	"cortermite": {
-		"role": ["raider"]
-	},
-	"corpyro": {
-		"role": ["assault"]
-	},
-	"corsumo": {
-		"role": ["heavy"]
-	},
-	"corcan": {
-		"role": ["assault"]
-	},
-	"cormort": {
-		"role": ["artillery"],
-		"attribute": ["skirmish"]
-	},
-	"corhrk": {
-		"role": ["artillery"]
-	},
-	"coraak": {
-		"role": ["anti_air"]
-	},
-	"cormando": {
-		"role": ["builder"],
-		"limit": 2,
-		"build_speed": 10.0
-	},
-	"corsktl": {
-		"role": ["assault"],
-		"attribute": ["melee"],
-		"retreat": 0,
-	},
-	"corvoyr": {
-		"role": ["assault"],
-		"attribute": ["support"],
-		"limit": 1
-	},
-	"coramph": {
-		"role": ["raider", "anti_air"]
-	},
-	"corspy": {
-		"role": ["scout"]
-	},
-
-	// T3 bot - corgant
-	"corshiva": {
-		"role": ["assault", "heavy"],
-		"retreat": 0.6
-	},
-	"corkarg": {
-		"role": ["raider", "heavy"]
-	},
-	"corcat": {
-		"role": ["artillery", "heavy"],
-		"threat": {"surf": 0.5, "vs": {"static": 4.0, "artillery": 4.0}},
-		"power": 0.5
-	},
-	"corkorg": {
-		"role": ["assault", "heavy"],
-		"attribute": ["melee"],
-		"power": 1.5,
-		"retreat": 0.00
-	},
-	"corjugg": {
-		"role": ["heavy"],
-		"attribute": ["melee"],
-		"power": 1.5,
-		"retreat": 0.00
-	},
-	"corsok": {
-		"role": ["skirmish"],
-		"retreat": 0.6
-	},
-
-	// vehicles - corvp
-	"corcv": {
-		"role": ["builder"],
-		"limit": 20,
-		"build_speed": 7.0
-	},
-	"cormuskrat": {
-		"role": ["builder"],
-		"limit": 10,
-		"build_speed": 8.0
-	},
-	// "cormlv": {
-	// 	"role": ["support"]
-	// },
-	"corfav": {
-		"role": ["scout"]
-	},
-	"corgator": {
-		"role": ["raider"],
-		"attribute": ["scout"]
-	},
-	"corgarp": {
-		"role": ["assault"],
-		"limit": 30
-	},
-	"corraid": {
-		"role": ["assault"]
-	},
-	"corlevlr": {
-		"role": ["riot"]
-	},
-	"corwolv": {
-		"role": ["artillery"]
-	},
-	"cormist": {
-		"role": ["anti_air"],
-		"attribute": ["skirmish"]
-	},
-
-	// adv vehicles - coravp
-	"coracv": {
-		"role": ["builderT2"],
-		"attribute": ["solo"],
-		"limit": 10,
-		"build_speed": 10.0
-	},
-	"correap": {
-		"role": ["assault"]
-	},
-	"corgol": {
-		"role": ["heavy"]
-	},
-	"cormart": {
-		"role": ["artillery"]
-	},
-	"corsent": {
-		"role": ["anti_air"]
-	},
-	"corvroc": {
-		"role": ["artillery"]
-	},
-	"corban": {
-		"role": ["skirmish"]
-	},
-	"cortrem": {
-		"role": ["artillery", "heavy"]
-	},
-	"corvrad": {
-		"role": ["assault"],
-		"attribute": ["support"],
-		"limit": 1
-	},
-
-	// ships - corsy
-	"corcs": {
-		"role": ["builder", "air"],
-		"retreat": 0.6,
-		"limit": 6,
-		"build_speed": 7.0
-	},
-	"correcl": {
-		"role": ["rezzer"],
-		"attribute": ["rare"],
-		"limit": 20
-	},
-	"corpt": {
-		"role": ["scout", "anti_air", "raider"]
-	},
-	"coresupp": {
-		"role": ["raider", "skirmish"]
-	},
-	"corpship": {
-		"role": ["assault", "skirmish"]
-	},
-	"corsub": {
-		"role": ["sub"],
-		"attribute": ["anti_sub"]
-	},
-	"corroy": {
-		"role": ["artillery", "assault"],
-		"attribute": ["siege"],
-		"retreat": 0.5
-	},
-
-	// adv shipyard - corasy
-	"coracsub": {
-		"role": ["builderT2", "sub"],
-		"attribute": ["solo"],
-		"retreat": 0.3,
-		"limit": 10,
-		"build_speed": 10.0
-	},
-	"corshark": {
-		"role": ["sub"],
-		"attribute": ["anti_sub"]
-	},
-	"corarch": {
-		"role": ["anti_air"]
-	},
-	"corcrus": {
-		"role": ["assault", "skirmish"],
-		"attribute": ["anti_sub"]
-	},
-	"corcarry": {
-		"role": ["support", "heavy"],
-		"retreat": 0.75
-	},
-	"cormship": {
-		"role": ["artillery"],
-		"attribute": ["siege"],
-		"retreat": 0.5
-	},
-	"corbats": {
-		"role": ["heavy"],
-		"attribute": ["assault"],
-	},
-	"corblackhy": {
-		"role": ["heavy"],
-		"attribute": ["artillery"],
-		"retreat": 0.3
-	},
-
-	// CORTEX HOVERS
-	"corch": {
-		"role": ["builder"],
-		"limit": 10,
-		"build_speed": 8.0
-	},
-	"corsh": {
-		"role": ["scout"]
-	},
-	"corsnap": {
-		"role": ["assault"]
-	},
-	"cormh": {
-		"role": ["artillery"],
-		"limit": 10
-	},
-	"corah": {
-		"role": ["anti_air"],
-		"attribute": ["skirmish"]
-	},
-	"corhal": {
-		"role": ["assault"]
-	},
-
-	// aircraft - corap
-	"corca": {
-		"role": ["builder", "air"],
-		"retreat": 0.6,
-		"limit": 25,
-		"build_speed": 3.0
-	},
-	"corfink": {
-		"role": ["scout", "air"]
-	},
-	"corveng": {
-		"role": ["anti_air", "air"],
-		"attribute": ["scout"]
-	},
-	"corshad": {
-		"role": ["bomber", "air"],
-		"threat": 0.1
-	},
-	"corbw": {
-		"role": ["assault", "air"],
-		"attribute": ["siege"],
-		"retreat": 0.3
-	},
-	"corasp": {
-		"role": ["static"],
-		"limit": 1
-	},
-
-	// adv aircraft - coraap
-	"coraca": {
-		"role": ["builder", "air"],
-		"retreat": 0.6,
-		"limit": 2,
-		"build_speed": 5.0
-	},
-	"corawac": {
-		"role": ["scout", "air"]
-	},
-	"corvamp": {
-		"role": ["anti_air", "air"]
-	},
-	"corhurc": {
-		"role": ["bomber", "air"]
-	},
-	"corape": {
-		"role": ["assault", "air"],
-		"attribute": ["siege"],
-		"retreat": 0.5
-	},
-	"corcrw": {
-		"role": ["heavy", "air"],
-		"attribute": ["anti_heavy"],
-		"retreat": 0.5
-	},
-
-	// ignore
-	"armdrag": {
-		"role": ["static"],
-		"ignore": true
-	},
-	"cordrag": {
-		"role": ["static"],
-		"ignore": true
-	},
-	"armfort": {
-		"role": ["static"],
-		"ignore": true
-	},
-	"corfort": {
-		"role": ["static"],
-		"ignore": true
-	},
-	"armdrag_scav": {
-		"role": ["static"],
-		"ignore": true
-	},
-	"cordrag_scav": {
-		"role": ["static"],
-		"ignore": true
-	},
-	"armfort_scav": {
-		"role": ["static"],
-		"ignore": true
-	},
-	"corfort_scav": {
-		"role": ["static"],
-		"ignore": true
-	},
-	"corscavdrag": {
-		"role": ["static"],
-		"ignore": true
-	},
-	"corscavdrag_scav": {
-		"role": ["static"],
-		"ignore": true
-	},
-	"corscavfort": {
-		"role": ["static"],
-		"ignore": true
-	},
-	"corscavfort_scav": {
-		"role": ["static"],
-		"ignore": true
-	},
-	"armfdrag": {
-		"role": ["static"],
-		"ignore": true
-	},
-	"armfdrag_scav": {
-		"role": ["static"],
-		"ignore": true
-	},
-	"corfdrag": {
-		"role": ["static"],
-		"ignore": true
-	},
-	"corfdrag_scav": {
-		"role": ["static"],
-		"ignore": true
-	},
-
-	// ECO (energy & metal)
-	"armmakr": {
-		"role": ["static"],
-		"since": 30,
-		"build_mod": 500
-	},
-	"armmmkr" : {
-		"role": ["static"],
-		"build_mod": 300
-	},
-//	"armmex" : {
-//		"role": ["static"],
-//		"build_mod": 500
-//	},
-	"armmoho" : {
-		"role": ["static"],
-		"build_mod": 200
-	},
-	"armsolar" : {
-		"role": ["static"],
-		"build_mod": 400
-	},
-	"armgeo": {
-		"role": ["static"],
-		"midposoffset": [0, 0, -2]
-	},
-	"armfus" : {
-		"role": ["static"],
-		"build_mod": 2000,
-		"cooldown": 3
-	},
-	"armafus" : {
-		"role": ["static"],
-		"build_mod": 4000
-	},
-	"armuwfus" : {
-		"role": ["static"],
-		"build_mod": 4000
-	},
-//	"armestor" : {
-//		"role": ["static"],
-//		"since": 240,
-//		"limit": 1
-//	},
-//	"armuwes" : {
-//		"role": ["static"],
-//		"since": 240,
-//		"limit": 1
-//	},
-	"armmstor" : {
-		"role": ["static"],
-		"since": 300,
-		"cooldown": 10,
-		"limit": 2
-	},
-	"armuwadvms" : {
-		"role": ["static"],
-		"cooldown": 10,
-		"limit": 2
-	},
-	"armuwms" : {
-		"role": ["static"],
-		"since": 300,
-		"cooldown": 10,
-		"limit": 2
-	},
-	"cormakr": {
-		"role": ["static"],
-		"since": 30,
-		"build_mod": 500
-	},
-	"cormmkr" : {
-		"role": ["static"],
-		"build_mod": 300
-	},
-//	"cormex" : {
-//		"role": ["static"],
-//		"build_mod": 500
-//	},
-	"cormoho" : {
-		"role": ["static"],
-		"build_mod": 200
-	},
-	"corsolar" : {
-		"role": ["static"],
-		"build_mod": 400
-	},
-//	"cormexp" : {
-//		"role": ["static"],
-//		"build_mod": 500,
-//		"limit":0
-//	},
-	"corfus" : {
-		"role": ["static"],
-		"build_mod": 4000,
-		"cooldown": 3
-	},
-	"coruwfus" : {
-		"role": ["static"],
-		"build_mod": 4000
-	},
-	"cormstor" : {
-		"role": ["static"],
-		"since": 300,
-		"cooldown": 10,
-		"limit": 2
-	},
-	"coruwms" : {
-		"role": ["static"],
-		"since": 300,
-		"cooldown": 10,
-		"limit": 2
-	},
-	"coruwadvms" : {
-		"role": ["static"],
-		"cooldown": 10,
-		"limit": 2
-	},
-//	"corestor" : {
-//		"role": ["static"],
-//		"since": 240,
-//		"limit": 1
-//	},
-//	"coruwes" : {
-//		"role": ["static"],
-//		"since": 240,
-//		"limit": 1
-//	},
-
-	// FIXME: temporary factory buildSpeed
-	"armlab": {
-		"role": ["builder"],
-		"build_speed": 4.0
-	},
-	"armvp": {
-		"role": ["builder"],
-		"build_speed": 5.0
-	},
-	"armsy": {
-		"role": ["builder"],
-		"build_speed": 5.0
-	},
-	"armasy": {
-		"role": ["builder"],
-		"attribute": ["support"],
-		"build_speed": 10.0
-	},
-	"armhp": {
-		"role": ["builder"],
-		"build_speed": 6.0
-	},
-	"armfhp": {
-		"role": ["builder"],
-		"build_speed": 6.0
-	},
-	"armamsub": {
-		"role": ["builder"],
-		"build_speed": 8.0
-	},
-	"armplat": {
-		"role": ["builder"],
-		"attribute": ["support"],
-		"build_speed": 8.0
-	},
-	"armshltxuw": {
-		"role": ["static"],
-		"attribute": ["support"],
-		"limit": 1,
-		"midposoffset": [0, 0, 21],
-		"build_speed": 10.0
-	},
-	"corlab": {
-		"role": ["builder"],
-		"midposoffset": [-3.239746, 0, -2],
-		"build_speed": 4.0
-	},
-	"corvp": {
-		"role": ["builder"],
-		"build_speed": 5.0
-	},
-	"corhp": {
-		"role": ["builder"],
-		"build_speed": 6.0
-	},
-	"corsy": {
-		"role": ["builder"],
-		"build_speed": 5.0
-	},
-	"corasy": {
-		"role": ["builder"],
-		"attribute": ["support"],
-		"build_speed": 10.0
-	},
-	"corfhp": {
-		"role": ["builder"],
-		"build_speed": 6.0
-	},
-	"coramsub": {
-		"role": ["builder"],
-		"build_speed": 8.0
-	},
-	"corplat": {
-		"role": ["builder"],
-		"attribute": ["support"],
-		"build_speed": 8.0
-	},
-	"corgantuw": {
-		"role": ["static"],
-		"attribute": ["support"],
-		"limit": 1,
-		"build_speed": 10.0
 	}
-}
-}
+	
+	

@@ -40,6 +40,15 @@ string corap   ("corap");
 string coraap  ("coraap");
 string corgant ("corgant");
 
+string leglab  ("leglab");
+string legalab ("legalab");
+string legvp   ("legvp");
+string legavp  ("legavp");
+string legap   ("legap");
+string legsy   ("legsy");
+string legaap  ("legaap");
+string leggant ("leggant");
+
 float switchLimit = MakeSwitchLimit();
 
 IUnitTask@ AiMakeTask(CCircuitUnit@ unit)
@@ -64,9 +73,12 @@ void AiUnitAdded(CCircuitUnit@ unit, Unit::UseAs usage)
 	if (userData[facDef.id].attr & Attr::T3 != 0) {
 		// if (ai.teamId != ai.GetLeadTeamId()) then this change affects only target selection,
 		// while threatmap still counts "ignored" here units.
-		array<string> spam = {"armpw", "corak", "armflea", "armfav", "corfav"};
-		for (uint i = 0; i < spam.length(); ++i)
-			ai.GetCircuitDef(spam[i]).SetIgnore(true);
+		array<string> spam = {"armpw", "corak", "armflea", "armfav", "corfav", "leggob", "legscout"};
+		for (uint i = 0; i < spam.length(); ++i) {
+			CCircuitDef@ cdef = ai.GetCircuitDef(spam[i]);
+			if (cdef !is null)
+				cdef.SetIgnore(true);
+		}
 	}
 
 	const array<Opener::SO>@ opener = Opener::GetOpener(facDef);
@@ -121,6 +133,11 @@ bool AiIsSwitchTime(int lastSwitchFrame)
 bool AiIsSwitchAllowed(CCircuitDef@ facDef)
 {
 	return true;
+}
+
+CCircuitDef@ AiGetFactoryToBuild(const AIFloat3& in pos, bool isStart, bool isReset)
+{
+	return aiFactoryMgr.DefaultGetFactoryToBuild(pos, isStart, isReset);
 }
 
 /* --- Utils --- */

@@ -170,6 +170,7 @@ return {
 				impactonly = 1,
 				impulsefactor = 0,
 				intensity = 24,
+				laserflaresize = 5,
 				name = "Close-quarters lightning turret",
 				noselfdamage = true,
 				range = 400,
@@ -184,6 +185,7 @@ return {
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
 				customparams = {
+					noattackrangearc = 1,
 					spark_ceg = "genericshellexplosion-splash-lightning",
 					spark_forkdamage = "0.5",
 					spark_maxunits = "2",

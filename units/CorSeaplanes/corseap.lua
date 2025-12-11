@@ -111,8 +111,8 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				customparams = {
+					noattackrangearc = 1,
 					speceffect = "torpwaterpen",
-					when = "ypos<0",
 				},
 				damage = {
 					default = 342,

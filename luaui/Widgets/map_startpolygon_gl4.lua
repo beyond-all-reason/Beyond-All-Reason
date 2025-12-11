@@ -12,17 +12,24 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathRandom = math.random
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 -- Note: this is now updated to support arbitrary start polygons via GL.SHADER_STORAGE_BUFFER
 
 -- The format of the buffer is the following:
 -- Triplets of :teamID, triangleID, x, z
 
--- Spring.Echo(Spring.GetTeamInfo(Spring.GetMyTeamID()))
+-- spEcho(Spring.GetTeamInfo(Spring.GetMyTeamID()))
 
 -- TODO:
 -- [ ] Handle overlapping of boxes and myAllyTeamID
--- [X] Handle Minimap drawing too 
-	-- [X] handle flipped minimaps 
+-- [X] Handle Minimap drawing too
+	-- [X] handle flipped minimaps
 -- [ ] Pass in my team too
 -- [ ] Handle Scavengers in scavenger color
 -- [ ] Handle Raptors in raptor color
@@ -31,19 +38,19 @@ local scavengerStartBoxTexture = "LuaUI/Images/scav-tileable_v002_small.tga"
 
 local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
 
-local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
+local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
+local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
 local scavengerAIAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 local raptorsAIAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
 
 ---- Config stuff ------------------
-local autoReload = true -- refresh shader code every second (disable in production!)
+local autoReload = false -- refresh shader code every second (disable in production!)
 
 local StartPolygons = {} -- list of points in clockwise order
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
 
 local minY, maxY = Spring.GetGroundExtremes()
 
@@ -54,9 +61,9 @@ local shaderSourceCache = {
 			mapDepths = 0,
 			myAllyTeamID = -1,
 			isMiniMap = 0,
-			flipMiniMap = 0,
+			rotationMiniMap = 0,
 			mapNormals = 1,
-			heightMapTex = 2, 
+			heightMapTex = 2,
 			scavTexture = 3,
 			raptorTexture = 4,
 		},
@@ -80,20 +87,20 @@ local fullScreenRectVAO
 local startPolygonShader
 local startPolygonBuffer = nil -- GL.SHADER_STORAGE_BUFFER for polygon
 
-local function DrawStartPolygons(inminimap)	
-	local advUnitShading, advMapShading = Spring.HaveAdvShading()
+local function DrawStartPolygons(inminimap)
+	local _, advMapShading = Spring.HaveAdvShading()
 
-	if advMapShading then 
+	if advMapShading then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
 	else
 		if WG['screencopymanager'] and WG['screencopymanager'].GetDepthCopy() then
 			gl.Texture(0, WG['screencopymanager'].GetDepthCopy())
-		else 
-			Spring.Echo("Start Polygons: Adv map shading not available, and no depth copy available")
+		else
+			spEcho("Start Polygons: Adv map shading not available, and no depth copy available")
 			return
 		end
 	end
-	
+
 	gl.Texture(1, "$normals")
 	gl.Texture(2, "$heightmap")-- Texture file
 	gl.Texture(3, scavengerStartBoxTexture)
@@ -109,8 +116,8 @@ local function DrawStartPolygons(inminimap)
 
 	startPolygonShader:SetUniform("noRushTimer", noRushTime)
 	startPolygonShader:SetUniformInt("isMiniMap", inminimap and 1 or 0)
-	startPolygonShader:SetUniformInt("flipMiniMap", getMiniMapFlipped() and 1 or 0)
-	startPolygonShader:SetUniformInt("myAllyTeamID", Spring.GetMyAllyTeamID() or -1) 
+	startPolygonShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
+	startPolygonShader:SetUniformInt("myAllyTeamID", Spring.GetMyAllyTeamID() or -1)
 
 	fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
 	startPolygonShader:Deactivate()
@@ -136,30 +143,30 @@ end
 
 function widget:Initialize()
 	local gaiaAllyTeamID
-	if Spring.GetGaiaTeamID() then 
+	if Spring.GetGaiaTeamID() then
 		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID() , false))
 	end
 	for i, teamID in ipairs(Spring.GetAllyTeamList()) do
-		if teamID ~= gaiaAllyTeamID then 
+		if teamID ~= gaiaAllyTeamID then
 			--and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
 			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-			--Spring.Echo("Allyteam",teamID,"startbox",xn, zn, xp, zp)	
+			--spEcho("Allyteam",teamID,"startbox",xn, zn, xp, zp)
 			StartPolygons[teamID] = {{xn, zn}, {xp, zn}, {xp, zp}, {xn, zp}}
 		end
 	end
-	
+
 	if autoReload and false then
 		-- MANUAL OVERRIDE FOR DEBUGGING
 		-- lets add a bunch of silly StartPolygons:
 		StartPolygons = {}
 		for i = 2,8 do
-			local x0 = math.random(0, Game.mapSizeX)
-			local y0 = math.random(0, Game.mapSizeZ)
+			local x0 = mathRandom(0, Game.mapSizeX)
+			local y0 = mathRandom(0, Game.mapSizeZ)
 			local polygon = {{x0, y0}}
 
-			for j = 2, math.ceil(math.random() * 10) do 
-				local x1 = math.random(0, Game.mapSizeX / 5)
-				local y1 = math.random(0, Game.mapSizeZ / 5)
+			for j = 2, math.ceil(mathRandom() * 10) do
+				local x1 = mathRandom(0, Game.mapSizeX / 5)
+				local y1 = mathRandom(0, Game.mapSizeZ / 5)
 				polygon[#polygon+1] = {x0+x1, y0+y1}
 			end
 			StartPolygons[#StartPolygons+1] = polygon
@@ -175,7 +182,7 @@ function widget:Initialize()
 		numPolygons = numPolygons + 1
 		local numPoints = #polygon
 		local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-		--Spring.Echo("teamID", teamID, "at " ,xn, zn, xp, zp)
+		--spEcho("teamID", teamID, "at " ,xn, zn, xp, zp)
 		for vertexID, vertex in ipairs(polygon) do
 			local x, z = vertex[1], vertex[2]
 			bufferdata[#bufferdata+1] = teamID
@@ -186,8 +193,8 @@ function widget:Initialize()
 		end
 	end
 
-	-- SHADER_STORAGE_BUFFER MUST HAVE 64 byte aligned data 
-	if numvertices % 4 ~= 0 then 
+	-- SHADER_STORAGE_BUFFER MUST HAVE 64 byte aligned data
+	if numvertices % 4 ~= 0 then
 		for i=1, ((4 - (numvertices % 4)) * 4) do bufferdata[#bufferdata+1] = -1 end
 		numvertices = numvertices + (4 - numvertices % 4)
 	end
@@ -201,9 +208,9 @@ function widget:Initialize()
 	startPolygonShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or startPolygonShader
 
 	if not startPolygonShader then
-		Spring.Echo("Error: Norush Timer GL4 shader not initialized")
+		spEcho("Error: Norush Timer GL4 shader not initialized")
 		widgetHandler:RemoveWidget()
 		return
 	end
-	fullScreenRectVAO = MakeTexRectVAO()
+	fullScreenRectVAO = InstanceVBOTable.MakeTexRectVAO()
 end

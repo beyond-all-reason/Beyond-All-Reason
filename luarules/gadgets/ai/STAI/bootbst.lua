@@ -33,7 +33,7 @@ end
 function BootBST:Update()
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'BootBST' then return end
 	local f = self.game:Frame()
-	if not self.finished then return end
+	if not self.finished  then return end
 	if self.ignoreFactories then return end
 	if self.factory then
 			local pos = self.ai.tool:UnitPos(self)
@@ -51,6 +51,7 @@ function BootBST:Update()
 			end
 	else
 		if f > self.lastInFactoryCheck + 300 then
+			
 			-- units (especially construction units) can still get stuck in factories long after they're built
 			self.lastInFactoryCheck = f
 			self:FindMyFactory()
@@ -89,7 +90,8 @@ end
 function BootBST:SetMoveState()
 	local thisUnit = self.unit
 	if thisUnit then
-		thisUnit:Internal():HoldPosition()
+		self.ai.tool:GiveOrder(self.id, CMD.MOVE_STATE, 0, 0,'1-1')
+		--thisUnit:Internal():HoldPosition()
 	end
 end
 
@@ -141,6 +143,7 @@ function BootBST:ExitFactory(face)
 		out.z = 1
 	end
  	u:Move(out)
+	self.ai.tool:GiveOrderToUnit(u, CMD.MOVE, {out.x, out.y, out.z}, 0,'1-1')
 	self.lastOrderFrame = self.game:Frame()
 	self.lastExitSide = face
 end

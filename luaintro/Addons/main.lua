@@ -438,6 +438,8 @@ end
 function addon.DrawLoadScreen()
 	local loadProgress = SG.GetLoadProgress()
 
+	if not Platform.gl then return end
+
 	if not aspectRatio then
 		local texInfo = gl.TextureInfo(backgroundTexture)
 		if not texInfo then return end
@@ -665,18 +667,6 @@ function addon.DrawLoadScreen()
 		for i,line in pairs(tipLines) do
 			font2:Print(line, 0, -tipTextLineHeight*(i-1), tipTextSize, "oac")
 		end
-		gl.PopMatrix()
-	end
-
-	if usingIntelPotato then
-		gl.Color(0.15,0.15,0.15,(blurShader and 0.55 or 0.7))
-		gl.Rect(0,0.95,1,1)
-		gl.PushMatrix()
-		gl.Scale(1/vsx,1/vsy,1)
-		gl.Translate(vsx/2, 0.988*vsy, 0)
-		font2:SetTextColor(0.8,0.8,0.8,1)
-		font2:SetOutlineColor(0,0,0,0.8)
-		font2:Print(Spring.I18N('ui.loadScreen.intelGpuWarning', { textColor = '\255\200\200\200', warnColor = '\255\255\255\255' }), 0, 0, height*0.66, "oac")
 		gl.PopMatrix()
 	end
 

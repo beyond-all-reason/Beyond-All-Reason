@@ -1,34 +1,17 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, cover1, cover2, light1, light2;
 
 static-var  Active;
 
+#define WATER_ROCK_UNITSIZE 15
+#include "../floatmotion.h"
 
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*5;
-			turn base to z-axis rockAng speed rockSpeed*5;
-			wait-for-turn base around x-axis;
-			wait-for-turn base around z-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
-
+#define BASEPIECE base
+#define MAXTILT 100
+#define UNITSIZE 10
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 MMStatus(State)
 {
@@ -44,21 +27,14 @@ MMStatus(State)
 	    hide light1;
 	    hide light2;
 	}
-	//get PRINT(Active);
 }
 
 Create()
 {
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script FloatMotion();
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
-
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
 Killed(severity, corpsetype)
 {

@@ -12,28 +12,41 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMin = math.min
+
+-- Localized Spring API for performance
+local spGetViewGeometry = Spring.GetViewGeometry
+
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld
+local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
+local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+
 
 local maxAllowedWidth = 0.26
 local maxAllowedHeight = 0.32
 local leftClickMove = true
 
-local vsx, vsy, _, vpy = Spring.GetViewGeometry()
+local vsx, vsy, _, vpy = spGetViewGeometry()
 
 local minimized = false
 local maximized = false
 
 local maxHeight = maxAllowedHeight
-local maxWidth = math.min(maxHeight * (Game.mapX / Game.mapY), maxAllowedWidth * (vsx / vsy))
-local usedWidth = math.floor(maxWidth * vsy)
-local usedHeight = math.floor(maxHeight * vsy)
+local ratio = Game.mapX / Game.mapY
+local maxWidth = mathMin(maxHeight * ratio, maxAllowedWidth * (vsx / vsy))
+local usedWidth = mathFloor(maxWidth * vsy)
+local usedHeight = mathFloor(maxHeight * vsy)
 local backgroundRect = { 0, 0, 0, 0 }
 
 local delayedSetup = false
 local sec = 0
 local sec2 = 0
+local lastRot = -1 --TODO: switch this to use MiniMapRotationChanged Callin when it is added to Engine
 
 local spGetCameraState = Spring.GetCameraState
 local spGetActiveCommand = Spring.GetActiveCommand
@@ -54,7 +67,7 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader then
 			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4], elementCorner)
+				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner)
 			end)
 			WG['guishader'].InsertDlist(dlistGuishader, 'minimap')
 		end
@@ -66,7 +79,7 @@ end
 local function clear()
 	dlistMinimap = gl.DeleteList(dlistMinimap)
 	if uiBgTex then
-		gl.DeleteTextureFBO(uiBgTex)
+		gl.DeleteTexture(uiBgTex)
 		uiBgTex = nil
 	end
 	if WG['guishader'] and dlistGuishader then
@@ -87,7 +100,7 @@ function widget:ViewResize()
 		return
 	end
 
-	vsx, vsy, _, vpy = Spring.GetViewGeometry()
+	vsx, vsy, _, vpy = spGetViewGeometry()
 
 	elementPadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
@@ -100,15 +113,15 @@ function widget:ViewResize()
 		maxAllowedWidth = (topbarArea[1] - elementMargin - elementPadding) / vsx
 	end
 
-	maxWidth = math.min(maxAllowedHeight * (Game.mapX / Game.mapY), maxAllowedWidth * (vsx / vsy))
+	maxWidth = mathMin(maxAllowedHeight * ratio, maxAllowedWidth * (vsx / vsy))
 	if maxWidth >= maxAllowedWidth * (vsx / vsy) then
-		maxHeight = maxWidth / (Game.mapX / Game.mapY)
+		maxHeight = maxWidth / ratio
 	else
 		maxHeight = maxAllowedHeight
 	end
 
-	usedWidth = math.floor(maxWidth * vsy)
-	usedHeight = math.floor(maxHeight * vsy)
+	usedWidth = mathFloor(maxWidth * vsy)
+	usedHeight = mathFloor(maxHeight * vsy)
 
 	backgroundRect = { 0, vsy - (usedHeight) - elementPadding, usedWidth + elementPadding, vsy }
 
@@ -118,7 +131,7 @@ function widget:ViewResize()
 	end
 	dlistMinimap = gl.DeleteList(dlistMinimap)
 	if uiBgTex then
-		gl.DeleteTextureFBO(uiBgTex)
+		gl.DeleteTexture(uiBgTex)
 		uiBgTex = nil
 	end
 end
@@ -139,7 +152,7 @@ function widget:Initialize()
 		return usedHeight + elementPadding
 	end
 	WG['minimap'].getMaxHeight = function()
-		return math.floor(maxAllowedHeight * vsy), maxAllowedHeight
+		return mathFloor(maxAllowedHeight * vsy), maxAllowedHeight
 	end
 	WG['minimap'].setMaxHeight = function(value)
 		maxAllowedHeight = value
@@ -167,6 +180,17 @@ function widget:Shutdown()
 end
 
 function widget:Update(dt)
+	local currRot = getCurrentMiniMapRotationOption()
+	if lastRot ~= currRot then
+		if currRot == ROTATION.DEG_90 or currRot == ROTATION.DEG_270 then
+			ratio = Game.mapY / Game.mapX
+		else
+			ratio = Game.mapX / Game.mapY
+		end
+		lastRot = currRot
+		widget:ViewResize()
+		return
+	end
 	if not delayedSetup then
 		sec = sec + dt
 		if sec > 2 then
@@ -193,7 +217,7 @@ end
 
 
 local function drawBackground()
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 0, 1, 0, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 0, 1, 0, nil, nil, nil, nil, nil, nil, nil, nil)
 end
 
 local st = spGetCameraState()
@@ -241,26 +265,24 @@ function widget:DrawScreen()
 		end
 		if useRenderToTexture then
 			if not uiBgTex and backgroundRect[3]-backgroundRect[1] >= 1 and backgroundRect[4]-backgroundRect[2] >= 1 then
-				uiBgTex = gl.CreateTexture(math.floor(backgroundRect[3]-backgroundRect[1]), math.floor(backgroundRect[4]-backgroundRect[2]), {
+				uiBgTex = gl.CreateTexture(mathFloor(backgroundRect[3]-backgroundRect[1]), mathFloor(backgroundRect[4]-backgroundRect[2]), {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
 				})
-				gl.RenderToTexture(uiBgTex, function()
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawBackground()
-					gl.PopMatrix()
-				end)
+				gl.R2tHelper.RenderToTexture(uiBgTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
+						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+						drawBackground()
+					end,
+					useRenderToTexture
+				)
 			end
 			if uiBgTex then
 				-- background element
-				gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
-				gl.Texture(uiBgTex)
-				gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+				gl.R2tHelper.BlendTexRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
 			end
 		else
 			if not dlistMinimap then

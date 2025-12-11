@@ -75,7 +75,7 @@ vertex = [[
 	// Varyings
 	out Data {
 		vec4 modelVertexPos;
-		vec4 modelVertexPosOrig;
+		vec4 pieceVertexPosOrig;
 		vec4 worldVertexPos;
 		// TBN matrix components
 		vec3 worldTangent;
@@ -211,7 +211,7 @@ vertex = [[
 	void main(void)
 	{
 		modelVertexPos = gl_Vertex;
-		modelVertexPosOrig = modelVertexPos;
+		pieceVertexPosOrig = modelVertexPos;
 		vec3 modelVertexNormal = gl_Normal;
 
 		%%VERTEX_PRE_TRANSFORM%%
@@ -493,7 +493,7 @@ fragment = [[
 	// Varyings
 	in Data {
 		vec4 modelVertexPos;
-		vec4 modelVertexPosOrig;
+		vec4 pieceVertexPosOrig;
 		vec4 worldVertexPos;
 		// TBN matrix components
 		vec3 worldTangent;
@@ -1148,7 +1148,7 @@ fragment = [[
 		float healthMix;
 		vec3 seedVec;
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXRAPTORS)) {
-			seedVec = modelVertexPosOrig.xyz * 0.6;
+			seedVec = pieceVertexPosOrig.xyz * 0.6;
 			seedVec.y += 1024.0 * hash11(float(intOptions[0]));
 
 			healthMix = SNORM2NORM(Perlin3D(seedVec.xyz)) * (2.0 - floatOptions[1]);

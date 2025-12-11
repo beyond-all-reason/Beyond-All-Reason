@@ -11,6 +11,14 @@ function widget:GetInfo()
 		enabled = false,
 	}
 end
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathRandom = math.random
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 -- Notes and TODO
 -- what parts should be atlassed? the correct answer is all parts should be atlassed
 -- pick up images from atlas:
@@ -33,12 +41,12 @@ local function addDirToAtlas(atlas, path, key, filelist)
 	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
 	local files = VFS.DirList(path)
 	--files = table.sort(files)
-	--Spring.Echo("Adding",#files, "images to atlas from", path, key)
+	--spEcho("Adding",#files, "images to atlas from", path, key)
 	for i=1, #files do
-		Spring.Echo(files[i])
+		spEcho(files[i])
 		local lowerfile = string.lower(files[i])
 		if imgExts[string.sub(lowerfile,-3,-1)] and (key and string.find(lowerfile, key, nil, true)) then
-			Spring.Echo(lowerfile)
+			spEcho(lowerfile)
 			gl.AddAtlasTexture(atlas,lowerfile)
 			atlassedImagesUVs[lowerfile] = true
 			filelist[lowerfile] = true
@@ -58,15 +66,19 @@ local function makeAtlas()
 	for filepath,_ in pairs(atlassedImagesUVs) do
 		local p,q,s,t = gl.GetAtlasTexture(atlasTexture, filepath) -- this returns xXyY 
 		atlassedImagesUVs[filepath] = {p,q,s,t}
-		Spring.Echo(string.format("%dx%d %s at xXyY %d %d %d %d", atlasX, atlasY, filepath,
+		spEcho(string.format("%dx%d %s at xXyY %d %d %d %d", atlasX, atlasY, filepath,
 			p *atlasX, q * atlasX, s * atlasY, t * atlasY)) 
 	end
 
 end
 
 ------------- SHADERS ----------------------------------------------
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 local chiliShader = nil
 
 local autoupdate = false -- auto update shader, for debugging only!
@@ -322,7 +334,7 @@ local function initRectVBO()
 	rectIndexVBO:Define(numIndices)
 	rectIndexVBO:Upload(indexData)
 	if rectVBO == nil or rectIndexVBO == nil then 
-		Spring.Echo("Failed to create rect VBO", rectVBO, rectIndexVBO)
+		spEcho("Failed to create rect VBO", rectVBO, rectIndexVBO)
 	end
 end
 
@@ -331,11 +343,10 @@ end
 --- An instance VBO is just a set of instances
 --- An instance VBO Table is a lua table that wraps an instance VBO to allow for easy and fast addition and removal of elements
 
-VFS.Include(luaShaderDir.."instancevbotable.lua")
 local widgetInstanceVBOs = {} -- this will be a list of _named_ instance VBOs, so you can separate per-pass (or per widget or whatever)
 
 local function goodbye(reason)
-  Spring.Echo("Chili GL4 widget exiting with reason: "..reason)
+  spEcho("Chili GL4 widget exiting with reason: "..reason)
   widgetHandler:RemoveWidget()
 end
 
@@ -352,11 +363,11 @@ local chiliInstanceVBOLayout = { -- see how this matches per instance attributes
 
 local function CreateInstanceVBOTable(tableName)
 	local defaultMaxElements
-	local newInstanceVBO = makeInstanceVBOTable(chiliInstanceVBOLayout, defaultMaxElements, tableName .. "_ChiliVBO")
+	local newInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(chiliInstanceVBOLayout, defaultMaxElements, tableName .. "_ChiliVBO")
 	
 	newInstanceVBO.vertexVBO = rectVBO
 	newInstanceVBO.indexVBO  = rectIndexVBO
-	newInstanceVBO.VAO = makeVAOandAttach(
+	newInstanceVBO.VAO = InstanceVBOTable.makeVAOandAttach(
 		newInstanceVBO.vertexVBO,
 		newInstanceVBO.instanceVBO,
 		newInstanceVBO.indexVBO
@@ -428,7 +439,7 @@ end
 local function randtablechoice (t)
 	local i = 0
 	for _ in pairs(t) do i = i+1 end 
-	local randi = math.floor(math.random()*i)
+	local randi = mathFloor(mathRandom()*i)
 	local j = 0
 	for k,v in pairs(t) do 
 		if j > randi then return k,v end
@@ -451,12 +462,12 @@ function widget:Initialize()
 		for i= 0, grid * grid -1 do 
 			local tex1 = randtablechoice(atlassedImagesUVs)
 			local tex2 = randtablechoice(atlassedImagesUVs)
-			local tiling = math.floor(math.random() * 8 + 4)
+			local tiling = mathFloor(mathRandom() * 8 + 4)
 			local x = (i % grid)* gs + 16
-			local y = math.floor(i/grid) * gs + 16
-			local w = x + math.random() * gs + 16
-			local h = y + math.random() * gs + 16
-			AddInstance('default', nil, {x,y,w,h}, {tiling,tiling,tiling,tiling}, {math.random(), math.random(), math.random(), math.random()}, nil, tex1, tex2)
+			local y = mathFloor(i/grid) * gs + 16
+			local w = x + mathRandom() * gs + 16
+			local h = y + mathRandom() * gs + 16
+			AddInstance('default', nil, {x,y,w,h}, {tiling,tiling,tiling,tiling}, {mathRandom(), mathRandom(), mathRandom(), mathRandom()}, nil, tex1, tex2)
 		end
 	end
 end

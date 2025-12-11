@@ -45,6 +45,7 @@ return {
 			subfolder = "ArmAircraft/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
+			attacksafetydistance = 3000,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {
@@ -114,6 +115,9 @@ return {
 				weaponacceleration = 40,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 420,
+				customparams = {
+					norangering = 1,
+				},
 				damage = {
 					commanders = 3150,
 					default = 5625,

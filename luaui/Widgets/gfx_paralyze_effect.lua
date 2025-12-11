@@ -13,17 +13,25 @@ function widget:GetInfo()
   }
 end
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevboidtable.lua")
+
+-- Localized Spring API for performance
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitHealth = Spring.GetUnitHealth
+local spGetGameFrame = Spring.GetGameFrame
+local spEcho = Spring.Echo
+local spGetAllUnits = Spring.GetAllUnits
+
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOIdTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 
 -- for testing: /luarules fightertest corak armpw 100 10 3000
 
 local paralyzedUnitShader, unitShapeShader
 
-local shaderConfig = {
-	SKINSUPPORT = Script.IsEngineMinVersion(105, 0, 1653) and 1 or 0,
-}
 
 local vsSrc = [[
 #version 420
@@ -39,12 +47,10 @@ layout (location = 1) in vec3 normal;
 layout (location = 2) in vec3 T;
 layout (location = 3) in vec3 B;
 layout (location = 4) in vec4 uv;
-#if (SKINSUPPORT == 0)
-	layout (location = 5) in uint pieceIndex;
-#else
-	layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
-	#define pieceIndex (bonesInfo.x & 0x000000FFu)
-#endif
+
+layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
+#define pieceIndex (bonesInfo.x & 0x000000FFu)
+
 layout (location = 6) in vec4 startcolorpower;
 layout (location = 7) in vec4 endcolor_endgameframe;
 layout (location = 8) in uvec4 instData;
@@ -58,14 +64,16 @@ layout(std140, binding = 2) uniform FixedStateMatrices {
 	mat4 modelViewProjectionMat;
 };
 #line 15000
-//layout(std140, binding=0) readonly buffer MatrixBuffer {
-layout(std140, binding=0) buffer MatrixBuffer {
-	mat4 mat[];
-};
 
-mat4 GetPieceMatrix(bool staticModel) {
-    return mat[instData.x + pieceIndex + uint(!staticModel)];
-}
+#if USEQUATERNIONS == 0
+	layout(std140, binding=0) buffer MatrixBuffer {
+		mat4 mat[];
+	};
+#else
+	//__QUATERNIONDEFS__
+#endif
+
+
 
 struct SUniformsBuffer {
     uint composite; //     u8 drawFlag; u8 unused1; u16 id;
@@ -94,16 +102,28 @@ out vec4 v_endcolor_alpha;
 
 void main() {
 	uint baseIndex = instData.x;
-	mat4 modelMatrix = mat[baseIndex];
+	
+	#line 16000
+	#if USEQUATERNIONS == 0
+		mat4 modelMatrix = mat[baseIndex];
 
-	uint isDynamic = 1u; //default dynamic model
-	// dynamic models have one extra matrix, as their first matrix is their world pos/offset
-	//mat4 pieceMatrix = mat4mix(mat4(1.0), mat[baseIndex + pieceIndex + isDynamic ], modelMatrix[3][3]);
-	mat4 pieceMatrix = mat4mix(mat4(1.0), mat[baseIndex + pieceIndex + isDynamic ], 1.0);
-	vec4 localModelPos = pieceMatrix * vec4(pos, 1.0);
+		uint isDynamic = 1u; //default dynamic model
+		// dynamic models have one extra matrix, as their first matrix is their world pos/offset
+		//mat4 pieceMatrix = mat4mix(mat4(1.0), mat[baseIndex + pieceIndex + isDynamic ], modelMatrix[3][3]);
+		mat4 pieceMatrix = mat4mix(mat4(1.0), mat[baseIndex + pieceIndex + isDynamic ], 1.0);
+		vec4 localModelPos = pieceMatrix * vec4(pos, 1.0);
 
-	v_modelPosOrig = localModelPos.xyz + (modelMatrix[3].xyz)*0.3;
-	vec4 modelPos = modelMatrix * localModelPos;
+		v_modelPosOrig = localModelPos.xyz + (modelMatrix[3].xyz)*0.3;
+		vec4 modelPos = modelMatrix * localModelPos;
+
+	#else 
+		Transform pieceModelTransform = GetPieceModelTransform(baseIndex, pieceIndex);
+		Transform modelWorldTransform = GetModelWorldTransform(baseIndex);
+
+		v_modelPosOrig = (ApplyTransform(pieceModelTransform, vec4(pos, 1.0))).xyz;
+
+		vec4 modelPos = ApplyTransform(modelWorldTransform, vec4(v_modelPosOrig.xyz, 1.0));
+	#endif
 
 	v_endcolor_alpha.rgba = endcolor_endgameframe.rgba;
 	v_endcolor_alpha.a = clamp( (v_endcolor_alpha.a - (timeInfo.x + timeInfo.w) + 100) * 0.01, 0.0, 1.0); // fade out for end time
@@ -304,6 +324,19 @@ void main() {
 }
 ]]
 
+
+local paralyzeSourceShaderCache = {
+	vsSrc = vsSrc,
+	fsSrc = fsSrc,
+	shaderName = "paralyzedUnitShader",
+	uniformInt = {},
+	uniformFloat = {},
+	shaderConfig = {
+		USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
+	},
+	forceupdate = true  -- otherwise file-less defines are not updated
+}
+
 --holy hacks batman
 if Spring.GetModOptions().emprework then
 	fsSrc = string.gsub(fsSrc,'//empreworktagdonotremove','paralysis_level = paralysis_level*3; if (paralysis_level> 1) { paralysis_level = 1; }')
@@ -326,27 +359,16 @@ local function initGL4()
 
 	local maxElements = 32 -- start small for testing
 	local unitIDAttributeIndex = 8
-	paralyzedDrawUnitVBOTable         = makeInstanceVBOTable(VBOLayout, maxElements, "paralyzedDrawUnitVBOTable", unitIDAttributeIndex, "unitID")
+	paralyzedDrawUnitVBOTable         = InstanceVBOTable.makeInstanceVBOTable(VBOLayout, maxElements, "paralyzedDrawUnitVBOTable", unitIDAttributeIndex, "unitID")
 
-	paralyzedDrawUnitVBOTable.VAO = makeVAOandAttach(vertVBO, paralyzedDrawUnitVBOTable.instanceVBO, indxVBO)
+	paralyzedDrawUnitVBOTable.VAO = InstanceVBOTable.makeVAOandAttach(vertVBO, paralyzedDrawUnitVBOTable.instanceVBO, indxVBO)
 	paralyzedDrawUnitVBOTable.indexVBO = indxVBO
 	paralyzedDrawUnitVBOTable.vertexVBO = vertVBO
 
-	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-	vsSrc = vsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig))
-	fsSrc = fsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig))
-		
-	paralyzedUnitShader = LuaShader({
-		vertex = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
-		fragment = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
-		uniformInt = {
-			--tex1 = 0,
-		},
-	}, "paralyzedDrawparalyzedUnitShader")
+	paralyzedUnitShader = LuaShader.CheckShaderUpdates(paralyzeSourceShaderCache)
 
-	local paralyzedUnitShaderCompiled = paralyzedUnitShader:Initialize()
-	if paralyzedUnitShaderCompiled ~= true  then
-		Spring.Echo("paralyzedUnitShaderCompiled shader compilation failed", paralyzedUnitShaderCompiled, unitshapeshaderCompiled)
+	if not paralyzedUnitShader  then
+		spEcho("paralyzedUnitShaderCompiled shader compilation failed", paralyzedUnitShader)
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -358,7 +380,7 @@ local function DrawParalyzedUnitGL4(unitID, unitDefID, red_start,  green_start, 
 	-- returns: a unique handler ID number that you should store and call StopDrawParalyzedUnitGL4(uniqueID) with to stop drawing it
 	-- note that widgets are responsible for stopping the drawing of every unit that they submit!
 
-	--Spring.Echo("DrawParalyzedUnitGL4",unitID, unitDefID, UnitDefs[unitDefID].name)
+	--spEcho("DrawParalyzedUnitGL4",unitID, unitDefID, UnitDefs[unitDefID].name)
 	if paralyzedDrawUnitVBOTable.instanceIDtoIndex[unitID] then return end -- already got this unit
 	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then return end
 	red_start = red_start or 1.0
@@ -368,8 +390,8 @@ local function DrawParalyzedUnitGL4(unitID, unitDefID, red_start,  green_start, 
 	red_end = red_end or 0
 	green_end = green_end or 0
 	blue_end = blue_end or 1.0
-	time_end = 500000 --time_end or Spring.GetGameFrame()
-	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+	time_end = 500000 --time_end or spGetGameFrame()
+	unitDefID = unitDefID or spGetUnitDefID(unitID)
 
 	pushElementInstance(paralyzedDrawUnitVBOTable , {
 			red_start, green_start,blue_start, power_start,
@@ -381,7 +403,7 @@ local function DrawParalyzedUnitGL4(unitID, unitDefID, red_start,  green_start, 
 		nil,
 		unitID,
 		"unitID")
-	--Spring.Echo("Pushed",  unitID, elementID)
+	--spEcho("Pushed",  unitID, elementID)
 	return unitID
 end
 
@@ -395,20 +417,20 @@ end
 local unitIDtoUniqueID = {}
 local TESTMODE = false
 
-local gameFrame = Spring.GetGameFrame()
+local gameFrame = spGetGameFrame()
 local prevGameFrame = gameFrame
 local numParaUnits = 0
 local myTeamID
 local spec, fullview
 
 local function init()
-	clearInstanceTable(paralyzedDrawUnitVBOTable)
-	local allUnits = Spring.GetAllUnits()
+	InstanceVBOTable.clearInstanceTable(paralyzedDrawUnitVBOTable)
+	local allUnits = spGetAllUnits()
 	for i=1, #allUnits do
 		local unitID = allUnits[i]
-		local health,maxHealth,paralyzeDamage,capture,build = Spring.GetUnitHealth(unitID)
+		local health,maxHealth,paralyzeDamage,capture,build = spGetUnitHealth(unitID)
 		if paralyzeDamage and paralyzeDamage > 0 then
-			widget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+			widget:UnitCreated(unitID, spGetUnitDefID(unitID))
 		end
 	end
 end
@@ -418,7 +440,7 @@ function widget:PlayerChanged(playerID)
 	local prevMyTeamID = myTeamID
 	myTeamID = Spring.GetMyTeamID()
 	if myTeamID ~= prevMyTeamID then -- TODO only really needed if onlyShowOwnTeam, or if allyteam changed?
-		--Spring.Echo("Initializing Paralyze Effect")
+		--spEcho("Initializing Paralyze Effect")
 		init()
 	end
 end
@@ -428,7 +450,7 @@ function widget:UnitCreated(unitID, unitDefID)
 		DrawParalyzedUnitGL4(unitID, unitDefID)
 	end
 
-	local health,maxHealth,paralyzeDamage,capture,build = Spring.GetUnitHealth(unitID)
+	local health,maxHealth,paralyzeDamage,capture,build = spGetUnitHealth(unitID)
 	if paralyzeDamage and paralyzeDamage > 0 then
 		DrawParalyzedUnitGL4(unitID, unitDefID)
 	end
@@ -444,11 +466,11 @@ end
 
 function widget:UnitEnteredLos(unitID)
 	if fullview then return end
-	widget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+	widget:UnitCreated(unitID, spGetUnitDefID(unitID))
 end
 
 local function UnitParalyzeDamageEffect(unitID, unitDefID, damage) -- called from Healthbars Widget Forwarding GADGET!!!
-	--Spring.Echo("UnitParalyzeDamageEffect",unitID, unitDefID, damage, Spring.GetUnitIsStunned(unitID)) -- DO NOTE THAT: return: nil | bool stunned_or_inbuild, bool stunned, bool inbuild
+	--spEcho("UnitParalyzeDamageEffect",unitID, unitDefID, damage, Spring.GetUnitIsStunned(unitID)) -- DO NOTE THAT: return: nil | bool stunned_or_inbuild, bool stunned, bool inbuild
 
 	widget:UnitCreated(unitID, unitDefID)
 end
@@ -460,7 +482,7 @@ function widget:GameFrame(n)
 	if TESTMODE == false then 
 		if n % 3 == 0 then
 			for unitID, index in pairs(paralyzedDrawUnitVBOTable.instanceIDtoIndex) do
-				local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
+				local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
 				if paralyzeDamage == 0 or paralyzeDamage == nil then
 					toremove[unitID] = true
 				else
@@ -484,7 +506,7 @@ function widget:Initialize()
 	initGL4()
 	init()
 	if TESTMODE then
-		for i, unitID in ipairs(Spring.GetAllUnits()) do
+		for i, unitID in ipairs(spGetAllUnits()) do
 			widget:UnitCreated(unitID)
 			gl.SetUnitBufferUniforms(unitID, {1.01}, 4)
 		end
@@ -502,7 +524,7 @@ end
 
 function widget:DrawWorld()
 	if paralyzedDrawUnitVBOTable.usedElements > 0 then
-		--if Spring.GetGameFrame() % 90 == 0 then Spring.Echo("Drawing paralyzed units #", paralyzedDrawUnitVBOTable.usedElements) end
+		--if spGetGameFrame() % 90 == 0 then spEcho("Drawing paralyzed units #", paralyzedDrawUnitVBOTable.usedElements) end
 		gl.Culling(GL.BACK)
 		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 		gl.DepthTest(true)

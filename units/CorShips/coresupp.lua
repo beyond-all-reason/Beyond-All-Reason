@@ -126,12 +126,14 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 1.7,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 41,
 					vtol = 6,

@@ -9,7 +9,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		energycost = 830000,
-		explodeas = "advancedFusionExplosion",
+		explodeas = "customfusionexplo",
 		firestate = 0,
 		footprintx = 8,
 		footprintz = 8,

@@ -11,6 +11,8 @@ if success or mapinfo ~= nil then
 	voidWaterMap = mapinfo.voidwater
 end
 
+local gameSpeed = Game.gameSpeed
+
 local isLavaMap = false
 
 ----------------------------------------
@@ -20,7 +22,7 @@ local diffuseEmitTex = "LuaUI/images/lava/lava2_diffuseemit.dds"
 local normalHeightTex = "LuaUI/images/lava/lava2_normalheight.dds"
 
 local level = 1 -- pre-game lava level
-local grow = 0.25 -- initial lava grow speed
+local grow = 7.5 -- initial lava grow speed
 local damage = 100 -- damage per second or health proportion (0-1)
 local damageFeatures = false -- Lava also damages features when set, if set to float, it's proportional damage per second (0 to 1), if set to true sets default of 0.1
 local uvScale = 2.0 -- How many times to tile the lava texture across the entire map
@@ -58,9 +60,10 @@ local ambientSounds =  { {"lavabubbleshort1", 25, 65}, -- ambient sounds, set am
 			 {"lavarumbleshort3", 20, 40} }
 
 --- Tide animation scenes
----  each row is: { HeightLevel, Speed, Delay for next TideRhym in seconds }
+---  each row is: { HeightLevel (elmo), Speed (elmo/second), Delay for next TideRhythm (seconds) }
 ---  first element needs to be -1 than pre-game lava level when present
-local tideRhym = {}
+local tideRhythm = {}
+local defaultTide = {4, 1.5, 5*6000}
 
 
 ----------------------------------------
@@ -133,7 +136,7 @@ local function applyConfig(lavaConfig)
 	parallaxOffset = lavaConfig.parallaxOffset or parallaxOffset
 
 	fogColor = lavaConfig.fogColor or fogColor
-	fogFactor = lavaConfig.forFactor or fogFactor
+	fogFactor = lavaConfig.fogFactor or fogFactor
 	fogHeight = lavaConfig.fogHeight or fogHeight
 	fogAbove = lavaConfig.fogAbove or fogAbove
 	if lavaConfig.fogEnabled ~= nil then
@@ -143,7 +146,7 @@ local function applyConfig(lavaConfig)
 
 	tideAmplitude = lavaConfig.tideAmplitude or tideAmplitude
 	tidePeriod = lavaConfig.tidePeriod or tidePeriod
-	tideRhym = lavaConfig.tideRhym or tideRhym
+	tideRhythm = lavaConfig.tideRhythm or tideRhythm
 	effectDamage = lavaConfig.effectDamage or effectDamage
 	if lavaConfig.effectBurst ~= nil then
 		effectBurst = lavaConfig.effectBurst
@@ -154,14 +157,85 @@ local function applyConfig(lavaConfig)
 	end
 end
 
+-- Generates a lava tide rhythm based on the spring modoptions.
+local function validateTideRhythm(modoptionDataRaw)
+	if modoptionDataRaw == nil or string.len(modoptionDataRaw) == 0 then
+		return false
+	end
+	modoptionDataTrim = modoptionDataRaw:gsub("%s+", "")
+
+	local advancedRhythm = {}
+	for tide in string.gmatch(modoptionDataTrim, "{(.-)}") do
+		local partRhythm = {}
+		for value in string.gmatch(tide, "[^,]+") do
+			if not tonumber(value) then
+				Spring.Echo("Lava Advanced Tide Rhythm data is not valid, non-number value: ", value)
+				return false
+			else 
+			table.insert(partRhythm, tonumber(value))
+			end
+		end
+		if #partRhythm ~= 3 then
+			Spring.Echo("Lava Advanced Tide Rhythm data is not valid, invalid tide definition: ", partRhythm)
+			return false
+		elseif not ((partRhythm[1] >= 0) and (partRhythm[2] > 0) and (partRhythm[3] >= 0)) then
+			Spring.Echo("Lava Advanced Tide Rhythm data is not valid, negative or zero values: ", partRhythm)
+			return false
+		end
+		table.insert(advancedRhythm, partRhythm)
+	end
+	if next(advancedRhythm) == nil then
+		Spring.Echo("Lava Advanced Tide Rhythm data is empty")
+		return false
+	else
+		return advancedRhythm
+	end
+end
+
+local function lavaModGen(modOptions)
+	local tweakLavaRaw = modOptions.map_tweaklava
+	if tweakLavaRaw ~= "" and tweakLavaRaw ~= "0" then 
+		local advancedRhythm = validateTideRhythm(tweakLavaRaw)
+		if advancedRhythm then 
+			tideRhythm = advancedRhythm
+			level = tideRhythm[1][1] + 1
+			grow = tideRhythm[1][2]
+		else 
+			Spring.Echo("Lava Advanced Tide Rhythm data is not valid, using default values")
+			if next(tideRhythm) == nil then 
+				level = defaultTide[1]
+				tideRhythm = { defaultTide }
+			end
+		end
+	else 
+		local lowRhythm = {modOptions.map_lavalowlevel, 7.5, modOptions.map_lavalowdwell} --Falls faster: 450 elmo/min
+		local highRhythm = {modOptions.map_lavahighlevel, 4.5, modOptions.map_lavahighdwell} --Rises slower: 270 elmo/min
+		if modOptions.map_lavatidemode == "lavastartlow" then
+			tideRhythm = {lowRhythm, highRhythm}
+		elseif modOptions.map_lavatidemode == "lavastarthigh" then
+			tideRhythm = {highRhythm, lowRhythm}
+		end
+		level = tideRhythm[1][1] + 1
+		grow = tideRhythm[1][2]
+	end
+end
 
 ----------------------------------------
 -- Process config
 
 local mapLavaConfig = getLavaConfig(mapName)
+local modTideRhythm = (Spring.GetModOptions().map_waterislava and Spring.GetModOptions().map_lavatiderhythm) or "default"
 
 if mapLavaConfig and (not voidWaterMap) then
 	applyConfig(mapLavaConfig)
+	if modTideRhythm == "enabled" then
+		lavaModGen(Spring.GetModOptions())
+	elseif modTideRhythm == "disabled" then
+		tideRhythm = {tideRhythm[1]} -- only the first (starting) tide level is used
+		tideRhythm[1][3] = 5*6000 -- extend the first tide 
+		level = tideRhythm[1][1] 
+		grow = tideRhythm[1][2]
+	end
 
 elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - keep at the very bottom
 	isLavaMap = true
@@ -186,14 +260,19 @@ elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - kee
 	fogHeight = 20
 	fogAbove = 0.1
 	fogDistortion = 1
-	tideRhym = { { 4, 0.05, 5*6000 } }
-	--tideRhym = { { 1, 0.25, 5*6000 } }
+	tideRhythm = { defaultTide }
+	--tideRhythm = { { 1, 7.5, 5*6000 } }
 
 elseif Spring.GetModOptions().map_waterislava and (not voidWaterMap) then
 	isLavaMap = true
-	level = 4
-	tideRhym = { { 4, 0.05, 5*6000 } }
+	if modTideRhythm == "enabled" then
+		lavaModGen(Spring.GetModOptions())
+	elseif modTideRhythm == "disabled" or modTideRhythm == "default" then
+		level = defaultTide[1]
+		tideRhythm = { defaultTide }
+	end
 end
+
 
 
 return {
@@ -230,7 +309,7 @@ return {
 	tideAmplitude = tideAmplitude,
 	tidePeriod = tidePeriod,
 
-	tideRhym = tideRhym,
+	tideRhythm = tideRhythm,
 
 	effectDamage = effectDamage,
 	effectBurst = effectBurst,

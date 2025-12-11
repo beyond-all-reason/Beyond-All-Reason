@@ -4,14 +4,8 @@ if not math.isInRect then
 	end
 end
 
-if not math.round then
-	function math.round(num, idp)
-		return ("%." .. (((num == 0) and 0) or idp or 0) .. "f"):format(num)
-	end
-end
-
 if not math.cross_product then
-	function math.cross_product (px, pz, ax, az, bx, bz)
+		function math.cross_product (px, pz, ax, az, bx, bz)
 		return ((px - bx) * (az - bz) - (ax - bx) * (pz - bz))
 	end
 end
@@ -21,18 +15,17 @@ if not math.triangulate then
 	function math.triangulate(polies)
 		local triangles = {}
 		local trianglesCount = 0
-		local poliesCount = #polies
 		for j = 1, #polies do
 			local polygon = polies[j]
 
 			-- find out clockwisdom
-			poliesCount = poliesCount + 1
-			polygon[poliesCount] = polygon[1]
+			local polygonVertexCount = #polygon
+			polygon[polygonVertexCount + 1] = polygon[1]
 			local clockwise = 0
 			for i = 2, #polygon do
 				clockwise = clockwise + (polygon[i - 1][1] * polygon[i][2]) - (polygon[i - 1][2] * polygon[i][1])
 			end
-			polygon[#polygon] = nil
+			polygon[polygonVertexCount + 1] = nil
 			clockwise = (clockwise < 0)
 
 			-- the van gogh concave polygon triangulation algorithm: cuts off ears
@@ -96,6 +89,22 @@ if not math.triangulate then
 
 		return triangles
 	end
+end
+
+if not math.closestPointOnCircle then
+	function math.closestPointOnCircle(centerX, centerZ, radius, targetX, targetZ)
+        local dx = targetX - centerX
+        local dz = targetZ - centerZ
+        local dist = math.diag(dx, dz)
+        if dist == 0 then
+            -- Target is exactly at center; choose arbitrary point on circle
+            return centerX + radius, centerZ
+        end
+        local scale = radius / dist
+        local closestX = centerX + dx * scale
+        local closestZ = centerZ + dz * scale
+        return closestX, closestZ
+    end
 end
 
 if not math.HSLtoRGB then

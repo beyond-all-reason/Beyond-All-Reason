@@ -10,13 +10,14 @@ end
 
 function ScoutHST:Init()
 	self.DebugEnabled = false
+	self.scouts = {}
 	self.spotsToScout = {}
 	self.lastCount = {}
 	self.sameCount = {}
 	self.usingStarts = {}
-	self.scouts = {}
 	self.SCOUTED = {}
 	self.perimetralCells = {}
+	self.lastSpotCheck = {}
 	self:PerimetralCells()
 end
 
@@ -43,47 +44,27 @@ end
 
 function ScoutHST:ClosestSpot2(scoutbst)
 	self:EchoDebug('closestSpot2')
+	for i,v in pairs(self.lastSpotCheck) do
+		self.lastSpotCheck[i] = nil
+	end
 	local scout = scoutbst.unit:Internal()
-	--local scoutPos = scout:GetPosition()
+	local scoutPos = scout:GetPosition()
 	local mtype = scoutbst.mtype
 	local network = scoutbst.network
 	mtype = mtype or 'air'--CAUTION
 	network = network or 1--CAUTION
 	local networkSpots = self.ai.maphst.networks[mtype][network].allSpots
-	local bestPos = nil
-	local bestIndex = nil
-	local bestDistance = 0
-	local spot = networkSpots[math.random(1,#networkSpots)]
-	--if self.ai.maphst:UnitCanGoHere(scout,spot) then
-	local X,Z = self.ai.maphst:PosToGrid(spot)
-	if self:TargetAvailable(X,Z,scoutbst.id) then
-		bestPos = spot
+	for index,spot in pairs(networkSpots) do
+		self.lastSpotCheck[self.ai.tool:distance(scoutPos,spot)] = index
 	end
-	--end
-
--- 	for index,spot in pairs(networkSpots) do
---
--- 		if self.ai.maphst:UnitCanGoHere(scout,spot) then
--- 			local X,Z = self.ai.maphst:PosToGrid(spot)
--- 			if self:TargetAvailable(X,Z,scoutbst.id) then
--- 				local d = self.ai.tool:distance(scoutPos,spot)
--- 				if d > bestDistance then
--- 					bestPos = spot
--- 					bestIndex = index
--- 					bestDistance = d
--- 				end
--- 			end
---
--- 		end
--- 	end
-	self:EchoDebug('bestpos', bestPos, 'bestIndex',bestIndex)
-	if not bestPos then
-		local randomPerimeter = self.perimetralCells[math.random(1,#self.perimetralCells)]
-		if self.ai.maphst:UnitCanGoHere(scout,randomPerimeter) then
-			bestPos = randomPerimeter
+	for distance,index in pairs(self.lastSpotCheck) do
+		local X,Z = self.ai.maphst:PosToGrid(networkSpots[index])
+		if self:TargetAvailable(X,Z,scoutbst.id) then
+			if self.ai.maphst:UnitCanGoHere(scout,networkSpots[index]) then
+				return networkSpots[index]
+			end
 		end
 	end
-	return bestPos
 end
 
 function ScoutHST:TargetAvailable(X,Z,scoutID)

@@ -31,15 +31,16 @@ local shaderConfig = {
 	DISCARD = 0, -- Enable alpha threshold to discard fragments below 0.01
 	ROTATE_CIRCLES = 1, -- Set to 0 if you dont want circles to be rotated
 	PRE_OFFSET = "",
+	USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
 }
 
 ---- GL4 Backend Stuff----
 local DrawPrimitiveAtUnitVBO = nil
 local DrawPrimitiveAtUnitShader = nil
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+
 
 local vsSrcPath = "LuaUI/Shaders/DrawPrimitiveAtUnit.vert.glsl"
 local gsSrcPath = "LuaUI/Shaders/DrawPrimitiveAtUnit.geom.glsl"
@@ -72,7 +73,7 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 		return nil
 	end
 
-	DrawPrimitiveAtUnitVBO = makeInstanceVBOTable(
+	DrawPrimitiveAtUnitVBO = InstanceVBOTable.makeInstanceVBOTable(
 		{
 			{id = 0, name = 'lengthwidthcorner', size = 4},
 			{id = 1, name = 'teamID', size = 1, type = GL.UNSIGNED_INT},

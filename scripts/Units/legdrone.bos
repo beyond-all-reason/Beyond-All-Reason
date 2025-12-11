@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, lwing, rwing, bwing, lblades, rblades, bblades, lflare, rflare;
 
@@ -12,7 +10,7 @@ static-var gun;
 #define IDLEHOVERSCALE 24
 #define IDLEHOVERSPEED 30
 #define IDLEBASEPIECE base
-#include "idlehover.h"
+#include "../idlehover.h"
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -25,10 +23,9 @@ Create()
 	gun = 0;
 	hide lflare;
 	hide rflare;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	
+	SLEEP_UNTIL_UNITFINISHED;
+	
 	start-script IdleHover();
 }
 
@@ -81,26 +78,28 @@ AimFromPrimary(piecenum)
 
 AimPrimary(heading, pitch)
 {
-    signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	 	while( 255 > heading )
-		{
-			set UNKNOWN_UNIT_VALUE(82) to 0 - 1500 + get UNKNOWN_UNIT_VALUE(82);
-			heading = heading + 1500;
-			sleep 1;
-		}
-		while( heading > 255 )
-		{
-			set UNKNOWN_UNIT_VALUE(82) to 1500 + get UNKNOWN_UNIT_VALUE(82);
-			heading = heading - 1500;
-			sleep 1;
-		}	
 	return (1);
 }
 
 FirePrimary()
 {
+	gun = !gun;
 	return (1);
+}
+
+Shot1(zero)
+{
+	if(gun == 0)
+	{
+		emit-sfx 1024 + 0 from rflare;
+	}
+	if(gun == 1)
+	{
+		emit-sfx 1024 + 0 from lflare;
+	}
+	sleep 32;
+	
+	return(1);
 }
 
 Killed(severity, corpsetype)
@@ -138,4 +137,22 @@ Killed(severity, corpsetype)
 		explode rwing type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode bwing type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
+}
+
+Docked(customparam, dockpiece, carrierarg1, carrierarg2, carrierarg3)
+{
+	if(customparam == 1)
+	{
+		turn base to y-axis carrierarg1 now;
+		spin base around y-axis speed <10> accelerate <1>;
+		return 1;
+		
+	}
+}
+
+Undocked(customparam, dockpiece)
+{	
+	stop-spin base around y-axis;
+	turn base to y-axis <0> speed <600>;
+	return 1;
 }

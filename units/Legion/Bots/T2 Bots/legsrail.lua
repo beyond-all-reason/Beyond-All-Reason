@@ -2,10 +2,10 @@ return {
 	legsrail = {
 		maxacc = 0.08,
 		maxdec = 0.345,
-		energycost = 18000,
-		metalcost = 900,
+		energycost = 16000,
+		metalcost = 800,
 		buildpic = "LEGSRAIL.DDS",
-		buildtime = 18000,
+		buildtime = 16000,
 		canmove = true,
 		collisionvolumeoffsets = "0 10 0",
 		collisionvolumescales = "45 40 45",
@@ -106,7 +106,7 @@ return {
 			railgunt2 = {
 				areaofeffect = 16,
 				avoidfeature = false,
-				burnblow = true,
+				burnblow = false,
 				cegtag = "railgun",
 				collisionSize = 0.667,
 				craterareaofeffect = 0,

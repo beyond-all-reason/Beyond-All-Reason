@@ -1,14 +1,12 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  torp1, torp2, base, wake;
 
 static-var  gun_1;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 
 #define BASEPIECE base
 #define HITSPEED <25.0>
@@ -27,8 +25,8 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
 	wait-for-turn BASEPIECE around z-axis;
 	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
+	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 4;
+	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 4;
 }
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
@@ -36,6 +34,13 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	return (100); //return damage percent
 }
 
+#define TB_BASE base 
+#define TB_TURNRATE <30.0> 
+#define TB_TILT_X <-0.32>
+#define TB_BANK_Z <0.5> // Do not define this if you dont want banking
+#define TB_WAKE_PIECE wake
+#define TB_WAKE_FOAM 1024 + 1
+#include "../tilt_bank_submarine.h"
 
 
 Create()
@@ -44,46 +49,44 @@ Create()
 	hide torp1;
 	hide torp2;
 	gun_1 = torp1;
+	call-script TB_Init();
 }
 
-StartMoving()
+StartMoving(reversing)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 0 from wake;
-		sleep 250;
-		emit-sfx 1024 + 0 from wake;
-		emit-sfx 1024 + 1 from wake;
-		sleep 250;
-	}
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return(1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
+	if (gun_1 == torp2){
+		emit-sfx 1024 + 2 from torp1;
+	}
+	else if (gun_1 == torp1){
+		emit-sfx 1024 + 2 from torp2;
+	}
 	gun_1 = !gun_1;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = gun_1;
+	pieceIndex = gun_1;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {
@@ -102,7 +105,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode torp2 type NOHEATCLOUD;
 		explode torp1 type FIRE | SMOKE | NOHEATCLOUD;
-		//explode wake type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -111,13 +113,11 @@ Killed(severity, corpsetype)
 		explode base type FIRE | SMOKE | NOHEATCLOUD;
 		explode torp2 type FIRE | SMOKE | NOHEATCLOUD;
 		explode torp1 type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
-		//explode wake type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
 		explode torp2 type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
 		explode torp1 type EXPLODE_ON_HIT | FIRE | SMOKE | NOHEATCLOUD;
-		//explode wake type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

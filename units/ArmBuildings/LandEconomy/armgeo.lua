@@ -31,8 +31,8 @@ return {
 		yardmap = "h cbbbbgbbbc bgbggbbggb bgbgbggbbb bbgggbgggb gbgbgggbgb bgbgggbgbg bgggbgggbb bbbggbgbgb bggbbggbgb cbbbgbbbbc",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 6,
-			buildinggrounddecalsizey = 6,
+			buildinggrounddecalsizex = 7,
+			buildinggrounddecalsizey = 7,
 			buildinggrounddecaltype = "decals/armgeo_aoplane.dds",
 			cvbuildable = true,
 			geothermal = 1,

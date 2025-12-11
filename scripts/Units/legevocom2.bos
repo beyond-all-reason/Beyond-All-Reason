@@ -547,7 +547,7 @@ SetStunned(State)
 
 RestoreAfterDelay()
 {
-	set-signal-mask SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1 | SIGNAL_AIM2;
 	sleep 2000;
 	if (!isBuilding)
 	{
@@ -572,14 +572,16 @@ ExecuteRestoreAfterDelay()
 	turn rgturret to y-axis <0> speed <30>;
 	turn rgturretarm to x-axis <-5> speed <30>;
 	turn rgsleeve to x-axis <-5> speed <30>;
-	
+	if (!isMoving)
+	{
 	turn larm to x-axis <15> speed <95.0000>; 
 	turn rarm to x-axis <15> speed <95.0000>; 
 	turn lhand to x-axis <30> speed <95.0000>; 
 	turn rhand to x-axis <30> speed <95.0000>; 
 	
 	turn lshoulder to y-axis <10> speed <95.0000>; 
-	turn rshoulder to y-axis <-10> speed <95.0000>; 
+	turn rshoulder to y-axis <-10> speed <95.0000>;
+	}
 }
 
 // Call this from StopMoving()!
@@ -679,9 +681,15 @@ AimWeapon1(heading, pitch) //pew pew
 	turn lhand to x-axis 0-(pitch/2) speed <390.0000>;
 	
 	isAiming = 1;
-	wait-for-turn aimy1 around y-axis;
+	//wait-for-turn aimy1 around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
+}
+
+Shot1(zero)
+{
+	emit-sfx 1024 + 3 from flare;
+	return(1);
 }
 
 lua_UnitScriptLight(lightIndex, count)
@@ -694,13 +702,7 @@ FireWeapon1()
 	call-script lua_UnitScriptLight(1, shotcount);
 	++shotcount;
 	spin barrelminigun around z-axis speed <600> accelerate <60>;
-	emit-sfx 1024 + 3 from flare;
-	sleep 100;
-	emit-sfx 1024 + 3 from flare;
-	sleep 100;
-	emit-sfx 1024 + 3 from flare;
-	sleep 100;
-	emit-sfx 1024 + 3 from flare;
+	
 	return (0);
 }
 

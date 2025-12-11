@@ -47,11 +47,6 @@ static-var isMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
 #include "raptor_swim_2legged_v1.h"
 #include "raptor_create_move_swim.h"
 
-lua_FlameShot(weapon) //Distortion and lups flame effect
-{
-  return 0;
-}
-
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = head;

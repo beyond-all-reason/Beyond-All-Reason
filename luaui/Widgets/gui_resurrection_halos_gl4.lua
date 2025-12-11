@@ -15,6 +15,12 @@ end
 local resurrectionHalosVBO = nil
 local resurrectionHalosShader = nil
 local luaShaderDir = "LuaUI/Include/"
+
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+
 local texture = 'LuaUI/Images/halo.dds'
 local chobbyInterface
 
@@ -29,7 +35,7 @@ local unitConf = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if not OPTIONS.skipBuildings or (OPTIONS.skipBuildings and not (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0)) then
 		local xsize, zsize = unitDef.xsize, unitDef.zsize
-		local scale = 3*( xsize^2 + zsize^2 )^0.5
+		local scale = 3*( xsize*xsize + zsize*zsize )^0.5
 		unitConf[unitDefID] = {scale=scale, iconSize=scale*OPTIONS.haloSize, height=math.ceil((unitDef.height+(OPTIONS.haloDistance * (scale/7))))}
 	end
 end
@@ -58,7 +64,8 @@ end
 
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
-	if unitConf[unitDefID] == nil or Spring.GetUnitRulesParam(unitID, "resurrected") == nil then return end
+	local rezRulesParam = Spring.GetUnitRulesParam(unitID, "resurrected")
+	if unitConf[unitDefID] == nil or not rezRulesParam or rezRulesParam == 0 then return end
 
 	local gf = Spring.GetGameFrame()
 	pushElementInstance(
@@ -79,7 +86,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	clearInstanceTable(resurrectionHalosVBO)
+	InstanceVBOTable.clearInstanceTable(resurrectionHalosVBO)
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		widget:VisibleUnitAdded(unitID, unitDefID, Spring.GetUnitTeam(unitID))
 	end

@@ -12,6 +12,13 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+
 local SAVE_DIR = "Saves"
 local SAVE_DIR_LENGTH = string.len(SAVE_DIR) + 2
 
@@ -29,9 +36,9 @@ local function SecondsToClock(seconds)
 	if seconds <= 0 then
 		return "00:00";
 	else
-		hours = string.format("%02d", math.floor(seconds / 3600));
-		mins = string.format("%02d", math.floor(seconds / 60 - (hours * 60)));
-		secs = string.format("%02d", math.floor(seconds - hours * 3600 - mins * 60));
+		hours = string.format("%02d", mathFloor(seconds / 3600));
+		mins = string.format("%02d", mathFloor(seconds / 60 - (hours * 60)));
+		secs = string.format("%02d", mathFloor(seconds - hours * 3600 - mins * 60));
 		if seconds >= 3600 then
 			return hours .. ":" .. mins .. ":" .. secs
 		else
@@ -94,6 +101,29 @@ local function GetSaveDescText(saveFile)
 		.. "\n" .. WriteDate(saveFile.date)
 end
 
+local function FindFirstEmptySaveSlot()
+	-- Find the first unused save slot number (e.g., save001, save002, etc.)
+	local saveFiles = VFS.DirList(SAVE_DIR, "*.lua")
+	local usedSlots = {}
+
+	for _, path in ipairs(saveFiles) do
+		local filename = string.sub(path, SAVE_DIR_LENGTH, -5)
+		local slotNum = string.match(filename, "^save(%d+)$")
+		if slotNum then
+			usedSlots[tonumber(slotNum)] = true
+		end
+	end
+
+	-- Find first empty slot starting from 1
+	for i = 1, 999 do
+		if not usedSlots[i] then
+			return i
+		end
+	end
+
+	return 1 -- fallback
+end
+
 local function SaveGame(filename, description, requireOverwrite)
 	if WG.Analytics and WG.Analytics.SendRepeatEvent then
 		WG.Analytics.SendRepeatEvent("game_start:savegame", filename)
@@ -112,8 +142,8 @@ local function SaveGame(filename, description, requireOverwrite)
 			saveData.engineVersion = Engine.version
 			saveData.map = Game.mapName
 			saveData.gameID = (Spring.GetGameRulesParam("save_gameID") or (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")))
-			saveData.gameframe = Spring.GetGameFrame()
-			saveData.totalGameframe = Spring.GetGameFrame() + (Spring.GetGameRulesParam("totalSaveGameFrame") or 0)
+			saveData.gameframe = spGetGameFrame()
+			saveData.totalGameframe = spGetGameFrame() + (Spring.GetGameRulesParam("totalSaveGameFrame") or 0)
 			saveData.playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 			table.save(saveData, path)
 
@@ -195,30 +225,28 @@ local function DeleteSave(filename)
 	end
 end
 
+local function savegameCmd(_, _, params)
+	Spring.Echo("Trying to save:", params[1])
+	local savefilename = params[1]
+	SaveGame(savefilename, savefilename, true)
+
+	if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
+		Spring.SendLuaMenuMsg("gameSaved")
+	end
+end
+
 function widget:Initialize()
 	WG['savegame'] = {}
+	widgetHandler:AddAction("savegame", savegameCmd, nil, 't')
 end
 
 function widget:Shutdown()
 	WG['savegame'] = nil
-end
-
-local options = {}
-
-function widget:TextCommand(msg)
-	if string.sub(msg, 1, 8) == "savegame" then
-
-		Spring.Echo("Trying to save:", msg)
-		local savefilename = string.sub(msg, 10)
-		SaveGame(savefilename, savefilename, true)
-
-		if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
-			Spring.SendLuaMenuMsg("gameSaved")
-		end
-	end
+	widgetHandler:RemoveAction("savegame")
 end
 
 --[[
+local options = {}
 function widget:GameFrame(n)
 
 	if not options.enableautosave.value then

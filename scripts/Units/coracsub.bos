@@ -1,15 +1,13 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, flare, wake1, wake2, door1, door2, neck, gun ;
 
-static-var  notBuilding, statechg_DesiredState, statechg_StateChanging;
+static-var  readyToBuild;
 
 // Signal definitions
-#define SIG_MOVE		2
-#define SIG_BUILD		4	
+#define SIGNAL_MOVE 1
+#define SIGNAL_BUILD 2
 
 
 #define BASEPIECE base
@@ -29,8 +27,8 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
 	wait-for-turn BASEPIECE around z-axis;
 	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
+	turn BASEPIECE to z-axis <0.0> speed HITSPEED / 4;
+	turn BASEPIECE to x-axis <0.0> speed HITSPEED / 4;
 }
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
@@ -38,132 +36,87 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	return (100); //return damage percent
 }
 
-activatescr()
-{
-	turn door1 to z-axis <0.000000> now;
-	turn door1 to z-axis <-175> speed <209.241758>;
-	turn door2 to z-axis <0.000000> now;
-	turn door2 to z-axis <175> speed <208.917582>;
-	sleep 1089;
-	move neck to y-axis [12] speed [20];
-	sleep 916;
-}
 
-deactivatescr()
-{
-	set INBUILDSTANCE to 0;
-	turn gun to y-axis <0.000000> speed <160.038462>;
-	wait-for-turn neck around y-axis;
-	move neck to y-axis [0] speed [20];
-	sleep 760;
-	turn door1 to z-axis <0.000000> speed <185.258242>;
-	turn door2 to z-axis <0.000000> speed <184.972527>;
-	sleep 1230;
-}
+#define TB_BASE base 
+#define TB_TURNRATE <30.0> 
+#define TB_TILT_X <-0.32>
+#define TB_BANK_Z <0.5> // Do not define this if you dont want banking
+#define TB_WAKE_PIECE wake1
+#define TB_WAKE_PIECE2 wake2
+#include "../tilt_bank_submarine.h"
 
-StartMoving()
+
+StartMoving(reversing)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	while( TRUE )
-	{
-		emit-sfx 259 from wake1;
-		emit-sfx 259 from wake2;
-		sleep 250;
-	}
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script deactivatescr();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script activatescr();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
 	hide wake1;
 	hide wake2;
 	hide flare;
-	notBuilding = 1;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
+	readyToBuild = FALSE;
+	call-script TB_Init();
 }
 
 StartBuilding(heading, pitch)
 {
-	show flare;
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+	if (!readyToBuild){
+		turn door1 to z-axis <-175> speed <209.241758>;
+		turn door2 to z-axis <175> speed <208.917582>;
+		wait-for-turn door1 around z-axis;
+		
+		move neck to y-axis [12] speed [20];
+		wait-for-move neck along y-axis;
+		
+		readyToBuild = TRUE;
+	}
 	turn gun to y-axis heading speed <160.038462>;
 	wait-for-turn gun around y-axis;
+
+	show flare;
 	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
-	hide flare;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+	hide flare;	
+
 	sleep 6000;
-	set-signal-mask 0;
-	signal SIG_BUILD;	
-	start-script RequestState(1);
+
+	readyToBuild = FALSE;
+	set INBUILDSTANCE to 0;
+
+	turn gun to y-axis <0.0> speed <160.038462>;
+	wait-for-turn neck around y-axis;
+
+	move neck to y-axis [0] speed [20];
+	wait-for-move neck along y-axis;
+
+	turn door1 to z-axis <0.0> speed <185.258242>;
+	turn door2 to z-axis <0.0> speed <184.972527>;
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-/*
-TargetHeading(Func_Var_1)
-{
-	Static_Var_1 = 0 - Func_Var_1;
-}
-*/
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
 Killed(severity, corpsetype)
 {
@@ -175,9 +128,6 @@ Killed(severity, corpsetype)
 		explode door1 type BITMAPONLY | NOHEATCLOUD;
 		explode neck type BITMAPONLY | NOHEATCLOUD;
 		explode gun type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type BITMAPONLY | NOHEATCLOUD;
-		//explode wake1 type BITMAPONLY | NOHEATCLOUD;
-		//explode wake2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -188,9 +138,6 @@ Killed(severity, corpsetype)
 		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode neck type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode gun type FALL | NOHEATCLOUD;
-		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode wake1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode wake2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -201,9 +148,6 @@ Killed(severity, corpsetype)
 		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode neck type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode gun type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode wake1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode wake2 type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -212,8 +156,5 @@ Killed(severity, corpsetype)
 		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode neck type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode gun type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode wake1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode wake2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

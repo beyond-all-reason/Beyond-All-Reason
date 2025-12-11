@@ -18,7 +18,6 @@ end
 
 local GetUnitCOBValue = Spring.GetUnitCOBValue
 local SetUnitNeutral = Spring.SetUnitNeutral
-local GetUnitStates = Spring.GetUnitStates
 local ValidUnitID = Spring.ValidUnitID
 local neutralUnits = {}
 local armourTurrets = {}
@@ -31,6 +30,15 @@ for udid,ud in ipairs(UnitDefs) do
 end
 local UPDATE = 30
 local timeCounter = 15
+
+function gadget:Initialize()
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		if not Spring.GetUnitIsBeingBuilt(unitID) then
+			---@diagnostic disable-next-line: missing-parameter, param-type-mismatch -- OK
+			gadget:UnitFinished(unitID, Spring.GetUnitDefID(unitID))
+		end
+	end
+end
 
 function gadget:GameFrame(n)
   if (n >= timeCounter) then

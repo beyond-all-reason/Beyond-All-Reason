@@ -96,7 +96,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "heliosfire",
 				soundtrigger = 1,
-				--targetmoveerror = 1,
 				thickness = 2.0,
 				tolerance = 10000,
 				turret = true,
@@ -105,6 +104,9 @@ return {
 				damage = {
 					default = 10,
 					vtol = 2,
+				},
+				customparams = {
+					noattackrangearc= 1,
 				},
 			},
 		},

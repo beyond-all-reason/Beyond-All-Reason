@@ -25,12 +25,14 @@ function widget:GetInfo()
 	}
 end
 
-local GetSpectatingState = Spring.GetSpectatingState
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitDirection = Spring.GetUnitDirection
 local GetMyTeamID = Spring.GetMyTeamID
-local GetSelectedUnits = Spring.GetSelectedUnits
 local GetUnitDefID = Spring.GetUnitDefID
 
 local CMD_MOVE = CMD.MOVE
@@ -44,7 +46,7 @@ local moveUnitsDefs = {}
 local gameStarted
 
 function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
+    if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
         widgetHandler:RemoveWidget()
     end
 end
@@ -59,7 +61,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-    if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+    if Spring.IsReplay() or spGetGameFrame() > 0 then
         maybeRemoveSelf()
     end
 	for unitDefID,unitDef in pairs(UnitDefs) do

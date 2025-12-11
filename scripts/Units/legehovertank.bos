@@ -1,0 +1,434 @@
+
+#include "../recoil_common_includes.h"
+
+piece  
+    body,
+    frFan,
+    rear_engine_casing,
+    rear_engine,
+    turret,
+    turret_body,
+    vertical_ring,
+    flFan,
+    brFan,
+    blFan,
+    frFanPivot,
+    brFanPivot,
+    flFanPivot,
+    blFanPivot,
+    rocketFlareR,
+    rocketFlareL,
+    heatFlare,
+    tlTurretHeadingPivot,
+    tlTurretPitchPivot,
+    tlTurret,
+    tlFlare,
+	wake,
+    airjetFlare;
+
+static-var  gun_1, isAiming, restore_delay, timeLeft, isfiring, oldhead, aimAdj, timer, targetswap, steery, 
+currentSpeed, inwater, oldsteerheading, firetime, lastfired, gameframe, moving;
+
+// Signal definitions
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512 
+#define SIGNAL_AIM3 1024 
+#define SIGNAL_AIM4 2048
+
+#define SIGNAL_MOVE 1
+#define SIGNAL_LIGHT	4
+#define SIGNAL_RESTORE	8
+
+#define HOVER_BASE body
+#define HOVER_BANKSPEED <0>
+// #define HOVER_ROCKBASE body
+#define HOVER_WOBBLE_PERIOD 80
+#define HOVER_WOBBLE_AMPLITUDE [0.7]
+#define HOVER_WAKEPIECE wake
+#define HOVER_WAKE_SFX_1 1024 + 1
+#define HOVER_WAKE_SFX_2 1024 + 2
+#define HOVER_IDLE_SFX 1024 + 3
+#include "../bar_hovercraft_common.h"
+
+
+#define BASEPIECE body
+#define HITSPEED <30.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 8
+#define MAXTILT 200
+
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+Steering(heading, steery, currentSpeed)
+{
+	//signal SIGNAL_MOVE;
+	//set-signal-mask SIGNAL_MOVE;
+	while(1)
+	{
+		heading = get HEADING;
+		aimAdj = (heading - oldsteerheading);
+		sleep 33;
+
+
+		steery = (heading - oldsteerheading)*4;
+		
+		turn rear_engine to y-axis (0 - steery*3) speed <120>;
+
+        if( get GROUND_WATER_HEIGHT(get UNIT_XZ) > 0 )
+		{
+			inwater = 0;
+            move tlTurretHeadingPivot to y-axis [0] speed [8];
+		}
+		if( get GROUND_WATER_HEIGHT(get UNIT_XZ) <= 0 )
+		{
+            move tlTurretHeadingPivot to y-axis [-8] speed [8];
+			inwater = 1;
+		}
+        
+        oldsteerheading = heading;
+	}
+}
+
+Create()
+{
+
+    turn flFanPivot to x-axis <5.5> now;
+    turn blFanPivot to x-axis <13> now;
+    turn frFanPivot to x-axis <5.5> now;
+    turn brFanPivot to x-axis <13> now;
+	
+	turn flFanPivot to z-axis <13.5> now;
+    turn blFanPivot to z-axis <10.2> now;
+    turn frFanPivot to z-axis <-13.5> now;
+    turn brFanPivot to z-axis <-10.2> now;
+	
+	//turn flFanPivot to y-axis <33> now;
+    turn blFanPivot to y-axis <47> now;
+    //turn frFanPivot to y-axis <-33> now;
+    turn brFanPivot to y-axis <-47> now;
+
+	turn rocketFlareL to x-axis <-30> now;
+	turn rocketFlareR to x-axis <-30> now;
+	
+	turn rocketFlareL to z-axis <12> now;
+	turn rocketFlareR to z-axis <-12> now;
+
+    timeLeft = 0;
+    isfiring = 0;
+	oldsteerheading = get HEADING;
+	oldhead = 1000000;
+	aimAdj = 0;
+	timer = 0;
+	targetswap = 0;
+	firetime = 54;
+	lastfired = get(GAME_FRAME)-200;	
+	restore_delay = 3000;
+	isAiming = FALSE;
+	restore_delay = 3000;
+    SLEEP_UNTIL_UNITFINISHED;
+	start-script HoverCraftMotion();
+
+    turn rear_engine_casing to x-axis <-90> now;
+    hide airjetFlare;
+
+    spin frFan around y-axis speed <300> accelerate <1>;
+    spin flFan around y-axis speed <-300> accelerate <1>;
+    spin brFan around y-axis speed <300> accelerate <1>;
+    spin blFan around y-axis speed <-300> accelerate <1>;
+
+    spin vertical_ring around x-axis speed <100> accelerate <3>;
+        call-script SweepFire();
+
+}
+
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 2;
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	isAiming = FALSE;
+	turn turret to y-axis <0.0> speed <80.0>;
+	turn turret_body to x-axis <0.0> speed <50.0>;
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+
+TimeToRestore(addTime){
+	signal SIGNAL_RESTORE;
+	set-signal-mask SIGNAL_RESTORE;
+    // This function may not be signal terminated
+    // If it has to be, it _must_ be immediately restarted
+    // PROBLEM: the time that is slept depends on number of aim calls.
+    while((timeLeft > 1) || Stunned){
+		//get PRINT(timeLeft, get GAME_FRAME);
+        addTime = timeLeft;
+        timeLeft = 1;
+        sleep addTime;//can sometimes sleep 6000 but never wake up again?
+    }
+	//get PRINT(77, timeLeft, get GAME_FRAME);
+    // The restore section must be atomic :/
+	turn turret to y-axis <0.000000> speed <40>;
+	turn turret_body to x-axis <0.000000> speed <40>;
+
+    timeLeft = 0;
+    isfiring = 0;
+	oldhead = 1000000;
+	aimAdj = 0;
+	timer = 0;
+	targetswap = 0;
+		
+	//stop-spin barrelMid around z-axis decelerate <5>;
+	//wait-for-turn turretBase around y-axis;
+}
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+    start-script Steering();
+    turn rear_engine_casing to x-axis <0> speed <75>;
+    show airJetFlare;
+    moving = 1;
+	//START_TILTBANK;
+}
+
+StopMoving()
+{
+    turn rear_engine_casing to x-axis <-90> speed <75>;
+    hide airjetFlare;
+	signal SIGNAL_MOVE;
+    moving = 0;
+
+	//STOP_TILTBANK;
+}
+
+SweepFire()
+{
+	signal SIGNAL_LIGHT;
+	set-signal-mask SIGNAL_LIGHT;
+	while (TRUE)
+	{
+		gameframe = get(GAME_FRAME);
+		//get PRINT(123, lastfired, gameframe, lastfired+firetime>gameframe);
+		//get PRINT(1235, targetswap, isfiring, timer);
+		if (targetswap == 1 AND isfiring == 1 AND lastfired+firetime>gameframe)
+		{
+			// if (whichGun == 0) {
+			// 	emit-sfx 2048 from flarer;
+			// } else {
+			// 	emit-sfx 2048 from flarel;
+			// }
+            emit-sfx 2048 from heatFlare;
+			timer = timer + 1;
+		}
+		if (timer > 150)
+		{
+			//signal SIGNAL_AIM;
+			//timer = 0;
+			//start-script RestoreAfterDelay();
+		}
+		sleep 20;
+	}
+}
+
+RestoreWeapon2()
+{
+	sleep restore_delay;
+	isAiming = FALSE;
+	turn tlTurretPitchPivot to x-axis <0.0> speed <20.0>;
+    turn tlTurretHeadingPivot to y-axis <0.0> speed <20.0>;
+}
+////////////////////// HEATRAY
+AimWeapon1(heading, pitch)
+{
+    signal SIGNAL_AIM1;
+    set-signal-mask SIGNAL_AIM1;
+    if (timeLeft == 0)
+    {
+        start-script TimeToRestore();
+    }
+    timeLeft = restore_delay;
+	if (get ABS(oldhead - heading) > 500)
+	{
+		targetswap = 1;
+	}
+	gameframe = get(GAME_FRAME);
+	turn turret to y-axis heading - aimAdj speed <100>;
+	turn turret_body to x-axis <0.000000> - pitch speed <100>;
+	if (((get ABS(oldhead - heading)) > 65536) OR(((get ABS(oldhead - heading)) > 5000) AND ((get ABS(oldhead - heading)) < 64236)))
+	{
+		oldhead = 1000000;
+		wait-for-turn turret around y-axis;
+		wait-for-turn turret_body around x-axis;
+	}
+	oldhead = heading;
+	isfiring = 1;
+    return (1);
+}
+
+FireWeapon1()
+{
+	gameframe = get(GAME_FRAME);
+	lastfired = gameframe;
+	// if (whichGun == 0){
+	// 	sleep 2000;
+	// 	whichGun = 1;
+	// 	return(0);
+	// }
+
+	// if (whichGun == 1){
+	// 	sleep 2000;
+	// 	whichGun = 0;
+	// 	return(0);
+	// }
+	return (0);
+}
+
+AimFromWeapon1(piecenum)
+{
+	// if (whichGun == 0){
+	// 	piecenum = flarer;
+	// }
+
+	// if (whichGun == 1){
+	// 	piecenum = flarel;
+	// }
+
+    piecenum = turret_body;
+	return (0);
+}
+
+QueryWeapon1(piecenum)
+{
+	// if (whichGun == 0){
+	// 	piecenum = flarer;
+	// }
+
+	// if (whichGun == 1){
+	// 	piecenum = flarel;
+	// }
+    piecenum = heatFlare;
+	return (0);
+}
+/////////////////////// TORPEDO
+QueryWeapon2(pieceIndex)
+{
+	pieceIndex = tlFlare;
+}
+
+AimFromWeapon2(pieceIndex)
+{
+	pieceIndex = tlTurret;
+}
+
+FireWeapon2()
+{
+    emit-sfx 1024 + 3 from tlFlare;
+}
+
+AimWeapon2(heading, pitch)
+{
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	start-script RestoreAfterDelay();
+    turn tlTurretHeadingPivot to y-axis heading speed <120>;
+    turn tlTurretPitchPivot to x-axis (-1*pitch) speed <120>;
+	return (1);
+}
+///////////////////////////// ROCKETS
+AimWeapon3(heading, pitch){
+    return (1);
+}
+
+QueryWeapon3(pieceindex){
+    pieceindex = rocketFlareR;
+}
+
+AimFromWeapon3(pieceindex){
+    pieceindex = turret_body;
+}
+
+FireWeapon3(){
+
+}
+
+Shot3(zero){
+    emit-sfx 1024 + 0 from rocketFlareR;
+}
+
+AimWeapon4(heading, pitch){
+    return (1);
+}
+
+QueryWeapon4(pieceindex){
+    pieceindex = rocketFlareL;
+}
+
+AimFromWeapon4(pieceindex){
+    pieceindex = turret_body;
+}
+
+FireWeapon4(){
+
+}
+
+Shot4(zero){
+    emit-sfx 1024 + 0 from rocketFlareL;
+}
+
+Killed(severity, corpsetype)
+{
+
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode blFan type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode brFan type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flFan type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode brFan type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode blFan type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode brFan type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flFan type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode brFan type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode vertical_ring type FALL | BITMAP3 | NOHEATCLOUD;
+		explode turret_body type BITMAP4 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode body type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode vertical_ring type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode turret_body type FIRE | SMOKE | FALL | BITMAP4 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+
+	explode body type FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode vertical_ring type EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode turret_body type EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	return (corpsetype);
+}

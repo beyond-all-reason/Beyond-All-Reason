@@ -78,7 +78,6 @@ local function GetSkillByPlayer(playerID)
 	local customtable = select(11, spGetPlayerInfo(playerID))
 	if type(customtable) == 'table' then
 		local tsMu = customtable.skill
-		local tsSigma = customtable.skilluncertainty
 		local ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
 		if (ts == nil) then return 0 else return ts end
 	end
@@ -94,7 +93,7 @@ end
 local function isAllyTeamSkillZero(allyTeamID)
 	local tteams = Spring.GetTeamList(allyTeamID)
 	for _, teamID in ipairs(tteams) do
-		local _, _, _, isAiTeam = spGetTeamInfo(teamID)
+		local _, _, _, isAiTeam = spGetTeamInfo(teamID, false)
 		if not isAiTeam and gaiaAllyTeamID ~= allyTeamID then
 			local skill = GetSkillByTeam(teamID)
 			if skill ~= 0 then

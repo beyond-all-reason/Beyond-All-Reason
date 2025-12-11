@@ -4,7 +4,7 @@ function widget:GetInfo()
   return {
     name      = "HighlightUnit API GL4",
     version   = "v0.2",
-    desc      = "Highlight any unit, feature, unitDef or FeatureDef via WG.HighlightUnitGL4",
+    desc      = "DEPRECATED! Highlight any unit, feature, unitDef or FeatureDef via WG.HighlightUnitGL4",
     author    = "Beherith,ivand",
     date      = "2022.01.04",
 	license   = "GNU GPL, v2 or later",
@@ -13,11 +13,20 @@ function widget:GetInfo()
   }
 end
 
--- Notes: this API can be considered mildly deprecated, as CUS GL4 now handles the major consumers of this API.
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevboidtable.lua")
+-- Localized Spring API for performance
+local spGetUnitDefID = Spring.GetUnitDefID
+local spEcho = Spring.Echo
+
+-- Notes: this API can be considered mildly deprecated, as CUS GL4 now handles the major consumers of this API.
+-- This API is now fully deprecated, as the swith to quaternions breaks it entirely.
+
+
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOIdTable
+
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
 
 local highlightunitShader, unitShapeShader
 local highlightUnitVBOTable
@@ -30,6 +39,7 @@ local highlightunitShaderConfig = {
 	ANIMFREQUENCY = 1 / Game.gameSpeed,
 	SKINSUPPORT = Script.IsEngineMinVersion(105, 0, 1653) and 1 or 0,
 }
+
 
 local vsSrc =
 [[#version 420
@@ -208,9 +218,9 @@ local function HighlightUnitGL4(objectID, objecttype, r, g, b, alpha, edgealpha,
 
 
 	if objecttype == 'unitID' then
-		local unitDefID = Spring.GetUnitDefID(objectID)
+		local unitDefID = spGetUnitDefID(objectID)
 		if unitDefID== nil or unitDefIgnore[unitDefID] then
-			Spring.Echo("Warning: Unit", objectID, "with unitDefID", unitDefID,  "is explicitly disallowed in highlightUnitVBOTable from",consumerID)
+			spEcho("Warning: Unit", objectID, "with unitDefID", unitDefID,  "is explicitly disallowed in highlightUnitVBOTable from",consumerID)
 			return nil
 		end
 	end
@@ -221,7 +231,7 @@ local function HighlightUnitGL4(objectID, objecttype, r, g, b, alpha, edgealpha,
 		key = tostring(objectID) .. consumerID
 	end
 	local staticmodel = (objecttype == "unitDefID" or objecttype == "featureDefID") and 1 or 0
-	-- Spring.Echo("HighlightUnitGL4", objecttype, objectID, staticmodel,"to uniqueID", uniqueID, r, g, b, alpha, edgealpha, edgeexponent, animamount, px, py, pz, rotationY, highlight)
+	-- spEcho("HighlightUnitGL4", objecttype, objectID, staticmodel,"to uniqueID", uniqueID, r, g, b, alpha, edgealpha, edgeexponent, animamount, px, py, pz, rotationY, highlight)
 	local elementID = pushElementInstance(highlightUnitVBOTable, {
 			px or 0, py or 0, pz or 0, rotationY or 0,
 			0, edgealpha or 0.1, edgeexponent or 2.0, animamount or 0,
@@ -239,9 +249,9 @@ local function HighlightUnitGL4(objectID, objecttype, r, g, b, alpha, edgealpha,
 	if debugmode > 0 then
 		local unitdefname = "unknown unitdefname"
 		if objecttype == 'unitID' then
-			unitdefname = UnitDefs[Spring.GetUnitDefID(objectID)].name
+			unitdefname = UnitDefs[spGetUnitDefID(objectID)].name
 		end
-		Spring.Echo("HighlightUnitGL4", objectID, objecttype, consumerID, key, unitdefname)
+		spEcho("HighlightUnitGL4", objectID, objecttype, consumerID, key, unitdefname)
 	end
 	return key
 end
@@ -249,10 +259,10 @@ end
 local function StopHighlightUnitGL4(uniqueID, noUpload)
 	if debugmode > 0 then
 		local unitdefname = "bad unitdefid"
-		if uniqueIDtoUnitID[uniqueID] and Spring.GetUnitDefID(uniqueIDtoUnitID[uniqueID]) then
-			unitdefname =  UnitDefs[Spring.GetUnitDefID(uniqueIDtoUnitID[uniqueID])].name
+		if uniqueIDtoUnitID[uniqueID] and spGetUnitDefID(uniqueIDtoUnitID[uniqueID]) then
+			unitdefname =  UnitDefs[spGetUnitDefID(uniqueIDtoUnitID[uniqueID])].name
 		end
-		Spring.Echo("StopHighlightUnitGL4", uniqueID, noUpload, 'from index',highlightUnitVBOTable.instanceIDtoIndex[uniqueID], unitdefname )
+		spEcho("StopHighlightUnitGL4", uniqueID, noUpload, 'from index',highlightUnitVBOTable.instanceIDtoIndex[uniqueID], unitdefname )
 
 	end
 	if highlightUnitVBOTable.instanceIDtoIndex[uniqueID] then
@@ -262,18 +272,18 @@ local function StopHighlightUnitGL4(uniqueID, noUpload)
 		if unitIDtoUniqueID[unitID][uniqueID] then
 			unitIDtoUniqueID[unitID][uniqueID] = nil
 		else
-			Spring.Echo("Warning", uniqueID, "no longer present in highlightUnitVBOTable")
+			spEcho("Warning", uniqueID, "no longer present in highlightUnitVBOTable")
 		end
 	else
 		return nil
-		--Spring.Echo("Unable to remove what you wanted in StopHighlightUnitGL4", uniqueID)
+		--spEcho("Unable to remove what you wanted in StopHighlightUnitGL4", uniqueID)
 	end
 	return uniqueID
 	--Spring.("Popped element", uniqueID)
 end
 
 local function RefreshHighlightUnitGL4()
-	uploadAllElements(highlightUnitVBOTable)
+	InstanceVBOTable.uploadAllElements(highlightUnitVBOTable)
 end
 
 
@@ -291,7 +301,7 @@ end
 
 function widget:GameFrame(n)
 	if (n%61) == 1 then
-		validateInstanceVBOIDTable(highlightUnitVBOTable, "api validation")
+		InstanceVBOTable.validateInstanceVBOIDTable(highlightUnitVBOTable, "api validation")
 	end
 end
 
@@ -304,7 +314,9 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits) -- extV
 	-- Ok this is really bad, as I have no guarantee that this will run first of all the resets.
 	uniqueIDtoUnitID = {}
 	unitIDtoUniqueID = {}
-	clearInstanceTable(highlightUnitVBOTable)
+	if highlightUnitVBOTable then
+		InstanceVBOTable.clearInstanceTable(highlightUnitVBOTable)
+	end
 
 	--for uniqueID, unitID in pairs(uniqueIDtoUnitID) do
 		-- i am no longer nice to consumers
@@ -323,7 +335,7 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 end
 
 function widget:Initialize()
-	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+	if not gl.CreateShader or Engine.FeatureSupport.transformsInGL4 then -- no shader support or outdated non-quaterion engine,  so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -341,9 +353,9 @@ function widget:Initialize()
 
 	local maxElements = 6 -- start small for testing
 	local unitIDAttributeIndex = 9
-	highlightUnitVBOTable = makeInstanceVBOTable(VBOLayout, maxElements, "highlightUnitVBOTable", unitIDAttributeIndex, "unitID")
+	highlightUnitVBOTable = InstanceVBOTable.makeInstanceVBOTable(VBOLayout, maxElements, "highlightUnitVBOTable", unitIDAttributeIndex, "unitID")
 
-	highlightUnitVBOTable.VAO = makeVAOandAttach(vertVBO, highlightUnitVBOTable.instanceVBO, indxVBO)
+	highlightUnitVBOTable.VAO = InstanceVBOTable.makeVAOandAttach(vertVBO, highlightUnitVBOTable.instanceVBO, indxVBO)
 	highlightUnitVBOTable.indexVBO = indxVBO
 	highlightUnitVBOTable.vertexVBO = vertVBO
 	highlightUnitVBOTable.debugZombies = false
@@ -365,7 +377,7 @@ function widget:Initialize()
 	}, "highlightUnitShader API")
 
 	if highlightunitShader:Initialize() ~= true then
-		Spring.Echo("highlightUnitShader API shader compilation failed")
+		spEcho("highlightUnitShader API shader compilation failed")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -385,7 +397,7 @@ end
 function widget:Shutdown()
 	if highlightUnitVBOTable and highlightUnitVBOTable.VAO then
 		if Spring.Utilities.IsDevMode() then
-			dumpAndCompareInstanceData(highlightUnitVBOTable)
+			InstanceVBOTable.dumpAndCompareInstanceData(highlightUnitVBOTable)
 		end
 		highlightUnitVBOTable.VAO:Delete()
 	end
@@ -403,7 +415,7 @@ function widget:TextCommand(command)
 		if param and tonumber(param) then
 			local newdebuglevel = tonumber(param)
 			if newdebuglevel ~= debugmode then
-				Spring.Echo("Debug level for API HighLightUnit GL4 set to:", newdebuglevel)
+				spEcho("Debug level for API HighLightUnit GL4 set to:", newdebuglevel)
 				debugmode = newdebuglevel
 			end
 			highlightUnitVBOTable.debugZombies = (newdebuglevel>0)
@@ -411,17 +423,23 @@ function widget:TextCommand(command)
 
 		for uniqueID, unitID in pairs(uniqueIDtoUnitID) do
 			local unitdefname = "bad unitid"
-			if Spring.GetUnitDefID(unitID) then
-				unitdefname =  UnitDefs[Spring.GetUnitDefID(unitID)].name
+			if spGetUnitDefID(unitID) then
+				unitdefname =  UnitDefs[spGetUnitDefID(unitID)].name
 			end
-			Spring.Echo("debugapihighlightunit", uniqueID, unitID, unitdefname, highlightUnitVBOTable.instanceIDtoIndex[uniqueID] )
+			spEcho("debugapihighlightunit", uniqueID, unitID, unitdefname, highlightUnitVBOTable.instanceIDtoIndex[uniqueID] )
 		end
 
 	end
 end
 
+local deprecationWarning = "Highlight Unit API is deprecated due to lack of quaterion support. Please use CUS GL4 unit uniform buffers instead"
+
 function widget:DrawWorld()
 	if highlightUnitVBOTable.usedElements > 0 then
+		if deprecationWarning then
+			spEcho(deprecationWarning)
+			deprecationWarning = nil
+		end
 		gl.Culling(GL.BACK)
 		gl.DepthMask(true)
 		gl.DepthTest(true)

@@ -97,7 +97,7 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	turn turret to y-axis heading speed <120.0>;
 	turn sleeve to x-axis <0.0> - pitch speed <65.0>;
-	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <20>))
 	{
 		wpn1_lasthead = 0xbadface;
 		wait-for-turn turret around y-axis;

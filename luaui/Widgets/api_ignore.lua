@@ -2,177 +2,156 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name = "Ignore List API", --version 4.1
-		desc = "Adds /ignoreplayer <name>, /unignoreplayer <name>, /ignorelist\n(puts ignoredPlayers table into WG)",
-		author = "Bluestone",
-		date = "June 2014", --last change September 10,2009
+		name = "Ignore List API",
+		desc = "This widget will block map draw commands from ignored players + provide API for other widgets to check if a player is ignored",
+		author = "Bluestone, Floris",
+		date = "June 2014",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true,
-		handler = true, --can use widgetHandler:x()
 	}
 end
 
---[[
-NOTE: This widget will block map draw commands from ignored players.
-      It is up to the chat console widget to check WG.ignoredPlayers[playerName] and block chat
-]]
 
-local pID_table = {}
-local ignoredPlayers = {}
-local myName, _ = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-local isSpec = Spring.GetSpectatingState()
-local ColorString = Spring.Utilities.Color.ToString
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
 
-local specColStr = "\255\255\255\1"
-local whiteStr = "\255\255\255\1"
+local playernames = {}		-- current game: playername to playerID
+local validAccounts = {}	-- current game: accountID to playername
+local ignoredAccounts = {}	-- globally ignored: accountID to playername
+local ignoredAccountsAndNames = {} -- indexes by accountID and playername
+local ignoredPlayers = {}	-- old playernames method, we'll keep storing and try to convert this to the new ignoredAccounts table based on accountID
 
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
+-- late rejoined/added spectators dont get a their own accountid but the last assigned playerID one instead so we'll have to ignore those
+-- THIS IS FUCKED UP BUT IT IS WHAT IT IS SOMEHOW
+local playerList = Spring.GetPlayerList()
+for _, playerID in ipairs(playerList) do
+	local name, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(playerID)
+	accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid)
+	if accountID and not validAccounts[accountID] then
+		validAccounts[accountID] = name
+	end
+end
 
-function CheckPIDs()
+local function processPlayerlist()
 	local playerList = Spring.GetPlayerList()
-	for _, pID in ipairs(playerList) do
-		pID_table[select(1, Spring.GetPlayerInfo(pID, false))] = pID
+	for _, playerID in ipairs(playerList) do
+		local name, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(playerID)
+		playernames[name] = playerID
+		local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid) or nil
+		if accountID and validAccounts[accountID] then
+			-- when a playername was ignored by the old widget method or when their accountID wasnt known (being late rejoining spectator)
+			if ignoredPlayers[name] then
+				ignoredPlayers[name] = nil
+				ignoredAccounts[accountID] = name
+			end
+			if ignoredAccounts[accountID] then
+				ignoredAccountsAndNames[accountID] = playerID
+				ignoredAccountsAndNames[name] = playerID
+			end
+		end
+	end
+end
+
+local function ignoreAccount(accountID)
+	if type(tonumber(accountID)) == 'number' then
+		accountID = tonumber(accountID)
+		if not ignoredAccounts[accountID] and validAccounts[accountID] then
+			-- ignore accountID
+			ignoredAccounts[accountID] = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(_,accountID) or ''
+			ignoredAccountsAndNames[accountID] = ignoredAccounts[accountID]
+			-- ignore playerinfo name
+			local playerID = playernames[validAccounts[accountID]]
+			ignoredAccountsAndNames[validAccounts[accountID]] = playerID or true
+			-- ignore aliassed name
+			ignoredAccountsAndNames[ignoredAccounts[accountID]] = playerID or true
+			spEcho(Spring.I18N('ui.ignore.ignored', { name = ignoredAccounts[accountID], accountID = accountID }))
+		end
+	elseif accountID ~= '' then -- if accountID wasnt known and player name was supplied instead
+		local name = accountID
+		if playernames[name] then
+			ignoredPlayers[name] = true
+			ignoredAccountsAndNames[name] = playernames[name]
+			spEcho(Spring.I18N('ui.ignore.ignored', { name = name, accountID = Spring.I18N('ui.ignore.unknown') }))
+		end
+	end
+end
+
+local function unignoreAccount(accountID)
+	if type(tonumber(accountID)) == 'number' then
+		accountID = tonumber(accountID)
+		if ignoredAccounts[accountID] and validAccounts[accountID] then
+			spEcho(Spring.I18N('ui.ignore.unignored', { name = ignoredAccounts[accountID], accountID = accountID }))
+			ignoredAccountsAndNames[accountID] = nil
+			ignoredAccountsAndNames[ignoredAccounts[accountID]] = nil
+			ignoredAccountsAndNames[validAccounts[accountID]] = nil
+			ignoredAccounts[accountID] = nil
+		end
+	elseif accountID ~= '' then -- if accountID wasnt known and player name was supplied instead
+		local name = accountID
+		if playernames[name] then
+			ignoredPlayers[name] = nil
+			ignoredAccountsAndNames[name] = nil
+			spEcho(Spring.I18N('ui.ignore.unignored', { name = name, accountID = Spring.I18N('ui.ignore.unknown') }))
+		end
+	end
+end
+
+local function toggleignoreCmd(_, _, params)
+	for i=1, #params do
+		if params[i] then
+			if ignoredAccounts[tonumber(params[i])] or ignoredPlayers[params[i]] then
+				unignoreAccount(params[i])
+			else
+				ignoreAccount(params[i])
+			end
+		end
 	end
 end
 
 function widget:Initialize()
-	CheckPIDs()
-	WG.ignoredPlayers = ignoredPlayers
+	-- add all other ignored account names that arent in the current game but might be in the lobby
+	for accountID, name in pairs(ignoredAccounts) do
+		local pname = WG.playernames and WG.playernames.getPlayername(_, accountID, true)
+		if not ignoredAccountsAndNames[accountID] then	-- if not already added/in the game
+			ignoredAccountsAndNames[pname and pname or name] = true
+		end
+	end
+	processPlayerlist()
+	WG.ignoredAccounts = ignoredAccountsAndNames
+	widgetHandler:AddAction("toggleignore", toggleignoreCmd, nil, 't')
+end
+
+function widget:Shutdown()
+	widgetHandler:RemoveAction("toggleignore")
+	WG.ignoredAccounts = nil
 end
 
 function widget:PlayerChanged()
-	isSpec = Spring.GetSpectatingState()
-	CheckPIDs()
-end
-
-function colourPlayer(playerName)
-	local playerID = pID_table[playerName]
-	if not playerID then
-		return whiteStr
-	end
-
-	local _, _, spec, teamID = Spring.GetPlayerInfo(playerID, false)
-	if spec then
-		return specColStr
-	end
-	local nameColourR, nameColourG, nameColourB, _ = Spring.GetTeamColor(teamID)
-	if (not isSpec) and anonymousMode ~= "disabled" then
-		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
-	end
-	return ColorString(nameColourR, nameColourG, nameColourB)
-end
-
---ignore--
-function widget:TextCommand(s)
-	local token = {}
-	local n = 0
-	--for w in string.gmatch(s, "%a+") do
-	for w in string.gmatch(s, "%S+") do
-		n = n + 1
-		token[n] = w
-	end
-
-	--for i = 1,n do Spring.Echo (token[i]) end
-
-	if token[1] == "ignoreplayer" or token[1] == "ignoreplayers" then
-		for i = 2, n do
-			IgnorePlayer(token[i])
-		end
-	end
-
-	if token[1] == "unignoreplayer" or token[1] == "unignoreplayers" then
-		if n == 1 then
-			UnignoreAll()
-		else
-			for i = 2, n do
-				UnignorePlayer(token[i])
-			end
-		end
-	end
-
-	if token[1] == "toggleignore" and n >= 2 then
-		for i = 2, n do
-			local playerName = token[i]
-			if ignoredPlayers[playerName] then
-				UnignorePlayer(playerName)
-			else
-				IgnorePlayer(playerName)
-			end
-		end
-	end
-
-	if token[1] == "ignorelist" then
-		ignoreList()
-	end
-end
-
-function ignoreList ()
-	local luaSucks = 0
-	for _, iHateLua in pairs(ignoredPlayers) do
-		luaSucks = 1
-		break
-	end
-	if luaSucks > 0 then
-		Spring.Echo("Ignored players:")
-		for playerName, _ in pairs(ignoredPlayers) do
-			Spring.Echo(colourPlayer(playerName) .. playerName)
-		end
-	else
-		Spring.Echo("No ignored players")
-	end
-end
-
-function IgnorePlayer (playerName)
-	if playerName == myName then
-		Spring.Echo("You cannot ignore yourself")
-		return
-	end
-
-	ignoredPlayers[playerName] = true
-	WG.ignoredPlayers = ignoredPlayers
-	Spring.Echo("Ignored " .. colourPlayer(playerName) .. playerName)
-end
-
-function UnignorePlayer (playerName)
-	ignoredPlayers[playerName] = nil
-	WG.ignoredPlayers = ignoredPlayers
-	Spring.Echo("Un-ignored " .. colourPlayer(playerName) .. playerName)
-end
-
-function UnignoreAll ()
-	local luaSucks = 0
-	for _, iHateLua in pairs(ignoredPlayers) do
-		luaSucks = 1
-		break
-	end
-	if luaSucks > 0 then
-		local text = "Un-ignored "
-		for playerName, _ in pairs(ignoredPlayers) do
-			text = text .. colourPlayer(playerName) .. playerName .. ", "
-		end
-		text = string.sub(text, 1, string.len(text) - 2) --remove final ", "
-		Spring.Echo(text)
-	else
-		Spring.Echo("No players to unignore")
-	end
-
-	ignoredPlayers = {}
-	WG.ignoredPlayers = ignoredPlayers
+	processPlayerlist()
 end
 
 function widget:MapDrawCmd(playerID, cmdType, startx, starty, startz, a, b, c)
-	if ignoredPlayers[select(1, Spring.GetPlayerInfo(playerID, false))] then
+	local _, _, _, _, _, _, _, _, _, _, playerInfo = Spring.GetPlayerInfo(playerID, false)
+	local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid) or nil
+	if accountID and ignoredAccounts[accountID] then
 		return true
 	end
 	return nil
 end
 
 function widget:GetConfigData()
+	ignoredPlayers[1] = ignoredAccounts
 	return ignoredPlayers
 end
 
 function widget:SetConfigData(data)
-	ignoredPlayers = data or {}
+	ignoredAccounts = data[1] and data[1] or {}
+	data[1] = nil
+	ignoredPlayers = data
+	for name, _ in pairs(ignoredPlayers) do
+		if not ignoredAccountsAndNames[name] then
+			ignoredAccountsAndNames[name] = true
+		end
+	end
 end

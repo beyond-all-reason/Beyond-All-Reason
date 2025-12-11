@@ -1,12 +1,10 @@
-
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
 		name = "Unit Evolution",
 		desc = "Evolves a unit permanently into another unit when certain criteria are met",
-		author = "Xehrath",
+		author = "Xehrath, tetrisface",
 		date = "2023-03-31",
 		license = "None",
 		layer = 50,
@@ -23,6 +21,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitPosition       = Spring.GetUnitPosition
 	local spGetUnitStates = Spring.GetUnitStates
 	local spGetUnitHealth 		= Spring.GetUnitHealth
+	local spGetUnitTransporter 		= Spring.GetUnitTransporter
 
 	local spGetTeamList			= Spring.GetTeamList
 	local spGetUnitExperience	= Spring.GetUnitExperience
@@ -46,16 +45,10 @@ if gadgetHandler:IsSyncedCode() then
 	local neutralTeamNumber = tonumber(teamList[#teamList])
 	local teamPowerList = {}
 	local highestTeamPower = 0
-
-	local lastTimerCheck = 0
-	local lastPowerCheck = 0
-
-	local TIMER_CHECK_FREQUENCY = 30 -- gameframes
-	local POWER_CHECK_FREQUENCY = 45 -- gameframes
-
-	include("luarules/configs/customcmds.h.lua")
-	--messages[1] = textColor .. Spring.I18N('ui.raptors.wave1', {waveNumber = raptorEventArgs.waveCount})
-
+	local inCombatTimeoutSeconds = 5
+	local lastCheckIndex = 1
+	local toCheckUnitIDs = {}
+	local nToCheckUnitIDs = 0
 
 	-- ZECRUS, values can be tuned in the unitdef file. Add the section below to the unitdef list in the unitdef file.
 	--customparams = {
@@ -92,7 +85,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local unitTargetCommand = {
 		[CMD.GUARD] = true,
-		--[CMD_ORBIT] = true,
 	}
 
 	local singleParamUnitTargetCommand = {
@@ -100,12 +92,10 @@ if gadgetHandler:IsSyncedCode() then
 		[CMD.ATTACK] = true,
 	}
 
-	local function ReAssignAssists(newUnit,oldUnit)
+	local function reAssignAssists(newUnit,oldUnit)
 		local allUnits = Spring.GetAllUnits(newUnit)
 		for _,unitID in pairs(allUnits) do
-			--local unitID = allUnits[i]
-
-			if GG.GetUnitTarget(unitID) == oldUnit and newUnit then
+			if GG.GetUnitTarget and GG.GetUnitTarget(unitID) == oldUnit and newUnit then
 				GG.SetUnitTarget(unitID, newUnit)
 			end
 
@@ -126,16 +116,52 @@ if gadgetHandler:IsSyncedCode() then
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+	local function skipEvolutions(evolutionCurrent)
+		local newUnitName = evolutionCurrent.evolution_target
+		if evolutionCurrent.evolution_condition ~= 'timer' and evolutionCurrent.evolution_condition ~= 'timer_global' then
+			return newUnitName, 0
+		end
+		local now = spGetGameSeconds()
+		local evolution = UnitDefNames[newUnitName] and UnitDefNames[newUnitName].customParams
 
+		local delayedSeconds = 0
+		if evolutionCurrent.evolution_condition == 'timer' then
+			delayedSeconds = (now - (evolutionCurrent.timeCreated or 0)) - (evolutionCurrent.evolution_timer or 0)
+		end
 
+		while evolution and evolution.evolution_condition and evolution.evolution_timer and evolution.evolution_target do
+			if evolution.evolution_condition == "timer" then
+				if delayedSeconds < tonumber(evolution.evolution_timer) then
+					break
+				end
+				delayedSeconds = delayedSeconds - tonumber(evolution.evolution_timer)
+				newUnitName = evolution.evolution_target
+				evolution = UnitDefNames[newUnitName] and UnitDefNames[newUnitName].customParams
+			elseif evolution.evolution_condition == "timer_global" then
+				local requiredTime = tonumber(evolution.evolution_timer)
+				if now < requiredTime then
+					break
+				end
+				delayedSeconds = now - requiredTime
+				newUnitName = evolution.evolution_target
+				evolution = UnitDefNames[newUnitName] and UnitDefNames[newUnitName].customParams
+			else
+				break
+			end
+		end
 
+		return newUnitName, delayedSeconds
+	end
 
+	local function evolve(unitID)
+		local evolution = evolutionMetaList[unitID]
+		evolutionMetaList[unitID] = nil
 
-	function Evolve(unitID, newUnit)
-		local x,y,z = spGetUnitPosition(unitID)
+		local x, y, z = spGetUnitPosition(unitID)
 		if not z then
 			return
 		end
+
 		local health, maxHealth = spGetUnitHealth(unitID)
 		local experience = spGetUnitExperience(unitID)
 		local team = spGetUnitTeam(unitID)
@@ -147,15 +173,22 @@ if gadgetHandler:IsSyncedCode() then
 		local commandQueue = Spring.GetUnitCommands(unitID, -1)
 		local transporter = Spring.GetUnitTransporter(unitID)
 
-		local evolution = evolutionMetaList[unitID]
-		if not evolution then
+		local toUnitNameSkipped, delayedSeconds = skipEvolutions(evolution)
+		if not UnitDefNames[toUnitNameSkipped] then
 			return
 		end
 
-		local newUnitID = spCreateUnit(newUnit, x,y,z, face, team)
-
+		local newUnitID = spCreateUnit(toUnitNameSkipped, x, y, z , face, team)
 		if not newUnitID then
 			return
+		end
+
+		if (not evolution.evolution_condition
+			or evolution.evolution_condition == 'timer'
+			or evolution.evolution_condition == 'timer_global')
+			and evolutionMetaList[newUnitID] and evolutionMetaList[newUnitID].timeCreated
+			and delayedSeconds > 0 then
+			evolutionMetaList[newUnitID].timeCreated = spGetGameSeconds() - delayedSeconds
 		end
 
 		local announcement = nil
@@ -167,6 +200,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		spSetUnitRulesParam(unitID, "unit_evolved", newUnitID, PRIVATE)
+
+		if GG.quick_start and GG.quick_start.transferCommanderData then
+			GG.quick_start.transferCommanderData(unitID, newUnitID)
+		end
 
 		SendToUnsynced("unit_evolve_finished", unitID, newUnitID, announcement,announcementSize)
 		if evolution.evolution_health_transfer == "full" then
@@ -192,8 +229,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- spGiveOrderToUnit(newUnitID, CMD.CLOAK,  states.cloak and 1 or 0, 		 {})
 		-- spGiveOrderToUnit(newUnitID, CMD.ONOFF,  1,                       		 {})
 
-		ReAssignAssists(newUnitID,unitID)
-
+		reAssignAssists(newUnitID,unitID)
 
 		if commandQueue[1] then
 			local teamID = Spring.GetUnitTeam(unitID)
@@ -225,29 +261,19 @@ if gadgetHandler:IsSyncedCode() then
 
 	end
 
-
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		local udcp = UnitDefs[unitDefID].customParams
 		if udcp.evolution_target then
-			local defaultTimer = 20 * GAME_SPEED
-			evolutionMetaList[unitID] = {
-				evolution_target = udcp.evolution_target,
-				evolution_condition = udcp.evolution_condition or "timer",
-				evolution_timer = tonumber(udcp.evolution_timer) or defaultTimer,
-				evolution_power_threshold = tonumber(udcp.evolution_power_threshold) or 600,
-				evolution_power_enemy_multiplier = tonumber(udcp.evolution_power_enemy_multiplier) or 1,
-				evolution_power_multiplier = tonumber(udcp.evolution_power_multiplier) or 1,
-				evolution_health_threshold = tonumber(udcp.evolution_health_threshold) or 0,
-				evolution_disable_deathsequence = udcp.evolution_disable_deathsequence or true,
-				evolution_announcement = udcp.evolution_announcement,
-				evolution_announcement_size = tonumber(udcp.evolution_announcement_size),
-				combatRadius = tonumber(udcp.combatradius) or 1000,
-				evolution_health_transfer =  udcp.evolution_health_transfer or "flat",
-
-				timeCreated = spGetGameSeconds(),
-				combatTimer = spGetGameSeconds(),
-				inCombat = false,
-			}
+			evolutionMetaList[unitID] = table.merge(udcp, {
+				combatradius                     = tonumber(udcp.combatradius),
+				evolution_announcement_size      = tonumber(udcp.evolution_announcement_size),
+				evolution_health_threshold       = tonumber(udcp.evolution_health_threshold),
+				evolution_power_enemy_multiplier = tonumber(udcp.evolution_power_enemy_multiplier),
+				evolution_power_multiplier       = tonumber(udcp.evolution_power_multiplier),
+				evolution_power_threshold        = tonumber(udcp.evolution_power_threshold),
+				evolution_timer                  = tonumber(udcp.evolution_timer),
+				timeCreated                      = spGetGameSeconds(),
+			})
 		end
 	end
 
@@ -263,12 +289,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 	end
-
-	--function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	--	if evolutionMetaList[unitID] and (cmdID == CMD.STOP) then
-	--		Evolve(unitID, evolutionMetaList[unitID].evolution_target)
-	--	end
-	--end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		if evolutionMetaList[unitID] then
@@ -296,74 +316,111 @@ if gadgetHandler:IsSyncedCode() then
 			if evolution.evolution_condition == "health" then
 				local h = spGetUnitHealth(unitID)
 				if (h-damage) <= evolution.evolution_health_threshold then
-						Evolve(unitID, evolution.evolution_target)
+						evolve(unitID)
 						return 0, 0
 				end
 			end
 		end
 	end
 
+	local function fillToCheckUnitIDs()
+		if lastCheckIndex <= nToCheckUnitIDs then
+			return
+		end
+		toCheckUnitIDs = {}
+		local i = 0
+		for unitID, evolution in pairs(evolutionMetaList) do
+			i =  i + 1
+			toCheckUnitIDs[i] = {
+				id = unitID,
+				timeCreated = evolution.timeCreated
+			}
+		end
+
+		table.sort(toCheckUnitIDs, function(a,b) return a.timeCreated < b.timeCreated end)
+
+		lastCheckIndex = 1
+		nToCheckUnitIDs = i
+
+		return nToCheckUnitIDs == 0
+	end
+
+	local function getTotalUnitCount()
+		local totalUnits = 0
+		for _, teamID in ipairs(Spring.GetTeamList()) do
+			totalUnits = totalUnits + Spring.GetTeamUnitCount(teamID)
+		end
+		return totalUnits
+	end
+
+	local function unitsToBatchSizeInterpolation(value, minLoadUnits, maxLoadUnits, minLoadBatchSize, maxLoadBatchSize)
+		value = math.clamp(value, minLoadUnits, maxLoadUnits)
+		local t = (value - minLoadUnits) / (maxLoadUnits - minLoadUnits)
+		return minLoadBatchSize * ((maxLoadBatchSize / minLoadBatchSize) ^ (t^0.1))
+	end
+
+	local function combatCheckUpdate(unitID, evolution, currentTime)
+		if not evolution.combatRadius then
+			return false
+		end
+		if evolution.combatTimer and (currentTime - evolution.combatTimer) <= inCombatTimeoutSeconds then
+			return true
+		end
+		if spGetUnitNearestEnemy(unitID, evolution.combatRadius) then
+			evolution.combatTimer = currentTime
+			return true
+		end
+		return false
+	end
+
+	local function isEvolutionTimePassed(evolution, currentTime)
+		return (evolution.evolution_condition == 'timer' and (currentTime - evolution.timeCreated) >= evolution.evolution_timer)
+			or (evolution.evolution_condition == 'timer_global' and currentTime >= evolution.evolution_timer)
+	end
+
+	local function isEvolutionPowerPassed(evolution)
+		if evolution.evolution_condition ~= 'power' then
+			return false
+		end
+
+		if highestTeamPower * evolution.evolution_power_multiplier > evolution.evolution_power_threshold then
+			return true
+		end
+		return false
+	end
 
 	function gadget:GameFrame(f)
-		if f % GAME_SPEED ~= 0 then
+		if f % GAME_SPEED ~= 0 or fillToCheckUnitIDs() then
 			return
 		end
 
-		local currentTime =  spGetGameSeconds()
-		if ((TIMER_CHECK_FREQUENCY + lastTimerCheck) < f) then
-			lastTimerCheck = f
-			for unitID, _ in pairs(evolutionMetaList) do
-				local evolution = evolutionMetaList[unitID]
-				if (evolution.evolution_condition == "timer" and (currentTime-evolution.timeCreated) >= evolution.evolution_timer) or
-				   (evolution.evolution_condition == "timer_global" and currentTime >= evolution.evolution_timer) then
-					local enemyNearby = spGetUnitNearestEnemy(unitID, evolution.combatRadius)
-					local inCombat = false
-					if enemyNearby then
-						inCombat = true
-						evolution.combatTimer = currentTime
-					end
+		local batchSize = 0
+		local currentTime = spGetGameSeconds()
 
-					if not inCombat and (currentTime-evolution.combatTimer) >= 5 then
-						Evolve(unitID, evolution.evolution_target)
-					end
-				end
-			end
+		-- very hard to crash below 600 and very hard to not crash above 4000
+		-- 200 and 15 output values adjusted to do as much as possible while minimizing the freeze time for respective input
+		local clampedBatchSize = unitsToBatchSizeInterpolation(getTotalUnitCount(), 600, 4000, 200, 15)
+
+		for _, power in pairs(teamPowerList) do
+			highestTeamPower = math.max(power, highestTeamPower)
 		end
 
-		if ((POWER_CHECK_FREQUENCY + lastPowerCheck) < f) then
-			lastPowerCheck = f
+		while lastCheckIndex <= nToCheckUnitIDs and batchSize < clampedBatchSize do
+			local unitID = toCheckUnitIDs[lastCheckIndex].id
+			local evolution = evolutionMetaList[unitID]
 
-			for unitID, _ in pairs(evolutionMetaList) do
-				local teamID = spGetUnitTeam(unitID)
-				local transporterID = Spring.GetUnitTransporter(unitID)
-				local evolution = evolutionMetaList[unitID]
-
-				for team, power in pairs(teamPowerList) do
-					if team and teamID and power then
-						if highestTeamPower < power then
-							highestTeamPower = power * evolution.evolution_power_multiplier
-						end
-					end
-				end
-				if transporterID then
-				elseif evolution.evolution_condition == "power" and highestTeamPower > evolution.evolution_power_threshold then
-					local enemyNearby = spGetUnitNearestEnemy(unitID, evolution.combatRadius)
-					local inCombat = false
-					if enemyNearby then
-						inCombat = true
-						evolution.combatTimer = currentTime
-					end
-					if not inCombat and (currentTime-evolution.combatTimer) >= 5 then
-						Evolve(unitID, evolution.evolution_target)
-					end
-				end
+			if evolution and not combatCheckUpdate(unitID, evolution, currentTime)
+				and not spGetUnitTransporter(unitID)
+				and (isEvolutionTimePassed(evolution, currentTime) or isEvolutionPowerPassed(evolution)) then
+					evolve(unitID)
 			end
+
+			lastCheckIndex = lastCheckIndex + 1
+			batchSize = batchSize + 1
 		end
 	end
 
-
 else
-
 
 	local spSelectUnitArray = Spring.SelectUnitArray
 	local spGetSelectedUnits = Spring.GetSelectedUnits
@@ -384,8 +441,7 @@ else
 	local fontfileOutlineStrength = 1.4
 	local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
-
-	local function Draw(newAnnouncement, newAnnouncementSize)
+	local function draw(newAnnouncement, newAnnouncementSize)
 		vsx, vsy = Spring.GetViewGeometry()
 		local uiScale = (0.7 + (vsx * vsy / 6500000))
 		displayList = gl.CreateList(function()
@@ -398,19 +454,19 @@ else
 		gl.CallList(displayList)
 	end
 
-	local function EvolveFinished(cmd, oldID, newID, newAnnouncement, newAnnouncementSize)
+	local function evolveFinished(cmd, oldID, newID, newAnnouncement, newAnnouncementSize)
 		local selUnits = spGetSelectedUnits()
 		local unitGroup = Spring.GetUnitGroup(oldID)
 		if unitGroup then
 			Spring.SetUnitGroup(newID, unitGroup)
 		end
 		for i=1,#selUnits do
-		  local unitID = selUnits[i]
-		  if (unitID == oldID) then
+			local unitID = selUnits[i]
+			if (unitID == oldID) then
 			selUnits[i] = newID
 			spSelectUnitArray(selUnits)
 			break
-		  end
+			end
 		end
 		if newAnnouncement then
 			announcement = newAnnouncement
@@ -427,7 +483,7 @@ else
 		if announcementEnabled then
 			local currentTime = spGetGameSeconds()
 			if currentTime-announcementStart < 3 then
-				Draw(announcement, announcementSize)
+				draw(announcement, announcementSize)
 			else
 				announcementEnabled = false
 				announcement = nil
@@ -437,7 +493,7 @@ else
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddSyncAction("unit_evolve_finished", EvolveFinished)
+		gadgetHandler:AddSyncAction("unit_evolve_finished", evolveFinished)
 		local w = 300
 		local h = 210
 		displayList = gl.CreateList(function()

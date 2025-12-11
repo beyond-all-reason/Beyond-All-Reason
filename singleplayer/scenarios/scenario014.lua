@@ -20,7 +20,7 @@ Tips:
  
  ‣  After securing the bridge and claiming the metal on the western side of the river, you should have sufficient resources to advance your technology to Tier 2.
  
- ‣  The map doesnt contain very much contested resources, so you should be free
+ ‣  The map doesnt contain very much contested resources, so you should be free to take the Metal Extractors on your side of the map
  
  
 Scoring:

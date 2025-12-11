@@ -1,161 +1,125 @@
 
 
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  base, dbl, dbr, dtr, dtl, dummy;
+piece  base, dbl, dbr, dtr, dtl, dummy,
+greendbr, greendtr, greendtl, greendbl, orangelight;
 
-static-var  Static_Var_1, restore_delay, gun_1, statechg_DesiredState, statechg_StateChanging;
+static-var  restore_delay, missiles_stockpiled, isOpen;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
-
-activatescr()
-{
-	if( TRUE )
-	{
-			move dbl to x-axis [-8] speed [8];
-			move dbl to z-axis [-8] speed [8];
-			move dbr to x-axis [8] speed [8];
-			move dbr to z-axis [-8] speed [8];
-			move dtl to x-axis [-8] speed [8];
-			move dtl to z-axis [8] speed [8];
-			move dtr to x-axis [8] speed [8];
-			move dtr to z-axis [8] speed [8];	
-	sleep 1768;
-	}
-	sleep 3;
-	return (0);
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-			move dbl to x-axis [0] speed [8];
-			move dbl to z-axis [0] speed [8];
-			move dbr to x-axis [0] speed [8];
-			move dbr to z-axis [0] speed [8];
-			move dtl to x-axis [0] speed [8];
-			move dtl to z-axis [0] speed [8];
-			move dtr to x-axis [0] speed [8];
-			move dtr to z-axis [0] speed [8];	
-		sleep 1762;
-	}
-	sleep 14;
-	return (0);
-}
-
-
-Go()
-{
-	call-script activatescr();
-	Static_Var_1 = 1;
-	return (0);
-}
-
-Stop()
-{
-	Static_Var_1 = 0;
-	call-script deactivatescr();
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
 
 Create()
 {
 	hide dummy;
-	Static_Var_1 = 0;
 	restore_delay = 3000;
-	call-script InitState();
-	return (0);
+	missiles_stockpiled = 0;
+	hide greendbr;
+	hide greendtl;
+	hide greendtr;
+	hide greendbl;
+	show orangelight;
+	isOpen = FALSE;
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Activate()
 {
-	start-script RequestState(0);
-	return (0);
+	move dbl to x-axis [-8] speed [8];
+	move dbl to z-axis [-8] speed [8];
+	move dbr to x-axis [8] speed [8];
+	move dbr to z-axis [-8] speed [8];
+	move dtl to x-axis [-8] speed [8];
+	move dtl to z-axis [8] speed [8];
+	move dtr to x-axis [8] speed [8];
+	move dtr to z-axis [8] speed [8];
+	wait-for-move dtr along z-axis;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
-	return (0);
+	isOpen = FALSE;
+	move dbl to x-axis [0] speed [8];
+	move dbl to z-axis [0] speed [8];
+	move dbr to x-axis [0] speed [8];
+	move dbr to z-axis [0] speed [8];
+	move dtl to x-axis [0] speed [8];
+	move dtl to z-axis [0] speed [8];
+	move dtr to x-axis [0] speed [8];
+	move dtr to z-axis [0] speed [8];
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
-	return (0);
+	restore_delay = reloadMS * 2;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+
+	if( !isOpen )
+	{
+		call-script Activate();
+		isOpen = TRUE;
+	}
+
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
-	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-			piecenum=dummy;
-	return (0);
+	pieceIndex=dummy;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-			piecenum=dummy;
+	pieceIndex=dummy;
 }
 
-SweetSpot(piecenum)
+lights_orange()
 {
-	piecenum = base;
-	return (0);
+	hide greendbr;
+	hide greendtl;
+	hide greendtr;
+	hide greendbl;
+	show orangelight;
+}
+
+lights_green()
+{
+	show greendbr;
+	show greendtl;
+	show greendtr;
+	show greendbl;
+	hide orangelight;
+}
+
+SetStockpile(num_stockpiled)
+{
+	if (num_stockpiled == 0)
+	{
+		start-script lights_orange();
+		sleep 100;
+		missiles_stockpiled = 0;
+	}
+	if (num_stockpiled >= 1)
+	{
+		start-script lights_green();
+		sleep 100;
+		missiles_stockpiled = 1;
+	}
 }
 
 Killed(severity, corpsetype)

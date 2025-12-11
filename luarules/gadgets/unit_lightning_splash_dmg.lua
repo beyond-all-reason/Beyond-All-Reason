@@ -40,11 +40,11 @@ local math_sin = math.sin
 
 -- A fun unit test is: /luarules fightertest armclaw armclaw 200 10 1000
 
--- Below is a concise implementation of a pool of reusable tables, that grows on demand, but doesnt ever shrink. 
-local projTablePoolSize = 0 
+-- Below is a concise implementation of a pool of reusable tables, that grows on demand, but doesnt ever shrink.
+local projTablePoolSize = 0
 local projTablePool = {}
 local function GetProjTable()
-	if projTablePoolSize == 0 then 
+	if projTablePoolSize == 0 then
 		return {
 				weaponDefID = 0,
 				proOwnerID = 0,
@@ -59,8 +59,8 @@ local function GetProjTable()
 			}
 	else
 		local free = projTablePool[projTablePoolSize]
-		projTablePool[projTablePoolSize] = nil 
-		projTablePoolSize = projTablePoolSize -1 
+		projTablePool[projTablePoolSize] = nil
+		projTablePoolSize = projTablePoolSize -1
 		return free
 	end
 end
@@ -75,7 +75,7 @@ local sparkWeapons = {}
 for wdid, wd in pairs(WeaponDefNames) do
 	if wd.customParams ~= nil then
 		if wd.customParams.spark_forkdamage ~= nil then
-			Script.SetWatchWeapon(wd.id, true) -- watch weapon so ProjectileCreated works
+			Script.SetWatchProjectile(wd.id, true) -- watch so ProjectileCreated works
 			sparkWeapons[wd.id] = 	{
 				ceg = wd.customParams.spark_ceg, -- currently overridden by above "global" options
 				basedamage = tonumber(wd.damages[0]), --spark damage is assumed to be based on default damage
@@ -89,7 +89,9 @@ end
 
 -- look at this later, currently this makes these units completely immune to spark damage, friend or foe
 local immuneToSplash = {}
+local unitRadius = {}
 for udid, ud in pairs(UnitDefs) do
+	unitRadius[udid] = ud.radius
 	for i, v in pairs(ud.weapons) do
 		if WeaponDefs[ud.weapons[i].weaponDef] and WeaponDefs[ud.weapons[i].weaponDef].type == "LightningCannon" then
 			immuneToSplash[udid] = true
@@ -138,24 +140,26 @@ function gadget:ProjectileDestroyed(proID)
 			if not immuneToSplash[nearUnitDefID] then -- check if unit is immune to sparking
 				if not spGetUnitIsDead(nearUnit) then -- check if unit is in "death animation", so sparks do not chain to dying units.
 					if lightning_shooter[lightning.proOwnerID] ~= nearUnit then --check if main bolt has hit this target or not
-						local v1,v2,v3,v4,v5,v6, ex, ey, ez = spGetUnitPosition(nearUnit,true,true) -- gets aimpoint of unit
-						spSpawnCEG(terminal_spark_effect,ex,ey,ez,0,0,0) -- spawns "electric aura" at spark target
-						local spark_damage = lightning.spark_basedamage*lightning.spark_forkdamage -- figure out damage to apply to spark target
-						-- NB: weaponDefID -1 is debris damage which gets removed by engine_hotfixes.lua, use -7 (crush damage) arbitrarily instead
-						spAddUnitDamage(nearUnit, spark_damage, 0, lightning.proOwnerID, -7) -- apply damage to spark target
-						-- create visual lighting arc from main bolt termination point to spark target
-						-- set owner = -1 as a "spark bolt" identifier
-						-- lightning.weaponDefID
-						projectileCacheTable.pos[1] = lightning.x
-						projectileCacheTable.pos[2] = lightning.y
-						projectileCacheTable.pos[3] = lightning.z
-						projectileCacheTable['end'][1] = ex
-						projectileCacheTable['end'][2] = ey
-						projectileCacheTable['end'][3] = ez
-						
-						--spSpawnProjectile(lightning.weaponDefID, projectileCacheTable)
-						spSpawnProjectile(lightning.weaponDefID, {["pos"]={lightning.x,lightning.y,lightning.z},["end"] = {ex,ey,ez}, ["ttl"] = 2, ["owner"] = -1})
-						count = count - 1 -- spark target count accounting
+						local bx,by,bz,mx,my,mz, ex, ey, ez = spGetUnitPosition(nearUnit,true,true) -- gets aimpoint of unit
+						if my+unitRadius[nearUnitDefID] > -10 then -- check if unit is above water (not underwater)
+							spSpawnCEG(terminal_spark_effect,ex,ey,ez,0,0,0) -- spawns "electric aura" at spark target
+							local spark_damage = lightning.spark_basedamage*lightning.spark_forkdamage -- figure out damage to apply to spark target
+							-- NB: weaponDefID -1 is debris damage which gets removed by engine_hotfixes.lua, use -7 (crush damage) arbitrarily instead
+							spAddUnitDamage(nearUnit, spark_damage, 0, lightning.proOwnerID, -7) -- apply damage to spark target
+							-- create visual lighting arc from main bolt termination point to spark target
+							-- set owner = -1 as a "spark bolt" identifier
+							-- lightning.weaponDefID
+							projectileCacheTable.pos[1] = lightning.x
+							projectileCacheTable.pos[2] = lightning.y
+							projectileCacheTable.pos[3] = lightning.z
+							projectileCacheTable['end'][1] = ex
+							projectileCacheTable['end'][2] = ey
+							projectileCacheTable['end'][3] = ez
+
+							--spSpawnProjectile(lightning.weaponDefID, projectileCacheTable)
+							spSpawnProjectile(lightning.weaponDefID, {["pos"]={lightning.x,lightning.y,lightning.z},["end"] = {ex,ey,ez}, ["ttl"] = 2, ["owner"] = -1})
+							count = count - 1 -- spark target count accounting
+						end
 					end
 				end
 			end
@@ -238,7 +242,7 @@ end
 -- when a unit is directly hit by a lighting attack, keep track of that so the lighting weapon does not chain to the same target it hit.
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 	-- using UnitPreDamaged to try to catch a unit being hit by a lightning bolt as soon as possible. UnitDamaged should also work, if necessary
-	if sparkWeapons[weaponID] then
+	if attackerID and sparkWeapons[weaponID] then
 
 		-- engine does not provide a projectileID for hitscan weapons, bleh
 		-- as a workaround, if a unit is shot by a lightning unit, make it immune to that unit's chaining for 3 frames

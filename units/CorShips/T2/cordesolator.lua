@@ -28,7 +28,7 @@ return {
 		nochase = "ALL",
 		objectname = "Units/CORDESOLATOR.s3o",
 		radardistance = 50,
-		script = "Units/cordesolator_clean.cob",
+		script = "Units/cordesolator.cob",
 		seismicsignature = 0,
 		selfdestructas = "nukeBuildingSelfd",
 		sightdistance = 450,
@@ -128,10 +128,10 @@ return {
 				collideenemy = false,
 				collidefeature = false,
 				collidefriendly = false,
+				commandfire = true,
 				craterareaofeffect = 1920,
 				craterboost = 2.4,
 				cratermult = 1.2,
-				commandfire = true,
 				edgeeffectiveness = 0.45,
 				energypershot = 187500,
 				explosiongenerator = "custom:newnukecor",
@@ -199,11 +199,11 @@ return {
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 100,
-				damage = {
-					default = 0,
-				},
 				customparams = {
 					scavforcecommandfire = true,
+				},
+				damage = {
+					default = 0,
 				},
 			},
 			waterballon = {

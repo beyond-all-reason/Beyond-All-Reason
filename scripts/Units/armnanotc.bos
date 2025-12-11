@@ -1,11 +1,9 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, aim, emitnano;
 
-static-var  BuildHeading;
+static-var  buildHeading;
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -13,7 +11,7 @@ static-var  BuildHeading;
 #define UNITSIZE 2
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -21,7 +19,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn aim to y-axis <0.000000> speed <100.000000>;
+	turn aim to y-axis <0.0> speed <100.0>;
 }
 
 RestoreAfterDelay()
@@ -33,7 +31,7 @@ RestoreAfterDelay()
 Create()
 {
     hide emitnano;
-	BuildHeading = 0;
+	buildHeading = 0;
 	return (0);
 }
 
@@ -48,9 +46,9 @@ SetStunned(State)
 StartBuilding(heading)
 {
 	signal 1; // stop the restore delay stuff
-	BuildHeading = heading;
+	buildHeading = heading;
     show emitnano;
-	turn aim to y-axis BuildHeading speed <320.000000>;
+	turn aim to y-axis buildHeading speed <320.0>;
 	wait-for-turn aim around y-axis;
 	set INBUILDSTANCE to 1;
 }
@@ -64,15 +62,12 @@ StopBuilding()
 	start-script RestoreAfterDelay();
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = emitnano;
+	pieceIndex = emitnano;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = aim;
-}
+
 
 Killed(severity, corpsetype)
 {

@@ -1,0 +1,132 @@
+
+#include "../recoil_common_includes.h"
+
+piece  base, float1, float2, turretHeadingPivot, turretPitchPivot, turret, flare;
+
+static-var  restore_delay;
+
+// Signal definitions
+#define SIGNAL_AIM1 256
+
+
+#define WATER_ROCK_UNITSIZE 5
+// Otherwise it wont move up!
+//#define WATER_ROCK_FREQ_Y 0
+#include "../floatmotion.h"
+
+#define BASEPIECE base
+#define HITSPEED <25.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 3
+#define MAXTILT 200
+#define RECOIL_POWER -50000
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+
+Create()
+{
+	hide flare;
+	restore_delay = 3000;
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script FloatMotion();
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn turretHeadingPivot to y-axis <0.0> speed <90.021978>;
+	turn turretPitchPivot to x-axis <0.0> speed <50.010989>;
+
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+AimWeapon1(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn turretHeadingPivot to y-axis heading speed <80.016484>;
+	turn turretPitchPivot to x-axis (-1*pitch) speed <50.010989>;
+	wait-for-turn turretHeadingPivot around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon1()
+{
+	// emit-sfx 256 | 3 from flare;
+	emit-sfx 1024 + 0 from flare;
+	return (0);
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = turret;
+	return (0);
+}
+
+QueryWeapon1(pieceIndex)
+{
+	pieceIndex = flare;
+	return (0);
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turret type BITMAPONLY | NOHEATCLOUD;
+		explode turretHeadingPivot type BITMAPONLY | NOHEATCLOUD;
+		explode flare type BITMAPONLY | NOHEATCLOUD;
+		explode float1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode float2 type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turret type FALL | NOHEATCLOUD;
+		explode turretHeadingPivot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode float1 type FALL | NOHEATCLOUD;
+		explode float2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type SMOKE | FALL | NOHEATCLOUD;
+		explode turretHeadingPivot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode float1 type SMOKE | FALL | NOHEATCLOUD;
+		explode float2 type SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode turretHeadingPivot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode float1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode float2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

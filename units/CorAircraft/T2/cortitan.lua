@@ -86,8 +86,6 @@ return {
 				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
-				--burst = 3,
-				--burstrate = 0.3,
 				cegtag = "torpedotrail-large",
 				collidefriendly = false,
 				craterareaofeffect = 0,
@@ -119,8 +117,8 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 160,
 				customparams = {
+					norangering = 1,
 					speceffect = "torpwaterpen",
-					when = "ypos<0",
 				},
 				damage = {
 					default = 1200,

@@ -28,5 +28,6 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           file_pattern: recoil-lua-library
+          commit_author: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
           commit_message: |
             Update Lua libary submodule

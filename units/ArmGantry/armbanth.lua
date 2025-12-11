@@ -182,13 +182,13 @@ return {
 				weapontimer = 1,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 2000,
+				customparams = {
+					overrange_distance = 989,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					default = 900,
 					subs = 500,
-				},
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 989,
 				},
 			},
 			banthfootstep = {
@@ -242,7 +242,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "annigun1",
 				soundtrigger = 1,
-				targetmoveerror = 0,
 				thickness = 4.7,
 				tolerance = 10000,
 				turret = true,

@@ -26,7 +26,7 @@ return {
 		script = "Units/CORBW.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGenericSelfd",
-		sightdistance = 364,
+		sightdistance = 430,
 		speed = 280.5,
 		turninplaceanglelimit = 360,
 		turnrate = 1100,
@@ -90,7 +90,7 @@ return {
 				paralyzer = true,
 				paralyzetime = 7,
 				range = 220,
-				reloadtime = 1.3,
+				reloadtime = 1.2,
 				rgbcolor = "0.7 0.7 1",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
@@ -102,6 +102,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 600,
 				},

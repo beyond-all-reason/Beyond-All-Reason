@@ -1,30 +1,28 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-#define SIG_BUILD		4	
-#define SIG_WALK		2
+#define SIGNAL_BUILD 2
+#define SIGNAL_MOVE 1
 
 
 piece  flare1, flare2, hip, lleg, rleg, rfoot, lfoot, luparm, ruparm, rarm, larm, torso,aimy1, aimx1, corhexl, corhexl_emit;
 
-static-var spray, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
+static-var spray, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\cornecro_anim_walk.blend 
-	set-signal-mask SIG_WALK;
-	if (bMoving) {
-			turn hip to x-axis <3.000000> speed <90.000009> / animSpeed; 
+	set-signal-mask SIGNAL_MOVE;
+	if (isMoving) {
+			turn hip to x-axis <3.0> speed <90.0> / animSpeed; 
 			turn larm to x-axis <-0.560101> speed <16.803019> / animSpeed; 
 			turn luparm to x-axis <0.242998> speed <7.289952> / animSpeed; 
 			turn rarm to x-axis <-5.876015> speed <176.280455> / animSpeed; 
 			turn ruparm to x-axis <-0.803352> speed <24.100567> / animSpeed; 
 		sleep 98;
 	}
-	while(bMoving) {
-		if (bMoving) {
-			move hip to y-axis [-1.000000] speed [30.000000] / animSpeed; 
-			turn hip to x-axis <0.000000> speed <90.000009> / animSpeed; 
+	while(isMoving) {
+		if (isMoving) {
+			move hip to y-axis [-1.0] speed [30.0] / animSpeed; 
+			turn hip to x-axis <0.0> speed <90.0> / animSpeed; 
 			turn larm to x-axis <9.597569> speed <304.730096> / animSpeed; 
 			turn lfoot to x-axis <29.633575> speed <2420.907686> / animSpeed; 
 			turn lleg to x-axis <-65.287210> speed <354.353117> / animSpeed; 
@@ -36,8 +34,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <13.899999> speed <416.999979> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
-			turn hip to x-axis <-3.000000> speed <90.000003> / animSpeed; 
+		if (isMoving) {
+			turn hip to x-axis <-3.0> speed <90.0> / animSpeed; 
 			turn larm to x-axis <17.195968> speed <227.951954> / animSpeed; 
 			turn lfoot to x-axis <9.054714> speed <617.365815> / animSpeed; 
 			turn lleg to x-axis <-55.896707> speed <281.715080> / animSpeed; 
@@ -49,23 +47,23 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <6.300000> speed <227.999992> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
-			move hip to y-axis [0.000000] speed [30.000000] / animSpeed; 
-			turn hip to x-axis <0.000000> speed <90.000003> / animSpeed; 
+		if (isMoving) {
+			move hip to y-axis [0.0] speed [30.0] / animSpeed; 
+			turn hip to x-axis <0.0> speed <90.0> / animSpeed; 
 			turn larm to x-axis <-5.876015> speed <692.159486> / animSpeed; 
-			turn lfoot to x-axis <-0.000000> speed <271.641430> / animSpeed; 
-			turn lleg to x-axis <-0.000000> speed <1676.901224> / animSpeed; 
+			turn lfoot to x-axis <-0.0> speed <271.641430> / animSpeed; 
+			turn lleg to x-axis <-0.0> speed <1676.901224> / animSpeed; 
 			turn luparm to x-axis <-0.803352> speed <614.760436> / animSpeed; 
 			turn rarm to x-axis <-3.907620> speed <702.426464> / animSpeed; 
 			turn rfoot to x-axis <110.330498> speed <1481.155550> / animSpeed; 
 			turn rleg to x-axis <-53.475440> speed <2930.328090> / animSpeed; 
 			turn ruparm to x-axis <-0.550249> speed <718.078724> / animSpeed; 
-			turn torso to y-axis <0.000000> speed <188.999987> / animSpeed; 
+			turn torso to y-axis <0.0> speed <188.999987> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
-			move hip to y-axis [-1.000000] speed [30.000000] / animSpeed; 
-			turn hip to x-axis <-3.000000> speed <90.000009> / animSpeed; 
+		if (isMoving) {
+			move hip to y-axis [-1.0] speed [30.0] / animSpeed; 
+			turn hip to x-axis <-3.0> speed <90.0> / animSpeed; 
 			turn larm to x-axis <-19.158424> speed <398.472280> / animSpeed; 
 			turn lfoot to x-axis <20.826635> speed <624.799050> / animSpeed; 
 			turn lleg to x-axis <33.449953> speed <1003.498599> / animSpeed; 
@@ -78,8 +76,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn torso to y-axis <-14.599999> speed <437.999968> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
-			turn hip to x-axis <0.000000> speed <90.000009> / animSpeed; 
+		if (isMoving) {
+			turn hip to x-axis <0.0> speed <90.0> / animSpeed; 
 			turn larm to x-axis <-27.321836> speed <244.902341> / animSpeed; 
 			turn lfoot to x-axis <60.958646> speed <1203.960331> / animSpeed; 
 			turn lleg to x-axis <44.202163> speed <322.566304> / animSpeed; 
@@ -88,30 +86,30 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rfoot to x-axis <9.054714> speed <617.365815> / animSpeed; 
 			turn rleg to x-axis <-55.896707> speed <281.715080> / animSpeed; 
 			turn ruparm to x-axis <19.688662> speed <186.147380> / animSpeed; 
-			turn torso to x-axis <-0.000000> speed <280.007652> / animSpeed; 
+			turn torso to x-axis <-0.0> speed <280.007652> / animSpeed; 
 			turn torso to y-axis <-8.300000> speed <188.999975> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) {
-			move hip to y-axis [0.000000] speed [30.000000] / animSpeed; 
-			turn hip to x-axis <3.000000> speed <90.000009> / animSpeed; 
+		if (isMoving) {
+			move hip to y-axis [0.0] speed [30.0] / animSpeed; 
+			turn hip to x-axis <3.0> speed <90.0> / animSpeed; 
 			turn larm to x-axis <-3.907620> speed <702.426464> / animSpeed; 
 			turn lfoot to x-axis <110.330498> speed <1481.155550> / animSpeed; 
 			turn lleg to x-axis <-53.475440> speed <2930.328090> / animSpeed; 
 			turn luparm to x-axis <-0.550249> speed <718.078724> / animSpeed; 
 			turn rarm to x-axis <-5.876015> speed <692.159486> / animSpeed; 
-			turn rfoot to x-axis <-0.000000> speed <271.641430> / animSpeed; 
-			turn rleg to x-axis <-0.000000> speed <1676.901224> / animSpeed; 
+			turn rfoot to x-axis <-0.0> speed <271.641430> / animSpeed; 
+			turn rleg to x-axis <-0.0> speed <1676.901224> / animSpeed; 
 			turn ruparm to x-axis <-0.803352> speed <614.760436> / animSpeed; 
-			turn torso to y-axis <0.000000> speed <248.999993> / animSpeed; 
+			turn torso to y-axis <0.0> speed <248.999993> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
-	move hip to y-axis [0] speed [10.000000];
-	turn hip to x-axis <0> speed <30.000003>;
+	move hip to y-axis [0] speed [10.0];
+	turn hip to x-axis <0> speed <30.0>;
 	turn larm to x-axis <0> speed <234.142155>;
 	turn lfoot to x-axis <0> speed <806.969229>;
 	turn lleg to x-axis <0> speed <976.776030>;
@@ -146,17 +144,7 @@ UnitSpeed(){
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
-
-Go()
-{
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-}
-
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 Create()
@@ -167,13 +155,13 @@ Create()
 	hide aimy1;
 	//hide corhexl;
 	hide corhexl_emit;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	animSpeed = 3;
 	spray = flare1;
 }
 
 BuildAnim(){
-	set-signal-mask SIG_BUILD;
+	set-signal-mask SIGNAL_BUILD;
 	while (TRUE){
 		turn aimy1 to x-axis <-15> speed <10>;
 		wait-for-turn aimy1 around x-axis;
@@ -186,8 +174,8 @@ StartBuilding(torsoing, pitch)
 {
 	show flare2;
 	show flare1;
-	signal SIG_BUILD;
-	turn aimy1 to y-axis torsoing speed <240.000000>;
+	signal SIGNAL_BUILD;
+	turn aimy1 to y-axis torsoing speed <240.0>;
 	turn aimx1 to x-axis <-55> - pitch speed <240.0>;
 	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
@@ -199,40 +187,37 @@ StopBuilding()
 {
 	hide flare2;
 	hide flare1;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
 	hide corhexl_emit;
-	turn aimy1 to y-axis <0.000000> speed <160.000000>;
+	turn aimy1 to y-axis <0.0> speed <160.0>;
 	turn aimx1 to x-axis <0> speed <240.0>;
 	turn aimy1 to x-axis <0> speed <5>;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
-	bMoving = TRUE;
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
+	isMoving = TRUE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
 	start-script walk();
 }
 
 StopMoving()
 {
-	bMoving = FALSE;
-	signal SIG_WALK;
+	isMoving = FALSE;
+	signal SIGNAL_MOVE;
 	call-script StopWalking();
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = spray;
+	pieceIndex = spray;
 	spray = !spray;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-}
+
 
 Killed(severity, corpsetype)
 {
@@ -245,12 +230,6 @@ Killed(severity, corpsetype)
 		explode rarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type BITMAPONLY | NOHEATCLOUD;
 		explode luparm type BITMAPONLY | NOHEATCLOUD;
-		//explode larm type BITMAPONLY | NOHEATCLOUD;
-		//explode flare2 type BITMAPONLY | NOHEATCLOUD;
-		//explode rleg type BITMAPONLY | NOHEATCLOUD;
-		//explode rfoot type BITMAPONLY | NOHEATCLOUD;
-		//explode lleg type BITMAPONLY | NOHEATCLOUD;
-		//explode lfoot type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -262,12 +241,6 @@ Killed(severity, corpsetype)
 		explode rarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode luparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode larm type FALL | NOHEATCLOUD;
-		//explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type FALL | NOHEATCLOUD;
-		//explode lleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -279,12 +252,6 @@ Killed(severity, corpsetype)
 		explode rarm type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode luparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode larm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -294,11 +261,5 @@ Killed(severity, corpsetype)
 		explode rarm type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode luparm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode larm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

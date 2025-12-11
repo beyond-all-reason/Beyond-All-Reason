@@ -29,12 +29,12 @@ local GetProjectileDirection = Spring.GetProjectileDirection
 local GetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local GetGroundHeight = Spring.GetGroundHeight
 local GetGameFrame = Spring.GetGameFrame
-
 local SpawnCEG = Spring.SpawnCEG
+local mathMax = math.max
+
 -- Helpful debug wrapper:
 -- SpawnCEG = function(ceg,x,y,z,dx,dy,dz) Spring.Echo(ceg,x,y,z); Spring.SpawnCEG(ceg,x,y,z,dx,dy,dz) end
 
-local random = math.random
 
 local gameFrame = 0
 local mapHasWater = true
@@ -192,24 +192,22 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID) --pre-opt mean
 			missileIDtoLifeEnd[proID] = gameFrame-4 + GetProjectileTimeToLive(proID)
 	elseif watchedWeaponType == "starburst" then 
 		local x, y, z = GetProjectilePosition(proID)
-		local groundHeight = GetGroundHeight(x, z)
-		if groundHeight < 0 then
-			groundHeight = 0
-		end
+		local groundHeight = mathMax(GetGroundHeight(x, z), 0)
 		local gf = GetGameFrame()
+		local wData = starburstWeapons[weaponDefID]
 		starbursts[proID] = {
-			groundHeight + starburstWeapons[weaponDefID][1],
-			starburstWeapons[weaponDefID][2],
-			gf + starburstWeapons[weaponDefID][3],
-			gf + starburstWeapons[weaponDefID][4],
+			groundHeight + wData[1],
+			wData[2],
+			gf + wData[3],
+			gf + wData[4],
 
-			starburstWeapons[weaponDefID][5],
-			groundHeight + starburstWeapons[weaponDefID][6],
-			groundHeight + starburstWeapons[weaponDefID][7],
+			wData[5],
+			groundHeight + wData[6],
+			groundHeight + wData[7],
 
-			starburstWeapons[weaponDefID][8],
-			groundHeight + starburstWeapons[weaponDefID][9],
-			groundHeight + starburstWeapons[weaponDefID][10],
+			wData[8],
+			groundHeight + wData[9],
+			groundHeight + wData[10],
 		}
 	end    
 end

@@ -12,6 +12,10 @@ function widget:GetInfo()
    }
 end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 ---------------------------------------
 
 local GL_RGBA8 = 0x8058
@@ -114,7 +118,7 @@ void main()
 -- Global Variables
 -----------------------------------------------------------------
 
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
 
 local vsx, vsy, vpx, vpy
 local screenCopyTex
@@ -131,7 +135,7 @@ end
 
 function widget:Initialize()
 	if gl.CreateShader == nil then
-		Spring.Echo("Sepia: createshader not supported, removing")
+		spEcho("Sepia: createshader not supported, removing")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -166,7 +170,7 @@ function widget:Initialize()
 
 	local shaderCompiled = sepiaShader:Initialize()
 	if not shaderCompiled then
-			Spring.Echo("Failed to compile Sepia shader, removing widget")
+			spEcho("Failed to compile Sepia shader, removing widget")
 			widgetHandler:RemoveWidget()
 			return
 	end
@@ -220,6 +224,7 @@ end
 
 function widget:Shutdown()
 	gl.DeleteTexture(screenCopyTex)
+	screenCopyTex = nil
 	if sepiaShader then
 		sepiaShader:Finalize()
 	end
@@ -266,8 +271,8 @@ end
 function widget:TextCommand(command)
 	if string.find(command,"sepiatone", nil, true ) == 1 then
 		local s = string.split(command, ' ') 
-		Spring.Echo("/luaui sepiatone gamma saturation contrast sepia shadeUI")
-		Spring.Echo(command) 
+		spEcho("/luaui sepiatone gamma saturation contrast sepia shadeUI")
+		spEcho(command) 
 		params.gamma = tonumber(s[2]) or params.gamma
 		params.saturation = tonumber(s[3]) or params.saturation
 		params.contrast = tonumber(s[4]) or params.contrast

@@ -2,7 +2,7 @@ return {
 	corllt = {
 		buildangle = 32000,
 		buildpic = "CORLLT.DDS",
-		buildtime = 2720,
+		buildtime = 2500,
 		canrepeat = false,
 		cantbetransported = false,
 		collisionvolumeoffsets = "0 -29 0",
@@ -126,7 +126,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 2,
 				tolerance = 10000,
 				turret = true,

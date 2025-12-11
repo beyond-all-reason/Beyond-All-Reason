@@ -87,6 +87,7 @@ return {
 		"coramph",
 		"corsktl",
 		"corspy",
+		"legaspy",
 		"corcan",
 		"coraak",
 		"cortermite",
@@ -184,6 +185,8 @@ return {
 		-- Hovercraft
 		"armlun",
 		"corsok",
+		"armlun",
+		"legehovertank",
 		"armsptkt4",
 		"armlunchbox",
 		"armmeatball",

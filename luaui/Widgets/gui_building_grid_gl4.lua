@@ -9,7 +9,8 @@ function widget:GetInfo()
         license = "GNU GPL, v2 or later",
 		version = 0.2,
         layer = -1,
-        enabled = false
+        enabled = false,
+        depends = {'gl4'},
     }
 end
 
@@ -44,8 +45,8 @@ local shaderConfig = { -- These will be replaced in the shader using #defines's
 }
 
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir .. "LuaShader.lua")
+local LuaShader = gl.LuaShader
+
 
 local vsSrc = [[
 #version 420
@@ -172,6 +173,7 @@ function widget:Initialize()
 
     initShader()
 
+	if not gridShader then return end
 	if gridVBO then return end
 
     local VBOData = {} -- the lua array that will be uploaded to the GPU

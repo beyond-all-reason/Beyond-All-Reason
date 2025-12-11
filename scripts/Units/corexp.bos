@@ -1,93 +1,43 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, column, turret, barrel1, barrel2, flare1, flare2;
 
-static-var  Static_Var_1, restore_delay, Static_Var_3, Static_Var_4, Static_Var_5,
-            gun_1, Static_Var_7, Static_Var_8, statechg_DesiredState, statechg_StateChanging,
-            Stunned;
+static-var  restore_delay, resourceRate, gun_1, Stunned;
 
 // Signal definitions
-#define SIG_AIM				2
-
-
-Go()
-{
-	if (Stunned) {
-		return (0);
-	}
-	spin column around y-axis speed Static_Var_3 accelerate Static_Var_4;
-}
+#define SIGNAL_AIM1 256
 
 Stop()
 {
-	stop-spin column around y-axis decelerate Static_Var_5;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
+	stop-spin column around y-axis decelerate <0.5>;
 }
 
 Create()
 {
 	hide flare1;
 	hide flare2;
-	Static_Var_3 = 0;
-	Static_Var_4 = 91;
-	Static_Var_5 = 182;
-	Static_Var_7 = 0;
-	Static_Var_8 = 0;
+	resourceRate = 500;
 	gun_1 = 0;
-	Static_Var_1 = 1;
-	call-script InitState();
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Activate()
 {
-	start-script RequestState(0);
+	spin column around y-axis speed resourceRate accelerate <0.5>;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	stop-spin column around y-axis decelerate <0.5>;
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 8;
+	restore_delay = reloadMS * 8;
 }
 
 ExecuteRestoreAfterDelay()
@@ -95,72 +45,58 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	set-signal-mask 0;
-	start-script RequestState(1);
+	turn turret to y-axis <0> speed <300>;
+	turn turret to x-axis <0.0> speed <300>;
 }
+
 SetStunned(State)
 {
 	Stunned = State;
 	if (!Stunned) {
 	    start-script ExecuteRestoreAfterDelay();
 	}
-	if (State) {
-	    call-script Stop();
-	}else{
-	    if (statechg_DesiredState == 0) {
-	        call-script Go();
-	    }
-	}
 }
+
 RestoreAfterDelay()
 {
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-SetSpeed(Func_Var_1)
+SetSpeed(windOrMetal)
 {
-	Static_Var_3 = Func_Var_1 * 45;
-	Static_Var_7 = Func_Var_1 * 400;
-	Static_Var_8 = Func_Var_1 * 400;
+	resourceRate = windOrMetal * 20;
+	if (resourceRate > 0) call-script Activate(); // Because SetSpeed is called after Activate
 }
 
-SweetSpot(piecenum)
+AimWeapon1(heading, pitch)
 {
-	piecenum = base;
-}
-
-AimPrimary(heading, pitch)
-{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed Static_Var_7;
-	turn turret to x-axis <0.000000> - pitch speed Static_Var_8;
+	if (resourceRate < 1) {
+		return (0);
+	}
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn turret to y-axis heading speed <300>;
+	turn turret to x-axis <0.0> - pitch speed <300>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn turret around x-axis;
+	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	gun_1 = ! gun_1;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 0 )
-	{
-		piecenum = flare1;
-	}
-	if( gun_1 == 1 )
-	{
-		piecenum = flare2;
-	}
+	pieceIndex = flare1 + gun_1;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
 Killed(severity, corpsetype)

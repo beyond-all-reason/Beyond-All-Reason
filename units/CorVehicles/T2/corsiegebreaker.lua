@@ -25,7 +25,7 @@ return {
 		movementclass = "HTANK4",
 		nochasecategory = "VTOL GROUNDSCOUT",
 		objectname = "Units/CORSIEGEBREAKER.s3o",
-		script = "Units/corsiegebreaker_clean.cob",
+		script = "Units/corsiegebreaker.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
 		sightdistance = 500,--500
@@ -214,7 +214,6 @@ return {
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundtrigger = 0,
-				targetmoveerror = 0,
 				thickness = 2.6,
 				tolerance = 1000,
 				turret = true,

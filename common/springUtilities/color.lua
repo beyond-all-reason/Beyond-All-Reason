@@ -20,13 +20,31 @@ local function ColorArray(r, g, b)
 	return floor(r * 255), floor(g * 255), floor(b * 255)
 end
 
+
 local function ColorString(r, g, b)
 	-- Standard R, G, B color code.
-	return colorIndicator .. schar(floor(r * 255)) .. schar(floor(g * 255)) .. schar(floor(b * 255))
+	r = floor(r * 255)
+	g = floor(g * 255)
+	b = floor(b * 255)
+	-- avoid special char used by i18n
+	if r == 37 then r = 38 end	-- 37 = %
+	if g == 37 then g = 38 end	-- 37 = %
+	if b == 37 then b = 38 end	-- 37 = %
+	return colorIndicator .. schar(r) .. schar(g) .. schar(b)
+end
+
+local function ColorIsDark(red, green, blue)
+    -- Determines if the (player) color is dark (i.e. if a white outline is needed)
+    if red + green * 1.2 + blue * 0.4 < 0.65 then
+        return true
+	else
+    	return false
+    end
 end
 
 return {
 	ToString = ColorString,
 	ToStringEx = ColorStringEx,
 	ToIntArray = ColorArray,
+	ColorIsDark = ColorIsDark,
 }

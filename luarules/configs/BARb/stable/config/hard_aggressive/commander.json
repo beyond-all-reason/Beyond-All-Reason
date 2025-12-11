@@ -16,7 +16,7 @@
 
 			// Commander hides if ("time" elapsed) and ("threat" exceeds value or enemy has "air")
 			"hide": {
-				"time": 180,  // seconds
+				"time": 270,  // seconds
 				"threat": 7,
 				"air": true,
 				"task_rad": [3300.0, 1000.0]  // [<peace_radius>, <danger_radius>]
@@ -37,7 +37,7 @@
 
 			// Commander hides if ("time" elapsed) and ("threat" exceeds value or enemy has "air")
 			"hide": {
-				"time": 180,  // seconds
+				"time": 270,  // seconds
 				"threat": 7,
 				"air": true,
 				"task_rad": [3300.0, 1000.0]  // [<peace_radius>, <danger_radius>]

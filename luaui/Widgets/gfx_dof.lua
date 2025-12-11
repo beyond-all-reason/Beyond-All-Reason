@@ -13,6 +13,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 local highQuality = true		-- doesnt seem to do anything
 local autofocus = true
 local mousefocus = not autofocus
@@ -28,8 +32,6 @@ local autofocusFocalLength = 0.03		-- Autofocus Focal Length
 -----------------------------------------------------------------
 
 local spGetCameraPosition   = Spring.GetCameraPosition
-local spGetMouseState       = Spring.GetMouseState
-local spTraceScreenRay      = Spring.TraceScreenRay
 
 local math_max = math.max
 local math_log = math.log
@@ -68,16 +70,16 @@ local chobbyInterface
 
 
 local function CleanupTextures()
-	glDeleteTexture(baseBlurTex or "")
-	glDeleteTexture(baseNearBlurTex or "")
-	glDeleteTexture(intermediateBlurTex0 or "")
-	glDeleteTexture(intermediateBlurTex1 or "")
-	glDeleteTexture(intermediateBlurTex2 or "")
-	glDeleteTexture(intermediateBlurTex3 or "")
-	glDeleteTexture(finalBlurTex or "")
-	glDeleteTexture(finalNearBlurTex or "")
-	glDeleteTexture(screenTex or "")
-	glDeleteTexture(depthTex or "")
+	glDeleteTexture(baseBlurTex)
+	glDeleteTexture(baseNearBlurTex)
+	glDeleteTexture(intermediateBlurTex0)
+	glDeleteTexture(intermediateBlurTex1)
+	glDeleteTexture(intermediateBlurTex2)
+	glDeleteTexture(intermediateBlurTex3)
+	glDeleteTexture(finalBlurTex)
+	glDeleteTexture(finalNearBlurTex)
+	glDeleteTexture(screenTex)
+	glDeleteTexture(depthTex)
 	gl.DeleteFBO(intermediateBlurFBO)
 	gl.DeleteFBO(baseBlurFBO)
 	baseBlurTex, baseNearBlurTex, intermediateBlurTex0, intermediateBlurTex1,
@@ -248,7 +250,7 @@ function InitTextures()
 	if not intermediateBlurTex0 or not intermediateBlurTex1 or not intermediateBlurTex2
 		 or not finalBlurTex or not baseBlurTex or not screenTex or not depthTex
 		 or (highQuality and (not baseNearBlurTex or not intermediateBlurTex3 or not finalNearBlurTex)) then
-			Spring.Echo("Depth of Field: Failed to create textures!")
+			spEcho("Depth of Field: Failed to create textures!")
 			widgetHandler:RemoveWidget()
 		return
 	end
@@ -262,7 +264,7 @@ function init()
 	reset()
 
 	if (glCreateShader == nil) then
-		Spring.Echo("[Depth of Field::Initialize] removing widget, no shader support")
+		spEcho("[Depth of Field::Initialize] removing widget, no shader support")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -290,8 +292,8 @@ function init()
 	})
 
 	if not dofShader then
-		Spring.Echo("Depth of Field: Failed to create shader!")
-		Spring.Echo(gl.GetShaderLog())
+		spEcho("Depth of Field: Failed to create shader!")
+		spEcho(gl.GetShaderLog())
 		widgetHandler:RemoveWidget()
 		return
 	end

@@ -17,18 +17,18 @@ walk()
 {
 	//step 1, foot back a bit
 	
-	turn rthigh to z-axis <-2> speed <20.000000>;
-	turn rthigh to x-axis <22> speed <220.000000>;
-	turn rleg to x-axis <1> speed <10.000000>;
-	turn rfoot to x-axis <-23> speed <230.000000>;
+	turn rthigh to z-axis <-2> speed <20.000000>/3;
+	turn rthigh to x-axis <22> speed <220.000000>/3;
+	turn rleg to x-axis <1> speed <10.000000>/3;
+	turn rfoot to x-axis <-23> speed <230.000000>/3;
 	
-	turn lthigh to z-axis <2> speed <20.000000>;
-	turn lthigh to x-axis <-21> speed <210.000000>;
-	turn lleg to x-axis <-22> speed <220.000000>;
-	turn lfoot to x-axis <14> speed <140.000000>;
+	turn lthigh to z-axis <2> speed <20.000000>/3;
+	turn lthigh to x-axis <-21> speed <210.000000>/3;
+	turn lleg to x-axis <-22> speed <220.000000>/3;
+	turn lfoot to x-axis <14> speed <140.000000>/3;
 	
-	turn pelvis to z-axis <-2> speed <20.000000>;
-	move pelvis to y-axis [1] speed [10.000000];
+	turn pelvis to z-axis <-2> speed <20.000000>/3;
+	move pelvis to y-axis [1] speed [10.000000]/3;
 	
 	sleep 96;
 	
@@ -37,50 +37,50 @@ walk()
 	
 	
 	//turn rthigh to z-axis <-2> now;
-	turn rthigh to x-axis <34> speed <120.000000>;
-	turn rleg to x-axis <23> speed <220.000000>;
-	turn rfoot to x-axis <-32> speed <90.000000>;
+	turn rthigh to x-axis <34> speed <120.000000>/3;
+	turn rleg to x-axis <23> speed <220.000000>/3;
+	turn rfoot to x-axis <-32> speed <90.000000>/3;
 	
-	turn lthigh to x-axis <5> speed <260.000000>;
-	turn lleg to x-axis <-48> speed <260.000000>;
-	turn lfoot to x-axis <43> speed <290.000000>;
+	turn lthigh to x-axis <5> speed <260.000000>/3;
+	turn lleg to x-axis <-48> speed <260.000000>/3;
+	turn lfoot to x-axis <43> speed <290.000000>/3;
 	
 	//turn pelvis to z-axis <-2> now;
-	move pelvis to y-axis [0] speed [10.000000];
+	move pelvis to y-axis [0] speed [10.000000]/3;
 	
 	sleep 96;
 	
 	//step 3, foot lifted, knee bent
 	
-	turn rthigh to z-axis <0> speed <20.000000>;
-	turn rthigh to x-axis <16> speed <180.000000>;
-	turn rleg to x-axis <28> speed <50.000000>;
-	turn rfoot to x-axis <-51> speed <190.000000>;
+	turn rthigh to z-axis <0> speed <20.000000>/3;
+	turn rthigh to x-axis <16> speed <180.000000>/3;
+	turn rleg to x-axis <28> speed <50.000000>/3;
+	turn rfoot to x-axis <-51> speed <190.000000>/3;
 	
-	turn lthigh to z-axis <0> speed <20.000000>;
-	turn lthigh to x-axis <0> speed <50.000000>;
-	turn lleg to x-axis <0> speed <480.000000>;
-	turn lfoot to x-axis <0> speed <430.000000>;
+	turn lthigh to z-axis <0> speed <20.000000>/3;
+	turn lthigh to x-axis <0> speed <50.000000>/3;
+	turn lleg to x-axis <0> speed <480.000000>/3;
+	turn lfoot to x-axis <0> speed <430.000000>/3;
 	
-	turn pelvis to z-axis <0> speed <20.000000>;
+	turn pelvis to z-axis <0> speed <20.000000>/3;
 	move pelvis to y-axis [0] now;
 	
 	sleep 96;
 	
 	//step 4 foot lifted, knee extended
 	
-	turn rthigh to z-axis <2> speed <20.000000>;
-	turn rthigh to x-axis <-21> speed <370.000000>;
-	turn rleg to x-axis <-22> speed <500.000000>;
-	turn rfoot to x-axis <14> speed <650.000000>;
+	turn rthigh to z-axis <2> speed <20.000000>/3;
+	turn rthigh to x-axis <-21> speed <370.000000>/3;
+	turn rleg to x-axis <-22> speed <500.000000>/3;
+	turn rfoot to x-axis <14> speed <650.000000>/3;
 	
-	turn lthigh to z-axis <-2> speed <20.000000>;
-	turn lthigh to x-axis <22> speed <220.000000>;
-	turn lleg to x-axis <1> speed <10.000000>;
-	turn lfoot to x-axis <-23> speed <230.000000>;
+	turn lthigh to z-axis <-2> speed <20.000000>/3;
+	turn lthigh to x-axis <22> speed <220.000000>/3;
+	turn lleg to x-axis <1> speed <10.000000>/3;
+	turn lfoot to x-axis <-23> speed <230.000000>/3;
 	
-	turn pelvis to z-axis <2> speed <20.000000>;
-	move pelvis to y-axis [1] speed [10.000000];
+	turn pelvis to z-axis <2> speed <20.000000>/3;
+	move pelvis to y-axis [1] speed [10.000000]/3;
 	
 	sleep 96;
 	
@@ -88,33 +88,33 @@ walk()
 	
 	
 	// turn rthigh to z-axis <5> now;
-	turn rthigh to x-axis <5> speed <260.000000>;
-	turn rleg to x-axis <-48> speed <260.000000>;
-	turn rfoot to x-axis <43> speed <290.000000>;
+	turn rthigh to x-axis <5> speed <260.000000>/3;
+	turn rleg to x-axis <-48> speed <260.000000>/3;
+	turn rfoot to x-axis <43> speed <290.000000>/3;
 	
 	//turn lthigh to z-axis <-2> now;
-	turn lthigh to x-axis <34> speed <120.000000>;
-	turn lleg to x-axis <23> speed <220.000000>;
-	turn lfoot to x-axis <-32> speed <90.000000>;
+	turn lthigh to x-axis <34> speed <120.000000>/3;
+	turn lleg to x-axis <23> speed <220.000000>/3;
+	turn lfoot to x-axis <-32> speed <90.000000>/3;
 	
 	// turn pelvis to z-axis <2> now;
-	move pelvis to y-axis [0] speed [10.000000];
+	move pelvis to y-axis [0] speed [10.000000]/3;
 	
 	sleep 96;
 	
 	//Step 0, all back to default
 	
-	turn rthigh to z-axis <0> speed <20.000000>;
-	turn rthigh to x-axis <0> speed <50.000000>;
-	turn rleg to x-axis <0> speed <480.000000>;
-	turn rfoot to x-axis <0> speed <430.000000>;
+	turn rthigh to z-axis <0> speed <20.000000>/3;
+	turn rthigh to x-axis <0> speed <50.000000>/3;
+	turn rleg to x-axis <0> speed <480.000000>/3;
+	turn rfoot to x-axis <0> speed <430.000000>/3;
 	
-	turn lthigh to z-axis <0> speed <20.000000>;
-	turn lthigh to x-axis <16> speed <180.000000>;
-	turn lleg to x-axis <28> speed <50.000000>;
-	turn lfoot to x-axis <-51> speed <190.000000>;
+	turn lthigh to z-axis <0> speed <20.000000>/3;
+	turn lthigh to x-axis <16> speed <180.000000>/3;
+	turn lleg to x-axis <28> speed <50.000000>/3;
+	turn lfoot to x-axis <-51> speed <190.000000>/3;
 	
-	turn pelvis to z-axis <0> speed <20.000000>;
+	turn pelvis to z-axis <0> speed <20.000000>/3;
 	move pelvis to y-axis [0] now;
 	
 	sleep 96;
@@ -126,18 +126,18 @@ walklegs()
 {
 	//step 1, foot back a bit
 	
-	turn rthigh to z-axis <-2> speed <20.000000>;
-	turn rthigh to x-axis <22> speed <220.000000>;
-	turn rleg to x-axis <1> speed <10.000000>;
-	turn rfoot to x-axis <-23> speed <230.000000>;
+	turn rthigh to z-axis <-2> speed <20.000000>/3;
+	turn rthigh to x-axis <22> speed <220.000000>/3;
+	turn rleg to x-axis <1> speed <10.000000>/3;
+	turn rfoot to x-axis <-23> speed <230.000000>/3;
 	
-	turn lthigh to z-axis <2> speed <20.000000>;
-	turn lthigh to x-axis <-21> speed <370.000000>;
-	turn lleg to x-axis <-22> speed <500.000000>;
-	turn lfoot to x-axis <14> speed <650.000000>;
+	turn lthigh to z-axis <2> speed <20.000000>/3;
+	turn lthigh to x-axis <-21> speed <370.000000>/3;
+	turn lleg to x-axis <-22> speed <500.000000>/3;
+	turn lfoot to x-axis <14> speed <650.000000>/3;
 	
-	turn pelvis to z-axis <-2> speed <20.000000>;
-	move pelvis to y-axis [1] speed [10.000000];
+	turn pelvis to z-axis <-2> speed <20.000000>/3;
+	move pelvis to y-axis [1] speed [10.000000]/3;
 	
 	sleep 96;
 	
@@ -146,50 +146,50 @@ walklegs()
 	
 	
 	//turn rthigh to z-axis <-2> now;
-	turn rthigh to x-axis <34> speed <120.000000>;
-	turn rleg to x-axis <23> speed <220.000000>;
-	turn rfoot to x-axis <-32> speed <90.000000>;
+	turn rthigh to x-axis <34> speed <120.000000>/3;
+	turn rleg to x-axis <23> speed <220.000000>/3;
+	turn rfoot to x-axis <-32> speed <90.000000>/3;
 	
-	turn lthigh to x-axis <5> speed <260.000000>;
-	turn lleg to x-axis <-48> speed <260.000000>;
-	turn lfoot to x-axis <43> speed <290.000000>;
+	turn lthigh to x-axis <5> speed <260.000000>/3;
+	turn lleg to x-axis <-48> speed <260.000000>/3;
+	turn lfoot to x-axis <43> speed <290.000000>/3;
 	
 	//turn pelvis to z-axis <-2> now;
-	move pelvis to y-axis [0] speed [10.000000];
+	move pelvis to y-axis [0] speed [10.000000]/3;
 	
 	sleep 96;
 	
 	//step 3, foot lifted, knee bent
 	
-	turn rthigh to z-axis <0> speed <20.000000>;
-	turn rthigh to x-axis <16> speed <180.000000>;
-	turn rleg to x-axis <28> speed <50.000000>;
-	turn rfoot to x-axis <-51> speed <190.000000>;
+	turn rthigh to z-axis <0> speed <20.000000>/3;
+	turn rthigh to x-axis <16> speed <180.000000>/3;
+	turn rleg to x-axis <28> speed <50.000000>/3;
+	turn rfoot to x-axis <-51> speed <190.000000>/3;
 	
-	turn lthigh to z-axis <0> speed <20.000000>;
-	turn lthigh to x-axis <0> speed <50.000000>;
-	turn lleg to x-axis <0> speed <480.000000>;
-	turn lfoot to x-axis <0> speed <430.000000>;
+	turn lthigh to z-axis <0> speed <20.000000>/3;
+	turn lthigh to x-axis <0> speed <50.000000>/3;
+	turn lleg to x-axis <0> speed <480.000000>/3;
+	turn lfoot to x-axis <0> speed <430.000000>/3;
 	
-	turn pelvis to z-axis <0> speed <20.000000>;
+	turn pelvis to z-axis <0> speed <20.000000>/3;
 	move pelvis to y-axis [0] now;
 	
 	sleep 96;
 	
 	//step 4 foot lifted, knee extended
 	
-	turn rthigh to z-axis <2> speed <20.000000>;
-	turn rthigh to x-axis <-21> speed <370.000000>;
-	turn rleg to x-axis <-22> speed <500.000000>;
-	turn rfoot to x-axis <14> speed <650.000000>;
+	turn rthigh to z-axis <2> speed <20.000000>/3;
+	turn rthigh to x-axis <-21> speed <370.000000>/3;
+	turn rleg to x-axis <-22> speed <500.000000>/3;
+	turn rfoot to x-axis <14> speed <650.000000>/3;
 	
-	turn lthigh to z-axis <-2> speed <20.000000>;
-	turn lthigh to x-axis <22> speed <220.000000>;
-	turn lleg to x-axis <1> speed <10.000000>;
-	turn lfoot to x-axis <-23> speed <230.000000>;
+	turn lthigh to z-axis <-2> speed <20.000000>/3;
+	turn lthigh to x-axis <22> speed <220.000000>/3;
+	turn lleg to x-axis <1> speed <10.000000>/3;
+	turn lfoot to x-axis <-23> speed <230.000000>/3;
 	
-	turn pelvis to z-axis <2> speed <20.000000>;
-	move pelvis to y-axis [1] speed [10.000000];
+	turn pelvis to z-axis <2> speed <20.000000>/3;
+	move pelvis to y-axis [1] speed [10.000000]/3;
 	
 	sleep 96;
 	
@@ -197,33 +197,33 @@ walklegs()
 	
 	
 	// turn rthigh to z-axis <5> now;
-	turn rthigh to x-axis <5> speed <260.000000>;
-	turn rleg to x-axis <-48> speed <260.000000>;
-	turn rfoot to x-axis <43> speed <290.000000>;
+	turn rthigh to x-axis <5> speed <260.000000>/3;
+	turn rleg to x-axis <-48> speed <260.000000>/3;
+	turn rfoot to x-axis <43> speed <290.000000>/3;
 	
 	//turn lthigh to z-axis <-2> now;
-	turn lthigh to x-axis <34> speed <120.000000>;
-	turn lleg to x-axis <23> speed <220.000000>;
-	turn lfoot to x-axis <-32> speed <90.000000>;
+	turn lthigh to x-axis <34> speed <120.000000>/3;
+	turn lleg to x-axis <23> speed <220.000000>/3;
+	turn lfoot to x-axis <-32> speed <90.000000>/3;
 	
 	// turn pelvis to z-axis <2> now;
-	move pelvis to y-axis [0] speed [10.000000];
+	move pelvis to y-axis [0] speed [10.000000]/3;
 	
 	sleep 96;
 	
 	//Step 0, all back to default
 	
-	turn rthigh to z-axis <0> speed <20.000000>;
-	turn rthigh to x-axis <0> speed <50.000000>;
-	turn rleg to x-axis <0> speed <480.000000>;
-	turn rfoot to x-axis <0> speed <430.000000>;
+	turn rthigh to z-axis <0> speed <20.000000>/3;
+	turn rthigh to x-axis <0> speed <50.000000>/3;
+	turn rleg to x-axis <0> speed <480.000000>/3;
+	turn rfoot to x-axis <0> speed <430.000000>/3;
 	
-	turn lthigh to z-axis <0> speed <20.000000>;
-	turn lthigh to x-axis <16> speed <180.000000>;
-	turn lleg to x-axis <28> speed <50.000000>;
-	turn lfoot to x-axis <-51> speed <190.000000>;
+	turn lthigh to z-axis <0> speed <20.000000>/3;
+	turn lthigh to x-axis <16> speed <180.000000>/3;
+	turn lleg to x-axis <28> speed <50.000000>/3;
+	turn lfoot to x-axis <-51> speed <190.000000>/3;
 	
-	turn pelvis to z-axis <0> speed <20.000000>;
+	turn pelvis to z-axis <0> speed <20.000000>/3;
 	move pelvis to y-axis [0] now;
 	
 	sleep 96;
@@ -284,15 +284,15 @@ MotionControl(moving, aiming, justmoved)
 			if( justmoved )
 			{
 						
-				turn rthigh to z-axis <0> speed <20.000000>;
-				turn rthigh to x-axis <0> speed <50.000000>;
-				turn rleg to x-axis <0> speed <480.000000>;
-				turn rfoot to x-axis <0> speed <430.000000>;
+				turn rthigh to z-axis <0> speed <20.000000>/3;
+				turn rthigh to x-axis <0> speed <50.000000>/3;
+				turn rleg to x-axis <0> speed <480.000000>/3;
+				turn rfoot to x-axis <0> speed <430.000000>/3;
 						
-				turn lthigh to z-axis <0> speed <20.000000>;
-				turn lthigh to x-axis <0> speed <50.000000>;
-				turn lleg to x-axis <0> speed <480.000000>;
-				turn lfoot to x-axis <0> speed <430.000000>;
+				turn lthigh to z-axis <0> speed <20.000000>/3;
+				turn lthigh to x-axis <0> speed <50.000000>/3;
+				turn lleg to x-axis <0> speed <480.000000>/3;
+				turn lfoot to x-axis <0> speed <430.000000>/3;
 				justmoved = FALSE;
 			}
 			sleep 100;

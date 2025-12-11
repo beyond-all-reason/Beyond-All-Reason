@@ -1,95 +1,93 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-#define SIG_BUILD		4	
+#define SIGNAL_BUILD 2
 
 piece  rnano, lnano, torso, lforeleg, rforeleg, rhindleg,
        lhindleg, lbeamcase, rbeamcase,  pelvis,
        rbeamhinge, lbeamhinge, aimy1, cagelight, cagelight_emit, cagelight2, cagelight_emit2 ;
 
-static-var  bMoving, notBuilding, nanoNozzle,  statechg_DesiredState, statechg_StateChanging;
+static-var  isMoving, nanoNozzle, readyToBuild;
             
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-#define SIG_WALK 2
+#define SIGNAL_MOVE 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from D:\spring\animation\corack_anim_walk.blend 
-	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:5
-			turn lforeleg to y-axis <-0.000000> speed <473.999948> / animSpeed; 
-			turn lhindleg to y-axis <-0.000000> speed <1388.999837> / animSpeed; 
+	set-signal-mask SIGNAL_MOVE;
+	if (isMoving) { //Frame:5
+			turn lforeleg to y-axis <-0.0> speed <473.999948> / animSpeed; 
+			turn lhindleg to y-axis <-0.0> speed <1388.999837> / animSpeed; 
 			move pelvis to y-axis [1.038649] speed [31.159472] / animSpeed; 
 			turn pelvis to z-axis <5.100000> speed <152.999994> / animSpeed; 
 			turn rbeamcase to z-axis <-1.200000> speed <35.999997> / animSpeed; 
-			turn rforeleg to y-axis <-0.000000> speed <569.999948> / animSpeed; 
-			turn rhindleg to y-axis <-0.000000> speed <1292.999889> / animSpeed; 
+			turn rforeleg to y-axis <-0.0> speed <569.999948> / animSpeed; 
+			turn rhindleg to y-axis <-0.0> speed <1292.999889> / animSpeed; 
 			turn torso to z-axis <4.700000> speed <140.999988> / animSpeed; 
 		sleep 164;
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:10
+	while(isMoving) {
+		if (isMoving) { //Frame:10
 			turn lbeamhinge to z-axis <-7.299999> speed <218.999984> / animSpeed; 
 			move lforeleg to z-axis [-5.490000] speed [164.699993] / animSpeed; 
-			move pelvis to y-axis [0.000000] speed [31.159472] / animSpeed; 
-			turn pelvis to z-axis <-0.000000> speed <152.999994> / animSpeed; 
+			move pelvis to y-axis [0.0] speed [31.159472] / animSpeed; 
+			turn pelvis to z-axis <-0.0> speed <152.999994> / animSpeed; 
 			turn rbeamcase to z-axis <1.550000> speed <82.499991> / animSpeed; 
 			move rforeleg to z-axis [5.490000] speed [164.699993] / animSpeed; 
 			turn torso to x-axis <9.699999> speed <290.999971> / animSpeed; 
 			turn torso to z-axis <-5.600000> speed <308.999974> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:15
+		if (isMoving) { //Frame:15
 			turn lbeamhinge to z-axis <0.300000> speed <227.999979> / animSpeed; 
-			move lforeleg to z-axis [0.000000] speed [164.699993] / animSpeed; 
+			move lforeleg to z-axis [0.0] speed [164.699993] / animSpeed; 
 			move pelvis to x-axis [0.424902] speed [12.747057] / animSpeed; 
 			move pelvis to y-axis [1.133072] speed [33.992153] / animSpeed; 
 			turn pelvis to z-axis <-5.899999> speed <176.999981> / animSpeed; 
 			turn rbeamcase to z-axis <-0.700000> speed <67.499992> / animSpeed; 
 			move rforeleg to z-axis [-0.090000] speed [167.399998] / animSpeed; 
-			turn torso to x-axis <-0.000000> speed <290.999971> / animSpeed; 
+			turn torso to x-axis <-0.0> speed <290.999971> / animSpeed; 
 			turn torso to z-axis <-1.189813> speed <132.305590> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
+		if (isMoving) { //Frame:20
 			turn lbeamhinge to z-axis <-5.800000> speed <182.999991> / animSpeed; 
 			move lforeleg to z-axis [5.620000] speed [168.599997] / animSpeed; 
-			move pelvis to x-axis [0.000000] speed [12.747057] / animSpeed; 
-			move pelvis to y-axis [0.000000] speed [33.992153] / animSpeed; 
-			turn pelvis to z-axis <-0.000000> speed <176.999981> / animSpeed; 
+			move pelvis to x-axis [0.0] speed [12.747057] / animSpeed; 
+			move pelvis to y-axis [0.0] speed [33.992153] / animSpeed; 
+			turn pelvis to z-axis <-0.0> speed <176.999981> / animSpeed; 
 			turn rbeamcase to z-axis <-8.999999> speed <248.999984> / animSpeed; 
 			move rforeleg to z-axis [-5.510000] speed [162.599988] / animSpeed; 
 			turn torso to x-axis <8.649999> speed <259.499975> / animSpeed; 
 			turn torso to z-axis <4.048148> speed <157.138839> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:25
-			turn lbeamhinge to z-axis <-0.000000> speed <173.999983> / animSpeed; 
-			move lforeleg to z-axis [0.000000] speed [168.599997] / animSpeed; 
+		if (isMoving) { //Frame:25
+			turn lbeamhinge to z-axis <-0.0> speed <173.999983> / animSpeed; 
+			move lforeleg to z-axis [0.0] speed [168.599997] / animSpeed; 
 			move pelvis to y-axis [1.038649] speed [31.159472] / animSpeed; 
 			turn pelvis to z-axis <5.100000> speed <152.999994> / animSpeed; 
 			turn rbeamcase to z-axis <-1.300000> speed <230.999977> / animSpeed; 
-			move rforeleg to z-axis [0.000000] speed [165.299993] / animSpeed; 
-			turn torso to x-axis <-0.000000> speed <259.499975> / animSpeed; 
+			move rforeleg to z-axis [0.0] speed [165.299993] / animSpeed; 
+			turn torso to x-axis <-0.0> speed <259.499975> / animSpeed; 
 			turn torso to z-axis <4.600000> speed <16.555546> / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
-	move lforeleg to z-axis [0.000000] speed [33.719999];
-	move pelvis to x-axis [0.000000] speed [2.549411];
-	move pelvis to y-axis [0.000000] speed [6.798431];
-	move rforeleg to z-axis [0.000000] speed [33.480000];
-	turn lbeamhinge to z-axis <0.000000> speed <45.599996>;
+	move lforeleg to z-axis [0.0] speed [33.719999];
+	move pelvis to x-axis [0.0] speed [2.549411];
+	move pelvis to y-axis [0.0] speed [6.798431];
+	move rforeleg to z-axis [0.0] speed [33.480000];
+	turn lbeamhinge to z-axis <0.0> speed <45.599996>;
 	turn lforeleg to y-axis <15.799998> speed <94.799990>;
 	turn lhindleg to y-axis <-46.299995> speed <277.799967>;
-	turn pelvis to z-axis <0.000000> speed <35.399996>;
-	turn rbeamcase to z-axis <0.000000> speed <49.799997>;
+	turn pelvis to z-axis <0.0> speed <35.399996>;
+	turn rbeamcase to z-axis <0.0> speed <49.799997>;
 	turn rforeleg to y-axis <-18.999998> speed <113.999990>;
 	turn rhindleg to y-axis <43.099996> speed <258.599978>;
-	turn torso to x-axis <0.000000> speed <58.199994>;
-	turn torso to z-axis <0.000000> speed <61.799995>;
+	turn torso to x-axis <0.0> speed <58.199994>;
+	turn torso to z-axis <0.0> speed <61.799995>;
 }
 // REMEMBER TO animspeed = 5 in Create() !!
 UnitSpeed(){
@@ -106,52 +104,19 @@ UnitSpeed(){
 		sleep 164;
 	}
 }
-StartMoving(){
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+StartMoving(reversing){
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	isMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
-	bMoving=FALSE;
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 
-
-Go()
-{
-	turn lbeamcase to y-axis <-90> speed <180>;
-	turn rbeamcase to y-axis <90> speed <180>;
-	wait-for-turn lbeamcase around y-axis;
-	
-	turn lbeamhinge to x-axis <175> speed <360>;
-	
-	turn rbeamhinge to x-axis <175> speed <360>;
-	wait-for-turn rbeamhinge around x-axis;
-	sleep 520;
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	hide cagelight_emit;
-	hide cagelight_emit2;
-	
-	turn lbeamhinge to x-axis <0> speed <360>;
-	turn rbeamhinge to x-axis <0> speed <360>;
-	wait-for-turn rbeamhinge around x-axis;	
-
-	turn lbeamcase to y-axis <0> speed <180>;
-	turn rbeamcase to y-axis <0> speed <180>;
-	wait-for-turn lbeamcase around y-axis;
-	
-
-	
-	turn torso to y-axis <0.000000> speed <160.000000>;
-	wait-for-turn torso around y-axis;
-}
 
 #define BASEPIECE pelvis
 #define HITSPEED <55.0>
@@ -159,35 +124,7 @@ Stop()
 #define UNITSIZE 4
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 Create()
@@ -197,34 +134,37 @@ Create()
 	hide aimy1;
 	hide cagelight_emit;
 	hide cagelight_emit2;
-	bMoving = FALSE;
+	isMoving = FALSE;
 	nanoNozzle = 0;
-	notBuilding = 1;
-	animSpeed = 8;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
+	readyToBuild = 0;
+	animSpeed = 5;
 }
 
 StartBuilding(heading, pitch)
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
+	if(!readyToBuild){
+		turn lbeamcase to y-axis <-90> speed <180>;
+		turn rbeamcase to y-axis <90> speed <180>;
+		wait-for-turn lbeamcase around y-axis;
+		
+		turn lbeamhinge to x-axis <175> speed <360>;
+		turn rbeamhinge to x-axis <175> speed <360>;
+		wait-for-turn rbeamhinge around x-axis;
+
+		readyToBuild = TRUE;
+	}
+
 	show rnano;
 	show lnano;
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
-	turn aimy1 to y-axis heading speed <160.000000>;
+
+	turn aimy1 to y-axis heading speed <160.0>;
 	wait-for-turn aimy1 around y-axis;
+
 	set INBUILDSTANCE to 1;
+
 	show cagelight_emit;
 	show cagelight_emit2;
 	spin cagelight_emit around y-axis speed <450>;
@@ -233,38 +173,40 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+	
 	hide rnano;
 	hide lnano;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
 	hide cagelight_emit;
 	hide cagelight_emit2;
+
 	sleep 6000;
-	set-signal-mask 0;
-	signal SIG_BUILD;	
+
+	set INBUILDSTANCE to 0;
+	readyToBuild = FALSE;
 	
-	turn aimy1 to y-axis <0> speed <160.000000>;
-	start-script RequestState(1);
+	turn aimy1 to y-axis <0> speed <160.0>;
+	wait-for-turn aimy1 around y-axis;
+	
+	turn lbeamhinge to x-axis <0> speed <360>;
+	turn rbeamhinge to x-axis <0> speed <360>;
+	wait-for-turn rbeamhinge around x-axis;	
+
+	turn lbeamcase to y-axis <0> speed <180>;
+	turn rbeamcase to y-axis <0> speed <180>;
+	wait-for-turn lbeamcase around y-axis;
+	
 }
 
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = nanoNozzle;
+	pieceIndex = nanoNozzle;
 	nanoNozzle = !nanoNozzle;
 }
 
-/*
-TargetHeading(Func_Var_1)
-{
-	Static_Var_1 = 0 - Func_Var_1;
-}
-*/
 
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-}
 
 Killed(severity, corpsetype)
 {
@@ -274,15 +216,7 @@ Killed(severity, corpsetype)
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
 		explode lforeleg type BITMAPONLY | NOHEATCLOUD;
 		explode lhindleg type BITMAPONLY | NOHEATCLOUD;
-		//explode rforeleg type BITMAPONLY | NOHEATCLOUD;
-		//explode rhindleg type BITMAPONLY | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
-		//explode lbeamhinge type BITMAPONLY | NOHEATCLOUD;
-		//explode lbeamcase type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lnano type BITMAPONLY | NOHEATCLOUD;
-		//explode rbeamhinge type BITMAPONLY | NOHEATCLOUD;
-		//explode rbeamcase type BITMAPONLY | NOHEATCLOUD;
-		//explode rnano type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -290,16 +224,8 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode pelvis type FALL | NOHEATCLOUD;
 		explode lforeleg type FALL | NOHEATCLOUD;
-		//explode lhindleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rforeleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rhindleg type FALL | NOHEATCLOUD;
 		explode torso type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbeamhinge type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbeamcase type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lnano type FALL | NOHEATCLOUD;
-		//explode rbeamhinge type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rbeamcase type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rnano type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -308,29 +234,15 @@ Killed(severity, corpsetype)
 		explode pelvis type SMOKE | FALL | NOHEATCLOUD;
 		explode lforeleg type SMOKE | FALL | NOHEATCLOUD;
 		explode lhindleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rforeleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rhindleg type SMOKE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbeamhinge type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbeamcase type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lnano type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rbeamhinge type SMOKE | FALL | NOHEATCLOUD;
-		//explode rbeamcase type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode rnano type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode pelvis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lforeleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode lhindleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rforeleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rhindleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lbeamhinge type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lbeamcase type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lnano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rbeamhinge type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rbeamcase type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rnano type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

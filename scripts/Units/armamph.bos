@@ -1,17 +1,15 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  pelvis, torso, rthigh, rleg, rfoot, lthigh, lleg, lfoot, prop, barrel, flare, turret, misbarrel, lmisflare, rmisflare;
 
-static-var  bMoving, bAiming, Static_Var_3, Static_Var_4, gun_3,
-            restore_delay, Static_Var_7, wpn1_lasthead, wpn3_lasthead;
+static-var  isMoving, isAiming, inWaterForm, gun_3,
+            restore_delay, isInWater, wpn1_lasthead, wpn3_lasthead;
 
 // Signal definitions
-#define SIG_MOVE			2
-#define SIG_AIM				4
-#define SIG_AIM_3			8
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM3 1024
 
 
 walk()
@@ -19,36 +17,36 @@ walk()
 	if( TRUE )
 	{
 		
-		turn rthigh to x-axis <0> speed <555.000000>;
+		turn rthigh to x-axis <0> speed <555.0>;
 		turn rleg to x-axis <0> speed <382.500000>;
 		turn rfoot to x-axis <0> speed <127.500000>;
 		
 		
-		turn lthigh to x-axis <56> speed <420.000000>;
+		turn lthigh to x-axis <56> speed <420.0>;
 		turn lleg to x-axis <-29> speed <217.500000>;
-		turn lfoot to x-axis <-60> speed <450.000000>;
+		turn lfoot to x-axis <-60> speed <450.0>;
 		
 		move pelvis to y-axis [0] now;
 		sleep 120;
 		
 		turn rthigh to x-axis <35> speed <262.500000>;
-		turn rleg to x-axis <8> speed <60.000000>;
-		turn rfoot to x-axis <-38> speed <285.000000>;
+		turn rleg to x-axis <8> speed <60.0>;
+		turn rfoot to x-axis <-38> speed <285.0>;
 		
 		
-		turn lthigh to x-axis <-44> speed <750.000000>;
-		turn lleg to x-axis <11> speed <300.000000>;
+		turn lthigh to x-axis <-44> speed <750.0>;
+		turn lleg to x-axis <11> speed <300.0>;
 		turn lfoot to x-axis <-19> speed <307.500000>;
 		move pelvis to y-axis [0.5] speed [3.750000];
 		sleep 120;
 		
-		turn rthigh to x-axis <41> speed <45.000000>;
-		turn rleg to x-axis <20> speed <90.000000>;
+		turn rthigh to x-axis <41> speed <45.0>;
+		turn rleg to x-axis <20> speed <90.0>;
 		turn rfoot to x-axis <-47> speed <67.500000>;
 		
-		turn lthigh to x-axis <-74> speed <225.000000>;
-		turn lleg to x-axis <51> speed <300.000000>;
-		turn lfoot to x-axis <17> speed <270.000000>;
+		turn lthigh to x-axis <-74> speed <225.0>;
+		turn lleg to x-axis <51> speed <300.0>;
+		turn lfoot to x-axis <17> speed <270.0>;
 		
 		move pelvis to y-axis [-0.5] speed [7.500000];
 		sleep 120;
@@ -58,7 +56,7 @@ walk()
 		turn rleg to x-axis <-29> speed <367.500000>;
 		turn rfoot to x-axis <-60> speed <97.500000>;
 		
-		turn lthigh to x-axis <0> speed <555.000000>;
+		turn lthigh to x-axis <0> speed <555.0>;
 		turn lleg to x-axis <0> speed <382.500000>;
 		turn lfoot to x-axis <0> speed <127.500000>;
 		
@@ -66,24 +64,24 @@ walk()
 		sleep 120;
 		
 		
-		turn rthigh to x-axis <-44> speed <750.000000>;
-		turn rleg to x-axis <11> speed <300.000000>;
+		turn rthigh to x-axis <-44> speed <750.0>;
+		turn rleg to x-axis <11> speed <300.0>;
 		turn rfoot to x-axis <-19> speed <307.500000>;
 		
 		turn lthigh to x-axis <35> speed <262.500000>;
-		turn lleg to x-axis <8> speed <60.000000>;
-		turn lfoot to x-axis <-38> speed <285.000000>;
+		turn lleg to x-axis <8> speed <60.0>;
+		turn lfoot to x-axis <-38> speed <285.0>;
 		
 		move pelvis to y-axis [0.5] speed [3.750000];
 		sleep 120;
 		
 		
-		turn rthigh to x-axis <-74> speed <225.000000>;
-		turn rleg to x-axis <51> speed <300.000000>;
-		turn rfoot to x-axis <17> speed <270.000000>;
+		turn rthigh to x-axis <-74> speed <225.0>;
+		turn rleg to x-axis <51> speed <300.0>;
+		turn rfoot to x-axis <17> speed <270.0>;
 		
-		turn lthigh to x-axis <41> speed <45.000000>;
-		turn lleg to x-axis <20> speed <90.000000>;
+		turn lthigh to x-axis <41> speed <45.0>;
+		turn lleg to x-axis <20> speed <90.0>;
 		turn lfoot to x-axis <-47> speed <67.500000>;
 		
 		
@@ -95,7 +93,7 @@ walk()
 
 walklegs()
 {
-			turn rthigh to x-axis <0> speed <555.000000>;
+			turn rthigh to x-axis <0> speed <555.0>;
 		turn rleg to x-axis <0> speed <382.500000>;
 		turn rfoot to x-axis <0> speed <127.500000>;
 		
@@ -107,23 +105,23 @@ walklegs()
 		sleep 120;
 		
 		turn rthigh to x-axis <35> speed <262.500000>;
-		turn rleg to x-axis <8> speed <60.000000>;
-		turn rfoot to x-axis <-38> speed <285.000000>;
+		turn rleg to x-axis <8> speed <60.0>;
+		turn rfoot to x-axis <-38> speed <285.0>;
 		
 		
-		turn lthigh to x-axis <-44> speed <750.000000>;
-		turn lleg to x-axis <11> speed <300.000000>;
+		turn lthigh to x-axis <-44> speed <750.0>;
+		turn lleg to x-axis <11> speed <300.0>;
 		turn lfoot to x-axis <-19> speed <307.500000>;
 		move pelvis to y-axis [0.5] speed [3.750000];
 		sleep 120;
 		
-		turn rthigh to x-axis <41> speed <45.000000>;
-		turn rleg to x-axis <20> speed <90.000000>;
+		turn rthigh to x-axis <41> speed <45.0>;
+		turn rleg to x-axis <20> speed <90.0>;
 		turn rfoot to x-axis <-47> speed <67.500000>;
 		
-		turn lthigh to x-axis <-74> speed <225.000000>;
-		turn lleg to x-axis <51> speed <300.000000>;
-		turn lfoot to x-axis <17> speed <270.000000>;
+		turn lthigh to x-axis <-74> speed <225.0>;
+		turn lleg to x-axis <51> speed <300.0>;
+		turn lfoot to x-axis <17> speed <270.0>;
 		
 		move pelvis to y-axis [-0.5] speed [7.500000];
 		sleep 120;
@@ -133,7 +131,7 @@ walklegs()
 		turn rleg to x-axis <-29> speed <367.500000>;
 		turn rfoot to x-axis <-60> speed <97.500000>;
 		
-		turn lthigh to x-axis <0> speed <555.000000>;
+		turn lthigh to x-axis <0> speed <555.0>;
 		turn lleg to x-axis <0> speed <382.500000>;
 		turn lfoot to x-axis <0> speed <127.500000>;
 		
@@ -141,24 +139,24 @@ walklegs()
 		sleep 120;
 		
 		
-		turn rthigh to x-axis <-44> speed <750.000000>;
-		turn rleg to x-axis <11> speed <300.000000>;
+		turn rthigh to x-axis <-44> speed <750.0>;
+		turn rleg to x-axis <11> speed <300.0>;
 		turn rfoot to x-axis <-19> speed <307.500000>;
 		
 		turn lthigh to x-axis <35> speed <262.500000>;
-		turn lleg to x-axis <8> speed <60.000000>;
-		turn lfoot to x-axis <-38> speed <285.000000>;
+		turn lleg to x-axis <8> speed <60.0>;
+		turn lfoot to x-axis <-38> speed <285.0>;
 		
 		move pelvis to y-axis [0.5] speed [3.750000];
 		sleep 120;
 		
 		
-		turn rthigh to x-axis <-74> speed <225.000000>;
-		turn rleg to x-axis <51> speed <300.000000>;
-		turn rfoot to x-axis <17> speed <270.000000>;
+		turn rthigh to x-axis <-74> speed <225.0>;
+		turn rleg to x-axis <51> speed <300.0>;
+		turn rfoot to x-axis <17> speed <270.0>;
 		
-		turn lthigh to x-axis <41> speed <45.000000>;
-		turn lleg to x-axis <20> speed <90.000000>;
+		turn lthigh to x-axis <41> speed <45.0>;
+		turn lleg to x-axis <20> speed <90.0>;
 		turn lfoot to x-axis <-47> speed <67.500000>;
 		
 		
@@ -205,81 +203,49 @@ swim()
 #define UNITSIZE 2
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
-MotionControl(Func_Var_1)
+Movement()
 {
-	Func_Var_1 = 1;
 	while( TRUE )
 	{
-		if( !Static_Var_4 )
+		isInWater = get IN_WATER;
+		if( !inWaterForm )
 		{
-			if( Static_Var_7 == 2 )
+			if( isInWater == 1 )
 			{
 				call-script transform();
-				Static_Var_4 = 1;
-				Func_Var_1 = 1;
-			}
-			if( Static_Var_7 == 3 )
-			{
-				call-script transform();
-				Static_Var_4 = 1;
-				Func_Var_1 = 1;
+				inWaterForm = 1;
 			}
 		}
-		if( Static_Var_4 )
+		else
 		{
-			if( Static_Var_7 == 1 )
+			if( isInWater == 0 )
 			{
 				call-script reform();
-				Static_Var_4 = 0;
-				Func_Var_1 = 1;
-			}
-			if( Static_Var_7 == 4 )
-			{
-				call-script reform();
-				Static_Var_4 = 0;
-				Func_Var_1 = 1;
+				inWaterForm = 0;
 			}
 		}
-		if( bMoving )
+
+		if( isMoving )
 		{
-			if( bAiming )
-			{
-				Static_Var_3 = 1;
-				if( Static_Var_4 )
+			if( inWaterForm )
 				{
 					call-script swim();
-				}
-				if( !Static_Var_4 )
-				{
+			}else{
+				if( isAiming ){
 					call-script walklegs();
 				}
-			}
-			if( !bAiming )
-			{
-				Static_Var_3 = 0;
-				if( Static_Var_4 )
-				{
-					call-script swim();
-				}
-				if( !Static_Var_4 )
+				else
 				{
 					call-script walk();
 				}
 			}
-			Func_Var_1 = 1;
-		}
-		if( !bMoving )
-		{
-			Static_Var_3 = 1;
-			if( Func_Var_1 AND ( !Static_Var_4 ) )
-			{
-				Func_Var_1 = 0;
-			}
+		}else{
 			sleep 100;
 		}
+		
 	}
 	return (0);
 }
@@ -289,41 +255,28 @@ Create()
 	hide rmisflare;
 	hide lmisflare;
 	hide flare;
-	bMoving = FALSE;
-	bAiming = FALSE;
-	Static_Var_3 = 1;
-	Static_Var_4 = 0;
+	isMoving = FALSE;
+	isAiming = FALSE;
+	inWaterForm = 0;
 	gun_3 = 0;
 	restore_delay = 3000;
-	start-script MotionControl();
+	start-script Movement();
 	return (0);
 }
 
-StartMoving()
+StartMoving(reversing)
 {
-	bMoving = TRUE;
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	isMoving = TRUE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	while( TRUE )
 	{
-		if( Static_Var_7 == 1 )
+		if( isInWater == 1 )
 		{
 			emit-sfx 2 from prop;
 			emit-sfx 2 from prop;
 			emit-sfx 2 from prop;
 			emit-sfx 2 from prop;
-		}
-		if( Static_Var_7 == 2 )
-		{
-			emit-sfx 2 from prop;
-			emit-sfx 2 from prop;
-			emit-sfx 2 from prop;
-			emit-sfx 2 from prop;
-		}
-		if( Static_Var_7 == 3 )
-		{
-			emit-sfx 259 from prop;
-			emit-sfx 259 from prop;
 		}
 		sleep 250;
 	}
@@ -332,28 +285,19 @@ StartMoving()
 
 StopMoving()
 {
-	bMoving = FALSE;
-	signal SIG_MOVE;
+	isMoving = FALSE;
+	signal SIGNAL_MOVE;
 	return (0);
 }
 
-setSFXoccupy(Func_Var_1)
+
+SetMaxReloadTime(reloadMS)
 {
-	Static_Var_7 = Func_Var_1;
+	restore_delay = reloadMS * 2;
 	return (0);
 }
 
-SetMaxReloadTime(Func_Var_1)
-{
-	restore_delay = Func_Var_1 * 2;
-	return (0);
-}
 
-SweetSpot(piecenum)
-{
-	piecenum = torso;
-	return (0);
-}
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -362,15 +306,15 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	turn torso to y-axis <0.000000> speed <90.000000>;
-	turn turret to y-axis <0.000000> speed <90.000000>;
-	turn misbarrel to x-axis <0.000000> speed <90.000000>;
+	turn torso to y-axis <0.0> speed <90.0>;
+	turn turret to y-axis <0.0> speed <90.0>;
+	turn misbarrel to x-axis <0.0> speed <90.0>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn turret around y-axis;
 	wait-for-turn misbarrel around x-axis;
-	wpn3_lasthead = 1000000;
-	wpn1_lasthead = 1000000;
-	bAiming = FALSE;
+	wpn3_lasthead = 0xbadface;
+	wpn1_lasthead = 0xbadface;
+	isAiming = FALSE;
 }
 SetStunned(State)
 {
@@ -381,23 +325,20 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	bAiming = TRUE;
-	while( !Static_Var_3 )
+	signal SIGNAL_AIM1;
+	isAiming = TRUE;
+
+	turn torso to y-axis heading speed <150.0>;
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		return(0);
-	}
-	turn torso to y-axis heading speed <150.000000>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
-	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn torso around y-axis;
 	}
 	start-script RestoreAfterDelay();
@@ -405,44 +346,44 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 	return (0);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = barrel;
+	pieceIndex = barrel;
 	return (0);
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = misbarrel;
+	pieceIndex = misbarrel;
 	return (0);
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
 	if( gun_3 == 0 )
 	{
-		piecenum = lmisflare;
+		pieceIndex = lmisflare;
 	}
 	if( gun_3 == 1 )
 	{
-		piecenum = rmisflare;
+		pieceIndex = rmisflare;
 	}
 	return (0);
 }
 
-FireSecondary()
+FireWeapon2()
 {
 	if( gun_3 == 0 )
 	{
@@ -456,19 +397,17 @@ FireSecondary()
 	}
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_3;
-	bAiming = TRUE;
-	while( !Static_Var_3 )
+	signal SIGNAL_AIM3;
+	isAiming = TRUE;
+
+	turn turret to y-axis heading speed <300.0>;
+	turn misbarrel to x-axis <0.0> - pitch speed <300.0>;
+
+	if ((wpn3_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn3_lasthead), <27>))
 	{
-		sleep 100;
-	}
-	turn turret to y-axis heading speed <300.000000>;
-	turn misbarrel to x-axis <0.000000> - pitch speed <300.000000>;
-	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 5000) AND ((get ABS(wpn3_lasthead - heading)) < 60536)))
-	{
-		wpn3_lasthead = 1000000;
+		wpn3_lasthead = 0xbadface;
 		wait-for-turn turret around y-axis;
 		wait-for-turn misbarrel around x-axis;
 	}
@@ -483,20 +422,9 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
-		//explode rthigh type BITMAPONLY | NOHEATCLOUD;
 		explode rleg type BITMAPONLY | NOHEATCLOUD;
-		//explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode prop type BITMAPONLY | NOHEATCLOUD;
-		//explode lthigh type BITMAPONLY | NOHEATCLOUD;
-		//explode lleg type BITMAPONLY | NOHEATCLOUD;
-		//explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type BITMAPONLY | NOHEATCLOUD;
-		//explode turret type BITMAPONLY | NOHEATCLOUD;
-		//explode misbarrel type BITMAPONLY | NOHEATCLOUD;
-		//explode lmisflare type BITMAPONLY | NOHEATCLOUD;
-		//explode rmisflare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -505,18 +433,8 @@ Killed(severity, corpsetype)
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
 		explode rthigh type FALL | NOHEATCLOUD;
 		explode rleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type FALL | NOHEATCLOUD;
-		//explode prop type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type FALL | NOHEATCLOUD;
-		//explode lleg type FALL | NOHEATCLOUD;
-		//explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type FALL | NOHEATCLOUD;
 		explode barrel type FALL | NOHEATCLOUD;
-		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode misbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lmisflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rmisflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -525,35 +443,15 @@ Killed(severity, corpsetype)
 		explode pelvis type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode prop type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type SMOKE | FALL | NOHEATCLOUD;
-		//explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode misbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lmisflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rmisflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode pelvis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode prop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lfoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode misbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lmisflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rmisflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -1,22 +1,9 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  base, aim, emitnano;
+piece  base, aim, emitnano, cagelight, cagelight_emit;
 
-static-var  Static_Var_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
-
-
-Activatescr()
-{
-	sleep 1;
-}
-
-Deactivatescr()
-{
-	sleep 1;
-}
+static-var  buildHeading;
 
 #define BASEPIECE base
 #define HITSPEED <20.0>
@@ -24,72 +11,22 @@ Deactivatescr()
 #define UNITSIZE 4
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
-
-Go()
-{
-	show emitnano;
-	call-script Activatescr();
-	turn aim to y-axis Static_Var_1 speed <320.000000>;
-	wait-for-turn aim around y-axis;
-	set INBUILDSTANCE to 1;
-}
-
-Stop()
-{
-	hide emitnano;
-	set INBUILDSTANCE to 0;
-	call-script Deactivatescr();
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
 	hide emitnano;
-	call-script InitState();
-	Static_Var_1 = 0;
-	Static_Var_2 = 5000;
+	buildHeading = 0;
 }
 
 static-var  Stunned;
+
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
         return (1);
     }
-	turn aim to y-axis <0.000000> speed <100.000000>;
-	wait-for-turn aim around y-axis;
+	turn aim to y-axis <0.0> speed <100.0>;
 }
 SetStunned(State)
 {
@@ -100,45 +37,41 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	sleep Static_Var_2;
+	sleep 5000;
 	start-script ExecuteRestoreAfterDelay();
 }
 
 Activate()
 {
-	start-script RequestState(0);
+
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+
 }
 
-StartBuilding(Func_Var_1)
+StartBuilding(heading)
 {
-	Static_Var_1 = Func_Var_1;
-	start-script RequestState(0);
+	show emitnano;
+	buildHeading = heading;
+	turn aim to y-axis buildHeading speed <320.0>;
+	wait-for-turn aim around y-axis;
+	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
-	start-script RequestState(1);
+	hide emitnano;
+	set INBUILDSTANCE to 0;
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = emitnano;
+	pieceIndex = emitnano;
 }
 
-TargetHeading(Func_Var_1)
-{
-	Static_Var_1 = 0 - Func_Var_1;
-}
 
-SweetSpot(piecenum)
-{
-	piecenum = aim;
-}
 
 Killed(severity, corpsetype)
 {
@@ -148,6 +81,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode aim type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode emitnano type BITMAPONLY | NOHEATCLOUD;
+		explode cagelight type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -156,6 +90,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode aim type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode emitnano type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode cagelight type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -164,11 +99,13 @@ Killed(severity, corpsetype)
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode aim type SMOKE | FALL | NOHEATCLOUD;
 		explode emitnano type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode cagelight type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode aim type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode emitnano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode cagelight type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

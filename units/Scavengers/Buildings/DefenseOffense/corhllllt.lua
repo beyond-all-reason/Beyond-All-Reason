@@ -127,7 +127,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 2,
 				tolerance = 10000,
 				turret = true,
@@ -139,7 +138,7 @@ return {
 					vtol = 5,
 				},
 				customparams = {
-					exclude_preaim = true
+					exclude_preaim = true,
 				}
 			},
 			hllt_2 = {
@@ -167,7 +166,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 2,
 				tolerance = 10000,
 				turret = true,
@@ -179,7 +177,8 @@ return {
 					vtol = 5,
 				},
 				customparams = {
-					exclude_preaim = true
+					exclude_preaim = true,
+					norangering = 1,
 				}
 			},
 			hllt_3 = {
@@ -207,7 +206,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 2,
 				tolerance = 10000,
 				turret = true,
@@ -219,7 +217,8 @@ return {
 					vtol = 5,
 				},
 				customparams = {
-					exclude_preaim = true
+					exclude_preaim = true,
+					norangering = 1,
 				}
 			},
 			hllt_4 = {
@@ -247,7 +246,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 2,
 				tolerance = 10000,
 				turret = true,
@@ -259,7 +257,8 @@ return {
 					vtol = 5,
 				},
 				customparams = {
-					exclude_preaim = true
+					exclude_preaim = true,
+					norangering = 1,
 				}
 			},
 		},

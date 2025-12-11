@@ -10,13 +10,17 @@ function widget:GetInfo()
 	}
 end
 
+local mathFloor = math.floor
+local mathMax = math.max
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local modOptions = Spring.GetModOptions()
 local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 
 local textTable = {}
 local seenObjectives = {}
 local hasAlwaysShowObjectives = false
-local hasUnseen = false 
+local hasUnseen = false
 local allText = nil
 
 -- alwaysShow: when true, show this objective every time the game runs
@@ -31,9 +35,9 @@ local function loadObjectivesText(objectiveType, alwaysShow)
 			if seenObjectives[objectiveType] == nil then
 				seenObjectives[objectiveType] = false
 			end
-			
+
 			table.insert(textTable, 1, objectiveText)
-			
+
 			if seenObjectives[objectiveType] == false then
 				hasUnseen = true
 			end
@@ -52,8 +56,7 @@ end
 
 local show = false
 
-local vsx,vsy = Spring.GetViewGeometry()
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local vsx,vsy = spGetViewGeometry()
 
 local screenHeightOrg = 520
 local screenWidthOrg = 1050
@@ -82,23 +85,22 @@ local maxLines = 20
 
 local showOnceMore = false		-- used because of GUI shader delay
 
-local font, font2, loadedFontSize, titleRect, backgroundGuishader, textList, dlistcreated, bgpadding
+local font, font2, loadedFontSize, titleRect, backgroundGuishader, textList, dlistcreated
 
 local RectRound, UiElement, UiScroller, elementCorner
 
 function widget:ViewResize()
-	vsx,vsy = Spring.GetViewGeometry()
+	vsx,vsy = spGetViewGeometry()
 	widgetScale = ((vsx + vsy) / 2000) * 0.65 * customScale
 	widgetScale = widgetScale * (1 - (0.11 * ((vsx / vsy) - 1.78)))        -- make smaller for ultrawide screens
 
-	screenHeight = math.floor(screenHeightOrg * widgetScale)
-	screenWidth = math.floor(screenWidthOrg * widgetScale)
-	screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
-	screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
+	screenHeight = mathFloor(screenHeightOrg * widgetScale)
+	screenWidth = mathFloor(screenWidthOrg * widgetScale)
+	screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
+	screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 
 	font, loadedFontSize = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(fontfile2)
-	bgpadding = WG.FlowUI.elementPadding
+	font2 = WG['fonts'].getFont(2)
 	elementCorner = WG.FlowUI.elementCorner
 
 	RectRound = WG.FlowUI.Draw.RectRound
@@ -124,7 +126,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 	local fontColorTitle			= {1,1,1,1}
 	local fontColorLine				= {0.8,0.77,0.74,1}
 
-	maxLines = math.floor(height / (lineSeparator + fontSizeTitle))
+	maxLines = mathFloor(height / (lineSeparator + fontSizeTitle))
 
 	-- textarea scrollbar
 	if scrollbar then
@@ -133,10 +135,10 @@ function DrawTextarea(x,y,width,height,scrollbar)
 			local scrollbarBottom    = y-scrollbarOffsetBottom-height+scrollbarMargin+(scrollbarWidth-scrollbarPosWidth)
 
 			UiScroller(
-				math.floor(x + width - scrollbarMargin - scrollbarWidth),
-				math.floor(scrollbarBottom - (scrollbarWidth - scrollbarPosWidth)),
-				math.floor(x + width - scrollbarMargin),
-				math.floor(scrollbarTop + (scrollbarWidth - scrollbarPosWidth)),
+				mathFloor(x + width - scrollbarMargin - scrollbarWidth),
+				mathFloor(scrollbarBottom - (scrollbarWidth - scrollbarPosWidth)),
+				mathFloor(x + width - scrollbarMargin),
+				mathFloor(scrollbarTop + (scrollbarWidth - scrollbarPosWidth)),
 				(#textLines) * (lineSeparator + fontSizeTitle),
 				(startLine-1) * (lineSeparator + fontSizeTitle)
 			)
@@ -184,14 +186,14 @@ end
 
 function DrawWindow()
 	-- background
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 
 	-- title background
 	local title = Spring.I18N('ui.topbar.button.objectives')
 	local titleFontSize = 18 * widgetScale
-	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
+	titleRect = { screenX, screenY, mathFloor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), mathFloor(screenY + (titleFontSize*1.7)) }
 
-	gl.Color(0, 0, 0, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	gl.Color(0, 0, 0, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 
 	-- title
@@ -202,7 +204,7 @@ function DrawWindow()
 	font2:End()
 
 	-- textarea
-	DrawTextarea(screenX+math.floor(28 * widgetScale), screenY-math.floor(14 * widgetScale), screenWidth-math.floor(28 * widgetScale), screenHeight-math.floor(28 * widgetScale), 1)
+	DrawTextarea(screenX+mathFloor(28 * widgetScale), screenY-mathFloor(14 * widgetScale), screenWidth-mathFloor(28 * widgetScale), screenHeight-mathFloor(28 * widgetScale), 1)
 end
 
 

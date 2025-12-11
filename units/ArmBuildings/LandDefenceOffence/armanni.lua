@@ -36,8 +36,8 @@ return {
 		yardmap = "oooooooooooooooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 6,
-			buildinggrounddecalsizey = 6,
+			buildinggrounddecalsizex = 8,
+			buildinggrounddecalsizey = 8,
 			buildinggrounddecaltype = "decals/armanni_aoplane.dds",
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -136,7 +136,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "annigun1",
 				soundtrigger = 1,
-				targetmoveerror = 0.3,
 				texture3 = "largebeam",
 				thickness = 4.5,
 				tilelength = 150,

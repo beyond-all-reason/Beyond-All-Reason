@@ -17,10 +17,12 @@ if not gadgetHandler:IsSyncedCode() then return end
 
 local teamIsOverPoweredRatio = 1.25
 local alliesAreWinningRatio = 1.25
+local mathHuge = math.huge
+local mathMax = math.max
 
 local teamList = Spring.GetTeamList()
-local scavengerTeam
-local raptorTeam
+local scavengerTeam = Spring.Utilities.GetScavTeamID()
+local raptorTeam = Spring.Utilities.GetRaptorTeamID()
 local aiTeams = {}
 local neutralTeam
 local humanTeams = {}
@@ -42,8 +44,6 @@ local powerThresholds = {
 }
 
 local pveTeamID = scavengerTeam or raptorTeam
-local scavengerTeam = Spring.Utilities.GetScavTeamID()
-local raptorTeam = Spring.Utilities.GetRaptorTeamID()
 for _, teamID in ipairs(teamList) do
     local allyID = select(6, Spring.GetTeamInfo(teamID))
     if teamID ~= scavengerTeam and teamID ~= raptorTeam and select (4, Spring.GetTeamInfo(teamID, false)) then
@@ -61,7 +61,8 @@ for _, teamID in ipairs(teamList) do
     end
 end
 --assign team powers/peak powers to 0 to prevent nil
-for _, teamNumber in ipairs(teamList) do
+for i = 1, #teamList do
+    local teamNumber = teamList[i]
     teamPowers[teamNumber] = 0
     peakTeamPowers[teamNumber] = 0
 end
@@ -76,7 +77,7 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
         unitsWithPower[unitID] = nil
-            teamPowers[unitTeam] = math.max(teamPowers[unitTeam] - UnitDefs[unitDefID].power, 0)
+        teamPowers[unitTeam] = mathMax(teamPowers[unitTeam] - UnitDefs[unitDefID].power, 0)
 end
 
 --handles capture events on units already added to unitsWithPower by UnitFinished
@@ -156,7 +157,7 @@ end
 
 -- Returns the lowest non scavenger/raptor team power as a table {teamID, power}.
 local function lowestPlayerTeamPower()
-    local lowestPower = math.huge
+    local lowestPower = mathHuge
     local lowestTeamID = nil
 
     for teamID, power in pairs(teamPowers) do
@@ -206,7 +207,7 @@ end
 
 -- Returns the lowest non AI/scavenger/raptor team power as a table {teamID, power}.
 local function lowestHumanTeamPower()
-    local lowestPower = math.huge
+    local lowestPower = mathHuge
     local lowestTeamID = nil
 
     for teamID, power in pairs(teamPowers) do
@@ -259,7 +260,7 @@ end
 -- Returns the lowest of the teamID's allies or allyID's power as a table {teamID, power}.
 local function lowestAlliedTeamPower(teamID, allyID)
     allyID = allyID or select(6, Spring.GetTeamInfo(teamID))
-    local lowestPower = math.huge
+    local lowestPower = mathHuge
     local lowestTeamID = nil
 
     for id, power in pairs(teamPowers) do

@@ -31,8 +31,8 @@ return {
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 16,
-			buildinggrounddecalsizey = 16,
+			buildinggrounddecalsizex = 20,
+			buildinggrounddecalsizey = 20,
 			buildinggrounddecaltype = "decals/legafus_aoplane.dds",
 			model_author = "Protar/Ghoulish",
 			normaltex = "unittextures/leg_normal.dds",

@@ -148,7 +148,6 @@ return {
 					overrange_distance = 600,
 					projectile_destruction_method = "descend",
 					speceffect = "cruise",
-					when = "distance>0",
 				},
 				damage = {
 					default = 200,

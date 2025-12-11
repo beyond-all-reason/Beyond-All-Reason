@@ -133,15 +133,16 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					exclude_preaim = true,
+					norangering = 1,
+					smart_priority = true,
+				},
 				damage = {
 					default = 350,
 					subs = 150,
 					vtol = 90,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_priority = true,
-				}
 			},
 			armamb_gun_high = {
 				accuracy = 400,
@@ -166,15 +167,15 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					exclude_preaim = true,
+					smart_backup = true,
+				},
 				damage = {
 					default = 350,
 					subs = 150,
 					vtol = 90,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_backup = true,
-				}
 			},
 			smart_trajectory_dummy = {
 				accuracy = 400,
@@ -199,13 +200,14 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					exclude_preaim = true,
+					norangering = 1,
+					smart_trajectory_checker = true,
+				},
 				damage = {
 					default = 0,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_trajectory_checker = true,
-				}
 			},
 		},
 		weapons = {

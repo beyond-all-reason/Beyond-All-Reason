@@ -124,6 +124,28 @@ local function OccupancyCheck(posx, posy, posz, posradius) -- Returns true if th
 	end
 end
 
+local function ResourceCheck(posx, posz, posradius) -- Returns true if there are no resources in the spawn area
+    local posradiusSquared = posradius * posradius
+    local metalSpots = GG["resource_spot_finder"].metalSpotsList
+    if metalSpots then
+        for _,spot in ipairs(metalSpots) do
+            if math.distance2dSquared(spot.x, spot.z, posx, posz) < posradiusSquared then
+                return false
+            end
+        end
+    end
+
+    local geoSpots = GG["resource_spot_finder"].geoSpotsList
+    if geoSpots then
+        for _,spot in ipairs(geoSpots) do
+            if math.distance2dSquared(spot.x, spot.z, posx, posz) < posradiusSquared then
+                return false
+            end
+        end
+    end
+    return true
+end
+
 local function VisibilityCheck(posx, posy, posz, posradius, allyTeamID, checkLoS, checkAirLos, checkRadar) -- Return True when position is not in sensor ranges of specified allyTeam.
 
 	local posradius = posradius or 1000
@@ -336,6 +358,7 @@ return {
     LavaCheck = LavaCheck,
     MapIsLandOrSea = MapIsLandOrSea,
     LandOrSeaCheck = LandOrSeaCheck,
+    ResourceCheck = ResourceCheck,
 
     -- Scavengers
     ScavengerSpawnAreaCheck = ScavengerSpawnAreaCheck,

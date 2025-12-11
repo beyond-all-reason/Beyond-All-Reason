@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, blades, turbine, emit;
 
@@ -27,19 +25,7 @@ Go()
 	//It is measured in Spring angles per frame-second (sa/f*s); in other words, 
 	//the speed of the piece will increase by that amount every frame, not every second. There are 30 frames per second. 
 	//spin [piece] around [axis] speed [angular speed] accelerate [angular acceleration];
-	
 }
-
-BuildMe()
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	Built = 1;
-	call-script Go();
-}
-
 
 Create()
 {
@@ -47,12 +33,14 @@ Create()
 	WindDirection = 0;
 	LastDirection = 0;
 	Built = 0;
-	start-script BuildMe();
+	SLEEP_UNTIL_UNITFINISHED;
+	Built = 1;
+	call-script Go();
 }
 
-SetSpeed(windSpd) //called every 15s (450 frames)
+SetSpeed(windOrMetal) //called every 15s (450 frames)
 {
-	WindSpeed = 0 - windSpd; //invert if desired
+	WindSpeed = 0 - windOrMetal; //invert if desired
 	if (!Stunned) {
 		if(Built)
 		{
@@ -61,7 +49,7 @@ SetSpeed(windSpd) //called every 15s (450 frames)
 	}
 }
 
-SetDirection(windDir) //called every 15s (450 frames)
+SetDirection(windDir, windStrength) //called every 15s (450 frames)
 {
 	LastDirection = WindDirection;
 	WindDirection = windDir + <180>;
@@ -87,62 +75,12 @@ SetStunned(State)
 		call-script Stop();
 		set ACTIVATION to 0;
 	}else{
-		//if (statechg_DesiredState == 0) {
 		call-script Go();
-		
 		set ACTIVATION to 100;
-		//}
 	}
 }
 
-/*
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
-
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
-}
-*/
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )

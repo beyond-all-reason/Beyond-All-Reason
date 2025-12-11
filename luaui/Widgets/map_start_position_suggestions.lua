@@ -10,6 +10,20 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathCeil = math.ceil
+local mathMax = math.max
+local mathSin = math.sin
+local mathCos = math.cos
+local mathPi = math.pi
+local tableInsert = table.insert
+
+-- Localized Spring API for performance
+local spGetMouseState = Spring.GetMouseState
+local spGetGroundHeight = Spring.GetGroundHeight
+local spGetViewGeometry = Spring.GetViewGeometry
+
 --todo: gl4 (also make circles more transparent as you zoom in)
 
 local base64 = VFS.Include("common/luaUtilities/base64.lua")
@@ -46,7 +60,7 @@ local config = {
 	tutorialMaxWidthChars = 100,
 }
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 local resMult = vsy/1440
 
 -- engine call optimizations
@@ -129,7 +143,7 @@ local function getTeamSizes()
 		if allyTeamID ~= gaiaAllyTeamID then
 			allyTeamCount = allyTeamCount + 1
 			local teamList = Spring.GetTeamList(allyTeamID) or {}
-			playersPerTeam = math.max(playersPerTeam, #teamList)
+			playersPerTeam = mathMax(playersPerTeam, #teamList)
 		end
 	end
 
@@ -216,7 +230,7 @@ local tooltipStartTime = 0
 
 local placedCommanders = {}
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
 local function glListCache(originalFunc)
 	local cache = {}
@@ -233,7 +247,7 @@ local function glListCache(originalFunc)
 		local params = {}
 		for index, value in ipairs(rawParams) do
 			if index > 1 then
-				table.insert(params, value)
+				tableInsert(params, value)
 			end
 		end
 
@@ -310,8 +324,8 @@ local function drawArrow(a, b, size, cStart, cEnd)
 
 	gl.PushMatrix()
 	gl.Translate(a[1], a[2], a[3])
-	gl.Rotate(horizontalAngle * 180 / math.pi, 0, 1, 0) -- Rotate around Y-axis
-	gl.Rotate(verticalAngle * 180 / math.pi, 1, 0, 0) -- Tilt up or down
+	gl.Rotate(horizontalAngle * 180 / mathPi, 0, 1, 0) -- Rotate around Y-axis
+	gl.Rotate(verticalAngle * 180 / mathPi, 1, 0, 0) -- Tilt up or down
 
 	gl.BeginEnd(GL.QUADS, drawShaft)
 	gl.BeginEnd(GL.TRIANGLES, drawHead)
@@ -320,26 +334,26 @@ local function drawArrow(a, b, size, cStart, cEnd)
 end
 
 local function drawCircle(position, radius, segments, thickness, colors, colorsGlow)
-	local startAngle = -math.pi / 2
+	local startAngle = -mathPi / 2
 	local cx, cy, cz = unpack(position)
 
 	local function drawArc(r, s, t, a1, a2, ci, co)
 		for i = 0, s do
 			local angle = startAngle + a1 + (a2 - a1) * (i / s)
-			local xOuter = cx + r * math.cos(angle)
-			local zOuter = cz + r * math.sin(angle)
-			local xInner = cx + (r - t) * math.cos(angle)
-			local zInner = cz + (r - t) * math.sin(angle)
+			local xOuter = cx + r * mathCos(angle)
+			local zOuter = cz + r * mathSin(angle)
+			local xInner = cx + (r - t) * mathCos(angle)
+			local zInner = cz + (r - t) * mathSin(angle)
 
 			if ci ~= nil then
 				gl.Color(ci)
 			end
-			gl.Vertex(xInner, Spring.GetGroundHeight(xInner, zInner), zInner)
+			gl.Vertex(xInner, spGetGroundHeight(xInner, zInner), zInner)
 
 			if co ~= nil then
 				gl.Color(co)
 			end
-			gl.Vertex(xOuter, Spring.GetGroundHeight(xOuter, zOuter), zOuter)
+			gl.Vertex(xOuter, spGetGroundHeight(xOuter, zOuter), zOuter)
 		end
 	end
 
@@ -349,10 +363,10 @@ local function drawCircle(position, radius, segments, thickness, colors, colorsG
 			colors = { colors }
 		end
 
-		local s = math.ceil(segments / #colors)
+		local s = mathCeil(segments / #colors)
 		for i, co in ipairs(colors) do
-			local a1 = i * 2 * math.pi / #colors
-			local a2 = (i + 1) * 2 * math.pi / #colors
+			local a1 = i * 2 * mathPi / #colors
+			local a2 = (i + 1) * 2 * mathPi / #colors
 			gl.BeginEnd(
 				GL.TRIANGLE_STRIP, drawArc,
 				radius,
@@ -372,11 +386,11 @@ local function drawCircle(position, radius, segments, thickness, colors, colorsG
 			colorsGlow = { colorsGlow }
 		end
 
-		local s = math.ceil(segments / #colorsGlow)
+		local s = mathCeil(segments / #colorsGlow)
 		for i, co in ipairs(colorsGlow) do
 			local ci = { co[1], co[2], co[3], 0 }
-			local a1 = i * 2 * math.pi / #colorsGlow
-			local a2 = (i + 1) * 2 * math.pi / #colorsGlow
+			local a1 = i * 2 * mathPi / #colorsGlow
+			local a2 = (i + 1) * 2 * mathPi / #colorsGlow
 			local baseRadius = config.glowRadiusCoefficient < 0 and radius or radius - thickness
 			gl.BeginEnd(
 				GL.TRIANGLE_STRIP, drawArc,
@@ -412,7 +426,7 @@ local drawAllStartLocationsCircles = glListCache(function()
 				local p = placed.position
 
 				if math.diag(sx - p[1], sz - p[3]) < config.circleRadius then
-					table.insert(circleColors, table.pack(Spring.GetTeamColor(placed.teamID)))
+					tableInsert(circleColors, table.pack(Spring.GetTeamColor(placed.teamID)))
 				end
 			end
 
@@ -422,7 +436,7 @@ local drawAllStartLocationsCircles = glListCache(function()
 			end
 
 			drawCircle(
-				{ sx, Spring.GetGroundHeight(sx, sz), sz },
+				{ sx, spGetGroundHeight(sx, sz), sz },
 				config.circleRadius,
 				128,
 				config.circleThickness,
@@ -447,8 +461,8 @@ local drawAllStartLocationsCircles = glListCache(function()
 				)
 
 				drawArrow(
-					{ sx, Spring.GetGroundHeight(sx, sz), sz },
-					{ bx, Spring.GetGroundHeight(bx, bz), bz },
+					{ sx, spGetGroundHeight(sx, sz), sz },
+					{ bx, spGetGroundHeight(bx, bz), bz },
 					70,
 					multiplyAlpha(config.spawnPointCircleColor, 0),
 					config.spawnPointCircleColor
@@ -493,7 +507,7 @@ local function drawAllStartLocationsText()
 			local sx, sz = position.spawnPoint.x, position.spawnPoint.z
 
 			glPushMatrix()
-			glTranslate(sx, Spring.GetGroundHeight(sx, sz), sz)
+			glTranslate(sx, spGetGroundHeight(sx, sz), sz)
 
 			glRotate(-90, 1, 0, 0)
 			if cameraState.flipped == 1 then
@@ -501,7 +515,7 @@ local function drawAllStartLocationsText()
 				glRotate(180, 0, 0, 1)
 			elseif cameraState.mode == 2 then
 				-- spring camera
-				glRotate(-180 * ry / math.pi, 0, 0, 1)
+				glRotate(-180 * ry / mathPi, 0, 0, 1)
 			end
 
 			local showRole = position.role ~= nil
@@ -541,7 +555,7 @@ local function wrapLine(str, maxLength)
 
 	for word in str:gmatch("%S+") do
 		if #line + #word + 1 > maxLength then
-			table.insert(result, line)
+			tableInsert(result, line)
 			line = word
 		else
 			if #line > 0 then
@@ -553,7 +567,7 @@ local function wrapLine(str, maxLength)
 	end
 
 	if #line > 0 then
-		table.insert(result, line)
+		tableInsert(result, line)
 	end
 
 	return table.concat(result, "\n")
@@ -580,7 +594,7 @@ local function drawTooltip()
 		end
 	end
 
-	local x, y = Spring.GetMouseState()
+	local x, y = spGetMouseState()
 	if not x or not y then
 		return
 	end
@@ -618,9 +632,9 @@ local function drawTutorial()
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 	resMult = vsy/1440
-	local baseFontSize = math.max(config.playerTextSize, config.roleTextSize) * 0.6
+	local baseFontSize = mathMax(config.playerTextSize, config.roleTextSize) * 0.6
 	font = gl.LoadFont(
 		"fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
 		baseFontSize*resMult,
@@ -659,10 +673,12 @@ end
 
 function widget:Shutdown()
 	drawAllStartLocationsCircles.invalidate()
+	gl.DeleteFont(font)
+	gl.DeleteFont(fontTutorial)
 end
 
 local function checkTooltips()
-	local mx, my = Spring.GetMouseState()
+	local mx, my = spGetMouseState()
 	local _, mw = Spring.TraceScreenRay(mx, my, true, true)
 	local mwx, mwy, mwz
 	if mw ~= nil then
@@ -703,7 +719,7 @@ local function getPlacedCommanders()
 		if name ~= nil and not spec and teamID ~= gaiaTeamID then
 			local x, y, z = Spring.GetTeamStartPosition(teamID)
 			if x and y and z then
-				table.insert(newPlacedCommanders, {
+				tableInsert(newPlacedCommanders, {
 					position = { x, y, z },
 					teamID = teamID,
 					playerID = playerID,

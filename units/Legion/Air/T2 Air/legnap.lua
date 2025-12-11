@@ -33,7 +33,7 @@ return {
 		script = "Units/CORHURC.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
-		sightdistance = 221,
+		sightdistance = 430,
 		speedtofront = 0.063,
 		turnradius = 64,
 		turnrate = 400,

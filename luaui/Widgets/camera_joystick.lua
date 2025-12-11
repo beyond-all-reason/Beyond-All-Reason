@@ -11,6 +11,14 @@ function widget:GetInfo()
 		enabled	 = false
 	}
 end
+
+-- Localized functions for performance
+local mathMax = math.max
+local mathPi = math.pi
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 ---------------------INFO------------------------
 -- 1. Start your joystick server: https://github.com/Beherith/camera_joystick_springrts
 -- 2. Set your controller type with /luaui joystick
@@ -205,7 +213,6 @@ local buttonCommands = { -- key is button number, value is command like you woul
 
 --------------------------------------------------------------------------------
 local spGetCameraState	 = Spring.GetCameraState
-local spGetCameraVectors = Spring.GetCameraVectors
 local spSetCameraState	 = Spring.SetCameraState
 
 --------------------------------------------------------------------------------
@@ -213,7 +220,6 @@ local host = "127.0.0.1"
 local port = "51234"
 local client
 local set
-local isConnected = false
 local mincameraheight = 32 -- min camera Y in elmos
 local movemult = 3.0 -- move speed multiplier
 local rotmult = 0.2	-- rotation speed multiplier
@@ -254,11 +260,11 @@ end
 
 toggleRecording = function ()
 	if isplayingback then
-		Spring.Echo("Cant start playback while recording")
+		spEcho("Cant start playback while recording")
 		return
 	end
 	isrecording = not isrecording
-	Spring.Echo("Camera joystick recording toggled to", isrecording)
+	spEcho("Camera joystick recording toggled to", isrecording)
 	if isrecording then
 		storedCameraSequence = {}
 	else
@@ -268,11 +274,11 @@ end
 
 togglePlayback = function()
 	if isrecording then
-		Spring.Echo("Cant start playback while recording")
+		spEcho("Cant start playback while recording")
 		return
 	end
 	isplayingback = not isplayingback
-	Spring.Echo("Camera joystick playback toggled to", isrecording)
+	spEcho("Camera joystick playback toggled to", isrecording)
 
 	if isplayingback then
 		playbackpos = 1
@@ -283,7 +289,7 @@ end
 local function dumpConfig()
 	-- dump all luasocket related config settings to console
 	for _, conf in ipairs({"TCPAllowConnect", "TCPAllowListen", "UDPAllowConnect", "UDPAllowListen"	}) do
-		Spring.Echo(conf .. " = " .. Spring.GetConfigString(conf, ""))
+		spEcho(conf .. " = " .. Spring.GetConfigString(conf, ""))
 	end
 end
 
@@ -317,13 +323,13 @@ local function SocketConnect(host, port)
 	res, err = client:connect(host, port)
 	if not res and err ~= "timeout" then
 		client:close()
-		Spring.Echo("Unable to connect to joystick server: ",res, err, "Restart widget after server is started")
+		spEcho("Unable to connect to joystick server: ",res, err, "Restart widget after server is started")
 		return false
 	end
 	set = newset()
 	set:insert(client)
 
-	Spring.Echo("Connected to joystick server", res, err)
+	spEcho("Connected to joystick server", res, err)
 	return true
 end
 
@@ -331,22 +337,22 @@ function widget:TextCommand(command)
 	if string.find(command, "joystick", nil, true) then
 		command = string.lower(command)
 		if string.find(command, "ps3", nil, true) then
-			Spring.Echo("Enabling PS3 controller layout")
+			spEcho("Enabling PS3 controller layout")
 			PS3()
 		elseif string.find(command, "ps4",nil, true) then
-			Spring.Echo("Enabling PS4 controller layout")
+			spEcho("Enabling PS4 controller layout")
 			PS4()
 		elseif string.find(command, "xbox", nil, true) then
-			Spring.Echo("Enabling XBox Series S controller layout")
+			spEcho("Enabling XBox Series S controller layout")
 			XBoxSeriesS()
 		elseif string.find(command, "xbox360", nil, true) then
-			Spring.Echo("Enabling XBox 360 controller layout")
+			spEcho("Enabling XBox 360 controller layout")
 			XBox360()
 		elseif string.find(command, "xiaomi", nil, true) then
-			Spring.Echo("Enabling Xiaomi wireless controller layout")
+			spEcho("Enabling Xiaomi wireless controller layout")
 			XiaomiWireless()
 		else
-			Spring.Echo("Could not find a matching controller type for command", command)
+			spEcho("Could not find a matching controller type for command", command)
 		end
 		return true
 	end
@@ -355,7 +361,7 @@ end
 
 function widget:Initialize()
 	Spring.SendCommands({"set SmoothTimeOffset 2"})
-	Spring.Echo("Started Camera Joystick, make sure you are running the joystick server, and switch camera to Ctrl+F4")
+	spEcho("Started Camera Joystick, make sure you are running the joystick server, and switch camera to Ctrl+F4")
 	if debugMode then dumpConfig() end
 	local connected = SocketConnect(host, port)
 	if connected then
@@ -383,9 +389,8 @@ end
 local Json = Json or VFS.Include('common/luaUtilities/json.lua')
 
 local buttonorder = { LeftXAxis, LeftYAxis, RightXAxis, RightYAxis, RightTrigger, LeftTrigger, DpadUp, DpadDown, DpadRight, DpadLeft, Abutton, Bbutton, Xbutton,Ybutton, LShoulderbutton ,RShoulderbutton, RStickButton , LStickButton }
-local oldjoystate = nil
 local function SocketDataReceived(sock, str)
-	--Spring.Echo(str)
+	--spEcho(str)
 
 	local newjoystate = Json.decode(str)
 
@@ -394,8 +399,8 @@ local function SocketDataReceived(sock, str)
 	-- validate all defined controls:
 	for i, but in ipairs(buttonorder) do
 		if but and joystate[but[1]][but[2]] == nil then
-			Spring.Echo(joystatetostr(joystate))
-			Spring.Echo("Warning: control missing:",but[1],but[2])
+			spEcho(joystatetostr(joystate))
+			spEcho("Warning: control missing:",but[1],but[2])
 		end
 	end
 
@@ -415,7 +420,7 @@ local function SocketDataReceived(sock, str)
 		for btnindex, cmd in pairs(buttonCommands) do
 			if joystate.buttons[btnindex] then
 				if joystate.buttons[btnindex] == 0 and newjoystate.buttons[btnindex] == 1 then
-					Spring.Echo("Button",btnindex,"pressed, sending command")
+					spEcho("Button",btnindex,"pressed, sending command")
 					cmd()
 				end
 			end
@@ -425,15 +430,15 @@ local function SocketDataReceived(sock, str)
 end
 
 local function SocketClosed(sock)
-	Spring.Echo("Camera Joystick: closed connection")
+	spEcho("Camera Joystick: closed connection")
 end
 
 local matrix = {}
 matrix[0],matrix[1],matrix[2] = {},{},{};
 
 local function rotateVector(vector,axis,phi)
-	local rcos = math.cos(math.pi*phi/180);
-	local rsin = math.sin(math.pi*phi/180);
+	local rcos = math.cos(mathPi*phi/180);
+	local rsin = math.sin(mathPi*phi/180);
 	local u,v,w = axis[1],axis[2],axis[3];
 
 
@@ -491,7 +496,7 @@ function widget:Update(dt) -- dt in seconds
 			-- nothing to do, return
 			return
 		end
-		Spring.Echo("Error in select: " .. error)
+		spEcho("Error in select: " .. error)
 	end
 	for _, input in ipairs(readable) do
 		local s, status, partial = input:receive('*a') --try to read all data
@@ -510,29 +515,29 @@ function widget:Update(dt) -- dt in seconds
 
 	if cs.name == "rot" and joystate.axes then
 		if joystate[Ybutton[1]][Ybutton[2]] and joystate[Ybutton[1]][Ybutton[2]] == 1 then -- A button dumps debug
-			Spring.Echo(joystatetostr(joystate))
+			spEcho(joystatetostr(joystate))
 		end
 
 		if joystate[DpadUp[1]][DpadUp[2]] and joystate[DpadUp[1]][DpadUp[2]] == DpadUp[3] then
 			movemult = movemult * movechangefactor
 			rotmult = rotmult * movechangefactor
-			Spring.Echo("Speed increased to ",movemult)
+			spEcho("Speed increased to ",movemult)
 		end
 
 		if joystate[DpadDown[1]][DpadDown[2]] and joystate[DpadDown[1]][DpadDown[2]] == DpadDown[3] then
 			movemult = movemult / movechangefactor
 			rotmult = rotmult / movechangefactor
-			Spring.Echo("Speed decreased to ",movemult)
+			spEcho("Speed decreased to ",movemult)
 		end
 
 		if joystate[DpadRight[1]][DpadRight[2]] and joystate[DpadRight[1]][DpadRight[2]] == DpadRight[3] then
 			smoothing = smoothchangefactor * 1.0 + (1.0 - smoothchangefactor ) * smoothing
-			Spring.Echo("Smoothing increased to ",smoothing)
+			spEcho("Smoothing increased to ",smoothing)
 		end
 
 		if joystate[DpadLeft[1]][DpadLeft[2]] and joystate[DpadLeft[1]][DpadLeft[2]] == DpadLeft[3] then
 			smoothing = (1.0 - smoothchangefactor ) * smoothing
-			Spring.Echo("Smoothing decreased to ",smoothing)
+			spEcho("Smoothing decreased to ",smoothing)
 		end
 
 		if (dt>0)	and (dt < 1.0/75 or dt > 1.0/45) then -- correct for <45 fps and >75fps as there is some jitter in frames
@@ -540,12 +545,12 @@ function widget:Update(dt) -- dt in seconds
 			--frameSpeed = 1 * 0.9 + 60 * dt * 0.1 -- some exponential smoothing
 			frameSpeed = 1 -- no smoothing
 
-			if debugMode then Spring.Echo("speed correction",dt,frameSpeed) end
+			if debugMode then spEcho("speed correction",dt,frameSpeed) end
 		end
 		local ndx, ndz = norm2d(cs.dx, cs.dz)
 
 		if debugMode and Spring.GetGameFrame() %60 ==0 then
-			Spring.Echo(ndx, ndz, cs.dx, cs.dy, cs.dz)
+			spEcho(ndx, ndz, cs.dx, cs.dy, cs.dz)
 		end
 
 			-- Move left-right
@@ -596,7 +601,7 @@ function widget:Update(dt) -- dt in seconds
 
 		-- Prevent the camera from going too low
 		local gh = Spring.GetGroundHeight(cs.px,cs.pz)
-		cs.py = math.max(mincameraheight, math.max(cs.py , gh + 32))
+		cs.py = mathMax(mincameraheight, mathMax(cs.py , gh + 32))
 		--if cs.py < gh + 32 then cs.py =gh + 32 end
 
 		spSetCameraState(cs,0)

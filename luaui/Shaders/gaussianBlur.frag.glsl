@@ -1,4 +1,5 @@
-#version 150 compatibility
+#version 430 core
+
 
 //__DEFINES__
 
@@ -16,6 +17,14 @@ uniform vec2 dir;
 uniform float strengthMult;
 
 uniform vec2 viewPortSize;
+
+
+in DataVS {
+	vec4 vs_position_texcoords;
+};
+
+out vec4 fragColor;
+
 #line 1018
 void main(void)
 {
@@ -26,7 +35,7 @@ void main(void)
 
 	#if USE_STENCIL == 1 
 		if (texture(unitStencilTex, uv).r < 0.1) {
-			gl_FragColor = vec4(0.0,0.0, 0.0, 1.0);	return;
+			fragColor = vec4(0.0,0.0, 0.0, 1.0);	return;
 		}
 	#endif
 
@@ -95,7 +104,7 @@ void main(void)
 
 		};
 		//if (imground > 0.5) {howLit = unWeighted;}
-		gl_FragColor = vec4(texSample.rgb, howLit);
+		fragColor = vec4(texSample.rgb, howLit);
 
 		// FINAL MIXDOWN, vert pass last
 		if (dir.y > 0.5) { 
@@ -103,23 +112,23 @@ void main(void)
 			howLit = pow(howLit, BLUR_POWER);
 			howLit = sqrt(howLit * howLit + BLUR_CLAMP);
 			#if DEBUG_BLUR == 1 
-				gl_FragColor.rgba = vec4(howLit);
+				fragColor.rgba = vec4(howLit);
 			#else
-				gl_FragColor.rgba = vec4(howLit);
+				fragColor.rgba = vec4(howLit);
 				#if (BRIGHTEN != 0) 
 					if (imground < 0.5) {  // is model fragment
 						float distRatio = SSAO_FADE_DIST_1/(1.0 * SSAO_FADE_DIST_0);
 						float distFactor = 1.0 - smoothstep(0, distRatio, myDistance - distRatio ); // 0 at far distance, 1 at near distance
 
 						float brightenFactor = (BRIGHTEN/255.0) * howLit * distFactor;
-						gl_FragColor.rgb = vec3(brightenFactor);
+						fragColor.rgb = vec3(brightenFactor);
 					}else{
-						gl_FragColor.rgb = vec3(0);
+						fragColor.rgb = vec3(0);
 
 					}
 				#endif
-				gl_FragColor.rgb *= strengthMult;
-				gl_FragColor.a = 1.0 - ((1.0 - gl_FragColor.a) * strengthMult );
+				fragColor.rgb *= strengthMult;
+				fragColor.a = 1.0 - ((1.0 - fragColor.a) * strengthMult );
 			#endif
 
 		};

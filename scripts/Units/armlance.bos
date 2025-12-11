@@ -1,53 +1,9 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece base, cockpit, rwing, rventblade, rbwing, lwing, lventblade, lbwing, fdoor, bdoor, bombdrop, thrust1;
-static-var  statechg_DesiredState, statechg_StateChanging;
 
-
-activatescr()
-{
-	if( TRUE )
-	{
-		turn lwing to y-axis <-0> speed <45>;
-		turn rwing to y-axis <0> speed <45>;
-		move lwing to x-axis [0] speed [10.0];
-		move rwing to x-axis [0] speed [10.0];
-		sleep 750;
-	}
-		if( TRUE )
-	{
-		move lwing to x-axis [0] speed [10.0];
-		move rwing to x-axis [0] speed [10.0];
-		spin rventblade around y-axis speed <540> accelerate <5>;
-		spin lventblade around y-axis speed <540> accelerate <5>;
-		sleep 1000;
-	}
-	sleep 12;
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-		move lwing to x-axis [6.0] speed [10.0];
-		move rwing to x-axis [-6.0] speed [10.0];
-		sleep 683;
-	}
-	
-	if( TRUE )
-	{
-		turn lwing to y-axis <45> speed <45>;
-		turn rwing to y-axis <-45> speed <45>;
-		stop-spin lventblade around y-axis decelerate <1>;
-		stop-spin rventblade around y-axis decelerate <1>;
-		sleep 1000;
-	}
-	sleep 33;
-}
-
+#define SIGNAL_TURNON 4
 
 #define BASEPIECE base
 #define HITSPEED <35.0>
@@ -55,43 +11,12 @@ deactivatescr()
 #define UNITSIZE 1
 #define MAXTILT 100
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script activatescr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script deactivatescr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
 	hide thrust1;
 	hide bombdrop;
-	call-script InitState();
+
 	move lwing to x-axis [6.0] now;
 	move rwing to x-axis [-6.0] now;
 	turn lwing to y-axis <45> now;
@@ -101,24 +26,49 @@ Create()
 
 Activate()
 {
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	show thrust1;
-	start-script RequestState(0);
+	
+	spin rventblade around y-axis speed <540> accelerate <5>;
+	spin lventblade around y-axis speed <540> accelerate <5>;
+
+	turn lwing to y-axis <-0> speed <45>;
+	turn rwing to y-axis <0> speed <45>;
+	move lwing to x-axis [0] speed [10.0];
+	move rwing to x-axis [0] speed [10.0];
+	wait-for-turn lwing around y-axis;
+	wait-for-move lwing along x-axis;
+
+	move lwing to x-axis [0] speed [10.0];
+	move rwing to x-axis [0] speed [10.0];
+	wait-for-move lwing along x-axis;
+
 }
 
 Deactivate()
 {
-	hide thrust1;
-	start-script RequestState(1);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+
+	move lwing to x-axis [6.0] speed [10.0];
+	move rwing to x-axis [-6.0] speed [10.0];
+	wait-for-move lwing along x-axis;
+	
+
+	turn lwing to y-axis <45> speed <45>;
+	turn rwing to y-axis <-45> speed <45>;
+	wait-for-turn lwing around y-axis;
+
+	stop-spin lventblade around y-axis decelerate <1>;
+	stop-spin rventblade around y-axis decelerate <1>;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
-QueryPrimary(piecenum)
+
+QueryWeapon1(pieceIndex)
 {
-	piecenum = bombdrop;
+	pieceIndex = bombdrop;
 }
 
 Killed(severity, corpsetype)

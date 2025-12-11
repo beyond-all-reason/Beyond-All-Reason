@@ -1,42 +1,53 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  flare1, flare2, base, turret, lwheel, rwheel, mlauncher;
+piece  flare1, flare2, base, turret, lwheel,rwheel, mlauncher;
 
 static-var  restore_delay, gun_1, fired, aiming;
 
 // Signal definitions
-#define SIG_AIM				4
-#define SIG_AIM_2			8
-#define SIG_FIRED			16
-#define SIG_AIMING			32
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_IDLE 8 
+#define SIGNAL_SHOOT1 16
+
 
 #define BASEPIECE base
 #define HITSPEED <75.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 1
 #define MAXTILT 100
+#define RECOIL_POWER 5000
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.10>
+#define TB_BANK_Z <0.10> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
 
 Create()
 {
 	hide flare1;
 	hide flare2;
-	hide flare1;
-	hide flare2;
+	gun_1 = flare1;
 	fired = 0;
 	aiming = 0;
-	gun_1 = flare1;
 	restore_delay = 3000;
+	call-script TB_Init();
+}
+
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 2;
 }
 
 ResetFire()
 {
-	signal SIG_FIRED;
-	set-signal-mask SIG_FIRED;
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	fired = 1;
 	sleep 3000;
 	fired = 0;
@@ -44,17 +55,13 @@ ResetFire()
 
 ResetAiming()
 {
-	signal SIG_AIMING;
-	set-signal-mask SIG_AIMING;
+	signal SIGNAL_IDLE;
+	set-signal-mask SIGNAL_IDLE;
 	aiming = 1;
 	sleep 500;
 	aiming = 0;
 }
 
-SetMaxReloadTime(Func_Var_1)
-{
-	restore_delay = Func_Var_1 * 2;
-}
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -62,8 +69,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-    fired = 0;
-	turn turret to y-axis <0.000000> speed <90.021978>;
+	fired = 0;
+	turn turret to y-axis <0.0> speed <90.021978>;
 }
 SetStunned(State)
 {
@@ -78,18 +85,16 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	start-script ResetAiming();
-	turn turret to y-axis heading speed <250.060440>;
+	turn turret to y-axis heading speed <250>;
 	turn mlauncher to x-axis -1*pitch speed <200>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn mlauncher around x-axis;
 	start-script RestoreAfterDelay();
-	//sleep 300;
 	if(fired == 1)
 	{
 		return (0);
@@ -100,46 +105,35 @@ AimWeapon1(heading, pitch)
 FireWeapon1()
 {
 	start-script ResetFire();
-	if( gun_1 == 0 )
-	{
-		show flare1;
-		sleep 150;
-		hide flare1;
-	}
-	if( gun_1 == 1 )
-	{
-		show flare2;
-		sleep 150;
-		hide flare2;
-	}
 	gun_1 = !gun_1;
 	return (0);
 }
 
-AimFromWeapon1(piecenum)
+
+
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = mlauncher;
+	pieceIndex = mlauncher;
 }
 
-QueryWeapon1(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = gun_1;
+	pieceIndex = flare1 + gun_1;
 }
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	if(aiming == 1)
 	{
 		return (0);
 	}
-	turn turret to y-axis heading speed <250.060440>;
+	turn turret to y-axis heading speed <250>;
 	turn mlauncher to x-axis -1*pitch speed <200>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn mlauncher around x-axis;
 	start-script RestoreAfterDelay();
-	//sleep 300;
 	if(fired == 1)
 	{
 		return (0);
@@ -150,20 +144,12 @@ AimWeapon2(heading, pitch)
 FireWeapon2()
 {
 	start-script ResetFire();
-	if( gun_1 == 0 )
-	{
-		show flare1;
-		sleep 150;
-		hide flare1;
-	}
-	if( gun_1 == 1 )
-	{
-		show flare2;
-		sleep 150;
-		hide flare2;
-	}
-	gun_1 = !gun_1;
 	return (0);
+}
+
+EndBurst2()
+{
+	gun_1 = !gun_1;
 }
 
 AimFromWeapon2(piecenum)
@@ -173,24 +159,25 @@ AimFromWeapon2(piecenum)
 
 QueryWeapon2(piecenum)
 {
-	piecenum = gun_1;
+	piecenum = flare1 + gun_1;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
-StartMoving()
+StartMoving(reversing)
 {
 	spin lwheel around x-axis speed <150> accelerate <15>;
 	spin rwheel around x-axis speed <150> accelerate <15>;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 
+	START_TILTBANK;
 }
 StopMoving()
 {
 	stop-spin rwheel around x-axis;
 	stop-spin lwheel around x-axis;
 	
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 Killed(severity, corpsetype)
 {
@@ -199,8 +186,6 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare1 type BITMAPONLY | NOHEATCLOUD;
-		//explode flare2 type BITMAPONLY | NOHEATCLOUD;
 		explode rwheel type BITMAPONLY | NOHEATCLOUD;
 		explode lwheel type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
@@ -210,8 +195,6 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FALL | NOHEATCLOUD;
-		//explode flare1 type FALL | NOHEATCLOUD;
-		//explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lwheel type FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -221,8 +204,6 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -230,8 +211,6 @@ Killed(severity, corpsetype)
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode lwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;

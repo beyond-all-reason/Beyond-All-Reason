@@ -1,18 +1,17 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  flare1, flare6,flare7, flare5, flare4, flare3, flare2, base, turret;
 
-static-var  Static_Var_1, gun_1, last_fire, firstaim;
+static-var  gun_1, last_fire, firstaim;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -47,17 +46,14 @@ Create()
 	hide flare5;
 	gun_1 = flare1;
 	firstaim = 1;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	stop-spin turret around y-axis;
 	turn turret to y-axis heading speed <250>;
 	if (firstaim == 1) {
@@ -73,71 +69,26 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
-	if( gun_1 == 0 )
-	{
-		show flare1;
-		sleep 50;
-		hide flare1;
-	}
-	if( gun_1 == 1 )
-	{
-		show flare2;
-		sleep 50;
-		hide flare2;
-	}
-	if( gun_1 == 2 )
-	{
-		show flare3;
-		sleep 50;
-		hide flare3;
-	}
-	if( gun_1 == 3 )
-	{
-		show flare4;
-		sleep 50;
-		hide flare4;
-	}
-	if( gun_1 == 4 )
-	{
-		show flare5;
-		sleep 50;
-		hide flare5;
-	}
-	if( gun_1 == 5 )
-	{
-		show flare6;
-		sleep 50;
-		hide flare6;
-	}
-	if( gun_1 == 6 )
-	{
-		show flare7;
-		sleep 50;
-		hide flare7;
-	}
 	++gun_1;
 	if( gun_1 == 7 )
 	{
-		gun_1 = flare1;
+		gun_1 = 0;
 	}
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = gun_1;
+	pieceIndex = gun_1;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {
