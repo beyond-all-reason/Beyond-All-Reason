@@ -2014,7 +2014,6 @@ end
 --
 
 function gadgetHandler:FeatureCreated(featureID, allyTeam, sourceID)
-	Spring.Echo("GH FC", sourceID, featureID)
 	tracy.ZoneBeginN("G:FeatureCreated")
 	for _, g in ipairs(self.FeatureCreatedList) do
 		g:FeatureCreated(featureID, allyTeam, sourceID)
