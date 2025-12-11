@@ -135,6 +135,11 @@ function gadget:Initialize()
 
 	-- Calculate remaining units for regular teams
 	local remainingMaxUnits = totalMaxUnits - scavRaptorAllocation
+	
+	-- Cap the remaining pool based on the modoption maxunits limit
+	-- This ensures we don't distribute more than intended per team
+	local cappedRemainingMaxUnits = mathMin(remainingMaxUnits, totalRegularTeams * maxunits)
+	remainingMaxUnits = cappedRemainingMaxUnits
 
 	-- Build map of regular teams by allyteam for equalization (exclude allyteams with only scav/raptor)
 	local regularAllyTeamSizes = {}
@@ -293,23 +298,29 @@ function gadget:Initialize()
 				local perTeam = mathFloor(gaiaExcess / #regularTeams)
 				local remaining = gaiaExcess
 
-				-- Give each team their fair share
+				-- Give each team their fair share (respecting maxunits cap)
 				for _, teamID in ipairs(regularTeams) do
 					if remaining > 0 then
-						local transferAmount = mathMin(perTeam, remaining)
-						Spring.TransferTeamMaxUnits(gaiaTeamID, teamID, transferAmount)
-						remaining = remaining - transferAmount
+						local currentMaxUnits = Spring.GetTeamMaxUnits(teamID)
+						local transferAmount = mathMin(perTeam, remaining, maxunits - currentMaxUnits)
+						if transferAmount > 0 then
+							Spring.TransferTeamMaxUnits(gaiaTeamID, teamID, transferAmount)
+							remaining = remaining - transferAmount
+						end
 					end
 				end
 
-				-- Distribute any leftover from rounding
+				-- Distribute any leftover from rounding (respecting maxunits cap)
 				if remaining > 0 then
 					for _, teamID in ipairs(regularTeams) do
 						if remaining <= 0 then
 							break
 						end
-						Spring.TransferTeamMaxUnits(gaiaTeamID, teamID, 1)
-						remaining = remaining - 1
+						local currentMaxUnits = Spring.GetTeamMaxUnits(teamID)
+						if currentMaxUnits < maxunits then
+							Spring.TransferTeamMaxUnits(gaiaTeamID, teamID, 1)
+							remaining = remaining - 1
+						end
 					end
 				end
 			end
