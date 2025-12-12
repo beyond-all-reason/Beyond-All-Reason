@@ -16,13 +16,11 @@ end
 
 local CMD_GUARD = CMD.GUARD
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams)
-    -- Only guard commands
-    if cmdID ~= CMD_GUARD then
-        return true
-    end
+function gadget:Initialize()
+    gadgetHandler:RegisterAllowCommand(CMD_GUARD)
+end
 
-    -- targetID = cmdParams[1]
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams)
     local targetID = cmdParams[1]
 
     -- Block self-guard for ALL units
