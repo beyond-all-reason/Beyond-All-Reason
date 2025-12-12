@@ -1459,6 +1459,35 @@ function widget:Initialize()
 		redraw = true
 		refreshCommands()
 	end
+
+	local blockedUnits = {}
+
+	WG['gridmenu'].addBlockReason = function(uDefID, reason)
+		blockedUnits[uDefID] = blockedUnits[uDefID] or {}
+		blockedUnits[uDefID][reason] = true
+		units.unitRestricted[uDefID] = true
+		redraw = true
+		updateGrid()
+	end
+
+	WG['gridmenu'].removeBlockReason = function(uDefID, reason)
+		if blockedUnits[uDefID] then
+			blockedUnits[uDefID][reason] = nil
+			if not next(blockedUnits[uDefID]) then
+				blockedUnits[uDefID] = nil
+				
+				if UnitDefs[uDefID].maxThisUnit ~= 0 then
+					units.unitRestricted[uDefID] = false
+				end
+
+				units.restrictWaterUnits(not showWaterUnits)
+				units.restrictWindUnits(windFunctions.isWindDisabled())
+				units.checkGeothermalFeatures()
+			end
+			redraw = true
+			updateGrid()
+		end
+	end
 end
 
 -------------------------------------------------------------------------------
