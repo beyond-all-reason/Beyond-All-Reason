@@ -189,7 +189,7 @@ function DrawWindow()
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 
 	-- title background
-	local title = Spring.I18N('ui.topbar.button.objectives')
+	local title = Spring.I18N('ui.topbar.button.game')
 	local titleFontSize = 18 * widgetScale
 	titleRect = { screenX, screenY, mathFloor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), mathFloor(screenY + (titleFontSize*1.7)) }
 
@@ -319,6 +319,7 @@ function widget:Initialize()
 
 	show = hasAlwaysShowObjectives or hasUnseen
 
+	-- Always register the WG API so other widgets can add objectives dynamically
 	WG['objectives_info'] = {}
 	WG['objectives_info'].toggle = function(state)
 		if state ~= nil then
@@ -342,6 +343,10 @@ function widget:Initialize()
 	end
 	WG['objectives_info'].isvisible = function()
 		return show
+	end
+
+	WG['objectives_info'].hasObjectives = function()
+		return #textTable > 0
 	end
 
 	WG['objectives_info'].addObjective = function(objectiveType, alwaysShow)
@@ -378,6 +383,10 @@ function widget:Initialize()
 
 			if shouldShow then
 				show = true
+			end
+
+			if WG['topbar'] and WG['topbar'].refreshButtons then
+				WG['topbar'].refreshButtons()
 			end
 
 			return true
