@@ -312,95 +312,85 @@ function widget:Initialize()
 	textTable = {}
 	hasAlwaysShowObjectives = false
 	hasUnseen = false
-	
+
 	initializeObjectives()
 
-	if not next(textTable) then
-		widgetHandler:RemoveWidget()
-		return false
-	end
-	
-	
 	allText = table.concat(textTable, "\n______________________________________________________________________________\n\n")
-	
+
 	show = hasAlwaysShowObjectives or hasUnseen
 
-	if allText then
-		WG['objectives_info'] = {}
-		WG['objectives_info'].toggle = function(state)
-			if state ~= nil then
-				show = state
-			else
-				show = not show
-			end
-			
-			if not show then
-				local objectivesChanged = false
-				for objectiveType, seen in pairs(seenObjectives) do
-					if not seen then
-						seenObjectives[objectiveType] = true
-						objectivesChanged = true
-					end
-				end
-				if objectivesChanged then
-					hasUnseen = false
-				end
-			end
-		end
-		WG['objectives_info'].isvisible = function()
-			return show
-		end
-		
-		WG['objectives_info'].addObjective = function(objectiveType, alwaysShow)
-			local objectiveText = Spring.I18N("objectives." .. objectiveType)
-			if objectiveText then
-				local shouldShow = false
-				
-				if alwaysShow then
-					hasAlwaysShowObjectives = true
-					table.insert(textTable, objectiveText)
-					shouldShow = true
-				else
-					if seenObjectives[objectiveType] == nil then
-						seenObjectives[objectiveType] = false
-					end
-					
-					table.insert(textTable, 1, objectiveText)
-					
-					if seenObjectives[objectiveType] == false then
-						hasUnseen = true
-						shouldShow = true
-					end
-				end
-				
-				allText = table.concat(textTable, "\n______________________________________________________________________________\n\n")
-				
-				textLines = string.lines(allText)
-				totalTextLines = #textLines
-				
-				if textList then
-					glDeleteList(textList)
-				end
-				textList = gl.CreateList(DrawWindow)
-				
-				if shouldShow then
-					show = true
-				end
-				
-				return true
-			else
-				Spring.Echo("Objective not found: " .. objectiveType)
-				return false
-			end
+	WG['objectives_info'] = {}
+	WG['objectives_info'].toggle = function(state)
+		if state ~= nil then
+			show = state
+		else
+			show = not show
 		end
 
+		if not show then
+			local objectivesChanged = false
+			for objectiveType, seen in pairs(seenObjectives) do
+				if not seen then
+					seenObjectives[objectiveType] = true
+					objectivesChanged = true
+				end
+			end
+			if objectivesChanged then
+				hasUnseen = false
+			end
+		end
+	end
+	WG['objectives_info'].isvisible = function()
+		return show
+	end
+
+	WG['objectives_info'].addObjective = function(objectiveType, alwaysShow)
+		local objectiveText = Spring.I18N("objectives." .. objectiveType)
+		if objectiveText then
+			local shouldShow = false
+
+			if alwaysShow then
+				hasAlwaysShowObjectives = true
+				table.insert(textTable, objectiveText)
+				shouldShow = true
+			else
+				if seenObjectives[objectiveType] == nil then
+					seenObjectives[objectiveType] = false
+				end
+
+				table.insert(textTable, 1, objectiveText)
+
+				if seenObjectives[objectiveType] == false then
+					hasUnseen = true
+					shouldShow = true
+				end
+			end
+
+			allText = table.concat(textTable, "\n______________________________________________________________________________\n\n")
+
+			textLines = string.lines(allText)
+			totalTextLines = #textLines
+
+			if textList then
+				glDeleteList(textList)
+			end
+			textList = gl.CreateList(DrawWindow)
+
+			if shouldShow then
+				show = true
+			end
+
+			return true
+		else
+			Spring.Echo("Objective not found: " .. objectiveType)
+			return false
+		end
+	end
+
+	if allText and #textLines > 0 then
 		textLines = string.lines(allText)
 		totalTextLines = #textLines
-		
 		widget:ViewResize()
-	else
-		Spring.Echo("Text: couldn't load the text file")
-		widgetHandler:RemoveWidget()
 	end
 end
 

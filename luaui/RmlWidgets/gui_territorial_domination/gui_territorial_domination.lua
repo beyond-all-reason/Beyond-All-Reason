@@ -1169,6 +1169,10 @@ function widget:Initialize()
 	end
 	updateHeaderVisibility()
 
+	if WG['objectives_info'] then
+		WG['objectives_info'].addObjective("howToPlayTerritorialDomination", true)
+	end
+
 	return true
 end
 
