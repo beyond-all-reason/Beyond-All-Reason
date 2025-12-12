@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
-		name    = "Objective Info",
-		desc    = "Displays information about game objectives.",
+		name    = "Game Info",
+		desc    = "Displays information about game info.",
 		author  = "Floris, SethDGamre",
 		date    = "Jan 2020",
 		license = "GNU GPL, v2 or later",
@@ -18,40 +18,128 @@ local modOptions = Spring.GetModOptions()
 local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 
 local textTable = {}
-local seenObjectives = {}
-local hasAlwaysShowObjectives = false
+local seenGameInfo = {}
+local hasAlwaysShowGameInfo = false
 local hasUnseen = false
 local allText = nil
+local modOptionText = {}
 
--- alwaysShow: when true, show this objective every time the game runs
--- when false, only show it once and remember it's been seen
-local function loadObjectivesText(objectiveType, alwaysShow)
-	local objectiveText = Spring.I18N("objectives." .. objectiveType)
-	if objectiveText then
-		if alwaysShow then
-			table.insert(textTable, objectiveText)
-			hasAlwaysShowObjectives = true
-		else
-			if seenObjectives[objectiveType] == nil then
-				seenObjectives[objectiveType] = false
+local function checkModOptions()
+	if not VFS.FileExists("modoptions.lua") then return end
+	local modOptionsDefs = VFS.Include("modoptions.lua")
+	if not modOptionsDefs then return end
+
+	local currentModOptions = Spring.GetModOptions()
+
+	local ignoredKeys = {
+		["date_year"] = true,
+		["date_month"] = true,
+		["date_day"] = true,
+		["date_hour"] = true,
+		["dummyboolfeelfreetotouch"] = true,
+		["tweakunits"] = true,
+		["tweakdefs"] = true,
+	}
+
+	for _, option in ipairs(modOptionsDefs) do
+		local key = option.key
+		local val = currentModOptions[key]
+
+		if key and val ~= nil and not ignoredKeys[key] then
+			local def = option.def
+			local changed = false
+			local description = option.desc
+			local name = option.name
+
+			local valueName = nil
+
+			if option.type == "bool" then
+				local boolVal
+				if type(val) == "string" then
+					boolVal = (val == "1" or val == "true")
+				elseif type(val) == "number" then
+					boolVal = (val ~= 0)
+				else
+					boolVal = val
+				end
+				if boolVal ~= def then
+					changed = true
+					if boolVal then
+						valueName = Spring.I18N("modoptions.enabled") or "Enabled"
+					else
+						valueName = Spring.I18N("modoptions.disabled") or "Disabled"
+					end
+				end
+			elseif option.type == "number" then
+				if tonumber(val) ~= tonumber(def) then
+					changed = true
+					valueName = val
+				end
+			elseif option.type == "list" then
+				if val ~= def then
+					changed = true
+					if option.items then
+						for _, item in ipairs(option.items) do
+							if item.key == val then
+								valueName = item.name
+								if item.desc then
+									description = item.desc
+								end
+								break
+							end
+						end
+					end
+				end
+			elseif option.type == "string" then
+				if val ~= def then
+					changed = true
+				end
 			end
 
-			table.insert(textTable, 1, objectiveText)
+			if changed and name then
+				local header = string.upper(name)
+				local entry = header
+				if valueName then
+					entry = entry .. "\n-> " .. valueName
+				end
+				entry = entry .. "\n" .. (description or "")
+				table.insert(modOptionText, entry)
+			end
+		end
+	end
+end
 
-			if seenObjectives[objectiveType] == false then
+checkModOptions()
+
+-- alwaysShow: when true, show this info every time the game runs
+-- when false, only show it once and remember it's been seen
+local function loadGameInfoText(infoType, alwaysShow)
+	local infoText = Spring.I18N("gameinfo." .. infoType)
+	if infoText then
+		if alwaysShow then
+			table.insert(textTable, 1, infoText)
+			hasAlwaysShowGameInfo = true
+		else
+			if seenGameInfo[infoType] == nil then
+				seenGameInfo[infoType] = false
+			end
+
+			table.insert(textTable, 1, infoText)
+
+			if seenGameInfo[infoType] == false then
 				hasUnseen = true
 			end
 		end
 	else
-		Spring.Echo("Objective not found: " .. objectiveType)
+		Spring.Echo("Game info not found: " .. infoType)
 	end
 end
 
-local function initializeObjectives()
+local function initializeGameInfo()
 	if scavengersAIEnabled then
-		loadObjectivesText("scavengersMoveObjective", false)
+		loadGameInfoText("scavengersMoveObjective", false)
 	end
-	-- add additional if statements to add objectives here. Multiple objective entries work but it's best to only do one at a time.
+	-- add additional if statements to add info here. Multiple info entries work but it's best to only do one at a time.
 end
 
 local show = false
@@ -295,13 +383,13 @@ function mouseEvent(x, y, button, release)
 				showOnceMore = show        -- show once more because the guishader lags behind, though this will not fully fix it
 				show = false
 				
-				-- Mark all one-time objectives as seen when the window is closed
-				for objectiveType, seen in pairs(seenObjectives) do
+				-- Mark all one-time game info as seen when the window is closed
+				for infoType, seen in pairs(seenGameInfo) do
 					if not seen then
-						seenObjectives[objectiveType] = true
+						seenGameInfo[infoType] = true
 					end
 				end
-				hasUnseen = false  -- All one-time objectives have been seen now
+				hasUnseen = false  -- All one-time game info have been seen now
 			end
 			return true
 		end
@@ -310,18 +398,25 @@ end
 
 function widget:Initialize()
 	textTable = {}
-	hasAlwaysShowObjectives = false
+	hasAlwaysShowGameInfo = false
 	hasUnseen = false
 
-	initializeObjectives()
+	initializeGameInfo()
+
+	if #modOptionText > 0 then
+		hasAlwaysShowGameInfo = true
+		for i = #modOptionText, 1, -1 do
+			table.insert(textTable, 1, modOptionText[i])
+		end
+	end
 
 	allText = table.concat(textTable, "\n______________________________________________________________________________\n\n")
 
-	show = hasAlwaysShowObjectives or hasUnseen
+	show = hasAlwaysShowGameInfo or hasUnseen
 
-	-- Always register the WG API so other widgets can add objectives dynamically
-	WG['objectives_info'] = {}
-	WG['objectives_info'].toggle = function(state)
+	-- Always register the WG API so other widgets can add info dynamically
+	WG['game_info'] = {}
+	WG['game_info'].toggle = function(state)
 		if state ~= nil then
 			show = state
 		else
@@ -329,43 +424,43 @@ function widget:Initialize()
 		end
 
 		if not show then
-			local objectivesChanged = false
-			for objectiveType, seen in pairs(seenObjectives) do
+			local changed = false
+			for infoType, seen in pairs(seenGameInfo) do
 				if not seen then
-					seenObjectives[objectiveType] = true
-					objectivesChanged = true
+					seenGameInfo[infoType] = true
+					changed = true
 				end
 			end
-			if objectivesChanged then
+			if changed then
 				hasUnseen = false
 			end
 		end
 	end
-	WG['objectives_info'].isvisible = function()
+	WG['game_info'].isvisible = function()
 		return show
 	end
 
-	WG['objectives_info'].hasObjectives = function()
+	WG['game_info'].hasGameInfo = function()
 		return #textTable > 0
 	end
 
-	WG['objectives_info'].addObjective = function(objectiveType, alwaysShow)
-		local objectiveText = Spring.I18N("objectives." .. objectiveType)
-		if objectiveText then
+	WG['game_info'].addInfo = function(infoType, alwaysShow)
+		local infoText = Spring.I18N("gameinfo." .. infoType)
+		if infoText then
 			local shouldShow = false
 
 			if alwaysShow then
-				hasAlwaysShowObjectives = true
-				table.insert(textTable, objectiveText)
+				hasAlwaysShowGameInfo = true
+				table.insert(textTable, 1, infoText)
 				shouldShow = true
 			else
-				if seenObjectives[objectiveType] == nil then
-					seenObjectives[objectiveType] = false
+				if seenGameInfo[infoType] == nil then
+					seenGameInfo[infoType] = false
 				end
 
-				table.insert(textTable, 1, objectiveText)
+				table.insert(textTable, 1, infoText)
 
-				if seenObjectives[objectiveType] == false then
+				if seenGameInfo[infoType] == false then
 					hasUnseen = true
 					shouldShow = true
 				end
@@ -391,12 +486,12 @@ function widget:Initialize()
 
 			return true
 		else
-			Spring.Echo("Objective not found: " .. objectiveType)
+			Spring.Echo("Game info not found: " .. infoType)
 			return false
 		end
 	end
 
-	if allText and #textLines > 0 then
+	if allText and allText ~= "" then
 		textLines = string.lines(allText)
 		totalTextLines = #textLines
 		widget:ViewResize()
@@ -415,25 +510,25 @@ end
 
 function widget:GetConfigData(data)
 	if show then
-		for objectiveType, seen in pairs(seenObjectives) do
+		for infoType, seen in pairs(seenGameInfo) do
 			if not seen then
-				seenObjectives[objectiveType] = true
+				seenGameInfo[infoType] = true
 			end
 		end
 		hasUnseen = false
 	end
 	
 	return {
-		seenObjectives = seenObjectives
+		seenGameInfo = seenGameInfo
 	}
 end
 
 function widget:SetConfigData(data)
-	if data.seenObjectives ~= nil then
-		seenObjectives = data.seenObjectives
+	if data.seenGameInfo ~= nil then
+		seenGameInfo = data.seenGameInfo
 		
 		hasUnseen = false
-		for objectiveType, seen in pairs(seenObjectives) do
+		for infoType, seen in pairs(seenGameInfo) do
 			if seen == false then
 				hasUnseen = true
 				break
@@ -441,7 +536,7 @@ function widget:SetConfigData(data)
 		end
 	end
 	
-	show = hasAlwaysShowObjectives or hasUnseen
+	show = hasAlwaysShowGameInfo or hasUnseen
 end
 
 function widget:LanguageChanged()

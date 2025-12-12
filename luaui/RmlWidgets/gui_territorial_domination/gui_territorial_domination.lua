@@ -1169,8 +1169,8 @@ function widget:Initialize()
 	end
 	updateHeaderVisibility()
 
-	if WG['objectives_info'] then
-		WG['objectives_info'].addObjective("howToPlayTerritorialDomination", true)
+	if WG['game_info'] then
+		WG['game_info'].addInfo("howToPlayTerritorialDomination", false)
 	end
 
 	return true
