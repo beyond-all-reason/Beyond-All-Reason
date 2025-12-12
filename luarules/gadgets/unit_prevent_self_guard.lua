@@ -14,10 +14,8 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
-local CMD_GUARD = CMD.GUARD
-
 function gadget:Initialize()
-    gadgetHandler:RegisterAllowCommand(CMD_GUARD)
+    gadgetHandler:RegisterAllowCommand(CMD.GUARD)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams)
