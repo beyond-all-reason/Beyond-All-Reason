@@ -1497,6 +1497,30 @@ local unitGrids = {
 		}
 	},
 
+    legspcon = {
+		{
+			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
+			{ "legeconv", "leggeo", "legmext15", "legtide", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
+			{ "legestor", "legmstor", "leguwestore", "legfeconv", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
+		},
+		{
+			{ "leglht", "legmg", "corhlt", "legdtr", },     -- LLT, machine gun, HLT, flame turret
+			{ "legrl", "legrhapsis", "leglupara", "legfrl" },             -- basic AA, SAM, eradicator, floating AA
+			{ "legctl", "legcluster", "legtl", "legfmg", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
+			{ "legnavaldefturret", "", "", "", },
+		},
+		{
+			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "legfrad", "legfdrag", },                       -- floating radar, shark's teeth
+			{ "legjuno", },                                   -- juno
+		},
+		{
+			{ "leglab", "legvp", "legap", "legsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "legnanotc", "legnanotcplat", "", },      -- nano, T2 veh lab, floating nano
+			{ "leghp", "legfhp", "legamphlab", "legsplab", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
+		}
+	},
+
 	-- Amphibious vehicle cons
 	armbeaver = {
 		{

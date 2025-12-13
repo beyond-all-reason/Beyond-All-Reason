@@ -603,6 +603,12 @@ local armorDefs = {
 		"legatorpbomber",
 		"critter_gull",
 		"armfify",
+		"legspcarrier",
+		"legspcon",
+		"legspfighter",
+		"legspradarsonarplane",
+		"legspsurfacegunship",
+		"legsptorpgunship",
 	},
 	shields = {
 		-- Intentionally left blank. To be used in shield weapondefs only!
