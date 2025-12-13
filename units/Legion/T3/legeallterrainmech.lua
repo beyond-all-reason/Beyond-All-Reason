@@ -40,8 +40,12 @@ return {
             maxrange = "1300",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/T3",
-			techlevel = 3,
+			techlevel = 1,
 			unitgroup = "weapon",
+			inheritxpratemultiplier = 1,
+			childreninheritxp = "DRONE",
+			parentsinheritxp = "DRONE",
+			disable_when_no_air = true,
 		},
 		featuredefs = {
 			dead = {
