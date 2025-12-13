@@ -47,9 +47,9 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	local changeStartUnitRegex = 'changeStartUnit(%d+)$'
 	local startUnitParamName = 'startUnit'
-	local closeSpawnDist = 350
+	local tooCloseToSpawn = 350
 
-	local allowEnemyAIPlacement = Spring.GetModOptions().allow_enemy_ai_spawn_placement
+	local allowEnemyAIPlacement = Spring.GetModOptions().allow_enemy_ai_spawn_placement or false
 
 	----------------------------------------------------------------
 	-- Vars
@@ -198,13 +198,13 @@ if gadgetHandler:IsSyncedCode() then
 	GG.teamStartPoints = teamStartPoints
 	local startPointTable = {}
 
-	local function validateSpawnPosition(x, z, teamID, allyTeamID, playerID)
+	local function validateSpawnPosition(x, z, teamID, playerID)
 		for otherTeamID, startpoint in pairs(startPointTable) do
 			if otherTeamID ~= teamID then
 				local sx, sz = startpoint[1], startpoint[2]
 				if sx > 0 and sz > 0 then
 					local distSq = (x - sx) ^ 2 + (z - sz) ^ 2
-					if distSq <= closeSpawnDist ^ 2 then
+					if distSq <= tooCloseToSpawn ^ 2 then
 						if playerID then
 							SendToUnsynced("PositionTooClose", playerID)
 						end
@@ -243,6 +243,8 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	function gadget:Initialize()
 		Spring.SetLogSectionFilterLevel(gadget:GetInfo().name, LOG.INFO)
+
+		Spring.SetGameRulesParam("tooCloseToSpawn", tooCloseToSpawn)
 
 		local gaiaTeamID = Spring.GetGaiaTeamID()
 		local teamList = Spring.GetTeamList()
@@ -362,11 +364,12 @@ if gadgetHandler:IsSyncedCode() then
 			if playerIsSpec or (aiAllyTeamID ~= allyTeamID and not allowEnemyAIPlacement) then
 				return false
 			end
-				local isValid = validateSpawnPosition(x, z, teamID, aiAllyTeamID, playerID)
+
+			local isValid = validateSpawnPosition(x, z, teamID, playerID)
 
 				if not isValid then
 					local currentPos = startPointTable[teamID]
-					if currentPos and currentPos[1] > 0 and currentPos[2] > 0 and validateSpawnPosition(currentPos[1], currentPos[2], teamID, aiAllyTeamID, playerID) then
+					if currentPos and currentPos[1] > 0 and currentPos[2] > 0 and validateSpawnPosition(currentPos[1], currentPos[2], teamID, playerID) then
 						x, z = currentPos[1], currentPos[2]
 						local y = spGetGroundHeight(x, z)
 						Spring.SetTeamStartPosition(teamID, x, y, z)
@@ -485,11 +488,11 @@ if gadgetHandler:IsSyncedCode() then
 		-- Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", readyState)
 		local is_player_ready = Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")
 
-		local isValid = validateSpawnPosition(x, z, teamID, allyTeamID, playerID)
+		local isValid = validateSpawnPosition(x, z, teamID, playerID)
 
 		if not isValid then
 			local currentPos = startPointTable[teamID]
-			if currentPos and currentPos[1] > 0 and currentPos[2] > 0 and validateSpawnPosition(currentPos[1], currentPos[2], teamID, allyTeamID, playerID) then
+			if currentPos and currentPos[1] > 0 and currentPos[2] > 0 and validateSpawnPosition(currentPos[1], currentPos[2], teamID, playerID) then
 				local y = spGetGroundHeight(currentPos[1], currentPos[2])
 				Spring.SetTeamStartPosition(teamID, currentPos[1], y, currentPos[2])
 			end

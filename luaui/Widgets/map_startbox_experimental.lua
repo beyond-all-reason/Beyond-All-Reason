@@ -17,15 +17,24 @@ if not Spring.GetModOptions().experimental_ai_spawns then
 	return false
 end
 
--- Localized functions for performance
+
+local Spring = Spring
+local gl = gl
+local math = math
 local mathFloor = math.floor
 local mathRandom = math.random
 
--- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
+
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_SHADER_STORAGE_BUFFER = GL.SHADER_STORAGE_BUFFER
+local GL_TRIANGLES = GL.TRIANGLES
+
+local UPDATE_RATE = 30
 
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
@@ -36,6 +45,8 @@ end
 
 local draftMode = Spring.GetModOptions().draft_mode
 local allowEnemyAIPlacement = Spring.GetModOptions().allow_enemy_ai_spawn_placement
+
+local tooCloseToSpawn
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx, vsy = Spring.GetViewGeometry()
@@ -121,7 +132,7 @@ local function getAIName(teamID, includeLock)
 	local formattedName
 
 	if isAI then
-		local _, _, _, aiName, _, options = Spring.GetAIInfo(teamID)
+		local _, _, _, aiName = Spring.GetAIInfo(teamID)
 		local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
 		if niceName then
 			aiName = niceName
@@ -140,7 +151,7 @@ local function getAIName(teamID, includeLock)
 		end
 	else
 		local name = Spring.GetPlayerInfo(playerID, false)
-		formattedName = (WG.playernames and WG.playernames.getPlayername and WG.playernames.getPlayername(playerID)) or name
+		formattedName = WG.playernames and WG.playernames.getPlayername(playerID) or name
 	end
 
 	return formattedName
@@ -356,7 +367,7 @@ local function DrawStartPolygons(inminimap)
 	startPolygonShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
 	startPolygonShader:SetUniformInt("myAllyTeamID", myAllyTeamID or -1)
 
-	fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
+	fullScreenRectVAO:DrawArrays(GL_TRIANGLES)
 	startPolygonShader:Deactivate()
 	gl.Texture(1, false)
 	gl.Texture(2, false)
@@ -451,7 +462,7 @@ local function InitStartPolygons()
 		numvertices = numvertices + (4 - numvertices % 4)
 	end
 
-	startPolygonBuffer = gl.GetVBO(GL.SHADER_STORAGE_BUFFER, false) -- not updated a lot
+	startPolygonBuffer = gl.GetVBO(GL_SHADER_STORAGE_BUFFER, false) -- not updated a lot
 	startPolygonBuffer:Define(numvertices, {{id = 0, name = 'starttriangles', size = 4}})
 	startPolygonBuffer:Upload(bufferdata)--, -1, 0, 0, numvertices-1)
 
@@ -502,30 +513,38 @@ end
 local posCache = {}
 
 local function getEffectiveStartPosition(teamID)
-	if posCache[teamID] then
-		return posCache[teamID][1], posCache[teamID][2], posCache[teamID][3]
+	-- Don't use cache when dragging - position needs to be calculated fresh each frame
+	if draggingTeamID == teamID then
+		local mouseX, mouseY = Spring.GetMouseState()
+		local traceType, pos = Spring.TraceScreenRay(mouseX, mouseY, true)
+		if traceType == "ground" then
+			local x = pos[1] + dragOffsetX
+			local z = pos[3] + dragOffsetZ
+			local y = pos[2]
+			return x, y, z
+		end
+	end
+
+	local posCacheTeam = posCache[teamID]
+	if posCacheTeam then
+		return posCacheTeam[1], posCacheTeam[2], posCacheTeam[3]
 	end
 
 	local playerID = select(2, Spring.GetTeamInfo(teamID, false))
 	local x, y, z = Spring.GetTeamStartPosition(teamID)
 
-	if coopStartPoints[playerID] then
-		x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
+	local coopStartPoint = coopStartPoints[playerID]
+	if coopStartPoint then
+		x, y, z = coopStartPoint[1], coopStartPoint[2], coopStartPoint[3]
 	end
 
-	if draggingTeamID == teamID then
-		local mouseX, mouseY = Spring.GetMouseState()
-		local traceType, pos = Spring.TraceScreenRay(mouseX, mouseY, true)
-		if traceType == "ground" then
-			x = pos[1] + dragOffsetX
-			z = pos[3] + dragOffsetZ
-			y = pos[2]
-		end
-	elseif aiPlacedPositions[teamID] then
-		x, z = aiPlacedPositions[teamID].x, aiPlacedPositions[teamID].z
+	if aiPlacedPositions[teamID] then
+		local aiPlacedPos = aiPlacedPositions[teamID]
+		x, z = aiPlacedPos.x, aiPlacedPos.z
 		y = Spring.GetGroundHeight(x, z)
 	elseif aiPredictedPositions[teamID] then
-		x, z = aiPredictedPositions[teamID].x, aiPredictedPositions[teamID].z
+		local aiPredictedPos = aiPredictedPositions[teamID]
+		x, z = aiPredictedPos.x, aiPredictedPos.z
 		y = Spring.GetGroundHeight(x, z)
 	end
 
@@ -533,34 +552,43 @@ local function getEffectiveStartPosition(teamID)
 	return x, y, z
 end
 
+local function shouldRenderTeam(teamID, excludeMyTeam)
+	if teamID == gaiaTeamID or (excludeMyTeam and teamID == myTeamID) then
+		return false
+	end
+
+	local _, playerID, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
+	local _, _, spec = Spring.GetPlayerInfo(playerID, false)
+
+	local x, y, z = getEffectiveStartPosition(teamID)
+
+	local isVisible = (not spec or isAI) and teamID ~= gaiaTeamID and
+		(not isAI or teamAllyTeamID == myAllyTeamID or isSpec or allowEnemyAIPlacement)
+
+	local isValidPosition = x ~= nil and x > 0 and z > 0 and y > -500
+
+	return isVisible and isValidPosition, x, y, z, isAI
+end
+
 local function drawSpawnDistanceCircles()
-	local closeSpawnDist = 350 -- Must match value from game_initial_spawn_experimental.lua
 	gl.Color(1.0, 0.0, 0.0, 0.3)
 	for _, teamID in ipairs(Spring.GetTeamList()) do
-		if teamID ~= gaiaTeamID and teamID ~= myTeamID then
-			local _, playerID, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
-			local _, _, spec = Spring.GetPlayerInfo(playerID, false)
-
-			local x, y, z = getEffectiveStartPosition(teamID)
-
-			if (not spec or isAI) and teamID ~= gaiaTeamID and
-			   (not isAI or teamAllyTeamID == myAllyTeamID or isSpec or allowEnemyAIPlacement) then
-				if x ~= nil and x > 0 and z > 0 and y > -500 then
-					if not isAI or aiPlacedPositions[teamID] then
-						gl.DrawGroundCircle(x, y, z, closeSpawnDist, 32)
-					end
-				end
+		local shouldRender, x, y, z, isAI = shouldRenderTeam(teamID, true)
+		if shouldRender then
+			if not isAI or aiPlacedPositions[teamID] then
+				gl.DrawGroundCircle(x, y, z, tooCloseToSpawn, 32)
 			end
 		end
 	end
 end
 
 function widget:Initialize()
-	-- only show at the beginning
 	if spGetGameFrame() > 1 then
 		widgetHandler:RemoveWidget()
 		return
 	end
+
+	tooCloseToSpawn = Spring.GetGameRulesParam("tooCloseToSpawn") or 350
 
 	widgetHandler:RegisterGlobal('GadgetCoopStartPoint', CoopStartPoint)
 
@@ -639,33 +667,24 @@ end
 local cacheTable = {}
 function widget:DrawWorld()
 	posCache = {}
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	local time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
 
 	InstanceVBOTable.clearInstanceTable(startConeVBOTable)
 	-- show the team start positions
 	for _, teamID in ipairs(Spring.GetTeamList()) do
-		if teamID ~= gaiaTeamID then
-			local _, playerID, _, isAI, _, teamAllyTeamID = Spring.GetTeamInfo(teamID, false)
-			local _, _, spec = Spring.GetPlayerInfo(playerID, false)
-
-			local x, y, z = getEffectiveStartPosition(teamID)
-
-			if (not spec or isAI) and teamID ~= gaiaTeamID and
-			   (not isAI or teamAllyTeamID == myAllyTeamID or isSpec or allowEnemyAIPlacement) then
-						if x ~= nil and x > 0 and z > 0 and y > -500 then
-							local r, g, b = GetTeamColor(teamID)
-							local alpha = 0.5 + math.abs(((time * 3) % 1) - 0.5)
-							cacheTable[1], cacheTable[2], cacheTable[3], cacheTable[4] = x, y, z, 1
-							cacheTable[5], cacheTable[6], cacheTable[7], cacheTable[8] = r, g, b, alpha
-							pushElementInstance(startConeVBOTable,
-								cacheTable,
-								nil, nil, true)
-							if teamID == myTeamID then
-								amPlaced = true
-					end
-				end
+		local shouldRender, x, y, z = shouldRenderTeam(teamID, false)
+		if shouldRender then
+			local r, g, b = GetTeamColor(teamID)
+			local alpha = 0.5 + math.abs(((time * 3) % 1) - 0.5)
+			cacheTable[1], cacheTable[2], cacheTable[3], cacheTable[4] = x, y, z, 1
+			cacheTable[5], cacheTable[6], cacheTable[7], cacheTable[8] = r, g, b, alpha
+			pushElementInstance(startConeVBOTable,
+				cacheTable,
+				nil, nil, true)
+			if teamID == myTeamID then
+				amPlaced = true
 			end
 		end
 	end
@@ -687,7 +706,7 @@ function widget:DrawScreenEffects()
 			if isAI then
 				name = getAIName(teamID, true)
 			else
-				name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
+				name = WG.playernames and WG.playernames.getPlayername(playerID) or name
 			end
 
 			if name ~= nil and (not spec or isAI) and teamID ~= gaiaTeamID and
@@ -717,6 +736,7 @@ end
 function widget:DrawInMiniMap(sx, sz)
 	if gameFrame > 1 then
 		widgetHandler:RemoveWidget()
+		return
 	end
 
 	DrawStartPolygons(true)
@@ -906,12 +926,14 @@ function widget:RecvLuaMsg(msg)
 			if x == 0 and z == 0 then
 				aiPlacedPositions[teamID] = nil
 				aiPlacementStatus[teamID] = false
+				posCache[teamID] = nil
 				local playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 				local aiName = getAIName(teamID)
 				Spring.SendMessage(Spring.I18N('ui.startbox.aiStartLocationRemoved', { playerName = playerName, aiName = aiName }))
 			else
 				aiPlacedPositions[teamID] = {x = x, z = z}
 				aiPlacementStatus[teamID] = true
+				posCache[teamID] = nil
 				local playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 				local aiName = getAIName(teamID)
 				Spring.SendMessage(Spring.I18N('ui.startbox.aiStartLocationChanged', { playerName = playerName, aiName = aiName }))
@@ -1028,6 +1050,8 @@ function widget:MouseRelease(x, y, button)
 
 			if xmin < xmax and zmin < zmax then
 				if finalX >= xmin and finalX <= xmax and finalZ >= zmin and finalZ <= zmax then
+					aiPlacedPositions[draggingTeamID] = {x = finalX, z = finalZ}
+					posCache[draggingTeamID] = nil
 					Spring.SendLuaRulesMsg("aiPlacedPosition:" .. draggingTeamID .. ":" .. finalX .. ":" .. finalZ)
 				end
 			end
