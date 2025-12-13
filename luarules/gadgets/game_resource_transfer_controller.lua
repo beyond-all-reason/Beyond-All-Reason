@@ -24,6 +24,7 @@ local Shared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_
 local Comms = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_comms.lua")
 local LuaRulesMsg = VFS.Include("common/luaUtilities/lua_rules_msg.lua")
 local Stopwatch = VFS.Include("common/luaUtilities/stopwatch.lua")
+local AuditLog = VFS.Include("common/luaUtilities/economy/economy_audit_log.lua")
 
 local ResourceType = SharedEnums.ResourceType
 
@@ -212,6 +213,10 @@ end
 function gadget:Initialize()
 	Spring.Echo("[ResourceTransferController] Initialize starting...")
 	
+	-- Mode is now controlled at engine level via modrules.lua economy_audit_mode
+	local currentMode = AuditLog.GetMode()  -- Returns "off", "process_economy", "resource_excess", or "alternate"
+	Spring.Echo("[ResourceTransferController] Engine audit mode: " .. tostring(currentMode))
+	
 	if Spring.GetAuditTimer then
 		Spring.Echo("[ResourceTransferController] Timer available: Spring.GetAuditTimer")
 	else
@@ -225,11 +230,16 @@ function gadget:Initialize()
 	end
 	lastPolicyUpdate = springRepo.GetGameFrame()
 	
-	-- Register the economy controller with the engine
-	-- Engine contract: only ProcessEconomy is required
-	Spring.Echo("[ResourceTransferController] Registering GameEconomyController...")
-	---@type GameEconomyController
-	local controller = { ProcessEconomy = ProcessEconomy }
-	Spring.SetEconomyController(controller)
-	Spring.Echo("[ResourceTransferController] SUCCESS: Registered GameEconomyController")
+	-- Register ProcessEconomy controller unless in pure RESOURCE_EXCESS mode
+	-- (in ALTERNATE mode, the engine will skip calling ProcessEconomy on alternate cycles)
+	if currentMode ~= "resource_excess" then
+		Spring.Echo("[ResourceTransferController] Registering GameEconomyController...")
+		---@type GameEconomyController
+		local controller = { ProcessEconomy = ProcessEconomy }
+		Spring.SetEconomyController(controller)
+		Spring.Echo("[ResourceTransferController] SUCCESS: Registered GameEconomyController")
+	else
+		Spring.Echo("[ResourceTransferController] RESOURCE_EXCESS mode - skipping ProcessEconomy registration")
+		Spring.Echo("[ResourceTransferController] ResourceExcessController will handle excess via gadget:ResourceExcess")
+	end
 end

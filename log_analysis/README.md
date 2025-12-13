@@ -27,17 +27,42 @@ python3 parser.py --history --verbose
 
 # Parse a specific file
 python3 parser.py --file /path/to/infolog.txt
+
+# Force a new session without resetting (useful after starting a new game)
+python3 parser.py --new-session --history
 ```
 
 **Note:** Edit `WIN_USER` in `parser.py` if your Windows username differs from `Daniel`.
 
+### Multi-Game Session Support
+
+The parser automatically detects new game sessions when the frame counter resets. Each session is tracked in `game_sessions` table with:
+- Start/end timestamps and frames
+- Team count
+- Duration
+
+This allows you to analyze multiple game runs separately.
+
 ### Visualization
 
+Two notebooks are available:
+
 ```bash
-jupyter notebook analysis.ipynb
+# Waterfill algorithm analysis (tank diagrams, conservation checks)
+jupyter notebook waterfill_analysis.ipynb
+
+# Solver timing comparison (for benchmarking ProcessEconomy vs ResourceExcess)
+jupyter notebook timing_comparison.ipynb
 ```
 
-Run the cells to generate graphs. The last cell provides a real-time dashboard that refreshes every 5 seconds.
+### Control Panel
+
+Both notebooks use a shared `ControlPanel` widget that provides:
+- **Game Session selector** - Switch between different game runs
+- **Frame Range slider** - Dual-handle slider to zoom into specific time periods
+- **Resource toggle** - Metal or Energy
+- **Aggregation level** - Overall / By Alliance / By Team
+- **Alliance/Team filters** - Drill down to specific teams
 
 ## Troubleshooting
 
@@ -47,6 +72,7 @@ Run the cells to generate graphs. The last cell provides a real-time dashboard t
 
 | Table | Description |
 |-------|-------------|
+| `game_sessions` | Game session boundaries (start/end frame, team count, duration) |
 | `solver_audit` | Timing metrics (PreMunge, Solver, PolicyCache, etc.) |
 | `eco_team_input` | Team resource state before processing (current, storage, share_cursor) |
 | `eco_team_output` | Team resource state after processing (current, sent, received) |
@@ -54,6 +80,8 @@ Run the cells to generate graphs. The last cell provides a real-time dashboard t
 | `eco_group_lift` | Alliance-level lift calculations (supply/demand balance) |
 | `eco_transfer` | Individual resource transfers between teams (amount, taxed/untaxed) |
 | `eco_frame_start` | Frame metadata (tax rate, thresholds) |
+
+All tables include a `session_id` foreign key to `game_sessions.id` for filtering by game run.
 
 ## Understanding the Waterfill Algorithm
 

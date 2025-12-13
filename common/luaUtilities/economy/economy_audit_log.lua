@@ -9,6 +9,34 @@ local AuditLog = {}
 local ENABLED = true
 local LOG_PREFIX = "[EconomyAudit]"
 
+--------------------------------------------------------------------------------
+-- Audit Log Modes
+-- The mode is controlled at the engine level via modrules.lua economy_audit_mode
+-- These functions query the engine to determine which path should be active
+--------------------------------------------------------------------------------
+
+---Get the configured audit mode from the engine
+---@return string "off" | "process_economy" | "resource_excess" | "alternate"
+function AuditLog.GetMode()
+  return Game.economyAuditMode or "off"
+end
+
+---Check if ProcessEconomy path should be active
+---Delegates to the engine's Spring.IsProcessEconomyActive()
+---@param frame number? Optional frame number (defaults to current frame)
+---@return boolean
+function AuditLog.IsProcessEconomyActive(frame)
+  return Spring.IsProcessEconomyActive(frame)
+end
+
+---Check if ResourceExcess path should be active  
+---Delegates to the engine's Spring.IsResourceExcessActive()
+---@param frame number? Optional frame number (defaults to current frame)
+---@return boolean
+function AuditLog.IsResourceExcessActive(frame)
+  return Spring.IsResourceExcessActive(frame)
+end
+
 ---@param value any
 ---@return string
 local function toJson(value)

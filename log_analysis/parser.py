@@ -30,19 +30,33 @@ def init_db():
     c.execute("PRAGMA journal_mode=WAL;")
     log("Enabled WAL mode for database")
     
+    # Game Sessions Table - tracks distinct game runs
+    c.execute('''CREATE TABLE IF NOT EXISTS game_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        start_timestamp TEXT,
+        end_timestamp TEXT,
+        start_frame INTEGER,
+        end_frame INTEGER,
+        team_count INTEGER,
+        duration_frames INTEGER
+    )''')
+    
     # Solver Audit Table
     c.execute('''CREATE TABLE IF NOT EXISTS solver_audit (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id INTEGER,
         timestamp TEXT,
         frame INTEGER,
         metric TEXT,
         time_us REAL,
-        teams TEXT
+        teams TEXT,
+        FOREIGN KEY (session_id) REFERENCES game_sessions(id)
     )''')
 
-    # Economy Audit Tables
+    # Economy Audit Tables - all include session_id for multi-game support
     c.execute('''CREATE TABLE IF NOT EXISTS eco_team_input (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id INTEGER,
         timestamp TEXT,
         frame INTEGER,
         team_id INTEGER,
@@ -52,22 +66,26 @@ def init_db():
         share_slider REAL,
         storage REAL,
         ally_team INTEGER,
-        share_cursor REAL
+        share_cursor REAL,
+        FOREIGN KEY (session_id) REFERENCES game_sessions(id)
     )''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS eco_team_output (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id INTEGER,
         timestamp TEXT,
         frame INTEGER,
         team_id INTEGER,
         current REAL,
         resource TEXT,
         received REAL,
-        sent REAL
+        sent REAL,
+        FOREIGN KEY (session_id) REFERENCES game_sessions(id)
     )''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS eco_group_lift (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id INTEGER,
         timestamp TEXT,
         frame INTEGER,
         member_count INTEGER,
@@ -75,21 +93,25 @@ def init_db():
         lift REAL,
         total_demand REAL,
         total_supply REAL,
-        ally_team INTEGER
+        ally_team INTEGER,
+        FOREIGN KEY (session_id) REFERENCES game_sessions(id)
     )''')
     
     c.execute('''CREATE TABLE IF NOT EXISTS eco_frame_start (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id INTEGER,
         timestamp TEXT,
         frame INTEGER,
         tax_rate REAL,
         metal_threshold REAL,
         energy_threshold REAL,
-        team_count INTEGER
+        team_count INTEGER,
+        FOREIGN KEY (session_id) REFERENCES game_sessions(id)
     )''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS eco_transfer (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id INTEGER,
         timestamp TEXT,
         frame INTEGER,
         sender_team_id INTEGER,
@@ -97,11 +119,13 @@ def init_db():
         resource TEXT,
         amount REAL,
         untaxed REAL,
-        taxed REAL
+        taxed REAL,
+        FOREIGN KEY (session_id) REFERENCES game_sessions(id)
     )''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS eco_team_waterfill (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id INTEGER,
         timestamp TEXT,
         frame INTEGER,
         team_id INTEGER,
@@ -110,7 +134,8 @@ def init_db():
         current REAL,
         target REAL,
         role TEXT,
-        delta REAL
+        delta REAL,
+        FOREIGN KEY (session_id) REFERENCES game_sessions(id)
     )''')
 
     conn.commit()
@@ -119,14 +144,89 @@ def init_db():
 def reset_db(conn):
     """Drop all tables to start fresh."""
     c = conn.cursor()
-    tables = ['solver_audit', 'eco_team_input', 'eco_team_output', 'eco_group_lift', 'eco_frame_start', 'eco_transfer', 'eco_team_waterfill']
+    tables = ['solver_audit', 'eco_team_input', 'eco_team_output', 'eco_group_lift', 'eco_frame_start', 'eco_transfer', 'eco_team_waterfill', 'game_sessions']
     for table in tables:
         c.execute(f"DROP TABLE IF EXISTS {table}")
         log(f"Dropped table: {table}")
     conn.commit()
     print("Database reset complete. All tables dropped.")
 
+# Session tracking state
+class SessionTracker:
+    """Tracks game sessions by detecting frame resets."""
+    
+    def __init__(self, conn):
+        self.conn = conn
+        self.current_session_id = None
+        self.last_frame = -1
+        self.session_start_timestamp = None
+        self.session_start_frame = None
+        self.session_team_count = None
+        self._load_or_create_session()
+    
+    def _load_or_create_session(self):
+        """Load the most recent session or create a new one."""
+        c = self.conn.cursor()
+        c.execute("SELECT id, end_frame FROM game_sessions ORDER BY id DESC LIMIT 1")
+        row = c.fetchone()
+        if row:
+            self.current_session_id = row[0]
+            self.last_frame = row[1] or 0
+            log(f"Resuming session {self.current_session_id}, last frame {self.last_frame}")
+        else:
+            self._start_new_session(None, 0, None)
+    
+    def _start_new_session(self, timestamp, frame, team_count):
+        """Start a new game session."""
+        c = self.conn.cursor()
+        c.execute('''INSERT INTO game_sessions (start_timestamp, start_frame, team_count)
+                     VALUES (?, ?, ?)''', (timestamp, frame, team_count))
+        self.conn.commit()
+        self.current_session_id = c.lastrowid
+        self.session_start_timestamp = timestamp
+        self.session_start_frame = frame
+        self.session_team_count = team_count
+        self.last_frame = frame
+        print(f"[SessionTracker] Started new session #{self.current_session_id} at frame {frame}")
+    
+    def _end_current_session(self, timestamp, frame):
+        """Finalize the current session."""
+        if self.current_session_id:
+            c = self.conn.cursor()
+            duration = frame - (self.session_start_frame or 0)
+            c.execute('''UPDATE game_sessions 
+                         SET end_timestamp = ?, end_frame = ?, duration_frames = ?
+                         WHERE id = ?''',
+                      (timestamp, frame, duration, self.current_session_id))
+            self.conn.commit()
+            log(f"Ended session {self.current_session_id} at frame {frame}")
+    
+    def check_frame(self, timestamp, frame, team_count=None):
+        """Check if this frame indicates a new session and return the current session_id."""
+        # Detect session boundary: frame resets to a much lower value
+        # (e.g., going from frame 50000 to frame 0 means new game)
+        if frame < self.last_frame - 1000:  # Allow some tolerance for out-of-order logs
+            log(f"Frame reset detected: {self.last_frame} -> {frame}")
+            self._end_current_session(timestamp, self.last_frame)
+            self._start_new_session(timestamp, frame, team_count)
+        
+        self.last_frame = max(self.last_frame, frame)
+        
+        # Update team count if provided and different
+        if team_count and team_count != self.session_team_count:
+            self.session_team_count = team_count
+            c = self.conn.cursor()
+            c.execute("UPDATE game_sessions SET team_count = ? WHERE id = ?",
+                      (team_count, self.current_session_id))
+        
+        return self.current_session_id
+
+# Global session tracker (initialized in main)
+session_tracker = None
+
 def parse_line(conn, line):
+    global session_tracker
+    
     # Basic log format: [t=00:04:42.811145][f=0001950] [EconomyAudit] ...
     # Regex to extract timestamp, frame, subsystem, and content
     match = re.search(r'\[t=(.*?)\]\[f=(\d+)\] \[(.*?)\] (.*)', line)
@@ -137,6 +237,9 @@ def parse_line(conn, line):
     frame = int(match.group(2))
     subsystem = match.group(3)
     content = match.group(4)
+    
+    # Get session_id (may trigger new session detection)
+    session_id = session_tracker.check_frame(timestamp_str, frame) if session_tracker else None
 
     c = conn.cursor()
     parsed = False
@@ -155,9 +258,9 @@ def parse_line(conn, line):
         time_us = float(data.get('time_us', 0))
         teams = data.get('teams') # Optional
         
-        c.execute("INSERT INTO solver_audit (timestamp, frame, metric, time_us, teams) VALUES (?, ?, ?, ?, ?)",
-                  (timestamp_str, frame, metric, time_us, teams))
-        log(f"Inserted SolverAudit: frame={frame} metric={metric}")
+        c.execute("INSERT INTO solver_audit (session_id, timestamp, frame, metric, time_us, teams) VALUES (?, ?, ?, ?, ?, ?)",
+                  (session_id, timestamp_str, frame, metric, time_us, teams))
+        log(f"Inserted SolverAudit: session={session_id} frame={frame} metric={metric}")
         parsed = True
 
     elif subsystem == "EconomyAudit":
@@ -167,60 +270,65 @@ def parse_line(conn, line):
             event_type, json_str = content.split(' ', 1)
             data = json.loads(json_str)
             
+            # Update session team count from frame_start events
+            team_count = data.get('team_count')
+            if team_count and session_tracker:
+                session_tracker.check_frame(timestamp_str, frame, team_count)
+            
             if event_type == "team_input":
                 c.execute('''INSERT INTO eco_team_input 
-                             (timestamp, frame, team_id, current, resource, cumulative_sent, share_slider, storage, ally_team, share_cursor)
-                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                          (timestamp_str, frame, data.get('team_id'), data.get('current'), data.get('resource'),
+                             (session_id, timestamp, frame, team_id, current, resource, cumulative_sent, share_slider, storage, ally_team, share_cursor)
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                          (session_id, timestamp_str, frame, data.get('team_id'), data.get('current'), data.get('resource'),
                            data.get('cumulative_sent'), data.get('share_slider'), data.get('storage'), data.get('ally_team'),
                            data.get('share_cursor')))
-                log(f"Inserted EconomyAudit team_input: frame={frame} team={data.get('team_id')}")
+                log(f"Inserted EconomyAudit team_input: session={session_id} frame={frame} team={data.get('team_id')}")
                 parsed = True
             
             elif event_type == "team_output":
                 c.execute('''INSERT INTO eco_team_output
-                             (timestamp, frame, team_id, current, resource, received, sent)
-                             VALUES (?, ?, ?, ?, ?, ?, ?)''',
-                          (timestamp_str, frame, data.get('team_id'), data.get('current'), data.get('resource'),
+                             (session_id, timestamp, frame, team_id, current, resource, received, sent)
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+                          (session_id, timestamp_str, frame, data.get('team_id'), data.get('current'), data.get('resource'),
                            data.get('received'), data.get('sent')))
-                log(f"Inserted EconomyAudit team_output: frame={frame} team={data.get('team_id')}")
+                log(f"Inserted EconomyAudit team_output: session={session_id} frame={frame} team={data.get('team_id')}")
                 parsed = True
 
             elif event_type == "group_lift":
                 c.execute('''INSERT INTO eco_group_lift
-                             (timestamp, frame, member_count, resource, lift, total_demand, total_supply, ally_team)
-                             VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-                          (timestamp_str, frame, data.get('member_count'), data.get('resource'), data.get('lift'),
+                             (session_id, timestamp, frame, member_count, resource, lift, total_demand, total_supply, ally_team)
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                          (session_id, timestamp_str, frame, data.get('member_count'), data.get('resource'), data.get('lift'),
                            data.get('total_demand'), data.get('total_supply'), data.get('ally_team')))
-                log(f"Inserted EconomyAudit group_lift: frame={frame}")
+                log(f"Inserted EconomyAudit group_lift: session={session_id} frame={frame}")
                 parsed = True
 
             elif event_type == "frame_start":
                 c.execute('''INSERT INTO eco_frame_start
-                             (timestamp, frame, tax_rate, metal_threshold, energy_threshold, team_count)
-                             VALUES (?, ?, ?, ?, ?, ?)''',
-                          (timestamp_str, frame, data.get('tax_rate'), data.get('metal_threshold'),
+                             (session_id, timestamp, frame, tax_rate, metal_threshold, energy_threshold, team_count)
+                             VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                          (session_id, timestamp_str, frame, data.get('tax_rate'), data.get('metal_threshold'),
                            data.get('energy_threshold'), data.get('team_count')))
-                log(f"Inserted EconomyAudit frame_start: frame={frame}")
+                log(f"Inserted EconomyAudit frame_start: session={session_id} frame={frame}")
                 parsed = True
 
             elif event_type == "transfer":
                 c.execute('''INSERT INTO eco_transfer
-                             (timestamp, frame, sender_team_id, receiver_team_id, resource, amount, untaxed, taxed)
-                             VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-                          (timestamp_str, frame, data.get('sender_team_id'), data.get('receiver_team_id'),
+                             (session_id, timestamp, frame, sender_team_id, receiver_team_id, resource, amount, untaxed, taxed)
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                          (session_id, timestamp_str, frame, data.get('sender_team_id'), data.get('receiver_team_id'),
                            data.get('resource'), data.get('amount'), data.get('untaxed'), data.get('taxed')))
-                log(f"Inserted EconomyAudit transfer: frame={frame} {data.get('sender_team_id')}->{data.get('receiver_team_id')}")
+                log(f"Inserted EconomyAudit transfer: session={session_id} frame={frame} {data.get('sender_team_id')}->{data.get('receiver_team_id')}")
                 parsed = True
 
             elif event_type == "team_waterfill":
                 c.execute('''INSERT INTO eco_team_waterfill
-                             (timestamp, frame, team_id, ally_team, resource, current, target, role, delta)
-                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                          (timestamp_str, frame, data.get('team_id'), data.get('ally_team'),
+                             (session_id, timestamp, frame, team_id, ally_team, resource, current, target, role, delta)
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                          (session_id, timestamp_str, frame, data.get('team_id'), data.get('ally_team'),
                            data.get('resource'), data.get('current'), data.get('target'),
                            data.get('role'), data.get('delta')))
-                log(f"Inserted EconomyAudit team_waterfill: frame={frame} team={data.get('team_id')} role={data.get('role')}")
+                log(f"Inserted EconomyAudit team_waterfill: session={session_id} frame={frame} team={data.get('team_id')} role={data.get('role')}")
                 parsed = True
                            
         except json.JSONDecodeError:
@@ -253,7 +361,7 @@ def tail_file(path, from_start=False):
             yield line
 
 def main():
-    global VERBOSE
+    global VERBOSE, session_tracker
     
     parser = argparse.ArgumentParser(description='Parse BAR infolog.txt audit logs into SQLite')
     parser.add_argument('--history', action='store_true', 
@@ -264,6 +372,8 @@ def main():
                         help='Path to a specific log file to parse (reads entire file)')
     parser.add_argument('--reset', action='store_true',
                         help='Wipe all existing data before parsing')
+    parser.add_argument('--new-session', action='store_true',
+                        help='Force start a new game session')
     args = parser.parse_args()
     
     VERBOSE = args.verbose
@@ -277,6 +387,14 @@ def main():
         # Recreate tables after dropping
         conn.close()
         conn = init_db()
+    
+    # Initialize session tracker
+    session_tracker = SessionTracker(conn)
+    
+    # Force new session if requested
+    if args.new_session:
+        session_tracker._start_new_session(None, 0, None)
+        print(f"Forced new session #{session_tracker.current_session_id}")
     
     # If a specific file is provided, read it completely
     if args.file:
