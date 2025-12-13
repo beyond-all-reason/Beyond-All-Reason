@@ -1758,6 +1758,18 @@ local options = {
         def 	= false,
     },
 
+    {
+        key 	= "experimental_ai_spawns",
+        name 	= "Show/Move AI Spawns",
+        desc 	= "Enables experimental AI spawn placement and movement features. Allows players to see and manually adjust AI starting positions.",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+        unlock  = {
+            "allow_enemy_ai_spawn_placement", --remove when map_startbox_experimental/game_initial_spawn_experimental experiment is over
+        },
+    },
+
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Unused Options
@@ -1996,6 +2008,15 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
             { key= "ai", 		name= "AI Only", 	    desc="All AI except Scavengers and Raptors"},
             { key= "all", 	    name= "All",			desc="AI and Player Teams both excluding Scavengers and Raptors" },
         }
+    },
+
+    {
+        key     = "allow_enemy_ai_spawn_placement",
+        name    = "Allow Hostile AI Spawn Placement",
+        desc    = "When enabled, allows enemy allyteams to view and place enemy AI start positions during the pregame",
+        type    = "bool",
+        def     = false,
+        section = "options_cheats",
     },
 
     {

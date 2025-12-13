@@ -2,9 +2,9 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = 'Initial Spawn',
+		name = 'Initial Spawn Experimental',
 		desc = 'Handles initial spawning of units',
-		author = 'Niobium, nbusseneau',
+		author = 'Niobium, nbusseneau, SethDGamre',
 		version = 'v2.0',
 		date = 'April 2011',
 		license = 'GNU GPL, v2 or later',
@@ -13,9 +13,10 @@ function gadget:GetInfo()
 	}
 end
 
-if Spring.GetModOptions().experimental_ai_spawns then
+if not Spring.GetModOptions().experimental_ai_spawns then
 	return false
 end
+
 
 -- Note: (31/03/13) coop_II deals with the extra startpoints etc needed for teamsIDs with more than one playerID.
 
@@ -46,7 +47,9 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	local changeStartUnitRegex = 'changeStartUnit(%d+)$'
 	local startUnitParamName = 'startUnit'
-	local closeSpawnDist = 350
+	local tooCloseToSpawn = 350
+
+	local allowEnemyAIPlacement = Spring.GetModOptions().allow_enemy_ai_spawn_placement or false
 
 	----------------------------------------------------------------
 	-- Vars
@@ -54,8 +57,28 @@ if gadgetHandler:IsSyncedCode() then
 	local validStartUnits = {}
 
 	local RANDOM_DUMMY = UnitDefNames.dummycom and UnitDefNames.dummycom.id
+	local SPAWN_FIXED = 0
+	local SPAWN_CHOOSE_BEFORE_GAME = 1
+	local SPAWN_CHOOSE_IN_GAME = 2
+
+	local READYSTATE_UNPLACED_UNREADY = 0     -- player did not place startpoint, is unready
+	local READYSTATE_READY = 1                 -- game starting, player is ready
+	local READYSTATE_READY_FORCED = 2          -- player pressed ready OR game is starting and player is forcibly readied
+	local READYSTATE_FORCESTART_ABSENT = 3     -- game forcestarted & player absent
+	local READYSTATE_AUTO_READY = -1           -- players will not be allowed to place startpoints; automatically readied once ingame
+	local READYSTATE_PLACED_UNREADY = 4        -- player has placed a startpoint but is not yet ready
 
 	local getValidRandom, isUnitValid
+
+	local function updateAIManualPlacement(teamID, x, z)
+		if allowEnemyAIPlacement then
+			if x and z then
+				spSetTeamRulesParam(teamID, "aiManualPlacement", x .. "," .. z, {public=true})
+			else
+				spSetTeamRulesParam(teamID, "aiManualPlacement", nil)
+			end
+		end
+	end
 
 	do
 		local modoptions = Spring.GetModOptions()
@@ -185,10 +208,29 @@ if gadgetHandler:IsSyncedCode() then
 	GG.teamStartPoints = teamStartPoints
 	local startPointTable = {}
 
+	local function validateSpawnPosition(x, z, teamID, playerID)
+		for otherTeamID, startpoint in pairs(startPointTable) do
+			if otherTeamID ~= teamID then
+				local sx, sz = startpoint[1], startpoint[2]
+				if sx > 0 and sz > 0 then
+					local distSq = (x - sx) ^ 2 + (z - sz) ^ 2
+					if distSq <= tooCloseToSpawn ^ 2 then
+						if playerID then
+							SendToUnsynced("PositionTooClose", playerID)
+						end
+						return false
+					end
+				end
+			end
+		end
+
+		return true
+	end
+
 	----------------------------------------------------------------
 	-- Start Point Guesser
 	----------------------------------------------------------------
-	include("common/lib_startpoint_guesser.lua") -- start point guessing routines
+	VFS.Include("common/lib_startpoint_guesser.lua")
 
 	----------------------------------------------------------------
 	-- FFA start points (provided by `game_ffa_start_setup`)
@@ -200,7 +242,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- Draft Spawn Order -- only enabled when startPosType is 2
 	----------------------------------------------------------------
 	local draftMode = Spring.GetModOptions().draft_mode
-	if (Game.startPosType == 2) and (draftMode ~= nil and draftMode ~= "disabled") then
+	if (Game.startPosType == SPAWN_CHOOSE_IN_GAME) and (draftMode ~= nil and draftMode ~= "disabled") then
 		include("luarules/gadgets/game_draft_spawn_order.lua")
 	else
 		draftMode = nil
@@ -211,6 +253,8 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	function gadget:Initialize()
 		Spring.SetLogSectionFilterLevel(gadget:GetInfo().name, LOG.INFO)
+
+		Spring.SetGameRulesParam("tooCloseToSpawn", tooCloseToSpawn)
 
 		local gaiaTeamID = Spring.GetGaiaTeamID()
 		local teamList = Spring.GetTeamList()
@@ -239,7 +283,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- mark all players as 'not yet placed' and 'not yet readied'
 		local initState
 		if Game.startPosType ~= 2 then
-			initState = -1 -- if players won't be allowed to place startpoints
+			initState = READYSTATE_AUTO_READY -- if players won't be allowed to place startpoints
 		else
 			initState = 0 -- players will be allowed to place startpoints
 
@@ -264,11 +308,12 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- keep track of choosing faction ingame
 	function gadget:RecvLuaMsg(msg, playerID)
+		local _, _, playerIsSpec, playerTeam, allyTeamID = spGetPlayerInfo(playerID, false)
+		
 		local startUnit = false
 		if string.sub(msg, 1, string.len("changeStartUnit")) == "changeStartUnit" then
 			startUnit = tonumber(msg:match(changeStartUnitRegex))
 		end
-		local _, _, playerIsSpec, playerTeam, allyTeamID = spGetPlayerInfo(playerID, false)
 		if isUnitValid(startUnit, allyTeamID) then
 			if not playerIsSpec then
 				playerStartingUnits[playerID] = startUnit
@@ -282,7 +327,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- thus, the plan is to keep track of readystats gameside, and only send through GameSetup
 		-- when everyone is ready
 		if msg == "ready_to_start_game" then
-			Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", 1)
+			Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", READYSTATE_READY)
 		end
 
 		-- keep track of who has joined
@@ -314,6 +359,46 @@ if gadgetHandler:IsSyncedCode() then
 
 		if not playerIsSpec and (draftMode ~= nil and draftMode ~= "disabled") then
 			DraftRecvLuaMsg(msg, playerID, playerIsSpec, playerTeam, allyTeamID)
+		end
+		
+		if string.sub(msg, 1, 17) == "aiPlacedPosition:" then
+			local data = string.sub(msg, 18)
+			local teamID, x, z = string.match(data, "(%d+):([%d%.]+):([%d%.]+)")
+			if teamID and x and z then
+				teamID = tonumber(teamID)
+				x = tonumber(x)
+				z = tonumber(z)
+
+				local aiAllyTeamID = select(6, Spring.GetTeamInfo(teamID, false))
+
+			if playerIsSpec or (aiAllyTeamID ~= allyTeamID and not allowEnemyAIPlacement) then
+				return false
+			end
+
+			local isValid = validateSpawnPosition(x, z, teamID, playerID)
+
+				if not isValid then
+					local currentPos = startPointTable[teamID]
+					if currentPos and currentPos[1] > 0 and currentPos[2] > 0 and validateSpawnPosition(currentPos[1], currentPos[2], teamID, playerID) then
+						x, z = currentPos[1], currentPos[2]
+						local y = spGetGroundHeight(x, z)
+						Spring.SetTeamStartPosition(teamID, x, y, z)
+						updateAIManualPlacement(teamID, x, z)
+					else
+						updateAIManualPlacement(teamID)
+					end
+				elseif x == 0 and z == 0 then
+					Spring.SetTeamStartPosition(teamID, -1, -1, -1) -- Reset position
+					startPointTable[teamID] = nil
+					updateAIManualPlacement(teamID)
+				else
+					local y = spGetGroundHeight(x, z)
+					Spring.SetTeamStartPosition(teamID, x, y, z)
+					startPointTable[teamID] = {x, z}
+					updateAIManualPlacement(teamID, x, z)
+				end
+				return true
+			end
 		end
 	end
 
@@ -347,15 +432,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:AllowStartPosition(playerID, teamID, readyState, x, y, z)
-		-- readyState:
-		-- 0: player did not place startpoint, is unready
-		-- 1: game starting, player is ready
-		-- 2: player pressed ready OR game is starting and player is forcibly readied (note: if the player chose a startpoint, reconnected and pressed ready without re-placing, this case will have the wrong x,z)
-		-- 3: game forcestarted & player absent
-
-		-- we also add the following
-		-- -1: players will not be allowed to place startpoints; automatically readied once ingame
-		--  4: player has placed a startpoint but is not yet ready
 
 		--[[
 		-- for debugging
@@ -414,19 +490,19 @@ if gadgetHandler:IsSyncedCode() then
 		-- Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", readyState)
 		local is_player_ready = Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")
 
-		for otherTeamID, startpoint in pairs(startPointTable) do
-			local sx, sz = startpoint[1], startpoint[2]
-			local tooClose = ((x - sx) ^ 2 + (z - sz) ^ 2 <= closeSpawnDist ^ 2)
-			local sameTeam = (teamID == otherTeamID)
-			local sameAllyTeam = (allyTeamID == select(6, spGetTeamInfo(otherTeamID, false)))
-			if (sx > 0) and tooClose and sameAllyTeam and not sameTeam then
-				SendToUnsynced("PositionTooClose", playerID)
-				return false
+		local isValid = validateSpawnPosition(x, z, teamID, playerID)
+
+		if not isValid then
+			local currentPos = startPointTable[teamID]
+			if currentPos and currentPos[1] > 0 and currentPos[2] > 0 and validateSpawnPosition(currentPos[1], currentPos[2], teamID, playerID) then
+				local y = spGetGroundHeight(currentPos[1], currentPos[2])
+				Spring.SetTeamStartPosition(teamID, currentPos[1], y, currentPos[2])
 			end
+			return false
 		end
 
 		-- record table of starting points for startpoint assist to use
-		if readyState == 2 then
+		if readyState == READYSTATE_READY_FORCED then
 			-- player pressed ready (we have already recorded their startpoint when they placed it) OR game was force started and player is forcibly readied
 			if not startPointTable[teamID] then
 				startPointTable[teamID] = { -5000, -5000 } -- if the player was forcibly readied without having placed a startpoint, place an invalid one far away (thats what the StartPointGuesser wants)
@@ -434,9 +510,9 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			-- player placed startpoint OR game is starting and player is ready
 			startPointTable[teamID] = { x, z }
-			if is_player_ready ~= 1 then
+			if is_player_ready ~= READYSTATE_READY then
 				-- game is not starting (therefore, player cannot yet have pressed ready)
-				Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", 4)
+				Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", READYSTATE_PLACED_UNREADY)
 			end
 		end
 
@@ -548,14 +624,12 @@ if gadgetHandler:IsSyncedCode() then
 	local function spawnRegularly(teamID, allyTeamID)
 		local x, _, z = Spring.GetTeamStartPosition(teamID)
 		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
-
-		-- if its choose-in-game mode, see if we need to autoplace anyone
-		if Game.startPosType == 2 then
+		
+		if Game.startPosType == SPAWN_CHOOSE_IN_GAME then
 			if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
 				-- guess points for the ones classified in startPointTable as not genuine
 				x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
 			else
-				-- fallback
 				if x <= 0 or z <= 0 then
 					x = (xmin + xmax) / 2
 					z = (zmin + zmax) / 2
@@ -572,20 +646,20 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameStart()
 		-- if this a FFA match with automatic spawning (i.e. no start boxes) and a list of start points was provided by
 		-- `game_ffa_start_setup` for the ally teams in this match
-		if isFFA and Game.startPosType == 1 and GG.ffaStartPoints then
+		if isFFA and Game.startPosType == SPAWN_CHOOSE_BEFORE_GAME and GG.ffaStartPoints then
 			Spring.Log(gadget:GetInfo().name, LOG.INFO, "spawn using FFA start points config")
 			for teamID, allyTeamID in pairs(teams) do
 				spawnUsingFFAStartPoints(teamID, allyTeamID)
 			end
 		else
 			-- otherwise default to spawning regularly
-			if Game.startPosType == 2 then
+			if Game.startPosType == SPAWN_CHOOSE_IN_GAME then
 				Spring.Log(gadget:GetInfo().name, LOG.INFO,
 					"manual spawning based on positions chosen by players in start boxes")
-			elseif Game.startPosType == 1 then
+			elseif Game.startPosType == SPAWN_CHOOSE_BEFORE_GAME then
 				Spring.Log(gadget:GetInfo().name, LOG.INFO,
 					"automatic spawning using default map start positions, in random order")
-			elseif Game.startPosType == 0 then
+			elseif Game.startPosType == SPAWN_FIXED then
 				Spring.Log(gadget:GetInfo().name, LOG.INFO,
 					"automatic spawning using default map start positions, in fixed order")
 			end
