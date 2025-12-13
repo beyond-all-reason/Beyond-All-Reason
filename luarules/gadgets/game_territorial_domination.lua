@@ -16,27 +16,28 @@ local isSynced = gadgetHandler:IsSyncedCode()
 if modOptions.deathmode ~= "territorial_domination" or not isSynced then return false end
 
 local territorialDominationConfig = {
-	["18_minutes"] = {
-		maxRounds = 3,
-		minutesPerRound = 6,
-	},
-	["24_minutes"] = {
+	["20_minutes"] = {
 		maxRounds = 4,
-		minutesPerRound = 6,
+		minutesPerRound = 5,
+	},
+	["25_minutes"] = {
+		maxRounds = 5,
+		minutesPerRound = 5,
 	},
 	["30_minutes"] = {
-		maxRounds = 5,
-		minutesPerRound = 6,
+		maxRounds = 6,
+		minutesPerRound = 5,
 	},
-	["42_minutes"] = {
+	["35_minutes"] = {
 		maxRounds = 7,
-		minutesPerRound = 6,
+		minutesPerRound = 5,
 	}
 }
 
-local config = territorialDominationConfig[modOptions.territorial_domination_config] or territorialDominationConfig["30_minutes"]
+local config = territorialDominationConfig[modOptions.territorial_domination_config] or territorialDominationConfig["25_minutes"]
 local MAX_ROUNDS = config.maxRounds
 local ROUND_SECONDS = 60 * config.minutesPerRound
+local ELIMINATION_THRESHOLD_MULTIPLIER = modOptions.territorial_domination_elimination_threshold_multiplier or 1.2
 local DEBUGMODE = false
 
 local GRID_SIZE = 1024
@@ -99,7 +100,7 @@ local roundTimestamp = 0
 local currentRound = 0
 local gameOver = false
 local allyTeamsCount = 0
-local previousRoundHighestScore = 0
+local eliminationThreshold = 0
 local topLivingRankedScoreIndex = 1
 
 local allyTeamsWatch = {}
@@ -624,7 +625,7 @@ function gadget:GameFrame(frame)
 				end
 				currentRound = currentRound + 1
 				for allyID, scoreData in pairs(allyData) do
-					if scoreData.score < previousRoundHighestScore and allyTeamsWatch[allyID] and scoreData.rank > topLivingRankedScoreIndex then
+					if scoreData.score < eliminationThreshold and allyTeamsWatch[allyID] and scoreData.rank > topLivingRankedScoreIndex then
 						defeatAlly(allyID)
 						refreshLivingTeams = true
 					end
@@ -643,8 +644,8 @@ function gadget:GameFrame(frame)
 			end
 
 			if currentRound <= MAX_ROUNDS then
-				previousRoundHighestScore = newHighestScore
-				Spring.SetGameRulesParam("territorialDominationPrevHighestScore", previousRoundHighestScore)
+				eliminationThreshold = math.floor(newHighestScore * ELIMINATION_THRESHOLD_MULTIPLIER)
+				Spring.SetGameRulesParam("territorialDominationEliminationThreshold", eliminationThreshold)
 				roundTimestamp = seconds + ROUND_SECONDS
 			end
 		end
