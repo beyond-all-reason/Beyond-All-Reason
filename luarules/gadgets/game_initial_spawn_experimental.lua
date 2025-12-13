@@ -70,6 +70,16 @@ if gadgetHandler:IsSyncedCode() then
 
 	local getValidRandom, isUnitValid
 
+	local function updateAIManualPlacement(teamID, x, z)
+		if allowEnemyAIPlacement then
+			if x and z then
+				spSetTeamRulesParam(teamID, "aiManualPlacement", x .. "," .. z, {public=true})
+			else
+				spSetTeamRulesParam(teamID, "aiManualPlacement", nil)
+			end
+		end
+	end
+
 	do
 		local modoptions = Spring.GetModOptions()
 		local factionlimiter = tonumber(modoptions.factionlimiter) or 0
@@ -373,27 +383,19 @@ if gadgetHandler:IsSyncedCode() then
 						x, z = currentPos[1], currentPos[2]
 						local y = spGetGroundHeight(x, z)
 						Spring.SetTeamStartPosition(teamID, x, y, z)
-						if allowEnemyAIPlacement then
-							spSetTeamRulesParam(teamID, "aiManualPlacement", x .. "," .. z, {public=true})
-						end
+						updateAIManualPlacement(teamID, x, z)
 					else
-						if allowEnemyAIPlacement then
-							spSetTeamRulesParam(teamID, "aiManualPlacement", nil)
-						end
+						updateAIManualPlacement(teamID)
 					end
 				elseif x == 0 and z == 0 then
 					Spring.SetTeamStartPosition(teamID, -1, -1, -1) -- Reset position
 					startPointTable[teamID] = nil
-					if allowEnemyAIPlacement then
-						spSetTeamRulesParam(teamID, "aiManualPlacement", nil)
-					end
+					updateAIManualPlacement(teamID)
 				else
 					local y = spGetGroundHeight(x, z)
 					Spring.SetTeamStartPosition(teamID, x, y, z)
 					startPointTable[teamID] = {x, z}
-					if allowEnemyAIPlacement then
-						spSetTeamRulesParam(teamID, "aiManualPlacement", x .. "," .. z, {public=true})
-					end
+					updateAIManualPlacement(teamID, x, z)
 				end
 				return true
 			end
