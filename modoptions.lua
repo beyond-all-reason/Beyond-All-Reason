@@ -120,12 +120,12 @@ local options = {
         def     = "com",
         section = "options_main",
         items   = {
-            { key = "neverend", name = "Never ending",             desc = "Teams are never eliminated",                       lock = { "territorial_domination_config" } },
-            { key = "com",     name = "Kill all enemy Commanders", desc = "When a team has no Commanders left, it loses",     lock = { "territorial_domination_config" } },
-            { key= "territorial_domination",  name= "Territorial Domination",     desc="Teams earn points by capturing territory to stay in the game. At the end of the final round, the team with the most points wins.", unlock = {"territorial_domination_config"} },
-            { key = "builders", name = "Kill all Builders",        desc = "When a team has no builders left, it loses",       lock = { "territorial_domination_config" } },
-            { key = "killall", name = "Kill everything",           desc = "Every last unit must be eliminated, no exceptions!", lock = { "territorial_domination_config" } },
-            { key = "own_com", name = "Player resign on Com death", desc = "When player commander dies, you auto-resign.",    lock = { "territorial_domination_config" } },
+            { key = "neverend", name = "Never ending",             desc = "Teams are never eliminated",                       lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" } },
+            { key = "com",     name = "Kill all enemy Commanders", desc = "When a team has no Commanders left, it loses",     lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" } },
+            { key= "territorial_domination",  name= "Territorial Domination",     desc="Teams earn points by capturing territory to stay in the game. At the end of the final round, the team with the most points wins.", unlock = {"territorial_domination_config", "territorial_domination_elimination_threshold_multiplier"} },
+            { key = "builders", name = "Kill all Builders",        desc = "When a team has no builders left, it loses",       lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" } },
+            { key = "killall", name = "Kill everything",           desc = "Every last unit must be eliminated, no exceptions!", lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" } },
+            { key = "own_com", name = "Player resign on Com death", desc = "When player commander dies, you auto-resign.",    lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" } },
         }
     },
 
@@ -135,14 +135,26 @@ local options = {
         desc    =
         "Configures the grace period and the amount of time in minutes it takes to reach the maximum required territory.",
         type    = "list",
-        def     = "24_minutes",
+        def     = "25_minutes",
         section = "options_main",
         items   = {
-            { key = "18_minutes", name = "3 Rounds, 18 Minutes",  desc = "Early tech emphasis, mathmathically certain comeback, elimination unlikely." },
-            { key = "24_minutes",  name = "4 Rounds, 24 Minutes(Default)",  desc = "Mid/late-game tech, comebacks a significant factor,eliminations uncommon" },
-            { key = "30_minutes", name = "5 Rounds, 30 Minutes", desc = "Late-game tech, comebacks less significant, eliminations likely" },
-            { key = "42_minutes",   name = "7 Rounds, 42 Minutes",   desc = "Super lategame tech, eliminations extremely likely" },
+            { key = "20_minutes", name = "4 Rounds, 20 Minutes",  desc = "Early tech emphasis, comebacks very likely, elimination unlikely." },
+            { key = "25_minutes",  name = "5 Rounds, 25 Minutes(Default)",  desc = "Mid/late-game tech, comebacks a significant factor, eliminations uncommon" },
+            { key = "30_minutes", name = "6 Rounds, 30 Minutes", desc = "Late-game tech, comebacks less significant, eliminations likely" },
+            { key = "35_minutes",   name = "7 Rounds, 35 Minutes",   desc = "Super lategame tech, eliminations extremely likely" },
         }
+    },
+
+    {
+        key     = "territorial_domination_elimination_threshold_multiplier",
+        name    = "Elimination Threshold Multiplier",
+        desc    = "Teams are eliminated at round end when score < elimination threshold which is set by highest score multiplied by this value. Lower values are more lenient.",
+        type    = "number",
+        def     = 1.2,
+        min     = 1.0,
+        max     = 1.5,
+        step    = 0.1,
+        section = "options_main",
     },
 
     {

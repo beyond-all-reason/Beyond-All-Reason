@@ -103,7 +103,7 @@ local initialModel = {
 	roundEndTime = 0,
 	maxRounds = 0,
 	pointsCap = 0,
-	prevHighestScore = 0,
+	eliminationThreshold = 0,
 	timeRemaining = TIME_ZERO_STRING,
 	roundDisplayText = spI18N('ui.territorialDomination.round.displayDefault', { maxRounds = DEFAULT_MAX_ROUNDS }),
 	timeRemainingSeconds = 0,
@@ -360,7 +360,7 @@ local function updateLeaderboard()
 	if not allyTeams or #allyTeams == 0 then return end
 	
 	local dataModel = widgetState.dmHandle
-	local eliminationThreshold = spGetGameRulesParam("territorialDominationPrevHighestScore") or 0
+	local eliminationThreshold = spGetGameRulesParam("territorialDominationEliminationThreshold") or 0
 	
 	local livingTeams = {}
 	local eliminatedTeams = {}
@@ -728,7 +728,7 @@ end
 local function updateRoundInfo()
 	local roundEndTime = spGetGameRulesParam("territorialDominationRoundEndTimestamp") or 0
 	local gameRulesPointsCap = spGetGameRulesParam("territorialDominationPointsCap") or DEFAULT_POINTS_CAP
-	local prevHighestScore = spGetGameRulesParam("territorialDominationPrevHighestScore") or 0
+	local eliminationThreshold = spGetGameRulesParam("territorialDominationEliminationThreshold") or 0
 	local currentRound = spGetGameRulesParam("territorialDominationCurrentRound") or 0
 	local maxRounds = spGetGameRulesParam("territorialDominationMaxRounds") or DEFAULT_MAX_ROUNDS
 
@@ -771,7 +771,7 @@ local function updateRoundInfo()
 		roundEndTime = roundEndTime,
 		maxRounds = maxRounds,
 		pointsCap = pointsCap,
-		prevHighestScore = prevHighestScore,
+		eliminationThreshold = eliminationThreshold,
 		timeRemaining = timeString,
 		roundDisplayText = roundDisplayText,
 		timeRemainingSeconds = timeRemainingSeconds,
@@ -839,7 +839,7 @@ local function updatePlayerDisplay()
 	local territoryCount = selectedTeam.territoryCount or 0
 	local currentScore = selectedTeam.score or 0
 	local teamName = selectedTeam.name or ""
-	local eliminationThreshold = dataModel.prevHighestScore or 0
+	local eliminationThreshold = dataModel.eliminationThreshold or 0
 	
 	local allyTeams = widgetState.allyTeamData
 	local playerRank = 1
@@ -1053,7 +1053,7 @@ local function updateDataModel()
 		dataModel.roundEndTime = tostring(roundInfo.roundEndTime)
 		dataModel.maxRounds = roundInfo.maxRounds
 		dataModel.pointsCap = roundInfo.pointsCap
-		dataModel.prevHighestScore = roundInfo.prevHighestScore
+		dataModel.eliminationThreshold = roundInfo.eliminationThreshold
 		dataModel.timeRemaining = roundInfo.timeRemaining
 		dataModel.roundDisplayText = roundInfo.roundDisplayText
 		dataModel.timeRemainingSeconds = roundInfo.timeRemainingSeconds
