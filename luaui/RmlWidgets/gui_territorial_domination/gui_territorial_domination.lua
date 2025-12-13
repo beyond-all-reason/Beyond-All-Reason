@@ -123,6 +123,25 @@ local initialModel = {
 	leaderboardTeams = {},
 }
 
+-- TODO: THIS IS A TEMPORARY HACK FOR ENGLISH ORDINALS - REPLACE WITH PROPER I18N ORDINAL SUPPORT ASAP
+-- This was only added so that there wouldn't be ugly player facing equivalents for placement.
+local function getEnglishOrdinal(number)
+	local lastTwoDigits = number % 100
+	local lastDigit = number % 10
+
+	if lastTwoDigits >= 11 and lastTwoDigits <= 13 then
+		return tostring(number) .. "th"
+	elseif lastDigit == 1 then
+		return tostring(number) .. "st"
+	elseif lastDigit == 2 then
+		return tostring(number) .. "nd"
+	elseif lastDigit == 3 then
+		return tostring(number) .. "rd"
+	else
+		return tostring(number) .. "th"
+	end
+end
+
 local function getAIName(teamID)
 	local _, _, _, name, _, options = spGetAIInfo(teamID)
 	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
@@ -855,7 +874,7 @@ local function updatePlayerDisplay()
 		end
 		
 		if playerRank > 0 then
-			rankDisplayText = "#" .. tostring(playerRank) .. spI18N('ui.territorialDomination.rank.place')
+			rankDisplayText = getEnglishOrdinal(playerRank) .. " " .. spI18N('ui.territorialDomination.rank.place')
 		end
 		
 	local playerCombinedScore = currentScore + projectedPoints
