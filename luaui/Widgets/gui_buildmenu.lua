@@ -1673,6 +1673,33 @@ function widget:Initialize()
 		end
 		clear()
 	end
+
+	local blockedUnits = {}
+
+	WG['buildmenu'].addBlockReason = function(uDefID, reason)
+		blockedUnits[uDefID] = blockedUnits[uDefID] or {}
+		blockedUnits[uDefID][reason] = true
+		units.unitRestricted[uDefID] = true
+		clear()
+	end
+
+	WG['buildmenu'].removeBlockReason = function(uDefID, reason)
+		if blockedUnits[uDefID] then
+			blockedUnits[uDefID][reason] = nil
+			if not next(blockedUnits[uDefID]) then
+				blockedUnits[uDefID] = nil
+				
+				if UnitDefs[uDefID].maxThisUnit ~= 0 then
+					units.unitRestricted[uDefID] = false
+				end
+				
+				units.restrictWaterUnits(not showWaterUnits)
+				units.restrictWindUnits(disableWind)
+				units.checkGeothermalFeatures()
+			end
+			clear()
+		end
+	end
 end
 
 function widget:Shutdown()
