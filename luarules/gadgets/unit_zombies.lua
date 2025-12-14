@@ -1268,7 +1268,7 @@ end
 
 function gadget:Initialize()
 	local modOptionEnabled = modOptions.zombies ~= "disabled"
-	isIdleMode = modOptions.seasonal_surprise == true or (GG.Zombies and GG.Zombies.IdleMode == true) or false
+	isIdleMode = GG.Zombies and GG.Zombies.IdleMode == true or false
 
 	if not modOptionEnabled and not isIdleMode then
 		gadgetHandler:RemoveGadget(gadget)
