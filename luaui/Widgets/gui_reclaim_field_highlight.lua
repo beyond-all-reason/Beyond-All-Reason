@@ -82,6 +82,13 @@ local maxClusterSize = 3000 -- Adjust this value: smaller = more sub-clusters, l
 local fadeStartDistance = 4500 -- Distance where fields start to fade out
 local fadeEndDistance = 7000 -- Distance where fields stop rendering completely (must be > fadeStartDistance)
 
+-- Always show fields regardless of distance
+local alwaysShowFields = true -- When true, fields will always be visible at full opacity regardless of camera distance
+local alwaysShowFieldsMinThreshold = 500 -- Minimum metal value threshold
+local alwaysShowFieldsMaxThreshold = 2000 -- Maximum metal value threshold
+local alwaysShowFieldsThreshold = 500 -- Current threshold (auto-calculated based on map metal)
+local totalMapMetal = 0 -- Total metal available on the map (calculated after clustering)
+
 --------------------------------------------------------------------------------
 -- Speedups
 --------------------------------------------------------------------------------
@@ -163,6 +170,7 @@ local function IsInCameraView(x, y, z, radius, currentFrame)
 	local dist = sqrt(distSq)
 
 	-- Skip if too far away (beyond fade distance + radius) - early out
+	-- Note: This check is skipped for metal fields when alwaysShowFields is enabled (handled in GetClusterVisibility)
 	if dist > fadeEndDistance + radius then
 		return false, dist
 	end
@@ -199,8 +207,37 @@ local function IsInCameraView(x, y, z, radius, currentFrame)
 	return true, dist
 end
 
+-- Calculate auto-scaled threshold based on total map metal
+local function CalculateAlwaysShowThreshold()
+	if totalMapMetal <= 0 then
+		return alwaysShowFieldsMinThreshold
+	end
+	
+	-- Scale threshold based on total map metal
+	-- Maps with little metal (e.g., 10k) -> use min threshold (500)
+	-- Maps with lots of metal (e.g., 100k+) -> use max threshold (2000)
+	local lowMetalMap = 10000 -- Maps with this much or less use min threshold
+	local highMetalMap = 100000 -- Maps with this much or more use max threshold
+	
+	if totalMapMetal <= lowMetalMap then
+		return alwaysShowFieldsMinThreshold
+	elseif totalMapMetal >= highMetalMap then
+		return alwaysShowFieldsMaxThreshold
+	else
+		-- Linear interpolation between min and max
+		local ratio = (totalMapMetal - lowMetalMap) / (highMetalMap - lowMetalMap)
+		local threshold = alwaysShowFieldsMinThreshold + ratio * (alwaysShowFieldsMaxThreshold - alwaysShowFieldsMinThreshold)
+		return floor(threshold)
+	end
+end
+
 -- Calculate opacity multiplier based on distance
-local function GetDistanceFadeMultiplier(dist)
+local function GetDistanceFadeMultiplier(dist, isEnergy)
+	-- Only apply alwaysShowFields to metal fields (not energy)
+	if alwaysShowFields and not isEnergy then
+		return 1.0 -- Always full opacity for metal fields when option is enabled
+	end
+	
 	if dist <= fadeStartDistance then
 		return 1.0 -- Full opacity
 	elseif dist >= fadeEndDistance then
@@ -480,13 +517,26 @@ GetClusterVisibility = function(cid, isEnergy, currentFrame)
 		cluster.radius = sqrt((cluster.dx or 0)^2 + (cluster.dz or 0)^2) / 2
 	end
 
-	local inView, dist = IsInCameraView(center.x, center.y, center.z, cluster.radius, currentFrame)
+	-- For metal fields with alwaysShowFields enabled, bypass distance culling if above threshold
+	local inView, dist
+	local meetsThreshold = not isEnergy and cluster.metal and cluster.metal >= alwaysShowFieldsThreshold
+	if alwaysShowFields and not isEnergy and meetsThreshold then
+		-- Always in view for metal fields when option is enabled and above threshold
+		local dx = center.x - cachedCameraX
+		local dy = center.y - cachedCameraY
+		local dz = center.z - cachedCameraZ
+		dist = sqrt(dx*dx + dy*dy + dz*dz)
+		inView = true
+	else
+		inView, dist = IsInCameraView(center.x, center.y, center.z, cluster.radius, currentFrame)
+	end
+	
 	local fadeMult = 0
 
 	if inView then
-		fadeMult = GetDistanceFadeMultiplier(dist)
-		-- Early reject if too faded
-		if fadeMult < 0.01 then
+		fadeMult = GetDistanceFadeMultiplier(dist, isEnergy)
+		-- Early reject if too faded (but not for metal fields with alwaysShowFields above threshold)
+		if fadeMult < 0.01 and not (alwaysShowFields and not isEnergy and meetsThreshold) then
 			inView = false
 		end
 	end
@@ -1702,6 +1752,16 @@ local function ClusterizeFeatures()
 	clusterizingNeeded = false
 	redrawingNeeded = true
 
+	-- Calculate total map metal and update auto-scaled threshold
+	totalMapMetal = 0
+	for i = 1, #featureClusters do
+		local cluster = featureClusters[i]
+		if cluster and cluster.metal then
+			totalMapMetal = totalMapMetal + cluster.metal
+		end
+	end
+	alwaysShowFieldsThreshold = CalculateAlwaysShowThreshold()
+
 	-- Check if all energy has been drained after clustering
 	if showEnergyFields and not allEnergyFieldsDrained then
 		CheckAllEnergyDrained()
@@ -2641,6 +2701,41 @@ function widget:Initialize()
 		fadeEndDistance = max(fadeStartDistance + 100, value)
 	end
 
+	WG['reclaimfieldhighlight'].getAlwaysShowFields = function()
+		return alwaysShowFields
+	end
+	WG['reclaimfieldhighlight'].setAlwaysShowFields = function(value)
+		alwaysShowFields = value
+	end
+
+	WG['reclaimfieldhighlight'].getAlwaysShowFieldsThreshold = function()
+		return alwaysShowFieldsThreshold
+	end
+	WG['reclaimfieldhighlight'].setAlwaysShowFieldsThreshold = function(value)
+		-- Deprecated - threshold is now auto-calculated
+		-- This function kept for backwards compatibility
+	end
+
+	WG['reclaimfieldhighlight'].getAlwaysShowFieldsMinThreshold = function()
+		return alwaysShowFieldsMinThreshold
+	end
+	WG['reclaimfieldhighlight'].setAlwaysShowFieldsMinThreshold = function(value)
+		alwaysShowFieldsMinThreshold = max(0, value)
+		alwaysShowFieldsThreshold = CalculateAlwaysShowThreshold()
+	end
+
+	WG['reclaimfieldhighlight'].getAlwaysShowFieldsMaxThreshold = function()
+		return alwaysShowFieldsMaxThreshold
+	end
+	WG['reclaimfieldhighlight'].setAlwaysShowFieldsMaxThreshold = function(value)
+		alwaysShowFieldsMaxThreshold = max(alwaysShowFieldsMinThreshold, value)
+		alwaysShowFieldsThreshold = CalculateAlwaysShowThreshold()
+	end
+
+	WG['reclaimfieldhighlight'].getTotalMapMetal = function()
+		return totalMapMetal
+	end
+
 	-- Deferred update settings
 	WG['reclaimfieldhighlight'].getDeferOutOfViewUpdates = function()
 		return deferOutOfViewUpdates
@@ -2714,7 +2809,10 @@ function widget:GetConfigData(data)
 		smoothingSegments = smoothingSegments,
 		showEnergyFields = showEnergyFields,
 		fadeStartDistance = fadeStartDistance,
-		fadeEndDistance = fadeEndDistance
+		fadeEndDistance = fadeEndDistance,
+		alwaysShowFields = alwaysShowFields,
+		alwaysShowFieldsMinThreshold = alwaysShowFieldsMinThreshold,
+		alwaysShowFieldsMaxThreshold = alwaysShowFieldsMaxThreshold
 	}
 end
 
@@ -2727,6 +2825,19 @@ function widget:SetConfigData(data)
 	end
 	if data.showEnergyFields ~= nil then
 		showEnergyFields = data.showEnergyFields
+	end
+	if data.alwaysShowFields ~= nil then
+		alwaysShowFields = data.alwaysShowFields
+	end
+	if data.alwaysShowFieldsMinThreshold ~= nil then
+		alwaysShowFieldsMinThreshold = data.alwaysShowFieldsMinThreshold
+	end
+	if data.alwaysShowFieldsMaxThreshold ~= nil then
+		alwaysShowFieldsMaxThreshold = data.alwaysShowFieldsMaxThreshold
+	end
+	-- Legacy support for old fixed threshold
+	if data.alwaysShowFieldsThreshold ~= nil and data.alwaysShowFieldsMinThreshold == nil then
+		alwaysShowFieldsMinThreshold = data.alwaysShowFieldsThreshold
 	end
 	if data.fadeStartDistance ~= nil then
 		--fadeStartDistance = data.fadeStartDistance
