@@ -299,6 +299,18 @@ local function updateUI()
 	end
 end
 
+local state = true
+local function shitPickle(unitDefID, teamID, reasonKey)
+	Spring.Echo("Widget received poop:", unitDefID, teamID, reasonKey)
+	if state then
+		Spring.Echo("shitPickle, inside gui_tech_points.lua - unit:", unitDefID, "team:", teamID, "reason:", reasonKey)
+		state = false
+	else
+		Spring.Echo("shitPickle, inside gui_tech_points.lua, state is false - unit:", unitDefID, "team:", teamID, "reason:", reasonKey)
+		state = true
+	end
+end
+
 function widget:Initialize()
 	initializeTechBlocking()
 
@@ -337,6 +349,8 @@ function widget:Initialize()
 	createTechPointsElements()
 
 	updateUI()
+
+	widgetHandler:RegisterGlobal('poop', shitPickle)
 end
 
 function widget:Shutdown()
@@ -351,6 +365,8 @@ function widget:Shutdown()
 	end
 
 	widgetState.rmlContext = nil
+
+	widgetHandler:DeregisterGlobal('poop')
 end
 
 function widget:Update(dt)

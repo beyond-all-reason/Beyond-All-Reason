@@ -17,18 +17,24 @@ if gadgetHandler:IsSyncedCode() then
 	local DEFAULT_KEY = "defaultKey"
 	local MAX_MESSAGES_PER_FRAME = 30
 
-	local blockedUnitDefs = {}
-	-- data structure: unitDefID = {reasonKey = true, reasonKey = true, ...}
+local blockedUnitDefs = {}
+-- data structure: unitDefID = {reasonKey = true, reasonKey = true, ...}
 
-	for unitDefID, unitDef in pairs(UnitDefs) do
-		blockedUnitDefs[unitDefID] = {}
-	end
+for unitDefID, unitDef in pairs(UnitDefs) do
+	blockedUnitDefs[unitDefID] = {}
+end
 
-	function GG.UnitBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
+GG.UnitBlocking = GG.UnitBlocking or {}
+
+function gadget:Initialize()
+	GG.UnitBlocking = GG.UnitBlocking or {}
+end
+
+function GG.UnitBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
 		blockedUnitDefs[unitDefID] = blockedUnitDefs[unitDefID] or {}
 		blockedUnitDefs[unitDefID][reasonKey] = true
 		SendToUnsynced("poop", unitDefID, teamID, reasonKey)
-		Spring.SetTeamRulesParam(teamID, "unit_blocked_" .. unitDefID, reasonKey)
+		Spring.SetTeamRulesParam(teamID, "unit_blocked_" .. unitDefID, 1)
 	end
 
 	function GG.UnitBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey)
@@ -44,10 +50,25 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameFrame(frame)
+		if frame % 300 == 0 then
+			local unitDefIDs = {}
+			for unitDefID in pairs(UnitDefs) do
+				table.insert(unitDefIDs, unitDefID)
+			end
+			if #unitDefIDs > 0 then
+				local randomIndex = math.random(1, #unitDefIDs)
+				local randomUnitDefID = unitDefIDs[randomIndex]
+				local randomTeamID = math.random(0, #Spring.GetTeamList() - 1)
+				local randomReason = "random_block_" .. tostring(frame)
+				GG.UnitBlocking.AddBlockedUnit(randomUnitDefID, randomTeamID, randomReason)
+			end
+		end
 	end
-else
+elseif not gadgetHandler:IsSyncedCode() then --elseif for readability
 	function HandlePoop(_, unitDefID, teamID, reasonKey)
+		Spring.Echo("poop", unitDefID, teamID, reasonKey)
 		if Script.LuaUI("poop") then
+			Spring.Echo("poop, inside script.lua.", unitDefID, teamID, reasonKey)
 			Script.LuaUI.poop(unitDefID, teamID, reasonKey)
 		end
 	end
