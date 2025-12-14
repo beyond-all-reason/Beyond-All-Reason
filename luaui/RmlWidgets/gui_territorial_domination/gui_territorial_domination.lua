@@ -103,7 +103,7 @@ local initialModel = {
 	roundEndTime = 0,
 	maxRounds = 0,
 	pointsCap = 0,
-	prevHighestScore = 0,
+	eliminationThreshold = 0,
 	timeRemaining = TIME_ZERO_STRING,
 	roundDisplayText = spI18N('ui.territorialDomination.round.displayDefault', { maxRounds = DEFAULT_MAX_ROUNDS }),
 	timeRemainingSeconds = 0,
@@ -122,6 +122,25 @@ local initialModel = {
 	isFinalRound = false,
 	leaderboardTeams = {},
 }
+
+-- TODO: THIS IS A TEMPORARY HACK FOR ENGLISH ORDINALS - REPLACE WITH PROPER I18N ORDINAL SUPPORT ASAP
+-- This was only added so that there wouldn't be ugly player facing equivalents for placement.
+local function getEnglishOrdinal(number)
+	local lastTwoDigits = number % 100
+	local lastDigit = number % 10
+
+	if lastTwoDigits >= 11 and lastTwoDigits <= 13 then
+		return tostring(number) .. "th"
+	elseif lastDigit == 1 then
+		return tostring(number) .. "st"
+	elseif lastDigit == 2 then
+		return tostring(number) .. "nd"
+	elseif lastDigit == 3 then
+		return tostring(number) .. "rd"
+	else
+		return tostring(number) .. "th"
+	end
+end
 
 local function getAIName(teamID)
 	local _, _, _, name, _, options = spGetAIInfo(teamID)
@@ -360,7 +379,7 @@ local function updateLeaderboard()
 	if not allyTeams or #allyTeams == 0 then return end
 	
 	local dataModel = widgetState.dmHandle
-	local eliminationThreshold = spGetGameRulesParam("territorialDominationPrevHighestScore") or 0
+	local eliminationThreshold = spGetGameRulesParam("territorialDominationEliminationThreshold") or 0
 	
 	local livingTeams = {}
 	local eliminatedTeams = {}
@@ -728,7 +747,7 @@ end
 local function updateRoundInfo()
 	local roundEndTime = spGetGameRulesParam("territorialDominationRoundEndTimestamp") or 0
 	local gameRulesPointsCap = spGetGameRulesParam("territorialDominationPointsCap") or DEFAULT_POINTS_CAP
-	local prevHighestScore = spGetGameRulesParam("territorialDominationPrevHighestScore") or 0
+	local eliminationThreshold = spGetGameRulesParam("territorialDominationEliminationThreshold") or 0
 	local currentRound = spGetGameRulesParam("territorialDominationCurrentRound") or 0
 	local maxRounds = spGetGameRulesParam("territorialDominationMaxRounds") or DEFAULT_MAX_ROUNDS
 
@@ -771,7 +790,7 @@ local function updateRoundInfo()
 		roundEndTime = roundEndTime,
 		maxRounds = maxRounds,
 		pointsCap = pointsCap,
-		prevHighestScore = prevHighestScore,
+		eliminationThreshold = eliminationThreshold,
 		timeRemaining = timeString,
 		roundDisplayText = roundDisplayText,
 		timeRemainingSeconds = timeRemainingSeconds,
@@ -839,7 +858,7 @@ local function updatePlayerDisplay()
 	local territoryCount = selectedTeam.territoryCount or 0
 	local currentScore = selectedTeam.score or 0
 	local teamName = selectedTeam.name or ""
-	local eliminationThreshold = dataModel.prevHighestScore or 0
+	local eliminationThreshold = dataModel.eliminationThreshold or 0
 	
 	local allyTeams = widgetState.allyTeamData
 	local playerRank = 1
@@ -855,7 +874,7 @@ local function updatePlayerDisplay()
 		end
 		
 		if playerRank > 0 then
-			rankDisplayText = "#" .. tostring(playerRank) .. spI18N('ui.territorialDomination.rank.place')
+			rankDisplayText = getEnglishOrdinal(playerRank) .. " " .. spI18N('ui.territorialDomination.rank.place')
 		end
 		
 	local playerCombinedScore = currentScore + projectedPoints
@@ -1053,7 +1072,7 @@ local function updateDataModel()
 		dataModel.roundEndTime = tostring(roundInfo.roundEndTime)
 		dataModel.maxRounds = roundInfo.maxRounds
 		dataModel.pointsCap = roundInfo.pointsCap
-		dataModel.prevHighestScore = roundInfo.prevHighestScore
+		dataModel.eliminationThreshold = roundInfo.eliminationThreshold
 		dataModel.timeRemaining = roundInfo.timeRemaining
 		dataModel.roundDisplayText = roundInfo.roundDisplayText
 		dataModel.timeRemainingSeconds = roundInfo.timeRemainingSeconds
