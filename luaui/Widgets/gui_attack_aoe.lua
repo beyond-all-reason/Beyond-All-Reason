@@ -101,7 +101,7 @@ local Config = {
 	Render = {
 		scatterLineWidthMult = 1024,
 		aoeLineWidthMult = 64,
-		aoeDiskBandCount = 16,
+		aoeDiskBandCount = 12,
 		circleDivs = 96,
 		maxFilledCircleAlpha = 0.4,
 		minFilledCircleAlpha = 0.2,
@@ -187,6 +187,7 @@ local State = {
 
 	pulsePhase = 0,
 	circleList = 0,
+	unitDiskList = 0,
 
 	aimData = defaultAimData
 }
@@ -479,19 +480,6 @@ local function DrawScatterShape(data, ux, uz, ty, aimAngle, spreadAngle, rMin, r
 	glLineWidth(1)
 end
 
-local function UnitCircleVertices()
-	local divs = Config.Render.circleDivs
-	local circles = Cache.Calculated.unitCircles
-	for i = 1, divs do
-		local uc = circles[i]
-		glVertex(uc[1], 0, uc[2])
-	end
-end
-
-local function DrawUnitCircle()
-	glBeginEnd(GL_LINE_LOOP, UnitCircleVertices)
-end
-
 local function DrawCircle(x, y, z, radius)
 	glPushMatrix()
 	glTranslate(x, y, z)
@@ -683,11 +671,31 @@ local function SetupUnitDef(unitDefID, unitDef)
 end
 
 local function SetupDisplayLists()
-	State.circleList = glCreateList(DrawUnitCircle)
+	State.circleList = glCreateList(function()
+		glBeginEnd(GL_LINE_LOOP, function()
+			local divs = Config.Render.circleDivs
+			local circles = Cache.Calculated.unitCircles
+			for i = 1, divs do
+				local uc = circles[i]
+				glVertex(uc[1], 0, uc[2])
+			end
+		end)
+	end)
+
+	State.unitDiskList = glCreateList(function()
+		glBeginEnd(GL_TRIANGLE_FAN, function()
+			glVertex(0, 0, 0)
+			for i = 0, Config.Render.circleDivs do
+				local v = Cache.Calculated.unitCircles[i]
+				glVertex(v[1], 0, v[2])
+			end
+		end)
+	end)
 end
 
 local function DeleteDisplayLists()
 	glDeleteList(State.circleList)
+	glDeleteList(State.unitDiskList)
 end
 
 --------------------------------------------------------------------------------
@@ -930,14 +938,13 @@ local function DrawJunoArea(data)
 
 	glPushMatrix()
 	glTranslate(tx, ty, tz)
-	glBeginEnd(GL_TRIANGLE_STRIP, function()
-		SetGlColor(maxAlpha, color)
-		for i = 0, divs do
-			local unitCircle = circles[i]
-			glVertex(unitCircle[1] * areaDenialRadius, 0, unitCircle[2] * areaDenialRadius)
-			glVertex(0, 0, 0)
-		end
-	end)
+	glScale(areaDenialRadius, 1, areaDenialRadius)
+	SetGlColor(maxAlpha, color)
+	glCallList(State.unitDiskList)
+	glPopMatrix()
+
+	glPushMatrix()
+	glTranslate(tx, ty, tz)
 	glBeginEnd(GL_TRIANGLE_STRIP, function()
 		for idx = 1, bandCount do
 			local innerRing = areaDenialRadius + (impactRingWidth * (idx - 1) / bandCount)
@@ -948,8 +955,9 @@ local function DrawJunoArea(data)
 			SetGlColor(alphaFactor, color)
 			for i = 0, divs do
 				local unitCircle = circles[i]
-				glVertex(unitCircle[1] * outerRing, 0, unitCircle[2] * outerRing)
-				glVertex(unitCircle[1] * innerRing, 0, unitCircle[2] * innerRing)
+				local uc1, uc2 = unitCircle[1], unitCircle[2]
+				glVertex(uc1 * outerRing, 0, uc2 * outerRing)
+				glVertex(uc1 * innerRing, 0, uc2 * innerRing)
 			end
 		end
 	end)
