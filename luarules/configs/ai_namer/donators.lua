@@ -32,6 +32,7 @@ local DonatorAINames = {
     "danielquinn",
     "Dave",
     "Diana",
+    "DreamtBlue",
     "EnJoY",
     "ewang",
     "FishouseMike",
