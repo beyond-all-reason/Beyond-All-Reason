@@ -17,11 +17,17 @@ if gadgetHandler:IsSyncedCode() then
 	local DEFAULT_KEY = "defaultKey"
 	local MAX_MESSAGES_PER_FRAME = 30
 
-local blockedUnitDefs = {}
+local teamBlockedUnitDefs = {}
 -- data structure: unitDefID = {reasonKey = true, reasonKey = true, ...}
 
+local teamsList = Spring.GetTeamList()
+for _, teamID in ipairs(teamsList) do
+	teamBlockedUnitDefs[teamID] = {}
+end
 for unitDefID, unitDef in pairs(UnitDefs) do
-	blockedUnitDefs[unitDefID] = {}
+	for _, teamID in ipairs(teamsList) do
+		teamBlockedUnitDefs[teamID][unitDefID] = {}
+	end
 end
 
 GG.UnitBlocking = GG.UnitBlocking or {}
@@ -31,21 +37,33 @@ function gadget:Initialize()
 end
 
 function GG.UnitBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
+	local blockedUnitDefs = teamBlockedUnitDefs[teamID]
+	if not blockedUnitDefs then
+		return
+	end
 		blockedUnitDefs[unitDefID] = blockedUnitDefs[unitDefID] or {}
 		blockedUnitDefs[unitDefID][reasonKey] = true
-		SendToUnsynced("poop", unitDefID, teamID, reasonKey)
-		Spring.SetTeamRulesParam(teamID, "unit_blocked_" .. unitDefID, 1)
+		SendToUnsynced("unitdef_blocked", unitDefID, teamID)
+		Spring.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, 1)
 	end
 
 	function GG.UnitBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey)
-		if blockedUnitDefs[unitDefID] then
-			blockedUnitDefs[unitDefID][reasonKey] = nil
-			Spring.SetTeamRulesParam(teamID, "unit_blocked_" .. unitDefID, nil)
+		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
+		if not teamBlockedUnitDefs then
+			return
+		end
+		blockedUnitDefs[unitDefID][reasonKey] = nil
+		if not next(blockedUnitDefs[unitDefID]) then
+			Spring.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, nil)
 		end
 	end
 
 	function GG.UnitBlocking.IsUnitBlocked(unitDefID, teamID)
-		local isBlocked = next(blockedUnitDefs[unitDefID])
+		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
+		if not blockedUnitDefs then
+			return false, nil
+		end
+		local isBlocked = next(blockedUnitDefs[unitDefID]) or false
 		return isBlocked, isBlocked and blockedUnitDefs[unitDefID]
 	end
 
@@ -59,21 +77,39 @@ function GG.UnitBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
 				local randomIndex = math.random(1, #unitDefIDs)
 				local randomUnitDefID = unitDefIDs[randomIndex]
 				local randomTeamID = math.random(0, #Spring.GetTeamList() - 1)
-				local randomReason = "random_block_" .. tostring(frame)
+				local randomReason = "unitdef_blocked_" .. tostring(frame)
 				GG.UnitBlocking.AddBlockedUnit(randomUnitDefID, randomTeamID, randomReason)
 			end
 		end
 	end
+
+
+	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID)
+		if cmdID < 0 then --it's a build command
+			local blockedUnitDefs = teamBlockedUnitDefs[unitTeam]
+			if not blockedUnitDefs then
+				return true
+			end
+			local isBlocked = next(blockedUnitDefs[unitDefID]) or false
+			if isBlocked then
+				return false
+			end
+		end
+		return true
+	end
+
+-------------------------------------------------------------------------------- Unsynced Code --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------
 elseif not gadgetHandler:IsSyncedCode() then --elseif for readability
-	function HandlePoop(_, unitDefID, teamID, reasonKey)
-		Spring.Echo("poop", unitDefID, teamID, reasonKey)
-		if Script.LuaUI("poop") then
-			Spring.Echo("poop, inside script.lua.", unitDefID, teamID, reasonKey)
-			Script.LuaUI.poop(unitDefID, teamID, reasonKey)
+	function HandleUpdateUnitdefBlocked(_, unitDefID, teamID)
+		Spring.Echo("unitdef_blocked", unitDefID, teamID)
+		if Script.LuaUI("unitdef_blocked") then
+			Spring.Echo("unitdef_blocked, inside script.lua. unitDefID: ", unitDefID, " teamID: ", teamID)
+			Script.LuaUI.unitDefBlocked(unitDefID, teamID)
 		end
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddSyncAction("poop", HandlePoop)
+		gadgetHandler:AddSyncAction("unitDefBlocked", HandleUpdateUnitdefBlocked)
 	end
 end

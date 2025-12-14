@@ -299,16 +299,8 @@ local function updateUI()
 	end
 end
 
-local state = true
-local function shitPickle(unitDefID, teamID, reasonKey)
-	Spring.Echo("Widget received poop:", unitDefID, teamID, reasonKey)
-	if state then
-		Spring.Echo("shitPickle, inside gui_tech_points.lua - unit:", unitDefID, "team:", teamID, "reason:", reasonKey)
-		state = false
-	else
-		Spring.Echo("shitPickle, inside gui_tech_points.lua, state is false - unit:", unitDefID, "team:", teamID, "reason:", reasonKey)
-		state = true
-	end
+local function unitDefBlocked(unitDefID, teamID)
+	Spring.Echo("Widget received unitDefBlocked:", unitDefID, teamID)
 end
 
 function widget:Initialize()
@@ -350,7 +342,7 @@ function widget:Initialize()
 
 	updateUI()
 
-	widgetHandler:RegisterGlobal('poop', shitPickle)
+	widgetHandler:RegisterGlobal('unitDefBlocked', unitDefBlocked)
 end
 
 function widget:Shutdown()
