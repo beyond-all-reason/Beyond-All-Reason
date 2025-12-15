@@ -894,7 +894,7 @@ function widget:Update(delta)
 				for _, teamID in ipairs(Spring.GetTeamList()) do
 					if teamID ~= gaiaTeamID then
 						local _, _, _, isAI, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
-						if isAI and not aiPlacedPositions[teamID] and (allyTeamID == myAllyTeamID or isSpec or Spring.IsCheatingEnabled()) then
+						if isAI and not aiPlacedPositions[teamID] and (allyTeamID == myAllyTeamID or isSpec or Spring.IsCheatingEnabled() or allowEnemyAIPlacement) then
 							local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyTeamID)
 							local x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
 							if x and x > 0 and z and z > 0 then
