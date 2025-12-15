@@ -1,8 +1,8 @@
 function gadget:GetInfo()
     return {
         name      = "AutoReverse Movement",
-        desc      = "Units reverse intelligently instead of turning around",
-        author    = "DoodVanDaag + ChatGPT (used to port from tested armmanni_lus to gadget env)",
+        desc      = "Units reverse intelligently instead of turning around. This aims at replacing the old gadget (that is default disabled) and allow tweaks that use a defined r speed to work. There is no schedule for an implementation into the base game as this has not been approved by anyone.",
+        author    = "DoodVanDaag (LLM used)",
         date      = "2025",
         license   = "GPL",
         layer     = 0,
