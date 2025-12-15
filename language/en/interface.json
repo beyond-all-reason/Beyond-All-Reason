@@ -278,7 +278,7 @@
 			"blueprint_create_tooltip": "Save the selected units into a new blueprint, in the order they were selected",
 			"factoryqueuemode_normal": "Queue Mode",
 			"factoryqueuemode_quota": "Quota Mode",
-			"factoryqueuemode_tooltip": "Queue: Build each queued unit once\nQuota: Maintain a minimum quota of each unit on the battlefield",
+			"factoryqueuemode_tooltip": "Give priority to and command factory:\nQueue: Build each queued unit once\nQuota: Maintain a minimum quota of each unit on the battlefield",
 			"customOnOff": {
 				"lowTrajectory": "Low Trajectory",
 				"highTrajectory": "High Trajectory",

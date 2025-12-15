@@ -48,6 +48,7 @@ local spGetFactoryCommands = Spring.GetFactoryCommands
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
 local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
+local spGetUnitStates = Spring.GetUnitStates
 
 local CMD_INSERT = CMD.INSERT
 local CMD_OPT_ALT = CMD.OPT_ALT
@@ -55,6 +56,12 @@ local CMD_OPT_CTRL = CMD.OPT_CTRL
 local CMD_OPT_INTERNAL = CMD.OPT_INTERNAL
 local CMD_QUOTA_BUILD_TOGGLE = GameCMD.QUOTA_BUILD_TOGGLE
 -----
+
+----- handle toggle
+local function isOnQuotaBuildMode(unitID)
+    local cmdDescIndex = spFindUnitCmdDesc(unitID, CMD_QUOTA_BUILD_TOGGLE)
+	return cmdDescIndex and spGetUnitCmdDescs(unitID)[cmdDescIndex].params[1]+0 == 1
+end
 
 --------- quota logic -------------
 local function getNumberOfUnits(factoryID, unitDefID)
@@ -91,10 +98,14 @@ end
 
 local function isFactoryUsable(factoryID)
     local commandQueue = spGetFactoryCommands(factoryID, 2)
-    if not commandQueue then
+    if not commandQueue or #commandQueue == 0 then
         return true
     end
-    return commandQueue and( #commandQueue == 0 or not (commandQueue[1].options.alt or (commandQueue[2] and (commandQueue[2].options.alt or (commandQueue[2].id == CMD.WAIT))) or (commandQueue[1].id == CMD.WAIT)))
+    if not isOnQuotaBuildMode(factoryID) and not spGetUnitStates(factoryID)["repeat"] then
+        return false
+    end
+
+    return not (commandQueue[1].options.alt or (commandQueue[2] and (commandQueue[2].options.alt or (commandQueue[2].id == CMD.WAIT))) or (commandQueue[1].id == CMD.WAIT))
 end
 
 local function appendToFactoryQueue(factoryID, unitDefID)
@@ -133,12 +144,6 @@ function widget:GameFrame(n)
     if n % 15 == 0 then -- improve perfomance
         fillQuotas()
     end
-end
-
------ handle toggle
-local function isOnQuotaBuildMode(unitID)
-    local cmdDescIndex = spFindUnitCmdDesc(unitID, CMD_QUOTA_BUILD_TOGGLE)
-	return cmdDescIndex and spGetUnitCmdDescs(unitID)[cmdDescIndex].params[1]+0 == 1
 end
 
 ----- handle unit tracking
