@@ -33,7 +33,7 @@ return {
 			"legspcon",
 			"legspsurfacegunship",
 			"legspcarrier",
-			"corsb",
+			"legspbomber",
 			"legsptorpgunship",
 			"legspfighter",
 			"legspradarsonarplane",

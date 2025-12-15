@@ -350,6 +350,13 @@ return {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "thrusta", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "thrustb", light = 1 },
 	},
+	["legspbomber"] = {
+		{ color = { 0.1, 0.6, 0.4 }, width = 2, length = 48, piece = "microThrust1", light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 2, length = 48, piece = "microThrust2", light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 28, piece = "sideThrust1", light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 28, piece = "sideThrust2", light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 4, length = 24, piece = "mainThrust", light = 1 },
+	},
 	["legmineb"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "lthrusttrail", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "rthrusttrail", light = 1 },
