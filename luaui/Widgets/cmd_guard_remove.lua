@@ -17,7 +17,11 @@ include("keysym.h.lua")
 
 local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitCommands = Spring.GetUnitCommands
+local spGetCmdDescIndex = Spring.GetCmdDescIndex
+local spGetActiveCmdDesc = Spring.GetActiveCmdDesc
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
+local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
 local CMD_GUARD = CMD.GUARD
 local CMD_PATROL = CMD.PATROL
 
@@ -37,8 +41,7 @@ for udid, ud in pairs(UnitDefs) do
 	validUnit[udid] = ud.isBuilder and ud.canRepair and not ud.isFactory
 end
 
-function widget:UnitCommand(unitID, unitDefID, _, _, _, cmdOpts, _, _, _, _)
-
+function widget:UnitCommand(unitID, unitDefID, _, cmdID, _, cmdOpts)
 	if not cmdOpts.shift then
 		return false
 	end
@@ -48,12 +51,21 @@ function widget:UnitCommand(unitID, unitDefID, _, _, _, cmdOpts, _, _, _, _)
 	end
 
 	if validUnit[unitDefID] then
+		-- skip the check if command is a state toggle
+		local cmdIndex = spGetCmdDescIndex(cmdID)
+		if cmdIndex then
+			local cmdDescription = spGetActiveCmdDesc(cmdIndex)
+			if cmdDescription and cmdDescription.type == CMDTYPE_ICON_MODE then
+				return false
+			end
+		end
+
 		recentUnits[unitID] = spGetGameFrame()
 		local cmd = spGetUnitCommands(unitID, 2)
 		if cmd then
 			for c = 1, #cmd do
 				if removableCommand[cmd[c].id] then
-					Spring.GiveOrderToUnit(unitID, CMD.REMOVE, {cmd[c].tag}, 0)
+					spGiveOrderToUnit(unitID, CMD.REMOVE, {cmd[c].tag}, 0)
 				end
 			end
 		end
