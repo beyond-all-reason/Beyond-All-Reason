@@ -1688,17 +1688,26 @@ function widget:Initialize()
 			blockedUnits[uDefID][reason] = nil
 			if not next(blockedUnits[uDefID]) then
 				blockedUnits[uDefID] = nil
-				
+
 				if UnitDefs[uDefID].maxThisUnit ~= 0 then
 					units.unitRestricted[uDefID] = false
 				end
-				
+
 				units.restrictWaterUnits(not showWaterUnits)
 				units.restrictWindUnits(disableWind)
 				units.checkGeothermalFeatures()
 			end
 			clear()
 		end
+	end
+
+end
+
+function widget:UnitBlocked(unitDefID, teamID, reasons)
+	-- Handle unit blocking due to tech requirements
+	Spring.Echo("BuildMenu received UnitBlocked:", unitDefID, teamID, reasons)
+	for reason, _ in pairs(reasons) do
+		WG['buildmenu'].addBlockReason(unitDefID, reason)
 	end
 end
 

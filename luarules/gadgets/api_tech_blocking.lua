@@ -13,7 +13,7 @@ function gadget:GetInfo()
 end
 
 if gadgetHandler:IsSyncedCode() then
-	
+
 	local DEFAULT_KEY = "defaultKey"
 	local MAX_MESSAGES_PER_FRAME = 30
 
@@ -36,14 +36,14 @@ function gadget:Initialize()
 	GG.UnitBlocking = GG.UnitBlocking or {}
 end
 
-function GG.UnitBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
-	local blockedUnitDefs = teamBlockedUnitDefs[teamID]
-	if not blockedUnitDefs then
-		return
-	end
+	function GG.UnitBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
+		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
+		if not blockedUnitDefs then
+			return
+		end
 		blockedUnitDefs[unitDefID] = blockedUnitDefs[unitDefID] or {}
 		blockedUnitDefs[unitDefID][reasonKey] = true
-		SendToUnsynced("unitdef_blocked", unitDefID, teamID)
+		SendToUnsynced("UnitBlocked", unitDefID, teamID, blockedUnitDefs[unitDefID])
 		Spring.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, 1)
 	end
 
@@ -68,7 +68,7 @@ function GG.UnitBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
 	end
 
 	function gadget:GameFrame(frame)
-		if frame % 300 == 0 then
+		if frame % 120 == 0 then
 			local unitDefIDs = {}
 			for unitDefID in pairs(UnitDefs) do
 				table.insert(unitDefIDs, unitDefID)
@@ -101,15 +101,22 @@ function GG.UnitBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
 -------------------------------------------------------------------------------- Unsynced Code --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------------------------------------
 elseif not gadgetHandler:IsSyncedCode() then --elseif for readability
-	function HandleUpdateUnitdefBlocked(_, unitDefID, teamID)
-		Spring.Echo("unitdef_blocked", unitDefID, teamID)
-		if Script.LuaUI("unitdef_blocked") then
-			Spring.Echo("unitdef_blocked, inside script.lua. unitDefID: ", unitDefID, " teamID: ", teamID)
-			Script.LuaUI.unitDefBlocked(unitDefID, teamID)
-		end
-	end
+	function gadget:RecvFromSynced(messageName, ...) --we use recvfromsynced instead of SyncAction because we don't want all widgets to access all team's available tech
+		if messageName == "UnitBlocked" then
+			local unitDefID, teamID, reasons = ...
+			Spring.Echo("UnitBlocked", unitDefID, teamID, reasons)
+			Spring.Echo("UnitBlocked, received in api_tech_blocking.lua: ", unitDefID, teamID, reasons)
 
-	function gadget:Initialize()
-		gadgetHandler:AddSyncAction("unitDefBlocked", HandleUpdateUnitdefBlocked)
+			-- Only send tech data to allied teams to prevent information leakage
+			local myAllyTeamID = Spring.GetMyAllyTeamID()
+			local targetAllyTeamID = Spring.GetTeamAllyTeamID(teamID)
+
+			if myAllyTeamID == targetAllyTeamID then
+				Spring.Echo("UnitBlocked, sent to allied team: ", teamID)
+				Script.LuaUI.UnitBlocked(unitDefID, teamID, reasons)
+			else
+				Spring.Echo("UnitBlocked, not sending to non-allied team: ", teamID)
+			end
+		end
 	end
 end

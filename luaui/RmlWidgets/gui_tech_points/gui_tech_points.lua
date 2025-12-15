@@ -299,9 +299,6 @@ local function updateUI()
 	end
 end
 
-local function unitDefBlocked(unitDefID, teamID)
-	Spring.Echo("Widget received unitDefBlocked:", unitDefID, teamID)
-end
 
 function widget:Initialize()
 	initializeTechBlocking()
@@ -342,7 +339,6 @@ function widget:Initialize()
 
 	updateUI()
 
-	widgetHandler:RegisterGlobal('unitDefBlocked', unitDefBlocked)
 end
 
 function widget:Shutdown()
@@ -358,7 +354,6 @@ function widget:Shutdown()
 
 	widgetState.rmlContext = nil
 
-	widgetHandler:DeregisterGlobal('poop')
 end
 
 function widget:Update(dt)
@@ -373,6 +368,12 @@ function widget:Update(dt)
 		widgetState.lastBlockingUpdate = currentTime
 		updateBlocking()
 	end
+end
+
+function widget:UnitBlocked(unitDefID, teamID, reasons)
+	Spring.Echo("Tech Points Widget received UnitBlocked:", unitDefID, teamID, reasons)
+	-- This callin is primarily handled by api_tech_blocking.lua widget
+	-- We receive it here for testing purposes to verify the callin system works
 end
 
 function widget:RecvLuaMsg(message, playerID)
