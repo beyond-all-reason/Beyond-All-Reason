@@ -44,7 +44,7 @@ if Game.startPosType ~= 2 then
 end
 
 local draftMode = Spring.GetModOptions().draft_mode
-local allowEnemyAIPlacement = Spring.GetModOptions().allow_enemy_ai_spawn_placement or false
+local allowEnemyAIPlacement = Spring.GetModOptions().allow_enemy_ai_spawn_placement
 
 local tooCloseToSpawn
 
