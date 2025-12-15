@@ -1257,7 +1257,7 @@ local options = {
     {
         key 	= "override_quick_start_range",
         name 	= "Override Quick Start Range",
-        desc   	= "Override the quick start build range when overrides are enabled.",
+        desc   	= "Override the quick start build range when overrides are enabled (values below 200 are clamped to 200).",
         type 	= "number",
         def 	= 600,
         min 	= 200,
