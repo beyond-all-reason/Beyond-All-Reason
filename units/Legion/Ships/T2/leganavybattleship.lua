@@ -1,7 +1,7 @@
 return {
 	leganavybattleship = {
 		buildangle = 16000,
-		buildpic = "CORBATS.DDS",
+		buildpic = "leganavybattleship.DDS",
 		buildtime = 36000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -15 2",

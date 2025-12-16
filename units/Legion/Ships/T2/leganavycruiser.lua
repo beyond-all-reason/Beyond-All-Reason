@@ -2,7 +2,7 @@ return {
 	leganavycruiser = {
 		activatewhenbuilt = true,
 		buildangle = 16384,
-		buildpic = "CORCRUS.DDS",
+		buildpic = "leganavycruiser.DDS",
 		buildtime = 17000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -14 0",

@@ -1,7 +1,7 @@
 return {
 	leganavyradjamship = {
 		activatewhenbuilt = true,
-		buildpic = "CORSJAM.DDS",
+		buildpic = "leganavyradjamship.DDS",
 		buildtime = 16500,
 		canmove = true,
 		collisionvolumeoffsets = "0 -5 0",

@@ -2,7 +2,7 @@ return {
 	leganavyaaship = {
 		airsightdistance = 900,
 		buildangle = 16384,
-		buildpic = "CORARCH.DDS",
+		buildpic = "leganavyaaship.DDS",
 		buildtime = 15000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -4 3",
