@@ -372,6 +372,20 @@ end
 
 function widget:UnitBlocked(unitDefID, teamID, reasons)
 	Spring.Echo("Tech Points Widget received UnitBlocked:", unitDefID, teamID, reasons)
+	Spring.Echo("TeamRulesParam Key: unitdef_blocked_" .. unitDefID)
+	local teamRulesParam = Spring.GetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID)
+	Spring.Echo("TeamRulesParam Value:", teamRulesParam)
+
+	-- Debug: Show all teamRulesParam keys for this team
+	Spring.Echo("=== All TeamRulesParam keys for team " .. teamID .. " ===")
+	local teamRules = Spring.GetTeamRulesParams(teamID) or {}
+	for key, value in pairs(teamRules) do
+		if key:find("unitdef_blocked_") then
+			Spring.Echo("  " .. key .. " = " .. tostring(value))
+		end
+	end
+	Spring.Echo("=== End teamRules dump ===")
+
 	-- This callin is primarily handled by api_tech_blocking.lua widget
 	-- We receive it here for testing purposes to verify the callin system works
 end

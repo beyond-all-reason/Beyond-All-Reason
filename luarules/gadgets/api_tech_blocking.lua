@@ -32,6 +32,14 @@ end
 
 GG.UnitBlocking = GG.UnitBlocking or {}
 
+local function reasonConcatenator(reasonsTable)
+	local concatenatedReasons = {}
+	for reasonKey in pairs(reasonsTable) do
+		table.insert(concatenatedReasons, reasonKey)
+	end
+	return table.concat(concatenatedReasons, ",")
+end
+
 function gadget:Initialize()
 	GG.UnitBlocking = GG.UnitBlocking or {}
 end
@@ -43,18 +51,25 @@ end
 		end
 		blockedUnitDefs[unitDefID] = blockedUnitDefs[unitDefID] or {}
 		blockedUnitDefs[unitDefID][reasonKey] = true
+		local concatenatedReasons = reasonConcatenator(blockedUnitDefs[unitDefID])
+		Spring.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, concatenatedReasons)
 		SendToUnsynced("UnitBlocked", unitDefID, teamID, blockedUnitDefs[unitDefID])
-		Spring.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, 1)
+		Spring.Echo("Setting TeamRulesParam for team " .. teamID .. ", unitDefID " .. unitDefID .. ": " .. concatenatedReasons)
 	end
 
 	function GG.UnitBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey)
 		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
-		if not teamBlockedUnitDefs then
+		if not blockedUnitDefs then
 			return
 		end
 		blockedUnitDefs[unitDefID][reasonKey] = nil
 		if not next(blockedUnitDefs[unitDefID]) then
+			Spring.Echo("Clearing TeamRulesParam for team " .. teamID .. ", unitDefID " .. unitDefID)
 			Spring.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, nil)
+		else
+			local concatenatedReasons = reasonConcatenator(blockedUnitDefs[unitDefID])
+			Spring.Echo("Updating TeamRulesParam for team " .. teamID .. ", unitDefID " .. unitDefID .. ": " .. concatenatedReasons)
+			Spring.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, concatenatedReasons)
 		end
 	end
 
@@ -76,7 +91,8 @@ end
 			if #unitDefIDs > 0 then
 				local randomIndex = math.random(1, #unitDefIDs)
 				local randomUnitDefID = unitDefIDs[randomIndex]
-				local randomTeamID = math.random(0, #Spring.GetTeamList() - 1)
+				local randomTeamIndex = math.random(1, #teamsList)
+				local randomTeamID = teamsList[randomTeamIndex]
 				local randomReason = "unitdef_blocked_" .. tostring(frame)
 				GG.UnitBlocking.AddBlockedUnit(randomUnitDefID, randomTeamID, randomReason)
 			end
@@ -104,8 +120,6 @@ elseif not gadgetHandler:IsSyncedCode() then --elseif for readability
 	function gadget:RecvFromSynced(messageName, ...) --we use recvfromsynced instead of SyncAction because we don't want all widgets to access all team's available tech
 		if messageName == "UnitBlocked" then
 			local unitDefID, teamID, reasons = ...
-			Spring.Echo("UnitBlocked", unitDefID, teamID, reasons)
-			Spring.Echo("UnitBlocked, received in api_tech_blocking.lua: ", unitDefID, teamID, reasons)
 
 			-- Only send tech data to allied teams to prevent information leakage
 			local myAllyTeamID = Spring.GetMyAllyTeamID()
