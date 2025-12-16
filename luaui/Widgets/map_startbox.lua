@@ -13,6 +13,9 @@ function widget:GetInfo()
 	}
 end
 
+if Spring.GetModOptions().experimental_ai_spawns then
+	return false
+end
 
 -- Localized functions for performance
 local mathFloor = math.floor

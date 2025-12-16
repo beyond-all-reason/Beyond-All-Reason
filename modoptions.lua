@@ -120,12 +120,12 @@ local options = {
         def     = "com",
         section = "options_main",
         items   = {
-            { key = "neverend", name = "Never ending",             desc = "Teams are never eliminated",                       lock = { "territorial_domination_config" } },
-            { key = "com",     name = "Kill all enemy Commanders", desc = "When a team has no Commanders left, it loses",     lock = { "territorial_domination_config" } },
-            { key= "territorial_domination",  name= "Territorial Domination",     desc="Teams earn points by capturing territory to stay in the game. At the end of the final round, the team with the most points wins.", unlock = {"territorial_domination_config"} },
-            { key = "builders", name = "Kill all Builders",        desc = "When a team has no builders left, it loses",       lock = { "territorial_domination_config" } },
-            { key = "killall", name = "Kill everything",           desc = "Every last unit must be eliminated, no exceptions!", lock = { "territorial_domination_config" } },
-            { key = "own_com", name = "Player resign on Com death", desc = "When player commander dies, you auto-resign.",    lock = { "territorial_domination_config" } },
+            { key = "neverend", name = "Never ending",             desc = "Teams are never eliminated",                       lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" } },
+            { key = "com",     name = "Kill all enemy Commanders", desc = "When a team has no Commanders left, it loses",     lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" } },
+            { key= "territorial_domination",  name= "Territorial Domination",     desc="Teams earn points by capturing territory to stay in the game. At the end of the final round, the team with the most points wins.", unlock = {"territorial_domination_config", "territorial_domination_elimination_threshold_multiplier"} },
+            { key = "builders", name = "Kill all Builders",        desc = "When a team has no builders left, it loses",       lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" } },
+            { key = "killall", name = "Kill everything",           desc = "Every last unit must be eliminated, no exceptions!", lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" } },
+            { key = "own_com", name = "Player resign on Com death", desc = "When player commander dies, you auto-resign.",    lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" } },
         }
     },
 
@@ -135,14 +135,26 @@ local options = {
         desc    =
         "Configures the grace period and the amount of time in minutes it takes to reach the maximum required territory.",
         type    = "list",
-        def     = "24_minutes",
+        def     = "25_minutes",
         section = "options_main",
         items   = {
-            { key = "18_minutes", name = "3 Rounds, 18 Minutes",  desc = "Early tech emphasis, mathmathically certain comeback, elimination unlikely." },
-            { key = "24_minutes",  name = "4 Rounds, 24 Minutes(Default)",  desc = "Mid/late-game tech, comebacks a significant factor,eliminations uncommon" },
-            { key = "30_minutes", name = "5 Rounds, 30 Minutes", desc = "Late-game tech, comebacks less significant, eliminations likely" },
-            { key = "42_minutes",   name = "7 Rounds, 42 Minutes",   desc = "Super lategame tech, eliminations extremely likely" },
+            { key = "20_minutes", name = "4 Rounds, 20 Minutes",  desc = "Early tech emphasis, comebacks very likely, elimination unlikely." },
+            { key = "25_minutes",  name = "5 Rounds, 25 Minutes(Default)",  desc = "Mid/late-game tech, comebacks a significant factor, eliminations uncommon" },
+            { key = "30_minutes", name = "6 Rounds, 30 Minutes", desc = "Late-game tech, comebacks less significant, eliminations likely" },
+            { key = "35_minutes",   name = "7 Rounds, 35 Minutes",   desc = "Super lategame tech, eliminations extremely likely" },
         }
+    },
+
+    {
+        key     = "territorial_domination_elimination_threshold_multiplier",
+        name    = "Elimination Threshold Multiplier",
+        desc    = "Teams are eliminated at round end when score < elimination threshold which is set by highest score multiplied by this value. Lower values are more lenient.",
+        type    = "number",
+        def     = 1.2,
+        min     = 1.0,
+        max     = 1.5,
+        step    = 0.1,
+        section = "options_main",
     },
 
     {
@@ -532,6 +544,19 @@ local options = {
         def     =  true,
     },
 
+    {
+        key     = "raptors_dev_channel_link",
+        name    = "Development Discussion",
+        desc    = "Raptors development discussion.",
+        section = "raptor_defense_options",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/781097030692110346",
+        width   = 275,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
 	{
 		key		= "sub_header",
 		name	= "To Play Add a Raptors AI to the enemy Team: [Add AI], [RaptorsDefense AI]",
@@ -700,6 +725,19 @@ local options = {
         section = "scav_defense_options",
         type    = "subheader",
         def     =  true,
+    },
+
+    {
+        key     = "scavengers_dev_channel_link",
+        name    = "Development Discussion",
+        desc    = "Scavengers development discussion.",
+        section = "scav_defense_options",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/659550298653589504",
+        width   = 275,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
     },
 
 	{
@@ -1122,6 +1160,19 @@ local options = {
     },
 
     {
+        key     = "evocom_feedback_thread_link",
+        name    = "Feedback thread",
+        desc    = "Discord discussion about Evolving Commanders.",
+        section = "options_extra",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1233887661291343913",
+        width   = 215,
+        column  = 2,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
+    {
         key 	= "evocomlevelupmethod",
         name 	= "EvoCom: Leveling Method",
         desc   	= "Dynamic: Commanders evolve to keep up with the highest power player. Timed: Static Evolution Rate",
@@ -1227,6 +1278,19 @@ local options = {
             { key = "factory_discount_only", name = "First Factory Discount Only", desc = "No base budget, only first factory discount. No deduction from starting resources.", lock = {"quick_start_amount"} },
             { key = "disabled", name = "Disabled", desc = "Disabled quick start for all game modes.", lock = {"quick_start_amount"} },
         }
+    },
+
+    {
+        key     = "quick_start_link",
+        name    = "Feedback thread",
+        desc    = "Discord discussion about quick start.",
+        section = "options_extra",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1413936809980858408",
+        width   = 215,
+        column  = 2,
+        linkheight = 325,
+        linkwidth = 350,
     },
 
     {
@@ -1385,16 +1449,6 @@ local options = {
         }
     },
 
-    {
-        key     = "seasonal_surprise",
-        name    = "Seasonal Surprise",
-        desc    = "Happy Halloween!",
-        type    = "bool",
-        def     = false,
-        section = "options_extra",
-        hidden  = true,
-    },
-
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Experimental Options
@@ -1441,6 +1495,19 @@ local options = {
         section = "options_experimental",
         def  	= false,
     },
+    
+    {
+        key     = "experimentallegionfaction_link",
+        name    = "Development Discussion",
+        desc    = "Discord discussion about Legion faction.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1063217502898884701/1441480747629412675",
+        width   = 275,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
+    },
 
     {
         key		= "tech_blocking",
@@ -1452,6 +1519,19 @@ local options = {
         unlock  = {"t2_tech_threshold", "t3_tech_threshold", "unit_creation_reward_multiplier", "tech_blocking_per_team"},
     },
 
+    {
+        key     = "tech_blocking_link",
+        name    = "Feedback thread",
+        desc    = "Discord discussion about Tech Blocking.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1447221656228728942/1447221656228728942",
+        width   = 215,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+    
     {
         key		= "t2_tech_threshold",
         name   	= "Tech 2 Threshold",
@@ -1530,12 +1610,38 @@ local options = {
     },
 
     {
+        key     = "shieldsrework_community_poll_link",
+        name    = "Community Poll",
+        desc    = "A referendum to gauge community sentiment about whether or not it should be integrated into the regular game.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1429782218997497946",
+        width   = 200,
+        column  = 1.65,
+        linkheight = 375,
+        linkwidth = 350,
+    },
+
+    {
         key    	= "experimental_low_priority_pacifists",
         name   	= "Low Priority Pacifists",
         desc   	= "Makes the automatic target priority of non-combat mobile units much lower, so they must be intentionally targeted.",
         type   	= "bool",
         section = "options_experimental",
         def  	= false,
+    },
+
+    {
+        key     = "experimental_low_priority_pacifists_link",
+        name    = "Feedback thread",
+        desc    = "Discord discussion about low priority pacifists.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1434671940223766679",
+        width   = 215,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
     },
 
     {
@@ -1609,14 +1715,16 @@ local options = {
         def 	= false,
     },
     {
-        key     = "link",
+        key     = "proposed_unit_reworks_link",
         name    = "Changelog",
         desc    = "Season 3 balance test changelog",
         section = "options_experimental",
         type    = "link",
         link    = "https://gist.github.com/Mitvit/66d5061f88fb1bd7558aa728be225052",
-        width   = 250,
-        column  = 2,
+        width   = 165,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
     },
 
     {
@@ -1630,6 +1738,19 @@ local options = {
     },
 
     {
+        key     = "naval_balance_tweaks_link",
+        name    = "Feedback thread",
+        desc    = "Discord discussion about naval balance tweaks.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1428031834045939833",
+        width   = 215,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
+    {
         key 	= "factory_costs",
         name 	= "Factory Costs Test Patch",
         desc 	= "Cheaper and more efficient factories, more expensive nanos, and slower to build higher-tech units. Experimental, not expected to be balanced by itself - a test to try how the game plays if each player is more able to afford their own T2 factory, while making assisting them less efficient.",
@@ -1637,6 +1758,18 @@ local options = {
         hidden 	= true,
         section = "options_experimental",
         def 	= false,
+    },
+
+    {
+        key 	= "experimental_ai_spawns",
+        name 	= "Show/Move AI Spawns",
+        desc 	= "Enables experimental AI spawn placement and movement features. Allows players to see and manually adjust AI starting positions.",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+        unlock  = {
+            "allow_enemy_ai_spawn_placement", --remove when map_startbox_experimental/game_initial_spawn_experimental experiment is over
+        },
     },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1877,6 +2010,15 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
             { key= "ai", 		name= "AI Only", 	    desc="All AI except Scavengers and Raptors"},
             { key= "all", 	    name= "All",			desc="AI and Player Teams both excluding Scavengers and Raptors" },
         }
+    },
+
+    {
+        key     = "allow_enemy_ai_spawn_placement",
+        name    = "Allow Hostile AI Spawn Placement",
+        desc    = "When enabled, allows enemy allyteams to view and place enemy AI start positions during the pregame",
+        type    = "bool",
+        def     = false,
+        section = "options_cheats",
     },
 
     {

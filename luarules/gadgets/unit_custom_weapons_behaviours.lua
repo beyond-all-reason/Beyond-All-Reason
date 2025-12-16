@@ -282,7 +282,7 @@ weaponCustomParamKeys.guidance = {
 local function guidanceLost(projectileID, radius, targetID)
 	local tx, ty, tz
 
-	if radius > 0 then
+	if radius and radius > 0 then
 		local _, _, _, ux, uy, uz = spGetUnitPosition(targetID, false, true)
 		local elevation = math_max(spGetGroundHeight(ux, uz), 0)
 		local dx, dy, dz, slope = spGetGroundNormal(ux, uz, true)
