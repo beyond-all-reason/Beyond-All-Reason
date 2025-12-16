@@ -142,6 +142,11 @@ local labGrids = {
 		"corcarry", "corsjam", "corbats", "corblackhy",            -- carrier, jammer, battleship, flagship
 		"corshark", "corssub", "corarch",                          -- sub killer, battlesub, AA
 	},
+	legadvshipyard = {
+		"leganavyconsub", "leganavyengineer", "leganavycruiser", "leganavymissileship",              -- T2 con sub, naval engineer, cruiser, rocket ship
+		"corcarry", "leganavybattleship", "leganavyartyship", "leganavyflagship",            -- carrier, jammer, battleship, flagship
+		"corshark", "corssub", "leganavyaaship",                          -- sub killer, battlesub, AA
+	},
 	-- amphibious labs
 	armamsub = {
 		"armbeaver", "armdecom", "armpincer", "",
