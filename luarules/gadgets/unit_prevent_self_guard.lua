@@ -14,9 +14,9 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
-local isFactory = {} -- Factory order queue goes to their units, not themselves.
+local isFactory = {} -- Factory order queue goes to built units, not themselves.
 for unitDefID, unitDef in ipairs(UnitDefs) do
-	isFactory[unitDefID] = unitDef.isFactory and #unitDef.buildOptions > 0
+	isFactory[unitDefID] = unitDef.isFactory
 end
 
 function gadget:Initialize()
