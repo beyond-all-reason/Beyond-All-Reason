@@ -9,6 +9,7 @@
 	- Inferno reloadtime 9s->8s
 	- Perdition stockpile time 70s->50s, stockpile cost reduced 500m17000E->350m14000E, impact damage 2000->1200 damage, napalm deals 120dps for 15s (3000 combined damage)
 	- Napalm damage cap increased 100->120dps
+    - Martyr damage vs commanders -25% -> -50%
 	
 # November 2025
 • [Legion changes] 
