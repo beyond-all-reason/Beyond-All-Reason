@@ -26,23 +26,9 @@ local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetMyTeamID = Spring.GetMyTeamID
 local spI18N = Spring.I18N
 
-local blockTechDefs = {}
-local blockTechCount = 0
-local blockedDefs = {}
 local POPUP_DELAY_FRAMES = Game.gameSpeed * 10
 local popupsEnabled = false
-local techLevelChanged = true
 
-local function initializeTechBlocking()
-	for unitDefID, unitDef in pairs(UnitDefs) do
-		local customParams = unitDef.customParams
-		if customParams and customParams.tech_build_blocked_until_level then
-			local techLevel = tonumber(customParams.tech_build_blocked_until_level)
-			blockTechDefs[unitDefID] = techLevel
-			blockTechCount = blockTechCount + 1
-		end
-	end
-end
 
 local function updateUIElementText(document, elementId, text)
 	local element = document:GetElementById(elementId)
@@ -60,8 +46,6 @@ local widgetState = {
 	dmHandle = nil,
 	lastUpdate = 0,
 	updateInterval = 0.5,
-	lastBlockingUpdate = 0,
-	blockingUpdateInterval = 0.1,
 	fillElement = nil,
 	levelElement = nil,
 	popupElement = nil,
@@ -70,7 +54,6 @@ local widgetState = {
 	popupEndTime = 0,
 	gameStartTime = nil,
 	initialPopupShown = false,
-	lastBlockingTechLevel = 1,
 }
 
 local initialModel = {
@@ -185,50 +168,6 @@ local function createTechPointsElements()
 	end
 end
 
-local function updateBlocking()
-	if not modOptions or not modOptions.tech_blocking then
-		return
-	end
-
-	local techLevel, currentTechPoints = getTechData()
-
-	techLevelChanged = techLevelChanged == true or techLevel ~= widgetState.lastBlockingTechLevel
-	local techPointsChangedSignificantly = math.abs(currentTechPoints - widgetState.previousTechPoints) >= 10
-
-	if techLevelChanged or techPointsChangedSignificantly then
-		for unitDefID in pairs(blockedDefs) do
-			if WG["gridmenu"] and WG["gridmenu"].removeBlockReason then
-				WG["gridmenu"].removeBlockReason(unitDefID, "tech_block")
-			end
-			if WG["buildmenu"] and WG["buildmenu"].removeBlockReason then
-				WG["buildmenu"].removeBlockReason(unitDefID, "tech_block")
-			end
-		end
-
-		for unitDefID in pairs(blockedDefs) do
-			blockedDefs[unitDefID] = nil
-		end
-
-		for unitDefID, requiredLevel in pairs(blockTechDefs) do
-			if techLevel < requiredLevel then
-				if not blockedDefs[unitDefID] then
-					blockedDefs[unitDefID] = {}
-				end
-				table.insert(blockedDefs[unitDefID], "tech_level_" .. requiredLevel)
-
-				if WG["gridmenu"] and WG["gridmenu"].addBlockReason then
-					WG["gridmenu"].addBlockReason(unitDefID, "tech_block")
-				end
-				if WG["buildmenu"] and WG["buildmenu"].addBlockReason then
-					WG["buildmenu"].addBlockReason(unitDefID, "tech_block")
-				end
-			end
-		end
-
-		widgetState.lastBlockingTechLevel = techLevel
-		widgetState.previousTechPoints = currentTechPoints
-	end
-end
 
 local function updatePopups(techLevel)
 	if not widgetState.initialPopupShown and widgetState.gameStartTime and (popupsEnabled or Spring.GetGameFrame() > POPUP_DELAY_FRAMES) then
@@ -301,8 +240,6 @@ end
 
 
 function widget:Initialize()
-	initializeTechBlocking()
-
 	widgetState.gameStartTime = os.clock()
 
 	local myTeamID = spGetMyTeamID()
@@ -362,11 +299,6 @@ function widget:Update(dt)
 	if currentTime - widgetState.lastUpdate > widgetState.updateInterval then
 		widgetState.lastUpdate = currentTime
 		updateUI()
-	end
-
-	if currentTime - widgetState.lastBlockingUpdate > widgetState.blockingUpdateInterval then
-		widgetState.lastBlockingUpdate = currentTime
-		updateBlocking()
 	end
 end
 

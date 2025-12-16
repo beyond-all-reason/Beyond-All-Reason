@@ -26,6 +26,7 @@ local spGetSpectatingState = Spring.GetSpectatingState
 
 include("keysym.h.lua")
 local windFunctions = VFS.Include('common/wind_functions.lua')
+local unitBlocking = VFS.Include('luaui/Include/unitBlocking.lua')
 
 local pairs = pairs
 local ipairs = ipairs
@@ -1698,6 +1699,13 @@ function widget:Initialize()
 				units.checkGeothermalFeatures()
 			end
 			clear()
+		end
+	end
+
+	local blockedUnitsData = unitBlocking.getAllBlockedUnitDefs()
+	for unitDefID, reasons in pairs(blockedUnitsData) do
+		for reason in pairs(reasons) do
+			WG['buildmenu'].addBlockReason(unitDefID, reason)
 		end
 	end
 

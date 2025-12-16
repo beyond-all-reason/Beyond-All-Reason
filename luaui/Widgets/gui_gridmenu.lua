@@ -164,6 +164,7 @@ local costOverrides = {}
 
 include("keysym.h.lua")
 local windFunctions = VFS.Include('common/wind_functions.lua')
+local unitBlocking = VFS.Include('luaui/Include/unitBlocking.lua')
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
@@ -1486,6 +1487,13 @@ function widget:Initialize()
 			end
 			redraw = true
 			updateGrid()
+		end
+	end
+
+	local blockedUnitsData = unitBlocking.getAllBlockedUnitDefs()
+	for unitDefID, reasons in pairs(blockedUnitsData) do
+		for reason in pairs(reasons) do
+			WG['gridmenu'].addBlockReason(unitDefID, reason)
 		end
 	end
 end
@@ -3002,6 +3010,14 @@ function widget:SetConfigData(data)
 	end
 	if data.shiftKeyModifier ~= nil then
 		modKeyMultiplier.keyPress.shift = data.shiftKeyModifier
+	end
+end
+
+function widget:UnitBlocked(unitDefID, teamID, reasons)
+	-- Handle unit blocking due to tech requirements
+	Spring.Echo("GridMenu received UnitBlocked:", unitDefID, teamID, reasons)
+	for reason, _ in pairs(reasons) do
+		WG['gridmenu'].addBlockReason(unitDefID, reason)
 	end
 end
 
