@@ -59,7 +59,7 @@ wake,
 bow,
 engineSpurt;
 
-static-var  gun_1, gun_2, gun_3, restore_delay, aimDir1;
+static-var  gun_1, gun_2, gun_3, restore_delay, aimDir1, shotcount, issmoking;
 static-var whichBarrelLeft1, whichBarrelRight, whichBarrelLeft2, whichBarrelMain, whichGunMain;
 
 // Signal definitions
@@ -96,12 +96,85 @@ Create()
     whichBarrelLeft2 = 0;
     whichBarrelMain = 0;
     whichGunMain = 0;
+    issmoking = 0;
 	restore_delay = 3000;	
+
+    move cell1 to y-axis [-6.5] now;
+    move cell2 to y-axis [-6.5] now;
+    move cell3 to y-axis [-6.5] now;
+    move cell4 to y-axis [-6.5] now;
+    move cell5 to y-axis [-6.5] now;
+    move cell6 to y-axis [-6.5] now;
 
 	start-script CATT1_Init();
 	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script BoatPhysics();
+}
+
+SmokeItUp()
+{	
+	if (issmoking == 0 OR TRUE)
+	{
+		issmoking = 1;
+		emit-sfx 257 from cell2;
+		emit-sfx 257 from cell4;
+		emit-sfx 257 from cell5;
+		sleep 1000;
+		emit-sfx 257 from cell2;
+		emit-sfx 257 from cell4;
+		emit-sfx 257 from cell5;
+		sleep 1000;
+		emit-sfx 257 from cell2;
+		emit-sfx 257 from cell4;
+		emit-sfx 257 from cell5;
+		sleep 1000;
+		emit-sfx 257 from cell2;
+		emit-sfx 257 from cell4;
+		emit-sfx 257 from cell5;
+		sleep 1000;
+		emit-sfx 257 from cell2;
+		emit-sfx 257 from cell4;
+		emit-sfx 257 from cell5;
+		sleep 1000;
+		emit-sfx 257 from cell2;
+		emit-sfx 257 from cell4;
+		emit-sfx 257 from cell5;
+		sleep 1000;
+
+		issmoking = 0;
+	}
+}
+
+
+lua_UnitScriptLight(lightIndex, count) {
+	return 0;
+}
+
+exhaustAnimation(){
+    start-script SmokeItUp();
+	shotcount = shotcount + 1;
+	call-script lua_UnitScriptLight(9, shotcount);
+    call-script lua_UnitScriptLight(10, shotcount);
+    call-script lua_UnitScriptLight(11, shotcount);
+    move cell1 to y-axis [0] speed [900];
+    move cell2 to y-axis [0] speed [900];
+    move cell3 to y-axis [0] speed [900];
+    move cell4 to y-axis [0] speed [900];
+    move cell5 to y-axis [0] speed [900];
+    move cell6 to y-axis [0] speed [900];
+    sleep 2000;
+    move cell1 to y-axis [-6.5] speed [-3.5];
+    sleep 100;
+    move cell2 to y-axis [-6.5] speed [-3.5];
+    sleep 100;
+    move cell3 to y-axis [-6.5] speed [-3.5];
+    sleep 100;
+    move cell4 to y-axis [-6.5] speed [-3.5];
+    sleep 100;
+    move cell5 to y-axis [-6.5] speed [-3.5];
+    sleep 100;
+    move cell6 to y-axis [-6.5] speed [-3.5];
 }
 
 SetMaxReloadTime(reloadMS)
@@ -272,62 +345,72 @@ Shot1()
 {
     if(whichGunMain == 0){
         if(whichBarrelMain == 0){
+            call-script lua_UnitScriptLight(2, shotcount);
             emit-sfx 1024 + 0 from leftTopFlare1;
-            move leftTopBarrel1 to z-axis [-10] now;
+            move leftTopBarrel1 to z-axis [-20] now;
             sleep 1;
-            move leftTopBarrel1 to z-axis [0] speed [10];
+            move leftTopBarrel1 to z-axis [0] speed [2];
             whichBarrelMain = 1;
         }
         else if(whichBarrelMain == 1){
+            call-script lua_UnitScriptLight(1, shotcount);
             emit-sfx 1024 + 0 from rightTopFlare1;
-            move rightTopBarrel1 to z-axis [-10] now;
+            move rightTopBarrel1 to z-axis [-20] now;
             sleep 1;
-            move rightTopBarrel1 to z-axis [0] speed [10];
+            move rightTopBarrel1 to z-axis [0] speed [2];
             whichBarrelMain = 2;
         }
         else if(whichBarrelMain == 2){
+            call-script lua_UnitScriptLight(4, shotcount);
             emit-sfx 1024 + 0 from leftBottomFlare1;
-            move leftBottomBarrel1 to z-axis [-10] now;
+            move leftBottomBarrel1 to z-axis [-20] now;
             sleep 1;
-            move leftBottomBarrel1 to z-axis [0] speed [10];
+            move leftBottomBarrel1 to z-axis [0] speed [2];
             whichBarrelMain = 3;
         }
         else if(whichBarrelMain == 3){
+            call-script lua_UnitScriptLight(3, shotcount);
             emit-sfx 1024 + 0 from rightBottomFlare1;
-            move rightBottomBarrel1 to z-axis [-10] now;
+            move rightBottomBarrel1 to z-axis [-20] now;
             sleep 1;
-            move rightBottomBarrel1 to z-axis [0] speed [10];
+            move rightBottomBarrel1 to z-axis [0] speed [2];
+            call-script exhaustAnimation();
             whichBarrelMain = 0;
             whichGunMain = 1;
         }
     }
 	else if(whichGunMain == 1){
         if(whichBarrelMain == 0){
+            call-script lua_UnitScriptLight(6, shotcount);
             emit-sfx 1024 + 0 from leftTopFlare2;
-            move leftTopBarrel2 to z-axis [-10] now;
+            move leftTopBarrel2 to z-axis [-20] now;
             sleep 1;
-            move leftTopBarrel2 to z-axis [0] speed [10];
+            move leftTopBarrel2 to z-axis [0] speed [2];
             whichBarrelMain = 1;
         }
         else if(whichBarrelMain == 1){
+            call-script lua_UnitScriptLight(5, shotcount);
             emit-sfx 1024 + 0 from rightTopFlare2;
-            move rightTopBarrel2 to z-axis [-10] now;
+            move rightTopBarrel2 to z-axis [-20] now;
             sleep 1;
-            move rightTopBarrel2 to z-axis [0] speed [10];
+            move rightTopBarrel2 to z-axis [0] speed [2];
             whichBarrelMain = 2;
         }
         else if(whichBarrelMain == 2){
+            call-script lua_UnitScriptLight(8, shotcount);
             emit-sfx 1024 + 0 from leftBottomFlare2;
-            move leftBottomBarrel2 to z-axis [-10] now;
+            move leftBottomBarrel2 to z-axis [-20] now;
             sleep 1;
-            move leftBottomBarrel2 to z-axis [0] speed [10];
+            move leftBottomBarrel2 to z-axis [0] speed [2];
             whichBarrelMain = 3;
         }
         else if(whichBarrelMain == 3){
+            call-script lua_UnitScriptLight(7, shotcount);
             emit-sfx 1024 + 0 from rightBottomFlare2;
-            move rightBottomBarrel2 to z-axis [-10] now;
+            move rightBottomBarrel2 to z-axis [-20] now;
             sleep 1;
-            move rightBottomBarrel2 to z-axis [0] speed [10];
+            move rightBottomBarrel2 to z-axis [0] speed [2];
+            call-script exhaustAnimation();
             whichBarrelMain = 0;
             whichGunMain = 0;
         }

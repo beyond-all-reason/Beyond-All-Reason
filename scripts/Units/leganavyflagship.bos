@@ -47,7 +47,9 @@ piece
     frontRailgun1Flare,
     frontRailgun2Flare,
     rearRailgun1Flare,
-    rearRailgun2Flare
+    rearRailgun2Flare,
+	toroidFireFlare,
+	cableHolders
 ;
 
 
@@ -59,7 +61,8 @@ static-var
     mainTurretHeadingVar,
     restore_delay, 
 	aimAdj, 
-	oldsteerheading
+	oldsteerheading,
+	shotcount
 ;
 
 // Signal definitions
@@ -103,10 +106,27 @@ Steering(heading, steery, currentSpeed)
 	}
 }
 
+lua_UnitScriptLight(lightIndex, count) {
+	return 0;
+}
+
 Create()
 {
 	set ARMORED to 1;
 
+	turn frontRailgun1Rail1 to z-axis <120> now;
+	turn frontRailgun1Rail2 to z-axis <-120> now;
+
+	turn frontRailgun2Rail1 to z-axis <120> now;
+	turn frontRailgun2Rail2 to z-axis <-120> now;
+
+	turn rearRailgun1Rail1 to z-axis <120> now;
+	turn rearRailgun1Rail2 to z-axis <-120> now;
+
+	turn rearRailgun2Rail1 to z-axis <120> now;
+	turn rearRailgun2Rail2 to z-axis <-120> now;
+
+	hide toroidFireFlare;
     frontRailgun1WhichBarrel = 0;
     frontRailgun2WhichBarrel = 0;
     rearRailgun1WhichBarrel = 0;
@@ -114,13 +134,15 @@ Create()
 
 	restore_delay = 3000;
 	aimAdj = 0;	
-	
+	shotcount = 0;
+
     turn rearRailgun1HeadingPivot to y-axis <-180> now;
     turn rearRailgun2HeadingPivot to y-axis <-180> now;
 
 	start-script CATT1_Init();
 	start-script InitRockBoat();
 	SLEEP_UNTIL_UNITFINISHED;
+	start-script SpinIdle();
 	start-script BoatPhysics();
 	start-script Steering();
 }
@@ -168,7 +190,8 @@ ExecuteRestoreAfterDelayHR1(){
         return (1);
     }
     sleep 1;
-    //code for resting 1st heatray turret heading
+	turn heatrayRightPitchPivot to y-axis <0> speed <60>;
+    turn targetingWeaponPitchPivot to x-axis <0> speed <30>;
 }
 
 ExecuteRestoreAfterDelayHR2(){
@@ -176,7 +199,8 @@ ExecuteRestoreAfterDelayHR2(){
         return (1);
     }
     sleep 1;
-    //code for resting 2nd heatray turret heading
+	turn heatrayLeftPitchPivot to y-axis <0> speed <60>;
+    turn targetingWeaponPitchPivot to x-axis <0> speed <30>;
 }
 
 // railgun restores
@@ -185,7 +209,8 @@ ExecuteRestoreAfterDelayFRRG(){
         return (1);
     }
     sleep 1;
-    //code for resting front right railgun
+    turn frontRailgun1HeadingPivot to y-axis <0> speed <30>;
+	turn frontRailgun1PitchPivot to x-axis <0> speed <15>;
 }
 
 ExecuteRestoreAfterDelayFLRG(){
@@ -193,7 +218,8 @@ ExecuteRestoreAfterDelayFLRG(){
         return (1);
     }
     sleep 1;
-    //code for resting front left railgun
+    turn frontRailgun2HeadingPivot to y-axis <0> speed <30>;
+	turn frontRailgun2PitchPivot to x-axis <0> speed <15>;
 }
 
 ExecuteRestoreAfterDelayRRRG(){
@@ -201,7 +227,8 @@ ExecuteRestoreAfterDelayRRRG(){
         return (1);
     }
     sleep 1;
-    //code for resting rear right railgun
+    turn rearRailgun1HeadingPivot to y-axis <180> speed <30>;
+	turn rearRailgun1PitchPivot to x-axis <0> speed <15>;
 }
 
 ExecuteRestoreAfterDelayRLRG(){
@@ -209,7 +236,8 @@ ExecuteRestoreAfterDelayRLRG(){
         return (1);
     }
     sleep 1;
-    //code for resting rear left railgun
+    turn rearRailgun2HeadingPivot to y-axis <180> speed <30>;
+	turn rearRailgun2PitchPivot to x-axis <0> speed <15>;
 }
 
 SetStunned(State)
@@ -233,6 +261,7 @@ RestoreAfterDelay()
 RestoreAfterDelayHR1()
 {
 	sleep restore_delay;
+	hide toroidFireFlare;
 	start-script ExecuteRestoreAfterDelayHR1();
 }
 RestoreAfterDelayHR2()
@@ -259,6 +288,25 @@ RestoreAfterDelayRLRG()
 {
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelayRLRG();
+}
+
+/////////////////////////////////////////////////////////////// RING FUNCTIONS
+
+SpinIdle() {
+	spin torus1 around z-axis speed <90> accelerate <200>;
+	spin torus1 around y-axis speed <90> accelerate <200>;
+	spin torus2 around x-axis speed <60> accelerate <200>;
+	spin torus2 around y-axis speed <30> accelerate <200>;
+	spin torus3 around z-axis speed <30> accelerate <200>;
+	spin torus3 around x-axis speed <30> accelerate <200>;
+}
+SpinFiring() {
+	spin torus1 around z-axis speed <180> accelerate <200>;
+	spin torus1 around y-axis speed <180> accelerate <200>;
+	spin torus2 around x-axis speed <120> accelerate <200>;
+	spin torus2 around y-axis speed <60> accelerate <200>;
+	spin torus3 around z-axis speed <70> accelerate <200>;
+	spin torus3 around x-axis speed <70> accelerate <200>;
 }
 
 waveSplash()
@@ -352,9 +400,11 @@ AimWeapon2(heading, pitch)
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
+	start-script SpinFiring();
     //wait-for-turn targetingWeaponHeadingPivot around y-axis;
     turn heatrayRightPitchPivot to y-axis heading - mainTurretHeadingVar speed <6>;
     turn targetingWeaponPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <25.0>;
+	show toroidFireFlare;
     //wait-for-turn heatrayRightPitchPivot around y-axis;
     //wait-for-turn targetingWeaponPitchPivot around x-axis;
 	start-script RestoreAfterDelayHR1();
@@ -427,7 +477,18 @@ AimWeapon4(heading, pitch)
 
 FireWeapon4()
 {
-
+	emit-sfx 1024 + 0 from frontRailgun1Flare;
+	move frontRailgun1Rail1 to y-axis [2.12132] speed [900];
+	move frontRailgun1Rail1 to x-axis [2.12132] speed [900];
+	move frontRailgun1Rail2 to y-axis [2.12132] speed [900];
+	move frontRailgun1Rail2 to x-axis [-2.12132] speed [900];
+	move frontRailGun1Rail3 to y-axis [-3] speed [900];
+	sleep 100;
+	move frontRailgun1Rail1 to y-axis [0] speed [2.12132];
+	move frontRailgun1Rail1 to x-axis [0] speed [2.12132];
+	move frontRailgun1Rail2 to y-axis [0] speed [2.12132];
+	move frontRailgun1Rail2 to x-axis [0] speed [2.12132];
+	move frontRailGun1Rail3 to y-axis [0] speed [3];
 }
 
 //front left railgun
@@ -461,7 +522,18 @@ AimWeapon5(heading, pitch)
 
 FireWeapon5()
 {
-
+	emit-sfx 1024 + 0 from frontRailgun2Flare;
+	move frontRailgun2Rail1 to y-axis [2.12132] speed [900];
+	move frontRailgun2Rail1 to x-axis [2.12132] speed [900];
+	move frontRailgun2Rail2 to y-axis [2.12132] speed [900];
+	move frontRailgun2Rail2 to x-axis [-2.12132] speed [900];
+	move frontRailGun2Rail3 to y-axis [-3] speed [900];
+	sleep 100;
+	move frontRailgun2Rail1 to y-axis [0] speed [2.12132];
+	move frontRailgun2Rail1 to x-axis [0] speed [2.12132];
+	move frontRailgun2Rail2 to y-axis [0] speed [2.12132];
+	move frontRailgun2Rail2 to x-axis [0] speed [2.12132];
+	move frontRailGun2Rail3 to y-axis [0] speed [3];
 }
 
 //rear right railgun
@@ -493,7 +565,18 @@ AimWeapon6(heading, pitch)
 
 FireWeapon6()
 {
-
+	emit-sfx 1024 + 0 from rearRailgun1Flare;
+	move rearRailgun1Rail1 to y-axis [2.12132] speed [900];
+	move rearRailgun1Rail1 to x-axis [2.12132] speed [900];
+	move rearRailgun1Rail2 to y-axis [2.12132] speed [900];
+	move rearRailgun1Rail2 to x-axis [-2.12132] speed [900];
+	move rearRailGun1Rail3 to y-axis [-3] speed [900];
+	sleep 100;
+	move rearRailgun1Rail1 to y-axis [0] speed [2.12132];
+	move rearRailgun1Rail1 to x-axis [0] speed [2.12132];
+	move rearRailgun1Rail2 to y-axis [0] speed [2.12132];
+	move rearRailgun1Rail2 to x-axis [0] speed [2.12132];
+	move rearRailGun1Rail3 to y-axis [0] speed [3];
 }
 
 //rear left railgun
@@ -525,7 +608,18 @@ AimWeapon7(heading, pitch)
 
 FireWeapon7()
 {
-
+	emit-sfx 1024 + 0 from rearRailgun2Flare;
+	move rearRailgun2Rail1 to y-axis [2.12132] speed [900];
+	move rearRailgun2Rail1 to x-axis [2.12132] speed [900];
+	move rearRailgun2Rail2 to y-axis [2.12132] speed [900];
+	move rearRailgun2Rail2 to x-axis [-2.12132] speed [900];
+	move frontRail1TopRight3 to y-axis [-3] speed [900];
+	sleep 100;
+	move rearRailgun2Rail1 to y-axis [0] speed [2.12132];
+	move rearRailgun2Rail1 to x-axis [0] speed [2.12132];
+	move rearRailgun2Rail2 to y-axis [0] speed [2.12132];
+	move rearRailgun2Rail2 to x-axis [0] speed [2.12132];
+	move frontRail1TopRight3 to y-axis [0] speed [3];
 }
 
 
