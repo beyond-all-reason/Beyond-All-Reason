@@ -30,8 +30,23 @@ local blockTechDefs = {}
 local blockTechCount = 0
 local blockedDefs = {}
 local POPUP_DELAY_FRAMES = Game.gameSpeed * 10
+local UPDATE_INTERVAL = 1.0
+local CACHE_INTERVAL = 0.5 --seconds
 local popupsEnabled = false
 local techLevelChanged = true
+
+local cachedDataTable = {
+	techLevel = 1,
+	currentTechPoints = 0,
+	nextThreshold = 100,
+	progressPercent = 0,
+	isNegative = false,
+}
+
+local heightStrings = {}
+for i = 0, 100 do
+	heightStrings[i] = string.format("%.1f%%", i)
+end
 
 local function initializeTechBlocking()
 	for unitDefID, unitDef in pairs(UnitDefs) do
@@ -59,9 +74,7 @@ local widgetState = {
 	document = nil,
 	dmHandle = nil,
 	lastUpdate = 0,
-	updateInterval = 0.5,
 	lastBlockingUpdate = 0,
-	blockingUpdateInterval = 0.1,
 	fillElement = nil,
 	levelElement = nil,
 	popupElement = nil,
@@ -71,6 +84,24 @@ local widgetState = {
 	gameStartTime = nil,
 	initialPopupShown = false,
 	lastBlockingTechLevel = 1,
+	cachedMyTeamID = nil,
+	cachedTechPoints = 0,
+	cachedTechLevel = 1,
+	cachedT2Threshold = 100,
+	cachedT3Threshold = 1000,
+	cachedTeamCount = 1,
+	lastTeamCountUpdate = 0,
+	lastTechDataUpdate = 0,
+	lastDisplayedTechLevel = 1,
+	lastDisplayedTechPoints = 0,
+	lastDisplayedProgressPercent = 0,
+	lastDisplayedIsNegative = false,
+	gridmenuWG = nil,
+	buildmenuWG = nil,
+	gridmenuAdd = nil,
+	gridmenuRemove = nil,
+	buildmenuAdd = nil,
+	buildmenuRemove = nil,
 }
 
 local initialModel = {
@@ -81,28 +112,55 @@ local initialModel = {
 }
 
 local function getTechData()
-	local myTeamID = spGetMyTeamID()
-	if not myTeamID then return 1, 0, 100, 1000 end
+	local currentTime = os.clock()
+	local myTeamID = widgetState.cachedMyTeamID
 
-	local currentTechPoints = spGetTeamRulesParam(myTeamID, "tech_points")
-	currentTechPoints = tonumber(currentTechPoints) or 0
-
-	local techLevel = spGetTeamRulesParam(myTeamID, "tech_level")
-	techLevel = tonumber(techLevel) or 1
-
-	local t2Threshold = modOptions.t2_tech_threshold or 100
-	local t3Threshold = modOptions.t3_tech_threshold or 1000
-
-	local techBlockingPerTeam = modOptions.tech_blocking_per_team
-	if techBlockingPerTeam then
-		local myAllyTeamID = Spring.GetMyAllyTeamID()
-		local teamList = Spring.GetTeamList(myAllyTeamID)
-		local activeTeamCount = #teamList
-		t2Threshold = t2Threshold * activeTeamCount
-		t3Threshold = t3Threshold * activeTeamCount
+	if not myTeamID then
+		myTeamID = spGetMyTeamID()
+		if not myTeamID then return 1, 0, 100, 1000 end
+		widgetState.cachedMyTeamID = myTeamID
 	end
 
-	return techLevel, currentTechPoints, t2Threshold, t3Threshold
+	local needsFreshData = currentTime - widgetState.lastTechDataUpdate > CACHE_INTERVAL
+	if needsFreshData then
+		widgetState.lastTechDataUpdate = currentTime
+		local currentTechPoints = spGetTeamRulesParam(myTeamID, "tech_points")
+		currentTechPoints = tonumber(currentTechPoints) or 0
+
+		local techLevel = spGetTeamRulesParam(myTeamID, "tech_level")
+		techLevel = tonumber(techLevel) or 1
+
+		widgetState.cachedTechPoints = currentTechPoints
+		widgetState.cachedTechLevel = techLevel
+	end
+
+	local techBlockingPerTeam = modOptions.tech_blocking_per_team
+	local t2Threshold, t3Threshold
+
+	if techBlockingPerTeam then
+		if currentTime - widgetState.lastTeamCountUpdate > CACHE_INTERVAL then
+			local myAllyTeamID = Spring.GetMyAllyTeamID()
+			local teamList = Spring.GetTeamList(myAllyTeamID)
+			local newTeamCount = #teamList
+
+			if newTeamCount ~= widgetState.cachedTeamCount then
+				widgetState.cachedTeamCount = newTeamCount
+				widgetState.lastTeamCountUpdate = currentTime
+
+				local baseT2 = modOptions.t2_tech_threshold or 100
+				local baseT3 = modOptions.t3_tech_threshold or 1000
+				widgetState.cachedT2Threshold = baseT2 * widgetState.cachedTeamCount
+				widgetState.cachedT3Threshold = baseT3 * widgetState.cachedTeamCount
+			end
+		end
+		t2Threshold = widgetState.cachedT2Threshold
+		t3Threshold = widgetState.cachedT3Threshold
+	else
+		t2Threshold = widgetState.cachedT2Threshold
+		t3Threshold = widgetState.cachedT3Threshold
+	end
+
+	return widgetState.cachedTechLevel, widgetState.cachedTechPoints, t2Threshold, t3Threshold
 end
 
 local function calculateProgressPercent(currentPoints, nextThreshold, currentTechLevel, t2Threshold, t3Threshold)
@@ -151,13 +209,13 @@ local function updateTechPointsData()
 
 	local progressPercent, isNegative = calculateProgressPercent(currentTechPoints, nextThreshold, techLevel, t2Threshold, t3Threshold)
 
-	return {
-		techLevel = techLevel,
-		currentTechPoints = math.floor(currentTechPoints),
-		nextThreshold = nextThreshold,
-		progressPercent = progressPercent,
-		isNegative = isNegative,
-	}
+	cachedDataTable.techLevel = techLevel
+	cachedDataTable.currentTechPoints = math.floor(currentTechPoints)
+	cachedDataTable.nextThreshold = nextThreshold
+	cachedDataTable.progressPercent = progressPercent
+	cachedDataTable.isNegative = isNegative
+
+	return cachedDataTable
 end
 
 
@@ -166,22 +224,14 @@ local function createTechPointsElements()
 		return
 	end
 
-	for attempt = 1, 5 do
-		local fillElement = widgetState.document:GetElementById("tech-points-fill")
-		local levelElement = widgetState.document:GetElementById("tech-level-number")
-		local popupElement = widgetState.document:GetElementById("tech-level-popup")
+	local fillElement = widgetState.document:GetElementById("tech-points-fill")
+	local levelElement = widgetState.document:GetElementById("tech-level-number")
+	local popupElement = widgetState.document:GetElementById("tech-level-popup")
 
-		if fillElement and levelElement then
-			widgetState.fillElement = fillElement
-			widgetState.levelElement = levelElement
-			widgetState.popupElement = popupElement
-			return
-		end
-
-		if attempt < 5 then
-			local currentTime = os.clock()
-			while os.clock() - currentTime < 0.01 do end
-		end
+	if fillElement and levelElement then
+		widgetState.fillElement = fillElement
+		widgetState.levelElement = levelElement
+		widgetState.popupElement = popupElement
 	end
 end
 
@@ -192,42 +242,46 @@ local function updateBlocking()
 
 	local techLevel, currentTechPoints = getTechData()
 
-	techLevelChanged = techLevelChanged == true or techLevel ~= widgetState.lastBlockingTechLevel
+	local techLevelChanged = techLevel ~= widgetState.lastBlockingTechLevel
 	local techPointsChangedSignificantly = math.abs(currentTechPoints - widgetState.previousTechPoints) >= 10
 
-	if techLevelChanged or techPointsChangedSignificantly then
-		for unitDefID in pairs(blockedDefs) do
-			if WG["gridmenu"] and WG["gridmenu"].removeBlockReason then
-				WG["gridmenu"].removeBlockReason(unitDefID, "tech_block")
-			end
-			if WG["buildmenu"] and WG["buildmenu"].removeBlockReason then
-				WG["buildmenu"].removeBlockReason(unitDefID, "tech_block")
-			end
-		end
-
-		for unitDefID in pairs(blockedDefs) do
-			blockedDefs[unitDefID] = nil
-		end
-
-		for unitDefID, requiredLevel in pairs(blockTechDefs) do
-			if techLevel < requiredLevel then
-				if not blockedDefs[unitDefID] then
-					blockedDefs[unitDefID] = {}
-				end
-				table.insert(blockedDefs[unitDefID], "tech_level_" .. requiredLevel)
-
-				if WG["gridmenu"] and WG["gridmenu"].addBlockReason then
-					WG["gridmenu"].addBlockReason(unitDefID, "tech_block")
-				end
-				if WG["buildmenu"] and WG["buildmenu"].addBlockReason then
-					WG["buildmenu"].addBlockReason(unitDefID, "tech_block")
-				end
-			end
-		end
-
-		widgetState.lastBlockingTechLevel = techLevel
-		widgetState.previousTechPoints = currentTechPoints
+	if not techLevelChanged and not techPointsChangedSignificantly then
+		return
 	end
+
+	local gridmenuAdd = widgetState.gridmenuAdd
+	local gridmenuRemove = widgetState.gridmenuRemove
+	local buildmenuAdd = widgetState.buildmenuAdd
+	local buildmenuRemove = widgetState.buildmenuRemove
+
+	for unitDefID in pairs(blockedDefs) do
+		if gridmenuRemove then
+			gridmenuRemove(unitDefID, "tech_block")
+		end
+		if buildmenuRemove then
+			buildmenuRemove(unitDefID, "tech_block")
+		end
+		blockedDefs[unitDefID] = nil
+	end
+
+	for unitDefID, requiredLevel in pairs(blockTechDefs) do
+		if techLevel < requiredLevel then
+			if not blockedDefs[unitDefID] then
+				blockedDefs[unitDefID] = {}
+			end
+			table.insert(blockedDefs[unitDefID], "tech_level_" .. requiredLevel)
+
+			if gridmenuAdd then
+				gridmenuAdd(unitDefID, "tech_block")
+			end
+			if buildmenuAdd then
+				buildmenuAdd(unitDefID, "tech_block")
+			end
+		end
+	end
+
+	widgetState.lastBlockingTechLevel = techLevel
+	widgetState.previousTechPoints = currentTechPoints
 end
 
 local function updatePopups(techLevel)
@@ -268,9 +322,14 @@ local function updateUI()
 
 	local data = updateTechPointsData()
 
+	local uiChanged = data.techLevel ~= widgetState.lastDisplayedTechLevel or
+		data.currentTechPoints ~= widgetState.lastDisplayedTechPoints or
+		data.progressPercent ~= widgetState.lastDisplayedProgressPercent or
+		data.isNegative ~= widgetState.lastDisplayedIsNegative
+
 	updatePopups(data.techLevel)
 
-	if widgetState.dmHandle then
+	if uiChanged and widgetState.dmHandle then
 		widgetState.dmHandle.techLevel = data.techLevel
 		widgetState.dmHandle.currentTechPoints = data.currentTechPoints
 		widgetState.dmHandle.nextThreshold = data.nextThreshold
@@ -281,21 +340,25 @@ local function updateUI()
 		createTechPointsElements()
 	end
 
-	if widgetState.fillElement then
-		local heightValue = string.format("%.1f%%", data.progressPercent)
-		
-		if data.isNegative then
-			widgetState.fillElement:SetClass("negative-progress", true)
-		else
-			widgetState.fillElement:SetClass("negative-progress", false)
-		end
-		
-		widgetState.fillElement:SetAttribute("style", "height: " .. heightValue)
-	end
+	if uiChanged then
+		if widgetState.fillElement then
+			local heightValue = heightStrings[math.floor(data.progressPercent + 0.5)] or "0.0%"
 
-	if widgetState.levelElement then
-		local levelText = tostring(data.techLevel)
-		widgetState.levelElement.inner_rml = levelText
+			if data.isNegative ~= widgetState.lastDisplayedIsNegative then
+				widgetState.fillElement:SetClass("negative-progress", data.isNegative)
+			end
+
+			widgetState.fillElement:SetAttribute("style", "height: " .. heightValue)
+		end
+
+		if widgetState.levelElement and data.techLevel ~= widgetState.lastDisplayedTechLevel then
+			widgetState.levelElement.inner_rml = tostring(data.techLevel)
+		end
+
+		widgetState.lastDisplayedTechLevel = data.techLevel
+		widgetState.lastDisplayedTechPoints = data.currentTechPoints
+		widgetState.lastDisplayedProgressPercent = data.progressPercent
+		widgetState.lastDisplayedIsNegative = data.isNegative
 	end
 end
 
@@ -304,10 +367,31 @@ function widget:Initialize()
 
 	widgetState.gameStartTime = os.clock()
 
+	widgetState.gridmenuWG = WG["gridmenu"]
+	widgetState.buildmenuWG = WG["buildmenu"]
+	widgetState.gridmenuAdd = widgetState.gridmenuWG and widgetState.gridmenuWG.addBlockReason
+	widgetState.gridmenuRemove = widgetState.gridmenuWG and widgetState.gridmenuWG.removeBlockReason
+	widgetState.buildmenuAdd = widgetState.buildmenuWG and widgetState.buildmenuWG.addBlockReason
+	widgetState.buildmenuRemove = widgetState.buildmenuWG and widgetState.buildmenuWG.removeBlockReason
+
 	local myTeamID = spGetMyTeamID()
 	if myTeamID then
+		widgetState.cachedMyTeamID = myTeamID
 		local currentTechPoints = spGetTeamRulesParam(myTeamID, "tech_points") or 0
 		widgetState.previousTechPoints = currentTechPoints
+		widgetState.cachedTechPoints = currentTechPoints
+
+		local techLevel = spGetTeamRulesParam(myTeamID, "tech_level") or 1
+		widgetState.cachedTechLevel = techLevel
+		widgetState.lastDisplayedTechLevel = techLevel
+		widgetState.lastBlockingTechLevel = techLevel
+	end
+
+	if modOptions.tech_blocking_per_team then
+		local myAllyTeamID = Spring.GetMyAllyTeamID()
+		local teamList = Spring.GetTeamList(myAllyTeamID)
+		widgetState.cachedTeamCount = #teamList
+		widgetState.lastTeamCountUpdate = os.clock()
 	end
 
 	widgetState.rmlContext = RmlUi.GetContext("shared")
@@ -356,13 +440,9 @@ end
 function widget:Update(dt)
 	local currentTime = os.clock()
 
-	if currentTime - widgetState.lastUpdate > widgetState.updateInterval then
+	if currentTime - widgetState.lastUpdate > UPDATE_INTERVAL then
 		widgetState.lastUpdate = currentTime
 		updateUI()
-	end
-
-	if currentTime - widgetState.lastBlockingUpdate > widgetState.blockingUpdateInterval then
-		widgetState.lastBlockingUpdate = currentTime
 		updateBlocking()
 	end
 end
