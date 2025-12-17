@@ -1791,7 +1791,7 @@ AimWeapon4(heading, pitch)
 {
 	signal SIGNAL_AIM3;
 	set-signal-mask SIGNAL_AIM3;
-	turn rearTurretHeadingPivot to y-axis <180> - heading speed <120.0>;
+	turn rearTurretHeadingPivot to y-axis heading speed <120.0>;
 	turn rearTurretPitchPivot to x-axis <0.0> - pitch speed <25.0>;
 	if (get ABS(last_primary_heading3 - heading)> <20>)
 	{
