@@ -135,6 +135,8 @@ local function getTechData()
 	end
 
 	local techBlockingPerTeam = modOptions.tech_blocking_per_team
+	local baseT2 = modOptions.t2_tech_threshold or 100
+	local baseT3 = modOptions.t3_tech_threshold or 1000
 	local t2Threshold, t3Threshold
 
 	if techBlockingPerTeam then
@@ -147,8 +149,6 @@ local function getTechData()
 				widgetState.cachedTeamCount = newTeamCount
 				widgetState.lastTeamCountUpdate = currentTime
 
-				local baseT2 = modOptions.t2_tech_threshold or 100
-				local baseT3 = modOptions.t3_tech_threshold or 1000
 				widgetState.cachedT2Threshold = baseT2 * widgetState.cachedTeamCount
 				widgetState.cachedT3Threshold = baseT3 * widgetState.cachedTeamCount
 			end
@@ -156,8 +156,8 @@ local function getTechData()
 		t2Threshold = widgetState.cachedT2Threshold
 		t3Threshold = widgetState.cachedT3Threshold
 	else
-		t2Threshold = widgetState.cachedT2Threshold
-		t3Threshold = widgetState.cachedT3Threshold
+		t2Threshold = baseT2
+		t3Threshold = baseT3
 	end
 
 	return widgetState.cachedTechLevel, widgetState.cachedTechPoints, t2Threshold, t3Threshold
@@ -387,11 +387,19 @@ function widget:Initialize()
 		widgetState.lastBlockingTechLevel = techLevel
 	end
 
+	local baseT2 = modOptions.t2_tech_threshold or 100
+	local baseT3 = modOptions.t3_tech_threshold or 1000
+
 	if modOptions.tech_blocking_per_team then
 		local myAllyTeamID = Spring.GetMyAllyTeamID()
 		local teamList = Spring.GetTeamList(myAllyTeamID)
 		widgetState.cachedTeamCount = #teamList
 		widgetState.lastTeamCountUpdate = os.clock()
+		widgetState.cachedT2Threshold = baseT2 * widgetState.cachedTeamCount
+		widgetState.cachedT3Threshold = baseT3 * widgetState.cachedTeamCount
+	else
+		widgetState.cachedT2Threshold = baseT2
+		widgetState.cachedT3Threshold = baseT3
 	end
 
 	widgetState.rmlContext = RmlUi.GetContext("shared")
