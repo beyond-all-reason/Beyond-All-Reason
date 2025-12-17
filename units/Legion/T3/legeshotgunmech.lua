@@ -157,7 +157,7 @@ return {
 				soundhitwet = "splshbig",
 				soundstart = "kroggie2xs",
 				soundstartvolume = 3,
-				sprayangle = 1900,
+				sprayangle = 1400,
 				thickness = 0.6,
 				tolerance = 6000,
                 firetolerance = 6000,

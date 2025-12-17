@@ -21,7 +21,7 @@ end
 -- Configuration ---------------------------------------------------------------
 
 local damageInterval = 0.7333 ---@type number in seconds, time between procs
-local damageLimit = 100 ---@type number in damage per second, soft-cap across multiple areas
+local damageLimit = 120 ---@type number in damage per second, soft-cap across multiple areas
 local damageExcessRate = 0.2 ---@type number %damage dealt above limit [0, 1)
 local damageCegMinScalar = 30 ---@type number in damage, minimum to show hit CEG
 local damageCegMinMultiple = 1 / 3 ---@type number in %damage, minimum to show hit CEG
