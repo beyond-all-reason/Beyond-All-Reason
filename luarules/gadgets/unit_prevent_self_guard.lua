@@ -24,5 +24,5 @@ function gadget:Initialize()
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams)
-	return cmdParams[1] == unitID and not isFactory[unitDefID]
+	return cmdParams[1] ~= unitID or isFactory[unitDefID]
 end
