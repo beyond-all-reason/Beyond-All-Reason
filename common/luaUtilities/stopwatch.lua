@@ -41,6 +41,7 @@ function Stopwatch:Total()
 end
 
 function Stopwatch:Log(frame, prefix)
+	if not (Game and Game.solverAuditEnabled) then return end
 	prefix = prefix or "[SolverAudit]"
 	for _, bp in ipairs(self.breakpoints) do
 		Spring.Echo(string.format("%s frame=%d metric=%s time_us=%.2f", prefix, frame, bp.name, bp.duration))

@@ -6,8 +6,11 @@
 
 local AuditLog = {}
 
-local ENABLED = true
 local LOG_PREFIX = "[EconomyAudit]"
+
+local function IsEnabled()
+  return Game and Game.economyAuditEnabled
+end
 
 --------------------------------------------------------------------------------
 -- Audit Log Modes
@@ -73,7 +76,7 @@ end
 ---@param tableName string SQL table name
 ---@param row table Row data as key-value pairs
 local function logRow(tableName, row)
-  if not ENABLED then return end
+  if not IsEnabled() then return end
   Spring.Echo(LOG_PREFIX .. " " .. tableName .. " " .. toJson(row))
 end
 
@@ -213,16 +216,10 @@ function AuditLog.FrameEnd(frame, solverTimeUs, totalTimeUs)
   })
 end
 
----Enable or disable audit logging
----@param enabled boolean
-function AuditLog.SetEnabled(enabled)
-  ENABLED = enabled
-end
-
 ---Check if audit logging is enabled
 ---@return boolean
 function AuditLog.IsEnabled()
-  return ENABLED
+  return IsEnabled()
 end
 
 return AuditLog
