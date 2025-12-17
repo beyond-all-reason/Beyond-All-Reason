@@ -106,9 +106,9 @@ return {
 		},
 		weapondefs = {
 			burst_plasma_t2 = {
-				-- burstrate = 0.066,
-				-- burst = 3,
-				projectiles = 3,
+				burstrate = 0.066,
+				burst = 3,
+				-- projectiles = 3,
 				--accuracy = 600,
 				areaofeffect = 200,
 				avoidfeature = false,
