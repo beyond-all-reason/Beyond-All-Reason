@@ -73,6 +73,8 @@ local selectionDisableThresholdMult = 0.7
 ---------------------------------------------------------------------------------------------------------------------------
 ------------------ CONFIGURABLES --------------
 
+local DYNAMIC_RANGE_UPDATE_RATE = 3.0
+
 local buttonConfig = {
 	ally = { ground = true, AA = true, nano = true },
 	enemy = { ground = true, AA = true, nano = true }
@@ -974,49 +976,30 @@ local function DrawBuilders()
 	end
 end
 
-local function updateScalingRange()			-- This function, and anything related to unitRangeScale, scalingUnitParams, and newRange are parts of a hook for Gunslingers or future/modded units that gain range with EXP.
-	local scalingUnitParams = unitRangeScale
-	for unitID, _  in pairs(scalingUnitParams.selections) do
-		local newRange = {}
-		local update
-		local scalingUnit = {}
-		if scalingUnitParams.selections[unitID] then 
-		scalingUnit = scalingUnitParams.selections[unitID]
-		end
-		for instanceID, j in pairs(scalingUnit.oldRange) do
-			local oldRange = scalingUnit.oldRange[instanceID]
-			local weaponNum = oldRange[1]
-			newRange[weaponNum] = spGetUnitWeaponState(unitID, weaponNum, "range")
-			if oldRange[2] ~= newRange[weaponNum] then
-				update = true
-			end
-		end
-		if update == true then
-			RemoveSelectedUnit(unitID, mouseover)			-- need to refresh this unit's ring
-			AddSelectedUnit(unitID, mouseover, newRange)
+local function DoRangeUpdate(unitID, scalingUnit, mouseover)
+	local newRange = {}
+	local update
+	for instanceID, oldRange in pairs(scalingUnit.oldRange) do
+		local weaponNum = oldRange[1]
+		newRange[weaponNum] = spGetUnitWeaponState(unitID, weaponNum, "range")
+		if oldRange[2] ~= newRange[weaponNum] then
+			update = true
 		end
 	end
-	for unitID, _  in pairs(scalingUnitParams.mouseovers) do
-		local newRange = {}
-		local update
-		local mouseover
-		local scalingUnit = {}
-		if scalingUnitParams.mouseovers[unitID] then 
-		scalingUnit = scalingUnitParams.mouseovers[unitID]
-		end
-		for instanceID, j in pairs(scalingUnit.oldRange) do
-			local oldRange = scalingUnit.oldRange[instanceID]
-			local weaponNum = oldRange[1]
-			newRange[weaponNum] = spGetUnitWeaponState(unitID, weaponNum, "range")
-			if oldRange[2] ~= newRange[weaponNum] then
-				update = true
-				mouseover = true
-			end
-		end
-		if update == true then
-			RemoveSelectedUnit(unitID, mouseover)
-			AddSelectedUnit(unitID, mouseover, newRange)
-		end
+	if update then
+		RemoveSelectedUnit(unitID, mouseover)			-- need to refresh this unit's ring
+		AddSelectedUnit(unitID, mouseover, newRange)
+	end
+end
+
+local function UpdateScalingRange()			-- This function, and anything related to unitRangeScale, scalingUnitParams, and newRange are parts of a hook for Gunslingers or future/modded units that gain range with EXP.
+	local scalingUnitParams = unitRangeScale
+	for unitID, scalingUnit  in pairs(scalingUnitParams.selections) do
+		DoRangeUpdate(unitID, scalingUnit)
+	end
+	for unitID, scalingUnit  in pairs(scalingUnitParams.mouseovers) do
+		local mouseover = true
+		DoRangeUpdate(unitID, scalingUnit, mouseover)
 	end
 end
 
@@ -1123,7 +1106,7 @@ function widget:Update(dt)
 	end
 
 	if timeSinceLastRangeUpdate > 3.0 then
-		updateScalingRange()			-- This function is relatively expensive, so we only run it when we need to.
+		UpdateScalingRange()			-- This function is relatively expensive, so we only run it when we need to.
 		timeSinceLastRangeUpdate = 0
 	end
 
