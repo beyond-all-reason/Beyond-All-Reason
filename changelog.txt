@@ -1,7 +1,27 @@
 # December 2025
 • Unified maximum water depth for non-amphib land units to 22 (previously varied between 22-30)
 • Unified minimum water depth for non-heavy ships to 8 (previously varied between 8-10)
-
+• [Legion changes] 
+	- Praetorian shotgun spread reduced 1900->1400
+	- Decurion range reduced 380->360, now deals 25% instead of 100% damage vs air
+	- Hippocampus (scout ship) now deals 25% instead of 50% damage vs air
+	- Small napalm blobs now deal 60dps and last 7s, previous was 45dps for 10s
+	- Inferno reloadtime 9s->8s
+	- Perdition stockpile time 70s->50s, stockpile cost reduced 500m17000E->350m14000E, impact damage 2000->1200 damage, napalm deals 120dps for 15s (3000 combined damage)
+	- Napalm damage cap increased 100->120dps
+    - Martyr damage vs commanders -25% -> -50%
+	
+# November 2025
+• [Legion changes] 
+	- Karkinos cost increased, health increased, shotgun slightly higher dps with 2-round burst 
+	- Telchine cost reduction 660m19000E->600m13200E, firing angle increased, speed in water increased 30%
+	- Triton speed reduced 60->55, range reduced 600->550, speed in water increased 30%
+	- T1 shipyard, ships, and naval structures added   
+	- Iapetus (aa ship) cost 330m4800E->250m3600E, model scaled down 10%, fire rate reduced 15%, health reduced 20%
+	- Argonaut (frigate) tracking reduced
+	- Hippocampus (scout ship) speed increased 93->97, acceleration increased 4%
+	- Ketea (sub) cost reduced 340m2600E->320m2400E, speed increased 54->57, health reduced 640->600
+	
 # August 2025
 • [Aircraft] Vision raised to 430, if it was lower previously
 • [T1 Bombers] Random inaccuracy removed from their bombs
