@@ -715,7 +715,7 @@ local function AddSelectedUnit(unitID, mouseover, newRange)
 		local ringParams = {}
 		if newRange then
 			for i = 2, 17 do	-- See line 405.
-			ringParams[i] = unitDefRings[unitDefID]['rings'][j][i]	-- Preserves default range from unitDefs for use with enemy units.
+				ringParams[i] = unitDefRings[unitDefID]['rings'][j][i]	-- Preserves default range from unitDefs for use with enemy units.
 			end
 			ringParams[1] = newRange[j]
 		else
@@ -806,7 +806,8 @@ local function RemoveSelectedUnit(unitID, mouseover)
 			selBuilderCount = selBuilderCount - 1
 		end
 		collections[unitID] = nil
-		if scalingUnitParams[unitID] then scalingUnitParams[unitID] = nil
+		if scalingUnitParams[unitID] then
+			scalingUnitParams[unitID] = nil
 			numScalingUnits = numScalingUnits - 1
 		end
 	end
@@ -1105,7 +1106,7 @@ function widget:Update(dt)
 		timeSinceLastRangeUpdate = 0
 	end
 
-	if timeSinceLastRangeUpdate > 3.0 then
+	if timeSinceLastRangeUpdate > DYNAMIC_RANGE_UPDATE_RATE then
 		UpdateScalingRange()			-- This function is relatively expensive, so we only run it when we need to.
 		timeSinceLastRangeUpdate = 0
 	end
