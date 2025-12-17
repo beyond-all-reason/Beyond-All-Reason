@@ -81,7 +81,7 @@ return {
 			[41] = "legfrl",
 			[42] = "legtl",
 			[43] = "leguwgeo",
-			[44] = "corasy",
+			[44] = "legadvshipyard",
 			[45] = "leghive",
 			[46] = "legfhive",
 		},

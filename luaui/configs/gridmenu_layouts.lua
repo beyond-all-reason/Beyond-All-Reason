@@ -1375,7 +1375,7 @@ local unitGrids = {
 		},
 		{
 			{ "legsy", "legvp", "legap", "leglab",  },        -- shipyard, vehicle lab, air lab, bot lab
-			{ "legnanotcplat", "corasy", },                   -- floating nano, T2 shipyard
+			{ "legnanotcplat", "legadvshipyard", },                   -- floating nano, T2 shipyard
 			{ "legfhp", "", "legamphlab", "corplat",  },        -- floating hover, amphibious lab, seaplane lab
 		}
 	},
@@ -1448,7 +1448,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglab", "legvp", "legap", "legsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "legnanotc", "legavp", "legnanotcplat", "corasy", },      -- nano, T2 veh lab, floating nano
+			{ "legnanotc", "legavp", "legnanotcplat", "legadvshipyard", },      -- nano, T2 veh lab, floating nano
 			{ "leghp", "legfhp", "legamphlab", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
@@ -1847,7 +1847,7 @@ local unitGrids = {
 		},
 		{
 			{ "legsy", },                                      -- T1 shipyard
-			{ "leggantuw", "corasy" },                         -- amphibious gantry, T2 shipyard
+			{ "leggantuw", "legadvshipyard" },                         -- amphibious gantry, T2 shipyard
 			{ },                                               --
 		}
 	},
@@ -3032,7 +3032,7 @@ if Spring.GetModOptions().techsplit then
 			{ "legjuno", },                                   -- juno
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },         -- bot lab, veh lab, air lab, shipyard
 			{ "legnanotc", "legalab", },                      -- nano, T2 lab
 			{ "", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
@@ -3055,7 +3055,7 @@ if Spring.GetModOptions().techsplit then
 			{ "legjuno", },                                   -- juno
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },         -- bot lab, veh lab, air lab, shipyard
 			{ "legnanotc", "legaap", },                      -- nano, T2 lab
 			{ "", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
@@ -3078,7 +3078,7 @@ if Spring.GetModOptions().techsplit then
 			{ "legjuno", },                                   -- juno
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "leglab", "legvp", "legap", "legsy", },         -- bot lab, veh lab, air lab, shipyard
 			{ "legnanotc", "legavp", },                      -- nano, T2 lab
 			{ "", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
@@ -3101,8 +3101,8 @@ if Spring.GetModOptions().techsplit then
 			{ "legjuno", },                                   -- juno
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "legnanotc", "legavp", "", "corasy", },                      -- nano, T2 lab
+			{ "leglab", "legvp", "legap", "legsy", },         -- bot lab, veh lab, air lab, shipyard
+			{ "legnanotc", "legavp", "", "legadvshipyard", },                      -- nano, T2 lab
 			{ "", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	}
@@ -3124,7 +3124,7 @@ if Spring.GetModOptions().techsplit then
 			{"legjuno","","","",},
 		},
 		{
-			{"leglab","legvp","legap","corsy",},
+			{"leglab","legvp","legap","legsy",},
 			{"legnanotc","legalab","","",},
 			{"","leghalab","","",},
 		},
@@ -3147,7 +3147,7 @@ if Spring.GetModOptions().techsplit then
 			{"legjuno","","","",},
 		},
 		{
-			{"leglab","legvp","legap","corsy",},
+			{"leglab","legvp","legap","legsy",},
 			{"legnanotc","legavp","","",},
 			{"","leghavp","","",},
 		},
@@ -3170,8 +3170,8 @@ if Spring.GetModOptions().techsplit then
 			{"legjuno","","","",},
 		},
 		{
-			{"leglab","legvp","legap","corsy",},
-			{"legnanotc","legavp","","corasy",},
+			{"leglab","legvp","legap","legsy",},
+			{"legnanotc","legavp","","legadvshipyard",},
 			{"","leghavp","","corhasy",},
 		},
 	}
@@ -3193,7 +3193,7 @@ if Spring.GetModOptions().techsplit then
 			{"legjuno","","","",},
 		},
 		{
-			{"leglab","legvp","legap","corsy",},
+			{"leglab","legvp","legap","legsy",},
 			{"legnanotc","legaap","","",},
 			{"","leghaap","","",},
 		},
@@ -3250,7 +3250,7 @@ if Spring.GetModOptions().techsplit then
 
 	labGrids["legavp"] = {
 		"legacv", "legvcarry", "legmrv", "legavrad",
-		"legamcluster", "legaskirmtank", "legner", "legcs",
+		"legamcluster", "legaskirmtank", "legner", "legnavyconship",
 		"legch", "legfloat", "legah", "legmh",
 	}
 

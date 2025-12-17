@@ -539,7 +539,7 @@
 				"limit": 2,
 				"build_speed": 10.0
 			},
-			"legcs": {
+			"legnavyconship": {
 				"role": ["builder"],
 				"retreat": 0.6,
 				"limit": 6,

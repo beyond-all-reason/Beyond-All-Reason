@@ -43,7 +43,7 @@ return {
 			"legadvestore",
 			"legamstor",
 			"leggantuw",
-			"corasy",
+			"legadvshipyard",
 			"legsy",
 			"leganavalsonarstation",
 			"leganavalpinpointer",

@@ -43,7 +43,7 @@ return {
 			"leganavyartyship",
 			"leganavymissileship",
 			"leganavyflagship",
-			"corfship",
+			"leganavyantiswarm",
 		},
 		customparams = {
 			model_author = "Mr Bob",

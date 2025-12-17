@@ -58,6 +58,7 @@ local unitOrderTable = {
 
 	['armacsub']       = 002700,
 	['coracsub']       = 002750,
+	['leganavyconsub'] = 002760,
 
 	--NANO SUPPORT
 	['armfark']        = 003100, --BOTS
@@ -73,6 +74,7 @@ local unitOrderTable = {
 
 	['armmls']         = 003400, --SHIP
 	['cormls']         = 003500, --SHIP
+	['leganavyengineer'] = 003510, --SHIP
 
 	['armdecom']       = 003600, --SUPPORT COMS
 	['legdecom']       = 003650,
@@ -383,12 +385,15 @@ local unitOrderTable = {
 	-- T2 WATER ATTACK
 	['armlship']       = 009280, --ANTISWARM
 	['corfship']       = 009290,
+	['leganavyantiswarm'] = 009295,
 
 	['armcrus']        = 009300, --MAIN BATTLE
 	['corcrus']        = 009310,
+	['leganavycruiser'] = 009320,
 
 	['armmship']       = 009340, --ROCKETS
 	['cormship']       = 009350,
+	['leganavymissileship']       = 009355,
 
 	['armdronecarry']  = 009360, --DRONE CARRIERS
 	['cordronecarry']  = 009361,
@@ -397,9 +402,12 @@ local unitOrderTable = {
 
 	['armbats']        = 009370, --STRONK
 	['corbats']        = 009380,
+	['leganavybattleship']        = 009380,
 
 	['armepoch']       = 009400, --FLAGSHIPS
 	['corblackhy']     = 009410,
+	['leganavyartyship']     = 009420,
+	['leganavyflagship']     = 009430,
 
 	['armdecadet3']    = 009450, --SCAV SHIPS
 	['coresuppt3']     = 009460,
@@ -414,6 +422,7 @@ local unitOrderTable = {
 	-- T2 AA
 	['armaas']         = 009600,
 	['corarch']        = 009610,
+	['leganavyaaship'] = 009610,
 
 	-- UNDERWATER ATTACK
 	['armseap']        = 009800,
@@ -457,6 +466,7 @@ local unitOrderTable = {
 	['armantiship']	   = 020101,
 	['corcarry']       = 020110,
 	['corantiship']    = 020111,
+	['leganavyradjamship']    = 020120,
 
 -- BUILDINGS
    --ECO METAL MEX
@@ -770,9 +780,11 @@ local unitOrderTable = {
    	--T2
    ['armasy']         = 215000,
    ['corasy']         = 215100,
+   ['legadvshipyard']         = 215200,
    	--T3
    ['armshltxuw']     = 216100,
    ['corgantuw']      = 216200,
+   ['leggantuw']      = 216300,
 
    --WATER MINES
    ['armfmine3']      = 217100,

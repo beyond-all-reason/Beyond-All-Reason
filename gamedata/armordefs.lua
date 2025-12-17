@@ -620,7 +620,6 @@ local armorDefs = {
 		"cormls",
 		"armdecade",
 		"corsjam",
-		"legcs",
 		"legvelite",
 		"leghastatus",
 		"leghastatusalt",
