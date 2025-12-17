@@ -18,7 +18,7 @@ end
 
 local modOptions = Spring.GetModOptions()
 
-if not modOptions or not modOptions.tech_blocking then
+if not modOptions.tech_blocking then
 	return false
 end
 
