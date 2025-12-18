@@ -41,6 +41,7 @@ return {
 			subfolder = "ArmGantry",
 			techlevel = 3,
 			unitgroup = "weapon",
+			continuous_aim_time = 0.1,
 		},
 		featuredefs = {
 			dead = {

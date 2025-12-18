@@ -44,6 +44,7 @@ return {
 			paralyzemultiplier = 0.5,
 			model_author = "EnderRobo",
 			techlevel = 3,
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

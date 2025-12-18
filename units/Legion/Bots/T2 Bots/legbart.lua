@@ -38,6 +38,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

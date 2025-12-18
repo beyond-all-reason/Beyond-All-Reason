@@ -54,6 +54,7 @@ return {
 			turretname = "turret",
 			wpn1turretx = 192.5,
 			wpn1turrety = 192.5,
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

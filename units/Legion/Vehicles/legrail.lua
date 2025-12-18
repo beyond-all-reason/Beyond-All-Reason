@@ -44,6 +44,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "ArmVehicles",
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

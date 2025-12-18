@@ -38,6 +38,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "ArmBots",
+			continuous_aim_time = 0.1,
 		},
 		featuredefs = {
 			dead = {

@@ -43,6 +43,7 @@ return {
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
+			continuous_aim_time = 0.13,
 		},
 		featuredefs = {
 			dead = {
