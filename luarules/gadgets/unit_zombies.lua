@@ -297,28 +297,16 @@ end
 
 local function setGaiaStorage()
 	local metalStorageToSet = 1000000
-	Spring.Echo("setGaiaStorage: metalStorageToSet = " .. metalStorageToSet)
 	local energyStorageToSet = 1000000
-	Spring.Echo("setGaiaStorage: energyStorageToSet = " .. energyStorageToSet)
 
 	local _, currentMetalStorage = Spring.GetTeamResources(gaiaTeamID, "metal")
-	Spring.Echo("setGaiaStorage: currentMetalStorage = " .. tostring(currentMetalStorage))
 	if currentMetalStorage and currentMetalStorage < metalStorageToSet then
-		Spring.Echo("setGaiaStorage: Setting metal storage from " .. currentMetalStorage .. " to " .. metalStorageToSet)
 		spSetTeamResource(gaiaTeamID, "ms", metalStorageToSet)
-		Spring.Echo("setGaiaStorage: Metal storage set")
-	else
-		Spring.Echo("setGaiaStorage: Metal storage condition not met, current=" .. tostring(currentMetalStorage) .. ", target=" .. metalStorageToSet)
 	end
 
 	local _, currentEnergyStorage = Spring.GetTeamResources(gaiaTeamID, "energy")
-	Spring.Echo("setGaiaStorage: currentEnergyStorage = " .. tostring(currentEnergyStorage))
 	if currentEnergyStorage and currentEnergyStorage < energyStorageToSet then
-		Spring.Echo("setGaiaStorage: Setting energy storage from " .. currentEnergyStorage .. " to " .. energyStorageToSet)
 		spSetTeamResource(gaiaTeamID, "es", energyStorageToSet)
-		Spring.Echo("setGaiaStorage: Energy storage set")
-	else
-		Spring.Echo("setGaiaStorage: Energy storage condition not met, current=" .. tostring(currentEnergyStorage) .. ", target=" .. energyStorageToSet)
 	end
 end
 
