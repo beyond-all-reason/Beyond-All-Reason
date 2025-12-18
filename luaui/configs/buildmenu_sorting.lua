@@ -462,11 +462,12 @@ local unitOrderTable = {
 	['armscab']        = 020000,
 	['cormabm']        = 020010,
 
-	['armcarry']       = 020100,
-	['armantiship']	   = 020101,
-	['corcarry']       = 020110,
-	['corantiship']    = 020111,
-	['leganavyradjamship']    = 020120,
+	['armcarry']      				= 020100,
+	['armantiship']	  				= 020101,
+	['corcarry']      				= 020110,
+	['corantiship']   				= 020111,
+	['leganavyantinukecarrier']    	= 020112,
+	['leganavyradjamship']    		= 020120,
 
 -- BUILDINGS
    --ECO METAL MEX

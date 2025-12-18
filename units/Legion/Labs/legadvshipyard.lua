@@ -38,7 +38,7 @@ return {
 			"corssub",
 			"leganavyaaship",
 			"leganavyradjamship",
-			"corantiship",
+			"leganavyantinukecarrier",
 			"leganavybattleship",
 			"leganavyartyship",
 			"leganavymissileship",
