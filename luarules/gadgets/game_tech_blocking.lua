@@ -119,6 +119,20 @@ function gadget:Initialize()
 		end
 	end
 end
+function gadget:GameStart()
+	local teamList = Spring.GetTeamList()
+	for _, teamID in ipairs(teamList) do
+		if not ignoredTeams[teamID] then
+			local techLevel = spGetTeamRulesParam(teamID, "tech_level") or 1
+			for unitDefID, requiredLevel in pairs(blockTechDefs) do
+				if techLevel < requiredLevel then
+					GG.UnitBlocking.AddBlockedUnit(unitDefID, teamID, "tech_level_" .. requiredLevel)
+				end
+			end
+		end
+	end
+end
+
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	local power = UnitDefs[unitDefID].power
