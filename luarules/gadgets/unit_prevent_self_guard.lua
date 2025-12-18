@@ -1,7 +1,7 @@
 function gadget:GetInfo()
     return {
         name      = "Prevent Self Guard",
-        desc      = "Prevents all units from issuing guard commands on themselves",
+        desc      = "Prevents units from issuing guard commands on themselves",
         author    = "Trunks",
         date      = "2025",
         enabled   = true,
@@ -14,17 +14,15 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
+local isFactory = {} -- Factory order queue goes to built units, not themselves.
+for unitDefID, unitDef in ipairs(UnitDefs) do
+	isFactory[unitDefID] = unitDef.isFactory
+end
+
 function gadget:Initialize()
     gadgetHandler:RegisterAllowCommand(CMD.GUARD)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams)
-    local targetID = cmdParams[1]
-
-    -- Block self-guard for ALL units
-    if targetID == unitID then
-        return false
-    end
-
-    return true
+	return cmdParams[1] ~= unitID or isFactory[unitDefID]
 end

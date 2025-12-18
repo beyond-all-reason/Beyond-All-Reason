@@ -1309,26 +1309,36 @@ local options = {
     },
 
     {
+        key 	= "enable_quickstart_overrides",
+        name 	= "Enable Quick Start Overrides",
+        desc   	= "Allow overriding quick start range and budget (for debugging/modding).",
+        type 	= "bool",
+        def 	= false,
+        section = "options_extra",
+        hidden 	= true,
+    },
+
+    {
         key 	= "override_quick_start_range",
         name 	= "Override Quick Start Range",
-        desc   	= "Override the quick start build range. Set to 0 to use default behavior.",
+        desc   	= "Override the quick start build range when overrides are enabled (values below 200 are clamped to 200).",
         type 	= "number",
-        def 	= 0,
-        min 	= 300,
-        max 	= 10000,
+        def 	= 600,
+        min 	= 200,
+        max 	= 2000,
         step 	= 1,
         section = "options_extra",
         hidden 	= true,
     },
 
     {
-        key 	= "override_quick_start_resources",
-        name 	= "Override Quick Start Resources",
-        desc   	= "Override the quick start starting resources. Set to 0 to use default behavior.",
+        key 	= "override_quick_start_budget",
+        name 	= "Override Quick Start Budget",
+        desc   	= "Override the quick start starting resources when overrides are enabled.",
         type 	= "number",
-        def 	= 0,
+        def 	= 1200,
         min 	= 100,
-        max 	= 10000,
+        max 	= 1000000,
         step 	= 1,
         section = "options_extra",
         hidden 	= true,
@@ -1447,16 +1457,6 @@ local options = {
             { key = "hard", name = "Hard", desc = "Fast revival rate, stronger Scavenger Zombies." },
             { key = "nightmare", name = "Nightmare", desc = "Extreme revival rate, stronger Scavenger Zombies, 2-5 spawn per corpse." },
         }
-    },
-
-    {
-        key     = "seasonal_surprise",
-        name    = "Seasonal Surprise",
-        desc    = "Happy Halloween!",
-        type    = "bool",
-        def     = false,
-        section = "options_extra",
-        hidden  = true,
     },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

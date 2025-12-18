@@ -18,7 +18,7 @@ end
 
 local modOptions = Spring.GetModOptions()
 
-if not modOptions or not modOptions.tech_blocking then
+if not modOptions.tech_blocking then
 	return false
 end
 
@@ -27,8 +27,22 @@ local spGetMyTeamID = Spring.GetMyTeamID
 local spI18N = Spring.I18N
 
 local POPUP_DELAY_FRAMES = Game.gameSpeed * 10
+local UPDATE_INTERVAL = 1.0
+local CACHE_INTERVAL = 0.5 --seconds
 local popupsEnabled = false
 
+local cachedDataTable = {
+	techLevel = 1,
+	currentTechPoints = 0,
+	nextThreshold = 100,
+	progressPercent = 0,
+	isNegative = false,
+}
+
+local heightStrings = {}
+for i = 0, 100 do
+	heightStrings[i] = string.format("%.1f%%", i)
+end
 
 local function updateUIElementText(document, elementId, text)
 	local element = document:GetElementById(elementId)
@@ -45,7 +59,6 @@ local widgetState = {
 	document = nil,
 	dmHandle = nil,
 	lastUpdate = 0,
-	updateInterval = 0.5,
 	fillElement = nil,
 	levelElement = nil,
 	popupElement = nil,
@@ -54,6 +67,18 @@ local widgetState = {
 	popupEndTime = 0,
 	gameStartTime = nil,
 	initialPopupShown = false,
+	cachedMyTeamID = nil,
+	cachedTechPoints = 0,
+	cachedTechLevel = 1,
+	cachedT2Threshold = 100,
+	cachedT3Threshold = 1000,
+	cachedTeamCount = 1,
+	lastTeamCountUpdate = 0,
+	lastTechDataUpdate = 0,
+	lastDisplayedTechLevel = 1,
+	lastDisplayedTechPoints = 0,
+	lastDisplayedProgressPercent = 0,
+	lastDisplayedIsNegative = false,
 }
 
 local initialModel = {
@@ -64,28 +89,55 @@ local initialModel = {
 }
 
 local function getTechData()
-	local myTeamID = spGetMyTeamID()
-	if not myTeamID then return 1, 0, 100, 1000 end
+	local currentTime = os.clock()
+	local myTeamID = widgetState.cachedMyTeamID
 
-	local currentTechPoints = spGetTeamRulesParam(myTeamID, "tech_points")
-	currentTechPoints = tonumber(currentTechPoints) or 0
-
-	local techLevel = spGetTeamRulesParam(myTeamID, "tech_level")
-	techLevel = tonumber(techLevel) or 1
-
-	local t2Threshold = modOptions.t2_tech_threshold or 100
-	local t3Threshold = modOptions.t3_tech_threshold or 1000
-
-	local techBlockingPerTeam = modOptions.tech_blocking_per_team
-	if techBlockingPerTeam then
-		local myAllyTeamID = Spring.GetMyAllyTeamID()
-		local teamList = Spring.GetTeamList(myAllyTeamID)
-		local activeTeamCount = #teamList
-		t2Threshold = t2Threshold * activeTeamCount
-		t3Threshold = t3Threshold * activeTeamCount
+	if not myTeamID then
+		myTeamID = spGetMyTeamID()
+		if not myTeamID then return 1, 0, 100, 1000 end
+		widgetState.cachedMyTeamID = myTeamID
 	end
 
-	return techLevel, currentTechPoints, t2Threshold, t3Threshold
+	local needsFreshData = currentTime - widgetState.lastTechDataUpdate > CACHE_INTERVAL
+	if needsFreshData then
+		widgetState.lastTechDataUpdate = currentTime
+		local currentTechPoints = spGetTeamRulesParam(myTeamID, "tech_points")
+		currentTechPoints = tonumber(currentTechPoints) or 0
+
+		local techLevel = spGetTeamRulesParam(myTeamID, "tech_level")
+		techLevel = tonumber(techLevel) or 1
+
+		widgetState.cachedTechPoints = currentTechPoints
+		widgetState.cachedTechLevel = techLevel
+	end
+
+	local techBlockingPerTeam = modOptions.tech_blocking_per_team
+	local baseT2 = modOptions.t2_tech_threshold or 100
+	local baseT3 = modOptions.t3_tech_threshold or 1000
+	local t2Threshold, t3Threshold
+
+	if techBlockingPerTeam then
+		if currentTime - widgetState.lastTeamCountUpdate > CACHE_INTERVAL then
+			local myAllyTeamID = Spring.GetMyAllyTeamID()
+			local teamList = Spring.GetTeamList(myAllyTeamID)
+			local newTeamCount = #teamList
+
+			if newTeamCount ~= widgetState.cachedTeamCount then
+				widgetState.cachedTeamCount = newTeamCount
+				widgetState.lastTeamCountUpdate = currentTime
+
+				widgetState.cachedT2Threshold = baseT2 * widgetState.cachedTeamCount
+				widgetState.cachedT3Threshold = baseT3 * widgetState.cachedTeamCount
+			end
+		end
+		t2Threshold = widgetState.cachedT2Threshold
+		t3Threshold = widgetState.cachedT3Threshold
+	else
+		t2Threshold = baseT2
+		t3Threshold = baseT3
+	end
+
+	return widgetState.cachedTechLevel, widgetState.cachedTechPoints, t2Threshold, t3Threshold
 end
 
 local function calculateProgressPercent(currentPoints, nextThreshold, currentTechLevel, t2Threshold, t3Threshold)
@@ -134,13 +186,13 @@ local function updateTechPointsData()
 
 	local progressPercent, isNegative = calculateProgressPercent(currentTechPoints, nextThreshold, techLevel, t2Threshold, t3Threshold)
 
-	return {
-		techLevel = techLevel,
-		currentTechPoints = math.floor(currentTechPoints),
-		nextThreshold = nextThreshold,
-		progressPercent = progressPercent,
-		isNegative = isNegative,
-	}
+	cachedDataTable.techLevel = techLevel
+	cachedDataTable.currentTechPoints = math.floor(currentTechPoints)
+	cachedDataTable.nextThreshold = nextThreshold
+	cachedDataTable.progressPercent = progressPercent
+	cachedDataTable.isNegative = isNegative
+
+	return cachedDataTable
 end
 
 
@@ -149,22 +201,14 @@ local function createTechPointsElements()
 		return
 	end
 
-	for attempt = 1, 5 do
-		local fillElement = widgetState.document:GetElementById("tech-points-fill")
-		local levelElement = widgetState.document:GetElementById("tech-level-number")
-		local popupElement = widgetState.document:GetElementById("tech-level-popup")
+	local fillElement = widgetState.document:GetElementById("tech-points-fill")
+	local levelElement = widgetState.document:GetElementById("tech-level-number")
+	local popupElement = widgetState.document:GetElementById("tech-level-popup")
 
-		if fillElement and levelElement then
-			widgetState.fillElement = fillElement
-			widgetState.levelElement = levelElement
-			widgetState.popupElement = popupElement
-			return
-		end
-
-		if attempt < 5 then
-			local currentTime = os.clock()
-			while os.clock() - currentTime < 0.01 do end
-		end
+	if fillElement and levelElement then
+		widgetState.fillElement = fillElement
+		widgetState.levelElement = levelElement
+		widgetState.popupElement = popupElement
 	end
 end
 
@@ -207,9 +251,14 @@ local function updateUI()
 
 	local data = updateTechPointsData()
 
+	local uiChanged = data.techLevel ~= widgetState.lastDisplayedTechLevel or
+		data.currentTechPoints ~= widgetState.lastDisplayedTechPoints or
+		data.progressPercent ~= widgetState.lastDisplayedProgressPercent or
+		data.isNegative ~= widgetState.lastDisplayedIsNegative
+
 	updatePopups(data.techLevel)
 
-	if widgetState.dmHandle then
+	if uiChanged and widgetState.dmHandle then
 		widgetState.dmHandle.techLevel = data.techLevel
 		widgetState.dmHandle.currentTechPoints = data.currentTechPoints
 		widgetState.dmHandle.nextThreshold = data.nextThreshold
@@ -220,21 +269,25 @@ local function updateUI()
 		createTechPointsElements()
 	end
 
-	if widgetState.fillElement then
-		local heightValue = string.format("%.1f%%", data.progressPercent)
-		
-		if data.isNegative then
-			widgetState.fillElement:SetClass("negative-progress", true)
-		else
-			widgetState.fillElement:SetClass("negative-progress", false)
-		end
-		
-		widgetState.fillElement:SetAttribute("style", "height: " .. heightValue)
-	end
+	if uiChanged then
+		if widgetState.fillElement then
+			local heightValue = heightStrings[math.floor(data.progressPercent + 0.5)] or "0.0%"
 
-	if widgetState.levelElement then
-		local levelText = tostring(data.techLevel)
-		widgetState.levelElement.inner_rml = levelText
+			if data.isNegative ~= widgetState.lastDisplayedIsNegative then
+				widgetState.fillElement:SetClass("negative-progress", data.isNegative)
+			end
+
+			widgetState.fillElement:SetAttribute("style", "height: " .. heightValue)
+		end
+
+		if widgetState.levelElement and data.techLevel ~= widgetState.lastDisplayedTechLevel then
+			widgetState.levelElement.inner_rml = tostring(data.techLevel)
+		end
+
+		widgetState.lastDisplayedTechLevel = data.techLevel
+		widgetState.lastDisplayedTechPoints = data.currentTechPoints
+		widgetState.lastDisplayedProgressPercent = data.progressPercent
+		widgetState.lastDisplayedIsNegative = data.isNegative
 	end
 end
 
@@ -244,8 +297,29 @@ function widget:Initialize()
 
 	local myTeamID = spGetMyTeamID()
 	if myTeamID then
+		widgetState.cachedMyTeamID = myTeamID
 		local currentTechPoints = spGetTeamRulesParam(myTeamID, "tech_points") or 0
 		widgetState.previousTechPoints = currentTechPoints
+		widgetState.cachedTechPoints = currentTechPoints
+
+		local techLevel = spGetTeamRulesParam(myTeamID, "tech_level") or 1
+		widgetState.cachedTechLevel = techLevel
+		widgetState.lastDisplayedTechLevel = techLevel
+	end
+
+	local baseT2 = modOptions.t2_tech_threshold or 100
+	local baseT3 = modOptions.t3_tech_threshold or 1000
+
+	if modOptions.tech_blocking_per_team then
+		local myAllyTeamID = Spring.GetMyAllyTeamID()
+		local teamList = Spring.GetTeamList(myAllyTeamID)
+		widgetState.cachedTeamCount = #teamList
+		widgetState.lastTeamCountUpdate = os.clock()
+		widgetState.cachedT2Threshold = baseT2 * widgetState.cachedTeamCount
+		widgetState.cachedT3Threshold = baseT3 * widgetState.cachedTeamCount
+	else
+		widgetState.cachedT2Threshold = baseT2
+		widgetState.cachedT3Threshold = baseT3
 	end
 
 	widgetState.rmlContext = RmlUi.GetContext("shared")
@@ -296,31 +370,12 @@ end
 function widget:Update(dt)
 	local currentTime = os.clock()
 
-	if currentTime - widgetState.lastUpdate > widgetState.updateInterval then
+	if currentTime - widgetState.lastUpdate > UPDATE_INTERVAL then
 		widgetState.lastUpdate = currentTime
 		updateUI()
 	end
 end
 
-function widget:UnitBlocked(unitDefID, teamID, reasons)
-	Spring.Echo("Tech Points Widget received UnitBlocked:", unitDefID, teamID, reasons)
-	Spring.Echo("TeamRulesParam Key: unitdef_blocked_" .. unitDefID)
-	local teamRulesParam = Spring.GetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID)
-	Spring.Echo("TeamRulesParam Value:", teamRulesParam)
-
-	-- Debug: Show all teamRulesParam keys for this team
-	Spring.Echo("=== All TeamRulesParam keys for team " .. teamID .. " ===")
-	local teamRules = Spring.GetTeamRulesParams(teamID) or {}
-	for key, value in pairs(teamRules) do
-		if key:find("unitdef_blocked_") then
-			Spring.Echo("  " .. key .. " = " .. tostring(value))
-		end
-	end
-	Spring.Echo("=== End teamRules dump ===")
-
-	-- This callin is primarily handled by api_tech_blocking.lua widget
-	-- We receive it here for testing purposes to verify the callin system works
-end
 
 function widget:RecvLuaMsg(message, playerID)
 	local document = widgetState.document
