@@ -5,10 +5,11 @@ for _, keybinding in pairs(Spring.GetKeyBindings()) do
 	if (not actionHotkeys[cmd]) or keybinding.boundWith:len() < actionHotkeys[cmd]:len() then
 		actionHotkeys[cmd] = keybinding.boundWith
 	end
-	if keybinding.command == "select" then
-		local select_Cmd = keybinding.select
-		if (not actionHotkeys[select_Cmd]) or keybinding.boundWith:len() < actionHotkeys[select_Cmd]:len() then
-			actionHotkeys[select_Cmd] = keybinding.boundWith
+	if keybinding.extra ~= nil and cmd ~= "chain" then
+		local extra = keybinding.extra
+		local cmd_extra = cmd .. "_" .. extra
+		if (not actionHotkeys[cmd_extra]) or keybinding.boundWith:len() < actionHotkeys[cmd_extra]:len() then
+			actionHotkeys[cmd_extra] = keybinding.boundWith
 		end
 	end
 end
