@@ -410,6 +410,16 @@ return {
 		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 18, piece = "mainThrust2", light = 1 },
 	},
 
+	-- Legion t2 subs
+	["leganavyheavysub"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 20, piece = "thrust1", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 20, piece = "thrust2", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 20, piece = "thrust3", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
+	},
+	["leganavybattlesub"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 20, piece = "thrusttrail", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
+	},
+
 
 	-- flying ships
 	["armfepocht4"] = {

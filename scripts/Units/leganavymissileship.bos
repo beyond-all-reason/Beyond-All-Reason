@@ -1,0 +1,438 @@
+
+#include "../recoil_common_includes.h"
+
+piece
+    base,
+    greebles,
+    missileBarrelSpinPivot,
+    missilePlatform2,
+    missilePlatform1,
+    platform1Barrel1,
+    platform1Barrel6,
+    platform1Barrel5,
+    platform1Barrel4,
+    platform1Barrel3,
+    platform1Barrel2,
+    platform1Lid,
+    platform1BarrelExtension6,
+    platform1BarrelExtension1,
+    platform1BarrelExtension5,
+    platform1BarrelExtension4,
+    platform1BarrelExtension3,
+    platform1BarrelExtension2,
+    platform2Barrel1,
+    platform2Barrel2,
+    platform2Barrel6,
+    platform2Barrel5,
+    platform2Barrel4,
+    platform2Barrel3,
+    platform2BarrelExtension2,
+    platform2BarrelExtension1,
+    platform2BarrelExtension6,
+    platform2BarrelExtension5,
+    platform2BarrelExtension4,
+    platform2BarrelExtension3,
+    platform2Lid,
+    platformHinge1,
+    platformHinge2,
+    aaMissileFlare,
+    bow,
+    wake,
+    engineSpurt
+;
+
+static-var  restore_delay, oldHead, whichPlatform, whichBarrel, isOpen;
+
+// Signal definitions
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_AIM3 1024
+
+
+#define RB_MASS 40
+#define RB_LENGTH 8
+#define RB_WIDTH 3
+#define RB_PITCH_ACCELERATION 10
+#define RB_ROLL_ACCELERATION 8
+#define RB_RECOIL_ENERGY_1 100
+#define RB_RECOIL_ENERGY_3 250
+#define RB_WAKE_PIECE wake
+#define RB_WAKE_CEG 1024 + 0
+#define RB_BOWSPLASH_PIECE bow
+#define RB_BOWSPLASH_CEG 1024 + 1
+
+#include "../bar_ships_common.h"
+#include "../opencloseanim.h"
+
+Open(){
+
+    turn platform1Lid to x-axis <0> speed <90>;
+    turn platform2Lid to x-axis <0> speed <90>;
+    wait-for-turn platform2Lid around x-axis;
+
+    move platform1Barrel1 to y-axis [0] speed [16];
+    move platform2Barrel1 to y-axis [0] speed [16];
+    wait-for-move platform2Barrel1 along y-axis;
+
+    move platform1BarrelExtension1 to y-axis [0] speed [14];
+    move platform1BarrelExtension2 to y-axis [0] speed [14];
+    move platform1BarrelExtension3 to y-axis [0] speed [14];
+    move platform1BarrelExtension4 to y-axis [0] speed [14];
+    move platform1BarrelExtension5 to y-axis [0] speed [14];
+    move platform1BarrelExtension6 to y-axis [0] speed [14];
+    
+    move platform2BarrelExtension1 to y-axis [0] speed [14];
+    move platform2BarrelExtension2 to y-axis [0] speed [14];
+    move platform2BarrelExtension3 to y-axis [0] speed [14];
+    move platform2BarrelExtension4 to y-axis [0] speed [14];
+    move platform2BarrelExtension5 to y-axis [0] speed [14];
+    move platform2BarrelExtension6 to y-axis [0] speed [14];
+
+    wait-for-move platform2BarrelExtension6 along y-axis;
+
+    isOpen = 1;
+
+}
+
+Close(){
+
+    isOpen = 0;
+
+    turn platform1Barrel1 to x-axis <0> speed <50>;
+    turn platform2Barrel1 to x-axis <0> speed <50>;
+
+    move platform2BarrelExtension1 to y-axis [-8] speed [7];
+    move platform2BarrelExtension2 to y-axis [-8] speed [7];
+    move platform2BarrelExtension3 to y-axis [-8] speed [7];
+    move platform2BarrelExtension4 to y-axis [-8] speed [7];
+    move platform2BarrelExtension5 to y-axis [-8] speed [7];
+    move platform2BarrelExtension6 to y-axis [-8] speed [7];
+
+    move platform1BarrelExtension1 to y-axis [-8] speed [7];
+    move platform1BarrelExtension2 to y-axis [-8] speed [7];
+    move platform1BarrelExtension3 to y-axis [-8] speed [7];
+    move platform1BarrelExtension4 to y-axis [-8] speed [7];
+    move platform1BarrelExtension5 to y-axis [-8] speed [7];
+    move platform1BarrelExtension6 to y-axis [-8] speed [7];
+
+    wait-for-move platform1BarrelExtension1 along y-axis;
+
+    move platform1Barrel1 to y-axis [-10] speed [8];
+    move platform2Barrel1 to y-axis [-10] speed [8];
+
+    wait-for-move platform2Barrel1 along y-axis;
+
+    turn platform1Lid to x-axis <90> speed <90>;
+    turn platform2Lid to x-axis <-90> speed <90>;
+    
+}
+
+Create()
+{
+    turn platformHinge1 to y-axis <4.35> now;
+    turn platformHinge2 to y-axis <12.4> now;
+	whichPlatform = 0;
+    whichBarrel = 0;
+    isOpen = 0;
+	restore_delay = 3000;
+	start-script InitRockBoat();
+	SLEEP_UNTIL_UNITFINISHED;
+    start-script Close();
+	start-script BoatPhysics();
+    
+}
+
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 3;
+}
+
+// abaim()
+// {
+// 	sleep 4000;
+// 	signal SIGNAL_AIM3;
+// }
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+
+    //restore stuff goes here
+    start-script Close();
+
+}
+
+ExecuteRestoreAfterDelay2()
+{
+    if (Stunned) {
+        return (1);
+    }
+
+    //restore stuff goes here
+
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+        start-script ExecuteRestoreAfterDelay2();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+RestoreAfterDelay2()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay2();
+}
+
+Activate()
+{
+	// spin dish around y-axis speed <150.0>;
+}
+
+Deactivate()
+{
+	// spin dish around y-axis speed <0.0>;
+}
+
+
+
+StartMoving(reversing)
+{
+}
+
+StopMoving()
+{
+}
+
+//main rockets
+AimWeapon1(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+    start-script Open();
+    wait-for-turn platform1Lid around x-axis;
+
+	start-script RestoreAfterDelay();
+	if(isOpen == 1){
+        turn platform1Barrel1 to x-axis <5> speed <5>;
+        turn platform2Barrel1 to x-axis <5> speed <5>;
+        wait-for-turn platform2Barrel1 around x-axis;
+        return (1);
+    }
+    else {
+        return(0);
+    }
+}
+
+
+FireWeapon1()
+{
+	// gun_1 = flare1;
+	// sleep 100;
+	// RB_RECOILBOAT(0, RB_RECOIL_ENERGY_1);
+}
+
+Shot1(zero){
+    RB_RECOILBOAT(0, RB_RECOIL_ENERGY_1);
+    if(whichPlatform == 0){
+        if(whichBarrel == 0){
+            whichBarrel = 1;
+        }
+        else if(whichBarrel == 1){
+            whichBarrel = 2;
+        }
+        else if(whichBarrel == 2){
+            whichBarrel = 3;
+        }
+        else if(whichBarrel == 3){
+            whichBarrel = 4;
+        }
+        else if(whichBarrel == 4){
+            whichBarrel = 5;
+        }
+        else if(whichBarrel == 5){
+            whichBarrel = 6;
+        }
+        else if(whichBarrel == 6){
+            whichBarrel = 0;
+        }
+        else{
+            whichBarrel = 0;
+        }
+        whichPlatform = 1;
+    }
+    else if(whichPlatform == 1){
+        if(whichBarrel == 0){
+            whichBarrel = 1;
+        }
+        else if(whichBarrel == 1){
+            whichBarrel = 2;
+        }
+        else if(whichBarrel == 2){
+            whichBarrel = 3;
+        }
+        else if(whichBarrel == 3){
+            whichBarrel = 4;
+        }
+        else if(whichBarrel == 4){
+            whichBarrel = 5;
+        }
+        else if(whichBarrel == 5){
+            whichBarrel = 6;
+        }
+        else if(whichBarrel == 6){
+            whichBarrel = 0;
+        }
+        else{
+            whichBarrel = 0;
+        }
+        whichPlatform = 0;
+    }
+    else{
+        whichPlatform = 0;
+    }
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = missilePlatform2;
+}
+
+QueryWeapon1(pieceIndex)
+{
+    if(whichPlatform == 0){
+        if(whichBarrel == 0){
+            pieceIndex = platform1BarrelExtension1;
+        }
+        else if(whichBarrel == 1){
+            pieceIndex = platform1BarrelExtension2;
+        }
+        else if(whichBarrel == 2){
+            pieceIndex = platform1BarrelExtension3;
+        }
+        else if(whichBarrel == 3){
+            pieceIndex = platform1BarrelExtension4;
+        }
+        else if(whichBarrel == 4){
+            pieceIndex = platform1BarrelExtension5;
+        }
+        else if(whichBarrel == 5){
+            pieceIndex = platform1BarrelExtension6;
+        }
+        else if(whichBarrel == 6){
+            pieceIndex = platform1BarrelExtension1;
+        }
+        else{
+            pieceIndex = platform1BarrelExtension1;
+        }
+    }
+    else if(whichPlatform == 1){
+        if(whichBarrel == 0){
+            pieceIndex = platform2BarrelExtension1;
+        }
+        else if(whichBarrel == 1){
+            pieceIndex = platform2BarrelExtension2;
+        }
+        else if(whichBarrel == 2){
+            pieceIndex = platform2BarrelExtension3;
+        }
+        else if(whichBarrel == 3){
+            pieceIndex = platform2BarrelExtension4;
+        }
+        else if(whichBarrel == 4){
+            pieceIndex = platform2BarrelExtension5;
+        }
+        else if(whichBarrel == 5){
+            pieceIndex = platform2BarrelExtension6;
+        }
+        else if(whichBarrel == 6){
+            pieceIndex = platform2BarrelExtension1;
+        }
+        else{
+            pieceIndex = platform2BarrelExtension1;
+        }
+    }
+}
+
+//aa missiles
+AimWeapon2(heading, pitch)
+{
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	start-script RestoreAfterDelay2();
+	return (1);
+}
+
+FireWeapon2()
+{
+    emit-sfx 1024 + 2 from aaMissileFlare;
+	spin missileBarrelSpinPivot around y-axis speed <900>;
+    stop-spin missileBarrelSpinPivot around y-axis decelerate <45>;
+}
+
+
+AimFromWeapon2(pieceIndex)
+{
+	pieceIndex = missileBarrelSpinPivot;
+}
+
+QueryWeapon2(pieceIndex)
+{
+	pieceIndex = aaMissileFlare;
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode launcher type BITMAPONLY | NOHEATCLOUD;
+		// explode dish type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode doorl type FALL | NOHEATCLOUD;
+		// explode launcher type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode turret type FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode launcher type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode dish type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		// explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode launcher type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode dish type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		// explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

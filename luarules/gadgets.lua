@@ -2013,10 +2013,10 @@ end
 --  Feature call-ins
 --
 
-function gadgetHandler:FeatureCreated(featureID, allyTeam)
+function gadgetHandler:FeatureCreated(featureID, allyTeam, sourceID)
 	tracy.ZoneBeginN("G:FeatureCreated")
 	for _, g in ipairs(self.FeatureCreatedList) do
-		g:FeatureCreated(featureID, allyTeam)
+		g:FeatureCreated(featureID, allyTeam, sourceID)
 	end
 	tracy.ZoneEnd()
 	return

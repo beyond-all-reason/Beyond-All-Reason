@@ -627,7 +627,6 @@ local armorDefs = {
 		"cormls",
 		"armdecade",
 		"corsjam",
-		"legcs",
 		"legvelite",
 		"leghastatus",
 		"leghastatusalt",
@@ -668,13 +667,17 @@ local armorDefs = {
 	subs = {
 		"armsub",
 		"corsub",
+		"legnavysub",
 		"legstingray",
         "armsubk",
 		"corshark",
+		"leganavybattlesub",
         "corssub",
 		"armserp",
+		"leganavyheavysub",
 		"armacsub",
         "coracsub",
+		"leganavyconsub",
 		"armrecl",
 		"correcl",
 		"legnavyrezsub",
@@ -682,8 +685,6 @@ local armorDefs = {
 		"cordesolator",
 		"armexcalibur",
 		"armseadragon",
-
-		"legnavysub",
 	},
 
 	raptor =
@@ -776,10 +777,13 @@ end
 -- expose armor defs to custom params
 for unitName, unitDef in pairs (DEFS.unitDefs) do
 	if unitDef.customparams and unitDef.customparams.armordef then
-		local defCategory = armorDefs[unitDef.customparams.armordef]
+		local lowerCaseArmorDef = unitDef.customparams.armordef:lower()
+		clearArmorDef(unitName)
+		local defCategory = armorDefs[lowerCaseArmorDef]
 		if defCategory then
-			clearArmorDef(unitName)
 			defCategory[#defCategory+1] = unitName
+		else
+			armorDefs[lowerCaseArmorDef] = {unitName}
 		end
 	end
 end
