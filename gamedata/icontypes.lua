@@ -1688,6 +1688,10 @@ local icontypes = {
 		bitmap = "icons/factory_gantry_uw.png",
 		size = 2.51999998
 	},
+	leggantuw = {
+		bitmap = "icons/factory_gantry_uw.png",
+		size = 2.51999998
+	},
 	corgarp = {
 		bitmap = "icons/amphib_tank.png",
 		size = 1.35000002
@@ -2309,6 +2313,10 @@ local icontypes = {
 		size = 1.20749986
 	},
 	coruwmmm = {
+		bitmap = "icons/metalmaker_t2.png",
+		size = 1.20749986
+	},
+	leganavaleconv = {
 		bitmap = "icons/metalmaker_t2.png",
 		size = 1.20749986
 	},
