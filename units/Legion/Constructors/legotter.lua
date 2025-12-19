@@ -72,7 +72,7 @@ return {
 			"legjam",
 			"legfhp",
 			"legamphlab",
-			"corplat",
+			"legsplab",
 			"legsy",
 			"legtide",
 			"leguwmstore",

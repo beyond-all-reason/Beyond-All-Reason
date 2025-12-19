@@ -69,7 +69,7 @@ return {
 			[29] = "legjam",
 			[30] = "legfhp",
 			[31] = "legamphlab",
-			[32] = "corplat",
+			[32] = "legsplab",
 			[33] = "legsy",
 			[34] = "legtide",
 			[35] = "legfeconv",

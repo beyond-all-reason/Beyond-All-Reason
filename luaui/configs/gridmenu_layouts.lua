@@ -113,6 +113,10 @@ local labGrids = {
 		"corcsa", "corsfig", "corcut", "corsb",              -- seaplane con, fig, gunship, bomber
 		"corhunt", "corseap",                                -- radar, torpedo
 	},
+	legsplab = {
+		"legspcon", "legspfighter", "legspsurfacegunship", "legspbomber",              -- seaplane con, fig, gunship, bomber
+		"legspradarsonarplane", "legsptorpgunship", "legspcarrier",                                -- radar, torpedo
+	},
 	-- T1 boats
 	armsy = {
 		"armcs", "armrecl", "armdecade", "",              -- T1 sea con, rez sub, decade
@@ -1376,7 +1380,7 @@ local unitGrids = {
 		{
 			{ "legsy", "legvp", "legap", "leglab",  },        -- shipyard, vehicle lab, air lab, bot lab
 			{ "legnanotcplat", "legadvshipyard", },                   -- floating nano, T2 shipyard
-			{ "legfhp", "", "legamphlab", "corplat",  },        -- floating hover, amphibious lab, seaplane lab
+			{ "legfhp", "", "legamphlab", "legsplab",  },        -- floating hover, amphibious lab, seaplane lab
 		}
 	},
 
@@ -1449,7 +1453,7 @@ local unitGrids = {
 		{
 			{ "leglab", "legvp", "legap", "legsy", },         -- bot lab, veh lab, air lab, shipyard
 			{ "legnanotc", "legavp", "legnanotcplat", "legadvshipyard", },      -- nano, T2 veh lab, floating nano
-			{ "leghp", "legfhp", "legamphlab", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "leghp", "legfhp", "legamphlab", "legsplab", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
@@ -1595,7 +1599,7 @@ local unitGrids = {
 		{
 			{ "leglab", "legvp", "legap", "legsy", },         -- bot lab, veh lab, air lab, shipyard
 			{ "legnanotc", "legavp", "legnanotcplat", },      -- nano, T2 veh lab, floating nano
-			{ "leghp", "legfhp", "legamphlab", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "leghp", "legfhp", "legamphlab", "legsplab", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
@@ -1804,7 +1808,7 @@ local unitGrids = {
 		{
 			{ "legap", },                                       -- T1 lab,
 			{ "leggant", "legaap", },                           -- T3 lab, T2 lab
-			{ "corplat", },                                     -- seaplane lab (aircon only)
+			{ "legsplab", },                                     -- seaplane lab (aircon only)
 		}
 	},
 

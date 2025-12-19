@@ -64,7 +64,7 @@ return {
 			"legstarfall",
 			"legap",
 			"legaap",
-			"corplat",
+			"legsplab",
 			"leggant",
 		},
 		customparams = {
