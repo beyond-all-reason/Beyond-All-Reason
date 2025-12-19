@@ -609,6 +609,7 @@ local armorDefs = {
 		"legspradarsonarplane",
 		"legspsurfacegunship",
 		"legsptorpgunship",
+		"legspbomber",
 	},
 	shields = {
 		-- Intentionally left blank. To be used in shield weapondefs only!

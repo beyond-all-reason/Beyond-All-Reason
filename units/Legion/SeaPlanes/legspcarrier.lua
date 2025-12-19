@@ -2,6 +2,7 @@ return {
 	legspcarrier = {
 		maxacc = 0.09,
 		activatewhenbuilt = true,
+		airStrafe = false,
 		blocking = true,
 		bankingallowed = false,
 		maxdec = 0.09,
@@ -11,13 +12,13 @@ return {
 		buildtime = 20000,
 		canfly = true,
 		canmove = true,
-		cansubmerge = true;
 		collide = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "48 14 60",
 		collisionvolumetype = "Box",
 		cruisealtitude = 100,
 		explodeas = "largeexplosiongeneric",
+		floater = true,
 		footprintx = 4,
 		footprintz = 4,
 		hoverattack = true,
