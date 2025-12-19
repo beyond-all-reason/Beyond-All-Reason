@@ -706,13 +706,16 @@ local function drawStats(uDefID, uID)
 				DrawText(texts.dmg..":", damageString)
 
 				local modifiers = { [defaultArmorDamage] = { armorTypes[defaultArmorIndex] } } -- [damage] = { armorClass1, armorClass2, ... }
-				for cat = 0, #armorTypes do
-					local armorName = armorTypes[cat]
-					local armorDamage = damages[cat]
-					if not modifiers[armorDamage] then
-						modifiers[armorDamage] = { armorName }
-					elseif armorDamage ~= defaultArmorDamage then
-						tableInsert(modifiers[armorDamage], armorName)
+				local indestructible = armorTypes.indestructable
+				for index = 0, #armorTypes - 1 do
+					if index ~= indestructible then
+						local armorName = armorTypes[index]
+						local armorDamage = damages[index]
+						if not modifiers[armorDamage] then
+							modifiers[armorDamage] = { armorName }
+						elseif armorDamage ~= defaultArmorDamage then
+							tableInsert(modifiers[armorDamage], armorName)
+						end
 					end
 				end
 
