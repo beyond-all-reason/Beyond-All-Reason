@@ -25,6 +25,7 @@ local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
 include("keysym.h.lua")
+local windFunctions = VFS.Include('common/wind_functions.lua')
 
 local pairs = pairs
 local ipairs = ipairs
@@ -269,7 +270,7 @@ local modKeyMultiplier = {
 	right = -1
 }
 
-local disableWind = ((Game.windMin + Game.windMax) / 2) < 5
+local disableWind = windFunctions.isWindDisabled()
 local voidWater = false
 local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
 if success and mapinfo then
@@ -1671,6 +1672,33 @@ function widget:Initialize()
 			end
 		end
 		clear()
+	end
+
+	local blockedUnits = {}
+
+	WG['buildmenu'].addBlockReason = function(uDefID, reason)
+		blockedUnits[uDefID] = blockedUnits[uDefID] or {}
+		blockedUnits[uDefID][reason] = true
+		units.unitRestricted[uDefID] = true
+		clear()
+	end
+
+	WG['buildmenu'].removeBlockReason = function(uDefID, reason)
+		if blockedUnits[uDefID] then
+			blockedUnits[uDefID][reason] = nil
+			if not next(blockedUnits[uDefID]) then
+				blockedUnits[uDefID] = nil
+				
+				if UnitDefs[uDefID].maxThisUnit ~= 0 then
+					units.unitRestricted[uDefID] = false
+				end
+				
+				units.restrictWaterUnits(not showWaterUnits)
+				units.restrictWindUnits(disableWind)
+				units.checkGeothermalFeatures()
+			end
+			clear()
+		end
 	end
 end
 

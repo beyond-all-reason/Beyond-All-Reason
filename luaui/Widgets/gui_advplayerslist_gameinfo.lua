@@ -41,6 +41,9 @@ local top, left, bottom, right = 0,0,0,0
 local passedTime = 0
 local textWidthClock = 0
 local gameframe = spGetGameFrame()
+local gamespeed = 1.0
+local gamespeedUpdateTime = 0
+local gamespeedFrameStart = gameframe
 
 local vsx, vsy = spGetViewGeometry()
 
@@ -58,8 +61,6 @@ local function drawContent()
 	local fps = Spring.GetFPS()
 	local titleColor = '\255\210\210\210'
 	local valueColor = '\255\245\245\245'
-	local prevGameframe = gameframe
-	gameframe = spGetGameFrame()
 	local minutes = mathFloor((gameframe / 30 / 60))
 	local seconds = mathFloor((gameframe - ((minutes*60)*30)) / 30)
 	if seconds == 0 then
@@ -78,8 +79,8 @@ local function drawContent()
 	elseif minutes > 9 then
 		extraSpacing = 0.7
 	end
-	local gamespeed = string.format("%.2f", (gameframe-prevGameframe) / 30)
-	local text = titleColor..' x'..valueColor..gamespeed..titleColor..'     fps '..valueColor..fps
+	local gamespeedStr = string.format("%.1f", gamespeed)..'0'
+	local text = titleColor..' x'..valueColor..gamespeedStr..titleColor..'     fps '..valueColor..fps
 	font:Print(text, left+textXPadding+(textsize*(2.8+extraSpacing)), bottom+(0.48*widgetHeight*widgetScale)-(textsize*0.35), textsize, 'no')
 	local textWidth = font:GetTextWidth(text) * textsize
 	local usedTextWidth = 0
@@ -225,6 +226,23 @@ end
 
 function widget:Update(dt)
 	updatePosition()
+	
+	-- Calculate actual gamespeed over a longer interval for stability
+	local currentGameframe = spGetGameFrame()
+	gamespeedUpdateTime = gamespeedUpdateTime + dt
+	
+	-- Update gamespeed calculation every 0.2 seconds for smoother results
+	if gamespeedUpdateTime >= 0.2 then
+		local frameDelta = currentGameframe - gamespeedFrameStart
+		if gamespeedUpdateTime > 0 then
+			gamespeed = frameDelta / (gamespeedUpdateTime * 30)
+		end
+		gamespeedFrameStart = currentGameframe
+		gamespeedUpdateTime = 0
+	end
+	
+	gameframe = currentGameframe
+	
 	passedTime = passedTime + dt
 	if passedTime > 1 then
 		updateDrawing = true

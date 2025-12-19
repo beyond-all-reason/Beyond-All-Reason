@@ -13,6 +13,10 @@ function gadget:GetInfo()
 	}
 end
 
+if Spring.GetModOptions().experimental_ai_spawns then
+	return false
+end
+
 -- Note: (31/03/13) coop_II deals with the extra startpoints etc needed for teamsIDs with more than one playerID.
 
 -- 2023-08-19: FFA start points configuration is now offloaded to a dedicated `game_ffa_start_setup` gadget and has been
@@ -184,7 +188,7 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Start Point Guesser
 	----------------------------------------------------------------
-	include("luarules/gadgets/lib_startpoint_guesser.lua") -- start point guessing routines
+	include("common/lib_startpoint_guesser.lua") -- start point guessing routines
 
 	----------------------------------------------------------------
 	-- FFA start points (provided by `game_ffa_start_setup`)

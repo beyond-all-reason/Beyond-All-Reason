@@ -32,6 +32,7 @@ local DonatorAINames = {
     "danielquinn",
     "Dave",
     "Diana",
+    "DreamtBlue",
     "EnJoY",
     "ewang",
     "FishouseMike",
@@ -75,6 +76,7 @@ local DonatorAINames = {
     "Poops",
     "Prime_Federator",
     "principal",
+    "PsychoPewPew", --$40
     "Requiem_TV",
     "Rezol",
     "Rikerss",
