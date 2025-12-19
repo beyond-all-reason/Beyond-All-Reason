@@ -2,7 +2,7 @@ return {
 	leganavyantiswarm = {
 		activatewhenbuilt = true,
 		blocking = true,
-		buildpic = "ARMLSHIP.DDS",
+		buildpic = "leganavyantiswarm.DDS",
 		buildtime = 8500,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 4",
