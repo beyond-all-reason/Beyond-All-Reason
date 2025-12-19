@@ -162,7 +162,7 @@ return {
 				noselfdamage = true,
 				predictboost = 0,
 				proximitypriority = 1,
-				range = 800,
+				range = 700,
 				reloadtime = .033,
 				rgbcolor = "1 0.3 0",
 				rgbcolor2 = "1 0.8 0.5",
