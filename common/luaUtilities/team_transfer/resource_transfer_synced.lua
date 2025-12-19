@@ -74,8 +74,6 @@ local function TryDenyPolicy(ctx, resourceType)
   local modOpts = ctx.springRepo.GetModOptions()
   local resourceSharingEnabled = modOpts[SharedEnums.ModOptions.ResourceSharingEnabled]
   if resourceSharingEnabled == false then
-    Spring.Echo(string.format("[TryDenyPolicy] DENY: ResourceSharingEnabled=%s (type=%s) sender=%d receiver=%d resource=%s",
-      tostring(resourceSharingEnabled), type(resourceSharingEnabled), ctx.senderTeamId, ctx.receiverTeamId, tostring(resourceType)))
     return Shared.CreateDenyPolicy(ctx.senderTeamId, ctx.receiverTeamId, resourceType, ctx.springRepo)
   end
 
@@ -84,16 +82,11 @@ local function TryDenyPolicy(ctx, resourceType)
   end
 
   if not ctx.areAlliedTeams and not isNonPlayerTeam(ctx.springRepo, ctx.senderTeamId) then
-    Spring.Echo(string.format("[TryDenyPolicy] DENY: not allied teams sender=%d receiver=%d resource=%s",
-      ctx.senderTeamId, ctx.receiverTeamId, tostring(resourceType)))
     return Shared.CreateDenyPolicy(ctx.senderTeamId, ctx.receiverTeamId, resourceType, ctx.springRepo)
   end
 
   local numActivePlayers = ctx.springRepo.GetTeamRulesParam(ctx.receiverTeamId, "numActivePlayers")
-  -- nil means idle player tracking isn't running (e.g. single player) - treat as valid
   if numActivePlayers ~= nil and tonumber(numActivePlayers) == 0 then
-    Spring.Echo(string.format("[TryDenyPolicy] DENY: receiver has 0 active players sender=%d receiver=%d resource=%s numActivePlayers=%s",
-      ctx.senderTeamId, ctx.receiverTeamId, tostring(resourceType), tostring(numActivePlayers)))
     return Shared.CreateDenyPolicy(ctx.senderTeamId, ctx.receiverTeamId, resourceType, ctx.springRepo)
   end
   return nil

@@ -18,19 +18,14 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local assistEnabled = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedAssistMode] == SharedEnums.AlliedAssistMode.Enabled
+local modOptValue = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedAssistMode]
+local assistEnabled = modOptValue == SharedEnums.AlliedAssistMode.Enabled
+Spring.Echo("[AlliedAssistMode] modoption key=" .. tostring(SharedEnums.ModOptions.AlliedAssistMode) .. " value=" .. tostring(modOptValue) .. " expected=" .. tostring(SharedEnums.AlliedAssistMode.Enabled) .. " assistEnabled=" .. tostring(assistEnabled))
 if assistEnabled then
-	return false
+	Spring.Echo("[AlliedAssistMode] Assist is ENABLED - gadget will NOT block commands")
+	return
 end
-
-local function isComplete(u)
-	local _,_,_,_,buildProgress = Spring.GetUnitHealth(u)
-	if buildProgress and buildProgress>=1 then
-		return true
-	else
-		return false
-	end
-end
+Spring.Echo("[AlliedAssistMode] Assist is DISABLED - gadget WILL block guard/assist commands to allies")
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 

@@ -3008,7 +3008,7 @@ local function RenderShareSliderText(posY, player, resourceType, baseOffset)
     else
         -- For taxed cases, show explicit sent -> received breakdown
         local received, sent = ResourceTransfer.CalculateSenderTaxedAmount(policyResult, shareAmount)
-        label = "S:" .. ResourceTransfer.FormatNumberForUI(sent) .. "→R:" .. ResourceTransfer.FormatNumberForUI(received)
+        label = "(Sent→Received) " .. ResourceTransfer.FormatNumberForUI(sent) .. "→" .. ResourceTransfer.FormatNumberForUI(received)
     end
     local textXRight = ModuleRefs.share.posX + widgetPosX + (baseOffset * playerScale) - (4 * playerScale)
     local fontSize = 14
@@ -3191,7 +3191,7 @@ function widget:MousePress(x, y, button)
                                             --Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.needSupport'))
 											Spring.SendLuaRulesMsg('msg:ui.playersList.chat.needSupport')
                                         else
-                                            Spring_ShareResources(clickedPlayer.team, "units")
+                                            TeamTransfer.Units.ShareUnits(clickedPlayer.team)
                                             Spring.PlaySoundFile("beep4", 1, 'ui')
                                         end
                                     end

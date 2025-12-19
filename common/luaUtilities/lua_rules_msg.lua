@@ -55,6 +55,62 @@ function LuaRulesMsg.ParseResourceShare(msg)
   }
 end
 
+--------------------------------------------------------------------------------
+-- Unit Transfer Messages
+--------------------------------------------------------------------------------
+
+local UNIT_TRANSFER_PREFIX = "share:units:"
+
+---@class UnitTransferParams
+---@field targetTeamID number
+---@field unitIDs number[]
+
+---Serialize a unit transfer request for SendLuaRulesMsg
+---@param targetTeamID number
+---@param unitIDs number[]
+---@return string
+function LuaRulesMsg.SerializeUnitTransfer(targetTeamID, unitIDs)
+  return UNIT_TRANSFER_PREFIX .. targetTeamID .. ":" .. table.concat(unitIDs, ",")
+end
+
+---Parse a unit transfer message from RecvLuaMsg
+---@param msg string
+---@return UnitTransferParams|nil params nil if not a unit transfer message or invalid
+function LuaRulesMsg.ParseUnitTransfer(msg)
+  if msg:sub(1, #UNIT_TRANSFER_PREFIX) ~= UNIT_TRANSFER_PREFIX then
+    return nil
+  end
+
+  local rest = msg:sub(#UNIT_TRANSFER_PREFIX + 1)
+  local colonPos = rest:find(":")
+  if not colonPos then
+    return nil
+  end
+
+  local targetTeamID = tonumber(rest:sub(1, colonPos - 1))
+  if not targetTeamID then
+    return nil
+  end
+
+  local unitIDsStr = rest:sub(colonPos + 1)
+  local unitIDs = {}
+  for idStr in unitIDsStr:gmatch("[^,]+") do
+    local id = tonumber(idStr)
+    if id then
+      unitIDs[#unitIDs + 1] = id
+    end
+  end
+
+  if #unitIDs == 0 then
+    return nil
+  end
+
+  return {
+    targetTeamID = targetTeamID,
+    unitIDs = unitIDs
+  }
+end
+
 return LuaRulesMsg
 
 

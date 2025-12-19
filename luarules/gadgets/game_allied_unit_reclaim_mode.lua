@@ -21,10 +21,14 @@ if not gadgetHandler:IsSyncedCode() then
   return false
 end
 
-local reclaimEnabled = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedUnitReclaimMode] == SharedEnums.AlliedUnitReclaimMode.EnabledAutomationRestricted
+local modOptValue = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedUnitReclaimMode]
+local reclaimEnabled = modOptValue == SharedEnums.AlliedUnitReclaimMode.EnabledAutomationRestricted
+Spring.Echo("[AlliedUnitReclaimMode] modoption key=" .. tostring(SharedEnums.ModOptions.AlliedUnitReclaimMode) .. " value=" .. tostring(modOptValue) .. " expected=" .. tostring(SharedEnums.AlliedUnitReclaimMode.EnabledAutomationRestricted) .. " reclaimEnabled=" .. tostring(reclaimEnabled))
 if reclaimEnabled then
+  Spring.Echo("[AlliedUnitReclaimMode] Reclaim is ENABLED - gadget will NOT block commands")
   return
 end
+Spring.Echo("[AlliedUnitReclaimMode] Reclaim is DISABLED - gadget WILL block reclaim/guard commands to allies")
 
 function gadget:Initialize()
   gadgetHandler:RegisterAllowCommand(CMD.RECLAIM)

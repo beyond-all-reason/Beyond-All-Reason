@@ -60,8 +60,6 @@ local function BuildTeamData(excesses)
 			local energyWithExcess = (eCur or 0) + energyExcess
 			
 			local _, allyTeam = springRepo.GetTeamInfo(teamID)
-			local mSent = springRepo.GetTeamRulesParam(teamID, "cumulativeMetalSent") or 0
-			local eSent = springRepo.GetTeamRulesParam(teamID, "cumulativeEnergySent") or 0
 			
 			teams[#teams + 1] = {
 				id = teamID,
@@ -70,14 +68,12 @@ local function BuildTeamData(excesses)
 					current = metalWithExcess,
 					storage = mSto or 1000,
 					shareSlider = mShare or 0.99,
-					cumulativeSent = mSent,
 					excess = metalExcess,
 				},
 				energy = {
 					current = energyWithExcess,
 					storage = eSto or 1000,
 					shareSlider = eShare or 0.95,
-					cumulativeSent = eSent,
 					excess = energyExcess,
 				}
 			}

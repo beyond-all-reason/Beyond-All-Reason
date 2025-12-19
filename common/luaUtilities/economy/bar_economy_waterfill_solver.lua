@@ -310,6 +310,10 @@ local function allocateGroup(members, lift, taxRate)
     local member = members[i]
     local resource = member.resource
     if resource.current > member.storage then
+      if AuditLog.IsEnabled() then
+        Spring.Echo(string.format("[WaterfillSolver] CAPPING team=%d resource=%s current=%.2f -> storage=%.2f", 
+          member.teamId, member.resourceType, resource.current, member.storage))
+      end
       resource.current = member.storage
     end
     if ledgers[member.teamId].sent == 0 then
@@ -340,11 +344,27 @@ end
 ---@return table<number, TeamResourceData>
 ---@return EconomyFlowSummary
 function Gadgets.ProcessEconomy(springRepo, teamsList, frame)
-  if not teamsList or #teamsList == 0 then
+  if not teamsList then
+    return teamsList, {}
+  end
+  
+  local teamCount = 0
+  for _ in pairs(teamsList) do teamCount = teamCount + 1 end
+  if teamCount == 0 then
     return teamsList, {}
   end
 
   currentFrame = frame or (springRepo.GetGameFrame and springRepo.GetGameFrame()) or 0
+  
+  if AuditLog.IsEnabled() and currentFrame % 300 == 0 then
+    Spring.Echo(string.format("[WaterfillSolver] ProcessEconomy frame=%d teamCount=%d", currentFrame, teamCount))
+    for teamId, team in pairs(teamsList) do
+      if team.metal then
+        Spring.Echo(string.format("[WaterfillSolver]   team=%s id=%s metal: current=%.2f storage=%.2f share=%.2f", 
+          tostring(teamId), tostring(team.id), team.metal.current or 0, team.metal.storage or 0, team.metal.shareSlider or 0))
+      end
+    end
+  end
 
   resetTickFields(teamsList)
 

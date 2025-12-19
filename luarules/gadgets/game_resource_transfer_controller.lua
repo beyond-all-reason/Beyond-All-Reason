@@ -173,9 +173,10 @@ local function ProcessEconomy(frame, teams)
 	stopwatch:Breakpoint("Solver")
 	
 	local result = {}	
-	for _, team in ipairs(updatedTeams) do
-		if team.id then
-			result[team.id] = {
+	for teamId, team in pairs(updatedTeams) do
+		local id = team.id or teamId
+		if id then
+			result[id] = {
 				metal = {
 					current = team.metal.current,
 					sent = team.metal.sent,

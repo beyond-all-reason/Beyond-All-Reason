@@ -343,8 +343,12 @@ function widget:CommandNotify(cmdID, cmdParams, _)
 			return true
 		end
 
-		ShareResources(targetTeamID, "units")
-		PlaySoundFile("beep4", 1, 'ui')
+		local selectedUnits = GetSelectedUnits()
+		if #selectedUnits > 0 then
+			local msg = "share:units:" .. targetTeamID .. ":" .. table.concat(selectedUnits, ",")
+			Spring.SendLuaRulesMsg(msg)
+			PlaySoundFile("beep4", 1, 'ui')
+		end
 		return false
 	end
 end
