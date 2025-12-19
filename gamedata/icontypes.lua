@@ -880,6 +880,14 @@ local icontypes = {
 		bitmap = "icons/air_t1_hover_sea.png",
 		size = 1.25999999
 	},
+	legspsurfacegunship = {
+		bitmap = "icons/air_t15_impulse.png",
+		size = 1.25999999
+	},
+	legspcarrier = {
+		bitmap = "icons/air_t15_carrier.png",
+		size = 1.65
+	},
 	armsam = {
 		bitmap = "icons/vehicle_t1_missile.png",
 		size = 1.04999995
@@ -1476,6 +1484,10 @@ local icontypes = {
 		bitmap = "icons/air_worker_sea.png",
 		size = 1.25999999
 	},
+	legspcon = {
+		bitmap = "icons/air_worker_sea.png",
+		size = 1.25999999
+	},
 	corcut = {
 		bitmap = "icons/air_t1_hover_sea_cannon.png",
 		size = 1.25999999
@@ -1744,6 +1756,10 @@ local icontypes = {
 		bitmap = "icons/air_los_sea.png",
 		size = 1.39649999
 	},
+	legspradarsonarplane = {
+		bitmap = "icons/air_los_sea.png",
+		size = 1.39649999
+	},
 	corhurc = {
 		bitmap = "icons/air_t2_bomber.png",
 		size = 1.74299991
@@ -1976,6 +1992,10 @@ local icontypes = {
 		bitmap = "icons/factory_air_sea.png",
 		size = 1.52250004
 	},
+	legsplab = {
+		bitmap = "icons/factory_air_sea.png",
+		size = 1.52250004
+	},
 	corprinter = {
 		bitmap = "icons/corprinter.png",
 		size = 1.20000005
@@ -2036,6 +2056,10 @@ local icontypes = {
 		bitmap = "icons/air_bomber_sea.png",
 		size = 1.41750002
 	},
+	legspbomber = {
+		bitmap = "icons/air_bomber_sea.png",
+		size = 1.41750002
+	},
 	corscavdrag = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
@@ -2076,6 +2100,10 @@ local icontypes = {
 		bitmap = "icons/air_torp_sea.png",
 		size = 1.57499993
 	},
+	legsptorpgunship = {
+		bitmap = "icons/air_torp_sea.png",
+		size = 1.47499993
+	},
 	corsent = {
 		bitmap = "icons/vehicle_t2_aa_flak.png",
 		size = 1.36499989
@@ -2093,6 +2121,10 @@ local icontypes = {
 		size = 1.83749986
 	},
 	corsfig = {
+		bitmap = "icons/air_sea.png",
+		size = 0.86099994
+	},
+	legspfighter = {
 		bitmap = "icons/air_sea.png",
 		size = 0.86099994
 	},
