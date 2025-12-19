@@ -66,64 +66,69 @@ static-var  restore_delay, oldHead, whichPlatform, whichBarrel, isOpen;
 
 Open(){
 
-    turn platform1Lid to x-axis <0> speed <90>;
-    turn platform2Lid to x-axis <0> speed <90>;
-    wait-for-turn platform2Lid around x-axis;
+    if (isOpen == 0){
+        turn platform1Lid to x-axis <0> speed <90>;
+        turn platform2Lid to x-axis <0> speed <90>;
+        wait-for-turn platform2Lid around x-axis;
 
-    move platform1Barrel1 to y-axis [0] speed [16];
-    move platform2Barrel1 to y-axis [0] speed [16];
-    wait-for-move platform2Barrel1 along y-axis;
+        move platform1Barrel1 to y-axis [0] speed [16];
+        move platform2Barrel1 to y-axis [0] speed [16];
+        wait-for-move platform2Barrel1 along y-axis;
 
-    move platform1BarrelExtension1 to y-axis [0] speed [14];
-    move platform1BarrelExtension2 to y-axis [0] speed [14];
-    move platform1BarrelExtension3 to y-axis [0] speed [14];
-    move platform1BarrelExtension4 to y-axis [0] speed [14];
-    move platform1BarrelExtension5 to y-axis [0] speed [14];
-    move platform1BarrelExtension6 to y-axis [0] speed [14];
-    
-    move platform2BarrelExtension1 to y-axis [0] speed [14];
-    move platform2BarrelExtension2 to y-axis [0] speed [14];
-    move platform2BarrelExtension3 to y-axis [0] speed [14];
-    move platform2BarrelExtension4 to y-axis [0] speed [14];
-    move platform2BarrelExtension5 to y-axis [0] speed [14];
-    move platform2BarrelExtension6 to y-axis [0] speed [14];
+        move platform1BarrelExtension1 to y-axis [0] speed [14];
+        move platform1BarrelExtension2 to y-axis [0] speed [14];
+        move platform1BarrelExtension3 to y-axis [0] speed [14];
+        move platform1BarrelExtension4 to y-axis [0] speed [14];
+        move platform1BarrelExtension5 to y-axis [0] speed [14];
+        move platform1BarrelExtension6 to y-axis [0] speed [14];
+        
+        move platform2BarrelExtension1 to y-axis [0] speed [14];
+        move platform2BarrelExtension2 to y-axis [0] speed [14];
+        move platform2BarrelExtension3 to y-axis [0] speed [14];
+        move platform2BarrelExtension4 to y-axis [0] speed [14];
+        move platform2BarrelExtension5 to y-axis [0] speed [14];
+        move platform2BarrelExtension6 to y-axis [0] speed [14];
 
-    wait-for-move platform2BarrelExtension6 along y-axis;
+        wait-for-move platform2BarrelExtension6 along y-axis;
 
-    isOpen = 1;
+        isOpen = 1;
+    }
 
 }
 
 Close(){
 
-    isOpen = 0;
+    if (isOpen == 1){
+        isOpen = 0;
 
-    turn platform1Barrel1 to x-axis <0> speed <50>;
-    turn platform2Barrel1 to x-axis <0> speed <50>;
+        turn platform1Barrel1 to x-axis <0> speed <50>;
+        turn platform2Barrel1 to x-axis <0> speed <50>;
 
-    move platform2BarrelExtension1 to y-axis [-8] speed [7];
-    move platform2BarrelExtension2 to y-axis [-8] speed [7];
-    move platform2BarrelExtension3 to y-axis [-8] speed [7];
-    move platform2BarrelExtension4 to y-axis [-8] speed [7];
-    move platform2BarrelExtension5 to y-axis [-8] speed [7];
-    move platform2BarrelExtension6 to y-axis [-8] speed [7];
+        move platform2BarrelExtension1 to y-axis [-8] speed [7];
+        move platform2BarrelExtension2 to y-axis [-8] speed [7];
+        move platform2BarrelExtension3 to y-axis [-8] speed [7];
+        move platform2BarrelExtension4 to y-axis [-8] speed [7];
+        move platform2BarrelExtension5 to y-axis [-8] speed [7];
+        move platform2BarrelExtension6 to y-axis [-8] speed [7];
 
-    move platform1BarrelExtension1 to y-axis [-8] speed [7];
-    move platform1BarrelExtension2 to y-axis [-8] speed [7];
-    move platform1BarrelExtension3 to y-axis [-8] speed [7];
-    move platform1BarrelExtension4 to y-axis [-8] speed [7];
-    move platform1BarrelExtension5 to y-axis [-8] speed [7];
-    move platform1BarrelExtension6 to y-axis [-8] speed [7];
+        move platform1BarrelExtension1 to y-axis [-8] speed [7];
+        move platform1BarrelExtension2 to y-axis [-8] speed [7];
+        move platform1BarrelExtension3 to y-axis [-8] speed [7];
+        move platform1BarrelExtension4 to y-axis [-8] speed [7];
+        move platform1BarrelExtension5 to y-axis [-8] speed [7];
+        move platform1BarrelExtension6 to y-axis [-8] speed [7];
 
-    wait-for-move platform1BarrelExtension1 along y-axis;
+        wait-for-move platform1BarrelExtension1 along y-axis;
 
-    move platform1Barrel1 to y-axis [-10] speed [8];
-    move platform2Barrel1 to y-axis [-10] speed [8];
+        move platform1Barrel1 to y-axis [-10] speed [8];
+        move platform2Barrel1 to y-axis [-10] speed [8];
 
-    wait-for-move platform2Barrel1 along y-axis;
+        wait-for-move platform2Barrel1 along y-axis;
 
-    turn platform1Lid to x-axis <90> speed <90>;
-    turn platform2Lid to x-axis <-90> speed <90>;
+        turn platform1Lid to x-axis <90> speed <90>;
+        turn platform2Lid to x-axis <-90> speed <90>;
+    }
+
     
 }
 
@@ -178,8 +183,8 @@ SetStunned(State)
 {
     Stunned = State;
 	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
-        start-script ExecuteRestoreAfterDelay2();
+	    //start-script ExecuteRestoreAfterDelay();
+        //start-script ExecuteRestoreAfterDelay2();
 	}
 }
 RestoreAfterDelay()
