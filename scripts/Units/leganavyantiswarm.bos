@@ -29,7 +29,7 @@ static-var restore_delay, oldheading;
 #define RB_ROLL_ACCELERATION 8
 #define RB_RECOIL_ENERGY_2 500
 #define RB_WAKE_PIECE wake
-#define RB_WAKE_CEG 1024 + 1
+#define RB_WAKE_CEG 1024 + 2
 #define RB_IDLE_KICK 10000
 
 #include "../bar_ships_common.h"

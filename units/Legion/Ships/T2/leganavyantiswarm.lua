@@ -36,7 +36,7 @@ return {
 		turnrate = 450,
 		waterline = 0,
 		customparams = {
-			model_author = "ZephyrSkies",
+			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Ships/T2",
 			techlevel = 2,
