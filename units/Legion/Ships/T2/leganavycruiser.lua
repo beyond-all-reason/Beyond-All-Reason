@@ -54,7 +54,7 @@ return {
 				footprintz = 5,
 				height = 4,
 				metal = 500,
-				object = "Units/corcrus_dead.s3o",
+				object = "Units/leganavycruiser_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
