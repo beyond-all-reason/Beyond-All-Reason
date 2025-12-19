@@ -614,7 +614,7 @@ local function drawStats(uDefID, uID)
 		local moveError = uWep.targetMoveError
 
 		local damages = uWep.damages
-		local defaultArmorIndex = 0
+		local defaultArmorIndex = armorTypes.default
 		local defaultArmorDamage = damages[defaultArmorIndex]
 		local baseArmorIndex = defaultArmorDamage >= damages[armorTypes.vtol] and defaultArmorIndex or armorTypes.vtol
 		local baseArmorDamage = damages[baseArmorIndex]
