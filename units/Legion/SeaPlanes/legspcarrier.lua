@@ -6,10 +6,10 @@ return {
 		blocking = true,
 		bankingallowed = false,
 		maxdec = 0.09,
-		energycost = 9500,
-		metalcost = 560,
+		energycost = 5000,
+		metalcost = 250,
 		buildpic = "legspcarrier.DDS",
-		buildtime = 20000,
+		buildtime = 7500,
 		canfly = true,
 		canmove = true,
 		collide = true,
@@ -24,7 +24,7 @@ return {
 		hoverattack = true,
 		idleautoheal = 15,
 		idletime = 1200,
-		health = 16700,
+		health = 1500,
 		maxslope = 10,
 		speed = 93.0,
 		maxwaterdepth = 0,
@@ -36,13 +36,16 @@ return {
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 600,
 		turninplaceanglelimit = 360,
-		turnrate = 240,
+		turnrate = 540,
 		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/SeaPlanes",
+			inheritxpratemultiplier = 1,
+			childreninheritxp = "DRONE",
+			parentsinheritxp = "DRONE",
 			techlevel = 2,
 			flyingcarrier = true,
 		},
@@ -170,7 +173,7 @@ return {
 					carried_unit = "legdrone",     --Name of the unit spawned by this carrier unit.
 					engagementrange = 1100,
 					-- spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 10, 				--Spawnrate roughly in seconds.
+					spawnrate = 15, 				--Spawnrate roughly in seconds.
 					maxunits = 2,				--Will spawn units until this amount has been reached.
 					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
@@ -178,7 +181,7 @@ return {
 					decayrate = 4,
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
-					dockinghealrate = 16,
+					dockinghealrate = 24,
 					docktohealthreshold = 66,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
@@ -199,12 +202,12 @@ return {
 				def = "leg_drone_controller",
 				onlytargetcategory = "NOTSUB",
 			},
-			[2] = {
-				badtargetcategory = "SURFACE LIGHTAIRSCOUT",
-				def = "light_antiair_missile",
-				onlytargetcategory = "VTOL",
-				fastautoretargeting = true,
-			},
+			--[2] = {
+			--	badtargetcategory = "SURFACE LIGHTAIRSCOUT",
+			--	def = "light_antiair_missile",
+			--	onlytargetcategory = "VTOL",
+			--	fastautoretargeting = true,
+			--},
 		},
 	},
 }
