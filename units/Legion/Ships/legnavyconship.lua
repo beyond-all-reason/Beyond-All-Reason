@@ -57,7 +57,7 @@ return {
 			[18] = "legnanotcplat",
 			[19] = "legfhp",
 			[20] = "legamphlab",
-			[21] = "corplat",
+			[21] = "legsplab",
 			[22] = "legfrad",
 			[23] = "legfdrag",
 			[24] = "legtl",
