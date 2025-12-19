@@ -23,6 +23,7 @@ static-var whichGun;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
+#define SIGNAL_FIRE1 1
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -94,18 +95,23 @@ AimWeapon1(heading,pitch)
 	return(1);
 }
 
-FireWeapon1(){
+FireWeapon1()
+{
+	return(0);
+}
+
+Shot1(zero)
+{
+	signal SIGNAL_FIRE1;
+	set-signal-mask SIGNAL_FIRE1;
     if (whichGun == 0){
-        emit-sfx 1024+0 from torpFlare1;
-        sleep 100;
-        whichGun = 1;
+        emit-sfx 1024+0 from torpFlare2;
     }
     else if (whichGun == 1){
-        emit-sfx 1024+0 from torpFlare2;
-        sleep 100;
-        whichGun = 0;
+        emit-sfx 1024+0 from torpFlare1;
     }
-
+	whichGun = !whichGun;
+	return(0);
 }
 
 QueryWeapon1(pieceIndex)
