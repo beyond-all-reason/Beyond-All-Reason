@@ -1415,18 +1415,18 @@ FiringMode(){
 	while(TRUE){
 		if (isInWater){
 			move mainTurretPitchPivot to y-axis [-3] speed [3];
-			move  barrel1C to z-axis [10] speed [11.5];
-			move  barrel1A to z-axis [10] speed [11.5];
-			move  barrel1D to z-axis [10] speed [11.5];
-			move  barrel1B to z-axis [10] speed [11.5];
-			move  barrel2C to z-axis [10] speed [11.5];
-			move  barrel2A to z-axis [10] speed [11.5];
-			move  barrel2D to z-axis [10] speed [11.5];
-			move  barrel2B to z-axis [10] speed [11.5];
-			move  barrel3C to z-axis [10] speed [11.5];
-			move  barrel3A to z-axis [10] speed [11.5];
-			move  barrel3D to z-axis [10] speed [11.5];
-			move  barrel3B to z-axis [10] speed [11.5];
+			move  barrel1C to z-axis [8] speed [11.5];
+			move  barrel1A to z-axis [8] speed [11.5];
+			move  barrel1D to z-axis [8] speed [11.5];
+			move  barrel1B to z-axis [8] speed [11.5];
+			move  barrel2C to z-axis [8] speed [11.5];
+			move  barrel2A to z-axis [8] speed [11.5];
+			move  barrel2D to z-axis [8] speed [11.5];
+			move  barrel2B to z-axis [8] speed [11.5];
+			move  barrel3C to z-axis [8] speed [11.5];
+			move  barrel3A to z-axis [8] speed [11.5];
+			move  barrel3D to z-axis [8] speed [11.5];
+			move  barrel3B to z-axis [8] speed [11.5];
 			wait-for-move barrel3B along z-axis;
 			move  barrel1A to y-axis [-0.3] speed [0.3];
 			move  barrel1B to y-axis [-0.3] speed [0.3];

@@ -666,6 +666,13 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 5] = "leggatet3" -- Elysium - Advanced Shield Generator
 		end
 
+		-- Legion T2 Sea Constructors
+		if name == "leganavyconsub" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "corfgate" -- Atoll - Floating Plasma Deflector
+			uDef.buildoptions[numBuildoptions + 2] = "legnanotct2plat" -- Floating T2 Constructor Turret
+		end
+
 		-- Legion T3 Gantry
 		if name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions
@@ -1238,26 +1245,41 @@ function UnitDef_Post(name, uDef)
 	-- Naval Balance Adjustments, if anything breaks here blame ZephyrSkies
 	if modOptions.naval_balance_tweaks == true then
 		local buildOptionReplacements = {
+			-- t1 arm cons
 			armcs = { ["armfhlt"] = "armnavaldefturret" },
 			armch = { ["armfhlt"] = "armnavaldefturret" },
 			armbeaver = { ["armfhlt"] = "armnavaldefturret" },
 			armcsa = { ["armfhlt"] = "armnavaldefturret" },
+
+			-- t1 cor cons
 			corcs = { ["corfhlt"] = "cornavaldefturret" },
 			corch = { ["corfhlt"] = "cornavaldefturret" },
 			cormuskrat = { ["corfhlt"] = "cornavaldefturret" },
 			corcsa = { ["corfhlt"] = "cornavaldefturret" },
+
+			-- t1 leg cons
 			legnavyconship = { ["legfmg"]  = "legnavaldefturret" },
 			legch = { ["legfmg"]  = "legnavaldefturret" },
 			legotter = { ["legfmg"]  = "legnavaldefturret" },
+			legspcon = { ["legfmg"]  = "legnavaldefturret" },
+
+			-- t2 arm cons
 			armacsub = { ["armkraken"]  = "armanavaldefturret" },
 			armmls = {
 				["armfhlt"]  = "armnavaldefturret",
 				["armkraken"] = "armanavaldefturret",
 			},
+
+			-- t2 cor cons
 			coracsub = { ["corfdoom"]  = "coranavaldefturret" },
 			cormls = {
 				["corfhlt"]  = "cornavaldefturret",
 				["corfdoom"] = "coranavaldefturret",
+			},
+
+			-- t2 leg cons
+			leganavyengineer = {
+				["legfmg"]  = "legnavaldefturret",
 			},
 		}
 

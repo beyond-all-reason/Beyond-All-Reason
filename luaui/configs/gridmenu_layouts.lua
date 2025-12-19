@@ -148,8 +148,10 @@ local labGrids = {
 	},
 	legadvshipyard = {
 		"leganavyconsub", "leganavyengineer", "leganavycruiser", "leganavymissileship",              -- T2 con sub, naval engineer, cruiser, rocket ship
-		"corcarry", "leganavybattleship", "leganavyartyship", "leganavyflagship",            -- carrier, jammer, battleship, flagship
-		"corshark", "corssub", "leganavyaaship",                          -- sub killer, battlesub, AA
+		"leganavyantinukecarrier", "leganavyradjamship", "leganavybattleship", "leganavyflagship",            -- carrier, jammer, battleship, flagship
+		"leganavybattlesub", "leganavyheavysub", "leganavyaaship", "leganavyartyship",                         -- sub killer, battlesub, AA
+		
+		"leganavyantiswarm","","","",
 	},
 	-- amphibious labs
 	armamsub = {

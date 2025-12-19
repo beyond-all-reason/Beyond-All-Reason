@@ -25,16 +25,16 @@ bubbleItUp(){
 
 flapAnim(){
     while (TRUE){
-        turn flap1 to x-axis <0> speed <45>;
+        turn flap1 to z-axis <0> speed <45>;
         isOpen1 = 1;
         sleep 1000;
-        turn flap2 to x-axis <0> speed <45>;
+        turn flap2 to z-axis <0> speed <45>;
         isOpen2 = 1;
         sleep 2000;
-        turn flap1 to x-axis <100> speed <45>;
+        turn flap1 to z-axis <100> speed <45>;
         sleep 1000;
         isOpen1 = 0;
-        turn flap2 to x-axis <85> speed <45>;
+        turn flap2 to z-axis <85> speed <45>;
         sleep 1000;
         isOpen2 = 0;
         sleep 2000;
@@ -44,8 +44,8 @@ flapAnim(){
 
 Create()
 {
-    turn flap1 to x-axis <100> now;
-    turn flap2 to x-axis <85> now;
+    turn flap1 to z-axis <100> now;
+    turn flap2 to z-axis <85> now;
 
     isOpen1 = 0;
     isOpen2 = 0;
