@@ -150,7 +150,7 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-	emit-sfx 1024 + 0 from aaFlare;
+	emit-sfx 1024 + 1 from aaFlare;
 	spin aaSpin around z-axis speed <360>;
 	sleep 10;
 	stop-spin aaSpin around z-axis decelerate <2>;
