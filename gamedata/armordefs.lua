@@ -660,13 +660,17 @@ local armorDefs = {
 	subs = {
 		"armsub",
 		"corsub",
+		"legnavysub",
 		"legstingray",
         "armsubk",
 		"corshark",
+		"leganavybattlesub",
         "corssub",
 		"armserp",
+		"leganavyheavysub",
 		"armacsub",
         "coracsub",
+		"leganavyconsub",
 		"armrecl",
 		"correcl",
 		"legnavyrezsub",
@@ -674,8 +678,6 @@ local armorDefs = {
 		"cordesolator",
 		"armexcalibur",
 		"armseadragon",
-
-		"legnavysub",
 	},
 
 	raptor =
