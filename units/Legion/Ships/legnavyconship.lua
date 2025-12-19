@@ -53,7 +53,7 @@ return {
 			[14] = "leguwmstore",
 			[15] = "leguwestore",
 			[16] = "legsy",
-			[17] = "corasy",
+			[17] = "legadvshipyard",
 			[18] = "legnanotcplat",
 			[19] = "legfhp",
 			[20] = "legamphlab",

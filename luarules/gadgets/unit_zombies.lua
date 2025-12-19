@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		author  = "SethDGamre, code snippets/inspiration from Rafal",
 		date    = "March 2024",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer   = 2, -- after game_team_resources.lua
 		enabled = true
 	}
 end
