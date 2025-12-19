@@ -1539,6 +1539,69 @@ Create()
 	turn barrelRotation3 to z-axis <50> now;
 	turn cellRotation1 to z-axis <-15> now;
 
+	// CLOSE IT IMMEDIATELY
+		// set-signal-mask SIGNAL_AIM1;
+		move base to y-axis [-25] now;
+		move legJointPivotRR to z-axis [0] now;
+		move legJointPivotRL to z-axis [0] now;
+		move legJointPivotRR to x-axis [0] now;
+		move legJointPivotRL to x-axis [0] now;
+
+		//////// back to normal pose
+		turn footJointRL to x-axis <0> now;
+		turn footJointRL to y-axis <0> now;
+		turn footJointRL to z-axis <0> now;
+		turn footJointRR to x-axis <0> now;
+		turn footJointRR to y-axis <0> now;
+		turn footJointRR to z-axis <0> now;
+		turn footJointFL to x-axis <0> now;
+		turn footJointFL to y-axis <0> now;
+		turn footJointFL to z-axis <0> now;
+		turn footJointFR to x-axis <0> now;
+		turn footJointFR to y-axis <0> now;
+		turn footJointFR to z-axis <0> now;
+		turn legJointPivotFL to x-axis <0> now;
+		turn legJointPivotFL to z-axis <0> now;
+		turn legJointPivotFL to y-axis <0> now;
+		turn legJointPivotFR to x-axis <0> now;
+		turn legJointPivotFR to z-axis <0> now;
+		turn legJointPivotFR to y-axis <0> now;
+		turn legJointPivotRL to x-axis <0> now;
+		turn legJointPivotRL to z-axis <0> now;
+		turn legJointPivotRL to y-axis <0> now;
+		turn legJointPivotRR to x-axis <0> now;
+		turn legJointPivotRR to z-axis <0> now;
+		turn legJointPivotRR to y-axis <0> now;
+		turn upperJointFL to 	z-axis <0> now;
+		turn upperJointFR to 	z-axis <0> now;
+		turn upperJointRL to 	x-axis <0> now;
+		turn upperJointRL to 	z-axis <0> now;
+		turn upperJointRL to 	y-axis <0> now;
+		turn upperJointRR to 	x-axis <0> now;
+		turn upperJointRR to 	z-axis <0> now;
+		turn upperJointRR to 	y-axis <0> now;
+		/////////// back to normal pose endnow;
+
+		turn legJointPivotFL to z-axis <35> 	now;
+		turn legJointPivotFR to z-axis <-35> 	now;
+		turn legJointPivotRL to z-axis <35> 	now;
+		turn legJointPivotRR to z-axis <-35> 	now;
+
+		turn lowerLegFL to z-axis <0> now;
+		turn lowerLegFR to z-axis <0> now;
+		turn lowerLegRL to z-axis <0> now;
+		turn lowerLegRR to z-axis <0> now;
+
+		turn legJointPivotFL to x-axis <-90> 	now;
+		turn legJointPivotFR to x-axis <-90> 	now;
+		turn legJointPivotRL to x-axis <90> 	now;
+		turn legJointPivotRR to x-axis <90> 	now;
+		
+		move legJointPivotFL to x-axis [18] 	now;
+		move legJointPivotFR to x-axis [-18] 	now;
+		move legJointPivotRL to x-axis [18] 	now;
+		move legJointPivotRR to x-axis [-18] 	now;
+
 
 	restore_delay = 3000;	
 	SLEEP_UNTIL_UNITFINISHED;
@@ -1547,6 +1610,7 @@ Create()
 	start-script FiringMode();
 
 	if (isInWater){
+
 		call-script Close();
 		start-script WobbleUnit();
 		start-script Wake();
