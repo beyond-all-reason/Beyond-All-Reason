@@ -1368,6 +1368,10 @@ local icontypes = {
 		bitmap = "icons/factory_ship_t2.png",
 		size = 1.9425
 	},
+	legadvshipyard = {
+		bitmap = "icons/factory_ship_t2.png",
+		size = 1.9425
+	},
 	coratl = {
 		bitmap = "icons/defence_2_naval.png",
 		size = 1.46999991
