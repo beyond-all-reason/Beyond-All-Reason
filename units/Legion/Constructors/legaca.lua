@@ -39,7 +39,7 @@ return {
 			"legfus",
 			"legafus",
 			"legageo",
-			"coruwageo",
+			"leganavaladvgeo",
 			"legrampart",
 			"legmoho",
 			"cormexp",

@@ -1,0 +1,211 @@
+
+#include "../recoil_common_includes.h"
+#include "../factories_common.h"
+
+piece   
+    nano3,
+    nano2,
+    nano1,
+    towerArray,
+    radarDish,
+    pad,
+    greebles,
+    floats,
+    base,
+    arm3,
+    arm2,
+    arm1,
+    exhaust,
+    nanoFlare1a,
+    nanoFlare1b,
+    nanoFlare2a,
+    nanoFlare2b,
+    nanoFlare3a,
+    nanoFlare3b
+;
+
+static-var  spray;
+
+// Signal definitions
+#define SIGNAL_BUILD 2
+#define SIGNAL_TURNON 4
+
+
+#define WATER_ROCK_UNITSIZE 23
+#define WATER_ROCK_AMPLITUDE <1.5>
+#define WATER_ROCK_FREQ_Y 0
+#include "../floatmotion.h"
+
+
+#define BASEPIECE base
+#define HITSPEED <20.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 10
+#define MAXTILT 200
+
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+SmokeItUp()
+{	while (TRUE) {
+		emit-sfx 259 from exhaust;
+		sleep 45;
+		emit-sfx 259 from exhaust;
+		sleep 500;
+	}
+}
+
+MoveCranes()
+{
+	while(TRUE)
+	{
+		turn arm1 to z-axis <0> speed <30>;
+		sleep 300;
+		turn arm2 to z-axis <0> speed <30>;
+		sleep 300;
+		turn arm3 to z-axis <0> speed <30>;
+		sleep 300;
+		wait-for-turn arm1 around z-axis;
+		turn arm1 to z-axis <-60> speed <30>;
+		sleep 300;
+		turn arm2 to z-axis <-60> speed <30>;
+		sleep 300;
+		turn arm3 to z-axis <-60> speed <30>;
+		sleep 300;
+		wait-for-turn arm1 around z-axis;
+	}
+}
+
+Create()
+{
+    turn arm1 to z-axis <-85> now;
+    turn arm2 to z-axis <-85> now;
+    turn arm3 to z-axis <-85> now;
+    move base to y-axis [-15] now;
+	start-script Deactivate();
+	spray = nanoFlare1a;
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script FloatMotion();
+}
+
+QueryNanoPiece(pieceIndex)
+{
+
+	spray = (spray + 1) % 6;
+	pieceIndex = nanoFlare1a + spray;
+}
+
+Activate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	
+	move base to y-axis [0] speed [35.0];
+	wait-for-move base along y-axis;
+	
+	set ARMORED to 0;
+	set INBUILDSTANCE to 1;
+	
+	FACTORY_OPEN_BUILD;
+}
+
+Deactivate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	sleep 5000;
+	turn arm1 to z-axis <-85> speed <90>;
+    turn arm2 to z-axis <-85> speed <90>;
+    turn arm3 to z-axis <-85> speed <90>;
+
+	move base to y-axis [-50] speed [35.0];
+	wait-for-move base along y-axis;
+	
+	set ARMORED to 1;
+	set INBUILDSTANCE to 0;
+	
+	FACTORY_CLOSE_BUILD;
+}
+
+StartBuilding()
+{
+
+    signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+    start-script MoveCranes();
+	start-script SmokeItUp();
+
+}
+
+StopBuilding()
+{
+    signal SIGNAL_BUILD;
+	turn arm1 to z-axis <-85> speed <90>;
+    turn arm2 to z-axis <-85> speed <90>;
+    turn arm3 to z-axis <-85> speed <90>;
+}
+
+QueryBuildInfo(pieceIndex)
+{
+	pieceIndex = pad;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode beam1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano1 type BITMAPONLY | NOHEATCLOUD;
+		// explode beam2 type BITMAPONLY | NOHEATCLOUD;
+		// explode nano2 type BITMAPONLY | NOHEATCLOUD;
+		// explode beam3 type BITMAPONLY | NOHEATCLOUD;
+		// explode nano3 type BITMAPONLY | NOHEATCLOUD;
+		// explode beam4 type BITMAPONLY | NOHEATCLOUD;
+		// explode nano4 type BITMAPONLY | NOHEATCLOUD;
+		// explode pad type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode beam1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode beam2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano2 type FALL | NOHEATCLOUD;
+		// explode beam3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode beam4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode pad type FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode beam1 type SMOKE | FALL | NOHEATCLOUD;
+		// explode nano1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode beam2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		// explode beam3 type SMOKE | FALL | NOHEATCLOUD;
+		// explode nano3 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		// explode beam4 type SMOKE | FALL | NOHEATCLOUD;
+		// explode nano4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode pad type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode beam1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		// explode beam2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode beam3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode beam4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode nano4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode pad type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

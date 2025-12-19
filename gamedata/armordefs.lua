@@ -603,6 +603,13 @@ local armorDefs = {
 		"legatorpbomber",
 		"critter_gull",
 		"armfify",
+		"legspcarrier",
+		"legspcon",
+		"legspfighter",
+		"legspradarsonarplane",
+		"legspsurfacegunship",
+		"legsptorpgunship",
+		"legspbomber",
 	},
 	shields = {
 		-- Intentionally left blank. To be used in shield weapondefs only!
@@ -620,7 +627,6 @@ local armorDefs = {
 		"cormls",
 		"armdecade",
 		"corsjam",
-		"legcs",
 		"legvelite",
 		"leghastatus",
 		"leghastatusalt",
@@ -661,13 +667,17 @@ local armorDefs = {
 	subs = {
 		"armsub",
 		"corsub",
+		"legnavysub",
 		"legstingray",
         "armsubk",
 		"corshark",
+		"leganavybattlesub",
         "corssub",
 		"armserp",
+		"leganavyheavysub",
 		"armacsub",
         "coracsub",
+		"leganavyconsub",
 		"armrecl",
 		"correcl",
 		"legnavyrezsub",
@@ -675,8 +685,6 @@ local armorDefs = {
 		"cordesolator",
 		"armexcalibur",
 		"armseadragon",
-
-		"legnavysub",
 	},
 
 	raptor =
