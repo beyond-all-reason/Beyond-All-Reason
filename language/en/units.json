@@ -13,6 +13,14 @@
 		"scavCommanderNameTag": "Scav Commander",
 		"scavDecoyCommanderNameTag": "Scav Decoy",
 		"names": {
+			"legsplab": "Offshore Seaplane Platform",
+			"legspcon": "Construction Seaplane",
+			"legspsurfacegunship": "Enyo",
+			"legspcarrier": "Hecatoncheir",
+			"legspbomber": "Pyrphoros",
+			"legsptorpgunship": "Ladon",
+			"legspfighter": "Astrapios",
+			"legspradarsonarplane": "Okeanos",
 			"leganavyaaship": "Notus",
 			"leganavyantinukecarrier": "Hecate",
 			"leganavyartyship": "Corinth",
@@ -979,6 +987,13 @@
 			"xmasball2_6": "Xmas ball"
 		},
 		"descriptions": {
+			"legsplab": "Constructs Seaplanes",
+			"legspcon": "Tech 1 Constructor",
+			"legspsurfacegunship": "Riot Cannon Seaplane Gunship",
+			"legspcarrier": "Airborne Armed Drone Carrier",
+			"legspbomber": "Seaplane Bomber",
+			"legsptorpgunship": "Torpedo Seaplane Gunship",
+			"legspfighter": "Seaplane Fighter",
 			"leganavyaaship": "Advanced Anti-Air Gatling Flak Ship",
 			"leganavyantinukecarrier": "Anti-nuke Drone Carrier Support Ship",
 			"leganavyartyship": "Long Range Cluster Plasma Bombardment Vessel",
