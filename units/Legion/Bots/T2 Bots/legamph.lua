@@ -37,7 +37,7 @@ return {
 		turninplacespeedlimit = 1.221,
 		turnrate = 450,
 		--usepiececollisionvolumes = 1,
-		upright = false,
+		upright = true,
 		customparams = {
 			maxrange = 400,
 			model_author = "Johanthan Crimson, Tuerk",
