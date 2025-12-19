@@ -2,7 +2,7 @@
 
 piece  base, turret, barrel, flare, sleeve;
 
-static-var  restore_delay;
+static-var  restore_delay, Stunned;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -65,7 +65,7 @@ SetMaxReloadTime(reloadMS)
 	restore_delay = reloadMS * 2;
 }
 
-static-var  Stunned;
+
 
 SetStunned(State)
 {
