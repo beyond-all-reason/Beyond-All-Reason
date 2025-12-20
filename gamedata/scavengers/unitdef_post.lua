@@ -378,7 +378,8 @@ local function scavUnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 5] = "leggatet3_scav" -- Elysium - Advanced Shield Generator
 		end
 
-		if name == "leganavyconsub" then
+		-- Legion T2 Sea Constructors
+		if name == "leganavyconsub_scav" then
 				local numBuildoptions = #uDef.buildoptions
 				uDef.buildoptions[numBuildoptions + 1] = "corfgate_scav"
 				uDef.buildoptions[numBuildoptions + 2] = "legnanotct2plat_scav"
