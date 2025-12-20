@@ -335,21 +335,13 @@ function SB:BuildSpring()
             rulesParams[teamID][key] = value
         end,
         GetTeamList = function()
-            local teams = {}
+            local teamIds = {}
             local i = 1
-            for _, teamData in pairs(builtTeams) do
-                teams[i] = {
-                    id = teamData.id,
-                    name = teamData.playerName or ("Team " .. teamData.id),
-                    leader = teamData.leader or teamData.id,
-                    isDead = teamData.isDead or false,
-                    isAI = not teamData.isHuman,
-                    side = teamData.side or "arm",
-                    allyTeam = teamData.allyTeam or teamData.id,
-                }
+            for teamId, _ in pairs(builtTeams) do
+                teamIds[i] = teamId
                 i = i + 1
             end
-            return teams
+            return teamIds
         end,
         GetPlayerInfo = function(playerID, getPlayerOpts)
             for _, teamData in pairs(builtTeams) do

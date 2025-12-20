@@ -79,7 +79,6 @@
 ---@field excess number? excess dumped this frame
 
 ---@class TeamResourceData
----@field id number
 ---@field allyTeam number
 ---@field isDead boolean
 ---@field metal ResourceData
