@@ -62,7 +62,9 @@ static-var
     restore_delay, 
 	aimAdj, 
 	oldsteerheading,
-	shotcount
+	shotcount, 
+	isfiring, 
+	delayed
 ;
 
 // Signal definitions
@@ -73,7 +75,8 @@ static-var
     #define SIGNAL_AIM4 32
     #define SIGNAL_AIM5 64
     #define SIGNAL_AIM6 128
-#define SIGNAL_AIM7 256
+	#define SIGNAL_AIM7 256
+	#define SIGNAL_DELAY 512
 
 
 
@@ -100,6 +103,7 @@ Steering(heading, steery, currentSpeed)
 	while(1)
 	{
 		heading = get HEADING;
+		//get PRINT(isfiring,delayed);
 		aimAdj = (heading - oldsteerheading);
 		sleep 33;
 		oldsteerheading = heading;
@@ -135,7 +139,9 @@ Create()
 	restore_delay = 3000;
 	aimAdj = 0;	
 	shotcount = 0;
-
+	isfiring = 0;
+	delayed = 0;
+	
     turn rearRailgun1HeadingPivot to y-axis <-180> now;
     turn rearRailgun2HeadingPivot to y-axis <-180> now;
 
@@ -186,7 +192,9 @@ ExecuteRestoreAfterDelay()
 
 // heatray restores
 ExecuteRestoreAfterDelayHR1(){
-    if (Stunned) {
+    isfiring = 0;
+	delayed = 0;
+	if (Stunned) {
         return (1);
     }
     sleep 1;
@@ -309,6 +317,14 @@ SpinFiring() {
 	spin torus3 around x-axis speed <70> accelerate <200>;
 }
 
+DelayedFire(){
+	signal SIGNAL_DELAY;
+	set-signal-mask SIGNAL_DELAY;
+	delayed = 1;
+	sleep 2000;
+	isfiring = 2;
+}
+
 waveSplash()
 {
 	while( TRUE )
@@ -374,15 +390,19 @@ AimWeapon1(heading, pitch)
 	mainTurretHeadingVar = heading + 2*aimAdj;
 	//We can do this any time
 	//turn targetingWeaponPitchPivot to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <25.0>;
-	
+	if (isfiring == 0 AND delayed == 0)
+	{
+		start-script DelayedFire();
+	}
 	call-script CATT1_Aim(heading,pitch);
 	return (1);
 }
 
-// FireWeapon1()
-// {
-// 	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
-// }
+FireWeapon1()
+{
+	isfiring = 1;
+	return (0);
+}
 
 
 // right heatray
@@ -408,6 +428,10 @@ AimWeapon2(heading, pitch)
     //wait-for-turn heatrayRightPitchPivot around y-axis;
     //wait-for-turn targetingWeaponPitchPivot around x-axis;
 	start-script RestoreAfterDelayHR1();
+	if (isfiring == 0)
+	{
+		return (0);
+	}
 	return (1);
 }
 
@@ -438,6 +462,10 @@ AimWeapon3(heading, pitch)
     //wait-for-turn heatrayLeftPitchPivot around y-axis;
     //wait-for-turn targetingWeaponPitchPivot around x-axis;
 	start-script RestoreAfterDelayHR2();
+	if (isfiring == 0)
+	{
+		return (0);
+	}
 	return (1);
 }
 
