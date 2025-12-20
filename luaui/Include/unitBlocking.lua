@@ -7,10 +7,10 @@ local unitBlocking = {}
 ---@return table<number, table<string, boolean>> blockedUnits Table where keys are UnitDefIDs and values are tables of blocking reasons (reason -> true)
 ---@usage
 ---   -- Get all blocked units
----   local allBlocked = unitBlocking.getAllBlockedUnitDefs()
+---   local allBlocked = unitBlocking.getBlockedUnitDefs()
 ---   -- Get specific units' blocking status
----   local specificBlocked = unitBlocking.getAllBlockedUnitDefs({123, 456})
-function unitBlocking.getAllBlockedUnitDefs(unitDefIDs)
+---   local specificBlocked = unitBlocking.getBlockedUnitDefs({123, 456})
+function unitBlocking.getBlockedUnitDefs(unitDefIDs)
 	local myTeamID = Spring.GetMyTeamID()
 	if not myTeamID then return {} end
 
@@ -21,11 +21,11 @@ function unitBlocking.getAllBlockedUnitDefs(unitDefIDs)
 		-- Validate specific UnitDefIDs
 		for i, unitDefID in ipairs(unitDefIDs) do
 			if type(unitDefID) ~= "number" then
-				Spring.Log("unitBlocking", LOG.ERROR, "getAllBlockedUnitDefs: unitDefID at index " .. i .. " is not a number (got " .. type(unitDefID) .. ": " .. tostring(unitDefID) .. ")")
+				Spring.Log("unitBlocking", LOG.ERROR, "getBlockedUnitDefs: unitDefID at index " .. i .. " is not a number (got " .. type(unitDefID) .. ": " .. tostring(unitDefID) .. ")")
 				return {}
 			end
 			if not UnitDefs[unitDefID] then
-				Spring.Log("unitBlocking", LOG.ERROR, "getAllBlockedUnitDefs: unitDefID " .. unitDefID .. " does not exist in UnitDefs")
+				Spring.Log("unitBlocking", LOG.ERROR, "getBlockedUnitDefs: unitDefID " .. unitDefID .. " does not exist in UnitDefs")
 				return {}
 			end
 		end
@@ -41,8 +41,8 @@ function unitBlocking.getAllBlockedUnitDefs(unitDefIDs)
 		end
 	else
 		for key, value in pairs(teamRules) do
-			if key:find("^unitdef_blocked_") then
-				local unitDefIDStr = key:sub(16) -- Remove "unitdef_blocked_" prefix
+			local unitDefIDStr = key:match("unitdef_blocked_(%d+)")
+			if unitDefIDStr then
 				local unitDefID = tonumber(unitDefIDStr)
 				if unitDefID and UnitDefs[unitDefID] then
 					blockedUnits[unitDefID] = {}

@@ -13,26 +13,11 @@ local isBuilder = {} ---@type table<number, true>
 local isFactory = {} ---@type table<number, true>
 local unitIconType = {} ---@type table<number, number>
 local isMex = {} ---@type table<number, true>
-local isWind = {} ---@type table<number, true>
-local isWaterUnit = {} ---@type table<number, true>
-local isGeothermal = {} ---@type table<number, true>
 local unitMaxWeaponRange = {} ---@type table<number, number>
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 
 	unitGroup[unitDefID] = unitDef.customParams.unitgroup
-
-	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan' or unitDef.name == 'legatorpbomber'	-- or unitDef.name == 'armbeaver' or unitDef.name == 'cormuskrat'
-		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
-		isWaterUnit[unitDefID] = true
-	end
-	if unitDef.customParams.enabled_on_no_sea_maps then
-		isWaterUnit[unitDefID] = nil
-	end
-
-	if unitDef.needGeo then
-		isGeothermal[unitDefID] = true
-	end
 
 	if unitDef.maxWeaponRange > 16 then
 		unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
@@ -58,52 +43,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.extractsMetal > 0 then
 		isMex[unitDefID] = true
 	end
-
-	if unitDef.windGenerator > 0 then
-		isWind[unitDefID] = true
-	end
 end
 
----@param disable boolean
-local function restrictWindUnits(disable)
-	for unitDefID,_ in pairs(isWind) do
-		unitRestricted[unitDefID] = manualUnitRestricted[unitDefID] or disable
-	end
-end
-
----@param disable boolean
-local function restrictGeothermalUnits(disable)
-	for unitDefID,_ in pairs(isGeothermal) do
-		unitRestricted[unitDefID] = manualUnitRestricted[unitDefID] or disable
-	end
-end
-
----@param disable boolean
-local function restrictWaterUnits(disable)
-	for unitDefID,_ in pairs(isWaterUnit) do
-		unitRestricted[unitDefID] = manualUnitRestricted[unitDefID] or disable
-	end
-end
-
----Sets geothermal unit restriction based on the presence of geothermal
----features.
-local function checkGeothermalFeatures()
-	local hideGeoUnits = true
-	local geoThermalFeatures = {}
-	for defID, def in pairs(FeatureDefs) do
-		if def.geoThermal then
-			geoThermalFeatures[defID] = true
-		end
-	end
-	local features = Spring.GetAllFeatures()
-	for i = 1, #features do
-		if geoThermalFeatures[Spring.GetFeatureDefID(features[i])] then
-			hideGeoUnits = false
-			break
-		end
-	end
-	restrictGeothermalUnits(hideGeoUnits)
-end
 
 
 ------------------------------------
@@ -166,22 +107,11 @@ local units = {
 	isBuilder = isBuilder,
 	---Set of unit IDs that require metal.
 	isMex = isMex,
-	---Set of unit IDs that require wind.
-	isWind = isWind,
-	---Set of unit IDs that require water.
-	isWaterUnit = isWaterUnit,
-	---Set of unit IDs that require geothermal.
-	isGeothermal = isGeothermal,
 	minWaterUnitDepth = -11,
 	---An array with unitIDs sorted by their value specified in
 	---`unitOrderManualOverrideTable`. If no value is specified, the unit will be
 	---placed at the end of the array.
 	unitOrder = unitOrder,
-
-	checkGeothermalFeatures = checkGeothermalFeatures,
-	restrictGeothermalUnits = restrictGeothermalUnits,
-	restrictWindUnits = restrictWindUnits,
-	restrictWaterUnits = restrictWaterUnits,
 }
 
 return units

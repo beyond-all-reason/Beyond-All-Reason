@@ -301,7 +301,6 @@ local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
 local grid = VFS.Include("luaui/configs/gridmenu_config.lua")
 
 local showWaterUnits = false
-units.restrictWaterUnits(true)
 
 local unitBuildOptions = {}
 local unitMetal_extractor = {}
@@ -993,7 +992,6 @@ local function setActiveCommand(cmd, button, leftClick, rightClick)
 		or Spring.SetActiveCommand(cmd)
 
 	if not didChangeCmd then
-		Spring.Echo("<Grid menu> Unable to change active command", cmd)
 		return
 	end
 
@@ -1297,10 +1295,6 @@ function widget:Initialize()
 
 	doUpdateClock = os.clock()
 
-	units.checkGeothermalFeatures()
-	if windFunctions.isWindDisabled() then
-		units.restrictWindUnits(true)
-	end
 
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_key", gridmenuKeyHandler, nil, "pR")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_category", gridmenuCategoryHandler, nil, "p")
@@ -1463,37 +1457,10 @@ function widget:Initialize()
 
 	local blockedUnits = {}
 
-	WG['gridmenu'].addBlockReason = function(uDefID, reason)
-		blockedUnits[uDefID] = blockedUnits[uDefID] or {}
-		blockedUnits[uDefID][reason] = true
-		units.unitRestricted[uDefID] = true
-		redraw = true
-		updateGrid()
-	end
-
-	WG['gridmenu'].removeBlockReason = function(uDefID, reason)
-		if blockedUnits[uDefID] then
-			blockedUnits[uDefID][reason] = nil
-			if not next(blockedUnits[uDefID]) then
-				blockedUnits[uDefID] = nil
-				
-				if UnitDefs[uDefID].maxThisUnit ~= 0 then
-					units.unitRestricted[uDefID] = false
-				end
-
-				units.restrictWaterUnits(not showWaterUnits)
-				units.restrictWindUnits(windFunctions.isWindDisabled())
-				units.checkGeothermalFeatures()
-			end
-			redraw = true
-			updateGrid()
-		end
-	end
-
-	local blockedUnitsData = unitBlocking.getAllBlockedUnitDefs()
+	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
 	for unitDefID, reasons in pairs(blockedUnitsData) do
 		for reason in pairs(reasons) do
-			WG['gridmenu'].addBlockReason(unitDefID, reason)
+			units.unitRestricted[unitDefID] = true
 		end
 	end
 end
@@ -1733,7 +1700,6 @@ function widget:Update(dt)
 		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
 		if mapMinWater <= units.minWaterUnitDepth and not showWaterUnits then
 			showWaterUnits = true
-			units.restrictWaterUnits(false)
 		end
 
 		local prevOrdermenuLeft = ordermenuLeft
@@ -2956,7 +2922,6 @@ end
 
 function widget:GameStart()
 	isPregame = false
-	units.checkGeothermalFeatures()
 end
 
 function widget:PlayerChanged()
@@ -3014,11 +2979,11 @@ function widget:SetConfigData(data)
 end
 
 function widget:UnitBlocked(unitDefID, teamID, reasons)
-	-- Handle unit blocking due to tech requirements
-	Spring.Echo("GridMenu received UnitBlocked:", unitDefID, teamID, reasons)
-	for reason, _ in pairs(reasons) do
-		WG['gridmenu'].addBlockReason(unitDefID, reason)
-	end
+	-- Handle unit blocking due to tech/terrain requirements
+	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
+	units.unitRestricted[unitDefID] = next(blockedUnitsData[unitDefID] or {}) ~= nil
+	redraw = true
+	updateGrid()
 end
 
 function widget:Shutdown()

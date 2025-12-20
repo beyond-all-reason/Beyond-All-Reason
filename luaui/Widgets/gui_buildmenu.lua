@@ -103,6 +103,7 @@ local costOverrides = {}
 -- New state variables for the robust update system
 local selectionUpdateTime = 0  -- Time-based debouncer for selection changes
 local raceConditionUpdateCountdown = 0 -- Timer for race conditions
+local blockedUnitsUpdateCounter = 0 -- Counter for periodic blocked units update
 local forceRefreshNextFrame = false   -- The failsafe retry flag
 local refreshRetryCounter = 0       -- Failsafe counter to prevent infinite retries
 --[[ MODIFICATION END ]]
@@ -279,10 +280,6 @@ if success and mapinfo then
 end
 
 local showWaterUnits = false
--- make them a disabled unit (instead of removing it entirely)
-if not showWaterUnits then
-	units.restrictWaterUnits(true)
-end
 
 
 local function checkGuishader(force)
@@ -691,7 +688,6 @@ function widget:Update(dt)
 		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
 		if not voidWater and mapMinWater <= units.minWaterUnitDepth and not showWaterUnits then
 			showWaterUnits = true
-			units.restrictWaterUnits(false)
 		end
 
 		if stickToBottom then
@@ -1277,8 +1273,6 @@ end
 function widget:GameStart()
 	preGamestartPlayer = false
 
-	units.checkGeothermalFeatures()
-
 	unbindBuildUnits()
 end
 
@@ -1536,10 +1530,6 @@ function widget:Initialize()
 		widgetHandler:DisableWidgetRaw("Grid menu")
 	end
 
-	units.checkGeothermalFeatures()
-	if disableWind then
-		units.restrictWindUnits(true)
-	end
 
 	-- Get our starting unit
 	if preGamestartPlayer then
@@ -1677,46 +1667,27 @@ function widget:Initialize()
 
 	local blockedUnits = {}
 
-	WG['buildmenu'].addBlockReason = function(uDefID, reason)
-		blockedUnits[uDefID] = blockedUnits[uDefID] or {}
-		blockedUnits[uDefID][reason] = true
-		units.unitRestricted[uDefID] = true
-		clear()
-	end
+end
 
-	WG['buildmenu'].removeBlockReason = function(uDefID, reason)
-		if blockedUnits[uDefID] then
-			blockedUnits[uDefID][reason] = nil
-			if not next(blockedUnits[uDefID]) then
-				blockedUnits[uDefID] = nil
-
-				if UnitDefs[uDefID].maxThisUnit ~= 0 then
-					units.unitRestricted[uDefID] = false
-				end
-
-				units.restrictWaterUnits(not showWaterUnits)
-				units.restrictWindUnits(disableWind)
-				units.checkGeothermalFeatures()
+function widget:GameFrame(frameNum)
+	-- Periodic update of blocked units every 300 frames
+	blockedUnitsUpdateCounter = blockedUnitsUpdateCounter + 1
+	if blockedUnitsUpdateCounter >= 300 then
+		blockedUnitsUpdateCounter = 0
+		local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
+		for unitDefID, reasons in pairs(blockedUnitsData) do
+			for reason in pairs(reasons) do
+				units.unitRestricted[unitDefID] = true
 			end
-			clear()
 		end
 	end
-
-	local blockedUnitsData = unitBlocking.getAllBlockedUnitDefs()
-	for unitDefID, reasons in pairs(blockedUnitsData) do
-		for reason in pairs(reasons) do
-			WG['buildmenu'].addBlockReason(unitDefID, reason)
-		end
-	end
-
 end
 
 function widget:UnitBlocked(unitDefID, teamID, reasons)
-	-- Handle unit blocking due to tech requirements
-	Spring.Echo("BuildMenu received UnitBlocked:", unitDefID, teamID, reasons)
-	for reason, _ in pairs(reasons) do
-		WG['buildmenu'].addBlockReason(unitDefID, reason)
-	end
+	-- Handle unit blocking due to tech/terrain requirements
+	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
+	units.unitRestricted[unitDefID] = next(blockedUnitsData[unitDefID] or {}) ~= nil
+	clear()
 end
 
 function widget:Shutdown()
