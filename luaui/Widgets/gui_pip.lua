@@ -2461,7 +2461,16 @@ function widget:ViewResize()
 	font = WG['fonts'].getFont()
 
 	local oldVsx, oldVsy = vsx, vsy
-	dim.l, dim.r, dim.b, dim.t = dim.l/oldVsx, dim.r/oldVsx, dim.b/oldVsy, dim.t/oldVsy
+	-- Ensure dim fields are initialized before arithmetic operations
+	if dim.l and dim.r and dim.b and dim.t then
+		dim.l, dim.r, dim.b, dim.t = dim.l/oldVsx, dim.r/oldVsx, dim.b/oldVsy, dim.t/oldVsy
+	else
+		-- Initialize with default values if not set
+		dim.l = 0.7
+		dim.r = 0.7 + (minPanelSize * widgetScale * 1.4) / oldVsx
+		dim.b = 0.7
+		dim.t = 0.7 + (minPanelSize * widgetScale * 1.2) / oldVsy
+	end
 	vsx, vsy = Spring.GetViewGeometry()
 	dim.l, dim.r, dim.b, dim.t = math.floor(dim.l*vsx), math.floor(dim.r*vsx), math.floor(dim.b*vsy), math.floor(dim.t*vsy)
 
@@ -2493,7 +2502,8 @@ function widget:ViewResize()
 
 	-- Update minimize button position with screen margin
 	-- Only recalculate if not in min mode (preserve saved position when restoring from config)
-	if not inMinMode then
+	-- But always initialize if nil to prevent errors
+	if not inMinMode or minModeL == nil or minModeB == nil then
 		local screenMarginPx = math.floor(screenMargin * vsy)
 		local buttonSizeWithMargin = math.floor(usedButtonSize * maximizeSizemult)
 		minModeL = vsx - buttonSizeWithMargin - screenMarginPx
