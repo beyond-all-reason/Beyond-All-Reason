@@ -12,6 +12,20 @@ function gadget:GetInfo()
 	}
 end
 
+--[[
+todo:
+-- cleanup and verify diff with gui_gridmenu.lua and gui_buildmenu.lua
+-- verify the vfs.include buildmenu_config is cleaned of transplanted stuff
+-- rename the api to something more descriptive
+-- add console commands, including allowing them to be used by admins in multiplayer games
+-- try to move maxThisUnit = 0 logic to api too
+-- cleanup the for-loop in buildmenu and gridmenu that redundantly sets the unitDefID's key to true repeatedly for each reason
+-- ensure multiple reasons are added and removed correctly
+-- check performance
+-- make sure we are populating and updating the teamrulesparams performantly
+
+]]
+
 if gadgetHandler:IsSyncedCode() then
 
 	local DEFAULT_KEY = "defaultKey"
