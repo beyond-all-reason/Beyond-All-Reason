@@ -3,10 +3,10 @@ return {
 		maxacc = 0,
 		maxdec = 0,
 		buildangle = 32000,
-		energycost = 550,--700
-		metalcost = 70,--90
+		energycost = 550,
+		metalcost = 70,
 		buildpic = "LEGLHT.DDS",
-		buildtime = 2450,--2720
+		buildtime = 2200,
 		canrepeat = false,
 		cantbetransported = false,
 		collisionvolumeoffsets = "0 -7 0",

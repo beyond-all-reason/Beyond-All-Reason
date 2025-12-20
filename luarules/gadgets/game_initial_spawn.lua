@@ -13,6 +13,10 @@ function gadget:GetInfo()
 	}
 end
 
+if Spring.GetModOptions().experimental_ai_spawns then
+	return false
+end
+
 -- Note: (31/03/13) coop_II deals with the extra startpoints etc needed for teamsIDs with more than one playerID.
 
 -- 2023-08-19: FFA start points configuration is now offloaded to a dedicated `game_ffa_start_setup` gadget and has been
@@ -31,6 +35,11 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetAllyTeamStartBox = Spring.GetAllyTeamStartBox
 	local spCreateUnit = Spring.CreateUnit
 	local spGetGroundHeight = Spring.GetGroundHeight
+	local mathRandom = math.random
+	local mathFloor = math.floor
+	local mathBitOr = math.bit_or
+	local mathBitAnd = math.bit_and
+	local tableContains = table.contains
 
 	----------------------------------------------------------------
 	-- Config
@@ -52,13 +61,13 @@ if gadgetHandler:IsSyncedCode() then
 		local modoptions = Spring.GetModOptions()
 		local factionlimiter = tonumber(modoptions.factionlimiter) or 0
 		if factionlimiter > 0 then
-			local legcomDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
+			local legcomDefID = modoptions.experimentallegionfaction and UnitDefNames.legcom and UnitDefNames.legcom.id
 			local armcomDefID = UnitDefNames.armcom and UnitDefNames.armcom.id
 			local corcomDefID = UnitDefNames.corcom and UnitDefNames.corcom.id
 			local ARM_MASK = 2^0
 			local COR_MASK = 2^1
 			local LEG_MASK = 2^2
-			local FULL_BITMASK = math.bit_or(ARM_MASK, COR_MASK, LEG_MASK)
+			local FULL_BITMASK = mathBitOr(ARM_MASK, COR_MASK, LEG_MASK)
 
 			local allyTeams = Spring.GetAllyTeamList()
 			for i = 1, #allyTeams do
@@ -66,11 +75,11 @@ if gadgetHandler:IsSyncedCode() then
 				local allyStartUnits = {}
 				local unitsCount = 1
 
-				local allyTeamBitmask = math.bit_and(math.floor(factionlimiter/2^(allyTeam*3)), FULL_BITMASK)
+				local allyTeamBitmask = mathBitAnd(mathFloor(factionlimiter/2^(allyTeam*3)), FULL_BITMASK)
 				allyTeamBitmask = allyTeamBitmask == 0 and FULL_BITMASK or allyTeamBitmask
 
 				if legcomDefID then
-					if math.bit_and(allyTeamBitmask, LEG_MASK) ~= 0 then
+					if mathBitAnd(allyTeamBitmask, LEG_MASK) ~= 0 then
 						allyStartUnits[unitsCount] = legcomDefID
 						unitsCount = unitsCount + 1
 					end
@@ -78,11 +87,11 @@ if gadgetHandler:IsSyncedCode() then
 					allyTeamBitmask = FULL_BITMASK
 				end
 
-				if armcomDefID and math.bit_and(allyTeamBitmask, ARM_MASK) ~= 0 then
+				if armcomDefID and mathBitAnd(allyTeamBitmask, ARM_MASK) ~= 0 then
 					allyStartUnits[unitsCount] = armcomDefID
 					unitsCount = unitsCount + 1
 				end
-				if corcomDefID and math.bit_and(allyTeamBitmask, COR_MASK) ~= 0 then
+				if corcomDefID and mathBitAnd(allyTeamBitmask, COR_MASK) ~= 0 then
 					allyStartUnits[unitsCount] = corcomDefID
 					unitsCount = unitsCount + 1
 				end
@@ -105,7 +114,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			getValidRandom = function(allyTeamID)
-				local roll = math.random(#validStartUnits[allyTeamID])
+				local roll = mathRandom(#validStartUnits[allyTeamID])
 				return validStartUnits[allyTeamID][roll]
 			end
 
@@ -113,7 +122,7 @@ if gadgetHandler:IsSyncedCode() then
 				if not unitDefID then
 					return false
 				end
-				if table.contains(validStartUnits[allyTeamID], unitDefID) then
+				if tableContains(validStartUnits[allyTeamID], unitDefID) then
 					return true
 				end
 				if unitDefID == RANDOM_DUMMY then
@@ -130,13 +139,13 @@ if gadgetHandler:IsSyncedCode() then
 			if corcomDefID then
 				validStartUnits[#validStartUnits+1] = corcomDefID
 			end
-			local legcomDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
+			local legcomDefID = modoptions.experimentallegionfaction and UnitDefNames.legcom and UnitDefNames.legcom.id
 			if legcomDefID then
 				validStartUnits[#validStartUnits+1] = legcomDefID
 			end
 
 			getValidRandom = function(allyTeamID)
-				local roll = math.random(#validStartUnits)
+				local roll = mathRandom(#validStartUnits)
 				return validStartUnits[roll]
 			end
 
@@ -144,7 +153,7 @@ if gadgetHandler:IsSyncedCode() then
 				if not unitDefID then
 					return false
 				end
-				if table.contains(validStartUnits, unitDefID) then
+				if tableContains(validStartUnits, unitDefID) then
 					return true
 				end
 				if unitDefID == RANDOM_DUMMY then
@@ -179,7 +188,7 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Start Point Guesser
 	----------------------------------------------------------------
-	include("luarules/gadgets/lib_startpoint_guesser.lua") -- start point guessing routines
+	include("common/lib_startpoint_guesser.lua") -- start point guessing routines
 
 	----------------------------------------------------------------
 	-- FFA start points (provided by `game_ffa_start_setup`)
@@ -283,7 +292,7 @@ if gadgetHandler:IsSyncedCode() then
 			local playerList = Spring.GetPlayerList()
 			local all_players_joined = true
 			for _, PID in pairs(playerList) do
-				local _, _, spectator_flag = spGetPlayerInfo(PID)
+				local _, _, spectator_flag = spGetPlayerInfo(PID, false)
 				if spectator_flag == false then
 					if Spring.GetGameRulesParam("player_" .. PID .. "_joined") == nil then
 						all_players_joined = false
@@ -311,6 +320,32 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Startpoints
 	----------------------------------------------------------------
+	local _unitType = {}
+	--- @return boolean untraversable if the unit can not traverse the passed in x/z position
+	local function isFootingUntraversable(x, y, z, unitDefID)
+		-- type: 1|2|3 : air | ground mobile | building
+		local type = _unitType[unitDefID]
+		if not type then
+			local unitDef = UnitDefs[unitDefID]
+			type = unitDef.canFly and 1 or (unitDef.moveDef and unitDef.moveDef.id) and 2 or 3
+			_unitType[unitDefID] = type
+		end
+
+		if type == 1 then
+			return false
+		end
+
+		if type == 2 then
+			return not (Spring.TestMoveOrder(unitDefID, x, y, z) and
+			Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0) and
+			Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1) and
+			Spring.TestMoveOrder(unitDefID, x, y, z,-1, 0, 0) and
+			Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0,-1))
+		end
+
+		return Spring.TestBuildOrder(unitDefID, x, y, z, "s") == 0
+	end
+
 	function gadget:AllowStartPosition(playerID, teamID, readyState, x, y, z)
 		-- readyState:
 		-- 0: player did not place startpoint, is unready
@@ -363,6 +398,10 @@ if gadgetHandler:IsSyncedCode() then
 			if isOutsideStartbox then
 				return false
 			end
+		end
+
+		if isFootingUntraversable(x,y,z, tonumber(spGetTeamRulesParam(teamID, startUnitParamName))) then
+			return false
 		end
 
 		-- don't allow player to place if locked
@@ -433,11 +472,12 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local startUnitList = {}
+	local startUnitBlocking = {}
 	local function spawnStartUnit(teamID, x, z)
 		local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 		local luaAI = Spring.GetTeamLuaAI(teamID)
 
-		local _, _, _, isAI, sideName, allyTeadID = spGetTeamInfo(teamID)
+		local _, _, _, isAI, sideName, allyTeadID = spGetTeamInfo(teamID, false)
 		if (startUnit or RANDOM_DUMMY) == RANDOM_DUMMY then
 			startUnit = getValidRandom(allyTeadID)
 		end
@@ -468,6 +508,8 @@ if gadgetHandler:IsSyncedCode() then
 					local paralyzemult = 3 * 0.025 -- 3 seconds of paralyze
 					local paralyzedamage = (umaxhealth - uparalyze) + (umaxhealth * paralyzemult)
 					Spring.SetUnitHealth(unitID, { paralyze = paralyzedamage })
+					startUnitBlocking[unitID] = { Spring.GetUnitBlocking(unitID) }
+					Spring.SetUnitBlocking(unitID, false, false, false, false, false, false, false)
 				end
 			end
 		end
@@ -572,6 +614,10 @@ if gadgetHandler:IsSyncedCode() then
                     Spring.MoveCtrl.Disable(unitID)
                     Spring.SetUnitNoDraw(unitID, false)
                     Spring.SetUnitHealth(unitID, { paralyze = 0 })
+					local unitBlocking = startUnitBlocking[unitID]
+					if unitBlocking then
+						Spring.SetUnitBlocking(unitID, unpack(unitBlocking))
+					end
                 end
             end
 		end

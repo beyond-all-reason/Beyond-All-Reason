@@ -13,12 +13,19 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+
+-- Localized Spring API for performance
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-local useRenderToTextureBg = useRenderToTexture
 
 local displayFeatureCount = false
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
 local widgetScale = 1
 local glPushMatrix   = gl.PushMatrix
@@ -37,7 +44,7 @@ local advplayerlistPos = {}
 local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 
-local myTeamID = Spring.GetMyTeamID()
+local myTeamID = spGetMyTeamID()
 local totalUnits = 0
 local passedTime = 0
 
@@ -50,7 +57,7 @@ end
 
 
 local function drawBackground()
-	UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1, nil, nil, nil, nil, useRenderToTextureBg)
+	UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1, nil, nil, nil, nil)
 end
 
 local function drawContent()
@@ -64,8 +71,8 @@ local function drawContent()
 		local features = Spring.GetAllFeatures()
 		text = text..'    \255\170\170\170'..#features
 	end
-	font:Begin()
-	font:SetOutlineColor(0.15,0.15,0.15,useRenderToTexture and 1 or 0.8)
+	font:Begin(useRenderToTexture)
+	font:SetOutlineColor(0.15,0.15,0.15,0.8)
 	font:Print(text, left+textXPadding, bottom+(0.48*widgetHeight*widgetScale)-(textsize*0.35), textsize, 'no')
 	font:End()
 end
@@ -82,22 +89,22 @@ local function refreshUiDrawing()
 	end
 
 	if right-left >= 1 and top-bottom >= 1 then
-		if useRenderToTextureBg then
+		if useRenderToTexture then
 			if not uiBgTex then
-				uiBgTex = gl.CreateTexture(math.floor(right-left), math.floor(top-bottom), {
+				uiBgTex = gl.CreateTexture(mathFloor(right-left), mathFloor(top-bottom), {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
 				})
-				gl.RenderToTexture(uiBgTex, function()
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
-					gl.Translate(-left, -bottom, 0)
-					drawBackground()
-					gl.PopMatrix()
-				end)
+				gl.R2tHelper.RenderToTexture(uiBgTex,
+					function()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
+						gl.Translate(-left, -bottom, 0)
+						drawBackground()
+					end,
+					useRenderToTexture
+				)
 			end
 		else
 			if drawlist[1] ~= nil then
@@ -109,21 +116,21 @@ local function refreshUiDrawing()
 		end
 		if useRenderToTexture then
 			if not uiTex then
-				uiTex = gl.CreateTexture(math.floor(right-left), math.floor(top-bottom), {		--*(vsy<1400 and 2 or 1)
+				uiTex = gl.CreateTexture(mathFloor(right-left), mathFloor(top-bottom), {		--*(vsy<1400 and 2 or 1)
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
 				})
 			end
-			gl.RenderToTexture(uiTex, function()
-				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-				gl.PushMatrix()
-				gl.Translate(-1, -1, 0)
-				gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
-				gl.Translate(-left, -bottom, 0)
-				drawContent()
-				gl.PopMatrix()
-			end)
+			gl.R2tHelper.RenderToTexture(uiTex,
+				function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
+					gl.Translate(-left, -bottom, 0)
+					drawContent()
+				end,
+				useRenderToTexture
+			)
 		else
 			if drawlist[2] ~= nil then
 				glDeleteList(drawlist[2])
@@ -165,7 +172,7 @@ function widget:Initialize()
 end
 
 function widget:PlayerChanged()
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = spGetMyTeamID()
 end
 
 function widget:Shutdown()
@@ -203,7 +210,7 @@ function widget:Update(dt)
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 
 	font = WG['fonts'].getFont()
 
@@ -226,27 +233,21 @@ function widget:DrawScreen()
 		refreshUiDrawing()
 	end
 
-	if useRenderToTextureBg then
+	if useRenderToTexture then
 		if uiBgTex then
 			-- background element
-			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
-			gl.Texture(uiBgTex)
-			gl.TexRect(left, bottom, right, top, false, true)
-			gl.Texture(false)
+			gl.R2tHelper.BlendTexRect(uiBgTex, left, bottom, right, top, useRenderToTexture)
 		end
 	end
 	if useRenderToTexture then
 		if uiTex then
 			-- content
-			gl.Color(1,1,1,1)
-			gl.Texture(uiTex)
-			gl.TexRect(left, bottom, right, top, false, true)
-			gl.Texture(false)
+			gl.R2tHelper.BlendTexRect(uiTex, left, bottom, right, top, useRenderToTexture)
 		end
 	else
 		if drawlist[2] then
 			glPushMatrix()
-			if not useRenderToTextureBg and drawlist[1] then
+			if not useRenderToTexture and drawlist[1] then
 				glCallList(drawlist[1])
 			end
 			glCallList(drawlist[2])

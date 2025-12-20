@@ -1749,7 +1749,7 @@
 				"power": 1.0
 			},
 		
-			// CORE BOTLAB
+			// CORTEX BOTLAB
 	
 			"corak": {
 				"role": ["raider"],
@@ -1869,7 +1869,7 @@
 				"power": 1.0
 			},
 		
-			// T3 CORE EXPERIMENTAL - corgant
+			// T3 CORTEX EXPERIMENTAL - corgant
 
 			"corsok": {
 				"role": ["skirmish"],
@@ -1904,7 +1904,7 @@
 				"power": 1.0
 			},
 
-			// CORE T1 VEHICLE - corvp
+			// CORTEX T1 VEHICLE - corvp
 	
 			"corfav": {
 				"role": ["scout"],
@@ -1944,7 +1944,7 @@
 				"power": 1.0
 			},
 	
-			// 	CORE ADV VELICLE PLANT
+			// 	CORTEX ADV VELICLE PLANT
 
 			"corseal": {
 				"role": ["raider"],
@@ -2008,7 +2008,7 @@
 				"power": 1.0
 			},
 	
-			// CORE SHIPS - corsy
+			// CORTEX SHIPS - corsy
 	
 			"correcl": {
 				"role": ["support"],
@@ -2043,7 +2043,7 @@
 				"power": 1.0
 			},
 		
-			// CORE ADV SHIPYARD - corasy
+			// CORTEX ADV SHIPYARD - corasy
 	
 			"corshark": {
 				"role": ["anti_sub", "sub"],
@@ -2121,7 +2121,7 @@
 				"power": 1.0
 			},
 		
-			// CORE ADV AIRCRAFT aircraft - coraap
+			// CORTEX ADV AIRCRAFT aircraft - coraap
 	
 			"corawac": {
 				"role": ["scout", "air"],
@@ -2151,7 +2151,7 @@
 				"power": 1.0
 			},
 	
-			// CORE NAVAL AIRCRAFT - corplat
+			// CORTEX NAVAL AIRCRAFT - corplat
 
 			"corcut": {
 				"role": ["raider", "air"],

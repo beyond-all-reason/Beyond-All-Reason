@@ -13,10 +13,15 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spEcho = Spring.Echo
+
 local timeToLive = 330
 local lineWidth = 1.0
 
-local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
+local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 
 ----------------------------------------------------------------
 --speedups
@@ -87,7 +92,7 @@ layout (location = 1) in vec4 worldposradius;
 layout (location = 2) in vec4 colorlife;
 
 uniform float isMiniMap;
-uniform float cameraFlipped;
+uniform float mapRotation;
 
 out DataVS {
 	vec4 blendedcolor;
@@ -104,12 +109,19 @@ void main()
 
   float viewratio = 1.0;
   if (isMiniMap > 0.5) {
-    if (cameraFlipped > 0.5) {
-      worldPosInCamSpace  = mmDrawViewProj * vec4(mapSize.x - worldposradius.x, worldposradius.y, mapSize.y - worldposradius.z, 1.0);
-    } else {
-      worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.xyz, 1.0);
+    if (mapRotation == 0) {
+        worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.xyz, 1.0);
+        viewratio = mapSize.x / mapSize.y;
+    }else if (mapRotation == 1) {
+		worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.z * (mapSize.x/mapSize.y), worldposradius.y, mapSize.y - worldposradius.x * (mapSize.y/mapSize.x), 1.0);
+        viewratio = mapSize.y / mapSize.x;
+    }else if (mapRotation == 2) {
+        worldPosInCamSpace  = mmDrawViewProj * vec4(mapSize.x - worldposradius.x, worldposradius.y, mapSize.y - worldposradius.z, 1.0);
+        viewratio = mapSize.x / mapSize.y;
+    }else if (mapRotation == 3) {
+		worldPosInCamSpace  = mmDrawViewProj * vec4(mapSize.x - worldposradius.z * (mapSize.x / mapSize.y), worldposradius.y, worldposradius.x * (mapSize.y / mapSize.x), 1.0);
+        viewratio = mapSize.y / mapSize.x;
     }
-    viewratio = mapSize.x / mapSize.y;
   } else {
     worldPosInCamSpace  = cameraViewProj * vec4(worldposradius.xyz, 1.0);
     viewratio = viewGeometry.x / viewGeometry.y;
@@ -158,7 +170,7 @@ void main(void) { fragColor = vec4(blendedcolor.rgba); }
 ]]
 
 local function goodbye(reason)
-  Spring.Echo("Point Tracker GL4 widget exiting with reason: "..reason)
+  spEcho("Point Tracker GL4 widget exiting with reason: "..reason)
   widgetHandler:RemoveWidget()
 end
 
@@ -199,7 +211,7 @@ local function initGL4()
         },
 	uniformFloat = {
         isMiniMap = 0,
-        cameraFlipped = 0,
+        mapRotation = 0,
       },
     },
     "mapMarkShader GL4"
@@ -228,11 +240,11 @@ end
 --------------------------------------------------------------------------------
 function DrawMapMarksWorld(isMiniMap)
   if mapMarkInstanceVBO.usedElements > 0 then
-    --Spring.Echo("DrawMapMarksWorld",isMiniMap, Spring.GetGameFrame(), mapMarkInstanceVBO.usedElements)
+    --spEcho("DrawMapMarksWorld",isMiniMap, spGetGameFrame(), mapMarkInstanceVBO.usedElements)
 	  glLineWidth(lineWidth)
 		mapMarkShader:Activate()
 		mapMarkShader:SetUniform("isMiniMap",isMiniMap)
-		mapMarkShader:SetUniform("cameraFlipped", getMiniMapFlipped() and 1 or 0)
+		mapMarkShader:SetUniform("mapRotation", getCurrentMiniMapRotationOption() or 0)
 
 		drawInstanceVBO(mapMarkInstanceVBO)
 
@@ -279,7 +291,7 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz, label)
 	end
   instanceIDgen= instanceIDgen + 1
 	local r, g, b = GetPlayerColor(playerID)
-  local gf = Spring.GetGameFrame()
+  local gf = spGetGameFrame()
 
   pushElementInstance(
 			mapMarkInstanceVBO,

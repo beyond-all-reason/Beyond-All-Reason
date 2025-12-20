@@ -173,6 +173,7 @@ function widget:Initialize()
 
     initShader()
 
+	if not gridShader then return end
 	if gridVBO then return end
 
     local VBOData = {} -- the lua array that will be uploaded to the GPU

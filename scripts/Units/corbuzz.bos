@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, turret, spindle, flare1, flare2, flare3, flare4, flare5, flare6, 
 							barrel1, barrel2, barrel3, barrel4, barrel5, barrel6,
@@ -11,11 +9,13 @@ piece  base, turret, spindle, flare1, flare2, flare3, flare4, flare5, flare6,
 static-var  gun_1, restore_delay, shotcount, spin_speed, spin_delay, time_to_reload, fire_rotation, last_primary_heading, last_primary_pitch;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_FIRE			4
+#define SIGNAL_AIM1 256
+#define SIGNAL_SHOOT1 16
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
@@ -51,15 +51,15 @@ RestoreAfterDelay()
 	return (0);
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 
-	turn turret to y-axis heading speed <15.000000>;
+	turn turret to y-axis heading speed <15.0>;
 	if (fire_rotation == FALSE)
 	{
-		// if corbuzz has not fired recently, AimPrimary should turn the spindle
+		// if corbuzz has not fired recently, AimWeapon1 should turn the spindle
 		turn spindle to x-axis <60> * (gun_1 - 1) - pitch speed <1>*spin_speed;
 	}
 
@@ -78,7 +78,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	// make spindle turn faster as unit gains XP and decreases reload time
 	// GET WEAPON_RELOADSTATE is in frames, we need seconds (factor of 30)
@@ -94,70 +94,70 @@ FirePrimary()
 	if( gun_1 == 1 )
 	{
 		shotcount = shotcount + 1;
-		move barrel1 to z-axis [-6.000000] now;
+		move barrel1 to z-axis [-6.0] now;
 		emit-sfx 1024 + 0 from flare1;
 		call-script lua_UnitScriptLight(1, shotcount);
 		sleep 100;
 		turn spindle to x-axis <60> * (gun_1) - last_primary_pitch speed <1>*spin_speed;
-		move barrel1 to z-axis [0.000000] speed [6];
+		move barrel1 to z-axis [0.0] speed [6];
 	}
 	if( gun_1 == 2 )
 	{
 		shotcount = shotcount + 1;
-		move barrel2 to y-axis [-5.000000] now;
-		move barrel2 to z-axis [-3.000000] now;
+		move barrel2 to y-axis [-5.0] now;
+		move barrel2 to z-axis [-3.0] now;
 		emit-sfx 1024 + 0 from flare2;
 		call-script lua_UnitScriptLight(2, shotcount);
 		sleep 100;
 		turn spindle to x-axis <60> * (gun_1) - last_primary_pitch speed <1>*spin_speed;
-		move barrel2 to y-axis [0.000000] speed [5];
-		move barrel2 to z-axis [0.000000] speed [3];
+		move barrel2 to y-axis [0.0] speed [5];
+		move barrel2 to z-axis [0.0] speed [3];
 	}
 	if( gun_1 == 3 )
 	{
 		shotcount = shotcount + 1;
-		move barrel3 to y-axis [-5.000000] now;
-		move barrel3 to z-axis [3.000000] now;
+		move barrel3 to y-axis [-5.0] now;
+		move barrel3 to z-axis [3.0] now;
 		emit-sfx 1024 + 0 from flare3;
 		call-script lua_UnitScriptLight(3, shotcount);
 		sleep 100;
 		turn spindle to x-axis <60> * (gun_1) - last_primary_pitch speed <1>*spin_speed;
-		move barrel3 to y-axis [0.000000] speed [5];
-		move barrel3 to z-axis [0.000000] speed [3];
+		move barrel3 to y-axis [0.0] speed [5];
+		move barrel3 to z-axis [0.0] speed [3];
 	}
 	if( gun_1 == 4 )
 	{
 		shotcount = shotcount + 1;
-		move barrel4 to z-axis [6.000000] now;
+		move barrel4 to z-axis [6.0] now;
 		emit-sfx 1024 + 0 from flare4;
 		call-script lua_UnitScriptLight(4, shotcount);
 		sleep 100;
 		turn spindle to x-axis <60> * (gun_1) - last_primary_pitch speed <1>*spin_speed;
-		move barrel4 to z-axis [0.000000] speed [6];
+		move barrel4 to z-axis [0.0] speed [6];
 	}
 	if( gun_1 == 5 )
 	{
 		shotcount = shotcount + 1;
-		move barrel5 to y-axis [5.000000] now;
-		move barrel5 to z-axis [3.000000] now;
+		move barrel5 to y-axis [5.0] now;
+		move barrel5 to z-axis [3.0] now;
 		emit-sfx 1024 + 0 from flare5;
 		call-script lua_UnitScriptLight(5, shotcount);
 		sleep 100;
 		turn spindle to x-axis <60> * (gun_1) - last_primary_pitch speed <1>*spin_speed;
-		move barrel5 to y-axis [0.000000] speed [5];
-		move barrel5 to z-axis [0.000000] speed [3];
+		move barrel5 to y-axis [0.0] speed [5];
+		move barrel5 to z-axis [0.0] speed [3];
 	}
 	if( gun_1 == 6 )
 	{
 		shotcount = shotcount + 1;
-		move barrel6 to y-axis [5.000000] now;
-		move barrel6 to z-axis [-3.000000] now;
+		move barrel6 to y-axis [5.0] now;
+		move barrel6 to z-axis [-3.0] now;
 		emit-sfx 1024 + 0 from flare6;
 		call-script lua_UnitScriptLight(6, shotcount);
 		sleep 100;
 		turn spindle to x-axis <60> * (gun_1) - last_primary_pitch speed <1>*spin_speed;
-		move barrel6 to y-axis [0.000000] speed [5];
-		move barrel6 to z-axis [0.000000] speed [3];
+		move barrel6 to y-axis [0.0] speed [5];
+		move barrel6 to z-axis [0.0] speed [3];
 	}
 
 	++gun_1;
@@ -166,11 +166,11 @@ FirePrimary()
 		gun_1 = 1;
 	}
 
-	// FirePrimary controls animation right after firing
-	// but after 1 second, AimPrimary should regain control over spindle animation
+	// FireWeapon1 controls animation right after firing
+	// but after 1 second, AimWeapon1 should regain control over spindle animation
 	// and last_primary_heading and last_primary_pitch should be reset
-	signal SIG_FIRE;
-	set-signal-mask SIG_FIRE;
+	signal SIGNAL_SHOOT1;
+	set-signal-mask SIGNAL_SHOOT1;
 	sleep 1000;
 	fire_rotation = FALSE;
 	last_primary_heading = -1000000;
@@ -178,43 +178,40 @@ FirePrimary()
 
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 1 )
 	{
-		piecenum = flare1;
+		pieceIndex = flare1;
 	}
 	if( gun_1 == 2 )
 	{
-		piecenum = flare2;
+		pieceIndex = flare2;
 	}
 	if( gun_1 == 3 )
 	{
-		piecenum = flare3;
+		pieceIndex = flare3;
 	}
 	if( gun_1 == 4 )
 	{
-		piecenum = flare4;
+		pieceIndex = flare4;
 	}
 	if( gun_1 == 5 )
 	{
-		piecenum = flare5;
+		pieceIndex = flare5;
 	}
 	if( gun_1 == 6 )
 	{
-		piecenum = flare6;
+		pieceIndex = flare6;
 	}
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = spindle;
+	pieceIndex = spindle;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

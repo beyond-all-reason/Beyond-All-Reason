@@ -51,7 +51,6 @@ return {
 			[12] = "corenaa",
 			[13] = "corfdoom",
 			[14] = "coruwageo",
-			[15] = "corfasp",
 		},
 		customparams = {
 			model_author = "Beherith",

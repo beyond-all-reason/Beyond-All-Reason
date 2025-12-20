@@ -177,7 +177,7 @@
 		"mex2": ["armmoho", "cormoho", "armuwmme", "coruwmme", "legmoho"],
 		"converter": ["armmakr", "cormakr", "armmmkr", "cormmkr", "armfmkr", "corfmkr", "armuwmmm", "coruwmmm", "legeconv", "legadveconv"],
 		"def_low": ["armllt", "armclaw", "corllt", "cormaw", "leglht", "legdtr"],
-		"caretaker": ["armnanotc", "armnanotcplat", "armasp", "cornanotc", "cornanotcplat", "corasp", "legnanotc"],
+		"caretaker": ["armnanotc", "armnanotcplat", "cornanotc", "cornanotcplat", "legnanotc"],
 		"small": ["armrad", "corrad", "armfrad", "corfrad", "legrad", "legfrad"],
 		"wall": ["armdrag", "cordrag", "legdrag"]
 	}

@@ -45,6 +45,7 @@ return {
 			subfolder = "ArmAircraft/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
+			attacksafetydistance = 3000,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

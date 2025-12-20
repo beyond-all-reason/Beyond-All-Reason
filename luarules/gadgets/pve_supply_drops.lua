@@ -42,9 +42,23 @@ end
 
 
 local isLootbox = {}
+local lootboxTierByName = {} -- Map lootbox name to tier for fast lookup
+local unitDefNameCache = {} -- Cache unit names by unitDefID
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if string.find(unitDef.name, "lootbox", nil, true) then
+	local name = unitDef.name
+	unitDefNameCache[unitDefID] = name
+	if string.find(name, "lootbox", nil, true) then
 		isLootbox[unitDefID] = true
+		-- Determine tier from name
+		if string.find(name, "bronze", nil, true) then
+			lootboxTierByName[name] = 1
+		elseif string.find(name, "silver", nil, true) then
+			lootboxTierByName[name] = 2
+		elseif string.find(name, "gold", nil, true) then
+			lootboxTierByName[name] = 3
+		elseif string.find(name, "platinum", nil, true) then
+			lootboxTierByName[name] = 4
+		end
 	end
 end
 
@@ -75,7 +89,13 @@ local spGroundHeight        = Spring.GetGroundHeight
 local spGaiaTeam            = Spring.GetGaiaTeamID()
 local spGaiaAllyTeam        = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
 local spCreateUnit          = Spring.CreateUnit
+local spSetUnitNeutral      = Spring.SetUnitNeutral
+local spSetUnitAlwaysVisible = Spring.SetUnitAlwaysVisible
+local spSpawnCEG            = Spring.SpawnCEG
+local spPlaySoundFile       = Spring.PlaySoundFile
+local spGetUnitPosition     = Spring.GetUnitPosition
 
+-- Use hash tables instead of arrays for O(1) lookup
 local aliveLootboxes        = {}
 local aliveLootboxesCount   = 0
 
@@ -88,6 +108,7 @@ local aliveLootboxesCountT3   = 0
 local aliveLootboxesT4        = {}
 local aliveLootboxesCountT4   = 0
 local aliveLootboxCaptureDifficulty = {}
+local aliveLootboxTier = {} -- Cache tier for each lootbox
 
 local LootboxesToSpawn = 0
 
@@ -140,10 +161,10 @@ local function SpawnLootbox(posx, posy, posz)
 		spCreateUnit("lootdroppod_gold", posx, posy, posz, math_random(0,3), spGaiaTeam)
 	end
 	if spawnedUnit then
-		Spring.SetUnitNeutral(spawnedUnit, true)
-		Spring.SetUnitAlwaysVisible(spawnedUnit, true)
-		Spring.SpawnCEG("commander-spawn-alwaysvisible", posx, posy, posz, 0, 0, 0)
-		Spring.PlaySoundFile("commanderspawn-mono", 1.0, posx, posy, posz, 0, 0, 0, "sfx")
+		spSetUnitNeutral(spawnedUnit, true)
+		spSetUnitAlwaysVisible(spawnedUnit, true)
+		spSpawnCEG("commander-spawn-alwaysvisible", posx, posy, posz, 0, 0, 0)
+		spPlaySoundFile("commanderspawn-mono", 1.0, posx, posy, posz, 0, 0, 0, "sfx")
 		GG.ComSpawnDefoliate(posx, posy, posz)
 	end
 end
@@ -159,11 +180,8 @@ function gadget:GameFrame(n)
 		end
 
         if aliveLootboxesCount > 0 then
-			for i = 1,#aliveLootboxes do --for lootboxID,_ in pairs(aliveLootboxes) do
-				local lootboxID = aliveLootboxes[i]
-				if lootboxID then
-					nearbyCaptureLibrary.NearbyCapture(lootboxID, aliveLootboxCaptureDifficulty[lootboxID], 1024)
-				end
+			for lootboxID, _ in pairs(aliveLootboxes) do
+				nearbyCaptureLibrary.NearbyCapture(lootboxID, aliveLootboxCaptureDifficulty[lootboxID], 1024)
 			end
         end
         if LootboxesToSpawn >= 1 and lootboxSpawnEnabled then
@@ -190,104 +208,74 @@ end
 
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-    local UnitName = UnitDefs[unitDefID].name
+	local UnitName = unitDefNameCache[unitDefID]
 	if isLootbox[unitDefID] then
-		Spring.SetUnitNeutral(unitID, true)
-		Spring.SetUnitAlwaysVisible(unitID, true)
+		spSetUnitNeutral(unitID, true)
+		spSetUnitAlwaysVisible(unitID, true)
 		LootboxesToSpawn = LootboxesToSpawn-1
-		aliveLootboxes[#aliveLootboxes+1] = unitID
+		aliveLootboxes[unitID] = true
 		aliveLootboxesCount = aliveLootboxesCount + 1
 
-		for i = 1,#lootboxesListT1 do
-			if lootboxesListT1[i] == UnitName then
-				aliveLootboxesT1[#aliveLootboxesT1+1] = unitID
+		-- Use precomputed tier lookup
+		local tier = lootboxTierByName[UnitName]
+		if tier then
+			aliveLootboxTier[unitID] = tier
+			if tier == 1 then
+				aliveLootboxesT1[unitID] = true
 				aliveLootboxesCountT1 = aliveLootboxesCountT1 + 1
 				aliveLootboxCaptureDifficulty[unitID] = 2
-				--Spring.PlaySoundFile("lootboxdetectedt1", 1)
-				--Spring.Echo("A Tech 1 Lootbox has been detected!")
-				break
-			end
-		end
-		for i = 1,#lootboxesListT2 do
-			if lootboxesListT2[i] == UnitName then
-				aliveLootboxesT2[#aliveLootboxesT2+1] = unitID
+			elseif tier == 2 then
+				aliveLootboxesT2[unitID] = true
 				aliveLootboxesCountT2 = aliveLootboxesCountT2 + 1
 				aliveLootboxCaptureDifficulty[unitID] = 4
-				--Spring.PlaySoundFile("lootboxdetectedt2", 1)
-				--Spring.Echo("A Tech 2 Lootbox has been detected!")
-				break
-			end
-		end
-		for i = 1,#lootboxesListT3 do
-			if lootboxesListT3[i] == UnitName then
-				aliveLootboxesT3[#aliveLootboxesT3+1] = unitID
+			elseif tier == 3 then
+				aliveLootboxesT3[unitID] = true
 				aliveLootboxesCountT3 = aliveLootboxesCountT3 + 1
 				aliveLootboxCaptureDifficulty[unitID] = 8
-				--Spring.PlaySoundFile("lootboxdetectedt3", 1)
-				--Spring.Echo("A Tech 3 Lootbox has been detected!")
-				break
-			end
-		end
-		for i = 1,#lootboxesListT4 do
-			if lootboxesListT4[i] == UnitName then
-				aliveLootboxesT4[#aliveLootboxesT4+1] = unitID
+			elseif tier == 4 then
+				aliveLootboxesT4[unitID] = true
 				aliveLootboxesCountT4 = aliveLootboxesCountT4 + 1
 				aliveLootboxCaptureDifficulty[unitID] = 16
-				--PlaySoundFile("lootboxdetectedt4", 1)
-				--Spring.Echo("A Tech 4 Lootbox has been detected!")
-				break
 			end
 		end
 	end
 	if UnitName == "lootdroppod_gold" or UnitName == "lootdroppod_gold_scav" then
-		Spring.SetUnitNeutral(unitID, true)
-		Spring.SetUnitAlwaysVisible(unitID, true)
+		spSetUnitNeutral(unitID, true)
+		spSetUnitAlwaysVisible(unitID, true)
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 	end
 end
 
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	for i = 1,#aliveLootboxes do
-		if unitID == aliveLootboxes[i] then
-			LootboxesToSpawn = LootboxesToSpawn+0.5
-			table.remove(aliveLootboxes, i)
-			aliveLootboxesCount = aliveLootboxesCount - 1
-			aliveLootboxCaptureDifficulty[unitID] = nil
-			break
-		end
-	end
-	for i = 1,#aliveLootboxesT1 do
-		if unitID == aliveLootboxesT1[i] then
-			table.remove(aliveLootboxesT1, i)
+	if aliveLootboxes[unitID] then
+		LootboxesToSpawn = LootboxesToSpawn+0.5
+		aliveLootboxes[unitID] = nil
+		aliveLootboxesCount = aliveLootboxesCount - 1
+		aliveLootboxCaptureDifficulty[unitID] = nil
+		
+		-- Remove from tier-specific tables
+		local tier = aliveLootboxTier[unitID]
+		if tier == 1 then
+			aliveLootboxesT1[unitID] = nil
 			aliveLootboxesCountT1 = aliveLootboxesCountT1 - 1
-			break
-		end
-	end
-	for i = 1,#aliveLootboxesT2 do
-		if unitID == aliveLootboxesT2[i] then
-			table.remove(aliveLootboxesT2, i)
+		elseif tier == 2 then
+			aliveLootboxesT2[unitID] = nil
 			aliveLootboxesCountT2 = aliveLootboxesCountT2 - 1
-			break
-		end
-	end
-	for i = 1,#aliveLootboxesT3 do
-		if unitID == aliveLootboxesT3[i] then
-			table.remove(aliveLootboxesT3, i)
+		elseif tier == 3 then
+			aliveLootboxesT3[unitID] = nil
 			aliveLootboxesCountT3 = aliveLootboxesCountT3 - 1
-			break
-		end
-	end
-	for i = 1,#aliveLootboxesT4 do
-		if unitID == aliveLootboxesT4[i] then
-			table.remove(aliveLootboxesT4, i)
+		elseif tier == 4 then
+			aliveLootboxesT4[unitID] = nil
 			aliveLootboxesCountT4 = aliveLootboxesCountT4 - 1
-			break
 		end
+		aliveLootboxTier[unitID] = nil
 	end
-	if string.find(UnitDefs[unitDefID].name, "scavbeacon") then
+	
+	local unitName = unitDefNameCache[unitDefID]
+	if unitName and string.find(unitName, "scavbeacon", nil, true) then
 		if math.random() <= 0.33 then
-			local posx, posy, posz = Spring.GetUnitPosition(unitID)
+			local posx, posy, posz = spGetUnitPosition(unitID)
 			SpawnLootbox(posx, posy, posz)
 		else
 			LootboxesToSpawn = LootboxesToSpawn+0.33
@@ -296,10 +284,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
-	for i = 1,#aliveLootboxes do
-		if unitID == aliveLootboxes[i] then
-			Spring.SetUnitNeutral(unitID, true)
-			Spring.SetUnitAlwaysVisible(unitID, true)
-		end
+	if aliveLootboxes[unitID] then
+		spSetUnitNeutral(unitID, true)
+		spSetUnitAlwaysVisible(unitID, true)
 	end
 end

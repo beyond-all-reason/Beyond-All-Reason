@@ -12,6 +12,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 include("keysym.h.lua")
 
 local floor = math.floor
@@ -62,7 +66,7 @@ end
 
 function widget:Initialize()
 	if not Spring.IsCheatingEnabled() then
-		Spring.Echo("This widget requires cheats enabled")
+		spEcho("This widget requires cheats enabled")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -79,6 +83,6 @@ function widget:Shutdown()
 	end
 	if handle ~= nil then
 		io.close(handle)
-		Spring.Echo("Writen Mex Spots To: " .. "MexSpots_" .. Game.mapName)
+		spEcho("Writen Mex Spots To: " .. "MexSpots_" .. Game.mapName)
 	end
 end

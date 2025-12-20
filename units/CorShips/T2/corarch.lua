@@ -179,12 +179,12 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
+				customparams = {
+					overrange_distance = 1001,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					default = 125,
-				},
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 1001,
 				},
 			},
 			mobileflak = {

@@ -2,7 +2,6 @@ return {
 	armuwmme = {
 		activatewhenbuilt = true,
 		buildangle = 32768,
-		buildingmask = 0,
 		buildpic = "ARMUWMME.DDS",
 		buildtime = 14900,
 		canrepeat = false,

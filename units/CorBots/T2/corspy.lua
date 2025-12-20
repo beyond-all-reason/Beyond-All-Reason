@@ -29,7 +29,7 @@ return {
 		maxwaterdepth = 112,
 		metalcost = 165,
 		mincloakdistance = 75,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		movestate = 0,
 		objectname = "Units/CORSPY.s3o",
 		onoffable = false,
@@ -136,8 +136,8 @@ return {
 				weapontype = "Melee",
 				weaponvelocity = 100000,
 				customparams = {
-					nofire = true,
 					bogus = 1,
+					nofire = true,
 				},
 				damage = {
 					default = 0,

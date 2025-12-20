@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece base, column, top, turret1, turret2, barrel, flare1, flare2, flare3, aimpoint;
 
@@ -18,12 +16,14 @@ static-var  Stunned;
 // weapon_state = 6, popping down
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
-#define SIG_WEAPON_DEPLOY 16
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_TURNON 4
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 triplepenetration(){
   // extraction animation
@@ -62,10 +62,7 @@ Create()
 	gun_2 = base;
 	restore_delay = 5000;
   set ARMORED to 0; //makes sure no armor state is applied
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
   weapon_state = 4;
   start-script RetractWeapon();
 	start-script triplepenetration();
@@ -98,15 +95,15 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 10;
+	restore_delay = reloadMS * 10;
 }
 
 DeployWeapon()
 {
-  signal SIG_WEAPON_DEPLOY;
-  set-signal-mask SIG_WEAPON_DEPLOY;
+  signal SIGNAL_TURNON;
+  set-signal-mask SIGNAL_TURNON;
 
   if (column_going_up == TRUE)
   // interrupt column movement upwards to the half-stroke distance
@@ -127,8 +124,8 @@ DeployWeapon()
 
 RetractWeapon()
 {
-  signal SIG_WEAPON_DEPLOY;
-	set-signal-mask SIG_WEAPON_DEPLOY;
+  signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 
   if (weapon_state == 4 OR weapon_state == 5 OR weapon_state == 3)
   // if weapon is fully deployed, or barrel is moving
@@ -149,7 +146,7 @@ RetractWeapon()
   }
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 
   if ( ExtractionSpeed == 0 ) // only allow attacking when extracting
@@ -161,15 +158,15 @@ AimPrimary(heading, pitch)
 	{
     call-script DeployWeapon();
 	}
-  signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+  signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	turn turret1 to y-axis heading speed 40000;
 	wait-for-turn turret1 around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	++gun_1;
 	if( gun_1 >= 2 )
@@ -178,24 +175,24 @@ FirePrimary()
 	}
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimpoint;
+	pieceIndex = aimpoint;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
 	if( gun_1 == 0 )
 	{
-		piecenum = flare1;
+		pieceIndex = flare1;
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = flare2;
+		pieceIndex = flare2;
 	}
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
 
   if ( ExtractionSpeed == 0 ) // only allow attacking when extracting
@@ -207,8 +204,8 @@ AimSecondary(heading, pitch)
   {
     call-script DeployWeapon();
   }
-  signal SIG_AIM_2;
-  set-signal-mask SIG_AIM_2;
+  signal SIGNAL_AIM2;
+  set-signal-mask SIGNAL_AIM2;
   turn turret2 to y-axis heading speed 40000;
   wait-for-turn turret2 around y-axis;
   start-script RestoreAfterDelay();
@@ -220,29 +217,26 @@ Shot2(zero)
   emit-sfx 257 from barrel;
 }
 
-FireSecondary()
+FireWeapon2()
 {
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = aimpoint;
+	pieceIndex = aimpoint;
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
-  piecenum = flare3;
+  pieceIndex = flare3;
 }
 
-SetSpeed(Func_Var_1)
+SetSpeed(windOrMetal)
 {
-	ExtractionSpeed = Func_Var_1 * 500; //ExtractionSpeed ~= 2,000,000 on a +2 mex
+	ExtractionSpeed = windOrMetal * 500; //ExtractionSpeed ~= 2,000,000 on a +2 mex
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 16384,
 		buildpic = "legctl.DDS",
-		buildtime = 6600,
+		buildtime = 5900,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "38 46 40",

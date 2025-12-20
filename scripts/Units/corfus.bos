@@ -1,22 +1,4 @@
-//            * Header Info *
-// VersionSignature                     4
-// NumberOfScripts                     4
-// NumberOfPieces                      6
-// LengthOfScripts                     140
-// NumberOfStaticVars                  0
-// UKZero                              0
-// OffsetToScriptCodeIndexArray        52c
-// OffsetToScriptNameOffsetArray       53c
-// OffsetToPieceNameOffsetArray        54c
-// OffsetToScriptCode                  2c
-// OffsetToNameArray                   564
-
-// OffsetToFirstName                   564
-
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, emit;
 
@@ -38,14 +20,10 @@ SetStunned(State)
 	}
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Killed(severity, corpsetype)
 {

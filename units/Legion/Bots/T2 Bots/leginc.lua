@@ -114,7 +114,7 @@ return {
 				energypershot = 17,
 				explosiongenerator = "custom:heatray-large",
 				firestarter = 90,
-				firetolerance = 300,
+				firetolerance = 100,
 				impulsefactor = 0,
 				intensity = 5,
 				laserflaresize = 6,
@@ -134,7 +134,6 @@ return {
 				thickness = 4.5,
 				turret = true,
 				weapontype = "BeamLaser",
-				weaponvelocity = 1500,
 				damage = {
 					commanders = 16,
 					default = 33,
@@ -148,6 +147,7 @@ return {
 		},
 		weapons = {
 			[1] = {
+				burstcontrolwhenoutofarc = 2,
 				def = "heatraylarge",
 				onlytargetcategory = "SURFACE",
 				fastautoretargeting = true,

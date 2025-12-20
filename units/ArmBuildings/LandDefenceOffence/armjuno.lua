@@ -143,7 +143,8 @@ return {
 				customparams = {
 					nofire = true,
 					stockpilelimit = 20,
-					water_splash = 0, -- juno can explode on water
+					water_splash = 0,
+					junotype = "base",
 				},
 				damage = {
 					default = 1,

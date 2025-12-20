@@ -12,6 +12,14 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+
+-- Localized Spring API for performance
+local spGetUnitDefID = Spring.GetUnitDefID
+local spEcho = Spring.Echo
+
 ------- GL4 NOTES -----
 -- There is regular radar and advanced radar, assumed to have identical ranges!
 
@@ -77,7 +85,7 @@ local shaderSourceCache = {
 	}
 
 local function goodbye(reason)
-	Spring.Echo("radarTruthShader GL4 widget exiting with reason: " .. reason)
+	spEcho("radarTruthShader GL4 widget exiting with reason: " .. reason)
 	widgetHandler:RemoveWidget()
 end
 
@@ -109,7 +117,7 @@ function widget:Initialize()
 	end
 
 	if (smallradarrange > 2200) then
-		Spring.Echo("Sensor Ranges Radar Preview does not support increased radar ranges modoptions, removing.")
+		spEcho("Sensor Ranges Radar Preview does not support increased radar ranges modoptions, removing.")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -119,7 +127,7 @@ end
 
 function widget:SelectionChanged(sel)
 	selectedRadarUnitID = false
-	if #sel == 1 and Spring.GetUnitDefID(sel[1]) and cmdidtoradarsize[-Spring.GetUnitDefID(sel[1])] then
+	if #sel == 1 and spGetUnitDefID(sel[1]) and cmdidtoradarsize[-spGetUnitDefID(sel[1])] then
 		selectedRadarUnitID = sel[1]
 	end
 end
@@ -127,7 +135,7 @@ end
 function widget:DrawWorld()
 	local cmdID
 	if selectedRadarUnitID then
-		cmdID = Spring.GetUnitDefID(selectedRadarUnitID)
+		cmdID = spGetUnitDefID(selectedRadarUnitID)
 		if cmdID then
 			cmdID = -cmdID
 		else
@@ -164,9 +172,9 @@ function widget:DrawWorld()
 	gl.Texture(0, "$heightmap")
 	radarTruthShader:Activate()
 	radarTruthShader:SetUniform("radarcenter_range",
-		math.floor((mousepos[1] + 8) / (SHADERRESOLUTION * 2)) * (SHADERRESOLUTION * 2),
+		mathFloor((mousepos[1] + 8) / (SHADERRESOLUTION * 2)) * (SHADERRESOLUTION * 2),
 		mousepos[2] + radaremitheight[cmdID],
-		math.floor((mousepos[3] + 8) / (SHADERRESOLUTION * 2)) * (SHADERRESOLUTION * 2),
+		mathFloor((mousepos[3] + 8) / (SHADERRESOLUTION * 2)) * (SHADERRESOLUTION * 2),
 		whichradarsize == "small" and smallradarrange or largeradarrange
 	)
 	if whichradarsize == "small" then

@@ -135,11 +135,11 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 75,
-				},
-				customparams = {
-					noattackrangearc= 1,
 				},
 			},
 			juggernaut_fire = {

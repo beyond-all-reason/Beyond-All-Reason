@@ -141,11 +141,11 @@ return {
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 100,
-				damage = {
-					default = 0,
-				},
 				customparams = {
 					scavforcecommandfire = true,
+				},
+				damage = {
+					default = 0,
 				},
 			},
 			sdmssl = {

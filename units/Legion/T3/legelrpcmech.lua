@@ -36,7 +36,7 @@ return {
 		turninplacespeedlimit = 0.726,
 		turnrate = 265.64999,
 		customparams = {
-			model_author = "ZephyrSkies (Model), Phill-Art (Concept Art), Tharsis/TremorEnjoyer (Idea)",
+			model_author = "ZephyrSkies (Model), Phill-Art (Concept Art)",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/T3",
 			techlevel = 3,

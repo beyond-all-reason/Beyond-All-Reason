@@ -29,7 +29,7 @@ return {
 		health = 3500,
 		speed = 63.0,
 		minwaterdepth = 15,
-		movementclass = "BOAT8",
+		movementclass = "BOAT9",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMDRONECARRY.s3o",
 		radardistance = 1500,
@@ -168,6 +168,7 @@ return {
 					stockpilelimit = 16,
 					stockpilemetal = 25,
 					stockpileenergy = 600,
+					dronesusestockpile = true,
 				}
 			},
 			aamissile = {

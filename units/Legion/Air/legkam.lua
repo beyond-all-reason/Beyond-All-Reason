@@ -36,7 +36,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "",
 		selfdestructcountdown = 0,
-		sightdistance = 250,
+		sightdistance = 430,
 		speedtofront = 0.06183,
 		turnradius = 48,
 		turnrate = 800,
@@ -163,7 +163,7 @@ return {
 					spawns_expire = 10,
 				},
 				damage = {
-					commanders = 330,
+					commanders = 220,
 					default = 440,
 				},
 			},

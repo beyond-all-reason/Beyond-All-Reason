@@ -39,11 +39,12 @@ return {
 		wingangle = 0.06315,
 		wingdrag = 0.06,
 		customparams = {
+			crashable = 0,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
+			selectable_as_combat_unit = true,
 			subfolder = "CorAircraft",
 			unitgroup = "util",
-			crashable = 0,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

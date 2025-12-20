@@ -24,7 +24,6 @@ function widget:GetInfo()
 end
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-local useRenderToTextureBg = useRenderToTexture
 
 -------------------------------------------------------------------------------
 --- CACHED VALUES
@@ -157,11 +156,14 @@ local activeBuilder, activeBuilderID, builderIsFactory
 local buildmenuShows = false
 local hoveredRect = false
 
+local costOverrides = {}
+
 -------------------------------------------------------------------------------
 --- KEYBIND VALUES
 -------------------------------------------------------------------------------
 
 include("keysym.h.lua")
+local windFunctions = VFS.Include('common/wind_functions.lua')
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
@@ -1071,12 +1073,14 @@ local function setPregameBlueprint(uDefID)
 	end
 end
 
-local function queueUnit(uDefID, opts)
+local function queueUnit(uDefID, opts, quantity)
 	local sel = spGetSelectedUnitsSorted()
 	for unitDefID, unitIds in pairs(sel) do
 		if units.isFactory[unitDefID] then
 			for _, uid in ipairs(unitIds) do
-				spGiveOrderToUnit(uid, -uDefID, {}, opts)
+				for _ = 1,quantity do
+					spGiveOrderToUnit(uid, -uDefID, 0, opts)
+				end
 			end
 		end
 	end
@@ -1119,6 +1123,16 @@ local function gridmenuCategoryHandler(_, _, args)
 	return true
 end
 
+local function multiQueue(uDefID, quantity, cap, opts)
+	--if quantity is more than 100, more than 20 or more than 5 then use engine logic for better performance (fewer for loops inside queueUnit())
+	if quantity >= cap then
+		multiqueue_quantity = math.floor(quantity / cap)
+		queueUnit(uDefID, opts, multiqueue_quantity)
+		quantity = math.fmod(quantity,cap)
+	end
+	return quantity
+end
+
 local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	if builderIsFactory and useLabBuildMode and not labBuildModeActive then
 		return
@@ -1143,15 +1157,16 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
 	if builderIsFactory then
-		if WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID)  then
-			local quantity = 1
-			if shift then
-				quantity = modKeyMultiplier.keyPress.shift
-			end
+		local quantity = 1
+		if shift then
+			quantity = modKeyMultiplier.keyPress.shift
+		end
 
-			if ctrl then
-				quantity = quantity * modKeyMultiplier.keyPress.ctrl
-			end
+		if ctrl then
+			quantity = quantity * modKeyMultiplier.keyPress.ctrl
+		end
+
+		if WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt then
 			updateQuotaNumber(uDefID,quantity)
 			return true
 		else
@@ -1159,24 +1174,21 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 				return false
 			end
 
-			local opts
+			local removing = false
 
-			if ctrl then
-				opts = { "right" }
+			if quantity < 0 then
+				quantity = quantity * -1
+				removing = true
 				Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
 			else
-				opts = { "left" }
 				Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 			end
-
-			if alt then
-				table.insert(opts, "alt")
-			end
-			if shift then
-				table.insert(opts, "shift")
-			end
-
-			queueUnit(uDefID, opts)
+			--if quantity is more than 100, more than 20 or more than 5 then use engine logic for better performance (fewer for loops inside queueUnit())
+			quantity = multiQueue(uDefID,quantity,100,{ "ctrl","shift", alt and "alt", removing and "right" })
+			quantity = multiQueue(uDefID,quantity,20,{ "ctrl", alt and "alt", removing and "right" })
+			quantity = multiQueue(uDefID,quantity,5,{ "shift", alt and "alt", removing and "right" })
+			--queue the remaining units
+			multiQueue(uDefID,quantity,1,{ alt and "alt", removing and "right" })
 
 			return true
 		end
@@ -1285,6 +1297,9 @@ function widget:Initialize()
 	doUpdateClock = os.clock()
 
 	units.checkGeothermalFeatures()
+	if windFunctions.isWindDisabled() then
+		units.restrictWindUnits(true)
+	end
 
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_key", gridmenuKeyHandler, nil, "pR")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_category", gridmenuCategoryHandler, nil, "p")
@@ -1346,6 +1361,19 @@ function widget:Initialize()
 		clearCategory()
 	end
 
+	WG["gridmenu"].getCtrlKeyModifier = function()
+		return modKeyMultiplier.keyPress.ctrl
+	end
+	WG["gridmenu"].setCtrlKeyModifier = function(value)
+		modKeyMultiplier.keyPress.ctrl = value
+	end
+	WG["gridmenu"].getShiftKeyModifier = function()
+		return modKeyMultiplier.keyPress.shift
+	end
+	WG["gridmenu"].setShiftKeyModifier = function(value)
+		modKeyMultiplier.keyPress.shift = value
+	end
+
 	WG["buildmenu"].getGroups = function()
 		return groups, units.unitGroup
 	end
@@ -1396,6 +1424,69 @@ function widget:Initialize()
 	end
 	WG["buildmenu"].getIsShowing = function()
 		return buildmenuShows
+	end
+	---@class CostLine
+	---@field value number?
+	---@field color string?
+	---@field colorDisabled string?
+	---@field disabled boolean?
+
+	---@class CostData
+	---@field top CostLine?
+	---@field bottom CostLine?
+
+	---Override the cost display for a specific unit in the grid menu
+	---@param unitDefID number The unit definition ID to override costs for
+	---@param costData CostData Cost override configuration table with optional properties
+	WG["gridmenu"].setCostOverride = function(unitDefID, costData)
+		if unitDefID and costData then
+			costOverrides[unitDefID] = costData
+			redraw = true
+			refreshCommands()
+		end
+	end
+
+	---Clear cost overrides for a specific unit or all units
+	---@param unitDefID number? The unit definition ID to clear overrides for. If nil or not provided, clears all cost overrides.
+	WG["gridmenu"].clearCostOverrides = function(unitDefID)
+		if unitDefID then
+			costOverrides[unitDefID] = nil
+		else
+			for defID in pairs(costOverrides) do
+				costOverrides[defID] = nil
+			end
+		end
+		redraw = true
+		refreshCommands()
+	end
+
+	local blockedUnits = {}
+
+	WG['gridmenu'].addBlockReason = function(uDefID, reason)
+		blockedUnits[uDefID] = blockedUnits[uDefID] or {}
+		blockedUnits[uDefID][reason] = true
+		units.unitRestricted[uDefID] = true
+		redraw = true
+		updateGrid()
+	end
+
+	WG['gridmenu'].removeBlockReason = function(uDefID, reason)
+		if blockedUnits[uDefID] then
+			blockedUnits[uDefID][reason] = nil
+			if not next(blockedUnits[uDefID]) then
+				blockedUnits[uDefID] = nil
+				
+				if UnitDefs[uDefID].maxThisUnit ~= 0 then
+					units.unitRestricted[uDefID] = false
+				end
+
+				units.restrictWaterUnits(not showWaterUnits)
+				units.restrictWindUnits(windFunctions.isWindDisabled())
+				units.checkGeothermalFeatures()
+			end
+			redraw = true
+			updateGrid()
+		end
 	end
 end
 
@@ -1728,9 +1819,25 @@ local function drawBuildMenuBg()
 		(backgroundRect.x > 0 and (#builderRects > 1 and 0 or 1) or 0),
 		1,
 		((posY - height > 0 or backgroundRect.x <= 0) and 1 or 0),
-		0,
-		nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTextureBg
+		0
 	)
+
+	if selectedBuildersCount > 1 and activeBuilder then
+		height = backgroundRect:getHeight()
+		UiElement(
+			buildersRect.x,
+			buildersRect.y,
+			buildersRect.xEnd + bgpadding * 2,
+			buildersRect.yEnd + bgpadding + (iconMargin * 2),
+			(backgroundRect.x > 0 and 1 or 0),
+			1,
+			((posY - height > 0 or backgroundRect.x <= 0) and 1 or 0),
+			0,
+			1,
+			1,
+			0
+		)
+	end
 end
 
 local function drawButton(rect)
@@ -1923,24 +2030,83 @@ local function drawCell(rect)
 
 	-- price
 	if metalPrice then
-		local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
-		local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
-		local metalPriceText = metalColor .. metalPrice
-		local energyPriceText = energyColor .. energyPrice
-		font2:Print(
-			metalPriceText,
-			rect.xEnd - cellPadding - (cellInnerSize * 0.048),
-			rect.y + cellPadding + (priceFontSize * 1.35),
-			priceFontSize,
-			"ro"
-		)
-		font2:Print(
-			energyPriceText,
-			rect.xEnd - cellPadding - (cellInnerSize * 0.048),
-			rect.y + cellPadding + (priceFontSize * 0.35),
-			priceFontSize,
-			"ro"
-		)
+		local costOverride = costOverrides and costOverrides[uid]
+
+		if costOverride then
+			local topValue = costOverride.top and costOverride.top.value or metalPrice
+			local bottomValue = costOverride.bottom and costOverride.bottom.value or energyPrice
+
+			if costOverride.top and not costOverride.top.disabled then
+				local costColor = costOverride.top.color or "\255\100\255\100"
+				if disabled then
+					costColor = costOverride.top.colorDisabled or "\255\100\200\100"
+				end
+				local costPrice = formatPrice(math.floor(topValue))
+				local costPriceText = costColor .. costPrice
+				font2:Print(
+					costPriceText,
+					rect.xEnd - cellPadding - (cellInnerSize * 0.048),
+					rect.y + cellPadding + (priceFontSize * 1.35),
+					priceFontSize,
+					"ro"
+				)
+			elseif not costOverride.top then
+				local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
+				local metalPriceText = metalColor .. metalPrice
+				font2:Print(
+					metalPriceText,
+					rect.xEnd - cellPadding - (cellInnerSize * 0.048),
+					rect.y + cellPadding + (priceFontSize * 1.35),
+					priceFontSize,
+					"ro"
+				)
+			end
+
+			if costOverride.bottom and not costOverride.bottom.disabled then
+				local costColor = costOverride.bottom.color or "\255\255\255\000"
+				if disabled then
+					costColor = costOverride.bottom.colorDisabled or "\255\135\135\135"
+				end
+				local costPrice = formatPrice(math.floor(bottomValue))
+				local costPriceText = costColor .. costPrice
+				font2:Print(
+					costPriceText,
+					rect.xEnd - cellPadding - (cellInnerSize * 0.048),
+					rect.y + cellPadding + (priceFontSize * 0.35),
+					priceFontSize,
+					"ro"
+				)
+			elseif not costOverride.bottom then
+				local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
+				local energyPriceText = energyColor .. energyPrice
+				font2:Print(
+					energyPriceText,
+					rect.xEnd - cellPadding - (cellInnerSize * 0.048),
+					rect.y + cellPadding + (priceFontSize * 0.35),
+					priceFontSize,
+					"ro"
+				)
+			end
+		else
+			local metalColor = disabled and "\255\125\125\125" or "\255\245\245\245"
+			local energyColor = disabled and "\255\135\135\135" or "\255\255\255\000"
+			local metalPriceText = metalColor .. metalPrice
+			local energyPriceText = energyColor .. energyPrice
+			font2:Print(
+				metalPriceText,
+				rect.xEnd - cellPadding - (cellInnerSize * 0.048),
+				rect.y + cellPadding + (priceFontSize * 1.35),
+				priceFontSize,
+				"ro"
+			)
+			font2:Print(
+				energyPriceText,
+				rect.xEnd - cellPadding - (cellInnerSize * 0.048),
+				rect.y + cellPadding + (priceFontSize * 0.35),
+				priceFontSize,
+				"ro"
+			)
+		end
 	end
 
 	-- hotkey draw
@@ -2249,25 +2415,6 @@ local function drawBuilder(rect)
 end
 
 local function drawBuilders()
-	-- draw background
-	local height = backgroundRect:getHeight()
-	local posY = backgroundRect.y
-
-	UiElement(
-		buildersRect.x,
-		buildersRect.y,
-		buildersRect.xEnd + bgpadding * 2,
-		buildersRect.yEnd + bgpadding + (iconMargin * 2),
-		(backgroundRect.x > 0 and 1 or 0),
-		1,
-		((posY - height > 0 or backgroundRect.x <= 0) and 1 or 0),
-		0,
-		1,
-		1,
-		0,
-		1,
-		nil, nil, nil, nil, useRenderToTextureBg
-	)
 
 	-- draw builders
 	for i = 1, selectedBuildersCount do
@@ -2298,8 +2445,9 @@ local function drawGrid()
 end
 
 local function drawBuildMenu()
-	font2:Begin()
+	font2:Begin(useRenderToTexture)
 	font2:SetTextColor(1,1,1,1)
+	font2:SetOutlineColor(0,0,0,1)
 
 	local drawBackScreen = (currentCategory and not builderIsFactory)
 		or (builderIsFactory and useLabBuildMode and labBuildModeActive)
@@ -2446,7 +2594,7 @@ function widget:MousePress(x, y, button)
 					then
 						local alt, ctrl, meta, shift = Spring.GetModKeyState()
 						if button ~= 3 then
-							if builderIsFactory and WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) then
+							if builderIsFactory and WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt then
 								local amount = 1
 								if ctrl then
 									amount = amount * modKeyMultiplier.click.ctrl
@@ -2465,18 +2613,35 @@ function widget:MousePress(x, y, button)
 								pickBlueprint(unitDefID)
 							end
 						elseif builderIsFactory and spGetCmdDescIndex(-unitDefID) then
-							if not (WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID)) then
+							local function decreaseQuota()
+								local amount = modKeyMultiplier.click.right
+								if ctrl then amount = amount * modKeyMultiplier.click.ctrl end
+								if shift then amount = amount * modKeyMultiplier.click.shift end
+								updateQuotaNumber(unitDefID, amount)
+							end
+
+							local function decreaseQueue()
 								Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
 								setActiveCommand(spGetCmdDescIndex(-unitDefID), 3, false, true)
+							end
+
+							local isQuotaMode = WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt
+							local queueCount = tonumber(cellRect.opts.queuenr or 0)
+							local quotas = WG.Quotas and WG.Quotas.getQuotas()
+							local currentQuota = (quotas and quotas[activeBuilderID] and quotas[activeBuilderID][unitDefID]) or 0
+
+							if isQuotaMode then
+								if currentQuota > 0 then
+									decreaseQuota()
+								else
+									decreaseQueue()
+								end
 							else
-								local amount = modKeyMultiplier.click.right
-								if ctrl then
-									amount = amount * modKeyMultiplier.click.ctrl
+								if queueCount > 0 then
+									decreaseQueue()
+								else
+									decreaseQuota()
 								end
-								if shift then
-									amount = amount * modKeyMultiplier.click.shift
-								end
-								updateQuotaNumber(unitDefID, amount)
 							end
 						end
 
@@ -2563,27 +2728,25 @@ function widget:DrawScreen()
 		local buildersRectYend = math_ceil((buildersRect.yEnd + bgpadding + (iconMargin * 2)))
 		if redraw then
 			redraw = nil
-			if useRenderToTextureBg then
+			if useRenderToTexture then
 				if not buildmenuBgTex then
-					buildmenuBgTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(backgroundRect.yEnd-backgroundRect.y), {
+					buildmenuBgTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(buildersRectYend-backgroundRect.y), {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
 					})
 				end
 				if buildmenuBgTex then
-					gl.RenderToTexture(buildmenuBgTex, function()
-						gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-						gl.PushMatrix()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(backgroundRect.yEnd-backgroundRect.y), 0)
-						gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
-						drawBuildMenuBg()
-						gl.PopMatrix()
-					end)
+					gl.R2tHelper.RenderToTexture(buildmenuBgTex,
+						function()
+							gl.Translate(-1, -1, 0)
+							gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(buildersRectYend-backgroundRect.y), 0)
+							gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
+							drawBuildMenuBg()
+						end,
+						useRenderToTexture
+					)
 				end
-			end
-			if useRenderToTexture then
 				if not buildmenuTex then
 					buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x)*2, math_floor(buildersRectYend-backgroundRect.y)*2, {	--*(vsy<1400 and 2 or 2)
 						target = GL.TEXTURE_2D,
@@ -2592,43 +2755,34 @@ function widget:DrawScreen()
 					})
 				end
 				if buildmenuTex then
-					gl.RenderToTexture(buildmenuTex, function()
-						gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-						gl.PushMatrix()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(buildersRectYend-backgroundRect.y), 0)
-						gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
-						drawBuildMenu()
-						gl.PopMatrix()
-					end)
+					gl.R2tHelper.RenderToTexture(buildmenuTex,
+						function()
+							gl.Translate(-1, -1, 0)
+							gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(buildersRectYend-backgroundRect.y), 0)
+							gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
+							drawBuildMenu()
+						end,
+						useRenderToTexture
+					)
 				end
 			else
 				gl.DeleteList(dlistBuildmenu)
 				dlistBuildmenu = gl.CreateList(function()
-					if not useRenderToTextureBg then
-						drawBuildMenuBg()
-					end
+					drawBuildMenuBg()
 					drawBuildMenu()
 				end)
 			end
 		end
-		if useRenderToTextureBg then
+		if useRenderToTexture then
 			if buildmenuBgTex then
 				-- background element
-				gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
-				gl.Texture(buildmenuBgTex)
-				gl.TexRect(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, false, true)
-				gl.Texture(false)
-				gl.Color(1,1,1,1)
+				gl.R2tHelper.BlendTexRect(buildmenuBgTex, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, buildersRectYend, useRenderToTexture)
 			end
 		end
 		if useRenderToTexture then
 			if buildmenuTex then
 				-- content
-				gl.Color(1,1,1,1)
-				gl.Texture(buildmenuTex)
-				gl.TexRect(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, buildersRectYend, false, true)
-				gl.Texture(false)
+				gl.R2tHelper.BlendTexRect(buildmenuTex, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, buildersRectYend, useRenderToTexture)
 			end
 		else
 			if dlistBuildmenu then
@@ -2813,6 +2967,8 @@ function widget:GetConfigData()
 		stickToBottom = stickToBottom,
 		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
 		alwaysShow = alwaysShow,
+		ctrlKeyModifier = modKeyMultiplier.keyPress.ctrl,
+		shiftKeyModifier = modKeyMultiplier.keyPress.shift,
 	}
 end
 
@@ -2840,6 +2996,12 @@ function widget:SetConfigData(data)
 	end
 	if data.alwaysShow ~= nil then
 		alwaysShow = data.alwaysShow
+	end
+	if data.ctrlKeyModifier ~= nil then
+		modKeyMultiplier.keyPress.ctrl = data.ctrlKeyModifier
+	end
+	if data.shiftKeyModifier ~= nil then
+		modKeyMultiplier.keyPress.shift = data.shiftKeyModifier
 	end
 end
 

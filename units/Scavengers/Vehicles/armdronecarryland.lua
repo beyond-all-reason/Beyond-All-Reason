@@ -28,7 +28,7 @@ return {
 		health = 3500,
 		maxslope = 12,
 		speed = 30.0,
-		movementclass = "HTANK5",
+		movementclass = "HTANK7",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMDRONECARRYLAND.s3o",
 		radardistance = 1500,
@@ -167,6 +167,7 @@ return {
 					stockpilelimit = 16,
 					stockpilemetal = 30,
 					stockpileenergy = 750,
+					dronesusestockpile = true,
 				}
 			},
 		},

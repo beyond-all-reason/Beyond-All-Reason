@@ -25,7 +25,7 @@ return {
 		metalcost = 3100,
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORBHMTH.s3o",
-		script = "Units/CORBHMTH_CLEAN.cob",
+		script = "Units/corbhmth.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 650,

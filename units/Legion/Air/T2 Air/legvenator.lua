@@ -29,7 +29,7 @@ return {
 		script = "Units/legvenator.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericAir",
-		sightdistance = 250,
+		sightdistance = 430,
 		speedtofront = 0.06475,
 		stealth = true,
 		turnradius = 90,
@@ -43,6 +43,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
+			attacksafetydistance = 300,
 			fighter = 1,
 		},
 		sfxtypes = {

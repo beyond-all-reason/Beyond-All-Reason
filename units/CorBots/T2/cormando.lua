@@ -28,7 +28,7 @@ return {
 		maxdec = 1.725,
 		maxslope = 20,
 		metalcost = 1200,
-		movementclass = "ABOT2",
+		movementclass = "ABOT3",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORMANDO.s3o",
 		radardistance = 900,
@@ -55,13 +55,13 @@ return {
 		},
 		customparams = {
 			fall_damage_multiplier = 0,
-			water_fall_damage_multiplier = 0,
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			paratrooper = true,
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			unitgroup = "buildert2",
+			water_fall_damage_multiplier = 0,
 		},
 		sfxtypes = {
 			explosiongenerators = {

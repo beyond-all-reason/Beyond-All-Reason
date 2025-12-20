@@ -1,35 +1,31 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, top, bore, barrel, flare, aimpoint, firepoint;
 
-static-var  Static_Var_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
+static-var  isOpen, restore_delay;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
-lua_FlameShot(weapon) //Distortion and lups flame effect
-{
-  return 0;
-}
+#include "../opencloseanim.h"
 
-Go()
+
+Open()
 {
 	set ARMORED to 0;
-	move top to y-axis [8.000000] speed [19.989014];
+	move top to y-axis [8.0] speed [19.989014];
 	wait-for-move top along y-axis;
-	move bore to z-axis [0.000000] speed [19.989014];
-	move barrel to z-axis [0.000000] speed [19.989014];
-	Static_Var_1 = 1;
+	move bore to z-axis [0.0] speed [19.989014];
+	move barrel to z-axis [0.0] speed [19.989014];
+	isOpen = 1;
 }
 
-Stop()
+Close()
 {
 	set ARMORED to 1;
-	Static_Var_1 = 0;
-	turn top to y-axis <0.000000> speed <300.000000>;
+	isOpen = 0;
+	turn top to y-axis <0.0> speed <300.0>;
 	move bore to z-axis [-6] speed [19.989014];
 	move barrel to z-axis [-6.5] speed [19.989014];
 	wait-for-move barrel along z-axis;
@@ -38,37 +34,6 @@ Stop()
 	wait-for-move top along y-axis;
 }
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
@@ -77,30 +42,26 @@ Create()
 	hide flare;
 	hide flare;
 	restore_delay = 2000;
-	Static_Var_1 = 0;
-	call-script InitState();
-	start-script RequestState(0);
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	isOpen = 0;
+	start-script OpenCloseAnim(1);
+	SLEEP_UNTIL_UNITFINISHED;
 	move aimpoint to y-axis [8] now;
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
 
 Activate()
 {
-	start-script RequestState(0);
+	start-script OpenCloseAnim(1);
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 3;
+	restore_delay = reloadMS * 3;
 }
 
 static-var  Stunned;
@@ -110,7 +71,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	start-script RequestState(1);
+	start-script OpenCloseAnim(0);
 }
 SetStunned(State)
 {
@@ -125,17 +86,17 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	while( !Static_Var_1 )
+	start-script OpenCloseAnim(1);
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	while( !isOpen )
 	{
 		sleep 250;
 	}
-	turn top to y-axis heading speed <300.000000>;
-	turn firepoint to x-axis <0.000000> - pitch speed <110.000000>;
+	turn top to y-axis heading speed <300.0>;
+	turn firepoint to x-axis <0.0> - pitch speed <110.0>;
 	wait-for-turn top around y-axis;
 	wait-for-turn firepoint around x-axis;
 	start-script RestoreAfterDelay();
@@ -144,28 +105,24 @@ AimPrimary(heading, pitch)
 
 Shot1()
 {
-	call-script lua_FlameShot(1);
 	emit-sfx 1024 + 0 from firepoint;
 	return (TRUE);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = firepoint;
+	pieceIndex = firepoint;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
-AimFromPrimary(piecenum)
+
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimpoint;
+	pieceIndex = aimpoint;
 }
 
 Killed(severity, corpsetype)

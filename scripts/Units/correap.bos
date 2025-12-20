@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  flare1, flare2, turret, base, sleeves, barrel1, barrel2, smoke1, smoke2;
+piece  tracks, base, flare1, flare2, turret, base, sleeves, barrel1, barrel2, dirt1, dirt2, exhaust1, exhaust2, exhaust3, exhaust4;
 
 static-var  restore_delay, gun_1;
 
@@ -9,8 +9,8 @@ static-var  restore_delay, gun_1;
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
 
-#define VD_PIECE1 smoke1
-#define VD_PIECE2 smoke2
+#define VD_PIECE1 dirt1
+#define VD_PIECE2 dirt2
 #define VD_AMPHIBIOUS
 #define VD_DIRTCEG 1024 + 1
 #include "../vehicle_dirt_cegs.h"
@@ -31,13 +31,15 @@ static-var  restore_delay, gun_1;
 
 Create()
 {
-	hide smoke1;
-	hide smoke2;
+	hide dirt1;
+	hide dirt2;
 	hide flare1;
 	hide flare2;
-	hide flare1;
-	hide flare2;
-	gun_1 = flare1;
+	hide exhaust1;
+	hide exhaust2;
+	hide exhaust3;
+	hide exhaust4;
+	gun_1 = 0;
 	restore_delay = 3000;
 	call-script TB_Init();
 }
@@ -106,7 +108,7 @@ FireWeapon1()
 		wait-for-move barrel1 along z-axis;
 		move barrel1 to z-axis [0.0] speed [3.0];
 	}
-	if( gun_1 == 1 )
+	else
 	{
 		move barrel2 to z-axis [-2.400000] speed [500.0];
 		emit-sfx 1024 + 0 from flare2;
@@ -119,7 +121,7 @@ FireWeapon1()
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = gun_1;
+	pieceIndex =  flare1 + gun_1;
 }
 
 AimFromWeapon1(pieceIndex)

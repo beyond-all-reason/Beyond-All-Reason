@@ -11,6 +11,9 @@
 			"legadvsol": [80, 120],
 			"legfus": [30, 40],
 			"legafus": [200, 300]
+		},
+		"water": {
+			"legtide": [140, 250]
 		}
 	},
 

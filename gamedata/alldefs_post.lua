@@ -89,62 +89,94 @@ function UnitDef_Post(name, uDef)
 		uDef.minCollisionSpeed = 75 / Game.gameSpeed -- define the minimum velocity(speed) required for all units to suffer fall/collision damage.
 	end
 
-	-- inidivual unit hat processing
-	do
-		if modOptions.unithats then
-			if modOptions.unithats == "april" then
-				if name == "corak" then
-					uDef.objectname = "apf/CORAK.s3o"
-				elseif name == "corllt" then
-					uDef.objectname = "apf/CORllt.s3o"
-				elseif name == "corhllt" then
-					uDef.objectname = "apf/CORhllt.s3o"
-				elseif name == "corack" then
-					uDef.objectname = "apf/CORACK.s3o"
-				elseif name == "corck" then
-					uDef.objectname = "apf/CORCK.s3o"
-				elseif name == "armpw" then
-					uDef.objectname = "apf/ARMPW.s3o"
-				elseif name == "cordemon" then
-					uDef.objectname = "apf/cordemon.s3o"
-				elseif name == "correap" then
-					uDef.objectname = "apf/correap.s3o"
-				elseif name == "corstorm" then
-					uDef.objectname = "apf/corstorm.s3o"
-				elseif name == "armcv" then
-					uDef.objectname = "apf/armcv.s3o"
-				elseif name == "armrock" then
-					uDef.objectname = "apf/armrock.s3o"
-				elseif name == "armbull" then
-					uDef.objectname = "apf/armbull.s3o"
-				elseif name == "armllt" then
-					uDef.objectname = "apf/armllt.s3o"
-				elseif name == "armwin" then
-					uDef.objectname = "apf/armwin.s3o"
-				elseif name == "armham" then
-					uDef.objectname = "apf/armham.s3o"
-				elseif name == "corwin" then
-					uDef.objectname = "apf/corwin.s3o"
-				elseif name == "corthud" then
-					uDef.objectname = "apf/corthud.s3o"
-				end
-			end
+	-- Event Model Replacements: ----------------------------------------------------------------------------- 
+
+	-- April Fools
+	if Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"] then
+		-- Something to experiment with
+		--if VFS.FileExists("units/event/aprilfools/" .. uDef.objectname) then
+		--	uDef.objectname = "units/event/aprilfools/" .. uDef.objectname
+		--end
+
+		if name == "corak" then
+			uDef.objectname = "units/event/aprilfools/CORAK.s3o"
+		elseif name == "corllt" then
+			uDef.objectname = "units/event/aprilfools/CORllt.s3o"
+		elseif name == "corhllt" then
+			uDef.objectname = "units/event/aprilfools/CORhllt.s3o"
+		elseif name == "corack" then
+			uDef.objectname = "units/event/aprilfools/CORACK.s3o"
+		elseif name == "corck" then
+			uDef.objectname = "units/event/aprilfools/CORCK.s3o"
+		elseif name == "armpw" then
+			uDef.objectname = "units/event/aprilfools/ARMPW.s3o"
+		elseif name == "cordemon" then
+			uDef.objectname = "units/event/aprilfools/cordemon.s3o"
+		--elseif name == "correap" then -- Requires Model Update
+		--	uDef.objectname = "units/event/aprilfools/correap.s3o"
+		elseif name == "corstorm" then
+			uDef.objectname = "units/event/aprilfools/corstorm.s3o"
+		elseif name == "armcv" then
+			uDef.objectname = "units/event/aprilfools/armcv.s3o"
+		elseif name == "armrock" then
+			uDef.objectname = "units/event/aprilfools/armrock.s3o"
+		elseif name == "armbull" then
+			uDef.objectname = "units/event/aprilfools/armbull.s3o"
+		elseif name == "armllt" then
+			uDef.objectname = "units/event/aprilfools/armllt.s3o"
+		elseif name == "armwin" then
+			uDef.objectname = "units/event/aprilfools/armwin.s3o"
+		elseif name == "armham" then
+			uDef.objectname = "units/event/aprilfools/armham.s3o"
+		elseif name == "corwin" then
+			uDef.objectname = "units/event/aprilfools/corwin.s3o"
+		--elseif name == "corthud" then -- Requires Model Update
+		--	uDef.objectname = "units/event/aprilfools/corthud.s3o"
 		end
 	end
+
+	-- Halloween
+	if Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"] then
+		if name == "armcom" or name == "armdecom" then
+			uDef.objectname = "units/event/halloween/armcom.s3o"
+		elseif name == "corcom" or name == "cordecom" then
+			uDef.objectname = "units/event/halloween/corcom.s3o"
+		elseif name == "legcom" or name == "legdecom" then
+			uDef.objectname = "units/event/halloween/legcom.s3o"
+
+		elseif name == "correap" then
+			uDef.objectname = "units/event/halloween/correap.s3o"
+		elseif name == "leggob" then
+			uDef.objectname = "units/event/halloween/leggob.s3o"
+		elseif name == "armrectr" then
+			uDef.objectname = "units/event/halloween/armrectr.s3o"
+		elseif name == "armspy" then
+			uDef.objectname = "units/event/halloween/armspy.s3o"
+		end
+	end
+
+	-- Xmas
+	if Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] then
+		if name == "armcom" or name == "armdecom" then
+			uDef.objectname = "units/event/xmas/armcom.s3o"
+		elseif name == "corcom" or name == "cordecom" then
+			uDef.objectname = "units/event/xmas/corcom.s3o"
+		end
+	end
+
+	---------------------------------------------------------------------------------------------------------- 
+
+
 
 	if uDef.sounds then
 		if uDef.sounds.ok then
 			uDef.sounds.ok = nil
 		end
-	end
 
-	if uDef.sounds then
 		if uDef.sounds.select then
 			uDef.sounds.select = nil
 		end
-	end
 
-	if uDef.sounds then
 		if uDef.sounds.activate then
 			uDef.sounds.activate = nil
 		end
@@ -153,6 +185,10 @@ function UnitDef_Post(name, uDef)
 		end
 		if uDef.sounds.build then
 			uDef.sounds.build = nil
+		end
+
+		if uDef.sounds.underattack then
+			uDef.sounds.underattack = nil
 		end
 	end
 
@@ -199,7 +235,7 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
-		if modOptions.unit_restrictions_noair then
+		if modOptions.unit_restrictions_noair and not uDef.customparams.ignore_noair then
 			if string.find(uDef.customparams.subfolder, "Aircraft") then
 				uDef.maxthisunit = 0
 			elseif uDef.customparams.unitgroup and uDef.customparams.unitgroup == "aa" then
@@ -462,6 +498,22 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	-- Tech Blocking System -------------------------------------------------------------------------------------------------------------------------
+	if modOptions.tech_blocking and uDef.customparams then
+		local techLevel = uDef.customparams.techlevel or 1
+		if uDef.buildoptions and #uDef.buildoptions > 0 and (not uDef.speed or uDef.speed == 0) then
+			if techLevel == 1 then
+				uDef.customparams.tech_points_gain = uDef.customparams.tech_points_gain or 1
+			elseif techLevel == 2 then
+				uDef.customparams.tech_points_gain = uDef.customparams.tech_points_gain or 6
+				uDef.customparams.tech_build_blocked_until_level = uDef.customparams.tech_build_blocked_until_level or 2
+			elseif techLevel == 3 then
+				uDef.customparams.tech_points_gain = uDef.customparams.tech_points_gain or 9
+				uDef.customparams.tech_build_blocked_until_level = uDef.customparams.tech_build_blocked_until_level or 3
+			end
+		end
+	end
+
 	-- Extra Units ----------------------------------------------------------------------------------------------------------------------------------
 	if modOptions.experimentalextraunits then
 		-- Armada T1 Land Constructors
@@ -586,6 +638,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 1] = "coresuppt3" -- Adjudictator - Heavy Heatray Battleship
 			uDef.buildoptions[numBuildoptions + 2] = "coronager" -- Onager - Coastal Assault Submarine
 			uDef.buildoptions[numBuildoptions + 3] = "cordesolator" -- Desolator - Nuclear ICBM Submarine
+			uDef.buildoptions[numBuildoptions + 4] = "corprince" -- Black Prince - Shore bombardment battleship
 		end
 
 		-- Cortex T3 Gantry
@@ -611,6 +664,13 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 3] = "legnanotct2" -- T2 Constructor Turret
 			uDef.buildoptions[numBuildoptions + 4] = "legrwall" -- Dragon's Constitution - T2 (not Pop-up) Wall Turret
 			uDef.buildoptions[numBuildoptions + 5] = "leggatet3" -- Elysium - Advanced Shield Generator
+		end
+
+		-- Legion T2 Sea Constructors
+		if name == "leganavyconsub" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "corfgate" -- Atoll - Floating Plasma Deflector
+			uDef.buildoptions[numBuildoptions + 2] = "legnanotct2plat" -- Floating T2 Constructor Turret
 		end
 
 		-- Legion T3 Gantry
@@ -770,6 +830,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 1] = "legsrailt4" -- Epic Arquebus
 			uDef.buildoptions[numBuildoptions + 2] = "leggobt3" -- Epic Goblin
 			uDef.buildoptions[numBuildoptions + 3] = "legpede" -- Mukade - Heavy Multi Weapon Centipede
+			uDef.buildoptions[numBuildoptions + 4] = "legeheatraymech_old" -- Old Sol Invictus - Quad Heatray Mech
 		end
 	end
 
@@ -822,28 +883,6 @@ function UnitDef_Post(name, uDef)
 			uDef.maxacc = uDef.speed * 0.00166
 			uDef.maxdec = uDef.speed * 0.00166
 		elseif uDef.canfly then
-			if modOptions.air_rework == true then
-				uDef.speed = uDef.speed * 0.65
-				uDef.health = uDef.health * 1.5
-
-				uDef.maxacc = 1
-				uDef.maxdec = 1
-				uDef.usesmoothmesh = true
-
-				-- flightmodel
-				uDef.maxaileron = 0.025
-				uDef.maxbank = 0.65
-				uDef.maxelevator = 0.025
-				uDef.maxpitch = 0.75
-				uDef.maxrudder = 0.18
-				uDef.wingangle = 0.06593
-				uDef.wingdrag = 0.02
-				uDef.turnradius = 64
-				uDef.turnrate = 50
-				uDef.speedtofront = 0.06
-				uDef.cruisealtitude = 220
-				--uDef.attackrunlength = 32
-			else
 				uDef.maxacc = 1
 				uDef.maxdec = 0.25
 				uDef.usesmoothmesh = true
@@ -859,9 +898,7 @@ function UnitDef_Post(name, uDef)
 				uDef.turnradius = 64
 				uDef.turnrate = 1600
 				uDef.speedtofront = 0.01
-				uDef.cruisealtitude = 220
 				--uDef.attackrunlength = 32
-			end
 		end
 	end
 
@@ -932,14 +969,14 @@ function UnitDef_Post(name, uDef)
 		HOVER2 = true,
 		HOVER3 = true,
 		HHOVER4 = true,
-		HOVER5 = true
+		AHOVER2 = true
 	}
 
 	local shipList = {
 		BOAT3 = true,
 		BOAT4 = true,
 		BOAT5 = true,
-		BOAT8 = true,
+		BOAT9 = true,
 		EPICSHIP = true
 	}
 
@@ -953,7 +990,7 @@ function UnitDef_Post(name, uDef)
 		COMMANDERBOT = true,
 		SCAVCOMMANDERBOT = true,
 		ATANK3 = true,
-		ABOT2 = true,
+		ABOT3 = true,
 		HABOT5 = true,
 		ABOTBOMB2 = true,
 		EPICBOT = true,
@@ -1186,8 +1223,7 @@ function UnitDef_Post(name, uDef)
 		--end
 
 	end
-
-
+	
 	--Air rework
 	if modOptions.air_rework == true then
 		local airReworkUnits = VFS.Include("unitbasedefs/air_rework_defs.lua")
@@ -1200,9 +1236,72 @@ function UnitDef_Post(name, uDef)
 		uDef = skyshiftUnits.skyshiftUnitTweaks(name, uDef)
 	end
 
+	-- Proposed Unit Reworks
 	if modOptions.proposed_unit_reworks == true then
 		local proposed_unit_reworks = VFS.Include("unitbasedefs/proposed_unit_reworks_defs.lua")
 		uDef = proposed_unit_reworks.proposed_unit_reworksTweaks(name, uDef)
+	end
+
+	-- Naval Balance Adjustments, if anything breaks here blame ZephyrSkies
+	if modOptions.naval_balance_tweaks == true then
+		local buildOptionReplacements = {
+			-- t1 arm cons
+			armcs = { ["armfhlt"] = "armnavaldefturret" },
+			armch = { ["armfhlt"] = "armnavaldefturret" },
+			armbeaver = { ["armfhlt"] = "armnavaldefturret" },
+			armcsa = { ["armfhlt"] = "armnavaldefturret" },
+
+			-- t1 cor cons
+			corcs = { ["corfhlt"] = "cornavaldefturret" },
+			corch = { ["corfhlt"] = "cornavaldefturret" },
+			cormuskrat = { ["corfhlt"] = "cornavaldefturret" },
+			corcsa = { ["corfhlt"] = "cornavaldefturret" },
+
+			-- t1 leg cons
+			legnavyconship = { ["legfmg"]  = "legnavaldefturret" },
+			legch = { ["legfmg"]  = "legnavaldefturret" },
+			legotter = { ["legfmg"]  = "legnavaldefturret" },
+			legspcon = { ["legfmg"]  = "legnavaldefturret" },
+
+			-- t2 arm cons
+			armacsub = { ["armkraken"]  = "armanavaldefturret" },
+			armmls = {
+				["armfhlt"]  = "armnavaldefturret",
+				["armkraken"] = "armanavaldefturret",
+			},
+
+			-- t2 cor cons
+			coracsub = { ["corfdoom"]  = "coranavaldefturret" },
+			cormls = {
+				["corfhlt"]  = "cornavaldefturret",
+				["corfdoom"] = "coranavaldefturret",
+			},
+
+			-- t2 leg cons
+			leganavyengineer = {
+				["legfmg"]  = "legnavaldefturret",
+			},
+		}
+
+		if buildOptionReplacements[name] then
+			local replacements = buildOptionReplacements[name]
+			for i, buildOption in ipairs(uDef.buildoptions or {}) do
+				if replacements[buildOption] then
+					uDef.buildoptions[i] = replacements[buildOption]
+				end
+			end
+		end
+
+		if name == "armfrad" then
+			uDef.sightdistance = 800
+		end
+		if name == "corfrad" then
+			uDef.sightdistance = 800
+		end
+		if name == "legfrad" then
+			uDef.sightdistance = 800
+		end
+
 	end
 
 	--Lategame Rebalance
@@ -1402,6 +1501,28 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	----------------
+	-- Tech Split --
+	----------------
+
+	if modOptions.techsplit == true then
+		local techsplitUnits = VFS.Include("unitbasedefs/techsplit_defs.lua")
+		uDef = techsplitUnits.techsplitTweaks(name, uDef)
+	end
+
+	if modOptions.techsplit_balance == true then
+		local techsplit_balanceUnits = VFS.Include("unitbasedefs/techsplit_balance_defs.lua")
+		uDef = techsplit_balanceUnits.techsplit_balanceTweaks(name, uDef)
+	end
+
+	-- Experimental Low Priority Pacifists
+	if modOptions.experimental_low_priority_pacifists then
+		if uDef.energycost and uDef.metalcost and (not uDef.weapons or #uDef.weapons == 0) and uDef.speed and uDef.speed > 0 and 
+		(string.find(name, "arm") or string.find(name, "cor") or string.find(name, "leg")) then
+			uDef.power = uDef.power or ((uDef.metalcost + uDef.energycost / 60) * 0.1) --recreate the default power formula obtained from the spring wiki for target prioritization
+		end
+	end
+
 	-- Multipliers Modoptions
 
 	-- Max Speed
@@ -1558,7 +1679,6 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 	end
-
 end
 
 local function ProcessSoundDefaults(wd)
@@ -1784,12 +1904,13 @@ function WeaponDef_Post(name, wDef)
 		end
 		----------------------------------------
 
-		--Use targetborderoverride in weapondef customparams to override this global setting
 		--Controls whether the weapon aims for the center or the edge of its target's collision volume. Clamped between -1.0 - target the far border, and 1.0 - target the near border.
-		if wDef.customparams and wDef.customparams.targetborderoverride == nil then
+		if wDef.targetborder == nil then
 			wDef.targetborder = 1 --Aim for just inside the hitsphere
-		elseif wDef.customparams and wDef.customparams.targetborderoverride ~= nil then
-			wDef.targetborder = tonumber(wDef.customparams.targetborderoverride)
+
+			if wDef.weapontype == "BeamLaser" or wDef.weapontype == "LightningCannon" then
+				wDef.targetborder = 0.33 --approximates in current engine with bugged calculation, to targetborder = 1. 
+			end
 		end
 
 		if wDef.craterareaofeffect then
@@ -1896,6 +2017,9 @@ function WeaponDef_Post(name, wDef)
 		end
 		if wDef.weapontype == "StarburstLauncher" and wDef.weapontimer then
 			wDef.weapontimer = wDef.weapontimer + (wDef.weapontimer * ((rangeMult - 1) * 0.4))
+		end
+		if wDef.customparams and wDef.customparams.overrange_distance then
+			wDef.customparams.overrange_distance = wDef.customparams.overrange_distance * rangeMult
 		end
 	end
 

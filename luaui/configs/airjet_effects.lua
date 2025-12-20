@@ -8,6 +8,11 @@ return {
 		{ color = { 0.7, 0.4, 0.1 }, width = 12, length = 64, piece = "thruster3", light = 1 },
 	},
 
+	["legspradarsonarplane"] = {
+		{ color = { 0.1, 0.6, 0.4 }, width = 2, length = 22, piece = "thrust1", light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 2, length = 22, piece = "thrust2", light = 1 },
+	},
+
 	-- scouts
 	["armpeep"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet1" },
@@ -44,14 +49,21 @@ return {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrusta" },
 	},
 	["legfig"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 15, piece = "thrust" },
+		{ color = { 0.2, 0.4, 0.2 }, width = 2, length = 15, piece = "thrust", light = 1},
 	},
-	["legionnaire"] = {
-		{ color = { 0.2, 0.4, 0.5 }, width = 3.5, length = 30, piece = "thrusta" },
+	["legafigdef"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 37, piece = "rightAirjet", light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 6, length = 50, piece = "mainAirjet", light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 38, piece = "leftAirjet", light = 1 },
 	},
 	["legvenator"] = {
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "lthrust" },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "rthrust" },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 24, piece = "lthrust" },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 24, piece = "rthrust" },
+	},
+	["legspfighter"] = {
+		{ color = { 0.1, 0.6, 0.4 }, width = 2, length = 22, piece = "smallThrust1", light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 2, length = 22, piece = "smallThrust2", light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 32, piece = "mainThrust", light = 1 },
 	},
 	-- radar
 	["armawac"] = {
@@ -67,19 +79,14 @@ return {
 		{ color = { 0.2, 0.8, 0.2 }, width = 2, length = 50, piece = "littleAirJet", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 38, piece = "bigAirJet2", light = 1 },
 	},
-	["legafigdef"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 37, piece = "rightAirjet", light = 1 },
-		{ color = { 0.2, 0.8, 0.2 }, width = 6, length = 50, piece = "mainAirjet", light = 1 },
-		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 38, piece = "leftAirjet", light = 1 },
+	["legehovertank"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 7, length = 12, piece = "airjetFlare", light = 1 },
 	},
 	["corhunt"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 37, piece = "thrust", light = 1 },
 	},
-	--["armsehak"] = {
-	--	{ color = { 0.2, 0.8, 0.2 }, width = 3.5, length = 37, piece = "thrust", light = 1 },
-	--},
-	--drones
 
+	--drones
 	["armdroneold"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustl", light = 1 },
 		{ color = { 0.7, 0.4, 0.1 }, width = 1.5, length = 6, piece = "thrustr", light = 1 },
@@ -128,20 +135,20 @@ return {
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.75 },
 	},
 	["legatrans"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "rightGroundThrust", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "leftGroundThrust", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 17, piece = "rightMainThrust", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 17, piece = "leftMainThrust", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 8.5, piece = "rightMiniThrust", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 8.5, piece = "leftMiniThrust", emitVector = { 0, 1, 0 }, light = 1 },
+		{ color = { 0.2, 0.4, 0.2 }, width = 6, length = 17, piece = "rightGroundThrust", emitVector = { 0, 1, 0 }, light = 1 },
+		{ color = { 0.2, 0.4, 0.2 }, width = 6, length = 17, piece = "leftGroundThrust", emitVector = { 0, 1, 0 }, light = 1 },
+		{ color = { 0.2, 0.4, 0.2 }, width = 4, length = 17, piece = "rightMainThrust", emitVector = { 0, 1, 0 }, light = 1 },
+		{ color = { 0.2, 0.4, 0.2 }, width = 4, length = 17, piece = "leftMainThrust", emitVector = { 0, 1, 0 }, light = 1 },
+		{ color = { 0.2, 0.4, 0.2 }, width = 2, length = 8.5, piece = "rightMiniThrust", emitVector = { 0, 1, 0 }, light = 1 },
+		{ color = { 0.2, 0.4, 0.2 }, width = 2, length = 8.5, piece = "leftMiniThrust", emitVector = { 0, 1, 0 }, light = 1 },
 	},
 	["legstronghold"] = {
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "bthrust1", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "bthrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "lthrust1", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "lthrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "rthrust1", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "rthrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 24, piece = "bthrust1", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 24, piece = "bthrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 24, piece = "lthrust1", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 24, piece = "lthrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 24, piece = "rthrust1", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 24, piece = "rthrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
 	},
 
 	-- gunships
@@ -153,7 +160,7 @@ return {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 25, piece = "thrust", light = 1, xzVelocity = 1.5 },
 	},
 	["legmos"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 12, piece = "thrust", emitVector = { 0, 0, -1 }, xzVelocity = 1.2, light = 1 },
+		{ color = { 0.2, 0.4, 0.2 }, width = 3, length = 12, piece = "thrust", emitVector = { 0, 0, -1 }, xzVelocity = 1.2, light = 1 },
 	},
 	["legmost3"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 32, piece = "thrust", emitVector = { 0, 0, -1 }, xzVelocity = 3, light = 1 },
@@ -175,6 +182,13 @@ return {
 	["corseap"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 32, piece = "thrust", light = 1 },
 	},
+	["legspcarrier"] = {
+		{ color = { 0.1, 0.6, 0.4 }, width = 4, length = 22, piece = "thrust1a", light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 4, length = 22, piece = "thrust1b", light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 4, length = 22, piece = "thrust1c", light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 4, length = 22, piece = "thrust2a", light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 4, length = 22, piece = "thrust2b", light = 1 },
+	},
 	["corcrw"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrra", emitVector = { 0, 1, -1 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrla", emitVector = { 0, 1, -1 }, light = 0.6 },
@@ -194,39 +208,46 @@ return {
 		{ color = { 0.1, 0.4, 0.6 }, width = 17, length = 44, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.6 },
 	},
 	["legfort"] = {
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust1", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust3", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust4", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 24, piece = "thrust1", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 24, piece = "thrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 24, piece = "thrust3", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 24, piece = "thrust4", emitVector = { 0, 1, 0 }, light = 0.6 },
 
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust5", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust6", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust7", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust8", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 32, piece = "thrust9", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 32, piece = "thrust10", emitVector = { 1, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 24, piece = "thrust5", emitVector = { 1, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 24, piece = "thrust6", emitVector = { 1, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 24, piece = "thrust7", emitVector = { 1, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 24, piece = "thrust8", emitVector = { 1, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 6, length = 32, piece = "thrust9", emitVector = { 1, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 6, length = 32, piece = "thrust10", emitVector = { 1, 1, 0 }, light = 0.6 },
 	},
 	["legfortt4"] = {
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust1", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust3", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust4", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.8, 0.1 }, width = 6, length = 48, piece = "thrust1", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.8, 0.1 }, width = 6, length = 48, piece = "thrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.8, 0.1 }, width = 6, length = 48, piece = "thrust3", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.8, 0.1 }, width = 6, length = 48, piece = "thrust4", emitVector = { 0, 1, 0 }, light = 0.6 },
 
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust5", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust6", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust7", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust8", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 12, length = 64, piece = "thrust9", emitVector = { 1, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 12, length = 64, piece = "thrust10", emitVector = { 1, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.8, 0.1 }, width = 6, length = 48, piece = "thrust5", emitVector = { 1, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.8, 0.1 }, width = 6, length = 48, piece = "thrust6", emitVector = { 1, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.8, 0.1 }, width = 6, length = 48, piece = "thrust7", emitVector = { 1, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.8, 0.1 }, width = 6, length = 48, piece = "thrust8", emitVector = { 1, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.8, 0.1 }, width = 12, length = 64, piece = "thrust9", emitVector = { 1, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.8, 0.1 }, width = 12, length = 64, piece = "thrust10", emitVector = { 1, 1, 0 }, light = 0.6 },
+	},
+	["legsptorpgunship"] = {
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 20, piece = "smallThurst1", emitVector = { 0, -1, 0 }, light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 20, piece = "smallThurst2", emitVector = { 0, -1, 0 }, light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 26, piece = "mainThrust", light = 1 },
+	},
+	["legspsurfacegunship"] = {
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 18, piece = "smallThrust1", emitVector = { 0, -1, 0 }, light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 18, piece = "smallThrust2", emitVector = { 0, -1, 0 }, light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 4, length = 24, piece = "mainThrust", light = 1 },
 	},
 	["corcut"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.7, length = 15, piece = "thrusta", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.7, length = 15, piece = "thrustb", light = 1 },
 	},
-	--["armbrawl"] = {
-	--	{ color = { 0.1, 0.4, 0.6 }, width = 3.7, length = 15, piece = "thrust1", light = 1 },
-	--	{ color = { 0.1, 0.4, 0.6 }, width = 3.7, length = 15, piece = "thrust2", light = 1 },
-	--},
+
 
 	-- bladewing
 	["corbw"] = {
@@ -304,11 +325,11 @@ return {
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta2" },
 	},
 	["legcib"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 25, piece = "lThrust", light = 1.3 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 25, piece = "rThrust", light = 1.3 },
+		{ color = { 0.2, 0.4, 0.2 }, width = 4, length = 25, piece = "lThrust", light = 1.3 },
+		{ color = { 0.2, 0.4, 0.2 }, width = 4, length = 25, piece = "rThrust", light = 1.3 },
 	},
 	["legkam"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 25, piece = "thrust", light = 1 },
+		{ color = { 0.2, 0.4, 0.2 }, width = 4, length = 25, piece = "thrust", light = 1 },
 	},
 	["legatorpbomber"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 25, piece = "rightAJet", light = 1 },
@@ -329,6 +350,13 @@ return {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "thrusta", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "thrustb", light = 1 },
 	},
+	["legspbomber"] = {
+		{ color = { 0.1, 0.6, 0.4 }, width = 2, length = 48, piece = "microThrust1", light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 2, length = 48, piece = "microThrust2", light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 28, piece = "sideThrust1", light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 28, piece = "sideThrust2", light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 4, length = 24, piece = "mainThrust", light = 1 },
+	},
 	["legmineb"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "lthrusttrail", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "rthrusttrail", light = 1 },
@@ -340,14 +368,14 @@ return {
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "flarebr", emitVector = { 0, 1, 0 }, light = 0.6 },
 	},
 	["legphoenix"] = {
-		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 36, piece = "rthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 36, piece = "rrthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 36, piece = "lthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 36, piece = "llthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 36, piece = "rthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 36, piece = "rrthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 36, piece = "lthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 36, piece = "llthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
 	},
 	["leglts"] = {
-		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 32, piece = "lthrust", emitVector = { 0, 1, 0 }, light = 0.5 },
-		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 32, piece = "rthrust", emitVector = { 0, 1, 0 }, light = 0.5 },
+		{ color = { 0.2, 0.4, 0.2 }, width = 5, length = 32, piece = "lthrust", emitVector = { 0, 1, 0 }, light = 0.5 },
+		{ color = { 0.2, 0.4, 0.2 }, width = 5, length = 32, piece = "rthrust", emitVector = { 0, 1, 0 }, light = 0.5 },
 	},
 	-- construction
 	["armca"] = {
@@ -360,9 +388,9 @@ return {
 		{ color = { 0.1, 0.4, 0.6 }, width = 4, length = 15, piece = "thrust", xzVelocity = 1.2 },
 	},
 	["legca"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 4, length = 15, piece = "mainThrust", xzVelocity = 1.2 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 2, length = 7, piece = "thrustA", xzVelocity = 1.2 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 2, length = 7, piece = "thrustB", xzVelocity = 1.2 },
+		{ color = { 0.2, 0.4, 0.2 }, width = 4, length = 15, piece = "mainThrust", xzVelocity = 1.2 },
+		{ color = { 0.2, 0.4, 0.2 }, width = 2, length = 7, piece = "thrustA", xzVelocity = 1.2 },
+		{ color = { 0.2, 0.4, 0.2 }, width = 2, length = 7, piece = "thrustB", xzVelocity = 1.2 },
 	},
 	["coraca"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 6, length = 22, piece = "thrust", xzVelocity = 1.2 },
@@ -374,6 +402,22 @@ return {
 	["corcsa"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 17, piece = "thrust1" },
 		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 17, piece = "thrust2" },
+	},
+	["legspcon"] = {
+		{ color = { 0.1, 0.6, 0.4 }, width = 4, length = 16, piece = "smallThrust1", emitVector = { 0, -1, 0 }, light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 16, piece = "smallThrust2", emitVector = { 0, -1, 0 }, light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 4, length = 18, piece = "mainThrust1", light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 18, piece = "mainThrust2", light = 1 },
+	},
+
+	-- Legion t2 subs
+	["leganavyheavysub"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 20, piece = "thrust1", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 20, piece = "thrust2", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 20, piece = "thrust3", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
+	},
+	["leganavybattlesub"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 20, piece = "thrusttrail", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
 	},
 
 

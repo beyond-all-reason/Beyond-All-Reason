@@ -106,7 +106,6 @@ return {
 			"armfrad",
 			"armhp",
 			"armfhp",
-			"armasp",
 			"armdecom",
 			"armshockwave",
 		},

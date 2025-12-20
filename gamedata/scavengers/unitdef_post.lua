@@ -350,6 +350,7 @@ local function scavUnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 1] = "coresuppt3_scav" -- Adjudictator - Ultra Heavy Heatray Battleship
 			uDef.buildoptions[numBuildoptions + 2] = "coronager_scav" -- Onager - Coastal Assault Submarine
 			uDef.buildoptions[numBuildoptions + 3] = "cordesolator_scav" -- Desolator - Nuclear ICBM Submarine
+			uDef.buildoptions[numBuildoptions + 4] = "CorPrince_scav" -- Black Prince - Shore bombardment battleship
 		end
 
 		-- Cortex T3 Gantry

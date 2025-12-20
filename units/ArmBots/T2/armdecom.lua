@@ -36,7 +36,7 @@ return {
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMCOM"..(Spring.GetModOptions().xmas and '-XMAS' or '')..".s3o",
+		objectname = "Units/ARMCOM.s3o",
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,

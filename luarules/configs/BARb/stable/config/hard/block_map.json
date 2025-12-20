@@ -182,7 +182,7 @@
 		"def_mid": ["armclaw", "cormaw", "armpb", "corvipe", "armhlt", "corhlt", "legdtr", "legapopupdef", "leghive"],
 		"def_hvy":  ["armamb", "armanni", "cortoast", "cordoom", "armguard", "corpun", "armkraken", "corfdoom", "legacluster", "legbastion", "legcluster", "legfmg"],
 		"def_air": ["armferret", "armcir", "corrl", "cormadsam", "corerad", "legrhapsis", "leglupara"],
-		"caretaker": ["armnanotc", "armasp", "cornanotc", "corasp", "legnanotc"],
+		"caretaker": ["armnanotc", "cornanotc", "legnanotc"],
 		"small": ["armrad", "corrad", "legrad"]
 		
 //engy_low: wind

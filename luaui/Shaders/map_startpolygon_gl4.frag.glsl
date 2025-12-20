@@ -11,7 +11,7 @@
 
 uniform int isMiniMap = 0;
 uniform int myAllyTeamID = -1;
-uniform int flipMiniMap = 0;
+uniform int rotationMiniMap = 0;
 uniform vec4 startBoxes[NUM_BOXES]; // all in xyXY format
 uniform int noRushTimer;
 uniform vec4 pingData; // x,y,z = ping pos, w = ping time
@@ -187,9 +187,14 @@ void main(void)
 	if (isMiniMap == 1) {
 		mapWorldPos.y = (MINY + MAXY) * 0.5;
 		mapWorldPos.xz = (v_position.xy * 0.5 + 0.5);
-		if (flipMiniMap == 0){
+		if (rotationMiniMap == 0){
 			mapWorldPos.z = 1.0 - mapWorldPos.z;
-		}else{
+		}else if (rotationMiniMap == 1){
+			mapWorldPos.xz = mapWorldPos.zx;
+		}else if (rotationMiniMap == 2){
+			mapWorldPos.x = 1.0 - mapWorldPos.x;
+		}else if (rotationMiniMap == 3){
+			mapWorldPos.z = 1.0 - mapWorldPos.x;
 			mapWorldPos.x = 1.0 - mapWorldPos.x;
 		}
 		mapWorldPos.xz *= mapSize.xy;

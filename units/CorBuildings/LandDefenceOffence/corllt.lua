@@ -2,7 +2,7 @@ return {
 	corllt = {
 		buildangle = 32000,
 		buildpic = "CORLLT.DDS",
-		buildtime = 2720,
+		buildtime = 2500,
 		canrepeat = false,
 		cantbetransported = false,
 		collisionvolumeoffsets = "0 -29 0",
