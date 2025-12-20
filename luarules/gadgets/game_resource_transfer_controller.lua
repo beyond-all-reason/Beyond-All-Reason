@@ -99,30 +99,6 @@ function GG.GetTeamShareLevel(teamID, resource)
 	return share
 end
 
----@param frame number
-local function UpdatePolicyCache(frame)
-	if frame < lastPolicyUpdate + POLICY_UPDATE_RATE then
-		return
-	end
-	lastPolicyUpdate = frame
-
-	local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
-	local resultFactory = ResourceTransfer.BuildResultFactory(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY])
-	
-	local allTeams = springRepo.GetTeamList()
-	for _, senderID in ipairs(allTeams) do
-		for _, receiverID in ipairs(allTeams) do
-			local ctx = contextFactory.policy(senderID, receiverID)
-			
-			local metalPolicy = resultFactory(ctx, ResourceType.METAL)
-			ResourceTransfer.CachePolicyResult(springRepo, senderID, receiverID, ResourceType.METAL, metalPolicy)
-			
-			local energyPolicy = resultFactory(ctx, ResourceType.ENERGY)
-			ResourceTransfer.CachePolicyResult(springRepo, senderID, receiverID, ResourceType.ENERGY, energyPolicy)
-		end
-	end
-end
-
 local function InitializeNewTeam(senderTeamId)
 	local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
 	local resultFactory = ResourceTransfer.BuildResultFactory(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY])
@@ -157,42 +133,41 @@ end
 --------------------------------------------------------------------------------
 
 ---@param frame number
----@param teams TeamResourceData[]
----@return table<number, TeamResourceData>
+---@param teams table<number, TeamResourceData>
+---@return EconomyTeamResult[]
 local function ProcessEconomy(frame, teams)
 	local stopwatch = Stopwatch.new(Spring.GetAuditTimer)
 	stopwatch:Start()
 	
-	if type(teams) ~= "table" then
-		return teams
-	end
 	
-	stopwatch:Breakpoint("PreMunge")
+	stopwatch:Breakpoint("PE_Solver")
 	
-	local updatedTeams, allLedgers = ResourceTransfer.ProcessEconomy(springRepo, teams, frame)
-	stopwatch:Breakpoint("Solver")
+	local updatedTeams, allLedgers = ResourceTransfer.WaterfillSolve(springRepo, teams, frame)
 	
 	local result = {}	
 	for teamId, team in pairs(updatedTeams) do
-		result[teamId] = {
-			metal = {
-				current = team.metal.current,
-				sent = team.metal.sent,
-				received = team.metal.received,
-				excess = team.metal.excess
-			},
-			energy = {
-				current = team.energy.current,
-				sent = team.energy.sent,
-				received = team.energy.received,
-				excess = team.energy.excess
-			}
+		local ledger = allLedgers[teamId] or {}
+		
+		result[#result + 1] = {
+			teamId = teamId,
+			resourceType = ResourceType.METAL,
+			current = team.metal.current,
+			sent = ledger[ResourceType.METAL] and ledger[ResourceType.METAL].sent or 0,
+			received = ledger[ResourceType.METAL] and ledger[ResourceType.METAL].received or 0,
+		}
+		
+		result[#result + 1] = {
+			teamId = teamId,
+			resourceType = ResourceType.ENERGY,
+			current = team.energy.current,
+			sent = ledger[ResourceType.ENERGY] and ledger[ResourceType.ENERGY].sent or 0,
+			received = ledger[ResourceType.ENERGY] and ledger[ResourceType.ENERGY].received or 0,
 		}
 	end
-	stopwatch:Breakpoint("PostMunge")
+	stopwatch:Breakpoint("PE_PostMunge")
 	
-	UpdatePolicyCache(frame)
-	stopwatch:Breakpoint("PolicyCache")
+	lastPolicyUpdate = ResourceTransfer.UpdatePolicyCache(springRepo, frame, lastPolicyUpdate, POLICY_UPDATE_RATE, contextFactory)
+	stopwatch:Breakpoint("PE_PolicyCache")
 	
 	stopwatch:Log(frame)
 	

@@ -207,16 +207,54 @@ end
 ---@param ctx ResourceTransferContext
 ---@param transferResult ResourceTransferResult
 function Gadgets.RegisterPostTransfer(ctx, transferResult)
-  local cumulativeParam = Shared.GetCumulativeParam(ctx.resourceType)
-  local cumulativeSent = tonumber(ctx.springRepo.GetTeamRulesParam(transferResult.senderTeamId, cumulativeParam))
-  ctx.springRepo.SetTeamRulesParam(ctx.senderTeamId, cumulativeParam, cumulativeSent + transferResult.sent)
+  Gadgets.UpdateCumulativeSent(ctx.springRepo, transferResult.senderTeamId, ctx.resourceType, transferResult.sent)
+end
+
+---@param springApi ISpring
+---@param teamId number
+---@param resourceType ResourceType
+---@param amountSent number
+function Gadgets.UpdateCumulativeSent(springApi, teamId, resourceType, amountSent)
+  local param = Shared.GetCumulativeParam(resourceType)
+  local current = tonumber(springApi.GetTeamRulesParam(teamId, param)) or 0
+  springApi.SetTeamRulesParam(teamId, param, current + amountSent)
+end
+
+---@param springRepo ISpring
+---@param frame number
+---@param lastUpdate number
+---@param updateRate number
+---@param contextFactory table
+---@return number lastUpdate New last update frame
+function Gadgets.UpdatePolicyCache(springRepo, frame, lastUpdate, updateRate, contextFactory)
+  if frame < lastUpdate + updateRate then
+    return lastUpdate
+  end
+
+  local SharedConfig = VFS.Include("common/luaUtilities/economy/shared_config.lua")
+  local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
+  local resultFactory = Gadgets.BuildResultFactory(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY])
+  
+  local allTeams = springRepo.GetTeamList()
+  for _, senderID in ipairs(allTeams) do
+    for _, receiverID in ipairs(allTeams) do
+      local ctx = contextFactory.policy(senderID, receiverID)
+      
+      local metalPolicy = resultFactory(ctx, ResourceType.METAL)
+      Gadgets.CachePolicyResult(springRepo, senderID, receiverID, ResourceType.METAL, metalPolicy)
+      
+      local energyPolicy = resultFactory(ctx, ResourceType.ENERGY)
+      Gadgets.CachePolicyResult(springRepo, senderID, receiverID, ResourceType.ENERGY, energyPolicy)
+    end
+  end
+  return frame
 end
 
 ---@param springRepo ISpring
 ---@param teamsList TeamResourceData[]
 ---@param frame number?
-function Gadgets.ProcessEconomy(springRepo, teamsList, frame)
-  return WaterfillSolver.ProcessEconomy(springRepo, teamsList, frame)
+function Gadgets.WaterfillSolve(springRepo, teamsList, frame)
+  return WaterfillSolver.Solve(springRepo, teamsList, frame)
 end
 
 ---@param springRepo ISpring

@@ -35,7 +35,7 @@ end
 ---@param springRepo ISpring
 ---@return number, table<ResourceType, number>
 local function getTaxConfig(springRepo)
-  local modOpts = springRepo.GetModOptions() or {}
+  local modOpts = springRepo.GetModOptions()
   local tax = tonumber(modOpts[MOD_OPTIONS.TaxResourceSharingAmount]) or 0
   if tax < 0 then tax = 0 end
   if tax > 1 then tax = 1 end
@@ -275,16 +275,12 @@ local function allocateGroup(members, lift, taxRate)
         newCurrent = 0
       end
       resource.current = newCurrent
-      resource.sent = sender.costSpent
-      resource.received = 0
       local allowance = member.remainingTaxFreeAllowance - sender.untaxedDelivered
       member.remainingTaxFreeAllowance = allowance > 0 and allowance or 0
       member.cumulativeSent = member.cumulativeSent + sender.costSpent
       ledgers[member.teamId].sent = sender.costSpent
       ledgers[member.teamId].untaxed = sender.untaxedDelivered
       ledgers[member.teamId].taxed = sender.taxedDelivered
-    else
-      resource.sent = 0
     end
   end
 
@@ -298,11 +294,7 @@ local function allocateGroup(members, lift, taxRate)
         newCurrent = member.storage
       end
       resource.current = newCurrent
-      resource.received = receiver.received
-      resource.sent = 0
       ledgers[member.teamId].received = receiver.received
-    else
-      resource.received = 0
     end
   end
 
@@ -315,12 +307,6 @@ local function allocateGroup(members, lift, taxRate)
           member.teamId, member.resourceType, resource.current, member.storage))
       end
       resource.current = member.storage
-    end
-    if ledgers[member.teamId].sent == 0 then
-      resource.sent = 0
-    end
-    if ledgers[member.teamId].received == 0 then
-      resource.received = 0
     end
   end
 
@@ -343,7 +329,7 @@ end
 ---@param frame number?
 ---@return table<number, TeamResourceData>
 ---@return EconomyFlowSummary
-function Gadgets.ProcessEconomy(springRepo, teamsList, frame)
+function Gadgets.Solve(springRepo, teamsList, frame)
   if not teamsList then
     return teamsList, {}
   end
@@ -447,11 +433,14 @@ function Gadgets.ProcessEconomy(springRepo, teamsList, frame)
 
   if AuditLog.IsEnabled() then
     for teamId, team in pairs(teamsList) do
+      local ledger = allLedgers[teamId]
       if team.metal then
-        AuditLog.TeamOutput(currentFrame, teamId, ResourceType.METAL, team.metal.current, team.metal.sent or 0, team.metal.received or 0)
+        local m = ledger[ResourceType.METAL]
+        AuditLog.TeamOutput(currentFrame, teamId, ResourceType.METAL, team.metal.current, m.sent, m.received)
       end
       if team.energy then
-        AuditLog.TeamOutput(currentFrame, teamId, ResourceType.ENERGY, team.energy.current, team.energy.sent or 0, team.energy.received or 0)
+        local e = ledger[ResourceType.ENERGY]
+        AuditLog.TeamOutput(currentFrame, teamId, ResourceType.ENERGY, team.energy.current, e.sent, e.received)
       end
     end
   end

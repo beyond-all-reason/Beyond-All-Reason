@@ -35,18 +35,15 @@
 ---@field SetUnitTransferController fun(controller: GameUnitTransferController)
 ---@field GetAuditTimer fun(): number
 
----@class ProcessEconomyTeamData
----@field allyTeam number
----@field isDead boolean
----@field metal ResourceData
----@field energy ResourceData
-
----@class ProcessEconomyResult
----@field metal { current: number, sent: number?, received: number?, excess: number? }
----@field energy { current: number, sent: number?, received: number?, excess: number? }
+---@class EconomyTeamResult
+---@field teamId number
+---@field resourceType ResourceName
+---@field current number
+---@field sent number
+---@field received number
 
 ---@class GameEconomyController
----@field ProcessEconomy fun(frame: number, teams: table<number, ProcessEconomyTeamData>): table<number, ProcessEconomyResult>
+---@field ProcessEconomy fun(frame: number, teams: table<number, TeamResourceData>): EconomyTeamResult[]
 
 ---@class GameUnitTransferController
 ---@field AllowUnitTransfer fun(unitID: number, unitDefID: number, fromTeamID: number, toTeamID: number, capture: boolean): boolean
@@ -74,9 +71,6 @@
 ---@field income number production income
 ---@field expense number expenditure
 ---@field shareSlider number share threshold slider (0-1)
----@field sent number? resources sent this frame
----@field received number? resources received this frame
----@field excess number? excess dumped this frame
 
 ---@class TeamResourceData
 ---@field allyTeam number

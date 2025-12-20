@@ -17,6 +17,29 @@ DB_PATH = "audit_logs.db"
 # Global verbose flag
 VERBOSE = False
 
+TIMING_CATEGORIES = {
+    'DataPrep': ['PE_CppMunge', 'RE_CppMunge', 'RE_LuaMunge'],
+    'Solver': ['PE_Solver', 'RE_Solver'],
+    'ResultApply': ['PE_PostMunge', 'PE_CppSetters', 'RE_PostMunge', 'RE_CppSetters'],
+    'PolicyCache': ['PE_PolicyCache', 'RE_PolicyCache'],
+    'Overall': ['PE_Overall', 'RE_Overall'],
+}
+
+def get_category(tag):
+    """Map a timing tag to its category for grouped analysis."""
+    for category, tags in TIMING_CATEGORIES.items():
+        if tag in tags:
+            return category
+    return 'Other'
+
+def get_path(tag):
+    """Extract path (PE or RE) from a timing tag."""
+    if tag.startswith('PE_'):
+        return 'ProcessEconomy'
+    elif tag.startswith('RE_'):
+        return 'ResourceExcess'
+    return None
+
 def log(msg):
     """Print if verbose mode is enabled."""
     if VERBOSE:
