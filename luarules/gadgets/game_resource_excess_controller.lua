@@ -38,7 +38,7 @@ local isActive = false
 
 ---Build team data table from current game state + excess table
 ---@param excesses table<number, number[]> { [teamID] = {metal, energy} }
----@return TeamResourceData[]
+---@return table<number, TeamResourceData>
 local function BuildTeamData(excesses)
 	local teams = {}
 	local allTeams = springRepo.GetTeamList()
@@ -61,8 +61,7 @@ local function BuildTeamData(excesses)
 			
 			local _, allyTeam = springRepo.GetTeamInfo(teamID)
 			
-			teams[#teams + 1] = {
-				id = teamID,
+			teams[teamID] = {
 				allyTeam = allyTeam,
 				metal = {
 					current = metalWithExcess,
@@ -84,37 +83,35 @@ local function BuildTeamData(excesses)
 end
 
 ---Apply the waterfill results back to teams
----@param results TeamResourceData[]
+---@param results table<number, TeamResourceData>
 ---@param frame number
 local function ApplyResults(results, frame)
-	for _, team in ipairs(results) do
-		if team.id then
-			-- Clamp values to storage to prevent runaway growth
-			local metalFinal = math.min(team.metal.current, team.metal.storage)
-			local energyFinal = math.min(team.energy.current, team.energy.storage)
-			
-			-- Set the final resource levels (clamped)
-			springRepo.SetTeamResource(team.id, "metal", metalFinal)
-			springRepo.SetTeamResource(team.id, "energy", energyFinal)
-			
-			-- Update cumulative sent tracking
-			local mSent = springRepo.GetTeamRulesParam(team.id, "cumulativeMetalSent") or 0
-			local eSent = springRepo.GetTeamRulesParam(team.id, "cumulativeEnergySent") or 0
-			springRepo.SetTeamRulesParam(team.id, "cumulativeMetalSent", mSent + (team.metal.sent or 0))
-			springRepo.SetTeamRulesParam(team.id, "cumulativeEnergySent", eSent + (team.energy.sent or 0))
-			
-			-- Track stats using the correct API format: AddTeamResourceStats(teamID, {stat = {metal, energy}})
-			local mSentVal = team.metal.sent or 0
-			local eSentVal = team.energy.sent or 0
-			local mRecvVal = team.metal.received or 0
-			local eRecvVal = team.energy.received or 0
-			
-			if mSentVal > 0 or eSentVal > 0 then
-				springRepo.AddTeamResourceStats(team.id, { sent = { mSentVal, eSentVal } })
-			end
-			if mRecvVal > 0 or eRecvVal > 0 then
-				springRepo.AddTeamResourceStats(team.id, { received = { mRecvVal, eRecvVal } })
-			end
+	for teamId, team in pairs(results) do
+		-- Clamp values to storage to prevent runaway growth
+		local metalFinal = math.min(team.metal.current, team.metal.storage)
+		local energyFinal = math.min(team.energy.current, team.energy.storage)
+		
+		-- Set the final resource levels (clamped)
+		springRepo.SetTeamResource(teamId, "metal", metalFinal)
+		springRepo.SetTeamResource(teamId, "energy", energyFinal)
+		
+		-- Update cumulative sent tracking
+		local mSent = springRepo.GetTeamRulesParam(teamId, "cumulativeMetalSent") or 0
+		local eSent = springRepo.GetTeamRulesParam(teamId, "cumulativeEnergySent") or 0
+		springRepo.SetTeamRulesParam(teamId, "cumulativeMetalSent", mSent + (team.metal.sent or 0))
+		springRepo.SetTeamRulesParam(teamId, "cumulativeEnergySent", eSent + (team.energy.sent or 0))
+		
+		-- Track stats using the correct API format: AddTeamResourceStats(teamID, {stat = {metal, energy}})
+		local mSentVal = team.metal.sent or 0
+		local eSentVal = team.energy.sent or 0
+		local mRecvVal = team.metal.received or 0
+		local eRecvVal = team.energy.received or 0
+		
+		if mSentVal > 0 or eSentVal > 0 then
+			springRepo.AddTeamResourceStats(teamId, { sent = { mSentVal, eSentVal } })
+		end
+		if mRecvVal > 0 or eRecvVal > 0 then
+			springRepo.AddTeamResourceStats(teamId, { received = { mRecvVal, eRecvVal } })
 		end
 	end
 end
@@ -152,7 +149,10 @@ function gadget:ResourceExcess(excesses)
 	local teams = BuildTeamData(excesses)
 	stopwatch:Breakpoint("BuildTeamData")
 	
-	if #teams == 0 then
+	local teamCount = 0
+	for _ in pairs(teams) do teamCount = teamCount + 1 end
+	
+	if teamCount == 0 then
 		return true
 	end
 	
@@ -160,7 +160,7 @@ function gadget:ResourceExcess(excesses)
 	local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
 	
 	-- Log frame start
-	AuditLog.FrameStart(frame, taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY], #teams)
+	AuditLog.FrameStart(frame, taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY], teamCount)
 	
 	-- Run the waterfill solver
 	local updatedTeams, allLedgers = WaterfillSolver.ProcessEconomy(springRepo, teams, frame)
@@ -171,11 +171,9 @@ function gadget:ResourceExcess(excesses)
 	stopwatch:Breakpoint("ApplyResults")
 	
 	-- Log outputs
-	for _, team in ipairs(updatedTeams) do
-		if team.id then
-			AuditLog.TeamOutput(frame, team.id, "metal", team.metal.current, team.metal.sent or 0, team.metal.received or 0)
-			AuditLog.TeamOutput(frame, team.id, "energy", team.energy.current, team.energy.sent or 0, team.energy.received or 0)
-		end
+	for teamId, team in pairs(updatedTeams) do
+		AuditLog.TeamOutput(frame, teamId, "metal", team.metal.current, team.metal.sent or 0, team.metal.received or 0)
+		AuditLog.TeamOutput(frame, teamId, "energy", team.energy.current, team.energy.sent or 0, team.energy.received or 0)
 	end
 	
 	stopwatch:Log(frame, "[SolverAudit-ResourceExcess]")

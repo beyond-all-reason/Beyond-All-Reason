@@ -360,8 +360,8 @@ function Gadgets.ProcessEconomy(springRepo, teamsList, frame)
     Spring.Echo(string.format("[WaterfillSolver] ProcessEconomy frame=%d teamCount=%d", currentFrame, teamCount))
     for teamId, team in pairs(teamsList) do
       if team.metal then
-        Spring.Echo(string.format("[WaterfillSolver]   team=%s id=%s metal: current=%.2f storage=%.2f share=%.2f", 
-          tostring(teamId), tostring(team.id), team.metal.current or 0, team.metal.storage or 0, team.metal.shareSlider or 0))
+        Spring.Echo(string.format("[WaterfillSolver]   team=%s metal: current=%.2f storage=%.2f share=%.2f", 
+          tostring(teamId), team.metal.current or 0, team.metal.storage or 0, team.metal.shareSlider or 0))
       end
     end
   end

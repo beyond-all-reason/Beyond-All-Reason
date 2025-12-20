@@ -21,7 +21,7 @@ local function buildTeams(builders)
   local teams = {}
   for i = 1, #builders do
     local built = builders[i]:Build()
-    teams[i] = built
+    teams[built.id] = built
   end
   return teams
 end
@@ -80,9 +80,9 @@ describe("Bar economy ProcessEconomy", function()
     local teamsList = buildTeams({ teamA, teamB, teamC })
     local _, flows = BarEconomy.ProcessEconomy(spring, teamsList)
 
-    local a = teamsList[1].metal
-    local b = teamsList[2].metal
-    local c = teamsList[3].metal
+    local a = teamsList[teamA.id].metal
+    local b = teamsList[teamB.id].metal
+    local c = teamsList[teamC.id].metal
 
     assert.is_near(566.67, a.current, 0.02)
     assert.is_near(566.67, b.current, 0.02)
@@ -106,7 +106,7 @@ describe("Bar economy ProcessEconomy", function()
     local cumulativeKey = ResourceShared.GetCumulativeParam(SharedEnums.ResourceType.METAL)
     assert.is_near(a.sent, spring.GetTeamRulesParam(teamA.id, cumulativeKey), 0.02)
     assert.is_near(b.sent, spring.GetTeamRulesParam(teamB.id, cumulativeKey), 0.02)
-    assert.equal(teamsList[3].metal.sent, spring.GetTeamRulesParam(teamC.id, cumulativeKey) or 0)
+    assert.equal(teamsList[teamC.id].metal.sent, spring.GetTeamRulesParam(teamC.id, cumulativeKey) or 0)
   end)
 
   it("shares taxed overflow and burns the remainder", function()
@@ -130,8 +130,8 @@ describe("Bar economy ProcessEconomy", function()
     local teamsList = buildTeams({ teamA, teamB })
     local _, flows = BarEconomy.ProcessEconomy(spring, teamsList)
 
-    local a = teamsList[1].metal
-    local b = teamsList[2].metal
+    local a = teamsList[teamA.id].metal
+    local b = teamsList[teamB.id].metal
 
     assert.is_near(733.33, a.current, 0.02)
     assert.is_near(733.33, b.current, 0.02)
@@ -175,8 +175,8 @@ describe("Bar economy ProcessEconomy", function()
     local teamsList = buildTeams({ teamA, teamB })
     local _, flows = BarEconomy.ProcessEconomy(spring, teamsList)
 
-    local a = teamsList[1].metal
-    local b = teamsList[2].metal
+    local a = teamsList[teamA.id].metal
+    local b = teamsList[teamB.id].metal
 
     assert.is_near(700, a.current, 0.01)
     assert.is_near(400, b.current, 0.01)

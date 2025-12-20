@@ -174,23 +174,20 @@ local function ProcessEconomy(frame, teams)
 	
 	local result = {}	
 	for teamId, team in pairs(updatedTeams) do
-		local id = team.id or teamId
-		if id then
-			result[id] = {
-				metal = {
-					current = team.metal.current,
-					sent = team.metal.sent,
-					received = team.metal.received,
-					excess = team.metal.excess
-				},
-				energy = {
-					current = team.energy.current,
-					sent = team.energy.sent,
-					received = team.energy.received,
-					excess = team.energy.excess
-				}
+		result[teamId] = {
+			metal = {
+				current = team.metal.current,
+				sent = team.metal.sent,
+				received = team.metal.received,
+				excess = team.metal.excess
+			},
+			energy = {
+				current = team.energy.current,
+				sent = team.energy.sent,
+				received = team.energy.received,
+				excess = team.energy.excess
 			}
-		end
+		}
 	end
 	stopwatch:Breakpoint("PostMunge")
 	
