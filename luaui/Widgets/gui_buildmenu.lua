@@ -273,14 +273,6 @@ local modKeyMultiplier = {
 }
 
 local disableWind = windFunctions.isWindDisabled()
-local voidWater = false
-local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
-if success and mapinfo then
-	voidWater = mapinfo.voidwater
-end
-
-local showWaterUnits = false
-
 
 local function checkGuishader(force)
 	if WG['guishader'] then
@@ -685,10 +677,6 @@ function widget:Update(dt)
 			widget:ViewResize()
 		end
 
-		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-		if not voidWater and mapMinWater <= units.minWaterUnitDepth and not showWaterUnits then
-			showWaterUnits = true
-		end
 
 		if stickToBottom then
 			if WG['advplayerlist_api'] ~= nil then
@@ -1669,22 +1657,9 @@ function widget:Initialize()
 
 end
 
-function widget:GameFrame(frameNum)
-	-- Periodic update of blocked units every 300 frames
-	blockedUnitsUpdateCounter = blockedUnitsUpdateCounter + 1
-	if blockedUnitsUpdateCounter >= 300 then
-		blockedUnitsUpdateCounter = 0
-		local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
-		for unitDefID, reasons in pairs(blockedUnitsData) do
-			for reason in pairs(reasons) do
-				units.unitRestricted[unitDefID] = true
-			end
-		end
-	end
-end
+
 
 function widget:UnitBlocked(unitDefID, teamID, reasons)
-	-- Handle unit blocking due to tech/terrain requirements
 	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
 	units.unitRestricted[unitDefID] = next(blockedUnitsData[unitDefID] or {}) ~= nil
 	clear()

@@ -300,7 +300,6 @@ local isPregame
 local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
 local grid = VFS.Include("luaui/configs/gridmenu_config.lua")
 
-local showWaterUnits = false
 
 local unitBuildOptions = {}
 local unitMetal_extractor = {}
@@ -1696,12 +1695,6 @@ function widget:Update(dt)
 				updateBuilders() -- builder rects are defined dynamically
 			end
 		end
-
-		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-		if mapMinWater <= units.minWaterUnitDepth and not showWaterUnits then
-			showWaterUnits = true
-		end
-
 		local prevOrdermenuLeft = ordermenuLeft
 		local prevOrdermenuHeight = ordermenuHeight
 		if WG["ordermenu"] then
