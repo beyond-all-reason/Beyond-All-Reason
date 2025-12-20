@@ -1505,7 +1505,7 @@ local options = {
         section = "options_experimental",
         def  	= false,
     },
-    
+
     {
         key     = "experimentallegionfaction_link",
         name    = "Development Discussion",
@@ -1541,7 +1541,7 @@ local options = {
         linkheight = 325,
         linkwidth = 350,
     },
-    
+
     {
         key		= "t2_tech_threshold",
         name   	= "Tech 2 Threshold",
@@ -1565,7 +1565,7 @@ local options = {
         max    	= 100000,
         step   	= 1,
     },
-    
+
     {
         key		= "tech_blocking_per_team",
         name   	= "Multiply Threshold by Player Count",
@@ -1780,6 +1780,15 @@ local options = {
         unlock  = {
             "allow_enemy_ai_spawn_placement", --remove when map_startbox_experimental/game_initial_spawn_experimental experiment is over
         },
+    },
+
+    {
+        key 	= "pip",
+        name 	= "Picture-in-picture window",
+        desc 	= "Enables the picture-in-picture window showing a minimap-sized view of a chosen location.",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
     },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

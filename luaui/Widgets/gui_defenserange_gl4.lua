@@ -170,6 +170,7 @@ local mobileAntiUnitDefs = {
 	[UnitDefNames.corcarry.id] = true,
 	[UnitDefNames.armantiship.id] = true,
 	[UnitDefNames.corantiship.id] = true,
+	[UnitDefNames.leganavyantinukecarrier.id] = true,
 }
 
 local defensePosHash = {} -- key: {poshash=unitID}
@@ -328,6 +329,7 @@ local function initUnitList()
 		['leglraa'] = { weapons = { 'air' } }, --T2 LR-AA
 		['legperdition'] = { weapons = { 'cannon' } }, --T2 LR-AA
 		['legapopupdef'] = { weapons = { 'ground' } }, --popup riot/minigun turret
+		['leganavyantinukecarrier'] = { weapons = { 'nuke' } },
 
 		['legstarfall'] = { weapons = { 'lrpc' } },
 		['leglrpc'] = { weapons = { 'lrpc' } },

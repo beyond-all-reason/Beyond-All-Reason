@@ -3493,6 +3493,10 @@ function init()
 		  end,
 		},
 
+
+		{ id = "pip", group = "ui", category = types.advanced, widget = "Picture-in-Picture", name = Spring.I18N('ui.settings.option.pip'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture"), description = Spring.I18N('ui.settings.option.pip_descr') },
+		{ id = "pip2", group = "ui", category = types.advanced, widget = "Picture-in-Picture 2", name = Spring.I18N('ui.settings.option.pip2'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture 2"), description = Spring.I18N('ui.settings.option.pip2_descr') },
+
 		{ id = "buildmenu_bottom", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.buildmenu') ..widgetOptionColor.. "  " .. Spring.I18N('ui.settings.option.buildmenu_bottom'), type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getBottomPosition ~= nil and WG['buildmenu'].getBottomPosition()), description = Spring.I18N('ui.settings.option.buildmenu_bottom_descr'),
 		  onload = function(i)
 		  end,
