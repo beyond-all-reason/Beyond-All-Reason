@@ -195,7 +195,6 @@ local function updateTechPointsData()
 	return cachedDataTable
 end
 
-
 local function createTechPointsElements()
 	if not widgetState.document then
 		return
@@ -211,7 +210,6 @@ local function createTechPointsElements()
 		widgetState.popupElement = popupElement
 	end
 end
-
 
 local function updatePopups(techLevel)
 	if not widgetState.initialPopupShown and widgetState.gameStartTime and (popupsEnabled or Spring.GetGameFrame() > POPUP_DELAY_FRAMES) then
@@ -290,7 +288,6 @@ local function updateUI()
 		widgetState.lastDisplayedIsNegative = data.isNegative
 	end
 end
-
 
 function widget:Initialize()
 	widgetState.gameStartTime = os.clock()
@@ -375,7 +372,6 @@ function widget:Update(dt)
 		updateUI()
 	end
 end
-
 
 function widget:RecvLuaMsg(message, playerID)
 	local document = widgetState.document

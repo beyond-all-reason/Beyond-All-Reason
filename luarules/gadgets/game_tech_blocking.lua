@@ -234,7 +234,6 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID)
 		end
 		local techLevel = spGetTeamRulesParam(unitTeam, "tech_level")
 		if techLevel < blockTechDefs[buildUnitDefID] then
-			GG.UnitBlocking.AddBlockedUnit(buildUnitDefID, unitTeam, "tech_level_" .. blockTechDefs[buildUnitDefID])
 			return false
 		end
 	end

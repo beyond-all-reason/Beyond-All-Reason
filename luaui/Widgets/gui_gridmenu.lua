@@ -1007,6 +1007,7 @@ local function setActiveCommand(cmd, button, leftClick, rightClick)
 		or Spring.SetActiveCommand(cmd)
 
 	if not didChangeCmd then
+		Spring.Echo("<Grid menu> Unable to change active command", cmd)
 		return
 	end
 

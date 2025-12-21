@@ -18,7 +18,6 @@ function unitBlocking.getBlockedUnitDefs(unitDefIDs)
 	local blockedUnits = {}
 
 	if unitDefIDs then
-		-- Validate specific UnitDefIDs
 		for i, unitDefID in ipairs(unitDefIDs) do
 			if type(unitDefID) ~= "number" then
 				Spring.Log("unitBlocking", LOG.ERROR, "getBlockedUnitDefs: unitDefID at index " .. i .. " is not a number (got " .. type(unitDefID) .. ": " .. tostring(unitDefID) .. ")")

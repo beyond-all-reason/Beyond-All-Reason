@@ -12,13 +12,6 @@ function gadget:GetInfo()
 	}
 end
 
---[[
-todo:
--- cleanup and verify diff with gui_gridmenu.lua and gui_buildmenu.lua
--- rename the api to something more descriptive
-
-]]
-
 if gadgetHandler:IsSyncedCode() then
 
 	local DEFAULT_KEY = "defaultKey"

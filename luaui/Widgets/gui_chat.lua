@@ -1422,9 +1422,6 @@ function widget:RecvLuaMsg(msg, playerID)
 		if not chobbyInterface then
 			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 		end
-	elseif msg:sub(1,22) == 'AddAutocompleteCommand' then
-		local cmd = msg:sub(24) -- skip "AddAutocompleteCommand:"
-		WG['chat'].addAutocompleteCommand(cmd)
 	end
 end
 
@@ -2629,20 +2626,6 @@ function widget:Initialize()
 	end
 	WG['chat'].removeChatProcessor = function(id)
 		chatProcessors[id] = nil
-	end
-	WG['chat'].addAutocompleteCommand = function(cmd)
-		if type(cmd) == 'string' and cmd ~= '' then
-			local found = false
-			for k, existingCmd in ipairs(autocompleteCommands) do
-				if existingCmd == cmd then
-					found = true
-					break
-				end
-			end
-			if not found then
-				table.insert(autocompleteCommands, cmd)
-			end
-		end
 	end
 
 	for orgLineID, params in ipairs(orgLines) do
