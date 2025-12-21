@@ -2,7 +2,7 @@ return {
 	leganavyantinukecarrier = {
 		activatewhenbuilt = true,
 		buildangle = 16384,
-		builder = true,
+		--builder = true,
 		buildpic = "leganavyantinukecarrier.DDS",
 		buildtime = 20000,
 		canassist = false,
@@ -32,7 +32,7 @@ return {
 		minwaterdepth = 15,
 		movementclass = "BOAT5",
 		movestate = 0,
-		nochasecategory = "ALL",
+		nochasecategory = "VTOL",
 		objectname = "Units/leganavyantinukecarrier.s3o",
 		radardistance = 1500,
 		radaremitheight = 56,
@@ -57,7 +57,7 @@ return {
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
 			techlevel = 2,
-			unitgroup = "antinuke",
+			--unitgroup = "antinuke",
 		},
 		featuredefs = {
 			dead = {
@@ -231,11 +231,11 @@ return {
 			},
 		},
 		weapons = {
-			[1] = {
+			[2] = {
 				badtargetcategory = "ALL",
 				def = "amd_rocket",
 			},
-			[2] = {
+			[1] = {
 				badtargetcategory = "VTOL",
 				def = "leg_drone_controller",
 				onlytargetcategory = "NOTSUB",

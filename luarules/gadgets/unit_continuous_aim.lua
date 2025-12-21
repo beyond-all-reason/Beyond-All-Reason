@@ -144,6 +144,8 @@ local convertedUnitsNames = {
 	['legehovertank'] = 4,
 	['armanavaldefturret'] = 4,
 	['leganavyflagship'] = 4,
+	['leganavyantiswarm'] = 5,
+	['leganavycruiser'] = 5,
 }
 --add entries for scavboss
 local scavengerBossV4Table = {'scavengerbossv4_veryeasy', 'scavengerbossv4_easy', 'scavengerbossv4_normal', 'scavengerbossv4_hard', 'scavengerbossv4_veryhard', 'scavengerbossv4_epic',

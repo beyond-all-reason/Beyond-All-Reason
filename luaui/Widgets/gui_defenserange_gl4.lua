@@ -287,10 +287,8 @@ local function initUnitList()
 		['coranavaldefturret'] = { weapons = { 'ground' } },  --orthrus
 		['cortl'] = { weapons = { 'ground' } }, --torp launcher
 		['coratl'] = { weapons = { 'ground' } }, --T2 torp launcher
-		['leganavaltorpturret'] = { weapons = { 'ground' } }, --T2 torp launcher
 		['corfrt'] = { weapons = { 'air' } }, --floating rocket laucher
 		['corenaa'] = { weapons = { 'air' } }, --floating flak AA
-		['leganavalaaturret'] = { weapons = { 'air' } }, --floating flak AA
 		['corfdoom'] = { weapons = { [1] = 'cannon' } },
 
 		['cortoast'] = { weapons = { 'cannon' } },
@@ -331,6 +329,7 @@ local function initUnitList()
 		['leglraa'] = { weapons = { 'air' } }, --T2 LR-AA
 		['legperdition'] = { weapons = { 'cannon' } }, --T2 LR-AA
 		['legapopupdef'] = { weapons = { 'ground' } }, --popup riot/minigun turret
+		['leganavyantinukecarrier'] = { weapons = { 'nuke' } },
 
 		['legstarfall'] = { weapons = { 'lrpc' } },
 		['leglrpc'] = { weapons = { 'lrpc' } },
