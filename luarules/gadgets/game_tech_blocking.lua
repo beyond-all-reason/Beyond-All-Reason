@@ -101,7 +101,7 @@ local function increaseTechLevel(teamList, notificationEvent, techLevel)
 			-- Unblock units that are now available at the new tech level
 			for unitDefID, requiredLevel in pairs(blockTechDefs) do
 				if requiredLevel <= techLevel then
-					GG.UnitBlocking.RemoveBlockedUnit(unitDefID, teamID, "tech_level_" .. requiredLevel)
+					GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, "tech_level_" .. requiredLevel)
 				end
 			end
 		end
@@ -133,7 +133,7 @@ function gadget:GameStart()
 			local techLevel = spGetTeamRulesParam(teamID, "tech_level") or 1
 			for unitDefID, requiredLevel in pairs(blockTechDefs) do
 				if techLevel < requiredLevel then
-					GG.UnitBlocking.AddBlockedUnit(unitDefID, teamID, "tech_level_" .. requiredLevel)
+					GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "tech_level_" .. requiredLevel)
 				end
 			end
 		end

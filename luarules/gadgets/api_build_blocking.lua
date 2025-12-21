@@ -48,7 +48,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	GG.UnitBlocking = GG.UnitBlocking or {}
+	GG.BuildBlocking = GG.BuildBlocking or {}
 
 	local function reasonConcatenator(reasonsTable)
 		local concatenatedReasons = {}
@@ -113,7 +113,7 @@ if gadgetHandler:IsSyncedCode() then
 			if unitDefID and UnitDefs[unitDefID] then
 				local actuallyBlocked = false
 				for _, teamID in ipairs(teamsToProcess) do
-					GG.UnitBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
+					GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
 					actuallyBlocked = true
 				end
 				if actuallyBlocked then
@@ -168,7 +168,7 @@ if gadgetHandler:IsSyncedCode() then
 			if unitDefID and UnitDefs[unitDefID] then
 				local actuallyUnblocked = false
 				for _, teamID in ipairs(teamsToProcess) do
-					if GG.UnitBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey) then
+					if GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey) then
 						actuallyUnblocked = true
 					end
 				end
@@ -184,29 +184,60 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.SendMessageToPlayer(playerID, "Unblocked " .. unblockedCount .. " unit(s) with reason '" .. reasonKey .. "' for " .. teamMsg)
 	end
 
-	local function UpdateAllModoptionRestrictions()
-		for _, teamID in ipairs(teamsList) do
-			if not ignoredTeams[teamID] then
-				GG.UnitBlocking.UpdateModoptionRestrictions(teamID)
+	local function UpdateModoptionRestrictions(teamID)
+		for unitDefID, unitDef in pairs(UnitDefs) do
+			if unitDef.maxThisUnit == 0 then
+				local unitName = UnitDefs[unitDefID] and UnitDefs[unitDefID].name or ("ID:" .. unitDefID)
+				GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "modoption_blocked")
 			end
 		end
 	end
 
-	function GG.UnitBlocking.UpdateModoptionRestrictions(teamID)
-		for unitDefID, unitDef in pairs(UnitDefs) do
-			if unitDef.maxThisUnit == 0 then
+	local function UpdateAllModoptionRestrictions()
+		for _, teamID in ipairs(teamsList) do
+			if not ignoredTeams[teamID] then
+				UpdateModoptionRestrictions(teamID)
+			end
+		end
+	end
+
+	local function UpdateTerrainRestrictions(teamID)
+		if windDisabled then
+			for unitDefID in pairs(unitRestrictions.isWind) do
 				local unitName = UnitDefs[unitDefID] and UnitDefs[unitDefID].name or ("ID:" .. unitDefID)
-				GG.UnitBlocking.AddBlockedUnit(unitDefID, teamID, "modoption_blocked")
+				GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "terrain_wind")
+			end
+		end
+
+		if not waterAvailable then
+			for unitDefID in pairs(unitRestrictions.isWaterUnit) do
+				local unitName = UnitDefs[unitDefID] and UnitDefs[unitDefID].name or ("ID:" .. unitDefID)
+				GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "terrain_water")
+			end
+		end
+
+		if not geoAvailable then
+			for unitDefID in pairs(unitRestrictions.isGeothermal) do
+				local unitName = UnitDefs[unitDefID] and UnitDefs[unitDefID].name or ("ID:" .. unitDefID)
+				GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "terrain_geothermal")
+			end
+		end
+	end
+
+	local function UpdateAllTerrainRestrictions()
+		for _, teamID in ipairs(teamsList) do
+			if not ignoredTeams[teamID] then
+				UpdateTerrainRestrictions(teamID)
 			end
 		end
 	end
 
 	function gadget:Initialize()
-		GG.UnitBlocking = GG.UnitBlocking or {}
+		GG.BuildBlocking = GG.BuildBlocking or {}
 		windDisabled = unitRestrictions.isWindDisabled()
 		waterAvailable = unitRestrictions.shouldShowWaterUnits()
 		geoAvailable = unitRestrictions.hasGeothermalFeatures()
-		GG.UnitBlocking.UpdateAllTerrainRestrictions()
+		UpdateAllTerrainRestrictions()
 		UpdateAllModoptionRestrictions()
 
 		gadgetHandler:AddChatAction('buildblock', commandBuildBlock, "Block units from being built by reason")
@@ -218,7 +249,7 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveChatAction('buildunblock')
 	end
 
-	function GG.UnitBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
+	function GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
 		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
 		if not blockedUnitDefs then
 			return
@@ -230,7 +261,7 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced("UnitBlocked", unitDefID, teamID, blockedUnitDefs[unitDefID])
 	end
 
-	function GG.UnitBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey)
+	function GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey)
 		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
 		if not blockedUnitDefs then
 			return false
@@ -251,56 +282,6 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced("UnitBlocked", unitDefID, teamID, blockedUnitDefs[unitDefID])
 		return wasRemoved
 	end
-
-	function GG.UnitBlocking.IsUnitBlocked(unitDefID, teamID)
-		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
-		if not blockedUnitDefs then
-			return false, nil
-		end
-		local isBlocked = next(blockedUnitDefs[unitDefID]) or false
-		return isBlocked, isBlocked and blockedUnitDefs[unitDefID]
-	end
-
-	function GG.UnitBlocking.ShouldUnitBeHidden(unitDefID, teamID)
-		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
-		if not blockedUnitDefs or not blockedUnitDefs[unitDefID] then
-			return false
-		end
-		return blockedUnitDefs[unitDefID]["hidden"] ~= nil
-	end
-
-	function GG.UnitBlocking.UpdateTerrainRestrictions(teamID)
-		if windDisabled then
-			for unitDefID in pairs(unitRestrictions.isWind) do
-				local unitName = UnitDefs[unitDefID] and UnitDefs[unitDefID].name or ("ID:" .. unitDefID)
-				GG.UnitBlocking.AddBlockedUnit(unitDefID, teamID, "terrain_wind")
-			end
-		end
-
-		if not waterAvailable then
-			for unitDefID in pairs(unitRestrictions.isWaterUnit) do
-				local unitName = UnitDefs[unitDefID] and UnitDefs[unitDefID].name or ("ID:" .. unitDefID)
-				GG.UnitBlocking.AddBlockedUnit(unitDefID, teamID, "terrain_water")
-			end
-		end
-
-		if not geoAvailable then
-			for unitDefID in pairs(unitRestrictions.isGeothermal) do
-				local unitName = UnitDefs[unitDefID] and UnitDefs[unitDefID].name or ("ID:" .. unitDefID)
-				GG.UnitBlocking.AddBlockedUnit(unitDefID, teamID, "terrain_geothermal")
-			end
-		end
-	end
-
-	function GG.UnitBlocking.UpdateAllTerrainRestrictions()
-		for _, teamID in ipairs(teamsList) do
-			if not ignoredTeams[teamID] then
-				GG.UnitBlocking.UpdateTerrainRestrictions(teamID)
-			end
-		end
-	end
-
-
 
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID)
 		if cmdID < 0 then --it's a build command
