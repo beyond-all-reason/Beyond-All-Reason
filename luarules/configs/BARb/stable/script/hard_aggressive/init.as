@@ -6,12 +6,12 @@ namespace Init {
 
 SInitInfo AiInit()
 {
-	AiLog("hard_aggressive AngelScript Rules!");
+	AiLog("hard AngelScript Rules!");
 
 	SInitInfo data;
 	data.armor = InitArmordef();
 	data.category = InitCategories();
-	@data.profile = @(array<string> = {"behaviour_arm","behaviour_cor", "block_map", "build_chain_arm", "build_chain_cor", "commander", "economy_arm", "economy_cor", "factory_arm", "factory_cor", "response"});
+	@data.profile = @(array<string> = {"behaviour", "block_map", "build_chain", "commander", "economy", "factory", "response"});
 	if (string(aiSetupMgr.GetModOptions()["experimentallegionfaction"]) == "1") {
 		AiLog("Inserting Legion");
 		Side::LEGION = aiSideMasker.GetTypeMask("legion");
