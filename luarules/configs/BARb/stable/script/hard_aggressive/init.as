@@ -6,7 +6,7 @@ namespace Init {
 
 SInitInfo AiInit()
 {
-	AiLog("hard AngelScript Rules!");
+	AiLog("hard_aggressive AngelScript Rules!");
 
 	SInitInfo data;
 	data.armor = InitArmordef();
