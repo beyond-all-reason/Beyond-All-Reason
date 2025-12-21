@@ -133,33 +133,49 @@ end
 --this is here to expose setgoal and cleargoal for widgets to use
 function gadget:RecvLuaMsg(msg, playerID)
 	--TODO: add checks to verify if the unit actually belongs to the player sending the message
+	local _, _, _, teamID = Spring.GetPlayerInfo(playerID)
 	if msg:sub(1, 4) == "POS|" then
 		local _, unitID, x, y, z = msg:match("([^|]+)|([^|]+)|([^|]+)|([^|]+)|([^|]+)")
-		unitID = tonumber(unitID)
-		x, y, z = tonumber(x), tonumber(y), tonumber(z)
 
-		if unitID and x and y and z then
-			-- Echo("Setting move goal")
-			-- Do something with the data here, e.g. issue orders, update state
-			Spring.SetUnitMoveGoal(unitID, x, y, z)
+		unitID = tonumber(unitID)
+		if Spring.GetUnitTeam(unitID) == teamID then
+			x, y, z = tonumber(x), tonumber(y), tonumber(z)
+
+			if unitID and x and y and z then
+				-- Echo("Setting move goal")
+				-- Do something with the data here, e.g. issue orders, update state
+				Spring.SetUnitMoveGoal(unitID, x, y, z)
+			end
+			return true -- handled
 		end
-		return true -- handled
 	elseif msg:sub(1, 4) == "TSTP" then
 		-- Decode TSTP message
 		local _, unitID = msg:match("([^|]+)|([^|]+)")
+
 		unitID = tonumber(unitID)
-		if unitID then
-			-- Echo("Clearing move goal")
-			local x, y, z = Spring.GetUnitPosition(unitID)
-			-- Do something with the unitID
-			Spring.ClearUnitGoal(unitID)
-			Spring.SetUnitMoveGoal(unitID, x, y, z)
+		if Spring.GetUnitTeam(unitID) == teamID then
+			if unitID then
+				-- Echo("Clearing move goal")
+				local x, y, z = Spring.GetUnitPosition(unitID)
+				-- Do something with the unitID
+				Spring.ClearUnitGoal(unitID)
+				Spring.SetUnitMoveGoal(unitID, x, y, z)
+			end
+			return true
 		end
-		return true
 	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, teamID) end
+
+function gadget:AllowCommand(uID, uDefID, unitTeam, cmdID)
+	if cmdID == CMD_TRANSPORT_TO then
+		if not isTransportableDef[uDefID] then
+			return false
+		end
+	end
+	return true
+end
 
 function gadget:Initialize()
 	buildDefCaches()
