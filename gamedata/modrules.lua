@@ -93,6 +93,11 @@ local modrules = {
 		allowTake = true,				-- Enables and disables the /take UI command.
 		LuaAllocLimit = 1536,			-- default: 1536.  Global Lua alloc limit (in megabytes)
 		enableSmoothMesh = true,
+		-- Enable game-side economy controller
+		game_economy = true,
+		economy_audit_mode = "process_economy",
+		economy_audit_enabled = true,
+		solver_audit_enabled = true,
 		
 		pathFinderSystem = useQTPFS and 1 or 0,			-- Which pathfinder does the game use? Can be 0 - The legacy default pathfinder, 1 - Quad-Tree Pathfinder System (QTPFS) or -1 - disabled.
 		--pathFinderUpdateRate = 0.0001,	-- default: 0.007.  Controls how often the pathfinder updates; larger values means more rapid updates

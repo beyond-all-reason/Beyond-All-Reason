@@ -12,24 +12,20 @@ function gadget:GetInfo()
 	}
 end
 
+local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
+
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local allowAssist = not Spring.GetModOptions().disable_assist_ally_construction
-if allowAssist then
-	return false
+local modOptValue = Spring.GetModOptions()[SharedEnums.ModOptions.AlliedAssistMode]
+local assistEnabled = modOptValue == SharedEnums.AlliedAssistMode.Enabled
+Spring.Echo("[AlliedAssistMode] modoption key=" .. tostring(SharedEnums.ModOptions.AlliedAssistMode) .. " value=" .. tostring(modOptValue) .. " expected=" .. tostring(SharedEnums.AlliedAssistMode.Enabled) .. " assistEnabled=" .. tostring(assistEnabled))
+if assistEnabled then
+	Spring.Echo("[AlliedAssistMode] Assist is ENABLED - gadget will NOT block commands")
+	return
 end
-
-local function isComplete(u)
-	local _,_,_,_,buildProgress = Spring.GetUnitHealth(u)
-	if buildProgress and buildProgress>=1 then
-		return true
-	else
-		return false
-	end
-end
-
+Spring.Echo("[AlliedAssistMode] Assist is DISABLED - gadget WILL block guard/assist commands to allies")
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 
@@ -44,21 +40,14 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 				return false
 			end
 		end
-		return true
-	end
-
 	-- Also disallow assisting building (caused by a repair command) units under construction
 	-- Area repair doesn't cause assisting, so it's fine that we can't properly filter it
-	if cmdID == CMD.REPAIR and #cmdParams == 1 then
+	elseif (cmdID == CMD.RECLAIM and #cmdParams >= 1) then
 		local targetID = cmdParams[1]
 		local targetTeam = Spring.GetUnitTeam(targetID)
-
-		if targetTeam and unitTeam ~= Spring.GetUnitTeam(targetID) and Spring.AreTeamsAllied(unitTeam, targetTeam) then
-			if not isComplete(targetID) then
-				return false
-			end
+		if targetTeam and unitTeam ~= targetTeam and Spring.AreTeamsAllied(unitTeam, targetTeam) then
+			return false
 		end
-		return true
 	end
 
 	return true
