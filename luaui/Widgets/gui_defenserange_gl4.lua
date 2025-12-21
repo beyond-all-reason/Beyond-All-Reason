@@ -163,20 +163,22 @@ local unitDefRings = {} --each entry should be  a unitdefIDkey to very specific 
 	}
 ]]--
 
-local mobileAntiUnitDefs = {
-	armscab = true,
-	armcarry = true,
-	cormabm = true,
-	corcarry = true,
-	armantiship = true,
-	corantiship = true,
-	leganavyantinukecarrier = true,
+local mobileAntiUnitNames = {
+	'armscab',
+	'armcarry',
+	'cormabm',
+	'corcarry',
+	'armantiship',
+	'corantiship',
+	'leganavyantinukecarrier'
 }
-for key, value in pairs(mobileAntiUnitDefs) do
-	mobileAntiUnitDefs[key] = nil
-	if UnitDefNames[key] then
-		mobileAntiUnitDefs[UnitDefNames[key].id] = true
-	end
+
+local mobileAntiUnitDefs = {}
+
+for _, unit in ipairs(mobileAntiUnitNames) do
+    if UnitDefNames[unit] then
+        mobileAntiUnitDefs[UnitDefNames[unit].id] = true
+    end
 end
 
 local defensePosHash = {} -- key: {poshash=unitID}
