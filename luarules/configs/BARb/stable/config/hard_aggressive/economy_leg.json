@@ -16,7 +16,8 @@
 			"legtide": [140, 250],
 			"legwin": [100, 200],
 			"legsolar": [10],
-			"legadvsol": [120, 160]
+			"legadvsol": [120, 160],
+			"leganavalfusion": [100, 200]
 		},
 		// income factor for energy, time is in seconds
 		// [[<start_factor>, <start_time>], [<end_factor>, <end_time>]]
