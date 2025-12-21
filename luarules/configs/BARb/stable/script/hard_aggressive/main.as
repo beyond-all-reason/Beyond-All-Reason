@@ -29,7 +29,7 @@ void AiMain()
 	array<string> names = {Factory::armalab, Factory::coralab, Factory::legalab, Factory::armavp, Factory::coravp, Factory::legavp,
 		Factory::armaap, Factory::coraap, Factory::legaap, Factory::armasy, Factory::corasy, Factory::legadvshipyard}; 
 	for (uint i = 0; i < names.length(); ++i) {
-		CCircuitDef@ cdef = ai.GetCircuitDef(names[i]);
+		CCircuitDef@ cdef = ai.GetCircuitDef(names[i]); 
 		if (cdef !is null)
 			Factory::userData[cdef.id].attr |= Factory::Attr::T2;
 	}

@@ -122,7 +122,7 @@
 		"legalab": {
 			"hub": [
 					//[{"unit": "legarad", "category": "defence", "offset": {"back": 100}, "priority": "normal"}],
-					[{"unit": "legacluster", "category": "defence", "offset": {"front": 100}, "priority": "low"}]
+					[{"unit": "legacluster", "category": "defence", "offset": {"front": 100}, "priority": "low"}] 
 		]
 		},
 		"legavp": {

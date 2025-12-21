@@ -94,7 +94,7 @@
 		"factory": {
 			"leglab": {
 				"hub": [[
-					{"unit": "leglht", "category": "defence", "offset": {"front": 5}, "priority": "normal"}
+					{"unit": "leglht", "category": "defence", "offset": {"front": 5}, "priority": "normal"} 
 				]]
 			},
 			"legalab": {
