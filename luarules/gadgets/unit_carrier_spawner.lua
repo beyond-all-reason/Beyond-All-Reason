@@ -988,7 +988,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	local carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
 	if not carrierx then
 		if not inUnitDestroyed then
-			gadget:UnitDestroyed(unitID)
+			gadget:UnitDestroyed(carrierID)
 		end
 		return
 	end
