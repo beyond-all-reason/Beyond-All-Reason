@@ -23,8 +23,7 @@ local SharedConfig = VFS.Include("common/luaUtilities/economy/shared_config.lua"
 local Shared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_shared.lua")
 local ContextFactoryModule = VFS.Include("common/luaUtilities/team_transfer/context_factory.lua")
 local ResourceTransfer = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_synced.lua")
-local AuditLog = VFS.Include("common/luaUtilities/economy/economy_audit_log.lua")
-local Stopwatch = VFS.Include("common/luaUtilities/stopwatch.lua")
+local EconomyLog = VFS.Include("common/luaUtilities/economy/economy_log.lua")
 local WaterfillSolver = VFS.Include("common/luaUtilities/economy/bar_economy_waterfill_solver.lua")
 
 local ResourceType = SharedEnums.ResourceType
@@ -42,6 +41,8 @@ local POLICY_UPDATE_RATE = 30
 --------------------------------------------------------------------------------
 -- ResourceExcess Implementation
 -- This mirrors the ProcessEconomy path but uses the ResourceExcess callin
+-- Note: economyAudit.Begin("RE", frame) is called by C++ before this runs,
+-- so source_path and frame context are already set for all logging.
 --------------------------------------------------------------------------------
 
 ---Build team data table from current game state + excess table
@@ -117,9 +118,8 @@ local function ApplyResults(results, frame, ledgers)
 		local metalFlow = ledger[ResourceType.METAL] or { sent = 0, received = 0 }
 		local energyFlow = ledger[ResourceType.ENERGY] or { sent = 0, received = 0 }
 
-		-- Update cumulative sent tracking
-		ResourceTransfer.UpdateCumulativeSent(springRepo, teamId, ResourceType.METAL, metalFlow.sent)
-		ResourceTransfer.UpdateCumulativeSent(springRepo, teamId, ResourceType.ENERGY, energyFlow.sent)
+		-- NOTE: Cumulative sent tracking is handled by WaterfillSolver.Solve via updateCumulative()
+		-- Do NOT call UpdateCumulativeSent here - it would double-count!
 		
 		-- Track stats using the correct API format: AddTeamResourceStats(teamID, {stat = {metal, energy}})
 		local mSentVal = metalFlow.sent
@@ -162,12 +162,9 @@ function gadget:ResourceExcess(excesses)
 		return true  -- We handled it (trivially)
 	end
 	
-	local stopwatch = Stopwatch.new(springRepo.GetAuditTimer)
-	stopwatch:Start()
-	
 	-- Build team data from current state + excesses
 	local teams = BuildTeamData(excesses)
-	stopwatch:Breakpoint("RE_LuaMunge")
+	EconomyLog.Breakpoint("LuaMunge")
 	
 	local teamCount = 0
 	for _ in pairs(teams) do teamCount = teamCount + 1 end
@@ -180,29 +177,27 @@ function gadget:ResourceExcess(excesses)
 	local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
 	
 	-- Log frame start
-	AuditLog.FrameStart(frame, taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY], teamCount)
+	EconomyLog.FrameStart(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY], teamCount)
 	
 	-- Run the waterfill solver
-	local updatedTeams, allLedgers = WaterfillSolver.Solve(springRepo, teams, frame)
-	stopwatch:Breakpoint("RE_Solver")
+	local updatedTeams, allLedgers = WaterfillSolver.Solve(springRepo, teams)
+	EconomyLog.Breakpoint("Solver")
 	
 	-- Apply results back to engine
 	ApplyResults(updatedTeams, frame, allLedgers)
-	stopwatch:Breakpoint("RE_PostMunge")
+	EconomyLog.Breakpoint("PostMunge")
 	
 	-- Log outputs
 	for teamId, team in pairs(updatedTeams) do
 		local ledger = allLedgers[teamId] or {}
 		local m = ledger[ResourceType.METAL] or {}
 		local e = ledger[ResourceType.ENERGY] or {}
-		AuditLog.TeamOutput(frame, teamId, "metal", team.metal.current, m.sent or 0, m.received or 0)
-		AuditLog.TeamOutput(frame, teamId, "energy", team.energy.current, e.sent or 0, e.received or 0)
+		EconomyLog.TeamOutput(teamId, "metal", team.metal.current, m.sent or 0, m.received or 0)
+		EconomyLog.TeamOutput(teamId, "energy", team.energy.current, e.sent or 0, e.received or 0)
 	end
 	
 	lastPolicyUpdate = ResourceTransfer.UpdatePolicyCache(springRepo, frame, lastPolicyUpdate, POLICY_UPDATE_RATE, contextFactory)
-	stopwatch:Breakpoint("RE_PolicyCache")
-	
-	stopwatch:Log(frame, "[SolverAudit-ResourceExcess]")
+	EconomyLog.Breakpoint("PolicyCache")
 	
 	return true  -- We handled the excess
 end
@@ -218,7 +213,7 @@ function gadget:Initialize()
 	end
 	
 	-- Check mode from engine (set via modrules.lua economy_audit_mode)
-	local mode = AuditLog.GetMode()
+	local mode = Game.economyAuditMode or "off"
 	Spring.Echo("[ResourceExcessController] Current mode: " .. tostring(mode))
 	
 	if mode == "process_economy" then
@@ -229,4 +224,3 @@ function gadget:Initialize()
 		isActive = true
 	end
 end
-

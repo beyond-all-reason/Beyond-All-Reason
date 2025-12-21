@@ -23,8 +23,7 @@ local ResourceTransfer = VFS.Include("common/luaUtilities/team_transfer/resource
 local Shared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_shared.lua")
 local Comms = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_comms.lua")
 local LuaRulesMsg = VFS.Include("common/luaUtilities/lua_rules_msg.lua")
-local Stopwatch = VFS.Include("common/luaUtilities/stopwatch.lua")
-local AuditLog = VFS.Include("common/luaUtilities/economy/economy_audit_log.lua")
+local EconomyLog = VFS.Include("common/luaUtilities/economy/economy_log.lua")
 
 local ResourceType = SharedEnums.ResourceType
 
@@ -130,21 +129,25 @@ end
 
 --------------------------------------------------------------------------------
 -- ProcessEconomy
+-- Note: economyAudit.Begin("PE", frame) is called by C++ before this runs,
+-- so source_path and frame context are already set for all logging.
 --------------------------------------------------------------------------------
 
 ---@param frame number
 ---@param teams table<number, TeamResourceData>
 ---@return EconomyTeamResult[]
 local function ProcessEconomy(frame, teams)
-	local stopwatch = Stopwatch.new(Spring.GetAuditTimer)
-	stopwatch:Start()
+	local teamCount = 0
+	for _ in pairs(teams) do teamCount = teamCount + 1 end
 	
+	local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
+	EconomyLog.FrameStart(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY], teamCount)
 	
-	stopwatch:Breakpoint("PE_Solver")
+	EconomyLog.Breakpoint("Solver")
 	
-	local updatedTeams, allLedgers = ResourceTransfer.WaterfillSolve(springRepo, teams, frame)
+	local updatedTeams, allLedgers = ResourceTransfer.WaterfillSolve(springRepo, teams)
 	
-	local result = {}	
+	local result = {}
 	for teamId, team in pairs(updatedTeams) do
 		local ledger = allLedgers[teamId] or {}
 		
@@ -164,12 +167,10 @@ local function ProcessEconomy(frame, teams)
 			received = ledger[ResourceType.ENERGY] and ledger[ResourceType.ENERGY].received or 0,
 		}
 	end
-	stopwatch:Breakpoint("PE_PostMunge")
+	EconomyLog.Breakpoint("PostMunge")
 	
 	lastPolicyUpdate = ResourceTransfer.UpdatePolicyCache(springRepo, frame, lastPolicyUpdate, POLICY_UPDATE_RATE, contextFactory)
-	stopwatch:Breakpoint("PE_PolicyCache")
-	
-	stopwatch:Log(frame)
+	EconomyLog.Breakpoint("PolicyCache")
 	
 	return result
 end
@@ -187,14 +188,8 @@ function gadget:Initialize()
 	Spring.Echo("[ResourceTransferController] Initialize starting...")
 	
 	-- Mode is now controlled at engine level via modrules.lua economy_audit_mode
-	local currentMode = AuditLog.GetMode()  -- Returns "off", "process_economy", "resource_excess", or "alternate"
+	local currentMode = Game.economyAuditMode or "off"
 	Spring.Echo("[ResourceTransferController] Engine audit mode: " .. tostring(currentMode))
-	
-	if Spring.GetAuditTimer then
-		Spring.Echo("[ResourceTransferController] Timer available: Spring.GetAuditTimer")
-	else
-		Spring.Echo("[ResourceTransferController] WARNING: Spring.GetAuditTimer not available - rebuild engine for Lua-side timing")
-	end
 	
 	local teamList = springRepo.GetTeamList() or {}
 	Spring.Echo("[ResourceTransferController] Found " .. #teamList .. " teams")
@@ -202,6 +197,21 @@ function gadget:Initialize()
 		InitializeNewTeam(senderTeamId)
 	end
 	lastPolicyUpdate = springRepo.GetGameFrame()
+	
+	if Spring.IsEconomyAuditEnabled() then
+		for _, teamId in ipairs(teamList) do
+			local _, leader, _, isAI, _, allyTeam = Spring.GetTeamInfo(teamId)
+			local name
+			if isAI then
+				local _, aiName = Spring.GetAIInfo(teamId)
+				name = aiName or ("AI " .. teamId)
+			else
+				local playerName = leader and Spring.GetPlayerInfo(leader, false) or nil
+				name = playerName or ("Player " .. teamId)
+			end
+			EconomyLog.TeamInfo(teamId, name, isAI)
+		end
+	end
 	
 	-- Register ProcessEconomy controller unless in pure RESOURCE_EXCESS mode
 	-- (in ALTERNATE mode, the engine will skip calling ProcessEconomy on alternate cycles)

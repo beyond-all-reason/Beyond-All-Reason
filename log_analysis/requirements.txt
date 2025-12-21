@@ -1,6 +1,5 @@
 pandas
-plotnine
-matplotlib
-jupyter
-notebook
-ipywidgets
+plotly
+dash
+dash-bootstrap-components
+websockets

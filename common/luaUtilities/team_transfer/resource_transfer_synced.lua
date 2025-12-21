@@ -2,6 +2,7 @@ local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 local Comms = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_comms.lua")
 local Shared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_shared.lua")
 local WaterfillSolver = VFS.Include("common/luaUtilities/economy/bar_economy_waterfill_solver.lua")
+local EconomyLog = VFS.Include("common/luaUtilities/economy/economy_log.lua")
 
 local ResourceType = SharedEnums.ResourceType
 
@@ -116,6 +117,15 @@ function Gadgets.ResourceTransfer(ctx)
   local springRepo = ctx.springRepo
   springRepo.AddTeamResource(ctx.senderTeamId, policyResult.resourceType, -sent)
   springRepo.AddTeamResource(ctx.receiverTeamId, policyResult.resourceType, received)
+
+  EconomyLog.Transfer(
+    ctx.senderTeamId,
+    ctx.receiverTeamId,
+    policyResult.resourceType,
+    received,
+    untaxed,
+    received - untaxed
+  )
 
   ---@type ResourceTransferResult
   local result = {
@@ -252,9 +262,8 @@ end
 
 ---@param springRepo ISpring
 ---@param teamsList TeamResourceData[]
----@param frame number?
-function Gadgets.WaterfillSolve(springRepo, teamsList, frame)
-  return WaterfillSolver.Solve(springRepo, teamsList, frame)
+function Gadgets.WaterfillSolve(springRepo, teamsList)
+  return WaterfillSolver.Solve(springRepo, teamsList)
 end
 
 ---@param springRepo ISpring

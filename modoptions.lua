@@ -374,7 +374,7 @@ local options = {
 		column	= 1,
 		items	= {
 			{ key = SharedEnums.AlliedAssistMode.Disabled, name = "Disabled", desc = "Units cannot assist allied construction and repair" },
-			{ key = SharedEnums.AlliedAssistMode.Enabled,  name = "Enabled Automation Restricted",  desc = "Units can assist allied construction and repair" },
+			{ key = SharedEnums.AlliedAssistMode.Enabled,  name = "Enabled",  desc = "Units can assist allied construction and repair" },
 		},
 	},
 	{

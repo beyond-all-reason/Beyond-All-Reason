@@ -1,6 +1,6 @@
 local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 local ResourceShared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_shared.lua")
-local AuditLog = VFS.Include("common/luaUtilities/economy/economy_audit_log.lua")
+local EconomyLog = VFS.Include("common/luaUtilities/economy/economy_log.lua")
 
 local ResourceType = SharedEnums.ResourceType
 local RESOURCE_TYPES = SharedEnums.ResourceTypes
@@ -11,8 +11,6 @@ Gadgets.__index = Gadgets
 
 local EPSILON = 1e-6
 local LIFT_ITERATIONS = 40
-
-local currentFrame = 0
 
 ---@param value number?
 ---@return number
@@ -238,8 +236,8 @@ local function allocateGroup(members, lift, taxRate)
         end
 
         if remainingNeed <= EPSILON then
-          if take > EPSILON and AuditLog.IsEnabled() then
-            AuditLog.Transfer(currentFrame, sender.member.teamId, receiver.member.teamId, sender.member.resourceType, take, take, 0)
+          if take > EPSILON then
+            EconomyLog.Transfer( sender.member.teamId, receiver.member.teamId, sender.member.resourceType, take, take, 0)
           end
           break
         end
@@ -254,11 +252,11 @@ local function allocateGroup(members, lift, taxRate)
           remainingNeed = remainingNeed - deliver
 
           local transferAmount = take + deliver
-          if transferAmount > EPSILON and AuditLog.IsEnabled() then
-            AuditLog.Transfer(currentFrame, sender.member.teamId, receiver.member.teamId, sender.member.resourceType, transferAmount, take, deliver)
+          if transferAmount > EPSILON then
+            EconomyLog.Transfer( sender.member.teamId, receiver.member.teamId, sender.member.resourceType, transferAmount, take, deliver)
           end
-        elseif take > EPSILON and AuditLog.IsEnabled() then
-          AuditLog.Transfer(currentFrame, sender.member.teamId, receiver.member.teamId, sender.member.resourceType, take, take, 0)
+        elseif take > EPSILON then
+          EconomyLog.Transfer( sender.member.teamId, receiver.member.teamId, sender.member.resourceType, take, take, 0)
         end
       end
       receiver.unsatisfied = remainingNeed
@@ -302,10 +300,7 @@ local function allocateGroup(members, lift, taxRate)
     local member = members[i]
     local resource = member.resource
     if resource.current > member.storage then
-      if AuditLog.IsEnabled() then
-        Spring.Echo(string.format("[WaterfillSolver] CAPPING team=%d resource=%s current=%.2f -> storage=%.2f", 
-          member.teamId, member.resourceType, resource.current, member.storage))
-      end
+      EconomyLog.StorageCapped(member.teamId, member.resourceType, resource.current, member.storage)
       resource.current = member.storage
     end
   end
@@ -326,10 +321,9 @@ end
 
 ---@param springRepo ISpring
 ---@param teamsList table<number, TeamResourceData>
----@param frame number?
 ---@return table<number, TeamResourceData>
 ---@return EconomyFlowSummary
-function Gadgets.Solve(springRepo, teamsList, frame)
+function Gadgets.Solve(springRepo, teamsList)
   if not teamsList then
     return teamsList, {}
   end
@@ -340,27 +334,11 @@ function Gadgets.Solve(springRepo, teamsList, frame)
     return teamsList, {}
   end
 
-  currentFrame = frame or (springRepo.GetGameFrame and springRepo.GetGameFrame()) or 0
-  
-  if AuditLog.IsEnabled() and currentFrame % 300 == 0 then
-    Spring.Echo(string.format("[WaterfillSolver] ProcessEconomy frame=%d teamCount=%d", currentFrame, teamCount))
-    for teamId, team in pairs(teamsList) do
-      if team.metal then
-        Spring.Echo(string.format("[WaterfillSolver]   team=%s metal: current=%.2f storage=%.2f share=%.2f", 
-          tostring(teamId), team.metal.current or 0, team.metal.storage or 0, team.metal.shareSlider or 0))
-      end
-    end
-  end
-
   resetTickFields(teamsList)
 
   local taxRate, thresholds = getTaxConfig(springRepo)
   local cumulativeUpdates = {}
   local allLedgers = {}
-
-  if AuditLog.IsEnabled() then
-    AuditLog.FrameStart(currentFrame, taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY], #teamsList)
-  end
 
   for _, resourceType in ipairs(RESOURCE_TYPES) do
     local groups = collectMembers(teamsList, resourceType, thresholds, springRepo)
@@ -369,36 +347,32 @@ function Gadgets.Solve(springRepo, teamsList, frame)
       for i = 1, #members do
         local m = members[i]
         memberById[m.teamId] = m
-        if AuditLog.IsEnabled() then
-          AuditLog.TeamInput(currentFrame, m.teamId, m.allyTeam, resourceType, m.current, m.storage, m.shareCursor / math.max(1, m.storage), m.cumulativeSent, m.shareCursor)
-        end
+        EconomyLog.TeamInput(m.teamId, m.allyTeam, resourceType, m.current, m.storage, m.shareCursor / math.max(1, m.storage), m.cumulativeSent, m.shareCursor)
       end
 
       local lift = resolveLift(members, taxRate)
 
-      if AuditLog.IsEnabled() then
-        local totalSupply, totalDemand = 0, 0
-        for i = 1, #members do
-          local m = members[i]
-          local target = m.shareCursor + lift
-          if target > m.storage then target = m.storage end
-          local role, delta
-          if m.current > target + EPSILON then
-            totalSupply = totalSupply + supplyDelta(m, target, taxRate)
-            role = "sender"
-            delta = m.current - target
-          elseif target > m.current + EPSILON then
-            totalDemand = totalDemand + (target - m.current)
-            role = "receiver"
-            delta = target - m.current
-          else
-            role = "neutral"
-            delta = 0
-          end
-          AuditLog.TeamWaterfill(currentFrame, m.teamId, allyTeam, resourceType, m.current, target, role, delta)
+      local totalSupply, totalDemand = 0, 0
+      for i = 1, #members do
+        local m = members[i]
+        local target = m.shareCursor + lift
+        if target > m.storage then target = m.storage end
+        local role, delta
+        if m.current > target + EPSILON then
+          totalSupply = totalSupply + supplyDelta(m, target, taxRate)
+          role = "sender"
+          delta = m.current - target
+        elseif target > m.current + EPSILON then
+          totalDemand = totalDemand + (target - m.current)
+          role = "receiver"
+          delta = target - m.current
+        else
+          role = "neutral"
+          delta = 0
         end
-        AuditLog.GroupLift(currentFrame, allyTeam, resourceType, lift, #members, totalSupply, totalDemand)
+        EconomyLog.TeamWaterfill(m.teamId, allyTeam, resourceType, m.current, target, role, delta)
       end
+      EconomyLog.GroupLift(allyTeam, resourceType, lift, #members, totalSupply, totalDemand)
 
       local ledgers = allocateGroup(members, lift, taxRate)
 
@@ -431,17 +405,15 @@ function Gadgets.Solve(springRepo, teamsList, frame)
     end
   end
 
-  if AuditLog.IsEnabled() then
-    for teamId, team in pairs(teamsList) do
-      local ledger = allLedgers[teamId]
-      if team.metal then
-        local m = ledger[ResourceType.METAL]
-        AuditLog.TeamOutput(currentFrame, teamId, ResourceType.METAL, team.metal.current, m.sent, m.received)
-      end
-      if team.energy then
-        local e = ledger[ResourceType.ENERGY]
-        AuditLog.TeamOutput(currentFrame, teamId, ResourceType.ENERGY, team.energy.current, e.sent, e.received)
-      end
+  for teamId, team in pairs(teamsList) do
+    local ledger = allLedgers[teamId]
+    if team.metal then
+      local m = ledger[ResourceType.METAL]
+      EconomyLog.TeamOutput( teamId, ResourceType.METAL, team.metal.current, m.sent, m.received)
+    end
+    if team.energy then
+      local e = ledger[ResourceType.ENERGY]
+      EconomyLog.TeamOutput( teamId, ResourceType.ENERGY, team.energy.current, e.sent, e.received)
     end
   end
 
