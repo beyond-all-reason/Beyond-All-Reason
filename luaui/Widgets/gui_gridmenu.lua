@@ -918,6 +918,22 @@ local function refreshCommands()
 		gridOpts = grid.getSortedGridForBuilder(activeBuilder, buildOptions, currentCategory)
 	end
 
+	-- Filter out hidden units from gridOpts
+	if gridOpts then
+		local filteredOpts = {}
+		for i, opt in pairs(gridOpts) do
+			if opt and opt.id then
+				local uDefID = -opt.id
+				if not units.unitHidden[uDefID] then
+					filteredOpts[i] = opt
+				end
+			else
+				filteredOpts[i] = opt
+			end
+		end
+		gridOpts = filteredOpts
+	end
+
 	updateGrid()
 end
 
@@ -1282,6 +1298,7 @@ function widget:Initialize()
 	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
 	for unitDefID, reasons in pairs(blockedUnitsData) do
 		units.unitRestricted[unitDefID] = next(reasons) ~= nil
+		units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
 	end
 
 	if widgetHandler:IsWidgetKnown("Build menu") then
@@ -2977,10 +2994,12 @@ function widget:SetConfigData(data)
 end
 
 function widget:UnitBlocked(unitDefID, teamID, reasons)
-	-- Handle unit blocking due to tech/terrain requirements
 	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
-	units.unitRestricted[unitDefID] = next(blockedUnitsData[unitDefID] or {}) ~= nil
+	local unitReasons = blockedUnitsData[unitDefID] or {}
+	units.unitRestricted[unitDefID] = next(unitReasons) ~= nil
+	units.unitHidden[unitDefID] = unitReasons["hidden"] ~= nil
 	redraw = true
+	doUpdate = true
 	updateGrid()
 end
 

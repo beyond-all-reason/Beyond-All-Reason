@@ -14,10 +14,8 @@ end
 
 --[[
 todo:
--- verify the vfs.include buildmenu_config is cleaned of transplanted stuff
 -- cleanup and verify diff with gui_gridmenu.lua and gui_buildmenu.lua
 -- cleanup the for-loop in buildmenu and gridmenu that redundantly sets the unitDefID's key to true repeatedly for each reason
--- try to move maxThisUnit = 0 logic to api too
 -- make sure we are populating and updating the teamrulesparams performantly
 -- check performance
 -- rename the api to something more descriptive
@@ -38,6 +36,19 @@ if gadgetHandler:IsSyncedCode() then
 	-- data structure: unitDefID = {reasonKey = true, reasonKey = true, ...}
 
 	local teamsList = Spring.GetTeamList()
+
+	local ignoredTeams = {}
+	local gaiaTeamID, scavTeamID, raptorTeamID = Spring.GetGaiaTeamID(), Spring.Utilities.GetScavTeamID(), Spring.Utilities.GetRaptorTeamID()
+	if gaiaTeamID then 
+		ignoredTeams[gaiaTeamID] = true 
+	end
+	if scavTeamID then
+		ignoredTeams[scavTeamID] = true
+	end
+	if raptorTeamID then
+		ignoredTeams[raptorTeamID] = true
+	end
+
 	for _, teamID in ipairs(teamsList) do
 		teamBlockedUnitDefs[teamID] = {}
 	end
@@ -183,12 +194,30 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.SendMessageToPlayer(playerID, "Unblocked " .. unblockedCount .. " unit(s) with reason '" .. reasonKey .. "' for " .. teamMsg)
 	end
 
+	local function UpdateAllModoptionRestrictions()
+		for _, teamID in ipairs(teamsList) do
+			if not ignoredTeams[teamID] then
+				GG.UnitBlocking.UpdateModoptionRestrictions(teamID)
+			end
+		end
+	end
+
+	function GG.UnitBlocking.UpdateModoptionRestrictions(teamID)
+		for unitDefID, unitDef in pairs(UnitDefs) do
+			if unitDef.maxThisUnit == 0 then
+				local unitName = UnitDefs[unitDefID] and UnitDefs[unitDefID].name or ("ID:" .. unitDefID)
+				GG.UnitBlocking.AddBlockedUnit(unitDefID, teamID, "modoption_blocked")
+			end
+		end
+	end
+
 	function gadget:Initialize()
 		GG.UnitBlocking = GG.UnitBlocking or {}
 		windDisabled = unitRestrictions.isWindDisabled()
 		waterAvailable = unitRestrictions.shouldShowWaterUnits()
 		geoAvailable = unitRestrictions.hasGeothermalFeatures()
 		GG.UnitBlocking.UpdateAllTerrainRestrictions()
+		UpdateAllModoptionRestrictions()
 
 		gadgetHandler:AddChatAction('buildblock', commandBuildBlock, "Block units from being built by reason")
 		gadgetHandler:AddChatAction('buildunblock', commandBuildUnblock, "Unblock units from being built by reason")
@@ -242,6 +271,14 @@ if gadgetHandler:IsSyncedCode() then
 		return isBlocked, isBlocked and blockedUnitDefs[unitDefID]
 	end
 
+	function GG.UnitBlocking.ShouldUnitBeHidden(unitDefID, teamID)
+		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
+		if not blockedUnitDefs or not blockedUnitDefs[unitDefID] then
+			return false
+		end
+		return blockedUnitDefs[unitDefID]["hidden"] ~= nil
+	end
+
 	function GG.UnitBlocking.UpdateTerrainRestrictions(teamID)
 		if windDisabled then
 			for unitDefID in pairs(unitRestrictions.isWind) do
@@ -266,15 +303,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function GG.UnitBlocking.UpdateAllTerrainRestrictions()
-		local teamsProcessed = 0
 		for _, teamID in ipairs(teamsList) do
-			if not Spring.GetGaiaTeamID() or teamID ~= Spring.GetGaiaTeamID() then
-				local scavTeamID = Spring.Utilities.GetScavTeamID()
-				local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
-				if (not scavTeamID or teamID ~= scavTeamID) and (not raptorTeamID or teamID ~= raptorTeamID) then
-					teamsProcessed = teamsProcessed + 1
-					GG.UnitBlocking.UpdateTerrainRestrictions(teamID)
-				end
+			if not ignoredTeams[teamID] then
+				GG.UnitBlocking.UpdateTerrainRestrictions(teamID)
 			end
 		end
 	end

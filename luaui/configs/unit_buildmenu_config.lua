@@ -8,6 +8,7 @@ local unitEnergyCost = {} ---@type table<number, number>
 local unitMetalCost = {} ---@type table<number, number>
 local unitGroup = {} ---@type table<number, number>
 local unitRestricted = {} ---@type table<number, true>
+local unitHidden = {} ---@type table<number, true>
 local isBuilder = {} ---@type table<number, true>
 local isFactory = {} ---@type table<number, true>
 local unitIconType = {} ---@type table<number, number>
@@ -25,10 +26,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitIconType[unitDefID] = unitDef.iconType
 	unitEnergyCost[unitDefID] = unitDef.energyCost
 	unitMetalCost[unitDefID] = unitDef.metalCost
-
-	if unitDef.maxThisUnit == 0 then
-		unitRestricted[unitDefID] = true
-	end
 
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
 		isBuilder[unitDefID] = unitDef.buildOptions
@@ -97,6 +94,7 @@ local units = {
 	unitMetalCost = unitMetalCost,
 	unitGroup = unitGroup,
 	unitRestricted = unitRestricted,
+	unitHidden = unitHidden,
 	unitIconType = unitIconType,
 	unitMaxWeaponRange = unitMaxWeaponRange,
 	---Set of unit IDs that are factories.

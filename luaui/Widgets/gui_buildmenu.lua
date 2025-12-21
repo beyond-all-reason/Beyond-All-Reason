@@ -386,11 +386,11 @@ local function RefreshCommands()
 				cmdUnitdefsTemp[udefid] = i
 			end
 			for k, uDefID in ipairs(units.unitOrder) do
-				if cmdUnitdefsTemp[uDefID] then
+				if cmdUnitdefsTemp[uDefID] and not units.unitHidden[uDefID] then
 					cmdsCount = cmdsCount + 1
 					-- mimmick output of spGetActiveCmdDescs
 					cmds[cmdsCount] = {
-						id = uDefID * -1,
+						id = -uDefID,
 						name = unitName[uDefID],
 						params = emptyParams
 					}
@@ -406,12 +406,12 @@ local function RefreshCommands()
 			for index, cmd in ipairs(activeCmdDescs) do
 				if type(cmd) == "table" then
 					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
-						cmdUnitdefsTemp[cmd.id * -1] = index
+						cmdUnitdefsTemp[-cmd.id] = index
 					end
 				end
 			end
 			for k, uDefID in ipairs(units.unitOrder) do
-				if cmdUnitdefsTemp[uDefID] then
+				if cmdUnitdefsTemp[uDefID] and not units.unitHidden[uDefID] then
 					cmdsCount = cmdsCount + 1
 					cmds[cmdsCount] = activeCmdDescs[cmdUnitdefsTemp[uDefID]]
 				end
@@ -419,7 +419,8 @@ local function RefreshCommands()
 		else
 			for index, cmd in ipairs(activeCmdDescs) do
 				if type(cmd) == "table" then
-					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
+					local uDefID = -cmd.id
+					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' and not units.unitHidden[uDefID] then
 						cmdsCount = cmdsCount + 1
 						cmds[cmdsCount] = cmd
 					end
@@ -452,7 +453,7 @@ local function RefreshCommands()
 	for i = 1, numCellsPerPage do
 		local cellRectID = startCellID + i
 		if cmds[cellRectID] then
-			local uDefID = cmds[cellRectID].id * -1
+			local uDefID = -cmds[cellRectID].id
 			unitDefToCellMap[uDefID] = cellRectID
 		end
 	end
@@ -705,7 +706,7 @@ function drawBuildmenuBg()
 end
 
 local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
-	local uDefID = cmds[cellRectID].id * -1
+	local uDefID = -cmds[cellRectID].id
 
 	-- unit icon
 	if disabled then
@@ -903,7 +904,7 @@ function drawBuildmenu()
 			local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
 			local usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 
-			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[cmds[cellRectID].id * -1])
+			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[-cmds[cellRectID].id])
 		end
 	end
 
@@ -1042,7 +1043,7 @@ function widget:DrawScreen()
 				for cellRectID, cellRect in pairs(cellRects) do
 					if math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
 						hoveredCellID = cellRectID
-						local uDefID = cmds[cellRectID].id * -1
+						local uDefID = -cmds[cellRectID].id
 						WG['buildmenu'].hoverID = uDefID
 						gl.Color(1, 1, 1, 1)
 						local alt, ctrl, meta, shift = Spring.GetModKeyState()
@@ -1110,7 +1111,7 @@ function widget:DrawScreen()
 
 				-- draw cell hover
 				if hoveredCellID then
-					local uDefID = cmds[hoveredCellID].id * -1
+					local uDefID = -cmds[hoveredCellID].id
 					local cellIsSelected = (activeCmd and cmds[hoveredCellID] and activeCmd == cmds[hoveredCellID].name)
 					if not prevHoveredCellID or hoveredCellID ~= prevHoveredCellID or uDefID ~= hoverUdefID or cellIsSelected ~= hoverCellSelected or b ~= prevB or b3 ~= prevB3 or cmds[hoveredCellID].params[1] ~= prevQueueNr then
 						prevQueueNr = cmds[hoveredCellID].params[1]
@@ -1373,7 +1374,7 @@ function widget:MousePress(x, y, button)
 									Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
 								end
 								if preGamestartPlayer then
-									setPreGamestartDefID(cmds[cellRectID].id * -1)
+									setPreGamestartDefID(-cmds[cellRectID].id)
 								elseif spGetCmdDescIndex(cmds[cellRectID].id) then
 									Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id), 3, false, true, Spring.GetModKeyState())
 								end
@@ -1515,6 +1516,7 @@ function widget:Initialize()
 	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
 	for unitDefID, reasons in pairs(blockedUnitsData) do
 		units.unitRestricted[unitDefID] = next(reasons) ~= nil
+		units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
 	end
 
 	if widgetHandler:IsWidgetKnown("Grid menu") then
@@ -1663,8 +1665,11 @@ end
 
 function widget:UnitBlocked(unitDefID, teamID, reasons)
 	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
-	units.unitRestricted[unitDefID] = next(blockedUnitsData[unitDefID] or {}) ~= nil
+	local unitReasons = blockedUnitsData[unitDefID] or {}
+	units.unitRestricted[unitDefID] = next(unitReasons) ~= nil
+	units.unitHidden[unitDefID] = unitReasons["hidden"] ~= nil
 	clear()
+	doUpdate = true
 end
 
 function widget:Shutdown()
