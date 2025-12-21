@@ -1512,6 +1512,11 @@ end
 function widget:Initialize()
 	refreshUnitDefs()
 
+	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
+	for unitDefID, reasons in pairs(blockedUnitsData) do
+		units.unitRestricted[unitDefID] = next(reasons) ~= nil
+	end
+
 	if widgetHandler:IsWidgetKnown("Grid menu") then
 		-- Grid menu needs to be disabled right now and before we recreate
 		-- WG['buildmenu'] since its Shutdown will destroy it.
@@ -1652,9 +1657,6 @@ function widget:Initialize()
 		end
 		clear()
 	end
-
-	local blockedUnits = {}
-
 end
 
 
