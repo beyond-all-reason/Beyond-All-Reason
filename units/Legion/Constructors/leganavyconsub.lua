@@ -55,7 +55,7 @@ return {
 		customparams = {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "Legion/Ships/T2",
+			subfolder = "Legion/Constructors",
 			techlevel = 2,
 			unitgroup = "buildert2",
 		},
