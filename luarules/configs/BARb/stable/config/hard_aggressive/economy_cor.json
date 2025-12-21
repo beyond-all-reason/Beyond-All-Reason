@@ -6,25 +6,13 @@
 		"land": {
 			// "<energy_def>": [<lower limit>, <upper limit>, <m-income>, <e-income>, <efficiency>]
 			// limit = random(<lower limit>..<upper limit>)
-			"armwin": [200, 300],
-			"armsolar": [80, 120],
-			"armadvsol": [80, 120],
-			"armfus": [30, 40],
-			"armafus": [200, 300],
-
 			"corwin": [200, 300],
 			"corsolar": [80, 120],
 			"coradvsol": [80, 120],
 			"corfus": [30, 40],
-			"corafus": [200, 300]
+			"corafus": [50, 100, 60, 3000, 6.44]
 		},
 		"water": {
-			"armtide": [140, 250],
-			"armwin": [100, 200],
-			"armsolar": [10],
-			"armadvsol": [120, 160],
-			"armuwfus": [100, 200],
-			
 			"cortide": [140, 250],
 			"corwin": [100, 200],
 			"corsolar": [10],
@@ -33,7 +21,7 @@
 		},
 		// income factor for energy, time is in seconds
 		// [[<start_factor>, <start_time>], [<end_factor>, <end_time>]]
-		"factor": [[1.0, 300], [30.0, 7200]],
+		"factor": [[6.0, 1], [45, 300], [300, 420], [600.0, 3600]],
 
 		"min_income": 5,  // minimum energy income to filter out generators
 
@@ -45,18 +33,23 @@
 		"pylon": []
 	},
 
-	"cluster_range": 800.0,  // 950.0  // maximum distance between 2 points in hierarchical cluster
-
 	"geo": {
-		"armada": "armgeo",
-		"cortex": "corgeo",
-		"legion": "armgeo"
+		"cortex": "corgeo"
 	},
 	"mex": {
-		"armada": "armmex",
-		"cortex": "cormex",
-		"legion": "armmex"
+		"cortex": "cormex"
 	},
+	//"terra": "armsy",
+	"assist": {
+		"cortex": "cornanotc"
+	},
+	// Unknown UnitDef replacer
+	"default": {
+		"cortex": "corwin"
+	},
+	
+	"cluster_range": 800.0,  // 950.0  // maximum distance between 2 points in hierarchical cluster
+
 	"mex_up": 3,  // maximum number of simultaneous mex upgrades
 
 	"calc_mex": false,  // always calculate mex spots (global)
@@ -91,19 +84,7 @@
 	// [1] - energy-expenditure multiplier for build condition of new factory or assistant
 	// [2] - multiplier for total factory metal-expenditure, used as condition for new factory or assistant
 	// [3] - multiplier for total factory energy-expenditure, used as condition for new factory or assistant
-	"production": [0.9, 0.7, 0.8, 0.8],
+	"production": [0.9, 0.7, 0.8, 0.8]
 
-	//"terra": "armsy",
-	"assist": {
-		"armada": "armnanotc",
-		"cortex": "cornanotc"
-	},
-
-	// Unknown UnitDef replacer
-	"default": {
-		"armada": "armwin",
-		"cortex": "corwin",
-		"legion": "armwin"
-	}
 }
 }

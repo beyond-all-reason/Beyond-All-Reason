@@ -47,6 +47,7 @@ string legalab ("legalab");
 string legvp   ("legvp");
 string legavp  ("legavp");
 string legsy   ("legsy");
+string legadvshipyard   ("legadvshipyard");
 string legap   ("legap");
 string legaap  ("legaap");
 string leggant ("leggant");

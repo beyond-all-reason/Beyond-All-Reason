@@ -2,6 +2,7 @@
 • Unified maximum water depth for non-amphib land units to 22 (previously varied between 22-30)
 • Unified minimum water depth for non-heavy ships to 8 (previously varied between 8-10)
 • [Legion changes] 
+	- T2 shipyard, ships, seaplanes, and naval structures added
 	- Praetorian shotgun spread reduced 1900->1400
 	- Decurion range reduced 380->360, now deals 25% instead of 100% damage vs air
 	- Hippocampus (scout ship) now deals 25% instead of 50% damage vs air
@@ -10,6 +11,11 @@
 	- Perdition stockpile time 70s->50s, stockpile cost reduced 500m17000E->350m14000E, impact damage 2000->1200 damage, napalm deals 120dps for 15s (3000 combined damage)
 	- Napalm damage cap increased 100->120dps
     - Martyr damage vs commanders -25% -> -50%
+	- Syracusia (Destroyer) health reduced 4000->3800
+	- Thalassa (Cruiser) health increased 5400->5600
+	- Scylla (Battleship) health increased 8000->9000
+	- Corinth (T2 artillery ship) cost increased 12000m115kE->13000m125kE, speed reduced 10%
+	- Ionia (T2 floating turret) mg range increased 650->700
 	
 # November 2025
 • [Legion changes] 
