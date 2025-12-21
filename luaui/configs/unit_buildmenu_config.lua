@@ -8,7 +8,6 @@ local unitEnergyCost = {} ---@type table<number, number>
 local unitMetalCost = {} ---@type table<number, number>
 local unitGroup = {} ---@type table<number, number>
 local unitRestricted = {} ---@type table<number, true>
-local manualUnitRestricted = {} ---@type table<number, true>
 local isBuilder = {} ---@type table<number, true>
 local isFactory = {} ---@type table<number, true>
 local unitIconType = {} ---@type table<number, number>
@@ -29,7 +28,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 
 	if unitDef.maxThisUnit == 0 then
 		unitRestricted[unitDefID] = true
-		manualUnitRestricted[unitDefID] = true
 	end
 
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
@@ -107,7 +105,6 @@ local units = {
 	isBuilder = isBuilder,
 	---Set of unit IDs that require metal.
 	isMex = isMex,
-	minWaterUnitDepth = -11,
 	---An array with unitIDs sorted by their value specified in
 	---`unitOrderManualOverrideTable`. If no value is specified, the unit will be
 	---placed at the end of the array.

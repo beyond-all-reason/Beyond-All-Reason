@@ -212,7 +212,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function GG.UnitBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey)
-		Spring.Echo("Removing blocked unit: " .. unitDefID .. " for team: " .. teamID .. " with reason: " .. reasonKey)
 		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
 		if not blockedUnitDefs then
 			return false
