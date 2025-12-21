@@ -1372,8 +1372,8 @@ local unitGrids = {
 		},
 		{
 			{ "legtl", "legfmg", "legnavaldefturret", "legdtr" },             -- offshore torp launcher, floating HLT
-			{ "legfrl", },                                    -- floating AA
-			{ "legctl", "legcluster", },                 		  -- coastal torp launcher, punisher, flame turret
+			{ "legfrl", "legfhive", "", ""},                                    -- floating AA
+			{ "legctl", "legcluster", "", ""},                 		  -- coastal torp launcher, punisher, flame turret
 		},
 		{
 			{ "legfrad", "legeyes", "legfdrag", },            -- floating radar, perimeter camera, shark's teeth
@@ -1518,7 +1518,7 @@ local unitGrids = {
 			{ "leglht", "legmg", "corhlt", "legdtr", },     -- LLT, machine gun, HLT, flame turret
 			{ "legrl", "legrhapsis", "leglupara", "legfrl" },             -- basic AA, SAM, eradicator, floating AA
 			{ "legctl", "legcluster", "legtl", "legfmg", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
-			{ "legnavaldefturret", "", "", "", },
+			{ "legnavaldefturret", "legfhive", "", "", },
 		},
 		{
 			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -2506,7 +2506,7 @@ local unitGrids = {
 			{ "legtl", "leganavaldefturret", "legacluster", "corfhlt", },       -- torp launcher, fl DDM, toaster, fHLT
 			{ "leganavalaaturret", "legnavyaaship", },                               -- fl flak, searcher
 			{ "legnavyscout", "legnavydestro", },                             -- supporter, destroyer
-			{ "cornavaldefturret", "coranavaldefturret", "", "", },
+			{ "legnavaldefturret", "legfhive", "", "", },
 		},
 		{
 			{ "legfrad", "legarad", },                             -- fl radar, adv radar
