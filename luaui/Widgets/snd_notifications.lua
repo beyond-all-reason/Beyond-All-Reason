@@ -117,8 +117,9 @@ end
 for notifID, notifDef in pairs(notificationTable) do
 	local notifTexts = {}
 	local notifSounds = {}
-	local notifSoundsSpecial = {}
+	local notifSoundsRare = {}
 	local currentEntry = 1
+	local currentEntryRare = 1
 	notifTexts[currentEntry] = 'tips.notifications.' .. string.sub(notifID, 1, 1):lower() .. string.sub(notifID, 2)
 	if VFS.FileExists(soundFolder .. notifID .. '.wav') then
 		notifSounds[currentEntry] = soundFolder .. notifID .. '.wav'
@@ -143,12 +144,12 @@ for notifID, notifDef in pairs(notificationTable) do
 	end
 
 	if VFS.FileExists(soundFolder .. notifID .. '_rare' .. '.wav') then
-		notifSoundsSpecial[currentEntry] = soundFolder .. notifID .. '.wav'
+		notifSoundsRare[currentEntryRare] = soundFolder .. notifID .. '.wav'
 	end
 	for i = 1, 20 do
 		if VFS.FileExists(soundFolder .. notifID .. '_rare' .. i .. '.wav') then
-			currentEntry = currentEntry + 1
-			notifSoundsSpecial[currentEntry] = soundFolder .. notifID .. '_rare' .. i .. '.wav'
+			currentEntryRare = currentEntryRare + 1
+			notifSoundsRare[currentEntryRare] = soundFolder .. notifID .. '_rare' .. i .. '.wav'
 		end
 	end
 
@@ -158,7 +159,7 @@ for notifID, notifDef in pairs(notificationTable) do
 		textID = notifTexts[1],
 		notext = notifDef.notext,
 		voiceFiles = notifSounds,
-		voiceFilesRare = notifSoundsSpecial,
+		voiceFilesRare = notifSoundsRare,
 		tutorial = notifDef.tutorial,
 		soundEffect = notifDef.soundEffect,
 		resetOtherEventDelay = notifDef.resetOtherEventDelay,
@@ -547,7 +548,7 @@ function widget:Initialize()
 			if notification[event].soundEffect then
 				Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
 			end
-			if displayMessages and WG['messages'] and notification[event].textID then
+			if displayMessages and WG['messages'] and notification[event].textID and not notification[event].notext then
 				WG['messages'].addMessage(Spring.I18N(notification[event].textID))
 			end
 		end

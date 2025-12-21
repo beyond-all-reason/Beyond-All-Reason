@@ -36,6 +36,7 @@ local function swapMex(unitID, unitDefID, unitTeam)
 	local xx,yy,zz = Spring.GetUnitPosition(unitID)
 	local facing = Spring.GetUnitBuildFacing(unitID)
 	local buildTime, metalCost, energyCost = Spring.GetUnitCosts(unitID)
+	local neutral = Spring.GetUnitNeutral(unitID)
 	local health = Spring.GetUnitHealth(unitID)																-- saves location, rotation, cost and health of mex
 	local original = Spring.GetUnitNearestAlly(unitID)
 	local orgExtractMetal = 0
@@ -43,7 +44,7 @@ local function swapMex(unitID, unitDefID, unitTeam)
 		local orgbuildTime, orgmetalCost, orgenergyCost = Spring.GetUnitCosts(original)							-- gets metal cost of thing you are building over
 		local imex_id = Spring.CreateUnit("legmohoconin" .. scav,xx,yy,zz,facing,Spring.GetUnitTeam(unitID) )			-- creates imex on where mex was
 		--Spring.Echo(unitID, original, orgmetalCost)
-		if not Spring.GetUnitIsDead(unitID) then																-- if you build this over something then it doesnt remove mex, this removes and reclaims it
+		if Spring.GetUnitIsDead(unitID) == false then																-- if you build this over something then it doesnt remove mex, this removes and reclaims it
 			Spring.DestroyUnit(unitID, false, true)
 			Spring.AddTeamResource(unitTeam, "metal", metalCost)
 			Spring.UseTeamResource(unitTeam, "metal", orgmetalCost)												-- for some reason the unit you build it over gets reclaimed twice, this removes the excess
@@ -66,6 +67,10 @@ local function swapMex(unitID, unitDefID, unitTeam)
 			Spring.AddTeamResource(unitTeam, "metal", metalCost)
 			Spring.AddTeamResource(unitTeam, "energy", energyCost)
 			return
+		end
+		if neutral then
+			Spring.SetUnitNeutral(imex_id, true)
+			Spring.SetUnitNeutral(nano_id, true)
 		end
 		Spring.UnitAttach(imex_id,nano_id,6)																-- attaches con to imex
 		Spring.SetUnitHealth(nano_id, health)																-- sets con health to be the same as mex

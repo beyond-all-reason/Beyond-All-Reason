@@ -100,6 +100,7 @@
 			"gpuMemory": "GPU Memory: %{gpuUsage}%%",
 			"pointClickTooltip": "Click to go to the last point set by the player",
 			"aiName": "%{name} (AI)",
+			"aiPlaceMe": "Place me!",
 			"desynced": "desynced",
 			"chat": {
 				"needSupport": "I need unit support!",
@@ -112,6 +113,10 @@
 				"takeTeam": "I took %{name}.",
 				"takeTeamAmount": "I took %{name}: %{units} units, %{energy} energy and %{metal} metal."
 			}
+		},
+		"startbox": {
+			"aiStartLocationRemoved": "%{playerName} removed %{aiName} start location",
+			"aiStartLocationChanged": "%{playerName} changed %{aiName} start location"
 		},
 		"music": {
 			"menu": "Menu",
@@ -547,11 +552,11 @@
 			"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
 			"victoryCondition": "Victory condition",
 			"owncomends": "Losing your commander = losing control of your units / resigning",
-			"territorialDomination": "Territorial Domination\nAvoid commander elimination by gaining the most points"
+			"territorialDomination": "Territorial Domination,\nsurvive and gain the most points to win"
 		},
 		"startSpot": {
-			"startbox": "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)",
-			"anywhere": "Pick a startspot and click the Ready button. (F4 shows metal spots)"
+			"startbox": "Pick a starting location within the green area then click Ready",
+			"anywhere": "Pick a starting location then click Ready"
 		},
 		"screenMode": {
 			"title": "Screen mode: %{highlightColor}%{screenMode}",
@@ -763,7 +768,7 @@
 			"unlock": "Unlock Position",
 			"startCountdown": "Game starting in %{time}...",
 			"choosePoint": "Please choose a start point!",
-			"tooClose": "You cannot place your start position too close to another player"
+			"tooClose": "Start location is too close to another player"
 		},
 		"draftOrderMod": {
 			"teamPlacement": "Team Placement",
@@ -1106,7 +1111,7 @@
 				"vsync": "VSync",
 				"vsync_descr": "Prevent vertical screen tearing. Note this can introduce slight lag. Try adaptive for less screen draw delay.",
 				"vsync_fraction": "frame limiter",
-				"vsync_fraction_descr": "Render only a fractional number of frames\n\nPossibly only works in windowed mode",
+				"vsync_fraction_descr": "Render only a fractional number of frames",
 				"limitoffscreenfps": "Limit FPS when offscreen",
 				"limitoffscreenfps_descr": "Reduces fps when offscreen (by setting vsync to a high number)\n(for borderless window and fullscreen need engine not have focus)\nMakes your pc more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode",
 				"limitidlefps": "also limit when idle",
@@ -1473,6 +1478,10 @@
 				"systemprivacy_descr": "disallow other players to view your system specifications (in player list tooltip)\napplies to next game",
 				"mascot": "mascot",
 				"mascot_descr": "Shows a mascot on top of the playerlist",
+				"pip": "picture-in-picture",
+				"pip_descr": "Displays a floating camera minimap style window",
+				"pip2": "picture-in-picture 2",
+				"pip2_descr": "Displays a floating camera minimap style window",
 				"unittotals": "unit totals",
 				"unittotals_descr": "Show your unit totals on top of the playerlist",
 				"musicplayer": "music player",
@@ -1678,6 +1687,12 @@
 				"smartselect_includebuildings_descr": "When rectangle-drag-selecting an area, include building units too?\n\nDisabled: non-mobile units will be excluded (hold Shift to override)\nNote: Construction Turrets will always be selected",
 				"smartselect_includebuilders": "include builders (if above is off)",
 				"smartselect_includebuilders_descr": "When rectangle-drag-selecting an area, exclude builder units (hold Shift to override)",
+				"smartselect_includeantinuke": "include antinuke units (if above is off)",
+				"smartselect_includeantinuke_descr": "When rectangle-drag-selecting an area, exclude antinuke units (hold Shift to override)",
+				"smartselect_includeradar": "include radar units (if above is off)",
+				"smartselect_includeradar_descr": "When rectangle-drag-selecting an area, exclude radar units (hold Shift to override)",
+				"smartselect_includejammer": "include jammer units (if above is off)",
+				"smartselect_includejammer_descr": "When rectangle-drag-selecting an area, exclude jammer units (hold Shift to override)",
 				"onlyfighterspatrol": "Only fighters patrol",
 				"onlyfighterspatrol_descr": "Only fighters obey a factory's patrol route after leaving airlab.",
 				"fightersfly": "Set fighters on Fly mode",
@@ -1848,6 +1863,14 @@
 			"refundNotification": "Remaining budget will be refunded as Metal.",
 			"remainingResourcesWarning": "Use the Base Budget to instantly spawn structures within range",
 			"unallocatedBudget": "Quick Start enabled: use your Base Budget first"
+		},
+		"techBlocking": {
+			"techLevel": "TECH",
+			"techPopup": {
+				"level1": "Tech Level 1",
+				"level2": "Tech Level 2",
+				"level3": "Tech Level 3"
+			}
 		}
 	}
 }
