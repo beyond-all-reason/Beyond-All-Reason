@@ -13,7 +13,7 @@ return {
 		floater = true,
 		footprintx = 7,
 		footprintz = 7,
-		health = 8000,
+		health = 9000,
 		idleautoheal = 5,
 		idletime = 1800,
 		maxacc = 0.005,
