@@ -1,0 +1,136 @@
+// Mono-space font required
+{
+"economy": {
+	"energy": {
+		// If land area >= 40% of the map then "land" config used, "water" otherwise
+		"land": {
+			// "<energy_def>": [<lower limit>, <upper limit>, <m-income>, <e-income>, <efficiency>]
+			// limit = random(<lower limit>..<upper limit>)
+			//efficiency calculation: engy.cond.score = SQUARE(engy.make) / (cdef->GetCostM() * cdef->GetDef()->GetXSize() * cdef->GetDef()->GetZSize());
+			//higer value => more efficient | e-output * e-output / mcost*x*y
+			"armwin": [30, 60],
+			"armsolar": [12, 14, 0, 0, 0.030],  // efficiency=0.025806 --- increased eff to make it better against wind
+			"armadvsol": [20, 30, 12, 220, 0.200], 	// efficiency=0.237542
+			//"armgeo": [4, 8, 16, 300, 0.6], //eff 0.6
+			"armgmm":[4, 8, 25, 600, 2.2],
+			//"armageo":[0, 1, 35, 1000, 3.0], //eff 3.0
+			"armfus": [3, 4, 50, 900, 1.9],		// efficiency=1.937984
+			"armckfus": [1, 3, 50, 2000, 0.230], // efficiency=2.400266
+			"armafus": [50,100, 70, 4000, 6.44],
+			"armuwfus": [6, 12, 35, 600, 2.8],  // efficiency=6.443299
+			"corwin": [30, 60],
+			"corsolar": [9, 12, 0, 0, 0.060], // efficiency=0.026667
+			"coradvsol": [20, 30, 12, 220, 0.220], //efficiency=0.237542
+			//"corgeo": [4, 8, 16, 300, 0.6], //0.6
+			// "corageo": [0, 1, 35, 1000, 3.0], //eff 3.0
+			"corfus": [4, 6, 50, 600, 2.06],  // efficiency=2.057844
+			"corafus": [50, 100, 60, 4000, 6.44],
+			"coruwfus": [6, 12, 35, 600, 2.8] // efficiency=6.443299
+		},
+		"water": {
+			"armtide": [45, 60],
+			"armwin": [30, 60],
+			"armsolar": [12, 14, 0, 0, 0.030],
+			"armadvsol": [16, 20, 12, 220, 0.200],
+			//"armgeo": [4, 8, 16, 300, 0.6], //0.6
+			"armgmm":[4,8, 25, 600, 2.2],
+			//"armageo": [0, 1, 35, 1000, 3.0], //3.0
+			"armfus": [4, 6, 30, 900, 2.0],
+			"armckfus": [1, 3, 50, 2000, 2.1], // efficiency=2.400266
+			"armafus": [50,100, 70, 4000, 6.44],  // efficiency=6.443299
+			"armuwfus": [50, 100, 35, 600, 2.8],
+			"cortide": [45, 60],
+			"corwin": [10, 20],
+			"corsolar": [6, 10, 0, 0, 0.027], // efficiency=0.026667
+			"coradvsol": [16, 20, 12, 220, 0.220], //efficiency=0.237542
+			//"corgeo": [4, 8, 16, 300, 0.6],
+			//"corageo": [0, 1, 16, 1000, 3.0],
+			"corfus": [4, 6, 35, 600, 2.06],  // efficiency=2.057844
+			"corafus": [50, 100, 60, 4000, 6.44], // efficiency=6.443299
+			"coruwfus": [50, 100, 35, 600, 2.8]  // efficiency=2.756296
+		},
+
+		"factor": [[6.0, 1], [20, 300], [30, 420], [60.0, 3600]], //desired energy factor at a certain time
+		// desired energy rule #1: e-income >= m-income * factor
+		// income factor for energy, time is in seconds
+		// [[<start_factor>, <start_time>], [<end_factor>, <end_time>]]
+
+		"min_income": 5,  // minimum energy income to filter out generators
+
+		"cost_ratio": 0.040, //0.43
+		// min. limit for energy to cost ratio to have access to next energy tier 
+		// (e.g. armfusion ecost (21000*0.04=1260 => 840e income neccessary to start building fusion)
+		// ratio 0.4 => armadvsol 200e, armfus 840e, armafus 2760e
+
+        "em_ratio": 0.08,  // energy to metal ratio, used with UnitDef.build_speed
+	
+		"pylon": []
+	},
+
+	"cluster_range": 1500, //900
+	//size of mex cluster between two points
+
+	"geo": {
+		"armada": "armgeo",
+		"cortex": "corgeo",
+		"legion": "armgeo"
+	},
+	"mex": {
+		"armada": "armmex",
+		"cortex": "cormex",
+		"legion": "armmex"
+	},
+// buildpower -  Mobile buildpower to metal income ratio,
+// works but with regard to behaviour->UnitDef->build_speed. With 1.25 and m-income=100 means AI will try to build at max 125 mobile build_speed in total.
+
+//eps-step - scales metal income; // ecoFactor = teamSize*eps_step+(1-eps_step);  affect next eenergy and m-income:
+// 1) during new builder task creation; 2) for tier selection from factory 3) for making defences 4) for checking if enough income to build super weapon
+
+//buildpower -  Mobile buildpower to metal income ratio,
+// works but with regard to behaviour->UnitDef->build_speed. With 1.25 and m-income=100 means AI will try to build at max 125 mobile build_speed in total.
+
+//mspull - // Mobile constructor to static constructor metal pull ratio; [[<value>, <start_mex_percent>], [<value>, <end_mex_percent>]]
+
+	"mex_up": 4,  // maximum number of simultaneous mex upgrades 2/3
+	"calc_mex": false,  // always calculate mex spots (global)
+	"goal_exec": 50.0,  // assign builders till targeted time (in s) to build reached => low value: builders focus on few projects; high value: builder do more task; old values: 45, 50
+	"build_mod": 1000.0,  // default build_mod for UnitDef, if it's not specified
+	"eps_step": 0.2,
+	"buildpower": 1.2, //1.25, 1.5, 1.3
+	"excess": -1.0, 	// Metal excess to income ratio, -1 to disable
+
+	"ms_pull":  [[0.57, 0.0], [0.66, 0.34]],
+    // AI balances metal spent on tasks for mobile cons / metal spent on tasks for factories. (mobile to static reatio in%)
+    // [[<value1>, <start_mex_percent>], [<value2>, <end_mex_percent>]]
+    // mex percent = % of mex of whole map 
+    // value = how much metal (%) will be spend for mobile construction task (opposite to factory tasks). which is in the end all statics
+    
+    
+    // If its <1.0 then expansion obeys ms_pull rule, if >=1.0 then ms_pull doesn't affect expansion (mex, pylon, energy). [[0.57, 0.0], [0.66, 0.34]]
+	// [<cap_percent>, <is_ally_cap>]
+	"mex_max": [1.0, false],  //  0.1 = 10% ai stops expanding when it has 10% of map
+
+	// Construction order delay in seconds, -1 to disable | used to make ai easier
+	// [[<start_delay>, <start_time>], [<end_delay>, <end_time>]]
+	"build_delay": [[-1.0, 0], [-1.0, 0]],
+
+	// [0] - metal-expenditure multiplier for build condition of new factory or assistant 
+	// [1] - energy-expenditure multiplier for build condition of new factory or assistant
+	// [2] - multiplier for total factory metal-expenditure, used as condition for new factory or assistant
+	// [3] - multiplier for total factory energy-expenditure, used as condition for new factory or assistant
+	"production": [0.8, 0.8, 1.0, 0.8],
+
+	//"terra": "armsy",
+	"assist": {
+		"armada": "armnanotc",
+		"cortex": "cornanotc"
+	},
+
+	// Unknown UnitDef replacer
+	"default": {
+		"armada": "armwin",
+		"cortex": "corwin",
+		"legion": "armwin"
+	}
+}
+}

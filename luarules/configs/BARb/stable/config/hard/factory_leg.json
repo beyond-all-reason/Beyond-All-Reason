@@ -156,8 +156,8 @@
 		"caretaker": 3
 	},
 	"legsplab": {
-		"importance": [0.0, 1.0],
-		"require_energy": false,	
+		"importance": [0.0, 0.5],
+		"require_energy": true,	
 		"income_tier": [50],
 		"unit":      ["legspcon", 	"legspradarsonarplane", "legspsurfacegunship", "legspbomber", 	"legspcarrier", "legspfighter", "legsptorpgunship"],
 		"land": {
@@ -189,7 +189,7 @@
 	},
 	"legadvshipyard": {
 		"importance": [0.0, 1.0],
-		"require_energy": false,
+		"require_energy": true,
 		"income_tier": [40],
 		"unit":      ["leganavyconsub", "leganavyengineer", "leganavyantiswarm",	"leganavycruiser", 	"leganavymissileship", 	"leganavybattleship", 	"leganavyartyship", 	"leganavyflagship", 
 					  "leganavyaaship", "leganavyantinukecarrier", 	"leganavyradjamship", 	"leganavybattlesub", 	"leganavyheavysub"],
@@ -252,8 +252,8 @@
 		"caretaker": 2
 	},
 	"legamphlab": {
-		"importance": [0.0, 0.5],
-		"require_energy": false,		
+		"importance": [0.0, 0.0],
+		"require_energy": true,		
 		"income_tier": [30],	
 		"unit":      ["legotter", "legdecom", "legamphtank", "legamph", "legfloat", "legaabot", "legadvaabot"],
 		"land": {
