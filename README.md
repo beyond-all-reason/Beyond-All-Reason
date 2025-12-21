@@ -44,3 +44,44 @@ Ensure that you have the correct path by looking for the file `Beyond-All-Reason
 6. If developing Chobby also clone the code into the `games` directory. Follow the guide in the [Chobby README](https://github.com/beyond-all-reason/BYAR-Chobby#developing-the-lobby).
 
 More on the `.sdd` directory to run raw LUA and the structure expected by Spring Engine is [documented here](https://springrts.com/wiki/Gamedev:Structure).
+
+---
+
+## Automated Testing
+
+### Prereqs
+
+**Lua 5.1**
+
+_debian/linux_
+
+```zsh
+sudo apt install -y lua5.1
+```
+
+_windows_ (MSYS2 UCRT64)
+
+```zsh
+pacman -S --needed mingw-w64-ucrt-x86_64-lua51
+```
+
+_macOS_
+
+```zsh
+brew install lua@5.1
+```
+
+**Lux Package Manager**
+Follow the [Lux Getting Started Guide](https://lux.lumen-labs.org/tutorial/getting-started/).
+
+Or follow the Cargo instructions to manually build [on the Lux Github](https://github.com/lumen-oss/lux?tab=readme-ov-file#wrench-building-from-source)
+
+### Install Project Packages
+
+From the repo root (where `lux.toml` lives):
+
+```zsh
+lux --max-jobs=2 update
+```
+Note: in my testing `--max-jobs` was super specific to my machine and anything above that number would sometimes cause deadlocks.
+
