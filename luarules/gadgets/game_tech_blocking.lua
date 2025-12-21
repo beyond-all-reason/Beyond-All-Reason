@@ -97,6 +97,13 @@ local function increaseTechLevel(teamList, notificationEvent, techLevel)
 				end
 			end
 			spSetTeamRulesParam(teamID, "tech_level", techLevel)
+
+			-- Unblock units that are now available at the new tech level
+			for unitDefID, requiredLevel in pairs(blockTechDefs) do
+				if requiredLevel <= techLevel then
+					GG.UnitBlocking.RemoveBlockedUnit(unitDefID, teamID, "tech_level_" .. requiredLevel)
+				end
+			end
 		end
 	end
 end

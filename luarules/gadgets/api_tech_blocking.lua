@@ -14,15 +14,13 @@ end
 
 --[[
 todo:
--- cleanup and verify diff with gui_gridmenu.lua and gui_buildmenu.lua
 -- verify the vfs.include buildmenu_config is cleaned of transplanted stuff
--- rename the api to something more descriptive
--- add console commands, including allowing them to be used by admins in multiplayer games
--- try to move maxThisUnit = 0 logic to api too
+-- cleanup and verify diff with gui_gridmenu.lua and gui_buildmenu.lua
 -- cleanup the for-loop in buildmenu and gridmenu that redundantly sets the unitDefID's key to true repeatedly for each reason
--- ensure multiple reasons are added and removed correctly
--- check performance
+-- try to move maxThisUnit = 0 logic to api too
 -- make sure we are populating and updating the teamrulesparams performantly
+-- check performance
+-- rename the api to something more descriptive
 
 ]]
 
@@ -30,6 +28,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local DEFAULT_KEY = "defaultKey"
 	local MAX_MESSAGES_PER_FRAME = 30
+	local UNAUTHORIZED_TEXT = "You are not authorized to use build blocking commands"
 
 	local windDisabled = false
 	local waterAvailable = true
@@ -58,8 +57,131 @@ if gadgetHandler:IsSyncedCode() then
 		return table.concat(concatenatedReasons, ",")
 	end
 
+	local function isAuthorized(playerID)
+		if Spring.IsCheatingEnabled() then
+			return true
+		else
+			local playername, _, _, _, _, _, _, _, _, _, accountInfo = Spring.GetPlayerInfo(playerID)
+			local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+			if (_G and _G.powerusers and _G.powerusers[accountID]) or (SYNCED and SYNCED.powerusers and SYNCED.powerusers[accountID]) then
+				return true
+			end
+		end
+		return false
+	end
+
 	local unitRestrictions = VFS.Include("common/configs/unit_restrictions_config.lua")
 
+	local function commandBuildBlock(_, line, words, playerID)
+		if not isAuthorized(playerID) then
+			Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
+			return
+		end
+
+		if #words < 3 then
+			Spring.SendMessageToPlayer(playerID, "Usage: /luarules buildblock <teamID|'all'> <reason_key> <unitDefID 1> <unitDefID 2> ...")
+			return
+		end
+
+		local teamParam = words[1]
+		local reasonKey = words[2]
+		local blockedCount = 0
+
+		local teamsToProcess = {}
+		if teamParam == "all" then
+			for _, teamID in ipairs(teamsList) do
+				if not Spring.GetGaiaTeamID() or teamID ~= Spring.GetGaiaTeamID() then
+					local scavTeamID = Spring.Utilities.GetScavTeamID()
+					local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
+					if (not scavTeamID or teamID ~= scavTeamID) and (not raptorTeamID or teamID ~= raptorTeamID) then
+						table.insert(teamsToProcess, teamID)
+					end
+				end
+			end
+		else
+			local targetTeamID = tonumber(teamParam)
+			if not targetTeamID or not Spring.GetTeamInfo(targetTeamID) then
+				Spring.SendMessageToPlayer(playerID, "Invalid teamID: " .. tostring(teamParam) .. ". Use 'all' or a valid team number.")
+				return
+			end
+			table.insert(teamsToProcess, targetTeamID)
+		end
+
+		for i = 3, #words do
+			local unitDefID = tonumber(words[i])
+			if unitDefID and UnitDefs[unitDefID] then
+				local actuallyBlocked = false
+				for _, teamID in ipairs(teamsToProcess) do
+					GG.UnitBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
+					actuallyBlocked = true
+				end
+				if actuallyBlocked then
+					blockedCount = blockedCount + 1
+				end
+			else
+				Spring.SendMessageToPlayer(playerID, "Invalid unitDefID: " .. tostring(words[i]))
+			end
+		end
+
+		local teamMsg = (teamParam == "all") and "all teams" or ("team " .. teamParam)
+		Spring.SendMessageToPlayer(playerID, "Blocked " .. blockedCount .. " unit(s) with reason '" .. reasonKey .. "' for " .. teamMsg)
+	end
+
+	local function commandBuildUnblock(_, line, words, playerID)
+		if not isAuthorized(playerID) then
+			Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
+			return
+		end
+
+		if #words < 3 then
+			Spring.SendMessageToPlayer(playerID, "Usage: /luarules buildunblock <teamID|'all'> <reason_key> <unitDefID 1> <unitDefID 2> ...")
+			return
+		end
+
+		local teamParam = words[1]
+		local reasonKey = words[2]
+		local unblockedCount = 0
+
+		local teamsToProcess = {}
+		if teamParam == "all" then
+			for _, teamID in ipairs(teamsList) do
+				if not Spring.GetGaiaTeamID() or teamID ~= Spring.GetGaiaTeamID() then
+					local scavTeamID = Spring.Utilities.GetScavTeamID()
+					local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
+					if (not scavTeamID or teamID ~= scavTeamID) and (not raptorTeamID or teamID ~= raptorTeamID) then
+						table.insert(teamsToProcess, teamID)
+					end
+				end
+			end
+		else
+			local targetTeamID = tonumber(teamParam)
+			if not targetTeamID or not Spring.GetTeamInfo(targetTeamID) then
+				Spring.SendMessageToPlayer(playerID, "Invalid teamID: " .. tostring(teamParam) .. ". Use 'all' or a valid team number.")
+				return
+			end
+			table.insert(teamsToProcess, targetTeamID)
+		end
+
+		for i = 3, #words do
+			local unitDefID = tonumber(words[i])
+			if unitDefID and UnitDefs[unitDefID] then
+				local actuallyUnblocked = false
+				for _, teamID in ipairs(teamsToProcess) do
+					if GG.UnitBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey) then
+						actuallyUnblocked = true
+					end
+				end
+				if actuallyUnblocked then
+					unblockedCount = unblockedCount + 1
+				end
+			else
+				Spring.SendMessageToPlayer(playerID, "Invalid unitDefID: " .. tostring(words[i]))
+			end
+		end
+
+		local teamMsg = (teamParam == "all") and "all teams" or ("team " .. teamParam)
+		Spring.SendMessageToPlayer(playerID, "Unblocked " .. unblockedCount .. " unit(s) with reason '" .. reasonKey .. "' for " .. teamMsg)
+	end
 
 	function gadget:Initialize()
 		GG.UnitBlocking = GG.UnitBlocking or {}
@@ -67,6 +189,14 @@ if gadgetHandler:IsSyncedCode() then
 		waterAvailable = unitRestrictions.shouldShowWaterUnits()
 		geoAvailable = unitRestrictions.hasGeothermalFeatures()
 		GG.UnitBlocking.UpdateAllTerrainRestrictions()
+
+		gadgetHandler:AddChatAction('buildblock', commandBuildBlock, "Block units from being built by reason")
+		gadgetHandler:AddChatAction('buildunblock', commandBuildUnblock, "Unblock units from being built by reason")
+	end
+
+	function gadget:Shutdown()
+		gadgetHandler:RemoveChatAction('buildblock')
+		gadgetHandler:RemoveChatAction('buildunblock')
 	end
 
 	function GG.UnitBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
@@ -82,6 +212,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function GG.UnitBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey)
+		Spring.Echo("Removing blocked unit: " .. unitDefID .. " for team: " .. teamID .. " with reason: " .. reasonKey)
 		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
 		if not blockedUnitDefs then
 			return false
@@ -99,6 +230,7 @@ if gadgetHandler:IsSyncedCode() then
 			local concatenatedReasons = reasonConcatenator(blockedUnitDefs[unitDefID])
 			Spring.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, concatenatedReasons)
 		end
+		SendToUnsynced("UnitBlocked", unitDefID, teamID, blockedUnitDefs[unitDefID])
 		return wasRemoved
 	end
 
@@ -152,6 +284,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID)
 		if cmdID < 0 then --it's a build command
+			Spring.Echo("buildDefID: " .. -cmdID)
 			local buildDefID = -cmdID
 			local blockedUnitDefs = teamBlockedUnitDefs[unitTeam]
 			if not blockedUnitDefs then
