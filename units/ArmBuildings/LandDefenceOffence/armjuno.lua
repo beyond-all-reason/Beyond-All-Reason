@@ -144,6 +144,7 @@ return {
 					nofire = true,
 					stockpilelimit = 20,
 					water_splash = 0,
+					junotype = "base",
 				},
 				damage = {
 					default = 1,

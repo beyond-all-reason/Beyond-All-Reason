@@ -164,13 +164,20 @@ local unitDefRings = {} --each entry should be  a unitdefIDkey to very specific 
 ]]--
 
 local mobileAntiUnitDefs = {
-	[UnitDefNames.armscab.id ] = true,
-	[UnitDefNames.armcarry.id] = true,
-	[UnitDefNames.cormabm.id ] = true,
-	[UnitDefNames.corcarry.id] = true,
-	[UnitDefNames.armantiship.id] = true,
-	[UnitDefNames.corantiship.id] = true,
+	armscab = true,
+	armcarry = true,
+	cormabm = true,
+	corcarry = true,
+	armantiship = true,
+	corantiship = true,
+	leganavyantinukecarrier = true,
 }
+for key, value in pairs(mobileAntiUnitDefs) do
+	mobileAntiUnitDefs[key] = nil
+	if UnitDefNames[key] then
+		mobileAntiUnitDefs[UnitDefNames[key].id] = true
+	end
+end
 
 local defensePosHash = {} -- key: {poshash=unitID}
 -- poshash is 4096 * posx/8 + posz/8
@@ -328,6 +335,7 @@ local function initUnitList()
 		['leglraa'] = { weapons = { 'air' } }, --T2 LR-AA
 		['legperdition'] = { weapons = { 'cannon' } }, --T2 LR-AA
 		['legapopupdef'] = { weapons = { 'ground' } }, --popup riot/minigun turret
+		['leganavyantinukecarrier'] = { weapons = { 'nuke' } },
 
 		['legstarfall'] = { weapons = { 'lrpc' } },
 		['leglrpc'] = { weapons = { 'lrpc' } },

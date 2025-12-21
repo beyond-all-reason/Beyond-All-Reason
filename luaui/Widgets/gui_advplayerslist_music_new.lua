@@ -1598,7 +1598,6 @@ function widget:GameFrame(n)
 end
 
 function widget:GameOver(winningAllyTeams)
-	spEcho("winningAllyTeams", winningAllyTeams)
 	gameOver = true
 	if victoryConditionAllyID ~= 999 then
 		gameOverState = "defeat"

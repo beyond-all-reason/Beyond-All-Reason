@@ -46,18 +46,18 @@ if gadgetHandler:IsSyncedCode() then
 	--customparams = {
 		--	-- Required:
 		-- respawn_condition = "health",   sets the respawn condition. Health is the only option implemented
-		
-		
+
+
 		--	-- Optional:
 		-- effigy = "unit_name",						--Set this to spawn the effigy unit when the main unit is created.
-		-- minimum_respawn_stun = 5,					--respawn stun duration, roughly in seconds. 
-		-- distance_stun_multiplier = 1,				--respawn stun duration based on distance from respawn location when dying. (distance * distance_stun_multiplier) 
-		-- respawn_pad = true,							--set this to true if you want the effigy to stay where it is when respawning. Use this if the effigy unit is a respawn pad or similar. 
+		-- minimum_respawn_stun = 5,					--respawn stun duration, roughly in seconds.
+		-- distance_stun_multiplier = 1,				--respawn stun duration based on distance from respawn location when dying. (distance * distance_stun_multiplier)
+		-- respawn_pad = true,							--set this to true if you want the effigy to stay where it is when respawning. Use this if the effigy unit is a respawn pad or similar.
 		-- iseffigy = true,								--set this in the unitdef of the effigies that are buildable by the player.
 
 		--	-- Has a default value, as indicated, if not chosen:
 		-- respawn_health_threshold = 0,				--The health value when the unit will initiate the respawn sequence.
-		-- destructive_respawn = true,					--If this is set to true, the effigy unit will be destroyed when the unit respawns. 
+		-- destructive_respawn = true,					--If this is set to true, the effigy unit will be destroyed when the unit respawns.
 
 
 		-- },
@@ -130,7 +130,7 @@ if gadgetHandler:IsSyncedCode() then
 					local x, y, z = spGetUnitPosition(unitID)
 					local blockType, blockID = Spring.GetGroundBlocked(x-i, z-i)
 					local groundH = Spring.GetGroundHeight(x-i, z-i)
-			
+
 					if respawnMetaList[unitID].effigy_offset == 0 then
 						local newUnitID = spCreateUnit(respawnMetaList[unitID].effigy, x, groundH, z, 0, unitTeam)
 						spSetUnitRulesParam(unitID, "unit_effigy", newUnitID, PRIVATE)
@@ -144,7 +144,7 @@ if gadgetHandler:IsSyncedCode() then
 						if newUnitID then
 							respawnMetaList[unitID].effigyID = newUnitID
 							return
-						else 
+						else
 							blockedIncrement = blockedIncrement+50
 						end
 					end
@@ -156,7 +156,7 @@ if gadgetHandler:IsSyncedCode() then
 			if respawnMetaList[builderID] then
 				local oldeffigyID = respawnMetaList[builderID].effigyID
 				respawnMetaList[builderID].effigyID = unitID
-		
+
 				if oldeffigyID then
 					local oldEffigyBuildProgress = select(5, spGetUnitHealth(oldeffigyID))
 					if oldEffigyBuildProgress == 1 then
@@ -169,11 +169,11 @@ if gadgetHandler:IsSyncedCode() then
 				for vipID, _ in pairs(respawnMetaList) do
 					local team = spGetUnitTeam(vipID)
 					if team == unitTeam then
-				
+
 						local oldeffigyID = respawnMetaList[vipID].effigyID
-						
+
 						respawnMetaList[vipID].effigyID = unitID
-		
+
 						if oldeffigyID then
 							local oldEffigyBuildProgress = select(5, spGetUnitHealth(oldeffigyID))
 							if oldEffigyBuildProgress == 1 then
@@ -189,14 +189,13 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		if respawnMetaList[unitID] then
 			if respawnMetaList[unitID].respawn_pad == "false" then
 				local newID = spGetUnitRulesParam(unitID, "unit_evolved")
                 if newID then
-					if respawnMetaList[newID].effigyID then
+					if respawnMetaList[newID] and respawnMetaList[newID].effigyID then
 						if respawnMetaList[unitID].effigyID then
 							local effigyBuildProgress = select(5, spGetUnitHealth(respawnMetaList[unitID].effigyID))
 							if effigyBuildProgress ~= 1 then
@@ -228,7 +227,7 @@ if gadgetHandler:IsSyncedCode() then
 			respawnMetaList[unitID] = nil
 		end
 	end
-	
+
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 		if respawnMetaList[unitID] then
 			if respawnMetaList[unitID].respawn_condition == "health" then
@@ -255,7 +254,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-	
+
 
 
 else

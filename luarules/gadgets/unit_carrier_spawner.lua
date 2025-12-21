@@ -827,7 +827,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 						spSetUnitStockpile(carrierUnitID, stockpile, stockpilepercentage)
 						spGiveOrderToUnit(carrierUnitID, CMD.STOCKPILE, {}, 0)
 					end
-					carrierMetaList[carrierUnitID].stockpilecount = carrierMetaList[carrierUnitID].stockpilecount - 1
+					if carrierMetaList[carrierUnitID] then
+						carrierMetaList[carrierUnitID].stockpilecount = carrierMetaList[carrierUnitID].stockpilecount - 1
+					end
 
 				end
 			end
@@ -844,91 +846,93 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	if carrierMetaList[unitID] then
 		local evolvedCarrierID = spGetUnitRulesParam(unitID, "unit_evolved")
 
-		for subUnitID,value in pairsNext, carrierMetaList[unitID].subUnitsList do
-			if carrierMetaList[unitID].subUnitsList[subUnitID] then
-				local standalone = false
-				local wild = false
-				if evolvedCarrierID then
-					UnDockUnit(unitID, subUnitID)
-					attachToNewCarrier(evolvedCarrierID, subUnitID)
-				elseif carrierMetaList[unitID].carrierDeaththroe == "death" then
-					spDestroyUnit(subUnitID, true)
+		if carrierMetaList[unitID].subUnitsList then
+			for subUnitID,value in pairsNext, carrierMetaList[unitID].subUnitsList do
+				if carrierMetaList[unitID].subUnitsList[subUnitID] then
+					local standalone = false
+					local wild = false
+					if evolvedCarrierID then
+						UnDockUnit(unitID, subUnitID)
+						attachToNewCarrier(evolvedCarrierID, subUnitID)
+					elseif carrierMetaList[unitID].carrierDeaththroe == "death" then
+						spDestroyUnit(subUnitID, true)
 
-				elseif carrierMetaList[unitID].carrierDeaththroe == "capture" then
-					standalone = true
-					local enemyunitID = spGetUnitNearestEnemy(subUnitID, carrierMetaList[unitID].controlRadius)
-					if enemyunitID then
-						spTransferUnit(subUnitID, spGetUnitTeam(enemyunitID), false)
-					end
-				elseif carrierMetaList[unitID].carrierDeaththroe == "control" then
-					standalone = true
-				elseif carrierMetaList[unitID].carrierDeaththroe == "release" then
-					standalone = true
-					wild = true
-				elseif carrierMetaList[unitID].carrierDeaththroe == "parasite" then
-					local newCarrier
-					local ox, oy, oz = spGetUnitPosition(subUnitID)
-					local newCarrierCandidates = spGetUnitsInCylinder(ox, oz, carrierMetaList[unitID].controlRadius)
-					for _, newCarrierCandidate in pairsNext, newCarrierCandidates do
-						local existingCarrier = spGetUnitRulesParam(newCarrierCandidate, "carrier_host_unit_id")
-						if not existingCarrier then
-							if carrierMetaList[unitID].parasite == "ally" then
-								if spGetUnitAllyTeam(newCarrierCandidate) then
-									newCarrier = newCarrierCandidate
-								end
-							elseif carrierMetaList[unitID].parasite == "enemy" then
-								if not spGetUnitAllyTeam(newCarrierCandidate) then
-									newCarrier = newCarrierCandidate
-								end
-
-							elseif carrierMetaList[unitID].parasite == "all" then
-								newCarrier = newCarrierCandidate
-							end
-						end
-
-					end
-
-
-					if newCarrier then
-						if carrierMetaList[newCarrier] then
-							standalone = true
-						else
-							carrierMetaList[newCarrier] = carrierMetaList[unitID]
-							carrierMetaList[newCarrier].subUnitsList[subUnitID] = carrierMetaList[unitID].subUnitsList[subUnitID] -- list of subUnitIDs owned by this unit.
-							carrierMetaList[newCarrier].subUnitCount = 1
-							carrierMetaList[newCarrier].spawnRateFrames = 0
-							carrierMetaList[newCarrier].docking = false
-							carrierMetaList[newCarrier].activeRecall = false
-
-							spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", newCarrier, PRIVATE)
-						end
-
-					else
+					elseif carrierMetaList[unitID].carrierDeaththroe == "capture" then
 						standalone = true
+						local enemyunitID = spGetUnitNearestEnemy(subUnitID, carrierMetaList[unitID].controlRadius)
+						if enemyunitID then
+							spTransferUnit(subUnitID, spGetUnitTeam(enemyunitID), false)
+						end
+					elseif carrierMetaList[unitID].carrierDeaththroe == "control" then
+						standalone = true
+					elseif carrierMetaList[unitID].carrierDeaththroe == "release" then
+						standalone = true
+						wild = true
+					elseif carrierMetaList[unitID].carrierDeaththroe == "parasite" then
+						local newCarrier
+						local ox, oy, oz = spGetUnitPosition(subUnitID)
+						local newCarrierCandidates = spGetUnitsInCylinder(ox, oz, carrierMetaList[unitID].controlRadius)
+						for _, newCarrierCandidate in pairsNext, newCarrierCandidates do
+							local existingCarrier = spGetUnitRulesParam(newCarrierCandidate, "carrier_host_unit_id")
+							if not existingCarrier then
+								if carrierMetaList[unitID].parasite == "ally" then
+									if spGetUnitAllyTeam(newCarrierCandidate) then
+										newCarrier = newCarrierCandidate
+									end
+								elseif carrierMetaList[unitID].parasite == "enemy" then
+									if not spGetUnitAllyTeam(newCarrierCandidate) then
+										newCarrier = newCarrierCandidate
+									end
+
+								elseif carrierMetaList[unitID].parasite == "all" then
+									newCarrier = newCarrierCandidate
+								end
+							end
+
+						end
+
+
+						if newCarrier then
+							if carrierMetaList[newCarrier] then
+								standalone = true
+							else
+								carrierMetaList[newCarrier] = carrierMetaList[unitID]
+								carrierMetaList[newCarrier].subUnitsList[subUnitID] = carrierMetaList[unitID].subUnitsList[subUnitID] -- list of subUnitIDs owned by this unit.
+								carrierMetaList[newCarrier].subUnitCount = 1
+								carrierMetaList[newCarrier].spawnRateFrames = 0
+								carrierMetaList[newCarrier].docking = false
+								carrierMetaList[newCarrier].activeRecall = false
+
+								spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", newCarrier, PRIVATE)
+							end
+
+						else
+							standalone = true
+						end
+
+					end
+
+					if standalone then
+						if not wild then
+							SetUnitNoSelect(subUnitID, false)
+						end
+						spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", nil, PRIVATE)
+						local droneData = {
+							active = true,
+							docked = false, --
+							stayDocked = false,
+							inFormation = false,
+							activeDocking = false,
+							engaged = false,
+							wild = wild,
+							decayRate = carrierMetaList[unitID].deathdecayRate,
+							idleRadius = carrierMetaList[unitID].radius,
+							lastOrderUpdate = 0;
+						}
+						droneMetaList[subUnitID] = droneData
 					end
 
 				end
-
-				if standalone then
-					if not wild then
-						SetUnitNoSelect(subUnitID, false)
-					end
-					spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", nil, PRIVATE)
-					local droneData = {
-						active = true,
-						docked = false, --
-						stayDocked = false,
-						inFormation = false,
-						activeDocking = false,
-						engaged = false,
-						wild = wild,
-						decayRate = carrierMetaList[unitID].deathdecayRate,
-						idleRadius = carrierMetaList[unitID].radius,
-						lastOrderUpdate = 0;
-					}
-					droneMetaList[subUnitID] = droneData
-				end
-
 			end
 		end
 		carrierMetaList[unitID] = nil

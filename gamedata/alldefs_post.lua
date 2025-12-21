@@ -498,6 +498,22 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	-- Tech Blocking System -------------------------------------------------------------------------------------------------------------------------
+	if modOptions.tech_blocking and uDef.customparams then
+		local techLevel = uDef.customparams.techlevel or 1
+		if uDef.buildoptions and #uDef.buildoptions > 0 and (not uDef.speed or uDef.speed == 0) then
+			if techLevel == 1 then
+				uDef.customparams.tech_points_gain = uDef.customparams.tech_points_gain or 1
+			elseif techLevel == 2 then
+				uDef.customparams.tech_points_gain = uDef.customparams.tech_points_gain or 6
+				uDef.customparams.tech_build_blocked_until_level = uDef.customparams.tech_build_blocked_until_level or 2
+			elseif techLevel == 3 then
+				uDef.customparams.tech_points_gain = uDef.customparams.tech_points_gain or 9
+				uDef.customparams.tech_build_blocked_until_level = uDef.customparams.tech_build_blocked_until_level or 3
+			end
+		end
+	end
+
 	-- Extra Units ----------------------------------------------------------------------------------------------------------------------------------
 	if modOptions.experimentalextraunits then
 		-- Armada T1 Land Constructors
@@ -648,6 +664,13 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 3] = "legnanotct2" -- T2 Constructor Turret
 			uDef.buildoptions[numBuildoptions + 4] = "legrwall" -- Dragon's Constitution - T2 (not Pop-up) Wall Turret
 			uDef.buildoptions[numBuildoptions + 5] = "leggatet3" -- Elysium - Advanced Shield Generator
+		end
+
+		-- Legion T2 Sea Constructors
+		if name == "leganavyconsub" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "corfgate" -- Atoll - Floating Plasma Deflector
+			uDef.buildoptions[numBuildoptions + 2] = "legnanotct2plat" -- Floating T2 Constructor Turret
 		end
 
 		-- Legion T3 Gantry
@@ -1222,26 +1245,41 @@ function UnitDef_Post(name, uDef)
 	-- Naval Balance Adjustments, if anything breaks here blame ZephyrSkies
 	if modOptions.naval_balance_tweaks == true then
 		local buildOptionReplacements = {
+			-- t1 arm cons
 			armcs = { ["armfhlt"] = "armnavaldefturret" },
 			armch = { ["armfhlt"] = "armnavaldefturret" },
 			armbeaver = { ["armfhlt"] = "armnavaldefturret" },
 			armcsa = { ["armfhlt"] = "armnavaldefturret" },
+
+			-- t1 cor cons
 			corcs = { ["corfhlt"] = "cornavaldefturret" },
 			corch = { ["corfhlt"] = "cornavaldefturret" },
 			cormuskrat = { ["corfhlt"] = "cornavaldefturret" },
 			corcsa = { ["corfhlt"] = "cornavaldefturret" },
+
+			-- t1 leg cons
 			legnavyconship = { ["legfmg"]  = "legnavaldefturret" },
 			legch = { ["legfmg"]  = "legnavaldefturret" },
 			legotter = { ["legfmg"]  = "legnavaldefturret" },
+			legspcon = { ["legfmg"]  = "legnavaldefturret" },
+
+			-- t2 arm cons
 			armacsub = { ["armkraken"]  = "armanavaldefturret" },
 			armmls = {
 				["armfhlt"]  = "armnavaldefturret",
 				["armkraken"] = "armanavaldefturret",
 			},
+
+			-- t2 cor cons
 			coracsub = { ["corfdoom"]  = "coranavaldefturret" },
 			cormls = {
 				["corfhlt"]  = "cornavaldefturret",
 				["corfdoom"] = "coranavaldefturret",
+			},
+
+			-- t2 leg cons
+			leganavyengineer = {
+				["legfmg"]  = "legnavaldefturret",
 			},
 		}
 
@@ -1869,6 +1907,10 @@ function WeaponDef_Post(name, wDef)
 		--Controls whether the weapon aims for the center or the edge of its target's collision volume. Clamped between -1.0 - target the far border, and 1.0 - target the near border.
 		if wDef.targetborder == nil then
 			wDef.targetborder = 1 --Aim for just inside the hitsphere
+
+			if wDef.weapontype == "BeamLaser" or wDef.weapontype == "LightningCannon" then
+				wDef.targetborder = 0.33 --approximates in current engine with bugged calculation, to targetborder = 1. 
+			end
 		end
 
 		if wDef.craterareaofeffect then
