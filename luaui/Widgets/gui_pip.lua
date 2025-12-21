@@ -16,6 +16,8 @@ function widget:GetInfo()
 	}
 end
 
+pipNumber = pipNumber or 1
+
 ----------------------------------------------------------------------------------------------------
 -- Todo
 ----------------------------------------------------------------------------------------------------
@@ -520,18 +522,10 @@ end
 
 local function UpdateGuishaderBlur()
 	if WG['guishader'] then
-		-- Only remove blur when fully minimized (not during animation)
-		-- During minimize animation, keep updating the blur with shrinking dimensions
-		if inMinMode and not isAnimating then
-			-- Remove blur when fully minimized
-			if WG['guishader'].RemoveRect then
-				WG['guishader'].RemoveRect('pip')
-			end
-		else
-			-- Update blur with current dimensions (including during animation)
-			if WG['guishader'].InsertRect then
-				WG['guishader'].InsertRect(dim.l, dim.b, dim.r, dim.t, 'pip')
-			end
+		-- Always update blur with current dimensions (including when minimized)
+		-- The dim values will reflect the minimized button size when inMinMode is true
+		if WG['guishader'].InsertRect then
+			WG['guishader'].InsertRect(dim.l-elementPadding, dim.b-elementPadding, dim.r+elementPadding, dim.t+elementPadding, 'pip'..pipNumber)
 		end
 	end
 end
@@ -2458,7 +2452,7 @@ end
 
 function widget:ViewResize()
 
-	font = WG['fonts'].getFont()
+	font = WG['fonts'].getFont(2)
 
 	local oldVsx, oldVsy = vsx, vsy
 	-- Ensure dim fields are initialized before arithmetic operations
@@ -2582,7 +2576,7 @@ function widget:Shutdown()
 
 	-- Remove guishader blur
 	if WG['guishader'] and WG['guishader'].RemoveRect then
-		WG['guishader'].RemoveRect('pip')
+		WG['guishader'].RemoveRect('pip'..pipNumber)
 	end
 
 	-- Clean up API
@@ -3544,7 +3538,7 @@ local function DrawUIButtons(mx, my, mbl)
 			hover = true
 			Spring.SetMouseCursor('cursornormal')
 			if WG['tooltip'] then
-				WG['tooltip'].ShowTooltip('pip', Spring.I18N('ui.pip.resize'), nil, nil, nil)
+				WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.resize'), nil, nil, nil)
 			end
 		end
 	end
@@ -3568,7 +3562,7 @@ local function DrawUIButtons(mx, my, mbl)
 		hover = true
 		Spring.SetMouseCursor('cursornormal')
 		if WG['tooltip'] then
-			WG['tooltip'].ShowTooltip('pip', Spring.I18N('ui.pip.minimize'), nil, nil, nil)
+			WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.minimize'), nil, nil, nil)
 		end
 		glColor(1,1,1,0.12)
 		glTexture(false)
@@ -3609,7 +3603,7 @@ local function DrawUIButtons(mx, my, mbl)
 			hover = true
 			Spring.SetMouseCursor('cursornormal')
 			if visibleButtons[i].tooltip and WG['tooltip'] then
-				WG['tooltip'].ShowTooltip('pip', visibleButtons[i].tooltip, nil, nil, nil)
+				WG['tooltip'].ShowTooltip('pip'..pipNumber, visibleButtons[i].tooltip, nil, nil, nil)
 			end
 			glColor(1,1,1,0.12)
 			glTexture(false)
@@ -3835,7 +3829,7 @@ function widget:DrawScreen()
 			my >= minModeB - elementPadding and my <= minModeB + buttonSize + elementPadding then
 			hover = true
 			if WG['tooltip'] then
-				WG['tooltip'].ShowTooltip('pip', Spring.I18N('ui.pip.tooltip'), nil, nil, nil)
+				WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.tooltip'), nil, nil, nil)
 			end
 			glColor(1,1,1,0.12)
 			glTexture(false)
@@ -4144,7 +4138,7 @@ function widget:DrawScreen()
 				hover = true
 				Spring.SetMouseCursor('cursornormal')
 				if WG['tooltip'] then
-					WG['tooltip'].ShowTooltip('pip', 'Resize', nil, nil, nil)
+					WG['tooltip'].ShowTooltip('pip'..pipNumber, 'Resize', nil, nil, nil)
 				end
 			end
 		end
@@ -4162,7 +4156,7 @@ function widget:DrawScreen()
 			hover = true
 			Spring.SetMouseCursor('cursornormal')
 			if WG['tooltip'] then
-				WG['tooltip'].ShowTooltip('pip', 'Minimize', nil, nil, nil)
+				WG['tooltip'].ShowTooltip('pip'..pipNumber, 'Minimize', nil, nil, nil)
 			end
 			glColor(1,1,1,0.12)
 			glTexture(false)
@@ -4192,7 +4186,7 @@ function widget:DrawScreen()
 				hover = true
 				Spring.SetMouseCursor('cursornormal')
 				if visibleButtons[i].tooltip and WG['tooltip'] then
-					WG['tooltip'].ShowTooltip('pip', visibleButtons[i].tooltip, nil, nil, nil)
+					WG['tooltip'].ShowTooltip('pip'..pipNumber, visibleButtons[i].tooltip, nil, nil, nil)
 				end
 				glColor(1,1,1,0.12)
 				glTexture(false)
@@ -4210,6 +4204,18 @@ function widget:DrawScreen()
 			end
 			bx = bx + usedButtonSize
 		end
+	end
+
+	if pipNumber ~= 1 then
+		glColor(panelBorderColorDark)
+		RectRound(dim.l, dim.t - usedButtonSize, dim.l + usedButtonSize, dim.t, elementCorner*0.4, 0, 0, 1, 0)
+		local fontSize = 14
+		local padding = 12
+		font:Begin()
+		font:SetTextColor(0.85, 0.85, 0.85, 1)
+		font:SetOutlineColor(0, 0, 0, 0.5)
+		font:Print(pipNumber, dim.l + padding, dim.t - (fontSize*1.15) - padding, fontSize*2, "no")
+		font:End()	-- Draw box selection rectangle
 	end
 
 	-- Display current max update rate (top-left corner)
@@ -4259,6 +4265,60 @@ function widget:DrawWorld()
 	end
 
 	gl.Color(1, 1, 1, 1)
+end
+
+function widget:DrawInMiniMap(minimapWidth, minimapHeight)
+	if inMinMode then return end
+
+	-- Convert world coordinates to minimap coordinates (0-1 range)
+	-- Note: Z-axis is inverted for minimap (top of map = 0, bottom = mapSizeZ)
+	local x1 = world.l / mapSizeX
+	local z1 = 1 - (world.t / mapSizeZ)  -- Invert Z
+	local x2 = world.r / mapSizeX
+	local z2 = 1 - (world.b / mapSizeZ)  -- Invert Z
+
+	-- Clamp to minimap bounds
+	x1 = math.max(0, math.min(1, x1))
+	z1 = math.max(0, math.min(1, z1))
+	x2 = math.max(0, math.min(1, x2))
+	z2 = math.max(0, math.min(1, z2))
+
+	-- Convert to pixel coordinates
+	x1 = x1 * minimapWidth
+	z1 = z1 * minimapHeight
+	x2 = x2 * minimapWidth
+	z2 = z2 * minimapHeight
+
+	-- Draw yellow rectangle showing PIP view area
+	gl.PushMatrix()
+	gl.Translate(0, 0, 0)
+	gl.Scale(1, 1, 1)
+
+	-- Draw dark background rectangle
+	gl.Color(0, 0, 0, 0.16)
+	gl.LineWidth(3.5)
+	gl.BeginEnd(GL.LINE_LOOP, function()
+		gl.Vertex(x1, z1)
+		gl.Vertex(x2, z1)
+		gl.Vertex(x2, z2)
+		gl.Vertex(x1, z2)
+	end)
+
+	-- Draw yellow rectangle
+	gl.Color(1, 1, 0, 0.6)
+	gl.LineWidth(2.0)
+	--gl.LineStipple(2, 0xAAAA)
+	gl.BeginEnd(GL.LINE_LOOP, function()
+		gl.Vertex(x1, z1)
+		gl.Vertex(x2, z1)
+		gl.Vertex(x2, z2)
+		gl.Vertex(x1, z2)
+	end)
+	--gl.LineStipple(false)
+
+	gl.LineWidth(1.0)
+	gl.Color(1, 1, 1, 1)
+	gl.PopMatrix()
 end
 
 function widget:Update(dt)
