@@ -130,6 +130,16 @@
 				[{"unit": "legacluster", "category": "defence", "offset": {"front": 100}, "priority": "low"}]
 			]
 		},
+		"legadvshipyard": {
+			"hub": [[
+				{"unit": "legnanotcplat", "category": "nano", "offset": {"left": 5}, "priority": "normal"},
+				{"unit": "legnanotcplat", "category": "nano", "offset": {"left": 10}, "priority": "normal"},
+				{"unit": "legnanotcplat", "category": "nano", "offset": {"back": 5}, "priority": "normal"},
+				{"unit": "legnanotcplat", "category": "nano", "offset": {"back": 10}, "priority": "normal"},
+				{"unit": "leganavalfusion", "category": "energy", "offset": {"back": 40}, "priority": "normal"},
+				{"unit": "legadvestore", "category": "store", "offset": {"back": 40}, "priority": "normal"}
+			]]
+		},
 
 
 		"legap": {
