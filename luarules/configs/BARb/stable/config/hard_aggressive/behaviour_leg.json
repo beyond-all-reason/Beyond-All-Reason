@@ -971,22 +971,28 @@
 			// LEGION SEA PLATFORM aircraft - legsplab
 	
 			"legspradarsonarplane": {
-				"role": ["scout", "air"]
+				"role": ["scout", "air"],
+				"power": 6.0
 			},
 			"legspsurfacegunship": {
-				"role": ["skirmish", "air"]
+				"role": ["skirmish", "air"],
+				"power": 6.0
 			},
 			"legspbomber": {
-				"role": ["bomber", "air"]
+				"role": ["bomber", "air"],
+				"power": 6.0
 			},
 			"legspcarrier": {
-				"role": ["assault", "air"]
+				"role": ["assault", "air"],
+				"power": 6.0
 			},
 			"legspfighter": {
-				"role": ["anti_air"]
+				"role": ["anti_air"],
+				"power": 6.0
 			},
 			"legsptorpgunship": {
-				"role": ["anti_sub", "air"]
+				"role": ["anti_sub", "air"],
+				"power": 6.0
 			},
 
 			// LEGION SEA
@@ -1000,37 +1006,37 @@
 			"legnavyaaship": {
 				"role": ["scout", "anti_air", "raider"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"power": 15.0
 			},
 			"legnavyscout": {
 				"role": ["scout"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"power": 15.0
 			},
 			"legnavyfrigate": {
 				"role": ["assault", "air"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"power": 15.0
 			},
 			"legnavydestro": {
 				"role": ["skirmish", "air"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"power": 15.0
 			},
 			"legnavyartyship": {
 				"role": ["artillery"],
 				"attribute": ["support"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"power": 15.0
 			},
 			"legnavysub": {
 				"role": ["sub"],
 				"attribute": ["anti_sub"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"power": 15.0
 			},
 	
-			// LEGION ADVANCED SEA.0
+			// LEGION ADVANCED SEA
 
 			"leganavyantiswarm": {
 				"role": ["riot"],
