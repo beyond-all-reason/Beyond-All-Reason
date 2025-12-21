@@ -44,7 +44,7 @@ local function swapMex(unitID, unitDefID, unitTeam)
 		local orgbuildTime, orgmetalCost, orgenergyCost = Spring.GetUnitCosts(original)							-- gets metal cost of thing you are building over
 		local imex_id = Spring.CreateUnit("legmohoconin" .. scav,xx,yy,zz,facing,Spring.GetUnitTeam(unitID) )			-- creates imex on where mex was
 		--Spring.Echo(unitID, original, orgmetalCost)
-		if not Spring.GetUnitIsDead(unitID) then																-- if you build this over something then it doesnt remove mex, this removes and reclaims it
+		if Spring.GetUnitIsDead(unitID) == false then																-- if you build this over something then it doesnt remove mex, this removes and reclaims it
 			Spring.DestroyUnit(unitID, false, true)
 			Spring.AddTeamResource(unitTeam, "metal", metalCost)
 			Spring.UseTeamResource(unitTeam, "metal", orgmetalCost)												-- for some reason the unit you build it over gets reclaimed twice, this removes the excess
