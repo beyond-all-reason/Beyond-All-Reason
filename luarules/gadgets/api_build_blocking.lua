@@ -2,8 +2,8 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = "Tech Blocking API",
-		desc = "Provides API functions for managing unit tech blocking including terrain restrictions",
+		name = "Build Blocking API",
+		desc = "Centralized unitDef build blocking including map terrain and modoption restrictions",
 		author = "SethDGamre",
 		date = "December 2025",
 		license = "GNU GPL, v2 or later",
@@ -15,9 +15,6 @@ end
 --[[
 todo:
 -- cleanup and verify diff with gui_gridmenu.lua and gui_buildmenu.lua
--- cleanup the for-loop in buildmenu and gridmenu that redundantly sets the unitDefID's key to true repeatedly for each reason
--- make sure we are populating and updating the teamrulesparams performantly
--- check performance
 -- rename the api to something more descriptive
 
 ]]
