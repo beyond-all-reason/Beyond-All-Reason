@@ -218,9 +218,9 @@ function gadget:GameFrame(frame)
 				local unitDefID = Spring.GetUnitDefID(interferingID)
 				local unitDefData = cachedUnitDefs[unitDefID]
 
-				if builderID == interferingID or visitedUnits[unitID] then
+				if builderID == interferingID or visitedUnits[interferingID] then
 					-- continue
-				elseif shouldBuggeroff(unitID, unitDefData, visitedUnits, builderTeam) then
+				elseif shouldBuggeroff(interferingID, unitDefData, visitedUnits, builderTeam) then
 					-- todo: use blocking for "collision" detection, not unit radii, which are not the bounding radii (neither is bounding radius useful)
 					local unitRadius = unitDefData.radius
 					local areaRadius = math.max(buggerOffRadius, buildDefRadius + unitRadius)
