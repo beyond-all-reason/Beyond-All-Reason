@@ -128,20 +128,50 @@ function gadget:PlayerAdded(playerID)
 end
 
 --------------------------------------------------------------------------------
--- ProcessEconomy
--- Note: economyAudit.Begin("PE", frame) is called by C++ before this runs,
--- so source_path and frame context are already set for all logging.
+-- ProcessEconomy Controller Function
+-- 
+-- This is called by C++ via the registered controller pattern.
+-- Unlike ResourceExcess where Lua does SetTeamResource calls, here C++
+-- applies the results. This measures the cost of a centralized controller
+-- where the engine handles internal state changes.
+--
+-- C++ timing:
+--   economyAudit.Begin("PE", frame)
+--   economyAudit.Breakpoint("CppMunge")  -- after building teams table
+--   lua_pcall(ProcessEconomy, frame, teams) -> returns results
+--   economyAudit.Breakpoint("LuaTotal")  -- after Lua returns
+--   C++ iterates results and applies via ParseEconomyResult
+--   economyAudit.Breakpoint("CppSetters")  -- after applying
+--   economyAudit.End()
+--
+-- Lua breakpoints capture internal timing:
+--   LuaMunge -> Solver -> PostMunge -> PolicyCache
 --------------------------------------------------------------------------------
 
 ---@param frame number
 ---@param teams table<number, TeamResourceData>
 ---@return EconomyTeamResult[]
 local function ProcessEconomy(frame, teams)
+	-- Debug: confirm controller is being called
+	if frame % 300 == 0 then
+		Spring.Echo("[ProcessEconomyController] Processing frame=" .. frame)
+	end
+	
+	EconomyLog.Breakpoint("LuaMunge")
+	
 	local teamCount = 0
 	for _ in pairs(teams) do teamCount = teamCount + 1 end
 	
 	local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
 	EconomyLog.FrameStart(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY], teamCount)
+	
+	-- Log current team states for all teams (input state before solver)
+	for teamId, team in pairs(teams) do
+		EconomyLog.TeamInput(teamId, team.allyTeam, "metal", team.metal.current, team.metal.storage,
+			team.metal.shareSlider, team.metal.cumulativeSent or 0, team.metal.shareCursor or (team.metal.shareSlider * team.metal.storage))
+		EconomyLog.TeamInput(teamId, team.allyTeam, "energy", team.energy.current, team.energy.storage,
+			team.energy.shareSlider, team.energy.cumulativeSent or 0, team.energy.shareCursor or (team.energy.shareSlider * team.energy.storage))
+	end
 	
 	EconomyLog.Breakpoint("Solver")
 	
@@ -150,25 +180,33 @@ local function ProcessEconomy(frame, teams)
 	local result = {}
 	for teamId, team in pairs(updatedTeams) do
 		local ledger = allLedgers[teamId] or {}
+		local mSent = ledger[ResourceType.METAL] and ledger[ResourceType.METAL].sent or 0
+		local mRecv = ledger[ResourceType.METAL] and ledger[ResourceType.METAL].received or 0
+		local eSent = ledger[ResourceType.ENERGY] and ledger[ResourceType.ENERGY].sent or 0
+		local eRecv = ledger[ResourceType.ENERGY] and ledger[ResourceType.ENERGY].received or 0
+		
+		-- Log outputs for economy audit
+		EconomyLog.TeamOutput(teamId, "metal", team.metal.current, mSent, mRecv)
+		EconomyLog.TeamOutput(teamId, "energy", team.energy.current, eSent, eRecv)
 		
 		result[#result + 1] = {
 			teamId = teamId,
 			resourceType = ResourceType.METAL,
 			current = team.metal.current,
-			sent = ledger[ResourceType.METAL] and ledger[ResourceType.METAL].sent or 0,
-			received = ledger[ResourceType.METAL] and ledger[ResourceType.METAL].received or 0,
+			sent = mSent,
+			received = mRecv,
 		}
 		
 		result[#result + 1] = {
 			teamId = teamId,
 			resourceType = ResourceType.ENERGY,
 			current = team.energy.current,
-			sent = ledger[ResourceType.ENERGY] and ledger[ResourceType.ENERGY].sent or 0,
-			received = ledger[ResourceType.ENERGY] and ledger[ResourceType.ENERGY].received or 0,
+			sent = eSent,
+			received = eRecv,
 		}
 	end
 	EconomyLog.Breakpoint("PostMunge")
-	
+
 	lastPolicyUpdate = ResourceTransfer.UpdatePolicyCache(springRepo, frame, lastPolicyUpdate, POLICY_UPDATE_RATE, contextFactory)
 	EconomyLog.Breakpoint("PolicyCache")
 	

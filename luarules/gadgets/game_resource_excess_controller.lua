@@ -1,5 +1,4 @@
 ---@class ResourceExcessGadget : Gadget
----@field ResourceExcess fun(self, excesses: table<number, number[]>): boolean
 local gadget = gadget ---@type ResourceExcessGadget
 
 function gadget:GetInfo()
@@ -9,7 +8,7 @@ function gadget:GetInfo()
 		author    = "Antigravity",
 		date      = "2024",
 		license   = "GPL-v2",
-		layer     = -199,  -- Load after Resource Transfer Controller
+		layer     = -199,
 		enabled   = true,
 	}
 end
@@ -20,11 +19,10 @@ end
 
 local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 local SharedConfig = VFS.Include("common/luaUtilities/economy/shared_config.lua")
-local Shared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_shared.lua")
-local ContextFactoryModule = VFS.Include("common/luaUtilities/team_transfer/context_factory.lua")
 local ResourceTransfer = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_synced.lua")
+local ContextFactoryModule = VFS.Include("common/luaUtilities/team_transfer/context_factory.lua")
 local EconomyLog = VFS.Include("common/luaUtilities/economy/economy_log.lua")
-local WaterfillSolver = VFS.Include("common/luaUtilities/economy/bar_economy_waterfill_solver.lua")
+local WaterfillSolver = VFS.Include("common/luaUtilities/economy/economy_waterfill_solver.lua")
 
 local ResourceType = SharedEnums.ResourceType
 
@@ -33,80 +31,96 @@ local ResourceType = SharedEnums.ResourceType
 --------------------------------------------------------------------------------
 
 local springRepo = Spring
-local isActive = false
 local contextFactory = ContextFactoryModule.create(springRepo)
 local lastPolicyUpdate = 0
-local POLICY_UPDATE_RATE = 30 
+local POLICY_UPDATE_RATE = 30
 
 --------------------------------------------------------------------------------
--- ResourceExcess Implementation
--- This mirrors the ProcessEconomy path but uses the ResourceExcess callin
--- Note: economyAudit.Begin("RE", frame) is called by C++ before this runs,
--- so source_path and frame context are already set for all logging.
+-- ResourceExcess Controller Function
+-- 
+-- This emulates the per-gadget callin pattern to measure full API overhead.
+-- Unlike ProcessEconomy where C++ pre-builds team data, here:
+-- 1. C++ only passes the excesses table (teamID -> {metal, energy} excess).
+-- 2. Lua must query Spring.GetTeamResources() to build team data.
+-- 3. Lua runs the solver AND applies results via Spring.SetTeamResource.
+-- 
+-- This measures the real cost of the "flexible" per-gadget API pattern where
+-- each gadget queries engine state independently.
+--
+-- C++ timing:
+--   economyAudit.Begin("RE", frame)
+--   economyAudit.Breakpoint("CppMunge")  -- minimal, just pushing excesses
+--   lua_pcall(controller, frame, excesses)
+--   economyAudit.Breakpoint("LuaTotal")  -- all Lua work
+--   economyAudit.End()
+--
+-- Lua breakpoints capture internal timing:
+--   LuaMunge (API queries) -> Solver -> LuaSetters -> PostMunge -> PolicyCache
 --------------------------------------------------------------------------------
 
----Build team data table from current game state + excess table
----@param excesses table<number, number[]> { [teamID] = {metal, energy} }
----@return table<number, TeamResourceData>
+---Build team data by querying Spring API - emulates per-gadget lookup pattern
+---This is the key overhead we're measuring vs ProcessEconomy's C++ pre-build
+---@param excesses table<number, {metal: number, energy: number}> Excess values from C++
+---@return table<number, TeamResourceData> teams Full team data structure
 local function BuildTeamData(excesses)
 	local teams = {}
-	local allTeams = springRepo.GetTeamList()
+	local teamList = springRepo.GetTeamList() or {}
 	
-	for _, teamID in ipairs(allTeams) do
-		local _, _, _, _, _, _, _, gaia = springRepo.GetTeamInfo(teamID)
-		if not gaia then
-			local mCur, mSto, mPull, mInc, mExp, mShare = springRepo.GetTeamResources(teamID, "metal")
-			local eCur, eSto, ePull, eInc, eExp, eShare = springRepo.GetTeamResources(teamID, "energy")
+	for _, teamId in ipairs(teamList) do
+		-- Query Spring API for each team's resources - this is the per-gadget overhead
+		local mCur, mStor, mPull, mInc, mExp, mShare = springRepo.GetTeamResources(teamId, "metal")
+		local eCur, eStor, ePull, eInc, eExp, eShare = springRepo.GetTeamResources(teamId, "energy")
+		
+		if mCur then
+			local _, _, _, _, allyTeam = springRepo.GetTeamInfo(teamId)
+			local excess = excesses[teamId] or { metal = 0, energy = 0 }
 			
-			local teamExcess = excesses[teamID]
-			local metalExcess = teamExcess and teamExcess[1] or 0
-			local energyExcess = teamExcess and teamExcess[2] or 0
-			
-			local _, allyTeam = springRepo.GetTeamInfo(teamID)
-			
-			---@type TeamResourceData
-			local teamData = {
+			teams[teamId] = {
 				allyTeam = allyTeam,
-				isDead = false,
 				metal = {
-					resourceType = "metal",
-					current = mCur or 0,
-					storage = mSto or 1000,
-					pull = mPull or 0,
-					income = mInc or 0,
-					expense = mExp or 0,
-					shareSlider = mShare or 0.99,
-					excess = metalExcess,
+					current = mCur,
+					storage = mStor,
+					pull = mPull,
+					income = mInc,
+					expense = mExp,
+					shareSlider = mShare,
+					excess = excess.metal,
+					shareCursor = mShare * mStor,
+					cumulativeSent = 0,
 				},
 				energy = {
-					resourceType = "energy",
-					current = eCur or 0,
-					storage = eSto or 1000,
-					pull = ePull or 0,
-					income = eInc or 0,
-					expense = eExp or 0,
-					shareSlider = eShare or 0.95,
-					excess = energyExcess,
-				}
+					current = eCur,
+					storage = eStor,
+					pull = ePull,
+					income = eInc,
+					expense = eExp,
+					shareSlider = eShare,
+					excess = excess.energy,
+					shareCursor = eShare * eStor,
+					cumulativeSent = 0,
+				},
 			}
-			teams[teamID] = teamData
 		end
 	end
 	
 	return teams
 end
 
----Apply the waterfill results back to teams
+---Apply the solver results back to teams via Spring API
+---This is the key measurement: cost of Lua calling SetTeamResource per team/resource
 ---@param results table<number, TeamResourceData>
----@param frame number
 ---@param ledgers table<number, table<ResourceType, EconomyFlowLedger>>
-local function ApplyResults(results, frame, ledgers)
+local function ApplyResults(results, ledgers)
 	for teamId, team in pairs(results) do
-		-- Clamp values to storage to prevent runaway growth
-		local metalFinal = math.min(team.metal.current, team.metal.storage)
-		local energyFinal = math.min(team.energy.current, team.energy.storage)
+		if not team.metal or not team.energy then
+			break
+		end
 		
-		-- Set the final resource levels (clamped)
+		-- Clamp values to storage
+		local metalFinal = math.min(team.metal.current or 0, team.metal.storage or 1000)
+		local energyFinal = math.min(team.energy.current or 0, team.energy.storage or 1000)
+		
+		-- These are the Lua->C++ API calls we're measuring
 		springRepo.SetTeamResource(teamId, "metal", metalFinal)
 		springRepo.SetTeamResource(teamId, "energy", energyFinal)
 		
@@ -114,11 +128,10 @@ local function ApplyResults(results, frame, ledgers)
 		local metalFlow = ledger[ResourceType.METAL] or { sent = 0, received = 0 }
 		local energyFlow = ledger[ResourceType.ENERGY] or { sent = 0, received = 0 }
 
-		-- Track stats using the correct API format: AddTeamResourceStats(teamID, {stat = {metal, energy}})
-		local mSentVal = metalFlow.sent
-		local eSentVal = energyFlow.sent
-		local mRecvVal = metalFlow.received
-		local eRecvVal = energyFlow.received
+		local mSentVal = metalFlow.sent or 0
+		local eSentVal = energyFlow.sent or 0
+		local mRecvVal = metalFlow.received or 0
+		local eRecvVal = energyFlow.received or 0
 		
 		if mSentVal > 0 or eSentVal > 0 then
 			springRepo.AddTeamResourceStats(teamId, { sent = { mSentVal, eSentVal } })
@@ -129,91 +142,110 @@ local function ApplyResults(results, frame, ledgers)
 	end
 end
 
----Check if any team has excess resources
----@param excesses table<number, number[]>
----@return boolean
-local function HasAnyExcess(excesses)
-	for teamID, excess in pairs(excesses) do
-		if excess[1] > 0 or excess[2] > 0 then
-			return true
+---@param frame number Game frame from C++
+---@param excesses table<number, {metal: number, energy: number}> Excess values only
+---@return boolean handled Whether Lua handled the excess
+local function ResourceExcessController(frame, excesses)
+	-- Debug: confirm controller is being called
+	if frame % 300 == 0 then
+		Spring.Echo("[ResourceExcessController] Processing frame=" .. frame)
+	end
+	
+	-- Build team data by querying Spring API (emulates per-gadget pattern)
+	local teams = BuildTeamData(excesses)
+	
+	-- Count teams
+	local teamCount = 0
+	for _ in pairs(teams) do teamCount = teamCount + 1 end
+	
+	EconomyLog.Breakpoint("LuaMunge")
+	
+	-- Get tax config and log frame start
+	local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
+	EconomyLog.FrameStart(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY], teamCount)
+	
+	-- Run the waterfill solver
+	local success, updatedTeams, allLedgers = pcall(WaterfillSolver.Solve, springRepo, teams)
+	if not success then
+		Spring.Echo("[ResourceExcessController] Solver error: " .. tostring(updatedTeams))
+		return false
+	end
+	
+	EconomyLog.Breakpoint("Solver")
+	
+	-- Apply results via Lua->C++ API calls (this is what we're measuring)
+	ApplyResults(updatedTeams, allLedgers)
+	
+	EconomyLog.Breakpoint("LuaSetters")
+	
+	-- Log team outputs
+	for teamId, team in pairs(updatedTeams) do
+		local ledger = allLedgers[teamId] or {}
+		if team.metal then
+			local mFlow = ledger[ResourceType.METAL] or { sent = 0, received = 0 }
+			EconomyLog.TeamOutput(teamId, ResourceType.METAL, team.metal.current, mFlow.sent, mFlow.received)
+		end
+		if team.energy then
+			local eFlow = ledger[ResourceType.ENERGY] or { sent = 0, received = 0 }
+			EconomyLog.TeamOutput(teamId, ResourceType.ENERGY, team.energy.current, eFlow.sent, eFlow.received)
 		end
 	end
-	return false
+	
+	EconomyLog.Breakpoint("PostMunge")
+	
+	-- Update policy cache periodically
+	lastPolicyUpdate = ResourceTransfer.UpdatePolicyCache(springRepo, frame, lastPolicyUpdate, POLICY_UPDATE_RATE, contextFactory)
+	
+	EconomyLog.Breakpoint("PolicyCache")
+	
+	return true
 end
 
 --------------------------------------------------------------------------------
 -- Gadget Callins
 --------------------------------------------------------------------------------
 
----@param excesses table<number, number[]> { [teamID] = {metal, energy} }
----@return boolean handled Whether Lua handled the excess
-function gadget:ResourceExcess(excesses)
-	local frame = springRepo.GetGameFrame()
+local controllerRegistered = false
+local activeMode = "off"
+
+local function RegisterController()
+	if controllerRegistered then return end
 	
-	-- If no excess, nothing to do
-	if not HasAnyExcess(excesses) then
-		return true  -- We handled it (trivially)
+	if not Spring.SetResourceExcessController then
+		Spring.Echo("[ResourceExcessController] WARNING: Spring.SetResourceExcessController not available")
+		return
 	end
 	
-	-- Build team data from current state + excesses
-	local teams = BuildTeamData(excesses)
-	EconomyLog.Breakpoint("LuaMunge")
-	
-	local teamCount = 0
-	for _ in pairs(teams) do teamCount = teamCount + 1 end
-	
-	if teamCount == 0 then
-		return true
-	end
-	
-	-- Get tax config
-	local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
-	
-	-- Log frame start
-	EconomyLog.FrameStart(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY], teamCount)
-	
-	-- Run the waterfill solver
-	local updatedTeams, allLedgers = WaterfillSolver.Solve(springRepo, teams)
-	EconomyLog.Breakpoint("Solver")
-	
-	-- Apply results back to engine
-	ApplyResults(updatedTeams, frame, allLedgers)
-	EconomyLog.Breakpoint("PostMunge")
-	
-	-- Log outputs
-	for teamId, team in pairs(updatedTeams) do
-		local ledger = allLedgers[teamId] or {}
-		local m = ledger[ResourceType.METAL] or {}
-		local e = ledger[ResourceType.ENERGY] or {}
-		EconomyLog.TeamOutput(teamId, "metal", team.metal.current, m.sent or 0, m.received or 0)
-		EconomyLog.TeamOutput(teamId, "energy", team.energy.current, e.sent or 0, e.received or 0)
-	end
-	
-	lastPolicyUpdate = ResourceTransfer.UpdatePolicyCache(springRepo, frame, lastPolicyUpdate, POLICY_UPDATE_RATE, contextFactory)
-	EconomyLog.Breakpoint("PolicyCache")
-	
-	return true  -- We handled the excess
+	Spring.SetResourceExcessController(ResourceExcessController)
+	controllerRegistered = true
+	Spring.Echo("[ResourceExcessController] Registered controller for ResourceExcess mode")
 end
 
 function gadget:Initialize()
 	Spring.Echo("[ResourceExcessController] Initialize")
 	
-	-- Check if the ResourceExcess callin is available
-	if not gadget.ResourceExcess then
-		Spring.Echo("[ResourceExcessController] WARNING: ResourceExcess callin not available - need engine with PR 2642")
-		isActive = false
+	-- Check mode from engine (set via modrules.lua economy_audit_mode)
+	activeMode = Game.economyAuditMode or "off"
+	Spring.Echo("[ResourceExcessController] Current mode: " .. tostring(activeMode))
+	
+	if activeMode == "process_economy" then
+		Spring.Echo("[ResourceExcessController] ProcessEconomy mode - this gadget will be passive")
 		return
 	end
 	
-	-- Check mode from engine (set via modrules.lua economy_audit_mode)
-	local mode = Game.economyAuditMode or "off"
-	Spring.Echo("[ResourceExcessController] Current mode: " .. tostring(mode))
-	
-	if mode == "process_economy" then
-		Spring.Echo("[ResourceExcessController] ProcessEconomy mode - this gadget will be passive")
-		isActive = false
-	else
-		Spring.Echo("[ResourceExcessController] ResourceExcess or Alternate mode - this gadget will handle excess")
-		isActive = true
+	-- Try to register now (might be reset during game load)
+	RegisterController()
+end
+
+function gadget:GamePreload()
+	Spring.Echo("[ResourceExcessController] GamePreload called")
+end
+
+function gadget:GameStart()
+	-- Register at GameStart - after all cleanup cycles are complete
+	if activeMode ~= "process_economy" then
+		Spring.Echo("[ResourceExcessController] GameStart - registering controller (final)")
+		controllerRegistered = false  -- Force re-registration
+		RegisterController()
 	end
 end

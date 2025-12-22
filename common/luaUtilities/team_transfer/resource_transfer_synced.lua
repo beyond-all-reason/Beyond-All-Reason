@@ -1,7 +1,7 @@
 local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 local Comms = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_comms.lua")
 local Shared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_shared.lua")
-local WaterfillSolver = VFS.Include("common/luaUtilities/economy/bar_economy_waterfill_solver.lua")
+local WaterfillSolver = VFS.Include("common/luaUtilities/economy/economy_waterfill_solver.lua")
 local EconomyLog = VFS.Include("common/luaUtilities/economy/economy_log.lua")
 
 local ResourceType = SharedEnums.ResourceType

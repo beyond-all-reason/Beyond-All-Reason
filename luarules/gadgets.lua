@@ -110,6 +110,7 @@ local callInLists = {
 	"GameID",
 	"TeamDied",
 	"TeamShare",
+	"ResourceExcess",
 
 	"PlayerAdded",
 	"PlayerChanged",
@@ -1323,6 +1324,15 @@ function gadgetHandler:TeamShare(teamID, targetTeamID, metalShare, energyShare)
 		g:TeamShare(teamID, targetTeamID, metalShare, energyShare)
 	end
 	return
+end
+
+function gadgetHandler:ResourceExcess(excesses)
+	for _, g in ipairs(self.ResourceExcessList) do
+		if g:ResourceExcess(excesses) then
+			return true
+		end
+	end
+	return false
 end
 
 function gadgetHandler:TeamChanged(teamID)

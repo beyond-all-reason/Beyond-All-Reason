@@ -10,8 +10,17 @@
 
 local EconomyLog = {}
 
+-- Debug: track if we've logged the enabled state
+local loggedEnabledState = false
+
 local function IsEnabled()
-  return Spring.IsEconomyAuditEnabled and Spring.IsEconomyAuditEnabled()
+  local enabled = Spring.IsEconomyAuditEnabled()
+  -- Debug: log enabled state once per game
+  if not loggedEnabledState then
+    Spring.Echo("[EconomyLog] IsEconomyAuditEnabled = " .. tostring(enabled))
+    loggedEnabledState = true
+  end
+  return enabled
 end
 
 --------------------------------------------------------------------------------
@@ -19,6 +28,7 @@ end
 --------------------------------------------------------------------------------
 
 function EconomyLog.FrameStart(taxRate, metalThreshold, energyThreshold, teamCount)
+  if not IsEnabled() then return end
   Spring.EconomyAuditLog("frame_start",
     "tax_rate", taxRate,
     "metal_threshold", metalThreshold,
@@ -28,6 +38,7 @@ function EconomyLog.FrameStart(taxRate, metalThreshold, energyThreshold, teamCou
 end
 
 function EconomyLog.TeamInput(teamId, allyTeam, resourceType, current, storage, shareSlider, cumulativeSent, shareCursor)
+  if not IsEnabled() then return end
   Spring.EconomyAuditLog("team_input",
     "team_id", teamId,
     "ally_team", allyTeam,
@@ -41,6 +52,7 @@ function EconomyLog.TeamInput(teamId, allyTeam, resourceType, current, storage, 
 end
 
 function EconomyLog.GroupLift(allyTeam, resourceType, lift, memberCount, totalSupply, totalDemand, senderCount, receiverCount)
+  if not IsEnabled() then return end
   Spring.EconomyAuditLog("group_lift",
     "ally_team", allyTeam,
     "resource", resourceType,
@@ -54,6 +66,7 @@ function EconomyLog.GroupLift(allyTeam, resourceType, lift, memberCount, totalSu
 end
 
 function EconomyLog.Transfer(senderTeamId, receiverTeamId, resourceType, amount, untaxed, taxed)
+  if not IsEnabled() then return end
   Spring.EconomyAuditLog("transfer",
     "sender_team_id", senderTeamId,
     "receiver_team_id", receiverTeamId,
@@ -65,6 +78,7 @@ function EconomyLog.Transfer(senderTeamId, receiverTeamId, resourceType, amount,
 end
 
 function EconomyLog.TeamWaterfill(teamId, allyTeam, resourceType, current, target, role, delta)
+  if not IsEnabled() then return end
   Spring.EconomyAuditLog("team_waterfill",
     "team_id", teamId,
     "ally_team", allyTeam,
@@ -77,6 +91,7 @@ function EconomyLog.TeamWaterfill(teamId, allyTeam, resourceType, current, targe
 end
 
 function EconomyLog.TeamOutput(teamId, resourceType, current, sent, received)
+  if not IsEnabled() then return end
   Spring.EconomyAuditLog("team_output",
     "team_id", teamId,
     "resource", resourceType,
@@ -87,6 +102,7 @@ function EconomyLog.TeamOutput(teamId, resourceType, current, sent, received)
 end
 
 function EconomyLog.FrameEnd(solverTimeUs, totalTimeUs)
+  if not IsEnabled() then return end
   Spring.EconomyAuditLog("frame_end",
     "solver_time_us", solverTimeUs,
     "total_time_us", totalTimeUs
@@ -94,6 +110,7 @@ function EconomyLog.FrameEnd(solverTimeUs, totalTimeUs)
 end
 
 function EconomyLog.StorageCapped(teamId, resourceType, current, storage)
+  if not IsEnabled() then return end
   Spring.EconomyAuditLog("storage_capped",
     "team_id", teamId,
     "resource", resourceType,
@@ -103,19 +120,22 @@ function EconomyLog.StorageCapped(teamId, resourceType, current, storage)
 end
 
 function EconomyLog.Breakpoint(name)
+  if not IsEnabled() then return end
   Spring.EconomyAuditBreakpoint(name)
 end
 
 --------------------------------------------------------------------------------
 -- TeamInfo: Called from Initialize(), NOT inside ProcessEconomy context
--- Uses Spring.Log directly since EconomyAuditLog requires active context
+-- Uses EconomyAuditLogRaw since it doesn't require active context
 --------------------------------------------------------------------------------
 
 function EconomyLog.TeamInfo(teamId, name, isAI)
   if not IsEnabled() then return end
-  local json = string.format('{"team_id":%d,"name":"%s","is_ai":%s}', 
-    teamId, tostring(name):gsub('"', '\\"'), isAI and "true" or "false")
-  Spring.Log("EconomyAudit", LOG.INFO, "team_info " .. json)
+  Spring.EconomyAuditLogRaw("team_info",
+    "team_id", teamId,
+    "name", tostring(name),
+    "is_ai", isAI
+  )
 end
 
 return EconomyLog

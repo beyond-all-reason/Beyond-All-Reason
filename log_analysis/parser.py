@@ -97,7 +97,8 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         start_timestamp TEXT NOT NULL, end_timestamp TEXT,
         start_frame INTEGER NOT NULL, end_frame INTEGER,
-        team_count INTEGER NOT NULL, duration_frames INTEGER
+        team_count INTEGER NOT NULL, duration_frames INTEGER,
+        session_types TEXT
     )''')
     c.execute('''CREATE TABLE IF NOT EXISTS solver_audit (
         id INTEGER PRIMARY KEY AUTOINCREMENT, session_id INTEGER NOT NULL,
@@ -180,37 +181,52 @@ class SessionTracker:
         self.session_start_timestamp = None
         self.session_start_frame = None
         self.session_team_count = None
+        self.session_types = set()
         self._load_existing_session()
     
     def _load_existing_session(self):
         c = self.conn.cursor()
-        c.execute("SELECT id, end_frame, start_frame, team_count FROM game_sessions ORDER BY id DESC LIMIT 1")
+        c.execute("SELECT id, end_frame, start_frame, team_count, session_types FROM game_sessions ORDER BY id DESC LIMIT 1")
         row = c.fetchone()
         if row:
             self.current_session_id = row[0]
             self.last_frame = row[1] if row[1] is not None else (row[2] or 0)
             self.session_start_frame = row[2]
             self.session_team_count = row[3]
+            if row[4]:
+                self.session_types = set(row[4].split(','))
     
     def _start_new_session(self, timestamp, frame, team_count):
         c = self.conn.cursor()
         tc = team_count if team_count is not None else 0
-        c.execute('INSERT INTO game_sessions (start_timestamp, start_frame, team_count) VALUES (?, ?, ?)', (timestamp, frame, tc))
+        c.execute('INSERT INTO game_sessions (start_timestamp, start_frame, team_count, session_types) VALUES (?, ?, ?, ?)', 
+                 (timestamp, frame, tc, ""))
         self.conn.commit()
         self.current_session_id = c.lastrowid
         self.session_start_timestamp = timestamp
         self.session_start_frame = frame
         self.session_team_count = tc
         self.last_frame = frame
+        self.session_types = set()
         print(f"[SessionTracker] Started new session #{self.current_session_id} at frame {frame}")
     
     def _end_current_session(self, timestamp, frame):
         if self.current_session_id:
             c = self.conn.cursor()
             duration = frame - (self.session_start_frame or 0)
-            c.execute('UPDATE game_sessions SET end_timestamp = ?, end_frame = ?, duration_frames = ? WHERE id = ?', (timestamp, frame, duration, self.current_session_id))
+            types_str = ",".join(sorted(list(self.session_types)))
+            c.execute('UPDATE game_sessions SET end_timestamp = ?, end_frame = ?, duration_frames = ?, session_types = ? WHERE id = ?', 
+                     (timestamp, frame, duration, types_str, self.current_session_id))
             self.conn.commit()
     
+    def add_type(self, session_type):
+        if session_type and session_type not in self.session_types:
+            self.session_types.add(session_type)
+            c = self.conn.cursor()
+            types_str = ",".join(sorted(list(self.session_types)))
+            c.execute("UPDATE game_sessions SET session_types = ? WHERE id = ?", (types_str, self.current_session_id))
+            self.conn.commit()
+
     def check_frame(self, timestamp, frame, team_count=None):
         if self.current_session_id is None:
             self._start_new_session(timestamp, frame, team_count)
@@ -225,6 +241,17 @@ class SessionTracker:
         return self.current_session_id
 
 session_tracker = None
+
+
+def detect_session_type(source_path):
+    """Get the economy system type from the embedded source_path."""
+    if not source_path or source_path == "UNKNOWN":
+        return None
+
+    # The source_path is already the type identifier ("RE", "PE", etc.)
+    # embedded by the C++ EconomyAudit::Begin() method
+    return source_path
+
 
 def parse_line(conn, line):
     global session_tracker, event_counts
@@ -247,6 +274,11 @@ def parse_line(conn, line):
             if team_count and session_tracker: session_tracker.check_frame(timestamp_str, frame, team_count)
             game_time = data.get('game_time') or (frame / 30.0)
             source_path = data.get('source_path', "UNKNOWN")
+            
+            if session_tracker:
+                detected_type = detect_session_type(source_path)
+                if detected_type:
+                    session_tracker.add_type(detected_type)
 
             if event_type == "team_input":
                 c.execute('INSERT INTO eco_team_input (session_id, timestamp, frame, game_time, source_path, team_id, current, resource, cumulative_sent, share_slider, storage, ally_team, share_cursor) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', (session_id, timestamp_str, frame, game_time, source_path, data.get('team_id'), data.get('current'), data.get('resource'), data.get('cumulative_sent'), data.get('share_slider'), data.get('storage'), data.get('ally_team'), data.get('share_cursor')))
@@ -275,8 +307,12 @@ def parse_line(conn, line):
                 c.execute('INSERT OR REPLACE INTO team_names (session_id, team_id, name, is_ai) VALUES (?, ?, ?, ?)', (session_id, data.get('team_id'), data.get('name'), 1 if data.get('is_ai') else 0))
                 parsed = True
             elif event_type == "solver_timing":
-                c.execute("INSERT INTO solver_audit (session_id, timestamp, frame, game_time, source_path, metric, time_us) VALUES (?, ?, ?, ?, ?, ?, ?)", (session_id, timestamp_str, frame, game_time, source_path, data.get('metric'), data.get('time_us', 0)))
-                broadcast_event('solver_timing', {'frame': frame, 'source_path': source_path, 'metric': data.get('metric'), 'time_us': data.get('time_us')})
+                metric = data.get('metric', '')
+                # Normalize PE_Overall and RE_Overall to just "Overall"
+                if metric.endswith('_Overall'):
+                    metric = 'Overall'
+                c.execute("INSERT INTO solver_audit (session_id, timestamp, frame, game_time, source_path, metric, time_us) VALUES (?, ?, ?, ?, ?, ?, ?)", (session_id, timestamp_str, frame, game_time, source_path, metric, data.get('time_us', 0)))
+                broadcast_event('solver_timing', {'frame': frame, 'source_path': source_path, 'metric': metric, 'time_us': data.get('time_us')})
                 parsed = True
         except json.JSONDecodeError:
             pass

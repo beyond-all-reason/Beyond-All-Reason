@@ -238,6 +238,7 @@ local function allocateGroup(members, lift, taxRate)
 
         if remainingNeed <= EPSILON then
           if take > EPSILON then
+            -- DISABLED: Spring.Echo("[TRACE] Transfer s=" .. sender.member.teamId .. " r=" .. receiver.member.teamId)
             EconomyLog.Transfer( sender.member.teamId, receiver.member.teamId, sender.member.resourceType, take, take, 0)
           end
           break
@@ -254,9 +255,11 @@ local function allocateGroup(members, lift, taxRate)
 
           local transferAmount = take + deliver
           if transferAmount > EPSILON then
+            -- DISABLED: Spring.Echo("[TRACE] Transfer s=" .. sender.member.teamId .. " r=" .. receiver.member.teamId .. " taxed")
             EconomyLog.Transfer( sender.member.teamId, receiver.member.teamId, sender.member.resourceType, transferAmount, take, deliver)
           end
         elseif take > EPSILON then
+          -- DISABLED: Spring.Echo("[TRACE] Transfer s=" .. sender.member.teamId .. " r=" .. receiver.member.teamId .. " untaxed")
           EconomyLog.Transfer( sender.member.teamId, receiver.member.teamId, sender.member.resourceType, take, take, 0)
         end
       end
@@ -304,6 +307,7 @@ local function allocateGroup(members, lift, taxRate)
     local member = members[i]
     local resource = member.resource
     if resource.current > member.storage then
+      -- DISABLED: Spring.Echo("[TRACE] StorageCapped t=" .. member.teamId .. " r=" .. member.resourceType)
       EconomyLog.StorageCapped(member.teamId, member.resourceType, resource.current, member.storage)
       resource.current = member.storage
     end
@@ -351,10 +355,14 @@ function Gadgets.Solve(springRepo, teamsList)
       for i = 1, #members do
         local m = members[i]
         memberById[m.teamId] = m
+        -- DISABLED: Spring.Echo("[TRACE] TeamInput t=" .. m.teamId .. " a=" .. m.allyTeam .. " r=" .. resourceType)
         EconomyLog.TeamInput(m.teamId, m.allyTeam, resourceType, m.current, m.storage, m.shareCursor / math.max(1, m.storage), m.cumulativeSent, m.shareCursor)
       end
 
+      -- DISABLED: Spring.Echo("[TRACE] TeamInput loop done for ally=" .. allyTeam .. " r=" .. resourceType .. " count=" .. #members)
+      -- DISABLED: Spring.Echo("[TRACE] Calling resolveLift")
       local lift = resolveLift(members, taxRate)
+      -- DISABLED: Spring.Echo("[TRACE] resolveLift returned lift=" .. tostring(lift))
 
       local totalSupply, totalDemand = 0, 0
       local senderCount, receiverCount = 0, 0
@@ -377,8 +385,10 @@ function Gadgets.Solve(springRepo, teamsList)
           role = "neutral"
           delta = 0
         end
+        -- TRACE DISABLED: -- DISABLED: Spring.Echo("[TRACE] TeamWaterfill t=" .. m.teamId .. " a=" .. allyTeam .. " r=" .. resourceType .. " role=" .. role)
         EconomyLog.TeamWaterfill(m.teamId, allyTeam, resourceType, m.current, target, role, delta)
       end
+      -- DISABLED: Spring.Echo("[TRACE] GroupLift a=" .. allyTeam .. " r=" .. resourceType)
       EconomyLog.GroupLift(allyTeam, resourceType, lift, #members, totalSupply, totalDemand, senderCount, receiverCount)
 
       local ledgers = allocateGroup(members, lift, taxRate)
@@ -414,13 +424,21 @@ function Gadgets.Solve(springRepo, teamsList)
 
   for teamId, team in pairs(teamsList) do
     local ledger = allLedgers[teamId]
-    if team.metal then
-      local m = ledger[ResourceType.METAL]
-      EconomyLog.TeamOutput( teamId, ResourceType.METAL, team.metal.current, m.sent, m.received)
-    end
-    if team.energy then
-      local e = ledger[ResourceType.ENERGY]
-      EconomyLog.TeamOutput( teamId, ResourceType.ENERGY, team.energy.current, e.sent, e.received)
+    if ledger then
+      if team.metal then
+        local m = ledger[ResourceType.METAL]
+        if m then
+          -- DISABLED: Spring.Echo("[TRACE] TeamOutput t=" .. teamId .. " r=metal")
+          EconomyLog.TeamOutput(teamId, ResourceType.METAL, team.metal.current, m.sent, m.received)
+        end
+      end
+      if team.energy then
+        local e = ledger[ResourceType.ENERGY]
+        if e then
+          -- DISABLED: Spring.Echo("[TRACE] TeamOutput t=" .. teamId .. " r=energy")
+          EconomyLog.TeamOutput(teamId, ResourceType.ENERGY, team.energy.current, e.sent, e.received)
+        end
+      end
     end
   end
 
