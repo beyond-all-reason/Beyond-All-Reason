@@ -152,7 +152,8 @@ local function shouldBuggeroff(unitID, unitDefData, visitedUnits, builderTeam)
 	end
 
 	if unitDefData.isBlocking then
-		-- todo: consider how to handle other blocking elements; e.g. do we stop buggering-off units when blocked? just delete blockers?
+		visitedUnits[unitID] = true
+		Spring.DestroyUnit(unitID, false, true, nil, true)
 		return false
 	end
 
