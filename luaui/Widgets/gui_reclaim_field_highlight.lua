@@ -2873,6 +2873,17 @@ function widget:SetConfigData(data)
 	-- end
 end
 
+function widget:GameStart()
+	-- Update gameStarted flag when game transitions from lobby to active
+	gameStarted = true
+	-- Force draw state update to respect showOption settings now that game has started
+	UpdateDrawEnabled()
+	UpdateDrawEnergyEnabled()
+	-- Force full redraw with new draw state
+	redrawingNeeded = true
+	forceFullRedraw = true
+end
+
 function widget:Update(dt)
 	-- Update camera scale when enabled
 	if UpdateDrawEnabled() or UpdateDrawEnergyEnabled() then
