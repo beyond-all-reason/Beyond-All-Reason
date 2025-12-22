@@ -147,10 +147,6 @@ local function ignoreBuggeroff(unitID, unitDefData)
 end
 
 local function shouldBuggeroff(unitID, unitDefData, visitedUnits, builderTeam)
-	if visitedUnits[unitID] then
-		return false
-	end
-
 	if unitDefData.isBlocking then
 		visitedUnits[unitID] = true
 		Spring.DestroyUnit(unitID, false, true, nil, true)
@@ -222,7 +218,9 @@ function gadget:GameFrame(frame)
 				local unitDefID = Spring.GetUnitDefID(interferingID)
 				local unitDefData = cachedUnitDefs[unitDefID]
 
-				if builderID ~= interferingID and shouldBuggeroff(unitID, unitDefData, visitedUnits, builderTeam) then
+				if builderID == interferingID or visitedUnits[unitID] then
+					-- continue
+				elseif shouldBuggeroff(unitID, unitDefData, visitedUnits, builderTeam) then
 					-- todo: use blocking for "collision" detection, not unit radii, which are not the bounding radii (neither is bounding radius useful)
 					local unitRadius = unitDefData.radius
 					local areaRadius = math.max(buggerOffRadius, buildDefRadius + unitRadius)
