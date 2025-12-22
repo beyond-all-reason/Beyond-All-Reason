@@ -177,26 +177,30 @@ def load_teams(session_id):
 
 
 def load_economy_data_multi(session_id, team_ids, resource, limit=500):
-    """Load economy data for multiple teams."""
+    """Load economy data for multiple teams (final output levels after solver)."""
     conn = get_db_connection()
     if not conn or not team_ids:
         return pd.DataFrame()
     try:
         placeholders = ','.join(['?' for _ in team_ids])
-        input_df = pd.read_sql_query(
-            f"""SELECT frame, team_id, current, storage, source_path 
-               FROM eco_team_input 
-               WHERE session_id = ? AND team_id IN ({placeholders}) AND resource = ?
-               ORDER BY frame DESC LIMIT ?""",
+        # Use eco_team_output for actual resource levels (clamped to storage)
+        # eco_team_input contains current+excess for solver debugging
+        df = pd.read_sql_query(
+            f"""SELECT o.frame, o.team_id, o.current, i.storage, o.source_path 
+               FROM eco_team_output o
+               JOIN eco_team_input i ON o.session_id = i.session_id 
+                   AND o.frame = i.frame AND o.team_id = i.team_id AND o.resource = i.resource
+               WHERE o.session_id = ? AND o.team_id IN ({placeholders}) AND o.resource = ?
+               ORDER BY o.frame DESC LIMIT ?""",
             conn, params=[session_id] + list(team_ids) + [resource, limit * len(team_ids)]
         )
         
-        if input_df.empty:
+        if df.empty:
             return pd.DataFrame()
         
-        input_df = input_df.sort_values('frame')
-        input_df['game_time'] = input_df['frame'] / 30.0
-        return input_df
+        df = df.sort_values('frame')
+        df['game_time'] = df['frame'] / 30.0
+        return df
         
     finally:
         conn.close()
