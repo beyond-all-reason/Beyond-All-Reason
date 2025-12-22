@@ -198,21 +198,6 @@ function gadget:Initialize()
 	end
 	lastPolicyUpdate = springRepo.GetGameFrame()
 	
-	if Spring.IsEconomyAuditEnabled() then
-		for _, teamId in ipairs(teamList) do
-			local _, leader, _, isAI, _, allyTeam = Spring.GetTeamInfo(teamId)
-			local name
-			if isAI then
-				local _, aiName = Spring.GetAIInfo(teamId)
-				name = aiName or ("AI " .. teamId)
-			else
-				local playerName = leader and Spring.GetPlayerInfo(leader, false) or nil
-				name = playerName or ("Player " .. teamId)
-			end
-			EconomyLog.TeamInfo(teamId, name, isAI)
-		end
-	end
-	
 	-- Register ProcessEconomy controller unless in pure RESOURCE_EXCESS mode
 	-- (in ALTERNATE mode, the engine will skip calling ProcessEconomy on alternate cycles)
 	if currentMode ~= "resource_excess" then
@@ -224,5 +209,28 @@ function gadget:Initialize()
 	else
 		Spring.Echo("[ResourceTransferController] RESOURCE_EXCESS mode - skipping ProcessEconomy registration")
 		Spring.Echo("[ResourceTransferController] ResourceExcessController will handle excess via gadget:ResourceExcess")
+	end
+end
+
+function gadget:GameStart()
+	if not Spring.IsEconomyAuditEnabled() then return end
+	
+	local teamList = springRepo.GetTeamList() or {}
+	for _, teamId in ipairs(teamList) do
+		local _, leader, _, isAI, _, allyTeam = Spring.GetTeamInfo(teamId)
+		local name
+		if isAI then
+			local niceName = Spring.GetGameRulesParam('ainame_' .. teamId)
+			if niceName then
+				name = niceName
+			else
+				local _, aiName = Spring.GetAIInfo(teamId)
+				name = aiName or ("AI " .. teamId)
+			end
+		else
+			local playerName = leader and Spring.GetPlayerInfo(leader, false) or nil
+			name = playerName or ("Player " .. teamId)
+		end
+		EconomyLog.TeamInfo(teamId, name, isAI)
 	end
 end

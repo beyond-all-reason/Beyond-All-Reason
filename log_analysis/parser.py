@@ -95,9 +95,9 @@ def init_db():
     
     c.execute('''CREATE TABLE IF NOT EXISTS game_sessions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        start_timestamp TEXT, end_timestamp TEXT,
-        start_frame INTEGER, end_frame INTEGER,
-        team_count INTEGER, duration_frames INTEGER
+        start_timestamp TEXT NOT NULL, end_timestamp TEXT,
+        start_frame INTEGER NOT NULL, end_frame INTEGER,
+        team_count INTEGER NOT NULL, duration_frames INTEGER
     )''')
     c.execute('''CREATE TABLE IF NOT EXISTS solver_audit (
         id INTEGER PRIMARY KEY AUTOINCREMENT, session_id INTEGER NOT NULL,
@@ -180,33 +180,41 @@ class SessionTracker:
         self.session_start_timestamp = None
         self.session_start_frame = None
         self.session_team_count = None
-        self._load_or_create_session()
-    def _load_or_create_session(self):
+        self._load_existing_session()
+    
+    def _load_existing_session(self):
         c = self.conn.cursor()
-        c.execute("SELECT id, end_frame FROM game_sessions ORDER BY id DESC LIMIT 1")
+        c.execute("SELECT id, end_frame, start_frame, team_count FROM game_sessions ORDER BY id DESC LIMIT 1")
         row = c.fetchone()
         if row:
             self.current_session_id = row[0]
-            self.last_frame = row[1] or 0
-        else: self._start_new_session(None, 0, None)
+            self.last_frame = row[1] if row[1] is not None else (row[2] or 0)
+            self.session_start_frame = row[2]
+            self.session_team_count = row[3]
+    
     def _start_new_session(self, timestamp, frame, team_count):
         c = self.conn.cursor()
-        c.execute('INSERT INTO game_sessions (start_timestamp, start_frame, team_count) VALUES (?, ?, ?)', (timestamp, frame, team_count))
+        tc = team_count if team_count is not None else 0
+        c.execute('INSERT INTO game_sessions (start_timestamp, start_frame, team_count) VALUES (?, ?, ?)', (timestamp, frame, tc))
         self.conn.commit()
         self.current_session_id = c.lastrowid
         self.session_start_timestamp = timestamp
         self.session_start_frame = frame
-        self.session_team_count = team_count
+        self.session_team_count = tc
         self.last_frame = frame
         print(f"[SessionTracker] Started new session #{self.current_session_id} at frame {frame}")
+    
     def _end_current_session(self, timestamp, frame):
         if self.current_session_id:
             c = self.conn.cursor()
             duration = frame - (self.session_start_frame or 0)
             c.execute('UPDATE game_sessions SET end_timestamp = ?, end_frame = ?, duration_frames = ? WHERE id = ?', (timestamp, frame, duration, self.current_session_id))
             self.conn.commit()
+    
     def check_frame(self, timestamp, frame, team_count=None):
-        if frame < self.last_frame - 1000:
+        if self.current_session_id is None:
+            self._start_new_session(timestamp, frame, team_count)
+        elif frame < self.last_frame - 1000:
             self._end_current_session(timestamp, self.last_frame)
             self._start_new_session(timestamp, frame, team_count)
         self.last_frame = max(self.last_frame, frame)
@@ -219,7 +227,7 @@ class SessionTracker:
 session_tracker = None
 
 def parse_line(conn, line):
-    global session_tracker
+    global session_tracker, event_counts
     match = re.search(r'\[t=(.*?)\]\[f=(-?\d+)\] \[(.*?)\] (.*)', line)
     if not match: return False
     timestamp_str, frame, subsystem, content = match.groups()
@@ -228,24 +236,12 @@ def parse_line(conn, line):
     c = conn.cursor()
     parsed = False
 
-    if subsystem == "SolverAudit":
-        parts = content.split()
-        data = {}
-        for part in parts:
-            if '=' in part:
-                k, v = part.split('=', 1)
-                data[k] = v
-        source_path, metric = data.get('source_path'), data.get('metric')
-        time_us = float(data.get('time_us', 0))
-        c.execute("INSERT INTO solver_audit (session_id, timestamp, frame, game_time, source_path, metric, time_us) VALUES (?, ?, ?, ?, ?, ?, ?)", (session_id, timestamp_str, frame, frame/30.0, source_path, metric, time_us))
-        broadcast_event('solver_audit', {'frame': frame, 'source_path': source_path, 'metric': metric, 'time_us': time_us})
-        parsed = True
-
-    elif subsystem == "EconomyAudit":
+    if subsystem == "EconomyAudit":
         try:
             if ' ' not in content:
                 return False
             event_type, json_str = content.split(' ', 1)
+            event_counts[event_type] = event_counts.get(event_type, 0) + 1
             data = json.loads(json_str)
             team_count = data.get('team_count')
             if team_count and session_tracker: session_tracker.check_frame(timestamp_str, frame, team_count)
@@ -278,6 +274,10 @@ def parse_line(conn, line):
             elif event_type == "team_info":
                 c.execute('INSERT OR REPLACE INTO team_names (session_id, team_id, name, is_ai) VALUES (?, ?, ?, ?)', (session_id, data.get('team_id'), data.get('name'), 1 if data.get('is_ai') else 0))
                 parsed = True
+            elif event_type == "solver_timing":
+                c.execute("INSERT INTO solver_audit (session_id, timestamp, frame, game_time, source_path, metric, time_us) VALUES (?, ?, ?, ?, ?, ?, ?)", (session_id, timestamp_str, frame, game_time, source_path, data.get('metric'), data.get('time_us', 0)))
+                broadcast_event('solver_timing', {'frame': frame, 'source_path': source_path, 'metric': data.get('metric'), 'time_us': data.get('time_us')})
+                parsed = True
         except json.JSONDecodeError:
             pass
         except Exception as e:
@@ -304,8 +304,10 @@ def tail_file(path, from_start=False, follow=True):
             else:
                 partial_line += line
 
+event_counts = {}
+
 def main():
-    global VERBOSE, session_tracker
+    global VERBOSE, session_tracker, event_counts
     parser = argparse.ArgumentParser()
     parser.add_argument('--history', action='store_true')
     parser.add_argument('--follow', action='store_true')
@@ -319,27 +321,53 @@ def main():
     
     log_file = args.file or args.log_path or LOG_FILE_PATH
     VERBOSE = args.verbose
+    
+    if VERBOSE:
+        print(f"[Parser] Log file: {log_file}")
+        print(f"[Parser] Database: {DB_PATH}")
+        print(f"[Parser] Mode: {'history' if args.history else 'tail'}{' + follow' if args.follow else ''}")
+    
     conn = init_db()
+    global session_tracker
     if args.reset_infolog and os.path.exists(log_file):
+        if VERBOSE: print(f"[Parser] Truncating infolog...")
         with open(log_file, 'w') as f: f.truncate(0)
-    if args.reset: conn = reset_db(conn)
+    if args.reset:
+        if VERBOSE: print(f"[Parser] Resetting database...")
+        conn = reset_db(conn)
     session_tracker = SessionTracker(conn)
+    
+    if VERBOSE:
+        print(f"[Parser] Session ID: {session_tracker.current_session_id or 'will create on first event'}")
+        print(f"[Parser] Starting parse...")
     
     from_start = args.history or args.file is not None
     count = 0
+    last_report = 0
     try:
         for line in tail_file(log_file, from_start=from_start, follow=args.follow):
             if parse_line(conn, line):
                 count += 1
-                if count % 100 == 0: conn.commit()
-    except KeyboardInterrupt: pass
+                if count % 100 == 0:
+                    conn.commit()
+                    if VERBOSE and count - last_report >= 500:
+                        print(f"[Parser] Parsed {count} events...")
+                        last_report = count
+    except KeyboardInterrupt:
+        if VERBOSE: print(f"\n[Parser] Interrupted")
     finally:
         conn.commit()
         try:
-            # PASSIVE won't block if dashboard has db open (unlike TRUNCATE)
             conn.execute("PRAGMA wal_checkpoint(PASSIVE);")
         except (sqlite3.OperationalError, KeyboardInterrupt):
             pass
         conn.close()
+        
+        if VERBOSE or count > 0:
+            print(f"[Parser] Done. Parsed {count} events total.")
+            if event_counts:
+                print(f"[Parser] Event breakdown:")
+                for evt, cnt in sorted(event_counts.items(), key=lambda x: -x[1]):
+                    print(f"  {evt}: {cnt}")
 
 if __name__ == "__main__": main()

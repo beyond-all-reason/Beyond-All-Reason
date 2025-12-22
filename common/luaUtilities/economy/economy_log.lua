@@ -6,36 +6,16 @@
 -- source_path, frame, and game_time are auto-injected by C++.
 --
 -- Enable via springsettings.cfg: LogSections = EconomyAudit:30
---
--- NOTE: When disabled, all functions are no-ops (zero overhead).
--- NOTE: Passes flat key-value pairs to C++ to avoid Lua table/JSON overhead.
 --------------------------------------------------------------------------------
 
 local EconomyLog = {}
 
--- Check if audit is enabled at load time
--- If disabled, all functions become no-ops with zero overhead
-local ENABLED = Spring.IsEconomyAuditEnabled and Spring.IsEconomyAuditEnabled() or false
-
-if not ENABLED then
-  -- No-op stubs - zero overhead in production
-  local function noop() end
-  EconomyLog.FrameStart = noop
-  EconomyLog.TeamInput = noop
-  EconomyLog.GroupLift = noop
-  EconomyLog.Transfer = noop
-  EconomyLog.TeamWaterfill = noop
-  EconomyLog.TeamOutput = noop
-  EconomyLog.FrameEnd = noop
-  EconomyLog.TeamInfo = noop
-  EconomyLog.StorageCapped = noop
-  EconomyLog.Breakpoint = noop
-  return EconomyLog
+local function IsEnabled()
+  return Spring.IsEconomyAuditEnabled and Spring.IsEconomyAuditEnabled()
 end
 
 --------------------------------------------------------------------------------
--- Structured Log Events
--- C++ auto-injects: source_path, frame, game_time
+-- Structured Log Events (require active audit context)
 --------------------------------------------------------------------------------
 
 function EconomyLog.FrameStart(taxRate, metalThreshold, energyThreshold, teamCount)
@@ -111,14 +91,6 @@ function EconomyLog.FrameEnd(solverTimeUs, totalTimeUs)
   )
 end
 
-function EconomyLog.TeamInfo(teamId, name, isAI)
-  Spring.EconomyAuditLog("team_info",
-    "team_id", teamId,
-    "name", name,
-    "is_ai", isAI
-  )
-end
-
 function EconomyLog.StorageCapped(teamId, resourceType, current, storage)
   Spring.EconomyAuditLog("storage_capped",
     "team_id", teamId,
@@ -130,6 +102,18 @@ end
 
 function EconomyLog.Breakpoint(name)
   Spring.EconomyAuditBreakpoint(name)
+end
+
+--------------------------------------------------------------------------------
+-- TeamInfo: Called from Initialize(), NOT inside ProcessEconomy context
+-- Uses Spring.Log directly since EconomyAuditLog requires active context
+--------------------------------------------------------------------------------
+
+function EconomyLog.TeamInfo(teamId, name, isAI)
+  if not IsEnabled() then return end
+  local json = string.format('{"team_id":%d,"name":"%s","is_ai":%s}', 
+    teamId, tostring(name):gsub('"', '\\"'), isAI and "true" or "false")
+  Spring.Log("EconomyAudit", LOG.INFO, "team_info " .. json)
 end
 
 return EconomyLog
