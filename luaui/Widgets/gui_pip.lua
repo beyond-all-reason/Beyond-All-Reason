@@ -104,7 +104,6 @@ local animationDuration = 0.22 -- seconds for the minimize/maximize transition a
 local animStartDim = {} -- Starting dimensions for animation
 local animEndDim = {} -- Ending dimensions for animation
 local drawingGround = true
-local drawIconOnly = false
 local areResizing = false
 
 -- Render-to-texture state (consolidated to reduce local variable count)
@@ -330,18 +329,6 @@ local buttons = {
 					end
 				end
 	},
-	-- {
-	-- 	texture = 'LuaUI/Images/pip/PipGround.png',
-	-- 	tooltip = 'Toggle ground drawing',
-	-- 	command = 'pip_toggle_ground',
-	-- 	OnPress = function() drawingGround = not drawingGround end
-	-- },
-	-- {
-	-- 	texture = 'LuaUI/Images/pip/PipBlipButton.png',
-	-- 	tooltip = 'Show 3D models when zoom is high enough (can become expensive)',
-	-- 	command = 'pip_toggle_3d',
-	-- 	OnPress = function() drawIconOnly = not drawIconOnly end
-	-- },
 	{
 		texture = 'LuaUI/Images/pip/PipMove.png',
 		tooltip = Spring.I18N('ui.pip.move'),
@@ -2616,7 +2603,6 @@ function widget:GetConfigData()
 			minModeL=minModeL,
 			minModeB=minModeB,
 			drawingGround=drawingGround,
-			drawIconOnly=drawIconOnly,
 			drawProjectiles=drawProjectiles,
 			areTracking=interactionState.areTracking,
 			trackingSmoothness=trackingSmoothness,
@@ -2663,7 +2649,6 @@ function widget:SetConfigData(data)
 	wcz = data.wcz or wcz
 	targetWcx, targetWcz = wcx, wcz  -- Initialize targets from config
 	drawingGround = data.drawingGround~= nil and data.drawingGround or drawingGround
-	drawIconOnly = data.drawIconOnly~= nil and data.drawIconOnly or drawIconOnly
 	drawProjectiles = data.drawProjectiles~= nil and data.drawProjectiles or drawProjectiles
 	trackingSmoothness = data.trackingSmoothness or trackingSmoothness
 	if Spring.GetGameFrame() > 0 or (data.gameID and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"))) then
@@ -4928,8 +4913,9 @@ function widget:IsAbove(mx, my)
 			       my >= math.min(dim.b, minModeB) and my <= math.max(dim.t, minModeB + math.floor(usedButtonSize*maximizeSizemult))
 		end
 	elseif inMinMode then
-		-- In minimized mode, check if over the minimize button area
-		return mx >= minModeL and mx <= vsx and my >= minModeB and my <= vsy
+		-- In minimized mode, check if over the minimize button area only
+		local buttonSize = math.floor(usedButtonSize * maximizeSizemult)
+		return mx >= minModeL and mx <= minModeL + buttonSize and my >= minModeB and my <= minModeB + buttonSize
 	else
 		-- In normal mode, check if over the PIP panel
 		return mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t
