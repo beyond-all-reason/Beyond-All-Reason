@@ -44,7 +44,6 @@ function runCritterTest()
 	-------------------------------------------------------
 	-- 1. Create critters
 	-------------------------------------------------------
-
 	SyncedRun(function(locals)
 		local GaiaTeamID = Spring.GetGaiaTeamID()
 		local critterName = locals.critterName
@@ -77,7 +76,6 @@ function runCritterTest()
 	-------------------------------------------------------
 	-- 2. Create pressure units (tracked explicitly)
 	-------------------------------------------------------
-
 	local pressureUnits = {}
 
 	SyncedRun(function(locals)
@@ -108,26 +106,24 @@ function runCritterTest()
 		pressureUnits = pressureUnits,
 	})
 
+	-- realistic assertion: allow some failed spawns
 	assertSuccessBefore(30, 10, function()
-	local aliveCount = 0
-	for _, unitID in ipairs(pressureUnits) do
-		if Spring.ValidUnitID(unitID) then
-			aliveCount = aliveCount + 1
+		local aliveCount = 0
+		for _, unitID in ipairs(pressureUnits) do
+			if Spring.ValidUnitID(unitID) then
+				aliveCount = aliveCount + 1
+			end
 		end
-	end
-	-- consider success if most units spawned
-	return aliveCount >= 3500
-end)
-
+		return aliveCount >= 3500
+	end)
 
 	Test.waitFrames(WAIT_FRAMES)
 
 	assert(countAliveCritters() < 36)
 
 	-------------------------------------------------------
-	-- 3. Destroy pressure units only
+	-- 3. Destroy pressure units so critters will be restored
 	-------------------------------------------------------
-
 	local function destroyPressureUnits()
 		SyncedRun(function(locals)
 			for _, unitID in ipairs(locals.pressureUnits) do
@@ -154,7 +150,6 @@ end)
 	-------------------------------------------------------
 	-- 4. Wait for critter restore tick
 	-------------------------------------------------------
-
 	Test.waitFrames(WAIT_FRAMES - (Spring.GetGameFrame() % WAIT_FRAMES))
 
 	assert(countAliveCritters() == 36)
