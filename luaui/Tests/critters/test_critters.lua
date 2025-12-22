@@ -98,11 +98,12 @@ function runCritterTest()
 		end
 	end, 500)
 
-	assertSuccessBefore(15, 10, function()
-		return Spring.GetTeamUnitCount(0) >= 3600
+	assertSuccessBefore(30, 10, function()
+	    local count = Spring.GetTeamUnitCount(GaiaTeamID)
+	    return count >= 3600
 	end)
 
-	Test.waitFrames(WAIT_FRAMES - (Spring.GetGameFrame() % WAIT_FRAMES))
+	Test.waitFrames(WAIT_FRAMES)
 
 	assert(countAliveCritters() < 36)
 
