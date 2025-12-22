@@ -58,18 +58,26 @@ function runCritterTest()
 	SyncedRun(function(locals)
 		local GaiaTeamID  = Spring.GetGaiaTeamID()
 		local critterName = locals.critterName
+		local midX, midZ  = locals.midX, locals.midZ
+
 		local function createUnit(def, x, z, teamID)
-			local x = locals.midX + x
-			local z = locals.midZ + z
+			x = midX + x
+			z = midZ + z
 			local y = Spring.GetGroundHeight(x, z) + 40
-			local unitID = Spring.CreateUnit(def, x, y, z, "south", teamID)
+			Spring.CreateUnit(def, x, y, z, "south", teamID)
 		end
-		for i=0, 5 do
-			for j=0, 5 do
-				createUnit(critterName, 850+i*50, 100+j*50, GaiaTeamID)
+	
+		for i = 0, 5 do
+			for j = 0, 5 do
+				createUnit(critterName, 850 + i*50, 100 + j*50, GaiaTeamID)
 			end
 		end
-	end, 400)
+	end, 400, {
+		critterName = critterName,
+		midX = midX,
+		midZ = midZ,
+	})
+
 
 	assertSuccessBefore(5, 5, function()
 		return #Spring.GetAllUnits() == 36
