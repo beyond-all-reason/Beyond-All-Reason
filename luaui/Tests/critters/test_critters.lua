@@ -126,11 +126,31 @@ end, 500, {
 
 	-- 3. Destroy non critters so critters will be restored
 
-	destroyNonCritters()
+	local function destroyNonCritters()
+	SyncedRun(function(locals)
+		local isCritter = locals.isCritter
+		local allUnits = Spring.GetAllUnits()
+		for _, unitID in ipairs(allUnits) do
+			local defID = Spring.GetUnitDefID(unitID)
+			if not isCritter[defID] then
+				Spring.DestroyUnit(unitID, false, true, nil, true)
+			end
+		end
+	end, 500, {
+		isCritter = isCritter,
+	})
+end
+
 
 	assertSuccessBefore(15, 5, function()
-		return Spring.GetTeamUnitCount(0) == 0
-	end)
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		local defID = Spring.GetUnitDefID(unitID)
+		if not isCritter[defID] then
+			return false
+		end
+	end
+	return true
+end)
 
 	Test.waitFrames(WAIT_FRAMES - (Spring.GetGameFrame() % WAIT_FRAMES))
 
