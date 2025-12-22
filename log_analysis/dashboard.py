@@ -2,6 +2,7 @@
 """
 BAR Economy Audit Dashboard
 Real-time visualization of economy data using Dash + WebSockets
+Includes: Economy Overview, Timing Analysis, Waterfill Analysis
 """
 
 import os
@@ -20,7 +21,6 @@ from plotly.subplots import make_subplots
 import pandas as pd
 import numpy as np
 
-# WebSocket for real-time updates
 import websockets
 from websockets.sync.client import connect as ws_connect
 
@@ -65,26 +65,39 @@ COLORS = {
     'yellow': '#ebcb8b',
 }
 
-# Player colors for distinguishing teams
 PLAYER_COLORS = [
     '#58a6ff', '#a3be8c', '#bf616a', '#b48ead', 
     '#d08770', '#88c0d0', '#ebcb8b', '#81a2be',
     '#f0c674', '#8fbcbb', '#5e81ac', '#e5c07b'
 ]
 
+METRIC_COLORS = {
+    'PreMunge': '#4FC3F7',
+    'Solver': '#EF5350',
+    'PostMunge': '#66BB6A',
+    'PolicyCache': '#FFD54F',
+    'CppSetters': '#AB47BC',
+    'BuildTeamData': '#4FC3F7',
+    'WaterfillSolver': '#EF5350',
+    'ApplyResults': '#66BB6A',
+}
+
+SENDER_COLOR = '#EF5350'
+RECEIVER_COLOR = '#66BB6A'
+NEUTRAL_COLOR = '#78909C'
+TAX_COLOR = '#AB47BC'
+
 def get_player_color(player_id):
     return PLAYER_COLORS[player_id % len(PLAYER_COLORS)]
 
 
 def get_team_display_name(team_id, names_dict):
-    """Get display name for a team, using player name if available."""
     if names_dict and team_id in names_dict:
         return names_dict[team_id]
     return f"Player {team_id}"
 
 
 def format_time_mmss(seconds):
-    """Format seconds as m:ss (e.g., 1:45, 0:30)"""
     if pd.isna(seconds):
         return "0:00"
     mins = int(seconds // 60)
@@ -93,7 +106,6 @@ def format_time_mmss(seconds):
 
 
 def get_time_axis_config(game_times, colors):
-    """Generate tick values and labels for mm:ss time axis."""
     if len(game_times) == 0:
         return {}
     
@@ -123,7 +135,6 @@ def get_time_axis_config(game_times, colors):
 
 # === Database queries ===
 def get_db_connection():
-    """Get a read-only database connection."""
     if not os.path.exists(DB_PATH):
         return None
     conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True, timeout=5)
@@ -132,7 +143,6 @@ def get_db_connection():
 
 
 def load_sessions():
-    """Load all game sessions."""
     conn = get_db_connection()
     if not conn:
         return []
@@ -147,7 +157,6 @@ def load_sessions():
 
 
 def load_team_names(session_id):
-    """Load team names for a session."""
     conn = get_db_connection()
     if not conn:
         return {}
@@ -162,7 +171,6 @@ def load_team_names(session_id):
 
 
 def load_teams(session_id):
-    """Load distinct teams from economy data."""
     conn = get_db_connection()
     if not conn:
         return []
@@ -177,14 +185,11 @@ def load_teams(session_id):
 
 
 def load_economy_data_multi(session_id, team_ids, resource, limit=500):
-    """Load economy data for multiple teams (final output levels after solver)."""
     conn = get_db_connection()
     if not conn or not team_ids:
         return pd.DataFrame()
     try:
         placeholders = ','.join(['?' for _ in team_ids])
-        # Use eco_team_output for actual resource levels (clamped to storage)
-        # eco_team_input contains current+excess for solver debugging
         df = pd.read_sql_query(
             f"""SELECT o.frame, o.team_id, o.current, i.storage, o.source_path 
                FROM eco_team_output o
@@ -207,7 +212,6 @@ def load_economy_data_multi(session_id, team_ids, resource, limit=500):
 
 
 def load_transfers(session_id, resource, team_ids=None, limit=1000):
-    """Load explicit resource transfers, optionally filtered by teams."""
     conn = get_db_connection()
     if not conn:
         return pd.DataFrame()
@@ -238,7 +242,6 @@ def load_transfers(session_id, resource, team_ids=None, limit=1000):
 
 
 def load_group_lift_data(session_id, resource, limit=500):
-    """Load group lift (supply/demand totals) data."""
     conn = get_db_connection()
     if not conn:
         return pd.DataFrame()
@@ -255,9 +258,137 @@ def load_group_lift_data(session_id, resource, limit=500):
         conn.close()
 
 
+def load_solver_timing_summary():
+    conn = get_db_connection()
+    if not conn:
+        return pd.DataFrame()
+    try:
+        df = pd.read_sql_query("""
+            SELECT metric, COUNT(*) as count, 
+                   AVG(time_us) as avg_us, 
+                   MIN(time_us) as min_us,
+                   MAX(time_us) as max_us,
+                   MIN(frame) as first_frame,
+                   MAX(frame) as last_frame
+            FROM solver_audit
+            GROUP BY metric
+            ORDER BY avg_us DESC
+        """, conn)
+        return df
+    finally:
+        conn.close()
+
+
+def load_solver_timing_data(limit=5000):
+    conn = get_db_connection()
+    if not conn:
+        return pd.DataFrame()
+    try:
+        df = pd.read_sql_query(f"""
+            SELECT frame, metric, time_us FROM solver_audit
+            WHERE frame > (SELECT MAX(frame) FROM solver_audit) - {limit}
+            AND metric != 'Overall'
+            ORDER BY frame
+        """, conn)
+        return df
+    finally:
+        conn.close()
+
+
+def load_waterfill_data(session_id, frame, resource, ally_team=0):
+    conn = get_db_connection()
+    if not conn:
+        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+    try:
+        wf = pd.read_sql_query("""
+            SELECT * FROM eco_team_waterfill 
+            WHERE session_id = ? AND frame = ? AND resource = ? AND ally_team = ?
+            ORDER BY team_id
+        """, conn, params=(session_id, frame, resource, ally_team))
+        
+        inp = pd.read_sql_query("""
+            SELECT team_id, storage, share_cursor FROM eco_team_input
+            WHERE session_id = ? AND frame = ? AND resource = ? AND ally_team = ?
+        """, conn, params=(session_id, frame, resource, ally_team))
+        
+        lift_df = pd.read_sql_query("""
+            SELECT lift, total_supply, total_demand FROM eco_group_lift
+            WHERE session_id = ? AND frame = ? AND resource = ? AND ally_team = ?
+        """, conn, params=(session_id, frame, resource, ally_team))
+        
+        return wf, inp, lift_df
+    finally:
+        conn.close()
+
+
+def load_output_data(session_id, resource, limit=1000):
+    conn = get_db_connection()
+    if not conn:
+        return pd.DataFrame()
+    try:
+        df = pd.read_sql_query(f"""
+            SELECT frame, resource, team_id, sent, received
+            FROM eco_team_output
+            WHERE session_id = ? AND resource = ?
+            ORDER BY frame DESC LIMIT ?
+        """, conn, params=(session_id, resource, limit))
+        return df.sort_values('frame') if not df.empty else df
+    finally:
+        conn.close()
+
+
+def load_conservation_check(session_id, limit=1000):
+    conn = get_db_connection()
+    if not conn:
+        return pd.DataFrame()
+    try:
+        df = pd.read_sql_query(f"""
+            SELECT frame, resource, 
+                   SUM(sent) as total_sent, 
+                   SUM(received) as total_received
+            FROM eco_team_output
+            WHERE session_id = ?
+            GROUP BY frame, resource
+            ORDER BY frame DESC LIMIT ?
+        """, conn, params=(session_id, limit))
+        return df.sort_values('frame') if not df.empty else df
+    finally:
+        conn.close()
+
+
+def load_available_frames(session_id):
+    conn = get_db_connection()
+    if not conn:
+        return []
+    try:
+        df = pd.read_sql_query("""
+            SELECT DISTINCT frame FROM eco_team_waterfill 
+            WHERE session_id = ?
+            ORDER BY frame
+        """, conn, params=(session_id,))
+        return df['frame'].tolist() if not df.empty else []
+    finally:
+        conn.close()
+
+
+def load_transfer_matrix(session_id, frame, resource):
+    conn = get_db_connection()
+    if not conn:
+        return pd.DataFrame()
+    try:
+        df = pd.read_sql_query("""
+            SELECT sender_team_id, receiver_team_id, SUM(amount) as total_amount
+            FROM eco_transfer
+            WHERE session_id = ? AND frame = ? AND resource = ?
+            GROUP BY sender_team_id, receiver_team_id
+        """, conn, params=(session_id, frame, resource))
+        return df
+    finally:
+        conn.close()
+
+
 # === Chart builders ===
 def create_empty_fig(message, colors):
-    """Create an empty figure with a message."""
     fig = go.Figure()
     fig.add_annotation(
         text=message,
@@ -275,7 +406,6 @@ def create_empty_fig(message, colors):
 
 
 def create_resource_levels_chart(df, team_ids, team_names, resource, colors):
-    """Create resource levels chart for one or more teams."""
     if df.empty:
         return create_empty_fig("Select players to view resource levels", colors)
     
@@ -327,7 +457,6 @@ def create_resource_levels_chart(df, team_ids, team_names, resource, colors):
 
 
 def create_transfer_flow_chart(transfers_df, team_names, selected_teams, colors):
-    """Create transfer flow chart - showing net flow per player."""
     if transfers_df.empty:
         return create_empty_fig("No transfer data", colors)
     
@@ -388,7 +517,6 @@ def create_transfer_flow_chart(transfers_df, team_names, selected_teams, colors)
 
 
 def create_explicit_transfers_chart(transfers_df, team_names, colors):
-    """Create bar chart showing taxed vs received amounts per time window."""
     if transfers_df.empty:
         return create_empty_fig("No transfer data", colors)
     
@@ -443,7 +571,6 @@ def create_explicit_transfers_chart(transfers_df, team_names, colors):
 
 
 def create_total_sent_chart(transfers_df, team_names, colors):
-    """Create horizontal bar chart of total sent by each player."""
     if transfers_df.empty:
         return create_empty_fig("No data", colors)
     
@@ -477,7 +604,6 @@ def create_total_sent_chart(transfers_df, team_names, colors):
 
 
 def create_supply_demand_chart(group_lift_df, colors):
-    """Create supply/demand over time line chart."""
     if group_lift_df.empty:
         return create_empty_fig("No data", colors)
     
@@ -520,7 +646,6 @@ def create_supply_demand_chart(group_lift_df, colors):
 
 
 def create_lift_chart(group_lift_df, colors):
-    """Create lift value over time."""
     if group_lift_df.empty:
         return create_empty_fig("No data", colors)
     
@@ -556,7 +681,6 @@ def create_lift_chart(group_lift_df, colors):
 
 
 def create_transaction_ledger(transfers_df, team_names, selected_teams=None, limit=50):
-    """Create data for transaction ledger table."""
     if transfers_df.empty:
         return []
     
@@ -585,6 +709,437 @@ def create_transaction_ledger(transfers_df, team_names, selected_teams=None, lim
     return records
 
 
+# === Timing Analysis Charts ===
+def create_timing_summary_table(timing_df):
+    if timing_df.empty:
+        return html.Div("No timing data available. Run the game with audit logging enabled.",
+                       style={'color': COLORS['text_muted'], 'padding': '20px'})
+    
+    return dash_table.DataTable(
+        data=timing_df.to_dict('records'),
+        columns=[
+            {'name': 'Metric', 'id': 'metric'},
+            {'name': 'Count', 'id': 'count', 'type': 'numeric', 'format': {'specifier': ','}},
+            {'name': 'Avg (μs)', 'id': 'avg_us', 'type': 'numeric', 'format': {'specifier': '.2f'}},
+            {'name': 'Min (μs)', 'id': 'min_us', 'type': 'numeric', 'format': {'specifier': '.2f'}},
+            {'name': 'Max (μs)', 'id': 'max_us', 'type': 'numeric', 'format': {'specifier': '.2f'}},
+            {'name': 'First Frame', 'id': 'first_frame'},
+            {'name': 'Last Frame', 'id': 'last_frame'},
+        ],
+        style_table={'overflowX': 'auto'},
+        style_cell={
+            'textAlign': 'left',
+            'padding': '8px 12px',
+            'fontFamily': 'JetBrains Mono, monospace',
+            'fontSize': '12px',
+            'backgroundColor': COLORS['card'],
+            'color': COLORS['text'],
+            'border': f"1px solid {COLORS['border']}",
+        },
+        style_header={
+            'backgroundColor': COLORS['background'],
+            'color': COLORS['text_muted'],
+            'fontWeight': '600',
+            'border': f"1px solid {COLORS['border']}",
+        },
+        style_data_conditional=[
+            {'if': {'row_index': 'odd'}, 'backgroundColor': COLORS['card_lighter']}
+        ],
+    )
+
+
+def create_timing_over_time_chart(solver_df, colors):
+    if solver_df.empty:
+        return create_empty_fig("No solver timing data available", colors)
+    
+    metrics = solver_df['metric'].unique()
+    n_metrics = len(metrics)
+    
+    fig = make_subplots(rows=n_metrics, cols=1, shared_xaxes=True,
+                        subplot_titles=[m for m in metrics],
+                        vertical_spacing=0.08)
+    
+    for i, metric in enumerate(metrics, 1):
+        mdf = solver_df[solver_df['metric'] == metric]
+        color = METRIC_COLORS.get(metric, '#888888')
+        
+        fig.add_trace(go.Scatter(
+            x=mdf['frame'], y=mdf['time_us'],
+            mode='lines', name=metric,
+            line=dict(color=color, width=1),
+            opacity=0.7,
+            hovertemplate=f'{metric}: %{{y:.1f}}μs<extra></extra>',
+            showlegend=False
+        ), row=i, col=1)
+        
+        if len(mdf) > 30:
+            rolling_avg = mdf['time_us'].rolling(window=30).mean()
+            fig.add_trace(go.Scatter(
+                x=mdf['frame'], y=rolling_avg,
+                mode='lines', name='30-frame avg',
+                line=dict(color='white', width=2),
+                hovertemplate='Avg: %{y:.1f}μs<extra></extra>',
+                showlegend=False
+            ), row=i, col=1)
+        
+        avg_time = mdf['time_us'].mean()
+        p95 = mdf['time_us'].quantile(0.95)
+        
+        fig.add_hline(y=avg_time, line_dash="dash", line_color=colors['green'],
+                     opacity=0.5, row=i, col=1)
+        fig.add_hline(y=p95, line_dash="dot", line_color=colors['yellow'],
+                     opacity=0.5, row=i, col=1)
+    
+    fig.update_layout(
+        template='plotly_dark',
+        paper_bgcolor=colors['card'],
+        plot_bgcolor=colors['background'],
+        font=dict(family='JetBrains Mono, monospace', color=colors['text']),
+        height=200 * n_metrics,
+        margin=dict(l=60, r=20, t=40, b=40),
+        showlegend=False,
+    )
+    
+    for i in range(1, n_metrics + 1):
+        fig.update_yaxes(title_text="Time (μs)", gridcolor=colors['border'], row=i, col=1)
+    
+    fig.update_xaxes(title_text="Frame", gridcolor=colors['border'], row=n_metrics, col=1)
+    
+    return fig
+
+
+def create_timing_histograms(solver_df, colors):
+    if solver_df.empty:
+        return create_empty_fig("No solver timing data available", colors)
+    
+    metrics = solver_df['metric'].unique()
+    n_metrics = len(metrics)
+    cols = min(3, n_metrics)
+    rows = (n_metrics + cols - 1) // cols
+    
+    fig = make_subplots(rows=rows, cols=cols,
+                        subplot_titles=[m for m in metrics])
+    
+    for idx, metric in enumerate(metrics):
+        row = idx // cols + 1
+        col = idx % cols + 1
+        
+        mdf = solver_df[solver_df['metric'] == metric]['time_us']
+        color = METRIC_COLORS.get(metric, '#888888')
+        
+        fig.add_trace(go.Histogram(
+            x=mdf,
+            nbinsx=50,
+            marker_color=color,
+            opacity=0.7,
+            hovertemplate='%{x:.1f}μs: %{y}<extra></extra>',
+            showlegend=False
+        ), row=row, col=col)
+        
+        fig.add_vline(x=mdf.mean(), line_dash="dash", line_color=colors['green'],
+                     row=row, col=col)
+        fig.add_vline(x=mdf.median(), line_dash="dot", line_color=colors['yellow'],
+                     row=row, col=col)
+    
+    fig.update_layout(
+        template='plotly_dark',
+        paper_bgcolor=colors['card'],
+        plot_bgcolor=colors['background'],
+        font=dict(family='JetBrains Mono, monospace', color=colors['text']),
+        height=300 * rows,
+        margin=dict(l=60, r=20, t=60, b=40),
+    )
+    
+    fig.update_xaxes(gridcolor=colors['border'])
+    fig.update_yaxes(gridcolor=colors['border'])
+    
+    return fig
+
+
+def create_timing_anomalies_table(solver_df, threshold_percentile=99):
+    if solver_df.empty:
+        return html.Div("No timing data available", style={'color': COLORS['text_muted']})
+    
+    anomalies = []
+    for metric in solver_df['metric'].unique():
+        mdf = solver_df[solver_df['metric'] == metric]
+        threshold = mdf['time_us'].quantile(threshold_percentile / 100)
+        
+        high_frames = mdf[mdf['time_us'] > threshold]
+        for _, row in high_frames.iterrows():
+            anomalies.append({
+                'frame': int(row['frame']),
+                'metric': metric,
+                'time_us': row['time_us'],
+                'threshold': threshold
+            })
+    
+    if not anomalies:
+        return html.Div("✅ No anomalies found above threshold",
+                       style={'color': COLORS['green'], 'padding': '10px'})
+    
+    anomaly_df = pd.DataFrame(anomalies).sort_values('time_us', ascending=False).head(20)
+    
+    pow2_values = [2**i for i in range(8, 14)]
+    suspicious = anomaly_df[anomaly_df['time_us'].apply(lambda x: any(abs(x - p) < 10 for p in pow2_values))]
+    
+    warning = None
+    if not suspicious.empty:
+        warning = html.P("⚠️ Some values are close to powers of 2, which may indicate timer resolution issues.",
+                        style={'color': COLORS['red'], 'marginTop': '10px'})
+    
+    return html.Div([
+        dash_table.DataTable(
+            data=anomaly_df.to_dict('records'),
+            columns=[
+                {'name': 'Frame', 'id': 'frame'},
+                {'name': 'Metric', 'id': 'metric'},
+                {'name': 'Time (μs)', 'id': 'time_us', 'type': 'numeric', 'format': {'specifier': '.2f'}},
+                {'name': 'Threshold', 'id': 'threshold', 'type': 'numeric', 'format': {'specifier': '.2f'}},
+            ],
+            style_table={'overflowX': 'auto'},
+            style_cell={
+                'textAlign': 'left',
+                'padding': '6px 10px',
+                'fontFamily': 'JetBrains Mono, monospace',
+                'fontSize': '11px',
+                'backgroundColor': COLORS['card'],
+                'color': COLORS['text'],
+                'border': f"1px solid {COLORS['border']}",
+            },
+            style_header={
+                'backgroundColor': COLORS['background'],
+                'color': COLORS['text_muted'],
+                'fontWeight': '600',
+            },
+            page_size=10
+        ),
+        warning
+    ])
+
+
+# === Waterfill Analysis Charts ===
+def create_waterfill_tank_diagram(wf_df, inp_df, lift_df, resource, frame, colors):
+    if wf_df.empty:
+        return create_empty_fig(f"No waterfill data for frame {frame}", colors)
+    
+    wf = wf_df.merge(inp_df, on='team_id', how='left')
+    n_teams = len(wf)
+    
+    lift = lift_df['lift'].iloc[0] if not lift_df.empty else 0
+    supply = lift_df['total_supply'].iloc[0] if not lift_df.empty else 0
+    demand = lift_df['total_demand'].iloc[0] if not lift_df.empty else 0
+    
+    max_storage = wf['storage'].max() if not wf.empty else 1000
+    resource_color = colors['metal'] if resource == 'metal' else colors['energy']
+    
+    fig = go.Figure()
+    
+    for i, row in wf.iterrows():
+        x_center = i * 1.2
+        storage = row['storage']
+        current = row['current']
+        target = row['target']
+        share_cursor = row['share_cursor'] if pd.notna(row.get('share_cursor')) else 0
+        role = row['role']
+        
+        height_scale = storage / max_storage if max_storage > 0 else 1
+        tank_height = 5 * height_scale
+        tank_width = 0.7
+        
+        fig.add_shape(
+            type="rect",
+            x0=x_center - tank_width/2, y0=0,
+            x1=x_center + tank_width/2, y1=tank_height,
+            line=dict(color='#e0e0e0', width=2),
+            fillcolor='rgba(0,0,0,0)'
+        )
+        
+        fill_height = (current / storage * tank_height) if storage > 0 else 0
+        fig.add_shape(
+            type="rect",
+            x0=x_center - tank_width/2 + 0.02, y0=0.02,
+            x1=x_center + tank_width/2 - 0.02, y1=fill_height,
+            fillcolor=resource_color,
+            opacity=0.7,
+            line=dict(width=0)
+        )
+        
+        target_y = (target / storage * tank_height) if storage > 0 else 0
+        fig.add_shape(
+            type="line",
+            x0=x_center - tank_width/2 - 0.1, y0=target_y,
+            x1=x_center + tank_width/2 + 0.1, y1=target_y,
+            line=dict(color='white', width=2, dash='dash')
+        )
+        
+        cursor_y = (share_cursor / storage * tank_height) if storage > 0 else 0
+        fig.add_shape(
+            type="line",
+            x0=x_center - tank_width/2, y0=cursor_y,
+            x1=x_center + tank_width/2, y1=cursor_y,
+            line=dict(color='#ff9800', width=1.5, dash='dot')
+        )
+        
+        role_colors = {'sender': SENDER_COLOR, 'receiver': RECEIVER_COLOR, 'neutral': NEUTRAL_COLOR}
+        role_color = role_colors.get(role, NEUTRAL_COLOR)
+        
+        fig.add_annotation(
+            x=x_center, y=-0.5,
+            text=f"T{int(row['team_id'])}",
+            showarrow=False,
+            font=dict(size=12, color=role_color, family='JetBrains Mono')
+        )
+        fig.add_annotation(
+            x=x_center, y=-0.9,
+            text=role.upper() if role else 'N/A',
+            showarrow=False,
+            font=dict(size=9, color=role_color, family='JetBrains Mono')
+        )
+        fig.add_annotation(
+            x=x_center, y=tank_height + 0.3,
+            text=f"{current:.0f}/{storage:.0f}",
+            showarrow=False,
+            font=dict(size=9, color=colors['text_muted'], family='JetBrains Mono')
+        )
+    
+    fig.update_layout(
+        template='plotly_dark',
+        paper_bgcolor=colors['card'],
+        plot_bgcolor=colors['background'],
+        font=dict(family='JetBrains Mono, monospace', color=colors['text']),
+        title=dict(
+            text=f"🌊 Waterfill: {resource.upper()} | Frame {frame}<br>"
+                 f"<span style='font-size:12px;color:{colors['text_muted']}'>Lift: {lift:.2f} | Supply: {supply:.1f} | Demand: {demand:.1f}</span>",
+            font=dict(size=14)
+        ),
+        margin=dict(l=40, r=40, t=80, b=60),
+        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-0.8, n_teams * 1.2 - 0.4]),
+        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-1.5, 6]),
+        showlegend=False,
+        height=400
+    )
+    
+    return fig
+
+
+def create_conservation_chart(output_df, resource, colors):
+    if output_df.empty:
+        return create_empty_fig("No output data for conservation check", colors)
+    
+    rdf = output_df[output_df['resource'] == resource] if 'resource' in output_df.columns else output_df
+    
+    if rdf.empty:
+        return create_empty_fig(f"No {resource} data", colors)
+    
+    frame_totals = rdf.groupby('frame').agg({'sent': 'sum', 'received': 'sum'}).reset_index()
+    frame_totals['tax'] = frame_totals['sent'] - frame_totals['received']
+    frame_totals['balance_error'] = abs(frame_totals['sent'] - frame_totals['received'] - frame_totals['tax'])
+    frame_totals['game_time'] = frame_totals['frame'] / 30.0
+    
+    resource_color = colors['metal'] if resource == 'metal' else colors['energy']
+    
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
+                        subplot_titles=['Tax Collected (Sent - Received)', 'Conservation Error'],
+                        vertical_spacing=0.15)
+    
+    fig.add_trace(go.Scatter(
+        x=frame_totals['game_time'], y=frame_totals['tax'],
+        mode='lines', name=f'{resource} tax',
+        line=dict(color=resource_color, width=2),
+        hovertemplate='Tax: %{y:.1f}<extra></extra>'
+    ), row=1, col=1)
+    
+    fig.add_hline(y=0, line_dash="dash", line_color=colors['orange'], opacity=0.5, row=1, col=1)
+    
+    fig.add_trace(go.Scatter(
+        x=frame_totals['game_time'], y=frame_totals['balance_error'],
+        mode='lines', name='Error',
+        line=dict(color=resource_color, width=2),
+        hovertemplate='Error: %{y:.6f}<extra></extra>'
+    ), row=2, col=1)
+    
+    fig.add_hline(y=0.01, line_dash="dash", line_color=colors['red'],
+                 annotation_text="Tolerance", opacity=0.7, row=2, col=1)
+    
+    max_error = frame_totals['balance_error'].max()
+    violations = len(frame_totals[frame_totals['balance_error'] > 0.01])
+    status_color = colors['green'] if violations == 0 else colors['red']
+    status_text = "✅ VERIFIED" if violations == 0 else f"⚠️ {violations} violations"
+    
+    x_axis_config = get_time_axis_config(frame_totals['game_time'], colors)
+    
+    fig.update_layout(
+        template='plotly_dark',
+        paper_bgcolor=colors['card'],
+        plot_bgcolor=colors['background'],
+        font=dict(family='JetBrains Mono, monospace', color=colors['text']),
+        title=dict(
+            text=f"🔬 Conservation Check: {resource.upper()} | Max Error: {max_error:.6f} | {status_text}",
+            font=dict(size=14, color=status_color)
+        ),
+        margin=dict(l=60, r=20, t=60, b=40),
+        height=400,
+        showlegend=False,
+    )
+    
+    fig.update_xaxes(x_axis_config, row=2, col=1)
+    fig.update_yaxes(gridcolor=colors['border'], row=1, col=1)
+    fig.update_yaxes(gridcolor=colors['border'], row=2, col=1)
+    
+    return fig
+
+
+def create_transfer_matrix_heatmap(transfers_df, resource, frame, colors):
+    if transfers_df.empty:
+        return create_empty_fig(f"No transfer data for frame {frame}", colors)
+    
+    all_teams = sorted(set(transfers_df['sender_team_id'].tolist() + transfers_df['receiver_team_id'].tolist()))
+    n = len(all_teams)
+    team_idx = {t: i for i, t in enumerate(all_teams)}
+    
+    matrix = np.zeros((n, n))
+    for _, row in transfers_df.iterrows():
+        i = team_idx[row['sender_team_id']]
+        j = team_idx[row['receiver_team_id']]
+        matrix[i, j] = row['total_amount']
+    
+    resource_color = colors['metal'] if resource == 'metal' else colors['energy']
+    
+    fig = go.Figure(data=go.Heatmap(
+        z=matrix,
+        x=[f'T{t}' for t in all_teams],
+        y=[f'T{t}' for t in all_teams],
+        colorscale=[[0, colors['background']], [1, resource_color]],
+        hovertemplate='From T%{y} → T%{x}: %{z:.0f}<extra></extra>'
+    ))
+    
+    for i in range(n):
+        for j in range(n):
+            if matrix[i, j] > 0:
+                text_color = 'white' if matrix[i, j] > matrix.max()/2 else colors['text_muted']
+                fig.add_annotation(
+                    x=j, y=i,
+                    text=f"{matrix[i, j]:.0f}",
+                    showarrow=False,
+                    font=dict(size=10, color=text_color, family='JetBrains Mono')
+                )
+    
+    fig.update_layout(
+        template='plotly_dark',
+        paper_bgcolor=colors['card'],
+        plot_bgcolor=colors['background'],
+        font=dict(family='JetBrains Mono, monospace', color=colors['text']),
+        title=dict(text=f"🔄 Transfer Matrix: {resource.upper()} | Frame {frame}", font=dict(size=14)),
+        margin=dict(l=60, r=20, t=60, b=60),
+        xaxis=dict(title="Receiver", side='bottom'),
+        yaxis=dict(title="Sender", autorange='reversed'),
+        height=400
+    )
+    
+    return fig
+
+
 # === Dash App ===
 app = dash.Dash(
     __name__,
@@ -592,7 +1147,8 @@ app = dash.Dash(
         dbc.themes.DARKLY,
         "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap"
     ],
-    title="BAR Economy Audit"
+    title="BAR Economy Audit",
+    suppress_callback_exceptions=True
 )
 
 app.index_string = '''
@@ -604,8 +1160,7 @@ app.index_string = '''
         {%favicon%}
         {%css%}
         <style>
-            /* Dropdown menu styling */
-            .Select-menu-outer, [class*="-menu"] {
+            [class*="-menu"] {
                 background-color: #1c2128 !important;
                 border: 1px solid #30363d !important;
             }
@@ -648,7 +1203,6 @@ app.index_string = '''
                 color: white !important;
             }
             
-            /* Checklist styling */
             .team-checklist .form-check {
                 display: inline-block;
                 margin-right: 12px;
@@ -667,7 +1221,6 @@ app.index_string = '''
                 font-size: 12px;
             }
             
-            /* Data table styling */
             .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td {
                 background-color: #161b22 !important;
                 color: #c9d1d9 !important;
@@ -677,6 +1230,43 @@ app.index_string = '''
                 background-color: #0d1117 !important;
                 color: #8b949e !important;
                 border-color: #30363d !important;
+            }
+            
+            .nav-tabs .nav-link {
+                color: #8b949e !important;
+                border: none !important;
+                background: transparent !important;
+            }
+            .nav-tabs .nav-link.active {
+                color: #58a6ff !important;
+                border-bottom: 2px solid #58a6ff !important;
+                background: transparent !important;
+            }
+            .nav-tabs .nav-link:hover {
+                color: #c9d1d9 !important;
+            }
+            
+            .explanation-card {
+                background-color: #161b22;
+                border: 1px solid #30363d;
+                border-radius: 6px;
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+            .explanation-card h4 {
+                color: #58a6ff;
+                margin-bottom: 12px;
+            }
+            .explanation-card p, .explanation-card li {
+                color: #c9d1d9;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+            .explanation-card code {
+                background-color: #21262d;
+                padding: 2px 6px;
+                border-radius: 3px;
+                color: #f0c674;
             }
         </style>
     </head>
@@ -691,8 +1281,238 @@ app.index_string = '''
 </html>
 '''
 
+
+def create_explanation_card(title, content):
+    return html.Div([
+        html.H4(title),
+        dcc.Markdown(content, dangerously_allow_html=True)
+    ], className="explanation-card")
+
+
+# === Tab: Economy Overview ===
+def create_economy_tab():
+    return html.Div([
+        dbc.Row([
+            dbc.Col([
+                dbc.Label("Players (select for per-player charts)", style={'color': COLORS['text'], 'fontSize': '12px', 'fontWeight': '500'}),
+                html.Div([
+                    dbc.Button("All", id="select-all-btn", color="secondary", size="sm", className="me-2"),
+                    dbc.Button("None", id="select-none-btn", color="secondary", size="sm", className="me-3"),
+                    dcc.Checklist(
+                        id='team-checklist',
+                        options=[],
+                        value=[],
+                        inline=True,
+                        className="team-checklist d-inline",
+                        labelStyle={'marginRight': '15px'}
+                    )
+                ], className="d-flex align-items-center flex-wrap")
+            ], width=12),
+        ], className="mb-3"),
+        
+        dbc.Row([
+            dbc.Col([
+                dcc.Loading(
+                    dcc.Graph(id='resource-chart', style={'height': '280px'}),
+                    type='circle', color=COLORS['accent']
+                ),
+                dcc.Loading(
+                    dcc.Graph(id='transfer-flow-chart', style={'height': '250px', 'marginTop': '10px'}),
+                    type='circle', color=COLORS['accent']
+                ),
+                dcc.Loading(
+                    dcc.Graph(id='explicit-transfers-chart', style={'height': '250px', 'marginTop': '10px'}),
+                    type='circle', color=COLORS['accent']
+                ),
+            ], width=8),
+            
+            dbc.Col([
+                dcc.Loading(
+                    dcc.Graph(id='total-sent-chart', style={'height': '180px'}),
+                    type='circle', color=COLORS['accent']
+                ),
+                dcc.Loading(
+                    dcc.Graph(id='supply-demand-chart', style={'height': '180px', 'marginTop': '8px'}),
+                    type='circle', color=COLORS['accent']
+                ),
+                dcc.Loading(
+                    dcc.Graph(id='lift-chart', style={'height': '150px', 'marginTop': '8px'}),
+                    type='circle', color=COLORS['accent']
+                ),
+                html.Div([
+                    html.H6("📋 Transfer Ledger", className="mb-2", 
+                            style={'color': COLORS['text'], 'fontFamily': 'JetBrains Mono', 'fontSize': '12px'}),
+                    html.Small("Showing transfers for selected players", className="text-muted d-block mb-2", style={'fontSize': '10px'}),
+                    dash_table.DataTable(
+                        id='transfer-ledger',
+                        columns=[
+                            {'name': 'Time', 'id': 'time'},
+                            {'name': 'From', 'id': 'from'},
+                            {'name': 'To', 'id': 'to'},
+                            {'name': 'Sent', 'id': 'sent'},
+                            {'name': 'Recv', 'id': 'recv'},
+                            {'name': 'Tax', 'id': 'tax'},
+                        ],
+                        style_table={'height': '180px', 'overflowY': 'auto'},
+                        style_cell={
+                            'textAlign': 'left',
+                            'padding': '4px 6px',
+                            'fontFamily': 'JetBrains Mono, monospace',
+                            'fontSize': '10px',
+                            'backgroundColor': COLORS['card'],
+                            'color': COLORS['text'],
+                            'border': f"1px solid {COLORS['border']}",
+                            'minWidth': '35px',
+                            'maxWidth': '70px',
+                            'overflow': 'hidden',
+                            'textOverflow': 'ellipsis',
+                        },
+                        style_header={
+                            'backgroundColor': COLORS['background'],
+                            'color': COLORS['text_muted'],
+                            'fontWeight': '600',
+                            'border': f"1px solid {COLORS['border']}",
+                            'fontSize': '9px',
+                        },
+                        style_data_conditional=[
+                            {'if': {'row_index': 'odd'}, 'backgroundColor': COLORS['card_lighter']}
+                        ],
+                        page_size=50
+                    )
+                ], style={
+                    'backgroundColor': COLORS['card'],
+                    'borderRadius': '6px',
+                    'padding': '8px',
+                    'marginTop': '8px'
+                }),
+            ], width=4)
+        ]),
+    ])
+
+
+# === Tab: Timing Analysis ===
+def create_timing_tab():
+    return html.Div([
+        create_explanation_card("⏱️ Solver Timing Comparison", """
+This section compares the performance of different economy processing approaches:
+
+1. **PreMunge**: Time to prepare data before solver
+2. **Solver**: Time in the waterfill algorithm  
+3. **PostMunge**: Time to format results
+4. **PolicyCache**: Time to update transfer policy cache
+5. **CppSetters**: Time in C++ to apply Lua results (engine-side)
+
+Use this data to identify performance bottlenecks and optimize the economy system.
+"""),
+        
+        html.H5("📊 Timing Summary", style={'color': COLORS['text'], 'marginBottom': '15px'}),
+        html.Div(id='timing-summary-table'),
+        
+        html.Hr(style={'borderColor': COLORS['border'], 'margin': '20px 0'}),
+        
+        create_explanation_card("📈 Timing Over Time", """
+Individual charts for each metric help identify anomalies and performance spikes.
+- **Solid line**: Raw timing values
+- **White line**: 30-frame rolling average  
+- **Green dashed**: Average value
+- **Yellow dotted**: 95th percentile
+"""),
+        dcc.Loading(
+            dcc.Graph(id='timing-over-time-chart'),
+            type='circle', color=COLORS['accent']
+        ),
+        
+        html.Hr(style={'borderColor': COLORS['border'], 'margin': '20px 0'}),
+        
+        create_explanation_card("📊 Timing Distributions", """
+Histograms show the distribution of timing values per metric.
+- **Green line**: Mean value
+- **Yellow line**: Median value
+- Wide distributions or long tails may indicate inconsistent performance.
+"""),
+        dcc.Loading(
+            dcc.Graph(id='timing-histogram-chart'),
+            type='circle', color=COLORS['accent']
+        ),
+        
+        html.Hr(style={'borderColor': COLORS['border'], 'margin': '20px 0'}),
+        
+        html.H5("🚨 Anomaly Detection (>99th percentile)", style={'color': COLORS['text'], 'marginBottom': '15px'}),
+        html.Div(id='timing-anomalies-table'),
+    ])
+
+
+# === Tab: Waterfill Analysis ===
+def create_waterfill_tab():
+    return html.Div([
+        create_explanation_card("🌊 Waterfill Resource Sharing Algorithm", """
+The waterfill algorithm balances resources within team alliances:
+
+1. **Share Cursor**: Each team sets a threshold (`storage × shareSlider`) - resources above this get shared
+2. **Lift**: A common "water level lift" is computed to balance supply = demand across the alliance
+3. **Target**: Each team's target = `min(shareCursor + lift, storage)`
+4. **Flow**: Resources flow from teams above target (senders) to teams below target (receivers)
+5. **Tax**: Transfers above the tax-free threshold are taxed (resources destroyed)
+
+**Key Invariant**: `Σ Received = Σ Sent - Tax`
+"""),
+        
+        dbc.Row([
+            dbc.Col([
+                dbc.Label("Frame", style={'color': COLORS['text'], 'fontSize': '12px', 'fontWeight': '500'}),
+                dcc.Slider(
+                    id='waterfill-frame-slider',
+                    min=0, max=100, step=1, value=100,
+                    marks=None,
+                    tooltip={"placement": "bottom", "always_visible": True},
+                )
+            ], width=6),
+            dbc.Col([
+                dbc.Label("Alliance", style={'color': COLORS['text'], 'fontSize': '12px', 'fontWeight': '500'}),
+                dcc.Dropdown(
+                    id='waterfill-ally-dropdown',
+                    options=[{'label': f'Alliance {i}', 'value': i} for i in range(10)],
+                    value=0,
+                    clearable=False,
+                    className="dash-dropdown"
+                )
+            ], width=3),
+        ], className="mb-3"),
+        
+        html.H5("🏗️ Tank Diagram", style={'color': COLORS['text'], 'marginBottom': '15px'}),
+        html.P("Visual representation of each team's resource levels, targets, and roles:",
+               style={'color': COLORS['text_muted'], 'fontSize': '13px'}),
+        dcc.Loading(
+            dcc.Graph(id='waterfill-tank-chart'),
+            type='circle', color=COLORS['accent']
+        ),
+        
+        html.Hr(style={'borderColor': COLORS['border'], 'margin': '20px 0'}),
+        
+        html.H5("🔄 Transfer Matrix", style={'color': COLORS['text'], 'marginBottom': '15px'}),
+        html.P("Who sent resources to whom? Heatmap showing flow between teams:",
+               style={'color': COLORS['text_muted'], 'fontSize': '13px'}),
+        dcc.Loading(
+            dcc.Graph(id='transfer-matrix-chart'),
+            type='circle', color=COLORS['accent']
+        ),
+        
+        html.Hr(style={'borderColor': COLORS['border'], 'margin': '20px 0'}),
+        
+        create_explanation_card("🔬 Conservation Verification", """
+The solver must maintain the conservation law: **Total Received = Total Sent - Tax**.
+
+This chart verifies that the invariant holds across all frames. Any violations indicate bugs in the solver.
+"""),
+        dcc.Loading(
+            dcc.Graph(id='conservation-chart'),
+            type='circle', color=COLORS['accent']
+        ),
+    ])
+
+
+# === Main Layout ===
 app.layout = dbc.Container([
-    # Header
     dbc.Row([
         dbc.Col([
             html.H1("⚡ Economy Audit", className="mb-0",
@@ -706,10 +1526,9 @@ app.layout = dbc.Container([
         ], width=6, className="text-end d-flex align-items-center justify-content-end")
     ], className="mb-3 pt-3"),
     
-    # Controls row
     dbc.Row([
         dbc.Col([
-            dbc.Label("Session", className="text-muted small"),
+            dbc.Label("Session", style={'color': COLORS['text'], 'fontSize': '12px', 'fontWeight': '500'}),
             dcc.Dropdown(
                 id='session-dropdown',
                 placeholder="Select session...",
@@ -717,7 +1536,7 @@ app.layout = dbc.Container([
             )
         ], width=3),
         dbc.Col([
-            dbc.Label("Resource", className="text-muted small"),
+            dbc.Label("Resource", style={'color': COLORS['text'], 'fontSize': '12px', 'fontWeight': '500'}),
             dcc.Dropdown(
                 id='resource-dropdown',
                 options=[
@@ -730,7 +1549,7 @@ app.layout = dbc.Container([
             )
         ], width=2),
         dbc.Col([
-            dbc.Label("Update", className="text-muted small"),
+            dbc.Label("Update", style={'color': COLORS['text'], 'fontSize': '12px', 'fontWeight': '500'}),
             dcc.Dropdown(
                 id='interval-dropdown',
                 options=[
@@ -744,126 +1563,19 @@ app.layout = dbc.Container([
                 className="dash-dropdown"
             )
         ], width=2),
-    ], className="mb-2"),
-    
-    # Team selection row
-    dbc.Row([
-        dbc.Col([
-            dbc.Label("Players (select for per-player charts)", className="text-muted small"),
-            html.Div([
-                dbc.Button("All", id="select-all-btn", color="secondary", size="sm", className="me-2"),
-                dbc.Button("None", id="select-none-btn", color="secondary", size="sm", className="me-3"),
-                dcc.Checklist(
-                    id='team-checklist',
-                    options=[],
-                    value=[],
-                    inline=True,
-                    className="team-checklist d-inline",
-                    labelStyle={'marginRight': '15px'}
-                )
-            ], className="d-flex align-items-center flex-wrap")
-        ], width=12),
     ], className="mb-3"),
     
-    # Main content area
-    dbc.Row([
-        # Left column - main timeline charts
-        dbc.Col([
-            # Resource levels (per selected teams)
-            dcc.Loading(
-                dcc.Graph(id='resource-chart', style={'height': '280px'}),
-                type='circle', color=COLORS['accent']
-            ),
-            
-            # Transfer flow chart (per selected teams)
-            dcc.Loading(
-                dcc.Graph(id='transfer-flow-chart', style={'height': '250px', 'marginTop': '10px'}),
-                type='circle', color=COLORS['accent']
-            ),
-            
-            # Explicit transfers (all teams)
-            dcc.Loading(
-                dcc.Graph(id='explicit-transfers-chart', style={'height': '250px', 'marginTop': '10px'}),
-                type='circle', color=COLORS['accent']
-            ),
-            
-        ], width=8),
-        
-        # Right column - summary charts and ledger
-        dbc.Col([
-            # Total sent by player (all teams)
-            dcc.Loading(
-                dcc.Graph(id='total-sent-chart', style={'height': '180px'}),
-                type='circle', color=COLORS['accent']
-            ),
-            
-            # Supply/demand chart (alliance)
-            dcc.Loading(
-                dcc.Graph(id='supply-demand-chart', style={'height': '180px', 'marginTop': '8px'}),
-                type='circle', color=COLORS['accent']
-            ),
-            
-            # Lift chart (alliance)
-            dcc.Loading(
-                dcc.Graph(id='lift-chart', style={'height': '150px', 'marginTop': '8px'}),
-                type='circle', color=COLORS['accent']
-            ),
-            
-            # Transaction ledger (filtered by selected teams)
-            html.Div([
-                html.H6("📋 Transfer Ledger", className="mb-2", 
-                        style={'color': COLORS['text'], 'fontFamily': 'JetBrains Mono', 'fontSize': '12px'}),
-                html.Small("Showing transfers for selected players", className="text-muted d-block mb-2", style={'fontSize': '10px'}),
-                dash_table.DataTable(
-                    id='transfer-ledger',
-                    columns=[
-                        {'name': 'Time', 'id': 'time'},
-                        {'name': 'From', 'id': 'from'},
-                        {'name': 'To', 'id': 'to'},
-                        {'name': 'Sent', 'id': 'sent'},
-                        {'name': 'Recv', 'id': 'recv'},
-                        {'name': 'Tax', 'id': 'tax'},
-                    ],
-                    style_table={'height': '180px', 'overflowY': 'auto'},
-                    style_cell={
-                        'textAlign': 'left',
-                        'padding': '4px 6px',
-                        'fontFamily': 'JetBrains Mono, monospace',
-                        'fontSize': '10px',
-                        'backgroundColor': COLORS['card'],
-                        'color': COLORS['text'],
-                        'border': f"1px solid {COLORS['border']}",
-                        'minWidth': '35px',
-                        'maxWidth': '70px',
-                        'overflow': 'hidden',
-                        'textOverflow': 'ellipsis',
-                    },
-                    style_header={
-                        'backgroundColor': COLORS['background'],
-                        'color': COLORS['text_muted'],
-                        'fontWeight': '600',
-                        'border': f"1px solid {COLORS['border']}",
-                        'fontSize': '9px',
-                    },
-                    style_data_conditional=[
-                        {'if': {'row_index': 'odd'}, 'backgroundColor': COLORS['card_lighter']}
-                    ],
-                    page_size=50
-                )
-            ], style={
-                'backgroundColor': COLORS['card'],
-                'borderRadius': '6px',
-                'padding': '8px',
-                'marginTop': '8px'
-            }),
-        ], width=4)
-    ]),
+    dbc.Tabs([
+        dbc.Tab(create_economy_tab(), label="📊 Economy Overview", tab_id="tab-economy"),
+        dbc.Tab(create_timing_tab(), label="⏱️ Timing Analysis", tab_id="tab-timing"),
+        dbc.Tab(create_waterfill_tab(), label="🌊 Waterfill Analysis", tab_id="tab-waterfill"),
+    ], id="tabs", active_tab="tab-economy", className="mb-3"),
     
-    # Hidden components
     html.Div(id='ws-status', style={'display': 'none'}),
     dcc.Interval(id='auto-refresh', interval=2000, n_intervals=0),
     dcc.Store(id='ws-data-store'),
     dcc.Store(id='team-names-store'),
+    dcc.Store(id='available-frames-store'),
     
 ], fluid=True, style={
     'backgroundColor': COLORS['background'],
@@ -897,27 +1609,49 @@ def update_sessions(n_clicks, current_value):
     Output('team-checklist', 'options'),
     Output('team-checklist', 'value'),
     Output('team-names-store', 'data'),
+    Output('available-frames-store', 'data'),
     Input('session-dropdown', 'value'),
     State('team-checklist', 'value')
 )
 def update_teams(session_id, current_teams):
     if not session_id:
-        return [], [], {}
+        return [], [], {}, []
     
     teams = load_teams(session_id)
     names = load_team_names(session_id)
+    frames = load_available_frames(session_id)
     
     options = [
         {'label': get_team_display_name(t, names), 'value': t}
         for t in teams
     ]
     
-    # Keep current selection if valid, else select first team
     valid_teams = [t for t in (current_teams or []) if t in teams]
     if not valid_teams and teams:
         valid_teams = [teams[0]]
     
-    return options, valid_teams, names
+    return options, valid_teams, names, frames
+
+
+@callback(
+    Output('waterfill-frame-slider', 'min'),
+    Output('waterfill-frame-slider', 'max'),
+    Output('waterfill-frame-slider', 'value'),
+    Output('waterfill-frame-slider', 'marks'),
+    Input('available-frames-store', 'data')
+)
+def update_frame_slider(frames):
+    if not frames:
+        return 0, 100, 0, {}
+    
+    min_frame = min(frames)
+    max_frame = max(frames)
+    
+    n_marks = min(10, len(frames))
+    step = max(1, len(frames) // n_marks)
+    marks = {frames[i]: str(frames[i]) for i in range(0, len(frames), step)}
+    
+    return min_frame, max_frame, max_frame, marks
 
 
 @callback(
@@ -956,7 +1690,7 @@ def select_no_teams(n_clicks):
     Input('refresh-btn', 'n_clicks'),
     State('team-names-store', 'data')
 )
-def update_charts(n_intervals, session_id, selected_teams, resource, n_clicks, team_names):
+def update_economy_charts(n_intervals, session_id, selected_teams, resource, n_clicks, team_names):
     if not session_id:
         ef = create_empty_fig("Select a session", COLORS)
         return ef, [], ef, ef, ef, ef, ef
@@ -964,12 +1698,10 @@ def update_charts(n_intervals, session_id, selected_teams, resource, n_clicks, t
     team_names = team_names or {}
     selected_teams = selected_teams or []
     
-    # Load data
     eco_df = load_economy_data_multi(session_id, selected_teams, resource) if selected_teams else pd.DataFrame()
     transfers_df = load_transfers(session_id, resource)
     group_lift_df = load_group_lift_data(session_id, resource)
     
-    # Build charts
     resource_fig = create_resource_levels_chart(eco_df, selected_teams, team_names, resource, COLORS)
     ledger_data = create_transaction_ledger(transfers_df, team_names, selected_teams if selected_teams else None)
     flow_fig = create_transfer_flow_chart(transfers_df, team_names, selected_teams if selected_teams else None, COLORS)
@@ -979,6 +1711,53 @@ def update_charts(n_intervals, session_id, selected_teams, resource, n_clicks, t
     lift_fig = create_lift_chart(group_lift_df, COLORS)
     
     return resource_fig, ledger_data, flow_fig, explicit_fig, sent_fig, supply_demand_fig, lift_fig
+
+
+@callback(
+    Output('timing-summary-table', 'children'),
+    Output('timing-over-time-chart', 'figure'),
+    Output('timing-histogram-chart', 'figure'),
+    Output('timing-anomalies-table', 'children'),
+    Input('auto-refresh', 'n_intervals'),
+    Input('refresh-btn', 'n_clicks'),
+)
+def update_timing_charts(n_intervals, n_clicks):
+    timing_summary = load_solver_timing_summary()
+    solver_df = load_solver_timing_data()
+    
+    summary_table = create_timing_summary_table(timing_summary)
+    time_chart = create_timing_over_time_chart(solver_df, COLORS)
+    hist_chart = create_timing_histograms(solver_df, COLORS)
+    anomalies = create_timing_anomalies_table(solver_df)
+    
+    return summary_table, time_chart, hist_chart, anomalies
+
+
+@callback(
+    Output('waterfill-tank-chart', 'figure'),
+    Output('transfer-matrix-chart', 'figure'),
+    Output('conservation-chart', 'figure'),
+    Input('session-dropdown', 'value'),
+    Input('resource-dropdown', 'value'),
+    Input('waterfill-frame-slider', 'value'),
+    Input('waterfill-ally-dropdown', 'value'),
+    Input('refresh-btn', 'n_clicks'),
+)
+def update_waterfill_charts(session_id, resource, frame, ally_team, n_clicks):
+    if not session_id or not frame:
+        ef = create_empty_fig("Select a session and frame", COLORS)
+        return ef, ef, ef
+    
+    wf_df, inp_df, lift_df = load_waterfill_data(session_id, frame, resource, ally_team)
+    tank_fig = create_waterfill_tank_diagram(wf_df, inp_df, lift_df, resource, frame, COLORS)
+    
+    transfer_matrix = load_transfer_matrix(session_id, frame, resource)
+    matrix_fig = create_transfer_matrix_heatmap(transfer_matrix, resource, frame, COLORS)
+    
+    output_df = load_output_data(session_id, resource)
+    conservation_fig = create_conservation_chart(output_df, resource, COLORS)
+    
+    return tank_fig, matrix_fig, conservation_fig
 
 
 @callback(

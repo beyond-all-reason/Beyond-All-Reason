@@ -40,14 +40,16 @@ function EconomyLog.TeamInput(teamId, allyTeam, resourceType, current, storage, 
   )
 end
 
-function EconomyLog.GroupLift(allyTeam, resourceType, lift, memberCount, totalSupply, totalDemand)
+function EconomyLog.GroupLift(allyTeam, resourceType, lift, memberCount, totalSupply, totalDemand, senderCount, receiverCount)
   Spring.EconomyAuditLog("group_lift",
     "ally_team", allyTeam,
     "resource", resourceType,
     "lift", lift,
     "member_count", memberCount,
     "total_supply", totalSupply,
-    "total_demand", totalDemand
+    "total_demand", totalDemand,
+    "sender_count", senderCount or 0,
+    "receiver_count", receiverCount or 0
   )
 end
 

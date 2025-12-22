@@ -357,6 +357,7 @@ function Gadgets.Solve(springRepo, teamsList)
       local lift = resolveLift(members, taxRate)
 
       local totalSupply, totalDemand = 0, 0
+      local senderCount, receiverCount = 0, 0
       for i = 1, #members do
         local m = members[i]
         local target = m.shareCursor + lift
@@ -366,17 +367,19 @@ function Gadgets.Solve(springRepo, teamsList)
           totalSupply = totalSupply + supplyDelta(m, target, taxRate)
           role = "sender"
           delta = m.current - target
+          senderCount = senderCount + 1
         elseif target > m.current + EPSILON then
           totalDemand = totalDemand + (target - m.current)
           role = "receiver"
           delta = target - m.current
+          receiverCount = receiverCount + 1
         else
           role = "neutral"
           delta = 0
         end
         EconomyLog.TeamWaterfill(m.teamId, allyTeam, resourceType, m.current, target, role, delta)
       end
-      EconomyLog.GroupLift(allyTeam, resourceType, lift, #members, totalSupply, totalDemand)
+      EconomyLog.GroupLift(allyTeam, resourceType, lift, #members, totalSupply, totalDemand, senderCount, receiverCount)
 
       local ledgers = allocateGroup(members, lift, taxRate)
 
