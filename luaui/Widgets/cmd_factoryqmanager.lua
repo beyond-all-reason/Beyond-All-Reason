@@ -33,7 +33,6 @@ local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 --1.4: fixed text alignment, changed layer cause other widgets are eating events otherwise (e.g. smartselect)
 --1.3: fixed for 0.83
 --1.21:
---added: Press Meta+C to clear currently selected factories queue -- Removed, use stopproduction instead
 --added: some speedups, but its still quite hungry will displaying menu
 
 --1.2:
