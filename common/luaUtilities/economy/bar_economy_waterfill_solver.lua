@@ -34,7 +34,7 @@ end
 ---@return number, table<ResourceType, number>
 local function getTaxConfig(springRepo)
   local modOpts = springRepo.GetModOptions()
-  local tax = tonumber(modOpts[MOD_OPTIONS.TaxResourceSharingAmount]) or 0
+  local tax = tonumber(modOpts[MOD_OPTIONS.TaxResourceSharingAmount])
   if tax < 0 then tax = 0 end
   if tax > 1 then tax = 1 end
   local thresholds = {
@@ -71,9 +71,10 @@ local function collectMembers(teamsList, resourceType, thresholds, springRepo)
       local resource = team[field]
       if resource then
         local allyTeam = team.allyTeam
-        local storage = math.max(0, resource.storage or 0)
-        local current = math.max(0, resource.current or 0)
-        local shareCursor = storage * normalizeSlider(resource.shareSlider or 0)
+        local storage = resource.storage
+        local excess = resource.excess
+        local current =  resource.current + excess
+        local shareCursor = storage * normalizeSlider(resource.shareSlider)
         if shareCursor > storage then
           shareCursor = storage
         end
@@ -272,9 +273,12 @@ local function allocateGroup(members, lift, taxRate)
       if newCurrent < 0 then
         newCurrent = 0
       end
+      if newCurrent > member.storage then
+        newCurrent = member.storage
+      end
       resource.current = newCurrent
       local allowance = member.remainingTaxFreeAllowance - sender.untaxedDelivered
-      member.remainingTaxFreeAllowance = allowance > 0 and allowance or 0
+      member.remainingTaxFreeAllowance = allowance > 0 and allowance
       member.cumulativeSent = member.cumulativeSent + sender.costSpent
       ledgers[member.teamId].sent = sender.costSpent
       ledgers[member.teamId].untaxed = sender.untaxedDelivered

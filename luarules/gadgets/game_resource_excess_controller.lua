@@ -58,15 +58,9 @@ local function BuildTeamData(excesses)
 			local mCur, mSto, mPull, mInc, mExp, mShare = springRepo.GetTeamResources(teamID, "metal")
 			local eCur, eSto, ePull, eInc, eExp, eShare = springRepo.GetTeamResources(teamID, "energy")
 			
-			-- Get excess from the excesses table (resources that overflowed this frame)
 			local teamExcess = excesses[teamID]
 			local metalExcess = teamExcess and teamExcess[1] or 0
 			local energyExcess = teamExcess and teamExcess[2] or 0
-			
-			-- Add the excess back to current (it was already clamped by engine)
-			-- This gives us the "true" amount before clamping
-			local metalWithExcess = (mCur or 0) + metalExcess
-			local energyWithExcess = (eCur or 0) + energyExcess
 			
 			local _, allyTeam = springRepo.GetTeamInfo(teamID)
 			
@@ -76,21 +70,23 @@ local function BuildTeamData(excesses)
 				isDead = false,
 				metal = {
 					resourceType = "metal",
-					current = metalWithExcess,
+					current = mCur or 0,
 					storage = mSto or 1000,
 					pull = mPull or 0,
 					income = mInc or 0,
 					expense = mExp or 0,
 					shareSlider = mShare or 0.99,
+					excess = metalExcess,
 				},
 				energy = {
 					resourceType = "energy",
-					current = energyWithExcess,
+					current = eCur or 0,
 					storage = eSto or 1000,
 					pull = ePull or 0,
 					income = eInc or 0,
 					expense = eExp or 0,
 					shareSlider = eShare or 0.95,
+					excess = energyExcess,
 				}
 			}
 			teams[teamID] = teamData

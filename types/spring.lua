@@ -65,12 +65,13 @@
 
 ---@class ResourceData
 ---@field resourceType ResourceName resource type identifier
----@field current number current stockpile
+---@field current number current stockpile (clamped to storage)
 ---@field storage number max storage capacity
 ---@field pull number requested usage
 ---@field income number production income
 ---@field expense number expenditure
 ---@field shareSlider number share threshold slider (0-1)
+---@field excess number resources that overflowed storage this frame (for sharing)
 
 ---@class TeamResourceData
 ---@field allyTeam number

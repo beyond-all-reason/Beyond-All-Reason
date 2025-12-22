@@ -109,7 +109,7 @@
 ---@field allyTeam number
 ---@field resourceType ResourceType
 ---@field resource ResourceData
----@field current number
+---@field current number effective current = resource.current + resource.excess
 ---@field storage number
 ---@field shareCursor number
 ---@field remainingTaxFreeAllowance number
