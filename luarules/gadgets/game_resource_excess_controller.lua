@@ -118,9 +118,6 @@ local function ApplyResults(results, frame, ledgers)
 		local metalFlow = ledger[ResourceType.METAL] or { sent = 0, received = 0 }
 		local energyFlow = ledger[ResourceType.ENERGY] or { sent = 0, received = 0 }
 
-		-- NOTE: Cumulative sent tracking is handled by WaterfillSolver.Solve via updateCumulative()
-		-- Do NOT call UpdateCumulativeSent here - it would double-count!
-		
 		-- Track stats using the correct API format: AddTeamResourceStats(teamID, {stat = {metal, energy}})
 		local mSentVal = metalFlow.sent
 		local eSentVal = energyFlow.sent

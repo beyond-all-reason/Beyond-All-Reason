@@ -243,6 +243,8 @@ def parse_line(conn, line):
 
     elif subsystem == "EconomyAudit":
         try:
+            if ' ' not in content:
+                return False
             event_type, json_str = content.split(' ', 1)
             data = json.loads(json_str)
             team_count = data.get('team_count')
@@ -276,9 +278,11 @@ def parse_line(conn, line):
             elif event_type == "team_info":
                 c.execute('INSERT OR REPLACE INTO team_names (session_id, team_id, name, is_ai) VALUES (?, ?, ?, ?)', (session_id, data.get('team_id'), data.get('name'), 1 if data.get('is_ai') else 0))
                 parsed = True
+        except json.JSONDecodeError:
+            pass
         except Exception as e:
-            print(f"[ERROR] Failed to parse EconomyAudit: {e}")
-            print(f"  Line: {line.strip()[:200]}")
+            if VERBOSE:
+                log(f"Failed to parse EconomyAudit: {e} - {line.strip()[:100]}")
     return parsed
 
 def tail_file(path, from_start=False, follow=True):
