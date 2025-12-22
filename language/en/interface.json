@@ -1636,7 +1636,7 @@
 				"attackrange_shiftonly_descr": "Show ranges only when shift is pressed",
 				"attackrange_cursorunitrange": "cursor hover range",
 				"attackrange_cursorunitrange_descr": "Show ranges when hovering over a unit",
-				"attackrange_numrangesmult": "Max units multiplier",
+				"attackrange_numrangesmult": "max units multiplier",
 				"attackrange_numrangesmult_descr": "Multiplier to the limit of max amount of units it will make attack ranges active for.",
 				"defrange": "Defense ranges",
 				"defrange_descr": "Displays ranges of defenses (Enemy and Ally)",

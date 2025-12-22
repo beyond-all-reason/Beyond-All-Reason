@@ -4318,7 +4318,7 @@ function init()
 			  saveOptionValue('Attack Range GL4', 'attackrange', 'setCursorUnitRange', { 'cursor_unit_range' }, value)
 		  end,
 		},
-		{ id = "attackrange_numrangesmult", group = "game", category = types.dev, name = Spring.I18N('ui.settings.option.attackrange_numrangesmult'), type = "slider", min = 0.3, max = 1, step = 0.1, value = (WG['attackrange'] ~= nil and WG['attackrange'].getOpacity ~= nil and WG['attackrange'].getNumRangesMult()) or 1, description = Spring.I18N('ui.settings.option.attackrange_numrangesmult_descr'),
+		{ id = "attackrange_numrangesmult", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.attackrange_numrangesmult'), type = "slider", min = 0.3, max = 1, step = 0.1, value = (WG['attackrange'] ~= nil and WG['attackrange'].getOpacity ~= nil and WG['attackrange'].getNumRangesMult()) or 1, description = Spring.I18N('ui.settings.option.attackrange_numrangesmult_descr'),
 		  onload = function(i)
 			  loadWidgetData("Attack Range GL4", "attackrange_numrangesmult", { 'selectionDisableThresholdMult' })
 		  end,
