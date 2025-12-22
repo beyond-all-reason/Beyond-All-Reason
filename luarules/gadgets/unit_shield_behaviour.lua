@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		desc = "Overrides default shield engine behavior.",
 		author = "SethDGamre",
 		layer = 1,
-		enabled = reworkEnabled,
+		enabled = true,
 	}
 end
 
@@ -52,8 +52,6 @@ local spGetUnitIsActive             = Spring.GetUnitIsActive
 local spUseUnitResource             = Spring.UseUnitResource
 local spSetUnitRulesParam           = Spring.SetUnitRulesParam
 local spGetUnitArmored              = Spring.GetUnitArmored
-local mathMax                       = math.max
-local mathCeil                      = math.ceil
 
 local shieldUnitDefs                = {}
 local shieldUnitsData               = {}
@@ -67,6 +65,7 @@ local AOEWeaponDefIDs               = {}
 local projectileShieldHitCache      = {}
 local highestWeapDefDamages         = {}
 local armoredUnitDefs               = {}
+local destroyedUnitData             = {}
 
 local gameFrame 					= 0
 
@@ -106,7 +105,7 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 		if weaponDef.beamtime and weaponDef.beamtime < 1 then
 			local minimumMinIntensity = 0.5
 			local minIntensity = weaponDef.minIntensity or minimumMinIntensity
-			minIntensity = math.max(minIntensity, minimumMinIntensity)
+			minIntensity = mathMax(minIntensity, minimumMinIntensity)
 			-- This splits up the damage of hitscan weapons over the duration of beamtime, as each frame counts as a hit in ShieldPreDamaged() callin
 			-- Math.floor is used to sheer off the extra digits of the number of frames that the hits occur
 			beamtimeReductionMultiplier = 1 / math.floor(weaponDef.beamtime * Game.gameSpeed)
@@ -126,7 +125,7 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 		end
 
 		if weaponDef.minIntensity and hasDamageFalloff then
-			minIntensity = math.max(minimumMinIntensity, weaponDef.minIntensity)
+			minIntensity = mathMax(minimumMinIntensity, weaponDef.minIntensity)
 		end
 
 		highestWeapDefDamages[weaponDefID] = highestDamage * beamtimeReductionMultiplier * minIntensity *
@@ -193,12 +192,6 @@ local function setCoveredUnits(shieldUnitID)
 	end
 end
 
-function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
-	if shieldUnitsData[unitID] then
-		shieldUnitsData[unitID].team = unitTeam
-	end
-end
-
 ----main logic----
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -217,6 +210,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			shieldDownTime = 0,
 			maxDownTime = 0
 		}
+		destroyedUnitData[unitID] = nil -- Handle (maybe) units being recreated and reusing their original ID
 		setCoveredUnits(unitID)
 	end
 
@@ -226,7 +220,16 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if not reworkEnabled then return end --remove when shield rework is permanent
-	shieldUnitsData[unitID] = nil
+	local unitData = shieldUnitsData[unitID]
+	if unitData then
+		shieldUnitsData[unitID] = nil
+		-- Keep shield data for one frame, since the shieldsrework delays updates until then.
+		destroyedUnitData[unitID] = unitData
+		unitData.x, unitData.y, unitData.z = spGetUnitWeaponVectors(unitID, unitData.shieldWeaponNumber)
+		-- ! Prevent a possible error here, it seems shields are cleaned up faster than unit weapons:
+		local success, state, power = pcall(spGetUnitShieldState, unitID, unitData.shieldWeaponNumber)
+		unitData.power = (success and state == 1 and power) or unitData.power or 0
+	end
 	unitDefIDCache[unitID] = nil
 end
 
@@ -419,6 +422,11 @@ function gadget:GameFrame(frame)
 		end
 		shieldCheckEndIndex = math.min(lastShieldCheckedIndex + shieldCheckChunkSize - 1, #shieldUnitIndex)
 	end
+
+	local dud = destroyedUnitData
+	for unitID in pairs(dud) do
+		dud[unitID] = nil
+	end
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID,
@@ -497,6 +505,7 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 		end
 	end
 end
+
 ---Shield controller API for other gadgets to generate and process their own shield damage events.
 local function addShieldDamage(shieldUnitID, damage, weaponDefID, projectileID, beamEmitterWeaponNum, beamEmitterUnitID)
 	local projectileDestroyed, damageMitigated = false, 0
