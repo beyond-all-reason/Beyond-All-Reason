@@ -234,6 +234,7 @@ function gadget:GameFrame(frame)
 				end
 			end
 
+			-- NB: Units with Repeat enabled only attempt a single buggeroff, which doesn't go well. Semi-intended.
 			if buggerOffRadiusOffset > MAX_BUGGEROFF_RADIUS or IsUnitRepeatOn(builderID) then
 				removeBuilder(builderID)
 			else
