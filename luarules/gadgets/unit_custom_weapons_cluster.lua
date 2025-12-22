@@ -242,7 +242,7 @@ for _, data in pairs(clusterWeaponDefs) do
 end
 DirectionsUtil.ProvisionDirections(maxDataNum)
 
-local shieldsReworkEnabld = Spring.GetModOptions().shieldsrework
+local shieldsReworkOption = Spring.GetModOptions().shieldsrework
 local projectileHitShield = {}
 
 --------------------------------------------------------------------------------
@@ -420,7 +420,7 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 	local deflectX, deflectY, deflectZ = getSurfaceDeflection(x, y, z)
 
 	local hitShields = projectileHitShield[projectileID]
-	local nearShields = shieldsReworkEnabld and getNearShields(x, y, z, projectileSpeed * subframeScatter)
+	local nearShields = shieldsReworkOption and getNearShields(x, y, z, projectileSpeed * subframeScatter)
 
 	if hitShields then
 		deflectX, deflectY, deflectZ = getShieldDeflection(x, y, z, deflectX, deflectY, deflectZ, hitShields)
