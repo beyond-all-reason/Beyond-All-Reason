@@ -109,8 +109,9 @@ function runCritterTest()
 	local GaiaTeamID = Spring.GetGaiaTeamID()
 
 	assertSuccessBefore(30, 10, function()
-	    return Spring.GetTeamUnitCount(GaiaTeamID) >= 3600
+  	  return #Spring.GetAllUnits() >= 3600
 	end)
+
 
 	Test.waitFrames(WAIT_FRAMES)
 
