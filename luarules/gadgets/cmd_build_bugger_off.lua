@@ -224,9 +224,9 @@ function gadget:GameFrame(frame)
 					-- todo: use blocking for "collision" detection, not unit radii, which are not the bounding radii (neither is bounding radius useful)
 					local unitRadius = unitDefData.radius
 					local areaRadius = math.max(buggerOffRadius, buildDefRadius + unitRadius)
-					local unitX, _, unitZ = Spring.GetUnitPosition(interferingID)
 
 					if willBeNearTarget(interferingID, targetX, targetZ, areaRadius) then
+						local unitX, _, unitZ = Spring.GetUnitPosition(interferingID)
 						local speedX, _, speedZ = Spring.GetUnitVelocity(interferingID)
 						unitX, unitZ = unitX + speedX * BUGGEROFF_LOOKAHEAD, unitZ + speedZ * BUGGEROFF_LOOKAHEAD
 						local sendX, sendZ = math.closestPointOnCircle(targetX, targetZ, buggerOffRadius + unitRadius, unitX, unitZ)
