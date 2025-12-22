@@ -69,11 +69,18 @@ COLORS = {
 PLAYER_COLORS = [
     '#58a6ff', '#a3be8c', '#bf616a', '#b48ead', 
     '#d08770', '#88c0d0', '#ebcb8b', '#81a2be',
-    '#f0c674', '#8fbcbb', '#5e81ac', '#a3be8c'
+    '#f0c674', '#8fbcbb', '#5e81ac', '#e5c07b'
 ]
 
-def get_player_color(player_id, total_players=8):
+def get_player_color(player_id):
     return PLAYER_COLORS[player_id % len(PLAYER_COLORS)]
+
+
+def get_team_display_name(team_id, names_dict):
+    """Get display name for a team, using player name if available."""
+    if names_dict and team_id in names_dict:
+        return names_dict[team_id]
+    return f"Player {team_id}"
 
 
 def format_time_mmss(seconds):
@@ -169,18 +176,19 @@ def load_teams(session_id):
         conn.close()
 
 
-def load_economy_data(session_id, team_id, resource, limit=500):
-    """Load economy data for charts."""
+def load_economy_data_multi(session_id, team_ids, resource, limit=500):
+    """Load economy data for multiple teams."""
     conn = get_db_connection()
-    if not conn:
+    if not conn or not team_ids:
         return pd.DataFrame()
     try:
+        placeholders = ','.join(['?' for _ in team_ids])
         input_df = pd.read_sql_query(
-            """SELECT frame, current, storage, source_path 
+            f"""SELECT frame, team_id, current, storage, source_path 
                FROM eco_team_input 
-               WHERE session_id = ? AND team_id = ? AND resource = ?
+               WHERE session_id = ? AND team_id IN ({placeholders}) AND resource = ?
                ORDER BY frame DESC LIMIT ?""",
-            conn, params=(session_id, team_id, resource, limit)
+            conn, params=[session_id] + list(team_ids) + [resource, limit * len(team_ids)]
         )
         
         if input_df.empty:
@@ -194,38 +202,32 @@ def load_economy_data(session_id, team_id, resource, limit=500):
         conn.close()
 
 
-def load_transfers(session_id, resource, limit=1000):
-    """Load explicit resource transfers."""
+def load_transfers(session_id, resource, team_ids=None, limit=1000):
+    """Load explicit resource transfers, optionally filtered by teams."""
     conn = get_db_connection()
     if not conn:
         return pd.DataFrame()
     try:
-        df = pd.read_sql_query(
-            """SELECT frame, game_time, sender_team_id, receiver_team_id, 
-                      amount, untaxed, taxed
-               FROM eco_transfer
-               WHERE session_id = ? AND resource = ?
-               ORDER BY frame DESC LIMIT ?""",
-            conn, params=(session_id, resource, limit)
-        )
-        return df.sort_values('frame') if not df.empty else df
-    finally:
-        conn.close()
-
-
-def load_waterfill_data(session_id, resource, limit=500):
-    """Load waterfill supply/demand data."""
-    conn = get_db_connection()
-    if not conn:
-        return pd.DataFrame()
-    try:
-        df = pd.read_sql_query(
-            """SELECT frame, game_time, team_id, current, target, role, delta
-               FROM eco_team_waterfill
-               WHERE session_id = ? AND resource = ?
-               ORDER BY frame DESC LIMIT ?""",
-            conn, params=(session_id, resource, limit)
-        )
+        if team_ids:
+            placeholders = ','.join(['?' for _ in team_ids])
+            df = pd.read_sql_query(
+                f"""SELECT frame, game_time, sender_team_id, receiver_team_id, 
+                          amount, untaxed, taxed
+                   FROM eco_transfer
+                   WHERE session_id = ? AND resource = ? 
+                         AND (sender_team_id IN ({placeholders}) OR receiver_team_id IN ({placeholders}))
+                   ORDER BY frame DESC LIMIT ?""",
+                conn, params=[session_id, resource] + list(team_ids) + list(team_ids) + [limit]
+            )
+        else:
+            df = pd.read_sql_query(
+                """SELECT frame, game_time, sender_team_id, receiver_team_id, 
+                          amount, untaxed, taxed
+                   FROM eco_transfer
+                   WHERE session_id = ? AND resource = ?
+                   ORDER BY frame DESC LIMIT ?""",
+                conn, params=(session_id, resource, limit)
+            )
         return df.sort_values('frame') if not df.empty else df
     finally:
         conn.close()
@@ -250,50 +252,66 @@ def load_group_lift_data(session_id, resource, limit=500):
 
 
 # === Chart builders ===
-def create_resource_levels_chart(df, team_name, resource, colors):
-    """Create resource levels chart (current/storage only)."""
+def create_empty_fig(message, colors):
+    """Create an empty figure with a message."""
+    fig = go.Figure()
+    fig.add_annotation(
+        text=message,
+        xref="paper", yref="paper",
+        x=0.5, y=0.5, showarrow=False,
+        font=dict(size=14, color=colors['text_muted'])
+    )
+    fig.update_layout(
+        template='plotly_dark',
+        paper_bgcolor=colors['card'],
+        plot_bgcolor=colors['background'],
+        margin=dict(l=50, r=20, t=50, b=40),
+    )
+    return fig
+
+
+def create_resource_levels_chart(df, team_ids, team_names, resource, colors):
+    """Create resource levels chart for one or more teams."""
     if df.empty:
-        fig = go.Figure()
-        fig.add_annotation(
-            text="No data available",
-            xref="paper", yref="paper",
-            x=0.5, y=0.5, showarrow=False,
-            font=dict(size=20, color=colors['text_muted'])
-        )
-        fig.update_layout(
-            template='plotly_dark',
-            paper_bgcolor=colors['card'],
-            plot_bgcolor=colors['background'],
-        )
-        return fig
+        return create_empty_fig("Select players to view resource levels", colors)
     
     fig = go.Figure()
     resource_color = colors['metal'] if resource == 'metal' else colors['energy']
     
-    fig.add_trace(go.Scatter(
-        x=df['game_time'], y=df['current'],
-        mode='lines', name='Current',
-        line=dict(color=resource_color, width=2),
-        fill='tozeroy',
-        fillcolor=f"rgba({int(resource_color[1:3], 16)}, {int(resource_color[3:5], 16)}, {int(resource_color[5:7], 16)}, 0.2)",
-        hovertemplate='%{y:.0f}<extra>Current</extra>'
-    ))
-    
-    fig.add_trace(go.Scatter(
-        x=df['game_time'], y=df['storage'],
-        mode='lines', name='Storage',
-        line=dict(color=colors['text_muted'], width=1, dash='dash'),
-        hovertemplate='%{y:.0f}<extra>Storage</extra>'
-    ))
+    for team_id in team_ids:
+        team_df = df[df['team_id'] == team_id]
+        if team_df.empty:
+            continue
+            
+        team_name = get_team_display_name(team_id, team_names)
+        color = get_player_color(team_id)
+        
+        fig.add_trace(go.Scatter(
+            x=team_df['game_time'], y=team_df['current'],
+            mode='lines', name=f'{team_name}',
+            line=dict(color=color, width=2),
+            hovertemplate=f'{team_name}: %{{y:.0f}}<extra>Current</extra>'
+        ))
+        
+        fig.add_trace(go.Scatter(
+            x=team_df['game_time'], y=team_df['storage'],
+            mode='lines', name=f'{team_name} Cap',
+            line=dict(color=color, width=2, dash='dot'),
+            opacity=0.5,
+            hovertemplate=f'{team_name}: %{{y:.0f}}<extra>Storage</extra>',
+            showlegend=False
+        ))
     
     x_axis_config = get_time_axis_config(df['game_time'], colors)
+    
+    title_suffix = "Selected Players" if len(team_ids) > 1 else get_team_display_name(team_ids[0], team_names)
     
     fig.update_layout(
         template='plotly_dark',
         paper_bgcolor=colors['card'],
         plot_bgcolor=colors['background'],
         font=dict(family='JetBrains Mono, monospace', color=colors['text']),
-        title=dict(text=f"{team_name} — {resource.title()} Levels", font=dict(size=14)),
+        title=dict(text=f"📊 {resource.title()} Levels — {title_suffix}", font=dict(size=14)),
         margin=dict(l=50, r=20, t=50, b=40),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1, bgcolor='rgba(0,0,0,0)'),
         hovermode='x unified',
@@ -304,30 +322,22 @@ def create_resource_levels_chart(df, team_name, resource, colors):
     return fig
 
 
-def create_transfer_flow_chart(transfers_df, team_names, colors):
-    """Create transfer amounts over time - showing net flow per player."""
+def create_transfer_flow_chart(transfers_df, team_names, selected_teams, colors):
+    """Create transfer flow chart - showing net flow per player."""
     if transfers_df.empty:
-        fig = go.Figure()
-        fig.add_annotation(
-            text="No transfer data",
-            xref="paper", yref="paper",
-            x=0.5, y=0.5, showarrow=False,
-            font=dict(size=16, color=colors['text_muted'])
-        )
-        fig.update_layout(
-            template='plotly_dark',
-            paper_bgcolor=colors['card'],
-            plot_bgcolor=colors['background'],
-            margin=dict(l=50, r=20, t=50, b=40),
-        )
-        return fig
+        return create_empty_fig("No transfer data", colors)
     
     fig = go.Figure()
     
     all_teams = set(transfers_df['sender_team_id'].unique()) | set(transfers_df['receiver_team_id'].unique())
+    if selected_teams:
+        all_teams = all_teams & set(selected_teams)
     
-    time_bins = pd.cut(transfers_df['game_time'], bins=50, labels=False)
+    if not all_teams:
+        return create_empty_fig("No transfers for selected players", colors)
+    
     transfers_df = transfers_df.copy()
+    time_bins = pd.cut(transfers_df['game_time'], bins=50, labels=False)
     transfers_df['time_bin'] = time_bins
     bin_centers = transfers_df.groupby('time_bin')['game_time'].mean()
     
@@ -338,7 +348,7 @@ def create_transfer_flow_chart(transfers_df, team_names, colors):
         net_flow = received.subtract(sent, fill_value=0)
         
         if not net_flow.empty:
-            team_name = team_names.get(team_id, f"Team {team_id}")
+            team_name = get_team_display_name(team_id, team_names)
             color = get_player_color(team_id)
             
             x_vals = [bin_centers.get(i, 0) for i in net_flow.index]
@@ -355,17 +365,19 @@ def create_transfer_flow_chart(transfers_df, team_names, colors):
     
     x_axis_config = get_time_axis_config(transfers_df['game_time'], colors)
     
+    scope = "Selected Players" if selected_teams else "All Players"
+    
     fig.update_layout(
         template='plotly_dark',
         paper_bgcolor=colors['card'],
         plot_bgcolor=colors['background'],
         font=dict(family='JetBrains Mono, monospace', color=colors['text']),
-        title=dict(text="Net Transfer Flow (+ receiving, − sending)", font=dict(size=14)),
+        title=dict(text=f"📈 Net Transfer Flow — {scope}", font=dict(size=14)),
         margin=dict(l=50, r=20, t=50, b=40),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1, bgcolor='rgba(0,0,0,0)'),
         hovermode='x unified',
         xaxis=x_axis_config,
-        yaxis=dict(title="Net Flow", gridcolor=colors['border'], zerolinecolor=colors['border'])
+        yaxis=dict(title="+ receiving / − sending", gridcolor=colors['border'], zerolinecolor=colors['border'])
     )
     
     return fig
@@ -374,20 +386,7 @@ def create_transfer_flow_chart(transfers_df, team_names, colors):
 def create_explicit_transfers_chart(transfers_df, team_names, colors):
     """Create bar chart showing taxed vs received amounts per time window."""
     if transfers_df.empty:
-        fig = go.Figure()
-        fig.add_annotation(
-            text="No transfer data",
-            xref="paper", yref="paper",
-            x=0.5, y=0.5, showarrow=False,
-            font=dict(size=16, color=colors['text_muted'])
-        )
-        fig.update_layout(
-            template='plotly_dark',
-            paper_bgcolor=colors['card'],
-            plot_bgcolor=colors['background'],
-            margin=dict(l=50, r=20, t=50, b=40),
-        )
-        return fig
+        return create_empty_fig("No transfer data", colors)
     
     transfers_df = transfers_df.copy()
     time_bins = pd.cut(transfers_df['game_time'], bins=40, labels=False)
@@ -414,7 +413,7 @@ def create_explicit_transfers_chart(transfers_df, team_names, colors):
     fig.add_trace(go.Bar(
         x=bin_data['game_time'],
         y=bin_data['untaxed'],
-        name='Actually Received',
+        name='Received',
         marker_color=colors['green'],
         opacity=0.9,
         hovertemplate='Received: %{y:.0f}<extra></extra>'
@@ -427,7 +426,7 @@ def create_explicit_transfers_chart(transfers_df, team_names, colors):
         paper_bgcolor=colors['card'],
         plot_bgcolor=colors['background'],
         font=dict(family='JetBrains Mono, monospace', color=colors['text']),
-        title=dict(text="Explicit Transfers (Sent vs Received after Tax)", font=dict(size=14)),
+        title=dict(text="📦 Waterfill Transfers — All Players (orange=sent, green=received)", font=dict(size=14)),
         margin=dict(l=50, r=20, t=50, b=40),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1, bgcolor='rgba(0,0,0,0)'),
         hovermode='x unified',
@@ -442,24 +441,11 @@ def create_explicit_transfers_chart(transfers_df, team_names, colors):
 def create_total_sent_chart(transfers_df, team_names, colors):
     """Create horizontal bar chart of total sent by each player."""
     if transfers_df.empty:
-        fig = go.Figure()
-        fig.add_annotation(
-            text="No data",
-            xref="paper", yref="paper",
-            x=0.5, y=0.5, showarrow=False,
-            font=dict(size=14, color=colors['text_muted'])
-        )
-        fig.update_layout(
-            template='plotly_dark',
-            paper_bgcolor=colors['card'],
-            plot_bgcolor=colors['background'],
-            margin=dict(l=10, r=10, t=40, b=20),
-        )
-        return fig
+        return create_empty_fig("No data", colors)
     
     totals = transfers_df.groupby('sender_team_id')['amount'].sum().sort_values(ascending=True)
     
-    team_labels = [team_names.get(tid, f"T{tid}") for tid in totals.index]
+    team_labels = [get_team_display_name(tid, team_names) for tid in totals.index]
     bar_colors = [get_player_color(tid) for tid in totals.index]
     
     fig = go.Figure()
@@ -476,8 +462,8 @@ def create_total_sent_chart(transfers_df, team_names, colors):
         paper_bgcolor=colors['card'],
         plot_bgcolor=colors['background'],
         font=dict(family='JetBrains Mono, monospace', color=colors['text'], size=10),
-        title=dict(text="Total Sent by Player", font=dict(size=12)),
-        margin=dict(l=70, r=10, t=35, b=20),
+        title=dict(text="Total Sent — All Players", font=dict(size=12)),
+        margin=dict(l=80, r=10, t=35, b=20),
         showlegend=False,
         xaxis=dict(gridcolor=colors['border'], zerolinecolor=colors['border']),
         yaxis=dict(gridcolor=colors['border'])
@@ -489,20 +475,7 @@ def create_total_sent_chart(transfers_df, team_names, colors):
 def create_supply_demand_chart(group_lift_df, colors):
     """Create supply/demand over time line chart."""
     if group_lift_df.empty:
-        fig = go.Figure()
-        fig.add_annotation(
-            text="No data",
-            xref="paper", yref="paper",
-            x=0.5, y=0.5, showarrow=False,
-            font=dict(size=14, color=colors['text_muted'])
-        )
-        fig.update_layout(
-            template='plotly_dark',
-            paper_bgcolor=colors['card'],
-            plot_bgcolor=colors['background'],
-            margin=dict(l=10, r=10, t=40, b=20),
-        )
-        return fig
+        return create_empty_fig("No data", colors)
     
     fig = go.Figure()
     
@@ -531,7 +504,7 @@ def create_supply_demand_chart(group_lift_df, colors):
         paper_bgcolor=colors['card'],
         plot_bgcolor=colors['background'],
         font=dict(family='JetBrains Mono, monospace', color=colors['text'], size=10),
-        title=dict(text="Supply / Demand", font=dict(size=12)),
+        title=dict(text="Supply / Demand — Alliance", font=dict(size=12)),
         margin=dict(l=50, r=10, t=35, b=30),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1, bgcolor='rgba(0,0,0,0)', font=dict(size=9)),
         hovermode='x unified',
@@ -545,20 +518,7 @@ def create_supply_demand_chart(group_lift_df, colors):
 def create_lift_chart(group_lift_df, colors):
     """Create lift value over time."""
     if group_lift_df.empty:
-        fig = go.Figure()
-        fig.add_annotation(
-            text="No data",
-            xref="paper", yref="paper",
-            x=0.5, y=0.5, showarrow=False,
-            font=dict(size=14, color=colors['text_muted'])
-        )
-        fig.update_layout(
-            template='plotly_dark',
-            paper_bgcolor=colors['card'],
-            plot_bgcolor=colors['background'],
-            margin=dict(l=10, r=10, t=40, b=20),
-        )
-        return fig
+        return create_empty_fig("No data", colors)
     
     fig = go.Figure()
     
@@ -580,7 +540,7 @@ def create_lift_chart(group_lift_df, colors):
         paper_bgcolor=colors['card'],
         plot_bgcolor=colors['background'],
         font=dict(family='JetBrains Mono, monospace', color=colors['text'], size=10),
-        title=dict(text="Waterfill Lift", font=dict(size=12)),
+        title=dict(text="Waterfill Lift — Alliance", font=dict(size=12)),
         margin=dict(l=50, r=10, t=35, b=30),
         showlegend=False,
         hovermode='x unified',
@@ -591,24 +551,31 @@ def create_lift_chart(group_lift_df, colors):
     return fig
 
 
-def create_transaction_ledger(transfers_df, team_names, limit=50):
+def create_transaction_ledger(transfers_df, team_names, selected_teams=None, limit=50):
     """Create data for transaction ledger table."""
     if transfers_df.empty:
         return []
     
-    recent = transfers_df.tail(limit).iloc[::-1]
+    df = transfers_df.copy()
+    if selected_teams:
+        df = df[(df['sender_team_id'].isin(selected_teams)) | (df['receiver_team_id'].isin(selected_teams))]
+    
+    if df.empty:
+        return []
+    
+    recent = df.tail(limit).iloc[::-1]
     
     records = []
     for _, row in recent.iterrows():
-        sender = team_names.get(row['sender_team_id'], f"T{row['sender_team_id']}")
-        receiver = team_names.get(row['receiver_team_id'], f"T{row['receiver_team_id']}")
+        sender = get_team_display_name(int(row['sender_team_id']), team_names)
+        receiver = get_team_display_name(int(row['receiver_team_id']), team_names)
         records.append({
             'time': format_time_mmss(row['game_time']),
             'from': sender,
             'to': receiver,
-            'sent': f"{row['amount']:.0f}",
-            'recv': f"{row['untaxed']:.0f}",
-            'tax': f"{row['taxed']:.0f}"
+            'sent': f"{int(row['amount'])}",
+            'recv': f"{int(row['untaxed'])}",
+            'tax': f"{int(row['taxed'])}"
         })
     
     return records
@@ -624,12 +591,6 @@ app = dash.Dash(
     title="BAR Economy Audit"
 )
 
-# Custom CSS for dropdown styling
-DROPDOWN_STYLE = {
-    'backgroundColor': COLORS['card'],
-    'color': COLORS['text'],
-}
-
 app.index_string = '''
 <!DOCTYPE html>
 <html>
@@ -640,77 +601,30 @@ app.index_string = '''
         {%css%}
         <style>
             /* Dropdown menu styling */
-            .Select-menu-outer {
+            .Select-menu-outer, [class*="-menu"] {
                 background-color: #1c2128 !important;
                 border: 1px solid #30363d !important;
             }
-            .VirtualizedSelectOption {
+            [class*="-option"] {
                 background-color: #1c2128 !important;
                 color: #c9d1d9 !important;
             }
-            .VirtualizedSelectFocusedOption {
+            [class*="-option"]:hover {
                 background-color: #30363d !important;
                 color: #ffffff !important;
             }
-            
-            /* Modern dropdown styling */
-            .Select-control {
-                background-color: #161b22 !important;
-                border-color: #30363d !important;
-            }
-            .Select-value-label, .Select-placeholder {
-                color: #c9d1d9 !important;
-            }
-            .Select-input input {
-                color: #c9d1d9 !important;
-            }
-            .Select.is-open > .Select-control {
-                background-color: #1c2128 !important;
-                border-color: #58a6ff !important;
-            }
-            
-            /* Dash specific dropdown */
-            .dash-dropdown .Select-menu-outer {
-                background: #1c2128 !important;
-            }
-            .dash-dropdown .Select-option {
-                background-color: #1c2128 !important;
-                color: #c9d1d9 !important;
-            }
-            .dash-dropdown .Select-option.is-focused {
-                background-color: #30363d !important;
-                color: #ffffff !important;
-            }
-            .dash-dropdown .Select-option.is-selected {
+            [class*="-option"][aria-selected="true"] {
                 background-color: #21262d !important;
                 color: #58a6ff !important;
             }
-            
-            /* React-select v2+ styling (what Dash currently uses) */
-            .css-26l3qy-menu, [class*="-menu"] {
-                background-color: #1c2128 !important;
-                border: 1px solid #30363d !important;
-            }
-            .css-1n7v3ny-option, [class*="-option"] {
-                background-color: #1c2128 !important;
-                color: #c9d1d9 !important;
-            }
-            .css-1n7v3ny-option:hover, [class*="-option"]:hover {
-                background-color: #30363d !important;
-                color: #ffffff !important;
-            }
-            .css-9gakcf-option, [class*="-option"][aria-selected="true"] {
-                background-color: #21262d !important;
-                color: #58a6ff !important;
-            }
-            .css-1pahdxg-control, [class*="-control"] {
+            [class*="-control"] {
                 background-color: #161b22 !important;
                 border-color: #30363d !important;
             }
-            .css-1pahdxg-control:hover, [class*="-control"]:hover {
+            [class*="-control"]:hover {
                 border-color: #58a6ff !important;
             }
-            [class*="-singleValue"], [class*="-placeholder"] {
+            [class*="-singleValue"], [class*="-placeholder"], [class*="-multiValue"] {
                 color: #c9d1d9 !important;
             }
             [class*="-input"] input {
@@ -718,6 +632,35 @@ app.index_string = '''
             }
             [class*="-indicatorContainer"] {
                 color: #8b949e !important;
+            }
+            [class*="-multiValue"] {
+                background-color: #30363d !important;
+            }
+            [class*="-multiValueLabel"] {
+                color: #c9d1d9 !important;
+            }
+            [class*="-multiValueRemove"]:hover {
+                background-color: #bf616a !important;
+                color: white !important;
+            }
+            
+            /* Checklist styling */
+            .team-checklist .form-check {
+                display: inline-block;
+                margin-right: 12px;
+                margin-bottom: 4px;
+            }
+            .team-checklist .form-check-input {
+                background-color: #161b22;
+                border-color: #30363d;
+            }
+            .team-checklist .form-check-input:checked {
+                background-color: #58a6ff;
+                border-color: #58a6ff;
+            }
+            .team-checklist .form-check-label {
+                color: #c9d1d9;
+                font-size: 12px;
             }
             
             /* Data table styling */
@@ -770,14 +713,6 @@ app.layout = dbc.Container([
             )
         ], width=3),
         dbc.Col([
-            dbc.Label("Team (for resource levels)", className="text-muted small"),
-            dcc.Dropdown(
-                id='team-dropdown',
-                placeholder="Select team...",
-                className="dash-dropdown"
-            )
-        ], width=3),
-        dbc.Col([
             dbc.Label("Resource", className="text-muted small"),
             dcc.Dropdown(
                 id='resource-dropdown',
@@ -805,25 +740,44 @@ app.layout = dbc.Container([
                 className="dash-dropdown"
             )
         ], width=2),
+    ], className="mb-2"),
+    
+    # Team selection row
+    dbc.Row([
+        dbc.Col([
+            dbc.Label("Players (select for per-player charts)", className="text-muted small"),
+            html.Div([
+                dbc.Button("All", id="select-all-btn", color="secondary", size="sm", className="me-2"),
+                dbc.Button("None", id="select-none-btn", color="secondary", size="sm", className="me-3"),
+                dcc.Checklist(
+                    id='team-checklist',
+                    options=[],
+                    value=[],
+                    inline=True,
+                    className="team-checklist d-inline",
+                    labelStyle={'marginRight': '15px'}
+                )
+            ], className="d-flex align-items-center flex-wrap")
+        ], width=12),
     ], className="mb-3"),
     
     # Main content area
     dbc.Row([
         # Left column - main timeline charts
         dbc.Col([
-            # Resource levels
+            # Resource levels (per selected teams)
             dcc.Loading(
                 dcc.Graph(id='resource-chart', style={'height': '280px'}),
                 type='circle', color=COLORS['accent']
             ),
             
-            # Transfer flow chart
+            # Transfer flow chart (per selected teams)
             dcc.Loading(
                 dcc.Graph(id='transfer-flow-chart', style={'height': '250px', 'marginTop': '10px'}),
                 type='circle', color=COLORS['accent']
             ),
             
-            # Explicit transfers
+            # Explicit transfers (all teams)
             dcc.Loading(
                 dcc.Graph(id='explicit-transfers-chart', style={'height': '250px', 'marginTop': '10px'}),
                 type='circle', color=COLORS['accent']
@@ -833,28 +787,29 @@ app.layout = dbc.Container([
         
         # Right column - summary charts and ledger
         dbc.Col([
-            # Total sent by player
+            # Total sent by player (all teams)
             dcc.Loading(
                 dcc.Graph(id='total-sent-chart', style={'height': '180px'}),
                 type='circle', color=COLORS['accent']
             ),
             
-            # Supply/demand chart
+            # Supply/demand chart (alliance)
             dcc.Loading(
                 dcc.Graph(id='supply-demand-chart', style={'height': '180px', 'marginTop': '8px'}),
                 type='circle', color=COLORS['accent']
             ),
             
-            # Lift chart
+            # Lift chart (alliance)
             dcc.Loading(
                 dcc.Graph(id='lift-chart', style={'height': '150px', 'marginTop': '8px'}),
                 type='circle', color=COLORS['accent']
             ),
             
-            # Transaction ledger - moved to right side
+            # Transaction ledger (filtered by selected teams)
             html.Div([
                 html.H6("📋 Transfer Ledger", className="mb-2", 
                         style={'color': COLORS['text'], 'fontFamily': 'JetBrains Mono', 'fontSize': '12px'}),
+                html.Small("Showing transfers for selected players", className="text-muted d-block mb-2", style={'fontSize': '10px'}),
                 dash_table.DataTable(
                     id='transfer-ledger',
                     columns=[
@@ -865,7 +820,7 @@ app.layout = dbc.Container([
                         {'name': 'Recv', 'id': 'recv'},
                         {'name': 'Tax', 'id': 'tax'},
                     ],
-                    style_table={'height': '200px', 'overflowY': 'auto'},
+                    style_table={'height': '180px', 'overflowY': 'auto'},
                     style_cell={
                         'textAlign': 'left',
                         'padding': '4px 6px',
@@ -874,8 +829,8 @@ app.layout = dbc.Container([
                         'backgroundColor': COLORS['card'],
                         'color': COLORS['text'],
                         'border': f"1px solid {COLORS['border']}",
-                        'minWidth': '40px',
-                        'maxWidth': '80px',
+                        'minWidth': '35px',
+                        'maxWidth': '70px',
                         'overflow': 'hidden',
                         'textOverflow': 'ellipsis',
                     },
@@ -900,14 +855,11 @@ app.layout = dbc.Container([
         ], width=4)
     ]),
     
-    # WebSocket status (hidden, for debugging)
+    # Hidden components
     html.Div(id='ws-status', style={'display': 'none'}),
-    
-    # Auto-refresh interval
     dcc.Interval(id='auto-refresh', interval=2000, n_intervals=0),
-    
-    # Store for WebSocket data
     dcc.Store(id='ws-data-store'),
+    dcc.Store(id='team-names-store'),
     
 ], fluid=True, style={
     'backgroundColor': COLORS['background'],
@@ -938,25 +890,51 @@ def update_sessions(n_clicks, current_value):
 
 
 @callback(
-    Output('team-dropdown', 'options'),
-    Output('team-dropdown', 'value'),
+    Output('team-checklist', 'options'),
+    Output('team-checklist', 'value'),
+    Output('team-names-store', 'data'),
     Input('session-dropdown', 'value'),
-    State('team-dropdown', 'value')
+    State('team-checklist', 'value')
 )
-def update_teams(session_id, current_team):
+def update_teams(session_id, current_teams):
     if not session_id:
-        return [], None
+        return [], [], {}
     
     teams = load_teams(session_id)
     names = load_team_names(session_id)
     
     options = [
-        {'label': names.get(t, f"Team {t}"), 'value': t}
+        {'label': get_team_display_name(t, names), 'value': t}
         for t in teams
     ]
     
-    value = current_team if any(o['value'] == current_team for o in options) else (options[0]['value'] if options else None)
-    return options, value
+    # Keep current selection if valid, else select first team
+    valid_teams = [t for t in (current_teams or []) if t in teams]
+    if not valid_teams and teams:
+        valid_teams = [teams[0]]
+    
+    return options, valid_teams, names
+
+
+@callback(
+    Output('team-checklist', 'value', allow_duplicate=True),
+    Input('select-all-btn', 'n_clicks'),
+    State('team-checklist', 'options'),
+    prevent_initial_call=True
+)
+def select_all_teams(n_clicks, options):
+    if not options:
+        return []
+    return [o['value'] for o in options]
+
+
+@callback(
+    Output('team-checklist', 'value', allow_duplicate=True),
+    Input('select-none-btn', 'n_clicks'),
+    prevent_initial_call=True
+)
+def select_no_teams(n_clicks):
+    return []
 
 
 @callback(
@@ -969,41 +947,30 @@ def update_teams(session_id, current_team):
     Output('lift-chart', 'figure'),
     Input('auto-refresh', 'n_intervals'),
     Input('session-dropdown', 'value'),
-    Input('team-dropdown', 'value'),
+    Input('team-checklist', 'value'),
     Input('resource-dropdown', 'value'),
-    Input('refresh-btn', 'n_clicks')
+    Input('refresh-btn', 'n_clicks'),
+    State('team-names-store', 'data')
 )
-def update_charts(n_intervals, session_id, team_id, resource, n_clicks):
-    def empty_fig():
-        fig = go.Figure()
-        fig.update_layout(
-            template='plotly_dark',
-            paper_bgcolor=COLORS['card'],
-            plot_bgcolor=COLORS['background']
-        )
-        fig.add_annotation(text="Select a session", x=0.5, y=0.5,
-                          xref="paper", yref="paper", showarrow=False,
-                          font=dict(size=14, color=COLORS['text_muted']))
-        return fig
-    
+def update_charts(n_intervals, session_id, selected_teams, resource, n_clicks, team_names):
     if not session_id:
-        ef = empty_fig()
+        ef = create_empty_fig("Select a session", COLORS)
         return ef, [], ef, ef, ef, ef, ef
     
-    names = load_team_names(session_id)
-    team_name = names.get(team_id, f"Team {team_id}") if team_id is not None else "No team"
+    team_names = team_names or {}
+    selected_teams = selected_teams or []
     
-    # Load all data
-    eco_df = load_economy_data(session_id, team_id, resource) if team_id is not None else pd.DataFrame()
+    # Load data
+    eco_df = load_economy_data_multi(session_id, selected_teams, resource) if selected_teams else pd.DataFrame()
     transfers_df = load_transfers(session_id, resource)
     group_lift_df = load_group_lift_data(session_id, resource)
     
     # Build charts
-    resource_fig = create_resource_levels_chart(eco_df, team_name, resource, COLORS)
-    ledger_data = create_transaction_ledger(transfers_df, names)
-    flow_fig = create_transfer_flow_chart(transfers_df, names, COLORS)
-    explicit_fig = create_explicit_transfers_chart(transfers_df, names, COLORS)
-    sent_fig = create_total_sent_chart(transfers_df, names, COLORS)
+    resource_fig = create_resource_levels_chart(eco_df, selected_teams, team_names, resource, COLORS)
+    ledger_data = create_transaction_ledger(transfers_df, team_names, selected_teams if selected_teams else None)
+    flow_fig = create_transfer_flow_chart(transfers_df, team_names, selected_teams if selected_teams else None, COLORS)
+    explicit_fig = create_explicit_transfers_chart(transfers_df, team_names, COLORS)
+    sent_fig = create_total_sent_chart(transfers_df, team_names, COLORS)
     supply_demand_fig = create_supply_demand_chart(group_lift_df, COLORS)
     lift_fig = create_lift_chart(group_lift_df, COLORS)
     
@@ -1026,7 +993,6 @@ ws_clients = set()
 
 
 async def ws_handler(websocket):
-    """Handle WebSocket connections from the parser."""
     ws_clients.add(websocket)
     try:
         async for message in websocket:
@@ -1038,7 +1004,6 @@ async def ws_handler(websocket):
 
 
 async def broadcast(message):
-    """Broadcast a message to all connected WebSocket clients."""
     if ws_clients:
         await asyncio.gather(
             *[client.send(message) for client in ws_clients],
@@ -1047,7 +1012,6 @@ async def broadcast(message):
 
 
 def run_ws_server():
-    """Run the WebSocket server in a background thread."""
     async def serve():
         async with websockets.serve(ws_handler, "localhost", WS_PORT):
             print(f"WebSocket server running on ws://localhost:{WS_PORT}")
