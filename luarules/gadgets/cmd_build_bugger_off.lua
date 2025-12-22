@@ -179,16 +179,12 @@ function gadget:GameFrame(frame)
 		local x, y, z		 = Spring.GetUnitPosition(builderID)
 		local builderTeam    = Spring.GetUnitTeam(builderID);
 		local targetDistance = targetZ and math.distance2d(targetX, targetZ, x, z)
-		local buildUnitDefData = cachedUnitDefs[-cmdID]
+		local buildUnitDefData = cmdID and cachedUnitDefs[-cmdID]
 
-		-- Skip if no valid build command or unit position
-		if not cmdID or cmdID > -1 or not x then
-			if not x then
-				removeBuilder(builderID)
-			else
-				slowWatchBuilder(builderID)
-			end
-		elseif targetDistance > FAST_UPDATE_RADIUS then
+		if not x then
+			removeBuilder(builderID)
+
+		elseif not buildUnitDefData or targetDistance > FAST_UPDATE_RADIUS then
 			slowWatchBuilder(builderID)
 
 		elseif not isBuilding and targetDistance < BUILDER_BUILD_RADIUS + buildUnitDefData.radius and Spring.GetUnitIsBeingBuilt(builderID) == false then
