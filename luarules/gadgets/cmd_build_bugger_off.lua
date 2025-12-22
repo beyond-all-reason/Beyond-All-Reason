@@ -222,7 +222,7 @@ function gadget:GameFrame(frame)
 				local unitDefID = Spring.GetUnitDefID(interferingID)
 				local unitDefData = cachedUnitDefs[unitDefID]
 
-				if shouldBuggeroff(unitID, unitDefData, visitedUnits, builderTeam) then
+				if builderID ~= interferingID and shouldBuggeroff(unitID, unitDefData, visitedUnits, builderTeam) then
 					-- todo: use footprints for collision detection, not unit radii, which are not the bounding radii (neither is bounding radius useful)
 					local unitRadius = unitDefData.radius
 					local areaRadius = math.max(buggerOffRadius, buildDefRadius + unitRadius)
