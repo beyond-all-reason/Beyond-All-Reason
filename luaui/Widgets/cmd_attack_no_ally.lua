@@ -2,8 +2,8 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
    return {
-      name         = "Attack and Manual Fire no ally",
-      desc         = "Prevents attack and manual fire aim to snap onto ally units (cancels command instead)",
+      name         = "Manual Fire no ally",
+      desc         = "Prevents manual fire aim to snap onto ally units (cancels command instead)",
       author       = "Ceddral, Floris",
       date         = "April 2018",
 	  license      = "GNU GPL, v2 or later",
@@ -14,17 +14,15 @@ end
 
 
 function widget:Initialize()
-	WG['attacknoally'] = true
 	WG['manualfirennoally'] = true
 end
 
 function widget:Shutdown()
-	WG['attacknoally'] = nil
 	WG['manualfirennoally'] = nil
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
-	if cmdID ~= CMD.ATTACK and cmdID ~= CMD.MANUALFIRE then
+	if cmdID ~= CMD.MANUALFIRE then
 		return false
 	end
 
