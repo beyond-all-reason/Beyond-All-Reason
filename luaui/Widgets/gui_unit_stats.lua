@@ -680,10 +680,7 @@ local function drawStats(uDefID, uID)
 					local dps = burstDamage / (useExp and reload or uWep.reload)
 					totaldps = totaldps + wepCount*dps
 					totalbDamages = totalbDamages + wepCount* burstDamage
-					damageString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", burstDamage))..white.."."
-					if wepCount > 1 then
-						damageString = damageString .. white .. " ("..texts.each..")"
-					end
+					damageString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", burstDamage)) .. white .. (wepCount > 1 and (" ("..texts.each..").") or ("."))
 				end
 				DrawText(texts.dmg..":", damageString)
 
@@ -713,7 +710,7 @@ local function drawStats(uDefID, uID)
 				for _, rate in pairs(sorted) do
 					tableInsert(modifierText, ("%s = %s%d%%"):format(table.concat(modifiers[rate], ", "), yellow, floor(100 * rate / baseArmorDamage)))
 				end
-				DrawText(texts.modifiers..":", table.concat(modifierText, white.."; ") .. ".")
+				DrawText(texts.modifiers..":", table.concat(modifierText, white.."; ") .. white .. ".")
 			end
 
 			if uWep.metalCost > 0 or uWep.energyCost > 0 then
