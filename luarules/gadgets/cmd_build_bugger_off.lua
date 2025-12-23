@@ -54,7 +54,7 @@ local BUILDER_BUILD_RADIUS  = 200 * Spring.GetModOptions().multiplier_builddista
 -- Assume the units are super-fast and medium-sized.
 local SEARCH_RADIUS_OFFSET  = unitSpeedMax + 2 * footprint
 local FAST_UPDATE_FREQUENCY = gameSpeed * 0.5
-local SLOW_UPDATE_FREQUENCY = gameSpeed * 1.5
+local SLOW_UPDATE_FREQUENCY = FAST_UPDATE_FREQUENCY * 3 -- NB: must be a multiple
 local BUGGEROFF_RADIUS_INCREMENT = footprint
 -- Move away based on predicted position with lookahead:
 local BUGGEROFF_LOOKAHEAD   = (1/6) * gameSpeed
