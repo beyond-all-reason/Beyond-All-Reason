@@ -385,6 +385,9 @@ local Pend_clear_movegoal = {}
 local Out_shared_units = {}
 
 function Get_transport_state(transportID)
+	if not ValidUnitID(transportID) then
+		return nil
+	end
 	if not transport_states[transportID] then
 		transport_states[transportID] = {
 			state = "idle",
@@ -398,6 +401,9 @@ function Get_transport_state(transportID)
 end
 
 function Get_unit_state(unitID)
+	if not ValidUnitID(unitID) then
+		return nil
+	end
 	if not unit_states[unitID] then
 		unit_states[unitID] = {
 			outshared = false,
@@ -622,6 +628,12 @@ function widget:MetaUnitAdded(unitID, unitDefID, teamID)
 	end
 end
 
+function widget:UnitFromFactory(unitID, unitDefID)
+	if isTransportDef[unitDefID] then
+		Check_try_to_transport_waiting(unitID, unitDefID)
+	end
+end
+
 function On_tstate_becameAvalible(tstate)
 	Check_try_to_transport_waiting(tstate.transportID, GetUnitDefID(tstate.transportID))
 end
@@ -810,6 +822,11 @@ function Check_setMoveGoal(unitID, x, y, z, unitTeam)
 	end
 end
 
+-- shift right
+local function rsh(value, shift)
+	return math.floor(value / 2 ^ shift) % 2 ^ 24
+end
+
 function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	if isFactoryDef[unitDefID] then
 		return
@@ -823,6 +840,10 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	local nextCommand = commandQueue[1]
 	local isLastInQueue = currentCommand == nil
 	local isOwnTeam = unitTeam == myTeamID
+	--i dont really want to know if it comes from the engine
+	--this is just to detect if it is a command created by the engine when executing a cmd_insert command
+	--https://github.com/beyond-all-reason/RecoilEngine/blob/ce5a7f52d6c69a6ee36956d9ed13d6adb8bc0d57/rts/Sim/Units/CommandAI/CommandAI.cpp#L1196
+	local comesFromEngine = cmdOpts.coded == 16 --and from printing random variables this is the method i found :P
 
 	--if the transport reached the end of its queue, then return to home point
 	if isTransportDef[unitDefID] then
@@ -835,6 +856,7 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 		end
 	end
 
+	-- Echo(string.format("T_to %s", tostring(comesFromEngine)))
 	if nextCommand and nextCommand.id == CMD_TRANSPORT_TO and isTransportableDef[unitDefID] then
 		local nextParams = nextCommand.params
 		local ustate = Get_unit_state(unitID)
@@ -857,7 +879,10 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 				SetUnitMoveGoal(unitID, nextParams[1], nextParams[2], nextParams[3])
 			end
 		end
-	elseif isTransportableDef[unitDefID] then
+	--why "not comesFromEngine"?; if the player presses space (meta) to insert the command, the engine cancels the current command and calls CmdDone
+	--so unitCommand gets called with a cmd_insert and finds a transport, then CmdDone is called because the command was inserted, it would enter this branch and immediatly and cancel the order
+	--https://github.com/beyond-all-reason/RecoilEngine/blob/ce5a7f52d6c69a6ee36956d9ed13d6adb8bc0d57/rts/Sim/Units/CommandAI/CommandAI.cpp#L1196
+	elseif isTransportableDef[unitDefID] and not comesFromEngine then
 		local ustate = Get_unit_state(unitID)
 		local tstate = ustate.transport_state
 		if tstate and tstate.state == "coupled" then
@@ -877,43 +902,64 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	if isFactoryDef[unitDefID] then
 		return
 	end
+
 	if isTransportableDef[unitDefID] then
+		local ustate = Get_unit_state(unitID)
 		local commandQueue = GetUnitCommands(unitID, -1) or {}
-		local isFirstInQueue = cmdOpts.shift == false or cmdOpts.meta == true or (#commandQueue == 0)
+		local isFirstInQueue = cmdOpts.shift == false or (#commandQueue == 0)
+		if cmdID == CMD_INSERT then
+			--in the case the player presses meta to put the command in front of the queue
+			local in_transport_to = cmdParams[2] == CMD_TRANSPORT_TO
+			-- local in_isFirst = (cmdParams[1] == 0 or cmdParams[0])
+			if in_transport_to then
+				-- Echo(debug_tostring(cmdParams))
+				--translate a cmd_insert into a normal cmd
+				cmdID = CMD_TRANSPORT_TO
+				cmdOpts = cmdParams[3]
+				local in_cmdParams = {
+					cmdParams[4],
+					cmdParams[5],
+					cmdParams[6],
+				}
+				cmdParams = in_cmdParams
+
+				isFirstInQueue = true
+			end
+		end
 		local isOwnTeam = unitTeam == myTeamID
 		local ustate = Get_unit_state(unitID)
 		local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
 		local isNanoFrame = buildProgress < 1.0
 		--if the command is transport to and its the first in the queue, try to pick a transport and give it the load order
-		if cmdID == CMD_TRANSPORT_TO and isFirstInQueue and isOwnTeam and not isNanoFrame then
-			local foundTransport, transportType = Pick_best_transport(unitID, cmdParams[1], cmdParams[3], unitDefID)
+		if
+			cmdID == CMD_TRANSPORT_TO
+			and isFirstInQueue
+			and isOwnTeam
+			and not isNanoFrame
+			and ustate.transport_state == nil
+		then
+			-- Echo("meta")
+			-- Echo(debug_tostring(cmdParams))
+			local ux, uy, uz = GetUnitPosition(unitID)
+			local foundTransport, transportType = Pick_best_transport(unitID, ux, uz, unitDefID)
 			if foundTransport then
+				-- Echo("Found")
 				local tstate = Get_transport_state(foundTransport)
-				GiveOrderToUnit(foundTransport, CMD_LOAD_UNITS, { unitID }, {})
+				-- Echo("Found2")
+				local s = GiveOrderToUnit(foundTransport, CMD_LOAD_UNITS, { unitID }, {})
+				-- Echo("Found3 " .. tostring(s))
 				tstate.state = "coupled"
 				tstate.transportID = foundTransport
 				tstate.transporteeID = unitID
 				ustate.transport_state = tstate
 				ustate.isWaitingForTransport = false
 				unitsWaitingForTransport[unitID] = false
+				-- Echo("Found4")
 			else
 				ustate.isWaitingForTransport = true
 				unitsWaitingForTransport[unitID] = true
 				SetUnitMoveGoal(unitID, cmdParams[1], 0, cmdParams[3])
 			end
-		end
-		--if the unit was loaded and the command is transport to, give the transport the follow up commands
-		--mostly for; if the transport picked the unit but the player did not finish queueing commands
-		if
-			ustate
-			and ustate.transport_state
-			and ustate.transport_state.isLoaded == true
-			and cmdID == CMD_TRANSPORT_TO
-			and isOwnTeam
-		then
-			local r = Transform_transportTo_commands(ustate.transport_state.transportID, unitID)
-			Spring.GiveOrderToUnit(ustate.transport_state.transportID, CMD_STOP)
-			Spring.GiveOrderArrayToUnit(ustate.transport_state.transportID, r)
 		end
 	end
 end
@@ -949,30 +995,30 @@ function widget:DrawWorld()
 	end
 
 	gl.Texture(0, false) -- unbind texture
-	-- gl.Color(1, 1, 0, 1) -- yellow text
-	-- for unitID in pairs(knownTransports) do
-	-- 	if Spring.ValidUnitID(unitID) then
-	-- 		local tstate = Get_transport_state(unitID)
-	-- 		local x, y, z = GetUnitPosition(unitID)
-	-- 		local entry = string.format("%s", debug_tostring(tstate))
+	gl.Color(1, 1, 0, 1) -- yellow text
+	for unitID in pairs(knownTransports) do
+		if Spring.ValidUnitID(unitID) then
+			local tstate = Get_transport_state(unitID)
+			local x, y, z = GetUnitPosition(unitID)
+			local entry = string.format("%s", debug_tostring(tstate))
 
-	-- 		local transporteeID = tstate.transporteeID
-	-- 		gl.Color(1, 1, 0, 1) -- yellow text
-	-- 		gl.PushMatrix()
-	-- 		gl.Translate(x, y + 40, z)
-	-- 		gl.Billboard()
-	-- 		gl.Text(entry, 0, 0, 16, "c")
-	-- 		gl.PopMatrix()
-	-- 	end
-	-- end
+			local transporteeID = tstate.transporteeID
+			gl.Color(1, 1, 0, 1) -- yellow text
+			gl.PushMatrix()
+			gl.Translate(x, y + 40, z)
+			gl.Billboard()
+			gl.Text(entry, 0, 0, 16, "c")
+			gl.PopMatrix()
+		end
+	end
 
-	-- local teamUnits = GetTeamUnits(myTeamID)
-	-- local a = {}
-	-- for index, pair in pairs(Out_shared_units) do
-	-- 	if pair then
-	-- 		a[#a + 1] = index
-	-- 	end
-	-- end
+	local teamUnits = GetTeamUnits(myTeamID)
+	local a = {}
+	for index, pair in pairs(Out_shared_units) do
+		if pair then
+			a[#a + 1] = index
+		end
+	end
 	-- teamUnits = table.merge(teamUnits, a)
 	-- for i = 1, #teamUnits do
 	-- 	local unitID = teamUnits[i]
@@ -991,6 +1037,23 @@ function widget:DrawWorld()
 	-- 		end
 	-- 	end
 	-- end
+
+	for unitID, ustate in pairs(unit_states) do
+		if Spring.ValidUnitID(unitID) and isTransportableDef[GetUnitDefID(unitID)] then
+			-- local ustate = Get_unit_state(unitID)
+			if ustate then
+				local x, y, z = GetUnitPosition(unitID)
+				local entry = string.format("%s", debug_tostring(ustate))
+
+				gl.PushPopMatrix(function()
+					gl.Color(0, 1, 0, 1) -- green text
+					gl.Translate(x, y + 40, z)
+					gl.Billboard()
+					gl.Text(entry, 0, 0, 16, "c")
+				end)
+			end
+		end
+	end
 
 	gl.Color(1, 1, 1, 1) -- reset color
 end
@@ -1033,11 +1096,7 @@ local function cmd_notify(uID, cmdID, cmdParams, cmdOpts)
 			tstate.homePosition = { x = cmdParams[1], y = cmdParams[2], z = cmdParams[3] }
 		end
 	end
-	if
-		isTransportableDef[spGetUnitDefID(uID)]
-		and cmdID ~= CMD_TRANSPORT_TO
-		and (cmdOpts.shift == false or cmdOpts.meta == false)
-	then
+	if isTransportableDef[spGetUnitDefID(uID)] and cmdID ~= CMD_TRANSPORT_TO and cmdOpts.shift == false then
 		local ustate = Get_unit_state(uID)
 		ustate.isWaitingForTransport = false
 		unitsWaitingForTransport[uID] = false
@@ -1108,11 +1167,17 @@ end
 
 --Widgets cant call these functions, so we need the gadget to do it
 function SetUnitMoveGoal(unitID, x, y, z)
+	if not unitID or not x or not y or not z then
+		return
+	end
 	local msg = string.format("POS|%d|%f|%f|%f", unitID, x, y, z)
 	Spring.SendLuaRulesMsg(msg)
 end
 
 function ClearUnitMoveGoal(UnitID)
+	if not unitID then
+		return
+	end
 	local msg = string.format("TSTP|%d", UnitID)
 	Spring.SendLuaRulesMsg(msg)
 end
