@@ -308,7 +308,7 @@ return {
 				explosiongenerator = "custom:flakshard",
 				gravityaffected = "true",
 				impulsefactor = 0,
-				name = "Dual Rotary Microflak Cannons",
+				name = "Rotary Microflak Cannon",
 				noselfdamage = true,
 				range = 800,
 				reloadtime = 0.237,
