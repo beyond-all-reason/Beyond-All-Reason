@@ -353,7 +353,7 @@ local function drawStats(uDefID, uID)
 	local mass = uDef.mass and uDef.mass or 0
 	local size = uDef.xsize and uDef.xsize / 2 or 0
 	local isBuilding, buildProg, uExp
-	local level = 1
+
 	if uID then
 		isBuilding, buildProg = Spring.GetUnitIsBeingBuilt(uID)
 		maxHP = select(2,Spring.GetUnitHealth(uID))
