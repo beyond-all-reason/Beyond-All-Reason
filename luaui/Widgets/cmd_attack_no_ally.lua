@@ -12,14 +12,10 @@ function widget:GetInfo()
 	}
 end
 
-------------------------------------------------------------
--- Helpers
-------------------------------------------------------------
-
 local function ExitAttackMode()
 	-- STOP clears queued commands
 	Spring.GiveOrder(CMD.STOP, {}, {})
-	-- This clears the active command cursor (THIS is the key fix)
+	-- clears the active command cursor 
 	Spring.SetActiveCommand(0)
 end
 
@@ -34,9 +30,6 @@ local function IssueGroundAttack(cmdOptions)
 	return false
 end
 
-------------------------------------------------------------
--- Widget lifecycle
-------------------------------------------------------------
 
 function widget:Initialize()
 	WG['attacknoally'] = true
@@ -49,10 +42,6 @@ function widget:Shutdown()
 	WG['manualfirennoally'] = nil
 	WG['guardnoally'] = nil
 end
-
-------------------------------------------------------------
--- Mouse handling
-------------------------------------------------------------
 
 function widget:MousePress(x, y, button)
 	-- Right mouse button
@@ -70,10 +59,7 @@ function widget:MousePress(x, y, button)
 	return false
 end
 
-------------------------------------------------------------
 -- Command interception
-------------------------------------------------------------
-
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	if cmdID == CMD.ATTACK then
 		-- Ground attack = 3 params; only intercept unit-target attacks
