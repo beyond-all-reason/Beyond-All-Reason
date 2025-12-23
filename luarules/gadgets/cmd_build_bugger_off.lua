@@ -30,7 +30,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 
 	cachedUnitDefs[unitDefID] = {
 		isImmobile = unitDef.isImmobile,
-		isBlocking = unitDef.isImmobile and unitDef.customParams.decoration and not unitDef.reclaimable,
+		isBlocking = unitDef.customParams.decoration and not unitDef.reclaimable,
 		isBuilder  = unitDef.isBuilder,
 		radius     = unitDef.radius,
 		semiAxisX  = unitDef.xsize * footprint * 0.5,
