@@ -74,6 +74,10 @@ local checkFrequencyMult = 1
 local epsilon = 300 -- Clustering distance - increased to merge nearby fields and prevent overlaps
 
 local minFeatureValue = 9
+do
+	local ratio = math.clamp(Spring.GetModOptions().wreck_metal_ratio / 0.6, 0, 1.5)
+	minFeatureValue = minFeatureValue * (0.75 + ratio * 0.25) -- gravitate toward 1
+end
 
 -- Maximum cluster size in elmos - clusters larger than this will be split into sub-clusters
 local maxClusterSize = 3000 -- Adjust this value: smaller = more sub-clusters, larger = fewer but bigger fields
