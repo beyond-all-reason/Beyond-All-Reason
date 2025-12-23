@@ -615,7 +615,7 @@ local function drawStats(uDefID, uID)
 			elseif uWep.customParams.cluster then
 				local munition = uDef.name .. '_' .. uWep.customParams.cluster_def
 				local cmNumber = uWep.customParams.cluster_number
-				local cmDamage = WeaponDefNames[munition].damages[0]
+				local cmDamage = WeaponDefNames[munition].damages[defaultArmorIndex]
 				baseArmorDamage = baseArmorDamage + cmDamage * cmNumber
 			end
 		end
@@ -708,7 +708,7 @@ local function drawStats(uDefID, uID)
 				end
 				table.sort(sorted, descending)
 
-				local modifierText = { ("default = %s%d%%"):format(yellow, floor(100 * damages[0] / baseArmorDamage)) }
+				local modifierText = { ("default = %s%d%%"):format(yellow, floor(100 * damages[defaultArmorIndex] / baseArmorDamage)) }
 				for _, rate in pairs(sorted) do
 					tableInsert(modifierText, ("%s = %s%d%%"):format(table.concat(modifiers[rate], ", "), yellow, floor(100 * rate / baseArmorDamage)))
 				end
