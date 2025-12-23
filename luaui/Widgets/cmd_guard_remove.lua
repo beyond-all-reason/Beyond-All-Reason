@@ -13,9 +13,11 @@ function widget:GetInfo()
 	}
 end
 
+-- Minimum time between checks per-builder. Increase to improve performance.
+local safeguardDuration = 0.1 ---@type number in seconds
+
 include("keysym.h.lua")
 
-local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetActiveCmdDesc = Spring.GetActiveCmdDesc
@@ -30,15 +32,27 @@ local removableCommand = {
 	[CMD_PATROL] = true,
 }
 
--- performance safeguard, when certain commands are spammed, like reclaim, `UnitCommand` can cause
--- extreme performance issues by parsing all of those commands. So we track units that have recieved
--- commands in the last 5 frames and skip any that are touched
+-- Performance safeguard: When certain commands are spammed, like reclaim, `UnitCommand` can cause
+-- extreme performance issues by parsing all of those commands. So we skip units recently touched.
 local recentUnits = {}
 local updateTime = 0
+local gameTime = 0
+-- Regardless of the preference above, we don't need to go any lower than the double-click speed.
+safeguardDuration = math.max(safeguardDuration, Spring.GetConfigInt("DoubleClickTime", 200) / 1000)
 
 local validUnit = {}
 for udid, ud in pairs(UnitDefs) do
 	validUnit[udid] = ud.isBuilder and ud.canRepair and not ud.isFactory
+end
+
+local function clearRecentUnits()
+	local release = gameTime - safeguardDuration
+	for unitID, seconds in pairs(recentUnits) do
+		if seconds <= release then
+			recentUnits[unitID] = nil
+		end
+	end
+	updateTime = safeguardDuration * 0.5
 end
 
 function widget:UnitCommand(unitID, unitDefID, _, cmdID, _, cmdOpts)
@@ -50,17 +64,7 @@ function widget:UnitCommand(unitID, unitDefID, _, cmdID, _, cmdOpts)
 		return false
 	end
 
-	if validUnit[unitDefID] then
-		-- skip the check if command is a state toggle
-		local cmdIndex = spGetCmdDescIndex(cmdID)
-		if cmdIndex then
-			local cmdDescription = spGetActiveCmdDesc(cmdIndex)
-			if cmdDescription and cmdDescription.type == CMDTYPE_ICON_MODE then
-				return false
-			end
-		end
-
-		recentUnits[unitID] = spGetGameFrame()
+		recentUnits[unitID] = gameTime
 		local cmd = spGetUnitCommands(unitID, 2)
 		if cmd then
 			for c = 1, #cmd do
@@ -75,17 +79,9 @@ function widget:UnitCommand(unitID, unitDefID, _, cmdID, _, cmdOpts)
 end
 
 function widget:Update(dt)
-	updateTime = updateTime + dt
-	if updateTime < 0.25 then
-		return
+	gameTime = gameTime + dt
+	updateTime = updateTime - dt
+	if updateTime <= 0 then
+		clearRecentUnits()
 	end
-
-	-- Clear all recent units that are outside of the time window
-	for i, t in pairs(recentUnits) do
-		if t < spGetGameFrame() - 5 then
-			recentUnits[i] = nil;
-		end
-	end
-
-	updateTime = 0
 end
