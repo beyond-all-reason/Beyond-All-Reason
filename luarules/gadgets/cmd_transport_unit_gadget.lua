@@ -22,6 +22,7 @@ end
 local Echo = Spring.Echo
 local GameFrame = Spring.GetGameFrame
 local GetUnitDefID = Spring.GetUnitDefID
+local ValidUnitID = Spring.ValidUnitID
 
 local CMDTYPE_ICON_MAP = CMDTYPE.ICON_MAP
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
@@ -33,14 +34,6 @@ local CMD_INSERT = CMD.INSERT
 -- ========= command id & description =========
 local CMD_TRANSPORT_TO = GameCMD.TRANSPORT_TO
 local CMD_AUTO_TRANSPORT = GameCMD.AUTO_TRANSPORT
-local CMD_AUTO_TRANSPORT_DESC = {
-	id = CMD_AUTO_TRANSPORT,
-	type = CMDTYPE.ICON_MODE,
-	name = "Auto Transport",
-	cursor = nil,
-	action = "auto_transport",
-	params = { 0, "Ignore Orders", "Fullfill Orders" },
-}
 
 -- ========= classification thresholds =========
 local HEAVY_TRANSPORT_MASS_THRESHOLD = 3000
@@ -58,9 +51,6 @@ local transportSizeLimit = {}
 local transportCapSlots = {}
 
 local isTransportableDef = {}
-local unitMass = {}
-local unitXsize = {}
-
 -- ========= UnitDef scanning =========
 local function buildDefCaches()
 	for defID, ud in pairs(UnitDefs) do
@@ -132,32 +122,26 @@ end
 
 --this is here to expose setgoal and cleargoal for widgets to use
 function gadget:RecvLuaMsg(msg, playerID)
-	--TODO: add checks to verify if the unit actually belongs to the player sending the message
 	local _, _, _, teamID = Spring.GetPlayerInfo(playerID)
 	if msg:sub(1, 4) == "POS|" then
 		local _, unitID, x, y, z = msg:match("([^|]+)|([^|]+)|([^|]+)|([^|]+)|([^|]+)")
 
 		unitID = tonumber(unitID)
-		if Spring.GetUnitTeam(unitID) == teamID then
+		if unitID and ValidUnitID(unitID) and Spring.GetUnitTeam(unitID) == teamID then
 			x, y, z = tonumber(x), tonumber(y), tonumber(z)
 
 			if unitID and x and y and z then
-				-- Echo("Setting move goal")
-				-- Do something with the data here, e.g. issue orders, update state
 				Spring.SetUnitMoveGoal(unitID, x, y, z)
 			end
-			return true -- handled
+			return true
 		end
 	elseif msg:sub(1, 4) == "TSTP" then
-		-- Decode TSTP message
 		local _, unitID = msg:match("([^|]+)|([^|]+)")
 
 		unitID = tonumber(unitID)
-		if Spring.GetUnitTeam(unitID) == teamID then
+		if unitID and ValidUnitID(unitID) and Spring.GetUnitTeam(unitID) == teamID then
 			if unitID then
-				-- Echo("Clearing move goal")
 				local x, y, z = Spring.GetUnitPosition(unitID)
-				-- Do something with the unitID
 				Spring.ClearUnitGoal(unitID)
 				Spring.SetUnitMoveGoal(unitID, x, y, z)
 			end
@@ -179,7 +163,7 @@ end
 
 function gadget:Initialize()
 	buildDefCaches()
-	for _, unitID in ipairs(Spring.GetAllUnits()) do -- handle /luarules reload
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 	end
 end
