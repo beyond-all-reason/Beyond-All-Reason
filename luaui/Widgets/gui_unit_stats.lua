@@ -24,18 +24,10 @@ local tableInsert = table.insert
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetSpectatingState = Spring.GetSpectatingState
-local spEcho = Spring.Echo
 
 local texts = {}
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua")) and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
 local gameName = Game.gameName
-
-local isCommander = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander then
-		isCommander[unitDefID] = true
-	end
-end
 
 if damageStats and damageStats[gameName] and damageStats[gameName].team then
 	local rate = 0
@@ -139,6 +131,7 @@ local energyColor = '\255\255\255\128' -- Light yellow
 local buildColor = '\255\128\255\128' -- Light green
 
 local simSpeed = Game.gameSpeed
+local armorTypes = Game.armorTypes
 
 local max = mathMax
 local floor = mathFloor
@@ -178,19 +171,8 @@ local spec = spGetSpectatingState()
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousName = '?????'
-local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local showStats = false
-
-local isCommander = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander then
-		isCommander[unitDefID] = true
-	end
-end
-
--- Reverse armor type table
-local armorTypes = Game.armorTypes
 
 ------------------------------------------------------------------------------------
 -- Functions
