@@ -212,9 +212,9 @@ function gadget:GameFrame(frame)
 
 			for _, interferingID in ipairs(interferingUnits) do
 				local unitDefID = Spring.GetUnitDefID(interferingID)
-				local unitDefData = cachedUnitDefs[unitDefID]
+				local unitDefData = unitDefID and cachedUnitDefs[unitDefID]
 
-				if builderID == interferingID or visitedUnits[interferingID] then
+				if not unitDefData or builderID == interferingID or visitedUnits[interferingID] then
 					-- continue
 				elseif shouldBuggeroff(interferingID, unitDefData, visitedUnits, builderTeam) then
 					-- todo: use blocking for "collision" detection, not unit radii, which are not the bounding radii (neither is bounding radius useful)
