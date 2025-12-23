@@ -455,6 +455,7 @@ end
 
 function Check_try_to_transport_waiting(tID, unitDefID)
 	--loop over every waiting unit
+	if not ValidUnitID(tID) then return end
 	for index, pair in pairs(table.merge(unitsWaitingForTransport, Out_shared_units)) do
 		if pair then
 			local ustate = Get_unit_state(index)

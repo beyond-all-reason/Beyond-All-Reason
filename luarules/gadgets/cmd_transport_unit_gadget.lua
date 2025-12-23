@@ -1,3 +1,4 @@
+---@diagnostic disable: param-type-mismatch
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -83,9 +84,6 @@ local function buildDefCaches()
 			isFactoryDef[defID] = true
 			isTransportableDef[defID] = true
 		end
-
-		unitMass[defID] = ud.mass or 0
-		unitXsize[defID] = ud.xsize or 0
 	end
 end
 
