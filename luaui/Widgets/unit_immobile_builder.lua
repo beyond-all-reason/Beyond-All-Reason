@@ -106,13 +106,6 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitIdle(unitID, unitDefID, unitTeam)
-	local count = spGetUnitCommandCount(unitID)
-	if count > 0 then
-		local cmdID, opts, tag = spGetUnitCurrentCommand(unitID, count)
-		if cmdID == CMD_TRANSPORT_TO then
-			return
-		end
-	end
 	if unitTeam ~= myTeamID then
 		return
 	end
