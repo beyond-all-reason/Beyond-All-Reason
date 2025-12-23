@@ -709,8 +709,8 @@ local function drawStats(uDefID, uID)
 				table.sort(sorted, descending)
 
 				local modifierText = { ("default = %s%d%%"):format(yellow, floor(100 * damages[defaultArmorIndex] / baseArmorDamage)) }
-				for _, rate in ipairs(sorted) do
-					tableInsert(modifierText, ("%s = %s%d%%"):format(table.concat(modifiers[rate], ", "), yellow, floor(100 * rate / baseArmorDamage)))
+				for _, armorDamage in ipairs(sorted) do
+					tableInsert(modifierText, ("%s = %s%d%%"):format(table.concat(modifiers[armorDamage], ", "), yellow, floor(100 * armorDamage / baseArmorDamage)))
 				end
 				DrawText(texts.modifiers..":", table.concat(modifierText, white.."; ") .. white .. ".")
 			end
