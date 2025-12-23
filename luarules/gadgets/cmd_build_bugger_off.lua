@@ -9,7 +9,7 @@ function gadget:GetInfo()
 		version = "1.0",
 		license = "GNU GPL, v2 or later",
 		layer   = 0,
-		enabled = true   --  loaded by default?
+		enabled = true,
 	}
 end
 
@@ -18,22 +18,28 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local gameSpeed = Game.gameSpeed
+local footprint = Game.squareSize * Game.footprintScale
 
-local shouldNotBuggeroff = {}
 local cachedUnitDefs = {}
-local mostRecentCommandFrame = {}
-local gameFrame = 0
 local unitSpeedMax = 0
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.isImmobile then
-		shouldNotBuggeroff[unitDefID] = true
-	elseif unitDef.speed > unitSpeedMax and not unitDef.canFly then
+	if unitDef.speed > unitSpeedMax and not unitDef.canFly then
 		unitSpeedMax = unitDef.speed
 	end
 
-	cachedUnitDefs[unitDefID] = { radius = unitDef.radius, isBuilder = unitDef.isBuilder}
+	cachedUnitDefs[unitDefID] = {
+		isImmobile = unitDef.isImmobile,
+		isBlocking = unitDef.customParams.decoration and not unitDef.reclaimable,
+		isBuilder  = unitDef.isBuilder,
+		radius     = unitDef.radius,
+		semiAxisX  = unitDef.xsize * footprint * 0.5,
+		semiAxisZ  = unitDef.zsize * footprint * 0.5,
+	}
 end
+
+local gameFrame = 0
+local mostRecentCommandFrame = {}
 
 local slowUpdateBuilders 	= {}
 local watchedBuilders 		= {}
@@ -44,12 +50,12 @@ local areaCommandCooldown	= {}
 local FAST_UPDATE_RADIUS	= 400
 -- builders take about this much to enter build stance; determined empirically
 local BUILDER_DELAY_SECONDS = 3.3
-local BUILDER_BUILD_RADIUS  = 200 -- ! varies per-unit
+local BUILDER_BUILD_RADIUS  = 200 * Spring.GetModOptions().multiplier_builddistance -- ! varies per-unit
 -- Assume the units are super-fast and medium-sized.
-local SEARCH_RADIUS_OFFSET  = unitSpeedMax + 2 * (Game.squareSize * Game.footprintScale)
+local SEARCH_RADIUS_OFFSET  = unitSpeedMax + 2 * footprint
 local FAST_UPDATE_FREQUENCY = gameSpeed * 0.5
-local SLOW_UPDATE_FREQUENCY = gameSpeed * 1.5
-local BUGGEROFF_RADIUS_INCREMENT = 2 * Game.squareSize
+local SLOW_UPDATE_FREQUENCY = FAST_UPDATE_FREQUENCY * 3 -- NB: must be a multiple
+local BUGGEROFF_RADIUS_INCREMENT = footprint
 -- Move away based on predicted position with lookahead:
 local BUGGEROFF_LOOKAHEAD   = (1/6) * gameSpeed
 -- The max buggeroff radius = increment * (time * update rate - 1), so we set a max time here also, implicitly.
@@ -133,29 +139,28 @@ local function slowWatchBuilder(builderID)
 	needsUpdate = true
 end
 
-local function shouldIssueBuggeroff(builderTeam, unitID, unitDefID, x, z, radius)
-	local unitTeam = Spring.GetUnitTeam(unitID)
-	if not unitTeam then
-		return false
-	end
-	
-	if Spring.AreTeamsAllied(unitTeam, builderTeam) == false then
+local function ignoreBuggeroff(unitID, unitDefData)
+	return unitDefData.isImmobile
+		or Spring.GetUnitIsDead(unitID) ~= false
+		or Spring.GetUnitIsBeingBuilt(unitID) ~= false
+		or gameFrame - (mostRecentCommandFrame[unitID] or -USER_COMMAND_TIMEOUT) < USER_COMMAND_TIMEOUT
+end
+
+local function shouldBuggeroff(unitID, unitDefData, visitedUnits, builderTeam)
+	if unitDefData.isBlocking then
+		visitedUnits[unitID] = true
+		Spring.DestroyUnit(unitID, false, true, nil, true)
 		return false
 	end
 
-	if shouldNotBuggeroff[unitDefID] then
+	if ignoreBuggeroff(unitID, unitDefData) then
+		visitedUnits[unitID] = true
 		return false
-	end
 
-	if mostRecentCommandFrame[unitID] and (gameFrame - mostRecentCommandFrame[unitID] < USER_COMMAND_TIMEOUT) then
-		return false
-	end
-
-	if willBeNearTarget(unitID, x, z, radius) then
+	elseif Spring.AreTeamsAllied((Spring.GetUnitTeam(unitID)), builderTeam) then
+		visitedUnits[unitID] = true
 		return true
 	end
-
-	return false
 end
 
 function gadget:GameFrame(frame)
@@ -169,26 +174,21 @@ function gadget:GameFrame(frame)
 	local cylinderCache = {}  -- Cache GetUnitsInCylinder results per location
 
 	for builderID, _ in pairs(watchedBuilders) do
-		local cmdID, _, _, targetX, targetY, targetZ =  Spring.GetUnitCurrentCommand(builderID, 1)
+		local cmdID, _, _, targetX, targetY, targetZ = Spring.GetUnitCurrentCommand(builderID, 1)
 		local isBuilding  	 = Spring.GetUnitIsBuilding(builderID) ~= nil
 		local x, y, z		 = Spring.GetUnitPosition(builderID)
 		local builderTeam    = Spring.GetUnitTeam(builderID);
-		local targetDistance = targetZ and math.distance2d(targetX, targetZ, x, z)
+		local targetDistance = targetZ and x and math.distance2d(targetX, targetZ, x, z)
+		local buildUnitDefData = cmdID and cachedUnitDefs[-cmdID]
 
-		-- Skip if no valid build command or unit position
-		if not cmdID or cmdID > -1 or not x then
-			if not x then
-				removeBuilder(builderID)
-			else
-				slowWatchBuilder(builderID)
-			end
-		elseif targetDistance > FAST_UPDATE_RADIUS then
+		if not x then
+			removeBuilder(builderID)
+
+		elseif not buildUnitDefData or targetDistance > FAST_UPDATE_RADIUS then
 			slowWatchBuilder(builderID)
 
-		elseif not isBuilding and targetDistance < BUILDER_BUILD_RADIUS + cachedUnitDefs[-cmdID].radius and Spring.GetUnitIsBeingBuilt(builderID) == false then
-			local builtUnitDefID	= -cmdID
-			local buildDefRadius    = cachedUnitDefs[builtUnitDefID].radius
-			local buggerOffRadius	= builderRadiusOffsets[builderID] + buildDefRadius
+		elseif not isBuilding and targetDistance < BUILDER_BUILD_RADIUS + buildUnitDefData.radius and Spring.GetUnitIsBeingBuilt(builderID) == false then
+			local buildDefRadius    = buildUnitDefData.radius
 			local searchRadius		= SEARCH_RADIUS_OFFSET + buildDefRadius
 
 			-- Use cached cylinder lookup to reduce redundant API calls
@@ -199,36 +199,45 @@ function gadget:GameFrame(frame)
 				cylinderCache[cacheKey] = interferingUnits
 			end
 
+			-- Escalate the radius every update. We want to send units away the minimum distance, but
+			-- if there are many units in the way, they may cause a traffic jam and need to clear more room.
+			local buggerOffRadius = builderRadiusOffsets[builderID] + buildDefRadius
+			local buggerOffRadiusOffset = builderRadiusOffsets[builderID] + BUGGEROFF_RADIUS_INCREMENT
+
 			-- Make sure at least one builder per player is never told to move
 			if (visitedTeams[builderTeam] == nil) then
 				visitedTeams[builderTeam] = true
 				visitedUnits[builderID] = true
 			end
-			-- Escalate the radius every update. We want to send units away the minimum distance, but
-			-- if there are many units in the way, they may cause a traffic jam and need to clear more room.
-			builderRadiusOffsets[builderID] = builderRadiusOffsets[builderID] + BUGGEROFF_RADIUS_INCREMENT
 
-				for _, interferingID in ipairs(interferingUnits) do
-				if builderID ~= interferingID and not visitedUnits[interferingID] and Spring.GetUnitIsBeingBuilt(interferingID) == false then
-					-- Only buggeroff from one build site at a time
-					visitedUnits[interferingID] = true
-					local unitX, _, unitZ = Spring.GetUnitPosition(interferingID)
-					local unitDefID  = Spring.GetUnitDefID(interferingID)
-					local unitRadius = cachedUnitDefs[unitDefID].radius
+			for _, interferingID in ipairs(interferingUnits) do
+				local unitDefID = Spring.GetUnitDefID(interferingID)
+				local unitDefData = cachedUnitDefs[unitDefID]
+
+				if builderID == interferingID or visitedUnits[interferingID] then
+					-- continue
+				elseif shouldBuggeroff(interferingID, unitDefData, visitedUnits, builderTeam) then
+					-- todo: use blocking for "collision" detection, not unit radii, which are not the bounding radii (neither is bounding radius useful)
+					local unitRadius = unitDefData.radius
 					local areaRadius = math.max(buggerOffRadius, buildDefRadius + unitRadius)
-					if shouldIssueBuggeroff(builderTeam, interferingID, unitDefID, targetX, targetZ, areaRadius) then
-						local vx, vy, vz = Spring.GetUnitVelocity(interferingID)
-						unitX, unitZ = unitX + vx * BUGGEROFF_LOOKAHEAD, unitZ + vz * BUGGEROFF_LOOKAHEAD
+
+					if willBeNearTarget(interferingID, targetX, targetZ, areaRadius) then
+						local unitX, _, unitZ = Spring.GetUnitPosition(interferingID)
+						local speedX, _, speedZ = Spring.GetUnitVelocity(interferingID)
+						unitX, unitZ = unitX + speedX * BUGGEROFF_LOOKAHEAD, unitZ + speedZ * BUGGEROFF_LOOKAHEAD
 						local sendX, sendZ = math.closestPointOnCircle(targetX, targetZ, buggerOffRadius + unitRadius, unitX, unitZ)
-						if Spring.TestMoveOrder(Spring.GetUnitDefID(interferingID), sendX, targetY, sendZ) then
+
+						if Spring.TestMoveOrder(unitDefID, sendX, targetY, sendZ) then
 							Spring.GiveOrderToUnit(interferingID, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_INTERNAL, sendX, targetY, sendZ}, CMD.OPT_ALT)
 						end
 					end
 				end
 			end
 
-			if builderRadiusOffsets[builderID] > MAX_BUGGEROFF_RADIUS or IsUnitRepeatOn(builderID) then
+			if buggerOffRadiusOffset > MAX_BUGGEROFF_RADIUS or (not buildUnitDefData.isImmobile and IsUnitRepeatOn(builderID)) then
 				removeBuilder(builderID)
+			else
+				builderRadiusOffsets[builderID] = buggerOffRadiusOffset
 			end
 
 		elseif isBuilding then
