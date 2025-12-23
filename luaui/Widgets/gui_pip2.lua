@@ -5,6 +5,8 @@ if not Spring.GetModOptions().pip then --and not Spring.GetModOptions().allowuse
 	return
 end
 
+pipNumber = 2
+
 VFS.Include("LuaUI/Widgets/gui_pip.lua")
 
 

@@ -16,6 +16,8 @@ function widget:GetInfo()
 	}
 end
 
+pipNumber = pipNumber or 1
+
 ----------------------------------------------------------------------------------------------------
 -- Todo
 ----------------------------------------------------------------------------------------------------
@@ -102,7 +104,6 @@ local animationDuration = 0.22 -- seconds for the minimize/maximize transition a
 local animStartDim = {} -- Starting dimensions for animation
 local animEndDim = {} -- Ending dimensions for animation
 local drawingGround = true
-local drawIconOnly = false
 local areResizing = false
 
 -- Render-to-texture state (consolidated to reduce local variable count)
@@ -328,18 +329,6 @@ local buttons = {
 					end
 				end
 	},
-	-- {
-	-- 	texture = 'LuaUI/Images/pip/PipGround.png',
-	-- 	tooltip = 'Toggle ground drawing',
-	-- 	command = 'pip_toggle_ground',
-	-- 	OnPress = function() drawingGround = not drawingGround end
-	-- },
-	-- {
-	-- 	texture = 'LuaUI/Images/pip/PipBlipButton.png',
-	-- 	tooltip = 'Show 3D models when zoom is high enough (can become expensive)',
-	-- 	command = 'pip_toggle_3d',
-	-- 	OnPress = function() drawIconOnly = not drawIconOnly end
-	-- },
 	{
 		texture = 'LuaUI/Images/pip/PipMove.png',
 		tooltip = Spring.I18N('ui.pip.move'),
@@ -520,18 +509,10 @@ end
 
 local function UpdateGuishaderBlur()
 	if WG['guishader'] then
-		-- Only remove blur when fully minimized (not during animation)
-		-- During minimize animation, keep updating the blur with shrinking dimensions
-		if inMinMode and not isAnimating then
-			-- Remove blur when fully minimized
-			if WG['guishader'].RemoveRect then
-				WG['guishader'].RemoveRect('pip')
-			end
-		else
-			-- Update blur with current dimensions (including during animation)
-			if WG['guishader'].InsertRect then
-				WG['guishader'].InsertRect(dim.l, dim.b, dim.r, dim.t, 'pip')
-			end
+		-- Always update blur with current dimensions (including when minimized)
+		-- The dim values will reflect the minimized button size when inMinMode is true
+		if WG['guishader'].InsertRect then
+			WG['guishader'].InsertRect(dim.l-elementPadding, dim.b-elementPadding, dim.r+elementPadding, dim.t+elementPadding, 'pip'..pipNumber)
 		end
 	end
 end
@@ -2458,10 +2439,19 @@ end
 
 function widget:ViewResize()
 
-	font = WG['fonts'].getFont()
+	font = WG['fonts'].getFont(2)
 
 	local oldVsx, oldVsy = vsx, vsy
-	dim.l, dim.r, dim.b, dim.t = dim.l/oldVsx, dim.r/oldVsx, dim.b/oldVsy, dim.t/oldVsy
+	-- Ensure dim fields are initialized before arithmetic operations
+	if dim.l and dim.r and dim.b and dim.t then
+		dim.l, dim.r, dim.b, dim.t = dim.l/oldVsx, dim.r/oldVsx, dim.b/oldVsy, dim.t/oldVsy
+	else
+		-- Initialize with default values if not set
+		dim.l = 0.7
+		dim.r = 0.7 + (minPanelSize * widgetScale * 1.4) / oldVsx
+		dim.b = 0.7
+		dim.t = 0.7 + (minPanelSize * widgetScale * 1.2) / oldVsy
+	end
 	vsx, vsy = Spring.GetViewGeometry()
 	dim.l, dim.r, dim.b, dim.t = math.floor(dim.l*vsx), math.floor(dim.r*vsx), math.floor(dim.b*vsy), math.floor(dim.t*vsy)
 
@@ -2493,7 +2483,8 @@ function widget:ViewResize()
 
 	-- Update minimize button position with screen margin
 	-- Only recalculate if not in min mode (preserve saved position when restoring from config)
-	if not inMinMode then
+	-- But always initialize if nil to prevent errors
+	if not inMinMode or minModeL == nil or minModeB == nil then
 		local screenMarginPx = math.floor(screenMargin * vsy)
 		local buttonSizeWithMargin = math.floor(usedButtonSize * maximizeSizemult)
 		minModeL = vsx - buttonSizeWithMargin - screenMarginPx
@@ -2572,7 +2563,7 @@ function widget:Shutdown()
 
 	-- Remove guishader blur
 	if WG['guishader'] and WG['guishader'].RemoveRect then
-		WG['guishader'].RemoveRect('pip')
+		WG['guishader'].RemoveRect('pip'..pipNumber)
 	end
 
 	-- Clean up API
@@ -2612,7 +2603,6 @@ function widget:GetConfigData()
 			minModeL=minModeL,
 			minModeB=minModeB,
 			drawingGround=drawingGround,
-			drawIconOnly=drawIconOnly,
 			drawProjectiles=drawProjectiles,
 			areTracking=interactionState.areTracking,
 			trackingSmoothness=trackingSmoothness,
@@ -2659,7 +2649,6 @@ function widget:SetConfigData(data)
 	wcz = data.wcz or wcz
 	targetWcx, targetWcz = wcx, wcz  -- Initialize targets from config
 	drawingGround = data.drawingGround~= nil and data.drawingGround or drawingGround
-	drawIconOnly = data.drawIconOnly~= nil and data.drawIconOnly or drawIconOnly
 	drawProjectiles = data.drawProjectiles~= nil and data.drawProjectiles or drawProjectiles
 	trackingSmoothness = data.trackingSmoothness or trackingSmoothness
 	if Spring.GetGameFrame() > 0 or (data.gameID and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"))) then
@@ -3534,7 +3523,7 @@ local function DrawUIButtons(mx, my, mbl)
 			hover = true
 			Spring.SetMouseCursor('cursornormal')
 			if WG['tooltip'] then
-				WG['tooltip'].ShowTooltip('pip', Spring.I18N('ui.pip.resize'), nil, nil, nil)
+				WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.resize'), nil, nil, nil)
 			end
 		end
 	end
@@ -3558,7 +3547,7 @@ local function DrawUIButtons(mx, my, mbl)
 		hover = true
 		Spring.SetMouseCursor('cursornormal')
 		if WG['tooltip'] then
-			WG['tooltip'].ShowTooltip('pip', Spring.I18N('ui.pip.minimize'), nil, nil, nil)
+			WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.minimize'), nil, nil, nil)
 		end
 		glColor(1,1,1,0.12)
 		glTexture(false)
@@ -3599,7 +3588,7 @@ local function DrawUIButtons(mx, my, mbl)
 			hover = true
 			Spring.SetMouseCursor('cursornormal')
 			if visibleButtons[i].tooltip and WG['tooltip'] then
-				WG['tooltip'].ShowTooltip('pip', visibleButtons[i].tooltip, nil, nil, nil)
+				WG['tooltip'].ShowTooltip('pip'..pipNumber, visibleButtons[i].tooltip, nil, nil, nil)
 			end
 			glColor(1,1,1,0.12)
 			glTexture(false)
@@ -3825,7 +3814,7 @@ function widget:DrawScreen()
 			my >= minModeB - elementPadding and my <= minModeB + buttonSize + elementPadding then
 			hover = true
 			if WG['tooltip'] then
-				WG['tooltip'].ShowTooltip('pip', Spring.I18N('ui.pip.tooltip'), nil, nil, nil)
+				WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.tooltip'), nil, nil, nil)
 			end
 			glColor(1,1,1,0.12)
 			glTexture(false)
@@ -4134,7 +4123,7 @@ function widget:DrawScreen()
 				hover = true
 				Spring.SetMouseCursor('cursornormal')
 				if WG['tooltip'] then
-					WG['tooltip'].ShowTooltip('pip', 'Resize', nil, nil, nil)
+					WG['tooltip'].ShowTooltip('pip'..pipNumber, 'Resize', nil, nil, nil)
 				end
 			end
 		end
@@ -4152,7 +4141,7 @@ function widget:DrawScreen()
 			hover = true
 			Spring.SetMouseCursor('cursornormal')
 			if WG['tooltip'] then
-				WG['tooltip'].ShowTooltip('pip', 'Minimize', nil, nil, nil)
+				WG['tooltip'].ShowTooltip('pip'..pipNumber, 'Minimize', nil, nil, nil)
 			end
 			glColor(1,1,1,0.12)
 			glTexture(false)
@@ -4182,7 +4171,7 @@ function widget:DrawScreen()
 				hover = true
 				Spring.SetMouseCursor('cursornormal')
 				if visibleButtons[i].tooltip and WG['tooltip'] then
-					WG['tooltip'].ShowTooltip('pip', visibleButtons[i].tooltip, nil, nil, nil)
+					WG['tooltip'].ShowTooltip('pip'..pipNumber, visibleButtons[i].tooltip, nil, nil, nil)
 				end
 				glColor(1,1,1,0.12)
 				glTexture(false)
@@ -4200,6 +4189,18 @@ function widget:DrawScreen()
 			end
 			bx = bx + usedButtonSize
 		end
+	end
+
+	if pipNumber ~= 1 then
+		glColor(panelBorderColorDark)
+		RectRound(dim.l, dim.t - usedButtonSize, dim.l + usedButtonSize, dim.t, elementCorner*0.4, 0, 0, 1, 0)
+		local fontSize = 14
+		local padding = 12
+		font:Begin()
+		font:SetTextColor(0.85, 0.85, 0.85, 1)
+		font:SetOutlineColor(0, 0, 0, 0.5)
+		font:Print(pipNumber, dim.l + padding, dim.t - (fontSize*1.15) - padding, fontSize*2, "no")
+		font:End()	-- Draw box selection rectangle
 	end
 
 	-- Display current max update rate (top-left corner)
@@ -4249,6 +4250,60 @@ function widget:DrawWorld()
 	end
 
 	gl.Color(1, 1, 1, 1)
+end
+
+function widget:DrawInMiniMap(minimapWidth, minimapHeight)
+	if inMinMode then return end
+
+	-- Convert world coordinates to minimap coordinates (0-1 range)
+	-- Note: Z-axis is inverted for minimap (top of map = 0, bottom = mapSizeZ)
+	local x1 = world.l / mapSizeX
+	local z1 = 1 - (world.t / mapSizeZ)  -- Invert Z
+	local x2 = world.r / mapSizeX
+	local z2 = 1 - (world.b / mapSizeZ)  -- Invert Z
+
+	-- Clamp to minimap bounds
+	x1 = math.max(0, math.min(1, x1))
+	z1 = math.max(0, math.min(1, z1))
+	x2 = math.max(0, math.min(1, x2))
+	z2 = math.max(0, math.min(1, z2))
+
+	-- Convert to pixel coordinates
+	x1 = x1 * minimapWidth
+	z1 = z1 * minimapHeight
+	x2 = x2 * minimapWidth
+	z2 = z2 * minimapHeight
+
+	-- Draw yellow rectangle showing PIP view area
+	gl.PushMatrix()
+	gl.Translate(0, 0, 0)
+	gl.Scale(1, 1, 1)
+
+	-- Draw dark background rectangle
+	gl.Color(0, 0, 0, 0.16)
+	gl.LineWidth(3.5)
+	gl.BeginEnd(GL.LINE_LOOP, function()
+		gl.Vertex(x1, z1)
+		gl.Vertex(x2, z1)
+		gl.Vertex(x2, z2)
+		gl.Vertex(x1, z2)
+	end)
+
+	-- Draw yellow rectangle
+	gl.Color(1, 1, 0, 0.6)
+	gl.LineWidth(2.0)
+	--gl.LineStipple(2, 0xAAAA)
+	gl.BeginEnd(GL.LINE_LOOP, function()
+		gl.Vertex(x1, z1)
+		gl.Vertex(x2, z1)
+		gl.Vertex(x2, z2)
+		gl.Vertex(x1, z2)
+	end)
+	--gl.LineStipple(false)
+
+	gl.LineWidth(1.0)
+	gl.Color(1, 1, 1, 1)
+	gl.PopMatrix()
 end
 
 function widget:Update(dt)
@@ -4858,8 +4913,9 @@ function widget:IsAbove(mx, my)
 			       my >= math.min(dim.b, minModeB) and my <= math.max(dim.t, minModeB + math.floor(usedButtonSize*maximizeSizemult))
 		end
 	elseif inMinMode then
-		-- In minimized mode, check if over the minimize button area
-		return mx >= minModeL and mx <= vsx and my >= minModeB and my <= vsy
+		-- In minimized mode, check if over the minimize button area only
+		local buttonSize = math.floor(usedButtonSize * maximizeSizemult)
+		return mx >= minModeL and mx <= minModeL + buttonSize and my >= minModeB and my <= minModeB + buttonSize
 	else
 		-- In normal mode, check if over the PIP panel
 		return mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t
