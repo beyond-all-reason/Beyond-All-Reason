@@ -2,8 +2,8 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
    return {
-      name         = "Attack no ally",
-      desc         = "Prevents attack-aim to snap onto ally units (targets ground instead)",
+      name         = "Attack and Manual Fire no ally",
+      desc         = "Prevents attack and manual fire aim to snap onto ally units (cancels command instead)",
       author       = "Ceddral, Floris",
       date         = "April 2018",
 	  license      = "GNU GPL, v2 or later",
@@ -15,14 +15,16 @@ end
 
 function widget:Initialize()
 	WG['attacknoally'] = true
+	WG['manualfirennoally'] = true
 end
 
 function widget:Shutdown()
 	WG['attacknoally'] = nil
+	WG['manualfirennoally'] = nil
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
-	if cmdID ~= CMD.ATTACK then
+	if cmdID ~= CMD.ATTACK and cmdID ~= CMD.MANUALFIRE then
 		return false
 	end
 
@@ -37,15 +39,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	end -- still snap aim at enemy units
 
 
-	-- get map position behind cursor
-	local mouseX, mouseY = Spring.GetMouseState()
-	local desc, cmdParams = Spring.TraceScreenRay(mouseX, mouseY, true)
-	if nil == desc then
-		return false
-	end -- off map, can not handle this properly here
-	--cmdParams[4] = nil	-- not a clue why ther is a 4th parameter
-
-	-- replace order
-	Spring.GiveOrder(cmdID, {cmdParams[1], cmdParams[2], cmdParams[3]}, cmdOptions)
+	-- replace order with stop to cancel
+	Spring.GiveOrder(CMD.STOP, {}, cmdOptions)
 	return true
 end
