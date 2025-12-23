@@ -178,6 +178,8 @@ local showStats = false
 -- Functions
 ------------------------------------------------------------------------------------
 
+local function descending(a, b) return a > b end -- table.sort function
+
 local function DrawText(t1, t2)
 	textBufferCount = textBufferCount + 1
 	textBuffer[textBufferCount] = {t1,t2,cX+(bgpadding*8),cY}
@@ -704,7 +706,7 @@ local function drawStats(uDefID, uID)
 						tableInsert(sorted, k)
 					end
 				end
-				table.sort(sorted, function(a, b) return a > b end) -- descending sort
+				table.sort(sorted, descending)
 
 				local modifierText = { ("default = %s%d%%"):format(yellow, floor(100 * damages[0] / baseArmorDamage)) }
 				for _, rate in pairs(sorted) do
