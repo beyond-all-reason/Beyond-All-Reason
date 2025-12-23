@@ -67,11 +67,7 @@ local function isStateToggle(cmdID)
 end
 
 function widget:UnitCommand(unitID, unitDefID, _, cmdID, _, cmdOpts)
-	if not cmdOpts.shift then
-		return false
-	end
-
-	if recentUnits[unitID] then
+	if not cmdOpts.shift or recentUnits[unitID] then
 		return false
 	end
 
