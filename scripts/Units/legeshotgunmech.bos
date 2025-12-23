@@ -856,7 +856,7 @@ AimWeapon3(heading, pitch) //pew pew
 
 FireWeapon3()
 {
-	//emit-sfx 1024 from clusterFlare;
+	emit-sfx 1024 + 1 from clusterFlare;
 	move clusterBarrel to z-axis [-5.5] speed [27.5];
 	sleep 200;
 	move clusterBarrel to z-axis [0] speed [4.4];
