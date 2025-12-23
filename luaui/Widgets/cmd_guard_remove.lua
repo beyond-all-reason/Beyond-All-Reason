@@ -55,6 +55,17 @@ local function clearRecentUnits()
 	updateTime = safeguardDuration * 0.5
 end
 
+local function isStateToggle(cmdID)
+	local cmdIndex = spGetCmdDescIndex(cmdID)
+	if cmdIndex then
+		local cmdDescription = spGetActiveCmdDesc(cmdIndex)
+		if cmdDescription and cmdDescription.type == CMDTYPE_ICON_MODE then
+			return true
+		end
+	end
+	return false
+end
+
 function widget:UnitCommand(unitID, unitDefID, _, cmdID, _, cmdOpts)
 	if not cmdOpts.shift then
 		return false
@@ -64,6 +75,7 @@ function widget:UnitCommand(unitID, unitDefID, _, cmdID, _, cmdOpts)
 		return false
 	end
 
+	if validUnit[unitDefID] and not isStateToggle(cmdID) then
 		recentUnits[unitID] = gameTime
 		local cmd = spGetUnitCommands(unitID, 2)
 		if cmd then
