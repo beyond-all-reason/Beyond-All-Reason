@@ -178,7 +178,7 @@ function gadget:GameFrame(frame)
 		local isBuilding  	 = Spring.GetUnitIsBuilding(builderID) ~= nil
 		local x, y, z		 = Spring.GetUnitPosition(builderID)
 		local builderTeam    = Spring.GetUnitTeam(builderID);
-		local targetDistance = targetZ and math.distance2d(targetX, targetZ, x, z)
+		local targetDistance = targetZ and x and math.distance2d(targetX, targetZ, x, z)
 		local buildUnitDefData = cmdID and cachedUnitDefs[-cmdID]
 
 		if not x then
