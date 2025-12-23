@@ -97,14 +97,6 @@ end
 local originalFeatureCreated
 
 function gadget:Initialize()
-	local spGetUnitDefID = Spring.GetUnitDefID
-	local spGetUnitTeam = Spring.GetUnitTeam
-	local allUnits = Spring.GetAllUnits()
-	for i = 1, #allUnits do
-		local unitID = allUnits[i]
-		gadget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
-	end
-
 	-- Expose GetPriorUnitID globally for other gadgets/widgets to use
 	GG.GetCorpsePriorUnitID = GetCorpsePriorUnitID
 
