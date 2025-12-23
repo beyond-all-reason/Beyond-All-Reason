@@ -26,6 +26,7 @@ end
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	if cmdID == CMD.MANUALFIRE then
 		-- always cancel manual fire commands
+		Spring.Echo("Manual fire command intercepted and canceled")
 		Spring.GiveOrder(CMD.STOP, {}, cmdOptions)
 		return true
 	elseif cmdID == CMD.ATTACK then
