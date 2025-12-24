@@ -212,9 +212,9 @@ function gadget:GameFrame(frame)
 
 			for _, interferingID in ipairs(interferingUnits) do
 				local unitDefID = Spring.GetUnitDefID(interferingID)
-				local unitDefData = cachedUnitDefs[unitDefID]
+				local unitDefData = unitDefID and cachedUnitDefs[unitDefID]
 
-				if builderID == interferingID or visitedUnits[interferingID] then
+				if not unitDefData or builderID == interferingID or visitedUnits[interferingID] then
 					-- continue
 				elseif shouldBuggeroff(interferingID, unitDefData, visitedUnits, builderTeam) then
 					-- todo: use blocking for "collision" detection, not unit radii, which are not the bounding radii (neither is bounding radius useful)
@@ -234,8 +234,7 @@ function gadget:GameFrame(frame)
 				end
 			end
 
-			-- NB: Units with Repeat enabled only attempt a single buggeroff, which doesn't go well. Semi-intended.
-			if buggerOffRadiusOffset > MAX_BUGGEROFF_RADIUS or IsUnitRepeatOn(builderID) then
+			if buggerOffRadiusOffset > MAX_BUGGEROFF_RADIUS or (not buildUnitDefData.isImmobile and IsUnitRepeatOn(builderID)) then
 				removeBuilder(builderID)
 			else
 				builderRadiusOffsets[builderID] = buggerOffRadiusOffset
