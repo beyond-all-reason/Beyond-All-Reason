@@ -4275,6 +4275,8 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	z2 = z2 * minimapHeight
 
 	-- Draw yellow rectangle showing PIP view area
+	gl.Texture(false)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	gl.PushMatrix()
 	gl.Translate(0, 0, 0)
 	gl.Scale(1, 1, 1)
