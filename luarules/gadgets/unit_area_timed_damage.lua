@@ -240,7 +240,7 @@ end
 ---We prefer the target's midpoint if it is in the radius since the damaged CEGs are easier to see higher up
 ---on the model, but if it is too high/awkward then the base position is fine, with a small vertical offset.
 ---@param area table contains the timed area properties
----@param baseX number unit base position coordinates <x, y, z>
+---@param baseX? number unit base position coordinates <x, y, z>
 ---@param baseY number
 ---@param baseZ number
 ---@param midX number unit midpoint position coordinates <x, y, z>
@@ -250,6 +250,10 @@ end
 ---@return number? hitY
 ---@return number? hitZ
 local function getAreaHitPosition(area, baseX, baseY, baseZ, midX, midY, midZ)
+	if not baseX then
+		return
+	end
+
 	local radius = area.range
 
 	if midY >= area.ymin and midY <= area.ymax then
@@ -316,19 +320,22 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         for j = 1, #unitsInRange do
             local unitID = unitsInRange[j]
             if not unitDamageImmunity[spGetUnitDefID(unitID)][area.resistance] and not isNewUnit[unitID] then
-                local damageTaken = unitDamageTaken[unitID]
-                if not damageTaken then
-                    damageTaken = 0
-                    count = count + 1
-                    resetNewUnit[count] = unitID
-                end
-                local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
-                if showDamageCeg then
-                    local ux, uy, uz = spGetUnitPosition(unitID)
-                    spSpawnCEG(area.damageCeg, ux, uy, uz)
-                end
-                spAddUnitDamage(unitID, damage, nil, area.owner, area.weapon)
-                unitDamageTaken[unitID] = damageTaken + damage
+                local hitX, hitY, hitZ = getAreaHitPosition(area, spGetUnitPosition(unitID, true))
+
+				if hitX then
+					local damageTaken = unitDamageTaken[unitID]
+					if not damageTaken then
+						damageTaken = 0
+						count = count + 1
+						resetNewUnit[count] = unitID
+					end
+					local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
+					if showDamageCeg then
+						spSpawnCEG(area.damageCeg, hitX, hitY, hitZ)
+					end
+					unitDamageTaken[unitID] = damageTaken + damage
+					spAddUnitDamage(unitID, damage, nil, area.owner, area.weapon)
+				end
             end
         end
     end
