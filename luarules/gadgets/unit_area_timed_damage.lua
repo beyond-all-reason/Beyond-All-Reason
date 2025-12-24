@@ -553,7 +553,7 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-    if builderID and isFactory[builderID] then
+    if builderID and isFactory[spGetUnitDefID(builderID)] then
         isNewUnit[unitID] = frameNumber + frameWaitTime
     end
 end
