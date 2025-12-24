@@ -508,20 +508,6 @@ function gadget:Initialize()
             unitDamageReset[frame] = {}
             featDamageReset[frame] = {}
         end
-
-        isNewUnit = {}
-		local progressMax = 0.05 -- Assuming 20s build time. Any guess is fine (for /luarules reload).
-		local beingBuilt, progress, health, healthMax, framesRemaining
-        local allUnits = spGetAllUnits()
-        for i = 1, #allUnits do
-            local unitID = allUnits[i]
-            beingBuilt, progress = spGetUnitIsBeingBuilt(unitID)
-			health, healthMax = spGetUnitHealth(unitID)
-            if beingBuilt and min(progress, health / healthMax) <= progressMax then
-                framesRemaining = frameInterval * (1 - 0.5 * min(progress, health / healthMax) / progressMax)
-                isNewUnit[unitID] = frameNumber + max(1, framesRemaining)
-            end
-        end
     else
         Spring.Log(gadget:GetInfo().name, LOG.INFO, "No timed areas found. Removing gadget.")
         gadgetHandler:RemoveGadget(self)
