@@ -484,8 +484,9 @@ function gadget:Initialize()
     end
 
     featDamageImmunity = {}
-    for i = 1, #spGetAllFeatures() do
-        local featureID = spGetAllFeatures()[i]
+	local allFeatures = spGetAllFeatures()
+    for i = 1, #allFeatures do
+        local featureID = allFeatures[i]
         local featureDefID = spGetFeatureDefID(featureID)
         local featureDef = FeatureDefs[featureDefID]
         if featureDef.indestructible or featureDef.geoThermal then
