@@ -44,6 +44,7 @@ for defID, ud in pairs(UnitDefs) do
     end
 end
 
+---@type GroundMoveType
 local moveTypeData = {
 	maxSpeed       = 0,
 	maxWantedSpeed = 0,
