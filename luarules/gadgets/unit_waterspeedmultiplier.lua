@@ -1,11 +1,10 @@
 local gadget = gadget ---@type Gadget
 
--- water is void check
 local enabled = true
 do
     local success, mapinfo = pcall(VFS.Include, "mapinfo.lua")
-    if success and mapinfo then
-        enabled = enabled and not mapinfo.voidwater
+    if success and mapinfo and mapinfo.voidwater then
+        enabled = false
     end
 end
 
@@ -73,7 +72,7 @@ local function applySpeed(unitID, stats, factor)
 end
 
 function gadget:Initialize()
-    if waterIsVoid or not next(unitDefData) then
+    if not next(unitDefData) then
         gadgetHandler:RemoveGadget()
     end
 end
