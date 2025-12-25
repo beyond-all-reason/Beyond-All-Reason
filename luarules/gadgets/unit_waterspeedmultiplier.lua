@@ -163,9 +163,9 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     local unitData = unitDefData[unitDefID]
     if unitData and getUnitDepth(unitID) <= 0 then
-		-- if not spMoveCtrlEnabled(unitID) then
+		if not spMoveCtrlEnabled(unitID) then
 			applySpeed(unitID, unitData)
-		-- end
+		end
 		if unitData.speedFactorAtDepth ~= 0 then
 			unitDepthFastUpdate[unitID] = unitData
 		end
