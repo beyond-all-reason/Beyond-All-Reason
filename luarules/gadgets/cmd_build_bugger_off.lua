@@ -149,7 +149,7 @@ end
 local function shouldBuggeroff(unitID, unitDefData, visitedUnits, builderTeam)
 	if unitDefData.isBlocking then
 		visitedUnits[unitID] = true
-		Spring.DestroyUnit(unitID, false, true, nil, true)
+		Spring.DestroyUnit(unitID, false, true)
 		return false
 	end
 
