@@ -111,15 +111,15 @@ if gadgetHandler:IsSyncedCode() then
 			for _, playerID in ipairs(allPlayers) do
 				local playerName, active, isSpectator, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, true)
 				if teamID and unitTeam and not isSpectator then
-					if teamID == unitTeam then
-						notificationEvent = "TranspositionInitiated"
-					elseif teamID and Spring.AreTeamsAllied(teamID, unitTeam) then
-						notificationEvent = "AlliedTranspositionInitiated"
-					else
-						notificationEvent = "EnemyTranspositionDetected"
+				if teamID == unitTeam then
+					notificationEvent = "unitRespawning/transpositionInitiated"
+				elseif teamID and Spring.AreTeamsAllied(teamID, unitTeam) then
+					notificationEvent = "unitRespawning/alliedTranspositionInitiated"
+				else
+					notificationEvent = "unitRespawning/enemyTranspositionDetected"
 					end
 				elseif isSpectator then
-					notificationEvent = "TranspositionInitiated"
+					notificationEvent = "unitRespawning/transpositionInitiated"
 				end
 				if notificationEvent then
 					GG.notifications.queueNotification(notificationEvent, "playerID", tostring(playerID))

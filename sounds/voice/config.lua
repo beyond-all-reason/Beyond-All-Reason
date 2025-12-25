@@ -63,13 +63,13 @@ return {
 		delay = 30,
 		soundEffect = "YouHaveTheLastCommander",
 	},
-	TranspositionInitiated = {
+	["unitRespawning/transpositionInitiated"] = {
 		delay = 5,
 	},
-	AlliedTranspositionInitiated = {
+	["unitRespawning/alliedTranspositionInitiated"] = {
 		delay = 5,
 	},
-	EnemyTranspositionDetected = {
+	["unitRespawning/enemyTranspositionDetected"] = {
 		delay = 5,
 	},
 
