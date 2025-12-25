@@ -102,7 +102,7 @@ return {
 			"leglab",
 			"legvp",
 			"legap",
-			"corsy",
+			"legsy",
 			"leghp",
 			"legfhp",
 			"legnanotc",

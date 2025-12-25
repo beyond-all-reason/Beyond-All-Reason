@@ -142,11 +142,11 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				customparams = {
-					lups_noshockwave = 1,
 					nofire = true,
 					shield_aoe_penetration = true,
 					stockpilelimit = 20,
 					water_splash = 0,
+					junotype = "base",
 				},
 				damage = {
 					default = 1,

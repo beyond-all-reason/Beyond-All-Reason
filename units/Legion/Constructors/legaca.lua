@@ -39,7 +39,7 @@ return {
 			"legfus",
 			"legafus",
 			"legageo",
-			"coruwageo",
+			"leganavaladvgeo",
 			"legrampart",
 			"legmoho",
 			"cormexp",
@@ -64,7 +64,7 @@ return {
 			"legstarfall",
 			"legap",
 			"legaap",
-			"corplat",
+			"legsplab",
 			"leggant",
 		},
 		customparams = {

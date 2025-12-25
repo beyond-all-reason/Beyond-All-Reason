@@ -12,6 +12,15 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathCeil = math.ceil
+local mathFloor = math.floor
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout
 
@@ -47,7 +56,7 @@ local function getActionHotkey(action)
 	return keyConfig.sanitizeKey(key, currentLayout):gsub("%+"," + ")
 end
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
 local screenHeightOrg = 550
 local screenWidthOrg = 1050
@@ -69,8 +78,8 @@ local descriptionColor = "\255\192\190\180"
 local widgetScale = (vsy / 1080)
 local centerPosX = 0.5
 local centerPosY = 0.5
-local screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
-local screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
+local screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
+local screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 local math_isInRect = math.isInRect
 
 local font, font2, titleRect, keybinds, backgroundGuishader, show
@@ -79,7 +88,7 @@ local function drawTextTable(lines, x, y)
 	local lineIndex = 0
 	local height = 0
 	local width = 0
-	local fontSize = (screenHeight * 0.96) / math.ceil(#keybindsText / 3)
+	local fontSize = (screenHeight * 0.96) / mathCeil(#keybindsText / 3)
 	font:Begin()
 	for _, line in pairs(lines) do
 		if line.type == lineType.blank then
@@ -89,14 +98,14 @@ local function drawTextTable(lines, x, y)
 			local title = line.text
 			local text = titleColor .. title
 			font:Print(text, x + 4, y - ((fontSize * 0.92) * lineIndex) + 5, fontSize)
-			screenWidth = math.max(font:GetTextWidth(text) * 13, screenWidth)
+			screenWidth = mathMax(font:GetTextWidth(text) * 13, screenWidth)
 		elseif line.type == lineType.key then
 			-- keybind line
 			local bind = string.upper(line.key)
 			local description = line.text
 			local text = keybindColor .. bind .. "   " .. descriptionColor .. description
 			font:Print(text, x + 14, y - (fontSize * 0.92) * lineIndex, fontSize * 0.8)
-			width = math.max(font:GetTextWidth(text) * 11, width)
+			width = mathMax(font:GetTextWidth(text) * 11, width)
 		end
 		height = height + 13
 
@@ -116,7 +125,7 @@ local function drawWindow(activetab)
 	if activetab == nil then activetab = 'Keybindings' end
 
 	-- background
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 
 	local titleFontSize = 18 * widgetScale
 
@@ -124,14 +133,14 @@ local function drawWindow(activetab)
 	for i,tab in ipairs(tabs) do
 		local tabwidth = font2:GetTextWidth(tab)
 		tabrects[tab] = {
-			math.floor(screenX + tabx),
+			mathFloor(screenX + tabx),
 			screenY,
-			math.floor(screenX + tabx + tabwidth * titleFontSize + (titleFontSize*1.5)),
-			math.floor(screenY + (titleFontSize*1.7)),
+			mathFloor(screenX + tabx + tabwidth * titleFontSize + (titleFontSize*1.5)),
+			mathFloor(screenY + (titleFontSize*1.7)),
 			tabx
 		}
 		tabx = tabx + (tabwidth  * titleFontSize +  (titleFontSize*1.5))
-		gl.Color(0, 0, 0, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+		gl.Color(0, 0, 0, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 		RectRound(tabrects[tab][1], tabrects[tab][2], tabrects[tab][3], tabrects[tab][4], elementCorner, 1, 1, 0, 0)
 	end
 
@@ -157,7 +166,7 @@ local function drawWindow(activetab)
 		gl.Texture(0, false)
 	else
 
-		local entriesPerColumn = math.ceil(#keybindsText / 3)
+		local entriesPerColumn = mathCeil(#keybindsText / 3)
 		local entries1 = {}
 		local entries2 = {}
 		local entries3 = {}
@@ -296,13 +305,13 @@ local function refreshText()
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 	widgetScale = (vsy / 1080)
 
-	screenHeight = math.floor(screenHeightOrg * widgetScale)
-	screenWidth = math.floor(screenWidthOrg * widgetScale)
-	screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
-	screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
+	screenHeight = mathFloor(screenHeightOrg * widgetScale)
+	screenWidth = mathFloor(screenWidthOrg * widgetScale)
+	screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
+	screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 
 	font = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(2)

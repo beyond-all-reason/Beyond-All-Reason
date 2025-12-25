@@ -13,10 +13,17 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- About:
-	-- This api provides the coarse, but merged LOS textures. 
+	-- This api provides the coarse, but merged LOS textures.
     -- It is recommended to use the CubicSampler(vec2 uvsin, vec2 texdims); sampler when sampling this texture!
 
     -- It exploits truncation of values during blending to provide prevradar and prevlos values too!
@@ -41,21 +48,21 @@ end
 	-- [x] make api share?
 	-- [x] a clever thing might be to have 1 texture per allyteam?
 	-- some bugginess with jammer range?
-    -- 
+    --
 
 -- TODO 2022.12.20
 	-- Read miplevels from modrules?
 
 -- TODO 2024.11.19
-	-- [ ] Make the shader update at updaterate for true smoothness. 
-		-- [ ] When does the LOS texture actually get updated though? 
+	-- [ ] Make the shader update at updaterate for true smoothness.
+		-- [ ] When does the LOS texture actually get updated though?
 		-- [ ] Would need to double-buffer the texture, and perform a swap every (15) gameframes
-		-- [ ] API must then expose the new and the old texture, and the progress factor between them. 
+		-- [ ] API must then expose the new and the old texture, and the progress factor between them.
 		-- [ ] The default 30hz smootheness is far from enough
-	-- [ ] The delayed approach is fucking stupid. 
+	-- [ ] The delayed approach is fucking stupid.
 	-- [ ] The mip level should be the 'smallest' mip level possible, and save a fused texture
 	-- [ ] Note that we must retain the 'never been seen'/ 'never been in radar' functionality
-    -- [ ] Are we sure that is the best 
+    -- [ ] Are we sure that is the best
     -- [ ] handle drawing onto the minimap?
 
 
@@ -138,9 +145,9 @@ local function renderToTextureFunc() -- this draws the fogspheres onto the textu
 	--gl.DepthMask(false)
 	gl.Texture(0, "$info:los")
 	gl.Texture(1, "$info:airlos")
-	gl.Texture(2, "$info:radar") 
+	gl.Texture(2, "$info:radar")
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	
+
 	fullScreenQuadVAO:DrawArrays(GL.TRIANGLES)
 	gl.Texture(0, false)
 	gl.Texture(1, false)
@@ -173,7 +180,7 @@ function widget:PlayerChanged(playerID)
 		delay = 5
 	end
 	if updateInfoLOSTexture > 0 and autoreload  then
-		Spring.Echo("Fast Updating infolos texture for", currentAllyTeam, updateInfoLOSTexture, "times")
+		spEcho("Fast Updating infolos texture for", currentAllyTeam, updateInfoLOSTexture, "times")
 	end
 end
 
@@ -195,8 +202,18 @@ function widget:Initialize()
 	end
 
 	infoShader =  LuaShader.CheckShaderUpdates(shaderSourceCache)
+	if not infoShader then
+		spEcho("Failed to create InfoLOS GL4 shader")
+		widgetHandler:RemoveWidget()
+		return
+	end
+
 	shaderCompiled = infoShader:Initialize()
-	if not shaderCompiled then Spring.Echo("Failed to compile InfoLOS GL4") end
+	if not shaderCompiled then
+		spEcho("Failed to compile InfoLOS GL4")
+		widgetHandler:RemoveWidget()
+		return
+	end
 
 	fullScreenQuadVAO = InstanceVBOTable.MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5
 
@@ -206,8 +223,8 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	for i, infoTexture in pairs(infoTextures) do 
-          gl.DeleteTexture(infoTexture) 
+	for i, infoTexture in pairs(infoTextures) do
+          gl.DeleteTexture(infoTexture)
     end
 	WG['api_los_combiner'] = nil
 	widgetHandler:DeregisterGlobal('GetInfoLOSTexture')
@@ -215,7 +232,7 @@ end
 
 function widget:GameFrame(n)
 	if (n % updateRate) == 0 then
-		updateInfoLOSTexture = math.max(1,updateInfoLOSTexture)
+		updateInfoLOSTexture = mathMax(1,updateInfoLOSTexture)
 	end
 end
 local lastUpdate = Spring.GetTimer()
@@ -224,8 +241,8 @@ function widget:DrawGenesis()
 	-- local nowtime = Spring.GetTimer()
 	-- local deltat = Spring.DiffTimers(nowtime, lastUpdate)
 	-- keeping outputAlpha identical is a very important trick for never-before-seen areas!
-	-- outputAlpha = math.min(1.0, math.max(0.07,deltat))
-	-- Spring.Echo(deltat,outputAlpha)
+	-- outputAlpha = math.min(1.0, mathMax(0.07,deltat))
+	-- spEcho(deltat,outputAlpha)
 
 
 	if updateInfoLOSTexture > 0 then
@@ -252,7 +269,7 @@ if autoreload  then
             gl.Texture(0,"$info:los")
             gl.TexRect(texX, 0, texX + shaderConfig['LOSXSIZE'], shaderConfig['LOSYSIZE'], 0, 1, 1, 0)
             gl.Texture(0,false)
-            
+
             gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
             if infoShader.DrawPrintf then infoShader.DrawPrintf() end
     end

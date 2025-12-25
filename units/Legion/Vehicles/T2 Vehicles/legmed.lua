@@ -147,6 +147,7 @@ return {
 					default = 500,
 				},
 				customparams = {
+					guidance_lost_radius = 100,
 					projectile_destruction_method = "descend",
 					overrange_distance = 1093,
 					speceffect = "guidance",

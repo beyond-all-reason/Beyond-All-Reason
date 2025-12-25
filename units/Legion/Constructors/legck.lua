@@ -24,7 +24,7 @@ return {
 		maxslope = 20,
 		speed = 39,
 		maxwaterdepth = 25,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		objectname = "Units/LEGCK.s3o",
 		script = "Units/LEGCK.cob",
 		seismicsignature = 0,
@@ -66,7 +66,7 @@ return {
 			"legctl",
 			"legjam",
 			"legjuno",
-			"corsy",
+			"legsy",
 			"leghive",
 		},
 		customparams = {

@@ -134,6 +134,7 @@ return {
 				edgeeffectiveness = 0.4,
 				explosiongenerator = "custom:MINESWEEP",
 				firetolerance = 3000,
+				gravityaffected = "true",
 				name = "Seismic charge",
 				noselfdamage = true,
 				range = 220,

@@ -26,14 +26,19 @@ end
 
 if (gadgetHandler:IsSyncedCode()) then
 
-	local math_sqrt = math.sqrt
+	local mathSqrt = math.sqrt
+	local spGetUnitPosition = Spring.GetUnitPosition
+	local spAreTeamsAllied = Spring.AreTeamsAllied
+	local spGetUnitTeam = Spring.GetUnitTeam
+	local spGetUnitVelocity = Spring.GetUnitVelocity
+	local spSetUnitVelocity = Spring.SetUnitVelocity
 
 	function gadget:Distance(pos1, pos2)
 		local difX = pos1[1] - pos2[1]
 		local difY = pos1[2] - pos2[2]
 		local difZ = pos1[3] - pos2[3]
 		local sqDist = difX*difX + difY*difY + difZ*difZ
-		local dist = math_sqrt(sqDist)
+		local dist = mathSqrt(sqDist)
 		return (dist)
 	end
 
@@ -41,11 +46,11 @@ if (gadgetHandler:IsSyncedCode()) then
 		if isAirTransport[transporterUnitDefID] then
 			--local terDefs = UnitDefs[transporterUnitDefID]
 			--local teeDefs = UnitDefs[transporteeUnitDefID]
-			local pos1 = {Spring.GetUnitPosition(transporterID)}
+			local pos1 = {spGetUnitPosition(transporterID)}
 			local pos2 = {goalX, goalY, goalZ}
 			if gadget:Distance(pos1, pos2) <= isAirTransport[transporterUnitDefID] then
-				if Spring.AreTeamsAllied(Spring.GetUnitTeam(transporterID), Spring.GetUnitTeam(transporteeID)) or select(4, Spring.GetUnitVelocity(transporteeID)) < 0.5 then	-- make it hard for moving enemy units to be picked up
-					Spring.SetUnitVelocity(transporterID, 0,0,0)
+				if spAreTeamsAllied(spGetUnitTeam(transporterID), spGetUnitTeam(transporteeID)) or select(4, spGetUnitVelocity(transporteeID)) < 0.5 then	-- make it hard for moving enemy units to be picked up
+					spSetUnitVelocity(transporterID, 0,0,0)
 					return true
 				else
 					return false
@@ -62,10 +67,10 @@ if (gadgetHandler:IsSyncedCode()) then
 		if isAirTransport[transporterUnitDefID] then
 			--local terDefs = UnitDefs[transporterUnitDefID]
 			--local teeDefs = UnitDefs[transporteeUnitDefID]
-			local pos1 = {Spring.GetUnitPosition(transporterID)}
+			local pos1 = {spGetUnitPosition(transporterID)}
 			local pos2 = {goalX, goalY, goalZ}
 			if gadget:Distance(pos1, pos2) <= isAirTransport[transporterUnitDefID] then
-				Spring.SetUnitVelocity(transporterID, 0,0,0)
+				spSetUnitVelocity(transporterID, 0,0,0)
 				return true
 			else
 				return false

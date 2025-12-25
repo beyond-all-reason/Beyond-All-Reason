@@ -53,37 +53,37 @@ function addon.Initialize()
 
 			-- April Fools
 			---- Day 1 - 100% chance
-			if Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1 and (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) == 1) then
+			if Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1 and Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools_specialDay"] then
 				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/aprilfools/loading', allowedExtensions))
 			---- Day 2-7 - 50% chance
-			elseif Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1 and (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7 and math.random() <= 0.5) then
+			elseif Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1 and Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"] and math.random() <= 0.5 then
 				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/aprilfools/loading', allowedExtensions))
 			---- Post Event - Add to regular playlist
-			elseif Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1 and ((not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7))) then
+			elseif Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1 and (not Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"]) then
 				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/events/aprilfools/loading', allowedExtensions))
 			end
 
-			-- Spooktober
+			-- Halloween
 			---- Halloween Day - 100% chance
-			if Spring.GetConfigInt('UseSoundtrackSpooktober', 1) == 1 and (tonumber(os.date("%m")) == 10 and tonumber(os.date("%d")) == 31) then
-				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/spooktober/loading', allowedExtensions))
+			if Spring.GetConfigInt('UseSoundtrackHalloween', 1) == 1 and Spring.Utilities.Gametype.GetCurrentHolidays()["halloween_specialDay"] then
+				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/halloween/loading', allowedExtensions))
 			---- 2 Weeks Before Halloween - 50% chance
-			elseif Spring.GetConfigInt('UseSoundtrackSpooktober', 1) == 1 and (tonumber(os.date("%m")) == 10 and tonumber(os.date("%d")) >= 17 and math.random() <= 0.5) then
-				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/spooktober/loading', allowedExtensions))
+			elseif Spring.GetConfigInt('UseSoundtrackHalloween', 1) == 1 and Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"] and math.random() <= 0.5 then
+				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/halloween/loading', allowedExtensions))
 			---- Post Event - Add to regular playlist
-			elseif Spring.GetConfigInt('UseSoundtrackSpooktoberPostEvent', 0) == 1 and ((not (tonumber(os.date("%m")) == 10 and tonumber(os.date("%d")) >= 17))) then
-				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/events/spooktober/loading', allowedExtensions))
+			elseif Spring.GetConfigInt('UseSoundtrackHalloweenPostEvent', 0) == 1 and (not Spring.Utilities.Gametype.GetCurrentHolidays()["halloween_specialDay"]) then
+				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/events/halloween/loading', allowedExtensions))
 			end
 
 			-- Xmas
 			---- Christmas Days - 100% chance
-			if Spring.GetConfigInt('UseSoundtrackXmas', 1) == 1 and (tonumber(os.date("%m")) == 12 and tonumber(os.date("%d")) >= 24 and tonumber(os.date("%d")) <= 26) then
+			if Spring.GetConfigInt('UseSoundtrackXmas', 1) == 1 and Spring.Utilities.Gametype.GetCurrentHolidays()["xmas_specialDay"] then
 				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/xmas/loading', allowedExtensions))
 			---- The Rest of the event - 50% chance
-			elseif Spring.GetConfigInt('UseSoundtrackXmas', 1) == 1 and (tonumber(os.date("%m")) == 12 and tonumber(os.date("%d")) >= 12 and math.random() <= 0.5) then
+			elseif Spring.GetConfigInt('UseSoundtrackXmas', 1) == 1 and Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] and math.random() <= 0.5 then
 				table.append(musicPlaylistEvent, VFS.DirList(musicDirOriginal..'/events/xmas/loading', allowedExtensions))
 			---- Post Event - Add to regular playlist
-			elseif Spring.GetConfigInt('UseSoundtrackXmasPostEvent', 0) == 1 and ((not (tonumber(os.date("%m")) == 12 and tonumber(os.date("%d")) >= 12))) then
+			elseif Spring.GetConfigInt('UseSoundtrackXmasPostEvent', 0) == 1 and (not Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"]) then
 				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/events/xmas/loading', allowedExtensions))
 			end
 

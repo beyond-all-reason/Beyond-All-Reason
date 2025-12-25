@@ -174,7 +174,6 @@ return {
 				soundhit = "nuke4",
 				soundhitvolume = 10,
 				startvelocity = 2000,
-				targetborder = 0.75,
 				turret = 1,
 				weaponacceleration = 120,
 				weapontimer = 10,

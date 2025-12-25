@@ -1,9 +1,7 @@
     // Mono-space font required
 	{
 
-//########################################################################################################################
-//####|| Evolving Commanders ||###########################################################################################
-//########################################################################################################################
+	// ============================================   Evolving Commanders   =======================================0
 
 		"behaviour": {
 			"legcom": {
@@ -16,15 +14,8 @@
 				"power": 0.8,
 				"retreat": 0.6
 			},
-	
 
-//########################################################################################################################
-//####|| Static Buildings ||##############################################################################################
-//########################################################################################################################
-	
-//########################################################################################################################
-//####|| Legion Land Factories ||#########################################################################################
-//########################################################################################################################
+	// ============================================   Legion Ground Factories   =======================================0
 
 			"leglab": {
 				"role": ["static"],
@@ -55,22 +46,20 @@
 				"build_speed": 10.0, //bp 200
 				"limit": 1
 			},
-	
-//########################################################################################################################
-//####|| Legion Sea Factories ||##########################################################################################
-//########################################################################################################################
+
+	// ============================================   Legion Sea Factories   =======================================0
 
 			"legfhp": {
 				"role": ["static"],
 				"build_speed": 10.0, //bp 200
 				"limit": 1
 			},
-			//"legsy": {
-			//	"role": ["static"],
-			//	"build_speed": 8.0, //bp 165
-			//	"build_mod": 1000.0,
-			//	"limit": 1
-			//},
+			"legsy": {
+				"role": ["static"],
+				"build_speed": 8.0, //bp 165
+				"build_mod": 1000.0,
+				"limit": 1
+			},
 			//"legasy": {
 			//	"role": ["static"],
 			//	"build_speed": 15.0,  //bp 300
@@ -83,34 +72,28 @@
 				"build_speed": 7.5, //bp 150
 				"limit": 1
 			},
-	
-//########################################################################################################################
-//####|| Legion Air Factories ||##########################################################################################
-//########################################################################################################################
+
+	// ============================================   Legion Air Factories   =======================================0
 
 			"legap": {
 				"role": ["static"],
 				"attribute": ["support"],
-				"limit": 1,
-				"build_speed": 5.0 //bp 100
+				"build_speed": 5.0
 			},
 			"legaap": {
 				"role": ["static"],
 				"attribute": ["support"],
-				"since": 420,
 				"limit": 1,
-				"build_speed": 10.0 //bp 200
+				"build_speed": 10.0
 			},
-			"legplat": {
-				"role": ["builder"],
-				"build_speed": 10.0,  //bp 200
-				"since": 420.0,
+			"legsplab": {
+				"role": ["static"],
+				"attribute": ["support"],
+				"build_speed": 8.0,
 				"limit": 1
 			},
 
-//########################################################################################################################
-//####|| Legion T3 Factories ||###########################################################################################
-//########################################################################################################################
+	// ============================================   Legion T3 Factories   =======================================0
 
 			"leggant": {
 				"role": ["static"],
@@ -124,13 +107,11 @@
 				"limit": 1,
 				"build_speed": 45.0 //bp 300
 			},
-	
-//########################################################################################################################
-//####|| Support Nano Construction Turrets // Assist Drones ||############################################################
-//########################################################################################################################
-	
+
+	// ============================================   Legion Support Units   =======================================0
 	
 	// Nano - Legion
+
 			"legnanotc": {
 				"role": ["support"],
 				"build_speed": 10.0
@@ -161,13 +142,12 @@
 				"role":["static"],
 				"since": 600
 			},
-			//"corjuno":{
-			//	"role":["super", "static"],
-			//	"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-			// "power": 1.0, 
-			// "power": 1.0,
-			//	"since": 900
-			//},			
+			"legjuno":{
+				"role":["super", "static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+			 	"power": 1.0,
+				"since": 900
+			},			
 			"legdtr": {
 				"role": ["static"]
 			},
@@ -233,12 +213,6 @@
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
 			},
-			//"leggatet3": {
-			//	"role": ["static"],
-			//	"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-			// "power": 1.0, 
-			// "power": 1.0
-			//},
 			"legrwall": {
 				"role": ["static"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
@@ -302,83 +276,61 @@
 				"threat": {"air": 0.0, "surf": 0.1, "water": 0.0},
 				"limit": 1
 			},
-	// T1 Sea Defenses -- Legion
-			//"corfrad": {
-			//	"role": ["static"],
-			//	"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-			// "power": 1.0, 
-			// "power": 1.0
-			//},
-			//"cordl": {
-			//	"role": ["static"],
-			//	"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-			// "power": 1.0, 
-			// "power": 1.0
-			//},
-			//"corfhlt": {
-			//	"role": ["static"],
-			//	"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-			// "power": 1.0, 
-			// "power": 1.0
-			//	"since": 360,
-			//	"limit": 3
-			//},
-			//"corfrt": {
-			//	"role": ["anti_air"],
-			//	"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-			// "power": 1.0, 
-			// "power": 1.0,
-			//	"power": 1.0
-			//},
-			//"cortl": {
-			//	"role": ["static"],
-			//	"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-			// "power": 1.0, 
-			// "power": 1.0
-			//},
-	// T2 Sea Defenses -- Legion
-			//"corason": {
-			//	"role": ["static"],
-			//	"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-			// "power": 1.0, 
-			// "power": 1.0
-			//},
-			//"corfatf": {
-			//	"role": ["static"],
-			//	"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-			// "power": 1.0, 
-			// "power": 1.0
-			//	"limit": 3
-			//},
-			//"corfdoom": {
-			//	"role": ["static"],
-			//	"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-			// "power": 1.0, 
-			// "power": 1.0
-			//},
-			//"corenaa": {
-			//	"role": ["anti_air"],
-			//	"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-			// "power": 1.0, 
-			// "power": 1.0,
-			//	"power": 1.0
-			//},
-			//"coratl": {
-			//	"role": ["static"],
-			//	"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-			// "power": 1.0, 
-			// "power": 1.0,
-			//	"power": 1.0
-			//},
 
-//########################################################################################################################
-//####|| Static Economy -- Legion  ||#####################################################################################
-//########################################################################################################################
+	// T1 Sea Defenses -- Legion
+
+			"legfrad": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+			 	"power": 1.0
+			},
+			"legctl": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+			 	"power": 1.0
+			},
+			"legfmg": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+			 	"power": 1.0, 
+				"since": 360,
+				"limit": 3
+			},
+			"legfrl": {
+				"role": ["anti_air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legtl": {
+				"role": ["static"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+			 	"power": 1.0
+			},
+
+	// T2 Sea Defenses -- Legion
+
+			"leganavaldefturret": {
+				"role": ["static"]
+			},
+			"leganavalaaturret": {
+				"role": ["anti_air"]
+			},
+			"leganavalpinpointer": {
+				"role": ["static"]
+			},
+			"leganavalsonarstation": {
+				"role": ["static"]
+			},
+			"leganavaltorpturret": {
+				"role": ["static"]
+			},
+
+	// ============================================   Legion Economy   =======================================0
 			
 			//Land T1 Economy
+
 			"legmex" : {
-				"role": ["static"],
-				"build_mod": 300
+				"role": ["static"]
 			},
 			"legmext15" : {			//disabled -- lack of efficiency
 				"role": ["static"],
@@ -398,7 +350,7 @@
 			},
 			"legsolar" : {
 				"role": ["static"],
-				"build_mod": 300
+				"limit": 4
 			},
 			"legadvsol" : {
 				"role": ["static"],
@@ -409,13 +361,32 @@
 			},
 			"legestor" : {
 				"role": ["static"],
-				"since": 240,
+				"since": 300,
 				"limit": 1
 			},
-			//Land T2 Economy
-			"legmoho" : {
+
+			//Sea T1 Economy
+
+			"legfeconv" : {
+				"role": ["static"]
+			},
+			"leguwmstore" : {
 				"role": ["static"],
-				"build_mod": 200
+				"since": 9999
+			},
+			"legtide": {
+				"role": ["static"]
+			},
+			"leguwestore" : {
+				"role": ["static"],
+				"since": 9999,
+				"limit": 1
+			},
+
+			//Land T2 Economy
+
+			"legmoho" : {
+				"role": ["static"]
 			},
 			"legadveconv" : {
 				"role": ["static"]
@@ -423,7 +394,7 @@
 			"legamstor" : {
 				"role": ["static"],
 				"limit": 1,
-				"since": 500
+				"since": 1200
 			},
 			"legageo" : {
 				"role": ["static"]
@@ -437,13 +408,10 @@
 				"limit":0
 			},*/
 			"legfus" : {
-				"role": ["static"],
-				"build_mod": 2000,
-				"cooldown": 3
+				"role": ["static"]
 			},
 			"legafus" : {
-				"role": ["static"],
-				"build_mod": 4000
+				"role": ["static"]
 			},
 			"legadvestore" : {
 				"role": ["static"],
@@ -467,6 +435,18 @@
 				"since": 240,
 				"limit": 1
 			},*/
+			
+			//Sea T2 Economy
+
+			"leganavalmex" : {
+				"role": ["static"]
+			},
+			"leganavaleconv" : {
+				"role": ["static"]
+			},
+			"leganavalfusion" : {
+				"role": ["static"]
+			},
 	
 	
 	// Walls (Neutral BARbAI Refuse to Shoot (Only T2+T3 can break through Running over)) -- Needs a Revamp or a Rework to make non neutral
@@ -474,8 +454,13 @@
 				"role": ["static"],
 				"ignore": true
 			},
+			"legfdrag": {
+				"role": ["static"],
+				"ignore": true
+			},
 			"legforti": {
-				"role": ["static"]
+				"role": ["static"],
+				"ignore": true
 			},
 	
 	// ============================================   M O B I L E    U N I T S   =======================================0
@@ -538,27 +523,30 @@
 				// FIXME: Temporary tag to override buildSpeed
 	
 	
-			//Mobile Builders 	
+			//Mobile Builders 		
 			"legck": {
 				"role": ["builder"],
-				//"attribute": ["solo"],
-				"limit": 12,
-				"build_speed": 4.0  
+				"limit": 25,
+				"build_speed": 5.0  
 			},
 			"legack": {
 				"role": ["builderT2"],
 				"attribute": ["solo"],
-				"limit": 10,
-				"build_speed": 9.0  
+				"limit": 3,
+				"build_speed": 10.0  
 			},
 			"legcv": {
 				"role": ["builder"],
-				"limit": 10,
-				"build_speed": 4.5  //bp 90
+				"limit": 20,
+				"build_speed": 7.0
 			},
 			"legotter": {
 				"role": ["builder"],
-				"attribute": ["solo"],
+				"limit": 10,
+				"build_speed": 8.0
+			},
+			"legnavyconship": {
+				"role": ["builder"],
 				"limit": 6,
 				"build_speed": 4.0
 			},
@@ -569,38 +557,49 @@
 			"legacv": {
 				"role": ["builderT2"],
 				"attribute": ["solo"],
-				"limit": 15,
-				"build_speed": 12.5
+				"limit": 10,
+				"build_speed": 10
 			},
 			"legaceb": {
 				"role": ["builder"],
-				"limit": 16,
+				"limit": 5,
 				"build_speed": 7.0,
 				"since": 1300
 			},
 			"legca": {
 				"role": ["builder", "air"],
 				"retreat": 0.6,
-				"limit": 15,
-				"build_speed": 3.0
+				"limit": 25,
+				"build_speed": 5.0
 			},
 			"legaca": {
 				"role": ["builder", "air"],
-				"attribute": ["solo"],
 				"retreat": 0.6,
-				"limit": 15,
-				"build_speed": 5.0
+				"limit": 2,
+				"build_speed": 10.0
 			},
-			"legcs": {
+			"leganavyconsub": {
 				"role": ["builder"],
 				"retreat": 0.6,
-				"limit": 8,
-				"build_speed": 6.0
+				"limit": 6,
+				"build_speed": 7.0
+			},
+			"leganavyengineer": {
+				"role": ["builder"],
+				"retreat": 0.6,
+				"limit": 6,
+				"build_speed": 7.0
+			},
+			"legspcon": {
+				"role": ["builder"],
+				"retreat": 0.6,
+				"limit": 6,
+				"build_speed": 7.0
 			},
 			"legch": {
 				"role": ["builder"],
 				"limit": 10,
-				"build_speed": 6.0
+				"build_speed": 8.0
 			},
 	
 			// LEGION BOTLAB (leglab)
@@ -900,6 +899,115 @@
 			"legatorpbomber": {
 				"role": ["anti_sub", "air"],
 				"retreat": 0.8
+			},
+	
+			// LEGION SEA PLATFORM aircraft - legsplab
+	
+			"legspradarsonarplane": {
+				"role": ["scout", "air"]
+			},
+			"legspsurfacegunship": {
+				"role": ["skirmish", "air"]
+			},
+			"legspbomber": {
+				"role": ["bomber", "air"]
+			},
+			"legspcarrier": {
+				"role": ["assault", "air"]
+			},
+			"legspfighter": {
+				"role": ["anti_air"]
+			},
+			"legsptorpgunship": {
+				"role": ["anti_sub", "air"]
+			},
+
+			// LEGION SEA
+
+			"legnavyrezsub": {
+				"role": ["support"],
+				"attribute": ["rare"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legnavyaaship": {
+				"role": ["scout", "anti_air", "raider"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legnavyscout": {
+				"role": ["scout"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legnavyfrigate": {
+				"role": ["assault", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legnavydestro": {
+				"role": ["skirmish", "air"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legnavyartyship": {
+				"role": ["artillery"],
+				"attribute": ["support"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+			"legnavysub": {
+				"role": ["sub"],
+				"attribute": ["anti_sub"],
+				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
+				"power": 1.0
+			},
+	
+			// LEGION ADVANCED SEA.0
+
+			"leganavyantiswarm": {
+				"role": ["riot"],
+				"power": 1.0
+			},
+			"leganavycruiser": {
+				"role": ["assault"],
+				"power": 1.0
+			},
+			"leganavymissileship": {
+				"role": ["skirmish"],
+				"power": 1.0
+			},
+			"leganavybattleship": {
+				"role": ["assault"],
+				"power": 1.0
+			},
+			"leganavyartyship": {
+				"role": ["artillery"],
+				"power": 1.0
+			},
+			"leganavyflagship": {
+				"role": ["super"],
+				"power": 1.0
+			},
+			"leganavyaaship": {
+				"role": ["anti_air"],
+				"power": 1.0
+			},
+			"leganavyantinukecarrier": {
+				"role": ["support"],
+				"power": 1.0
+			},
+			"leganavyradjamship": {
+				"role": ["support"],
+				"power": 1.0
+			},
+			"leganavybattlesub": {
+				"role": ["raider"],
+				"power": 1.0
+			},
+			"leganavyheavysub": {
+				"role": ["skirmish"],
+				"power": 1.0
 			},
 
 			// LEGION HOVERS

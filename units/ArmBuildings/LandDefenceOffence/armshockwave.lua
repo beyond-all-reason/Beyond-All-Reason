@@ -133,6 +133,7 @@ return {
 				energypershot = 80,
 				explosiongenerator = "custom:genericshellexplosion-small-lightning",
 				firestarter = 100,
+				gravityaffected = "true",
 				impactonly = 0,
 				impulsefactor = 0,
 				laserflaresize = 7.7,

@@ -137,6 +137,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				name = "Quad Medium Plasma Gauss Cannons",
 				nogap = false,

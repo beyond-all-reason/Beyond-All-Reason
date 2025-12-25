@@ -22,7 +22,7 @@ return {
 		health = 89000,
 		speed = 75.0,
 		minwaterdepth = 12,
-		movementclass = "BOAT8",
+		movementclass = "BOAT9",
 		nochasecategory = "UNDERWATER VTOL",
 		objectname = "Units/scavboss/CORESUPPT3.s3o",
 		script = "Units/scavboss/CORESUPPT3.cob",

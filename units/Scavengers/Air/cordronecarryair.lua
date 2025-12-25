@@ -32,7 +32,6 @@ return {
 		health = 3500,
 		speed = 34.5,
 		maxwaterdepth = 15,
-		movementclass = "BOAT5",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORDRONECARRYAIR.s3o",
 		radardistance = 1500,

@@ -12,6 +12,14 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathCeil = math.ceil
+local tableInsert = table.insert
+
+-- Localized Spring API for performance
+local spGetSelectedUnits = Spring.GetSelectedUnits
+
 local outputFile = "ruins_blueprints_temp.txt"
 local blueprintCounter = 0
 
@@ -28,7 +36,7 @@ local blueprintCenterX, blueprintCenterY, blueprintCenterZ
 local blueprintRadius = 0
 
 local function getBlueprintCenter()
-	local selectedunits = Spring.GetSelectedUnits()
+	local selectedunits = spGetSelectedUnits()
 
 	for i = 1, #selectedunits do
 		local unit = selectedunits[i]
@@ -82,7 +90,7 @@ local unitOverrides = {
 }
 
 local function generateCode(type)
-	local selectedUnits = Spring.GetSelectedUnits()
+	local selectedUnits = spGetSelectedUnits()
 
 	getBlueprintCenter()
 
@@ -93,8 +101,8 @@ local function generateCode(type)
 
 	for _, unitID in ipairs(selectedUnits) do
 		local unitDirection = Spring.GetUnitBuildFacing(unitID)
-		local xOffset = math.ceil(centerposx[unitID]-blueprintCenterX)
-		local zOffset = math.ceil(centerposz[unitID]-blueprintCenterZ)
+		local xOffset = mathCeil(centerposx[unitID]-blueprintCenterX)
+		local zOffset = mathCeil(centerposz[unitID]-blueprintCenterZ)
 		blueprintRadius = math.max(blueprintRadius, xOffset, zOffset)
 
 		local unitDefID = Spring.GetUnitDefID(unitID)
@@ -102,9 +110,9 @@ local function generateCode(type)
 
 		local unitDef = UnitDefNames[unitName]
 		if unitOverrides[unitName] then
-			table.insert(buildings, { buildTime = unitDef.buildTime, blueprintText = "\t\t\t{ unitDefID = " .. unitOverrides[unitName] .. ", xOffset = " .. xOffset .. ", zOffset = " .. zOffset .. ", direction = " .. unitDirection .. "},\n" })
+			tableInsert(buildings, { buildTime = unitDef.buildTime, blueprintText = "\t\t\t{ unitDefID = " .. unitOverrides[unitName] .. ", xOffset = " .. xOffset .. ", zOffset = " .. zOffset .. ", direction = " .. unitDirection .. "},\n" })
 		else
-			table.insert(buildings, { buildTime = unitDef.buildTime, blueprintText = "\t\t\t{ unitDefID = UnitDefNames." .. unitName .. ".id, xOffset = " .. xOffset .. ", zOffset = " .. zOffset .. ", direction = " .. unitDirection .. "},\n" })
+			tableInsert(buildings, { buildTime = unitDef.buildTime, blueprintText = "\t\t\t{ unitDefID = UnitDefNames." .. unitName .. ".id, xOffset = " .. xOffset .. ", zOffset = " .. zOffset .. ", direction = " .. unitDirection .. "},\n" })
 		end
 	end
 

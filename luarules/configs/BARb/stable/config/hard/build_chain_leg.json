@@ -3,9 +3,9 @@
 	"porcupine": {
 		"unit": {
 		//              0           	1         		2        		3           	4          		5     			6				7				8				9   
-			"legion":  ["leglht",		"legtl",   		"legrl",  		"legmg", 	"leghive",  		"legdtr",		"legrhapsis",	"leglupara", 		"legapopupdef",   		"leghive",
-						"legflak",   	"legacluster",  		"legbastion", 		"legcluster", 	"legabm", 		"legrad",		"legjam",		"legestor", 	"legmstor", 	"legadvsol",
-						"legnanotc",	"legarad",		"legtarg",		"legadvestore",  	"legperdition",		"legajam",		"legfus",     "legsolar",     "legdeflector",      "legfmg"],
+			"legion":  ["leglht",		"legtl",   		"legrl",  		"legmg", 		"leghive",  	"legdtr",		"legrhapsis",	"leglupara", 	"legapopupdef", "leghive",
+						"legflak",   	"legacluster",  "legbastion", 	"legcluster", 	"legabm", 		"legrad",		"legjam",		"legestor", 	"legmstor", 	"legadvsol",
+						"legnanotc",	"legarad",		"legtarg",		"legadvestore", "legperdition",	"legajam",		"legfus",     	"legsolar",     "legdeflector", "legfmg"]
 		},
 		
 	//superweapons get only build when there is nothing else to do
@@ -122,13 +122,23 @@
 		"legalab": {
 			"hub": [
 					//[{"unit": "legarad", "category": "defence", "offset": {"back": 100}, "priority": "normal"}],
-					[{"unit": "legacluster", "category": "defence", "offset": {"front": 100}, "priority": "low"}]
+					[{"unit": "legacluster", "category": "defence", "offset": {"front": 100}, "priority": "low"}] 
 		]
 		},
 		"legavp": {
 			"hub": [
 				[{"unit": "legacluster", "category": "defence", "offset": {"front": 100}, "priority": "low"}]
 			]
+		},
+		"legadvshipyard": {
+			"hub": [[
+				{"unit": "legnanotcplat", "category": "nano", "offset": {"left": 5}, "priority": "normal"},
+				{"unit": "legnanotcplat", "category": "nano", "offset": {"left": 10}, "priority": "normal"},
+				{"unit": "legnanotcplat", "category": "nano", "offset": {"back": 5}, "priority": "normal"},
+				{"unit": "legnanotcplat", "category": "nano", "offset": {"back": 10}, "priority": "normal"},
+				{"unit": "leganavalfusion", "category": "energy", "offset": {"back": 40}, "priority": "normal"},
+				{"unit": "legadvestore", "category": "store", "offset": {"back": 40}, "priority": "normal"}
+			]]
 		},
 
 

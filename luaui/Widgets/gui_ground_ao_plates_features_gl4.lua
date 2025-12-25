@@ -12,6 +12,11 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+local spGetSpectatingState = Spring.GetSpectatingState
+
 --------------- Configurables -------------------
 local decalAlpha = 0.66
 
@@ -35,21 +40,21 @@ end
 
 local function addDirToAtlas(atlas, path)
 
-	--Spring.Echo("Adding",#files, "images to atlas from", path)
+	--spEcho("Adding",#files, "images to atlas from", path)
 	for i=1, #files do
 		if imgExts[string.sub(files[i],-3,-1)] then
 			local s3oname = basepath(files[i],'/')
 			if string.find(s3oname, "_dead", 1 , true) then 
-				--Spring.Echo('s3oname',s3oname)
+				--spEcho('s3oname',s3oname)
 				s3oname = string.sub(s3oname, 1,	string.find(s3oname, "_dead", 1 , true) + 4)
 				atlassedImages[s3oname] = files[i]
 			elseif string.find(s3oname, "arm.x.._._", 1) or string.find(s3oname, "cor.x.._._", 1) then 
 				s3oname = string.sub(s3oname, 1,7)
 				
-				--Spring.Echo('s3oname',s3oname)
+				--spEcho('s3oname',s3oname)
 				atlassedImages[s3oname] = files[i]
 			else
-				--Spring.Echo('Custom Feature AO plate:',s3oname, files[i])
+				--spEcho('Custom Feature AO plate:',s3oname, files[i])
 				atlassedImages[s3oname] = files[i]
 			end
 		end
@@ -62,16 +67,16 @@ local function makeAtlas()
 
 			local s3oname = basepath(filename,'/')
 			if string.find(s3oname, "_dead", 1 , true) then 
-				--Spring.Echo('s3oname',s3oname)
+				--spEcho('s3oname',s3oname)
 				s3oname = string.sub(s3oname, 1,	string.find(s3oname, "_dead", 1 , true) + 4)
 				atlassedImages[s3oname] = filename
 			elseif string.find(s3oname, "arm.x.._._", 1) or string.find(s3oname, "cor.x.._._", 1) then 
 				s3oname = string.sub(s3oname, 1,7)
 				
-				--Spring.Echo('s3oname',s3oname)
+				--spEcho('s3oname',s3oname)
 				atlassedImages[s3oname] = filename
 			else
-				--Spring.Echo('Custom Feature AO plate:',s3oname, filename)])
+				--spEcho('Custom Feature AO plate:',s3oname, filename)])
 				atlassedImages[s3oname] = filename
 			end
 		end
@@ -107,7 +112,7 @@ local function AddPrimitiveAtUnit(featureID, featureDefID, noUpload)
 	local additionalheight = 0
 	
 	local p,q,s,t = getUVCoords(atlas, decalInfo.texfile)
-	--Spring.Echo (featureDefID,featureID,decalInfo.texfile, decalInfo.sizez, decalInfo.sizex , decalInfo.alpha, p, q, s,t)
+	--spEcho (featureDefID,featureID,decalInfo.texfile, decalInfo.sizez, decalInfo.sizex , decalInfo.alpha, p, q, s,t)
 	
 	pushElementInstance(
 		groundPlateVBO, -- push into this Instance VBO Table
@@ -126,7 +131,7 @@ end
 local function ProcessAllFeatures()
 	InstanceVBOTable.clearInstanceTable(groundPlateVBO)
 	local features = Spring.GetAllFeatures()
-	--Spring.Echo("Refreshing Ground Plates", #features)
+	--spEcho("Refreshing Ground Plates", #features)
 	for _, featureID in ipairs(features) do
 		AddPrimitiveAtUnit(featureID, nil, true)
 	end
@@ -167,12 +172,12 @@ local function RemovePrimitive(featureID)
 end
 
 function widget:FeatureCreated(featureID)
-	--Spring.Echo("FeatureCreated", featureID)
+	--spEcho("FeatureCreated", featureID)
 	AddPrimitiveAtUnit(featureID)
 end
 
 function widget:FeatureDestroyed(featureID)
-	--Spring.Echo("FeatureDestroyed", featureID)
+	--spEcho("FeatureDestroyed", featureID)
 	RemovePrimitive(featureID)
 end
 
@@ -192,9 +197,9 @@ function widget:Initialize()
 			local modelnamenos3o = string.gsub(string.lower(FD.modelname), ".s3o","")
 			modelnamenos3o = basepath(modelnamenos3o,'/')
 
-			--Spring.Echo(FD.name, modelnamenos3o, atlassedImages[modelnamenos3o] )
+			--spEcho(FD.name, modelnamenos3o, atlassedImages[modelnamenos3o] )
 			if atlassedImages[modelnamenos3o] then
-				--Spring.Echo(modelnamenos3o,atlassedImages[modelnamenos3o])
+				--spEcho(modelnamenos3o,atlassedImages[modelnamenos3o])
 				local atlasname = basepath(atlassedImages[modelnamenos3o],'/')
 				local sizestr = ""
 				if string.find(atlasname, "_dead", nil, true) then -- regular wrecks
@@ -205,10 +210,10 @@ function widget:Initialize()
 					sizestr = string.sub(atlasname,9,11)
 				end
 				
-					--Spring.Echo(atlasname, modelnamenos3o, sizestr)
+					--spEcho(atlasname, modelnamenos3o, sizestr)
 				local sizex = string.sub(sizestr, 1, string.find(sizestr, "_", nil, true)-1)
 				local sizez = string.sub(sizestr, string.find(sizestr, "_", nil, true)+1 )
-				--Spring.Echo(sizex, sizez)
+				--spEcho(sizex, sizez)
 				featureDefIDtoDecalInfo[id] = {
 					texfile = atlassedImages[modelnamenos3o],
 					sizex = (sizex or 8) *16,
@@ -253,13 +258,13 @@ function widget:Initialize()
 	ProcessAllFeatures() 
 end
 
-local spec, fullview = Spring.GetSpectatingState()
+local spec, fullview = spGetSpectatingState()
 local allyTeamID = Spring.GetMyAllyTeamID()
 
 function widget:PlayerChanged()
 	local prevFullview = fullview
 	local myPrevAllyTeamID = allyTeamID
-	spec, fullview = Spring.GetSpectatingState()
+	spec, fullview = spGetSpectatingState()
 	allyTeamID = Spring.GetMyAllyTeamID()
 end
 
@@ -267,7 +272,7 @@ local commandqueue = {}
 function widget:TextCommand(command)
 	if string.find(command,"givefeatures", nil, true ) then
 		local s = string.split(command, ' ') 
-		Spring.Echo("/luaui givefeatures featurename")
+		spEcho("/luaui givefeatures featurename")
 		local key = s[2]
 		local matches = {}
 		for featureDefID, featureDef in ipairs(FeatureDefs) do 

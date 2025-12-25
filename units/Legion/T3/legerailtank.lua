@@ -23,7 +23,7 @@ return {
 		maxslope = 16,
 		speed = 61.0,
 		maxwaterdepth = 20,
-		movementclass = "HTANK5",
+		movementclass = "HTANK7",
 		nochasecategory = "VTOL",
 		objectname = "Units/legerailtank.s3o",
 		script = "Units/legerailtank.cob",

@@ -26,7 +26,7 @@ return {
 		maxdamage = 3800,
 		maxvelocity = 2.1,
 		minwaterdepth = 15,
-		movementclass = "BOAT8",
+		movementclass = "BOAT9",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSENTINEL.s3o",
 		script = "Units/CORSENTINEL.cob",

@@ -22,7 +22,7 @@ return {
 		maxslope = 32,
 		maxwaterdepth = 112,
 		metalcost = 75,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		movestate = 0,
 		nochasecategory = "MOBILE",
 		objectname = "Units/legajamk.s3o",

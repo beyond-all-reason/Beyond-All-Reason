@@ -142,7 +142,6 @@ return {
 				range = 500,
 				reloadtime = 0.8,
 				soundstart = "smallraptorattack",
-				targetborder = 1,
 				tolerance = 5000,
 				turret = true,
 				waterweapon = true,

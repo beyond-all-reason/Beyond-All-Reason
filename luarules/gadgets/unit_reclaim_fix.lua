@@ -20,6 +20,7 @@ local SetFeatureReclaim = Spring.SetFeatureReclaim
 local GetFeaturePosition = Spring.GetFeaturePosition
 local GetUnitDefID = Spring.GetUnitDefID
 local GetFeatureResources = Spring.GetFeatureResources
+local mathMax = math.max
 
 local featureListMaxResource = {}
 local featureListReclaimTime = {}
@@ -32,7 +33,7 @@ for unitDefID, defs in pairs(UnitDefs) do
 end
 
 for featureDefID, fdefs in pairs(FeatureDefs) do
-    local maxResource = math.max(fdefs.metal, fdefs.energy)
+    local maxResource = mathMax(fdefs.metal, fdefs.energy)
 	
     if maxResource > 0 then
 		featureListMaxResource[featureDefID] = maxResource
@@ -104,8 +105,8 @@ end
 
 function gadget:GameFrame()
 	--flush featuresCreatedThisFrame
-	if featuresCreatedThisFrame then
-		for i=1,#featuresCreatedThisFrame do
+	if #featuresCreatedThisFrame > 0 then
+		for i = #featuresCreatedThisFrame, 1, -1 do
 			featuresCreatedThisFrame[i] = nil
 		end
 	end

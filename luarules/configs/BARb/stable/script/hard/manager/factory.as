@@ -30,6 +30,7 @@ string armasy  ("armasy");
 string armap   ("armap");
 string armaap  ("armaap");
 string armshltx("armshltx");
+
 string corlab  ("corlab");
 string coralab ("coralab");
 string corvp   ("corvp");
@@ -45,6 +46,8 @@ string legalab ("legalab");
 string legvp   ("legvp");
 string legavp  ("legavp");
 string legap   ("legap");
+string legsy   ("legsy");
+string legadvshipyard   ("legadvshipyard");
 string legaap  ("legaap");
 string leggant ("leggant");
 
