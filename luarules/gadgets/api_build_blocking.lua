@@ -14,8 +14,39 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	local MAX_MESSAGES_PER_FRAME = 30 -- zzz need implementing
 	local UNAUTHORIZED_TEXT = "You are not authorized to use build blocking commands"
+
+	local unsyncedMessageQueue = {}
+	local currentSendIndex = 1
+	local nextEnqueueIndex = 1
+	local MAX_QUEUE_INDEX = 999999
+	local MAX_MESSAGES_PER_FRAME = 100 -- something sane
+
+	local function enqueueUnsyncedMessage(messageName, unitDefID, teamID, reasons) -- Because there are potentially thousands of units.
+		local startIndex = nextEnqueueIndex
+		while unsyncedMessageQueue[nextEnqueueIndex] do
+			nextEnqueueIndex = nextEnqueueIndex + 1
+			if nextEnqueueIndex > MAX_QUEUE_INDEX then
+				nextEnqueueIndex = 1
+			end
+			if nextEnqueueIndex == startIndex then
+				return
+			end
+		end
+
+		unsyncedMessageQueue[nextEnqueueIndex] = {
+			messageName = messageName,
+			unitDefID = unitDefID,
+			teamID = teamID,
+			reasons = reasons
+		}
+
+		nextEnqueueIndex = nextEnqueueIndex + 1
+		if nextEnqueueIndex > MAX_QUEUE_INDEX then
+			nextEnqueueIndex = 1
+		end
+	end
+
 
 	local windDisabled = false
 	local waterAvailable = true
@@ -69,6 +100,12 @@ if gadgetHandler:IsSyncedCode() then
 
 	local unitRestrictions = VFS.Include("common/configs/unit_restrictions_config.lua")
 
+	local permanentKeys = { -- these will not be removed via console commands.
+		terrain_wind = true,
+		terrain_water = true,
+		terrain_geothermal = true,
+	}
+
 	local function commandBuildBlock(_, line, words, playerID)
 		if not isAuthorized(playerID) then
 			Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
@@ -76,7 +113,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if #words < 3 then
-			Spring.SendMessageToPlayer(playerID, "Usage: /luarules buildblock <teamID|'all'> <reason_key> <unitDefID 1> <unitDefID 2> ...")
+			Spring.SendMessageToPlayer(playerID, "Usage: /luarules buildblock <teamID|'all'> <reason_key> <unitDefID/unitDefName 1> <unitDefID/unitDefName 2> ... or 'all'")
 			return
 		end
 
@@ -100,9 +137,8 @@ if gadgetHandler:IsSyncedCode() then
 			table.insert(teamsToProcess, targetTeamID)
 		end
 
-		for i = 3, #words do
-			local unitDefID = tonumber(words[i])
-			if unitDefID and UnitDefs[unitDefID] then
+		if words[3] == "all" then
+			for unitDefID in pairs(UnitDefs) do
 				local actuallyBlocked = false
 				for _, teamID in ipairs(teamsToProcess) do
 					GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
@@ -111,8 +147,29 @@ if gadgetHandler:IsSyncedCode() then
 				if actuallyBlocked then
 					blockedCount = blockedCount + 1
 				end
-			else
-				Spring.SendMessageToPlayer(playerID, "Invalid unitDefID: " .. tostring(words[i]))
+			end
+		else
+			for i = 3, #words do
+				local unitDefID = tonumber(words[i])
+				if not unitDefID then
+					local nameDef = UnitDefNames[words[i]]
+					if nameDef then
+						unitDefID = nameDef.id
+					end
+				end
+
+				if unitDefID and UnitDefs[unitDefID] then
+					local actuallyBlocked = false
+					for _, teamID in ipairs(teamsToProcess) do
+						GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
+						actuallyBlocked = true
+					end
+					if actuallyBlocked then
+						blockedCount = blockedCount + 1
+					end
+				else
+					Spring.SendMessageToPlayer(playerID, "Invalid unitDefID or unitDefName: " .. tostring(words[i]))
+				end
 			end
 		end
 
@@ -127,7 +184,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if #words < 3 then
-			Spring.SendMessageToPlayer(playerID, "Usage: /luarules buildunblock <teamID|'all'> <reason_key> <unitDefID 1> <unitDefID 2> ...")
+			Spring.SendMessageToPlayer(playerID, "Usage: /luarules buildunblock <teamID|'all'> <reason_key|'all'> <unitDefID/unitDefName 1> <unitDefID/unitDefName 2> ... or 'all'")
 			return
 		end
 
@@ -151,20 +208,67 @@ if gadgetHandler:IsSyncedCode() then
 			table.insert(teamsToProcess, targetTeamID)
 		end
 
-		for i = 3, #words do
-			local unitDefID = tonumber(words[i])
-			if unitDefID and UnitDefs[unitDefID] then
+		if words[3] == "all" then
+			for unitDefID in pairs(UnitDefs) do
 				local actuallyUnblocked = false
 				for _, teamID in ipairs(teamsToProcess) do
-					if GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey) then
-						actuallyUnblocked = true
+					if reasonKey == "all" then
+						local blockedUnitDefs = teamBlockedUnitDefs[teamID]
+						if blockedUnitDefs and blockedUnitDefs[unitDefID] then
+							for reason in pairs(blockedUnitDefs[unitDefID]) do
+								if not permanentKeys[reason] then
+									if GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reason) then
+										actuallyUnblocked = true
+									end
+								end
+							end
+						end
+					else
+						if GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey) then
+							actuallyUnblocked = true
+						end
 					end
 				end
 				if actuallyUnblocked then
 					unblockedCount = unblockedCount + 1
 				end
-			else
-				Spring.SendMessageToPlayer(playerID, "Invalid unitDefID: " .. tostring(words[i]))
+			end
+		else
+			for i = 3, #words do
+				local unitDefID = tonumber(words[i])
+				if not unitDefID then
+					local nameDef = UnitDefNames[words[i]]
+					if nameDef then
+						unitDefID = nameDef.id
+					end
+				end
+
+				if unitDefID and UnitDefs[unitDefID] then
+					local actuallyUnblocked = false
+					for _, teamID in ipairs(teamsToProcess) do
+						if reasonKey == "all" then
+							local blockedUnitDefs = teamBlockedUnitDefs[teamID]
+							if blockedUnitDefs and blockedUnitDefs[unitDefID] then
+								for reason in pairs(blockedUnitDefs[unitDefID]) do
+									if not permanentKeys[reason] then
+										if GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reason) then
+											actuallyUnblocked = true
+										end
+									end
+								end
+							end
+						else
+							if GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey) then
+								actuallyUnblocked = true
+							end
+						end
+					end
+					if actuallyUnblocked then
+						unblockedCount = unblockedCount + 1
+					end
+				else
+					Spring.SendMessageToPlayer(playerID, "Invalid unitDefID or unitDefName: " .. tostring(words[i]))
+				end
 			end
 		end
 
@@ -175,7 +279,6 @@ if gadgetHandler:IsSyncedCode() then
 	local function UpdateModoptionRestrictions(teamID)
 		for unitDefID, unitDef in pairs(UnitDefs) do
 			if unitDef.maxThisUnit == 0 then
-				local unitName = UnitDefs[unitDefID] and UnitDefs[unitDefID].name or ("ID:" .. unitDefID)
 				GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "modoption_blocked")
 			end
 		end
@@ -243,7 +346,7 @@ if gadgetHandler:IsSyncedCode() then
 		blockedUnitDefs[unitDefID][reasonKey] = true
 		local concatenatedReasons = reasonConcatenator(blockedUnitDefs[unitDefID])
 		Spring.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, concatenatedReasons)
-		SendToUnsynced("UnitBlocked", unitDefID, teamID, blockedUnitDefs[unitDefID])
+		enqueueUnsyncedMessage("UnitBlocked", unitDefID, teamID, blockedUnitDefs[unitDefID])
 	end
 
 	function GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey)
@@ -264,13 +367,12 @@ if gadgetHandler:IsSyncedCode() then
 			local concatenatedReasons = reasonConcatenator(blockedUnitDefs[unitDefID])
 			Spring.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, concatenatedReasons)
 		end
-		SendToUnsynced("UnitBlocked", unitDefID, teamID, blockedUnitDefs[unitDefID])
+		enqueueUnsyncedMessage("UnitBlocked", unitDefID, teamID, blockedUnitDefs[unitDefID])
 		return wasRemoved
 	end
 
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID)
 		if cmdID < 0 then --it's a build command
-			Spring.Echo("buildDefID: " .. -cmdID)
 			local buildDefID = -cmdID
 			local blockedUnitDefs = teamBlockedUnitDefs[unitTeam]
 			if not blockedUnitDefs then
@@ -283,7 +385,27 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		return true
 	end
-	
+
+	function gadget:GameFrame()
+		local processedCount = 0
+		while processedCount < MAX_MESSAGES_PER_FRAME do
+			local message = unsyncedMessageQueue[currentSendIndex]
+			if not message then
+				break
+			end
+
+			SendToUnsynced(message.messageName, message.unitDefID, message.teamID, message.reasons)
+			unsyncedMessageQueue[currentSendIndex] = nil
+
+			currentSendIndex = currentSendIndex + 1
+			if currentSendIndex > MAX_QUEUE_INDEX then
+				currentSendIndex = 1
+			end
+
+			processedCount = processedCount + 1
+		end
+	end
+
 -------------------------------------------------------------------------------- Unsynced Code --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------------------------------------
 elseif not gadgetHandler:IsSyncedCode() then --elseif for readability
