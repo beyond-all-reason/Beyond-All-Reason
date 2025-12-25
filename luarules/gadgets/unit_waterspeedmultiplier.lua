@@ -27,7 +27,7 @@ end
 -- Configuration
 
 local depthUpdateRate = 0.2500 ---@type number in seconds | for units with speeds variable by water depth
-local watchUpdateRate = 0.7500 ---@type number in seconds | slow watch interval for variable-speed units
+local watchUpdateRate = 0.5000 ---@type number in seconds | slow watch interval for variable-speed units
 
 -- Globals
 
