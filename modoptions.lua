@@ -1783,6 +1783,19 @@ local options = {
     },
 
     {
+        key     = "experimental_ai_spawns_link",
+        name    = "Feedback thread",
+        desc    = "Report your testing and discuss here.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1451008970536915007/1451008970536915007",
+        width   = 215,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
+    {
         key 	= "pip",
         name 	= "Picture-in-picture window",
         desc 	= "Enables the picture-in-picture window showing a minimap-sized view of a chosen location.",
