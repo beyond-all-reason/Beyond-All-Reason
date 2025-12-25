@@ -63,13 +63,16 @@ return {
 		delay = 30,
 		soundEffect = "YouHaveTheLastCommander",
 	},
-	["unitRespawning/transpositionInitiated"] = {
+	["RespawningCommanders/CommanderTransposed"] = {
 		delay = 5,
 	},
-	["unitRespawning/alliedTranspositionInitiated"] = {
+	["RespawningCommanders/AlliedCommanderTransposed"] = {
 		delay = 5,
 	},
-	["unitRespawning/enemyTranspositionDetected"] = {
+	["RespawningCommanders/EnemyCommanderTransposed"] = {
+		delay = 5,
+	},
+	["RespawningCommanders/CommanderEffigyLost"] = {
 		delay = 5,
 	},
 

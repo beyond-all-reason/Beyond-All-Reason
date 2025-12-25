@@ -38,6 +38,14 @@ if gadgetHandler:IsSyncedCode() then
 
 	local respawnMetaList = {}
 	local defCustomParams = {}
+	local effigyToCommander = {} -- Maps effigy unit ID to commander unit ID for fast lookup
+
+	local function destroyEffigy(effigyID, selfd, reclaimed)
+		if effigyID then
+			effigyToCommander[effigyID] = nil
+			spDestroyUnit(effigyID, selfd, reclaimed)
+		end
+	end
 
 
 	--messages[1] = textColor .. Spring.I18N('ui.raptors.wave1', {waveNumber = raptorEventArgs.waveCount})
@@ -112,14 +120,14 @@ if gadgetHandler:IsSyncedCode() then
 				local playerName, active, isSpectator, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, true)
 				if teamID and unitTeam and not isSpectator then
 				if teamID == unitTeam then
-					notificationEvent = "unitRespawning/transpositionInitiated"
+					notificationEvent = "RespawningCommanders/CommanderTransposed"
 				elseif teamID and Spring.AreTeamsAllied(teamID, unitTeam) then
-					notificationEvent = "unitRespawning/alliedTranspositionInitiated"
+					notificationEvent = "RespawningCommanders/AlliedCommanderTransposed"
 				else
-					notificationEvent = "unitRespawning/enemyTranspositionDetected"
+					notificationEvent = "RespawningCommanders/EnemyCommanderTransposed"
 					end
 				elseif isSpectator then
-					notificationEvent = "unitRespawning/transpositionInitiated"
+					notificationEvent = "RespawningCommanders/CommanderTransposed"
 				end
 				if notificationEvent then
 					GG.notifications.queueNotification(notificationEvent, "playerID", tostring(playerID))
@@ -163,6 +171,7 @@ if gadgetHandler:IsSyncedCode() then
 						spSetUnitRulesParam(unitID, "unit_effigy", newUnitID, PRIVATE)
 						if newUnitID then
 							respawnMetaList[unitID].effigyID = newUnitID
+							effigyToCommander[newUnitID] = unitID
 							return
 						end
 					elseif not blockType then
@@ -170,6 +179,7 @@ if gadgetHandler:IsSyncedCode() then
 						spSetUnitRulesParam(unitID, "unit_effigy", newUnitID, PRIVATE)
 						if newUnitID then
 							respawnMetaList[unitID].effigyID = newUnitID
+							effigyToCommander[newUnitID] = unitID
 							return
 						else
 							blockedIncrement = blockedIncrement+50
@@ -183,13 +193,14 @@ if gadgetHandler:IsSyncedCode() then
 			if respawnMetaList[builderID] then
 				local oldeffigyID = respawnMetaList[builderID].effigyID
 				respawnMetaList[builderID].effigyID = unitID
+				effigyToCommander[unitID] = builderID
 
 				if oldeffigyID then
 					local oldEffigyBuildProgress = select(5, spGetUnitHealth(oldeffigyID))
 					if oldEffigyBuildProgress == 1 then
 						Spring.SetUnitCosts(unitID, {buildTime = 1, metalCost = 1, energyCost = 1})
 					end
-					spDestroyUnit(oldeffigyID, false, true)
+					destroyEffigy(oldeffigyID, false, true)
 				end
 				spSetUnitRulesParam(builderID, "unit_effigy", unitID, PRIVATE)
 			else
@@ -200,13 +211,14 @@ if gadgetHandler:IsSyncedCode() then
 						local oldeffigyID = respawnMetaList[vipID].effigyID
 
 						respawnMetaList[vipID].effigyID = unitID
+						effigyToCommander[unitID] = vipID
 
 						if oldeffigyID then
 							local oldEffigyBuildProgress = select(5, spGetUnitHealth(oldeffigyID))
 							if oldEffigyBuildProgress == 1 then
 								Spring.SetUnitCosts(unitID, {buildTime = 1, metalCost = 1, energyCost = 1})
 							end
-							spDestroyUnit(oldeffigyID, false, true)
+							destroyEffigy(oldeffigyID, false, true)
 						end
 						spSetUnitRulesParam(builderID, "unit_effigy", unitID, PRIVATE)
 						return
@@ -218,6 +230,23 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+		local effigyOwnerID = effigyToCommander[unitID]
+
+		if effigyOwnerID then
+			local udcp = defCustomParams[Spring.GetUnitDefID(effigyOwnerID)]
+			if udcp and udcp.iscommander then
+				local commanderTeam = respawnMetaList[effigyOwnerID].unitTeam
+
+				local allPlayers = Spring.GetPlayerList()
+				for _, playerID in ipairs(allPlayers) do
+					local playerName, active, isSpectator, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, true)
+					if teamID == commanderTeam then
+						GG.notifications.queueNotification("RespawningCommanders/CommanderEffigyLost", "playerID", tostring(playerID))
+					end
+				end
+			end
+		end
+
 		if respawnMetaList[unitID] then
 			if respawnMetaList[unitID].respawn_pad == "false" then
 				local newID = spGetUnitRulesParam(unitID, "unit_evolved")
@@ -226,10 +255,10 @@ if gadgetHandler:IsSyncedCode() then
 						if respawnMetaList[unitID].effigyID then
 							local effigyBuildProgress = select(5, spGetUnitHealth(respawnMetaList[unitID].effigyID))
 							if effigyBuildProgress ~= 1 then
-								spDestroyUnit(respawnMetaList[newID].effigyID, false, true)
+								destroyEffigy(respawnMetaList[newID].effigyID, false, true)
 							end
 						else
-							spDestroyUnit(respawnMetaList[newID].effigyID, false, true)
+							destroyEffigy(respawnMetaList[newID].effigyID, false, true)
 						end
 					end
 					if respawnMetaList[unitID].effigyID then
@@ -238,17 +267,17 @@ if gadgetHandler:IsSyncedCode() then
 							if ex then
 								Spring.SetUnitPosition(respawnMetaList[newID].effigyID, ex, ez, true)
 							else
-								spDestroyUnit(respawnMetaList[newID].effigyID, false, true)
+								destroyEffigy(respawnMetaList[newID].effigyID, false, true)
 							end
-							spDestroyUnit(respawnMetaList[unitID].effigyID, false, true)
+							destroyEffigy(respawnMetaList[unitID].effigyID, false, true)
 						elseif respawnMetaList[newID] then
 							respawnMetaList[newID].effigyID = respawnMetaList[unitID].effigyID
 						else
-							spDestroyUnit(respawnMetaList[unitID].effigyID, false, false)
+							destroyEffigy(respawnMetaList[unitID].effigyID, false, false)
 						end
 					end
 				elseif respawnMetaList[unitID].effigyID then
-					spDestroyUnit(respawnMetaList[unitID].effigyID, false, true)
+					destroyEffigy(respawnMetaList[unitID].effigyID, false, true)
 				end
 			end
 			respawnMetaList[unitID] = nil
