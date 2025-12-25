@@ -34,13 +34,11 @@ end
 function widget:Initialize()
 	WG['attacknoally'] = true
 	WG['manualfirennoally'] = true
-	WG['guardnoally'] = true
 end
 
 function widget:Shutdown()
 	WG['attacknoally'] = nil
 	WG['manualfirennoally'] = nil
-	WG['guardnoally'] = nil
 end
 
 function widget:MousePress(x, y, button)
