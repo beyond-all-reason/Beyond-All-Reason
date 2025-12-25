@@ -32,14 +32,12 @@ local fallDamage = 0.18
 --this influences the compounding escalation of fall damage from water collisions.
 local fallDamageCompoundingFactor = 1.05
 
---statics
 local gameFrame = 0
 local gameFrameExpirationThreshold = 3
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local waterDamageDefID = Game.envDamageTypes.Water
 local gameSpeed = Game.gameSpeed
 
---functions
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spValidUnitID = Spring.ValidUnitID
 local spAddUnitDamage = Spring.AddUnitDamage
@@ -52,7 +50,6 @@ local spTestMoveOrder = Spring.TestMoveOrder
 local spGetUnitHealth = Spring.GetUnitHealth
 local spDestroyUnit = Spring.DestroyUnit
 
---tables
 local unitDefData = {}
 local transportDrops = {}
 local drowningUnitsWatch = {}
@@ -75,6 +72,9 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 		else
 			defData.isDrownable = true
 		end
+	end
+	if unitDef.customParams.decoration then
+		defData.isAmphibious = true
 	end
 	unitDefData[unitDefID] = defData
 end
@@ -135,7 +135,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 local function getUnitPositionHeight(unitID) -- returns nil for invalid units
-	if (spGetUnitIsDead(unitID) ~= false) or (spValidUnitID(unitID) ~= true) then return nil, nil, nil end
+	if spGetUnitIsDead(unitID) ~= false or spValidUnitID(unitID) ~= true then return nil, nil, nil end
 	local posX, posY, posZ = spGetUnitPosition(unitID)
 	if posX and posY and posZ then
 		return posX, posY, posZ
