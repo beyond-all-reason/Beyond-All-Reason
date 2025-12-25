@@ -123,7 +123,7 @@ return {
 				impulsefactor = 0,
 				name = "Rotary Microflak Cannon",
 				noselfdamage = true,
-				range = 700,
+				range = 650,
 				reloadtime = 0.237,
 				size = 0,
 				sizedecay = 0.08,
