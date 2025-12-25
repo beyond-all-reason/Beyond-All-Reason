@@ -68,9 +68,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	for _, teamID in ipairs(teamsList) do
 		teamBlockedUnitDefs[teamID] = {}
-	end
-	for unitDefID, unitDef in pairs(UnitDefs) do
-		for _, teamID in ipairs(teamsList) do
+		for unitDefID in pairs(UnitDefs) do
 			teamBlockedUnitDefs[teamID][unitDefID] = {}
 		end
 	end
@@ -106,6 +104,56 @@ if gadgetHandler:IsSyncedCode() then
 		terrain_geothermal = true,
 	}
 
+	local function parseTeamParameter(teamParam, playerID)
+		if teamParam == "all" then
+			local teams = {}
+			for _, teamID in ipairs(teamsList) do
+				if not ignoredTeams[teamID] then
+					teams[#teams + 1] = teamID
+				end
+			end
+			return teams
+		else
+			local targetTeamID = tonumber(teamParam)
+			if not targetTeamID or not Spring.GetTeamInfo(targetTeamID) then
+				Spring.SendMessageToPlayer(playerID, "Invalid teamID: " .. tostring(teamParam) .. ". Use 'all' or a valid team number.")
+				return nil
+			end
+			return {targetTeamID}
+		end
+	end
+
+	local function parseUnitIdentifier(identifier)
+		local unitDefID = tonumber(identifier)
+		if not unitDefID then
+			local nameDef = UnitDefNames[identifier]
+			if nameDef then
+				unitDefID = nameDef.id
+			end
+		end
+		return (unitDefID and UnitDefs[unitDefID]) and unitDefID or nil
+	end
+
+	local function processUnblockReasons(unitDefID, teamID, reasonKey)
+		if reasonKey == "all" then
+			local blockedUnitDefs = teamBlockedUnitDefs[teamID]
+			if blockedUnitDefs and blockedUnitDefs[unitDefID] then
+				local removed = false
+				for reason in pairs(blockedUnitDefs[unitDefID]) do
+					if not permanentKeys[reason] then
+						if GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reason) then
+							removed = true
+						end
+					end
+				end
+				return removed
+			end
+			return false
+		else
+			return GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey)
+		end
+	end
+
 	local function commandBuildBlock(_, line, words, playerID)
 		if not isAuthorized(playerID) then
 			Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
@@ -119,54 +167,27 @@ if gadgetHandler:IsSyncedCode() then
 
 		local teamParam = words[1]
 		local reasonKey = words[2]
-		local blockedCount = 0
-
-		local teamsToProcess = {}
-		if teamParam == "all" then
-			for _, teamID in ipairs(teamsList) do
-				if not ignoredTeams[teamID] then
-					table.insert(teamsToProcess, teamID)
-				end
-			end
-		else
-			local targetTeamID = tonumber(teamParam)
-			if not targetTeamID or not Spring.GetTeamInfo(targetTeamID) then
-				Spring.SendMessageToPlayer(playerID, "Invalid teamID: " .. tostring(teamParam) .. ". Use 'all' or a valid team number.")
-				return
-			end
-			table.insert(teamsToProcess, targetTeamID)
+		local teamsToProcess = parseTeamParameter(teamParam, playerID)
+		if not teamsToProcess then
+			return
 		end
 
+		local blockedCount = 0
 		if words[3] == "all" then
 			for unitDefID in pairs(UnitDefs) do
-				local actuallyBlocked = false
 				for _, teamID in ipairs(teamsToProcess) do
 					GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
-					actuallyBlocked = true
 				end
-				if actuallyBlocked then
-					blockedCount = blockedCount + 1
-				end
+				blockedCount = blockedCount + 1
 			end
 		else
 			for i = 3, #words do
-				local unitDefID = tonumber(words[i])
-				if not unitDefID then
-					local nameDef = UnitDefNames[words[i]]
-					if nameDef then
-						unitDefID = nameDef.id
-					end
-				end
-
-				if unitDefID and UnitDefs[unitDefID] then
-					local actuallyBlocked = false
+				local unitDefID = parseUnitIdentifier(words[i])
+				if unitDefID then
 					for _, teamID in ipairs(teamsToProcess) do
 						GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
-						actuallyBlocked = true
 					end
-					if actuallyBlocked then
-						blockedCount = blockedCount + 1
-					end
+					blockedCount = blockedCount + 1
 				else
 					Spring.SendMessageToPlayer(playerID, "Invalid unitDefID or unitDefName: " .. tostring(words[i]))
 				end
@@ -190,80 +211,35 @@ if gadgetHandler:IsSyncedCode() then
 
 		local teamParam = words[1]
 		local reasonKey = words[2]
-		local unblockedCount = 0
-
-		local teamsToProcess = {}
-		if teamParam == "all" then
-			for _, teamID in ipairs(teamsList) do
-				if not ignoredTeams[teamID] then
-					table.insert(teamsToProcess, teamID)
-				end
-			end
-		else
-			local targetTeamID = tonumber(teamParam)
-			if not targetTeamID or not Spring.GetTeamInfo(targetTeamID) then
-				Spring.SendMessageToPlayer(playerID, "Invalid teamID: " .. tostring(teamParam) .. ". Use 'all' or a valid team number.")
-				return
-			end
-			table.insert(teamsToProcess, targetTeamID)
+		local teamsToProcess = parseTeamParameter(teamParam, playerID)
+		if not teamsToProcess then
+			return
 		end
 
+		local unblockedCount = 0
 		if words[3] == "all" then
 			for unitDefID in pairs(UnitDefs) do
-				local actuallyUnblocked = false
+				local removed = false
 				for _, teamID in ipairs(teamsToProcess) do
-					if reasonKey == "all" then
-						local blockedUnitDefs = teamBlockedUnitDefs[teamID]
-						if blockedUnitDefs and blockedUnitDefs[unitDefID] then
-							for reason in pairs(blockedUnitDefs[unitDefID]) do
-								if not permanentKeys[reason] then
-									if GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reason) then
-										actuallyUnblocked = true
-									end
-								end
-							end
-						end
-					else
-						if GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey) then
-							actuallyUnblocked = true
-						end
+					if processUnblockReasons(unitDefID, teamID, reasonKey) then
+						removed = true
 					end
 				end
-				if actuallyUnblocked then
+				if removed then
 					unblockedCount = unblockedCount + 1
 				end
 			end
 		else
 			for i = 3, #words do
-				local unitDefID = tonumber(words[i])
-				if not unitDefID then
-					local nameDef = UnitDefNames[words[i]]
-					if nameDef then
-						unitDefID = nameDef.id
-					end
-				end
-
-				if unitDefID and UnitDefs[unitDefID] then
-					local actuallyUnblocked = false
+				local unitDefID = parseUnitIdentifier(words[i])
+				if unitDefID then
+					local removed = false
 					for _, teamID in ipairs(teamsToProcess) do
-						if reasonKey == "all" then
-							local blockedUnitDefs = teamBlockedUnitDefs[teamID]
-							if blockedUnitDefs and blockedUnitDefs[unitDefID] then
-								for reason in pairs(blockedUnitDefs[unitDefID]) do
-									if not permanentKeys[reason] then
-										if GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reason) then
-											actuallyUnblocked = true
-										end
-									end
-								end
-							end
-						else
-							if GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey) then
-								actuallyUnblocked = true
-							end
+						if processUnblockReasons(unitDefID, teamID, reasonKey) then
+							removed = true
 						end
 					end
-					if actuallyUnblocked then
+					if removed then
 						unblockedCount = unblockedCount + 1
 					end
 				else
@@ -276,7 +252,15 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.SendMessageToPlayer(playerID, "Unblocked " .. unblockedCount .. " unit(s) with reason '" .. reasonKey .. "' for " .. teamMsg)
 	end
 
-	local function UpdateModoptionRestrictions(teamID)
+	local function applyRestrictionsToAllTeams(updateFunction)
+		for _, teamID in ipairs(teamsList) do
+			if not ignoredTeams[teamID] then
+				updateFunction(teamID)
+			end
+		end
+	end
+
+	local function updateModoptionRestrictions(teamID)
 		for unitDefID, unitDef in pairs(UnitDefs) do
 			if unitDef.maxThisUnit == 0 then
 				GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "modoption_blocked")
@@ -284,15 +268,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function UpdateAllModoptionRestrictions()
-		for _, teamID in ipairs(teamsList) do
-			if not ignoredTeams[teamID] then
-				UpdateModoptionRestrictions(teamID)
-			end
-		end
-	end
-
-	local function UpdateTerrainRestrictions(teamID)
+	local function updateTerrainRestrictions(teamID)
 		if windDisabled then
 			for unitDefID in pairs(unitRestrictions.isWind) do
 				GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "terrain_wind")
@@ -312,21 +288,13 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function UpdateAllTerrainRestrictions()
-		for _, teamID in ipairs(teamsList) do
-			if not ignoredTeams[teamID] then
-				UpdateTerrainRestrictions(teamID)
-			end
-		end
-	end
-
 	function gadget:Initialize()
 		GG.BuildBlocking = GG.BuildBlocking or {}
 		windDisabled = unitRestrictions.isWindDisabled()
 		waterAvailable = unitRestrictions.shouldShowWaterUnits()
 		geoAvailable = unitRestrictions.hasGeothermalFeatures()
-		UpdateAllTerrainRestrictions()
-		UpdateAllModoptionRestrictions()
+		applyRestrictionsToAllTeams(updateTerrainRestrictions)
+		applyRestrictionsToAllTeams(updateModoptionRestrictions)
 
 		gadgetHandler:AddChatAction('buildblock', commandBuildBlock, "Block units from being built by reason")
 		gadgetHandler:AddChatAction('buildunblock', commandBuildUnblock, "Unblock units from being built by reason")
@@ -342,11 +310,11 @@ if gadgetHandler:IsSyncedCode() then
 		if not blockedUnitDefs then
 			return
 		end
-		blockedUnitDefs[unitDefID] = blockedUnitDefs[unitDefID] or {}
-		blockedUnitDefs[unitDefID][reasonKey] = true
-		local concatenatedReasons = reasonConcatenator(blockedUnitDefs[unitDefID])
+		local unitReasons = blockedUnitDefs[unitDefID]
+		unitReasons[reasonKey] = true
+		local concatenatedReasons = reasonConcatenator(unitReasons)
 		Spring.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, concatenatedReasons)
-		enqueueUnsyncedMessage("UnitBlocked", unitDefID, teamID, blockedUnitDefs[unitDefID])
+		enqueueUnsyncedMessage("UnitBlocked", unitDefID, teamID, unitReasons)
 	end
 
 	function GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey)
@@ -354,32 +322,28 @@ if gadgetHandler:IsSyncedCode() then
 		if not blockedUnitDefs then
 			return false
 		end
-		if not blockedUnitDefs[unitDefID] or not blockedUnitDefs[unitDefID][reasonKey] then
-			return false -- Reason was not blocking this unit
+		local unitReasons = blockedUnitDefs[unitDefID]
+		if not unitReasons[reasonKey] then
+			return false
 		end
 
-		blockedUnitDefs[unitDefID][reasonKey] = nil
-		local wasRemoved = true
+		unitReasons[reasonKey] = nil
 
-		if not next(blockedUnitDefs[unitDefID]) then
-			Spring.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, nil)
-		else
-			local concatenatedReasons = reasonConcatenator(blockedUnitDefs[unitDefID])
+		if next(unitReasons) then
+			local concatenatedReasons = reasonConcatenator(unitReasons)
 			Spring.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, concatenatedReasons)
+		else
+			Spring.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, nil)
 		end
-		enqueueUnsyncedMessage("UnitBlocked", unitDefID, teamID, blockedUnitDefs[unitDefID])
-		return wasRemoved
+		enqueueUnsyncedMessage("UnitBlocked", unitDefID, teamID, unitReasons)
+		return true
 	end
 
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID)
 		if cmdID < 0 then --it's a build command
 			local buildDefID = -cmdID
 			local blockedUnitDefs = teamBlockedUnitDefs[unitTeam]
-			if not blockedUnitDefs then
-				return true
-			end
-			local isBlocked = next(blockedUnitDefs[buildDefID]) or false
-			if isBlocked then
+			if blockedUnitDefs and blockedUnitDefs[buildDefID] and next(blockedUnitDefs[buildDefID]) then
 				return false
 			end
 		end
