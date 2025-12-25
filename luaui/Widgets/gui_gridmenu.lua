@@ -163,7 +163,6 @@ local costOverrides = {}
 -------------------------------------------------------------------------------
 
 include("keysym.h.lua")
-local windFunctions = VFS.Include('common/wind_functions.lua')
 local unitBlocking = VFS.Include('luaui/Include/unitBlocking.lua')
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
@@ -1481,9 +1480,8 @@ function widget:Initialize()
 
 	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
 	for unitDefID, reasons in pairs(blockedUnitsData) do
-		for reason in pairs(reasons) do
-			units.unitRestricted[unitDefID] = true
-		end
+		units.unitRestricted[unitDefID] = next(reasons) ~= nil
+		units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
 	end
 end
 

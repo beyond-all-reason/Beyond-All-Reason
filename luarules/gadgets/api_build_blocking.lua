@@ -14,8 +14,7 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	local DEFAULT_KEY = "defaultKey"
-	local MAX_MESSAGES_PER_FRAME = 30
+	local MAX_MESSAGES_PER_FRAME = 30 -- zzz need implementing
 	local UNAUTHORIZED_TEXT = "You are not authorized to use build blocking commands"
 
 	local windDisabled = false
@@ -28,10 +27,7 @@ if gadgetHandler:IsSyncedCode() then
 	local teamsList = Spring.GetTeamList()
 
 	local ignoredTeams = {}
-	local gaiaTeamID, scavTeamID, raptorTeamID = Spring.GetGaiaTeamID(), Spring.Utilities.GetScavTeamID(), Spring.Utilities.GetRaptorTeamID()
-	if gaiaTeamID then 
-		ignoredTeams[gaiaTeamID] = true 
-	end
+	local scavTeamID, raptorTeamID = Spring.Utilities.GetScavTeamID(), Spring.Utilities.GetRaptorTeamID()
 	if scavTeamID then
 		ignoredTeams[scavTeamID] = true
 	end
@@ -91,12 +87,8 @@ if gadgetHandler:IsSyncedCode() then
 		local teamsToProcess = {}
 		if teamParam == "all" then
 			for _, teamID in ipairs(teamsList) do
-				if not Spring.GetGaiaTeamID() or teamID ~= Spring.GetGaiaTeamID() then
-					local scavTeamID = Spring.Utilities.GetScavTeamID()
-					local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
-					if (not scavTeamID or teamID ~= scavTeamID) and (not raptorTeamID or teamID ~= raptorTeamID) then
-						table.insert(teamsToProcess, teamID)
-					end
+				if not ignoredTeams[teamID] then
+					table.insert(teamsToProcess, teamID)
 				end
 			end
 		else
@@ -146,12 +138,8 @@ if gadgetHandler:IsSyncedCode() then
 		local teamsToProcess = {}
 		if teamParam == "all" then
 			for _, teamID in ipairs(teamsList) do
-				if not Spring.GetGaiaTeamID() or teamID ~= Spring.GetGaiaTeamID() then
-					local scavTeamID = Spring.Utilities.GetScavTeamID()
-					local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
-					if (not scavTeamID or teamID ~= scavTeamID) and (not raptorTeamID or teamID ~= raptorTeamID) then
-						table.insert(teamsToProcess, teamID)
-					end
+				if not ignoredTeams[teamID] then
+					table.insert(teamsToProcess, teamID)
 				end
 			end
 		else
@@ -204,21 +192,18 @@ if gadgetHandler:IsSyncedCode() then
 	local function UpdateTerrainRestrictions(teamID)
 		if windDisabled then
 			for unitDefID in pairs(unitRestrictions.isWind) do
-				local unitName = UnitDefs[unitDefID] and UnitDefs[unitDefID].name or ("ID:" .. unitDefID)
 				GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "terrain_wind")
 			end
 		end
 
 		if not waterAvailable then
 			for unitDefID in pairs(unitRestrictions.isWaterUnit) do
-				local unitName = UnitDefs[unitDefID] and UnitDefs[unitDefID].name or ("ID:" .. unitDefID)
 				GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "terrain_water")
 			end
 		end
 
 		if not geoAvailable then
 			for unitDefID in pairs(unitRestrictions.isGeothermal) do
-				local unitName = UnitDefs[unitDefID] and UnitDefs[unitDefID].name or ("ID:" .. unitDefID)
 				GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "terrain_geothermal")
 			end
 		end

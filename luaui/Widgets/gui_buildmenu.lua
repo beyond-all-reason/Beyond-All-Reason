@@ -25,7 +25,6 @@ local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
 include("keysym.h.lua")
-local windFunctions = VFS.Include('common/wind_functions.lua')
 local unitBlocking = VFS.Include('luaui/Include/unitBlocking.lua')
 
 local pairs = pairs
@@ -271,8 +270,6 @@ local modKeyMultiplier = {
 	shift = 5,
 	right = -1
 }
-
-local disableWind = windFunctions.isWindDisabled()
 
 local function checkGuishader(force)
 	if WG['guishader'] then
