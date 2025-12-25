@@ -2,7 +2,7 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name         = "No fire on own units (full cancel)",
+		name         = "Attack no ally",
 		desc         = "Redirects attack on allies to ground and fully exits attack mode on RMB",
 		author       = "Ceddral, Floris (modified)",
 		date         = "April 2018 (modified Dec 2025)",
