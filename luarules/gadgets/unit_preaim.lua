@@ -16,12 +16,14 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local spSetUnitWeaponState = Spring.SetUnitWeaponState
+
 --use weaponDef.customparams.exclude_preaim = true to exclude units from being able to pre-aim at targets almost within firing range.
 --this is a good idea for pop-up turrets so they don't prematurely reveal themselves.
 --also when proximityPriority is heavily biased toward far targets
 
-local rangeBoost = {}
 local autoTargetRangeBoost = {}
+
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if not unitDef.canFly then
 		local weaponBoost = {}
@@ -35,9 +37,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 				local range = weaponDef.range
 				local param = tonumber(weaponDef.customParams.preaim_range)
 				local boost = math.max(20, range * 0.10, (param or 0) - range)
-
-				weaponBoost[i] = weaponDefID
-				rangeBoost[weaponDefID] = boost
+				weaponBoost[i] = boost
 			end
 		end
 
@@ -48,9 +48,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
-	if autoTargetRangeBoost[unitDefID] then
-		for id, wdefID in pairs(autoTargetRangeBoost[unitDefID]) do
-			Spring.SetUnitWeaponState(unitID, id, "autoTargetRangeBoost", rangeBoost[wdefID])
+	local unitData = autoTargetRangeBoost[unitDefID]
+	if unitData then
+		for weaponNum, rangeBoost in pairs(unitData) do
+			spSetUnitWeaponState(unitID, weaponNum, "autoTargetRangeBoost", rangeBoost)
 		end
 	end
 end
