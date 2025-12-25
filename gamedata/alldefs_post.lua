@@ -74,6 +74,7 @@ local function processWeapons(unitDefName, unitDef)
 	end
 end
 
+
 function UnitDef_Post(name, uDef)
 	local modOptions = Spring.GetModOptions()
 
@@ -89,7 +90,7 @@ function UnitDef_Post(name, uDef)
 		uDef.minCollisionSpeed = 75 / Game.gameSpeed -- define the minimum velocity(speed) required for all units to suffer fall/collision damage.
 	end
 
-	-- Event Model Replacements: ----------------------------------------------------------------------------- 
+	-- Event Model Replacements: -----------------------------------------------------------------------------
 
 	-- April Fools
 	if Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"] then
@@ -164,7 +165,7 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	---------------------------------------------------------------------------------------------------------- 
+	----------------------------------------------------------------------------------------------------------
 
 
 
@@ -1223,7 +1224,7 @@ function UnitDef_Post(name, uDef)
 		--end
 
 	end
-	
+
 	--Air rework
 	if modOptions.air_rework == true then
 		local airReworkUnits = VFS.Include("unitbasedefs/air_rework_defs.lua")
@@ -1517,7 +1518,7 @@ function UnitDef_Post(name, uDef)
 
 	-- Experimental Low Priority Pacifists
 	if modOptions.experimental_low_priority_pacifists then
-		if uDef.energycost and uDef.metalcost and (not uDef.weapons or #uDef.weapons == 0) and uDef.speed and uDef.speed > 0 and 
+		if uDef.energycost and uDef.metalcost and (not uDef.weapons or #uDef.weapons == 0) and uDef.speed and uDef.speed > 0 and
 		(string.find(name, "arm") or string.find(name, "cor") or string.find(name, "leg")) then
 			uDef.power = uDef.power or ((uDef.metalcost + uDef.energycost / 60) * 0.1) --recreate the default power formula obtained from the spring wiki for target prioritization
 		end
@@ -1909,7 +1910,7 @@ function WeaponDef_Post(name, wDef)
 			wDef.targetborder = 1 --Aim for just inside the hitsphere
 
 			if wDef.weapontype == "BeamLaser" or wDef.weapontype == "LightningCannon" then
-				wDef.targetborder = 0.33 --approximates in current engine with bugged calculation, to targetborder = 1. 
+				wDef.targetborder = 0.33 --approximates in current engine with bugged calculation, to targetborder = 1.
 			end
 		end
 
@@ -1936,7 +1937,7 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
-		if modOptions.xmas and wDef.weapontype == "StarburstLauncher" and wDef.model and VFS.FileExists('objects3d\\candycane_' .. wDef.model) then
+		if (modOptions.date_day >= 18 and modOptions.date_month == 12) and wDef.weapontype == "StarburstLauncher" and wDef.model and VFS.FileExists('objects3d\\candycane_' .. wDef.model) then
 			wDef.model = 'candycane_' .. wDef.model
 		end
 
