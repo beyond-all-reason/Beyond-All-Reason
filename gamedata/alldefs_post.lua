@@ -74,11 +74,22 @@ local function processWeapons(unitDefName, unitDef)
 	end
 end
 
+
 function UnitDef_Post(name, uDef)
-	local modOptions = Spring.GetModOptions()
+	if not modOptions then
+		modOptions = Spring.GetModOptions()
+	end
 
 	local isScav = string.sub(name, -5, -1) == "_scav"
 	local basename = isScav and string.sub(name, 1, -6) or name
+
+	-- Cache holiday checks for performance
+	if not holidays then
+		holidays = Spring.Utilities.Gametype.GetCurrentHolidays()
+		isAprilFools = holidays["aprilfools"]
+		isHalloween = holidays["halloween"]
+		isXmas = holidays["xmas"]
+	end
 
 	if not uDef.icontype then
 		uDef.icontype = name
@@ -89,10 +100,10 @@ function UnitDef_Post(name, uDef)
 		uDef.minCollisionSpeed = 75 / Game.gameSpeed -- define the minimum velocity(speed) required for all units to suffer fall/collision damage.
 	end
 
-	-- Event Model Replacements: ----------------------------------------------------------------------------- 
+	-- Event Model Replacements: -----------------------------------------------------------------------------
 
 	-- April Fools
-	if Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"] then
+	if isAprilFools then
 		-- Something to experiment with
 		--if VFS.FileExists("units/event/aprilfools/" .. uDef.objectname) then
 		--	uDef.objectname = "units/event/aprilfools/" .. uDef.objectname
@@ -136,7 +147,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Halloween
-	if Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"] then
+	if isHalloween then
 		if name == "armcom" or name == "armdecom" then
 			uDef.objectname = "units/event/halloween/armcom.s3o"
 		elseif name == "corcom" or name == "cordecom" then
@@ -156,7 +167,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Xmas
-	if Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] then
+	if isXmas then
 		if name == "armcom" or name == "armdecom" then
 			uDef.objectname = "units/event/xmas/armcom.s3o"
 		elseif name == "corcom" or name == "cordecom" then
@@ -164,7 +175,7 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	---------------------------------------------------------------------------------------------------------- 
+	----------------------------------------------------------------------------------------------------------
 
 
 
@@ -236,7 +247,7 @@ function UnitDef_Post(name, uDef)
 		end
 
 		if modOptions.unit_restrictions_noair and not uDef.customparams.ignore_noair then
-			if string.find(uDef.customparams.subfolder, "Aircraft") then
+			if string.find(uDef.customparams.subfolder, "Aircraft", 1, true) then
 				uDef.maxthisunit = 0
 			elseif uDef.customparams.unitgroup and uDef.customparams.unitgroup == "aa" then
 				uDef.maxthisunit = 0
@@ -323,8 +334,11 @@ function UnitDef_Post(name, uDef)
 				--sea aa= true,
 			}
 			-- "defense" or "defence", as legion doesn't fully follow past conventions
-			if not whitelist[name] and string.find(string.lower(uDef.customparams.subfolder), "defen") then
-				uDef.maxthisunit = 0
+			if not whitelist[name] then
+				local subfolder_lower = string.lower(uDef.customparams.subfolder)
+				if string.find(subfolder_lower, "defen", 1, true) then
+					uDef.maxthisunit = 0
+				end
 			end
 		end
 
@@ -839,7 +853,7 @@ function UnitDef_Post(name, uDef)
 
 	end
 
-	if string.find(name, "raptor") and uDef.health then
+	if string.find(name, "raptor", 1, true) and uDef.health then
 		local raptorHealth = uDef.health
 		uDef.activatewhenbuilt = true
 		uDef.metalcost = raptorHealth * 0.5
@@ -910,30 +924,34 @@ function UnitDef_Post(name, uDef)
 	-- make los height a bit more forgiving	(20 is the default)
 	--uDef.sightemitheight = (uDef.sightemitheight and uDef.sightemitheight or 20) + 20
 	if true then
-		uDef.sightemitheight = 0
-		uDef.radaremitheight = 0
+		local sightHeight = 0
+		local radarHeight = 0
+
 		if uDef.collisionvolumescales then
-			local x = uDef.collisionvolumescales
-			local xtab = {}
-			for i in string.gmatch(x, "%S+") do
-				xtab[#xtab + 1] = i
+			local _, yScale = string.match(uDef.collisionvolumescales, "([^%s]+)%s+([^%s]+)")
+			if yScale then
+				local yVal = tonumber(yScale)
+				sightHeight = sightHeight + yVal
+				radarHeight = radarHeight + yVal
 			end
-			uDef.sightemitheight = uDef.sightemitheight + tonumber(xtab[2])
-			uDef.radaremitheight = uDef.radaremitheight + tonumber(xtab[2])
 		end
+
 		if uDef.collisionvolumeoffsets then
-			local x = uDef.collisionvolumeoffsets
-			local xtab = {}
-			for i in string.gmatch(x, "%S+") do
-				xtab[#xtab + 1] = i
+			local _, yOffset = string.match(uDef.collisionvolumeoffsets, "([^%s]+)%s+([^%s]+)")
+			if yOffset then
+				local yVal = tonumber(yOffset)
+				sightHeight = sightHeight + yVal
+				radarHeight = radarHeight + yVal
 			end
-			uDef.sightemitheight = uDef.sightemitheight + tonumber(xtab[2])
-			uDef.radaremitheight = uDef.radaremitheight + tonumber(xtab[2])
 		end
-		if uDef.sightemitheight < 40 then
-			uDef.sightemitheight = 40
-			uDef.radaremitheight = 40
+
+		if sightHeight < 40 then
+			sightHeight = 40
+			radarHeight = 40
 		end
+
+		uDef.sightemitheight = sightHeight
+		uDef.radaremitheight = radarHeight
 	end
 
 	-- Wreck and heap standardization
@@ -1010,8 +1028,8 @@ function UnitDef_Post(name, uDef)
 	categories["ALL"] = function() return true end
 	categories["MOBILE"] = function(uDef) return uDef.speed and uDef.speed > 0 end
 	categories["NOTMOBILE"] = function(uDef) return not categories.MOBILE(uDef) end
-	categories["WEAPON"] = function(uDef) return uDef.weapondefs ~= nil end
-	categories["NOWEAPON"] = function(uDef) return not categories.WEAPON(uDef) end
+	categories["WEAPON"] = function(uDef) return uDef.weapondefs end
+	categories["NOWEAPON"] = function(uDef) return not uDef.weapondefs end
 	categories["VTOL"] = function(uDef) return uDef.canfly == true end
 	categories["NOTAIR"] = function(uDef) return not categories.VTOL(uDef) end
 	categories["HOVER"] = function(uDef) return hoverList[uDef.movementclass] and (uDef.maxwaterdepth == nil or uDef.maxwaterdepth < 1) end -- convertible tank/boats have maxwaterdepth
@@ -1026,20 +1044,22 @@ function UnitDef_Post(name, uDef)
 	categories["COMMANDER"] = function(uDef) return commanderList[uDef.movementclass] end
 	categories["EMPABLE"] = function(uDef) return categories.SURFACE(uDef) and uDef.customparams and uDef.customparams.paralyzemultiplier ~= 0 end
 
-	uDef.category = uDef.category or ""
-	if not string.find(uDef.category, "OBJECT") then -- objects should not be targetable and therefore are not assigned any other category
+	local category = uDef.category or ""
+	if not string.find(category, "OBJECT", 1, true) then -- objects should not be targetable and therefore are not assigned any other category
+		local exemptcategory = uDef.exemptcategory
 		for categoryName, condition in pairs(categories) do
-			if uDef.exemptcategory == nil or not string.find(uDef.exemptcategory, categoryName) then
+			if not exemptcategory or not string.find(exemptcategory, categoryName, 1, true) then
 				if condition(uDef) then
-						uDef.category = uDef.category.." " .. categoryName
+					category = category .. " " .. categoryName
 				end
 			end
 		end
+		uDef.category = category
 	end
 
 	if uDef.canfly then
 		uDef.crashdrag = 0.01    -- default 0.005
-		if not (string.find(name, "fepoch") or string.find(name, "fblackhy") or string.find(name, "corcrw") or string.find(name, "legfort")) then
+		if not (string.find(name, "fepoch", 1, true) or string.find(name, "fblackhy", 1, true) or string.find(name, "corcrw", 1, true) or string.find(name, "legfort", 1, true)) then
 			--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
 			uDef.collide = false
 		end
@@ -1223,7 +1243,7 @@ function UnitDef_Post(name, uDef)
 		--end
 
 	end
-	
+
 	--Air rework
 	if modOptions.air_rework == true then
 		local airReworkUnits = VFS.Include("unitbasedefs/air_rework_defs.lua")
@@ -1517,7 +1537,7 @@ function UnitDef_Post(name, uDef)
 
 	-- Experimental Low Priority Pacifists
 	if modOptions.experimental_low_priority_pacifists then
-		if uDef.energycost and uDef.metalcost and (not uDef.weapons or #uDef.weapons == 0) and uDef.speed and uDef.speed > 0 and 
+		if uDef.energycost and uDef.metalcost and (not uDef.weapons or #uDef.weapons == 0) and uDef.speed and uDef.speed > 0 and
 		(string.find(name, "arm") or string.find(name, "cor") or string.find(name, "leg")) then
 			uDef.power = uDef.power or ((uDef.metalcost + uDef.energycost / 60) * 0.1) --recreate the default power formula obtained from the spring wiki for target prioritization
 		end
@@ -1721,7 +1741,12 @@ end
 
 -- process weapondef
 function WeaponDef_Post(name, wDef)
-	local modOptions = Spring.GetModOptions()
+	if not modOptions then
+		modOptions = Spring.GetModOptions()
+	end
+	if isXmas == nil then
+		isXmas = Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"]
+	end
 
 	if not SaveDefsToCustomParams then
 		-------------- EXPERIMENTAL MODOPTIONS
@@ -1781,7 +1806,7 @@ function WeaponDef_Post(name, wDef)
 		end
 
 		--[[Skyshift: Air rework
-		if Spring.GetModOptions().skyshift == true then
+		if modoptions.skyshift == true then
 			skyshiftUnits = VFS.Include("unitbasedefs/skyshiftunits_post.lua")
 			wDef = skyshiftUnits.skyshiftWeaponTweaks(name, wDef)
 		end]]
@@ -1909,7 +1934,7 @@ function WeaponDef_Post(name, wDef)
 			wDef.targetborder = 1 --Aim for just inside the hitsphere
 
 			if wDef.weapontype == "BeamLaser" or wDef.weapontype == "LightningCannon" then
-				wDef.targetborder = 0.33 --approximates in current engine with bugged calculation, to targetborder = 1. 
+				wDef.targetborder = 0.33 --approximates in current engine with bugged calculation, to targetborder = 1.
 			end
 		end
 
@@ -1936,7 +1961,7 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
-		if modOptions.xmas and wDef.weapontype == "StarburstLauncher" and wDef.model and VFS.FileExists('objects3d\\candycane_' .. wDef.model) then
+		if isXmas and wDef.weapontype == "StarburstLauncher" and wDef.model and VFS.FileExists('objects3d\\candycane_' .. wDef.model) then
 			wDef.model = 'candycane_' .. wDef.model
 		end
 
@@ -1993,7 +2018,7 @@ function WeaponDef_Post(name, wDef)
 		end
 
 		-- scavengers
-		if string.find(name, '_scav') then
+		if string.find(name, '_scav', 1, true) then
 			VFS.Include("gamedata/scavengers/weapondef_post.lua")
 			wDef = scav_Wdef_Post(name, wDef)
 		end
@@ -2018,8 +2043,13 @@ function WeaponDef_Post(name, wDef)
 		if wDef.weapontype == "StarburstLauncher" and wDef.weapontimer then
 			wDef.weapontimer = wDef.weapontimer + (wDef.weapontimer * ((rangeMult - 1) * 0.4))
 		end
-		if wDef.customparams and wDef.customparams.overrange_distance then
-			wDef.customparams.overrange_distance = wDef.customparams.overrange_distance * rangeMult
+		if wDef.customparams then
+			if wDef.customparams.overrange_distance then
+				wDef.customparams.overrange_distance = wDef.customparams.overrange_distance * rangeMult
+			end
+			if wDef.customparams.preaim_range then
+				wDef.customparams.preaim_range = wDef.customparams.preaim_range * rangeMult
+			end
 		end
 	end
 
@@ -2036,7 +2066,7 @@ function WeaponDef_Post(name, wDef)
 	-- ExplosionSpeed is calculated same way engine does it, and then doubled
 	-- Note that this modifier will only effect weapons fired from actual units, via super clever hax of using the weapon name as prefix
 	if wDef.damage and wDef.damage.default then
-		if string.find(name, '_', nil, true) then
+		if string.find(name, '_', 1, true) then
 			local prefix = string.sub(name, 1, 3)
 			if prefix == 'arm' or prefix == 'cor' or prefix == 'leg' or prefix == 'rap' then
 				local globaldamage = math.max(30, wDef.damage.default / 20)

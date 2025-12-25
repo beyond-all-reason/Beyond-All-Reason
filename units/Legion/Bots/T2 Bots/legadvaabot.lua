@@ -137,6 +137,7 @@ return {
 				weaponvelocity = 1900,
 				customparams = {
 					norangering = 1,
+					preaim_range = 1050,
 				},
 				damage = {
 					vtol = 40,
