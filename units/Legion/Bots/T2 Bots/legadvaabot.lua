@@ -142,6 +142,9 @@ return {
 				weapontimer = 1,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3642,
+				customparams = {
+					preaim_range = 750,
+				},
 				damage = {
 					default = 1,
 					vtol = 15,
