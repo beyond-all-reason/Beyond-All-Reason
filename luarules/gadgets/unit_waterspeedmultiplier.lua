@@ -44,6 +44,14 @@ for defID, ud in pairs(UnitDefs) do
     end
 end
 
+local moveTypeData = {
+	maxSpeed       = 0,
+	maxWantedSpeed = 0,
+	turnRate       = 0,
+	accRate        = 0,
+	decRate        = 0,
+}
+
 -- applies a mutiplicative factor to a unit's base movement stats: speed, wanted speed, turn rate, accel, decel
 -- The base stats come from UnitDefs and are scaled proportionally
 --
@@ -51,24 +59,26 @@ end
 -- This gadget should eventually integrate with a system that can compose
 -- multiple wanted speeds, constraints, and coefficients, as per efrec/BONELESS/qscrew
 -- Current implementation is local only.
-local function applySpeed(unitID, stats, factor)
+local function setMoveTypeData(unitID, stats, factor)
+	local data = moveTypeData
 
-    if spMoveCtrlEnabled(unitID) then return end
-    
-    local speedFactor = factor
-    local accelFactor = factor * 0.75 + 0.25
-    local decelFactor = factor * 0.75 + 0.25
-    local turnFactor  = factor * 0.5 + 0.5
-    --these factor effectiveness values for the given unit stats were chosen arbitrarily for the best mechanical feel and balance, 
+	--these factor effectiveness values for the given unit stats were chosen arbitrarily for the best mechanical feel and balance, 
     --as well as to avoid strange jerky visuals
+	local speed = stats.speed * factor
 
-    spSetGroundMoveTypeData(unitID, {
-		maxSpeed       = stats.speed * speedFactor,
-        maxWantedSpeed = stats.speed * speedFactor,
-        turnRate       = stats.turn  * turnFactor,
-        accRate        = stats.acc   * accelFactor,
-        decRate        = stats.dec   * decelFactor,
-    })
+	data.maxSpeed       = speed
+	data.maxWantedSpeed = speed
+	data.turnRate       = stats.turn * (factor * 0.50 + 0.50)
+	data.accRate        = stats.acc  * (factor * 0.75 + 0.25)
+	data.decRate        = stats.dec  * (factor * 0.75 + 0.25)
+
+	spSetGroundMoveTypeData(unitID, moveTypeData)
+end
+
+local function applySpeed(unitID, stats, factor)
+    if not spMoveCtrlEnabled(unitID) then
+		setMoveTypeData(unitID, stats, factor)
+	end
 end
 
 function gadget:Initialize()
