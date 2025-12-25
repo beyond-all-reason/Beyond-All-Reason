@@ -27,6 +27,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spSetUnitHealth = Spring.SetUnitHealth
 	local spGetGameSeconds = Spring.GetGameSeconds
 	local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
+	local spGetUnitDefID = Spring.GetUnitDefID
 
 
 
@@ -100,6 +101,31 @@ if gadgetHandler:IsSyncedCode() then
 			spSetUnitHealth(unitID, {health = 1, capture = 0, paralyze = stunDuration,})
 			spGiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 		end
+
+		local unitDefID = spGetUnitDefID(unitID)
+		local udcp = defCustomParams[unitDefID]
+		if udcp and udcp.iscommander then
+			local unitTeam = respawnMetaList[unitID].unitTeam
+			local allPlayers = Spring.GetPlayerList()
+			local notificationEvent
+			for _, playerID in ipairs(allPlayers) do
+				local playerName, active, isSpectator, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, true)
+				if teamID and unitTeam and not isSpectator then
+					if teamID == unitTeam then
+						notificationEvent = "TranspositionInitiated"
+					elseif teamID and Spring.AreTeamsAllied(teamID, unitTeam) then
+						notificationEvent = "AlliedTranspositionInitiated"
+					else
+						notificationEvent = "EnemyTranspositionDetected"
+					end
+				elseif isSpectator then
+					notificationEvent = "TranspositionInitiated"
+				end
+				if notificationEvent then
+					GG.notifications.queueNotification(notificationEvent, "playerID", tostring(playerID))
+				end
+			end
+		end
     end
 
 
@@ -120,6 +146,7 @@ if gadgetHandler:IsSyncedCode() then
 				distance_stun_multiplier = tonumber(udcp.distance_stun_multiplier) or 0,
 				destructive_respawn = udcp.destructive_respawn or true,
 				respawn_pad = udcp.respawn_pad or "false",
+				unitTeam = unitTeam,
 				respawnTimer = spGetGameSeconds(),
 				effigyID = nil,
 			}

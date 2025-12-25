@@ -63,6 +63,15 @@ return {
 		delay = 30,
 		soundEffect = "YouHaveTheLastCommander",
 	},
+	TranspositionInitiated = {
+		delay = 5,
+	},
+	AlliedTranspositionInitiated = {
+		delay = 5,
+	},
+	EnemyTranspositionDetected = {
+		delay = 5,
+	},
 
 	-- Game Status
 	ChooseStartLoc = {
