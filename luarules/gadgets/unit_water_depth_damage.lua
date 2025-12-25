@@ -75,6 +75,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	end
 	if unitDef.customParams.decoration then
 		defData.isAmphibious = true
+		defData.isDrownable = false
 	end
 	unitDefData[unitDefID] = defData
 end
