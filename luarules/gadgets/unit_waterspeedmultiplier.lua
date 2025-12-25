@@ -113,7 +113,7 @@ local function applySpeed(unitID, unitData, factor)
 		factor = unitData.speedFactorInWater
 		local depthMax = unitData.speedFactorAtDepth
 		if depthMax < 0 then
-			factor = 1 + (1 - factor) * math_clamp(getUnitDepth(unitID) / depthMax, 0, 1)
+			factor = 1 + (factor - 1) * math_clamp(getUnitDepth(unitID) / depthMax, 0, 1)
 		end
 	end
 	setMoveTypeData(unitID, unitData, factor)
@@ -123,7 +123,7 @@ local function slowUpdate()
 	local getDepth = getUnitDepth -- micro speedup
 
 	for unitID, unitData in pairs(unitDepthSlowUpdate) do
-		if getDepth(unitID) > unitData.speedFactorAtDepth - 10 then
+		if getDepth(unitID) > unitData.speedFactorAtDepth - 15 then
 			unitDepthFastUpdate[unitID] = unitData
 			unitDepthSlowUpdate[unitID] = nil
 		end
@@ -136,8 +136,8 @@ local function fastUpdate()
 	for unitID, unitData in pairs(unitDepthFastUpdate) do
 		if not inMoveCtrl(unitID) then
 			local depth, depthMax = getDepth(unitID), unitData.speedFactorAtDepth
-			if depth >= depthMax - 10 then
-				setMoveData(unitID, unitData, 1 + (1 - unitData.speedFactorInWater) * math_clamp(depth / depthMax, 0, 1))
+			if depth >= depthMax - 15 then
+				setMoveData(unitID, unitData, 1 + (unitData.speedFactorInWater - 1) * math_clamp(depth / depthMax, 0, 1))
 			else
 				unitDepthSlowUpdate[unitID] = unitData
 				unitDepthFastUpdate[unitID] = nil
@@ -163,9 +163,9 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     local unitData = unitDefData[unitDefID]
     if unitData and getUnitDepth(unitID) <= 0 then
-		if not spMoveCtrlEnabled(unitID) then
+		-- if not spMoveCtrlEnabled(unitID) then
 			applySpeed(unitID, unitData)
-		end
+		-- end
 		if unitData.speedFactorAtDepth ~= 0 then
 			unitDepthFastUpdate[unitID] = unitData
 		end
