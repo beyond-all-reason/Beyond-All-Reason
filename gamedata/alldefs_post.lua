@@ -2043,8 +2043,13 @@ function WeaponDef_Post(name, wDef)
 		if wDef.weapontype == "StarburstLauncher" and wDef.weapontimer then
 			wDef.weapontimer = wDef.weapontimer + (wDef.weapontimer * ((rangeMult - 1) * 0.4))
 		end
-		if wDef.customparams and wDef.customparams.overrange_distance then
-			wDef.customparams.overrange_distance = wDef.customparams.overrange_distance * rangeMult
+		if wDef.customparams then
+			if wDef.customparams.overrange_distance then
+				wDef.customparams.overrange_distance = wDef.customparams.overrange_distance * rangeMult
+			end
+			if wDef.customparams.preaim_range then
+				wDef.customparams.preaim_range = wDef.customparams.preaim_range * rangeMult
+			end
 		end
 	end
 
