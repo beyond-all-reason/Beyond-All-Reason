@@ -83,14 +83,18 @@ if gadgetHandler:IsSyncedCode() then
 
 		if respawnMetaList[unitID].effigyID then
 			local health, maxHealth = spGetUnitHealth(unitID)
-			local ex,ey,ez = spGetUnitPosition(respawnMetaList[unitID].effigyID)
+			local effigyID = respawnMetaList[unitID].effigyID
+			local ex,ey,ez = spGetUnitPosition(effigyID)
 			Spring.SetUnitPosition(unitID, ex, ez, true)
 			Spring.SpawnCEG("commander-spawn", ex, ey, ez, 0, 0, 0)
 			Spring.PlaySoundFile("commanderspawn-mono", 1.0, ex, ey, ez, 0, 0, 0, "sfx")
 			GG.ComSpawnDefoliate(ex, ey, ez)
 
+			-- Mark effigy as used for respawning to prevent "lost" notifications
+			respawnMetaList[unitID].effigyID = nil
+
 			if respawnMetaList[unitID].respawn_pad == "false" then
-				Spring.SetUnitPosition(respawnMetaList[unitID].effigyID, x, z, true)
+				Spring.SetUnitPosition(effigyID, x, z, true)
 				Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
 				Spring.PlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
 				GG.ComSpawnDefoliate(x, y, z)
@@ -98,12 +102,11 @@ if gadgetHandler:IsSyncedCode() then
 
 			if respawnMetaList[unitID].destructive_respawn then
 			    if friendlyFire then
-			        spDestroyUnit(respawnMetaList[unitID].effigyID, false, true)
+			        destroyEffigy(effigyID, false, true)
 			    else
-				    spDestroyUnit(respawnMetaList[unitID].effigyID, false, false)
+				    destroyEffigy(effigyID, false, false)
 				end
 				spSetUnitRulesParam(unitID, "unit_effigy", nil, PRIVATE)
-				respawnMetaList[unitID].effigyID = nil
 			end
 			local stunDuration = maxHealth + ((maxHealth/30)*respawnMetaList[unitID].minimum_respawn_stun) + (((maxHealth/30)*diag((x-ex), (z-ez))*respawnMetaList[unitID].distance_stun_multiplier)/250)--250 is an arbitrary number that seems to produce desired results.
 			spSetUnitHealth(unitID, {health = 1, capture = 0, paralyze = stunDuration,})
@@ -234,7 +237,8 @@ if gadgetHandler:IsSyncedCode() then
 
 		if effigyOwnerID then
 			local udcp = defCustomParams[Spring.GetUnitDefID(effigyOwnerID)]
-			if udcp and udcp.iscommander then
+			if udcp and udcp.iscommander and respawnMetaList[effigyOwnerID].effigyID then
+				-- Only send notification if the effigy wasn't already used for respawning
 				local commanderTeam = respawnMetaList[effigyOwnerID].unitTeam
 
 				local allPlayers = Spring.GetPlayerList()
