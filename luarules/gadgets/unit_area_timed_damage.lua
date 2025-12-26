@@ -64,6 +64,11 @@ local sqrt                    = math.sqrt
 local round                   = math.round
 local diag                    = math.diag
 local normalize               = math.normalize
+local stringFind              = string.find
+local stringGsub              = string.gsub
+local stringLower             = string.lower
+local tableInsert             = table.insert
+local tableRemove             = table.remove
 
 local spAddUnitDamage         = Spring.AddUnitDamage
 local spGetFeatureHealth      = Spring.GetFeatureHealth
@@ -78,15 +83,7 @@ local spSetFeatureHealth      = Spring.SetFeatureHealth
 local spSpawnCEG              = Spring.SpawnCEG
 local spGetAllFeatures        = Spring.GetAllFeatures
 local spGetFeatureDefID       = Spring.GetFeatureDefID
-local spGetAllUnits           = Spring.GetAllUnits
-local spGetUnitIsBeingBuilt   = Spring.GetUnitIsBeingBuilt
-local spGetUnitHealth         = Spring.GetUnitHealth
 local spDestroyFeature        = Spring.DestroyFeature
-local stringFind              = string.find
-local stringGsub              = string.gsub
-local stringLower             = string.lower
-local tableInsert             = table.insert
-local tableRemove             = table.remove
 
 local gameSpeed               = Game.gameSpeed
 
