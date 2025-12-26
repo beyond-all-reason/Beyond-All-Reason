@@ -18,26 +18,24 @@
 	// ============================================   Legion Ground Factories   =======================================0
 
 			"leglab": {
-				"role": ["static"],
+				"role": ["support"],
 				"limit": 1,
 				"build_speed": 5.0,  //bp 100
 				"midposoffset": [-3.239746, 0, -2]
 			},
 			"legalab": {
-				"role": ["static"],
-				"attribute": ["support"],
+				"role": ["support"],
 				"limit": 1,
 				"build_speed": 15.0 // bp 300
 			},
 			"legvp": {
-				"role": ["static"],
+				"role": ["support"],
 				"limit": 1,
 				"build_speed": 5.0 // bp 100
 	
 			},
 			"legavp": {
-				"role": ["static"],
-				"attribute": ["support"],
+				"role": ["support"],
 				"limit": 1,
 				"build_speed": 15.0  //bp 300
 			},
@@ -50,25 +48,25 @@
 	// ============================================   Legion Sea Factories   =======================================0
 
 			"legfhp": {
-				"role": ["static"],
+				"role": ["support"],
 				"build_speed": 10.0, //bp 200
 				"limit": 1
 			},
 			"legsy": {
-				"role": ["static"],
+				"role": ["support"],
 				"build_speed": 8.0, //bp 165
 				"build_mod": 1000.0,
 				"limit": 1
 			},
-			//"legasy": {
-			//	"role": ["static"],
-			//	"build_speed": 15.0,  //bp 300
-			//	"build_mod": 1000.0,
-			//	"since": 300,
-			//	"limit": 1
-			//},
-			"legamsub": {
-				"role": ["builder"],
+			"legadvshipyard": {
+				"role": ["support"],
+				"build_speed": 15.0,  //bp 300
+				"build_mod": 1000.0,
+				"since": 300,
+				"limit": 1
+			},
+			"legamphlab": {
+				"role": ["support"],
 				"build_speed": 7.5, //bp 150
 				"limit": 1
 			},
@@ -76,19 +74,16 @@
 	// ============================================   Legion Air Factories   =======================================0
 
 			"legap": {
-				"role": ["static"],
-				"attribute": ["support"],
+				"role": ["support"],
 				"build_speed": 5.0
 			},
 			"legaap": {
-				"role": ["static"],
-				"attribute": ["support"],
+				"role": ["support"],
 				"limit": 1,
 				"build_speed": 10.0
 			},
 			"legsplab": {
-				"role": ["static"],
-				"attribute": ["support"],
+				"role": ["support"],
 				"build_speed": 8.0,
 				"limit": 1
 			},
@@ -96,14 +91,12 @@
 	// ============================================   Legion T3 Factories   =======================================0
 
 			"leggant": {
-				"role": ["static"],
-				"attribute": ["support", "solo"],
+				"role": ["support"],
 				"limit": 1,
 				"build_speed": 45.0 //bp 300
 			},
 			"leggantuw": {
-				"role": ["static"],
-				"attribute": ["support", "solo"],
+				"role": ["support"],
 				"limit": 1,
 				"build_speed": 45.0 //bp 300
 			},
@@ -904,29 +897,34 @@
 			// LEGION SEA PLATFORM aircraft - legsplab
 	
 			"legspradarsonarplane": {
-				"role": ["scout", "air"]
+				"role": ["scout", "air"],
+				"attribute": ["rare"]
 			},
 			"legspsurfacegunship": {
-				"role": ["skirmish", "air"]
+				"role": ["skirmish", "air"],
+				"attribute": ["rare"]
 			},
 			"legspbomber": {
-				"role": ["bomber", "air"]
+				"role": ["bomber", "air"],
+				"attribute": ["rare"]
 			},
 			"legspcarrier": {
-				"role": ["assault", "air"]
+				"role": ["assault", "air"],
+				"attribute": ["rare"]
 			},
 			"legspfighter": {
-				"role": ["anti_air"]
+				"role": ["anti_air"],
+				"attribute": ["rare"]
 			},
 			"legsptorpgunship": {
-				"role": ["anti_sub", "air"]
+				"role": ["anti_sub", "air"],
+				"attribute": ["rare"]
 			},
 
 			// LEGION SEA
 
 			"legnavyrezsub": {
 				"role": ["support"],
-				"attribute": ["rare"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
 			},
@@ -958,7 +956,7 @@
 			},
 			"legnavysub": {
 				"role": ["sub"],
-				"attribute": ["anti_sub"],
+				"attribute": ["rare"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
 			},

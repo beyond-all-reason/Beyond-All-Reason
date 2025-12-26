@@ -156,16 +156,16 @@
 		"caretaker": 3
 	},
 	"legsplab": {
-		"importance": [0.0, 0.2],
-		"require_energy": true,	
-		"income_tier": [50],
+		"importance": [0.0, 0.0],
+		"require_energy": false,	
+		"income_tier": [20],
 		"unit":      ["legspcon", 	"legspradarsonarplane", "legspsurfacegunship", "legspbomber", 	"legspcarrier", "legspfighter", "legsptorpgunship"],
 		"land": {
 			"tier0": [ 0.05,     	0.05,      				0.15,      				0.25,      		0.15,       	0.25,       	0.10],
 			"tier1": [ 0.05,     	0.05,      				0.15,      				0.25,      		0.15,       	0.25,       	0.10]
 		},
 
-		"caretaker": 2
+		"caretaker": 6
 	},
 
 //#######################################################################################################################
@@ -189,17 +189,18 @@
 	},
 	"legadvshipyard": {
 		"importance": [0.0, 1.0],
-		"require_energy": true,
-		"income_tier": [40],
-		"unit":      ["leganavyconsub", "leganavyengineer", "leganavyantiswarm",	"leganavycruiser", 	"leganavymissileship", 	"leganavybattleship", 	"leganavyartyship", 	"leganavyflagship", 
-					  "leganavyaaship", "leganavyantinukecarrier", 	"leganavyradjamship", 	"leganavybattlesub", 	"leganavyheavysub"],
+		"require_energy": false,
+		"income_tier": [80, 300],
+		//Metal Cost  700				200					500					 900				2000					2900					13000				16000				1000			  1400						 450					1100					1900	
+		"unit":      ["leganavyconsub", "leganavyengineer", "leganavyantiswarm", "leganavycruiser", "leganavymissileship", 	"leganavybattleship", 	"leganavyartyship", "leganavyflagship", "leganavyaaship", "leganavyantinukecarrier", "leganavyradjamship", 	"leganavybattlesub", 	"leganavyheavysub"],
 		"land": {
-			"tier0": [0.01,    			0.01,      			0.25,    				0.25,        		0.05,       			0.05,     				0.05,     				0.05,     			
-					  0.05,     		0.05,     					0.05,     				0.05,     				0.08]
+			"tier0": [0.04,    			0.01,      			0.15,    			 0.35,        		0.30,       			0.00,     				0.00,     			0.00,     			0.05,     		  0.05,     				 0.05,     				0.00,     				0.00],
+			"tier1": [0.04,    			0.01,      			0.05,    			 0.25,        		0.15,       			0.25,     				0.00,     			0.00,     			0.05,     		  0.05,     				 0.05,     				0.15,     				0.10],
+			"tier2": [0.04,    			0.01,      			0.05,    			 0.05,        		0.05,       			0.15,     				0.05,     			0.35,     			0.05,     		  0.05,     				 0.05,     				0.05,     				0.05]
 		},
 		"caretaker": 6
 	},
-	"leghp": {
+	"leghp": {			// Disabled for now
 		"importance": [0.0, 0.0],
 		"require_energy": false,	
 		"income_tier": [20, 30, 40],	
@@ -225,8 +226,8 @@
 
 		"caretaker": 2
 	},	
-	"legfhp": {
-		"importance": [1.5, 1.0],
+	"legfhp": {			// Disabled for now
+		"importance": [0.0, 0.0],
 		"require_energy": false,	
 		"income_tier": [20, 30, 40],	
 		"unit":      ["legch", "legsh", "legner", "legmh", "legah", "legcar"],	
@@ -251,7 +252,7 @@
 
 		"caretaker": 2
 	},
-	"legamphlab": {
+	"legamphlab": {			// Disabled for now
 		"importance": [0.0, 0.0],
 		"require_energy": true,		
 		"income_tier": [30],	
