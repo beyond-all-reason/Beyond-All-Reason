@@ -1,5 +1,73 @@
     // Mono-space font required
-	{
+{
+    //attack = 0.3 means enemy threat = enemy_threat*0.3
+    //and attack group select only targets that have threat lower than the group's power. Power is like threat, but behaviour.json has separate modifiers for threat (enemy) and power (own).
+    //with attack=0.8..1.0 AI acts more careful, if it would also fight superior enemy near own static defences then those values would be great. 
+    //But there's possibility that AI will just run from enemy till it has big enough group, but it may loose its base. So if with attack=0.8..1.0 AI is not loosing base then everything is ok and i think this range is optimal.
+
+	"quota": {
+		"scout": 2,  // max scout units out of raiders
+		"raid": [6.0, 150.0],  // [<min>, <avg>] power of raider squad 2.5,48
+		"attack": 60.0,  // min power of attack group ---- was 40
+		"thr_mod": {				//AI attacks everything with final threat (after all calculations) <= 1
+			"attack": [0.6, 0.8],  // [<min>, <max>] enemy threat multiplier for target selection of attack task |  values <1 makes enemy group seem less of an thread for ai => ai attacks stronger groups than it own | org=0.25, 0.3
+			"defence": [0.3, 0.5],  // [<min>, <max>] enemy threat modifier for group size calculation of defence task; org=0.95, 0.95 | high values = low risk; low values = high risk 
+			"mobile": 1.0,  // initial modifier for power of attack group based on mobile enemy threat; org=1.05
+			"static": 1.0,  // initial modifier for power of attack group based on static enemy threat; org= 1.2
+			"comm": 0.003   // because of power of dgun
+		},
+		// anti-air threat threshold, air factories will stop production when AA threat exceeds
+		"aa_threat": [[8, 500.0], [24, 500.0]],  // [[<map_start>, <threat_start>], [<map_end>, <threat_end>]]
+		"slack_mod": {
+			"all": 0.5,  // threat map 64-elmos slack multiplier for all units
+			"static": 1.0,  // additional 64-elmo-cells for static units
+			"speed": [0.75, 4.0]  // [<64elmo_cells_speed_mod>, <max_64elmo_cells>]
+		},
+		"num_batch": 3, //repeat unit build if response factory build is called
+		"anti_cap": 2.0  // probability 0.0~1.0 of AntiCapture action
+	},
+
+    // If unit's health drops below specified percent it will retreat
+	"retreat": {
+		"builder": [0.85, 1.0],  // [<default>, <UnitDef modifier>] for all builders
+		"fighter": [0.50, 1.0],  // [<default>, <UnitDef modifier>] for all not-builder units
+		"shield": [0.25, 0.275]  // [<empty>, <full>] shield power
+	},
+
+
+    // following block is all about defense
+	"defence": {
+   		"infl_rad": 5,  // influenece cell radius for defendAlly map
+    	"base_rad": [800.0, 1400.0],  // BASE DEFENDING RADIUS: defend if enemy within clamp(distance(lane_pos, base_pos), 1000, 2000)
+    	"comm_rad": [800.0, 400.0],  // 0 distance from base ~ 1000, base_rad ~ 500.0 => comm_rad is radius within which it checks for enemy. It's largest near base and smaller at the edge of base_rad
+		"escort": [3, 1, 540]  // [<builders_count>, <defenders_count>, <escort rule until this time>]  2,2,360
+	},
+    // read of "escort":  [number of builders with defenders, number of defenders for each builder, timeframe were only escorted builders are able to expand (=build mex, porc)]
+    // base radius: ai checks if is withing base_rad. if there is enemy it checks if it is withing comm radius which is variable and depend on distance from base
+    // if there is, then ai checks speed, direction and threat on enemys position. if all conditions positive => com attacks
+
+	//------- THREAT MODIFIERS ---------
+    // "threat"  : how ai sees enemy units
+    // "power" : how ai sees own units
+	// threat categories: air, surface (= water & land), water (= underwater), default
+	// threat roles: scout, raider, skrimish, assault, heavy, anti_heavy, artillery, super
+
+    //when are thread modifiers needed?
+    // => basically when the simple formula dps*hp does not work to calculate the thread/power of a unit:
+    // - overshooting
+    // -inability to hit a certain target due to slow/bad aiming or inability to attack at all (cause target is air or underwater etc. )
+    // -aoe
+    // -dps of paralyzer weapons or dgun
+    
+	//MODIFIER MAINLY USED BY STRUCTURES
+    // "build_mod": 1000.0,
+		// build_mod allows to de/increase the max amount of builder individually for each building type. values > 1000 => less builders; values <1000 more builders
+		// assign builders till targeted time to build reached
+		// default value specified in economy-> build_mod
+		// goal_build_time (economy.json)= build_mod / metal_income
+	// "coolddown":1, ----- Amount of seconds when unit is not available for construction after UnitFinished
+		
+
 
 	// ============================================   Evolving Commanders   =======================================0
 
