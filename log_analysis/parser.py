@@ -11,34 +11,19 @@ import asyncio
 import threading
 from datetime import datetime
 
-# WebSocket for real-time push to dashboard
+# WebSocket server to push live updates to dashboard (browser uses native WebSocket)
 try:
     import websockets
-    from websockets.sync.client import connect as ws_connect
     WS_AVAILABLE = True
 except ImportError:
     WS_AVAILABLE = False
-    print("Warning: websockets not installed. Live dashboard updates disabled.")
+    print("[Parser] websockets not installed. Live dashboard updates disabled.")
     print("Install with: pip install websockets")
 
 WS_PORT = 8765
-ws_client = None
-
-
-def get_state_dir():
-    """Get the XDG state directory for economy audit data."""
-    system = platform.system()
-    if system == 'Windows':
-        base = os.environ.get('LOCALAPPDATA', os.path.expanduser('~\\AppData\\Local'))
-        state_dir = os.path.join(base, 'economy_audit')
-    elif system == 'Darwin':
-        state_dir = os.path.expanduser('~/Library/Application Support/economy_audit')
-    else:
-        state_home = os.environ.get('XDG_STATE_HOME', os.path.join(os.path.expanduser("~"), '.local', 'state'))
-        state_dir = os.path.join(state_home, 'economy_audit')
-    
-    os.makedirs(state_dir, exist_ok=True)
-    return state_dir
+ws_clients = set()
+ws_loop = None
+_last_broadcast_time = 0.0
 
 
 def find_bar_data_dir():
@@ -69,24 +54,59 @@ def find_bar_data_dir():
 
 # Configuration
 BAR_DATA_DIR = find_bar_data_dir()
-LOG_FILE_PATH = os.path.join(BAR_DATA_DIR, 'infolog.txt')
-STATE_DIR = get_state_dir()
-DB_PATH = os.path.join(STATE_DIR, "audit_logs.db")
+LOG_FILE_PATH = os.path.join(BAR_DATA_DIR, 'economy_audit.txt')
+DB_PATH = os.path.join(BAR_DATA_DIR, "economy_audit.db")
 VERBOSE = False
 
 def log(msg):
     if VERBOSE: print(f"[DEBUG] {msg}")
 
 def broadcast_event(event_type, data):
-    global ws_client
-    if not WS_AVAILABLE: return
+    global ws_loop, _last_broadcast_time
+    if not WS_AVAILABLE or ws_loop is None or not ws_clients:
+        return
+    now = time.time()
+    if now - _last_broadcast_time < 0.5:
+        return
+    _last_broadcast_time = now
     try:
-        if ws_client is None: ws_client = ws_connect(f"ws://localhost:{WS_PORT}")
         message = json.dumps({'type': event_type, 'data': data})
-        ws_client.send(message)
+        asyncio.run_coroutine_threadsafe(_ws_broadcast(message), ws_loop)
     except Exception as e:
-        ws_client = None
         if VERBOSE: log(f"WebSocket broadcast failed: {e}")
+
+async def _ws_broadcast(message):
+    if not ws_clients:
+        return
+    await asyncio.gather(
+        *[client.send(message) for client in list(ws_clients)],
+        return_exceptions=True
+    )
+
+async def ws_handler(websocket):
+    ws_clients.add(websocket)
+    if VERBOSE:
+        print(f"[WS] Client connected ({len(ws_clients)} total)")
+    try:
+        async for _ in websocket:
+            pass
+    except Exception:
+        pass
+    finally:
+        ws_clients.discard(websocket)
+        if VERBOSE:
+            print(f"[WS] Client disconnected ({len(ws_clients)} total)")
+
+def run_ws_server():
+    global ws_loop
+    async def serve():
+        async with websockets.serve(ws_handler, "127.0.0.1", WS_PORT):
+            print(f"[Parser] WebSocket server: ws://127.0.0.1:{WS_PORT}")
+            await asyncio.Future()
+
+    ws_loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(ws_loop)
+    ws_loop.run_until_complete(serve())
 
 def init_db():
     conn = sqlite3.connect(DB_PATH, timeout=30)
@@ -150,16 +170,10 @@ def init_db():
         role TEXT NOT NULL, delta REAL NOT NULL,
         FOREIGN KEY (session_id) REFERENCES game_sessions(id)
     )''')
-    c.execute('''CREATE TABLE IF NOT EXISTS eco_storage_capped (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, session_id INTEGER NOT NULL,
-        timestamp TEXT NOT NULL, frame INTEGER NOT NULL, game_time REAL NOT NULL,
-        source_path TEXT NOT NULL, team_id INTEGER NOT NULL, resource TEXT NOT NULL,
-        current REAL NOT NULL, storage REAL NOT NULL,
-        FOREIGN KEY (session_id) REFERENCES game_sessions(id)
-    )''')
     c.execute('''CREATE TABLE IF NOT EXISTS team_names (
         id INTEGER PRIMARY KEY AUTOINCREMENT, session_id INTEGER NOT NULL,
         team_id INTEGER NOT NULL, name TEXT NOT NULL, is_ai INTEGER NOT NULL,
+        ally_team INTEGER NOT NULL, is_gaia INTEGER NOT NULL DEFAULT 0,
         FOREIGN KEY (session_id) REFERENCES game_sessions(id),
         UNIQUE(session_id, team_id)
     )''')
@@ -168,7 +182,7 @@ def init_db():
 
 def reset_db(conn):
     c = conn.cursor()
-    tables = ['solver_audit', 'eco_team_input', 'eco_team_output', 'eco_group_lift', 'eco_frame_start', 'eco_transfer', 'eco_team_waterfill', 'eco_storage_capped', 'team_names', 'game_sessions']
+    tables = ['solver_audit', 'eco_team_input', 'eco_team_output', 'eco_group_lift', 'eco_frame_start', 'eco_transfer', 'eco_team_waterfill', 'team_names', 'game_sessions']
     for table in tables: c.execute(f"DROP TABLE IF EXISTS {table}")
     conn.commit()
     return init_db()
@@ -254,71 +268,74 @@ def detect_session_type(source_path):
 
 
 def parse_line(conn, line):
+    """Parse NDJSON format: eventType {json}\n"""
     global session_tracker, event_counts
-    match = re.search(r'\[t=(.*?)\]\[f=(-?\d+)\] \[(.*?)\] (.*)', line)
-    if not match: return False
-    timestamp_str, frame, subsystem, content = match.groups()
-    frame = int(frame)
-    session_id = session_tracker.check_frame(timestamp_str, frame) if session_tracker else None
+    
+    line = line.strip()
+    if not line or ' ' not in line:
+        return False
+    
+    try:
+        event_type, json_str = line.split(' ', 1)
+        data = json.loads(json_str)
+    except (ValueError, json.JSONDecodeError):
+        return False
+    
+    frame = data.get('frame', 0)
+    game_time = data.get('game_time', frame / 30.0)
+    source_path = data.get('source_path', 'UNKNOWN')
+    timestamp_str = datetime.now().isoformat()
+    
+    event_counts[event_type] = event_counts.get(event_type, 0) + 1
+    
+    team_count = data.get('team_count')
+    session_id = session_tracker.check_frame(timestamp_str, frame, team_count) if session_tracker else None
+    
+    if session_tracker:
+        detected_type = detect_session_type(source_path)
+        if detected_type:
+            session_tracker.add_type(detected_type)
+    
     c = conn.cursor()
     parsed = False
-
-    if subsystem == "EconomyAudit":
-        try:
-            if ' ' not in content:
-                return False
-            event_type, json_str = content.split(' ', 1)
-            event_counts[event_type] = event_counts.get(event_type, 0) + 1
-            data = json.loads(json_str)
-            team_count = data.get('team_count')
-            if team_count and session_tracker: session_tracker.check_frame(timestamp_str, frame, team_count)
-            game_time = data.get('game_time') or (frame / 30.0)
-            source_path = data.get('source_path', "UNKNOWN")
-            
-            if session_tracker:
-                detected_type = detect_session_type(source_path)
-                if detected_type:
-                    session_tracker.add_type(detected_type)
-
-            if event_type == "team_input":
-                c.execute('INSERT INTO eco_team_input (session_id, timestamp, frame, game_time, source_path, team_id, current, resource, cumulative_sent, share_slider, storage, ally_team, share_cursor) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', (session_id, timestamp_str, frame, game_time, source_path, data.get('team_id'), data.get('current'), data.get('resource'), data.get('cumulative_sent'), data.get('share_slider'), data.get('storage'), data.get('ally_team'), data.get('share_cursor')))
-                broadcast_event('economy', {'event': 'team_input', 'frame': frame, 'team_id': data.get('team_id'), 'resource': data.get('resource')})
-                parsed = True
-            elif event_type == "team_output":
-                c.execute('INSERT INTO eco_team_output (session_id, timestamp, frame, game_time, source_path, team_id, current, resource, received, sent) VALUES (?,?,?,?,?,?,?,?,?,?)', (session_id, timestamp_str, frame, game_time, source_path, data.get('team_id'), data.get('current'), data.get('resource'), data.get('received'), data.get('sent')))
-                broadcast_event('economy', {'event': 'team_output', 'frame': frame, 'team_id': data.get('team_id'), 'resource': data.get('resource')})
-                parsed = True
-            elif event_type == "group_lift":
-                c.execute('INSERT INTO eco_group_lift (session_id, timestamp, frame, game_time, source_path, member_count, resource, lift, total_demand, total_supply, ally_team) VALUES (?,?,?,?,?,?,?,?,?,?,?)', (session_id, timestamp_str, frame, game_time, source_path, data.get('member_count'), data.get('resource'), data.get('lift'), data.get('total_demand'), data.get('total_supply'), data.get('ally_team')))
-                parsed = True
-            elif event_type == "frame_start":
-                c.execute('INSERT INTO eco_frame_start (session_id, timestamp, frame, game_time, source_path, tax_rate, metal_threshold, energy_threshold, team_count) VALUES (?,?,?,?,?,?,?,?,?)', (session_id, timestamp_str, frame, game_time, source_path, data.get('tax_rate', 0), data.get('metal_threshold', 0), data.get('energy_threshold', 0), data.get('team_count', 0)))
-                parsed = True
-            elif event_type == "transfer":
-                c.execute('INSERT INTO eco_transfer (session_id, timestamp, frame, game_time, source_path, sender_team_id, receiver_team_id, resource, amount, untaxed, taxed) VALUES (?,?,?,?,?,?,?,?,?,?,?)', (session_id, timestamp_str, frame, game_time, source_path, data.get('sender_team_id'), data.get('receiver_team_id'), data.get('resource'), data.get('amount'), data.get('untaxed'), data.get('taxed')))
-                parsed = True
-            elif event_type == "team_waterfill":
-                c.execute('INSERT INTO eco_team_waterfill (session_id, timestamp, frame, game_time, source_path, team_id, ally_team, resource, current, target, role, delta) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', (session_id, timestamp_str, frame, game_time, source_path, data.get('team_id'), data.get('ally_team'), data.get('resource'), data.get('current', 0), data.get('target', 0), data.get('role', 'unknown'), data.get('delta', 0)))
-                parsed = True
-            elif event_type == "storage_capped":
-                c.execute('INSERT INTO eco_storage_capped (session_id, timestamp, frame, game_time, source_path, team_id, resource, current, storage) VALUES (?,?,?,?,?,?,?,?,?)', (session_id, timestamp_str, frame, game_time, source_path, data.get('team_id'), data.get('resource'), data.get('current'), data.get('storage')))
-                parsed = True
-            elif event_type == "team_info":
-                c.execute('INSERT OR REPLACE INTO team_names (session_id, team_id, name, is_ai) VALUES (?, ?, ?, ?)', (session_id, data.get('team_id'), data.get('name'), 1 if data.get('is_ai') else 0))
-                parsed = True
-            elif event_type == "solver_timing":
-                metric = data.get('metric', '')
-                # Normalize PE_Overall and RE_Overall to just "Overall"
-                if metric.endswith('_Overall'):
-                    metric = 'Overall'
-                c.execute("INSERT INTO solver_audit (session_id, timestamp, frame, game_time, source_path, metric, time_us) VALUES (?, ?, ?, ?, ?, ?, ?)", (session_id, timestamp_str, frame, game_time, source_path, metric, data.get('time_us', 0)))
-                broadcast_event('solver_timing', {'frame': frame, 'source_path': source_path, 'metric': metric, 'time_us': data.get('time_us')})
-                parsed = True
-        except json.JSONDecodeError:
-            pass
-        except Exception as e:
-            if VERBOSE:
-                log(f"Failed to parse EconomyAudit: {e} - {line.strip()[:100]}")
+    
+    try:
+        if event_type == "team_input":
+            c.execute('INSERT INTO eco_team_input (session_id, timestamp, frame, game_time, source_path, team_id, current, resource, cumulative_sent, share_slider, storage, ally_team, share_cursor) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', (session_id, timestamp_str, frame, game_time, source_path, data.get('team_id'), data.get('current'), data.get('resource'), data.get('cumulative_sent'), data.get('share_slider'), data.get('storage'), data.get('ally_team'), data.get('share_cursor')))
+            broadcast_event('economy', {'event': 'team_input', 'frame': frame, 'team_id': data.get('team_id'), 'resource': data.get('resource')})
+            parsed = True
+        elif event_type == "team_output":
+            c.execute('INSERT INTO eco_team_output (session_id, timestamp, frame, game_time, source_path, team_id, current, resource, received, sent) VALUES (?,?,?,?,?,?,?,?,?,?)', (session_id, timestamp_str, frame, game_time, source_path, data.get('team_id'), data.get('current'), data.get('resource'), data.get('received'), data.get('sent')))
+            broadcast_event('economy', {'event': 'team_output', 'frame': frame, 'team_id': data.get('team_id'), 'resource': data.get('resource')})
+            parsed = True
+        elif event_type == "group_lift":
+            c.execute('INSERT INTO eco_group_lift (session_id, timestamp, frame, game_time, source_path, member_count, resource, lift, total_demand, total_supply, ally_team) VALUES (?,?,?,?,?,?,?,?,?,?,?)', (session_id, timestamp_str, frame, game_time, source_path, data.get('member_count'), data.get('resource'), data.get('lift'), data.get('total_demand'), data.get('total_supply'), data.get('ally_team')))
+            parsed = True
+        elif event_type == "frame_start":
+            c.execute('INSERT INTO eco_frame_start (session_id, timestamp, frame, game_time, source_path, tax_rate, metal_threshold, energy_threshold, team_count) VALUES (?,?,?,?,?,?,?,?,?)', (session_id, timestamp_str, frame, game_time, source_path, data.get('tax_rate', 0), data.get('metal_threshold', 0), data.get('energy_threshold', 0), data.get('team_count', 0)))
+            parsed = True
+        elif event_type == "transfer":
+            c.execute('INSERT INTO eco_transfer (session_id, timestamp, frame, game_time, source_path, sender_team_id, receiver_team_id, resource, amount, untaxed, taxed) VALUES (?,?,?,?,?,?,?,?,?,?,?)', (session_id, timestamp_str, frame, game_time, source_path, data.get('sender_team_id'), data.get('receiver_team_id'), data.get('resource'), data.get('amount'), data.get('untaxed'), data.get('taxed')))
+            parsed = True
+        elif event_type == "team_waterfill":
+            c.execute('INSERT INTO eco_team_waterfill (session_id, timestamp, frame, game_time, source_path, team_id, ally_team, resource, current, target, role, delta) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', (session_id, timestamp_str, frame, game_time, source_path, data.get('team_id'), data.get('ally_team'), data.get('resource'), data.get('current', 0), data.get('target', 0), data.get('role', 'unknown'), data.get('delta', 0)))
+            parsed = True
+        elif event_type == "team_info":
+            c.execute('INSERT OR REPLACE INTO team_names (session_id, team_id, name, is_ai, ally_team, is_gaia) VALUES (?, ?, ?, ?, ?, ?)', 
+                      (session_id, data.get('team_id'), data.get('name'), 1 if data.get('is_ai') else 0, 
+                       data.get('ally_team', 0), 1 if data.get('is_gaia') else 0))
+            parsed = True
+        elif event_type == "solver_timing":
+            metric = data.get('metric', '')
+            if metric.endswith('_Overall'):
+                metric = 'Overall'
+            c.execute("INSERT INTO solver_audit (session_id, timestamp, frame, game_time, source_path, metric, time_us) VALUES (?, ?, ?, ?, ?, ?, ?)", (session_id, timestamp_str, frame, game_time, source_path, metric, data.get('time_us', 0)))
+            broadcast_event('solver_timing', {'frame': frame, 'source_path': source_path, 'metric': metric, 'time_us': data.get('time_us')})
+            parsed = True
+    except Exception as e:
+        if VERBOSE:
+            log(f"Failed to parse {event_type}: {e} - {line[:100]}")
+    
     return parsed
 
 def tail_file(path, from_start=False, follow=True):
@@ -350,13 +367,20 @@ def main():
     parser.add_argument('--verbose', '-v', action='store_true')
     parser.add_argument('--file', '-f', type=str)
     parser.add_argument('--reset', action='store_true')
-    parser.add_argument('--reset-infolog', action='store_true')
+    parser.add_argument('--reset-log', action='store_true')
     parser.add_argument('--data-dir', type=str)
     parser.add_argument('--log-path', type=str)
+    parser.add_argument('--no-ws', '--no-live', dest='no_ws', action='store_true', help='Disable WebSocket server')
     args = parser.parse_args()
     
     log_file = args.file or args.log_path or LOG_FILE_PATH
     VERBOSE = args.verbose
+    
+    # Start WebSocket server for live dashboard updates
+    if WS_AVAILABLE and not args.no_ws:
+        ws_thread = threading.Thread(target=run_ws_server, daemon=True)
+        ws_thread.start()
+        time.sleep(0.1)
     
     if VERBOSE:
         print(f"[Parser] Log file: {log_file}")
@@ -365,8 +389,8 @@ def main():
     
     conn = init_db()
     global session_tracker
-    if args.reset_infolog and os.path.exists(log_file):
-        if VERBOSE: print(f"[Parser] Truncating infolog...")
+    if args.reset_log and os.path.exists(log_file):
+        if VERBOSE: print(f"[Parser] Truncating audit log...")
         with open(log_file, 'w') as f: f.truncate(0)
     if args.reset:
         if VERBOSE: print(f"[Parser] Resetting database...")

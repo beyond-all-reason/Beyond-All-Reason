@@ -253,9 +253,11 @@ end
 function gadget:GameStart()
 	if not Spring.IsEconomyAuditEnabled() then return end
 	
+	local gaiaTeamId = Spring.GetGaiaTeamID()
 	local teamList = springRepo.GetTeamList() or {}
 	for _, teamId in ipairs(teamList) do
 		local _, leader, _, isAI, _, allyTeam = Spring.GetTeamInfo(teamId)
+		local isGaia = (teamId == gaiaTeamId)
 		local name
 		if isAI then
 			local niceName = Spring.GetGameRulesParam('ainame_' .. teamId)
@@ -269,6 +271,6 @@ function gadget:GameStart()
 			local playerName = leader and Spring.GetPlayerInfo(leader, false) or nil
 			name = playerName or ("Player " .. teamId)
 		end
-		EconomyLog.TeamInfo(teamId, name, isAI)
+		EconomyLog.TeamInfo(teamId, name, isAI, allyTeam, isGaia)
 	end
 end

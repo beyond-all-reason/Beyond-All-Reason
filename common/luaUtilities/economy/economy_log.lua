@@ -10,17 +10,13 @@
 
 local EconomyLog = {}
 
--- Debug: track if we've logged the enabled state
-local loggedEnabledState = false
+local cachedEnabled = nil
 
 local function IsEnabled()
-  local enabled = Spring.IsEconomyAuditEnabled()
-  -- Debug: log enabled state once per game
-  if not loggedEnabledState then
-    Spring.Echo("[EconomyLog] IsEconomyAuditEnabled = " .. tostring(enabled))
-    loggedEnabledState = true
+  if cachedEnabled == nil then
+    cachedEnabled = Spring.IsEconomyAuditEnabled()
   end
-  return enabled
+  return cachedEnabled
 end
 
 --------------------------------------------------------------------------------
@@ -129,12 +125,14 @@ end
 -- Uses EconomyAuditLogRaw since it doesn't require active context
 --------------------------------------------------------------------------------
 
-function EconomyLog.TeamInfo(teamId, name, isAI)
+function EconomyLog.TeamInfo(teamId, name, isAI, allyTeam, isGaia)
   if not IsEnabled() then return end
   Spring.EconomyAuditLogRaw("team_info",
     "team_id", teamId,
     "name", tostring(name),
-    "is_ai", isAI
+    "is_ai", isAI,
+    "ally_team", allyTeam,
+    "is_gaia", isGaia
   )
 end
 

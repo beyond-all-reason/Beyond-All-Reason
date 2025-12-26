@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """
 BAR Economy Audit Dashboard
-Real-time visualization of economy data using Dash + WebSockets
+Real-time visualization of economy data using Dash + WebSocket (local)
 Includes: Economy Overview, Timing Analysis, Waterfill Analysis
 """
 
 import os
 import json
 import sqlite3
-import asyncio
-import threading
 import platform
+import subprocess
+import urllib.parse
+from pathlib import Path
 from datetime import datetime
 
 import dash
@@ -21,29 +22,36 @@ from plotly.subplots import make_subplots
 import pandas as pd
 import numpy as np
 
-import websockets
-from websockets.sync.client import connect as ws_connect
 
-
-def get_state_dir():
-    """Get the XDG state directory for economy audit data."""
+def find_bar_data_dir():
+    """Find the Beyond All Reason data directory using OS-specific conventions."""
     system = platform.system()
     if system == 'Windows':
-        base = os.environ.get('LOCALAPPDATA', os.path.expanduser('~\\AppData\\Local'))
-        state_dir = os.path.join(base, 'economy_audit')
-    elif system == 'Darwin':
-        state_dir = os.path.expanduser('~/Library/Application Support/economy_audit')
-    else:
+        local_appdata = os.environ.get('LOCALAPPDATA', os.path.expanduser('~\\AppData\\Local'))
+        return os.path.join(local_appdata, 'Programs', 'Beyond-All-Reason', 'data')
+    elif system == 'Linux':
+        if 'microsoft' in platform.release().lower() or 'wsl' in platform.release().lower():
+            try:
+                win_home = subprocess.check_output(['wslpath', '-u', subprocess.check_output(['cmd.exe', '/c', 'echo', '%LOCALAPPDATA%'], stderr=subprocess.DEVNULL).decode().strip()], stderr=subprocess.DEVNULL).decode().strip()
+                wsl_path = os.path.join(win_home, 'Programs', 'Beyond-All-Reason', 'data')
+                if os.path.exists(wsl_path): return wsl_path
+            except: pass
+        try:
+            documents = subprocess.check_output(['xdg-user-dir', 'DOCUMENTS'], encoding='utf-8', stderr=subprocess.DEVNULL).strip()
+        except:
+            documents = os.path.expanduser("~")
+        docs_path = os.path.join(documents, 'Beyond All Reason')
+        if os.path.exists(docs_path): return docs_path
         state_home = os.environ.get('XDG_STATE_HOME', os.path.join(os.path.expanduser("~"), '.local', 'state'))
-        state_dir = os.path.join(state_home, 'economy_audit')
-    
-    os.makedirs(state_dir, exist_ok=True)
-    return state_dir
+        return os.path.join(state_home, 'Beyond All Reason')
+    elif system == 'Darwin':
+        return os.path.expanduser('~/Library/Application Support/Beyond All Reason')
+    return os.path.expanduser('~/.local/share/Beyond All Reason')
 
 
 # === Configuration ===
-STATE_DIR = get_state_dir()
-DB_PATH = os.path.join(STATE_DIR, "audit_logs.db")
+BAR_DATA_DIR = find_bar_data_dir()
+DB_PATH = os.path.join(BAR_DATA_DIR, "economy_audit.db")
 WS_PORT = 8765
 
 # === Dark theme colors (Dracula-inspired) ===
@@ -137,7 +145,10 @@ def get_time_axis_config(game_times, colors):
 def get_db_connection():
     if not os.path.exists(DB_PATH):
         return None
-    conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True, timeout=5)
+    
+    # Use URI format with proper path escaping for spaces
+    db_uri = f"{Path(os.path.abspath(DB_PATH)).as_uri()}?mode=ro"
+    conn = sqlite3.connect(db_uri, uri=True, timeout=5)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -161,10 +172,16 @@ def load_team_names(session_id):
     if not conn:
         return {}
     try:
-        df = pd.read_sql_query(
-            "SELECT team_id, name, is_ai FROM team_names WHERE session_id = ?",
-            conn, params=(session_id,)
-        )
+        if session_id == 'all':
+            df = pd.read_sql_query(
+                "SELECT team_id, name, is_ai FROM team_names",
+                conn
+            )
+        else:
+            df = pd.read_sql_query(
+                "SELECT team_id, name, is_ai FROM team_names WHERE session_id = ?",
+                conn, params=(session_id,)
+            )
         return {row['team_id']: row['name'] for _, row in df.iterrows()}
     finally:
         conn.close()
@@ -175,10 +192,16 @@ def load_teams(session_id):
     if not conn:
         return []
     try:
-        df = pd.read_sql_query(
-            "SELECT DISTINCT team_id FROM eco_team_input WHERE session_id = ? ORDER BY team_id",
-            conn, params=(session_id,)
-        )
+        if session_id == 'all':
+            df = pd.read_sql_query(
+                "SELECT DISTINCT team_id FROM eco_team_input ORDER BY team_id",
+                conn
+            )
+        else:
+            df = pd.read_sql_query(
+                "SELECT DISTINCT team_id FROM eco_team_input WHERE session_id = ? ORDER BY team_id",
+                conn, params=(session_id,)
+            )
         return df['team_id'].tolist()
     finally:
         conn.close()
@@ -190,16 +213,24 @@ def load_economy_data_multi(session_id, team_ids, resource, time_range=None, lim
         return pd.DataFrame()
     try:
         placeholders = ','.join(['?' for _ in team_ids])
-        query = f"""SELECT o.frame, o.team_id, o.current, i.storage, o.source_path 
-                   FROM eco_team_output o
-                   JOIN eco_team_input i ON o.session_id = i.session_id 
-                       AND o.frame = i.frame AND o.team_id = i.team_id AND o.resource = i.resource
-                   WHERE o.session_id = ? AND o.team_id IN ({placeholders}) AND o.resource = ?"""
-        params = [session_id] + list(team_ids) + [resource]
+        if session_id == 'all':
+            query = f"""SELECT o.frame, o.team_id, o.current, i.storage, o.source_path 
+                       FROM eco_team_output o
+                       JOIN eco_team_input i ON o.session_id = i.session_id 
+                           AND o.frame = i.frame AND o.team_id = i.team_id AND o.resource = i.resource
+                       WHERE o.team_id IN ({placeholders}) AND o.resource = ?"""
+            params = list(team_ids) + [resource]
+        else:
+            query = f"""SELECT o.frame, o.team_id, o.current, i.storage, o.source_path 
+                       FROM eco_team_output o
+                       JOIN eco_team_input i ON o.session_id = i.session_id 
+                           AND o.frame = i.frame AND o.team_id = i.team_id AND o.resource = i.resource
+                       WHERE o.session_id = ? AND o.team_id IN ({placeholders}) AND o.resource = ?"""
+            params = [session_id] + list(team_ids) + [resource]
         
         if time_range:
             query += " AND o.frame >= ? AND o.frame <= ?"
-            params.extend([time_range[0] * 60 * 30, time_range[1] * 60 * 30])
+            params.extend([int(time_range[0] * 60 * 30), int(time_range[1] * 60 * 30)])
             
         query += " ORDER BY o.frame DESC LIMIT ?"
         params.append(limit * len(team_ids))
@@ -222,8 +253,12 @@ def load_transfers(session_id, resource, team_ids=None, time_range=None, limit=2
     if not conn:
         return pd.DataFrame()
     try:
-        query = "SELECT frame, game_time, sender_team_id, receiver_team_id, amount, untaxed, taxed FROM eco_transfer WHERE session_id = ? AND resource = ?"
-        params = [session_id, resource]
+        if session_id == 'all':
+            query = "SELECT frame, game_time, sender_team_id, receiver_team_id, amount, untaxed, taxed FROM eco_transfer WHERE resource = ?"
+            params = [resource]
+        else:
+            query = "SELECT frame, game_time, sender_team_id, receiver_team_id, amount, untaxed, taxed FROM eco_transfer WHERE session_id = ? AND resource = ?"
+            params = [session_id, resource]
         
         if team_ids:
             placeholders = ','.join(['?' for _ in team_ids])
@@ -232,7 +267,7 @@ def load_transfers(session_id, resource, team_ids=None, time_range=None, limit=2
             
         if time_range:
             query += " AND frame >= ? AND frame <= ?"
-            params.extend([time_range[0] * 60 * 30, time_range[1] * 60 * 30])
+            params.extend([int(time_range[0] * 60 * 30), int(time_range[1] * 60 * 30)])
             
         query += " ORDER BY frame DESC LIMIT ?"
         params.append(limit)
@@ -248,12 +283,16 @@ def load_group_lift_data(session_id, resource, time_range=None, limit=1000):
     if not conn:
         return pd.DataFrame()
     try:
-        query = "SELECT frame, game_time, member_count, lift, total_demand, total_supply FROM eco_group_lift WHERE session_id = ? AND resource = ?"
-        params = [session_id, resource]
+        if session_id == 'all':
+            query = "SELECT frame, game_time, member_count, lift, total_demand, total_supply FROM eco_group_lift WHERE resource = ?"
+            params = [resource]
+        else:
+            query = "SELECT frame, game_time, member_count, lift, total_demand, total_supply FROM eco_group_lift WHERE session_id = ? AND resource = ?"
+            params = [session_id, resource]
         
         if time_range:
             query += " AND frame >= ? AND frame <= ?"
-            params.extend([time_range[0] * 60 * 30, time_range[1] * 60 * 30])
+            params.extend([int(time_range[0] * 60 * 30), int(time_range[1] * 60 * 30)])
             
         query += " ORDER BY frame DESC LIMIT ?"
         params.append(limit)
@@ -314,26 +353,44 @@ def load_solver_timing_data(session_id=None, limit=5000):
         conn.close()
 
 
-def load_waterfill_data(session_id, frame, resource, ally_team=0):
+def load_waterfill_data(session_id, frame, resource, ally_team=None):
+    """Load waterfill data for a specific frame. ally_team=None means all alliances."""
     conn = get_db_connection()
     if not conn:
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
     try:
-        wf = pd.read_sql_query("""
-            SELECT * FROM eco_team_waterfill 
-            WHERE session_id = ? AND frame = ? AND resource = ? AND ally_team = ?
-            ORDER BY team_id
-        """, conn, params=(session_id, frame, resource, ally_team))
-        
-        inp = pd.read_sql_query("""
-            SELECT team_id, storage, share_cursor FROM eco_team_input
-            WHERE session_id = ? AND frame = ? AND resource = ? AND ally_team = ?
-        """, conn, params=(session_id, frame, resource, ally_team))
-        
-        lift_df = pd.read_sql_query("""
-            SELECT lift, total_supply, total_demand FROM eco_group_lift
-            WHERE session_id = ? AND frame = ? AND resource = ? AND ally_team = ?
-        """, conn, params=(session_id, frame, resource, ally_team))
+        if ally_team is None:
+            wf = pd.read_sql_query("""
+                SELECT * FROM eco_team_waterfill 
+                WHERE session_id = ? AND frame = ? AND resource = ?
+                ORDER BY ally_team, team_id
+            """, conn, params=(session_id, frame, resource))
+            
+            inp = pd.read_sql_query("""
+                SELECT team_id, storage, share_cursor, ally_team FROM eco_team_input
+                WHERE session_id = ? AND frame = ? AND resource = ?
+            """, conn, params=(session_id, frame, resource))
+            
+            lift_df = pd.read_sql_query("""
+                SELECT lift, total_supply, total_demand, ally_team FROM eco_group_lift
+                WHERE session_id = ? AND frame = ? AND resource = ?
+            """, conn, params=(session_id, frame, resource))
+        else:
+            wf = pd.read_sql_query("""
+                SELECT * FROM eco_team_waterfill 
+                WHERE session_id = ? AND frame = ? AND resource = ? AND ally_team = ?
+                ORDER BY team_id
+            """, conn, params=(session_id, frame, resource, ally_team))
+            
+            inp = pd.read_sql_query("""
+                SELECT team_id, storage, share_cursor FROM eco_team_input
+                WHERE session_id = ? AND frame = ? AND resource = ? AND ally_team = ?
+            """, conn, params=(session_id, frame, resource, ally_team))
+            
+            lift_df = pd.read_sql_query("""
+                SELECT lift, total_supply, total_demand FROM eco_group_lift
+                WHERE session_id = ? AND frame = ? AND resource = ? AND ally_team = ?
+            """, conn, params=(session_id, frame, resource, ally_team))
         
         return wf, inp, lift_df
     finally:
@@ -380,16 +437,91 @@ def load_conservation_check(session_id, limit=1000):
         conn.close()
 
 
+def load_ally_teams(session_id):
+    """Load available ally teams from team_names, excluding Gaia."""
+    conn = get_db_connection()
+    if not conn:
+        return []
+    try:
+        if session_id == 'all':
+            df = pd.read_sql_query("""
+                SELECT DISTINCT ally_team 
+                FROM team_names 
+                WHERE is_gaia = 0
+                ORDER BY ally_team
+            """, conn)
+        else:
+            df = pd.read_sql_query("""
+                SELECT DISTINCT ally_team 
+                FROM team_names 
+                WHERE session_id = ? AND is_gaia = 0
+                ORDER BY ally_team
+            """, conn, params=(session_id,))
+        return df['ally_team'].tolist() if not df.empty else []
+    finally:
+        conn.close()
+
+
+SLOW_UPDATE_RATE = 30  # SlowUpdate happens every 30 game frames
+
+def load_waterfill_frame_range(session_id, resource='metal', ally_team=None):
+    """Load min/max frames and generate frame list analytically (every 30 frames).
+    ally_team=None means all alliances."""
+    conn = get_db_connection()
+    if not conn:
+        return []
+    try:
+        if ally_team is None:
+            # All alliances
+            if session_id == 'all':
+                df = pd.read_sql_query("""
+                    SELECT MIN(frame) as min_f, MAX(frame) as max_f FROM eco_team_waterfill 
+                    WHERE resource = ?
+                """, conn, params=(resource,))
+            else:
+                df = pd.read_sql_query("""
+                    SELECT MIN(frame) as min_f, MAX(frame) as max_f FROM eco_team_waterfill 
+                    WHERE session_id = ? AND resource = ?
+                """, conn, params=(session_id, resource))
+        else:
+            # Specific alliance
+            if session_id == 'all':
+                df = pd.read_sql_query("""
+                    SELECT MIN(frame) as min_f, MAX(frame) as max_f FROM eco_team_waterfill 
+                    WHERE resource = ? AND ally_team = ?
+                """, conn, params=(resource, ally_team))
+            else:
+                df = pd.read_sql_query("""
+                    SELECT MIN(frame) as min_f, MAX(frame) as max_f FROM eco_team_waterfill 
+                    WHERE session_id = ? AND resource = ? AND ally_team = ?
+                """, conn, params=(session_id, resource, ally_team))
+        
+        if df.empty or pd.isna(df['min_f'].iloc[0]):
+            return []
+        
+        min_f = int(df['min_f'].iloc[0])
+        max_f = int(df['max_f'].iloc[0])
+        return list(range(min_f, max_f + 1, SLOW_UPDATE_RATE))
+    finally:
+        conn.close()
+
+
 def load_available_frames(session_id):
     conn = get_db_connection()
     if not conn:
         return []
     try:
-        df = pd.read_sql_query("""
-            SELECT DISTINCT frame FROM eco_team_waterfill 
-            WHERE session_id = ?
-            ORDER BY frame
-        """, conn, params=(session_id,))
+        if session_id == 'all':
+            df = pd.read_sql_query("""
+                SELECT DISTINCT frame FROM eco_team_input 
+                ORDER BY frame
+            """, conn)
+        else:
+            df = pd.read_sql_query("""
+                SELECT DISTINCT frame FROM eco_team_input 
+                WHERE session_id = ?
+                ORDER BY frame
+            """, conn, params=(session_id,))
         return df['frame'].tolist() if not df.empty else []
     finally:
         conn.close()
@@ -412,7 +544,7 @@ def load_transfer_matrix(session_id, frame, resource):
 
 
 # === Chart builders ===
-def create_empty_fig(message, colors):
+def create_empty_fig(message, colors, chart_id='empty'):
     fig = go.Figure()
     fig.add_annotation(
         text=message,
@@ -425,13 +557,15 @@ def create_empty_fig(message, colors):
         paper_bgcolor=colors['card'],
         plot_bgcolor=colors['background'],
         margin=dict(l=50, r=20, t=50, b=40),
+        uirevision=chart_id,
+        transition=dict(duration=300, easing='cubic-in-out'),
     )
     return fig
 
 
 def create_resource_levels_chart(df, team_ids, team_names, resource, colors):
     if df.empty:
-        return create_empty_fig("Select players to view resource levels", colors)
+        return create_empty_fig("Select players to view resource levels", colors, 'resource-chart')
     
     fig = go.Figure()
     resource_color = colors['metal'] if resource == 'metal' else colors['energy']
@@ -667,6 +801,8 @@ def create_supply_demand_chart(group_lift_df, colors):
         plot_bgcolor=colors['background'],
         font=dict(family='JetBrains Mono, monospace', color=colors['text'], size=10),
         title=dict(text="Supply / Demand — Alliance", font=dict(size=12)),
+        uirevision='supply-demand-chart',
+        transition=dict(duration=300, easing='cubic-in-out'),
         margin=dict(l=50, r=10, t=35, b=30),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1, bgcolor='rgba(0,0,0,0)', font=dict(size=9)),
         hovermode='x unified',
@@ -702,6 +838,8 @@ def create_lift_chart(group_lift_df, colors):
         plot_bgcolor=colors['background'],
         font=dict(family='JetBrains Mono, monospace', color=colors['text'], size=10),
         title=dict(text="Waterfill Lift — Alliance", font=dict(size=12)),
+        uirevision='lift-chart',
+        transition=dict(duration=300, easing='cubic-in-out'),
         margin=dict(l=50, r=10, t=35, b=30),
         showlegend=False,
         hovermode='x unified',
@@ -1260,6 +1398,8 @@ def create_conservation_chart(output_df, resource, colors):
             text=f"🔬 Conservation Check: {resource.upper()} | Max Error: {max_error:.6f} | {status_text}",
             font=dict(size=14, color=status_color)
         ),
+        uirevision='conservation-chart',
+        transition=dict(duration=300, easing='cubic-in-out'),
         margin=dict(l=60, r=20, t=60, b=40),
         height=400,
         showlegend=False,
@@ -1313,6 +1453,8 @@ def create_transfer_matrix_heatmap(transfers_df, resource, frame, colors):
         plot_bgcolor=colors['background'],
         font=dict(family='JetBrains Mono, monospace', color=colors['text']),
         title=dict(text=f"🔄 Transfer Matrix: {resource.upper()} | Frame {frame}", font=dict(size=14)),
+        uirevision='transfer-matrix',
+        transition=dict(duration=300, easing='cubic-in-out'),
         margin=dict(l=60, r=20, t=60, b=60),
         xaxis=dict(title="Receiver", side='bottom'),
         yaxis=dict(title="Sender", autorange='reversed'),
@@ -1342,136 +1484,42 @@ app.index_string = '''
         {%favicon%}
         {%css%}
         <style>
-            [class*="-menu"] {
-                background-color: #1c2128 !important;
-                border: 1px solid #30363d !important;
-            }
-            [class*="-option"] {
-                background-color: #1c2128 !important;
-                color: #e6edf3 !important;
-                font-size: 14px !important;
-            }
-            [class*="-option"]:hover {
-                background-color: #30363d !important;
-                color: #ffffff !important;
-            }
-            [class*="-option"][aria-selected="true"] {
-                background-color: #21262d !important;
-                color: #79c0ff !important;
-            }
-            [class*="-control"] {
-                background-color: #161b22 !important;
-                border-color: #30363d !important;
-                min-height: 38px !important;
-            }
-            [class*="-control"]:hover {
-                border-color: #58a6ff !important;
-            }
-            [class*="-singleValue"], [class*="-placeholder"], [class*="-multiValue"] {
-                color: #e6edf3 !important;
-                font-size: 14px !important;
-                font-weight: 500 !important;
-            }
-            [class*="-placeholder"] {
-                color: #8b949e !important;
-                font-weight: 400 !important;
-            }
-            [class*="-input"] input {
-                color: #ffffff !important;
-                font-size: 14px !important;
-            }
-            [class*="-indicatorContainer"] {
-                color: #8b949e !important;
-            }
-            [class*="-indicatorContainer"]:hover {
-                color: #e6edf3 !important;
-            }
-            [class*="-multiValue"] {
-                background-color: #30363d !important;
-            }
-            [class*="-multiValueLabel"] {
-                color: #e6edf3 !important;
-                font-size: 13px !important;
-            }
-            [class*="-multiValueRemove"]:hover {
-                background-color: #bf616a !important;
-                color: white !important;
-            }
-            
-            .team-checklist .form-check {
-                display: inline-block;
-                margin-right: 12px;
-                margin-bottom: 4px;
-            }
-            .team-checklist .form-check-input {
-                background-color: #161b22;
-                border-color: #30363d;
-            }
-            .team-checklist .form-check-input:checked {
-                background-color: #58a6ff;
-                border-color: #58a6ff;
-            }
-            .team-checklist .form-check-label {
-                color: #c9d1d9;
-                font-size: 12px;
-            }
-            
-            .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td {
-                background-color: #161b22 !important;
-                color: #c9d1d9 !important;
-                border-color: #30363d !important;
-            }
-            .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th {
-                background-color: #0d1117 !important;
-                color: #8b949e !important;
-                border-color: #30363d !important;
-            }
-            
-            .nav-tabs .nav-link {
-                color: #8b949e !important;
-                border: none !important;
-                background: transparent !important;
-            }
-            .nav-tabs .nav-link.active {
-                color: #58a6ff !important;
-                border-bottom: 2px solid #58a6ff !important;
-                background: transparent !important;
-            }
-            .nav-tabs .nav-link:hover {
-                color: #c9d1d9 !important;
-            }
-            
+            /* Minimal theme fixes for Dash components in Darkly */
             .explanation-card {
-                background-color: #161b22;
+                background-color: #1c2128;
                 border: 1px solid #30363d;
-                border-radius: 6px;
-                padding: 16px;
-                margin-bottom: 16px;
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 20px;
             }
             .explanation-card h4 {
                 color: #58a6ff;
-                margin-bottom: 12px;
-            }
-            .explanation-card p, .explanation-card li {
-                color: #c9d1d9;
-                font-size: 14px;
-                line-height: 1.6;
-            }
-            .explanation-card code {
-                background-color: #21262d;
-                padding: 2px 6px;
-                border-radius: 3px;
-                color: #f0c674;
+                margin-bottom: 10px;
             }
             
-            .time-input:focus {
-                outline: none;
-                border-color: #58a6ff !important;
-                box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2);
+            /* dcc.Slider and RangeSlider colors */
+            .rc-slider-rail { background-color: #30363d; }
+            .rc-slider-track { background-color: #58a6ff; }
+            .rc-slider-handle { 
+                background-color: #58a6ff; 
+                border-color: #58a6ff;
             }
-            .time-input::placeholder {
-                color: #8b949e;
+            .rc-slider-mark-text { color: #8b949e; }
+            
+            /* Tab styling */
+            .nav-tabs .nav-link { color: #8b949e; }
+            .nav-tabs .nav-link.active { 
+                color: #58a6ff;
+                background-color: transparent;
+                border-color: transparent transparent #58a6ff;
+                border-width: 0 0 2px 0;
             }
+            
+            /* Custom Scrollbar */
+            ::-webkit-scrollbar { width: 8px; height: 8px; }
+            ::-webkit-scrollbar-track { background: #0d1117; }
+            ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
+            ::-webkit-scrollbar-thumb:hover { background: #8b949e; }
         </style>
     </head>
     <body>
@@ -1480,10 +1528,71 @@ app.index_string = '''
             {%config%}
             {%scripts%}
             {%renderer%}
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const WS_PORT = %WS_PORT%;
+                    let ws = null;
+                    let lastRefreshMs = 0;
+
+                    function updateBadge(text, colorClass, connected) {
+                        const indicator = document.getElementById('ws-indicator');
+                        if (indicator) {
+                            indicator.textContent = text;
+                            indicator.classList.remove('bg-success', 'bg-secondary', 'bg-warning', 'bg-danger');
+                            indicator.classList.add('bg-' + colorClass);
+                        }
+                        const pollCol = document.getElementById('interval-dropdown-col');
+                        if (pollCol) {
+                            pollCol.style.display = connected ? 'none' : '';
+                        }
+                    }
+
+                    function requestRefreshThrottled() {
+                        const now = Date.now();
+                        if (now - lastRefreshMs < 500) return;
+                        lastRefreshMs = now;
+                        const refreshBtn = document.getElementById('refresh-btn');
+                        if (refreshBtn) refreshBtn.click();
+                    }
+
+                    function connect() {
+                        try {
+                            const host = window.location.hostname || '127.0.0.1';
+                            const url = `ws://${host}:${WS_PORT}`;
+                            updateBadge('○ WS', 'secondary', false);
+                            ws = new WebSocket(url);
+
+                            ws.onopen = function() {
+                                updateBadge('● WS', 'success', true);
+                            };
+
+                            ws.onclose = function() {
+                                updateBadge('○ WS', 'secondary', false);
+                                setTimeout(connect, 1000);
+                            };
+
+                            ws.onerror = function() {
+                                updateBadge('✗ WS', 'danger', false);
+                            };
+
+                            ws.onmessage = function() {
+                                requestRefreshThrottled();
+                            };
+                        } catch (e) {
+                            updateBadge('✗ WS', 'danger', false);
+                            setTimeout(connect, 2000);
+                        }
+                    }
+
+                    connect();
+                });
+            </script>
         </footer>
     </body>
 </html>
 '''
+
+app.index_string = app.index_string.replace('%WS_PORT%', str(WS_PORT))
 
 
 def create_explanation_card(title, content):
@@ -1498,17 +1607,16 @@ def create_economy_tab():
     return html.Div([
         dbc.Row([
             dbc.Col([
-                dbc.Label("Players (select for per-player charts)", style={'color': COLORS['text'], 'fontSize': '12px', 'fontWeight': '500'}),
+                dbc.Label("Players (select for per-player charts)", style={'fontSize': '12px', 'fontWeight': '500'}),
                 html.Div([
                     dbc.Button("All", id="select-all-btn", color="secondary", size="sm", className="me-2"),
                     dbc.Button("None", id="select-none-btn", color="secondary", size="sm", className="me-3"),
-                    dcc.Checklist(
+                    dbc.Checklist(
                         id='team-checklist',
                         options=[],
                         value=[],
                         inline=True,
-                        className="team-checklist d-inline",
-                        labelStyle={'marginRight': '15px'}
+                        className="d-inline",
                     )
                 ], className="d-flex align-items-center flex-wrap")
             ], width=10),
@@ -1523,30 +1631,30 @@ def create_economy_tab():
             dbc.Col([
                 dcc.Loading(
                     dcc.Graph(id='resource-chart', style={'height': '280px'}),
-                    type='circle', color=COLORS['accent']
+                    type='circle', color=COLORS['accent'], delay_show=500
                 ),
                 dcc.Loading(
                     dcc.Graph(id='transfer-flow-chart', style={'height': '250px', 'marginTop': '10px'}),
-                    type='circle', color=COLORS['accent']
+                    type='circle', color=COLORS['accent'], delay_show=500
                 ),
                 dcc.Loading(
                     dcc.Graph(id='explicit-transfers-chart', style={'height': '250px', 'marginTop': '10px'}),
-                    type='circle', color=COLORS['accent']
+                    type='circle', color=COLORS['accent'], delay_show=500
                 ),
             ], width=8),
             
             dbc.Col([
                 dcc.Loading(
                     dcc.Graph(id='total-sent-chart', style={'height': '180px'}),
-                    type='circle', color=COLORS['accent']
+                    type='circle', color=COLORS['accent'], delay_show=500
                 ),
                 dcc.Loading(
                     dcc.Graph(id='supply-demand-chart', style={'height': '180px', 'marginTop': '8px'}),
-                    type='circle', color=COLORS['accent']
+                    type='circle', color=COLORS['accent'], delay_show=500
                 ),
                 dcc.Loading(
                     dcc.Graph(id='lift-chart', style={'height': '150px', 'marginTop': '8px'}),
-                    type='circle', color=COLORS['accent']
+                    type='circle', color=COLORS['accent'], delay_show=500
                 ),
                 html.Div([
                     html.H6("📋 Transfer Ledger", className="mb-2", 
@@ -1625,7 +1733,7 @@ In **Alternate mode**, the engine runs both paths on alternating frames - use th
             ], width=2, className="text-end"),
         ], className="mb-3"),
 
-        html.H5("📊 Timing Summary", style={'color': COLORS['text'], 'marginBottom': '15px'}),
+        html.H5("📊 Timing Summary", style={'marginBottom': '15px'}),
         html.Div(id='timing-summary-table'),
         
         html.Hr(style={'borderColor': COLORS['border'], 'margin': '20px 0'}),
@@ -1639,7 +1747,7 @@ Individual charts for each metric help identify anomalies and performance spikes
 """),
         dcc.Loading(
             dcc.Graph(id='timing-over-time-chart'),
-            type='circle', color=COLORS['accent']
+            type='circle', color=COLORS['accent'], delay_show=500
         ),
         
         html.Hr(style={'borderColor': COLORS['border'], 'margin': '20px 0'}),
@@ -1652,12 +1760,12 @@ Histograms show the distribution of timing values per metric.
 """),
         dcc.Loading(
             dcc.Graph(id='timing-histogram-chart'),
-            type='circle', color=COLORS['accent']
+            type='circle', color=COLORS['accent'], delay_show=500
         ),
         
         html.Hr(style={'borderColor': COLORS['border'], 'margin': '20px 0'}),
         
-        html.H5("🚨 Anomaly Detection (>99th percentile)", style={'color': COLORS['text'], 'marginBottom': '15px'}),
+        html.H5("🚨 Anomaly Detection (>99th percentile)", style={'marginBottom': '15px'}),
         html.Div(id='timing-anomalies-table'),
     ])
 
@@ -1665,6 +1773,30 @@ Histograms show the distribution of timing values per metric.
 # === Tab: Waterfill Analysis ===
 def create_waterfill_tab():
     return html.Div([
+        # Frame navigator - inline in tab content
+        html.Div([
+            html.Div([
+                html.Span("Frame ", className="text-muted", style={'fontSize': '13px'}),
+                html.Span(id='wf-frame-display', style={'color': COLORS['accent'], 'fontWeight': 'bold', 'fontSize': '14px'}),
+                html.Span(" / ", className="text-muted", style={'fontSize': '13px'}),
+                html.Span(id='wf-frame-total', className="text-muted", style={'fontSize': '13px'}),
+                html.Span(" • ", style={'color': COLORS['border'], 'margin': '0 10px'}),
+                html.Span(id='wf-time-display', style={'fontSize': '13px'}),
+            ], className="d-flex align-items-center"),
+            html.Div([
+                dbc.ButtonGroup([
+                    dbc.Button("⏮", id='wf-first-btn', size="sm", color="secondary", outline=True, title="First frame"),
+                    dbc.Button("◀", id='wf-prev-btn', size="sm", color="secondary", outline=True, title="Previous frame"),
+                    dbc.Button("▶", id='wf-play-btn', size="sm", color="primary", outline=True, title="Play/Pause"),
+                    dbc.Button("▶", id='wf-next-btn', size="sm", color="secondary", outline=True, title="Next frame"),
+                    dbc.Button("⏭", id='wf-last-btn', size="sm", color="secondary", outline=True, title="Last frame (live)"),
+                ], size="sm"),
+                dbc.Badge("LIVE", id='wf-live-badge', color="success", className="ms-2", style={'display': 'none'}),
+            ], className="d-flex align-items-center"),
+        ], className="mb-3 py-2 px-3 d-flex justify-content-between align-items-center", 
+           style={'backgroundColor': COLORS['card'], 'borderRadius': '6px', 
+                  'border': f"1px solid {COLORS['border']}"}),
+        
         dbc.Row([
             dbc.Col([
                 create_explanation_card("🌊 Waterfill Resource Sharing Algorithm", """
@@ -1685,22 +1817,23 @@ The waterfill algorithm balances resources within team alliances:
             ], width=2, className="text-end"),
         ], className="mb-3"),
 
-        html.H5("🏗️ Tank Diagram", style={'color': COLORS['text'], 'marginBottom': '15px'}),
+
+        html.H5("🏗️ Tank Diagram", style={'marginBottom': '15px'}),
         html.P("Visual representation of each team's resource levels, targets, and roles:",
                style={'color': COLORS['text_muted'], 'fontSize': '13px'}),
         dcc.Loading(
             dcc.Graph(id='waterfill-tank-chart'),
-            type='circle', color=COLORS['accent']
+            type='circle', color=COLORS['accent'], delay_show=500
         ),
         
         html.Hr(style={'borderColor': COLORS['border'], 'margin': '20px 0'}),
         
-        html.H5("🔄 Transfer Matrix", style={'color': COLORS['text'], 'marginBottom': '15px'}),
+        html.H5("🔄 Transfer Matrix", style={'marginBottom': '15px'}),
         html.P("Who sent resources to whom? Heatmap showing flow between teams:",
                style={'color': COLORS['text_muted'], 'fontSize': '13px'}),
         dcc.Loading(
             dcc.Graph(id='transfer-matrix-chart'),
-            type='circle', color=COLORS['accent']
+            type='circle', color=COLORS['accent'], delay_show=500
         ),
         
         html.Hr(style={'borderColor': COLORS['border'], 'margin': '20px 0'}),
@@ -1712,7 +1845,7 @@ This chart verifies that the invariant holds across all frames. Any violations i
 """),
         dcc.Loading(
             dcc.Graph(id='conservation-chart'),
-            type='circle', color=COLORS['accent']
+            type='circle', color=COLORS['accent'], delay_show=500
         ),
     ])
 
@@ -1727,15 +1860,15 @@ app.layout = dbc.Container([
                    className="text-muted mb-0", style={'fontFamily': 'JetBrains Mono'})
         ], width=6),
         dbc.Col([
-            dbc.Badge("● LIVE", color="success", className="me-2", id="live-indicator"),
+            dbc.Badge("○ WS", color="secondary", className="me-2", id="ws-indicator"),
             dbc.Button("↻ Refresh", id="refresh-btn", color="secondary", size="sm", className="me-2"),
         ], width=6, className="text-end d-flex align-items-center justify-content-end")
     ], className="mb-3 pt-3"),
     
     dbc.Row([
         dbc.Col([
-            dbc.Label("Session Filters", style={'color': COLORS['text'], 'fontSize': '12px', 'fontWeight': '500'}),
-            dcc.Checklist(
+            dbc.Label("Session Filters", style={'fontSize': '12px', 'fontWeight': '500'}),
+            dbc.Checklist(
                 id='session-type-filter',
                 options=[
                     {'label': ' RE (ResourceExcess)', 'value': 'RE'},
@@ -1744,51 +1877,39 @@ app.layout = dbc.Container([
                 ],
                 value=['RE', 'PE', 'Alternate'],
                 inline=True,
-                className="team-checklist",
-                labelStyle={'marginRight': '15px'}
             )
         ], width=12),
     ], className="mb-2"),
     
     dbc.Row([
         dbc.Col([
-            dbc.Label("Session", style={'color': COLORS['text'], 'fontSize': '12px', 'fontWeight': '500'}),
-            dcc.Dropdown(
+            dbc.Label("Session", style={'fontSize': '12px', 'fontWeight': '500'}),
+            dbc.Select(
                 id='session-dropdown',
                 placeholder="Select session...",
-                className="dash-dropdown"
             )
         ], width=3),
         dbc.Col([
-            dbc.Label("Resource", style={'color': COLORS['text'], 'fontSize': '12px', 'fontWeight': '500'}),
-            dcc.Dropdown(
+            dbc.Label("Resource", style={'fontSize': '12px', 'fontWeight': '500'}),
+            dbc.Select(
                 id='resource-dropdown',
                 options=[
                     {'label': '🪨 Metal', 'value': 'metal'},
                     {'label': '⚡ Energy', 'value': 'energy'}
                 ],
                 value='metal',
-                clearable=False,
-                className="dash-dropdown"
             )
         ], width=2),
         dbc.Col([
-            dbc.Label("Time Range", style={'color': COLORS['text'], 'fontSize': '12px', 'fontWeight': '500'}),
+            dbc.Label("Time Range", style={'fontSize': '12px', 'fontWeight': '500'}),
             html.Div([
                 dbc.Input(
                     id='time-range-start-input',
                     type='text',
                     value='0:00',
                     placeholder='0:00',
-                    className='time-input',
                     style={
-                        'width': '65px',
-                        'backgroundColor': COLORS['card'],
-                        'border': f"1px solid {COLORS['border']}",
-                        'color': COLORS['text'],
-                        'borderRadius': '4px',
-                        'padding': '6px 8px',
-                        'fontSize': '13px',
+                        'width': '75px',
                         'textAlign': 'center',
                         'fontFamily': 'JetBrains Mono, monospace',
                     }
@@ -1806,15 +1927,8 @@ app.layout = dbc.Container([
                     type='text',
                     value='60:00',
                     placeholder='60:00',
-                    className='time-input',
                     style={
-                        'width': '65px',
-                        'backgroundColor': COLORS['card'],
-                        'border': f"1px solid {COLORS['border']}",
-                        'color': COLORS['text'],
-                        'borderRadius': '4px',
-                        'padding': '6px 8px',
-                        'fontSize': '13px',
+                        'width': '75px',
                         'textAlign': 'center',
                         'fontFamily': 'JetBrains Mono, monospace',
                     }
@@ -1822,43 +1936,52 @@ app.layout = dbc.Container([
             ], style={'display': 'flex', 'alignItems': 'center'})
         ], width=5),
         dbc.Col([
-            dbc.Label("Alliance", style={'color': COLORS['text'], 'fontSize': '12px', 'fontWeight': '500'}),
-            dcc.Dropdown(
+            dbc.Label("Alliance", style={'fontSize': '12px', 'fontWeight': '500'}),
+            dbc.Select(
                 id='waterfill-ally-dropdown',
-                options=[{'label': f'Alliance {i}', 'value': i} for i in range(10)],
-                value=0,
-                clearable=False,
-                className="dash-dropdown"
-            )
-        ], width=1, id='waterfill-ally-col', style={'display': 'none'}),
-        dbc.Col([
-            dbc.Label("Update", style={'color': COLORS['text'], 'fontSize': '12px', 'fontWeight': '500'}),
-            dcc.Dropdown(
-                id='interval-dropdown',
-                options=[
-                    {'label': '1s', 'value': 1000},
-                    {'label': '2s', 'value': 2000},
-                    {'label': '5s', 'value': 5000},
-                    {'label': 'Off', 'value': 0}
-                ],
-                value=2000,
-                clearable=False,
-                className="dash-dropdown"
+                options=[],
+                value=None,
+                placeholder="All",
             )
         ], width=2),
+        dbc.Col([
+            dbc.Label("Fallback Poll", style={'fontSize': '12px', 'fontWeight': '500'}),
+            dbc.Select(
+                id='interval-dropdown',
+                options=[
+                    {'label': '2s', 'value': '2000'},
+                    {'label': '5s', 'value': '5000'},
+                    {'label': '10s', 'value': '10000'},
+                    {'label': 'Off', 'value': '0'}
+                ],
+                value='5000',
+            )
+        ], width=2, id='interval-dropdown-col'),
     ], className="mb-3"),
     
     dbc.Tabs([
         dbc.Tab(create_economy_tab(), label="📊 Economy Overview", tab_id="tab-economy"),
         dbc.Tab(create_timing_tab(), label="⏱️ Timing Analysis", tab_id="tab-timing"),
         dbc.Tab(create_waterfill_tab(), label="🌊 Waterfill Analysis", tab_id="tab-waterfill"),
-    ], id="tabs", active_tab="tab-economy", className="mb-3"),
+    ], id="tabs", active_tab="tab-economy", className="mb-3", persistence=True, persistence_type='local'),
     
-    html.Div(id='ws-status', style={'display': 'none'}),
-    dcc.Interval(id='auto-refresh', interval=2000, n_intervals=0),
-    dcc.Store(id='ws-data-store'),
+    # Hidden slider for frame state (callbacks still use it)
+    html.Div([
+        dcc.Slider(id='wf-frame-slider', min=0, max=100, value=100, marks={}),
+    ], style={'display': 'none'}),
+    
+    # Stores for waterfill state
+    dcc.Store(id='wf-frames-store', data=[]),
+    dcc.Store(id='wf-current-idx', data=0),
+    dcc.Store(id='wf-is-playing', data=False),
+    dcc.Interval(id='wf-play-interval', interval=200, disabled=True),
+    
+    # SocketIO handles real-time updates via JavaScript (see index_string)
+    dcc.Store(id='ws-trigger', data=0),
     dcc.Store(id='team-names-store'),
     dcc.Store(id='available-frames-store'),
+    # Fallback interval for when websocket is not available or disconnected
+    dcc.Interval(id='fallback-refresh', interval=5000, n_intervals=0),
     
 ], fluid=True, style={
     'backgroundColor': COLORS['background'],
@@ -1868,7 +1991,7 @@ app.layout = dbc.Container([
 
 
 # === Callbacks ===
-@callback(
+@app.callback(
     Output('session-dropdown', 'options'),
     Output('session-dropdown', 'value'),
     Input('refresh-btn', 'n_clicks'),
@@ -1891,9 +2014,6 @@ def update_sessions(n_clicks, type_filters, current_value):
             filtered_sessions.append(s)
     
     options = []
-    if filtered_sessions:
-        options.append({'label': '🌐 All Sessions (Global Analysis)', 'value': 'all'})
-
     for s in filtered_sessions:
         s_types = (s.get('session_types') or "").split(',')
         s_types = [t for t in s_types if t]
@@ -1904,23 +2024,37 @@ def update_sessions(n_clicks, type_filters, current_value):
         teams = s['team_count'] or '?'
         
         label = f"#{s['id']} {type_str} F:{start_f}-{end_f} ({teams}T)"
-        options.append({'label': label, 'value': s['id']})
+        options.append({'label': label, 'value': str(s['id'])})
     
-    value = current_value if any(o['value'] == current_value for o in options) else (options[0]['value'] if options else None)
+    if filtered_sessions:
+        options.append({'label': '🌐 All Sessions (Global Analysis)', 'value': 'all'})
+    
+    # Default to first (latest) session, not 'all'
+    current_str = str(current_value) if current_value is not None else None
+    value = current_str if any(o['value'] == current_str for o in options) else (options[0]['value'] if options else None)
     return options, value
 
 
-@callback(
+@app.callback(
     Output('team-checklist', 'options'),
     Output('team-checklist', 'value'),
     Output('team-names-store', 'data'),
     Output('available-frames-store', 'data'),
     Input('session-dropdown', 'value'),
+    Input('fallback-refresh', 'n_intervals'),
+    Input('refresh-btn', 'n_clicks'),
     State('team-checklist', 'value')
 )
-def update_teams(session_id, current_teams):
+def update_teams(session_id, _fallback, _refresh_clicks, current_teams):
     if not session_id:
         return [], [], {}, []
+    
+    # Handle session_id from dbc.Select (string)
+    try:
+        if session_id != 'all':
+            session_id = int(session_id)
+    except (ValueError, TypeError):
+        pass
     
     teams = load_teams(session_id)
     names = load_team_names(session_id)
@@ -1938,7 +2072,7 @@ def update_teams(session_id, current_teams):
     return options, valid_teams, names, frames
 
 
-@callback(
+@app.callback(
     Output('global-time-slider', 'min'),
     Output('global-time-slider', 'max'),
     Output('global-time-slider', 'value'),
@@ -1969,7 +2103,7 @@ def update_global_slider(frames):
     return min_m, max_m, [min_m, max_m], marks
 
 
-@callback(
+@app.callback(
     Output('time-range-start-input', 'value'),
     Output('time-range-end-input', 'value'),
     Input('global-time-slider', 'value'),
@@ -1996,7 +2130,7 @@ def parse_time_input(time_str):
         return None
 
 
-@callback(
+@app.callback(
     Output('global-time-slider', 'value', allow_duplicate=True),
     Input('time-range-start-input', 'n_blur'),
     Input('time-range-end-input', 'n_blur'),
@@ -2024,7 +2158,7 @@ def sync_slider_from_inputs(start_blur, end_blur, start_val, end_val, slider_min
     return [start_min, end_min]
 
 
-@callback(
+@app.callback(
     Output('team-checklist', 'value', allow_duplicate=True),
     Input('select-all-btn', 'n_clicks'),
     State('team-checklist', 'options'),
@@ -2036,7 +2170,7 @@ def select_all_teams(n_clicks, options):
     return [o['value'] for o in options]
 
 
-@callback(
+@app.callback(
     Output('team-checklist', 'value', allow_duplicate=True),
     Input('select-none-btn', 'n_clicks'),
     prevent_initial_call=True
@@ -2045,7 +2179,12 @@ def select_no_teams(n_clicks):
     return []
 
 
-@callback(
+# SocketIO handles updates via JavaScript in index_string
+# The refresh button click is triggered by socket.on('data_update')
+# which updates the charts automatically
+
+
+@app.callback(
     Output('resource-chart', 'figure'),
     Output('transfer-ledger', 'data'),
     Output('transfer-flow-chart', 'figure'),
@@ -2053,7 +2192,8 @@ def select_no_teams(n_clicks):
     Output('total-sent-chart', 'figure'),
     Output('supply-demand-chart', 'figure'),
     Output('lift-chart', 'figure'),
-    Input('auto-refresh', 'n_intervals'),
+    Input('ws-trigger', 'data'),
+    Input('fallback-refresh', 'n_intervals'),
     Input('session-dropdown', 'value'),
     Input('team-checklist', 'value'),
     Input('resource-dropdown', 'value'),
@@ -2061,17 +2201,24 @@ def select_no_teams(n_clicks):
     Input('refresh-btn', 'n_clicks'),
     State('team-names-store', 'data')
 )
-def update_economy_charts(n_intervals, session_id, selected_teams, resource, time_range, n_clicks, team_names):
+def update_economy_charts(ws_trigger, fallback, session_id, selected_teams, resource, time_range, n_clicks, team_names):
     if not session_id:
-        ef = create_empty_fig("Select a session", COLORS)
+        ef = create_empty_fig("Select a session", COLORS, 'empty-session')
         return ef, [], ef, ef, ef, ef, ef
+    
+    # Handle session_id from dbc.Select (string)
+    try:
+        if session_id != 'all':
+            session_id = int(session_id)
+    except (ValueError, TypeError):
+        pass
     
     if session_id == 'all':
         # For economy overview, "All Sessions" isn't very useful/performant
         # We'll just show a message or use the latest session
         sessions = load_sessions()
         if not sessions:
-            ef = create_empty_fig("No sessions found", COLORS)
+            ef = create_empty_fig("No sessions found", COLORS, 'no-sessions')
             return ef, [], ef, ef, ef, ef, ef
         session_id = sessions[0]['id']
     
@@ -2093,16 +2240,24 @@ def update_economy_charts(n_intervals, session_id, selected_teams, resource, tim
     return resource_fig, ledger_data, flow_fig, explicit_fig, sent_fig, supply_demand_fig, lift_fig
 
 
-@callback(
+@app.callback(
     Output('timing-summary-table', 'children'),
     Output('timing-over-time-chart', 'figure'),
     Output('timing-histogram-chart', 'figure'),
     Output('timing-anomalies-table', 'children'),
-    Input('auto-refresh', 'n_intervals'),
+    Input('ws-trigger', 'data'),
+    Input('fallback-refresh', 'n_intervals'),
     Input('session-dropdown', 'value'),
     Input('refresh-btn', 'n_clicks'),
 )
-def update_timing_charts(n_intervals, session_id, n_clicks):
+def update_timing_charts(ws_trigger, fallback, session_id, n_clicks):
+    # Handle session_id from dbc.Select (string)
+    try:
+        if session_id and session_id != 'all':
+            session_id = int(session_id)
+    except (ValueError, TypeError):
+        pass
+        
     actual_session_id = None if session_id == 'all' else session_id
     timing_summary = load_solver_timing_summary(actual_session_id)
     solver_df = load_solver_timing_data(actual_session_id)
@@ -2115,40 +2270,214 @@ def update_timing_charts(n_intervals, session_id, n_clicks):
     return summary_table, time_chart, hist_chart, anomalies
 
 
-@callback(
+# === Waterfill Ally Dropdown ===
+@app.callback(
+    Output('waterfill-ally-dropdown', 'options'),
+    Output('waterfill-ally-dropdown', 'value'),
+    Input('session-dropdown', 'value'),
+    State('waterfill-ally-dropdown', 'value'),
+)
+def update_ally_dropdown(session_id, current_value):
+    if not session_id or session_id == 'all':
+        return [{'label': 'All', 'value': 'all'}], 'all'
+    
+    # Handle session_id from dbc.Select (string)
+    try:
+        session_id = int(session_id)
+    except (ValueError, TypeError):
+        pass
+    
+    allies = load_ally_teams(session_id)
+    if not allies:
+        return [{'label': 'All', 'value': 'all'}], 'all'
+    
+    # Add "All" option at the start, then individual alliances
+    options = [{'label': 'All', 'value': 'all'}]
+    options += [{'label': f'Alliance {a}', 'value': str(a)} for a in allies]
+    
+    # Default to "All" unless user already selected something valid
+    valid_values = ['all'] + [str(a) for a in allies]
+    current_str = str(current_value) if current_value is not None else None
+    value = current_str if current_str in valid_values else 'all'
+    return options, value
+
+
+# === Waterfill Frame Controls ===
+@app.callback(
+    Output('wf-frames-store', 'data'),
+    Output('wf-frame-slider', 'max'),
+    Output('wf-frame-slider', 'value'),
+    Output('wf-frame-slider', 'marks'),
+    Input('session-dropdown', 'value'),
+    Input('resource-dropdown', 'value'),
+    Input('waterfill-ally-dropdown', 'value'),
+    Input('ws-trigger', 'data'),
+    Input('fallback-refresh', 'n_intervals'),
+    Input('refresh-btn', 'n_clicks'),
+    State('wf-frames-store', 'data'),
+    State('wf-frame-slider', 'value'),
+)
+def update_waterfill_frames(session_id, resource, ally_team, ws_trigger, fallback, _refresh_clicks, prev_frames, prev_value):
+    if not session_id or session_id == 'all':
+        return [], 0, 0, {}
+    
+    # Handle session_id from dbc.Select (string)
+    try:
+        session_id = int(session_id)
+    except (ValueError, TypeError):
+        pass
+    
+    if ally_team is None:
+        return [], 0, 0, {}
+    
+    # ally_team comes as string from dbc.Select, "all" means no filter
+    ally_team_int = None if ally_team == 'all' else None
+    if ally_team != 'all':
+        try:
+            ally_team_int = int(ally_team)
+        except (ValueError, TypeError):
+            ally_team_int = None
+    
+    frames = load_waterfill_frame_range(session_id, resource, ally_team_int)
+    if not frames:
+        return [], 0, 0, {}
+    
+    max_idx = len(frames) - 1
+    
+    # Generate marks at regular intervals
+    marks = {}
+    if len(frames) > 1:
+        step = max(1, len(frames) // 6)
+        for i in range(0, len(frames), step):
+            t_sec = frames[i] / 30.0
+            marks[i] = f"{int(t_sec//60)}:{int(t_sec%60):02d}"
+        marks[max_idx] = f"{int(frames[-1]/30.0//60)}:{int(frames[-1]/30.0%60):02d}"
+    
+    # If new frames added and we were at the end, stay at end (live mode)
+    if prev_frames and prev_value == len(prev_frames) - 1 and len(frames) > len(prev_frames):
+        new_value = max_idx
+    elif prev_value is not None and prev_value <= max_idx:
+        new_value = prev_value
+    else:
+        new_value = max_idx  # Default to latest
+    
+    return frames, max_idx, new_value, marks
+
+
+@app.callback(
+    Output('wf-frame-display', 'children'),
+    Output('wf-time-display', 'children'),
+    Output('wf-frame-total', 'children'),
+    Output('wf-live-badge', 'style'),
+    Input('wf-frame-slider', 'value'),
+    State('wf-frames-store', 'data'),
+)
+def update_frame_display(idx, frames):
+    if not frames or idx is None or idx >= len(frames):
+        return "—", "—", "—", {'display': 'none'}
+    
+    frame = frames[idx]
+    max_frame = frames[-1] if frames else 0
+    t_sec = frame / 30.0
+    time_str = f"{int(t_sec//60)}:{t_sec%60:05.2f}"
+    is_live = idx == len(frames) - 1
+    
+    return str(frame), time_str, str(max_frame), {} if is_live else {'display': 'none'}
+
+
+@app.callback(
+    Output('wf-frame-slider', 'value', allow_duplicate=True),
+    Input('wf-first-btn', 'n_clicks'),
+    Input('wf-prev-btn', 'n_clicks'),
+    Input('wf-next-btn', 'n_clicks'),
+    Input('wf-last-btn', 'n_clicks'),
+    Input('wf-play-interval', 'n_intervals'),
+    State('wf-frame-slider', 'value'),
+    State('wf-frame-slider', 'max'),
+    State('wf-is-playing', 'data'),
+    prevent_initial_call=True
+)
+def handle_frame_navigation(first, prev, next_btn, last, interval, current, max_val, is_playing):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return dash.no_update
+    
+    trigger = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    if trigger == 'wf-first-btn':
+        return 0
+    elif trigger == 'wf-prev-btn':
+        return max(0, (current or 0) - 1)
+    elif trigger == 'wf-next-btn':
+        return min(max_val, (current or 0) + 1)
+    elif trigger == 'wf-last-btn':
+        return max_val
+    elif trigger == 'wf-play-interval' and is_playing:
+        new_val = (current or 0) + 1
+        if new_val > max_val:
+            return 0  # Loop back to start
+        return new_val
+    
+    return dash.no_update
+
+
+@app.callback(
+    Output('wf-is-playing', 'data'),
+    Output('wf-play-interval', 'disabled'),
+    Output('wf-play-btn', 'children'),
+    Input('wf-play-btn', 'n_clicks'),
+    State('wf-is-playing', 'data'),
+    prevent_initial_call=True
+)
+def toggle_play(n_clicks, is_playing):
+    new_state = not is_playing
+    return new_state, not new_state, "⏸" if new_state else "▶"
+
+
+@app.callback(
     Output('waterfill-tank-chart', 'figure'),
     Output('transfer-matrix-chart', 'figure'),
     Output('conservation-chart', 'figure'),
+    Input('wf-frame-slider', 'value'),
     Input('session-dropdown', 'value'),
     Input('resource-dropdown', 'value'),
-    Input('global-time-slider', 'value'),
     Input('waterfill-ally-dropdown', 'value'),
-    Input('available-frames-store', 'data'),
-    Input('refresh-btn', 'n_clicks'),
+    State('wf-frames-store', 'data'),
 )
-def update_waterfill_charts(session_id, resource, time_range, ally_team, available_frames, n_clicks):
-    if not session_id:
-        ef = create_empty_fig("Select a session", COLORS)
+def update_waterfill_charts(frame_idx, session_id, resource, ally_team, frames):
+    if not session_id or session_id == 'all':
+        ef = create_empty_fig("Select a session", COLORS, 'empty-waterfill')
         return ef, ef, ef
     
-    # Use the end of the time range to pick the frame for detailed waterfill analysis
-    if time_range and available_frames:
-        end_minutes = time_range[1]
-        end_frame = int(end_minutes * 60 * 30)
-        # Find the closest available frame
-        closest_frame = min(available_frames, key=lambda f: abs(f - end_frame)) if available_frames else end_frame
-    else:
-        closest_frame = max(available_frames) if available_frames else 0
+    # Handle session_id from dbc.Select (string)
+    try:
+        session_id = int(session_id)
+    except (ValueError, TypeError):
+        pass
     
-    if not closest_frame:
-        ef = create_empty_fig("No frame data available", COLORS)
+    if ally_team is None:
+        ef = create_empty_fig("Select an alliance", COLORS, 'no-ally')
         return ef, ef, ef
     
-    wf_df, inp_df, lift_df = load_waterfill_data(session_id, closest_frame, resource, ally_team)
-    tank_fig = create_waterfill_tank_diagram(wf_df, inp_df, lift_df, resource, closest_frame, COLORS)
+    # ally_team comes as string from dbc.Select, "all" means None for query
+    ally_team_int = None if ally_team == 'all' else None
+    if ally_team != 'all':
+        try:
+            ally_team_int = int(ally_team)
+        except (ValueError, TypeError):
+            ally_team_int = None
     
-    transfer_matrix = load_transfer_matrix(session_id, closest_frame, resource)
-    matrix_fig = create_transfer_matrix_heatmap(transfer_matrix, resource, closest_frame, COLORS)
+    if not frames or frame_idx is None or frame_idx >= len(frames):
+        ef = create_empty_fig("No waterfill data available", COLORS, 'no-frame')
+        return ef, ef, ef
+    
+    frame = frames[frame_idx]
+    
+    wf_df, inp_df, lift_df = load_waterfill_data(session_id, frame, resource, ally_team_int)
+    tank_fig = create_waterfill_tank_diagram(wf_df, inp_df, lift_df, resource, frame, COLORS)
+    
+    transfer_matrix = load_transfer_matrix(session_id, frame, resource)
+    matrix_fig = create_transfer_matrix_heatmap(transfer_matrix, resource, frame, COLORS)
     
     output_df = load_output_data(session_id, resource)
     conservation_fig = create_conservation_chart(output_df, resource, COLORS)
@@ -2156,28 +2485,27 @@ def update_waterfill_charts(session_id, resource, time_range, ally_team, availab
     return tank_fig, matrix_fig, conservation_fig
 
 
-@callback(
-    Output('waterfill-ally-col', 'style'),
-    Input('tabs', 'active_tab')
-)
-def toggle_tab_controls(active_tab):
-    if active_tab == 'tab-waterfill':
-        return {}
-    return {'display': 'none'}
-
-@callback(
-    Output('auto-refresh', 'interval'),
-    Output('auto-refresh', 'disabled'),
+@app.callback(
+    Output('fallback-refresh', 'interval'),
+    Output('fallback-refresh', 'disabled'),
     Input('interval-dropdown', 'value')
 )
 def update_interval(value):
+    print(f"[Interval] Value changed to: {value!r} (type: {type(value).__name__})")
+    try:
+        value = int(value)
+    except (ValueError, TypeError):
+        value = 5000
+        
     if value == 0:
-        return 1000, True
+        print("[Interval] Polling DISABLED")
+        return 5000, True
+    print(f"[Interval] Polling every {value}ms")
     return value, False
 
 
 # === Export to Markdown Callbacks ===
-@callback(
+@app.callback(
     Output("download-economy-md", "data"),
     Input("export-economy-btn", "n_clicks"),
     State("session-dropdown", "value"),
@@ -2230,7 +2558,7 @@ Recent transfer transactions between teams.
     return dict(content=md_content, filename=f"economy_overview_{session_id}_{resource}.md")
 
 
-@callback(
+@app.callback(
     Output("download-timing-md", "data"),
     Input("export-timing-btn", "n_clicks"),
     State("session-dropdown", "value"),
@@ -2296,27 +2624,21 @@ Timing values exceeding the 99th percentile threshold.
     return dict(content=md_content, filename=f"timing_analysis_{session_id or 'all'}.md")
 
 
-@callback(
+@app.callback(
     Output("download-waterfill-md", "data"),
     Input("export-waterfill-btn", "n_clicks"),
     State("session-dropdown", "value"),
     State("resource-dropdown", "value"),
-    State("global-time-slider", "value"),
     State("waterfill-ally-dropdown", "value"),
-    State("available-frames-store", "data"),
+    State("wf-frame-slider", "value"),
+    State("wf-frames-store", "data"),
     prevent_initial_call=True
 )
-def export_waterfill_markdown(n_clicks, session_id, resource, time_range, ally_team, available_frames):
+def export_waterfill_markdown(n_clicks, session_id, resource, ally_team, frame_idx, frames):
     if not n_clicks or not session_id:
         return None
 
-    # Determine the frame for analysis
-    if time_range and available_frames:
-        end_minutes = time_range[1]
-        end_frame = int(end_minutes * 60 * 30)
-        closest_frame = min(available_frames, key=lambda f: abs(f - end_frame)) if available_frames else end_frame
-    else:
-        closest_frame = max(available_frames) if available_frames else 0
+    closest_frame = frames[frame_idx] if frames and frame_idx is not None and frame_idx < len(frames) else 0
 
     md_content = f"""# 🌊 Waterfill Analysis Report
 
@@ -2370,53 +2692,21 @@ Chart verifying the conservation law across all frames:
     return dict(content=md_content, filename=f"waterfill_analysis_{session_id}_{resource}_frame_{closest_frame}.md")
 
 
-# === WebSocket server for real-time push ===
-ws_clients = set()
-
-
-async def ws_handler(websocket):
-    ws_clients.add(websocket)
-    try:
-        async for message in websocket:
-            pass
-    except websockets.exceptions.ConnectionClosedError:
-        pass
-    finally:
-        ws_clients.discard(websocket)
-
-
-async def broadcast(message):
-    if ws_clients:
-        await asyncio.gather(
-            *[client.send(message) for client in ws_clients],
-            return_exceptions=True
-        )
-
-
-def run_ws_server():
-    async def serve():
-        async with websockets.serve(ws_handler, "localhost", WS_PORT):
-            print(f"WebSocket server running on ws://localhost:{WS_PORT}")
-            await asyncio.Future()
-    
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(serve())
 
 
 # === Main ===
 if __name__ == '__main__':
-    import sys
-    
-    ws_thread = threading.Thread(target=run_ws_server, daemon=True)
-    ws_thread.start()
+    # Debug: print registered callbacks
+    print(f"\n[DEBUG] Registered callbacks: {len(app.callback_map)}")
+    for key in list(app.callback_map.keys())[:5]:
+        print(f"  - {key[:80]}...")
     
     print(f"\n{'='*60}")
     print("  BAR Economy Audit Dashboard")
     print(f"{'='*60}")
     print(f"  Database: {DB_PATH}")
-    print(f"  WebSocket: ws://localhost:{WS_PORT}")
     print(f"  Dashboard: http://localhost:8050")
+    print(f"  Live updates: ws://<host>:{WS_PORT} (start parser to enable)")
     print(f"{'='*60}\n")
     
     app.run(debug=True, use_reloader=False, port=8050)

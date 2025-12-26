@@ -355,14 +355,10 @@ function Gadgets.Solve(springRepo, teamsList)
       for i = 1, #members do
         local m = members[i]
         memberById[m.teamId] = m
-        -- DISABLED: Spring.Echo("[TRACE] TeamInput t=" .. m.teamId .. " a=" .. m.allyTeam .. " r=" .. resourceType)
         EconomyLog.TeamInput(m.teamId, m.allyTeam, resourceType, m.current, m.storage, m.shareCursor / math.max(1, m.storage), m.cumulativeSent, m.shareCursor)
       end
 
-      -- DISABLED: Spring.Echo("[TRACE] TeamInput loop done for ally=" .. allyTeam .. " r=" .. resourceType .. " count=" .. #members)
-      -- DISABLED: Spring.Echo("[TRACE] Calling resolveLift")
       local lift = resolveLift(members, taxRate)
-      -- DISABLED: Spring.Echo("[TRACE] resolveLift returned lift=" .. tostring(lift))
 
       local totalSupply, totalDemand = 0, 0
       local senderCount, receiverCount = 0, 0
@@ -385,10 +381,8 @@ function Gadgets.Solve(springRepo, teamsList)
           role = "neutral"
           delta = 0
         end
-        -- TRACE DISABLED: -- DISABLED: Spring.Echo("[TRACE] TeamWaterfill t=" .. m.teamId .. " a=" .. allyTeam .. " r=" .. resourceType .. " role=" .. role)
         EconomyLog.TeamWaterfill(m.teamId, allyTeam, resourceType, m.current, target, role, delta)
       end
-      -- DISABLED: Spring.Echo("[TRACE] GroupLift a=" .. allyTeam .. " r=" .. resourceType)
       EconomyLog.GroupLift(allyTeam, resourceType, lift, #members, totalSupply, totalDemand, senderCount, receiverCount)
 
       local ledgers = allocateGroup(members, lift, taxRate)

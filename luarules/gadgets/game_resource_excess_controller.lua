@@ -72,7 +72,7 @@ local function BuildTeamData(excesses)
 		local eCur, eStor, ePull, eInc, eExp, eShare = springRepo.GetTeamResources(teamId, "energy")
 		
 		if mCur then
-			local _, _, _, _, allyTeam = springRepo.GetTeamInfo(teamId)
+			local _, _, _, _, _, allyTeam = springRepo.GetTeamInfo(teamId)
 			local excess = excesses[teamId] or { metal = 0, energy = 0 }
 			
 			teams[teamId] = {
@@ -146,11 +146,6 @@ end
 ---@param excesses table<number, {metal: number, energy: number}> Excess values only
 ---@return boolean handled Whether Lua handled the excess
 local function ResourceExcessController(frame, excesses)
-	-- Debug: confirm controller is being called
-	if frame % 300 == 0 then
-		Spring.Echo("[ResourceExcessController] Processing frame=" .. frame)
-	end
-	
 	-- Build team data by querying Spring API (emulates per-gadget pattern)
 	local teams = BuildTeamData(excesses)
 	
@@ -167,7 +162,7 @@ local function ResourceExcessController(frame, excesses)
 	-- Run the waterfill solver
 	local success, updatedTeams, allLedgers = pcall(WaterfillSolver.Solve, springRepo, teams)
 	if not success then
-		Spring.Echo("[ResourceExcessController] Solver error: " .. tostring(updatedTeams))
+		Spring.Log("ResourceExcessController", LOG.ERROR, "Solver: " .. tostring(updatedTeams))
 		return false
 	end
 	
@@ -212,40 +207,32 @@ local function RegisterController()
 	if controllerRegistered then return end
 	
 	if not Spring.SetResourceExcessController then
-		Spring.Echo("[ResourceExcessController] WARNING: Spring.SetResourceExcessController not available")
+		Spring.Log("ResourceExcessController", LOG.WARNING, "SetResourceExcessController not available")
 		return
 	end
 	
 	Spring.SetResourceExcessController(ResourceExcessController)
 	controllerRegistered = true
-	Spring.Echo("[ResourceExcessController] Registered controller for ResourceExcess mode")
+	Spring.Log("ResourceExcessController", LOG.INFO, "Registered")
 end
 
 function gadget:Initialize()
-	Spring.Echo("[ResourceExcessController] Initialize")
-	
-	-- Check mode from engine (set via modrules.lua economy_audit_mode)
 	activeMode = Game.economyAuditMode or "off"
-	Spring.Echo("[ResourceExcessController] Current mode: " .. tostring(activeMode))
+	Spring.Log("ResourceExcessController", LOG.INFO, "Init mode=" .. tostring(activeMode))
 	
 	if activeMode == "process_economy" then
-		Spring.Echo("[ResourceExcessController] ProcessEconomy mode - this gadget will be passive")
 		return
 	end
 	
-	-- Try to register now (might be reset during game load)
 	RegisterController()
 end
 
 function gadget:GamePreload()
-	Spring.Echo("[ResourceExcessController] GamePreload called")
 end
 
 function gadget:GameStart()
-	-- Register at GameStart - after all cleanup cycles are complete
 	if activeMode ~= "process_economy" then
-		Spring.Echo("[ResourceExcessController] GameStart - registering controller (final)")
-		controllerRegistered = false  -- Force re-registration
+		controllerRegistered = false
 		RegisterController()
 	end
 end
