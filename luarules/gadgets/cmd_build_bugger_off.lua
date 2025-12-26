@@ -30,7 +30,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 
 	cachedUnitDefs[unitDefID] = {
 		isImmobile = unitDef.isImmobile,
-		isBlocking = unitDef.customParams.decoration and not unitDef.reclaimable,
+		isBlocking = not unitDef.reclaimable and unitDef.customParams.decoration and unitDef.customParams.subfolder ~= "other/hats",
 		isBuilder  = unitDef.isBuilder,
 		radius     = unitDef.radius,
 		semiAxisX  = unitDef.xsize * footprint * 0.5,
@@ -149,7 +149,7 @@ end
 local function shouldBuggeroff(unitID, unitDefData, visitedUnits, builderTeam)
 	if unitDefData.isBlocking then
 		visitedUnits[unitID] = true
-		Spring.DestroyUnit(unitID, false, true, nil, true)
+		Spring.DestroyUnit(unitID, false, true)
 		return false
 	end
 
