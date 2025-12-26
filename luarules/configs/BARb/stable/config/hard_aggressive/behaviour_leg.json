@@ -929,7 +929,7 @@
 				"power": 1.0
 			},
 			"legnavyaaship": {
-				"role": ["scout", "anti_air", "raider"],
+				"role": ["anti_air", "raider"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
 			},
