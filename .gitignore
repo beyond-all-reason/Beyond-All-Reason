@@ -6,7 +6,3 @@
 *.iml
 .project
 *.code-workspace
-luarules/gadgets/game_ceg_preview.lua
-luarules/ceg_lookup.lua
-luaui/Widgets/gui_ceg_browser.lua
-units/other/ceg_test_projectile.lua
