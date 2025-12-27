@@ -128,6 +128,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 360,
+				customparams = {
+					preaim_range = 650,
+				},
 				damage = {
 					default = 0,
 				},
