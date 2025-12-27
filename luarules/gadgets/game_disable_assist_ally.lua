@@ -25,6 +25,10 @@ local function isComplete(u)
 	end
 end
 
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_GUARD)
+	gadgetHandler:RegisterAllowCommand(CMD_REPAIR)
+end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 
