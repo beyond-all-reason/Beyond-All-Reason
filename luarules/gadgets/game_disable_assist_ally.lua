@@ -32,7 +32,7 @@ end
 
 local function isComplete(unitID)
 	local inProgress, progress = Spring.GetUnitIsBeingBuilt(unitID)
-	return inProgress and progress >= 1
+	return inProgress or progress >= 1
 end
 
 function gadget:Initialize()
