@@ -2,7 +2,7 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name         = "Attack no ally",
+		name         = "No fire on own units (full cancel)",
 		desc         = "Redirects attack on allies to ground and fully exits attack mode on RMB",
 		author       = "Ceddral, Floris (modified)",
 		date         = "April 2018 (modified Dec 2025)",
@@ -13,10 +13,24 @@ function widget:GetInfo()
 end
 
 local function ExitAttackMode()
-	-- STOP clears queued commands
-	Spring.GiveOrder(CMD.STOP, {}, {})
-	-- clears the active command cursor 
-	Spring.SetActiveCommand(0)
+	-- Only clear the active command cursor to return to contextual commands.
+	Spring.SetActiveCommand(nil)
+end
+
+local hasRightClickAttack = {
+	[CMD.ATTACK] = true,
+	[CMD.MANUALFIRE] = true,
+}
+
+local function GetAllyTarget(cmdParams)
+	if #cmdParams ~= 1 then
+		return nil
+	end
+	local targetUnitID = cmdParams[1]
+	if Spring.IsUnitAllied(targetUnitID) then
+		return targetUnitID
+	end
+	return nil
 end
 
 local function IssueGroundAttack(cmdOptions)
@@ -47,52 +61,35 @@ function widget:MousePress(x, y, button)
 		return false
 	end
 
-	local _, activeCmdID = Spring.GetActiveCommand()
-
-	if activeCmdID == CMD.ATTACK then
-		ExitAttackMode()
-		return true -- swallow RMB so engine doesn't re-trigger commands
+	if WG['attacknoally'] then
+		local _, activeCmdID = Spring.GetActiveCommand()
+		if activeCmdID and hasRightClickAttack[activeCmdID] then
+			ExitAttackMode()
+			return true -- swallow RMB so engine doesn't re-trigger commands
+		end
 	end
 
 	return false
 end
-
 -- Command interception
+-- This portion is required to make sure that attack commands on allies aims at ground which ally is standing on.
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
+	local allyTarget = GetAllyTarget(cmdParams)
 	if cmdID == CMD.ATTACK then
-		-- Ground attack = 3 params; only intercept unit-target attacks
-		if #cmdParams ~= 1 then
+		-- Only intercept unit-target attacks against allied units.
+		if not allyTarget then
 			return false
 		end
-
-		local targetUnitID = cmdParams[1]
-		if not Spring.IsUnitAllied(targetUnitID) then
-			return false
-		end
-
-		-- Redirect attack on allied unit → ground attack
 		if not IssueGroundAttack(cmdOptions) then
 			ExitAttackMode()
 		end
 		return true
-
 	elseif cmdID == CMD.MANUALFIRE then
-		if #cmdParams == 1 and Spring.IsUnitAllied(cmdParams[1]) then
+		if allyTarget then
 			ExitAttackMode()
 			return true
 		end
 		return false
-
-	elseif cmdID == CMD.GUARD then
-		if #cmdParams == 1 and Spring.IsUnitAllied(cmdParams[1]) then
-			local _, activeCmdID = Spring.GetActiveCommand()
-			if activeCmdID == CMD.ATTACK then
-				ExitAttackMode()
-				return true
-			end
-		end
-		return false
 	end
-
 	return false
 end
