@@ -30,13 +30,9 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	canBuildStep[unitDefID] = unitDef.isFactory or (unitDef.isBuilder and (unitDef.canBuild or unitDef.canAssist))
 end
 
-local function isComplete(u)
-	local _,_,_,_,buildProgress = Spring.GetUnitHealth(u)
-	if buildProgress and buildProgress>=1 then
-		return true
-	else
-		return false
-	end
+local function isComplete(unitID)
+	local inProgress, progress = Spring.GetUnitIsBeingBuilt(unitID)
+	return inProgress and progress >= 1
 end
 
 function gadget:Initialize()
