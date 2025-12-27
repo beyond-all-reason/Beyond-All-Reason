@@ -93,7 +93,7 @@ local trajectoryCmdDesc = {
     action = 'trajectory_toggle',
     params = { AUTO_TOGGLESTATE, "trajectory_low", "trajectory_high", "trajectory_auto" },
 }
-local defaultCmdDesc = trajectoryCmdDesc
+local defaultCmdDesc = table.copy(trajectoryCmdDesc)
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_SMART_TOGGLE)
