@@ -1,10 +1,10 @@
 local SharedEnums = VFS.Include("sharing_modes/shared_enums.lua")
 local ResourceShared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_shared.lua")
 local EconomyLog = VFS.Include("common/luaUtilities/economy/economy_log.lua")
+local SharedConfig = VFS.Include("common/luaUtilities/economy/shared_config.lua")
 
 local ResourceType = SharedEnums.ResourceType
 local RESOURCE_TYPES = SharedEnums.ResourceTypes
-local MOD_OPTIONS = SharedEnums.ModOptions
 
 local Gadgets = {}
 Gadgets.__index = Gadgets
@@ -30,20 +30,6 @@ local function normalizeSlider(value)
   return value
 end
 
----@param springRepo ISpring
----@return number, table<ResourceType, number>
-local function getTaxConfig(springRepo)
-  local modOpts = springRepo.GetModOptions()
-  local tax = tonumber(modOpts[MOD_OPTIONS.TaxResourceSharingAmount])
-  if tax < 0 then tax = 0 end
-  if tax > 1 then tax = 1 end
-  local thresholds = {
-    [ResourceType.METAL] = math.max(0, tonumber(modOpts[MOD_OPTIONS.PlayerMetalSendThreshold]) or 0),
-    [ResourceType.ENERGY] = math.max(0, tonumber(modOpts[MOD_OPTIONS.PlayerEnergySendThreshold]) or 0),
-  }
-  return tax, thresholds
-end
-
 ---@param teamsList table<number, TeamResourceData>
 ---@param resourceType ResourceType
 ---@param thresholds table<ResourceType, number>
@@ -52,6 +38,7 @@ end
 local function collectMembers(teamsList, resourceType, thresholds, springRepo)
   local grouped = {}
   local field = resourceType == ResourceType.METAL and ResourceType.METAL or ResourceType.ENERGY
+  local threshold = thresholds[resourceType]
   for teamId, team in pairs(teamsList) do
     if not team.isDead then
       local resource = team[field]
@@ -65,7 +52,6 @@ local function collectMembers(teamsList, resourceType, thresholds, springRepo)
           shareCursor = storage
         end
         local cumulativeSent = ResourceShared.GetCumulativeSent(teamId, resourceType, springRepo)
-        local threshold = thresholds[resourceType] or 0
         local remaining = math.max(0, threshold - cumulativeSent)
         local group = grouped[allyTeam]
         if group == nil then
@@ -328,9 +314,20 @@ function Gadgets.Solve(springRepo, teamsList)
     return teamsList, {}
   end
 
-  local taxRate, thresholds = getTaxConfig(springRepo)
+  local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
   local cumulativeUpdates = {}
+  
+  ---@type table<number, table<ResourceType, EconomyFlowLedger>>
   local allLedgers = {}
+  
+  ---@type EconomyFlowLedger
+  local zeroLedger = { sent = 0, received = 0, untaxed = 0, taxed = 0 }
+  for teamId in pairs(teamsList) do
+    allLedgers[teamId] = {
+      [ResourceType.METAL] = { sent = 0, received = 0, untaxed = 0, taxed = 0 },
+      [ResourceType.ENERGY] = { sent = 0, received = 0, untaxed = 0, taxed = 0 },
+    }
+  end
 
   for _, resourceType in ipairs(RESOURCE_TYPES) do
     local groups = collectMembers(teamsList, resourceType, thresholds, springRepo)
@@ -374,20 +371,11 @@ function Gadgets.Solve(springRepo, teamsList)
       local ledgers = allocateGroup(members, lift, taxRate)
 
       for teamId, ledger in pairs(ledgers) do
-        local perTeam = allLedgers[teamId]
-        if not perTeam then
-          perTeam = {}
-          allLedgers[teamId] = perTeam
-        end
-        local summary = perTeam[resourceType]
-        if not summary then
-          summary = { sent = 0, received = 0, untaxed = 0, taxed = 0 }
-          perTeam[resourceType] = summary
-        end
+        local summary = allLedgers[teamId][resourceType]
         summary.sent = summary.sent + ledger.sent
         summary.received = summary.received + ledger.received
-        summary.untaxed = summary.untaxed + ledger.untaxed
-        summary.taxed = summary.taxed + ledger.taxed
+        summary.untaxed = summary.untaxed + (ledger.untaxed or 0)
+        summary.taxed = summary.taxed + (ledger.taxed or 0)
 
         if ledger.sent > EPSILON then
           local member = memberById[teamId]
@@ -404,21 +392,13 @@ function Gadgets.Solve(springRepo, teamsList)
 
   for teamId, team in pairs(teamsList) do
     local ledger = allLedgers[teamId]
-    if ledger then
-      if team.metal then
-        local m = ledger[ResourceType.METAL]
-        if m then
-          -- DISABLED: Spring.Echo("[TRACE] TeamOutput t=" .. teamId .. " r=metal")
-          EconomyLog.TeamOutput(teamId, ResourceType.METAL, team.metal.current, m.sent, m.received)
-        end
-      end
-      if team.energy then
-        local e = ledger[ResourceType.ENERGY]
-        if e then
-          -- DISABLED: Spring.Echo("[TRACE] TeamOutput t=" .. teamId .. " r=energy")
-          EconomyLog.TeamOutput(teamId, ResourceType.ENERGY, team.energy.current, e.sent, e.received)
-        end
-      end
+    if team.metal then
+      local m = ledger[ResourceType.METAL]
+      EconomyLog.TeamOutput(teamId, ResourceType.METAL, team.metal.current, m.sent, m.received)
+    end
+    if team.energy then
+      local e = ledger[ResourceType.ENERGY]
+      EconomyLog.TeamOutput(teamId, ResourceType.ENERGY, team.energy.current, e.sent, e.received)
     end
   end
 

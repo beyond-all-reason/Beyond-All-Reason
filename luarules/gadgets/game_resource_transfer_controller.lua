@@ -128,6 +128,21 @@ function gadget:PlayerAdded(playerID)
 end
 
 --------------------------------------------------------------------------------
+-- Table Pooling
+--------------------------------------------------------------------------------
+local resultCache = {}
+local resultPool = {}
+local poolIndex = 0
+
+local function GetPooledTable()
+	poolIndex = poolIndex + 1
+	if not resultPool[poolIndex] then
+		resultPool[poolIndex] = {}
+	end
+	return resultPool[poolIndex]
+end
+
+--------------------------------------------------------------------------------
 -- ProcessEconomy Controller Function
 -- 
 -- This is called by C++ via the registered controller pattern.
@@ -157,6 +172,7 @@ local function ProcessEconomy(frame, teams)
 		Spring.Echo("[ProcessEconomyController] Processing frame=" .. frame)
 	end
 	
+	-- Count teams (keys are team IDs, possibly non-consecutive or 0-based)
 	local teamCount = 0
 	for _ in pairs(teams) do teamCount = teamCount + 1 end
 	
@@ -170,7 +186,12 @@ local function ProcessEconomy(frame, teams)
 	
 	EconomyLog.Breakpoint("Solver")
 
-	local result = {}
+	-- Reset pool index
+	poolIndex = 0
+	-- Clear result cache (only the array part we used last time)
+	for i = #resultCache, 1, -1 do resultCache[i] = nil end
+
+	local idx = 0
 	for teamId, team in pairs(updatedTeams) do
 		local ledger = allLedgers[teamId]
 		local mSent = ledger[ResourceType.METAL].sent
@@ -182,21 +203,24 @@ local function ProcessEconomy(frame, teams)
 		EconomyLog.TeamOutput(teamId, "metal", team.metal.current, mSent, mRecv)
 		EconomyLog.TeamOutput(teamId, "energy", team.energy.current, eSent, eRecv)
 		
-		result[#result + 1] = {
-			teamId = teamId,
-			resourceType = ResourceType.METAL,
-			current = team.metal.current,
-			sent = mSent,
-			received = mRecv,
-		}
+		-- Use pooled tables for result
+		idx = idx + 1
+		local mEntry = GetPooledTable()
+		mEntry.teamId = teamId
+		mEntry.resourceType = ResourceType.METAL
+		mEntry.current = team.metal.current
+		mEntry.sent = mSent
+		mEntry.received = mRecv
+		resultCache[idx] = mEntry
 		
-		result[#result + 1] = {
-			teamId = teamId,
-			resourceType = ResourceType.ENERGY,
-			current = team.energy.current,
-			sent = eSent,
-			received = eRecv,
-		}
+		idx = idx + 1
+		local eEntry = GetPooledTable()
+		eEntry.teamId = teamId
+		eEntry.resourceType = ResourceType.ENERGY
+		eEntry.current = team.energy.current
+		eEntry.sent = eSent
+		eEntry.received = eRecv
+		resultCache[idx] = eEntry
 	end
 
 	EconomyLog.Breakpoint("PostMunge")
@@ -204,7 +228,7 @@ local function ProcessEconomy(frame, teams)
 	lastPolicyUpdate = ResourceTransfer.UpdatePolicyCache(springRepo, frame, lastPolicyUpdate, POLICY_UPDATE_RATE, contextFactory)
 	EconomyLog.Breakpoint("PolicyCache")
 	
-	return result
+	return resultCache
 end
 
 function gadget:RecvLuaMsg(msg, playerID)

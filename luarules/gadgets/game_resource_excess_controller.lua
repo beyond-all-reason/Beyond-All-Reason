@@ -116,22 +116,23 @@ local function ApplyResults(results, ledgers)
 			break
 		end
 		
-		-- Clamp values to storage
-		local metalFinal = math.min(team.metal.current or 0, team.metal.storage or 1000)
-		local energyFinal = math.min(team.energy.current or 0, team.energy.storage or 1000)
+		-- Clamp values to storage (values are guaranteed non-nil by BuildTeamData)
+		local metalFinal = math.min(team.metal.current, team.metal.storage)
+		local energyFinal = math.min(team.energy.current, team.energy.storage)
 		
 		-- These are the Lua->C++ API calls we're measuring
 		springRepo.SetTeamResource(teamId, "metal", metalFinal)
 		springRepo.SetTeamResource(teamId, "energy", energyFinal)
 		
-		local ledger = ledgers[teamId] or {}
-		local metalFlow = ledger[ResourceType.METAL] or { sent = 0, received = 0 }
-		local energyFlow = ledger[ResourceType.ENERGY] or { sent = 0, received = 0 }
+		-- Ledgers are guaranteed to exist for all teams by the solver
+		local ledger = ledgers[teamId]
+		local metalFlow = ledger[ResourceType.METAL]
+		local energyFlow = ledger[ResourceType.ENERGY]
 
-		local mSentVal = metalFlow.sent or 0
-		local eSentVal = energyFlow.sent or 0
-		local mRecvVal = metalFlow.received or 0
-		local eRecvVal = energyFlow.received or 0
+		local mSentVal = metalFlow.sent
+		local eSentVal = energyFlow.sent
+		local mRecvVal = metalFlow.received
+		local eRecvVal = energyFlow.received
 		
 		if mSentVal > 0 or eSentVal > 0 then
 			springRepo.AddTeamResourceStats(teamId, { sent = { mSentVal, eSentVal } })

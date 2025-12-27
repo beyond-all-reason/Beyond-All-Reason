@@ -136,11 +136,11 @@ end
 
 ---@param teamId number
 ---@param resourceType ResourceType
----@param springApi ISpring?
+---@param springRepo ISpring?
 ---@return number
-function Shared.GetCumulativeSent(teamId, resourceType, springApi)
+function Shared.GetCumulativeSent(teamId, resourceType, springRepo)
   local param = Shared.GetCumulativeParam(resourceType)
-  local spring = springApi or Spring
+  local spring = springRepo or Spring
   local value = spring.GetTeamRulesParam(teamId, param)
   if value == nil then
     return 0

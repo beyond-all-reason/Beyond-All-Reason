@@ -4,3 +4,4 @@ plotly
 dash
 dash-bootstrap-components
 websockets
+kaleido

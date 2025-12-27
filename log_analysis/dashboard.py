@@ -12,6 +12,8 @@ import sqlite3
 import platform
 import subprocess
 import urllib.parse
+import base64
+import io
 from pathlib import Path
 from datetime import datetime
 
@@ -100,9 +102,55 @@ def get_player_color(player_id):
     return PLAYER_COLORS[player_id % len(PLAYER_COLORS)]
 
 
+def fig_to_base64_png(fig, width=800, height=400):
+    """Convert a Plotly figure to a base64-encoded PNG string for markdown embedding."""
+    try:
+        img_bytes = fig.to_image(format="png", width=width, height=height, scale=2)
+        return base64.b64encode(img_bytes).decode('utf-8')
+    except Exception as e:
+        print(f"[Export] Failed to convert figure to PNG: {e}")
+        return None
+
+
+def embed_chart_in_markdown(fig, alt_text="Chart", width=800, height=400):
+    """Generate markdown image syntax for an embedded chart (base64 data URI)."""
+    b64 = fig_to_base64_png(fig, width, height)
+    if b64:
+        return f'![{alt_text}](data:image/png;base64,{b64})\n\n'
+    return f'*({alt_text} could not be exported)*\n\n'
+
+
+def dataframe_to_markdown_table(df, float_format='.2f'):
+    """Convert a pandas DataFrame to a markdown table string."""
+    if df.empty:
+        return '*No data*\n\n'
+    
+    headers = '| ' + ' | '.join(str(col) for col in df.columns) + ' |\n'
+    separator = '|' + '|'.join(['---' for _ in df.columns]) + '|\n'
+    
+    rows = ''
+    for _, row in df.iterrows():
+        cells = []
+        for col in df.columns:
+            val = row[col]
+            if isinstance(val, float):
+                cells.append(f'{val:{float_format}}')
+            elif isinstance(val, (int, np.integer)):
+                cells.append(f'{val:,}')
+            else:
+                cells.append(str(val))
+        rows += '| ' + ' | '.join(cells) + ' |\n'
+    
+    return headers + separator + rows + '\n'
+
+
 def get_team_display_name(team_id, names_dict):
-    if names_dict and team_id in names_dict:
-        return names_dict[team_id]
+    if names_dict:
+        # Try both int and string keys (Dash store converts int keys to strings via JSON)
+        if team_id in names_dict:
+            return names_dict[team_id]
+        if str(team_id) in names_dict:
+            return names_dict[str(team_id)]
     return f"Player {team_id}"
 
 
@@ -193,15 +241,22 @@ def load_teams(session_id):
     if not conn:
         return []
     try:
+        # Filter out Gaia team using team_names table
         if session_id == 'all':
             df = pd.read_sql_query(
-                "SELECT DISTINCT team_id FROM eco_team_input ORDER BY team_id",
+                """SELECT DISTINCT t.team_id FROM eco_team_input t
+                   LEFT JOIN team_names n ON t.team_id = n.team_id
+                   WHERE n.is_gaia = 0 OR n.is_gaia IS NULL
+                   ORDER BY t.team_id""",
                 conn
             )
         else:
             df = pd.read_sql_query(
-                "SELECT DISTINCT team_id FROM eco_team_input WHERE session_id = ? ORDER BY team_id",
-                conn, params=(session_id,)
+                """SELECT DISTINCT t.team_id FROM eco_team_input t
+                   LEFT JOIN team_names n ON t.team_id = n.team_id AND n.session_id = ?
+                   WHERE t.session_id = ? AND (n.is_gaia = 0 OR n.is_gaia IS NULL)
+                   ORDER BY t.team_id""",
+                conn, params=(session_id, session_id)
             )
         return df['team_id'].tolist()
     finally:
@@ -394,22 +449,26 @@ def load_solver_timing_data(session_id=None, time_range=None, limit=5000):
 
 
 def load_waterfill_data(session_id, frame, resource, ally_team=None):
-    """Load waterfill data for a specific frame. ally_team=None means all alliances."""
+    """Load waterfill data for a specific frame. ally_team=None means all alliances. Filters out Gaia team."""
     conn = get_db_connection()
     if not conn:
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
     try:
         if ally_team is None:
             wf = pd.read_sql_query("""
-                SELECT * FROM eco_team_waterfill 
-                WHERE session_id = ? AND frame = ? AND resource = ?
-                ORDER BY ally_team, team_id
+                SELECT w.* FROM eco_team_waterfill w
+                LEFT JOIN team_names n ON w.team_id = n.team_id AND w.session_id = n.session_id
+                WHERE w.session_id = ? AND w.frame = ? AND w.resource = ?
+                  AND (n.is_gaia = 0 OR n.is_gaia IS NULL)
+                ORDER BY w.ally_team, w.team_id
             """, conn, params=(session_id, frame, resource))
             
             inp = pd.read_sql_query("""
-                SELECT team_id, storage, share_cursor, ally_team FROM eco_team_input
-                WHERE session_id = ? AND frame = ? AND resource = ?
-                ORDER BY team_id
+                SELECT i.team_id, i.storage, i.share_cursor, i.ally_team FROM eco_team_input i
+                LEFT JOIN team_names n ON i.team_id = n.team_id AND i.session_id = n.session_id
+                WHERE i.session_id = ? AND i.frame = ? AND i.resource = ?
+                  AND (n.is_gaia = 0 OR n.is_gaia IS NULL)
+                ORDER BY i.team_id
             """, conn, params=(session_id, frame, resource))
             
             lift_df = pd.read_sql_query("""
@@ -419,15 +478,19 @@ def load_waterfill_data(session_id, frame, resource, ally_team=None):
             """, conn, params=(session_id, frame, resource))
         else:
             wf = pd.read_sql_query("""
-                SELECT * FROM eco_team_waterfill 
-                WHERE session_id = ? AND frame = ? AND resource = ? AND ally_team = ?
-                ORDER BY team_id
+                SELECT w.* FROM eco_team_waterfill w
+                LEFT JOIN team_names n ON w.team_id = n.team_id AND w.session_id = n.session_id
+                WHERE w.session_id = ? AND w.frame = ? AND w.resource = ? AND w.ally_team = ?
+                  AND (n.is_gaia = 0 OR n.is_gaia IS NULL)
+                ORDER BY w.team_id
             """, conn, params=(session_id, frame, resource, ally_team))
             
             inp = pd.read_sql_query("""
-                SELECT team_id, storage, share_cursor FROM eco_team_input
-                WHERE session_id = ? AND frame = ? AND resource = ? AND ally_team = ?
-                ORDER BY team_id
+                SELECT i.team_id, i.storage, i.share_cursor FROM eco_team_input i
+                LEFT JOIN team_names n ON i.team_id = n.team_id AND i.session_id = n.session_id
+                WHERE i.session_id = ? AND i.frame = ? AND i.resource = ? AND i.ally_team = ?
+                  AND (n.is_gaia = 0 OR n.is_gaia IS NULL)
+                ORDER BY i.team_id
             """, conn, params=(session_id, frame, resource, ally_team))
             
             lift_df = pd.read_sql_query("""
@@ -445,14 +508,18 @@ def load_output_data(session_id, resource, time_range=None, limit=2000):
     if not conn:
         return pd.DataFrame()
     try:
-        query = "SELECT frame, resource, team_id, sent, received FROM eco_team_output WHERE session_id = ? AND resource = ?"
+        query = """SELECT o.frame, o.resource, o.team_id, o.sent, o.received 
+                   FROM eco_team_output o
+                   LEFT JOIN team_names n ON o.team_id = n.team_id AND o.session_id = n.session_id
+                   WHERE o.session_id = ? AND o.resource = ?
+                     AND (n.is_gaia = 0 OR n.is_gaia IS NULL)"""
         params = [session_id, resource]
         
         if time_range:
-            query += " AND frame >= ? AND frame <= ?"
+            query += " AND o.frame >= ? AND o.frame <= ?"
             params.extend([time_range[0] * 60 * 30, time_range[1] * 60 * 30])
             
-        query += " ORDER BY frame DESC LIMIT ?"
+        query += " ORDER BY o.frame DESC LIMIT ?"
         params.append(limit)
         
         df = pd.read_sql_query(query, conn, params=params)
@@ -467,13 +534,15 @@ def load_conservation_check(session_id, limit=1000):
         return pd.DataFrame()
     try:
         df = pd.read_sql_query(f"""
-            SELECT frame, resource, 
-                   SUM(sent) as total_sent, 
-                   SUM(received) as total_received
-            FROM eco_team_output
-            WHERE session_id = ?
-            GROUP BY frame, resource
-            ORDER BY frame DESC LIMIT ?
+            SELECT o.frame, o.resource, 
+                   SUM(o.sent) as total_sent, 
+                   SUM(o.received) as total_received
+            FROM eco_team_output o
+            LEFT JOIN team_names n ON o.team_id = n.team_id AND o.session_id = n.session_id
+            WHERE o.session_id = ?
+              AND (n.is_gaia = 0 OR n.is_gaia IS NULL)
+            GROUP BY o.frame, o.resource
+            ORDER BY o.frame DESC LIMIT ?
         """, conn, params=(session_id, limit))
         return df.sort_values('frame') if not df.empty else df
     finally:
@@ -600,10 +669,14 @@ def load_transfer_matrix(session_id, frame, resource):
         return pd.DataFrame()
     try:
         df = pd.read_sql_query("""
-            SELECT sender_team_id, receiver_team_id, SUM(amount) as total_amount
-            FROM eco_transfer
-            WHERE session_id = ? AND frame = ? AND resource = ?
-            GROUP BY sender_team_id, receiver_team_id
+            SELECT t.sender_team_id, t.receiver_team_id, SUM(t.amount) as total_amount
+            FROM eco_transfer t
+            LEFT JOIN team_names ns ON t.sender_team_id = ns.team_id AND t.session_id = ns.session_id
+            LEFT JOIN team_names nr ON t.receiver_team_id = nr.team_id AND t.session_id = nr.session_id
+            WHERE t.session_id = ? AND t.frame = ? AND t.resource = ?
+              AND (ns.is_gaia = 0 OR ns.is_gaia IS NULL)
+              AND (nr.is_gaia = 0 OR nr.is_gaia IS NULL)
+            GROUP BY t.sender_team_id, t.receiver_team_id
         """, conn, params=(session_id, frame, resource))
         return df
     finally:
@@ -2189,17 +2262,27 @@ def update_sessions(n_clicks, type_filters, current_value):
 def update_teams(session_id, _refresh_clicks, current_teams):
     if not session_id:
         return [], [], {}, []
-    
+
     # Handle session_id from dbc.Select (string)
     try:
         if session_id != 'all':
             session_id = int(session_id)
     except (ValueError, TypeError):
         pass
-    
-    teams = load_teams(session_id)
-    names = load_team_names(session_id)
-    frames = load_available_frames(session_id)
+
+    # Use same session resolution logic as update_economy_charts
+    actual_session_id = session_id
+    if session_id == 'all':
+        # For economy overview, "All Sessions" isn't very useful/performant
+        # We'll just show a message or use the latest session
+        sessions = load_sessions()
+        if not sessions:
+            return [], [], {}, []
+        actual_session_id = sessions[0]['id']
+
+    teams = load_teams(actual_session_id)
+    names = load_team_names(actual_session_id)
+    frames = load_available_frames(actual_session_id)
     
     options = [
         {'label': get_team_display_name(t, names), 'value': t}
@@ -2428,6 +2511,10 @@ def update_economy_charts(ws_trigger, session_id, selected_teams, resource, ally
             return ef, [], ef, ef, ef, ef, ef
         session_id = sessions[0]['id']
     
+    # Load team names if not provided (fallback) - session_id is always a specific int at this point
+    if not team_names:
+        team_names = load_team_names(session_id)
+
     team_names = team_names or {}
     selected_teams = selected_teams or []
     
@@ -2746,38 +2833,69 @@ def export_economy_markdown(n_clicks, session_id, resource, selected_teams, team
         return None
 
     team_names = team_names or {}
+    selected_teams = selected_teams or []
+    
+    # Handle session_id from dbc.Select
+    try:
+        if session_id != 'all':
+            session_id = int(session_id)
+    except (ValueError, TypeError):
+        pass
+    
+    if session_id == 'all':
+        sessions = load_sessions()
+        if sessions:
+            session_id = sessions[0]['id']
+
+    # Load actual data
+    eco_df = load_economy_data_multi(session_id, selected_teams, resource) if selected_teams else pd.DataFrame()
+    transfers_df = load_transfers(session_id, resource)
+    group_lift_df = load_group_lift_data(session_id, resource)
 
     # Generate markdown content
     md_content = f"""# 📊 Economy Overview - {resource.title()}
 
 **Session:** {session_id}
 **Resource:** {resource.title()}
-**Selected Teams:** {', '.join([get_team_display_name(t, team_names) for t in (selected_teams or [])]) or 'All'}
+**Selected Teams:** {', '.join([get_team_display_name(t, team_names) for t in selected_teams]) or 'All'}
 
-## Resource Levels
-- Real-time resource levels for selected teams
-- Shows current levels vs storage capacity
-- Time-based visualization
+"""
 
-## Transfer Flow
-- Net transfer flow between teams (+ receiving / − sending)
-- Binned over time for clarity
-- Shows redistribution patterns
+    # Resource Levels chart
+    if not eco_df.empty:
+        resource_fig = create_resource_levels_chart(eco_df, selected_teams, team_names, resource, COLORS)
+        md_content += "## Resource Levels\n\n"
+        md_content += embed_chart_in_markdown(resource_fig, "Resource Levels", width=900, height=400)
 
-## Explicit Transfers
-- Total transfers sent and received
-- Orange bars: total sent
-- Green bars: received amount
-- Shows transfer activity over time
+    # Transfer Flow chart
+    if not transfers_df.empty:
+        flow_fig = create_transfer_flow_chart(transfers_df, team_names, selected_teams, COLORS)
+        md_content += "## Transfer Flow\n\n"
+        md_content += embed_chart_in_markdown(flow_fig, "Transfer Flow", width=900, height=400)
+        
+        # Total Sent chart
+        sent_fig = create_total_sent_chart(transfers_df, team_names, COLORS)
+        md_content += "## Total Sent by Team\n\n"
+        md_content += embed_chart_in_markdown(sent_fig, "Total Sent", width=600, height=300)
+        
+        # Transfer Ledger table
+        ledger_data = create_transaction_ledger(transfers_df, team_names, selected_teams)
+        if ledger_data:
+            md_content += "## Transfer Ledger\n\n"
+            ledger_df = pd.DataFrame(ledger_data)
+            md_content += dataframe_to_markdown_table(ledger_df)
 
-## Summary Statistics
-- Total sent by each team (horizontal bar chart)
-- Supply vs demand balance
-- Waterfill lift values
+    # Supply/Demand chart
+    if not group_lift_df.empty:
+        supply_demand_fig = create_supply_demand_chart(group_lift_df, COLORS)
+        md_content += "## Supply vs Demand\n\n"
+        md_content += embed_chart_in_markdown(supply_demand_fig, "Supply vs Demand", width=900, height=300)
+        
+        lift_fig = create_lift_chart(group_lift_df, COLORS)
+        md_content += "## Waterfill Lift\n\n"
+        md_content += embed_chart_in_markdown(lift_fig, "Waterfill Lift", width=900, height=300)
 
-## Transfer Ledger
-Recent transfer transactions between teams.
-
+    md_content += """
 ---
 *Generated by BAR Economy Audit Dashboard*
 """
@@ -2862,30 +2980,30 @@ This report analyzes the performance of different economy processing components.
                 md_content += '    bar [' + ', '.join([f'{v:.1f}' for v in avgs]) + ']\n'
                 md_content += "```\n\n"
 
-    md_content += """## Performance Analysis
-
-### Timing Over Time
-- Individual charts for each metric showing performance over game time
-- Solid lines: raw timing values
-- White lines: 30-frame rolling averages
-- Green dashed: average values
-- Yellow dotted: 95th percentiles
-
-### Timing Distributions
-- Histograms showing the distribution of timing values per metric
-- Green lines: mean values
-- Yellow lines: median values
-- Wide distributions indicate inconsistent performance
-
-## Anomaly Detection
-Timing values exceeding the 99th percentile threshold.
-
-### Key Metrics Explained
-- **PreMunge**: Time to prepare data before solver
+    # Generate and embed actual charts as PNG
+    md_content += "## Performance Charts\n\n"
+    
+    if not solver_df.empty:
+        # Timing Over Time chart
+        time_chart = create_timing_over_time_chart(solver_df, COLORS)
+        md_content += "### Timing Over Time\n\n"
+        md_content += embed_chart_in_markdown(time_chart, "Timing Over Time", width=1000, height=500)
+        
+        # Timing Distribution chart
+        hist_chart = create_timing_histograms(solver_df, COLORS)
+        md_content += "### Timing Distributions\n\n"
+        md_content += embed_chart_in_markdown(hist_chart, "Timing Distributions", width=1000, height=400)
+    
+    md_content += """
+## Key Metrics Explained
+- **LuaMunge**: Time to prepare data before solver (Lua)
 - **Solver**: Time in the waterfill algorithm
-- **PostMunge**: Time to format results
+- **PostMunge**: Time to format results for engine
 - **PolicyCache**: Time to update transfer policy cache
-- **CppSetters**: Time in C++ to apply Lua results
+- **CppMunge**: Time for C++ to build team data tables
+- **CppSetters**: Time for C++ to apply Lua results
+- **LuaTotal**: Total Lua execution time
+- **Overall**: Complete frame processing time
 
 ---
 *Generated by BAR Economy Audit Dashboard*
@@ -2971,20 +3089,27 @@ The waterfill algorithm balances resources within team alliances through the fol
                         md_content += f'    T{sender}["Team {sender}"] -->|{amount:.1f}| T{receiver}["Team {receiver}"]\n'
             md_content += "```\n\n"
     
-    md_content += """## Tank Diagram
-Visual representation showing:
-- Each team's current resource level (filled portion)
-- Target levels (dashed white lines)
-- Share cursors (dotted orange lines)
-- Team roles: Sender (red), Receiver (green), Neutral (gray)
+    # Tank Diagram as PNG
+    if not wf_df.empty:
+        tank_fig = create_waterfill_tank_diagram(wf_df, inp_df, lift_df, resource, closest_frame, COLORS)
+        md_content += "## Tank Diagram\n\n"
+        md_content += embed_chart_in_markdown(tank_fig, "Tank Diagram", width=900, height=500)
 
-## Conservation Verification
-Chart verifying the conservation law across all frames:
-- Tax collected (sent - received)
-- Conservation errors
-- Green status: invariant holds
-- Red status: violations detected
+    # Transfer Matrix as PNG
+    if not transfer_matrix.empty:
+        matrix_fig = create_transfer_matrix_heatmap(transfer_matrix, resource, closest_frame, COLORS)
+        md_content += "## Transfer Matrix\n\n"
+        md_content += embed_chart_in_markdown(matrix_fig, "Transfer Matrix", width=600, height=500)
 
+    # Conservation chart
+    if session_id_int:
+        output_df = load_output_data(session_id_int, resource)
+        if not output_df.empty:
+            conservation_fig = create_conservation_chart(output_df, resource, COLORS)
+            md_content += "## Conservation Verification\n\n"
+            md_content += embed_chart_in_markdown(conservation_fig, "Conservation", width=900, height=400)
+
+    md_content += """
 ---
 *Generated by BAR Economy Audit Dashboard*
 """

@@ -3,6 +3,7 @@ local Comms = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_c
 local Shared = VFS.Include("common/luaUtilities/team_transfer/resource_transfer_shared.lua")
 local WaterfillSolver = VFS.Include("common/luaUtilities/economy/economy_waterfill_solver.lua")
 local EconomyLog = VFS.Include("common/luaUtilities/economy/economy_log.lua")
+local SharedConfig = VFS.Include("common/luaUtilities/economy/shared_config.lua")
 
 local ResourceType = SharedEnums.ResourceType
 
@@ -141,6 +142,9 @@ function Gadgets.ResourceTransfer(ctx)
   return result
 end
 
+-- Pooled result table for BuildResultFactory (reused to avoid GC pressure)
+local policyResultPool = {}
+
 ---@param taxRate number
 ---@param metalThreshold number
 ---@param energyThreshold number
@@ -183,33 +187,33 @@ function Gadgets.BuildResultFactory(taxRate, metalThreshold, energyThreshold)
 
     local effectiveRate = (taxRate < 1) and taxRate or 1
 
-    -- Cap taxed receivable early by budget and receiver capacity
     local taxedSendable = math.max(0, (senderBudget - untaxedPortion) * (1 - effectiveRate))
     local maxReceivable = math.max(0, receiverCapacity - untaxedPortion)
     local taxedPortion = math.min(taxedSendable, maxReceivable)
 
-    -- Example of sender cost inversion used by ResourceTransfer: untaxed + taxed/(1 - r)
-    -- local reversed = untaxedPortion + (taxedPortion > 0 and (taxedPortion / (1 - effectiveRate)) or 0)
-
-    -- note that amountSendable is in receivable units
     local amountSendable = untaxedPortion + taxedPortion
 
-    ---@type ResourcePolicyResult
-    return {
-      senderTeamId = ctx.senderTeamId,
-      receiverTeamId = ctx.receiverTeamId,
-
-      canShare = true, -- because if we got here, we're not in a deny policy and sharing is enabled
-      amountSendable = amountSendable,
-      amountReceivable = receiverCapacity,
-      taxedPortion = taxedPortion,
-      untaxedPortion = untaxedPortion,
-      taxRate = effectiveRate,
-      resourceType = resourceType,
-      remainingTaxFreeAllowance = allowanceRemaining,
-      resourceShareThreshold = threshold,
-      cumulativeSent = cumulativeSent
-    }
+    -- Reuse pooled table for result (keyed by resourceType to avoid conflicts within same pair)
+    local result = policyResultPool[resourceType]
+    if not result then
+      result = {}
+      policyResultPool[resourceType] = result
+    end
+    
+    result.senderTeamId = ctx.senderTeamId
+    result.receiverTeamId = ctx.receiverTeamId
+    result.canShare = true
+    result.amountSendable = amountSendable
+    result.amountReceivable = receiverCapacity
+    result.taxedPortion = taxedPortion
+    result.untaxedPortion = untaxedPortion
+    result.taxRate = effectiveRate
+    result.resourceType = resourceType
+    result.remainingTaxFreeAllowance = allowanceRemaining
+    result.resourceShareThreshold = threshold
+    result.cumulativeSent = cumulativeSent
+    
+    return result
   end
   return calcResourcePolicyResult
 end
@@ -241,7 +245,6 @@ function Gadgets.UpdatePolicyCache(springRepo, frame, lastUpdate, updateRate, co
     return lastUpdate
   end
 
-  local SharedConfig = VFS.Include("common/luaUtilities/economy/shared_config.lua")
   local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
   local resultFactory = Gadgets.BuildResultFactory(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY])
   
@@ -274,7 +277,13 @@ end
 function Gadgets.CachePolicyResult(springRepo, senderId, receiverId, resourceType, policyResult)
   local baseKey = Shared.MakeBaseKey(receiverId, resourceType)
   local serialized = Shared.SerializeResourcePolicyResult(policyResult)
-  springRepo.SetTeamRulesParam(senderId, baseKey, serialized)
+  
+  -- Optimization: Only write to engine if value changed
+  -- GetTeamRulesParam is generally cheaper than SetTeamRulesParam (which triggers events)
+  local current = springRepo.GetTeamRulesParam(senderId, baseKey)
+  if current ~= serialized then
+    springRepo.SetTeamRulesParam(senderId, baseKey, serialized)
+  end
 end
 
 return Gadgets
