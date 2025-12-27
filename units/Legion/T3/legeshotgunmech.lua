@@ -198,7 +198,6 @@ return {
 					cluster_def = 'cluster_munition',
 					cluster_number = 6,
 					exclude_preaim = true,
-					smart_priority = true,
 				},
 				damage = {
 					default = 300,
