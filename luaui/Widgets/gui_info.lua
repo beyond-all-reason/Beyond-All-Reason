@@ -199,7 +199,14 @@ local function refreshUnitInfo()
 			unitDefInfo[unitDefID].maxWeaponRange = unitDef.maxWeaponRange
 		end
 		if unitDef.speed > 0 then
-			unitDefInfo[unitDefID].speed = round(unitDef.speed, 0)
+			if (tonumber(unitDef.customParams.speedfactorinwater or 1) or 1) == 1 then
+				unitDefInfo[unitDefID].speed = round(unitDef.speed, 0)
+			else
+				local speed = unitDef.speed
+				local speedInWater = math.round(speed * math.clamp(tonumber(unitDef.customParams.speedfactorinwater), 0, 1e4))
+				unitDefInfo[unitDefID].speedMin = math.min(speed, speedInWater)
+				unitDefInfo[unitDefID].speedMax = math.max(speed, speedInWater)
+			end
 		end
 		if unitDef.rSpeed > 0 then
 			unitDefInfo[unitDefID].reverseSpeed = round(unitDef.rSpeed, 0)
@@ -1643,6 +1650,10 @@ local function drawUnitInfo()
 
 		if unitDefInfo[displayUnitDefID].speed then
 			addTextInfo(Spring.I18N('ui.info.speed'), unitDefInfo[displayUnitDefID].speed)
+		elseif unitDefInfo[displayUnitDefID].speedMin then
+			local min = unitDefInfo[displayUnitDefID].speedMin
+			local max = unitDefInfo[displayUnitDefID].speedMax
+			addTextInfo(Spring.I18N('ui.info.speed'), min.."-"..max)
 		end
 		if unitDefInfo[displayUnitDefID].reverseSpeed then
 			addTextInfo(Spring.I18N('ui.info.reversespeed'), unitDefInfo[displayUnitDefID].reverseSpeed)
