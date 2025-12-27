@@ -7,6 +7,7 @@ Includes: Economy Overview, Timing Analysis, Waterfill Analysis
 
 import os
 import json
+import time
 import sqlite3
 import platform
 import subprocess
@@ -63,8 +64,8 @@ COLORS = {
     'text': '#c9d1d9',
     'text_muted': '#8b949e',
     'accent': '#58a6ff',
-    'metal': '#f0c674',
-    'energy': '#81a2be',
+    'metal': '#81a2be',
+    'energy': '#f0c674',
     'green': '#a3be8c',
     'red': '#bf616a',
     'purple': '#b48ead',
@@ -207,11 +208,17 @@ def load_teams(session_id):
         conn.close()
 
 
-def load_economy_data_multi(session_id, team_ids, resource, time_range=None, limit=2000):
+def load_economy_data_multi(session_id, team_ids, resource, time_range=None, limit=5000):
     conn = get_db_connection()
     if not conn or not team_ids:
         return pd.DataFrame()
     try:
+        # Debug: show frame range being queried
+        if time_range:
+            frame_start = int(time_range[0] * 60 * 30)
+            frame_end = int(time_range[1] * 60 * 30)
+            print(f"[load_economy_data_multi] time_range={time_range} -> frames [{frame_start}, {frame_end}]")
+        
         placeholders = ','.join(['?' for _ in team_ids])
         if session_id == 'all':
             query = f"""SELECT o.frame, o.team_id, o.current, i.storage, o.source_path 
@@ -232,8 +239,8 @@ def load_economy_data_multi(session_id, team_ids, resource, time_range=None, lim
             query += " AND o.frame >= ? AND o.frame <= ?"
             params.extend([int(time_range[0] * 60 * 30), int(time_range[1] * 60 * 30)])
             
-        query += " ORDER BY o.frame DESC LIMIT ?"
-        params.append(limit * len(team_ids))
+        # Limit per team to avoid cutting off data
+        query += f" ORDER BY o.frame DESC LIMIT {limit * len(team_ids)}"
         
         df = pd.read_sql_query(query, conn, params=params)
         
@@ -278,21 +285,44 @@ def load_transfers(session_id, resource, team_ids=None, time_range=None, limit=2
         conn.close()
 
 
-def load_group_lift_data(session_id, resource, time_range=None, limit=1000):
+def load_group_lift_data(session_id, resource, ally_team=None, time_range=None, limit=1000):
     conn = get_db_connection()
     if not conn:
         return pd.DataFrame()
     try:
-        if session_id == 'all':
-            query = "SELECT frame, game_time, member_count, lift, total_demand, total_supply FROM eco_group_lift WHERE resource = ?"
-            params = [resource]
+        params = []
+        if ally_team is None or ally_team == 'all':
+            # Aggregate across all alliances for the session
+            query = """
+                SELECT frame, game_time, 
+                       SUM(member_count) as member_count, 
+                       AVG(lift) as lift, 
+                       SUM(total_demand) as total_demand, 
+                       SUM(total_supply) as total_supply 
+                FROM eco_group_lift 
+                WHERE 1=1
+            """
         else:
-            query = "SELECT frame, game_time, member_count, lift, total_demand, total_supply FROM eco_group_lift WHERE session_id = ? AND resource = ?"
-            params = [session_id, resource]
+            query = """
+                SELECT frame, game_time, member_count, lift, total_demand, total_supply 
+                FROM eco_group_lift 
+                WHERE ally_team = ?
+            """
+            params.append(ally_team)
+            
+        if session_id != 'all':
+            query += " AND session_id = ?"
+            params.append(session_id)
+        
+        query += " AND resource = ?"
+        params.append(resource)
         
         if time_range:
             query += " AND frame >= ? AND frame <= ?"
             params.extend([int(time_range[0] * 60 * 30), int(time_range[1] * 60 * 30)])
+            
+        if ally_team is None or ally_team == 'all':
+            query += " GROUP BY frame, game_time"
             
         query += " ORDER BY frame DESC LIMIT ?"
         params.append(limit)
@@ -303,7 +333,7 @@ def load_group_lift_data(session_id, resource, time_range=None, limit=1000):
         conn.close()
 
 
-def load_solver_timing_summary(session_id=None):
+def load_solver_timing_summary(session_id=None, time_range=None):
     conn = get_db_connection()
     if not conn:
         return pd.DataFrame()
@@ -316,12 +346,17 @@ def load_solver_timing_summary(session_id=None):
                    MIN(frame) as first_frame,
                    MAX(frame) as last_frame
             FROM solver_audit
+            WHERE 1=1
         """
         params = []
         if session_id:
-            query += " WHERE session_id = ?"
+            query += " AND session_id = ?"
             params.append(session_id)
-        
+            
+        if time_range:
+            query += " AND frame >= ? AND frame <= ?"
+            params.extend([int(time_range[0] * 60 * 30), int(time_range[1] * 60 * 30)])
+            
         query += " GROUP BY source_path, metric ORDER BY source_path, avg_us DESC"
         
         df = pd.read_sql_query(query, conn, params=params)
@@ -330,24 +365,29 @@ def load_solver_timing_summary(session_id=None):
         conn.close()
 
 
-def load_solver_timing_data(session_id=None, limit=5000):
+def load_solver_timing_data(session_id=None, time_range=None, limit=5000):
     conn = get_db_connection()
     if not conn:
         return pd.DataFrame()
     try:
+        query = "SELECT frame, source_path, metric, time_us FROM solver_audit WHERE 1=1"
+        params = []
+        
         if session_id:
-            df = pd.read_sql_query("""
-                SELECT frame, source_path, metric, time_us FROM solver_audit
-                WHERE session_id = ? AND metric != 'Overall'
-                ORDER BY frame
-            """, conn, params=(session_id,))
-        else:
-            df = pd.read_sql_query(f"""
-                SELECT frame, source_path, metric, time_us FROM solver_audit
-                WHERE frame > (SELECT MAX(frame) FROM solver_audit) - {limit}
-                AND metric != 'Overall'
-                ORDER BY frame
-            """, conn)
+            query += " AND session_id = ?"
+            params.append(session_id)
+            
+        if time_range:
+            query += " AND frame >= ? AND frame <= ?"
+            params.extend([int(time_range[0] * 60 * 30), int(time_range[1] * 60 * 30)])
+        elif not session_id:
+            # For "All Sessions", limit to recent frames if no range specified
+            query += " AND frame > (SELECT MAX(frame) FROM solver_audit) - ?"
+            params.append(limit)
+            
+        query += " ORDER BY frame"
+        
+        df = pd.read_sql_query(query, conn, params=params)
         return df
     finally:
         conn.close()
@@ -369,11 +409,13 @@ def load_waterfill_data(session_id, frame, resource, ally_team=None):
             inp = pd.read_sql_query("""
                 SELECT team_id, storage, share_cursor, ally_team FROM eco_team_input
                 WHERE session_id = ? AND frame = ? AND resource = ?
+                ORDER BY team_id
             """, conn, params=(session_id, frame, resource))
             
             lift_df = pd.read_sql_query("""
                 SELECT lift, total_supply, total_demand, ally_team FROM eco_group_lift
                 WHERE session_id = ? AND frame = ? AND resource = ?
+                ORDER BY ally_team
             """, conn, params=(session_id, frame, resource))
         else:
             wf = pd.read_sql_query("""
@@ -385,6 +427,7 @@ def load_waterfill_data(session_id, frame, resource, ally_team=None):
             inp = pd.read_sql_query("""
                 SELECT team_id, storage, share_cursor FROM eco_team_input
                 WHERE session_id = ? AND frame = ? AND resource = ? AND ally_team = ?
+                ORDER BY team_id
             """, conn, params=(session_id, frame, resource, ally_team))
             
             lift_df = pd.read_sql_query("""
@@ -438,11 +481,12 @@ def load_conservation_check(session_id, limit=1000):
 
 
 def load_ally_teams(session_id):
-    """Load available ally teams from team_names, excluding Gaia."""
+    """Load available ally teams, preferring team_names but falling back to eco_team_input."""
     conn = get_db_connection()
     if not conn:
         return []
     try:
+        # Try team_names first (has is_gaia flag)
         if session_id == 'all':
             df = pd.read_sql_query("""
                 SELECT DISTINCT ally_team 
@@ -457,6 +501,29 @@ def load_ally_teams(session_id):
                 WHERE session_id = ? AND is_gaia = 0
                 ORDER BY ally_team
             """, conn, params=(session_id,))
+        
+        if not df.empty:
+            return df['ally_team'].tolist()
+        
+        # Fallback: extract from eco_team_input (exclude single-member alliances as likely Gaia)
+        if session_id == 'all':
+            df = pd.read_sql_query("""
+                SELECT ally_team, COUNT(DISTINCT team_id) as member_count
+                FROM eco_team_input
+                GROUP BY ally_team
+                HAVING member_count > 1
+                ORDER BY ally_team
+            """, conn)
+        else:
+            df = pd.read_sql_query("""
+                SELECT ally_team, COUNT(DISTINCT team_id) as member_count
+                FROM eco_team_input
+                WHERE session_id = ?
+                GROUP BY ally_team
+                HAVING member_count > 1
+                ORDER BY ally_team
+            """, conn, params=(session_id,))
+        
         return df['ally_team'].tolist() if not df.empty else []
     finally:
         conn.close()
@@ -558,7 +625,7 @@ def create_empty_fig(message, colors, chart_id='empty'):
         plot_bgcolor=colors['background'],
         margin=dict(l=50, r=20, t=50, b=40),
         uirevision=chart_id,
-        transition=dict(duration=300, easing='cubic-in-out'),
+
     )
     return fig
 
@@ -605,7 +672,7 @@ def create_resource_levels_chart(df, team_ids, team_names, resource, colors):
         font=dict(family='JetBrains Mono, monospace', color=colors['text']),
         title=dict(text=f"📊 {resource.title()} Levels — {title_suffix}", font=dict(size=14)),
         uirevision='resource-chart',
-        transition=dict(duration=300, easing='cubic-in-out'),
+
         margin=dict(l=50, r=20, t=50, b=40),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1, bgcolor='rgba(0,0,0,0)'),
         hovermode='x unified',
@@ -667,7 +734,7 @@ def create_transfer_flow_chart(transfers_df, team_names, selected_teams, colors)
         font=dict(family='JetBrains Mono, monospace', color=colors['text']),
         title=dict(text=f"📈 Net Transfer Flow — {scope}", font=dict(size=14)),
         uirevision='transfer-flow-chart',
-        transition=dict(duration=300, easing='cubic-in-out'),
+
         margin=dict(l=50, r=20, t=50, b=40),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1, bgcolor='rgba(0,0,0,0)'),
         hovermode='x unified',
@@ -728,7 +795,7 @@ def create_explicit_transfers_chart(transfers_df, team_names, colors):
         xaxis=x_axis_config,
         yaxis=dict(title="Amount", gridcolor=colors['border'], zerolinecolor=colors['border']),
         uirevision='explicit-transfers',
-        transition=dict(duration=300, easing='cubic-in-out'),
+
     )
     
     return fig
@@ -763,7 +830,7 @@ def create_total_sent_chart(transfers_df, team_names, colors):
         xaxis=dict(gridcolor=colors['border'], zerolinecolor=colors['border']),
         yaxis=dict(gridcolor=colors['border']),
         uirevision='total-sent',
-        transition=dict(duration=300, easing='cubic-in-out'),
+
     )
     
     return fig
@@ -778,18 +845,18 @@ def create_supply_demand_chart(group_lift_df, colors):
     fig.add_trace(go.Scatter(
         x=group_lift_df['game_time'],
         y=group_lift_df['total_supply'],
-        mode='lines',
+        mode='markers',
         name='Supply',
-        line=dict(color=colors['green'], width=2),
+        marker=dict(color=colors['green'], size=4),
         hovertemplate='Supply: %{y:.0f}<extra></extra>'
     ))
     
     fig.add_trace(go.Scatter(
         x=group_lift_df['game_time'],
         y=group_lift_df['total_demand'],
-        mode='lines',
+        mode='markers',
         name='Demand',
-        line=dict(color=colors['red'], width=2),
+        marker=dict(color=colors['red'], size=4),
         hovertemplate='Demand: %{y:.0f}<extra></extra>'
     ))
     
@@ -802,7 +869,7 @@ def create_supply_demand_chart(group_lift_df, colors):
         font=dict(family='JetBrains Mono, monospace', color=colors['text'], size=10),
         title=dict(text="Supply / Demand — Alliance", font=dict(size=12)),
         uirevision='supply-demand-chart',
-        transition=dict(duration=300, easing='cubic-in-out'),
+
         margin=dict(l=50, r=10, t=35, b=30),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1, bgcolor='rgba(0,0,0,0)', font=dict(size=9)),
         hovermode='x unified',
@@ -822,11 +889,9 @@ def create_lift_chart(group_lift_df, colors):
     fig.add_trace(go.Scatter(
         x=group_lift_df['game_time'],
         y=group_lift_df['lift'],
-        mode='lines',
+        mode='markers',
         name='Lift',
-        line=dict(color=colors['cyan'], width=2),
-        fill='tozeroy',
-        fillcolor=f"rgba(136, 192, 208, 0.2)",
+        marker=dict(color=colors['cyan'], size=4),
         hovertemplate='Lift: %{y:.1f}<extra></extra>'
     ))
     
@@ -839,7 +904,7 @@ def create_lift_chart(group_lift_df, colors):
         font=dict(family='JetBrains Mono, monospace', color=colors['text'], size=10),
         title=dict(text="Waterfill Lift — Alliance", font=dict(size=12)),
         uirevision='lift-chart',
-        transition=dict(duration=300, easing='cubic-in-out'),
+
         margin=dict(l=50, r=10, t=35, b=30),
         showlegend=False,
         hovermode='x unified',
@@ -881,6 +946,7 @@ def create_transaction_ledger(transfers_df, team_names, selected_teams=None, lim
 
 # === Timing Analysis Charts ===
 METRIC_ORDER = [
+    'Overall',  # Total time first
     'CppMunge',
     'LuaMunge', 
     'Solver',
@@ -889,7 +955,6 @@ METRIC_ORDER = [
     'LuaTotal',
     'CppSetters',
     'LuaSetters',
-    'Overall',
 ]
 
 def metric_sort_key(metric):
@@ -1014,7 +1079,6 @@ def create_timing_over_time_chart(solver_df, colors):
     metrics = sorted(solver_df['metric'].unique(), key=metric_sort_key)
     source_paths = sorted(solver_df['source_path'].unique()) if 'source_path' in solver_df.columns else ['ALL']
     n_metrics = len(metrics)
-    n_sources = len(source_paths)
     
     SOURCE_COLORS = {'RE': '#FF6B6B', 'PE': '#4ECDC4'}
     SOURCE_LABELS = {'RE': 'ResourceExcess', 'PE': 'ProcessEconomy'}
@@ -1034,24 +1098,43 @@ def create_timing_over_time_chart(solver_df, colors):
             
             mdf = mdf.sort_values('frame')
             
+            # Compute game time for tooltips
+            mdf['game_time'] = mdf['frame'] / 30.0
+            mdf['time_str'] = mdf['game_time'].apply(lambda t: f"{int(t//60)}:{t%60:05.2f}")
+            
+            # Raw data with detailed tooltip
             fig.add_trace(go.Scatter(
-                x=mdf['frame'], y=mdf['time_us'],
-                mode='lines', name=label,
+                x=mdf['frame'], 
+                y=mdf['time_us'],
+                mode='lines+markers' if len(mdf) < 50 else 'lines',
+                name=label,
                 line=dict(color=color, width=1),
+                marker=dict(size=4, color=color) if len(mdf) < 50 else None,
                 opacity=0.6,
-                hovertemplate=f'{label}: %{{y:.1f}}μs<extra></extra>',
+                customdata=np.column_stack([mdf['time_str'], mdf['game_time']]),
+                hovertemplate=(
+                    f'<b>{label} - {metric}</b><br>' +
+                    'Frame: %{x}<br>' +
+                    'Time: %{customdata[0]}<br>' +
+                    'Duration: <b>%{y:.2f}μs</b>' +
+                    '<extra></extra>'
+                ),
                 showlegend=(i == 1),
                 legendgroup=sp,
             ), row=i, col=1)
             
-            if len(mdf) > 30:
-                rolling_avg = mdf['time_us'].rolling(window=30).mean()
+            # Rolling average with thicker line
+            if len(mdf) > 10:
+                window = min(30, len(mdf) // 3)
+                rolling_avg = mdf['time_us'].rolling(window=window, min_periods=1).mean()
                 fig.add_trace(go.Scatter(
-                    x=mdf['frame'], y=rolling_avg,
-                    mode='lines', name=f'{label} (avg)',
-                    line=dict(color=color, width=2, dash='solid'),
+                    x=mdf['frame'], 
+                    y=rolling_avg,
+                    mode='lines', 
+                    name=f'{label} (avg)',
+                    line=dict(color=color, width=3),
                     opacity=1.0,
-                    hovertemplate=f'{label} avg: %{{y:.1f}}μs<extra></extra>',
+                    hovertemplate=f'{label} {window}-frame avg: %{{y:.1f}}μs<extra></extra>',
                     showlegend=False,
                     legendgroup=sp,
                 ), row=i, col=1)
@@ -1061,12 +1144,12 @@ def create_timing_over_time_chart(solver_df, colors):
         paper_bgcolor=colors['card'],
         plot_bgcolor=colors['background'],
         font=dict(family='JetBrains Mono, monospace', color=colors['text']),
-        height=150 * n_metrics,
+        height=max(400, 120 * n_metrics),
         margin=dict(l=60, r=20, t=40, b=40),
         showlegend=True,
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
         uirevision='timing-chart',
-        transition=dict(duration=300, easing='cubic-in-out'),
+        hovermode='closest',
     )
     
     for i in range(1, n_metrics + 1):
@@ -1144,11 +1227,10 @@ def create_timing_histograms(solver_df, colors):
         barmode='overlay' if n_sources > 1 else 'relative',
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1) if n_sources > 1 else None,
         uirevision='timing-histogram',
-        transition=dict(duration=300, easing='cubic-in-out'),
     )
     
-    fig.update_xaxes(gridcolor=colors['border'])
-    fig.update_yaxes(gridcolor=colors['border'])
+    fig.update_xaxes(gridcolor=colors['border'], automargin=False)
+    fig.update_yaxes(gridcolor=colors['border'], automargin=False)
     
     return fig
 
@@ -1243,7 +1325,8 @@ def create_waterfill_tank_diagram(wf_df, inp_df, lift_df, resource, frame, color
     if wf_df.empty:
         return create_empty_fig(f"No waterfill data for frame {frame}", colors)
     
-    wf = wf_df.merge(inp_df, on='team_id', how='left')
+    # Merge waterfill data with input data, selecting only needed columns to avoid conflicts
+    wf = wf_df.merge(inp_df[['team_id', 'storage', 'share_cursor']], on='team_id', how='left')
     n_teams = len(wf)
     
     lift = lift_df['lift'].iloc[0] if not lift_df.empty else 0
@@ -1253,6 +1336,10 @@ def create_waterfill_tank_diagram(wf_df, inp_df, lift_df, resource, frame, color
     max_storage = wf['storage'].max() if not wf.empty else 1000
     resource_color = colors['metal'] if resource == 'metal' else colors['energy']
     
+    # Compute game time for display
+    game_time = frame / 30.0
+    time_str = f"{int(game_time//60)}:{game_time%60:05.2f}"
+    
     fig = go.Figure()
     
     for i, row in wf.iterrows():
@@ -1260,13 +1347,19 @@ def create_waterfill_tank_diagram(wf_df, inp_df, lift_df, resource, frame, color
         storage = row['storage']
         current = row['current']
         target = row['target']
-        share_cursor = row['share_cursor'] if pd.notna(row.get('share_cursor')) else 0
+        delta = row.get('delta', 0) or 0
+        # share_cursor is absolute value from eco_team_input (slider × storage)
+        share_cursor = row.get('share_cursor')
+        if pd.isna(share_cursor):
+            share_cursor = storage * 0.99  # Fallback to default slider
+        share_cursor_normalized = share_cursor / storage if storage > 0 else 0.99
         role = row['role']
         
         height_scale = storage / max_storage if max_storage > 0 else 1
         tank_height = 5 * height_scale
         tank_width = 0.7
         
+        # Tank outline
         fig.add_shape(
             type="rect",
             x0=x_center - tank_width/2, y0=0,
@@ -1275,6 +1368,7 @@ def create_waterfill_tank_diagram(wf_df, inp_df, lift_df, resource, frame, color
             fillcolor='rgba(0,0,0,0)'
         )
         
+        # Fill level
         fill_height = (current / storage * tank_height) if storage > 0 else 0
         fig.add_shape(
             type="rect",
@@ -1285,6 +1379,7 @@ def create_waterfill_tank_diagram(wf_df, inp_df, lift_df, resource, frame, color
             line=dict(width=0)
         )
         
+        # Target line (white dashed)
         target_y = (target / storage * tank_height) if storage > 0 else 0
         fig.add_shape(
             type="line",
@@ -1293,6 +1388,7 @@ def create_waterfill_tank_diagram(wf_df, inp_df, lift_df, resource, frame, color
             line=dict(color='white', width=2, dash='dash')
         )
         
+        # Share cursor line (orange dotted)
         cursor_y = (share_cursor / storage * tank_height) if storage > 0 else 0
         fig.add_shape(
             type="line",
@@ -1304,6 +1400,26 @@ def create_waterfill_tank_diagram(wf_df, inp_df, lift_df, resource, frame, color
         role_colors = {'sender': SENDER_COLOR, 'receiver': RECEIVER_COLOR, 'neutral': NEUTRAL_COLOR}
         role_color = role_colors.get(role, NEUTRAL_COLOR)
         
+        # Add invisible scatter point for tooltip
+        delta_sign = '+' if delta >= 0 else ''
+        fig.add_trace(go.Scatter(
+            x=[x_center],
+            y=[fill_height],
+            mode='markers',
+            marker=dict(size=30, color='rgba(0,0,0,0)'),
+            showlegend=False,
+            hovertemplate=(
+                f'<b>Team {int(row["team_id"])}</b> ({role.upper()})<br>'
+                f'Current: {current:.1f} / {storage:.0f}<br>'
+                f'Target: {target:.1f}<br>'
+                f'Share Slider: {share_cursor_normalized*100:.0f}% ({share_cursor:.1f})<br>'
+                f'Delta: {delta_sign}{delta:.1f}<br>'
+                f'Fill %: {current/storage*100:.1f}%'
+                '<extra></extra>'
+            ),
+        ))
+        
+        # Labels
         fig.add_annotation(
             x=x_center, y=-0.5,
             text=f"T{int(row['team_id'])}",
@@ -1337,7 +1453,8 @@ def create_waterfill_tank_diagram(wf_df, inp_df, lift_df, resource, frame, color
         xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-0.8, n_teams * 1.2 - 0.4]),
         yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-1.5, 6]),
         showlegend=False,
-        height=400
+        height=400,
+        uirevision='waterfill-tank',
     )
     
     return fig
@@ -1399,7 +1516,7 @@ def create_conservation_chart(output_df, resource, colors):
             font=dict(size=14, color=status_color)
         ),
         uirevision='conservation-chart',
-        transition=dict(duration=300, easing='cubic-in-out'),
+
         margin=dict(l=60, r=20, t=60, b=40),
         height=400,
         showlegend=False,
@@ -1454,7 +1571,7 @@ def create_transfer_matrix_heatmap(transfers_df, resource, frame, colors):
         font=dict(family='JetBrains Mono, monospace', color=colors['text']),
         title=dict(text=f"🔄 Transfer Matrix: {resource.upper()} | Frame {frame}", font=dict(size=14)),
         uirevision='transfer-matrix',
-        transition=dict(duration=300, easing='cubic-in-out'),
+
         margin=dict(l=60, r=20, t=60, b=60),
         xaxis=dict(title="Receiver", side='bottom'),
         yaxis=dict(title="Sender", autorange='reversed'),
@@ -1535,16 +1652,21 @@ app.index_string = '''
                     let lastRefreshMs = 0;
 
                     function updateBadge(text, colorClass, connected) {
-                        const indicator = document.getElementById('ws-indicator');
-                        if (indicator) {
-                            indicator.textContent = text;
-                            indicator.classList.remove('bg-success', 'bg-secondary', 'bg-warning', 'bg-danger');
-                            indicator.classList.add('bg-' + colorClass);
+                        function tryUpdate() {
+                            const indicator = document.getElementById('ws-indicator');
+                            if (indicator) {
+                                indicator.textContent = text;
+                                indicator.className = 'badge me-2 bg-' + colorClass;
+                            } else {
+                                setTimeout(tryUpdate, 100);
+                                return;
+                            }
+                            const pollCol = document.getElementById('interval-dropdown-col');
+                            if (pollCol) {
+                                pollCol.style.display = connected ? 'none' : '';
+                            }
                         }
-                        const pollCol = document.getElementById('interval-dropdown-col');
-                        if (pollCol) {
-                            pollCol.style.display = connected ? 'none' : '';
-                        }
+                        tryUpdate();
                     }
 
                     function requestRefreshThrottled() {
@@ -1576,6 +1698,7 @@ app.index_string = '''
                             };
 
                             ws.onmessage = function() {
+                                updateBadge('● WS', 'success', true);
                                 requestRefreshThrottled();
                             };
                         } catch (e) {
@@ -1631,30 +1754,30 @@ def create_economy_tab():
             dbc.Col([
                 dcc.Loading(
                     dcc.Graph(id='resource-chart', style={'height': '280px'}),
-                    type='circle', color=COLORS['accent'], delay_show=500
+                    type='circle', color=COLORS['accent'], delay_show=1000
                 ),
                 dcc.Loading(
                     dcc.Graph(id='transfer-flow-chart', style={'height': '250px', 'marginTop': '10px'}),
-                    type='circle', color=COLORS['accent'], delay_show=500
+                    type='circle', color=COLORS['accent'], delay_show=1000
                 ),
                 dcc.Loading(
                     dcc.Graph(id='explicit-transfers-chart', style={'height': '250px', 'marginTop': '10px'}),
-                    type='circle', color=COLORS['accent'], delay_show=500
+                    type='circle', color=COLORS['accent'], delay_show=1000
                 ),
             ], width=8),
             
             dbc.Col([
                 dcc.Loading(
                     dcc.Graph(id='total-sent-chart', style={'height': '180px'}),
-                    type='circle', color=COLORS['accent'], delay_show=500
+                    type='circle', color=COLORS['accent'], delay_show=1000
                 ),
                 dcc.Loading(
                     dcc.Graph(id='supply-demand-chart', style={'height': '180px', 'marginTop': '8px'}),
-                    type='circle', color=COLORS['accent'], delay_show=500
+                    type='circle', color=COLORS['accent'], delay_show=1000
                 ),
                 dcc.Loading(
                     dcc.Graph(id='lift-chart', style={'height': '150px', 'marginTop': '8px'}),
-                    type='circle', color=COLORS['accent'], delay_show=500
+                    type='circle', color=COLORS['accent'], delay_show=1000
                 ),
                 html.Div([
                     html.H6("📋 Transfer Ledger", className="mb-2", 
@@ -1718,11 +1841,15 @@ Compare performance between **ResourceExcess (RE)** and **ProcessEconomy (PE)** 
 In **Alternate mode**, the engine runs both paths on alternating frames - use this to directly compare their performance.
 
 **Metrics:**
-- **CppMunge**: C++ time to prepare data for Lua
-- **Solver**: Time in the waterfill algorithm
-- **PostMunge**: Time to format and apply results
+- **Overall**: Total end-to-end time for the economy update
+- **CppMunge**: C++ time to prepare team data before calling Lua
+- **LuaMunge**: Lua time to build/transform team data before solving
+- **Solver**: Time in the waterfill redistribution algorithm
+- **PostMunge**: Lua time to format results after solver
+- **LuaSetters**: Lua time calling Spring.SetTeamResource API
+- **CppSetters**: C++ time applying SetTeamResource changes
 - **PolicyCache**: Time to update transfer policy cache
-- **LuaTotal**: Total Lua processing time
+- **LuaTotal**: Total Lua processing time (LuaMunge + Solver + PostMunge + LuaSetters)
 
 **Color coding:** 🟢 Green = faster, 🔴 Red = slower (in Δ columns)
 """),
@@ -1740,14 +1867,14 @@ In **Alternate mode**, the engine runs both paths on alternating frames - use th
         
         create_explanation_card("📈 Timing Over Time", """
 Individual charts for each metric help identify anomalies and performance spikes.
-- **Solid line**: Raw timing values
-- **White line**: 30-frame rolling average  
-- **Green dashed**: Average value
-- **Yellow dotted**: 95th percentile
+- **Solid line**: Raw timing values  
+- **Thicker line**: 30-frame rolling average
+- In **Alternate mode**: RE and PE run on alternating SlowUpdate frames (every 30 game frames)
+- In other modes: Only one path runs per SlowUpdate
 """),
         dcc.Loading(
             dcc.Graph(id='timing-over-time-chart'),
-            type='circle', color=COLORS['accent'], delay_show=500
+            type='circle', color=COLORS['accent'], delay_show=1000
         ),
         
         html.Hr(style={'borderColor': COLORS['border'], 'margin': '20px 0'}),
@@ -1760,7 +1887,7 @@ Histograms show the distribution of timing values per metric.
 """),
         dcc.Loading(
             dcc.Graph(id='timing-histogram-chart'),
-            type='circle', color=COLORS['accent'], delay_show=500
+            type='circle', color=COLORS['accent'], delay_show=1000
         ),
         
         html.Hr(style={'borderColor': COLORS['border'], 'margin': '20px 0'}),
@@ -1823,7 +1950,7 @@ The waterfill algorithm balances resources within team alliances:
                style={'color': COLORS['text_muted'], 'fontSize': '13px'}),
         dcc.Loading(
             dcc.Graph(id='waterfill-tank-chart'),
-            type='circle', color=COLORS['accent'], delay_show=500
+            type='circle', color=COLORS['accent'], delay_show=1000
         ),
         
         html.Hr(style={'borderColor': COLORS['border'], 'margin': '20px 0'}),
@@ -1833,7 +1960,7 @@ The waterfill algorithm balances resources within team alliances:
                style={'color': COLORS['text_muted'], 'fontSize': '13px'}),
         dcc.Loading(
             dcc.Graph(id='transfer-matrix-chart'),
-            type='circle', color=COLORS['accent'], delay_show=500
+            type='circle', color=COLORS['accent'], delay_show=1000
         ),
         
         html.Hr(style={'borderColor': COLORS['border'], 'margin': '20px 0'}),
@@ -1845,7 +1972,7 @@ This chart verifies that the invariant holds across all frames. Any violations i
 """),
         dcc.Loading(
             dcc.Graph(id='conservation-chart'),
-            type='circle', color=COLORS['accent'], delay_show=500
+            type='circle', color=COLORS['accent'], delay_show=1000
         ),
     ])
 
@@ -1903,37 +2030,52 @@ app.layout = dbc.Container([
         dbc.Col([
             dbc.Label("Time Range", style={'fontSize': '12px', 'fontWeight': '500'}),
             html.Div([
-                dbc.Input(
-                    id='time-range-start-input',
-                    type='text',
-                    value='0:00',
-                    placeholder='0:00',
-                    style={
-                        'width': '75px',
-                        'textAlign': 'center',
-                        'fontFamily': 'JetBrains Mono, monospace',
-                    }
-                ),
+                # Mode toggle and Last N input
                 html.Div([
-                    dcc.RangeSlider(
-                        id='global-time-slider',
-                        min=0, max=60, step=0.1, value=[0, 60],
-                        marks=None,
-                        tooltip={"placement": "bottom", "always_visible": False},
-                    )
-                ], style={'flex': '1', 'margin': '0 12px'}),
-                dbc.Input(
-                    id='time-range-end-input',
-                    type='text',
-                    value='60:00',
-                    placeholder='60:00',
-                    style={
-                        'width': '75px',
-                        'textAlign': 'center',
-                        'fontFamily': 'JetBrains Mono, monospace',
-                    }
-                ),
-            ], style={'display': 'flex', 'alignItems': 'center'})
+                    dbc.Select(
+                        id='time-mode-select',
+                        options=[
+                            {'label': 'Last N mins', 'value': 'last'},
+                            {'label': 'Range', 'value': 'range'},
+                        ],
+                        value='last',
+                        style={'width': '132px', 'fontSize': '12px'}
+                    ),
+                    dbc.Input(
+                        id='last-n-minutes-input',
+                        type='number',
+                        value=2,
+                        min=1,
+                        step=1,
+                        style={'width': '60px', 'textAlign': 'center', 'fontFamily': 'JetBrains Mono, monospace', 'marginLeft': '6px'}
+                    ),
+                ], id='last-n-controls', style={'display': 'flex', 'alignItems': 'center'}),
+                # Range controls (hidden by default)
+                html.Div([
+                    dbc.Input(
+                        id='time-range-start-input',
+                        type='text',
+                        value='0:00',
+                        placeholder='0:00',
+                        style={'width': '60px', 'textAlign': 'center', 'fontFamily': 'JetBrains Mono, monospace', 'fontSize': '12px'}
+                    ),
+                    html.Div([
+                        dcc.RangeSlider(
+                            id='global-time-slider',
+                            min=0, max=60, step=0.1, value=[0, 60],
+                            marks=None,
+                            tooltip={"placement": "bottom", "always_visible": False},
+                        )
+                    ], style={'flex': '1', 'margin': '0 8px'}),
+                    dbc.Input(
+                        id='time-range-end-input',
+                        type='text',
+                        value='60:00',
+                        placeholder='60:00',
+                        style={'width': '60px', 'textAlign': 'center', 'fontFamily': 'JetBrains Mono, monospace', 'fontSize': '12px'}
+                    ),
+                ], id='range-controls', style={'display': 'none', 'flex': '1', 'alignItems': 'center'}),
+            ], style={'display': 'flex', 'alignItems': 'center', 'gap': '8px'})
         ], width=5),
         dbc.Col([
             dbc.Label("Alliance", style={'fontSize': '12px', 'fontWeight': '500'}),
@@ -2041,11 +2183,10 @@ def update_sessions(n_clicks, type_filters, current_value):
     Output('team-names-store', 'data'),
     Output('available-frames-store', 'data'),
     Input('session-dropdown', 'value'),
-    Input('fallback-refresh', 'n_intervals'),
     Input('refresh-btn', 'n_clicks'),
     State('team-checklist', 'value')
 )
-def update_teams(session_id, _fallback, _refresh_clicks, current_teams):
+def update_teams(session_id, _refresh_clicks, current_teams):
     if not session_id:
         return [], [], {}, []
     
@@ -2077,14 +2218,18 @@ def update_teams(session_id, _fallback, _refresh_clicks, current_teams):
     Output('global-time-slider', 'max'),
     Output('global-time-slider', 'value'),
     Output('global-time-slider', 'marks'),
-    Input('available-frames-store', 'data')
+    Input('available-frames-store', 'data'),
+    State('time-mode-select', 'value'),
+    State('last-n-minutes-input', 'value'),
+    State('global-time-slider', 'value')
 )
-def update_global_slider(frames):
+def update_global_slider(frames, time_mode, last_n, current_value):
     if not frames:
         return 0, 60, [0, 60], {0: '0:00', 60: '60:00'}
     
     min_f = min(frames)
     max_f = max(frames)
+    print(f"[Slider] frames={min_f}-{max_f}, mode={time_mode}, last_n={last_n}, current={current_value}")
     
     min_m = min_f / (30.0 * 60.0)
     max_m = max_f / (30.0 * 60.0)
@@ -2099,6 +2244,24 @@ def update_global_slider(frames):
     n_marks = 5
     step = (max_m - min_m) / n_marks if n_marks > 0 else 1
     marks = {round(min_m + i * step, 1): format_time_mmss((min_m + i * step) * 60) for i in range(n_marks + 1)}
+    
+    # Respect "Last N minutes" mode - don't reset slider to full range
+    if time_mode == 'last' and last_n:
+        try:
+            last_n_val = float(last_n)
+            start_m = max(min_m, max_m - last_n_val)
+            return min_m, max_m, [start_m, max_m], marks
+        except (ValueError, TypeError):
+            pass
+    
+    # In "range" mode, try to preserve current selection if still valid
+    if current_value and len(current_value) == 2:
+        start, end = current_value
+        # Clamp to new bounds
+        start = max(min_m, min(max_m, start))
+        end = max(min_m, min(max_m, end))
+        if start < end:
+            return min_m, max_m, [start, end], marks
     
     return min_m, max_m, [min_m, max_m], marks
 
@@ -2158,6 +2321,45 @@ def sync_slider_from_inputs(start_blur, end_blur, start_val, end_val, slider_min
     return [start_min, end_min]
 
 
+# Time mode toggle - show/hide controls (dropdown always visible)
+@app.callback(
+    Output('last-n-minutes-input', 'style'),
+    Output('range-controls', 'style'),
+    Input('time-mode-select', 'value'),
+)
+def toggle_time_mode_controls(mode):
+    last_n_style = {'width': '60px', 'textAlign': 'center', 'fontFamily': 'JetBrains Mono, monospace', 'marginLeft': '6px'}
+    if mode == 'last':
+        return last_n_style, {'display': 'none'}
+    else:
+        last_n_style['display'] = 'none'
+        return last_n_style, {'display': 'flex', 'flex': '1', 'alignItems': 'center'}
+
+
+# Last N minutes mode - update slider to show last N minutes
+@app.callback(
+    Output('global-time-slider', 'value', allow_duplicate=True),
+    Input('last-n-minutes-input', 'value'),
+    Input('ws-trigger', 'data'),
+    Input('refresh-btn', 'n_clicks'),
+    State('time-mode-select', 'value'),
+    State('global-time-slider', 'max'),
+    prevent_initial_call=True
+)
+def update_slider_from_last_n(last_n, ws_trigger, _refresh_clicks, mode, slider_max):
+    if mode != 'last' or not last_n:
+        raise dash.exceptions.PreventUpdate
+    
+    try:
+        last_n = float(last_n)
+    except (ValueError, TypeError):
+        last_n = 2
+    
+    end_min = slider_max or 60
+    start_min = max(0, end_min - last_n)
+    return [start_min, end_min]
+
+
 @app.callback(
     Output('team-checklist', 'value', allow_duplicate=True),
     Input('select-all-btn', 'n_clicks'),
@@ -2193,15 +2395,19 @@ def select_no_teams(n_clicks):
     Output('supply-demand-chart', 'figure'),
     Output('lift-chart', 'figure'),
     Input('ws-trigger', 'data'),
-    Input('fallback-refresh', 'n_intervals'),
     Input('session-dropdown', 'value'),
     Input('team-checklist', 'value'),
     Input('resource-dropdown', 'value'),
+    Input('waterfill-ally-dropdown', 'value'),
     Input('global-time-slider', 'value'),
     Input('refresh-btn', 'n_clicks'),
     State('team-names-store', 'data')
 )
-def update_economy_charts(ws_trigger, fallback, session_id, selected_teams, resource, time_range, n_clicks, team_names):
+def update_economy_charts(ws_trigger, session_id, selected_teams, resource, ally_team, time_range, n_clicks, team_names):
+    # Debug: log timing and inputs
+    now = time.time()
+    print(f"[Economy] Update triggered at {now:.2f}. Range={time_range}, Session={session_id}, Teams={len(selected_teams) if selected_teams else 0}")
+    
     if not session_id:
         ef = create_empty_fig("Select a session", COLORS, 'empty-session')
         return ef, [], ef, ef, ef, ef, ef
@@ -2225,17 +2431,32 @@ def update_economy_charts(ws_trigger, fallback, session_id, selected_teams, reso
     team_names = team_names or {}
     selected_teams = selected_teams or []
     
+    # Handle ally_team from dropdown
+    actual_ally_team = None if not ally_team or ally_team == 'all' else int(ally_team)
+    
     eco_df = load_economy_data_multi(session_id, selected_teams, resource, time_range) if selected_teams else pd.DataFrame()
     transfers_df = load_transfers(session_id, resource, time_range=time_range)
-    group_lift_df = load_group_lift_data(session_id, resource, time_range=time_range)
+    group_lift_df = load_group_lift_data(session_id, resource, ally_team=actual_ally_team, time_range=time_range)
     
     resource_fig = create_resource_levels_chart(eco_df, selected_teams, team_names, resource, COLORS)
+    resource_fig.layout.uirevision = f'economy-levels-{session_id}-{resource}'
+    
     ledger_data = create_transaction_ledger(transfers_df, team_names, selected_teams if selected_teams else None)
+    
     flow_fig = create_transfer_flow_chart(transfers_df, team_names, selected_teams if selected_teams else None, COLORS)
+    flow_fig.layout.uirevision = f'economy-flow-{session_id}-{resource}'
+    
     explicit_fig = create_explicit_transfers_chart(transfers_df, team_names, COLORS)
+    explicit_fig.layout.uirevision = f'economy-explicit-{session_id}-{resource}'
+    
     sent_fig = create_total_sent_chart(transfers_df, team_names, COLORS)
+    sent_fig.layout.uirevision = f'economy-sent-{session_id}-{resource}'
+    
     supply_demand_fig = create_supply_demand_chart(group_lift_df, COLORS)
+    supply_demand_fig.layout.uirevision = f'economy-supply-demand-{session_id}-{resource}'
+    
     lift_fig = create_lift_chart(group_lift_df, COLORS)
+    lift_fig.layout.uirevision = f'economy-lift-{session_id}-{resource}'
     
     return resource_fig, ledger_data, flow_fig, explicit_fig, sent_fig, supply_demand_fig, lift_fig
 
@@ -2246,11 +2467,11 @@ def update_economy_charts(ws_trigger, fallback, session_id, selected_teams, reso
     Output('timing-histogram-chart', 'figure'),
     Output('timing-anomalies-table', 'children'),
     Input('ws-trigger', 'data'),
-    Input('fallback-refresh', 'n_intervals'),
     Input('session-dropdown', 'value'),
+    Input('global-time-slider', 'value'),
     Input('refresh-btn', 'n_clicks'),
 )
-def update_timing_charts(ws_trigger, fallback, session_id, n_clicks):
+def update_timing_charts(ws_trigger, session_id, time_range, n_clicks):
     # Handle session_id from dbc.Select (string)
     try:
         if session_id and session_id != 'all':
@@ -2259,12 +2480,16 @@ def update_timing_charts(ws_trigger, fallback, session_id, n_clicks):
         pass
         
     actual_session_id = None if session_id == 'all' else session_id
-    timing_summary = load_solver_timing_summary(actual_session_id)
-    solver_df = load_solver_timing_data(actual_session_id)
+    timing_summary = load_solver_timing_summary(actual_session_id, time_range=time_range)
+    solver_df = load_solver_timing_data(actual_session_id, time_range=time_range)
     
     summary_table = create_timing_summary_table(timing_summary)
     time_chart = create_timing_over_time_chart(solver_df, COLORS)
+    time_chart.layout.uirevision = f'timing-over-time-{actual_session_id}'
+    
     hist_chart = create_timing_histograms(solver_df, COLORS)
+    hist_chart.layout.uirevision = f'timing-histograms-{actual_session_id}'
+    
     anomalies = create_timing_anomalies_table(solver_df)
     
     return summary_table, time_chart, hist_chart, anomalies
@@ -2311,13 +2536,11 @@ def update_ally_dropdown(session_id, current_value):
     Input('session-dropdown', 'value'),
     Input('resource-dropdown', 'value'),
     Input('waterfill-ally-dropdown', 'value'),
-    Input('ws-trigger', 'data'),
-    Input('fallback-refresh', 'n_intervals'),
     Input('refresh-btn', 'n_clicks'),
     State('wf-frames-store', 'data'),
     State('wf-frame-slider', 'value'),
 )
-def update_waterfill_frames(session_id, resource, ally_team, ws_trigger, fallback, _refresh_clicks, prev_frames, prev_value):
+def update_waterfill_frames(session_id, resource, ally_team, _refresh_clicks, prev_frames, prev_value):
     if not session_id or session_id == 'all':
         return [], 0, 0, {}
     
@@ -2475,12 +2698,15 @@ def update_waterfill_charts(frame_idx, session_id, resource, ally_team, frames):
     
     wf_df, inp_df, lift_df = load_waterfill_data(session_id, frame, resource, ally_team_int)
     tank_fig = create_waterfill_tank_diagram(wf_df, inp_df, lift_df, resource, frame, COLORS)
+    tank_fig.layout.uirevision = f'waterfill-tank-{session_id}-{resource}-{ally_team}'
     
     transfer_matrix = load_transfer_matrix(session_id, frame, resource)
     matrix_fig = create_transfer_matrix_heatmap(transfer_matrix, resource, frame, COLORS)
+    matrix_fig.layout.uirevision = f'transfer-matrix-{session_id}-{resource}-{ally_team}'
     
     output_df = load_output_data(session_id, resource)
     conservation_fig = create_conservation_chart(output_df, resource, COLORS)
+    conservation_fig.layout.uirevision = f'conservation-{session_id}-{resource}-{ally_team}'
     
     return tank_fig, matrix_fig, conservation_fig
 
@@ -2491,17 +2717,18 @@ def update_waterfill_charts(frame_idx, session_id, resource, ally_team, frames):
     Input('interval-dropdown', 'value')
 )
 def update_interval(value):
-    print(f"[Interval] Value changed to: {value!r} (type: {type(value).__name__})")
+    print(f"[Interval] Dropdown value: {value!r}")
     try:
-        value = int(value)
+        val = int(value)
     except (ValueError, TypeError):
-        value = 5000
+        val = 5000
         
-    if value == 0:
-        print("[Interval] Polling DISABLED")
+    if val == 0:
+        print("[Interval] Setting disabled=True")
         return 5000, True
-    print(f"[Interval] Polling every {value}ms")
-    return value, False
+    
+    print(f"[Interval] Setting interval={val}, disabled=False")
+    return val, False
 
 
 # === Export to Markdown Callbacks ===
@@ -2584,13 +2811,56 @@ This report analyzes the performance of different economy processing components.
 """
 
     if not timing_summary.empty:
-        md_content += "| Metric | Count | Avg (μs) | Min (μs) | Max (μs) | First Frame | Last Frame |\n"
-        md_content += "|--------|-------|----------|----------|----------|-------------|------------|\n"
-
-        for _, row in timing_summary.iterrows():
-            md_content += f"| {row['metric']} | {row['count']:,} | {row['avg_us']:.2f} | {row['min_us']:.2f} | {row['max_us']:.2f} | {int(row['first_frame'])} | {int(row['last_frame'])} |\n"
-
-        md_content += "\n"
+        # Check if we have source_path column to separate RE vs PE
+        has_source = 'source_path' in timing_summary.columns
+        
+        if has_source:
+            # Separate by source
+            for source in timing_summary['source_path'].unique():
+                source_df = timing_summary[timing_summary['source_path'] == source].copy()
+                source_label = "ResourceExcess" if source == "RE" else "ProcessEconomy" if source == "PE" else source
+                
+                md_content += f"### {source_label}\n\n"
+                md_content += "| Metric | Count | Avg (μs) | Min (μs) | Max (μs) |\n"
+                md_content += "|--------|-------|----------|----------|----------|\n"
+                
+                for _, row in source_df.iterrows():
+                    md_content += f"| {row['metric']} | {row['count']:,} | {row['avg_us']:.2f} | {row['min_us']:.2f} | {row['max_us']:.2f} |\n"
+                
+                md_content += "\n"
+                
+                # Mermaid bar chart for this source
+                metrics = source_df['metric'].tolist()
+                avgs = source_df['avg_us'].tolist()
+                
+                if metrics:
+                    md_content += f"```mermaid\nxychart-beta\n"
+                    md_content += f'    title "{source_label} Timing (μs)"\n'
+                    md_content += '    x-axis [' + ', '.join([f'"{m}"' for m in metrics]) + ']\n'
+                    md_content += '    y-axis "Time (μs)"\n'
+                    md_content += '    bar [' + ', '.join([f'{v:.1f}' for v in avgs]) + ']\n'
+                    md_content += "```\n\n"
+        else:
+            # No source distinction
+            md_content += "| Metric | Count | Avg (μs) | Min (μs) | Max (μs) | First Frame | Last Frame |\n"
+            md_content += "|--------|-------|----------|----------|----------|-------------|------------|\n"
+            
+            for _, row in timing_summary.iterrows():
+                md_content += f"| {row['metric']} | {row['count']:,} | {row['avg_us']:.2f} | {row['min_us']:.2f} | {row['max_us']:.2f} | {int(row['first_frame'])} | {int(row['last_frame'])} |\n"
+            
+            md_content += "\n"
+            
+            # Mermaid bar chart
+            metrics = timing_summary['metric'].tolist()
+            avgs = timing_summary['avg_us'].tolist()
+            
+            if metrics:
+                md_content += "```mermaid\nxychart-beta\n"
+                md_content += '    title "Average Timing by Metric (μs)"\n'
+                md_content += '    x-axis [' + ', '.join([f'"{m}"' for m in metrics]) + ']\n'
+                md_content += '    y-axis "Time (μs)"\n'
+                md_content += '    bar [' + ', '.join([f'{v:.1f}' for v in avgs]) + ']\n'
+                md_content += "```\n\n"
 
     md_content += """## Performance Analysis
 
@@ -2639,6 +2909,22 @@ def export_waterfill_markdown(n_clicks, session_id, resource, ally_team, frame_i
         return None
 
     closest_frame = frames[frame_idx] if frames and frame_idx is not None and frame_idx < len(frames) else 0
+    
+    # Load actual data for this frame
+    try:
+        session_id_int = int(session_id) if session_id != 'all' else None
+    except (ValueError, TypeError):
+        session_id_int = None
+    
+    ally_team_int = None if ally_team == 'all' else None
+    if ally_team and ally_team != 'all':
+        try:
+            ally_team_int = int(ally_team)
+        except (ValueError, TypeError):
+            pass
+    
+    wf_df, inp_df, lift_df = load_waterfill_data(session_id_int, closest_frame, resource, ally_team_int)
+    transfer_matrix = load_transfer_matrix(session_id_int, closest_frame, resource)
 
     md_content = f"""# 🌊 Waterfill Analysis Report
 
@@ -2659,19 +2945,38 @@ The waterfill algorithm balances resources within team alliances through the fol
 
 **Key Invariant**: `Σ Received = Σ Sent - Tax`
 
-## Tank Diagram
+"""
+    
+    # Add team data table
+    if not wf_df.empty:
+        wf = wf_df.merge(inp_df, on='team_id', how='left') if not inp_df.empty else wf_df
+        md_content += "## Team Status at Frame " + str(closest_frame) + "\n\n"
+        md_content += "| Team | Role | Current | Target | Storage | Delta |\n"
+        md_content += "|------|------|---------|--------|---------|-------|\n"
+        for _, row in wf.iterrows():
+            delta = row.get('delta', 0) or 0
+            delta_str = f"+{delta:.1f}" if delta >= 0 else f"{delta:.1f}"
+            md_content += f"| T{int(row['team_id'])} | {row['role']} | {row['current']:.1f} | {row['target']:.1f} | {row.get('storage', 0):.0f} | {delta_str} |\n"
+        md_content += "\n"
+        
+        # Add Mermaid flowchart for transfers
+        if not transfer_matrix.empty and transfer_matrix.values.sum() > 0:
+            md_content += "### Transfer Flow - Mermaid Diagram\n\n"
+            md_content += "```mermaid\n"
+            md_content += "flowchart LR\n"
+            for sender in transfer_matrix.index:
+                for receiver in transfer_matrix.columns:
+                    amount = transfer_matrix.loc[sender, receiver]
+                    if amount > 0:
+                        md_content += f'    T{sender}["Team {sender}"] -->|{amount:.1f}| T{receiver}["Team {receiver}"]\n'
+            md_content += "```\n\n"
+    
+    md_content += """## Tank Diagram
 Visual representation showing:
 - Each team's current resource level (filled portion)
 - Target levels (dashed white lines)
 - Share cursors (dotted orange lines)
 - Team roles: Sender (red), Receiver (green), Neutral (gray)
-
-## Transfer Matrix
-Heatmap showing resource flow between teams:
-- Rows: sending teams
-- Columns: receiving teams
-- Cell values: amount transferred
-- Darker colors indicate higher transfer amounts
 
 ## Conservation Verification
 Chart verifying the conservation law across all frames:
@@ -2679,11 +2984,6 @@ Chart verifying the conservation law across all frames:
 - Conservation errors
 - Green status: invariant holds
 - Red status: violations detected
-
-## Analysis Insights
-- **Balance**: How evenly resources are distributed
-- **Efficiency**: Transfer amounts vs tax paid
-- **Stability**: How consistently the algorithm maintains balance
 
 ---
 *Generated by BAR Economy Audit Dashboard*

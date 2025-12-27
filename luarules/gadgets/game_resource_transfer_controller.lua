@@ -60,7 +60,7 @@ function GG.GetTeamResources(teamID, resource)
 end
 
 function GG.AddTeamResource(teamID, resource, amount)
-	local current = springRepo.GetTeamResources(teamID, resource) or 0
+	local current = springRepo.GetTeamResources(teamID, resource)
 	return springRepo.SetTeamResource(teamID, resource, current + amount)
 end
 
@@ -101,7 +101,7 @@ end
 local function InitializeNewTeam(senderTeamId)
 	local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
 	local resultFactory = ResourceTransfer.BuildResultFactory(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY])
-	local allTeams = springRepo.GetTeamList() or {}
+	local allTeams = springRepo.GetTeamList()
 
 	for _, receiverID in ipairs(allTeams) do
 		local ctx = contextFactory.policy(senderTeamId, receiverID)
@@ -157,33 +157,26 @@ local function ProcessEconomy(frame, teams)
 		Spring.Echo("[ProcessEconomyController] Processing frame=" .. frame)
 	end
 	
-	EconomyLog.Breakpoint("LuaMunge")
-	
 	local teamCount = 0
 	for _ in pairs(teams) do teamCount = teamCount + 1 end
 	
 	local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
 	EconomyLog.FrameStart(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY], teamCount)
 	
-	-- Log current team states for all teams (input state before solver)
-	for teamId, team in pairs(teams) do
-		EconomyLog.TeamInput(teamId, team.allyTeam, "metal", team.metal.current, team.metal.storage,
-			team.metal.shareSlider, team.metal.cumulativeSent or 0, team.metal.shareCursor or (team.metal.shareSlider * team.metal.storage))
-		EconomyLog.TeamInput(teamId, team.allyTeam, "energy", team.energy.current, team.energy.storage,
-			team.energy.shareSlider, team.energy.cumulativeSent or 0, team.energy.shareCursor or (team.energy.shareSlider * team.energy.storage))
-	end
-	
-	EconomyLog.Breakpoint("Solver")
-	
+	EconomyLog.Breakpoint("LuaMunge")
+
+	-- TeamInput logging is handled inside the solver
 	local updatedTeams, allLedgers = ResourceTransfer.WaterfillSolve(springRepo, teams)
 	
+	EconomyLog.Breakpoint("Solver")
+
 	local result = {}
 	for teamId, team in pairs(updatedTeams) do
-		local ledger = allLedgers[teamId] or {}
-		local mSent = ledger[ResourceType.METAL] and ledger[ResourceType.METAL].sent or 0
-		local mRecv = ledger[ResourceType.METAL] and ledger[ResourceType.METAL].received or 0
-		local eSent = ledger[ResourceType.ENERGY] and ledger[ResourceType.ENERGY].sent or 0
-		local eRecv = ledger[ResourceType.ENERGY] and ledger[ResourceType.ENERGY].received or 0
+		local ledger = allLedgers[teamId]
+		local mSent = ledger[ResourceType.METAL].sent
+		local mRecv = ledger[ResourceType.METAL].received
+		local eSent = ledger[ResourceType.ENERGY].sent
+		local eRecv = ledger[ResourceType.ENERGY].received
 		
 		-- Log outputs for economy audit
 		EconomyLog.TeamOutput(teamId, "metal", team.metal.current, mSent, mRecv)
@@ -205,6 +198,7 @@ local function ProcessEconomy(frame, teams)
 			received = eRecv,
 		}
 	end
+
 	EconomyLog.Breakpoint("PostMunge")
 
 	lastPolicyUpdate = ResourceTransfer.UpdatePolicyCache(springRepo, frame, lastPolicyUpdate, POLICY_UPDATE_RATE, contextFactory)
@@ -229,7 +223,7 @@ function gadget:Initialize()
 	local currentMode = Game.economyAuditMode or "off"
 	Spring.Echo("[ResourceTransferController] Engine audit mode: " .. tostring(currentMode))
 	
-	local teamList = springRepo.GetTeamList() or {}
+	local teamList = springRepo.GetTeamList()
 	Spring.Echo("[ResourceTransferController] Found " .. #teamList .. " teams")
 	for _, senderTeamId in ipairs(teamList) do
 		InitializeNewTeam(senderTeamId)

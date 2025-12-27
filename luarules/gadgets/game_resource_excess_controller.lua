@@ -71,13 +71,16 @@ local function BuildTeamData(excesses)
 		local mCur, mStor, mPull, mInc, mExp, mShare = springRepo.GetTeamResources(teamId, "metal")
 		local eCur, eStor, ePull, eInc, eExp, eShare = springRepo.GetTeamResources(teamId, "energy")
 		
-		if mCur then
-			local _, _, _, _, _, allyTeam = springRepo.GetTeamInfo(teamId)
+		if mCur and eCur then
+			local _, _, isDead, _, _, allyTeam = springRepo.GetTeamInfo(teamId)
 			local excess = excesses[teamId] or { metal = 0, energy = 0 }
 			
+			---@type TeamResourceData
 			teams[teamId] = {
 				allyTeam = allyTeam,
+				isDead = (isDead == true),
 				metal = {
+					resourceType = "metal",
 					current = mCur,
 					storage = mStor,
 					pull = mPull,
@@ -85,10 +88,9 @@ local function BuildTeamData(excesses)
 					expense = mExp,
 					shareSlider = mShare,
 					excess = excess.metal,
-					shareCursor = mShare * mStor,
-					cumulativeSent = 0,
 				},
 				energy = {
+					resourceType = "energy",
 					current = eCur,
 					storage = eStor,
 					pull = ePull,
@@ -96,8 +98,6 @@ local function BuildTeamData(excesses)
 					expense = eExp,
 					shareSlider = eShare,
 					excess = excess.energy,
-					shareCursor = eShare * eStor,
-					cumulativeSent = 0,
 				},
 			}
 		end
@@ -153,11 +153,12 @@ local function ResourceExcessController(frame, excesses)
 	local teamCount = 0
 	for _ in pairs(teams) do teamCount = teamCount + 1 end
 	
-	EconomyLog.Breakpoint("LuaMunge")
-	
 	-- Get tax config and log frame start
 	local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
 	EconomyLog.FrameStart(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY], teamCount)
+	
+	-- LuaMunge measures all pre-solver prep work (BuildTeamData, team counting, config)
+	EconomyLog.Breakpoint("LuaMunge")
 	
 	-- Run the waterfill solver
 	local success, updatedTeams, allLedgers = pcall(WaterfillSolver.Solve, springRepo, teams)

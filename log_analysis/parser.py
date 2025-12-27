@@ -177,6 +177,15 @@ def init_db():
         FOREIGN KEY (session_id) REFERENCES game_sessions(id),
         UNIQUE(session_id, team_id)
     )''')
+    
+    # Performance indices
+    c.execute("CREATE INDEX IF NOT EXISTS idx_eco_input_lookup ON eco_team_input (session_id, frame, resource)")
+    c.execute("CREATE INDEX IF NOT EXISTS idx_eco_output_lookup ON eco_team_output (session_id, frame, resource)")
+    c.execute("CREATE INDEX IF NOT EXISTS idx_eco_waterfill_lookup ON eco_team_waterfill (session_id, frame, resource)")
+    c.execute("CREATE INDEX IF NOT EXISTS idx_solver_audit_lookup ON solver_audit (session_id, frame)")
+    c.execute("CREATE INDEX IF NOT EXISTS idx_eco_transfer_lookup ON eco_transfer (session_id, frame, resource)")
+    c.execute("CREATE INDEX IF NOT EXISTS idx_eco_group_lift_lookup ON eco_group_lift (session_id, frame, resource)")
+    
     conn.commit()
     return conn
 

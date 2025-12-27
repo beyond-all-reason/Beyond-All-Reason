@@ -45,20 +45,6 @@ local function getTaxConfig(springRepo)
 end
 
 ---@param teamsList table<number, TeamResourceData>
-local function resetTickFields(teamsList)
-  for _, team in pairs(teamsList) do
-    if team.metal then
-      team.metal.sent = 0
-      team.metal.received = 0
-    end
-    if team.energy then
-      team.energy.sent = 0
-      team.energy.received = 0
-    end
-  end
-end
-
----@param teamsList table<number, TeamResourceData>
 ---@param resourceType ResourceType
 ---@param thresholds table<ResourceType, number>
 ---@param springRepo ISpring
@@ -342,8 +328,6 @@ function Gadgets.Solve(springRepo, teamsList)
     return teamsList, {}
   end
 
-  resetTickFields(teamsList)
-
   local taxRate, thresholds = getTaxConfig(springRepo)
   local cumulativeUpdates = {}
   local allLedgers = {}
@@ -355,7 +339,9 @@ function Gadgets.Solve(springRepo, teamsList)
       for i = 1, #members do
         local m = members[i]
         memberById[m.teamId] = m
-        EconomyLog.TeamInput(m.teamId, m.allyTeam, resourceType, m.current, m.storage, m.shareCursor / math.max(1, m.storage), m.cumulativeSent, m.shareCursor)
+        -- share_slider is 0..1 (normalized), share_cursor is absolute value
+        local shareSliderNormalized = m.shareCursor / math.max(1, m.storage)
+        EconomyLog.TeamInput(m.teamId, m.allyTeam, resourceType, m.current, m.storage, shareSliderNormalized, m.cumulativeSent, m.shareCursor)
       end
 
       local lift = resolveLift(members, taxRate)
