@@ -4,7 +4,7 @@ function widget:GetInfo()
 	return {
 		name         = "No fire on own units (full cancel)",
 		desc         = "Redirects attack on allies to ground and fully exits attack mode on RMB",
-		author       = "Ceddral, Floris (modified)",
+		author       = "Ceddral, Floris (modified by Zain M)",
 		date         = "April 2018 (modified Dec 2025)",
 		license      = "GNU GPL, v2 or later",
 		layer        = 0,
@@ -39,7 +39,6 @@ local function IssueGroundAttack(cmdOptions)
 	return false
 end
 
-
 function widget:Initialize()
 	WG['attacknoally'] = true
 	WG['manualfirennoally'] = true
@@ -68,6 +67,7 @@ function widget:MousePress(x, y, button)
 end
 -- Command interception
 -- This portion is required to make sure that attack commands on allies aims at ground which ally is standing on.
+-- Without this, units just follow the ally around.
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	local allyTarget = GetAllyTarget(cmdParams)
 	if cmdID == CMD.ATTACK then
