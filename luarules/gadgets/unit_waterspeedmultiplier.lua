@@ -43,11 +43,12 @@ local spMoveCtrlEnabled = Spring.MoveCtrl.IsEnabled
 local unitDefData = {}
 
 for defID, ud in pairs(UnitDefs) do
-    local cp = ud.customParams
-    if tonumber(cp.speedfactorinwater) and tonumber(cp.speedfactorinwater) ~= 1 and (not ud.canFly and not ud.isAirUnit) then
-		local speedFactorInWater = tonumber(cp.speedfactorinwater)
-		local speedFactorAtDepth = math.abs(cp.speedfactoratdepth and tonumber(cp.speedfactoratdepth) or 0) * -1
+    local params = ud.customParams
 
+	local speedFactorInWater = tonumber(params.speedfactorinwater or 1) or 1
+	local speedFactorAtDepth = math.abs(params.speedfactoratdepth and tonumber(params.speedfactoratdepth) or 0) * -1
+
+	if speedFactorInWater ~= 1 and (not ud.canFly and not ud.isAirUnit) then
 		if speedFactorAtDepth > -1 then
 			speedFactorAtDepth = 0
 		end
