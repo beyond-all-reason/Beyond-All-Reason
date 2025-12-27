@@ -61,6 +61,10 @@ local function resolveCommand(cmdID, cmdParams)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
+	if not canBuildStep[unitDefID] then
+		return true
+	end
+
 	if cmdID == CMD_INSERT then
 		cmdID, cmdParams = resolveCommand(cmdID, cmdParams)
 	end
@@ -69,10 +73,9 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	if cmdID == CMD.GUARD then
 		local targetID = cmdParams[1]
 		local targetTeam = Spring.GetUnitTeam(targetID)
-		local targetUnitDef = UnitDefs[Spring.GetUnitDefID(targetID)]
 
 		if targetTeam and unitTeam ~= Spring.GetUnitTeam(targetID) and Spring.AreTeamsAllied(unitTeam, targetTeam) then
-			if #targetUnitDef.buildOptions > 0 or targetUnitDef.canAssist then
+			if canBuildStep[Spring.GetUnitDefID(targetID)] then
 				return false
 			end
 		end
