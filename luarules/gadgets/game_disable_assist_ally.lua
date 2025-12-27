@@ -19,6 +19,10 @@ end
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 
+local CMD_GUARD = CMD.GUARD
+local CMD_REPAIR = CMD.REPAIR
+local CMD_INSERT = CMD.INSERT
+
 local gaiaTeam = Spring.GetGaiaTeamID()
 
 local canBuildStep = {} -- i.e. anything that spends resources when assisted
@@ -41,9 +45,6 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_INSERT)
 end
 
-local CMD_GUARD = CMD.GUARD
-local CMD_REPAIR = CMD.REPAIR
-local CMD_INSERT = CMD.INSERT
 local params = { 0, 0, 0 }
 local EMPTY = {} -- stupid
 
