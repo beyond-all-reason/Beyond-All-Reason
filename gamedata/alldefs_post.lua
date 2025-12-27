@@ -715,6 +715,8 @@ function UnitDef_Post(name, uDef)
 				if uDef.weapons and uDef.weapons[1] then
 					uDef.weapons[1].onlytargetcategory = "SURFACE VTOL"
 				end
+				-- Add EMP resistance
+				uDef.customparams.paralyzemultiplier = 1.5
 			end
 		end
 	end
@@ -1821,24 +1823,23 @@ function WeaponDef_Post(name, wDef)
 		   (modOptions.community_balance_patch == "custom" and modOptions.community_balance_commando) then
 			if name == 'cormando_commando_blaster' then
 				-- Replace with SUPER_MISSILE properties from corkarg
-				wDef.areaofeffect = 128
+				wDef.areaofeffect = 64
 				wDef.avoidfeature = false
 				wDef.castshadow = true
 				wDef.cegtag = "missiletrailsmall-simple"
 				wDef.craterareaofeffect = 0
 				wDef.craterboost = 0
 				wDef.cratermult = 0
-				wDef.edgeeffectiveness = 0.1
 				wDef.explosiongenerator = "custom:genericshellexplosion-medium"
 				wDef.firestarter = 5
 				wDef.flighttime = 2.5
 				wDef.impulsefactor = 0.123
-				wDef.model = "cormissile3fast.s3o"
+				wDef.model = "cormissile2.s3o"
 				wDef.name = "KargMissile"
 				wDef.noselfdamage = true
 				wDef.proximitypriority = -1
 				wDef.range = 485
-				wDef.reloadtime = 7.2
+				wDef.reloadtime = 1.3
 				wDef.smokecolor = 0.65
 				wDef.smokeperiod = 8.5
 				wDef.smokesize = 8.5
@@ -1853,18 +1854,18 @@ function WeaponDef_Post(name, wDef)
 				wDef.texture2 = "railguntrail"
 				wDef.tolerance = 15000
 				wDef.tracks = true
-				wDef.turnrate = 21800
+				wDef.turnrate = 36400
 				wDef.turret = true
-				wDef.weaponacceleration = 350
+				wDef.weaponacceleration = 550
 				wDef.weapontimer = 5
 				wDef.weapontype = "MissileLauncher"
-				wDef.weaponvelocity = 700
+				wDef.weaponvelocity = 800
 				wDef.customparams = wDef.customparams or {}
 				wDef.customparams.overrange_distance = 690
 				wDef.customparams.projectile_destruction_method = "descend"
 				wDef.customparams.speceffect = "retarget"
 				wDef.damage = {
-					default = 640
+					default = 100
 				}
 			end
 		end
