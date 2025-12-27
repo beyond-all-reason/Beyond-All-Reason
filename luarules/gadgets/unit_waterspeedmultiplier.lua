@@ -48,7 +48,7 @@ for defID, ud in pairs(UnitDefs) do
 	local speedFactorInWater = tonumber(params.speedfactorinwater or 1) or 1
 	local speedFactorAtDepth = math.abs(params.speedfactoratdepth and tonumber(params.speedfactoratdepth) or 0) * -1
 
-	if speedFactorInWater ~= 1 and (not ud.canFly and not ud.isAirUnit) then
+	if speedFactorInWater ~= 1 and (not ud.isImmobile and not ud.canFly and not ud.isAirUnit) then
 		if speedFactorAtDepth > -1 then
 			speedFactorAtDepth = 0
 		end
