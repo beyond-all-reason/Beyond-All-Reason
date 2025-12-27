@@ -66,7 +66,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	end
 
 	-- Disallow guard commands onto labs, units that have buildOptions or can assist
-	if cmdID == CMD.GUARD then
+	if cmdID == CMD_GUARD then
 		local targetID = cmdParams[1]
 		local targetTeam = Spring.GetUnitTeam(targetID)
 
@@ -80,7 +80,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 
 	-- Also disallow assisting building (caused by a repair command) units under construction
 	-- Area repair doesn't cause assisting, so it's fine that we can't properly filter it
-	if cmdID == CMD.REPAIR and #cmdParams == 1 then
+	if cmdID == CMD_REPAIR and #cmdParams == 1 then
 		local targetID = cmdParams[1]
 		local targetTeam = Spring.GetUnitTeam(targetID)
 
