@@ -199,7 +199,7 @@ function Gadgets.BuildResultFactory(taxRate, metalThreshold, energyThreshold)
       senderTeamId = ctx.senderTeamId,
       receiverTeamId = ctx.receiverTeamId,
 
-      canShare = amountSendable > 0,
+      canShare = true, -- because if we got here, we're not in a deny policy and sharing is enabled
       amountSendable = amountSendable,
       amountReceivable = receiverCapacity,
       taxedPortion = taxedPortion,
