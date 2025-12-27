@@ -28,12 +28,12 @@ local function GetAllyTarget(cmdParams)
 	return nil
 end
 
-local function IssueGroundAttack(cmdOptions)
+local function IssueGroundCommand(cmdID, cmdOptions)
 	local mx, my = Spring.GetMouseState()
 	local _, pos = Spring.TraceScreenRay(mx, my, true)
 
 	if pos and pos[1] then
-		Spring.GiveOrder(CMD.ATTACK, { pos[1], pos[2], pos[3] }, cmdOptions or {})
+		Spring.GiveOrder(cmdID, { pos[1], pos[2], pos[3] }, cmdOptions or {})
 		return true
 	end
 	return false
@@ -41,12 +41,10 @@ end
 
 function widget:Initialize()
 	WG['attacknoally'] = true
-	WG['manualfirennoally'] = true
 end
 
 function widget:Shutdown()
 	WG['attacknoally'] = nil
-	WG['manualfirennoally'] = nil
 end
 
 function widget:MousePress(x, y, button)
@@ -69,21 +67,15 @@ end
 -- Without this, units just follow the ally around.
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	local allyTarget = GetAllyTarget(cmdParams)
-	if cmdID == CMD.ATTACK then
+	if cmdID == CMD.ATTACK or cmdID == CMD.MANUALFIRE then
 		-- Only intercept unit-target attacks against allied units.
 		if not allyTarget then
 			return false
 		end
-		if not IssueGroundAttack(cmdOptions) then
+		if not IssueGroundCommand(cmdID, cmdOptions) then
 			Spring.SetActiveCommand(nil)
 		end
 		return true
-	elseif cmdID == CMD.MANUALFIRE then
-		if allyTarget then
-			Spring.SetActiveCommand(nil)
-			return true
-		end
-		return false
 	end
 	return false
 end
