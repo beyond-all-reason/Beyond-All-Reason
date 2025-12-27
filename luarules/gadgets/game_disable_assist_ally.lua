@@ -28,9 +28,31 @@ end
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_GUARD)
 	gadgetHandler:RegisterAllowCommand(CMD_REPAIR)
+	gadgetHandler:RegisterAllowCommand(CMD_INSERT)
+end
+
+local CMD_GUARD = CMD.GUARD
+local CMD_REPAIR = CMD.REPAIR
+local CMD_INSERT = CMD.INSERT
+local params = { 0, 0, 0 }
+local EMPTY = {} -- stupid
+
+local function resolveCommand(cmdID, cmdParams)
+	local p = params
+	p[1], p[2], p[3] = cmdParams[4], cmdParams[5], cmdParams[6]
+	cmdID, cmdParams = cmdParams[1], p
+
+	if cmdID ~= CMD_GUARD and cmdID ~= CMD_REPAIR then
+		return 0, EMPTY
+	else
+		return cmdID, cmdParams
+	end
 end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
+	if cmdID == CMD_INSERT then
+		cmdID, cmdParams = resolveCommand(cmdID, cmdParams)
+	end
 
 	-- Disallow guard commands onto labs, units that have buildOptions or can assist
 	if cmdID == CMD.GUARD then
