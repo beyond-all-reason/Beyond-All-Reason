@@ -16,6 +16,16 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitTeam = Spring.GetUnitTeam
+
+local gaiaTeam = Spring.GetGaiaTeamID()
+
+local canBuildStep = {} -- i.e. anything that spends resources when assisted
+for unitDefID, unitDef in ipairs(UnitDefs) do
+	canBuildStep[unitDefID] = unitDef.isFactory or (unitDef.isBuilder and (unitDef.canBuild or unitDef.canAssist))
+end
+
 local function isComplete(u)
 	local _,_,_,_,buildProgress = Spring.GetUnitHealth(u)
 	if buildProgress and buildProgress>=1 then
@@ -83,4 +93,24 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	end
 
 	return true
+end
+
+function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	if newTeam ~= gaiaTeam and canBuildStep[unitDefID] then
+		local tags, count = {}, 0
+		local command, _, tag, p1, p2
+		local GetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+		for index = 1, Spring.GetUnitCommandCount(unitID) do
+			command, _, tag, p1, p2 = GetUnitCurrentCommand(unitID, index)
+			if (command == CMD_GUARD or command == CMD_REPAIR) and (p1 and not p2) and spGetUnitTeam(p1) ~= newTeam then
+				if not isComplete(p1) or (command == CMD_GUARD and canBuildStep[spGetUnitDefID(p1)]) then
+					count = count + 1
+					tags[count] = tag
+				end
+			end
+		end
+		if count > 0 then
+			Spring.GiveOrderToUnit(unitID, CMD.REMOVE, tags)
+		end
+	end
 end
