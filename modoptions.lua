@@ -1498,6 +1498,29 @@ local options = {
     },
 
     {
+        key     = "community_balance_patch",
+        name    = "Community Balance Patch",
+        desc    = "Enable community balance patch changes",
+        type    = "list",
+        def     = "disabled",
+        section = "options_experimental",
+        items   = {
+            { key = "disabled", name = "Disabled", desc = "No community balance changes", lock = {"community_balance_commando"} },
+            { key = "enabled",  name = "Enabled",  desc = "Enable all community balance changes", lock = {"community_balance_commando"} },
+            { key = "custom",   name = "Custom",   desc = "Enable custom balance changes", unlock = {"community_balance_commando"} },
+        }
+    },
+
+    {
+        key     = "community_balance_commando",
+        name    = "Commando",
+        desc    = "Enable commando balance changes",
+        type    = "bool",
+        def     = true,
+        section = "options_experimental",
+    },
+
+    {
         key    	= "experimentallegionfaction",
         name   	= "Legion Faction",
         desc   	= "3rd experimental faction",

@@ -694,6 +694,31 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	-- Community Balance Patch ------------------------------------------------------------------------------------------------------------------------
+	local communityBalancePatchDisabled = modOptions.community_balance_patch == "disabled"
+	if not communityBalancePatchDisabled then
+		local commandoEnabled = modOptions.community_balance_commando
+		local all = modOptions.community_balance_patch == "enabled"
+		local custom = modOptions.community_balance_patch == "custom"
+		if all or (custom and commandoEnabled) then
+			-- Add cormando to coramsub (amphibious cortex underwater factory) buildoptions
+			if name == "coramsub" then
+				local numBuildoptions = #uDef.buildoptions
+				uDef.buildoptions[numBuildoptions + 1] = "cormando"
+			end
+
+			if name == "cormando" then
+				uDef.workertime = 300
+				local numBuildoptions = #uDef.buildoptions
+				uDef.buildoptions[numBuildoptions + 1] = "corak"
+				-- Allow targeting VTOL units
+				if uDef.weapons and uDef.weapons[1] then
+					uDef.weapons[1].onlytargetcategory = "SURFACE VTOL"
+				end
+			end
+		end
+	end
+
 	-- Scavengers Units ------------------------------------------------------------------------------------------------------------------------
 	if modOptions.scavunitsforplayers then
 		-- Armada T1 Land Constructors
@@ -1791,6 +1816,59 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
+		-- Community Balance Patch - Replace cormando's weapon with corkarg missile
+		if (modOptions.community_balance_patch == "enabled") or
+		   (modOptions.community_balance_patch == "custom" and modOptions.community_balance_commando) then
+			if name == 'cormando_commando_blaster' then
+				-- Replace with SUPER_MISSILE properties from corkarg
+				wDef.areaofeffect = 128
+				wDef.avoidfeature = false
+				wDef.castshadow = true
+				wDef.cegtag = "missiletrailsmall-simple"
+				wDef.craterareaofeffect = 0
+				wDef.craterboost = 0
+				wDef.cratermult = 0
+				wDef.edgeeffectiveness = 0.1
+				wDef.explosiongenerator = "custom:genericshellexplosion-medium"
+				wDef.firestarter = 5
+				wDef.flighttime = 2.5
+				wDef.impulsefactor = 0.123
+				wDef.model = "cormissile3fast.s3o"
+				wDef.name = "KargMissile"
+				wDef.noselfdamage = true
+				wDef.proximitypriority = -1
+				wDef.range = 485
+				wDef.reloadtime = 7.2
+				wDef.smokecolor = 0.65
+				wDef.smokeperiod = 8.5
+				wDef.smokesize = 8.5
+				wDef.smoketime = 27
+				wDef.smoketrail = true
+				wDef.smoketrailcastshadow = false
+				wDef.soundhit = "xplosml2"
+				wDef.soundhitwet = "splssml"
+				wDef.soundstart = "rocklit1"
+				wDef.startvelocity = 180
+				wDef.texture1 = "null"
+				wDef.texture2 = "railguntrail"
+				wDef.tolerance = 15000
+				wDef.tracks = true
+				wDef.turnrate = 21800
+				wDef.turret = true
+				wDef.weaponacceleration = 350
+				wDef.weapontimer = 5
+				wDef.weapontype = "MissileLauncher"
+				wDef.weaponvelocity = 700
+				wDef.customparams = wDef.customparams or {}
+				wDef.customparams.overrange_distance = 690
+				wDef.customparams.projectile_destruction_method = "descend"
+				wDef.customparams.speceffect = "retarget"
+				wDef.damage = {
+					default = 640
+				}
+			end
+		end
+
 		--Air rework
 		if modOptions.air_rework == true then
 			if wDef.weapontype == "BeamLaser" then
@@ -2043,13 +2121,8 @@ function WeaponDef_Post(name, wDef)
 		if wDef.weapontype == "StarburstLauncher" and wDef.weapontimer then
 			wDef.weapontimer = wDef.weapontimer + (wDef.weapontimer * ((rangeMult - 1) * 0.4))
 		end
-		if wDef.customparams then
-			if wDef.customparams.overrange_distance then
-				wDef.customparams.overrange_distance = wDef.customparams.overrange_distance * rangeMult
-			end
-			if wDef.customparams.preaim_range then
-				wDef.customparams.preaim_range = wDef.customparams.preaim_range * rangeMult
-			end
+		if wDef.customparams and wDef.customparams.overrange_distance then
+			wDef.customparams.overrange_distance = wDef.customparams.overrange_distance * rangeMult
 		end
 	end
 
