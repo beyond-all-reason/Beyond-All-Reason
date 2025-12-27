@@ -12,11 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-local function ExitAttackMode()
-	-- Only clear the active command cursor to return to contextual commands.
-	Spring.SetActiveCommand(nil)
-end
-
 local hasRightClickAttack = {
 	[CMD.ATTACK] = true,
 	[CMD.MANUALFIRE] = true,
@@ -64,7 +59,7 @@ function widget:MousePress(x, y, button)
 	if WG['attacknoally'] then
 		local _, activeCmdID = Spring.GetActiveCommand()
 		if activeCmdID and hasRightClickAttack[activeCmdID] then
-			ExitAttackMode()
+			Spring.SetActiveCommand(nil)
 			return true -- swallow RMB so engine doesn't re-trigger commands
 		end
 	end
@@ -81,12 +76,12 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 			return false
 		end
 		if not IssueGroundAttack(cmdOptions) then
-			ExitAttackMode()
+			Spring.SetActiveCommand(nil)
 		end
 		return true
 	elseif cmdID == CMD.MANUALFIRE then
 		if allyTarget then
-			ExitAttackMode()
+			Spring.SetActiveCommand(nil)
 			return true
 		end
 		return false
