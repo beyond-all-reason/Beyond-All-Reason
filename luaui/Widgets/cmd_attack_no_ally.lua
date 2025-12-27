@@ -2,10 +2,10 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name         = "No fire on own units (full cancel)",
+		name         = "Attack no Ally",
 		desc         = "Redirects attack on allies to ground and fully exits attack mode on RMB",
 		author       = "Ceddral, Floris (modified by Zain M)",
-		date         = "April 2018 (modified Dec 2025)",
+		date         = "April 2018 (modified December 2025)",
 		license      = "GNU GPL, v2 or later",
 		layer        = 0,
 		enabled      = true
@@ -62,7 +62,6 @@ function widget:MousePress(x, y, button)
 			return true -- swallow RMB so engine doesn't re-trigger commands
 		end
 	end
-
 	return false
 end
 -- Command interception
