@@ -49,8 +49,6 @@ piece
 	baseSmoke2
 ;
 
-//static-var  shotcount, restore_delay, shotcount, spin_speed, spin_delay, time_to_reload, fire_rotation, last_primary_heading, last_primary_pitch, last_visual_heading;
-
 static-var whichBarrel, revolverCount, last_heading, last_pitch, shotcount, restore_delay, issmoking, ischarging, isspooling;
 
 // Signal definitions
@@ -86,6 +84,9 @@ Create()
 }
 
 PowerUp(){
+	emit-sfx 1024 + 2 from shellCasing;
+	show shellHead;
+	show shellCasing;
 	if(isspooling == 1){
 		while (isspooling < 50){
 			shotcount = shotcount + 1;
@@ -101,268 +102,31 @@ PowerUp(){
 	}
 }
 
-SmokeItUp()
-{	
-	if (issmoking == 0 OR TRUE)
-	{
-		issmoking = 1;
-
+Smoking(){
+	if(issmoking == 1){
 		hide shellCasing;
 		hide shellHead;
+		while (issmoking < 56){
+			emit-sfx 1024+6 from baseSmoke1;
+			emit-sfx 1024+6 from baseSmoke2;
+			emit-sfx 1024+6 from barrelBackSmoke;
+			emit-sfx 1024+6 from barrelBackSmoke;
 
-		emit-sfx 1024+6 from baseSmoke1;
-		emit-sfx 1024+6 from baseSmoke2;
-		emit-sfx 1024+6 from barrelBackSmoke;
-		emit-sfx 1024+6 from barrelBackSmoke;
-
-		emit-sfx 1024+8 from flare1;
-		emit-sfx 1024+8 from flare2;
-		emit-sfx 1024+8 from flare3;
-		emit-sfx 1024+8 from flare4;
-		emit-sfx 1024+8 from flare5;
-		emit-sfx 1024+8 from flare6;
-		emit-sfx 1024+8 from flare7;
-
-		sleep 500;
-
-		emit-sfx 1024+6 from baseSmoke1;
-		emit-sfx 1024+6 from baseSmoke2;
-		emit-sfx 1024+6 from barrelBackSmoke;
-
-		emit-sfx 1024+8 from flare1;
-		emit-sfx 1024+8 from flare2;
-		emit-sfx 1024+8 from flare3;
-		emit-sfx 1024+8 from flare4;
-		emit-sfx 1024+8 from flare5;
-		emit-sfx 1024+8 from flare6;
-		emit-sfx 1024+8 from flare7;
-		sleep 500;
-
-		emit-sfx 1024+6 from baseSmoke1;
-		emit-sfx 1024+6 from baseSmoke2;
-		emit-sfx 1024+6 from barrelBackSmoke;
-
-		emit-sfx 1024+8 from flare1;
-		emit-sfx 1024+8 from flare2;
-		emit-sfx 1024+8 from flare3;
-		emit-sfx 1024+8 from flare4;
-		emit-sfx 1024+8 from flare5;
-		emit-sfx 1024+8 from flare6;
-		emit-sfx 1024+8 from flare7;
-		sleep 500;
-
-		emit-sfx 1024+6 from baseSmoke1;
-		emit-sfx 1024+6 from baseSmoke2;
-		emit-sfx 1024+6 from barrelBackSmoke;
-
-		emit-sfx 1024+8 from flare1;
-		emit-sfx 1024+8 from flare2;
-		emit-sfx 1024+8 from flare3;
-		emit-sfx 1024+8 from flare4;
-		emit-sfx 1024+8 from flare5;
-		emit-sfx 1024+8 from flare6;
-		emit-sfx 1024+8 from flare7;
-		sleep 500;
-
-		emit-sfx 1024+6 from baseSmoke1;
-		emit-sfx 1024+6 from baseSmoke2;
-		emit-sfx 1024+6 from barrelBackSmoke;
-
-		emit-sfx 1024+8 from flare1;
-		emit-sfx 1024+8 from flare2;
-		emit-sfx 1024+8 from flare3;
-		emit-sfx 1024+8 from flare4;
-		emit-sfx 1024+8 from flare5;
-		emit-sfx 1024+8 from flare6;
-		emit-sfx 1024+8 from flare7;
-		sleep 500;
-
-		emit-sfx 1024+6 from baseSmoke1;
-		emit-sfx 1024+6 from baseSmoke2;
-		emit-sfx 1024+6 from barrelBackSmoke;
-
-		emit-sfx 1024+8 from flare1;
-		emit-sfx 1024+8 from flare2;
-		emit-sfx 1024+8 from flare3;
-		emit-sfx 1024+8 from flare4;
-		emit-sfx 1024+8 from flare5;
-		emit-sfx 1024+8 from flare6;
-		emit-sfx 1024+8 from flare7;
-		sleep 500;
-
-		emit-sfx 1024+6 from baseSmoke1;
-		emit-sfx 1024+6 from baseSmoke2;
-		emit-sfx 1024+6 from barrelBackSmoke;
-
-		emit-sfx 1024+8 from flare1;
-		emit-sfx 1024+8 from flare2;
-		emit-sfx 1024+8 from flare3;
-		emit-sfx 1024+8 from flare4;
-		emit-sfx 1024+8 from flare5;
-		emit-sfx 1024+8 from flare6;
-		emit-sfx 1024+8 from flare7;
-		sleep 500;
-
-		emit-sfx 1024+6 from baseSmoke1;
-		emit-sfx 1024+6 from baseSmoke2;
-		emit-sfx 1024+6 from barrelBackSmoke;
-
-		emit-sfx 1024+8 from flare1;
-		emit-sfx 1024+8 from flare2;
-		emit-sfx 1024+8 from flare3;
-		emit-sfx 1024+8 from flare4;
-		emit-sfx 1024+8 from flare5;
-		emit-sfx 1024+8 from flare6;
-		emit-sfx 1024+8 from flare7;
-		sleep 500;
-
-		emit-sfx 1024+6 from baseSmoke1;
-		emit-sfx 1024+6 from baseSmoke2;
-		emit-sfx 1024+6 from barrelBackSmoke;
-
-		emit-sfx 1024+8 from flare1;
-		emit-sfx 1024+8 from flare2;
-		emit-sfx 1024+8 from flare3;
-		emit-sfx 1024+8 from flare4;
-		emit-sfx 1024+8 from flare5;
-		emit-sfx 1024+8 from flare6;
-		emit-sfx 1024+8 from flare7;
-		sleep 500;
-
-		emit-sfx 1024+6 from baseSmoke1;
-		emit-sfx 1024+6 from baseSmoke2;
-		emit-sfx 1024+6 from barrelBackSmoke;
-
-		emit-sfx 1024+8 from flare1;
-		emit-sfx 1024+8 from flare2;
-		emit-sfx 1024+8 from flare3;
-		emit-sfx 1024+8 from flare4;
-		emit-sfx 1024+8 from flare5;
-		emit-sfx 1024+8 from flare6;
-		emit-sfx 1024+8 from flare7;
-		sleep 500;
-
-		emit-sfx 1024+6 from baseSmoke1;
-		emit-sfx 1024+6 from baseSmoke2;
-		emit-sfx 1024+6 from barrelBackSmoke;
-
-		emit-sfx 1024+8 from flare1;
-		emit-sfx 1024+8 from flare2;
-		emit-sfx 1024+8 from flare3;
-		emit-sfx 1024+8 from flare4;
-		emit-sfx 1024+8 from flare5;
-		emit-sfx 1024+8 from flare6;
-		emit-sfx 1024+8 from flare7;
-		sleep 500;
-
-		emit-sfx 1024+6 from baseSmoke1;
-		emit-sfx 1024+6 from baseSmoke2;
-		emit-sfx 1024+6 from barrelBackSmoke;
-
-		emit-sfx 1024+8 from flare1;
-		emit-sfx 1024+8 from flare2;
-		emit-sfx 1024+8 from flare3;
-		emit-sfx 1024+8 from flare4;
-		emit-sfx 1024+8 from flare5;
-		emit-sfx 1024+8 from flare6;
-		emit-sfx 1024+8 from flare7;
-		sleep 500;
-
-		emit-sfx 1024+6 from baseSmoke1;
-		emit-sfx 1024+6 from baseSmoke2;
-		emit-sfx 1024+6 from barrelBackSmoke;
-
-		emit-sfx 1024+8 from flare1;
-		emit-sfx 1024+8 from flare2;
-		emit-sfx 1024+8 from flare3;
-		emit-sfx 1024+8 from flare4;
-		emit-sfx 1024+8 from flare5;
-		emit-sfx 1024+8 from flare6;
-		emit-sfx 1024+8 from flare7;
-		sleep 500;
-
-		emit-sfx 1024+6 from baseSmoke1;
-		emit-sfx 1024+6 from baseSmoke2;
-		emit-sfx 1024+6 from barrelBackSmoke;
-
-		emit-sfx 1024+8 from flare1;
-		emit-sfx 1024+8 from flare2;
-		emit-sfx 1024+8 from flare3;
-		emit-sfx 1024+8 from flare4;
-		emit-sfx 1024+8 from flare5;
-		emit-sfx 1024+8 from flare6;
-		emit-sfx 1024+8 from flare7;
-		show shellHead;
-		show shellCasing;
-		sleep 500;
+			emit-sfx 1024+8 from flare1;
+			emit-sfx 1024+8 from flare2;
+			emit-sfx 1024+8 from flare3;
+			emit-sfx 1024+8 from flare4;
+			emit-sfx 1024+8 from flare5;
+			emit-sfx 1024+8 from flare6;
+			emit-sfx 1024+8 from flare7;
+			issmoking = issmoking + 1;
+			sleep 500;
+		}
+	}
+	if (issmoking == 55){
 		issmoking = 0;
 	}
-}
-
-// DOESNT WORK BECAUSE LIGHTNING CEGS CANNOT BE CALLED THIS WAY FOR SOME REASON
-EnergyParticles()
-{	
-	if (ischarging == 0 OR TRUE)
-	{
-		ischarging = 1;
-		emit-sfx 1024+7 from powerCell1;
-		emit-sfx 1024+7 from powerCell2;
-		emit-sfx 1024+7 from powerCell3;
-		emit-sfx 1024+7 from powerCell4;
-		emit-sfx 1024+7 from powerCell5;
-		emit-sfx 1024+7 from barrelBackSmoke;
-		sleep 1000;
-		emit-sfx 1024+7 from powerCell1;
-		emit-sfx 1024+7 from powerCell2;
-		emit-sfx 1024+7 from powerCell3;
-		emit-sfx 1024+7 from powerCell4;
-		emit-sfx 1024+7 from powerCell5;
-		emit-sfx 1024+7 from barrelBackSmoke;
-		sleep 1000;
-		emit-sfx 1024+7 from powerCell1;
-		emit-sfx 1024+7 from powerCell2;
-		emit-sfx 1024+7 from powerCell3;
-		emit-sfx 1024+7 from powerCell4;
-		emit-sfx 1024+7 from powerCell5;
-		emit-sfx 1024+7 from barrelBackSmoke;
-		sleep 1000;
-		emit-sfx 1024+7 from powerCell1;
-		emit-sfx 1024+7 from powerCell2;
-		emit-sfx 1024+7 from powerCell3;
-		emit-sfx 1024+7 from powerCell4;
-		emit-sfx 1024+7 from powerCell5;
-		emit-sfx 1024+7 from barrelBackSmoke;
-		sleep 1000;
-		emit-sfx 1024+7 from powerCell1;
-		emit-sfx 1024+7 from powerCell2;
-		emit-sfx 1024+7 from powerCell3;
-		emit-sfx 1024+7 from powerCell4;
-		emit-sfx 1024+7 from powerCell5;
-		emit-sfx 1024+7 from barrelBackSmoke;
-		sleep 1000;
-		emit-sfx 1024+7 from powerCell1;
-		emit-sfx 1024+7 from powerCell2;
-		emit-sfx 1024+7 from powerCell3;
-		emit-sfx 1024+7 from powerCell4;
-		emit-sfx 1024+7 from powerCell5;
-		emit-sfx 1024+7 from barrelBackSmoke;
-		sleep 1000;
-		emit-sfx 1024+7 from powerCell1;
-		emit-sfx 1024+7 from powerCell2;
-		emit-sfx 1024+7 from powerCell3;
-		emit-sfx 1024+7 from powerCell4;
-		emit-sfx 1024+7 from powerCell5;
-		emit-sfx 1024+7 from barrelBackSmoke;
-		sleep 1000;
-		emit-sfx 1024+7 from powerCell1;
-		emit-sfx 1024+7 from powerCell2;
-		emit-sfx 1024+7 from powerCell3;
-		emit-sfx 1024+7 from powerCell4;
-		emit-sfx 1024+7 from powerCell5;
-		emit-sfx 1024+7 from barrelBackSmoke;
-		sleep 1000;
-		ischarging = 0;
-	}
+	sleep 1;
 }
 
 lua_UnitScriptLight(lightIndex, count) 
@@ -405,9 +169,9 @@ AimPrimary(heading, pitch)
 
 FirePrimary() {
 	whichBarrel = 0;
+	issmoking = 0;
 	revolverCount = 0;
 	shotcount = shotcount + 1;
-	emit-sfx 1024 + 3 from shellCasing;
 
 	spin barrelSpinPivot around z-axis speed <1800> accelerate <18>;
 	isspooling = 1;
@@ -437,12 +201,11 @@ FirePrimary() {
 Shot1(zero) {
 	if(whichBarrel == 3 OR whichBarrel == 6){
 		emit-sfx 1024 + 1 from barrelBackSmoke;
-		emit-sfx 1024 + 3 from shellCasing;
+		emit-sfx 1024 + 2 from shellCasing;
 		explode shellCasing type FALL | NOHEATCLOUD;
 	}
 
 	if(whichBarrel == 6){
-		start-script EnergyParticles();
 		//barrels
 		call-script lua_UnitScriptLight(1, shotcount);
 		call-script lua_UnitScriptLight(2, shotcount);
@@ -475,8 +238,8 @@ Shot1(zero) {
 
 	if (revolverCount == 8){
 		isspooling = 0;
-		start-script SmokeItUp();
-		start-script EnergyParticles();
+		issmoking = 1;
+		start-script Smoking();
 	}
 
 	if(revolverCount == 0){
