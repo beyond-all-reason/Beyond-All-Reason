@@ -716,7 +716,7 @@ function UnitDef_Post(name, uDef)
 					uDef.weapons[1].onlytargetcategory = "SURFACE VTOL"
 				end
 				-- Add EMP resistance
-				uDef.customparams.paralyzemultiplier = 1.5
+				uDef.customparams.paralyzemultiplier = 0.5
 			end
 		end
 	end
@@ -1833,13 +1833,12 @@ function WeaponDef_Post(name, wDef)
 				wDef.explosiongenerator = "custom:genericshellexplosion-medium"
 				wDef.firestarter = 5
 				wDef.flighttime = 2.5
-				wDef.impulsefactor = 0.123
+				wDef.impulsefactor = 1
 				wDef.model = "cormissile2.s3o"
 				wDef.name = "KargMissile"
 				wDef.noselfdamage = true
-				wDef.proximitypriority = -1
 				wDef.range = 485
-				wDef.reloadtime = 1.3
+				wDef.reloadtime = 1.4
 				wDef.smokecolor = 0.65
 				wDef.smokeperiod = 8.5
 				wDef.smokesize = 8.5
@@ -1861,11 +1860,11 @@ function WeaponDef_Post(name, wDef)
 				wDef.weapontype = "MissileLauncher"
 				wDef.weaponvelocity = 800
 				wDef.customparams = wDef.customparams or {}
-				wDef.customparams.overrange_distance = 690
+				wDef.customparams.overrange_distance = 530
 				wDef.customparams.projectile_destruction_method = "descend"
 				wDef.customparams.speceffect = "retarget"
 				wDef.damage = {
-					default = 100
+					default = 150
 				}
 			end
 		end
