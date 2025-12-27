@@ -8,16 +8,11 @@ function gadget:GetInfo()
 		date    = 'April 2024',
 		license = 'GNU GPL, v2 or later',
 		layer   = 0,
-		enabled = true
+		enabled = Spring.GetModOptions().disable_assist_ally_construction,
 	}
 end
 
 if not gadgetHandler:IsSyncedCode() then
-	return false
-end
-
-local allowAssist = not Spring.GetModOptions().disable_assist_ally_construction
-if allowAssist then
 	return false
 end
 
