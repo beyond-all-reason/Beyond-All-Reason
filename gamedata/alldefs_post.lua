@@ -202,13 +202,13 @@ function UnitDef_Post(name, uDef)
 		end
 		if modOptions.unit_restrictions_notech2 then
 			if tonumber(uDef.customparams.techlevel) == 2 or tonumber(uDef.customparams.techlevel) == 3 then
-				uDef.maxthisunit = 0
+				uDef.customparams.modoption_blocked = true
 			end
 		end
 
 		if modOptions.unit_restrictions_notech3 then
 			if tonumber(uDef.customparams.techlevel) == 3 then
-				uDef.maxthisunit = 0
+				uDef.customparams.modoption_blocked = true
 			end
 		end
 
@@ -231,19 +231,19 @@ function UnitDef_Post(name, uDef)
 				legamsub	= true,
 			}
 			if tech15[basename] then
-				uDef.maxthisunit = 0
+				uDef.customparams.modoption_blocked = true
 			end
 		end
 
 		if modOptions.unit_restrictions_noair and not uDef.customparams.ignore_noair then
 			if string.find(uDef.customparams.subfolder, "Aircraft") then
-				uDef.maxthisunit = 0
+				uDef.customparams.modoption_blocked = true
 			elseif uDef.customparams.unitgroup and uDef.customparams.unitgroup == "aa" then
-				uDef.maxthisunit = 0
+				uDef.customparams.modoption_blocked = true
 			elseif uDef.canfly then
-				uDef.maxthisunit = 0
+				uDef.customparams.modoption_blocked = true
 			elseif uDef.customparams.disable_when_no_air then --used to remove drone carriers with no other purpose (ex. leghive but not rampart)
-				uDef.maxthisunit = 0
+				uDef.customparams.modoption_blocked = true
 			end
 			local AircraftFactories = {
 				armap = true,
@@ -271,25 +271,25 @@ function UnitDef_Post(name, uDef)
 
 			}
 			if AircraftFactories[name] then
-				uDef.maxthisunit = 0
+				uDef.customparams.modoption_blocked = true
 			end
 		end
 
 		if modOptions.unit_restrictions_noextractors then
 			if (uDef.extractsmetal and uDef.extractsmetal > 0) and (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
-				uDef.maxthisunit = 0
+				uDef.customparams.modoption_blocked = true
 			end
 		end
 
 		if modOptions.unit_restrictions_noconverters then
 			if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
-				uDef.maxthisunit = 0
+				uDef.customparams.modoption_blocked = true
 			end
 		end
 
 		if modOptions.unit_restrictions_nofusion then
 			if basename == "armdf" or string.sub(basename, -3) == "fus" then
-				uDef.maxthisunit = 0
+				uDef.customparams.modoption_blocked = true
 			end
 		end
 
@@ -297,7 +297,7 @@ function UnitDef_Post(name, uDef)
 			if uDef.weapondefs then
 				for _, weapon in pairs(uDef.weapondefs) do
 					if (weapon.interceptor and weapon.interceptor == 1) or (weapon.targetable and weapon.targetable == 1) then
-						uDef.maxthisunit = 0
+						uDef.customparams.modoption_blocked = true
 						break
 					end
 				end
@@ -324,7 +324,7 @@ function UnitDef_Post(name, uDef)
 			}
 			-- "defense" or "defence", as legion doesn't fully follow past conventions
 			if not whitelist[name] and string.find(string.lower(uDef.customparams.subfolder), "defen") then
-				uDef.maxthisunit = 0
+				uDef.customparams.modoption_blocked = true
 			end
 		end
 
@@ -345,7 +345,7 @@ function UnitDef_Post(name, uDef)
 				if hasAnti then
 					uDef.weapondefs = newWdefs
 					if numWeapons == 0 and (not uDef.radardistance or uDef.radardistance < 1500) then
-						uDef.maxthisunit = 0
+						uDef.customparams.modoption_blocked = true
 					else
 						if uDef.metalcost then
 							uDef.metalcost = math.floor(uDef.metalcost * 0.6)	-- give a discount for removing anti-nuke
@@ -455,7 +455,7 @@ function UnitDef_Post(name, uDef)
 				cortron_scav = true,
 			}
 			if TacNukes[name] then
-				uDef.maxthisunit = 0
+				uDef.customparams.modoption_blocked = true
 			end
 		end
 
@@ -479,7 +479,7 @@ function UnitDef_Post(name, uDef)
 				legelrpcmech_scav = true,
 			}
 			if LRPCs[name] then
-				uDef.maxthisunit = 0
+				uDef.customparams.modoption_blocked = true
 			end
 		end
 
@@ -493,7 +493,7 @@ function UnitDef_Post(name, uDef)
 				legstarfall_scav = true,
 			}
 			if LRPCs[name] then
-				uDef.maxthisunit = 0
+				uDef.customparams.modoption_blocked = true
 			end
 		end
 	end

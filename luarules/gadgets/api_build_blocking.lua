@@ -12,6 +12,15 @@ function gadget:GetInfo()
 	}
 end
 
+ -- these will not be removed with "all" reason key from console commands.
+ -- they must be removed explicitly with the reason key.
+local allExemptReasonKeys = {
+terrain_wind = true,
+terrain_water = true,
+terrain_geothermal = true,
+max_this_unit = true,
+modoption_blocked = true,
+}
 
 if gadgetHandler:IsSyncedCode() then
 	local function notifyUnitBlocked(unitDefID, teamID, reasons)
@@ -77,12 +86,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local unitRestrictions = VFS.Include("common/configs/unit_restrictions_config.lua")
 
-	local permanentKeys = { -- these will not be removed via console commands.
-		terrain_wind = true,
-		terrain_water = true,
-		terrain_geothermal = true,
-	}
-
 	local function parseTeamParameter(teamParam, playerID)
 		if teamParam == "all" then
 			local teams = {}
@@ -119,7 +122,7 @@ if gadgetHandler:IsSyncedCode() then
 			if blockedUnitDefs and blockedUnitDefs[unitDefID] then
 				local removed = false
 				for reason in pairs(blockedUnitDefs[unitDefID]) do
-					if not permanentKeys[reason] then
+					if not allExemptReasonKeys[reason] then
 						if GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reason) then
 							removed = true
 						end
@@ -259,6 +262,8 @@ if gadgetHandler:IsSyncedCode() then
 				
 				for unitDefID, unitDef in pairs(UnitDefs) do
 					if unitDef.maxThisUnit == 0 then
+						GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "max_this_unit")
+					elseif unitDef.customParams.modoption_blocked then
 						GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "modoption_blocked")
 					end
 				end
