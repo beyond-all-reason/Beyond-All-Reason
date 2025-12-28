@@ -199,6 +199,15 @@ local ColorIsDark = Spring.Utilities.Color.ColorIsDark
 
 local soundErrors = {}
 
+local function stripColorCodes(text)
+	local result = text
+	-- First remove 8-byte color codes (extended format with outline)
+	result = result:gsub("\255........", "")
+	-- Then remove 3-byte color codes (standard RGB format)
+	result = result:gsub("\255...", "")
+	return result
+end
+
 local autocompleteCommands = {
 	-- engine
 	'advmapshading',
@@ -797,6 +806,8 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		lineType = LineTypes.Player
 		name = ssub(line,2,sfind(line,"> ", nil, true)-1)
 		text = ssub(line,slen(name)+4)
+		-- Filter color codes from player input
+		text = stripColorCodes(text)
 
 		if sfind(text,'Allies: ', nil, true) == 1 then
 			text = ssub(text,9)
@@ -830,6 +841,8 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			name = ssub(line,2,sfind(line," (replay)] ", nil, true)-1)
 			text = ssub(line,slen(name)+13)
 		end
+		-- Filter color codes from spectator input
+		text = stripColorCodes(text)
 
 		-- filter specs
 		if hideSpecChat and (not hideSpecChatPlayer or not mySpec) then
@@ -859,6 +872,8 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		lineType = LineTypes.Mapmark
 		name = ssub(line,1,sfind(line," added point: ", nil, true)-1)
 		text = ssub(line,slen(name.." added point: ")+1)
+		-- Filter color codes from mapmark text
+		text = stripColorCodes(text)
 		if text == '' then
 			text = 'Look here!'
 		end
@@ -901,6 +916,8 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		else
 			bypassThisMessage = true
 		end
+		-- Filter color codes from battleroom input
+		text = stripColorCodes(text)
 		-- filter specs
 		local spectator = false
 		if playernames[name] ~= nil then

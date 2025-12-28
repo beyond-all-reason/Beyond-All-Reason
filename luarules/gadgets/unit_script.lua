@@ -248,7 +248,7 @@ end
 local function Destroy()
 	local activeUnit = GetActiveUnit()
 
-	if (activeUnit ~= nil) then
+	if activeUnit ~= nil then
 		for _,thread in pairs(activeUnit.threads) do
 			if thread.container then
 				RemoveTableElement(thread.container, thread)
@@ -263,7 +263,7 @@ local function RunOnError(thread)
 	local fun = thread.onerror
 	if fun then
 		local good, err = pcall(fun, err)
-		if (not good) then
+		if not good then
 			Spring.Log(section, LOG.ERROR, "error in error handler: " .. tostring(err))
 		end
 	end
@@ -275,9 +275,11 @@ local function WakeUp(thread, ...)
 	thread.container = nil
 	local co = thread.thread
 	local good, err = co_resume(co, ...)
-	if (not good) then
+	if not good then
 		Spring.Log(section, LOG.ERROR, err)
-		Spring.Log(section, LOG.ERROR, debug.traceback(co))
+		if debug and debug.traceback then
+			Spring.Log(section, LOG.ERROR, debug.traceback(co))
+		end
 		RunOnError(thread)
 	end
 end
@@ -291,7 +293,7 @@ local function AnimFinished(waitingForAnim, piece, axis)
 	if wthreads then
 		waitingForAnim[index] = {}
 
-		while (#wthreads > 0) do	
+		while (#wthreads > 0) do
 			wthread = wthreads[#wthreads]
 			wthreads[#wthreads] = nil
 

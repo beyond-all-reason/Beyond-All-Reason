@@ -110,6 +110,7 @@ local droneMetaList = {}
 local lastCarrierUpdate = 0
 local lastSpawnCheck = 0
 local lastDockCheck = 0
+local inUnitDestroyed = false
 
 local coroutine = coroutine
 local Sleep     = coroutine.yield
@@ -810,6 +811,7 @@ end
 
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	inUnitDestroyed = true
 	local carrierUnitID = spGetUnitRulesParam(unitID, "carrier_host_unit_id")
 
 	if carrierUnitID and carrierMetaList[carrierUnitID] then
@@ -825,16 +827,19 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 					if stockpile > 0 then
 						stockpile = stockpile - 1
 						spSetUnitStockpile(carrierUnitID, stockpile, stockpilepercentage)
+						-- Sending commands updates carriers which can remove them afterward.
 						spGiveOrderToUnit(carrierUnitID, CMD.STOCKPILE, {}, 0)
 					end
 					if carrierMetaList[carrierUnitID] then
 						carrierMetaList[carrierUnitID].stockpilecount = carrierMetaList[carrierUnitID].stockpilecount - 1
 					end
-
 				end
 			end
-			carrierMetaList[carrierUnitID].subUnitsList[unitID] = nil
-			totalDroneCount = totalDroneCount - 1
+			-- For now, just check back through all the information needed to identify the drone.
+			if carrierMetaList[carrierUnitID] and carrierMetaList[carrierUnitID].subUnitsList and carrierMetaList[carrierUnitID].subUnitsList[unitID] then
+				carrierMetaList[carrierUnitID].subUnitsList[unitID] = nil
+				totalDroneCount = totalDroneCount - 1
+			end
 		end
 	end
 
@@ -938,6 +943,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		carrierMetaList[unitID] = nil
 	end
 
+	inUnitDestroyed = false
 end
 
 
@@ -981,8 +987,9 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 
 	local carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
 	if not carrierx then
-		gadget:UnitDestroyed(carrierID)
-		--carrierMetaList[carrierID] = nil
+		if not inUnitDestroyed then
+			gadget:UnitDestroyed(carrierID)
+		end
 		return
 	end
 	local cmdID, _, _, cmdParam_1, cmdParam_2, cmdParam_3 = spGetUnitCurrentCommand(carrierID)

@@ -18,7 +18,7 @@ if not gadgetHandler:IsSyncedCode() then return end
 Integration Checklist:
 1. Weapon def custom params
 	smart_priority | <boolean> true for the higher priority smart select weapon.
-	smart_backup   | <boolean>= true for the fallback smart select weapon, used when smart_backup cannot shoot a target.
+	smart_backup   | <boolean>= true for the fallback smart select weapon, used when smart_priority cannot shoot a target.
 	smart_trajectory_checker | <boolean> true for the weapon that should be used for trajectory checks for the priorityWeapon. Ideally this is a static point slightly lower than preferred_weapon.
 3. This requires integration into the unit's animation .bos script to work. Follow the instructions in "smart_weapon_select.h" .bos header.
 
@@ -93,7 +93,7 @@ local trajectoryCmdDesc = {
     action = 'trajectory_toggle',
     params = { AUTO_TOGGLESTATE, "trajectory_low", "trajectory_high", "trajectory_auto" },
 }
-local defaultCmdDesc = trajectoryCmdDesc
+local defaultCmdDesc = table.copy(trajectoryCmdDesc)
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_SMART_TOGGLE)
@@ -104,38 +104,34 @@ function gadget:Initialize()
 	end
 end
 
-for unitDefID, def in ipairs(UnitDefs) do
-	if def.weapons then
-		local weapons = def.weapons
-		for weaponNumber, weaponData in pairs(weapons) do
-			local weaponDefID = weapons[weaponNumber].weaponDef
-			if WeaponDefs[weaponDefID] and WeaponDefs[weaponDefID].customParams then
-				if WeaponDefs[weaponDefID].customParams.smart_priority then
-					smartUnitDefs[unitDefID] = smartUnitDefs[unitDefID] or {}
-					smartUnitDefs[unitDefID].priorityWeapon = weaponNumber
-					smartUnitDefs[unitDefID].failedToFireFrameThreshold = WeaponDefs[weaponDefID].customParams.smart_misfire_frames or mathMax(WeaponDefs[weaponDefID].reload * misfireMultiplier, minimumMisfireFrames)
-					smartUnitDefs[unitDefID].reloadFrames = math.floor(WeaponDefs[weaponDefID].reload * Game.gameSpeed)
-					if def.speed and def.speed ~= 0 then
-						smartUnitDefs[unitDefID].canMove = true
-					end
-					if def.customParams and def.customParams.smart_weapon_cmddesc then
-						if def.customParams.smart_weapon_cmddesc == "trajectory" then
-							smartUnitDefs[unitDefID].smartCmdDesc = trajectoryCmdDesc
-						end
-					else
-						smartUnitDefs[unitDefID].smartCmdDesc = defaultCmdDesc
-					end
-				end
-				if WeaponDefs[weaponDefID].customParams.smart_backup then
-					smartUnitDefs[unitDefID] = smartUnitDefs[unitDefID] or {}
-					smartUnitDefs[unitDefID].backupWeapon = weaponNumber
-				end
-				if WeaponDefs[weaponDefID].customParams.smart_trajectory_checker then
-					smartUnitDefs[unitDefID] = smartUnitDefs[unitDefID] or {}
-					smartUnitDefs[unitDefID].trajectoryCheckWeapon = weaponNumber
-				end
+for unitDefID, unitDef in ipairs(UnitDefs) do
+	local unitDefData = {}
+
+	for weaponNumber, weapon in pairs(unitDef.weapons) do
+		local weaponDef = WeaponDefs[weapon.weaponDef]
+
+		if weaponDef.customParams.smart_priority and not unitDefData.priorityWeapon then
+			unitDefData.priorityWeapon = weaponNumber
+			unitDefData.reloadFrames = math.floor(weaponDef.reload * Game.gameSpeed)
+			unitDefData.failedToFireFrameThreshold = mathMax(tonumber(weaponDef.customParams.smart_misfire_frames or 0) or 0, weaponDef.reload * misfireMultiplier, minimumMisfireFrames)
+
+			if unitDef.customParams.smart_weapon_cmddesc == "trajectory" then
+				unitDefData.smartCmdDesc = trajectoryCmdDesc
+			else
+				unitDefData.smartCmdDesc = defaultCmdDesc
 			end
+
+		elseif weaponDef.customParams.smart_backup and not unitDefData.backupWeapon then
+			unitDefData.backupWeapon = weaponNumber
+
+		elseif weaponDef.customParams.smart_trajectory_checker and not unitDefData.trajectoryCheckWeapon then
+			unitDefData.trajectoryCheckWeapon = weaponNumber
 		end
+	end
+
+	if unitDefData.priorityWeapon and unitDefData.backupWeapon and unitDefData.trajectoryCheckWeapon then
+		unitDefData.canMove = not unitDef.isImmobile
+		smartUnitDefs[unitDefID] = unitDefData
 	end
 end
 

@@ -1,6 +1,6 @@
 local function proposed_unit_reworksTweaks(name, uDef)
 
-	if name == "armfhp" or name == "armhp" or name == "corfhp" or name == "corhp"
+	if name == "armfhp" or name == "armhp" or name == "corfhp" or name == "corhp" or name == "leghp" or name == "legfhp"
 	then
 		uDef.metalcost = uDef.metalcost - 80
 		uDef.energycost = uDef.energycost - 750
@@ -22,7 +22,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 
 	if name == "armaap" or name == "armalab" or name == "armasy" or name == "armavp"
 	or name == "coraap" or name == "coralab" or name == "corasy" or name == "coravp"
-	or name == "legaap" or name == "legalab" or name == "legasy" or name == "legavp"
+	or name == "legaap" or name == "legalab" or name == "legadvshipyard" or name == "legavp"
 	then
 		uDef.metalcost = uDef.metalcost - 300
 		uDef.buildtime = uDef.buildtime * 1.5

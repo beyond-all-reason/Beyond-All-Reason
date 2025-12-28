@@ -1505,7 +1505,7 @@ local options = {
         section = "options_experimental",
         def  	= false,
     },
-    
+
     {
         key     = "experimentallegionfaction_link",
         name    = "Development Discussion",
@@ -1541,7 +1541,7 @@ local options = {
         linkheight = 325,
         linkwidth = 350,
     },
-    
+
     {
         key		= "t2_tech_threshold",
         name   	= "Tech 2 Threshold",
@@ -1565,7 +1565,7 @@ local options = {
         max    	= 100000,
         step   	= 1,
     },
-    
+
     {
         key		= "tech_blocking_per_team",
         name   	= "Multiply Threshold by Player Count",
@@ -1731,8 +1731,20 @@ local options = {
         section = "options_experimental",
         type    = "link",
         link    = "https://gist.github.com/Mitvit/66d5061f88fb1bd7558aa728be225052",
-        width   = 165,
+        width   = 215,
         column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+    {
+        key     = "proposed_unit_reworks_feedback_link",
+        name    = "Feedback Thread",
+        desc    = "Discord discussion about Season 3 balance test.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1447323521662455910",
+        width   = 215,
+        column  = 2,
         linkheight = 325,
         linkwidth = 350,
     },
@@ -1780,6 +1792,41 @@ local options = {
         unlock  = {
             "allow_enemy_ai_spawn_placement", --remove when map_startbox_experimental/game_initial_spawn_experimental experiment is over
         },
+    },
+
+    {
+        key     = "experimental_ai_spawns_link",
+        name    = "Feedback thread",
+        desc    = "Report your testing and discuss here.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1451008970536915007/1451008970536915007",
+        width   = 215,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
+    {
+        key 	= "pip",
+        name 	= "Picture-in-picture window",
+        desc 	= "Enables the picture-in-picture window showing a minimap-sized view of a chosen location.",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key     = "pip_link",
+        name    = "Report Bugs",
+        desc    = "Thread to report bugs and suggest improvements.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discordapp.com/channels/549281623154229250/1453758532460478484",
+        width   = 200,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
     },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -32,7 +32,7 @@ local myTeamID = spGetMyTeamID()
 
 local isFighter = {}
 for udid, ud in pairs(UnitDefs) do
-    if ud.customParams.fighter or ud.customParams.drone then
+    if ud.customParams.fighter or ud.customParams.drone or ud.customParams.flyingcarrier then
         isFighter[udid] = true
     end
 end
