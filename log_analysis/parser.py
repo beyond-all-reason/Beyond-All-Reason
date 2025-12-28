@@ -348,7 +348,11 @@ def parse_line(conn, line):
     return parsed
 
 def tail_file(path, from_start=False, follow=True):
-    if not os.path.exists(path): return
+    if not os.path.exists(path):
+        if not follow:
+            return
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        open(path, 'a').close()
     with open(path, "r", encoding='utf-8', errors='ignore') as f:
         if not from_start: f.seek(0, 2)
         partial_line = ""
