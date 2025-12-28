@@ -698,6 +698,7 @@ for weaponDefID=1, #WeaponDefs do
 		local glowadd
 		local fadeintime
 		local positionVariation = 0
+		local waterDepthRatio = 1.5
 
 
 		local textures = { "t_groundcrack_17_a.tga", "t_groundcrack_21_a.tga", "t_groundcrack_10_a.tga" }
@@ -776,6 +777,7 @@ for weaponDefID=1, #WeaponDefs do
 			--glowadd = 2
 			fadeintime = 15
 			bwfactor = 0.8
+			waterDepthRatio = 2
 
 		elseif weaponDef.type == 'BeamLaser' then
 
@@ -828,6 +830,7 @@ for weaponDefID=1, #WeaponDefs do
 				glowadd = 2.5
 				bwfactor = 0
 			end
+			waterDepthRatio = 2
 		end
 
 		if radius > 500 then
@@ -849,6 +852,18 @@ for weaponDefID=1, #WeaponDefs do
 			--glowadd = 2.5
 			bwfactor = 0.05
 
+		elseif string.find(weaponDef.name, 'death_acid') then
+			textures = { "t_groundcrack_26_a.tga" }
+			radius = (radius * 5.5)-- * (mathRandom() * 0.25 + 0.75)
+			alpha = 6
+			heatstart = 550
+			heatdecay = 0.1
+			alphadecay = 0.012
+			glowadd = 2.5
+			fadeintime = 200
+			bwfactor = 0.17
+			waterDepthRatio = 8
+
 		elseif string.find(weaponDef.name, 'acid') then
 			textures = { "t_groundcrack_26_a.tga" }
 			radius = (radius * 5)-- * (mathRandom() * 0.15 + 0.85)
@@ -856,10 +871,22 @@ for weaponDefID=1, #WeaponDefs do
 			heatstart = 500
 			heatdecay = 10
 			alphadecay = 0.012
-			--glowadd = 2.5
+			-- glowadd = 2.5
 			--glowsustain = 0
 			fadeintime = 200
 			bwfactor = 0.17
+			waterDepthRatio = 8 -- there are some massive acid weapons
+
+		elseif string.find(weaponDef.name, 'napalm') then
+			textures = { "t_groundcrack_16_a.tga" }
+			radius = radius * 1.6
+			heatstart = 4000
+			heatdecay = 0.33
+			alpha = 0.4
+			alphadecay = 0.0002
+			glowsustain = 225
+			glowadd = 4.5
+			waterDepthRatio = 5 -- burn areas use much better fade params w/ height
 
 		elseif string.find(weaponDef.name, 'vipersabot') then -- viper has very tiny AoE
 			radius = (radius * 4)
@@ -879,16 +906,6 @@ for weaponDefID=1, #WeaponDefs do
 			heatdecay = 0.8
 			glowadd = 2
 
-		elseif string.find(weaponDef.name, 'napalm') then
-			textures = { "t_groundcrack_16_a.tga" }
-			radius = radius * 1.6
-			heatstart = 4000
-			heatdecay = 0.33
-			alpha = 0.4
-			alphadecay = 0.0002
-			glowsustain = 225
-			glowadd = 4.5
-
 			--armliche
 		elseif string.find(weaponDef.name, 'arm_pidr') then
 			textures = { "t_groundcrack_21_a.tga" }
@@ -898,17 +915,6 @@ for weaponDefID=1, #WeaponDefs do
 			glowsustain = 100
 			glowadd = 1.5
 			bwfactor = 0.1
-
-		elseif string.find(weaponDef.name, 'death_acid') then
-			textures = { "t_groundcrack_26_a.tga" }
-			radius = (radius * 5.5)-- * (mathRandom() * 0.25 + 0.75)
-			alpha = 6
-			heatstart = 550
-			heatdecay = 0.1
-			alphadecay = 0.012
-			glowadd = 2.5
-			fadeintime = 200
-			bwfactor = 0.17
 
 		elseif string.find(weaponDef.name, 'flamebug') then
 			textures = { "t_groundcrack_23_a.tga", "t_groundcrack_24_a.tga", "t_groundcrack_25_a.tga", "t_groundcrack_27_a.tga" }
@@ -1016,7 +1022,10 @@ for weaponDefID=1, #WeaponDefs do
 			--glowadd = 2.5
 			bwfactor = 0.4
 
+		elseif weaponDef.customParams.area_onhit_ceg and waterDepthRatio == 1.5 then
+			waterDepthRatio = 2.5
 		end
+
 		if buildingExplosionPositionVariation[weaponDef.name] then
 			positionVariation = buildingExplosionPositionVariation[weaponDef.name]
 		end
@@ -1035,21 +1044,23 @@ for weaponDefID=1, #WeaponDefs do
 			weaponDef.damageAreaOfEffect,	-- 11
 			damage,	-- 12
 			fadeintime, -- 13
-			positionVariation, --14
+			positionVariation, -- 14
+			waterDepthRatio, -- 15
 		}
-
 	end
 end
 
 function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	local random = mathRandom
 	local params = weaponConfig[weaponID]
 	if not params then
 		return
 	end
 
-	local radius = params[2] + ((params[2] * (random()-0.5)) * params[3])
-	local exploHeight = py - spGetGroundHeight(px,pz)
+	local random = mathRandom
+	local radius = params[2] * (1 + (random()-0.5) * params[3])
+	local elevation = spGetGroundHeight(px, pz)
+
+	local exploHeight = py - (elevation >= 0 and elevation or elevation * params[15])
 	if exploHeight >= radius then
 		return
 	end
@@ -1057,13 +1068,13 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	local texture = params[1][ random(1,#params[1]) ]
 
 	-- reduce severity when explosion is above ground
-	local heightMult = 1 - (exploHeight / radius)
+	local heightMult = 1 - exploHeight / radius
 
 	local heatstart = params[4] or ((random() * 0.2 + 0.9) * 4900)
 	local heatdecay = params[5] or ((random() * 0.4 + 2.0) - (params[11]/2250))
 
-	local alpha = params[6] or ((random() * 1.0 + 1.5) * (1.0 - exploHeight/radius) * heightMult)
-	local alphadecay = params[7] or (params[7] or ((random() * 0.3 + 0.2) / (4 * radius)))
+	local alpha = params[6] or ((random() * 1.0 + 1.5) * heightMult * heightMult)
+	local alphadecay = params[7] or ((random() * 0.3 + 0.2) / (4 * radius))
 
 	local bwfactor = params[8] or 0.5 --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
 	local glowsustain = params[9] or (random() * 20) -- how many frames to elapse before glow starts to recede
@@ -1074,7 +1085,6 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 		px = px + (random() - 0.5 ) * radius * 0.2
 		pz = pz + (random() - 0.5 ) * radius * 0.2
 	end
-
 
 	AddDecal(
 		groundscarsPath..texture,
