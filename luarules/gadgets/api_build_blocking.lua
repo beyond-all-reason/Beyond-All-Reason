@@ -14,9 +14,6 @@ end
 
 
 if gadgetHandler:IsSyncedCode() then
-
-	-- SECURITY: Notify widgets of blocking changes for specific team
-	-- Message routing ensures only the target team's widgets receive this update
 	local function notifyUnitBlocked(unitDefID, teamID, reasons)
 		local reasonsStr = ""
 		local count = 0
@@ -32,7 +29,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local windDisabled = false
 	local waterAvailable = true
-	local geoAvailable = true
+	local geoInitialized, landGeoAvailable, seaGeoAvailable
 
 	local teamBlockedUnitDefs = {}
 	-- data structure: unitDefID = {reasonKey = true, reasonKey = true, ...}
@@ -241,50 +238,32 @@ if gadgetHandler:IsSyncedCode() then
 		local teamMsg = (teamParam == "all") and "all teams" or ("team " .. teamParam)
 		Spring.SendMessageToPlayer(playerID, "Unblocked " .. unblockedCount .. " unit(s) with reason '" .. reasonKey .. "' for " .. teamMsg)
 	end
-
-	local function applyRestrictionsToAllTeams(updateFunction)
-		for _, teamID in ipairs(teamsList) do
-			if not ignoredTeams[teamID] then
-				updateFunction(teamID)
-			end
-		end
-	end
-
-	local function updateModoptionRestrictions(teamID)
-		for unitDefID, unitDef in pairs(UnitDefs) do
-			if unitDef.maxThisUnit == 0 then
-				GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "modoption_blocked")
-			end
-		end
-	end
-
-	local function updateTerrainRestrictions(teamID)
-		if windDisabled then
-			for unitDefID in pairs(unitRestrictions.isWind) do
-				GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "terrain_wind")
-			end
-		end
-
-		if not waterAvailable then
-			for unitDefID in pairs(unitRestrictions.isWaterUnit) do
-				GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "terrain_water")
-			end
-		end
-
-		if not geoAvailable then
-			for unitDefID in pairs(unitRestrictions.isGeothermal) do
-				GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "terrain_geothermal")
-			end
-		end
-	end
-
+	
 	function gadget:Initialize()
 		GG.BuildBlocking = GG.BuildBlocking or {}
+
 		windDisabled = unitRestrictions.isWindDisabled()
 		waterAvailable = unitRestrictions.shouldShowWaterUnits()
-		geoAvailable = unitRestrictions.hasGeothermalFeatures()
-		applyRestrictionsToAllTeams(updateTerrainRestrictions)
-		applyRestrictionsToAllTeams(updateModoptionRestrictions)
+		for _, teamID in ipairs(teamsList) do
+			if not ignoredTeams[teamID] then
+				if windDisabled then
+					for unitDefID in pairs(unitRestrictions.isWind) do
+						GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "terrain_wind")
+					end
+				end
+				if not waterAvailable then
+					for unitDefID in pairs(unitRestrictions.isWaterUnit) do
+						GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "terrain_water")
+					end
+				end
+				
+				for unitDefID, unitDef in pairs(UnitDefs) do
+					if unitDef.maxThisUnit == 0 then
+						GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "modoption_blocked")
+					end
+				end
+			end
+		end
 
 		gadgetHandler:AddChatAction('buildblock', commandBuildBlock, "Block units from being built by reason")
 		gadgetHandler:AddChatAction('buildunblock', commandBuildUnblock, "Unblock units from being built by reason")
@@ -339,6 +318,27 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		return true
+	end
+	
+	function gadget:GameFrame(frame)
+		if not geoInitialized then -- because the geothermal features don't exist until after Initialize() and GameStart()
+			landGeoAvailable, seaGeoAvailable = unitRestrictions.hasGeothermalFeatures()
+			geoInitialized = true
+			for _, teamID in ipairs(teamsList) do
+				if not ignoredTeams[teamID] then
+					if not landGeoAvailable then
+						for unitDefID in pairs(unitRestrictions.isLandGeothermal) do
+							GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "terrain_geothermal")
+						end
+					end
+					if not seaGeoAvailable then
+						for unitDefID in pairs(unitRestrictions.isSeaGeothermal) do
+							GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "terrain_geothermal")
+						end
+					end
+				end
+			end
+		end
 	end
 
 -------------------------------------------------------------------------------- Unsynced Code --------------------------------------------------------------------------------

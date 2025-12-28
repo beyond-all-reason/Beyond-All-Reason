@@ -3,6 +3,8 @@ local unitRestrictions = {}
 local isWind = {}
 local isWaterUnit = {}
 local isGeothermal = {}
+local isLandGeothermal = {}
+local isSeaGeothermal = {}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.windGenerator > 0 then
@@ -11,6 +13,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 
 	if unitDef.needGeo then
 		isGeothermal[unitDefID] = true
+		if unitDef.maxWaterDepth >= 100 then
+			isSeaGeothermal[unitDefID] = true
+		else
+			isLandGeothermal[unitDefID] = true
+		end
 	end
 
 	if (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) and not unitDef.customParams.enabled_on_no_sea_maps then
@@ -38,24 +45,35 @@ local function shouldShowWaterUnits()
 end
 
 local function hasGeothermalFeatures()
-	local geoThermalFeatures = {}
+	local hasLandGeo = false
+	local hasSeaGeo = false
+	local geoFeatureDefs = {}
 	for defID, def in pairs(FeatureDefs) do
 		if def.geoThermal then
-			geoThermalFeatures[defID] = true
+			geoFeatureDefs[defID] = true
 		end
 	end
 	local features = Spring.GetAllFeatures()
 	for i = 1, #features do
-		if geoThermalFeatures[Spring.GetFeatureDefID(features[i])] then
-			return true
+		local featureID = features[i]
+		if geoFeatureDefs[Spring.GetFeatureDefID(featureID)] then
+			local _, y, _ = Spring.GetFeaturePosition(featureID)
+			if y < 0 then
+				hasSeaGeo = true
+			else
+				hasLandGeo = true
+			end
 		end
 	end
-	return false
+
+	return hasLandGeo, hasSeaGeo
 end
 
 unitRestrictions.isWind = isWind
 unitRestrictions.isWaterUnit = isWaterUnit
 unitRestrictions.isGeothermal = isGeothermal
+unitRestrictions.isLandGeothermal = isLandGeothermal
+unitRestrictions.isSeaGeothermal = isSeaGeothermal
 unitRestrictions.isWindDisabled = isWindDisabled
 unitRestrictions.shouldShowWaterUnits = shouldShowWaterUnits
 unitRestrictions.hasGeothermalFeatures = hasGeothermalFeatures
