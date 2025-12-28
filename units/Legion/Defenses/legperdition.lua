@@ -180,6 +180,7 @@ return {
 					area_onhit_range = 150,
 					area_onhit_time = 15,
 					stockpilelimit = 10,
+					water_splash = 0,
 				},
 				damage = {
 					commanders = 700,
