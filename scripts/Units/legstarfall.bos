@@ -73,7 +73,7 @@ Create()
 	move powerCell5 to y-axis [-12] now;
 
 	whichBarrel = 0;
-	restore_delay = 500;
+	restore_delay = 5;
 	issmoking = 0;
 	ischarging = 0;
 	isspooling = 0;
@@ -136,6 +136,12 @@ lua_UnitScriptLight(lightIndex, count)
 
 RestoreAfterDelay()
 {
+	sleep restore_delay;
+	move powerCell1 to y-axis [-12] speed [12];
+	move powerCell2 to y-axis [-12] speed [12];
+	move powerCell3 to y-axis [-12] speed [12];
+	move powerCell4 to y-axis [-12] speed [12];
+	move powerCell5 to y-axis [-12] speed [12];
 	return (0);
 }
 
