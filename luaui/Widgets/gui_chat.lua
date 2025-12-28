@@ -202,9 +202,11 @@ local soundErrors = {}
 local function stripColorCodes(text)
 	local result = text
 	-- First remove 8-byte color codes (extended format with outline)
-	result = result:gsub("\255........", "")
+	result = result:gsub("\254........", "")
+	result = result:gsub("\018........", "")
 	-- Then remove 3-byte color codes (standard RGB format)
 	result = result:gsub("\255...", "")
+	result = result:gsub("\017...", "")
 	return result
 end
 
