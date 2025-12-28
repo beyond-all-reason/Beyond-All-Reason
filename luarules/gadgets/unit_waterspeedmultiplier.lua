@@ -33,10 +33,11 @@ local watchUpdateRate = 0.5000 ---@type number in seconds | slow watch interval 
 
 local math_clamp = math.clamp
 
+local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetMoveTypeData = Spring.GetUnitMoveTypeData
 local spSetGroundMoveTypeData = Spring.MoveCtrl.SetGroundMoveTypeData
-local spMoveCtrlEnabled = Spring.MoveCtrl.IsEnabled
 
 -- Setup
 
@@ -104,6 +105,12 @@ local function setMoveTypeData(unitID, unitData, factor)
 	spSetGroundMoveTypeData(unitID, data)
 end
 
+local fake = {} -- just in case tbh
+
+local function canSetSpeed(unitID)
+	return spGetUnitIsDead(unitID) == false and (spGetMoveTypeData(unitID) or fake).name == "ground"
+end
+
 local function getUnitDepth(unitID)
 	local x, y, z = spGetUnitPosition(unitID)
 	return x and spGetGroundHeight(x, z) or 0
@@ -132,10 +139,10 @@ local function slowUpdate()
 end
 
 local function fastUpdate()
-	local getDepth, inMoveCtrl, setMoveData = getUnitDepth, spMoveCtrlEnabled, setMoveTypeData -- micro speedup
+	local canSetSpeed, getDepth, setMoveData = canSetSpeed, getUnitDepth, setMoveTypeData -- micro speedup
 
 	for unitID, unitData in pairs(unitDepthFastUpdate) do
-		if not inMoveCtrl(unitID) then
+		if canSetSpeed(unitID) then
 			local depth, depthMax = getDepth(unitID), unitData.speedFactorAtDepth
 			if depth >= depthMax - 15 then
 				setMoveData(unitID, unitData, 1 + (unitData.speedFactorInWater - 1) * math_clamp(depth / depthMax, 0, 1))
@@ -164,7 +171,7 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     local unitData = unitDefData[unitDefID]
     if unitData and getUnitDepth(unitID) <= 0 then
-		if not spMoveCtrlEnabled(unitID) then
+		if canSetSpeed(unitID) then
 			applySpeed(unitID, unitData)
 		end
 		if unitData.speedFactorAtDepth ~= 0 then
@@ -181,7 +188,7 @@ end
 function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
     local unitData = unitDefData[unitDefID]
     if unitData then
-		if not spMoveCtrlEnabled(unitID) then
+		if canSetSpeed(unitID) then
 			applySpeed(unitID, unitData)
 		end
 		if unitData.speedFactorAtDepth ~= 0 then
@@ -193,7 +200,7 @@ end
 function gadget:UnitLeftWater(unitID, unitDefID, unitTeam)
     local unitData = unitDefData[unitDefID]
     if unitData then
-		if not spMoveCtrlEnabled(unitID) then
+		if canSetSpeed(unitID) then
 			applySpeed(unitID, unitData, 1)
 		end
 		unitDepthSlowUpdate[unitID] = nil
