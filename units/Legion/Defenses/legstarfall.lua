@@ -117,7 +117,7 @@ return {
 				avoidfriendly = false,
 				avoidground = false,
 				burst = 63,
-				burstrate = 0.01,
+				burstrate = 0.03,
 				sprayangle = 500,
 				highTrajectory = 1,
 				cegtag = "starfire",
