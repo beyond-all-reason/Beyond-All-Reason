@@ -10,33 +10,14 @@ local Gadgets = {}
 Gadgets.__index = Gadgets
 
 local EPSILON = 1e-6
-local LIFT_ITERATIONS = 40
-
----@class SenderDescriptor
----@field member EconomyShareMember
----@field costBudget number
----@field untaxedSupply number
----@field taxedReceivable number
----@field costSpent number
----@field untaxedDelivered number
----@field taxedDelivered number
----@field ledger EconomyFlowLedger
-
----@class ReceiverDescriptor
----@field member EconomyShareMember
----@field need number
----@field received number
----@field unsatisfied number?
----@field ledger EconomyFlowLedger
 
 local memberCache = {} ---@type table<number, EconomyShareMember>
 local groupCache = {} ---@type table<number, EconomyShareMember[]>
 local groupSizes = {} ---@type table<number, number>
-local ledgerCache = {} ---@type table<number, EconomyFlowLedger>
-local senderDescCache = {} ---@type table<number, SenderDescriptor>
-local receiverDescCache = {} ---@type table<number, ReceiverDescriptor>
 local teamLedgerCache = {} ---@type table<number, table<ResourceType, EconomyFlowLedger>>
 local cumulativeCache = {} ---@type table<number, table<ResourceType, number>>
+local cppMembersCache = {} ---@type table[]
+local teamIdMapCache = {} ---@type number[]
 
 ---@param value number?
 ---@return number
@@ -113,95 +94,56 @@ local function collectMembers(teamsList, resourceType, thresholds, springRepo)
   return groupCache, groupSizes
 end
 
----@param member EconomyShareMember
----@param target number
----@param taxRate number
----@return number
-local function supplyDelta(member, target, taxRate)
-  if member.current <= target + EPSILON then
-    return 0
-  end
-  local costBudget = member.current - target
-  local untaxedBudget = math.min(costBudget, member.remainingTaxFreeAllowance)
-  local taxedCostBudget = costBudget - untaxedBudget
-  if taxedCostBudget < 0 then
-    taxedCostBudget = 0
-  end
-  local receivable = untaxedBudget
-  if taxRate < 1 and taxedCostBudget > 0 then
-    receivable = receivable + taxedCostBudget * (1 - taxRate)
-  end
-  return receivable
-end
-
 ---@param members EconomyShareMember[]
 ---@param memberCount number
 ---@param taxRate number
----@return number
-local function resolveLift(members, memberCount, taxRate)
-  if memberCount == 0 then
-    return 0
+---@return number lift
+---@return table deltas
+local function solveWithCpp(members, memberCount, taxRate)
+  for i = memberCount + 1, #cppMembersCache do
+    cppMembersCache[i] = nil
   end
-  local maxLift = 0
+  for i = memberCount + 1, #teamIdMapCache do
+    teamIdMapCache[i] = nil
+  end
+
   for i = 1, memberCount do
-    local headroom = members[i].storage - members[i].shareCursor
-    if headroom > maxLift then
-      maxLift = headroom
+    local m = members[i]
+    local entry = cppMembersCache[i]
+    if not entry then
+      entry = {}
+      cppMembersCache[i] = entry
     end
+    entry.current = m.current
+    entry.storage = m.storage
+    entry.shareTarget = m.shareCursor
+    entry.allowance = m.remainingTaxFreeAllowance
+    teamIdMapCache[i] = m.teamId
   end
-  local function balance(lift)
-    local supply = 0
-    local demand = 0
-    for i = 1, memberCount do
-      local member = members[i]
-      local target = member.shareCursor + lift
-      if target > member.storage then
-        target = member.storage
-      end
-      if member.current < target - EPSILON then
-        demand = demand + (target - member.current)
-      else
-        supply = supply + supplyDelta(member, target, taxRate)
-      end
-    end
-    return supply - demand
-  end
-  local lo, hi = 0, maxLift
-  for _ = 1, LIFT_ITERATIONS do
-    local mid = 0.5 * (lo + hi)
-    if balance(mid) >= 0 then
-      lo = mid
-    else
-      hi = mid
-    end
-  end
-  return lo
+
+  local result = Spring.SolveWaterfill(cppMembersCache, taxRate)
+  return result.lift, result.deltas
 end
 
 ---@param members EconomyShareMember[]
 ---@param memberCount number
 ---@param lift number
+---@param deltas table
 ---@param taxRate number
 ---@return table<number, EconomyFlowLedger>
-local function allocateGroup(members, memberCount, lift, taxRate)
-  local senders = {}
-  local receivers = {}
-  local senderCount = 0
-  local receiverCount = 0
+local function applyDeltas(members, memberCount, lift, deltas, taxRate)
+  local ledgerCache = {}
 
   for i = 1, memberCount do
     local member = members[i]
     local teamId = member.teamId
+    local delta = deltas[i]
 
     local ledger = ledgerCache[teamId]
     if not ledger then
-      ledger = {}
+      ledger = { sent = 0, received = 0, untaxed = 0, taxed = 0 }
       ledgerCache[teamId] = ledger
     end
-    ledger.sent = 0
-    ledger.received = 0
-    ledger.untaxed = 0
-    ledger.taxed = 0
 
     local target = member.shareCursor + lift
     if target > member.storage then
@@ -209,131 +151,35 @@ local function allocateGroup(members, memberCount, lift, taxRate)
     end
     member.target = target
 
-    if member.current > target + EPSILON then
-      local costBudget = member.current - target
-      local untaxedBudget = math.min(costBudget, member.remainingTaxFreeAllowance)
-      local taxedCostBudget = costBudget - untaxedBudget
-      if taxedCostBudget < 0 then
-        taxedCostBudget = 0
-      end
-      local taxedReceivable = 0
-      if taxRate < 1 and taxedCostBudget > 0 then
-        taxedReceivable = taxedCostBudget * (1 - taxRate)
-      end
+    if delta and math.abs(delta.gross) > EPSILON then
+      local resource = member.resource
+      if delta.gross < 0 then
+        local grossSend = -delta.gross
+        local taxFree = math.min(grossSend, member.remainingTaxFreeAllowance)
+        local taxable = grossSend - taxFree
+        if taxable < 0 then taxable = 0 end
+        local taxedReceivable = taxable * (1 - taxRate)
 
-      senderCount = senderCount + 1
-      local desc = senderDescCache[teamId]
-      if not desc then
-        desc = {}
-        senderDescCache[teamId] = desc
+        local newCurrent = member.current - grossSend
+        if newCurrent < 0 then newCurrent = 0 end
+        if newCurrent > member.storage then newCurrent = member.storage end
+        resource.current = newCurrent
+
+        local allowance = member.remainingTaxFreeAllowance - taxFree
+        member.remainingTaxFreeAllowance = allowance > 0 and allowance or 0
+        member.cumulativeSent = member.cumulativeSent + grossSend
+
+        ledger.sent = grossSend
+        ledger.untaxed = taxFree
+        ledger.taxed = taxedReceivable
+      else
+        local received = delta.net
+        local newCurrent = member.current + received
+        if newCurrent > member.storage then newCurrent = member.storage end
+        resource.current = newCurrent
+
+        ledger.received = received
       end
-      desc.member = member
-      desc.costBudget = costBudget
-      desc.untaxedSupply = untaxedBudget
-      desc.taxedReceivable = taxedReceivable
-      desc.costSpent = 0
-      desc.untaxedDelivered = 0
-      desc.taxedDelivered = 0
-      desc.ledger = ledger
-      senders[senderCount] = desc
-    elseif target > member.current + EPSILON then
-      receiverCount = receiverCount + 1
-      local desc = receiverDescCache[teamId]
-      if not desc then
-        desc = {}
-        receiverDescCache[teamId] = desc
-      end
-      desc.member = member
-      desc.need = target - member.current
-      desc.received = 0
-      desc.ledger = ledger
-      receivers[receiverCount] = desc
-    end
-  end
-
-  if receiverCount > 0 and senderCount > 0 then
-    for r = 1, receiverCount do
-      local receiver = receivers[r]
-      local remainingNeed = receiver.need
-      for s = 1, senderCount do
-        if remainingNeed <= EPSILON then
-          break
-        end
-
-        local sender = senders[s]
-        local take = 0
-        if sender.untaxedSupply > EPSILON then
-          take = math.min(remainingNeed, sender.untaxedSupply)
-          sender.untaxedSupply = sender.untaxedSupply - take
-          sender.costSpent = sender.costSpent + take
-          sender.untaxedDelivered = sender.untaxedDelivered + take
-          receiver.received = receiver.received + take
-          remainingNeed = remainingNeed - take
-        end
-
-        if remainingNeed <= EPSILON then
-          if take > EPSILON then
-            EconomyLog.Transfer(sender.member.teamId, receiver.member.teamId, sender.member.resourceType, take, take, 0)
-          end
-          break
-        end
-
-        if sender.taxedReceivable > EPSILON and taxRate < 1 then
-          local deliver = math.min(remainingNeed, sender.taxedReceivable)
-          sender.taxedReceivable = sender.taxedReceivable - deliver
-          sender.taxedDelivered = sender.taxedDelivered + deliver
-          local cost = deliver / (1 - taxRate)
-          sender.costSpent = sender.costSpent + cost
-          receiver.received = receiver.received + deliver
-          remainingNeed = remainingNeed - deliver
-
-          local transferAmount = take + deliver
-          if transferAmount > EPSILON then
-            EconomyLog.Transfer(sender.member.teamId, receiver.member.teamId, sender.member.resourceType, transferAmount, take, deliver)
-          end
-        elseif take > EPSILON then
-          EconomyLog.Transfer(sender.member.teamId, receiver.member.teamId, sender.member.resourceType, take, take, 0)
-        end
-      end
-      receiver.unsatisfied = remainingNeed
-    end
-  end
-
-  for i = 1, senderCount do
-    local sender = senders[i]
-    local member = sender.member
-    local resource = member.resource
-    local ledger = sender.ledger
-    if sender.costSpent > 0 then
-      local newCurrent = member.current - sender.costSpent
-      if newCurrent < 0 then
-        newCurrent = 0
-      end
-      if newCurrent > member.storage then
-        newCurrent = member.storage
-      end
-      resource.current = newCurrent
-      local allowance = member.remainingTaxFreeAllowance - sender.untaxedDelivered
-      member.remainingTaxFreeAllowance = allowance > 0 and allowance
-      member.cumulativeSent = member.cumulativeSent + sender.costSpent
-      ledger.sent = sender.costSpent
-      ledger.untaxed = sender.untaxedDelivered
-      ledger.taxed = sender.taxedDelivered
-    end
-  end
-
-  for i = 1, receiverCount do
-    local receiver = receivers[i]
-    local member = receiver.member
-    local resource = member.resource
-    local ledger = receiver.ledger
-    if receiver.received > 0 then
-      local newCurrent = member.current + receiver.received
-      if newCurrent > member.storage then
-        newCurrent = member.storage
-      end
-      resource.current = newCurrent
-      ledger.received = receiver.received
     end
   end
 
@@ -368,7 +214,7 @@ function Gadgets.Solve(springRepo, teamsList)
   if not teamsList then
     return teamsList, {}
   end
-  
+
   local teamCount = 0
   for _ in pairs(teamsList) do teamCount = teamCount + 1 end
   if teamCount == 0 then
@@ -415,7 +261,7 @@ function Gadgets.Solve(springRepo, teamsList)
           EconomyLog.TeamInput(m.teamId, m.allyTeam, resourceType, m.current, m.storage, shareSliderNormalized, m.cumulativeSent, m.shareCursor)
         end
 
-        local lift = resolveLift(members, memberCount, taxRate)
+        local lift, deltas = solveWithCpp(members, memberCount, taxRate)
 
         local totalSupply, totalDemand = 0, 0
         local senderCount, receiverCount = 0, 0
@@ -423,26 +269,27 @@ function Gadgets.Solve(springRepo, teamsList)
           local m = members[i]
           local target = m.shareCursor + lift
           if target > m.storage then target = m.storage end
-          local role, delta
-          if m.current > target + EPSILON then
-            totalSupply = totalSupply + supplyDelta(m, target, taxRate)
+          local delta = deltas[i]
+          local role, deltaVal
+          if delta and delta.gross < -EPSILON then
+            totalSupply = totalSupply + (-delta.net)
             role = "sender"
-            delta = m.current - target
+            deltaVal = -delta.gross
             senderCount = senderCount + 1
-          elseif target > m.current + EPSILON then
-            totalDemand = totalDemand + (target - m.current)
+          elseif delta and delta.gross > EPSILON then
+            totalDemand = totalDemand + delta.gross
             role = "receiver"
-            delta = target - m.current
+            deltaVal = delta.gross
             receiverCount = receiverCount + 1
           else
             role = "neutral"
-            delta = 0
+            deltaVal = 0
           end
-          EconomyLog.TeamWaterfill(m.teamId, allyTeam, resourceType, m.current, target, role, delta)
+          EconomyLog.TeamWaterfill(m.teamId, allyTeam, resourceType, m.current, target, role, deltaVal)
         end
         EconomyLog.GroupLift(allyTeam, resourceType, lift, memberCount, totalSupply, totalDemand, senderCount, receiverCount)
 
-        local ledgers = allocateGroup(members, memberCount, lift, taxRate)
+        local ledgers = applyDeltas(members, memberCount, lift, deltas, taxRate)
 
         for i = 1, memberCount do
           local member = members[i]
