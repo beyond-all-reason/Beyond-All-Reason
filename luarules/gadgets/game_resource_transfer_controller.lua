@@ -131,15 +131,25 @@ end
 -- Table Pooling
 --------------------------------------------------------------------------------
 local resultCache = {}
-local resultPool = {}
-local poolIndex = 0
 
-local function GetPooledTable()
-	poolIndex = poolIndex + 1
-	if not resultPool[poolIndex] then
-		resultPool[poolIndex] = {}
+---@type table<number, table<ResourceType, EconomyTeamResult>>
+local resultPool = {}
+
+---@param teamId number
+---@param resourceType ResourceType
+---@return EconomyTeamResult
+local function GetPooledEntry(teamId, resourceType)
+	local teamPool = resultPool[teamId]
+	if not teamPool then
+		teamPool = {}
+		resultPool[teamId] = teamPool
 	end
-	return resultPool[poolIndex]
+	local entry = teamPool[resourceType]
+	if not entry then
+		entry = {}
+		teamPool[resourceType] = entry
+	end
+	return entry
 end
 
 --------------------------------------------------------------------------------
@@ -186,9 +196,6 @@ local function ProcessEconomy(frame, teams)
 	
 	EconomyLog.Breakpoint("Solver")
 
-	-- Reset pool index
-	poolIndex = 0
-	-- Clear result cache (only the array part we used last time)
 	for i = #resultCache, 1, -1 do resultCache[i] = nil end
 
 	local idx = 0
@@ -199,13 +206,11 @@ local function ProcessEconomy(frame, teams)
 		local eSent = ledger[ResourceType.ENERGY].sent
 		local eRecv = ledger[ResourceType.ENERGY].received
 		
-		-- Log outputs for economy audit
 		EconomyLog.TeamOutput(teamId, "metal", team.metal.current, mSent, mRecv)
 		EconomyLog.TeamOutput(teamId, "energy", team.energy.current, eSent, eRecv)
 		
-		-- Use pooled tables for result
 		idx = idx + 1
-		local mEntry = GetPooledTable()
+		local mEntry = GetPooledEntry(teamId, ResourceType.METAL)
 		mEntry.teamId = teamId
 		mEntry.resourceType = ResourceType.METAL
 		mEntry.current = team.metal.current
@@ -214,7 +219,7 @@ local function ProcessEconomy(frame, teams)
 		resultCache[idx] = mEntry
 		
 		idx = idx + 1
-		local eEntry = GetPooledTable()
+		local eEntry = GetPooledEntry(teamId, ResourceType.ENERGY)
 		eEntry.teamId = teamId
 		eEntry.resourceType = ResourceType.ENERGY
 		eEntry.current = team.energy.current

@@ -35,6 +35,12 @@ local contextFactory = ContextFactoryModule.create(springRepo)
 local lastPolicyUpdate = 0
 local POLICY_UPDATE_RATE = 30
 
+---@type table<number, TeamResourceData>
+local teamsCache = {}
+
+local statsSentBuffer = { sent = { 0, 0 } }
+local statsRecvBuffer = { received = { 0, 0 } }
+
 --------------------------------------------------------------------------------
 -- ResourceExcess Controller Function
 -- 
@@ -63,11 +69,9 @@ local POLICY_UPDATE_RATE = 30
 ---@param excesses table<number, {metal: number, energy: number}> Excess values from C++
 ---@return table<number, TeamResourceData> teams Full team data structure
 local function BuildTeamData(excesses)
-	local teams = {}
 	local teamList = springRepo.GetTeamList() or {}
 	
 	for _, teamId in ipairs(teamList) do
-		-- Query Spring API for each team's resources - this is the per-gadget overhead
 		local mCur, mStor, mPull, mInc, mExp, mShare = springRepo.GetTeamResources(teamId, "metal")
 		local eCur, eStor, ePull, eInc, eExp, eShare = springRepo.GetTeamResources(teamId, "energy")
 		
@@ -75,35 +79,41 @@ local function BuildTeamData(excesses)
 			local _, _, isDead, _, _, allyTeam = springRepo.GetTeamInfo(teamId)
 			local excess = excesses[teamId] or { metal = 0, energy = 0 }
 			
-			---@type TeamResourceData
-			teams[teamId] = {
-				allyTeam = allyTeam,
-				isDead = (isDead == true),
-				metal = {
-					resourceType = "metal",
-					current = mCur,
-					storage = mStor,
-					pull = mPull,
-					income = mInc,
-					expense = mExp,
-					shareSlider = mShare,
-					excess = excess.metal,
-				},
-				energy = {
-					resourceType = "energy",
-					current = eCur,
-					storage = eStor,
-					pull = ePull,
-					income = eInc,
-					expense = eExp,
-					shareSlider = eShare,
-					excess = excess.energy,
-				},
-			}
+			local team = teamsCache[teamId]
+			if not team then
+				team = {
+					metal = {},
+					energy = {},
+				}
+				teamsCache[teamId] = team
+			end
+			
+			team.allyTeam = allyTeam
+			team.isDead = (isDead == true)
+			
+			local metal = team.metal
+			metal.resourceType = "metal"
+			metal.current = mCur
+			metal.storage = mStor
+			metal.pull = mPull
+			metal.income = mInc
+			metal.expense = mExp
+			metal.shareSlider = mShare
+			metal.excess = excess.metal
+			
+			local energy = team.energy
+			energy.resourceType = "energy"
+			energy.current = eCur
+			energy.storage = eStor
+			energy.pull = ePull
+			energy.income = eInc
+			energy.expense = eExp
+			energy.shareSlider = eShare
+			energy.excess = excess.energy
 		end
 	end
 	
-	return teams
+	return teamsCache
 end
 
 ---Apply the solver results back to teams via Spring API
@@ -116,15 +126,12 @@ local function ApplyResults(results, ledgers)
 			break
 		end
 		
-		-- Clamp values to storage (values are guaranteed non-nil by BuildTeamData)
 		local metalFinal = math.min(team.metal.current, team.metal.storage)
 		local energyFinal = math.min(team.energy.current, team.energy.storage)
 		
-		-- These are the Lua->C++ API calls we're measuring
 		springRepo.SetTeamResource(teamId, "metal", metalFinal)
 		springRepo.SetTeamResource(teamId, "energy", energyFinal)
 		
-		-- Ledgers are guaranteed to exist for all teams by the solver
 		local ledger = ledgers[teamId]
 		local metalFlow = ledger[ResourceType.METAL]
 		local energyFlow = ledger[ResourceType.ENERGY]
@@ -135,10 +142,14 @@ local function ApplyResults(results, ledgers)
 		local eRecvVal = energyFlow.received
 		
 		if mSentVal > 0 or eSentVal > 0 then
-			springRepo.AddTeamResourceStats(teamId, { sent = { mSentVal, eSentVal } })
+			statsSentBuffer.sent[1] = mSentVal
+			statsSentBuffer.sent[2] = eSentVal
+			springRepo.AddTeamResourceStats(teamId, statsSentBuffer)
 		end
 		if mRecvVal > 0 or eRecvVal > 0 then
-			springRepo.AddTeamResourceStats(teamId, { received = { mRecvVal, eRecvVal } })
+			statsRecvBuffer.received[1] = mRecvVal
+			statsRecvBuffer.received[2] = eRecvVal
+			springRepo.AddTeamResourceStats(teamId, statsRecvBuffer)
 		end
 	end
 end
