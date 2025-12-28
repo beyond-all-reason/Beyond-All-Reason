@@ -20,6 +20,7 @@ local mathMax = math.max
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
+local spGetGameSeconds = Spring.GetGameSeconds
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
@@ -96,6 +97,7 @@ local math_isInRect = math.isInRect
 
 local buildmenuShows = false
 local refreshBuildmenu = true
+local delayRefresh
 
 local costOverrides = {}
 --[[ MODIFICATION START ]]
@@ -579,6 +581,11 @@ end
 local sec = 0
 local prevSelBuilderDefs = {}
 function widget:Update(dt)
+	if delayRefresh and spGetGameSeconds() >= delayRefresh then
+		clear()
+		doUpdate = true
+		delayRefresh = nil
+	end
 	--[[ MODIFICATION START ]]
 	-- Check failsafe retry flag
 	if forceRefreshNextFrame and refreshRetryCounter > 0 then
@@ -1665,8 +1672,9 @@ function widget:UnitBlocked(unitDefID, teamID, reasons)
 	local unitReasons = blockedUnitsData[unitDefID] or {}
 	units.unitRestricted[unitDefID] = next(unitReasons) ~= nil
 	units.unitHidden[unitDefID] = unitReasons["hidden"] ~= nil
-	clear()
-	doUpdate = true
+	if not delayRefresh or delayRefresh < spGetGameSeconds() then
+		delayRefresh = spGetGameSeconds() + 1
+	end
 end
 
 function widget:Shutdown()

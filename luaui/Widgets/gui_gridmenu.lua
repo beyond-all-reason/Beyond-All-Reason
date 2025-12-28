@@ -30,6 +30,7 @@ local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		
 -------------------------------------------------------------------------------
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetActiveCommand = Spring.GetActiveCommand
+local spGetGameSeconds = Spring.GetGameSeconds
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
@@ -240,6 +241,7 @@ local bgpadding, iconMargin, activeAreaMargin
 local dlistGuishader, dlistGuishaderBuilders, dlistGuishaderBuildersNext, dlistBuildmenu, dlistProgress, font2
 local redraw, redrawProgress, ordermenuHeight, prevAdvplayerlistLeft
 local doUpdate, doUpdateClock
+local delayRefresh
 
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 local categoryFontSize, categoryButtonHeight, hotkeyFontSize, priceFontSize, pageFontSize
@@ -1708,6 +1710,12 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > 0.33 then
 		sec = 0
+		if delayRefresh and spGetGameSeconds() >= delayRefresh then
+			redraw = true
+			doUpdate = true
+			updateGrid()
+			delayRefresh = nil
+		end
 		checkGuishader()
 		if WG["minimap"] and minimapHeight ~= WG["minimap"].getHeight() then
 			widget:ViewResize()
@@ -2997,9 +3005,9 @@ function widget:UnitBlocked(unitDefID, teamID, reasons)
 	local unitReasons = blockedUnitsData[unitDefID] or {}
 	units.unitRestricted[unitDefID] = next(unitReasons) ~= nil
 	units.unitHidden[unitDefID] = unitReasons["hidden"] ~= nil
-	redraw = true
-	doUpdate = true
-	updateGrid()
+	if not delayRefresh or delayRefresh < spGetGameSeconds() then
+		delayRefresh = spGetGameSeconds() + 1
+	end
 end
 
 function widget:Shutdown()
