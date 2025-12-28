@@ -14,8 +14,6 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	local UNAUTHORIZED_TEXT = "You are not authorized to use build blocking commands"
-
 	local unsyncedMessageQueue = {}
 	local currentSendIndex = 1
 	local nextEnqueueIndex = 1
@@ -89,7 +87,7 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			local playername, _, _, _, _, _, _, _, _, _, accountInfo = Spring.GetPlayerInfo(playerID)
 			local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
-			if (_G and _G.powerusers and _G.powerusers[accountID]) or (SYNCED and SYNCED.powerusers and SYNCED.powerusers[accountID]) then
+			if _G.permissions.cmd[accountID] and not _G.isSinglePlayer then
 				return true
 			end
 		end
@@ -154,9 +152,13 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function commandBuildBlock(_, line, words, playerID)
+	local function commandBuildBlock(cmd, line, words, playerID)
 		if not isAuthorized(playerID) then
-			Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
+			if _G.isSinglePlayer then
+				Spring.SendMessageToPlayer(playerID, "You must enable /cheats in order to use buildblock commands")
+			else
+				Spring.SendMessageToPlayer(playerID, "You are not authorized to use buildblock commands")
+			end
 			return
 		end
 
@@ -198,9 +200,13 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.SendMessageToPlayer(playerID, "Blocked " .. blockedCount .. " unit(s) with reason '" .. reasonKey .. "' for " .. teamMsg)
 	end
 
-	local function commandBuildUnblock(_, line, words, playerID)
+	local function commandBuildUnblock(cmd, line, words, playerID)
 		if not isAuthorized(playerID) then
-			Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
+			if _G.isSinglePlayer then
+				Spring.SendMessageToPlayer(playerID, "You must enable /cheats in order to use buildunblock commands")
+			else
+				Spring.SendMessageToPlayer(playerID, "You are not authorized to use buildunblock commands")
+			end
 			return
 		end
 
