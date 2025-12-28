@@ -107,7 +107,7 @@ local soundData = {
 				['^disigun1$'] = 0.075 * 0.3,
 				-- ['^newboom$'] = 0.045 * 0.3,
 				['^xplomas2$'] = 0.225 * 0.3,
-				['^starfallchargup$'] = 3.6 * 0.3,
+				['^starfallchargup$'] = 4.0 * 0.3,
 			},
 		},
 		pitchmod = {

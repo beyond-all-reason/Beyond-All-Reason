@@ -133,16 +133,20 @@ lua_UnitScriptLight(lightIndex, count)
 {
 	return 0;
 }
-
+static-var Stunned;
 RestoreAfterDelay()
 {
+
 	sleep restore_delay;
-	move powerCell1 to y-axis [-12] speed [12];
-	move powerCell2 to y-axis [-12] speed [12];
-	move powerCell3 to y-axis [-12] speed [12];
-	move powerCell4 to y-axis [-12] speed [12];
-	move powerCell5 to y-axis [-12] speed [12];
-	return (0);
+    if (Stunned) {
+        return (1);
+    }
+	// move powerCell1 to y-axis [-12] speed [12];
+	// move powerCell2 to y-axis [-12] speed [12];
+	// move powerCell3 to y-axis [-12] speed [12];
+	// move powerCell4 to y-axis [-12] speed [12];
+	// move powerCell5 to y-axis [-12] speed [12];
+	// set-signal-mask 0;
 }
 
 AimPrimary(heading, pitch)
