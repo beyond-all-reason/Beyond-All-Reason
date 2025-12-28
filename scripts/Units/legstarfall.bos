@@ -175,6 +175,7 @@ FirePrimary() {
 
 	spin barrelSpinPivot around z-axis speed <1800> accelerate <18>;
 	isspooling = 1;
+	emit-sfx 4096 + 1 from base;
 	start-script PowerUp();
 	move powerCell1 to y-axis [0] speed [12];
 	sleep 1000;
@@ -759,6 +760,14 @@ QueryPrimary(piecenum)
 AimFromPrimary(piecenum)
 {
 	piecenum = turretHeadingPivot;
+}
+
+AimWeapon2(){
+	return (0);
+}
+
+FireWeapon2(){
+	return(1);
 }
 
 SweetSpot(piecenum)
