@@ -30,7 +30,6 @@ local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		
 -------------------------------------------------------------------------------
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetActiveCommand = Spring.GetActiveCommand
-local spGetGameSeconds = Spring.GetGameSeconds
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
@@ -1710,7 +1709,7 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > 0.33 then
 		sec = 0
-		if delayRefresh and spGetGameSeconds() >= delayRefresh then
+		if delayRefresh and Spring.GetGameSeconds() >= delayRefresh then
 			redraw = true
 			doUpdate = true
 			updateGrid()
@@ -3000,13 +2999,11 @@ function widget:SetConfigData(data)
 	end
 end
 
-function widget:UnitBlocked(unitDefID, teamID, reasons)
-	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
-	local unitReasons = blockedUnitsData[unitDefID] or {}
-	units.unitRestricted[unitDefID] = next(unitReasons) ~= nil
-	units.unitHidden[unitDefID] = unitReasons["hidden"] ~= nil
-	if not delayRefresh or delayRefresh < spGetGameSeconds() then
-		delayRefresh = spGetGameSeconds() + 1
+function widget:UnitBlocked(unitDefID, reasons)
+	units.unitRestricted[unitDefID] = next(reasons) ~= nil
+	units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
+	if not delayRefresh or delayRefresh < Spring.GetGameSeconds() then
+		delayRefresh = Spring.GetGameSeconds() + 0.5 -- delay so multiple sequential UnitBlocked calls are batched in a single update.
 	end
 end
 

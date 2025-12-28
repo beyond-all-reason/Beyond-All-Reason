@@ -2250,10 +2250,10 @@ function widgetHandler:LanguageChanged()
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:UnitBlocked(unitDefID, teamID, reasons)
+function widgetHandler:UnitBlocked(unitDefID, reasons)
 	tracy.ZoneBeginN("W:UnitBlocked")
 	for _, w in ipairs(self.UnitBlockedList) do
-		w:UnitBlocked(unitDefID, teamID, reasons)
+		w:UnitBlocked(unitDefID, reasons)
 	end
 	tracy.ZoneEnd()
 end

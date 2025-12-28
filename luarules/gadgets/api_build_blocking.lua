@@ -12,37 +12,21 @@ function gadget:GetInfo()
 	}
 end
 
+
 if gadgetHandler:IsSyncedCode() then
 
-	local unsyncedMessageQueue = {}
-	local currentSendIndex = 1
-	local nextEnqueueIndex = 1
-	local MAX_QUEUE_INDEX = 999999
-	local MAX_MESSAGES_PER_FRAME = 100 -- something sane
-
-	local function enqueueUnsyncedMessage(messageName, unitDefID, teamID, reasons) -- Because there are potentially thousands of units.
-		local startIndex = nextEnqueueIndex
-		while unsyncedMessageQueue[nextEnqueueIndex] do
-			nextEnqueueIndex = nextEnqueueIndex + 1
-			if nextEnqueueIndex > MAX_QUEUE_INDEX then
-				nextEnqueueIndex = 1
-			end
-			if nextEnqueueIndex == startIndex then
-				return
-			end
+	-- SECURITY: Notify widgets of blocking changes for specific team
+	-- Message routing ensures only the target team's widgets receive this update
+	local function notifyUnitBlocked(unitDefID, teamID, reasons)
+		local reasonsStr = ""
+		local count = 0
+		for r, _ in pairs(reasons) do
+			if count > 0 then reasonsStr = reasonsStr .. "," end
+			reasonsStr = reasonsStr .. r
+			count = count + 1
 		end
 
-		unsyncedMessageQueue[nextEnqueueIndex] = {
-			messageName = messageName,
-			unitDefID = unitDefID,
-			teamID = teamID,
-			reasons = reasons
-		}
-
-		nextEnqueueIndex = nextEnqueueIndex + 1
-		if nextEnqueueIndex > MAX_QUEUE_INDEX then
-			nextEnqueueIndex = 1
-		end
+		SendToUnsynced("BuildBlocked_" .. teamID, unitDefID, reasonsStr)
 	end
 
 
@@ -320,7 +304,7 @@ if gadgetHandler:IsSyncedCode() then
 		unitReasons[reasonKey] = true
 		local concatenatedReasons = reasonConcatenator(unitReasons)
 		Spring.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, concatenatedReasons)
-		enqueueUnsyncedMessage("UnitBlocked", unitDefID, teamID, unitReasons)
+		notifyUnitBlocked(unitDefID, teamID, unitReasons)
 	end
 
 	function GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey)
@@ -341,9 +325,10 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			Spring.SetTeamRulesParam(teamID, "unitdef_blocked_" .. unitDefID, nil)
 		end
-		enqueueUnsyncedMessage("UnitBlocked", unitDefID, teamID, unitReasons)
+		notifyUnitBlocked(unitDefID, teamID, unitReasons)
 		return true
 	end
+
 
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID)
 		if cmdID < 0 then --it's a build command
@@ -356,40 +341,45 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 
-	function gadget:GameFrame()
-		local processedCount = 0
-		while processedCount < MAX_MESSAGES_PER_FRAME do
-			local message = unsyncedMessageQueue[currentSendIndex]
-			if not message then
-				break
-			end
-
-			SendToUnsynced(message.messageName, message.unitDefID, message.teamID, message.reasons)
-			unsyncedMessageQueue[currentSendIndex] = nil
-
-			currentSendIndex = currentSendIndex + 1
-			if currentSendIndex > MAX_QUEUE_INDEX then
-				currentSendIndex = 1
-			end
-
-			processedCount = processedCount + 1
-		end
-	end
-
 -------------------------------------------------------------------------------- Unsynced Code --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------------------------------------
 elseif not gadgetHandler:IsSyncedCode() then --elseif for readability
-	function gadget:RecvFromSynced(messageName, ...) --we use recvfromsynced instead of SyncAction because we don't want all widgets to access all team's available tech
-		if messageName == "UnitBlocked" then
-			local unitDefID, teamID, reasons = ...
 
-			-- Only send tech data to allied teams to prevent information leakage
-			local myAllyTeamID = Spring.GetMyAllyTeamID()
-			local targetAllyTeamID = Spring.GetTeamAllyTeamID(teamID)
+	local myPlayerID = Spring.GetMyPlayerID()
+	local myTeamID = Spring.GetMyTeamID()
 
-			if myAllyTeamID == targetAllyTeamID then
-				Script.LuaUI.UnitBlocked(unitDefID, teamID, reasons)
+	local function HandleBuildBlocked(_, unitDefID, reasonsStr)
+		if Script.LuaUI.UnitBlocked then
+			local reasons = {}
+			for r in string.gmatch(reasonsStr, "[^,]+") do
+				reasons[r] = true
 			end
+			Script.LuaUI.UnitBlocked(unitDefID, reasons)
 		end
+	end
+
+	local function UpdateSyncActions()
+		if myTeamID then gadgetHandler:RemoveSyncAction("BuildBlocked_" .. myTeamID) end
+
+		myPlayerID = Spring.GetMyPlayerID()
+		myTeamID = Spring.GetMyTeamID()
+
+		if myTeamID then
+			gadgetHandler:AddSyncAction("BuildBlocked_" .. myTeamID, HandleBuildBlocked)
+		end
+	end
+
+	function gadget:Initialize()
+		UpdateSyncActions()
+	end
+
+	function gadget:PlayerChanged(playerID)
+		if playerID == myPlayerID then
+			UpdateSyncActions()
+		end
+	end
+
+	function gadget:Shutdown()
+		if myTeamID then gadgetHandler:RemoveSyncAction("BuildBlocked_" .. myTeamID) end
 	end
 end

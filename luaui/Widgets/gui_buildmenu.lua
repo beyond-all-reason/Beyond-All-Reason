@@ -1667,13 +1667,11 @@ end
 
 
 
-function widget:UnitBlocked(unitDefID, teamID, reasons)
-	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
-	local unitReasons = blockedUnitsData[unitDefID] or {}
-	units.unitRestricted[unitDefID] = next(unitReasons) ~= nil
-	units.unitHidden[unitDefID] = unitReasons["hidden"] ~= nil
+function widget:UnitBlocked(unitDefID, reasons)
+	units.unitRestricted[unitDefID] = next(reasons) ~= nil
+	units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
 	if not delayRefresh or delayRefresh < spGetGameSeconds() then
-		delayRefresh = spGetGameSeconds() + 1
+		delayRefresh = spGetGameSeconds() + 0.5 -- delay so multiple sequential UnitBlocked calls are batched in a single update.
 	end
 end
 
