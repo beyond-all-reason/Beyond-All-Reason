@@ -21,13 +21,10 @@ local mathCos = math.cos
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
-local spGetDrawFrame = Spring.GetDrawFrame
 local spGetMyTeamID = Spring.GetMyTeamID
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
 local spLog = Spring.Log
-
-local spGetConfigInt = Spring.GetConfigInt
 
 --2023.05.21 TODO list
 -- Add occupied circle to center
@@ -59,7 +56,7 @@ end
 local needsInit			= true
 local showValue			= false
 local metalViewOnly		= false
-local useDrawWaterPost	= true
+local useDrawWaterPost	= true -- legacy name: toggles the high-visibility draw path (DrawWorld)
 
 local circleSpaceUsage	= 0.62
 local circleInnerOffset	= 0.28
@@ -87,11 +84,6 @@ local previousOsClock = os.clock()
 local checkspots = true
 local sceduledCheckedSpotsFrame = spGetGameFrame()
 
-local lastDrawWorldPreUnitFrame = -1000000
-local lastDrawWaterPostFrame = -1000000
-local lastDrawWorldPreUnitDrawFrame = -1000000
-local lastDrawWaterPostDrawFrame = -1000000
-
 local lastLoggedDrawMode = nil
 local function LogInfo(msg)
 	if spLog then
@@ -111,17 +103,6 @@ local function MaybeLogDrawModeChange(mode, reason)
 	else
 		LogInfo("draw mode: " .. mode)
 	end
-end
-
-local function GetWaterDebugInfo()
-	local water = (spGetConfigInt and spGetConfigInt("Water", -1)) or -1
-	local reflectiveWater = (spGetConfigInt and spGetConfigInt("ReflectiveWater", -1)) or -1
-	local allowDrawMapDeferredEvents = (spGetConfigInt and spGetConfigInt("AllowDrawMapDeferredEvents", -1)) or -1
-	local voidWater
-	if gl and gl.GetMapRendering then
-		voidWater = gl.GetMapRendering("voidWater") and 1 or 0
-	end
-	return "cfg{Water=" .. tostring(water) .. ", ReflectiveWater=" .. tostring(reflectiveWater) .. ", AllowDrawMapDeferredEvents=" .. tostring(allowDrawMapDeferredEvents) .. "}, map{voidWater=" .. tostring(voidWater) .. "}"
 end
 
 local isSpec, fullview = spGetSpectatingState()
@@ -473,12 +454,8 @@ function widget:Initialize()
 	end
 	WG.metalspots.setUseDrawWaterPost = function(value)
 		useDrawWaterPost = (value and true) or false
-		lastDrawWorldPreUnitFrame = -1000000
-		lastDrawWaterPostFrame = -1000000
-		lastDrawWaterPostDrawFrame = -1000000
-		lastDrawWorldPreUnitDrawFrame = -1000000
 		lastLoggedDrawMode = nil
-		LogInfo("useDrawWaterPost set to " .. tostring(useDrawWaterPost))
+		LogInfo("High visibility metal spots set to " .. tostring(useDrawWaterPost))
 	end
 	WG.metalspots.getUseDrawWaterPost = function()
 		return useDrawWaterPost
@@ -555,31 +532,7 @@ function widget:GameFrame(gf)
 	end
 end
 
-function widget:DrawWorldPreUnit()
-	local mapDrawMode = spGetMapDrawMode()
-	if metalViewOnly and mapDrawMode ~= 'metal' then return end
-	if chobbyInterface then return end
-	if Spring.IsGUIHidden() then return end
-
-	if needsInit and spGetGameFrame() == 0 then
-		checkMetalspots()
-		needsInit = false
-	end
-
-	local drawFrame = spGetDrawFrame and spGetDrawFrame() or spGetGameFrame()
-	if useDrawWaterPost and (drawFrame - lastDrawWaterPostDrawFrame) <= 1 then
-		MaybeLogDrawModeChange("waterpost", "DrawWaterPost active; skipping legacy DrawWorldPreUnit")
-		return
-	end
-	if useDrawWaterPost then
-		MaybeLogDrawModeChange("preunit", "DrawWaterPost not active; using legacy DrawWorldPreUnit; " .. GetWaterDebugInfo())
-	else
-		MaybeLogDrawModeChange("preunit", "useDrawWaterPost disabled")
-	end
-
-	lastDrawWorldPreUnitFrame = spGetGameFrame()
-	lastDrawWorldPreUnitDrawFrame = drawFrame
-
+local function DrawMetalspots()
 	previousOsClock = os.clock()
 
 	gl.Culling(true)
@@ -596,33 +549,42 @@ function widget:DrawWorldPreUnit()
 	gl.Texture(1, false)
 end
 
-function widget:DrawWaterPost()
-	lastDrawWaterPostFrame = spGetGameFrame()
-	lastDrawWaterPostDrawFrame = spGetDrawFrame and spGetDrawFrame() or spGetGameFrame()
-
-	if not useDrawWaterPost then return end
-	if lastDrawWorldPreUnitDrawFrame == lastDrawWaterPostDrawFrame then return end
-	MaybeLogDrawModeChange("waterpost", "using DrawWaterPost")
+function widget:DrawWorldPreUnit()
+	if useDrawWaterPost then
+		return
+	end
 
 	local mapDrawMode = spGetMapDrawMode()
 	if metalViewOnly and mapDrawMode ~= 'metal' then return end
 	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
 
-	previousOsClock = os.clock()
+	if needsInit and spGetGameFrame() == 0 then
+		checkMetalspots()
+		needsInit = false
+	end
+	MaybeLogDrawModeChange("preunit", "legacy path (high visibility disabled)")
 
-	gl.Culling(true)
-	gl.Texture(0, "$heightmap")
-	gl.Texture(1, AtlasTextureID)
-	gl.DepthTest(false)
+	DrawMetalspots()
+end
 
-	spotShader:Activate()
-	drawInstanceVBO(spotInstanceVBO)
-	spotShader:Deactivate()
+function widget:DrawWorld()
+	if not useDrawWaterPost then
+		return
+	end
 
-	gl.Culling(false)
-	gl.Texture(0, false)
-	gl.Texture(1, false)
+	local mapDrawMode = spGetMapDrawMode()
+	if metalViewOnly and mapDrawMode ~= 'metal' then return end
+	if chobbyInterface then return end
+	if Spring.IsGUIHidden() then return end
+
+	if needsInit and spGetGameFrame() == 0 then
+		checkMetalspots()
+		needsInit = false
+	end
+
+	MaybeLogDrawModeChange("world", "high visibility path")
+	DrawMetalspots()
 end
 
 function widget:GetConfigData(data)
