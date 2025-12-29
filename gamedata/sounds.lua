@@ -108,6 +108,7 @@ local soundData = {
 				-- ['^newboom$'] = 0.045 * 0.3,
 				['^xplomas2$'] = 0.225 * 0.3,
 				['^starfallchargup$'] = 4.0 * 0.3,
+				['^ministarfallchargup$'] = 4.0 * 0.3,
 			},
 		},
 		pitchmod = {
@@ -131,6 +132,7 @@ local soundData = {
 				['^nukelaunch$'] = 0.08,
 				['^nukelaunchalarm$'] = 0,
 				['^starfallchargup$'] = 0,
+				['^ministarfallchargup$'] = 0,
 			},
 		},
 		gainmod  = 0.2 * 0.3,
