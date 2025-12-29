@@ -163,7 +163,10 @@ local widgetState = {
 		warningText = nil,
 		factoryText = nil,
 	},
+	lastFactoryAlreadyPlaced = nil,
 }
+
+local factoryUnitDefIDs = {}
 
 local initialModel = {
 	budgetTotal = 0,
@@ -439,7 +442,34 @@ local function hideWarnings()
 	end
 end
 
-local function updateAllCostOverrides()
+local function updateUnitCostOverride(unitDefID, unitDef, gameRules, factoryAlreadyPlaced)
+	local metalCost = unitDef.metalCost or 0
+	local energyCost = unitDef.energyCost or 0
+	local buildTime = unitDef.buildTime or 0
+	local budgetCost = calculateBudgetCost(metalCost, energyCost, buildTime)
+
+	if unitDef.isFactory and shouldApplyFactoryDiscount and not factoryAlreadyPlaced then
+		budgetCost = calculateBudgetWithDiscount(unitDefID, gameRules.factoryDiscountAmount, shouldApplyFactoryDiscount, true)
+	end
+
+	local costOverride = {
+		top = { disabled = true },
+		bottom = {
+			value = budgetCost,
+			color = "\255\255\110\255",
+			colorDisabled = "\255\200\50\200"
+		}
+	}
+
+	if wgBuildMenu and wgBuildMenu.setCostOverride then
+		wgBuildMenu.setCostOverride(unitDefID, costOverride)
+	end
+	if wgGridMenu and wgGridMenu.setCostOverride then
+		wgGridMenu.setCostOverride(unitDefID, costOverride)
+	end
+end
+
+local function updateAllCostOverrides(force)
 	local myTeamID = spGetMyTeamID()
 	local gameRules = getCachedGameRules()
 	local buildQueue = wgPregameBuild and wgPregameBuild.getBuildQueue and wgPregameBuild.getBuildQueue() or {}
@@ -463,30 +493,22 @@ local function updateAllCostOverrides()
 		end
 	end
 
-	for unitDefID, unitDef in pairs(UnitDefs) do
-		local metalCost = unitDef.metalCost or 0
-		local energyCost = unitDef.energyCost or 0
-		local buildTime = unitDef.buildTime or 0
-		local budgetCost = calculateBudgetCost(metalCost, energyCost, buildTime)
 
-		if unitDef.isFactory and shouldApplyFactoryDiscount and not factoryAlreadyPlaced then
-			budgetCost = calculateBudgetWithDiscount(unitDefID, gameRules.factoryDiscountAmount, shouldApplyFactoryDiscount, true)
+	if not force and widgetState.lastFactoryAlreadyPlaced == factoryAlreadyPlaced then
+		return
+	end
+	
+	local stateChanged = (widgetState.lastFactoryAlreadyPlaced ~= nil) and (widgetState.lastFactoryAlreadyPlaced ~= factoryAlreadyPlaced)
+	widgetState.lastFactoryAlreadyPlaced = factoryAlreadyPlaced
+
+	if not force and stateChanged then
+		for _, unitDefID in ipairs(factoryUnitDefIDs) do
+			local unitDef = UnitDefs[unitDefID]
+			updateUnitCostOverride(unitDefID, unitDef, gameRules, factoryAlreadyPlaced)
 		end
-
-		local costOverride = {
-			top = { disabled = true },
-			bottom = {
-				value = budgetCost,
-				color = "\255\255\110\255",
-				colorDisabled = "\255\200\50\200"
-			}
-		}
-
-		if wgBuildMenu and wgBuildMenu.setCostOverride then
-			wgBuildMenu.setCostOverride(unitDefID, costOverride)
-		end
-		if wgGridMenu and wgGridMenu.setCostOverride then
-			wgGridMenu.setCostOverride(unitDefID, costOverride)
+	else
+		for unitDefID, unitDef in pairs(UnitDefs) do
+			updateUnitCostOverride(unitDefID, unitDef, gameRules, factoryAlreadyPlaced)
 		end
 	end
 end
@@ -509,7 +531,7 @@ local function updateDataModel(forceUpdate)
 	local currentBudgetRemaining = modelUpdate.budgetRemaining or 0
 
 	if forceUpdate or currentQueueLength ~= widgetState.lastQueueLength then
-		updateAllCostOverrides()
+		updateAllCostOverrides(forceUpdate)
 	end
 	
 	if currentQueueLength > widgetState.lastQueueLength then
@@ -707,7 +729,13 @@ function widget:Initialize()
 
 	WG["getBuildQueueSpawnStatus"] = getBuildQueueSpawnStatus
 
-	updateAllCostOverrides()
+	for id, def in pairs(UnitDefs) do
+		if def.isFactory then
+			table.insert(factoryUnitDefIDs, id)
+		end
+	end
+
+	updateAllCostOverrides(true)
 
 	updateDataModel(true)
 	widgetState.lastBudgetRemaining = widgetState.dmHandle.budgetRemaining or 0
