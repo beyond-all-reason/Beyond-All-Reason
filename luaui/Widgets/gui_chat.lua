@@ -437,6 +437,10 @@ local autocompleteCommands = {
 	'luarules zombiedebug 0',
 	'luarules zombiemode normal',
 
+	-- build blocking commands
+	'luarules buildblock all default_reason',
+	'luarules buildunblock all default_reason',
+
 	-- widgets
 	'luaui reload',
 	'luaui disable',
