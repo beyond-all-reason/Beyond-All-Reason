@@ -63,18 +63,81 @@ local cachedOverlapLines = {}
 local cachedGameRules = {}
 local lastRulesUpdate = 0
 local RULES_CACHE_DURATION = 0.1
-local lastStartPositionsState = ""
+local lastStartPositions = {}
+local overlapLinesDisplayList = nil
 
-local function getStartPositionsState()
-	local state = ""
+local function hasStartPositionsChanged()
+	local changed = false
 	local teamList = Spring.GetTeamList()
+	local activeTeams = {}
+
 	for _, teamID in ipairs(teamList) do
 		local sx, sy, sz = Spring.GetTeamStartPosition(teamID)
 		if sx and sx >= 0 then
-			state = state .. teamID .. ":" .. math.floor(sx) .. "," .. math.floor(sz) .. "|"
+			local floorX, floorZ = math.floor(sx), math.floor(sz)
+			activeTeams[teamID] = true
+			
+			local last = lastStartPositions[teamID]
+			if not last or last.x ~= floorX or last.z ~= floorZ then
+				if not lastStartPositions[teamID] then lastStartPositions[teamID] = {} end
+				lastStartPositions[teamID].x = floorX
+				lastStartPositions[teamID].z = floorZ
+				changed = true
+			end
 		end
 	end
-	return state
+	
+	if not changed then
+		for teamID, _ in pairs(lastStartPositions) do
+			if not activeTeams[teamID] then
+				lastStartPositions[teamID] = nil
+				changed = true
+			end
+		end
+	else
+		for teamID, _ in pairs(lastStartPositions) do
+			if not activeTeams[teamID] then
+				lastStartPositions[teamID] = nil
+			end
+		end
+	end
+	
+	return changed
+end
+
+local function updateDisplayList()
+	if overlapLinesDisplayList then
+		gl.DeleteList(overlapLinesDisplayList)
+		overlapLinesDisplayList = nil
+	end
+	
+	if not cachedOverlapLines or #cachedOverlapLines == 0 then return end
+	
+	overlapLinesDisplayList = gl.CreateList(function()
+		gl.LineWidth(2)
+		gl.Color(1, 0, 0, 0.8) -- Red
+		
+		for _, line in ipairs(cachedOverlapLines) do
+			local p1 = line.p1
+			local p2 = line.p2
+
+			local segments = 20
+			local dx = (p2.x - p1.x) / segments
+			local dz = (p2.z - p1.z) / segments
+			
+			gl.BeginEnd(GL.LINE_STRIP, function()
+				for i = 0, segments do
+					local x = p1.x + dx * i
+					local z = p1.z + dz * i
+					local y = Spring.GetGroundHeight(x, z) + 10
+					gl.Vertex(x, y, z)
+				end
+			end)
+		end
+		
+		gl.Color(1, 1, 1, 1)
+		gl.LineWidth(1)
+	end)
 end
 
 local function calculateBudgetCost(metalCost, energyCost, buildTime)
@@ -178,8 +241,8 @@ local function updateTraversabilityGrid()
 		return
 	end
 	
-	local currentStartPositionsState = getStartPositionsState()
-	if lastCommanderX ~= commanderX or lastCommanderZ ~= commanderZ or currentStartPositionsState ~= lastStartPositionsState then
+	local positionsChanged = hasStartPositionsChanged()
+	if lastCommanderX ~= commanderX or lastCommanderZ ~= commanderZ or positionsChanged then
 		traversabilityGrid.generateTraversableGrid(commanderX, commanderZ, TRAVERSABILITY_GRID_GENERATION_RANGE, TRAVERSABILITY_GRID_RESOLUTION, "myGrid")
 		
 		local neighbors = {}
@@ -195,10 +258,10 @@ local function updateTraversabilityGrid()
 		
 		local gameRules = getCachedGameRules()
 		cachedOverlapLines = overlapLines.getOverlapLines(commanderX, commanderZ, neighbors, gameRules.instantBuildRange or DEFAULT_INSTANT_BUILD_RANGE)
+		updateDisplayList()
 		
 		lastCommanderX = commanderX
 		lastCommanderZ = commanderZ
-		lastStartPositionsState = currentStartPositionsState
 	end
 end
 
@@ -680,6 +743,10 @@ function widget:Shutdown()
 		widgetState.document:Close()
 		widgetState.document = nil
 	end
+	if overlapLinesDisplayList then
+		gl.DeleteList(overlapLinesDisplayList)
+		overlapLinesDisplayList = nil
+	end
 	widgetState.rmlContext = nil
 end
 
@@ -699,32 +766,9 @@ function widget:Update()
 end
 
 function widget:DrawWorld()
-	if not cachedOverlapLines or #cachedOverlapLines == 0 then return end
-	
-	gl.LineWidth(2)
-	gl.Color(1, 0, 0, 0.8) -- Red
-	
-	for _, line in ipairs(cachedOverlapLines) do
-		local p1 = line.p1
-		local p2 = line.p2
-		
-		-- Draw segmented line conforming to terrain
-		local segments = 20
-		local dx = (p2.x - p1.x) / segments
-		local dz = (p2.z - p1.z) / segments
-		
-		gl.BeginEnd(GL.LINE_STRIP, function()
-			for i = 0, segments do
-				local x = p1.x + dx * i
-				local z = p1.z + dz * i
-				local y = Spring.GetGroundHeight(x, z) + 10 -- 10 feet (elmos) above terrain
-				gl.Vertex(x, y, z)
-			end
-		end)
+	if overlapLinesDisplayList then
+		gl.CallList(overlapLinesDisplayList)
 	end
-	
-	gl.Color(1, 1, 1, 1)
-	gl.LineWidth(1)
 end
 
 function widget:RecvLuaMsg(message, playerID)
