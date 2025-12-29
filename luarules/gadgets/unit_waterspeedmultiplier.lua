@@ -43,13 +43,19 @@ local spSetGroundMoveTypeData = Spring.MoveCtrl.SetGroundMoveTypeData
 
 local unitDefData = {}
 
+local function canHaveGroundMoveType(unitDef)
+	-- I think you are not supposed to be able to set a moveDef on air or immobile units,
+	-- but I think you can MoveCtrl.Enable, then MoveCtrl.SetMoveDef, to get around this.
+	return true -- so, lol
+end
+
 for defID, ud in pairs(UnitDefs) do
     local params = ud.customParams
 
 	local speedFactorInWater = tonumber(params.speedfactorinwater or 1) or 1
 	local speedFactorAtDepth = math.abs(params.speedfactoratdepth and tonumber(params.speedfactoratdepth) or 0) * -1
 
-	if speedFactorInWater ~= 1 and (not ud.isImmobile and not ud.canFly and not ud.isAirUnit) then
+	if speedFactorInWater ~= 1 and canHaveGroundMoveType(ud) then
 		if speedFactorAtDepth > -1 then
 			speedFactorAtDepth = 0
 		end
