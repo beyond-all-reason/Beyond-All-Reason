@@ -579,12 +579,17 @@ local function populateNearbyMexes(commanderID)
 		return
 	end
 
+	if not comData.overlapLines then
+		generateOverlapLines(commanderID)
+	end
+
 	for i = 1, #metalSpotsList do
 		local metalSpot = metalSpotsList[i]
 		if metalSpot then
 			local distance = distance2d(metalSpot.x, metalSpot.z, commanderX, commanderZ)
 			local isTraversable = traversabilityGrid.canMoveToPosition(commanderID, metalSpot.x, metalSpot.z, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
-			if distance <= INSTANT_BUILD_RANGE and isTraversable then
+			local isPastFriendlyLines = overlapLines.isPointPastLines(metalSpot.x, metalSpot.z, commanderX, commanderZ, comData.overlapLines)
+			if distance <= INSTANT_BUILD_RANGE and isTraversable and not isPastFriendlyLines then
 				table.insert(comData.nearbyMexes, {
 					x = metalSpot.x,
 					y = metalSpot.y,
