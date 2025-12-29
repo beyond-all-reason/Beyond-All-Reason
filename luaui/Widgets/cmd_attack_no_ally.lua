@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name         = "Attack no Ally",
-		desc         = "Redirects attack on allies to ground and fully exits attack mode on RMB",
+		desc         = "Redirects attack on allies to ground and fully exits attack mode on RMB press",
 		author       = "Ceddral, Floris (modified by Zain M)",
 		date         = "April 2018 (modified December 2025)",
 		license      = "GNU GPL, v2 or later",
@@ -14,7 +14,6 @@ end
 
 local hasRightClickAttack = {
 	[CMD.ATTACK] = true,
-	[CMD.MANUALFIRE] = true,
 }
 
 local rmbCancelPending = false
@@ -48,9 +47,9 @@ end
 function widget:Shutdown()
 	WG['attacknoally'] = nil
 end
-
-function widget:MousePress(x, y, button)
 	-- Right mouse button
+function widget:MousePress(x, y, button)
+
 	if button ~= 3 then
 		return false
 	end
@@ -58,6 +57,12 @@ function widget:MousePress(x, y, button)
 	if WG['attacknoally'] then
 		local _, activeCmdID = Spring.GetActiveCommand()
 		if activeCmdID and hasRightClickAttack[activeCmdID] then
+			local targetType, targetID = Spring.TraceScreenRay(x, y, false)
+			if targetType == "unit" and Spring.IsUnitAllied(targetID) then
+				Spring.SetActiveCommand(nil)
+				rmbCancelPending = false
+				return true
+			end
 			rmbCancelPending = true
 		end
 	end
@@ -88,7 +93,7 @@ end
 -- Without this, units just follow the ally around.
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	local allyTarget = GetAllyTarget(cmdParams)
-	if cmdID == CMD.ATTACK or cmdID == CMD.MANUALFIRE then
+	if cmdID == CMD.ATTACK then
 		-- Only intercept unit-target attacks against allied units
 		if not allyTarget then
 			return false
