@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name         = "Attack no Ally",
-		desc         = "Redirects attack on allies to ground and fully exits attack mode on RMB",
+		desc         = "Redirects attack on allies to ground and fully exits attack mode on RMB press",
 		author       = "Ceddral, Floris (modified by Zain M)",
 		date         = "April 2018 (modified December 2025)",
 		license      = "GNU GPL, v2 or later",
@@ -14,8 +14,9 @@ end
 
 local hasRightClickAttack = {
 	[CMD.ATTACK] = true,
-	[CMD.MANUALFIRE] = true,
 }
+
+local rmbCancelPending = false
 
 local function GetAllyTarget(cmdParams)
 	if #cmdParams ~= 1 then
@@ -46,9 +47,9 @@ end
 function widget:Shutdown()
 	WG['attacknoally'] = nil
 end
-
-function widget:MousePress(x, y, button)
 	-- Right mouse button
+function widget:MousePress(x, y, button)
+
 	if button ~= 3 then
 		return false
 	end
@@ -56,19 +57,44 @@ function widget:MousePress(x, y, button)
 	if WG['attacknoally'] then
 		local _, activeCmdID = Spring.GetActiveCommand()
 		if activeCmdID and hasRightClickAttack[activeCmdID] then
-			Spring.SetActiveCommand(nil)
-			return true -- swallow RMB so engine doesn't re-trigger commands
+			local targetType, targetID = Spring.TraceScreenRay(x, y, false)
+			if targetType == "unit" and Spring.IsUnitAllied(targetID) then
+				Spring.SetActiveCommand(nil)
+				rmbCancelPending = false
+				return true
+			end
+			rmbCancelPending = true
 		end
 	end
 	return false
+end
+--if right mouse button was pressed to cancel an attack command, wait for it to be released to actually cancel. 
+--Allows players to drag right click for line attacks.
+function widget:Update()
+	if not rmbCancelPending then
+		return
+	end
+
+	local _, _, _, _, rmb = Spring.GetMouseState()
+	if rmb then
+		return
+	end
+
+	rmbCancelPending = false
+	if WG['attacknoally'] then
+		local _, activeCmdID = Spring.GetActiveCommand()
+		if activeCmdID and hasRightClickAttack[activeCmdID] then
+			Spring.SetActiveCommand(nil)
+		end
+	end
 end
 -- Command interception
 -- This portion is required to make sure that attack commands on allies aims at ground which ally is standing on.
 -- Without this, units just follow the ally around.
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	local allyTarget = GetAllyTarget(cmdParams)
-	if cmdID == CMD.ATTACK or cmdID == CMD.MANUALFIRE then
-		-- Only intercept unit-target attacks against allied units.
+	if cmdID == CMD.ATTACK then
+		-- Only intercept unit-target attacks against allied units
 		if not allyTarget then
 			return false
 		end

@@ -63,6 +63,18 @@ return {
 		delay = 30,
 		soundEffect = "YouHaveTheLastCommander",
 	},
+	["RespawningCommanders/CommanderTransposed"] = {
+		delay = 5,
+	},
+	["RespawningCommanders/AlliedCommanderTransposed"] = {
+		delay = 5,
+	},
+	["RespawningCommanders/EnemyCommanderTransposed"] = {
+		delay = 5,
+	},
+	["RespawningCommanders/CommanderEffigyLost"] = {
+		delay = 5,
+	},
 
 	-- Game Status
 	ChooseStartLoc = {
