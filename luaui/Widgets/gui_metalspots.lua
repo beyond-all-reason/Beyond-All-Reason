@@ -24,6 +24,9 @@ local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
+local spLog = Spring.Log
+
+local spGetConfigInt = Spring.GetConfigInt
 
 --2023.05.21 TODO list
 -- Add occupied circle to center
@@ -55,6 +58,7 @@ end
 local needsInit			= true
 local showValue			= false
 local metalViewOnly		= false
+local useDrawWaterPost	= true
 
 local circleSpaceUsage	= 0.62
 local circleInnerOffset	= 0.28
@@ -81,6 +85,41 @@ local valueList = {}
 local previousOsClock = os.clock()
 local checkspots = true
 local sceduledCheckedSpotsFrame = spGetGameFrame()
+
+local lastDrawWorldPreUnitFrame = -1000000
+local lastDrawWaterPostFrame = -1000000
+
+local lastLoggedDrawMode = nil
+local function LogInfo(msg)
+	if spLog then
+		spLog("VFS", "info", "[Metalspots] " .. msg)
+	else
+		spEcho("<Metalspots>", msg)
+	end
+end
+
+local function MaybeLogDrawModeChange(mode, reason)
+	if lastLoggedDrawMode == mode then
+		return
+	end
+	lastLoggedDrawMode = mode
+	if reason and reason ~= "" then
+		LogInfo("draw mode: " .. mode .. " (" .. reason .. ")")
+	else
+		LogInfo("draw mode: " .. mode)
+	end
+end
+
+local function GetWaterDebugInfo()
+	local water = (spGetConfigInt and spGetConfigInt("Water", -1)) or -1
+	local reflectiveWater = (spGetConfigInt and spGetConfigInt("ReflectiveWater", -1)) or -1
+	local allowDrawMapDeferredEvents = (spGetConfigInt and spGetConfigInt("AllowDrawMapDeferredEvents", -1)) or -1
+	local voidWater
+	if gl and gl.GetMapRendering then
+		voidWater = gl.GetMapRendering("voidWater") and 1 or 0
+	end
+	return "cfg{Water=" .. tostring(water) .. ", ReflectiveWater=" .. tostring(reflectiveWater) .. ", AllowDrawMapDeferredEvents=" .. tostring(allowDrawMapDeferredEvents) .. "}, map{voidWater=" .. tostring(voidWater) .. "}"
+end
 
 local isSpec, fullview = spGetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
@@ -429,6 +468,16 @@ function widget:Initialize()
 	WG.metalspots.getMetalViewOnly = function()
 		return metalViewOnly
 	end
+	WG.metalspots.setUseDrawWaterPost = function(value)
+		useDrawWaterPost = (value and true) or false
+		lastDrawWorldPreUnitFrame = -1000000
+		lastDrawWaterPostFrame = -1000000
+		lastLoggedDrawMode = nil
+		LogInfo("useDrawWaterPost set to " .. tostring(useDrawWaterPost))
+	end
+	WG.metalspots.getUseDrawWaterPost = function()
+		return useDrawWaterPost
+	end
 
 	if not initGL4() then return end
 
@@ -507,6 +556,23 @@ function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
 
+	if needsInit and spGetGameFrame() == 0 then
+		checkMetalspots()
+		needsInit = false
+	end
+
+	if useDrawWaterPost and (spGetGameFrame() - lastDrawWaterPostFrame) <= 1 then
+		MaybeLogDrawModeChange("waterpost", "DrawWaterPost active; skipping legacy DrawWorldPreUnit")
+		return
+	end
+	if useDrawWaterPost then
+		MaybeLogDrawModeChange("preunit", "DrawWaterPost not active; using legacy DrawWorldPreUnit; " .. GetWaterDebugInfo())
+	else
+		MaybeLogDrawModeChange("preunit", "useDrawWaterPost disabled")
+	end
+
+	lastDrawWorldPreUnitFrame = spGetGameFrame()
+
 	previousOsClock = os.clock()
 
 	gl.Culling(true)
@@ -518,10 +584,33 @@ function widget:DrawWorldPreUnit()
 	drawInstanceVBO(spotInstanceVBO)
 	spotShader:Deactivate()
 
-	if needsInit and spGetGameFrame() == 0 then
-		checkMetalspots()
-		needsInit = false
-	end
+	gl.Culling(false)
+	gl.Texture(0, false)
+	gl.Texture(1, false)
+end
+
+function widget:DrawWaterPost()
+	lastDrawWaterPostFrame = spGetGameFrame()
+
+	if not useDrawWaterPost then return end
+	if lastDrawWorldPreUnitFrame == spGetGameFrame() then return end
+	MaybeLogDrawModeChange("waterpost", "using DrawWaterPost")
+
+	local mapDrawMode = spGetMapDrawMode()
+	if metalViewOnly and mapDrawMode ~= 'metal' then return end
+	if chobbyInterface then return end
+	if Spring.IsGUIHidden() then return end
+
+	previousOsClock = os.clock()
+
+	gl.Culling(true)
+	gl.Texture(0, "$heightmap")
+	gl.Texture(1, AtlasTextureID)
+	gl.DepthTest(false)
+
+	spotShader:Activate()
+	drawInstanceVBO(spotInstanceVBO)
+	spotShader:Deactivate()
 
 	gl.Culling(false)
 	gl.Texture(0, false)
@@ -532,7 +621,8 @@ function widget:GetConfigData(data)
 	return {
 		showValue = showValue,
 		opacity = opacity,
-		metalViewOnly = metalViewOnly
+		metalViewOnly = metalViewOnly,
+		useDrawWaterPost = useDrawWaterPost,
 	}
 end
 
@@ -545,6 +635,9 @@ function widget:SetConfigData(data)
 	end
 	if data.metalViewOnly ~= nil then
 		metalViewOnly = data.metalViewOnly
+	end
+	if data.useDrawWaterPost ~= nil then
+		useDrawWaterPost = data.useDrawWaterPost
 	end
 end
 
