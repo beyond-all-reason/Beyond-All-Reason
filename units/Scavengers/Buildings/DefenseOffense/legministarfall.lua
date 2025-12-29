@@ -127,7 +127,7 @@ return {
 				impulsefactor = 0.5,
 				name = "Long-Range High-Trajectory 63-Salvo Plasma Launcher",
 				noselfdamage = true,
-				range = 6100,
+				range = 1400,
 				reloadtime = 7,
 				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed3",
