@@ -53,14 +53,29 @@ local TRAVERSABILITY_GRID_RESOLUTION = 32
 local GRID_CHECK_RESOLUTION_MULTIPLIER = 1
 
 local traversabilityGrid = VFS.Include("common/traversability_grid.lua")
+local overlapLines = VFS.Include("common/overlap_lines.lua")
 local aestheticCustomCostRound = VFS.Include("common/aestheticCustomCostRound.lua")
 local customRound = aestheticCustomCostRound.customRound
 local lastCommanderX = nil
 local lastCommanderZ = nil
 
+local cachedOverlapLines = {}
 local cachedGameRules = {}
 local lastRulesUpdate = 0
 local RULES_CACHE_DURATION = 0.1
+local lastStartPositionsState = ""
+
+local function getStartPositionsState()
+	local state = ""
+	local teamList = Spring.GetTeamList()
+	for _, teamID in ipairs(teamList) do
+		local sx, sy, sz = Spring.GetTeamStartPosition(teamID)
+		if sx and sx >= 0 then
+			state = state .. teamID .. ":" .. math.floor(sx) .. "," .. math.floor(sz) .. "|"
+		end
+	end
+	return state
+end
 
 local function calculateBudgetCost(metalCost, energyCost, buildTime)
 	return customRound(metalCost + energyCost * ENERGY_VALUE_CONVERSION_MULTIPLIER + buildTime * BUILD_TIME_VALUE_CONVERSION_MULTIPLIER)
@@ -123,6 +138,10 @@ local function isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, instan
 		return false
 	end
 
+	if overlapLines.isPointPastLines(buildX, buildZ, commanderX, commanderZ, cachedOverlapLines) then
+		return false
+	end
+
 	if traversabilityGrid.canMoveToPosition("myGrid", buildX, buildZ, GRID_CHECK_RESOLUTION_MULTIPLIER) then
 		return true
 	end
@@ -158,10 +177,28 @@ local function updateTraversabilityGrid()
 	if commanderX == -100 then
 		return
 	end
-	if lastCommanderX ~= commanderX or lastCommanderZ ~= commanderZ then
+	
+	local currentStartPositionsState = getStartPositionsState()
+	if lastCommanderX ~= commanderX or lastCommanderZ ~= commanderZ or currentStartPositionsState ~= lastStartPositionsState then
 		traversabilityGrid.generateTraversableGrid(commanderX, commanderZ, TRAVERSABILITY_GRID_GENERATION_RANGE, TRAVERSABILITY_GRID_RESOLUTION, "myGrid")
+		
+		local neighbors = {}
+		local teamList = Spring.GetTeamList()
+		for _, otherTeamID in ipairs(teamList) do
+			if otherTeamID ~= myTeamID then
+				local sx, sy, sz = Spring.GetTeamStartPosition(otherTeamID)
+				if sx and sx >= 0 then
+					table.insert(neighbors, {x = sx, z = sz})
+				end
+			end
+		end
+		
+		local gameRules = getCachedGameRules()
+		cachedOverlapLines = overlapLines.getOverlapLines(commanderX, commanderZ, neighbors, gameRules.instantBuildRange or DEFAULT_INSTANT_BUILD_RANGE)
+		
 		lastCommanderX = commanderX
 		lastCommanderZ = commanderZ
+		lastStartPositionsState = currentStartPositionsState
 	end
 end
 
@@ -659,6 +696,35 @@ function widget:Update()
 
 	updateTraversabilityGrid()
 	updateDataModel(false)
+end
+
+function widget:DrawWorld()
+	if not cachedOverlapLines or #cachedOverlapLines == 0 then return end
+	
+	gl.LineWidth(2)
+	gl.Color(1, 0, 0, 0.8) -- Red
+	
+	for _, line in ipairs(cachedOverlapLines) do
+		local p1 = line.p1
+		local p2 = line.p2
+		
+		-- Draw segmented line conforming to terrain
+		local segments = 20
+		local dx = (p2.x - p1.x) / segments
+		local dz = (p2.z - p1.z) / segments
+		
+		gl.BeginEnd(GL.LINE_STRIP, function()
+			for i = 0, segments do
+				local x = p1.x + dx * i
+				local z = p1.z + dz * i
+				local y = Spring.GetGroundHeight(x, z) + 10 -- 10 feet (elmos) above terrain
+				gl.Vertex(x, y, z)
+			end
+		end)
+	end
+	
+	gl.Color(1, 1, 1, 1)
+	gl.LineWidth(1)
 end
 
 function widget:RecvLuaMsg(message, playerID)

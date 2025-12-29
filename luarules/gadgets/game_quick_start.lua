@@ -131,6 +131,7 @@ local cos = math.cos
 
 local config = VFS.Include('LuaRules/Configs/quick_start_build_defs.lua')
 local traversabilityGrid = VFS.Include('common/traversability_grid.lua')
+local overlapLines = VFS.Include('common/overlap_lines.lua')
 local commanderNonLabOptions = config.commanderNonLabOptions
 local discountableFactories = config.discountableFactories
 local optionsToNodeType = config.optionsToNodeType
@@ -216,7 +217,8 @@ local function generateLocalGrid(commanderID)
 						local heightDiff = abs(searchY - originY)
 						if heightDiff <= MAX_HEIGHT_DIFFERENCE then
 							local snappedX, snappedY, snappedZ = spPos2BuildPos(buildDefID, testX, searchY, testZ)
-							if snappedX and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, DEFAULT_FACING) == UNOCCUPIED then
+							local isPastFriendlyLines = overlapLines.isPointPastLines(snappedX, snappedZ, originX, originZ, comData.overlapLines)
+							if snappedX and not isPastFriendlyLines and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, DEFAULT_FACING) == UNOCCUPIED then
 								local isTraversable = traversabilityGrid.canMoveToPosition(commanderID, snappedX, snappedZ, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
 								if isTraversable then
 									local key = snappedX .. "_" .. snappedZ
@@ -305,6 +307,23 @@ local function queueBuildForProgression(unitID, unitDef, affordableBudget, fullB
 	return targetProgress
 end
 
+local function generateCommanderLines(commanderID)
+	local comData = commanders[commanderID]
+	if not comData then return end
+	
+	local neighbors = {}
+	for _, otherTeamID in ipairs(allTeamsList) do
+		if otherTeamID ~= comData.teamID then
+			local sx, sy, sz = Spring.GetTeamStartPosition(otherTeamID)
+			if sx and sx >= 0 then -- Check for valid start pos (allow 0, ignore -100)
+				table.insert(neighbors, {x = sx, z = sz})
+			end
+		end
+	end
+	
+	comData.overlapLines = overlapLines.getOverlapLines(comData.spawnX, comData.spawnZ, neighbors, INSTANT_BUILD_RANGE)
+end
+
 local function getCommanderBuildQueue(commanderID)
 	local spawnQueue = {}
 	local commandsToRemove = {}
@@ -313,6 +332,10 @@ local function getCommanderBuildQueue(commanderID)
 	local totalBudgetCost = 0
 	local discountUsedLocal = commanderFactoryDiscounts[commanderID]
 
+	if not comData.overlapLines then
+		generateCommanderLines(commanderID)
+	end
+
 	for i, cmd in ipairs(commands) do
 		if isBuildCommand(cmd.id) then
 			local unitDefID = -cmd.id
@@ -320,8 +343,9 @@ local function getCommanderBuildQueue(commanderID)
 			local unitDef = unitDefs[unitDefID]
 			local distance = distance2d(comData.spawnX, comData.spawnZ, spawnParams.x, spawnParams.z)
 			local isTraversable = traversabilityGrid.canMoveToPosition(commanderID, spawnParams.x, spawnParams.z, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
+			local isPastFriendlyLines = overlapLines.isPointPastLines(spawnParams.x, spawnParams.z, comData.spawnX, comData.spawnZ, comData.overlapLines)
 
-			if distance <= INSTANT_BUILD_RANGE and isTraversable then
+			if distance <= INSTANT_BUILD_RANGE and isTraversable and not isPastFriendlyLines then
 				local budgetCost = defMetergies[unitDefID] or 0
 				
 				local currentDiscount = 0
