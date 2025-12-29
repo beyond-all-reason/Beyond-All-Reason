@@ -9,15 +9,15 @@ local OverlapLines = {}
 ---@return table|nil intersection1 {x: number, z: number}
 ---@return table|nil intersection2 {x: number, z: number}
 local function getCircleIntersections(centerX0, centerZ0, centerX1, centerZ1, radius)
-    local deltaX = centerX1 - centerX0
-    local deltaZ = centerZ1 - centerZ0
-    local distanceSquared = deltaX * deltaX + deltaZ * deltaZ
+    local distanceSquared = math.distance2dSquared(centerX0, centerZ0, centerX1, centerZ1)
     
     if distanceSquared > (2 * radius) ^ 2 or distanceSquared == 0 then
         return nil, nil
     end
 
     local distance = math.sqrt(distanceSquared)
+    local deltaX = centerX1 - centerX0
+    local deltaZ = centerZ1 - centerZ0
 
     local distToChord = distance / 2
     local height = math.sqrt(math.max(0, radius * radius - distToChord * distToChord))

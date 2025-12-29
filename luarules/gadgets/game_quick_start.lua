@@ -307,7 +307,7 @@ local function queueBuildForProgression(unitID, unitDef, affordableBudget, fullB
 	return targetProgress
 end
 
-local function generateCommanderLines(commanderID)
+local function generateOverlapLines(commanderID)
 	local comData = commanders[commanderID]
 	if not comData then return end
 	
@@ -333,7 +333,7 @@ local function getCommanderBuildQueue(commanderID)
 	local discountUsedLocal = commanderFactoryDiscounts[commanderID]
 
 	if not comData.overlapLines then
-		generateCommanderLines(commanderID)
+		generateOverlapLines(commanderID)
 	end
 
 	for i, cmd in ipairs(commands) do
