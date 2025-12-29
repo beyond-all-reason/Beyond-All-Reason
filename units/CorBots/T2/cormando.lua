@@ -7,6 +7,7 @@ return {
 		buildpic = "CORMANDO.DDS",
 		buildtime = 17100,
 		canassist = true,
+		canattack = true,
 		canmove = true,
 		canreclaim = true,
 		canrepair = true,
@@ -128,6 +129,9 @@ return {
 				weaponvelocity = 930,
 				damage = {
 					default = 100,
+				},
+				customparams = {
+					exclude_preaim = true,
 				},
 			},
 		},
