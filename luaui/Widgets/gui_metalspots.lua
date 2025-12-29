@@ -21,6 +21,7 @@ local mathCos = math.cos
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
+local spGetDrawFrame = Spring.GetDrawFrame
 local spGetMyTeamID = Spring.GetMyTeamID
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
@@ -88,6 +89,8 @@ local sceduledCheckedSpotsFrame = spGetGameFrame()
 
 local lastDrawWorldPreUnitFrame = -1000000
 local lastDrawWaterPostFrame = -1000000
+local lastDrawWorldPreUnitDrawFrame = -1000000
+local lastDrawWaterPostDrawFrame = -1000000
 
 local lastLoggedDrawMode = nil
 local function LogInfo(msg)
@@ -472,6 +475,8 @@ function widget:Initialize()
 		useDrawWaterPost = (value and true) or false
 		lastDrawWorldPreUnitFrame = -1000000
 		lastDrawWaterPostFrame = -1000000
+		lastDrawWaterPostDrawFrame = -1000000
+		lastDrawWorldPreUnitDrawFrame = -1000000
 		lastLoggedDrawMode = nil
 		LogInfo("useDrawWaterPost set to " .. tostring(useDrawWaterPost))
 	end
@@ -561,7 +566,8 @@ function widget:DrawWorldPreUnit()
 		needsInit = false
 	end
 
-	if useDrawWaterPost and (spGetGameFrame() - lastDrawWaterPostFrame) <= 1 then
+	local drawFrame = spGetDrawFrame and spGetDrawFrame() or spGetGameFrame()
+	if useDrawWaterPost and (drawFrame - lastDrawWaterPostDrawFrame) <= 1 then
 		MaybeLogDrawModeChange("waterpost", "DrawWaterPost active; skipping legacy DrawWorldPreUnit")
 		return
 	end
@@ -572,6 +578,7 @@ function widget:DrawWorldPreUnit()
 	end
 
 	lastDrawWorldPreUnitFrame = spGetGameFrame()
+	lastDrawWorldPreUnitDrawFrame = drawFrame
 
 	previousOsClock = os.clock()
 
@@ -591,9 +598,10 @@ end
 
 function widget:DrawWaterPost()
 	lastDrawWaterPostFrame = spGetGameFrame()
+	lastDrawWaterPostDrawFrame = spGetDrawFrame and spGetDrawFrame() or spGetGameFrame()
 
 	if not useDrawWaterPost then return end
-	if lastDrawWorldPreUnitFrame == spGetGameFrame() then return end
+	if lastDrawWorldPreUnitDrawFrame == lastDrawWaterPostDrawFrame then return end
 	MaybeLogDrawModeChange("waterpost", "using DrawWaterPost")
 
 	local mapDrawMode = spGetMapDrawMode()

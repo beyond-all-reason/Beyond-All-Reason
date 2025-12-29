@@ -4755,6 +4755,23 @@ function init()
 		{ id = "label_teamcolors", group = "accessibility", name = Spring.I18N('ui.settings.option.label_teamcolors'), category = types.basic },
 		{ id = "label_teamcolors_spacer", group = "accessibility", category = types.basic },
 
+		-- Dev note: this uses the engine's DrawWaterPost pass to avoid water distortion and draw-order issues.
+		-- The 2025-01 Recoil engine supports DrawWaterPost.
+		{ id = "metalspots_drawwaterpost", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   High Visibility Metal Spots", type = "bool", value = (WG['metalspots'] ~= nil and WG['metalspots'].getUseDrawWaterPost ~= nil and WG['metalspots'].getUseDrawWaterPost()) or true, description = "Removes water distortion effects and helps ensure metal spot markers are not blocked.",
+		  onload = function(i)
+			  loadWidgetData("Metalspots", "metalspots_drawwaterpost", { 'useDrawWaterPost' })
+			  if WG['metalspots'] and WG['metalspots'].getUseDrawWaterPost then
+				  options[i].value = WG['metalspots'].getUseDrawWaterPost()
+			  end
+		  end,
+		  onchange = function(i, value)
+			  if WG['metalspots'] and WG['metalspots'].setUseDrawWaterPost then
+				  WG['metalspots'].setUseDrawWaterPost(value)
+			  end
+			  saveOptionValue('Metalspots', 'metalspots', 'setUseDrawWaterPost', { 'useDrawWaterPost' }, options[getOptionByID('metalspots_drawwaterpost')].value)
+		  end,
+		},
+
 
 		{ id = "anonymous_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.anonymous_r'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("anonymousColorR", 255)), description = Spring.I18N('ui.settings.option.anonymous_descr'),
 		  onchange = function(i, value, force)
@@ -5201,20 +5218,6 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetMapRenderingParams({ voidWater = value })
-		  end,
-		},
-		{ id = "metalspots_drawwaterpost", group = "dev", category = types.dev, name = widgetOptionColor .. "   Metalspots post-water labels", type = "bool", value = (WG['metalspots'] ~= nil and WG['metalspots'].getUseDrawWaterPost ~= nil and WG['metalspots'].getUseDrawWaterPost()) or true, description = "Draw metal spot labels after the water pass to avoid distortion (requires DrawWaterPost-capable engine). Disable to force legacy draw order.",
-		  onload = function(i)
-			  loadWidgetData("Metalspots", "metalspots_drawwaterpost", { 'useDrawWaterPost' })
-			  if WG['metalspots'] and WG['metalspots'].getUseDrawWaterPost then
-				  options[i].value = WG['metalspots'].getUseDrawWaterPost()
-			  end
-		  end,
-		  onchange = function(i, value)
-			  if WG['metalspots'] and WG['metalspots'].setUseDrawWaterPost then
-				  WG['metalspots'].setUseDrawWaterPost(value)
-			  end
-			  saveOptionValue('Metalspots', 'metalspots', 'setUseDrawWaterPost', { 'useDrawWaterPost' }, options[getOptionByID('metalspots_drawwaterpost')].value)
 		  end,
 		},
 		{ id = "map_voidground", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.map_voidground'), type = "bool", value = false, description = "",
