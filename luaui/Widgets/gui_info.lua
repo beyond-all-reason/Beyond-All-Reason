@@ -1043,6 +1043,13 @@ local function drawSelection()
 		local unitID = unitsToCheck[i]
 		local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(unitID)
 		if metalMake then
+			local pairedID = spGetUnitRulesParam(unitID, "pairedUnitID")
+			if pairedID then
+				local mm, mu, em, eu = spGetUnitResources(pairedID)
+				if mm then
+					metalMake, metalUse, energyMake, energyUse = metalMake + mm, metalUse + mu, energyMake + em, energyUse + eu
+				end
+			end
 			totalMetalMake = totalMetalMake + metalMake
 			totalMetalUse = totalMetalUse + metalUse
 			totalEnergyMake = totalEnergyMake + energyMake
@@ -1319,6 +1326,13 @@ local function drawUnitInfo()
 	if displayUnitID then
 		local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
 		if metalMake then
+			local pairedID = spGetUnitRulesParam(displayUnitID, "pairedUnitID")
+			if pairedID then
+				local mm, mu, em, eu = spGetUnitResources(pairedID)
+				if mm then
+					metalMake, metalUse, energyMake, energyUse = metalMake + mm, metalUse + mu, energyMake + em, energyUse + eu
+				end
+			end
 			valueY1 = (metalMake > 0 and valuePlusColor .. '+' .. (metalMake < 10 and round(metalMake, 1) or round(metalMake, 0)) .. ' ' or '') .. (metalUse > 0 and valueMinColor .. '-' .. (metalUse < 10 and round(metalUse, 1) or round(metalUse, 0)) or '')
 			valueY2 = (energyMake > 0 and valuePlusColor .. '+' .. (energyMake < 10 and round(energyMake, 1) or round(energyMake, 0)) .. ' ' or '') .. (energyUse > 0 and valueMinColor .. '-' .. (energyUse < 10 and round(energyUse, 1) or round(energyUse, 0)) or '')
 			valueY3 = ''
