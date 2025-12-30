@@ -1933,7 +1933,7 @@ local unitGrids = {
 	leghaca = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "legmohocon", "legrampart"},               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "legmohocon", "legrampart"},               -- T2 converter, T2 geo, nano max, fortified geo
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
