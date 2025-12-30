@@ -73,8 +73,8 @@ local CommandSoundEffects = {
 	[CMD.DGUN]			= {'cmd-dgun', 0.6},
 	[CMD.MOVE]			= {'cmd-move-supershort', 0.4},
 	[-1]				= {'cmd-build', 0.5},	-- build (cmd < 0 == -unitdefid)
-	[GameCMD.UNIT_SET_TARGET] = {'cmd-settarget', 0.3},
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = {'cmd-settarget', 0.3},
+	[GameCMD.UNIT_SET_TARGET] = {'cmd-settarget', 0.7},
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = {'cmd-settarget', 0.7},
 	[GameCMD.WANT_CLOAK] = {
 		on = {'cmd-on', 0.4},
 		off = {'cmd-off', 0.3},
