@@ -2500,7 +2500,7 @@ function widget:KeyPress(key, modifier, isRepeat)
 			return true
 		elseif useLabBuildMode and labBuildModeActive then
 			setLabBuildMode(false)
-			refreshCommands()
+			updateGrid()
 			return true
 		end
 	end
