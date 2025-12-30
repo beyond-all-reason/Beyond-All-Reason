@@ -1120,7 +1120,7 @@ local function gridmenuCategoryHandler(_, _, args)
 	if builderIsFactory and useLabBuildMode and not labBuildModeActive then
 		Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 		setLabBuildMode(true)
-		updateGrid()
+		refreshCommands()
 		return true
 	end
 
@@ -1239,7 +1239,7 @@ local function nextPageHandler()
 	end
 	currentPage = currentPage == pages and 1 or currentPage + 1
 
-	updateGrid()
+	refreshCommands()
 end
 
 ---Set active builder based on index in selectedBuilders
