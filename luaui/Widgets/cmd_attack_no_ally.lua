@@ -58,7 +58,8 @@ function widget:MousePress(x, y, button)
 		local _, activeCmdID = Spring.GetActiveCommand()
 		if activeCmdID and hasRightClickAttack[activeCmdID] then
 			local targetType, targetID = Spring.TraceScreenRay(x, y, false)
-			if targetType == "unit" and Spring.IsUnitAllied(targetID) then
+			--Changed to always cancel attack command on RMB, does not check for allied or enemy units
+			if targetType == "unit" then --and Spring.IsUnitAllied(targetID) then
 				Spring.SetActiveCommand(nil)
 				rmbCancelPending = false
 				return true
