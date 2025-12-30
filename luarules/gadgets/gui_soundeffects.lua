@@ -73,11 +73,11 @@ local CommandSoundEffects = {
 	[CMD.DGUN]			= {'cmd-dgun', 0.6},
 	[CMD.MOVE]			= {'cmd-move-supershort', 0.4},
 	[-1]				= {'cmd-build', 0.5},	-- build (cmd < 0 == -unitdefid)
-	[GameCMD.UNIT_SET_TARGET] = {'cmd-settarget', 0.15},
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = {'cmd-settarget', 0.15},
+	[GameCMD.UNIT_SET_TARGET] = {'cmd-settarget', 0.3},
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = {'cmd-settarget', 0.3},
 	[GameCMD.WANT_CLOAK] = {
-		on = {"sounds/commands/cmd-on.wav", 0.4},
-		off = {"sounds/commands/cmd-off.wav", 0.3},
+		on = {'cmd-on', 0.4},
+		off = {'cmd-off', 0.3},
 	},
 
 	--[CMD.ONOFF]			= {'cmd-onoff', 0.8},
@@ -88,7 +88,6 @@ local CommandSoundEffects = {
 local CMD_MOVE = CMD.MOVE
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
 local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
-local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
 local CMD_WANT_CLOAK = GameCMD.WANT_CLOAK
 
 VFS.Include('luarules/configs/gui_soundeffects.lua')
@@ -139,16 +138,11 @@ local units = {}
 local unitsTeam = {}
 local unitsAllyTeam = {}
 
-local function playSetTargetSound()
-	if CurrentGameFrame >= SetTargetSoundDelayLastFrame + CommandUISoundDelayFrames then
-		local soundDef = CommandSoundEffects[CMD_UNIT_SET_TARGET]
-			or {"sounds/commands/cmd-settarget.wav", 0.15}
-		Spring.PlaySoundFile(soundDef[1], soundDef[2], 'ui')
-		SetTargetSoundDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization, DelayRandomization))
-	end
+local function pickSound(sound)
+	return type(sound) == "string" and sound or sound[math_random(1, #sound)]
 end
 
-local function handleSetTargetSound(_, teamID, playerID)
+local function handleSetTargetSound(_, teamID, playerID, unitID)
 	if playerID ~= spGetMyPlayerID() then
 		if playerID ~= nil and playerID ~= -1 then
 			return
@@ -158,11 +152,42 @@ local function handleSetTargetSound(_, teamID, playerID)
 		end
 	end
 	CurrentGameFrame = spGetGameFrame()
-	playSetTargetSound()
-end
-
-local function pickSound(sound)
-	return type(sound) == "string" and sound or sound[math_random(1, #sound)]
+	if CurrentGameFrame >= SetTargetSoundDelayLastFrame + CommandUISoundDelayFrames then
+		local soundDef = CommandSoundEffects[CMD_UNIT_SET_TARGET]
+		if soundDef then
+			spPlaySoundFile(soundDef[1], soundDef[2], 'ui')
+			SetTargetSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization, DelayRandomization))
+		end
+	end
+	if CurrentGameFrame >= CommandUnitSoundDelayLastFrame + CommandUnitSoundDelayFrames then
+		local unitDefID
+		if unitID and spIsUnitSelected(unitID) then
+			unitDefID = spGetUnitDefID(unitID)
+		end
+		if (not unitDefID) or (not GUIUnitSoundEffects[unitDefID]) then
+			local selectedUnitCount = spGetSelectedUnitsCount()
+			if selectedUnitCount > 0 then
+				local selUnits = spGetSelectedUnits()
+				unitDefID = spGetUnitDefID(selUnits[math_random(1, #selUnits)])
+				unitID = selUnits[math_random(1, #selUnits)]
+			end
+		end
+		if unitID and unitDefID and GUIUnitSoundEffects[unitDefID] then
+			local posx, posy, posz = spGetUnitPosition(unitID)
+			if posx then
+				if GUIUnitSoundEffects[unitDefID].BaseSoundMovementType then
+					local sound = GUIUnitSoundEffects[unitDefID].BaseSoundMovementType
+					spPlaySoundFile(pickSound(sound), 0.8, posx, posy, posz, 'sfx')
+					CommandUnitSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
+				end
+				if GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType then
+					local sound = GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType
+					spPlaySoundFile(pickSound(sound), 0.2, posx, posy, posz, 'sfx')
+					CommandUnitSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
+				end
+			end
+		end
+	end
 end
 
 local function PlaySelectSound(unitID)
@@ -429,8 +454,8 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 			local ValidCommandSound = false
 
 			if CurrentGameFrame >= CommandUISoundDelayLastFrame + CommandUISoundDelayFrames then
---allows two different cloak sounds for on and off
 				if CommandSoundEffects[cmdID] then
+					--allows two different cloak sounds for on and off
 					if cmdID == CMD_WANT_CLOAK and cmdParams and cmdParams[1] ~= nil then
 						if cmdParams[1] == 1 then
 							spPlaySoundFile(CommandSoundEffects[cmdID].on[1], CommandSoundEffects[cmdID].on[2], 'ui')
@@ -444,9 +469,6 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 					end
 					CommandUISoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization, DelayRandomization))
 					ValidCommandSound = true
-					if cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_NO_GROUND then
-						ValidCommandSound = false
-					end
 
 				elseif cmdID < 0 then	-- unit build
 					local buildingDefID = -cmdID

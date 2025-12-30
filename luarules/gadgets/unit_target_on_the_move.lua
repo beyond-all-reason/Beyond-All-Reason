@@ -666,7 +666,7 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.Message(string.format("Allowcommand params %s %s", table.toString(cmdOptions), table.toString(cmdParams)))
 		if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE then
 			if not (cmdOptions and cmdOptions.internal) then
-				SendToUnsynced("settarget_sound", teamID, playerID) --used to send trigger to gui_soundeffects.lua  (for Sfx)
+				SendToUnsynced("settarget_sound", teamID, playerID, unitID) -- triggers gui_soundeffects.lua to play set-target sounds
 			end
 		end
 		if spGetUnitCommandCount(unitID) == 0 or not cmdOptions.meta then
