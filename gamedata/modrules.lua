@@ -127,6 +127,15 @@ local modrules = {
 	damage = {
 		debris = 0, -- body parts flying off dead units
 	},
+
+	guard = {
+		guardRecalculateThreshold = 100.0,    -- Distance that a guardee must move before the guard goal is recalculated
+		guardStoppedProximityGoal = 50.0,     -- Distance that a guardian will stop at nearing a stopped guardee
+		guardStoppedExtraDistance = 100.0,    -- The extra distance a guardian will keep from a stopped guardee
+		guardMovingProximityGoal = 200.0,     -- Distance the guardian is considered to be in guarding range and will match the velocity
+		guardMovingIntervalMultiplier = 2.13, -- A multiplier for the moving goal while guarding, smaller values will result in higher detail movement but more performance cost
+		guardInterceptionLimit = 128.0,       -- Limit for the intercept when a guardian is not in guarding range
+	},
 }
 
 return modrules
