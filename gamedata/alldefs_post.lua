@@ -1750,6 +1750,8 @@ function WeaponDef_Post(name, wDef)
 		isXmas = Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"]
 	end
 
+	wDef.customparams = wDef.customparams or {}
+
 	if not SaveDefsToCustomParams then
 		-------------- EXPERIMENTAL MODOPTIONS
 
@@ -1862,7 +1864,6 @@ function WeaponDef_Post(name, wDef)
 
 			if wDef.damage ~= nil then
 				-- Due to the engine not handling overkill damage, we have to store the original shield damage values as a customParam for unit_shield_behavior.lua to reference
-				wDef.customparams = wDef.customparams or {}
 				if wDef.damage.shields then
 					wDef.customparams.shield_damage = wDef.damage.shields
 				elseif wDef.damage.default then
@@ -1899,7 +1900,6 @@ function WeaponDef_Post(name, wDef)
 			end
 
 			if ((not wDef.interceptedbyshieldtype or wDef.interceptedbyshieldtype ~= 1) and wDef.weapontype ~= "Cannon") then
-				wDef.customparams = wDef.customparams or {}
 				wDef.customparams.shield_aoe_penetration = true
 			end
 
@@ -1931,6 +1931,9 @@ function WeaponDef_Post(name, wDef)
 		end
 		----------------------------------------
 
+		-- Target borders of unit hitboxes rather than center (-1 = far border, 0 = center, 1 = near border)
+		-- wDef.targetborder = 1.0
+
 		--Controls whether the weapon aims for the center or the edge of its target's collision volume. Clamped between -1.0 - target the far border, and 1.0 - target the near border.
 		if wDef.targetborder == nil then
 			wDef.targetborder = 1 --Aim for just inside the hitsphere
@@ -1940,12 +1943,17 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
+		-- Prevent weapons from aiming only at auto-generated targets beyond their own range.
+		if wDef.proximitypriority then
+			local range = math.max(wDef.range or 10, 1) -- prevent div0 -- todo: account for multiplier_weaponrange
+			local rangeBoost = math.max(range + ((wDef.customparams.exclude_preaim and 0) or (wDef.customparams.preaim_range or math.max(range * 0.1, 20))), range) -- see unit_preaim
+			local proximity = math.max(wDef.proximitypriority, (-0.4 * rangeBoost - 100) / range) -- see CGameHelper::GenerateWeaponTargets
+			wDef.proximitypriority = math.clamp(proximity, -1, 10) -- upper range allowed for targeting weapons for drone bombers which can overrange massively
+		end
+
 		if wDef.craterareaofeffect then
 			wDef.cratermult = (wDef.cratermult or 0) + wDef.craterareaofeffect / 2000
 		end
-
-		-- Target borders of unit hitboxes rather than center (-1 = far border, 0 = center, 1 = near border)
-		-- wDef.targetborder = 1.0
 
 		if wDef.weapontype == "Cannon" then
 			if not wDef.model then
@@ -2045,13 +2053,11 @@ function WeaponDef_Post(name, wDef)
 		if wDef.weapontype == "StarburstLauncher" and wDef.weapontimer then
 			wDef.weapontimer = wDef.weapontimer + (wDef.weapontimer * ((rangeMult - 1) * 0.4))
 		end
-		if wDef.customparams then
-			if wDef.customparams.overrange_distance then
-				wDef.customparams.overrange_distance = wDef.customparams.overrange_distance * rangeMult
-			end
-			if wDef.customparams.preaim_range then
-				wDef.customparams.preaim_range = wDef.customparams.preaim_range * rangeMult
-			end
+		if wDef.customparams.overrange_distance then
+			wDef.customparams.overrange_distance = wDef.customparams.overrange_distance * rangeMult
+		end
+		if wDef.customparams.preaim_range then
+			wDef.customparams.preaim_range = wDef.customparams.preaim_range * rangeMult
 		end
 	end
 
