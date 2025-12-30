@@ -1655,7 +1655,7 @@ local unitGrids = {
 	legack = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "legmohocon", },               -- T2 converter, T2 geo, armed moho
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
@@ -1725,7 +1725,7 @@ local unitGrids = {
 	legacv = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "legmohocon", },               -- T2 converter, T2 geo, armed moho
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
@@ -1794,7 +1794,7 @@ local unitGrids = {
 	legaca = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp","leganavaladvgeo", },               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "legmohocon","leganavaladvgeo", },               -- T2 converter, T2 geo, armed moho
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
@@ -1933,7 +1933,7 @@ local unitGrids = {
 	leghaca = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", "legrampart"},               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "legmohocon", "legrampart"},               -- T2 converter, T2 geo, armed moho
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
@@ -2002,7 +2002,7 @@ local unitGrids = {
 	leghack = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", "legrampart"},               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "legmohocon", "legrampart"},               -- T2 converter, T2 geo, armed moho
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
@@ -2071,7 +2071,7 @@ local unitGrids = {
 	leghacv = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", "legrampart"},               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "legmohocon", "legrampart"},               -- T2 converter, T2 geo, armed moho
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{

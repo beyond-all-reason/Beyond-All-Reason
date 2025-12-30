@@ -676,11 +676,10 @@ function UnitDef_Post(name, uDef)
 		-- Legion T2 Land Constructors
 		if name == "legaca" or name == "legack" or name == "legacv" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "legmohocon" -- Advanced Metal Fortifier - Metal Extractor with Constructor Turret
-			uDef.buildoptions[numBuildoptions + 2] = "legwint2" -- T2 Wind Generator
-			uDef.buildoptions[numBuildoptions + 3] = "legnanotct2" -- T2 Constructor Turret
-			uDef.buildoptions[numBuildoptions + 4] = "legrwall" -- Dragon's Constitution - T2 (not Pop-up) Wall Turret
-			uDef.buildoptions[numBuildoptions + 5] = "leggatet3" -- Elysium - Advanced Shield Generator
+			uDef.buildoptions[numBuildoptions + 1] = "legwint2" -- T2 Wind Generator
+			uDef.buildoptions[numBuildoptions + 2] = "legnanotct2" -- T2 Constructor Turret
+			uDef.buildoptions[numBuildoptions + 3] = "legrwall" -- Dragon's Constitution - T2 (not Pop-up) Wall Turret
+			uDef.buildoptions[numBuildoptions + 4] = "leggatet3" -- Elysium - Advanced Shield Generator
 		end
 
 		-- Legion T2 Sea Constructors
