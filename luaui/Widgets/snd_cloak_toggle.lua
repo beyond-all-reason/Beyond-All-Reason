@@ -13,10 +13,11 @@ function widget:GetInfo()
 end
 
 local CMD_WANT_CLOAK = GameCMD.WANT_CLOAK
-
+--SFX modified from https://mixkit.co/free-sound-effects/click/
+--free sound license, https://mixkit.co/terms/
 local SOUND_CLOAK_ON = "LuaUI/Sounds/cloak_on.wav"
 local SOUND_CLOAK_OFF = "LuaUI/Sounds/cloak_off.wav"
-local SOUND_VOLUME = 0.2
+local SOUND_VOLUME = 0.1
 local SOUND_CHANNEL = "ui"
 
 function widget:CommandNotify(cmdID, cmdParams)

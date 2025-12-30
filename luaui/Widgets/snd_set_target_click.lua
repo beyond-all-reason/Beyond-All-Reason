@@ -15,7 +15,7 @@ end
 local CMD_SET_TARGET = GameCMD.UNIT_SET_TARGET
 local CMD_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
 --File "click3" used from https://mixkit.co/free-sound-effects/click/
---free sound liscense, https://mixkit.co/terms/
+--free sound license, https://mixkit.co/terms/
 
 local SOUND_FILE = "luaui/sounds/click3.wav"
 local SOUND_VOLUME = 0.15
