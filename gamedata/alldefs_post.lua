@@ -1751,6 +1751,8 @@ function WeaponDef_Post(name, wDef)
 		isXmas = Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"]
 	end
 
+	wDef.customparams = wDef.customparams or {}
+
 	if not SaveDefsToCustomParams then
 		-------------- EXPERIMENTAL MODOPTIONS
 
@@ -1863,7 +1865,6 @@ function WeaponDef_Post(name, wDef)
 
 			if wDef.damage ~= nil then
 				-- Due to the engine not handling overkill damage, we have to store the original shield damage values as a customParam for unit_shield_behavior.lua to reference
-				wDef.customparams = wDef.customparams or {}
 				if wDef.damage.shields then
 					wDef.customparams.shield_damage = wDef.damage.shields
 				elseif wDef.damage.default then
@@ -1900,7 +1901,6 @@ function WeaponDef_Post(name, wDef)
 			end
 
 			if ((not wDef.interceptedbyshieldtype or wDef.interceptedbyshieldtype ~= 1) and wDef.weapontype ~= "Cannon") then
-				wDef.customparams = wDef.customparams or {}
 				wDef.customparams.shield_aoe_penetration = true
 			end
 
@@ -2046,13 +2046,11 @@ function WeaponDef_Post(name, wDef)
 		if wDef.weapontype == "StarburstLauncher" and wDef.weapontimer then
 			wDef.weapontimer = wDef.weapontimer + (wDef.weapontimer * ((rangeMult - 1) * 0.4))
 		end
-		if wDef.customparams then
-			if wDef.customparams.overrange_distance then
-				wDef.customparams.overrange_distance = wDef.customparams.overrange_distance * rangeMult
-			end
-			if wDef.customparams.preaim_range then
-				wDef.customparams.preaim_range = wDef.customparams.preaim_range * rangeMult
-			end
+		if wDef.customparams.overrange_distance then
+			wDef.customparams.overrange_distance = wDef.customparams.overrange_distance * rangeMult
+		end
+		if wDef.customparams.preaim_range then
+			wDef.customparams.preaim_range = wDef.customparams.preaim_range * rangeMult
 		end
 	end
 
