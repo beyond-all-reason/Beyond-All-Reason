@@ -2357,6 +2357,46 @@ local unitLights = {
 							lifetime = 0, sustain = 0, selfshadowing = 0},
 		},
 	},
+	['legmohoconct'] = {
+		nanolight1 = {
+			lightType = 'point',
+			pieceName = 'nano1',
+			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 33,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.4,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+		nanolight2 = {
+			lightType = 'point',
+			pieceName = 'nano2',
+			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 33,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.4,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+	},
+	['legmohocon'] = {
+		nanolight1 = {
+			lightType = 'point',
+			pieceName = 'nano1',
+			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 33,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.4,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+		nanolight2 = {
+			lightType = 'point',
+			pieceName = 'nano2',
+			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 33,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.4,
+							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
+	},
 	['legnanotcplat'] = {
 		nanolight = {
 			lightType = 'point',
