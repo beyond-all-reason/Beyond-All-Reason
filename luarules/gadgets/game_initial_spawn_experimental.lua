@@ -2,7 +2,7 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = 'Initial Spawn Experimental',
+		name = 'Initial Spawn',
 		desc = 'Handles initial spawning of units',
 		author = 'Niobium, nbusseneau, SethDGamre',
 		version = 'v2.0',
@@ -12,11 +12,6 @@ function gadget:GetInfo()
 		enabled = true
 	}
 end
-
-if not Spring.GetModOptions().experimental_ai_spawns then
-	return false
-end
-
 
 -- Note: (31/03/13) coop_II deals with the extra startpoints etc needed for teamsIDs with more than one playerID.
 
