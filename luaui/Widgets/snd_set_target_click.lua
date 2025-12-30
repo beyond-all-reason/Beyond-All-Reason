@@ -20,9 +20,25 @@ local CMD_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
 local SOUND_FILE = "luaui/sounds/click3.wav"
 local SOUND_VOLUME = 0.15
 local SOUND_CHANNEL = "ui"
+local spGetGameFrame = Spring.GetGameFrame
+local lastPlayedFrame = -1
+
+local function playSetTargetSound()
+	local frame = spGetGameFrame()
+	if frame ~= lastPlayedFrame then
+		lastPlayedFrame = frame
+		Spring.PlaySoundFile(SOUND_FILE, SOUND_VOLUME, SOUND_CHANNEL)
+	end
+end
 
 function widget:CommandNotify(cmdID)
 	if cmdID == CMD_SET_TARGET or cmdID == CMD_SET_TARGET_NO_GROUND then
-		Spring.PlaySoundFile(SOUND_FILE, SOUND_VOLUME, SOUND_CHANNEL)
+		playSetTargetSound()
+	end
+end
+
+function widget:UnitCommandNotify(unitID, cmdID)
+	if cmdID == CMD_SET_TARGET or cmdID == CMD_SET_TARGET_NO_GROUND then
+		playSetTargetSound()
 	end
 end
