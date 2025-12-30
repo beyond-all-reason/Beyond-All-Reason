@@ -469,7 +469,7 @@ function gadget:Initialize()
     local immunities = { all = areaDamageTypes, none = {} }
     for unitDefID, unitDef in ipairs(UnitDefs) do
         local unitImmunity
-        if unitDef.canFly or unitDef.armorType == Game.armorTypes.indestructible then
+        if unitDef.isSubmarine or unitDef.canFly or unitDef.armorType == Game.armorTypes.indestructible then
             unitImmunity = immunities.all
         elseif unitDef.customParams.areadamageresistance == nil then
             unitImmunity = immunities.none
