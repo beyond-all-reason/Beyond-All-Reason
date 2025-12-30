@@ -74,14 +74,14 @@ local function swapMex(unitID, unitDefID, unitTeam)
 			Spring.SetUnitNeutral(nano_id, true)
 		end
 		Spring.UnitAttach(imex_id,nano_id,6)																-- attaches con to imex
+		Spring.SetUnitRulesParam(nano_id, "pairedUnitID", imex_id)
 		Spring.SetUnitHealth(nano_id, health)																-- sets con health to be the same as mex
 
 		if extractMetal then
 			-- moves the metal extraction from imex to turret.
-			-- I do not understand this. Why would it work like this. But okay.
 			Spring.SetUnitResourcing(nano_id, "umm", (extractMetal + orgExtractMetal))
 			Spring.SetUnitResourcing(imex_id, "umm", (-extractMetal - orgExtractMetal))
-			Spring.SetUnitStealth (nano_id, true) 
+			Spring.SetUnitStealth (nano_id, true)
 		end
 
 		mexesToSwap[unitID] = nil
