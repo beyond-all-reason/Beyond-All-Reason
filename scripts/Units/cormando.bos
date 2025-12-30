@@ -332,7 +332,7 @@ Deploy(heading, pitch)
 {
 	deploy_state = DEPLOYING;
 	move turret to y-axis [5.5] speed [20.0];
-	turn turret to y-axis heading - torsoRotation speed <450.0>;
+	turn turret to y-axis heading - torsoRotation speed <300.0>;
 	turn sleeve to x-axis <270.0>-pitch speed <225>;
 	wait-for-move turret along y-axis;
 	wait-for-turn turret around y-axis;
@@ -343,7 +343,7 @@ Deploy(heading, pitch)
 Undeploy()
 {
 	deploy_state = NOT_DEPLOYED;
-	turn turret to y-axis <0.0> speed <450.0>;
+	turn turret to y-axis <0.0> speed <300.0>;
 	turn sleeve to x-axis <0.0> speed <225>;
 	move turret to y-axis [0.0] speed [20.0];
 	wait-for-move turret along y-axis;
