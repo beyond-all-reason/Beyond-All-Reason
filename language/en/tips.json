@@ -70,6 +70,8 @@
 			"respawningCommanders/EnemyCommanderTransposed": "Enemy Commander Transposed",
 			"respawningCommanders/CommanderEffigyLost": "Commander Effigy Lost",
 			"comHeavyDamage": "Commander, Taking Heavy Damage!",
+			"allyRequestEnergy": "Allied Commander, Requesting Energy",
+			"allyRequestMetal": "Allied Commander, Requesting Metal",
 			"teamDownLastCommander": "Warning! Your Team Is Down To Its Last Commander",
 			"youHaveLastCommander": "Warning! You Are The Last Commander Of Your Team!",
 			"enemyTeamEliminated": "Enemy Eliminated",
