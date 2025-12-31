@@ -467,6 +467,7 @@ local unitOrderTable = {
 	-- ANTINUKES
 	['armscab']        = 020000,
 	['cormabm']        = 020010,
+	['legavantinuke']  = 020011,
 
 	['armcarry']      				= 020100,
 	['armantiship']	  				= 020101,

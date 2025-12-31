@@ -71,7 +71,7 @@ local labGrids = {
 		"legavrad", "legavjam", "legaheattank", "leginf",        -- radar, jammer, prometheus, inferno
 		"legmrv", "legfloat", "legvflak", "legmed",            -- Quickshot, new triton, AA, boreas
 		-- page2
-		"legvcarry", "legavroc", "cormabm",					-- mantis, chiron, veh antinuke
+		"legvcarry", "legavroc", "legavantinuke",					-- mantis, chiron, veh antinuke
 	},
 	-- T1 air
 	armap = {
@@ -306,7 +306,7 @@ local labGrids = {
 	leghavp = {
 		"leghacv", "", "legmrv", "legavjam",
 		"leginf", "legmed", "legaheattank", "",
-		"cormabm", "legehovertank", "legvflak", "legavroc",
+		"legavantinuke", "legehovertank", "legvflak", "legavroc",
 	},
 }
 
