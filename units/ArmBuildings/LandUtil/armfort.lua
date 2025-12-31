@@ -32,6 +32,7 @@ return {
 		selfdestructas = "WallExplosionMetal",
 		selfdestructcountdown = 1,
 		sightdistance = 1,
+		stealth = false,
 		yardmap = "ffff",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,

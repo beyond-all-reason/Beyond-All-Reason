@@ -34,7 +34,7 @@ return {
 		upright = true,
 		yardmap = "ffff",
 		customparams = {
-			neutral_when_closed = true,
+			decoy_when_closed = true,
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legdrag_aoplane.dds",
 			buildinggrounddecalsizey = 4,
@@ -49,7 +49,6 @@ return {
 		},
 		featuredefs = {
 			dead = {
-				autoreclaimable = 0,
 				blocking = true,
 				category = "corpses",
 				collisionvolumeoffsets = "0.0 0.0149960864258 0.116882324219",

@@ -35,7 +35,7 @@ return {
 		upright = true,
 		yardmap = "ffff",
 		customparams = {
-			neutral_when_closed = true,
+			decoy_when_closed = true,
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armfort_aoplane.dds",
 			buildinggrounddecalsizey = 4,
@@ -51,7 +51,6 @@ return {
 		},
 		featuredefs = {
 			dead = {
-				autoreclaimable = 0,
 				blocking = true,
 				category = "corpses",
 				collisionvolumeoffsets = "0 -3 0",
