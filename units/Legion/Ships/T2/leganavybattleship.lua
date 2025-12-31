@@ -7,6 +7,7 @@ return {
 		collisionvolumeoffsets = "0 -15 -2",
 		collisionvolumescales = "48 48 120",
 		collisionvolumetype = "CylZ",
+		usePieceCollisionVolumes = true,
 		corpse = "DEAD",
 		energycost = 21000,
 		explodeas = "hugeexplosiongeneric",
