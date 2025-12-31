@@ -223,6 +223,7 @@ local armorDefs = {
 		"corlab",
 		"corllt",
 		"cormabm",
+		"legavantinuke",
 		"cormakr",
 		"cormart",
 		"cormaw",
