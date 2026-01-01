@@ -101,7 +101,6 @@ local function processWeapons(unitDefName, unitDef)
 					if weapon.def:lower() == weaponDefName:lower()
 						and not weapon.slaveto
 						and not weapon.weaponaimadjustpriority
-						and not weapon.weaponAimAdjustPriority -- FIXME: use standard defs casing
 					then
 						weapon.weaponaimadjustpriority = priority
 					end

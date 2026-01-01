@@ -236,7 +236,7 @@ return {
 				onlytargetcategory = "SURFACE",
 				fastautoretargeting = true,
 				burstControlWhenOutOfArc = 2,
-				weaponAimAdjustPriority = 125,
+				weaponaimadjustpriority = 125,
 			},
 			--[2] = {--not used directly, silent version for animation reasons
 				--badtargetcategory = "VTOL GROUNDSCOUT",
@@ -246,7 +246,7 @@ return {
 				--onlytargetcategory = "SURFACE",
 				--fastautoretargeting = true,
 				--burstControlWhenOutOfArc = 2,
-				--weaponAimAdjustPriority = 125,
+				--weaponaimadjustpriority = 125,
 			--},
 		},
 	},

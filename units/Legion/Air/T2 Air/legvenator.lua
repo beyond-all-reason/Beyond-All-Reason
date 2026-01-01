@@ -125,7 +125,7 @@ return {
 				maindir = "0 0 1",
 				maxangledif = 25,
 				fastautoretargeting = true,
-				weaponAimAdjustPriority = 20,
+				weaponaimadjustpriority = 20,
 			},
 		},
 	},
