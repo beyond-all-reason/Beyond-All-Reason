@@ -19,7 +19,7 @@ local hasRightClickAttack = {
 local rmbCancelPending = false
 local rmbDragTracking = false
 local rmbDragged = false
-local rmbDragDistanceSq = 0
+local rmbStartX, rmbStartY = 0, 0
 local rmbDragThresholdSq = 0
 
 local function GetAllyTarget(cmdParams)
@@ -64,21 +64,20 @@ function widget:MousePress(x, y, button)
 			rmbCancelPending = true
 			rmbDragTracking = true
 			rmbDragged = false
-			rmbDragDistanceSq = 0
+			rmbStartX, rmbStartY = x, y
 			local dragThreshold = Spring.GetConfigInt("MouseDragFrontCommandThreshold") or 20
 			rmbDragThresholdSq = dragThreshold * dragThreshold
 		end
 	end
 	return false
 end
---check on update() was replaced as recommended, (was told it led to potential performance issues)
 function widget:MouseMove(x, y, dx, dy, button)
 	if not rmbDragTracking or button ~= 3 then
 		return false
 	end
 
-	rmbDragDistanceSq = rmbDragDistanceSq + (dx * dx) + (dy * dy)
-	if rmbDragDistanceSq >= rmbDragThresholdSq then
+	local distSq = (x - rmbStartX)^2 + (y - rmbStartY)^2
+	if distSq >= rmbDragThresholdSq then
 		rmbDragged = true
 	end
 	return false
@@ -93,13 +92,11 @@ function widget:MouseRelease(x, y, button)
 	if rmbDragged then
 		rmbCancelPending = false
 		rmbDragged = false
-		rmbDragDistanceSq = 0
 		return false
 	end
 
 	rmbCancelPending = false
 	rmbDragged = false
-	rmbDragDistanceSq = 0
 	return false
 end
 
@@ -111,7 +108,6 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 		rmbCancelPending = false
 		rmbDragTracking = false
 		rmbDragged = false
-		rmbDragDistanceSq = 0
 		Spring.SetActiveCommand(nil)
 		return true
 	end
