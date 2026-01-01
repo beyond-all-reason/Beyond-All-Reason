@@ -565,6 +565,34 @@ local function getAIName(teamID)
 	return Spring.I18N('ui.playersList.aiName', { name = name })
 end
 
+local lastMessage
+local badWords = {
+	"^retard[s]?$",
+	"^retarded$",
+}
+local function findBadWords(str)
+	str = string.lower(str)
+	for w in str:gmatch("%w+") do
+		for _, bw in ipairs(badWords) do
+			if sfind(w, bw) then
+				return w
+			end
+		end
+	end
+end
+
+local teamColorKeys = {}
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local r, g, b, a = spGetTeamColor(teams[i])
+	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+
+	if select(4, Spring.GetTeamInfo(teams[i], false)) then
+		playernames[getAIName(teams[i])] = true
+	end
+end
+teams = nil
+
 local function wordWrap(text, maxWidth, fontSize)
 	local lines = {}
 	local lineCount = 0
@@ -2157,7 +2185,14 @@ function widget:KeyPress(key)
 					if ssub(inputText, 1, 1) == '/' then
 						Spring.SendCommands(ssub(inputText, 2))
 					else
-						Spring.SendCommands("say "..inputMode..inputText)
+						local badWord = findBadWords(inputText)
+						if badWord ~= nil and inputText ~= lastMessage then
+							addChat(Spring.GetGameFrame(), LineTypes.System, "\255\255\000\000Moderation:",
+							'Words such as "' .. badWord .. '" can be against the Code of Conduct if they are being used to abuse other players. Please take a moment to reevaluate your intentions. If your message was blocked in error you can send it again to bypass the filter.', true)
+						else
+							Spring.SendCommands("say "..inputMode..inputText)
+						end
+						lastMessage = inputText
 					end
 				end
 				cancelChatInput()
