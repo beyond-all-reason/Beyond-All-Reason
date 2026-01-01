@@ -1506,8 +1506,8 @@ local options = {
         section = "options_experimental",
         items   = {
             { key = "disabled", name = "Disabled", desc = "No community balance changes", lock = {"community_balance_commando"} },
-            { key = "enabled",  name = "Enabled",  desc = "Enable all community balance changes", lock = {"community_balance_commando"} },
-            { key = "custom",   name = "Custom",   desc = "Enable custom balance changes", unlock = {"community_balance_commando"} },
+            { key = "enabled",  name = "Enabled",  desc = "Enable all community balance changes\nCommando\nTermite\nCenturion\nSprinter", lock = {"community_balance_commando"} },
+            { key = "custom",   name = "Custom",   desc = "Customize individual community balance changes", unlock = {"community_balance_commando", "community_balance_cortermite", "community_balance_armwar", "community_balance_armfast"} },
         }
     },
 
@@ -1515,6 +1515,33 @@ local options = {
         key     = "community_balance_commando",
         name    = "Commando",
         desc    = "Enable commando balance changes",
+        type    = "bool",
+        def     = true,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_cortermite",
+        name    = "Termite",
+        desc    = "Enable cortermite balance changes",
+        type    = "bool",
+        def     = true,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_armwar",
+        name    = "Centurion",
+        desc    = "Enable armwar balance changes",
+        type    = "bool",
+        def     = true,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_armfast",
+        name    = "Sprinter",
+        desc    = "Enable armfast balance changes",
         type    = "bool",
         def     = true,
         section = "options_experimental",

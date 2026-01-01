@@ -714,11 +714,117 @@ function UnitDef_Post(name, uDef)
 				local numBuildoptions = #uDef.buildoptions
 				uDef.buildoptions[numBuildoptions + 1] = "corak"
 				-- Allow targeting VTOL units
-				if uDef.weapons and uDef.weapons[1] then
-					uDef.weapons[1].onlytargetcategory = "SURFACE VTOL"
+				if uDef.weapons then
+					for weaponIndex, weaponDef in pairs(uDef.weapons) do
+						if weaponDef.def == "COMMANDO_BLASTER" then
+							weaponDef.onlytargetcategory = "SURFACE VTOL"
+						end
+					end
+				end
+				-- Replace weapon with corkarg missile properties
+				if uDef.weapondefs then
+					for weaponName, weaponDef in pairs(uDef.weapondefs) do
+						if weaponName == "commando_blaster" then
+							-- Replace with SUPER_MISSILE properties from corkarg
+							weaponDef.areaofeffect = 64
+							weaponDef.avoidfeature = false
+							weaponDef.castshadow = true
+							weaponDef.cegtag = "missiletrailsmall-simple"
+							weaponDef.craterareaofeffect = 0
+							weaponDef.craterboost = 0
+							weaponDef.cratermult = 0
+							weaponDef.explosiongenerator = "custom:genericshellexplosion-medium"
+							weaponDef.firestarter = 5
+							weaponDef.flighttime = 2.5
+							weaponDef.impulsefactor = 1
+							weaponDef.model = "cormissile2.s3o"
+							weaponDef.name = "KargMissile"
+							weaponDef.noselfdamage = true
+							weaponDef.range = 485
+							weaponDef.reloadtime = 1.4
+							weaponDef.smokecolor = 0.65
+							weaponDef.smokeperiod = 8.5
+							weaponDef.smokesize = 8.5
+							weaponDef.smoketime = 27
+							weaponDef.smoketrail = true
+							weaponDef.smoketrailcastshadow = false
+							weaponDef.soundhit = "xplosml2"
+							weaponDef.soundhitwet = "splssml"
+							weaponDef.soundstart = "rocklit1"
+							weaponDef.startvelocity = 180
+							weaponDef.texture1 = "null"
+							weaponDef.texture2 = "railguntrail"
+							weaponDef.tolerance = 15000
+							weaponDef.tracks = true
+							weaponDef.turnrate = 36400
+							weaponDef.turret = true
+							weaponDef.weaponacceleration = 550
+							weaponDef.weapontimer = 5
+							weaponDef.weapontype = "MissileLauncher"
+							weaponDef.weaponvelocity = 800
+							weaponDef.customparams = weaponDef.customparams or {}
+							weaponDef.customparams.overrange_distance = 530
+							weaponDef.customparams.projectile_destruction_method = "descend"
+							weaponDef.customparams.speceffect = "retarget"
+							weaponDef.damage = {
+								default = 150
+							}
+						end
+					end
 				end
 				-- Add EMP resistance
 				uDef.customparams.paralyzemultiplier = 0.5
+			end
+
+			local cortermiteEnabled = modOptions.community_balance_cortermite
+			if all or (custom and cortermiteEnabled) then
+				if name == "cortermite" then
+					uDef.stealth = true
+				end
+			end
+
+			local armwarEnabled = modOptions.community_balance_armwar
+			if all or (custom and armwarEnabled) then
+				if name == "armwar" then
+					-- Reduce weapon range by 5 (330 - 5 = 325)
+					if uDef.weapondefs then
+						for weaponName, weaponDef in pairs(uDef.weapondefs) do
+							if weaponDef.range then
+								weaponDef.range = 325
+							end
+						end
+					end
+					-- Reduce LoS by 20 (350 - 20 = 330)
+					if uDef.sightdistance then
+						uDef.sightdistance = 330
+					end
+				end
+			end
+
+			local armfastEnabled = modOptions.community_balance_armfast
+			if all or (custom and armfastEnabled) then
+				if name == "armfast" then
+					uDef.energycost = 3500
+					uDef.maxacc = 0.37
+					uDef.speed = 115
+					uDef.turninplaceanglelimit = 115
+					uDef.turninplacespeedlimit = 2.75
+					uDef.turnrate = 1320
+					uDef.sightdistance = 380
+					-- Modify weapon properties
+					if uDef.weapondefs then
+						for weaponName, weaponDef in pairs(uDef.weapondefs) do
+							if weaponName == "arm_fast" then
+								weaponDef.areaofeffect = 18
+								weaponDef.range = 230
+								weaponDef.damage = {
+									default = 15,
+									vtol = 5
+								}
+							end
+						end
+					end
+				end
 			end
 		end
 	end
@@ -1822,56 +1928,6 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
-		-- Community Balance Patch - Replace cormando's weapon with corkarg missile
-		if (modOptions.community_balance_patch == "enabled") or
-		   (modOptions.community_balance_patch == "custom" and modOptions.community_balance_commando) then
-			if name == 'cormando_commando_blaster' then
-				-- Replace with SUPER_MISSILE properties from corkarg
-				wDef.areaofeffect = 64
-				wDef.avoidfeature = false
-				wDef.castshadow = true
-				wDef.cegtag = "missiletrailsmall-simple"
-				wDef.craterareaofeffect = 0
-				wDef.craterboost = 0
-				wDef.cratermult = 0
-				wDef.explosiongenerator = "custom:genericshellexplosion-medium"
-				wDef.firestarter = 5
-				wDef.flighttime = 2.5
-				wDef.impulsefactor = 1
-				wDef.model = "cormissile2.s3o"
-				wDef.name = "KargMissile"
-				wDef.noselfdamage = true
-				wDef.range = 485
-				wDef.reloadtime = 1.4
-				wDef.smokecolor = 0.65
-				wDef.smokeperiod = 8.5
-				wDef.smokesize = 8.5
-				wDef.smoketime = 27
-				wDef.smoketrail = true
-				wDef.smoketrailcastshadow = false
-				wDef.soundhit = "xplosml2"
-				wDef.soundhitwet = "splssml"
-				wDef.soundstart = "rocklit1"
-				wDef.startvelocity = 180
-				wDef.texture1 = "null"
-				wDef.texture2 = "railguntrail"
-				wDef.tolerance = 15000
-				wDef.tracks = true
-				wDef.turnrate = 36400
-				wDef.turret = true
-				wDef.weaponacceleration = 550
-				wDef.weapontimer = 5
-				wDef.weapontype = "MissileLauncher"
-				wDef.weaponvelocity = 800
-				wDef.customparams = wDef.customparams or {}
-				wDef.customparams.overrange_distance = 530
-				wDef.customparams.projectile_destruction_method = "descend"
-				wDef.customparams.speceffect = "retarget"
-				wDef.damage = {
-					default = 150
-				}
-			end
-		end
 
 		--Air rework
 		if modOptions.air_rework == true then
