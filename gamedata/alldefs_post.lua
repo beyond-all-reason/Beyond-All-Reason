@@ -696,139 +696,6 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-- Community Balance Patch ------------------------------------------------------------------------------------------------------------------------
-	local communityBalancePatchDisabled = modOptions.community_balance_patch == "disabled"
-	if not communityBalancePatchDisabled then
-		local commandoEnabled = modOptions.community_balance_commando
-		local all = modOptions.community_balance_patch == "enabled"
-		local custom = modOptions.community_balance_patch == "custom"
-		if all or (custom and commandoEnabled) then
-			-- Add cormando to coramsub (amphibious cortex underwater factory) buildoptions
-			if name == "coramsub" then
-				local numBuildoptions = #uDef.buildoptions
-				uDef.buildoptions[numBuildoptions + 1] = "cormando"
-			end
-
-			if name == "cormando" then
-				uDef.workertime = 300
-				local numBuildoptions = #uDef.buildoptions
-				uDef.buildoptions[numBuildoptions + 1] = "corak"
-				-- Allow targeting VTOL units
-				if uDef.weapons then
-					for weaponIndex, weaponDef in pairs(uDef.weapons) do
-						if weaponDef.def == "COMMANDO_BLASTER" then
-							weaponDef.onlytargetcategory = "SURFACE VTOL"
-						end
-					end
-				end
-				-- Replace weapon with corkarg missile properties
-				if uDef.weapondefs then
-					for weaponName, weaponDef in pairs(uDef.weapondefs) do
-						if weaponName == "commando_blaster" then
-							-- Replace with SUPER_MISSILE properties from corkarg
-							weaponDef.areaofeffect = 64
-							weaponDef.avoidfeature = false
-							weaponDef.castshadow = true
-							weaponDef.cegtag = "missiletrailsmall-simple"
-							weaponDef.craterareaofeffect = 0
-							weaponDef.craterboost = 0
-							weaponDef.cratermult = 0
-							weaponDef.explosiongenerator = "custom:genericshellexplosion-medium"
-							weaponDef.firestarter = 5
-							weaponDef.flighttime = 2.5
-							weaponDef.impulsefactor = 1
-							weaponDef.model = "cormissile2.s3o"
-							weaponDef.name = "KargMissile"
-							weaponDef.noselfdamage = true
-							weaponDef.range = 485
-							weaponDef.reloadtime = 1.4
-							weaponDef.smokecolor = 0.65
-							weaponDef.smokeperiod = 8.5
-							weaponDef.smokesize = 8.5
-							weaponDef.smoketime = 27
-							weaponDef.smoketrail = true
-							weaponDef.smoketrailcastshadow = false
-							weaponDef.soundhit = "xplosml2"
-							weaponDef.soundhitwet = "splssml"
-							weaponDef.soundstart = "rocklit1"
-							weaponDef.startvelocity = 180
-							weaponDef.texture1 = "null"
-							weaponDef.texture2 = "railguntrail"
-							weaponDef.tolerance = 15000
-							weaponDef.tracks = true
-							weaponDef.turnrate = 36400
-							weaponDef.turret = true
-							weaponDef.weaponacceleration = 550
-							weaponDef.weapontimer = 5
-							weaponDef.weapontype = "MissileLauncher"
-							weaponDef.weaponvelocity = 800
-							weaponDef.customparams = weaponDef.customparams or {}
-							weaponDef.customparams.overrange_distance = 530
-							weaponDef.customparams.projectile_destruction_method = "descend"
-							weaponDef.customparams.speceffect = "retarget"
-							weaponDef.damage = {
-								default = 150
-							}
-						end
-					end
-				end
-				-- Add EMP resistance
-				uDef.customparams.paralyzemultiplier = 0.5
-			end
-
-			local cortermiteEnabled = modOptions.community_balance_cortermite
-			if all or (custom and cortermiteEnabled) then
-				if name == "cortermite" then
-					uDef.stealth = true
-				end
-			end
-
-			local armwarEnabled = modOptions.community_balance_armwar
-			if all or (custom and armwarEnabled) then
-				if name == "armwar" then
-					-- Reduce weapon range by 5 (330 - 5 = 325)
-					if uDef.weapondefs then
-						for weaponName, weaponDef in pairs(uDef.weapondefs) do
-							if weaponDef.range then
-								weaponDef.range = 325
-							end
-						end
-					end
-					-- Reduce LoS by 20 (350 - 20 = 330)
-					if uDef.sightdistance then
-						uDef.sightdistance = 330
-					end
-				end
-			end
-
-			local armfastEnabled = modOptions.community_balance_armfast
-			if all or (custom and armfastEnabled) then
-				if name == "armfast" then
-					uDef.energycost = 3500
-					uDef.maxacc = 0.37
-					uDef.speed = 115
-					uDef.turninplaceanglelimit = 115
-					uDef.turninplacespeedlimit = 2.75
-					uDef.turnrate = 1320
-					uDef.sightdistance = 380
-					-- Modify weapon properties
-					if uDef.weapondefs then
-						for weaponName, weaponDef in pairs(uDef.weapondefs) do
-							if weaponName == "arm_fast" then
-								weaponDef.areaofeffect = 18
-								weaponDef.range = 230
-								weaponDef.damage = {
-									default = 15,
-									vtol = 5
-								}
-							end
-						end
-					end
-				end
-			end
-		end
-	end
-
 	-- Scavengers Units ------------------------------------------------------------------------------------------------------------------------
 	if modOptions.scavunitsforplayers then
 		-- Armada T1 Land Constructors
@@ -1395,6 +1262,12 @@ function UnitDef_Post(name, uDef)
 	if modOptions.proposed_unit_reworks == true then
 		local proposed_unit_reworks = VFS.Include("unitbasedefs/proposed_unit_reworks_defs.lua")
 		uDef = proposed_unit_reworks.proposed_unit_reworksTweaks(name, uDef)
+	end
+
+	-- Community Balance Patch
+	if modOptions.community_balance_patch ~= "disabled" then
+		local community_balance_patch = VFS.Include("unitbasedefs/community_balance_patch_defs.lua")
+		uDef = community_balance_patch.communityBalanceTweaks(name, uDef, modOptions)
 	end
 
 	-- Naval Balance Adjustments, if anything breaks here blame ZephyrSkies
