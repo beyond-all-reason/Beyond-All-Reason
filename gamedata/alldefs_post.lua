@@ -58,8 +58,9 @@ local function round_to_frames(wd, key)
 end
 
 local function processWeapons(unitDefName, unitDef)
+	local weapons = unitDef.weapons
 	local weaponDefs = unitDef.weapondefs
-	if not weaponDefs then
+	if not weapons or not weaponDefs then
 		return
 	end
 
@@ -72,9 +73,40 @@ local function processWeapons(unitDefName, unitDef)
 		weaponDef.burstrate = round_to_frames(weaponDef, "burstrate")
 
 		local custom = weaponDef.customparams
+
 		if custom.cluster_def then
 			custom.cluster_def = unitDefName .. "_" .. custom.cluster_def
 			custom.cluster_number = custom.cluster_number or 5
+		end
+
+		if weaponDef.proximitypriority and not custom.exclude_preaim then
+			-- Prevent weapons from aiming only at auto-generated targets beyond their own range.
+			-- Prevent individual weapons from waffling between targets due to hyper-sensitivity.
+			local weaponRange = math.max(weaponDef.range or 10, 1) -- prevent div0 -- todo: account for multiplier_weaponrange
+			local preaimRange = math.max(weaponRange * 1.1, weaponRange + 20, tonumber(weaponDef.customparams.preaim_range or 0) or 0)
+			custom.preaim_range = preaimRange
+
+			local proximity = math.max(weaponDef.proximitypriority, (-0.4 * preaimRange - 100) / weaponRange) -- see CGameHelper::GenerateWeaponTargets
+			local isDroneBomber = custom.carried_unit and UnitDefs[custom.carried_unit] and custom.drone_type == "bomber"
+			local proximityMin = isDroneBomber and -1.5 or -1 -- drone bombers can overrange by quite a lot
+			proximity = math.clamp(proximity, proximityMin, 10)
+			weaponDef.proximitypriority = proximity
+
+			if proximity >= -1 and proximity <= -0.4 then
+				-- Encourage changing targets more as the range preference increases.
+				local priority = math.mix(0.75, 1, ((proximity) - (-1)) / ((-0.4) - (-1)))
+				priority = math.clamp(priority, 0.85, 0.95)
+
+				for weaponNum, weapon in pairs(weapons) do
+					if weapon.def:lower() == weaponDefName:lower()
+						and not weapon.slaveto
+						and not weapon.weaponaimadjustpriority
+						and not weapon.weaponAimAdjustPriority -- FIXME: use standard defs casing
+					then
+						weapon.weaponaimadjustpriority = priority
+					end
+				end
+			end
 		end
 	end
 end
@@ -1946,14 +1978,6 @@ function WeaponDef_Post(name, wDef)
 			if wDef.weapontype == "BeamLaser" or wDef.weapontype == "LightningCannon" then
 				wDef.targetborder = 0.33 --approximates in current engine with bugged calculation, to targetborder = 1.
 			end
-		end
-
-		-- Prevent weapons from aiming only at auto-generated targets beyond their own range.
-		if wDef.proximitypriority then
-			local range = math.max(wDef.range or 10, 1) -- prevent div0 -- todo: account for multiplier_weaponrange
-			local rangeBoost = math.max(range + ((wDef.customparams.exclude_preaim and 0) or (wDef.customparams.preaim_range or math.max(range * 0.1, 20))), range) -- see unit_preaim
-			local proximity = math.max(wDef.proximitypriority, (-0.4 * rangeBoost - 100) / range) -- see CGameHelper::GenerateWeaponTargets
-			wDef.proximitypriority = math.clamp(proximity, -1, 10) -- upper range allowed for targeting weapons for drone bombers which can overrange massively
 		end
 
 		if wDef.craterareaofeffect then
