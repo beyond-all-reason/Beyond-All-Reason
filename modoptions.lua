@@ -2104,7 +2104,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
         max		= 10000,
         step	= 1,
     },
-
+    
     {
         key		= "startmetalstorage",
         name	= "Starting Metal Storage",
@@ -2139,6 +2139,15 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
         min		= 1000,
         max		= 20000,
         step	= 1,
+    },
+
+    {
+        key		= "bonusstartresourcemultiplier",
+        name	= "Apply Bonus to Starting Resources",
+        desc	= "If enabled, multiplies each players starting resources with their bonus.",
+        type	= "bool",
+        section	= "options_cheats",
+        def		= false,
     },
 
     {
