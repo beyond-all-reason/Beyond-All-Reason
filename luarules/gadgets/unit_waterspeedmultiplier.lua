@@ -174,7 +174,7 @@ function gadget:GameFrame(frame)
 	end
 end
 
-function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
     local unitData = unitDefData[unitDefID]
     if unitData and getUnitDepth(unitID) <= 0 then
 		if canSetSpeed(unitID) then
