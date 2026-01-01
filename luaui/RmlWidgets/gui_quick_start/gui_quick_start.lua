@@ -53,14 +53,92 @@ local TRAVERSABILITY_GRID_RESOLUTION = 32
 local GRID_CHECK_RESOLUTION_MULTIPLIER = 1
 
 local traversabilityGrid = VFS.Include("common/traversability_grid.lua")
+local overlapLines = VFS.Include("common/overlap_lines.lua")
 local aestheticCustomCostRound = VFS.Include("common/aestheticCustomCostRound.lua")
 local customRound = aestheticCustomCostRound.customRound
 local lastCommanderX = nil
 local lastCommanderZ = nil
 
+local cachedOverlapLines = {}
 local cachedGameRules = {}
 local lastRulesUpdate = 0
 local RULES_CACHE_DURATION = 0.1
+local lastStartPositions = {}
+local overlapLinesDisplayList = nil
+
+local function hasStartPositionsChanged()
+	local changed = false
+	local teamList = Spring.GetTeamList()
+	local activeTeams = {}
+
+	for _, teamID in ipairs(teamList) do
+		local sx, sy, sz = Spring.GetTeamStartPosition(teamID)
+		if sx and sx >= 0 then
+			local floorX, floorZ = math.floor(sx), math.floor(sz)
+			activeTeams[teamID] = true
+			
+			local last = lastStartPositions[teamID]
+			if not last or last.x ~= floorX or last.z ~= floorZ then
+				if not lastStartPositions[teamID] then lastStartPositions[teamID] = {} end
+				lastStartPositions[teamID].x = floorX
+				lastStartPositions[teamID].z = floorZ
+				changed = true
+			end
+		end
+	end
+	
+	if not changed then
+		for teamID, _ in pairs(lastStartPositions) do
+			if not activeTeams[teamID] then
+				lastStartPositions[teamID] = nil
+				changed = true
+			end
+		end
+	else
+		for teamID, _ in pairs(lastStartPositions) do
+			if not activeTeams[teamID] then
+				lastStartPositions[teamID] = nil
+			end
+		end
+	end
+	
+	return changed
+end
+
+local function updateDisplayList()
+	if overlapLinesDisplayList then
+		gl.DeleteList(overlapLinesDisplayList)
+		overlapLinesDisplayList = nil
+	end
+	
+	if not cachedOverlapLines or #cachedOverlapLines == 0 then return end
+	
+	overlapLinesDisplayList = gl.CreateList(function()
+		gl.LineWidth(2)
+		gl.Color(1, 0, 0, 0.8) -- Red
+		
+		for _, line in ipairs(cachedOverlapLines) do
+			local p1 = line.p1
+			local p2 = line.p2
+
+			local segments = 20
+			local dx = (p2.x - p1.x) / segments
+			local dz = (p2.z - p1.z) / segments
+			
+			gl.BeginEnd(GL.LINE_STRIP, function()
+				for i = 0, segments do
+					local x = p1.x + dx * i
+					local z = p1.z + dz * i
+					local y = Spring.GetGroundHeight(x, z) + 10
+					gl.Vertex(x, y, z)
+				end
+			end)
+		end
+		
+		gl.Color(1, 1, 1, 1)
+		gl.LineWidth(1)
+	end)
+end
 
 local function calculateBudgetCost(metalCost, energyCost, buildTime)
 	return customRound(metalCost + energyCost * ENERGY_VALUE_CONVERSION_MULTIPLIER + buildTime * BUILD_TIME_VALUE_CONVERSION_MULTIPLIER)
@@ -85,7 +163,10 @@ local widgetState = {
 		warningText = nil,
 		factoryText = nil,
 	},
+	lastFactoryAlreadyPlaced = nil,
 }
+
+local factoryUnitDefIDs = {}
 
 local initialModel = {
 	budgetTotal = 0,
@@ -120,6 +201,10 @@ end
 local function isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, instantBuildRange)
 	local distance = math.distance2d(commanderX, commanderZ, buildX, buildZ)
 	if distance > instantBuildRange then
+		return false
+	end
+
+	if overlapLines.isPointPastLines(buildX, buildZ, commanderX, commanderZ, cachedOverlapLines) then
 		return false
 	end
 
@@ -158,8 +243,26 @@ local function updateTraversabilityGrid()
 	if commanderX == -100 then
 		return
 	end
-	if lastCommanderX ~= commanderX or lastCommanderZ ~= commanderZ then
+	
+	local positionsChanged = hasStartPositionsChanged()
+	if lastCommanderX ~= commanderX or lastCommanderZ ~= commanderZ or positionsChanged then
 		traversabilityGrid.generateTraversableGrid(commanderX, commanderZ, TRAVERSABILITY_GRID_GENERATION_RANGE, TRAVERSABILITY_GRID_RESOLUTION, "myGrid")
+		
+		local neighbors = {}
+		local teamList = Spring.GetTeamList()
+		for _, otherTeamID in ipairs(teamList) do
+			if otherTeamID ~= myTeamID then
+				local sx, sy, sz = Spring.GetTeamStartPosition(otherTeamID)
+				if sx and sx >= 0 then
+					table.insert(neighbors, {x = sx, z = sz})
+				end
+			end
+		end
+		
+		local gameRules = getCachedGameRules()
+		cachedOverlapLines = overlapLines.getOverlapLines(commanderX, commanderZ, neighbors, gameRules.instantBuildRange or DEFAULT_INSTANT_BUILD_RANGE)
+		updateDisplayList()
+		
 		lastCommanderX = commanderX
 		lastCommanderZ = commanderZ
 	end
@@ -339,7 +442,34 @@ local function hideWarnings()
 	end
 end
 
-local function updateAllCostOverrides()
+local function updateUnitCostOverride(unitDefID, unitDef, gameRules, factoryAlreadyPlaced)
+	local metalCost = unitDef.metalCost or 0
+	local energyCost = unitDef.energyCost or 0
+	local buildTime = unitDef.buildTime or 0
+	local budgetCost = calculateBudgetCost(metalCost, energyCost, buildTime)
+
+	if unitDef.isFactory and shouldApplyFactoryDiscount and not factoryAlreadyPlaced then
+		budgetCost = calculateBudgetWithDiscount(unitDefID, gameRules.factoryDiscountAmount, shouldApplyFactoryDiscount, true)
+	end
+
+	local costOverride = {
+		top = { disabled = true },
+		bottom = {
+			value = budgetCost,
+			color = "\255\255\110\255",
+			colorDisabled = "\255\200\50\200"
+		}
+	}
+
+	if wgBuildMenu and wgBuildMenu.setCostOverride then
+		wgBuildMenu.setCostOverride(unitDefID, costOverride)
+	end
+	if wgGridMenu and wgGridMenu.setCostOverride then
+		wgGridMenu.setCostOverride(unitDefID, costOverride)
+	end
+end
+
+local function updateAllCostOverrides(force)
 	local myTeamID = spGetMyTeamID()
 	local gameRules = getCachedGameRules()
 	local buildQueue = wgPregameBuild and wgPregameBuild.getBuildQueue and wgPregameBuild.getBuildQueue() or {}
@@ -363,30 +493,22 @@ local function updateAllCostOverrides()
 		end
 	end
 
-	for unitDefID, unitDef in pairs(UnitDefs) do
-		local metalCost = unitDef.metalCost or 0
-		local energyCost = unitDef.energyCost or 0
-		local buildTime = unitDef.buildTime or 0
-		local budgetCost = calculateBudgetCost(metalCost, energyCost, buildTime)
 
-		if unitDef.isFactory and shouldApplyFactoryDiscount and not factoryAlreadyPlaced then
-			budgetCost = calculateBudgetWithDiscount(unitDefID, gameRules.factoryDiscountAmount, shouldApplyFactoryDiscount, true)
+	if not force and widgetState.lastFactoryAlreadyPlaced == factoryAlreadyPlaced then
+		return
+	end
+	
+	local stateChanged = (widgetState.lastFactoryAlreadyPlaced ~= nil) and (widgetState.lastFactoryAlreadyPlaced ~= factoryAlreadyPlaced)
+	widgetState.lastFactoryAlreadyPlaced = factoryAlreadyPlaced
+
+	if not force and stateChanged then
+		for _, unitDefID in ipairs(factoryUnitDefIDs) do
+			local unitDef = UnitDefs[unitDefID]
+			updateUnitCostOverride(unitDefID, unitDef, gameRules, factoryAlreadyPlaced)
 		end
-
-		local costOverride = {
-			top = { disabled = true },
-			bottom = {
-				value = budgetCost,
-				color = "\255\255\110\255",
-				colorDisabled = "\255\200\50\200"
-			}
-		}
-
-		if wgBuildMenu and wgBuildMenu.setCostOverride then
-			wgBuildMenu.setCostOverride(unitDefID, costOverride)
-		end
-		if wgGridMenu and wgGridMenu.setCostOverride then
-			wgGridMenu.setCostOverride(unitDefID, costOverride)
+	else
+		for unitDefID, unitDef in pairs(UnitDefs) do
+			updateUnitCostOverride(unitDefID, unitDef, gameRules, factoryAlreadyPlaced)
 		end
 	end
 end
@@ -409,7 +531,7 @@ local function updateDataModel(forceUpdate)
 	local currentBudgetRemaining = modelUpdate.budgetRemaining or 0
 
 	if forceUpdate or currentQueueLength ~= widgetState.lastQueueLength then
-		updateAllCostOverrides()
+		updateAllCostOverrides(forceUpdate)
 	end
 	
 	if currentQueueLength > widgetState.lastQueueLength then
@@ -607,7 +729,13 @@ function widget:Initialize()
 
 	WG["getBuildQueueSpawnStatus"] = getBuildQueueSpawnStatus
 
-	updateAllCostOverrides()
+	for id, def in pairs(UnitDefs) do
+		if def.isFactory then
+			table.insert(factoryUnitDefIDs, id)
+		end
+	end
+
+	updateAllCostOverrides(true)
 
 	updateDataModel(true)
 	widgetState.lastBudgetRemaining = widgetState.dmHandle.budgetRemaining or 0
@@ -643,6 +771,10 @@ function widget:Shutdown()
 		widgetState.document:Close()
 		widgetState.document = nil
 	end
+	if overlapLinesDisplayList then
+		gl.DeleteList(overlapLinesDisplayList)
+		overlapLinesDisplayList = nil
+	end
 	widgetState.rmlContext = nil
 end
 
@@ -659,6 +791,12 @@ function widget:Update()
 
 	updateTraversabilityGrid()
 	updateDataModel(false)
+end
+
+function widget:DrawWorld()
+	if overlapLinesDisplayList then
+		gl.CallList(overlapLinesDisplayList)
+	end
 end
 
 function widget:RecvLuaMsg(message, playerID)
