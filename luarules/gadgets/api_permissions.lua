@@ -16,6 +16,7 @@ end
 
 local powerusers = include("LuaRules/configs/powerusers.lua")
 local singleplayerPermissions = powerusers[-1]
+local isSinglePlayer = false
 
 local numPlayers = Spring.Utilities.GetPlayerCount()
 
@@ -31,6 +32,7 @@ if numPlayers <= 1 then
 
 		-- dont give permissions to the spectators when there is a player is playing
 		if not spec or numPlayers == 0 then
+			isSinglePlayer = true
 			powerusers[accountID] = singleplayerPermissions
 		end
 	end
@@ -51,4 +53,4 @@ end
 
 _G.powerusers = powerusers
 _G.permissions = permissions
-
+_G.isSinglePlayer = isSinglePlayer
