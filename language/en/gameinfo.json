@@ -1,0 +1,10 @@
+{
+	"gameinfo": {
+		"scavengersMoveObjective": "WARNING: SCAVENGERS ARE ACTIVE IN THIS REGION\n\nYOUR GOAL:\nAttempt to survive and build up a strong base and army to fight the Scavenger forces. Defeat their Boss to win.\n\nWHY DID THEY APPEAR?\nNo one knows for sure where they came from or what made them alive and hungry for destruction. It might have been some alien technology, a random short circuit of a processing unit or a deliberate action of mother nature to end the destructive war between Armada and Cortex. One thing is certain – some unknown event has influenced the AI algorithm and created these anomalies.",
+		"howToPlayTerritorialDomination": "TERRITORIAL DOMINATION\n\nThe map is divided into territory squares. Occupy the territory with units to capture them to gain points. Points held at the end of the round are locked in. The highest of those scores sets the Elimination Threshold. If your points total is below the Elimination Threshold at the end of any round, you are Eliminated. Lose all your commanders, you are eliminated. Each round, the value of each territory goes up by 2.\n\nBe the last standing or have the highest score at the end of the final round to win.\n\nSpecial Rules:\n• When multiple teams occupy the same territory, the team with the greatest occupying force captures proportionally against its opposition.\n• When the majority of an empty square's neighbors belong to the same team, it will be slowly captured by that team.\n• Units capture strength is derived from their cost and characteristics.\n• Immobile units have 3x capture power.\n• Flying units have reduced capture power.\n• Commanders have capture power greater than whole armies.\n• Cloaked units cannot capture."
+	},
+	"modoptions": {
+		"enabled": "Enabled",
+		"disabled": "Disabled"
+	}
+}
