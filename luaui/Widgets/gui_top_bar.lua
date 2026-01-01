@@ -142,7 +142,6 @@ local autoHideButtons = false
 local showResourceBars = true
 local widgetSpaceMargin, bgpadding, RectRound, RectRoundOutline, TexturedRectRound, UiElement, UiButton, UiSliderKnob
 local updateRes = { metal = {false,false,false,false}, energy = {false,false,false,false} }
-local initRequired = false
 
 -- Display Lists
 local dlistWindText = {}
@@ -240,10 +239,6 @@ local function DrawRect(px, py, sx, sy, zoom)
 	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
 end
 
-local function init()
-	initRequired = true
-end
-
 function widget:ViewResize()
 	vsx, vsy = gl.GetViewSizes()
 	widgetScale = (vsy / height) * 0.0425 * ui_scale
@@ -308,11 +303,6 @@ local function short(n, f)
 end
 
 local function updateButtons()
-	-- Safety check: ensure buttonsArea is initialized
-	if not buttonsArea[1] then
-		return
-	end
-	
 	local fontsize = (height * widgetScale) / 3
 	local prevButtonsArea = buttonsArea
 
@@ -374,12 +364,7 @@ end
 
 local function updateComs(forceText)
 	local area = comsArea
-	
-	-- Safety check: ensure area is initialized
-	if not area[1] then
-		return
-	end
-	
+
 	-- Check if commander texture is loaded before creating display list
 	local texPath = string.lower(string.gsub(textures.com, ":.:", ""))
 	if VFS.FileExists(texPath) then
@@ -390,6 +375,7 @@ local function updateComs(forceText)
 			return
 		end
 	end
+
 
 	if dlistComs then glDeleteList(dlistComs) end
 	comsDlistUpdate = true
@@ -438,11 +424,6 @@ end
 
 local function updateWind()
 	local area = windArea
-	
-	-- Safety check: ensure area is initialized
-	if not area[1] then
-		return
-	end
 
 	local bladesSize = height*0.53 * widgetScale
 
@@ -512,11 +493,6 @@ end
 
 local function updateTidal()
 	local area = tidalarea
-	
-	-- Safety check: ensure area is initialized
-	if not area[1] then
-		return
-	end
 
 	if tidaldlist2 then glDeleteList(tidaldlist2) end
 	local wavesSize = height*0.53 * widgetScale
@@ -568,11 +544,6 @@ end
 
 local function updateResbarText(res, force)
 	if not showResourceBars then
-		return
-	end
-	
-	-- Safety check: ensure area is initialized
-	if not resbarArea[res] or not resbarArea[res][1] or not bgpadding then
 		return
 	end
 
@@ -732,11 +703,6 @@ local function updateResbar(res)
 	end
 
 	local area = resbarArea[res]
-	
-	-- Safety check: ensure area is initialized
-	if not area[1] then
-		return
-	end
 
 	if dlistResbar[res][1] then
 		glDeleteList(dlistResbar[res][1])
@@ -1031,13 +997,7 @@ local function updateResbarValues(res, update)
    	end
 end
 
-local function doInit()
-	-- Ensure required variables are initialized (from ViewResize)
-	if not widgetSpaceMargin or not bgpadding then
-		return false
-	end
-	
-	initRequired = false  -- Clear the flag now that we're actually running
+function init()
 	refreshUi = true
 
 	r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
@@ -1087,13 +1047,14 @@ local function doInit()
 	buttonsArea = { topbarArea[3] - width, topbarArea[2], topbarArea[3], topbarArea[4] }
 	updateButtons()
 
-	-- Update WG['topbar'] functions with accurate values
-	WG['topbar'].GetPosition = function()
-		return { topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale}
-	end
+	if WG['topbar'] then
+		WG['topbar'].GetPosition = function()
+			return { topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale}
+		end
 
-	WG['topbar'].GetFreeArea = function()
-		return { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[3] - width - widgetSpaceMargin, topbarArea[4], widgetScale}
+		WG['topbar'].GetFreeArea = function()
+			return { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[3] - width - widgetSpaceMargin, topbarArea[4], widgetScale}
+		end
 	end
 
 	updateResbarText('metal', true)
@@ -1101,13 +1062,6 @@ local function doInit()
 
 	updateRes = { metal = {true,true,true,true}, energy = {true,true,true,true} }
 	prevComAlert = nil
-	return true
-end
-
-local function checkAndRunInit()
-	if initRequired then
-		doInit()
-	end
 end
 
 local function checkSelfStatus()
@@ -1252,7 +1206,7 @@ function widget:Update(dt)
 		mx, my = spGetMouseState()
 
 		hoveringTopbar = false
-		if topbarArea[1] and mx > topbarArea[1] and my > topbarArea[2] then -- checking if the curser is high enough, too
+		if mx > topbarArea[1] and my > topbarArea[2] then -- checking if the curser is high enough, too
 			hoveringTopbar = hoveringElement(mx, my)
 			if hoveringTopbar then
 				spSetMouseCursor('cursornormal')
@@ -1835,9 +1789,9 @@ local function renderComCounter()
     end
     glCallList(dlistComs)
 end
+
 function widget:DrawScreen()
 	now = os.clock()
-	checkAndRunInit()
 
 	if showButtons ~= prevShowButtons then
 		prevShowButtons = showButtons
@@ -2355,24 +2309,6 @@ function widget:Initialize()
 	end
 
 	WG['topbar'] = {}
-	
-	-- Initialize with safe defaults that will be updated by doInit()
-	WG['topbar'].GetPosition = function()
-		if topbarArea[1] then
-			return { topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale}
-		end
-		return { 0, 0, 0, 0, 1 }
-	end
-
-	WG['topbar'].GetFreeArea = function()
-		if topbarArea[1] then
-			local filledWidth = 0
-			local width = 0
-			-- Return approximate values if not yet initialized
-			return { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[3] - width, topbarArea[4], widgetScale}
-		end
-		return { 0, 0, 0, 0, 1 }
-	end
 
 	WG['topbar'].showingQuit = function()
 		return (showQuitscreen)
