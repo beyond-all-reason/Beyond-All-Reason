@@ -1533,7 +1533,7 @@ local options = {
 
     {
         key     = "community_balance_patch",
-        name    = "Community Balance Patch Jan '25",
+        name    = "Community Balance Patch Jan '26",
         desc    = "Enable community balance patch changes\n(overwrites changes in official seasonal balance test)",
         type    = "list",
         def     = "disabled",
