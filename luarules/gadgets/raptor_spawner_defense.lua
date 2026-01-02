@@ -768,17 +768,17 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if (not canSpawnBurrow) and config.burrowSpawnType ~= "avoid" then -- Attempt #2 Force spawn in Startbox, ignore any kind of player vision
-				spread = math.clamp(spread, 0, 0.5 * math.min(RaptorStartboxXMax - RaptorStartboxXMin, RaptorStartboxZMax - RaptorStartboxZMin))
+				local spreadStartBox = math.clamp(spread, 0, 0.5 * math.min(RaptorStartboxXMax - RaptorStartboxXMin, RaptorStartboxZMax - RaptorStartboxZMin))
 				for _ = 1,100 do
-					spawnPosX = mRandom(RaptorStartboxXMin + spread, RaptorStartboxXMax - spread)
-					spawnPosZ = mRandom(RaptorStartboxZMin + spread, RaptorStartboxZMax - spread)
+					spawnPosX = mRandom(RaptorStartboxXMin + spreadStartBox, RaptorStartboxXMax - spreadStartBox)
+					spawnPosZ = mRandom(RaptorStartboxZMin + spreadStartBox, RaptorStartboxZMax - spreadStartBox)
 					spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-					canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+					canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spreadStartBox, 30, true)
 					if canSpawnBurrow then
-						canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+						canSpawnBurrow = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spreadStartBox)
 					end
 					if canSpawnBurrow and noRaptorStartbox then -- this is for case where they have no startbox. We don't want them spawning on top of your stuff.
-						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, raptorAllyTeamID, true, true, true)
+						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spreadStartBox, raptorAllyTeamID, true, true, true)
 					end
 					if canSpawnBurrow then
 						break
