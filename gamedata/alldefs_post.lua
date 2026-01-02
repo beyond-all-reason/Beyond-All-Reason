@@ -65,14 +65,11 @@ local function processWeapons(unitDefName, unitDef)
 	end
 
 	for weaponDefName, weaponDef in pairs(weaponDefs) do
-		if not weaponDef.customparams then
-			weaponDef.customparams = {}
-		end
+		local custom = weaponDef.customparams or {}
+		weaponDef.customparams = custom
 
 		weaponDef.reloadtime = round_to_frames(weaponDef, "reloadtime")
 		weaponDef.burstrate = round_to_frames(weaponDef, "burstrate")
-
-		local custom = weaponDef.customparams
 
 		if custom.cluster_def then
 			custom.cluster_def = unitDefName .. "_" .. custom.cluster_def
@@ -83,7 +80,7 @@ local function processWeapons(unitDefName, unitDef)
 			-- Prevent weapons from aiming only at auto-generated targets beyond their own range.
 			-- Prevent individual weapons from waffling between targets due to hyper-sensitivity.
 			local weaponRange = math.max(weaponDef.range or 10, 1) -- prevent div0 -- todo: account for multiplier_weaponrange
-			local preaimRange = math.max(weaponRange * 1.1, weaponRange + 20, tonumber(weaponDef.customparams.preaim_range or 0) or 0)
+			local preaimRange = math.max(weaponRange * 1.1, weaponRange + 20, tonumber(custom.preaim_range or 0) or 0)
 			custom.preaim_range = preaimRange
 
 			local proximity = math.max(weaponDef.proximitypriority, (-0.4 * preaimRange - 100) / weaponRange) -- see CGameHelper::GenerateWeaponTargets
