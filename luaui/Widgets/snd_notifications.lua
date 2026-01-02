@@ -65,18 +65,19 @@ if not string.find(voiceSet, '/', nil, true)	then
 	voiceSet = defaultVoiceSet
 end
 
-if string.sub(voiceSet, 1, 2) ~= language then
-	local languageDirs = VFS.SubDirs('sounds/voice', '*')
-	for k, f in ipairs(languageDirs) do
-		local langDir = string.sub(f, 14, string.len(f)-1)
-		local files = VFS.SubDirs('sounds/voice/'..langDir, '*')
-		for k, file in ipairs(files) do
-			local dirname = string.sub(file, 14, string.len(file)-1)
-			voiceSet = langDir..'/'..dirname
-			break
-		end
-	end
-end
+--if string.sub(voiceSet, 1, 2) ~= language then
+--	local languageDirs = VFS.SubDirs('sounds/voice', '*')
+--	for k, f in ipairs(languageDirs) do
+--		local langDir = string.sub(f, 14, string.len(f)-1)
+--		local files = VFS.SubDirs('sounds/voice/'..langDir, '*')
+--		Spring.Echo("[LANG NOTIFS]", langDir, #files, files)
+--		for k, file in ipairs(files) do
+--			local dirname = string.sub(file, 14, string.len(file)-1)
+--			voiceSet = langDir..'/'..dirname
+--			break
+--		end
+--	end
+--end
 
 
 local LastPlay = {}
