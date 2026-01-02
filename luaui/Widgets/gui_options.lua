@@ -57,7 +57,7 @@ elseif not Platform.glHaveGL4 then
 	isPotatoGpu = true
 end
 
-local hideOtherLanguagesVoicepacks = true	-- maybe later allow people to pick other language voicepacks
+local hideOtherLanguagesVoicepacks = false	-- maybe later allow people to pick other language voicepacks
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
