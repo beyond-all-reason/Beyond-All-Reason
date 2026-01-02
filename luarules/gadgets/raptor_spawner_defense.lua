@@ -768,6 +768,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if (not canSpawnBurrow) and config.burrowSpawnType ~= "avoid" then -- Attempt #2 Force spawn in Startbox, ignore any kind of player vision
+				spread = math.clamp(spread, 0, 0.5 * math.min(RaptorStartboxXMax - RaptorStartboxXMin, RaptorStartboxZMax - RaptorStartboxZMin))
 				for _ = 1,100 do
 					spawnPosX = mRandom(RaptorStartboxXMin + spread, RaptorStartboxXMax - spread)
 					spawnPosZ = mRandom(RaptorStartboxZMin + spread, RaptorStartboxZMax - spread)
