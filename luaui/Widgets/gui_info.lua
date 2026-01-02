@@ -1847,12 +1847,12 @@ local function drawEngineTooltip()
 				local metal, _, energy, _ = Spring.GetFeatureResources(hoverData)
 				if energy > 0 then
 					height = height + heightStep
-					text = tooltipLabelTextColor..Spring.I18N('ui.info.energy').."  \255\255\255\000"..math.floor(energy)
+					text = tooltipLabelTextColor..Spring.I18N('ui.info.energy').."  \255\255\255\000"..string.formatSI(energy)
 					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
 				if metal > 0 then
 					height = height + heightStep
-					text = tooltipLabelTextColor..Spring.I18N('ui.info.metal').."  "..tooltipValueColor..math.floor(metal)
+					text = tooltipLabelTextColor..Spring.I18N('ui.info.metal').."  "..tooltipValueColor..string.formatSI(metal)
 					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
 				font:End()
@@ -2353,9 +2353,7 @@ function checkChanges()
 
 		if featureDef.reclaimable then
 			local metal, _, energy, _ = Spring.GetFeatureResources(featureID)
-			metal = math.floor(metal)
-			energy = math.floor(energy)
-			local reclaimText = Spring.I18N('ui.reclaimInfo.metal', { metal = metal }) .. "\255\255\255\128" .. " " .. Spring.I18N('ui.reclaimInfo.energy', { energy = energy })
+			local reclaimText = Spring.I18N('ui.reclaimInfo.metal', { metal = string.formatSI(metal) }) .. "\255\255\255\128" .. " " .. Spring.I18N('ui.reclaimInfo.energy', { energy = string.formatSI(energy) })
 			newTooltip = newTooltip .. "\n\n" .. reclaimText
 		end
 
