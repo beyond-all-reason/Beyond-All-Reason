@@ -2185,8 +2185,8 @@ function widget:KeyPress(key)
 					else
 						local badWord = findBadWords(inputText)
 						if badWord ~= nil and inputText ~= lastMessage then
-							addChat(Spring.GetGameFrame(), LineTypes.System, "\255\255\000\000" .. Spring.I18N('ui.chat.moderation.prefix'),
-								Spring.I18N('ui.chat.moderation.blocked', { badWord = badWord }), true)
+							addChatLine(Spring.GetGameFrame(), LineTypes.System, "Moderation", "\255\255\000\000" .. Spring.I18N('ui.chat.moderation.prefix'),
+								Spring.I18N('ui.chat.moderation.blocked', { badWord = badWord }))
 						else
 							Spring.SendCommands("say "..inputMode..inputText)
 						end
