@@ -110,16 +110,9 @@ local from = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 local to =   "NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm"
 
 for index, w in ipairs(wordList) do
-	local dword = string.gsub(w, '.', function(c)
-		if c == '[' or c == ']' or c =='^' or c == '$' then
-			return c
-		end
-		local decodeIndex = from:find(c)
-		if decodeIndex and decodeIndex > -1 then
-			return string.sub(to, decodeIndex, decodeIndex)
-		else
-			return c
-		end
+	local dword = string.gsub(w, '%a', function(c)
+		local decodeIndex = from:find(c, 1, true)
+		return decodeIndex and string.sub(to, decodeIndex, decodeIndex)
 	end)
 	wordList[index] = dword
 end
