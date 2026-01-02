@@ -220,8 +220,8 @@ function gadget:Initialize()
 		return
     end
 
-	local unitCreated = gadget.UnitCreated
+	local unitFinished = gadget.UnitFinished
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		unitCreated(gadget, unitID, Spring.GetUnitDefID(unitID), 0)
+		unitFinished(gadget, unitID, Spring.GetUnitDefID(unitID), 0)
 	end
 end
