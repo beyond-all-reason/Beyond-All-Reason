@@ -90,7 +90,7 @@ local function processWeapons(unitDefName, unitDef)
 			weaponDef.proximitypriority = proximity
 
 			if proximity >= -1 and proximity <= -0.4 then
-				-- Encourage changing targets more as the range preference increases.
+				-- Decrease the penalty of small angle changes with stronger range preferences.
 				local priority = math.mix(0.75, 1, ((proximity) - (-1)) / ((-0.4) - (-1)))
 				priority = math.clamp(priority, 0.85, 0.95)
 
