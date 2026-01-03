@@ -653,6 +653,7 @@ local function randtablechoice (t)
 	return next(t)
 end
 
+local areaTimedDamageDecal = { "t_groundsplat_16.tga" }
 -- Solars, nanos, wind, advsolars, metal makers,
 local buildingExplosionPositionVariation = {
 	nanoboom = 1,
@@ -699,7 +700,7 @@ for weaponDefID=1, #WeaponDefs do
 		local fadeintime
 		local positionVariation = 0
 		local waterDepthRatio = 1.5
-
+		local waterTextures
 
 		local textures = { "t_groundcrack_17_a.tga", "t_groundcrack_21_a.tga", "t_groundcrack_10_a.tga" }
 		if weaponDef.paralyzer then
@@ -863,6 +864,7 @@ for weaponDefID=1, #WeaponDefs do
 			fadeintime = 200
 			bwfactor = 0.17
 			waterDepthRatio = 8
+			waterTextures = areaTimedDamageDecal
 
 		elseif string.find(weaponDef.name, 'acid') then
 			textures = { "t_groundcrack_26_a.tga" }
@@ -876,6 +878,7 @@ for weaponDefID=1, #WeaponDefs do
 			fadeintime = 200
 			bwfactor = 0.17
 			waterDepthRatio = 8 -- there are some massive acid weapons
+			waterTextures = areaTimedDamageDecal
 
 		elseif string.find(weaponDef.name, 'napalm') then
 			textures = { "t_groundcrack_16_a.tga" }
@@ -887,6 +890,7 @@ for weaponDefID=1, #WeaponDefs do
 			glowsustain = 225
 			glowadd = 4.5
 			waterDepthRatio = 5 -- burn areas use much better fade params w/ height
+			waterTextures = areaTimedDamageDecal
 
 		elseif string.find(weaponDef.name, 'vipersabot') then -- viper has very tiny AoE
 			radius = (radius * 4)
@@ -1024,6 +1028,7 @@ for weaponDefID=1, #WeaponDefs do
 
 		elseif weaponDef.customParams.area_onhit_ceg and waterDepthRatio == 1.5 then
 			waterDepthRatio = 2.5
+			waterTextures = areaTimedDamageDecal
 		end
 
 		if buildingExplosionPositionVariation[weaponDef.name] then
@@ -1046,6 +1051,7 @@ for weaponDefID=1, #WeaponDefs do
 			fadeintime, -- 13
 			positionVariation, -- 14
 			waterDepthRatio, -- 15
+			waterTextures, -- 16
 		}
 	end
 end
@@ -1059,19 +1065,23 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	local random = mathRandom
 	local radius = params[2] * (1 + (random()-0.5) * params[3])
 	local elevation = spGetGroundHeight(px, pz)
-
 	local exploHeight = py - (elevation >= 0 and elevation or elevation * params[15])
+
 	if exploHeight >= radius then
 		return
 	end
 
-	local texture = params[1][ random(1,#params[1]) ]
+	local textures = elevation >= 0 and params[1] or params[16]
+	local texture = textures[ random(1,#textures) ]
 
 	-- reduce severity when explosion is above ground
 	local heightMult = 1 - exploHeight / radius
 
 	local heatstart = params[4] or ((random() * 0.2 + 0.9) * 4900)
 	local heatdecay = params[5] or ((random() * 0.4 + 2.0) - (params[11]/2250))
+	if elevation < 0 then
+		heatstart = heatstart * 0.75
+	end
 
 	local alpha = params[6] or ((random() * 1.0 + 1.5) * heightMult * heightMult)
 	local alphadecay = params[7] or ((random() * 0.3 + 0.2) / (4 * radius))
