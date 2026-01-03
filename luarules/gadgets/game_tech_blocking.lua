@@ -109,6 +109,8 @@ local function increaseTechLevel(teamList, notificationEvent, techLevel)
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.BUILD)
+
 	local teamList = Spring.GetTeamList()
 	for _, teamID in ipairs(teamList) do
 		if not ignoredTeams[teamID] then
@@ -227,15 +229,14 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID)
-	if cmdID < 0 then
-		local buildUnitDefID = -cmdID
-		if not blockTechDefs[buildUnitDefID] then
-			return true
-		end
-		local techLevel = spGetTeamRulesParam(unitTeam, "tech_level")
-		if techLevel < blockTechDefs[buildUnitDefID] then
-			return false
-		end
+	-- Allows CMD.BUILD (cmdID < 0)
+	local buildUnitDefID = -cmdID
+	if not blockTechDefs[buildUnitDefID] then
+		return true
+	end
+	local techLevel = spGetTeamRulesParam(unitTeam, "tech_level")
+	if techLevel < blockTechDefs[buildUnitDefID] then
+		return false
 	end
 	return true
 end
