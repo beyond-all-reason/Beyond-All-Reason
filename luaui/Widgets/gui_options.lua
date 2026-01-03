@@ -4773,6 +4773,24 @@ function init()
 		{ id = "label_teamcolors", group = "accessibility", name = Spring.I18N('ui.settings.option.label_teamcolors'), category = types.basic },
 		{ id = "label_teamcolors_spacer", group = "accessibility", category = types.basic },
 
+		-- Dev note: this uses the engine's late DrawWorld pass (after water, when present)
+		-- to remove water distortion effects and keep behavior consistent on maps without water.
+		-- The option id/config key name is legacy (kept for backward compatibility).
+		{ id = "metalspots_drawwaterpost", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   High Visibility Metal Spots", type = "bool", value = (WG['metalspots'] ~= nil and WG['metalspots'].getUseDrawWaterPost ~= nil and WG['metalspots'].getUseDrawWaterPost()) or true, description = "Removes water distortion effects and helps ensure metal spot markers are not blocked.",
+		  onload = function(i)
+			  loadWidgetData("Metalspots", "metalspots_drawwaterpost", { 'useDrawWaterPost' })
+			  if WG['metalspots'] and WG['metalspots'].getUseDrawWaterPost then
+				  options[i].value = WG['metalspots'].getUseDrawWaterPost()
+			  end
+		  end,
+		  onchange = function(i, value)
+			  if WG['metalspots'] and WG['metalspots'].setUseDrawWaterPost then
+				  WG['metalspots'].setUseDrawWaterPost(value)
+			  end
+			  saveOptionValue('Metalspots', 'metalspots', 'setUseDrawWaterPost', { 'useDrawWaterPost' }, options[getOptionByID('metalspots_drawwaterpost')].value)
+		  end,
+		},
+
 
 		{ id = "anonymous_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.anonymous_r'), type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("anonymousColorR", 255)), description = Spring.I18N('ui.settings.option.anonymous_descr'),
 		  onchange = function(i, value, force)
