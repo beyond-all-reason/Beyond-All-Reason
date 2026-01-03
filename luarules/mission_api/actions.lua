@@ -1,44 +1,105 @@
 local trackedUnits = GG['MissionAPI'].TrackedUnits
 local triggers = GG['MissionAPI'].Triggers
 
-local function enableTrigger(triggerId)
-	triggers[triggerId].settings.active = true
+local function enableTrigger(triggerID)
+	triggers[triggerID].settings.active = true
 end
 
-local function disableTrigger(triggerId)
-	triggers[triggerId].settings.active = false
+local function disableTrigger(triggerID)
+	triggers[triggerID].settings.active = false
+end
+
+local function issueOrders(units, orders)
+	Spring.GiveOrderArrayToUnitArray(units, orders)
+end
+
+local function spawnUnits(name, unitDefName, quantity, position, facing, construction)
+	if quantity == 0 then return end
+
+	position.y = position.y or Spring.GetGroundHeight(position.x, position.z)
+
+	if not trackedUnits[name] then trackedUnits[name] = {} end
+
+	for i = 1, quantity do
+		local unitID = Spring.CreateUnit(unitDefName, position.x, position.y, position.z, facing.value, 0, construction)
+
+		if unitID and name then
+			trackedUnits[name][#trackedUnits[name] + 1] = unitID
+			trackedUnits[unitID] = name
+		end
+	end
+end
+
+----------------------------------------------------------------
+
+local function despawnUnits(units)
+	for _, id in ipairs(units) do
+		Spring.DestroyUnit(id)
+	end
+end
+
+----------------------------------------------------------------
+
+local function transferUnits(units, newTeam, given)
+	for _, id in ipairs(units) do
+		Spring.TransferUnit(id, newTeam, given)
+	end
+end
+
+local function spawnExplosion(position, direction, params)
+	spawnExplosion(position[1], position[2], position[3], direction[1], direction[2], direction[3], params)
 end
 
 local function sendMessage(message)
 	Spring.Echo(message)
 end
 
-local function spawnUnits(name, unitDefName, quantity, x, y, z)
-	y = y or Spring.GetGroundHeight(x, z)
-
-	local unitId = Spring.CreateUnit(unitDefName, x, y, z, "south", 0)
-
-	if unitId and name then
-		trackedUnits[name] = unitId
-		trackedUnits[unitId] = name
-	end
+local function victory(winningAllyTeamIDs)
+	Spring.GameOver({ unpack(winningAllyTeamIDs) })
 end
 
-local function despawnUnits(name)
-	local unitId = trackedUnits[name]
-
-	if unitId then
-		trackedUnits[name] = nil
-		trackedUnits[unitId] = nil
-
-		Spring.DestroyUnit(unitId, false, true)
+local function defeat(losingAllyTeamIDs)
+	local allAllyTeamIDs = Spring.GetAllyTeamList()
+	local winningAllyTeamIDs = { }
+	for _, allyTeamID in pairs(allAllyTeamIDs) do
+		if not table.contains(losingAllyTeamIDs, allyTeamID) then
+			table.insert(winningAllyTeamIDs, allyTeamID)
+		end
 	end
+	Spring.GameOver({ unpack(winningAllyTeamIDs) })
+end
+
+local function custom(func)
+	func()
 end
 
 return {
+	-- Triggers
 	EnableTrigger = enableTrigger,
 	DisableTrigger = disableTrigger,
-	SendMessage = sendMessage,
+
+	-- Orders
+	IssueOrders = issueOrders,
+
+	-- Build Options
+
+	-- Units
 	SpawnUnits = spawnUnits,
 	DespawnUnits = despawnUnits,
+	TransferUnits = transferUnits,
+
+	-- SFX
+	SpawnExplosion = spawnExplosion,
+
+	-- Map
+
+	-- Media
+	SendMessage = sendMessage,
+
+	-- Win Condition
+	Victory = victory,
+	Defeat = defeat,
+
+	-- Custom
+	Custom = custom,
 }
