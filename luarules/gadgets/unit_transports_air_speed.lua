@@ -12,6 +12,10 @@ function gadget:GetInfo()
 	}
 end
 
+-- Mass-based transport speed penalties are effectively broken beyond repair, at the moment.
+-- They are off by a factor of about 100 and `transportspeedmult` by nearly a factor of 100.
+-- The penalty customparam is somewhat offset by the base 0.2 multiplier, but only somewhat.
+
 if not gadgetHandler:IsSyncedCode() then return end
 
 local TRANSPORTED_MASS_SPEED_PENALTY = 0.2 -- higher makes unit slower
@@ -24,6 +28,7 @@ local canFly = {}
 local unitMass = {}
 local unitTransportMass = {}
 local unitSpeed = {}
+local unitSpeedPenalty = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.canFly then
 		canFly[unitDefID] = true
@@ -31,11 +36,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 	unitMass[unitDefID] = unitDef.mass
 	unitSpeed[unitDefID] = unitDef.speed
+	unitSpeedPenalty[unitDefID] = tonumber(unitDef.customParams.transportspeedmult or 0) or 0
 end
-
-local massUsageFraction = 0
-local allowedSpeed = 0
-local currentMassUsage = 0
 
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spSetUnitVelocity = Spring.SetUnitVelocity
@@ -45,40 +47,24 @@ local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 -- update allowed speed for transport
 local function updateAllowedSpeed(transportId)
 	local uDefID = spGetUnitDefID(transportId)
+	local units = spGetUnitIsTransporting(transportId) or {}
 
-	-- get sum of mass and size for all transported units
-	currentMassUsage = 0
-	local units = spGetUnitIsTransporting(transportId)
-	local tunitdefid
-	local tunitdefcustom
-	local iscom = false
-	local transportspeedmult = 0.0
-	if 1 == 2 then --stops the gadget from doing anything. CHANGE TO GET ACTUAL SLOWDOWN
-		if units then
-			for _,tUnitId in pairs(units) do
-				tunitdefid = spGetUnitDefID(tUnitId)
-				tunitdefcustom = UnitDefs[tunitdefid].customParams		
-				if (tunitdefcustom ~=nil) then
-					transportspeedmult = tunitdefcustom.transportspeedmult ~=nil and tunitdefcustom.transportspeedmult or transportspeedmult--use custom if present (can be tweaked)
-					iscom = tunitdefcustom.iscommander=='1'
-				end
-				
-				currentMassUsage = currentMassUsage + unitMass[tunitdefid]
-			end
-			massUsageFraction = (currentMassUsage / unitTransportMass[uDefID])
+	local transportspeedmult = 0
+	local currentMassUsage = 0
 
-			if (iscom) then
-
-				allowedSpeed = unitSpeed[uDefID] * (1 - massUsageFraction * (TRANSPORTED_MASS_SPEED_PENALTY+transportspeedmult)) / FRAMES_PER_SECOND
-			else
-				allowedSpeed = unitSpeed[uDefID] * (1 - massUsageFraction * TRANSPORTED_MASS_SPEED_PENALTY) / FRAMES_PER_SECOND
-				--Spring.Echo("unit "..transportUnitDef.name.." is air transport at  "..(massUsageFraction*100).."%".." load, curSpeed="..vw.." allowedSpeed="..allowedSpeed)
-			end
-			airTransportMaxSpeeds[transportId] = allowedSpeed
-		end
+	for _,tUnitId in pairs(units) do
+		local tunitdefid = spGetUnitDefID(tUnitId)
+		transportspeedmult = transportspeedmult + unitSpeedPenalty[tunitdefid]
+		currentMassUsage = currentMassUsage + unitMass[tunitdefid]
 	end
-end
 
+	local massUsageFraction = (currentMassUsage / unitTransportMass[uDefID])
+	local massSpeedPenalty = massUsageFraction * (TRANSPORTED_MASS_SPEED_PENALTY + transportspeedmult)
+
+	local speed = unitSpeed[uDefID] * (1 - massSpeedPenalty) / FRAMES_PER_SECOND
+
+	airTransportMaxSpeeds[transportId] = speed
+end
 
 -- add transports to table when they load a unit
 function gadget:UnitLoaded(unitId, unitDefId, unitTeam, transportId, transportTeam)
@@ -111,16 +97,15 @@ function gadget:GameFrame(n)
 	end
 end
 
-
 function gadget:UnitUnloaded(unitId, unitDefId, teamId, transportId)
-	if canFly[spGetUnitDefID(transportId)] then
-		local units = airTransports[transportId] and spGetUnitIsTransporting(transportId) or {}
-		if airTransports[transportId] and not units[1] then
-			-- transport is empty, cleanup tables
+	if airTransports[transportId] then
+		local units = spGetUnitIsTransporting(transportId)
+
+		if units and units[1] then
+			updateAllowedSpeed(transportId)
+		else
 			airTransports[transportId] = nil
 			airTransportMaxSpeeds[transportId] = nil
-		else
-			updateAllowedSpeed(transportId)
 		end
 	end
 end
