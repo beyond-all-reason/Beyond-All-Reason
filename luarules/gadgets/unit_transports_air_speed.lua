@@ -97,14 +97,13 @@ function gadget:GameFrame(n)
 	end
 end
 
-
 function gadget:UnitUnloaded(unitId, unitDefId, teamId, transportId)
 	if airTransports[transportId] then
-		updateAllowedSpeed(transportId)
-
 		local units = spGetUnitIsTransporting(transportId)
 
-		if not units or not units[1] then
+		if units and units[1] then
+			updateAllowedSpeed(transportId)
+		else
 			airTransports[transportId] = nil
 			airTransportMaxSpeeds[transportId] = nil
 		end
