@@ -1264,6 +1264,12 @@ function UnitDef_Post(name, uDef)
 		uDef = proposed_unit_reworks.proposed_unit_reworksTweaks(name, uDef)
 	end
 
+	-- Community Balance Patch
+	if modOptions.community_balance_patch ~= "disabled" then
+		local community_balance_patch = VFS.Include("unitbasedefs/community_balance_patch_defs.lua")
+		uDef = community_balance_patch.communityBalanceTweaks(name, uDef, modOptions)
+	end
+
 	-- Naval Balance Adjustments, if anything breaks here blame ZephyrSkies
 	if modOptions.naval_balance_tweaks == true then
 		local buildOptionReplacements = {
@@ -1794,6 +1800,7 @@ function WeaponDef_Post(name, wDef)
 				wDef.damage.default = 35000
 			end
 		end
+
 
 		--Air rework
 		if modOptions.air_rework == true then
