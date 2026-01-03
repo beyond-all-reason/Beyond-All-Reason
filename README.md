@@ -43,4 +43,7 @@ Ensure that you have the correct path by looking for the file `Beyond-All-Reason
 
 6. If developing Chobby also clone the code into the `games` directory. Follow the guide in the [Chobby README](https://github.com/beyond-all-reason/BYAR-Chobby#developing-the-lobby).
 
+7. (Optional, Advanced) If you want to run automated integration tests, see the [testing documentation](tools/headless_testing/README.md)
+
 More on the `.sdd` directory to run raw LUA and the structure expected by Spring Engine is [documented here](https://springrts.com/wiki/Gamedev:Structure).
+
