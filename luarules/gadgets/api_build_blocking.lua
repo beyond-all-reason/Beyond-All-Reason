@@ -272,6 +272,8 @@ if gadgetHandler:IsSyncedCode() then
 
 		gadgetHandler:AddChatAction('buildblock', commandBuildBlock, "Block units from being built by reason")
 		gadgetHandler:AddChatAction('buildunblock', commandBuildUnblock, "Unblock units from being built by reason")
+
+		gadgetHandler:RegisterAllowCommand(CMD.BUILD)
 	end
 
 	function gadget:Shutdown()
@@ -313,18 +315,16 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 
-
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID)
-		if cmdID < 0 then --it's a build command
-			local buildDefID = -cmdID
-			local blockedUnitDefs = teamBlockedUnitDefs[unitTeam]
-			if blockedUnitDefs and blockedUnitDefs[buildDefID] and next(blockedUnitDefs[buildDefID]) then
-				return false
-			end
+		-- Allows CMD.BUILD (cmdID < 0)
+		local buildDefID = -cmdID
+		local blockedUnitDefs = teamBlockedUnitDefs[unitTeam]
+		if blockedUnitDefs and blockedUnitDefs[buildDefID] and next(blockedUnitDefs[buildDefID]) then
+			return false
 		end
 		return true
 	end
-	
+
 	function gadget:GameFrame(frame)
 		if not geoInitialized then -- because the geothermal features don't exist until after Initialize() and GameStart()
 			landGeoAvailable, seaGeoAvailable = unitRestrictions.hasGeothermalFeatures()
