@@ -156,6 +156,7 @@ return {
 					area_onhit_time = 10,
 					overrange_distance = 805,
 					projectile_destruction_method = "descend",
+					water_splash = 0,
 				},
 				damage = {
 					default = 30,
