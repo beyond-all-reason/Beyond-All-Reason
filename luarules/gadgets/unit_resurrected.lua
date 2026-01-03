@@ -40,8 +40,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local function RestoreStateMechanics(unitID, featureID)
-	--uncomment this to set unitXP from their previous incarnation
-	--Spring.SetUnitExperience(unitID, spGetFeatureRulesParam(featureID, "previous_xp") or 0)
+	Spring.SetUnitExperience(unitID, spGetFeatureRulesParam(featureID, "previous_xp") or 0)
 end
 
 local function RestoreStateGUI(unitID, featureID)
