@@ -33,10 +33,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitSpeed[unitDefID] = unitDef.speed
 end
 
-local massUsageFraction = 0
-local allowedSpeed = 0
-local currentMassUsage = 0
-
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spSetUnitVelocity = Spring.SetUnitVelocity
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -45,16 +41,15 @@ local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 -- update allowed speed for transport
 local function updateAllowedSpeed(transportId)
 	local uDefID = spGetUnitDefID(transportId)
-
-	-- get sum of mass and size for all transported units
-	currentMassUsage = 0
 	local units = spGetUnitIsTransporting(transportId)
-	local tunitdefid
-	local tunitdefcustom
-	local iscom = false
-	local transportspeedmult = 0.0
 
 	if units then
+		local tunitdefid
+		local tunitdefcustom
+		local iscom = false
+		local transportspeedmult = 0.0
+		local currentMassUsage = 0
+
 		for _,tUnitId in pairs(units) do
 			tunitdefid = spGetUnitDefID(tUnitId)
 			tunitdefcustom = UnitDefs[tunitdefid].customParams		
@@ -62,14 +57,13 @@ local function updateAllowedSpeed(transportId)
 			iscom = tunitdefcustom.iscommander=='1'
 			currentMassUsage = currentMassUsage + unitMass[tunitdefid]
 		end
-		massUsageFraction = (currentMassUsage / unitTransportMass[uDefID])
+		local massUsageFraction = (currentMassUsage / unitTransportMass[uDefID])
 
 		if (iscom) then
-			allowedSpeed = unitSpeed[uDefID] * (1 - massUsageFraction * (TRANSPORTED_MASS_SPEED_PENALTY+transportspeedmult)) / FRAMES_PER_SECOND
+			airTransportMaxSpeeds[transportId] = unitSpeed[uDefID] * (1 - massUsageFraction * (TRANSPORTED_MASS_SPEED_PENALTY+transportspeedmult)) / FRAMES_PER_SECOND
 		else
-			allowedSpeed = unitSpeed[uDefID] * (1 - massUsageFraction * TRANSPORTED_MASS_SPEED_PENALTY) / FRAMES_PER_SECOND
+			airTransportMaxSpeeds[transportId] = unitSpeed[uDefID] * (1 - massUsageFraction * TRANSPORTED_MASS_SPEED_PENALTY) / FRAMES_PER_SECOND
 		end
-		airTransportMaxSpeeds[transportId] = allowedSpeed
 	end
 end
 
