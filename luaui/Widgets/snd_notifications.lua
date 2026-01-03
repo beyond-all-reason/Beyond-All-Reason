@@ -25,9 +25,6 @@ local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
 
 local defaultVoiceSet = 'en/cephis'
-if Spring.GetConfigString("voiceset", 'en/cephis') == 'en/allison' then
-	Spring.SetConfigString("voiceset", 'en/cephis')
-end
 
 local windFunctions = VFS.Include('common/wind_functions.lua')
 
@@ -55,30 +52,10 @@ end
 local wavFileLengths = VFS.Include('sounds/sound_file_lengths.lua')
 VFS.Include('common/wav.lua')
 
-local language = Spring.GetConfigString('language', 'en')
-
 local voiceSet = Spring.GetConfigString('voiceset', defaultVoiceSet)
-
--- fix old config
-if not string.find(voiceSet, '/', nil, true)	then
-	Spring.SetConfigString("voiceset", defaultVoiceSet)
+if #VFS.DirList("sounds/voice/" .. voiceSet, "*.wav") == 0 then
 	voiceSet = defaultVoiceSet
 end
-
---if string.sub(voiceSet, 1, 2) ~= language then
---	local languageDirs = VFS.SubDirs('sounds/voice', '*')
---	for k, f in ipairs(languageDirs) do
---		local langDir = string.sub(f, 14, string.len(f)-1)
---		local files = VFS.SubDirs('sounds/voice/'..langDir, '*')
---		Spring.Echo("[LANG NOTIFS]", langDir, #files, files)
---		for k, file in ipairs(files) do
---			local dirname = string.sub(file, 14, string.len(file)-1)
---			voiceSet = langDir..'/'..dirname
---			break
---		end
---	end
---end
-
 
 local LastPlay = {}
 local notification = {}
@@ -94,19 +71,6 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 local soundFolder = "sounds/voice/" .. voiceSet .. "/"
 local soundEffectsFolder = "sounds/voice-soundeffects/"
 local defaultSoundFolder = "sounds/voice/" .. defaultVoiceSet .. "/"
-
-local voiceSetFound = false
-local files = VFS.SubDirs('sounds/voice/' .. language, '*')
-for k, file in ipairs(files) do
-	local dirname = string.sub(file, 14, string.len(file) - 1)
-	if dirname == voiceSet then
-		voiceSetFound = true
-		break
-	end
-end
-if not voiceSetFound then
-	voiceSet = defaultVoiceSet
-end
 
 -- load and parse sound files/notifications
 local notificationTable = VFS.Include('sounds/voice/config.lua')
