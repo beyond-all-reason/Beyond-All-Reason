@@ -12,6 +12,10 @@ function gadget:GetInfo()
 	}
 end
 
+-- Mass-based transport speed penalties are effectively broken beyond repair, at the moment.
+-- They are off by a factor of about 100 and `transportspeedmult` by nearly a factor of 100.
+-- The penalty customparam is somewhat offset by the base 0.2 multiplier, but only somewhat.
+
 if not gadgetHandler:IsSyncedCode() then return end
 
 local TRANSPORTED_MASS_SPEED_PENALTY = 0.2 -- higher makes unit slower
@@ -57,7 +61,9 @@ local function updateAllowedSpeed(transportId)
 	local massUsageFraction = (currentMassUsage / unitTransportMass[uDefID])
 	local massSpeedPenalty = massUsageFraction * (TRANSPORTED_MASS_SPEED_PENALTY + transportspeedmult)
 
-	airTransportMaxSpeeds[transportId] = unitSpeed[uDefID] * (1 - massSpeedPenalty) / FRAMES_PER_SECOND
+	local speed = unitSpeed[uDefID] * (1 - massSpeedPenalty) / FRAMES_PER_SECOND
+
+	airTransportMaxSpeeds[transportId] = speed
 end
 
 -- add transports to table when they load a unit
