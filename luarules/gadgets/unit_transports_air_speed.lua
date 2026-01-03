@@ -93,14 +93,14 @@ end
 
 
 function gadget:UnitUnloaded(unitId, unitDefId, teamId, transportId)
-	if canFly[spGetUnitDefID(transportId)] then
-		local units = airTransports[transportId] and spGetUnitIsTransporting(transportId) or {}
-		if airTransports[transportId] and not units[1] then
-			-- transport is empty, cleanup tables
+	if airTransports[transportId] then
+		updateAllowedSpeed(transportId)
+
+		local units = spGetUnitIsTransporting(transportId)
+
+		if not units or not units[1] then
 			airTransports[transportId] = nil
 			airTransportMaxSpeeds[transportId] = nil
-		else
-			updateAllowedSpeed(transportId)
 		end
 	end
 end
