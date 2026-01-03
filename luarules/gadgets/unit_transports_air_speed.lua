@@ -24,6 +24,7 @@ local canFly = {}
 local unitMass = {}
 local unitTransportMass = {}
 local unitSpeed = {}
+local unitSpeedPenalty = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.canFly then
 		canFly[unitDefID] = true
@@ -31,6 +32,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 	unitMass[unitDefID] = unitDef.mass
 	unitSpeed[unitDefID] = unitDef.speed
+	unitSpeedPenalty[unitDefID] = tonumber(unitDef.customParams.transportspeedmult or 0) or 0
 end
 
 local spGetUnitVelocity = Spring.GetUnitVelocity
@@ -41,32 +43,22 @@ local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 -- update allowed speed for transport
 local function updateAllowedSpeed(transportId)
 	local uDefID = spGetUnitDefID(transportId)
-	local units = spGetUnitIsTransporting(transportId)
+	local units = spGetUnitIsTransporting(transportId) or {}
 
-	if units then
-		local tunitdefid
-		local tunitdefcustom
-		local iscom = false
-		local transportspeedmult = 0.0
-		local currentMassUsage = 0
+	local transportspeedmult = 0
+	local currentMassUsage = 0
 
-		for _,tUnitId in pairs(units) do
-			tunitdefid = spGetUnitDefID(tUnitId)
-			tunitdefcustom = UnitDefs[tunitdefid].customParams		
-			transportspeedmult = tunitdefcustom.transportspeedmult ~=nil and tunitdefcustom.transportspeedmult or transportspeedmult--use custom if present (can be tweaked)
-			iscom = tunitdefcustom.iscommander=='1'
-			currentMassUsage = currentMassUsage + unitMass[tunitdefid]
-		end
-		local massUsageFraction = (currentMassUsage / unitTransportMass[uDefID])
-
-		if (iscom) then
-			airTransportMaxSpeeds[transportId] = unitSpeed[uDefID] * (1 - massUsageFraction * (TRANSPORTED_MASS_SPEED_PENALTY+transportspeedmult)) / FRAMES_PER_SECOND
-		else
-			airTransportMaxSpeeds[transportId] = unitSpeed[uDefID] * (1 - massUsageFraction * TRANSPORTED_MASS_SPEED_PENALTY) / FRAMES_PER_SECOND
-		end
+	for _,tUnitId in pairs(units) do
+		local tunitdefid = spGetUnitDefID(tUnitId)
+		transportspeedmult = transportspeedmult + unitSpeedPenalty[tunitdefid]
+		currentMassUsage = currentMassUsage + unitMass[tunitdefid]
 	end
-end
 
+	local massUsageFraction = (currentMassUsage / unitTransportMass[uDefID])
+	local massSpeedPenalty = massUsageFraction * (TRANSPORTED_MASS_SPEED_PENALTY + transportspeedmult)
+
+	airTransportMaxSpeeds[transportId] = unitSpeed[uDefID] * (1 - massSpeedPenalty) / FRAMES_PER_SECOND
+end
 
 -- add transports to table when they load a unit
 function gadget:UnitLoaded(unitId, unitDefId, unitTeam, transportId, transportTeam)
