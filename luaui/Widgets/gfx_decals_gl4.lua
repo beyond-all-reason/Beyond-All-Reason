@@ -1051,7 +1051,7 @@ for weaponDefID=1, #WeaponDefs do
 			fadeintime, -- 13
 			positionVariation, -- 14
 			waterDepthRatio, -- 15
-			waterTextures, -- 16
+			waterTextures or textures, -- 16
 		}
 	end
 end
