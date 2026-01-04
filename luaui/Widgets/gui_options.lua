@@ -193,6 +193,7 @@ local defaultMapFog = {
 }
 
 local options = {}
+local unfilteredOptions = {}
 local customOptions = {}
 local optionGroups = {}
 local optionButtons = {}
@@ -409,7 +410,7 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 			WG['limitidlefps'].update()
 		end
 
-		init()
+		applyFilter()
 		return true
 	end
 end
@@ -418,7 +419,7 @@ local function clearChatInput()
 	inputText = ''
 	inputTextPosition = 0
 	inputTextInsertActive = false
-	init()
+	applyFilter()
 end
 
 -- only called when show = false
@@ -440,7 +441,7 @@ local function cancelChatInput()
 	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil	--widgetHandler:DisownText()
 	if doReinit then
-		init()
+		applyFilter()
 	end
 end
 
@@ -1522,14 +1523,14 @@ function widget:KeyPress(key)
 		if inputText == '' then
 			clearChatInput()
 		else
-			init()
+			applyFilter()
 		end
 	elseif key == 127 then -- DELETE
 		if inputTextPosition < utf8.len(inputText) then
 			inputText = utf8.sub(inputText, 1, inputTextPosition) .. utf8.sub(inputText, inputTextPosition+2)
 		end
 		cursorBlinkTimer = 0
-		init()
+		applyFilter()
 	elseif key == 277 then -- INSERT
 		inputTextInsertActive = not inputTextInsertActive
 	elseif key == 276 then -- LEFT
@@ -1905,6 +1906,37 @@ function loadAllWidgetData()
 			option.onload(i)
 		end
 	end
+end
+
+-- Efficiently filters options without rebuilding the entire options table
+function applyFilter()
+	if inputText and inputText ~= '' and inputMode == '' then
+		local filteredOptions = {}
+		for i, option in pairs(unfilteredOptions) do
+			if option.name and option.name ~= '' and option.type and option.type ~= 'label' then
+				local name = string.gsub(option.name, widgetOptionColor, "")
+				name = string.gsub(name, "  ", " ")
+				if string.find(string.lower(name), string.lower(inputText), nil, true) then
+					filteredOptions[#filteredOptions+1] = option
+				elseif option.description and option.description ~= '' and string.find(string.lower(option.description), string.lower(inputText), nil, true) then
+					filteredOptions[#filteredOptions+1] = option
+				elseif string.find(string.lower(option.id), string.lower(inputText), nil, true) then
+					filteredOptions[#filteredOptions+1] = option
+				end
+			end
+		end
+		options = filteredOptions
+		startColumn = 1
+	else
+		-- No filter, use the cached unfiltered options
+		options = unfilteredOptions
+	end
+
+	-- Rebuild window display list
+	if windowList then
+		gl.DeleteList(windowList)
+	end
+	windowList = gl.CreateList(DrawWindow)
 end
 
 function init()
@@ -6614,23 +6646,12 @@ function init()
 	end
 	options = processedOptions
 
+	-- Cache the unfiltered options for efficient filtering
+	unfilteredOptions = options
+
+	-- Apply current filter if any
 	if inputText and inputText ~= '' and inputMode == '' then
-		local filteredOptions = {}
-		for i, option in pairs(options) do
-			if option.name and option.name ~= '' and option.type and option.type ~= 'label' then
-				local name = string.gsub(option.name, widgetOptionColor, "")
-				name = string.gsub(name, "  ", " ")
-				if string.find(string.lower(name), string.lower(inputText), nil, true) then
-					filteredOptions[#filteredOptions+1] = option
-				elseif option.description and option.description ~= '' and string.find(string.lower(option.description), string.lower(inputText), nil, true) then
-					filteredOptions[#filteredOptions+1] = option
-				elseif string.find(string.lower(option.id), string.lower(inputText), nil, true) then
-					filteredOptions[#filteredOptions+1] = option
-				end
-			end
-		end
-		options = filteredOptions
-		startColumn = 1
+		applyFilter()
 	end
 
 	-- count num options in each group
