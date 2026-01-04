@@ -82,9 +82,12 @@ local function createAirUnit(unitID, builderID)
 	end
 end
 
-local function getCommandPosition(command)
+local function getCommandPosition(commands)
 	local tx, ty, tz
-	if command then
+	if not commands then
+		return
+	end
+	for index, command in ipairs(commands) do
 		if #command.params == 1 then
 			if command.params[1] > Game.maxUnits then
 				tx, ty, tz = Spring.GetFeaturePosition(command.params[1] - Game.maxUnits)
@@ -94,8 +97,11 @@ local function getCommandPosition(command)
 		elseif #command.params >= 3 then
 			tx, tz = command.params[1], command.params[3]
 		end
+		if tx then
+			break
+		end
 	end
-	return tx, ty, tz
+	return tx, tz
 end
 
 -- Nudge the unit toward its command without sending it too far.
@@ -134,7 +140,7 @@ local function launchAirUnit(unitID, builderID)
 	distanceMin = math.max(distanceMin, factoryMoveRadius[builderID] or 0)
 
 	local command = Spring.GetUnitCommands(unitID, 1)
-	local tx, ty, tz = getCommandPosition(command)
+	local tx, tz = getCommandPosition(command)
 
 	if tx and tz then
 		moveToCommand(unitID, tx, tz, distanceMin)
