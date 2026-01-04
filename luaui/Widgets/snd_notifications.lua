@@ -28,7 +28,7 @@ local defaultVoiceSet = 'en/cephis'
 
 local windFunctions = VFS.Include('common/wind_functions.lua')
 
-local useDefaultVoiceFallback = false    -- when a voiceset has missing file, try to load the default voiceset file instead
+local useDefaultVoiceFallback = Spring.GetConfigInt('NotificationsSubstitute', 0) == 1 --false    -- when a voiceset has missing file, try to load the default voiceset file instead
 local playWelcome = Spring.GetConfigInt('WelcomeMessagePlayed', 0) == 0
 
 local silentTime = 0.7    -- silent time between queued notifications
