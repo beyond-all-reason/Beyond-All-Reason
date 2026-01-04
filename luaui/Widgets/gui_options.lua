@@ -2940,14 +2940,14 @@ function init()
 		  end,
 		},
 
-		{ id = "notifications_tutorial", group = "notif", name = Spring.I18N('ui.settings.option.notifications_tutorial'), category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getTutorial()), description = Spring.I18N('ui.settings.option.notifications_tutorial_descr'),
-		  onload = function(i)
-			  loadWidgetData("Notifications", "notifications_tutorial", { 'tutorialMode' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Notifications', 'notifications', 'setTutorial', { 'tutorialMode' }, value)
-		  end,
-		},
+		--{ id = "notifications_tutorial", group = "notif", name = Spring.I18N('ui.settings.option.notifications_tutorial'), category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getTutorial()), description = Spring.I18N('ui.settings.option.notifications_tutorial_descr'),
+		--  onload = function(i)
+		--	  loadWidgetData("Notifications", "notifications_tutorial", { 'tutorialMode' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Notifications', 'notifications', 'setTutorial', { 'tutorialMode' }, value)
+		--  end,
+		--},
 		{ id = "notifications_messages", group = "notif", name = Spring.I18N('ui.settings.option.notifications_messages'), category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getMessages()), description = Spring.I18N('ui.settings.option.notifications_messages_descr'),
 		  onload = function(i)
 			  loadWidgetData("Notifications", "notifications_messages", { 'displayMessages' })
@@ -2972,13 +2972,29 @@ function init()
 			  saveOptionValue('Notifications', 'notifications', 'setVolume', { 'globalVolume' }, value)
 		  end,
 		},
-		{ id = "notifications_playtrackedplayernotifs", category = types.basic, group = "notif", name = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs'), type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getPlayTrackedPlayerNotifs()), description = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs_descr'),
-		  onload = function(i)
-			  loadWidgetData("Notifications", "notifications_playtrackedplayernotifs", { 'playTrackedPlayerNotifs' })
-		  end,
+		-- FixMe, it doesn't work
+		--{ id = "notifications_playtrackedplayernotifs", category = types.advanced, group = "notif", name = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs'), type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getPlayTrackedPlayerNotifs()), description = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs_descr'),
+		--  onload = function(i)
+		--	  loadWidgetData("Notifications", "notifications_playtrackedplayernotifs", { 'playTrackedPlayerNotifs' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Notifications', 'notifications', 'setPlayTrackedPlayerNotifs', { 'playTrackedPlayerNotifs' }, value)
+		--  end,
+		--},
+		{ id = "notifications_substitute", group = "notif", category = types.advanced, name = Spring.I18N('ui.settings.option.notifications_substitute'), type = "bool", value = Spring.GetConfigInt('NotificationsSubstitute', 0) == 1, description = Spring.I18N('ui.settings.option.notifications_substitute_descr'),
 		  onchange = function(i, value)
-			  saveOptionValue('Notifications', 'notifications', 'setPlayTrackedPlayerNotifs', { 'playTrackedPlayerNotifs' }, value)
-		  end,
+				Spring.SetConfigInt('NotificationsSubstitute', value and 1 or 0)
+				widgetHandler:DisableWidget("Notifications")
+				widgetHandler:EnableWidget("Notifications")
+				init()
+			end
+		},
+		{ id = "notifications_refresh", group = "notif", category = types.advanced, name = Spring.I18N('ui.settings.option.notifications_refresh'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.notifications_refresh_descr'),
+		  onchange = function(i, value)
+				widgetHandler:DisableWidget("Notifications")
+				widgetHandler:EnableWidget("Notifications")
+				init()
+			end
 		},
 
 
