@@ -31,8 +31,8 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 end
 
 local function isComplete(unitID)
-	local inProgress, progress = Spring.GetUnitIsBeingBuilt(unitID)
-	return inProgress or progress >= 1
+	local beingBuilt, buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
+	return not beingBuilt or buildProgress >= 1
 end
 
 function gadget:Initialize()
