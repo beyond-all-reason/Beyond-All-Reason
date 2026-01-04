@@ -51,7 +51,7 @@ local function generateWeaponTtlFunction(weaponDef)
 		end
 	else -- treat all other as cylinder == 0:
 		return function(unitID, projectileID)
-			local ux, uy, uz = spGetUnitPosition(unitID)
+			local _, _, _, ux, uy, uz = spGetUnitPosition(unitID, true)
 			local px, py, pz = spGetProjectilePosition(projectileID)
 			local dx, dy, dz = spGetProjectileDirection(projectileID)
 			local projection = (px - ux) * dx + (py - uy) * dy + (pz - uz) * dz
