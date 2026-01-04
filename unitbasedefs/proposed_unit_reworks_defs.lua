@@ -61,6 +61,11 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.health = math.ceil(uDef.health * 0.85 / 100) * 100
 	end
 
+		if name == "armdf" then
+		uDef.metalcost = 270
+		uDef.health = 3800
+	end
+
 	if name == "corfus" then
 		uDef.energymake = 850
 		uDef.metalcost = 3600
