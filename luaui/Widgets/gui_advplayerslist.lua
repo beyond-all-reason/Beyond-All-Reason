@@ -1688,7 +1688,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 local function updateShareAmount(player, resourceType)
-    local policyResult = Helpers.GetPlayerPolicy(player, resourceType, myTeamID)
+    local policyResult = Helpers.GetPlayerResourcePolicy(player, resourceType, myTeamID)
     if not policyResult.amountSendable then
         shareAmount = 0
         return
@@ -2999,7 +2999,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 local function RenderShareSliderText(posY, player, resourceType, baseOffset)
-    local policyResult = Helpers.GetPlayerPolicy(player, resourceType, myTeamID)
+    local policyResult = Helpers.GetPlayerResourcePolicy(player, resourceType, myTeamID)
     local case = ResourceTransfer.DecideCommunicationCase(policyResult)
     local label
     if case == ResourceTransfer.ResourceCommunicationCase.OnTaxFree then

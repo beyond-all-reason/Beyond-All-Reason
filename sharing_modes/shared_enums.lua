@@ -19,7 +19,7 @@ M.SharingModes = {
 	Customize = "customize",
 }
 
-M.TransferCategory = {
+M.PolicyType = {
 	EnergyTransfer = "energy_transfer",
 	MetalTransfer = "metal_transfer",
 	UnitTransfer = "unit_transfer"

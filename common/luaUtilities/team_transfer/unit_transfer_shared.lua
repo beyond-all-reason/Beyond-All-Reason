@@ -11,6 +11,16 @@ Shared.UnitPolicyFields = {
   sharingMode = FieldTypes.string,
 }
 
+-- Lua table cache for unit policies (replaces TeamRulesParam serialization)
+-- Structure: policyCache[senderTeamId][receiverTeamId] = UnitPolicyResult
+local policyCache = {}
+
+-- Shared deny policy singleton for non-allied pairs
+local DENY_SINGLETON = {
+  canShare = false,
+  sharingMode = SharedEnums.UnitSharingMode.Disabled,
+}
+
 ---Validate a list of unitIds under current mode
 ---Returns a structured result object designed for UI consumption.
 ---We don't make decisions here on how to display unit names etc, we just collate the data and let the UI decide.
@@ -87,24 +97,60 @@ end
 ---@return UnitPolicyResult
 function Shared.GetCachedPolicyResult(senderTeamId, receiverTeamId, springApi)
   local spring = springApi or Spring
-  local baseKey = PolicyShared.MakeBaseKey(receiverTeamId, SharedEnums.TransferCategory.UnitTransfer)
-  local serialized = spring.GetTeamRulesParam(senderTeamId, baseKey)
-  if serialized == nil then
-    -- default to deny
-    ---@type UnitPolicyResult
-    return {
-      senderTeamId = senderTeamId,
-      receiverTeamId = receiverTeamId,
-      canShare = false,
-      sharingMode = SharedEnums.UnitSharingMode.Disabled,
-    }
+  
+  -- Fast path: non-allied pairs return shared deny singleton
+  if not spring.AreTeamsAllied(senderTeamId, receiverTeamId) then
+    DENY_SINGLETON.senderTeamId = senderTeamId
+    DENY_SINGLETON.receiverTeamId = receiverTeamId
+    return DENY_SINGLETON
   end
-
-  if type(serialized) ~= "string" then
-    serialized = tostring(serialized)
+  
+  -- Allied pairs: check Lua table cache
+  local senderCache = policyCache[senderTeamId]
+  if senderCache and senderCache[receiverTeamId] then
+    return senderCache[receiverTeamId]
   end
+  
+  -- Cache miss - return deny policy
+  ---@type UnitPolicyResult
+  return {
+    senderTeamId = senderTeamId,
+    receiverTeamId = receiverTeamId,
+    canShare = false,
+    sharingMode = SharedEnums.UnitSharingMode.Disabled,
+  }
+end
 
-  return Shared.DeserializePolicy(serialized, senderTeamId, receiverTeamId)
+---Cache a unit policy result in the Lua table cache
+---@param senderTeamId number
+---@param receiverTeamId number
+---@param policyResult UnitPolicyResult
+---@param springApi ISpring?
+function Shared.CachePolicyResult(senderTeamId, receiverTeamId, policyResult, springApi)
+  local spring = springApi or Spring
+  
+  -- Only cache allied pairs (non-allied use singleton)
+  if not spring.AreTeamsAllied(senderTeamId, receiverTeamId) then
+    return
+  end
+  
+  policyCache[senderTeamId] = policyCache[senderTeamId] or {}
+  policyCache[senderTeamId][receiverTeamId] = policyResult
+end
+
+---Invalidate unit policy cache entries
+---@param senderTeamId number? If nil, invalidates all senders
+---@param receiverTeamId number? If nil, invalidates all receivers for sender
+function Shared.InvalidatePolicyCache(senderTeamId, receiverTeamId)
+  if senderTeamId and receiverTeamId then
+    if policyCache[senderTeamId] then
+      policyCache[senderTeamId][receiverTeamId] = nil
+    end
+  elseif senderTeamId then
+    policyCache[senderTeamId] = nil
+  else
+    policyCache = {}
+  end
 end
 
 ---Serialize unit policy expose to compact string
