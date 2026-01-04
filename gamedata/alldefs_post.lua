@@ -60,7 +60,7 @@ end
 local function processWeapons(unitDefName, unitDef)
 	local weapons = unitDef.weapons
 	local weaponDefs = unitDef.weapondefs
-	if not weapons or not weaponDefs then
+	if not weaponDefs then
 		return
 	end
 
@@ -89,7 +89,7 @@ local function processWeapons(unitDefName, unitDef)
 			proximity = math.clamp(proximity, proximityMin, 10)
 			weaponDef.proximitypriority = proximity
 
-			if proximity >= -1 and proximity <= -0.4 then
+			if proximity >= -1 and proximity <= -0.4 and weapons then
 				-- Decrease the penalty of small angle changes with stronger range preferences.
 				local priority = math.mix(0.75, 1, ((proximity) - (-1)) / ((-0.4) - (-1)))
 				priority = math.clamp(priority, 0.85, 0.95)
