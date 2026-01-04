@@ -178,7 +178,7 @@ describe("UnitTransfer #action", function()
             local ctx = {
                 senderTeamId = sender.id,
                 receiverTeamId = receiver.id,
-                transferCategory = SharedEnums.TransferCategory.UnitTransfer,
+                transferCategory = SharedEnums.PolicyType.UnitTransfer,
                 unitIds = unitIds,
                 given = false,
                 resultSoFar = {},
@@ -228,7 +228,7 @@ describe("UnitTransfer #action", function()
             local ctx = {
                 senderTeamId = sender.id,
                 receiverTeamId = receiver.id,
-                transferCategory = SharedEnums.TransferCategory.UnitTransfer,
+                transferCategory = SharedEnums.PolicyType.UnitTransfer,
                 unitIds = mixedUnitIds,
                 given = false,
                 resultSoFar = {},
@@ -273,7 +273,7 @@ describe("UnitTransfer #action", function()
             local ctx = {
                 senderTeamId = sender.id,
                 receiverTeamId = receiver.id,
-                transferCategory = SharedEnums.TransferCategory.UnitTransfer,
+                transferCategory = SharedEnums.PolicyType.UnitTransfer,
                 unitIds = {unitIds[1]},
                 given = true,  -- Test given parameter
                 resultSoFar = {},
@@ -335,7 +335,7 @@ describe("UnitTransfer #action", function()
             local ctx = {
                 senderTeamId = sender.id,
                 receiverTeamId = receiver.id,
-                transferCategory = SharedEnums.TransferCategory.UnitTransfer,
+                transferCategory = SharedEnums.PolicyType.UnitTransfer,
                 unitIds = unitIds,
                 given = false,
                 resultSoFar = {},
@@ -387,7 +387,7 @@ describe("UnitTransfer #action", function()
             local ctx = {
                 senderTeamId = sender.id,
                 receiverTeamId = receiver.id,
-                transferCategory = SharedEnums.TransferCategory.UnitTransfer,
+                transferCategory = SharedEnums.PolicyType.UnitTransfer,
                 unitIds = unitIds,
                 given = false,
                 resultSoFar = {},
@@ -426,7 +426,7 @@ describe("UnitTransfer #action", function()
             local ctx = {
                 senderTeamId = sender.id,
                 receiverTeamId = receiver.id,
-                transferCategory = SharedEnums.TransferCategory.UnitTransfer,
+                transferCategory = SharedEnums.PolicyType.UnitTransfer,
                 unitIds = {},
                 resultSoFar = {},
                 springRepo = spring,
@@ -470,7 +470,7 @@ describe("UnitTransfer #action", function()
             local ctx = {
                 senderTeamId = sender.id,
                 receiverTeamId = receiver.id,
-                transferCategory = SharedEnums.TransferCategory.UnitTransfer,
+                transferCategory = SharedEnums.PolicyType.UnitTransfer,
                 unitIds = {-1, 0, 9999},  -- All invalid
                 resultSoFar = {},
                 springRepo = spring,

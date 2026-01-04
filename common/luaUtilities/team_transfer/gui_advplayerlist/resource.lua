@@ -14,14 +14,14 @@ return function(policyHelpers)
   ---@param shareAmount number
   ---@param senderTeamId number
   function ResourceHelpers.HandleResourceTransfer(targetPlayer, resourceType, shareAmount, senderTeamId)
-    local policyResult, pascalResourceType = policyHelpers.GetPlayerPolicy(targetPlayer, resourceType, senderTeamId)
+    local policyResult, pascalResourceType = policyHelpers.GetPlayerResourcePolicy(targetPlayer, resourceType, senderTeamId)
 
     local case = ResourceShared.DecideCommunicationCase(policyResult)
 
     if case == SharedEnums.ResourceCommunicationCase.OnSelf then
       if shareAmount > 0 then
         Spring.SendLuaRulesMsg('msg:ui.playersList.chat.need' .. pascalResourceType .. 'Amount:amount:' .. shareAmount)
-      else
+      elseif policyResult.amountReceivable > 0 then
         Spring.SendLuaRulesMsg('msg:ui.playersList.chat.need' .. pascalResourceType)
       end
     elseif shareAmount and shareAmount > 0 then

@@ -1,7 +1,7 @@
 -- Team Transfer Type Definitions
 -- Minimal types focused on IntelliSense support and keeping the linter honest
 
----@alias TransferCategory "metal_transfer" | "energy_transfer" | "unit_transfer" | "guard_transfer" | "repair_transfer" | "reclaim_transfer"
+---@alias PolicyType "metal_transfer" | "energy_transfer" | "unit_transfer" | "guard_transfer" | "repair_transfer" | "reclaim_transfer"
 ---@alias ResourceType ResourceName
 
 ---@class ValidationResult
@@ -66,6 +66,7 @@
 ---@field remainingTaxFreeAllowance number
 ---@field resourceShareThreshold number
 ---@field cumulativeSent number
+---@field taxExcess boolean
 
 ---@class ResourceTransferContext : PolicyActionContext
 ---@field resourceType ResourceType
@@ -94,7 +95,7 @@
 ---@class PolicyContext
 ---@field senderTeamId number
 ---@field receiverTeamId number
----@field resultSoFar table<TransferCategory, table>
+---@field resultSoFar table<PolicyType, table>
 ---@field sender TeamResources
 ---@field receiver TeamResources
 ---@field springRepo ISpring
@@ -102,7 +103,7 @@
 ---@field isCheatingEnabled boolean
 
 ---@class PolicyActionContext : PolicyContext
----@field transferCategory string SharedEnums.TransferCategory
+---@field transferCategory string SharedEnums.PolicyType
 
 ---@class EconomyShareMember
 ---@field teamId number

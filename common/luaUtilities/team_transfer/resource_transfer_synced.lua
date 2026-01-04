@@ -212,6 +212,7 @@ function Gadgets.BuildResultFactory(taxRate, metalThreshold, energyThreshold)
     result.remainingTaxFreeAllowance = allowanceRemaining
     result.resourceShareThreshold = threshold
     result.cumulativeSent = cumulativeSent
+    result.taxExcess = false
     
     return result
   end
@@ -275,15 +276,7 @@ end
 ---@param resourceType ResourceType
 ---@param policyResult ResourcePolicyResult
 function Gadgets.CachePolicyResult(springRepo, senderId, receiverId, resourceType, policyResult)
-  local baseKey = Shared.MakeBaseKey(receiverId, resourceType)
-  local serialized = Shared.SerializeResourcePolicyResult(policyResult)
-  
-  -- Optimization: Only write to engine if value changed
-  -- GetTeamRulesParam is generally cheaper than SetTeamRulesParam (which triggers events)
-  local current = springRepo.GetTeamRulesParam(senderId, baseKey)
-  if current ~= serialized then
-    springRepo.SetTeamRulesParam(senderId, baseKey, serialized)
-  end
+  Shared.CachePolicyResult(senderId, receiverId, resourceType, policyResult, springRepo)
 end
 
 return Gadgets

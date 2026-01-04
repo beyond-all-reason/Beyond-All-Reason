@@ -71,9 +71,7 @@ end
 ---@param receiverId number
 ---@param policyResult UnitPolicyResult
 function Synced.CachePolicyResult(springRepo, senderId, receiverId, policyResult)
-  local baseKey = PolicyShared.MakeBaseKey(receiverId, SharedEnums.TransferCategory.UnitTransfer)
-  local serialized = Shared.SerializePolicy(policyResult)
-  springRepo.SetTeamRulesParam(senderId, baseKey, serialized)
+  Shared.CachePolicyResult(senderId, receiverId, policyResult, springRepo)
 end
 
 return Synced
