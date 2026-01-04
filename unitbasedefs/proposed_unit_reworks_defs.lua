@@ -27,7 +27,6 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.metalcost = uDef.metalcost - 300
 		uDef.buildtime = math.ceil(uDef.buildtime * 1.5 / 1000) * 1000
 		uDef.workertime = 600
-		uDef.health = math.ceil(uDef.health * 0.75 / 100) * 100
 	end
 	if name == "coravp"	then --makes corveh same metalcost as other t2 land facs
 		uDef.metalcost = uDef.metalcost + 100
@@ -59,7 +58,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.metalcost = 3350
 		uDef.energycost = 18000
 		uDef.buildtime = 54000
-		uDef.health = math.ceil(uDef.health * 0.75 / 100) * 100
+		uDef.health = math.ceil(uDef.health * 0.85 / 100) * 100
 	end
 
 	if name == "corfus" then
@@ -67,7 +66,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.metalcost = 3600
 		uDef.energycost = 22000
 		uDef.buildtime = 59000
-		uDef.health = math.ceil(uDef.health * 0.75 / 100) * 100
+		uDef.health = math.ceil(uDef.health * 0.85 / 100) * 100
 
 	end
 
@@ -76,7 +75,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.metalcost = 4000
 		uDef.energycost = 25000
 		uDef.buildtime = 66000
-		uDef.health = 4300
+		uDef.health = math.ceil(uDef.health * 0.85 / 100) * 100
 	end
 
 	if name == "armckfus" then
@@ -85,7 +84,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.energycost = 22000
 		uDef.buildtime = 65000
 		uDef.cloakcost = 75
-		uDef.health = 3600
+		uDef.health = math.ceil(uDef.health * 0.85 / 100) * 100
 	end
 
 	if name == "armaca" or name == "armacv" or name == "armack" or name == "armacsub"
@@ -94,11 +93,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.workertime = math.ceil(uDef.workertime * 1.15 / 10) * 10
 	end
 
-	if name == "armmoho" or name == "armuwmme"
-	or name == "cormoho" or name == "coruwmme"
-	or name == "legmoho" or name == "leguwmme" then
-		uDef.health = math.ceil(uDef.health * 0.75 / 100) * 100
-	end
+	
 
 	if name == "armamsub" or name == "coramsub" or name == "legamphlab" then
 		uDef.workertime = 300
@@ -110,7 +105,6 @@ local function proposed_unit_reworksTweaks(name, uDef)
 
 	if name == "armshltxuw" or name == "armshltx" or name == "corgantuw" or name == "corgant" or name == "leggant" then
 		uDef.workertime = 1800
-		uDef.health = math.ceil(uDef.health * 0.5 / 1000) * 1000
 	end
 	
 	if name == "corgol" then
