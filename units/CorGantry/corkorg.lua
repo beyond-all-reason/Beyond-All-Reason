@@ -114,6 +114,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-medium",
+				gravityaffected = "true",
 				impulsefactor = 0.8,
 				intensity = 5,
 				name = "GaussCannon",

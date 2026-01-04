@@ -211,7 +211,7 @@ if gadgetHandler:IsSyncedCode() then
 		local players = Spring.GetPlayerList()
 		for i = 1,#players do
 			local player = players[i]
-			local name, active, spectator, teamID, allyTeamID = Spring.GetPlayerInfo(player)
+			local name, active, spectator, teamID, allyTeamID = Spring.GetPlayerInfo(player, false)
 			if allyTeamID == scavAllyTeamID and (not spectator) then
 				Spring.AssignPlayerToTeam(player, scavTeamID)
 				local units = GetTeamUnits(teamID)
@@ -225,7 +225,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		local scavAllies = Spring.GetTeamList(scavAllyTeamID)
 		for i = 1,#scavAllies do
-			local _,_,_,AI = Spring.GetTeamInfo(scavAllies[i])
+			local _,_,_,AI = Spring.GetTeamInfo(scavAllies[i], false)
 			local LuaAI = Spring.GetTeamLuaAI(scavAllies[i])
 			if (AI or LuaAI) and scavAllies[i] ~= scavTeamID then
 				local units = GetTeamUnits(scavAllies[i])
@@ -1578,12 +1578,12 @@ if gadgetHandler:IsSyncedCode() then
 						createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, Spring.GetUnitBuildFacing(unitID) or 0, scavTeamID}
 						Spring.DestroyUnit(unitID, true, true)
 					end
+				elseif UnitDefs[unitDefID].customParams.scav_swap_override_created == "delete" then
+					Spring.DestroyUnit(unitID, true, true)
 				elseif UnitDefs[unitDefID].customParams.scav_swap_override_created ~= "null" then
 					if UnitDefNames[UnitDefs[unitDefID].customParams.scav_swap_override_created] then
 						createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].customParams.scav_swap_override_created, x, y, z, Spring.GetUnitBuildFacing(unitID) or 0, scavTeamID}
 					end
-					Spring.DestroyUnit(unitID, true, true)
-				elseif UnitDefs[unitDefID].customParams.scav_swap_override_created == "delete" then
 					Spring.DestroyUnit(unitID, true, true)
 				end
 				return

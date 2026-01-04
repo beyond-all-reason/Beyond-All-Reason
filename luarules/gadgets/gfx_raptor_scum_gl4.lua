@@ -968,7 +968,9 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 	end
 
 	local function HandleScumRemoved(cmd, scumID )
-		AddOrUpdateScum(nil,nil,nil,nil, -10 * math.abs( scums[scumID].growthrate), scumID)
+		if scums[scumID] then
+			AddOrUpdateScum(nil,nil,nil,nil, -10 * math.abs( scums[scumID].growthrate), scumID)
+		end
 	end
 
 	local function ScumTextures()

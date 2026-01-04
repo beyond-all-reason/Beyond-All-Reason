@@ -13,6 +13,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathAbs = math.abs
+
 local Settings = {}
 Settings['cursorSet'] = 'icexuick'
 Settings['cursorSize'] = 100
@@ -37,8 +41,8 @@ end
 function NearestValue(table, number)
 	local smallestSoFar, smallestIndex
 	for i, y in ipairs(table) do
-		if not smallestSoFar or (math.abs(number-y) < smallestSoFar) then
-			smallestSoFar = math.abs(number-y)
+		if not smallestSoFar or (mathAbs(number-y) < smallestSoFar) then
+			smallestSoFar = mathAbs(number-y)
 			smallestIndex = i
 		end
 	end

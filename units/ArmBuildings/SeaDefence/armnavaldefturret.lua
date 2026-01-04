@@ -20,7 +20,7 @@ return {
 		idletime = 1800,
 		mass = 9500,
 		health = 5190,
-		minwaterdepth = 12,
+		minwaterdepth = 18,
 		objectname = "Units/armnavaldefturret.s3o",
 		script = "Units/armnavaldefturret.cob",
 		seismicsignature = 0,

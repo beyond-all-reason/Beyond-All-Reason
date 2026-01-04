@@ -19,7 +19,7 @@ return {
 		maxslope = 14,
 		maxwaterdepth = 21,
 		metalcost = 750,
-		movementclass = "BOT4",
+		movementclass = "BOT3",
 		separationDistance = 8,
 		movestate = 0,
 		nochasecategory = "VTOL",

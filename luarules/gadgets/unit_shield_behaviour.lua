@@ -33,6 +33,11 @@ local shieldModulo                  = Game.gameSpeed
 local shieldOnUnitRulesParamIndex   = 531313
 local INLOS                         = { inlos = true }
 
+local mathMax                       = math.max
+local mathCeil                      = math.ceil
+local mathSqrt                      = math.sqrt
+local mathPi                        = math.pi
+
 local spGetUnitShieldState          = Spring.GetUnitShieldState
 local spSetUnitShieldState          = Spring.SetUnitShieldState
 local spSetUnitShieldRechargeDelay  = Spring.SetUnitShieldRechargeDelay
@@ -247,15 +252,15 @@ local function setProjectilesAlreadyInsideShield(shieldUnitID, radius)
 	else
 		-- Engine has GetProjectilesInRectangle, but not GetProjectilesInCircle, so we have to square the circle
 		-- TODO: Change to GetProjectilesInCircle once it is added
-		local radius = radius * math.sqrt(math.pi) / 2
-		local xmin = x - radius
-		local xmax = x + radius
-		local zmin = z - radius
-		local zmax = z + radius
+		local radiusSquared = radius * mathSqrt(mathPi) / 2
+		local xmin = x - radiusSquared
+		local xmax = x + radiusSquared
+		local zmin = z - radiusSquared
+		local zmax = z + radiusSquared
 		projectiles = spGetProjectilesInRectangle(xmin, zmin, xmax, zmax)
 	end
-	for _, projectileID in ipairs(projectiles) do
-		projectileShieldHitCache[projectileID] = true
+	for i = 1, #projectiles do
+		projectileShieldHitCache[projectiles[i]] = true
 	end
 end
 

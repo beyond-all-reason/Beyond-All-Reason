@@ -93,10 +93,6 @@ function widget:Update(dt)
                     WG['notifications'].queueNotification("PvE/Raptor_Queen5HealthLeft")
                     PlayedMessages["FinalBossHealth5"] = true
                 end
-                if FinalBossHealth <= 2 and not PlayedMessages["FinalBossHealth2"] then
-                    WG['notifications'].queueNotification("PvE/Raptor_Queen2HealthLeft")
-                    PlayedMessages["FinalBossHealth2"] = true
-                end
             end
 
 
@@ -175,10 +171,6 @@ function widget:Update(dt)
                 if FinalBossHealth <= 5 and not PlayedMessages["FinalBossHealth5"] then
                     WG['notifications'].queueNotification("PvE/Scav_Boss5HealthLeft")
                     PlayedMessages["FinalBossHealth5"] = true
-                end
-                if FinalBossHealth <= 2 and not PlayedMessages["FinalBossHealth2"] then
-                    WG['notifications'].queueNotification("PvE/Scav_Boss2HealthLeft")
-                    PlayedMessages["FinalBossHealth2"] = true
                 end
             end
         end

@@ -24,7 +24,7 @@ return {
 		maxslope = 14,
 		maxwaterdepth = 22,
 		metalcost = 210,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		objectname = "Units/ARMFARK.s3o",
 		radardistance = 50,
 		script = "Units/ARMFARK.cob",

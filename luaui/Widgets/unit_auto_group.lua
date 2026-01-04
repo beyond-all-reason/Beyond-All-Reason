@@ -14,6 +14,16 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local tableInsert = table.insert
+
+-- Localized Spring API for performance
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetTeamUnits = Spring.GetTeamUnits
+
 include("keysym.h.lua")
 
 ---- CHANGELOG -----
@@ -69,7 +79,7 @@ for udefID, def in ipairs(UnitDefs) do
 end
 
 local finiGroup = {}
-local myTeam = Spring.GetMyTeamID()
+local myTeam = spGetMyTeamID()
 local createdFrame = {}
 local toBeAddedLater = {}
 local prevHealth = {}
@@ -79,14 +89,14 @@ local gameStarted
 local GetUnitGroup = Spring.GetUnitGroup
 local SetUnitGroup = Spring.SetUnitGroup
 local GetSelectedUnits = Spring.GetSelectedUnits
-local GetUnitDefID = Spring.GetUnitDefID
+local GetUnitDefID = spGetUnitDefID
 local GetUnitHealth = Spring.GetUnitHealth
 local GetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local GetMouseState = Spring.GetMouseState
 local SelectUnitArray = Spring.SelectUnitArray
 local TraceScreenRay = Spring.TraceScreenRay
 local GetUnitPosition = Spring.GetUnitPosition
-local GetGameFrame = Spring.GetGameFrame
+local GetGameFrame = spGetGameFrame
 local Echo = Spring.Echo
 local GetUnitRulesParam = Spring.GetUnitRulesParam
 
@@ -97,15 +107,15 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
+	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 		return
 	end
-	myTeam = Spring.GetMyTeamID()
+	myTeam = spGetMyTeamID()
 end
 
 local function addAllUnits()
-	for _, unitID in ipairs(Spring.GetTeamUnits(myTeam)) do
+	for _, unitID in ipairs(spGetTeamUnits(myTeam)) do
 		local unitDefID = GetUnitDefID(unitID)
 		local gr = unit2group[unitDefID]
 		if gr ~= nil and GetUnitGroup(unitID) == nil then
@@ -150,7 +160,7 @@ local function changeUnitTypeAutogroup(gr, removeAll)
 		end
 	end
 	if addall then
-		local myUnits = Spring.GetTeamUnits(myTeam)
+		local myUnits = spGetTeamUnits(myTeam)
 		for i = 1, #myUnits do
 			local unitID = myUnits[i]
 			local curUnitDefID = GetUnitDefID(unitID)
@@ -219,7 +229,7 @@ local function loadAutogroupPreset(newPreset)
 		return
 	end
 
-	for _, uID in ipairs(Spring.GetTeamUnits(myTeam)) do
+	for _, uID in ipairs(spGetTeamUnits(myTeam)) do
 		local unitDefID = GetUnitDefID(uID)
 		local group = unit2group[unitDefID]
 		if tonumber(prevGroup[unitDefID]) == GetUnitGroup(uID) then -- if in last
@@ -328,7 +338,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 
 	createdFrame[unitID] = GetGameFrame()
 
-	if builderID and mobileBuilders[Spring.GetUnitDefID(builderID)] then
+	if builderID and mobileBuilders[spGetUnitDefID(builderID)] then
 		builtInPlace[unitID] = true
 	end
 
@@ -397,10 +407,10 @@ function widget:GetConfigData()
 		local groups = {}
 		if persist then
 			for id, gr in pairs(preset) do
-				table.insert(groups, { UnitDefs[id].name, gr })
+				tableInsert(groups, { UnitDefs[id].name, gr })
 			end
 			for name, gr in pairs(rejectedUnits[i]) do
-				table.insert(groups, { name, gr })
+				tableInsert(groups, { name, gr })
 			end
 		end
 		savePresets[i] = groups

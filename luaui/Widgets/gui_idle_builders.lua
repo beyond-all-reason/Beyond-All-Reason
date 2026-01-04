@@ -12,6 +12,17 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local alwaysShow = true		-- always show AT LEAST the label
@@ -29,24 +40,25 @@ local doUpdateForce = true
 local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
-local spec = Spring.GetSpectatingState()
+local spec = spGetSpectatingState()
 
 local widgetSpaceMargin, backgroundPadding, elementCorner, RectRound, UiElement, UiUnit
 
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+
 local spGetMouseState = Spring.GetMouseState
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGetFactoryCommands = Spring.GetFactoryCommands
+local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
 local myTeamID = Spring.GetMyTeamID()
 
-local floor = math.floor
+local floor = mathFloor
 local ceil = math.ceil
 local min = math.min
-local max = math.max
+local max = mathMax
 local math_isInRect = math.isInRect
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -139,7 +151,7 @@ local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpac
 		rect[1], rect[2], rect[3], rect[4],
 		ceil(backgroundPadding*0.5), 1,1,1,1,
 		zoom,
-		nil, math.max(0.1, highlightOpacity or 0.1),
+		nil, mathMax(0.1, highlightOpacity or 0.1),
 		'#'..unitDefID,
 		nil, nil, nil, nil
 	)
@@ -295,7 +307,7 @@ local function updateList(force)
 	idleList = {}
 	local queue
 	for unitID, unitDefID in pairs(unitList) do
-		queue = unitConf[unitDefID] and spGetFactoryCommands(unitID, 0) or spGetUnitCommandCount(unitID, 0)
+		queue = unitConf[unitDefID] and spGetFactoryCommandCount(unitID) or spGetUnitCommandCount(unitID)
 		if queue == 0 then
 			if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
 				if idleList[unitDefID] then
@@ -407,7 +419,7 @@ local function updateList(force)
 
 		if useRenderToTexture then
 			if not uiBgTex then
-				uiBgTex = gl.CreateTexture(math.floor(uiTexWidth), math.floor(backgroundRect[4]-backgroundRect[2]), {
+				uiBgTex = gl.CreateTexture(mathFloor(uiTexWidth), mathFloor(backgroundRect[4]-backgroundRect[2]), {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
@@ -423,7 +435,7 @@ local function updateList(force)
 				)
 			end
 			if not uiTex then
-				uiTex = gl.CreateTexture(math.floor(uiTexWidth)*2, math.floor(backgroundRect[4]-backgroundRect[2])*2, {
+				uiTex = gl.CreateTexture(mathFloor(uiTexWidth)*2, mathFloor(backgroundRect[4]-backgroundRect[2])*2, {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
@@ -486,7 +498,7 @@ end
 
 local doCheckUnitGroupsPos = false
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 	height = setHeight * uiScale
 
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
@@ -551,8 +563,8 @@ function widget:LanguageChanged()
 end
 
 function widget:PlayerChanged(playerID)
-	spec = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
+	spec = spGetSpectatingState()
+	myTeamID = spGetMyTeamID()
 	if not showWhenSpec and spec then
 		widgetHandler:RemoveWidget()
 		return
@@ -567,7 +579,7 @@ function widget:Initialize()
 		return
 	end
 	refreshUnitDefs()
-	initializeGameFrame = Spring.GetGameFrame()
+	initializeGameFrame = spGetGameFrame()
 	widget:ViewResize()
 	widget:PlayerChanged()
 	WG['idlebuilders'] = {}
@@ -605,7 +617,7 @@ local sec = 0
 local sec2 = 0
 local timerStart = Spring.GetTimer()
 local function Update()
-	if Spring.GetGameFrame() <= initializeGameFrame and initializeGameFrame ~= 0 then
+	if spGetGameFrame() <= initializeGameFrame and initializeGameFrame ~= 0 then
 		return
 	end
 	doCheckUnitGroupsPos = true

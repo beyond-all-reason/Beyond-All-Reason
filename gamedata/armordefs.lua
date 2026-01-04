@@ -162,7 +162,6 @@ local armorDefs = {
 		"armstump",
 		"armsy",
 		"armtarg",
-		"armthovr",
 		"armtide",
 		"armuwes",
 		"armuwfus",
@@ -224,6 +223,7 @@ local armorDefs = {
 		"corlab",
 		"corllt",
 		"cormabm",
+		"legavantinuke",
 		"cormakr",
 		"cormart",
 		"cormaw",
@@ -252,9 +252,9 @@ local armorDefs = {
 		"corsolar",
 		"corstorm",
 		"corsy",
+		"legsy",
 		"cortarg",
 		"cortermite",
-		"corthovr",
 		"cortorch",
 		"corthud",
 		"cortide",
@@ -289,7 +289,6 @@ local armorDefs = {
 		"corparrow",
 		"corseal",
 		"corsala",
-		"corintr",
 		"armmar",
 		"corshiva",
         "cormadsam",
@@ -462,7 +461,15 @@ local armorDefs = {
 		"legmohocon",
 		"legmohoconct",
 		"leghrk",
-		"legfdrag"
+		"legfdrag",
+
+		"armnavaldefturret",
+		"cornavaldefturret",
+		"legnavaldefturret",
+		"armanavaldefturret",
+		"coranavaldefturret",
+		"leganavaldefturret",
+
 	},
 	mines = {
 		"armfmine3",
@@ -597,6 +604,13 @@ local armorDefs = {
 		"legatorpbomber",
 		"critter_gull",
 		"armfify",
+		"legspcarrier",
+		"legspcon",
+		"legspfighter",
+		"legspradarsonarplane",
+		"legspsurfacegunship",
+		"legsptorpgunship",
+		"legspbomber",
 	},
 	shields = {
 		-- Intentionally left blank. To be used in shield weapondefs only!
@@ -614,12 +628,16 @@ local armorDefs = {
 		"cormls",
 		"armdecade",
 		"corsjam",
-		"legcs",
 		"legvelite",
 		"leghastatus",
 		"leghastatusalt",
 		"legoptio",
 		"legpontus",
+
+		"legnavyscout",
+		"legnavyfrigate",
+		"legnavyaaship",
+		"legnavyconship",
 	},
 
 	hvyboats = {
@@ -637,27 +655,33 @@ local armorDefs = {
 		"cormship",
 		"armcarry",
 		"corcarry",
-		"armtship",
-		"cortship",
 		"armbats",
 		"corbats",
 		"armepoch",
 		"corprince",
 		"corblackhy",
+
+		"legnavydestro",
+		"legnavyartyship",
 	},
 
 	subs = {
 		"armsub",
 		"corsub",
+		"legnavysub",
 		"legstingray",
         "armsubk",
 		"corshark",
+		"leganavybattlesub",
         "corssub",
 		"armserp",
+		"leganavyheavysub",
 		"armacsub",
         "coracsub",
+		"leganavyconsub",
 		"armrecl",
 		"correcl",
+		"legnavyrezsub",
 		"coronager",
 		"cordesolator",
 		"armexcalibur",
@@ -742,5 +766,27 @@ for category, names in pairs(armorDefs) do
 end
 
 table.mergeInPlace(armorDefs, scavArmorDefs)
+
+local function clearArmorDef(unitDefName)
+	for _, category in pairs(armorDefs) do
+		if table.removeFirst(category, unitDefName) then
+			return
+		end
+	end
+end
+
+-- expose armor defs to custom params
+for unitName, unitDef in pairs (DEFS.unitDefs) do
+	if unitDef.customparams and unitDef.customparams.armordef then
+		local lowerCaseArmorDef = unitDef.customparams.armordef:lower()
+		clearArmorDef(unitName)
+		local defCategory = armorDefs[lowerCaseArmorDef]
+		if defCategory then
+			defCategory[#defCategory+1] = unitName
+		else
+			armorDefs[lowerCaseArmorDef] = {unitName}
+		end
+	end
+end
 
 return armorDefs

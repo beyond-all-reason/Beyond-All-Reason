@@ -13,6 +13,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+
 local spGetUnitDefID         = Spring.GetUnitDefID
 local spGetUnitPosition      = Spring.GetUnitPosition
 local spGetUnitsInCylinder   = Spring.GetUnitsInCylinder
@@ -26,6 +30,7 @@ local unitRanges = {}
 local myAllyTeam = Spring.GetMyAllyTeamID()
 
 local POLLING_RATE = 15
+local CMD_STOP = CMD.STOP
 local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
 local CMD_SET_TARGET = GameCMD.UNIT_SET_TARGET
 -- Set target on units that aren't in range yet but may come in range soon
@@ -87,7 +92,7 @@ function widget:GameFrame(frame)
 				newCmdOpts = { "shift" }
 			end
 
-			commandsToGive[#commandsToGive+1] = { CMD_SET_TARGET, { targetID }, newCmdOpts }			
+			commandsToGive[#commandsToGive+1] = { CMD_SET_TARGET, { targetID }, newCmdOpts }
 		end
 
 		spGiveOrderArrayToUnit(unitID, commandsToGive)
@@ -101,12 +106,12 @@ end
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	local shouldCleanupTargeting = false
 	local selectedUnits = spGetSelectedUnits()
-	if cmdID == CMD_UNIT_CANCEL_TARGET then
+	if cmdID == CMD_UNIT_CANCEL_TARGET or cmdID == CMD_STOP then
 		shouldCleanupTargeting = true
 	end
 
 	if cmdID == CMD_SET_TARGET and not cmdOpts.alt then
-		shouldCleanupTargeting = true		
+		shouldCleanupTargeting = true
 	end
 
 	if cmdID == CMD_SET_TARGET and #cmdParams ~= 1 then
@@ -133,7 +138,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 end
 
 function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
+	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -148,7 +153,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+	if Spring.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 end

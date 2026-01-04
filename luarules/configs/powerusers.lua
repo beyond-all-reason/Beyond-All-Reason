@@ -22,7 +22,7 @@ local singleplayer = {		-- note: these permissions override others when singlepl
 	cmd = true,
 	devhelpers = true,
 	waterlevel = true,
-	playerdata = false,
+	playerdata = true,
 	sysinfo = false,
 }
 
@@ -37,7 +37,19 @@ return {
 	[2260] = everything,	-- TarnishedKnight
 	[84658] = everything,	-- OPman
 	[51535] = everything,	-- Nightmare2512
+	[130329] = everything,	-- SethDGamre
 
+	-- temporary event admins for planetary campaign (remove when event is over)
+	[16285] = everything,	-- [BAB]Zer0_Cool
+	[42214] = everything,	-- [BAB]Tenebos 
+	[21783] = everything,	-- [BAB]Darknight_2277 
+	[64509] = everything,	-- Xix2g
+	[111659] = everything,	-- Snipebusher
+	[18436] = everything,	-- [BAB]Kuroi_Kitsune 
+	[303060] = everything,	-- [Mado]Tripl3 
+	[204872] = everything,	-- RAM_10rotator01 
+
+	-- moderator level users
 	[3133] = moderator,		-- Lexon
 	[258984] = moderator,	-- ScavengersOffenseAI
 	[22297] = moderator,	-- Shadhunter
@@ -50,4 +62,8 @@ return {
 	[168817] = moderator,	-- SongbirdOfChirping
 	[57158] = moderator,	-- Endorphins
 	[132545] = moderator,	-- Praedyth
+	[88808] = moderator,	-- Shadowisperke
 }
+
+
+

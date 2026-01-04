@@ -1,0 +1,112 @@
+/* Tech Points Display - Responsive design using vh, vw, dp units */
+
+.tech-points-root {
+    position: fixed;
+    /* Center the panel on screen using viewport units */
+    left: 27.54vw;
+    top: -3dp;
+    width: 42dp; /* Based on 46px base * 1.18 scale factor for 1080p */
+    height: 42dp; /* Same as width for square panel */
+    z-index: 1000;
+    font-family: Exo 2;
+}
+
+.tech-points-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(40, 40, 40, 40);
+    border-radius: 6dp;
+    border-width: 4dp;
+    border-color: rgba(30, 30, 30, 150);
+    decorator: image("/luaui/images/stripes-small.png" repeat);
+    image-color: rgba(35, 35, 35, 120);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Square progress bar - 90% of panel size */
+
+
+/* Vertical fill from bottom to top */
+.tech-points-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0%; /* Start empty, will be set dynamically */
+    background-color: #585757;
+    decorator: vertical-gradient(rgba(121, 121, 121, 0.62) #585757);
+}
+
+/* Negative progress style (red) */
+.tech-points-fill.negative-progress {
+    background-color: #aa0000;
+    decorator: vertical-gradient(rgba(255, 50, 50, 0.62) #aa0000);
+}
+
+/* Text container for header and number */
+.tech-text-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    z-index: 2;
+}
+
+/* Tech level header text */
+.tech-level-header {
+    font-size: 14dp;
+    font-weight: bold;
+    color: #ffffff;
+    text-align: center;
+    font-effect: outline(1dp black);
+    margin-bottom: 0dp;
+}
+
+/* Tech level number - centered and scaled */
+.tech-level-number {
+    font-size: 24dp;
+    margin-bottom: 4dp;
+    font-weight: 900;
+    color: #ffffff;
+    text-align: center;
+    font-effect: outline(1dp black);
+}
+
+.tech-level-popup {
+    position: absolute;
+    left: 50vw;
+    top: 50vh;
+    transform: translate(-100%, -50%);
+    font-family: Exo 2;
+    font-size: 2.78vh;
+    font-effect: outline(1dp black);
+    white-space: nowrap;
+    z-index: 1000;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 0.93vh 2.08vw;
+    border-radius: 0.56vh;
+    border-width: 0.09vh;
+    border-color: rgba(255, 255, 255, 0.3);
+    opacity: 0;
+}
+
+/* Tech popup animation when active */
+.tech-level-popup.show-popup {
+    animation: 3s 0s cubic-in-out 1 tech-popup-fade;
+}
+
+/* Tech popup fade animation */
+@keyframes tech-popup-fade {
+    0% { opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+}

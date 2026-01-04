@@ -13,6 +13,10 @@ function gadget:GetInfo()
 	}
 end
 
+if Spring.GetModOptions().experimental_ai_spawns then
+	return false
+end
+
 -- Note: (31/03/13) coop_II deals with the extra startpoints etc needed for teamsIDs with more than one playerID.
 
 -- 2023-08-19: FFA start points configuration is now offloaded to a dedicated `game_ffa_start_setup` gadget and has been
@@ -31,6 +35,11 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetAllyTeamStartBox = Spring.GetAllyTeamStartBox
 	local spCreateUnit = Spring.CreateUnit
 	local spGetGroundHeight = Spring.GetGroundHeight
+	local mathRandom = math.random
+	local mathFloor = math.floor
+	local mathBitOr = math.bit_or
+	local mathBitAnd = math.bit_and
+	local tableContains = table.contains
 
 	----------------------------------------------------------------
 	-- Config
@@ -58,7 +67,7 @@ if gadgetHandler:IsSyncedCode() then
 			local ARM_MASK = 2^0
 			local COR_MASK = 2^1
 			local LEG_MASK = 2^2
-			local FULL_BITMASK = math.bit_or(ARM_MASK, COR_MASK, LEG_MASK)
+			local FULL_BITMASK = mathBitOr(ARM_MASK, COR_MASK, LEG_MASK)
 
 			local allyTeams = Spring.GetAllyTeamList()
 			for i = 1, #allyTeams do
@@ -66,11 +75,11 @@ if gadgetHandler:IsSyncedCode() then
 				local allyStartUnits = {}
 				local unitsCount = 1
 
-				local allyTeamBitmask = math.bit_and(math.floor(factionlimiter/2^(allyTeam*3)), FULL_BITMASK)
+				local allyTeamBitmask = mathBitAnd(mathFloor(factionlimiter/2^(allyTeam*3)), FULL_BITMASK)
 				allyTeamBitmask = allyTeamBitmask == 0 and FULL_BITMASK or allyTeamBitmask
 
 				if legcomDefID then
-					if math.bit_and(allyTeamBitmask, LEG_MASK) ~= 0 then
+					if mathBitAnd(allyTeamBitmask, LEG_MASK) ~= 0 then
 						allyStartUnits[unitsCount] = legcomDefID
 						unitsCount = unitsCount + 1
 					end
@@ -78,11 +87,11 @@ if gadgetHandler:IsSyncedCode() then
 					allyTeamBitmask = FULL_BITMASK
 				end
 
-				if armcomDefID and math.bit_and(allyTeamBitmask, ARM_MASK) ~= 0 then
+				if armcomDefID and mathBitAnd(allyTeamBitmask, ARM_MASK) ~= 0 then
 					allyStartUnits[unitsCount] = armcomDefID
 					unitsCount = unitsCount + 1
 				end
-				if corcomDefID and math.bit_and(allyTeamBitmask, COR_MASK) ~= 0 then
+				if corcomDefID and mathBitAnd(allyTeamBitmask, COR_MASK) ~= 0 then
 					allyStartUnits[unitsCount] = corcomDefID
 					unitsCount = unitsCount + 1
 				end
@@ -105,7 +114,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			getValidRandom = function(allyTeamID)
-				local roll = math.random(#validStartUnits[allyTeamID])
+				local roll = mathRandom(#validStartUnits[allyTeamID])
 				return validStartUnits[allyTeamID][roll]
 			end
 
@@ -113,7 +122,7 @@ if gadgetHandler:IsSyncedCode() then
 				if not unitDefID then
 					return false
 				end
-				if table.contains(validStartUnits[allyTeamID], unitDefID) then
+				if tableContains(validStartUnits[allyTeamID], unitDefID) then
 					return true
 				end
 				if unitDefID == RANDOM_DUMMY then
@@ -136,7 +145,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			getValidRandom = function(allyTeamID)
-				local roll = math.random(#validStartUnits)
+				local roll = mathRandom(#validStartUnits)
 				return validStartUnits[roll]
 			end
 
@@ -144,7 +153,7 @@ if gadgetHandler:IsSyncedCode() then
 				if not unitDefID then
 					return false
 				end
-				if table.contains(validStartUnits, unitDefID) then
+				if tableContains(validStartUnits, unitDefID) then
 					return true
 				end
 				if unitDefID == RANDOM_DUMMY then
@@ -179,7 +188,7 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Start Point Guesser
 	----------------------------------------------------------------
-	include("luarules/gadgets/lib_startpoint_guesser.lua") -- start point guessing routines
+	include("common/lib_startpoint_guesser.lua") -- start point guessing routines
 
 	----------------------------------------------------------------
 	-- FFA start points (provided by `game_ffa_start_setup`)
@@ -283,7 +292,7 @@ if gadgetHandler:IsSyncedCode() then
 			local playerList = Spring.GetPlayerList()
 			local all_players_joined = true
 			for _, PID in pairs(playerList) do
-				local _, _, spectator_flag = spGetPlayerInfo(PID)
+				local _, _, spectator_flag = spGetPlayerInfo(PID, false)
 				if spectator_flag == false then
 					if Spring.GetGameRulesParam("player_" .. PID .. "_joined") == nil then
 						all_players_joined = false
@@ -468,7 +477,7 @@ if gadgetHandler:IsSyncedCode() then
 		local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 		local luaAI = Spring.GetTeamLuaAI(teamID)
 
-		local _, _, _, isAI, sideName, allyTeadID = spGetTeamInfo(teamID)
+		local _, _, _, isAI, sideName, allyTeadID = spGetTeamInfo(teamID, false)
 		if (startUnit or RANDOM_DUMMY) == RANDOM_DUMMY then
 			startUnit = getValidRandom(allyTeadID)
 		end

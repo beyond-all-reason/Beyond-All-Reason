@@ -121,6 +121,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-medium",
+				gravityaffected = "true",
 				impulsefactor = 1.8,
 				name = "RiotCannon",
 				nogap = false,

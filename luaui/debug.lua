@@ -196,7 +196,7 @@ function PrintPlayerTree()
       print('  Team: ' .. tid)
       local pTable = Spring.GetPlayerList(tid)
       for pn,pid in ipairs(pTable) do
-        local pname, active = Spring.GetPlayerInfo(pid)
+        local pname, active = Spring.GetPlayerInfo(pid, false)
         if (active) then
           print('    Player: ' .. pid .. " " .. pname)
         end
@@ -207,7 +207,7 @@ end
 
 
 function PrintTeamInfo(teamID)
-  local num, leader, dead, isAI, side, allyTeam = Spring.GetTeamInfo(teamID)
+  local num, leader, dead, isAI, side, allyTeam = Spring.GetTeamInfo(teamID, false)
   print('Team number: ' .. num)
   print('     leader: ' .. leader)
   print('       dead: ' .. tostring(dead))
@@ -250,7 +250,7 @@ end
 
 function PrintPlayerInfo(playerID)
   local name, active, spectator, team, allyteam, ping, cpuUsage =
-    Spring.GetPlayerInfo(playerID)
+    Spring.GetPlayerInfo(playerID, false)
   print('   name:     '..name)
   print('   id:       '..playerID)
   print('   active:   '..tostring(active))

@@ -12,6 +12,14 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathAtan2 = math.atan2
+
+-- Localized Spring API for performance
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
+
 -- TODO: hide (enemy) cursor light when not specfullview
 
 local cursorSize = 11
@@ -70,8 +78,8 @@ local alliedCursorsTime = {}        -- for API purpose
 local usedCursorSize = cursorSize
 local allycursorDrawList = {}
 local myPlayerID = Spring.GetMyPlayerID()
-local _, fullview = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
+local _, fullview = spGetSpectatingState()
+local myTeamID = spGetMyTeamID()
 local isReplay = Spring.IsReplay()
 
 local allyCursor = ":n:LuaUI/Images/allycursor.dds"
@@ -280,7 +288,7 @@ function widget:Shutdown()
 end
 
 function widget:PlayerChanged(playerID)
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = spGetMyTeamID()
 	local _, _, isSpec, teamID = spGetPlayerInfo(playerID, false)
 	specList[playerID] = isSpec
 	local r, g, b = spGetTeamColor(teamID)
@@ -377,13 +385,13 @@ end
 local function getCameraRotationY()
 	local x, y, z = Spring.GetCameraDirection()
 
-	local length = math.sqrt(x^2 + y^2 + z^2)
+	local length = math.sqrt(x*x + y*y + z*z)
 
 	-- We are only concerned with rotY
 	x = x/length;
 	z = z/length;
 
-	return math.deg(math.atan2(x, -z))
+	return math.deg(mathAtan2(x, -z))
 
 	-- General implementation
 	--
@@ -391,7 +399,7 @@ local function getCameraRotationY()
 	-- y = y/length;
 	-- z = z/length;
 
-	-- return math.acos(y), math.atan2(x, -z), 0;
+	-- return math.acos(y), mathAtan2(x, -z), 0;
 end
 
 local function DrawCursor(playerID, wx, wy, wz, camX, camY, camZ, opacity)
@@ -529,7 +537,7 @@ function widget:DrawWorldPreUnit()
 		return
 	end
 
-	fullview = select(2, Spring.GetSpectatingState())
+	fullview = select(2, spGetSpectatingState())
 
 	gl.DepthTest(GL.ALWAYS)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)

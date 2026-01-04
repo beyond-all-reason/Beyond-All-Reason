@@ -23,9 +23,11 @@ local unitOrderTable = {
 
 	['armcsa']         = 001170, --SEAPLANES
 	['corcsa']         = 001175,
+	['legspcon']         = 001176,
 
 	['armcs']          = 001180, --SHIPS
 	['corcs']          = 001190,
+	['legnavyconship'] = 001191,
 
 	['armch']          = 002000, --HOVER
 	['corch']          = 002050,
@@ -41,6 +43,7 @@ local unitOrderTable = {
 
 	['armrecl']        = 002300, --REZ SUBS
 	['correcl']        = 002350,
+	['legnavyrezsub']  = 002351,
 
 	['armack']         = 002400,
 	['corack']         = 002450,
@@ -56,6 +59,7 @@ local unitOrderTable = {
 
 	['armacsub']       = 002700,
 	['coracsub']       = 002750,
+	['leganavyconsub'] = 002760,
 
 	--NANO SUPPORT
 	['armfark']        = 003100, --BOTS
@@ -71,6 +75,7 @@ local unitOrderTable = {
 
 	['armmls']         = 003400, --SHIP
 	['cormls']         = 003500, --SHIP
+	['leganavyengineer'] = 003510, --SHIP
 
 	['armdecom']       = 003600, --SUPPORT COMS
 	['legdecom']       = 003650,
@@ -87,10 +92,11 @@ local unitOrderTable = {
 	['armpeep']        = 004030, --AIR
 	['corfink']        = 004040,
 	['armsehak']       = 004050, --SEAPLANES
-	['corhunt']        = 004060,
-	['armawac']        = 004050,
-	['corawac']        = 004060,
-	['legwhisper']     = 004061,
+	['corhunt']        = 004051,
+	['legspradarsonarplane']        = 004052,
+	['armawac']        = 004060,
+	['corawac']        = 004061,
+	['legwhisper']     = 004062,
 
 	-- SCOUTS/UTILITY LAND
 	['armmark']        = 004100,
@@ -126,7 +132,8 @@ local unitOrderTable = {
 	['legmos']         = 004322,
 	['armsaber']       = 004325,
 	['corcut']         = 004330,
-	['legstronghold']  = 004331,
+	['legspsurfacegunship']         = 004331,
+	['legstronghold']  = 004332,
 
 	['armbrawl']       = 004335, --GUNSHIPS T2
 	['corape']         = 004340,
@@ -141,7 +148,7 @@ local unitOrderTable = {
 	['legkam']         = 004357,
 	['armsb']          = 004360,
 	['corsb']          = 004365,
-	--['legphoenix']     = 004366,
+	['legspbomber']          = 004366,
 
 	['armpnix']        = 004370, --BOMBERS T2
 	['corhurc']        = 004380,
@@ -243,6 +250,7 @@ local unitOrderTable = {
 	['cormort']        = 006510,
 	['legbart']        = 006515,
 	['legvcarry']      = 006516,
+	['legspcarrier']      = 006517,
 	['armmart']        = 006520,
 	['cormart']        = 006530,
 	['legamcluster']   = 006535,
@@ -362,28 +370,34 @@ local unitOrderTable = {
 	-- WATER SCOUTS
 	['armpt']          = 009000, --SCOUTS AA
 	['coresupp']       = 009010,
-	['legpontus']       = 009015,
+	['legnavyaaship']       = 009015,
 
 	-- T1 WATER ATTACK
 	['armdecade']      = 009100, --FAST
 	['corpt']          = 009110,
-	['legvelite']      = 009120,
+	['legnavyscout']      = 009120,
 
 	['armpship']       = 009200, --MAIN BATTLE
 	['corpship']       = 009210,
-	['leghastatus']    = 009210,
+	['legnavyfrigate']       = 009211,
+	['legnavydestro']    = 009212,
 	['armroy']         = 009220,
 	['corroy']         = 009230,
+
+	['legnavyartyship']         = 009231,
 
 	-- T2 WATER ATTACK
 	['armlship']       = 009280, --ANTISWARM
 	['corfship']       = 009290,
+	['leganavyantiswarm'] = 009295,
 
 	['armcrus']        = 009300, --MAIN BATTLE
 	['corcrus']        = 009310,
+	['leganavycruiser'] = 009320,
 
 	['armmship']       = 009340, --ROCKETS
 	['cormship']       = 009350,
+	['leganavymissileship']       = 009355,
 
 	['armdronecarry']  = 009360, --DRONE CARRIERS
 	['cordronecarry']  = 009361,
@@ -392,9 +406,12 @@ local unitOrderTable = {
 
 	['armbats']        = 009370, --STRONK
 	['corbats']        = 009380,
+	['leganavybattleship']        = 009380,
 
 	['armepoch']       = 009400, --FLAGSHIPS
 	['corblackhy']     = 009410,
+	['leganavyartyship']     = 009420,
+	['leganavyflagship']     = 009430,
 
 	['armdecadet3']    = 009450, --SCAV SHIPS
 	['coresuppt3']     = 009460,
@@ -405,16 +422,20 @@ local unitOrderTable = {
 	-- T1 AA
 	['armsfig']        = 009500,
 	['corsfig']        = 009510,
+	['legspfighter']        = 009520,
 
 	-- T2 AA
 	['armaas']         = 009600,
 	['corarch']        = 009610,
+	['leganavyaaship'] = 009610,
 
 	-- UNDERWATER ATTACK
 	['armseap']        = 009800,
 	['corseap']        = 009810,
+	['legsptorpgunship']        = 009815,
 	['armsub']         = 009820,
 	['corsub']         = 009830,
+	['legnavysub']         = 009831,
 
 	['armlance']       = 009900,
 	['cortitan']       = 009910,
@@ -440,25 +461,20 @@ local unitOrderTable = {
 	['leglts']      = 010520,
 	['legatrans']      = 010525,
 
-	['armtship']       = 010540,
-	['cortship']       = 010550,
-
-	['armthovr']       = 010560,
-	['corthovr']       = 010570,
-
-	['corintr']        = 010600,
-
 	['armdfly']        = 010610,
 	['corseah']        = 010620,
 
 	-- ANTINUKES
 	['armscab']        = 020000,
 	['cormabm']        = 020010,
+	['legavantinuke']  = 020011,
 
-	['armcarry']       = 020100,
-	['armantiship']	   = 020101,
-	['corcarry']       = 020110,
-	['corantiship']    = 020111,
+	['armcarry']      				= 020100,
+	['armantiship']	  				= 020101,
+	['corcarry']      				= 020110,
+	['corantiship']   				= 020111,
+	['leganavyantinukecarrier']    	= 020112,
+	['leganavyradjamship']    		= 020120,
 
 -- BUILDINGS
    --ECO METAL MEX
@@ -760,7 +776,7 @@ local unitOrderTable = {
 
    ['armsy']          = 211100,
    ['corsy']          = 211200,
-   ['legjim']          = 211300,
+   ['legsy']          = 211300,
    ['armfhp']         = 212100,
    ['corfhp']         = 212200,
    ['legfhp']         = 212250,
@@ -769,12 +785,15 @@ local unitOrderTable = {
    ['legamphlab']       = 213250,
    ['armplat']        = 214100,
    ['corplat']        = 214200,
+   ['legsplab']        = 214300,
    	--T2
    ['armasy']         = 215000,
    ['corasy']         = 215100,
+   ['legadvshipyard']         = 215200,
    	--T3
    ['armshltxuw']     = 216100,
    ['corgantuw']      = 216200,
+   ['leggantuw']      = 216300,
 
    --WATER MINES
    ['armfmine3']      = 217100,
@@ -804,6 +823,10 @@ local unitOrderTable = {
    ['legfhive']        = 230450,
    ['armkraken']      = 230500,
    ['corfdoom']       = 230600,
+
+   ['armanavaldefturret']	= 230451,
+   ['coranavaldefturret']	= 230501,
+   ['leganavaldefturret']	= 230601,
 
    --WATER DEFENSES AA
    ['armfrt']         = 255100,

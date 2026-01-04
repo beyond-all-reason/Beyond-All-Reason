@@ -12,6 +12,12 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spEcho = Spring.Echo
+local spGetUnitTeam = Spring.GetUnitTeam
+
 -- Configurable Parts:
 local texture = "luaui/images/solid.png"
 
@@ -54,7 +60,7 @@ local GL_POINTS				= GL.POINTS
 
 local selUnits = {}
 local updateSelection = true
-local selectedUnits = Spring.GetSelectedUnits()
+local selectedUnits = spGetSelectedUnits()
 
 local unitTeam = {}
 local unitUnitDefID = {}
@@ -63,7 +69,7 @@ local unitScale = {}
 local unitCanFly = {}
 local unitBuilding = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitScale[unitDefID] = (7.5 * ( unitDef.xsize^2 + unitDef.zsize^2 ) ^ 0.5) + 8
+	unitScale[unitDefID] = (7.5 * ( unitDef.xsize*unitDef.xsize + unitDef.zsize*unitDef.zsize ) ^ 0.5) + 8
 	if unitDef.canFly then
 		unitCanFly[unitDefID] = true
 		unitScale[unitDefID] = unitScale[unitDefID] * 0.7
@@ -93,7 +99,7 @@ local function AddPrimitiveAtUnit(unitID)
 	local radius = unitScale[unitDefID]
 
 	if not unitTeam[unitID] then
-		unitTeam[unitID] = Spring.GetUnitTeam(unitID)
+		unitTeam[unitID] = spGetUnitTeam(unitID)
 	end
 
 	local additionalheight = 0
@@ -115,7 +121,7 @@ local function AddPrimitiveAtUnit(unitID)
 		unitBufferUniformCache[1] = 1
 		gl.SetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
 	end
-	--Spring.Echo(unitID,radius,radius, Spring.GetUnitTeam(unitID), numvertices, 1, gf)
+	--spEcho(unitID,radius,radius, spGetUnitTeam(unitID), numvertices, 1, gf)
 	pushElementInstance(
 		(unitCanFly[unitDefID] and selectionVBOAir) or selectionVBOGround, -- push into this Instance VBO Table
 		{
@@ -253,7 +259,7 @@ function widget:Update(dt)
 	end
 
 	if updateSelection then
-		selectedUnits = Spring.GetSelectedUnits()
+		selectedUnits = spGetSelectedUnits()
 		updateSelection = false
 
 		local newSelUnits = {}
@@ -285,7 +291,7 @@ function widget:Update(dt)
 			ClearLastMouseOver()
 		else
 			local result, data = Spring.TraceScreenRay(mx, my)
-			--Spring.Echo(result, (type(data) == 'table') or data, lastMouseOverUnitID, lastMouseOverFeatureID)
+			--spEcho(result, (type(data) == 'table') or data, lastMouseOverUnitID, lastMouseOverFeatureID)
 			if result == 'unit' and not Spring.IsGUIHidden() then
 				local unitID = data
 				if lastMouseOverUnitID ~= unitID then
@@ -315,7 +321,7 @@ function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
 end
 
 function widget:UnitDestroyed(unitID)
-	--Spring.Echo("UnitDestroyed(unitID)",unitID, selectedUnits[unitID])
+	--spEcho("UnitDestroyed(unitID)",unitID, selectedUnits[unitID])
 	if selectedUnits[unitID] then
 		RemovePrimitive(unitID)
 	end

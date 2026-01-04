@@ -12,6 +12,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathMax = math.max
+
 --------------------------------------------------------------------------------
 
 -- Widgets can call: WG['messages'].addMessage('message text')
@@ -82,7 +86,7 @@ function widget:ViewResize()
 		(vsx * 0.31)-(charSize*widgetScale), (vsy * posY)+(charSize*0.15*widgetScale),
 		(vsx * 0.6), (vsy * (posY+0.065))
 	}
-	lineMaxWidth = math.max(lineMaxWidth, area[3] - area[1])
+	lineMaxWidth = mathMax(lineMaxWidth, area[3] - area[1])
 end
 
 local function addMessage(text)
@@ -133,7 +137,7 @@ local function addMessage(text)
 
 		local messageLinesCount = #messageLines
 		for _, line in ipairs(wordwrappedText) do
-			lineMaxWidth = math.max(lineMaxWidth, font:GetTextWidth(line)*charSize*widgetScale)
+			lineMaxWidth = mathMax(lineMaxWidth, font:GetTextWidth(line)*charSize*widgetScale)
 			messageLinesCount = messageLinesCount + 1
 			messageLines[messageLinesCount] = {
 				starttime = startTime,
@@ -210,7 +214,7 @@ local function processLine(i)
 		messageLines[i].pos = (currentLine+1)-i
 		messageLines[i].charsindisplaylist = messageLines[i].charstyped
 		local text = string.sub(messageLines[i].text, 1, messageLines[i].charstyped)
-		lineMaxWidth = math.max(lineMaxWidth, font:GetTextWidth(text)*charSize*widgetScale)
+		lineMaxWidth = mathMax(lineMaxWidth, font:GetTextWidth(text)*charSize*widgetScale)
 		glDeleteList(messageLines[i].displaylist)
 		messageLines[i].displaylist = glCreateList(function()
 			font:Begin()

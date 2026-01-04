@@ -136,7 +136,6 @@
 	}
 }
 
-
 .qs-budget-bar {
 	position: relative;
 	width: 27vw;
@@ -171,6 +170,25 @@
 	z-index: 2;
 }
 
+.qs-budget-refund-overlay {
+	position: absolute;
+	left: 50%;
+	top: 4.3vh;
+	transform: translateX(-50%);
+	font-size: 1.35vh;
+	font-weight: bold;
+	color: rgb(255, 255, 255);
+	font-effect: outline(1dp black);
+	z-index: 1001;
+	decorator: image("/luaui/images/stripes-small.png" repeat);
+	image-color: rgba(20, 20, 20, 180);
+	padding: 1dp 4dp 3dp 4dp;
+	border-radius: 0.56vh;
+	border-width: 0.14vh;
+	border-color: rgba(30, 30, 30, 150);
+	text-align: center;
+}
+
 .qs-warning-text {
 	position: absolute;
 	left: 50%;
@@ -185,7 +203,11 @@
 	border-width: 0.09vh;
 	border-color: rgba(255, 255, 255, 0.3);
 	opacity: 0;
-	animation: 10s 5s cubic-in-out 1 fade-in-out;
+}
+
+.qs-warning-text.visible,
+.qs-factory-text.visible {
+	opacity: 1;
 }
 
 .qs-factory-section {
@@ -205,12 +227,4 @@
 	border-width: 0.09vh;
 	border-color: rgba(255, 255, 255, 0.3);
 	opacity: 0;
-	animation: 9s 6s cubic-in-out 1 fade-in-out;
-}
-
-@keyframes fade-in-out {
-	0% { opacity: 0; }
-	10% { opacity: 1; }
-	80% { opacity: 1; }
-	100% { opacity: 0; }
 }

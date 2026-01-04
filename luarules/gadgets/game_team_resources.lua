@@ -18,6 +18,7 @@ end
 
 local minStorageMetal = 1000
 local minStorageEnergy = 1000
+local mathMax = math.max
 
 
 local function setup(addResources)
@@ -52,8 +53,8 @@ local function setup(addResources)
 				commanderMinEnergy = com.energyStorage or 0
 			end
 
-			Spring.SetTeamResource(teamID, 'ms', math.max(minStorageMetal, startMetalStorage * multiplier, startMetal * multiplier, commanderMinMetal))
-			Spring.SetTeamResource(teamID, 'es',  math.max(minStorageEnergy, startEnergyStorage * multiplier, startEnergy * multiplier, commanderMinEnergy))
+			Spring.SetTeamResource(teamID, 'ms', mathMax(minStorageMetal, startMetalStorage * multiplier, startMetal * multiplier, commanderMinMetal))
+			Spring.SetTeamResource(teamID, 'es',  mathMax(minStorageEnergy, startEnergyStorage * multiplier, startEnergy * multiplier, commanderMinEnergy))
 			if addResources then
 				Spring.SetTeamResource(teamID, 'm', startMetal * multiplier)
 				Spring.SetTeamResource(teamID, 'e', startEnergy * multiplier)
@@ -71,8 +72,8 @@ local function setup(addResources)
 				commanderMinEnergy = com.energyStorage or 0
 			end
 
-			Spring.SetTeamResource(teamID, 'ms', math.max(minStorageMetal, startMetalStorage, startMetal, commanderMinMetal))
-			Spring.SetTeamResource(teamID, 'es',  math.max(minStorageEnergy, startEnergyStorage,  startEnergy, commanderMinEnergy))
+			Spring.SetTeamResource(teamID, 'ms', mathMax(minStorageMetal, startMetalStorage, startMetal, commanderMinMetal))
+			Spring.SetTeamResource(teamID, 'es',  mathMax(minStorageEnergy, startEnergyStorage,  startEnergy, commanderMinEnergy))
 			if addResources then
 				Spring.SetTeamResource(teamID, 'm', startMetal)
 				Spring.SetTeamResource(teamID, 'e', startEnergy)
