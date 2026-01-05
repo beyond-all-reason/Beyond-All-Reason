@@ -36,10 +36,9 @@ end
 local function spawnUnits(name, unitDefName, teamID, position, quantity, facing, construction, alert)
 	if name and not trackedUnits[name] then trackedUnits[name] = {} end
 
-	local SQUARE_SIZE = 8 -- as defined in the engine
 	local unitDef = UnitDefs[UnitDefNames[unitDefName].id]
-	local xsize = unitDef.xsize * SQUARE_SIZE
-	local zsize = unitDef.zsize * SQUARE_SIZE
+	local xsize = unitDef.xsize * Game.squareSize
+	local zsize = unitDef.zsize * Game.squareSize
 
 	-- adjust for facing of non-square units
 	if facing == 'e' or facing == 'w' then
