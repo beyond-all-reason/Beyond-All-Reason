@@ -23,7 +23,7 @@ void main(void)
 	fragColor = vec4(v_targetcolor.rgb,circlealpha); //debug!
 	if (v_uvcoords.x > -0.5){
 		vec4 atlascolor = texture(textAtlas, v_uvcoords.xy);
-		fragColor.rgba = vec4(atlascolor.rgba);
+		fragColor.rgba = vec4(atlascolor.rgb, atlascolor.a * circlealpha);
 	}
 	//fragColor.rgba = vec4(1,1,1,0.5);
 }
