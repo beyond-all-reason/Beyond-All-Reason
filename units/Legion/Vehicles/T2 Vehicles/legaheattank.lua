@@ -19,7 +19,7 @@ return {
 		leavetracks = true,
 		health = 7700,
 		maxslope = 12,
-		speed = 51.0,
+		speed = 52,
 		maxwaterdepth = 15,
 		movementclass = "HTANK4",
 		nochasecategory = "VTOL",
@@ -146,8 +146,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
 				damage = {
-					default = 33,
-					vtol = 10,
+					default = 31,
+					vtol = 9,
 				},
 				customparams = {
 					sweepfire=9,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs

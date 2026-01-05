@@ -2,10 +2,10 @@ return {
 	legbart = {
 		maxacc = 0.1518,
 		maxdec = 0.77625,
-		energycost = 5500,
-		metalcost = 550,
+		energycost = 5100,
+		metalcost = 510,
 		buildpic = "LEGBART.DDS",
-		buildtime = 10000,
+		buildtime = 9500,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "40 60 34",
@@ -122,7 +122,7 @@ return {
 				range = 625,
 				tolerance = 5000;
 				firetolerance = 5000;
-				reloadtime = 4,
+				reloadtime = 3.5,
 				rgbcolor = "1 0.25 0.1",
 				size = 6,
 				soundhitdry = "flamhit1",

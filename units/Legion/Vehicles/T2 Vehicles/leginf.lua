@@ -130,7 +130,7 @@ return {
 				noselfdamage = true,
 				projectiles = 1,
 				range = 1100,
-				reloadtime = 8,
+				reloadtime = 7,
 				rgbcolor = "1 0.25 0.1",
 				size = 6,
 				soundhitdry = "flamhit1",
