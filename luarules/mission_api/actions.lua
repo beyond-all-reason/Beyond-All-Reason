@@ -3,19 +3,16 @@ local triggers = GG['MissionAPI'].Triggers
 
 local function enableTrigger(triggerID)
 	triggers[triggerID].settings.active = true
-	Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Enabled trigger "..triggerID)
 end
 
 local function disableTrigger(triggerID)
 	triggers[triggerID].settings.active = false
-	Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Disabled trigger "..triggerID)
 end
 
 local function issueOrders(name, orders)
     if not trackedUnits[name] or #trackedUnits[name] == 0 then return end
 
 	Spring.GiveOrderArrayToUnitArray(trackedUnits[name], orders)
-	Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Ordered units named "..name.." with IDs "..table.toString(trackedUnits[name]).." : "..table.toString(orders))
 end
 
 local function generateGridPositions(center, quantity, xSpacing, zSpacing)
@@ -62,11 +59,6 @@ local function spawnUnits(name, unitDefName, teamID, position, quantity, facing,
 			Spring.TransferUnit(unitID, teamID, given)
 		end
 	end
-	if name then
-		Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Spawned "..#positions.."x "..unitDefName.." named "..name.." : "..table.toString(trackedUnits))
-	else
-		Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Spawned "..#positions.."x "..unitDefName.." unnamed : ")
-	end
 end
 
 ----------------------------------------------------------------
@@ -78,7 +70,6 @@ local function despawnUnits(name, selfDestruct, reclaimed)
 		Spring.DestroyUnit(unitIDs[i], selfDestruct, reclaimed)
 	end
 	trackedUnits[name] = nil
-	Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Despawned "..#unitIDs.." units named "..name.." : "..table.toString(trackedUnits))
 end
 
 ----------------------------------------------------------------
