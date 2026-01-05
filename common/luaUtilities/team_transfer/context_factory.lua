@@ -81,7 +81,7 @@ function ContextFactory.create(springRepo)
   ---@return ResourceTransferContext
   local function resourceTransfer(senderTeamId, receiverTeamId, resourceType, desiredAmount, policyResult)
     local transferCategory = resourceType == SharedEnums.ResourceType.METAL and resourceType or
-        SharedEnums.PolicyType.EnergyTransfer
+        SharedEnums.TransferCategory.EnergyTransfer
     return buildContext(senderTeamId, receiverTeamId, {
       transferCategory = transferCategory,
       resourceType = resourceType,
@@ -100,7 +100,7 @@ function ContextFactory.create(springRepo)
   ---@return UnitTransferContext
   local function unitTransfer(senderTeamId, receiverTeamId, unitIds, given, policyResult, validationResult)
     return buildContext(senderTeamId, receiverTeamId, {
-        transferCategory = SharedEnums.PolicyType.UnitTransfer,
+        transferCategory = SharedEnums.TransferCategory.UnitTransfer,
         unitIds = unitIds,
         given = given,
         policyResult = policyResult,

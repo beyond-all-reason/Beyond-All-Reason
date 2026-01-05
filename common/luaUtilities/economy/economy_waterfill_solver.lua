@@ -61,17 +61,9 @@ local function collectMembers(teamsList, resourceType, thresholds, springRepo)
         if shareCursor > storage then
           shareCursor = storage
         end
-        
-        -- Check cached policy for taxExcess flag
-        -- If taxExcess is false (or policy not found), passive transfers are always taxed
-        local policy = ResourceShared.GetCachedPolicyResult(teamId, teamId, resourceType, springRepo)
-        local cumulativeSent = ResourceShared.GetCumulativeSent(teamId, resourceType, springRepo)
-        local remaining
-        if policy and policy.taxExcess then
-          remaining = math.max(0, threshold - cumulativeSent)
-        else
-          remaining = 0
-        end
+        -- Passive transfers use separate cumulative tracking and are always taxed
+        local cumulativeSent = ResourceShared.GetPassiveCumulativeSent(teamId, resourceType, springRepo)
+        local remaining = 0
 
         local member = memberCache[teamId]
         if not member then
@@ -206,7 +198,7 @@ end
 
 ---@param springRepo ISpring
 ---@param updates table<number, table<ResourceType, number>>
-local function updatePassiveCumulative(springRepo, updates)
+local function updateCumulative(springRepo, updates)
   for teamId, perResource in pairs(updates) do
     for resourceType, value in pairs(perResource) do
       local key = ResourceShared.GetPassiveCumulativeParam(resourceType)
@@ -338,7 +330,7 @@ function Gadgets.Solve(springRepo, teamsList)
   end
 
   if next(cumulativeCache) then
-    updatePassiveCumulative(springRepo, cumulativeCache)
+    updateCumulative(springRepo, cumulativeCache)
   end
 
   return teamsList, teamLedgerCache

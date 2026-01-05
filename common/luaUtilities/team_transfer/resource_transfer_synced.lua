@@ -212,7 +212,7 @@ function Gadgets.BuildResultFactory(taxRate, metalThreshold, energyThreshold)
     result.remainingTaxFreeAllowance = allowanceRemaining
     result.resourceShareThreshold = threshold
     result.cumulativeSent = cumulativeSent
-    result.taxExcess = false
+    result.taxExcess = true
     
     return result
   end
@@ -276,7 +276,10 @@ end
 ---@param resourceType ResourceType
 ---@param policyResult ResourcePolicyResult
 function Gadgets.CachePolicyResult(springRepo, senderId, receiverId, resourceType, policyResult)
-  Shared.CachePolicyResult(senderId, receiverId, resourceType, policyResult, springRepo)
+  local policyType = resourceType == SharedEnums.ResourceType.METAL
+    and SharedEnums.PolicyType.MetalTransfer
+    or SharedEnums.PolicyType.EnergyTransfer
+  springRepo.SetCachedPolicy(policyType, senderId, receiverId, policyResult)
 end
 
 return Gadgets
