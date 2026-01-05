@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 0,
 		buildpic = "ARMAGEO.DDS",
-		buildtime = 33300,
+		buildtime = 50000,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "107 77 107",

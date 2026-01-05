@@ -2,7 +2,7 @@ return {
 	cortitan = {
 		blocking = false,
 		buildpic = "CORTITAN.DDS",
-		buildtime = 14700,
+		buildtime = 18000,
 		canfly = true,
 		canmove = true,
 		collide = true,

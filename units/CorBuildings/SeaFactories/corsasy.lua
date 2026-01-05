@@ -2,7 +2,7 @@ return {
 	corsasy = {
 		builder = true,
 		buildpic = "CORASY.DDS",
-		buildtime = 35000,
+		buildtime = 51000,
 		canmove = true,
 		collisionvolumeoffsets = "0 10 -2",
 		collisionvolumescales = "186 78 183",

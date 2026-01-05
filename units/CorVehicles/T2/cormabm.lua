@@ -1,7 +1,7 @@
 return {
 	cormabm = {
 		buildpic = "CORMABM.DDS",
-		buildtime = 42000,
+		buildtime = 52000,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 0",
