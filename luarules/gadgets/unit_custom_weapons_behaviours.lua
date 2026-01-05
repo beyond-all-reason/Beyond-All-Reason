@@ -155,7 +155,7 @@ end
 ---@return number? targetY
 ---@return number? targetZ
 local function getTargetPositionWithError(projectileID)
-	local target, targetType = spGetProjectileTarget(projectileID)
+	local targetType, target = spGetProjectileTarget(projectileID)
 	if targetType == targetedUnit then
 		local teamID = spGetProjectileTeamID(projectileID)
 		local _, _, _, targetX, targetY, targetZ = readAsTeam(teamID, spGetUnitPosition, target, false, true)
@@ -165,7 +165,7 @@ local function getTargetPositionWithError(projectileID)
 	end
 end
 
----Translate between TargetType enum and byte-integer target types (why are there two?)
+---Translates TargetType integers to the ProjectileTargetType byte-integers needed in SetProjectileTarget.
 ---@param projectileID integer
 ---@param target integer|xyz?
 ---@param targetType TargetType
