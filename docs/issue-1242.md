@@ -35,6 +35,23 @@
 - Status: Resolved in the Lua-only implementation by drawing the high-visibility path in `DrawWorld` on all maps (water and no-water).
 - Historical note: The earlier `DrawWaterPost` approach improved readability on water maps, but `DrawWaterPost` is not called when water rendering is off or the map has no visible water, causing inconsistent layering/fallback behavior.
 
+## Follow-up bug: `DrawWorld` metal spot numbers add UI clutter
+
+### Problem
+- The current Lua-only fix uses the **high-visibility path** in `DrawWorld` ([luaui/Widgets/gui_metalspots.lua](luaui/Widgets/gui_metalspots.lua)), which makes the metal spot numbers/circles appear **above essentially everything**.
+- This is desirable *sometimes* (e.g., when placing buildings and deciding which mex spot to use), but it is **too visually loud during normal gameplay**.
+
+### Desired behavior
+- Default/normal gameplay: use the **legacy** metalspot render path (`DrawWorldPreUnit`).
+- When the player is attempting to place a building (i.e. when the **building grid is visible**): temporarily switch to the **high-visibility** render path (`DrawWorld`).
+
+### Existing hook to reuse (building grid visibility)
+- The build grid is controlled by the widget [luaui/Widgets/gui_building_grid_gl4.lua](luaui/Widgets/gui_building_grid_gl4.lua).
+- Internally it renders the grid when either:
+	- a build command is active (`Spring.GetActiveCommand()` returns a negative `cmdID`), or
+	- another widget requests it via `WG.buildinggrid.setForceShow(reason, enabled, unitDefID)`.
+- Example: blueprint placement explicitly forces the grid on/off via `WG.buildinggrid.setForceShow(...)` in [luaui/Widgets/cmd_blueprint.lua](luaui/Widgets/cmd_blueprint.lua).
+
 ### Possible solution directions
 1. **Split land vs water spots (Lua-only):**
 	- Determine whether a spot is “underwater” (or affected by refraction) and render underwater spots in `DrawWaterPost` while keeping land spots in the legacy path.
@@ -175,12 +192,41 @@ The goal for Group 2 is: **keep the same draw ordering regardless of whether the
 - Could UI/overlay ordering regressions occur if other elements rely on the current sequence?
 
 ## Implementation plan
-- (Implemented) Add a `widget:DrawWorld()` path in the metal spots widget to render the existing GL4 billboards there for the “High Visibility Metal Spots” mode; keep the current `DrawWorldPreUnit` path as the legacy mode when high visibility is disabled.
-- Reuse the current shader/VBO setup; ensure GL state (blend, depth func, clip planes) is restored if modified. Respect depth so labels occlude/are occluded consistently with the current behavior.
-- Keep the existing widget option (and legacy config key name) as the toggle, but route the enabled path to `DrawWorld`.
+
+### Updated plan (Jan 2026)
+
+1. Expose “is grid visible?” from Building Grid GL4
+	 - In [luaui/Widgets/gui_building_grid_gl4.lua](luaui/Widgets/gui_building_grid_gl4.lua), extend the existing `WG['buildinggrid']` API with a read-only helper, e.g.:
+		 - `WG.buildinggrid.getShownUnitDefID()` → returns `getForceShowUnitDefID() or cmdShowForUnitDefID`.
+		 - `WG.buildinggrid.getIsVisible()` → returns boolean (`getShownUnitDefID() ~= nil`).
+	 - Rationale: metalspots should not re-implement grid-visibility logic or duplicate the “force show” reasoning spread across widgets.
+
+2. Drive metalspot draw mode from building grid visibility
+	 - In [luaui/Widgets/gui_metalspots.lua](luaui/Widgets/gui_metalspots.lua):
+		 - Keep the existing dual-callin structure:
+			 - legacy path: `widget:DrawWorldPreUnit()`
+			 - high-visibility path: `widget:DrawWorld()`
+		 - Split “saved setting” from “effective runtime behavior”:
+			 - `useDrawWaterPost` remains the user-configurable preference (“always high visibility”).
+			 - Add `autoHighVisibility` computed per-frame: `autoHighVisibility = (WG.buildinggrid and WG.buildinggrid.getIsVisible and WG.buildinggrid.getIsVisible())`.
+			 - Compute `effectiveHighVisibility = useDrawWaterPost or autoHighVisibility`.
+		 - Gate the draw callins using `effectiveHighVisibility` instead of the raw config value:
+			 - If `effectiveHighVisibility` is true → draw in `DrawWorld`, return early from `DrawWorldPreUnit`.
+			 - If false → draw in `DrawWorldPreUnit`, return early from `DrawWorld`.
+	 - Outcome: players get low-clutter “legacy” metalspots by default, but get the “numbers above everything” behavior exactly when the build grid is visible (placing buildings).
+
+3. Validate edge cases
+	 - Pregame building placement: ensure the same “grid visible” signal works (pregame build widgets already interact with `WG.buildinggrid.setForceShow`).
+	 - Blueprint / formation placement modes: they force-show the grid; metalspots should follow automatically.
+	 - Widget ordering: confirm the metalspot `DrawWorld` path still executes late enough to avoid water distortion when it is enabled.
 
 ## Test plan
 - Map with visible water and High water quality (e.g., a deep-water map): confirm labels remain crisp and legible with post-water rendering, and verify occlusion against terrain/units behaves as before.
 - Map with Low/Off water or no-water maps: confirm behavior matches water maps (no reliance on `DrawWaterPost`).
 - Toggle any new widget option: confirm both paths function and that switching does not leak GL state (no broken transparencies elsewhere).
 - Regression check other overlays rendered around the same time (alpha objects above water) for ordering issues when labels are drawn post-water.
+
+### Additional regression checks for the Jan 2026 change
+- Start placing any building (grid appears): metal spot numbers should switch to the high-visibility `DrawWorld` path.
+- Cancel building placement / return to default command (grid disappears): metal spots should immediately revert to the legacy path.
+- Verify the switch does not “stick” due to saved config; it should be purely runtime-driven unless the player explicitly enables the always-on high visibility option.

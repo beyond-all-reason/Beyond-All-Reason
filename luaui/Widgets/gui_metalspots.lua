@@ -56,7 +56,7 @@ end
 local needsInit			= true
 local showValue			= false
 local metalViewOnly		= false
-local useDrawWaterPost	= true -- legacy name: toggles the high-visibility draw path (DrawWorld)
+local useDrawWaterPost	= false -- legacy name: toggles the high-visibility draw path (DrawWorld)
 
 local circleSpaceUsage	= 0.62
 local circleInnerOffset	= 0.28
@@ -91,6 +91,20 @@ local function LogInfo(msg)
 	else
 		spEcho("<Metalspots>", msg)
 	end
+end
+
+local function getEffectiveHighVisibility()
+	if useDrawWaterPost then
+		return true
+	end
+	local buildingGrid = WG and WG['buildinggrid']
+	if buildingGrid and buildingGrid.getIsVisible then
+		return buildingGrid.getIsVisible()
+	end
+	if buildingGrid and buildingGrid.getShownUnitDefID then
+		return buildingGrid.getShownUnitDefID() ~= nil
+	end
+	return false
 end
 
 local function MaybeLogDrawModeChange(mode, reason)
@@ -550,7 +564,7 @@ local function DrawMetalspots()
 end
 
 function widget:DrawWorldPreUnit()
-	if useDrawWaterPost then
+	if getEffectiveHighVisibility() then
 		return
 	end
 
@@ -563,13 +577,13 @@ function widget:DrawWorldPreUnit()
 		checkMetalspots()
 		needsInit = false
 	end
-	MaybeLogDrawModeChange("preunit", "legacy path (high visibility disabled)")
+	MaybeLogDrawModeChange("preunit", "legacy path")
 
 	DrawMetalspots()
 end
 
 function widget:DrawWorld()
-	if not useDrawWaterPost then
+	if not getEffectiveHighVisibility() then
 		return
 	end
 
@@ -583,7 +597,7 @@ function widget:DrawWorld()
 		needsInit = false
 	end
 
-	MaybeLogDrawModeChange("world", "high visibility path")
+	MaybeLogDrawModeChange("world", "high visibility path (build grid / forced)")
 	DrawMetalspots()
 end
 

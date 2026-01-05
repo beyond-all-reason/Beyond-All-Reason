@@ -4755,10 +4755,11 @@ function init()
 		{ id = "label_teamcolors", group = "accessibility", name = Spring.I18N('ui.settings.option.label_teamcolors'), category = types.basic },
 		{ id = "label_teamcolors_spacer", group = "accessibility", category = types.basic },
 
-		-- Dev note: this uses the engine's late DrawWorld pass (after water, when present)
-		-- to remove water distortion effects and keep behavior consistent on maps without water.
-		-- The option id/config key name is legacy (kept for backward compatibility).
-		{ id = "metalspots_drawwaterpost", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   High Visibility Metal Spots", type = "bool", value = (WG['metalspots'] ~= nil and WG['metalspots'].getUseDrawWaterPost ~= nil and WG['metalspots'].getUseDrawWaterPost()) or true, description = "Removes water distortion effects and helps ensure metal spot markers are not blocked.",
+		-- Dev note: option id/config key name is legacy (kept for backward compatibility).
+		-- Behavior: metalspots are legacy/low-clutter by default, but switch to high visibility
+		-- automatically while placing buildings (when the build grid is visible).
+		-- Enabling this option forces high visibility at all times.
+		{ id = "metalspots_drawwaterpost", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   High Visibility Metal Spots", type = "bool", value = (WG['metalspots'] ~= nil and WG['metalspots'].getUseDrawWaterPost ~= nil and WG['metalspots'].getUseDrawWaterPost()) or false, description = "Forces metal spot markers to render in high visibility at all times. High visibility is also enabled automatically while placing buildings (build grid visible).",
 		  onload = function(i)
 			  loadWidgetData("Metalspots", "metalspots_drawwaterpost", { 'useDrawWaterPost' })
 			  if WG['metalspots'] and WG['metalspots'].getUseDrawWaterPost then
