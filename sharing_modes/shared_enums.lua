@@ -19,11 +19,13 @@ M.SharingModes = {
 	Customize = "customize",
 }
 
-M.PolicyType = {
-	EnergyTransfer = "energy_transfer",
-	MetalTransfer = "metal_transfer",
-	UnitTransfer = "unit_transfer"
+M.PolicyType = Spring and Spring.PolicyType or {
+	MetalTransfer = 1,
+	EnergyTransfer = 2,
+	UnitTransfer = 3,
 }
+
+M.TransferCategory = M.PolicyType
 
 M.ResourceType = {
 	METAL = "metal",

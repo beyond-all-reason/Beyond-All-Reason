@@ -213,7 +213,7 @@ describe("ResourceTransfer #action", function()
       local ctx = {
         senderTeamId = sender.id,
         receiverTeamId = receiver.id,
-        transferCategory = SharedEnums.PolicyType.MetalTransfer,
+        transferCategory = SharedEnums.TransferCategory.MetalTransfer,
         resourceType = SharedEnums.ResourceType.METAL,
         desiredAmount = 100,
         resultSoFar = {},
@@ -292,7 +292,7 @@ describe("ResourceTransfer #action", function()
       local ctx = {
         senderTeamId = sender.id,
         receiverTeamId = receiver.id,
-        transferCategory = SharedEnums.PolicyType.MetalTransfer,
+        transferCategory = SharedEnums.TransferCategory.MetalTransfer,
         resourceType = SharedEnums.ResourceType.METAL,
         desiredAmount = 200,
         resultSoFar = {},
@@ -338,7 +338,7 @@ describe("ResourceTransfer #action", function()
       local ctx = {
         senderTeamId = sender.id,
         receiverTeamId = receiver.id,
-        transferCategory = SharedEnums.PolicyType.MetalTransfer,
+        transferCategory = SharedEnums.TransferCategory.MetalTransfer,
         resourceType = SharedEnums.ResourceType.METAL,
         desiredAmount = 200,
         resultSoFar = {},
@@ -383,7 +383,7 @@ describe("ResourceTransfer #action", function()
       --- @type ResourceTransferContext
       local ctx = {
         desiredAmount = 300,        -- Limited to amountSendable
-        transferCategory = SharedEnums.PolicyType.MetalTransfer,
+        transferCategory = SharedEnums.TransferCategory.MetalTransfer,
         resultSoFar = {},
         isCheatingEnabled = false,
         senderTeamId = sender.id,

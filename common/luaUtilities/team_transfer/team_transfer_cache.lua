@@ -12,9 +12,9 @@ M.FieldTypes = {
 -- Pooled buffer for serialization (avoids table allocation per call)
 local serializeBuffer = {}
 
----Generate base key for policy caching using PolicyType
+---Generate base key for policy caching using TransferCategory
 ---@param receiverId number
----@param transferCategory string SharedEnums.PolicyType enum value
+---@param transferCategory string SharedEnums.TransferCategory enum value
 ---@return string
 function M.MakeBaseKey(receiverId, transferCategory)
   local baseKeyPrefix = transferCategory

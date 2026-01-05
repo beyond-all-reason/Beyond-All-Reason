@@ -71,7 +71,7 @@ end
 ---@param receiverId number
 ---@param policyResult UnitPolicyResult
 function Synced.CachePolicyResult(springRepo, senderId, receiverId, policyResult)
-  Shared.CachePolicyResult(senderId, receiverId, policyResult, springRepo)
+  springRepo.SetCachedPolicy(SharedEnums.PolicyType.UnitTransfer, senderId, receiverId, policyResult)
 end
 
 return Synced

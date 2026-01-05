@@ -21,47 +21,13 @@ Shared.ResourcePolicyFields = {
   taxExcess = FieldTypes.boolean,
 }
 
--- Lua table cache for policies (replaces TeamRulesParam serialization)
--- Structure: policyCache[senderTeamId][receiverTeamId][resourceType] = PolicyResult
-local policyCache = {}
-
--- Shared deny policy singletons for non-allied pairs (no table creation per lookup)
-local DENY_SINGLETON = {
-  [SharedEnums.ResourceType.METAL] = {
-    canShare = false,
-    amountSendable = 0,
-    amountReceivable = 0,
-    taxedPortion = 0,
-    untaxedPortion = 0,
-    taxRate = 0,
-    resourceType = SharedEnums.ResourceType.METAL,
-    remainingTaxFreeAllowance = 0,
-    resourceShareThreshold = 0,
-    cumulativeSent = 0,
-    taxExcess = false,
-  },
-  [SharedEnums.ResourceType.ENERGY] = {
-    canShare = false,
-    amountSendable = 0,
-    amountReceivable = 0,
-    taxedPortion = 0,
-    untaxedPortion = 0,
-    taxRate = 0,
-    resourceType = SharedEnums.ResourceType.ENERGY,
-    remainingTaxFreeAllowance = 0,
-    resourceShareThreshold = 0,
-    cumulativeSent = 0,
-    taxExcess = false,
-  },
-}
-
 ---Generate base key for policy caching
 ---@param receiverId number
 ---@param resourceType ResourceType
 ---@return string
 function Shared.MakeBaseKey(receiverId, resourceType)
-  local transferCategory = resourceType == SharedEnums.ResourceType.METAL and SharedEnums.PolicyType.MetalTransfer or
-  SharedEnums.PolicyType.EnergyTransfer
+  local transferCategory = resourceType == SharedEnums.ResourceType.METAL and SharedEnums.TransferCategory.MetalTransfer or
+  SharedEnums.TransferCategory.EnergyTransfer
   return PolicyShared.MakeBaseKey(receiverId, transferCategory)
 end
 
@@ -104,7 +70,7 @@ function Shared.CreateDenyPolicy(senderTeamId, receiverTeamId, resourceType, spr
     remainingTaxFreeAllowance = 0,
     resourceShareThreshold = 0,
     cumulativeSent = Shared.GetCumulativeSent(senderTeamId, resourceType, springApi),
-    taxExcess = false,
+    taxExcess = true,
   }
   return result
 end
@@ -143,60 +109,18 @@ end
 ---@return ResourcePolicyResult
 function Shared.GetCachedPolicyResult(senderId, receiverId, resourceType, springApi)
   local spring = springApi or Spring
+  local policyType = resourceType == SharedEnums.ResourceType.METAL
+    and SharedEnums.PolicyType.MetalTransfer
+    or SharedEnums.PolicyType.EnergyTransfer
   
-  -- Fast path: non-allied pairs return shared deny singleton
-  if not spring.AreTeamsAllied(senderId, receiverId) then
-    local singleton = DENY_SINGLETON[resourceType]
-    singleton.senderTeamId = senderId
-    singleton.receiverTeamId = receiverId
-    return singleton
+  local result = spring.GetCachedPolicy(policyType, senderId, receiverId)
+  if result == nil then
+    return Shared.CreateDenyPolicy(senderId, receiverId, resourceType, springApi)
   end
   
-  -- Allied pairs: check Lua table cache
-  local senderCache = policyCache[senderId]
-  if senderCache then
-    local receiverCache = senderCache[receiverId]
-    if receiverCache and receiverCache[resourceType] then
-      return receiverCache[resourceType]
-    end
-  end
-  
-  -- Cache miss - return deny policy (caller should populate cache)
-  return Shared.CreateDenyPolicy(senderId, receiverId, resourceType, springApi)
-end
-
----Cache a policy result in the Lua table cache
----@param senderId number
----@param receiverId number
----@param resourceType ResourceType
----@param policyResult ResourcePolicyResult
----@param springApi ISpring?
-function Shared.CachePolicyResult(senderId, receiverId, resourceType, policyResult, springApi)
-  local spring = springApi or Spring
-  
-  -- Only cache allied pairs (non-allied use singleton)
-  if not spring.AreTeamsAllied(senderId, receiverId) then
-    return
-  end
-  
-  policyCache[senderId] = policyCache[senderId] or {}
-  policyCache[senderId][receiverId] = policyCache[senderId][receiverId] or {}
-  policyCache[senderId][receiverId][resourceType] = policyResult
-end
-
----Invalidate policy cache entries
----@param senderId number? If nil, invalidates all senders
----@param receiverId number? If nil, invalidates all receivers for sender
-function Shared.InvalidatePolicyCache(senderId, receiverId)
-  if senderId and receiverId then
-    if policyCache[senderId] then
-      policyCache[senderId][receiverId] = nil
-    end
-  elseif senderId then
-    policyCache[senderId] = nil
-  else
-    policyCache = {}
-  end
+  result.senderTeamId = senderId
+  result.receiverTeamId = receiverId
+  return result
 end
 
 ---@param resourceType ResourceType
@@ -209,15 +133,28 @@ function Shared.GetCumulativeParam(resourceType)
   end
 end
 
----Get param key for passive (waterfill) cumulative tracking - separate from manual transfers
 ---@param resourceType ResourceType
 ---@return string
 function Shared.GetPassiveCumulativeParam(resourceType)
   if resourceType == SharedEnums.ResourceType.METAL then
-    return "passive_cumulative_sent_metal"
+    return "metal_passive_cumulative_sent"
   else
-    return "passive_cumulative_sent_energy"
+    return "energy_passive_cumulative_sent"
   end
+end
+
+---@param teamId number
+---@param resourceType ResourceType
+---@param springRepo ISpring?
+---@return number
+function Shared.GetPassiveCumulativeSent(teamId, resourceType, springRepo)
+  local param = Shared.GetPassiveCumulativeParam(resourceType)
+  local spring = springRepo or Spring
+  local value = spring.GetTeamRulesParam(teamId, param)
+  if value == nil then
+    return 0
+  end
+  return tonumber(value) or 0
 end
 
 ---@param teamId number
