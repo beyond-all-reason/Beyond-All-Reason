@@ -55,6 +55,7 @@ local screenMargin = 0.05	-- limit how close to the screen edge the PiP window c
 local drawProjectiles = true  -- Show projectiles and explosions in PIP window
 local zoomToCursor = true  -- When increasing zoom (getting closer), zoom towards cursor position (decreasing zoom pulls back to center)
 local mapEdgeMargin = 0.15  -- Maximum allowed distance from PiP edge to map edge (as fraction of PiP size)
+local showButtonsOnHoverOnly = true  -- Only show buttons when mouse is hovering over the PIP window
 
 local pipMinUpdateRate = 40  -- Minimum FPS for PIP rendering when zoomed out (performance-adjusted dynamically)
 local pipMaxUpdateRate = 120  -- Maximum FPS for PIP rendering when zoomed in
@@ -159,6 +160,7 @@ local interactionState = {
 	lastMapDrawX = nil,
 	lastMapDrawZ = nil,
 	clickHandledInPanMode = false,
+	isMouseOverPip = false,
 }
 
 -- Misc variables
@@ -3446,6 +3448,11 @@ local function RenderFrameButtons()
 	local pipWidth = dim.r - dim.l
 	local pipHeight = dim.t - dim.b
 
+	-- Skip all rendering if showButtonsOnHoverOnly is enabled and mouse is not over PIP
+	if showButtonsOnHoverOnly and not interactionState.isMouseOverPip then
+		return
+	end
+
 	-- Resize handle (bottom-right corner)
 	glColor(panelBorderColorDark)
 	gl.LineWidth(1.0)
@@ -4110,9 +4117,19 @@ function widget:DrawScreen()
 	-- Buttons and hover effects
 	----------------------------------------------------------------------------------------------------
 	if gl.R2tHelper then
+		-- Update mouse hover state
+		interactionState.isMouseOverPip = (mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t)
+
 		-- Blit frame buttons
 		if pipR2T.frameButtonsTex then
 			gl.R2tHelper.BlendTexRect(pipR2T.frameButtonsTex, dim.l, dim.b, dim.r, dim.t, true)
+		end
+
+		-- Draw resize handle when showing on hover
+		if showButtonsOnHoverOnly and interactionState.isMouseOverPip then
+			glColor(panelBorderColorDark)
+			gl.LineWidth(1.0)
+			glBeginEnd(GL_TRIANGLES, ResizeHandleVertices)
 		end
 
 		-- Draw dynamic hover overlays
@@ -4136,6 +4153,16 @@ function widget:DrawScreen()
 
 		-- Minimize button hover
 		hover = false
+		if showButtonsOnHoverOnly and interactionState.isMouseOverPip then
+			-- Draw minimize button base when showing on hover
+			glColor(panelBorderColorDark)
+			glTexture(false)
+			RectRound(dim.r - usedButtonSize - elementPadding, dim.t - usedButtonSize - elementPadding, dim.r, dim.t, elementCorner, 0, 0, 0, 1)
+			glColor(panelBorderColorLight)
+			glTexture('LuaUI/Images/pip/PipMinimize.png')
+			glTexRect(dim.r - usedButtonSize, dim.t - usedButtonSize, dim.r, dim.t)
+			glTexture(false)
+		end
 		if mx >= dim.r - usedButtonSize - elementPadding and mx <= dim.r - elementPadding and
 			my >= dim.t - usedButtonSize - elementPadding and my <= dim.t - elementPadding then
 			hover = true
@@ -4161,6 +4188,29 @@ function widget:DrawScreen()
 			if buttons[i].command ~= 'pip_track' or hasSelection or isTracking then
 				visibleButtons[#visibleButtons + 1] = buttons[i]
 			end
+		end
+
+		-- Draw base buttons when showing on hover
+		if showButtonsOnHoverOnly and interactionState.isMouseOverPip then
+			local buttonCount = #visibleButtons
+			glColor(panelBorderColorDark)
+			glTexture(false)
+			RectRound(dim.l, dim.b, dim.l + (buttonCount * usedButtonSize) + math.floor(elementPadding*0.75), dim.b + usedButtonSize + math.floor(elementPadding*0.75), elementCorner, 0, 1, 0, 0)
+			local bx = dim.l
+			for i = 1, buttonCount do
+				if visibleButtons[i].command == 'pip_track' and interactionState.areTracking then
+					glColor(panelBorderColorLight)
+					glTexture(false)
+					RectRound(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize, elementCorner*0.4, 1, 1, 1, 1)
+					glColor(panelBorderColorDark)
+				else
+					glColor(panelBorderColorLight)
+				end
+				glTexture(visibleButtons[i].texture)
+				glTexRect(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize)
+				bx = bx + usedButtonSize
+			end
+			glTexture(false)
 		end
 
 		hover = false
@@ -4309,6 +4359,16 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 end
 
 function widget:Update(dt)
+	-- Update mouse hover state
+	local mx, my = spGetMouseState()
+	local wasMouseOver = interactionState.isMouseOverPip
+	interactionState.isMouseOverPip = (mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t and not inMinMode)
+	
+	-- If hover state changed, update frame buttons
+	if wasMouseOver ~= interactionState.isMouseOverPip and showButtonsOnHoverOnly then
+		pipR2T.frameNeedsUpdate = true
+	end
+
 	-- Track selection and tracking state changes for frame updates
 	local selectedUnits = Spring.GetSelectedUnits()
 	local currentSelectionCount = #selectedUnits
@@ -5116,6 +5176,8 @@ function widget:MousePress(mx, my, mButton)
 			animationProgress = 0
 			isAnimating = true
 			inMinMode = false
+			-- Update hover state after maximizing to check if mouse is over the restored PIP
+			interactionState.isMouseOverPip = (mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t)
 			return true
 		end
 		-- Nothing else to click while in minMode
