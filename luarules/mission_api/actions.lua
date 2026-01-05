@@ -18,16 +18,16 @@ local function issueOrders(name, orders)
 	Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Ordered units named "..name.." with IDs "..table.toString(trackedUnits[name]).." : "..table.toString(orders))
 end
 
-local function generateGridPositions(center, quantity, spacing)
+local function generateGridPositions(center, quantity, xSpacing, zSpacing)
 	local positions = {}
-	local gridSize = math.ceil(math.sqrt(quantity)) * spacing
-	local offset = math.floor(gridSize / 2)
-	local left = center.x - offset
-	local top = center.z - offset
+	local xGridSize = math.ceil(math.sqrt(quantity)) * xSpacing
+	local zGridSize = math.ceil(math.sqrt(quantity)) * zSpacing
+	local left = center.x - math.floor(xGridSize / 2)
+	local top = center.z - math.floor(zGridSize / 2)
 	local count = 0
 
-	for x = left, left + gridSize - spacing, spacing do
-		for z = top, top + gridSize - spacing, spacing do
+	for x = left, left + xGridSize - xSpacing, xSpacing do
+		for z = top, top + zGridSize - zSpacing, zSpacing do
 			if count >= quantity then return positions end
 			table.insert(positions, {x = x, z = z})
 			count = count + 1
@@ -36,15 +36,24 @@ local function generateGridPositions(center, quantity, spacing)
 	return positions
 end
 
-local function spawnUnits(name, unitDefName, teamID, position, quantity, spacing, facing, construction, alert)
+local function spawnUnits(name, unitDefName, teamID, position, quantity, facing, construction, alert)
 	if name and not trackedUnits[name] then trackedUnits[name] = {} end
 
-	local defaultSpacing = 50 -- Enough for most units
-	local positions = generateGridPositions(position, quantity or 1, spacing or defaultSpacing)
+	local SQUARE_SIZE = 8 -- as defined in the engine
+	local unitDef = UnitDefs[UnitDefNames[unitDefName].id]
+	local xsize = unitDef.xsize * SQUARE_SIZE
+	local zsize = unitDef.zsize * SQUARE_SIZE
+
+	-- adjust for facing of non-square units
+	if facing == 'e' or facing == 'w' then
+		xsize, zsize = zsize, xsize
+	end
+
+	local positions = generateGridPositions(position, quantity or 1, xsize, zsize)
 
 	for _, pos in pairs(positions) do
 		pos.y = Spring.GetGroundHeight(pos.x, pos.z)
-		local unitID = Spring.CreateUnit(unitDefName, pos.x, pos.y, pos.z, facing, teamID, construction)
+		local unitID = Spring.CreateUnit(unitDefName, pos.x, pos.y, pos.z, facing or 's', teamID, construction)
 		if unitID and name then
 			trackedUnits[name][#trackedUnits[name] + 1] = unitID
 			trackedUnits[unitID] = name

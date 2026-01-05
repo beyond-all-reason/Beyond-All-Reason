@@ -16,12 +16,12 @@ local triggers = {
 		actions = { 'spawnConBots', 'moveConBots' },
 	},
 
-	spawnThors = {
+	spawnFusions = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			gameFrame = 150,
 		},
-		actions = { 'spawnThors' },
+		actions = { 'spawnFusions' },
 	},
 
 	at200 = {
@@ -71,15 +71,14 @@ local actions = {
 		},
 	},
 
-	spawnThors = {
+	spawnFusions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-            unitDefName = 'armthor',
+            unitDefName = 'armfus',
 			teamID = 0,
-			position = { x = 1800, z = 2100 },
-			quantity = 11,
-			spacing = 100,
-			facing = 'n',
+			position = { x = 1900, z = 2200 },
+			quantity = 18,
+			facing = 'e',
 			alert = true,
 		},
 	},
