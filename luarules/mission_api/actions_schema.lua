@@ -143,7 +143,7 @@ local parameters = {
 	[actionTypes.SpawnEffects] = {},
 	[actionTypes.TransferUnits] = {
 		[1] = {
-			name = 'unit',
+			name = 'name',
 			required = true,
 			type = 'string'
 		},
@@ -153,9 +153,10 @@ local parameters = {
 			type = 'number'
 		},
 		[3] = {
+			-- can only transfer to other allyTeam if given=false
 			name = 'given',
 			required = false,
-			type = 'bool'
+			type = 'boolean'
 		}
 	},
 
