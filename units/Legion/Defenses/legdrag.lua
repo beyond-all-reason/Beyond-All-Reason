@@ -7,7 +7,7 @@ return {
 		energycost = 0,
 		metalcost = 8,
 		buildpic = "LEGDRAG.DDS",
-		buildtime = 255,
+		buildtime = 250,
 		canattack = false,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",

@@ -5,7 +5,7 @@ return {
 		energycost = 5100,
 		metalcost = 510,
 		buildpic = "LEGBART.DDS",
-		buildtime = 12235,
+		buildtime = 12230,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "40 60 34",

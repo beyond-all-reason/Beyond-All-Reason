@@ -2,7 +2,7 @@ return {
 	leganavyheavysub = {
 		activatewhenbuilt = true,
 		buildpic = "leganavyheavysub.DDS",
-		buildtime = 34375,
+		buildtime = 34370,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "52 25 60",
