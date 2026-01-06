@@ -3,7 +3,7 @@ local actionTypes = GG['MissionAPI'].ActionTypes
 
 local triggers = {
 
-	spawnConBots = {
+	at1each200spawnConBotsAndMove = {
 		type = triggerTypes.TimeElapsed,
 		settings = {
 			repeating = true,
@@ -16,7 +16,7 @@ local triggers = {
 		actions = { 'spawnConBots', 'moveConBots' },
 	},
 
-	spawnFusions = {
+	at150spawnFusions = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			gameFrame = 150,
@@ -24,7 +24,7 @@ local triggers = {
 		actions = { 'spawnFusions' },
 	},
 
-	at200 = {
+	at200killConBots = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			gameFrame = 200,
@@ -32,7 +32,7 @@ local triggers = {
 		actions = { 'despawnConBotsAsKilled', 'messageBotsKilled' },
 	},
 
-	at480 = {
+	at480selfDestructConBots = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			gameFrame = 480,
@@ -40,7 +40,7 @@ local triggers = {
 		actions = { 'despawnConBotsSelfD', 'messageBotsSelfD' },
 	},
 
-	at760 = {
+	at760reclaimConBots = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			gameFrame = 760,
@@ -48,10 +48,26 @@ local triggers = {
 		actions = { 'despawnConBotsReclaimed', 'messageBotsReclaimed' },
 	},
 
-	at900 = {
+	at900giveConBotsToAI = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			gameFrame = 900,
+		},
+		actions = { 'transferConBotsToAI', 'messageBotsToAI' },
+	},
+
+	at1100giveConBotsToPlayer = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 1100,
+		},
+		actions = { 'transferConBotsToPlayer', 'messageBotsToPlayer' },
+	},
+
+	at1300gameEnd = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 1300,
 		},
 		actions = { 'gameEnd' },
 	},
@@ -137,6 +153,38 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "These just vanish...",
+		},
+	},
+
+	transferConBotsToAI = {
+		type = actionTypes.TransferUnits,
+		parameters = {
+			name = 'con-bots',
+			newTeam = 1,
+			given = false
+		},
+	},
+
+	messageBotsToAI = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "We give these away.",
+		},
+	},
+
+	transferConBotsToPlayer = {
+		type = actionTypes.TransferUnits,
+		parameters = {
+			name = 'con-bots',
+			newTeam = 0,
+			given = false
+		},
+	},
+
+	messageBotsToPlayer = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "And we take them back.",
 		},
 	},
 

@@ -70,9 +70,9 @@ end
 
 ----------------------------------------------------------------
 
-local function transferUnits(units, newTeam, given)
-	for _, id in ipairs(units) do
-		Spring.TransferUnit(id, newTeam, given)
+local function transferUnits(name, newTeam, given)
+	for _, unitID in pairs(trackedUnits[name]) do
+		Spring.TransferUnit(unitID, newTeam, given)
 	end
 end
 
