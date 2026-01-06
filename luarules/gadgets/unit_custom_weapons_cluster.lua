@@ -412,7 +412,6 @@ local function inheritMomentum(projectileID)
 	return vx * scale, vy * scale, vz * scale
 end
 
----@param attackerID integer? _Can_ be nil. See CLuaHandle::Explosion.
 local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 	attackerID = attackerID or -1 -- :Explosion might not provide this value
 
@@ -420,14 +419,6 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 	local projectileCount = data.number
 	local projectileSpeed = data.weaponSpeed
 	local subframeScatter = gameSpeed * 0.33
-	local randomness = 1 / sqrt(projectileCount - 2) + 0.1
-
-	local params = spawnCache
-	params.owner = attackerID or -1
-	params.team = spGetProjectileTeamID(projectileID) or (attackerID and spGetUnitTeam(attackerID)) or -1
-	params.ttl = data.weaponTtl
-	local speed = params.speed
-	local position = params.pos
 
 	local deflectX, deflectY, deflectZ = getSurfaceDeflection(x, y, z)
 
@@ -449,8 +440,8 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 	local randomness = 1 / sqrt(projectileCount - 2) + 0.1
 
 	local params = spawnCache
-	params.owner = attackerID
-	params.team = spGetUnitTeam(attackerID)
+	params.owner = attackerID or -1
+	params.team = spGetProjectileTeamID(projectileID) or (attackerID and spGetUnitTeam(attackerID)) or -1
 	params.ttl = data.weaponTtl
 	local speed = params.speed
 	local position = params.pos
