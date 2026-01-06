@@ -1873,31 +1873,6 @@ local options = {
     },
 
     {
-        key 	= "experimental_ai_spawns",
-        name 	= "Show/Move AI Spawns",
-        desc 	= "Enables experimental AI spawn placement and movement features. Allows players to see and manually adjust AI starting positions.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-        unlock  = {
-            "allow_enemy_ai_spawn_placement", --remove when map_startbox_experimental/game_initial_spawn_experimental experiment is over
-        },
-    },
-
-    {
-        key     = "experimental_ai_spawns_link",
-        name    = "Feedback thread",
-        desc    = "Report your testing and discuss here.",
-        section = "options_experimental",
-        type    = "link",
-        link    = "https://discord.com/channels/549281623154229250/1451008970536915007/1451008970536915007",
-        width   = 215,
-        column  = 1.65,
-        linkheight = 325,
-        linkwidth = 350,
-    },
-
-    {
         key 	= "pip",
         name 	= "Picture-in-picture window",
         desc 	= "Enables the picture-in-picture window showing a minimap-sized view of a chosen location.",
