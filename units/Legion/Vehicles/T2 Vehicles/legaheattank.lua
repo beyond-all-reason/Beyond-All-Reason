@@ -146,8 +146,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
 				damage = {
-					default = 31,
-					vtol = 9,
+					default = 33,
+					vtol = 10,
 				},
 				customparams = {
 					sweepfire=9,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
