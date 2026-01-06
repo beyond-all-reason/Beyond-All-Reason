@@ -425,8 +425,19 @@ function gadget:Initialize()
 	end
 	lastPolicyUpdate = springRepo.GetGameFrame()
 	
-	-- Register appropriate controller based on mode
-	if currentMode == "resource_excess" then
+	-- Register appropriate controller(s) based on mode
+	local registerPE = currentMode == "process_economy" or currentMode == "alternate"
+	local registerRE = currentMode == "resource_excess" or currentMode == "alternate"
+	
+	if registerPE then
+		Spring.Echo("[ResourceTransferController] Registering GameEconomyController...")
+		---@type GameEconomyController
+		local controller = { ProcessEconomy = ProcessEconomy }
+		Spring.SetEconomyController(controller)
+		Spring.Echo("[ResourceTransferController] SUCCESS: Registered GameEconomyController")
+	end
+	
+	if registerRE then
 		Spring.Echo("[ResourceTransferController] Registering ResourceExcessController...")
 		if Spring.SetResourceExcessController then
 			Spring.SetResourceExcessController(ResourceExcessController)
@@ -434,12 +445,10 @@ function gadget:Initialize()
 		else
 			Spring.Log("ResourceTransferController", LOG.WARNING, "SetResourceExcessController not available")
 		end
-	else
-		Spring.Echo("[ResourceTransferController] Registering GameEconomyController...")
-		---@type GameEconomyController
-		local controller = { ProcessEconomy = ProcessEconomy }
-		Spring.SetEconomyController(controller)
-		Spring.Echo("[ResourceTransferController] SUCCESS: Registered GameEconomyController")
+	end
+	
+	if not registerPE and not registerRE then
+		Spring.Echo("[ResourceTransferController] Mode '" .. tostring(currentMode) .. "' - no controllers registered")
 	end
 end
 
