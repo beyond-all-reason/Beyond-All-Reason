@@ -2,13 +2,9 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 
 	local communityBalancePatchDisabled = modOptions.community_balance_patch == "disabled"
 	if not communityBalancePatchDisabled then
-		local commandoEnabled = modOptions.community_balance_commando
-		local cortermiteEnabled = modOptions.community_balance_cortermite
-		local armwarEnabled = modOptions.community_balance_armwar
-		local armfastEnabled = modOptions.community_balance_armfast
 		local all = modOptions.community_balance_patch == "enabled"
 		local custom = modOptions.community_balance_patch == "custom"
-		if all or (custom and commandoEnabled) then
+		if all or (custom and modOptions.community_balance_commando) then
 			if name == "cormando" then
 				-- +130 jammer range (150 -> 280)
 				uDef.radardistancejam = 280
@@ -78,13 +74,13 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 			end
 		end
 
-		if all or (custom and cortermiteEnabled) then
+		if all or (custom and modOptions.community_balance_cortermite) then
 			if name == "cortermite" then
 				uDef.stealth = true
 			end
 		end
 
-		if all or (custom and armwarEnabled) then
+		if all or (custom and modOptions.community_balance_armwar) then
 			if name == "armwar" then
 				-- Reduce weapon range by 5 (330 - 5 = 325)
 				if uDef.weapondefs then
@@ -101,7 +97,7 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 			end
 		end
 
-		if all or (custom and armfastEnabled) then
+		if all or (custom and modOptions.community_balance_armfast) then
 			if name == "armfast" then
 				uDef.energycost = 3500
 				uDef.maxacc = 0.37
@@ -122,6 +118,17 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 						end
 					end
 				end
+			end
+		end
+
+		if all or (custom and modOptions.community_balance_corjamt) then
+			if name == "corjamt" then
+				uDef.buildtime = 9950
+				uDef.energycost = 8500
+				uDef.energyupkeep = 40
+				uDef.health = 790
+				uDef.metalcost = 240
+				uDef.radardistancejam = 500
 			end
 		end
 	end

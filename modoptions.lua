@@ -1540,13 +1540,13 @@ local options = {
         section = "options_experimental",
         items   = {
             { key = "disabled", name = "Disabled", desc = "No community balance changes",
-            lock = {"community_balance_commando","community_balance_cortermite","community_balance_armwar","community_balance_armfast"} },
+            lock = {"community_balance_commando","community_balance_cortermite","community_balance_armwar","community_balance_armfast","community_balance_corjamt"} },
 
-            { key = "enabled",  name = "Enabled",  desc = "Enable all community balance changes\nCommando\nTermite\nCenturion\nSprinter",
-            lock = {"community_balance_commando","community_balance_cortermite","community_balance_armwar","community_balance_armfast"} },
+            { key = "enabled",  name = "Enabled",  desc = "Enable all community balance changes\nCommando\nTermite\nCenturion\nSprinter\nCastro",
+            lock = {"community_balance_commando","community_balance_cortermite","community_balance_armwar","community_balance_armfast","community_balance_corjamt"} },
 
             { key = "custom",   name = "Custom",   desc = "Customize individual community balance changes",
-            unlock = {"community_balance_commando", "community_balance_cortermite", "community_balance_armwar", "community_balance_armfast"} },
+            unlock = {"community_balance_commando", "community_balance_cortermite", "community_balance_armwar", "community_balance_armfast", "community_balance_corjamt"} },
         }
     },
     
@@ -1607,6 +1607,15 @@ local options = {
         key     = "community_balance_armfast",
         name    = "(CBP) Sprinter",
         desc    = "Energy cost: 3500 (from 4140)\nAcceleration: 0.37 (from 0.414)\nSpeed: 115 (from 111.3)\nTurn-in-place angle: 115° (from 90°)\nTurn-in-place speed: 2.75 (from 2.4486)\nTurn rate: 1320 (from 1644.5)\nSight distance: 380 (from 351)\nWeapon: 18 AoE (from 16), 230 range (from 220), 15/5 damage (from 12/4)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_corjamt",
+        name    = "(CBP) Castro",
+        desc    = "Build time: 9950 (from 4570)\nEnergy cost: 8500 (from 5200)\nEnergy upkeep: 40 (from 25)\nHealth: 790 (from 1070)\nMetal cost: 240 (from 115)\nRadar jammer distance: 500 (from 360)",
         type    = "bool",
         def     = false,
         section = "options_experimental",
