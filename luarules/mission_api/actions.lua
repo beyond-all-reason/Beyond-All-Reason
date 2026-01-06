@@ -33,7 +33,7 @@ local function generateGridPositions(center, quantity, xSpacing, zSpacing)
 	return positions
 end
 
-local function spawnUnits(name, unitDefName, teamID, position, quantity, facing, construction, alert)
+local function spawnUnits(name, unitDefName, teamID, position, quantity, facing, construction)
 	if name and not trackedUnits[name] then trackedUnits[name] = {} end
 
 	local unitDef = UnitDefs[UnitDefNames[unitDefName].id]
@@ -53,9 +53,6 @@ local function spawnUnits(name, unitDefName, teamID, position, quantity, facing,
 		if unitID and name then
 			trackedUnits[name][#trackedUnits[name] + 1] = unitID
 			trackedUnits[unitID] = name
-		end
-		if alert then
-			Spring.TransferUnit(unitID, teamID, given)
 		end
 	end
 end

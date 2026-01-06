@@ -67,7 +67,6 @@ local actions = {
 			position = { x = 1800, z = 1600 },
 			quantity = 9,
 			facing = 'n',
-			alert = true,
 		},
 	},
 
@@ -79,7 +78,6 @@ local actions = {
 			position = { x = 1900, z = 2200 },
 			quantity = 18,
 			facing = 'e',
-			alert = true,
 		},
 	},
 

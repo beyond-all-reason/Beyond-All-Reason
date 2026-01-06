@@ -119,11 +119,6 @@ local parameters = {
 			name = 'construction',
 			required = false,
 			type = 'boolean'
-		},
-		[8] = {
-			name = 'alert',
-			required = false,
-			type = 'boolean'
 		}
 	},
 
