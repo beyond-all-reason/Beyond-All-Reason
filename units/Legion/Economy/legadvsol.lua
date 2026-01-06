@@ -14,7 +14,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		energystorage = 150,
-		energymake = 100,
+		energymake = 105,
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 5,
 		footprintz = 5,
