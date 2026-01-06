@@ -37,7 +37,7 @@ return {
 		turninplacespeedlimit = 0.726,
 		turnrate = 1075.25,
 		upright = false,
-		workertime = 170,
+		workertime = 195,
 		buildoptions = {
 			"legfus",
 			"legafus",
