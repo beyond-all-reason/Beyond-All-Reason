@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		desc = "Load and populate global mission table",
 		date = "2023.03.14",
 		layer = 0,
-		enabled = false,
+		enabled = true,
 	}
 end
 
@@ -48,6 +48,7 @@ function gadget:Initialize()
 	local actionsSchema = VFS.Include('luarules/mission_api/actions_schema.lua')
 	GG['MissionAPI'].TriggerTypes = triggersSchema.Types
 	GG['MissionAPI'].ActionTypes = actionsSchema.Types
+	GG['MissionAPI'].TrackedUnits = {}
 
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')

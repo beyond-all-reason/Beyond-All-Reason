@@ -9,20 +9,47 @@ local function disableTrigger(triggerID)
 	triggers[triggerID].settings.active = false
 end
 
-local function issueOrders(units, orders)
-	Spring.GiveOrderArrayToUnitArray(units, orders)
+local function issueOrders(name, orders)
+    if not trackedUnits[name] or #trackedUnits[name] == 0 then return end
+
+	Spring.GiveOrderArrayToUnitArray(trackedUnits[name], orders)
 end
 
-local function spawnUnits(name, unitDefName, quantity, position, facing, construction)
-	if quantity == 0 then return end
+local function generateGridPositions(center, quantity, xSpacing, zSpacing)
+	local positions = {}
+	local xGridSize = math.ceil(math.sqrt(quantity)) * xSpacing
+	local zGridSize = math.ceil(math.sqrt(quantity)) * zSpacing
+	local left = center.x - math.floor(xGridSize / 2)
+	local top = center.z - math.floor(zGridSize / 2)
+	local count = 0
 
-	position.y = position.y or Spring.GetGroundHeight(position.x, position.z)
+	for x = left, left + xGridSize - xSpacing, xSpacing do
+		for z = top, top + zGridSize - zSpacing, zSpacing do
+			if count >= quantity then return positions end
+			table.insert(positions, {x = x, z = z})
+			count = count + 1
+		end
+	end
+	return positions
+end
 
-	if not trackedUnits[name] then trackedUnits[name] = {} end
+local function spawnUnits(name, unitDefName, teamID, position, quantity, facing, construction)
+	if name and not trackedUnits[name] then trackedUnits[name] = {} end
 
-	for i = 1, quantity do
-		local unitID = Spring.CreateUnit(unitDefName, position.x, position.y, position.z, facing.value, 0, construction)
+	local unitDef = UnitDefs[UnitDefNames[unitDefName].id]
+	local xsize = unitDef.xsize * Game.squareSize
+	local zsize = unitDef.zsize * Game.squareSize
 
+	-- adjust for facing of non-square units
+	if facing == 'e' or facing == 'w' then
+		xsize, zsize = zsize, xsize
+	end
+
+	local positions = generateGridPositions(position, quantity or 1, xsize, zsize)
+
+	for _, pos in pairs(positions) do
+		pos.y = Spring.GetGroundHeight(pos.x, pos.z)
+		local unitID = Spring.CreateUnit(unitDefName, pos.x, pos.y, pos.z, facing or 's', teamID, construction)
 		if unitID and name then
 			trackedUnits[name][#trackedUnits[name] + 1] = unitID
 			trackedUnits[unitID] = name
@@ -32,10 +59,13 @@ end
 
 ----------------------------------------------------------------
 
-local function despawnUnits(units)
-	for _, id in ipairs(units) do
-		Spring.DestroyUnit(id)
+local function despawnUnits(name, selfDestruct, reclaimed)
+    local unitIDs = trackedUnits[name]
+	local quantity = #unitIDs
+	for i = quantity, 1, -1 do
+		Spring.DestroyUnit(unitIDs[i], selfDestruct, reclaimed)
 	end
+	trackedUnits[name] = nil
 end
 
 ----------------------------------------------------------------
