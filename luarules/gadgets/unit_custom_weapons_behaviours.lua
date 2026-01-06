@@ -157,7 +157,7 @@ end
 local function getTargetPositionWithError(projectileID)
 	local targetType, target = spGetProjectileTarget(projectileID)
 	if targetType == targetedUnit then
-		local teamID = spGetProjectileTeamID(projectileID) or spGetProjectileTeamID(spGetProjectileOwnerID(projectileID) or -1)
+		local teamID = spGetProjectileTeamID(projectileID) or spGetUnitTeam(spGetProjectileOwnerID(projectileID) or -1)
 		local _, _, _, targetX, targetY, targetZ = readAsTeam(teamID, spGetUnitPosition, target, false, true)
 		return targetX, targetY, targetZ -- unit aim position
 	elseif targetType == targetedGround then
