@@ -340,6 +340,139 @@ def load_transfers(session_id, resource, team_ids=None, time_range=None, limit=2
         conn.close()
 
 
+def load_transfers_ledger(session_id, resource=None, transfer_type=None, team_filter=None, 
+                          search_term=None, time_range=None, page=0, page_size=50):
+    """Load paginated transfer ledger with search and filtering.
+    
+    Combines two data sources:
+    - Active transfers: eco_transfer table (explicit player-initiated transfers)
+    - Passive distributions: eco_team_output table (waterfill sent/received per team)
+    """
+    conn = get_db_connection()
+    if not conn:
+        return pd.DataFrame(), 0
+    try:
+        # Build active transfers query (eco_transfer)
+        active_params = []
+        active_where = ["1=1"]
+        
+        if session_id and session_id != 'all':
+            active_where.append("t.session_id = ?")
+            active_params.append(session_id)
+        
+        if resource:
+            active_where.append("t.resource = ?")
+            active_params.append(resource)
+        
+        if team_filter:
+            active_where.append("(t.sender_team_id = ? OR t.receiver_team_id = ?)")
+            active_params.extend([team_filter, team_filter])
+        
+        if time_range:
+            active_where.append("t.frame >= ? AND t.frame <= ?")
+            active_params.extend([int(time_range[0] * 60 * 30), int(time_range[1] * 60 * 30)])
+        
+        active_where_sql = " AND ".join(active_where)
+        
+        active_query = f"""
+            SELECT t.frame, t.game_time, t.sender_team_id, t.receiver_team_id, 
+                   t.resource, t.amount, t.untaxed, t.taxed, 
+                   COALESCE(t.transfer_type, 'active') as transfer_type,
+                   ns.name as sender_name, nr.name as receiver_name,
+                   'transfer' as source_table
+            FROM eco_transfer t
+            LEFT JOIN team_names ns ON t.sender_team_id = ns.team_id AND t.session_id = ns.session_id
+            LEFT JOIN team_names nr ON t.receiver_team_id = nr.team_id AND t.session_id = nr.session_id
+            WHERE {active_where_sql}
+        """
+        
+        if search_term:
+            active_query += " AND (ns.name LIKE ? OR nr.name LIKE ? OR CAST(t.sender_team_id AS TEXT) LIKE ? OR CAST(t.receiver_team_id AS TEXT) LIKE ?)"
+            search_pattern = f"%{search_term}%"
+            active_params.extend([search_pattern] * 4)
+        
+        # Build passive distributions query (eco_team_output with sent > 0 or received > 0)
+        passive_params = []
+        passive_where = ["(o.sent > 0.01 OR o.received > 0.01)"]
+        
+        if session_id and session_id != 'all':
+            passive_where.append("o.session_id = ?")
+            passive_params.append(session_id)
+        
+        if resource:
+            passive_where.append("o.resource = ?")
+            passive_params.append(resource)
+        
+        if team_filter:
+            passive_where.append("o.team_id = ?")
+            passive_params.append(team_filter)
+        
+        if time_range:
+            passive_where.append("o.frame >= ? AND o.frame <= ?")
+            passive_params.extend([int(time_range[0] * 60 * 30), int(time_range[1] * 60 * 30)])
+        
+        passive_where_sql = " AND ".join(passive_where)
+        
+        passive_query = f"""
+            SELECT o.frame, o.frame / 30.0 as game_time, o.team_id as sender_team_id, 
+                   NULL as receiver_team_id, o.resource, o.sent as amount, 
+                   o.received as untaxed, (o.sent - o.received) as taxed,
+                   'passive' as transfer_type,
+                   n.name as sender_name, NULL as receiver_name,
+                   'output' as source_table
+            FROM eco_team_output o
+            LEFT JOIN team_names n ON o.team_id = n.team_id AND o.session_id = n.session_id
+            WHERE {passive_where_sql}
+        """
+        
+        if search_term:
+            passive_query += " AND (n.name LIKE ? OR CAST(o.team_id AS TEXT) LIKE ?)"
+            passive_params.extend([f"%{search_term}%"] * 2)
+        
+        # Filter by transfer type
+        if transfer_type == 'active':
+            # Only active transfers
+            count_query = f"SELECT COUNT(*) FROM ({active_query}) sub"
+            count_df = pd.read_sql_query(count_query, conn, params=active_params)
+            total_count = count_df.iloc[0, 0] if not count_df.empty else 0
+            
+            data_query = f"{active_query} ORDER BY frame DESC LIMIT ? OFFSET ?"
+            active_params.extend([page_size, page * page_size])
+            df = pd.read_sql_query(data_query, conn, params=active_params)
+            
+        elif transfer_type == 'passive':
+            # Only passive distributions
+            count_query = f"SELECT COUNT(*) FROM ({passive_query}) sub"
+            count_df = pd.read_sql_query(count_query, conn, params=passive_params)
+            total_count = count_df.iloc[0, 0] if not count_df.empty else 0
+            
+            data_query = f"{passive_query} ORDER BY frame DESC LIMIT ? OFFSET ?"
+            passive_params.extend([page_size, page * page_size])
+            df = pd.read_sql_query(data_query, conn, params=passive_params)
+            
+        else:
+            # Both types - union
+            union_query = f"SELECT * FROM ({active_query} UNION ALL {passive_query}) combined"
+            all_params = active_params + passive_params
+            
+            count_query = f"SELECT COUNT(*) FROM ({union_query}) sub"
+            count_df = pd.read_sql_query(count_query, conn, params=all_params)
+            total_count = count_df.iloc[0, 0] if not count_df.empty else 0
+            
+            data_query = f"{union_query} ORDER BY frame DESC LIMIT ? OFFSET ?"
+            all_params.extend([page_size, page * page_size])
+            df = pd.read_sql_query(data_query, conn, params=all_params)
+        
+        return df, total_count
+    except Exception as e:
+        print(f"[load_transfers_ledger] Error: {e}")
+        import traceback
+        traceback.print_exc()
+        return pd.DataFrame(), 0
+    finally:
+        conn.close()
+
+
 def load_group_lift_data(session_id, resource, ally_team=None, time_range=None, limit=1000):
     conn = get_db_connection()
     if not conn:
@@ -1970,6 +2103,146 @@ Histograms show the distribution of timing values per metric.
     ])
 
 
+# === Transfer Ledger Datagrid ===
+def create_transfer_ledger_grid():
+    """Create the full transfer ledger datagrid with independent filters."""
+    return html.Div([
+        html.Hr(style={'borderColor': COLORS['border'], 'margin': '30px 0 20px 0'}),
+        
+        html.Div([
+            html.H4("📒 Transfer Ledger", className="mb-0",
+                    style={'fontFamily': 'JetBrains Mono', 'color': COLORS['text']}),
+            html.P([
+                html.Span("🔄 Passive", style={'color': COLORS['cyan']}),
+                " = Waterfill auto-redistribution (to/from alliance pool) • ",
+                html.Span("👆 Active", style={'color': COLORS['yellow']}),
+                " = Manual player-initiated transfers"
+            ], className="text-muted mb-0", style={'fontSize': '12px'})
+        ], className="mb-3"),
+        
+        # Ledger-specific filters (one-way bound from global by default)
+        dbc.Row([
+            dbc.Col([
+                dbc.Label("Session", style={'fontSize': '11px', 'fontWeight': '500'}),
+                dbc.Select(
+                    id='ledger-session-dropdown',
+                    options=[{'label': '(use global)', 'value': ''}],
+                    value='',
+                )
+            ], width=2),
+            dbc.Col([
+                dbc.Label("Resource", style={'fontSize': '11px', 'fontWeight': '500'}),
+                dbc.Select(
+                    id='ledger-resource-dropdown',
+                    options=[
+                        {'label': '(use global)', 'value': ''},
+                        {'label': '🪨 Metal', 'value': 'metal'},
+                        {'label': '⚡ Energy', 'value': 'energy'}
+                    ],
+                    value='',
+                )
+            ], width=2),
+            dbc.Col([
+                dbc.Label("Transfer Type", style={'fontSize': '11px', 'fontWeight': '500'}),
+                dbc.Select(
+                    id='ledger-type-dropdown',
+                    options=[
+                        {'label': 'All', 'value': 'all'},
+                        {'label': '🔄 Passive (Waterfill)', 'value': 'passive'},
+                        {'label': '👆 Active (Manual)', 'value': 'active'}
+                    ],
+                    value='all',
+                )
+            ], width=2),
+            dbc.Col([
+                dbc.Label("Team Filter", style={'fontSize': '11px', 'fontWeight': '500'}),
+                dbc.Select(
+                    id='ledger-team-dropdown',
+                    placeholder="All teams",
+                    options=[],
+                )
+            ], width=2),
+            dbc.Col([
+                dbc.Label("Search", style={'fontSize': '11px', 'fontWeight': '500'}),
+                dbc.Input(
+                    id='ledger-search-input',
+                    type='text',
+                    placeholder='Search team names...',
+                    debounce=True,
+                    style={'fontSize': '12px'}
+                )
+            ], width=3),
+            dbc.Col([
+                dbc.Label(" ", style={'fontSize': '11px'}),
+                dbc.Button("🔗 Sync from Global", id="ledger-sync-btn", color="secondary", 
+                          size="sm", className="d-block", style={'marginTop': '2px'}),
+            ], width=1),
+        ], className="mb-3"),
+        
+        # Pagination info
+        html.Div([
+            html.Span(id='ledger-showing-text', style={'color': COLORS['text_muted'], 'fontSize': '12px'}),
+        ], className="mb-2"),
+        
+        # The DataTable
+        dash_table.DataTable(
+            id='transfer-ledger-grid',
+            columns=[
+                {'name': 'Time', 'id': 'time', 'type': 'text'},
+                {'name': 'Frame', 'id': 'frame', 'type': 'numeric'},
+                {'name': 'Type', 'id': 'type', 'type': 'text'},
+                {'name': 'Resource', 'id': 'resource', 'type': 'text'},
+                {'name': 'From', 'id': 'from', 'type': 'text'},
+                {'name': 'To', 'id': 'to', 'type': 'text'},
+                {'name': 'Sent', 'id': 'sent', 'type': 'numeric'},
+                {'name': 'Received', 'id': 'received', 'type': 'numeric'},
+                {'name': 'Tax', 'id': 'tax', 'type': 'numeric'},
+            ],
+            data=[],
+            page_size=50,
+            page_current=0,
+            page_action='custom',
+            sort_action='none',
+            style_table={'overflowX': 'auto'},
+            style_cell={
+                'textAlign': 'left',
+                'padding': '8px 12px',
+                'fontFamily': 'JetBrains Mono, monospace',
+                'fontSize': '12px',
+                'backgroundColor': COLORS['card'],
+                'color': COLORS['text'],
+                'border': f"1px solid {COLORS['border']}",
+                'minWidth': '60px',
+                'maxWidth': '180px',
+                'overflow': 'hidden',
+                'textOverflow': 'ellipsis',
+            },
+            style_header={
+                'backgroundColor': COLORS['background'],
+                'color': COLORS['text_muted'],
+                'fontWeight': '600',
+                'border': f"1px solid {COLORS['border']}",
+            },
+            style_data_conditional=[
+                {'if': {'row_index': 'odd'}, 'backgroundColor': COLORS['card_lighter']},
+                {'if': {'filter_query': '{type} = "Passive"'}, 
+                 'backgroundColor': 'rgba(136, 192, 208, 0.1)'},
+                {'if': {'filter_query': '{type} = "Active"'}, 
+                 'backgroundColor': 'rgba(235, 203, 139, 0.1)'},
+            ],
+        ),
+        
+        # Store for ledger state
+        dcc.Store(id='ledger-total-count', data=0),
+    ], style={
+        'backgroundColor': COLORS['card'],
+        'borderRadius': '8px',
+        'padding': '20px',
+        'marginBottom': '30px',
+        'border': f"1px solid {COLORS['border']}"
+    })
+
+
 # === Tab: Waterfill Analysis ===
 def create_waterfill_tab():
     return html.Div([
@@ -2179,6 +2452,9 @@ app.layout = dbc.Container([
         dbc.Tab(create_timing_tab(), label="⏱️ Timing Analysis", tab_id="tab-timing"),
         dbc.Tab(create_waterfill_tab(), label="🌊 Waterfill Analysis", tab_id="tab-waterfill"),
     ], id="tabs", active_tab="tab-economy", className="mb-3", persistence=True, persistence_type='local'),
+    
+    # Transfer Ledger Datagrid (below tabs, scoped to global filters by default)
+    create_transfer_ledger_grid(),
     
     # Hidden slider for frame state (callbacks still use it)
     html.Div([
@@ -2816,6 +3092,177 @@ def update_interval(value):
     
     print(f"[Interval] Setting interval={val}, disabled=False")
     return val, False
+
+
+# === Transfer Ledger Datagrid Callbacks ===
+@app.callback(
+    Output('ledger-session-dropdown', 'options'),
+    Output('ledger-session-dropdown', 'value'),
+    Input('session-dropdown', 'options'),
+    State('ledger-session-dropdown', 'value'),
+)
+def sync_ledger_session_options(session_options, current_value):
+    """Populate ledger session dropdown with same options + 'use global' default."""
+    base_option = [{'label': '(use global)', 'value': ''}]
+    if not session_options:
+        return base_option, ''
+    
+    options = base_option + session_options
+    
+    # Preserve current value if still valid, otherwise default to '(use global)'
+    valid_values = [o['value'] for o in options]
+    if current_value in valid_values:
+        return options, current_value
+    return options, ''
+
+
+@app.callback(
+    Output('ledger-team-dropdown', 'options'),
+    Input('team-checklist', 'options'),
+)
+def sync_ledger_team_options(team_options):
+    """Populate ledger team filter dropdown from available teams."""
+    if not team_options:
+        return [{'label': 'All teams', 'value': ''}]
+    return [{'label': 'All teams', 'value': ''}] + team_options
+
+
+@app.callback(
+    Output('ledger-session-dropdown', 'value', allow_duplicate=True),
+    Output('ledger-resource-dropdown', 'value', allow_duplicate=True),
+    Input('ledger-sync-btn', 'n_clicks'),
+    prevent_initial_call=True
+)
+def sync_ledger_from_global(n_clicks):
+    """Reset ledger filters to 'use global' when sync button clicked."""
+    return '', ''
+
+
+@app.callback(
+    Output('transfer-ledger-grid', 'data'),
+    Output('transfer-ledger-grid', 'page_count'),
+    Output('ledger-showing-text', 'children'),
+    Output('ledger-total-count', 'data'),
+    Input('transfer-ledger-grid', 'page_current'),
+    Input('ledger-session-dropdown', 'value'),
+    Input('ledger-resource-dropdown', 'value'),
+    Input('ledger-type-dropdown', 'value'),
+    Input('ledger-team-dropdown', 'value'),
+    Input('ledger-search-input', 'value'),
+    Input('refresh-btn', 'n_clicks'),
+    State('session-dropdown', 'value'),
+    State('resource-dropdown', 'value'),
+    State('global-time-slider', 'value'),
+    State('team-names-store', 'data'),
+)
+def update_transfer_ledger(page, ledger_session, ledger_resource, transfer_type,
+                           team_filter, search_term, _refresh,
+                           global_session, global_resource, global_time_range, team_names):
+    """Update the transfer ledger datagrid with pagination and filtering."""
+    
+    # Resolve effective session (ledger override or global)
+    session_id = ledger_session if ledger_session else global_session
+    if not session_id:
+        return [], 1, "No session selected", 0
+    
+    try:
+        if session_id and session_id != 'all':
+            session_id = int(session_id)
+    except (ValueError, TypeError):
+        pass
+    
+    # Resolve effective resource
+    resource = ledger_resource if ledger_resource else global_resource
+    
+    # Resolve team filter
+    team_id = None
+    if team_filter:
+        try:
+            team_id = int(team_filter)
+        except (ValueError, TypeError):
+            pass
+    
+    page_size = 50
+    page = page or 0
+    
+    df, total_count = load_transfers_ledger(
+        session_id=session_id,
+        resource=resource,
+        transfer_type=transfer_type,
+        team_filter=team_id,
+        search_term=search_term,
+        time_range=global_time_range,
+        page=page,
+        page_size=page_size
+    )
+    
+    if df.empty:
+        return [], 1, "No transfers found", 0
+    
+    team_names = team_names or {}
+    
+    records = []
+    for _, row in df.iterrows():
+        sender_id = int(row['sender_team_id']) if pd.notna(row['sender_team_id']) else None
+        receiver_id = int(row['receiver_team_id']) if pd.notna(row['receiver_team_id']) else None
+        
+        is_passive = row.get('transfer_type', 'passive') == 'passive'
+        transfer_type_display = "🔄 Passive" if is_passive else "👆 Active"
+        resource_display = "🪨 M" if row['resource'] == 'metal' else "⚡ E"
+        
+        if is_passive and row.get('source_table') == 'output':
+            # Passive distribution from eco_team_output (per-team aggregate)
+            team_name = row.get('sender_name') or get_team_display_name(sender_id, team_names)
+            sent = float(row['amount']) if pd.notna(row['amount']) else 0
+            received = float(row['untaxed']) if pd.notna(row['untaxed']) else 0
+            
+            if sent > 0.01:
+                records.append({
+                    'time': format_time_mmss(row['game_time']),
+                    'frame': int(row['frame']),
+                    'type': transfer_type_display,
+                    'resource': resource_display,
+                    'from': team_name,
+                    'to': "(pool)",
+                    'sent': f"{sent:.1f}",
+                    'received': "—",
+                    'tax': "—",
+                })
+            if received > 0.01:
+                records.append({
+                    'time': format_time_mmss(row['game_time']),
+                    'frame': int(row['frame']),
+                    'type': transfer_type_display,
+                    'resource': resource_display,
+                    'from': "(pool)",
+                    'to': team_name,
+                    'sent': "—",
+                    'received': f"{received:.1f}",
+                    'tax': "—",
+                })
+        else:
+            # Active transfer (explicit sender → receiver)
+            sender_name = row.get('sender_name') or get_team_display_name(sender_id, team_names)
+            receiver_name = row.get('receiver_name') or get_team_display_name(receiver_id, team_names)
+            
+            records.append({
+                'time': format_time_mmss(row['game_time']),
+                'frame': int(row['frame']),
+                'type': transfer_type_display,
+                'resource': resource_display,
+                'from': sender_name,
+                'to': receiver_name,
+                'sent': f"{float(row['amount']):.1f}",
+                'received': f"{float(row['untaxed']):.1f}",
+                'tax': f"{float(row['taxed']):.1f}",
+            })
+    
+    page_count = max(1, (total_count + page_size - 1) // page_size)
+    start = page * page_size + 1
+    end = min((page + 1) * page_size, total_count)
+    showing_text = f"Showing {start}-{end} of {total_count:,} transfers"
+    
+    return records, page_count, showing_text, total_count
 
 
 # === Export to Markdown Callbacks ===

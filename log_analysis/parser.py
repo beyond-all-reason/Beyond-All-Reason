@@ -160,8 +160,15 @@ def init_db():
         timestamp TEXT NOT NULL, frame INTEGER NOT NULL, game_time REAL NOT NULL,
         source_path TEXT NOT NULL, sender_team_id INTEGER NOT NULL, receiver_team_id INTEGER NOT NULL,
         resource TEXT NOT NULL, amount REAL NOT NULL, untaxed REAL NOT NULL, taxed REAL NOT NULL,
+        transfer_type TEXT NOT NULL DEFAULT 'passive',
         FOREIGN KEY (session_id) REFERENCES game_sessions(id)
     )''')
+    
+    # Migration: add transfer_type column if missing (for existing databases)
+    try:
+        c.execute("ALTER TABLE eco_transfer ADD COLUMN transfer_type TEXT NOT NULL DEFAULT 'passive'")
+    except sqlite3.OperationalError:
+        pass
     c.execute('''CREATE TABLE IF NOT EXISTS eco_team_waterfill (
         id INTEGER PRIMARY KEY AUTOINCREMENT, session_id INTEGER NOT NULL,
         timestamp TEXT NOT NULL, frame INTEGER NOT NULL, game_time REAL NOT NULL,
@@ -324,7 +331,8 @@ def parse_line(conn, line):
             c.execute('INSERT INTO eco_frame_start (session_id, timestamp, frame, game_time, source_path, tax_rate, metal_threshold, energy_threshold, team_count) VALUES (?,?,?,?,?,?,?,?,?)', (session_id, timestamp_str, frame, game_time, source_path, data.get('tax_rate', 0), data.get('metal_threshold', 0), data.get('energy_threshold', 0), data.get('team_count', 0)))
             parsed = True
         elif event_type == "transfer":
-            c.execute('INSERT INTO eco_transfer (session_id, timestamp, frame, game_time, source_path, sender_team_id, receiver_team_id, resource, amount, untaxed, taxed) VALUES (?,?,?,?,?,?,?,?,?,?,?)', (session_id, timestamp_str, frame, game_time, source_path, data.get('sender_team_id'), data.get('receiver_team_id'), data.get('resource'), data.get('amount'), data.get('untaxed'), data.get('taxed')))
+            transfer_type = data.get('transfer_type', 'passive')
+            c.execute('INSERT INTO eco_transfer (session_id, timestamp, frame, game_time, source_path, sender_team_id, receiver_team_id, resource, amount, untaxed, taxed, transfer_type) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', (session_id, timestamp_str, frame, game_time, source_path, data.get('sender_team_id'), data.get('receiver_team_id'), data.get('resource'), data.get('amount'), data.get('untaxed'), data.get('taxed'), transfer_type))
             parsed = True
         elif event_type == "team_waterfill":
             c.execute('INSERT INTO eco_team_waterfill (session_id, timestamp, frame, game_time, source_path, team_id, ally_team, resource, current, target, role, delta) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', (session_id, timestamp_str, frame, game_time, source_path, data.get('team_id'), data.get('ally_team'), data.get('resource'), data.get('current', 0), data.get('target', 0), data.get('role', 'unknown'), data.get('delta', 0)))

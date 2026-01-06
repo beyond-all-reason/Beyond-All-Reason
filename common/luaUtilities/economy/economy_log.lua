@@ -61,15 +61,23 @@ function EconomyLog.GroupLift(allyTeam, resourceType, lift, memberCount, totalSu
   )
 end
 
-function EconomyLog.Transfer(senderTeamId, receiverTeamId, resourceType, amount, untaxed, taxed)
+--------------------------------------------------------------------------------
+-- Transfer: Can be called outside ProcessEconomy context (e.g., manual transfers)
+-- Uses EconomyAuditLogRaw since it doesn't require active context
+--------------------------------------------------------------------------------
+function EconomyLog.Transfer(senderTeamId, receiverTeamId, resourceType, amount, untaxed, taxed, transferType)
   if not IsEnabled() then return end
-  Spring.EconomyAuditLog("transfer",
+  local frame = Spring.GetGameFrame()
+  Spring.EconomyAuditLogRaw("transfer",
+    "frame", frame,
+    "game_time", frame / 30.0,
     "sender_team_id", senderTeamId,
     "receiver_team_id", receiverTeamId,
     "resource", resourceType,
     "amount", amount,
     "untaxed", untaxed,
-    "taxed", taxed
+    "taxed", taxed,
+    "transfer_type", transferType or "active"
   )
 end
 
