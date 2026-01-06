@@ -4,7 +4,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "legaspy.DDS",
-		buildtime = 11000,
+		buildtime = 12900,
 		canassist = false,
 		canguard = false,
 		canmove = true,

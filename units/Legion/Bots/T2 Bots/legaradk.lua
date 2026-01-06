@@ -2,7 +2,7 @@ return {
 	legaradk = {
 		activatewhenbuilt = true,
 		buildpic = "legaradk.DDS",
-		buildtime = 3950,
+		buildtime = 4709,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 0",

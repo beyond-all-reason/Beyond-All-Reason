@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		blocking = true,
 		buildpic = "leganavyantiswarm.DDS",
-		buildtime = 8500,
+		buildtime = 11275,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 4",
 		collisionvolumescales = "28 30 82",
