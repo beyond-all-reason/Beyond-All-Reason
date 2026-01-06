@@ -212,7 +212,7 @@ function Gadgets.BuildResultFactory(taxRate, metalThreshold, energyThreshold)
     result.remainingTaxFreeAllowance = allowanceRemaining
     result.resourceShareThreshold = threshold
     result.cumulativeSent = cumulativeSent
-    result.taxExcess = true
+    result.taxExcess = false
     
     return result
   end
