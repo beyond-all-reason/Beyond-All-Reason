@@ -44,10 +44,10 @@ local function shouldShowWaterUnits()
 
 	-- terraform, done too late to read w/ get ground, and too hectic to even try and guess
 	if debugCommands and debugCommands:len() > 1 then
-		if	string.find(debugCommands, "waterlevel")
-		or	string.find(debugCommands, "height")
-		or	string.find(debugCommands, "extreme")
-		or	string.find(debugCommands, "invertmap")
+		if	debugCommands:find("waterlevel")
+		or	debugCommands:find("height")
+		or	debugCommands:find("extreme")
+		or	debugCommands:find("invertmap")
 		then
 			return true
 		end
