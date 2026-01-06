@@ -1498,6 +1498,130 @@ local options = {
     },
 
     {
+        key 	= "proposed_unit_reworks",
+        name 	= "Season 3 balance test",
+        desc 	= "Test balance patch for the upcoming season. Nerfs funneling resources into just a single T2 base, by changing eco stats as well as nerfing units like Tzar and Fatboy. Also a variety of other changes, like an Incisor nerf and a Banshee buff. Full changelist below",
+        type 	= "bool",
+        --hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
+    {
+        key     = "proposed_unit_reworks_link",
+        name    = "Changelog",
+        desc    = "Season 3 balance test changelog",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://gist.github.com/Mitvit/66d5061f88fb1bd7558aa728be225052",
+        width   = 215,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+    {
+        key     = "proposed_unit_reworks_feedback_link",
+        name    = "Feedback Thread",
+        desc    = "Discord discussion about Season 3 balance test.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1447323521662455910",
+        width   = 215,
+        column  = 2,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
+    {
+        key     = "community_balance_patch",
+        name    = "Community Balance Patch Jan '26",
+        desc    = "Enable community balance patch changes\n(overwrites changes in official seasonal balance test)",
+        type    = "list",
+        def     = "disabled",
+        section = "options_experimental",
+        items   = {
+            { key = "disabled", name = "Disabled", desc = "No community balance changes",
+            lock = {"community_balance_commando","community_balance_cortermite","community_balance_armwar","community_balance_armfast","community_balance_corjamt"} },
+
+            { key = "enabled",  name = "Enabled",  desc = "Enable all community balance changes\nCommando\nTermite\nCenturion\nSprinter\nCastro",
+            lock = {"community_balance_commando","community_balance_cortermite","community_balance_armwar","community_balance_armfast","community_balance_corjamt"} },
+
+            { key = "custom",   name = "Custom",   desc = "Customize individual community balance changes",
+            unlock = {"community_balance_commando", "community_balance_cortermite", "community_balance_armwar", "community_balance_armfast", "community_balance_corjamt"} },
+        }
+    },
+    
+    {
+        key     = "community_balance_patch_changelog_link",
+        name    = "Changelog",
+        desc    = "Community Balance Patch changelog",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://github.com/beyond-all-reason/Beyond-All-Reason/pull/6550",
+        width   = 195,
+        column  = 2.025,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
+    {
+        key     = "community_balance_patch_feedback_link",
+        name    = "Feedback Thread",
+        desc    = "Discord discussion about Community Balance Patch.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1447954953481228529/1447954953481228529",
+        width   = 215,
+        column  = 2.35,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
+    {
+        key     = "community_balance_commando",
+        name    = "(CBP) Commando",
+        desc    = "+130 jammer range (150 -> 280)\n+300 radar and LoS (900 -> 1200, 600 -> 900)\nAdd light and heavy mines to build options\n80% EMP resist\n2s self-destruct timer\nx2 autoheal (9 -> 18)\nWeapon: Cannon -> Laser\n100 dmg, 50 vs air (w/ laser damage falloff)\n2 shots/second (unchanged)\n100% accuracy\n8 aoe, 20 e/shot\n300 -> 450 range\nTargets air units\nCan be built in amphibious complex",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_cortermite",
+        name    = "(CBP) Termite",
+        desc    = "Added stealth",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_armwar",
+        name    = "(CBP) Centurion",
+        desc    = "Weapon range: 325 (from 330)\nSight distance: 330 (from 350)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_armfast",
+        name    = "(CBP) Sprinter",
+        desc    = "Energy cost: 3500 (from 4140)\nAcceleration: 0.37 (from 0.414)\nSpeed: 115 (from 111.3)\nTurn-in-place angle: 115° (from 90°)\nTurn-in-place speed: 2.75 (from 2.4486)\nTurn rate: 1320 (from 1644.5)\nSight distance: 380 (from 351)\nWeapon: 18 AoE (from 16), 230 range (from 220), 15/5 damage (from 12/4)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_corjamt",
+        name    = "(CBP) Castro",
+        desc    = "Build time: 9950 (from 4570)\nEnergy cost: 8500 (from 5200)\nEnergy upkeep: 40 (from 25)\nHealth: 790 (from 1070)\nMetal cost: 240 (from 115)\nRadar jammer distance: 500 (from 360)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
         key    	= "experimentallegionfaction",
         name   	= "Legion Faction",
         desc   	= "3rd experimental faction",
@@ -1713,40 +1837,6 @@ local options = {
         hidden 	= true,
         section = "options_experimental",
         def  	= false,
-    },
-
-    {
-        key 	= "proposed_unit_reworks",
-        name 	= "Season 3 balance test",
-        desc 	= "Test balance patch for the upcoming season. Nerfs funneling resources into just a single T2 base, by changing eco stats as well as nerfing units like Tzar and Fatboy. Also a variety of other changes, like an Incisor nerf and a Banshee buff. Full changelist below",
-        type 	= "bool",
-        --hidden 	= true,
-        section = "options_experimental",
-        def 	= false,
-    },
-    {
-        key     = "proposed_unit_reworks_link",
-        name    = "Changelog",
-        desc    = "Season 3 balance test changelog",
-        section = "options_experimental",
-        type    = "link",
-        link    = "https://gist.github.com/Mitvit/66d5061f88fb1bd7558aa728be225052",
-        width   = 215,
-        column  = 1.65,
-        linkheight = 325,
-        linkwidth = 350,
-    },
-    {
-        key     = "proposed_unit_reworks_feedback_link",
-        name    = "Feedback Thread",
-        desc    = "Discord discussion about Season 3 balance test.",
-        section = "options_experimental",
-        type    = "link",
-        link    = "https://discord.com/channels/549281623154229250/1447323521662455910",
-        width   = 215,
-        column  = 2,
-        linkheight = 325,
-        linkwidth = 350,
     },
 
     {
