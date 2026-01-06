@@ -949,8 +949,8 @@ end
 
 local function UpdateStandaloneDrones(frame)
 	local resourceFrames = (frame - previousHealFrame) / 30
-	for unitID,value in pairsNext, droneMetaList do
-		if droneMetaList[unitID].wild then
+	for unitID, data in pairsNext, droneMetaList do
+		if data.wild then
 			-- move around unless in combat
 			local cQueue = GetUnitCommands(unitID, -1)
 			local engaged = false
@@ -961,10 +961,10 @@ local function UpdateStandaloneDrones(frame)
 					break
 				end
 			end
-			droneMetaList[unitID].engaged = engaged
-			if not engaged and ((DEFAULT_UPDATE_ORDER_FREQUENCY + droneMetaList[unitID].lastOrderUpdate) < frame) then
-				local idleRadius = droneMetaList[unitID].idleRadius
-				droneMetaList[unitID].lastOrderUpdate = frame
+			data.engaged = engaged
+			if not engaged and ((DEFAULT_UPDATE_ORDER_FREQUENCY + data.lastOrderUpdate) < frame) then
+				local idleRadius = data.idleRadius
+				data.lastOrderUpdate = frame
 
 				dronex, droney, dronez = spGetUnitPosition(unitID)
 				if not dronez then	-- this can happen so make sure its dealt with
@@ -976,9 +976,9 @@ local function UpdateStandaloneDrones(frame)
 			end
 		end
 
-		if droneMetaList[unitID].decayRate > 0 then
+		if data.decayRate > 0 then
 			local h, mh = spGetUnitHealth(unitID)
-			HealUnit(unitID, -droneMetaList[unitID].decayRate, resourceFrames, h, mh)
+			HealUnit(unitID, -data.decayRate, resourceFrames, h, mh)
 		end
 	end
 end

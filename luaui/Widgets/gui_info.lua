@@ -1043,6 +1043,13 @@ local function drawSelection()
 		local unitID = unitsToCheck[i]
 		local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(unitID)
 		if metalMake then
+			local pairedID = spGetUnitRulesParam(unitID, "pairedUnitID")
+			if pairedID then
+				local mm, mu, em, eu = spGetUnitResources(pairedID)
+				if mm then
+					metalMake, metalUse, energyMake, energyUse = metalMake + mm, metalUse + mu, energyMake + em, energyUse + eu
+				end
+			end
 			totalMetalMake = totalMetalMake + metalMake
 			totalMetalUse = totalMetalUse + metalUse
 			totalEnergyMake = totalEnergyMake + energyMake
@@ -1319,6 +1326,13 @@ local function drawUnitInfo()
 	if displayUnitID then
 		local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
 		if metalMake then
+			local pairedID = spGetUnitRulesParam(displayUnitID, "pairedUnitID")
+			if pairedID then
+				local mm, mu, em, eu = spGetUnitResources(pairedID)
+				if mm then
+					metalMake, metalUse, energyMake, energyUse = metalMake + mm, metalUse + mu, energyMake + em, energyUse + eu
+				end
+			end
 			valueY1 = (metalMake > 0 and valuePlusColor .. '+' .. (metalMake < 10 and round(metalMake, 1) or round(metalMake, 0)) .. ' ' or '') .. (metalUse > 0 and valueMinColor .. '-' .. (metalUse < 10 and round(metalUse, 1) or round(metalUse, 0)) or '')
 			valueY2 = (energyMake > 0 and valuePlusColor .. '+' .. (energyMake < 10 and round(energyMake, 1) or round(energyMake, 0)) .. ' ' or '') .. (energyUse > 0 and valueMinColor .. '-' .. (energyUse < 10 and round(energyUse, 1) or round(energyUse, 0)) or '')
 			valueY3 = ''
@@ -1833,12 +1847,12 @@ local function drawEngineTooltip()
 				local metal, _, energy, _ = Spring.GetFeatureResources(hoverData)
 				if energy > 0 then
 					height = height + heightStep
-					text = tooltipLabelTextColor..Spring.I18N('ui.info.energy').."  \255\255\255\000"..math.floor(energy)
+					text = tooltipLabelTextColor..Spring.I18N('ui.info.energy').."  \255\255\255\000"..string.formatSI(energy)
 					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
 				if metal > 0 then
 					height = height + heightStep
-					text = tooltipLabelTextColor..Spring.I18N('ui.info.metal').."  "..tooltipValueColor..math.floor(metal)
+					text = tooltipLabelTextColor..Spring.I18N('ui.info.metal').."  "..tooltipValueColor..string.formatSI(metal)
 					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
 				font:End()
@@ -2339,9 +2353,7 @@ function checkChanges()
 
 		if featureDef.reclaimable then
 			local metal, _, energy, _ = Spring.GetFeatureResources(featureID)
-			metal = math.floor(metal)
-			energy = math.floor(energy)
-			local reclaimText = Spring.I18N('ui.reclaimInfo.metal', { metal = metal }) .. "\255\255\255\128" .. " " .. Spring.I18N('ui.reclaimInfo.energy', { energy = energy })
+			local reclaimText = Spring.I18N('ui.reclaimInfo.metal', { metal = string.formatSI(metal) }) .. "\255\255\255\128" .. " " .. Spring.I18N('ui.reclaimInfo.energy', { energy = string.formatSI(energy) })
 			newTooltip = newTooltip .. "\n\n" .. reclaimText
 		end
 

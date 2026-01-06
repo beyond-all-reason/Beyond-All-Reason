@@ -57,7 +57,7 @@ elseif not Platform.glHaveGL4 then
 	isPotatoGpu = true
 end
 
-local hideOtherLanguagesVoicepacks = true	-- maybe later allow people to pick other language voicepacks
+local hideOtherLanguagesVoicepacks = false	-- maybe later allow people to pick other language voicepacks
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
@@ -193,6 +193,7 @@ local defaultMapFog = {
 }
 
 local options = {}
+local unfilteredOptions = {}
 local customOptions = {}
 local optionGroups = {}
 local optionButtons = {}
@@ -409,7 +410,7 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 			WG['limitidlefps'].update()
 		end
 
-		init()
+		applyFilter()
 		return true
 	end
 end
@@ -418,7 +419,7 @@ local function clearChatInput()
 	inputText = ''
 	inputTextPosition = 0
 	inputTextInsertActive = false
-	init()
+	applyFilter()
 end
 
 -- only called when show = false
@@ -440,7 +441,7 @@ local function cancelChatInput()
 	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil	--widgetHandler:DisownText()
 	if doReinit then
-		init()
+		applyFilter()
 	end
 end
 
@@ -1522,14 +1523,14 @@ function widget:KeyPress(key)
 		if inputText == '' then
 			clearChatInput()
 		else
-			init()
+			applyFilter()
 		end
 	elseif key == 127 then -- DELETE
 		if inputTextPosition < utf8.len(inputText) then
 			inputText = utf8.sub(inputText, 1, inputTextPosition) .. utf8.sub(inputText, inputTextPosition+2)
 		end
 		cursorBlinkTimer = 0
-		init()
+		applyFilter()
 	elseif key == 277 then -- INSERT
 		inputTextInsertActive = not inputTextInsertActive
 	elseif key == 276 then -- LEFT
@@ -1905,6 +1906,37 @@ function loadAllWidgetData()
 			option.onload(i)
 		end
 	end
+end
+
+-- Efficiently filters options without rebuilding the entire options table
+function applyFilter()
+	if inputText and inputText ~= '' and inputMode == '' then
+		local filteredOptions = {}
+		for i, option in pairs(unfilteredOptions) do
+			if option.name and option.name ~= '' and option.type and option.type ~= 'label' then
+				local name = string.gsub(option.name, widgetOptionColor, "")
+				name = string.gsub(name, "  ", " ")
+				if string.find(string.lower(name), string.lower(inputText), nil, true) then
+					filteredOptions[#filteredOptions+1] = option
+				elseif option.description and option.description ~= '' and string.find(string.lower(option.description), string.lower(inputText), nil, true) then
+					filteredOptions[#filteredOptions+1] = option
+				elseif string.find(string.lower(option.id), string.lower(inputText), nil, true) then
+					filteredOptions[#filteredOptions+1] = option
+				end
+			end
+		end
+		options = filteredOptions
+		startColumn = 1
+	else
+		-- No filter, use the cached unfiltered options
+		options = unfilteredOptions
+	end
+
+	-- Rebuild window display list
+	if windowList then
+		gl.DeleteList(windowList)
+	end
+	windowList = gl.CreateList(DrawWindow)
 end
 
 function init()
@@ -2832,6 +2864,24 @@ function init()
 				end
 			end
 		},
+		{ id = "soundtrackRaptors", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackraptors'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackRaptors', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackraptors_descr'),
+		onchange = function(i, value)
+			Spring.SetConfigInt('UseSoundtrackRaptors', value and 1 or 0)
+			if WG['music'] and WG['music'].RefreshTrackList then
+				WG['music'].RefreshTrackList()
+				init()
+			end
+		end
+		},
+		{ id = "soundtrackScavengers", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackscavengers'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackScavengers', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackscavengers_descr'),
+		onchange = function(i, value)
+			Spring.SetConfigInt('UseSoundtrackScavengers', value and 1 or 0)
+			if WG['music'] and WG['music'].RefreshTrackList then
+				WG['music'].RefreshTrackList()
+				init()
+			end
+		end
+		},
 		{ id = "soundtrackAprilFools", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackaprilfools'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackaprilfools_descr'),
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackAprilFools', value and 1 or 0)
@@ -2903,11 +2953,11 @@ function init()
 			end
 		},
 
-		{ id = "loadscreen_music", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.loadscreen_music'), type = "bool", value = (Spring.GetConfigInt("music_loadscreen", 1) == 1), description = Spring.I18N('ui.settings.option.loadscreen_music_descr'),
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("music_loadscreen", (value and 1 or 0))
-		  end,
-		},
+		--{ id = "loadscreen_music", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.loadscreen_music'), type = "bool", value = (Spring.GetConfigInt("music_loadscreen", 1) == 1), description = Spring.I18N('ui.settings.option.loadscreen_music_descr'),
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigInt("music_loadscreen", (value and 1 or 0))
+		--  end,
+		--},
 
 		{ id = "notifications_set", group = "notif", category = types.basic, name = Spring.I18N('ui.settings.option.notifications_set'), type = "select", options = {}, value = 1,
 		  onload = function(i)
@@ -2922,14 +2972,14 @@ function init()
 		  end,
 		},
 
-		{ id = "notifications_tutorial", group = "notif", name = Spring.I18N('ui.settings.option.notifications_tutorial'), category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getTutorial()), description = Spring.I18N('ui.settings.option.notifications_tutorial_descr'),
-		  onload = function(i)
-			  loadWidgetData("Notifications", "notifications_tutorial", { 'tutorialMode' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Notifications', 'notifications', 'setTutorial', { 'tutorialMode' }, value)
-		  end,
-		},
+		--{ id = "notifications_tutorial", group = "notif", name = Spring.I18N('ui.settings.option.notifications_tutorial'), category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getTutorial()), description = Spring.I18N('ui.settings.option.notifications_tutorial_descr'),
+		--  onload = function(i)
+		--	  loadWidgetData("Notifications", "notifications_tutorial", { 'tutorialMode' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Notifications', 'notifications', 'setTutorial', { 'tutorialMode' }, value)
+		--  end,
+		--},
 		{ id = "notifications_messages", group = "notif", name = Spring.I18N('ui.settings.option.notifications_messages'), category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getMessages()), description = Spring.I18N('ui.settings.option.notifications_messages_descr'),
 		  onload = function(i)
 			  loadWidgetData("Notifications", "notifications_messages", { 'displayMessages' })
@@ -2954,13 +3004,29 @@ function init()
 			  saveOptionValue('Notifications', 'notifications', 'setVolume', { 'globalVolume' }, value)
 		  end,
 		},
-		{ id = "notifications_playtrackedplayernotifs", category = types.basic, group = "notif", name = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs'), type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getPlayTrackedPlayerNotifs()), description = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs_descr'),
-		  onload = function(i)
-			  loadWidgetData("Notifications", "notifications_playtrackedplayernotifs", { 'playTrackedPlayerNotifs' })
-		  end,
+		-- FixMe, it doesn't work
+		--{ id = "notifications_playtrackedplayernotifs", category = types.advanced, group = "notif", name = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs'), type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getPlayTrackedPlayerNotifs()), description = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs_descr'),
+		--  onload = function(i)
+		--	  loadWidgetData("Notifications", "notifications_playtrackedplayernotifs", { 'playTrackedPlayerNotifs' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Notifications', 'notifications', 'setPlayTrackedPlayerNotifs', { 'playTrackedPlayerNotifs' }, value)
+		--  end,
+		--},
+		{ id = "notifications_substitute", group = "notif", category = types.advanced, name = Spring.I18N('ui.settings.option.notifications_substitute'), type = "bool", value = Spring.GetConfigInt('NotificationsSubstitute', 0) == 1, description = Spring.I18N('ui.settings.option.notifications_substitute_descr'),
 		  onchange = function(i, value)
-			  saveOptionValue('Notifications', 'notifications', 'setPlayTrackedPlayerNotifs', { 'playTrackedPlayerNotifs' }, value)
-		  end,
+				Spring.SetConfigInt('NotificationsSubstitute', value and 1 or 0)
+				widgetHandler:DisableWidget("Notifications")
+				widgetHandler:EnableWidget("Notifications")
+				init()
+			end
+		},
+		{ id = "notifications_refresh", group = "notif", category = types.advanced, name = Spring.I18N('ui.settings.option.notifications_refresh'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.notifications_refresh_descr'),
+		  onchange = function(i, value)
+				widgetHandler:DisableWidget("Notifications")
+				widgetHandler:EnableWidget("Notifications")
+				init()
+			end
 		},
 
 
@@ -6258,7 +6324,7 @@ function init()
 		for i, option in pairs(options) do
 			count = count + 1
 			newOptions[count] = option
-			if option.id == 'loadscreen_music' then
+			if option.id == 'soundtrackFades' then
 				count = count + 1
 				newOptions[count] = { id = "label_sound_music", group = "sound", name = Spring.I18N('ui.settings.option.label_playlist'), category = types.basic }
 				count = count + 1
@@ -6580,23 +6646,12 @@ function init()
 	end
 	options = processedOptions
 
+	-- Cache the unfiltered options for efficient filtering
+	unfilteredOptions = options
+
+	-- Apply current filter if any
 	if inputText and inputText ~= '' and inputMode == '' then
-		local filteredOptions = {}
-		for i, option in pairs(options) do
-			if option.name and option.name ~= '' and option.type and option.type ~= 'label' then
-				local name = string.gsub(option.name, widgetOptionColor, "")
-				name = string.gsub(name, "  ", " ")
-				if string.find(string.lower(name), string.lower(inputText), nil, true) then
-					filteredOptions[#filteredOptions+1] = option
-				elseif option.description and option.description ~= '' and string.find(string.lower(option.description), string.lower(inputText), nil, true) then
-					filteredOptions[#filteredOptions+1] = option
-				elseif string.find(string.lower(option.id), string.lower(inputText), nil, true) then
-					filteredOptions[#filteredOptions+1] = option
-				end
-			end
-		end
-		options = filteredOptions
-		startColumn = 1
+		applyFilter()
 	end
 
 	-- count num options in each group

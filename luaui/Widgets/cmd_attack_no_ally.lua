@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name         = "Attack no Ally",
-		desc         = "Redirects attack on allies to ground and fully exits attack mode on RMB",
+		desc         = "Redirects attack on allies to ground and fully exits attack mode on RMB press",
 		author       = "Ceddral, Floris (modified by Zain M)",
 		date         = "April 2018 (modified December 2025)",
 		license      = "GNU GPL, v2 or later",
@@ -14,8 +14,13 @@ end
 
 local hasRightClickAttack = {
 	[CMD.ATTACK] = true,
-	[CMD.MANUALFIRE] = true,
 }
+
+local rmbCancelPending = false
+local rmbDragTracking = false
+local rmbDragged = false
+local rmbStartX, rmbStartY = 0, 0
+local rmbDragThresholdSq = 0
 
 local function GetAllyTarget(cmdParams)
 	if #cmdParams ~= 1 then
@@ -46,9 +51,9 @@ end
 function widget:Shutdown()
 	WG['attacknoally'] = nil
 end
-
-function widget:MousePress(x, y, button)
 	-- Right mouse button
+function widget:MousePress(x, y, button)
+
 	if button ~= 3 then
 		return false
 	end
@@ -56,19 +61,60 @@ function widget:MousePress(x, y, button)
 	if WG['attacknoally'] then
 		local _, activeCmdID = Spring.GetActiveCommand()
 		if activeCmdID and hasRightClickAttack[activeCmdID] then
-			Spring.SetActiveCommand(nil)
-			return true -- swallow RMB so engine doesn't re-trigger commands
+			rmbCancelPending = true
+			rmbDragTracking = true
+			rmbDragged = false
+			rmbStartX, rmbStartY = x, y
+			local dragThreshold = Spring.GetConfigInt("MouseDragFrontCommandThreshold") or 20
+			rmbDragThresholdSq = dragThreshold * dragThreshold
 		end
 	end
 	return false
 end
+function widget:MouseMove(x, y, dx, dy, button)
+	if not rmbDragTracking or button ~= 3 then
+		return false
+	end
+
+	local distSq = (x - rmbStartX)^2 + (y - rmbStartY)^2
+	if distSq >= rmbDragThresholdSq then
+		rmbDragged = true
+	end
+	return false
+end
+
+function widget:MouseRelease(x, y, button)
+	if button ~= 3 then
+		return false
+	end
+
+	rmbDragTracking = false
+	if rmbDragged then
+		rmbCancelPending = false
+		rmbDragged = false
+		return false
+	end
+
+	rmbCancelPending = false
+	rmbDragged = false
+	return false
+end
+
 -- Command interception
 -- This portion is required to make sure that attack commands on allies aims at ground which ally is standing on.
 -- Without this, units just follow the ally around.
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
+	if cmdID == CMD.ATTACK and rmbCancelPending and not rmbDragged then
+		rmbCancelPending = false
+		rmbDragTracking = false
+		rmbDragged = false
+		Spring.SetActiveCommand(nil)
+		return true
+	end
+
 	local allyTarget = GetAllyTarget(cmdParams)
-	if cmdID == CMD.ATTACK or cmdID == CMD.MANUALFIRE then
-		-- Only intercept unit-target attacks against allied units.
+	if cmdID == CMD.ATTACK then
+		-- Only intercept unit-target attacks against allied units
 		if not allyTarget then
 			return false
 		end

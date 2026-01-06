@@ -64,7 +64,7 @@ return {
 			"legavroc",
 			"leginf",
 			"legvflak",
-			"cormabm",
+			"legavantinuke",
 			"legavjam",
 			"legavrad",
 			"legafcv"
