@@ -3,10 +3,10 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "Cloak",	-- gadget copy from: Decloak when damaged
+		name      = "Cloak",	
 		desc      = "optionally: decloaks units when they are damged",
-		author    = "Google Frog",
-		date      = "Nov 25, 2009", -- Major rework 12 Feb 2014
+		author    = "Google Frog", 
+		date      = "Nov 25, 2009", -- changed Jan 6th 2026, by ZainMGit
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true
@@ -70,10 +70,10 @@ local CLOAK_MOVE_THRESHOLD = math.sqrt(0.2)
 local recloakUnit = {}
 local recloakFrame = {}
 local currentFrame = 0
-local fireStateBackup = {} -- per-unit firestate saved at cloak toggle
+local fireStateBackup = {} --  firestate saved at cloak toggle
 local holdFireUnits = {} -- units currently set to hold fire
-local holdFireWeaponBackup = {} -- per-unit cached reload timers for hold fire pause
-local isCommander = {} -- limit hold-fire behavior to commanders
+local holdFireWeaponBackup = {} -- unit cached reload timers for hold fire pause
+local isCommander = {}
 
 local canCloak = {}
 for udid, ud in pairs(UnitDefs) do
@@ -142,6 +142,7 @@ function gadget:GameFrame(n)
 				recloakUnit[unitID] = frames - UPDATE_FREQUENCY
 			end
 		end
+		--Removable after an engine update
 		for unitID in pairs(holdFireUnits) do
 			local fireState = select(1, spGetUnitStates(unitID, false))
 			if fireState ~= FIRE_STATE_HOLD_FIRE then
@@ -158,7 +159,7 @@ function gadget:GameFrame(n)
 				if not isCommander[spGetUnitDefID(unitID)] then
 					holdFireUnits[unitID] = nil
 				else
-				-- enforce hold fire for commanders: drop targets and remove attack orders repeatedly
+				-- enforce hold fire for commanders, drop targets and remove attack orders repeatedly
 				spSetUnitTarget(unitID, nil)
 				local cmdID, _, cmdTag = spGetUnitCurrentCommand(unitID)
 				if cmdTag and (cmdID == CMD_ATTACK or cmdID == CMD_FIGHT or cmdID == CMD_DGUN) then
@@ -182,7 +183,7 @@ function gadget:GameFrame(n)
 	end
 end
 
--- Only called with enemyID if an enemy is within decloak radius.
+-- Only called with enemyID if an enemy is within decloak radius
 function gadget:AllowUnitCloak(unitID, enemyID)
 	if enemyID then
 		return false
@@ -236,7 +237,7 @@ local function SetWantedCloaked(unitID, state)
 	end
 
 	if state == 1 and wantCloakState ~= 1 then
-		-- preserve pre-cloak firestate for restore on decloak
+		-- preserve pre-cloak firestate for restore on decloak 
 		fireStateBackup[unitID] = select(1, spGetUnitStates(unitID, false))
 		local cannotCloak = spGetUnitRulesParam(unitID, 'cannotcloak')
 		local areaCloaked = spGetUnitRulesParam(unitID, 'areacloaked')
@@ -257,7 +258,7 @@ local function SetWantedCloaked(unitID, state)
 				end
 			end
 		end
-		-- drop any current auto-target so fire-at-will cannot keep shooting
+		-- drop any current auto-target so fire at will cannot keep shooting
 		spSetUnitTarget(unitID, nil)
 		-- force hold fire while cloaked
 		spGiveOrderToUnit(unitID, CMD_FIRE_STATE, {FIRE_STATE_HOLD_FIRE}, 0)
