@@ -5,7 +5,7 @@ return {
 		energycost = 19000,
 		metalcost = 1250,
 		buildpic = "LEGAHEATTANK.DDS",
-		buildtime = 19000,
+		buildtime = 25600,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "46 25 46",

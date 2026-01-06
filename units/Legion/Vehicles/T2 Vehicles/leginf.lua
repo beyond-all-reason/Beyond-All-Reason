@@ -6,7 +6,7 @@ return {
 		energycost = 30000,
 		metalcost = 1700,
 		buildpic = "LEGINF.DDS",
-		buildtime = 33000,
+		buildtime = 42900,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "54 49 88",
