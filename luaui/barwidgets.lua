@@ -203,6 +203,7 @@ local callInLists = {
 	'GameProgress',
 	'CommandsChanged',
 	'LanguageChanged',
+	'UnitBlocked',
 	'VisibleUnitAdded',
 	'VisibleUnitRemoved',
 	'VisibleUnitsChanged',
@@ -2245,6 +2246,14 @@ function widgetHandler:LanguageChanged()
 	tracy.ZoneBeginN("W:LanguageChanged")
 	for _, w in ipairs(self.LanguageChangedList) do
 		w:LanguageChanged()
+	end
+	tracy.ZoneEnd()
+end
+
+function widgetHandler:UnitBlocked(unitDefID, reasons)
+	tracy.ZoneBeginN("W:UnitBlocked")
+	for _, w in ipairs(self.UnitBlockedList) do
+		w:UnitBlocked(unitDefID, reasons)
 	end
 	tracy.ZoneEnd()
 end

@@ -12,10 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-
--- Localized functions for performance
-local tableSort = table.sort
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Options
@@ -57,10 +53,6 @@ local energyReclaimEdgeColor = {1, 1, 0, 0.18}
 --Energy field settings
 local energyOpacityMultiplier = 0.44 -- Multiplier for energy field opacity (relative to metal fields)
 local energyTextSizeMultiplier = 0.5 -- Multiplier for energy text size (relative to metal text)
-local preGameStartOpacityMultiplier = 1.2 -- Global opacity multiplier for all fields before gamestart
-local preGameStartMetalOpacityMultiplier = 1.2 -- Additional multiplier for metal field opacity before gamestart (stacks with global)
--- Note: Energy features (trees, geo spots) are static map features that typically don't change after gamestart.
--- The code optimizes by clustering energy fields once at gamestart and then skipping energy processing afterward.
 
 --Fill settings
 local fillAlpha = 0.055 -- Base fill layer opacity
@@ -77,8 +69,7 @@ local smoothingSegments = 4 -- Number of segments per edge
 -- Lower values = better performance, sharper edges (e.g., 4-8 for low-end systems)
 -- Higher values = smoother, more organic shapes (e.g., 20-30 for high-end systems)
 
---Update rate, in seconds
-local checkFrequency = 0.6
+local checkFrequencyMult = 1
 
 local epsilon = 300 -- Clustering distance - increased to merge nearby fields and prevent overlaps
 
@@ -91,9 +82,23 @@ local maxClusterSize = 3000 -- Adjust this value: smaller = more sub-clusters, l
 local fadeStartDistance = 4500 -- Distance where fields start to fade out
 local fadeEndDistance = 7000 -- Distance where fields stop rendering completely (must be > fadeStartDistance)
 
---------------------------------------------------------------------------------
+-- Always show fields regardless of distance
+local alwaysShowFields = true -- When true, fields will always be visible at full opacity regardless of camera distance
+local alwaysShowFieldsMinThreshold = 500 -- Minimum metal value threshold
+local alwaysShowFieldsMaxThreshold = 4000 -- Maximum metal value threshold
+local alwaysShowFieldsThreshold = 500 -- Current threshold (auto-calculated based on map metal)
+local totalMapMetal = 0 -- Total metal available on the map (calculated after clustering)
+
+local gameStarted = Spring.GetGameFrame() > 0
+local lastCheckFrame = Spring.GetGameFrame() - 999
+local lastCheckFrameClock = os.clock() - 99
+local lastProcessedFrame = -1
+
 --------------------------------------------------------------------------------
 -- Speedups
+--------------------------------------------------------------------------------
+
+local tableSort = table.sort
 
 local insert = table.insert
 local remove = table.remove
@@ -136,14 +141,23 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetCameraVectors = Spring.GetCameraVectors
 
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 -- Helper Functions for Culling and Fading
+--------------------------------------------------------------------------------
 
 -- Cached camera state to avoid recalculating every frame
 local cachedCameraX, cachedCameraY, cachedCameraZ = 0, 0, 0
 local cachedCameraForward = {0, 0, 0}
+local cachedCameraRight = {0, 0, 0}
+local cachedCameraUp = {0, 0, 0}
 local cachedCameraFOV = 45 -- Default FOV
+local cachedViewportAspect = 16/9 -- Default aspect ratio
 local lastCameraUpdateFrame = -999
+-- Track last camera position to detect camera movement
+local lastCameraX, lastCameraY, lastCameraZ = 0, 0, 0
+local lastCameraForwardX, lastCameraForwardY, lastCameraForwardZ = 0, 0, 1
+local cameraMovementThreshold = 10 -- Minimum distance to consider camera moved (in elmos)
+local cameraRotationThreshold = 0.01 -- Minimum dot product change to consider camera rotated
+local cameraGeneration = 0 -- Increments when camera moves to invalidate visibility cache
 
 -- Text display list caching - tracks last camera facing angle for text rotation
 local minTextUpdateIntervalFrames = 15 -- Minimum frames between text display list recreations per cluster (~0.5s at 30fps)
@@ -153,12 +167,40 @@ local immediateFadeChangeThreshold = 0.05 -- Small fade changes above this shoul
 local function IsInCameraView(x, y, z, radius, currentFrame)
 	-- Update camera state cache (do this only once per frame)
 	if currentFrame ~= lastCameraUpdateFrame then
-		cachedCameraX, cachedCameraY, cachedCameraZ = spGetCameraPosition()
+		local newCamX, newCamY, newCamZ = spGetCameraPosition()
 		local camVectors = spGetCameraVectors()
-		cachedCameraForward = camVectors.forward
-		-- Approximate FOV based on camera state (Spring doesn't expose FOV directly)
-		-- For now use a conservative value that covers most camera angles
-		cachedCameraFOV = 70 -- Degrees, conservative estimate
+		local newCamForward = camVectors.forward
+		
+		-- Check if camera has moved significantly
+		local dx = newCamX - lastCameraX
+		local dy = newCamY - lastCameraY
+		local dz = newCamZ - lastCameraZ
+		local moved = (dx*dx + dy*dy + dz*dz) > cameraMovementThreshold * cameraMovementThreshold
+		
+		-- Check if camera has rotated significantly (dot product change)
+		local oldDot = lastCameraForwardX * newCamForward[1] + lastCameraForwardY * newCamForward[2] + lastCameraForwardZ * newCamForward[3]
+		local rotated = oldDot < (1 - cameraRotationThreshold)
+		
+		-- Increment cache generation if camera moved or rotated
+		if moved or rotated then
+			cameraGeneration = cameraGeneration + 1
+		end
+		
+		-- Update cached camera state
+		cachedCameraX, cachedCameraY, cachedCameraZ = newCamX, newCamY, newCamZ
+		cachedCameraForward = newCamForward
+		cachedCameraRight = camVectors.right
+		cachedCameraUp = camVectors.up
+		
+		-- Store for next comparison
+		lastCameraX, lastCameraY, lastCameraZ = newCamX, newCamY, newCamZ
+		lastCameraForwardX, lastCameraForwardY, lastCameraForwardZ = newCamForward[1], newCamForward[2], newCamForward[3]
+		
+		-- Use actual screen viewport to calculate proper FOV
+		local vsx, vsy = Spring.GetViewGeometry()
+		cachedViewportAspect = vsx / vsy
+		-- Tighter FOV estimation - adjust based on actual camera behavior
+		cachedCameraFOV = 45 -- Degrees, more realistic for typical view
 		lastCameraUpdateFrame = currentFrame
 	end
 
@@ -170,13 +212,9 @@ local function IsInCameraView(x, y, z, radius, currentFrame)
 	local dist = sqrt(distSq)
 
 	-- Skip if too far away (beyond fade distance + radius) - early out
+	-- Note: This check is skipped for metal fields when alwaysShowFields is enabled (handled in GetClusterVisibility)
 	if dist > fadeEndDistance + radius then
 		return false, dist
-	end
-
-	-- Simple distance-based check - if very close, always visible
-	if dist < 500 then
-		return true, dist
 	end
 
 	-- Normalize direction vector
@@ -186,18 +224,23 @@ local function IsInCameraView(x, y, z, radius, currentFrame)
 
 	-- Check if point is behind camera (dot product with forward vector)
 	local dotForward = dx * cachedCameraForward[1] + dy * cachedCameraForward[2] + dz * cachedCameraForward[3]
-	if dotForward < -0.1 then -- Behind camera
+	if dotForward < 0.2 then -- Behind camera or at very steep angle
 		return false, dist
 	end
 
-	-- Simplified frustum check - use a conservative bounding sphere approach
-	-- This is much faster than full frustum plane testing
+	-- Proper frustum check using both horizontal and vertical FOV
 	-- Calculate angular distance from camera forward direction
 	local angleFromCenter = math.acos(clamp(dotForward, -1, 1))
 
-	-- Conservative FOV check with margin for radius
-	local maxAngle = math.rad(cachedCameraFOV * 0.7) -- Use 70% of FOV for conservative visible area
-	local marginAngle = math.atan(radius / max(dist, 1))
+	-- Tighter FOV check with smaller margin
+	local verticalFOV = math.rad(cachedCameraFOV)
+	local horizontalFOV = 2 * math.atan(math.tan(verticalFOV / 2) * cachedViewportAspect)
+	
+	-- Use the larger of the two FOVs for a proper frustum cone check
+	local maxAngle = max(verticalFOV, horizontalFOV) / 2
+	
+	-- Much smaller margin for radius - only extend frustum slightly
+	local marginAngle = math.atan(radius / max(dist, 1)) * 0.5
 
 	if angleFromCenter > maxAngle + marginAngle then
 		return false, dist
@@ -206,8 +249,37 @@ local function IsInCameraView(x, y, z, radius, currentFrame)
 	return true, dist
 end
 
+-- Calculate auto-scaled threshold based on total map metal
+local function CalculateAlwaysShowThreshold()
+	if totalMapMetal <= 0 then
+		return alwaysShowFieldsMinThreshold
+	end
+	
+	-- Scale threshold based on total map metal
+	-- Maps with little metal (e.g., 10k) -> use min threshold (500)
+	-- Maps with lots of metal (e.g., 100k+) -> use max threshold (2000)
+	local lowMetalMap = 10000 -- Maps with this much or less use min threshold
+	local highMetalMap = 100000 -- Maps with this much or more use max threshold
+	
+	if totalMapMetal <= lowMetalMap then
+		return alwaysShowFieldsMinThreshold
+	elseif totalMapMetal >= highMetalMap then
+		return alwaysShowFieldsMaxThreshold
+	else
+		-- Linear interpolation between min and max
+		local ratio = (totalMapMetal - lowMetalMap) / (highMetalMap - lowMetalMap)
+		local threshold = alwaysShowFieldsMinThreshold + ratio * (alwaysShowFieldsMaxThreshold - alwaysShowFieldsMinThreshold)
+		return floor(threshold)
+	end
+end
+
 -- Calculate opacity multiplier based on distance
-local function GetDistanceFadeMultiplier(dist)
+local function GetDistanceFadeMultiplier(dist, isEnergy)
+	-- Only apply alwaysShowFields to metal fields (not energy)
+	if alwaysShowFields and not isEnergy then
+		return 1.0 -- Always full opacity for metal fields when option is enabled
+	end
+	
 	if dist <= fadeStartDistance then
 		return 1.0 -- Full opacity
 	elseif dist >= fadeEndDistance then
@@ -248,7 +320,7 @@ local deferredFeatureDestructions = {} -- Features destroyed outside view
 local deferredCreationCount = 0
 local deferredDestructionCount = 0
 local deferOutOfViewUpdates = true -- Config: defer processing features outside view
-local outOfViewMargin = 500 -- Elmos margin beyond fade distance to still process immediately (reduced from 1000)
+local outOfViewMargin = 350 -- Elmos margin beyond fade distance to still process immediately (reduced from 1000)
 local lastDeferredProcessFrame = 0
 local deferredProcessInterval = 60 -- Process deferred updates every 60 frames (~2 seconds)
 
@@ -260,31 +332,18 @@ local lastCameraCheckFrame = 0 -- Track when we last checked camera up vector
 -- Per-frame visibility and distance cache to avoid redundant calculations
 local clusterVisibilityCache = {} -- {[cid] = {frame, inView, dist, fadeMult}}
 local energyClusterVisibilityCache = {} -- {[energyCid] = {frame, inView, dist, fadeMult}}
-local lastVisibilityCacheFrame = -1
 
 -- Get cached visibility for a cluster (call once per frame per cluster)
 -- Forward declare this early since it's used in draw functions
 local GetClusterVisibility
 
 local epsilonSq = epsilon*epsilon
-local baseCheckFrequency = math.round(checkFrequency * Game.gameSpeed)
-checkFrequency = baseCheckFrequency
+local checkFrequency = 30
 local lastFeatureCount = 0
 local cachedKnownFeaturesCount = 0 -- Cached count to avoid iterating all features
 
--- Catch-up detection: track GameFrame calls per second to detect reconnection catch-up
-local gameFrameCallCount = 0
-local lastGameFrameTrackTime = Spring.GetTimer()
-local gameFramesPerSecond = 30 -- Normal rate
 local featureCountMultiplier = 1 -- Multiplier based on feature count
-local catchUpMultiplier = 1 -- Multiplier during catch-up
 
--- Track timing for pre-gamestart updates
-local preGameStartTimer = 0
-local preGameStartCheckInterval = checkFrequency / Game.gameSpeed -- Convert frames to seconds
-local gameStarted = false
-local artificialFrame = 0 -- Artificial frame counter for pre-gamestart
-local initialClusteringDone = false -- Track if we've done initial clustering pre-gamestart
 local allEnergyFieldsDrained = false -- Track if all energy has been reclaimed to skip energy rendering
 
 local minTextAreaLength = (epsilon / 2 + fontSizeMin) / 2
@@ -461,9 +520,9 @@ GetClusterVisibility = function(cid, isEnergy, currentFrame)
 	local cache = isEnergy and energyClusterVisibilityCache or clusterVisibilityCache
 	local clusters = isEnergy and energyFeatureClusters or featureClusters
 
-	-- Check if we have a valid cache for this frame
+	-- Check if we have a valid cache for this frame AND camera generation
 	local cached = cache[cid]
-	if cached and cached.frame == currentFrame then
+	if cached and cached.frame == currentFrame and cached.generation == cameraGeneration then
 		return cached.inView, cached.dist, cached.fadeMult
 	end
 
@@ -473,31 +532,44 @@ GetClusterVisibility = function(cid, isEnergy, currentFrame)
 		return false, 0, 0
 	end
 
+	-- Pre-gamestart: show all metal fields regardless of camera position/distance
+	if not gameStarted and not isEnergy then
+		cache[cid] = {
+			frame = currentFrame,
+			generation = cameraGeneration,
+			inView = true,
+			dist = 0,
+			fadeMult = 1
+		}
+		return true, 0, 1
+	end
+
 	local center = cluster.center
 	-- Pre-compute cluster radius once (cache it in the cluster if not present)
 	if not cluster.radius then
 		cluster.radius = sqrt((cluster.dx or 0)^2 + (cluster.dz or 0)^2) / 2
 	end
 
-	-- Before game start, always show reclaim fields (both metal and energy)
-	-- This ensures the map preview shows all resource fields before gameplay begins
-	if not gameStarted then
-		cache[cid] = {
-			frame = currentFrame,
-			inView = true,
-			dist = 0,
-			fadeMult = 1.0
-		}
-		return true, 0, 1.0
+	-- For metal fields with alwaysShowFields enabled, bypass distance culling if above threshold
+	local inView, dist
+	local meetsThreshold = not isEnergy and cluster.metal and cluster.metal >= alwaysShowFieldsThreshold
+	if alwaysShowFields and not isEnergy and meetsThreshold then
+		-- Always in view for metal fields when option is enabled and above threshold
+		local dx = center.x - cachedCameraX
+		local dy = center.y - cachedCameraY
+		local dz = center.z - cachedCameraZ
+		dist = sqrt(dx*dx + dy*dy + dz*dz)
+		inView = true
+	else
+		inView, dist = IsInCameraView(center.x, center.y, center.z, cluster.radius, currentFrame)
 	end
-
-	local inView, dist = IsInCameraView(center.x, center.y, center.z, cluster.radius, currentFrame)
+	
 	local fadeMult = 0
 
 	if inView then
-		fadeMult = GetDistanceFadeMultiplier(dist)
-		-- Early reject if too faded
-		if fadeMult < 0.01 then
+		fadeMult = GetDistanceFadeMultiplier(dist, isEnergy)
+		-- Early reject if too faded (but not for metal fields with alwaysShowFields above threshold)
+		if fadeMult < 0.01 and not (alwaysShowFields and not isEnergy and meetsThreshold) then
 			inView = false
 		end
 	end
@@ -505,6 +577,7 @@ GetClusterVisibility = function(cid, isEnergy, currentFrame)
 	-- Cache the result
 	cache[cid] = {
 		frame = currentFrame,
+		generation = cameraGeneration,
 		inView = inView,
 		dist = dist,
 		fadeMult = fadeMult
@@ -1521,8 +1594,8 @@ end
 
 -- Check if all energy fields have been drained
 local function CheckAllEnergyDrained()
-	if allEnergyFieldsDrained or not showEnergyFields then
-		return -- Already marked as drained or energy fields disabled
+	if not showEnergyFields then
+		return -- Energy fields disabled
 	end
 
 	-- Check if there are any features with energy remaining
@@ -1536,7 +1609,9 @@ local function CheckAllEnergyDrained()
 	end
 
 	if featuresWithEnergy > 0 then
-		return -- Found energy, not all drained
+		-- Found energy, not all drained
+		allEnergyFieldsDrained = false
+		return
 	end
 
 	-- All energy is drained, disable energy rendering
@@ -1711,8 +1786,18 @@ local function ClusterizeFeatures()
 	clusterizingNeeded = false
 	redrawingNeeded = true
 
+	-- Calculate total map metal and update auto-scaled threshold
+	totalMapMetal = 0
+	for i = 1, #featureClusters do
+		local cluster = featureClusters[i]
+		if cluster and cluster.metal then
+			totalMapMetal = totalMapMetal + cluster.metal
+		end
+	end
+	alwaysShowFieldsThreshold = CalculateAlwaysShowThreshold()
+
 	-- Check if all energy has been drained after clustering
-	if gameStarted and showEnergyFields and not allEnergyFieldsDrained then
+	if showEnergyFields and not allEnergyFieldsDrained then
 		CheckAllEnergyDrained()
 	end
 end
@@ -1769,7 +1854,12 @@ do
 
 	UpdateDrawEnabled = function ()
 		local previousDrawEnabled = drawEnabled
-		drawEnabled = showOptionFunctions[showOption]()
+		-- Before game starts, always enable drawing regardless of user settings
+		if not gameStarted then
+			drawEnabled = true
+		else
+			drawEnabled = showOptionFunctions[showOption]()
+		end
 		-- If visibility changed from false to true, force a full display list recreation
 		if not previousDrawEnabled and drawEnabled then
 			redrawingNeeded = true
@@ -1991,19 +2081,11 @@ CreateClusterDisplayList = function(cid, isEnergy)
 		local colors = nil
 		if isEnergy then
 			-- Energy field colors with opacity multiplier
-			local energyMult = not gameStarted and preGameStartOpacityMultiplier or energyOpacityMultiplier
+			local energyMult = energyOpacityMultiplier
 			colors = {
 				fill = energyReclaimColor,
 				fillAlpha = fillAlpha * energyMult,
 				gradientAlpha = gradientAlpha * energyMult
-			}
-		elseif not gameStarted then
-			-- Metal field colors with pre-gamestart multiplier
-			local totalMultiplier = preGameStartOpacityMultiplier * preGameStartMetalOpacityMultiplier
-			colors = {
-				fill = reclaimColor,
-				fillAlpha = fillAlpha * totalMultiplier,
-				gradientAlpha = gradientAlpha * totalMultiplier
 			}
 		end
 		glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, hull, cluster.center, colors)
@@ -2115,16 +2197,19 @@ local cachedCameraFacing = 0
 
 -- Track text positions to avoid overlaps
 local drawnTextPositions = {}
+local drawnTextPositionCount = 0 -- Counter to track how many positions are in use (avoids allocations)
 
 local function WouldTextOverlap(x, z, fontSize)
 	local threshold = fontSize * 1.5 -- Distance threshold for overlap detection
-	for i = 1, #drawnTextPositions do
+	for i = 1, drawnTextPositionCount do
 		local pos = drawnTextPositions[i]
-		local dx = x - pos.x
-		local dz = z - pos.z
-		local distSq = dx * dx + dz * dz
-		if distSq < threshold * threshold then
-			return true, pos
+		if pos then
+			local dx = x - pos.x
+			local dz = z - pos.z
+			local distSq = dx * dx + dz * dz
+			if distSq < threshold * threshold then
+				return true, pos
+			end
 		end
 	end
 	return false, nil
@@ -2223,11 +2308,363 @@ local function DrawEnergyClusterText()
 	end
 end
 
+-- Process deferred features that may have come into view
+local function ProcessDeferredFeatures(frame)
+	if (deferredCreationCount == 0 and deferredDestructionCount == 0) or
+	   (frame - lastDeferredProcessFrame < deferredProcessInterval and frame % 10 ~= 0) then
+		return
+	end
+
+	lastDeferredProcessFrame = frame
+
+	-- Process deferred creations - check if they're now in view
+	local remainingDeferred = 0
+	for i = 1, deferredCreationCount do
+		local featureID = deferredFeatureCreations[i]
+		if featureID then
+			local x, y, z = spGetFeaturePosition(featureID)
+			if x and IsPositionNearView(x, y, z) then
+				-- Now in view, process it
+				pendingCreationCount = pendingCreationCount + 1
+				pendingFeatureCreations[pendingCreationCount] = featureID
+				deferredFeatureCreations[i] = nil
+			else
+				-- Still out of view, keep it deferred but compact array
+				remainingDeferred = remainingDeferred + 1
+				if remainingDeferred ~= i then
+					deferredFeatureCreations[remainingDeferred] = featureID
+					deferredFeatureCreations[i] = nil
+				end
+			end
+		end
+	end
+	deferredCreationCount = remainingDeferred
+
+	-- Process deferred destructions - check if they're now in view
+	remainingDeferred = 0
+	for i = 1, deferredDestructionCount do
+		local featureID = deferredFeatureDestructions[i]
+		if featureID then
+			local feature = knownFeatures[featureID]
+			if not feature or IsPositionNearView(feature.x, feature.y, feature.z) then
+				-- Now in view or feature no longer exists, process it
+				if knownFeatures[featureID] then
+					pendingDestructionCount = pendingDestructionCount + 1
+					pendingFeatureDestructions[pendingDestructionCount] = featureID
+				end
+				deferredFeatureDestructions[i] = nil
+			else
+				-- Still out of view, keep it deferred but compact array
+				remainingDeferred = remainingDeferred + 1
+				if remainingDeferred ~= i then
+					deferredFeatureDestructions[remainingDeferred] = featureID
+					deferredFeatureDestructions[i] = nil
+				end
+			end
+		end
+	end
+	deferredDestructionCount = remainingDeferred
+end
+
+-- Helper: Process pending feature changes
+local function ProcessPendingFeatureChanges()
+	-- Process batched feature creations first
+	if pendingCreationCount > 0 then
+		for i = 1, pendingCreationCount do
+			local featureID = pendingFeatureCreations[i]
+			AddFeature(featureID)
+			pendingFeatureCreations[i] = nil
+		end
+		pendingCreationCount = 0
+		clusterizingNeeded = true
+	end
+
+	-- Process batched feature destructions
+	if pendingDestructionCount > 0 then
+		for i = 1, pendingDestructionCount do
+			local featureID = pendingFeatureDestructions[i]
+			if knownFeatures[featureID] then
+				RemoveFeature(featureID)
+			end
+			pendingFeatureDestructions[i] = nil
+		end
+		pendingDestructionCount = 0
+		clusterizingNeeded = true
+	end
+end
+
+-- Helper: Process flying features
+local function ProcessFlyingFeatures(frame)
+	if not next(flyingFeatures) or (frame - lastFlyingCheckFrame) < 3 then
+		return false
+	end
+	
+	lastFlyingCheckFrame = frame
+	local featuresAdded = false
+	
+	for featureID, fInfo in pairs(flyingFeatures) do
+		-- Quick validation before API call
+		if spValidFeatureID(featureID) then
+			local _,_,_, vw = spGetFeatureVelocity(featureID)
+			if vw then
+				-- Feature still exists and has velocity data
+				if vw <= 1e-3 then
+					flyingFeatures[featureID] = nil
+					local x, y, z = spGetFeaturePosition(featureID)
+					if x then -- Validate feature still exists
+						fInfo.x, fInfo.y, fInfo.z = x, y, z
+
+						-- Mark region as dirty for regional reclustering
+						MarkRegionDirty(x, z)
+
+						local M = featureNeighborsMatrix
+						local M_newFeature = {}
+						local reachDistSq, epsilonSq = mathHuge, epsilonSq
+						for fid2, feat2 in pairs(knownFeatures) do
+							local dx, dz = x - feat2.x, z - feat2.z
+							local distSq = dx * dx + dz * dz
+							if distSq <= epsilonSq then
+								M[fid2][featureID] = distSq
+								M_newFeature[fid2] = distSq
+								if distSq < reachDistSq then
+									reachDistSq = distSq
+								end
+								if feat2.rd == nil or distSq < feat2.rd then
+									feat2.rd = distSq
+								end
+							end
+						end
+						featureNeighborsMatrix[featureID] = M_newFeature
+						if reachDistSq < epsilonSq then
+							fInfo.rd = reachDistSq
+						end
+						knownFeatures[featureID] = fInfo
+						cachedKnownFeaturesCount = cachedKnownFeaturesCount + 1
+						featuresAdded = true
+					else
+						-- Feature was destroyed while flying
+						flyingFeatures[featureID] = nil
+					end
+				end
+			else
+				-- Feature no longer exists
+				flyingFeatures[featureID] = nil
+			end
+		else
+			-- Feature ID is invalid
+			flyingFeatures[featureID] = nil
+		end
+	end
+	
+	return featuresAdded
+end
+
+-- Helper: Validate and remove invalid features
+local function ValidateAndRemoveInvalidFeatures()
+	local removeCount = 0
+	local featureCount = cachedKnownFeaturesCount
+	local checkInterval = max(1, floor(featureCount / 50))
+	validityCheckCounter = validityCheckCounter + 1
+
+	for fid, fInfo in pairs(knownFeatures) do
+		if checkInterval == 1 or (validityCheckCounter % checkInterval == 0) then
+			if not spValidFeatureID(fid) then
+				removeCount = removeCount + 1
+				toRemoveFeatures[removeCount] = fid
+			else
+				local metal, _, energy = spGetFeatureResources(fid)
+				local metalDepleted = not metal or metal < minFeatureValue
+				local energyDepleted = not energy or energy < minFeatureValue
+				if metalDepleted and energyDepleted then
+					removeCount = removeCount + 1
+					toRemoveFeatures[removeCount] = fid
+				end
+			end
+		end
+		validityCheckCounter = validityCheckCounter + 1
+	end
+
+	for i = 1, removeCount do
+		RemoveFeature(toRemoveFeatures[i])
+	end
+
+	for i = 1, removeCount do
+		toRemoveFeatures[i] = nil
+	end
+end
+
+-- Helper: Recreate display lists for visible clusters
+local function RecreateDisplayListsForVisibleClusters(frame)
+	UpdateDrawEnabled()
+	UpdateDrawEnergyEnabled()
+
+	local dirtyMetalCount = 0
+	local dirtyEnergyCount = 0
+	for _ in pairs(dirtyClusters) do
+		dirtyMetalCount = dirtyMetalCount + 1
+	end
+	for _ in pairs(dirtyEnergyClusters) do
+		dirtyEnergyCount = dirtyEnergyCount + 1
+	end
+
+	local useIncrementalUpdate = not forceFullRedraw and ((dirtyMetalCount > 0 and dirtyMetalCount < 20) or (dirtyEnergyCount > 0 and dirtyEnergyCount < 20))
+
+	if useIncrementalUpdate then
+		for cid in pairs(dirtyClusters) do
+			if featureClusters[cid] then
+				local inView, dist, fadeMult = GetClusterVisibility(cid, false, frame)
+				if (not gameStarted and inView) or (inView and fadeMult > 0.01) then
+					CreateClusterDisplayList(cid, false)
+				else
+					if clusterDisplayLists[cid] then
+						DeleteClusterDisplayList(cid, false, true)
+					end
+				end
+			end
+		end
+
+		for cid in pairs(dirtyEnergyClusters) do
+			if energyFeatureClusters[cid] then
+				local inView, dist, fadeMult = GetClusterVisibility(cid, true, frame)
+				if inView and fadeMult > 0.01 then
+					CreateClusterDisplayList(cid, true)
+				else
+					if energyClusterDisplayLists[cid] then
+						DeleteClusterDisplayList(cid, true, true)
+					end
+				end
+			end
+		end
+	else
+		for cid in pairs(clusterDisplayLists) do
+			DeleteClusterDisplayList(cid, false)
+		end
+		for cid in pairs(energyClusterDisplayLists) do
+			DeleteClusterDisplayList(cid, true)
+		end
+
+		if drawEnabled then
+			for cid = 1, #featureClusters do
+				if featureClusters[cid] then
+					local inView, dist, fadeMult = GetClusterVisibility(cid, false, frame)
+					if (not gameStarted and inView) or (inView and fadeMult > 0.01) then
+						CreateClusterDisplayList(cid, false)
+					end
+				end
+			end
+		end
+
+		if drawEnergyEnabled and showEnergyFields and not allEnergyFieldsDrained then
+			for cid = 1, #energyFeatureClusters do
+				if energyFeatureClusters[cid] then
+					local inView, dist, fadeMult = GetClusterVisibility(cid, true, frame)
+					if inView and fadeMult > 0.01 then
+						CreateClusterDisplayList(cid, true)
+					end
+				end
+			end
+		end
+	end
+
+	for cid in pairs(dirtyClusters) do
+		dirtyClusters[cid] = nil
+	end
+	for cid in pairs(dirtyEnergyClusters) do
+		dirtyEnergyClusters[cid] = nil
+	end
+
+	forceFullRedraw = false
+end
+
+local function UpdateReclaimFields()
+	local frame = Spring.GetGameFrame()
+
+	-- Process deferred features periodically or when they come into view
+	if frame ~= lastProcessedFrame then
+		lastProcessedFrame = frame
+		ProcessDeferredFeatures(frame)
+		ProcessPendingFeatureChanges()
+	end
+
+	if drawEnabled == false then
+		return
+	end
+	
+	if frame - lastCheckFrame < checkFrequency and os.clock() - lastCheckFrameClock < (checkFrequency/30) then
+		return
+	end
+	lastCheckFrame = Spring.GetGameFrame()
+	lastCheckFrameClock = os.clock()
+
+	-- Adjust frequency based on feature count thresholds
+	local currentFeatureCount = cachedKnownFeaturesCount
+	if currentFeatureCount ~= lastFeatureCount then
+		lastFeatureCount = currentFeatureCount
+		if currentFeatureCount < 500 then
+			featureCountMultiplier = 1
+		elseif currentFeatureCount < 1500 then
+			featureCountMultiplier = 2
+		elseif currentFeatureCount < 3000 then
+			featureCountMultiplier = 3
+		else
+			featureCountMultiplier = 4
+		end
+		checkFrequency = math.max(30, math.ceil(30 * featureCountMultiplier * checkFrequencyMult))
+	end
+
+	-- Process flying features
+	local featuresAdded = ProcessFlyingFeatures(frame)
+
+	-- Always check for feature value updates, even if clustering is needed
+	if not (featuresAdded or clusterizingNeeded) then
+		UpdateFeatureReclaim()
+	end
+
+	if featuresAdded or clusterizingNeeded then
+		ValidateAndRemoveInvalidFeatures()
+		ClusterizeFeatures()
+	end
+
+	if redrawingNeeded == true then
+		RecreateDisplayListsForVisibleClusters(frame)
+	end
+
+	-- Text is always redrawn to rotate it facing the camera.
+	local cameraChanged = false
+	if redrawingNeeded or (frame - lastCameraCheckFrame) >= 5 then
+		local camUpVectorNew = spGetCameraVectors().up
+		if camUpVector[1] ~= camUpVectorNew[1] or camUpVector[3] ~= camUpVectorNew[3] then
+			camUpVector = camUpVectorNew
+			cameraChanged = true
+		end
+		lastCameraCheckFrame = frame
+	end
+
+	if cameraChanged or redrawingNeeded then
+		if drawFeatureClusterTextList ~= nil then
+			glDeleteList(drawFeatureClusterTextList)
+			drawFeatureClusterTextList = nil
+		end
+		drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
+
+		if showEnergyFields and not allEnergyFieldsDrained and #energyFeatureClusters > 0 then
+			if drawEnergyClusterTextList ~= nil then
+				glDeleteList(drawEnergyClusterTextList)
+				drawEnergyClusterTextList = nil
+			end
+			drawEnergyClusterTextList = glCreateList(DrawEnergyClusterText)
+		end
+	end
+
+	redrawingNeeded = false
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Widget call-ins
 
 function widget:Initialize()
+	gameStarted = Spring.GetGameFrame() > 0
 	screenx, screeny = widgetHandler:GetViewSizes()
 
 	-- Initialize camera scale early to avoid thick lines on first draw
@@ -2285,6 +2722,41 @@ function widget:Initialize()
 	end
 	WG['reclaimfieldhighlight'].setFadeEndDistance = function(value)
 		fadeEndDistance = max(fadeStartDistance + 100, value)
+	end
+
+	WG['reclaimfieldhighlight'].getAlwaysShowFields = function()
+		return alwaysShowFields
+	end
+	WG['reclaimfieldhighlight'].setAlwaysShowFields = function(value)
+		alwaysShowFields = value
+	end
+
+	WG['reclaimfieldhighlight'].getAlwaysShowFieldsThreshold = function()
+		return alwaysShowFieldsThreshold
+	end
+	WG['reclaimfieldhighlight'].setAlwaysShowFieldsThreshold = function(value)
+		-- Deprecated - threshold is now auto-calculated
+		-- This function kept for backwards compatibility
+	end
+
+	WG['reclaimfieldhighlight'].getAlwaysShowFieldsMinThreshold = function()
+		return alwaysShowFieldsMinThreshold
+	end
+	WG['reclaimfieldhighlight'].setAlwaysShowFieldsMinThreshold = function(value)
+		alwaysShowFieldsMinThreshold = max(0, value)
+		alwaysShowFieldsThreshold = CalculateAlwaysShowThreshold()
+	end
+
+	WG['reclaimfieldhighlight'].getAlwaysShowFieldsMaxThreshold = function()
+		return alwaysShowFieldsMaxThreshold
+	end
+	WG['reclaimfieldhighlight'].setAlwaysShowFieldsMaxThreshold = function(value)
+		alwaysShowFieldsMaxThreshold = max(alwaysShowFieldsMinThreshold, value)
+		alwaysShowFieldsThreshold = CalculateAlwaysShowThreshold()
+	end
+
+	WG['reclaimfieldhighlight'].getTotalMapMetal = function()
+		return totalMapMetal
 	end
 
 	-- Deferred update settings
@@ -2360,7 +2832,10 @@ function widget:GetConfigData(data)
 		smoothingSegments = smoothingSegments,
 		showEnergyFields = showEnergyFields,
 		fadeStartDistance = fadeStartDistance,
-		fadeEndDistance = fadeEndDistance
+		fadeEndDistance = fadeEndDistance,
+		alwaysShowFields = alwaysShowFields,
+		alwaysShowFieldsMinThreshold = alwaysShowFieldsMinThreshold,
+		alwaysShowFieldsMaxThreshold = alwaysShowFieldsMaxThreshold
 	}
 end
 
@@ -2374,6 +2849,19 @@ function widget:SetConfigData(data)
 	if data.showEnergyFields ~= nil then
 		showEnergyFields = data.showEnergyFields
 	end
+	if data.alwaysShowFields ~= nil then
+		alwaysShowFields = data.alwaysShowFields
+	end
+	if data.alwaysShowFieldsMinThreshold ~= nil then
+		alwaysShowFieldsMinThreshold = data.alwaysShowFieldsMinThreshold
+	end
+	if data.alwaysShowFieldsMaxThreshold ~= nil then
+		alwaysShowFieldsMaxThreshold = data.alwaysShowFieldsMaxThreshold
+	end
+	-- Legacy support for old fixed threshold
+	if data.alwaysShowFieldsThreshold ~= nil and data.alwaysShowFieldsMinThreshold == nil then
+		alwaysShowFieldsMinThreshold = data.alwaysShowFieldsThreshold
+	end
 	if data.fadeStartDistance ~= nil then
 		--fadeStartDistance = data.fadeStartDistance
 	end
@@ -2381,374 +2869,24 @@ function widget:SetConfigData(data)
 		--fadeEndDistance = data.fadeEndDistance
 	end
 	-- if data.smoothingSegments ~= nil then
-	-- 	smoothingSegments = clamp(data.smoothingSegments, 4, 40)
+	-- 	smoothingSegments = clamp(data.smoothingSegments, 2, 10)
 	-- end
 end
 
--- Process deferred features that may have come into view
-local function ProcessDeferredFeatures(frame)
-	if (deferredCreationCount == 0 and deferredDestructionCount == 0) or
-	   (frame - lastDeferredProcessFrame < deferredProcessInterval and frame % 10 ~= 0) then
-		return
-	end
-
-	lastDeferredProcessFrame = frame
-
-	-- Process deferred creations - check if they're now in view
-	local remainingDeferred = 0
-	for i = 1, deferredCreationCount do
-		local featureID = deferredFeatureCreations[i]
-		if featureID then
-			local x, y, z = spGetFeaturePosition(featureID)
-			if x and IsPositionNearView(x, y, z) then
-				-- Now in view, process it
-				pendingCreationCount = pendingCreationCount + 1
-				pendingFeatureCreations[pendingCreationCount] = featureID
-				deferredFeatureCreations[i] = nil
-			else
-				-- Still out of view, keep it deferred but compact array
-				remainingDeferred = remainingDeferred + 1
-				if remainingDeferred ~= i then
-					deferredFeatureCreations[remainingDeferred] = featureID
-					deferredFeatureCreations[i] = nil
-				end
-			end
-		end
-	end
-	deferredCreationCount = remainingDeferred
-
-	-- Process deferred destructions - check if they're now in view
-	remainingDeferred = 0
-	for i = 1, deferredDestructionCount do
-		local featureID = deferredFeatureDestructions[i]
-		if featureID then
-			local feature = knownFeatures[featureID]
-			if not feature or IsPositionNearView(feature.x, feature.y, feature.z) then
-				-- Now in view or feature no longer exists, process it
-				if knownFeatures[featureID] then
-					pendingDestructionCount = pendingDestructionCount + 1
-					pendingFeatureDestructions[pendingDestructionCount] = featureID
-				end
-				deferredFeatureDestructions[i] = nil
-			else
-				-- Still out of view, keep it deferred but compact array
-				remainingDeferred = remainingDeferred + 1
-				if remainingDeferred ~= i then
-					deferredFeatureDestructions[remainingDeferred] = featureID
-					deferredFeatureDestructions[i] = nil
-				end
-			end
-		end
-	end
-	deferredDestructionCount = remainingDeferred
-end
-
--- Core update logic extracted to be called from both Update and GameFrame
-local function UpdateReclaimFields(frame)
-	-- Process deferred features periodically or when they come into view
-	ProcessDeferredFeatures(frame)
-
-	-- Process batched feature creations first
-	if pendingCreationCount > 0 then
-		for i = 1, pendingCreationCount do
-			local featureID = pendingFeatureCreations[i]
-			AddFeature(featureID)
-			pendingFeatureCreations[i] = nil
-		end
-		pendingCreationCount = 0
-		clusterizingNeeded = true
-	end
-
-	-- Process batched feature destructions
-	if pendingDestructionCount > 0 then
-		for i = 1, pendingDestructionCount do
-			local featureID = pendingFeatureDestructions[i]
-			if knownFeatures[featureID] then
-				RemoveFeature(featureID)
-			end
-			pendingFeatureDestructions[i] = nil
-		end
-		pendingDestructionCount = 0
-		clusterizingNeeded = true
-	end
-
-	-- Before gamestart, always show reclaim fields regardless of settings
-	if drawEnabled == false and gameStarted then
-		return
-	end
-
-	-- Dynamically adjust check frequency based on feature count
-	-- Only recalculate every 30 frames to avoid overhead
-	-- Use cached count instead of iterating all features
-	if frame % 30 == 0 then
-		local currentFeatureCount = cachedKnownFeaturesCount
-
-		-- Adjust frequency based on feature count thresholds
-		if currentFeatureCount ~= lastFeatureCount then
-			lastFeatureCount = currentFeatureCount
-			if currentFeatureCount < 500 then
-				featureCountMultiplier = 1 -- Normal frequency
-			elseif currentFeatureCount < 1500 then
-				featureCountMultiplier = 2 -- 500-1500 features: 2x slower
-			elseif currentFeatureCount < 3000 then
-				featureCountMultiplier = 3 -- 1500-3000 features: 3x slower
-			else
-				featureCountMultiplier = 4 -- 3000+ features: 4x slower
-			end
-			-- Apply both multipliers (feature count and catch-up)
-			checkFrequency = math.ceil(baseCheckFrequency * featureCountMultiplier * catchUpMultiplier)
-		end
-	end
-
-	if frame % checkFrequency ~= 0 then
-		return
-	end
-
-	local featuresAdded = false
-
-	-- Process flying features (check less frequently - every 3 frames)
-	-- Flying features are rare, no need to check every single frame
-	if next(flyingFeatures) and (frame - lastFlyingCheckFrame) >= 3 then
-		lastFlyingCheckFrame = frame
-		for featureID, fInfo in pairs(flyingFeatures) do
-			-- Quick validation before API call
-			if spValidFeatureID(featureID) then
-				local _,_,_, vw = spGetFeatureVelocity(featureID)
-				if vw then
-					-- Feature still exists and has velocity data
-					if vw <= 1e-3 then
-						flyingFeatures[featureID] = nil
-						local x, y, z = spGetFeaturePosition(featureID)
-						if x then -- Validate feature still exists
-							fInfo.x, fInfo.y, fInfo.z = x, y, z
-
-							-- Mark region as dirty for regional reclustering
-							MarkRegionDirty(x, z)
-
-							local M = featureNeighborsMatrix
-							local M_newFeature = {}
-							local reachDistSq, epsilonSq = mathHuge, epsilonSq
-							for fid2, feat2 in pairs(knownFeatures) do
-								local dx, dz = x - feat2.x, z - feat2.z
-								local distSq = dx * dx + dz * dz
-								if distSq <= epsilonSq then
-									M[fid2][featureID] = distSq
-									M_newFeature[fid2] = distSq
-									if distSq < reachDistSq then
-										reachDistSq = distSq
-									end
-									if feat2.rd == nil or distSq < feat2.rd then
-										feat2.rd = distSq
-									end
-								end
-							end
-							featureNeighborsMatrix[featureID] = M_newFeature
-							if reachDistSq < epsilonSq then
-								fInfo.rd = reachDistSq
-							end
-							knownFeatures[featureID] = fInfo
-							cachedKnownFeaturesCount = cachedKnownFeaturesCount + 1
-							featuresAdded = true
-						else
-							-- Feature was destroyed while flying
-							flyingFeatures[featureID] = nil
-						end
-					end
-				else
-					-- Feature no longer exists
-					flyingFeatures[featureID] = nil
-				end
-			else
-				-- Feature ID is invalid
-				flyingFeatures[featureID] = nil
-			end
-		end
-	end
-
-	-- Always check for feature value updates, even if clustering is needed
-	-- This ensures energy/metal values are tracked incrementally
-	if not (featuresAdded or clusterizingNeeded) then
-		UpdateFeatureReclaim()
-	end
-
-	if featuresAdded or clusterizingNeeded then
-		-- Batch remove invalid features using reusable table
-		-- Use rotating checks to avoid checking ALL features every cycle
-		local removeCount = 0
-
-		-- Use cached count instead of iterating all features
-		local featureCount = cachedKnownFeaturesCount
-
-		-- Calculate check interval: check at minimum 50 features, but sample more if fewer total
-		local checkInterval = max(1, floor(featureCount / 50))
-		validityCheckCounter = validityCheckCounter + 1
-
-		for fid, fInfo in pairs(knownFeatures) do
-			-- Rotating check: only validate a subset of features per frame
-			-- Always check if featureCount is small, otherwise use rotating pattern
-			if checkInterval == 1 or (validityCheckCounter % checkInterval == 0) then
-				-- Quick validity check first (much cheaper than GetFeatureResources)
-				if not spValidFeatureID(fid) then
-					removeCount = removeCount + 1
-					toRemoveFeatures[removeCount] = fid
-				else
-					-- Only call GetFeatureResources if feature is valid
-					local metal, _, energy = spGetFeatureResources(fid)
-					-- Only remove if BOTH metal AND energy are below threshold
-					local metalDepleted = not metal or metal < minFeatureValue
-					local energyDepleted = not energy or energy < minFeatureValue
-					if metalDepleted and energyDepleted then
-						removeCount = removeCount + 1
-						toRemoveFeatures[removeCount] = fid
-					end
-				end
-			end
-			validityCheckCounter = validityCheckCounter + 1
-		end
-
-		-- Remove in separate loop to avoid iterator issues
-		for i = 1, removeCount do
-			RemoveFeature(toRemoveFeatures[i])
-		end
-
-		-- Clear the reusable table
-		for i = 1, removeCount do
-			toRemoveFeatures[i] = nil
-		end
-
-		ClusterizeFeatures()
-	end
-
-	if redrawingNeeded == true then
-		-- Count dirty clusters for both metal and energy
-		local dirtyMetalCount = 0
-		local dirtyEnergyCount = 0
-		for _ in pairs(dirtyClusters) do
-			dirtyMetalCount = dirtyMetalCount + 1
-		end
-		for _ in pairs(dirtyEnergyClusters) do
-			dirtyEnergyCount = dirtyEnergyCount + 1
-		end
-
-		-- Incremental update: recreate only dirty cluster display lists
-		-- This is much faster than redrawing everything
-		-- Force full redraw when visibility changes or when there are too many dirty clusters
-		local useIncrementalUpdate = not forceFullRedraw and ((dirtyMetalCount > 0 and dirtyMetalCount < 20) or (dirtyEnergyCount > 0 and dirtyEnergyCount < 20))
-
-		if useIncrementalUpdate then
-			-- Recreate only dirty metal clusters that are in view
-			for cid in pairs(dirtyClusters) do
-				if featureClusters[cid] then
-					local inView, dist, fadeMult = GetClusterVisibility(cid, false, frame)
-					if inView and fadeMult > 0.01 then
-						CreateClusterDisplayList(cid, false)
-					else
-						-- Delete geometry display lists if cluster is out of view, but keep text to avoid churn
-						if clusterDisplayLists[cid] then
-							DeleteClusterDisplayList(cid, false, true)
-						end
-					end
-				end
-			end
-
-			-- Recreate only dirty energy clusters that are in view
-			for cid in pairs(dirtyEnergyClusters) do
-				if energyFeatureClusters[cid] then
-					local inView, dist, fadeMult = GetClusterVisibility(cid, true, frame)
-					if inView and fadeMult > 0.01 then
-						CreateClusterDisplayList(cid, true)
-					else
-						-- Delete geometry display lists if cluster is out of view, but keep text to avoid churn
-						if energyClusterDisplayLists[cid] then
-							DeleteClusterDisplayList(cid, true, true)
-						end
-					end
-				end
-			end
-		else
-			-- Too many dirty clusters, first draw, or visibility changed - do full redraw
-			-- Clear all existing per-cluster display lists
-			for cid in pairs(clusterDisplayLists) do
-				DeleteClusterDisplayList(cid, false)
-			end
-			for cid in pairs(energyClusterDisplayLists) do
-				DeleteClusterDisplayList(cid, true)
-			end
-
-			-- Recreate metal cluster display lists only for visible clusters (if metal fields are visible)
-			if drawEnabled or not gameStarted then
-				for cid = 1, #featureClusters do
-					if featureClusters[cid] then
-						local inView, dist, fadeMult = GetClusterVisibility(cid, false, frame)
-						if inView and fadeMult > 0.01 then
-							CreateClusterDisplayList(cid, false)
-						end
-					end
-				end
-			end
-
-			-- Recreate energy cluster display lists only for visible clusters (if energy fields are visible)
-			if (drawEnergyEnabled and showEnergyFields and not allEnergyFieldsDrained) or not gameStarted then
-				for cid = 1, #energyFeatureClusters do
-					if energyFeatureClusters[cid] then
-						local inView, dist, fadeMult = GetClusterVisibility(cid, true, frame)
-						if inView and fadeMult > 0.01 then
-							CreateClusterDisplayList(cid, true)
-						end
-					end
-				end
-			end
-		end
-
-		-- Clear dirtyClusters table
-		for cid in pairs(dirtyClusters) do
-			dirtyClusters[cid] = nil
-		end
-		for cid in pairs(dirtyEnergyClusters) do
-			dirtyEnergyClusters[cid] = nil
-		end
-
-		-- Reset force full redraw flag
-		forceFullRedraw = false
-	end
-
-	-- Text is always redrawn to rotate it facing the camera.
-	-- Only check camera vector every few frames or when redrawing - it rarely changes
-	local cameraChanged = false
-	if redrawingNeeded or (frame - lastCameraCheckFrame) >= 5 then
-		local camUpVectorNew = spGetCameraVectors().up
-		if camUpVector[1] ~= camUpVectorNew[1] or camUpVector[3] ~= camUpVectorNew[3] then
-			camUpVector = camUpVectorNew
-			cameraChanged = true
-		end
-		lastCameraCheckFrame = frame
-	end
-
-	if cameraChanged or redrawingNeeded then
-		if drawFeatureClusterTextList ~= nil then
-			glDeleteList(drawFeatureClusterTextList)
-			drawFeatureClusterTextList = nil
-		end
-		drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
-
-		-- Recreate energy text if enabled and not all drained
-		-- Always recreate when redrawing is needed (e.g., when energy values change from reclaim)
-		if showEnergyFields and not allEnergyFieldsDrained and #energyFeatureClusters > 0 then
-			if drawEnergyClusterTextList ~= nil then
-				glDeleteList(drawEnergyClusterTextList)
-				drawEnergyClusterTextList = nil
-			end
-			drawEnergyClusterTextList = glCreateList(DrawEnergyClusterText)
-		end
-	end
-
-	redrawingNeeded = false
+function widget:GameStart()
+	-- Update gameStarted flag when game transitions from lobby to active
+	gameStarted = true
+	-- Force draw state update to respect showOption settings now that game has started
+	UpdateDrawEnabled()
+	UpdateDrawEnergyEnabled()
+	-- Force full redraw with new draw state
+	redrawingNeeded = true
+	forceFullRedraw = true
 end
 
 function widget:Update(dt)
-	-- Update camera scale before gamestart OR when enabled after gamestart
-	-- Pre-gamestart: only update until initial clustering is done
-	if (not gameStarted and not initialClusteringDone) or (gameStarted and UpdateDrawEnabled() or UpdateDrawEnergyEnabled()) then
+	-- Update camera scale when enabled
+	if UpdateDrawEnabled() or UpdateDrawEnergyEnabled() then
 		local cx, cy, cz = spGetCameraPosition()
 		local desc, w = spTraceScreenRay(screenx / 2, screeny / 2, true)
 		local cameraDist = 35000000
@@ -2757,62 +2895,13 @@ function widget:Update(dt)
 		end
 		cameraScale = sqrt(sqrt(cameraDist) / 600) --number is an "optimal" view distance
 	end
-	-- Before gamestart, we need to manually trigger reclaim field updates
-	-- But only do it once since features don't change until game starts
-	if not gameStarted and not initialClusteringDone then
-		preGameStartTimer = preGameStartTimer + dt
-		if preGameStartTimer >= preGameStartCheckInterval then
-			preGameStartTimer = 0
-			-- Increment artificial frame counter
-			artificialFrame = artificialFrame + checkFrequency
-			-- Call the update logic with our artificial frame
-			UpdateReclaimFields(artificialFrame)
-			-- Mark as done so we don't keep updating
-			initialClusteringDone = true
-		end
-	end
-end
-
-function widget:GameFrame(frame)
-	-- Mark that the game has started
-	gameStarted = true
-
-	-- Track GameFrame calls per second to detect catch-up (reconnection)
-	gameFrameCallCount = gameFrameCallCount + 1
-	local currentTime = Spring.GetTimer()
-	local elapsedSeconds = Spring.DiffTimers(currentTime, lastGameFrameTrackTime)
-
-	if elapsedSeconds >= 1.0 then
-		-- Update game frames per second
-		gameFramesPerSecond = gameFrameCallCount / elapsedSeconds
-		gameFrameCallCount = 0
-		lastGameFrameTrackTime = currentTime
-
-		-- Adjust checkFrequency based on game speed
-		-- During catch-up, gameFramesPerSecond can be 100+, so increase checkFrequency proportionally
-		-- Normal is 30fps, so if we're at 120fps during catch-up, multiply checkFrequency by 4
-		-- When back to normal speed (<=45fps), restore base frequency
-		if gameFramesPerSecond <= 45 then
-			-- Normal speed - no catch-up multiplier
-			catchUpMultiplier = 1
-		else
-			-- Catch-up mode - increase frequency proportionally to maintain same real-time update rate
-			catchUpMultiplier = math.min(gameFramesPerSecond / 30, 7)
-		end
-
-		-- Apply both multipliers (feature count and catch-up)
-		checkFrequency = math.ceil(baseCheckFrequency * featureCountMultiplier * catchUpMultiplier)
-
-	end
-
-	-- Use the extracted update logic
-	UpdateReclaimFields(frame)
 end
 
 function widget:FeatureCreated(featureID, allyTeamID)
 	-- Check if feature is near the camera view
 	local x, y, z = spGetFeaturePosition(featureID)
-	if x and deferOutOfViewUpdates and not IsPositionNearView(x, y, z) then
+	-- Pre-gamestart: process all features immediately to discover all metal fields
+	if x and gameStarted and deferOutOfViewUpdates and not IsPositionNearView(x, y, z) then
 		-- Defer processing for out-of-view features
 		deferredCreationCount = deferredCreationCount + 1
 		deferredFeatureCreations[deferredCreationCount] = featureID
@@ -2824,10 +2913,12 @@ function widget:FeatureCreated(featureID, allyTeamID)
 	pendingCreationCount = pendingCreationCount + 1
 	pendingFeatureCreations[pendingCreationCount] = featureID
 end
+
 function widget:FeatureDestroyed(featureID, allyTeamID)
 	-- Check if feature is near the camera view (use known position if available)
 	local feature = knownFeatures[featureID]
-	if feature and deferOutOfViewUpdates and not IsPositionNearView(feature.x, feature.y, feature.z) then
+	-- Pre-gamestart: process all features immediately to discover all metal fields
+	if feature and gameStarted and deferOutOfViewUpdates and not IsPositionNearView(feature.x, feature.y, feature.z) then
 		-- Defer processing for out-of-view features
 		deferredDestructionCount = deferredDestructionCount + 1
 		deferredFeatureDestructions[deferredDestructionCount] = featureID
@@ -2885,14 +2976,15 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 
 function widget:DrawWorld()
+	
 	-- Before gamestart, always show; after gamestart, check drawEnabled
 	if spIsGUIHidden() == true then
 		return
 	end
 
 	-- Determine if we should show metal and energy fields
-	local showMetal = not gameStarted or drawEnabled
-	local showEnergy = (not gameStarted or (showEnergyFields and UpdateDrawEnergyEnabled())) and not allEnergyFieldsDrained
+	local showMetal = drawEnabled
+	local showEnergy = showEnergyFields and UpdateDrawEnergyEnabled() and not allEnergyFieldsDrained
 
 	if not showMetal and not showEnergy then
 		return
@@ -2906,9 +2998,8 @@ function widget:DrawWorld()
 	-- Compute camera facing and clear tracked text positions when any text will be drawn
 	if showMetal or showEnergy then
 		cachedCameraFacing = math.atan2(-camUpVector[1], -camUpVector[3]) * (180 / math.pi)
-		for i = 1, #drawnTextPositions do
-			drawnTextPositions[i] = nil
-		end
+		-- Reset counter but keep allocated table entries for reuse
+		drawnTextPositionCount = 0
 	end
 
 	-- Draw metal text with culling and fading
@@ -2922,32 +3013,48 @@ function widget:DrawWorld()
 
 				if inView and fadeMult > 0.01 then
 					local center = cluster.center
-					local fontSize = cluster.font
+					
+					-- Additional screen-space check: is the text position actually on screen?
+					local sx, sy, sz = Spring.WorldToScreenCoords(center.x, center.y, center.z)
+					if sz and sz > 0 then -- sz > 0 means in front of camera
+						local vsx, vsy = Spring.GetViewGeometry()
+						local fontSize = cluster.font
+						-- Account for text width/height with margin based on font size
+						local margin = fontSize * 2 -- Approximate text width
+						 if sx >= -margin and sx <= vsx + margin and sy >= -margin and sy <= vsy + margin then							-- Check for overlap and adjust position if needed
+						 	local textX, textZ = center.x, center.z
+						 	local overlaps = WouldTextOverlap(textX, textZ, fontSize)
+						 	if overlaps then
+						 		textX, textZ = FindNonOverlappingPosition(textX, textZ, fontSize)
+						 	end
 
-					-- Check for overlap and adjust position if needed
-					local textX, textZ = center.x, center.z
-					local overlaps = WouldTextOverlap(textX, textZ, fontSize)
-					if overlaps then
-						textX, textZ = FindNonOverlappingPosition(textX, textZ, fontSize)
-					end
+						 	-- Track this text position (reuse existing table entry)
+							drawnTextPositionCount = drawnTextPositionCount + 1
+							local posEntry = drawnTextPositions[drawnTextPositionCount]
+							if posEntry then
+								posEntry.x = textX
+								posEntry.z = textZ
+								posEntry.fontSize = fontSize
+							else
+								drawnTextPositions[drawnTextPositionCount] = {x = textX, z = textZ, fontSize = fontSize}
+							end
 
-					-- Track this text position
-					drawnTextPositions[#drawnTextPositions + 1] = {x = textX, z = textZ, fontSize = fontSize}
+							-- Check if text display list needs updating
+							if TextDisplayListNeedsUpdate(clusterID, false, cachedCameraFacing, fadeMult) then
+								CreateClusterTextDisplayList(clusterID, false, cachedCameraFacing, fadeMult)
+							end
 
-					-- Check if text display list needs updating
-					if TextDisplayListNeedsUpdate(clusterID, false, cachedCameraFacing, fadeMult) then
-						CreateClusterTextDisplayList(clusterID, false, cachedCameraFacing, fadeMult)
-					end
-
-					-- Use display list for text rendering
-					local clusterData = clusterDisplayLists[clusterID]
-					if clusterData and clusterData.text then
-						glPushMatrix()
-						glTranslate(textX, center.y, textZ)
-						glRotate(-90, 1, 0, 0)
-						glRotate(cachedCameraFacing, 0, 0, 1)
-						glCallList(clusterData.text)
-						glPopMatrix()
+							-- Use display list for text rendering
+							local clusterData = clusterDisplayLists[clusterID]
+							if clusterData and clusterData.text then
+								glPushMatrix()
+								glTranslate(textX, center.y, textZ)
+								glRotate(-90, 1, 0, 0)
+								glRotate(cachedCameraFacing, 0, 0, 1)
+								glCallList(clusterData.text)
+								glPopMatrix()
+							end
+						 end
 					end
 				end
 			end
@@ -2964,32 +3071,46 @@ function widget:DrawWorld()
 
 				if inView and fadeMult > 0.01 then
 					local center = cluster.center
-					local fontSize = cluster.font * energyTextSizeMultiplier
+					
+					-- Additional screen-space check: is the text position actually on screen?
+					local sx, sy, sz = Spring.WorldToScreenCoords(center.x, center.y, center.z)
+					if sz and sz > 0 then -- sz > 0 means in front of camera
+						local vsx, vsy = Spring.GetViewGeometry()
+						local fontSize = cluster.font * energyTextSizeMultiplier
+						-- Account for text width/height with margin based on font size
+						local margin = fontSize * 2 -- Approximate text width
+					if sx >= -margin and sx <= vsx + margin and sy >= -margin and sy <= vsy + margin then							-- Check for overlap and adjust position if needed
+						local textX, textZ = center.x, center.z
+						local overlaps = WouldTextOverlap(textX, textZ, fontSize)
+						if overlaps then
+							textX, textZ = FindNonOverlappingPosition(textX, textZ, fontSize)
+						end
 
-					-- Check for overlap and adjust position if needed
-					local textX, textZ = center.x, center.z
-					local overlaps = WouldTextOverlap(textX, textZ, fontSize)
-					if overlaps then
-						textX, textZ = FindNonOverlappingPosition(textX, textZ, fontSize)
-					end
+						-- Track this text position (reuse existing table entry)
+						drawnTextPositionCount = drawnTextPositionCount + 1
+						local posEntry = drawnTextPositions[drawnTextPositionCount]
+						if posEntry then
+							posEntry.x = textX
+							posEntry.z = textZ
+							posEntry.fontSize = fontSize
+						else
+							drawnTextPositions[drawnTextPositionCount] = {x = textX, z = textZ, fontSize = fontSize}
+						end
 
-					-- Track this text position
-					drawnTextPositions[#drawnTextPositions + 1] = {x = textX, z = textZ, fontSize = fontSize}
-
-					-- Check if text display list needs updating
-					if TextDisplayListNeedsUpdate(clusterID, true, cachedCameraFacing, fadeMult) then
-						CreateClusterTextDisplayList(clusterID, true, cachedCameraFacing, fadeMult)
-					end
-
-					-- Use display list for text rendering
-					local clusterData = energyClusterDisplayLists[clusterID]
-					if clusterData and clusterData.text then
-						glPushMatrix()
-						glTranslate(textX, center.y, textZ)
-						glRotate(-90, 1, 0, 0)
-						glRotate(cachedCameraFacing, 0, 0, 1)
-						glCallList(clusterData.text)
-						glPopMatrix()
+						-- Check if text display list needs updating
+						if TextDisplayListNeedsUpdate(clusterID, true, cachedCameraFacing, fadeMult) then
+							CreateClusterTextDisplayList(clusterID, true, cachedCameraFacing, fadeMult)
+						end							-- Use display list for text rendering
+							local clusterData = energyClusterDisplayLists[clusterID]
+							if clusterData and clusterData.text then
+								glPushMatrix()
+								glTranslate(textX, center.y, textZ)
+								glRotate(-90, 1, 0, 0)
+								glRotate(cachedCameraFacing, 0, 0, 1)
+								glCallList(clusterData.text)
+								glPopMatrix()
+							end
+						end
 					end
 				end
 			end
@@ -3000,14 +3121,17 @@ function widget:DrawWorld()
 end
 
 function widget:DrawWorldPreUnit()
+
+	UpdateReclaimFields()
+
 	-- Before gamestart, always show; after gamestart, check drawEnabled
 	if spIsGUIHidden() == true then
 		return
 	end
 
 	-- Determine if we should show metal and energy fields
-	local showMetal = not gameStarted or drawEnabled
-	local showEnergy = (not gameStarted or (showEnergyFields and UpdateDrawEnergyEnabled())) and not allEnergyFieldsDrained
+	local showMetal = drawEnabled
+	local showEnergy = showEnergyFields and UpdateDrawEnergyEnabled() and not allEnergyFieldsDrained
 
 	if not showMetal and not showEnergy then
 		return
@@ -3055,12 +3179,7 @@ function widget:DrawWorldPreUnit()
 					if clusterData and clusterData.edge then
 						-- Apply opacity multiplier to metal edge color with fade
 						local r, g, b, a = reclaimEdgeColor[1], reclaimEdgeColor[2], reclaimEdgeColor[3], reclaimEdgeColor[4]
-						if not gameStarted then
-							-- Stack global pre-gamestart multiplier with metal-specific multiplier and fade
-							glColor(r, g, b, a * preGameStartOpacityMultiplier * preGameStartMetalOpacityMultiplier * cached.fadeMult)
-						else
-							glColor(r, g, b, a * cached.fadeMult)
-						end
+						glColor(r, g, b, a * cached.fadeMult)
 						glCallList(clusterData.edge)
 					end
 				end
@@ -3103,11 +3222,7 @@ function widget:DrawWorldPreUnit()
 					if clusterData and clusterData.edge then
 						-- Apply opacity multiplier to energy edge color with fade
 						local r, g, b, a = energyReclaimEdgeColor[1], energyReclaimEdgeColor[2], energyReclaimEdgeColor[3], energyReclaimEdgeColor[4]
-						local energyMultiplier = energyOpacityMultiplier
-						if not gameStarted then
-							energyMultiplier = energyMultiplier * preGameStartOpacityMultiplier
-						end
-						glColor(r, g, b, a * energyMultiplier * cached.fadeMult)
+						glColor(r, g, b, a * energyOpacityMultiplier * cached.fadeMult)
 						glCallList(clusterData.edge)
 					end
 				end

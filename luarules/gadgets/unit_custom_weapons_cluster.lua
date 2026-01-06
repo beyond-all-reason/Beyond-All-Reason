@@ -69,6 +69,8 @@ local spGetUnitPosition       = Spring.GetUnitPosition
 local spGetUnitRadius         = Spring.GetUnitRadius
 local spGetUnitTeam           = Spring.GetUnitTeam
 local spGetUnitsInSphere      = Spring.GetUnitsInSphere
+local spGetProjectileTeamID   = Spring.GetProjectileTeamID
+local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spSpawnProjectile       = Spring.SpawnProjectile
 local spDeleteProjectile      = Spring.DeleteProjectile
 
@@ -230,7 +232,8 @@ end
 local spawnCache  = {
 	pos     = { 0, 0, 0 },
 	speed   = { 0, 0, 0 },
-	owner   = 0,
+	owner   = -1,
+	team    = -1,
 	ttl     = defaultSpawnTtl,
 	gravity = mapGravity,
 }
@@ -403,12 +406,13 @@ local function getNearShields(x, y, z, scatterDistance)
 end
 
 local function inheritMomentum(projectileID)
-	local vx, vy, vz, vw = Spring.GetProjectileVelocity(projectileID)
+	local vx, vy, vz, vw = spGetProjectileVelocity(projectileID)
 	-- Apply major loss from scattering (~50%) and reduce hyperspeeds (1 is convenient).
 	local scale = 0.5 / max(vw, 1)
 	return vx * scale, vy * scale, vz * scale
 end
 
+---@param attackerID integer? _Can_ be nil. See CLuaHandle::Explosion.
 local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 	attackerID = attackerID or -1 -- :Explosion might not provide this value
 
@@ -416,6 +420,14 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 	local projectileCount = data.number
 	local projectileSpeed = data.weaponSpeed
 	local subframeScatter = gameSpeed * 0.33
+	local randomness = 1 / sqrt(projectileCount - 2) + 0.1
+
+	local params = spawnCache
+	params.owner = attackerID or -1
+	params.team = spGetProjectileTeamID(projectileID) or (attackerID and spGetUnitTeam(attackerID)) or -1
+	params.ttl = data.weaponTtl
+	local speed = params.speed
+	local position = params.pos
 
 	local deflectX, deflectY, deflectZ = getSurfaceDeflection(x, y, z)
 

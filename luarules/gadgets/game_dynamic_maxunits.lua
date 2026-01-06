@@ -25,7 +25,7 @@ end
 	Dynamic Maxunits Redistribution
 
 	This gadget takes control of maxunits redistribution using the engine's Spring.TransferTeamMaxUnits API.
-	The total engine limit is 32768, with 500 reserved for Gaia.
+	The total engine limit is 32000, we will reserve 500 for Gaia.
 
 	Configuration:
 	- maxunits: per-team limit from Spring.GetModOptions().maxunits (default 2000)
@@ -50,17 +50,25 @@ end
 	- If no teammates alive, redistributes to all alive enemy teams
 	- Always respects the per-team maxunits limit
 	- Gaia and Scavenger/Raptor teams never receive or donate maxunits on team death
+
+	When a Team Becomes Alive Again (Player Rejoins):
+	- Detects when a previously dead team becomes alive (player reconnects)
+	- Takes back maxunits from alive teammates proportionally
+	- Aims to restore the rejoining team to the standard maxunits limit
+	- Ensures fair distribution within the allyteam
 ]]--
 
 local maxunits = tonumber(Spring.GetModOptions().maxunits) or 2000
-local engineLimit = 32768
+local engineLimit = 32000
 local gaiaLimit = 500
 local scavengerRaptorLimit = 3500  -- Minimum maxunits for Scavenger/Raptor teams
 local equalizationFactor = 0.25  -- How much to equalize (0 = no equalization, 1 = full equalization). 0.25 means go 25% of the way toward equal allyteam totals
 
 local mathFloor = math.floor
 local mathMin = math.min
-local mathMax = math.max
+
+-- Store the calculated target maxunits for each allyteam during initialization
+local allyTeamTargetMaxUnits = {}
 
 -- Check if a team is a Scavenger or Raptor AI team
 local function isScavengerOrRaptor(teamID)
@@ -127,6 +135,11 @@ function gadget:Initialize()
 
 	-- Calculate remaining units for regular teams
 	local remainingMaxUnits = totalMaxUnits - scavRaptorAllocation
+	
+	-- Cap the remaining pool based on the modoption maxunits limit
+	-- This ensures we don't distribute more than intended per team
+	local cappedRemainingMaxUnits = mathMin(remainingMaxUnits, totalRegularTeams * maxunits)
+	remainingMaxUnits = cappedRemainingMaxUnits
 
 	-- Build map of regular teams by allyteam for equalization (exclude allyteams with only scav/raptor)
 	local regularAllyTeamSizes = {}
@@ -173,6 +186,9 @@ function gadget:Initialize()
 			-- Cap at modoption maxunits limit
 			adjustedShare = mathMin(adjustedShare, maxunits)
 
+			-- Store the target for this allyteam so we can reuse it when teams rejoin
+			allyTeamTargetMaxUnits[allyID] = adjustedShare
+
 			for _, teamID in ipairs(teams) do
 				local currentMaxUnits = Spring.GetTeamMaxUnits(teamID)
 				adjustments[teamID] = {
@@ -184,44 +200,87 @@ function gadget:Initialize()
 		end
 	end
 
-	-- Perform transfers: Strategy is to transfer all units to Gaia first, then redistribute
+	-- Perform transfers: Strategy is to collect ALL maxunits into a pool, then redistribute
 	-- This ensures we have a clean slate and can properly allocate according to our targets
-	
-	-- Step 1: Collect all maxunits from all teams (except Gaia) into Gaia
+
+	-- Step 1: Collect all maxunits from ALL teams (including Gaia) into a central pool
+	-- We'll use a dummy team to hold everything temporarily, then redistribute
+	-- Build a sorted list of team IDs to ensure consistent ordering
+	local sortedTeamIDs = {}
+	for teamID, _ in pairs(adjustments) do
+		sortedTeamIDs[#sortedTeamIDs + 1] = teamID
+	end
+	table.sort(sortedTeamIDs)
+
+	-- First collect from Gaia to get the full pool
+	local gaiaInitial = Spring.GetTeamMaxUnits(gaiaTeamID)
+	local totalAvailable = gaiaInitial
+
+	-- Then collect from all player teams
 	local totalCollected = 0
-	for teamID, adj in pairs(adjustments) do
+	for _, teamID in ipairs(sortedTeamIDs) do
 		local currentMaxUnits = Spring.GetTeamMaxUnits(teamID)
 		if currentMaxUnits > 0 then
 			Spring.TransferTeamMaxUnits(teamID, gaiaTeamID, currentMaxUnits)
 			totalCollected = totalCollected + currentMaxUnits
 		end
 	end
-	
-	-- Step 2: Distribute from Gaia according to targets (Scav/Raptor first, then regular teams)
-	-- Distribute to Scav/Raptor teams first (they have priority)
-	for _, teamID in ipairs(scavengerRaptorTeams) do
+	totalAvailable = totalAvailable + totalCollected
+
+	-- Step 2: Distribute from Gaia according to targets (distribute to ALL teams in adjustments)
+	for _, teamID in ipairs(sortedTeamIDs) do
 		local adj = adjustments[teamID]
 		if adj.target > 0 then
 			Spring.TransferTeamMaxUnits(gaiaTeamID, teamID, adj.target)
 		end
 	end
-	
-	-- Distribute to regular teams
-	for allyID, teams in pairs(regularAllyTeamTeams) do
-		for _, teamID in ipairs(teams) do
-			local adj = adjustments[teamID]
-			if adj.target > 0 then
-				Spring.TransferTeamMaxUnits(gaiaTeamID, teamID, adj.target)
-			end
-		end
-	end
 
-	-- Set Gaia to exactly their defined limit (should have all the leftover now)
+	-- Set Gaia to exactly their defined limit from the total pool
 	local gaiaCurrentMax = Spring.GetTeamMaxUnits(gaiaTeamID)
 	local gaiaExpected = gaiaLimit
-	
-	if gaiaCurrentMax ~= gaiaExpected then
-		if gaiaCurrentMax > gaiaExpected then
+
+	if gaiaCurrentMax < gaiaExpected then
+		-- Gaia needs more, take from regular teams proportionally
+		local gaiaNeeds = gaiaExpected - gaiaCurrentMax
+		local regularTeams = {}
+		for _, teams in pairs(allyTeamTeams) do
+			for _, teamID in ipairs(teams) do
+				if not isScavengerOrRaptor(teamID) then
+					regularTeams[#regularTeams + 1] = teamID
+				end
+			end
+		end
+		table.sort(regularTeams)
+
+		if #regularTeams > 0 then
+			local perTeam = mathFloor(gaiaNeeds / #regularTeams)
+			local remaining = gaiaNeeds
+
+			for _, teamID in ipairs(regularTeams) do
+				if remaining > 0 then
+					local takeAmount = mathMin(perTeam, remaining, Spring.GetTeamMaxUnits(teamID))
+					if takeAmount > 0 then
+						Spring.TransferTeamMaxUnits(teamID, gaiaTeamID, takeAmount)
+						remaining = remaining - takeAmount
+					end
+				end
+			end
+
+			-- Take any remaining one by one
+			if remaining > 0 then
+				for _, teamID in ipairs(regularTeams) do
+					if remaining <= 0 then
+						break
+					end
+					local currentMax = Spring.GetTeamMaxUnits(teamID)
+					if currentMax > 0 then
+						Spring.TransferTeamMaxUnits(teamID, gaiaTeamID, 1)
+						remaining = remaining - 1
+					end
+				end
+			end
+		end
+	elseif gaiaCurrentMax > gaiaExpected then
 			-- Transfer excess from Gaia fairly to all alive regular (non-scav/raptor) teams
 			local gaiaExcess = gaiaCurrentMax - gaiaExpected
 			local regularTeams = {}
@@ -232,32 +291,39 @@ function gadget:Initialize()
 					end
 				end
 			end
+			-- Sort to ensure consistent ordering
+			table.sort(regularTeams)
 
 			if #regularTeams > 0 then
 				local perTeam = mathFloor(gaiaExcess / #regularTeams)
 				local remaining = gaiaExcess
 
-				-- Give each team their fair share
+				-- Give each team their fair share (respecting maxunits cap)
 				for _, teamID in ipairs(regularTeams) do
 					if remaining > 0 then
-						local transferAmount = mathMin(perTeam, remaining)
-						Spring.TransferTeamMaxUnits(gaiaTeamID, teamID, transferAmount)
-						remaining = remaining - transferAmount
+						local currentMaxUnits = Spring.GetTeamMaxUnits(teamID)
+						local transferAmount = mathMin(perTeam, remaining, maxunits - currentMaxUnits)
+						if transferAmount > 0 then
+							Spring.TransferTeamMaxUnits(gaiaTeamID, teamID, transferAmount)
+							remaining = remaining - transferAmount
+						end
 					end
 				end
 
-				-- Distribute any leftover from rounding
+				-- Distribute any leftover from rounding (respecting maxunits cap)
 				if remaining > 0 then
 					for _, teamID in ipairs(regularTeams) do
 						if remaining <= 0 then
 							break
 						end
-					Spring.TransferTeamMaxUnits(gaiaTeamID, teamID, 1)
-					remaining = remaining - 1
+						local currentMaxUnits = Spring.GetTeamMaxUnits(teamID)
+						if currentMaxUnits < maxunits then
+							Spring.TransferTeamMaxUnits(gaiaTeamID, teamID, 1)
+							remaining = remaining - 1
+						end
+					end
 				end
 			end
-			end
-		end
 	end
 end
 
@@ -276,14 +342,14 @@ function gadget:TeamDied(teamID)
 	local teams = Spring.GetTeamList(allyID)
 	local aliveTeams = 0
 	for i = 1, #teams do
-		if teams[i] ~= teamID and teams[i] ~= gaiaTeamID and not isScavengerOrRaptor(teams[i]) and not select(2, Spring.GetTeamInfo(teams[i], false)) then	-- not dead, not gaia, not scav/raptor
+		if teams[i] ~= teamID and teams[i] ~= gaiaTeamID and not isScavengerOrRaptor(teams[i]) and not select(3, Spring.GetTeamInfo(teams[i], false)) then	-- not dead, not gaia, not scav/raptor
 			aliveTeams = aliveTeams + 1
 		end
 	end
 
 	if aliveTeams > 0 then
 		for i = 1, #teams do
-			if teams[i] ~= teamID and teams[i] ~= gaiaTeamID and not isScavengerOrRaptor(teams[i]) and not select(2, Spring.GetTeamInfo(teams[i], false)) then	-- not dead, not gaia, not scav/raptor
+			if teams[i] ~= teamID and teams[i] ~= gaiaTeamID and not isScavengerOrRaptor(teams[i]) and not select(3, Spring.GetTeamInfo(teams[i], false)) then	-- not dead, not gaia, not scav/raptor
 				local targetTeamID = teams[i]
 				local currentMaxUnits = Spring.GetTeamMaxUnits(targetTeamID)
 				local portionSize = mathFloor(redistributionAmount / aliveTeams)
@@ -302,14 +368,14 @@ function gadget:TeamDied(teamID)
 		teams = Spring.GetTeamList()
 		aliveTeams = 0
 		for i = 1, #teams do
-			if teams[i] ~= teamID and teams[i] ~= gaiaTeamID and not isScavengerOrRaptor(teams[i]) and not select(2, Spring.GetTeamInfo(teams[i], false)) then	-- not dead, not gaia, not scav/raptor
+			if teams[i] ~= teamID and teams[i] ~= gaiaTeamID and not isScavengerOrRaptor(teams[i]) and not select(3, Spring.GetTeamInfo(teams[i], false)) then	-- not dead, not gaia, not scav/raptor
 				aliveTeams = aliveTeams + 1
 			end
 		end
 
 		if aliveTeams > 0 then
 			for i = 1, #teams do
-				if teams[i] ~= teamID and teams[i] ~= gaiaTeamID and not isScavengerOrRaptor(teams[i]) and not select(2, Spring.GetTeamInfo(teams[i], false)) then	-- not dead, not gaia, not scav/raptor
+				if teams[i] ~= teamID and teams[i] ~= gaiaTeamID and not isScavengerOrRaptor(teams[i]) and not select(3, Spring.GetTeamInfo(teams[i], false)) then	-- not dead, not gaia, not scav/raptor
 					local targetTeamID = teams[i]
 					local currentMaxUnits = Spring.GetTeamMaxUnits(targetTeamID)
 					local portionSize = mathFloor(redistributionAmount / aliveTeams)
@@ -322,5 +388,79 @@ function gadget:TeamDied(teamID)
 				end
 			end
 		end
+	end
+end
+
+function gadget:TeamChanged(teamID)
+	local gaiaTeamID = Spring.GetGaiaTeamID()
+	
+	-- Don't handle Gaia or Scavenger/Raptor teams
+	if teamID == gaiaTeamID or isScavengerOrRaptor(teamID) then
+		return
+	end
+
+	local _, _, isDead = Spring.GetTeamInfo(teamID, false)
+	
+	-- If team is now alive (player rejoined), redistribute unit limits within allyteam
+	if not isDead then
+		local allyID = select(6, Spring.GetTeamInfo(teamID, false))
+		local currentMaxUnits = Spring.GetTeamMaxUnits(teamID)
+		
+		-- Get the target maxunits for this allyteam (calculated during initialization)
+		local targetMaxUnits = allyTeamTargetMaxUnits[allyID]
+		if not targetMaxUnits then
+			-- Fallback to maxunits if not initialized (shouldn't happen in normal gameplay)
+			targetMaxUnits = maxunits
+		end
+		
+		-- Get all alive teams in the allyteam (including the one that just rejoined)
+		local teams = Spring.GetTeamList(allyID)
+		local aliveTeams = {}
+		for i = 1, #teams do
+			if teams[i] ~= gaiaTeamID and not isScavengerOrRaptor(teams[i]) and not select(3, Spring.GetTeamInfo(teams[i], false)) then
+				aliveTeams[#aliveTeams + 1] = teams[i]
+			end
+		end
+		
+		if #aliveTeams == 0 then
+			return
+		end
+		
+		-- Collect all maxunits from the allyteam into a pool
+		local totalPool = 0
+		for i = 1, #aliveTeams do
+			local teamMaxUnits = Spring.GetTeamMaxUnits(aliveTeams[i])
+			totalPool = totalPool + teamMaxUnits
+		end
+		
+		-- Calculate how much each team should get (the target)
+		local perTeamTarget = targetMaxUnits
+		local totalNeeded = perTeamTarget * #aliveTeams
+		
+		-- If we don't have enough in the pool, distribute what we have evenly
+		if totalPool < totalNeeded then
+			perTeamTarget = mathFloor(totalPool / #aliveTeams)
+		end
+		
+		-- Collect everything into the first team as a temporary pool
+		local poolTeamID = aliveTeams[1]
+		for i = 2, #aliveTeams do
+			local donorID = aliveTeams[i]
+			local donorAmount = Spring.GetTeamMaxUnits(donorID)
+			if donorAmount > 0 then
+				Spring.TransferTeamMaxUnits(donorID, poolTeamID, donorAmount)
+			end
+		end
+		
+		-- Redistribute evenly to all teams
+		for i = 1, #aliveTeams do
+			local targetID = aliveTeams[i]
+			if targetID ~= poolTeamID then
+				Spring.TransferTeamMaxUnits(poolTeamID, targetID, perTeamTarget)
+			end
+		end
+		
+		-- Give the pool team its share (whatever is left, should be perTeamTarget)
+		-- No action needed as it already has the remainder
 	end
 end
