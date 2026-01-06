@@ -147,7 +147,7 @@ local readAs = { read = -1 }
 
 local function readAsTeam(teamID, ...)
 	local read = readAs
-	read.read = teamID -- nil is OK
+	read.read = teamID or -1
 	return CallAsTeam(read, ...)
 end
 
@@ -155,9 +155,9 @@ end
 ---@return number? targetY
 ---@return number? targetZ
 local function getTargetPositionWithError(projectileID)
-	local target, targetType = spGetProjectileTarget(projectileID)
+	local targetType, target = spGetProjectileTarget(projectileID)
 	if targetType == targetedUnit then
-		local teamID = spGetProjectileTeamID(projectileID)
+		local teamID = spGetProjectileTeamID(projectileID) or spGetProjectileTeamID(spGetProjectileOwnerID(projectileID) or -1)
 		local _, _, _, targetX, targetY, targetZ = readAsTeam(teamID, spGetUnitPosition, target, false, true)
 		return targetX, targetY, targetZ -- unit aim position
 	elseif targetType == targetedGround then
@@ -165,7 +165,7 @@ local function getTargetPositionWithError(projectileID)
 	end
 end
 
----Translate between TargetType enum and byte-integer target types (why are there two?)
+---Translates TargetType integers to the ProjectileTargetType byte-integers needed in SetProjectileTarget.
 ---@param projectileID integer
 ---@param target integer|xyz?
 ---@param targetType TargetType
