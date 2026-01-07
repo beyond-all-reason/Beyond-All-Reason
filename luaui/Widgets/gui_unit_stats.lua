@@ -675,7 +675,7 @@ local function drawStats(uDefID, uID)
 			-- Draw the damage and damage modifiers strings.
 			if string.find(uWep.name, "disintegrator") then
 				DrawText(texts.dmg..": ", texts.infinite)
-			elseif not uWep.customParams.bogus then
+			elseif baseArmorDamage > 0 and not uWep.customParams.bogus then
 				local damageString = ""
 				local burstDamage = baseArmorDamage * burst
 				if wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
