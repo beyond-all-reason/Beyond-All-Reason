@@ -56,7 +56,7 @@ local function shouldShowWaterUnits()
 	local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
 
 	-- water level shifted, done too late by another gadget for this file to read w/ get ground
-	local moddedWaterLevel = Spring.GetModOption("map_waterlevel")
+	local moddedWaterLevel = Spring.GetModOption("map_waterlevel") or 0
 	mapMinWater = mapMinWater - moddedWaterLevel
 
 	return mapMinWater <= -11 -- units.minWaterUnitDepth
