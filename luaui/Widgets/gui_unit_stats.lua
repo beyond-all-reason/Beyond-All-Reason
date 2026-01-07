@@ -276,6 +276,8 @@ function widget:Initialize()
 
 	widgetHandler:AddAction("unit_stats", enableStats, nil, "p")
 	widgetHandler:AddAction("unit_stats", disableStats, nil, "r")
+
+	spTraceScreenRay = Spring.TraceScreenRay -- fix for monkey-patching
 end
 
 function widget:Shutdown()
