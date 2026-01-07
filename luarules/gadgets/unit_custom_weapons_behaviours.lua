@@ -282,11 +282,10 @@ local function cruiseWaiting(params, projectileID)
 		if not targetX or distance * distance < distance3dSquared(positionX, positionY, positionZ, targetX, targetY, targetZ) then
 			local elevation = math_max(spGetGroundHeight(positionX, positionZ), 0)
 			local cruiseHeight = elevation + params.cruise_min_height
-			local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
 			-- Follow the ground when it slopes away, but not over steep drops, e.g. sheer cliffs.
 			if positionY < cruiseHeight then
 				projectiles[projectileID] = cruiseEngagedDefs[spGetProjectileDefID(projectileID)]
-				return applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
+				return applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, spGetProjectileVelocity(projectileID))
 			end
 			return false
 		end
