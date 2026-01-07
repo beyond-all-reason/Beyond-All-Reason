@@ -16,12 +16,12 @@ local triggers = {
 		actions = { 'spawnConBots', 'moveConBots' },
 	},
 
-	at150spawnFusions = {
+	at1200spawnFusions = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 150,
+			gameFrame = 1200,
 		},
-		actions = { 'spawnFusions' },
+		actions = { 'spawnFusions', 'nameFusions' },
 	},
 
 	at200killConBots = {
@@ -64,10 +64,18 @@ local triggers = {
 		actions = { 'transferConBotsToPlayer', 'messageBotsToPlayer' },
 	},
 
-	at1300gameEnd = {
+	at1300despawnFusions = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			gameFrame = 1300,
+		},
+		actions = { 'despawnFusionsReclaimed', 'messageFusionsReclaimed' },
+	},
+
+	at1400gameEnd = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 1400,
 		},
 		actions = { 'gameEnd' },
 	},
@@ -94,6 +102,16 @@ local actions = {
 			position = { x = 1900, z = 2200 },
 			quantity = 18,
 			facing = 'e',
+		},
+	},
+
+	nameFusions = {
+		type = actionTypes.NameUnits,
+		parameters = {
+			name = 'fusions',
+			teamID = 0,
+			unitDefName = 'armfus',
+			rectangle = { x1 = 0, z1 = 0, x2 = 999999, z2 = 2200 },
 		},
 	},
 
@@ -153,6 +171,22 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "These just vanish...",
+		},
+	},
+
+	despawnFusionsReclaimed = {
+		type = actionTypes.DespawnUnits,
+		parameters = {
+			name = 'fusions',
+			selfDestruct = false,
+			reclaimed = true
+		},
+	},
+
+	messageFusionsReclaimed = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Did we pick the right fusions to remove?",
 		},
 	},
 

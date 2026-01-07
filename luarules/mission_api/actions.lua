@@ -33,8 +33,15 @@ local function generateGridPositions(center, quantity, xSpacing, zSpacing)
 	return positions
 end
 
+local function trackUnit(name, unitID)
+	if name and unitID and not trackedUnits[unitID] then
+		if not trackedUnits[name] then trackedUnits[name] = {} end
+		trackedUnits[name][#trackedUnits[name] + 1] = unitID
+		trackedUnits[unitID] = name
+	end
+end
+
 local function spawnUnits(name, unitDefName, teamID, position, quantity, facing, construction)
-	if name and not trackedUnits[name] then trackedUnits[name] = {} end
 
 	local unitDef = UnitDefs[UnitDefNames[unitDefName].id]
 	local xsize = unitDef.xsize * Game.squareSize
@@ -50,22 +57,18 @@ local function spawnUnits(name, unitDefName, teamID, position, quantity, facing,
 	for _, pos in pairs(positions) do
 		pos.y = Spring.GetGroundHeight(pos.x, pos.z)
 		local unitID = Spring.CreateUnit(unitDefName, pos.x, pos.y, pos.z, facing or 's', teamID, construction)
-		if unitID and name then
-			trackedUnits[name][#trackedUnits[name] + 1] = unitID
-			trackedUnits[unitID] = name
-		end
+		trackUnit(name, unitID)
 	end
 end
 
 ----------------------------------------------------------------
 
 local function despawnUnits(name, selfDestruct, reclaimed)
-    local unitIDs = trackedUnits[name]
+    local unitIDs = table.copy(trackedUnits[name])
 	local quantity = #unitIDs
 	for i = quantity, 1, -1 do
 		Spring.DestroyUnit(unitIDs[i], selfDestruct, reclaimed)
 	end
-	trackedUnits[name] = nil
 end
 
 ----------------------------------------------------------------
@@ -74,6 +77,45 @@ local function transferUnits(name, newTeam, given)
 	for _, unitID in pairs(trackedUnits[name]) do
 		Spring.TransferUnit(unitID, newTeam, given)
 	end
+end
+
+local function nameUnits(name, teamID, unitDefName, rectangle)
+
+	if name and not trackedUnits[name] then trackedUnits[name] = {} end
+
+	local unitsFromTeam = {}
+	if teamID then
+		if unitDefName then
+			local unitDefID = UnitDefs[UnitDefNames[unitDefName].id].id
+			unitsFromTeam = Spring.GetTeamUnitsByDefs(teamID, unitDefID)
+		else
+			unitsFromTeam = Spring.GetTeamUnits(teamID)
+		end
+	end
+
+	local unitsToName = {}
+	if rectangle then
+		local unitsInRectangle = Spring.GetUnitsInRectangle(rectangle.x1, rectangle.z1, rectangle.x2, rectangle.z2, teamID)
+
+		-- calculate the union of unitsFromTeam and unitsInRectangle:
+		local rectSet = {}
+		for _, unitID in ipairs(unitsInRectangle) do
+			rectSet[unitID] = true
+		end
+		for _, unitID in ipairs(unitsFromTeam) do
+			if rectSet[unitID] then unitsToName[#unitsToName+1] = unitID
+			end
+		end
+	else
+		unitsToName = unitsFromTeam
+	end
+
+	for _, unitID in pairs(unitsToName) do
+		trackUnit(name, unitID)
+	end
+
+	Spring.Log(gadget:GetInfo().name, LOG.WARNING, "nameUnits "..table.toString(trackedUnits))
+
 end
 
 local function spawnExplosion(position, direction, params)
@@ -117,6 +159,7 @@ return {
 	SpawnUnits = spawnUnits,
 	DespawnUnits = despawnUnits,
 	TransferUnits = transferUnits,
+	NameUnits = nameUnits,
 
 	-- SFX
 	SpawnExplosion = spawnExplosion,
