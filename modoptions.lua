@@ -1549,7 +1549,7 @@ local options = {
             unlock = {"community_balance_commando", "community_balance_cortermite", "community_balance_armwar", "community_balance_armfast", "community_balance_corjamt"} },
         }
     },
-    
+
     {
         key     = "community_balance_patch_changelog_link",
         name    = "Changelog",
@@ -2169,7 +2169,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
         max		= 10000,
         step	= 1,
     },
-    
+
     {
         key		= "startmetalstorage",
         name	= "Starting Metal Storage",
@@ -2478,7 +2478,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-for i = 1, 9 do
+for i = 1, 29 do
     options[#options + 1] = {
         key     = "tweakunits" .. i,
         name    = "Tweak Units " .. i,
@@ -2490,7 +2490,7 @@ for i = 1, 9 do
     }
 end
 
-for i = 1, 9 do
+for i = 1, 29 do
     options[#options + 1] = {
         key     = "tweakdefs" .. i,
         name    = "Tweak Defs " .. i,
