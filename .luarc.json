@@ -20,5 +20,6 @@
       "luaui/Tests",
       "luaui/TestsExamples"
     ]
-  }
+  },
+    "diagnostics.workspaceDelay": -1
 }
