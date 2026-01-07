@@ -41,6 +41,7 @@ return {
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
+			continuous_aim_time = 0.07,
 		},
 		featuredefs = {
 			dead = {
