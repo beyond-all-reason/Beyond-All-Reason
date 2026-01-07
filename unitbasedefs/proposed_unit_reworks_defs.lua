@@ -25,7 +25,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	or name == "legaap" or name == "legalab" or name == "legadvshipyard" or name == "legavp"
 	then
 		uDef.metalcost = uDef.metalcost - 300
-		uDef.buildtime = uDef.buildtime * 1.5
+		uDef.buildtime = math.ceil(uDef.buildtime * 1.5 / 1000) * 1000
 		uDef.workertime = 600
 	end
 	if name == "coravp"	then --makes corveh same metalcost as other t2 land facs
@@ -58,6 +58,12 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.metalcost = 3350
 		uDef.energycost = 18000
 		uDef.buildtime = 54000
+		uDef.health = math.ceil(uDef.health * 0.85 / 100) * 100
+	end
+
+		if name == "armdf" then
+		uDef.metalcost = 270
+		uDef.health = 3800
 	end
 
 	if name == "corfus" then
@@ -65,6 +71,8 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.metalcost = 3600
 		uDef.energycost = 22000
 		uDef.buildtime = 59000
+		uDef.health = math.ceil(uDef.health * 0.85 / 100) * 100
+
 	end
 
 	if name == "legfus" then
@@ -72,6 +80,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.metalcost = 4000
 		uDef.energycost = 25000
 		uDef.buildtime = 66000
+		uDef.health = math.ceil(uDef.health * 0.85 / 100) * 100
 	end
 
 	if name == "armckfus" then
@@ -80,15 +89,16 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.energycost = 22000
 		uDef.buildtime = 65000
 		uDef.cloakcost = 75
+		uDef.health = math.ceil(uDef.health * 0.85 / 100) * 100
 	end
 
-	--if name == "armmoho" or name == "armuwmme"
-	--or name == "cormoho" or name == "coruwmme"
-	--then
-		--uDef.metalcost = math.ceil(uDef.metalcost * 0.12) * 10
-	--	uDef.energycost = math.ceil(uDef.energycost * 0.012) * 100
-	--	uDef.buildtime = math.ceil(uDef.buildtime * 0.0012) * 1000 
-	--end
+	if name == "armaca" or name == "armacv" or name == "armack" or name == "armacsub"
+	or name == "coraca" or name == "coracv" or name == "corack" or name == "coracsub"
+	or name == "legaca" or name == "legacv" or name == "legack" or name == "legacsub" then
+		uDef.workertime = math.ceil(uDef.workertime * 1.15 / 10) * 10
+	end
+
+	
 
 	if name == "armamsub" or name == "coramsub" or name == "legamphlab" then
 		uDef.workertime = 300
@@ -109,6 +119,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	if name == "armfboy" then
 		uDef.weapondefs.arm_fatboy_notalaser.edgeeffectiveness = 0.15
 		uDef.weapondefs.arm_fatboy_notalaser.areaofeffect = 300
+		uDef.weapondefs.arm_fatboy_notalaser.reloadtime = 7
 		uDef.energycost = 15000
 	end
 	--if name == "armmart" then
@@ -176,6 +187,17 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 	if name == "armbull" then
 		uDef.speed = 62
+	end
+
+	if name == "armblade" then
+		uDef.weapondefs.vtol_sabot.tracks = true
+	end
+	if name == "armthund" then
+		uDef.speed = 250
+		uDef.weapondefs.armbomb.sprayangle = nil
+	end
+	if name == "corshad" then
+		uDef.weapondefs.corbomb.sprayangle = nil
 	end
 
 	return uDef
