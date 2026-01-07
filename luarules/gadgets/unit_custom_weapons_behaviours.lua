@@ -19,6 +19,7 @@ end
 --------------------------------------------------------------------------------
 -- Localization ----------------------------------------------------------------
 
+local math_clamp = math.clamp
 local math_max = math.max
 local math_random = math.random
 local math_cos = math.cos
