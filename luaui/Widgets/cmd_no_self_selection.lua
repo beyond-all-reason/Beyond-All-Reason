@@ -150,7 +150,7 @@ function widget:ActiveCommandChanged(cmdid, type)
 			restoreSelectionVolume(selectedUnitID)
 		end
 		inActiveCommand = true
-	elseif inActiveCommand then
+	elseif inActiveCommand and not cmdid then
 		inActiveCommand = false
 		if selectedUnitID then
 			removeSelectionVolume(selectedUnitID)
