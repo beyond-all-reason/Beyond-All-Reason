@@ -163,7 +163,7 @@ return {
 					spawns_expire = 10,
 				},
 				damage = {
-					commanders = 330,
+					commanders = 220,
 					default = 440,
 				},
 			},

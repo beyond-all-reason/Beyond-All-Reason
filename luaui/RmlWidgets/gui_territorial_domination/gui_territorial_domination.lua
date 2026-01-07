@@ -53,9 +53,6 @@ local TIME_ZERO_STRING = "0:00"
 local KEY_ESCAPE = 27
 local AESTHETIC_POINTS_MULTIPLIER = 2 -- because bigger number feels good, and to help destinguish points from territory counts in round 1.
 
-local DEFAULT_PANEL_HEIGHT = 240
-local LEADERBOARD_GAP_BASE = 75
-
 local COLOR_BACKGROUND_ALPHA = 35
 local COLOR_BYTE_MAX = 255
 local DEFAULT_TEAM_COLOR = 0.5
@@ -106,7 +103,7 @@ local initialModel = {
 	roundEndTime = 0,
 	maxRounds = 0,
 	pointsCap = 0,
-	prevHighestScore = 0,
+	eliminationThreshold = 0,
 	timeRemaining = TIME_ZERO_STRING,
 	roundDisplayText = spI18N('ui.territorialDomination.round.displayDefault', { maxRounds = DEFAULT_MAX_ROUNDS }),
 	timeRemainingSeconds = 0,
@@ -125,6 +122,25 @@ local initialModel = {
 	isFinalRound = false,
 	leaderboardTeams = {},
 }
+
+-- TODO: THIS IS A TEMPORARY HACK FOR ENGLISH ORDINALS - REPLACE WITH PROPER I18N ORDINAL SUPPORT ASAP
+-- This was only added so that there wouldn't be ugly player facing equivalents for placement.
+local function getEnglishOrdinal(number)
+	local lastTwoDigits = number % 100
+	local lastDigit = number % 10
+
+	if lastTwoDigits >= 11 and lastTwoDigits <= 13 then
+		return tostring(number) .. "th"
+	elseif lastDigit == 1 then
+		return tostring(number) .. "st"
+	elseif lastDigit == 2 then
+		return tostring(number) .. "nd"
+	elseif lastDigit == 3 then
+		return tostring(number) .. "rd"
+	else
+		return tostring(number) .. "th"
+	end
+end
 
 local function getAIName(teamID)
 	local _, _, _, name, _, options = spGetAIInfo(teamID)
@@ -363,7 +379,7 @@ local function updateLeaderboard()
 	if not allyTeams or #allyTeams == 0 then return end
 	
 	local dataModel = widgetState.dmHandle
-	local eliminationThreshold = spGetGameRulesParam("territorialDominationPrevHighestScore") or 0
+	local eliminationThreshold = spGetGameRulesParam("territorialDominationEliminationThreshold") or 0
 	
 	local livingTeams = {}
 	local eliminatedTeams = {}
@@ -632,9 +648,9 @@ local function getSelectedPlayerTeam()
 	if not teamList or #teamList < MIN_TEAM_LIST_SIZE then return nil end
 	
 	local firstTeamID = teamList[1]
-	local score = spGetTeamRulesParam(firstTeamID, "territorialDominationScore") or 0
-	local projectedPoints = spGetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0
-	local territoryCount = spGetTeamRulesParam(firstTeamID, "territorialDominationTerritoryCount") or 0
+	local score = spGetGameRulesParam("territorialDomination_ally_" .. myAllyTeamID .. "_score") or 0
+	local projectedPoints = spGetGameRulesParam("territorialDomination_ally_" .. myAllyTeamID .. "_projectedPoints") or 0
+	local territoryCount = spGetGameRulesParam("territorialDomination_ally_" .. myAllyTeamID .. "_territoryCount") or 0
 
 	return {
 		name = getAllyTeamPlayerNames(myAllyTeamID),
@@ -644,7 +660,7 @@ local function getSelectedPlayerTeam()
 		projectedPoints = projectedPoints,
 		territoryCount = territoryCount,
 		color = getAllyTeamColor(myAllyTeamID),
-		rank = spGetTeamRulesParam(firstTeamID, "territorialDominationDisplayRank") or 1,
+		rank = spGetGameRulesParam("territorialDomination_ally_" .. myAllyTeamID .. "_rank") or 1,
 		teamCount = #teamList,
 		teamList = teamList,
 	}
@@ -665,24 +681,20 @@ local function updateAllyTeamData()
 	end
 	
 	for allyTeamID, _ in pairs(widgetState.knownAllyTeamIDs) do
-		if allyTeamID == GAIA_ALLY_TEAM_ID then
-			-- Skip GAIA team
-		else
+		if allyTeamID ~= GAIA_ALLY_TEAM_ID then
 			local teamList = spGetTeamList(allyTeamID)
 			local hasTeamList = teamList and #teamList > 0
 			local firstTeamID = nil
-			local score = 0
-			local projectedPoints = 0
-			local territoryCount = 0
+			local score = spGetGameRulesParam("territorialDomination_ally_" .. allyTeamID .. "_score") or 0
+			local projectedPoints = spGetGameRulesParam("territorialDomination_ally_" .. allyTeamID .. "_projectedPoints") or 0
+			local territoryCount = spGetGameRulesParam("territorialDomination_ally_" .. allyTeamID .. "_territoryCount") or 0
+			local rank = spGetGameRulesParam("territorialDomination_ally_" .. allyTeamID .. "_rank") or 1
 			local hasAliveTeam = false
 			local teamCount = 0
 
 			if hasTeamList then
 				firstTeamID = teamList[1]
-				score = spGetTeamRulesParam(firstTeamID, "territorialDominationScore") or 0
-				projectedPoints = spGetTeamRulesParam(firstTeamID, "territorialDominationProjectedPoints") or 0
-				territoryCount = spGetTeamRulesParam(firstTeamID, "territorialDominationTerritoryCount") or 0
-
+				
 				for j = 1, #teamList do
 					local _, _, isDead = spGetTeamInfo(teamList[j])
 					if not isDead then
@@ -703,16 +715,8 @@ local function updateAllyTeamData()
 				
 				if existingTeam then
 					firstTeamID = existingTeam.firstTeamID
-					score = existingTeam.score or 0
-					projectedPoints = existingTeam.projectedPoints or 0
-					territoryCount = existingTeam.territoryCount or 0
 					teamCount = existingTeam.teamCount or 0
 				end
-			end
-
-			local rank = 1
-			if firstTeamID then
-				rank = spGetTeamRulesParam(firstTeamID, "territorialDominationDisplayRank") or 1
 			end
 
 			table.insert(validAllyTeams, {
@@ -743,7 +747,7 @@ end
 local function updateRoundInfo()
 	local roundEndTime = spGetGameRulesParam("territorialDominationRoundEndTimestamp") or 0
 	local gameRulesPointsCap = spGetGameRulesParam("territorialDominationPointsCap") or DEFAULT_POINTS_CAP
-	local prevHighestScore = spGetGameRulesParam("territorialDominationPrevHighestScore") or 0
+	local eliminationThreshold = spGetGameRulesParam("territorialDominationEliminationThreshold") or 0
 	local currentRound = spGetGameRulesParam("territorialDominationCurrentRound") or 0
 	local maxRounds = spGetGameRulesParam("territorialDominationMaxRounds") or DEFAULT_MAX_ROUNDS
 
@@ -786,7 +790,7 @@ local function updateRoundInfo()
 		roundEndTime = roundEndTime,
 		maxRounds = maxRounds,
 		pointsCap = pointsCap,
-		prevHighestScore = prevHighestScore,
+		eliminationThreshold = eliminationThreshold,
 		timeRemaining = timeString,
 		roundDisplayText = roundDisplayText,
 		timeRemainingSeconds = timeRemainingSeconds,
@@ -854,7 +858,7 @@ local function updatePlayerDisplay()
 	local territoryCount = selectedTeam.territoryCount or 0
 	local currentScore = selectedTeam.score or 0
 	local teamName = selectedTeam.name or ""
-	local eliminationThreshold = dataModel.prevHighestScore or 0
+	local eliminationThreshold = dataModel.eliminationThreshold or 0
 	
 	local allyTeams = widgetState.allyTeamData
 	local playerRank = 1
@@ -870,7 +874,7 @@ local function updatePlayerDisplay()
 		end
 		
 		if playerRank > 0 then
-			rankDisplayText = "#" .. tostring(playerRank) .. spI18N('ui.territorialDomination.rank.place')
+			rankDisplayText = getEnglishOrdinal(playerRank) .. " " .. spI18N('ui.territorialDomination.rank.place')
 		end
 		
 	local playerCombinedScore = currentScore + projectedPoints
@@ -1068,7 +1072,7 @@ local function updateDataModel()
 		dataModel.roundEndTime = tostring(roundInfo.roundEndTime)
 		dataModel.maxRounds = roundInfo.maxRounds
 		dataModel.pointsCap = roundInfo.pointsCap
-		dataModel.prevHighestScore = roundInfo.prevHighestScore
+		dataModel.eliminationThreshold = roundInfo.eliminationThreshold
 		dataModel.timeRemaining = roundInfo.timeRemaining
 		dataModel.roundDisplayText = roundInfo.roundDisplayText
 		dataModel.timeRemainingSeconds = roundInfo.timeRemainingSeconds

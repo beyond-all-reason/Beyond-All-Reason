@@ -38,6 +38,7 @@ local isAirplantNames = {
 	legap = true,
 	legaap = true,
 	legapt3 = true,
+	legsplab = true,
 }
 local isAirplantNamesCopy = table.copy(isAirplantNames)
 for name,v in pairs(isAirplantNamesCopy) do

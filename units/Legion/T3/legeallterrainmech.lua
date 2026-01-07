@@ -42,6 +42,10 @@ return {
 			subfolder = "Legion/T3",
 			techlevel = 3,
 			unitgroup = "weapon",
+			inheritxpratemultiplier = 1,
+			childreninheritxp = "DRONE",
+			parentsinheritxp = "DRONE",
+			disable_when_no_air = true,
 		},
 		featuredefs = {
 			dead = {
