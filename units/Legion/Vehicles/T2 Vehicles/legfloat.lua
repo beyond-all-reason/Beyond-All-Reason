@@ -47,8 +47,8 @@ return {
 			subfolder = "legvehicles/T2",
 			techlevel = 2,
 			enabled_on_no_sea_maps = true,
-			speedfactorwater = "1.3",
 			continuous_aim_time = 0.17,
+			speedfactorinwater = 1.3,
 		},
 		featuredefs = {
 			dead = {

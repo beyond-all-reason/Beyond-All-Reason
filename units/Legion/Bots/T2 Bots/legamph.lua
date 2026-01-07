@@ -37,7 +37,7 @@ return {
 		turninplacespeedlimit = 1.221,
 		turnrate = 450,
 		--usepiececollisionvolumes = 1,
-		upright = false,
+		upright = true,
 		customparams = {
 			maxrange = 400,
 			model_author = "Johanthan Crimson, Tuerk",
@@ -47,7 +47,8 @@ return {
 			techlevel = 2,
 			unitgroup = "weaponsub",
 			continuous_aim_time = 0.13,
-			speedfactorwater = "1.3",
+			speedfactorinwater = 1.3,
+			speedfactoratdepth = 10,
 			reactive_armor_health = 750,
 			reactive_armor_restore = 17,
 		},

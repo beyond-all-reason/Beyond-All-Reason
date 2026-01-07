@@ -48,7 +48,7 @@ return {
 			"legageo",
 			"legrampart",
 			"legmoho",
-			"cormexp",
+			"legmohocon",
 			"legadveconv",
 			"legadvestore",
 			"legamstor",

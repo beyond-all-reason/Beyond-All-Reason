@@ -199,7 +199,14 @@ local function refreshUnitInfo()
 			unitDefInfo[unitDefID].maxWeaponRange = unitDef.maxWeaponRange
 		end
 		if unitDef.speed > 0 then
-			unitDefInfo[unitDefID].speed = round(unitDef.speed, 0)
+			if (tonumber(unitDef.customParams.speedfactorinwater or 1) or 1) == 1 then
+				unitDefInfo[unitDefID].speed = round(unitDef.speed, 0)
+			else
+				local speed = unitDef.speed
+				local speedInWater = math.round(speed * math.clamp(tonumber(unitDef.customParams.speedfactorinwater), 0, 1e4))
+				unitDefInfo[unitDefID].speedMin = math.min(speed, speedInWater)
+				unitDefInfo[unitDefID].speedMax = math.max(speed, speedInWater)
+			end
 		end
 		if unitDef.rSpeed > 0 then
 			unitDefInfo[unitDefID].reverseSpeed = round(unitDef.rSpeed, 0)
@@ -1036,6 +1043,13 @@ local function drawSelection()
 		local unitID = unitsToCheck[i]
 		local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(unitID)
 		if metalMake then
+			local pairedID = spGetUnitRulesParam(unitID, "pairedUnitID")
+			if pairedID then
+				local mm, mu, em, eu = spGetUnitResources(pairedID)
+				if mm then
+					metalMake, metalUse, energyMake, energyUse = metalMake + mm, metalUse + mu, energyMake + em, energyUse + eu
+				end
+			end
 			totalMetalMake = totalMetalMake + metalMake
 			totalMetalUse = totalMetalUse + metalUse
 			totalEnergyMake = totalEnergyMake + energyMake
@@ -1312,6 +1326,13 @@ local function drawUnitInfo()
 	if displayUnitID then
 		local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
 		if metalMake then
+			local pairedID = spGetUnitRulesParam(displayUnitID, "pairedUnitID")
+			if pairedID then
+				local mm, mu, em, eu = spGetUnitResources(pairedID)
+				if mm then
+					metalMake, metalUse, energyMake, energyUse = metalMake + mm, metalUse + mu, energyMake + em, energyUse + eu
+				end
+			end
 			valueY1 = (metalMake > 0 and valuePlusColor .. '+' .. (metalMake < 10 and round(metalMake, 1) or round(metalMake, 0)) .. ' ' or '') .. (metalUse > 0 and valueMinColor .. '-' .. (metalUse < 10 and round(metalUse, 1) or round(metalUse, 0)) or '')
 			valueY2 = (energyMake > 0 and valuePlusColor .. '+' .. (energyMake < 10 and round(energyMake, 1) or round(energyMake, 0)) .. ' ' or '') .. (energyUse > 0 and valueMinColor .. '-' .. (energyUse < 10 and round(energyUse, 1) or round(energyUse, 0)) or '')
 			valueY3 = ''
@@ -1643,6 +1664,10 @@ local function drawUnitInfo()
 
 		if unitDefInfo[displayUnitDefID].speed then
 			addTextInfo(Spring.I18N('ui.info.speed'), unitDefInfo[displayUnitDefID].speed)
+		elseif unitDefInfo[displayUnitDefID].speedMin then
+			local min = unitDefInfo[displayUnitDefID].speedMin
+			local max = unitDefInfo[displayUnitDefID].speedMax
+			addTextInfo(Spring.I18N('ui.info.speed'), min.."-"..max)
 		end
 		if unitDefInfo[displayUnitDefID].reverseSpeed then
 			addTextInfo(Spring.I18N('ui.info.reversespeed'), unitDefInfo[displayUnitDefID].reverseSpeed)
@@ -1822,12 +1847,12 @@ local function drawEngineTooltip()
 				local metal, _, energy, _ = Spring.GetFeatureResources(hoverData)
 				if energy > 0 then
 					height = height + heightStep
-					text = tooltipLabelTextColor..Spring.I18N('ui.info.energy').."  \255\255\255\000"..math.floor(energy)
+					text = tooltipLabelTextColor..Spring.I18N('ui.info.energy').."  \255\255\255\000"..string.formatSI(energy)
 					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
 				if metal > 0 then
 					height = height + heightStep
-					text = tooltipLabelTextColor..Spring.I18N('ui.info.metal').."  "..tooltipValueColor..math.floor(metal)
+					text = tooltipLabelTextColor..Spring.I18N('ui.info.metal').."  "..tooltipValueColor..string.formatSI(metal)
 					font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8) - height, fontSize, "o")
 				end
 				font:End()
@@ -2328,9 +2353,7 @@ function checkChanges()
 
 		if featureDef.reclaimable then
 			local metal, _, energy, _ = Spring.GetFeatureResources(featureID)
-			metal = math.floor(metal)
-			energy = math.floor(energy)
-			local reclaimText = Spring.I18N('ui.reclaimInfo.metal', { metal = metal }) .. "\255\255\255\128" .. " " .. Spring.I18N('ui.reclaimInfo.energy', { energy = energy })
+			local reclaimText = Spring.I18N('ui.reclaimInfo.metal', { metal = string.formatSI(metal) }) .. "\255\255\255\128" .. " " .. Spring.I18N('ui.reclaimInfo.energy', { energy = string.formatSI(energy) })
 			newTooltip = newTooltip .. "\n\n" .. reclaimText
 		end
 

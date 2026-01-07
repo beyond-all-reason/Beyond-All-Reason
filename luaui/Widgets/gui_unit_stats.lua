@@ -24,18 +24,10 @@ local tableInsert = table.insert
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetSpectatingState = Spring.GetSpectatingState
-local spEcho = Spring.Echo
 
 local texts = {}
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua")) and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
 local gameName = Game.gameName
-
-local isCommander = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander then
-		isCommander[unitDefID] = true
-	end
-end
 
 if damageStats and damageStats[gameName] and damageStats[gameName].team then
 	local rate = 0
@@ -139,6 +131,7 @@ local energyColor = '\255\255\255\128' -- Light yellow
 local buildColor = '\255\128\255\128' -- Light green
 
 local simSpeed = Game.gameSpeed
+local armorTypes = Game.armorTypes
 
 local max = mathMax
 local floor = mathFloor
@@ -178,26 +171,14 @@ local spec = spGetSpectatingState()
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousName = '?????'
-local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local showStats = false
-
-local isCommander = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander then
-		isCommander[unitDefID] = true
-	end
-end
-
--- Reverse armor type table
-local armorTypes = {}
-for ii = 1, #Game.armorTypes do
-	armorTypes[Game.armorTypes[ii]] = ii
-end
 
 ------------------------------------------------------------------------------------
 -- Functions
 ------------------------------------------------------------------------------------
+
+local function descending(a, b) return a > b end -- table.sort function
 
 local function DrawText(t1, t2)
 	textBufferCount = textBufferCount + 1
@@ -288,6 +269,8 @@ function widget:Initialize()
 
 	widgetHandler:AddAction("unit_stats", enableStats, nil, "p")
 	widgetHandler:AddAction("unit_stats", disableStats, nil, "r")
+
+	spTraceScreenRay = Spring.TraceScreenRay -- fix for monkey-patching
 end
 
 function widget:Shutdown()
@@ -374,7 +357,7 @@ local function drawStats(uDefID, uID)
 	local mass = uDef.mass and uDef.mass or 0
 	local size = uDef.xsize and uDef.xsize / 2 or 0
 	local isBuilding, buildProg, uExp
-	local level = 1
+
 	if uID then
 		isBuilding, buildProg = Spring.GetUnitIsBeingBuilt(uID)
 		maxHP = select(2,Spring.GetUnitHealth(uID))
@@ -423,9 +406,20 @@ local function drawStats(uDefID, uID)
 		local eEta = eIncome > 0 and (eRem - eCur) / eIncome or 0
 
 		DrawText(texts.prog..":", format("%d%%", 100 * buildProg))
-		DrawText(texts.metal..":", format("%d / %d (" .. yellow .. "%d" .. white .. ", %ds)", mTotal * buildProg, mTotal, mRem, mEta))
-		DrawText(texts.energy..":", format("%d / %d (" .. yellow .. "%d" .. white .. ", %ds)", eTotal * buildProg, eTotal, eRem, eEta))
-		--DrawText("MaxBP:", format(white .. '%d', buildRem * uDef.buildTime / mathMax(mEta, eEta)))
+
+		if mEta >= 0 then
+			DrawText(texts.metal..":", format("%d / %d (" .. yellow .. "%d" .. white .. ", %ds)", mTotal * buildProg, mTotal, mRem, mEta))
+		else
+			DrawText(texts.metal..":", format("%d / %d (" .. yellow .. "%d" .. white .. ")", mTotal * buildProg, mTotal, mRem))
+		end
+		
+		if eEta >= 0 then
+			DrawText(texts.energy..":", format("%d / %d (" .. yellow .. "%d" .. white .. ", %ds)", eTotal * buildProg, eTotal, eRem, eEta))
+		else
+			DrawText(texts.energy..":", format("%d / %d (" .. yellow .. "%d" .. white .. ")", eTotal * buildProg, eTotal, eRem))
+		end
+		
+			--DrawText("MaxBP:", format(white .. '%d', buildRem * uDef.buildTime / mathMax(mEta, eEta)))
 		cY = cY - fontSize
 	end
 
@@ -478,7 +472,7 @@ local function drawStats(uDefID, uID)
 	-- Armor
 	------------------------------------------------------------------------------------
 
-	DrawText(texts.armor..":", texts.class .. Game.armorTypes[uDef.armorType or 0] or '???')
+	DrawText(texts.armor..":", texts.class .. armorTypes[uDef.armorType or 0] or '???')
 
 	if uID and uExp ~= 0 then
 		if maxHP then
@@ -604,24 +598,27 @@ local function drawStats(uDefID, uID)
 		local reload = uWep.reload
 		local accuracy = uWep.accuracy
 		local moveError = uWep.targetMoveError
-		local defaultDamage = uWep.damages[0]
-		if defaultDamage < uWep.damages[armorTypes.vtol] then
-			defaultDamage = uWep.damages[armorTypes.vtol]
-		end
+
+		local damages = uWep.damages
+		local defaultArmorIndex = armorTypes.default
+		local defaultArmorDamage = damages[defaultArmorIndex]
+		local baseArmorIndex = defaultArmorDamage >= damages[armorTypes.vtol] and defaultArmorIndex or armorTypes.vtol
+		local baseArmorDamage = damages[baseArmorIndex]
+
 		if uWep.customParams then
 			if uWep.customParams.spark_basedamage then
 				local spDamage = uWep.customParams.spark_basedamage * uWep.customParams.spark_forkdamage
 				local spCount = uWep.customParams.spark_maxunits
-				defaultDamage = defaultDamage + spDamage * spCount
+				baseArmorDamage = baseArmorDamage + spDamage * spCount
 			elseif uWep.customParams.speceffect == "split" then
 				burst = burst * (uWep.customParams.number or 1)
 				uWep = WeaponDefNames[uWep.customParams.speceffect_def] or uWep
-				defaultDamage = uWep.damages[0]
+				baseArmorDamage = damages[defaultArmorIndex]
 			elseif uWep.customParams.cluster then
 				local munition = uDef.name .. '_' .. uWep.customParams.cluster_def
 				local cmNumber = uWep.customParams.cluster_number
-				local cmDamage = WeaponDefNames[munition].damages[0]
-				defaultDamage = defaultDamage + cmDamage * cmNumber
+				local cmDamage = WeaponDefNames[munition].damages[defaultArmorIndex]
+				baseArmorDamage = baseArmorDamage + cmDamage * cmNumber
 			end
 		end
 
@@ -661,14 +658,14 @@ local function drawStats(uDefID, uID)
 			else
 				infoText = format("%.2f", (useExp and reload or uWep.reload))..texts.s.." "..texts.reload..", "..format("%d "..texts.range..", %d "..texts.aoe..", %d%% "..texts.edge, useExp and range or uWep.range, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
 			end
-			if uWep.damages.paralyzeDamageTime > 0 then
-				infoText = format("%s, %ds "..texts.paralyze, infoText, uWep.damages.paralyzeDamageTime)
+			if damages.paralyzeDamageTime > 0 then
+				infoText = format("%s, %ds "..texts.paralyze, infoText, damages.paralyzeDamageTime)
 			end
-			if uWep.damages.impulseFactor > 0.123 then
-				infoText = format("%s, %d "..texts.impulse, infoText, uWep.damages.impulseFactor*100)
+			if damages.impulseFactor > 0.123 then
+				infoText = format("%s, %d "..texts.impulse, infoText, damages.impulseFactor*100)
 			end
-			if uWep.damages.craterBoost > 0 then
-				infoText = format("%s, %d "..texts.crater, infoText, uWep.damages.craterBoost*100)
+			if damages.craterBoost > 0 then
+				infoText = format("%s, %d "..texts.crater, infoText, damages.craterBoost*100)
 			end
 			if string.find(uWep.name, "disintegrator") then
 				infoText = format("%.2f", (useExp and reload or uWep.reload)).."s "..texts.reload..", "..format("%d "..texts.range, useExp and range or uWep.range)
@@ -676,74 +673,48 @@ local function drawStats(uDefID, uID)
 			DrawText(texts.info..":", infoText)
 
 			-- Draw the damage and damage modifiers strings.
-			local cat = 0
-			local oDmg = uWep.damages[cat]
-			local catName = Game.armorTypes[cat]
 			if string.find(uWep.name, "disintegrator") then
 				DrawText(texts.dmg..": ", texts.infinite)
-			else
-				local dmgString = ""
+			elseif baseArmorDamage > 0 and not uWep.customParams.bogus then
+				local damageString = ""
+				local burstDamage = baseArmorDamage * burst
 				if wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
-					if catName and oDmg and (oDmg ~= defaultDamage or cat == 0) then
-						local dps = defaultDamage * burst / (useExp and reload or uWep.reload)
-						local bDamages = defaultDamage * burst
-						dmgString = texts.burst.." = "..(format(yellow .. "%d", bDamages))..white.."."
-					end
+					damageString = texts.burst.." = "..(format(yellow .. "%d", burstDamage))..white.."."
 				else
-					if catName and oDmg and (oDmg ~= defaultDamage or cat == 0) then
-						local dps = defaultDamage * burst / (useExp and reload or uWep.reload)
-						local bDamages = defaultDamage * burst
-						totaldps = totaldps + wepCount*dps
-						totalbDamages = totalbDamages + wepCount* bDamages
-						dmgString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", bDamages))..white.."."
-						if wepCount > 1 then
-							dmgString = dmgString .. white .. " ("..texts.each..")"
-						end
-					end
+					local dps = burstDamage / (useExp and reload or uWep.reload)
+					totaldps = totaldps + wepCount*dps
+					totalbDamages = totalbDamages + wepCount* burstDamage
+					damageString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", burstDamage)) .. white .. (wepCount > 1 and (" ("..texts.each..").") or ("."))
 				end
-				DrawText(texts.dmg..":", dmgString)
+				DrawText(texts.dmg..":", damageString)
 
-				-- Group armor types by the damage they take.
-				local modifiers = {}
-				local defaultRate = uWep.damages[0] or 0
-				local defaultName = Game.armorTypes[0] or 'default'
-				for cat = 0, #uWep.damages do
-					local catName = Game.armorTypes[cat]
-					local catDamage = uWep.damages[cat] or defaultRate
-
-					if catName and catDamage then
-						local rate = catDamage
-						if not modifiers[rate] then modifiers[rate] = {} end
-						if rate == defaultRate then
-							modifiers[rate] = { defaultName }
-							defaultRate = rate
-						else
-							tableInsert(modifiers[rate], catName)
+				local modifiers = { [defaultArmorDamage] = { armorTypes[defaultArmorIndex] } } -- [damage] = { armorClass1, armorClass2, ... }
+				local indestructible = armorTypes.indestructable
+				for index = 0, #armorTypes - 1 do
+					if index ~= indestructible then
+						local armorName = armorTypes[index]
+						local armorDamage = damages[index]
+						if not modifiers[armorDamage] then
+							modifiers[armorDamage] = { armorName }
+						elseif armorDamage ~= defaultArmorDamage then
+							tableInsert(modifiers[armorDamage], armorName)
 						end
 					end
 				end
 
 				local sorted = {}
-				for k ,_ in pairs(modifiers) do tableInsert(sorted, k) end
-				table.sort(sorted, function(a, b) return a > b end) -- descending sort
-
-				if defaultRate ~= 0 then --FIXME: This is a temporary fix, ideally bogus weapons should not be listed.
-					local modString = "default = "..yellow.."100%"
-					local count = 0
-					for _ in pairs(modifiers) do count = count + 1 end
-					if count > 1 then
-						for _, rate in pairs(sorted) do
-							if rate ~= defaultRate then
-								local armors = table.concat(modifiers[rate], ", ")
-								local percent = format("%d", floor(100 * rate / defaultRate))
-								if armors and percent then
-									modString = modString..white.."; "..armors.." = "..yellow..percent.."%"
-								end
-							end
-						end
+				for k in pairs(modifiers) do
+					if k ~= defaultArmorDamage then
+						tableInsert(sorted, k)
 					end
-					DrawText(texts.modifiers..":", modString..'.')
 				end
+				table.sort(sorted, descending)
+
+				local modifierText = { ("default = %s%d%%"):format(yellow, floor(100 * damages[defaultArmorIndex] / baseArmorDamage)) }
+				for _, armorDamage in ipairs(sorted) do
+					tableInsert(modifierText, ("%s = %s%d%%"):format(table.concat(modifiers[armorDamage], ", "), yellow, floor(100 * armorDamage / baseArmorDamage)))
+				end
+				DrawText(texts.modifiers..":", table.concat(modifierText, white.."; ") .. white .. ".")
 			end
 
 			if uWep.metalCost > 0 or uWep.energyCost > 0 then

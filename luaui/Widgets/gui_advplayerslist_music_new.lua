@@ -171,6 +171,11 @@ local function ReloadMusicPlaylists()
 			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/raptors/warhigh', allowedExtensions))
 			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/raptors/interludes', allowedExtensions))
 			table.append(bossFightTracks, VFS.DirList(musicDirNew..'/events/raptors/bossfight', allowedExtensions))
+		elseif Spring.GetConfigInt('UseSoundtrackRaptors', 0) == 1 then
+			table.append(peaceTracksNew, VFS.DirList(musicDirNew..'/events/raptors/peace', allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/raptors/warlow', allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/raptors/warhigh', allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/raptors/interludes', allowedExtensions))
 		end
 		table.append(raptorTracks, VFS.DirList(musicDirNew..'/events/raptors/loading', allowedExtensions))
 		table.append(raptorTracks, VFS.DirList(musicDirNew..'/events/raptors/peace', allowedExtensions))
@@ -186,6 +191,11 @@ local function ReloadMusicPlaylists()
 			table.append(eventWarHighTracks, VFS.DirList(musicDirNew..'/events/scavengers/warhigh', allowedExtensions))
 			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/scavengers/interludes', allowedExtensions))
 			table.append(bossFightTracks, VFS.DirList(musicDirNew..'/events/scavengers/bossfight', allowedExtensions))
+		elseif Spring.GetConfigInt('UseSoundtrackScavengers', 0) == 1 then
+			table.append(peaceTracksNew, VFS.DirList(musicDirNew..'/events/scavengers/peace', allowedExtensions))
+			table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/scavengers/warlow', allowedExtensions))
+			table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/scavengers/warhigh', allowedExtensions))
+			table.append(interludeTracks, VFS.DirList(musicDirNew..'/events/scavengers/interludes', allowedExtensions))
 		end
 		table.append(scavTracks, VFS.DirList(musicDirNew..'/events/scavengers/loading', allowedExtensions))
 		table.append(scavTracks, VFS.DirList(musicDirNew..'/events/scavengers/peace', allowedExtensions))
@@ -935,13 +945,17 @@ function widget:Initialize()
 		local menuTracksSorted = table.copy(menuTracks)
 		sortPlaylist(menuTracksSorted)
 		for k,v in pairs(menuTracksSorted) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.menu'), processTrackname(v), v}
+			if menuTracksSorted[k] and not string.find(menuTracksSorted[k], "/events/") then
+				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.menu'), processTrackname(v), v}
+			end
 		end
 
 		local loadingTracksSorted = table.copy(loadingTracks)
 		sortPlaylist(loadingTracksSorted)
 		for k,v in pairs(loadingTracksSorted) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.loading'), processTrackname(v), v}
+			if loadingTracksSorted[k] and not string.find(loadingTracksSorted[k], "/events/") then
+				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.loading'), processTrackname(v), v}
+			end
 		end
 
 		local peaceTracksSorted = table.copy(peaceTracks)
@@ -1598,7 +1612,6 @@ function widget:GameFrame(n)
 end
 
 function widget:GameOver(winningAllyTeams)
-	spEcho("winningAllyTeams", winningAllyTeams)
 	gameOver = true
 	if victoryConditionAllyID ~= 999 then
 		gameOverState = "defeat"
