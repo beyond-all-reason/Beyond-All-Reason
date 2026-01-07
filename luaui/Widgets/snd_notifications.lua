@@ -109,7 +109,7 @@ for notifID, notifDef in pairs(notificationTable) do
 	end
 
 	if VFS.FileExists(soundFolder .. notifID .. '_rare' .. '.wav') then
-		notifSoundsRare[currentEntryRare] = soundFolder .. notifID .. '.wav'
+		notifSoundsRare[currentEntryRare] = soundFolder .. notifID .. '_rare' .. '.wav'
 	end
 	for i = 1, 20 do
 		if VFS.FileExists(soundFolder .. notifID .. '_rare' .. i .. '.wav') then
