@@ -784,9 +784,7 @@ local function DrawFeature(fID)
 
 	glPushMatrix()
 		glTranslate(fx - wcx, wcz - fz, 0)
-		glRotate(68, 1, 0, 0)  -- Rotate 75 degrees around X-axis to make models face upright
-		glRotate(27, 0, 0, 1)	-- tilt slightly for better visibility
-		glRotate(-8, 0, 1, 0)	-- tilt slightly for better visibility
+		glRotate(90, 1, 0, 0)
 		glRotate(uHeading, 0, 1, 0)
 		glTexture(0, '%-' .. fDefID .. ':0')
 		gl.FeatureShape(fDefID, spGetFeatureTeam(fID))
@@ -2444,8 +2442,8 @@ function widget:Initialize()
 		targetWcx, targetWcz = wcx, wcz  -- Initialize targets
 	end
 
-	-- Minimize PIP before game starts (only on fresh start, not on reload)
-	if not gameHasStarted and not inMinMode and not hadSavedConfig then
+	-- Always minimize PIP when first starting (only on fresh start, not on reload)
+	if not inMinMode and not hadSavedConfig then
 		inMinMode = true
 		-- Store current dimensions before minimizing
 		savedDimensions = {
@@ -2539,21 +2537,37 @@ function widget:ViewResize()
 	pipR2T.frameNeedsUpdate = true
 
 	-- Update minimize button position with screen margin
-	-- Only recalculate if not in min mode (preserve saved position when restoring from config)
-	-- But always initialize if nil to prevent errors
-	if not inMinMode or minModeL == nil or minModeB == nil then
-		local screenMarginPx = math.floor(screenMargin * vsy)
-		local buttonSizeWithMargin = math.floor(usedButtonSize * maximizeSizemult)
-		minModeL = vsx - buttonSizeWithMargin - screenMarginPx
-		minModeB = vsy - buttonSizeWithMargin - screenMarginPx
+	-- Position the minimize button based on the saved window position (not screen edge)
+	local screenMarginPx = math.floor(screenMargin * vsy)
+	local buttonSizeScaled = math.floor(usedButtonSize * maximizeSizemult)
+
+	-- If we have saved dimensions, position the minimize button at the window's position
+	-- This ensures consistency between auto-minimize on load and manual minimize
+	if savedDimensions.l and savedDimensions.r and savedDimensions.b and savedDimensions.t then
+		-- Position based on where the window was (same logic as manual minimize)
+		local sw, sh = Spring.GetWindowGeometry()
+		if savedDimensions.l < sw * 0.5 then
+			minModeL = savedDimensions.l
+		else
+			minModeL = savedDimensions.r - buttonSizeScaled
+		end
+		if savedDimensions.b < sh * 0.5 then
+			minModeB = savedDimensions.b
+		else
+			minModeB = savedDimensions.t - buttonSizeScaled
+		end
+	else
+		-- Fallback to screen edge if no saved dimensions
+		minModeL = vsx - buttonSizeScaled - screenMarginPx
+		minModeB = vsy - buttonSizeScaled - screenMarginPx
 	end
 
 	-- If we're in min mode, ensure window is positioned at the minimize button location
 	if inMinMode then
 		dim.l = minModeL
-		dim.r = minModeL + math.floor(usedButtonSize * maximizeSizemult)
+		dim.r = minModeL + buttonSizeScaled
 		dim.b = minModeB
-		dim.t = minModeB + math.floor(usedButtonSize * maximizeSizemult)
+		dim.t = minModeB + buttonSizeScaled
 	else
 		-- Only correct screen position when not in min mode
 		CorrectScreenPosition()
@@ -2677,36 +2691,35 @@ end
 function widget:SetConfigData(data)
 	--Spring.Echo(data)
 	hadSavedConfig = (data and next(data) ~= nil) -- Mark that we have saved config data
-	inMinMode = data.inMinMode or inMinMode
-	minModeL = data.minModeL or minModeL
-	minModeB = data.minModeB or minModeB
 
-	-- If restoring in min mode, set dimensions to the saved minimize button position immediately
-	if inMinMode and minModeL and minModeB then
-		-- Calculate the button size using saved values (this is approximate until ViewResize recalculates)
-		local buttonSizeEstimate = vsx - minModeL
-		dim.l = minModeL
-		dim.r = minModeL + buttonSizeEstimate
-		dim.b = minModeB
-		dim.t = minModeB + buttonSizeEstimate
+	-- Don't restore minModeL/minModeB - always recalculate position in top-right corner
+	-- minModeL and minModeB will be set by ViewResize
 
-		-- Also populate savedDimensions from the saved percentages so maximize works
-		if data.pl and data.pr and data.pb and data.pt then
-			savedDimensions = {
-				l = math.floor(data.pl*vsx),
-				r = math.floor(data.pr*vsx),
-				b = math.floor(data.pb*vsy),
-				t = math.floor(data.pt*vsy)
-			}
-		end
-	elseif data.pl and data.pr and data.pb and data.pt then
-		-- Restore normal dimensions from saved percentages
-		dim.l = math.floor(data.pl*vsx)
-		dim.r = math.floor(data.pr*vsx)
-		dim.b = math.floor(data.pb*vsy)
-		dim.t = math.floor(data.pt*vsy)
+	-- First restore the expanded dimensions if available
+	if data.pl and data.pr and data.pb and data.pt then
+		savedDimensions = {
+			l = math.floor(data.pl*vsx),
+			r = math.floor(data.pr*vsx),
+			b = math.floor(data.pb*vsy),
+			t = math.floor(data.pt*vsy)
+		}
+		-- Set dim to expanded size initially
+		dim.l = savedDimensions.l
+		dim.r = savedDimensions.r
+		dim.b = savedDimensions.b
+		dim.t = savedDimensions.t
 		CorrectScreenPosition()
 	end
+
+	-- Restore the saved minimize state, or force minimize if pregame and no config
+	if data.inMinMode ~= nil then
+		inMinMode = data.inMinMode
+	else
+		-- No saved state - only force minimize if we're in pregame
+		local gameFrame = Spring.GetGameFrame()
+		inMinMode = (gameFrame == 0)
+	end
+	
 	-- If no valid saved data, keep existing dim values (initialized at top of file)
 
 	wcx = data.wcx or wcx
@@ -4731,6 +4744,37 @@ end
 
 function widget:GameStart()
 	gameHasStarted = true
+
+	-- Automatically maximize for players (only for the first PIP instance)
+	local isSpectator = Spring.GetSpectatingState()
+	if pipNumber == 1 and not isSpectator and inMinMode then
+		-- Trigger maximize animation
+		local usedButtonSize = math.floor(buttonSize * widgetScale)
+		local buttonSizeWithScale = math.floor(usedButtonSize * maximizeSizemult)
+
+		-- Update camera to tracked units immediately before maximizing
+		if interactionState.areTracking then
+			UpdateTracking()
+		end
+		RecalculateWorldCoordinates()
+		RecalculateGroundTextureCoordinates()
+
+		animStartDim = {
+			l = minModeL,
+			r = minModeL + buttonSizeWithScale,
+			b = minModeB,
+			t = minModeB + buttonSizeWithScale
+		}
+		animEndDim = {
+			l = savedDimensions.l,
+			r = savedDimensions.r,
+			b = savedDimensions.b,
+			t = savedDimensions.t
+		}
+		animationProgress = 0
+		isAnimating = true
+		inMinMode = false
+	end
 
 	-- Automatically track the commander at game start
 	local commanderID = FindMyCommander()
