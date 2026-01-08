@@ -236,9 +236,6 @@ end
 local cruiseWaitingDefs = {}
 local cruiseEngagedDefs = {}
 
-local _; -- sink var for unused values
-local float3 = { 0, 0, 0 }
-
 local function applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
 	local responseY = 0
 	if elevation > 0 then
