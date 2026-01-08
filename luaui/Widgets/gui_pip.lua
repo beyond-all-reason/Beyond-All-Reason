@@ -56,6 +56,7 @@ local drawProjectiles = true  -- Show projectiles and explosions in PIP window
 local zoomToCursor = true  -- When increasing zoom (getting closer), zoom towards cursor position (decreasing zoom pulls back to center)
 local mapEdgeMargin = 0.15  -- Maximum allowed distance from PiP edge to map edge (as fraction of PiP size)
 local showButtonsOnHoverOnly = true  -- Only show buttons when mouse is hovering over the PIP window
+local switchInheritsTracking = false  -- When switching views, inherit PIP's unit tracking to main camera
 
 local pipMinUpdateRate = 40  -- Minimum FPS for PIP rendering when zoomed out (performance-adjusted dynamically)
 local pipMaxUpdateRate = 120  -- Maximum FPS for PIP rendering when zoomed in
@@ -298,19 +299,13 @@ local buttons = {
 				local sizex, sizez = Spring.GetWindowGeometry()
 				local _, pos = Spring.TraceScreenRay(sizex/2, sizez/2, true)
 				if pos and pos[2] > -10000 then
-					-- Use stored camera position from backup if available, otherwise use current main camera
-					local mainCamX, mainCamZ
-					if backupTracking and backupTracking.camX and backupTracking.camZ then
-						mainCamX = backupTracking.camX
-						mainCamZ = backupTracking.camZ
-					else
-						mainCamX = math.floor(pos[1] + 0.5)
-						mainCamZ = math.floor(pos[3] + 0.5)
-					end
+					-- Always read the current main camera position
+					local mainCamX = math.floor(pos[1] + 0.5)
+					local mainCamZ = math.floor(pos[3] + 0.5)
 
 					-- Calculate the actual center of tracked units (if tracking) for main view camera
 					local pipCameraTargetX, pipCameraTargetZ = math.floor(wcx + 0.5), math.floor(wcz + 0.5)
-					if interactionState.areTracking and #interactionState.areTracking > 0 then
+					if switchInheritsTracking and interactionState.areTracking and #interactionState.areTracking > 0 then
 						-- Calculate average position of tracked units (not margin-corrected camera)
 						local uCount = 0
 						local ax, az = 0, 0
@@ -335,7 +330,7 @@ local buttons = {
 							Spring.SendCommands("track " .. interactionState.areTracking[i])
 						end
 					else
-						-- If not tracking in PIP, untrack in main view
+						-- If not tracking in PIP or feature disabled, untrack in main view
 						Spring.SendCommands("track")
 					end
 
@@ -354,11 +349,16 @@ local buttons = {
 					RecalculateWorldCoordinates()
 					RecalculateGroundTextureCoordinates()
 
-					-- Restore state from previous backup
+					-- Restore tracking from previous backup to PIP view
 					if tempBackup then
 						interactionState.areTracking = tempBackup.tracking
 					else
 						interactionState.areTracking = nil
+					end
+					
+					-- If feature is disabled, ensure main camera is not tracking
+					if not switchInheritsTracking then
+						Spring.SendCommands("track")
 					end
 				end
 			end
@@ -2719,7 +2719,7 @@ function widget:SetConfigData(data)
 		local gameFrame = Spring.GetGameFrame()
 		inMinMode = (gameFrame == 0)
 	end
-	
+
 	-- If no valid saved data, keep existing dim values (initialized at top of file)
 
 	wcx = data.wcx or wcx
