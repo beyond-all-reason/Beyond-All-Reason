@@ -1,7 +1,7 @@
 return {
 	cortermite = {
 		buildpic = "CORTERMITE.DDS",
-		buildtime = 13500,
+		buildtime = 17000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "40 26 48",
@@ -41,6 +41,7 @@ return {
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
+			continuous_aim_time = 0.07,
 		},
 		featuredefs = {
 			dead = {

@@ -2,7 +2,7 @@ return {
 	corseal = {
 		activatewhenbuilt = true,
 		buildpic = "CORSEAL.DDS",
-		buildtime = 12050,
+		buildtime = 16000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -7 0",
 		collisionvolumescales = "31 31 31",

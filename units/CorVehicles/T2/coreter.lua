@@ -2,7 +2,7 @@ return {
 	coreter = {
 		activatewhenbuilt = true,
 		buildpic = "CORETER.DDS",
-		buildtime = 6400,
+		buildtime = 7500,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -3 0",

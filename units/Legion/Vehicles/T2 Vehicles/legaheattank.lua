@@ -5,7 +5,7 @@ return {
 		energycost = 19000,
 		metalcost = 1250,
 		buildpic = "LEGAHEATTANK.DDS",
-		buildtime = 19000,
+		buildtime = 25600,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "46 25 46",
@@ -19,7 +19,7 @@ return {
 		leavetracks = true,
 		health = 7700,
 		maxslope = 12,
-		speed = 51.0,
+		speed = 52,
 		maxwaterdepth = 15,
 		movementclass = "HTANK4",
 		nochasecategory = "VTOL",
@@ -47,6 +47,7 @@ return {
 			techlevel = 2,
 			weapon1turretx = 65,
 			weapon1turrety = 105,
+			continuous_aim_time = 0.02,
 		},
 		featuredefs = {
 			dead = {

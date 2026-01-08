@@ -1,7 +1,7 @@
 return {
 	legavantinuke = {
 		buildpic = "legavantinuke.DDS",
-		buildtime = 42000,
+		buildtime = 51300,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",

@@ -1,7 +1,7 @@
 return {
 	corcat = {
 		buildpic = "CORCAT.DDS",
-		buildtime = 127000,
+		buildtime = 160000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 2",
@@ -40,6 +40,7 @@ return {
 			subfolder = "CorGantry",
 			techlevel = 3,
 			unitgroup = "weapon",
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

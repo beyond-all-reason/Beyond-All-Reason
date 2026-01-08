@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		blocking = true,
 		buildpic = "leganavyantiswarm.DDS",
-		buildtime = 8500,
+		buildtime = 11270,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 4",
 		collisionvolumescales = "28 30 82",
@@ -41,6 +41,7 @@ return {
 			subfolder = "Legion/Ships/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

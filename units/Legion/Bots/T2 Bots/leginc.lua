@@ -5,7 +5,7 @@ return {
 		energycost = 46000,
 		metalcost = 2300,
 		buildpic = "LEGINC.DDS",
-		buildtime = 55000,
+		buildtime = 69700,
 		canmove = true,
 		collisionvolumeoffsets = "0 2 0",
 		collisionvolumescales = "60 40 60",
@@ -39,6 +39,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBots/T2",
 			techlevel = 2,
+			continuous_aim_time = 0.02,
 		},
 		featuredefs = {
 			dead = {

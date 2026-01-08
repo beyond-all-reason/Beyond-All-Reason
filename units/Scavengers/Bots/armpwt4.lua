@@ -41,6 +41,8 @@ return {
 			techlevel = 3,
 			weapon1turretx = 300,
 			weapon1turrety = 300,
+			continuous_aim_spam = 90,
+			continuous_aim_time = 0.07,
 		},
 		featuredefs = {
 			dead = {

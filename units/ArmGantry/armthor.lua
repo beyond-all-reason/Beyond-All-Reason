@@ -1,7 +1,7 @@
 return {
 	armthor = {
 		buildpic = "ARMTHOR.DDS",
-		buildtime = 250000,
+		buildtime = 320000,
 		canmanualfire = true,
 		canmove = true,
 		cantbetransported = true,
@@ -49,6 +49,7 @@ return {
 			subfolder = "ArmGantry",
 			techlevel = 3,
 			unitgroup = "emp",
+			continuous_aim_time = 0.13,
 		},
 		featuredefs = {
 			dead = {

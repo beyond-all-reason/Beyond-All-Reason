@@ -1,7 +1,7 @@
 return {
 	corhrk = {
 		buildpic = "CORHRK.DDS",
-		buildtime = 6600,
+		buildtime = 9500,
 		canmove = true,
 		collisionvolumeoffsets = "0 1 -1",
 		collisionvolumescales = "26 31 33",
@@ -41,6 +41,7 @@ return {
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

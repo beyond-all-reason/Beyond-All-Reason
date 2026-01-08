@@ -6,7 +6,7 @@ return {
 		energycost = 200000,
 		metalcost = 10000,
 		buildpic = "LEGMECH.DDS",
-		buildtime = 200000,
+		buildtime = 260000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -11 0",
 		collisionvolumescales = "66 86 66",
@@ -42,6 +42,7 @@ return {
 			normaltex = "unittextures/leegmech_normal.dds",
 			subfolder = "leggantry",
 			techlevel = 3,
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

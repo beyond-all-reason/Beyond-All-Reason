@@ -49,6 +49,8 @@ return {
 			unitgroup = "weapon",
 			weapon1turretx = 300,
 			weapon1turrety = 300,
+			continuous_aim_spam = 100,
+			continuous_aim_time = 0.1,
 		},
 		featuredefs = {
 			dead = {
@@ -130,7 +132,7 @@ return {
 				name = "Light Close-Quarters g2g Laser",
 				noselfdamage = true,
 				range = 180,
-				reloadtime = 0.93333,
+				reloadtime = 1,
 				rgbcolor = "1 1 0.4",
 				rgbcolor2 = "1 0.55 0.3",
 				soundhitdry = "",

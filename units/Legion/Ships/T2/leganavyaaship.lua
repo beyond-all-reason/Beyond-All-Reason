@@ -3,7 +3,7 @@ return {
 		airsightdistance = 900,
 		buildangle = 16384,
 		buildpic = "leganavyaaship.DDS",
-		buildtime = 15000,
+		buildtime = 20100,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "38 35 85",

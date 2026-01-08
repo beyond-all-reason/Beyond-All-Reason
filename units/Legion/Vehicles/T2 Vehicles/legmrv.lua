@@ -5,7 +5,7 @@ return {
 		energycost = 4100,
 		metalcost = 250,
 		buildpic = "LEGMRV.DDS",
-		buildtime = 4500,
+		buildtime = 5900,
 		canmove = true,
 		collisionvolumeoffsets = "0 -6 0",
 		collisionvolumescales = "34 26 38",
@@ -47,6 +47,7 @@ return {
 			techlevel = 2,
 			weapon1turretx = 65,
 			weapon1turrety = 105,
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

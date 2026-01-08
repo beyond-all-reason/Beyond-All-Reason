@@ -22,6 +22,17 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 				-- x2 autoheal (9 -> 18)
 				uDef.autoheal = 18
 				uDef.idleautoheal = 18
+
+				-- Allow attacking air
+				if uDef.weapons then
+					for _, weapon in ipairs(uDef.weapons) do
+						if weapon.def == "COMMANDO_BLASTER" then
+							weapon.badtargetcategory = "VTOL"
+							weapon.onlytargetcategory = "NOTSUB"
+						end
+					end
+				end
+
 				-- Weapon changes: Cannon -> Laser
 				if uDef.weapondefs then
 					for weaponName, weaponDef in pairs(uDef.weapondefs) do

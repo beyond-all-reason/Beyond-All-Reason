@@ -6,7 +6,7 @@ return {
 		energycost = 1000,
 		metalcost = 90,
 		buildpic = "legheavydrone.DDS",
-		buildtime = 5000,
+		buildtime = 5820,
 		canfly = true,
 		canmove = true,
 		cantbetransported = false,
@@ -38,6 +38,7 @@ return {
 			subfolder = "CorAircraft",
 			drone = 1,
 			nohealthbars = 1,
+			continuous_aim_time = 0.17,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

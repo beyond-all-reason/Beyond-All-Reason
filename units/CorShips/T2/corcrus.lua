@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 16384,
 		buildpic = "CORCRUS.DDS",
-		buildtime = 17000,
+		buildtime = 23000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -14 0",
 		collisionvolumescales = "34 34 115",

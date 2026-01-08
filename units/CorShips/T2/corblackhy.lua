@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 16384,
 		buildpic = "CORBLACKHY.DDS",
-		buildtime = 210000,
+		buildtime = 310000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -24 5",
 		collisionvolumescales = "80 80 186",
@@ -44,6 +44,7 @@ return {
 			subfolder = "CorShips/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
+			continuous_aim_time = 0.2,
 		},
 		featuredefs = {
 			dead = {

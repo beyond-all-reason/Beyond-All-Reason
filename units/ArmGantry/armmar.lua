@@ -1,7 +1,7 @@
 return {
 	armmar = {
 		buildpic = "ARMMAR.DDS",
-		buildtime = 26100,
+		buildtime = 33000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -43,6 +43,7 @@ return {
 			unitgroup = "weapon",
 			weapon1turretx = 90,
 			weapon1turrety = 150,
+			continuous_aim_time = 0.1,
 		},
 		featuredefs = {
 			dead = {

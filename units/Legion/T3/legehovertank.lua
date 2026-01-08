@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		builder = false,
 		buildpic = "legehovertank.DDS",
-		buildtime = 33000,
+		buildtime = 41600,
         collisionvolumescales = "63 32 63",
         collisionvolumeoffsets = "0 -15 0",
         collisionvolumetype = "cylY",
@@ -46,6 +46,7 @@ return {
 			subfolder = "Legion/T3",
 			techlevel = 3,
 			unitgroup = "weapon",
+			continuous_aim_time = 0.13,
 		},
 		featuredefs = {
 			dead = {

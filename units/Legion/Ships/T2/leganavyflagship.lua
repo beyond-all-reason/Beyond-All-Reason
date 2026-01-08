@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 16384,
 		buildpic = "leganavyflagship.DDS",
-		buildtime = 190000,
+		buildtime = 269000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "72 95 208",
@@ -45,6 +45,7 @@ return {
 			subfolder = "Legion/Ships/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
+			continuous_aim_time = 0.13,
 		},
 		featuredefs = {
 			dead = {

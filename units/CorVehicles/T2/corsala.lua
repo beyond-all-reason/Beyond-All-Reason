@@ -2,7 +2,7 @@ return {
 	corsala = {
 		activatewhenbuilt = true,
 		buildpic = "CORSALA.DDS",
-		buildtime = 7900,
+		buildtime = 10500,
 		canmove = true,
 		collisionvolumeoffsets = "0 -5.5 0",
 		collisionvolumescales = "31 34 31",
@@ -51,6 +51,7 @@ return {
 			unitgroup = "weapon",
 			weapon1turretx = 45,
 			weapon1turrety = 75,
+			continuous_aim_time = 0.2,
 		},
 		featuredefs = {
 			dead = {

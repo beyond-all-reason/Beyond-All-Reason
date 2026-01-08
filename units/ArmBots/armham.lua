@@ -39,6 +39,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBots",
 			unitgroup = "weapon",
+			continuous_aim_time = 0.07,
 		},
 		featuredefs = {
 			dead = {

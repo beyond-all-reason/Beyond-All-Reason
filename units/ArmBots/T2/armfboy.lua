@@ -1,13 +1,13 @@
 return {
 	armfboy = {
 		buildpic = "ARMFBOY.DDS",
-		buildtime = 21000,
+		buildtime = 28000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "34 40 42",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		energycost = 11000,
+		energycost = 15000,
 		explodeas = "largeExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -38,6 +38,7 @@ return {
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
+			continuous_aim_time = 0.07,
 		},
 		featuredefs = {
 			dead = {
@@ -102,13 +103,13 @@ return {
 		},
 		weapondefs = {
 			arm_fatboy_notalaser = {
-				areaofeffect = 240,
+				areaofeffect = 300,
 				avoidfeature = false,
 				cegtag = "Heavy-Plasma",
 				craterareaofeffect = 240,
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.85,
+				edgeeffectiveness = 0.15,
 				energypershot = 0,
 				explosiongenerator = "custom:genericshellexplosion-large-aoe",
 				gravityaffected = "true",
@@ -116,13 +117,13 @@ return {
 				name = "Heavy AoE g2g plasma cannon",
 				noselfdamage = true,
 				range = 700,
-				reloadtime = 6.73333,
+				reloadtime = 7,
 				soundhit = "bertha6",
 				soundhitwet = "splslrg",
 				soundstart = "BERTHA1",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 307.40851,
+				weaponvelocity = 307,
 				damage = {
 					default = 800,
 					subs = 100,
