@@ -1,7 +1,7 @@
 return {
 	legjav = {
 		buildpic = "legjav.DDS",
-		buildtime = 32000,
+		buildtime = 39850,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",

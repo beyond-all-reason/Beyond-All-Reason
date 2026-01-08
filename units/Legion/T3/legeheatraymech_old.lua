@@ -1,7 +1,7 @@
 return {
 	legeheatraymech_old = {
 		buildpic = "legeheatraymech_old.DDS",
-		buildtime = 500000,
+		buildtime = 666250,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -10 0",

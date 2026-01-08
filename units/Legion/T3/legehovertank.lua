@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		builder = false,
 		buildpic = "legehovertank.DDS",
-		buildtime = 33000,
+		buildtime = 41600,
         collisionvolumescales = "63 32 63",
         collisionvolumeoffsets = "0 -15 0",
         collisionvolumetype = "cylY",

@@ -5,7 +5,7 @@ return {
 		energycost = 5500,
 		metalcost = 460,
 		buildpic = "LEGAMCLUSTER.DDS",
-		buildtime = 8000,
+		buildtime = 10450,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "36 20 38",

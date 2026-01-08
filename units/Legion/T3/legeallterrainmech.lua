@@ -2,7 +2,7 @@ return {
 	legeallterrainmech = {
 		activatewhenbuilt = false,
 		buildpic = "legeallterrainmech.DDS",
-		buildtime = 95000,
+		buildtime = 120250,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -20 0",
