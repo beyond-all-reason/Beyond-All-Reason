@@ -742,6 +742,7 @@ function widget:MousePress(x, y, button)
 								num = (clicks[unitDefID]) % (#idleList[unitDefID]) + 1
 							end
 							if not listSorted[unitDefID] then
+								-- FIXME: should use center of screen rather than camera
 								local camX, _, camZ = Spring.GetCameraPosition()
 								table.sort(idleList[unitDefID], function (a, b)
 									local unitAX, _, unitAZ = spGetUnitPosition(a)
