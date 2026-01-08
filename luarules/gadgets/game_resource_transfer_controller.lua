@@ -28,6 +28,8 @@ local EconomyLog = VFS.Include("common/luaUtilities/economy/economy_log.lua")
 local ResourceType = SharedEnums.ResourceType
 local WaterfillSolver = VFS.Include("common/luaUtilities/economy/economy_waterfill_solver.lua")
 
+local tracyAvailable = tracy and tracy.ZoneBeginN and tracy.ZoneEnd
+
 --------------------------------------------------------------------------------
 -- Spring API wrapper (adds GetTeamResourceData helper)
 --------------------------------------------------------------------------------
@@ -202,6 +204,9 @@ end
 ---@param teams table<number, TeamResourceData>
 ---@return EconomyTeamResult[]
 local function ProcessEconomy(frame, teams)
+	Spring.Echo("ProcessEconomy: " .. frame .. " tracyAvailable: " .. tostring(tracyAvailable) .. " economyAuditEnabled: " .. tostring(Spring.IsEconomyAuditEnabled()))
+	if tracyAvailable then tracy.ZoneBeginN("PE_Lua") end
+
 	-- Debug: confirm controller is being called
 	if frame % 300 == 0 then
 		Spring.Echo("[ProcessEconomyController] Processing frame=" .. frame)
@@ -214,10 +219,17 @@ local function ProcessEconomy(frame, teams)
 	local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
 	EconomyLog.FrameStart(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY], teamCount)
 	
+	if tracyAvailable then
+		Spring.Echo("Called tracy with8 PE_LuaMunge")
+		tracy.ZoneBeginN("PE_LuaMunge")	
+	end
 	EconomyLog.Breakpoint("LuaMunge")
 
 	-- TeamInput logging is handled inside the solver
+	if tracyAvailable then tracy.ZoneEnd() end
+	if tracyAvailable then tracy.ZoneBeginN("PE_Solver") end
 	local updatedTeams, allLedgers = ResourceTransfer.WaterfillSolve(springRepo, teams)
+	if tracyAvailable then tracy.ZoneEnd() end
 	
 	EconomyLog.Breakpoint("Solver")
 
@@ -253,11 +265,16 @@ local function ProcessEconomy(frame, teams)
 		resultCache[idx] = eEntry
 	end
 
+	if tracyAvailable then tracy.ZoneBeginN("PE_PostMunge") end
 	EconomyLog.Breakpoint("PostMunge")
+	if tracyAvailable then tracy.ZoneEnd() end
 
+	if tracyAvailable then tracy.ZoneBeginN("PE_PolicyCache") end
 	lastPolicyUpdate = ResourceTransfer.UpdatePolicyCache(springRepo, frame, lastPolicyUpdate, POLICY_UPDATE_RATE, contextFactory)
 	EconomyLog.Breakpoint("PolicyCache")
+	if tracyAvailable then tracy.ZoneEnd() end
 	
+	if tracyAvailable then tracy.ZoneEnd() end
 	return resultCache
 end
 
@@ -359,7 +376,11 @@ end
 ---@param excesses table<number, {metal: number, energy: number}> Excess values only
 ---@return boolean handled Whether Lua handled the excess
 local function ResourceExcessController(frame, excesses)
+	if tracyAvailable then tracy.ZoneBeginN("RE_Lua") end
+
+	if tracyAvailable then tracy.ZoneBeginN("RE_BuildTeamData") end
 	local teams = BuildTeamData(excesses)
+	if tracyAvailable then tracy.ZoneEnd() end
 	
 	local teamCount = 0
 	for _ in pairs(teams) do teamCount = teamCount + 1 end
@@ -367,17 +388,25 @@ local function ResourceExcessController(frame, excesses)
 	local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
 	EconomyLog.FrameStart(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY], teamCount)
 	
+	if tracyAvailable then tracy.ZoneBeginN("RE_LuaMunge") end
 	EconomyLog.Breakpoint("LuaMunge")
+	if tracyAvailable then tracy.ZoneEnd() end
 	
+	if tracyAvailable then tracy.ZoneBeginN("RE_Solver") end
 	local success, updatedTeams, allLedgers = pcall(WaterfillSolver.Solve, springRepo, teams)
 	if not success then
+		if tracyAvailable then tracy.ZoneEnd() end
+		if tracyAvailable then tracy.ZoneEnd() end
 		Spring.Log("ResourceTransferController", LOG.ERROR, "Solver: " .. tostring(updatedTeams))
 		return false
 	end
+	if tracyAvailable then tracy.ZoneEnd() end
 	
 	EconomyLog.Breakpoint("Solver")
 	
+	if tracyAvailable then tracy.ZoneBeginN("RE_LuaSetters") end
 	ApplyResults(updatedTeams, allLedgers)
+	if tracyAvailable then tracy.ZoneEnd() end
 	
 	EconomyLog.Breakpoint("LuaSetters")
 	
@@ -393,12 +422,16 @@ local function ResourceExcessController(frame, excesses)
 		end
 	end
 	
+	if tracyAvailable then tracy.ZoneBeginN("RE_PostMunge") end
 	EconomyLog.Breakpoint("PostMunge")
+	if tracyAvailable then tracy.ZoneEnd() end
 	
+	if tracyAvailable then tracy.ZoneBeginN("RE_PolicyCache") end
 	lastPolicyUpdate = ResourceTransfer.UpdatePolicyCache(springRepo, frame, lastPolicyUpdate, POLICY_UPDATE_RATE, contextFactory)
-	
 	EconomyLog.Breakpoint("PolicyCache")
+	if tracyAvailable then tracy.ZoneEnd() end
 	
+	if tracyAvailable then tracy.ZoneEnd() end
 	return true
 end
 
