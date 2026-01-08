@@ -249,7 +249,6 @@ local function applyCruiseCorrection(projectileID, elevation, cruiseHeight, posi
 	positionY = positionY + (cruiseHeight - positionY) * responseRatio
 	spSetProjectilePosition(projectileID, positionX, positionY, positionZ)
 	spSetProjectileVelocity(projectileID, velocityX, velocityY, velocityZ)
-	return false -- for tail call
 end
 
 -- First-phase `cruise` effect, allowing weapons to ascend before triggering ground avoidance.
@@ -266,7 +265,7 @@ specialEffectFunction.cruise = function(params, projectileID)
 	elseif elevation > 0 and speed > 0 and spGetProjectileTimeToLive(projectileID) > 0 then
 		local _, normalY = spGetGroundNormal(positionX, positionZ, true)
 		if velocityY / speed <= normalY then
-			return applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
+			applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
 		end
 	end
 
@@ -286,7 +285,7 @@ local function cruiseWaiting(params, projectileID)
 			-- Avoid going below the minimum cruise height while ignoring the maximum cruise height.
 			if positionY < cruiseHeight then
 				projectiles[projectileID] = cruiseEngagedDefs[spGetProjectileDefID(projectileID)]
-				return applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, spGetProjectileVelocity(projectileID))
+				applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, spGetProjectileVelocity(projectileID))
 			end
 			return false
 		end
@@ -307,7 +306,7 @@ local function cruiseEngaged(params, projectileID)
 			local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
 			-- Follow the ground when it slopes away, but not over steep drops, e.g. sheer cliffs.
 			if positionY ~= cruiseHeight and (positionY > cruiseHeight or velocityY > speed * -0.25) then
-				return applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
+				applyCruiseCorrection(projectileID, elevation, cruiseHeight, positionX, positionY, positionZ, velocityX, velocityY, velocityZ)
 			end
 			return false
 		end
