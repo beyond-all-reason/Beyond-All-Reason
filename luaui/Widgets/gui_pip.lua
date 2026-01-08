@@ -355,7 +355,7 @@ local buttons = {
 					else
 						interactionState.areTracking = nil
 					end
-					
+
 					-- If feature is disabled, ensure main camera is not tracking
 					if not switchInheritsTracking then
 						Spring.SendCommands("track")
@@ -2711,13 +2711,20 @@ function widget:SetConfigData(data)
 		CorrectScreenPosition()
 	end
 
-	-- Restore the saved minimize state, or force minimize if pregame and no config
-	if data.inMinMode ~= nil then
+	-- Always force minimize if in pregame AND it's a new game (different gameID)
+	local gameFrame = Spring.GetGameFrame()
+	local currentGameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")
+	local isSameGame = (data.gameID and currentGameID and data.gameID == currentGameID)
+	
+	if gameFrame == 0 and not isSameGame then
+		-- Force minimize in pregame for a new game
+		inMinMode = true
+	elseif data.inMinMode ~= nil then
+		-- Restore saved state if same game or if in active game
 		inMinMode = data.inMinMode
 	else
-		-- No saved state - only force minimize if we're in pregame
-		local gameFrame = Spring.GetGameFrame()
-		inMinMode = (gameFrame == 0)
+		-- Default to minimized if no saved state
+		inMinMode = true
 	end
 
 	-- If no valid saved data, keep existing dim values (initialized at top of file)
