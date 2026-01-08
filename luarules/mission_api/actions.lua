@@ -64,7 +64,9 @@ end
 ----------------------------------------------------------------
 
 local function despawnUnits(name, selfDestruct, reclaimed)
-    local unitIDs = table.copy(trackedUnits[name])
+	if not trackedUnits[name] or #trackedUnits[name] == 0 then return end
+
+	local unitIDs = table.copy(trackedUnits[name])
 	local quantity = #unitIDs
 	for i = quantity, 1, -1 do
 		Spring.DestroyUnit(unitIDs[i], selfDestruct, reclaimed)
@@ -74,6 +76,8 @@ end
 ----------------------------------------------------------------
 
 local function transferUnits(name, newTeam, given)
+	if not trackedUnits[name] or #trackedUnits[name] == 0 then return end
+
 	for _, unitID in pairs(trackedUnits[name]) do
 		Spring.TransferUnit(unitID, newTeam, given)
 	end
@@ -113,9 +117,15 @@ local function nameUnits(name, teamID, unitDefName, rectangle)
 	for _, unitID in pairs(unitsToName) do
 		trackUnit(name, unitID)
 	end
+end
 
-	Spring.Log(gadget:GetInfo().name, LOG.WARNING, "nameUnits "..table.toString(trackedUnits))
+local function unnameUnits(name)
+	if not trackedUnits[name] or #trackedUnits[name] == 0 then return end
 
+	for _, unitID in pairs(trackedUnits[name]) do
+		trackedUnits[unitID] = nil
+	end
+	trackedUnits[name] = nil
 end
 
 local function spawnExplosion(position, direction, params)
@@ -160,6 +170,7 @@ return {
 	DespawnUnits = despawnUnits,
 	TransferUnits = transferUnits,
 	NameUnits = nameUnits,
+	UnnameUnits = unnameUnits,
 
 	-- SFX
 	SpawnExplosion = spawnExplosion,

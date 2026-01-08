@@ -21,6 +21,7 @@ local typeMapping = {
 	-- [types.SpawnEffects] = ,
 	[types.TransferUnits] = actionFunctions.TransferUnits,
 	[types.NameUnits] = actionFunctions.NameUnits,
+	[types.UnnameUnits] = actionFunctions.UnnameUnits,
 	[types.SpawnExplosion] = actionFunctions.SpawnExplosion,
 	-- [types.RevealLOS] = ,
 	-- [types.UnrevealLOS] = ,

@@ -18,6 +18,7 @@ local actionTypes = {
 	DespawnUnits       = 401,       --
 	TransferUnits      = 404,       --
 	NameUnits	       = 405,       --
+	UnnameUnits	       = 406,       --
 
 	-- SFX
 	SpawnExplosion     = 500,       --
@@ -182,6 +183,13 @@ local parameters = {
 			name = 'rectangle',
 			required = false,
 			type = 'table'
+		}
+	},
+	[actionTypes.UnnameUnits] = {
+		[1] = {
+			name = 'name',
+			required = true,
+			type = 'string'
 		}
 	},
 

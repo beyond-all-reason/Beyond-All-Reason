@@ -72,10 +72,18 @@ local triggers = {
 		actions = { 'despawnFusionsReclaimed', 'messageFusionsReclaimed' },
 	},
 
-	at1400gameEnd = {
+	at1400doNotKillConBots = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			gameFrame = 1400,
+		},
+		actions = { 'unnameConBots', 'despawnConBotsAsKilled', 'messageBotsNotKilled' },
+	},
+
+	at1500gameEnd = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 1500,
 		},
 		actions = { 'gameEnd' },
 	},
@@ -219,6 +227,20 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "And we take them back.",
+		},
+	},
+
+	unnameConBots = {
+		type = actionTypes.UnnameUnits,
+		parameters = {
+			name = 'con-bots',
+		},
+	},
+
+	messageBotsNotKilled = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Let's unname the bots so we don't kill them.",
 		},
 	},
 
