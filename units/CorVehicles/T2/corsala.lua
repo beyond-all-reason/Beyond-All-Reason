@@ -2,7 +2,7 @@ return {
 	corsala = {
 		activatewhenbuilt = true,
 		buildpic = "CORSALA.DDS",
-		buildtime = 7900,
+		buildtime = 10500,
 		canmove = true,
 		collisionvolumeoffsets = "0 -5.5 0",
 		collisionvolumescales = "31 34 31",

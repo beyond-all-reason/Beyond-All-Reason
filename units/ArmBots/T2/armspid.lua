@@ -4,7 +4,7 @@ return {
 		builddistance = 150,
 		builder = true,
 		buildpic = "ARMSPID.DDS",
-		buildtime = 5100,
+		buildtime = 7000,
 		canassist = false,
 		canmove = true,
 		canrepair = false,

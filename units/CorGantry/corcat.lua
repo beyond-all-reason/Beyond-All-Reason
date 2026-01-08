@@ -1,7 +1,7 @@
 return {
 	corcat = {
 		buildpic = "CORCAT.DDS",
-		buildtime = 127000,
+		buildtime = 160000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 2",

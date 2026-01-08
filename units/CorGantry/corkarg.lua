@@ -1,7 +1,7 @@
 return {
 	corkarg = {
 		buildpic = "CORKARG.DDS",
-		buildtime = 76000,
+		buildtime = 94000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0.0 -2.0 1",

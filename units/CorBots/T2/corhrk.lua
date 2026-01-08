@@ -1,7 +1,7 @@
 return {
 	corhrk = {
 		buildpic = "CORHRK.DDS",
-		buildtime = 6600,
+		buildtime = 9500,
 		canmove = true,
 		collisionvolumeoffsets = "0 1 -1",
 		collisionvolumescales = "26 31 33",

@@ -2,7 +2,7 @@ return {
 	corsb = {
 		blocking = false,
 		buildpic = "CORSB.DDS",
-		buildtime = 7000,
+		buildtime = 9000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -117,7 +117,7 @@ return {
 				waterbounce = true,
 				weapontype = "AircraftBomb",
 				customparams = {
-					water_splash = 0, -- corsb gets a special ceg with less particles, because it has lots of bouncing bombs
+					water_splash = 0,
 				},
 				damage = {
 					default = 50,

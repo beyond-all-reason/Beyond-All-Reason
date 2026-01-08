@@ -1,7 +1,7 @@
 return {
 	corpyro = {
 		buildpic = "CORPYRO.DDS",
-		buildtime = 5030,
+		buildtime = 6500,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "28 35 28",

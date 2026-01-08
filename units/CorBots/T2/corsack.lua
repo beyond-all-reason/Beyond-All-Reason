@@ -3,7 +3,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "LEGACK.DDS",
-		buildtime = 9700,
+		buildtime = 12500,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "28 42 30",

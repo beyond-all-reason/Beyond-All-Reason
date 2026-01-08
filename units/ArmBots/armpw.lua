@@ -116,6 +116,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:plasmahit-small",
 				firestarter = 100,
+				flighttime = 0.4,
 				gravityaffected = "true",
 				impulsefactor = 0.123,
 				intensity = 0.7,
@@ -132,7 +133,7 @@ return {
 				turret = true,
 				weapontimer = 0.1,
 				weapontype = "Cannon",
-				weaponvelocity = 500,
+				weaponvelocity = 600,
 				damage = {
 					default = 9,
 					vtol = 3,

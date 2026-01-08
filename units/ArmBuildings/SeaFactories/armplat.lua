@@ -29,7 +29,7 @@ return {
 		sonardistance = 600,
 		terraformspeed = 1000,
 		waterline = 39,
-		workertime = 200,
+		workertime = 300,
 		yardmap = "wwwwww weeeew weeeew weeeew weeeew wwwwww",
 		buildoptions = {
 			[1] = "armcsa",

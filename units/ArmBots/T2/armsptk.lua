@@ -1,7 +1,7 @@
 return {
 	armsptk = {
 		buildpic = "ARMSPTK.DDS",
-		buildtime = 8800,
+		buildtime = 11500,
 		canmove = true,
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "42 28 42",

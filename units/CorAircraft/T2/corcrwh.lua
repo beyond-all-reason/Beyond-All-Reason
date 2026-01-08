@@ -5,7 +5,7 @@ return {
 		bankingallowed = false,
 		blocking = true,
 		buildpic = "CORCRWH.DDS",
-		buildtime = 84200,
+		buildtime = 120000,
 		canfly = true,
 		canmove = true,
 		collide = true,

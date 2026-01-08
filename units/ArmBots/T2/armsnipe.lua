@@ -1,7 +1,7 @@
 return {
 	armsnipe = {
 		buildpic = "ARMSNIPE.DDS",
-		buildtime = 19000,
+		buildtime = 24000,
 		canmove = true,
 		cloakcost = 75,
 		cloakcostmoving = 200,

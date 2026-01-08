@@ -3,7 +3,7 @@ return {
 		airsightdistance = 900,
 		buildangle = 16384,
 		buildpic = "ARMAAS.DDS",
-		buildtime = 15000,
+		buildtime = 21000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -5 -1",
 		collisionvolumescales = "31 31 74",

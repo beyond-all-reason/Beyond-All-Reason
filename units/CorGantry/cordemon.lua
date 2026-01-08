@@ -1,7 +1,7 @@
 return {
 	cordemon = {
 		buildpic = "CORDEMON.DDS",
-		buildtime = 120000,
+		buildtime = 160000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
