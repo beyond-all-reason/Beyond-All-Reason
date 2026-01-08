@@ -19,6 +19,9 @@ local function IsEnabled()
   return cachedEnabled
 end
 
+local activeZoneStack = {}
+local tracyAvailable = tracy and tracy.ZoneBeginN and tracy.ZoneEnd
+
 --------------------------------------------------------------------------------
 -- Structured Log Events (require active audit context)
 --------------------------------------------------------------------------------
@@ -124,8 +127,22 @@ function EconomyLog.StorageCapped(teamId, resourceType, current, storage)
 end
 
 function EconomyLog.Breakpoint(name)
-  if not IsEnabled() then return end
-  Spring.EconomyAuditBreakpoint(name)
+  if tracyAvailable then
+    tracy.ZoneBeginN("Eco:" .. name)
+    activeZoneStack[#activeZoneStack + 1] = name
+  end
+  -- TODO: delete me, this is emulating tracy
+  if IsEnabled() then
+    Spring.EconomyAuditBreakpoint(name)
+  end
+end
+
+function EconomyLog.BreakpointEnd()
+  if tracyAvailable and #activeZoneStack > 0 then
+    Spring.Echo("BreakpointEnd: " .. activeZoneStack[#activeZoneStack])
+    tracy.ZoneEnd()
+    activeZoneStack[#activeZoneStack] = nil
+  end
 end
 
 --------------------------------------------------------------------------------

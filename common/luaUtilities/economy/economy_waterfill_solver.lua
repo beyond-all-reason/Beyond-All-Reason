@@ -10,6 +10,7 @@ local Gadgets = {}
 Gadgets.__index = Gadgets
 
 local EPSILON = 1e-6
+local tracyAvailable = tracy and tracy.ZoneBeginN and tracy.ZoneEnd
 
 local memberCache = {} ---@type table<number, EconomyShareMember>
 local groupCache = {} ---@type table<number, EconomyShareMember[]>
@@ -212,13 +213,17 @@ end
 ---@return table<number, TeamResourceData>
 ---@return EconomyFlowSummary
 function Gadgets.Solve(springRepo, teamsList)
+  if tracyAvailable then tracy.ZoneBeginN("WaterfillSolver.Solve") end
+
   if not teamsList then
+    if tracyAvailable then tracy.ZoneEnd() end
     return teamsList, {}
   end
 
   local teamCount = 0
   for _ in pairs(teamsList) do teamCount = teamCount + 1 end
   if teamCount == 0 then
+    if tracyAvailable then tracy.ZoneEnd() end
     return teamsList, {}
   end
 
@@ -252,7 +257,10 @@ function Gadgets.Solve(springRepo, teamsList)
   end
 
   for _, resourceType in ipairs(RESOURCE_TYPES) do
+    if tracyAvailable then tracy.ZoneBeginN("CollectMembers:" .. resourceType) end
     local groups, sizes = collectMembers(teamsList, resourceType, thresholds, springRepo)
+    if tracyAvailable then tracy.ZoneEnd() end
+
     for allyTeam, members in pairs(groups) do
       local memberCount = sizes[allyTeam] or 0
       if memberCount > 0 then
@@ -263,6 +271,10 @@ function Gadgets.Solve(springRepo, teamsList)
         end
 
         local lift, deltas = solveWithCpp(members, memberCount, taxRate)
+
+        if tracyAvailable and tracy.LuaTracyPlot then
+          tracy.LuaTracyPlot("Economy/Lift/" .. resourceType, lift)
+        end
 
         local totalSupply, totalDemand = 0, 0
         local senderCount, receiverCount = 0, 0
@@ -290,7 +302,9 @@ function Gadgets.Solve(springRepo, teamsList)
         end
         EconomyLog.GroupLift(allyTeam, resourceType, lift, memberCount, totalSupply, totalDemand, senderCount, receiverCount)
 
+        if tracyAvailable then tracy.ZoneBeginN("ApplyDeltas") end
         local ledgers = applyDeltas(members, memberCount, lift, deltas, taxRate)
+        if tracyAvailable then tracy.ZoneEnd() end
 
         for i = 1, memberCount do
           local member = members[i]
@@ -333,6 +347,7 @@ function Gadgets.Solve(springRepo, teamsList)
     updateCumulative(springRepo, cumulativeCache)
   end
 
+  if tracyAvailable then tracy.ZoneEnd() end
   return teamsList, teamLedgerCache
 end
 
