@@ -46,6 +46,7 @@ return {
 			subfolder = "Legion/T2",
 			techlevel = 2,
 			unitgroup = "weaponsub",
+			continuous_aim_time = 0.13,
 			speedfactorinwater = 1.3,
 			speedfactoratdepth = 10,
 			reactive_armor_health = 750,

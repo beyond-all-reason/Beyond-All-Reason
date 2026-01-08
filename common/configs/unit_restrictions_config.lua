@@ -40,7 +40,25 @@ local function shouldShowWaterUnits()
 		return false
 	end
 
+	local debugCommands = Spring.GetModOption("debugcommands")
+
+	-- terraform, done too late to read w/ get ground, and too hectic to even try and guess
+	if debugCommands and debugCommands:len() > 1 then
+		if	debugCommands:find("waterlevel")
+		or	debugCommands:find("height")
+		or	debugCommands:find("extreme")
+		or	debugCommands:find("invertmap")
+		then
+			return true
+		end
+	end
+
 	local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
+
+	-- water level shifted, done too late by another gadget for this file to read w/ get ground
+	local moddedWaterLevel = Spring.GetModOption("map_waterlevel") or 0
+	mapMinWater = mapMinWater - moddedWaterLevel
+
 	return mapMinWater <= -11 -- units.minWaterUnitDepth
 end
 

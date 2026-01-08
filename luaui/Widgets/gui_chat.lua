@@ -171,7 +171,7 @@ local state = {
 	inputTextPosition = 0,
 	cursorBlinkTimer = 0,
 	cursorBlinkDuration = 1,
-	inputMode = '',
+	inputMode = nil,
 	inputTextInsertActive = false,
 	inputHistory = {},
 	inputHistoryCurrent = 0,
@@ -185,7 +185,7 @@ local state = {
 local I18N, orgLines, chatLines, consoleLines = state.I18N, state.orgLines, state.chatLines, state.consoleLines
 local activationArea, font = state.activationArea, state.font
 local showTextInput, inputText, cursorBlinkTimer, cursorBlinkDuration = false, '', 0, 1
-local inputMode, inputHistory, autocompleteWords, prevAutocompleteLetters = '', {}, {}, nil
+local inputMode, inputHistory, autocompleteWords, prevAutocompleteLetters = nil, {}, {}, nil
 local scrolling, playSound, sndChatFile, sndChatFileVolume = false, config.playSound, config.sndChatFile, config.sndChatFileVolume
 local myName, mySpec = state.myName, state.mySpec
 local lastDrawUiUpdate = state.lastDrawUiUpdate
@@ -2182,6 +2182,9 @@ function widget:KeyPress(key)
 				inputMode = mySpec and 's:' or 'a:'
 			elseif shift then
 				inputMode = 's:'
+			elseif inputMode == nil then
+				-- First time opening chat - default to allies/spectators
+				inputMode = mySpec and 's:' or 'a:'
 			end
 			-- again just to be safe, had report locking could still happen
 			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!

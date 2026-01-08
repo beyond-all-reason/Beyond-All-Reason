@@ -55,6 +55,7 @@ local screenMargin = 0.05	-- limit how close to the screen edge the PiP window c
 local drawProjectiles = true  -- Show projectiles and explosions in PIP window
 local zoomToCursor = true  -- When increasing zoom (getting closer), zoom towards cursor position (decreasing zoom pulls back to center)
 local mapEdgeMargin = 0.15  -- Maximum allowed distance from PiP edge to map edge (as fraction of PiP size)
+local showButtonsOnHoverOnly = true  -- Only show buttons when mouse is hovering over the PIP window
 
 local pipMinUpdateRate = 40  -- Minimum FPS for PIP rendering when zoomed out (performance-adjusted dynamically)
 local pipMaxUpdateRate = 120  -- Maximum FPS for PIP rendering when zoomed in
@@ -159,6 +160,7 @@ local interactionState = {
 	lastMapDrawX = nil,
 	lastMapDrawZ = nil,
 	clickHandledInPanMode = false,
+	isMouseOverPip = false,
 }
 
 -- Misc variables
@@ -166,7 +168,7 @@ local startX, startZ
 local isProcessingMapDraw = false -- Prevent MapDrawCmd recursion
 local mapmarkInitScreenX, mapmarkInitScreenY = nil, nil -- Track where mapmark was initiated
 local mapmarkInitTime = 0 -- Track when mapmark was initiated
-local backupTracking = nil -- Store tracking state when switching views
+local backupTracking = nil -- Store tracking state and camera position when switching views: {tracking = units, camX = x, camZ = z}
 local hadSavedConfig = false -- Track if we loaded from saved config (to avoid auto-minimize on reload)
 local unitShader
 local pipUnits = {}
@@ -262,6 +264,33 @@ local buttons = {
 	-- 	OnPress = function() interactionState.areCentering = true interactionState.areTracking = nil end
 	-- },
 	{
+		texture = 'LuaUI/Images/pip/PipCopy.png',
+		tooltip = Spring.I18N('ui.pip.copy'),
+		command = 'pip_copy',
+		OnPress = function()
+				local sizex, sizez = Spring.GetWindowGeometry()
+				local _, pos = Spring.TraceScreenRay(sizex/2, sizez/2, true)
+				if pos and pos[2] > -10000 then
+					-- Set PIP camera to main camera position with rounding to match switch behavior
+					local copiedX = math.floor(pos[1] + 0.5)
+					local copiedZ = math.floor(pos[3] + 0.5)
+					wcx = copiedX
+					wcz = copiedZ
+					targetWcx, targetWcz = wcx, wcz
+					RecalculateWorldCoordinates()
+					RecalculateGroundTextureCoordinates()
+					-- Disable tracking when copying camera
+					interactionState.areTracking = nil
+					-- Store the copied position in backup so switching maintains same position
+					backupTracking = {
+						tracking = nil,
+						camX = copiedX,
+						camZ = copiedZ
+					}
+				end
+			end
+	},
+	{
 		texture = 'LuaUI/Images/pip/PipSwitch.png',
 		tooltip = Spring.I18N('ui.pip.switch'),
 		command = 'pip_switch',
@@ -269,8 +298,18 @@ local buttons = {
 				local sizex, sizez = Spring.GetWindowGeometry()
 				local _, pos = Spring.TraceScreenRay(sizex/2, sizez/2, true)
 				if pos and pos[2] > -10000 then
+					-- Use stored camera position from backup if available, otherwise use current main camera
+					local mainCamX, mainCamZ
+					if backupTracking and backupTracking.camX and backupTracking.camZ then
+						mainCamX = backupTracking.camX
+						mainCamZ = backupTracking.camZ
+					else
+						mainCamX = math.floor(pos[1] + 0.5)
+						mainCamZ = math.floor(pos[3] + 0.5)
+					end
+
 					-- Calculate the actual center of tracked units (if tracking) for main view camera
-					local pipCameraTargetX, pipCameraTargetZ = wcx, wcz
+					local pipCameraTargetX, pipCameraTargetZ = math.floor(wcx + 0.5), math.floor(wcz + 0.5)
 					if interactionState.areTracking and #interactionState.areTracking > 0 then
 						-- Calculate average position of tracked units (not margin-corrected camera)
 						local uCount = 0
@@ -285,7 +324,8 @@ local buttons = {
 							end
 						end
 						if uCount > 0 then
-							pipCameraTargetX, pipCameraTargetZ = ax / uCount, az / uCount
+							pipCameraTargetX = math.floor((ax / uCount) + 0.5)
+							pipCameraTargetZ = math.floor((az / uCount) + 0.5)
 						end
 
 						-- First untrack anything in main view
@@ -299,19 +339,27 @@ local buttons = {
 						Spring.SendCommands("track")
 					end
 
-					-- Backup current tracking state before switching
-					local tempTracking = backupTracking
-					backupTracking = interactionState.areTracking
+					-- Backup current state before switching
+					local tempBackup = backupTracking
+					backupTracking = {
+						tracking = interactionState.areTracking,
+						camX = pipCameraTargetX,
+						camZ = pipCameraTargetZ
+					}
 
-					-- Switch camera positions - use actual unit center, not margin-corrected camera
+					-- Switch camera positions - use rounded coordinates
 					Spring.SetCameraTarget(pipCameraTargetX, 0, pipCameraTargetZ, 0.2)
-					wcx, wcz = pos[1], pos[3]
+					wcx, wcz = mainCamX, mainCamZ
 					targetWcx, targetWcz = wcx, wcz  -- Set targets instantly for button clicks
 					RecalculateWorldCoordinates()
 					RecalculateGroundTextureCoordinates()
 
-					-- Restore tracking state from previous backup
-					interactionState.areTracking = tempTracking
+					-- Restore state from previous backup
+					if tempBackup then
+						interactionState.areTracking = tempBackup.tracking
+					else
+						interactionState.areTracking = nil
+					end
 				end
 			end
 	},
@@ -2429,7 +2477,16 @@ function widget:Initialize()
 	for i = 1, #buttons do
 		local button = buttons[i]
 		if button.command then
-			widgetHandler.actionHandler:AddAction(self, button.command, button.OnPress, nil, 't')
+			widgetHandler.actionHandler:AddAction(self, button.command, button.OnPress, nil, 'p')
+
+			-- Bind hotkeys for specific commands
+			if button.command == 'pip_copy' then
+				Spring.SendCommands("unbindkeyset alt+q")
+				Spring.SendCommands("bind alt+q pip_copy")
+			elseif button.command == 'pip_switch' then
+				Spring.SendCommands("unbindkeyset shift+q")
+				Spring.SendCommands("bind shift+q pip_switch")
+			end
 		end
 	end
 
@@ -2573,6 +2630,13 @@ function widget:Shutdown()
 		local button = buttons[i]
 		if button.command then
 			widgetHandler.actionHandler:RemoveAction(self, button.command)
+
+			-- Unbind hotkeys for specific commands
+			if button.command == 'pip_copy' then
+				Spring.SendCommands("unbind Alt+Q pip_copy")
+			elseif button.command == 'pip_switch' then
+				Spring.SendCommands("unbind Shift+Q pip_switch")
+			end
 		end
 	end
 end
@@ -3197,6 +3261,9 @@ local function DrawIcons()
 	local iconRadiusZoom = iconRadius * zoom
 	local iconRadiusZoomDistMult = iconRadiusZoom * distMult
 
+	-- Texture coordinate inset to prevent edge bleeding
+	local texInset = 0.004
+
 	-- Reuse pooled tables to avoid allocations every frame
 	local iconsByTexture = iconsByTexturePool
 	local defaultIconIndices = defaultIconIndicesPool
@@ -3242,38 +3309,58 @@ local function DrawIcons()
 	for texture, indices in pairs(iconsByTexture) do
 		glTexture(texture)
 		local indexCount = #indices
-		for j = 1, indexCount do
-			local i = indices[j]
-			local cx = pipIconX[i]
-			local cy = pipIconY[i]
-			local udef = pipIconUdef[i]
-			local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
+		gl.BeginEnd(GL_QUADS, function()
+			for j = 1, indexCount do
+				local i = indices[j]
+				local cx = pipIconX[i]
+				local cy = pipIconY[i]
+				local udef = pipIconUdef[i]
+				local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
 
-			if pipIconSelected[i] then
-				glColor(1,1,1,1)
-			else
-				glColor(teamColors[pipIconTeam[i]])
+				if pipIconSelected[i] then
+					glColor(1,1,1,1)
+				else
+					glColor(teamColors[pipIconTeam[i]])
+				end
+				-- Use manual texture coordinates with inset to prevent edge bleeding
+				glTexCoord(texInset, 1 - texInset)
+				glVertex(cx - iconSize, cy - iconSize)
+				glTexCoord(1 - texInset, 1 - texInset)
+				glVertex(cx + iconSize, cy - iconSize)
+				glTexCoord(1 - texInset, texInset)
+				glVertex(cx + iconSize, cy + iconSize)
+				glTexCoord(texInset, texInset)
+				glVertex(cx - iconSize, cy + iconSize)
 			end
-			glTexRect(cx - iconSize, cy - iconSize, cx + iconSize, cy + iconSize)
-		end
+		end)
 	end
 
 	-- Draw default icons (fallback radar blip texture for unknown unit types)
 	if defaultCount > 0 then
 		glTexture('LuaUI/Images/pip/PipBlip.png')
 		local defaultIconSize = iconRadius * 0.5 * zoom * distMult
-		for j = 1, defaultCount do
-			local i = defaultIconIndices[j]
-			local cx = pipIconX[i]
-			local cy = pipIconY[i]
+		gl.BeginEnd(GL_QUADS, function()
+			for j = 1, defaultCount do
+				local i = defaultIconIndices[j]
+				local cx = pipIconX[i]
+				local cy = pipIconY[i]
 
-			if pipIconSelected[i] then
-				glColor(1,1,1,1)
-			else
-				glColor(teamColors[pipIconTeam[i]])
+				if pipIconSelected[i] then
+					glColor(1,1,1,1)
+				else
+					glColor(teamColors[pipIconTeam[i]])
+				end
+				-- Use manual texture coordinates with inset to prevent edge bleeding
+				glTexCoord(texInset, 1 - texInset)
+				glVertex(cx - defaultIconSize, cy - defaultIconSize)
+				glTexCoord(1 - texInset, 1 - texInset)
+				glVertex(cx + defaultIconSize, cy - defaultIconSize)
+				glTexCoord(1 - texInset, texInset)
+				glVertex(cx + defaultIconSize, cy + defaultIconSize)
+				glTexCoord(texInset, texInset)
+				glVertex(cx - defaultIconSize, cy + defaultIconSize)
 			end
-			glTexRect(cx - defaultIconSize, cy - defaultIconSize, cx + defaultIconSize, cy + defaultIconSize)
-		end
+		end)
 	end
 
 	glTexture(false)
@@ -3445,6 +3532,11 @@ local function RenderFrameButtons()
 	local usedButtonSizeLocal = usedButtonSize
 	local pipWidth = dim.r - dim.l
 	local pipHeight = dim.t - dim.b
+
+	-- Skip all rendering if showButtonsOnHoverOnly is enabled and mouse is not over PIP
+	if showButtonsOnHoverOnly and not interactionState.isMouseOverPip then
+		return
+	end
 
 	-- Resize handle (bottom-right corner)
 	glColor(panelBorderColorDark)
@@ -4110,9 +4202,19 @@ function widget:DrawScreen()
 	-- Buttons and hover effects
 	----------------------------------------------------------------------------------------------------
 	if gl.R2tHelper then
+		-- Update mouse hover state
+		interactionState.isMouseOverPip = (mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t)
+
 		-- Blit frame buttons
 		if pipR2T.frameButtonsTex then
 			gl.R2tHelper.BlendTexRect(pipR2T.frameButtonsTex, dim.l, dim.b, dim.r, dim.t, true)
+		end
+
+		-- Draw resize handle when showing on hover
+		if showButtonsOnHoverOnly and interactionState.isMouseOverPip then
+			glColor(panelBorderColorDark)
+			gl.LineWidth(1.0)
+			glBeginEnd(GL_TRIANGLES, ResizeHandleVertices)
 		end
 
 		-- Draw dynamic hover overlays
@@ -4136,6 +4238,16 @@ function widget:DrawScreen()
 
 		-- Minimize button hover
 		hover = false
+		if showButtonsOnHoverOnly and interactionState.isMouseOverPip then
+			-- Draw minimize button base when showing on hover
+			glColor(panelBorderColorDark)
+			glTexture(false)
+			RectRound(dim.r - usedButtonSize - elementPadding, dim.t - usedButtonSize - elementPadding, dim.r, dim.t, elementCorner, 0, 0, 0, 1)
+			glColor(panelBorderColorLight)
+			glTexture('LuaUI/Images/pip/PipMinimize.png')
+			glTexRect(dim.r - usedButtonSize, dim.t - usedButtonSize, dim.r, dim.t)
+			glTexture(false)
+		end
 		if mx >= dim.r - usedButtonSize - elementPadding and mx <= dim.r - elementPadding and
 			my >= dim.t - usedButtonSize - elementPadding and my <= dim.t - elementPadding then
 			hover = true
@@ -4161,6 +4273,29 @@ function widget:DrawScreen()
 			if buttons[i].command ~= 'pip_track' or hasSelection or isTracking then
 				visibleButtons[#visibleButtons + 1] = buttons[i]
 			end
+		end
+
+		-- Draw base buttons when showing on hover
+		if showButtonsOnHoverOnly and interactionState.isMouseOverPip then
+			local buttonCount = #visibleButtons
+			glColor(panelBorderColorDark)
+			glTexture(false)
+			RectRound(dim.l, dim.b, dim.l + (buttonCount * usedButtonSize) + math.floor(elementPadding*0.75), dim.b + usedButtonSize + math.floor(elementPadding*0.75), elementCorner, 0, 1, 0, 0)
+			local bx = dim.l
+			for i = 1, buttonCount do
+				if visibleButtons[i].command == 'pip_track' and interactionState.areTracking then
+					glColor(panelBorderColorLight)
+					glTexture(false)
+					RectRound(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize, elementCorner*0.4, 1, 1, 1, 1)
+					glColor(panelBorderColorDark)
+				else
+					glColor(panelBorderColorLight)
+				end
+				glTexture(visibleButtons[i].texture)
+				glTexRect(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize)
+				bx = bx + usedButtonSize
+			end
+			glTexture(false)
 		end
 
 		hover = false
@@ -4309,6 +4444,16 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 end
 
 function widget:Update(dt)
+	-- Update mouse hover state
+	local mx, my = spGetMouseState()
+	local wasMouseOver = interactionState.isMouseOverPip
+	interactionState.isMouseOverPip = (mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t and not inMinMode)
+
+	-- If hover state changed, update frame buttons
+	if wasMouseOver ~= interactionState.isMouseOverPip and showButtonsOnHoverOnly then
+		pipR2T.frameNeedsUpdate = true
+	end
+
 	-- Track selection and tracking state changes for frame updates
 	local selectedUnits = Spring.GetSelectedUnits()
 	local currentSelectionCount = #selectedUnits
@@ -5116,6 +5261,8 @@ function widget:MousePress(mx, my, mButton)
 			animationProgress = 0
 			isAnimating = true
 			inMinMode = false
+			-- Update hover state after maximizing to check if mouse is over the restored PIP
+			interactionState.isMouseOverPip = (mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t)
 			return true
 		end
 		-- Nothing else to click while in minMode
