@@ -25,6 +25,7 @@ return {
 		maxslope = 10,
 		speed = 255.0,
 		maxwaterdepth = 0,
+		movestate = 0,
 		noautofire = true,
 		nochasecategory = "MOBILE",
 		objectname = "Units/scavboss/ARMMINEBOMBER.s3o",

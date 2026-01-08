@@ -28,6 +28,7 @@ return {
 		maxslope = 10,
 		speed = 180.0,
 		maxwaterdepth = 0,
+		movestate = 0,
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/ARMLICHET4.s3o",

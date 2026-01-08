@@ -30,6 +30,7 @@ return {
 		maxslope = 10,
 		speed = 230.0,
 		maxwaterdepth = 0,
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/legkam.s3o",
 		script = "Units/legkam.cob",

@@ -24,6 +24,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 255,
 		metalcost = 240,
+		movestate = 0,
 		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/legspbomber.s3o",

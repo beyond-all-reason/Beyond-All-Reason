@@ -26,6 +26,7 @@ return {
 		maxslope = 10,
 		speed = 234.0,
 		maxwaterdepth = 0,
+		movestate = 0,
 		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "scavs/CORDS.s3o",

@@ -27,6 +27,7 @@ return {
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalcost = 460,
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSTIL.s3o",
 		script = "Units/ARMSTIL.cob",

@@ -27,6 +27,7 @@ return {
 		maxslope = 10,
 		speed = 215,
 		maxwaterdepth = 0,
+		movestate = 0,
 		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGNAP.s3o",

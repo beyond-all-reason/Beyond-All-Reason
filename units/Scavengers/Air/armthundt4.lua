@@ -26,6 +26,7 @@ return {
 		maxslope = 10,
 		speed = 367.5,
 		maxwaterdepth = 0,
+		movestate = 0,
 		noautofire = true,
 		nochasecategory = "MOBILE",
 		objectname = "Units/scavboss/ARMTHUNDT4.s3o",

@@ -25,6 +25,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 255,
 		metalcost = 200,
+		movestate = 0,
 		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSB.s3o",

@@ -23,6 +23,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		metalcost = 145,
+		movestate = 0,
 		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMTHUND.s3o",
