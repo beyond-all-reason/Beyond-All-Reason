@@ -38,6 +38,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {
@@ -136,12 +137,12 @@ return {
 					area_onhit_ceg = "fire-area-75-repeat",
 					area_onhit_damageCeg = "burnflamexl-gen",
 					area_onhit_resistance = "fire",
-					area_onhit_damage = 45,
+					area_onhit_damage = 60,
 					area_onhit_range = 75,
-					area_onhit_time = 10,
+					area_onhit_time = 7,
 				},
 				damage = {
-					default = 45,
+					default = 60,
 					subs = 10,
 					vtol = 10,
 				},

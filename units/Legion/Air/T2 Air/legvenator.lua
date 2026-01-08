@@ -7,7 +7,7 @@ return {
 		energycost = 3200,
 		metalcost = 110,
 		buildpic = "legvenator.DDS",
-		buildtime = 8400,
+		buildtime = 9730,
 		canfly = true,
 		canmove = true,
 		collide = false,
@@ -45,6 +45,7 @@ return {
 			techlevel = 2,
 			attacksafetydistance = 300,
 			fighter = 1,
+			continuous_aim_time = 0.17,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

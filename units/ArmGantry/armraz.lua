@@ -1,7 +1,7 @@
 return {
 	armraz = {
 		buildpic = "ARMRAZ.DDS",
-		buildtime = 88600,
+		buildtime = 120000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -42,6 +42,8 @@ return {
 			unitgroup = "weapon",
 			weapon1turretx = 200,
 			weapon1turrety = 200,
+			continuous_aim_spam = 80,
+			continuous_aim_time = 0.2,
 		},
 		featuredefs = {
 			dead = {

@@ -95,7 +95,6 @@ for udid, udef in pairs(UnitDefs) do
 	local isMobile = not udef.isImmobile  or  (includeNanosAsMobile and (udef.isStaticBuilder and not udef.isFactory))
 	local builder = (udef.canReclaim and udef.reclaimSpeed > 0)  or  (udef.canResurrect and udef.resurrectSpeed > 0)  or  (udef.canRepair and udef.repairSpeed > 0) or (udef.buildOptions and udef.buildOptions[1])
 	local building = (isMobile == false)
-	local combat = (not builder) and isMobile and (#udef.weapons > 0)
 	local isUtil = udef.customParams.unitgroup == "util"
 	local antinuke = isMobile and udef.customParams.unitgroup == "antinuke"
 	local radar = isMobile and isUtil and udef.radarDistance > 0
@@ -104,6 +103,8 @@ for udid, udef in pairs(UnitDefs) do
 	if udef.customParams.selectable_as_combat_unit then
 		builder = false
 	end
+
+	local combat = ((not builder) and isMobile and (#udef.weapons > 0)) or udef.customParams.selectable_as_combat_unit
 
 	combatFilter[udid] = combat
 	builderFilter[udid] = builder
@@ -116,6 +117,10 @@ for udid, udef in pairs(UnitDefs) do
 end
 
 local function smartSelectIncludeFilter(udid)
+	if UnitDefs[udid].customParams and UnitDefs[udid].customParams.selectable_as_combat_unit then
+		return true
+	end
+
 	local smartSelectFilters = {
 		{include = includeBuilders, filter = builderFilter},
 		{include = includeAntinuke, filter = antinukeFilter},
@@ -356,7 +361,7 @@ function widget:Update(dt)
 	end
 
 	-- only select new units identical to those already selected
-	if mods.same and #referenceSelection > 0 then
+	if mods.same and next(referenceSelectionTypes) ~= nil then
 		included = {}
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
@@ -584,7 +589,7 @@ function widget:Initialize()
 		end
 		
 		-- Apply same-type filter if active
-		if mods.same and #referenceSelection > 0 then
+		if mods.same and next(referenceSelectionTypes) ~= nil then
 			included = {}
 			for i = 1, #mouseSelection do
 				uid = mouseSelection[i]

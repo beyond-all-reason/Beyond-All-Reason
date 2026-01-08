@@ -2,7 +2,7 @@ return {
 	armpnix = {
 		blocking = false,
 		buildpic = "ARMPNIX.DDS",
-		buildtime = 21000,
+		buildtime = 25000,
 		canfly = true,
 		canmove = true,
 		collide = false,

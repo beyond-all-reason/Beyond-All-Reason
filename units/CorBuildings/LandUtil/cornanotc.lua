@@ -28,7 +28,7 @@ return {
 		maxdec = 4.5,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		metalcost = 210,
+		metalcost = 230,
 		movementclass = "NANO",
 		objectname = "Units/CORNANOTC.s3o",
 		script = "Units/CORNANOTC.cob",

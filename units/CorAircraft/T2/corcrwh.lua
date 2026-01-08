@@ -5,7 +5,7 @@ return {
 		bankingallowed = false,
 		blocking = true,
 		buildpic = "CORCRWH.DDS",
-		buildtime = 84200,
+		buildtime = 120000,
 		canfly = true,
 		canmove = true,
 		collide = true,
@@ -43,6 +43,7 @@ return {
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
+			continuous_aim_time = 0.23,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

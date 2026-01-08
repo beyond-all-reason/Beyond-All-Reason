@@ -1,7 +1,7 @@
 return {
 	corkorg = {
 		buildpic = "corkorg.DDS",
-		buildtime = 555000,
+		buildtime = 730000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -6 -5",
@@ -45,6 +45,7 @@ return {
 			subfolder = "CorGantry",
 			techlevel = 3,
 			unitgroup = "weapon",
+			continuous_aim_time = 0.02,
 		},
 		featuredefs = {
 			dead = {

@@ -2,7 +2,7 @@ return {
 	armhalab = {
 		builder = true,
 		buildpic = "ARMSHLTX.DDS",
-		buildtime = 61400,
+		buildtime = 85000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "180 120 166",
@@ -40,7 +40,7 @@ return {
 			[7] = "armzeus",
 			[8] = "armmar",
 			[9] = "armspy",
-			[10] = "armaak"
+			[10] = "armaak",
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,

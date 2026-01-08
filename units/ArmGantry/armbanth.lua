@@ -2,7 +2,7 @@ return {
 	armbanth = {
 		airsightdistance = 1100,
 		buildpic = "ARMBANTH.DDS",
-		buildtime = 276000,
+		buildtime = 360000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -46,6 +46,7 @@ return {
 			subfolder = "ArmGantry",
 			techlevel = 3,
 			unitgroup = "weapon",
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

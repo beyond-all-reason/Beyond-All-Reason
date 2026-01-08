@@ -1,7 +1,7 @@
 return {
 	corshiva = {
 		buildpic = "CORSHIVA.DDS",
-		buildtime = 30600,
+		buildtime = 40000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -5 0",
@@ -41,6 +41,7 @@ return {
 			subfolder = "CorGantry",
 			techlevel = 3,
 			unitgroup = "weapon",
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

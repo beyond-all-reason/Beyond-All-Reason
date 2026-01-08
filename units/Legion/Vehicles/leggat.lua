@@ -48,6 +48,7 @@ return {
 			subfolder = "Legion/Vehicles",
 			weapon1turretx = 45,
 			weapon1turrety = 80,
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {
@@ -132,7 +133,7 @@ return {
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 1,
-				range = 381,
+				range = 361,
 				reloadtime = 0.4,
 				rgbcolor = "1 0.95 0.4",
 				soundhit = "bimpact3",
@@ -148,10 +149,10 @@ return {
 				tolerance = 12000,
 				turret = true,
 				weapontype = "LaserCannon",
-				weaponvelocity = 950,
+				weaponvelocity = 900,
 				damage = {
 					default = 12,
-					vtol = 12,
+					vtol = 3,
 				},
 			},
 		},

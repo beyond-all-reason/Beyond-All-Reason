@@ -141,6 +141,7 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				customparams = {
+					junotype = "base",
 					nofire = true,
 					stockpilelimit = 20,
 					water_splash = 0,

@@ -52,6 +52,7 @@ return {
 			subfolder = "CorVehicles/T2",
 			weapon1turretx = 30,
 			weapon1turrety = 40,
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {
@@ -149,12 +150,12 @@ return {
 					area_onhit_ceg = "fire-area-75-repeat",
 					area_onhit_damageCeg = "burnflamexl-gen",
 					area_onhit_resistance = "fire",
-					area_onhit_damage = 45,--30,
+					area_onhit_damage = 60,--30,
 					area_onhit_range = 75,
-					area_onhit_time = 10,
+					area_onhit_time = 7,
 				},
 				damage = {
-					default = 45,
+					default = 60,
 					subs = 10,
 					vtol = 10,
 				},

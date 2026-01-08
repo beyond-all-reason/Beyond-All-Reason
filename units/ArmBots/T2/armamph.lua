@@ -1,7 +1,7 @@
 return {
 	armamph = {
 		buildpic = "ARMAMPH.DDS",
-		buildtime = 5200,
+		buildtime = 7000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "27 35 21",
@@ -38,6 +38,7 @@ return {
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "weaponaa",
+			continuous_aim_time = 0.1,
 		},
 		featuredefs = {
 			dead = {

@@ -2,10 +2,10 @@ return {
 	leghades = {
 		maxacc = 0.06788,
 		maxdec = 0.13575,
-		energycost = 800,
+		energycost = 850,
 		metalcost = 65,
 		buildpic = "LEGHADES.DDS",
-		buildtime = 1600,
+		buildtime = 1650,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "16 10 23",
@@ -47,6 +47,7 @@ return {
 			subfolder = "ArmVehicles",
 			weapon1turretx = 240,
 			weapon1turrety = 240,
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {
@@ -124,7 +125,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 210,
-				reloadtime = 2.25,
+				reloadtime = 2.3,
 				size = 2,
 				soundhit = "xplomed1",
 				soundhitwet = "splsmed",

@@ -163,7 +163,7 @@ local costOverrides = {}
 -------------------------------------------------------------------------------
 
 include("keysym.h.lua")
-local windFunctions = VFS.Include('common/wind_functions.lua')
+local unitBlocking = VFS.Include('luaui/Include/unitBlocking.lua')
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
@@ -240,6 +240,7 @@ local bgpadding, iconMargin, activeAreaMargin
 local dlistGuishader, dlistGuishaderBuilders, dlistGuishaderBuildersNext, dlistBuildmenu, dlistProgress, font2
 local redraw, redrawProgress, ordermenuHeight, prevAdvplayerlistLeft
 local doUpdate, doUpdateClock
+local delayRefresh
 
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 local categoryFontSize, categoryButtonHeight, hotkeyFontSize, priceFontSize, pageFontSize
@@ -299,8 +300,6 @@ local isPregame
 local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
 local grid = VFS.Include("luaui/configs/gridmenu_config.lua")
 
-local showWaterUnits = false
-units.restrictWaterUnits(true)
 
 local unitBuildOptions = {}
 local unitMetal_extractor = {}
@@ -919,6 +918,22 @@ local function refreshCommands()
 		gridOpts = grid.getSortedGridForBuilder(activeBuilder, buildOptions, currentCategory)
 	end
 
+	-- Filter out hidden units from gridOpts
+	if gridOpts then
+		local filteredOpts = {}
+		for i, opt in pairs(gridOpts) do
+			if opt and opt.id then
+				local uDefID = -opt.id
+				if not units.unitHidden[uDefID] then
+					filteredOpts[i] = opt
+				end
+			else
+				filteredOpts[i] = opt
+			end
+		end
+		gridOpts = filteredOpts
+	end
+
 	updateGrid()
 end
 
@@ -1105,7 +1120,7 @@ local function gridmenuCategoryHandler(_, _, args)
 	if builderIsFactory and useLabBuildMode and not labBuildModeActive then
 		Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 		setLabBuildMode(true)
-		updateGrid()
+		refreshCommands()
 		return true
 	end
 
@@ -1224,7 +1239,7 @@ local function nextPageHandler()
 	end
 	currentPage = currentPage == pages and 1 or currentPage + 1
 
-	updateGrid()
+	refreshCommands()
 end
 
 ---Set active builder based on index in selectedBuilders
@@ -1281,6 +1296,12 @@ end
 function widget:Initialize()
 	refreshUnitDefs()
 
+	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
+	for unitDefID, reasons in pairs(blockedUnitsData) do
+		units.unitRestricted[unitDefID] = next(reasons) ~= nil
+		units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
+	end
+
 	if widgetHandler:IsWidgetKnown("Build menu") then
 		-- Build menu needs to be disabled right now and before we recreate
 		-- WG['buildmenu'] since its Shutdown will destroy it.
@@ -1296,10 +1317,6 @@ function widget:Initialize()
 
 	doUpdateClock = os.clock()
 
-	units.checkGeothermalFeatures()
-	if windFunctions.isWindDisabled() then
-		units.restrictWindUnits(true)
-	end
 
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_key", gridmenuKeyHandler, nil, "pR")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_category", gridmenuCategoryHandler, nil, "p")
@@ -1458,6 +1475,14 @@ function widget:Initialize()
 		end
 		redraw = true
 		refreshCommands()
+	end
+
+	local blockedUnits = {}
+
+	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
+	for unitDefID, reasons in pairs(blockedUnitsData) do
+		units.unitRestricted[unitDefID] = next(reasons) ~= nil
+		units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
 	end
 end
 
@@ -1684,6 +1709,12 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > 0.33 then
 		sec = 0
+		if delayRefresh and Spring.GetGameSeconds() >= delayRefresh then
+			redraw = true
+			doUpdate = true
+			updateGrid()
+			delayRefresh = nil
+		end
 		checkGuishader()
 		if WG["minimap"] and minimapHeight ~= WG["minimap"].getHeight() then
 			widget:ViewResize()
@@ -1692,13 +1723,6 @@ function widget:Update(dt)
 				updateBuilders() -- builder rects are defined dynamically
 			end
 		end
-
-		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-		if mapMinWater <= units.minWaterUnitDepth and not showWaterUnits then
-			showWaterUnits = true
-			units.restrictWaterUnits(false)
-		end
-
 		local prevOrdermenuLeft = ordermenuLeft
 		local prevOrdermenuHeight = ordermenuHeight
 		if WG["ordermenu"] then
@@ -2919,7 +2943,6 @@ end
 
 function widget:GameStart()
 	isPregame = false
-	units.checkGeothermalFeatures()
 end
 
 function widget:PlayerChanged()
@@ -2973,6 +2996,14 @@ function widget:SetConfigData(data)
 	end
 	if data.shiftKeyModifier ~= nil then
 		modKeyMultiplier.keyPress.shift = data.shiftKeyModifier
+	end
+end
+
+function widget:UnitBlocked(unitDefID, reasons)
+	units.unitRestricted[unitDefID] = next(reasons) ~= nil
+	units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
+	if not delayRefresh or delayRefresh < Spring.GetGameSeconds() then
+		delayRefresh = Spring.GetGameSeconds() + 0.5 -- delay so multiple sequential UnitBlocked calls are batched in a single update.
 	end
 end
 

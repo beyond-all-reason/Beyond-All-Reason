@@ -19,7 +19,7 @@ return {
 		footprintz = 4,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 4000,
+		health = 3800,
 		speed = 58,
 		minwaterdepth = 12,
 		movementclass = "BOAT4",
@@ -43,6 +43,7 @@ return {
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
+			continuous_aim_time = 0.13,
 		},
 		featuredefs = {
 			dead = {

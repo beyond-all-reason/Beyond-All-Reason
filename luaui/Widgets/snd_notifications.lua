@@ -25,13 +25,10 @@ local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
 
 local defaultVoiceSet = 'en/cephis'
-if Spring.GetConfigString("voiceset", 'en/cephis') == 'en/allison' then
-	Spring.SetConfigString("voiceset", 'en/cephis')
-end
 
 local windFunctions = VFS.Include('common/wind_functions.lua')
 
-local useDefaultVoiceFallback = false    -- when a voiceset has missing file, try to load the default voiceset file instead
+local useDefaultVoiceFallback = Spring.GetConfigInt('NotificationsSubstitute', 0) == 1 --false    -- when a voiceset has missing file, try to load the default voiceset file instead
 local playWelcome = Spring.GetConfigInt('WelcomeMessagePlayed', 0) == 0
 
 local silentTime = 0.7    -- silent time between queued notifications
@@ -55,29 +52,10 @@ end
 local wavFileLengths = VFS.Include('sounds/sound_file_lengths.lua')
 VFS.Include('common/wav.lua')
 
-local language = Spring.GetConfigString('language', 'en')
-
 local voiceSet = Spring.GetConfigString('voiceset', defaultVoiceSet)
-
--- fix old config
-if not string.find(voiceSet, '/', nil, true)	then
-	Spring.SetConfigString("voiceset", defaultVoiceSet)
+if #VFS.DirList("sounds/voice/" .. voiceSet, "*.wav") == 0 then
 	voiceSet = defaultVoiceSet
 end
-
-if string.sub(voiceSet, 1, 2) ~= language then
-	local languageDirs = VFS.SubDirs('sounds/voice', '*')
-	for k, f in ipairs(languageDirs) do
-		local langDir = string.sub(f, 14, string.len(f)-1)
-		local files = VFS.SubDirs('sounds/voice/'..langDir, '*')
-		for k, file in ipairs(files) do
-			local dirname = string.sub(file, 14, string.len(file)-1)
-			voiceSet = langDir..'/'..dirname
-			break
-		end
-	end
-end
-
 
 local LastPlay = {}
 local notification = {}
@@ -93,19 +71,6 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 local soundFolder = "sounds/voice/" .. voiceSet .. "/"
 local soundEffectsFolder = "sounds/voice-soundeffects/"
 local defaultSoundFolder = "sounds/voice/" .. defaultVoiceSet .. "/"
-
-local voiceSetFound = false
-local files = VFS.SubDirs('sounds/voice/' .. language, '*')
-for k, file in ipairs(files) do
-	local dirname = string.sub(file, 14, string.len(file) - 1)
-	if dirname == voiceSet then
-		voiceSetFound = true
-		break
-	end
-end
-if not voiceSetFound then
-	voiceSet = defaultVoiceSet
-end
 
 -- load and parse sound files/notifications
 local notificationTable = VFS.Include('sounds/voice/config.lua')
@@ -144,7 +109,7 @@ for notifID, notifDef in pairs(notificationTable) do
 	end
 
 	if VFS.FileExists(soundFolder .. notifID .. '_rare' .. '.wav') then
-		notifSoundsRare[currentEntryRare] = soundFolder .. notifID .. '.wav'
+		notifSoundsRare[currentEntryRare] = soundFolder .. notifID .. '_rare' .. '.wav'
 	end
 	for i = 1, 20 do
 		if VFS.FileExists(soundFolder .. notifID .. '_rare' .. i .. '.wav') then
@@ -202,6 +167,15 @@ local unitsOfInterestNames = {
 	legstronghold = 'AirTransportDetected',
 	legelrpcmech = 'AstraeusDetected',
 }
+
+for name, unitDef in pairs(UnitDefNames) do
+	if unitDef.customParams.drone then
+		unitsOfInterestNames[name] = "DroneDetected"
+	end
+end
+
+
+
 -- convert unitname -> unitDefID
 local unitsOfInterest = {}
 for unitName, sound in pairs(unitsOfInterestNames) do
@@ -248,6 +222,7 @@ local isSpec = spGetSpectatingState()
 local isReplay = Spring.IsReplay()
 local myTeamID = spGetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
+local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myRank = select(9, Spring.GetPlayerInfo(myPlayerID))
 
 local spGetTeamResources = Spring.GetTeamResources
@@ -283,33 +258,6 @@ if UnitDefNames["armcom_scav"] then -- quick check if scav units exist
 	table.append(unitIsReadyTab, unitIsReadyScavAppend)
 end
 
--- Tutorial stuff, might not be needed soon
-local isFactoryAir = {
-	[UnitDefNames['armap'].id] = true,
-	[UnitDefNames['corap'].id] = true
-}
-local isFactorySeaplanes = { 
-	[UnitDefNames['armplat'].id] = true,
-	[UnitDefNames['corplat'].id] = true
-}
-local isFactoryVeh = { 
-	[UnitDefNames['armvp'].id] = true,
-	[UnitDefNames['corvp'].id] = true
-}
-local isFactoryBot = { 
-	[UnitDefNames['armlab'].id] = true,
-	[UnitDefNames['corlab'].id] = true
-}
-local isFactoryHover = { 
-	[UnitDefNames['armhp'].id] = true,
-	[UnitDefNames['corhp'].id] = true
-}
-local isFactoryShip = { 
-	[UnitDefNames['armsy'].id] = true,
-	[UnitDefNames['corsy'].id] = true
-}
-
-
 local numFactoryAir = 0
 local numFactorySeaplanes = 0
 local numFactoryVeh = 0
@@ -333,7 +281,7 @@ local isT4mobile = {}
 local isMine = {}
 for udefID, def in ipairs(UnitDefs) do
 	if not string.find(def.name, 'critter') and not string.find(def.name, 'raptor') and (not def.modCategories or not def.modCategories.object) then
-		if def.canFly then
+		if def.canFly and not def.customParams.drone then
 			isAircraft[udefID] = true
 		end
 		if def.customParams.techlevel then
@@ -423,6 +371,7 @@ function widget:PlayerChanged(playerID)
 	isSpec = spGetSpectatingState()
 	myTeamID = spGetMyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
+	myAllyTeamID = Spring.GetMyAllyTeamID()
 	doTutorialMode = (not isReplay and not isSpec and tutorialMode)
 	updateCommanders()
 end
@@ -461,9 +410,7 @@ function widget:Initialize()
 		local soundInfo = {}
 
 		for i, event in pairs(notificationOrder) do
-			if not string.find(notification[event].textID, "/") then
-				soundInfo[#soundInfo+1] = { event, notificationList[event], notification[event].textID, #notification[event].voiceFiles }
-			end
+			soundInfo[#soundInfo+1] = { event, notificationList[event], notification[event].textID, #notification[event].voiceFiles }
 		end
 
 		tableSort(soundInfo, function(a, b)
@@ -471,22 +418,6 @@ function widget:Initialize()
 			local nameB = Spring.I18N(b[3]) or ""
 			return string.lower(nameA) < string.lower(nameB)
 		end)
-
-		local soundInfoPvE = {}
-
-		for i, event in pairs(notificationOrder) do
-			if string.find(notification[event].textID, "pvE/") then
-				soundInfoPvE[#soundInfoPvE+1] = { event, notificationList[event], notification[event].textID, #notification[event].voiceFiles }
-			end
-		end
-
-		tableSort(soundInfoPvE, function(a, b)
-			local nameA = Spring.I18N(a[3]) or ""
-			local nameB = Spring.I18N(b[3]) or ""
-			return string.lower(nameA) < string.lower(nameB)
-		end)
-
-		table.append(soundInfo, soundInfoPvE)
 
 		return soundInfo
 	end
@@ -548,7 +479,7 @@ function widget:Initialize()
 			if notification[event].soundEffect then
 				Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
 			end
-			if displayMessages and WG['messages'] and notification[event].textID then
+			if displayMessages and WG['messages'] and notification[event].textID and not notification[event].notext then
 				WG['messages'].addMessage(Spring.I18N(notification[event].textID))
 			end
 		end
@@ -578,49 +509,29 @@ function widget:GameFrame(gf)
 		e_currentLevel, e_storage, e_pull, e_income, e_expense, e_share, e_sent, e_received = spGetTeamResources(myTeamID, 'energy')
 		m_currentLevel, m_storage, m_pull, m_income, m_expense, m_share, m_sent, m_received = spGetTeamResources(myTeamID, 'metal')
 
-		-- tutorial
-		if doTutorialMode then
-			if gameframe > 300 and not hasBuildMex then
-				queueTutorialNotification('BuildMetal')
-			end
-			if not hasBuildEnergy and hasBuildMex then
-				queueTutorialNotification('BuildEnergy')
-			end
-			if e_income >= 50 and m_income >= 4 then
-				queueTutorialNotification('BuildFactory')
-			end
-			if e_income >= 125 and m_income >= 8 and gameframe > 600 then
-				queueTutorialNotification('BuildRadar')
-			end
-			if not hasMadeT2 and e_income >= 600 and m_income >= 12 then
-				queueTutorialNotification('ReadyForTech2')
-			end
-			if hasMadeT2 then
-				-- FIXME
-				--local udefIDTemp = spGetUnitDefID(unitID)
-				--if isT2[udefIDTemp] then
-				--	queueNotification('BuildIntrusionCounterMeasure')
-				--end
-			end
-		end
-
 		-- raptors and scavs mixed check
 		if Spring.Utilities.Gametype.IsRaptors() and Spring.Utilities.Gametype.IsScavengers() then
 			queueNotification('RaptorsAndScavsMixed')
 		end
 
-		-- low power check
+		-- low resources check
 		if e_currentLevel and (e_currentLevel / e_storage) < 0.025 and e_currentLevel < 3000 then
 			queueNotification('LowPower')
 		end
 
+		if m_currentLevel and (m_currentLevel / m_storage) < 0.025 and (m_income*2 < m_pull or m_income+100 < m_pull) and m_currentLevel < 1000 then
+			queueNotification('LowMetal')
+		end
+
 		-- idle builder check
 		for unitID, frame in pairs(idleBuilder) do
-			if spIsUnitInView(unitID) then
+			if Spring.GetUnitTeam(unitID) == myTeamID then
+				if frame < gf and m_currentLevel > m_storage*0.5 and e_currentLevel > e_storage*0.5 then
+					queueNotification('IdleConstructors')
+					idleBuilder[unitID] = nil    -- do not repeat
+				end
+			else
 				idleBuilder[unitID] = nil
-			elseif frame < gf then
-				--QueueNotification('IdleBuilder')
-				idleBuilder[unitID] = nil    -- do not repeat
 			end
 		end
 
@@ -641,7 +552,7 @@ function widget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmd
 end
 
 function widget:UnitIdle(unitID)
-	if isBuilder[spGetUnitDefID(unitID)] and not idleBuilder[unitID] and not spIsUnitInView(unitID) then
+	if isBuilder[spGetUnitDefID(unitID)] and not idleBuilder[unitID] then
 		idleBuilder[unitID] = spGetGameFrame() + idleBuilderNotificationDelay
 	end
 end
@@ -672,20 +583,6 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 			queueNotification('Tech3UnitReady')
 		elseif isT4mobile[unitDefID] then
 			queueNotification('Tech4UnitReady')
-		elseif doTutorialMode then
-			if isFactoryAir[unitDefID] then
-				queueTutorialNotification('FactoryAir')
-			elseif isFactorySeaplanes[unitDefID] then
-				queueTutorialNotification('FactorySeaplanes')
-			elseif isFactoryBot[unitDefID] then
-				queueTutorialNotification('FactoryBots')
-			elseif isFactoryHover[unitDefID] then
-				queueTutorialNotification('FactoryHovercraft')
-			elseif isFactoryVeh[unitDefID] then
-				queueTutorialNotification('FactoryVehicles')
-			elseif isFactoryShip[unitDefID] then
-				queueTutorialNotification('FactoryShips')
-			end
 		end
 
 		for index,tab in pairs(unitIsReadyTab) do -- Play Unit Is Ready notifs based on the table's content
@@ -696,12 +593,14 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
 	end
 
-	if isT2mobile[unitDefID] then
-		queueNotification('Tech2TeamReached')
-	elseif isT3mobile[unitDefID] then
-		queueNotification('Tech3TeamReached')
-	elseif isT4mobile[unitDefID] then
-		queueNotification('Tech4TeamReached')
+	if #Spring.GetTeamList(myAllyTeamID) > 1 then
+		if isT2mobile[unitDefID] then
+			queueNotification('Tech2TeamReached')
+		elseif isT3mobile[unitDefID] then
+			queueNotification('Tech3TeamReached')
+		elseif isT4mobile[unitDefID] then
+			queueNotification('Tech4TeamReached')
+		end
 	end
 end
 
@@ -791,51 +690,6 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 		if windNotGood and isWind[unitDefID] then
 			queueNotification('WindNotGood')
 		end
-
-		if tutorialMode then
-			if doTutorialMode and isRadar[unitDefID] and not tutorialPlayedThisGame['BuildRadar'] then
-				tutorialPlayed['BuildRadar'] = tutorialPlayLimit
-			end
-
-			if e_income < 2000 and m_income < 50 then
-				if isFactoryAir[unitDefID] then
-					numFactoryAir = numFactoryAir + 1
-					if numFactoryAir > 1 then
-						queueNotification('DuplicateFactory')
-					end
-				end
-				if isFactorySeaplanes[unitDefID] then
-					numFactorySeaplanes = numFactorySeaplanes + 1
-					if numFactorySeaplanes > 1 then
-						queueNotification('DuplicateFactory')
-					end
-				end
-				if isFactoryVeh[unitDefID] then
-					numFactoryVeh = numFactoryVeh + 1
-					if numFactoryVeh > 1 then
-						queueNotification('DuplicateFactory')
-					end
-				end
-				if isFactoryBot[unitDefID] then
-					numFactoryBot = numFactoryBot + 1
-					if numFactoryBot > 1 then
-						queueNotification('DuplicateFactory')
-					end
-				end
-				if isFactoryHover[unitDefID] then
-					numFactoryHover = numFactoryHover + 1
-					if numFactoryHover > 1 then
-						queueNotification('DuplicateFactory')
-					end
-				end
-				if isFactoryShip[unitDefID] then
-					numFactoryShip = numFactoryShip + 1
-					if numFactoryShip > 1 then
-						queueNotification('DuplicateFactory')
-					end
-				end
-			end
-		end
 	end
 end
 
@@ -844,10 +698,6 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 		return
 	end
 	if unitTeam == myTeamID then
-		if paralyzer then
-			queueTutorialNotification('Paralyzer')
-		end
-
 		-- notify when commander gets damaged
 		if commanders[unitID] then
 			local x, y, z = spGetUnitPosition(unitID)
@@ -880,27 +730,6 @@ end
 function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	taggedUnitsOfInterest[unitID] = nil
 	commandersDamages[unitID] = nil
-
-	if tutorialMode then
-		if isFactoryAir[unitDefID] then
-			numFactoryAir = numFactoryAir - 1
-		end
-		if isFactorySeaplanes[unitDefID] then
-			numFactorySeaplanes = numFactorySeaplanes - 1
-		end
-		if isFactoryVeh[unitDefID] then
-			numFactoryVeh = numFactoryVeh - 1
-		end
-		if isFactoryBot[unitDefID] then
-			numFactoryBot = numFactoryBot - 1
-		end
-		if isFactoryHover[unitDefID] then
-			numFactoryHover = numFactoryHover - 1
-		end
-		if isFactoryShip[unitDefID] then
-			numFactoryShip = numFactoryShip - 1
-		end
-	end
 end
 
 local function playNextSound()

@@ -1,7 +1,7 @@
 return {
 	legbunk = {
 		buildpic = "legbunk.dds",
-		buildtime = 35260,
+		buildtime = 46430,
 		canmove = true,
 		cantbetransported = true, --Need to true!!!!!!!!!!
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -44,6 +44,7 @@ return {
 			techlevel = 3,
 			weapon1turretx = 200,
 			weapon1turrety = 200,
+			continuous_aim_time = 0.13,
 		},
 		featuredefs = {
 			dead = {

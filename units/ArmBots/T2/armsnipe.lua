@@ -1,7 +1,7 @@
 return {
 	armsnipe = {
 		buildpic = "ARMSNIPE.DDS",
-		buildtime = 19000,
+		buildtime = 24000,
 		canmove = true,
 		cloakcost = 75,
 		cloakcostmoving = 200,
@@ -40,6 +40,7 @@ return {
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
+			continuous_aim_time = 0.07,
 		},
 		featuredefs = {
 			dead = {

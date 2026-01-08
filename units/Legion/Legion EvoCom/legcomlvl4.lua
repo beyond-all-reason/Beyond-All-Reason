@@ -84,14 +84,14 @@ return {
 			 "leginfestor",
 			 "legvflak",
 			 "legflak",
-			 "coratl",
+			 "leganavaltorpturret",
 			 "legmed",
         	 "legdtr",
 			 "legvcarry",
 			 "legmg",
 			 "legjuno",
 			 "legctl",
-			 "corenaa",
+			 "leganavalaaturret",
 			 "legeyes",
 			 "legavrad",
 			 "legavjam",
@@ -107,7 +107,7 @@ return {
 			 "legsy",
 			 "leghp",
 			 "legfhp",
-			 "cormabm",
+			 "legavantinuke",
 			 "legnanotc",
 			 "legnanotcplat",
 		},
@@ -136,6 +136,7 @@ return {
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
 			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

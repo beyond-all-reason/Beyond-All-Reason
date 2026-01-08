@@ -5,7 +5,7 @@ return {
 		builddistance = 145,
 		builder = true,
 		buildpic = "CORDECOM.DDS",
-		buildtime = 27000,
+		buildtime = 33000,
 		cancapture = true,
 		candgun = true,
 		canmove = true,
@@ -81,6 +81,7 @@ return {
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			unitgroup = "buildert2",
+			continuous_aim_time = 0.17,
 		},
 		sfxtypes = {
 			explosiongenerators = {

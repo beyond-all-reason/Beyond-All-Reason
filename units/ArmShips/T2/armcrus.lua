@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 16384,
 		buildpic = "ARMCRUS.DDS",
-		buildtime = 17000,
+		buildtime = 23000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -8 0",
 		collisionvolumescales = "32 32 112",
@@ -40,6 +40,7 @@ return {
 			subfolder = "ArmShips/T2",
 			techlevel = 2,
 			unitgroup = "weaponsub",
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

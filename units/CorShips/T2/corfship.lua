@@ -4,7 +4,7 @@ return {
 		autoheal = 1.5,
 		blocking = true,
 		buildpic = "CORFSHIP.DDS",
-		buildtime = 9400,
+		buildtime = 13000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -5 -2",
 		collisionvolumescales = "27 20 81",

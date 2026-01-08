@@ -97,11 +97,20 @@ local function increaseTechLevel(teamList, notificationEvent, techLevel)
 				end
 			end
 			spSetTeamRulesParam(teamID, "tech_level", techLevel)
+
+			-- Unblock units that are now available at the new tech level
+			for unitDefID, requiredLevel in pairs(blockTechDefs) do
+				if requiredLevel <= techLevel then
+					GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, "tech_level_" .. requiredLevel)
+				end
+			end
 		end
 	end
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.BUILD)
+
 	local teamList = Spring.GetTeamList()
 	for _, teamID in ipairs(teamList) do
 		if not ignoredTeams[teamID] then
@@ -119,14 +128,27 @@ function gadget:Initialize()
 		end
 	end
 end
+function gadget:GameStart()
+	local teamList = Spring.GetTeamList()
+	for _, teamID in ipairs(teamList) do
+		if not ignoredTeams[teamID] then
+			local techLevel = spGetTeamRulesParam(teamID, "tech_level") or 1
+			for unitDefID, requiredLevel in pairs(blockTechDefs) do
+				if techLevel < requiredLevel then
+					GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "tech_level_" .. requiredLevel)
+				end
+			end
+		end
+	end
+end
+
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	local power = UnitDefs[unitDefID].power
 	if power then
 		local allyTeam = spGetUnitAllyTeam(unitID)
-		for _, teamID in ipairs(allyWatch[allyTeam]) do
-			local currentPoints = spGetTeamRulesParam(teamID, "tech_points") or 0
-			allyXPGains[teamID] = (allyXPGains[teamID] or currentPoints) + power * unitCreationRewardMultiplier
+		if allyTeam then
+			allyXPGains[allyTeam] = (allyXPGains[allyTeam] or 0) + power * unitCreationRewardMultiplier
 		end
 	end
 	if techPointsGeneratorDefs[unitDefID] and not ignoredTeams[unitTeam] then
@@ -164,9 +186,7 @@ function gadget:GameFrame(frame)
 	end
 
 	for unitID, data in pairs(xpGenerators) do
-		for _, teamID in ipairs(allyWatch[data.allyTeam]) do
-			allyXPGains[data.allyTeam] = (allyXPGains[data.allyTeam] or 0) + data.gain
-		end
+		allyXPGains[data.allyTeam] = (allyXPGains[data.allyTeam] or 0) + data.gain
 	end
 
 	allyTechCorePoints = {}
@@ -188,9 +208,8 @@ function gadget:GameFrame(frame)
 			end
 		end
 
-		local adjustedT2Threshold = techBlockingPerTeam and t2TechThreshold or (t2TechThreshold * activeTeamCount)
-		local adjustedT3Threshold = techBlockingPerTeam and t3TechThreshold or (t3TechThreshold * activeTeamCount)
-
+		local adjustedT2Threshold = techBlockingPerTeam and (t2TechThreshold * activeTeamCount) or t2TechThreshold
+		local adjustedT3Threshold = techBlockingPerTeam and (t3TechThreshold * activeTeamCount) or t3TechThreshold
 		if activeTeamCount > 0 then
 			local previousAllyTechLevel = spGetTeamRulesParam(teamList[1], "tech_level") or 1
 			local techLevel = 1
@@ -210,15 +229,14 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID)
-	if cmdID < 0 then
-		local buildUnitDefID = -cmdID
-		if not blockTechDefs[buildUnitDefID] then
-			return true
-		end
-		local techLevel = spGetTeamRulesParam(unitTeam, "tech_level")
-		if techLevel < blockTechDefs[buildUnitDefID] then
-			return false
-		end
+	-- Allows CMD.BUILD (cmdID < 0)
+	local buildUnitDefID = -cmdID
+	if not blockTechDefs[buildUnitDefID] then
+		return true
+	end
+	local techLevel = spGetTeamRulesParam(unitTeam, "tech_level")
+	if techLevel < blockTechDefs[buildUnitDefID] then
+		return false
 	end
 	return true
 end

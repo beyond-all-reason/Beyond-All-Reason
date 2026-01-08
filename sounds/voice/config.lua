@@ -63,10 +63,23 @@ return {
 		delay = 30,
 		soundEffect = "YouHaveTheLastCommander",
 	},
+	["RespawningCommanders/CommanderTransposed"] = {
+		delay = 5,
+	},
+	["RespawningCommanders/AlliedCommanderTransposed"] = {
+		delay = 5,
+	},
+	["RespawningCommanders/EnemyCommanderTransposed"] = {
+		delay = 5,
+	},
+	["RespawningCommanders/CommanderEffigyLost"] = {
+		delay = 5,
+	},
 
 	-- Game Status
 	ChooseStartLoc = {
 		delay = 90,
+		notext = true,
 	},
 	GameStarted = {
 		delay = 1,
@@ -166,10 +179,20 @@ return {
 	MaxUnitsReached = {
 		delay = 90,
 	},
-	BaseUnderAttack = {
+	DefenseUnderAttack = {
 		delay = 30,
 		stackedDelay = true,
 		resetOtherEventDelay = "UnitsUnderAttack",
+		soundEffect = "UnitUnderAttack",
+	},
+	EconomyUnderAttack = {
+		delay = 30,
+		stackedDelay = true,
+		soundEffect = "UnitUnderAttack",
+	},
+	FactoryUnderAttack = {
+		delay = 30,
+		stackedDelay = true,
 		soundEffect = "UnitUnderAttack",
 	},
 	UnitsCaptured = {
@@ -238,11 +261,25 @@ return {
 		delay = 10,
 		stackedDelay = true,
 	},
+	LowMetal = {
+		delay = 20,
+		stackedDelay = true,
+	},
+	IdleConstructors = {
+		delay = 30,
+		stackedDelay = true,
+	},
 
 	-- Alerts
 	NukeLaunched = {
 		delay = 3,
 		soundEffect = "NukeAlert",
+		resetOtherEventDelay = "AlliedNukeLaunched",
+	},
+	AlliedNukeLaunched = {
+		delay = 3,
+		soundEffect = "NukeAlert",
+		stackedDelay = true,
 	},
 	LrpcTargetUnits = {
 		delay = 30,
@@ -400,6 +437,10 @@ return {
 		stackedDelay = true,
 	},
 	AirTransportDetected = {
+		delay = 120,
+		stackedDelay = true,
+	},
+	DroneDetected = {
 		delay = 120,
 		stackedDelay = true,
 	},

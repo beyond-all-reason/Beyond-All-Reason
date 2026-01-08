@@ -1,7 +1,7 @@
 return {
 	armlance = {
 		buildpic = "ARMLANCE.DDS",
-		buildtime = 15100,
+		buildtime = 19000,
 		canfly = true,
 		canmove = true,
 		collide = true,

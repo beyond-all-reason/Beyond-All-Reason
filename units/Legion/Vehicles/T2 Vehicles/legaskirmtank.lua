@@ -5,7 +5,7 @@ return {
 		energycost = 6800,
 		metalcost = 450,
 		buildpic = "LEGASKIRMTANK.DDS",
-		buildtime = 8000,
+		buildtime = 10490,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "30 30 34", ---not respected used collisionvolumes.lua
@@ -47,6 +47,7 @@ return {
 			techlevel = 2,
 			weapon1turretx = 65,
 			weapon1turrety = 105,
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

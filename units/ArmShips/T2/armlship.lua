@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		blocking = true,
 		buildpic = "ARMLSHIP.DDS",
-		buildtime = 11400,
+		buildtime = 15000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 4",
 		collisionvolumescales = "28 30 82",

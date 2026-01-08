@@ -2,7 +2,7 @@ return {
 	corhasy = {
 		builder = true,
 		buildpic = "CORGANTUW.DDS",
-		buildtime = 67300,
+		buildtime = 92000,
 		canmove = true,
 		collisionvolumeoffsets = "0 12 0",
 		collisionvolumescales = "260 146 260",
@@ -28,8 +28,8 @@ return {
 		selfdestructas = "hugeBuildingExplosionGenericSelfd-uw",
 		sightdistance = 273,
 		terraformspeed = 3000,
-		workertime = 600,
 		waterline = 1,
+		workertime = 600,
 		yardmap = "weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeeeeew weeeeeeeeeew",
 		buildoptions = {
 			[1] = "corhacs",
@@ -40,7 +40,7 @@ return {
 			[6] = "corfship",
 			[7] = "corsok",
 			[8] = "corantiship",
-			[9] = "cormship"
+			[9] = "cormship",
 		},
 		customparams = {
 			model_author = "Mr Bob",

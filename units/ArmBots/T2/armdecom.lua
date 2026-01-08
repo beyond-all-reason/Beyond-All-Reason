@@ -5,7 +5,7 @@ return {
 		builddistance = 145,
 		builder = true,
 		buildpic = "ARMDECOM.DDS",
-		buildtime = 24000,
+		buildtime = 30000,
 		cancapture = true,
 		candgun = true,
 		canmove = true,
@@ -81,6 +81,7 @@ return {
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "buildert2",
+			continuous_aim_time = 0.17,
 		},
 		sfxtypes = {
 			explosiongenerators = {

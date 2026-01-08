@@ -4,7 +4,7 @@ return {
 		builddistance = 150,
 		builder = true,
 		buildpic = "ARMSPID.DDS",
-		buildtime = 5100,
+		buildtime = 7000,
 		canassist = false,
 		canmove = true,
 		canrepair = false,
@@ -48,6 +48,7 @@ return {
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "emp",
+			continuous_aim_time = 0.1,
 		},
 		featuredefs = {
 			dead = {

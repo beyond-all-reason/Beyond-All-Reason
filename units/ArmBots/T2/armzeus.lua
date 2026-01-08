@@ -1,7 +1,7 @@
 return {
 	armzeus = {
 		buildpic = "ARMZEUS.DDS",
-		buildtime = 7250,
+		buildtime = 9500,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "35 36 35",
@@ -38,6 +38,7 @@ return {
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
+			continuous_aim_time = 0.1,
 		},
 		featuredefs = {
 			dead = {

@@ -2,7 +2,7 @@ return {
 	legeallterrainmech = {
 		activatewhenbuilt = false,
 		buildpic = "legeallterrainmech.DDS",
-		buildtime = 95000,
+		buildtime = 120250,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -20 0",
@@ -42,6 +42,10 @@ return {
 			subfolder = "Legion/T3",
 			techlevel = 3,
 			unitgroup = "weapon",
+			inheritxpratemultiplier = 1,
+			childreninheritxp = "DRONE",
+			parentsinheritxp = "DRONE",
+			disable_when_no_air = true,
 		},
 		featuredefs = {
 			dead = {

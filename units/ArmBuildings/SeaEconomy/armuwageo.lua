@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 27000,
 		buildcostmetal = 1600,
 		buildpic = "ARMUWAGEO.DDS",
-		buildtime = 33300,
+		buildtime = 50000,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "107 77 107",

@@ -5,7 +5,7 @@ return {
 		energycost = 22500,
 		metalcost = 1500,
 		buildpic = "LEGMED.DDS",
-		buildtime = 22500,
+		buildtime = 30370,
 		canmove = true,
 		collisionvolumeoffsets = "0 -12 0",
 		collisionvolumescales = "48 31 69",
@@ -41,6 +41,7 @@ return {
 			model_author = "ZephyrSkies, EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
 			techlevel = 2,
+			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

@@ -7,7 +7,7 @@ return {
 		energycost = 6200,
 		metalcost = 180,
 		buildpic = "legafigdef.DDS",
-		buildtime = 10000,
+		buildtime = 11850,
 		canfly = true,
 		canmove = true,
 		collide = false,
@@ -46,6 +46,7 @@ return {
 			techlevel = 2,
 			attacksafetydistance = 300,
 			fighter = 1,
+			continuous_aim_time = 0.17,
 		},
 		sfxtypes = {
 			explosiongenerators = {
