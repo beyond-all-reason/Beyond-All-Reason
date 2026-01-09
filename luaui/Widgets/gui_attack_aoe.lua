@@ -1292,7 +1292,7 @@ local function DrawBallisticScatter(data)
 	-- VISIBILITY
 	----------------------------------------------------------------------------
 	local scatterSize = max(naturalRadius, lenUp)
-	local minScatterRadius = max(weaponInfo.aoe, 15) * 0.7
+	local minScatterRadius = max(weaponInfo.aoe, 15) * 1.4
 	local scatterAlphaFactor = GetSizeBasedAlpha(scatterSize, minScatterRadius)
 
 	if scatterAlphaFactor <= 0 then

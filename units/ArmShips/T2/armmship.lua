@@ -2,7 +2,7 @@ return {
 	armmship = {
 		activatewhenbuilt = true,
 		buildpic = "ARMMSHIP.DDS",
-		buildtime = 15000,
+		buildtime = 24000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "44 44 80",

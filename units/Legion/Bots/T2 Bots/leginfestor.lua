@@ -6,7 +6,7 @@ return {
 		metalcost = 250,
 		buildpic = "LEGINFESTOR.DDS",
 		builddistance = 175,
-		buildtime = 3000,
+		buildtime = 4310,
 		builder = true,
 		canassist = true,
 		canreclaim = true,

@@ -7,7 +7,7 @@ return {
 		energycost = 21000,
 		metalcost = 420,
 		buildpic = "LEGNAP.DDS",
-		buildtime = 36000,
+		buildtime = 41910,
 		canfly = true,
 		canmove = true,
 		collide = false,
