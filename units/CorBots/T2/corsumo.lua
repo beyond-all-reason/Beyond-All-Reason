@@ -1,7 +1,7 @@
 return {
 	corsumo = {
 		buildpic = "CORSUMO.DDS",
-		buildtime = 51000,
+		buildtime = 65000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "38 34 36",

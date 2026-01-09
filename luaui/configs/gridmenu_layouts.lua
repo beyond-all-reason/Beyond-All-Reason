@@ -71,7 +71,7 @@ local labGrids = {
 		"legavrad", "legavjam", "legaheattank", "leginf",        -- radar, jammer, prometheus, inferno
 		"legmrv", "legfloat", "legvflak", "legmed",            -- Quickshot, new triton, AA, boreas
 		-- page2
-		"legvcarry", "legavroc", "cormabm",					-- mantis, chiron, veh antinuke
+		"legvcarry", "legavroc", "legavantinuke",					-- mantis, chiron, veh antinuke
 	},
 	-- T1 air
 	armap = {
@@ -306,7 +306,7 @@ local labGrids = {
 	leghavp = {
 		"leghacv", "", "legmrv", "legavjam",
 		"leginf", "legmed", "legaheattank", "",
-		"cormabm", "legehovertank", "legvflak", "legavroc",
+		"legavantinuke", "legehovertank", "legvflak", "legavroc",
 	},
 }
 
@@ -1479,7 +1479,7 @@ local unitGrids = {
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armnanotcplat", },                -- nano, floating nano
+			{ "armnanotc", "armnanotcplat", "armaap"},                -- nano, floating nano
 			{ "armhp", "armfhp", "armamsub", "armplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
@@ -1503,7 +1503,7 @@ local unitGrids = {
 		},
 		{
 			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "cornanotcplat", },                -- nano, floating nano
+			{ "cornanotc", "cornanotcplat", "coraap"},                -- nano, floating nano
 			{ "corhp", "corfhp", "coramsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
@@ -1527,7 +1527,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglab", "legvp", "legap", "legsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "legnanotc", "legnanotcplat", "", },      -- nano, T2 veh lab, floating nano
+			{ "legnanotc", "legnanotcplat", "legaap", },      -- nano, T2 veh lab, floating nano
 			{ "leghp", "legfhp", "legamphlab", "legsplab", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
@@ -1655,7 +1655,7 @@ local unitGrids = {
 	legack = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "legmohocon", },               -- T2 converter, T2 geo, nano mex, fortified geo
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
@@ -1725,7 +1725,7 @@ local unitGrids = {
 	legacv = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "legmohocon", },               -- T2 converter, T2 geo, nano mex, fortified geo
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
@@ -1794,7 +1794,7 @@ local unitGrids = {
 	legaca = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp","leganavaladvgeo", },               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "legmohocon","leganavaladvgeo", },               -- T2 converter, T2 geo, nano mex, fortified geo
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
@@ -1933,7 +1933,7 @@ local unitGrids = {
 	leghaca = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", "legrampart"},               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "legmohocon", "legrampart"},               -- T2 converter, T2 geo, nano max, fortified geo
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
@@ -2002,7 +2002,7 @@ local unitGrids = {
 	leghack = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", "legrampart"},               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "legmohocon", "legrampart"},               -- T2 converter, T2 geo, nano mex, fortified geo
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
@@ -2071,7 +2071,7 @@ local unitGrids = {
 	leghacv = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "legadveconv", "legageo", "cormexp", "legrampart"},               -- T2 converter, T2 geo, armed moho
+			{ "legadveconv", "legageo", "legmohocon", "legrampart"},               -- T2 converter, T2 geo, nano mex, fortified geo
 			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{

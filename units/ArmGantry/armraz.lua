@@ -1,7 +1,7 @@
 return {
 	armraz = {
 		buildpic = "ARMRAZ.DDS",
-		buildtime = 88600,
+		buildtime = 120000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",

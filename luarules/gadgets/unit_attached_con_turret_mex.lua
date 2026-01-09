@@ -43,7 +43,8 @@ local function swapMex(unitID, unitDefID, unitTeam)
 	if original then
 		local orgbuildTime, orgmetalCost, orgenergyCost = Spring.GetUnitCosts(original)							-- gets metal cost of thing you are building over
 		local imex_id = Spring.CreateUnit("legmohoconin" .. scav,xx,yy,zz,facing,Spring.GetUnitTeam(unitID) )			-- creates imex on where mex was
-		--Spring.Echo(unitID, original, orgmetalCost)
+		local extractMetal = Spring.GetUnitMetalExtraction(unitID)
+
 		if Spring.GetUnitIsDead(unitID) == false then																-- if you build this over something then it doesnt remove mex, this removes and reclaims it
 			Spring.DestroyUnit(unitID, false, true)
 			Spring.AddTeamResource(unitTeam, "metal", metalCost)
@@ -73,11 +74,15 @@ local function swapMex(unitID, unitDefID, unitTeam)
 			Spring.SetUnitNeutral(nano_id, true)
 		end
 		Spring.UnitAttach(imex_id,nano_id,6)																-- attaches con to imex
+		Spring.SetUnitRulesParam(nano_id, "pairedUnitID", imex_id)
 		Spring.SetUnitHealth(nano_id, health)																-- sets con health to be the same as mex
-		local extractMetal = Spring.GetUnitMetalExtraction(unitID)											-- moves the metal extraction from imex to turret.
-		Spring.SetUnitResourcing(nano_id, "umm", (extractMetal + orgExtractMetal))
-		Spring.SetUnitResourcing(imex_id, "umm", (-extractMetal - orgExtractMetal))
-		Spring.SetUnitStealth (nano_id, true) 
+
+		if extractMetal then
+			-- moves the metal extraction from imex to turret.
+			Spring.SetUnitResourcing(nano_id, "umm", (extractMetal + orgExtractMetal))
+			Spring.SetUnitResourcing(imex_id, "umm", (-extractMetal - orgExtractMetal))
+			Spring.SetUnitStealth (nano_id, true)
+		end
 
 		mexesToSwap[unitID] = nil
 	end

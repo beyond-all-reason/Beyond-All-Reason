@@ -2,7 +2,7 @@ return {
 	armdfly = {
 		blocking = false,
 		buildpic = "ARMDFLY.DDS",
-		buildtime = 16000,
+		buildtime = 19000,
 		canfly = true,
 		canmove = true,
 		collide = false,

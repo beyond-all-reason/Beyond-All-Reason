@@ -4,7 +4,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "CORSPY.DDS",
-		buildtime = 22200,
+		buildtime = 12000,
 		canassist = false,
 		canguard = false,
 		canmove = true,

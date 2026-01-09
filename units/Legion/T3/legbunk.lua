@@ -1,7 +1,7 @@
 return {
 	legbunk = {
 		buildpic = "legbunk.dds",
-		buildtime = 35260,
+		buildtime = 46430,
 		canmove = true,
 		cantbetransported = true, --Need to true!!!!!!!!!!
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",

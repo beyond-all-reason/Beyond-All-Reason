@@ -4,7 +4,7 @@ return {
 		builddistance = 200,
 		builder = true,
 		buildpic = "CORPRINTER.DDS",
-		buildtime = 10000,
+		buildtime = 12500,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "36 36 54",

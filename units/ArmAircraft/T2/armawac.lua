@@ -2,7 +2,7 @@ return {
 	armawac = {
 		blocking = false,
 		buildpic = "ARMAWAC.DDS",
-		buildtime = 12800,
+		buildtime = 16000,
 		canfly = true,
 		canmove = true,
 		collide = false,

@@ -2,7 +2,7 @@ return {
 	corparrow = {
 		activatewhenbuilt = true,
 		buildpic = "CORPARROW.DDS",
-		buildtime = 19000,
+		buildtime = 26000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -10 1",
 		collisionvolumescales = "44 35 53",
