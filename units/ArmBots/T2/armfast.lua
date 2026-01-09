@@ -40,7 +40,6 @@ return {
 			unitgroup = "weapon",
 			weapon1turretx = 400,
 			weapon1turrety = 500,
-			continuous_aim_time = 0.07,
 		},
 		featuredefs = {
 			dead = {

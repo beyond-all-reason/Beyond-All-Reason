@@ -44,7 +44,6 @@ return {
 			techlevel = 2,
 			unitgroup = "energy",
 			usebuildinggrounddecal = true,
-			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

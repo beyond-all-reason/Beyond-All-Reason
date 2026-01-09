@@ -62,7 +62,6 @@ return {
 			techlevel = 2,
 			unitgroup = "buildert2",
 			water_fall_damage_multiplier = 0,
-			continuous_aim_time = 0.07,
 		},
 		sfxtypes = {
 			explosiongenerators = {

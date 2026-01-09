@@ -39,7 +39,6 @@ return {
 			subfolder = "CorBots",
 			weapon1turretx = 300,
 			weapon1turrety = 300,
-			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

@@ -41,7 +41,6 @@ return {
 			subfolder = "Scavengers/Bots",
 			weapon1turretx = 200,
 			weapon1turrety = 200,
-			continuous_aim_time = 0.07,
 		},
 		featuredefs = {
 			dead = {

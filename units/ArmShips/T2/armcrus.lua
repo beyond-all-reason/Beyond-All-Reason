@@ -40,7 +40,6 @@ return {
 			subfolder = "ArmShips/T2",
 			techlevel = 2,
 			unitgroup = "weaponsub",
-			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {
