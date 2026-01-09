@@ -212,12 +212,12 @@ else
 				else
 					GG["notifications"].queueNotification('CommanderUnderAttack', "playerID", tostring(myPlayerID))
 				end
-			elseif isBuilding[unitDefID] == true and (not isMex[unitDefID]) and isDefenseTurret[unitDefID] then
-				GG["notifications"].queueNotification('DefenseUnderAttack', "playerID", tostring(myPlayerID))
-			elseif isBuilding[unitDefID] == true and (not isMex[unitDefID]) and (isEconomy[unitDefID]) then
-				GG["notifications"].queueNotification('EconomyUnderAttack', "playerID", tostring(myPlayerID))
 			elseif isFactory[unitDefID] then
 				GG["notifications"].queueNotification('FactoryUnderAttack', "playerID", tostring(myPlayerID))
+			elseif isBuilding[unitDefID] == true and (not isMex[unitDefID]) and (isEconomy[unitDefID]) then
+				GG["notifications"].queueNotification('EconomyUnderAttack', "playerID", tostring(myPlayerID))
+			elseif isBuilding[unitDefID] == true and (not isMex[unitDefID]) and isDefenseTurret[unitDefID] then
+				GG["notifications"].queueNotification('DefenseUnderAttack', "playerID", tostring(myPlayerID))
 			else
 				GG["notifications"].queueNotification('UnitsUnderAttack', "playerID", tostring(myPlayerID))
 			end
