@@ -42,7 +42,6 @@ return {
 			normaltex = "unittextures/leegmech_normal.dds",
 			subfolder = "leggantry",
 			techlevel = 3,
-			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

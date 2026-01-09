@@ -95,7 +95,6 @@ return {
 			paralyzemultiplier = 0,
 			subfolder = "",
 			unitgroup = "builder",
-			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {
