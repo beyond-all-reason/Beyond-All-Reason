@@ -4227,6 +4227,73 @@ function widget:DrawScreen()
 		end
 	end
 
+
+
+	-- Draw tracking (corner) indicators
+	if interactionState.areTracking and #interactionState.areTracking > 0 then
+		local width = dim.r - dim.l
+		local height = dim.t - dim.b
+		local cornerLength = math.min(width, height) * 0.45
+		local lineWidth = math.ceil(2 * (vsx / 1920))
+		local offset = lineWidth * 0.5  -- Offset to account for line width
+
+		gl.LineWidth(lineWidth)
+		glColor(1, 1, 1, 0.15)
+
+		-- Rectangle box
+		glBeginEnd(GL_LINE_STRIP, function()
+			gl.Vertex(dim.l + offset, dim.t - offset)
+			gl.Vertex(dim.r - offset, dim.t - offset)
+			gl.Vertex(dim.r - offset, dim.b + offset)
+			gl.Vertex(dim.l + offset, dim.b + offset)
+			gl.Vertex(dim.l + offset, dim.t - offset)
+		end)
+
+		local opacity = 0.25
+
+		-- Top-left corner
+		glBeginEnd(GL_LINE_STRIP, function()
+			glColor(1, 1, 1, 0)
+			gl.Vertex(dim.l + cornerLength, dim.t - offset)
+			glColor(1, 1, 1, opacity)
+			gl.Vertex(dim.l + offset, dim.t - offset)
+			glColor(1, 1, 1, 0)
+			gl.Vertex(dim.l + offset, dim.t - cornerLength)
+		end)
+
+		-- Top-right corner
+		glBeginEnd(GL_LINE_STRIP, function()
+			glColor(1, 1, 1, 0)
+			gl.Vertex(dim.r - cornerLength, dim.t - offset)
+			glColor(1, 1, 1, opacity)
+			gl.Vertex(dim.r - offset, dim.t - offset)
+			glColor(1, 1, 1, 0)
+			gl.Vertex(dim.r - offset, dim.t - cornerLength)
+		end)
+
+		-- Bottom-left corner
+		glBeginEnd(GL_LINE_STRIP, function()
+			glColor(1, 1, 1, 0)
+			gl.Vertex(dim.l + cornerLength, dim.b + offset)
+			glColor(1, 1, 1, opacity)
+			gl.Vertex(dim.l + offset, dim.b + offset)
+			glColor(1, 1, 1, 0)
+			gl.Vertex(dim.l + offset, dim.b + cornerLength)
+		end)
+
+		-- Bottom-right corner
+		glBeginEnd(GL_LINE_STRIP, function()
+			glColor(1, 1, 1, 0)
+			gl.Vertex(dim.r - cornerLength, dim.b + offset)
+			glColor(1, 1, 1, opacity)
+			gl.Vertex(dim.r - offset, dim.b + offset)
+			glColor(1, 1, 1, 0)
+			gl.Vertex(dim.r - offset, dim.b + cornerLength)
+		end)
+
+		gl.LineWidth(1)
+	end
+
 	----------------------------------------------------------------------------------------------------
 	-- Buttons and hover effects
 	----------------------------------------------------------------------------------------------------
@@ -4366,6 +4433,20 @@ function widget:DrawScreen()
 		font:Print(pipNumber, dim.l + padding, dim.t - (fontSize*1.15) - padding, fontSize*2, "no")
 		font:End()	-- Draw box selection rectangle
 	end
+
+	-- -- Display tracking count (top-left corner)
+	-- if interactionState.areTracking and #interactionState.areTracking > 0 then
+	-- 	glColor(panelBorderColorDark)
+	-- 	RectRound(dim.l, dim.t - usedButtonSize, dim.l + usedButtonSize, dim.t, elementCorner*0.4, 0, 0, 1, 0)
+	-- 	local fontSize = 14
+	-- 	local padding = 12
+	-- 	local trackingCount = #interactionState.areTracking
+	-- 	font:Begin()
+	-- 	font:SetTextColor(0.95, 0.95, 0.95, 1)  -- Yellow-ish color to stand out
+	-- 	font:SetOutlineColor(0, 0, 0, 0.8)
+	-- 	font:Print(trackingCount, dim.l + padding, dim.t - (fontSize*1.15) - padding, fontSize*2, "no")
+	-- 	font:End()
+	-- end
 
 	-- Display current max update rate (top-left corner)
 	-- local fontSize = 11
