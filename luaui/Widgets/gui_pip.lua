@@ -39,6 +39,7 @@ local zoomRate = 15 -- magnification multiplication per second
 local zoomSmoothness = 10 -- How fast zoom transitions happen (higher = faster)
 local centerSmoothness = 15 -- How fast camera center pans during zoom-to-cursor (higher = faster)
 local trackingSmoothness = 8 -- How fast camera transitions when tracking units die/move (higher = faster, lower = smoother)
+local switchSmoothness = 30 -- How fast PIP camera transitions during view switch (higher = faster, should match switchTransitionTime)
 local zoomMin = 0.06
 local zoomMax = 0.8
 local zoom = 0.55 -- Initial zoom level
@@ -57,6 +58,7 @@ local zoomToCursor = true  -- When increasing zoom (getting closer), zoom toward
 local mapEdgeMargin = 0.15  -- Maximum allowed distance from PiP edge to map edge (as fraction of PiP size)
 local showButtonsOnHoverOnly = true  -- Only show buttons when mouse is hovering over the PIP window
 local switchInheritsTracking = false  -- When switching views, inherit PIP's unit tracking to main camera
+local switchTransitionTime = 0.15  -- Camera transition time in seconds when switching views (pip_switch)
 
 local pipMinUpdateRate = 40  -- Minimum FPS for PIP rendering when zoomed out (performance-adjusted dynamically)
 local pipMaxUpdateRate = 120  -- Maximum FPS for PIP rendering when zoomed in
@@ -170,6 +172,7 @@ local isProcessingMapDraw = false -- Prevent MapDrawCmd recursion
 local mapmarkInitScreenX, mapmarkInitScreenY = nil, nil -- Track where mapmark was initiated
 local mapmarkInitTime = 0 -- Track when mapmark was initiated
 local backupTracking = nil -- Store tracking state and camera position when switching views: {tracking = units, camX = x, camZ = z}
+local isSwitchingViews = false -- Track when we're doing a pip_switch transition
 local hadSavedConfig = false -- Track if we loaded from saved config (to avoid auto-minimize on reload)
 local unitShader
 local pipUnits = {}
@@ -275,9 +278,9 @@ local buttons = {
 					-- Set PIP camera to main camera position with rounding to match switch behavior
 					local copiedX = math.floor(pos[1] + 0.5)
 					local copiedZ = math.floor(pos[3] + 0.5)
-					wcx = copiedX
-					wcz = copiedZ
-					targetWcx, targetWcz = wcx, wcz
+					-- Set target for smooth transition (don't set wcx/wcz directly)
+					targetWcx, targetWcz = copiedX, copiedZ
+					isSwitchingViews = true -- Enable fast transition for pip_copy
 					RecalculateWorldCoordinates()
 					RecalculateGroundTextureCoordinates()
 					-- Disable tracking when copying camera
@@ -334,27 +337,33 @@ local buttons = {
 						Spring.SendCommands("track")
 					end
 
-					-- Backup current state before switching
-					local tempBackup = backupTracking
-					backupTracking = {
-						tracking = interactionState.areTracking,
-						camX = pipCameraTargetX,
-						camZ = pipCameraTargetZ
-					}
+					-- Swap tracking state: current PIP tracking <-> backup
+					-- This ensures toggling switch restores previous tracking states
+					local currentPipTracking = interactionState.areTracking
+					local currentPipCamX = pipCameraTargetX
+					local currentPipCamZ = pipCameraTargetZ
 
-					-- Switch camera positions - use rounded coordinates
-					Spring.SetCameraTarget(pipCameraTargetX, 0, pipCameraTargetZ, 0.2)
-					wcx, wcz = mainCamX, mainCamZ
-					targetWcx, targetWcz = wcx, wcz  -- Set targets instantly for button clicks
-					RecalculateWorldCoordinates()
-					RecalculateGroundTextureCoordinates()
-
-					-- Restore tracking from previous backup to PIP view
-					if tempBackup then
-						interactionState.areTracking = tempBackup.tracking
+					-- Restore tracking from backup to PIP view (or set to nil if no backup)
+					if backupTracking then
+						interactionState.areTracking = backupTracking.tracking
 					else
 						interactionState.areTracking = nil
 					end
+
+					-- Save current PIP state to backup for next switch
+					backupTracking = {
+						tracking = currentPipTracking,
+						camX = currentPipCamX,
+						camZ = currentPipCamZ
+					}
+
+				-- Switch camera positions - use rounded coordinates
+				Spring.SetCameraTarget(pipCameraTargetX, 0, pipCameraTargetZ, switchTransitionTime)
+				-- Set PIP camera target for smooth transition (don't set wcx/wcz directly)
+				targetWcx, targetWcz = mainCamX, mainCamZ
+				isSwitchingViews = true -- Enable fast transition for pip_switch
+				RecalculateWorldCoordinates()
+				RecalculateGroundTextureCoordinates()
 
 					-- If feature is disabled, ensure main camera is not tracking
 					if not switchInheritsTracking then
@@ -2715,7 +2724,7 @@ function widget:SetConfigData(data)
 	local gameFrame = Spring.GetGameFrame()
 	local currentGameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")
 	local isSameGame = (data.gameID and currentGameID and data.gameID == currentGameID)
-	
+
 	if gameFrame == 0 and not isSameGame then
 		-- Force minimize in pregame for a new game
 		inMinMode = true
@@ -4612,7 +4621,9 @@ function widget:Update(dt)
 		if centerNeedsUpdate then
 			-- Use different smoothness values depending on context
 			local smoothnessToUse = centerSmoothness -- Default for zoom-to-cursor and panning
-			if interactionState.areTracking then
+			if isSwitchingViews then
+				smoothnessToUse = switchSmoothness -- Fast transition for view switching
+			elseif interactionState.areTracking then
 				smoothnessToUse = trackingSmoothness -- Smoother animation for tracking mode
 			end
 
@@ -4624,8 +4635,9 @@ function widget:Update(dt)
 		RecalculateWorldCoordinates()
 		RecalculateGroundTextureCoordinates()
 	else
-		-- Zoom and center have reached their targets, disable zoom-to-cursor
+		-- Zoom and center have reached their targets, disable zoom-to-cursor and switch transition
 		zoomToCursorActive = false
+		isSwitchingViews = false
 	end
 
 	if interactionState.areIncreasingZoom then
