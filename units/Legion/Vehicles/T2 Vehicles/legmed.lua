@@ -41,7 +41,6 @@ return {
 			model_author = "ZephyrSkies, EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
 			techlevel = 2,
-			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

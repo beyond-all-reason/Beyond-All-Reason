@@ -41,7 +41,6 @@ return {
 			techlevel = 2,
 			unitgroup = "weapon",
 			usebuildinggrounddecal = true,
-			continuous_aim_time = 0.17,
 		},
 		featuredefs = {
 			dead = {

@@ -45,7 +45,6 @@ return {
 			paralyzemultiplier = 0.5,
 			model_author = "ZephyrSkies",
 			techlevel = 3,
-			continuous_aim_time = 0.3,
 		},
 		featuredefs = {
 			dead = {

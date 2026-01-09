@@ -38,7 +38,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBots",
 			unitgroup = "weapon",
-			continuous_aim_time = 0.07,
 		},
 		featuredefs = {
 			dead = {
