@@ -1,18 +1,23 @@
 local trackedUnits = GG['MissionAPI'].TrackedUnits
 local triggers = GG['MissionAPI'].Triggers
 
-local function enableTrigger(triggerID)
-	triggers[triggerID].settings.active = true
+
+----------------------------------------------------------------
+--- Utility Functions:
+----------------------------------------------------------------
+
+local function isNameUntracked(name)
+	return not trackedUnits[name] or #trackedUnits[name] == 0
 end
 
-local function disableTrigger(triggerID)
-	triggers[triggerID].settings.active = false
-end
+local function trackUnit(name, unitID)
+	if not name or not unitID then return end
 
-local function issueOrders(name, orders)
-    if not trackedUnits[name] or #trackedUnits[name] == 0 then return end
+	if not trackedUnits[name] then trackedUnits[name] = {} end
+	if not trackedUnits[unitID] then trackedUnits[unitID] = {} end
 
-	Spring.GiveOrderArrayToUnitArray(trackedUnits[name], orders)
+	trackedUnits[name][#trackedUnits[name] + 1] = unitID
+	trackedUnits[unitID][#trackedUnits[unitID] + 1] = name
 end
 
 local function generateGridPositions(center, quantity, xSpacing, zSpacing)
@@ -33,12 +38,23 @@ local function generateGridPositions(center, quantity, xSpacing, zSpacing)
 	return positions
 end
 
-local function trackUnit(name, unitID)
-	if name and unitID and not trackedUnits[unitID] then
-		if not trackedUnits[name] then trackedUnits[name] = {} end
-		trackedUnits[name][#trackedUnits[name] + 1] = unitID
-		trackedUnits[unitID] = name
-	end
+
+----------------------------------------------------------------
+--- Action Functions:
+----------------------------------------------------------------
+
+local function enableTrigger(triggerID)
+	triggers[triggerID].settings.active = true
+end
+
+local function disableTrigger(triggerID)
+	triggers[triggerID].settings.active = false
+end
+
+local function issueOrders(name, orders)
+    if isNameUntracked(name) then return end
+
+	Spring.GiveOrderArrayToUnitArray(trackedUnits[name], orders)
 end
 
 local function spawnUnits(name, unitDefName, teamID, position, quantity, facing, construction)
@@ -64,7 +80,7 @@ end
 ----------------------------------------------------------------
 
 local function despawnUnits(name, selfDestruct, reclaimed)
-	if not trackedUnits[name] or #trackedUnits[name] == 0 then return end
+	if isNameUntracked(name) then return end
 
 	local unitIDs = table.copy(trackedUnits[name])
 	local quantity = #unitIDs
@@ -76,7 +92,7 @@ end
 ----------------------------------------------------------------
 
 local function transferUnits(name, newTeam, given)
-	if not trackedUnits[name] or #trackedUnits[name] == 0 then return end
+	if isNameUntracked(name) then return end
 
 	for _, unitID in pairs(trackedUnits[name]) do
 		Spring.TransferUnit(unitID, newTeam, given)
@@ -120,10 +136,11 @@ local function nameUnits(name, teamID, unitDefName, rectangle)
 end
 
 local function unnameUnits(name)
-	if not trackedUnits[name] or #trackedUnits[name] == 0 then return end
+	if isNameUntracked(name) then return end
 
 	for _, unitID in pairs(trackedUnits[name]) do
-		trackedUnits[unitID] = nil
+		table.removeAll(trackedUnits[unitID], name)
+		if #trackedUnits[unitID] == 0 then trackedUnits[unitID] = nil end
 	end
 	trackedUnits[name] = nil
 end

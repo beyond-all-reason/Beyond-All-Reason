@@ -108,9 +108,7 @@ function gadget:MetaUnitAdded(unitId, unitDefId, unitTeam)
 			local unitName = trigger.parameters.unitName
 			local unitDefName = trigger.parameters.unitDefName
 
-			if unitName and unitName == trackedUnits[unitId] then
-				activateTrigger(trigger)
-			elseif unitDefName == unitDefId.name then
+			if (unitName and table.contains(trackedUnits[unitId], unitName)) or unitDefName == unitDefId.name then
 				activateTrigger(trigger)
 			end
 		end
@@ -125,18 +123,12 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 
 	-- Remove destroyed tracked units
-	local trackedUnits = GG['MissionAPI'].TrackedUnits
-	local name = trackedUnits[unitID]
+	if not trackedUnits[unitID] or #trackedUnits[unitID] == 0 then return end
 
-	if not name then return end
-
-	for i, id in ipairs(trackedUnits[name]) do
-		if id == unitID then
-			table.remove(trackedUnits[name], i)
-		end
+	for _, name in ipairs(trackedUnits[unitID]) do
+		table.removeAll(trackedUnits[name], unitID)
+		if #trackedUnits[name] == 0 then trackedUnits[name] = nil end
 	end
-
-	if #trackedUnits[name] == 0 then trackedUnits[name] = nil end
 
 	trackedUnits[unitID] = nil
 end
