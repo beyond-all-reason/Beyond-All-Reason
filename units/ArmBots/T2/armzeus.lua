@@ -1,7 +1,7 @@
 return {
 	armzeus = {
 		buildpic = "ARMZEUS.DDS",
-		buildtime = 9500,
+		buildtime = 7250,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "35 36 35",

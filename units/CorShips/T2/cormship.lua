@@ -2,7 +2,7 @@ return {
 	cormship = {
 		activatewhenbuilt = true,
 		buildpic = "CORMSHIP.DDS",
-		buildtime = 24000,
+		buildtime = 15000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -8 0",
 		collisionvolumescales = "43 43 101",

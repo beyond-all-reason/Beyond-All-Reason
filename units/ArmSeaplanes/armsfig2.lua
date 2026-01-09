@@ -3,7 +3,7 @@ return {
 		airsightdistance = 950,
 		blocking = false,
 		buildpic = "ARMSFIG2.DDS",
-		buildtime = 7000,
+		buildtime = 5500,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,

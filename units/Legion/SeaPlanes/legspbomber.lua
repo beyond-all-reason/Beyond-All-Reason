@@ -1,7 +1,7 @@
 return {
 	legspbomber = {
 		buildpic = "legspbomber.DDS",
-		buildtime = 9890,
+		buildtime = 8000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,

@@ -45,8 +45,7 @@ clusterFlare,
 missileFlare1,
 missileFlare2,
 missileFlare3,
-batteryPivotFlare,
-aaMuzzleFlare;
+batteryPivotFlare;
 
 ///
 
@@ -540,8 +539,6 @@ Create()
     wpn5_lasthead = 0;
 	Delay = 0;
 
-	// move aaMinigunFlare to z-axis [-60] now;
-
     turn batteryPivotFlare to z-axis <65> now;
 	
     hide fronthipFlare;
@@ -856,7 +853,7 @@ AimWeapon3(heading, pitch) //pew pew
 
 FireWeapon3()
 {
-	emit-sfx 1024 + 1 from clusterFlare;
+	//emit-sfx 1024 from clusterFlare;
 	move clusterBarrel to z-axis [-5.5] speed [27.5];
 	sleep 200;
 	move clusterBarrel to z-axis [0] speed [4.4];
@@ -945,13 +942,13 @@ AimWeapon5(heading, pitch) //pew pew
 	signal SIG_RESTORE;
 	set-signal-mask SIG_AIM_5;
     stop-spin aaMinigunBase around y-axis;
-	turn aaMinigunBase to y-axis heading - torsoaim speed <300.0000>; //-- Turn(torso, y-axis, heading, math.rad(300))
-	turn aaMinigunTurret to x-axis -1*pitch speed <300.0000>;
+	turn aaMinigunBase to y-axis heading - torsoaim speed <90.0000>; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn aaMinigunTurret to x-axis -1*pitch speed <90.0000>;
 	if (((get ABS(wpn5_lasthead - heading)) > 65536) OR(((get ABS(wpn5_lasthead - heading)) > 2500) AND ((get ABS(wpn5_lasthead - heading)) < 64236)))
 	{
 		wpn5_lasthead = 1000000;
-		//wait-for-turn aaMinigunBase around y-axis;
-		//wait-for-turn aaMinigunTurret around x-axis;
+		wait-for-turn aaMinigunBase around y-axis;
+		wait-for-turn aaMinigunTurret around x-axis;
 	}
 	wpn5_lasthead = heading;
 	start-script RestoreAfterDelay();
@@ -963,10 +960,6 @@ FireWeapon5()
 	spin aaMinigunBarrel around z-axis speed <-2000.0>;
 
 	stop-spin aaMinigunBarrel around z-axis decelerate <12>;
-}
-
-Shot5(zero){
-	emit-sfx 1024+2 from aaMuzzleFlare;
 }
 
 

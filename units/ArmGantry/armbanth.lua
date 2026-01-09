@@ -2,7 +2,7 @@ return {
 	armbanth = {
 		airsightdistance = 1100,
 		buildpic = "ARMBANTH.DDS",
-		buildtime = 360000,
+		buildtime = 276000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",

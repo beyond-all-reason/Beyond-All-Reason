@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		builder = false,
 		buildpic = "CORSOK.DDS",
-		buildtime = 34000,
+		buildtime = 27000,
 		canattack = true,
 		canguard = true,
 		canmove = true,

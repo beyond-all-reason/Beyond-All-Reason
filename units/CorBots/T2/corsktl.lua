@@ -1,7 +1,7 @@
 return {
 	corsktl = {
 		buildpic = "CORSKTL.DDS",
-		buildtime = 23000,
+		buildtime = 17000,
 		canmove = true,
 		cloakcost = 15,
 		cloakcostmoving = 40,

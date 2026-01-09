@@ -34,7 +34,7 @@ return {
 		terraformspeed = 650,
 		turninplaceanglelimit = 360,
 		turnrate = 240,
-		workertime = 115,
+		workertime = 100,
 		buildoptions = {
 			"legfus",
 			"legafus",
@@ -42,7 +42,7 @@ return {
 			"leganavaladvgeo",
 			"legrampart",
 			"legmoho",
-			"legmohocon",
+			"cormexp",
 			"legadveconv",
 			"legadvestore",
 			"legamstor",

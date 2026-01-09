@@ -2,10 +2,10 @@ return {
 	legstr = {
 		maxacc = 0.253,
 		maxdec = 0.8211,
-		energycost = 5250,
-		metalcost = 355,
+		energycost = 5400,
+		metalcost = 360,
 		buildpic = "LEGSTR.DDS",
-		buildtime = 9240,
+		buildtime = 7200,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "32 48 32",

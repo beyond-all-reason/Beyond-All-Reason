@@ -4,7 +4,7 @@ return {
 		buildangle = 16384,
 		--builder = true,
 		buildpic = "leganavyantinukecarrier.DDS",
-		buildtime = 26800,
+		buildtime = 20000,
 		canassist = false,
 		canattack = true,
 		canmove = true,

@@ -1,7 +1,7 @@
 return {
 	armmart = {
 		buildpic = "ARMMART.DDS",
-		buildtime = 8500,
+		buildtime = 6500,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "36 20 38",
@@ -134,7 +134,7 @@ return {
 				soundstart = "cannhvy2",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 355,
+				weaponvelocity = 355.28159,
 				damage = {
 					default = 260,
 					subs = 65,

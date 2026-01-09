@@ -6,7 +6,7 @@ return {
 		energycost = 1000,
 		metalcost = 90,
 		buildpic = "legheavydrone.DDS",
-		buildtime = 5820,
+		buildtime = 5000,
 		canfly = true,
 		canmove = true,
 		cantbetransported = false,

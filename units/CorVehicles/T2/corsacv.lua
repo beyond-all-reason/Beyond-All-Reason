@@ -3,7 +3,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "LEGACV.DDS",
-		buildtime = 16000,
+		buildtime = 12900,
 		canmove = true,
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "36 36 47",

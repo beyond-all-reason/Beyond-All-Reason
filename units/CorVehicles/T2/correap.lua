@@ -1,7 +1,7 @@
 return {
 	correap = {
 		buildpic = "CORREAP.DDS",
-		buildtime = 16000,
+		buildtime = 11500,
 		canmove = true,
 		collisionvolumeoffsets = "0 -6 0",
 		collisionvolumescales = "34 34 38",

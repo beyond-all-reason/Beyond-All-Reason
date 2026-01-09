@@ -2,7 +2,7 @@ return {
 	legajamk = {
 		activatewhenbuilt = true,
 		buildpic = "legajamk.DDS",
-		buildtime = 6280,
+		buildtime = 5440,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -2 0",

@@ -28,7 +28,7 @@ return {
 		maxdec = 4.5,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		metalcost = 230,
+		metalcost = 210,
 		movementclass = "NANO",
 		objectname = "Units/ARMNANOTC.s3o",
 		script = "Units/ARMNANOTC.cob",

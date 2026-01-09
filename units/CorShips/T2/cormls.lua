@@ -3,7 +3,7 @@ return {
 		builddistance = 250,
 		builder = true,
 		buildpic = "CORMLS.DDS",
-		buildtime = 6500,
+		buildtime = 4800,
 		canmove = true,
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "28 20 42",

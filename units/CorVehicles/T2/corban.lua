@@ -1,7 +1,7 @@
 return {
 	corban = {
 		buildpic = "CORBAN.DDS",
-		buildtime = 30000,
+		buildtime = 23100,
 		canmove = true,
 		collisionvolumeoffsets = "0 -9 1",
 		collisionvolumescales = "42 42 42",

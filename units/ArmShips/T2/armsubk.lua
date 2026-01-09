@@ -2,7 +2,7 @@ return {
 	armsubk = {
 		activatewhenbuilt = true,
 		buildpic = "ARMSUBK.DDS",
-		buildtime = 28000,
+		buildtime = 22000,
 		canmove = true,
 		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "30 30 64",

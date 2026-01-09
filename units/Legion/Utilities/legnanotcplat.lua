@@ -2,7 +2,7 @@ return {
 	legnanotcplat = {
 		maxacc = 0,
 		maxdec = 4.5,
-		energycost = 3200,
+		energycost = 2600,
 		metalcost = 230,
 		builddistance = 400,
 		builder = true,

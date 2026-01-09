@@ -2,7 +2,7 @@ return {
 	corgantuw = {
 		builder = true,
 		buildpic = "CORGANTUW.DDS",
-		buildtime = 68000,
+		buildtime = 67300,
 		canmove = true,
 		collisionvolumeoffsets = "0 12 0",
 		collisionvolumescales = "196 110 196",
@@ -28,7 +28,7 @@ return {
 		selfdestructas = "hugeBuildingExplosionGenericSelfd-uw",
 		sightdistance = 273,
 		terraformspeed = 3000,
-		workertime = 1800,
+		workertime = 600,
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo",
 		buildoptions = {
 			[1] = "corkorg",

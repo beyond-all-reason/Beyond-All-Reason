@@ -3,7 +3,7 @@ return {
 		buildangle = 1024,
 		builder = true,
 		buildpic = "LEGALAB.DDS",
-		buildtime = 51000,
+		buildtime = 35000,
 		canmove = true,
 		collisionvolumeoffsets = "0 12 0",
 		collisionvolumescales = "124 75 140",

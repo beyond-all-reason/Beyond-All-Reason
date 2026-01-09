@@ -2,7 +2,7 @@ return {
 	legatorpbomber = {
 		blocking = false,
 		buildpic = "LEGATORPBOMBER.DDS",
-		buildtime = 21970,
+		buildtime = 18240,
 		canfly = true,
 		canmove = true,
 		collide = true,

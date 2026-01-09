@@ -5,7 +5,7 @@ return {
 		energycost = 6800,
 		metalcost = 450,
 		buildpic = "LEGASKIRMTANK.DDS",
-		buildtime = 10490,
+		buildtime = 8000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "30 30 34", ---not respected used collisionvolumes.lua

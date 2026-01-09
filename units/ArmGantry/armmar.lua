@@ -1,7 +1,7 @@
 return {
 	armmar = {
 		buildpic = "ARMMAR.DDS",
-		buildtime = 33000,
+		buildtime = 26100,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",

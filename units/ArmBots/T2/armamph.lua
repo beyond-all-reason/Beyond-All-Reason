@@ -1,7 +1,7 @@
 return {
 	armamph = {
 		buildpic = "ARMAMPH.DDS",
-		buildtime = 7000,
+		buildtime = 5200,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "27 35 21",

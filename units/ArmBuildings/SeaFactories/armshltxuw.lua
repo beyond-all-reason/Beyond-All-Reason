@@ -2,7 +2,7 @@ return {
 	armshltxuw = {
 		builder = true,
 		buildpic = "ARMSHLTXUW.DDS",
-		buildtime = 62000,
+		buildtime = 61400,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "180 120 166",
@@ -28,7 +28,7 @@ return {
 		selfdestructas = "hugeBuildingExplosionGenericSelfd-uw",
 		sightdistance = 273,
 		terraformspeed = 3000,
-		workertime = 1800,
+		workertime = 600,
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee",
 		buildoptions = {
 			[1] = "armbanth",

@@ -1,7 +1,7 @@
 return {
 	corcan = {
 		buildpic = "CORCAN.DDS",
-		buildtime = 15000,
+		buildtime = 11700,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "32 34 30",
@@ -11,7 +11,7 @@ return {
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 5940,
+		health = 5400,
 		idleautoheal = 5,
 		idletime = 1800,
 		maxacc = 0.138,

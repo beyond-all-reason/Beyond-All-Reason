@@ -365,25 +365,13 @@ end
 local function updateComs(forceText)
 	local area = comsArea
 
-	-- Check if commander texture is loaded before creating display list
-	local texPath = string.lower(string.gsub(textures.com, ":.:", ""))
-	if VFS.FileExists(texPath) then
-		local texInfo = gl.TextureInfo(textures.com)
-		-- If texture isn't loaded yet, mark that coms need updating and retry next frame
-		if not texInfo or not texInfo.xsize or texInfo.xsize <= 0 then
-			comcountChanged = true
-			return
-		end
-	end
-
-
 	if dlistComs then glDeleteList(dlistComs) end
 	comsDlistUpdate = true
 	dlistComs = glCreateList(function()
 		-- Commander icon
 		local sizeHalf = (height / 2.44) * widgetScale
 		local yOffset = ((area[3] - area[1]) * 0.025)
-		if VFS.FileExists(texPath) then
+		if VFS.FileExists(string.lower(string.gsub(textures.com, ":.:", ""))) then
 			glTexture(textures.com)
 			glTexRect(area[1] + ((area[3] - area[1]) / 2) - sizeHalf, area[2] + ((area[4] - area[2]) / 2) - sizeHalf +yOffset, area[1] + ((area[3] - area[1]) / 2) + sizeHalf, area[2] + ((area[4] - area[2]) / 2) + sizeHalf+yOffset)
 			glTexture(false)

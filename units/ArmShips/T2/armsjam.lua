@@ -2,7 +2,7 @@ return {
 	armsjam = {
 		activatewhenbuilt = true,
 		buildpic = "ARMSJAM.DDS",
-		buildtime = 20000,
+		buildtime = 17000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "28 32 64",

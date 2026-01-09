@@ -4,7 +4,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "ARMFARK.DDS",
-		buildtime = 6000,
+		buildtime = 4300,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "21 26 17",

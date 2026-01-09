@@ -1,4 +1,4 @@
-    // Mono-space font required
+   // Mono-space font required
 {
     //attack = 0.3 means enemy threat = enemy_threat*0.3
     //and attack group select only targets that have threat lower than the group's power. Power is like threat, but behaviour.json has separate modifiers for threat (enemy) and power (own).
@@ -7,8 +7,8 @@
 
 	"quota": {
 		"scout": 2,  // max scout units out of raiders
-		"raid": [6.0, 150.0],  // [<min>, <avg>] power of raider squad 2.5,48
-		"attack": 60.0,  // min power of attack group ---- was 40
+		"raid": [6.0, 90.0],  // [<min>, <avg>] power of raider squad 2.5,48
+		"attack": 30.0,  // min power of attack group ---- was 40
 		"thr_mod": {				//AI attacks everything with final threat (after all calculations) <= 1
 			"attack": [0.6, 0.8],  // [<min>, <max>] enemy threat multiplier for target selection of attack task |  values <1 makes enemy group seem less of an thread for ai => ai attacks stronger groups than it own | org=0.25, 0.3
 			"defence": [0.3, 0.5],  // [<min>, <max>] enemy threat modifier for group size calculation of defence task; org=0.95, 0.95 | high values = low risk; low values = high risk 
@@ -68,7 +68,6 @@
 	// "coolddown":1, ----- Amount of seconds when unit is not available for construction after UnitFinished
 		
 
-
 	// ============================================   Evolving Commanders   =======================================0
 
 		"behaviour": {
@@ -86,24 +85,26 @@
 	// ============================================   Legion Ground Factories   =======================================0
 
 			"leglab": {
-				"role": ["support"],
+				"role": ["static"],
 				"limit": 1,
 				"build_speed": 5.0,  //bp 100
 				"midposoffset": [-3.239746, 0, -2]
 			},
 			"legalab": {
-				"role": ["support"],
+				"role": ["static"],
+				"attribute": ["support"],
 				"limit": 1,
 				"build_speed": 15.0 // bp 300
 			},
 			"legvp": {
-				"role": ["support"],
+				"role": ["static"],
 				"limit": 1,
 				"build_speed": 5.0 // bp 100
 	
 			},
 			"legavp": {
-				"role": ["support"],
+				"role": ["static"],
+				"attribute": ["support"],
 				"limit": 1,
 				"build_speed": 15.0  //bp 300
 			},
@@ -116,25 +117,25 @@
 	// ============================================   Legion Sea Factories   =======================================0
 
 			"legfhp": {
-				"role": ["support"],
+				"role": ["static"],
 				"build_speed": 10.0, //bp 200
 				"limit": 1
 			},
 			"legsy": {
-				"role": ["support"],
+				"role": ["static"],
 				"build_speed": 8.0, //bp 165
 				"build_mod": 1000.0,
 				"limit": 1
 			},
-			"legadvshipyard": {
-				"role": ["support"],
-				"build_speed": 15.0,  //bp 300
-				"build_mod": 1000.0,
-				"since": 300,
-				"limit": 1
-			},
-			"legamphlab": {
-				"role": ["support"],
+			//"legasy": {
+			//	"role": ["static"],
+			//	"build_speed": 15.0,  //bp 300
+			//	"build_mod": 1000.0,
+			//	"since": 300,
+			//	"limit": 1
+			//},
+			"legamsub": {
+				"role": ["builder"],
 				"build_speed": 7.5, //bp 150
 				"limit": 1
 			},
@@ -142,16 +143,19 @@
 	// ============================================   Legion Air Factories   =======================================0
 
 			"legap": {
-				"role": ["support"],
+				"role": ["static"],
+				"attribute": ["support"],
 				"build_speed": 5.0
 			},
 			"legaap": {
-				"role": ["support"],
+				"role": ["static"],
+				"attribute": ["support"],
 				"limit": 1,
 				"build_speed": 10.0
 			},
 			"legsplab": {
-				"role": ["support"],
+				"role": ["static"],
+				"attribute": ["support"],
 				"build_speed": 8.0,
 				"limit": 1
 			},
@@ -159,12 +163,14 @@
 	// ============================================   Legion T3 Factories   =======================================0
 
 			"leggant": {
-				"role": ["support"],
+				"role": ["static"],
+				"attribute": ["support", "solo"],
 				"limit": 1,
 				"build_speed": 45.0 //bp 300
 			},
 			"leggantuw": {
-				"role": ["support"],
+				"role": ["static"],
+				"attribute": ["support", "solo"],
 				"limit": 1,
 				"build_speed": 45.0 //bp 300
 			},
@@ -966,70 +972,71 @@
 	
 			"legspradarsonarplane": {
 				"role": ["scout", "air"],
-				"attribute": ["rare"]
+				"power": 6.0
 			},
 			"legspsurfacegunship": {
 				"role": ["skirmish", "air"],
-				"attribute": ["rare"]
+				"power": 6.0
 			},
 			"legspbomber": {
 				"role": ["bomber", "air"],
-				"attribute": ["rare"]
+				"power": 6.0
 			},
 			"legspcarrier": {
 				"role": ["assault", "air"],
-				"attribute": ["rare"]
+				"power": 6.0
 			},
 			"legspfighter": {
 				"role": ["anti_air"],
-				"attribute": ["rare"]
+				"power": 6.0
 			},
 			"legsptorpgunship": {
 				"role": ["anti_sub", "air"],
-				"attribute": ["rare"]
+				"power": 6.0
 			},
 
 			// LEGION SEA
 
 			"legnavyrezsub": {
 				"role": ["support"],
+				"attribute": ["rare"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
 				"power": 1.0
 			},
 			"legnavyaaship": {
-				"role": ["anti_air", "raider"],
+				"role": ["scout", "anti_air", "raider"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"power": 15.0
 			},
 			"legnavyscout": {
 				"role": ["scout"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"power": 15.0
 			},
 			"legnavyfrigate": {
 				"role": ["assault", "air"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"power": 15.0
 			},
 			"legnavydestro": {
 				"role": ["skirmish", "air"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"power": 15.0
 			},
 			"legnavyartyship": {
 				"role": ["artillery"],
 				"attribute": ["support"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"power": 15.0
 			},
 			"legnavysub": {
 				"role": ["sub"],
-				"attribute": ["rare"],
+				"attribute": ["anti_sub"],
 				"threat": {"air": 0.0, "surf": 0.0, "water": 0.0, "default": 0.0},
-				"power": 1.0
+				"power": 15.0
 			},
 	
-			// LEGION ADVANCED SEA.0
+			// LEGION ADVANCED SEA
 
 			"leganavyantiswarm": {
 				"role": ["riot"],

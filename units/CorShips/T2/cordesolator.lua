@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 8192,
 		buildpic = "cordesolator.DDS",
-		buildtime = 190000,
+		buildtime = 140000,
 		canmanualfire = true,
 		canmove = true,
 		collisionvolumeoffsets = "0 1 4",

@@ -1,7 +1,7 @@
 return {
 	cortrem = {
 		buildpic = "CORTREM.DDS",
-		buildtime = 43000,
+		buildtime = 31100,
 		canmove = true,
 		collisionvolumeoffsets = "0 -5 3",
 		collisionvolumescales = "37 61 51",

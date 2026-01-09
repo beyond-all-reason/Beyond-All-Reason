@@ -3,7 +3,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "ARMCONSUL.DDS",
-		buildtime = 42000,
+		buildtime = 33600,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -3",
 		collisionvolumescales = "32 30 30",

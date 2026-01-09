@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		builder = true,
 		buildpic = "LEGAAP.DDS",
-		buildtime = 52000,
+		buildtime = 35900,
 		canmove = true,
 		collisionvolumeoffsets = "0 4 0",
 		collisionvolumescales = "144 70 144",

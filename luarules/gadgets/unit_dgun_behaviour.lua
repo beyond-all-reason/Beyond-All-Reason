@@ -17,13 +17,12 @@ end
 local spSetProjectilePosition = Spring.SetProjectilePosition
 local spSetProjectileVelocity = Spring.SetProjectileVelocity
 local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileDirection = Spring.GetProjectileDirection
+local spGetUnitShieldState = Spring.GetUnitShieldState
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetGroundHeight = Spring.GetGroundHeight
 local spDeleteProjectile = Spring.DeleteProjectile
 local spSpawnExplosion = Spring.SpawnExplosion
 local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitShieldState = Spring.GetUnitShieldState
 local spSpawnCEG = Spring.SpawnCEG
 local spGetGameFrame = Spring.GetGameFrame
 
@@ -36,37 +35,13 @@ local dgunDef = {}
 local dgunTimeouts = {}
 local dgunShieldPenetrations = {}
 
-local function generateWeaponTtlFunction(weaponDef)
-	local range = weaponDef.range
-	local speed = weaponDef.projectilespeed
-
-	-- Not handling anything between 0 and 1:
-	if weaponDef.cylinderTargeting >= 1 then
-		return function(unitID, projectileID)
-			local ux, uy, uz = spGetUnitPosition(unitID)
-			local px, py, pz = spGetProjectilePosition(projectileID)
-			local dx, dy, dz = spGetProjectileDirection(projectileID)
-			local projection = (px - ux) * dx + (pz - uz) * dz
-			return (range - projection) / speed
-		end
-	else -- treat all other as cylinder == 0:
-		return function(unitID, projectileID)
-			local _, _, _, ux, uy, uz = spGetUnitPosition(unitID, true)
-			local px, py, pz = spGetProjectilePosition(projectileID)
-			local dx, dy, dz = spGetProjectileDirection(projectileID)
-			local projection = (px - ux) * dx + (py - uy) * dy + (pz - uz) * dz
-			return (range - projection) / speed
-		end
-	end
-end
-
 for weaponDefID = 0, #WeaponDefs do
 	local weaponDef = WeaponDefs[weaponDefID]
 	if weaponDef.type == 'DGun' then
 		Script.SetWatchProjectile(weaponDefID, true)
 		dgunDef[weaponDefID] = weaponDef
+		dgunDef[weaponDefID].ttl = weaponDef.range / weaponDef.projectilespeed
 		dgunDef[weaponDefID].setback = weaponDef.projectilespeed
-		dgunDef[weaponDefID].ttl = generateWeaponTtlFunction(weaponDef)
 	end
 end
 
@@ -121,7 +96,7 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 	if dgunDef[weaponDefID] then
 		dgunData[proID] = { proOwnerID = proOwnerID, weaponDefID = weaponDefID }
 		flyingDGuns[proID] = true
-		dgunTimeouts[proID] = spGetGameFrame() + dgunDef[weaponDefID].ttl(proOwnerID, proID)
+		dgunTimeouts[proID] = (spGetGameFrame() + dgunDef[weaponDefID].ttl)
 	end
 end
 

@@ -6,7 +6,7 @@ return {
 		energycost = 25000,
 		metalcost = 450,
 		buildpic = "LEGPHOENIX.DDS",
-		buildtime = 46600,
+		buildtime = 40000,
 		canfly = true,
 		canattack = true,
 		canmove = true,

@@ -2,7 +2,7 @@ return {
 	corvoyr = {
 		activatewhenbuilt = true,
 		buildpic = "CORVOYR.DDS",
-		buildtime = 5000,
+		buildtime = 3950,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",

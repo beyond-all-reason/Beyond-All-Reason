@@ -2,7 +2,7 @@ return {
 	armseap = {
 		blocking = false,
 		buildpic = "ARMSEAP.DDS",
-		buildtime = 18000,
+		buildtime = 14800,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,

@@ -2,7 +2,7 @@ return {
 	corsent = {
 		airsightdistance = 900,
 		buildpic = "CORSENT.DDS",
-		buildtime = 16000,
+		buildtime = 12000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -4 -4",
 		collisionvolumescales = "40.5 40.5 43.5",

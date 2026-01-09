@@ -2,7 +2,7 @@ return {
 	legspsurfacegunship = {
 		blocking = false,
 		buildpic = "legspsurfacegunship.DDS",
-		buildtime = 12140,
+		buildtime = 10000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,

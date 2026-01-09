@@ -167,7 +167,7 @@ local function CreateShaders()
 
 	-- create blur shaders
 	local fragmentShaderCode
-
+	
 	if isIntelGPU then
 		-- Intel GPUs: Use simple box blur with weighted distribution for quality
 		-- Avoids derivative functions (dFdx/dFdy) which are buggy on Intel drivers
@@ -182,31 +182,31 @@ local function CreateShaders()
 		{
 			vec2 texCoord = gl_TexCoord[0].st;
 			float stencil = texture2D(tex2, texCoord).a;
-
+			
 			if (stencil < 0.01)
 			{
 				discard;
 			}
-
+			
 			// 9-sample weighted blur for smooth, high-quality results
 			vec4 sum = vec4(0.0);
 			vec2 offset = vec2(ivsx, ivsy) * 6.0;
-
+			
 			// Center sample gets highest weight
 			sum += texture2D(tex0, texCoord) * 4.0;
-
+			
 			// Cardinal directions weighted higher
 			sum += texture2D(tex0, texCoord + vec2(offset.x, 0.0)) * 2.0;
 			sum += texture2D(tex0, texCoord - vec2(offset.x, 0.0)) * 2.0;
 			sum += texture2D(tex0, texCoord + vec2(0.0, offset.y)) * 2.0;
 			sum += texture2D(tex0, texCoord - vec2(0.0, offset.y)) * 2.0;
-
+			
 			// Diagonal corners for smoothness
 			sum += texture2D(tex0, texCoord + offset);
 			sum += texture2D(tex0, texCoord - offset);
 			sum += texture2D(tex0, texCoord + vec2(offset.x, -offset.y));
 			sum += texture2D(tex0, texCoord + vec2(-offset.x, offset.y));
-
+			
 			gl_FragColor = sum / 17.0;
 		}
 		]]
@@ -382,7 +382,7 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 end
 
 local function DrawScreen() -- This blurs the UI elements obscured by other UI elements (only unit stats so far!)
-	if Spring.IsGUIHidden() then
+	if Spring.IsGUIHidden() or uiOpacity > 0.99 then
 		return
 	end
 
@@ -392,6 +392,7 @@ local function DrawScreen() -- This blurs the UI elements obscured by other UI e
 	end
 	deleteDlistQueue = {}
 
+	--if true then return false end
 	if (screenBlur or next(guishaderScreenRects) or next(guishaderScreenDlists)) and blurShader then
 		gl.Texture(false)
 		gl.Color(1, 1, 1, 1)

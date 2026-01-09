@@ -27,7 +27,7 @@ return {
 		selfdestructas = "largeBuildingExplosionGenericSelfd-uw",
 		sightdistance = 234,
 		terraformspeed = 750,
-		workertime = 300,
+		workertime = 150,
 		yardmap = "oooooo oooooo oeeeeo oeeeeo oeeeeo oeeeeo",
 		buildoptions = {
 			[1] = "armbeaver",

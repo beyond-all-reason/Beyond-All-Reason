@@ -2,7 +2,7 @@ return {
 	armserp = {
 		activatewhenbuilt = true,
 		buildpic = "ARMSERP.DDS",
-		buildtime = 32000,
+		buildtime = 22770,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "52 30 57",

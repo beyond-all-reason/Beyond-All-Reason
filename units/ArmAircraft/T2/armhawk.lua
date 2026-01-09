@@ -3,7 +3,7 @@ return {
 		airsightdistance = 1100,
 		blocking = false,
 		buildpic = "ARMHAWK.DDS",
-		buildtime = 10500,
+		buildtime = 8900,
 		canfly = true,
 		canmove = true,
 		collide = false,

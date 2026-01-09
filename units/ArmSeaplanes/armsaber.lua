@@ -2,7 +2,7 @@ return {
 	armsaber = {
 		blocking = false,
 		buildpic = "ARMSABER.DDS",
-		buildtime = 11000,
+		buildtime = 9000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,

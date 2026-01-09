@@ -5,7 +5,7 @@ return {
 		builddistance = 145,
 		builder = true,
 		buildpic = "CORDECOM.DDS",
-		buildtime = 33000,
+		buildtime = 27000,
 		cancapture = true,
 		candgun = true,
 		canmove = true,

@@ -26,10 +26,14 @@ local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetMyTeamID = Spring.GetMyTeamID
 local spI18N = Spring.I18N
 
+local blockTechDefs = {}
+local blockTechCount = 0
+local blockedDefs = {}
 local POPUP_DELAY_FRAMES = Game.gameSpeed * 10
 local UPDATE_INTERVAL = 1.0
 local CACHE_INTERVAL = 0.5 --seconds
 local popupsEnabled = false
+local techLevelChanged = true
 
 local cachedDataTable = {
 	techLevel = 1,
@@ -42,6 +46,17 @@ local cachedDataTable = {
 local heightStrings = {}
 for i = 0, 100 do
 	heightStrings[i] = string.format("%.1f%%", i)
+end
+
+local function initializeTechBlocking()
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local customParams = unitDef.customParams
+		if customParams and customParams.tech_build_blocked_until_level then
+			local techLevel = tonumber(customParams.tech_build_blocked_until_level)
+			blockTechDefs[unitDefID] = techLevel
+			blockTechCount = blockTechCount + 1
+		end
+	end
 end
 
 local function updateUIElementText(document, elementId, text)
@@ -59,6 +74,7 @@ local widgetState = {
 	document = nil,
 	dmHandle = nil,
 	lastUpdate = 0,
+	lastBlockingUpdate = 0,
 	fillElement = nil,
 	levelElement = nil,
 	popupElement = nil,
@@ -67,6 +83,7 @@ local widgetState = {
 	popupEndTime = 0,
 	gameStartTime = nil,
 	initialPopupShown = false,
+	lastBlockingTechLevel = 1,
 	cachedMyTeamID = nil,
 	cachedTechPoints = 0,
 	cachedTechLevel = 1,
@@ -79,6 +96,12 @@ local widgetState = {
 	lastDisplayedTechPoints = 0,
 	lastDisplayedProgressPercent = 0,
 	lastDisplayedIsNegative = false,
+	gridmenuWG = nil,
+	buildmenuWG = nil,
+	gridmenuAdd = nil,
+	gridmenuRemove = nil,
+	buildmenuAdd = nil,
+	buildmenuRemove = nil,
 }
 
 local initialModel = {
@@ -195,6 +218,7 @@ local function updateTechPointsData()
 	return cachedDataTable
 end
 
+
 local function createTechPointsElements()
 	if not widgetState.document then
 		return
@@ -209,6 +233,55 @@ local function createTechPointsElements()
 		widgetState.levelElement = levelElement
 		widgetState.popupElement = popupElement
 	end
+end
+
+local function updateBlocking()
+	if not modOptions or not modOptions.tech_blocking then
+		return
+	end
+
+	local techLevel, currentTechPoints = getTechData()
+
+	local techLevelChanged = techLevel ~= widgetState.lastBlockingTechLevel
+	local techPointsChangedSignificantly = math.abs(currentTechPoints - widgetState.previousTechPoints) >= 10
+
+	if not techLevelChanged and not techPointsChangedSignificantly then
+		return
+	end
+
+	local gridmenuAdd = widgetState.gridmenuAdd
+	local gridmenuRemove = widgetState.gridmenuRemove
+	local buildmenuAdd = widgetState.buildmenuAdd
+	local buildmenuRemove = widgetState.buildmenuRemove
+
+	for unitDefID in pairs(blockedDefs) do
+		if gridmenuRemove then
+			gridmenuRemove(unitDefID, "tech_block")
+		end
+		if buildmenuRemove then
+			buildmenuRemove(unitDefID, "tech_block")
+		end
+		blockedDefs[unitDefID] = nil
+	end
+
+	for unitDefID, requiredLevel in pairs(blockTechDefs) do
+		if techLevel < requiredLevel then
+			if not blockedDefs[unitDefID] then
+				blockedDefs[unitDefID] = {}
+			end
+			table.insert(blockedDefs[unitDefID], "tech_level_" .. requiredLevel)
+
+			if gridmenuAdd then
+				gridmenuAdd(unitDefID, "tech_block")
+			end
+			if buildmenuAdd then
+				buildmenuAdd(unitDefID, "tech_block")
+			end
+		end
+	end
+
+	widgetState.lastBlockingTechLevel = techLevel
+	widgetState.previousTechPoints = currentTechPoints
 end
 
 local function updatePopups(techLevel)
@@ -290,7 +363,16 @@ local function updateUI()
 end
 
 function widget:Initialize()
+	initializeTechBlocking()
+
 	widgetState.gameStartTime = os.clock()
+
+	widgetState.gridmenuWG = WG["gridmenu"]
+	widgetState.buildmenuWG = WG["buildmenu"]
+	widgetState.gridmenuAdd = widgetState.gridmenuWG and widgetState.gridmenuWG.addBlockReason
+	widgetState.gridmenuRemove = widgetState.gridmenuWG and widgetState.gridmenuWG.removeBlockReason
+	widgetState.buildmenuAdd = widgetState.buildmenuWG and widgetState.buildmenuWG.addBlockReason
+	widgetState.buildmenuRemove = widgetState.buildmenuWG and widgetState.buildmenuWG.removeBlockReason
 
 	local myTeamID = spGetMyTeamID()
 	if myTeamID then
@@ -302,6 +384,7 @@ function widget:Initialize()
 		local techLevel = spGetTeamRulesParam(myTeamID, "tech_level") or 1
 		widgetState.cachedTechLevel = techLevel
 		widgetState.lastDisplayedTechLevel = techLevel
+		widgetState.lastBlockingTechLevel = techLevel
 	end
 
 	local baseT2 = modOptions.t2_tech_threshold or 100
@@ -346,7 +429,6 @@ function widget:Initialize()
 	createTechPointsElements()
 
 	updateUI()
-
 end
 
 function widget:Shutdown()
@@ -361,7 +443,6 @@ function widget:Shutdown()
 	end
 
 	widgetState.rmlContext = nil
-
 end
 
 function widget:Update(dt)
@@ -370,6 +451,7 @@ function widget:Update(dt)
 	if currentTime - widgetState.lastUpdate > UPDATE_INTERVAL then
 		widgetState.lastUpdate = currentTime
 		updateUI()
+		updateBlocking()
 	end
 end
 

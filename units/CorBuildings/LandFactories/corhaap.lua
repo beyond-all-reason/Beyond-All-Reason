@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		builder = true,
 		buildpic = "CORAAP.DDS",
-		buildtime = 92000,
+		buildtime = 67300,
 		canmove = true,
 		corpse = "DEAD",
 		energycost = 65000,
@@ -30,7 +30,7 @@ return {
 		terraformspeed = 3000,
 		workertime = 1800,
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo",
-		buildoptions = {
+		buildoptions = {		
 			[1] = "corhaca",
 			[2] = "corape",
 			[3] = "corhurc",

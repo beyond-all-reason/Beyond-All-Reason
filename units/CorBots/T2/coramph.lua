@@ -2,7 +2,7 @@ return {
 	coramph = {
 		activatewhenbuilt = true,
 		buildpic = "CORAMPH.DDS",
-		buildtime = 12500,
+		buildtime = 9650,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "32 29 32",

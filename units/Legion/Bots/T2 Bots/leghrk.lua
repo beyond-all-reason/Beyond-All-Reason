@@ -1,7 +1,7 @@
 return {
 	leghrk = {
 		buildpic = "LEGHRK.DDS",
-		buildtime = 12600,
+		buildtime = 9000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -2 0",
         collisionvolumescales = "40.0 40.0 46.0",

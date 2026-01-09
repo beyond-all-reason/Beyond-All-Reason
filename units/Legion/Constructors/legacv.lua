@@ -40,7 +40,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.1616,
 		turnrate = 363,
-		workertime = 270,
+		workertime = 235,
 		buildoptions = {
 			"legfus",
 			"legafus",
@@ -48,7 +48,7 @@ return {
 			"legageo",
 			"legrampart",
 			"legmoho",
-			"legmohocon",
+			"cormexp",
 			"legadveconv",
 			"legadvestore",
 			"legamstor",

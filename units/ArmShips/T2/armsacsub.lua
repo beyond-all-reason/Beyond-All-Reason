@@ -3,7 +3,7 @@ return {
 		builddistance = 180,
 		builder = true,
 		buildpic = "ARMACSUB.DDS",
-		buildtime = 22000,
+		buildtime = 18000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "38 38 63",

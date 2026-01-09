@@ -3,7 +3,7 @@ return {
 		builddistance = 250,
 		builder = true,
 		buildpic = "CORMLS.DDS",
-		buildtime = 60000,
+		buildtime = 49600,
 		canmove = true,
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "28 20 42",
@@ -65,7 +65,7 @@ return {
 			[33] = "corint",
 			[34] = "corsilo",
 			[35] = "corbuzz",
-			[36] = "corgantuw",
+			[36] = "corgantuw"
 		},
 		customparams = {
 			minesweeper = 600,

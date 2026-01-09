@@ -4,7 +4,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "ARMACA.DDS",
-		buildtime = 58000,
+		buildtime = 48000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,

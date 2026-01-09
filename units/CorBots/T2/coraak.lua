@@ -2,7 +2,7 @@ return {
 	coraak = {
 		airsightdistance = 1200,
 		buildpic = "CORAAK.DDS",
-		buildtime = 11000,
+		buildtime = 7600,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "27 29 22",

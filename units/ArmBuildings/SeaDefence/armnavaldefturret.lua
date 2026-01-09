@@ -1,7 +1,11 @@
 return {
 	armnavaldefturret = {
+		maxacc = 0,
 		airsightdistance = 650,
+		maxdec = 0,
 		buildangle = 32768,
+		energycost = 10000,
+		metalcost = 750,
 		buildpic = "armnavaldefturret.DDS",
 		buildtime = 15000,
 		canrepeat = false,
@@ -9,17 +13,13 @@ return {
 		collisionvolumescales = "70 60 70",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		energycost = 10000,
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 5,
 		footprintz = 5,
-		health = 5190,
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 9500,
-		maxacc = 0,
-		maxdec = 0,
-		metalcost = 750,
+		health = 5190,
 		minwaterdepth = 18,
 		objectname = "Units/armnavaldefturret.s3o",
 		script = "Units/armnavaldefturret.cob",
@@ -29,11 +29,11 @@ return {
 		waterline = 0,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/arm_normal.dds",
 			removewait = true,
 			subfolder = "ArmBuildings/SeaDefence",
-			unitgroup = "weapon",
 		},
 		featuredefs = {
 			dead = {

@@ -2,7 +2,7 @@ return {
 	legelrpcmech = {
 		activatewhenbuilt = false,
 		buildpic = "LEGELRPCMECH.DDS",
-		buildtime = 178000,
+		buildtime = 125000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",

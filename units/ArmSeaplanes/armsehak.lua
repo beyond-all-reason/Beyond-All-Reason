@@ -2,7 +2,7 @@ return {
 	armsehak = {
 		blocking = false,
 		buildpic = "ARMSEHAK.DDS",
-		buildtime = 11000,
+		buildtime = 9050,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,

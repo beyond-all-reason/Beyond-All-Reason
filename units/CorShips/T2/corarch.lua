@@ -3,7 +3,7 @@ return {
 		airsightdistance = 900,
 		buildangle = 16384,
 		buildpic = "CORARCH.DDS",
-		buildtime = 21000,
+		buildtime = 15000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -4 3",
 		collisionvolumescales = "37 37 74",

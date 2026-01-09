@@ -30,7 +30,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 430,
-		speed = 250,
+		speed = 255,
 		speedtofront = 0.063,
 		turnradius = 64,
 		usesmoothmesh = true,
@@ -100,6 +100,7 @@ return {
 				soundhit = "bombssml1",
 				soundhitwet = "splsmed",
 				soundstart = "bombrel",
+				sprayangle = 300,
 				weapontype = "AircraftBomb",
 				damage = {
 					default = 105,

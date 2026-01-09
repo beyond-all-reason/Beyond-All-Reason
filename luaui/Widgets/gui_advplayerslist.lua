@@ -1696,38 +1696,7 @@ function widget:DrawScreen()
 
 	-- Push matrix to preserve GL state for other widgets
 	gl.PushMatrix()
-
-    -- Draw points/pencils/erasers outside render-to-texture so they extend beyond widget bounds
-    if m_point.active then
-        local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
-        local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
-        gl.Scale(widgetScale, widgetScale, 0)
-        gl.Translate(scaleDiffX, scaleDiffY, 0)
-        for i, drawObject in ipairs(drawList) do
-            if drawObject >= 0 then
-                local posY = widgetPosY + widgetHeight - drawListOffset[i]
-                if player[drawObject].pointTime ~= nil then
-                    if player[drawObject].allyteam == myAllyTeamID or mySpecStatus then
-                        DrawPoint(posY, player[drawObject].pointTime - now)
-                    end
-                end
-                if player[drawObject].pencilTime ~= nil then
-                    if player[drawObject].allyteam == myAllyTeamID or mySpecStatus then
-                        DrawPencil(posY, player[drawObject].pencilTime - now)
-                    end
-                end
-                if player[drawObject].eraserTime ~= nil then
-                    if player[drawObject].allyteam == myAllyTeamID or mySpecStatus then
-                        DrawEraser(posY, player[drawObject].eraserTime - now)
-                    end
-                end
-            end
-        end
-        gl_Texture(false)
-        gl.PopMatrix()
-        gl.PushMatrix()
-    end
-
+	
     local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
     local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
     gl.Scale(widgetScale, widgetScale, 0)
@@ -1769,7 +1738,7 @@ function widget:DrawScreen()
 
 	-- Pop matrix to restore GL state for other widgets
 	gl.PopMatrix()
-
+	
 	-- Reset GL state to clean defaults for other widgets
 	gl.Color(1, 1, 1, 1)
 	gl.Texture(false)
@@ -2425,6 +2394,27 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
             if m_chat.active and mySpecStatus == false and spec == false then
                 if playerID ~= myPlayerID then
                     DrawChatButton(posY)
+                end
+            end
+        else
+            if m_point.active then
+                if player[playerID].pointTime ~= nil then
+                    if player[playerID].allyteam == myAllyTeamID or mySpecStatus then
+                        DrawPoint(posY, player[playerID].pointTime - now)
+                        if tipY then
+                            PointTip(mouseX)
+                        end
+                    end
+                end
+                if player[playerID].pencilTime ~= nil then
+                    if player[playerID].allyteam == myAllyTeamID or mySpecStatus then
+                        DrawPencil(posY, player[playerID].pencilTime - now)
+                    end
+                end
+                if player[playerID].eraserTime ~= nil then
+                    if player[playerID].allyteam == myAllyTeamID or mySpecStatus then
+                        DrawEraser(posY, player[playerID].eraserTime - now)
+                    end
                 end
             end
         end

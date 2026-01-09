@@ -97,20 +97,11 @@ local function increaseTechLevel(teamList, notificationEvent, techLevel)
 				end
 			end
 			spSetTeamRulesParam(teamID, "tech_level", techLevel)
-
-			-- Unblock units that are now available at the new tech level
-			for unitDefID, requiredLevel in pairs(blockTechDefs) do
-				if requiredLevel <= techLevel then
-					GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, "tech_level_" .. requiredLevel)
-				end
-			end
 		end
 	end
 end
 
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(CMD.BUILD)
-
 	local teamList = Spring.GetTeamList()
 	for _, teamID in ipairs(teamList) do
 		if not ignoredTeams[teamID] then
@@ -128,20 +119,6 @@ function gadget:Initialize()
 		end
 	end
 end
-function gadget:GameStart()
-	local teamList = Spring.GetTeamList()
-	for _, teamID in ipairs(teamList) do
-		if not ignoredTeams[teamID] then
-			local techLevel = spGetTeamRulesParam(teamID, "tech_level") or 1
-			for unitDefID, requiredLevel in pairs(blockTechDefs) do
-				if techLevel < requiredLevel then
-					GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, "tech_level_" .. requiredLevel)
-				end
-			end
-		end
-	end
-end
-
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	local power = UnitDefs[unitDefID].power
@@ -229,14 +206,15 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID)
-	-- Allows CMD.BUILD (cmdID < 0)
-	local buildUnitDefID = -cmdID
-	if not blockTechDefs[buildUnitDefID] then
-		return true
-	end
-	local techLevel = spGetTeamRulesParam(unitTeam, "tech_level")
-	if techLevel < blockTechDefs[buildUnitDefID] then
-		return false
+	if cmdID < 0 then
+		local buildUnitDefID = -cmdID
+		if not blockTechDefs[buildUnitDefID] then
+			return true
+		end
+		local techLevel = spGetTeamRulesParam(unitTeam, "tech_level")
+		if techLevel < blockTechDefs[buildUnitDefID] then
+			return false
+		end
 	end
 	return true
 end

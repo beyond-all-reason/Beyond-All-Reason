@@ -1,7 +1,7 @@
 return {
 	cortermite = {
 		buildpic = "CORTERMITE.DDS",
-		buildtime = 17000,
+		buildtime = 13500,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "40 26 48",

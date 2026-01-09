@@ -2,7 +2,7 @@ return {
 	corvrad = {
 		activatewhenbuilt = true,
 		buildpic = "CORVRAD.DDS",
-		buildtime = 5000,
+		buildtime = 4220,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",

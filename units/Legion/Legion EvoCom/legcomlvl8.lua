@@ -107,7 +107,7 @@ return {
 			"legsy",
 			"leghp",
 			"legfhp",
-            "legavantinuke",
+            "cormabm",
             "legkeres",
 			"legnanotc",
 			"legnanotcplat",

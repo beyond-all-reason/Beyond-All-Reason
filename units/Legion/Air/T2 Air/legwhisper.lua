@@ -5,7 +5,7 @@ return {
 		energycost = 9000,
 		metalcost = 210,
 		buildpic = "legwhisper.DDS",
-		buildtime = 16480,
+		buildtime = 14000,
 		canfly = true,
 		canmove = true,
 		collide = false,

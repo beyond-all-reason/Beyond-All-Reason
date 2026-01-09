@@ -2,7 +2,7 @@ return {
 	corawac = {
 		blocking = false,
 		buildpic = "CORAWAC.DDS",
-		buildtime = 16000,
+		buildtime = 13300,
 		canfly = true,
 		canmove = true,
 		collide = false,

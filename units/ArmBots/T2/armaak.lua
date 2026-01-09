@@ -2,7 +2,7 @@ return {
 	armaak = {
 		airsightdistance = 1200,
 		buildpic = "ARMAAK.DDS",
-		buildtime = 10000,
+		buildtime = 7000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 1",
 		collisionvolumescales = "25 32 16",

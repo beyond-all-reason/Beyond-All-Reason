@@ -1,7 +1,7 @@
 return {
 	corshiva = {
 		buildpic = "CORSHIVA.DDS",
-		buildtime = 40000,
+		buildtime = 30600,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -5 0",

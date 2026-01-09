@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		builder = true,
 		buildpic = "CORHAAP.DDS",
-		buildtime = 92000,
+		buildtime = 67300,
 		canmove = true,
 		collisionvolumeoffsets = "0 12 0",
 		collisionvolumescales = "196 110 196",

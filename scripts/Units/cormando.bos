@@ -7,16 +7,14 @@ piece  turret, sleeve, barrel, torso, rnano,
 
 
 
-#define SIGNAL_AIM1 2
-#define SIGNAL_BUILD 4
+#define SIGNAL_BUILD 2
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
 	return 0;
 }
 
-static-var  NOT_DEPLOYED, DEPLOYED, DEPLOYING;
-static-var  isMoving, spray, restore_delay, torsoRotation, lastHeading, lastPitch, deploy_state, delayAimMeasurement;
+static-var  isMoving, spray, wpn1_lasthead;
 // Generated for N:\animations\cormando_anim_walk.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
@@ -42,7 +40,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rfoot to x-axis <-30.708124> speed <758.102858> / animSpeed; //delta=25.27 
 			turn rfoot to z-axis <-0.0> speed <150.944293> / animSpeed; //delta=-5.03 
 			turn rfoot to y-axis <-0.001189> speed <55.296999> / animSpeed; //delta=-1.84 
-			turn rleg to x-axis <20.273834> speed <140.069524> / animSpeed; //delta=-4.67	 
+			turn rleg to x-axis <20.273834> speed <140.069524> / animSpeed; //delta=-4.67 
 			turn rthigh to x-axis <13.999088> speed <747.982272> / animSpeed; //delta=-24.93 
 			turn rthigh to z-axis <5.361182> speed <52.954913> / animSpeed; //delta=1.77 
 			turn rthigh to y-axis <-19.446249> speed <34.764963> / animSpeed; //delta=-1.16 
@@ -296,6 +294,7 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 5) / animSpeed; 
+		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>10) animSpeed = 10;
 		sleep 164;
@@ -328,80 +327,42 @@ Lights()
 	}
 }
 
-Deploy(heading, pitch)
-{
-	deploy_state = DEPLOYING;
-	move turret to y-axis [5.5] speed [20.0];
-	turn turret to y-axis heading - torsoRotation speed <300.0>;
-	turn sleeve to x-axis <270.0>-pitch speed <225>;
-	wait-for-move turret along y-axis;
-	wait-for-turn turret around y-axis;
-	wait-for-turn sleeve around x-axis;
-	deploy_state = DEPLOYED;
-}
-
-Undeploy()
-{
-	deploy_state = NOT_DEPLOYED;
-	turn turret to y-axis <0.0> speed <300.0>;
-	turn sleeve to x-axis <0.0> speed <225>;
-	move turret to y-axis [0.0] speed [20.0];
-	wait-for-move turret along y-axis;
-	wait-for-turn turret around y-axis;
-	wait-for-turn sleeve around x-axis;
-}
-
-DelayAimMeasurement()
-{
-	delayAimMeasurement = TRUE;
-	sleep 200;
-	delayAimMeasurement = FALSE;
-}
-
 Create()
 {
-	NOT_DEPLOYED = 0;
-	DEPLOYED = 1;
-	DEPLOYING = 2;
 	hide lnano;
 	hide rnano;
 	hide aimx1;
 	hide flare;
 	hide aimy1;
 	isMoving = FALSE;
-	torsoRotation = 0;
-	lastHeading = -1000000;
-	lastPitch = -1000000;
-	// turn flare to x-axis <90> now;
+	turn flare to x-axis <90> now;
 	animSpeed = 5;
 	spray = 0;
-	restore_delay = 3000;
 	//start-script Lights();
 }
 
 StartBuilding(torsoing, pitch)
 {
-	signal SIGNAL_BUILD;
+	signal SIGNAL_BUILD;	
 	set-signal-mask SIGNAL_BUILD;
 
 	show lnano;
 	show rnano;
 
-	turn luparm to x-axis <-45> speed <375.000000>;
-	turn larm to x-axis <-45> speed <375.000000>;
-	turn ruparm to x-axis <-45> speed <375.000000>;
-	turn rarm to x-axis <-45> speed <375.000000>;
+	turn luparm to x-axis <-45> speed <187.500000>;
+	turn larm to x-axis <-45> speed <187.500000>;
+	turn ruparm to x-axis <-45> speed <187.500000>;
+	turn rarm to x-axis <-45> speed <187.500000>;
 	wait-for-turn luparm around x-axis;
 
-	torsoRotation = torsoing;
-	turn aimy1 to y-axis torsoing speed <480.0>;
+	turn aimy1 to y-axis torsoing speed <240.0>;
 	wait-for-turn aimy1 around y-axis;
 	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
-	signal SIGNAL_BUILD;
+	signal SIGNAL_BUILD;	
 	set-signal-mask SIGNAL_BUILD;
 
 	hide lnano;
@@ -410,12 +371,11 @@ StopBuilding()
 	sleep 3000;
 	set INBUILDSTANCE to 0;
 
-	torsoRotation = 0;
-	turn luparm to x-axis <0> speed <375.000000>;
-	turn larm to x-axis <0> speed <375.000000>;
-	turn ruparm to x-axis <0> speed <375.000000>;
-	turn rarm to x-axis <0> speed <375.000000>;
-	turn aimy1 to y-axis <0.0> speed <320.0>;
+	turn luparm to x-axis <0> speed <187.500000>;
+	turn larm to x-axis <0> speed <187.500000>;
+	turn ruparm to x-axis <0> speed <187.500000>;
+	turn rarm to x-axis <0> speed <187.500000>;
+	turn aimy1 to y-axis <0.0> speed <160.0>;
 }
 
 QueryWeapon1(pieceIndex)
@@ -425,64 +385,23 @@ QueryWeapon1(pieceIndex)
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = sleeve;
-}
-
-ExecuteRestoreAfterDelay()
-{
-	set-signal-mask 0;
-	start-script Undeploy();
-	lastHeading = -1000000;
-	lastPitch = -1000000;
-}
-
-RestoreAfterDelay()
-{
-	set-signal-mask SIGNAL_AIM1;
-	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelay();
+	pieceIndex = torso;
 }
 
 AimWeapon1(heading, pitch)
 {
-	if( deploy_state == NOT_DEPLOYED )
-	{
-		call-script Deploy(heading, pitch);
-		return (0);
-	}
-	else if ( deploy_state == DEPLOYING )
-	{
-		return (0);
-	}
-	var canShoot;
-	canShoot = FALSE;
-	if( delayAimMeasurement == FALSE)
-	{
-		start-script DelayAimMeasurement();
-		if (((get ABS(lastHeading - heading)) < 3000) AND ((get ABS(lastPitch - pitch)) < 3000))
-		{
-			canShoot = TRUE;
-		}
-		lastHeading = heading;
-		lastPitch = pitch;
-	}
 	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	
-	turn turret to y-axis heading - torsoRotation speed <300.0>;
-	turn sleeve to x-axis <270.0>-pitch speed <225.0>;
-
-	start-script RestoreAfterDelay();
-	if (canShoot == TRUE)
+	move turret to y-axis [5.5] speed [10];
+	turn sleeve to x-axis <270.0>-pitch speed <95.0>;
+	turn turret to y-axis heading speed <300.0>;
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		return (1);
-	}
-	else
-	{
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn turret around y-axis;
-		wait-for-turn sleeve around x-axis;	
-		return (0);
+		wait-for-turn sleeve around x-axis;
 	}
+	wpn1_lasthead = heading;
+	return (1);
 }
 
 FireWeapon1()
@@ -492,6 +411,12 @@ FireWeapon1()
 	sleep 50;
 	move barrel to y-axis [0] now;
 }
+
+FireWeapon2() {}
+AimWeapon2(heading, pitch) { return(1); }
+AimFromWeapon2(pieceIndex) { pieceIndex = torso; }
+QueryWeapon2(pieceIndex) { pieceIndex = flare; }
+
 
 QueryNanoPiece(pieceIndex)
 {

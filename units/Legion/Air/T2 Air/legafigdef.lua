@@ -7,7 +7,7 @@ return {
 		energycost = 6200,
 		metalcost = 180,
 		buildpic = "legafigdef.DDS",
-		buildtime = 11850,
+		buildtime = 10000,
 		canfly = true,
 		canmove = true,
 		collide = false,

@@ -9,7 +9,7 @@ return {
 		builddistance = 145,
 		builder = true,
 		buildpic = "LEGCOM.DDS",
-		buildtime = 32600,
+		buildtime = 27000,
 		cancapture = true,
 		candgun = true,
 		canmove = true,

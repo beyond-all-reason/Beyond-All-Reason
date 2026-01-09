@@ -38,7 +38,7 @@ return {
 			[4] = "legavroc",
 			[5] = "leginf",
 			[6] = "legvflak",
-			[7] = "legavantinuke",
+			[7] = "cormabm",
 			[8] = "legavjam",
 			[9] = "legmrv",
 			[10] = "legehovertank",

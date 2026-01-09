@@ -67,7 +67,6 @@ return {
 			"legjuno",
 			"legfhp",
 			"legsy",
-			"legaap",
 			"legamphlab",
 			"legsplab",
 			"legtide",

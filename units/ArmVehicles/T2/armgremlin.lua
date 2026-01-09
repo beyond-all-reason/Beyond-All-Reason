@@ -1,7 +1,7 @@
 return {
 	armgremlin = {
 		buildpic = "ARMGREMLIN.DDS",
-		buildtime = 8500,
+		buildtime = 6700,
 		canmove = true,
 		cloakcost = 5,
 		cloakcostmoving = 20,

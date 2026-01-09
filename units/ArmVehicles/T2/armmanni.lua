@@ -1,7 +1,7 @@
 return {
 	armmanni = {
 		buildpic = "ARMMANNI.DDS",
-		buildtime = 33000,
+		buildtime = 25700,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "39 49 39",

@@ -1,7 +1,7 @@
 return {
 	armthor = {
 		buildpic = "ARMTHOR.DDS",
-		buildtime = 320000,
+		buildtime = 250000,
 		canmanualfire = true,
 		canmove = true,
 		cantbetransported = true,

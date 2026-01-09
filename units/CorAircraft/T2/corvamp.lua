@@ -3,7 +3,7 @@ return {
 		airsightdistance = 1100,
 		blocking = false,
 		buildpic = "CORVAMP.DDS",
-		buildtime = 10000,
+		buildtime = 8400,
 		canfly = true,
 		canmove = true,
 		collide = false,

@@ -129,7 +129,7 @@ return {
 				name = "Light Close-Quarters g2g Laser",
 				noselfdamage = true,
 				range = 180,
-				reloadtime = 1.1,
+				reloadtime = 1,
 				rgbcolor = "1 1 0.4",
 				rgbcolor2 = "1 0.55 0.3",
 				soundhitdry = "",

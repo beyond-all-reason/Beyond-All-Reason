@@ -2,7 +2,7 @@ return {
 	armyork = {
 		airsightdistance = 900,
 		buildpic = "ARMYORK.DDS",
-		buildtime = 13000,
+		buildtime = 9950,
 		canmove = true,
 		collisionvolumeoffsets = "0 -10 -2",
 		collisionvolumescales = "31 31 38",

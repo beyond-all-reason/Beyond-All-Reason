@@ -2,7 +2,7 @@ return {
 	leganavybattlesub = {
 		activatewhenbuilt = true,
 		buildpic = "leganavybattlesub.DDS",
-		buildtime = 25000,
+		buildtime = 19000,
 		canmove = true,
 		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "40 26 64",

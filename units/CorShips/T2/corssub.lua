@@ -2,7 +2,7 @@ return {
 	corssub = {
 		activatewhenbuilt = true,
 		buildpic = "CORSSUB.DDS",
-		buildtime = 35000,
+		buildtime = 24750,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "52 25 60",

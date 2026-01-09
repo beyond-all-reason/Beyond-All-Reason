@@ -1578,12 +1578,12 @@ if gadgetHandler:IsSyncedCode() then
 						createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, Spring.GetUnitBuildFacing(unitID) or 0, scavTeamID}
 						Spring.DestroyUnit(unitID, true, true)
 					end
-				elseif UnitDefs[unitDefID].customParams.scav_swap_override_created == "delete" then
-					Spring.DestroyUnit(unitID, true, true)
 				elseif UnitDefs[unitDefID].customParams.scav_swap_override_created ~= "null" then
 					if UnitDefNames[UnitDefs[unitDefID].customParams.scav_swap_override_created] then
 						createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].customParams.scav_swap_override_created, x, y, z, Spring.GetUnitBuildFacing(unitID) or 0, scavTeamID}
 					end
+					Spring.DestroyUnit(unitID, true, true)
+				elseif UnitDefs[unitDefID].customParams.scav_swap_override_created == "delete" then
 					Spring.DestroyUnit(unitID, true, true)
 				end
 				return

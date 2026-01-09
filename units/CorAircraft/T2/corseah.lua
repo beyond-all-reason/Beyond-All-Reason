@@ -2,7 +2,7 @@ return {
 	corseah = {
 		blocking = false,
 		buildpic = "CORSEAH.DDS",
-		buildtime = 12500,
+		buildtime = 10000,
 		canfly = true,
 		canmove = true,
 		collide = false,

@@ -2,7 +2,7 @@ return {
 	armmark = {
 		activatewhenbuilt = true,
 		buildpic = "ARMMARK.DDS",
-		buildtime = 5000,
+		buildtime = 3800,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -1",

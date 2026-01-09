@@ -2,7 +2,7 @@ return {
 	corhavp = {
 		builder = true,
 		buildpic = "CORHAVP.DDS",
-		buildtime = 92000,
+		buildtime = 67300,
 		canmove = true,
 		collisionvolumeoffsets = "0 12 0",
 		collisionvolumescales = "196 110 196",
@@ -40,7 +40,7 @@ return {
 			[7] = "coreter",
 			[8] = "corsok",
 			[9] = "corparrow",
-			[10] = "corsala",
+			[10] = "corsala"
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,

@@ -5,7 +5,7 @@ return {
 		builddistance = 145,
 		builder = true,
 		buildpic = "ARMDECOM.DDS",
-		buildtime = 30000,
+		buildtime = 24000,
 		cancapture = true,
 		candgun = true,
 		canmove = true,

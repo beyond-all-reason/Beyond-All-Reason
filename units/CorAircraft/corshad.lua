@@ -101,6 +101,7 @@ return {
 				soundhit = "bombssml1",
 				soundhitwet = "splslrg",
 				soundstart = "bombrel",
+				sprayangle = 300,
 				weapontype = "AircraftBomb",
 				damage = {
 					default = 112,

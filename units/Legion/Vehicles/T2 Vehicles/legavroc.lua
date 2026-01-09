@@ -5,7 +5,7 @@ return {
 		energycost = 6500,
 		metalcost = 920,
 		buildpic = "LEGAVROC.DDS",
-		buildtime = 20130,
+		buildtime = 15500,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "46 30 54",

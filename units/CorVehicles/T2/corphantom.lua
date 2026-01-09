@@ -2,7 +2,7 @@ return {
 	corphantom = {
 		activatewhenbuilt = true,
 		buildpic = "CORPHANTOM.DDS",
-		buildtime = 11500,
+		buildtime = 9000,
 		canmove = true,
 		cloakcost = 10,
 		cloakcostmoving = 30,

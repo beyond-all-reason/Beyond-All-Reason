@@ -72,7 +72,7 @@ return {
 		},
 		weapondefs = {
 			cor_bot_rocket = {
-				areaofeffect = 72,
+				areaofeffect = 70,
 				avoidfeature = false,
 				collideFriendly = false,
 				craterareaofeffect = 0,
@@ -101,7 +101,7 @@ return {
 				soundstart = "rocklit1",
 				startvelocity = 300,
 				stockpile = true,
-				stockpiletime = 1.8,
+				stockpiletime = 2,
 				texture1 = "null",
 				texture2 = "smoketraildark",
 				tolerance = 4000,

@@ -1,7 +1,7 @@
 return {
 	corgol = {
 		buildpic = "CORGOL.DDS",
-		buildtime = 40000,
+		buildtime = 30000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -10 -1",
 		collisionvolumescales = "50 50 50",
@@ -27,7 +27,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 395,
-		speed = 39,
+		speed = 40.5,
 		trackoffset = 8,
 		trackstrength = 10,
 		tracktype = "corwidetracks",
@@ -132,7 +132,7 @@ return {
 				name = "HeavyCannon",
 				noselfdamage = true,
 				range = 650,
-				reloadtime = 3.5,
+				reloadtime = 3,
 				soundhit = "xplomed4",
 				soundhitwet = "splslrg",
 				soundstart = "cannhvy2",

@@ -6,7 +6,7 @@ return {
 		energycost = 11000,
 		metalcost = 550,
 		buildpic = "legstronghold.DDS",
-		buildtime = 24200,
+		buildtime = 20000,
 		canfly = true,
 		canmove = true,
 		collide = false,

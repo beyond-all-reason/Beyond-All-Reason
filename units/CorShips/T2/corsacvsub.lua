@@ -3,7 +3,7 @@ return {
 		builddistance = 180,
 		builder = true,
 		buildpic = "CORACSUB.DDS",
-		buildtime = 22000,
+		buildtime = 18000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 4",
 		collisionvolumescales = "40 25 74",

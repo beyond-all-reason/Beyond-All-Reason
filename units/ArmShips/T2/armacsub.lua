@@ -3,7 +3,7 @@ return {
 		builddistance = 180,
 		builder = true,
 		buildpic = "ARMACSUB.DDS",
-		buildtime = 23000,
+		buildtime = 18000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "38 38 63",
@@ -35,7 +35,7 @@ return {
 		turninplaceanglelimit = 90,
 		turnrate = 405,
 		waterline = 80,
-		workertime = 350,
+		workertime = 300,
 		buildoptions = {
 			[1] = "armuwfus",
 			[2] = "armuwmmm",

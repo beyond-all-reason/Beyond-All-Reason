@@ -2,7 +2,7 @@ return {
 	corhunt = {
 		blocking = false,
 		buildpic = "CORHUNT.DDS",
-		buildtime = 11500,
+		buildtime = 9500,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,

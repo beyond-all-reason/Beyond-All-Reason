@@ -2,7 +2,7 @@ return {
 	leganavymissileship = {
 		activatewhenbuilt = true,
 		buildpic = "leganavymissileship.DDS",
-		buildtime = 23000,
+		buildtime = 15000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "38 40 95",

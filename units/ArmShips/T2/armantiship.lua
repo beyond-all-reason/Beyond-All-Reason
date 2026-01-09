@@ -4,7 +4,7 @@ return {
 		buildangle = 16384,
 		builder = true,
 		buildpic = "ARMANTISHIP.DDS",
-		buildtime = 27000,
+		buildtime = 20000,
 		canassist = false,
 		canattack = false,
 		canmove = true,

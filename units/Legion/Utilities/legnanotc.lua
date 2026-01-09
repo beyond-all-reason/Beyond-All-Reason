@@ -3,7 +3,7 @@ return {
 		maxacc = 0,
 		maxdec = 4.5,
 		energycost = 3200,
-		metalcost = 230,
+		metalcost = 210,
 		builddistance = 400,
 		builder = true,
 		buildpic = "LEGNANOTC.DDS",

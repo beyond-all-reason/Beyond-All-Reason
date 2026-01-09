@@ -2,7 +2,7 @@ return {
 	corsjam = {
 		activatewhenbuilt = true,
 		buildpic = "CORSJAM.DDS",
-		buildtime = 17000,
+		buildtime = 14500,
 		canmove = true,
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "28 36 70",

@@ -3,7 +3,7 @@ return {
 		builddistance = 180,
 		builder = true,
 		buildpic = "CORACSUB.DDS",
-		buildtime = 23000,
+		buildtime = 18000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 4",
 		collisionvolumescales = "40 25 74",
@@ -35,7 +35,7 @@ return {
 		turninplaceanglelimit = 90,
 		turnrate = 385.5,
 		waterline = 80,
-		workertime = 350,
+		workertime = 300,
 		buildoptions = {
 			[1] = "coruwfus",
 			[2] = "coruwmmm",

@@ -6,7 +6,7 @@ return {
 		energycost = 5600,
 		metalcost = 60,
 		buildpic = "legsnapper.DDS",
-		buildtime = 9260,
+		buildtime = 8000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "25 9 20",
