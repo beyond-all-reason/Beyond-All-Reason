@@ -59,6 +59,8 @@ end
 
 local function spawnUnits(name, unitDefName, teamID, position, quantity, facing, construction)
 
+	if not UnitDefNames[unitDefName] then return end
+
 	local unitDef = UnitDefs[UnitDefNames[unitDefName].id]
 	local xsize = unitDef.xsize * Game.squareSize
 	local zsize = unitDef.zsize * Game.squareSize
@@ -106,8 +108,10 @@ local function nameUnits(name, teamID, unitDefName, rectangle)
 	local unitsFromTeam = {}
 	if teamID then
 		if unitDefName then
-			local unitDefID = UnitDefs[UnitDefNames[unitDefName].id].id
-			unitsFromTeam = Spring.GetTeamUnitsByDefs(teamID, unitDefID)
+			if UnitDefNames[unitDefName] then
+				local unitDefID = UnitDefNames[unitDefName].id
+				unitsFromTeam = Spring.GetTeamUnitsByDefs(teamID, unitDefID)
+			end
 		else
 			unitsFromTeam = Spring.GetTeamUnits(teamID)
 		end
