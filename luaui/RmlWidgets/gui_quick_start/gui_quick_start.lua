@@ -189,6 +189,8 @@ local widgetState = {
 		factoryText = nil,
 	},
 	lastFactoryAlreadyPlaced = nil,
+	lastWidgetUpdate = 0,
+	widgetUpdateInterval = 0.2,
 }
 
 local factoryUnitDefIDs = {}
@@ -830,9 +832,15 @@ function widget:Update()
 		widgetHandler:RemoveWidget(self)
 		return
 	end
+	
+	updateDataModel(false)
+	local currentTime = os.clock()
+	if (currentTime - widgetState.lastWidgetUpdate) < widgetState.widgetUpdateInterval then
+		return
+	end
+	widgetState.lastWidgetUpdate = currentTime
 
 	updateTraversabilityGrid()
-	updateDataModel(false)
 end
 
 function widget:DrawWorld()
