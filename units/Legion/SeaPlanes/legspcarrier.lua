@@ -9,7 +9,7 @@ return {
 		energycost = 5000,
 		metalcost = 250,
 		buildpic = "legspcarrier.DDS",
-		buildtime = 7500,
+		buildtime = 9250,
 		canfly = true,
 		canmove = true,
 		collide = true,

@@ -4,7 +4,7 @@ return {
 		buildangle = 16384,
 		builder = true,
 		buildpic = "CORCARRY.DDS",
-		buildtime = 20000,
+		buildtime = 28000,
 		canassist = false,
 		canattack = false,
 		canmove = true,

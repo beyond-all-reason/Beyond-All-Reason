@@ -4,7 +4,7 @@ return {
 		builddistance = 200,
 		builder = true,
 		buildpic = "CORPRINTER.DDS",
-		buildtime = 40400,
+		buildtime = 50000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "36 36 54",
@@ -75,7 +75,7 @@ return {
 			[29] = "corap",
 			[30] = "corsy",
 			[31] = "corvp",
-			[32] = "corgant"
+			[32] = "corgant",
 		},
 		customparams = {
 			model_author = "MASHUP, Itanthias, name inspired by Themitri",

@@ -3,7 +3,7 @@ return {
 		buildangle = 1024,
 		builder = true,
 		buildpic = "LEGAVP.DDS",
-		buildtime = 35000,
+		buildtime = 51000,
 		canmove = true,
 		collisionvolumeoffsets = "0 8 0",
 		collisionvolumescales = "144 70 144",

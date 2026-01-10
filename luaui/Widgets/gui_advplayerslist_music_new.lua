@@ -730,9 +730,8 @@ local function refreshUiDrawing()
 	end
 
 	local trackname
-	local padding = mathFloor(2.75 * widgetScale) -- button background margin
+	local padding = mathFloor(1.5 * widgetScale) -- button background margin
 	local padding2 = mathFloor(2.5 * widgetScale) -- inner icon padding
-	local volumeWidth = mathFloor(50 * widgetScale)
 	local heightoffset = -mathFloor(0.9 * widgetScale)
 	local textsize = 11 * widgetScale
 	local textXPadding = 10 * widgetScale
@@ -744,12 +743,19 @@ local function refreshUiDrawing()
 
 	buttons['musicvolumeicon'] = {buttons['next'][3]+padding+padding, bottom+padding+heightoffset, buttons['next'][3]+((widgetHeight * widgetScale)), top-padding+heightoffset}
 	--buttons['musicvolumeicon'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
+	
+	local sliderKnobWidth = mathFloor((4.5 * widgetScale)+0.5)
+	local endPadding = mathFloor(1 * widgetScale)
+	local maxRight = vsx - endPadding - (sliderKnobWidth / 2)
+	local fixedWidth = padding * 4 + (widgetHeight * widgetScale)
+	local volumeWidth = mathMax(mathMin(mathFloor((maxRight - buttons['musicvolumeicon'][3] - fixedWidth) / 2), mathFloor(50 * widgetScale)), mathFloor(30 * widgetScale))
+	
 	buttons['musicvolume'] = {buttons['musicvolumeicon'][3]+padding, bottom+padding+heightoffset, buttons['musicvolumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
-	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (getVolumePos(maxMusicVolume/99))
+	buttons['musicvolume'][5] = mathMax(buttons['musicvolume'][1] + (sliderKnobWidth / 2), mathMin(buttons['musicvolume'][3] - (sliderKnobWidth / 2), buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (getVolumePos(maxMusicVolume/99))))
 
-	buttons['volumeicon'] = {buttons['musicvolume'][3]+padding+padding+padding, bottom+padding+heightoffset, buttons['musicvolume'][3]+((widgetHeight * widgetScale)), top-padding+heightoffset}
+	buttons['volumeicon'] = {buttons['musicvolume'][3]+padding*3, bottom+padding+heightoffset, buttons['musicvolume'][3]+(widgetHeight * widgetScale), top-padding+heightoffset}
 	buttons['volume'] = {buttons['volumeicon'][3]+padding, bottom+padding+heightoffset, buttons['volumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
-	buttons['volume'][5] = buttons['volume'][1] + (buttons['volume'][3] - buttons['volume'][1]) * (getVolumePos(volume/80))
+	buttons['volume'][5] = mathMax(buttons['volume'][1] + (sliderKnobWidth / 2), mathMin(buttons['volume'][3] - (sliderKnobWidth / 2), buttons['volume'][1] + (buttons['volume'][3] - buttons['volume'][1]) * (getVolumePos(volume/80))))
 
 	if drawlist[1] ~= nil then
 		for i=1, #drawlist do

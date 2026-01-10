@@ -2,7 +2,7 @@ return {
 	armvang = {
 		activatewhenbuilt = false,
 		buildpic = "ARMVANG.DDS",
-		buildtime = 91000,
+		buildtime = 120000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -1 0",

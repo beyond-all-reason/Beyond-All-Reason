@@ -2,7 +2,7 @@ return {
 	armliche = {
 		blocking = false,
 		buildpic = "ARMLICHE.DDS",
-		buildtime = 57400,
+		buildtime = 73000,
 		canfly = true,
 		canmove = true,
 		collide = false,
@@ -39,13 +39,13 @@ return {
 		wingangle = 0.062,
 		wingdrag = 0.135,
 		customparams = {
+			attacksafetydistance = 3000,
 			lumamult = "1.7",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmAircraft/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			attacksafetydistance = 3000,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

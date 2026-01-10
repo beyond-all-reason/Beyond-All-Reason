@@ -2,7 +2,7 @@ return {
 	armaser = {
 		activatewhenbuilt = true,
 		buildpic = "ARMASER.DDS",
-		buildtime = 4940,
+		buildtime = 6000,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -7 2",
