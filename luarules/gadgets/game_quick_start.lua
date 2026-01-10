@@ -93,7 +93,6 @@ local PREGAME_DELAY_FRAMES = 61 --after gui_pregame_build.lua is loaded
 local SKIP_STEP = 3
 local UPDATE_FRAMES = Game.gameSpeed
 local BASE_NODE_COUNT = 8
-local MEX_OVERLAP_DISTANCE = Game.extractorRadius + Game.metalMapSquareSize
 local SAFETY_COUNT = 100
 local BUILT_ENOUGH_FOR_FULL = 0.9
 local MAX_HEIGHT_DIFFERENCE = 100
@@ -111,7 +110,6 @@ local spTestBuildOrder = Spring.TestBuildOrder
 local spSetUnitHealth = Spring.SetUnitHealth
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitHealth = Spring.GetUnitHealth
@@ -150,7 +148,6 @@ local boostableCommanders = {}
 local commanders = {}
 local defMetergies = {}
 local commanderFactoryDiscounts = {}
-local mexDefs = {}
 local optionDefIDToTypes = {}
 local queuedCommanders = {}
 local buildsInProgress = {}
@@ -240,9 +237,6 @@ end
 for unitDefID, unitDef in pairs(unitDefs) do
 	local metalCost, energyCost = unitDef.metalCost or 0, unitDef.energyCost or 0
 	defMetergies[unitDefID] = customRound(metalCost + energyCost * ENERGY_VALUE_CONVERSION_MULTIPLIER + unitDef.buildTime * BUILD_TIME_VALUE_CONVERSION_MULTIPLIER)
-	if unitDef.extractsMetal > 0 then
-		mexDefs[unitDefID] = true
-	end
 	if unitDef.customParams and unitDef.customParams.iscommander then
 		boostableCommanders[unitDefID] = true
 	end
@@ -395,19 +389,8 @@ local function refreshAndCheckAvailableMexSpots(commanderID)
 			local groundY = spGetGroundHeight(spot.x, spot.z)
 			local buildX, buildY, buildZ = spPos2BuildPos(mexDefID, spot.x, groundY, spot.z)
 			if buildX and spTestBuildOrder(mexDefID, buildX, buildY, buildZ, DEFAULT_FACING) == UNOCCUPIED then
-				local nearbyUnits = spGetUnitsInCylinder(spot.x, spot.z, MEX_OVERLAP_DISTANCE)
-				local hasMex = false
-				for j = 1, #nearbyUnits do
-					local unitDefID = spGetUnitDefID(nearbyUnits[j])
-					if mexDefs[unitDefID] then
-						hasMex = true
-						break
-					end
-				end
-				if not hasMex then
-					spot.y = buildY
-					table.insert(validSpots, spot)
-				end
+				spot.y = buildY
+				table.insert(validSpots, spot)
 			end
 		end
 	end
