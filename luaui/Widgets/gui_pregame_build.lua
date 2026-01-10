@@ -62,6 +62,7 @@ local cachedAlphaResults
 local cachedStartPosition
 local cachedQueueMetrics
 local cachedQueueLineVerts
+local forceRefreshCache = false
 
 local BUILD_MODE = {
 	SINGLE = 0,
@@ -290,6 +291,9 @@ function widget:Initialize()
 	end
 	WG["pregame-build"].getBuildPositions = function()
 		return buildModeState.buildPositions
+	end
+	WG["pregame-build"].forceRefresh = function()
+		forceRefreshCache = true
 	end
 	widgetHandler:RegisterGlobal("GetPreGameDefID", WG["pregame-build"].getPreGameDefID)
 	widgetHandler:RegisterGlobal("GetBuildQueue", WG["pregame-build"].getBuildQueue)
@@ -1020,12 +1024,13 @@ local function hasCacheExpired(currentStartPos, currentSelBuildData)
 		)) or
 		(currentMetrics.firstItemCoords == nil) ~= (cachedQueueMetrics.firstItemCoords == nil)
 
-	if startPosChanged or queueChanged then
+	if startPosChanged or queueChanged or forceRefreshCache then
 		cachedStartPosition = {x = currentStartPos.x, y = currentStartPos.y, z = currentStartPos.z}
 		cachedQueueMetrics = {
 			firstItemCoords = currentMetrics.firstItemCoords and {unpack(currentMetrics.firstItemCoords)} or nil,
 			queueLength = currentMetrics.queueLength
 		}
+		forceRefreshCache = false
 		return true
 	end
 	return false

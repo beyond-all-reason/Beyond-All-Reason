@@ -121,6 +121,12 @@ local function hasStartPositionsChanged()
 		end
 	end
 	
+	if changed then
+		if WG["pregame-build"] and WG["pregame-build"].forceRefresh then
+			WG["pregame-build"].forceRefresh()
+		end
+	end
+	
 	return changed
 end
 
