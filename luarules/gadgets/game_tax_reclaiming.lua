@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name    = 'Restrict unit reclaiming',
-		desc    = 'If reclaiming allied unit, give resulting metal to the ally when modoption enabled.',
+		desc    = 'If reclaiming alive unit, resulting metal is taxed.',
 		author  = 'RebelNode',
 		date    = 'January 2026',
 		license = 'GNU GPL, v2 or later',
@@ -20,16 +20,18 @@ if Spring.GetModOptions().tax_resource_sharing_amount == 0 and (not Spring.GetMo
 	return false
 end
 
+local sharingTax = Spring.GetModOptions().tax_resource_sharing_amount
+if Spring.GetModOptions().easytax then
+	sharingTax = 0.3 -- 30% tax for easytax modoption
+end
+
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if attackerID == nil then
 		return
 	end
 	cmdID, targetID = Spring.GetUnitWorkerTask(attackerID)
 	if cmdID == CMD.RECLAIM then -- The unit was reclaimed
-		local targetTeam = Spring.GetUnitTeam(unitID)
-		if targetTeam and targetTeam ~= attackerTeam and Spring.AreTeamsAllied(attackerTeam, targetTeam) then
-			_,metalCost,_ =Spring.GetUnitCosts (unitID)
-			Spring.ShareTeamResource(attackerTeam, targetTeam, "metal", metalCost) -- This transfer does NOT trigger AllowResourceTransfer and thus it will not get taxed
-		end
+		_,metalCost,_ =Spring.GetUnitCosts (unitID)
+		Spring.UseTeamResource(attackerTeam, "metal", metalCost * sharingTax)
 	end
 end
