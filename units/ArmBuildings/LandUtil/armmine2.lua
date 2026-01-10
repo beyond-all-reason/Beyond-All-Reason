@@ -1,5 +1,6 @@
 return {
 	armmine2 = {
+		activatewhenbuilt = true,
 		blocking = false,
 		buildpic = "ARMMINE2.DDS",
 		buildtime = 300,
@@ -29,7 +30,9 @@ return {
 		metalcost = 25,
 		mincloakdistance = 8,
 		nochasecategory = "VTOL",
+		noautofire = true,
 		objectname = "Units/ARMMINE2.s3o",
+		onoffable = true,
 		script = "mines_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "MINE_MEDIUM",
