@@ -112,7 +112,7 @@ function gadget:GameFrame(f)
 			local eExcess = math.max(0.0, teamEnergyCurrentLevel - (teamEnergyStorage * teamEnergyShare))
 			local mExcess = math.max(0.0, teamMetalCurrentLevel  - (teamMetalStorage  * teamMetalShare))
 
-			--- I'm the taxmaaaan
+			--- Tax the overflow
 			eExcess = math.max(0.0, eExcess * (1-sharingTax))
 			mExcess = math.max(0.0, mExcess * (1-sharingTax))
 
@@ -139,16 +139,17 @@ function gadget:GameFrame(f)
 				end
 			end
 
+			----------------------------------------------------------------
 			-- The resources that we technically already wasted are added to allies if possible. This tries to do the same as resDelayedShare in engine. This lets players overflow reclaimed buildings etc. that go over their storage capacity.
-
-			-- Allies have already received some resources above, reduce the amount they can still receive accordingly
+			----------------------------------------------------------------
+			-- Allies have already received some resources above, reduce the amount they can still receive accordingly.
 			eShare = eShare - eExcess
 			mShare = mShare - mExcess
 
 			eExcess = math.max(0.0, teamEnergyExcess * 0.5) -- Not sure why we need to take only half of the engine-reported wasted resources here, but it works. Otherwise reclaiming 150 metalcost solar gives 300 metal to allies, which is not good.
 			mExcess = math.max(0.0, teamMetalExcess * 0.5)
 
-			--- Yeeeaaah I'm the taxmaaaan
+			--- Tax the extra overflow
 			eExcess = math.max(0.0, eExcess * (1-sharingTax))
 			mExcess = math.max(0.0, mExcess * (1-sharingTax))
 
@@ -167,8 +168,7 @@ function gadget:GameFrame(f)
 					local edif = math.max(0.0, math.min(((otherTeamEnergyStorage * 0.99) - otherTeamEnergyCurrentLevel) * de, teamEnergyCurrentLevel))
 					local mdif = math.max(0.0, math.min(((otherTeamMetalStorage * 0.99) - otherTeamMetalCurrentLevel) * dm, teamMetalCurrentLevel))
 					
-					-- These erroneously count as produced resources for allies in statistics. Not sure how to do this better.
-					-- Maybe try first send the resources to allies and then add it to the sender? This limits excess to sender storage though unless Spring.ShareTeamResource lets you go to negative resources temporarily.
+					-- These erroneously count as produced resources for allies in statistics. Not yet sure how to do this better, but this should be fine for modoption/testing at least.
 					Spring.AddTeamResource(otherTeamID, "energy", edif)
 					Spring.AddTeamResource(otherTeamID, "metal", mdif)
 				end
