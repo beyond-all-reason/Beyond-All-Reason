@@ -177,8 +177,9 @@ local hadSavedConfig = false -- Track if we loaded from saved config (to avoid a
 local pipUnits = {}
 local pipFeatures = {}
 -- Arrays for unit icons (batched drawing)
-local pipIconTeam, pipIconX, pipIconY, pipIconUdef, pipIconSelected, pipIconBuildProgress, pipIconTracked = {}, {}, {}, {}, {}, {}, {}
+local pipIconTeam, pipIconX, pipIconY, pipIconUdef, pipIconSelected, pipIconBuildProgress, pipIconTracked, pipIconUnitID = {}, {}, {}, {}, {}, {}, {}, {}
 local trackedIconIndices = {} -- Indices of tracked units for optimized rendering
+local hoveredUnitID = nil -- Track which unit icon is being hovered
 local lastSelectionboxEnabled = nil -- Track selectionbox widget state for command color config
 
 -- Reusable table pools to reduce GC pressure
@@ -377,14 +378,35 @@ local buttons = {
 		tooltip = Spring.I18N('ui.pip.track'),
 		command = 'pip_track',
 		OnPress = function()
-					if interactionState.areTracking then
-						interactionState.areTracking = nil
-					else
-						interactionState.areTracking = Spring.GetSelectedUnits()
-						-- Disable zoom-to-cursor when tracking is enabled
-						zoomToCursorActive = false
+			local selectedUnits = Spring.GetSelectedUnits()
+			if #selectedUnits > 0 then
+				-- Add selected units to tracking (or start tracking if not already)
+				if interactionState.areTracking then
+					-- Merge with existing tracked units
+					local existingTracked = {}
+					for _, unitID in ipairs(interactionState.areTracking) do
+						existingTracked[unitID] = true
 					end
+					-- Add new units
+					for _, unitID in ipairs(selectedUnits) do
+						existingTracked[unitID] = true
+					end
+					-- Convert back to array
+					local merged = {}
+					for unitID in pairs(existingTracked) do
+						merged[#merged + 1] = unitID
+					end
+					interactionState.areTracking = merged
+				else
+					interactionState.areTracking = selectedUnits
 				end
+				-- Disable zoom-to-cursor when tracking is enabled
+				zoomToCursorActive = false
+			else
+				-- No selection: clear tracking
+				interactionState.areTracking = nil
+			end
+		end
 	},
 	{
 		texture = 'LuaUI/Images/pip/PipMove.png',
@@ -777,6 +799,7 @@ local function DrawUnit(uID)
 	pipIconTeam[idx] = uTeam
 	pipIconX[idx], pipIconY[idx] = WorldToPipCoords(ux, uz)
 	pipIconUdef[idx] = uDefID
+	pipIconUnitID[idx] = uID
 	pipIconSelected[idx] = spIsUnitSelected(uID)
 	-- Get build progress (1 for finished units, < 1 for units under construction)
 	local _, _, _, _, buildProgress = spGetUnitHealth(uID)
@@ -3341,7 +3364,8 @@ local function DrawIcons()
 	-- Draw white backgrounds for tracked units FIRST (before normal icons)
 	local trackedCount = #trackedIconIndices
 	if trackedCount > 0 then
-		gl.Blending(GL.ONE, GL.ONE)  -- Full additive blending for bright white glow
+		--gl.Blending(GL.ONE, GL.ONE)  -- Full additive blending for bright white glow (when not inverted icon)
+		glColor(1, 1, 1, 0.5)
 
 		-- Group tracked units by texture for batching
 		local trackedByTexture = {}
@@ -3361,28 +3385,29 @@ local function DrawIcons()
 
 		-- Draw tracked unit backgrounds grouped by texture
 		for texture, indices in pairs(trackedByTexture) do
-			glTexture(texture)
+			local invertedTexture = string.gsub(texture, "icons/", "icons/inverted/")
+			glTexture(invertedTexture)
 			gl.BeginEnd(GL_QUADS, function()
 				for j = 1, #indices do
 					local idx = indices[j]
-					local cx = pipIconX[idx]
-					local cy = pipIconY[idx]
-					local udef = pipIconUdef[idx]
-					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
-					-- Fixed border size that's smaller for larger units
-					local baseSize = cache.unitIcon[udef].size
-					local borderPixels = 0.075 / baseSize  -- Inverse relationship: smaller units get proportionally more border
-					local enlargedSize = iconSize * (1 + borderPixels)
+					if pipIconBuildProgress[idx] >= 1 then
+						local cx = pipIconX[idx]
+						local cy = pipIconY[idx]
+						local udef = pipIconUdef[idx]
+						local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
+						local baseSize = cache.unitIcon[udef].size
+						local borderPixels = 0.09 / baseSize  -- Inverse relationship: smaller units get proportionally more border
+						local enlargedSize = iconSize * (1 + borderPixels)
 
-					glColor(1, 1, 1, 1)
-					glTexCoord(texInset, 1 - texInset)
-					glVertex(cx - enlargedSize, cy - enlargedSize)
-					glTexCoord(1 - texInset, 1 - texInset)
-					glVertex(cx + enlargedSize, cy - enlargedSize)
-					glTexCoord(1 - texInset, texInset)
-					glVertex(cx + enlargedSize, cy + enlargedSize)
-					glTexCoord(texInset, texInset)
-					glVertex(cx - enlargedSize, cy + enlargedSize)
+						glTexCoord(texInset, 1 - texInset)
+						glVertex(cx - enlargedSize, cy - enlargedSize)
+						glTexCoord(1 - texInset, 1 - texInset)
+						glVertex(cx + enlargedSize, cy - enlargedSize)
+						glTexCoord(1 - texInset, texInset)
+						glVertex(cx + enlargedSize, cy + enlargedSize)
+						glTexCoord(texInset, texInset)
+						glVertex(cx - enlargedSize, cy + enlargedSize)
+					end
 				end
 			end)
 		end
@@ -3413,11 +3438,22 @@ local function DrawIcons()
 					opacity = 0.15 + (buildProgress * 0.55)
 				end
 
+				-- Check if this unit is hovered
+				local isHovered = (hoveredUnitID and pipIconUnitID[i] == hoveredUnitID)
+
 				if pipIconSelected[i] then
-					glColor(1, 1, 1, opacity)
+					if isHovered then
+						glColor(1, 1, 1, math.min(1.0, opacity * 1.3))
+					else
+						glColor(1, 1, 1, opacity)
+					end
 				else
 					local color = teamColors[pipIconTeam[i]]
-					glColor(color[1], color[2], color[3], opacity)
+					if isHovered then
+						glColor(math.min(1.0, color[1] * 1.3), math.min(1.0, color[2] * 1.3), math.min(1.0, color[3] * 1.3), opacity)
+					else
+						glColor(color[1], color[2], color[3], opacity)
+					end
 				end
 				-- Use manual texture coordinates with inset to prevent edge bleeding
 				glTexCoord(texInset, 1 - texInset)
@@ -3451,11 +3487,22 @@ local function DrawIcons()
 					opacity = 0.15 + (buildProgress * 0.55)
 				end
 
+				-- Check if this unit is hovered
+				local isHovered = (hoveredUnitID and pipIconUnitID[i] == hoveredUnitID)
+
 				if pipIconSelected[i] then
-					glColor(1, 1, 1, opacity)
+					if isHovered then
+						glColor(1, 1, 1, math.min(1.0, opacity * 1.3))
+					else
+						glColor(1, 1, 1, opacity)
+					end
 				else
 					local color = teamColors[pipIconTeam[i]]
-					glColor(color[1], color[2], color[3], opacity)
+					if isHovered then
+						glColor(math.min(1.0, color[1] * 1.55), math.min(1.0, color[2] * 1.55), math.min(1.0, color[3] * 1.55), opacity)
+					else
+						glColor(color[1], color[2], color[3], opacity)
+					end
 				end
 				-- Use manual texture coordinates with inset to prevent edge bleeding
 				glTexCoord(texInset, 1 - texInset)
@@ -3501,6 +3548,7 @@ local function DrawUnitsAndFeatures()
 			pipIconSelected[i] = nil
 			pipIconBuildProgress[i] = nil
 			pipIconTracked[i] = nil
+			pipIconUnitID[i] = nil
 		end
 	end
 	-- Clear tracked indices
@@ -4575,6 +4623,14 @@ function widget:Update(dt)
 	local mx, my = spGetMouseState()
 	local wasMouseOver = interactionState.isMouseOverPip
 	interactionState.isMouseOverPip = (mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t and not inMinMode)
+
+	-- Update hovered unit for icon highlighting
+	if interactionState.isMouseOverPip then
+		local wx, wz = PipToWorldCoords(mx, my)
+		hoveredUnitID = GetUnitAtPoint(wx, wz)
+	else
+		hoveredUnitID = nil
+	end
 
 	-- If hover state changed, update frame buttons
 	if wasMouseOver ~= interactionState.isMouseOverPip and showButtonsOnHoverOnly then
@@ -5990,6 +6046,9 @@ function widget:MouseRelease(mx, my, mButton)
 					else
 						Spring.SelectUnitArray({uID}, true)
 					end
+				elseif shift then
+					-- Shift+click: add to selection
+					Spring.SelectUnitArray({uID}, true)
 				else
 					-- Normal click: select only this unit
 					Spring.SelectUnitArray({uID}, false)
@@ -6086,6 +6145,9 @@ function widget:MouseRelease(mx, my, mButton)
 						-- Add to selection
 						Spring.SelectUnitArray({uID}, true)
 					end
+				elseif shift then
+					-- Shift+click: add to selection
+					Spring.SelectUnitArray({uID}, true)
 				else
 					-- Normal click without modifier: select only this unit (replace selection)
 					Spring.SelectUnitArray({uID}, false)
