@@ -15,6 +15,11 @@
 --AddUnitDamage (ID, math.huge) makes a normal death explo but leaves wreck. Calling this for the transportee on the same frame as the trans dies results in a crash.
 
 
+-- TODO: the custom air transport LUS (CargoHandler, TransportAnimator) currently handles
+-- cargo fate in its own UnitDestroyed path. That handling needs to be brought in line with the logic here
+-- (delayed check, crashing state, death explosion replication, paratrooper exceptions) before this gadget
+-- can be safely deleted. Kept disabled until the port is fully finished.
+
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -25,7 +30,7 @@ function gadget:GetInfo()
 		date      = "Dec 2012",
 		license   = "GNU GPL, v2 or later, horses",
 		layer     = 0,
-		enabled   = true
+		enabled   = false
 	}
 end
 

@@ -8,7 +8,7 @@ function gadget:GetInfo()
         date      = "12/08/2013",
         license   = "GNU GPL, v2 or later, horses",
         layer     = 0,
-        enabled   = true
+        enabled   = false
     }
 end
 
@@ -35,7 +35,7 @@ local unloadedUnits = {}
 
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 	if unitID == nil or unitDefID == nil or transportID == nil then return end
-    --FIXME: is this exception for commando this really necessary?
+    -- FIXME: is this exception for commando this really necessary?
 	if isCommando[unitDefID] then
 		local x,y,z = SpGetUnitVelocity(transportID)
 		if x > 10 then x = 10 elseif x <- 10 then x = -10 end -- 10 is well above 'normal' air-trans velocity
