@@ -34,7 +34,7 @@ local GetScriptFunc = function (unitID, functionName)
 	local env = Spring.UnitScript.GetScriptEnv(unitID)
 	if Spring.GetCOBScriptID(unitID, functionName) then
 		return (function(uid, functionName, a,b)
-		SpCallCOBScript(uid, functionName, a,b)
+		spCallCOBScript(uid, functionName, a,b)
 		end)
 	elseif env and env[functionName] then
 		return (
