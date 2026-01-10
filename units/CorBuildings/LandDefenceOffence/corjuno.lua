@@ -131,6 +131,7 @@ return {
 				soundstart = "junofir2",
 				stockpile = true,
 				stockpiletime = 75,
+				interceptedbyshieldtype = 0,
 				texture1 = "null",
 				texture2 = "smoketrailbar",
 				texture3 = "null",
@@ -143,6 +144,7 @@ return {
 				customparams = {
 					junotype = "base",
 					nofire = true,
+					shield_aoe_penetration = true,
 					stockpilelimit = 20,
 					water_splash = 0,
 				},

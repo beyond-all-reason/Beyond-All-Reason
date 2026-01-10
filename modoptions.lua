@@ -1723,29 +1723,6 @@ local options = {
     },
 
     {
-        key    	= "shieldsrework",
-        name   	= "Shields Rework v2.0",
-        desc   	= "Shields block plasma. Overkill damage is absorbed. Shield is down for the duration required to recharge the overkill damage at normal energy cost.",
-        type   	= "bool",
-        hidden 	= false,
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
-        key     = "shieldsrework_community_poll_link",
-        name    = "Community Poll",
-        desc    = "A referendum to gauge community sentiment about whether or not it should be integrated into the regular game.",
-        section = "options_experimental",
-        type    = "link",
-        link    = "https://discord.com/channels/549281623154229250/1429782218997497946",
-        width   = 200,
-        column  = 1.65,
-        linkheight = 375,
-        linkwidth = 350,
-    },
-
-    {
         key    	= "experimental_low_priority_pacifists",
         name   	= "Low Priority Pacifists",
         desc   	= "Makes the automatic target priority of non-combat mobile units much lower, so they must be intentionally targeted.",
@@ -2415,9 +2392,9 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
         hidden  = true,
         items	= {
             { key = "unchanged", 		name = "Unchanged", 			desc = "Unchanged" },
-            { key = "absorbplasma", 	name = "Absorb Plasma", 		desc = "Collisions Disabled" },
-            { key = "absorbeverything", name = "Absorb Everything", 	desc = "Collisions Enabled" },
-            { key = "bounceeverything", name = "Deflect Everything", 	desc = "Collisions Enabled" },
+            { key = "absorbeverything", name = "Absorb Everything", 	desc = "Shields absorb everything" },
+            { key = "bounceplasma",     name = "Deflect Plasma", 		desc = "Shields deflect plasma only" },
+            { key = "bounceeverything", name = "Deflect Everything", 	desc = "Shields deflect everything" },
         }
     },
 

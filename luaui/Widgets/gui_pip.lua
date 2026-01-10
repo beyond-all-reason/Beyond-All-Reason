@@ -39,6 +39,7 @@ local zoomRate = 15 -- magnification multiplication per second
 local zoomSmoothness = 10 -- How fast zoom transitions happen (higher = faster)
 local centerSmoothness = 15 -- How fast camera center pans during zoom-to-cursor (higher = faster)
 local trackingSmoothness = 8 -- How fast camera transitions when tracking units die/move (higher = faster, lower = smoother)
+local switchSmoothness = 30 -- How fast PIP camera transitions during view switch (higher = faster, should match switchTransitionTime)
 local zoomMin = 0.06
 local zoomMax = 0.8
 local zoom = 0.55 -- Initial zoom level
@@ -57,6 +58,7 @@ local zoomToCursor = true  -- When increasing zoom (getting closer), zoom toward
 local mapEdgeMargin = 0.15  -- Maximum allowed distance from PiP edge to map edge (as fraction of PiP size)
 local showButtonsOnHoverOnly = true  -- Only show buttons when mouse is hovering over the PIP window
 local switchInheritsTracking = false  -- When switching views, inherit PIP's unit tracking to main camera
+local switchTransitionTime = 0.15  -- Camera transition time in seconds when switching views (pip_switch)
 
 local pipMinUpdateRate = 40  -- Minimum FPS for PIP rendering when zoomed out (performance-adjusted dynamically)
 local pipMaxUpdateRate = 120  -- Maximum FPS for PIP rendering when zoomed in
@@ -170,12 +172,13 @@ local isProcessingMapDraw = false -- Prevent MapDrawCmd recursion
 local mapmarkInitScreenX, mapmarkInitScreenY = nil, nil -- Track where mapmark was initiated
 local mapmarkInitTime = 0 -- Track when mapmark was initiated
 local backupTracking = nil -- Store tracking state and camera position when switching views: {tracking = units, camX = x, camZ = z}
+local isSwitchingViews = false -- Track when we're doing a pip_switch transition
 local hadSavedConfig = false -- Track if we loaded from saved config (to avoid auto-minimize on reload)
-local unitShader
 local pipUnits = {}
 local pipFeatures = {}
 -- Arrays for unit icons (batched drawing)
-local pipIconTeam, pipIconX, pipIconY, pipIconUdef, pipIconSelected = {}, {}, {}, {}, {}
+local pipIconTeam, pipIconX, pipIconY, pipIconUdef, pipIconSelected, pipIconBuildProgress, pipIconTracked = {}, {}, {}, {}, {}, {}, {}
+local trackedIconIndices = {} -- Indices of tracked units for optimized rendering
 local lastSelectionboxEnabled = nil -- Track selectionbox widget state for command color config
 
 -- Reusable table pools to reduce GC pressure
@@ -275,9 +278,9 @@ local buttons = {
 					-- Set PIP camera to main camera position with rounding to match switch behavior
 					local copiedX = math.floor(pos[1] + 0.5)
 					local copiedZ = math.floor(pos[3] + 0.5)
-					wcx = copiedX
-					wcz = copiedZ
-					targetWcx, targetWcz = wcx, wcz
+					-- Set target for smooth transition (don't set wcx/wcz directly)
+					targetWcx, targetWcz = copiedX, copiedZ
+					isSwitchingViews = true -- Enable fast transition for pip_copy
 					RecalculateWorldCoordinates()
 					RecalculateGroundTextureCoordinates()
 					-- Disable tracking when copying camera
@@ -334,27 +337,33 @@ local buttons = {
 						Spring.SendCommands("track")
 					end
 
-					-- Backup current state before switching
-					local tempBackup = backupTracking
-					backupTracking = {
-						tracking = interactionState.areTracking,
-						camX = pipCameraTargetX,
-						camZ = pipCameraTargetZ
-					}
+					-- Swap tracking state: current PIP tracking <-> backup
+					-- This ensures toggling switch restores previous tracking states
+					local currentPipTracking = interactionState.areTracking
+					local currentPipCamX = pipCameraTargetX
+					local currentPipCamZ = pipCameraTargetZ
 
-					-- Switch camera positions - use rounded coordinates
-					Spring.SetCameraTarget(pipCameraTargetX, 0, pipCameraTargetZ, 0.2)
-					wcx, wcz = mainCamX, mainCamZ
-					targetWcx, targetWcz = wcx, wcz  -- Set targets instantly for button clicks
-					RecalculateWorldCoordinates()
-					RecalculateGroundTextureCoordinates()
-
-					-- Restore tracking from previous backup to PIP view
-					if tempBackup then
-						interactionState.areTracking = tempBackup.tracking
+					-- Restore tracking from backup to PIP view (or set to nil if no backup)
+					if backupTracking then
+						interactionState.areTracking = backupTracking.tracking
 					else
 						interactionState.areTracking = nil
 					end
+
+					-- Save current PIP state to backup for next switch
+					backupTracking = {
+						tracking = currentPipTracking,
+						camX = currentPipCamX,
+						camZ = currentPipCamZ
+					}
+
+				-- Switch camera positions - use rounded coordinates
+				Spring.SetCameraTarget(pipCameraTargetX, 0, pipCameraTargetZ, switchTransitionTime)
+				-- Set PIP camera target for smooth transition (don't set wcx/wcz directly)
+				targetWcx, targetWcz = mainCamX, mainCamZ
+				isSwitchingViews = true -- Enable fast transition for pip_switch
+				RecalculateWorldCoordinates()
+				RecalculateGroundTextureCoordinates()
 
 					-- If feature is disabled, ensure main camera is not tracking
 					if not switchInheritsTracking then
@@ -769,6 +778,21 @@ local function DrawUnit(uID)
 	pipIconX[idx], pipIconY[idx] = WorldToPipCoords(ux, uz)
 	pipIconUdef[idx] = uDefID
 	pipIconSelected[idx] = spIsUnitSelected(uID)
+	-- Get build progress (1 for finished units, < 1 for units under construction)
+	local _, _, _, _, buildProgress = spGetUnitHealth(uID)
+	pipIconBuildProgress[idx] = buildProgress or 1
+	-- Check if this unit is being tracked
+	local isTracked = false
+	if interactionState.areTracking then
+		for _, trackedID in ipairs(interactionState.areTracking) do
+			if trackedID == uID then
+				isTracked = true
+				trackedIconIndices[#trackedIconIndices + 1] = idx
+				break
+			end
+		end
+	end
+	pipIconTracked[idx] = isTracked
 	glPopMatrix()
 end
 
@@ -2328,35 +2352,24 @@ end
 function widget:Initialize()
 
 	unitOutlineList = gl.CreateList(function()
-			gl.BeginEnd(GL.LINE_LOOP, function()
-				gl.Vertex( 1, 0, 1)
-				gl.Vertex( 1, 0,-1)
-				gl.Vertex(-1, 0,-1)
-				gl.Vertex(-1, 0, 1)
-			end)
+		gl.BeginEnd(GL.LINE_LOOP, function()
+			gl.Vertex( 1, 0, 1)
+			gl.Vertex( 1, 0,-1)
+			gl.Vertex(-1, 0,-1)
+			gl.Vertex(-1, 0, 1)
 		end)
+	end)
 
 	radarDotList = gl.CreateList(function()
-			glTexture('LuaUI/Images/pip/PipBlip.png')
-			glBeginEnd(GL_QUADS, function()
-				glVertex( iconRadius, iconRadius)
-				glVertex( iconRadius,-iconRadius)
-				glVertex(-iconRadius,-iconRadius)
-				glVertex(-iconRadius, iconRadius)
-			end)
-			glTexture(false)
+		glTexture('LuaUI/Images/pip/PipBlip.png')
+		glBeginEnd(GL_QUADS, function()
+			glVertex( iconRadius, iconRadius)
+			glVertex( iconRadius,-iconRadius)
+			glVertex(-iconRadius,-iconRadius)
+			glVertex(-iconRadius, iconRadius)
 		end)
-
-	unitShader = gl.CreateShader({
-			fragment = [[
-				uniform sampler2D unitTex;
-				void main(void) {
-					gl_FragData[0]     = texture2D(unitTex, gl_TexCoord[0].st);
-					gl_FragData[0].rgb = mix(gl_FragData[0].rgb, gl_Color.rgb, gl_FragData[0].a);
-					gl_FragData[0].a   = gl_FragCoord.z;
-				}
-			]],
-		})
+		glTexture(false)
+	end)
 
 	local iconTypes = VFS.Include("gamedata/icontypes.lua")
 	for uDefID, uDef in pairs(UnitDefs) do
@@ -2606,7 +2619,6 @@ function widget:ViewResize()
 end
 
 function widget:Shutdown()
-	gl.DeleteShader(unitShader)
 	gl.DeleteList(unitOutlineList)
 	gl.DeleteList(radarDotList)
 
@@ -2715,7 +2727,7 @@ function widget:SetConfigData(data)
 	local gameFrame = Spring.GetGameFrame()
 	local currentGameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")
 	local isSameGame = (data.gameID and currentGameID and data.gameID == currentGameID)
-	
+
 	if gameFrame == 0 and not isSameGame then
 		-- Force minimize in pregame for a new game
 		inMinMode = true
@@ -3325,10 +3337,65 @@ local function DrawIcons()
 		defaultIconIndices[i] = nil
 	end
 
+
+	-- Draw white backgrounds for tracked units FIRST (before normal icons)
+	local trackedCount = #trackedIconIndices
+	if trackedCount > 0 then
+		gl.Blending(GL.ONE, GL.ONE)  -- Full additive blending for bright white glow
+
+		-- Group tracked units by texture for batching
+		local trackedByTexture = {}
+		for i = 1, trackedCount do
+			local idx = trackedIconIndices[i]
+			local udef = pipIconUdef[idx]
+			if udef and cache.unitIcon[udef] then
+				local texture = cache.unitIcon[udef].bitmap
+				if texture then
+					if not trackedByTexture[texture] then
+						trackedByTexture[texture] = {}
+					end
+					trackedByTexture[texture][#trackedByTexture[texture] + 1] = idx
+				end
+			end
+		end
+
+		-- Draw tracked unit backgrounds grouped by texture
+		for texture, indices in pairs(trackedByTexture) do
+			glTexture(texture)
+			gl.BeginEnd(GL_QUADS, function()
+				for j = 1, #indices do
+					local idx = indices[j]
+					local cx = pipIconX[idx]
+					local cy = pipIconY[idx]
+					local udef = pipIconUdef[idx]
+					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
+					-- Fixed border size that's smaller for larger units
+					local baseSize = cache.unitIcon[udef].size
+					local borderPixels = 0.075 / baseSize  -- Inverse relationship: smaller units get proportionally more border
+					local enlargedSize = iconSize * (1 + borderPixels)
+
+					glColor(1, 1, 1, 1)
+					glTexCoord(texInset, 1 - texInset)
+					glVertex(cx - enlargedSize, cy - enlargedSize)
+					glTexCoord(1 - texInset, 1 - texInset)
+					glVertex(cx + enlargedSize, cy - enlargedSize)
+					glTexCoord(1 - texInset, texInset)
+					glVertex(cx + enlargedSize, cy + enlargedSize)
+					glTexCoord(texInset, texInset)
+					glVertex(cx - enlargedSize, cy + enlargedSize)
+				end
+			end)
+		end
+		glTexture(false)
+	end
+
 	-- Draw icons grouped by texture (minimizes texture binding)
 	for texture, indices in pairs(iconsByTexture) do
 		glTexture(texture)
 		local indexCount = #indices
+
+		-- Draw normal icons
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		gl.BeginEnd(GL_QUADS, function()
 			for j = 1, indexCount do
 				local i = indices[j]
@@ -3337,10 +3404,20 @@ local function DrawIcons()
 				local udef = pipIconUdef[i]
 				local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
 
-				if pipIconSelected[i] then
-					glColor(1,1,1,1)
+				-- 0.15 to 0.7 while building, then jump to 1.0 when complete
+				local buildProgress = pipIconBuildProgress[i]
+				local opacity
+				if buildProgress >= 1 then
+					opacity = 1.0
 				else
-					glColor(teamColors[pipIconTeam[i]])
+					opacity = 0.15 + (buildProgress * 0.55)
+				end
+
+				if pipIconSelected[i] then
+					glColor(1, 1, 1, opacity)
+				else
+					local color = teamColors[pipIconTeam[i]]
+					glColor(color[1], color[2], color[3], opacity)
 				end
 				-- Use manual texture coordinates with inset to prevent edge bleeding
 				glTexCoord(texInset, 1 - texInset)
@@ -3365,10 +3442,20 @@ local function DrawIcons()
 				local cx = pipIconX[i]
 				local cy = pipIconY[i]
 
-				if pipIconSelected[i] then
-					glColor(1,1,1,1)
+				-- 0.15 to 0.7 while building, then jump to 1.0 when complete
+				local buildProgress = pipIconBuildProgress[i]
+				local opacity
+				if buildProgress >= 1 then
+					opacity = 1.0
 				else
-					glColor(teamColors[pipIconTeam[i]])
+					opacity = 0.15 + (buildProgress * 0.55)
+				end
+
+				if pipIconSelected[i] then
+					glColor(1, 1, 1, opacity)
+				else
+					local color = teamColors[pipIconTeam[i]]
+					glColor(color[1], color[2], color[3], opacity)
 				end
 				-- Use manual texture coordinates with inset to prevent edge bleeding
 				glTexCoord(texInset, 1 - texInset)
@@ -3412,7 +3499,13 @@ local function DrawUnitsAndFeatures()
 			pipIconY[i] = nil
 			pipIconUdef[i] = nil
 			pipIconSelected[i] = nil
+			pipIconBuildProgress[i] = nil
+			pipIconTracked[i] = nil
 		end
+	end
+	-- Clear tracked indices
+	for i = #trackedIconIndices, 1, -1 do
+		trackedIconIndices[i] = nil
 	end
 
 	-- Note: cameraRotY is now set in DrawScreen before this function is called
@@ -3423,7 +3516,6 @@ local function DrawUnitsAndFeatures()
 	gl.AlphaTest(false)
 
 	gl.Scissor(dim.l, dim.b, dim.r - dim.l, dim.t - dim.b)
-	gl.UseShader(unitShader)
 	gl.LineWidth(2.0)
 
 	-- Precompute center translation values (used by all drawing)
@@ -3453,15 +3545,14 @@ local function DrawUnitsAndFeatures()
 		glTranslate(centerX, centerY, 0)
 		glScale(zoom * contentScale, zoom * contentScale, zoom * contentScale)
 
-		-- Draw units
+		-- Draw units (only icon data collection now, no 3D rendering)
 		for i = 1, unitCount do
 			DrawUnit(pipUnits[i])
 		end
 
-		glTexture(0, '$units')
-
-		-- Draw features
+		-- Draw features (3D models)
 		if zoom >= zoomFeatures then  -- Only draw features if zoom is above threshold
+			glTexture(0, '$units')
 			for i = 1, featureCount do
 				DrawFeature(pipFeatures[i])
 			end
@@ -3470,12 +3561,8 @@ local function DrawUnitsAndFeatures()
 		-- Draw projectiles if enabled
 		if drawProjectiles then
 			glTexture(0, false)
-			gl.UseShader(0)
 			gl.Blending(true)
 			gl.DepthTest(false)
-
-			-- Only draw expensive projectile details when zoomed in enough
-			local drawProjectileDetail = zoom >= zoomProjectileDetail
 
 			if zoom >= zoomProjectileDetail then
 				-- Get projectiles in the PIP window's world rectangle
@@ -3502,14 +3589,12 @@ local function DrawUnitsAndFeatures()
 
 			gl.DepthTest(true)
 			gl.Blending(false)
-			gl.UseShader(unitShader)
 		end
 
 	glPopMatrix()
 
 
 	glTexture(0, false)
-	gl.UseShader(0)
 	gl.Blending(true)
 	gl.DepthMask(false)
 	gl.DepthTest(false)
@@ -4218,6 +4303,28 @@ function widget:DrawScreen()
 		end
 	end
 
+
+
+	-- Draw tracking (corner) indicators
+	if interactionState.areTracking and #interactionState.areTracking > 0 then
+		local lineWidth = math.ceil(2 * (vsx / 1920))
+		local offset = lineWidth * 0.5  -- Offset to account for line width
+
+		gl.LineWidth(lineWidth)
+		glColor(1, 1, 1, 0.22)
+
+		-- Rectangle box
+		glBeginEnd(GL_LINE_STRIP, function()
+			gl.Vertex(dim.l + offset, dim.t - offset)
+			gl.Vertex(dim.r - offset, dim.t - offset)
+			gl.Vertex(dim.r - offset, dim.b + offset)
+			gl.Vertex(dim.l + offset, dim.b + offset)
+			gl.Vertex(dim.l + offset, dim.t - offset)
+		end)
+
+		gl.LineWidth(1)
+	end
+
 	----------------------------------------------------------------------------------------------------
 	-- Buttons and hover effects
 	----------------------------------------------------------------------------------------------------
@@ -4612,7 +4719,9 @@ function widget:Update(dt)
 		if centerNeedsUpdate then
 			-- Use different smoothness values depending on context
 			local smoothnessToUse = centerSmoothness -- Default for zoom-to-cursor and panning
-			if interactionState.areTracking then
+			if isSwitchingViews then
+				smoothnessToUse = switchSmoothness -- Fast transition for view switching
+			elseif interactionState.areTracking then
 				smoothnessToUse = trackingSmoothness -- Smoother animation for tracking mode
 			end
 
@@ -4624,8 +4733,9 @@ function widget:Update(dt)
 		RecalculateWorldCoordinates()
 		RecalculateGroundTextureCoordinates()
 	else
-		-- Zoom and center have reached their targets, disable zoom-to-cursor
+		-- Zoom and center have reached their targets, disable zoom-to-cursor and switch transition
 		zoomToCursorActive = false
+		isSwitchingViews = false
 	end
 
 	if interactionState.areIncreasingZoom then
