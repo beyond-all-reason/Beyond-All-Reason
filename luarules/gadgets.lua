@@ -109,6 +109,8 @@ local callInLists = {
 	"GameOver",
 	"GameID",
 	"TeamDied",
+	"TeamShare",
+	"ResourceExcess",
 
 	"PlayerAdded",
 	"PlayerChanged",
@@ -798,6 +800,7 @@ function gadgetHandler:RemoveGadgetRaw(gadget)
 	for _, listname in ipairs(callInLists) do
 		ArrayRemove(self[listname .. 'List'], gadget)
 	end
+
 	self:DeregisterAllowCommands(gadget)
 
 	for id, g in pairs(self.CMDIDs) do
@@ -814,7 +817,7 @@ end
 
 function gadgetHandler:UpdateCallIn(name)
 	local listName = name .. 'List'
-	local forceUpdate = (name == 'GotChatMsg' or name == 'RecvFromSynced') -- redundant?
+	local forceUpdate = (name == 'GotChatMsg' or name == 'RecvFromSynced')
 
 	_G[name] = nil
 
@@ -1314,6 +1317,22 @@ function gadgetHandler:TeamDied(teamID)
 		g:TeamDied(teamID)
 	end
 	return
+end
+
+function gadgetHandler:TeamShare(teamID, targetTeamID, metalShare, energyShare)
+	for _, g in ipairs(self.TeamShareList) do
+		g:TeamShare(teamID, targetTeamID, metalShare, energyShare)
+	end
+	return
+end
+
+function gadgetHandler:ResourceExcess(excesses)
+	for _, g in ipairs(self.ResourceExcessList) do
+		if g:ResourceExcess(excesses) then
+			return true
+		end
+	end
+	return false
 end
 
 function gadgetHandler:TeamChanged(teamID)
