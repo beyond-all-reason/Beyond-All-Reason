@@ -112,7 +112,7 @@ function gadget:GameFrame(f)
 			local eExcess = math.max(0.0, teamEnergyCurrentLevel - (teamEnergyStorage * teamEnergyShare))
 			local mExcess = math.max(0.0, teamMetalCurrentLevel  - (teamMetalStorage  * teamMetalShare))
 
-			--- Tax the overflow
+			--- Tax the overflow, these resources are not shared and will be wasted if storage is full
 			eExcess = math.max(0.0, eExcess * (1-sharingTax))
 			mExcess = math.max(0.0, mExcess * (1-sharingTax))
 
@@ -149,7 +149,7 @@ function gadget:GameFrame(f)
 			eExcess = math.max(0.0, teamEnergyExcess)
 			mExcess = math.max(0.0, teamMetalExcess)
 
-			--- Tax the extra overflow
+			--- Tax the extra overflow, these resources are not shared and will be wasted if storage is full
 			eExcess = math.max(0.0, eExcess * (1-sharingTax))
 			mExcess = math.max(0.0, mExcess * (1-sharingTax))
 
