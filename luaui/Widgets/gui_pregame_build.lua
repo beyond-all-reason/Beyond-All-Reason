@@ -1435,6 +1435,22 @@ function widget:GameFrame(n)
 		end
 	end
 	if tasker then
+		local quickStartOption = Spring.GetModOptions().quick_start
+		local quickStartEnabled = quickStartOption and quickStartOption ~= "disabled" and quickStartOption ~= "factory_discount_only"
+		
+		if quickStartEnabled and #buildQueue > 0 then
+			Spring.Echo(string.format("=== Build Queue for Commander (unitID: %d) ===", tasker))
+			for b = 1, #buildQueue do
+				local buildData = buildQueue[b]
+				local unitDefID = buildData[1]
+				local unitDefName = unitDefID > 0 and UnitDefs[unitDefID] and UnitDefs[unitDefID].name or "MOVE_COMMAND"
+				local x, y, z = buildData[2], buildData[3], buildData[4]
+				local facing = buildData[5] or 0
+				Spring.Echo(string.format("  [%d] %s at (%.1f, %.1f, %.1f) facing: %d", b, unitDefName, x, y, z, facing))
+			end
+			Spring.Echo(string.format("=== Total queue items: %d ===", #buildQueue))
+		end
+		
 		for b = 1, #buildQueue do
 			local buildData = buildQueue[b]
 			Spring.GiveOrderToUnit(
