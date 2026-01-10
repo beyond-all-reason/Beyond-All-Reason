@@ -1,5 +1,4 @@
-# January 2025
-
+# January 2026
 • [Incisor] 0.767s -> 0.8s reloadtime, 85.5 -> 85 speed, 2200 -> 2300 buildtime, 1040 -> 1100 energycost
 • [Blitz, Pawn] 500 -> 600 weaponvelocity
 • [Vehicle scouts] +10% reloadtime
