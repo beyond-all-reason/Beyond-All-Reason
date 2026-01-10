@@ -160,6 +160,9 @@ local interactionState = {
 	buildDragStartX = 0,
 	buildDragStartY = 0,
 	buildDragPositions = {},
+	areAreaDragging = false,
+	areaCommandStartX = 0,
+	areaCommandStartY = 0,
 	lastMapDrawX = nil,
 	lastMapDrawZ = nil,
 	clickHandledInPanMode = false,
@@ -177,7 +180,7 @@ local hadSavedConfig = false -- Track if we loaded from saved config (to avoid a
 local pipUnits = {}
 local pipFeatures = {}
 -- Arrays for unit icons (batched drawing)
-local pipIconTeam, pipIconX, pipIconY, pipIconUdef, pipIconSelected, pipIconBuildProgress, pipIconTracked, pipIconUnitID = {}, {}, {}, {}, {}, {}, {}, {}
+local pipIconTeam, pipIconX, pipIconY, pipIconUdef, pipIconSelected, pipIconBuildProgress, pipIconUnitID = {}, {}, {}, {}, {}, {}, {}, {}
 local trackedIconIndices = {} -- Indices of tracked units for optimized rendering
 local hoveredUnitID = nil -- Track which unit icon is being hovered
 local lastSelectionboxEnabled = nil -- Track selectionbox widget state for command color config
@@ -243,31 +246,29 @@ local cmdColors = {
 		[CMD.RECLAIM]	= {0.5, 1.0, 0.4, 0.3},
 		[CMD.RESTORE]	= {0.0, 1.0, 0.0, 0.3},
 		[CMD.RESURRECT]	= {0.9, 0.5, 1.0, 0.5},
-		[CMD.LOAD_UNITS]= {0.4, 0.9, 0.9, 0.7},
-		[CMD.UNLOAD_UNIT] = {1.0, 0.8, 0.0, 0.7},
-		[CMD.UNLOAD_UNITS]= {1.0, 0.8, 0.0, 0.7},
-		-- deathWatch is not a standard CMD constant
-	}
+	[CMD.LOAD_UNITS]= {0.4, 0.9, 0.9, 0.7},
+	[CMD.UNLOAD_UNIT] = {1.0, 0.8, 0.0, 0.7},
+	[CMD.UNLOAD_UNITS]= {1.0, 0.8, 0.0, 0.7},
+	[GameCMD.UNIT_SET_TARGET] = {1.0, 0.75, 0.0, 0.3},
+}
+
+-- Command ID to cursor name mapping
+local cmdCursors = {
+	[CMD.ATTACK] = 'settarget',
+	[CMD.GUARD] = 'Guard',
+	[CMD.REPAIR] = 'Repair',
+	[CMD.RECLAIM] = 'Reclaim',
+	[CMD.CAPTURE] = 'Capture',
+	[CMD.RESURRECT] = 'Resurrect',
+	[CMD.RESTORE] = 'Restore',
+	[CMD.PATROL] = 'Patrol',
+	[CMD.FIGHT] = 'Fight',
+	[CMD.LOAD_UNITS] = 'Load',
+	[GameCMD.UNIT_SET_TARGET] = 'settarget',
+}
 
 -- Buttons (Must be declared after variables)
 local buttons = {
-	-- 	texture = 'LuaUI/Images/pip/PipMinus.png',
-	-- 	tooltip = 'Decrease zoom (pull back) [Hold]',
-	-- 	command = nil,
-	-- 	OnPress = function() interactionState.areDecreasingZoom = true end
-	-- },
-	-- {
-	-- 	texture = 'LuaUI/Images/pip/PipPlus.png',
-	-- 	tooltip = 'Increase zoom (get closer) [Hold]',
-	-- 	command = nil,
-	-- 	OnPress = function() interactionState.areIncreasingZoom = true end
-	-- },
-	-- {
-	-- 	texture = 'LuaUI/Images/pip/PipCenter.png',
-	-- 	tooltip = 'Enter centering mode',
-	-- 	command = nil,
-	-- 	OnPress = function() interactionState.areCentering = true interactionState.areTracking = nil end
-	-- },
 	{
 		texture = 'LuaUI/Images/pip/PipCopy.png',
 		tooltip = Spring.I18N('ui.pip.copy'),
@@ -441,20 +442,17 @@ local glTexture = gl.Texture
 local glTexRect = gl.TexRect
 local glVertex = gl.Vertex
 local glBeginEnd = gl.BeginEnd
-local glText = gl.Text
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 local glTranslate = gl.Translate
 local glRotate = gl.Rotate
 local glScale = gl.Scale
-local glUnitRaw = gl.UnitRaw
 local glCallList = gl.CallList
 
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitBasePosition = Spring.GetUnitBasePosition
-local spGetUnitDirection = Spring.GetUnitDirection
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetFeatureDefID = Spring.GetFeatureDefID
@@ -465,7 +463,6 @@ local spGetFeaturesInRectangle = Spring.GetFeaturesInRectangle
 local spIsUnitSelected = Spring.IsUnitSelected
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetMouseState = Spring.GetMouseState
-local spGetUnitLosState = Spring.GetUnitLosState
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileDefID = Spring.GetProjectileDefID
@@ -676,24 +673,10 @@ local function GroundTextureVertices()
 	glTexCoord(ground.coord.l, ground.coord.t); glVertex(ground.view.l, ground.view.t)
 end
 
-local function UnitBuildingVerts(prog)
-	local f = 2 * prog
-	glVertex(-1, 0.1, -1); glVertex(-1 + f, 0.1, -1    )
-	glVertex( 1, 0.1, -1); glVertex( 1    , 0.1, -1 + f)
-	glVertex( 1, 0.1,  1); glVertex( 1 - f, 0.1,  1    )
-	glVertex(-1, 0.1,  1); glVertex(-1    , 0.1,  1 - f)
-end
-
 local function DrawPanel(l, r, b, t)
 	glColor(0.6,0.6,0.6,0.6)
 	--RectRound(l, b, r, t, elementCorner*0.4, 1, 1, 1, 1)
 	UiElement(l-elementPadding, b-elementPadding, r+elementPadding, t+elementPadding, 1, 1, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
-end
-
--- Draw panel background without borders (for display lists that will have borders drawn separately)
-local function DrawPanelBackground(l, r, b, t)
-	glColor(0.6,0.6,0.6,0.6)
-	RectRound(l, b, r, t, elementCorner*0.4, 1, 1, 1, 1)
 end
 
 local function DrawGroundLine(x1, z1, x2, z2)
@@ -709,78 +692,6 @@ local function DrawGroundBox(l, r, b, t)
 	DrawGroundLine(r, t, r, b)
 	DrawGroundLine(r, b, l, b)
 	DrawGroundLine(l, b, l, t)
-end
-
-local function DrawFormationDots(formationNodes, lineLength, selectedUnitsCount, formationCmd)
-	if not formationNodes or #formationNodes < 2 or selectedUnitsCount < 2 then
-		return
-	end
-
-	-- Set color based on command type
-	local r, g, b = 0.5, 0.5, 1.0 -- Default blue
-	if formationCmd == CMD.MOVE then
-		r, g, b = 0.5, 1.0, 0.5 -- Green
-	elseif formationCmd == CMD.ATTACK then
-		r, g, b = 1.0, 0.2, 0.2 -- Red
-	elseif formationCmd == CMD.FIGHT then
-		r, g, b = 0.5, 0.5, 1.0 -- Blue
-	end
-
-	local lengthPerUnit = lineLength / (selectedUnitsCount - 1)
-	local dotSize = 15 -- Fixed size for PIP window
-
-	-- Helper to draw a dot at a position using texture
-	local function DrawDot(pos)
-		gl.PushMatrix()
-		gl.Translate(pos[1], pos[2] + 1, pos[3]) -- Slightly above ground
-		gl.Color(r, g, b, 1.0)
-		gl.Texture("LuaUI/Images/pip/formationDot.dds")
-		gl.BeginEnd(GL.QUADS, function()
-			gl.TexCoord(0, 0); gl.Vertex(-dotSize, 0, -dotSize)
-			gl.TexCoord(1, 0); gl.Vertex(dotSize, 0, -dotSize)
-			gl.TexCoord(1, 1); gl.Vertex(dotSize, 0, dotSize)
-			gl.TexCoord(0, 1); gl.Vertex(-dotSize, 0, dotSize)
-		end)
-		gl.Texture(false)
-		gl.PopMatrix()
-	end
-
-	gl.DepthTest(true)
-
-	-- Draw first dot
-	DrawDot(formationNodes[1])
-
-	-- Draw dots along the line
-	if #formationNodes > 2 then
-		local currentLength = 0
-		local lengthUnitNext = lengthPerUnit
-
-		for i = 1, #formationNodes - 1 do
-			local node1 = formationNodes[i]
-			local node2 = formationNodes[i + 1]
-			local dx = node1[1] - node2[1]
-			local dz = node1[3] - node2[3]
-			local length = math.sqrt(dx * dx + dz * dz)
-
-			while currentLength + length >= lengthUnitNext do
-				local factor = (lengthUnitNext - currentLength) / length
-				local interpPos = {
-					node1[1] + (node2[1] - node1[1]) * factor,
-					node1[2] + (node2[2] - node1[2]) * factor,
-					node1[3] + (node2[3] - node1[3]) * factor
-				}
-				DrawDot(interpPos)
-				lengthUnitNext = lengthUnitNext + lengthPerUnit
-			end
-			currentLength = currentLength + length
-		end
-	end
-
-	-- Draw last dot
-	DrawDot(formationNodes[#formationNodes])
-
-	gl.DepthTest(false)
-	gl.Color(1, 1, 1, 1)
 end
 
 
@@ -815,7 +726,6 @@ local function DrawUnit(uID)
 			end
 		end
 	end
-	pipIconTracked[idx] = isTracked
 	glPopMatrix()
 end
 
@@ -2297,7 +2207,7 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 	return positions
 end
 
-local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue)
+local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	-- Force queue commands when explicitly requested (e.g., during formation drags)
@@ -2317,7 +2227,12 @@ local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue)
 		GiveNotifyingOrder(cmdID, {id}, cmdOpts)
 	else
 		if cmdID > 0 then
-			GiveNotifyingOrder(cmdID, {wx, spGetGroundHeight(wx, wz), wz}, cmdOpts)
+			-- Add radius for area commands if provided
+			if radius and radius > 0 then
+				GiveNotifyingOrder(cmdID, {wx, spGetGroundHeight(wx, wz), wz, radius}, cmdOpts)
+			else
+				GiveNotifyingOrder(cmdID, {wx, spGetGroundHeight(wx, wz), wz}, cmdOpts)
+			end
 		else
 			-- Build command - check if it's an extractor/geo that needs spot snapping
 			local buildDefID = -cmdID
@@ -2923,21 +2838,32 @@ local function DrawCommandQueuesOverlay()
 					for j = 1, cmdCount do
 						local cmd = commands[j]
 						local cmdX, cmdZ
-						local params = cmd.params
-						if params then
-							local paramCount = #params
-							if paramCount >= 3 then
-								cmdX, cmdZ = params[1], params[3]
-							elseif paramCount == 1 then
+					local params = cmd.params
+					if params then
+						local paramCount = #params
+						if paramCount >= 3 then
+							cmdX, cmdZ = params[1], params[3]
+						elseif paramCount == 1 then
+							local targetID = params[1]
+							local tx, ty, tz = GetUnitPosition(targetID)
+							if tx then
+								cmdX, cmdZ = tx, tz
+							end
+						elseif paramCount >= 5 then
+							-- Set target command with area: params are {targetID, x, y, z, radius}
+							local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET
+							if setTargetCmd and cmd.id == setTargetCmd then
 								local targetID = params[1]
 								local tx, ty, tz = GetUnitPosition(targetID)
 								if tx then
 									cmdX, cmdZ = tx, tz
 								end
+							else
+								-- Other commands with 5+ params might be area commands
+								cmdX, cmdZ = params[1], params[3]
 							end
 						end
-
-						if cmdX and cmdZ then
+					end						if cmdX and cmdZ then
 							local cmdSX, cmdSY = WorldToPipCoords(cmdX, cmdZ)
 
 							-- Use cmdColors table
@@ -3547,7 +3473,6 @@ local function DrawUnitsAndFeatures()
 			pipIconUdef[i] = nil
 			pipIconSelected[i] = nil
 			pipIconBuildProgress[i] = nil
-			pipIconTracked[i] = nil
 			pipIconUnitID[i] = nil
 		end
 	end
@@ -3760,109 +3685,6 @@ local function RenderPipContents()
 	DrawCommandQueuesOverlay()
 end
 
--- Helper function to draw UI buttons and controls
-local function DrawUIButtons(mx, my, mbl)
-	local hover = areResizing or false
-	if mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t then
-		if (dim.r-mx + my-dim.b <= usedButtonSize) then
-			hover = true
-			Spring.SetMouseCursor('cursornormal')
-			if WG['tooltip'] then
-				WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.resize'), nil, nil, nil)
-			end
-		end
-	end
-	local mult = mbl and 4.5 or 1.5
-	-- Avoid table allocation in hot path
-	if hover then
-		glColor(panelBorderColorDark[1]*mult, panelBorderColorDark[2]*mult, panelBorderColorDark[3]*mult, 1)
-	else
-		glColor(panelBorderColorDark)
-	end
-	gl.LineWidth(1.0)
-	glBeginEnd(GL_TRIANGLES, ResizeHandleVertices)
-
-	-- Minimize button
-	hover = false
-	glColor(panelBorderColorDark)
-	glTexture(false)
-	RectRound(dim.r - usedButtonSize - elementPadding, dim.t - usedButtonSize - elementPadding, dim.r, dim.t, elementCorner, 0, 0, 0, 1)
-	if mx >= dim.r - usedButtonSize - elementPadding and mx <= dim.r - elementPadding and
-		my >= dim.t - usedButtonSize - elementPadding and my <= dim.t - elementPadding then
-		hover = true
-		Spring.SetMouseCursor('cursornormal')
-		if WG['tooltip'] then
-			WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.minimize'), nil, nil, nil)
-		end
-		glColor(1,1,1,0.12)
-		glTexture(false)
-		RectRound(dim.r - usedButtonSize, dim.t - usedButtonSize, dim.r, dim.t, elementCorner*0.4, 1, 1, 1, 1)
-	end
-	-- Avoid table allocation in hot path
-	if hover then
-		glColor(1, 1, 1, 1)
-	else
-		glColor(panelBorderColorLight)
-	end
-	glTexture('LuaUI/Images/pip/PipMinimize.png')
-	glTexRect(dim.r - usedButtonSize, dim.t - usedButtonSize, dim.r, dim.t)
-
-	-- Other buttons
-	hover = false
-	local bx = dim.l
-
-	-- Calculate visible buttons (hide tracking button when no units selected and not tracking)
-	local selectedUnits = Spring.GetSelectedUnits()
-	local hasSelection = #selectedUnits > 0
-	local isTracking = interactionState.areTracking ~= nil
-	local visibleButtons = {}
-	for i = 1, #buttons do
-		if buttons[i].command ~= 'pip_track' or hasSelection or isTracking then
-			visibleButtons[#visibleButtons + 1] = buttons[i]
-		end
-	end
-
-	local buttonCount = #visibleButtons
-	glColor(panelBorderColorDark)
-	glTexture(false)
-	RectRound(dim.l, dim.b, dim.l + (buttonCount * usedButtonSize) + math.floor(elementPadding*0.75), dim.b + usedButtonSize + math.floor(elementPadding*0.75), elementCorner, 0, 1, 0, 0)
-	glColor(panelBorderColorLight)
-	for i = 1, buttonCount do
-		if mx >= bx and mx <= bx + usedButtonSize and
-		   my >= dim.b and my <= dim.b + usedButtonSize then
-			hover = true
-			Spring.SetMouseCursor('cursornormal')
-			if visibleButtons[i].tooltip and WG['tooltip'] then
-				WG['tooltip'].ShowTooltip('pip'..pipNumber, visibleButtons[i].tooltip, nil, nil, nil)
-			end
-			glColor(1,1,1,0.12)
-			glTexture(false)
-			RectRound(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize, elementCorner*0.4, 1, 1, 1, 1)
-		end
-		if visibleButtons[i].command == 'pip_track' and interactionState.areTracking then
-			glColor(panelBorderColorLight)
-			glTexture(false)
-			RectRound(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize, elementCorner*0.4, 1, 1, 1, 1)
-			if hover then
-				glColor(1, 1, 1, 1)
-			else
-				glColor(panelBorderColorDark)
-			end
-		else
-			if hover then
-				glColor(1, 1, 1, 1)
-			else
-				glColor(panelBorderColorLight)
-			end
-		end
-		glTexture(visibleButtons[i].texture)
-		glTexRect(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize)
-		bx = bx + usedButtonSize
-		hover = false
-	end
-	glTexture(false)
-end
-
 -- Helper function to draw box selection rectangle
 local function DrawBoxSelection()
 	if not interactionState.areBoxSelecting then
@@ -3940,6 +3762,63 @@ local function DrawBoxSelection()
 		gl.LineStipple(false)
 	end
 	gl.LineWidth(1.0)
+end
+
+local function DrawAreaCommand()
+	if not interactionState.areAreaDragging then
+		return
+	end
+
+	local mx, my = Spring.GetMouseState()
+	local _, cmdID = Spring.GetActiveCommand()
+	if not cmdID or cmdID <= 0 then
+		return
+	end
+
+	-- Calculate center and current mouse position in screen coordinates
+	local centerX = interactionState.areaCommandStartX
+	local centerY = interactionState.areaCommandStartY
+
+	-- Calculate radius in screen space (pixels)
+	local dx = mx - centerX
+	local dy = my - centerY
+	local radius = math.sqrt(dx * dx + dy * dy)
+
+	-- Only draw if dragged more than 5 pixels
+	if radius < 5 then
+		return
+	end
+
+	-- Get command color
+	local color = cmdColors[cmdID] or cmdColors.unknown
+
+	-- Draw filled circle with command color using additive blending
+	glTexture(false)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE)
+
+	-- Enable scissor test to clamp drawing to PIP bounds
+	gl.Scissor(dim.l, dim.b, dim.r - dim.l, dim.t - dim.b)
+
+	-- Draw filled circle with vibrant colors
+	glColor(color[1], color[2], color[3], 0.25)
+	local segments = math.max(16, math.min(64, math.floor(radius / 3)))
+	glBeginEnd(GL.TRIANGLE_FAN, function()
+		glVertex(centerX, centerY)
+		for i = 0, segments do
+			local angle = (i / segments) * 2 * math.pi
+			local x = centerX + math.cos(angle) * radius
+			local y = centerY + math.sin(angle) * radius
+			glVertex(x, y)
+		end
+	end)
+
+	-- Disable scissor test
+	gl.Scissor(false)
+
+	-- Reset blending
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+
+	glColor(1, 1, 1, 1)
 end
 
 function widget:DrawScreen()
@@ -4048,16 +3927,14 @@ function widget:DrawScreen()
 		-- Apply transform and draw the cached icon at actual position
 		glPushMatrix()
 		glTranslate(minModeL-offset, minModeB-offset, 0)
-		gl.CallList(minModeDlist)
+		glCallList(minModeDlist)
 		glPopMatrix()
 
 		-- Draw hover overlay if needed (dynamic)
 		glColor(panelBorderColorDark)
 		glTexture(false)
-		local hover = false
 		if mx >= minModeL - elementPadding and mx <= minModeL + buttonSize + elementPadding and
 			my >= minModeB - elementPadding and my <= minModeB + buttonSize + elementPadding then
-			hover = true
 			if WG['tooltip'] then
 				WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.tooltip'), nil, nil, nil)
 			end
@@ -4097,7 +3974,7 @@ function widget:DrawScreen()
 
 				-- If there's a default command, let it handle the cursor
 				-- Otherwise check if selected units can move
-				if not defaultCmd then
+				if not defaultCmd or defaultCmd == 0 then
 					local selectedUnits = Spring.GetSelectedUnits()
 					local canMove = false
 
@@ -4116,10 +3993,16 @@ function widget:DrawScreen()
 
 					-- Show move cursor if units can move, otherwise normal cursor
 					if canMove then
-						Spring.SetMouseCursor('cursormove')
+						Spring.SetMouseCursor('Move')
 					else
-						Spring.SetMouseCursor('cursornormal')
+						--Spring.SetMouseCursor('cursornormal')
 					end
+				end
+			else
+				-- Use cursor lookup table
+				local cursorName = cmdCursors[activeCmdID]
+				if cursorName then
+					Spring.SetMouseCursor(cursorName)
 				end
 			end
 		else
@@ -4398,7 +4281,7 @@ function widget:DrawScreen()
 		if mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t then
 			if (dim.r-mx + my-dim.b <= usedButtonSize) then
 				hover = true
-				Spring.SetMouseCursor('cursornormal')
+				--Spring.SetMouseCursor('cursornormal')
 				if WG['tooltip'] then
 					WG['tooltip'].ShowTooltip('pip'..pipNumber, 'Resize', nil, nil, nil)
 				end
@@ -4426,7 +4309,7 @@ function widget:DrawScreen()
 		if mx >= dim.r - usedButtonSize - elementPadding and mx <= dim.r - elementPadding and
 			my >= dim.t - usedButtonSize - elementPadding and my <= dim.t - elementPadding then
 			hover = true
-			Spring.SetMouseCursor('cursornormal')
+			--Spring.SetMouseCursor('cursornormal')
 			if WG['tooltip'] then
 				WG['tooltip'].ShowTooltip('pip'..pipNumber, 'Minimize', nil, nil, nil)
 			end
@@ -4479,7 +4362,7 @@ function widget:DrawScreen()
 			if mx >= bx and mx <= bx + usedButtonSize and
 			   my >= dim.b and my <= dim.b + usedButtonSize then
 				hover = true
-				Spring.SetMouseCursor('cursornormal')
+				--Spring.SetMouseCursor('cursornormal')
 				if visibleButtons[i].tooltip and WG['tooltip'] then
 					WG['tooltip'].ShowTooltip('pip'..pipNumber, visibleButtons[i].tooltip, nil, nil, nil)
 				end
@@ -4524,6 +4407,9 @@ function widget:DrawScreen()
 
 	DrawBoxSelection()
 
+	-- Draw area command circle
+	DrawAreaCommand()
+
 	-- Draw formation dots overlay (command queues are now in R2T)
 	DrawFormationDotsOverlay()
 
@@ -4557,6 +4443,34 @@ function widget:DrawWorld()
 		gl.LineStipple(false)
 		gl.DepthTest(false)
 		gl.LineWidth(1.0)
+	end
+
+	-- Draw area command radius circle if actively dragging
+	if interactionState.areAreaDragging then
+		local mx, my = Spring.GetMouseState()
+		local wx, wz = PipToWorldCoords(mx, my)
+		local startWX, startWZ = PipToWorldCoords(interactionState.areaCommandStartX, interactionState.areaCommandStartY)
+		local dx = wx - startWX
+		local dz = wz - startWZ
+		local radius = math.sqrt(dx * dx + dz * dz)
+
+		if radius > 5 then -- Only draw if dragged more than 5 elmos
+			local _, cmdID = Spring.GetActiveCommand()
+			if cmdID and cmdID > 0 then
+				local color = cmdColors[cmdID] or cmdColors.unknown
+				local wy = Spring.GetGroundHeight(startWX, startWZ)
+
+				gl.DepthTest(true)
+				gl.Blending(GL.SRC_ALPHA, GL.ONE)
+
+				-- Draw filled circle with additive blending
+				gl.Color(color[1], color[2], color[3], 0.25)
+				gl.DrawGroundCircle(startWX, wy, startWZ, radius, 32)
+
+				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+				gl.DepthTest(false)
+			end
+		end
 	end
 
 	gl.Color(1, 1, 1, 1)
@@ -4679,7 +4593,7 @@ function widget:Update(dt)
 	-- If no buttons are actually pressed but we think we're panning with left+right, stop panning
 	if interactionState.arePanning and not interactionState.panToggleMode and not leftButton and not rightButton and not middleButton then
 		interactionState.arePanning = false
-		Spring.SetMouseCursor('cursornormal')
+		--Spring.SetMouseCursor('cursornormal')
 	end
 
 	-- Update game time (only when game is not paused)
@@ -5400,6 +5314,9 @@ function widget:MousePress(mx, my, mButton)
 				interactionState.areBuildDragging = false
 				interactionState.buildDragPositions = {}
 			end
+			if interactionState.areAreaDragging then
+				interactionState.areAreaDragging = false
+			end
 			if interactionState.areBoxSelecting then
 				interactionState.areBoxSelecting = false
 				interactionState.areBoxDeselecting = false
@@ -5416,7 +5333,7 @@ function widget:MousePress(mx, my, mButton)
 			interactionState.panStartX = (dim.l + dim.r) / 2
 			interactionState.panStartY = (dim.b + dim.t) / 2
 			interactionState.areTracking = nil
-			Spring.SetMouseCursor('cursornormal', hideCursorWhilePanning and 2 or 1)
+			--Spring.SetMouseCursor('cursornormal', hideCursorWhilePanning and 2 or 1)
 			return true
 		end
 	end
@@ -5437,7 +5354,7 @@ function widget:MousePress(mx, my, mButton)
 			if interactionState.panToggleMode then
 				interactionState.panToggleMode = false
 				interactionState.arePanning = false
-				Spring.SetMouseCursor('cursornormal')
+				--Spring.SetMouseCursor('cursornormal')
 				return true
 			end
 		end
@@ -5492,7 +5409,7 @@ function widget:MousePress(mx, my, mButton)
 		if interactionState.panToggleMode then
 			interactionState.panToggleMode = false
 			interactionState.arePanning = false
-			Spring.SetMouseCursor('cursornormal')
+			--Spring.SetMouseCursor('cursornormal')
 			return true
 		end
 
@@ -5502,6 +5419,9 @@ function widget:MousePress(mx, my, mButton)
 			if interactionState.areBuildDragging then
 				interactionState.areBuildDragging = false
 				interactionState.buildDragPositions = {}
+			end
+			if interactionState.areAreaDragging then
+				interactionState.areAreaDragging = false
 			end
 
 			interactionState.middleMousePressed = true
@@ -5622,8 +5542,30 @@ function widget:MousePress(mx, my, mButton)
 					interactionState.buildDragStartY = my
 					interactionState.buildDragPositions = {{wx = wx, wz = wz}}
 					return true
+				elseif cmdID > 0 then
+					-- Check if command supports area mode
+					local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET
+					local supportsArea = (cmdID == CMD.ATTACK or cmdID == CMD.RECLAIM or cmdID == CMD.REPAIR or
+					                      cmdID == CMD.RESURRECT or cmdID == CMD.CAPTURE or cmdID == CMD.RESTORE or
+					                      cmdID == CMD.LOAD_UNITS or (setTargetCmd and cmdID == setTargetCmd))
+					if supportsArea then
+						-- Start area command drag
+						interactionState.areAreaDragging = true
+						interactionState.areaCommandStartX = mx
+						interactionState.areaCommandStartY = my
+						return true
+					else
+						-- Single command (no area support)
+						IssueCommandAtPoint(cmdID, wx, wz, false, false)
+
+						if not shift then
+							Spring.SetActiveCommand(0)
+						end
+
+						return true
+					end
 				else
-					-- Single build or non-build command (no forced queue)
+					-- Build command without shift (single build)
 					IssueCommandAtPoint(cmdID, wx, wz, false, false)
 
 					if not shift then
@@ -5647,7 +5589,7 @@ function widget:MousePress(mx, my, mButton)
 					interactionState.boxSelectStartY = my
 					interactionState.boxSelectEndX = mx
 					interactionState.boxSelectEndY = my
-					Spring.SetMouseCursor('cursornormal', hideCursorWhilePanning and 2 or 1)
+					--Spring.SetMouseCursor('cursornormal', hideCursorWhilePanning and 2 or 1)
 				else
 					-- Start box selection instead
 					-- Save current selection before starting box selection
@@ -5775,7 +5717,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			-- Start panning
 			interactionState.arePanning = true
 			interactionState.areTracking = nil
-			Spring.SetMouseCursor('cursornormal', hideCursorWhilePanning and 2 or 1)
+			--Spring.SetMouseCursor('cursornormal', hideCursorWhilePanning and 2 or 1)
 		end
 	end
 
@@ -5788,7 +5730,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			-- Start hold-drag panning
 			interactionState.arePanning = true
 			interactionState.areTracking = nil
-			Spring.SetMouseCursor('cursornormal', hideCursorWhilePanning and 2 or 1)
+			--Spring.SetMouseCursor('cursornormal', hideCursorWhilePanning and 2 or 1)
 		end
 	end
 
@@ -5820,7 +5762,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			-- Start panning
 			interactionState.arePanning = true
 			interactionState.areTracking = nil
-			Spring.SetMouseCursor('cursornormal', hideCursorWhilePanning and 2 or 1)
+			--Spring.SetMouseCursor('cursornormal', hideCursorWhilePanning and 2 or 1)
 		end
 	end
 
@@ -6007,7 +5949,7 @@ function widget:MouseRelease(mx, my, mButton)
 
 		if not otherButtonStillPressed then
 			interactionState.arePanning = false
-			Spring.SetMouseCursor('cursornormal')
+			--Spring.SetMouseCursor('cursornormal')
 		end
 	end
 
@@ -6170,6 +6112,68 @@ function widget:MouseRelease(mx, my, mButton)
 			WG.SmartSelect_ClearReference()
 		end
 
+	elseif interactionState.areAreaDragging then
+		-- Complete area command drag
+		local minDragDistance = 5 -- Minimum pixels to consider it a drag
+		local dragDistX = math.abs(mx - interactionState.areaCommandStartX)
+		local dragDistY = math.abs(my - interactionState.areaCommandStartY)
+
+		if mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t then
+			local wx, wz = PipToWorldCoords(mx, my)
+			local startWX, startWZ = PipToWorldCoords(interactionState.areaCommandStartX, interactionState.areaCommandStartY)
+			local _, cmdID = Spring.GetActiveCommand()
+
+			if cmdID and cmdID > 0 then
+				-- Check if this is a set target command
+				local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET
+				local isSetTarget = setTargetCmd and cmdID == setTargetCmd
+
+				if isSetTarget then
+					-- Set target requires a unit at the center point
+					local targetID = GetUnitAtPoint(startWX, startWZ)
+					if targetID then
+						-- Calculate radius in world coordinates
+						local dx = wx - startWX
+						local dz = wz - startWZ
+						local radius = math.sqrt(dx * dx + dz * dz)
+
+						if dragDistX > minDragDistance or dragDistY > minDragDistance then
+							-- It's a drag - issue area set target command
+							local alt, ctrl, meta, shift = Spring.GetModKeyState()
+							local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, false)
+							GiveNotifyingOrder(cmdID, {targetID, startWX, spGetGroundHeight(startWX, startWZ), startWZ, radius}, cmdOpts)
+						else
+							-- It's a click - issue single set target command
+							local alt, ctrl, meta, shift = Spring.GetModKeyState()
+							local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, false)
+							GiveNotifyingOrder(cmdID, {targetID}, cmdOpts)
+						end
+					end
+				else
+					-- Regular area command
+					-- Calculate radius in world coordinates
+					local dx = wx - startWX
+					local dz = wz - startWZ
+					local radius = math.sqrt(dx * dx + dz * dz)
+
+					if dragDistX > minDragDistance or dragDistY > minDragDistance then
+						-- It's a drag - issue area command with radius
+						IssueCommandAtPoint(cmdID, startWX, startWZ, false, false, radius)
+					else
+						-- It's a click - issue single command without radius
+						IssueCommandAtPoint(cmdID, startWX, startWZ, false, false)
+					end
+				end
+
+				local _, _, _, shift = Spring.GetModKeyState()
+				if not shift then
+					Spring.SetActiveCommand(0)
+				end
+			end
+		end
+
+		interactionState.areAreaDragging = false
+
 	elseif interactionState.areFormationDragging then
 		-- End formation drag
 		-- Check if it was a short click vs an actual drag
@@ -6268,11 +6272,11 @@ function widget:MouseRelease(mx, my, mButton)
 				interactionState.panToggleMode = true
 				interactionState.arePanning = true
 				interactionState.areTracking = nil
-				Spring.SetMouseCursor('cursornormal', hideCursorWhilePanning and 2 or 1)
+				--Spring.SetMouseCursor('cursornormal', hideCursorWhilePanning and 2 or 1)
 			else
 				-- It was a hold-drag - stop panning
 				interactionState.arePanning = false
-				Spring.SetMouseCursor('cursornormal')
+				--Spring.SetMouseCursor('cursornormal')
 			end
 			interactionState.middleMousePressed = false
 			interactionState.middleMouseMoved = false
@@ -6284,7 +6288,7 @@ function widget:MouseRelease(mx, my, mButton)
 	-- Only stop panning from left button if not in toggle mode AND using leftButtonPansCamera mode
 	-- (Don't interfere with left+right button panning which handles its own cleanup above)
 	if interactionState.arePanning and not interactionState.panToggleMode and not interactionState.middleMousePressed and leftButtonPansCamera and mButton == 1 then
-		Spring.SetMouseCursor('cursornormal')
+		--Spring.SetMouseCursor('cursornormal')
 		interactionState.arePanning = false
 	end
 
