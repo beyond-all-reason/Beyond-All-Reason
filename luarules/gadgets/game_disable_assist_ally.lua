@@ -17,7 +17,8 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local allowAssist = not Spring.GetModOptions().disable_assist_ally_construction
-if allowAssist then
+local noEasyTax = not Spring.GetModOptions().easytax
+if allowAssist and noEasyTax then
 	return false
 end
 

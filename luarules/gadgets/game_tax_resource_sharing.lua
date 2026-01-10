@@ -3,9 +3,9 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name    = 'Tax Resource Sharing',
-		desc    = 'Tax Resource Sharing when modoption enabled. Modified from "Prevent Excessive Share" by Niobium', -- taxing overflow needs to be handled by the engine 
-		author  = 'Rimilel',
-		date    = 'April 2024',
+		desc    = 'Tax Resource Sharing when modoption enabled. Modified from "Prevent Excessive Share" by Niobium',
+		author  = 'Rimilel, RebelNode',
+		date    = 'April 2024, January 2026',
 		license = 'GNU GPL, v2 or later',
 		layer   = 1, -- Needs to occur before "Prevent Excessive Share" since their restriction on AllowResourceTransfer is not compatible
 		enabled = true
@@ -18,7 +18,7 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
-if Spring.GetModOptions().tax_resource_sharing_amount == 0 then
+if Spring.GetModOptions().tax_resource_sharing_amount == 0 and (not Spring.GetModOptions().easytax) then
 	return false
 end
 
@@ -28,12 +28,13 @@ local spGetTeamUnitCount = Spring.GetTeamUnitCount
 local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 / #Spring.GetTeamList()))
 
 local sharingTax = Spring.GetModOptions().tax_resource_sharing_amount
+if Spring.GetModOptions().easytax then
+	sharingTax = 0.3 -- 30% tax for easytax modoption
+end
 
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
-
-
 
 function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType, amount)
 
@@ -76,31 +77,97 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 	return false
 end
 
+-- Below is implementation of the overflow mechanic in lua with taxing added.
+-- Using this requires disabling engine overflow mechanic completely via modrule "system.nativeExcessSharing = false".
+-- See https://github.com/beyond-all-reason/RecoilEngine/blob/master/rts/Sim/Misc/Team.cpp#L330 for engine overflow logic.
+-- team is the player who is overflowing, otherTeam are the allied players who receive resources
+UPDATE_PERIOD = 15 -- probably doesn't work correctly with anything else than 15
+function gadget:GameFrame(f)
+	if (f-1) % UPDATE_PERIOD == 0 then
+		for j, teamID in ipairs(Spring.GetTeamList()) do
+			teamEnergyCurrentLevel, teamEnergyStorage, teamEnergyPull, teamEnergyIncome, teamEnergyExpense, teamEnergyShare, teamEnergySent, teamEnergyReceived, teamEnergyExcess = Spring.GetTeamResources(teamID, "energy")
+			teamMetalCurrentLevel, teamMetalStorage, teamMetalPull, teamMetalIncome, teamMetalExpense, teamMetalShare, teamMetalSent, teamMetalReceived, teamMetalExcess = Spring.GetTeamResources(teamID, "metal")
 
-function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
-	-- Disallow reclaiming allied units for metal
-	if (cmdID == CMD.RECLAIM and #cmdParams >= 1) then
-		local targetID = cmdParams[1]
-		local targetTeam
-		if(targetID >= Game.maxUnits) then
-			return true
-		end
-		targetTeam = Spring.GetUnitTeam(targetID)
-		if unitTeam ~= targetTeam and Spring.AreTeamsAllied(unitTeam, targetTeam) then
-			return false
-		end
-	-- Also block guarding allied units that can reclaim
-	elseif (cmdID == CMD.GUARD) then
-		local targetID = cmdParams[1]
-		local targetTeam = Spring.GetUnitTeam(targetID)
-		local targetUnitDef = UnitDefs[Spring.GetUnitDefID(targetID)]
+			local eShare = 0.0
+			local mShare = 0.0
 
-		if (unitTeam ~= Spring.GetUnitTeam(targetID)) and Spring.AreTeamsAllied(unitTeam, targetTeam) then
-			-- Labs are considered able to reclaim. In practice you will always use this modoption with "disable_assist_ally_construction", so disallowing guard labs here is fine
-			if targetUnitDef.canReclaim then
-				return false
+			-- calculate the total amount of resources that all
+			-- allied teams can collectively receive through sharing
+			for i, otherTeamID in ipairs(Spring.GetTeamList()) do
+				_,_,isDead = Spring.GetTeamInfo(otherTeamID,false)
+				if otherTeamID ~= teamID and Spring.AreTeamsAllied(teamID, otherTeamID) and (not isDead) then
+					otherTeamMetalCurrentLevel, otherTeamMetalStorage = Spring.GetTeamResources(otherTeamID, "metal")
+					otherTeamEnergyCurrentLevel, otherTeamEnergyStorage = Spring.GetTeamResources(otherTeamID, "energy")
+					eShare = eShare + math.max(0.0, (otherTeamEnergyStorage * 0.99) - otherTeamEnergyCurrentLevel)
+					mShare = mShare + math.max(0.0,(otherTeamMetalStorage * 0.99) - otherTeamMetalCurrentLevel)
+				end
+			end
+
+			-- calculate how much we can share in total (resources above the red share slider)
+			local eExcess = math.max(0.0, teamEnergyCurrentLevel - (teamEnergyStorage * teamEnergyShare))
+			local mExcess = math.max(0.0, teamMetalCurrentLevel  - (teamMetalStorage  * teamMetalShare))
+
+			--- I'm the taxmaaaan
+			eExcess = math.max(0.0, eExcess * (1-sharingTax))
+			mExcess = math.max(0.0, mExcess * (1-sharingTax))
+
+			local de = 0.0
+			local dm = 0.0
+			if eShare > 0.0 then
+				de = math.min(1.0, eExcess / eShare)
+			end
+			if mShare > 0.0 then
+				dm = math.min(1.0, mExcess / mShare)
+			end
+
+			-- now evenly distribute our excess resources among allied teams
+			for i, otherTeamID in ipairs(Spring.GetTeamList()) do
+				_,_,isDead = Spring.GetTeamInfo(otherTeamID,false)
+				if otherTeamID ~= teamID and Spring.AreTeamsAllied(teamID, otherTeamID) and (not isDead) then
+					otherTeamMetalCurrentLevel, otherTeamMetalStorage = Spring.GetTeamResources(otherTeamID, "metal")
+					otherTeamEnergyCurrentLevel, otherTeamEnergyStorage = Spring.GetTeamResources(otherTeamID, "energy")
+					local edif = math.max(0.0, math.min(((otherTeamEnergyStorage * 0.99) - otherTeamEnergyCurrentLevel) * de, teamEnergyCurrentLevel))
+					local mdif = math.max(0.0, math.min(((otherTeamMetalStorage * 0.99) - otherTeamMetalCurrentLevel) * dm, teamMetalCurrentLevel))
+
+					Spring.ShareTeamResource(teamID, otherTeamID, "energy", edif)
+					Spring.ShareTeamResource(teamID, otherTeamID, "metal", mdif)
+				end
+			end
+
+			-- The resources that we technically already wasted are added to allies if possible. This tries to do the same as resDelayedShare in engine. This lets players overflow reclaimed buildings etc. that go over their storage capacity.
+
+			-- Allies have already received some resources above, reduce the amount they can still receive accordingly
+			eShare = eShare - eExcess
+			mShare = mShare - mExcess
+
+			eExcess = math.max(0.0, teamEnergyExcess * 0.5) -- Not sure why we need to take only half of the engine-reported wasted resources here, but it works. Otherwise reclaiming 150 metalcost solar gives 300 metal to allies, which is not good.
+			mExcess = math.max(0.0, teamMetalExcess * 0.5)
+
+			--- Yeeeaaah I'm the taxmaaaan
+			eExcess = math.max(0.0, eExcess * (1-sharingTax))
+			mExcess = math.max(0.0, mExcess * (1-sharingTax))
+
+			if eShare > 0.0 then
+				de = math.min(1.0, eExcess / eShare)
+			end
+			if mShare > 0.0 then
+				dm = math.min(1.0, mExcess / mShare)
+			end
+
+			for i, otherTeamID in ipairs(Spring.GetTeamList()) do
+				_,_,isDead = Spring.GetTeamInfo(otherTeamID,false)
+				if otherTeamID ~= teamID and Spring.AreTeamsAllied(teamID, otherTeamID) and (not isDead) then
+					otherTeamMetalCurrentLevel, otherTeamMetalStorage = Spring.GetTeamResources(otherTeamID, "metal")
+					otherTeamEnergyCurrentLevel, otherTeamEnergyStorage = Spring.GetTeamResources(otherTeamID, "energy")
+					local edif = math.max(0.0, math.min(((otherTeamEnergyStorage * 0.99) - otherTeamEnergyCurrentLevel) * de, teamEnergyCurrentLevel))
+					local mdif = math.max(0.0, math.min(((otherTeamMetalStorage * 0.99) - otherTeamMetalCurrentLevel) * dm, teamMetalCurrentLevel))
+					
+					-- These erroneously count as produced resources for allies in statistics. Not sure how to do this better.
+					-- Maybe try first send the resources to allies and then add it to the sender? This limits excess to sender storage though unless Spring.ShareTeamResource lets you go to negative resources temporarily.
+					Spring.AddTeamResource(otherTeamID, "energy", edif)
+					Spring.AddTeamResource(otherTeamID, "metal", mdif)
+				end
 			end
 		end
 	end
-	return true
 end

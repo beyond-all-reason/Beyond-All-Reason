@@ -1442,6 +1442,15 @@ local options = {
         def  	= false,
     },
 
+    {
+        key 	= "easytax",
+        name 	= "Easy Sharing Tax",
+        desc 	= "Anti co-op sharing tax mod. Overwrites other tax settings. Don't combine with other sharing restriction mods, everything you need is included with easy tax.",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+    },
+
     -- Hidden Tests
 
     {
