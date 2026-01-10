@@ -321,29 +321,7 @@ local function generateOverlapLines(commanderID)
 		end
 	end
 
-	if comData.teamID == 0 then
-		Spring.Echo("[QuickStart Debug] Generating overlap lines for commander " .. commanderID .. " at (" .. comData.spawnX .. ", " .. comData.spawnZ .. ") with range " .. INSTANT_BUILD_RANGE)
-		Spring.Echo("[QuickStart Debug] Found " .. #neighbors .. " neighbors:")
-		local neighborIndex = 1
-		for _, otherTeamID in ipairs(allTeamsList) do
-			if otherTeamID ~= comData.teamID then
-				local sx, sy, sz = Spring.GetTeamStartPosition(otherTeamID)
-				if sx and sx >= 0 then
-					Spring.Echo("[QuickStart Debug]   Neighbor " .. neighborIndex .. ": team " .. otherTeamID .. " at (" .. sx .. ", " .. sz .. ")")
-					neighborIndex = neighborIndex + 1
-				end
-			end
-		end
-	end
-
 	comData.overlapLines = overlapLines.getOverlapLines(comData.spawnX, comData.spawnZ, neighbors, INSTANT_BUILD_RANGE)
-
-	if comData.teamID == 0 then
-		Spring.Echo("[QuickStart Debug] Generated " .. #comData.overlapLines .. " overlap lines")
-		for i, line in ipairs(comData.overlapLines) do
-			Spring.Echo(string.format("[QuickStart Debug]   Line %d: A=%.2f, B=%.2f, C=%.2f, originVal=%.2f", i, line.A, line.B, line.C, line.originVal))
-		end
-	end
 end
 
 local function getCommanderBuildQueue(commanderID)
@@ -367,14 +345,6 @@ local function getCommanderBuildQueue(commanderID)
 			local isTraversable = traversabilityGrid.canMoveToPosition(commanderID, spawnParams.x, spawnParams.z, GRID_CHECK_RESOLUTION_MULTIPLIER) or false
 			local isPastFriendlyLines = overlapLines.isPointPastLines(spawnParams.x, spawnParams.z, comData.spawnX, comData.spawnZ, comData.overlapLines)
 
-			if comData.teamID == 0 then
-				local unitName = UnitDefs[unitDefID] and UnitDefs[unitDefID].name or "nil"
-				Spring.Echo("[QuickStart Debug] Checking build position (" .. spawnParams.x .. ", " .. spawnParams.z .. ") for unit " .. unitName)
-				Spring.Echo("[QuickStart Debug]   Commander origin: (" .. comData.spawnX .. ", " .. comData.spawnZ .. ")")
-				Spring.Echo("[QuickStart Debug]   Distance: " .. distance .. " <= " .. INSTANT_BUILD_RANGE .. " = " .. (distance <= INSTANT_BUILD_RANGE and "true" or "false"))
-				Spring.Echo("[QuickStart Debug]   Is traversable: " .. (isTraversable and "true" or "false"))
-				Spring.Echo("[QuickStart Debug]   Is past friendly lines: " .. (isPastFriendlyLines and "true" or "false"))
-			end
 
 			if distance <= INSTANT_BUILD_RANGE and isTraversable and not isPastFriendlyLines then
 				local budgetCost = defMetergies[unitDefID] or 0
@@ -838,9 +808,6 @@ function gadget:GameFrame(frame)
 		while loop do
 			loop = false
 			for commanderID, comData in pairs(commanders) do
-				if comData.teamID == 0 then
-					Spring.Echo("[QuickStart Debug] Processing commander " .. commanderID .. " spawnQueue with " .. #comData.spawnQueue .. " items, budget: " .. comData.budget)
-				end
 				if comData.spawnQueue then
 					for i, buildItem in ipairs(comData.spawnQueue) do
 						local buildType = optionDefIDToTypes[buildItem.id]
@@ -849,22 +816,12 @@ function gadget:GameFrame(frame)
 							buildX, buildY, buildZ = getBuildSpace(commanderID, buildType)
 						end
 						local facing = buildItem.facing or comData.defaultFacing or 0
-						if comData.teamID == 0 then
-							local unitName = buildItem.id and UnitDefs[buildItem.id] and UnitDefs[buildItem.id].name or "nil"
-							Spring.Echo("[QuickStart Debug] Item " .. i .. ": unit=" .. unitName .. ", buildX=" .. (buildX or "nil") .. ", budget>0=" .. (comData.budget > 0 and "true" or "false"))
-						end
 						if buildItem.id and buildX and comData.budget > 0 then
 							local success = tryToSpawnBuild(commanderID, buildItem.id, buildX, buildY, buildZ, facing)
-							if comData.teamID == 0 then
-								Spring.Echo("[QuickStart Debug] Spawn attempt result: " .. (success and "SUCCESS" or "FAILED"))
-							end
 							if success then
 								loop = true
 							end
 						else
-							if comData.teamID == 0 then
-								Spring.Echo("[QuickStart Debug] Spawn conditions not met, skipping item " .. i)
-							end
 						end
 					end
 				end

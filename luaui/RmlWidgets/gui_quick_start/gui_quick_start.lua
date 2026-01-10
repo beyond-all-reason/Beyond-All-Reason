@@ -285,10 +285,6 @@ local function updateTraversabilityGrid()
 
 		local linesChanged = linesHaveChanged(newOverlapLines, previousOverlapLines)
 		if linesChanged then
-			Spring.Echo("[QuickStart Debug GUI] Generated " .. #newOverlapLines .. " overlap lines (CHANGED) at origin (" .. commanderX .. ", " .. commanderZ .. ")")
-			for i, line in ipairs(newOverlapLines) do
-				Spring.Echo(string.format("[QuickStart Debug GUI]   Line %d: A=%.2f, B=%.2f, C=%.2f, originVal=%.2f", i, line.A, line.B, line.C, line.originVal))
-			end
 			previousOverlapLines = {}
 			for i, line in ipairs(newOverlapLines) do
 				previousOverlapLines[i] = {

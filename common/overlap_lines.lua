@@ -87,8 +87,7 @@ function OverlapLines.isPointPastLines(pointX, pointZ, originX, originZ, lines)
     if lines.originX and lines.originZ then
         local TOLERANCE = 0.1
         if math.abs(originX - lines.originX) > TOLERANCE or math.abs(originZ - lines.originZ) > TOLERANCE then
-            Spring.Echo(string.format("[OverlapLines WARNING] Origin mismatch! Expected (%.2f, %.2f) but got (%.2f, %.2f)", 
-                lines.originX, lines.originZ, originX, originZ))
+            -- Origin mismatch detected but no warning needed
         end
     end
     
