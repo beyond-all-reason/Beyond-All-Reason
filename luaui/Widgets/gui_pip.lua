@@ -174,11 +174,11 @@ local mapmarkInitTime = 0 -- Track when mapmark was initiated
 local backupTracking = nil -- Store tracking state and camera position when switching views: {tracking = units, camX = x, camZ = z}
 local isSwitchingViews = false -- Track when we're doing a pip_switch transition
 local hadSavedConfig = false -- Track if we loaded from saved config (to avoid auto-minimize on reload)
-local unitShader
 local pipUnits = {}
 local pipFeatures = {}
 -- Arrays for unit icons (batched drawing)
-local pipIconTeam, pipIconX, pipIconY, pipIconUdef, pipIconSelected = {}, {}, {}, {}, {}
+local pipIconTeam, pipIconX, pipIconY, pipIconUdef, pipIconSelected, pipIconBuildProgress, pipIconTracked = {}, {}, {}, {}, {}, {}, {}
+local trackedIconIndices = {} -- Indices of tracked units for optimized rendering
 local lastSelectionboxEnabled = nil -- Track selectionbox widget state for command color config
 
 -- Reusable table pools to reduce GC pressure
@@ -778,6 +778,21 @@ local function DrawUnit(uID)
 	pipIconX[idx], pipIconY[idx] = WorldToPipCoords(ux, uz)
 	pipIconUdef[idx] = uDefID
 	pipIconSelected[idx] = spIsUnitSelected(uID)
+	-- Get build progress (1 for finished units, < 1 for units under construction)
+	local _, _, _, _, buildProgress = spGetUnitHealth(uID)
+	pipIconBuildProgress[idx] = buildProgress or 1
+	-- Check if this unit is being tracked
+	local isTracked = false
+	if interactionState.areTracking then
+		for _, trackedID in ipairs(interactionState.areTracking) do
+			if trackedID == uID then
+				isTracked = true
+				trackedIconIndices[#trackedIconIndices + 1] = idx
+				break
+			end
+		end
+	end
+	pipIconTracked[idx] = isTracked
 	glPopMatrix()
 end
 
@@ -2337,35 +2352,24 @@ end
 function widget:Initialize()
 
 	unitOutlineList = gl.CreateList(function()
-			gl.BeginEnd(GL.LINE_LOOP, function()
-				gl.Vertex( 1, 0, 1)
-				gl.Vertex( 1, 0,-1)
-				gl.Vertex(-1, 0,-1)
-				gl.Vertex(-1, 0, 1)
-			end)
+		gl.BeginEnd(GL.LINE_LOOP, function()
+			gl.Vertex( 1, 0, 1)
+			gl.Vertex( 1, 0,-1)
+			gl.Vertex(-1, 0,-1)
+			gl.Vertex(-1, 0, 1)
 		end)
+	end)
 
 	radarDotList = gl.CreateList(function()
-			glTexture('LuaUI/Images/pip/PipBlip.png')
-			glBeginEnd(GL_QUADS, function()
-				glVertex( iconRadius, iconRadius)
-				glVertex( iconRadius,-iconRadius)
-				glVertex(-iconRadius,-iconRadius)
-				glVertex(-iconRadius, iconRadius)
-			end)
-			glTexture(false)
+		glTexture('LuaUI/Images/pip/PipBlip.png')
+		glBeginEnd(GL_QUADS, function()
+			glVertex( iconRadius, iconRadius)
+			glVertex( iconRadius,-iconRadius)
+			glVertex(-iconRadius,-iconRadius)
+			glVertex(-iconRadius, iconRadius)
 		end)
-
-	unitShader = gl.CreateShader({
-			fragment = [[
-				uniform sampler2D unitTex;
-				void main(void) {
-					gl_FragData[0]     = texture2D(unitTex, gl_TexCoord[0].st);
-					gl_FragData[0].rgb = mix(gl_FragData[0].rgb, gl_Color.rgb, gl_FragData[0].a);
-					gl_FragData[0].a   = gl_FragCoord.z;
-				}
-			]],
-		})
+		glTexture(false)
+	end)
 
 	local iconTypes = VFS.Include("gamedata/icontypes.lua")
 	for uDefID, uDef in pairs(UnitDefs) do
@@ -2615,7 +2619,6 @@ function widget:ViewResize()
 end
 
 function widget:Shutdown()
-	gl.DeleteShader(unitShader)
 	gl.DeleteList(unitOutlineList)
 	gl.DeleteList(radarDotList)
 
@@ -3334,10 +3337,65 @@ local function DrawIcons()
 		defaultIconIndices[i] = nil
 	end
 
+
+	-- Draw white backgrounds for tracked units FIRST (before normal icons)
+	local trackedCount = #trackedIconIndices
+	if trackedCount > 0 then
+		gl.Blending(GL.ONE, GL.ONE)  -- Full additive blending for bright white glow
+
+		-- Group tracked units by texture for batching
+		local trackedByTexture = {}
+		for i = 1, trackedCount do
+			local idx = trackedIconIndices[i]
+			local udef = pipIconUdef[idx]
+			if udef and cache.unitIcon[udef] then
+				local texture = cache.unitIcon[udef].bitmap
+				if texture then
+					if not trackedByTexture[texture] then
+						trackedByTexture[texture] = {}
+					end
+					trackedByTexture[texture][#trackedByTexture[texture] + 1] = idx
+				end
+			end
+		end
+
+		-- Draw tracked unit backgrounds grouped by texture
+		for texture, indices in pairs(trackedByTexture) do
+			glTexture(texture)
+			gl.BeginEnd(GL_QUADS, function()
+				for j = 1, #indices do
+					local idx = indices[j]
+					local cx = pipIconX[idx]
+					local cy = pipIconY[idx]
+					local udef = pipIconUdef[idx]
+					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
+					-- Fixed border size that's smaller for larger units
+					local baseSize = cache.unitIcon[udef].size
+					local borderPixels = 0.075 / baseSize  -- Inverse relationship: smaller units get proportionally more border
+					local enlargedSize = iconSize * (1 + borderPixels)
+
+					glColor(1, 1, 1, 1)
+					glTexCoord(texInset, 1 - texInset)
+					glVertex(cx - enlargedSize, cy - enlargedSize)
+					glTexCoord(1 - texInset, 1 - texInset)
+					glVertex(cx + enlargedSize, cy - enlargedSize)
+					glTexCoord(1 - texInset, texInset)
+					glVertex(cx + enlargedSize, cy + enlargedSize)
+					glTexCoord(texInset, texInset)
+					glVertex(cx - enlargedSize, cy + enlargedSize)
+				end
+			end)
+		end
+		glTexture(false)
+	end
+
 	-- Draw icons grouped by texture (minimizes texture binding)
 	for texture, indices in pairs(iconsByTexture) do
 		glTexture(texture)
 		local indexCount = #indices
+
+		-- Draw normal icons
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		gl.BeginEnd(GL_QUADS, function()
 			for j = 1, indexCount do
 				local i = indices[j]
@@ -3346,10 +3404,20 @@ local function DrawIcons()
 				local udef = pipIconUdef[i]
 				local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
 
-				if pipIconSelected[i] then
-					glColor(1,1,1,1)
+				-- 0.15 to 0.7 while building, then jump to 1.0 when complete
+				local buildProgress = pipIconBuildProgress[i]
+				local opacity
+				if buildProgress >= 1 then
+					opacity = 1.0
 				else
-					glColor(teamColors[pipIconTeam[i]])
+					opacity = 0.15 + (buildProgress * 0.55)
+				end
+
+				if pipIconSelected[i] then
+					glColor(1, 1, 1, opacity)
+				else
+					local color = teamColors[pipIconTeam[i]]
+					glColor(color[1], color[2], color[3], opacity)
 				end
 				-- Use manual texture coordinates with inset to prevent edge bleeding
 				glTexCoord(texInset, 1 - texInset)
@@ -3374,10 +3442,20 @@ local function DrawIcons()
 				local cx = pipIconX[i]
 				local cy = pipIconY[i]
 
-				if pipIconSelected[i] then
-					glColor(1,1,1,1)
+				-- 0.15 to 0.7 while building, then jump to 1.0 when complete
+				local buildProgress = pipIconBuildProgress[i]
+				local opacity
+				if buildProgress >= 1 then
+					opacity = 1.0
 				else
-					glColor(teamColors[pipIconTeam[i]])
+					opacity = 0.15 + (buildProgress * 0.55)
+				end
+
+				if pipIconSelected[i] then
+					glColor(1, 1, 1, opacity)
+				else
+					local color = teamColors[pipIconTeam[i]]
+					glColor(color[1], color[2], color[3], opacity)
 				end
 				-- Use manual texture coordinates with inset to prevent edge bleeding
 				glTexCoord(texInset, 1 - texInset)
@@ -3421,7 +3499,13 @@ local function DrawUnitsAndFeatures()
 			pipIconY[i] = nil
 			pipIconUdef[i] = nil
 			pipIconSelected[i] = nil
+			pipIconBuildProgress[i] = nil
+			pipIconTracked[i] = nil
 		end
+	end
+	-- Clear tracked indices
+	for i = #trackedIconIndices, 1, -1 do
+		trackedIconIndices[i] = nil
 	end
 
 	-- Note: cameraRotY is now set in DrawScreen before this function is called
@@ -3432,7 +3516,6 @@ local function DrawUnitsAndFeatures()
 	gl.AlphaTest(false)
 
 	gl.Scissor(dim.l, dim.b, dim.r - dim.l, dim.t - dim.b)
-	gl.UseShader(unitShader)
 	gl.LineWidth(2.0)
 
 	-- Precompute center translation values (used by all drawing)
@@ -3462,15 +3545,14 @@ local function DrawUnitsAndFeatures()
 		glTranslate(centerX, centerY, 0)
 		glScale(zoom * contentScale, zoom * contentScale, zoom * contentScale)
 
-		-- Draw units
+		-- Draw units (only icon data collection now, no 3D rendering)
 		for i = 1, unitCount do
 			DrawUnit(pipUnits[i])
 		end
 
-		glTexture(0, '$units')
-
-		-- Draw features
+		-- Draw features (3D models)
 		if zoom >= zoomFeatures then  -- Only draw features if zoom is above threshold
+			glTexture(0, '$units')
 			for i = 1, featureCount do
 				DrawFeature(pipFeatures[i])
 			end
@@ -3479,12 +3561,8 @@ local function DrawUnitsAndFeatures()
 		-- Draw projectiles if enabled
 		if drawProjectiles then
 			glTexture(0, false)
-			gl.UseShader(0)
 			gl.Blending(true)
 			gl.DepthTest(false)
-
-			-- Only draw expensive projectile details when zoomed in enough
-			local drawProjectileDetail = zoom >= zoomProjectileDetail
 
 			if zoom >= zoomProjectileDetail then
 				-- Get projectiles in the PIP window's world rectangle
@@ -3511,14 +3589,12 @@ local function DrawUnitsAndFeatures()
 
 			gl.DepthTest(true)
 			gl.Blending(false)
-			gl.UseShader(unitShader)
 		end
 
 	glPopMatrix()
 
 
 	glTexture(0, false)
-	gl.UseShader(0)
 	gl.Blending(true)
 	gl.DepthMask(false)
 	gl.DepthTest(false)
@@ -4231,14 +4307,11 @@ function widget:DrawScreen()
 
 	-- Draw tracking (corner) indicators
 	if interactionState.areTracking and #interactionState.areTracking > 0 then
-		local width = dim.r - dim.l
-		local height = dim.t - dim.b
-		local cornerLength = math.min(width, height) * 0.45
 		local lineWidth = math.ceil(2 * (vsx / 1920))
 		local offset = lineWidth * 0.5  -- Offset to account for line width
 
 		gl.LineWidth(lineWidth)
-		glColor(1, 1, 1, 0.15)
+		glColor(1, 1, 1, 0.22)
 
 		-- Rectangle box
 		glBeginEnd(GL_LINE_STRIP, function()
@@ -4247,48 +4320,6 @@ function widget:DrawScreen()
 			gl.Vertex(dim.r - offset, dim.b + offset)
 			gl.Vertex(dim.l + offset, dim.b + offset)
 			gl.Vertex(dim.l + offset, dim.t - offset)
-		end)
-
-		local opacity = 0.25
-
-		-- Top-left corner
-		glBeginEnd(GL_LINE_STRIP, function()
-			glColor(1, 1, 1, 0)
-			gl.Vertex(dim.l + cornerLength, dim.t - offset)
-			glColor(1, 1, 1, opacity)
-			gl.Vertex(dim.l + offset, dim.t - offset)
-			glColor(1, 1, 1, 0)
-			gl.Vertex(dim.l + offset, dim.t - cornerLength)
-		end)
-
-		-- Top-right corner
-		glBeginEnd(GL_LINE_STRIP, function()
-			glColor(1, 1, 1, 0)
-			gl.Vertex(dim.r - cornerLength, dim.t - offset)
-			glColor(1, 1, 1, opacity)
-			gl.Vertex(dim.r - offset, dim.t - offset)
-			glColor(1, 1, 1, 0)
-			gl.Vertex(dim.r - offset, dim.t - cornerLength)
-		end)
-
-		-- Bottom-left corner
-		glBeginEnd(GL_LINE_STRIP, function()
-			glColor(1, 1, 1, 0)
-			gl.Vertex(dim.l + cornerLength, dim.b + offset)
-			glColor(1, 1, 1, opacity)
-			gl.Vertex(dim.l + offset, dim.b + offset)
-			glColor(1, 1, 1, 0)
-			gl.Vertex(dim.l + offset, dim.b + cornerLength)
-		end)
-
-		-- Bottom-right corner
-		glBeginEnd(GL_LINE_STRIP, function()
-			glColor(1, 1, 1, 0)
-			gl.Vertex(dim.r - cornerLength, dim.b + offset)
-			glColor(1, 1, 1, opacity)
-			gl.Vertex(dim.r - offset, dim.b + offset)
-			glColor(1, 1, 1, 0)
-			gl.Vertex(dim.r - offset, dim.b + cornerLength)
 		end)
 
 		gl.LineWidth(1)
@@ -4433,20 +4464,6 @@ function widget:DrawScreen()
 		font:Print(pipNumber, dim.l + padding, dim.t - (fontSize*1.15) - padding, fontSize*2, "no")
 		font:End()	-- Draw box selection rectangle
 	end
-
-	-- -- Display tracking count (top-left corner)
-	-- if interactionState.areTracking and #interactionState.areTracking > 0 then
-	-- 	glColor(panelBorderColorDark)
-	-- 	RectRound(dim.l, dim.t - usedButtonSize, dim.l + usedButtonSize, dim.t, elementCorner*0.4, 0, 0, 1, 0)
-	-- 	local fontSize = 14
-	-- 	local padding = 12
-	-- 	local trackingCount = #interactionState.areTracking
-	-- 	font:Begin()
-	-- 	font:SetTextColor(0.95, 0.95, 0.95, 1)  -- Yellow-ish color to stand out
-	-- 	font:SetOutlineColor(0, 0, 0, 0.8)
-	-- 	font:Print(trackingCount, dim.l + padding, dim.t - (fontSize*1.15) - padding, fontSize*2, "no")
-	-- 	font:End()
-	-- end
 
 	-- Display current max update rate (top-left corner)
 	-- local fontSize = 11
