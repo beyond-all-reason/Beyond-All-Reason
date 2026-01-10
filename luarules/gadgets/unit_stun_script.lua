@@ -28,18 +28,20 @@ end
 
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spCallCOBScript = Spring.CallCOBScript
+local spCallAsUnit = Spring.UnitScript.CallAsUnit
+local spGetScriptEnv = Spring.UnitScript.GetScriptEnv
 
 local spGetCOBScriptID = Spring.GetCOBScriptID
 local GetScriptFunc = function (unitID, functionName)
 	if Spring.GetCOBScriptID(unitID, functionName) then
 		return spCallCOBScript
 	end
-	local env = Spring.UnitScript.GetScriptEnv(unitID)
+	local env = spGetScriptEnv(unitID)
 	if env and env[functionName] then
 		return (
 			function(uid, functionName, a,b)
-				local scriptEnv = Spring.UnitScript.GetScriptEnv(uid)
-				Spring.UnitScript.CallAsUnit(uid, scriptEnv[functionName], a,b)
+				local scriptEnv = spGetScriptEnv(uid)
+				spCallAsUnit(uid, scriptEnv[functionName], a,b)
 			end
 		)
 	end
