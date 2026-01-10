@@ -86,7 +86,7 @@ end
 -- Using this requires disabling engine overflow mechanic completely via modrule "system.nativeExcessSharing = false".
 -- See https://github.com/beyond-all-reason/RecoilEngine/blob/master/rts/Sim/Misc/Team.cpp#L330 for engine overflow logic.
 -- team is the player who is overflowing, otherTeam are the allied players who receive resources
-UPDATE_PERIOD = 15 -- probably doesn't work correctly with anything else than 15
+UPDATE_PERIOD = 30 -- probably don't try to change this, apparently it's 30 in engine Team.cpp
 function gadget:GameFrame(f)
 	if (f-1) % UPDATE_PERIOD == 0 then
 		for j, teamID in ipairs(Spring.GetTeamList()) do
@@ -146,8 +146,8 @@ function gadget:GameFrame(f)
 			eShare = eShare - eExcess
 			mShare = mShare - mExcess
 
-			eExcess = math.max(0.0, teamEnergyExcess * 0.5) -- Not sure why we need to take only half of the engine-reported wasted resources here, but it works. Otherwise reclaiming 150 metalcost solar gives 300 metal to allies, which is not good.
-			mExcess = math.max(0.0, teamMetalExcess * 0.5)
+			eExcess = math.max(0.0, teamEnergyExcess)
+			mExcess = math.max(0.0, teamMetalExcess)
 
 			--- Tax the extra overflow
 			eExcess = math.max(0.0, eExcess * (1-sharingTax))
