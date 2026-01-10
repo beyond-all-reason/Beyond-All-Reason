@@ -189,7 +189,17 @@ local State = {
 	circleList = 0,
 	unitDiskList = 0,
 
-	aimData = defaultAimData
+	aimData = defaultAimData,
+
+	-- Conditional rendering cache
+	lastDrawFrame = -1,
+	lastDrawState = {
+		position = {x = 0, y = 0, z = 0},
+		weaponType = nil,
+		pulsePhase = 0,
+		baseColor = {0, 0, 0, 0},
+		shouldDraw = false
+	}
 }
 
 for udid, ud in pairs(UnitDefs) do
@@ -246,7 +256,7 @@ end
 --------------------------------------------------------------------------------
 -- MOUSE LOGIC
 --------------------------------------------------------------------------------
-local function GetMouseTargetPosition(weaponType, aimingUnitID)
+local function GetMouseTargetPosition(weaponType)
 	local isDgun = weaponType == "dgun"
 	local mx, my = spGetMouseState()
 	local targetType, target = spTraceScreenRay(mx, my)
@@ -279,15 +289,6 @@ local function GetMouseTargetPosition(weaponType, aimingUnitID)
 
 	if targetType == "unit" then
 		local unitID = target
-		-- do not snap when aiming at yourself
-		if unitID == aimingUnitID then
-			local groundPosition = GetGroundPosition()
-			if groundPosition then
-				return groundPosition[1], groundPosition[2], groundPosition[3]
-			else
-				return nil
-			end
-		end
 		local isAlly = spIsUnitAllied(unitID)
 		local shouldIgnoreUnit = false
 
@@ -412,6 +413,56 @@ end
 -- we don't want to start in the middle of animation when enabling the command
 local function ResetPulseAnimation()
 	State.pulsePhase = 0
+	State.lastDrawState.shouldDraw = false
+end
+
+--------------------------------------------------------------------------------
+-- CONDITIONAL RENDERING OPTIMIZATION
+--------------------------------------------------------------------------------
+local function ShouldRedrawAoe(currentFrame, currentPosition, currentWeaponType, currentPulsePhase, currentBaseColor)
+	local lastState = State.lastDrawState
+
+	-- Always draw on first frame or if we weren't drawing before
+	if State.lastDrawFrame ~= currentFrame - 1 or not lastState.shouldDraw then
+		return true
+	end
+
+	-- Check if position changed significantly (>5 units)
+	local posChanged = distance3d(
+		currentPosition.x, currentPosition.y, currentPosition.z,
+		lastState.position.x, lastState.position.y, lastState.position.z
+	) > 5
+
+	-- Check if weapon type changed
+	local weaponChanged = currentWeaponType ~= lastState.weaponType
+
+	-- Check if pulse phase changed significantly (>0.1 for visible difference)
+	local phaseChanged = math.abs(currentPulsePhase - lastState.pulsePhase) > 0.1
+
+	-- Check if base color changed significantly
+	local colorChanged = not currentBaseColor or not lastState.baseColor or
+		math.abs(currentBaseColor[1] - lastState.baseColor[1]) > 0.1 or
+		math.abs(currentBaseColor[2] - lastState.baseColor[2]) > 0.1 or
+		math.abs(currentBaseColor[3] - lastState.baseColor[3]) > 0.1 or
+		math.abs(currentBaseColor[4] - lastState.baseColor[4]) > 0.1
+
+	return posChanged or weaponChanged or phaseChanged or colorChanged
+end
+
+local function UpdateDrawCache(currentFrame, currentPosition, currentWeaponType, currentPulsePhase, currentBaseColor)
+	State.lastDrawFrame = currentFrame
+	State.lastDrawState.position.x = currentPosition.x
+	State.lastDrawState.position.y = currentPosition.y
+	State.lastDrawState.position.z = currentPosition.z
+	State.lastDrawState.weaponType = currentWeaponType
+	State.lastDrawState.pulsePhase = currentPulsePhase
+	if currentBaseColor then
+		State.lastDrawState.baseColor[1] = currentBaseColor[1]
+		State.lastDrawState.baseColor[2] = currentBaseColor[2]
+		State.lastDrawState.baseColor[3] = currentBaseColor[3]
+		State.lastDrawState.baseColor[4] = currentBaseColor[4]
+	end
+	State.lastDrawState.shouldDraw = true
 end
 
 --------------------------------------------------------------------------------
@@ -715,10 +766,9 @@ local function GetUnitWithBestStockpile(unitIDs)
 	local maxProgress = 0
 	for _, unitId in ipairs(unitIDs) do
 		local numStockpiled, numStockpileQued, buildPercent = spGetUnitStockpile(unitId)
-		-- these can be nil when switching teams as spectator
-		if numStockpiled and numStockpiled > 0 then
+		if numStockpiled > 0 then
 			return unitId
-		elseif buildPercent and buildPercent > maxProgress then
+		elseif buildPercent > maxProgress then
 			maxProgress = buildPercent
 			bestUnit = unitId
 		end
@@ -1051,11 +1101,6 @@ local function DrawNoExplode(data, overrideSource)
 
 	local br = diag(bx, bz)
 
-	-- do not try to draw indicator when aiming at yourself
-	if br == 0 then
-		return
-	end
-
 	local wx = -aoe * bz / br
 	local wz = aoe * bx / br
 
@@ -1292,7 +1337,7 @@ local function DrawBallisticScatter(data)
 	-- VISIBILITY
 	----------------------------------------------------------------------------
 	local scatterSize = max(naturalRadius, lenUp)
-	local minScatterRadius = max(weaponInfo.aoe, 15) * 1.4
+	local minScatterRadius = max(weaponInfo.aoe, 15) * 0.7
 	local scatterAlphaFactor = GetSizeBasedAlpha(scatterSize, minScatterRadius)
 
 	if scatterAlphaFactor <= 0 then
@@ -1509,11 +1554,6 @@ local function DrawDirectScatter(data)
 	-- We need to ignore the height difference
 	local groundVectorMag = sqrt(1 - aimDirY * aimDirY)
 
-	-- do not try to draw indicator when aiming at yourself
-	if groundVectorMag == 0 then
-		return
-	end
-
 	-- Push the start point from the center of the unit to the perimeter
 	local edgeOffsetX = (aimDirX / groundVectorMag) * unitRadius
 	local edgeOffsetZ = (aimDirZ / groundVectorMag) * unitRadius
@@ -1650,7 +1690,7 @@ function widget:DrawWorldPreUnit()
 		return
 	end
 
-	local tx, ty, tz = GetMouseTargetPosition(weaponInfos.primary.type, aimingUnitID)
+	local tx, ty, tz = GetMouseTargetPosition(weaponInfos.primary.type)
 	if not tx then
 		ResetPulseAnimation()
 		return
@@ -1709,8 +1749,30 @@ function widget:DrawWorldPreUnit()
 		CopyColor(scatterColor, aimData.colors.scatter)
 	end
 
-	local handleWeaponType = WeaponTypeHandlers[weaponInfo.type] or DrawAoe
-	handleWeaponType(aimData)
+	-- Conditional rendering: only draw if state changed significantly
+	local currentFrame = Spring.GetGameFrame()
+	local currentPosition = {x = tx, y = ty, z = tz}
+
+	if ShouldRedrawAoe(currentFrame, currentPosition, weaponInfo.type, State.pulsePhase, baseColor) then
+		UpdateDrawCache(currentFrame, currentPosition, weaponInfo.type, State.pulsePhase, baseColor)
+
+		local handleWeaponType = WeaponTypeHandlers[weaponInfo.type] or DrawAoe
+		handleWeaponType(aimData)
+
+		-- Draw Stockpile Progress
+		if weaponInfo.hasStockpile then
+			local numStockpiled, numStockpileQued, buildPercent = spGetUnitStockpile(aimingUnitID)
+
+			if numStockpiled > 0 then
+				-- do not 'load' the bar during transition
+				buildPercent = 1
+			end
+			DrawStockpileProgress(aimData, buildPercent, baseColor, noStockpileColor)
+		end
+	else
+		-- Mark that we should draw next frame (in case conditions change)
+		State.lastDrawState.shouldDraw = false
+	end
 
 	-- Draw Stockpile Progress
 	if weaponInfo.hasStockpile then

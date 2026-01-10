@@ -48,7 +48,6 @@ local QUICK_START_CONDITION_KEY = "quickStartUnallocatedBudget"
 local ENERGY_VALUE_CONVERSION_MULTIPLIER = 1/60 --60 being the energy conversion rate of t2 energy converters, statically defined so future changes not to affect this.
 local BUILD_TIME_VALUE_CONVERSION_MULTIPLIER = 1/300 --300 being a representative of commander workertime, statically defined so future com unitdef adjustments don't change this.
 local DEFAULT_INSTANT_BUILD_RANGE = 500
-local TRAVERSABILITY_GRID_GENERATION_RANGE = 576 --must match the value in game_quick_start.lua. It has to be slightly larger than the instant build range to account for traversability_grid snapping at TRAVERSABILITY_GRID_RESOLUTION intervals
 local TRAVERSABILITY_GRID_RESOLUTION = 32
 local GRID_CHECK_RESOLUTION_MULTIPLIER = 1
 
@@ -65,6 +64,26 @@ local lastRulesUpdate = 0
 local RULES_CACHE_DURATION = 0.1
 local lastStartPositions = {}
 local overlapLinesDisplayList = nil
+local previousOverlapLines = {}
+
+local function linesHaveChanged(newLines, oldLines)
+	if #newLines ~= #oldLines then
+		return true
+	end
+
+	for i, newLine in ipairs(newLines) do
+		local oldLine = oldLines[i]
+		if not oldLine or
+		   newLine.A ~= oldLine.A or
+		   newLine.B ~= oldLine.B or
+		   newLine.C ~= oldLine.C or
+		   newLine.originVal ~= oldLine.originVal then
+			return true
+		end
+	end
+
+	return false
+end
 
 local function hasStartPositionsChanged()
 	local changed = false
@@ -223,6 +242,7 @@ local function getCachedGameRules()
 		cachedGameRules.instantBuildRange = spGetGameRulesParam("overridePregameBuildDistance") or DEFAULT_INSTANT_BUILD_RANGE
 		cachedGameRules.budgetThresholdToAllowStart = spGetGameRulesParam("quickStartBudgetThresholdToAllowStart") or 0
 		cachedGameRules.metalDeduction = spGetGameRulesParam("quickStartMetalDeduction") or 800
+		cachedGameRules.traversabilityGridRange = spGetGameRulesParam("quickStartTraversabilityGridRange") or 576
 		lastRulesUpdate = currentTime
 	end
 	return cachedGameRules
@@ -246,7 +266,8 @@ local function updateTraversabilityGrid()
 	
 	local positionsChanged = hasStartPositionsChanged()
 	if lastCommanderX ~= commanderX or lastCommanderZ ~= commanderZ or positionsChanged then
-		traversabilityGrid.generateTraversableGrid(commanderX, commanderZ, TRAVERSABILITY_GRID_GENERATION_RANGE, TRAVERSABILITY_GRID_RESOLUTION, "myGrid")
+		local gameRules = getCachedGameRules()
+		traversabilityGrid.generateTraversableGrid(commanderX, commanderZ, gameRules.traversabilityGridRange, TRAVERSABILITY_GRID_RESOLUTION, "myGrid")
 		
 		local neighbors = {}
 		local teamList = Spring.GetTeamList()
@@ -260,7 +281,26 @@ local function updateTraversabilityGrid()
 		end
 		
 		local gameRules = getCachedGameRules()
-		cachedOverlapLines = overlapLines.getOverlapLines(commanderX, commanderZ, neighbors, gameRules.instantBuildRange or DEFAULT_INSTANT_BUILD_RANGE)
+		local newOverlapLines = overlapLines.getOverlapLines(commanderX, commanderZ, neighbors, gameRules.instantBuildRange or DEFAULT_INSTANT_BUILD_RANGE)
+
+		local linesChanged = linesHaveChanged(newOverlapLines, previousOverlapLines)
+		if linesChanged then
+			Spring.Echo("[QuickStart Debug GUI] Generated " .. #newOverlapLines .. " overlap lines (CHANGED) at origin (" .. commanderX .. ", " .. commanderZ .. ")")
+			for i, line in ipairs(newOverlapLines) do
+				Spring.Echo(string.format("[QuickStart Debug GUI]   Line %d: A=%.2f, B=%.2f, C=%.2f, originVal=%.2f", i, line.A, line.B, line.C, line.originVal))
+			end
+			previousOverlapLines = {}
+			for i, line in ipairs(newOverlapLines) do
+				previousOverlapLines[i] = {
+					A = line.A,
+					B = line.B,
+					C = line.C,
+					originVal = line.originVal
+				}
+			end
+		end
+
+		cachedOverlapLines = newOverlapLines
 		updateDisplayList()
 		
 		lastCommanderX = commanderX

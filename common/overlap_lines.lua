@@ -41,7 +41,10 @@ end
 ---@param range number
 ---@return table[] lines
 function OverlapLines.getOverlapLines(originX, originZ, neighbors, range)
-    local lines = {}
+    local lines = {
+        originX = originX,
+        originZ = originZ,
+    }
     for i = 1, #neighbors do
         local neighbor = neighbors[i]
         local point1, point2 = getCircleIntersections(originX, originZ, neighbor.x, neighbor.z, range)
@@ -77,6 +80,18 @@ end
 ---@param lines table[]
 ---@return boolean isPast
 function OverlapLines.isPointPastLines(pointX, pointZ, originX, originZ, lines)
+    if not lines or #lines == 0 then
+        return false
+    end
+    
+    if lines.originX and lines.originZ then
+        local TOLERANCE = 0.1
+        if math.abs(originX - lines.originX) > TOLERANCE or math.abs(originZ - lines.originZ) > TOLERANCE then
+            Spring.Echo(string.format("[OverlapLines WARNING] Origin mismatch! Expected (%.2f, %.2f) but got (%.2f, %.2f)", 
+                lines.originX, lines.originZ, originX, originZ))
+        end
+    end
+    
     for i = 1, #lines do
         local line = lines[i]
         
