@@ -28,7 +28,28 @@ end
 
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spCallCOBScript = Spring.CallCOBScript
+
+local CallScript = function(unitID, functionName, a,b)
+	local type = stunnedUnits[unitID]
+	if type == "cob" then
+		SpCallCOBScript(unitID, functionName, a,b)
+	elseif type == "lus" then
+		local env = Spring.UnitScript.GetScriptEnv(unitID)
+		Spring.UnitScript.CallAsUnit(unitID, env[functionName], a,b)
+	end
+end
+
 local spGetCOBScriptID = Spring.GetCOBScriptID
+local GetScriptFunc = function (unitID)
+	local env = Spring.UnitScript.GetScriptEnv(unitID)
+	if Spring.GetCOBScriptID(unitID, "SetStunned") then
+		return "cob"
+	elseif env and env.SetStunned then
+		return "lus"
+	else
+		return nil
+	end
+end
 
 function gadget:GameFrame(n)
     -- check if stunned units have become deparalyzed
@@ -36,7 +57,7 @@ function gadget:GameFrame(n)
         for unitID, _ in pairs(stunnedUnits) do
             if not select(2, spGetUnitIsStunned(unitID)) then
                 stunnedUnits[unitID] = nil
-                spCallCOBScript(unitID, 'SetStunned', 0, false)
+                CallScript(unitID, 'SetStunned', 0, false)
             end
         end
     end
@@ -50,7 +71,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     if hasSetStunned[unitDefID] == nil then
-        hasSetStunned[unitDefID] = spGetCOBScriptID(unitID, 'SetStunned') and true or false
+        hasSetStunned[unitDefID] = GetScriptFunc(unitID)
     end
 end
 
@@ -63,8 +84,8 @@ end
 function gadget:UnitDamaged(unitID,unitDefID,unitTeam,damage,paralyzer,weaponDefID,projectileID,attackerID,attackerDefID,attackerTeam)
     if paralyzer and hasSetStunned[unitDefID] then
         if select(2, spGetUnitIsStunned(unitID)) then
-            stunnedUnits[unitID] = true
-            spCallCOBScript(unitID, 'SetStunned', 0, true)
+            stunnedUnits[unitID] = hasSetStunned[unitDefID]
+            CallScript(unitID, 'SetStunned', 0, true)
         end
     end
 end
