@@ -47,7 +47,7 @@ local GetScriptFunc = function (unitID)
 	elseif env and env.SetStunned then
 		return "lus"
 	else
-		return nil
+		return false
 	end
 end
 
@@ -82,9 +82,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:UnitDamaged(unitID,unitDefID,unitTeam,damage,paralyzer,weaponDefID,projectileID,attackerID,attackerDefID,attackerTeam)
-    if paralyzer and hasSetStunned[unitDefID] then
+    if paralyzer and hasSetStunned[unitDefID] then -- hasSetStunned can't be nil, it's either bool false or a string
         if select(2, spGetUnitIsStunned(unitID)) then
-            stunnedUnits[unitID] = hasSetStunned[unitDefID]
+            stunnedUnits[unitID] = hasSetStunned[unitDefID] -- at this point hasSetStunned can only be a string ("cob" or "lus"), so stunnedUnits is either nil, "cob" or "lus"
             CallScript(unitID, 'SetStunned', 0, true)
         end
     end
