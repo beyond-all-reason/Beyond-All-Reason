@@ -2,7 +2,7 @@ return {
 	armbanth = {
 		airsightdistance = 1100,
 		buildpic = "ARMBANTH.DDS",
-		buildtime = 276000,
+		buildtime = 360000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -182,13 +182,13 @@ return {
 				weapontimer = 1,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 2000,
+				customparams = {
+					overrange_distance = 989,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					default = 900,
 					subs = 500,
-				},
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 989,
 				},
 			},
 			banthfootstep = {

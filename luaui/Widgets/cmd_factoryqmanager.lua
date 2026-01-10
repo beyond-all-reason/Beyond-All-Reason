@@ -15,6 +15,19 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+local mathMin = math.min
+
+-- Localized Spring API for performance
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetGameFrame = Spring.GetGameFrame
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
+
 --Changelog
 --1.4: fixed text alignment, changed layer cause other widgets are eating events otherwise (e.g. smartselect)
 --1.3: fixed for 0.83
@@ -28,7 +41,7 @@ end
 --added: Queues get saved for each mod seperately
 
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
 local iboxOuterMargin = 3
 local iboxWidth = 298
@@ -137,38 +150,38 @@ function calcScreenCoords()
 
 	local factor = vsy / defaultScreenResY
 
-	boxWidth = math.floor(iboxWidth * factor + 0.5)
-	boxHeight = math.floor(iboxHeight * factor + 0.5)
-	boxHeightTitle = math.floor(iboxHeightTitle * factor + 0.5)
-	boxIconBorder = math.floor(iboxIconBorder * factor + 0.5)
+	boxWidth = mathFloor(iboxWidth * factor + 0.5)
+	boxHeight = mathFloor(iboxHeight * factor + 0.5)
+	boxHeightTitle = mathFloor(iboxHeightTitle * factor + 0.5)
+	boxIconBorder = mathFloor(iboxIconBorder * factor + 0.5)
 
-	fontSizeTitle = math.floor(ifontSizeTitle * factor + 0.5)
-	fontSizeGroup = math.floor(ifontSizeGroup * factor + 0.5)
-	fontSizeUnitCount = math.floor(ifontSizeUnitCount * factor + 0.5)
-	fontSizeModifed = math.floor(ifontSizeModifed * factor + 0.5)
+	fontSizeTitle = mathFloor(ifontSizeTitle * factor + 0.5)
+	fontSizeGroup = mathFloor(ifontSizeGroup * factor + 0.5)
+	fontSizeUnitCount = mathFloor(ifontSizeUnitCount * factor + 0.5)
+	fontSizeModifed = mathFloor(ifontSizeModifed * factor + 0.5)
 
-	unitIconSpacing = math.floor(iunitIconSpacing * factor + 0.5)
-	fontModifiedYOff = math.floor(ifontModifiedYOff * factor + 0.5)
+	unitIconSpacing = mathFloor(iunitIconSpacing * factor + 0.5)
+	fontModifiedYOff = mathFloor(ifontModifiedYOff * factor + 0.5)
 
-	groupLabelXOff = math.floor(igroupLabelXOff * factor + 0.5)
-	groupLabelYOff = math.floor(igroupLabelYOff * factor + 0.5)
+	groupLabelXOff = mathFloor(igroupLabelXOff * factor + 0.5)
+	groupLabelYOff = mathFloor(igroupLabelYOff * factor + 0.5)
 
-	groupLabelMargin = math.floor(igroupLabelMargin * factor + 0.5)
-	boxOuterMargin = math.floor(iboxOuterMargin * factor + 0.5)
+	groupLabelMargin = mathFloor(igroupLabelMargin * factor + 0.5)
+	boxOuterMargin = mathFloor(iboxOuterMargin * factor + 0.5)
 
-	titleTextYOff = math.floor(ititleTextYOff * factor + 0.5)
-	titleTextXOff = math.floor(ititleTextXOff * factor + 0.5)
+	titleTextYOff = mathFloor(ititleTextYOff * factor + 0.5)
+	titleTextXOff = mathFloor(ititleTextXOff * factor + 0.5)
 
-	unitCountXOff = math.floor(iunitCountXOff * factor + 0.5)
-	unitCountYOff = math.floor(iunitCountYOff * factor + 0.5)
+	unitCountXOff = mathFloor(iunitCountXOff * factor + 0.5)
+	unitCountYOff = mathFloor(iunitCountYOff * factor + 0.5)
 
-	drawY = math.floor(idrawY * factor + 0.5)
+	drawY = mathFloor(idrawY * factor + 0.5)
 
 	drawX = vsx - boxWidth
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 
 	font = WG['fonts'].getFont(1, 1.5)
 
@@ -179,7 +192,7 @@ function widget:ViewResize()
 end
 
 function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
+	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -194,7 +207,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+	if Spring.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 	widget:ViewResize()
@@ -219,7 +232,7 @@ function RemoveBuildOrders(unitID, buildDefID, count)
 			opts = { "right" }
 			count = count - 1
 		end
-		Spring.GiveOrderToUnit(unitID, -buildDefID, {}, opts)
+		spGiveOrderToUnit(unitID, -buildDefID, {}, opts)
 	end
 end
 
@@ -270,7 +283,7 @@ function widget:MousePress(x, y, button)
 end
 
 function ClearFactoryQueues()
-	local udTable = Spring.GetSelectedUnitsSorted()
+	local udTable = spGetSelectedUnitsSorted()
 	for udidFac, uTable in pairs(udTable) do
 		if isFactory[udidFac] then
 			for _, uid in ipairs(uTable) do
@@ -288,7 +301,7 @@ end
 -- End of Included FactoryClear Lua widget
 
 function getSingleFactory()
-	selUnits = Spring.GetSelectedUnits()
+	selUnits = spGetSelectedUnits()
 
 	--only do something when exactly ONE factory is selected to avoid execution by mistake
 	if #selUnits ~= 1 then
@@ -349,13 +362,13 @@ function loadQueue(unitId, unitDef, groupNo)
 		if queue[facRepeatIdx] == false then
 			repVal = 0
 		end
-		Spring.GiveOrderToUnit(unitId, CMD.REPEAT, { repVal }, 0)
+		spGiveOrderToUnit(unitId, CMD.REPEAT, { repVal }, 0)
 
 		for i = 1, #queue do
 			local cmd = queue[i]
 			if not cmd.options.internal then
 				local opts = {}
-				Spring.GiveOrderToUnit(unitId, cmd.id, cmd.params, opts)
+				spGiveOrderToUnit(unitId, cmd.id, cmd.params, opts)
 			end
 		end
 	end
@@ -455,7 +468,7 @@ function CalcDrawCoords(unitId, heightAll)
 end
 
 function DrawBoxTitle(x, y, alpha, unitDef, selUnit)
-	UiElement(x, y - boxHeightTitle, x + boxWidth, y, 1,1,1,0, 1,1,0,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	UiElement(x, y - boxHeightTitle, x + boxWidth, y, 1,1,1,0, 1,1,0,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 	gl.Color(1, 1, 1, 1)
 
 	UiUnit(
@@ -502,22 +515,22 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 	--Draw "loaded" border
 	if modifiedGroup == groupNo and modifiedGroupTime > Spring.GetGameSeconds() - loadedBorderDisplayTime then
 		if modifiedSaved == true then
-			gl.Color(1, 0, 0, math.min(alpha, 1.0))
+			gl.Color(1, 0, 0, mathMin(alpha, 1.0))
 		else
-			gl.Color(0, 1, 0, math.min(alpha, 1.0))
+			gl.Color(0, 1, 0, mathMin(alpha, 1.0))
 		end
 		gl.Rect(x - loadedBorderWidth, y + loadedBorderWidth, x + boxWidth + loadedBorderWidth, y - boxHeight - loadedBorderWidth)
 	end
 
 	--Draw Background Box
-	UiElement(x, y - boxHeight, x + boxWidth, y, 0,1,1,1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	UiElement(x, y - boxHeight, x + boxWidth, y, 0,1,1,1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
 	--UiElement(x + boxIconBorder, y - boxHeight + 3, x + groupLabelMargin, y - 3, 1, 1, 1, 1)
-	--gl.Color(0, 0, 0, math.min(alpha, 0.6))
+	--gl.Color(0, 0, 0, mathMin(alpha, 0.6))
 	--gl.Rect(x, y, x + boxWidth, y - boxHeight)
 	--if queue[facRepeatIdx] == nil or queue[facRepeatIdx] == true then
-	--	gl.Color(0.0, 0.7, 0.0, math.min(alpha or 1, 0.5))
+	--	gl.Color(0.0, 0.7, 0.0, mathMin(alpha or 1, 0.5))
 	--else
-	--	gl.Color(0.7, 0.7, 0.7, math.min(alpha or 1, 0.5))
+	--	gl.Color(0.7, 0.7, 0.7, mathMin(alpha or 1, 0.5))
 	--end
 	--gl.Rect(x + boxIconBorder, y - 3, x + groupLabelMargin, y - boxHeight + 3)
 
@@ -634,13 +647,13 @@ function widget:Update()
 		-- meta (space)
 		if alpha < 1.0 then
 			alpha = alpha + timediff / drawFadeTime
-			alpha = math.min(1.0, alpha)
+			alpha = mathMin(1.0, alpha)
 		end
 		--drawLastKeyTime = now
 	else
 		if alpha > 0.0 then
 			alpha = alpha - timediff / drawFadeTime
-			alpha = math.max(0.0, alpha)
+			alpha = mathMax(0.0, alpha)
 		end
 	end
 

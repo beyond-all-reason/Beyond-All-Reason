@@ -3,7 +3,7 @@ return {
 		builddistance = 180,
 		builder = true,
 		buildpic = "ARMACSUB.DDS",
-		buildtime = 18000,
+		buildtime = 23000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "38 38 63",
@@ -35,7 +35,7 @@ return {
 		turninplaceanglelimit = 90,
 		turnrate = 405,
 		waterline = 80,
-		workertime = 300,
+		workertime = 350,
 		buildoptions = {
 			[1] = "armuwfus",
 			[2] = "armuwmmm",
@@ -51,7 +51,6 @@ return {
 			[12] = "armfflak",
 			[13] = "armkraken",
 			[14] = "armuwageo",
-			[15] = "armfasp",
 		},
 		customparams = {
 			model_author = "FireStorm",

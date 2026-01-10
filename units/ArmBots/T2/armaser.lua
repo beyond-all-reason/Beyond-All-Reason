@@ -2,7 +2,7 @@ return {
 	armaser = {
 		activatewhenbuilt = true,
 		buildpic = "ARMASER.DDS",
-		buildtime = 4940,
+		buildtime = 6000,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -7 2",
@@ -22,7 +22,7 @@ return {
 		maxslope = 32,
 		maxwaterdepth = 112,
 		metalcost = 78,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		movestate = 0,
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMASER.s3o",

@@ -2,7 +2,7 @@ return {
 	legaradk = {
 		activatewhenbuilt = true,
 		buildpic = "legaradk.DDS",
-		buildtime = 3950,
+		buildtime = 4700,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 0",
@@ -21,7 +21,7 @@ return {
 		maxslope = 16,
 		maxwaterdepth = 0,
 		metalcost = 99,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		movestate = 0,
 		objectname = "Units/legaradk.s3o",
 		onoffable = false,

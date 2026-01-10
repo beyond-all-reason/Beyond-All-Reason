@@ -14,6 +14,13 @@ function widget:GetInfo()
 end
 
 
+
+-- Localized functions for performance
+local mathAbs = math.abs
+
+-- Localized Spring API for performance
+local spGetMyTeamID = Spring.GetMyTeamID
+
 local facing=0
 local x=0
 local z=0
@@ -22,8 +29,8 @@ local n=0
 -- Count all units and calculate their barycenter
 function widget:GameFrame(f)
   if f==3 then
-    if Spring.GetTeamUnitCount(Spring.GetMyTeamID()) and Spring.GetTeamUnitCount(Spring.GetMyTeamID())>0 then
-      local units = Spring.GetTeamUnits(Spring.GetMyTeamID())
+    if Spring.GetTeamUnitCount(spGetMyTeamID()) and Spring.GetTeamUnitCount(spGetMyTeamID())>0 then
+      local units = Spring.GetTeamUnits(spGetMyTeamID())
       for i=1,#units do
         local ux=0
         local uz=0
@@ -45,7 +52,7 @@ end
 function widget:Update()
   local _,cmd=Spring.GetActiveCommand()
   if cmd and cmd<0 then
-    if math.abs(Game.mapSizeX - 2*x) > math.abs(Game.mapSizeZ - 2*z) then
+    if mathAbs(Game.mapSizeX - 2*x) > mathAbs(Game.mapSizeZ - 2*z) then
       if (2*x>Game.mapSizeX) then
         facing="west"
       else

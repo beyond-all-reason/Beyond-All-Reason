@@ -54,8 +54,9 @@ return {
 			"leggob",
 			"legaabot",
 			"legstr",
-			"legfloat",
-			"legch",
+			"legnavyfrigate",
+			"legnavyconship",
+			"legamph",
 		},
 		customparams = {
 			unitgroup = 'buildert2',

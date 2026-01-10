@@ -2,7 +2,7 @@ return {
 	armhlt = {
 		buildangle = 8192,
 		buildpic = "ARMHLT.DDS",
-		buildtime = 12500,
+		buildtime = 11300,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 11 0",
 		collisionvolumescales = "36 88 36",

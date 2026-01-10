@@ -1,7 +1,7 @@
 return {
 	corcan = {
 		buildpic = "CORCAN.DDS",
-		buildtime = 11700,
+		buildtime = 15000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "32 34 30",
@@ -11,7 +11,7 @@ return {
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 5400,
+		health = 5940,
 		idleautoheal = 5,
 		idletime = 1800,
 		maxacc = 0.138,
@@ -19,7 +19,7 @@ return {
 		maxslope = 14,
 		maxwaterdepth = 21,
 		metalcost = 560,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCAN.s3o",
 		script = "Units/corcan.cob",
@@ -99,6 +99,21 @@ return {
 			},
 		},
 		weapondefs = {
+			canhvylaserroar = {
+				areaofeffect = 0,
+				impactonly = 1,
+				name = "Laserroar",
+				noselfdamage = true,
+				soundhitdry = "",
+				soundhitdryvolume = 16,
+				weapontype = "Cannon",
+				customparams = {
+					noexplosionlight = 1,
+				},
+				damage = {
+					default = 0,
+				},
+			},
 			cor_canlaser = {
 				areaofeffect = 8,
 				avoidfeature = false,
@@ -133,21 +148,6 @@ return {
 				damage = {
 					default = 275,
 					vtol = 25,
-				},
-			},
-			canhvylaserroar = {
-				areaofeffect = 0,
-				impactonly = 1,
-				name = "Laserroar",
-				noselfdamage = true,
-				soundhitdry = "laserroar",
-				soundhitdryvolume = 16,
-				weapontype = "Cannon",
-				customparams = {
-					noexplosionlight = 1,
-				},
-				damage = {
-					default = 0,
 				},
 			},
 		},

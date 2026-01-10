@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 8192,
 		buildpic = "armseadragon.DDS",
-		buildtime = 140000,
+		buildtime = 190000,
 		canmanualfire = true,
 		canmove = true,
 		collisionvolumeoffsets = "0 -3 -5",
@@ -141,11 +141,11 @@ return {
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 100,
-				damage = {
-					default = 0,
-				},
 				customparams = {
 					scavforcecommandfire = true,
+				},
+				damage = {
+					default = 0,
 				},
 			},
 			sdmssl = {

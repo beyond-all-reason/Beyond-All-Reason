@@ -6,19 +6,8 @@
 
 namespace Main {
 
-void AiMain()
+void AiMain()  // Initialize config params
 {
-	// NOTE: Initialize config params
-// 	aiTerrainMgr.SetAllyZoneRange(600);  // returns 576: (multiples of 128) div 2
-// 	aiEconomyMgr.reclConvertEff = 2.f;
-// 	aiEconomyMgr.reclEnergyEff = 20.f;
-// 	for (Id defId = 1, count = ai.GetDefCount(); defId <= count; ++defId) {
-// 		CCircuitDef@ cdef = ai.GetCircuitDef(defId);
-// 		AiLog(cdef.GetName() + " | threat = " + cdef.threat + " | power = " + cdef.power +
-// 			" | air = " + cdef.GetAirThreat() + " | surf = " + cdef.GetSurfThreat() + " | water = " + cdef.GetWaterThreat());
-// 		cdef.SetThreatKernel((cdef.costM + cdef.costE * 0.02f) * 0.001f);
-// 	}
-
 	for (Id defId = 1, count = ai.GetDefCount(); defId <= count; ++defId) {
 		CCircuitDef@ cdef = ai.GetCircuitDef(defId);
 		if (cdef.costM >= 200.f && !cdef.IsMobile() && aiEconomyMgr.GetEnergyMake(cdef) > 1.f)
@@ -26,8 +15,9 @@ void AiMain()
 	}
 
 	// Example of user-assigned custom attributes
-	array<string> names = {Factory::armalab, Factory::coralab, Factory::legalab, Factory::armavp, Factory::coravp, Factory::legavp,
-		Factory::armaap, Factory::coraap, Factory::legaap, Factory::armasy, Factory::corasy};
+	array<string> names = {Factory::armalab, Factory::coralab, Factory::armavp, Factory::coravp,
+		Factory::armaap, Factory::coraap, Factory::armasy, Factory::corasy, Factory::legadvshipyard,
+		Factory::legalab, Factory::legavp, Factory::legaap}; 
 	for (uint i = 0; i < names.length(); ++i) {
 		CCircuitDef@ cdef = ai.GetCircuitDef(names[i]);
 		if (cdef !is null)

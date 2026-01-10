@@ -12,6 +12,13 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 local MyAtlasOnDemand 
 local buildPicList = {}
 local font
@@ -23,7 +30,7 @@ function widget:Update()
 	if n % 100 == 0 then
 		for i = 1,10 do 
 			local k,v = next(buildPicList) 
-			--Spring.Echo("Adding",k,v)
+			--spEcho("Adding",k,v)
 			if k then 
 				--MyAtlasOnDemand:AddImage(v, 256,128)
 				buildPicList[k] = nil
@@ -64,7 +71,7 @@ function widget:DrawScreen()
 				local uvcoords = MyAtlasOnDemand:AddText(tostring(num), textItem)
 				textItem.uvcoords = uvcoords
 				textItems[id] = textItem
-				Spring.Echo(id, uvcoords.x, uvcoords.y)
+				spEcho(id, uvcoords.x, uvcoords.y)
 			end
 		end
 		first = false
@@ -74,8 +81,8 @@ function widget:DrawScreen()
 	font:Begin()
 	local offsetX = 64
 	for id,textItem in pairs(textItems) do 
-		local xpos = math.floor(o + offsetX + textItem.uvcoords.x * MyAtlasOnDemand.xsize)
-		local ypos = math.floor(o + textItem.uvcoords.y * MyAtlasOnDemand.ysize + textItem.uvcoords.d)
+		local xpos = mathFloor(o + offsetX + textItem.uvcoords.x * MyAtlasOnDemand.xsize)
+		local ypos = mathFloor(o + textItem.uvcoords.y * MyAtlasOnDemand.ysize + textItem.uvcoords.d)
 		font:Print(textItem.text, xpos,ypos ,textItem.size,'')
 	end
 	font:End()
@@ -98,7 +105,7 @@ function widget:Initialize()
 	
 	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 	if not MakeAtlasOnDemand then
-		Spring.Echo("Failed to load AtlasOnDemand")
+		spEcho("Failed to load AtlasOnDemand")
 		return 
 	end
 	MyAtlasOnDemand = MakeAtlasOnDemand({sizex = 1024, sizey =  512, xresolution = 224, yresolution = 24, name = "AtlasOnDemand Tester", font = {font = font}, debug = true})

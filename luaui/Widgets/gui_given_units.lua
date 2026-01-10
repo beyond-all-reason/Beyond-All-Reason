@@ -12,6 +12,10 @@ function widget:GetInfo()
    }
 end
 
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+
 -- config
 local selectedFadeTime = 0.75
 local timeoutFadeTime = 3
@@ -40,7 +44,7 @@ local gameStarted, selectionChanged
 
 for udid, unitDef in pairs(UnitDefs) do
 	local xsize, zsize = unitDef.xsize, unitDef.zsize
-	local scale = 6*( xsize^2 + zsize^2 )^0.5
+	local scale = 6*( xsize*xsize + zsize*zsize )^0.5
 	unitScale[udid] = 7 + (scale/2.5)
 	unitHeight[udid] = unitDef.height
 end
@@ -69,7 +73,7 @@ end
 --------------------------------------------------------------------------------
 
 function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
+	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -84,7 +88,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+	if Spring.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 	drawList = gl.CreateList(DrawIcon)
@@ -173,12 +177,12 @@ local lastreceiveframe = 0
 function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if (newTeam == myTeamID) then
 		AddGivenUnit(unitID)
-		if lastreceiveframe < Spring.GetGameFrame() then
+		if lastreceiveframe < spGetGameFrame() then
 			local x, y, z = Spring.GetUnitPosition(unitID)
 			if x and y and z then
 				Spring.SetLastMessagePosition(x, y, z)
 			end
-			lastreceiveframe = Spring.GetGameFrame()
+			lastreceiveframe = spGetGameFrame()
 		end
 	end
 end

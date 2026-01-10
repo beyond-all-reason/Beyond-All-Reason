@@ -5,7 +5,7 @@ return {
 		bankingallowed = false,
 		blocking = true,
 		buildpic = "CORCRWH.DDS",
-		buildtime = 84200,
+		buildtime = 120000,
 		canfly = true,
 		canmove = true,
 		collide = true,
@@ -124,11 +124,11 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1250,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					vtol = 76,
-				},
-				customparams = {
-					noattackrangearc= 1,
 				},
 			},
 			dragonmawh = {

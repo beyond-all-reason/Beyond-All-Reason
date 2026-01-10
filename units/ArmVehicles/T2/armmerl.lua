@@ -1,7 +1,7 @@
 return {
 	armmerl = {
 		buildpic = "ARMMERL.DDS",
-		buildtime = 15500,
+		buildtime = 21000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "46 30 54",
@@ -141,14 +141,14 @@ return {
 				weapontimer = 3,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 380,
+				customparams = {
+					overrange_distance = 1495,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					commanders = 625,
 					default = 1900,
 					subs = 500,
-				},
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 1495,
 				},
 			},
 		},

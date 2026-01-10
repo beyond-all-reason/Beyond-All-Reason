@@ -4,10 +4,10 @@ return {
 		maxdec = 0,
 		buildangle = 1024,
 		energycost = 16000,
-		metalcost = 2800,
+		metalcost = 2500,
 		builder = true,
 		buildpic = "LEGAVP.DDS",
-		buildtime = 18500,
+		buildtime = 27750,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 5",
 		collisionvolumescales = "144 70 144",
@@ -31,7 +31,7 @@ return {
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 286,
 		terraformspeed = 1000,
-		workertime = 300,
+		workertime = 600,
 		yardmap = [[h
         oo oo oo oo oo oo oo oo oo
         oo oo oo oo oo oo oo oo oo
@@ -64,7 +64,7 @@ return {
 			"legavroc",
 			"leginf",
 			"legvflak",
-			"cormabm",
+			"legavantinuke",
 			"legavjam",
 			"legavrad",
 			"legafcv"

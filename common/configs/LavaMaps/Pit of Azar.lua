@@ -17,7 +17,7 @@ local conf = {
 	fogAbove = 0.18,
 	fogDistortion = 2.0,
 	uvScale = 10.0,
-	tideRhythm = { { -1, 0.25, 5*6000 } },
+	tideRhythm = { { -1, 7.5, 5*6000 } },
 }
 
 return conf

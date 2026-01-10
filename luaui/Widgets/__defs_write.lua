@@ -24,6 +24,10 @@ if customparamDefsDetected then
         }
     end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 	local savedTables = {}
 
 	-- Modified version of table.save, which rounds numbers to avoid lua stupidity 0=0.00000000234876 & various similar stuff
@@ -208,7 +212,7 @@ if customparamDefsDetected then
 
     function WriteDefToFile (folder, v)
         if not v.customParams or not v.customParams.__def then
-            Spring.Echo("Warning: Could not find customparams.__def for " .. v.name)
+            spEcho("Warning: Could not find customparams.__def for " .. v.name)
             return false
         end
         if v.customParams.__def=="omitted" then
@@ -219,7 +223,7 @@ if customparamDefsDetected then
         def_string = "return { " .. v.name .. " = " .. def_string .. "}"
         local f = loadstring(def_string)
         if not f then
-            Spring.Echo("Failed to load __def string as table: " .. v.name, def_string)
+            spEcho("Failed to load __def string as table: " .. v.name, def_string)
             return false
         end
 
@@ -246,7 +250,7 @@ if customparamDefsDetected then
     function HandleDefs(Defs, folder)
         local failures = 0
 
-        Spring.Echo("Processing Defs for " .. folder)
+        spEcho("Processing Defs for " .. folder)
         for _,v in pairs(Defs) do
             if not excludeScavengers or not v.name or not string.find(v.name, '_scav') then
                 if failures >=3 then break end
@@ -257,7 +261,7 @@ if customparamDefsDetected then
 
         if failures>0 then
             had_failed = true
-            Spring.Echo("Skipping remaining " .. folder .. " defs - too many errors")
+            spEcho("Skipping remaining " .. folder .. " defs - too many errors")
         end
         return (failures>0)
     end
@@ -282,9 +286,9 @@ if customparamDefsDetected then
 
         -- warn on failure
         if had_failed==true then
-            Spring.Echo("Some unit/weapon __defs failed to be written to file, see errors above")
+            spEcho("Some unit/weapon __defs failed to be written to file, see errors above")
         elseif had_failed==false then
-            Spring.Echo("Wrote all unit/weapon __defs to files")
+            spEcho("Wrote all unit/weapon __defs to files")
         end
 
         -- handle standalone weapondefs

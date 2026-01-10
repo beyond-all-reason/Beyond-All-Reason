@@ -45,7 +45,7 @@ end
 local function LockCamera(playerID)
     local isSpec, teamID
     if playerID then
-        _, _, isSpec, teamID = Spring.GetPlayerInfo(playerID)
+        _, _, isSpec, teamID = Spring.GetPlayerInfo(playerID, false)
     end
     if playerID and playerID ~= myPlayerID and playerID ~= lockPlayerID and teamID then
         if lockcameraHideEnemies and not isSpec then

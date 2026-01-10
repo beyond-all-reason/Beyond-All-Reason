@@ -23,7 +23,7 @@ return {
 		collisionvolumeoffsets = "0 8 -2",
 		collisionvolumescales = "70 70 70",
 		collisionvolumetype = "sphere",
-		cruisealtitude = 200,
+		cruisealtitude = 220,
 		defaultmissiontype = "Standby",
 		explodeas = "TALON_DEATH",
 		footprintx = 3,

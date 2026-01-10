@@ -2,6 +2,8 @@ local smallTeamThreshold = 4
 local initialized = false
 local settings = { }
 
+local holidaysList = VFS.Include("common/holidays.lua")
+
 local function getSettings()
 	if initialized then
 		return settings
@@ -10,6 +12,7 @@ local function getSettings()
 	local allyTeamCount, playerCount = 0, 0
 	local isSinglePlayer, is1v1, isTeams, isBigTeams, isSmallTeams, isRaptors, isScavengers, isPvE, isCoop, isFFA, isSandbox = false, false, false, false, false, false, false, false, false, false, false
 	local scavTeamID, scavAllyTeamID, raptorTeamID, raptorAllyTeamID
+	local isHoliday = {}
 
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
 	local springAllyTeamList = Spring.GetAllyTeamList()
@@ -90,6 +93,30 @@ local function getSettings()
 		isCoop = true
 	end
 
+	if holidaysList and Spring.GetModOptions and Spring.GetModOptions().date_day then
+		local currentDay = Spring.GetModOptions().date_day
+		local currentMonth = Spring.GetModOptions().date_month
+		local currentYear = Spring.GetModOptions().date_year
+
+		-- FIXME: This doesn't support events that start and end in different years.
+		for holiday, dates in pairs(holidaysList) do
+			local afterStart = false
+			local beforeEnd = false
+			if (dates.firstDay.month == currentMonth and dates.firstDay.day <= currentDay) or (dates.firstDay.month < currentMonth) then
+				afterStart = true
+			end
+			if (dates.lastDay.month == currentMonth and dates.lastDay.day >= currentDay) or (dates.lastDay.month > currentMonth) then
+				beforeEnd = true
+			end
+
+			if afterStart and beforeEnd then
+				isHoliday[holiday] = true
+			else
+				isHoliday[holiday] = false
+			end
+		end
+	end
+
 	initialized = true
 
 	settings = {
@@ -111,6 +138,7 @@ local function getSettings()
 		scavAllyTeamID = scavAllyTeamID,
 		raptorTeamID = raptorTeamID,
 		raptorAllyTeamID = raptorAllyTeamID,
+		isHoliday = isHoliday,
 	}
 
 	return settings
@@ -147,6 +175,9 @@ return {
 		IsFFA          = function () return getSettings().isFFA          end,
 		---@return boolean
 		IsSandbox      = function () return getSettings().isSandbox      end,
+		---@return table? isHoliday Currently running holiday events. 
+		---See common/holidays.lua for more information.
+		GetCurrentHolidays = function () return getSettings().isHoliday end,
 	},
 	---@return integer? scavTeamID Team ID for the scavenger team.
 	GetScavTeamID = function () return getSettings().scavTeamID end,
@@ -156,4 +187,5 @@ return {
 	GetRaptorTeamID = function () return getSettings().raptorTeamID end,
 	---@return integer? raptorAllyTeamID Team ID for the raptor ally team.
 	GetRaptorAllyTeamID = function () return getSettings().raptorAllyTeamID end,
+
 }

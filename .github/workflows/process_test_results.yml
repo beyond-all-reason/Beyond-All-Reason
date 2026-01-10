@@ -1,0 +1,40 @@
+name: Process Tests
+
+on:
+  workflow_run:
+    workflows: ["Run Tests"]
+    types:
+      - completed
+
+permissions: {}
+
+run-name: "Process Tests - ${{ github.event.workflow_run.display_title }}"
+jobs:
+  process-test-results:
+    name: Process Test Results
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion != 'skipped'
+    permissions:
+      checks: write
+      # needed unless run with comment_mode: off
+      pull-requests: write
+      # required by download step to access artifacts API
+      actions: read
+
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          action_fail_on_inconclusive: true
+          time_unit: milliseconds
+          commit: ${{ github.event.workflow_run.head_sha }}
+          event_file: artifacts/Event File/event.json
+          event_name: ${{ github.event.workflow_run.event }}
+          files: "artifacts/Test Results/*.json"
+

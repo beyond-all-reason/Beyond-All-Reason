@@ -13,6 +13,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 -- Configurable Parts:
 local groundaoplatealpha = 1.0
 
@@ -52,7 +56,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload,reason)
 	local decalInfo = unitDefIDtoDecalInfo[unitDefID]
 
 	local p,q,s,t = getUVCoords(atlas, decalInfo.texfile)
-	--Spring.Echo(decalInfo.texfile, p,q,s,t)
+	--spEcho(decalInfo.texfile, p,q,s,t)
 
 	return pushElementInstance(
 		groundPlateVBO, -- push into this Instance VBO Table
@@ -76,7 +80,7 @@ function widget:DrawWorldPreUnit()
 		firstRun = false
 	end
 	if groundPlateVBO.usedElements > 0 then
-		--Spring.Echo(groundPlateVBO.usedElements)
+		--spEcho(groundPlateVBO.usedElements)
 		glCulling(GL_BACK)
 		glDepthTest(GL_LEQUAL)
 		glDepthMask(false) --"BK OpenGL state resets", default is already false, could remove
@@ -101,7 +105,7 @@ function widget:Initialize()
 		if UD.customParams and UD.customParams.usebuildinggrounddecal and UD.customParams.buildinggrounddecaltype then
 			--local UD.name
 			local texname = "unittextures/" .. UD.customParams.buildinggrounddecaltype
-			--Spring.Echo(texname)
+			--spEcho(texname)
 			if atlas[texname] then
 				unitDefIDtoDecalInfo[id] = {
 						texfile = texname,
@@ -134,7 +138,7 @@ function widget:Initialize()
 
 	groundPlateVBO, groundPlateShader = InitDrawPrimitiveAtUnit(shaderConfig, "Ground AO Plates")
 	if groundPlateVBO == nil then
-		Spring.Echo("Error while initializing InitDrawPrimitiveAtUnit, removing widget")
+		spEcho("Error while initializing InitDrawPrimitiveAtUnit, removing widget")
 		widgetHandler:RemoveWidget()
 		return
 	end

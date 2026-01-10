@@ -2,7 +2,7 @@ return {
 	corseap = {
 		blocking = false,
 		buildpic = "CORSEAP.DDS",
-		buildtime = 10700,
+		buildtime = 13000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -111,8 +111,8 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				customparams = {
-					speceffect = "torpwaterpen",
 					noattackrangearc = 1,
+					speceffect = "torpwaterpen",
 				},
 				damage = {
 					default = 342,

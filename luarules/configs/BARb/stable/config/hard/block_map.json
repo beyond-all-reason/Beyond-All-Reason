@@ -62,7 +62,7 @@
 // 			Integer radius of a blocker or description string.
 // 			Available string values: explosion, expl_ally
 //			"radius": "explosion",  // default: "explosion"
-			"yard": [10,10],  // "default": "explosion"
+//			"yard": [10,10],  // "default": "explosion"
 			"ignore": ["engy_low"]
 		},
 		"geo": {
@@ -165,24 +165,24 @@
 	"instance": {
 		"fac_land_t2": ["armalab", "armavp", "coralab", "coravp", "legalab", "legavp"],
 		"fac_land_t1": ["armlab", "armvp", "armhp", "corlab", "corvp", "corhp", "leglab", "legvp", "leghp"],
-		"fac_water": ["armsy", "armasy", "corsy", "corasy"],
+		"fac_water": ["armsy", "armasy", "corsy", "corasy", "legsy", "legadvshipyard"],
 		"fac_air":["armap","armaap", "corap", "coraap", "legap", "legaap"],
-		"fac_strider": ["armshltx", "armshltxuw", "corgant", "corgantuw", "leggant"],
+		"fac_strider": ["armshltx", "armshltxuw", "corgant", "corgantuw", "leggant", "leggantuw"],
 		"solar": ["armsolar", "corsolar", "legsolar"],
 		"advsolar":["armadvsol", "coradvsol", "legadvsol"],
-		"wind": ["armwin", "corwin", "armtide", "cortide", "legwin"],
+		"wind": ["armwin", "corwin", "armtide", "cortide", "legwin", "legtide"],
 		"geo": ["armgeo", "corgeo", "leggeo"],
 		"geo2": ["armageo", "corageo", "legageo"],
-		"fusion":["armfus", "armuwfus", "armckfus", "armafus", "corfus", "coruwfus", "corafus", "legfus", "legafus"],
+		"fusion":["armfus", "armuwfus", "armckfus", "armafus", "corfus", "coruwfus", "corafus", "legfus", "legafus", "leganavalfusion"],
 		"store": ["armmstor", "armestor", "cormstor", "corestor", "legmstor", "legestor"],
 		"mex": ["armmex", "cormex", "legmex"],
 		"mex2": ["armmoho", "cormoho", "armuwmme", "coruwmme", "legmoho"],
-		"converter": ["armmakr", "cormakr", "armmmkr", "cormmkr", "armfmkr", "corfmkr", "armuwmmm", "coruwmmm", "legeconv", "legadveconv"],
+		"converter": ["armmakr", "cormakr", "armmmkr", "cormmkr", "armfmkr", "corfmkr", "armuwmmm", "coruwmmm", "legeconv", "legadveconv", "leganavaleconv"],
 		"def_low": ["armllt", "corllt", "armbeamer", "corhllt", "leglht", "legmg"],
 		"def_mid": ["armclaw", "cormaw", "armpb", "corvipe", "armhlt", "corhlt", "legdtr", "legapopupdef", "leghive"],
 		"def_hvy":  ["armamb", "armanni", "cortoast", "cordoom", "armguard", "corpun", "armkraken", "corfdoom", "legacluster", "legbastion", "legcluster", "legfmg"],
 		"def_air": ["armferret", "armcir", "corrl", "cormadsam", "corerad", "legrhapsis", "leglupara"],
-		"caretaker": ["armnanotc", "armasp", "cornanotc", "corasp", "legnanotc"],
+		"caretaker": ["armnanotc", "cornanotc", "legnanotc", "armnanotcplat", "cornanotcplat", "legnanotcplat"],
 		"small": ["armrad", "corrad", "legrad"]
 		
 //engy_low: wind

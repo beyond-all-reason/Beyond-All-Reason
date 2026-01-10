@@ -2,7 +2,7 @@ return {
 	legavrad = {
 		activatewhenbuilt = true,
 		buildpic = "LEGAVRAD.DDS",
-		buildtime = 6200,
+		buildtime = 7290,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",

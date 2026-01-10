@@ -523,7 +523,7 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	if( gun_1 == 0 )
+	if( gun_1 == 1 )
 	{
 		move rbarrel to z-axis [-4] now;
 		move rbarrel to z-axis [0] speed (reload*6);
@@ -535,6 +535,10 @@ FireWeapon1()
 		move lbarrel to z-axis [0] speed (reload*6);
 		emit-sfx 4096 + 1 from lbarrel;
 	}
+}
+
+EndBurst1()
+{
 	gun_1 = !gun_1;
 }
 

@@ -114,6 +114,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				name = "Pop-up heavy g2g gauss cannon",
 				nogap = false,
@@ -131,15 +132,15 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 800,
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					default = 675,
 					hvyboats = 472.5,
 					subs = 300,
 					vtol = 26,
 				},
-				customparams = {
-					exclude_preaim = true
-				}
 			},
 		},
 		weapons = {

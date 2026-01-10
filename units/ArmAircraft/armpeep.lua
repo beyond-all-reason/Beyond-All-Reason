@@ -39,11 +39,12 @@ return {
 		wingangle = 0.06315,
 		wingdrag = 0.0575,
 		customparams = {
+			crashable = 0,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
+			selectable_as_combat_unit = true,
 			subfolder = "ArmAircraft",
 			unitgroup = "util",
-			crashable = 0,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

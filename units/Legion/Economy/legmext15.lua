@@ -6,7 +6,6 @@ return {
 		buildangle = 2048,
 		energycost = 5000,
 		metalcost = 250,
-		buildingmask = 0,
 		buildpic = "LEGMEXT15.DDS",
 		buildtime = 5000,
 		canrepeat = false,

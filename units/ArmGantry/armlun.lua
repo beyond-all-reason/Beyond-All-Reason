@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		builder = false,
 		buildpic = "ARMLUN.DDS",
-		buildtime = 32000,
+		buildtime = 40000,
 		canattack = true,
 		canguard = true,
 		canmove = true,
@@ -139,14 +139,14 @@ return {
 				weapontimer = 3,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 230,
+				customparams = {
+					overrange_distance = 633,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					default = 330,
 					subs = 165,
 					vtol = 35,
-				},
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 633,
 				},
 			},
 			cannon = {
