@@ -1,6 +1,6 @@
 local function proposed_unit_reworksTweaks(name, uDef)
 
-	if name == "armfhp" or name == "armhp" or name == "corfhp" or name == "corhp"
+	if name == "armfhp" or name == "armhp" or name == "corfhp" or name == "corhp" or name == "leghp" or name == "legfhp"
 	then
 		uDef.metalcost = uDef.metalcost - 80
 		uDef.energycost = uDef.energycost - 750
@@ -15,24 +15,28 @@ local function proposed_unit_reworksTweaks(name, uDef)
 
 	if name == "armnanotc" or name == "armnanotcplat" 
 	or name == "cornanotc" or name == "cornanotcplat"
+	or name == "legnanotc" or name == "legnanotcplat"
 	then
-		uDef.metalcost = 250
-		uDef.energycost = 3000
+		uDef.metalcost = 230
 	end
 
 	if name == "armaap" or name == "armalab" or name == "armasy" or name == "armavp"
 	or name == "coraap" or name == "coralab" or name == "corasy" or name == "coravp"
+	or name == "legaap" or name == "legalab" or name == "legadvshipyard" or name == "legavp"
 	then
 		uDef.metalcost = uDef.metalcost - 300
-		uDef.buildtime = uDef.buildtime * 1.3
+		uDef.buildtime = uDef.buildtime * 1.5
 		uDef.workertime = 600
+	end
+	if name == "coravp"	then --makes corveh same metalcost as other t2 land facs
+		uDef.metalcost = uDef.metalcost + 100
 	end
 
 	if uDef.canmove and tonumber(uDef.customparams.techlevel) == 2 and uDef.energycost and uDef.metalcost and uDef.buildtime and not (name == "armavp" or name == "coravp" or name == "armalab" or name == "coralab" or name == "armaap" or name == "coraap" or name == "armasy" or name == "corasy" or name == "armfido" or name == "armmav" or name == "armvader" or name == "corroach" ) 
 	or uDef.canmove and tonumber(uDef.customparams.techlevel) == 3 and uDef.energycost and uDef.metalcost and uDef.buildtime
 	or uDef.customparams.subfolder == "ArmSeaplanes" or uDef.customparams.subfolder == "CorSeaplanes" then
 		uDef.buildtime = 1.1* uDef.buildtime + (uDef.metalcost*60 + uDef.energycost) / 20  
-		if uDef.buildtime < 20000 then
+		if uDef.buildtime < 15000 then
 			uDef.buildtime = math.ceil(uDef.buildtime * 0.002) * 500
 		elseif uDef.buildtime < 100000 then
 			uDef.buildtime = math.ceil(uDef.buildtime * 0.001) * 1000
@@ -63,11 +67,19 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.buildtime = 59000
 	end
 
+	if name == "legfus" then
+		uDef.energymake = 950
+		uDef.metalcost = 4000
+		uDef.energycost = 25000
+		uDef.buildtime = 66000
+	end
+
 	if name == "armckfus" then
 		uDef.energymake = 750
 		uDef.metalcost = 3650
 		uDef.energycost = 22000
 		uDef.buildtime = 65000
+		uDef.cloakcost = 75
 	end
 
 	--if name == "armmoho" or name == "armuwmme"
@@ -78,15 +90,15 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	--	uDef.buildtime = math.ceil(uDef.buildtime * 0.0012) * 1000 
 	--end
 
-	if name == "armamsub" or name == "coramsub" then
+	if name == "armamsub" or name == "coramsub" or name == "legamphlab" then
 		uDef.workertime = 300
 	end
 
-	if name == "armplat" or name == "corplat" then
+	if name == "armplat" or name == "corplat" or name == "legplat" then
 		uDef.workertime = 300
 	end
 
-	if name == "armshltxuw" or name == "armshltx" or name == "corgantuw" or name == "corgant" then
+	if name == "armshltxuw" or name == "armshltx" or name == "corgantuw" or name == "corgant" or name == "leggant" then
 		uDef.workertime = 1800
 	end
 	
@@ -112,16 +124,58 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.metalcost = 400
 	end
 
-	if name == "armconsul" or name == "armfark" or name == "corfast" or name == "armmls" or name == "cormls"then
-		uDef.metalcost = math.ceil(uDef.metalcost * 1.1 / 5) * 5
-	end
+	--if name == "armconsul" or name == "armfark" or name == "corfast" or name == "armmls" or name == "cormls"then
+	--	uDef.metalcost = math.ceil(uDef.metalcost * 1.1 / 5) * 5
+	--end
 
 	if name == "armspy" or name == "corspy" then
 		uDef.buildtime = 12000
 	end
 
-		if name == "armbats" or name == "corbats" or name == "corcan" then
+	if name == "armbats" or name == "corbats" or name == "corcan" then
 		uDef.health = math.ceil(uDef.health * 0.11) * 10
+	end
+
+	if name == "corgator" then
+		uDef.buildtime = 2300
+		uDef.energycost = 1100
+		uDef.speed = 85
+		uDef.weapondefs.gator_laserx.reloadtime = 0.8
+	end
+
+	if name == "armflash" then
+		uDef.weapondefs.emgx.weaponvelocity = 600
+		uDef.weapondefs.emgx.flighttime = 0.4
+	end
+	if name == "armpw" then
+		uDef.weapondefs.emg.weaponvelocity = 600
+		uDef.weapondefs.emg.flighttime = 0.4
+	end
+	if name == "armfav" then
+		uDef.weapondefs.arm_laser.reloadtime = 1
+	end
+	if name == "corfav" then
+		uDef.weapondefs.cor_laser.reloadtime = 1.1
+	end
+	--if name == "corlevlr" then
+	--	uDef.weapondefs.corlevlr_weapon.flighttime = 0.47
+	--end
+	if name == "armkam" then
+		uDef.weapondefs.emg.weaponvelocity = 1000
+		uDef.weapondefs.emg.areaofeffect = 40
+	end
+		if name == "armbrawl" then
+		uDef.weapondefs.vtol_emg.weaponvelocity = 1000
+		uDef.weapondefs.vtol_emg.areaofeffect = 40
+	end
+	if name == "armfast" then
+		uDef.weapondefs.arm_fast.weaponvelocity = 600
+		uDef.weapondefs.arm_fast.flighttime = 0.47
+		uDef.metalcost = 160
+		uDef.energycost = 3800
+	end
+	if name == "armbull" then
+		uDef.speed = 62
 	end
 
 	return uDef

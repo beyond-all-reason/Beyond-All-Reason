@@ -19,12 +19,15 @@ end
 --------------------------------------------------------------------------------
 -- Localization ----------------------------------------------------------------
 
+local math_max = math.max
 local math_random = math.random
-local math_sqrt = math.sqrt
 local math_cos = math.cos
 local math_sin = math.sin
 local math_pi = math.pi
+local math_tau = math.tau
 local distance3dSquared = math.distance3dSquared
+
+local CallAsTeam = CallAsTeam
 
 local spDeleteProjectile = Spring.DeleteProjectile
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -32,10 +35,12 @@ local spGetGroundNormal = Spring.GetGroundNormal
 local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileTarget = Spring.GetProjectileTarget
+local spGetProjectileTeamID = Spring.GetProjectileTeamID
 local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitWeaponState = Spring.GetUnitWeaponState
 local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 local spSetProjectilePosition = Spring.SetProjectilePosition
@@ -61,7 +66,6 @@ local projectiles = {}
 local projectilesData = {}
 
 local gameFrame = 0
-local resultCaches = {}
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
@@ -114,7 +118,7 @@ end
 
 local function toPositiveNumber(value)
 	value = tonumber(value)
-	return value and math.max(0, value) or nil
+	return value and math_max(0, value) or nil
 end
 
 --- Weapon behaviors -----------------------------------------------------------
@@ -139,6 +143,42 @@ local function equalTargets(target1, target2)
 	)
 end
 
+local readAs = { read = -1 }
+
+local function readAsTeam(teamID, ...)
+	local read = readAs
+	read.read = teamID or -1
+	return CallAsTeam(read, ...)
+end
+
+---@return number? targetX xyz coords
+---@return number? targetY
+---@return number? targetZ
+local function getTargetPositionWithError(projectileID)
+	local targetType, target = spGetProjectileTarget(projectileID)
+	if targetType == targetedUnit then
+		local teamID = spGetProjectileTeamID(projectileID) or spGetProjectileTeamID(spGetProjectileOwnerID(projectileID) or -1)
+		local _, _, _, targetX, targetY, targetZ = readAsTeam(teamID, spGetUnitPosition, target, false, true)
+		return targetX, targetY, targetZ -- unit aim position
+	elseif targetType == targetedGround then
+		return target[1], target[2], target[3]
+	end
+end
+
+---Translates TargetType integers to the ProjectileTargetType byte-integers needed in SetProjectileTarget.
+---@param projectileID integer
+---@param target integer|xyz?
+---@param targetType TargetType
+local function setProjectileTarget(projectileID, target, targetType)
+	if targetType == 1 then
+		spSetProjectileTarget(projectileID, target, targetedUnit)
+		return true
+	elseif targetType == 2 then
+		spSetProjectileTarget(projectileID, target[1], target[2], target[3])
+		return true
+	end
+end
+
 local getProjectileArgs
 do
 	---@class ProjectileParams
@@ -147,6 +187,8 @@ do
 		speed   = { 0, 0, 0 },
 		gravity = gravityPerFrame,
 		ttl     = 3000,
+		owner   = -1,
+		team    = -1,
 	}
 
 	---@return integer weaponDefID
@@ -154,21 +196,21 @@ do
 	---@return number parentSpeed
 	getProjectileArgs = function(params, projectileID)
 		local weaponDefID = params.speceffect_def
+		local projectile = projectileParams
+		local parentSpeed
 
-		local projectileParams = projectileParams
-
-		local pos = projectileParams.pos
+		local pos = projectile.pos
 		pos[1], pos[2], pos[3] = spGetProjectilePosition(projectileID)
 
-		local vel = projectileParams.speed
-		local parentSpeed
+		local vel = projectile.speed
 		vel[1], vel[2], vel[3], parentSpeed = spGetProjectileVelocity(projectileID)
 
-		projectileParams.owner = spGetProjectileOwnerID(projectileID)
-		projectileParams.cegTag = params.cegtag
-		projectileParams.model = params.model
+		projectile.owner = spGetProjectileOwnerID(projectileID) or -1
+		projectile.team  = spGetProjectileTeamID(projectileID) or spGetUnitTeam(projectile.owner) or -1
+		projectile.cegTag = params.cegtag
+		projectile.model = params.model
 
-		return weaponDefID, projectileParams, parentSpeed
+		return weaponDefID, projectile, parentSpeed
 	end
 end
 
@@ -193,19 +235,11 @@ specialEffectFunction.cruise = function(params, projectileID)
 	if spGetProjectileTimeToLive(projectileID) > 0 then
 		local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
 		local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
-		local targetType, target = spGetProjectileTarget(projectileID)
-
-		local targetX, targetY, targetZ
-		if targetType == targetedUnit then
-			local _; -- declare a local sink var for unused values
-			_, _, _, targetX, targetY, targetZ = spGetUnitPosition(target, false, true)
-		elseif targetType == targetedGround then
-			targetX, targetY, targetZ = target[1], target[2], target[3]
-		end
+		local targetX, targetY, targetZ = getTargetPositionWithError(projectileID)
 
 		local distance = params.lockon_dist
 
-		if distance * distance < distance3dSquared(positionX, positionY, positionZ, targetX, targetY, targetZ) then
+		if not targetX or distance * distance < distance3dSquared(positionX, positionY, positionZ, targetX, targetY, targetZ) then
 			local cruiseHeight = spGetGroundHeight(positionX, positionZ) + params.cruise_min_height
 
 			if positionY < cruiseHeight then
@@ -241,15 +275,9 @@ specialEffectFunction.retarget = function(projectileID)
 		if targetType == targetedUnit then
 			if spGetUnitIsDead(target) ~= false then
 				local ownerID = spGetProjectileOwnerID(projectileID)
-
 				-- Hardcoded to retarget only from the primary weapon and only units or ground
-				local ownerTargetType, _, ownerTarget = spGetUnitWeaponTarget(ownerID, 1)
-
-				if ownerTargetType == 1 then
-					spSetProjectileTarget(projectileID, ownerTarget, targetedUnit)
-				elseif ownerTargetType == 2 then
-					spSetProjectileTarget(projectileID, ownerTarget[1], ownerTarget[2], ownerTarget[3])
-				end
+				local ownerTargetType, fromUser, ownerTarget = spGetUnitWeaponTarget(ownerID, 1)
+				setProjectileTarget(projectileID, ownerTarget, ownerTargetType)
 			end
 			return false
 		end
@@ -262,54 +290,114 @@ end
 -- Missile guidance behavior that changes the projectile's target when the primary weapon changes targets.
 -- If the primary weapon stops firing (no LoS/unit dead) the missiles will go for the last location that was targeted.
 
--- Based on retarget
--- Uses no weapon customParams.
+weaponCustomParamKeys.guidance = {
+	guidance_lost_radius = toPositiveNumber,
+}
 
-resultCaches.guidance = {} -- ownerID = <isFiring, guidanceType, userTarget, guidanceTarget>
+-- General info, since this became long:
+-- (1) The primary weapon's targeting must be used as guidance for the guidee weapon.
+-- (2) The primary weapon must be continuously firing or burst-firing e.g. BeamLaser.
+-- (3) You must add a guidance_lost_radius, even if it is zero, to the guidee weapon.
+-- (4) The code below has a bunch of perf hax to cache results for the Legion Medusa.
 
-specialEffectFunction.guidance = function(projectileID)
+---@class GuidanceEffectResult
+---@field [1] boolean isFiring
+---@field [2] TargetType guidanceType
+---@field [3] boolean isUserTarget, nil when guidanceType is `0`
+---@field [4] integer|xyz guidanceTarget, nil when guidanceType is `0`
+
+local guidanceResults = {} ---@type table<integer, GuidanceEffectResult|xyz>
+
+local lookahead = 0.6667 * Game.gameSpeed -- projectile position lookahead
+
+local function getGuidanceLost(projectileID, radius, targetID)
+	local ux, uy, uz
+	local teamID = spGetProjectileTeamID(projectileID)
+
+	if radius and radius > 0 then
+		ux, uy, uz = readAsTeam(teamID, spGetUnitPosition, targetID, false, true)
+	else
+		ux, uy, uz = readAsTeam(teamID, spGetUnitPosition, targetID)
+	end
+
+	if not ux then
+		-- We lost LOS on the target, most likely. Act casual.
+		local px, py, pz = spGetProjectilePosition(projectileID)
+		local vx, vy, vz = spGetProjectileVelocity(projectileID)
+		ux, uy, uz = px + vx * lookahead, py + vy * lookahead, pz + vz * lookahead
+	end
+
+	local result = { ux, uy, uz }
+	guidanceResults[-targetID - 1] = result
+	return result
+end
+
+local function guidanceLost(projectileID, radius, targetID)
+	local result = guidanceResults[-targetID - 1] or getGuidanceLost(projectileID, radius, targetID)
+	local tx, ty, tz = result[1], result[2], result[3]
+
+	if radius and radius > 0 then
+		local elevation = math_max(spGetGroundHeight(tx, tz), 0)
+		local dx, dy, dz = spGetGroundNormal(tx, tz, true)
+		local swerveRadius = radius * (0.25 + 0.75 * math_random())
+		local swerveAngle = math_tau * math_random()
+		local cosAngle = math_cos(swerveAngle)
+		local sinAngle = math_sin(swerveAngle)
+
+		if elevation <= 0 or dy > 0.9 then
+			-- Scatter within a ring in the XZ plane.
+			tx = tx + swerveRadius * cosAngle
+			tz = tz + swerveRadius * sinAngle
+		else
+			-- Scatter within a ring rotated to align with terrain.
+			local ax, ay, az = 0, 1, 0
+			local bx = ay * dz - az * dy
+			local by = az * dx - ax * dz
+			local bz = ax * dy - ay * dx
+			local cx = dy * bz - dz * by
+			local cy = dz * bx - dx * bz
+			local cz = dx * by - dy * bx
+			tx = tx + swerveRadius * (cosAngle * bx + sinAngle * cx)
+			ty = ty + swerveRadius * (cosAngle * by + sinAngle * cy)
+			tz = tz + swerveRadius * (cosAngle * bz + sinAngle * cz)
+		end
+	end
+
+	local elevation = math_max(spGetGroundHeight(tx, tz), 0)
+	spSetProjectileTarget(projectileID, tx, (ty - elevation < 40) and elevation or ((ty + elevation) * 0.5), tz)
+end
+
+local noGuidance = { false, 0, false, -1 }
+
+local function getGuidanceResult(ownerID)
+	local nextSalvo = spGetUnitWeaponState(ownerID, 1, "nextSalvo")
+	local result = nextSalvo and (nextSalvo + 1 >= gameFrame) and { true, spGetUnitWeaponTarget(ownerID, 1) } or noGuidance
+	guidanceResults[ownerID] = result
+	return result
+end
+
+specialEffectFunction.guidance = function(params, projectileID)
 	if spGetProjectileTimeToLive(projectileID) > 0 then
 		local ownerID = spGetProjectileOwnerID(projectileID)
+		local targetType, target = spGetProjectileTarget(projectileID)
 
-		if spGetUnitIsDead(ownerID) ~= false then
-			return true
-		end
-
-		local targetType, missileTarget = spGetProjectileTarget(projectileID)
-		local results = resultCaches.guidance[ownerID]
-
-		if not results then
-			-- Guidance weapon must be the primary and have burst/reload > 1 frame.
-			-- This is hackish but works well to prevent spammy retargeting anyway.
-			results = {
-				(spGetUnitWeaponState(ownerID, 1, "nextSalvo") or 0) + 1 >= gameFrame,
-				spGetUnitWeaponTarget(ownerID, 1)
-			}
-			resultCaches.guidance[ownerID] = results
-		end
-
-		if results[1] and results[2] then
-			local guidanceType, guidanceTarget = results[2], results[4]
-			if not equalTargets(guidanceTarget, missileTarget) then
-				if guidanceType == 1 then
-					spSetProjectileTarget(projectileID, guidanceTarget, targetedUnit)
-					return false
-				elseif guidanceType == 2 then
-					spSetProjectileTarget(projectileID, guidanceTarget[1], guidanceTarget[2], guidanceTarget[3])
+		if ownerID and spGetUnitIsDead(ownerID) == false then
+			local result = guidanceResults[ownerID] or getGuidanceResult(ownerID)
+			if result[1] then
+				local guidanceType, guidanceTarget = result[2], result[4]
+				if equalTargets(guidanceTarget, target) or setProjectileTarget(projectileID, guidanceTarget, guidanceType) then
 					return false
 				end
 			end
 		end
 
-		-- Guidance weapon is not firing, its target is invalid or lost, and so on.
 		if targetType == targetedUnit then
-			spSetProjectileTarget(projectileID, spGetUnitPosition(missileTarget))
+			guidanceLost(projectileID, params.guidance_lost_radius, target)
 		end
 
 		return false
-	else
-		return true
 	end
+	return true
 end
 
 -- Sector fire
@@ -530,10 +618,7 @@ end
 
 function gadget:GameFrame(frame)
 	gameFrame = frame
-
-	for key in pairs(resultCaches) do
-		resultCaches[key] = {}
-	end
+	guidanceResults = {}
 
 	for projectileID, effect in pairs(projectiles) do
 		if effect(projectileID) then

@@ -32,6 +32,11 @@ if Spring.GetModOptions().easytax then
 	sharingTax = 0.3 -- 30% tax for easytax modoption
 end
 
+local function isAlliedUnit(teamID, unitID)
+	local unitTeam = Spring.GetUnitTeam(unitID)
+	return teamID and unitTeam and teamID ~= unitTeam and Spring.AreTeamsAllied(teamID, unitTeam)
+end
+
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
