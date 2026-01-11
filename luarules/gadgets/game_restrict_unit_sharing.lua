@@ -32,13 +32,13 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, captu
 	if (capture) then
 		return true
 	end
-    if ecoUnits[unitDefID] then
-        local _, maxHealth, _ = Spring.GetUnitHealth(unitID)
-        Spring.AddUnitDamage(unitID, maxHealth*5, 30) -- Stun for 30 seconds.
-    end
 	beingBuilt, buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
 	if beingBuilt and buildProgress > 0 then
 		return false -- sharing partly built nanoframes is not allowed because letting it decay bypasses taxation
 	end
+    if ecoUnits[unitDefID] then
+        local _, maxHealth, _ = Spring.GetUnitHealth(unitID)
+        Spring.AddUnitDamage(unitID, maxHealth*5, 30) -- Stun for 30 seconds.
+    end
 	return true
 end
