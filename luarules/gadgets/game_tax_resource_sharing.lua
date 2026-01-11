@@ -162,6 +162,7 @@ function gadget:GameFrame(f)
 				dm = math.min(1.0, mExcess / mShare)
 			end
 
+			-- now evenly distribute our extra excess resources among allied teams
 			for i, otherTeamID in ipairs(Spring.GetTeamList()) do
 				_,_,isDead = Spring.GetTeamInfo(otherTeamID,false)
 				if otherTeamID ~= teamID and Spring.AreTeamsAllied(teamID, otherTeamID) and (not isDead) then
