@@ -112,7 +112,9 @@ function gadget:GameFrame(f)
 			local eExcess = math.max(0.0, teamEnergyCurrentLevel - (teamEnergyStorage * teamEnergyShare))
 			local mExcess = math.max(0.0, teamMetalCurrentLevel  - (teamMetalStorage  * teamMetalShare))
 
-			--- Tax the overflow, these resources are not shared and will be wasted if storage is full
+			--- Tax the overflow, these resources are not shared. These count as used resources for in statistics, not sure what they should count as.
+			Spring.UseTeamResource(teamID, "energy", eExcess * sharingTax)
+			Spring.UseTeamResource(teamID, "metal", mExcess * sharingTax)
 			eExcess = math.max(0.0, eExcess * (1-sharingTax))
 			mExcess = math.max(0.0, mExcess * (1-sharingTax))
 
@@ -149,7 +151,7 @@ function gadget:GameFrame(f)
 			eExcess = math.max(0.0, teamEnergyExcess)
 			mExcess = math.max(0.0, teamMetalExcess)
 
-			--- Tax the extra overflow, these resources are not shared and will be wasted if storage is full
+			--- Tax the extra overflow, these resources are not shared and were already wasted to full storage
 			eExcess = math.max(0.0, eExcess * (1-sharingTax))
 			mExcess = math.max(0.0, mExcess * (1-sharingTax))
 
