@@ -50,7 +50,6 @@ local zoomExplosionDetail = 0.1 -- Zoom level threshold for drawing expensive pr
 local iconRadius = 40
 
 local leftButtonPansCamera = false
-local hideCursorWhilePanning = true
 local maximizeSizemult = 1.25	-- enlarge the maximize icon so it stands out more
 local screenMargin = 0.05	-- limit how close to the screen edge the PiP window can be moved
 local drawProjectiles = true  -- Show projectiles and explosions in PIP window
@@ -59,6 +58,7 @@ local mapEdgeMargin = 0.15  -- Maximum allowed distance from PiP edge to map edg
 local showButtonsOnHoverOnly = true  -- Only show buttons when mouse is hovering over the PIP window
 local switchInheritsTracking = false  -- When switching views, inherit PIP's unit tracking to main camera
 local switchTransitionTime = 0.15  -- Camera transition time in seconds when switching views (pip_switch)
+local showMapRuler = true  -- Show map ruler marks at PIP edges to indicate scale
 
 local pipMinUpdateRate = 40  -- Minimum FPS for PIP rendering when zoomed out (performance-adjusted dynamically)
 local pipMaxUpdateRate = 120  -- Maximum FPS for PIP rendering when zoomed in
@@ -232,20 +232,20 @@ local gameHasStarted
 
 -- Command colors
 local cmdColors = {
-		unknown			= {1.0, 1.0, 1.0, 0.7},
-		[CMD.STOP]		= {0.0, 0.0, 0.0, 0.7},
-		[CMD.WAIT]		= {0.5, 0.5, 0.5, 0.7},
-		-- [CMD.BUILD]		= {0.0, 1.0, 0.0, 0.3}, -- BUILD handled by specific build commands
-		[CMD.MOVE]		= {0.5, 1.0, 0.5, 0.3},
-		[CMD.ATTACK]	= {1.0, 0.2, 0.2, 0.3},
-		[CMD.FIGHT]		= {1.0, 0.2, 1.0, 0.3},
-		[CMD.GUARD]		= {0.6, 1.0, 1.0, 0.3},
-		[CMD.PATROL]	= {0.2, 0.5, 1.0, 0.3},
-		[CMD.CAPTURE]	= {1.0, 1.0, 0.3, 0.6},
-		[CMD.REPAIR]	= {1.0, 0.9, 0.2, 0.6},
-		[CMD.RECLAIM]	= {0.5, 1.0, 0.4, 0.3},
-		[CMD.RESTORE]	= {0.0, 1.0, 0.0, 0.3},
-		[CMD.RESURRECT]	= {0.9, 0.5, 1.0, 0.5},
+	unknown			= {1.0, 1.0, 1.0, 0.7},
+	[CMD.STOP]		= {0.0, 0.0, 0.0, 0.7},
+	[CMD.WAIT]		= {0.5, 0.5, 0.5, 0.7},
+	-- [CMD.BUILD]		= {0.0, 1.0, 0.0, 0.3}, -- BUILD handled by specific build commands
+	[CMD.MOVE]		= {0.5, 1.0, 0.5, 0.3},
+	[CMD.ATTACK]	= {1.0, 0.2, 0.2, 0.3},
+	[CMD.FIGHT]		= {1.0, 0.2, 1.0, 0.3},
+	[CMD.GUARD]		= {0.6, 1.0, 1.0, 0.3},
+	[CMD.PATROL]	= {0.2, 0.5, 1.0, 0.3},
+	[CMD.CAPTURE]	= {1.0, 1.0, 0.3, 0.6},
+	[CMD.REPAIR]	= {1.0, 0.9, 0.2, 0.6},
+	[CMD.RECLAIM]	= {0.5, 1.0, 0.4, 0.3},
+	[CMD.RESTORE]	= {0.0, 1.0, 0.0, 0.3},
+	[CMD.RESURRECT]	= {0.9, 0.5, 1.0, 0.5},
 	[CMD.LOAD_UNITS]= {0.4, 0.9, 0.9, 0.7},
 	[CMD.UNLOAD_UNIT] = {1.0, 0.8, 0.0, 0.7},
 	[CMD.UNLOAD_UNITS]= {1.0, 0.8, 0.0, 0.7},
@@ -254,7 +254,7 @@ local cmdColors = {
 
 -- Command ID to cursor name mapping
 local cmdCursors = {
-	[CMD.ATTACK] = 'settarget',
+	[CMD.ATTACK] = 'Attack',
 	[CMD.GUARD] = 'Guard',
 	[CMD.REPAIR] = 'Repair',
 	[CMD.RECLAIM] = 'Reclaim',
@@ -675,7 +675,6 @@ end
 
 local function DrawPanel(l, r, b, t)
 	glColor(0.6,0.6,0.6,0.6)
-	--RectRound(l, b, r, t, elementCorner*0.4, 1, 1, 1, 1)
 	UiElement(l-elementPadding, b-elementPadding, r+elementPadding, t+elementPadding, 1, 1, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
 end
 
@@ -2422,6 +2421,12 @@ function widget:Initialize()
 	WG['guiPip'].GetUpdateRate = function()
 		return pipUpdateRate
 	end
+	WG['guiPip'].SetMapRuler = function(enabled)
+		showMapRuler = enabled
+	end
+	WG['guiPip'].GetMapRuler = function()
+		return showMapRuler
+	end
 
 	for i = 1, #buttons do
 		local button = buttons[i]
@@ -3355,13 +3360,13 @@ local function DrawIcons()
 				local udef = pipIconUdef[i]
 				local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
 
-				-- 0.15 to 0.7 while building, then jump to 1.0 when complete
+				-- 0.2 to 0.7 while building, then jump to 1.0 when complete
 				local buildProgress = pipIconBuildProgress[i]
 				local opacity
 				if buildProgress >= 1 then
 					opacity = 1.0
 				else
-					opacity = 0.15 + (buildProgress * 0.55)
+					opacity = 0.2 + (buildProgress * 0.5)
 				end
 
 				-- Check if this unit is hovered
@@ -3404,13 +3409,13 @@ local function DrawIcons()
 				local cx = pipIconX[i]
 				local cy = pipIconY[i]
 
-				-- 0.15 to 0.7 while building, then jump to 1.0 when complete
+				-- 0.2 to 0.7 while building, then jump to 1.0 when complete
 				local buildProgress = pipIconBuildProgress[i]
 				local opacity
 				if buildProgress >= 1 then
 					opacity = 1.0
 				else
-					opacity = 0.15 + (buildProgress * 0.55)
+					opacity = 0.2 + (buildProgress * 0.5)
 				end
 
 				-- Check if this unit is hovered
@@ -3629,7 +3634,7 @@ local function RenderFrameButtons()
 	-- Minimize button (top-right)
 	glColor(panelBorderColorDark)
 	glTexture(false)
-	RectRound(pipWidth - usedButtonSizeLocal - elementPadding, pipHeight - usedButtonSizeLocal - elementPadding, pipWidth, pipHeight, elementCorner, 0, 0, 0, 1)
+	RectRound(pipWidth - usedButtonSizeLocal - elementPadding, pipHeight - usedButtonSizeLocal - elementPadding, pipWidth, pipHeight, elementCorner*0.65, 0, 0, 0, 1)
 	glColor(panelBorderColorLight)
 	glTexture('LuaUI/Images/pip/PipMinimize.png')
 	glTexRect(pipWidth - usedButtonSizeLocal, pipHeight - usedButtonSizeLocal, pipWidth, pipHeight)
@@ -3649,7 +3654,7 @@ local function RenderFrameButtons()
 	local buttonCount = #visibleButtons
 	glColor(panelBorderColorDark)
 	glTexture(false)
-	RectRound(0, 0, (buttonCount * usedButtonSizeLocal) + math.floor(elementPadding*0.75), usedButtonSizeLocal + math.floor(elementPadding*0.75), elementCorner, 0, 1, 0, 0)
+	RectRound(0, 0, (buttonCount * usedButtonSizeLocal) + math.floor(elementPadding*0.75), usedButtonSizeLocal + math.floor(elementPadding*0.75), elementCorner*0.65, 0, 1, 0, 0)
 
 	local bx = 0
 	for i = 1, buttonCount do
@@ -3818,6 +3823,271 @@ local function DrawAreaCommand()
 	-- Reset blending
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
+	glColor(1, 1, 1, 1)
+end
+
+-- Draw map ruler at PIP edges to show scale
+local function DrawMapRuler()
+	-- Use fixed ruler spacing that never changes - this ensures consistent positions
+	-- Smallest ruler marks are always at multiples of 64 world units
+	local smallestSpacing = 64
+	local mediumSpacing = smallestSpacing * 4  -- 256
+	local largestSpacing = smallestSpacing * 16  -- 1024
+
+	-- Calculate how many pixels each spacing level would take on screen
+	local worldWidth = world.r - world.l
+	local smallestScreenSpacing = (dim.r - dim.l) * (smallestSpacing / worldWidth)
+	local mediumScreenSpacing = (dim.r - dim.l) * (mediumSpacing / worldWidth)
+	local largestScreenSpacing = (dim.r - dim.l) * (largestSpacing / worldWidth)
+
+	-- Show different levels based on screen spacing (like a ruler)
+	-- Only show marks if they're at least 8 pixels apart
+	local showSmallest = smallestScreenSpacing >= 8
+	local showMedium = mediumScreenSpacing >= 8
+	local showLargest = largestScreenSpacing >= 8
+
+	-- Calculate ruler mark size in screen space (4 pixels)
+	local markSize = math.ceil(3 * (vsy / 2000))
+
+	-- Draw squares at ruler marks along all edges
+	glTexture(false)
+	--glColor(0, 0, 0, 0.3)
+	glColor(1, 1, 1, 0.18)
+
+	-- Find ruler alignment based on world coordinates (always use smallest spacing as base)
+	local startX = math.ceil(world.l / smallestSpacing) * smallestSpacing
+	-- Note: world.t is actually less than world.b (inverted Z axis)
+	local startZ = math.ceil(world.t / smallestSpacing) * smallestSpacing
+
+	-- Top and bottom edges
+	local x = startX
+	while x <= world.r do
+		local sx = WorldToPipCoords(x, wcz)
+
+		-- Check if sx is within visible bounds
+		if sx >= dim.l and sx <= dim.r then
+			-- Determine if this mark should be shown based on ruler level
+			local is16x = (x % largestSpacing == 0)
+			local is4x = (x % mediumSpacing == 0)
+
+			local shouldDraw = false
+			local length = markSize
+
+			if is16x and showLargest then
+				shouldDraw = true
+				length = markSize * 3
+			elseif is4x and showMedium then
+				shouldDraw = true
+				length = markSize * 2
+			elseif showSmallest then
+				shouldDraw = true
+				length = markSize
+			end
+
+			if shouldDraw then
+				-- Top edge
+				glBeginEnd(GL_QUADS, function()
+					glVertex(sx - markSize/2, dim.t - length)
+					glVertex(sx + markSize/2, dim.t - length)
+					glVertex(sx + markSize/2, dim.t)
+					glVertex(sx - markSize/2, dim.t)
+				end)
+
+				-- Bottom edge
+				glBeginEnd(GL_QUADS, function()
+					glVertex(sx - markSize/2, dim.b)
+					glVertex(sx + markSize/2, dim.b)
+					glVertex(sx + markSize/2, dim.b + length)
+					glVertex(sx - markSize/2, dim.b + length)
+				end)
+			end
+		end
+
+		x = x + smallestSpacing
+	end
+
+	-- Left and right edges (world.t < world.b because Z is inverted)
+	local z = startZ
+	while z <= world.b do
+		local _, sy = WorldToPipCoords(wcx, z)
+
+		-- Check if sy is within visible bounds
+		if sy >= dim.b and sy <= dim.t then
+			-- Determine if this mark should be shown based on ruler level
+			local is16x = (z % largestSpacing == 0)
+			local is4x = (z % mediumSpacing == 0)
+
+			local shouldDraw = false
+			local length = markSize
+
+			if is16x and showLargest then
+				shouldDraw = true
+				length = markSize * 3
+			elseif is4x and showMedium then
+				shouldDraw = true
+				length = markSize * 2
+			elseif showSmallest then
+				shouldDraw = true
+				length = markSize
+			end
+
+			if shouldDraw then
+				-- Left edge
+				glBeginEnd(GL_QUADS, function()
+					glVertex(dim.l, sy - markSize/2)
+					glVertex(dim.l + length, sy - markSize/2)
+					glVertex(dim.l + length, sy + markSize/2)
+					glVertex(dim.l, sy + markSize/2)
+				end)
+
+				-- Right edge
+				glBeginEnd(GL_QUADS, function()
+					glVertex(dim.r - length, sy - markSize/2)
+					glVertex(dim.r, sy - markSize/2)
+					glVertex(dim.r, sy + markSize/2)
+					glVertex(dim.r - length, sy + markSize/2)
+				end)
+			end
+		end
+
+		z = z + smallestSpacing
+	end
+
+	glColor(1, 1, 1, 1)
+end
+
+-- Draw build cursor (icon and placement grid) when holding a build command
+local function DrawBuildCursor()
+	local mx, my = Spring.GetMouseState()
+
+	-- Check if mouse is over PIP
+	if mx < dim.l or mx > dim.r or my < dim.b or my > dim.t then
+		return
+	end
+
+	-- Get active command
+	local _, cmdID = Spring.GetActiveCommand()
+	if not cmdID or cmdID >= 0 then
+		return
+	end
+
+	-- Check if it's a build command
+	local buildDefID = -cmdID
+	local uDef = UnitDefs[buildDefID]
+	if not uDef then
+		return
+	end
+
+	-- Get world position under cursor
+	local wx, wz = PipToWorldCoords(mx, my)
+
+	-- Snap to build grid (16 elmos per cell, buildings snap to this grid)
+	local gridSize = 16
+	wx = math.floor(wx / gridSize + 0.5) * gridSize
+	wz = math.floor(wz / gridSize + 0.5) * gridSize
+
+	local wy = Spring.GetGroundHeight(wx, wz)
+
+	-- Get build facing
+	local buildFacing = Spring.GetBuildFacing()
+
+	-- Test if building can be placed here (returns 0 if not buildable, or a positive value if buildable)
+	local buildTest = Spring.TestBuildOrder(buildDefID, wx, wy, wz, buildFacing)
+	local canBuild = (buildTest and buildTest > 0)
+
+	-- Draw unit icon at cursor position with 0.7 opacity
+	if cache.unitIcon[buildDefID] then
+		local iconData = cache.unitIcon[buildDefID]
+		local texture = iconData.bitmap
+
+		-- Calculate icon size (same as DrawIcons function)
+		local distMult = math.min(math.max(1, 2.2-(zoom*3.3)), 3)
+		local iconRadiusZoom = iconRadius * zoom
+		local iconSize = iconRadiusZoom * distMult * iconData.size
+
+		local sx, sy = WorldToPipCoords(wx, wz)
+
+		glTexture(texture)
+		glColor(1, 1, 1, 0.7)
+		glTexRect(sx - iconSize, sy - iconSize, sx + iconSize, sy + iconSize)
+		glTexture(false)
+	end
+
+	-- Draw placement grid
+	local xsize = uDef.xsize * 4  -- Convert to elmos (each cell is 8 elmos)
+	local zsize = uDef.zsize * 4
+
+	-- Adjust for build facing (swap dimensions if rotated 90/270 degrees)
+	if buildFacing == 1 or buildFacing == 3 then
+		xsize, zsize = zsize, xsize
+	end
+
+	-- Calculate grid corners in world space
+	local halfX = xsize
+	local halfZ = zsize
+	local gridLeft = wx - halfX
+	local gridRight = wx + halfX
+	local gridTop = wz - halfZ
+	local gridBottom = wz + halfZ
+
+	-- Draw grid cells
+	local cellSize = 16  -- Each grid cell is 16 elmos (snap grid size)
+
+	glTexture(false)
+
+	-- We can't test individual cells, so use the overall buildability for the entire grid
+	-- The grid shows if the building footprint as a whole can be placed
+	local gridColor = canBuild and {0.3, 1.0, 0.3, 0.3} or {1.0, 0.3, 0.3, 0.3}
+	glColor(gridColor[1], gridColor[2], gridColor[3], gridColor[4])
+
+	-- Draw filled grid cells
+	for gx = gridLeft, gridRight - cellSize, cellSize do
+		for gz = gridTop, gridBottom - cellSize, cellSize do
+			local x1, y1 = WorldToPipCoords(gx, gz)
+			local x2, y2 = WorldToPipCoords(gx + cellSize, gz + cellSize)
+
+			-- Only draw if within PIP bounds
+			if x2 >= dim.l and x1 <= dim.r and y2 >= dim.b and y1 <= dim.t then
+				glBeginEnd(GL_QUADS, function()
+					glVertex(x1, y1)
+					glVertex(x2, y1)
+					glVertex(x2, y2)
+					glVertex(x1, y2)
+				end)
+			end
+		end
+	end
+
+	-- Draw grid lines with color based on overall buildability
+	local lineColor = canBuild and {0.5, 1.0, 0.5, 0.9} or {1.0, 0.5, 0.5, 0.9}
+	glColor(lineColor[1], lineColor[2], lineColor[3], lineColor[4])
+	gl.LineWidth(1.5)
+
+	-- Vertical lines
+	for gx = gridLeft, gridRight, cellSize do
+		local x1, y1 = WorldToPipCoords(gx, gridTop)
+		local x2, y2 = WorldToPipCoords(gx, gridBottom)
+		if x1 >= dim.l and x1 <= dim.r then
+			glBeginEnd(GL_LINES, function()
+				glVertex(x1, math.max(y1, dim.b))
+				glVertex(x2, math.min(y2, dim.t))
+			end)
+		end
+	end
+
+	-- Horizontal lines
+	for gz = gridTop, gridBottom, cellSize do
+		local x1, y1 = WorldToPipCoords(gridLeft, gz)
+		local x2, y2 = WorldToPipCoords(gridRight, gz)
+		if y1 >= dim.b and y1 <= dim.t then
+			glBeginEnd(GL_LINES, function()
+				glVertex(math.max(x1, dim.l), y1)
+				glVertex(math.min(x2, dim.r), y2)
+			end)
+		end
+	end
+
+	gl.LineWidth(1.0)
 	glColor(1, 1, 1, 1)
 end
 
@@ -3994,8 +4264,6 @@ function widget:DrawScreen()
 					-- Show move cursor if units can move, otherwise normal cursor
 					if canMove then
 						Spring.SetMouseCursor('Move')
-					else
-						--Spring.SetMouseCursor('cursornormal')
 					end
 				end
 			else
@@ -4230,13 +4498,14 @@ function widget:DrawScreen()
 
 		-- Blit the pre-rendered texture
 		if pipR2T.contentTex then
-			gl.R2tHelper.BlendTexRect(pipR2T.contentTex, dim.l, dim.b, dim.r, dim.t, true)
-		end
+		gl.R2tHelper.BlendTexRect(pipR2T.contentTex, dim.l, dim.b, dim.r, dim.t, true)
 	end
 
-
-
-	-- Draw tracking (corner) indicators
+	-- Draw map ruler at edges (after content, before buttons)
+	if showMapRuler then
+		DrawMapRuler()
+	end
+end	-- Draw tracking (corner) indicators
 	if interactionState.areTracking and #interactionState.areTracking > 0 then
 		local lineWidth = math.ceil(2 * (vsx / 1920))
 		local offset = lineWidth * 0.5  -- Offset to account for line width
@@ -4281,7 +4550,6 @@ function widget:DrawScreen()
 		if mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t then
 			if (dim.r-mx + my-dim.b <= usedButtonSize) then
 				hover = true
-				--Spring.SetMouseCursor('cursornormal')
 				if WG['tooltip'] then
 					WG['tooltip'].ShowTooltip('pip'..pipNumber, 'Resize', nil, nil, nil)
 				end
@@ -4309,7 +4577,6 @@ function widget:DrawScreen()
 		if mx >= dim.r - usedButtonSize - elementPadding and mx <= dim.r - elementPadding and
 			my >= dim.t - usedButtonSize - elementPadding and my <= dim.t - elementPadding then
 			hover = true
-			--Spring.SetMouseCursor('cursornormal')
 			if WG['tooltip'] then
 				WG['tooltip'].ShowTooltip('pip'..pipNumber, 'Minimize', nil, nil, nil)
 			end
@@ -4362,7 +4629,6 @@ function widget:DrawScreen()
 			if mx >= bx and mx <= bx + usedButtonSize and
 			   my >= dim.b and my <= dim.b + usedButtonSize then
 				hover = true
-				--Spring.SetMouseCursor('cursornormal')
 				if visibleButtons[i].tooltip and WG['tooltip'] then
 					WG['tooltip'].ShowTooltip('pip'..pipNumber, visibleButtons[i].tooltip, nil, nil, nil)
 				end
@@ -4409,6 +4675,9 @@ function widget:DrawScreen()
 
 	-- Draw area command circle
 	DrawAreaCommand()
+
+	-- Draw build cursor (icon and placement grid)
+	DrawBuildCursor()
 
 	-- Draw formation dots overlay (command queues are now in R2T)
 	DrawFormationDotsOverlay()
@@ -4593,7 +4862,6 @@ function widget:Update(dt)
 	-- If no buttons are actually pressed but we think we're panning with left+right, stop panning
 	if interactionState.arePanning and not interactionState.panToggleMode and not leftButton and not rightButton and not middleButton then
 		interactionState.arePanning = false
-		--Spring.SetMouseCursor('cursornormal')
 	end
 
 	-- Update game time (only when game is not paused)
@@ -5333,7 +5601,6 @@ function widget:MousePress(mx, my, mButton)
 			interactionState.panStartX = (dim.l + dim.r) / 2
 			interactionState.panStartY = (dim.b + dim.t) / 2
 			interactionState.areTracking = nil
-			--Spring.SetMouseCursor('cursornormal', hideCursorWhilePanning and 2 or 1)
 			return true
 		end
 	end
@@ -5354,7 +5621,6 @@ function widget:MousePress(mx, my, mButton)
 			if interactionState.panToggleMode then
 				interactionState.panToggleMode = false
 				interactionState.arePanning = false
-				--Spring.SetMouseCursor('cursornormal')
 				return true
 			end
 		end
@@ -5409,7 +5675,6 @@ function widget:MousePress(mx, my, mButton)
 		if interactionState.panToggleMode then
 			interactionState.panToggleMode = false
 			interactionState.arePanning = false
-			--Spring.SetMouseCursor('cursornormal')
 			return true
 		end
 
@@ -5535,27 +5800,53 @@ function widget:MousePress(mx, my, mButton)
 				-- Check if this is a build command with shift modifier for drag-to-build
 				local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
-				if cmdID < 0 and shift then
-					-- Start drag-to-build for buildings with shift modifier
+				-- Don't issue commands if alt is held without shift (user wants to pan instead)
+				-- But if both alt+shift are held with a build command, allow build dragging
+				local isBuildCommand = (cmdID < 0)
+				local allowBuildDrag = (isBuildCommand and alt and shift)
+
+				if alt and not allowBuildDrag then
+					-- Alt held without build drag conditions, so user wants to pan
+					-- Fall through to allow panning
+				elseif allowBuildDrag then
+					-- Alt+Shift+BuildCommand - start build dragging
 					interactionState.areBuildDragging = true
 					interactionState.buildDragStartX = mx
 					interactionState.buildDragStartY = my
 					interactionState.buildDragPositions = {{wx = wx, wz = wz}}
 					return true
-				elseif cmdID > 0 then
-					-- Check if command supports area mode
-					local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET
-					local supportsArea = (cmdID == CMD.ATTACK or cmdID == CMD.RECLAIM or cmdID == CMD.REPAIR or
-					                      cmdID == CMD.RESURRECT or cmdID == CMD.CAPTURE or cmdID == CMD.RESTORE or
-					                      cmdID == CMD.LOAD_UNITS or (setTargetCmd and cmdID == setTargetCmd))
-					if supportsArea then
-						-- Start area command drag
-						interactionState.areAreaDragging = true
-						interactionState.areaCommandStartX = mx
-						interactionState.areaCommandStartY = my
+				elseif not alt then
+					if cmdID < 0 and shift then
+						-- Start drag-to-build for buildings with shift modifier
+						interactionState.areBuildDragging = true
+						interactionState.buildDragStartX = mx
+						interactionState.buildDragStartY = my
+						interactionState.buildDragPositions = {{wx = wx, wz = wz}}
 						return true
+					elseif cmdID > 0 then
+						-- Check if command supports area mode
+						local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET
+						local supportsArea = (cmdID == CMD.ATTACK or cmdID == CMD.RECLAIM or cmdID == CMD.REPAIR or
+						                      cmdID == CMD.RESURRECT or cmdID == CMD.CAPTURE or cmdID == CMD.RESTORE or
+						                      cmdID == CMD.LOAD_UNITS or (setTargetCmd and cmdID == setTargetCmd))
+						if supportsArea then
+							-- Start area command drag
+							interactionState.areAreaDragging = true
+							interactionState.areaCommandStartX = mx
+							interactionState.areaCommandStartY = my
+							return true
+						else
+							-- Single command (no area support)
+							IssueCommandAtPoint(cmdID, wx, wz, false, false)
+
+							if not shift then
+								Spring.SetActiveCommand(0)
+							end
+
+							return true
+						end
 					else
-						-- Single command (no area support)
+						-- Build command without shift (single build)
 						IssueCommandAtPoint(cmdID, wx, wz, false, false)
 
 						if not shift then
@@ -5564,22 +5855,17 @@ function widget:MousePress(mx, my, mButton)
 
 						return true
 					end
-				else
-					-- Build command without shift (single build)
-					IssueCommandAtPoint(cmdID, wx, wz, false, false)
-
-					if not shift then
-						Spring.SetActiveCommand(0)
-					end
-
-					return true
 				end
+				-- If alt is held, fall through to allow panning to be initiated in MouseMove
 			end
 
 			-- No active command - start box selection or panning
 			-- Don't start single left-click actions if we're already panning with left+right
 			if not interactionState.arePanning then
-				if leftButtonPansCamera then
+				-- Check if alt is held - if so, don't start box selection (panning will be handled in MouseMove)
+				local alt, ctrl, meta, shift = Spring.GetModKeyState()
+				if not alt then
+					if leftButtonPansCamera then
 					interactionState.arePanning = true
 					interactionState.panStartX = mx
 					interactionState.panStartY = my
@@ -5589,7 +5875,6 @@ function widget:MousePress(mx, my, mButton)
 					interactionState.boxSelectStartY = my
 					interactionState.boxSelectEndX = mx
 					interactionState.boxSelectEndY = my
-					--Spring.SetMouseCursor('cursornormal', hideCursorWhilePanning and 2 or 1)
 				else
 					-- Start box selection instead
 					-- Save current selection before starting box selection
@@ -5610,6 +5895,8 @@ function widget:MousePress(mx, my, mButton)
 						WG.SmartSelect_SetReference()
 					end
 				end
+			end
+			-- If alt is held, fall through without starting box selection (panning will be handled in MouseMove)
 			end
 
 			return true
@@ -5685,8 +5972,11 @@ function widget:MousePress(mx, my, mButton)
 				end
 			end
 
-			return false
+			return true
 		end
+
+		-- Claim all mouse presses within PIP bounds
+		return true
 	end
 end
 
@@ -5717,7 +6007,6 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			-- Start panning
 			interactionState.arePanning = true
 			interactionState.areTracking = nil
-			--Spring.SetMouseCursor('cursornormal', hideCursorWhilePanning and 2 or 1)
 		end
 	end
 
@@ -5730,39 +6019,45 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			-- Start hold-drag panning
 			interactionState.arePanning = true
 			interactionState.areTracking = nil
-			--Spring.SetMouseCursor('cursornormal', hideCursorWhilePanning and 2 or 1)
 		end
 	end
 
-	-- Alt+Left drag for panning
+	-- Alt+Left drag for panning (but not when queuing buildings with shift)
 	if interactionState.leftMousePressed and alt and not interactionState.arePanning and mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t then
-		-- Check if there's actual movement (not just mouse jitter)
-		if math.abs(dx) > 2 or math.abs(dy) > 2 then
-			-- Cancel any ongoing operations
-			if interactionState.areBuildDragging then
-				interactionState.areBuildDragging = false
-				interactionState.buildDragPositions = {}
-			end
-			if interactionState.areBoxSelecting then
-				interactionState.areBoxSelecting = false
-				interactionState.areBoxDeselecting = false
-				-- Restore selection to what it was before box selection started
-				if interactionState.selectionBeforeBox then
-					Spring.SelectUnitArray(interactionState.selectionBeforeBox)
-					interactionState.selectionBeforeBox = nil
-				end
-				if WG.SmartSelect_ClearReference then
-					WG.SmartSelect_ClearReference()
-				end
-			end
-			if interactionState.areFormationDragging then
-				interactionState.areFormationDragging = false
-			end
+		-- Check if we're holding a build command with shift (queuing buildings)
+		local _, cmdID = Spring.GetActiveCommand()
+		local isBuildCommand = (cmdID and cmdID < 0)
+		local isQueueingBuilds = (isBuildCommand and shift)
 
-			-- Start panning
-			interactionState.arePanning = true
-			interactionState.areTracking = nil
-			--Spring.SetMouseCursor('cursornormal', hideCursorWhilePanning and 2 or 1)
+		-- Don't start panning if queuing buildings
+		if not isQueueingBuilds then
+			-- Check if there's actual movement (not just mouse jitter)
+			if math.abs(dx) > 2 or math.abs(dy) > 2 then
+				-- Cancel any ongoing operations
+				if interactionState.areBuildDragging then
+					interactionState.areBuildDragging = false
+					interactionState.buildDragPositions = {}
+				end
+				if interactionState.areBoxSelecting then
+					interactionState.areBoxSelecting = false
+					interactionState.areBoxDeselecting = false
+					-- Restore selection to what it was before box selection started
+					if interactionState.selectionBeforeBox then
+						Spring.SelectUnitArray(interactionState.selectionBeforeBox)
+						interactionState.selectionBeforeBox = nil
+					end
+					if WG.SmartSelect_ClearReference then
+						WG.SmartSelect_ClearReference()
+					end
+				end
+				if interactionState.areFormationDragging then
+					interactionState.areFormationDragging = false
+				end
+
+				-- Start panning
+				interactionState.arePanning = true
+				interactionState.areTracking = nil
+			end
 		end
 	end
 
@@ -5949,7 +6244,6 @@ function widget:MouseRelease(mx, my, mButton)
 
 		if not otherButtonStillPressed then
 			interactionState.arePanning = false
-			--Spring.SetMouseCursor('cursornormal')
 		end
 	end
 
@@ -6272,11 +6566,9 @@ function widget:MouseRelease(mx, my, mButton)
 				interactionState.panToggleMode = true
 				interactionState.arePanning = true
 				interactionState.areTracking = nil
-				--Spring.SetMouseCursor('cursornormal', hideCursorWhilePanning and 2 or 1)
 			else
 				-- It was a hold-drag - stop panning
 				interactionState.arePanning = false
-				--Spring.SetMouseCursor('cursornormal')
 			end
 			interactionState.middleMousePressed = false
 			interactionState.middleMouseMoved = false
@@ -6288,7 +6580,6 @@ function widget:MouseRelease(mx, my, mButton)
 	-- Only stop panning from left button if not in toggle mode AND using leftButtonPansCamera mode
 	-- (Don't interfere with left+right button panning which handles its own cleanup above)
 	if interactionState.arePanning and not interactionState.panToggleMode and not interactionState.middleMousePressed and leftButtonPansCamera and mButton == 1 then
-		--Spring.SetMouseCursor('cursornormal')
 		interactionState.arePanning = false
 	end
 
