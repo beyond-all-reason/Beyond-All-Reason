@@ -32,7 +32,9 @@ function gadget:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, st
     if step < 0 then -- reclaim step
 		if (hp + step * maxhp) <= 0 then -- we only care about the last bit
 			local metalCost = UnitDefs[unitDefID].metalCost * currentBuild
-			Spring.UseTeamResource(builderTeam, "metal", metalCost * sharingTax)
+			Spring.AddTeamResource(builderTeam, "metal", metalCost * (1- sharingTax))
+			Spring.DestroyUnit(unitID, false, true, nil, true)
+			return false
 		end
 	end
 	return true
