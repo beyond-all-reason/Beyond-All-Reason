@@ -143,6 +143,7 @@ local interactionState = {
 	areDecreasingZoom = false,  -- Pulling back (decreasing zoom value)
 	areIncreasingZoom = false,  -- Getting closer (increasing zoom value)
 	areTracking = nil,
+	trackingPlayerID = nil,
 	areBoxSelecting = false,
 	areBoxDeselecting = false,
 	boxSelectStartX = 0,
@@ -174,7 +175,7 @@ local startX, startZ
 local isProcessingMapDraw = false -- Prevent MapDrawCmd recursion
 local mapmarkInitScreenX, mapmarkInitScreenY = nil, nil -- Track where mapmark was initiated
 local mapmarkInitTime = 0 -- Track when mapmark was initiated
-local backupTracking = nil -- Store tracking state and camera position when switching views: {tracking = units, camX = x, camZ = z}
+local backupTracking = nil -- Store tracking state and camera position when switching views: {tracking = units, trackingPlayerID = playerID, camX = x, camZ = z}
 local isSwitchingViews = false -- Track when we're doing a pip_switch transition
 local hadSavedConfig = false -- Track if we loaded from saved config (to avoid auto-minimize on reload)
 local pipUnits = {}
@@ -287,9 +288,11 @@ local buttons = {
 					RecalculateGroundTextureCoordinates()
 					-- Disable tracking when copying camera
 					interactionState.areTracking = nil
+					interactionState.trackingPlayerID = nil
 					-- Store the copied position in backup so switching maintains same position
 					backupTracking = {
 						tracking = nil,
+						trackingPlayerID = nil,
 						camX = copiedX,
 						camZ = copiedZ
 					}
@@ -339,27 +342,29 @@ local buttons = {
 						Spring.SendCommands("track")
 					end
 
-					-- Swap tracking state: current PIP tracking <-> backup
-					-- This ensures toggling switch restores previous tracking states
-					local currentPipTracking = interactionState.areTracking
-					local currentPipCamX = pipCameraTargetX
-					local currentPipCamZ = pipCameraTargetZ
+				-- Swap tracking state: current PIP tracking <-> backup
+				-- This ensures toggling switch restores previous tracking states
+				local currentPipTracking = interactionState.areTracking
+				local currentPipTrackingPlayerID = interactionState.trackingPlayerID
+				local currentPipCamX = pipCameraTargetX
+				local currentPipCamZ = pipCameraTargetZ
 
-					-- Restore tracking from backup to PIP view (or set to nil if no backup)
-					if backupTracking then
-						interactionState.areTracking = backupTracking.tracking
-					else
-						interactionState.areTracking = nil
-					end
+				-- Restore tracking from backup to PIP view (or set to nil if no backup)
+				if backupTracking then
+					interactionState.areTracking = backupTracking.tracking
+					interactionState.trackingPlayerID = backupTracking.trackingPlayerID
+				else
+					interactionState.areTracking = nil
+					interactionState.trackingPlayerID = nil
+				end
 
-					-- Save current PIP state to backup for next switch
-					backupTracking = {
-						tracking = currentPipTracking,
-						camX = currentPipCamX,
-						camZ = currentPipCamZ
-					}
-
-				-- Switch camera positions - use rounded coordinates
+				-- Save current PIP state to backup for next switch
+				backupTracking = {
+					tracking = currentPipTracking,
+					trackingPlayerID = currentPipTrackingPlayerID,
+					camX = currentPipCamX,
+					camZ = currentPipCamZ
+				}				-- Switch camera positions - use rounded coordinates
 				Spring.SetCameraTarget(pipCameraTargetX, 0, pipCameraTargetZ, switchTransitionTime)
 				-- Set PIP camera target for smooth transition (don't set wcx/wcz directly)
 				targetWcx, targetWcz = mainCamX, mainCamZ
@@ -377,6 +382,7 @@ local buttons = {
 	{
 		texture = 'LuaUI/Images/pip/PipT.png',
 		tooltip = Spring.I18N('ui.pip.track'),
+		tooltipActive = Spring.I18N('ui.pip.untrack'),
 		command = 'pip_track',
 		OnPress = function()
 			local selectedUnits = Spring.GetSelectedUnits()
@@ -406,6 +412,89 @@ local buttons = {
 			else
 				-- No selection: clear tracking
 				interactionState.areTracking = nil
+			end
+		end
+	},
+	{
+		texture = 'LuaUI/Images/pip/PipCam.png',
+		tooltip = Spring.I18N('ui.pip.camera'),
+		tooltipActive = Spring.I18N('ui.pip.uncamera'),
+		command = 'pip_trackplayer',
+		OnPress = function()
+			if interactionState.trackingPlayerID then
+				-- Stop tracking player
+				interactionState.trackingPlayerID = nil
+				pipR2T.frameNeedsUpdate = true
+			else
+				-- Start tracking player via lockcamera widget
+				local closestPlayerID = nil
+				local closestTime = math.huge
+
+				-- First, try to use lockcamera widget's data
+				if WG.lockcamera then
+					-- Try to get recent broadcasters first
+					local recentBroadcasters = WG.lockcamera.recentBroadcasters
+					if recentBroadcasters then
+						for playerID, timeSince in pairs(recentBroadcasters) do
+							if timeSince < closestTime then
+								closestTime = timeSince
+								closestPlayerID = playerID
+							end
+						end
+					end
+
+					-- If no recent broadcasters found but GetPlayerCameraState exists, try to find any player with camera data
+					if not closestPlayerID and WG.lockcamera.GetPlayerCameraState then
+						local playerList = Spring.GetPlayerList()
+						for _, playerID in ipairs(playerList) do
+							-- Skip self
+							local myPlayerID = Spring.GetMyPlayerID()
+							if playerID ~= myPlayerID then
+								local cameraState = WG.lockcamera.GetPlayerCameraState(playerID)
+								if cameraState then
+									closestPlayerID = playerID
+									break
+								end
+							end
+						end
+					end
+				end
+
+				-- Fallback: if still no player found, try any active player (including spectators)
+				if not closestPlayerID then
+					local playerList = Spring.GetPlayerList()
+					local myPlayerID = Spring.GetMyPlayerID()
+					-- First try non-spectators
+					for _, playerID in ipairs(playerList) do
+						if playerID ~= myPlayerID then
+							local name, active, isSpec = Spring.GetPlayerInfo(playerID, false)
+							if name and active and not isSpec then
+								closestPlayerID = playerID
+								break
+							end
+						end
+					end
+					-- If no non-spectators, try any active player including spectators
+					if not closestPlayerID then
+						for _, playerID in ipairs(playerList) do
+							if playerID ~= myPlayerID then
+								local name, active = Spring.GetPlayerInfo(playerID, false)
+								if name and active then
+									closestPlayerID = playerID
+									break
+								end
+							end
+						end
+					end
+				end
+
+				if closestPlayerID then
+					interactionState.trackingPlayerID = closestPlayerID
+					-- Clear unit tracking when starting player tracking
+					interactionState.areTracking = nil
+					pipR2T.frameNeedsUpdate = true
+					pipR2T.contentNeedsUpdate = true
+				end
 			end
 		end
 	},
@@ -650,6 +739,108 @@ local function UpdateTracking()
 		interactionState.areTracking = nil
 	end
 end
+
+local function UpdatePlayerTracking()
+	if not interactionState.trackingPlayerID then
+		return
+	end
+
+	-- Get player camera state from lockcamera widget's stored broadcasts
+	if WG.lockcamera and WG.lockcamera.GetPlayerCameraState then
+		-- Get the stored camera state for this player
+		local cameraState = WG.lockcamera.GetPlayerCameraState(interactionState.trackingPlayerID)
+
+		if not cameraState then
+			-- Player stopped broadcasting - check if they still exist
+			local playerName = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+			if not playerName then
+				-- Player left the game, stop tracking
+				interactionState.trackingPlayerID = nil
+				pipR2T.frameNeedsUpdate = true
+			end
+			-- If player still exists but no camera state, keep tracking and use last known position
+			return
+		end
+
+		if cameraState then
+			-- Extract position from camera state (different camera modes have different field names)
+			-- Camera state can have: px, py, pz (spring/ta camera), x, y, z (free camera), etc.
+			local camX, camY, camZ
+
+			-- Try different camera mode field names
+			if cameraState.px then
+				camX, camY, camZ = cameraState.px, cameraState.py, cameraState.pz
+			elseif cameraState.x then
+				camX, camY, camZ = cameraState.x, cameraState.y, cameraState.z
+			end
+
+			if camX and camZ then
+				-- For tilted cameras, we need to project the view direction onto the ground
+				-- Get camera direction/rotation if available
+				local rx = cameraState.rx or 0  -- Camera rotation around X axis (tilt)
+				local ry = cameraState.ry or 0  -- Camera rotation around Y axis (heading)
+				local dist = cameraState.dist or 1000  -- Camera distance
+				local height = cameraState.height or camY or 500
+
+				-- Calculate ground point that camera is looking at
+				-- For spring/overhead camera: the px,pz is roughly the point being looked at
+				-- For other cameras, we need to project forward
+				local lookAtX, lookAtZ = camX, camZ
+
+				-- If camera has distance parameter, it's likely overhead/spring mode
+				-- In that case, px/pz is already the ground point we want
+				if cameraState.mode then
+					-- Different camera modes need different handling
+					if cameraState.mode == "ta" or cameraState.mode == "spring" then
+						-- Spring/TA camera: px, pz is the target point on ground
+						lookAtX, lookAtZ = camX, camZ
+					elseif cameraState.mode == "ov" then
+						-- Overview camera: use px, pz directly
+						lookAtX, lookAtZ = camX, camZ
+					elseif cameraState.mode == "free" or cameraState.mode == "fps" then
+						-- Free/FPS camera: need to project view direction onto ground
+						-- Calculate where the camera is looking at ground level
+						local viewDist = height / math.max(0.1, math.cos(math.rad(rx)))
+						lookAtX = camX + viewDist * math.sin(math.rad(ry))
+						lookAtZ = camZ + viewDist * math.cos(math.rad(ry))
+					end
+				end
+
+				targetWcx = lookAtX
+				targetWcz = lookAtZ
+
+				-- Adjust zoom based on camera distance/height to approximate the view scale
+				-- Higher camera = more zoomed out in PIP
+				if dist and dist > 0 then
+					-- Spring camera distance - use it to set zoom
+					local zoomFromDist = math.max(zoomMin, math.min(zoomMax, 0.4 * (1000 / dist)))
+					targetZoom = zoomFromDist
+				elseif height and height > 0 then
+					-- Use height as approximation for zoom
+					local zoomFromHeight = math.max(zoomMin, math.min(zoomMax, 0.5 * (800 / height)))
+					targetZoom = zoomFromHeight
+				end
+			end
+		end
+
+		-- Apply map edge margin constraints
+		local pipWidth = dim.r - dim.l
+		local pipHeight = dim.t - dim.b
+		local visibleWorldWidth = pipWidth / targetZoom
+		local visibleWorldHeight = pipHeight / targetZoom
+		local smallerVisibleDimension = math.min(visibleWorldWidth, visibleWorldHeight)
+		local margin = smallerVisibleDimension * mapEdgeMargin
+
+		local minWcx = visibleWorldWidth / 2 - margin
+		local maxWcx = mapSizeX - (visibleWorldWidth / 2 - margin)
+		local minWcz = visibleWorldHeight / 2 - margin
+		local maxWcz = mapSizeZ - (visibleWorldHeight / 2 - margin)
+
+		targetWcx = math.min(math.max(targetWcx, minWcx), maxWcx)
+		targetWcz = math.min(math.max(targetWcz, minWcz), maxWcz)
+	end
+end
+
 local function PipToWorldCoords(mx, my)
 	return world.l + (world.r - world.l) * ((mx - dim.l) / (dim.r - dim.l)),
 		   world.b + (world.t - world.b) * ((my - dim.b) / (dim.t - dim.b))
@@ -2407,25 +2598,49 @@ function widget:Initialize()
 	widget:ViewResize()
 
 	-- Create API for other widgets
-	WG['guiPip'] = {}
-	WG['guiPip'].IsAbove = function(mx, my)
+	WG['pip'..pipNumber] = {}
+	WG['pip'..pipNumber].IsAbove = function(mx, my)
 		return widget:IsAbove(mx, my)
 	end
-	WG['guiPip'].ForceUpdate = function()
+	WG['pip'..pipNumber].ForceUpdate = function()
 		pipR2T.contentNeedsUpdate = true
 	end
-	WG['guiPip'].SetUpdateRate = function(fps)
+	WG['pip'..pipNumber].SetUpdateRate = function(fps)
 		pipUpdateRate = fps
 		pipUpdateInterval = pipUpdateRate > 0 and (1 / pipUpdateRate) or 0
 	end
-	WG['guiPip'].GetUpdateRate = function()
+	WG['pip'..pipNumber].GetUpdateRate = function()
 		return pipUpdateRate
 	end
-	WG['guiPip'].SetMapRuler = function(enabled)
+	WG['pip'..pipNumber].SetMapRuler = function(enabled)
 		showMapRuler = enabled
 	end
-	WG['guiPip'].GetMapRuler = function()
+	WG['pip'..pipNumber].GetMapRuler = function()
 		return showMapRuler
+	end
+	WG['pip'..pipNumber].TrackPlayer = function(playerID)
+		if playerID and type(playerID) == "number" then
+			local name = Spring.GetPlayerInfo(playerID, false)
+			if name then
+				interactionState.trackingPlayerID = playerID
+				interactionState.areTracking = nil  -- Clear unit tracking
+				pipR2T.frameNeedsUpdate = true
+				pipR2T.contentNeedsUpdate = true
+				return true
+			end
+		end
+		return false
+	end
+	WG['pip'..pipNumber].UntrackPlayer = function()
+		if interactionState.trackingPlayerID then
+			interactionState.trackingPlayerID = nil
+			pipR2T.frameNeedsUpdate = true
+			return true
+		end
+		return false
+	end
+	WG['pip'..pipNumber].GetTrackedPlayer = function()
+		return interactionState.trackingPlayerID
 	end
 
 	for i = 1, #buttons do
@@ -2593,7 +2808,7 @@ function widget:Shutdown()
 	end
 
 	-- Clean up API
-	WG['guiPip'] = nil
+	WG['pip'..pipNumber] = nil
 
 	for i = 1, #buttons do
 		local button = buttons[i]
@@ -2638,6 +2853,7 @@ function widget:GetConfigData()
 			drawingGround=drawingGround,
 			drawProjectiles=drawProjectiles,
 			areTracking=interactionState.areTracking,
+			trackingPlayerID=interactionState.trackingPlayerID,
 			trackingSmoothness=trackingSmoothness,
 			gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
 		}
@@ -2690,9 +2906,24 @@ function widget:SetConfigData(data)
 	drawingGround = data.drawingGround~= nil and data.drawingGround or drawingGround
 	drawProjectiles = data.drawProjectiles~= nil and data.drawProjectiles or drawProjectiles
 	trackingSmoothness = data.trackingSmoothness or trackingSmoothness
-	if Spring.GetGameFrame() > 0 or (data.gameID and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"))) then
+
+	local currentGameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")
+	local isSameGame = (data.gameID and currentGameID and data.gameID == currentGameID)
+
+	if Spring.GetGameFrame() > 0 or isSameGame then
 		interactionState.areTracking = data.areTracking
 		zoom = data.zoom or zoom
+
+		-- Restore player tracking if same game and player still exists
+		if data.trackingPlayerID and isSameGame then
+			local playerName = Spring.GetPlayerInfo(data.trackingPlayerID, false)
+			if playerName then
+				-- Restore the tracking - validation happens in UpdatePlayerTracking
+				interactionState.trackingPlayerID = data.trackingPlayerID
+				-- Force frame update to show button
+				pipR2T.frameNeedsUpdate = true
+			end
+		end
 	end
 	targetZoom = zoom
 end
@@ -3644,9 +3875,26 @@ local function RenderFrameButtons()
 	local selectedUnits = Spring.GetSelectedUnits()
 	local hasSelection = #selectedUnits > 0
 	local isTracking = interactionState.areTracking ~= nil
+	local isTrackingPlayer = interactionState.trackingPlayerID ~= nil
+	-- Show player tracking button only when tracking or when spectating
+	local showPlayerTrackButton = isTrackingPlayer
+	if not showPlayerTrackButton then
+		local _, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+		showPlayerTrackButton = spec
+	end
 	local visibleButtons = {}
 	for i = 1, #buttons do
-		if buttons[i].command ~= 'pip_track' or hasSelection or isTracking then
+		-- Show pip_track button if has selection or is tracking units
+		if buttons[i].command == 'pip_track' then
+			if hasSelection or isTracking then
+				visibleButtons[#visibleButtons + 1] = buttons[i]
+			end
+		-- Show pip_trackplayer button if lockcamera is available or already tracking
+		elseif buttons[i].command == 'pip_trackplayer' then
+			if showPlayerTrackButton then
+				visibleButtons[#visibleButtons + 1] = buttons[i]
+			end
+		else
 			visibleButtons[#visibleButtons + 1] = buttons[i]
 		end
 	end
@@ -3658,7 +3906,8 @@ local function RenderFrameButtons()
 
 	local bx = 0
 	for i = 1, buttonCount do
-		if visibleButtons[i].command == 'pip_track' and interactionState.areTracking then
+		if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
+		   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) then
 			glColor(panelBorderColorLight)
 			glTexture(false)
 			RectRound(bx, 0, bx + usedButtonSizeLocal, usedButtonSizeLocal, elementCorner*0.4, 1, 1, 1, 1)
@@ -4525,6 +4774,30 @@ end	-- Draw tracking (corner) indicators
 		gl.LineWidth(1)
 	end
 
+	-- Draw player tracking indicator (team-colored rectangle)
+	if interactionState.trackingPlayerID then
+		local playerName, active, isSpec, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+		if teamID then
+			local r, g, b = Spring.GetTeamColor(teamID)
+			local lineWidth = math.ceil(2 * (vsx / 1920))
+			local offset = lineWidth * 0.5  -- Offset to account for line width
+
+			gl.LineWidth(lineWidth)
+			glColor(r, g, b, 0.5)
+
+			-- Rectangle box
+			glBeginEnd(GL_LINE_STRIP, function()
+				gl.Vertex(dim.l + offset, dim.t - offset)
+				gl.Vertex(dim.r - offset, dim.t - offset)
+				gl.Vertex(dim.r - offset, dim.b + offset)
+				gl.Vertex(dim.l + offset, dim.b + offset)
+				gl.Vertex(dim.l + offset, dim.t - offset)
+			end)
+
+			gl.LineWidth(1)
+		end
+	end
+
 	----------------------------------------------------------------------------------------------------
 	-- Buttons and hover effects
 	----------------------------------------------------------------------------------------------------
@@ -4593,9 +4866,26 @@ end	-- Draw tracking (corner) indicators
 		local selectedUnits = Spring.GetSelectedUnits()
 		local hasSelection = #selectedUnits > 0
 		local isTracking = interactionState.areTracking ~= nil
+		local isTrackingPlayer = interactionState.trackingPlayerID ~= nil
+		-- Show player tracking button only when tracking or when spectating
+		local showPlayerTrackButton = isTrackingPlayer
+		if not showPlayerTrackButton then
+			local _, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+			showPlayerTrackButton = spec
+		end
 		local visibleButtons = {}
 		for i = 1, #buttons do
-			if buttons[i].command ~= 'pip_track' or hasSelection or isTracking then
+			-- Show pip_track button if has selection or is tracking units
+			if buttons[i].command == 'pip_track' then
+				if hasSelection or isTracking then
+					visibleButtons[#visibleButtons + 1] = buttons[i]
+				end
+			-- Show pip_trackplayer button if lockcamera is available or already tracking
+			elseif buttons[i].command == 'pip_trackplayer' then
+				if showPlayerTrackButton then
+					visibleButtons[#visibleButtons + 1] = buttons[i]
+				end
+			else
 				visibleButtons[#visibleButtons + 1] = buttons[i]
 			end
 		end
@@ -4608,7 +4898,8 @@ end	-- Draw tracking (corner) indicators
 			RectRound(dim.l, dim.b, dim.l + (buttonCount * usedButtonSize) + math.floor(elementPadding*0.75), dim.b + usedButtonSize + math.floor(elementPadding*0.75), elementCorner, 0, 1, 0, 0)
 			local bx = dim.l
 			for i = 1, buttonCount do
-				if visibleButtons[i].command == 'pip_track' and interactionState.areTracking then
+				if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
+				   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) then
 					glColor(panelBorderColorLight)
 					glTexture(false)
 					RectRound(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize, elementCorner*0.4, 1, 1, 1, 1)
@@ -4630,13 +4921,21 @@ end	-- Draw tracking (corner) indicators
 			   my >= dim.b and my <= dim.b + usedButtonSize then
 				hover = true
 				if visibleButtons[i].tooltip and WG['tooltip'] then
-					WG['tooltip'].ShowTooltip('pip'..pipNumber, visibleButtons[i].tooltip, nil, nil, nil)
+					local tooltipText = visibleButtons[i].tooltip
+					if visibleButtons[i].tooltipActive then
+						if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
+						   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) then
+							tooltipText = visibleButtons[i].tooltipActive
+						end
+					end
+					WG['tooltip'].ShowTooltip('pip'..pipNumber, tooltipText, nil, nil, nil)
 				end
 				glColor(1,1,1,0.12)
 				glTexture(false)
 				RectRound(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize, elementCorner*0.4, 1, 1, 1, 1)
 				-- Redraw button icon on hover for brightness
-				if visibleButtons[i].command == 'pip_track' and interactionState.areTracking then
+				if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
+				   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) then
 					glColor(panelBorderColorDark)
 				else
 					glColor(1, 1, 1, 1)
@@ -4662,7 +4961,45 @@ end	-- Draw tracking (corner) indicators
 		font:End()	-- Draw box selection rectangle
 	end
 
-	-- Display current max update rate (top-left corner)
+
+	-- Display tracked player name at top-center of PIP
+	if interactionState.trackingPlayerID then
+		local playerName, active, isSpec, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+		if playerName and teamID then
+			-- Get display name (may be modified by playernames widget)
+			if WG.playernames and WG.playernames.getPlayername then
+				playerName = WG.playernames.getPlayername(interactionState.trackingPlayerID)
+			end
+
+		-- Get team color
+		local r, g, b = Spring.GetTeamColor(teamID)
+
+		local fontSize = math.floor(18* widgetScale)
+		local padding = math.floor(10 * widgetScale)
+		local textPadding = math.floor(12 * widgetScale)
+		local centerX = (dim.l + dim.r) / 2
+
+		-- Measure text width to create background box
+		font:Begin()
+		local textWidth = font:GetTextWidth(playerName) * fontSize * 2
+
+		-- Draw background box for player name at top-center
+		local boxWidth = textWidth + textPadding * 2
+		local boxHeight = (fontSize * 2) + padding * 2
+		local boxLeft = centerX - boxWidth / 2
+		local boxRight = centerX + boxWidth / 2
+		local boxTop = dim.t
+		local boxBottom = dim.t - boxHeight
+
+		--glColor(panelBorderColorDark)
+		--RectRound(boxLeft, boxBottom, boxRight, boxTop, elementCorner*0.4, 0, 0, 1, 1)
+
+		font:SetTextColor(r, g, b, 1)
+		font:SetOutlineColor(0, 0, 0, 0.8)
+		font:Print(playerName, centerX, boxTop - padding - (fontSize*1.6), fontSize*2, "con")
+		font:End()
+	end
+end	-- Display current max update rate (top-left corner)
 	-- local fontSize = 11
 	-- local padding = 5
 	-- font:Begin()
@@ -4824,13 +5161,16 @@ function widget:Update(dt)
 	local selectedUnits = Spring.GetSelectedUnits()
 	local currentSelectionCount = #selectedUnits
 	local currentTrackingState = interactionState.areTracking ~= nil
+	local currentPlayerTrackingState = interactionState.trackingPlayerID ~= nil
 	if not lastSelectionCount then lastSelectionCount = 0 end
 	if not lastTrackingState then lastTrackingState = false end
+	if not lastPlayerTrackingState then lastPlayerTrackingState = false end
 
-	if currentSelectionCount ~= lastSelectionCount or currentTrackingState ~= lastTrackingState then
+	if currentSelectionCount ~= lastSelectionCount or currentTrackingState ~= lastTrackingState or currentPlayerTrackingState ~= lastPlayerTrackingState then
 		pipR2T.frameNeedsUpdate = true
 		lastSelectionCount = currentSelectionCount
 		lastTrackingState = currentTrackingState
+		lastPlayerTrackingState = currentPlayerTrackingState
 	end
 
 	-- Check if selectionbox widget state has changed and update command colors accordingly
@@ -5063,6 +5403,11 @@ function widget:Update(dt)
 			RecalculateWorldCoordinates()
 			RecalculateGroundTextureCoordinates()
 		end
+	end
+
+	-- Update player camera tracking
+	if interactionState.trackingPlayerID then
+		UpdatePlayerTracking()
 	end
 
 	-- Check for modifier key changes during box selection
@@ -5775,13 +6120,30 @@ function widget:MousePress(mx, my, mButton)
 
 			-- Button row
 			if my <= dim.b + usedButtonSize then
-				-- Calculate visible buttons (hide tracking button when no units selected and not tracking)
+				-- Calculate visible buttons
 				local selectedUnits = Spring.GetSelectedUnits()
 				local hasSelection = #selectedUnits > 0
 				local isTracking = interactionState.areTracking ~= nil
+				local isTrackingPlayer = interactionState.trackingPlayerID ~= nil
+				-- Show player tracking button only when tracking or when spectating
+				local showPlayerTrackButton = isTrackingPlayer
+				if not showPlayerTrackButton then
+					local _, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+					showPlayerTrackButton = spec
+				end
 				local visibleButtons = {}
 				for i = 1, #buttons do
-					if buttons[i].command ~= 'pip_track' or hasSelection or isTracking then
+					-- Show pip_track button if has selection or is tracking units
+					if buttons[i].command == 'pip_track' then
+						if hasSelection or isTracking then
+							visibleButtons[#visibleButtons + 1] = buttons[i]
+						end
+					-- Show pip_trackplayer button if lockcamera is available or already tracking
+					elseif buttons[i].command == 'pip_trackplayer' then
+						if showPlayerTrackButton then
+							visibleButtons[#visibleButtons + 1] = buttons[i]
+						end
+					else
 						visibleButtons[#visibleButtons + 1] = buttons[i]
 					end
 				end
@@ -5810,6 +6172,11 @@ function widget:MousePress(mx, my, mButton)
 					-- Fall through to allow panning
 				elseif allowBuildDrag then
 					-- Alt+Shift+BuildCommand - start build dragging
+					-- Snap to 16-elmo build grid
+					local gridSize = 16
+					wx = math.floor(wx / gridSize + 0.5) * gridSize
+					wz = math.floor(wz / gridSize + 0.5) * gridSize
+
 					interactionState.areBuildDragging = true
 					interactionState.buildDragStartX = mx
 					interactionState.buildDragStartY = my
@@ -5818,6 +6185,11 @@ function widget:MousePress(mx, my, mButton)
 				elseif not alt then
 					if cmdID < 0 and shift then
 						-- Start drag-to-build for buildings with shift modifier
+						-- Snap to 16-elmo build grid
+						local gridSize = 16
+						wx = math.floor(wx / gridSize + 0.5) * gridSize
+						wz = math.floor(wz / gridSize + 0.5) * gridSize
+
 						interactionState.areBuildDragging = true
 						interactionState.buildDragStartX = mx
 						interactionState.buildDragStartY = my
@@ -5847,6 +6219,11 @@ function widget:MousePress(mx, my, mButton)
 						end
 					else
 						-- Build command without shift (single build)
+						-- Snap to 16-elmo build grid
+						local gridSize = 16
+						wx = math.floor(wx / gridSize + 0.5) * gridSize
+						wz = math.floor(wz / gridSize + 0.5) * gridSize
+
 						IssueCommandAtPoint(cmdID, wx, wz, false, false)
 
 						if not shift then
