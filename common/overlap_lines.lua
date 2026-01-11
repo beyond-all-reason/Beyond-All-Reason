@@ -103,4 +103,97 @@ function OverlapLines.isPointPastLines(pointX, pointZ, originX, originZ, lines)
     return false
 end
 
+---Calculate intersection of two lines
+---@param p1 table First point of first line {x: number, z: number}
+---@param p2 table Second point of first line {x: number, z: number}
+---@param p3 table First point of second line {x: number, z: number}
+---@param p4 table Second point of second line {x: number, z: number}
+---@return table|nil intersection Point of intersection {x: number, z: number, t: number} or nil if no intersection
+local function findLineIntersection(p1, p2, p3, p4)
+    local x1, z1 = p1.x, p1.z
+    local x2, z2 = p2.x, p2.z
+    local x3, z3 = p3.x, p3.z
+    local x4, z4 = p4.x, p4.z
+    
+    local denom = (x1 - x2) * (z3 - z4) - (z1 - z2) * (x3 - x4)
+    if math.abs(denom) < 0.0001 then return nil end
+    
+    local t = ((x1 - x3) * (z3 - z4) - (z1 - z3) * (x3 - x4)) / denom
+    local u = -((x1 - x2) * (z1 - z3) - (z1 - z2) * (x1 - x3)) / denom
+    
+    if t >= 0 and t <= 1 and u >= 0 and u <= 1 then
+        return {
+            x = x1 + t * (x2 - x1),
+            z = z1 + t * (z2 - z1),
+            t = t
+        }
+    end
+    return nil
+end
+
+local function getSide(p, lineP1, lineP2)
+    return (lineP2.x - lineP1.x) * (p.z - lineP1.z) - (lineP2.z - lineP1.z) * (p.x - lineP1.x)
+end
+
+---Get segments for drawing the overlap lines
+---@param lines table[] The cached overlap lines
+---@param originX number The origin X coordinate (usually commander)
+---@param originZ number The origin Z coordinate (usually commander)
+---@return table[] segments List of segments to draw, each segment is {p1={x,z}, p2={x,z}}
+function OverlapLines.getDrawingSegments(lines, originX, originZ)
+    local segments = {}
+    if not lines or #lines == 0 then return segments end
+
+    local originPos = {x = originX, z = originZ}
+    local lineValidSides = {}
+    for i, line in ipairs(lines) do
+        lineValidSides[i] = getSide(originPos, line.p1, line.p2)
+    end
+
+    for i, line in ipairs(lines) do
+        local intersections = {}
+        table.insert(intersections, {x = line.p1.x, z = line.p1.z, t = 0})
+        table.insert(intersections, {x = line.p2.x, z = line.p2.z, t = 1})
+        
+        local hasOtherIntersection = false
+        
+        for j, otherLine in ipairs(lines) do
+            if i ~= j then
+                local intersection = findLineIntersection(line.p1, line.p2, otherLine.p1, otherLine.p2)
+                if intersection then
+                    hasOtherIntersection = true
+                    table.insert(intersections, intersection)
+                end
+            end
+        end
+        
+        if hasOtherIntersection then
+            table.sort(intersections, function(a, b) return a.t < b.t end)
+            
+            for k = 1, #intersections - 1 do
+                local pA = intersections[k]
+                local pB = intersections[k + 1]
+                local mid = {x = (pA.x + pB.x) / 2, z = (pA.z + pB.z) / 2}
+                
+                local valid = true
+                for j, otherLine in ipairs(lines) do
+                    if i ~= j then
+                        local side = getSide(mid, otherLine.p1, otherLine.p2)
+                        if lineValidSides[j] * side < -0.01 then
+                            valid = false
+                            break
+                        end
+                    end
+                end
+                
+                if valid then
+                    table.insert(segments, {p1 = pA, p2 = pB})
+                end
+            end
+        end
+    end
+    
+    return segments
+end
+
 return OverlapLines

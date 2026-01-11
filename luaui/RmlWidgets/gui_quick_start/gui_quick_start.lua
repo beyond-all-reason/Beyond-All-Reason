@@ -130,7 +130,7 @@ local function hasStartPositionsChanged()
 	return changed
 end
 
-local function updateDisplayList()
+local function updateDisplayList(commanderX, commanderZ)
 	if overlapLinesDisplayList then
 		gl.DeleteList(overlapLinesDisplayList)
 		overlapLinesDisplayList = nil
@@ -138,22 +138,25 @@ local function updateDisplayList()
 	
 	if not cachedOverlapLines or #cachedOverlapLines == 0 then return end
 	
+	local drawingSegments = overlapLines.getDrawingSegments(cachedOverlapLines, commanderX, commanderZ)
+	if not drawingSegments or #drawingSegments == 0 then return end
+
 	overlapLinesDisplayList = gl.CreateList(function()
 		gl.LineWidth(2)
-		gl.Color(1.0, 0.0, 1.0, 0.7) -- Purple
-		
-		for _, line in ipairs(cachedOverlapLines) do
-			local p1 = line.p1
-			local p2 = line.p2
+		gl.Color(1.0, 0.0, 1.0, 0.7) -- Purple (matches BORDER_COLOR_SPAWNED)
 
-			local segments = 20
-			local dx = (p2.x - p1.x) / segments
-			local dz = (p2.z - p1.z) / segments
-			
+		for _, segment in ipairs(drawingSegments) do
+			local segmentStart = segment.p1
+			local segmentEnd = segment.p2
+
+			local subdivisionCount = 20
+			local deltaX = (segmentEnd.x - segmentStart.x) / subdivisionCount
+			local deltaZ = (segmentEnd.z - segmentStart.z) / subdivisionCount
+
 			gl.BeginEnd(GL.LINE_STRIP, function()
-				for i = 0, segments do
-					local x = p1.x + dx * i
-					local z = p1.z + dz * i
+				for stepIndex = 0, subdivisionCount do
+					local x = segmentStart.x + deltaX * stepIndex
+					local z = segmentStart.z + deltaZ * stepIndex
 					local y = Spring.GetGroundHeight(x, z) + 10
 					gl.Vertex(x, y, z)
 				end
@@ -305,7 +308,7 @@ local function updateTraversabilityGrid()
 		end
 
 		cachedOverlapLines = newOverlapLines
-		updateDisplayList()
+		updateDisplayList(commanderX, commanderZ)
 		
 		lastCommanderX = commanderX
 		lastCommanderZ = commanderZ
