@@ -1629,6 +1629,28 @@ local options = {
     },
 
     {
+        key 	= "easytax",
+        name 	= "Easy Sharing Tax",
+        desc 	= "Anti co-op sharing tax mod. Overwrites other tax settings. Don't combine with other sharing restriction mods, everything you need is included with easy tax.",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key     = "easytax_link",
+        name    = "Changelog",
+        desc    = "Easy Sharing Tax description.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://gist.github.com/RebelNode/43b986f29b9cfacbe95cf634cac25c49",
+        width   = 215,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
+    {
         key		= "tech_blocking",
         name   	= "Tech Blocking",
         desc   	= "Enable tech level blocking system that prevents building units until sufficient tech points are accumulated",
