@@ -1508,19 +1508,6 @@ local options = {
     },
 
     {
-        key     = "proposed_unit_reworks_feedback_link",
-        name    = "Feedback Thread",
-        desc    = "Discord discussion about Season 3 balance test.",
-        section = "options_experimental",
-        type    = "link",
-        link    = "https://discord.com/channels/549281623154229250/1447323521662455910",
-        width   = 215,
-        column  = 2,
-        linkheight = 325,
-        linkwidth = 350,
-    },
-
-    {
         key     = "community_balance_patch",
         name    = "Community Balance Patch Jan '26",
         desc    = "Enable community balance patch changes\n(overwrites changes in official seasonal balance test)",
