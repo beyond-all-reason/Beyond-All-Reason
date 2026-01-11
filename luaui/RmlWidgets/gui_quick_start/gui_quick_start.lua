@@ -140,7 +140,7 @@ local function updateDisplayList()
 	
 	overlapLinesDisplayList = gl.CreateList(function()
 		gl.LineWidth(2)
-		gl.Color(1, 0, 0, 0.8) -- Red
+		gl.Color(1.0, 0.0, 1.0, 0.7) -- Purple
 		
 		for _, line in ipairs(cachedOverlapLines) do
 			local p1 = line.p1
