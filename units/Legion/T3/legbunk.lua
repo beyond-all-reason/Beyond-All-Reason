@@ -13,7 +13,7 @@ return {
 		explodeas = "explosiont3",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 32,
+		idleautoheal = 5,
 		idletime = 1800,
 		health = 9400,
 		speed = 82.0,

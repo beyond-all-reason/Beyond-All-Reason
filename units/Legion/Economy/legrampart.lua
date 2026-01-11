@@ -19,7 +19,7 @@ return {
         footprintx = 5,
         footprintz = 5,
         health = 8600,
-        idleautoheal = 18,
+        idleautoheal = 5,
         idletime = 1800,
 		radardistancejam = 500,
 		radardistance = 2100,

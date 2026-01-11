@@ -29,7 +29,7 @@ return {
 		footprintz = 2,
 		hidedamage = true,
     	holdsteady = true,
-		idleautoheal = 40,
+		idleautoheal = 5,
 		icontype = "legcomlvl4",
 		idletime = 1800,
 		sightemitheight = 40,

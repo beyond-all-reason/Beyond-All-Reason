@@ -96,7 +96,7 @@ for lvl, stats in pairs(lvlParams) do
 		kamikaze = true,
 		kamikazedistance = 50,
 		idleautoheal = 5,
-		idletime = 600,
+		idletime = 1800,
 		mass = 1000,
 		health = stats.health,
 		speed = 30.0,

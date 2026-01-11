@@ -25,7 +25,7 @@ return {
 		floater = true,
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 10,
+		idleautoheal = 5,
 		idletime = 1800,
 		levelground = false,
 		mass = 4000,

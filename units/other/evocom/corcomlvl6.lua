@@ -32,7 +32,7 @@ return {
 		hidedamage = true,
     	holdsteady = true,
 		icontype = "corcom",
-		idleautoheal = 101,
+		idleautoheal = 5,
 		idletime = 1800,
 		sightemitheight = 40,
 		mass = 4900,

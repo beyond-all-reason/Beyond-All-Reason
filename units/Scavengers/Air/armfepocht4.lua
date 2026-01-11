@@ -22,7 +22,7 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		hoverattack = true,
-		idleautoheal = 25,
+		idleautoheal = 5,
 		idletime = 1800,
 		sightemitheight = 52,
 		mass = 1000000,

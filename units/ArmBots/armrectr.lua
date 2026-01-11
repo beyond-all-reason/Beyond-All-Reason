@@ -1,5 +1,6 @@
 return {
 	armrectr = {
+		autoheal = 5,
 		builddistance = 96,
 		builder = true,
 		buildpic = "ARMRECTR.DDS",
@@ -17,7 +18,7 @@ return {
 		footprintz = 2,
 		health = 220,
 		idleautoheal = 5,
-		idletime = 60,
+		idletime = 1800,
 		maxacc = 0.23,
 		maxdec = 0.8625,
 		maxslope = 14,
