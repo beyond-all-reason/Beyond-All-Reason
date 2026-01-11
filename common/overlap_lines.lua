@@ -155,40 +155,35 @@ function OverlapLines.getDrawingSegments(lines, originX, originZ)
         table.insert(intersections, {x = line.p1.x, z = line.p1.z, t = 0})
         table.insert(intersections, {x = line.p2.x, z = line.p2.z, t = 1})
         
-        local hasOtherIntersection = false
-        
         for j, otherLine in ipairs(lines) do
             if i ~= j then
                 local intersection = findLineIntersection(line.p1, line.p2, otherLine.p1, otherLine.p2)
                 if intersection then
-                    hasOtherIntersection = true
                     table.insert(intersections, intersection)
                 end
             end
         end
         
-        if hasOtherIntersection then
-            table.sort(intersections, function(a, b) return a.t < b.t end)
+        table.sort(intersections, function(a, b) return a.t < b.t end)
+        
+        for k = 1, #intersections - 1 do
+            local pA = intersections[k]
+            local pB = intersections[k + 1]
+            local mid = {x = (pA.x + pB.x) / 2, z = (pA.z + pB.z) / 2}
             
-            for k = 1, #intersections - 1 do
-                local pA = intersections[k]
-                local pB = intersections[k + 1]
-                local mid = {x = (pA.x + pB.x) / 2, z = (pA.z + pB.z) / 2}
-                
-                local valid = true
-                for j, otherLine in ipairs(lines) do
-                    if i ~= j then
-                        local side = getSide(mid, otherLine.p1, otherLine.p2)
-                        if lineValidSides[j] * side < -0.01 then
-                            valid = false
-                            break
-                        end
+            local valid = true
+            for j, otherLine in ipairs(lines) do
+                if i ~= j then
+                    local side = getSide(mid, otherLine.p1, otherLine.p2)
+                    if lineValidSides[j] * side < -0.01 then
+                        valid = false
+                        break
                     end
                 end
-                
-                if valid then
-                    table.insert(segments, {p1 = pA, p2 = pB})
-                end
+            end
+            
+            if valid then
+                table.insert(segments, {p1 = pA, p2 = pB})
             end
         end
     end
