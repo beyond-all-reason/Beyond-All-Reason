@@ -101,22 +101,16 @@ function gadget:GameFrame(f)
 			for i, otherTeamID in ipairs(Spring.GetTeamList()) do
 				_,_,isDead = Spring.GetTeamInfo(otherTeamID,false)
 				if otherTeamID ~= teamID and Spring.AreTeamsAllied(teamID, otherTeamID) and (not isDead) then
-					otherTeamMetalCurrentLevel, otherTeamMetalStorage = Spring.GetTeamResources(otherTeamID, "metal")
-					otherTeamEnergyCurrentLevel, otherTeamEnergyStorage = Spring.GetTeamResources(otherTeamID, "energy")
-					eShare = eShare + math.max(0.0, (otherTeamEnergyStorage * 0.99) - otherTeamEnergyCurrentLevel)
-					mShare = mShare + math.max(0.0,(otherTeamMetalStorage * 0.99) - otherTeamMetalCurrentLevel)
+					otherTeamMetalCurrentLevel, otherTeamMetalStorage,_,_,_, otherTeamMetalShare = Spring.GetTeamResources(otherTeamID, "metal")
+					otherTeamEnergyCurrentLevel, otherTeamEnergyStorage,_,_,_, otherTeamEnergyShare = Spring.GetTeamResources(otherTeamID, "energy")
+					eShare = eShare + math.max(0.0, (otherTeamEnergyStorage * math.min(0.99, otherTeamEnergyShare)) - otherTeamEnergyCurrentLevel)
+					mShare = mShare + math.max(0.0,(otherTeamMetalStorage * math.min(0.99, otherTeamMetalShare)) - otherTeamMetalCurrentLevel)
 				end
 			end
 
 			-- calculate how much we can share in total (resources above the red share slider)
 			local eExcess = math.max(0.0, teamEnergyCurrentLevel - (teamEnergyStorage * teamEnergyShare))
 			local mExcess = math.max(0.0, teamMetalCurrentLevel  - (teamMetalStorage  * teamMetalShare))
-
-			--- Tax the overflow, these resources are not shared. These count as used resources for in statistics, not sure what they should count as.
-			Spring.UseTeamResource(teamID, "energy", eExcess * sharingTax)
-			Spring.UseTeamResource(teamID, "metal", mExcess * sharingTax)
-			eExcess = math.max(0.0, eExcess * (1-sharingTax))
-			mExcess = math.max(0.0, mExcess * (1-sharingTax))
 
 			local de = 0.0
 			local dm = 0.0
@@ -131,13 +125,17 @@ function gadget:GameFrame(f)
 			for i, otherTeamID in ipairs(Spring.GetTeamList()) do
 				_,_,isDead = Spring.GetTeamInfo(otherTeamID,false)
 				if otherTeamID ~= teamID and Spring.AreTeamsAllied(teamID, otherTeamID) and (not isDead) then
-					otherTeamMetalCurrentLevel, otherTeamMetalStorage = Spring.GetTeamResources(otherTeamID, "metal")
-					otherTeamEnergyCurrentLevel, otherTeamEnergyStorage = Spring.GetTeamResources(otherTeamID, "energy")
-					local edif = math.max(0.0, math.min(((otherTeamEnergyStorage * 0.99) - otherTeamEnergyCurrentLevel) * de, teamEnergyCurrentLevel))
-					local mdif = math.max(0.0, math.min(((otherTeamMetalStorage * 0.99) - otherTeamMetalCurrentLevel) * dm, teamMetalCurrentLevel))
+					otherTeamMetalCurrentLevel, otherTeamMetalStorage,_,_,_, otherTeamMetalShare = Spring.GetTeamResources(otherTeamID, "metal")
+					otherTeamEnergyCurrentLevel, otherTeamEnergyStorage,_,_,_, otherTeamEnergyShare = Spring.GetTeamResources(otherTeamID, "energy")
+					local edif = math.max(0.0, math.min(((otherTeamEnergyStorage * math.min(0.99, otherTeamEnergyShare)) - otherTeamEnergyCurrentLevel) * de, teamEnergyCurrentLevel))
+					local mdif = math.max(0.0, math.min(((otherTeamMetalStorage * math.min(0.99, otherTeamMetalShare)) - otherTeamMetalCurrentLevel) * dm, teamMetalCurrentLevel))
+					
+					-- Tax the resources here. These count as used resources for in statistics, not sure what they should count as.
+					Spring.UseTeamResource(teamID, "energy", edif * sharingTax)
+					Spring.UseTeamResource(teamID, "metal", mdif * sharingTax)
 
-					Spring.ShareTeamResource(teamID, otherTeamID, "energy", edif)
-					Spring.ShareTeamResource(teamID, otherTeamID, "metal", mdif)
+					Spring.ShareTeamResource(teamID, otherTeamID, "energy", edif * (1-sharingTax))
+					Spring.ShareTeamResource(teamID, otherTeamID, "metal", mdif * (1-sharingTax))
 				end
 			end
 
@@ -168,8 +166,8 @@ function gadget:GameFrame(f)
 				if otherTeamID ~= teamID and Spring.AreTeamsAllied(teamID, otherTeamID) and (not isDead) then
 					otherTeamMetalCurrentLevel, otherTeamMetalStorage = Spring.GetTeamResources(otherTeamID, "metal")
 					otherTeamEnergyCurrentLevel, otherTeamEnergyStorage = Spring.GetTeamResources(otherTeamID, "energy")
-					local edif = math.max(0.0, math.min(((otherTeamEnergyStorage * 0.99) - otherTeamEnergyCurrentLevel) * de, teamEnergyCurrentLevel))
-					local mdif = math.max(0.0, math.min(((otherTeamMetalStorage * 0.99) - otherTeamMetalCurrentLevel) * dm, teamMetalCurrentLevel))
+					local edif = math.max(0.0, math.min(((otherTeamEnergyStorage * math.min(0.99, otherTeamEnergyShare)) - otherTeamEnergyCurrentLevel) * de, teamEnergyCurrentLevel))
+					local mdif = math.max(0.0, math.min(((otherTeamMetalStorage * math.min(0.99, otherTeamMetalShare)) - otherTeamMetalCurrentLevel) * dm, teamMetalCurrentLevel))
 					
 					-- These erroneously count as produced resources for allies in statistics. Not yet sure how to do this better, but this should be fine for modoption/testing at least.
 					Spring.AddTeamResource(otherTeamID, "energy", edif)
