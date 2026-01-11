@@ -29,8 +29,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	if attackerID == nil then
 		return
 	end
-	cmdID, targetID = Spring.GetUnitWorkerTask(attackerID)
-	if cmdID == CMD.RECLAIM then -- The unit was reclaimed
+	if weaponDefID == Game.envDamageTypes.Reclaimed then -- The unit was reclaimed
 		_,metalCost,_ =Spring.GetUnitCosts (unitID)
 		Spring.UseTeamResource(attackerTeam, "metal", metalCost * sharingTax)
 	end
