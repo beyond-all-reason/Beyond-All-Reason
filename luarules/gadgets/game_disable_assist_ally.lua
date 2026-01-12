@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date    = 'April 2024',
 		license = 'GNU GPL, v2 or later',
 		layer   = 0,
-		enabled = Spring.GetModOptions().disable_assist_ally_construction,
+		enabled = Spring.GetModOptions().disable_assist_ally_construction or Spring.GetModOptions().easytax,
 	}
 end
 
@@ -22,6 +22,7 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local CMD_GUARD = CMD.GUARD
 local CMD_REPAIR = CMD.REPAIR
 local CMD_INSERT = CMD.INSERT
+local CMD_MOVESTATE = CMD.MOVE_STATE
 
 local gaiaTeam = Spring.GetGaiaTeamID()
 
@@ -39,6 +40,7 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_GUARD)
 	gadgetHandler:RegisterAllowCommand(CMD_REPAIR)
 	gadgetHandler:RegisterAllowCommand(CMD_INSERT)
+	gadgetHandler:RegisterAllowCommand(CMD_MOVESTATE)
 end
 
 local params = { 0, 0, 0 }
@@ -90,6 +92,11 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 			end
 		end
 		return true
+	end
+
+	-- Disallow setting builders to roam because roam + fight lets them assist a
+	if cmdID == CMD_MOVESTATE and cmdParams[1] == 2 then
+		return false
 	end
 
 	return true
