@@ -204,7 +204,6 @@ end
 ---@param teams table<number, TeamResourceData>
 ---@return EconomyTeamResult[]
 local function ProcessEconomy(frame, teams)
-	Spring.Echo("ProcessEconomy: " .. frame .. " tracyAvailable: " .. tostring(tracyAvailable) .. " economyAuditEnabled: " .. tostring(Spring.IsEconomyAuditEnabled()))
 	if tracyAvailable then tracy.ZoneBeginN("PE_Lua") end
 
 	-- Debug: confirm controller is being called
@@ -220,7 +219,6 @@ local function ProcessEconomy(frame, teams)
 	EconomyLog.FrameStart(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY], teamCount)
 	
 	if tracyAvailable then
-		Spring.Echo("Called tracy with8 PE_LuaMunge")
 		tracy.ZoneBeginN("PE_LuaMunge")	
 	end
 	EconomyLog.Breakpoint("LuaMunge")
@@ -265,9 +263,7 @@ local function ProcessEconomy(frame, teams)
 		resultCache[idx] = eEntry
 	end
 
-	if tracyAvailable then tracy.ZoneBeginN("PE_PostMunge") end
 	EconomyLog.Breakpoint("PostMunge")
-	if tracyAvailable then tracy.ZoneEnd() end
 
 	if tracyAvailable then tracy.ZoneBeginN("PE_PolicyCache") end
 	lastPolicyUpdate = ResourceTransfer.UpdatePolicyCache(springRepo, frame, lastPolicyUpdate, POLICY_UPDATE_RATE, contextFactory)
@@ -388,10 +384,8 @@ local function ResourceExcessController(frame, excesses)
 	local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
 	EconomyLog.FrameStart(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY], teamCount)
 	
-	if tracyAvailable then tracy.ZoneBeginN("RE_LuaMunge") end
 	EconomyLog.Breakpoint("LuaMunge")
-	if tracyAvailable then tracy.ZoneEnd() end
-	
+
 	if tracyAvailable then tracy.ZoneBeginN("RE_Solver") end
 	local success, updatedTeams, allLedgers = pcall(WaterfillSolver.Solve, springRepo, teams)
 	if not success then
@@ -422,10 +416,8 @@ local function ResourceExcessController(frame, excesses)
 		end
 	end
 	
-	if tracyAvailable then tracy.ZoneBeginN("RE_PostMunge") end
 	EconomyLog.Breakpoint("PostMunge")
-	if tracyAvailable then tracy.ZoneEnd() end
-	
+
 	if tracyAvailable then tracy.ZoneBeginN("RE_PolicyCache") end
 	lastPolicyUpdate = ResourceTransfer.UpdatePolicyCache(springRepo, frame, lastPolicyUpdate, POLICY_UPDATE_RATE, contextFactory)
 	EconomyLog.Breakpoint("PolicyCache")
