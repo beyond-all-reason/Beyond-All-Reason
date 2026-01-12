@@ -1,5 +1,6 @@
 return {
 	cornecro = {
+		autoheal = 5,
 		builddistance = 96,
 		builder = true,
 		buildpic = "CORNECRO.DDS",
