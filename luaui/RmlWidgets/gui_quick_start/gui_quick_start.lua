@@ -62,9 +62,10 @@ local cachedOverlapLines = {}
 local cachedGameRules = {}
 local lastRulesUpdate = 0
 local RULES_CACHE_DURATION = 0.1
-local lastStartPositions = {}
 local overlapLinesDisplayList = nil
 local previousOverlapLines = {}
+local externalSpawnPositions = {}
+local externalSpawnPositionsChanged = false
 
 local function linesHaveChanged(newLines, oldLines)
 	if #newLines ~= #oldLines then
@@ -85,49 +86,23 @@ local function linesHaveChanged(newLines, oldLines)
 	return false
 end
 
-local function hasStartPositionsChanged()
-	local changed = false
-	local teamList = Spring.GetTeamList()
-	local activeTeams = {}
-
-	for _, teamID in ipairs(teamList) do
-		local sx, sy, sz = Spring.GetTeamStartPosition(teamID)
-		if sx and sx >= 0 then
-			local floorX, floorZ = math.floor(sx), math.floor(sz)
-			activeTeams[teamID] = true
-			
-			local last = lastStartPositions[teamID]
-			if not last or last.x ~= floorX or last.z ~= floorZ then
-				if not lastStartPositions[teamID] then lastStartPositions[teamID] = {} end
-				lastStartPositions[teamID].x = floorX
-				lastStartPositions[teamID].z = floorZ
-				changed = true
-			end
+local function updateSpawnPositions(spawnPositions)
+	if not spawnPositions then
+		return
+	end
+	
+	externalSpawnPositions = {}
+	for teamID, pos in pairs(spawnPositions) do
+		if pos.x and pos.z then
+			externalSpawnPositions[teamID] = {x = pos.x, z = pos.z}
 		end
 	end
 	
-	if not changed then
-		for teamID, _ in pairs(lastStartPositions) do
-			if not activeTeams[teamID] then
-				lastStartPositions[teamID] = nil
-				changed = true
-			end
-		end
-	else
-		for teamID, _ in pairs(lastStartPositions) do
-			if not activeTeams[teamID] then
-				lastStartPositions[teamID] = nil
-			end
-		end
-	end
+	externalSpawnPositionsChanged = true
 	
-	if changed then
-		if WG["pregame-build"] and WG["pregame-build"].forceRefresh then
-			WG["pregame-build"].forceRefresh()
-		end
+	if WG["pregame-build"] and WG["pregame-build"].forceRefresh then
+		WG["pregame-build"].forceRefresh()
 	end
-	
-	return changed
 end
 
 local function getCachedGameRules()
@@ -287,19 +262,15 @@ local function updateTraversabilityGrid()
 		return
 	end
 	
-	local positionsChanged = hasStartPositionsChanged()
-	if lastCommanderX ~= commanderX or lastCommanderZ ~= commanderZ or positionsChanged then
+	if lastCommanderX ~= commanderX or lastCommanderZ ~= commanderZ or externalSpawnPositionsChanged then
+		externalSpawnPositionsChanged = false
 		local gameRules = getCachedGameRules()
 		traversabilityGrid.generateTraversableGrid(commanderX, commanderZ, gameRules.traversabilityGridRange, TRAVERSABILITY_GRID_RESOLUTION, "myGrid")
 		
 		local neighbors = {}
-		local teamList = Spring.GetTeamList()
-		for _, otherTeamID in ipairs(teamList) do
-			if otherTeamID ~= myTeamID then
-				local sx, sy, sz = Spring.GetTeamStartPosition(otherTeamID)
-				if sx and sx >= 0 then
-					table.insert(neighbors, {x = sx, z = sz})
-				end
+		for otherTeamID, pos in pairs(externalSpawnPositions) do
+			if otherTeamID ~= myTeamID and pos.x and pos.z then
+				table.insert(neighbors, {x = pos.x, z = pos.z})
 			end
 		end
 		
@@ -787,6 +758,7 @@ function widget:Initialize()
 	end
 
 	WG["getBuildQueueSpawnStatus"] = getBuildQueueSpawnStatus
+	WG["quick_start_updateSpawnPositions"] = updateSpawnPositions
 
 	for id, def in pairs(UnitDefs) do
 		if def.isFactory then
@@ -807,6 +779,7 @@ function widget:Shutdown()
 	end
 
 	WG["getBuildQueueSpawnStatus"] = nil
+	WG["quick_start_updateSpawnPositions"] = nil
 
 	if wgBuildMenu and wgBuildMenu.clearCostOverrides then
 		wgBuildMenu.clearCostOverrides()

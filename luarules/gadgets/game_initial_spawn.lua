@@ -639,6 +639,32 @@ if gadgetHandler:IsSyncedCode() then
 	-- Spawning
 	----------------------------------------------------------------
 	function gadget:GameStart()
+		-- Only assign positions automatically for SPAWN_CHOOSE_IN_GAME mode
+		-- For AI teams or unplaced players that need positions assigned
+		if Game.startPosType == SPAWN_CHOOSE_IN_GAME then
+			for teamID, allyTeamID in pairs(teams) do
+				local _, _, _, isAI = spGetTeamInfo(teamID, false)
+				local needsPosition = false
+
+				-- Check if this team needs a position assigned
+				if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
+					needsPosition = true
+				end
+
+				if needsPosition then
+					local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
+					-- Use start point guesser to assign a position
+					local guessedX, guessedZ = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
+					if guessedX and guessedZ then
+						local y = spGetGroundHeight(guessedX, guessedZ)
+						Spring.SetTeamStartPosition(teamID, guessedX, y, guessedZ)
+						startPointTable[teamID] = {guessedX, guessedZ}
+						Spring.Log(gadget:GetInfo().name, LOG.INFO, string.format("Assigned guessed start position for team %d (AI:%s): (%.1f, %.1f)", teamID, tostring(isAI), guessedX, guessedZ))
+					end
+				end
+			end
+		end
+
 		-- if this a FFA match with automatic spawning (i.e. no start boxes) and a list of start points was provided by
 		-- `game_ffa_start_setup` for the ally teams in this match
 		if isFFA and Game.startPosType == SPAWN_CHOOSE_BEFORE_GAME and GG.ffaStartPoints then

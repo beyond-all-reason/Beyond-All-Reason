@@ -2,7 +2,7 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name = "Start Boxes Experimental",
+		name = "Start Boxes",
 		desc = "Displays Start Boxes and Start Points",
 		author = "trepan, jK, Beherith, SethDGamre",
 		date = "2007-2009",
@@ -565,6 +565,21 @@ local function shouldRenderTeam(teamID, excludeMyTeam)
 	return isVisible and isValidPosition, x, y, z, isAI
 end
 
+local function notifySpawnPositionsChanged()
+	if not WG["quick_start_updateSpawnPositions"] then
+		return
+	end
+	
+	local allSpawnPositions = {}
+	for _, teamID in ipairs(Spring.GetTeamList()) do
+		local shouldRender, x, y, z = shouldRenderTeam(teamID, false)
+		if shouldRender then
+			allSpawnPositions[teamID] = {x = x, z = z}
+		end
+	end
+	WG["quick_start_updateSpawnPositions"](allSpawnPositions)
+end
+
 local function drawSpawnDistanceCircles()
 	gl.Color(1.0, 0.0, 0.0, 0.3)
 	for _, teamID in ipairs(Spring.GetTeamList()) do
@@ -689,6 +704,8 @@ function widget:DrawWorld()
 	DrawStartCones(false)
 
 	drawSpawnDistanceCircles()
+	
+	notifySpawnPositionsChanged()
 end
 
 function widget:DrawScreenEffects()
@@ -898,6 +915,8 @@ function widget:Update(delta)
 						end
 					end
 				end
+				
+				notifySpawnPositionsChanged()
 			end
 		end
 	end
@@ -933,6 +952,8 @@ function widget:RecvLuaMsg(msg)
 				local aiName = getAIName(teamID)
 				Spring.SendMessage(Spring.I18N('ui.startbox.aiStartLocationChanged', { playerName = playerName, aiName = aiName }))
 			end
+			
+			notifySpawnPositionsChanged()
 		end
 	end
 end
@@ -1048,6 +1069,7 @@ function widget:MouseRelease(x, y, button)
 					aiPlacedPositions[draggingTeamID] = {x = finalX, z = finalZ}
 					posCache[draggingTeamID] = nil
 					Spring.SendLuaRulesMsg("aiPlacedPosition:" .. draggingTeamID .. ":" .. finalX .. ":" .. finalZ)
+					notifySpawnPositionsChanged()
 				end
 			end
 		end
