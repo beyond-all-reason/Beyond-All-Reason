@@ -307,7 +307,7 @@ local function generateOverlapLines(commanderID)
 
 	local neighbors = {}
 	for _, otherTeamID in ipairs(allTeamsList) do
-		if otherTeamID ~= comData.teamID then
+		if otherTeamID ~= comData.teamID and Spring.AreTeamsAllied(comData.teamID, otherTeamID) then
 			local sx, sy, sz = Spring.GetTeamStartPosition(otherTeamID)
 			if sx and sx >= 0 then -- Check for valid start pos (allow 0, ignore -100)
 				table.insert(neighbors, {x = sx, z = sz})
