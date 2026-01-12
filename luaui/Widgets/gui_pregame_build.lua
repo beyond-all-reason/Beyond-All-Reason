@@ -1441,7 +1441,7 @@ function widget:GameFrame(n)
 	end
 	if tasker then
 		local quickStartOption = Spring.GetModOptions().quick_start
-		local quickStartEnabled = quickStartOption and quickStartOption ~= "disabled" and quickStartOption ~= "factory_discount_only"
+		local quickStartEnabled = quickStartOption ~= "disabled"
 		
 		if quickStartEnabled and #buildQueue > 0 then
 			--we have to temporary Echo data like this because there are reports of builds that should be spawned in quickstart not being spawned. 

@@ -646,20 +646,17 @@ if gadgetHandler:IsSyncedCode() then
 				local _, _, _, isAI = spGetTeamInfo(teamID, false)
 				local needsPosition = false
 
-				-- Check if this team needs a position assigned
 				if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
 					needsPosition = true
 				end
 
 				if needsPosition then
 					local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
-					-- Use start point guesser to assign a position
 					local guessedX, guessedZ = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
 					if guessedX and guessedZ then
 						local y = spGetGroundHeight(guessedX, guessedZ)
 						Spring.SetTeamStartPosition(teamID, guessedX, y, guessedZ)
 						startPointTable[teamID] = {guessedX, guessedZ}
-						Spring.Log(gadget:GetInfo().name, LOG.INFO, string.format("Assigned guessed start position for team %d (AI:%s): (%.1f, %.1f)", teamID, tostring(isAI), guessedX, guessedZ))
 					end
 				end
 			end
