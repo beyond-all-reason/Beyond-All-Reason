@@ -4,7 +4,7 @@ return {
 		builddistance = 200,
 		builder = true,
 		buildpic = "CORPRINTER.DDS",
-		buildtime = 10,
+		buildtime = 500,
 		canmove = true,
 		capturable = false,
 		category = "OBJECT",

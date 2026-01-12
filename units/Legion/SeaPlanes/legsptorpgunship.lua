@@ -2,7 +2,7 @@ return {
 	legsptorpgunship = {
 		blocking = false,
 		buildpic = "legsptorpgunship.DDS",
-		buildtime = 9000,
+		buildtime = 10720,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,

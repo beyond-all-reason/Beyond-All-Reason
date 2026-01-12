@@ -38,6 +38,7 @@ return {
 	[84658] = everything,	-- OPman
 	[51535] = everything,	-- Nightmare2512
 	[130329] = everything,	-- SethDGamre
+	[36669] = everything,	-- Steel
 
 	-- temporary event admins for planetary campaign (remove when event is over)
 	[16285] = everything,	-- [BAB]Zer0_Cool
@@ -56,7 +57,6 @@ return {
 	[125301] = moderator,	-- DeviousNull
 	[2401] = moderator,		-- Fire[Z]torm_
 	[128743] = moderator,	-- Pooman
-	[36669] = moderator,	-- Steel
 	[57869] = moderator,	-- [BAC]SnekVonPess
 	[21114] = moderator,	-- [FH]Amojini
 	[168817] = moderator,	-- SongbirdOfChirping

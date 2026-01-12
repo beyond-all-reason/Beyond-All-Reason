@@ -35,7 +35,7 @@ return {
 		turninplaceanglelimit = 90,
 		turnrate = 385.5,
 		waterline = 80,
-		workertime = 300,
+		workertime = 345,
 		buildoptions = {
 			"leganavalfusion",
 			"leganavaleconv",

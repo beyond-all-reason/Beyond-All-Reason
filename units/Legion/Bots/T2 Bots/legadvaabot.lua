@@ -2,7 +2,7 @@ return {
 	legadvaabot = {
 		airsightdistance = 850,
 		buildpic = "legadvaabot.DDS",
-		buildtime = 7900,
+		buildtime = 11270,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "20 40 20",

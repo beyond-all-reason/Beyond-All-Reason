@@ -24,6 +24,8 @@ local spGetViewGeometry = Spring.GetViewGeometry
 local vsx, vsy = spGetViewGeometry()
 
 local changelogFile = VFS.LoadFile("changelog.txt")
+-- Convert tabs to 4 spaces
+changelogFile = string.gsub(changelogFile, "\t", "    ")
 local changelogFileHash = VFS.CalculateHash(changelogFile, 0)
 local changelogFileLength = string.len(changelogFile)
 local lastviewedHash = ''

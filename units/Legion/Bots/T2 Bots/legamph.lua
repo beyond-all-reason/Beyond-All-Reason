@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0.5,
 		buildpic = "LEGAMPH.DDS",
-		buildtime = 13200,
+		buildtime = 16980,
 		canmove = true,
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "32 35 48",

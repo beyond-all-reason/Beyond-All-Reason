@@ -2,7 +2,7 @@ return {
 	legvflak = {
 		airsightdistance = 900,
 		buildpic = "legvflak.DDS",
-		buildtime = 12000,
+		buildtime = 15130,
 		canmove = true,
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "32 22 50",
@@ -140,9 +140,6 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1900,
-				customparams = {
-					norangering = 1,
-				},
 				damage = {
 					vtol = 40,
 				},

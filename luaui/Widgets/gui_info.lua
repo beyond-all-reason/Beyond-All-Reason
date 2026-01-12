@@ -1776,7 +1776,10 @@ local function drawEngineTooltip()
 			font:End()
 		else
 			local heightStep = (fontSize * 1.4)
-			hoverType, hoverData = spTraceScreenRay(mouseX, mouseY)
+			-- Only trace screen ray if we don't have a custom hover (e.g., from PIP window)
+			if not customHoverType then
+				hoverType, hoverData = spTraceScreenRay(mouseX, mouseY)
+			end
 			if hoverType == 'ground' then
 				local desc, coords = spTraceScreenRay(mouseX, mouseY, true)
 				local groundType1, groundType2, metal, hardness, tankSpeed, botSpeed, hoverSpeed, shipSpeed, receiveTracks = Spring.GetGroundInfo(coords[1], coords[3])
@@ -2326,7 +2329,7 @@ function checkChanges()
 		end
 
 		-- hovered unit
-	elseif not cameraPanMode and not b and not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' then
+	elseif not cameraPanMode and not b and (customHoverType or not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4])) and hoverType and hoverType == 'unit' then
 		displayMode = 'unit'
 		displayUnitID = hoverData
 		displayUnitDefID = spGetUnitDefID(displayUnitID)
@@ -2344,7 +2347,7 @@ function checkChanges()
 		end
 
 		-- hovered feature
-	elseif not cameraPanMode and not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'feature' then
+	elseif not cameraPanMode and (customHoverType or not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4])) and hoverType and hoverType == 'feature' then
 		displayMode = 'feature'
 		local featureID = hoverData
 		local featureDefID = spGetFeatureDefID(featureID)

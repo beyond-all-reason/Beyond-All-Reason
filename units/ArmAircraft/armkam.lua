@@ -76,7 +76,7 @@ return {
 		weapondefs = {
 			emg = {
 				accuracy = 13,
-				areaofeffect = 16,
+				areaofeffect = 40,
 				avoidfeature = false,
 				burst = 3,
 				burstrate = 0.1,
@@ -103,7 +103,7 @@ return {
 				tolerance = 5000,
 				weapontimer = 0.1,
 				weapontype = "Cannon",
-				weaponvelocity = 800,
+				weaponvelocity = 1000,
 				damage = {
 					default = 9,
 					vtol = 3,

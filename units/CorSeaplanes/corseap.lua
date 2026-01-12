@@ -2,7 +2,7 @@ return {
 	corseap = {
 		blocking = false,
 		buildpic = "CORSEAP.DDS",
-		buildtime = 10700,
+		buildtime = 13000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,

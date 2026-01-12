@@ -116,6 +116,7 @@ return {
 				firestarter = 0,
 				flighttime = 400,
 				impulsefactor = 0,
+				interceptedbyshieldtype = 0,
 				metalpershot = 500,
 				model = "cortronmissile.s3o",
 				name = "Heavy long-range g2g EMP starburst rocket",
@@ -144,6 +145,7 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1200,
 				customparams = {
+					shield_aoe_penetration = true,
 					stockpilelimit = 10,
 				},
 				damage = {
