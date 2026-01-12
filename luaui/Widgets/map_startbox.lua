@@ -239,7 +239,6 @@ local function createInfotextList()
 	end)
 end
 
----------------------------------- Helpers ----------------------------------
 
 local posCache = {}
 
@@ -700,7 +699,6 @@ function widget:DrawWorld()
 				amPlaced = true
 			end
 
-			-- Circles (excluding my team)
 			if teamID ~= myTeamID and (not isAI or aiPlacedPositions[teamID]) then
 				cCount = cCount + 1
 				circlesToDraw[cCount] = {x, y, z}
@@ -712,7 +710,6 @@ function widget:DrawWorld()
 
 	DrawStartCones(false)
 
-	-- Draw circles
 	if cCount > 0 then
 		gl.Color(1.0, 0.0, 0.0, 0.3)
 		for i = 1, cCount do
@@ -830,34 +827,6 @@ function widget:Update(delta)
 	if gameFrame <= 0 and Game.startPosType == 2 then
 		updateCounter = updateCounter + 1
 		if updateCounter % 30 == 0 then
-			for _, teamID in ipairs(spGetTeamList()) do
-				if teamID ~= gaiaTeamID then
-					local _, _, _, isAI = Spring.GetTeamInfo(teamID, false)
-					if isAI then
-						local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
-						if startX and startZ and startX > 0 and startZ > 0 then
-							aiPlacedPositions[teamID] = {x = startX, z = startZ}
-							aiPlacementStatus[teamID] = true
-						else
-							local aiManualPlacement = Spring.GetTeamRulesParam(teamID, "aiManualPlacement")
-							if aiManualPlacement then
-								local mx, mz = string.match(aiManualPlacement, "([%d%.]+),([%d%.]+)")
-								if mx and mz then
-									aiPlacedPositions[teamID] = {x = tonumber(mx), z = tonumber(mz)}
-									aiPlacementStatus[teamID] = true
-								else
-									aiPlacedPositions[teamID] = nil
-									aiPlacementStatus[teamID] = false
-								end
-							else
-								aiPlacedPositions[teamID] = nil
-								aiPlacementStatus[teamID] = false
-							end
-						end
-					end
-				end
-			end
-
 			local currentPlacements = {}
 			
 			for _, teamID in ipairs(spGetTeamList()) do
@@ -909,13 +878,50 @@ function widget:Update(delta)
 							local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyTeamID)
 							local x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
 							if x and x > 0 and z and z > 0 then
-								aiPredictedPositions[teamID] = {x = x, z = z}
+								local prevPos = aiPredictedPositions[teamID]
+								if not prevPos or prevPos.x ~= x or prevPos.z ~= z then
+									aiPredictedPositions[teamID] = {x = x, z = z}
+									posCache[teamID] = nil
+									hasChanges = true
+								end
 							end
 						end
 					end
 				end
 				
-				notifySpawnPositionsChanged()
+				if hasChanges then
+					notifySpawnPositionsChanged()
+				end
+			end
+		end
+
+		if updateCounter % 30 == 0 then
+			for _, teamID in ipairs(spGetTeamList()) do
+				if teamID ~= gaiaTeamID then
+					local _, _, _, isAI = Spring.GetTeamInfo(teamID, false)
+					if isAI then
+						local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
+						if startX and startZ and startX > 0 and startZ > 0 then
+							aiPlacedPositions[teamID] = {x = startX, z = startZ}
+							aiPlacementStatus[teamID] = true
+						else
+							local aiManualPlacement = Spring.GetTeamRulesParam(teamID, "aiManualPlacement")
+							if aiManualPlacement then
+								local mx, mz = string.match(aiManualPlacement, "([%d%.]+),([%d%.]+)")
+								if mx and mz then
+									aiPlacedPositions[teamID] = {x = tonumber(mx), z = tonumber(mz)}
+									aiPlacementStatus[teamID] = true
+								else
+									aiPlacedPositions[teamID] = nil
+									aiPlacementStatus[teamID] = false
+								end
+							else
+								aiPlacedPositions[teamID] = nil
+								aiPlacementStatus[teamID] = false
+							end
+						end
+					end
+				end
 			end
 		end
 	end
