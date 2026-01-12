@@ -66,6 +66,7 @@ local overlapLinesDisplayList = nil
 local previousOverlapLines = {}
 local externalSpawnPositions = {}
 local externalSpawnPositionsChanged = false
+local hasOverlapLines = false
 
 local function linesHaveChanged(newLines, oldLines)
 	if #newLines ~= #oldLines then
@@ -88,6 +89,33 @@ end
 
 local function updateSpawnPositions(spawnPositions)
 	if not spawnPositions then
+		return
+	end
+	
+	local hasChanged = false
+	
+	for teamID, oldPos in pairs(externalSpawnPositions) do
+		if not spawnPositions[teamID] then
+			hasChanged = true
+			break
+		end
+		local newPos = spawnPositions[teamID]
+		if oldPos.x ~= newPos.x or oldPos.z ~= newPos.z then
+			hasChanged = true
+			break
+		end
+	end
+	
+	if not hasChanged then
+		for teamID, newPos in pairs(spawnPositions) do
+			if not externalSpawnPositions[teamID] then
+				hasChanged = true
+				break
+			end
+		end
+	end
+	
+	if not hasChanged then
 		return
 	end
 	
@@ -125,6 +153,10 @@ local function updateDisplayList(commanderX, commanderZ)
 		overlapLinesDisplayList = nil
 	end
 	
+	if #cachedOverlapLines == 0 then
+		return
+	end
+	
 	local gameRules = getCachedGameRules()
 	local buildRadius = gameRules.instantBuildRange or DEFAULT_INSTANT_BUILD_RANGE
 	
@@ -135,7 +167,7 @@ local function updateDisplayList(commanderX, commanderZ)
 
 	overlapLinesDisplayList = gl.CreateList(function()
 		gl.LineWidth(2)
-		gl.Color(1.0, 0.0, 1.0, 0.7) -- Purple (matches BORDER_COLOR_SPAWNED)
+		gl.Color(1.0, 0.0, 1.0, 0.7)
 
 		for _, segment in ipairs(drawingSegments) do
 			local segmentStart = segment.p1
@@ -252,11 +284,11 @@ local function updateTraversabilityGrid()
 	-- Returns 0, 0, 0 when none chosen (was -100, -100, -100 previously)
 	local startChosen = (commanderX ~= 0) or (commanderY ~= 0) or (commanderZ ~= 0)
 	if not startChosen then
-		-- Clear display list if start position was unselected
 		if overlapLinesDisplayList then
 			gl.DeleteList(overlapLinesDisplayList)
 			overlapLinesDisplayList = nil
 		end
+		hasOverlapLines = false
 		lastCommanderX = nil
 		lastCommanderZ = nil
 		return
@@ -291,6 +323,7 @@ local function updateTraversabilityGrid()
 		end
 
 		cachedOverlapLines = newOverlapLines
+		hasOverlapLines = #newOverlapLines > 0
 		updateDisplayList(commanderX, commanderZ)
 		
 		lastCommanderX = commanderX
@@ -832,7 +865,7 @@ function widget:Update()
 end
 
 function widget:DrawWorld()
-	if overlapLinesDisplayList then
+	if hasOverlapLines and overlapLinesDisplayList then
 		gl.CallList(overlapLinesDisplayList)
 	end
 end
