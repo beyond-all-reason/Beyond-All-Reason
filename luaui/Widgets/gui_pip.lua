@@ -39,6 +39,7 @@ local zoomRate = 15 -- magnification multiplication per second
 local zoomSmoothness = 10 -- How fast zoom transitions happen (higher = faster)
 local centerSmoothness = 15 -- How fast camera center pans during zoom-to-cursor (higher = faster)
 local trackingSmoothness = 8 -- How fast camera transitions when tracking units die/move (higher = faster, lower = smoother)
+local playerTrackingSmoothness = 4.5 -- How fast camera transitions when tracking player camera (slower for smoother player follow)
 local switchSmoothness = 30 -- How fast PIP camera transitions during view switch (higher = faster, should match switchTransitionTime)
 local zoomMin = 0.06
 local zoomMax = 0.8
@@ -91,6 +92,8 @@ local ground = { view = {}, coord = {} } -- Ground texture view and texture coor
 local targetZoom = zoom
 local wcx, wcz = 1000, 1000
 local targetWcx, targetWcz = wcx, wcz  -- Target camera center for smooth transitions
+local mySpecState = Spring.GetSpectatingState()  -- Track if we're spectating
+local lastTrackedCameraState = nil  -- Store last camera state for change detection
 
 -- Zoom-to-cursor state (stores the locked cursor world position)
 local zoomToCursorActive = false
@@ -426,70 +429,26 @@ local buttons = {
 				interactionState.trackingPlayerID = nil
 				pipR2T.frameNeedsUpdate = true
 			else
-				-- Start tracking player via lockcamera widget
-				local closestPlayerID = nil
-				local closestTime = math.huge
+				-- Get the team leader of my team
+				local myTeamID = Spring.GetMyTeamID()
+				local targetPlayerID = nil
 
-				-- First, try to use lockcamera widget's data
-				if WG.lockcamera then
-					-- Try to get recent broadcasters first
-					local recentBroadcasters = WG.lockcamera.recentBroadcasters
-					if recentBroadcasters then
-						for playerID, timeSince in pairs(recentBroadcasters) do
-							if timeSince < closestTime then
-								closestTime = timeSince
-								closestPlayerID = playerID
-							end
-						end
-					end
+				-- Get the team leader's player ID from team info
+				local _, leaderPlayerID = Spring.GetTeamInfo(myTeamID, false)
 
-					-- If no recent broadcasters found but GetPlayerCameraState exists, try to find any player with camera data
-					if not closestPlayerID and WG.lockcamera.GetPlayerCameraState then
-						local playerList = Spring.GetPlayerList()
-						for _, playerID in ipairs(playerList) do
-							-- Skip self
-							local myPlayerID = Spring.GetMyPlayerID()
-							if playerID ~= myPlayerID then
-								local cameraState = WG.lockcamera.GetPlayerCameraState(playerID)
-								if cameraState then
-									closestPlayerID = playerID
-									break
-								end
-							end
-						end
-					end
-				end
-
-				-- Fallback: if still no player found, try any active player (including spectators)
-				if not closestPlayerID then
-					local playerList = Spring.GetPlayerList()
+				-- Verify this player is active and not self
+				if leaderPlayerID then
 					local myPlayerID = Spring.GetMyPlayerID()
-					-- First try non-spectators
-					for _, playerID in ipairs(playerList) do
-						if playerID ~= myPlayerID then
-							local name, active, isSpec = Spring.GetPlayerInfo(playerID, false)
-							if name and active and not isSpec then
-								closestPlayerID = playerID
-								break
-							end
-						end
-					end
-					-- If no non-spectators, try any active player including spectators
-					if not closestPlayerID then
-						for _, playerID in ipairs(playerList) do
-							if playerID ~= myPlayerID then
-								local name, active = Spring.GetPlayerInfo(playerID, false)
-								if name and active then
-									closestPlayerID = playerID
-									break
-								end
-							end
+					if leaderPlayerID ~= myPlayerID then
+						local name, active = Spring.GetPlayerInfo(leaderPlayerID, false)
+						if name and active then
+							targetPlayerID = leaderPlayerID
 						end
 					end
 				end
 
-				if closestPlayerID then
-					interactionState.trackingPlayerID = closestPlayerID
+				if targetPlayerID then
+					interactionState.trackingPlayerID = targetPlayerID
 					-- Clear unit tracking when starting player tracking
 					interactionState.areTracking = nil
 					pipR2T.frameNeedsUpdate = true
@@ -544,6 +503,9 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitBasePosition = Spring.GetUnitBasePosition
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetTeamInfo = Spring.GetTeamInfo
+local spIsUnitInLos = Spring.IsUnitInLos
+local spGetUnitLosState = Spring.GetUnitLosState
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeatureDirection = Spring.GetFeatureDirection
 local spGetFeaturePosition = Spring.GetFeaturePosition
@@ -763,6 +725,37 @@ local function UpdatePlayerTracking()
 		end
 
 		if cameraState then
+			-- Check if camera state has changed significantly (force content update if so)
+			local stateChanged = false
+			if lastTrackedCameraState then
+				-- Compare key camera parameters to detect significant changes
+				local posThreshold = 100  -- Position change threshold (elmos)
+				local zoomThreshold = 0.05  -- Zoom change threshold
+
+				-- Check position change
+				local lastX = lastTrackedCameraState.px or lastTrackedCameraState.x or 0
+				local lastZ = lastTrackedCameraState.pz or lastTrackedCameraState.z or 0
+				local currX = cameraState.px or cameraState.x or 0
+				local currZ = cameraState.pz or cameraState.z or 0
+				local posDist = math.sqrt((currX - lastX)^2 + (currZ - lastZ)^2)
+
+				-- Check zoom/distance change
+				local lastDist = lastTrackedCameraState.dist or lastTrackedCameraState.height or 1000
+				local currDist = cameraState.dist or cameraState.height or 1000
+				local distChange = math.abs(currDist - lastDist) / lastDist
+
+				if posDist > posThreshold or distChange > zoomThreshold then
+					stateChanged = true
+				end
+			else
+				stateChanged = true  -- First time tracking, force update
+			end
+
+			if stateChanged then
+				pipR2T.contentNeedsUpdate = true
+				lastTrackedCameraState = cameraState  -- Store for next comparison
+			end
+
 			-- Extract position from camera state (different camera modes have different field names)
 			-- Camera state can have: px, py, pz (spring/ta camera), x, y, z (free camera), etc.
 			local camX, camY, camZ
@@ -779,7 +772,7 @@ local function UpdatePlayerTracking()
 				-- Get camera direction/rotation if available
 				local rx = cameraState.rx or 0  -- Camera rotation around X axis (tilt)
 				local ry = cameraState.ry or 0  -- Camera rotation around Y axis (heading)
-				local dist = cameraState.dist or 1000  -- Camera distance
+				local dist = cameraState.dist  -- Camera distance (may be nil)
 				local height = cameraState.height or camY or 500
 
 				-- Calculate ground point that camera is looking at
@@ -810,15 +803,26 @@ local function UpdatePlayerTracking()
 				targetWcz = lookAtZ
 
 				-- Adjust zoom based on camera distance/height to approximate the view scale
-				-- Higher camera = more zoomed out in PIP
-				if dist and dist > 0 then
-					-- Spring camera distance - use it to set zoom
-					local zoomFromDist = math.max(zoomMin, math.min(zoomMax, 0.4 * (1000 / dist)))
-					targetZoom = zoomFromDist
-				elseif height and height > 0 then
-					-- Use height as approximation for zoom
-					local zoomFromHeight = math.max(zoomMin, math.min(zoomMax, 0.5 * (800 / height)))
-					targetZoom = zoomFromHeight
+				-- Try to use actual camera zoom/distance/height from the player's camera
+				-- The camera state might have: dist, height, or we can use camY
+				local zoomValue = nil
+
+				-- First priority: use dist if available (spring/ta camera)
+				if dist and dist > 0 and dist < 10000 then
+					-- Spring camera distance scales inversely with zoom
+					-- Typical range: 500-3000, map to our zoom range
+					zoomValue = math.max(zoomMin, math.min(zoomMax, 400 / dist))
+				end
+
+				-- Second priority: use height if dist not available
+				if not zoomValue and height and height > 0 and height < 5000 then
+					-- Camera height scales inversely with zoom
+					zoomValue = math.max(zoomMin, math.min(zoomMax, 300 / height))
+				end
+
+				-- Apply zoom if we calculated one
+				if zoomValue then
+					targetZoom = zoomValue
 				end
 			end
 		end
@@ -893,6 +897,37 @@ local function DrawUnit(uID)
 	local ux, uy, uz = spGetUnitBasePosition(uID)
 	if not ux then return end  -- Early exit if position is invalid
 
+	-- When tracking a player, only show units visible to that player's ally team
+	-- Skip this check if we're not spectating (playing), since we can see everything we're allowed to anyway
+	if interactionState.trackingPlayerID and mySpecState then
+		local _, _, _, playerTeamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+		if playerTeamID then
+			-- Get ally teams from team info (returns: _, _, _, _, _, allyTeamID)
+			local _, _, _, _, _, playerAllyTeamID = spGetTeamInfo(playerTeamID, false)
+			local _, _, _, _, _, unitAllyTeamID = spGetTeamInfo(uTeam, false)
+
+			-- If unit is not on player's ally team, check if it's in LOS
+			if unitAllyTeamID ~= playerAllyTeamID then
+				-- Check if unit is in line of sight for the player's ally team
+				local inLOS = spIsUnitInLos(uID, playerAllyTeamID)
+				if not inLOS then
+					-- Unit not visible, don't draw it
+					return
+				end
+
+				-- Check if unit identity is known (in radar but ID unknown = show as blob)
+				local losState = spGetUnitLosState(uID, playerAllyTeamID)
+				-- losState is a table with: los, prevLos, contRadar, radar
+				-- We want to check if the unit type is known (in LOS, not just radar)
+				if losState and not losState.los then
+					-- Unit is in radar but not in LOS (type not fully known)
+					-- For now, just don't draw it (could be enhanced later to draw as blob)
+					return
+				end
+			end
+		end
+	end
+
 	glPushMatrix()
 	glTranslate(ux - wcx, wcz - uz, 0)
 	-- Store for batched icon drawing later
@@ -901,7 +936,13 @@ local function DrawUnit(uID)
 	pipIconX[idx], pipIconY[idx] = WorldToPipCoords(ux, uz)
 	pipIconUdef[idx] = uDefID
 	pipIconUnitID[idx] = uID
-	pipIconSelected[idx] = spIsUnitSelected(uID)
+	-- When tracking a player, show their selections instead of our own
+	if interactionState.trackingPlayerID then
+		local playerSelections = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
+		pipIconSelected[idx] = playerSelections and playerSelections[uID] or false
+	else
+		pipIconSelected[idx] = spIsUnitSelected(uID)
+	end
 	-- Get build progress (1 for finished units, < 1 for units under construction)
 	local _, _, _, _, buildProgress = spGetUnitHealth(uID)
 	pipIconBuildProgress[idx] = buildProgress or 1
@@ -1480,12 +1521,12 @@ local function DrawProjectile(pID)
 				local radius = math.max(width, height)
 				local segments = 7
 
-				local coreWhiteness = 0.8
+				local coreWhiteness = 0.9
 				local coreR = color[1] * (1 - coreWhiteness) + coreWhiteness
 				local coreG = color[2] * (1 - coreWhiteness) + coreWhiteness
 				local coreB = color[3] * (1 - coreWhiteness) + coreWhiteness
 
-				local orangeTint = 0.8
+				local orangeTint = 0.4
 				local outerR = math.min(1, color[1] + orangeTint)
 				local outerG = math.max(0, color[2] - orangeTint * 0.3)
 				local outerB = math.max(0, color[3] - orangeTint * 0.5)
@@ -3025,8 +3066,23 @@ local function DrawCommandQueuesOverlay()
 			end
 		end
 	else
-		-- Show only selected units
-		local selectedUnits = Spring.GetSelectedUnits()
+		-- Show only selected units (or tracked player's selected units)
+		local selectedUnits
+		if interactionState.trackingPlayerID then
+			-- Get tracked player's selected units
+			local playerSelections = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
+			if playerSelections then
+				-- Convert table to array
+				selectedUnits = {}
+				for unitID, _ in pairs(playerSelections) do
+					selectedUnits[#selectedUnits + 1] = unitID
+				end
+			end
+		else
+			-- Use own selected units
+			selectedUnits = Spring.GetSelectedUnits()
+		end
+
 		if not selectedUnits then
 			return
 		end
@@ -3945,6 +4001,16 @@ local function DrawBoxSelection()
 		return
 	end
 
+	-- Don't draw box selection when tracking a player's camera
+	if interactionState.trackingPlayerID then
+		return
+	end
+
+	-- Don't draw box selection when tracking a player's camera
+	if interactionState.trackingPlayerID then
+		return
+	end
+
 	local minX = math.max(math.min(interactionState.boxSelectStartX, interactionState.boxSelectEndX), dim.l)
 	local maxX = math.min(math.max(interactionState.boxSelectStartX, interactionState.boxSelectEndX), dim.r)
 	local minY = math.max(math.min(interactionState.boxSelectStartY, interactionState.boxSelectEndY), dim.b)
@@ -4353,6 +4419,7 @@ function widget:DrawScreen()
 			glColor(0.9, 0.9, 0.9, 1)
 			glTexture('$grass')
 			glBeginEnd(GL_QUADS, GroundTextureVertices)
+			glColor(1, 1, 1, 1)
 			glTexture(false)
 		end
 
@@ -4751,8 +4818,12 @@ function widget:DrawScreen()
 	end
 
 	-- Draw map ruler at edges (after content, before buttons)
+	-- Only show ruler when not spectating
 	if showMapRuler then
-		DrawMapRuler()
+		local _, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+		if not spec then
+			DrawMapRuler()
+		end
 	end
 end	-- Draw tracking (corner) indicators
 	if interactionState.areTracking and #interactionState.areTracking > 0 then
@@ -4949,7 +5020,8 @@ end	-- Draw tracking (corner) indicators
 		end
 	end
 
-	if pipNumber ~= 1 then
+	-- Draw pipNumber text only when hovering (and only for pip 2+)
+	if pipNumber ~= 1 and interactionState.isMouseOverPip then
 		glColor(panelBorderColorDark)
 		RectRound(dim.l, dim.t - usedButtonSize, dim.l + usedButtonSize, dim.t, elementCorner*0.4, 0, 0, 1, 0)
 		local fontSize = 14
@@ -5024,11 +5096,24 @@ end
 
 function widget:DrawWorld()
 	if inMinMode then return end
-	gl.Color(1, 1, 0, 0.25)
-	gl.LineWidth(1.49)
-	gl.DepthTest(true)
-	glBeginEnd(GL_LINE_STRIP, DrawGroundBox, world.l, world.r, world.b, world.t)
-	gl.DepthTest(false)
+
+	-- Draw rectangle outline in world view marking PIP boundaries
+	if not mySpecState then
+		-- Use team color if tracking a player, otherwise white
+		local r, g, b = 1, 1, 1
+		if interactionState.trackingPlayerID then
+			local _, _, _, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+			if teamID then
+				r, g, b = Spring.GetTeamColor(teamID)
+			end
+		end
+
+		gl.Color(r, g, b, 0.25)
+		gl.LineWidth(2.5)
+		gl.DepthTest(true)
+		glBeginEnd(GL_LINE_STRIP, DrawGroundBox, world.l, world.r, world.b, world.t)
+		gl.DepthTest(false)
+	end
 
 	-- Note: Formation lines are not drawn in world view (customformations widget handles this)
 
@@ -5098,13 +5183,14 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	x2 = math.max(0, math.min(1, x2))
 	z2 = math.max(0, math.min(1, z2))
 
-	-- Convert to pixel coordinates
-	x1 = x1 * minimapWidth
-	z1 = z1 * minimapHeight
-	x2 = x2 * minimapWidth
-	z2 = z2 * minimapHeight
+	-- Convert to pixel coordinates and floor for pixel alignment
+	x1 = math.floor(x1 * minimapWidth + 0.5)
+	z1 = math.floor(z1 * minimapHeight + 0.5)
+	x2 = math.floor(x2 * minimapWidth + 0.5)
+	z2 = math.floor(z2 * minimapHeight + 0.5)
 
-	-- Draw yellow rectangle showing PIP view area
+	-- Draw rectangle showing PIP view area (team-colored if tracking player)
+	local linewidth = math.ceil(vsy / 2000)
 	gl.Texture(false)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	gl.PushMatrix()
@@ -5112,8 +5198,8 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	gl.Scale(1, 1, 1)
 
 	-- Draw dark background rectangle
-	gl.Color(0, 0, 0, 0.16)
-	gl.LineWidth(3.5)
+	gl.Color(0, 0, 0, 0.6)
+	gl.LineWidth((linewidth*1.5)+1)
 	gl.BeginEnd(GL.LINE_LOOP, function()
 		gl.Vertex(x1, z1)
 		gl.Vertex(x2, z1)
@@ -5121,9 +5207,17 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 		gl.Vertex(x1, z2)
 	end)
 
-	-- Draw yellow rectangle
-	gl.Color(1, 1, 0, 0.6)
-	gl.LineWidth(2.0)
+	-- Use team color if tracking a player, otherwise white
+	local r, g, b = 0.85, 0.85, 0.85
+	if interactionState.trackingPlayerID then
+		local _, _, _, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+		if teamID then
+			r, g, b = Spring.GetTeamColor(teamID)
+		end
+	end
+
+	gl.Color(r, g, b, 1)
+	gl.LineWidth(linewidth)
 	--gl.LineStipple(2, 0xAAAA)
 	gl.BeginEnd(GL.LINE_LOOP, function()
 		gl.Vertex(x1, z1)
@@ -5139,6 +5233,9 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 end
 
 function widget:Update(dt)
+	-- Update spectating state
+	mySpecState = Spring.GetSpectatingState()
+
 	-- Update mouse hover state
 	local mx, my = spGetMouseState()
 	local wasMouseOver = interactionState.isMouseOverPip
@@ -5299,8 +5396,10 @@ function widget:Update(dt)
 			local smoothnessToUse = centerSmoothness -- Default for zoom-to-cursor and panning
 			if isSwitchingViews then
 				smoothnessToUse = switchSmoothness -- Fast transition for view switching
+			elseif interactionState.trackingPlayerID then
+				smoothnessToUse = playerTrackingSmoothness -- Slower, smoother tracking for player camera
 			elseif interactionState.areTracking then
-				smoothnessToUse = trackingSmoothness -- Smoother animation for tracking mode
+				smoothnessToUse = trackingSmoothness -- Smoother animation for unit tracking mode
 			end
 
 			local centerFactor = math.min(dt * smoothnessToUse, 1)
@@ -5446,8 +5545,7 @@ function widget:GameStart()
 	gameHasStarted = true
 
 	-- Automatically maximize for players (only for the first PIP instance)
-	local isSpectator = Spring.GetSpectatingState()
-	if pipNumber == 1 and not isSpectator and inMinMode then
+	if pipNumber == 1 and not mySpecState and inMinMode then
 		-- Trigger maximize animation
 		local usedButtonSize = math.floor(buttonSize * widgetScale)
 		local buttonSizeWithScale = math.floor(usedButtonSize * maximizeSizemult)
@@ -6240,8 +6338,9 @@ function widget:MousePress(mx, my, mButton)
 			-- Don't start single left-click actions if we're already panning with left+right
 			if not interactionState.arePanning then
 				-- Check if alt is held - if so, don't start box selection (panning will be handled in MouseMove)
+				-- Also don't allow box selection when tracking a player's camera
 				local alt, ctrl, meta, shift = Spring.GetModKeyState()
-				if not alt then
+				if not alt and not interactionState.trackingPlayerID then
 					if leftButtonPansCamera then
 					interactionState.arePanning = true
 					interactionState.panStartX = mx
