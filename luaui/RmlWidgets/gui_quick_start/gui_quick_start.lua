@@ -130,16 +130,33 @@ local function hasStartPositionsChanged()
 	return changed
 end
 
+local function getCachedGameRules()
+	local currentTime = os.clock()
+	if currentTime - lastRulesUpdate > RULES_CACHE_DURATION then
+		cachedGameRules.budgetTotal = spGetGameRulesParam("quickStartBudgetBase") or 0
+		cachedGameRules.factoryDiscountAmount = spGetGameRulesParam("quickStartFactoryDiscountAmount") or 0
+		cachedGameRules.instantBuildRange = spGetGameRulesParam("overridePregameBuildDistance") or DEFAULT_INSTANT_BUILD_RANGE
+		cachedGameRules.budgetThresholdToAllowStart = spGetGameRulesParam("quickStartBudgetThresholdToAllowStart") or 0
+		cachedGameRules.metalDeduction = spGetGameRulesParam("quickStartMetalDeduction") or 800
+		cachedGameRules.traversabilityGridRange = spGetGameRulesParam("quickStartTraversabilityGridRange") or 576
+		lastRulesUpdate = currentTime
+	end
+	return cachedGameRules
+end
+
 local function updateDisplayList(commanderX, commanderZ)
 	if overlapLinesDisplayList then
 		gl.DeleteList(overlapLinesDisplayList)
 		overlapLinesDisplayList = nil
 	end
 	
-	if not cachedOverlapLines or #cachedOverlapLines == 0 then return end
+	local gameRules = getCachedGameRules()
+	local buildRadius = gameRules.instantBuildRange or DEFAULT_INSTANT_BUILD_RANGE
 	
-	local drawingSegments = overlapLines.getDrawingSegments(cachedOverlapLines, commanderX, commanderZ)
-	if not drawingSegments or #drawingSegments == 0 then return end
+	local drawingSegments = overlapLines.getDrawingSegments(cachedOverlapLines, commanderX, commanderZ, buildRadius)
+	if not drawingSegments or #drawingSegments == 0 then
+		return
+	end
 
 	overlapLinesDisplayList = gl.CreateList(function()
 		gl.LineWidth(2)
@@ -243,20 +260,6 @@ local function isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, instan
 	end
 
 	return false
-end
-
-local function getCachedGameRules()
-	local currentTime = os.clock()
-	if currentTime - lastRulesUpdate > RULES_CACHE_DURATION then
-		cachedGameRules.budgetTotal = spGetGameRulesParam("quickStartBudgetBase") or 0
-		cachedGameRules.factoryDiscountAmount = spGetGameRulesParam("quickStartFactoryDiscountAmount") or 0
-		cachedGameRules.instantBuildRange = spGetGameRulesParam("overridePregameBuildDistance") or DEFAULT_INSTANT_BUILD_RANGE
-		cachedGameRules.budgetThresholdToAllowStart = spGetGameRulesParam("quickStartBudgetThresholdToAllowStart") or 0
-		cachedGameRules.metalDeduction = spGetGameRulesParam("quickStartMetalDeduction") or 800
-		cachedGameRules.traversabilityGridRange = spGetGameRulesParam("quickStartTraversabilityGridRange") or 576
-		lastRulesUpdate = currentTime
-	end
-	return cachedGameRules
 end
 
 local function updateTraversabilityGrid()

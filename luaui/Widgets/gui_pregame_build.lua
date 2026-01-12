@@ -1097,7 +1097,7 @@ function widget:DrawWorld()
 
 		-- Draw start units build radius
 		gl.Color(BUILD_DISTANCE_COLOR)
-		local buildDistance = Spring.GetGameRulesParam("overridePregameBuildDistance") or UnitDefs[startDefID].buildDistance
+		local buildDistance = UnitDefs[startDefID].buildDistance
 		if buildDistance then
 			gl.DrawGroundCircle(sx, sy, sz, buildDistance, 40)
 		end
@@ -1444,6 +1444,8 @@ function widget:GameFrame(n)
 		local quickStartEnabled = quickStartOption and quickStartOption ~= "disabled" and quickStartOption ~= "factory_discount_only"
 		
 		if quickStartEnabled and #buildQueue > 0 then
+			--we have to temporary Echo data like this because there are reports of builds that should be spawned in quickstart not being spawned. 
+			--Widget data isn't caught in replays so we have to echo this for now. 1/12/26
 			Spring.Echo(string.format("=== Build Queue for Commander (unitID: %d) ===", tasker))
 			for b = 1, #buildQueue do
 				local buildData = buildQueue[b]
