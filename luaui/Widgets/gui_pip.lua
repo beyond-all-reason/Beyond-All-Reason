@@ -39,6 +39,7 @@ local zoomRate = 15 -- magnification multiplication per second
 local zoomSmoothness = 10 -- How fast zoom transitions happen (higher = faster)
 local centerSmoothness = 15 -- How fast camera center pans during zoom-to-cursor (higher = faster)
 local trackingSmoothness = 8 -- How fast camera transitions when tracking units die/move (higher = faster, lower = smoother)
+local playerTrackingSmoothness = 4.5 -- How fast camera transitions when tracking player camera (slower for smoother player follow)
 local switchSmoothness = 30 -- How fast PIP camera transitions during view switch (higher = faster, should match switchTransitionTime)
 local zoomMin = 0.06
 local zoomMax = 0.8
@@ -67,6 +68,8 @@ local pipZoomThresholdMax = 0.4  -- Zoom level where we use maximum update rate
 local pipTargetDrawTime = 0.003  -- Target draw time in seconds (3ms) - if exceeded, reduce update rate
 local pipPerformanceAdjustSpeed = 0.1  -- How quickly to adjust FPS based on performance (0-1, higher = faster adjustment)
 
+local radarWobbleSpeed = 1  -- Speed multiplier for radar wobble oscillation (0.1 = very slow, 1 = normal, 2 = fast)
+
 local CMD_AREA_MEX = GameCMD and GameCMD.AREA_MEX or 10000  -- Area mex command
 
 ----------------------------------------------------------------------------------------------------
@@ -87,28 +90,36 @@ local dim = {} -- Panel dimensions: left, right, bottom, top
 local world = {} -- World coordinate boundaries
 local ground = { view = {}, coord = {} } -- Ground texture view and texture coordinates
 
--- Base variables
-local targetZoom = zoom
-local wcx, wcz = 1000, 1000
-local targetWcx, targetWcz = wcx, wcz  -- Target camera center for smooth transitions
+-- Consolidated camera state
+local cameraState = {
+	targetZoom = zoom,
+	wcx = 1000,
+	wcz = 1000,
+	targetWcx = 1000,
+	targetWcz = 1000,
+	mySpecState = Spring.GetSpectatingState(),
+	lastTrackedCameraState = nil,
+	zoomToCursorActive = false,
+	zoomToCursorWorldX = 0,
+	zoomToCursorWorldZ = 0,
+	zoomToCursorScreenX = 0,
+	zoomToCursorScreenY = 0,
+}
 
--- Zoom-to-cursor state (stores the locked cursor world position)
-local zoomToCursorActive = false
-local zoomToCursorWorldX, zoomToCursorWorldZ = 0, 0  -- World position to keep under cursor
-local zoomToCursorScreenX, zoomToCursorScreenY = 0, 0  -- Screen position of cursor
-
--- State variables
-local inMinMode = false
-local minModeL
-local minModeB
-local savedDimensions = {} -- Store dimensions before minimizing
-local isAnimating = false
-local animationProgress = 0
-local animationDuration = 0.22 -- seconds for the minimize/maximize transition animation
-local animStartDim = {} -- Starting dimensions for animation
-local animEndDim = {} -- Ending dimensions for animation
-local drawingGround = true
-local areResizing = false
+-- Consolidated UI state
+local uiState = {
+	inMinMode = false,
+	minModeL = nil,
+	minModeB = nil,
+	savedDimensions = {},
+	isAnimating = false,
+	animationProgress = 0,
+	animationDuration = 0.22,
+	animStartDim = {},
+	animEndDim = {},
+	drawingGround = true,
+	areResizing = false,
+}
 
 -- Render-to-texture state (consolidated to reduce local variable count)
 local pipR2T = {
@@ -170,21 +181,38 @@ local interactionState = {
 	isMouseOverPip = false,
 }
 
--- Misc variables
-local startX, startZ
-local isProcessingMapDraw = false -- Prevent MapDrawCmd recursion
-local mapmarkInitScreenX, mapmarkInitScreenY = nil, nil -- Track where mapmark was initiated
-local mapmarkInitTime = 0 -- Track when mapmark was initiated
-local backupTracking = nil -- Store tracking state and camera position when switching views: {tracking = units, trackingPlayerID = playerID, camX = x, camZ = z}
-local isSwitchingViews = false -- Track when we're doing a pip_switch transition
-local hadSavedConfig = false -- Track if we loaded from saved config (to avoid auto-minimize on reload)
-local pipUnits = {}
-local pipFeatures = {}
--- Arrays for unit icons (batched drawing)
-local pipIconTeam, pipIconX, pipIconY, pipIconUdef, pipIconSelected, pipIconBuildProgress, pipIconUnitID = {}, {}, {}, {}, {}, {}, {}, {}
-local trackedIconIndices = {} -- Indices of tracked units for optimized rendering
-local hoveredUnitID = nil -- Track which unit icon is being hovered
-local lastSelectionboxEnabled = nil -- Track selectionbox widget state for command color config
+-- Consolidated misc state
+local miscState = {
+	startX = nil,
+	startZ = nil,
+	isProcessingMapDraw = false,
+	mapmarkInitScreenX = nil,
+	mapmarkInitScreenY = nil,
+	mapmarkInitTime = 0,
+	backupTracking = nil,
+	isSwitchingViews = false,
+	hadSavedConfig = false,
+	pipUnits = {},
+	pipFeatures = {},
+}
+-- Consolidated drawing data
+local drawData = {
+	iconTeam = {},
+	iconX = {},
+	iconY = {},
+	iconUdef = {},
+	iconSelected = {},
+	iconBuildProgress = {},
+	iconUnitID = {},
+	radarBlobX = {},
+	radarBlobY = {},
+	radarBlobTeam = {},
+	radarBlobUdef = {},  -- Store unit def ID if known
+	radarBlobUnitID = {},  -- Store unit ID for wobble calculation
+	trackedIconIndices = {},
+	hoveredUnitID = nil,
+	lastSelectionboxEnabled = nil,
+}
 
 -- Reusable table pools to reduce GC pressure
 -- These tables are reused across frames instead of being allocated/deallocated repeatedly
@@ -281,16 +309,16 @@ local buttons = {
 					-- Set PIP camera to main camera position with rounding to match switch behavior
 					local copiedX = math.floor(pos[1] + 0.5)
 					local copiedZ = math.floor(pos[3] + 0.5)
-					-- Set target for smooth transition (don't set wcx/wcz directly)
-					targetWcx, targetWcz = copiedX, copiedZ
-					isSwitchingViews = true -- Enable fast transition for pip_copy
+					-- Set target for smooth transition (don't set cameraState.wcx/cameraState.wcz directly)
+					cameraState.targetWcx, cameraState.targetWcz = copiedX, copiedZ
+					miscState.isSwitchingViews = true -- Enable fast transition for pip_copy
 					RecalculateWorldCoordinates()
 					RecalculateGroundTextureCoordinates()
 					-- Disable tracking when copying camera
 					interactionState.areTracking = nil
 					interactionState.trackingPlayerID = nil
 					-- Store the copied position in backup so switching maintains same position
-					backupTracking = {
+					miscState.backupTracking = {
 						tracking = nil,
 						trackingPlayerID = nil,
 						camX = copiedX,
@@ -312,7 +340,7 @@ local buttons = {
 					local mainCamZ = math.floor(pos[3] + 0.5)
 
 					-- Calculate the actual center of tracked units (if tracking) for main view camera
-					local pipCameraTargetX, pipCameraTargetZ = math.floor(wcx + 0.5), math.floor(wcz + 0.5)
+					local pipCameraTargetX, pipCameraTargetZ = math.floor(cameraState.wcx + 0.5), math.floor(cameraState.wcz + 0.5)
 					if switchInheritsTracking and interactionState.areTracking and #interactionState.areTracking > 0 then
 						-- Calculate average position of tracked units (not margin-corrected camera)
 						local uCount = 0
@@ -350,25 +378,25 @@ local buttons = {
 				local currentPipCamZ = pipCameraTargetZ
 
 				-- Restore tracking from backup to PIP view (or set to nil if no backup)
-				if backupTracking then
-					interactionState.areTracking = backupTracking.tracking
-					interactionState.trackingPlayerID = backupTracking.trackingPlayerID
+				if miscState.backupTracking then
+					interactionState.areTracking = miscState.backupTracking.tracking
+					interactionState.trackingPlayerID = miscState.backupTracking.trackingPlayerID
 				else
 					interactionState.areTracking = nil
 					interactionState.trackingPlayerID = nil
 				end
 
 				-- Save current PIP state to backup for next switch
-				backupTracking = {
+				miscState.backupTracking = {
 					tracking = currentPipTracking,
 					trackingPlayerID = currentPipTrackingPlayerID,
 					camX = currentPipCamX,
 					camZ = currentPipCamZ
 				}				-- Switch camera positions - use rounded coordinates
 				Spring.SetCameraTarget(pipCameraTargetX, 0, pipCameraTargetZ, switchTransitionTime)
-				-- Set PIP camera target for smooth transition (don't set wcx/wcz directly)
-				targetWcx, targetWcz = mainCamX, mainCamZ
-				isSwitchingViews = true -- Enable fast transition for pip_switch
+				-- Set PIP camera target for smooth transition (don't set cameraState.wcx/cameraState.wcz directly)
+				cameraState.targetWcx, cameraState.targetWcz = mainCamX, mainCamZ
+				miscState.isSwitchingViews = true -- Enable fast transition for pip_switch
 				RecalculateWorldCoordinates()
 				RecalculateGroundTextureCoordinates()
 
@@ -408,7 +436,7 @@ local buttons = {
 					interactionState.areTracking = selectedUnits
 				end
 				-- Disable zoom-to-cursor when tracking is enabled
-				zoomToCursorActive = false
+				cameraState.zoomToCursorActive = false
 			else
 				-- No selection: clear tracking
 				interactionState.areTracking = nil
@@ -426,70 +454,26 @@ local buttons = {
 				interactionState.trackingPlayerID = nil
 				pipR2T.frameNeedsUpdate = true
 			else
-				-- Start tracking player via lockcamera widget
-				local closestPlayerID = nil
-				local closestTime = math.huge
+				-- Get the team leader of my team
+				local myTeamID = Spring.GetMyTeamID()
+				local targetPlayerID = nil
 
-				-- First, try to use lockcamera widget's data
-				if WG.lockcamera then
-					-- Try to get recent broadcasters first
-					local recentBroadcasters = WG.lockcamera.recentBroadcasters
-					if recentBroadcasters then
-						for playerID, timeSince in pairs(recentBroadcasters) do
-							if timeSince < closestTime then
-								closestTime = timeSince
-								closestPlayerID = playerID
-							end
-						end
-					end
+				-- Get the team leader's player ID from team info
+				local _, leaderPlayerID = Spring.GetTeamInfo(myTeamID, false)
 
-					-- If no recent broadcasters found but GetPlayerCameraState exists, try to find any player with camera data
-					if not closestPlayerID and WG.lockcamera.GetPlayerCameraState then
-						local playerList = Spring.GetPlayerList()
-						for _, playerID in ipairs(playerList) do
-							-- Skip self
-							local myPlayerID = Spring.GetMyPlayerID()
-							if playerID ~= myPlayerID then
-								local cameraState = WG.lockcamera.GetPlayerCameraState(playerID)
-								if cameraState then
-									closestPlayerID = playerID
-									break
-								end
-							end
-						end
-					end
-				end
-
-				-- Fallback: if still no player found, try any active player (including spectators)
-				if not closestPlayerID then
-					local playerList = Spring.GetPlayerList()
+				-- Verify this player is active and not self
+				if leaderPlayerID then
 					local myPlayerID = Spring.GetMyPlayerID()
-					-- First try non-spectators
-					for _, playerID in ipairs(playerList) do
-						if playerID ~= myPlayerID then
-							local name, active, isSpec = Spring.GetPlayerInfo(playerID, false)
-							if name and active and not isSpec then
-								closestPlayerID = playerID
-								break
-							end
-						end
-					end
-					-- If no non-spectators, try any active player including spectators
-					if not closestPlayerID then
-						for _, playerID in ipairs(playerList) do
-							if playerID ~= myPlayerID then
-								local name, active = Spring.GetPlayerInfo(playerID, false)
-								if name and active then
-									closestPlayerID = playerID
-									break
-								end
-							end
+					if leaderPlayerID ~= myPlayerID then
+						local name, active = Spring.GetPlayerInfo(leaderPlayerID, false)
+						if name and active then
+							targetPlayerID = leaderPlayerID
 						end
 					end
 				end
 
-				if closestPlayerID then
-					interactionState.trackingPlayerID = closestPlayerID
+				if targetPlayerID then
+					interactionState.trackingPlayerID = targetPlayerID
 					-- Clear unit tracking when starting player tracking
 					interactionState.areTracking = nil
 					pipR2T.frameNeedsUpdate = true
@@ -544,6 +528,9 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitBasePosition = Spring.GetUnitBasePosition
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetTeamInfo = Spring.GetTeamInfo
+local spIsUnitInLos = Spring.IsUnitInLos
+local spGetUnitLosState = Spring.GetUnitLosState
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeatureDirection = Spring.GetFeatureDirection
 local spGetFeaturePosition = Spring.GetFeaturePosition
@@ -585,7 +572,7 @@ local worldToPipOffsetZ = 0
 
 function RecalculateWorldCoordinates()
 	local hw, hh = 0.5 * (dim.r - dim.l) / zoom, 0.5 * (dim.t - dim.b) / zoom
-	world.l, world.r, world.b, world.t = wcx - hw, wcx + hw, wcz + hh, wcz - hh
+	world.l, world.r, world.b, world.t = cameraState.wcx - hw, cameraState.wcx + hw, cameraState.wcz + hh, cameraState.wcz - hh
 
 	-- Precalculate factors for WorldToPipCoords (performance)
 	local worldWidth = world.r - world.l
@@ -675,7 +662,7 @@ end
 local function UpdateGuishaderBlur()
 	if WG['guishader'] then
 		-- Always update blur with current dimensions (including when minimized)
-		-- The dim values will reflect the minimized button size when inMinMode is true
+		-- The dim values will reflect the minimized button size when uiState.inMinMode is true
 		if WG['guishader'].InsertRect then
 			WG['guishader'].InsertRect(dim.l-elementPadding, dim.b-elementPadding, dim.r+elementPadding, dim.t+elementPadding, 'pip'..pipNumber)
 		end
@@ -685,8 +672,8 @@ end
 local function UpdateCentering(mx, my)
 	local _, pos = Spring.TraceScreenRay(mx, my, true)
 	if pos and pos[2] > -10000 then
-		wcx, wcz = pos[1], pos[3]
-		targetWcx, targetWcz = wcx, wcz  -- Set targets instantly for centering
+		cameraState.wcx, cameraState.wcz = pos[1], pos[3]
+		cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Set targets instantly for centering
 		RecalculateWorldCoordinates()
 		RecalculateGroundTextureCoordinates()
 	end
@@ -728,10 +715,10 @@ local function UpdateTracking()
 		local maxWcz = mapSizeZ - (visibleWorldHeight / 2 - margin)
 
 		-- Set only the target positions for smooth camera transition, clamped to margins
-		targetWcx = math.min(math.max(newTargetWcx, minWcx), maxWcx)
-		targetWcz = math.min(math.max(newTargetWcz, minWcz), maxWcz)
+		cameraState.targetWcx = math.min(math.max(newTargetWcx, minWcx), maxWcx)
+		cameraState.targetWcz = math.min(math.max(newTargetWcz, minWcz), maxWcz)
 
-		-- Don't update wcx/wcz immediately - let the smooth interpolation system handle it
+		-- Don't update cameraState.wcx/cameraState.wcz immediately - let the smooth interpolation system handle it
 		-- RecalculateWorldCoordinates() and RecalculateGroundTextureCoordinates() will be called in Update()
 
 		interactionState.areTracking = stillAlive
@@ -748,9 +735,9 @@ local function UpdatePlayerTracking()
 	-- Get player camera state from lockcamera widget's stored broadcasts
 	if WG.lockcamera and WG.lockcamera.GetPlayerCameraState then
 		-- Get the stored camera state for this player
-		local cameraState = WG.lockcamera.GetPlayerCameraState(interactionState.trackingPlayerID)
+		local playerCamState = WG.lockcamera.GetPlayerCameraState(interactionState.trackingPlayerID)
 
-		if not cameraState then
+		if not playerCamState then
 			-- Player stopped broadcasting - check if they still exist
 			local playerName = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
 			if not playerName then
@@ -762,25 +749,56 @@ local function UpdatePlayerTracking()
 			return
 		end
 
-		if cameraState then
+		if playerCamState then
+			-- Check if camera state has changed significantly (force content update if so)
+			local stateChanged = false
+			if cameraState.lastTrackedCameraState then
+				-- Compare key camera parameters to detect significant changes
+				local posThreshold = 100  -- Position change threshold (elmos)
+				local zoomThreshold = 0.05  -- Zoom change threshold
+
+				-- Check position change
+				local lastX = cameraState.lastTrackedCameraState.px or cameraState.lastTrackedCameraState.x or 0
+				local lastZ = cameraState.lastTrackedCameraState.pz or cameraState.lastTrackedCameraState.z or 0
+				local currX = playerCamState.px or playerCamState.x or 0
+				local currZ = playerCamState.pz or playerCamState.z or 0
+				local posDist = math.sqrt((currX - lastX)^2 + (currZ - lastZ)^2)
+
+				-- Check zoom/distance change
+				local lastDist = cameraState.lastTrackedCameraState.dist or cameraState.lastTrackedCameraState.height or 1000
+				local currDist = playerCamState.dist or playerCamState.height or 1000
+				local distChange = math.abs(currDist - lastDist) / lastDist
+
+				if posDist > posThreshold or distChange > zoomThreshold then
+					stateChanged = true
+				end
+			else
+				stateChanged = true  -- First time tracking, force update
+			end
+
+			if stateChanged then
+				pipR2T.contentNeedsUpdate = true
+				cameraState.lastTrackedCameraState = playerCamState  -- Store for next comparison
+			end
+
 			-- Extract position from camera state (different camera modes have different field names)
 			-- Camera state can have: px, py, pz (spring/ta camera), x, y, z (free camera), etc.
 			local camX, camY, camZ
 
 			-- Try different camera mode field names
-			if cameraState.px then
-				camX, camY, camZ = cameraState.px, cameraState.py, cameraState.pz
-			elseif cameraState.x then
-				camX, camY, camZ = cameraState.x, cameraState.y, cameraState.z
+			if playerCamState.px then
+				camX, camY, camZ = playerCamState.px, playerCamState.py, playerCamState.pz
+			elseif playerCamState.x then
+				camX, camY, camZ = playerCamState.x, playerCamState.y, playerCamState.z
 			end
 
 			if camX and camZ then
 				-- For tilted cameras, we need to project the view direction onto the ground
 				-- Get camera direction/rotation if available
-				local rx = cameraState.rx or 0  -- Camera rotation around X axis (tilt)
-				local ry = cameraState.ry or 0  -- Camera rotation around Y axis (heading)
-				local dist = cameraState.dist or 1000  -- Camera distance
-				local height = cameraState.height or camY or 500
+				local rx = playerCamState.rx or 0  -- Camera rotation around X axis (tilt)
+				local ry = playerCamState.ry or 0  -- Camera rotation around Y axis (heading)
+				local dist = playerCamState.dist  -- Camera distance (may be nil)
+				local height = playerCamState.height or camY or 500
 
 				-- Calculate ground point that camera is looking at
 				-- For spring/overhead camera: the px,pz is roughly the point being looked at
@@ -789,15 +807,15 @@ local function UpdatePlayerTracking()
 
 				-- If camera has distance parameter, it's likely overhead/spring mode
 				-- In that case, px/pz is already the ground point we want
-				if cameraState.mode then
+				if playerCamState.mode then
 					-- Different camera modes need different handling
-					if cameraState.mode == "ta" or cameraState.mode == "spring" then
+					if playerCamState.mode == "ta" or playerCamState.mode == "spring" then
 						-- Spring/TA camera: px, pz is the target point on ground
 						lookAtX, lookAtZ = camX, camZ
-					elseif cameraState.mode == "ov" then
+					elseif playerCamState.mode == "ov" then
 						-- Overview camera: use px, pz directly
 						lookAtX, lookAtZ = camX, camZ
-					elseif cameraState.mode == "free" or cameraState.mode == "fps" then
+					elseif playerCamState.mode == "free" or playerCamState.mode == "fps" then
 						-- Free/FPS camera: need to project view direction onto ground
 						-- Calculate where the camera is looking at ground level
 						local viewDist = height / math.max(0.1, math.cos(math.rad(rx)))
@@ -806,19 +824,30 @@ local function UpdatePlayerTracking()
 					end
 				end
 
-				targetWcx = lookAtX
-				targetWcz = lookAtZ
+				cameraState.targetWcx = lookAtX
+				cameraState.targetWcz = lookAtZ
 
 				-- Adjust zoom based on camera distance/height to approximate the view scale
-				-- Higher camera = more zoomed out in PIP
-				if dist and dist > 0 then
-					-- Spring camera distance - use it to set zoom
-					local zoomFromDist = math.max(zoomMin, math.min(zoomMax, 0.4 * (1000 / dist)))
-					targetZoom = zoomFromDist
-				elseif height and height > 0 then
-					-- Use height as approximation for zoom
-					local zoomFromHeight = math.max(zoomMin, math.min(zoomMax, 0.5 * (800 / height)))
-					targetZoom = zoomFromHeight
+				-- Try to use actual camera zoom/distance/height from the player's camera
+				-- The camera state might have: dist, height, or we can use camY
+				local zoomValue = nil
+
+				-- First priority: use dist if available (spring/ta camera)
+				if dist and dist > 0 and dist < 10000 then
+					-- Spring camera distance scales inversely with zoom
+					-- Typical range: 500-3000, map to our zoom range
+					zoomValue = math.max(zoomMin, math.min(zoomMax, 400 / dist))
+				end
+
+				-- Second priority: use height if dist not available
+				if not zoomValue and height and height > 0 and height < 5000 then
+					-- Camera height scales inversely with zoom
+					zoomValue = math.max(zoomMin, math.min(zoomMax, 300 / height))
+				end
+
+				-- Apply zoom if we calculated one
+				if zoomValue then
+					cameraState.targetZoom = zoomValue
 				end
 			end
 		end
@@ -826,8 +855,8 @@ local function UpdatePlayerTracking()
 		-- Apply map edge margin constraints
 		local pipWidth = dim.r - dim.l
 		local pipHeight = dim.t - dim.b
-		local visibleWorldWidth = pipWidth / targetZoom
-		local visibleWorldHeight = pipHeight / targetZoom
+		local visibleWorldWidth = pipWidth / cameraState.targetZoom
+		local visibleWorldHeight = pipHeight / cameraState.targetZoom
 		local smallerVisibleDimension = math.min(visibleWorldWidth, visibleWorldHeight)
 		local margin = smallerVisibleDimension * mapEdgeMargin
 
@@ -836,8 +865,8 @@ local function UpdatePlayerTracking()
 		local minWcz = visibleWorldHeight / 2 - margin
 		local maxWcz = mapSizeZ - (visibleWorldHeight / 2 - margin)
 
-		targetWcx = math.min(math.max(targetWcx, minWcx), maxWcx)
-		targetWcz = math.min(math.max(targetWcz, minWcz), maxWcz)
+		cameraState.targetWcx = math.min(math.max(cameraState.targetWcx, minWcx), maxWcx)
+		cameraState.targetWcz = math.min(math.max(cameraState.targetWcz, minWcz), maxWcz)
 	end
 end
 
@@ -893,25 +922,94 @@ local function DrawUnit(uID)
 	local ux, uy, uz = spGetUnitBasePosition(uID)
 	if not ux then return end  -- Early exit if position is invalid
 
+	-- Debug counter for radar blobs
+	local debugRadarBlobCount = 0
+
+	-- Check visibility: either when tracking a player OR for our own team's visibility
+	-- Get the ally team we should check visibility for
+	local checkAllyTeamID = nil
+	local isEnemyUnit = false
+
+	if interactionState.trackingPlayerID and cameraState.mySpecState then
+		-- When tracking a player (as spectator), check their ally team's visibility
+		local _, _, _, playerTeamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+		if playerTeamID then
+			local _, _, _, _, _, playerAllyTeamID = spGetTeamInfo(playerTeamID, false)
+			checkAllyTeamID = playerAllyTeamID
+			local _, _, _, _, _, unitAllyTeamID = spGetTeamInfo(uTeam, false)
+			isEnemyUnit = (unitAllyTeamID ~= playerAllyTeamID)
+		end
+	elseif not cameraState.mySpecState then
+		-- When playing (not spectating), check our own ally team's visibility
+		local myTeamID = Spring.GetMyTeamID()
+		local _, _, _, _, _, myAllyTeamID = spGetTeamInfo(myTeamID, false)
+		checkAllyTeamID = myAllyTeamID
+		local _, _, _, _, _, unitAllyTeamID = spGetTeamInfo(uTeam, false)
+		isEnemyUnit = (unitAllyTeamID ~= myAllyTeamID)
+	end
+	-- else: spectator with full view not tracking anyone - skip all visibility checks
+
+	-- Only check visibility for enemy units when we have a specific ally team to check against
+	if checkAllyTeamID and isEnemyUnit then
+		-- Get detailed LOS state
+		local losState = spGetUnitLosState(uID, checkAllyTeamID)
+		-- losState is a table with: los, prevLos, contRadar, radar, typed
+
+		if not losState then
+			-- No visibility at all, don't draw it
+			return
+		end
+
+		-- Check if unit identity is known (in LOS) or just in radar
+		if losState.los then
+			-- Unit is in LOS - draw normally (continue to icon drawing below)
+		elseif losState.radar then
+			-- Unit is in radar but not in LOS
+			local sx, sy = WorldToPipCoords(ux, uz)
+			local idx = #drawData.radarBlobX + 1
+			drawData.radarBlobX[idx] = sx
+			drawData.radarBlobY[idx] = sy
+			drawData.radarBlobTeam[idx] = uTeam
+			drawData.radarBlobUnitID[idx] = uID  -- Store for wobble calculation
+			-- Only store unit def if the type is actually known to the tracked player
+			-- losState.typed tells us if unit type has been revealed (prevLos or other means)
+			if losState.typed then
+				drawData.radarBlobUdef[idx] = uDefID
+			else
+				drawData.radarBlobUdef[idx] = nil  -- Unknown type - will be drawn as blob
+			end
+			return
+		else
+			-- Not in LOS and not in radar - don't draw
+			return
+		end
+	end
+
 	glPushMatrix()
-	glTranslate(ux - wcx, wcz - uz, 0)
+	glTranslate(ux - cameraState.wcx, cameraState.wcz - uz, 0)
 	-- Store for batched icon drawing later
-	local idx = #pipIconTeam + 1
-	pipIconTeam[idx] = uTeam
-	pipIconX[idx], pipIconY[idx] = WorldToPipCoords(ux, uz)
-	pipIconUdef[idx] = uDefID
-	pipIconUnitID[idx] = uID
-	pipIconSelected[idx] = spIsUnitSelected(uID)
+	local idx = #drawData.iconTeam + 1
+	drawData.iconTeam[idx] = uTeam
+	drawData.iconX[idx], drawData.iconY[idx] = WorldToPipCoords(ux, uz)
+	drawData.iconUdef[idx] = uDefID
+	drawData.iconUnitID[idx] = uID
+	-- When tracking a player, show their selections instead of our own
+	if interactionState.trackingPlayerID then
+		local playerSelections = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
+		drawData.iconSelected[idx] = playerSelections and playerSelections[uID] or false
+	else
+		drawData.iconSelected[idx] = spIsUnitSelected(uID)
+	end
 	-- Get build progress (1 for finished units, < 1 for units under construction)
 	local _, _, _, _, buildProgress = spGetUnitHealth(uID)
-	pipIconBuildProgress[idx] = buildProgress or 1
+	drawData.iconBuildProgress[idx] = buildProgress or 1
 	-- Check if this unit is being tracked
 	local isTracked = false
 	if interactionState.areTracking then
 		for _, trackedID in ipairs(interactionState.areTracking) do
 			if trackedID == uID then
 				isTracked = true
-				trackedIconIndices[#trackedIconIndices + 1] = idx
+				drawData.trackedIconIndices[#drawData.trackedIconIndices + 1] = idx
 				break
 			end
 		end
@@ -930,7 +1028,7 @@ local function DrawFeature(fID)
 	local uHeading = dirx and atan2(dirx, dirz) * rad2deg or 0
 
 	glPushMatrix()
-		glTranslate(fx - wcx, wcz - fz, 0)
+		glTranslate(fx - cameraState.wcx, cameraState.wcz - fz, 0)
 		glRotate(90, 1, 0, 0)
 		glRotate(uHeading, 0, 1, 0)
 		glTexture(0, '%-' .. fDefID .. ':0')
@@ -1132,10 +1230,10 @@ local function DrawProjectile(pID)
 						local segInnerWidth = math.max(1, baseInnerWidth * avgBrightness)
 
 						-- Transform to screen space
-						local x1 = prevX - wcx
-						local z1 = wcz - prevZ
-						local x2 = segX - wcx
-						local z2 = wcz - segZ
+						local x1 = prevX - cameraState.wcx
+						local z1 = cameraState.wcz - prevZ
+						local x2 = segX - cameraState.wcx
+						local z2 = cameraState.wcz - segZ
 
 						-- Draw outer glow
 						gl.LineWidth(segOuterWidth)
@@ -1177,7 +1275,7 @@ local function DrawProjectile(pID)
 					local angleStep = (2 * math.pi) / segments
 
 					glPushMatrix()
-					glTranslate(tx - wcx, wcz - tz, 0)
+					glTranslate(tx - cameraState.wcx, cameraState.wcz - tz, 0)
 
 					-- Draw bright outer glow first (bigger)
 					local glowAlpha = alpha * 0.5
@@ -1239,7 +1337,7 @@ local function DrawProjectile(pID)
 			local seed = pID * 123.456 + px * 10 + pz * 10
 
 			glPushMatrix()
-			glTranslate(px - wcx, wcz - pz, 0)
+			glTranslate(px - cameraState.wcx, cameraState.wcz - pz, 0)
 
 			local particleSeed = seed * 789.012
 			-- Random offset from projectile position
@@ -1390,7 +1488,7 @@ local function DrawProjectile(pID)
 	end
 
 	glPushMatrix()
-		glTranslate(px - wcx, wcz - pz, 0)
+		glTranslate(px - cameraState.wcx, cameraState.wcz - pz, 0)
 
 		-- Rotate missile/blaster to point towards target/velocity
 		if isMissile then
@@ -1480,12 +1578,12 @@ local function DrawProjectile(pID)
 				local radius = math.max(width, height)
 				local segments = 7
 
-				local coreWhiteness = 0.8
+				local coreWhiteness = 0.9
 				local coreR = color[1] * (1 - coreWhiteness) + coreWhiteness
 				local coreG = color[2] * (1 - coreWhiteness) + coreWhiteness
 				local coreB = color[3] * (1 - coreWhiteness) + coreWhiteness
 
-				local orangeTint = 0.8
+				local orangeTint = 0.4
 				local outerR = math.min(1, color[1] + orangeTint)
 				local outerG = math.max(0, color[2] - orangeTint * 0.3)
 				local outerB = math.max(0, color[3] - orangeTint * 0.5)
@@ -1528,8 +1626,8 @@ local function DrawLaserBeams()
 
 	-- Precompute zoom-dependent scaling once
 	local zoomScale = math.max(0.5, zoom / 70)
-	local wcx_cached = wcx  -- Cache these for loop
-	local wcz_cached = wcz
+	local wcx_cached = cameraState.wcx  -- Cache these for loop
+	local wcz_cached = cameraState.wcz
 
 	-- Cache world boundaries for culling
 	local worldLeft = world.l
@@ -1660,8 +1758,8 @@ end
 local function DrawIconShatters()
 	if #cache.iconShatters == 0 then return end
 
-	local wcx_cached = wcx
-	local wcz_cached = wcz
+	local wcx_cached = cameraState.wcx
+	local wcz_cached = cameraState.wcz
 
 	gl.Blending(true)
 	gl.DepthTest(false)
@@ -1793,8 +1891,8 @@ local function DrawExplosions()
 	if #cache.explosions == 0 then return end
 
 	local i = 1
-	local wcx_cached = wcx
-	local wcz_cached = wcz
+	local wcx_cached = cameraState.wcx
+	local wcz_cached = cameraState.wcz
 
 	local rad2deg = 57.29577951308232 -- Precompute radians to degrees conversion
 
@@ -2030,8 +2128,8 @@ local function GetUnitAtPoint(wx, wz)
 
 	local factoryID
 	-- Iterate backwards to respect draw order (units drawn last are on top)
-	for i = #pipUnits, 1, -1 do
-		local uID = pipUnits[i]
+	for i = #miscState.pipUnits, 1, -1 do
+		local uID = miscState.pipUnits[i]
 		local ux, uy, uz = spGetUnitPosition(uID)
 		if ux then
 			local uDefID = spGetUnitDefID(uID)
@@ -2065,8 +2163,8 @@ local function GetUnitAtPoint(wx, wz)
 end
 
 local function GetFeatureAtPoint(wx, wz)
-	for i = 1, #pipFeatures do
-		local fID = pipFeatures[i]
+	for i = 1, #miscState.pipFeatures do
+		local fID = miscState.pipFeatures[i]
 		local fx, fy, fz = spGetFeaturePosition(fID)
 		if fx then
 			local dx, dz = fx - wx, fz - wz
@@ -2576,18 +2674,18 @@ function widget:Initialize()
 	end
 
 	gameHasStarted = (Spring.GetGameFrame() > 0)
-	startX, _, startZ = Spring.GetTeamStartPosition(Spring.GetMyTeamID())
+	miscState.startX, _, miscState.startZ = Spring.GetTeamStartPosition(Spring.GetMyTeamID())
 	-- Only set camera position if not already loaded from config
-	if (not wcx or not wcz) and startX and startX >= 0 then
-		wcx, wcz = startX, startZ
-		targetWcx, targetWcz = wcx, wcz  -- Initialize targets
+	if (not cameraState.wcx or not cameraState.wcz) and miscState.startX and miscState.startX >= 0 then
+		cameraState.wcx, cameraState.wcz = miscState.startX, miscState.startZ
+		cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Initialize targets
 	end
 
 	-- Always minimize PIP when first starting (only on fresh start, not on reload)
-	if not inMinMode and not hadSavedConfig then
-		inMinMode = true
+	if not uiState.inMinMode and not miscState.hadSavedConfig then
+		uiState.inMinMode = true
 		-- Store current dimensions before minimizing
-		savedDimensions = {
+		uiState.savedDimensions = {
 			l = dim.l,
 			r = dim.r,
 			b = dim.b,
@@ -2714,31 +2812,31 @@ function widget:ViewResize()
 
 	-- If we have saved dimensions, position the minimize button at the window's position
 	-- This ensures consistency between auto-minimize on load and manual minimize
-	if savedDimensions.l and savedDimensions.r and savedDimensions.b and savedDimensions.t then
+	if uiState.savedDimensions.l and uiState.savedDimensions.r and uiState.savedDimensions.b and uiState.savedDimensions.t then
 		-- Position based on where the window was (same logic as manual minimize)
 		local sw, sh = Spring.GetWindowGeometry()
-		if savedDimensions.l < sw * 0.5 then
-			minModeL = savedDimensions.l
+		if uiState.savedDimensions.l < sw * 0.5 then
+			uiState.minModeL = uiState.savedDimensions.l
 		else
-			minModeL = savedDimensions.r - buttonSizeScaled
+			uiState.minModeL = uiState.savedDimensions.r - buttonSizeScaled
 		end
-		if savedDimensions.b < sh * 0.5 then
-			minModeB = savedDimensions.b
+		if uiState.savedDimensions.b < sh * 0.5 then
+			uiState.minModeB = uiState.savedDimensions.b
 		else
-			minModeB = savedDimensions.t - buttonSizeScaled
+			uiState.minModeB = uiState.savedDimensions.t - buttonSizeScaled
 		end
 	else
 		-- Fallback to screen edge if no saved dimensions
-		minModeL = vsx - buttonSizeScaled - screenMarginPx
-		minModeB = vsy - buttonSizeScaled - screenMarginPx
+		uiState.minModeL = vsx - buttonSizeScaled - screenMarginPx
+		uiState.minModeB = vsy - buttonSizeScaled - screenMarginPx
 	end
 
 	-- If we're in min mode, ensure window is positioned at the minimize button location
-	if inMinMode then
-		dim.l = minModeL
-		dim.r = minModeL + buttonSizeScaled
-		dim.b = minModeB
-		dim.t = minModeB + buttonSizeScaled
+	if uiState.inMinMode then
+		dim.l = uiState.minModeL
+		dim.r = uiState.minModeL + buttonSizeScaled
+		dim.b = uiState.minModeB
+		dim.t = uiState.minModeB + buttonSizeScaled
 	else
 		-- Only correct screen position when not in min mode
 		CorrectScreenPosition()
@@ -2757,10 +2855,10 @@ function widget:ViewResize()
 	local minWcz = visibleWorldHeight / 2 - margin
 	local maxWcz = mapSizeZ - (visibleWorldHeight / 2 - margin)
 
-	wcx = math.min(math.max(wcx, minWcx), maxWcx)
-	wcz = math.min(math.max(wcz, minWcz), maxWcz)
-	targetWcx = wcx
-	targetWcz = wcz
+	cameraState.wcx = math.min(math.max(cameraState.wcx, minWcx), maxWcx)
+	cameraState.wcz = math.min(math.max(cameraState.wcz, minWcz), maxWcz)
+	cameraState.targetWcx = cameraState.wcx
+	cameraState.targetWcz = cameraState.wcz
 
 	RecalculateWorldCoordinates()
 	RecalculateGroundTextureCoordinates()
@@ -2828,13 +2926,13 @@ end
 function widget:GetConfigData()
 	CorrectScreenPosition()
 
-	-- When in min mode, save the expanded dimensions from savedDimensions
+	-- When in min mode, save the expanded dimensions from uiState.savedDimensions
 	local saveL, saveR, saveB, saveT
-	if inMinMode and savedDimensions.l then
-		saveL = savedDimensions.l / vsx
-		saveR = savedDimensions.r / vsx
-		saveB = savedDimensions.b / vsy
-		saveT = savedDimensions.t / vsy
+	if uiState.inMinMode and uiState.savedDimensions.l then
+		saveL = uiState.savedDimensions.l / vsx
+		saveR = uiState.savedDimensions.r / vsx
+		saveB = uiState.savedDimensions.b / vsy
+		saveT = uiState.savedDimensions.t / vsy
 	else
 		saveL = dim.l / vsx
 		saveR = dim.r / vsx
@@ -2845,40 +2943,41 @@ function widget:GetConfigData()
 	return {
 			pl=saveL, pr=saveR, pb=saveB, pt=saveT,
 			zoom=zoom,
-			wcx=wcx,
-			wcz=wcz,
-			inMinMode=inMinMode,
-			minModeL=minModeL,
-			minModeB=minModeB,
-			drawingGround=drawingGround,
+			wcx=cameraState.wcx,
+			wcz=cameraState.wcz,
+			inMinMode=uiState.inMinMode,
+			minModeL=uiState.minModeL,
+			minModeB=uiState.minModeB,
+			drawingGround=uiState.drawingGround,
 			drawProjectiles=drawProjectiles,
 			areTracking=interactionState.areTracking,
 			trackingPlayerID=interactionState.trackingPlayerID,
 			trackingSmoothness=trackingSmoothness,
+			radarWobbleSpeed=radarWobbleSpeed,
 			gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
 		}
 end
 
 function widget:SetConfigData(data)
 	--Spring.Echo(data)
-	hadSavedConfig = (data and next(data) ~= nil) -- Mark that we have saved config data
+	miscState.hadSavedConfig = (data and next(data) ~= nil) -- Mark that we have saved config data
 
-	-- Don't restore minModeL/minModeB - always recalculate position in top-right corner
-	-- minModeL and minModeB will be set by ViewResize
+	-- Don't restore uiState.minModeL/uiState.minModeB - always recalculate position in top-right corner
+	-- uiState.minModeL and uiState.minModeB will be set by ViewResize
 
 	-- First restore the expanded dimensions if available
 	if data.pl and data.pr and data.pb and data.pt then
-		savedDimensions = {
+		uiState.savedDimensions = {
 			l = math.floor(data.pl*vsx),
 			r = math.floor(data.pr*vsx),
 			b = math.floor(data.pb*vsy),
 			t = math.floor(data.pt*vsy)
 		}
 		-- Set dim to expanded size initially
-		dim.l = savedDimensions.l
-		dim.r = savedDimensions.r
-		dim.b = savedDimensions.b
-		dim.t = savedDimensions.t
+		dim.l = uiState.savedDimensions.l
+		dim.r = uiState.savedDimensions.r
+		dim.b = uiState.savedDimensions.b
+		dim.t = uiState.savedDimensions.t
 		CorrectScreenPosition()
 	end
 
@@ -2889,23 +2988,25 @@ function widget:SetConfigData(data)
 
 	if gameFrame == 0 and not isSameGame then
 		-- Force minimize in pregame for a new game
-		inMinMode = true
+		uiState.inMinMode = true
 	elseif data.inMinMode ~= nil then
 		-- Restore saved state if same game or if in active game
-		inMinMode = data.inMinMode
+		uiState.inMinMode = data.inMinMode
 	else
 		-- Default to minimized if no saved state
-		inMinMode = true
+		uiState.inMinMode = true
 	end
 
 	-- If no valid saved data, keep existing dim values (initialized at top of file)
 
-	wcx = data.wcx or wcx
-	wcz = data.wcz or wcz
-	targetWcx, targetWcz = wcx, wcz  -- Initialize targets from config
-	drawingGround = data.drawingGround~= nil and data.drawingGround or drawingGround
+	cameraState.wcx = data.wcx or cameraState.wcx
+	cameraState.wcz = data.wcz or cameraState.wcz
+	cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Initialize targets from config
+	uiState.drawingGround = data.drawingGround~= nil and data.drawingGround or uiState.drawingGround
 	drawProjectiles = data.drawProjectiles~= nil and data.drawProjectiles or drawProjectiles
 	trackingSmoothness = data.trackingSmoothness or trackingSmoothness
+	radarWobbleSpeed = data.radarWobbleSpeed or radarWobbleSpeed
+	radarWobbleSpeed = data.radarWobbleSpeed or radarWobbleSpeed
 
 	local currentGameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")
 	local isSameGame = (data.gameID and currentGameID and data.gameID == currentGameID)
@@ -2925,7 +3026,7 @@ function widget:SetConfigData(data)
 			end
 		end
 	end
-	targetZoom = zoom
+	cameraState.targetZoom = zoom
 end
 
 -- Helper function to draw formation dots overlay
@@ -3017,16 +3118,31 @@ local function DrawCommandQueuesOverlay()
 
 	if showAllUnits then
 		-- Show command queues for all visible units in PIP window
-		if pipUnits then
-			local pUnitCount = #pipUnits
+		if miscState.pipUnits then
+			local pUnitCount = #miscState.pipUnits
 			for i = 1, pUnitCount do
 				unitCount = unitCount + 1
-				unitsToShow[unitCount] = pipUnits[i]
+				unitsToShow[unitCount] = miscState.pipUnits[i]
 			end
 		end
 	else
-		-- Show only selected units
-		local selectedUnits = Spring.GetSelectedUnits()
+		-- Show only selected units (or tracked player's selected units)
+		local selectedUnits
+		if interactionState.trackingPlayerID then
+			-- Get tracked player's selected units
+			local playerSelections = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
+			if playerSelections then
+				-- Convert table to array
+				selectedUnits = {}
+				for unitID, _ in pairs(playerSelections) do
+					selectedUnits[#selectedUnits + 1] = unitID
+				end
+			end
+		else
+			-- Use own selected units
+			selectedUnits = Spring.GetSelectedUnits()
+		end
+
 		if not selectedUnits then
 			return
 		end
@@ -3496,9 +3612,9 @@ local function DrawIcons()
 	end
 	local defaultCount = 0
 
-	local iconCount = #pipIconTeam
+	local iconCount = #drawData.iconTeam
 	for i = 1, iconCount do
-		local udef = pipIconUdef[i]
+		local udef = drawData.iconUdef[i]
 		if udef and cache.unitIcon[udef] then
 			local bitmap = cache.unitIcon[udef].bitmap
 			local texGroup = iconsByTexture[bitmap]
@@ -3524,7 +3640,7 @@ local function DrawIcons()
 
 
 	-- Draw white backgrounds for tracked units FIRST (before normal icons)
-	local trackedCount = #trackedIconIndices
+	local trackedCount = #drawData.trackedIconIndices
 	if trackedCount > 0 then
 		--gl.Blending(GL.ONE, GL.ONE)  -- Full additive blending for bright white glow (when not inverted icon)
 		glColor(1, 1, 1, 0.5)
@@ -3532,8 +3648,8 @@ local function DrawIcons()
 		-- Group tracked units by texture for batching
 		local trackedByTexture = {}
 		for i = 1, trackedCount do
-			local idx = trackedIconIndices[i]
-			local udef = pipIconUdef[idx]
+			local idx = drawData.trackedIconIndices[i]
+			local udef = drawData.iconUdef[idx]
 			if udef and cache.unitIcon[udef] then
 				local texture = cache.unitIcon[udef].bitmap
 				if texture then
@@ -3552,10 +3668,10 @@ local function DrawIcons()
 			gl.BeginEnd(GL_QUADS, function()
 				for j = 1, #indices do
 					local idx = indices[j]
-					if pipIconBuildProgress[idx] >= 1 then
-						local cx = pipIconX[idx]
-						local cy = pipIconY[idx]
-						local udef = pipIconUdef[idx]
+					if drawData.iconBuildProgress[idx] >= 1 then
+						local cx = drawData.iconX[idx]
+						local cy = drawData.iconY[idx]
+						local udef = drawData.iconUdef[idx]
 						local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
 						local baseSize = cache.unitIcon[udef].size
 						local borderPixels = 0.09 / baseSize  -- Inverse relationship: smaller units get proportionally more border
@@ -3586,13 +3702,13 @@ local function DrawIcons()
 		gl.BeginEnd(GL_QUADS, function()
 			for j = 1, indexCount do
 				local i = indices[j]
-				local cx = pipIconX[i]
-				local cy = pipIconY[i]
-				local udef = pipIconUdef[i]
+				local cx = drawData.iconX[i]
+				local cy = drawData.iconY[i]
+				local udef = drawData.iconUdef[i]
 				local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
 
 				-- 0.2 to 0.7 while building, then jump to 1.0 when complete
-				local buildProgress = pipIconBuildProgress[i]
+				local buildProgress = drawData.iconBuildProgress[i]
 				local opacity
 				if buildProgress >= 1 then
 					opacity = 1.0
@@ -3601,16 +3717,16 @@ local function DrawIcons()
 				end
 
 				-- Check if this unit is hovered
-				local isHovered = (hoveredUnitID and pipIconUnitID[i] == hoveredUnitID)
+				local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
 
-				if pipIconSelected[i] then
+				if drawData.iconSelected[i] then
 					if isHovered then
 						glColor(1, 1, 1, math.min(1.0, opacity * 1.3))
 					else
 						glColor(1, 1, 1, opacity)
 					end
 				else
-					local color = teamColors[pipIconTeam[i]]
+					local color = teamColors[drawData.iconTeam[i]]
 					if isHovered then
 						glColor(math.min(1.0, color[1] * 1.3), math.min(1.0, color[2] * 1.3), math.min(1.0, color[3] * 1.3), opacity)
 					else
@@ -3637,11 +3753,11 @@ local function DrawIcons()
 		gl.BeginEnd(GL_QUADS, function()
 			for j = 1, defaultCount do
 				local i = defaultIconIndices[j]
-				local cx = pipIconX[i]
-				local cy = pipIconY[i]
+				local cx = drawData.iconX[i]
+				local cy = drawData.iconY[i]
 
 				-- 0.2 to 0.7 while building, then jump to 1.0 when complete
-				local buildProgress = pipIconBuildProgress[i]
+				local buildProgress = drawData.iconBuildProgress[i]
 				local opacity
 				if buildProgress >= 1 then
 					opacity = 1.0
@@ -3650,16 +3766,16 @@ local function DrawIcons()
 				end
 
 				-- Check if this unit is hovered
-				local isHovered = (hoveredUnitID and pipIconUnitID[i] == hoveredUnitID)
+				local isHovered = (drawData.hoveredUnitID and drawData.iconUnitID[i] == drawData.hoveredUnitID)
 
-				if pipIconSelected[i] then
+				if drawData.iconSelected[i] then
 					if isHovered then
 						glColor(1, 1, 1, math.min(1.0, opacity * 1.3))
 					else
 						glColor(1, 1, 1, opacity)
 					end
 				else
-					local color = teamColors[pipIconTeam[i]]
+					local color = teamColors[drawData.iconTeam[i]]
 					if isHovered then
 						glColor(math.min(1.0, color[1] * 1.55), math.min(1.0, color[2] * 1.55), math.min(1.0, color[3] * 1.55), opacity)
 					else
@@ -3679,6 +3795,114 @@ local function DrawIcons()
 		end)
 	end
 
+	-- Draw radar blobs for units in radar but not in LOS
+	local radarBlobCount = #drawData.radarBlobX
+	if radarBlobCount > 0 then
+		-- Separate radar blobs into known types (draw as icons) and unknown types (draw as blobs)
+		local knownRadarUnits = {}  -- Has unit icon
+		local unknownRadarUnits = {}  -- No icon, draw as blob
+
+		for i = 1, radarBlobCount do
+			local udef = drawData.radarBlobUdef[i]
+			if udef and cache.unitIcon[udef] then
+				knownRadarUnits[#knownRadarUnits + 1] = i
+			else
+				unknownRadarUnits[#unknownRadarUnits + 1] = i
+			end
+		end
+
+		-- Draw known radar units as semi-transparent icons
+		if #knownRadarUnits > 0 then
+			local radarIconsByTexture = {}
+			for j = 1, #knownRadarUnits do
+				local i = knownRadarUnits[j]
+				local udef = drawData.radarBlobUdef[i]
+				local bitmap = cache.unitIcon[udef].bitmap
+				if not radarIconsByTexture[bitmap] then
+					radarIconsByTexture[bitmap] = {}
+				end
+				radarIconsByTexture[bitmap][#radarIconsByTexture[bitmap] + 1] = i
+			end
+
+			-- Draw radar icons grouped by texture with reduced opacity
+			for texture, indices in pairs(radarIconsByTexture) do
+				glTexture(texture)
+				gl.BeginEnd(GL_QUADS, function()
+					for j = 1, #indices do
+						local i = indices[j]
+						local udef = drawData.radarBlobUdef[i]
+						local teamID = drawData.radarBlobTeam[i]
+						local uID = drawData.radarBlobUnitID[i]
+						local baseCx = drawData.radarBlobX[i]
+						local baseCy = drawData.radarBlobY[i]
+
+						-- Simulate radar wobble with time-based oscillation
+						local time = os.clock()
+						local wobbleAmount = iconRadiusZoomDistMult * 0.3
+						local wobbleX = math.sin(time * radarWobbleSpeed + uID * 0.5) * wobbleAmount
+						local wobbleY = math.cos(time * radarWobbleSpeed * 1.15 + uID * 0.7) * wobbleAmount
+						local cx = baseCx + wobbleX
+						local cy = baseCy + wobbleY
+
+						local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
+
+						if teamColors[teamID] then
+							-- Tint with team color and reduced opacity for radar units
+							glColor(teamColors[teamID][1], teamColors[teamID][2], teamColors[teamID][3], 0.75)
+							glTexCoord(texInset, 1 - texInset)
+							glVertex(cx - iconSize, cy - iconSize)
+							glTexCoord(1 - texInset, 1 - texInset)
+							glVertex(cx + iconSize, cy - iconSize)
+							glTexCoord(1 - texInset, texInset)
+							glVertex(cx + iconSize, cy + iconSize)
+							glTexCoord(texInset, texInset)
+							glVertex(cx - iconSize, cy + iconSize)
+						end
+					end
+				end)
+			end
+			glTexture(false)
+		end
+
+		-- Draw unknown radar units as circular blobs
+		if #unknownRadarUnits > 0 then
+			glTexture('LuaUI/Images/pip/PipBlip.png')
+			local blobSize = iconRadiusZoomDistMult * 0.5
+
+			-- Pre-calculate wobble values outside drawing loop for performance
+			local time = os.clock()
+			local wobbleAmount = iconRadiusZoomDistMult * 0.3
+			local wobbleSpeedX = time * radarWobbleSpeed
+			local wobbleSpeedY = time * radarWobbleSpeed * 1.15
+
+			gl.BeginEnd(GL_QUADS, function()
+				for j = 1, #unknownRadarUnits do
+					local i = unknownRadarUnits[j]
+					local uID = drawData.radarBlobUnitID[i]
+					local teamID = drawData.radarBlobTeam[i]
+					local baseCx = drawData.radarBlobX[i]
+					local baseCy = drawData.radarBlobY[i]
+
+					-- Apply wobble
+					local cx = baseCx + math.sin(wobbleSpeedX + uID * 0.5) * wobbleAmount
+					local cy = baseCy + math.cos(wobbleSpeedY + uID * 0.7) * wobbleAmount
+					local teamColor = teamColors[teamID]
+
+					glColor(teamColor[1], teamColor[2], teamColor[3], 0.6)
+					glTexCoord(0, 0)
+					glVertex(cx - blobSize, cy - blobSize)
+					glTexCoord(1, 0)
+					glVertex(cx + blobSize, cy - blobSize)
+					glTexCoord(1, 1)
+					glVertex(cx + blobSize, cy + blobSize)
+					glTexCoord(0, 1)
+					glVertex(cx - blobSize, cy + blobSize)
+				end
+			end)
+			glTexture(false)
+		end
+	end
+
 	glTexture(false)
 
 	-- Return iconRadiusZoomDistMult for build preview functions
@@ -3691,30 +3915,54 @@ local function DrawUnitsAndFeatures()
 	-- Use larger margin for units and features to account for their radius
 	-- Features especially can be quite large (up to ~200 units radius for big wrecks)
 	local margin = 250
-	pipUnits = spGetUnitsInRectangle(world.l - margin, world.t - margin, world.r + margin, world.b + margin)
-	pipFeatures = spGetFeaturesInRectangle(world.l - margin, world.t - margin, world.r + margin, world.b + margin)
+
+	-- When spectating and tracking a player, get ALL units and we'll filter by visibility in DrawUnit
+	-- Otherwise, GetUnitsInRectangle returns units visible to our team
+	if interactionState.trackingPlayerID and cameraState.mySpecState then
+		-- Spectating and tracking: get all units (pass -1 to get all units regardless of visibility)
+		miscState.pipUnits = Spring.GetAllUnits()
+		-- Filter to only units in the rectangle (do this manually since we got all units)
+		local unitsInRect = {}
+		for i = 1, #miscState.pipUnits do
+			local uID = miscState.pipUnits[i]
+			local ux, _, uz = spGetUnitBasePosition(uID)
+			if ux and ux >= world.l - margin and ux <= world.r + margin and uz >= world.t - margin and uz <= world.b + margin then
+				unitsInRect[#unitsInRect + 1] = uID
+			end
+		end
+		miscState.pipUnits = unitsInRect
+	else
+		-- Normal play or spec without tracking: use standard API (returns LOS + radar units for our team)
+		miscState.pipUnits = spGetUnitsInRectangle(world.l - margin, world.t - margin, world.r + margin, world.b + margin)
+	end
+
+	miscState.pipFeatures = spGetFeaturesInRectangle(world.l - margin, world.t - margin, world.r + margin, world.b + margin)
 
 	-- Cache counts to avoid repeated length calculations
-	local unitCount = #pipUnits
-	local featureCount = #pipFeatures
+	local unitCount = #miscState.pipUnits
+	local featureCount = #miscState.pipFeatures
 
 	-- Clear icon arrays (faster than iterating and setting to nil)
-	local iconCount = #pipIconTeam
-	if iconCount > 0 then
-		-- Truncate arrays to zero length (faster than nilifying each element)
-		for i = iconCount, 1, -1 do
-			pipIconTeam[i] = nil
-			pipIconX[i] = nil
-			pipIconY[i] = nil
-			pipIconUdef[i] = nil
-			pipIconSelected[i] = nil
-			pipIconBuildProgress[i] = nil
-			pipIconUnitID[i] = nil
-		end
+	for i = #drawData.iconTeam, 1, -1 do
+		drawData.iconTeam[i] = nil
+		drawData.iconX[i] = nil
+		drawData.iconY[i] = nil
+		drawData.iconUdef[i] = nil
+		drawData.iconSelected[i] = nil
+		drawData.iconBuildProgress[i] = nil
+		drawData.iconUnitID[i] = nil
 	end
+	-- Clear radar blob arrays
+	for i = #drawData.radarBlobX, 1, -1 do
+			drawData.radarBlobX[i] = nil
+			drawData.radarBlobY[i] = nil
+			drawData.radarBlobTeam[i] = nil
+			drawData.radarBlobUdef[i] = nil
+			drawData.radarBlobUnitID[i] = nil
+		end
 	-- Clear tracked indices
-	for i = #trackedIconIndices, 1, -1 do
-		trackedIconIndices[i] = nil
+	for i = #drawData.trackedIconIndices, 1, -1 do
+		drawData.trackedIconIndices[i] = nil
 	end
 
 	-- Note: cameraRotY is now set in DrawScreen before this function is called
@@ -3733,21 +3981,21 @@ local function DrawUnitsAndFeatures()
 
 	-- Calculate content scale during minimize animation
 	local contentScale = 1.0
-	if isAnimating then
+	if uiState.isAnimating then
 		-- During animation, scale content to fit within the shrinking window
-		-- Only scale down during minimize (inMinMode = true), not during maximize
-		if inMinMode then
+		-- Only scale down during minimize (uiState.inMinMode = true), not during maximize
+		if uiState.inMinMode then
 			local currentWidth = dim.r - dim.l
 			local currentHeight = dim.t - dim.b
-			local startWidth = animStartDim.r - animStartDim.l
-			local startHeight = animStartDim.t - animStartDim.b
+			local startWidth = uiState.animStartDim.r - uiState.animStartDim.l
+			local startHeight = uiState.animStartDim.t - uiState.animStartDim.b
 
 			-- Use the smaller of width/height ratio to maintain aspect ratio
 			local widthScale = currentWidth / startWidth
 			local heightScale = currentHeight / startHeight
 			contentScale = math.min(widthScale, heightScale)
 		end
-		-- When maximizing (inMinMode = false), keep contentScale = 1.0 to avoid oversized units
+		-- When maximizing (uiState.inMinMode = false), keep contentScale = 1.0 to avoid oversized units
 	end
 
 	glPushMatrix()
@@ -3756,14 +4004,14 @@ local function DrawUnitsAndFeatures()
 
 		-- Draw units (only icon data collection now, no 3D rendering)
 		for i = 1, unitCount do
-			DrawUnit(pipUnits[i])
+			DrawUnit(miscState.pipUnits[i])
 		end
 
 		-- Draw features (3D models)
 		if zoom >= zoomFeatures then  -- Only draw features if zoom is above threshold
 			glTexture(0, '$units')
 			for i = 1, featureCount do
-				DrawFeature(pipFeatures[i])
+				DrawFeature(miscState.pipFeatures[i])
 			end
 		end
 
@@ -3924,7 +4172,7 @@ end
 
 -- Helper function to render PIP contents (units, features, ground, command queues)
 local function RenderPipContents()
-	if drawingGround then
+	if uiState.drawingGround then
 		glColor(0.9, 0.9, 0.9, 1)
 		glTexture('$grass')
 		glBeginEnd(GL_QUADS, GroundTextureVertices)
@@ -3942,6 +4190,16 @@ end
 -- Helper function to draw box selection rectangle
 local function DrawBoxSelection()
 	if not interactionState.areBoxSelecting then
+		return
+	end
+
+	-- Don't draw box selection when tracking a player's camera
+	if interactionState.trackingPlayerID then
+		return
+	end
+
+	-- Don't draw box selection when tracking a player's camera
+	if interactionState.trackingPlayerID then
 		return
 	end
 
@@ -4047,7 +4305,7 @@ local function DrawAreaCommand()
 	local color = cmdColors[cmdID] or cmdColors.unknown
 
 	-- Draw filled circle with command color using additive blending
-	glTexture(false)
+	gl.Texture(false)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 
 	-- Enable scissor test to clamp drawing to PIP bounds
@@ -4067,12 +4325,11 @@ local function DrawAreaCommand()
 	end)
 
 	-- Disable scissor test
+
+	-- Reset
 	gl.Scissor(false)
-
-	-- Reset blending
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-
-	glColor(1, 1, 1, 1)
+	gl.Color(1, 1, 1, 1)
 end
 
 -- Draw map ruler at PIP edges to show scale
@@ -4104,14 +4361,14 @@ local function DrawMapRuler()
 	glColor(1, 1, 1, 0.18)
 
 	-- Find ruler alignment based on world coordinates (always use smallest spacing as base)
-	local startX = math.ceil(world.l / smallestSpacing) * smallestSpacing
+	miscState.startX = math.ceil(world.l / smallestSpacing) * smallestSpacing
 	-- Note: world.t is actually less than world.b (inverted Z axis)
-	local startZ = math.ceil(world.t / smallestSpacing) * smallestSpacing
+	miscState.startZ = math.ceil(world.t / smallestSpacing) * smallestSpacing
 
 	-- Top and bottom edges
-	local x = startX
+	local x = miscState.startX
 	while x <= world.r do
-		local sx = WorldToPipCoords(x, wcz)
+		local sx = WorldToPipCoords(x, cameraState.wcz)
 
 		-- Check if sx is within visible bounds
 		if sx >= dim.l and sx <= dim.r then
@@ -4156,9 +4413,9 @@ local function DrawMapRuler()
 	end
 
 	-- Left and right edges (world.t < world.b because Z is inverted)
-	local z = startZ
+	local z = miscState.startZ
 	while z <= world.b do
-		local _, sy = WorldToPipCoords(wcx, z)
+		local _, sy = WorldToPipCoords(cameraState.wcx, z)
 
 		-- Check if sy is within visible bounds
 		if sy >= dim.b and sy <= dim.t then
@@ -4340,93 +4597,433 @@ local function DrawBuildCursor()
 	glColor(1, 1, 1, 1)
 end
 
+-- Helper function to draw tracked player name
+local function DrawTrackedPlayerName()
+	if not (interactionState.trackingPlayerID and interactionState.isMouseOverPip) then
+		return
+	end
+
+	local playerName, active, isSpec, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+	if not (playerName and teamID) then
+		return
+	end
+
+	-- Get display name (may be modified by playernames widget)
+	if WG.playernames and WG.playernames.getPlayername then
+		playerName = WG.playernames.getPlayername(interactionState.trackingPlayerID)
+	end
+
+	-- Get team color
+	local r, g, b = Spring.GetTeamColor(teamID)
+	local fontSize = math.floor(19 * widgetScale)
+	local padding = math.floor(11 * widgetScale)
+	local centerX = (dim.l + dim.r) / 2
+
+	font:Begin()
+	font:SetTextColor(r, g, b, 1)
+	font:SetOutlineColor(0, 0, 0, 0.8)
+	font:Print(playerName, centerX, dim.t - padding - (fontSize * 1.6), fontSize * 2, "con")
+	font:End()
+end
+
+-- Helper function to update R2T frame textures
+local function UpdateR2TFrame(pipWidth, pipHeight)
+	if not gl.R2tHelper then
+		return
+	end
+
+	-- Check if frame size changed
+	if math.floor(pipWidth) ~= pipR2T.frameLastWidth or math.floor(pipHeight) ~= pipR2T.frameLastHeight then
+		pipR2T.frameNeedsUpdate = true
+		if pipR2T.frameBackgroundTex then
+			gl.DeleteTexture(pipR2T.frameBackgroundTex)
+			pipR2T.frameBackgroundTex = nil
+		end
+		if pipR2T.frameButtonsTex then
+			gl.DeleteTexture(pipR2T.frameButtonsTex)
+			pipR2T.frameButtonsTex = nil
+		end
+		pipR2T.frameLastWidth = math.floor(pipWidth)
+		pipR2T.frameLastHeight = math.floor(pipHeight)
+	end
+
+	-- Update frame textures if needed
+	if pipR2T.frameNeedsUpdate and pipWidth >= 1 and pipHeight >= 1 then
+		if not pipR2T.frameBackgroundTex then
+			pipR2T.frameBackgroundTex = gl.CreateTexture(math.floor(pipWidth), math.floor(pipHeight), {
+				target = GL.TEXTURE_2D, format = GL.RGBA, fbo = true,
+			})
+		end
+		if pipR2T.frameBackgroundTex then
+			gl.R2tHelper.RenderToTexture(pipR2T.frameBackgroundTex, function()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / pipWidth, 2 / pipHeight, 0)
+				RenderFrameBackground()
+			end, true)
+		end
+
+		if not pipR2T.frameButtonsTex then
+			pipR2T.frameButtonsTex = gl.CreateTexture(math.floor(pipWidth), math.floor(pipHeight), {
+				target = GL.TEXTURE_2D, format = GL.RGBA, fbo = true,
+			})
+		end
+		if pipR2T.frameButtonsTex then
+			gl.R2tHelper.RenderToTexture(pipR2T.frameButtonsTex, function()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / pipWidth, 2 / pipHeight, 0)
+				RenderFrameButtons()
+			end, true)
+		end
+
+		pipR2T.frameNeedsUpdate = false
+	end
+
+	if pipR2T.frameBackgroundTex then
+		gl.R2tHelper.BlendTexRect(pipR2T.frameBackgroundTex, dim.l, dim.b, dim.r, dim.t, true)
+	end
+	UiElement(dim.l-elementPadding, dim.b-elementPadding, dim.r+elementPadding, dim.t+elementPadding, 1, 1, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
+end
+
+-- Helper function to calculate dynamic update rate
+local function CalculateDynamicUpdateRate()
+	local dynamicUpdateRate = pipMinUpdateRate
+	if zoom >= pipZoomThresholdMax then
+		dynamicUpdateRate = pipMaxUpdateRate
+	elseif zoom > pipZoomThresholdMin then
+		dynamicUpdateRate = pipMinUpdateRate + (pipMaxUpdateRate - pipMinUpdateRate) * ((zoom - pipZoomThresholdMin) / (pipZoomThresholdMax - pipZoomThresholdMin))
+	end
+
+	if pipR2T.contentLastDrawTime > 0 then
+		local targetPerformanceFactor = 1.0
+		if pipR2T.contentLastDrawTime > pipTargetDrawTime then
+			targetPerformanceFactor = math.max(0.5, pipTargetDrawTime / pipR2T.contentLastDrawTime)
+		elseif pipR2T.contentLastDrawTime < pipTargetDrawTime * 0.7 then
+			targetPerformanceFactor = math.min(1.0, pipR2T.contentPerformanceFactor * 1.02)
+		end
+		pipR2T.contentPerformanceFactor = pipR2T.contentPerformanceFactor + (targetPerformanceFactor - pipR2T.contentPerformanceFactor) * pipPerformanceAdjustSpeed
+		dynamicUpdateRate = math.max(10, dynamicUpdateRate * pipR2T.contentPerformanceFactor)
+	end
+
+	pipR2T.contentCurrentUpdateRate = dynamicUpdateRate
+	return dynamicUpdateRate
+end
+
+-- Helper function to handle animation drawing
+local function DrawAnimation(mx, my)
+	DrawPanel(dim.l, dim.r, dim.b, dim.t)
+
+	if uiState.drawingGround then
+		glColor(0.9, 0.9, 0.9, 1)
+		glTexture('$grass')
+		glBeginEnd(GL_QUADS, GroundTextureVertices)
+		glColor(1, 1, 1, 1)
+		glTexture(false)
+	end
+
+	DrawUnitsAndFeatures()
+
+	if uiState.inMinMode then
+		local buttonSize = math.floor(usedButtonSize*maximizeSizemult)
+		DrawPanel(uiState.minModeL, uiState.minModeL + buttonSize, uiState.minModeB, uiState.minModeB + buttonSize)
+		glColor(panelBorderColorDark)
+		glTexture(false)
+
+		local hover = mx >= uiState.minModeL - elementPadding and mx <= uiState.minModeL + buttonSize + elementPadding and
+		               my >= uiState.minModeB - elementPadding and my <= uiState.minModeB + buttonSize + elementPadding
+		if hover then
+			glColor(1,1,1,0.12)
+			glTexture(false)
+			RectRound(uiState.minModeL, uiState.minModeB, uiState.minModeL + buttonSize, uiState.minModeB + buttonSize, elementCorner*0.4, 1, 1, 1, 1)
+		end
+		glColor(hover and {1, 1, 1, 1} or panelBorderColorLight)
+		glTexture('LuaUI/Images/pip/PipMaximize.png')
+		glTexRect(uiState.minModeL, uiState.minModeB, uiState.minModeL + buttonSize, uiState.minModeB + buttonSize)
+		glTexture(false)
+	else
+		local currentWidth = dim.r - dim.l
+		local currentHeight = dim.t - dim.b
+		if currentWidth > usedButtonSize and currentHeight > usedButtonSize then
+			DrawPanel(dim.r - usedButtonSize, dim.r, dim.t - usedButtonSize, dim.t)
+			glColor(panelBorderColorDark)
+			glTexture(false)
+
+			local hover = mx >= dim.r - usedButtonSize and mx <= dim.r and
+			               my >= dim.t - usedButtonSize and my <= dim.t
+			if hover then
+				glColor(1,1,1,0.12)
+				glTexture(false)
+				RectRound(dim.r - usedButtonSize, dim.t - usedButtonSize, dim.r, dim.t, elementCorner*0.4, 1, 1, 1, 1)
+			end
+			glColor(hover and {1, 1, 1, 1} or panelBorderColorLight)
+			glTexture('LuaUI/Images/pip/PipMinimize.png')
+			glTexRect(dim.r - usedButtonSize, dim.t - usedButtonSize, dim.r, dim.t)
+			glTexture(false)
+		end
+	end
+end
+
+-- Helper function to update R2T content texture
+local function UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHeight)
+	if not gl.R2tHelper then
+		return
+	end
+
+	-- Check if size changed
+	local contentSizeChanged = math.floor(pipWidth) ~= pipR2T.contentLastWidth or math.floor(pipHeight) ~= pipR2T.contentLastHeight
+	if contentSizeChanged then
+		if pipR2T.contentTex then
+			gl.DeleteTexture(pipR2T.contentTex)
+			pipR2T.contentTex = nil
+		end
+		pipR2T.contentLastWidth = math.floor(pipWidth)
+		pipR2T.contentLastHeight = math.floor(pipHeight)
+	end
+
+	-- Check if should update
+	local shouldUpdate = pipR2T.contentNeedsUpdate or contentSizeChanged or
+		(pipUpdateInterval > 0 and (currentTime - pipR2T.contentLastUpdateTime) >= pipUpdateInterval) or
+		pipUpdateInterval == 0
+
+	if not shouldUpdate then
+		return
+	end
+
+	-- Create texture if needed
+	if not pipR2T.contentTex and pipWidth >= 1 and pipHeight >= 1 then
+		pipR2T.contentTex = gl.CreateTexture(math.floor(pipWidth), math.floor(pipHeight), {
+			target = GL.TEXTURE_2D, format = GL.RGBA, fbo = true,
+		})
+		pipR2T.contentLastWidth = math.floor(pipWidth)
+		pipR2T.contentLastHeight = math.floor(pipHeight)
+	end
+
+	if pipR2T.contentTex then
+		gl.R2tHelper.RenderToTexture(pipR2T.contentTex, function()
+			gl.Translate(-1, -1, 0)
+			gl.Scale(2 / pipWidth, 2 / pipHeight, 0)
+
+			local savedDim = {l = dim.l, r = dim.r, b = dim.b, t = dim.t}
+			local savedGround = {
+				view = {l = ground.view.l, r = ground.view.r, b = ground.view.b, t = ground.view.t},
+				coord = {l = ground.coord.l, r = ground.coord.r, b = ground.coord.b, t = ground.coord.t}
+			}
+
+			dim.l, dim.b, dim.r, dim.t = 0, 0, pipWidth, pipHeight
+			RecalculateWorldCoordinates()
+			RecalculateGroundTextureCoordinates()
+			RenderPipContents()
+
+			dim.l, dim.r, dim.b, dim.t = savedDim.l, savedDim.r, savedDim.b, savedDim.t
+			RecalculateWorldCoordinates()
+			ground.view.l, ground.view.r, ground.view.b, ground.view.t = savedGround.view.l, savedGround.view.r, savedGround.view.b, savedGround.view.t
+			ground.coord.l, ground.coord.r, ground.coord.b, ground.coord.t = savedGround.coord.l, savedGround.coord.r, savedGround.coord.b, savedGround.coord.t
+		end, true)
+		pipR2T.contentLastUpdateTime = currentTime
+		pipR2T.contentNeedsUpdate = false
+	end
+end
+
+-- Helper function to draw tracking indicators
+local function DrawTrackingIndicators()
+	if interactionState.areTracking and #interactionState.areTracking > 0 then
+		local lineWidth = math.ceil(2 * (vsx / 1920))
+		gl.LineWidth(lineWidth)
+		glColor(1, 1, 1, 0.22)
+		glBeginEnd(GL_LINE_STRIP, function()
+			local offset = lineWidth * 0.5
+			gl.Vertex(dim.l + offset, dim.t - offset)
+			gl.Vertex(dim.r - offset, dim.t - offset)
+			gl.Vertex(dim.r - offset, dim.b + offset)
+			gl.Vertex(dim.l + offset, dim.b + offset)
+			gl.Vertex(dim.l + offset, dim.t - offset)
+		end)
+		gl.LineWidth(1)
+	end
+
+	if interactionState.trackingPlayerID then
+		local playerName, active, isSpec, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+		if teamID then
+			local r, g, b = Spring.GetTeamColor(teamID)
+			local lineWidth = math.ceil(3 * (vsx / 1920))
+			gl.LineWidth(lineWidth)
+			glColor(r, g, b, 0.5)
+			glBeginEnd(GL_LINE_STRIP, function()
+				local offset = lineWidth * 0.5
+				gl.Vertex(dim.l + offset, dim.t - offset)
+				gl.Vertex(dim.r - offset, dim.t - offset)
+				gl.Vertex(dim.r - offset, dim.b + offset)
+				gl.Vertex(dim.l + offset, dim.b + offset)
+				gl.Vertex(dim.l + offset, dim.t - offset)
+			end)
+			gl.LineWidth(1)
+		end
+	end
+end
+
+-- Helper function to handle hover and cursor updates
+local function HandleHoverAndCursor(mx, my)
+	if interactionState.arePanning then
+		return
+	end
+
+	if not (interactionState.areBoxSelecting or (mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t)) then
+		if WG['info'] and WG['info'].clearCustomHover then
+			WG['info'].clearCustomHover()
+		end
+		return
+	end
+
+	-- Update info widget with custom hover
+	if WG['info'] and WG['info'].setCustomHover then
+		local wx, wz = PipToWorldCoords(mx, my)
+		local uID = GetUnitAtPoint(wx, wz)
+		if uID then
+			WG['info'].setCustomHover('unit', uID)
+		else
+			local fID = GetFeatureAtPoint(wx, wz)
+			if fID then
+				WG['info'].setCustomHover('feature', fID)
+			else
+				WG['info'].clearCustomHover()
+			end
+		end
+	end
+
+	-- Handle cursor
+	local _, activeCmdID = Spring.GetActiveCommand()
+	if not activeCmdID then
+		local wx, wz = PipToWorldCoords(mx, my)
+		local defaultCmd = Spring.GetDefaultCommand()
+
+		if not defaultCmd or defaultCmd == 0 then
+			local selectedUnits = Spring.GetSelectedUnits()
+			if selectedUnits and #selectedUnits > 0 then
+				for i = 1, #selectedUnits do
+					local uDefID = Spring.GetUnitDefID(selectedUnits[i])
+					if uDefID then
+						local uDef = UnitDefs[uDefID]
+						if uDef and (uDef.canMove or uDef.canFly) then
+							Spring.SetMouseCursor('Move')
+							return
+						end
+					end
+				end
+			end
+		end
+	else
+		local cursorName = cmdCursors[activeCmdID]
+		if cursorName then
+			Spring.SetMouseCursor(cursorName)
+		end
+	end
+end
+
+-- Helper function to draw interactive overlays (buttons, pip number, etc.)
+local function DrawInteractiveOverlays(mx, my, usedButtonSize)
+	-- Draw pipNumber text only when hovering (and only for pip 2+)
+	if pipNumber ~= 1 and interactionState.isMouseOverPip then
+		glColor(panelBorderColorDark)
+		RectRound(dim.l, dim.t - usedButtonSize, dim.l + usedButtonSize, dim.t, elementCorner*0.4, 0, 0, 1, 0)
+		local fontSize = 14
+		local padding = 12
+		font:Begin()
+		font:SetTextColor(0.85, 0.85, 0.85, 1)
+		font:SetOutlineColor(0, 0, 0, 0.5)
+		font:Print(pipNumber, dim.l + padding, dim.t - (fontSize*1.15) - padding, fontSize*2, "no")
+		font:End()
+	end
+
+	-- Bottom-left buttons hover
+	local selectedUnits = Spring.GetSelectedUnits()
+	if #selectedUnits > 0 or interactionState.areTracking or interactionState.trackingPlayerID then
+		local visibleButtons = {}
+		for i = 1, #buttons do
+			if buttons[i].command == 'pip_track' then
+				if #selectedUnits > 0 or interactionState.areTracking then
+					visibleButtons[#visibleButtons + 1] = buttons[i]
+				end
+			elseif buttons[i].command == 'pip_trackplayer' then
+				local _, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+				if interactionState.trackingPlayerID or spec then
+					visibleButtons[#visibleButtons + 1] = buttons[i]
+				end
+			else
+				visibleButtons[#visibleButtons + 1] = buttons[i]
+			end
+		end
+
+		-- Draw base buttons when showing on hover
+		if showButtonsOnHoverOnly and interactionState.isMouseOverPip then
+			glColor(panelBorderColorDark)
+			glTexture(false)
+			RectRound(dim.l, dim.b, dim.l + (#visibleButtons * usedButtonSize) + math.floor(elementPadding*0.75), dim.b + usedButtonSize + math.floor(elementPadding*0.75), elementCorner, 0, 1, 0, 0)
+			local bx = dim.l
+			for i = 1, #visibleButtons do
+				if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
+				   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) then
+					glColor(panelBorderColorLight)
+					glTexture(false)
+					RectRound(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize, elementCorner*0.4, 1, 1, 1, 1)
+					glColor(panelBorderColorDark)
+				else
+					glColor(panelBorderColorLight)
+				end
+				glTexture(visibleButtons[i].texture)
+				glTexRect(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize)
+				bx = bx + usedButtonSize
+			end
+			glTexture(false)
+		end
+
+		-- Button hover interactions
+		local bx = dim.l
+		for i = 1, #visibleButtons do
+			if mx >= bx and mx <= bx + usedButtonSize and my >= dim.b and my <= dim.b + usedButtonSize then
+				if visibleButtons[i].tooltip and WG['tooltip'] then
+					local tooltipText = visibleButtons[i].tooltip
+					if visibleButtons[i].tooltipActive then
+						if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
+						   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) then
+							tooltipText = visibleButtons[i].tooltipActive
+						end
+					end
+					WG['tooltip'].ShowTooltip('pip'..pipNumber, tooltipText, nil, nil, nil)
+				end
+				glColor(1,1,1,0.12)
+				glTexture(false)
+				RectRound(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize, elementCorner*0.4, 1, 1, 1, 1)
+				if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
+				   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) then
+					glColor(panelBorderColorDark)
+				else
+					glColor(1, 1, 1, 1)
+				end
+				glTexture(visibleButtons[i].texture)
+				glTexRect(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize)
+				glTexture(false)
+				break
+			end
+			bx = bx + usedButtonSize
+		end
+	end
+end
+
 function widget:DrawScreen()
 
 	local mx, my, mbl = spGetMouseState()
 
 	-- During animation, draw transitioning panel
-	if isAnimating then
-		DrawPanel(dim.l, dim.r, dim.b, dim.t)
-
-		-- Continue to draw PiP contents during animation (scaled down in DrawUnitsAndFeatures)
-		if drawingGround then
-			glColor(0.9, 0.9, 0.9, 1)
-			glTexture('$grass')
-			glBeginEnd(GL_QUADS, GroundTextureVertices)
-			glTexture(false)
-		end
-
-		-- Draw units and features with scaled content
-		DrawUnitsAndFeatures()
-
-		-- Draw minimize/maximize button at fixed size based on direction
-		if inMinMode then
-			-- Animating to minimized - show maximize icon at its final position (fixed)
-			local buttonSize = math.floor(usedButtonSize*maximizeSizemult)
-
-			-- Draw button background panel first
-			DrawPanel(minModeL, minModeL + buttonSize, minModeB, minModeB + buttonSize)
-			glColor(panelBorderColorDark)
-			glTexture(false)
-
-			local hover = false
-			if mx >= minModeL - elementPadding and mx <= minModeL + buttonSize + elementPadding and
-			   my >= minModeB - elementPadding and my <= minModeB + buttonSize + elementPadding then
-				hover = true
-				-- Don't show tooltip during animation
-				-- Draw hover background
-				glColor(1,1,1,0.12)
-				glTexture(false)
-				RectRound(minModeL, minModeB, minModeL + buttonSize, minModeB + buttonSize, elementCorner*0.4, 1, 1, 1, 1)
-			end
-			if hover then
-				glColor(1, 1, 1, 1)
-			else
-				glColor(panelBorderColorLight)
-			end
-			glTexture('LuaUI/Images/pip/PipMaximize.png')
-			-- Draw button at final position (minModeL, minModeB), not at animated position
-			glTexRect(minModeL, minModeB, minModeL + buttonSize, minModeB + buttonSize)
-			glTexture(false)
-		else
-			-- Animating to maximized - show minimize icon at fixed button size in top-right corner
-			local currentWidth = dim.r - dim.l
-			local currentHeight = dim.t - dim.b
-			if currentWidth > usedButtonSize and currentHeight > usedButtonSize then
-				-- Draw button background panel first
-				DrawPanel(dim.r - usedButtonSize, dim.r, dim.t - usedButtonSize, dim.t)
-				glColor(panelBorderColorDark)
-				glTexture(false)
-
-				local hover = false
-				if mx >= dim.r - usedButtonSize and mx <= dim.r and
-				   my >= dim.t - usedButtonSize and my <= dim.t then
-					hover = true
-					-- Don't show tooltip during animation
-					-- Draw hover background
-					glColor(1,1,1,0.12)
-					glTexture(false)
-					RectRound(dim.r - usedButtonSize, dim.t - usedButtonSize, dim.r, dim.t, elementCorner*0.4, 1, 1, 1, 1)
-				end
-				if hover then
-					glColor(1, 1, 1, 1)
-				else
-					glColor(panelBorderColorLight)
-				end
-				glTexture('LuaUI/Images/pip/PipMinimize.png')
-				glTexRect(dim.r - usedButtonSize, dim.t - usedButtonSize, dim.r, dim.t)
-				glTexture(false)
-			end
-		end
+	if uiState.isAnimating then
+		DrawAnimation(mx, my)
 		return
 	end
 
-	if inMinMode then
+	if uiState.inMinMode then
 		-- Use display list for minimized mode (static graphics with relative coordinates)
 		local buttonSize = math.floor(usedButtonSize*maximizeSizemult)
 
 		-- Draw UiElement background FIRST (with proper screen coordinates)
-		--UiElement(minModeL-elementPadding, minModeB-elementPadding, minModeL+buttonSize+elementPadding, minModeB+buttonSize+elementPadding, 1, 1, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
+		--UiElement(uiState.minModeL-elementPadding, uiState.minModeB-elementPadding, uiState.minModeL+buttonSize+elementPadding, uiState.minModeB+buttonSize+elementPadding, 1, 1, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
 
 		-- Then draw icon on top using display list
 		local offset = elementPadding + 2	-- to prevent touching screen edges and FlowUI Element will remove borders
@@ -4445,90 +5042,26 @@ function widget:DrawScreen()
 
 		-- Apply transform and draw the cached icon at actual position
 		glPushMatrix()
-		glTranslate(minModeL-offset, minModeB-offset, 0)
+		glTranslate(uiState.minModeL-offset, uiState.minModeB-offset, 0)
 		glCallList(minModeDlist)
 		glPopMatrix()
 
 		-- Draw hover overlay if needed (dynamic)
 		glColor(panelBorderColorDark)
 		glTexture(false)
-		if mx >= minModeL - elementPadding and mx <= minModeL + buttonSize + elementPadding and
-			my >= minModeB - elementPadding and my <= minModeB + buttonSize + elementPadding then
+		if mx >= uiState.minModeL - elementPadding and mx <= uiState.minModeL + buttonSize + elementPadding and
+			my >= uiState.minModeB - elementPadding and my <= uiState.minModeB + buttonSize + elementPadding then
 			if WG['tooltip'] then
 				WG['tooltip'].ShowTooltip('pip'..pipNumber, Spring.I18N('ui.pip.tooltip'), nil, nil, nil)
 			end
 			glColor(1,1,1,0.12)
 			glTexture(false)
-			RectRound(minModeL, minModeB, minModeL + buttonSize, minModeB + buttonSize, elementCorner*0.4, 1, 1, 1, 1)
+			RectRound(uiState.minModeL, uiState.minModeB, uiState.minModeL + buttonSize, uiState.minModeB + buttonSize, elementCorner*0.4, 1, 1, 1, 1)
 		end
 		return
 	end
 
-	if not interactionState.arePanning then
-		if interactionState.areBoxSelecting or (mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t) then
-			-- Update info widget with custom hover for PIP window
-			if WG['info'] and WG['info'].setCustomHover then
-				local wx, wz = PipToWorldCoords(mx, my)
-				local uID = GetUnitAtPoint(wx, wz)
-				if uID then
-					WG['info'].setCustomHover('unit', uID)
-				else
-					local fID = GetFeatureAtPoint(wx, wz)
-					if fID then
-						WG['info'].setCustomHover('feature', fID)
-					else
-						WG['info'].clearCustomHover()
-					end
-				end
-			end
-
-			-- Check if there's an active command
-			local _, activeCmdID = Spring.GetActiveCommand()
-			if not activeCmdID then
-				-- No active command - use default command cursor behavior
-				-- Get what command would be issued at the mouse position
-				local wx, wz = PipToWorldCoords(mx, my)
-				local targetID = GetIDAtPoint(wx, wz)
-				local defaultCmd = Spring.GetDefaultCommand()
-
-				-- If there's a default command, let it handle the cursor
-				-- Otherwise check if selected units can move
-				if not defaultCmd or defaultCmd == 0 then
-					local selectedUnits = Spring.GetSelectedUnits()
-					local canMove = false
-
-					if selectedUnits and #selectedUnits > 0 then
-						for i = 1, #selectedUnits do
-							local uDefID = Spring.GetUnitDefID(selectedUnits[i])
-							if uDefID then
-								local uDef = UnitDefs[uDefID]
-								if uDef and (uDef.canMove or uDef.canFly) then
-									canMove = true
-									break
-								end
-							end
-						end
-					end
-
-					-- Show move cursor if units can move, otherwise normal cursor
-					if canMove then
-						Spring.SetMouseCursor('Move')
-					end
-				end
-			else
-				-- Use cursor lookup table
-				local cursorName = cmdCursors[activeCmdID]
-				if cursorName then
-					Spring.SetMouseCursor(cursorName)
-				end
-			end
-		else
-			-- Mouse not in PIP window, clear custom hover
-			if WG['info'] and WG['info'].clearCustomHover then
-				WG['info'].clearCustomHover()
-			end
-		end
-	end
+	HandleHoverAndCursor(mx, my)
 
 	----------------------------------------------------------------------------------------------------
 	-- Updates
@@ -4547,256 +5080,37 @@ function widget:DrawScreen()
 	local pipWidth = dim.r - dim.l
 	local pipHeight = dim.t - dim.b
 
-	if gl.R2tHelper then
-		-- Check if frame size changed
-		local frameSizeChanged = (math.floor(pipWidth) ~= pipR2T.frameLastWidth or math.floor(pipHeight) ~= pipR2T.frameLastHeight)
-		if frameSizeChanged then
-			pipR2T.frameNeedsUpdate = true
-			-- Delete old textures when size changes
-			if pipR2T.frameBackgroundTex then
-				gl.DeleteTexture(pipR2T.frameBackgroundTex)
-				pipR2T.frameBackgroundTex = nil
-			end
-			if pipR2T.frameButtonsTex then
-				gl.DeleteTexture(pipR2T.frameButtonsTex)
-				pipR2T.frameButtonsTex = nil
-			end
-			pipR2T.frameLastWidth = math.floor(pipWidth)
-			pipR2T.frameLastHeight = math.floor(pipHeight)
-		end
-
-		-- Update frame textures if needed
-		if pipR2T.frameNeedsUpdate and pipWidth >= 1 and pipHeight >= 1 then
-			-- Create background texture if needed (no padding in texture)
-			if not pipR2T.frameBackgroundTex then
-				pipR2T.frameBackgroundTex = gl.CreateTexture(math.floor(pipWidth), math.floor(pipHeight), {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-			end
-
-			-- Create buttons texture if needed
-			if not pipR2T.frameButtonsTex then
-				pipR2T.frameButtonsTex = gl.CreateTexture(math.floor(pipWidth), math.floor(pipHeight), {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-			end
-
-			-- Render background
-			if pipR2T.frameBackgroundTex then
-				gl.R2tHelper.RenderToTexture(pipR2T.frameBackgroundTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / pipWidth, 2 / pipHeight, 0)
-						RenderFrameBackground()
-					end,
-					true
-				)
-			end
-
-			-- Render buttons (no hover)
-			if pipR2T.frameButtonsTex then
-				gl.R2tHelper.RenderToTexture(pipR2T.frameButtonsTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / pipWidth, 2 / pipHeight, 0)
-						RenderFrameButtons()
-					end,
-					true
-				)
-			end
-
-			pipR2T.frameNeedsUpdate = false
-		end
-
-		-- Blit frame background
-		if pipR2T.frameBackgroundTex then
-			gl.R2tHelper.BlendTexRect(pipR2T.frameBackgroundTex, dim.l, dim.b, dim.r, dim.t, true)
-		end
-
-		-- Draw UiElement borders around the frame (not in texture)
-		UiElement(dim.l-elementPadding, dim.b-elementPadding, dim.r+elementPadding, dim.t+elementPadding, 1, 1, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil)
-	end
+	UpdateR2TFrame(pipWidth, pipHeight)
 
 	----------------------------------------------------------------------------------------------------
 	-- Units, features, and queues (using render-to-texture for performance)
 	----------------------------------------------------------------------------------------------------
 	if gl.R2tHelper then
 		local currentTime = os.clock()
-
-		-- Calculate dynamic update rate based on zoom level
-		-- Higher zoom (more zoomed in) = higher update rate for smoother updates
-		local dynamicUpdateRate = pipMinUpdateRate
-		if zoom >= pipZoomThresholdMax then
-			dynamicUpdateRate = pipMaxUpdateRate
-		elseif zoom > pipZoomThresholdMin then
-			-- Interpolate between min and max based on zoom
-			local zoomFactor = (zoom - pipZoomThresholdMin) / (pipZoomThresholdMax - pipZoomThresholdMin)
-			dynamicUpdateRate = pipMinUpdateRate + (pipMaxUpdateRate - pipMinUpdateRate) * zoomFactor
-		end
-
-	-- Adjust update rate based on actual draw time performance
-	if pipR2T.contentLastDrawTime > 0 then
-		local targetPerformanceFactor = 1.0
-		if pipR2T.contentLastDrawTime > pipTargetDrawTime then
-			-- Draw time is too high, reduce update rate
-			-- Scale down proportionally to how much we're over budget
-			targetPerformanceFactor = pipTargetDrawTime / pipR2T.contentLastDrawTime
-			-- Clamp to reasonable range (don't go below 0.5x)
-			targetPerformanceFactor = math.max(0.5, targetPerformanceFactor)
-		elseif pipR2T.contentLastDrawTime < pipTargetDrawTime * 0.7 then
-			-- Draw time is comfortably under budget, allow slight increase
-			-- Only recover slowly to avoid oscillation
-			targetPerformanceFactor = math.min(1.0, pipR2T.contentPerformanceFactor * 1.02)
-		end
-		-- Smoothly interpolate performance factor to avoid sudden changes
-		pipR2T.contentPerformanceFactor = pipR2T.contentPerformanceFactor + (targetPerformanceFactor - pipR2T.contentPerformanceFactor) * pipPerformanceAdjustSpeed
-		-- Apply performance factor to update rate
-		dynamicUpdateRate = dynamicUpdateRate * pipR2T.contentPerformanceFactor
-		-- Ensure we don't go below absolute minimum
-		dynamicUpdateRate = math.max(10, dynamicUpdateRate)
-	end		pipR2T.contentCurrentUpdateRate = dynamicUpdateRate  -- Store for display
+		local dynamicUpdateRate = CalculateDynamicUpdateRate()
 		local pipUpdateInterval = dynamicUpdateRate > 0 and (1 / dynamicUpdateRate) or 0
 
-		local pipWidth = dim.r - dim.l
-		local pipHeight = dim.t - dim.b
-
-		-- Check if content texture size changed (do this BEFORE shouldUpdate check)
-		local contentSizeChanged = (math.floor(pipWidth) ~= pipR2T.contentLastWidth or math.floor(pipHeight) ~= pipR2T.contentLastHeight)
-		if contentSizeChanged and pipR2T.contentTex then
-			-- Delete old texture when size changes
-			gl.DeleteTexture(pipR2T.contentTex)
-			pipR2T.contentTex = nil
-			pipR2T.contentLastWidth = math.floor(pipWidth)
-			pipR2T.contentLastHeight = math.floor(pipHeight)
-		end
-
-		-- Force update if size changed or if it's time for periodic update
-		local shouldUpdate = pipR2T.contentNeedsUpdate or contentSizeChanged or (pipUpdateInterval > 0 and (currentTime - pipR2T.contentLastUpdateTime) >= pipUpdateInterval) or pipUpdateInterval == 0
-
-		if shouldUpdate then
-
-			-- Create texture if needed
-			if not pipR2T.contentTex and pipWidth >= 1 and pipHeight >= 1 then
-				pipR2T.contentTex = gl.CreateTexture(math.floor(pipWidth), math.floor(pipHeight), {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-				pipR2T.contentLastWidth = math.floor(pipWidth)
-				pipR2T.contentLastHeight = math.floor(pipHeight)
-			end
-
-			if pipR2T.contentTex then
-				-- Render PIP contents to texture (can only be done in Draw call-ins)
-				gl.R2tHelper.RenderToTexture(pipR2T.contentTex,
-					function()
-						-- Transform to map texture space (0,0 to pipWidth,pipHeight) to normalized coords (-1,-1 to 1,1)
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / pipWidth, 2 / pipHeight, 0)
-						-- Don't translate by screen position - instead adjust dim temporarily
-
-						-- Save current dim and ground coordinates
-						local savedDim = {l = dim.l, r = dim.r, b = dim.b, t = dim.t}
-						local savedGround = {
-							view = {l = ground.view.l, r = ground.view.r, b = ground.view.b, t = ground.view.t},
-							coord = {l = ground.coord.l, r = ground.coord.r, b = ground.coord.b, t = ground.coord.t}
-						}
-
-						-- Adjust dim to texture coordinates
-						dim.l = 0
-						dim.b = 0
-						dim.r = pipWidth
-						dim.t = pipHeight
-
-						-- Recalculate world-to-pip conversion factors and ground coordinates based on new dim
-						RecalculateWorldCoordinates()
-						RecalculateGroundTextureCoordinates()
-
-						-- Render content in texture space
-						RenderPipContents()
-
-						-- Restore original screen coordinates
-						dim.l = savedDim.l
-						dim.r = savedDim.r
-						dim.b = savedDim.b
-						dim.t = savedDim.t
-
-						-- Recalculate world-to-pip conversion factors with restored dim
-						RecalculateWorldCoordinates()
-
-						-- Restore ground coordinates
-						ground.view.l = savedGround.view.l
-						ground.view.r = savedGround.view.r
-						ground.view.b = savedGround.view.b
-						ground.view.t = savedGround.view.t
-						ground.coord.l = savedGround.coord.l
-						ground.coord.r = savedGround.coord.r
-						ground.coord.b = savedGround.coord.b
-						ground.coord.t = savedGround.coord.t
-					end,
-					true
-				)
-				pipR2T.contentLastUpdateTime = currentTime
-				pipR2T.contentNeedsUpdate = false
-			end
-		end
+		-- Measure time to render
+		local drawStartTime = os.clock()
+		UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHeight)
+		pipR2T.contentLastDrawTime = os.clock() - drawStartTime
 
 		-- Blit the pre-rendered texture
 		if pipR2T.contentTex then
-		gl.R2tHelper.BlendTexRect(pipR2T.contentTex, dim.l, dim.b, dim.r, dim.t, true)
-	end
+			gl.R2tHelper.BlendTexRect(pipR2T.contentTex, dim.l, dim.b, dim.r, dim.t, true)
+		end
 
-	-- Draw map ruler at edges (after content, before buttons)
-	if showMapRuler then
-		DrawMapRuler()
-	end
-end	-- Draw tracking (corner) indicators
-	if interactionState.areTracking and #interactionState.areTracking > 0 then
-		local lineWidth = math.ceil(2 * (vsx / 1920))
-		local offset = lineWidth * 0.5  -- Offset to account for line width
-
-		gl.LineWidth(lineWidth)
-		glColor(1, 1, 1, 0.22)
-
-		-- Rectangle box
-		glBeginEnd(GL_LINE_STRIP, function()
-			gl.Vertex(dim.l + offset, dim.t - offset)
-			gl.Vertex(dim.r - offset, dim.t - offset)
-			gl.Vertex(dim.r - offset, dim.b + offset)
-			gl.Vertex(dim.l + offset, dim.b + offset)
-			gl.Vertex(dim.l + offset, dim.t - offset)
-		end)
-
-		gl.LineWidth(1)
-	end
-
-	-- Draw player tracking indicator (team-colored rectangle)
-	if interactionState.trackingPlayerID then
-		local playerName, active, isSpec, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
-		if teamID then
-			local r, g, b = Spring.GetTeamColor(teamID)
-			local lineWidth = math.ceil(2 * (vsx / 1920))
-			local offset = lineWidth * 0.5  -- Offset to account for line width
-
-			gl.LineWidth(lineWidth)
-			glColor(r, g, b, 0.5)
-
-			-- Rectangle box
-			glBeginEnd(GL_LINE_STRIP, function()
-				gl.Vertex(dim.l + offset, dim.t - offset)
-				gl.Vertex(dim.r - offset, dim.t - offset)
-				gl.Vertex(dim.r - offset, dim.b + offset)
-				gl.Vertex(dim.l + offset, dim.b + offset)
-				gl.Vertex(dim.l + offset, dim.t - offset)
-			end)
-
-			gl.LineWidth(1)
+		-- Draw map ruler at edges (only when not spectating)
+		if showMapRuler then
+			local _, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+			if not spec then
+				DrawMapRuler()
+			end
 		end
 	end
+
+	-- Draw tracking indicators
+	DrawTrackingIndicators()
 
 	----------------------------------------------------------------------------------------------------
 	-- Buttons and hover effects
@@ -4819,7 +5133,7 @@ end	-- Draw tracking (corner) indicators
 
 		-- Draw dynamic hover overlays
 		-- Resize handle hover
-		local hover = areResizing or false
+		local hover = uiState.areResizing or false
 		if mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t then
 			if (dim.r-mx + my-dim.b <= usedButtonSize) then
 				hover = true
@@ -4862,144 +5176,15 @@ end	-- Draw tracking (corner) indicators
 			glTexture(false)
 		end
 
-		-- Bottom-left buttons hover
-		local selectedUnits = Spring.GetSelectedUnits()
-		local hasSelection = #selectedUnits > 0
-		local isTracking = interactionState.areTracking ~= nil
-		local isTrackingPlayer = interactionState.trackingPlayerID ~= nil
-		-- Show player tracking button only when tracking or when spectating
-		local showPlayerTrackButton = isTrackingPlayer
-		if not showPlayerTrackButton then
-			local _, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-			showPlayerTrackButton = spec
-		end
-		local visibleButtons = {}
-		for i = 1, #buttons do
-			-- Show pip_track button if has selection or is tracking units
-			if buttons[i].command == 'pip_track' then
-				if hasSelection or isTracking then
-					visibleButtons[#visibleButtons + 1] = buttons[i]
-				end
-			-- Show pip_trackplayer button if lockcamera is available or already tracking
-			elseif buttons[i].command == 'pip_trackplayer' then
-				if showPlayerTrackButton then
-					visibleButtons[#visibleButtons + 1] = buttons[i]
-				end
-			else
-				visibleButtons[#visibleButtons + 1] = buttons[i]
-			end
-		end
-
-		-- Draw base buttons when showing on hover
-		if showButtonsOnHoverOnly and interactionState.isMouseOverPip then
-			local buttonCount = #visibleButtons
-			glColor(panelBorderColorDark)
-			glTexture(false)
-			RectRound(dim.l, dim.b, dim.l + (buttonCount * usedButtonSize) + math.floor(elementPadding*0.75), dim.b + usedButtonSize + math.floor(elementPadding*0.75), elementCorner, 0, 1, 0, 0)
-			local bx = dim.l
-			for i = 1, buttonCount do
-				if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
-				   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) then
-					glColor(panelBorderColorLight)
-					glTexture(false)
-					RectRound(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize, elementCorner*0.4, 1, 1, 1, 1)
-					glColor(panelBorderColorDark)
-				else
-					glColor(panelBorderColorLight)
-				end
-				glTexture(visibleButtons[i].texture)
-				glTexRect(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize)
-				bx = bx + usedButtonSize
-			end
-			glTexture(false)
-		end
-
-		hover = false
-		local bx = dim.l
-		for i = 1, #visibleButtons do
-			if mx >= bx and mx <= bx + usedButtonSize and
-			   my >= dim.b and my <= dim.b + usedButtonSize then
-				hover = true
-				if visibleButtons[i].tooltip and WG['tooltip'] then
-					local tooltipText = visibleButtons[i].tooltip
-					if visibleButtons[i].tooltipActive then
-						if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
-						   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) then
-							tooltipText = visibleButtons[i].tooltipActive
-						end
-					end
-					WG['tooltip'].ShowTooltip('pip'..pipNumber, tooltipText, nil, nil, nil)
-				end
-				glColor(1,1,1,0.12)
-				glTexture(false)
-				RectRound(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize, elementCorner*0.4, 1, 1, 1, 1)
-				-- Redraw button icon on hover for brightness
-				if (visibleButtons[i].command == 'pip_track' and interactionState.areTracking) or
-				   (visibleButtons[i].command == 'pip_trackplayer' and interactionState.trackingPlayerID) then
-					glColor(panelBorderColorDark)
-				else
-					glColor(1, 1, 1, 1)
-				end
-				glTexture(visibleButtons[i].texture)
-				glTexRect(bx, dim.b, bx + usedButtonSize, dim.b + usedButtonSize)
-				glTexture(false)
-				break
-			end
-			bx = bx + usedButtonSize
-		end
-	end
-
-	if pipNumber ~= 1 then
-		glColor(panelBorderColorDark)
-		RectRound(dim.l, dim.t - usedButtonSize, dim.l + usedButtonSize, dim.t, elementCorner*0.4, 0, 0, 1, 0)
-		local fontSize = 14
-		local padding = 12
-		font:Begin()
-		font:SetTextColor(0.85, 0.85, 0.85, 1)
-		font:SetOutlineColor(0, 0, 0, 0.5)
-		font:Print(pipNumber, dim.l + padding, dim.t - (fontSize*1.15) - padding, fontSize*2, "no")
-		font:End()	-- Draw box selection rectangle
+		-- Bottom-left buttons hover and pip number
+		DrawInteractiveOverlays(mx, my, usedButtonSize)
 	end
 
 
-	-- Display tracked player name at top-center of PIP
-	if interactionState.trackingPlayerID then
-		local playerName, active, isSpec, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
-		if playerName and teamID then
-			-- Get display name (may be modified by playernames widget)
-			if WG.playernames and WG.playernames.getPlayername then
-				playerName = WG.playernames.getPlayername(interactionState.trackingPlayerID)
-			end
+	-- Display tracked player name at top-center of PIP (only when hovering)
+	DrawTrackedPlayerName()
 
-		-- Get team color
-		local r, g, b = Spring.GetTeamColor(teamID)
-
-		local fontSize = math.floor(18* widgetScale)
-		local padding = math.floor(10 * widgetScale)
-		local textPadding = math.floor(12 * widgetScale)
-		local centerX = (dim.l + dim.r) / 2
-
-		-- Measure text width to create background box
-		font:Begin()
-		local textWidth = font:GetTextWidth(playerName) * fontSize * 2
-
-		-- Draw background box for player name at top-center
-		local boxWidth = textWidth + textPadding * 2
-		local boxHeight = (fontSize * 2) + padding * 2
-		local boxLeft = centerX - boxWidth / 2
-		local boxRight = centerX + boxWidth / 2
-		local boxTop = dim.t
-		local boxBottom = dim.t - boxHeight
-
-		--glColor(panelBorderColorDark)
-		--RectRound(boxLeft, boxBottom, boxRight, boxTop, elementCorner*0.4, 0, 0, 1, 1)
-
-		font:SetTextColor(r, g, b, 1)
-		font:SetOutlineColor(0, 0, 0, 0.8)
-		font:Print(playerName, centerX, boxTop - padding - (fontSize*1.6), fontSize*2, "con")
-		font:End()
-	end
-end	-- Display current max update rate (top-left corner)
+	-- Display current max update rate (top-left corner)
 	-- local fontSize = 11
 	-- local padding = 5
 	-- font:Begin()
@@ -5023,12 +5208,25 @@ end	-- Display current max update rate (top-left corner)
 end
 
 function widget:DrawWorld()
-	if inMinMode then return end
-	gl.Color(1, 1, 0, 0.25)
-	gl.LineWidth(1.49)
-	gl.DepthTest(true)
-	glBeginEnd(GL_LINE_STRIP, DrawGroundBox, world.l, world.r, world.b, world.t)
-	gl.DepthTest(false)
+	if uiState.inMinMode then return end
+
+	-- Draw rectangle outline in world view marking PIP boundaries
+	if not cameraState.mySpecState then
+		-- Use team color if tracking a player, otherwise white
+		local r, g, b = 1, 1, 1
+		if interactionState.trackingPlayerID then
+			local _, _, _, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+			if teamID then
+				r, g, b = Spring.GetTeamColor(teamID)
+			end
+		end
+
+		gl.Color(r, g, b, 0.25)
+		gl.LineWidth(2.5)
+		gl.DepthTest(true)
+		glBeginEnd(GL_LINE_STRIP, DrawGroundBox, world.l, world.r, world.b, world.t)
+		gl.DepthTest(false)
+	end
 
 	-- Note: Formation lines are not drawn in world view (customformations widget handles this)
 
@@ -5083,7 +5281,7 @@ function widget:DrawWorld()
 end
 
 function widget:DrawInMiniMap(minimapWidth, minimapHeight)
-	if inMinMode then return end
+	if uiState.inMinMode then return end
 
 	-- Convert world coordinates to minimap coordinates (0-1 range)
 	-- Note: Z-axis is inverted for minimap (top of map = 0, bottom = mapSizeZ)
@@ -5098,13 +5296,14 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	x2 = math.max(0, math.min(1, x2))
 	z2 = math.max(0, math.min(1, z2))
 
-	-- Convert to pixel coordinates
-	x1 = x1 * minimapWidth
-	z1 = z1 * minimapHeight
-	x2 = x2 * minimapWidth
-	z2 = z2 * minimapHeight
+	-- Convert to pixel coordinates and floor for pixel alignment
+	x1 = math.floor(x1 * minimapWidth + 0.5)
+	z1 = math.floor(z1 * minimapHeight + 0.5)
+	x2 = math.floor(x2 * minimapWidth + 0.5)
+	z2 = math.floor(z2 * minimapHeight + 0.5)
 
-	-- Draw yellow rectangle showing PIP view area
+	-- Draw rectangle showing PIP view area (team-colored if tracking player)
+	local linewidth = math.ceil(vsy / 2000)
 	gl.Texture(false)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	gl.PushMatrix()
@@ -5112,8 +5311,8 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	gl.Scale(1, 1, 1)
 
 	-- Draw dark background rectangle
-	gl.Color(0, 0, 0, 0.16)
-	gl.LineWidth(3.5)
+	gl.Color(0, 0, 0, 0.6)
+	gl.LineWidth((linewidth*1.5)+1)
 	gl.BeginEnd(GL.LINE_LOOP, function()
 		gl.Vertex(x1, z1)
 		gl.Vertex(x2, z1)
@@ -5121,9 +5320,17 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 		gl.Vertex(x1, z2)
 	end)
 
-	-- Draw yellow rectangle
-	gl.Color(1, 1, 0, 0.6)
-	gl.LineWidth(2.0)
+	-- Use team color if tracking a player, otherwise white
+	local r, g, b = 0.85, 0.85, 0.85
+	if interactionState.trackingPlayerID then
+		local _, _, _, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+		if teamID then
+			r, g, b = Spring.GetTeamColor(teamID)
+		end
+	end
+
+	gl.Color(r, g, b, 1)
+	gl.LineWidth(linewidth)
 	--gl.LineStipple(2, 0xAAAA)
 	gl.BeginEnd(GL.LINE_LOOP, function()
 		gl.Vertex(x1, z1)
@@ -5139,17 +5346,20 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 end
 
 function widget:Update(dt)
+	-- Update spectating state
+	cameraState.mySpecState = Spring.GetSpectatingState()
+
 	-- Update mouse hover state
 	local mx, my = spGetMouseState()
 	local wasMouseOver = interactionState.isMouseOverPip
-	interactionState.isMouseOverPip = (mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t and not inMinMode)
+	interactionState.isMouseOverPip = (mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t and not uiState.inMinMode)
 
 	-- Update hovered unit for icon highlighting
 	if interactionState.isMouseOverPip then
 		local wx, wz = PipToWorldCoords(mx, my)
-		hoveredUnitID = GetUnitAtPoint(wx, wz)
+		drawData.hoveredUnitID = GetUnitAtPoint(wx, wz)
 	else
-		hoveredUnitID = nil
+		drawData.hoveredUnitID = nil
 	end
 
 	-- If hover state changed, update frame buttons
@@ -5175,8 +5385,8 @@ function widget:Update(dt)
 
 	-- Check if selectionbox widget state has changed and update command colors accordingly
 	local selectionboxEnabled = widgetHandler:IsWidgetKnown("Selectionbox") and (widgetHandler.orderList["Selectionbox"] and widgetHandler.knownWidgets["Selectionbox"].active)
-	if selectionboxEnabled ~= lastSelectionboxEnabled then
-		lastSelectionboxEnabled = selectionboxEnabled
+	if selectionboxEnabled ~= drawData.lastSelectionboxEnabled then
+		drawData.lastSelectionboxEnabled = selectionboxEnabled
 		if selectionboxEnabled then
 			-- Selectionbox widget is now enabled, disable engine's default selection box
 			Spring.LoadCmdColorsConfig('mouseBoxLineWidth 0')
@@ -5211,19 +5421,19 @@ function widget:Update(dt)
 	end
 
 	-- Handle minimize/maximize animation
-	if isAnimating then
-		animationProgress = animationProgress + (dt / animationDuration)
+	if uiState.isAnimating then
+		uiState.animationProgress = uiState.animationProgress + (dt / uiState.animationDuration)
 		pipR2T.contentNeedsUpdate = true  -- Update during animation
 		pipR2T.frameNeedsUpdate = true  -- Frame also needs update during animation
 
-		if animationProgress >= 1 then
+		if uiState.animationProgress >= 1 then
 			-- Animation complete
-			animationProgress = 1
-			isAnimating = false
-			dim.l = animEndDim.l
-			dim.r = animEndDim.r
-			dim.b = animEndDim.b
-			dim.t = animEndDim.t
+			uiState.animationProgress = 1
+			uiState.isAnimating = false
+			dim.l = uiState.animEndDim.l
+			dim.r = uiState.animEndDim.r
+			dim.b = uiState.animEndDim.b
+			dim.t = uiState.animEndDim.t
 			-- Recalculate world coordinates for final dimensions
 			RecalculateWorldCoordinates()
 			RecalculateGroundTextureCoordinates()
@@ -5232,13 +5442,13 @@ function widget:Update(dt)
 			UpdateGuishaderBlur()
 		else
 			-- Interpolate dimensions with easing (ease-in-out)
-			local t = animationProgress
+			local t = uiState.animationProgress
 			local ease = t < 0.5 and 2 * t * t or 1 - math.pow(-2 * t + 2, 2) / 2
 
-			dim.l = animStartDim.l + (animEndDim.l - animStartDim.l) * ease
-			dim.r = animStartDim.r + (animEndDim.r - animStartDim.r) * ease
-			dim.b = animStartDim.b + (animEndDim.b - animStartDim.b) * ease
-			dim.t = animStartDim.t + (animEndDim.t - animStartDim.t) * ease
+			dim.l = uiState.animStartDim.l + (uiState.animEndDim.l - uiState.animStartDim.l) * ease
+			dim.r = uiState.animStartDim.r + (uiState.animEndDim.r - uiState.animStartDim.r) * ease
+			dim.b = uiState.animStartDim.b + (uiState.animEndDim.b - uiState.animStartDim.b) * ease
+			dim.t = uiState.animStartDim.t + (uiState.animEndDim.t - uiState.animStartDim.t) * ease
 
 			RecalculateWorldCoordinates()
 			RecalculateGroundTextureCoordinates()
@@ -5248,8 +5458,8 @@ function widget:Update(dt)
 	end
 
 	-- Smooth zoom and camera center interpolation
-	local zoomNeedsUpdate = math.abs(zoom - targetZoom) > 0.001
-	local centerNeedsUpdate = math.abs(wcx - targetWcx) > 0.1 or math.abs(wcz - targetWcz) > 0.1
+	local zoomNeedsUpdate = math.abs(zoom - cameraState.targetZoom) > 0.001
+	local centerNeedsUpdate = math.abs(cameraState.wcx - cameraState.targetWcx) > 0.1 or math.abs(cameraState.wcz - cameraState.targetWcz) > 0.1
 
 	-- Mark PIP as needing update if zoom or position changed
 	if zoomNeedsUpdate or centerNeedsUpdate then
@@ -5258,19 +5468,19 @@ function widget:Update(dt)
 
 	-- If zoom-to-cursor is active, continuously recalculate target center to keep world position under cursor
 	-- Disable this when tracking units - we want to keep the camera centered on tracked units
-	if zoomToCursorActive and zoomNeedsUpdate and not interactionState.areTracking then
-		local screenOffsetX = zoomToCursorScreenX - (dim.l + dim.r) * 0.5
-		local screenOffsetY = zoomToCursorScreenY - (dim.b + dim.t) * 0.5
+	if cameraState.zoomToCursorActive and zoomNeedsUpdate and not interactionState.areTracking then
+		local screenOffsetX = cameraState.zoomToCursorScreenX - (dim.l + dim.r) * 0.5
+		local screenOffsetY = cameraState.zoomToCursorScreenY - (dim.b + dim.t) * 0.5
 
 		-- Calculate what center should be to keep the stored world position under the cursor with current target zoom
-		targetWcx = zoomToCursorWorldX - screenOffsetX / targetZoom
-		targetWcz = zoomToCursorWorldZ + screenOffsetY / targetZoom
+		cameraState.targetWcx = cameraState.zoomToCursorWorldX - screenOffsetX / cameraState.targetZoom
+		cameraState.targetWcz = cameraState.zoomToCursorWorldZ + screenOffsetY / cameraState.targetZoom
 
 		-- Apply same margin-based clamping as panning
 		local pipWidth = dim.r - dim.l
 		local pipHeight = dim.t - dim.b
-		local visibleWorldWidth = pipWidth / targetZoom
-		local visibleWorldHeight = pipHeight / targetZoom
+		local visibleWorldWidth = pipWidth / cameraState.targetZoom
+		local visibleWorldHeight = pipHeight / cameraState.targetZoom
 
 		-- Use the smaller dimension for consistent visual margin
 		local smallerVisibleDimension = math.min(visibleWorldWidth, visibleWorldHeight)
@@ -5283,41 +5493,43 @@ function widget:Update(dt)
 		local maxWcz = mapSizeZ - (visibleWorldHeight / 2 - margin)
 
 		-- Clamp with margin-based boundaries
-		targetWcx = math.min(math.max(targetWcx, minWcx), maxWcx)
-		targetWcz = math.min(math.max(targetWcz, minWcz), maxWcz)
+		cameraState.targetWcx = math.min(math.max(cameraState.targetWcx, minWcx), maxWcx)
+		cameraState.targetWcz = math.min(math.max(cameraState.targetWcz, minWcz), maxWcz)
 
 		centerNeedsUpdate = true  -- Force center update
 	end
 
 	if zoomNeedsUpdate or centerNeedsUpdate then
 		if zoomNeedsUpdate then
-			zoom = zoom + (targetZoom - zoom) * math.min(dt * zoomSmoothness, 1)
+			zoom = zoom + (cameraState.targetZoom - zoom) * math.min(dt * zoomSmoothness, 1)
 		end
 
 		if centerNeedsUpdate then
 			-- Use different smoothness values depending on context
 			local smoothnessToUse = centerSmoothness -- Default for zoom-to-cursor and panning
-			if isSwitchingViews then
+			if miscState.isSwitchingViews then
 				smoothnessToUse = switchSmoothness -- Fast transition for view switching
+			elseif interactionState.trackingPlayerID then
+				smoothnessToUse = playerTrackingSmoothness -- Slower, smoother tracking for player camera
 			elseif interactionState.areTracking then
-				smoothnessToUse = trackingSmoothness -- Smoother animation for tracking mode
+				smoothnessToUse = trackingSmoothness -- Smoother animation for unit tracking mode
 			end
 
 			local centerFactor = math.min(dt * smoothnessToUse, 1)
-			wcx = wcx + (targetWcx - wcx) * centerFactor
-			wcz = wcz + (targetWcz - wcz) * centerFactor
+			cameraState.wcx = cameraState.wcx + (cameraState.targetWcx - cameraState.wcx) * centerFactor
+			cameraState.wcz = cameraState.wcz + (cameraState.targetWcz - cameraState.wcz) * centerFactor
 		end
 
 		RecalculateWorldCoordinates()
 		RecalculateGroundTextureCoordinates()
 	else
 		-- Zoom and center have reached their targets, disable zoom-to-cursor and switch transition
-		zoomToCursorActive = false
-		isSwitchingViews = false
+		cameraState.zoomToCursorActive = false
+		miscState.isSwitchingViews = false
 	end
 
 	if interactionState.areIncreasingZoom then
-		targetZoom = math.min(targetZoom * zoomRate ^ dt, zoomMax)
+		cameraState.targetZoom = math.min(cameraState.targetZoom * zoomRate ^ dt, zoomMax)
 
 		-- Clamp BOTH current and target camera positions to respect margin
 		-- Use current zoom for current position, target zoom for target position
@@ -5335,12 +5547,12 @@ function widget:Update(dt)
 		local currentMinWcz = currentVisibleWorldHeight / 2 - currentMargin
 		local currentMaxWcz = mapSizeZ - (currentVisibleWorldHeight / 2 - currentMargin)
 
-		wcx = math.min(math.max(wcx, currentMinWcx), currentMaxWcx)
-		wcz = math.min(math.max(wcz, currentMinWcz), currentMaxWcz)
+		cameraState.wcx = math.min(math.max(cameraState.wcx, currentMinWcx), currentMaxWcx)
+		cameraState.wcz = math.min(math.max(cameraState.wcz, currentMinWcz), currentMaxWcz)
 
 		-- Clamp target position
-		local targetVisibleWorldWidth = pipWidth / targetZoom
-		local targetVisibleWorldHeight = pipHeight / targetZoom
+		local targetVisibleWorldWidth = pipWidth / cameraState.targetZoom
+		local targetVisibleWorldHeight = pipHeight / cameraState.targetZoom
 		local targetSmallerDimension = math.min(targetVisibleWorldWidth, targetVisibleWorldHeight)
 		local targetMargin = targetSmallerDimension * mapEdgeMargin
 
@@ -5349,13 +5561,13 @@ function widget:Update(dt)
 		local targetMinWcz = targetVisibleWorldHeight / 2 - targetMargin
 		local targetMaxWcz = mapSizeZ - (targetVisibleWorldHeight / 2 - targetMargin)
 
-		targetWcx = math.min(math.max(targetWcx, targetMinWcx), targetMaxWcx)
-		targetWcz = math.min(math.max(targetWcz, targetMinWcz), targetMaxWcz)
+		cameraState.targetWcx = math.min(math.max(cameraState.targetWcx, targetMinWcx), targetMaxWcx)
+		cameraState.targetWcz = math.min(math.max(cameraState.targetWcz, targetMinWcz), targetMaxWcz)
 
 		RecalculateWorldCoordinates()
 		RecalculateGroundTextureCoordinates()
 	elseif interactionState.areDecreasingZoom then
-		targetZoom = math.max(targetZoom / zoomRate ^ dt, zoomMin)
+		cameraState.targetZoom = math.max(cameraState.targetZoom / zoomRate ^ dt, zoomMin)
 
 		-- Clamp BOTH current and target camera positions to respect margin
 		-- Use current zoom for current position, target zoom for target position
@@ -5373,12 +5585,12 @@ function widget:Update(dt)
 		local currentMinWcz = currentVisibleWorldHeight / 2 - currentMargin
 		local currentMaxWcz = mapSizeZ - (currentVisibleWorldHeight / 2 - currentMargin)
 
-		wcx = math.min(math.max(wcx, currentMinWcx), currentMaxWcx)
-		wcz = math.min(math.max(wcz, currentMinWcz), currentMaxWcz)
+		cameraState.wcx = math.min(math.max(cameraState.wcx, currentMinWcx), currentMaxWcx)
+		cameraState.wcz = math.min(math.max(cameraState.wcz, currentMinWcz), currentMaxWcz)
 
 		-- Clamp target position
-		local targetVisibleWorldWidth = pipWidth / targetZoom
-		local targetVisibleWorldHeight = pipHeight / targetZoom
+		local targetVisibleWorldWidth = pipWidth / cameraState.targetZoom
+		local targetVisibleWorldHeight = pipHeight / cameraState.targetZoom
 		local targetSmallerDimension = math.min(targetVisibleWorldWidth, targetVisibleWorldHeight)
 		local targetMargin = targetSmallerDimension * mapEdgeMargin
 
@@ -5387,8 +5599,8 @@ function widget:Update(dt)
 		local targetMinWcz = targetVisibleWorldHeight / 2 - targetMargin
 		local targetMaxWcz = mapSizeZ - (targetVisibleWorldHeight / 2 - targetMargin)
 
-		targetWcx = math.min(math.max(targetWcx, targetMinWcx), targetMaxWcx)
-		targetWcz = math.min(math.max(targetWcz, targetMinWcz), targetMaxWcz)
+		cameraState.targetWcx = math.min(math.max(cameraState.targetWcx, targetMinWcx), targetMaxWcx)
+		cameraState.targetWcz = math.min(math.max(cameraState.targetWcz, targetMinWcz), targetMaxWcz)
 
 		RecalculateWorldCoordinates()
 		RecalculateGroundTextureCoordinates()
@@ -5396,17 +5608,17 @@ function widget:Update(dt)
 
 	if not gameHasStarted then
 		local newX, _, newZ = Spring.GetTeamStartPosition(Spring.GetMyTeamID())
-		if newX ~= startX then
-			startX, startZ = newX, newZ
-			wcx, wcz = startX, startZ
-			targetWcx, targetWcz = wcx, wcz  -- Set targets instantly for start position
+		if newX ~= miscState.startX then
+			miscState.startX, miscState.startZ = newX, newZ
+			cameraState.wcx, cameraState.wcz = miscState.startX, miscState.startZ
+			cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Set targets instantly for start position
 			RecalculateWorldCoordinates()
 			RecalculateGroundTextureCoordinates()
 		end
 	end
 
-	-- Update player camera tracking
-	if interactionState.trackingPlayerID then
+	-- Update player camera tracking (but not during view switching)
+	if interactionState.trackingPlayerID and not miscState.isSwitchingViews then
 		UpdatePlayerTracking()
 	end
 
@@ -5446,8 +5658,7 @@ function widget:GameStart()
 	gameHasStarted = true
 
 	-- Automatically maximize for players (only for the first PIP instance)
-	local isSpectator = Spring.GetSpectatingState()
-	if pipNumber == 1 and not isSpectator and inMinMode then
+	if pipNumber == 1 and not cameraState.mySpecState and uiState.inMinMode then
 		-- Trigger maximize animation
 		local usedButtonSize = math.floor(buttonSize * widgetScale)
 		local buttonSizeWithScale = math.floor(usedButtonSize * maximizeSizemult)
@@ -5459,21 +5670,21 @@ function widget:GameStart()
 		RecalculateWorldCoordinates()
 		RecalculateGroundTextureCoordinates()
 
-		animStartDim = {
-			l = minModeL,
-			r = minModeL + buttonSizeWithScale,
-			b = minModeB,
-			t = minModeB + buttonSizeWithScale
+		uiState.animStartDim = {
+			l = uiState.minModeL,
+			r = uiState.minModeL + buttonSizeWithScale,
+			b = uiState.minModeB,
+			t = uiState.minModeB + buttonSizeWithScale
 		}
-		animEndDim = {
-			l = savedDimensions.l,
-			r = savedDimensions.r,
-			b = savedDimensions.b,
-			t = savedDimensions.t
+		uiState.animEndDim = {
+			l = uiState.savedDimensions.l,
+			r = uiState.savedDimensions.r,
+			b = uiState.savedDimensions.b,
+			t = uiState.savedDimensions.t
 		}
-		animationProgress = 0
-		isAnimating = true
-		inMinMode = false
+		uiState.animationProgress = 0
+		uiState.isAnimating = true
+		uiState.inMinMode = false
 	end
 
 	-- Automatically track the commander at game start
@@ -5484,7 +5695,7 @@ function widget:GameStart()
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	if inMinMode then return end
+	if uiState.inMinMode then return end
 	-- Performance: limit max simultaneous shatters
 	if #cache.iconShatters >= cache.maxIconShatters then return end
 
@@ -5514,8 +5725,8 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	local fragSize = (iconSize * 2) / grid
 
 	-- Convert world coords to PiP-local coords (center of icon)
-	local pipX = ux - wcx
-	local pipZ = wcz - uz
+	local pipX = ux - cameraState.wcx
+	local pipZ = cameraState.wcz - uz
 
 	-- Get team color
 	local teamColor = teamColors[unitTeam]
@@ -5579,7 +5790,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	if inMinMode then return end
+	if uiState.inMinMode then return end
 	-- Skip processing explosions when we're not rendering them due to zoom level
 	if zoom < zoomExplosionDetail then return end
 	if drawProjectiles then
@@ -5678,7 +5889,7 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 end
 
 function widget:DefaultCommand()
-	if inMinMode then return end
+	if uiState.inMinMode then return end
 	local mx, my = spGetMouseState()
 	if mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t then
 		local wx, wz = PipToWorldCoords(mx, my)
@@ -5699,9 +5910,9 @@ function widget:DefaultCommand()
 end
 
 function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
-	if inMinMode then return end
+	if uiState.inMinMode then return end
 	-- Prevent infinite recursion when we call Spring.Marker* functions
-	if isProcessingMapDraw then
+	if miscState.isProcessingMapDraw then
 		return false
 	end
 
@@ -5717,20 +5928,20 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 	-- For point markers, use the stored initiation position (from double-click)
 	-- For line/erase, use current mouse position (for continuous drawing)
 	local screenX, screenY
-	if cmdType == 'point' and mapmarkInitScreenX and mapmarkInitScreenY then
+	if cmdType == 'point' and miscState.mapmarkInitScreenX and miscState.mapmarkInitScreenY then
 		-- Use the position where mapmark was initiated (double-click position)
 		-- Check if it was recent (within last 10 seconds - allows time for typing message)
-		if (os.clock() - mapmarkInitTime) < 10 then
-			screenX = mapmarkInitScreenX
-			screenY = mapmarkInitScreenY
+		if (os.clock() - miscState.mapmarkInitTime) < 10 then
+			screenX = miscState.mapmarkInitScreenX
+			screenY = miscState.mapmarkInitScreenY
 			-- Clear the stored position after using it
-			mapmarkInitScreenX = nil
-			mapmarkInitScreenY = nil
+			miscState.mapmarkInitScreenX = nil
+			miscState.mapmarkInitScreenY = nil
 		else
 			-- Too old, use current position and clear stored position
 			screenX, screenY = Spring.GetMouseState()
-			mapmarkInitScreenX = nil
-			mapmarkInitScreenY = nil
+			miscState.mapmarkInitScreenX = nil
+			miscState.mapmarkInitScreenY = nil
 		end
 	else
 		-- For line drawing and erase, use current mouse position
@@ -5738,7 +5949,7 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 	end
 
 	-- Check if the mouse was/is over the PiP window
-	if screenX >= dim.l and screenX <= dim.r and screenY >= dim.b and screenY <= dim.t and not inMinMode then
+	if screenX >= dim.l and screenX <= dim.r and screenY >= dim.b and screenY <= dim.t and not uiState.inMinMode then
 		-- The mapmark was initiated while mouse was over PiP
 		-- Translate the PiP screen position to world coordinates
 		local wx, wz = PipToWorldCoords(screenX, screenY)
@@ -5752,7 +5963,7 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 		local markerHeight = wy + 5
 
 		-- Now place the marker at the PiP world coordinates instead of camera world coordinates
-		isProcessingMapDraw = true
+		miscState.isProcessingMapDraw = true
 
 		if cmdType == 'point' then
 			-- Place marker at PiP location
@@ -5776,7 +5987,7 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 			Spring.MarkerErasePosition(wx, wy, wz)
 		end
 
-		isProcessingMapDraw = false
+		miscState.isProcessingMapDraw = false
 		return true -- Consume the original event to prevent double placement
 
 	else
@@ -5792,21 +6003,21 @@ end
 
 function widget:IsAbove(mx, my)
 	-- Claim mouse interaction when cursor is over the PIP window
-	if isAnimating then
+	if uiState.isAnimating then
 		-- During animation, check both start and end positions to ensure we capture the animated area
-		if inMinMode then
+		if uiState.inMinMode then
 			-- Animating to minimized - check the shrinking area
-			return mx >= math.min(dim.l, minModeL) and mx <= math.max(dim.r, minModeL + math.floor(usedButtonSize*maximizeSizemult)) and
-			       my >= math.min(dim.b, minModeB) and my <= math.max(dim.t, minModeB + math.floor(usedButtonSize*maximizeSizemult))
+			return mx >= math.min(dim.l, uiState.minModeL) and mx <= math.max(dim.r, uiState.minModeL + math.floor(usedButtonSize*maximizeSizemult)) and
+			       my >= math.min(dim.b, uiState.minModeB) and my <= math.max(dim.t, uiState.minModeB + math.floor(usedButtonSize*maximizeSizemult))
 		else
 			-- Animating to maximized - check the expanding area
-			return mx >= math.min(dim.l, minModeL) and mx <= math.max(dim.r, minModeL + math.floor(usedButtonSize*maximizeSizemult)) and
-			       my >= math.min(dim.b, minModeB) and my <= math.max(dim.t, minModeB + math.floor(usedButtonSize*maximizeSizemult))
+			return mx >= math.min(dim.l, uiState.minModeL) and mx <= math.max(dim.r, uiState.minModeL + math.floor(usedButtonSize*maximizeSizemult)) and
+			       my >= math.min(dim.b, uiState.minModeB) and my <= math.max(dim.t, uiState.minModeB + math.floor(usedButtonSize*maximizeSizemult))
 		end
-	elseif inMinMode then
+	elseif uiState.inMinMode then
 		-- In minimized mode, check if over the minimize button area only
 		local buttonSize = math.floor(usedButtonSize * maximizeSizemult)
-		return mx >= minModeL and mx <= minModeL + buttonSize and my >= minModeB and my <= minModeB + buttonSize
+		return mx >= uiState.minModeL and mx <= uiState.minModeL + buttonSize and my >= uiState.minModeB and my <= uiState.minModeB + buttonSize
 	else
 		-- In normal mode, check if over the PIP panel
 		return mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t
@@ -5814,31 +6025,36 @@ function widget:IsAbove(mx, my)
 end
 
 function widget:MouseWheel(up, value)
-	if not inMinMode then
+	if not uiState.inMinMode then
 		local mx, my = spGetMouseState()
 		if mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t then
-			local oldZoom = targetZoom
+			-- Don't allow zooming when tracking a player's camera
+			if interactionState.trackingPlayerID then
+				return true
+			end
+
+			local oldZoom = cameraState.targetZoom
 
 			if Spring.GetConfigInt("ScrollWheelSpeed", 1) > 0 then
 				if up then
-					targetZoom = math.max(targetZoom / zoomWheel, zoomMin)
+					cameraState.targetZoom = math.max(cameraState.targetZoom / zoomWheel, zoomMin)
 				else
-					targetZoom = math.min(targetZoom * zoomWheel, zoomMax)
+					cameraState.targetZoom = math.min(cameraState.targetZoom * zoomWheel, zoomMax)
 				end
 			else
 				if not up then
-					targetZoom = math.max(targetZoom / zoomWheel, zoomMin)
+					cameraState.targetZoom = math.max(cameraState.targetZoom / zoomWheel, zoomMin)
 				else
-					targetZoom = math.min(targetZoom * zoomWheel, zoomMax)
+					cameraState.targetZoom = math.min(cameraState.targetZoom * zoomWheel, zoomMax)
 				end
 			end
 
 			-- If zoom-to-cursor is enabled and we're INCREASING zoom (getting closer), store the cursor world position
 			-- Disable zoom-to-cursor when tracking units (always zoom to center)
-			if zoomToCursor and targetZoom > oldZoom and not interactionState.areTracking then
+			if zoomToCursor and cameraState.targetZoom > oldZoom and not interactionState.areTracking then
 				-- Store screen position
-				zoomToCursorScreenX = mx
-				zoomToCursorScreenY = my
+				cameraState.zoomToCursorScreenX = mx
+				cameraState.zoomToCursorScreenY = my
 
 				-- Calculate and store the world position under cursor using CURRENT animated values
 				-- This is critical - we need to use where we ARE now, not where we're going
@@ -5846,14 +6062,14 @@ function widget:MouseWheel(up, value)
 				local screenOffsetY = my - (dim.b + dim.t) * 0.5
 
 				-- Use current animated zoom and center, not targets
-				zoomToCursorWorldX = wcx + screenOffsetX / zoom
-				zoomToCursorWorldZ = wcz - screenOffsetY / zoom
+				cameraState.zoomToCursorWorldX = cameraState.wcx + screenOffsetX / zoom
+				cameraState.zoomToCursorWorldZ = cameraState.wcz - screenOffsetY / zoom
 
 				-- Enable continuous recalculation in Update
-				zoomToCursorActive = true
+				cameraState.zoomToCursorActive = true
 			else
 				-- Decreasing zoom (pulling back) or feature disabled - disable zoom-to-cursor
-				zoomToCursorActive = false
+				cameraState.zoomToCursorActive = false
 
 				-- Clamp BOTH current and target camera positions to respect margin
 				local pipWidth = dim.r - dim.l
@@ -5870,12 +6086,12 @@ function widget:MouseWheel(up, value)
 				local currentMinWcz = currentVisibleWorldHeight / 2 - currentMargin
 				local currentMaxWcz = mapSizeZ - (currentVisibleWorldHeight / 2 - currentMargin)
 
-				wcx = math.min(math.max(wcx, currentMinWcx), currentMaxWcx)
-				wcz = math.min(math.max(wcz, currentMinWcz), currentMaxWcz)
+				cameraState.wcx = math.min(math.max(cameraState.wcx, currentMinWcx), currentMaxWcx)
+				cameraState.wcz = math.min(math.max(cameraState.wcz, currentMinWcz), currentMaxWcz)
 
 				-- Clamp target position
-				local targetVisibleWorldWidth = pipWidth / targetZoom
-				local targetVisibleWorldHeight = pipHeight / targetZoom
+				local targetVisibleWorldWidth = pipWidth / cameraState.targetZoom
+				local targetVisibleWorldHeight = pipHeight / cameraState.targetZoom
 				local targetSmallerDimension = math.min(targetVisibleWorldWidth, targetVisibleWorldHeight)
 				local targetMargin = targetSmallerDimension * mapEdgeMargin
 
@@ -5884,8 +6100,8 @@ function widget:MouseWheel(up, value)
 				local targetMinWcz = targetVisibleWorldHeight / 2 - targetMargin
 				local targetMaxWcz = mapSizeZ - (targetVisibleWorldHeight / 2 - targetMargin)
 
-				targetWcx = math.min(math.max(targetWcx, targetMinWcx), targetMaxWcx)
-				targetWcz = math.min(math.max(targetWcz, targetMinWcz), targetMaxWcz)
+				cameraState.targetWcx = math.min(math.max(cameraState.targetWcx, targetMinWcx), targetMaxWcx)
+				cameraState.targetWcz = math.min(math.max(cameraState.targetWcz, targetMinWcz), targetMaxWcz)
 
 				RecalculateWorldCoordinates()
 				RecalculateGroundTextureCoordinates()
@@ -5899,10 +6115,10 @@ end
 function widget:MousePress(mx, my, mButton)
 
 	-- Track mapmark initiation position if mouse is over PiP (for point markers with double-click)
-	if mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t and not inMinMode then
-		mapmarkInitScreenX = mx
-		mapmarkInitScreenY = my
-		mapmarkInitTime = os.clock()
+	if mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t and not uiState.inMinMode then
+		miscState.mapmarkInitScreenX = mx
+		miscState.mapmarkInitScreenY = my
+		miscState.mapmarkInitTime = os.clock()
 	end
 
 	-- Track mouse button states for left+right panning
@@ -5938,19 +6154,19 @@ function widget:MousePress(mx, my, mButton)
 				end
 			end
 			if interactionState.areFormationDragging then
-				interactionState.areFormationDragging = false
-			end
+			interactionState.areFormationDragging = false
+		end
 
-			-- Start panning
+		-- Start panning (but not when tracking player camera)
+		if not interactionState.trackingPlayerID then
 			interactionState.arePanning = true
 			interactionState.panStartX = (dim.l + dim.r) / 2
 			interactionState.panStartY = (dim.b + dim.t) / 2
 			interactionState.areTracking = nil
-			return true
 		end
+		return true
 	end
-
-	-- Check if we are centering the view, takes priority
+end	-- Check if we are centering the view, takes priority
 	if mButton == 1 then
 		if interactionState.areCentering then
 			UpdateCentering(mx, my)
@@ -5960,7 +6176,7 @@ function widget:MousePress(mx, my, mButton)
 	end
 
 	-- Check if we are in min mode
-	if inMinMode then
+	if uiState.inMinMode then
 		-- Handle middle mouse button even in min mode
 		if mButton == 2 then
 			if interactionState.panToggleMode then
@@ -5972,16 +6188,16 @@ function widget:MousePress(mx, my, mButton)
 
 		-- Was maximize clicked?
 		if mButton == 1 and
-		   mx >= minModeL and mx <= minModeL + math.floor(usedButtonSize*maximizeSizemult) and
-		   my >= minModeB and my <= minModeB + math.floor(usedButtonSize*maximizeSizemult) then
+		   mx >= uiState.minModeL and mx <= uiState.minModeL + math.floor(usedButtonSize*maximizeSizemult) and
+		   my >= uiState.minModeB and my <= uiState.minModeB + math.floor(usedButtonSize*maximizeSizemult) then
 			-- Start maximize animation - restore saved dimensions
 			local buttonSize = math.floor(usedButtonSize*maximizeSizemult)
 
 			-- Temporarily set dimensions to saved values to check if they're valid
-			dim.l = savedDimensions.l
-			dim.r = savedDimensions.r
-			dim.b = savedDimensions.b
-			dim.t = savedDimensions.t
+			dim.l = uiState.savedDimensions.l
+			dim.r = uiState.savedDimensions.r
+			dim.b = uiState.savedDimensions.b
+			dim.t = uiState.savedDimensions.t
 			CorrectScreenPosition()
 
 			-- Update camera to tracked units immediately before maximizing
@@ -5991,21 +6207,21 @@ function widget:MousePress(mx, my, mButton)
 			RecalculateWorldCoordinates()
 			RecalculateGroundTextureCoordinates()
 
-			animStartDim = {
-				l = minModeL,
-				r = minModeL + buttonSize,
-				b = minModeB,
-				t = minModeB + buttonSize
+			uiState.animStartDim = {
+				l = uiState.minModeL,
+				r = uiState.minModeL + buttonSize,
+				b = uiState.minModeB,
+				t = uiState.minModeB + buttonSize
 			}
-			animEndDim = {
+			uiState.animEndDim = {
 				l = dim.l,
 				r = dim.r,
 				b = dim.b,
 				t = dim.t
 			}
-			animationProgress = 0
-			isAnimating = true
-			inMinMode = false
+			uiState.animationProgress = 0
+			uiState.isAnimating = true
+			uiState.inMinMode = false
 			-- Update hover state after maximizing to check if mouse is over the restored PIP
 			interactionState.isMouseOverPip = (mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t)
 			return true
@@ -6050,7 +6266,7 @@ function widget:MousePress(mx, my, mButton)
 
 			-- Resize thing (check first - highest priority)
 			if dim.r-mx + my-dim.b <= usedButtonSize then
-				areResizing = true
+				uiState.areResizing = true
 				return true
 			end
 
@@ -6059,7 +6275,7 @@ function widget:MousePress(mx, my, mButton)
 				local sw, sh = Spring.GetWindowGeometry()
 
 				-- Save current dimensions before minimizing
-				savedDimensions = {
+				uiState.savedDimensions = {
 					l = dim.l,
 					r = dim.r,
 					b = dim.b,
@@ -6080,26 +6296,26 @@ function widget:MousePress(mx, my, mButton)
 				end
 
 				-- Store the target position
-				minModeL = targetL
-				minModeB = targetB
+				uiState.minModeL = targetL
+				uiState.minModeB = targetB
 
 				-- Start minimize animation
 				local buttonSize = math.floor(usedButtonSize*maximizeSizemult)
-				animStartDim = {
+				uiState.animStartDim = {
 					l = dim.l,
 					r = dim.r,
 					b = dim.b,
 					t = dim.t
 				}
-				animEndDim = {
+				uiState.animEndDim = {
 					l = targetL,
 					r = targetL + buttonSize,
 					b = targetB,
 					t = targetB + buttonSize
 				}
-				animationProgress = 0
-				isAnimating = true
-				inMinMode = true
+				uiState.animationProgress = 0
+				uiState.isAnimating = true
+				uiState.inMinMode = true
 
 				-- Clean up R2T textures when minimizing to prevent them from being drawn
 				if pipR2T.contentTex then
@@ -6240,9 +6456,10 @@ function widget:MousePress(mx, my, mButton)
 			-- Don't start single left-click actions if we're already panning with left+right
 			if not interactionState.arePanning then
 				-- Check if alt is held - if so, don't start box selection (panning will be handled in MouseMove)
+				-- Also don't allow box selection when tracking a player's camera
 				local alt, ctrl, meta, shift = Spring.GetModKeyState()
-				if not alt then
-					if leftButtonPansCamera then
+				if not alt and not interactionState.trackingPlayerID then
+					if leftButtonPansCamera and not interactionState.trackingPlayerID then
 					interactionState.arePanning = true
 					interactionState.panStartX = mx
 					interactionState.panStartY = my
@@ -6378,24 +6595,26 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 				end
 			end
 			if interactionState.areFormationDragging then
-				interactionState.areFormationDragging = false
-			end
+			interactionState.areFormationDragging = false
+		end
 
-			-- Start panning
+		-- Start panning (but not when tracking player camera)
+		if not interactionState.trackingPlayerID then
 			interactionState.arePanning = true
 			interactionState.areTracking = nil
 		end
 	end
-
-	-- If middle mouse is pressed but not yet committed to a mode, check if moved
+end	-- If middle mouse is pressed but not yet committed to a mode, check if moved
 	if interactionState.middleMousePressed and not interactionState.arePanning then
 		-- Check if there's actual movement (not just mouse jitter)
 		-- Use a small threshold to distinguish click from drag
 		if math.abs(dx) > 2 or math.abs(dy) > 2 then
 			interactionState.middleMouseMoved = true
-			-- Start hold-drag panning
-			interactionState.arePanning = true
-			interactionState.areTracking = nil
+			-- Start hold-drag panning (but not when tracking player camera)
+			if not interactionState.trackingPlayerID then
+				interactionState.arePanning = true
+				interactionState.areTracking = nil
+			end
 		end
 	end
 
@@ -6428,17 +6647,17 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 					end
 				end
 				if interactionState.areFormationDragging then
-					interactionState.areFormationDragging = false
-				end
+				interactionState.areFormationDragging = false
+			end
 
-				-- Start panning
+			-- Start panning (but not when tracking player camera)
+			if not interactionState.trackingPlayerID then
 				interactionState.arePanning = true
 				interactionState.areTracking = nil
 			end
+			end
 		end
-	end
-
-	if areResizing then
+	end	if uiState.areResizing then
 		if dim.r+dx - dim.l >= math.floor(minPanelSize*widgetScale) then dim.r = dim.r + dx end
 		if dim.t-dy - dim.b >= math.floor(minPanelSize*widgetScale) then dim.b = dim.b + dy end
 		CorrectScreenPosition()
@@ -6461,10 +6680,10 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		local minWcz = visibleWorldHeight / 2 - margin
 		local maxWcz = mapSizeZ - (visibleWorldHeight / 2 - margin)
 
-		wcx = math.min(math.max(wcx, minWcx), maxWcx)
-		wcz = math.min(math.max(wcz, minWcz), maxWcz)
-		targetWcx = wcx
-		targetWcz = wcz
+		cameraState.wcx = math.min(math.max(cameraState.wcx, minWcx), maxWcx)
+		cameraState.wcz = math.min(math.max(cameraState.wcz, minWcz), maxWcz)
+		cameraState.targetWcx = cameraState.wcx
+		cameraState.targetWcz = cameraState.wcz
 		RecalculateWorldCoordinates()
 		RecalculateGroundTextureCoordinates()
 
@@ -6500,9 +6719,9 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			local maxWcz = mapSizeZ - (visibleWorldHeight / 2 - margin)
 
 			-- Apply panning with margin-based limits
-			wcx = math.min(math.max(wcx - dx / zoom, minWcx), maxWcx)
-			wcz = math.min(math.max(wcz + dy / zoom, minWcz), maxWcz)
-			targetWcx, targetWcz = wcx, wcz  -- Panning updates instantly, not smoothly
+			cameraState.wcx = math.min(math.max(cameraState.wcx - dx / zoom, minWcx), maxWcx)
+			cameraState.wcz = math.min(math.max(cameraState.wcz + dy / zoom, minWcz), maxWcz)
+			cameraState.targetWcx, cameraState.targetWcz = cameraState.wcx, cameraState.wcz  -- Panning updates instantly, not smoothly
 			RecalculateWorldCoordinates()
 			RecalculateGroundTextureCoordinates()
 
@@ -6627,7 +6846,7 @@ function widget:MouseRelease(mx, my, mButton)
 	-- Handle single left-click on empty space when using left-button panning mode
 	-- Must do this AFTER panning stops but BEFORE we clear button states
 	-- In panning mode, no box selection is started, so we need to handle deselection here
-	if mButton == 1 and mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t and not inMinMode and leftButtonPansCamera then
+	if mButton == 1 and mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t and not uiState.inMinMode and leftButtonPansCamera then
 		-- Check if this was a very short click (indicating panning was not actually used to pan)
 		local minDragDistance = 5
 		local dragDistX = math.abs(mx - interactionState.panStartX)
@@ -6931,7 +7150,7 @@ function widget:MouseRelease(mx, my, mButton)
 		interactionState.buildDragPositions = {}
 	end
 
-	areResizing = false
+	uiState.areResizing = false
 	interactionState.areDragging = false
 
 	-- Handle middle mouse release
