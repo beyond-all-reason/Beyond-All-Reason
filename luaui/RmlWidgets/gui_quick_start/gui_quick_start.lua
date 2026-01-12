@@ -147,21 +147,34 @@ local function getCachedGameRules()
 	return cachedGameRules
 end
 
+local function createBuildRangeCircleDisplayList(commanderX, commanderZ, buildRadius)
+	return gl.CreateList(function()
+		gl.LineWidth(2)
+		gl.Color(1.0, 0.0, 1.0, 0.7)
+		local y = Spring.GetGroundHeight(commanderX, commanderZ) + 10
+		gl.DrawGroundCircle(commanderX, y, commanderZ, buildRadius, 64)
+		gl.Color(1, 1, 1, 1)
+		gl.LineWidth(1)
+	end)
+end
+
 local function updateDisplayList(commanderX, commanderZ)
 	if overlapLinesDisplayList then
 		gl.DeleteList(overlapLinesDisplayList)
 		overlapLinesDisplayList = nil
 	end
 	
-	if #cachedOverlapLines == 0 then
-		return
-	end
-	
 	local gameRules = getCachedGameRules()
 	local buildRadius = gameRules.instantBuildRange or DEFAULT_INSTANT_BUILD_RANGE
 	
+	if #cachedOverlapLines == 0 then
+		overlapLinesDisplayList = createBuildRangeCircleDisplayList(commanderX, commanderZ, buildRadius)
+		return
+	end
+	
 	local drawingSegments = overlapLines.getDrawingSegments(cachedOverlapLines, commanderX, commanderZ, buildRadius)
 	if not drawingSegments or #drawingSegments == 0 then
+		overlapLinesDisplayList = createBuildRangeCircleDisplayList(commanderX, commanderZ, buildRadius)
 		return
 	end
 
@@ -323,7 +336,7 @@ local function updateTraversabilityGrid()
 		end
 
 		cachedOverlapLines = newOverlapLines
-		hasOverlapLines = #newOverlapLines > 0
+		hasOverlapLines = true
 		updateDisplayList(commanderX, commanderZ)
 		
 		lastCommanderX = commanderX
