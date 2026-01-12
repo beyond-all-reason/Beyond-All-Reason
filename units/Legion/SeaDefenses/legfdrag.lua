@@ -1,6 +1,5 @@
 return {
 	legfdrag = {
-		autoheal = 4,
 		blocking = true,
 		buildangle = 8192,
 		buildpic = "legfdrag.DDS",
