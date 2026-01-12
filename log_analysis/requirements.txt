@@ -1,7 +1,0 @@
-numpy
-pandas
-plotly
-dash
-dash-bootstrap-components
-websockets
-kaleido
