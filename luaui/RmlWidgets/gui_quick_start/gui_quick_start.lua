@@ -274,7 +274,16 @@ local function updateTraversabilityGrid()
 	end
 
 	local commanderX, commanderY, commanderZ = Spring.GetTeamStartPosition(myTeamID)
-	if commanderX == -100 then
+	-- Returns 0, 0, 0 when none chosen (was -100, -100, -100 previously)
+	local startChosen = (commanderX ~= 0) or (commanderY ~= 0) or (commanderZ ~= 0)
+	if not startChosen then
+		-- Clear display list if start position was unselected
+		if overlapLinesDisplayList then
+			gl.DeleteList(overlapLinesDisplayList)
+			overlapLinesDisplayList = nil
+		end
+		lastCommanderX = nil
+		lastCommanderZ = nil
 		return
 	end
 	
