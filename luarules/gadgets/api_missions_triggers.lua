@@ -14,7 +14,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local actionsDispatcher, trackedUnits
+local actionsDispatcher, trackedUnitIDsByName , trackedUnitNamesByID
 
 local types, triggers
 
@@ -91,7 +91,8 @@ function gadget:Initialize()
 	actionsDispatcher = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
 	types = GG['MissionAPI'].TriggerTypes
 	triggers = GG['MissionAPI'].Triggers
-	trackedUnits = GG['MissionAPI'].TrackedUnits
+	trackedUnitIDsByName = GG['MissionAPI'].TrackedUnitIDsByName
+	trackedUnitNamesByID = GG['MissionAPI'].TrackedUnitNamesByID
 end
 
 function gadget:GameFrame(n)
@@ -108,7 +109,7 @@ function gadget:MetaUnitAdded(unitId, unitDefId, unitTeam)
 			local unitName = trigger.parameters.unitName
 			local unitDefName = trigger.parameters.unitDefName
 
-			if (unitName and table.contains(trackedUnits[unitId], unitName)) or unitDefName == unitDefId.name then
+			if (unitName and table.contains(trackedUnitNamesByID[unitID], unitName)) or unitDefName == UnitDefs[unitDefId].name then
 				activateTrigger(trigger)
 			end
 		end
@@ -123,14 +124,14 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 
 	-- Remove destroyed tracked units
-	if not trackedUnits[unitID] or #trackedUnits[unitID] == 0 then return end
+	if not trackedUnitNamesByID[unitID] or #trackedUnitNamesByID[unitID] == 0 then return end
 
-	for _, name in ipairs(trackedUnits[unitID]) do
-		table.removeAll(trackedUnits[name], unitID)
-		if #trackedUnits[name] == 0 then trackedUnits[name] = nil end
+	for _, name in ipairs(trackedUnitNamesByID[unitID]) do
+		table.removeAll(trackedUnitIDsByName[name], unitID)
+		if #trackedUnitIDsByName[name] == 0 then trackedUnitIDsByName[name] = nil end
 	end
 
-	trackedUnits[unitID] = nil
+	trackedUnitNamesByID[unitID] = nil
 end
 
 function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)

@@ -1,4 +1,5 @@
-local trackedUnits = GG['MissionAPI'].TrackedUnits
+local trackedUnitIDsByName = GG['MissionAPI'].TrackedUnitIDsByName
+local trackedUnitNamesByID = GG['MissionAPI'].TrackedUnitNamesByID
 local triggers = GG['MissionAPI'].Triggers
 
 
@@ -7,17 +8,17 @@ local triggers = GG['MissionAPI'].Triggers
 ----------------------------------------------------------------
 
 local function isNameUntracked(name)
-	return not trackedUnits[name] or #trackedUnits[name] == 0
+	return not trackedUnitIDsByName[name] or #trackedUnitIDsByName[name] == 0
 end
 
 local function trackUnit(name, unitID)
 	if not name or not unitID then return end
 
-	if not trackedUnits[name] then trackedUnits[name] = {} end
-	if not trackedUnits[unitID] then trackedUnits[unitID] = {} end
+	if not trackedUnitIDsByName[name] then trackedUnitIDsByName[name] = {} end
+	if not trackedUnitNamesByID[unitID] then trackedUnitNamesByID[unitID] = {} end
 
-	trackedUnits[name][#trackedUnits[name] + 1] = unitID
-	trackedUnits[unitID][#trackedUnits[unitID] + 1] = name
+	trackedUnitIDsByName[name][#trackedUnitIDsByName[name] + 1] = unitID
+	trackedUnitNamesByID[unitID][#trackedUnitNamesByID[unitID] + 1] = name
 end
 
 local function generateGridPositions(center, quantity, xSpacing, zSpacing)
@@ -54,7 +55,7 @@ end
 local function issueOrders(name, orders)
     if isNameUntracked(name) then return end
 
-	Spring.GiveOrderArrayToUnitArray(trackedUnits[name], orders)
+	Spring.GiveOrderArrayToUnitArray(trackedUnitIDsByName[name], orders)
 end
 
 local function spawnUnits(name, unitDefName, teamID, position, quantity, facing, construction)
@@ -84,7 +85,7 @@ end
 local function despawnUnits(name, selfDestruct, reclaimed)
 	if isNameUntracked(name) then return end
 
-	local unitIDs = table.copy(trackedUnits[name])
+	local unitIDs = table.copy(trackedUnitIDsByName[name])
 	local quantity = #unitIDs
 	for i = quantity, 1, -1 do
 		Spring.DestroyUnit(unitIDs[i], selfDestruct, reclaimed)
@@ -96,14 +97,14 @@ end
 local function transferUnits(name, newTeam, given)
 	if isNameUntracked(name) then return end
 
-	for _, unitID in pairs(trackedUnits[name]) do
+	for _, unitID in pairs(trackedUnitIDsByName[name]) do
 		Spring.TransferUnit(unitID, newTeam, given)
 	end
 end
 
 local function nameUnits(name, teamID, unitDefName, rectangle)
 
-	if name and not trackedUnits[name] then trackedUnits[name] = {} end
+	if name and not trackedUnitIDsByName[name] then trackedUnitIDsByName[name] = {} end
 
 	local unitsFromTeam = {}
 	if teamID then
@@ -142,11 +143,11 @@ end
 local function unnameUnits(name)
 	if isNameUntracked(name) then return end
 
-	for _, unitID in pairs(trackedUnits[name]) do
-		table.removeAll(trackedUnits[unitID], name)
-		if #trackedUnits[unitID] == 0 then trackedUnits[unitID] = nil end
+	for _, unitID in pairs(trackedUnitIDsByName[name]) do
+		table.removeAll(trackedUnitNamesByID[unitID], name)
+		if #trackedUnitNamesByID[unitID] == 0 then trackedUnitNamesByID[unitID] = nil end
 	end
-	trackedUnits[name] = nil
+	trackedUnitIDsByName[name] = nil
 end
 
 local function spawnExplosion(position, direction, params)
