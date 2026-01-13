@@ -16,13 +16,15 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitTeam = Spring.GetUnitTeam
 
 local CMD_GUARD = CMD.GUARD
 local CMD_REPAIR = CMD.REPAIR
-local CMD_INSERT = CMD.INSERT
 local CMD_MOVESTATE = CMD.MOVE_STATE
+local CMD_INSERT = CMD.INSERT
 
 local gaiaTeam = Spring.GetGaiaTeamID()
 
@@ -32,8 +34,13 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 end
 
 local function isComplete(unitID)
-	local beingBuilt, buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
+	local beingBuilt, buildProgress = spGetUnitIsBeingBuilt(unitID)
 	return not beingBuilt or buildProgress >= 1
+end
+
+local function isAlliedUnit(teamID, unitID)
+	local unitTeam = spGetUnitTeam(unitID)
+	return unitTeam and teamID ~= unitTeam and spAreTeamsAllied(teamID, unitTeam)
 end
 
 function gadget:Initialize()
@@ -70,12 +77,8 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	-- Disallow guard commands onto labs, units that have buildOptions or can assist
 	if cmdID == CMD_GUARD then
 		local targetID = cmdParams[1]
-		local targetTeam = Spring.GetUnitTeam(targetID)
-
-		if targetTeam and unitTeam ~= Spring.GetUnitTeam(targetID) and Spring.AreTeamsAllied(unitTeam, targetTeam) then
-			if canBuildStep[Spring.GetUnitDefID(targetID)] then
-				return false
-			end
+		if isAlliedUnit(unitTeam, targetID) and canBuildStep[spGetUnitDefID(targetID)] then
+			return false
 		end
 		return true
 	end
@@ -84,12 +87,8 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	-- Area repair doesn't cause assisting, so it's fine that we can't properly filter it
 	if cmdID == CMD_REPAIR and #cmdParams == 1 then
 		local targetID = cmdParams[1]
-		local targetTeam = Spring.GetUnitTeam(targetID)
-
-		if targetTeam and unitTeam ~= Spring.GetUnitTeam(targetID) and Spring.AreTeamsAllied(unitTeam, targetTeam) then
-			if not isComplete(targetID) then
-				return false
-			end
+		if isAlliedUnit(unitTeam, targetID) and not isComplete(targetID) then
+			return false
 		end
 		return true
 	end
@@ -109,7 +108,7 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 		local GetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 		for index = 1, Spring.GetUnitCommandCount(unitID) do
 			command, _, tag, p1, p2 = GetUnitCurrentCommand(unitID, index)
-			if (command == CMD_GUARD or command == CMD_REPAIR) and (p1 and not p2) and spGetUnitTeam(p1) ~= newTeam then
+			if (command == CMD_GUARD or command == CMD_REPAIR) and (p1 and not p2) and isAlliedUnit(newTeam, p1) then
 				if not isComplete(p1) or (command == CMD_GUARD and canBuildStep[spGetUnitDefID(p1)]) then
 					count = count + 1
 					tags[count] = tag
