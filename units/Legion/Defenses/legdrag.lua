@@ -18,8 +18,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		levelground = false,
 		health = 2800,
 		maxslope = 64,

@@ -16,8 +16,6 @@ return {
 		explodeas = "smallExplosionGeneric-phib",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 1340,
 		maxslope = 15,

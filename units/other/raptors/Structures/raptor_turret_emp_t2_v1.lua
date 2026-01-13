@@ -24,8 +24,6 @@ return {
 		--extractsmetal = 0.001,
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		levelground = false,
 		mass = 700,
 		health = 1670,

@@ -25,8 +25,6 @@ return {
 		floater = true,
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		levelground = false,
 		mass = 749,
 		health = 44500,

@@ -26,8 +26,6 @@ return {
 		floater = false,
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		initcloaked = 1,
 		leavetracks = true,
 		maneuverleashlength = "750",

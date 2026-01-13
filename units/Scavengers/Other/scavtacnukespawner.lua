@@ -16,8 +16,6 @@ return {
 		collisionvolumetype = "box",
 		footprintx = 0,
 		footprintz = 0,
-		idleautoheal = 5,
-		idletime = 1800,
 		levelground = false,
 		mass = 10,
 		health = 11,

@@ -15,8 +15,6 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		health = 280,
-		idleautoheal = 5,
-		idletime = 1800,
 		initcloaked = true,
 		levelground = false,
 		maxacc = 0,
