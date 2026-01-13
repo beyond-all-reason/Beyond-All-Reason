@@ -828,9 +828,34 @@ function widget:Update(delta)
 		updateCounter = updateCounter + 1
 		if updateCounter % 30 == 0 then
 			local currentPlacements = {}
+			local teamList = spGetTeamList()
 			
-			for _, teamID in ipairs(spGetTeamList()) do
+			for _, teamID in ipairs(teamList) do
 				if teamID ~= gaiaTeamID then
+					local _, _, _, isAI = Spring.GetTeamInfo(teamID, false)
+					if isAI then
+						local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
+						if startX and startZ and startX > 0 and startZ > 0 then
+							aiPlacedPositions[teamID] = {x = startX, z = startZ}
+							aiPlacementStatus[teamID] = true
+						else
+							local aiManualPlacement = Spring.GetTeamRulesParam(teamID, "aiManualPlacement")
+							if aiManualPlacement then
+								local mx, mz = string.match(aiManualPlacement, "([%d%.]+),([%d%.]+)")
+								if mx and mz then
+									aiPlacedPositions[teamID] = {x = tonumber(mx), z = tonumber(mz)}
+									aiPlacementStatus[teamID] = true
+								else
+									aiPlacedPositions[teamID] = nil
+									aiPlacementStatus[teamID] = false
+								end
+							else
+								aiPlacedPositions[teamID] = nil
+								aiPlacementStatus[teamID] = false
+							end
+						end
+					end
+
 					local x, y, z = Spring.GetTeamStartPosition(teamID)
 					local playerID = select(2, Spring.GetTeamInfo(teamID, false))
 					if coopStartPoints[playerID] then
@@ -871,7 +896,7 @@ function widget:Update(delta)
 					startPointTable[teamID] = {placement.x, placement.z}
 				end
 				
-				for _, teamID in ipairs(spGetTeamList()) do
+				for _, teamID in ipairs(teamList) do
 					if teamID ~= gaiaTeamID then
 						local _, _, _, isAI, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
 						if isAI and not aiPlacedPositions[teamID] and (allyTeamID == myAllyTeamID or isSpec or Spring.IsCheatingEnabled() or allowEnemyAIPlacement) then
@@ -891,36 +916,6 @@ function widget:Update(delta)
 				
 				if hasChanges then
 					notifySpawnPositionsChanged()
-				end
-			end
-		end
-
-		if updateCounter % 30 == 0 then
-			for _, teamID in ipairs(spGetTeamList()) do
-				if teamID ~= gaiaTeamID then
-					local _, _, _, isAI = Spring.GetTeamInfo(teamID, false)
-					if isAI then
-						local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
-						if startX and startZ and startX > 0 and startZ > 0 then
-							aiPlacedPositions[teamID] = {x = startX, z = startZ}
-							aiPlacementStatus[teamID] = true
-						else
-							local aiManualPlacement = Spring.GetTeamRulesParam(teamID, "aiManualPlacement")
-							if aiManualPlacement then
-								local mx, mz = string.match(aiManualPlacement, "([%d%.]+),([%d%.]+)")
-								if mx and mz then
-									aiPlacedPositions[teamID] = {x = tonumber(mx), z = tonumber(mz)}
-									aiPlacementStatus[teamID] = true
-								else
-									aiPlacedPositions[teamID] = nil
-									aiPlacementStatus[teamID] = false
-								end
-							else
-								aiPlacedPositions[teamID] = nil
-								aiPlacementStatus[teamID] = false
-							end
-						end
-					end
 				end
 			end
 		end
