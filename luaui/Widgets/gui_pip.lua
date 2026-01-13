@@ -754,8 +754,8 @@ local function UpdatePlayerTracking()
 			local stateChanged = false
 			if cameraState.lastTrackedCameraState then
 				-- Compare key camera parameters to detect significant changes
-				local posThreshold = 100  -- Position change threshold (elmos)
-				local zoomThreshold = 0.05  -- Zoom change threshold
+				local posThreshold = 200  -- Position change threshold (elmos)
+				local zoomThreshold = 0.08  -- Zoom change threshold
 
 				-- Check position change
 				local lastX = cameraState.lastTrackedCameraState.px or cameraState.lastTrackedCameraState.x or 0
@@ -790,6 +790,12 @@ local function UpdatePlayerTracking()
 				camX, camY, camZ = playerCamState.px, playerCamState.py, playerCamState.pz
 			elseif playerCamState.x then
 				camX, camY, camZ = playerCamState.x, playerCamState.y, playerCamState.z
+			end
+
+			-- Validate camera position - if invalid, skip this update and use last known position
+			if not (camX and camZ and camX > 0 and camZ > 0 and camX < mapSizeX and camZ < mapSizeZ) then
+				-- Invalid camera state, don't update anything this frame
+				return
 			end
 
 			if camX and camZ then
@@ -833,21 +839,36 @@ local function UpdatePlayerTracking()
 				local zoomValue = nil
 
 				-- First priority: use dist if available (spring/ta camera)
-				if dist and dist > 0 and dist < 10000 then
+				-- Validate dist is reasonable (100-8000 range, not extreme values)
+				if dist and dist > 100 and dist < 8000 then
 					-- Spring camera distance scales inversely with zoom
 					-- Typical range: 500-3000, map to our zoom range
-					zoomValue = math.max(zoomMin, math.min(zoomMax, 400 / dist))
+					zoomValue = 400 / dist
+					-- Only use if result is within valid zoom range
+					if zoomValue < zoomMin or zoomValue > zoomMax then
+						zoomValue = nil
+					end
 				end
 
 				-- Second priority: use height if dist not available
-				if not zoomValue and height and height > 0 and height < 5000 then
+				-- Validate height is reasonable (100-6000 range)
+				if not zoomValue and height and height > 100 and height < 6000 then
 					-- Camera height scales inversely with zoom
-					zoomValue = math.max(zoomMin, math.min(zoomMax, 300 / height))
+					zoomValue = 300 / height
+					-- Only use if result is within valid zoom range
+					if zoomValue < zoomMin or zoomValue > zoomMax then
+						zoomValue = nil
+					end
 				end
 
-				-- Apply zoom if we calculated one
+				-- Apply zoom if we calculated one, but only if change is significant
+				-- This prevents jitter from small floating-point variations
 				if zoomValue then
-					cameraState.targetZoom = zoomValue
+					local zoomChangeThreshold = 0.05  -- Only update if zoom changes by more than 5%
+					local zoomDiff = math.abs(zoomValue - cameraState.targetZoom)
+					if zoomDiff > (cameraState.targetZoom * zoomChangeThreshold) then
+						cameraState.targetZoom = zoomValue
+					end
 				end
 			end
 		end
@@ -4069,6 +4090,73 @@ local function DrawUnitsAndFeatures()
 
 	-- Draw icons (when zoomed out)
 	local iconRadiusZoomDistMult = DrawIcons()
+
+	-- Draw ally cursors
+	if WG['allycursors'] and WG['allycursors'].getCursor and interactionState.trackingPlayerID then
+		local cursor, isNotIdle = WG['allycursors'].getCursor(interactionState.trackingPlayerID)
+		if cursor and isNotIdle then
+			local wx, wz = cursor[1], cursor[3]
+			local cx, cy = WorldToPipCoords(wx, wz)
+			local opacity = cursor[7] or 1
+
+			-- Get player's team color
+			local _, _, _, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+			if teamID then
+				local r, g, b = Spring.GetTeamColor(teamID)
+				-- Scale cursor size: larger at low zoom, stays reasonable at high zoom
+				local cursorSize = math.max(iconRadiusZoomDistMult, iconRadiusZoomDistMult * 2 - (zoom * 15)) * 1.4
+
+				-- Draw crosshair lines to PIP boundaries (stop at cursor edge)
+				gl.Color(r*1.5+0.3, g*1.5+0.3, b*1.5+0.3, 0.08)
+				gl.LineWidth(vsy / 600)
+				gl.BeginEnd(GL_LINES, function()
+					-- Horizontal line (left to cursor)
+					glVertex(0, cy)
+					glVertex(cx - cursorSize, cy)
+					-- Horizontal line (cursor to right)
+					glVertex(cx + cursorSize, cy)
+					glVertex(dim.r - dim.l, cy)
+					-- Vertical line (bottom to cursor)
+					glVertex(cx, 0)
+					glVertex(cx, cy - cursorSize)
+					-- Vertical line (cursor to top)
+					glVertex(cx, cy + cursorSize)
+					glVertex(cx, dim.t - dim.b)
+				end)
+
+				-- Draw cursor as broken circle (4 arcs with 4 gaps)
+				-- Each arc is 1/8 of circle, each gap is 1/8 of circle
+				-- Arcs centered at top (90°), right (0°), bottom (270°), left (180°)
+				gl.Color(r*1.5+0.3, g*1.5+0.3, b*1.5+0.3, 0.6)
+				gl.LineWidth(vsy / 600)
+				local segments = 32
+				local pi = math.pi
+
+				-- Define 4 arcs: each arc is 45° (pi/4), centered at cardinal directions
+				local arcs = {
+					{pi/2 - pi/8, pi/2 + pi/8},      -- Top arc (centered at 90°)
+					{0 - pi/8, 0 + pi/8},             -- Right arc (centered at 0°)
+					{3*pi/2 - pi/8, 3*pi/2 + pi/8},  -- Bottom arc (centered at 270°)
+					{pi - pi/8, pi + pi/8}            -- Left arc (centered at 180°)
+				}
+
+				for _, arc in ipairs(arcs) do
+					gl.BeginEnd(GL.LINE_STRIP, function()
+						local startAngle, endAngle = arc[1], arc[2]
+						local arcSegments = math.floor(segments / 8) -- 1/8 of circle for each arc
+						for i = 0, arcSegments do
+							local t = i / arcSegments
+							local angle = startAngle + (endAngle - startAngle) * t
+							local x = cx + math.cos(angle) * cursorSize
+							local y = cy + math.sin(angle) * cursorSize
+							glVertex(x, y)
+						end
+					end)
+				end
+				gl.LineWidth(1.0)
+			end
+		end
+	end
 
 	-- Draw build previews
 	local mx, my = spGetMouseState()
