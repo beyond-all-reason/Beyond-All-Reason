@@ -41,6 +41,8 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	canBuildStep[unitDefID] = unitDef.isFactory or (unitDef.isBuilder and (unitDef.canBuild or unitDef.canAssist))
 end
 
+local givenBuildStepUnit = {} -- Delay validating given units so the order of calls to UnitGiven does not matter.
+
 local function isComplete(unitID)
 	local beingBuilt, buildProgress = spGetUnitIsBeingBuilt(unitID)
 	return not beingBuilt or buildProgress >= 1
@@ -123,6 +125,22 @@ end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if newTeam ~= gaiaTeam and canBuildStep[unitDefID] then
-		validateCommands(unitID, newTeam)
+		givenBuildStepUnit[unitID] = newTeam
+	end
+end
+
+local function _GameFramePost(unitList)
+	local GetUnitIsDead = Spring.GetUnitIsDead
+	for unitID, newTeam in pairs(unitList) do
+		unitList[unitID] = nil
+		if GetUnitIsDead(unitID) == false then
+			validateCommands(unitID, newTeam)
+		end
+	end
+end
+function gadget:GameFramePost()
+	-- We rarely need to call this function:
+	if next(givenBuildStepUnit) then
+		_GameFramePost(givenBuildStepUnit)
 	end
 end
