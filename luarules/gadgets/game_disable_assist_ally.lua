@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date    = 'April 2024',
 		license = 'GNU GPL, v2 or later',
 		layer   = 0,
-		enabled = Spring.GetModOptions().disable_assist_ally_construction or Spring.GetModOptions().easytax,
+		enabled = true, --Spring.GetModOptions().disable_assist_ally_construction or Spring.GetModOptions().easytax,
 	}
 end
 
@@ -179,6 +179,7 @@ local function AllowUnitBuildStep(self, builderID, builderTeam, unitID, unitDefI
     if part > 0 and builderTeam ~= spGetUnitTeam(unitID) then
 		checkUnitCommandList[builderID] = builderTeam
     end
+	return true
 end
 
 local seed = math.random(91, 119) -- skip spawn-in frames
