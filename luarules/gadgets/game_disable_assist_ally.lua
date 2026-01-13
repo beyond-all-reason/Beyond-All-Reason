@@ -28,12 +28,6 @@ local CMD_MOVESTATE = CMD.MOVE_STATE
 local MOVESTATE_ROAM = CMD.MOVESTATE_ROAM
 local CMD_INSERT = CMD.INSERT
 
-local insertedCommands = {
-	[CMD_GUARD] = true,
-	[CMD_REPAIR] = true,
-	[CMD_MOVESTATE] = true,
-}
-
 local gaiaTeam = Spring.GetGaiaTeamID()
 
 local canBuildStep = {} -- i.e. anything that spends resources when assisted
@@ -89,6 +83,11 @@ end
 
 local PARAM = table.new(6, 0) -- need to check up to 5+1 arguments
 local EMPTY = {}
+local insertedCommands = {
+	[CMD_GUARD] = true,
+	[CMD_REPAIR] = true,
+	[CMD_MOVESTATE] = true,
+}
 
 local function resolveCommand(cmdParams)
 	local cmdID = cmdParams[1] or 0
