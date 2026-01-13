@@ -28,6 +28,12 @@ local CMD_MOVESTATE = CMD.MOVE_STATE
 local MOVESTATE_ROAM = CMD.MOVESTATE_ROAM
 local CMD_INSERT = CMD.INSERT
 
+-- Local state
+
+local builderMoveStateCmdDesc = {
+	params = { 1, "Hold pos", "Maneuver", --[["Roam"]] },
+}
+
 local gaiaTeam = Spring.GetGaiaTeamID()
 
 local canBuildStep = {} -- i.e. anything that spends resources when assisted
@@ -36,6 +42,18 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 end
 
 local checkUnitCommandList = {} -- Delay validating given units so the order of calls to UnitGiven does not matter.
+
+-- Local functions
+
+local function removeRoamMoveState(unitID)
+	local index = Spring.FindUnitCmdDesc(unitID, CMD_MOVESTATE)
+	if index then
+		local moveState = select(2, Spring.GetUnitStates(unitID, false))
+		local params = builderMoveStateCmdDesc.params
+		params[1] = math.min(moveState or 1, MOVESTATE_ROAM - 1)
+		Spring.EditUnitCmdDesc(unitID, index, builderMoveStateCmdDesc)
+	end
+end
 
 local function isComplete(unitID)
 	local beingBuilt, buildProgress = spGetUnitIsBeingBuilt(unitID)
@@ -103,11 +121,23 @@ local function resolveCommand(cmdParams)
 	return cmdID, cmdParams
 end
 
+-- Engine call-ins
+
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_GUARD)
 	gadgetHandler:RegisterAllowCommand(CMD_REPAIR)
 	gadgetHandler:RegisterAllowCommand(CMD_INSERT)
 	gadgetHandler:RegisterAllowCommand(CMD_MOVESTATE)
+end
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	if canBuildStep[unitDefID] then
+		removeRoamMoveState(unitID)
+	end
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	checkUnitCommandList[unitID] = nil
 end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
