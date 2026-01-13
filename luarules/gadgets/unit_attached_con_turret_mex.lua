@@ -38,7 +38,7 @@ local function swapMex(unitID, unitDefID, unitTeam)
 	local buildTime, metalCost, energyCost = Spring.GetUnitCosts(unitID)
 	local neutral = Spring.GetUnitNeutral(unitID)
 	local health = Spring.GetUnitHealth(unitID)																-- saves location, rotation, cost and health of mex
-	local original = Spring.GetUnitNearestAlly(unitID)
+	local original = Spring.GetUnitNearestAlly(unitID, 32)
 	local orgExtractMetal = 0
 	if original then
 		local orgbuildTime, orgmetalCost, orgenergyCost = Spring.GetUnitCosts(original)							-- gets metal cost of thing you are building over
