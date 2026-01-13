@@ -50,19 +50,21 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_MOVESTATE)
 end
 
-local params = { 0, 0, 0 }
-local EMPTY = {} -- stupid
+local PARAM = table.new(6, 0) -- need to check up to 5+1 arguments
+local EMPTY = {}
 
-local function resolveCommand(cmdID, cmdParams)
-	local p = params
-	p[1], p[2], p[3] = cmdParams[4], cmdParams[5], cmdParams[6]
-	cmdID, cmdParams = cmdParams[1], p
-
-	if cmdID ~= CMD_GUARD and cmdID ~= CMD_REPAIR then
-		return 0, EMPTY
+local function resolveCommand(cmdParams)
+	local cmdID = cmdParams[1] or 0
+	if insertedCommands[cmdID] then
+		local p = PARAM
+		for i = 1, 6 do
+			p[i] = cmdParams[i + 3]
+		end
+		cmdParams = p
 	else
-		return cmdID, cmdParams
+		cmdID, cmdParams = 0, EMPTY
 	end
+	return cmdID, cmdParams
 end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
@@ -71,7 +73,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	end
 
 	if cmdID == CMD_INSERT then
-		cmdID, cmdParams = resolveCommand(cmdID, cmdParams)
+		cmdID, cmdParams = resolveCommand(cmdParams)
 	end
 
 	-- Disallow guard commands onto labs, units that have buildOptions or can assist
