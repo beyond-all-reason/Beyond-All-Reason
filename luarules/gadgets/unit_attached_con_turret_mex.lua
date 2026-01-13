@@ -46,10 +46,10 @@ local function swapMex(unitID, unitDefID, unitTeam)
 		local extractMetal = Spring.GetUnitMetalExtraction(unitID)
 
 		if Spring.GetUnitIsDead(unitID) == false then																-- if you build this over something then it doesnt remove mex, this removes and reclaims it
+			orgExtractMetal = Spring.GetUnitMetalExtraction(original)
 			Spring.DestroyUnit(unitID, false, true)
 			Spring.AddTeamResource(unitTeam, "metal", metalCost)
 			Spring.UseTeamResource(unitTeam, "metal", orgmetalCost)												-- for some reason the unit you build it over gets reclaimed twice, this removes the excess
-			orgExtractMetal = Spring.GetUnitMetalExtraction(original)
 		end
 		Spring.UseTeamResource(unitTeam, "metal", metalCost)												-- creating imex reclaims mex, this removes the metal that would give. DestroyUnit doesnt prevent the reclaim
 		if not imex_id then																					-- check incase the imex fails to spawn, removes and refunds the unit
