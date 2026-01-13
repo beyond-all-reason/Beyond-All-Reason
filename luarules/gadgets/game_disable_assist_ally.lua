@@ -17,6 +17,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local spAreTeamsAllied = Spring.AreTeamsAllied
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitTeam = Spring.GetUnitTeam
@@ -24,7 +25,14 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local CMD_GUARD = CMD.GUARD
 local CMD_REPAIR = CMD.REPAIR
 local CMD_MOVESTATE = CMD.MOVE_STATE
+local MOVESTATE_ROAM = CMD.MOVESTATE_ROAM
 local CMD_INSERT = CMD.INSERT
+
+local insertedCommands = {
+	[CMD_GUARD] = true,
+	[CMD_REPAIR] = true,
+	[CMD_MOVESTATE] = true,
+}
 
 local gaiaTeam = Spring.GetGaiaTeamID()
 
@@ -41,6 +49,40 @@ end
 local function isAlliedUnit(teamID, unitID)
 	local unitTeam = spGetUnitTeam(unitID)
 	return unitTeam and teamID ~= unitTeam and spAreTeamsAllied(teamID, unitTeam)
+end
+
+-- Awkward, because we get the params in a table format ~half the time.
+local function isBuilderAllowedCommand(cmdID, p1, p2, p5, p6, unitTeam)
+	if cmdID == CMD_GUARD then
+		return not isAlliedUnit(unitTeam, p1) or (isComplete(p1) and not canBuildStep[spGetUnitDefID(p1)])
+	elseif cmdID == CMD_REPAIR then
+		if p6 or (not p5 and p2) or not p1 then
+			return true -- Area Repair is okay.
+		end
+		return not isAlliedUnit(unitTeam, p1) or (isComplete(p1))
+	elseif cmdID == CMD_MOVESTATE then
+		return p1 ~= MOVESTATE_ROAM
+	else
+		return true
+	end
+end
+
+local function validateCommands(unitID, unitTeam)
+	local GetUnitCurrentCommand = spGetUnitCurrentCommand
+	local tags, count = {}, 0
+	local command, _, tag, p1, p2, p5, p6
+
+	for index = 1, Spring.GetUnitCommandCount(unitID) do
+		command, _, tag, p1, p2, _, _, p5, p6 = GetUnitCurrentCommand(unitID, index)
+		if not isBuilderAllowedCommand(command, p1, p2, p5, p6, unitTeam) then
+			count = count + 1
+			tags[count] = tag
+		end
+	end
+
+	if count > 0 then
+		Spring.GiveOrderToUnit(unitID, CMD.REMOVE, tags)
+	end
 end
 
 function gadget:Initialize()
@@ -76,49 +118,11 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		cmdID, cmdParams = resolveCommand(cmdParams)
 	end
 
-	-- Disallow guard commands onto labs, units that have buildOptions or can assist
-	if cmdID == CMD_GUARD then
-		local targetID = cmdParams[1]
-		if isAlliedUnit(unitTeam, targetID) and canBuildStep[spGetUnitDefID(targetID)] then
-			return false
-		end
-		return true
-	end
-
-	-- Also disallow assisting building (caused by a repair command) units under construction
-	-- Area repair doesn't cause assisting, so it's fine that we can't properly filter it
-	if cmdID == CMD_REPAIR and #cmdParams == 1 then
-		local targetID = cmdParams[1]
-		if isAlliedUnit(unitTeam, targetID) and not isComplete(targetID) then
-			return false
-		end
-		return true
-	end
-
-	-- Disallow setting builders to roam because roam + fight lets them assist a
-	if cmdID == CMD_MOVESTATE and cmdParams[1] == 2 then
-		return false
-	end
-
-	return true
+	return isBuilderAllowedCommand(cmdID, cmdParams[1], cmdParams[2], cmdParams[5], cmdParams[6], unitTeam)
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if newTeam ~= gaiaTeam and canBuildStep[unitDefID] then
-		local tags, count = {}, 0
-		local command, _, tag, p1, p2
-		local GetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-		for index = 1, Spring.GetUnitCommandCount(unitID) do
-			command, _, tag, p1, p2 = GetUnitCurrentCommand(unitID, index)
-			if (command == CMD_GUARD or command == CMD_REPAIR) and (p1 and not p2) and isAlliedUnit(newTeam, p1) then
-				if not isComplete(p1) or (command == CMD_GUARD and canBuildStep[spGetUnitDefID(p1)]) then
-					count = count + 1
-					tags[count] = tag
-				end
-			end
-		end
-		if count > 0 then
-			Spring.GiveOrderToUnit(unitID, CMD.REMOVE, tags)
-		end
+		validateCommands(unitID, newTeam)
 	end
 end
