@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date    = 'April 2024',
 		license = 'GNU GPL, v2 or later',
 		layer   = 0,
-		enabled = true, --Spring.GetModOptions().disable_assist_ally_construction or Spring.GetModOptions().easytax,
+		enabled = Spring.GetModOptions().disable_assist_ally_construction or Spring.GetModOptions().easytax,
 	}
 end
 
