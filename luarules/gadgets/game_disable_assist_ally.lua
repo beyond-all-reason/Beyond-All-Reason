@@ -41,7 +41,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	canBuildStep[unitDefID] = unitDef.isFactory or (unitDef.isBuilder and (unitDef.canBuild or unitDef.canAssist))
 end
 
-local givenBuildStepUnit = {} -- Delay validating given units so the order of calls to UnitGiven does not matter.
+local checkUnitCommandList = {} -- Delay validating given units so the order of calls to UnitGiven does not matter.
 
 local function isComplete(unitID)
 	local beingBuilt, buildProgress = spGetUnitIsBeingBuilt(unitID)
@@ -125,7 +125,7 @@ end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if newTeam ~= gaiaTeam and canBuildStep[unitDefID] then
-		givenBuildStepUnit[unitID] = newTeam
+		checkUnitCommandList[unitID] = newTeam
 	end
 end
 
@@ -140,7 +140,27 @@ local function _GameFramePost(unitList)
 end
 function gadget:GameFramePost()
 	-- We rarely need to call this function:
-	if next(givenBuildStepUnit) then
-		_GameFramePost(givenBuildStepUnit)
+	if next(checkUnitCommandList) then
+		_GameFramePost(checkUnitCommandList)
 	end
+end
+
+-- Temp anti-cheat-esque guard. We check on random frames for units bypassing the rules.
+local function AllowUnitBuildStep(self, builderID, builderTeam, unitID, unitDefID, part)
+    if part > 0 and builderTeam ~= spGetUnitTeam(unitID) then
+		checkUnitCommandList[builderID] = builderTeam
+    end
+end
+
+local seed = math.random(91, 119) -- skip spawn-in frames
+
+function gadget:GameFrame(frame)
+    if frame % seed == 0 then
+        gadget.AllowUnitBuildStep = AllowUnitBuildStep
+        gadgetHandler:UpdateCallIn("AllowUnitBuildStep")
+    elseif gadget.AllowUnitBuildStep then
+        gadget.AllowUnitBuildStep = nil
+        gadgetHandler:UpdateCallIn("AllowUnitBuildStep")
+        seed = math.random(1, 119)
+    end
 end
