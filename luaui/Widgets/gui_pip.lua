@@ -238,6 +238,19 @@ local cache = {
 	explosions = {},
 	laserBeams = {},
 	iconShatters = {},
+	-- Transport-related properties
+	isTransport = {},
+	transportCapacity = {},
+	transportSize = {},
+	transportMass = {},
+	minTransportSize = {},
+	cantBeTransported = {},
+	unitMass = {},
+	unitTransportSize = {},
+	-- Movement properties
+	canMove = {},
+	canFly = {},
+	isBuilding = {},
 	maxIconShatters = 20,
 	weaponIsLaser = {},
 	weaponIsBlaster = {},
@@ -278,7 +291,7 @@ local cmdColors = {
 	[CMD.LOAD_UNITS]= {0.4, 0.9, 0.9, 0.7},
 	[CMD.UNLOAD_UNIT] = {1.0, 0.8, 0.0, 0.7},
 	[CMD.UNLOAD_UNITS]= {1.0, 0.8, 0.0, 0.7},
-	[GameCMD.UNIT_SET_TARGET] = {1.0, 0.75, 0.0, 0.3},
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = {1.0, 0.75, 0.0, 0.3},
 }
 
 -- Command ID to cursor name mapping
@@ -292,8 +305,11 @@ local cmdCursors = {
 	[CMD.RESTORE] = 'Restore',
 	[CMD.PATROL] = 'Patrol',
 	[CMD.FIGHT] = 'Fight',
-	[CMD.LOAD_UNITS] = 'Load',
-	[GameCMD.UNIT_SET_TARGET] = 'settarget',
+	[CMD.LOAD_UNITS] = 'Load units',
+	[CMD.UNLOAD_UNIT] = 'Unload units',
+	[CMD.UNLOAD_UNITS] = 'Unload units',
+	[CMD.DGUN] = 'Attack',	-- DGun cursor doesnt work, use Attack instead
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = 'settarget',
 }
 
 -- Buttons (Must be declared after variables)
@@ -2250,9 +2266,28 @@ local function UnitQueueVertices(uID)
 		local cmd = uCmds[i]
 		if (cmd.id < 0) or positionCmds[cmd.id] then
 			local cx, cy, cz
-			if #cmd.params >= 3 then
+			local paramCount = #cmd.params
+			if paramCount == 5 then
+				-- 5 params could be: {targetID, x, y, z, radius} for set-target area commands
+				-- Check if first param is a valid unit/feature ID (large number)
+				if cmd.params[1] > 0 and cmd.params[1] < 1000000 then
+					-- It's a target ID command, get the target's position
+					if cmd.params[1] > Game.maxUnits then
+						cx, cy, cz = spGetFeaturePosition(cmd.params[1] - Game.maxUnits)
+					else
+						cx, cy, cz = spGetUnitPosition(cmd.params[1])
+					end
+				else
+					-- Treat as positional: use x, y, z from params 2, 3, 4
+					cx, cy, cz = cmd.params[2], cmd.params[3], cmd.params[4]
+				end
+			elseif paramCount == 4 then
+				-- Area command: {x, y, z, radius} - use x and z
 				cx, cy, cz = cmd.params[1], cmd.params[2], cmd.params[3]
-			elseif #cmd.params == 1 then
+			elseif paramCount == 3 then
+				-- Regular positional command
+				cx, cy, cz = cmd.params[1], cmd.params[2], cmd.params[3]
+			elseif paramCount == 1 then
 				if cmd.params[1] > Game.maxUnits then
 					cx, cy, cz = spGetFeaturePosition(cmd.params[1] - Game.maxUnits)
 				else
@@ -2516,6 +2551,58 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 	return positions
 end
 
+-- Helper function to check if a transport can load a target unit
+local function CanTransportLoadUnit(transportUnitID, targetUnitID)
+	if not transportUnitID or not targetUnitID then
+		return false
+	end
+
+	local transportDefID = Spring.GetUnitDefID(transportUnitID)
+	local targetDefID = Spring.GetUnitDefID(targetUnitID)
+
+	if not transportDefID or not targetDefID then
+		return false
+	end
+
+	-- Check if transport can carry units (using cache)
+	if not cache.isTransport[transportDefID] or (cache.transportCapacity[transportDefID] or 0) <= 0 then
+		return false
+	end
+
+	-- Check if target can be transported (using cache)
+	if cache.cantBeTransported[targetDefID] then
+		return false
+	end
+
+	-- Check transport size compatibility (using cache)
+	local transportSize = cache.transportSize[transportDefID]
+	local targetTransportSize = cache.unitTransportSize[targetDefID]
+	if transportSize and targetTransportSize then
+		if targetTransportSize > transportSize then
+			return false
+		end
+	end
+
+	-- Check transport mass compatibility (using cache)
+	local transportMass = cache.transportMass[transportDefID]
+	local targetMass = cache.unitMass[targetDefID]
+	if transportMass and targetMass then
+		if targetMass > transportMass then
+			return false
+		end
+	end
+
+	-- Check if transport can carry this type (minTransportSize) (using cache)
+	local minTransportSize = cache.minTransportSize[transportDefID]
+	if minTransportSize and targetTransportSize then
+		if targetTransportSize < minTransportSize then
+			return false
+		end
+	end
+
+	return true
+end
+
 local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
@@ -2527,18 +2614,90 @@ local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 
 	-- For build commands (negative cmdID), don't check for units at the position
 	-- We want to build AT the position, not command any unit that might be there
+	-- Also for PATROL and FIGHT, always target ground position instead of units
 	local id = nil
-	if cmdID > 0 then
+	if cmdID > 0 and cmdID ~= CMD.PATROL and cmdID ~= CMD.FIGHT then
 		id = GetIDAtPoint(wx, wz)
+
+		-- For ATTACK command, only target if it's an enemy unit
+		if id and cmdID == CMD.ATTACK then
+			if Spring.IsUnitAllied(id) then
+				id = nil  -- Don't target allied units with ATTACK, use ground position instead
+			end
+		end
+
+		-- For area RECLAIM command (radius > 0), don't target enemy units
+		if id and cmdID == CMD.RECLAIM and radius and radius > 0 then
+			if not Spring.IsUnitAllied(id) then
+				id = nil  -- Don't target enemy units with area RECLAIM
+			end
+		end
+
+		-- For area REPAIR command (radius > 0), don't target enemy units
+		if id and cmdID == CMD.REPAIR and radius and radius > 0 then
+			if not Spring.IsUnitAllied(id) then
+				id = nil  -- Don't target enemy units with area REPAIR
+			end
+		end
 	end
 
 	if id then
-		GiveNotifyingOrder(cmdID, {id}, cmdOpts)
+		-- For LOAD_UNITS command, give order only to transport units
+		if cmdID == CMD.LOAD_UNITS then
+			local selectedUnits = Spring.GetSelectedUnits()
+			local transports = {}
+
+			-- Collect all transport units (using cache)
+			for i = 1, #selectedUnits do
+				local unitDefID = Spring.GetUnitDefID(selectedUnits[i])
+				if unitDefID and cache.isTransport[unitDefID] and (cache.transportCapacity[unitDefID] or 0) > 0 then
+					transports[#transports + 1] = selectedUnits[i]
+				end
+			end			if #transports > 0 then
+				-- If multiple transports, convert to area command so they load different units
+				if #transports > 1 then
+					local ux, uy, uz = Spring.GetUnitPosition(id)
+					if ux then
+						-- Use a small radius area command so transports will find different nearby units
+						local smallRadius = 150
+						for i = 1, #transports do
+							Spring.GiveOrderToUnit(transports[i], cmdID, {ux, uy, uz, smallRadius}, cmdOpts.coded)
+						end
+					end
+				else
+					-- Single transport, give direct unit target
+					Spring.GiveOrderToUnit(transports[1], cmdID, {id}, cmdOpts.coded)
+				end
+			end
+		else
+			GiveNotifyingOrder(cmdID, {id}, cmdOpts)
+		end
 	else
 		if cmdID > 0 then
+			-- For SET_TARGET command, only allow targeting units, not ground
+			local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET_NO_GROUND
+			if setTargetCmd and cmdID == setTargetCmd then
+				-- No unit found at target position, don't issue command
+				return
+			end
+
 			-- Add radius for area commands if provided
 			if radius and radius > 0 then
-				GiveNotifyingOrder(cmdID, {wx, spGetGroundHeight(wx, wz), wz, radius}, cmdOpts)
+				-- For area LOAD_UNITS command, give order only to transport units individually
+				if cmdID == CMD.LOAD_UNITS then
+					local selectedUnits = Spring.GetSelectedUnits()
+
+					-- Give order to each transport unit individually (using cache)
+					-- This allows the engine to distribute targets naturally across multiple transports
+					for i = 1, #selectedUnits do
+						local unitDefID = Spring.GetUnitDefID(selectedUnits[i])
+						if unitDefID and cache.isTransport[unitDefID] and (cache.transportCapacity[unitDefID] or 0) > 0 then
+							Spring.GiveOrderToUnit(selectedUnits[i], cmdID, {wx, spGetGroundHeight(wx, wz), wz, radius}, cmdOpts.coded)
+						end
+					end
+				else
+					GiveNotifyingOrder(cmdID, {wx, spGetGroundHeight(wx, wz), wz, radius}, cmdOpts)
+				end
 			else
 				GiveNotifyingOrder(cmdID, {wx, spGetGroundHeight(wx, wz), wz}, cmdOpts)
 			end
@@ -2628,6 +2787,31 @@ function widget:Initialize()
 		end
 		if uDef.iconType and iconTypes[uDef.iconType] and iconTypes[uDef.iconType].bitmap then
 			cache.unitIcon[uDefID] = iconTypes[uDef.iconType]
+		end
+
+		-- Cache transport properties
+		if uDef.isTransport then
+			cache.isTransport[uDefID] = true
+			cache.transportCapacity[uDefID] = uDef.transportCapacity or 0
+			cache.transportSize[uDefID] = uDef.transportSize
+			cache.transportMass[uDefID] = uDef.transportMass
+			cache.minTransportSize[uDefID] = uDef.minTransportSize
+		end
+		if uDef.cantBeTransported then
+			cache.cantBeTransported[uDefID] = true
+		end
+		cache.unitMass[uDefID] = uDef.mass
+		cache.unitTransportSize[uDefID] = uDef.transportSize
+
+		-- Cache movement properties
+		if uDef.canMove then
+			cache.canMove[uDefID] = true
+		end
+		if uDef.canFly then
+			cache.canFly[uDefID] = true
+		end
+		if uDef.isBuilding then
+			cache.isBuilding[uDefID] = true
 		end
 	end
 
@@ -3211,32 +3395,37 @@ local function DrawCommandQueuesOverlay()
 					for j = 1, cmdCount do
 						local cmd = commands[j]
 						local cmdX, cmdZ
-					local params = cmd.params
-					if params then
-						local paramCount = #params
-						if paramCount >= 3 then
-							cmdX, cmdZ = params[1], params[3]
-						elseif paramCount == 1 then
-							local targetID = params[1]
-							local tx, ty, tz = GetUnitPosition(targetID)
-							if tx then
-								cmdX, cmdZ = tx, tz
-							end
-						elseif paramCount >= 5 then
-							-- Set target command with area: params are {targetID, x, y, z, radius}
-							local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET
-							if setTargetCmd and cmd.id == setTargetCmd then
+						local params = cmd.params
+						if params then
+							local paramCount = #params
+							if paramCount == 5 then
+								-- 5 params could be: {targetID, x, y, z, radius} for set-target area commands
+								if params[1] > 0 and params[1] < 1000000 then
+									-- It's a target ID command
+									local targetID = params[1]
+									local tx, ty, tz = GetUnitPosition(targetID)
+									if tx then
+										cmdX, cmdZ = tx, tz
+									end
+								else
+									-- Treat as positional
+									cmdX, cmdZ = params[2], params[4]
+								end
+							elseif paramCount == 4 then
+								-- Area commands (reclaim, repair, etc.) have 4 params: {x, y, z, radius}
+								cmdX, cmdZ = params[1], params[3]
+							elseif paramCount == 3 then
+								-- Regular positional command (move, attack-ground, etc.)
+								cmdX, cmdZ = params[1], params[3]
+							elseif paramCount == 1 then
 								local targetID = params[1]
 								local tx, ty, tz = GetUnitPosition(targetID)
 								if tx then
 									cmdX, cmdZ = tx, tz
 								end
-							else
-								-- Other commands with 5+ params might be area commands
-								cmdX, cmdZ = params[1], params[3]
 							end
 						end
-					end						if cmdX and cmdZ then
+						if cmdX and cmdZ then
 							local cmdSX, cmdSY = WorldToPipCoords(cmdX, cmdZ)
 
 							-- Use cmdColors table
@@ -3417,20 +3606,15 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 			elseif canBuild == 1 then
 				local blockedByMobile = false
 				local nearbyUnits = Spring.GetUnitsInCylinder(wx, wz, 64)
-				if nearbyUnits then
-					for _, unitID in ipairs(nearbyUnits) do
-						local unitDefID = Spring.GetUnitDefID(unitID)
-						if unitDefID then
-							local unitDef = UnitDefs[unitDefID]
-							if unitDef and unitDef.canMove and not unitDef.isBuilding then
-								blockedByMobile = true
-								break
-							end
-						end
+			if nearbyUnits then
+				for _, unitID in ipairs(nearbyUnits) do
+					local unitDefID = Spring.GetUnitDefID(unitID)
+					if unitDefID and cache.canMove[unitDefID] and not cache.isBuilding[unitDefID] then
+						blockedByMobile = true
+						break
 					end
 				end
-
-				if blockedByMobile then
+			end				if blockedByMobile then
 					glColor(1, 1, 1, 0.5)
 				else
 					glColor(1, 1, 0, 0.5)
@@ -3496,12 +3680,9 @@ local function DrawBuildDragPreview(iconRadiusZoomDistMult)
 			if nearbyUnits then
 				for _, unitID in ipairs(nearbyUnits) do
 					local unitDefID = Spring.GetUnitDefID(unitID)
-					if unitDefID then
-						local unitDef = UnitDefs[unitDefID]
-						if unitDef and unitDef.canMove and not unitDef.isBuilding then
-							blockedByMobile = true
-							break
-						end
+					if unitDefID and cache.canMove[unitDefID] and not cache.isBuilding[unitDefID] then
+						blockedByMobile = true
+						break
 					end
 				end
 			end
@@ -3682,22 +3863,60 @@ local function DrawIcons()
 			end
 		end
 
-		-- Draw tracked unit backgrounds grouped by texture
-		for texture, indices in pairs(trackedByTexture) do
-			local invertedTexture = string.gsub(texture, "icons/", "icons/inverted/")
-			glTexture(invertedTexture)
-			gl.BeginEnd(GL_QUADS, function()
-				for j = 1, #indices do
-					local idx = indices[j]
-					if drawData.iconBuildProgress[idx] >= 1 then
-						local cx = drawData.iconX[idx]
-						local cy = drawData.iconY[idx]
-						local udef = drawData.iconUdef[idx]
-						local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
-						local baseSize = cache.unitIcon[udef].size
-						local borderPixels = 0.09 / baseSize  -- Inverse relationship: smaller units get proportionally more border
-						local enlargedSize = iconSize * (1 + borderPixels)
+	-- Draw tracked unit backgrounds grouped by texture
+	for texture, indices in pairs(trackedByTexture) do
+		local invertedTexture = string.gsub(texture, "icons/", "icons/inverted/")
+		glTexture(invertedTexture)
+		gl.BeginEnd(GL_QUADS, function()
+			for j = 1, #indices do
+				local idx = indices[j]
+				if drawData.iconBuildProgress[idx] >= 1 then
+					local cx = drawData.iconX[idx]
+					local cy = drawData.iconY[idx]
+					local udef = drawData.iconUdef[idx]
+					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
+					local baseSize = cache.unitIcon[udef].size
+					local borderPixels = 0.09 / baseSize  -- Inverse relationship: smaller units get proportionally more border
+					local enlargedSize = iconSize * (1 + borderPixels)
 
+					glTexCoord(texInset, 1 - texInset)
+					glVertex(cx - enlargedSize, cy - enlargedSize)
+					glTexCoord(1 - texInset, 1 - texInset)
+					glVertex(cx + enlargedSize, cy - enlargedSize)
+					glTexCoord(1 - texInset, texInset)
+					glVertex(cx + enlargedSize, cy + enlargedSize)
+					glTexCoord(texInset, texInset)
+					glVertex(cx - enlargedSize, cy + enlargedSize)
+				end
+			end
+		end)
+	end
+	glTexture(false)
+end
+
+	-- Draw bright glow for hovered unit (when command is active)
+	if drawData.hoveredUnitID then
+		glColor(1, 0.95, 0, 0.66)  -- Bright yellow glow
+		gl.Blending(GL.SRC_ALPHA, GL.ONE)  -- Additive blending for bright glow
+
+		-- Find the hovered unit in the draw data
+		for i = 1, iconCount do
+			if drawData.iconUnitID[i] == drawData.hoveredUnitID and drawData.iconBuildProgress[i] >= 1 then
+				local cx = drawData.iconX[i]
+				local cy = drawData.iconY[i]
+				local udef = drawData.iconUdef[i]
+
+				if udef and cache.unitIcon[udef] then
+					local texture = cache.unitIcon[udef].bitmap
+					local invertedTexture = string.gsub(texture, "icons/", "icons/inverted/")
+					glTexture(invertedTexture)
+
+					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
+					local baseSize = cache.unitIcon[udef].size
+					local borderPixels = 0.15 / baseSize  -- Larger border for hover glow
+					local enlargedSize = iconSize * (1 + borderPixels)
+
+					gl.BeginEnd(GL_QUADS, function()
 						glTexCoord(texInset, 1 - texInset)
 						glVertex(cx - enlargedSize, cy - enlargedSize)
 						glTexCoord(1 - texInset, 1 - texInset)
@@ -3706,14 +3925,31 @@ local function DrawIcons()
 						glVertex(cx + enlargedSize, cy + enlargedSize)
 						glTexCoord(texInset, texInset)
 						glVertex(cx - enlargedSize, cy + enlargedSize)
-					end
+					end)
+					glTexture(false)
+				else
+					-- Default icon - draw circle glow
+					local defaultIconSize = iconRadius * 0.5 * zoom * distMult
+					local glowSize = defaultIconSize * 1.4
+					glTexture('LuaUI/Images/pip/PipBlip.png')
+					gl.BeginEnd(GL_QUADS, function()
+						glTexCoord(texInset, 1 - texInset)
+						glVertex(cx - glowSize, cy - glowSize)
+						glTexCoord(1 - texInset, 1 - texInset)
+						glVertex(cx + glowSize, cy - glowSize)
+						glTexCoord(1 - texInset, texInset)
+						glVertex(cx + glowSize, cy + glowSize)
+						glTexCoord(texInset, texInset)
+						glVertex(cx - glowSize, cy + glowSize)
+					end)
+					glTexture(false)
 				end
-			end)
+				break  -- Found the hovered unit, no need to continue
+			end
 		end
-		glTexture(false)
-	end
 
-	-- Draw icons grouped by texture (minimizes texture binding)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)  -- Restore normal blending
+	end	-- Draw icons grouped by texture (minimizes texture binding)
 	for texture, indices in pairs(iconsByTexture) do
 		glTexture(texture)
 		local indexCount = #indices
@@ -4104,32 +4340,30 @@ local function DrawUnitsAndFeatures()
 			if teamID then
 				local r, g, b = Spring.GetTeamColor(teamID)
 				-- Scale cursor size: larger at low zoom, stays reasonable at high zoom
-				local cursorSize = math.max(iconRadiusZoomDistMult, iconRadiusZoomDistMult * 2 - (zoom * 15)) * 1.4
+				local cursorSize = vsy * 0.007
 
 				-- Draw crosshair lines to PIP boundaries (stop at cursor edge)
-				gl.Color(r*1.5+0.3, g*1.5+0.3, b*1.5+0.3, 0.08)
-				gl.LineWidth(vsy / 600)
-				gl.BeginEnd(GL_LINES, function()
-					-- Horizontal line (left to cursor)
-					glVertex(0, cy)
-					glVertex(cx - cursorSize, cy)
-					-- Horizontal line (cursor to right)
-					glVertex(cx + cursorSize, cy)
-					glVertex(dim.r - dim.l, cy)
-					-- Vertical line (bottom to cursor)
-					glVertex(cx, 0)
-					glVertex(cx, cy - cursorSize)
-					-- Vertical line (cursor to top)
-					glVertex(cx, cy + cursorSize)
-					glVertex(cx, dim.t - dim.b)
-				end)
+				--gl.Color(r*1.5+0.5, g*1.5+0.5, b*1.5+0.5, 0.08)
+				--gl.LineWidth(vsy / 600)
+				-- gl.BeginEnd(GL_LINES, function()
+				-- 	-- Horizontal line (left to cursor)
+				-- 	glVertex(0, cy)
+				-- 	glVertex(cx - cursorSize, cy)
+				-- 	-- Horizontal line (cursor to right)
+				-- 	glVertex(cx + cursorSize, cy)
+				-- 	glVertex(dim.r - dim.l, cy)
+				-- 	-- Vertical line (bottom to cursor)
+				-- 	glVertex(cx, 0)
+				-- 	glVertex(cx, cy - cursorSize)
+				-- 	-- Vertical line (cursor to top)
+				-- 	glVertex(cx, cy + cursorSize)
+				-- 	glVertex(cx, dim.t - dim.b)
+				-- end)
 
 				-- Draw cursor as broken circle (4 arcs with 4 gaps)
 				-- Each arc is 1/8 of circle, each gap is 1/8 of circle
 				-- Arcs centered at top (90°), right (0°), bottom (270°), left (180°)
-				gl.Color(r*1.5+0.3, g*1.5+0.3, b*1.5+0.3, 0.6)
-				gl.LineWidth(vsy / 600)
-				local segments = 32
+				local segments = 24
 				local pi = math.pi
 
 				-- Define 4 arcs: each arc is 45° (pi/4), centered at cardinal directions
@@ -4140,6 +4374,26 @@ local function DrawUnitsAndFeatures()
 					{pi - pi/8, pi + pi/8}            -- Left arc (centered at 180°)
 				}
 
+				-- Draw black outline first (thicker)
+				gl.Color(0, 0, 0, 1)
+				gl.LineWidth(vsy / 600 + 2)
+				for _, arc in ipairs(arcs) do
+					gl.BeginEnd(GL.LINE_STRIP, function()
+						local startAngle, endAngle = arc[1], arc[2]
+						local arcSegments = math.floor(segments / 8) -- 1/8 of circle for each arc
+						for i = 0, arcSegments do
+							local t = i / arcSegments
+							local angle = startAngle + (endAngle - startAngle) * t
+							local x = cx + math.cos(angle) * cursorSize
+							local y = cy + math.sin(angle) * cursorSize
+							glVertex(x, y)
+						end
+					end)
+				end
+
+				-- Draw colored arcs on top
+				gl.Color((r*1.5)+0.5, (g*1.5)+0.5, (b*1.5)+0.5, 1)
+				gl.LineWidth(vsy / 600)
 				for _, arc in ipairs(arcs) do
 					gl.BeginEnd(GL.LINE_STRIP, function()
 						local startAngle, endAngle = arc[1], arc[2]
@@ -4704,7 +4958,7 @@ local function DrawTrackedPlayerName()
 	-- Get team color
 	local r, g, b = Spring.GetTeamColor(teamID)
 	local fontSize = math.floor(19 * widgetScale)
-	local padding = math.floor(11 * widgetScale)
+	local padding = math.floor(16 * widgetScale)
 	local centerX = (dim.l + dim.r) / 2
 
 	font:Begin()
@@ -4986,14 +5240,24 @@ local function HandleHoverAndCursor(mx, my)
 		if not defaultCmd or defaultCmd == 0 then
 			local selectedUnits = Spring.GetSelectedUnits()
 			if selectedUnits and #selectedUnits > 0 then
-				for i = 1, #selectedUnits do
-					local uDefID = Spring.GetUnitDefID(selectedUnits[i])
-					if uDefID then
-						local uDef = UnitDefs[uDefID]
-						if uDef and (uDef.canMove or uDef.canFly) then
-							Spring.SetMouseCursor('Move')
+				-- Check if we have a transport and are hovering over a transportable unit
+				local uID = GetUnitAtPoint(wx, wz)
+				if uID and Spring.IsUnitAllied(uID) then
+					-- Check if any transport in selection can load this unit
+					for i = 1, #selectedUnits do
+						if CanTransportLoadUnit(selectedUnits[i], uID) then
+							Spring.SetMouseCursor('Load')
 							return
 						end
+					end
+				end
+
+				-- Default to Move cursor if units can move (using cache)
+				for i = 1, #selectedUnits do
+					local uDefID = Spring.GetUnitDefID(selectedUnits[i])
+					if uDefID and (cache.canMove[uDefID] or cache.canFly[uDefID]) then
+						Spring.SetMouseCursor('Move')
+						return
 					end
 				end
 			end
@@ -5442,15 +5706,56 @@ function widget:Update(dt)
 	local wasMouseOver = interactionState.isMouseOverPip
 	interactionState.isMouseOverPip = (mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t and not uiState.inMinMode)
 
-	-- Update hovered unit for icon highlighting
+	-- Update hovered unit for icon highlighting (only when there's an active command that can target units)
 	if interactionState.isMouseOverPip then
+		local _, cmdID = Spring.GetActiveCommand()
 		local wx, wz = PipToWorldCoords(mx, my)
-		drawData.hoveredUnitID = GetUnitAtPoint(wx, wz)
+		local unitID = GetUnitAtPoint(wx, wz)
+
+		-- Only highlight units when there's an active command that can target units
+		if cmdID and cmdID > 0 then  -- Positive cmdID means it's a command (not a build command)
+			-- Don't highlight units for PATROL and FIGHT (they target ground)
+			if cmdID == CMD.PATROL or cmdID == CMD.FIGHT then
+				drawData.hoveredUnitID = nil
+			-- Validate if this unit is a valid target for the command
+			elseif unitID then
+				local isValidTarget = true
+				local isAlly = Spring.IsUnitAllied(unitID)
+				local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET_NO_GROUND
+
+				-- Commands that can only target enemy units
+				if cmdID == CMD.ATTACK or (setTargetCmd and cmdID == setTargetCmd) or cmdID == CMD.CAPTURE then
+					isValidTarget = not isAlly
+				-- Commands that can only target allied units
+				elseif cmdID == CMD.GUARD or cmdID == CMD.REPAIR or cmdID == CMD.LOAD_UNITS then
+					isValidTarget = isAlly
+				-- Commands that work on both allies and enemies are fine (RECLAIM, RESURRECT, RESTORE, etc.)
+				end
+
+				drawData.hoveredUnitID = isValidTarget and unitID or nil
+			else
+				drawData.hoveredUnitID = nil
+			end
+		-- No active command - check if we should highlight for transport loading
+		elseif unitID and Spring.IsUnitAllied(unitID) then
+			local selectedUnits = Spring.GetSelectedUnits()
+			local canLoadTarget = false
+
+			-- Check if any transport in selection can load this target unit
+			for i = 1, #selectedUnits do
+				if CanTransportLoadUnit(selectedUnits[i], unitID) then
+					canLoadTarget = true
+					break
+				end
+			end
+
+			drawData.hoveredUnitID = canLoadTarget and unitID or nil
+		else
+			drawData.hoveredUnitID = nil
+		end
 	else
 		drawData.hoveredUnitID = nil
-	end
-
-	-- If hover state changed, update frame buttons
+	end	-- If hover state changed, update frame buttons
 	if wasMouseOver ~= interactionState.isMouseOverPip and showButtonsOnHoverOnly then
 		pipR2T.frameNeedsUpdate = true
 	end
@@ -6501,7 +6806,7 @@ end	-- Check if we are centering the view, takes priority
 						return true
 					elseif cmdID > 0 then
 						-- Check if command supports area mode
-						local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET
+						local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET_NO_GROUND
 						local supportsArea = (cmdID == CMD.ATTACK or cmdID == CMD.RECLAIM or cmdID == CMD.REPAIR or
 						                      cmdID == CMD.RESURRECT or cmdID == CMD.CAPTURE or cmdID == CMD.RESTORE or
 						                      cmdID == CMD.LOAD_UNITS or (setTargetCmd and cmdID == setTargetCmd))
@@ -6612,8 +6917,30 @@ end	-- Check if we are centering the view, takes priority
 					local uID = GetUnitAtPoint(wx, wz)
 					if uID then
 						if Spring.IsUnitAllied(uID) then
-							cmdID = CMD.GUARD
-							overrideTarget = uID
+							-- Check if we should use LOAD_UNITS command
+							local selectedUnits = Spring.GetSelectedUnits()
+							local canLoadTarget = false
+
+							-- Check if any transport in selection can load this target unit
+							for i = 1, #selectedUnits do
+								if CanTransportLoadUnit(selectedUnits[i], uID) then
+									canLoadTarget = true
+									break
+								end
+							end
+
+							if canLoadTarget then
+								-- Start area LOAD_UNITS drag instead of formation
+								interactionState.areAreaDragging = true
+								interactionState.areaCommandStartX = mx
+								interactionState.areaCommandStartY = my
+								-- Temporarily set LOAD_UNITS as active command for area drag
+								Spring.SetActiveCommand(Spring.GetCmdDescIndex(CMD.LOAD_UNITS))
+								return true
+							else
+								cmdID = CMD.GUARD
+								overrideTarget = uID
+							end
 						else
 							cmdID = CMD.ATTACK
 							overrideTarget = uID
@@ -7103,7 +7430,7 @@ function widget:MouseRelease(mx, my, mButton)
 
 			if cmdID and cmdID > 0 then
 				-- Check if this is a set target command
-				local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET
+				local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET_NO_GROUND
 				local isSetTarget = setTargetCmd and cmdID == setTargetCmd
 
 				if isSetTarget then
@@ -7184,7 +7511,23 @@ function widget:MouseRelease(mx, my, mButton)
 			local uID = GetUnitAtPoint(wx, wz)
 			if uID then
 				if Spring.IsUnitAllied(uID) then
-					cmdID = CMD.GUARD
+					-- Check if we should use LOAD_UNITS command
+					local selectedUnits = Spring.GetSelectedUnits()
+					local canLoadTarget = false
+
+					-- Check if any transport in selection can load this target unit
+					for i = 1, #selectedUnits do
+						if CanTransportLoadUnit(selectedUnits[i], uID) then
+							canLoadTarget = true
+							break
+						end
+					end
+
+					if canLoadTarget then
+						cmdID = CMD.LOAD_UNITS
+					else
+						cmdID = CMD.GUARD
+					end
 				else
 					cmdID = CMD.ATTACK
 				end
