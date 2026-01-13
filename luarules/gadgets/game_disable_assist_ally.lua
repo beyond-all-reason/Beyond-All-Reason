@@ -85,13 +85,6 @@ local function validateCommands(unitID, unitTeam)
 	end
 end
 
-function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(CMD_GUARD)
-	gadgetHandler:RegisterAllowCommand(CMD_REPAIR)
-	gadgetHandler:RegisterAllowCommand(CMD_INSERT)
-	gadgetHandler:RegisterAllowCommand(CMD_MOVESTATE)
-end
-
 local PARAM = table.new(6, 0) -- need to check up to 5+1 arguments
 local EMPTY = {}
 
@@ -107,6 +100,13 @@ local function resolveCommand(cmdParams)
 		cmdID, cmdParams = 0, EMPTY
 	end
 	return cmdID, cmdParams
+end
+
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_GUARD)
+	gadgetHandler:RegisterAllowCommand(CMD_REPAIR)
+	gadgetHandler:RegisterAllowCommand(CMD_INSERT)
+	gadgetHandler:RegisterAllowCommand(CMD_MOVESTATE)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
