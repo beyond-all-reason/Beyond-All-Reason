@@ -131,35 +131,48 @@ VFS.Include("common/lib_startpoint_guesser.lua")
 
 local aiNameI18NTable = {name = ""}
 local aiLocationI18NTable = {playerName = "", aiName = ""}
+local aiNameCache = {}
+local aiNameLockedCache = {}
+
 local function getAIName(teamID, includeLock)
-	local _, playerID, _, isAI = spGetTeamInfo(teamID, false)
-	local formattedName
-
-	if isAI then
-		local _, _, _, aiName = Spring.GetAIInfo(teamID)
-		local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
-		if niceName then
-			aiName = niceName
+	if includeLock and aiNameLockedCache[teamID] then
+		local hasPlacement = aiPlacementStatus[teamID]
+		if hasPlacement == nil then
+			local startX, _, startZ = spGetTeamStartPosition(teamID)
+			hasPlacement = (startX and startZ and startX > 0 and startZ > 0) or spGetTeamRulesParam(teamID, "aiManualPlacement")
 		end
-		aiNameI18NTable.name = aiName
-		formattedName = Spring.I18N('ui.playersList.aiName', aiNameI18NTable)
-
-		if includeLock then
-			local hasPlacement = aiPlacementStatus[teamID]
-			if hasPlacement == nil then
-				local startX, _, startZ = spGetTeamStartPosition(teamID)
-				hasPlacement = (startX and startZ and startX > 0 and startZ > 0) or spGetTeamRulesParam(teamID, "aiManualPlacement")
-			end
-			if hasPlacement then
-				formattedName = formattedName .. "\n🔒"
-			end
-		end
-	else
-		local name = spGetPlayerInfo(playerID, false)
-		formattedName = WG.playernames and WG.playernames.getPlayername(playerID) or name
 	end
 
-	return formattedName
+	local baseName = aiNameCache[teamID]
+	if not baseName then
+		local _, playerID, _, isAI = spGetTeamInfo(teamID, false)
+		if isAI then
+			local _, _, _, aiName = Spring.GetAIInfo(teamID)
+			local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
+			if niceName then
+				aiName = niceName
+			end
+			aiNameI18NTable.name = aiName
+			baseName = Spring.I18N('ui.playersList.aiName', aiNameI18NTable)
+		else
+			local name = spGetPlayerInfo(playerID, false)
+			baseName = WG.playernames and WG.playernames.getPlayername(playerID) or name
+		end
+		aiNameCache[teamID] = baseName
+	end
+
+	if includeLock then
+		local hasPlacement = aiPlacementStatus[teamID]
+		if hasPlacement == nil then
+			local startX, _, startZ = spGetTeamStartPosition(teamID)
+			hasPlacement = (startX and startZ and startX > 0 and startZ > 0) or spGetTeamRulesParam(teamID, "aiManualPlacement")
+		end
+		if hasPlacement then
+			return baseName .. "\n🔒"
+		end
+	end
+
+	return baseName
 end
 
 local teamColorComponents = {}
@@ -725,8 +738,33 @@ local function getCircleEntry(index)
 	return circlesToDraw[index]
 end
 
+local teamsToRender = {}
+local teamsToRenderCount = 0
+
+local function updateTeamsToRender()
+	teamsToRenderCount = 0
+	for _, teamID in ipairs(cachedTeamList) do
+		local shouldRender, x, y, z, isAI = shouldRenderTeam(teamID, false)
+		if shouldRender then
+			teamsToRenderCount = teamsToRenderCount + 1
+			local entry = teamsToRender[teamsToRenderCount]
+			if not entry then
+				entry = {}
+				teamsToRender[teamsToRenderCount] = entry
+			end
+			entry.teamID = teamID
+			entry.x = x
+			entry.y = y
+			entry.z = z
+			entry.isAI = isAI
+		end
+	end
+end
+
 function widget:DrawWorld()
 	clearPosCache()
+	updateTeamsToRender() -- Calculate visibility once per frame
+	
 	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	local time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
@@ -736,25 +774,27 @@ function widget:DrawWorld()
 
 	local cCount = 0
 
-	for _, teamID in ipairs(cachedTeamList) do
-		local shouldRender, x, y, z, isAI = shouldRenderTeam(teamID, false)
-		if shouldRender then
-			local r, g, b = GetTeamColor(teamID)
-			
-			cacheTable[1], cacheTable[2], cacheTable[3], cacheTable[4] = x, y, z, 1
-			cacheTable[5], cacheTable[6], cacheTable[7], cacheTable[8] = r, g, b, alpha
-			pushElementInstance(startConeVBOTable,
-				cacheTable,
-				nil, nil, true)
-			if teamID == myTeamID then
-				amPlaced = true
-			end
+	for i = 1, teamsToRenderCount do
+		local entry = teamsToRender[i]
+		local teamID = entry.teamID
+		local x, y, z = entry.x, entry.y, entry.z
+		local isAI = entry.isAI
+		
+		local r, g, b = GetTeamColor(teamID)
+		
+		cacheTable[1], cacheTable[2], cacheTable[3], cacheTable[4] = x, y, z, 1
+		cacheTable[5], cacheTable[6], cacheTable[7], cacheTable[8] = r, g, b, alpha
+		pushElementInstance(startConeVBOTable,
+			cacheTable,
+			nil, nil, true)
+		if teamID == myTeamID then
+			amPlaced = true
+		end
 
-			if teamID ~= myTeamID and (not isAI or aiPlacedPositions[teamID]) then
-				cCount = cCount + 1
-				local entry = getCircleEntry(cCount)
-				entry[1], entry[2], entry[3] = x, y, z
-			end
+		if teamID ~= myTeamID and (not isAI or aiPlacedPositions[teamID]) then
+			cCount = cCount + 1
+			local circleEntry = getCircleEntry(cCount)
+			circleEntry[1], circleEntry[2], circleEntry[3] = x, y, z
 		end
 	end
 
@@ -773,23 +813,25 @@ end
 
 function widget:DrawScreenEffects()
 	-- show the names over the team start positions
-	for _, teamID in ipairs(cachedTeamList) do
-		local shouldRender, x, y, z, isAI = shouldRenderTeam(teamID, false)
-		if shouldRender then
-			local _, playerID = spGetTeamInfo(teamID, false)
-			local name = spGetPlayerInfo(playerID, false)
+	for i = 1, teamsToRenderCount do
+		local entry = teamsToRender[i]
+		local teamID = entry.teamID
+		local x, y, z = entry.x, entry.y, entry.z
+		local isAI = entry.isAI
+		
+		local _, playerID = spGetTeamInfo(teamID, false)
+		local name = spGetPlayerInfo(playerID, false)
 
-			if isAI then
-				name = getAIName(teamID, true)
-			else
-				name = WG.playernames and WG.playernames.getPlayername(playerID) or name
-			end
-			
-			if name then
-				local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
-				if sz < 1 then
-					drawName(sx, sy, name, teamID)
-				end
+		if isAI then
+			name = getAIName(teamID, true)
+		else
+			name = WG.playernames and WG.playernames.getPlayername(playerID) or name
+		end
+		
+		if name then
+			local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
+			if sz < 1 then
+				drawName(sx, sy, name, teamID)
 			end
 		end
 	end
