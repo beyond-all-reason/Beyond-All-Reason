@@ -433,10 +433,15 @@ if not table.intersection then
 			or arrays
 
 		-- Count occurrences of each value across all arrays
+		-- Use a set for each array to handle duplicates correctly
 		local valueCounts = {}
 		for _, array in pairs(filteredArrays) do
+			local seen = {}
 			for _, value in pairs(array) do
-				valueCounts[value] = (valueCounts[value] or 0) + 1
+				if not seen[value] then
+					seen[value] = true
+					valueCounts[value] = (valueCounts[value] or 0) + 1
+				end
 			end
 		end
 
