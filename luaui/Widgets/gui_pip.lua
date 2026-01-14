@@ -3840,14 +3840,14 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult)
 								local rotation = buildFacing * 90
 
 								local bitmap = buildIcon.bitmap
-								local texBuilds = buildsByTexture[bitmap]
-								local buildCount = buildCountByTexture[bitmap] or 0
+								local texBuilds = buildsByTexturePool[bitmap]
+								local buildCount = buildCountByTexturePool[bitmap] or 0
 								if not texBuilds then
 									texBuilds = {}
-									buildsByTexture[bitmap] = texBuilds
+									buildsByTexturePool[bitmap] = texBuilds
 								end
 								buildCount = buildCount + 1
-								buildCountByTexture[bitmap] = buildCount
+								buildCountByTexturePool[bitmap] = buildCount
 								texBuilds[buildCount] = {
 									cx = cx,
 									cy = cy,
