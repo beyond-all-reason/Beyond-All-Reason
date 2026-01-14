@@ -215,7 +215,16 @@ if not table.isEmpty then
 	---@param tbl table
 	---@return number
 	function table.isEmpty(tbl)
-		return not next(tbl)
+		return next(tbl) == nil
+	end
+end
+
+if not table.isNilOrEmpty then
+	---Check if the table is empty.
+	---@param tbl table
+	---@return number
+	function table.isNilOrEmpty(tbl)
+		return tbl == nil or table.isEmpty(tbl)
 	end
 end
 
@@ -421,32 +430,22 @@ if not table.any then
 	end
 end
 
-if not table.intersection then
+if not table.valueIntersection then
 	---Creates a new array-style table containing the intersection of all input arrays.
 	---Returns only elements that appear in all input arrays.
 	---@generic V
-	---@param ignoreEmpty? boolean If true, empty input arrays are ignored (default: false)
 	---@param ... V[] Any number of array-style tables.
 	---@return V[] A new array containing only values present in all input arrays.
-	function table.intersection(ignoreEmpty, ...)
+	function table.valueIntersection(...)
 		-- Handle optional flag: if first arg is a table, treat it as an array
-		local arrays = {...}
-		if type(ignoreEmpty) == "table" then
-			table.insert(arrays, 1, ignoreEmpty)
-			ignoreEmpty = false
-		end
-
-		-- Filter out empty arrays if requested
-		local filteredArrays = ignoreEmpty
-			and table.filterArray(arrays, function(arr) return table.count(arr) > 0 end)
-			or arrays
+		local tables = { ...}
 
 		-- Count occurrences of each value across all arrays
 		-- Use a set for each array to handle duplicates correctly
 		local valueCounts = {}
-		for _, array in pairs(filteredArrays) do
+		for _, tbl in pairs(tables) do
 			local seen = {}
-			for _, value in pairs(array) do
+			for _, value in pairs(tbl) do
 				if not seen[value] then
 					seen[value] = true
 					valueCounts[value] = (valueCounts[value] or 0) + 1
@@ -456,10 +455,10 @@ if not table.intersection then
 
 		-- Keep only values that appear in all arrays
 		local result = {}
-		local numFilteredArrays = table.count(filteredArrays)
+		local numTables = table.count(tables)
 		for value, count in pairs(valueCounts) do
-			if count == numFilteredArrays then
-				result[table.count(result) + 1] = value
+			if count == numTables then
+				result[#result + 1] = value
 			end
 		end
 
