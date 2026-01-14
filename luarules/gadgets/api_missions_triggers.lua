@@ -124,13 +124,13 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 
 	-- Remove destroyed tracked units
-	if not trackedUnitNamesByID[unitID] or not next(trackedUnitNamesByID[unitID]) then
+	if not trackedUnitNamesByID[unitID] or table.isEmpty(trackedUnitNamesByID[unitID]) then
 		return
 	end
 
 	for _, name in pairs(trackedUnitNamesByID[unitID]) do
 		table.removeAll(trackedUnitIDsByName[name], unitID)
-		if not next(trackedUnitIDsByName[name]) then
+		if table.isEmpty(trackedUnitIDsByName[name]) then
 			trackedUnitIDsByName[name] = nil
 		end
 	end

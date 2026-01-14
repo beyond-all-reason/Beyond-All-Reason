@@ -256,3 +256,17 @@ return {
 	Triggers = triggers,
 	Actions = actions,
 }
+
+-- TODOs:
+-- Add validation of sub-types
+-- Name units when created
+-- Optional name as trigger requirements
+-- TransferUnits should set 'given' flag based on allyTeams
+-- Actions SpawnEffects, SpawnWeapons, and SpawnExplosion need tests
+-- Test EnableTrigger and DisableTrigger
+-- Need timer/countdown
+-- IssueOrders need orders with named targets
+-- Remember new units under construction for ConstructionFinished trigger, so SpawnAction won't trigger it?
+-- Add Custom action example
+-- Add prerequisite example
+-- Add resource action

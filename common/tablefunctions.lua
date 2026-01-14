@@ -210,6 +210,15 @@ if not table.count then
 	end
 end
 
+if not table.isEmpty then
+	---Check if the table is empty.
+	---@param tbl table
+	---@return number
+	function table.isEmpty(tbl)
+		return not next(tbl)
+	end
+end
+
 if not table.getKeyOf then
 	---Find key of value in table.
 	---Will always return the first key found, no matter if the table contains

@@ -8,7 +8,7 @@ local triggers = GG['MissionAPI'].Triggers
 ----------------------------------------------------------------
 
 local function isNameUntracked(name)
-	return not trackedUnitIDsByName[name] or not next(trackedUnitIDsByName[name])
+	return not trackedUnitIDsByName[name] or table.isEmpty(trackedUnitIDsByName[name])
 end
 
 local function trackUnit(name, unitID)
@@ -164,7 +164,7 @@ local function unnameUnits(name)
 
 	for _, unitID in pairs(trackedUnitIDsByName[name]) do
 		table.removeAll(trackedUnitNamesByID[unitID], name)
-		if not next(trackedUnitNamesByID[unitID]) then
+		if table.isEmpty(trackedUnitNamesByID[unitID]) then
 			trackedUnitNamesByID[unitID] = nil
 		end
 	end
