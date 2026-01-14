@@ -69,7 +69,7 @@ function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTe
 	end
 end
 
-function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
+function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID, transportTeam)
 	if isAirTransport[spGetUnitDefID(transportID)] then
 		local units = spGetUnitIsTransporting(transportID)
 		if units and units[1] then
