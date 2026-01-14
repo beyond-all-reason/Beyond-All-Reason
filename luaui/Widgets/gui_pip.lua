@@ -1,5 +1,5 @@
 if not Spring.GetModOptions().pip then --and not Spring.GetModOptions().allowuserwidgets then
-	return
+	--return
 end
 
 function widget:GetInfo()
@@ -48,6 +48,10 @@ local zoomFeatures = 0.2 -- Zoom level at which features stop being drawn (below
 local zoomProjectileDetail = 0.2 -- Zoom level threshold for drawing expensive projectile effects (projectiles, beams, shatters). Explosions always shown.
 local zoomExplosionDetail = 0.1 -- Zoom level threshold for drawing expensive projectile effects (projectiles, beams, shatters). Explosions always shown.
 
+local showLosOverlay = true -- Toggle LOS darkening overlay on/off
+local losOverlayOpacity = 0.57 -- Opacity of LOS darkening (0.0 = no darkening, 1.0 = maximum darkening)
+local showPipFps = false -- Show PIP content FPS counter in top-left corner
+
 local iconRadius = 40
 
 local leftButtonPansCamera = false
@@ -61,7 +65,7 @@ local switchInheritsTracking = false  -- When switching views, inherit PIP's uni
 local switchTransitionTime = 0.15  -- Camera transition time in seconds when switching views (pip_switch)
 local showMapRuler = true  -- Show map ruler marks at PIP edges to indicate scale
 
-local pipMinUpdateRate = 40  -- Minimum FPS for PIP rendering when zoomed out (performance-adjusted dynamically)
+local pipMinUpdateRate = 30  -- Minimum FPS for PIP rendering when zoomed out (performance-adjusted dynamically)
 local pipMaxUpdateRate = 120  -- Maximum FPS for PIP rendering when zoomed in
 local pipZoomThresholdMin = 0.15  -- Zoom level where we use minimum update rate
 local pipZoomThresholdMax = 0.4  -- Zoom level where we use maximum update rate
@@ -136,6 +140,12 @@ local pipR2T = {
 	frameNeedsUpdate = true,
 	frameLastWidth = 0,
 	frameLastHeight = 0,
+	-- LOS texture state
+	losTex = nil,
+	losNeedsUpdate = true,
+	losLastUpdateTime = 0,
+	losUpdateRate = 0.4,  -- Update every 0.4 seconds
+	losTexScale = 96,  -- 96:1 ratio of map size to LOS texture size
 }
 local minModeDlist = nil  -- Display list for minimized mode button
 
@@ -224,6 +234,16 @@ local fragmentsByTexturePool = {} -- Reused for icon shatter fragments grouping 
 local unitsToShowPool = {} -- Reused for DrawCommandQueuesOverlay unit list
 local commandLinePool = {} -- Reused for batched command line vertices
 local commandMarkerPool = {} -- Reused for batched command marker vertices
+local stillAlivePool = {} -- Reused for UpdateTracking alive units
+local cmdOptsPool = {alt=false, ctrl=false, meta=false, shift=false, right=false} -- Reused for GetCmdOpts
+local buildPositionsPool = {} -- Reused for CalculateBuildDragPositions
+local buildsByTexturePool = {} -- Reused for DrawQueuedBuilds texture grouping
+local buildCountByTexturePool = {} -- Reused for DrawQueuedBuilds counts
+local savedDimPool = {l=0, r=0, b=0, t=0} -- Reused for UpdateR2TContent dimension backup
+local savedGroundPool = {view={l=0,r=0,b=0,t=0}, coord={l=0,r=0,b=0,t=0}} -- Reused for UpdateR2TContent ground backup
+local projectileColorPool = {1, 0.5, 0, 1} -- Reused for DrawProjectile default color
+local trackingMergePool = {} -- Reused for tracking unit merge operations
+local trackingTempSetPool = {} -- Reused for tracking unit deduplication
 
 -- Consolidated cache tables
 local cache = {
@@ -433,21 +453,28 @@ local buttons = {
 			if #selectedUnits > 0 then
 				-- Add selected units to tracking (or start tracking if not already)
 				if interactionState.areTracking then
-					-- Merge with existing tracked units
-					local existingTracked = {}
+					-- Merge with existing tracked units using pooled tables
+					-- Clear temp set pool
+					for k in pairs(trackingTempSetPool) do
+						trackingTempSetPool[k] = nil
+					end
 					for _, unitID in ipairs(interactionState.areTracking) do
-						existingTracked[unitID] = true
+						trackingTempSetPool[unitID] = true
 					end
 					-- Add new units
 					for _, unitID in ipairs(selectedUnits) do
-						existingTracked[unitID] = true
+						trackingTempSetPool[unitID] = true
 					end
-					-- Convert back to array
-					local merged = {}
-					for unitID in pairs(existingTracked) do
-						merged[#merged + 1] = unitID
+					-- Convert back to array using pooled array
+					for i = #trackingMergePool, 1, -1 do
+						trackingMergePool[i] = nil
 					end
-					interactionState.areTracking = merged
+					for unitID in pairs(trackingTempSetPool) do
+						trackingMergePool[#trackingMergePool + 1] = unitID
+					end
+					interactionState.areTracking = trackingMergePool
+					-- Create new pool for next merge
+					trackingMergePool = {}
 				else
 					interactionState.areTracking = selectedUnits
 				end
@@ -545,7 +572,7 @@ local spGetUnitBasePosition = Spring.GetUnitBasePosition
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetTeamInfo = Spring.GetTeamInfo
-local spIsUnitInLos = Spring.IsUnitInLos
+local spIsPosInLos = Spring.IsPosInLos
 local spGetUnitLosState = Spring.GetUnitLosState
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeatureDirection = Spring.GetFeatureDirection
@@ -567,6 +594,38 @@ local atan2 = math.atan2
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
 
+-- Shader for converting red-channel LOS texture to greyscale
+local losShader = nil
+local losShaderCode = {
+	vertex = [[
+		varying vec2 texCoord;
+		void main() {
+			texCoord = gl_MultiTexCoord0.st;
+			gl_Position = gl_Vertex;
+		}
+	]],
+	fragment = [[
+		uniform sampler2D losTex;
+		uniform float baseValue;
+		uniform float losScale;
+		varying vec2 texCoord;
+		void main() {
+			// Extract red channel from LOS texture
+			float losValue = texture2D(losTex, texCoord).r;
+			// Convert to greyscale by replicating to all channels
+			float grey = baseValue + losValue * losScale;
+
+			gl_FragColor = vec4(grey, grey, grey, 1.0);
+		}
+	]],
+	uniformFloat = {
+		baseValue = 1.0 - losOverlayOpacity,  -- Brightness in no-LOS areas
+		losScale = losOverlayOpacity,         -- Brightness added for LOS areas
+	},
+	uniformInt = {
+		losTex = 0,
+	},
+}
 
 local teamColors = {}
 local teamList = Spring.GetTeamList()
@@ -614,7 +673,7 @@ function RecalculateGroundTextureCoordinates()
 		ground.coord.r = 1
 	else
 		ground.view.r = dim.r
-		ground.coord.r = world.r / mapSizeX
+		ground.coord.r = math.ceil(world.r) / mapSizeX  -- Use ceil for right edge
 	end
 	if world.t < 0 then
 		ground.view.t = dim.t - (dim.t - dim.b) * (-world.t / (world.b - world.t))
@@ -628,7 +687,7 @@ function RecalculateGroundTextureCoordinates()
 		ground.coord.b = 1
 	else
 		ground.view.b = dim.b
-		ground.coord.b = world.b / mapSizeZ
+		ground.coord.b = math.ceil(world.b) / mapSizeZ  -- Use ceil for bottom edge (which is top in Z)
 	end
 end
 
@@ -698,7 +757,10 @@ end
 local function UpdateTracking()
 	local uCount = 0
 	local ax, az = 0, 0
-	local stillAlive = {}
+	-- Clear and reuse stillAlive table
+	for i = #stillAlivePool, 1, -1 do
+		stillAlivePool[i] = nil
+	end
 
 	for t = 1, #interactionState.areTracking do
 		local uID = interactionState.areTracking[t]
@@ -707,7 +769,7 @@ local function UpdateTracking()
 			ax = ax + ux
 			az = az + uz
 			uCount = uCount + 1
-			stillAlive[uCount] = uID
+			stillAlivePool[uCount] = uID
 		end
 	end
 
@@ -766,36 +828,8 @@ local function UpdatePlayerTracking()
 		end
 
 		if playerCamState then
-			-- Check if camera state has changed significantly (force content update if so)
-			local stateChanged = false
-			if cameraState.lastTrackedCameraState then
-				-- Compare key camera parameters to detect significant changes
-				local posThreshold = 200  -- Position change threshold (elmos)
-				local zoomThreshold = 0.08  -- Zoom change threshold
-
-				-- Check position change
-				local lastX = cameraState.lastTrackedCameraState.px or cameraState.lastTrackedCameraState.x or 0
-				local lastZ = cameraState.lastTrackedCameraState.pz or cameraState.lastTrackedCameraState.z or 0
-				local currX = playerCamState.px or playerCamState.x or 0
-				local currZ = playerCamState.pz or playerCamState.z or 0
-				local posDist = math.sqrt((currX - lastX)^2 + (currZ - lastZ)^2)
-
-				-- Check zoom/distance change
-				local lastDist = cameraState.lastTrackedCameraState.dist or cameraState.lastTrackedCameraState.height or 1000
-				local currDist = playerCamState.dist or playerCamState.height or 1000
-				local distChange = math.abs(currDist - lastDist) / lastDist
-
-				if posDist > posThreshold or distChange > zoomThreshold then
-					stateChanged = true
-				end
-			else
-				stateChanged = true  -- First time tracking, force update
-			end
-
-			if stateChanged then
-				pipR2T.contentNeedsUpdate = true
-				cameraState.lastTrackedCameraState = playerCamState  -- Store for next comparison
-			end
+			-- Store camera state for tracking (but don't force immediate updates - let frame rate limiting handle it)
+			cameraState.lastTrackedCameraState = playerCamState
 
 			-- Extract position from camera state (different camera modes have different field names)
 			-- Camera state can have: px, py, pz (spring/ta camera), x, y, z (free camera), etc.
@@ -1082,7 +1116,9 @@ local function DrawProjectile(pID)
 
 	-- Get projectile size from cache or calculate it
 	local size = 4 -- Default size
-	local color = {1, 0.5, 0, 1} -- Default orange
+	-- Reuse color table (reset to default orange)
+	projectileColorPool[1], projectileColorPool[2], projectileColorPool[3], projectileColorPool[4] = 1, 0.5, 0, 1
+	local color = projectileColorPool
 	local width, height, isMissile, angle -- Initialize these early for blaster and missile handling
 
 	if pDefID then
@@ -2306,8 +2342,12 @@ local function UnitQueueVertices(uID)
 end
 
 local function GetCmdOpts(alt, ctrl, meta, shift, right)
-
-	local opts = { alt=alt, ctrl=ctrl, meta=meta, shift=shift, right=right }
+	-- Reuse opts table
+	cmdOptsPool.alt = alt
+	cmdOptsPool.ctrl = ctrl
+	cmdOptsPool.meta = meta
+	cmdOptsPool.shift = shift
+	cmdOptsPool.right = right
 	local coded = 0
 
 	if alt   then coded = coded + CMD.OPT_ALT   end
@@ -2316,8 +2356,8 @@ local function GetCmdOpts(alt, ctrl, meta, shift, right)
 	if shift then coded = coded + CMD.OPT_SHIFT end
 	if right then coded = coded + CMD.OPT_RIGHT end
 
-	opts.coded = coded
-	return opts
+	cmdOptsPool.coded = coded
+	return cmdOptsPool
 end
 
 local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
@@ -2371,7 +2411,10 @@ local function FindMyCommander()
 end
 
 local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, buildDefID, alt, ctrl, shift)
-	local positions = {}
+	-- Clear and reuse positions table
+	for i = #buildPositionsPool, 1, -1 do
+		buildPositionsPool[i] = nil
+	end
 	local buildFacing = Spring.GetBuildFacing()
 	local buildWidth, buildHeight = GetBuildingDimensions(buildDefID, buildFacing)
 
@@ -2388,7 +2431,8 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 
 	if distance < 1 then
 		-- Too short, just return start position
-		return {{wx = sx, wz = sz}}
+		buildPositionsPool[1] = {wx = sx, wz = sz}
+		return buildPositionsPool
 	end
 
 	-- Shift+Ctrl: Only horizontal or vertical line (lock to strongest axis)
@@ -2823,6 +2867,30 @@ function widget:Initialize()
 		cache.featureRadiusSqs[fDefID] = fx*fx + fz*fz
 	end
 
+	-- Initialize LOS texture (a fraction of map size)
+	local losTexWidth = math.max(1, math.floor(mapSizeX / pipR2T.losTexScale))
+	local losTexHeight = math.max(1, math.floor(mapSizeZ / pipR2T.losTexScale))
+	pipR2T.losTex = gl.CreateTexture(losTexWidth, losTexHeight, {
+		target = GL.TEXTURE_2D,
+		format = GL.RGBA8,  -- RGBA for proper greyscale rendering
+		fbo = true,
+		min_filter = GL.LINEAR,  -- Use linear filtering for smooth/blurred appearance
+		mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
+	})
+
+	-- Initialize LOS shader for red-to-greyscale conversion
+	losShader = gl.CreateShader(losShaderCode)
+	if not losShader then
+		Spring.Echo("PIP: Failed to compile LOS shader, LOS overlay will be disabled")
+		Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
+		if pipR2T.losTex then
+			gl.DeleteTexture(pipR2T.losTex)
+			pipR2T.losTex = nil
+		end
+	end
+
 	-- Localize weapon data for performance
 	for wDefID, wDef in pairs(WeaponDefs) do
 		-- Check weapon type
@@ -2929,6 +2997,7 @@ function widget:Initialize()
 				interactionState.areTracking = nil  -- Clear unit tracking
 				pipR2T.frameNeedsUpdate = true
 				pipR2T.contentNeedsUpdate = true
+				pipR2T.losNeedsUpdate = true  -- Update LOS for new tracked player
 				return true
 			end
 		end
@@ -2938,6 +3007,7 @@ function widget:Initialize()
 		if interactionState.trackingPlayerID then
 			interactionState.trackingPlayerID = nil
 			pipR2T.frameNeedsUpdate = true
+			pipR2T.losNeedsUpdate = true  -- Update LOS when untracking
 			return true
 		end
 		return false
@@ -3079,6 +3149,14 @@ function widget:ViewResize()
 	UpdateGuishaderBlur()
 end
 
+function widget:PlayerChanged(playerID)
+	-- Update LOS texture when player state changes (e.g., entering/exiting spec mode)
+	pipR2T.losNeedsUpdate = true
+
+	-- Update spec state
+	cameraState.mySpecState = Spring.GetSpectatingState()
+end
+
 function widget:Shutdown()
 	gl.DeleteList(unitOutlineList)
 	gl.DeleteList(radarDotList)
@@ -3097,6 +3175,18 @@ function widget:Shutdown()
 	if pipR2T.frameButtonsTex then
 		gl.DeleteTexture(pipR2T.frameButtonsTex)
 		pipR2T.frameButtonsTex = nil
+	end
+
+	-- Clean up LOS texture
+	if pipR2T.losTex then
+		gl.DeleteTexture(pipR2T.losTex)
+		pipR2T.losTex = nil
+	end
+
+	-- Clean up LOS shader
+	if losShader then
+		gl.DeleteShader(losShader)
+		losShader = nil
 	end
 
 	-- Clean up minimize mode display list
@@ -3718,8 +3808,13 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult)
 		return
 	end
 
-	local buildsByTexture = {}
-	local buildCountByTexture = {}
+	-- Clear and reuse texture grouping tables
+	for k in pairs(buildsByTexturePool) do
+		buildsByTexturePool[k] = nil
+	end
+	for k in pairs(buildCountByTexturePool) do
+		buildCountByTexturePool[k] = nil
+	end
 
 	for i = 1, selectedCount do
 		local unitID = selectedUnits[i]
@@ -3768,9 +3863,9 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult)
 	end
 
 	glColor(0.5, 1, 0.5, 0.4)
-	for bitmap, builds in pairs(buildsByTexture) do
+	for bitmap, builds in pairs(buildsByTexturePool) do
 		glTexture(bitmap)
-		local buildCount = buildCountByTexture[bitmap]
+		local buildCount = buildCountByTexturePool[bitmap]
 		for i = 1, buildCount do
 			local build = builds[i]
 			local cx, cy, iconSize, rotation = build.cx, build.cy, build.iconSize, build.rotation
@@ -4513,12 +4608,69 @@ local function RenderFrameButtons()
 end
 
 -- Helper function to render PIP contents (units, features, ground, command queues)
+-- Helper function to determine if LOS overlay should be shown and which allyteam to use
+local function ShouldShowLOS()
+	local myAllyTeam = Spring.GetMyAllyTeamID()
+	local mySpec = Spring.GetSpectatingState()
+
+	-- If tracking a player's camera, use their allyteam
+	if interactionState.trackingPlayerID then
+		local _, _, isSpec, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+		if teamID then
+			local allyTeamID = Spring.GetTeamAllyTeamID(teamID)
+			return true, allyTeamID
+		end
+	end
+
+	-- If not a spectator, show LOS for our own allyteam
+	if not mySpec then
+		return true, myAllyTeam
+	end
+
+	-- Don't show LOS for spectators (unless tracking a player)
+	return false, nil
+end
+
 local function RenderPipContents()
 	if uiState.drawingGround then
 		glColor(0.9, 0.9, 0.9, 1)
 		glTexture('$grass')
 		glBeginEnd(GL_QUADS, GroundTextureVertices)
 		glTexture(false)
+
+		-- Draw LOS darkening overlay
+		local shouldShowLOS, losAllyTeam = ShouldShowLOS()
+		if showLosOverlay and shouldShowLOS and pipR2T.losTex then
+			-- Calculate scissor coordinates to only show the visible map portion
+			-- Add small margin to avoid edge cutoff
+			local scissorL = math.floor(math.max(ground.view.l, dim.l))
+			local scissorR = math.ceil(math.min(ground.view.r, dim.r))
+			local scissorB = math.floor(math.max(ground.view.b, dim.b))
+			local scissorT = math.ceil(math.min(ground.view.t, dim.t))
+
+			if scissorR > scissorL and scissorT > scissorB then
+				-- Enable scissor test to clip to visible map area
+				gl.Scissor(scissorL, scissorB, scissorR - scissorL, scissorT - scissorB)
+
+				-- Draw LOS texture - it has values in red channel, we need greyscale
+				-- Use multiplicative blending to darken the map based on LOS
+				gl.Blending(GL.DST_COLOR, GL.ZERO)  -- result = dst * src
+				glColor(1, 1, 1, 1)
+				glTexture(pipR2T.losTex)
+
+				-- Draw full-screen quad with map texture coordinates
+				glBeginEnd(GL_QUADS, function()
+					glTexCoord(ground.coord.l, ground.coord.b); glVertex(ground.view.l, ground.view.b)
+					glTexCoord(ground.coord.r, ground.coord.b); glVertex(ground.view.r, ground.view.b)
+					glTexCoord(ground.coord.r, ground.coord.t); glVertex(ground.view.r, ground.view.t)
+					glTexCoord(ground.coord.l, ground.coord.t); glVertex(ground.view.l, ground.view.t)
+				end)
+
+				glTexture(false)
+				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)  -- Restore default blending
+				gl.Scissor(false)  -- Disable scissor test
+			end
+		end
 	end
 
 	-- Measure draw time for performance monitoring
@@ -5144,25 +5296,119 @@ local function UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHei
 			gl.Translate(-1, -1, 0)
 			gl.Scale(2 / pipWidth, 2 / pipHeight, 0)
 
-			local savedDim = {l = dim.l, r = dim.r, b = dim.b, t = dim.t}
-			local savedGround = {
-				view = {l = ground.view.l, r = ground.view.r, b = ground.view.b, t = ground.view.t},
-				coord = {l = ground.coord.l, r = ground.coord.r, b = ground.coord.b, t = ground.coord.t}
-			}
+			-- Reuse saved dimension tables
+			savedDimPool.l, savedDimPool.r, savedDimPool.b, savedDimPool.t = dim.l, dim.r, dim.b, dim.t
+			savedGroundPool.view.l, savedGroundPool.view.r, savedGroundPool.view.b, savedGroundPool.view.t = ground.view.l, ground.view.r, ground.view.b, ground.view.t
+			savedGroundPool.coord.l, savedGroundPool.coord.r, savedGroundPool.coord.b, savedGroundPool.coord.t = ground.coord.l, ground.coord.r, ground.coord.b, ground.coord.t
 
 			dim.l, dim.b, dim.r, dim.t = 0, 0, pipWidth, pipHeight
 			RecalculateWorldCoordinates()
 			RecalculateGroundTextureCoordinates()
 			RenderPipContents()
 
-			dim.l, dim.r, dim.b, dim.t = savedDim.l, savedDim.r, savedDim.b, savedDim.t
+			dim.l, dim.r, dim.b, dim.t = savedDimPool.l, savedDimPool.r, savedDimPool.b, savedDimPool.t
 			RecalculateWorldCoordinates()
-			ground.view.l, ground.view.r, ground.view.b, ground.view.t = savedGround.view.l, savedGround.view.r, savedGround.view.b, savedGround.view.t
-			ground.coord.l, ground.coord.r, ground.coord.b, ground.coord.t = savedGround.coord.l, savedGround.coord.r, savedGround.coord.b, savedGround.coord.t
+			ground.view.l, ground.view.r, ground.view.b, ground.view.t = savedGroundPool.view.l, savedGroundPool.view.r, savedGroundPool.view.b, savedGroundPool.view.t
+			ground.coord.l, ground.coord.r, ground.coord.b, ground.coord.t = savedGroundPool.coord.l, savedGroundPool.coord.r, savedGroundPool.coord.b, savedGroundPool.coord.t
 		end, true)
 		pipR2T.contentLastUpdateTime = currentTime
 		pipR2T.contentNeedsUpdate = false
 	end
+end
+
+-- Update LOS texture with current Line-of-Sight information
+local function UpdateLOSTexture(currentTime)
+	-- Check if we should update LOS texture
+	local shouldShowLOS, losAllyTeam = ShouldShowLOS()
+	if not shouldShowLOS or not pipR2T.losTex then
+		return
+	end
+
+	local myAllyTeam = Spring.GetMyAllyTeamID()
+	local useEngineLOS = (losAllyTeam == myAllyTeam)  -- Can use engine LOS if same allyteam
+
+	-- Check if update is needed based on update rate
+	local shouldUpdate
+	if useEngineLOS then
+		-- Always update when using engine LOS (it's cheap and real-time)
+		shouldUpdate = true
+	else
+		-- Only apply rate limiting when manually generating LOS (expensive)
+		shouldUpdate = pipR2T.losNeedsUpdate or (currentTime - pipR2T.losLastUpdateTime) >= pipR2T.losUpdateRate
+	end
+
+	if not shouldUpdate then
+		return
+	end
+
+	-- Calculate LOS texture dimensions
+	local losTexWidth = math.max(1, math.floor(mapSizeX / pipR2T.losTexScale))
+	local losTexHeight = math.max(1, math.floor(mapSizeZ / pipR2T.losTexScale))
+
+	-- Render the LOS texture
+	if losShader then
+		gl.R2tHelper.RenderToTexture(pipR2T.losTex, function()
+			if useEngineLOS then
+				-- Use engine's LOS texture (fast, real-time)
+				gl.Texture(0, '$info:los')
+
+				-- Activate shader to convert red channel to greyscale
+				gl.UseShader(losShader)
+
+				-- Draw full-screen quad in normalized coordinates (-1 to 1)
+				glBeginEnd(GL_QUADS, function()
+					glTexCoord(0, 0); glVertex(-1, -1)
+					glTexCoord(1, 0); glVertex(1, -1)
+					glTexCoord(1, 1); glVertex(1, 1)
+					glTexCoord(0, 1); glVertex(-1, 1)
+				end)
+
+				gl.UseShader(0)
+				gl.Texture(0, false)
+			else
+				-- Manually generate LOS texture using Spring.IsPosInLos (expensive)
+				-- Clear to base darkness (no LOS)
+				local baseBrightness = 1.0 - losOverlayOpacity
+				gl.Clear(GL.COLOR_BUFFER_BIT, baseBrightness, baseBrightness, baseBrightness, 1)
+
+				-- Sample LOS at regular intervals
+				local cellSizeX = mapSizeX / losTexWidth
+				local cellSizeZ = mapSizeZ / losTexHeight
+
+				gl.Blending(false)
+				glColor(1, 1, 1, 1)
+
+				-- Draw quads for areas with LOS
+				glBeginEnd(GL_QUADS, function()
+					for y = 0, losTexHeight - 1 do
+						for x = 0, losTexWidth - 1 do
+							local worldX = (x + 0.5) * cellSizeX
+							local worldZ = (y + 0.5) * cellSizeZ
+							local worldY = spGetGroundHeight(worldX, worldZ)
+
+							if spIsPosInLos(worldX, worldY, worldZ, losAllyTeam) then
+								-- Convert to normalized coordinates (-1 to 1)
+								local nx1 = (x / losTexWidth) * 2 - 1
+								local nx2 = ((x + 1) / losTexWidth) * 2 - 1
+								local ny1 = (y / losTexHeight) * 2 - 1
+								local ny2 = ((y + 1) / losTexHeight) * 2 - 1
+
+								glVertex(nx1, ny1)
+								glVertex(nx2, ny1)
+								glVertex(nx2, ny2)
+								glVertex(nx1, ny2)
+							end
+						end
+					end
+				end)
+
+				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+			end
+		end, true)
+	end
+
+	pipR2T.losLastUpdateTime = currentTime
+	pipR2T.losNeedsUpdate = false
 end
 
 -- Helper function to draw tracking indicators
@@ -5442,6 +5688,9 @@ function widget:DrawScreen()
 		local dynamicUpdateRate = CalculateDynamicUpdateRate()
 		local pipUpdateInterval = dynamicUpdateRate > 0 and (1 / dynamicUpdateRate) or 0
 
+		-- Update LOS texture
+		UpdateLOSTexture(currentTime)
+
 		-- Measure time to render
 		local drawStartTime = os.clock()
 		UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHeight)
@@ -5537,13 +5786,17 @@ function widget:DrawScreen()
 	DrawTrackedPlayerName()
 
 	-- Display current max update rate (top-left corner)
-	-- local fontSize = 11
-	-- local padding = 5
-	-- font:Begin()
-	-- font:SetTextColor(0.85, 0.85, 0.85, 1)
-	-- font:SetOutlineColor(0, 0, 0, 0.5)
-	-- font:Print(string.format("%.0f FPS", pipR2T.contentCurrentUpdateRate), dim.l + padding, dim.t - (fontSize*1.6) - padding, fontSize*2, "no")
-	-- font:End()	-- Draw box selection rectangle
+	if showPipFps then
+		local fontSize = 11
+		local padding = 8
+		font:Begin()
+		font:SetTextColor(0.85, 0.85, 0.85, 1)
+		font:SetOutlineColor(0, 0, 0, 0.5)
+		font:Print(string.format("%.0f FPS", pipR2T.contentCurrentUpdateRate), dim.l + padding, dim.t - (fontSize*1.6) - padding, fontSize*2, "no")
+		font:End()
+	end
+
+	-- Draw box selection rectangle
 
 	DrawBoxSelection()
 
@@ -5698,8 +5951,14 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 end
 
 function widget:Update(dt)
-	-- Update spectating state
+	-- Update spectating state and check if it changed
+	local oldSpecState = cameraState.mySpecState
 	cameraState.mySpecState = Spring.GetSpectatingState()
+
+	-- If spec state changed, update LOS texture
+	if oldSpecState ~= cameraState.mySpecState then
+		pipR2T.losNeedsUpdate = true
+	end
 
 	-- Update mouse hover state
 	local mx, my = spGetMouseState()
