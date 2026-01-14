@@ -500,9 +500,6 @@ end
 ---Shield controller API for other gadgets to generate and process their own shield damage events.
 local function addShieldDamage(shieldUnitID, damage, weaponDefID, projectileID, beamEmitterWeaponNum, beamEmitterUnitID)
 	local projectileDestroyed, damageMitigated = false, 0
-	if not beamEmitterUnitID and beamEmitterWeapons[weaponDefID] then
-		beamEmitterUnitID, beamEmitterWeaponNum = unpack(beamEmitterWeapons[weaponDefID])
-	end
 	local shieldData = shieldUnitsData[shieldUnitID]
 	if shieldData and shieldData.shieldEnabled then
 		local shieldDamage = shieldData.shieldDamage
