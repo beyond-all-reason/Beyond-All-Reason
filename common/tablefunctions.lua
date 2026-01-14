@@ -213,7 +213,7 @@ end
 if not table.isEmpty then
 	---Check if the table is empty.
 	---@param tbl table
-	---@return number
+	---@return boolean
 	function table.isEmpty(tbl)
 		return next(tbl) == nil
 	end
