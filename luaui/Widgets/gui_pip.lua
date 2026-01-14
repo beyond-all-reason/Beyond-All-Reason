@@ -50,7 +50,7 @@ local zoomExplosionDetail = 0.1 -- Zoom level threshold for drawing expensive pr
 
 local showLosOverlay = true -- Toggle LOS darkening overlay on/off
 local losOverlayOpacity = 0.57 -- Opacity of LOS darkening (0.0 = no darkening, 1.0 = maximum darkening)
-local showPipFps = true -- Show PIP content FPS counter in top-left corner
+local showPipFps = false -- Show PIP content FPS counter in top-left corner
 
 local iconRadius = 40
 
@@ -234,6 +234,16 @@ local fragmentsByTexturePool = {} -- Reused for icon shatter fragments grouping 
 local unitsToShowPool = {} -- Reused for DrawCommandQueuesOverlay unit list
 local commandLinePool = {} -- Reused for batched command line vertices
 local commandMarkerPool = {} -- Reused for batched command marker vertices
+local stillAlivePool = {} -- Reused for UpdateTracking alive units
+local cmdOptsPool = {alt=false, ctrl=false, meta=false, shift=false, right=false} -- Reused for GetCmdOpts
+local buildPositionsPool = {} -- Reused for CalculateBuildDragPositions
+local buildsByTexturePool = {} -- Reused for DrawQueuedBuilds texture grouping
+local buildCountByTexturePool = {} -- Reused for DrawQueuedBuilds counts
+local savedDimPool = {l=0, r=0, b=0, t=0} -- Reused for UpdateR2TContent dimension backup
+local savedGroundPool = {view={l=0,r=0,b=0,t=0}, coord={l=0,r=0,b=0,t=0}} -- Reused for UpdateR2TContent ground backup
+local projectileColorPool = {1, 0.5, 0, 1} -- Reused for DrawProjectile default color
+local trackingMergePool = {} -- Reused for tracking unit merge operations
+local trackingTempSetPool = {} -- Reused for tracking unit deduplication
 
 -- Consolidated cache tables
 local cache = {
@@ -443,21 +453,28 @@ local buttons = {
 			if #selectedUnits > 0 then
 				-- Add selected units to tracking (or start tracking if not already)
 				if interactionState.areTracking then
-					-- Merge with existing tracked units
-					local existingTracked = {}
+					-- Merge with existing tracked units using pooled tables
+					-- Clear temp set pool
+					for k in pairs(trackingTempSetPool) do
+						trackingTempSetPool[k] = nil
+					end
 					for _, unitID in ipairs(interactionState.areTracking) do
-						existingTracked[unitID] = true
+						trackingTempSetPool[unitID] = true
 					end
 					-- Add new units
 					for _, unitID in ipairs(selectedUnits) do
-						existingTracked[unitID] = true
+						trackingTempSetPool[unitID] = true
 					end
-					-- Convert back to array
-					local merged = {}
-					for unitID in pairs(existingTracked) do
-						merged[#merged + 1] = unitID
+					-- Convert back to array using pooled array
+					for i = #trackingMergePool, 1, -1 do
+						trackingMergePool[i] = nil
 					end
-					interactionState.areTracking = merged
+					for unitID in pairs(trackingTempSetPool) do
+						trackingMergePool[#trackingMergePool + 1] = unitID
+					end
+					interactionState.areTracking = trackingMergePool
+					-- Create new pool for next merge
+					trackingMergePool = {}
 				else
 					interactionState.areTracking = selectedUnits
 				end
@@ -740,7 +757,10 @@ end
 local function UpdateTracking()
 	local uCount = 0
 	local ax, az = 0, 0
-	local stillAlive = {}
+	-- Clear and reuse stillAlive table
+	for i = #stillAlivePool, 1, -1 do
+		stillAlivePool[i] = nil
+	end
 
 	for t = 1, #interactionState.areTracking do
 		local uID = interactionState.areTracking[t]
@@ -749,7 +769,7 @@ local function UpdateTracking()
 			ax = ax + ux
 			az = az + uz
 			uCount = uCount + 1
-			stillAlive[uCount] = uID
+			stillAlivePool[uCount] = uID
 		end
 	end
 
@@ -1096,7 +1116,9 @@ local function DrawProjectile(pID)
 
 	-- Get projectile size from cache or calculate it
 	local size = 4 -- Default size
-	local color = {1, 0.5, 0, 1} -- Default orange
+	-- Reuse color table (reset to default orange)
+	projectileColorPool[1], projectileColorPool[2], projectileColorPool[3], projectileColorPool[4] = 1, 0.5, 0, 1
+	local color = projectileColorPool
 	local width, height, isMissile, angle -- Initialize these early for blaster and missile handling
 
 	if pDefID then
@@ -2320,8 +2342,12 @@ local function UnitQueueVertices(uID)
 end
 
 local function GetCmdOpts(alt, ctrl, meta, shift, right)
-
-	local opts = { alt=alt, ctrl=ctrl, meta=meta, shift=shift, right=right }
+	-- Reuse opts table
+	cmdOptsPool.alt = alt
+	cmdOptsPool.ctrl = ctrl
+	cmdOptsPool.meta = meta
+	cmdOptsPool.shift = shift
+	cmdOptsPool.right = right
 	local coded = 0
 
 	if alt   then coded = coded + CMD.OPT_ALT   end
@@ -2330,8 +2356,8 @@ local function GetCmdOpts(alt, ctrl, meta, shift, right)
 	if shift then coded = coded + CMD.OPT_SHIFT end
 	if right then coded = coded + CMD.OPT_RIGHT end
 
-	opts.coded = coded
-	return opts
+	cmdOptsPool.coded = coded
+	return cmdOptsPool
 end
 
 local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
@@ -2385,7 +2411,10 @@ local function FindMyCommander()
 end
 
 local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, buildDefID, alt, ctrl, shift)
-	local positions = {}
+	-- Clear and reuse positions table
+	for i = #buildPositionsPool, 1, -1 do
+		buildPositionsPool[i] = nil
+	end
 	local buildFacing = Spring.GetBuildFacing()
 	local buildWidth, buildHeight = GetBuildingDimensions(buildDefID, buildFacing)
 
@@ -2402,7 +2431,8 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 
 	if distance < 1 then
 		-- Too short, just return start position
-		return {{wx = sx, wz = sz}}
+		buildPositionsPool[1] = {wx = sx, wz = sz}
+		return buildPositionsPool
 	end
 
 	-- Shift+Ctrl: Only horizontal or vertical line (lock to strongest axis)
@@ -3778,8 +3808,13 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult)
 		return
 	end
 
-	local buildsByTexture = {}
-	local buildCountByTexture = {}
+	-- Clear and reuse texture grouping tables
+	for k in pairs(buildsByTexturePool) do
+		buildsByTexturePool[k] = nil
+	end
+	for k in pairs(buildCountByTexturePool) do
+		buildCountByTexturePool[k] = nil
+	end
 
 	for i = 1, selectedCount do
 		local unitID = selectedUnits[i]
@@ -3828,9 +3863,9 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult)
 	end
 
 	glColor(0.5, 1, 0.5, 0.4)
-	for bitmap, builds in pairs(buildsByTexture) do
+	for bitmap, builds in pairs(buildsByTexturePool) do
 		glTexture(bitmap)
-		local buildCount = buildCountByTexture[bitmap]
+		local buildCount = buildCountByTexturePool[bitmap]
 		for i = 1, buildCount do
 			local build = builds[i]
 			local cx, cy, iconSize, rotation = build.cx, build.cy, build.iconSize, build.rotation
@@ -5261,21 +5296,20 @@ local function UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHei
 			gl.Translate(-1, -1, 0)
 			gl.Scale(2 / pipWidth, 2 / pipHeight, 0)
 
-			local savedDim = {l = dim.l, r = dim.r, b = dim.b, t = dim.t}
-			local savedGround = {
-				view = {l = ground.view.l, r = ground.view.r, b = ground.view.b, t = ground.view.t},
-				coord = {l = ground.coord.l, r = ground.coord.r, b = ground.coord.b, t = ground.coord.t}
-			}
+			-- Reuse saved dimension tables
+			savedDimPool.l, savedDimPool.r, savedDimPool.b, savedDimPool.t = dim.l, dim.r, dim.b, dim.t
+			savedGroundPool.view.l, savedGroundPool.view.r, savedGroundPool.view.b, savedGroundPool.view.t = ground.view.l, ground.view.r, ground.view.b, ground.view.t
+			savedGroundPool.coord.l, savedGroundPool.coord.r, savedGroundPool.coord.b, savedGroundPool.coord.t = ground.coord.l, ground.coord.r, ground.coord.b, ground.coord.t
 
 			dim.l, dim.b, dim.r, dim.t = 0, 0, pipWidth, pipHeight
 			RecalculateWorldCoordinates()
 			RecalculateGroundTextureCoordinates()
 			RenderPipContents()
 
-			dim.l, dim.r, dim.b, dim.t = savedDim.l, savedDim.r, savedDim.b, savedDim.t
+			dim.l, dim.r, dim.b, dim.t = savedDimPool.l, savedDimPool.r, savedDimPool.b, savedDimPool.t
 			RecalculateWorldCoordinates()
-			ground.view.l, ground.view.r, ground.view.b, ground.view.t = savedGround.view.l, savedGround.view.r, savedGround.view.b, savedGround.view.t
-			ground.coord.l, ground.coord.r, ground.coord.b, ground.coord.t = savedGround.coord.l, savedGround.coord.r, savedGround.coord.b, savedGround.coord.t
+			ground.view.l, ground.view.r, ground.view.b, ground.view.t = savedGroundPool.view.l, savedGroundPool.view.r, savedGroundPool.view.b, savedGroundPool.view.t
+			ground.coord.l, ground.coord.r, ground.coord.b, ground.coord.t = savedGroundPool.coord.l, savedGroundPool.coord.r, savedGroundPool.coord.b, savedGroundPool.coord.t
 		end, true)
 		pipR2T.contentLastUpdateTime = currentTime
 		pipR2T.contentNeedsUpdate = false
