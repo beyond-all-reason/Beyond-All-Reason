@@ -31,7 +31,14 @@ _G.Spring = _G.Spring or {
         if LOG_LEVELS[level] and LOG_LEVELS[level] >= LOG_LEVELS[_G.CURRENT_LOG_LEVEL] then
             print(string.format("[%s] %s: %s", tag, level, message))
         end
-    end
+    end,
+    -- Economy audit functions (disabled by default in tests)
+    IsEconomyAuditEnabled = function() return false end,
+    EconomyAuditLog = function(eventType, ...) end,
+    EconomyAuditLogRaw = function(eventType, ...) end,
+    EconomyAuditBreakpoint = function(name) end,
+    GetGameFrame = function() return 0 end,
+    GetAuditTimer = function() return 0 end,
 }
 
 _G.unpack = _G.unpack or table.unpack or function(t, i, j)

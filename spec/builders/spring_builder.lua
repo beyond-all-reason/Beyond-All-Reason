@@ -616,6 +616,81 @@ function SB:BuildSpring()
         return false
     end
 
+    -- Economy audit functions (disabled by default in tests)
+    mock.IsEconomyAuditEnabled = function()
+        return false
+    end
+
+    mock.EconomyAuditLog = function(eventType, ...)
+        -- No-op in tests
+    end
+
+    mock.EconomyAuditLogRaw = function(eventType, ...)
+        -- No-op in tests
+    end
+
+    mock.EconomyAuditBreakpoint = function(name)
+        -- No-op in tests
+    end
+
+    -- Policy caching functions
+    local cachedPolicies = {}
+    
+    mock.SetCachedPolicy = function(policyType, senderId, receiverId, policyResult)
+        local key = string.format("%s_%d_%d", tostring(policyType), senderId, receiverId)
+        cachedPolicies[key] = policyResult
+    end
+
+    mock.GetCachedPolicy = function(policyType, senderId, receiverId)
+        local key = string.format("%s_%d_%d", tostring(policyType), senderId, receiverId)
+        return cachedPolicies[key]
+    end
+
+    mock.GetGaiaTeamID = function()
+        return -1
+    end
+
+    mock.GetTeamInfo = function(teamID, getUnread)
+        local teamData = builtTeams[teamID]
+        if teamData then
+            local name = teamData.name or ("Team " .. tostring(teamID))
+            local leader = teamData.leader or 0
+            local isDead = teamData.isDead or false
+            local isAI = teamData.isAI or false
+            local side = teamData.side or "arm"
+            local allyTeam = teamData.allyTeam or teamID
+            local customTeamKeys = teamData.customTeamKeys or {}
+            local incomeMultiplier = teamData.incomeMultiplier or 1
+            local customOpts = teamData.customOpts or 0
+            return name, leader, isDead, isAI, side, allyTeam, customTeamKeys, incomeMultiplier, customOpts
+        end
+        return "Unknown", 0, true, false, "arm", -1, {}, 1, 0
+    end
+
+    mock.GetTeamLuaAI = function(teamID)
+        local teamData = builtTeams[teamID]
+        if teamData and teamData.luaAI then
+            return teamData.luaAI
+        end
+        return nil
+    end
+
+    mock.SetTeamShareLevel = function(teamID, resource, level)
+        local teamData = builtTeams[teamID]
+        if teamData then
+            local normalized = normalizeResourceType(resource)
+            if normalized == ResourceType.METAL then
+                teamData.metal.shareSlider = level
+            else
+                teamData.energy.shareSlider = level
+            end
+        end
+    end
+
+    mock.GetAuditTimer = function()
+        return 0
+    end
+
     return mock
 end
 

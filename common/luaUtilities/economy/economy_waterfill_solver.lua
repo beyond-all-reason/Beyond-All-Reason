@@ -62,9 +62,9 @@ local function collectMembers(teamsList, resourceType, thresholds, springRepo)
         if shareCursor > storage then
           shareCursor = storage
         end
-        -- Passive transfers use separate cumulative tracking and are always taxed
         local cumulativeSent = ResourceShared.GetPassiveCumulativeSent(teamId, resourceType, springRepo)
-        local remaining = 0
+        local remaining = threshold - cumulativeSent
+        if remaining < 0 then remaining = 0 end
 
         local member = memberCache[teamId]
         if not member then
@@ -96,35 +96,161 @@ local function collectMembers(teamsList, resourceType, thresholds, springRepo)
   return groupCache, groupSizes
 end
 
+local LIFT_ITERATIONS = 32
+
+local function effectiveSupply(m, target, rate)
+  if m.current <= target + EPSILON then return 0 end
+  local grossDelta = m.current - target
+  local taxFree = math.min(grossDelta, m.remainingTaxFreeAllowance or 0)
+  local taxable = math.max(0, grossDelta - (m.remainingTaxFreeAllowance or 0))
+  local afterTax = taxable * (1 - rate)
+  return taxFree + afterTax
+end
+
+local function demand(m, target)
+  if m.current >= target - EPSILON then return 0 end
+  return target - m.current
+end
+
+local function balance(mems, memberCount, lift, rate)
+  local supply, dem = 0, 0
+  for i = 1, memberCount do
+    local m = mems[i]
+    local target = math.min(m.shareCursor + lift, m.storage)
+    supply = supply + effectiveSupply(m, target, rate)
+    dem = dem + demand(m, target)
+  end
+  return supply - dem
+end
+
+local function calcGrossForEffective(effective, allowance, taxRate)
+  if taxRate >= 1 - EPSILON then
+    return math.min(effective, allowance)
+  end
+  if effective <= allowance then
+    return effective
+  end
+  local taxableAfterTax = effective - allowance
+  local taxablePre = taxableAfterTax / (1 - taxRate)
+  return allowance + taxablePre
+end
+
 ---@param members EconomyShareMember[]
 ---@param memberCount number
 ---@param taxRate number
 ---@return number lift
 ---@return table deltas
-local function solveWithCpp(members, memberCount, taxRate)
-  for i = memberCount + 1, #cppMembersCache do
-    cppMembersCache[i] = nil
+local function solveWaterfill(members, memberCount, taxRate)
+  if memberCount == 0 then
+    return 0, {}
   end
-  for i = memberCount + 1, #teamIdMapCache do
-    teamIdMapCache[i] = nil
+
+  local maxLift = 0
+  for i = 1, memberCount do
+    local m = members[i]
+    local headroom = m.storage - m.shareCursor
+    if headroom > maxLift then maxLift = headroom end
   end
+
+  local lo, hi = 0, maxLift
+  for _ = 1, LIFT_ITERATIONS do
+    local mid = 0.5 * (lo + hi)
+    if balance(members, memberCount, mid, taxRate) >= 0 then
+      lo = mid
+    else
+      hi = mid
+    end
+  end
+  local lift = lo
+
+  local totalSupply, totalDemand = 0, 0
+  local senderData = {}
+  local receiverData = {}
 
   for i = 1, memberCount do
     local m = members[i]
-    local entry = cppMembersCache[i]
-    if not entry then
-      entry = {}
-      cppMembersCache[i] = entry
+    local target = math.min(m.shareCursor + lift, m.storage)
+    if m.current > target + EPSILON then
+      local eff = effectiveSupply(m, target, taxRate)
+      senderData[i] = { idx = i, member = m, target = target, effective = eff }
+      totalSupply = totalSupply + eff
+    elseif m.current < target - EPSILON then
+      local dem = demand(m, target)
+      receiverData[i] = { idx = i, member = m, target = target, demand = dem }
+      totalDemand = totalDemand + dem
     end
-    entry.current = m.current
-    entry.storage = m.storage
-    entry.shareTarget = m.shareCursor
-    entry.allowance = m.remainingTaxFreeAllowance
-    teamIdMapCache[i] = m.teamId
   end
 
-  local result = Spring.SolveWaterfill(cppMembersCache, taxRate)
-  return result.lift, result.deltas
+  local flowRatio = 1
+  if totalDemand > EPSILON and totalSupply < totalDemand - EPSILON then
+    flowRatio = totalSupply / totalDemand
+  end
+
+  local deltas = {}
+
+  for i, sd in pairs(senderData) do
+    local m = sd.member
+    local d = { gross = 0, net = 0, taxed = 0 }
+    local eff = sd.effective
+    local allowance = m.remainingTaxFreeAllowance or 0
+    local grossSend = calcGrossForEffective(eff, allowance, taxRate)
+    d.gross = -grossSend
+    local taxFree = math.min(grossSend, allowance)
+    local taxable = math.max(0, grossSend - allowance)
+    d.taxed = taxable * taxRate
+    d.net = -(taxFree + taxable - d.taxed)
+    if math.abs(d.gross) >= EPSILON then
+      deltas[i] = d
+    end
+  end
+
+  for i, rd in pairs(receiverData) do
+    local d = { gross = 0, net = 0, taxed = 0 }
+    local received = rd.demand * flowRatio
+    d.gross = received
+    d.net = received
+    if math.abs(d.gross) >= EPSILON then
+      deltas[i] = d
+    end
+  end
+
+  return lift, deltas
+end
+
+---@param members EconomyShareMember[]
+---@param memberCount number
+---@param taxRate number
+---@return number lift
+---@return table deltas
+local function solveWithCppOrLua(members, memberCount, taxRate)
+  -- Use C++ solver if available, otherwise pure Lua
+  if Spring and Spring.SolveWaterfill then
+    for i = memberCount + 1, #cppMembersCache do
+      cppMembersCache[i] = nil
+    end
+    for i = memberCount + 1, #teamIdMapCache do
+      teamIdMapCache[i] = nil
+    end
+
+    for i = 1, memberCount do
+      local m = members[i]
+      local entry = cppMembersCache[i]
+      if not entry then
+        entry = {}
+        cppMembersCache[i] = entry
+      end
+      entry.current = m.current
+      entry.storage = m.storage
+      entry.shareTarget = m.shareCursor
+      entry.allowance = m.remainingTaxFreeAllowance
+      teamIdMapCache[i] = m.teamId
+    end
+
+    local result = Spring.SolveWaterfill(cppMembersCache, taxRate)
+    return result.lift, result.deltas
+  end
+
+  return solveWaterfill(members, memberCount, taxRate)
 end
 
 ---@param members EconomyShareMember[]
@@ -270,7 +396,7 @@ function Gadgets.Solve(springRepo, teamsList)
           EconomyLog.TeamInput(m.teamId, m.allyTeam, resourceType, m.current, m.storage, shareSliderNormalized, m.cumulativeSent, m.shareCursor)
         end
 
-        local lift, deltas = solveWithCpp(members, memberCount, taxRate)
+        local lift, deltas = solveWithCppOrLua(members, memberCount, taxRate)
 
         if tracyAvailable and tracy.LuaTracyPlot then
           tracy.LuaTracyPlot("Economy/Lift/" .. resourceType, lift)
@@ -335,10 +461,14 @@ function Gadgets.Solve(springRepo, teamsList)
     local ledger = teamLedgerCache[teamId]
     if team.metal then
       local m = ledger[ResourceType.METAL]
+      team.metal.sent = m.sent
+      team.metal.received = m.received
       EconomyLog.TeamOutput(teamId, ResourceType.METAL, team.metal.current, m.sent, m.received)
     end
     if team.energy then
       local e = ledger[ResourceType.ENERGY]
+      team.energy.sent = e.sent
+      team.energy.received = e.received
       EconomyLog.TeamOutput(teamId, ResourceType.ENERGY, team.energy.current, e.sent, e.received)
     end
   end
