@@ -432,18 +432,17 @@ end
 
 if not table.valueIntersection then
 	---Creates a new array-style table containing the intersection of all input arrays.
-	---Returns only elements that appear in all input arrays.
+	---Returns only unique elements that appear in all input arrays.
 	---@generic V
 	---@param ... V[] Any number of array-style tables.
 	---@return V[] A new array containing only values present in all input arrays.
 	function table.valueIntersection(...)
-		-- Handle optional flag: if first arg is a table, treat it as an array
 		local tables = { ...}
 
 		-- Count occurrences of each value across all arrays
-		-- Use a set for each array to handle duplicates correctly
 		local valueCounts = {}
 		for _, tbl in pairs(tables) do
+			-- Use a set for each array to handle duplicates correctly
 			local seen = {}
 			for _, value in pairs(tbl) do
 				if not seen[value] then
