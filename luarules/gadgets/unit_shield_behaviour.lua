@@ -541,6 +541,12 @@ local function getUnitShieldPosition(shieldUnitID)
 	end
 end
 
+local function isBallShellIntersection(dx, dy, dz, ballRadius, shellRadius)
+	local distanceSq = dx * dx + dy * dy + dz * dz
+	return distanceSq >= (shellRadius - ballRadius) * (shellRadius - ballRadius)
+		and distanceSq <= (shellRadius + ballRadius) * (shellRadius + ballRadius)
+end
+
 ---@param x number
 ---@param y number
 ---@param z number
@@ -552,15 +558,13 @@ local function getShieldUnitsInSphere(x, y, z, radius, onlyAlive)
 	radius = mathMax(radius or 0, 0.001)
 
 	local units, count = {}, 0
-	local position = getUnitShieldWeaponPosition
+	local position, intersect = getUnitShieldWeaponPosition, isBallShellIntersection
 
 	-- Find intersections of the solid search sphere and thin-shelled shield spheres.
 	for unitID, unitData in pairs(shieldUnitsData) do
 		if unitData.shieldEnabled then
 			local sx, sy, sz, shieldRadius = position(unitID, unitData)
-			local dx, dy, dz = x - sx, y - sy, z - sz
-			local distanceSq = dx * dx + dy * dy + dz * dz
-			if distanceSq >= (shieldRadius - radius) * (shieldRadius - radius) and distanceSq <= (shieldRadius + radius) * (shieldRadius + radius) then
+			if intersect(x - sx, y - sy, z - sz, radius, shieldRadius) then
 				count = count + 1
 				units[count] = unitID
 			end
@@ -574,9 +578,7 @@ local function getShieldUnitsInSphere(x, y, z, radius, onlyAlive)
 	for unitID, unitData in pairs(destroyedUnitData) do
 		if unitData.shieldEnabled then
 			local sx, sy, sz, shieldRadius = position(unitID, unitData)
-			local dx, dy, dz = x - sx, y - sy, z - sz
-			local distanceSq = dx * dx + dy * dy + dz * dz
-			if distanceSq >= (shieldRadius - radius) * (shieldRadius - radius) and distanceSq <= (shieldRadius + radius) * (shieldRadius + radius) then
+			if intersect(x - sx, y - sy, z - sz, radius, shieldRadius) then
 				count = count + 1
 				units[count] = unitID
 			end
