@@ -84,10 +84,9 @@ end
 local function validateCommands(unitID, unitTeam)
 	local GetUnitCurrentCommand = spGetUnitCurrentCommand
 	local tags, count = {}, 0
-	local command, _, tag, p1, p2, p5, p6
 
 	for index = 1, Spring.GetUnitCommandCount(unitID) do
-		command, _, tag, p1, p2, _, _, p5, p6 = GetUnitCurrentCommand(unitID, index)
+		local command, _, tag, p1, p2, _, _, p5, p6 = GetUnitCurrentCommand(unitID, index)
 		if not isBuilderAllowedCommand(command, p1, p2, p5, p6, unitTeam) then
 			count = count + 1
 			tags[count] = tag
