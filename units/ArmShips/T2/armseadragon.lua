@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 8192,
 		buildpic = "armseadragon.DDS",
-		buildtime = 140000,
+		buildtime = 190000,
 		canmanualfire = true,
 		canmove = true,
 		collisionvolumeoffsets = "0 -3 -5",

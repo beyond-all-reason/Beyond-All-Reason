@@ -2,7 +2,7 @@ return {
 	armbrawl = {
 		blocking = false,
 		buildpic = "ARMBRAWL.DDS",
-		buildtime = 13500,
+		buildtime = 17000,
 		canfly = true,
 		canmove = true,
 		collide = true,
@@ -77,7 +77,7 @@ return {
 		},
 		weapondefs = {
 			vtol_emg = {
-				areaofeffect = 16,
+				areaofeffect = 40,
 				avoidfeature = false,
 				burst = 4,
 				burstrate = 0.15,
@@ -102,7 +102,7 @@ return {
 				turret = false,
 				weapontimer = 1,
 				weapontype = "Cannon",
-				weaponvelocity = 800,
+				weaponvelocity = 1000,
 				damage = {
 					default = 16,
 					vtol = 2,

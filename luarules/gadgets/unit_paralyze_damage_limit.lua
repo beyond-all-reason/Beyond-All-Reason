@@ -157,7 +157,7 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
 		return damage, 1
 	end
 
-	if not uDefID or not weaponID then
+	if not uDefID or not weaponID or weaponID == -1 then
 		return damage, 1
 	end
 

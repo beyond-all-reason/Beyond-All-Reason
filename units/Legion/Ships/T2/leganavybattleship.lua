@@ -2,7 +2,7 @@ return {
 	leganavybattleship = {
 		buildangle = 16000,
 		buildpic = "leganavybattleship.DDS",
-		buildtime = 36000,
+		buildtime = 49350,
 		canmove = true,
 		collisionvolumeoffsets = "0 -15 -2",
 		collisionvolumescales = "48 48 120",
@@ -14,7 +14,7 @@ return {
 		floater = true,
 		footprintx = 7,
 		footprintz = 7,
-		health = 9000,
+		health = 10350,
 		idleautoheal = 5,
 		idletime = 1800,
 		maxacc = 0.005,

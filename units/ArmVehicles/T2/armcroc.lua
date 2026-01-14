@@ -2,7 +2,7 @@ return {
 	armcroc = {
 		activatewhenbuilt = true,
 		buildpic = "ARMCROC.DDS",
-		buildtime = 16000,
+		buildtime = 21000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -3",
 		collisionvolumescales = "40 30 56",

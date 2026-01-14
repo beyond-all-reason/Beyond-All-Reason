@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		builder = false,
 		buildpic = "ARMLUN.DDS",
-		buildtime = 32000,
+		buildtime = 40000,
 		canattack = true,
 		canguard = true,
 		canmove = true,

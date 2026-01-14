@@ -49,12 +49,6 @@ function widget:DrawScreen() -- This blurs the UI elements obscured by other UI 
 		-- Get modifier key states
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
-		-- Don't draw selection box when holding alt, but only if smart select widget is enabled
-		-- Suppress engine's box by returning true (consumes the draw event)
-		if alt and WG.smartselect then
-			return true
-		end
-
 		gl.PushMatrix()
 
 		local a = 0.03
@@ -109,20 +103,20 @@ end
 
 function widget:MousePress(x, y, button)
 	if button ~= 1 then return false end
-	
+
 	-- Don't track selection if minimap left-click-move is enabled
 	if WG['minimap'] and WG['minimap'].getLeftClickMove and WG['minimap'].getLeftClickMove() then
 		return false
 	end
-	
+
 	-- Check if click is on minimap
 	local mmX, mmY, mmW, mmH, minimized, maximized = Spring.GetMiniMapGeometry()
 	if not mmX or minimized or maximized then return false end
-	
+
 	-- mmY is bottom edge, top edge is mmY + mmH
 	local minimapBottom = mmY
 	local minimapTop = mmY + mmH
-	
+
 	if x >= mmX and x <= mmX + mmW and y >= minimapBottom and y <= minimapTop then
 		-- Click is on minimap, start tracking selection
 		minimapSelectionActive = true
@@ -136,14 +130,14 @@ function widget:MousePress(x, y, button)
 		minimapGeometryCache.w = mmW
 		minimapGeometryCache.h = mmH
 	end
-	
+
 	return false
 end
 
 function widget:Update()
 	-- Check if mouse is pressed and on minimap
 	local mx, my, leftPressed = Spring.GetMouseState()
-	
+
 	if leftPressed then
 		-- Don't track selection if minimap left-click-move is enabled
 		if WG['minimap'] and WG['minimap'].getLeftClickMove and WG['minimap'].getLeftClickMove() then
@@ -152,7 +146,7 @@ function widget:Update()
 			end
 			return
 		end
-		
+
 		local mmX, mmY, mmW, mmH, minimized, maximized = Spring.GetMiniMapGeometry()
 		local vsx, vsy = Spring.GetViewGeometry()
 		if mmX and not minimized and not maximized then
@@ -160,10 +154,10 @@ function widget:Update()
 			-- Top edge is at mmY + mmH
 			local minimapBottom = mmY
 			local minimapTop = mmY + mmH
-			
+
 			-- Check if mouse is within minimap bounds
 			local onMinimap = (mx >= mmX and mx <= mmX + mmW and my >= minimapBottom and my <= minimapTop)
-			
+
 			if onMinimap then
 				if not minimapSelectionActive then
 					-- Start new selection
@@ -203,38 +197,33 @@ end
 function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	-- Draw selection for minimap-tracked selection
 	if not minimapSelectionActive then return end
-	
+
 	-- Don't draw if minimap left-click-move is enabled
 	if WG['minimap'] and WG['minimap'].getLeftClickMove and WG['minimap'].getLeftClickMove() then
 		return
 	end
-	
+
 	-- Use cached geometry from when selection started
 	local mmX = minimapGeometryCache.x
 	local mmY = minimapGeometryCache.y
 	local mmW = minimapGeometryCache.w
 	local mmH = minimapGeometryCache.h
-	
+
 	if mmW == 0 or mmH == 0 then
 		return
 	end
-	
+
 	-- Get modifier key states
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
-	
-	-- Don't draw when holding alt (smart select)
-	if alt and WG.smartselect then
-		return
-	end
-	
+
 	-- Validate that both start and end are within minimap bounds
 	local x1, y1 = minimapSelectionStart.x, minimapSelectionStart.y
 	local x2, y2 = minimapSelectionEnd.x, minimapSelectionEnd.y
-	
+
 	-- mmY is bottom edge, top edge is mmY + mmH
 	local minimapBottom = mmY
 	local minimapTop = mmY + mmH
-	
+
 	-- Clamp coordinates to minimap bounds (in case mouse went outside)
 	x1 = math.max(mmX, math.min(mmX + mmW, x1))
 	y1 = math.max(minimapBottom, math.min(minimapTop, y1))
@@ -244,17 +233,17 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	local my1 = ((y1 - mmY) / mmH) * minimapHeight
 	local mx2 = ((x2 - mmX) / mmW) * minimapWidth
 	local my2 = ((y2 - mmY) / mmH) * minimapHeight
-	
+
 	-- Ensure proper ordering (x1 < x2, y1 < y2)
 	if mx1 > mx2 then mx1, mx2 = mx2, mx1 end
 	if my1 > my2 then my1, my2 = my2, my1 end
-	
+
 	local width = mx2 - mx1
 	local height = my2 - my1
-	
+
 	-- Skip if box is too small
-	if width < 1 or height < 1 then 
-		return 
+	if width < 1 or height < 1 then
+		return
 	end	-- Draw filled rectangle with transparency
 	local a = 0.08
 	if ctrl then

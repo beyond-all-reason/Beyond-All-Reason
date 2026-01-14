@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 16384,
 		buildpic = "leganavyartyship.DDS",
-		buildtime = 145000,
+		buildtime = 204750,
 		canattackground = true,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",

@@ -2,7 +2,7 @@ return {
 	corcut = {
 		blocking = false,
 		buildpic = "CORCUT.DDS",
-		buildtime = 9470,
+		buildtime = 11500,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,

@@ -137,9 +137,9 @@ function widget:Update(dt)
 		sec = 0
 		UpdateRecentBroadcasters()
 	end
-    
+
     totalTime = totalTime + dt
-    
+
 	if desiredLosmode and desiredLosmodeChanged + 0.9 > os.clock() then
 		if (desiredLosmode == "los" and Spring.GetMapDrawMode() == "normal") or (desiredLosmode == "normal" and Spring.GetMapDrawMode() == "los") then
 			-- this is needed else the minimap/world doesnt update properly
@@ -231,6 +231,12 @@ function widget:Initialize()
 	WG.lockcamera.SetLosMode = function(value)
 		desiredLosmode = value
 		desiredLosmodeChanged = os.clock()
+	end
+	WG.lockcamera.GetPlayerCameraState = function(playerID)
+		if lastBroadcasts[playerID] then
+			return lastBroadcasts[playerID][2]
+		end
+		return nil
 	end
 
 	widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)

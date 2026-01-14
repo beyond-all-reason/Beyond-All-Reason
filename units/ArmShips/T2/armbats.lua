@@ -2,7 +2,7 @@ return {
 	armbats = {
 		buildangle = 16384,
 		buildpic = "ARMBATS.DDS",
-		buildtime = 35000,
+		buildtime = 50000,
 		canmove = true,
 		collisionvolumeoffsets = "-1 -10 4",
 		collisionvolumescales = "63 63 144",
@@ -13,7 +13,7 @@ return {
 		floater = true,
 		footprintx = 6,
 		footprintz = 6,
-		health = 8900,
+		health = 9800,
 		idleautoheal = 5,
 		idletime = 1800,
 		maxacc = 0.01583,

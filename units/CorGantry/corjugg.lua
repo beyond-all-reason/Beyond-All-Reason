@@ -1,7 +1,7 @@
 return {
 	corjugg = {
 		buildpic = "CORJUGG.DDS",
-		buildtime = 630000,
+		buildtime = 780000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",

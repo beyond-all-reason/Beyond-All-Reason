@@ -4,7 +4,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "ARMSPY.DDS",
-		buildtime = 17600,
+		buildtime = 12000,
 		canassist = false,
 		canguard = false,
 		canmove = true,
