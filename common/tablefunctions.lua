@@ -210,6 +210,15 @@ if not table.count then
 	end
 end
 
+if not table.isEmpty then
+	---Check if the table is empty.
+	---@param tbl table
+	---@return number
+	function table.isEmpty(tbl)
+		return not next(tbl)
+	end
+end
+
 if not table.getKeyOf then
 	---Find key of value in table.
 	---Will always return the first key found, no matter if the table contains
@@ -409,6 +418,52 @@ if not table.any then
 			end
 		end
 		return false
+	end
+end
+
+if not table.intersection then
+	---Creates a new array-style table containing the intersection of all input arrays.
+	---Returns only elements that appear in all input arrays.
+	---@generic V
+	---@param ignoreEmpty? boolean If true, empty input arrays are ignored (default: false)
+	---@param ... V[] Any number of array-style tables.
+	---@return V[] A new array containing only values present in all input arrays.
+	function table.intersection(ignoreEmpty, ...)
+		-- Handle optional flag: if first arg is a table, treat it as an array
+		local arrays = {...}
+		if type(ignoreEmpty) == "table" then
+			table.insert(arrays, 1, ignoreEmpty)
+			ignoreEmpty = false
+		end
+
+		-- Filter out empty arrays if requested
+		local filteredArrays = ignoreEmpty
+			and table.filterArray(arrays, function(arr) return table.count(arr) > 0 end)
+			or arrays
+
+		-- Count occurrences of each value across all arrays
+		-- Use a set for each array to handle duplicates correctly
+		local valueCounts = {}
+		for _, array in pairs(filteredArrays) do
+			local seen = {}
+			for _, value in pairs(array) do
+				if not seen[value] then
+					seen[value] = true
+					valueCounts[value] = (valueCounts[value] or 0) + 1
+				end
+			end
+		end
+
+		-- Keep only values that appear in all arrays
+		local result = {}
+		local numFilteredArrays = table.count(filteredArrays)
+		for value, count in pairs(valueCounts) do
+			if count == numFilteredArrays then
+				result[table.count(result) + 1] = value
+			end
+		end
+
+		return result
 	end
 end
 
