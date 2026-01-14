@@ -412,6 +412,47 @@ if not table.any then
 	end
 end
 
+if not table.intersection then
+	---Creates a new array-style table containing the intersection of all input arrays.
+	---Returns only elements that appear in all input arrays.
+	---@generic V
+	---@param ignoreEmpty? boolean If true, empty input arrays are ignored (default: false)
+	---@param ... V[] Any number of array-style tables.
+	---@return V[] A new array containing only values present in all input arrays.
+	function table.intersection(ignoreEmpty, ...)
+		-- Handle optional flag: if first arg is a table, treat it as an array
+		local arrays = {...}
+		if type(ignoreEmpty) == "table" then
+			table.insert(arrays, 1, ignoreEmpty)
+			ignoreEmpty = false
+		end
+
+		-- Filter out empty arrays if requested
+		local filteredArrays = ignoreEmpty
+			and table.filterArray(arrays, function(arr) return table.count(arr) > 0 end)
+			or arrays
+
+		-- Count occurrences of each value across all arrays
+		local valueCounts = {}
+		for _, array in pairs(filteredArrays) do
+			for _, value in pairs(array) do
+				valueCounts[value] = (valueCounts[value] or 0) + 1
+			end
+		end
+
+		-- Keep only values that appear in all arrays
+		local result = {}
+		local numFilteredArrays = table.count(filteredArrays)
+		for value, count in pairs(valueCounts) do
+			if count == numFilteredArrays then
+				result[table.count(result) + 1] = value
+			end
+		end
+
+		return result
+	end
+end
+
 if not pairsByKeys then
 	---pairs-like iterator function traversing the table in the order of its keys.
 	---Natural sort order will be used by default, optionally pass a comparator

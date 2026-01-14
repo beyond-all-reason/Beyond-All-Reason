@@ -14,7 +14,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local actionsDispatcher, trackedUnitIDsByName , trackedUnitNamesByID
+local actionsDispatcher, trackedUnitIDsByName, trackedUnitNamesByID
 
 local types, triggers
 
@@ -45,7 +45,7 @@ local function activateTrigger(trigger)
 	trigger.triggered = true
 	trigger.repeatCount = trigger.repeatCount + 1
 
-	for _, actionID in ipairs(trigger.actions) do
+	for _, actionID in pairs(trigger.actions) do
 		actionsDispatcher.Invoke(actionID)
 	end
 end
@@ -124,11 +124,15 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 
 	-- Remove destroyed tracked units
-	if not trackedUnitNamesByID[unitID] or #trackedUnitNamesByID[unitID] == 0 then return end
+	if not trackedUnitNamesByID[unitID] or not next(trackedUnitNamesByID[unitID]) then
+		return
+	end
 
-	for _, name in ipairs(trackedUnitNamesByID[unitID]) do
+	for _, name in pairs(trackedUnitNamesByID[unitID]) do
 		table.removeAll(trackedUnitIDsByName[name], unitID)
-		if #trackedUnitIDsByName[name] == 0 then trackedUnitIDsByName[name] = nil end
+		if not next(trackedUnitIDsByName[name]) then
+			trackedUnitIDsByName[name] = nil
+		end
 	end
 
 	trackedUnitNamesByID[unitID] = nil

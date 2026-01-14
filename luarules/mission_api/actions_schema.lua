@@ -183,6 +183,12 @@ local parameters = {
 			name = 'rectangle',
 			required = false,
 			type = 'table'
+		},
+		[5] = {
+			-- Example: { x1 = 0, z1 = 0, radius = 123 }
+			name = 'circle',
+			required = false,
+			type = 'table'
 		}
 	},
 	[actionTypes.UnnameUnits] = {

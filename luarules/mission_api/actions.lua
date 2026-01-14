@@ -8,14 +8,20 @@ local triggers = GG['MissionAPI'].Triggers
 ----------------------------------------------------------------
 
 local function isNameUntracked(name)
-	return not trackedUnitIDsByName[name] or #trackedUnitIDsByName[name] == 0
+	return not trackedUnitIDsByName[name] or not next(trackedUnitIDsByName[name])
 end
 
 local function trackUnit(name, unitID)
-	if not name or not unitID then return end
+	if not name or not unitID then
+		return
+	end
 
-	if not trackedUnitIDsByName[name] then trackedUnitIDsByName[name] = {} end
-	if not trackedUnitNamesByID[unitID] then trackedUnitNamesByID[unitID] = {} end
+	if not trackedUnitIDsByName[name] then
+		trackedUnitIDsByName[name] = {}
+	end
+	if not trackedUnitNamesByID[unitID] then
+		trackedUnitNamesByID[unitID] = {}
+	end
 
 	trackedUnitIDsByName[name][#trackedUnitIDsByName[name] + 1] = unitID
 	trackedUnitNamesByID[unitID][#trackedUnitNamesByID[unitID] + 1] = name
@@ -85,10 +91,8 @@ end
 local function despawnUnits(name, selfDestruct, reclaimed)
 	if isNameUntracked(name) then return end
 
-	local unitIDs = table.copy(trackedUnitIDsByName[name])
-	local quantity = #unitIDs
-	for i = quantity, 1, -1 do
-		Spring.DestroyUnit(unitIDs[i], selfDestruct, reclaimed)
+	for _, unitID in pairs(trackedUnitIDsByName[name]) do
+		Spring.DestroyUnit(unitID, selfDestruct, reclaimed)
 	end
 end
 
@@ -102,37 +106,52 @@ local function transferUnits(name, newTeam, given)
 	end
 end
 
-local function nameUnits(name, teamID, unitDefName, rectangle)
+local function nameUnits(name, teamID, unitDefName, rectangle, circle)
 
-	if name and not trackedUnitIDsByName[name] then trackedUnitIDsByName[name] = {} end
+	if not teamID and not unitDefName and not rectangle and not circle then
+		-- TODO: move this to prevalidation step?
+		Spring.Log('actions.lua', LOG.ERROR, "[Mission API] A NameUnits action is missing required parameter. At least one of teamID, unitDefName, rectangle, and circle is required.")
+		return
+	end
 
-	local unitsFromTeam = {}
-	if teamID then
-		if unitDefName then
-			if UnitDefNames[unitDefName] then
-				local unitDefID = UnitDefNames[unitDefName].id
-				unitsFromTeam = Spring.GetTeamUnitsByDefs(teamID, unitDefID)
+	local hasFilterOtherThanTeamID = unitDefName or rectangle or circle
+
+	local allUnitsOfTeam = {}
+	if not hasFilterOtherThanTeamID then
+		allUnitsOfTeam = Spring.GetTeamUnits(teamID)
+	end
+
+	local unitsFromDef = {}
+	if unitDefName then
+		if UnitDefNames[unitDefName] then
+			local unitDefID = UnitDefNames[unitDefName].id
+			if teamID then
+				unitsFromDef = Spring.GetTeamUnitsByDefs(teamID, unitDefID)
+			else
+				for _, allyTeamID in pairs(Spring.GetAllyTeamList()) do
+					for _, teamIDForAllyTeam in pairs(Spring.GetTeamList(allyTeamID)) do
+						table.append(unitsFromDef, Spring.GetTeamUnitsByDefs(teamIDForAllyTeam, unitDefID))
+					end
+				end
 			end
-		else
-			unitsFromTeam = Spring.GetTeamUnits(teamID)
 		end
 	end
 
-	local unitsToName = {}
+	local unitsInRectangle = {}
 	if rectangle then
-		local unitsInRectangle = Spring.GetUnitsInRectangle(rectangle.x1, rectangle.z1, rectangle.x2, rectangle.z2, teamID)
+		unitsInRectangle = Spring.GetUnitsInRectangle(rectangle.x1, rectangle.z1, rectangle.x2, rectangle.z2, teamID)
+	end
 
-		-- calculate the union of unitsFromTeam and unitsInRectangle:
-		local rectSet = {}
-		for _, unitID in ipairs(unitsInRectangle) do
-			rectSet[unitID] = true
-		end
-		for _, unitID in ipairs(unitsFromTeam) do
-			if rectSet[unitID] then unitsToName[#unitsToName+1] = unitID
-			end
-		end
+	local unitsInCircle = {}
+	if circle then
+		unitsInCircle = Spring.GetUnitsInCylinder(circle.x, circle.z, circle.radius, teamID)
+	end
+
+	local unitsToName = {}
+	if hasFilterOtherThanTeamID then
+		unitsToName = table.intersection(true, unitsFromDef, unitsInRectangle, unitsInCircle)
 	else
-		unitsToName = unitsFromTeam
+		unitsToName = allUnitsOfTeam
 	end
 
 	for _, unitID in pairs(unitsToName) do
@@ -145,7 +164,9 @@ local function unnameUnits(name)
 
 	for _, unitID in pairs(trackedUnitIDsByName[name]) do
 		table.removeAll(trackedUnitNamesByID[unitID], name)
-		if #trackedUnitNamesByID[unitID] == 0 then trackedUnitNamesByID[unitID] = nil end
+		if not next(trackedUnitNamesByID[unitID]) then
+			trackedUnitNamesByID[unitID] = nil
+		end
 	end
 	trackedUnitIDsByName[name] = nil
 end
