@@ -609,7 +609,7 @@ end
 GG.AddShieldDamage = addShieldDamage
 GG.GetUnitShieldPosition = getUnitShieldPosition
 GG.GetShieldUnitsInSphere = getShieldUnitsInSphere
-GG.GetUnitShieldState = reworkEnabled and getUnitShieldState or spGetUnitShieldState
+GG.GetUnitShieldState = getUnitShieldState
 
 function gadget:Initialize()
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
