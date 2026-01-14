@@ -50,6 +50,7 @@ local zoomExplosionDetail = 0.1 -- Zoom level threshold for drawing expensive pr
 
 local showLosOverlay = true -- Toggle LOS darkening overlay on/off
 local losOverlayOpacity = 0.57 -- Opacity of LOS darkening (0.0 = no darkening, 1.0 = maximum darkening)
+local showPipFps = true -- Show PIP content FPS counter in top-left corner
 
 local iconRadius = 40
 
@@ -64,7 +65,7 @@ local switchInheritsTracking = false  -- When switching views, inherit PIP's uni
 local switchTransitionTime = 0.15  -- Camera transition time in seconds when switching views (pip_switch)
 local showMapRuler = true  -- Show map ruler marks at PIP edges to indicate scale
 
-local pipMinUpdateRate = 40  -- Minimum FPS for PIP rendering when zoomed out (performance-adjusted dynamically)
+local pipMinUpdateRate = 30  -- Minimum FPS for PIP rendering when zoomed out (performance-adjusted dynamically)
 local pipMaxUpdateRate = 120  -- Maximum FPS for PIP rendering when zoomed in
 local pipZoomThresholdMin = 0.15  -- Zoom level where we use minimum update rate
 local pipZoomThresholdMax = 0.4  -- Zoom level where we use maximum update rate
@@ -807,36 +808,8 @@ local function UpdatePlayerTracking()
 		end
 
 		if playerCamState then
-			-- Check if camera state has changed significantly (force content update if so)
-			local stateChanged = false
-			if cameraState.lastTrackedCameraState then
-				-- Compare key camera parameters to detect significant changes
-				local posThreshold = 200  -- Position change threshold (elmos)
-				local zoomThreshold = 0.08  -- Zoom change threshold
-
-				-- Check position change
-				local lastX = cameraState.lastTrackedCameraState.px or cameraState.lastTrackedCameraState.x or 0
-				local lastZ = cameraState.lastTrackedCameraState.pz or cameraState.lastTrackedCameraState.z or 0
-				local currX = playerCamState.px or playerCamState.x or 0
-				local currZ = playerCamState.pz or playerCamState.z or 0
-				local posDist = math.sqrt((currX - lastX)^2 + (currZ - lastZ)^2)
-
-				-- Check zoom/distance change
-				local lastDist = cameraState.lastTrackedCameraState.dist or cameraState.lastTrackedCameraState.height or 1000
-				local currDist = playerCamState.dist or playerCamState.height or 1000
-				local distChange = math.abs(currDist - lastDist) / lastDist
-
-				if posDist > posThreshold or distChange > zoomThreshold then
-					stateChanged = true
-				end
-			else
-				stateChanged = true  -- First time tracking, force update
-			end
-
-			if stateChanged then
-				pipR2T.contentNeedsUpdate = true
-				cameraState.lastTrackedCameraState = playerCamState  -- Store for next comparison
-			end
+			-- Store camera state for tracking (but don't force immediate updates - let frame rate limiting handle it)
+			cameraState.lastTrackedCameraState = playerCamState
 
 			-- Extract position from camera state (different camera modes have different field names)
 			-- Camera state can have: px, py, pz (spring/ta camera), x, y, z (free camera), etc.
@@ -5779,13 +5752,17 @@ function widget:DrawScreen()
 	DrawTrackedPlayerName()
 
 	-- Display current max update rate (top-left corner)
-	-- local fontSize = 11
-	-- local padding = 5
-	-- font:Begin()
-	-- font:SetTextColor(0.85, 0.85, 0.85, 1)
-	-- font:SetOutlineColor(0, 0, 0, 0.5)
-	-- font:Print(string.format("%.0f FPS", pipR2T.contentCurrentUpdateRate), dim.l + padding, dim.t - (fontSize*1.6) - padding, fontSize*2, "no")
-	-- font:End()	-- Draw box selection rectangle
+	if showPipFps then
+		local fontSize = 11
+		local padding = 8
+		font:Begin()
+		font:SetTextColor(0.85, 0.85, 0.85, 1)
+		font:SetOutlineColor(0, 0, 0, 0.5)
+		font:Print(string.format("%.0f FPS", pipR2T.contentCurrentUpdateRate), dim.l + padding, dim.t - (fontSize*1.6) - padding, fontSize*2, "no")
+		font:End()
+	end
+
+	-- Draw box selection rectangle
 
 	DrawBoxSelection()
 
