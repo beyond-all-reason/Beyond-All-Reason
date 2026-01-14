@@ -7,7 +7,7 @@ function gadget:GetInfo()
 		author  = 'Rimilel',
 		date    = 'April 2024',
 		license = 'GNU GPL, v2 or later',
-		layer   = 0,
+		layer   = 1, -- after unit_mex_upgrade_reclaimer and unit_geo_upgrade_reclaimer
 		enabled = Spring.GetModOptions().disable_assist_ally_construction or Spring.GetModOptions().easytax,
 	}
 end
@@ -132,6 +132,12 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if canBuildStep[unitDefID] then
 		removeRoamMoveState(unitID)
+	end
+
+	-- In unit_{xyz}_upgrade_reclaimer, units are transferred instantly,
+	-- so we can check immediately whether they are bypassing the rules:
+	if isAlliedUnit(unitTeam, builderID) then
+		checkUnitCommandList[unitID] = spGetUnitTeam(builderID)
 	end
 end
 
