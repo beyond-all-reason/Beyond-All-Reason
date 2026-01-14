@@ -202,7 +202,7 @@ function Gadgets.BuildResultFactory(taxRate, metalThreshold, energyThreshold)
     
     result.senderTeamId = ctx.senderTeamId
     result.receiverTeamId = ctx.receiverTeamId
-    result.canShare = true
+    result.canShare = receiverCapacity > 0 and amountSendable > 0
     result.amountSendable = amountSendable
     result.amountReceivable = receiverCapacity
     result.taxedPortion = taxedPortion

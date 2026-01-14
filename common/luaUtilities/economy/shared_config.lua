@@ -9,6 +9,11 @@ local cachedTax = nil
 ---@type table<ResourceType, number>?
 local cachedThresholds = nil
 
+function M.resetCache()
+  cachedTax = nil
+  cachedThresholds = nil
+end
+
 ---@param springRepo ISpring
 ---@return number tax
 ---@return table<ResourceType, number> thresholds
