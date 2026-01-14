@@ -78,6 +78,15 @@ local options = {
     },
 
     {
+        key    	= "allowunitcontrolwidgets",
+        name   	= "Allow Custom 'Unit Control' Widgets",
+        desc   	= "Allow custom user 'unit control' widgets or disallow them",
+        type   	= "bool",
+        def    	= true,
+        section	= "options_main",
+    },
+
+    {
         key    	= "allowpausegameplay",
         name   	= "Allow Commands While Paused",
         desc   	= "Allow giving unit commands while paused",
@@ -1508,19 +1517,6 @@ local options = {
     },
 
     {
-        key     = "proposed_unit_reworks_feedback_link",
-        name    = "Feedback Thread",
-        desc    = "Discord discussion about Season 3 balance test.",
-        section = "options_experimental",
-        type    = "link",
-        link    = "https://discord.com/channels/549281623154229250/1447323521662455910",
-        width   = 215,
-        column  = 2,
-        linkheight = 325,
-        linkwidth = 350,
-    },
-
-    {
         key     = "community_balance_patch",
         name    = "Community Balance Patch Jan '26",
         desc    = "Enable community balance patch changes\n(overwrites changes in official seasonal balance test)",
@@ -1627,6 +1623,28 @@ local options = {
         type    = "link",
         link    = "https://discord.com/channels/549281623154229250/1063217502898884701/1441480747629412675",
         width   = 275,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
+    {
+        key 	= "easytax",
+        name 	= "Easy Sharing Tax",
+        desc 	= "Anti co-op sharing tax mod. Overwrites other tax settings. Don't combine with other sharing restriction mods, everything you need is included with easy tax.",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key     = "easytax_link",
+        name    = "Changelog",
+        desc    = "Easy Sharing Tax description.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://gist.github.com/RebelNode/43b986f29b9cfacbe95cf634cac25c49",
+        width   = 215,
         column  = 1.65,
         linkheight = 325,
         linkwidth = 350,

@@ -32,6 +32,7 @@ local math_abs = math.abs
 
 local sp_GetActiveCommand = Spring.GetActiveCommand
 local sp_GetMouseState = Spring.GetMouseState
+local sp_GetUnitDefID = Spring.GetUnitDefID
 local sp_GetUnitSelectionVolumeData = Spring.GetUnitSelectionVolumeData
 local sp_SetUnitSelectionVolumeData = Spring.SetUnitSelectionVolumeData
 local sp_TraceScreenRay = Spring.TraceScreenRay
@@ -46,6 +47,13 @@ local cx, cy
 local restoreVolumeData = {}
 local isVolumeHidden = false
 local inActiveCommand = false
+
+-- Factories need to self-select because their commands go to their built units.
+local isFactory = {}
+for unitDefID, unitDef in ipairs(UnitDefs) do
+	-- todo: weird things to consider, like enqueued self-reclaim commands, etc.
+	isFactory[unitDefID] = unitDef.isFactory and unitDef.canGuard
+end
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
@@ -109,6 +117,12 @@ function widget:SelectionChanged(selected)
 	end
 
 	if isSingleSelection and not selectedUnitID then
+		-- todo: not as good as allowing self-select only on certain commands
+		-- todo: so otherwise we can "peek through" unit volumes conveniently
+		if isFactory[sp_GetUnitDefID(firstID)] then
+			return
+		end
+
 		cacheSelectionVolume(firstID)
 		selectedUnitID = firstID
 		selectClickTime = getSingleClickDuration()

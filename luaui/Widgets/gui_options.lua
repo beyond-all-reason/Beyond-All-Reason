@@ -6284,6 +6284,13 @@ function init()
 	-- loads values via stored game config in luaui/configs
 	loadAllWidgetData()
 
+	-- remove widget-options that are unknown widgets
+	for i, option in pairs(options) do
+		if option.widget and not widgetHandler.knownWidgets[option.widget] then
+			options[i] = nil
+		end
+	end
+
 	-- while we have set config-ints, that isnt enough to have these settings applied ingame
 	if savedConfig and Spring.GetGameFrame() == 0 then
 		for k, v in pairs(savedConfig) do
