@@ -48,6 +48,10 @@ local zoomFeatures = 0.2 -- Zoom level at which features stop being drawn (below
 local zoomProjectileDetail = 0.2 -- Zoom level threshold for drawing expensive projectile effects (projectiles, beams, shatters). Explosions always shown.
 local zoomExplosionDetail = 0.1 -- Zoom level threshold for drawing expensive projectile effects (projectiles, beams, shatters). Explosions always shown.
 
+local showLosOverlay = true -- Toggle LOS darkening overlay on/off
+local losOverlayOpacity = 0.57 -- Opacity of LOS darkening (0.0 = no darkening, 1.0 = maximum darkening)
+local showPipFps = false -- Show PIP content FPS counter in top-left corner
+
 local iconRadius = 40
 
 local leftButtonPansCamera = false
@@ -61,7 +65,7 @@ local switchInheritsTracking = false  -- When switching views, inherit PIP's uni
 local switchTransitionTime = 0.15  -- Camera transition time in seconds when switching views (pip_switch)
 local showMapRuler = true  -- Show map ruler marks at PIP edges to indicate scale
 
-local pipMinUpdateRate = 40  -- Minimum FPS for PIP rendering when zoomed out (performance-adjusted dynamically)
+local pipMinUpdateRate = 30  -- Minimum FPS for PIP rendering when zoomed out (performance-adjusted dynamically)
 local pipMaxUpdateRate = 120  -- Maximum FPS for PIP rendering when zoomed in
 local pipZoomThresholdMin = 0.15  -- Zoom level where we use minimum update rate
 local pipZoomThresholdMax = 0.4  -- Zoom level where we use maximum update rate
@@ -136,6 +140,12 @@ local pipR2T = {
 	frameNeedsUpdate = true,
 	frameLastWidth = 0,
 	frameLastHeight = 0,
+	-- LOS texture state
+	losTex = nil,
+	losNeedsUpdate = true,
+	losLastUpdateTime = 0,
+	losUpdateRate = 0.4,  -- Update every 0.4 seconds
+	losTexScale = 96,  -- 96:1 ratio of map size to LOS texture size
 }
 local minModeDlist = nil  -- Display list for minimized mode button
 
@@ -224,6 +234,16 @@ local fragmentsByTexturePool = {} -- Reused for icon shatter fragments grouping 
 local unitsToShowPool = {} -- Reused for DrawCommandQueuesOverlay unit list
 local commandLinePool = {} -- Reused for batched command line vertices
 local commandMarkerPool = {} -- Reused for batched command marker vertices
+local stillAlivePool = {} -- Reused for UpdateTracking alive units
+local cmdOptsPool = {alt=false, ctrl=false, meta=false, shift=false, right=false} -- Reused for GetCmdOpts
+local buildPositionsPool = {} -- Reused for CalculateBuildDragPositions
+local buildsByTexturePool = {} -- Reused for DrawQueuedBuilds texture grouping
+local buildCountByTexturePool = {} -- Reused for DrawQueuedBuilds counts
+local savedDimPool = {l=0, r=0, b=0, t=0} -- Reused for UpdateR2TContent dimension backup
+local savedGroundPool = {view={l=0,r=0,b=0,t=0}, coord={l=0,r=0,b=0,t=0}} -- Reused for UpdateR2TContent ground backup
+local projectileColorPool = {1, 0.5, 0, 1} -- Reused for DrawProjectile default color
+local trackingMergePool = {} -- Reused for tracking unit merge operations
+local trackingTempSetPool = {} -- Reused for tracking unit deduplication
 
 -- Consolidated cache tables
 local cache = {
@@ -238,6 +258,19 @@ local cache = {
 	explosions = {},
 	laserBeams = {},
 	iconShatters = {},
+	-- Transport-related properties
+	isTransport = {},
+	transportCapacity = {},
+	transportSize = {},
+	transportMass = {},
+	minTransportSize = {},
+	cantBeTransported = {},
+	unitMass = {},
+	unitTransportSize = {},
+	-- Movement properties
+	canMove = {},
+	canFly = {},
+	isBuilding = {},
 	maxIconShatters = 20,
 	weaponIsLaser = {},
 	weaponIsBlaster = {},
@@ -278,7 +311,7 @@ local cmdColors = {
 	[CMD.LOAD_UNITS]= {0.4, 0.9, 0.9, 0.7},
 	[CMD.UNLOAD_UNIT] = {1.0, 0.8, 0.0, 0.7},
 	[CMD.UNLOAD_UNITS]= {1.0, 0.8, 0.0, 0.7},
-	[GameCMD.UNIT_SET_TARGET] = {1.0, 0.75, 0.0, 0.3},
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = {1.0, 0.75, 0.0, 0.3},
 }
 
 -- Command ID to cursor name mapping
@@ -292,8 +325,11 @@ local cmdCursors = {
 	[CMD.RESTORE] = 'Restore',
 	[CMD.PATROL] = 'Patrol',
 	[CMD.FIGHT] = 'Fight',
-	[CMD.LOAD_UNITS] = 'Load',
-	[GameCMD.UNIT_SET_TARGET] = 'settarget',
+	[CMD.LOAD_UNITS] = 'Load units',
+	[CMD.UNLOAD_UNIT] = 'Unload units',
+	[CMD.UNLOAD_UNITS] = 'Unload units',
+	[CMD.DGUN] = 'Attack',	-- DGun cursor doesnt work, use Attack instead
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = 'settarget',
 }
 
 -- Buttons (Must be declared after variables)
@@ -417,21 +453,28 @@ local buttons = {
 			if #selectedUnits > 0 then
 				-- Add selected units to tracking (or start tracking if not already)
 				if interactionState.areTracking then
-					-- Merge with existing tracked units
-					local existingTracked = {}
+					-- Merge with existing tracked units using pooled tables
+					-- Clear temp set pool
+					for k in pairs(trackingTempSetPool) do
+						trackingTempSetPool[k] = nil
+					end
 					for _, unitID in ipairs(interactionState.areTracking) do
-						existingTracked[unitID] = true
+						trackingTempSetPool[unitID] = true
 					end
 					-- Add new units
 					for _, unitID in ipairs(selectedUnits) do
-						existingTracked[unitID] = true
+						trackingTempSetPool[unitID] = true
 					end
-					-- Convert back to array
-					local merged = {}
-					for unitID in pairs(existingTracked) do
-						merged[#merged + 1] = unitID
+					-- Convert back to array using pooled array
+					for i = #trackingMergePool, 1, -1 do
+						trackingMergePool[i] = nil
 					end
-					interactionState.areTracking = merged
+					for unitID in pairs(trackingTempSetPool) do
+						trackingMergePool[#trackingMergePool + 1] = unitID
+					end
+					interactionState.areTracking = trackingMergePool
+					-- Create new pool for next merge
+					trackingMergePool = {}
 				else
 					interactionState.areTracking = selectedUnits
 				end
@@ -529,7 +572,7 @@ local spGetUnitBasePosition = Spring.GetUnitBasePosition
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetTeamInfo = Spring.GetTeamInfo
-local spIsUnitInLos = Spring.IsUnitInLos
+local spIsPosInLos = Spring.IsPosInLos
 local spGetUnitLosState = Spring.GetUnitLosState
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeatureDirection = Spring.GetFeatureDirection
@@ -551,6 +594,38 @@ local atan2 = math.atan2
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
 
+-- Shader for converting red-channel LOS texture to greyscale
+local losShader = nil
+local losShaderCode = {
+	vertex = [[
+		varying vec2 texCoord;
+		void main() {
+			texCoord = gl_MultiTexCoord0.st;
+			gl_Position = gl_Vertex;
+		}
+	]],
+	fragment = [[
+		uniform sampler2D losTex;
+		uniform float baseValue;
+		uniform float losScale;
+		varying vec2 texCoord;
+		void main() {
+			// Extract red channel from LOS texture
+			float losValue = texture2D(losTex, texCoord).r;
+			// Convert to greyscale by replicating to all channels
+			float grey = baseValue + losValue * losScale;
+
+			gl_FragColor = vec4(grey, grey, grey, 1.0);
+		}
+	]],
+	uniformFloat = {
+		baseValue = 1.0 - losOverlayOpacity,  -- Brightness in no-LOS areas
+		losScale = losOverlayOpacity,         -- Brightness added for LOS areas
+	},
+	uniformInt = {
+		losTex = 0,
+	},
+}
 
 local teamColors = {}
 local teamList = Spring.GetTeamList()
@@ -598,7 +673,7 @@ function RecalculateGroundTextureCoordinates()
 		ground.coord.r = 1
 	else
 		ground.view.r = dim.r
-		ground.coord.r = world.r / mapSizeX
+		ground.coord.r = math.ceil(world.r) / mapSizeX  -- Use ceil for right edge
 	end
 	if world.t < 0 then
 		ground.view.t = dim.t - (dim.t - dim.b) * (-world.t / (world.b - world.t))
@@ -612,7 +687,7 @@ function RecalculateGroundTextureCoordinates()
 		ground.coord.b = 1
 	else
 		ground.view.b = dim.b
-		ground.coord.b = world.b / mapSizeZ
+		ground.coord.b = math.ceil(world.b) / mapSizeZ  -- Use ceil for bottom edge (which is top in Z)
 	end
 end
 
@@ -682,7 +757,10 @@ end
 local function UpdateTracking()
 	local uCount = 0
 	local ax, az = 0, 0
-	local stillAlive = {}
+	-- Clear and reuse stillAlive table
+	for i = #stillAlivePool, 1, -1 do
+		stillAlivePool[i] = nil
+	end
 
 	for t = 1, #interactionState.areTracking do
 		local uID = interactionState.areTracking[t]
@@ -691,7 +769,7 @@ local function UpdateTracking()
 			ax = ax + ux
 			az = az + uz
 			uCount = uCount + 1
-			stillAlive[uCount] = uID
+			stillAlivePool[uCount] = uID
 		end
 	end
 
@@ -750,36 +828,8 @@ local function UpdatePlayerTracking()
 		end
 
 		if playerCamState then
-			-- Check if camera state has changed significantly (force content update if so)
-			local stateChanged = false
-			if cameraState.lastTrackedCameraState then
-				-- Compare key camera parameters to detect significant changes
-				local posThreshold = 100  -- Position change threshold (elmos)
-				local zoomThreshold = 0.05  -- Zoom change threshold
-
-				-- Check position change
-				local lastX = cameraState.lastTrackedCameraState.px or cameraState.lastTrackedCameraState.x or 0
-				local lastZ = cameraState.lastTrackedCameraState.pz or cameraState.lastTrackedCameraState.z or 0
-				local currX = playerCamState.px or playerCamState.x or 0
-				local currZ = playerCamState.pz or playerCamState.z or 0
-				local posDist = math.sqrt((currX - lastX)^2 + (currZ - lastZ)^2)
-
-				-- Check zoom/distance change
-				local lastDist = cameraState.lastTrackedCameraState.dist or cameraState.lastTrackedCameraState.height or 1000
-				local currDist = playerCamState.dist or playerCamState.height or 1000
-				local distChange = math.abs(currDist - lastDist) / lastDist
-
-				if posDist > posThreshold or distChange > zoomThreshold then
-					stateChanged = true
-				end
-			else
-				stateChanged = true  -- First time tracking, force update
-			end
-
-			if stateChanged then
-				pipR2T.contentNeedsUpdate = true
-				cameraState.lastTrackedCameraState = playerCamState  -- Store for next comparison
-			end
+			-- Store camera state for tracking (but don't force immediate updates - let frame rate limiting handle it)
+			cameraState.lastTrackedCameraState = playerCamState
 
 			-- Extract position from camera state (different camera modes have different field names)
 			-- Camera state can have: px, py, pz (spring/ta camera), x, y, z (free camera), etc.
@@ -790,6 +840,12 @@ local function UpdatePlayerTracking()
 				camX, camY, camZ = playerCamState.px, playerCamState.py, playerCamState.pz
 			elseif playerCamState.x then
 				camX, camY, camZ = playerCamState.x, playerCamState.y, playerCamState.z
+			end
+
+			-- Validate camera position - if invalid, skip this update and use last known position
+			if not (camX and camZ and camX > 0 and camZ > 0 and camX < mapSizeX and camZ < mapSizeZ) then
+				-- Invalid camera state, don't update anything this frame
+				return
 			end
 
 			if camX and camZ then
@@ -833,21 +889,36 @@ local function UpdatePlayerTracking()
 				local zoomValue = nil
 
 				-- First priority: use dist if available (spring/ta camera)
-				if dist and dist > 0 and dist < 10000 then
+				-- Validate dist is reasonable (100-8000 range, not extreme values)
+				if dist and dist > 100 and dist < 8000 then
 					-- Spring camera distance scales inversely with zoom
 					-- Typical range: 500-3000, map to our zoom range
-					zoomValue = math.max(zoomMin, math.min(zoomMax, 400 / dist))
+					zoomValue = 400 / dist
+					-- Only use if result is within valid zoom range
+					if zoomValue < zoomMin or zoomValue > zoomMax then
+						zoomValue = nil
+					end
 				end
 
 				-- Second priority: use height if dist not available
-				if not zoomValue and height and height > 0 and height < 5000 then
+				-- Validate height is reasonable (100-6000 range)
+				if not zoomValue and height and height > 100 and height < 6000 then
 					-- Camera height scales inversely with zoom
-					zoomValue = math.max(zoomMin, math.min(zoomMax, 300 / height))
+					zoomValue = 300 / height
+					-- Only use if result is within valid zoom range
+					if zoomValue < zoomMin or zoomValue > zoomMax then
+						zoomValue = nil
+					end
 				end
 
-				-- Apply zoom if we calculated one
+				-- Apply zoom if we calculated one, but only if change is significant
+				-- This prevents jitter from small floating-point variations
 				if zoomValue then
-					cameraState.targetZoom = zoomValue
+					local zoomChangeThreshold = 0.05  -- Only update if zoom changes by more than 5%
+					local zoomDiff = math.abs(zoomValue - cameraState.targetZoom)
+					if zoomDiff > (cameraState.targetZoom * zoomChangeThreshold) then
+						cameraState.targetZoom = zoomValue
+					end
 				end
 			end
 		end
@@ -1045,7 +1116,9 @@ local function DrawProjectile(pID)
 
 	-- Get projectile size from cache or calculate it
 	local size = 4 -- Default size
-	local color = {1, 0.5, 0, 1} -- Default orange
+	-- Reuse color table (reset to default orange)
+	projectileColorPool[1], projectileColorPool[2], projectileColorPool[3], projectileColorPool[4] = 1, 0.5, 0, 1
+	local color = projectileColorPool
 	local width, height, isMissile, angle -- Initialize these early for blaster and missile handling
 
 	if pDefID then
@@ -2229,9 +2302,28 @@ local function UnitQueueVertices(uID)
 		local cmd = uCmds[i]
 		if (cmd.id < 0) or positionCmds[cmd.id] then
 			local cx, cy, cz
-			if #cmd.params >= 3 then
+			local paramCount = #cmd.params
+			if paramCount == 5 then
+				-- 5 params could be: {targetID, x, y, z, radius} for set-target area commands
+				-- Check if first param is a valid unit/feature ID (large number)
+				if cmd.params[1] > 0 and cmd.params[1] < 1000000 then
+					-- It's a target ID command, get the target's position
+					if cmd.params[1] > Game.maxUnits then
+						cx, cy, cz = spGetFeaturePosition(cmd.params[1] - Game.maxUnits)
+					else
+						cx, cy, cz = spGetUnitPosition(cmd.params[1])
+					end
+				else
+					-- Treat as positional: use x, y, z from params 2, 3, 4
+					cx, cy, cz = cmd.params[2], cmd.params[3], cmd.params[4]
+				end
+			elseif paramCount == 4 then
+				-- Area command: {x, y, z, radius} - use x and z
 				cx, cy, cz = cmd.params[1], cmd.params[2], cmd.params[3]
-			elseif #cmd.params == 1 then
+			elseif paramCount == 3 then
+				-- Regular positional command
+				cx, cy, cz = cmd.params[1], cmd.params[2], cmd.params[3]
+			elseif paramCount == 1 then
 				if cmd.params[1] > Game.maxUnits then
 					cx, cy, cz = spGetFeaturePosition(cmd.params[1] - Game.maxUnits)
 				else
@@ -2250,8 +2342,12 @@ local function UnitQueueVertices(uID)
 end
 
 local function GetCmdOpts(alt, ctrl, meta, shift, right)
-
-	local opts = { alt=alt, ctrl=ctrl, meta=meta, shift=shift, right=right }
+	-- Reuse opts table
+	cmdOptsPool.alt = alt
+	cmdOptsPool.ctrl = ctrl
+	cmdOptsPool.meta = meta
+	cmdOptsPool.shift = shift
+	cmdOptsPool.right = right
 	local coded = 0
 
 	if alt   then coded = coded + CMD.OPT_ALT   end
@@ -2260,8 +2356,8 @@ local function GetCmdOpts(alt, ctrl, meta, shift, right)
 	if shift then coded = coded + CMD.OPT_SHIFT end
 	if right then coded = coded + CMD.OPT_RIGHT end
 
-	opts.coded = coded
-	return opts
+	cmdOptsPool.coded = coded
+	return cmdOptsPool
 end
 
 local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
@@ -2315,7 +2411,10 @@ local function FindMyCommander()
 end
 
 local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, buildDefID, alt, ctrl, shift)
-	local positions = {}
+	-- Clear and reuse positions table
+	for i = #buildPositionsPool, 1, -1 do
+		buildPositionsPool[i] = nil
+	end
 	local buildFacing = Spring.GetBuildFacing()
 	local buildWidth, buildHeight = GetBuildingDimensions(buildDefID, buildFacing)
 
@@ -2332,7 +2431,8 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 
 	if distance < 1 then
 		-- Too short, just return start position
-		return {{wx = sx, wz = sz}}
+		buildPositionsPool[1] = {wx = sx, wz = sz}
+		return buildPositionsPool
 	end
 
 	-- Shift+Ctrl: Only horizontal or vertical line (lock to strongest axis)
@@ -2495,6 +2595,58 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 	return positions
 end
 
+-- Helper function to check if a transport can load a target unit
+local function CanTransportLoadUnit(transportUnitID, targetUnitID)
+	if not transportUnitID or not targetUnitID then
+		return false
+	end
+
+	local transportDefID = Spring.GetUnitDefID(transportUnitID)
+	local targetDefID = Spring.GetUnitDefID(targetUnitID)
+
+	if not transportDefID or not targetDefID then
+		return false
+	end
+
+	-- Check if transport can carry units (using cache)
+	if not cache.isTransport[transportDefID] or (cache.transportCapacity[transportDefID] or 0) <= 0 then
+		return false
+	end
+
+	-- Check if target can be transported (using cache)
+	if cache.cantBeTransported[targetDefID] then
+		return false
+	end
+
+	-- Check transport size compatibility (using cache)
+	local transportSize = cache.transportSize[transportDefID]
+	local targetTransportSize = cache.unitTransportSize[targetDefID]
+	if transportSize and targetTransportSize then
+		if targetTransportSize > transportSize then
+			return false
+		end
+	end
+
+	-- Check transport mass compatibility (using cache)
+	local transportMass = cache.transportMass[transportDefID]
+	local targetMass = cache.unitMass[targetDefID]
+	if transportMass and targetMass then
+		if targetMass > transportMass then
+			return false
+		end
+	end
+
+	-- Check if transport can carry this type (minTransportSize) (using cache)
+	local minTransportSize = cache.minTransportSize[transportDefID]
+	if minTransportSize and targetTransportSize then
+		if targetTransportSize < minTransportSize then
+			return false
+		end
+	end
+
+	return true
+end
+
 local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
@@ -2506,18 +2658,90 @@ local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 
 	-- For build commands (negative cmdID), don't check for units at the position
 	-- We want to build AT the position, not command any unit that might be there
+	-- Also for PATROL and FIGHT, always target ground position instead of units
 	local id = nil
-	if cmdID > 0 then
+	if cmdID > 0 and cmdID ~= CMD.PATROL and cmdID ~= CMD.FIGHT then
 		id = GetIDAtPoint(wx, wz)
+
+		-- For ATTACK command, only target if it's an enemy unit
+		if id and cmdID == CMD.ATTACK then
+			if Spring.IsUnitAllied(id) then
+				id = nil  -- Don't target allied units with ATTACK, use ground position instead
+			end
+		end
+
+		-- For area RECLAIM command (radius > 0), don't target enemy units
+		if id and cmdID == CMD.RECLAIM and radius and radius > 0 then
+			if not Spring.IsUnitAllied(id) then
+				id = nil  -- Don't target enemy units with area RECLAIM
+			end
+		end
+
+		-- For area REPAIR command (radius > 0), don't target enemy units
+		if id and cmdID == CMD.REPAIR and radius and radius > 0 then
+			if not Spring.IsUnitAllied(id) then
+				id = nil  -- Don't target enemy units with area REPAIR
+			end
+		end
 	end
 
 	if id then
-		GiveNotifyingOrder(cmdID, {id}, cmdOpts)
+		-- For LOAD_UNITS command, give order only to transport units
+		if cmdID == CMD.LOAD_UNITS then
+			local selectedUnits = Spring.GetSelectedUnits()
+			local transports = {}
+
+			-- Collect all transport units (using cache)
+			for i = 1, #selectedUnits do
+				local unitDefID = Spring.GetUnitDefID(selectedUnits[i])
+				if unitDefID and cache.isTransport[unitDefID] and (cache.transportCapacity[unitDefID] or 0) > 0 then
+					transports[#transports + 1] = selectedUnits[i]
+				end
+			end			if #transports > 0 then
+				-- If multiple transports, convert to area command so they load different units
+				if #transports > 1 then
+					local ux, uy, uz = Spring.GetUnitPosition(id)
+					if ux then
+						-- Use a small radius area command so transports will find different nearby units
+						local smallRadius = 150
+						for i = 1, #transports do
+							Spring.GiveOrderToUnit(transports[i], cmdID, {ux, uy, uz, smallRadius}, cmdOpts.coded)
+						end
+					end
+				else
+					-- Single transport, give direct unit target
+					Spring.GiveOrderToUnit(transports[1], cmdID, {id}, cmdOpts.coded)
+				end
+			end
+		else
+			GiveNotifyingOrder(cmdID, {id}, cmdOpts)
+		end
 	else
 		if cmdID > 0 then
+			-- For SET_TARGET command, only allow targeting units, not ground
+			local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET_NO_GROUND
+			if setTargetCmd and cmdID == setTargetCmd then
+				-- No unit found at target position, don't issue command
+				return
+			end
+
 			-- Add radius for area commands if provided
 			if radius and radius > 0 then
-				GiveNotifyingOrder(cmdID, {wx, spGetGroundHeight(wx, wz), wz, radius}, cmdOpts)
+				-- For area LOAD_UNITS command, give order only to transport units individually
+				if cmdID == CMD.LOAD_UNITS then
+					local selectedUnits = Spring.GetSelectedUnits()
+
+					-- Give order to each transport unit individually (using cache)
+					-- This allows the engine to distribute targets naturally across multiple transports
+					for i = 1, #selectedUnits do
+						local unitDefID = Spring.GetUnitDefID(selectedUnits[i])
+						if unitDefID and cache.isTransport[unitDefID] and (cache.transportCapacity[unitDefID] or 0) > 0 then
+							Spring.GiveOrderToUnit(selectedUnits[i], cmdID, {wx, spGetGroundHeight(wx, wz), wz, radius}, cmdOpts.coded)
+						end
+					end
+				else
+					GiveNotifyingOrder(cmdID, {wx, spGetGroundHeight(wx, wz), wz, radius}, cmdOpts)
+				end
 			else
 				GiveNotifyingOrder(cmdID, {wx, spGetGroundHeight(wx, wz), wz}, cmdOpts)
 			end
@@ -2608,6 +2832,31 @@ function widget:Initialize()
 		if uDef.iconType and iconTypes[uDef.iconType] and iconTypes[uDef.iconType].bitmap then
 			cache.unitIcon[uDefID] = iconTypes[uDef.iconType]
 		end
+
+		-- Cache transport properties
+		if uDef.isTransport then
+			cache.isTransport[uDefID] = true
+			cache.transportCapacity[uDefID] = uDef.transportCapacity or 0
+			cache.transportSize[uDefID] = uDef.transportSize
+			cache.transportMass[uDefID] = uDef.transportMass
+			cache.minTransportSize[uDefID] = uDef.minTransportSize
+		end
+		if uDef.cantBeTransported then
+			cache.cantBeTransported[uDefID] = true
+		end
+		cache.unitMass[uDefID] = uDef.mass
+		cache.unitTransportSize[uDefID] = uDef.transportSize
+
+		-- Cache movement properties
+		if uDef.canMove then
+			cache.canMove[uDefID] = true
+		end
+		if uDef.canFly then
+			cache.canFly[uDefID] = true
+		end
+		if uDef.isBuilding then
+			cache.isBuilding[uDefID] = true
+		end
 	end
 
 	for fDefID, fDef in pairs(FeatureDefs) do
@@ -2616,6 +2865,30 @@ function widget:Initialize()
 		end
 		local fx, fz = 8 * fDef.xsize, 8 * fDef.zsize
 		cache.featureRadiusSqs[fDefID] = fx*fx + fz*fz
+	end
+
+	-- Initialize LOS texture (a fraction of map size)
+	local losTexWidth = math.max(1, math.floor(mapSizeX / pipR2T.losTexScale))
+	local losTexHeight = math.max(1, math.floor(mapSizeZ / pipR2T.losTexScale))
+	pipR2T.losTex = gl.CreateTexture(losTexWidth, losTexHeight, {
+		target = GL.TEXTURE_2D,
+		format = GL.RGBA8,  -- RGBA for proper greyscale rendering
+		fbo = true,
+		min_filter = GL.LINEAR,  -- Use linear filtering for smooth/blurred appearance
+		mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
+	})
+
+	-- Initialize LOS shader for red-to-greyscale conversion
+	losShader = gl.CreateShader(losShaderCode)
+	if not losShader then
+		Spring.Echo("PIP: Failed to compile LOS shader, LOS overlay will be disabled")
+		Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
+		if pipR2T.losTex then
+			gl.DeleteTexture(pipR2T.losTex)
+			pipR2T.losTex = nil
+		end
 	end
 
 	-- Localize weapon data for performance
@@ -2724,6 +2997,7 @@ function widget:Initialize()
 				interactionState.areTracking = nil  -- Clear unit tracking
 				pipR2T.frameNeedsUpdate = true
 				pipR2T.contentNeedsUpdate = true
+				pipR2T.losNeedsUpdate = true  -- Update LOS for new tracked player
 				return true
 			end
 		end
@@ -2733,6 +3007,7 @@ function widget:Initialize()
 		if interactionState.trackingPlayerID then
 			interactionState.trackingPlayerID = nil
 			pipR2T.frameNeedsUpdate = true
+			pipR2T.losNeedsUpdate = true  -- Update LOS when untracking
 			return true
 		end
 		return false
@@ -2874,6 +3149,14 @@ function widget:ViewResize()
 	UpdateGuishaderBlur()
 end
 
+function widget:PlayerChanged(playerID)
+	-- Update LOS texture when player state changes (e.g., entering/exiting spec mode)
+	pipR2T.losNeedsUpdate = true
+
+	-- Update spec state
+	cameraState.mySpecState = Spring.GetSpectatingState()
+end
+
 function widget:Shutdown()
 	gl.DeleteList(unitOutlineList)
 	gl.DeleteList(radarDotList)
@@ -2892,6 +3175,18 @@ function widget:Shutdown()
 	if pipR2T.frameButtonsTex then
 		gl.DeleteTexture(pipR2T.frameButtonsTex)
 		pipR2T.frameButtonsTex = nil
+	end
+
+	-- Clean up LOS texture
+	if pipR2T.losTex then
+		gl.DeleteTexture(pipR2T.losTex)
+		pipR2T.losTex = nil
+	end
+
+	-- Clean up LOS shader
+	if losShader then
+		gl.DeleteShader(losShader)
+		losShader = nil
 	end
 
 	-- Clean up minimize mode display list
@@ -3190,32 +3485,37 @@ local function DrawCommandQueuesOverlay()
 					for j = 1, cmdCount do
 						local cmd = commands[j]
 						local cmdX, cmdZ
-					local params = cmd.params
-					if params then
-						local paramCount = #params
-						if paramCount >= 3 then
-							cmdX, cmdZ = params[1], params[3]
-						elseif paramCount == 1 then
-							local targetID = params[1]
-							local tx, ty, tz = GetUnitPosition(targetID)
-							if tx then
-								cmdX, cmdZ = tx, tz
-							end
-						elseif paramCount >= 5 then
-							-- Set target command with area: params are {targetID, x, y, z, radius}
-							local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET
-							if setTargetCmd and cmd.id == setTargetCmd then
+						local params = cmd.params
+						if params then
+							local paramCount = #params
+							if paramCount == 5 then
+								-- 5 params could be: {targetID, x, y, z, radius} for set-target area commands
+								if params[1] > 0 and params[1] < 1000000 then
+									-- It's a target ID command
+									local targetID = params[1]
+									local tx, ty, tz = GetUnitPosition(targetID)
+									if tx then
+										cmdX, cmdZ = tx, tz
+									end
+								else
+									-- Treat as positional
+									cmdX, cmdZ = params[2], params[4]
+								end
+							elseif paramCount == 4 then
+								-- Area commands (reclaim, repair, etc.) have 4 params: {x, y, z, radius}
+								cmdX, cmdZ = params[1], params[3]
+							elseif paramCount == 3 then
+								-- Regular positional command (move, attack-ground, etc.)
+								cmdX, cmdZ = params[1], params[3]
+							elseif paramCount == 1 then
 								local targetID = params[1]
 								local tx, ty, tz = GetUnitPosition(targetID)
 								if tx then
 									cmdX, cmdZ = tx, tz
 								end
-							else
-								-- Other commands with 5+ params might be area commands
-								cmdX, cmdZ = params[1], params[3]
 							end
 						end
-					end						if cmdX and cmdZ then
+						if cmdX and cmdZ then
 							local cmdSX, cmdSY = WorldToPipCoords(cmdX, cmdZ)
 
 							-- Use cmdColors table
@@ -3396,20 +3696,15 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 			elseif canBuild == 1 then
 				local blockedByMobile = false
 				local nearbyUnits = Spring.GetUnitsInCylinder(wx, wz, 64)
-				if nearbyUnits then
-					for _, unitID in ipairs(nearbyUnits) do
-						local unitDefID = Spring.GetUnitDefID(unitID)
-						if unitDefID then
-							local unitDef = UnitDefs[unitDefID]
-							if unitDef and unitDef.canMove and not unitDef.isBuilding then
-								blockedByMobile = true
-								break
-							end
-						end
+			if nearbyUnits then
+				for _, unitID in ipairs(nearbyUnits) do
+					local unitDefID = Spring.GetUnitDefID(unitID)
+					if unitDefID and cache.canMove[unitDefID] and not cache.isBuilding[unitDefID] then
+						blockedByMobile = true
+						break
 					end
 				end
-
-				if blockedByMobile then
+			end				if blockedByMobile then
 					glColor(1, 1, 1, 0.5)
 				else
 					glColor(1, 1, 0, 0.5)
@@ -3475,12 +3770,9 @@ local function DrawBuildDragPreview(iconRadiusZoomDistMult)
 			if nearbyUnits then
 				for _, unitID in ipairs(nearbyUnits) do
 					local unitDefID = Spring.GetUnitDefID(unitID)
-					if unitDefID then
-						local unitDef = UnitDefs[unitDefID]
-						if unitDef and unitDef.canMove and not unitDef.isBuilding then
-							blockedByMobile = true
-							break
-						end
+					if unitDefID and cache.canMove[unitDefID] and not cache.isBuilding[unitDefID] then
+						blockedByMobile = true
+						break
 					end
 				end
 			end
@@ -3516,8 +3808,13 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult)
 		return
 	end
 
-	local buildsByTexture = {}
-	local buildCountByTexture = {}
+	-- Clear and reuse texture grouping tables
+	for k in pairs(buildsByTexturePool) do
+		buildsByTexturePool[k] = nil
+	end
+	for k in pairs(buildCountByTexturePool) do
+		buildCountByTexturePool[k] = nil
+	end
 
 	for i = 1, selectedCount do
 		local unitID = selectedUnits[i]
@@ -3543,14 +3840,14 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult)
 								local rotation = buildFacing * 90
 
 								local bitmap = buildIcon.bitmap
-								local texBuilds = buildsByTexture[bitmap]
-								local buildCount = buildCountByTexture[bitmap] or 0
+								local texBuilds = buildsByTexturePool[bitmap]
+								local buildCount = buildCountByTexturePool[bitmap] or 0
 								if not texBuilds then
 									texBuilds = {}
-									buildsByTexture[bitmap] = texBuilds
+									buildsByTexturePool[bitmap] = texBuilds
 								end
 								buildCount = buildCount + 1
-								buildCountByTexture[bitmap] = buildCount
+								buildCountByTexturePool[bitmap] = buildCount
 								texBuilds[buildCount] = {
 									cx = cx,
 									cy = cy,
@@ -3566,9 +3863,9 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult)
 	end
 
 	glColor(0.5, 1, 0.5, 0.4)
-	for bitmap, builds in pairs(buildsByTexture) do
+	for bitmap, builds in pairs(buildsByTexturePool) do
 		glTexture(bitmap)
-		local buildCount = buildCountByTexture[bitmap]
+		local buildCount = buildCountByTexturePool[bitmap]
 		for i = 1, buildCount do
 			local build = builds[i]
 			local cx, cy, iconSize, rotation = build.cx, build.cy, build.iconSize, build.rotation
@@ -3661,22 +3958,60 @@ local function DrawIcons()
 			end
 		end
 
-		-- Draw tracked unit backgrounds grouped by texture
-		for texture, indices in pairs(trackedByTexture) do
-			local invertedTexture = string.gsub(texture, "icons/", "icons/inverted/")
-			glTexture(invertedTexture)
-			gl.BeginEnd(GL_QUADS, function()
-				for j = 1, #indices do
-					local idx = indices[j]
-					if drawData.iconBuildProgress[idx] >= 1 then
-						local cx = drawData.iconX[idx]
-						local cy = drawData.iconY[idx]
-						local udef = drawData.iconUdef[idx]
-						local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
-						local baseSize = cache.unitIcon[udef].size
-						local borderPixels = 0.09 / baseSize  -- Inverse relationship: smaller units get proportionally more border
-						local enlargedSize = iconSize * (1 + borderPixels)
+	-- Draw tracked unit backgrounds grouped by texture
+	for texture, indices in pairs(trackedByTexture) do
+		local invertedTexture = string.gsub(texture, "icons/", "icons/inverted/")
+		glTexture(invertedTexture)
+		gl.BeginEnd(GL_QUADS, function()
+			for j = 1, #indices do
+				local idx = indices[j]
+				if drawData.iconBuildProgress[idx] >= 1 then
+					local cx = drawData.iconX[idx]
+					local cy = drawData.iconY[idx]
+					local udef = drawData.iconUdef[idx]
+					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
+					local baseSize = cache.unitIcon[udef].size
+					local borderPixels = 0.09 / baseSize  -- Inverse relationship: smaller units get proportionally more border
+					local enlargedSize = iconSize * (1 + borderPixels)
 
+					glTexCoord(texInset, 1 - texInset)
+					glVertex(cx - enlargedSize, cy - enlargedSize)
+					glTexCoord(1 - texInset, 1 - texInset)
+					glVertex(cx + enlargedSize, cy - enlargedSize)
+					glTexCoord(1 - texInset, texInset)
+					glVertex(cx + enlargedSize, cy + enlargedSize)
+					glTexCoord(texInset, texInset)
+					glVertex(cx - enlargedSize, cy + enlargedSize)
+				end
+			end
+		end)
+	end
+	glTexture(false)
+end
+
+	-- Draw bright glow for hovered unit (when command is active)
+	if drawData.hoveredUnitID then
+		glColor(1, 0.95, 0, 0.66)  -- Bright yellow glow
+		gl.Blending(GL.SRC_ALPHA, GL.ONE)  -- Additive blending for bright glow
+
+		-- Find the hovered unit in the draw data
+		for i = 1, iconCount do
+			if drawData.iconUnitID[i] == drawData.hoveredUnitID and drawData.iconBuildProgress[i] >= 1 then
+				local cx = drawData.iconX[i]
+				local cy = drawData.iconY[i]
+				local udef = drawData.iconUdef[i]
+
+				if udef and cache.unitIcon[udef] then
+					local texture = cache.unitIcon[udef].bitmap
+					local invertedTexture = string.gsub(texture, "icons/", "icons/inverted/")
+					glTexture(invertedTexture)
+
+					local iconSize = iconRadiusZoomDistMult * cache.unitIcon[udef].size
+					local baseSize = cache.unitIcon[udef].size
+					local borderPixels = 0.15 / baseSize  -- Larger border for hover glow
+					local enlargedSize = iconSize * (1 + borderPixels)
+
+					gl.BeginEnd(GL_QUADS, function()
 						glTexCoord(texInset, 1 - texInset)
 						glVertex(cx - enlargedSize, cy - enlargedSize)
 						glTexCoord(1 - texInset, 1 - texInset)
@@ -3685,14 +4020,31 @@ local function DrawIcons()
 						glVertex(cx + enlargedSize, cy + enlargedSize)
 						glTexCoord(texInset, texInset)
 						glVertex(cx - enlargedSize, cy + enlargedSize)
-					end
+					end)
+					glTexture(false)
+				else
+					-- Default icon - draw circle glow
+					local defaultIconSize = iconRadius * 0.5 * zoom * distMult
+					local glowSize = defaultIconSize * 1.4
+					glTexture('LuaUI/Images/pip/PipBlip.png')
+					gl.BeginEnd(GL_QUADS, function()
+						glTexCoord(texInset, 1 - texInset)
+						glVertex(cx - glowSize, cy - glowSize)
+						glTexCoord(1 - texInset, 1 - texInset)
+						glVertex(cx + glowSize, cy - glowSize)
+						glTexCoord(1 - texInset, texInset)
+						glVertex(cx + glowSize, cy + glowSize)
+						glTexCoord(texInset, texInset)
+						glVertex(cx - glowSize, cy + glowSize)
+					end)
+					glTexture(false)
 				end
-			end)
+				break  -- Found the hovered unit, no need to continue
+			end
 		end
-		glTexture(false)
-	end
 
-	-- Draw icons grouped by texture (minimizes texture binding)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)  -- Restore normal blending
+	end	-- Draw icons grouped by texture (minimizes texture binding)
 	for texture, indices in pairs(iconsByTexture) do
 		glTexture(texture)
 		local indexCount = #indices
@@ -4070,6 +4422,91 @@ local function DrawUnitsAndFeatures()
 	-- Draw icons (when zoomed out)
 	local iconRadiusZoomDistMult = DrawIcons()
 
+	-- Draw ally cursors
+	if WG['allycursors'] and WG['allycursors'].getCursor and interactionState.trackingPlayerID then
+		local cursor, isNotIdle = WG['allycursors'].getCursor(interactionState.trackingPlayerID)
+		if cursor and isNotIdle then
+			local wx, wz = cursor[1], cursor[3]
+			local cx, cy = WorldToPipCoords(wx, wz)
+			local opacity = cursor[7] or 1
+
+			-- Get player's team color
+			local _, _, _, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+			if teamID then
+				local r, g, b = Spring.GetTeamColor(teamID)
+				-- Scale cursor size: larger at low zoom, stays reasonable at high zoom
+				local cursorSize = vsy * 0.007
+
+				-- Draw crosshair lines to PIP boundaries (stop at cursor edge)
+				--gl.Color(r*1.5+0.5, g*1.5+0.5, b*1.5+0.5, 0.08)
+				--gl.LineWidth(vsy / 600)
+				-- gl.BeginEnd(GL_LINES, function()
+				-- 	-- Horizontal line (left to cursor)
+				-- 	glVertex(0, cy)
+				-- 	glVertex(cx - cursorSize, cy)
+				-- 	-- Horizontal line (cursor to right)
+				-- 	glVertex(cx + cursorSize, cy)
+				-- 	glVertex(dim.r - dim.l, cy)
+				-- 	-- Vertical line (bottom to cursor)
+				-- 	glVertex(cx, 0)
+				-- 	glVertex(cx, cy - cursorSize)
+				-- 	-- Vertical line (cursor to top)
+				-- 	glVertex(cx, cy + cursorSize)
+				-- 	glVertex(cx, dim.t - dim.b)
+				-- end)
+
+				-- Draw cursor as broken circle (4 arcs with 4 gaps)
+				-- Each arc is 1/8 of circle, each gap is 1/8 of circle
+				-- Arcs centered at top (90°), right (0°), bottom (270°), left (180°)
+				local segments = 24
+				local pi = math.pi
+
+				-- Define 4 arcs: each arc is 45° (pi/4), centered at cardinal directions
+				local arcs = {
+					{pi/2 - pi/8, pi/2 + pi/8},      -- Top arc (centered at 90°)
+					{0 - pi/8, 0 + pi/8},             -- Right arc (centered at 0°)
+					{3*pi/2 - pi/8, 3*pi/2 + pi/8},  -- Bottom arc (centered at 270°)
+					{pi - pi/8, pi + pi/8}            -- Left arc (centered at 180°)
+				}
+
+				-- Draw black outline first (thicker)
+				gl.Color(0, 0, 0, 1)
+				gl.LineWidth(vsy / 600 + 2)
+				for _, arc in ipairs(arcs) do
+					gl.BeginEnd(GL.LINE_STRIP, function()
+						local startAngle, endAngle = arc[1], arc[2]
+						local arcSegments = math.floor(segments / 8) -- 1/8 of circle for each arc
+						for i = 0, arcSegments do
+							local t = i / arcSegments
+							local angle = startAngle + (endAngle - startAngle) * t
+							local x = cx + math.cos(angle) * cursorSize
+							local y = cy + math.sin(angle) * cursorSize
+							glVertex(x, y)
+						end
+					end)
+				end
+
+				-- Draw colored arcs on top
+				gl.Color((r*1.5)+0.5, (g*1.5)+0.5, (b*1.5)+0.5, 1)
+				gl.LineWidth(vsy / 600)
+				for _, arc in ipairs(arcs) do
+					gl.BeginEnd(GL.LINE_STRIP, function()
+						local startAngle, endAngle = arc[1], arc[2]
+						local arcSegments = math.floor(segments / 8) -- 1/8 of circle for each arc
+						for i = 0, arcSegments do
+							local t = i / arcSegments
+							local angle = startAngle + (endAngle - startAngle) * t
+							local x = cx + math.cos(angle) * cursorSize
+							local y = cy + math.sin(angle) * cursorSize
+							glVertex(x, y)
+						end
+					end)
+				end
+				gl.LineWidth(1.0)
+			end
+		end
+	end
+
 	-- Draw build previews
 	local mx, my = spGetMouseState()
 	DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
@@ -4171,12 +4608,69 @@ local function RenderFrameButtons()
 end
 
 -- Helper function to render PIP contents (units, features, ground, command queues)
+-- Helper function to determine if LOS overlay should be shown and which allyteam to use
+local function ShouldShowLOS()
+	local myAllyTeam = Spring.GetMyAllyTeamID()
+	local mySpec = Spring.GetSpectatingState()
+
+	-- If tracking a player's camera, use their allyteam
+	if interactionState.trackingPlayerID then
+		local _, _, isSpec, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+		if teamID then
+			local allyTeamID = Spring.GetTeamAllyTeamID(teamID)
+			return true, allyTeamID
+		end
+	end
+
+	-- If not a spectator, show LOS for our own allyteam
+	if not mySpec then
+		return true, myAllyTeam
+	end
+
+	-- Don't show LOS for spectators (unless tracking a player)
+	return false, nil
+end
+
 local function RenderPipContents()
 	if uiState.drawingGround then
 		glColor(0.9, 0.9, 0.9, 1)
 		glTexture('$grass')
 		glBeginEnd(GL_QUADS, GroundTextureVertices)
 		glTexture(false)
+
+		-- Draw LOS darkening overlay
+		local shouldShowLOS, losAllyTeam = ShouldShowLOS()
+		if showLosOverlay and shouldShowLOS and pipR2T.losTex then
+			-- Calculate scissor coordinates to only show the visible map portion
+			-- Add small margin to avoid edge cutoff
+			local scissorL = math.floor(math.max(ground.view.l, dim.l))
+			local scissorR = math.ceil(math.min(ground.view.r, dim.r))
+			local scissorB = math.floor(math.max(ground.view.b, dim.b))
+			local scissorT = math.ceil(math.min(ground.view.t, dim.t))
+
+			if scissorR > scissorL and scissorT > scissorB then
+				-- Enable scissor test to clip to visible map area
+				gl.Scissor(scissorL, scissorB, scissorR - scissorL, scissorT - scissorB)
+
+				-- Draw LOS texture - it has values in red channel, we need greyscale
+				-- Use multiplicative blending to darken the map based on LOS
+				gl.Blending(GL.DST_COLOR, GL.ZERO)  -- result = dst * src
+				glColor(1, 1, 1, 1)
+				glTexture(pipR2T.losTex)
+
+				-- Draw full-screen quad with map texture coordinates
+				glBeginEnd(GL_QUADS, function()
+					glTexCoord(ground.coord.l, ground.coord.b); glVertex(ground.view.l, ground.view.b)
+					glTexCoord(ground.coord.r, ground.coord.b); glVertex(ground.view.r, ground.view.b)
+					glTexCoord(ground.coord.r, ground.coord.t); glVertex(ground.view.r, ground.view.t)
+					glTexCoord(ground.coord.l, ground.coord.t); glVertex(ground.view.l, ground.view.t)
+				end)
+
+				glTexture(false)
+				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)  -- Restore default blending
+				gl.Scissor(false)  -- Disable scissor test
+			end
+		end
 	end
 
 	-- Measure draw time for performance monitoring
@@ -4616,7 +5110,7 @@ local function DrawTrackedPlayerName()
 	-- Get team color
 	local r, g, b = Spring.GetTeamColor(teamID)
 	local fontSize = math.floor(19 * widgetScale)
-	local padding = math.floor(11 * widgetScale)
+	local padding = math.floor(16 * widgetScale)
 	local centerX = (dim.l + dim.r) / 2
 
 	font:Begin()
@@ -4802,25 +5296,119 @@ local function UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHei
 			gl.Translate(-1, -1, 0)
 			gl.Scale(2 / pipWidth, 2 / pipHeight, 0)
 
-			local savedDim = {l = dim.l, r = dim.r, b = dim.b, t = dim.t}
-			local savedGround = {
-				view = {l = ground.view.l, r = ground.view.r, b = ground.view.b, t = ground.view.t},
-				coord = {l = ground.coord.l, r = ground.coord.r, b = ground.coord.b, t = ground.coord.t}
-			}
+			-- Reuse saved dimension tables
+			savedDimPool.l, savedDimPool.r, savedDimPool.b, savedDimPool.t = dim.l, dim.r, dim.b, dim.t
+			savedGroundPool.view.l, savedGroundPool.view.r, savedGroundPool.view.b, savedGroundPool.view.t = ground.view.l, ground.view.r, ground.view.b, ground.view.t
+			savedGroundPool.coord.l, savedGroundPool.coord.r, savedGroundPool.coord.b, savedGroundPool.coord.t = ground.coord.l, ground.coord.r, ground.coord.b, ground.coord.t
 
 			dim.l, dim.b, dim.r, dim.t = 0, 0, pipWidth, pipHeight
 			RecalculateWorldCoordinates()
 			RecalculateGroundTextureCoordinates()
 			RenderPipContents()
 
-			dim.l, dim.r, dim.b, dim.t = savedDim.l, savedDim.r, savedDim.b, savedDim.t
+			dim.l, dim.r, dim.b, dim.t = savedDimPool.l, savedDimPool.r, savedDimPool.b, savedDimPool.t
 			RecalculateWorldCoordinates()
-			ground.view.l, ground.view.r, ground.view.b, ground.view.t = savedGround.view.l, savedGround.view.r, savedGround.view.b, savedGround.view.t
-			ground.coord.l, ground.coord.r, ground.coord.b, ground.coord.t = savedGround.coord.l, savedGround.coord.r, savedGround.coord.b, savedGround.coord.t
+			ground.view.l, ground.view.r, ground.view.b, ground.view.t = savedGroundPool.view.l, savedGroundPool.view.r, savedGroundPool.view.b, savedGroundPool.view.t
+			ground.coord.l, ground.coord.r, ground.coord.b, ground.coord.t = savedGroundPool.coord.l, savedGroundPool.coord.r, savedGroundPool.coord.b, savedGroundPool.coord.t
 		end, true)
 		pipR2T.contentLastUpdateTime = currentTime
 		pipR2T.contentNeedsUpdate = false
 	end
+end
+
+-- Update LOS texture with current Line-of-Sight information
+local function UpdateLOSTexture(currentTime)
+	-- Check if we should update LOS texture
+	local shouldShowLOS, losAllyTeam = ShouldShowLOS()
+	if not shouldShowLOS or not pipR2T.losTex then
+		return
+	end
+
+	local myAllyTeam = Spring.GetMyAllyTeamID()
+	local useEngineLOS = (losAllyTeam == myAllyTeam)  -- Can use engine LOS if same allyteam
+
+	-- Check if update is needed based on update rate
+	local shouldUpdate
+	if useEngineLOS then
+		-- Always update when using engine LOS (it's cheap and real-time)
+		shouldUpdate = true
+	else
+		-- Only apply rate limiting when manually generating LOS (expensive)
+		shouldUpdate = pipR2T.losNeedsUpdate or (currentTime - pipR2T.losLastUpdateTime) >= pipR2T.losUpdateRate
+	end
+
+	if not shouldUpdate then
+		return
+	end
+
+	-- Calculate LOS texture dimensions
+	local losTexWidth = math.max(1, math.floor(mapSizeX / pipR2T.losTexScale))
+	local losTexHeight = math.max(1, math.floor(mapSizeZ / pipR2T.losTexScale))
+
+	-- Render the LOS texture
+	if losShader then
+		gl.R2tHelper.RenderToTexture(pipR2T.losTex, function()
+			if useEngineLOS then
+				-- Use engine's LOS texture (fast, real-time)
+				gl.Texture(0, '$info:los')
+
+				-- Activate shader to convert red channel to greyscale
+				gl.UseShader(losShader)
+
+				-- Draw full-screen quad in normalized coordinates (-1 to 1)
+				glBeginEnd(GL_QUADS, function()
+					glTexCoord(0, 0); glVertex(-1, -1)
+					glTexCoord(1, 0); glVertex(1, -1)
+					glTexCoord(1, 1); glVertex(1, 1)
+					glTexCoord(0, 1); glVertex(-1, 1)
+				end)
+
+				gl.UseShader(0)
+				gl.Texture(0, false)
+			else
+				-- Manually generate LOS texture using Spring.IsPosInLos (expensive)
+				-- Clear to base darkness (no LOS)
+				local baseBrightness = 1.0 - losOverlayOpacity
+				gl.Clear(GL.COLOR_BUFFER_BIT, baseBrightness, baseBrightness, baseBrightness, 1)
+
+				-- Sample LOS at regular intervals
+				local cellSizeX = mapSizeX / losTexWidth
+				local cellSizeZ = mapSizeZ / losTexHeight
+
+				gl.Blending(false)
+				glColor(1, 1, 1, 1)
+
+				-- Draw quads for areas with LOS
+				glBeginEnd(GL_QUADS, function()
+					for y = 0, losTexHeight - 1 do
+						for x = 0, losTexWidth - 1 do
+							local worldX = (x + 0.5) * cellSizeX
+							local worldZ = (y + 0.5) * cellSizeZ
+							local worldY = spGetGroundHeight(worldX, worldZ)
+
+							if spIsPosInLos(worldX, worldY, worldZ, losAllyTeam) then
+								-- Convert to normalized coordinates (-1 to 1)
+								local nx1 = (x / losTexWidth) * 2 - 1
+								local nx2 = ((x + 1) / losTexWidth) * 2 - 1
+								local ny1 = (y / losTexHeight) * 2 - 1
+								local ny2 = ((y + 1) / losTexHeight) * 2 - 1
+
+								glVertex(nx1, ny1)
+								glVertex(nx2, ny1)
+								glVertex(nx2, ny2)
+								glVertex(nx1, ny2)
+							end
+						end
+					end
+				end)
+
+				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+			end
+		end, true)
+	end
+
+	pipR2T.losLastUpdateTime = currentTime
+	pipR2T.losNeedsUpdate = false
 end
 
 -- Helper function to draw tracking indicators
@@ -4898,14 +5486,24 @@ local function HandleHoverAndCursor(mx, my)
 		if not defaultCmd or defaultCmd == 0 then
 			local selectedUnits = Spring.GetSelectedUnits()
 			if selectedUnits and #selectedUnits > 0 then
-				for i = 1, #selectedUnits do
-					local uDefID = Spring.GetUnitDefID(selectedUnits[i])
-					if uDefID then
-						local uDef = UnitDefs[uDefID]
-						if uDef and (uDef.canMove or uDef.canFly) then
-							Spring.SetMouseCursor('Move')
+				-- Check if we have a transport and are hovering over a transportable unit
+				local uID = GetUnitAtPoint(wx, wz)
+				if uID and Spring.IsUnitAllied(uID) then
+					-- Check if any transport in selection can load this unit
+					for i = 1, #selectedUnits do
+						if CanTransportLoadUnit(selectedUnits[i], uID) then
+							Spring.SetMouseCursor('Load')
 							return
 						end
+					end
+				end
+
+				-- Default to Move cursor if units can move (using cache)
+				for i = 1, #selectedUnits do
+					local uDefID = Spring.GetUnitDefID(selectedUnits[i])
+					if uDefID and (cache.canMove[uDefID] or cache.canFly[uDefID]) then
+						Spring.SetMouseCursor('Move')
+						return
 					end
 				end
 			end
@@ -5090,6 +5688,9 @@ function widget:DrawScreen()
 		local dynamicUpdateRate = CalculateDynamicUpdateRate()
 		local pipUpdateInterval = dynamicUpdateRate > 0 and (1 / dynamicUpdateRate) or 0
 
+		-- Update LOS texture
+		UpdateLOSTexture(currentTime)
+
 		-- Measure time to render
 		local drawStartTime = os.clock()
 		UpdateR2TContent(currentTime, pipUpdateInterval, pipWidth, pipHeight)
@@ -5185,13 +5786,17 @@ function widget:DrawScreen()
 	DrawTrackedPlayerName()
 
 	-- Display current max update rate (top-left corner)
-	-- local fontSize = 11
-	-- local padding = 5
-	-- font:Begin()
-	-- font:SetTextColor(0.85, 0.85, 0.85, 1)
-	-- font:SetOutlineColor(0, 0, 0, 0.5)
-	-- font:Print(string.format("%.0f FPS", pipR2T.contentCurrentUpdateRate), dim.l + padding, dim.t - (fontSize*1.6) - padding, fontSize*2, "no")
-	-- font:End()	-- Draw box selection rectangle
+	if showPipFps then
+		local fontSize = 11
+		local padding = 8
+		font:Begin()
+		font:SetTextColor(0.85, 0.85, 0.85, 1)
+		font:SetOutlineColor(0, 0, 0, 0.5)
+		font:Print(string.format("%.0f FPS", pipR2T.contentCurrentUpdateRate), dim.l + padding, dim.t - (fontSize*1.6) - padding, fontSize*2, "no")
+		font:End()
+	end
+
+	-- Draw box selection rectangle
 
 	DrawBoxSelection()
 
@@ -5346,23 +5951,70 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 end
 
 function widget:Update(dt)
-	-- Update spectating state
+	-- Update spectating state and check if it changed
+	local oldSpecState = cameraState.mySpecState
 	cameraState.mySpecState = Spring.GetSpectatingState()
+
+	-- If spec state changed, update LOS texture
+	if oldSpecState ~= cameraState.mySpecState then
+		pipR2T.losNeedsUpdate = true
+	end
 
 	-- Update mouse hover state
 	local mx, my = spGetMouseState()
 	local wasMouseOver = interactionState.isMouseOverPip
 	interactionState.isMouseOverPip = (mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t and not uiState.inMinMode)
 
-	-- Update hovered unit for icon highlighting
+	-- Update hovered unit for icon highlighting (only when there's an active command that can target units)
 	if interactionState.isMouseOverPip then
+		local _, cmdID = Spring.GetActiveCommand()
 		local wx, wz = PipToWorldCoords(mx, my)
-		drawData.hoveredUnitID = GetUnitAtPoint(wx, wz)
+		local unitID = GetUnitAtPoint(wx, wz)
+
+		-- Only highlight units when there's an active command that can target units
+		if cmdID and cmdID > 0 then  -- Positive cmdID means it's a command (not a build command)
+			-- Don't highlight units for PATROL and FIGHT (they target ground)
+			if cmdID == CMD.PATROL or cmdID == CMD.FIGHT then
+				drawData.hoveredUnitID = nil
+			-- Validate if this unit is a valid target for the command
+			elseif unitID then
+				local isValidTarget = true
+				local isAlly = Spring.IsUnitAllied(unitID)
+				local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET_NO_GROUND
+
+				-- Commands that can only target enemy units
+				if cmdID == CMD.ATTACK or (setTargetCmd and cmdID == setTargetCmd) or cmdID == CMD.CAPTURE then
+					isValidTarget = not isAlly
+				-- Commands that can only target allied units
+				elseif cmdID == CMD.GUARD or cmdID == CMD.REPAIR or cmdID == CMD.LOAD_UNITS then
+					isValidTarget = isAlly
+				-- Commands that work on both allies and enemies are fine (RECLAIM, RESURRECT, RESTORE, etc.)
+				end
+
+				drawData.hoveredUnitID = isValidTarget and unitID or nil
+			else
+				drawData.hoveredUnitID = nil
+			end
+		-- No active command - check if we should highlight for transport loading
+		elseif unitID and Spring.IsUnitAllied(unitID) then
+			local selectedUnits = Spring.GetSelectedUnits()
+			local canLoadTarget = false
+
+			-- Check if any transport in selection can load this target unit
+			for i = 1, #selectedUnits do
+				if CanTransportLoadUnit(selectedUnits[i], unitID) then
+					canLoadTarget = true
+					break
+				end
+			end
+
+			drawData.hoveredUnitID = canLoadTarget and unitID or nil
+		else
+			drawData.hoveredUnitID = nil
+		end
 	else
 		drawData.hoveredUnitID = nil
-	end
-
-	-- If hover state changed, update frame buttons
+	end	-- If hover state changed, update frame buttons
 	if wasMouseOver ~= interactionState.isMouseOverPip and showButtonsOnHoverOnly then
 		pipR2T.frameNeedsUpdate = true
 	end
@@ -6413,7 +7065,7 @@ end	-- Check if we are centering the view, takes priority
 						return true
 					elseif cmdID > 0 then
 						-- Check if command supports area mode
-						local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET
+						local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET_NO_GROUND
 						local supportsArea = (cmdID == CMD.ATTACK or cmdID == CMD.RECLAIM or cmdID == CMD.REPAIR or
 						                      cmdID == CMD.RESURRECT or cmdID == CMD.CAPTURE or cmdID == CMD.RESTORE or
 						                      cmdID == CMD.LOAD_UNITS or (setTargetCmd and cmdID == setTargetCmd))
@@ -6524,8 +7176,30 @@ end	-- Check if we are centering the view, takes priority
 					local uID = GetUnitAtPoint(wx, wz)
 					if uID then
 						if Spring.IsUnitAllied(uID) then
-							cmdID = CMD.GUARD
-							overrideTarget = uID
+							-- Check if we should use LOAD_UNITS command
+							local selectedUnits = Spring.GetSelectedUnits()
+							local canLoadTarget = false
+
+							-- Check if any transport in selection can load this target unit
+							for i = 1, #selectedUnits do
+								if CanTransportLoadUnit(selectedUnits[i], uID) then
+									canLoadTarget = true
+									break
+								end
+							end
+
+							if canLoadTarget then
+								-- Start area LOAD_UNITS drag instead of formation
+								interactionState.areAreaDragging = true
+								interactionState.areaCommandStartX = mx
+								interactionState.areaCommandStartY = my
+								-- Temporarily set LOAD_UNITS as active command for area drag
+								Spring.SetActiveCommand(Spring.GetCmdDescIndex(CMD.LOAD_UNITS))
+								return true
+							else
+								cmdID = CMD.GUARD
+								overrideTarget = uID
+							end
 						else
 							cmdID = CMD.ATTACK
 							overrideTarget = uID
@@ -7015,7 +7689,7 @@ function widget:MouseRelease(mx, my, mButton)
 
 			if cmdID and cmdID > 0 then
 				-- Check if this is a set target command
-				local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET
+				local setTargetCmd = GameCMD and GameCMD.UNIT_SET_TARGET_NO_GROUND
 				local isSetTarget = setTargetCmd and cmdID == setTargetCmd
 
 				if isSetTarget then
@@ -7096,7 +7770,23 @@ function widget:MouseRelease(mx, my, mButton)
 			local uID = GetUnitAtPoint(wx, wz)
 			if uID then
 				if Spring.IsUnitAllied(uID) then
-					cmdID = CMD.GUARD
+					-- Check if we should use LOAD_UNITS command
+					local selectedUnits = Spring.GetSelectedUnits()
+					local canLoadTarget = false
+
+					-- Check if any transport in selection can load this target unit
+					for i = 1, #selectedUnits do
+						if CanTransportLoadUnit(selectedUnits[i], uID) then
+							canLoadTarget = true
+							break
+						end
+					end
+
+					if canLoadTarget then
+						cmdID = CMD.LOAD_UNITS
+					else
+						cmdID = CMD.GUARD
+					end
 				else
 					cmdID = CMD.ATTACK
 				end

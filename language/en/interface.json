@@ -110,6 +110,8 @@
 				"needEnergyAmount": "I need %{amount} energy!",
 				"giveMetal": "I sent %{amount} metal to %{name}",
 				"giveEnergy": "I sent %{amount} energy to %{name}",
+				"giveMetal_taxed": "I sent %{amount} metal to %{name} and they received %{amount2} metal",
+				"giveEnergy_taxed": "I sent %{amount} energy to %{name} and they received %{amount2} energy",
 				"takeTeam": "I took %{name}.",
 				"takeTeamAmount": "I took %{name}: %{units} units, %{energy} energy and %{metal} metal."
 			}
