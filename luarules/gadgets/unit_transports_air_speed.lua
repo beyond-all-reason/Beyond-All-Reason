@@ -36,7 +36,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 		isAirTransport[unitDefID] = true
 		unitSpeedMax[unitDefID] = unitDef.speed / Game.gameSpeed
 	end
-	unitPenalty[unitDefID] = math.clamp(tonumber(unitDef.customParams.transportspeedmult or 0) or 0, 0, 1)
+	unitPenalty[unitDefID] = math.clamp(tonumber(unitDef.customParams.transportspeedpenalty or 0) or 0, 0, 1)
 end
 
 if not table.any(unitPenalty, function(value) return value > 0 end) then
