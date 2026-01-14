@@ -91,7 +91,7 @@ end
 local function despawnUnits(name, selfDestruct, reclaimed)
 	if isNameUntracked(name) then return end
 
-	for _, unitID in pairs(trackedUnitIDsByName[name]) do
+	for _, unitID in pairs(table.copy(trackedUnitIDsByName[name])) do
 		Spring.DestroyUnit(unitID, selfDestruct, reclaimed)
 	end
 end
