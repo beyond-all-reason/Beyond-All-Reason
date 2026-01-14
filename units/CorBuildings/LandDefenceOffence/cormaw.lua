@@ -152,14 +152,14 @@ return {
 				weapontimer = 1,
 				weapontype = "Flame",
 				weaponvelocity = 300,
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					commanders = 33,
 					default = 22,
 					subs = 5.5,
 				},
-				customparams = {
-					exclude_preaim = true
-				}
 			},
 		},
 		weapons = {

@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		blocking = true,
 		buildpic = "ARMLSHIP.DDS",
-		buildtime = 11400,
+		buildtime = 15000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 4",
 		collisionvolumescales = "28 30 82",
@@ -185,11 +185,11 @@ return {
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
 				customparams = {
+					noattackrangearc = 1,
 					spark_ceg = "genericshellexplosion-splash-lightning",
 					spark_forkdamage = "0.5",
 					spark_maxunits = "2",
 					spark_range = "100",
-					noattackrangearc= 1,
 				},
 				damage = {
 					default = 35,

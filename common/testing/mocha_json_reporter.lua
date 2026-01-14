@@ -8,11 +8,13 @@ function MochaJSONReporter:new()
 	local obj = {
 		totalTests = 0,
 		totalPasses = 0,
+		totalSkipped = 0,
 		totalFailures = 0,
 		startTime = nil,
 		endTime = nil,
 		duration = nil,
-		tests = {}
+		tests = {},
+		skipped = {}
 	}
 	setmetatable(obj, self)
 	self.__index = self
@@ -28,21 +30,37 @@ function MochaJSONReporter:endTests(duration)
 	self.duration = duration
 end
 
-function MochaJSONReporter:testResult(label, filePath, success, duration, errorMessage)
+function MochaJSONReporter:extractError(text)
+	local errorIndex = text:match('^%[string "[%p%a%s]*%"]:[%d]+:().*')
+	if errorIndex and errorIndex > 0 then
+		text = text:sub(errorIndex + 1)
+		return text
+	end
+	errorIndex = text:match('^%[t=[%d%.:]*%]%[f=[%-%d]*%] ().*')
+	if errorIndex and errorIndex > 0 then
+		text = text:sub(errorIndex)
+	end
+	return text
+end
+
+function MochaJSONReporter:testResult(label, filePath, success, skipped, duration, errorMessage)
 	local result = {
 		title = label,
 		fullTitle = label,
 		file = filePath,
 		duration = duration,
 	}
-	if success then
+	if skipped then
+		self.totalSkipped = self.totalSkipped + 1
+		result.err = {}
+	elseif success then
 		self.totalPasses = self.totalPasses + 1
 		result.err = {}
 	else
 		self.totalFailures = self.totalFailures + 1
 		if errorMessage ~= nil then
 			result.err = {
-				message = errorMessage,
+				message = self:extractError(errorMessage),
 				stack = errorMessage
 			}
 		else
@@ -54,6 +72,9 @@ function MochaJSONReporter:testResult(label, filePath, success, duration, errorM
 
 	self.totalTests = self.totalTests + 1
 	self.tests[#(self.tests) + 1] = result
+	if skipped then
+		self.skipped[#(self.skipped) + 1] = {fullTitle = label}
+	end
 end
 
 function MochaJSONReporter:report(filePath)
@@ -63,12 +84,14 @@ function MochaJSONReporter:report(filePath)
 			["tests"] = self.totalTests,
 			["passes"] = self.totalPasses,
 			["pending"] = 0,
+			["skipped"] = self.totalSkipped,
 			["failures"] = self.totalFailures,
 			["start"] = formatTimestamp(self.startTime),
 			["end"] = formatTimestamp(self.endTime),
 			["duration"] = self.duration
 		},
-		["tests"] = self.tests
+		["tests"] = self.tests,
+		["pending"] = self.skipped
 	}
 
 	local encoded = Json.encode(output)

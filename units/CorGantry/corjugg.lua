@@ -1,7 +1,7 @@
 return {
 	corjugg = {
 		buildpic = "CORJUGG.DDS",
-		buildtime = 630000,
+		buildtime = 780000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -135,11 +135,11 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 75,
-				},
-				customparams = {
-					noattackrangearc= 1,
 				},
 			},
 			juggernaut_fire = {

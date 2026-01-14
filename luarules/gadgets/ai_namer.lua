@@ -129,9 +129,14 @@ if gadgetHandler:IsSyncedCode() then
 							end
 						end
 					end
-					if takenNames[aiName] == nil then
-						takenNames[aiName] = teamID
+
+					if raptor or scavenger then
 						confirmedAIName = aiName
+					else
+						if takenNames[aiName] == nil then
+							takenNames[aiName] = teamID
+							confirmedAIName = aiName
+						end
 					end
 				--end
 			until confirmedAIName ~= nil

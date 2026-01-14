@@ -2,7 +2,7 @@ return {
 	coramph = {
 		activatewhenbuilt = true,
 		buildpic = "CORAMPH.DDS",
-		buildtime = 9650,
+		buildtime = 12500,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "32 29 32",
@@ -19,7 +19,7 @@ return {
 		maxdec = 0.6486,
 		maxslope = 14,
 		metalcost = 330,
-		movementclass = "ABOT2",
+		movementclass = "ABOT3",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORAMPH.s3o",
 		radardistance = 300,

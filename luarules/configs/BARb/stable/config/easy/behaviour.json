@@ -629,7 +629,7 @@
 		"retreat": 0.4
 	},
 	"armstil": {
-		"role": ["bomber", "air"],
+		"role": ["bomber", "air"]
 	},
 	"armliche": {
 		"role": ["bomber", "air"],
@@ -726,7 +726,7 @@
 
 
 
-	// CORE bot - corlab
+	// CORTEX bot - corlab
 	"corck": {
 		"role": ["builder"],
 		"limit": 25,

@@ -2,7 +2,7 @@ return {
 	corasy = {
 		builder = true,
 		buildpic = "CORASY.DDS",
-		buildtime = 15700,
+		buildtime = 24000,
 		canmove = true,
 		collisionvolumeoffsets = "0 10 -2",
 		collisionvolumescales = "186 78 183",
@@ -18,7 +18,7 @@ return {
 		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
-		metalcost = 3100,
+		metalcost = 2800,
 		metalstorage = 200,
 		minwaterdepth = 30,
 		objectname = "Units/CORASY.s3o",
@@ -28,7 +28,7 @@ return {
 		sightdistance = 301.60001,
 		terraformspeed = 1000,
 		waterline = 19,
-		workertime = 300,
+		workertime = 600,
 		yardmap = "weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew",
 		buildoptions = {
 			[1] = "coracsub",

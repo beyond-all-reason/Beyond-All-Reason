@@ -40,6 +40,10 @@ Spring.SendCommands({
 })
 
 local allowuserwidgets = Spring.GetModOptions().allowuserwidgets
+local allowunitcontrolwidgets = Spring.GetModOptions().allowunitcontrolwidgets
+
+local SandboxedSystem = {}
+local SANDBOXED_ERROR_MSG = "User 'unit control' widgets disallowed on this game"
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 if anonymousMode ~= "disabled" then
@@ -52,6 +56,7 @@ end
 
 if Spring.IsReplay() or Spring.GetSpectatingState() then
 	allowuserwidgets = true
+	allowunitcontrolwidgets = true
 end
 
 widgetHandler = {
@@ -95,6 +100,7 @@ widgetHandler = {
 local flexCallIns = {
 	'GameOver',
 	'GameFrame',
+	'GameFramePost',
 	'GameSetup',
 	'GamePaused',
 	'TeamDied',
@@ -202,6 +208,7 @@ local callInLists = {
 	'GameProgress',
 	'CommandsChanged',
 	'LanguageChanged',
+	'UnitBlocked',
 	'VisibleUnitAdded',
 	'VisibleUnitRemoved',
 	'VisibleUnitsChanged',
@@ -337,6 +344,27 @@ local function loadWidgetFiles(folder, vfsMode)
 	end
 end
 
+local function CreateSandboxedSystem()
+	local function disabledOrder()
+		error(SANDBOXED_ERROR_MSG, 2)
+	end
+	local SandboxedSpring = {}
+	for k, v in pairs(Spring) do
+		if string.find(k, '^GiveOrder') then
+			SandboxedSpring[k] = disabledOrder
+		else
+			SandboxedSpring[k] = v
+		end
+	end
+	for k, v in pairs(System) do
+		if k == 'Spring' then
+			SandboxedSystem[k] = SandboxedSpring
+		else
+			SandboxedSystem[k] = v
+		end
+	end
+end
+
 function widgetHandler:Initialize()
 	widgetHandler:CreateQueuedReorderFuncs()
 	widgetHandler:HookReorderSpecialFuncs()
@@ -351,6 +379,10 @@ function widgetHandler:Initialize()
 	unsortedWidgets = {}
 
 	if self.allowUserWidgets and allowuserwidgets then
+		if not allowunitcontrolwidgets then
+			CreateSandboxedSystem()
+		end
+
 		Spring.Echo("LuaUI: Allowing User Widgets")
 		loadWidgetFiles(WIDGET_DIRNAME, VFS.RAW)
 		loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.RAW)
@@ -417,10 +449,23 @@ function widgetHandler:AddSpadsMessage(contents)
 end
 
 
+function widgetHandler:ReloadUserWidgetFromGameRaw(name)
+	local ki = self.knownWidgets[name]
+	if not VFS.FileExists(ki.filename, VFS.ZIP) then
+		return
+	end
+	local w = widgetHandler:LoadWidget(ki.filename, true, ki.localsAccess, true)
+	if w then
+		widgetHandler:InsertWidgetRaw(w)
+		Spring.Echo('Reloaded from game: ' .. name .. "  (user 'unit control' widgets disabled for this game)")
+	end
+	return w
+end
 
-function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
+
+function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
-	local text = VFS.LoadFile(filename, not (self.allowUserWidgets and allowuserwidgets) and VFS.ZIP or VFS.RAW_FIRST)
+	local text = VFS.LoadFile(filename, not (self.allowUserWidgets and allowuserwidgets and not reload) and VFS.ZIP or VFS.RAW_FIRST)
 	if text == nil then
 		Spring.Echo('Failed to load: ' .. basename .. '  (missing file: ' .. filename .. ')')
 		return nil
@@ -441,7 +486,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 			return nil
 		end
 
-		local widget = widgetHandler:NewWidget(enableLocalsAccess)
+		local widget = widgetHandler:NewWidget(enableLocalsAccess, fromZip)
 		setfenv(chunk, widget)
 		local success, err = pcall(chunk)
 		if not success then
@@ -463,7 +508,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 		return nil
 	end
 
-	local widget = widgetHandler:NewWidget(enableLocalsAccess)
+	local widget = widgetHandler:NewWidget(enableLocalsAccess, fromZip)
 	setfenv(chunk, widget)
 	local success, err = pcall(chunk)
 	if not success then
@@ -502,7 +547,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 	end
 
 	local knownInfo = self.knownWidgets[name]
-	if knownInfo then
+	if knownInfo and not reload then
 		if knownInfo.active then
 			Spring.Echo('Failed to load: ' .. basename .. '  (duplicate name)')
 			return nil
@@ -520,6 +565,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 		self.knownChanged = true
 	end
 	knownInfo.active = true
+	knownInfo.localsAccess = enableLocalsAccess
 
 	if widget.GetInfo == nil then
 		Spring.Echo('Failed to load: ' .. basename .. '  (no GetInfo() call)')
@@ -570,17 +616,27 @@ local WidgetMeta =
 	__metatable = true,
 }
 
-function widgetHandler:NewWidget(enableLocalsAccess)
+local SandboxedWidgetMeta =
+{
+	__index = SandboxedSystem,
+	__metatable = true,
+}
+
+function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 	tracy.ZoneBeginN("W:NewWidget")
 	local widget = {}
+	local canControlUnits = fromZip or allowunitcontrolwidgets
+
 	if enableLocalsAccess then
+		local systemRef = canControlUnits and System or SandboxedSystem
 		-- copy the system calls into the widget table
-		for k, v in pairs(System) do
+		for k, v in pairs(systemRef) do
 			widget[k] = v
 		end
 	else
+		local metaRef = canControlUnits and WidgetMeta or SandboxedWidgetMeta
 		-- use metatable redirection
-		setmetatable(widget, WidgetMeta)
+		setmetatable(widget, metaRef)
 	end
 
 	widget.WG = self.WG    -- the shared table
@@ -589,6 +645,7 @@ function widgetHandler:NewWidget(enableLocalsAccess)
 	-- wrapped calls (closures)
 	widget.widgetHandler = {}
 	local wh = widget.widgetHandler
+	widget.canControlUnits = canControlUnits
 	widget.include = function(f)
 		return include(f, widget)
 	end
@@ -704,6 +761,23 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local function widgetFailure(w, funcName, errorMsg)
+	local name = w.whInfo.name
+	local errorBase = 'Error'
+	if funcName ~= 'Shutdown' then
+		widgetHandler:RemoveWidget(w)
+		if not w.canControlUnits and errorMsg:find(SANDBOXED_ERROR_MSG) then
+			errorBase = 'Sandbox error'
+			widgetHandler:ReloadUserWidgetFromGame(name)
+		end
+	else
+		Spring.Echo('Error in Shutdown()')
+	end
+	Spring.Echo(errorBase .. ' in ' .. funcName .. '(): ' .. tostring(errorMsg))
+	Spring.Echo('Removed widget: ' .. name)
+	return nil
+end
+
 local function SafeWrapFuncNoGL(func, funcName)
 	return function(w, ...)
 		-- New method avoids needless table creation, but is limited to at most 2 return values per callin!
@@ -711,15 +785,7 @@ local function SafeWrapFuncNoGL(func, funcName)
 		if r1 then
 			return r2, r3
 		else
-			if funcName ~= 'Shutdown' then
-				widgetHandler:RemoveWidget(w)
-			else
-				Spring.Echo('Error in Shutdown()')
-			end
-			local name = w.whInfo.name
-			Spring.Echo('Error in ' .. funcName .. '(): ' .. tostring(r2))
-			Spring.Echo('Removed widget: ' .. name)
-			return nil
+			return widgetFailure(w, funcName, r2)
 		end
 	end
 end
@@ -733,15 +799,7 @@ local function SafeWrapFuncGL(func, funcName)
 			table.remove(r, 1)
 			return unpack(r)
 		else
-			if funcName ~= 'Shutdown' then
-				widgetHandler:RemoveWidget(w)
-			else
-				Spring.Echo('Error in Shutdown()')
-			end
-			local name = w.whInfo.name
-			Spring.Echo('Error in ' .. funcName .. '(): ' .. tostring(r[2]))
-			Spring.Echo('Removed widget: ' .. name)
-			return nil
+			return widgetFailure(w, funcName, r[2])
 		end
 	end
 end
@@ -865,7 +923,7 @@ end
 function widgetHandler:CreateQueuedReorderFuncs()
 	-- This will create an array with linked Raw methods so we can find them by index.
 	-- It will also create the widgetHandler usual api queing the calls.
-	local reorderFuncNames = {'InsertWidget', 'RemoveWidget', 'EnableWidget', 'DisableWidget',
+	local reorderFuncNames = {'InsertWidget', 'RemoveWidget', 'EnableWidget', 'DisableWidget', 'ReloadUserWidgetFromGame',
 		'ToggleWidget', 'LowerWidget', 'RaiseWidget', 'UpdateWidgetCallIn', 'RemoveWidgetCallIn'}
 	local queueReorder = widgetHandler.QueueReorder
 
@@ -918,6 +976,14 @@ function widgetHandler:InsertWidgetRaw(widget)
 			self.knownWidgets[name].active = false
 		end
 		Spring.Echo('Missing capabilities:  ' .. name .. '. Disabling.')
+		return
+	end
+	-- Gracefully ignore/reload good control widgets advertising themselves as such, if user 'unit control' widgets disabled.
+	if widget.GetInfo and widget:GetInfo().control and not widget.canControlUnits then
+		local name = widget.whInfo.name
+		if not self:ReloadUserWidgetFromGameRaw(name) then
+			Spring.Echo('Blocked loading: ' .. name .. "  (user 'unit control' widgets disabled for this game)")
+		end
 		return
 	end
 
@@ -1590,7 +1656,7 @@ end
 function widgetHandler:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)
 	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. The second is the refraction pass.
 	-- drawAboveWater, drawBelowWater, drawReflection, drawRefraction
-	-- 1. false, 			true, 			false, 			false 
+	-- 1. false, 			true, 			false, 			false
 	-- 2. true, 			false, 			true, 			false
 	-- 3. true, 			false, 			false, 			false
 
@@ -1849,6 +1915,9 @@ function widgetHandler:MouseRelease(x, y, button)
 end
 
 function widgetHandler:MouseWheel(up, value)
+	if value == 0 then
+		return false -- fix for touchpads: after any scroll it somehow adds an up=false, value=0
+	end
 	tracy.ZoneBeginN("W:MouseWheel")
 	for _, w in ipairs(self.MouseWheelList) do
 		if w:MouseWheel(up, value) then
@@ -2002,10 +2071,10 @@ function widgetHandler:GameStart()
 	return
 end
 
-function widgetHandler:GameOver()
+function widgetHandler:GameOver(winningAllyTeams)
 	tracy.ZoneBeginN("W:GameOver")
 	for _, w in ipairs(self.GameOverList) do
-		w:GameOver()
+		w:GameOver(winningAllyTeams)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2072,6 +2141,18 @@ function widgetHandler:GameFrame(frameNum)
 	for _, w in ipairs(self.GameFrameList) do
 		tracy.ZoneBeginN("W:GameFrame:" .. w.whInfo.name)
 		w:GameFrame(frameNum)
+		tracy.ZoneEnd()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+
+function widgetHandler:GameFramePost(frameNum)
+	tracy.ZoneBeginN("W:GameFramePost")
+	for _, w in ipairs(self.GameFramePostList) do
+		tracy.ZoneBeginN("W:GameFramePost:" .. w.whInfo.name)
+		w:GameFramePost(frameNum)
 		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
@@ -2229,6 +2310,14 @@ function widgetHandler:LanguageChanged()
 	tracy.ZoneBeginN("W:LanguageChanged")
 	for _, w in ipairs(self.LanguageChangedList) do
 		w:LanguageChanged()
+	end
+	tracy.ZoneEnd()
+end
+
+function widgetHandler:UnitBlocked(unitDefID, reasons)
+	tracy.ZoneBeginN("W:UnitBlocked")
+	for _, w in ipairs(self.UnitBlockedList) do
+		w:UnitBlocked(unitDefID, reasons)
 	end
 	tracy.ZoneEnd()
 end
@@ -2544,10 +2633,10 @@ function widgetHandler:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, 
 	return
 end
 
-function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
 	tracy.ZoneBeginN("W:VisibleUnitAdded")
 	for _, w in ipairs(self.VisibleUnitAddedList) do
-		w:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+		w:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
 	end
 	tracy.ZoneEnd()
 end
@@ -2646,30 +2735,6 @@ function widgetHandler:FeatureDestroyed(featureID, allyTeam)
 	tracy.ZoneBeginN("W:FeatureDestroyed")
 	for _, w in ipairs(self.FeatureDestroyedList) do
 		w:FeatureDestroyed(featureID, allyTeam)
-	end
-	tracy.ZoneEnd()
-	return
-end
-
-
---------------------------------------------------------------------------------
---
---  Unit Market
---
-
-function widgetHandler:UnitSale(unitID, price, msgFromTeamID)
-	tracy.ZoneBeginN("W:UnitSale")
-	for _, w in ipairs(self.UnitSaleList) do
-		w:UnitSale(unitID, price, msgFromTeamID)
-	end
-	tracy.ZoneEnd()
-	return
-end
-
-function widgetHandler:UnitSold(unitID, price, old_ownerTeamID, msgFromTeamID)
-	tracy.ZoneBeginN("W:UnitSold")
-	for _, w in ipairs(self.UnitSoldList) do
-		w:UnitSold(unitID, price, old_ownerTeamID, msgFromTeamID)
 	end
 	tracy.ZoneEnd()
 	return

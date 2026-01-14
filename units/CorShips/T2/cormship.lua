@@ -2,7 +2,7 @@ return {
 	cormship = {
 		activatewhenbuilt = true,
 		buildpic = "CORMSHIP.DDS",
-		buildtime = 15000,
+		buildtime = 24000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -8 0",
 		collisionvolumescales = "43 43 101",
@@ -189,11 +189,11 @@ return {
 				customparams = {
 					cegtag = "missiletrailcorroyspecial",
 					model = "airbomb",
+					noattackrangearc = 1,
 					number = "8",
 					speceffect = "split",
 					speceffect_def = "cormship_rocket_split",
 					splitexplosionceg = "genericshellexplosion-medium",
-					noattackrangearc= 1,
 				},
 				damage = {
 					commanders = 500,

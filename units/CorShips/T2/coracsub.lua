@@ -3,7 +3,7 @@ return {
 		builddistance = 180,
 		builder = true,
 		buildpic = "CORACSUB.DDS",
-		buildtime = 18000,
+		buildtime = 23000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 4",
 		collisionvolumescales = "40 25 74",
@@ -35,7 +35,7 @@ return {
 		turninplaceanglelimit = 90,
 		turnrate = 385.5,
 		waterline = 80,
-		workertime = 300,
+		workertime = 350,
 		buildoptions = {
 			[1] = "coruwfus",
 			[2] = "coruwmmm",
@@ -51,7 +51,6 @@ return {
 			[12] = "corenaa",
 			[13] = "corfdoom",
 			[14] = "coruwageo",
-			[15] = "corfasp",
 		},
 		customparams = {
 			model_author = "Beherith",

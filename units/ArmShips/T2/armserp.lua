@@ -2,7 +2,7 @@ return {
 	armserp = {
 		activatewhenbuilt = true,
 		buildpic = "ARMSERP.DDS",
-		buildtime = 22770,
+		buildtime = 32000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "52 30 57",
@@ -74,6 +74,11 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[0] = "custom:subbubbles",
+				[1] = "custom:subwake",
+				[2] = "custom:subtorpfire-medium",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

@@ -2,7 +2,7 @@ return {
 	armsubk = {
 		activatewhenbuilt = true,
 		buildpic = "ARMSUBK.DDS",
-		buildtime = 22000,
+		buildtime = 28000,
 		canmove = true,
 		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "30 30 64",
@@ -75,6 +75,7 @@ return {
 			explosiongenerators = {
 				[0] = "custom:subbubbles",
 				[1] = "custom:subwake",
+				[2] = "custom:subtorpfire",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

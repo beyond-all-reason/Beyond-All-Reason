@@ -1,13 +1,13 @@
 return {
 	armmanni = {
 		buildpic = "ARMMANNI.DDS",
-		buildtime = 25700,
+		buildtime = 33000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "39 49 39",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		energycost = 13500,
+		energycost = 18500,
 		explodeas = "penetrator",
 		footprintx = 3,
 		footprintz = 3,

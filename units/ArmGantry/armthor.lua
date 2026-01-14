@@ -1,7 +1,7 @@
 return {
 	armthor = {
 		buildpic = "ARMTHOR.DDS",
-		buildtime = 250000,
+		buildtime = 320000,
 		canmanualfire = true,
 		canmove = true,
 		cantbetransported = true,
@@ -23,7 +23,7 @@ return {
 		maxslope = 14,
 		maxwaterdepth = 20,
 		metalcost = 9000,
-		movementclass = "HTANK5",
+		movementclass = "HTANK7",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMTHOR.s3o",
 		script = "Units/ARMTHOR.cob",
@@ -148,11 +148,11 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 300,
-				},
-				customparams = {
-					noattackrangearc= 1,
 				},
 			},
 			empmissile = {
@@ -172,6 +172,7 @@ return {
 				fixedlauncher = true,
 				flighttime = 12,
 				impulsefactor = 0,
+				interceptedbyshieldtype = 0,
 				metalpershot = 100,
 				model = "corshiprocket.s3o",
 				name = "Heavy long-range g2g EMP starburst rocket",
@@ -197,6 +198,7 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				customparams = {
+					shield_aoe_penetration = true,
 					stockpilelimit = 2,
 				},
 				damage = {
@@ -236,11 +238,11 @@ return {
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
 				customparams = {
+					noattackrangearc = 1,
 					spark_ceg = "genericshellexplosion-splash-large-lightning",
 					spark_forkdamage = "0.25",
 					spark_maxunits = "5",
 					spark_range = "125",
-					noattackrangearc= 1,
 				},
 				damage = {
 					default = 300,

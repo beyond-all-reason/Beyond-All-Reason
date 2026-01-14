@@ -10,9 +10,12 @@ function widget:GetInfo()
       license = "GNU GPL, v2 or later",
       layer = 0,
       enabled = true,
-      handler = true
     }
 end
+
+
+-- Localized Spring API for performance
+local spGetMyTeamID = Spring.GetMyTeamID
 
 local maxBuildProg = 0.075 -- maximum build progress that gets replaced in a repeat queue
 local maxMetal = 500 -- maximum metal cost that gets replaced in a repeat queue(7.5% of a juggernaut is still over 2k metal)
@@ -39,7 +42,7 @@ for unitDefID, uDef in pairs(UnitDefs) do
 end
 
 ----- Speed ups ------
-local myTeam = Spring.GetMyTeamID()
+local myTeam = spGetMyTeamID()
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetFactoryCommands = Spring.GetFactoryCommands
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -173,9 +176,9 @@ end
 
 function widget:PlayerChanged(playerID)
     if Spring.GetSpectatingState() then
-        widgetHandler:RemoveWidget(self)
+        widgetHandler:RemoveWidget()
     end
-    myTeam = Spring.GetMyTeamID()
+    myTeam = spGetMyTeamID()
 end
 
 function widget:Initialize()

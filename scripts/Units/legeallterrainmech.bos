@@ -1013,7 +1013,7 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 5) / animSpeed; 
+		animSpeed = (maxSpeed * 3.5) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>11) animSpeed = 11;
@@ -1322,17 +1322,6 @@ Shot4(zero) {
 FireWeapon4(){
     spin barrelSpinPivot around y-axis speed <900>;
     stop-spin barrelSpinPivot around y-axis decelerate <45>;
-    // if(whichMissile == 0){
-    //     whichMissile = 1;
-    // }
-    // else if(whichMissile == 1){
-    //     whichMissile = 2;
-    // }
-    // else if(whichMissile == 2){
-    //     whichMissile = 0;
-    // }
-    // sleep 1;
-
 }
 
 

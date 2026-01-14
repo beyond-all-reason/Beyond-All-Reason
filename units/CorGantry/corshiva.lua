@@ -1,7 +1,7 @@
 return {
 	corshiva = {
 		buildpic = "CORSHIVA.DDS",
-		buildtime = 30600,
+		buildtime = 40000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -5 0",
@@ -168,12 +168,12 @@ return {
 				weapontimer = 2,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 800,
+				customparams = {
+					overrange_distance = 920,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					default = 750,
-				},
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 920,
 				},
 			},
 		},

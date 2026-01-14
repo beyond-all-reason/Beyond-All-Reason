@@ -2,7 +2,7 @@ return {
 	armblade = {
 		blocking = false,
 		buildpic = "ARMBLADE.DDS",
-		buildtime = 24000,
+		buildtime = 32000,
 		canfly = true,
 		canmove = true,
 		collide = true,
@@ -107,6 +107,7 @@ return {
 				texture1 = "null",
 				texture2 = "smoketrailbar",
 				tolerance = 8000,
+				tracks = true,
 				turnrate = 18000,
 				turret = false,
 				weaponacceleration = 440,

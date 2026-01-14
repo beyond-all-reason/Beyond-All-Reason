@@ -2,7 +2,7 @@ return {
 	armpnix = {
 		blocking = false,
 		buildpic = "ARMPNIX.DDS",
-		buildtime = 21000,
+		buildtime = 25000,
 		canfly = true,
 		canmove = true,
 		collide = false,
@@ -30,7 +30,7 @@ return {
 		script = "Units/ARMPNIX.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
-		sightdistance = 260,
+		sightdistance = 430,
 		speed = 258,
 		speedtofront = 0.063,
 		turnradius = 64,

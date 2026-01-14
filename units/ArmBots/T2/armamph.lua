@@ -1,7 +1,7 @@
 return {
 	armamph = {
 		buildpic = "ARMAMPH.DDS",
-		buildtime = 5200,
+		buildtime = 7000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "27 35 21",
@@ -19,7 +19,7 @@ return {
 		maxdec = 0.6486,
 		maxslope = 14,
 		metalcost = 260,
-		movementclass = "HOVER5",
+		movementclass = "AHOVER2",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMAMPH.s3o",
 		script = "Units/ARMAMPH.cob",

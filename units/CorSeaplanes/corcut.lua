@@ -2,7 +2,7 @@ return {
 	corcut = {
 		blocking = false,
 		buildpic = "CORCUT.DDS",
-		buildtime = 9470,
+		buildtime = 11500,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -86,6 +86,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				name = "RiotCannon",
 				noselfdamage = true,

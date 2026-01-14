@@ -2,7 +2,7 @@ return {
 	armyork = {
 		airsightdistance = 900,
 		buildpic = "ARMYORK.DDS",
-		buildtime = 9950,
+		buildtime = 13000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -10 -2",
 		collisionvolumescales = "31 31 38",
@@ -151,6 +151,7 @@ return {
 				edgeeffectiveness = 1,
 				explosiongenerator = "custom:flak",
 				impulsefactor = 0,
+				mygravity = 0.01,
 				name = "Heavy g2a flak cannon",
 				noselfdamage = true,
 				range = 775,

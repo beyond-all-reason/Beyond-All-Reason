@@ -1,7 +1,7 @@
 return {
 	armgremlin = {
 		buildpic = "ARMGREMLIN.DDS",
-		buildtime = 6700,
+		buildtime = 8500,
 		canmove = true,
 		cloakcost = 5,
 		cloakcostmoving = 20,
@@ -125,6 +125,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				name = "Light close-quarters gauss cannon",
 				noselfdamage = true,

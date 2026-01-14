@@ -2,7 +2,7 @@ return {
 	armcroc = {
 		activatewhenbuilt = true,
 		buildpic = "ARMCROC.DDS",
-		buildtime = 16000,
+		buildtime = 21000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -3",
 		collisionvolumescales = "40 30 56",
@@ -123,6 +123,7 @@ return {
 				cylindertargeting = 1,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				name = "Medium g2g gauss-cannon",
 				noselfdamage = true,

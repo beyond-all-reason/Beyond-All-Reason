@@ -2,7 +2,7 @@ return {
 	armsaber = {
 		blocking = false,
 		buildpic = "ARMSABER.DDS",
-		buildtime = 9000,
+		buildtime = 11000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -97,7 +97,7 @@ return {
 				rgbcolor = "0.05 0.05 1",
 				soundhit = "xplosml3",
 				soundhitwet = "sizzle",
-				soundstart = "Lasrhvy2",
+				soundstart = "lasrhvy3",
 				thickness = 4,
 				tolerance = 10000,
 				turret = false,

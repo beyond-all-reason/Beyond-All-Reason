@@ -28,7 +28,7 @@ local newerVersion = false	-- configdata will set this true if it's a newer vers
 
 local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua")
 
-local languageCodes = { 'en', 'fr', 'ru' }
+local languageCodes = { 'en', 'fr', 'ru', 'es' }
 languageCodes = table.merge(languageCodes, table.invert(languageCodes))
 
 local languageNames = {}
@@ -36,7 +36,7 @@ for key, code in ipairs(languageCodes) do
 	languageNames[key] = Spring.I18N.languages[code]
 end
 
-local devLanguageCodes = { 'en', 'fr', 'de', 'ru', 'zh', 'test_unicode', }
+local devLanguageCodes = { 'en', 'fr', 'de', 'ru', 'zh', 'es', 'test_unicode', }
 devLanguageCodes = table.merge(devLanguageCodes, table.invert(devLanguageCodes))
 
 local devLanguageNames = {}
@@ -57,7 +57,7 @@ elseif not Platform.glHaveGL4 then
 	isPotatoGpu = true
 end
 
-local hideOtherLanguagesVoicepacks = true	-- maybe later allow people to pick other language voicepacks
+local hideOtherLanguagesVoicepacks = false	-- maybe later allow people to pick other language voicepacks
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
@@ -128,8 +128,6 @@ local show = false
 local prevShow = show
 local manualChange = true
 
-local guishaderIntensity = 0.0035
-
 local spGetGroundHeight = Spring.GetGroundHeight
 
 local os_clock = os.clock
@@ -195,6 +193,7 @@ local defaultMapFog = {
 }
 
 local options = {}
+local unfilteredOptions = {}
 local customOptions = {}
 local optionGroups = {}
 local optionButtons = {}
@@ -411,7 +410,7 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 			WG['limitidlefps'].update()
 		end
 
-		init()
+		applyFilter()
 		return true
 	end
 end
@@ -420,18 +419,29 @@ local function clearChatInput()
 	inputText = ''
 	inputTextPosition = 0
 	inputTextInsertActive = false
-	init()
+	applyFilter()
 end
 
+-- only called when show = false
 local function cancelChatInput()
 	local doReinit = inputText ~= ''
 	backgroundGuishader = glDeleteList(backgroundGuishader)
 	if WG['guishader'] then
+		WG['guishader'].RemoveDlist('options')
 		WG['guishader'].RemoveRect('optionsinput')
+		if selectOptionsList then
+			WG['guishader'].RemoveScreenRect('options_select')
+			WG['guishader'].RemoveScreenRect('options_select_options')
+			WG['guishader'].removeRenderDlist(selectOptionsList)
+		end
 	end
+	if selectOptionsList then
+		selectOptionsList = glDeleteList(selectOptionsList)
+	end
+	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil	--widgetHandler:DisownText()
 	if doReinit then
-		init()
+		applyFilter()
 	end
 end
 
@@ -704,14 +714,15 @@ function DrawWindow()
 	-- draw navigation... backward/forward
 	if totalColumns > maxShownColumns then
 		local buttonSize = 35 * widgetScale
-		local buttonMargin = 8 * widgetScale
+		local buttonMarginX = 15 * widgetScale
+		local buttonMarginY = 10 * widgetScale
 		local startX = x + screenWidth
-		local startY = screenY - screenHeight + buttonMargin
+		local startY = screenY - screenHeight + buttonMarginY
 
 		glColor(1, 1, 1, 1)
 
 		if (startColumn - 1) + maxShownColumns < totalColumns then
-			optionButtonForward = { startX - buttonSize - buttonMargin, startY, startX - buttonMargin, startY + buttonSize }
+			optionButtonForward = { startX - buttonSize - buttonMarginX, startY, startX - buttonMarginX, startY + buttonSize }
 			glColor(1, 1, 1, 1)
 			glTexture(forwardTex)
 			glTexRect(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4])
@@ -722,13 +733,9 @@ function DrawWindow()
 		end
 
 		font:SetTextColor(1, 1, 1, 0.4)
-		font:Print(math.ceil(startColumn / maxShownColumns) .. ' / ' .. math.ceil(totalColumns / maxShownColumns), startX - (buttonSize * 2.6) - buttonMargin, startY + buttonSize / 2.6, buttonSize / 2.4, "rn")
+		font:Print(math.ceil(startColumn / maxShownColumns) .. ' / ' .. math.ceil(totalColumns / maxShownColumns), startX - (buttonSize * 2.6) - buttonMarginX, startY + buttonSize / 2.6, buttonSize / 2.4, "rn")
 		if startColumn > 1 then
-			if optionButtonForward == nil then
-				optionButtonBackward = { startX - buttonSize - buttonMargin, startY, startX - buttonMargin, startY + buttonSize }
-			else
-				optionButtonBackward = { startX - (buttonSize * 2) - buttonMargin - (buttonMargin / 1.5), startY, startX - (buttonSize * 1) - buttonMargin - (buttonMargin / 1.5), startY + buttonSize }
-			end
+			optionButtonBackward = { startX - (buttonSize * 2) - buttonMarginX - (buttonMarginX / 1.5), startY, startX - (buttonSize * 1) - buttonMarginX - (buttonMarginX / 1.5), startY + buttonSize }
 			glColor(1, 1, 1, 1)
 			glTexture(backwardTex)
 			glTexRect(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4])
@@ -798,6 +805,11 @@ function DrawWindow()
 									text = string.sub(text, 1, string.len(text) - 1)
 								end
 								text = text .. '...'
+								if not option.description or option.description == '' then
+									option.description = option.name
+								elseif option.description ~= option.name and string.sub(option.description, 1, string.len(option.name)) ~= option.name then
+									option.description = option.name..'\n\255\255\255\255'..option.description
+								end
 							end
 							if option.restart then
 								font:Print('\255\255\090\090*', xPos + (oPadding * 0.3), yPos - (oHeight / 5) - oPadding, oHeight, "no")
@@ -858,6 +870,11 @@ function DrawWindow()
 										text = string.sub(text, 1, string.len(text) - 1)
 									end
 									text = text .. '...'
+									if not option.description or option.description == '' then
+										option.description = option.name
+									elseif option.description ~= option.name and string.sub(option.description, 1, string.len(option.name)) ~= option.name then
+										option.description = option.name..'\n\255\255\255\255'..option.description
+									end
 								end
 								options[oid].nametext = text
 								if option.id == 'font2' then
@@ -1101,7 +1118,7 @@ function widget:RecvLuaMsg(msg, playerID)
 				pauseGameWhenSingleplayerExecuted = chobbyInterface
 			end
 			if not chobbyInterface then
-				Spring.SetConfigInt('VSync', Spring.GetConfigInt("VSyncGame", -1))
+				Spring.SetConfigInt('VSync', Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1))
 			end
 		end
 	end
@@ -1161,14 +1178,13 @@ function widget:DrawScreen()
 			sliderValueChanged = nil
 		end
 
-		if selectOptionsList then
+		if not showSelectOptions and selectOptionsList then
 			if WG['guishader'] then
 				WG['guishader'].RemoveScreenRect('options_select')
 				WG['guishader'].RemoveScreenRect('options_select_options')
 				WG['guishader'].removeRenderDlist(selectOptionsList)
 			end
-			glDeleteList(selectOptionsList)
-			selectOptionsList = nil
+			selectOptionsList = glDeleteList(selectOptionsList)
 		end
 
 		if (show or showOnceMore) and windowList then
@@ -1219,8 +1235,8 @@ function widget:DrawScreen()
 							guishaderedTabs = false
 						end
 					end)
+					WG['guishader'].InsertDlist(backgroundGuishader, 'options')
 				end
-				WG['guishader'].InsertDlist(backgroundGuishader, 'options')
 			end
 			showOnceMore = false
 
@@ -1350,7 +1366,12 @@ function widget:DrawScreen()
 				for i, option in pairs(options[showSelectOptions].options) do
 					maxWidth = math.max(maxWidth, font:GetTextWidth(option .. '   ') * fontSize)
 				end
-
+				if selectOptionsList then
+					if WG['guishader'] then
+						WG['guishader'].removeRenderDlist(selectOptionsList)
+					end
+					glDeleteList(selectOptionsList)
+				end
 				selectOptionsList = glCreateList(function()
 					local borderSize = math.max(1, math.floor(vsy / 900))
 					RectRound(optionButtons[showSelectOptions][1] - borderSize, yPos - oHeight - oPadding - borderSize, optionButtons[showSelectOptions][1] + maxWidth + borderSize, optionButtons[showSelectOptions][2] + borderSize, (optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]) * 0.1, 1, 1, 1, 1, { 0, 0, 0, 0.25 }, { 0, 0, 0, 0.25 })
@@ -1408,7 +1429,10 @@ function widget:DrawScreen()
 			end
 		else
 			if WG['guishader'] then
-				WG['guishader'].DeleteDlist('options')
+				if backgroundGuishader then
+					WG['guishader'].RemoveDlist('options')
+					backgroundGuishader = glDeleteList(backgroundGuishader)
+				end
 				if textInputDlist then
 					WG['guishader'].RemoveRect('optionsinput')
 					textInputDlist = glDeleteList(textInputDlist)
@@ -1499,14 +1523,14 @@ function widget:KeyPress(key)
 		if inputText == '' then
 			clearChatInput()
 		else
-			init()
+			applyFilter()
 		end
 	elseif key == 127 then -- DELETE
 		if inputTextPosition < utf8.len(inputText) then
 			inputText = utf8.sub(inputText, 1, inputTextPosition) .. utf8.sub(inputText, inputTextPosition+2)
 		end
 		cursorBlinkTimer = 0
-		init()
+		applyFilter()
 	elseif key == 277 then -- INSERT
 		inputTextInsertActive = not inputTextInsertActive
 	elseif key == 276 then -- LEFT
@@ -1884,6 +1908,37 @@ function loadAllWidgetData()
 	end
 end
 
+-- Efficiently filters options without rebuilding the entire options table
+function applyFilter()
+	if inputText and inputText ~= '' and inputMode == '' then
+		local filteredOptions = {}
+		for i, option in pairs(unfilteredOptions) do
+			if option.name and option.name ~= '' and option.type and option.type ~= 'label' then
+				local name = string.gsub(option.name, widgetOptionColor, "")
+				name = string.gsub(name, "  ", " ")
+				if string.find(string.lower(name), string.lower(inputText), nil, true) then
+					filteredOptions[#filteredOptions+1] = option
+				elseif option.description and option.description ~= '' and string.find(string.lower(option.description), string.lower(inputText), nil, true) then
+					filteredOptions[#filteredOptions+1] = option
+				elseif string.find(string.lower(option.id), string.lower(inputText), nil, true) then
+					filteredOptions[#filteredOptions+1] = option
+				end
+			end
+		end
+		options = filteredOptions
+		startColumn = 1
+	else
+		-- No filter, use the cached unfiltered options
+		options = unfilteredOptions
+	end
+
+	-- Rebuild window display list
+	if windowList then
+		gl.DeleteList(windowList)
+	end
+	windowList = gl.CreateList(DrawWindow)
+end
+
 function init()
 	presets = {
 		lowest = {
@@ -1940,7 +1995,6 @@ function init()
 			distortioneffects = true,
 		 	snow = true,
 		 	particles = 20000,
-		 	guishader = guishaderIntensity,
 			decalsgl4 = 1,
 		 	decals = 2,
 			shadowslider = 4,
@@ -1961,7 +2015,6 @@ function init()
 			distortioneffects = true,
 			snow = true,
 			particles = 30000,
-			guishader = guishaderIntensity,
 			decalsgl4 = 1,
 			decals = 3,
 			shadowslider = 5,
@@ -1982,7 +2035,6 @@ function init()
 			distortioneffects = true,
 			snow = true,
 			particles = 40000,
-			guishader = guishaderIntensity,
 			decalsgl4 = 1,
 			decals = 4,
 			shadowslider = 6,
@@ -2227,9 +2279,9 @@ function init()
 		{ id = "vsync", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.vsync'),  type = "select", options = { Spring.I18N('ui.settings.option.select_off'), Spring.I18N('ui.settings.option.select_enabled'), Spring.I18N('ui.settings.option.select_adaptive')}, value = 2, description = Spring.I18N('ui.settings.option.vsync_descr'),
 		  onload = function(i)
 			  local vsync = Spring.GetConfigInt("VSyncGame", -1)
-			  if vsync == 1 then
+			  if vsync > 0 then
 			  	options[i].value = 2
-			  elseif vsync == -1 then
+			  elseif vsync < 0 then
 			  	options[i].value = 3
 			  else
 				options[i].value = 1
@@ -2238,14 +2290,24 @@ function init()
 		  onchange = function(i, value)
 			  local vsync = 0
 			  if value == 2 then
-				  vsync = 1
+				  vsync = Spring.GetConfigInt("VSyncFraction", 1)
 			  elseif value == 3 then
-				  vsync = -1
+				  vsync = -Spring.GetConfigInt("VSyncFraction", 1)
 			  end
 			  Spring.SetConfigInt("VSync", vsync)
 			  Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
 		  end,
 		},
+		{ id = "vsync_fraction", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.vsync_fraction'), min = 1, max = 4, step = 1, type = "slider", value = Spring.GetConfigInt("VSyncFraction", 1), description = Spring.I18N('ui.settings.option.vsync_fraction_descr'),
+		  onchange = function(i, value)
+			Spring.SetConfigInt("VSyncFraction", value)
+			local vsync = Spring.GetConfigInt("VSyncGame", -1)
+			if vsync ~= 0 then
+				Spring.SetConfigInt("VSync", vsync*value)
+			end
+		  end,
+		},
+
 		{ id = "limitoffscreenfps", group = "gfx", category = types.advanced, widget = "Limit idle FPS", name = Spring.I18N('ui.settings.option.limitoffscreenfps'), type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = Spring.I18N('ui.settings.option.limitoffscreenfps_descr') },
 		{ id = "limitidlefps", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.limitidlefps'), type = "bool", value = (Spring.GetConfigInt("LimitIdleFps", 0) == 1), description = Spring.I18N('ui.settings.option.limitidlefps_descr'),
 		  onchange = function(i, value)
@@ -2275,6 +2337,12 @@ function init()
 				  Spring.SetConfigInt("MSAA", 1)
 				  Spring.SetConfigInt("MSAALevel", tonumber(string.sub(options[getOptionByID('msaa')].options[value], 2)))
 			  end
+		  end,
+		},
+
+		{ id = "supersampling", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.supersampling'), type = "bool", restart = false, value = (Spring.GetConfigFloat("MinSampleShadingRate", 0.0) == 1.0), description = Spring.I18N('ui.settings.option.supersampling_descr'),
+		  onchange = function(i, value)
+			Spring.SetConfigFloat("MinSampleShadingRate", (value and 1.0 or 0.0))
 		  end,
 		},
 
@@ -2487,7 +2555,7 @@ function init()
 		{ id = "label_gfx_environment", group = "gfx", name = Spring.I18N('ui.settings.option.label_environment'), category = types.basic },
 		{ id = "label_gfx_environment_spacer", group = "gfx", category = types.basic },
 
-		{ id = "featuredrawdist", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.featuredrawdist'), type = "slider", min = 2500, max = 15000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = Spring.I18N('ui.settings.option.featuredrawdist_descr'),
+		{ id = "featuredrawdist", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.featuredrawdist'), type = "slider", min = 2500, max = 40000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = Spring.I18N('ui.settings.option.featuredrawdist_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("FeatureFadeDistance", math.floor(value * 0.8))
 			  Spring.SetConfigInt("FeatureDrawDistance", value)
@@ -2690,11 +2758,11 @@ function init()
 			  Spring.SetConfigInt("snd_volgeneral", value)
 		  end,
 		},
-		{ id = "sndvolbattle", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolbattle'), type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volbattle", 1) or 100),
+		{ id = "sndvolbattle", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolbattle'), type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volbattle_options", 100) or 100),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("snd_volbattle", value)
+			  Spring.SetConfigInt("snd_volbattle_options", value)
 		  end,
 		},
 		{ id = "sndvolui", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolui'), type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volui", 1) or 100),
@@ -2760,6 +2828,14 @@ function init()
 		  end,
 		},
 
+		{ id = "sndzoomvolume", group = "sound", category = types.advanced, name = Spring.I18N('ui.settings.option.sndzoomvolume'), type = "slider", min = 0, max = 3, step = 0.01, value = tonumber(Spring.GetConfigFloat("snd_zoomVolume", 1.00) or 1.00), description = Spring.I18N('ui.settings.option.sndzoomvolume_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigFloat("snd_zoomVolume", value)
+		  end,
+		},
+
 		{ id = "muteoffscreen", group = "sound", category = types.advanced, name = Spring.I18N('ui.settings.option.muteoffscreen'), type = "bool", value = (Spring.GetConfigInt("muteOffscreen", 0) == 1), description = Spring.I18N('ui.settings.option.muteoffscreen_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("muteOffscreen", (value and 1 or 0))
@@ -2788,6 +2864,24 @@ function init()
 				end
 			end
 		},
+		{ id = "soundtrackRaptors", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackraptors'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackRaptors', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackraptors_descr'),
+		onchange = function(i, value)
+			Spring.SetConfigInt('UseSoundtrackRaptors', value and 1 or 0)
+			if WG['music'] and WG['music'].RefreshTrackList then
+				WG['music'].RefreshTrackList()
+				init()
+			end
+		end
+		},
+		{ id = "soundtrackScavengers", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackscavengers'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackScavengers', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackscavengers_descr'),
+		onchange = function(i, value)
+			Spring.SetConfigInt('UseSoundtrackScavengers', value and 1 or 0)
+			if WG['music'] and WG['music'].RefreshTrackList then
+				WG['music'].RefreshTrackList()
+				init()
+			end
+		end
+		},
 		{ id = "soundtrackAprilFools", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackaprilfools'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackaprilfools_descr'),
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackAprilFools', value and 1 or 0)
@@ -2806,13 +2900,41 @@ function init()
 			end
 		end
 		},
-		{ id = "soundtrackSilenceTimer", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtracksilence'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1, description = Spring.I18N('ui.settings.option.soundtracksilence_descr'),
+		{ id = "soundtrackHalloween", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackhalloween'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackHalloween', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackhalloween_descr'),
 			onchange = function(i, value)
-				Spring.SetConfigInt('UseSoundtrackSilenceTimer', value and 1 or 0)
-				if WG['music'] and WG['music'].RefreshSettings then
-					WG['music'].RefreshSettings()
+				Spring.SetConfigInt('UseSoundtrackHalloween', value and 1 or 0)
+				if WG['music'] and WG['music'].RefreshTrackList then
+					WG['music'].RefreshTrackList()
+					init()
 				end
 			end
+		},
+		{ id = "soundtrackHalloweenPostEvent", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackhalloweenpostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackHalloweenPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackhalloweenpostevent_descr'),
+		onchange = function(i, value)
+			Spring.SetConfigInt('UseSoundtrackHalloweenPostEvent', value and 1 or 0)
+			if WG['music'] and WG['music'].RefreshTrackList then
+				WG['music'].RefreshTrackList()
+				init()
+			end
+		end
+		},
+		{ id = "soundtrackXmas", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackxmas'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackXmas', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackxmas_descr'),
+			onchange = function(i, value)
+				Spring.SetConfigInt('UseSoundtrackXmas', value and 1 or 0)
+				if WG['music'] and WG['music'].RefreshTrackList then
+					WG['music'].RefreshTrackList()
+					init()
+				end
+			end
+		},
+		{ id = "soundtrackXmasPostEvent", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackxmaspostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackXmasPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackxmaspostevent_descr'),
+		onchange = function(i, value)
+			Spring.SetConfigInt('UseSoundtrackXmasPostEvent', value and 1 or 0)
+			if WG['music'] and WG['music'].RefreshTrackList then
+				WG['music'].RefreshTrackList()
+				init()
+			end
+		end
 		},
 		{ id = "soundtrackInterruption", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackinterruption'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackinterruption_descr'),
 			onchange = function(i, value)
@@ -2831,11 +2953,11 @@ function init()
 			end
 		},
 
-		{ id = "loadscreen_music", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.loadscreen_music'), type = "bool", value = (Spring.GetConfigInt("music_loadscreen", 1) == 1), description = Spring.I18N('ui.settings.option.loadscreen_music_descr'),
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("music_loadscreen", (value and 1 or 0))
-		  end,
-		},
+		--{ id = "loadscreen_music", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.loadscreen_music'), type = "bool", value = (Spring.GetConfigInt("music_loadscreen", 1) == 1), description = Spring.I18N('ui.settings.option.loadscreen_music_descr'),
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigInt("music_loadscreen", (value and 1 or 0))
+		--  end,
+		--},
 
 		{ id = "notifications_set", group = "notif", category = types.basic, name = Spring.I18N('ui.settings.option.notifications_set'), type = "select", options = {}, value = 1,
 		  onload = function(i)
@@ -2850,14 +2972,14 @@ function init()
 		  end,
 		},
 
-		{ id = "notifications_tutorial", group = "notif", name = Spring.I18N('ui.settings.option.notifications_tutorial'), category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getTutorial()), description = Spring.I18N('ui.settings.option.notifications_tutorial_descr'),
-		  onload = function(i)
-			  loadWidgetData("Notifications", "notifications_tutorial", { 'tutorialMode' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Notifications', 'notifications', 'setTutorial', { 'tutorialMode' }, value)
-		  end,
-		},
+		--{ id = "notifications_tutorial", group = "notif", name = Spring.I18N('ui.settings.option.notifications_tutorial'), category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getTutorial()), description = Spring.I18N('ui.settings.option.notifications_tutorial_descr'),
+		--  onload = function(i)
+		--	  loadWidgetData("Notifications", "notifications_tutorial", { 'tutorialMode' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Notifications', 'notifications', 'setTutorial', { 'tutorialMode' }, value)
+		--  end,
+		--},
 		{ id = "notifications_messages", group = "notif", name = Spring.I18N('ui.settings.option.notifications_messages'), category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getMessages()), description = Spring.I18N('ui.settings.option.notifications_messages_descr'),
 		  onload = function(i)
 			  loadWidgetData("Notifications", "notifications_messages", { 'displayMessages' })
@@ -2874,21 +2996,37 @@ function init()
 			  saveOptionValue('Notifications', 'notifications', 'setSpoken', { 'spoken' }, value)
 		  end,
 		},
-		{ id = "notifications_volume", group = "notif", category = types.basic, name = Spring.I18N('ui.settings.option.notifications_volume'), type = "slider", min = 0.05, max = 1, step = 0.05, value = 1, description = Spring.I18N('ui.settings.option.notifications_volume_descr'),
+		{ id = "notifications_volume", group = "notif", category = types.basic, name = Spring.I18N('ui.settings.option.notifications_volume'), type = "slider", min = 0.05, max = 1, step = 0.05, value = 0.7, description = Spring.I18N('ui.settings.option.notifications_volume_descr'),
 		  onload = function(i)
-			  loadWidgetData("Notifications", "notifications_volume", { 'volume' })
+			  loadWidgetData("Notifications", "notifications_volume", { 'globalVolume' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Notifications', 'notifications', 'setVolume', { 'volume' }, value)
+			  saveOptionValue('Notifications', 'notifications', 'setVolume', { 'globalVolume' }, value)
 		  end,
 		},
-		{ id = "notifications_playtrackedplayernotifs", category = types.basic, group = "notif", name = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs'), type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getPlayTrackedPlayerNotifs()), description = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs_descr'),
-		  onload = function(i)
-			  loadWidgetData("Notifications", "notifications_playtrackedplayernotifs", { 'playTrackedPlayerNotifs' })
-		  end,
+		-- FixMe, it doesn't work
+		--{ id = "notifications_playtrackedplayernotifs", category = types.advanced, group = "notif", name = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs'), type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getPlayTrackedPlayerNotifs()), description = Spring.I18N('ui.settings.option.notifications_playtrackedplayernotifs_descr'),
+		--  onload = function(i)
+		--	  loadWidgetData("Notifications", "notifications_playtrackedplayernotifs", { 'playTrackedPlayerNotifs' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Notifications', 'notifications', 'setPlayTrackedPlayerNotifs', { 'playTrackedPlayerNotifs' }, value)
+		--  end,
+		--},
+		{ id = "notifications_substitute", group = "notif", category = types.advanced, name = Spring.I18N('ui.settings.option.notifications_substitute'), type = "bool", value = Spring.GetConfigInt('NotificationsSubstitute', 0) == 1, description = Spring.I18N('ui.settings.option.notifications_substitute_descr'),
 		  onchange = function(i, value)
-			  saveOptionValue('Notifications', 'notifications', 'setPlayTrackedPlayerNotifs', { 'playTrackedPlayerNotifs' }, value)
-		  end,
+				Spring.SetConfigInt('NotificationsSubstitute', value and 1 or 0)
+				widgetHandler:DisableWidget("Notifications")
+				widgetHandler:EnableWidget("Notifications")
+				init()
+			end
+		},
+		{ id = "notifications_refresh", group = "notif", category = types.advanced, name = Spring.I18N('ui.settings.option.notifications_refresh'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.notifications_refresh_descr'),
+		  onchange = function(i, value)
+				widgetHandler:DisableWidget("Notifications")
+				widgetHandler:EnableWidget("Notifications")
+				init()
+			end
 		},
 
 
@@ -3016,6 +3154,20 @@ function init()
 		  end,
 		},
 
+		{ id = "gridmenu_ctrlkeymodifier", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_ctrlkeymodifier'), type = "slider", min = -20, max = 100, step = 1, value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getCtrlKeyModifier ~= nil and WG['gridmenu'].getCtrlKeyModifier()), description = Spring.I18N('ui.settings.option.gridmenu_ctrlkeymodifier_descr'),
+		  onload = function()
+		  end,
+		  onchange = function(_, value)
+			  saveOptionValue('Grid menu', 'gridmenu', 'setCtrlKeyModifier', { 'ctrlKeyModifier' }, value)
+		  end,
+		},
+		{ id = "gridmenu_shiftkeymodifier", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_shiftkeymodifier'), type = "slider", min = -20, max = 100, step = 1, value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getShiftKeyModifier ~= nil and WG['gridmenu'].getShiftKeyModifier()), description = Spring.I18N('ui.settings.option.gridmenu_shiftkeymodifier_descr'),
+		  onload = function()
+		  end,
+		  onchange = function(_, value)
+			  saveOptionValue('Grid menu', 'gridmenu', 'setShiftKeyModifier', { 'ShiftKeyModifier' }, value)
+		  end,
+		},
 
 		{ id = "label_ui_cursor", group = "control", name = Spring.I18N('ui.settings.option.label_cursor'), category = types.basic },
 		{ id = "label_ui_cursor_spacer", group = "control", category = types.basic },
@@ -3127,7 +3279,7 @@ function init()
 			  init()
 		  end,
 		},
-		{ id = "springcamheightmode", group = "control", category = types.advanced, name = widgetOptionColor .. "     " .. Spring.I18N('ui.settings.option.springcamheightmode'), type = "select", options = { Spring.I18N('ui.settings.option.select_constant'), Spring.I18N('ui.settings.option.select_terrain'), Spring.I18N('ui.settings.option.select_smooth')}, value = Spring.GetConfigInt("CamSpringTrackMapHeightMode", 0) + 1, description = Spring.I18N('ui.settings.option.springcamheightmode_descr'),
+		{ id = "springcamheightmode", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.springcamheightmode'), type = "select", options = { Spring.I18N('ui.settings.option.select_constant'), Spring.I18N('ui.settings.option.select_terrain'), Spring.I18N('ui.settings.option.select_smooth')}, value = Spring.GetConfigInt("CamSpringTrackMapHeightMode", 0) + 1, description = Spring.I18N('ui.settings.option.springcamheightmode_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("CamSpringTrackMapHeightMode", value - 1)
 		  end,
@@ -3238,7 +3390,6 @@ function init()
 		{ id = "scrolltoggleoverview", group = "control", category = types.advanced, widget = "Scrolldown Toggleoverview", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.scrolltoggleoverview'), type = "bool", value = GetWidgetToggleValue("Scrolldown Toggleoverview"), description = Spring.I18N('ui.settings.option.scrolltoggleoverview_descr') },
 
 		{ id = "camoverviewrestore", group = "control", category = types.advanced, widget = "Overview Camera Keep Position", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.camoverviewrestore'), type = "bool", value = GetWidgetToggleValue("Overview Camera Keep Position"), description = Spring.I18N('ui.settings.option.camoverviewrestore_descr') },
-
 
 		{ id = "lockcamera_transitiontime", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.lockcamera')..widgetOptionColor .. "   " ..Spring.I18N('ui.settings.option.lockcamera_transitiontime'), type = "slider", min = 0.5, max = 1.7, step = 0.01, value = (WG.lockcamera and WG.lockcamera.GetTransitionTime ~= nil and WG.lockcamera.GetTransitionTime()), description = Spring.I18N('ui.settings.option.lockcamera_transitiontime_descr'),
 		  onload = function(i)
@@ -3356,29 +3507,6 @@ function init()
 		  end,
 		},
 
-		--{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guishader'), type = "slider", min = 0, max = 0.005, steps = {0, 1, 2, 3, 4, 5, 6}, value = guishaderIntensity, description = '',
-		--  onload = function(i)
-		--	  loadWidgetData("GUI Shader", "guishader", { 'blurIntensity' })
-		--	  if type(options[getOptionByID('guishader')].value) ~= 'number' then
-		--		  options[getOptionByID('guishader')].value = 0
-		--	  end
-		--  end,
-		--  onchange = function(i, value)
-		--	  if type(value) == 'number' then
-		--		  guishaderIntensity = value
-		--		  saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', { 'blurIntensity' }, value)
-		--	  end
-		--	  if value <= 0.000001 then
-		--		  if GetWidgetToggleValue('GUI Shader') then
-		--			  widgetHandler:DisableWidget('GUI Shader')
-		--		  end
-		--	  else
-		--		  if not GetWidgetToggleValue('GUI Shader') then
-		--			  widgetHandler:EnableWidget('GUI Shader')
-		--		  end
-		--	  end
-		--  end,
-		--},
 		{ id = "guishader", group = "ui", category = types.basic, widget = "GUI Shader", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guishader'), type = "bool", value = GetWidgetToggleValue("GUI Shader") },
 
 		{ id = "rendertotexture", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.rendertotexture'), type = "bool", value = Spring.GetConfigInt("ui_rendertotexture", 1) == 1, description = Spring.I18N('ui.settings.option.rendertotexture_descr'),
@@ -3415,11 +3543,25 @@ function init()
 			  Spring.SetConfigInt("MinimapMinimize", (value and '1' or '0'))
 		  end,
 		},
-		{ id = "minimapcanflip", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapcanflip'), type = "bool", value = Spring.GetConfigInt("MiniMapCanFlip", 0) == 1, description = Spring.I18N('ui.settings.option.minimapcanflip_descr'),
+		{ id = "minimaprotation", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimaprotation'), type = "select", options = { Spring.I18N('ui.settings.option.minimaprotation_none'), Spring.I18N('ui.settings.option.minimaprotation_autoflip'), Spring.I18N('ui.settings.option.minimaprotation_autorotate')}, description = Spring.I18N('ui.settings.option.minimaprotation_descr'),
+		  onload = function(i)
+			  loadWidgetData("Minimap Rotation Manager", "minimaprotation", { 'mode' })
+			  if options[i].value == nil then -- first load to migrate from old behavior smoothly, might wanna remove it later
+				  options[i].value = Spring.GetConfigInt("MiniMapCanFlip", 0) + 1
+			  end
+		  end,
 		  onchange = function(i, value)
-				 Spring.SetConfigInt("MiniMapCanFlip", value and 1 or 0)
+			  if WG['minimaprotationmanager'] ~= nil and WG['minimaprotationmanager'].setMode ~= nil then
+				  saveOptionValue("Minimap Rotation Manager", "minimaprotationmanager", "setMode", { 'mode' }, value)
+			  else
+				  widgetHandler:EnableWidget("Minimap Rotation Manager") -- Widget has auto sync
+			  end
 		  end,
 		},
+
+
+		{ id = "pip", group = "ui", category = types.advanced, widget = "Picture-in-Picture", name = Spring.I18N('ui.settings.option.pip'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture"), description = Spring.I18N('ui.settings.option.pip_descr') },
+		{ id = "pip2", group = "ui", category = types.advanced, widget = "Picture-in-Picture 2", name = Spring.I18N('ui.settings.option.pip2'), type = "bool", value = GetWidgetToggleValue("Picture-in-Picture 2"), description = Spring.I18N('ui.settings.option.pip2_descr') },
 
 		{ id = "buildmenu_bottom", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.buildmenu') ..widgetOptionColor.. "  " .. Spring.I18N('ui.settings.option.buildmenu_bottom'), type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getBottomPosition ~= nil and WG['buildmenu'].getBottomPosition()), description = Spring.I18N('ui.settings.option.buildmenu_bottom_descr'),
 		  onload = function(i)
@@ -3541,12 +3683,28 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetScale', { 'customScale' }, value)
 		  end,
 		},
+		{ id = "advplayerlist_showallyid", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_showallyid'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.advplayerlist_showallyid_descr'),
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "advplayerlist_showallyid", { 'm_active_Table', 'allyid' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'allyid' }, value, { 'allyid', value })
+		  end,
+		},
 		{ id = "advplayerlist_showid", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_showid'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.advplayerlist_showid_descr'),
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_showid", { 'm_active_Table', 'id' })
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'id' }, value, { 'id', value })
+		  end,
+		},
+		{ id = "advplayerlist_showplayerid", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_showplayerid'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.advplayerlist_showplayerid_descr'),
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "advplayerlist_showplayerid", { 'm_active_Table', 'playerid' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'playerid' }, value, { 'playerid', value })
 		  end,
 		},
 		{ id = "advplayerlist_rank", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.advplayerlist_rank'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.advplayerlist_rank_descr'),
@@ -3745,31 +3903,6 @@ function init()
 
 		{ id = "converterusage", group = "ui", category = types.advanced, widget = "Converter Usage", name = Spring.I18N('ui.settings.option.converterusage'), type = "bool", value = GetWidgetToggleValue("Converter Usage"), description = Spring.I18N('ui.settings.option.converterusage_descr') },
 
-		{ id = "seeprices", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.seeprices'), type = "bool", value = (WG['unit_market'] ~= nil and WG['unit_market'].getSeePrices() or 0), description = Spring.I18N('ui.settings.option.seeprices_descr'),
-			onload = function(i)
-				loadWidgetData("Unit Market", "seeprices", { 'seePrices' })
-			end,
-			onchange = function(i, value)
-				saveOptionValue('Unit Market', 'unit_market', 'setSeePrices', { 'seePrices' }, value)
-			end,
-		},
-		{ id = "showaisaleoffers", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.showaisaleoffers'), type = "bool", value = (WG['unit_market'] ~= nil and WG['unit_market'].getShowAIsaleOffers() or 0), description = Spring.I18N('ui.settings.option.showaisaleoffers_descr'),
-			onload = function(i)
-				loadWidgetData("Unit Market", "showaisaleoffers", { 'showAIsaleOffers' })
-			end,
-			onchange = function(i, value)
-				saveOptionValue('Unit Market', 'unit_market', 'setShowAIsaleOffers', { 'showAIsaleOffers' }, value)
-			end,
-		},
-		{ id = "buywithoutholdignalt", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.buywithoutholdignalt'), type = "bool", value = (WG['unit_market'] ~= nil and WG['unit_market'].getBuyWithoutHoldingAlt() or 0), description = Spring.I18N('ui.settings.option.buywithoutholdignalt_descr'),
-			onload = function(i)
-				loadWidgetData("Unit Market", "buywithoutholdignalt", { 'buyWithoutHoldingAlt' })
-			end,
-			onchange = function(i, value)
-				saveOptionValue('Unit Market', 'unit_market', 'setBuyWithoutHoldingAlt', { 'buyWithoutHoldingAlt' }, value)
-			end,
-		},
-
 		{ id = "widgetselector", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.widgetselector'), type = "bool", value = Spring.GetConfigInt("widgetselector", 0) == 1, description = Spring.I18N('ui.settings.option.widgetselector_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("widgetselector", (value and 1 or 0))
@@ -3885,7 +4018,7 @@ function init()
 
 		-- { id = "highlightunit", group = "ui", category = types.advanced, widget = "Highlight Unit GL4", name = Spring.I18N('ui.settings.option.highlightunit'), type = "bool", value = GetWidgetToggleValue("Highlight Unit GL4"), description = Spring.I18N('ui.settings.option.highlightunit_descr') },
 
-				{ id = "highlightunit", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.highlightunit'),  type = "bool", value = true, description = Spring.I18N('ui.settings.option.highlightunit_descr'),
+		{ id = "highlightunit", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.highlightunit'),  type = "bool", value = true, description = Spring.I18N('ui.settings.option.highlightunit_descr'),
 		  onload = function(i)
 			  loadWidgetData("Selected Units GL4", "highlightunit", { 'mouseoverHighlight' })
 		  end,
@@ -4130,17 +4263,23 @@ function init()
 
 		{ id = "givenunits", group = "ui", category = types.advanced, widget = "Given Units", name = Spring.I18N('ui.settings.option.givenunits'), type = "bool", value = GetWidgetToggleValue("Given Units"), description = Spring.I18N('ui.settings.option.givenunits_descr') },
 
-		{ id = "reclaimfieldhighlight", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = Spring.I18N('ui.settings.option.reclaimfieldhighlight'), type = "select", options = { Spring.I18N('ui.settings.option.reclaimfieldhighlight_always'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_resource'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_reclaimer'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_resbot'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_order'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_disabled') }, value = 3, description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_descr'),
+		{ id = "reclaimfieldhighlight", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = Spring.I18N('ui.settings.option.reclaimfieldhighlight'), type = "bool", description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_descr') },
+
+		{ id = "reclaimfieldhighlight_metal", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.reclaimfieldhighlight_metal'), type = "select", options = reclaimFieldHighlightOptions, value = 3, description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_metal_descr'),
 			onload = function(i)
-				loadWidgetData("Reclaim Field Highlight", "reclaimfieldhighlight", { 'showOption' })
+				loadWidgetData("Reclaim Field Highlight", "reclaimfieldhighlight_metal", { 'showOption' })
 			end,
 			onchange = function(i, value)
-				if widgetHandler.orderList["Reclaim Field Highlight"] and widgetHandler.orderList["Reclaim Field Highlight"] >= 0.5 then
-					widgetHandler:EnableWidget("Reclaim Field Highlight")
-					saveOptionValue('Reclaim Field Highlight', 'reclaimfieldhighlight', 'setShowOption', { 'showOption' }, value)
-				else
-					saveOptionValue('Reclaim Field Highlight', 'reclaimfieldhighlight', 'setShowOption', { 'showOption' }, value)
-				end
+				saveOptionValue('Reclaim Field Highlight', 'reclaimfieldhighlight', 'setShowOption', { 'showOption' }, value)
+			end,
+		},
+
+		{ id = "reclaimfieldhighlight_energy", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.reclaimfieldhighlight_energy'), type = "select", options = reclaimFieldHighlightOptions, value = 3, description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_energy_descr'),
+			onload = function(i)
+				loadWidgetData("Reclaim Field Highlight", "reclaimfieldhighlight_energy", { 'showEnergyOption' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Reclaim Field Highlight', 'reclaimfieldhighlight', 'setShowEnergyOption', { 'showEnergyOption' }, value)
 			end,
 		},
 
@@ -4245,7 +4384,7 @@ function init()
 			  saveOptionValue('Attack Range GL4', 'attackrange', 'setCursorUnitRange', { 'cursor_unit_range' }, value)
 		  end,
 		},
-		{ id = "attackrange_numrangesmult", group = "game", category = types.dev, name = Spring.I18N('ui.settings.option.attackrange_numrangesmult'), type = "slider", min = 0.3, max = 1, step = 0.1, value = (WG['attackrange'] ~= nil and WG['attackrange'].getOpacity ~= nil and WG['attackrange'].getNumRangesMult()) or 1, description = Spring.I18N('ui.settings.option.attackrange_numrangesmult_descr'),
+		{ id = "attackrange_numrangesmult", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.attackrange_numrangesmult'), type = "slider", min = 0.3, max = 1, step = 0.1, value = (WG['attackrange'] ~= nil and WG['attackrange'].getOpacity ~= nil and WG['attackrange'].getNumRangesMult()) or 1, description = Spring.I18N('ui.settings.option.attackrange_numrangesmult_descr'),
 		  onload = function(i)
 			  loadWidgetData("Attack Range GL4", "attackrange_numrangesmult", { 'selectionDisableThresholdMult' })
 		  end,
@@ -4536,7 +4675,27 @@ function init()
 			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeBuilders', { 'includeBuilders' }, value)
 		  end,
 		},
-
+		{ id = "smartselect_includeantinuke", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.smartselect_includeantinuke'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.smartselect_includeantinuke_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeAntinuke', { 'includeAntinuke' }, value)
+		  end,
+		},
+		{ id = "smartselect_includeradar", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.smartselect_includeradar'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.smartselect_includeradar_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeRadar', { 'includeRadar' }, value)
+		  end,
+		},
+		{ id = "smartselect_includejammer", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.smartselect_includejammer'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.smartselect_includejammer_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeJammer', { 'includeJammer' }, value)
+		  end,
+		},
 
 		{ id = "prioconturrets", group = "game", category = types.basic, widget = "Priority Construction Turrets", name = Spring.I18N('ui.settings.option.prioconturrets'), type = "bool", value = GetWidgetToggleValue("Priority Construction Turrets"), description = Spring.I18N('ui.settings.option.prioconturrets_descr') },
 
@@ -4800,24 +4959,20 @@ function init()
 		{ id = "label_dev_debug", group = "dev", name = Spring.I18N('ui.settings.option.label_debug'), category = types.dev },
 		{ id = "label_dev_debug_spacer", group = "dev", category = types.dev },
 
-		{ id = "profiler", group = "dev", category = types.dev, widget = "Widget Profiler", name = Spring.I18N('ui.settings.option.profiler'), type = "bool", value = GetWidgetToggleValue("Widget Profiler"), description = "" },
-		{ id = "profiler_min_time", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.profiler_min_time'), type = "slider", min = 0, max = 0.05, step = 0.001, value = Spring.GetConfigFloat("profiler_min_time", 0.05), description = 'Affects both Widget Profiler and Gadget Profiler',
-		onload = function(i)
-		end,
-		onchange = function(i, value)
-			Spring.SetConfigFloat("profiler_min_time", value)
-		end,
+		{ id = "profiler_widget", group = "dev", category = types.dev, widget = "Widget Profiler", name = Spring.I18N('ui.settings.option.profiler') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.profiler_widget'), type = "bool", value = GetWidgetToggleValue("Widget Profiler") },
+		{ id = "profiler_gadget", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.profiler_gadget'), type = "bool", value = false,
+		  onchange = function(i, value)
+			  Spring.SendCommands("luarules profile")
+		  end,
 		},
-		{ id = "profiler_min_memory", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.profiler_min_memory'), type = "slider", min = 0, max = 10, step = 1, value = Spring.GetConfigFloat("profiler_min_memory", 5), description = 'Affects both Widget Profiler and Gadget Profiler',
-		onload = function(i)
-		end,
-		onchange = function(i, value)
-		  Spring.SetConfigFloat("profiler_min_memory", value)
-		end,
-		},
-		{ id = "profiler_sort_by_load", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.profiler_sort_by_load'), type = "bool", value = Spring.GetConfigInt("profiler_sort_by_load", 1), description = 'Affects both Widget Profiler and Gadget Profiler',
+		{ id = "profiler_sort_by_load", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.profiler_sort_by_load'), type = "bool", value = Spring.GetConfigInt("profiler_sort_by_load", 1), description = Spring.I18N('ui.settings.option.profiler_sort_by_load_descr'),
 		onchange = function(i, value)
 			Spring.SetConfigInt("profiler_sort_by_load", (value and '1' or '0'))
+		end,
+	  },
+	  { id = "profiler_averagetime", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.profiler_averagetime'), type = "slider", min = 0.1, max = 10, step = 0.1, value = Spring.GetConfigFloat("profiler_averagetime", 2), description = Spring.I18N('ui.settings.option.profiler_averagetime_descr'),
+		onchange = function(i, value)
+			Spring.SetConfigFloat("profiler_averagetime", value)
 		end,
 	  },
 		{ id = "framegrapher", group = "dev", category = types.dev, widget = "Frame Grapher", name = Spring.I18N('ui.settings.option.framegrapher'), type = "bool", value = GetWidgetToggleValue("Frame Grapher"), description = "" },
@@ -5908,6 +6063,10 @@ function init()
 		options[getOptionByID('gridmenu_alwaysreturn')] = nil
 		options[getOptionByID('gridmenu_autoselectfirst')] = nil
 		options[getOptionByID('gridmenu_labbuildmode')] = nil
+		options[getOptionByID('gridmenu_ctrlclickmodifier')] = nil
+		options[getOptionByID('gridmenu_shiftclickmodifier')] = nil
+		options[getOptionByID('gridmenu_ctrlkeymodifier')] = nil
+		options[getOptionByID('gridmenu_shiftkeymodifier')] = nil
 	end
 
 	if spectatorHUDConfigOptions[options[getOptionByID('spectator_hud_config')].value] ~= Spring.I18N('ui.settings.option.spectator_hud_config_custom') then
@@ -5925,15 +6084,25 @@ function init()
 		options[getOptionByID('spectator_hud_metric_damageDealt')] = nil
 	end
 
-	if Spring.GetConfigInt('UseSoundtrackNew', 1) == 1 then
-		if (not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 7)) then
-			options[getOptionByID('soundtrackAprilFools')] = nil
-		else
-			options[getOptionByID('soundtrackAprilFoolsPostEvent')] = nil
-		end
-	else
+	if not Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"] then
 		options[getOptionByID('soundtrackAprilFools')] = nil
+		Spring.SetConfigInt("UseSoundtrackAprilFools", 1)
+	else
 		options[getOptionByID('soundtrackAprilFoolsPostEvent')] = nil
+	end
+
+	if not Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"] then
+		options[getOptionByID('soundtrackHalloween')] = nil
+		Spring.SetConfigInt("UseSoundtrackHalloween", 1)
+	else
+		options[getOptionByID('soundtrackHalloweenPostEvent')] = nil
+	end
+
+	if not Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] then
+		options[getOptionByID('soundtrackXmas')] = nil
+		Spring.SetConfigInt("UseSoundtrackXmas", 1)
+	else
+		options[getOptionByID('soundtrackXmasPostEvent')] = nil
 	end
 
 	-- hide English unit names toggle if using English
@@ -5976,8 +6145,9 @@ function init()
 
 	-- check if cus is disabled by auto disable cus widget (in case options widget has been reloaded)
 	if getOptionByID('sun_y') then
-		if select(2, gl.GetSun("pos")) < options[getOptionByID('sun_y')].min then
-			Spring.SetSunDirection(select(1, gl.GetSun("pos")), options[getOptionByID('sun_y')].min, select(3, gl.GetSun("pos")))
+		local sunX, sunY, sunZ = gl.GetSun("pos")
+		if sunY < options[getOptionByID('sun_y')].min then
+			Spring.SetSunDirection(sunX, options[getOptionByID('sun_y')].min, sunZ)
 		end
 	end
 
@@ -5999,7 +6169,7 @@ function init()
 		detectWater()
 
 		-- set vsync
-		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1))
+		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1))
 	end
 	if not waterDetected then
 		Spring.SendCommands("water 0")
@@ -6067,7 +6237,6 @@ function init()
 				widgetHandler:DisableWidget(options[id].widget)
 			end
 			options[id] = nil
-			options[getOptionByID('guishader')] = nil
 
 			id = getOptionByID('dof')
 			if id and GetWidgetToggleValue(options[id].widget) then
@@ -6115,6 +6284,13 @@ function init()
 	-- loads values via stored game config in luaui/configs
 	loadAllWidgetData()
 
+	-- remove widget-options that are unknown widgets
+	for i, option in pairs(options) do
+		if option.widget and not widgetHandler.knownWidgets[option.widget] then
+			options[i] = nil
+		end
+	end
+
 	-- while we have set config-ints, that isnt enough to have these settings applied ingame
 	if savedConfig and Spring.GetGameFrame() == 0 then
 		for k, v in pairs(savedConfig) do
@@ -6155,7 +6331,7 @@ function init()
 		for i, option in pairs(options) do
 			count = count + 1
 			newOptions[count] = option
-			if option.id == 'loadscreen_music' then
+			if option.id == 'soundtrackFades' then
 				count = count + 1
 				newOptions[count] = { id = "label_sound_music", group = "sound", name = Spring.I18N('ui.settings.option.label_playlist'), category = types.basic }
 				count = count + 1
@@ -6183,7 +6359,7 @@ function init()
 
 	-- add sound notification sets
 	if getOptionByID('notifications_set') then
-		local voiceset = Spring.GetConfigString("voiceset", 'en/allison')
+		local voiceset = Spring.GetConfigString("voiceset", 'en/cephis')
 		local currentVoiceSetOption
 		local sets = {}
 		local languageDirs = VFS.SubDirs('sounds/voice', '*')
@@ -6244,7 +6420,7 @@ function init()
 						count = count + 1
 						local color = widgetOptionColor
 						if v[4] and v[4] == 0 then color ='\255\100\100\100' end
-						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = color .. "   " .. Spring.I18N(v[3]), type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
+						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = color .. "   " .. Spring.I18N(v[3]), type = "bool", value = v[2], --description = v[3] and Spring.I18N(v[3]) or "",
 											  onchange = function(i, value)
 												  saveOptionValue('Notifications', 'notifications', 'setNotification' .. v[1], { 'notificationList' }, value)
 											  end,
@@ -6263,20 +6439,21 @@ function init()
 
 	-- add auto cloak toggles
 	local defaultUnitdefConfig = {	-- copy pasted defaults from the widget
-		[UnitDefNames["armdecom"] and UnitDefNames["armdecom"].id] = false,
-		[UnitDefNames["cordecom"] and UnitDefNames["cordecom"].id] = false,
-		[UnitDefNames["armferret"] and UnitDefNames["armferret"].id] = false,
-		[UnitDefNames["armamb"] and UnitDefNames["armamb"].id] = false,
-		[UnitDefNames["armpb"] and UnitDefNames["armpb"].id] = false,
-		[UnitDefNames["armsnipe"] and UnitDefNames["armsnipe"].id] = false,
-		[UnitDefNames["corsktl"] and UnitDefNames["corsktl"].id] = false,
-		[UnitDefNames["armgremlin"] and UnitDefNames["armgremlin"].id] = true,
-		[UnitDefNames["armamex"] and UnitDefNames["armamex"].id] = true,
-		[UnitDefNames["armshockwave"] and UnitDefNames["armshockwave"].id] = true,
-		[UnitDefNames["armckfus"] and UnitDefNames["armckfus"].id] = true,
-		[UnitDefNames["armspy"] and UnitDefNames["armspy"].id] = true,
-		[UnitDefNames["corspy"] and UnitDefNames["corspy"].id] = true,
-		[UnitDefNames["corphantom"] and UnitDefNames["corphantom"].id] = true,
+		[UnitDefNames["armdecom"] and UnitDefNames["armdecom"].id or -1] = false,
+		[UnitDefNames["cordecom"] and UnitDefNames["cordecom"].id or -1] = false,
+		[UnitDefNames["armferret"] and UnitDefNames["armferret"].id or -1] = false,
+		[UnitDefNames["armamb"] and UnitDefNames["armamb"].id or -1] = false,
+		[UnitDefNames["armpb"] and UnitDefNames["armpb"].id or -1] = false,
+		[UnitDefNames["armsnipe"] and UnitDefNames["armsnipe"].id or -1] = false,
+		[UnitDefNames["corsktl"] and UnitDefNames["corsktl"].id or -1] = false,
+		[UnitDefNames["armgremlin"] and UnitDefNames["armgremlin"].id or -1] = true,
+		[UnitDefNames["armamex"] and UnitDefNames["armamex"].id or -1] = true,
+		[UnitDefNames["armshockwave"] and UnitDefNames["armshockwave"].id or -1] = true,
+		[UnitDefNames["armckfus"] and UnitDefNames["armckfus"].id or -1] = true,
+		[UnitDefNames["armspy"] and UnitDefNames["armspy"].id or -1] = true,
+		[UnitDefNames["corspy"] and UnitDefNames["corspy"].id or -1] = true,
+		[UnitDefNames["corphantom"] and UnitDefNames["corphantom"].id or -1] = true,
+		[UnitDefNames["legaspy"] and UnitDefNames["legaspy"].id or -1] = true,
 	}
 	local unitdefConfig = {}
 	if WG['autocloak'] ~= nil then
@@ -6345,9 +6522,15 @@ function init()
 	if WG['smartselect'] == nil then
 		options[getOptionByID('smartselect_includebuildings')] = nil
 		options[getOptionByID('smartselect_includebuilders')] = nil
+		options[getOptionByID('smartselect_includeantinuke')] = nil
+		options[getOptionByID('smartselect_includeradar')] = nil
+		options[getOptionByID('smartselect_includejammer')] = nil
 	else
 		options[getOptionByID('smartselect_includebuildings')].value = WG['smartselect'].getIncludeBuildings()
 		options[getOptionByID('smartselect_includebuilders')].value = WG['smartselect'].getIncludeBuilders()
+		options[getOptionByID('smartselect_includeantinuke')].value = WG['smartselect'].getIncludeAntinuke()
+		options[getOptionByID('smartselect_includeradar')].value = WG['smartselect'].getIncludeRadar()
+		options[getOptionByID('smartselect_includejammer')].value = WG['smartselect'].getIncludeJammer()
 	end
 
 	if WG['snow'] ~= nil and WG['snow'].getSnowMap ~= nil then
@@ -6470,23 +6653,12 @@ function init()
 	end
 	options = processedOptions
 
+	-- Cache the unfiltered options for efficient filtering
+	unfilteredOptions = options
+
+	-- Apply current filter if any
 	if inputText and inputText ~= '' and inputMode == '' then
-		local filteredOptions = {}
-		for i, option in pairs(options) do
-			if option.name and option.name ~= '' and option.type and option.type ~= 'label' then
-				local name = string.gsub(option.name, widgetOptionColor, "")
-				name = string.gsub(name, "  ", " ")
-				if string.find(string.lower(name), string.lower(inputText), nil, true) then
-					filteredOptions[#filteredOptions+1] = option
-				elseif option.description and option.description ~= '' and string.find(string.lower(option.description), string.lower(inputText), nil, true) then
-					filteredOptions[#filteredOptions+1] = option
-				elseif string.find(string.lower(option.id), string.lower(inputText), nil, true) then
-					filteredOptions[#filteredOptions+1] = option
-				end
-			end
-		end
-		options = filteredOptions
-		startColumn = 1
+		applyFilter()
 	end
 
 	-- count num options in each group
@@ -6741,11 +6913,6 @@ function widget:Initialize()
 		-- 	Spring.SetConfigInt("snd_volmusic", 50)
 		-- end
 
-		-- enable advanced model shading
-		if Spring.GetConfigInt("AdvModelShading", 0) ~= 1 then
-			Spring.SetConfigInt("AdvModelShading", 1)
-			Spring.SendCommands("advmodelshading 1")
-		end
 		-- enable normal mapping
 		if Spring.GetConfigInt("NormalMapping", 0) ~= 1 then
 			Spring.SetConfigInt("NormalMapping", 1)
@@ -6850,6 +7017,14 @@ function widget:Initialize()
 	WG['options'].removeOption = function(name)
 		return WG['options'].removeOptions({ name })
 	end
+	WG['options'].applyOptionValue = function(option, value)
+		local optionID = getOptionByID(option)
+		if not optionID then
+			Spring.Echo("Options widget: applyOptionValue: option '" .. option .. "' not found")
+			return
+		end
+			applyOptionValue(optionID, tonumber(value))
+	end
 
 	widgetHandler.actionHandler:AddAction(self, "options", optionsCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "option", optionCmd, nil, 't')
@@ -6870,11 +7045,13 @@ function widget:Shutdown()
 		end
 	end
 	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('options')
+		WG['guishader'].RemoveDlist('options')
 		WG['guishader'].RemoveRect('optionsinput')
 		WG['guishader'].RemoveScreenRect('options_select')
 		WG['guishader'].RemoveScreenRect('options_select_options')
-		WG['guishader'].removeRenderDlist(selectOptionsList)
+		if selectOptionsList then
+			WG['guishader'].removeRenderDlist(selectOptionsList)
+		end
 	end
 	if selectOptionsList then
 		glDeleteList(selectOptionsList)
@@ -6919,7 +7096,6 @@ function widget:GetConfigData()
 		show = show,
 		waterDetected = waterDetected,
 		customPresets = customPresets,
-		guishaderIntensity = guishaderIntensity,
 		changesRequireRestart = changesRequireRestart,
 		requireRestartDefaults = requireRestartDefaults,
 
@@ -6957,9 +7133,6 @@ function widget:SetConfigData(data)
 	end
 	if data.cameraPanTransitionTime ~= nil then
 		cameraPanTransitionTime = data.cameraPanTransitionTime
-	end
-	if data.guishaderIntensity then
-		guishaderIntensity = data.guishaderIntensity
 	end
 	if data.edgeMoveWidth then
 		edgeMoveWidth = data.edgeMoveWidth

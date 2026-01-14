@@ -5,7 +5,7 @@ return {
 		energycost = 4750,
 		metalcost = 450,
 		buildpic = "LEGSHOT.DDS",
-		buildtime = 7800,
+		buildtime = 10160,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "33 37 33",
@@ -21,7 +21,7 @@ return {
 		maxslope = 17,
 		speed = 50.0,
 		maxwaterdepth = 25,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGSHOT.s3o",
 		script = "Units/LEGSHOT.cob",
@@ -40,6 +40,8 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
+			reactive_armor_health = 400,
+			reactive_armor_restore = 20,
 		},
 		featuredefs = {
 			dead = {

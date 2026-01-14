@@ -2,7 +2,7 @@ return {
 	armseap = {
 		blocking = false,
 		buildpic = "ARMSEAP.DDS",
-		buildtime = 14800,
+		buildtime = 18000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -111,8 +111,8 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				customparams = {
-					speceffect = "torpwaterpen",
 					noattackrangearc = 1,
+					speceffect = "torpwaterpen",
 				},
 				damage = {
 					commanders = 150,
