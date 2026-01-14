@@ -1,5 +1,5 @@
 if not Spring.GetModOptions().pip then --and not Spring.GetModOptions().allowuserwidgets then
-	--return
+	return
 end
 
 function widget:GetInfo()
