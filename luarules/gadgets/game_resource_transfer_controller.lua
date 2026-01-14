@@ -155,50 +155,15 @@ function gadget:PlayerAdded(playerID)
 end
 
 --------------------------------------------------------------------------------
--- Table Pooling
---------------------------------------------------------------------------------
-local resultCache = {}
-
----@type table<number, table<ResourceType, EconomyTeamResult>>
-local resultPool = {}
-
----@param teamId number
----@param resourceType ResourceType
----@return EconomyTeamResult
-local function GetPooledEntry(teamId, resourceType)
-	local teamPool = resultPool[teamId]
-	if not teamPool then
-		teamPool = {}
-		resultPool[teamId] = teamPool
-	end
-	local entry = teamPool[resourceType]
-	if not entry then
-		entry = {}
-		teamPool[resourceType] = entry
-	end
-	return entry
-end
-
---------------------------------------------------------------------------------
 -- ProcessEconomy Controller Function
 -- 
--- This is called by C++ via the registered controller pattern.
--- Unlike ResourceExcess where Lua does SetTeamResource calls, here C++
--- applies the results. This measures the cost of a centralized controller
--- where the engine handles internal state changes.
---
--- C++ timing:
---   economyAudit.Begin("PE", frame)
---   economyAudit.Breakpoint("CppMunge")  -- after building teams table
---   lua_pcall(ProcessEconomy, frame, teams) -> returns results
---   economyAudit.Breakpoint("LuaTotal")  -- after Lua returns
---   C++ iterates results and applies via ParseEconomyResult
---   economyAudit.Breakpoint("CppSetters")  -- after applying
---   economyAudit.End()
---
--- Lua breakpoints capture internal timing:
---   LuaMunge -> Solver -> PostMunge -> PolicyCache
+-- Called by C++ via the registered controller pattern.
+-- Returns EconomyTeamResult[] directly from the solver.
+-- Policy cache update is deferred to GameFrame to avoid blocking.
 --------------------------------------------------------------------------------
+
+local pendingPolicyUpdate = false
+local pendingPolicyFrame = 0
 
 ---@param frame number
 ---@param teams table<number, TeamResourceData>
@@ -206,72 +171,28 @@ end
 local function ProcessEconomy(frame, teams)
 	if tracyAvailable then tracy.ZoneBeginN("PE_Lua") end
 
-	-- Debug: confirm controller is being called
 	if frame % 300 == 0 then
 		Spring.Echo("[ProcessEconomyController] Processing frame=" .. frame)
 	end
 	
-	-- Count teams (keys are team IDs, possibly non-consecutive or 0-based)
-	local teamCount = 0
-	for _ in pairs(teams) do teamCount = teamCount + 1 end
+	local results = WaterfillSolver.SolveToResults(springRepo, teams)
 	
-	local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
-	EconomyLog.FrameStart(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY], teamCount)
-	
-	if tracyAvailable then
-		tracy.ZoneBeginN("PE_LuaMunge")	
-	end
-	EconomyLog.Breakpoint("LuaMunge")
-
-	-- TeamInput logging is handled inside the solver
-	if tracyAvailable then tracy.ZoneEnd() end
-	if tracyAvailable then tracy.ZoneBeginN("PE_Solver") end
-	local updatedTeams, allLedgers = ResourceTransfer.WaterfillSolve(springRepo, teams)
-	if tracyAvailable then tracy.ZoneEnd() end
-	
-	EconomyLog.Breakpoint("Solver")
-
-	for i = #resultCache, 1, -1 do resultCache[i] = nil end
-
-	local idx = 0
-	for teamId, team in pairs(updatedTeams) do
-		local ledger = allLedgers[teamId]
-		local mSent = ledger[ResourceType.METAL].sent
-		local mRecv = ledger[ResourceType.METAL].received
-		local eSent = ledger[ResourceType.ENERGY].sent
-		local eRecv = ledger[ResourceType.ENERGY].received
-		
-		EconomyLog.TeamOutput(teamId, "metal", team.metal.current, mSent, mRecv)
-		EconomyLog.TeamOutput(teamId, "energy", team.energy.current, eSent, eRecv)
-		
-		idx = idx + 1
-		local mEntry = GetPooledEntry(teamId, ResourceType.METAL)
-		mEntry.teamId = teamId
-		mEntry.resourceType = ResourceType.METAL
-		mEntry.current = team.metal.current
-		mEntry.sent = mSent
-		mEntry.received = mRecv
-		resultCache[idx] = mEntry
-		
-		idx = idx + 1
-		local eEntry = GetPooledEntry(teamId, ResourceType.ENERGY)
-		eEntry.teamId = teamId
-		eEntry.resourceType = ResourceType.ENERGY
-		eEntry.current = team.energy.current
-		eEntry.sent = eSent
-		eEntry.received = eRecv
-		resultCache[idx] = eEntry
-	end
-
-	EconomyLog.Breakpoint("PostMunge")
-
-	if tracyAvailable then tracy.ZoneBeginN("PE_PolicyCache") end
-	lastPolicyUpdate = ResourceTransfer.UpdatePolicyCache(springRepo, frame, lastPolicyUpdate, POLICY_UPDATE_RATE, contextFactory)
-	EconomyLog.Breakpoint("PolicyCache")
-	if tracyAvailable then tracy.ZoneEnd() end
+	pendingPolicyUpdate = true
+	pendingPolicyFrame = frame
 	
 	if tracyAvailable then tracy.ZoneEnd() end
-	return resultCache
+	return results
+end
+
+local function DeferredPolicyUpdate()
+	if not pendingPolicyUpdate then return end
+	pendingPolicyUpdate = false
+	
+	if tracyAvailable then tracy.ZoneBeginN("PE_PolicyCache_Deferred") end
+	lastPolicyUpdate = ResourceTransfer.UpdatePolicyCache(
+		springRepo, pendingPolicyFrame, lastPolicyUpdate, POLICY_UPDATE_RATE, contextFactory
+	)
+	if tracyAvailable then tracy.ZoneEnd() end
 end
 
 --------------------------------------------------------------------------------
@@ -331,38 +252,36 @@ local function BuildTeamData(excesses)
 	return teamsCache
 end
 
----Apply the solver results back to teams via Spring API
----@param results table<number, TeamResourceData>
----@param ledgers table<number, table<ResourceType, EconomyFlowLedger>>
-local function ApplyResults(results, ledgers)
-	for teamId, team in pairs(results) do
-		if not team.metal or not team.energy then
-			break
+---Apply EconomyTeamResult[] to teams via Spring API
+---@param results EconomyTeamResult[]
+local function ApplyResults(results)
+	local teamStats = {}
+	
+	for _, result in ipairs(results) do
+		local teamId = result.teamId
+		local resName = result.resourceType == ResourceType.METAL and "metal" or "energy"
+		local resIdx = result.resourceType == ResourceType.METAL and 1 or 2
+		
+		springRepo.SetTeamResource(teamId, resName, result.current)
+		
+		local stats = teamStats[teamId]
+		if not stats then
+			stats = { sent = { 0, 0 }, received = { 0, 0 } }
+			teamStats[teamId] = stats
 		end
-		
-		local metalFinal = math.min(team.metal.current, team.metal.storage)
-		local energyFinal = math.min(team.energy.current, team.energy.storage)
-		
-		springRepo.SetTeamResource(teamId, "metal", metalFinal)
-		springRepo.SetTeamResource(teamId, "energy", energyFinal)
-		
-		local ledger = ledgers[teamId]
-		local metalFlow = ledger[ResourceType.METAL]
-		local energyFlow = ledger[ResourceType.ENERGY]
-
-		local mSentVal = metalFlow.sent
-		local eSentVal = energyFlow.sent
-		local mRecvVal = metalFlow.received
-		local eRecvVal = energyFlow.received
-		
-		if mSentVal > 0 or eSentVal > 0 then
-			statsSentBuffer.sent[1] = mSentVal
-			statsSentBuffer.sent[2] = eSentVal
+		stats.sent[resIdx] = result.sent
+		stats.received[resIdx] = result.received
+	end
+	
+	for teamId, stats in pairs(teamStats) do
+		if stats.sent[1] > 0 or stats.sent[2] > 0 then
+			statsSentBuffer.sent[1] = stats.sent[1]
+			statsSentBuffer.sent[2] = stats.sent[2]
 			springRepo.AddTeamResourceStats(teamId, statsSentBuffer)
 		end
-		if mRecvVal > 0 or eRecvVal > 0 then
-			statsRecvBuffer.received[1] = mRecvVal
-			statsRecvBuffer.received[2] = eRecvVal
+		if stats.received[1] > 0 or stats.received[2] > 0 then
+			statsRecvBuffer.received[1] = stats.received[1]
+			statsRecvBuffer.received[2] = stats.received[2]
 			springRepo.AddTeamResourceStats(teamId, statsRecvBuffer)
 		end
 	end
@@ -374,54 +293,19 @@ end
 local function ResourceExcessController(frame, excesses)
 	if tracyAvailable then tracy.ZoneBeginN("RE_Lua") end
 
-	if tracyAvailable then tracy.ZoneBeginN("RE_BuildTeamData") end
 	local teams = BuildTeamData(excesses)
-	if tracyAvailable then tracy.ZoneEnd() end
 	
-	local teamCount = 0
-	for _ in pairs(teams) do teamCount = teamCount + 1 end
-	
-	local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
-	EconomyLog.FrameStart(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY], teamCount)
-	
-	EconomyLog.Breakpoint("LuaMunge")
-
-	if tracyAvailable then tracy.ZoneBeginN("RE_Solver") end
-	local success, updatedTeams, allLedgers = pcall(WaterfillSolver.Solve, springRepo, teams)
+	local success, results = pcall(WaterfillSolver.SolveToResults, springRepo, teams)
 	if not success then
 		if tracyAvailable then tracy.ZoneEnd() end
-		if tracyAvailable then tracy.ZoneEnd() end
-		Spring.Log("ResourceTransferController", LOG.ERROR, "Solver: " .. tostring(updatedTeams))
+		Spring.Log("ResourceTransferController", LOG.ERROR, "Solver: " .. tostring(results))
 		return false
 	end
-	if tracyAvailable then tracy.ZoneEnd() end
 	
-	EconomyLog.Breakpoint("Solver")
+	ApplyResults(results)
 	
-	if tracyAvailable then tracy.ZoneBeginN("RE_LuaSetters") end
-	ApplyResults(updatedTeams, allLedgers)
-	if tracyAvailable then tracy.ZoneEnd() end
-	
-	EconomyLog.Breakpoint("LuaSetters")
-	
-	for teamId, team in pairs(updatedTeams) do
-		local ledger = allLedgers[teamId] or {}
-		if team.metal then
-			local mFlow = ledger[ResourceType.METAL] or { sent = 0, received = 0 }
-			EconomyLog.TeamOutput(teamId, ResourceType.METAL, team.metal.current, mFlow.sent, mFlow.received)
-		end
-		if team.energy then
-			local eFlow = ledger[ResourceType.ENERGY] or { sent = 0, received = 0 }
-			EconomyLog.TeamOutput(teamId, ResourceType.ENERGY, team.energy.current, eFlow.sent, eFlow.received)
-		end
-	end
-	
-	EconomyLog.Breakpoint("PostMunge")
-
-	if tracyAvailable then tracy.ZoneBeginN("RE_PolicyCache") end
-	lastPolicyUpdate = ResourceTransfer.UpdatePolicyCache(springRepo, frame, lastPolicyUpdate, POLICY_UPDATE_RATE, contextFactory)
-	EconomyLog.Breakpoint("PolicyCache")
-	if tracyAvailable then tracy.ZoneEnd() end
+	pendingPolicyUpdate = true
+	pendingPolicyFrame = frame
 	
 	if tracyAvailable then tracy.ZoneEnd() end
 	return true
@@ -500,4 +384,8 @@ function gadget:GameStart()
 		end
 		EconomyLog.TeamInfo(teamId, name, isAI, allyTeam, isGaia)
 	end
+end
+
+function gadget:GameFrame(frame)
+	DeferredPolicyUpdate()
 end
