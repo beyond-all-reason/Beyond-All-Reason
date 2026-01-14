@@ -481,4 +481,59 @@ function Gadgets.Solve(springRepo, teamsList)
   return teamsList, teamLedgerCache
 end
 
+local resultPool = {}
+local resultPoolSize = 0
+
+local function getPooledResult(teamId, resourceType)
+  local key = teamId * 10 + (resourceType == ResourceType.METAL and 1 or 2)
+  local entry = resultPool[key]
+  if not entry then
+    entry = { teamId = 0, resourceType = "", current = 0, sent = 0, received = 0 }
+    resultPool[key] = entry
+    resultPoolSize = resultPoolSize + 1
+  end
+  return entry
+end
+
+---@param springRepo ISpring
+---@param teamsList table<number, TeamResourceData>
+---@return EconomyTeamResult[]
+function Gadgets.SolveToResults(springRepo, teamsList)
+  if tracyAvailable then tracy.ZoneBeginN("WaterfillSolver.SolveToResults") end
+
+  local updatedTeams, allLedgers = Gadgets.Solve(springRepo, teamsList)
+  
+  local results = {}
+  local idx = 0
+  
+  for teamId, team in pairs(updatedTeams) do
+    local ledger = allLedgers[teamId]
+    
+    if team.metal then
+      idx = idx + 1
+      local entry = getPooledResult(teamId, ResourceType.METAL)
+      entry.teamId = teamId
+      entry.resourceType = ResourceType.METAL
+      entry.current = team.metal.current
+      entry.sent = ledger[ResourceType.METAL].sent
+      entry.received = ledger[ResourceType.METAL].received
+      results[idx] = entry
+    end
+    
+    if team.energy then
+      idx = idx + 1
+      local entry = getPooledResult(teamId, ResourceType.ENERGY)
+      entry.teamId = teamId
+      entry.resourceType = ResourceType.ENERGY
+      entry.current = team.energy.current
+      entry.sent = ledger[ResourceType.ENERGY].sent
+      entry.received = ledger[ResourceType.ENERGY].received
+      results[idx] = entry
+    end
+  end
+  
+  if tracyAvailable then tracy.ZoneEnd() end
+  return results
+end
+
 return Gadgets
