@@ -77,12 +77,13 @@ end
 if #isCommander > 0 then
 	function gadget:GameFrame(n)
 		if n > 150 then
+			-- Avoid reducing storage during the spawn-in time when commanders may be stunned.
 			for commander, _ in pairs(isCommander) do
 				if UnitDefs[commander].metalStorage >= 50 then
-					storageDefs[udid].metal = UnitDefs[commander].metalStorage
+					storageDefs[commander].metal = UnitDefs[commander].metalStorage
 				end
 				if UnitDefs[commander].energyStorage >= 100 then
-					storageDefs[udid].energy = UnitDefs[commander].energyStorage
+					storageDefs[commander].energy = UnitDefs[commander].energyStorage
 				end
 			end
 			isCommander = nil
