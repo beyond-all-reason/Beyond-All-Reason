@@ -16,27 +16,28 @@ local isSynced = gadgetHandler:IsSyncedCode()
 if modOptions.deathmode ~= "territorial_domination" or not isSynced then return false end
 
 local territorialDominationConfig = {
-	["18-Minutes"] = {
-		maxRounds = 3,
-		minutesPerRound = 6,
-	},
-	["24-Minutes"] = {
+	["20_minutes"] = {
 		maxRounds = 4,
-		minutesPerRound = 6,
+		minutesPerRound = 5,
 	},
-	["30-Minutes"] = {
+	["25_minutes"] = {
 		maxRounds = 5,
-		minutesPerRound = 6,
+		minutesPerRound = 5,
 	},
-	["42-Minutes"] = {
+	["30_minutes"] = {
+		maxRounds = 6,
+		minutesPerRound = 5,
+	},
+	["35_minutes"] = {
 		maxRounds = 7,
-		minutesPerRound = 6,
+		minutesPerRound = 5,
 	}
 }
 
-local config = territorialDominationConfig[modOptions.territorial_domination_config] or territorialDominationConfig["30-Minutes"]
+local config = territorialDominationConfig[modOptions.territorial_domination_config] or territorialDominationConfig["25_minutes"]
 local MAX_ROUNDS = config.maxRounds
 local ROUND_SECONDS = 60 * config.minutesPerRound
+local ELIMINATION_THRESHOLD_MULTIPLIER = modOptions.territorial_domination_elimination_threshold_multiplier or 1.2
 local DEBUGMODE = false
 
 local GRID_SIZE = 1024
@@ -50,12 +51,12 @@ local DECAY_DELAY_FRAMES = Game.gameSpeed * 10
 
 local MAX_EMPTY_IMPEDANCE_POWER = 25
 local MIN_EMPTY_IMPEDANCE_MULTIPLIER = 0.80
-local FLYING_UNIT_POWER_MULTIPLIER = 0.01
+local FLYING_UNIT_POWER_MULTIPLIER = 0.1
 local CLOAKED_UNIT_POWER_MULTIPLIER = 0
 local STATIC_UNIT_POWER_MULTIPLIER = 3
 local COMMANDER_POWER_MULTIPLIER = 1000
-local MAX_INITIAL_POINTS_CAP = 300
 local AESTHETIC_POINTS_MULTIPLIER = 2 --to be consistent with gui_territorial_domination.lua
+local MIN_UNIT_POWER = 3
 
 local MAX_PROGRESS = 1.0
 local STARTING_PROGRESS = 0
@@ -99,7 +100,7 @@ local roundTimestamp = 0
 local currentRound = 0
 local gameOver = false
 local allyTeamsCount = 0
-local previousRoundHighestScore = 0
+local eliminationThreshold = 0
 local topLivingRankedScoreIndex = 1
 
 local allyTeamsWatch = {}
@@ -110,7 +111,8 @@ local killQueue = {}
 local commandersDefs = {}
 local allyData = {}
 local flyingUnits = {}
- 
+local doomedAllies = {}
+
 local projectedAllyTeamPoints = {}
 local sortedTeams = {}
 local rankedAllyScores = {}
@@ -123,7 +125,7 @@ for defID, def in pairs(UnitDefs) do
 			defData.power = defData.power * STATIC_UNIT_POWER_MULTIPLIER
 		end
 		if def.customParams and def.customParams.objectify then
-			defData.power = 0
+			defData.power = nil
 		end
 	end
 	unitWatchDefs[defID] = defData
@@ -278,32 +280,48 @@ local function setAllyTeamRanks()
 		local securedScore = scoreData.score
 		local projectedPoints = projectedAllyTeamPoints[allyID] or 0
 		local rankingScore = securedScore + projectedPoints
-		table.insert(rankedAllyScores, { allyID = allyID, rankingScore = rankingScore })
+		local territoryCount = 0
+		for gridID, data in pairs(captureGrid) do
+			if data.progress > OWNERSHIP_THRESHOLD and data.allyOwnerID == allyID then
+				territoryCount = territoryCount + 1
+			end
+		end
+		table.insert(rankedAllyScores, { allyID = allyID, rankingScore = rankingScore, territoryCount = territoryCount })
 	end
 
 	table.sort(rankedAllyScores, function(a, b)
-		return a.rankingScore > b.rankingScore
+		if a.rankingScore ~= b.rankingScore then
+			return a.rankingScore > b.rankingScore
+		else
+			return a.territoryCount > b.territoryCount
+		end
 	end)
 
 	topLivingRankedScoreIndex = math.huge
-	local currentRank = 1
+	local currentRank = 0
 	local previousScore = -1
-	for i, rankedEntry in ipairs(rankedAllyScores) do
-		if i <= 1 or rankedEntry.rankingScore ~= previousScore then
-			currentRank = i
-			previousScore = rankedEntry.rankingScore
-		end
-		local allyID = rankedEntry.allyID
-		allyData[allyID].rank = currentRank
-		for teamID in pairs(allyTeamsWatch[allyID] or {}) do
-			local isDead = select(3, spGetTeamInfo(teamID))
-			if not isDead and i < topLivingRankedScoreIndex then
-				topLivingRankedScoreIndex = i
+	local previousTerritoryCount = -1
+
+	if next(rankedAllyScores) then
+		for i, rankedEntry in ipairs(rankedAllyScores) do
+			if i == 1 or rankedEntry.rankingScore < previousScore or (rankedEntry.rankingScore == previousScore and rankedEntry.territoryCount < previousTerritoryCount) then
+				currentRank = currentRank + 1
+				previousScore = rankedEntry.rankingScore
+				previousTerritoryCount = rankedEntry.territoryCount
 			end
+			local allyID = rankedEntry.allyID
+			allyData[allyID].rank = currentRank
+			for teamID in pairs(allyTeamsWatch[allyID] or {}) do
+				local isDead = select(3, spGetTeamInfo(teamID))
+				if not isDead and i < topLivingRankedScoreIndex then
+					topLivingRankedScoreIndex = i
+				end
+			end
+			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_rank", currentRank)
 		end
-		Spring.SetTeamRulesParam(allyData[allyID].representativeTeamID, "territorialDominationDisplayRank", currentRank, {public = true})
+	else
+		topLivingRankedScoreIndex = currentRank
 	end
-	Spring.SetGameRulesParam("territorialDominationTopLivingRankedScoreIndex", topLivingRankedScoreIndex)
 end
 
 local function processLivingTeams()
@@ -313,7 +331,7 @@ local function processLivingTeams()
 	allTeams = Spring.GetTeamList()
 	for _, teamID in ipairs(allTeams) do
 		local _, _, isDead, _, _, allyID = spGetTeamInfo(teamID)
-		if not isDead then
+		if not isDead and not doomedAllies[allyID] then
 			if allyID and allyID ~= gaiaAllyTeamID then
 				if not allyTeamsWatch[allyID] then
 					allyTeamsCount = allyTeamsCount + 1
@@ -321,12 +339,7 @@ local function processLivingTeams()
 				allyTeamsWatch[allyID] = allyTeamsWatch[allyID] or {}
 				allyTeamsWatch[allyID][teamID] = true
 				if not allyData[allyID] then
-					local teamListForAlly = Spring.GetTeamList(allyID) or {}
-					local representativeTeamID = teamListForAlly[1]
-					allyData[allyID] = { score = 0, rank = 1, representativeTeamID = representativeTeamID }
-				elseif not allyData[allyID].representativeTeamID then
-					local teamListForAlly = Spring.GetTeamList(allyID) or {}
-					allyData[allyID].representativeTeamID = teamListForAlly[1]
+					allyData[allyID] = { score = 0, rank = 1 }
 				end
 			end
 		end
@@ -337,14 +350,6 @@ local function processLivingTeams()
 	end
 end
 
-local function setAllyGridToGaia(allyID)
-	for gridID, data in pairs(captureGrid) do
-		if data.allyOwnerID == allyID then
-			data.allyOwnerID = gaiaAllyTeamID
-			data.progress = STARTING_PROGRESS
-		end
-	end
-end
 
 local function createGridSquareData(x, z)
 	local originX = x * GRID_SIZE
@@ -387,6 +392,7 @@ end
 
 local function defeatAlly(allyID)
 	if DEBUGMODE or not allyTeamsWatch[allyID] then return end
+	doomedAllies[allyID] = true
 	for unitID, commanderAllyID in pairs(livingCommanders) do
 		if commanderAllyID == allyID then
 			local killDelayFrames = floor(Game.gameSpeed * 0.5)
@@ -394,19 +400,23 @@ local function defeatAlly(allyID)
 			killQueue[killFrame] = killQueue[killFrame] or {}
 			killQueue[killFrame][unitID] = true
 
+			Spring.SetUnitRulesParam(unitID, "muteDestructionNotification", 1)
+
 			local x, y, z = spGetUnitPosition(unitID)
 			spSpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
 			spPlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
-			Spring.SetUnitRulesParam(unitID, "gameModeCommanderEliminated", 1)
 			GG.ComSpawnDefoliate(x, y, z)
+
+			local allPlayers = Spring.GetPlayerList()
+			for _, playerID in ipairs(allPlayers) do
+				local _, _, _, _, playerAllyID = Spring.GetPlayerInfo(playerID, false)
+				local notificationEvent = (playerAllyID == allyID) and "YourTeamEliminated" or "EnemyTeamEliminated"
+				SendToUnsynced("NotificationEvent", notificationEvent, tostring(playerID))
+			end
 		end
 	end
-	for teamID in pairs(allyTeamsWatch[allyID] or {}) do
-		local isDead = select(3, spGetTeamInfo(teamID))
-		if not isDead then
-			Spring.SetTeamRulesParam(teamID, "territorialDominationProjectedPoints", 0, {public = true})
-		end
-	end
+	
+	Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", 0)
 end
 
 local function addProgress(gridID, progressChange, winningAllyID, delayDecay)
@@ -449,19 +459,23 @@ local function processGridSquareCapture(gridID)
 			local allyTeam = spGetUnitAllyTeam(unitID)
 
 			if unitData and unitData.power and allyTeamsWatch[allyTeam] then
-				hasUnits = true
 				local power = unitData.power
-				if flyingUnits[unitID] then
-					power = power * FLYING_UNIT_POWER_MULTIPLIER
-				end
-				if commandersDefs[unitDefID] then
-					power = power * COMMANDER_POWER_MULTIPLIER
-				end
-				if spGetUnitIsCloaked(unitID) then
-					power = power * CLOAKED_UNIT_POWER_MULTIPLIER
-				end
+				if power then
+					hasUnits = true
+					if flyingUnits[unitID] then
+						power = power * FLYING_UNIT_POWER_MULTIPLIER
+					end
+					if commandersDefs[unitDefID] then
+						power = power * COMMANDER_POWER_MULTIPLIER
+					end
+					if spGetUnitIsCloaked(unitID) then
+						power = power * CLOAKED_UNIT_POWER_MULTIPLIER
+					end
 
-				allyPowers[allyTeam] = (allyPowers[allyTeam] or 0) + power
+					power = math.max(power, MIN_UNIT_POWER)
+
+					allyPowers[allyTeam] = (allyPowers[allyTeam] or 0) + power
+				end
 			end
 		end
 	end
@@ -555,35 +569,25 @@ local function processNeighborsAndDecay()
 end
 
 local function updateProjectedPoints()
-	for allyID in pairs(allyTeamsWatch) do
+	for allyID, allyInfo in pairs(allyData) do
 		local projectedScore = 0
 		local territoryCount = 0
-		if not gameOver then
-			for gridID, data in pairs(captureGrid) do
-				if data.progress > OWNERSHIP_THRESHOLD and data.allyOwnerID == allyID then
-					projectedScore = projectedScore + currentRound * AESTHETIC_POINTS_MULTIPLIER
-					territoryCount = territoryCount + 1
-				end
+		for gridID, data in pairs(captureGrid) do
+			if data.progress > OWNERSHIP_THRESHOLD and data.allyOwnerID == allyID then
+				projectedScore = projectedScore + currentRound * AESTHETIC_POINTS_MULTIPLIER
+				territoryCount = territoryCount + 1
 			end
 		end
+
 		projectedAllyTeamPoints[allyID] = projectedScore
-		for teamID, _ in pairs(allyTeamsWatch[allyID] or {}) do
-			Spring.SetTeamRulesParam(teamID, "territorialDominationProjectedPoints", projectedScore, {public = true})
-			Spring.SetTeamRulesParam(teamID, "territorialDominationTerritoryCount", territoryCount, {public = true})
+
+		if not gameOver and (currentRound <= MAX_ROUNDS) then
+			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", projectedScore)
+		else
+			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", 0)
 		end
+		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_territoryCount", territoryCount)
 	end
-end
-
-local function calculateMaximumPossiblePoints()
-	local totalTerritories = numberOfSquaresX * numberOfSquaresZ
-	local roundSum = 0
-	for round = 1, MAX_ROUNDS do
-		roundSum = roundSum + round * AESTHETIC_POINTS_MULTIPLIER
-	end
-	local maxPossiblePoints = totalTerritories * roundSum
-	local pointsCap = math.min(MAX_INITIAL_POINTS_CAP, math.ceil(maxPossiblePoints / allyTeamsCount + 1))
-
-	return pointsCap
 end
 
 function gadget:GameFrame(frame)
@@ -597,18 +601,22 @@ function gadget:GameFrame(frame)
 	if frameModulo == 0 then
 		processLivingTeams()
 		for gridID, data in pairs(captureGrid) do
+			if data.allyOwnerID ~= gaiaAllyTeamID and not allyTeamsWatch[data.allyOwnerID] then
+				data.allyOwnerID = gaiaAllyTeamID
+				data.progress = STARTING_PROGRESS
+			end
+		end
+		for gridID, data in pairs(captureGrid) do
 			processGridSquareCapture(gridID)
 		end
 	elseif frameModulo == 1 then
 		processNeighborsAndDecay()
 	elseif frameModulo == 2 then
-		updateProjectedPoints()
 
-	local seconds = spGetGameSeconds()
-
-	setAllyTeamRanks()
+		local seconds = spGetGameSeconds()
 		if seconds >= roundTimestamp or currentRound > MAX_ROUNDS then
 			local newHighestScore = 0
+			local refreshLivingTeams = false
 			if currentRound <= MAX_ROUNDS then
 				for allyID in pairs(allyTeamsWatch) do
 					local addPoints = projectedAllyTeamPoints[allyID] or 0
@@ -616,36 +624,40 @@ function gadget:GameFrame(frame)
 					newHighestScore = math.max(newHighestScore, allyData[allyID].score)
 				end
 				currentRound = currentRound + 1
-				if currentRound <= MAX_ROUNDS then
-					for allyID, scoreData in pairs(allyData) do
-						if scoreData.score < previousRoundHighestScore and allyTeamsWatch[allyID] and scoreData.rank > topLivingRankedScoreIndex then
-							defeatAlly(allyID)
-						end
+				for allyID, scoreData in pairs(allyData) do
+					if scoreData.score < eliminationThreshold and allyTeamsWatch[allyID] and scoreData.rank > topLivingRankedScoreIndex then
+						defeatAlly(allyID)
+						refreshLivingTeams = true
 					end
 				end
 			else
 				for allyID, scoreData in pairs(allyData) do
 					if scoreData.rank > topLivingRankedScoreIndex and allyTeamsWatch[allyID] then
 						defeatAlly(allyID)
+						refreshLivingTeams = true
 					end
 				end
+				
+				if refreshLivingTeams then
+					processLivingTeams()
+				end
 			end
+
 			if currentRound <= MAX_ROUNDS then
-				previousRoundHighestScore = newHighestScore
-				Spring.SetGameRulesParam("territorialDominationPrevHighestScore", previousRoundHighestScore)
+				eliminationThreshold = math.floor(newHighestScore * ELIMINATION_THRESHOLD_MULTIPLIER)
+				Spring.SetGameRulesParam("territorialDominationEliminationThreshold", eliminationThreshold)
 				roundTimestamp = seconds + ROUND_SECONDS
 			end
 		end
+		updateProjectedPoints()
+		setAllyTeamRanks()
 
 		Spring.SetGameRulesParam("territorialDominationRoundEndTimestamp", currentRound > MAX_ROUNDS and 0 or roundTimestamp)
 		Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
 		Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
 		
 		for allyID, scoreData in pairs(allyData) do
-			for teamID, _ in pairs(allyTeamsWatch[allyID] or {}) do
-				Spring.SetTeamRulesParam(teamID, "territorialDominationScore", scoreData.score, {public = true})
-				Spring.SetTeamRulesParam(teamID, "territorialDominationProjectedPoints", projectedAllyTeamPoints[allyID] or 0, {public = true})
-			end
+			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_score", scoreData.score)
 		end
 	end
 
@@ -669,14 +681,10 @@ function gadget:Initialize()
 
 	processLivingTeams()
 	for allyID in pairs(allyTeamsWatch) do
-		local teamListForAlly = Spring.GetTeamList(allyID) or {}
-		local representativeTeamID = teamListForAlly[1]
 		if not allyData[allyID] then
-			allyData[allyID] = { score = 0, rank = 1, representativeTeamID = representativeTeamID }
+			allyData[allyID] = { score = 0, rank = 1 }
 		end
 	end
-	local initialPointsCap = calculateMaximumPossiblePoints()
-	Spring.SetGameRulesParam("territorialDominationPointsCap", initialPointsCap)
 
 	local units = Spring.GetAllUnits()
 	for i = 1, #units do
@@ -685,14 +693,16 @@ function gadget:Initialize()
 	end
 
 	allTeams = Spring.GetTeamList()
-	for _, teamID in pairs(allTeams) do
-		Spring.SetTeamRulesParam(teamID, "territorialDominationDisplayRank", 1, {public = true})
-	end
 	
 	updateProjectedPoints()
 	
 	Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
 	Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
+	
+	for allyID in pairs(allyTeamsWatch) do
+		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_score", 0)
+		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_rank", 1)
+	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
@@ -712,13 +722,4 @@ end
 
 function gadget:UnitLeftAir(unitID, unitDefID, unitTeam)
 	flyingUnits[unitID] = nil
-end
-
-function gadget:TeamDied(teamID)
-	local allyID = select(6, spGetTeamInfo(teamID))
-	setAllyGridToGaia(allyID)
-	
-	for _, teamIDInAlly in pairs(Spring.GetTeamList(allyID) or {}) do
-		Spring.SetTeamRulesParam(teamIDInAlly, "territorialDominationProjectedPoints", 0, {public = true})
-	end
 end

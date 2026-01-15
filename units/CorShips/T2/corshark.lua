@@ -2,7 +2,7 @@ return {
 	corshark = {
 		activatewhenbuilt = true,
 		buildpic = "CORSHARK.DDS",
-		buildtime = 18000,
+		buildtime = 23000,
 		canmove = true,
 		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "30 30 64",

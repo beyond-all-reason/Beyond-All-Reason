@@ -279,7 +279,6 @@ body {
 	transform: translate(-50%, -50%);
 	width: 32dp;
 	height: 32dp;
-	object-fit: contain;
 }
 
 .popup-round-end {
@@ -546,8 +545,6 @@ body {
 	padding-left: 0dp;
 	padding-right: 12dp;
 	margin: 0dp;
-	border-left: none;
-	border-right: none;
 }
 
 .scoreboard-column-headers > *:last-child {
@@ -600,8 +597,6 @@ body {
 	padding-left: 0dp;
 	padding-right: 12dp;
 	margin: 0dp;
-	border-left: none;
-	border-right: none;
 }
 
 .scoreboard-team-row > *:last-child {

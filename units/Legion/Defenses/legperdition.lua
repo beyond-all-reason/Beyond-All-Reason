@@ -136,10 +136,10 @@ return {
 				flamegfxtime = 1,
 				interceptedByShieldType = 0,
 				impulsefactor = 0.123,
-				metalpershot = 500,
+				metalpershot = 350,
 				model = "legbomb.s3o",
 				name = "Long-Range Tactical Hellfire Napalm Shell",
-				energypershot = 17000,
+				energypershot = 13000,
 				noselfdamage = true,
 				range = 2300,
 				reloadtime = 2,
@@ -153,7 +153,7 @@ return {
 				smokesize = 14.0,
 				smokecolor = 0.7,
 				stockpile = true,
-				stockpiletime = 70,
+				stockpiletime = 50,
 				turret = true,
 				weapontype = "Cannon",
 				--weapontype = "MissileLauncher",
@@ -176,14 +176,14 @@ return {
 					area_onhit_ceg = "fire-area-150-repeat",
 					area_onhit_damageCeg = "burnflamexl-gen",
 					area_onhit_resistance = "fire",
-					area_onhit_damage = 175,
+					area_onhit_damage = 120,
 					area_onhit_range = 150,
 					area_onhit_time = 15,
 					stockpilelimit = 10,
 				},
 				damage = {
 					commanders = 700,
-					default = 2000,--plus 150*15 within 150 area
+					default = 1200,--plus 120*15 within 150 area
 				},
 			},
 

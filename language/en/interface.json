@@ -100,6 +100,7 @@
 			"gpuMemory": "GPU Memory: %{gpuUsage}%%",
 			"pointClickTooltip": "Click to go to the last point set by the player",
 			"aiName": "%{name} (AI)",
+			"aiPlaceMe": "Place me!",
 			"desynced": "desynced",
 			"chat": {
 				"needSupport": "I need unit support!",
@@ -109,9 +110,15 @@
 				"needEnergyAmount": "I need %{amount} energy!",
 				"giveMetal": "I sent %{amount} metal to %{name}",
 				"giveEnergy": "I sent %{amount} energy to %{name}",
+				"giveMetal_taxed": "I sent %{amount} metal to %{name} and they received %{amount2} metal",
+				"giveEnergy_taxed": "I sent %{amount} energy to %{name} and they received %{amount2} energy",
 				"takeTeam": "I took %{name}.",
 				"takeTeamAmount": "I took %{name}: %{units} units, %{energy} energy and %{metal} metal."
 			}
+		},
+		"startbox": {
+			"aiStartLocationRemoved": "%{playerName} removed %{aiName} start location",
+			"aiStartLocationChanged": "%{playerName} changed %{aiName} start location"
 		},
 		"music": {
 			"menu": "Menu",
@@ -142,7 +149,11 @@
 		"pip": {
 			"tooltip": "Toggle Picture-in-Picture",
 			"switch": "Switch view with main view",
+			"copy": "Copy main camera to PIP",
 			"track": "Track selected units",
+			"untrack": "Track selected units",
+			"camera": "View selected player's camera",
+			"uncamera": "Cancel camera tracking",
 			"move": "Move window",
 			"resize": "Resize window",
 			"minimize": "Minimize",
@@ -458,7 +469,7 @@
 			"console": {
 				"title": "Console commands",
 				"eraseKey": "/clearmapmarks",
-				"erase": "Erase all drawings and markes",
+				"erase": "Erase all drawings and markers",
 				"pauseKey": "/pause",
 				"pause": "Pause"
 			}
@@ -540,11 +551,11 @@
 			"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
 			"victoryCondition": "Victory condition",
 			"owncomends": "Losing your commander = losing control of your units / resigning",
-			"territorialDomination": "Territorial Domination, survive and gain the most points to win."
+			"territorialDomination": "Territorial Domination,\nsurvive and gain the most points to win"
 		},
 		"startSpot": {
-			"startbox": "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)",
-			"anywhere": "Pick a startspot and click the Ready button. (F4 shows metal spots)"
+			"startbox": "Pick a starting location within the green area then click Ready",
+			"anywhere": "Pick a starting location then click Ready"
 		},
 		"screenMode": {
 			"title": "Screen mode: %{highlightColor}%{screenMode}",
@@ -756,7 +767,7 @@
 			"unlock": "Unlock Position",
 			"startCountdown": "Game starting in %{time}...",
 			"choosePoint": "Please choose a start point!",
-			"tooClose": "You cannot place your start position too close to another player"
+			"tooClose": "Start location is too close to another player"
 		},
 		"draftOrderMod": {
 			"teamPlacement": "Team Placement",
@@ -1099,7 +1110,7 @@
 				"vsync": "VSync",
 				"vsync_descr": "Prevent vertical screen tearing. Note this can introduce slight lag. Try adaptive for less screen draw delay.",
 				"vsync_fraction": "frame limiter",
-				"vsync_fraction_descr": "Render only a fractional number of frames\n\nPossibly only works in windowed mode",
+				"vsync_fraction_descr": "Render only a fractional number of frames",
 				"limitoffscreenfps": "Limit FPS when offscreen",
 				"limitoffscreenfps_descr": "Reduces fps when offscreen (by setting vsync to a high number)\n(for borderless window and fullscreen need engine not have focus)\nMakes your pc more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode",
 				"limitidlefps": "also limit when idle",
@@ -1169,7 +1180,7 @@
 				"uniticonfadeamount": "fade-in amount",
 				"uniticonfadeamount_descr": "sets the distance when icons appear",
 				"uniticonhidewithui": "hide when UI is hidden",
-				"uniticonhidewithui_descr": "dont show icons when disabling UI (via F5)",
+				"uniticonhidewithui_descr": "don't show icons when disabling UI (via F5)",
 				"featuredrawdist": "Feature draw distance",
 				"featuredrawdist_descr": "Features (trees, stones, wreckage) stop being displayed at this distance",
 				"particles": "Particle limit",
@@ -1211,7 +1222,7 @@
 				"snowmap": "enabled on this map",
 				"snowmap_descr": "It will remember what you toggled for every map\n\n(by default: maps with wintery names have this toggled)",
 				"snowautoreduce": "auto reduce",
-				"snowautoreduce_descr": "Automaticly reduce snow when average FPS gets lower\n\n(re-enabling this needs time to readjust  to average fps again",
+				"snowautoreduce_descr": "Automatically reduce snow when average FPS gets lower\n\n(re-enabling this needs time to readjust  to average fps again",
 				"snowamount": "amount",
 				"snowamount_descr": "disable \"auto reduce\" option to see the max snow amount you have set",
 				"resurrectionhalos": "Resurrected unit halos",
@@ -1229,6 +1240,10 @@
 				"soundtrackold_descr": "Add the modern themed music to the soundtrack",
 				"soundtrackcustom": "Custom Soundtrack",
 				"soundtrackcustom_descr": "Add your own .ogg or .mp3 music files to the soundtrack playlist\nPlace these .ogg/.mp3 music files in data/music/custom/ subfolders: peace/warlow/warhigh/bossfight/gameover",
+				"soundtrackraptors": "Raptors Soundtrack In Regular Matches",
+				"soundtrackraptors_descr": "Toggle adding Raptors soundtrack to regular playlists. Does not include bossfight themes.",
+				"soundtrackscavengers": "Scavengers Soundtrack In Regular Matches",
+				"soundtrackscavengers_descr": "Toggle adding Scavengers soundtrack to regular playlists. Does not include bossfight themes.",
 				"soundtrackaprilfools": "April Fools Soundtrack",
 				"soundtrackaprilfools_descr": "Toggle April Fools event music ON and OFF.",
 				"soundtrackaprilfoolspostevent": "April fools Soundtrack Post Event",
@@ -1258,22 +1273,28 @@
 				"sndunitsound_desc": "Unit response sounds",
 				"sndairabsorption": "Air absorption",
 				"sndairabsorption_descr": "Air absorption is basically a low-pass filter relative to distance between\nsound source and listener, so when in your base or zoomed out, front battles\nwill be heard as only low frequencies",
+				"sndzoomvolume": "Zoom fadeout",
+				"sndzoomvolume_descr": "How much the battle sounds volume should fade out with zoom.",
 				"muteoffscreen": "Mute when offscreen",
 				"muteoffscreen_descr": "Game will mute itself when mouse is offscreen until you return",
 				"sndvolmusic": "music",
-				"loadscreen_music": "starts at loadscreen",
+				"loadscreen_music": "Loading Screen Music",
 				"loadscreen_music_descr": "Music when displaying the startup load screen",
 				"notifications_set": "Voice",
 				"notifications_tutorial": "Tutorial mode",
 				"notifications_tutorial_descr": "Additional messages that guide you how to play\n\nIt remembers what has been played already\n(Re)enabling this will reset this",
-				"notifications_messages": "Written notifications",
+				"notifications_messages": "Text Notifications",
 				"notifications_messages_descr": "Displays notifications on screen",
-				"notifications_spoken": "Voice notifications",
+				"notifications_spoken": "Voice Notifications",
 				"notifications_spoken_descr": "Plays voice notifications",
+				"notifications_substitute": "Substitute Missing Notifications",
+				"notifications_substitute_descr": "Missing notifications in your current set will be substituted by Cephis.",
 				"notifications_volume": "Volume",
 				"notifications_volume_descr": "NOTE: it also uses interface volume channel (Sound tab)",
 				"notifications_playtrackedplayernotifs": "Tracked cam/player notifs",
 				"notifications_playtrackedplayernotifs_descr": "Displays notifications from the perspective of the currently camera tracked player",
+				"notifications_refresh": "Refresh Notifications",
+				"notifications_refresh_descr": "Restarts Notifications widget to update the list of voicelines. Useful for modders and devs working on notif packs.",
 				"hwcursor": "Hardware cursor",
 				"hwcursor_descr": "When disabled: mouse cursor refresh rate will equal to your ingame fps",
 				"setcamera_bugfix": "Per-frame camera smooth",
@@ -1281,11 +1302,11 @@
 				"cursorsize": "Cursor size",
 				"cursorsize_descr": "Note that cursor already auto-scales according to screen resolution\n\nFurther adjust size and snap to a smaller/larger size",
 				"doubleclicktime": "Double-click time",
-				"doubleclicktime_descr": "Time in ms between two consectutive left clicks to be considered a doubleclick",
+				"doubleclicktime_descr": "Time in ms between two consecutive left clicks to be considered a doubleclick",
 				"dragthreshold": "Drag threshold",
 				"dragthreshold_descr": "Number of pixels of mouse movement for a click to be considered a drag",
 				"crossalpha": "Cursor 'cross' alpha",
-				"crossalpha_descr": "Opacity of mouse icon in center of screen when you are in camera pan mode\n\n(The'icon' has a dot in center with 4 arrows pointing in all directions)",
+				"crossalpha_descr": "Opacity of mouse icon in center of screen when you are in camera pan mode\n\n(The 'icon' has a dot in center with 4 arrows pointing in all directions)",
 				"middleclicktoggle": "Middle-click toggles camera move",
 				"middleclicktoggle_descr": "Enable camera pan toggle via single middle mouse click",
 				"containmouse": "Contain mouse",
@@ -1464,6 +1485,10 @@
 				"systemprivacy_descr": "disallow other players to view your system specifications (in player list tooltip)\napplies to next game",
 				"mascot": "mascot",
 				"mascot_descr": "Shows a mascot on top of the playerlist",
+				"pip": "picture-in-picture",
+				"pip_descr": "Displays a floating camera minimap style window",
+				"pip2": "picture-in-picture 2",
+				"pip2_descr": "Displays a floating camera minimap style window",
 				"unittotals": "unit totals",
 				"unittotals_descr": "Show your unit totals on top of the playerlist",
 				"musicplayer": "music player",
@@ -1625,7 +1650,7 @@
 				"attackrange_shiftonly_descr": "Show ranges only when shift is pressed",
 				"attackrange_cursorunitrange": "cursor hover range",
 				"attackrange_cursorunitrange_descr": "Show ranges when hovering over a unit",
-				"attackrange_numrangesmult": "Max units multiplier",
+				"attackrange_numrangesmult": "max units multiplier",
 				"attackrange_numrangesmult_descr": "Multiplier to the limit of max amount of units it will make attack ranges active for.",
 				"defrange": "Defense ranges",
 				"defrange_descr": "Displays ranges of defenses (Enemy and Ally)",
@@ -1669,6 +1694,12 @@
 				"smartselect_includebuildings_descr": "When rectangle-drag-selecting an area, include building units too?\n\nDisabled: non-mobile units will be excluded (hold Shift to override)\nNote: Construction Turrets will always be selected",
 				"smartselect_includebuilders": "include builders (if above is off)",
 				"smartselect_includebuilders_descr": "When rectangle-drag-selecting an area, exclude builder units (hold Shift to override)",
+				"smartselect_includeantinuke": "include antinuke units (if above is off)",
+				"smartselect_includeantinuke_descr": "When rectangle-drag-selecting an area, exclude antinuke units (hold Shift to override)",
+				"smartselect_includeradar": "include radar units (if above is off)",
+				"smartselect_includeradar_descr": "When rectangle-drag-selecting an area, exclude radar units (hold Shift to override)",
+				"smartselect_includejammer": "include jammer units (if above is off)",
+				"smartselect_includejammer_descr": "When rectangle-drag-selecting an area, exclude jammer units (hold Shift to override)",
 				"onlyfighterspatrol": "Only fighters patrol",
 				"onlyfighterspatrol_descr": "Only fighters obey a factory's patrol route after leaving airlab.",
 				"fightersfly": "Set fighters on Fly mode",
@@ -1734,7 +1765,7 @@
 				"storedefaultsettings": "Store default settings",
 				"storedefaultsettings_descr": "Do not remove engine defaults from springsettings.cfg",
 				"startboxeditor": "Startbox editor",
-				"startboxeditor_descr": "LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to add a team startbox to startboxes_mapname.txt\n(S overwites the export file for the first team)",
+				"startboxeditor_descr": "LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to add a team startbox to startboxes_mapname.txt\n(S overwrites the export file for the first team)",
 				"tonemap": "Unit tonemapping",
 				"envAmbient": "ambient %",
 				"unitSunMult": "sun mult",
@@ -1836,8 +1867,17 @@
 		"quickStart": {
 			"placeDiscountedFactory": "First factory is discounted",
 			"preGameResources": "Base Budget",
+			"refundNotification": "Remaining budget will be refunded as Metal.",
 			"remainingResourcesWarning": "Use the Base Budget to instantly spawn structures within range",
 			"unallocatedBudget": "Quick Start enabled: use your Base Budget first"
+		},
+		"techBlocking": {
+			"techLevel": "TECH",
+			"techPopup": {
+				"level1": "Tech Level 1",
+				"level2": "Tech Level 2",
+				"level3": "Tech Level 3"
+			}
 		}
 	}
 }

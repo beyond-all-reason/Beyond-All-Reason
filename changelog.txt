@@ -1,3 +1,116 @@
+# January 2026
+• [Incisor] 0.767s -> 0.8s reloadtime, 85.5 -> 85 speed, 2200 -> 2300 buildtime, 1040 -> 1100 energycost
+• [Blitz, Pawn] 500 -> 600 weaponvelocity
+• [Vehicle scouts] +10% reloadtime
+• [Banshee, Roughneck] 800 -> 1000 weaponvelocity, 16 -> 40 AoE
+• [Hornet] Missile tracks properly
+• [T1 bombers] Sprayangle removed, Stormbringer -5 speed
+• [Sprinter] 171 -> 160 metalcost, 4140 -> 3800 energycost, 500 -> 600 weaponvelocity
+• [Sheldon] 2200 -> 2800 energycost, 410 -> 400 metalcost
+• [Fatboy] 6.7333s -> 7s reloadtime, 0.85 -> 0.15 edge effectiveness, 240 -> 300 AoE, 11000 -> 15000 energycost
+• [Tzar] 3 -> 3.5 reloadtime, 40.5 -> 39 speed
+• [Bull] 60 -> 62 speed
+• [Sumo, Battleships] +10% health
+• [Spybots] 17600 / 22200 -> 12000 buildtime, change overrides the buildtime formula for them
+• [Hound, Gunslinger, Crawling Bombs] buildtime not changed by the formula below
+• [Hover platforms] -80m, -750e, -800bt cheaper
+• [T1 airplants] -60m, -300bt cheaper
+• [T2 constructors] +15% buildpower
+• [Seaplane constructors] T2 airplant added to buildlist
+• [Construction turrets]
+	- Metal cost: 210 -> 230
+	- Energy cost: 2600 -> 3200 (floating version)
+• [Factory buildpower]
+	- All T2 factories: -300 metalcost, 1.5x buildtime. Except Cortex Vehicleplant only -200 metalcost.
+	- T2 factories (bots, vehicles, navy) buildpower: 300 -> 600
+	- T2 airplants buildpower: 200 -> 600
+	- Seaplanes buildpower: 200 -> 300
+	- T3 gantry buildpower: 600 -> 1800
+• [Units from t2, t3 and seaplane factories]
+	- New buildtime = old buildtime * 1.1 + (metalcost * 60 + energycost) / 20
+	- Roughly 30% for most units. Less for units with already high bp costs like air, more than that for fast-building units like most ships
+• [Advanced geothermals] +50% buildtime
+• [Cortex fusion]
+	- Metal cost: 4500 -> 3600
+	- Energy cost: 26000 -> 22000
+	- Buildtime: 75400 -> 59000
+	- Energy generation: 1100 -> 850
+	- Health: 5000 -> 4300
+• [Armada fusion]
+	- Metal cost: 4300 -> 3350
+	- Energy cost: 21000 -> 18000
+	- Buildtime: 70000 -> 54000
+	- Energy generation: 1000 -> 750
+	- Health: 4450 -> 3800
+• [Cloaked fusion]
+	- Metal cost: 4700 -> 3650
+	- Energy cost: 26000 -> 22000
+	- Buildtime: 84400 -> 65000
+	- Energy generation: 1050 -> 750
+	- Cloak cost: 100 -> 75
+	- Health: 4450 -> 3800
+• [Decoy Fusion]
+	- Metalcost: 370 -> 270
+	- Health: 5200 -> 3800
+• [Advanced solars]
+	- Energy generation: 75 -> 80
+• [Shield Rework]
+	- Shields block projectiles, preventing them from bouncing unpredictably and sometimes into the backline.
+	- Things inside the shield are protected from blocked projectiles AoE.
+	- When a shield is near 0 capacity, the last hit over-damages the shield, requiring it to recharge that amount of excess capacity usage before coming back online.
+	- In addition, there's a minimum down time.
+	- Projectile types blocked by shields unchanged.
+• [Resurrection] Resurrected units regain their old XP.
+
+• [Legion changes] Updates relevant Legion unit stats to reflect Season 3 changes. Changelog is as follows:
+	- Martyr speed nerfed to 220 from 230, turnrate nerfed to 750 from 800
+	- Mosquito weapon AOE increased to 72 from 70, stockpile time reduced to 1.8 seconds from 2 seconds
+	- Spy bot became slightly cheaper and slower, buildtime reduced accordingly first to match other spybots
+	- Strider energy cost reduced to 5250 from 5400
+	- Scylla 15% health buff in accordance with other battleships
+	- Prometheus speed increased to 52 from 51
+	- Inferno reloadtime reduced to 7 seconds from 8 seconds
+	- Alaris energy cost increased to 850 from 800, buildtime increased to 1650 from 1600, reloadtime slightly increased to 2.3 seconds from 2.25 seconds
+	- Wheelie reloadtime increased by 10% in accordance with other scout vehicles
+	- Decreased Legion Advanced Solar Collector costs by 3% across the board
+	- Factory changes are identical to the other factions. Buildtime updates for units use the same formula as for other T2, T3, and seaplane units in the other two factions.
+   - Legion fusion:
+      Metal cost: 4900 -> 4000
+      Energy cost: 27000 -> 25000
+      Buildtime: 80000 -> 66000
+      Energy generation: 1200 -> 950
+      Health: 5400 -> 4600
+
+# December 2025
+• Unified maximum water depth for non-amphib land units to 22 (previously varied between 22-30)
+• Unified minimum water depth for non-heavy ships to 8 (previously varied between 8-10)
+• [Legion changes] 
+	- T2 shipyard, ships, seaplanes, and naval structures added
+	- Praetorian shotgun spread reduced 1900->1400
+	- Decurion range reduced 380->360, now deals 25% instead of 100% damage vs air
+	- Hippocampus (scout ship) now deals 25% instead of 50% damage vs air
+	- Small napalm blobs now deal 60dps and last 7s, previous was 45dps for 10s
+	- Inferno reloadtime 9s->8s
+	- Perdition stockpile time 70s->50s, stockpile cost reduced 500m17000E->350m14000E, impact damage 2000->1200 damage, napalm deals 120dps for 15s (3000 combined damage)
+	- Napalm damage cap increased 100->120dps
+   - Martyr damage vs commanders -25% -> -50%
+	- Syracusia (Destroyer) health reduced 4000->3800
+	- Thalassa (Cruiser) health increased 5400->5600
+	- Scylla (Battleship) health increased 8000->9000
+	- Corinth (T2 artillery ship) cost increased 12000m115kE->13000m125kE, speed reduced 10%
+	- Ionia (T2 floating turret) mg range increased 650->700
+	
+# November 2025
+• [Legion changes] 
+	- Karkinos cost increased, health increased, shotgun slightly higher dps with 2-round burst 
+	- Telchine cost reduction 660m19000E->600m13200E, firing angle increased, speed in water increased 30%
+	- Triton speed reduced 60->55, range reduced 600->550, speed in water increased 30%
+	- T1 shipyard, ships, and naval structures added   
+	- Iapetus (aa ship) cost 330m4800E->250m3600E, model scaled down 10%, fire rate reduced 15%, health reduced 20%
+	- Argonaut (frigate) tracking reduced
+	- Hippocampus (scout ship) speed increased 93->97, acceleration increased 4%
+	- Ketea (sub) cost reduced 340m2600E->320m2400E, speed increased 54->57, health reduced 640->600
+	
 # August 2025
 • [Aircraft] Vision raised to 430, if it was lower previously
 • [T1 Bombers] Random inaccuracy removed from their bombs
@@ -9,11 +122,11 @@
 • [Grunt] 270 -> 280 health
 
 # July, 30
-* gunslinger movement class changed to 3x3 and hitbox adjusted
-* Sprinter movement class changed to 3x3 and colvol adjusted to cover the funit fully at all angles
-* Welder movement class changed to 3x3 and footprint adjusted
-* Bulls movement class changed to 4x4 and slight increase in crush damage
-* arm minelayer movement class changed to 3x3
+• Gunslinger movement class changed to 3x3 and hitbox adjusted
+• Sprinter movement class changed to 3x3 and colvol adjusted to cover the funit fully at all angles
+• Welder movement class changed to 3x3 and footprint adjusted
+• Bulls movement class changed to 4x4 and slight increase in crush damage
+• Arm minelayer movement class changed to 3x3
 
 # July 2025
 • [T1 Mex] +41% hp
@@ -43,8 +156,8 @@
    - +17% costs
 
 # June 2025
- [t2 flak turrets] increased footprint from 2x2 to 3x3
- Warrior movement class from 2x2 to 3x3 (pawn to fido spacing)
+• [T2 flak turrets] increased footprint from 2x2 to 3x3
+• Warrior movement class from 2x2 to 3x3 (pawn to fido spacing)
 
 # June 2025
 • [Legion changes] 

@@ -5,7 +5,7 @@ return {
 		energycost = 22500,
 		metalcost = 1500,
 		buildpic = "LEGMED.DDS",
-		buildtime = 22500,
+		buildtime = 30370,
 		canmove = true,
 		collisionvolumeoffsets = "0 -12 0",
 		collisionvolumescales = "48 31 69",
@@ -147,6 +147,7 @@ return {
 					default = 500,
 				},
 				customparams = {
+					guidance_lost_radius = 100,
 					projectile_destruction_method = "descend",
 					overrange_distance = 1093,
 					speceffect = "guidance",

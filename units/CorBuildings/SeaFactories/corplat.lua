@@ -27,7 +27,7 @@ return {
 		sonardistance = 800,
 		terraformspeed = 1000,
 		waterline = 43,
-		workertime = 200,
+		workertime = 300,
 		yardmap = "wwwwww weeeew weeeew weeeew weeeew wwwwww",
 		buildoptions = {
 			[1] = "corcsa",

@@ -21,7 +21,7 @@ end
 -- Configuration ---------------------------------------------------------------
 
 local damageInterval = 0.7333 ---@type number in seconds, time between procs
-local damageLimit = 100 ---@type number in damage per second, soft-cap across multiple areas
+local damageLimit = 120 ---@type number in damage per second, soft-cap across multiple areas
 local damageExcessRate = 0.2 ---@type number %damage dealt above limit [0, 1)
 local damageCegMinScalar = 30 ---@type number in damage, minimum to show hit CEG
 local damageCegMinMultiple = 1 / 3 ---@type number in %damage, minimum to show hit CEG
@@ -240,7 +240,7 @@ end
 ---We prefer the target's midpoint if it is in the radius since the damaged CEGs are easier to see higher up
 ---on the model, but if it is too high/awkward then the base position is fine, with a small vertical offset.
 ---@param area table contains the timed area properties
----@param baseX number unit base position coordinates <x, y, z>
+---@param baseX? number unit base position coordinates <x, y, z>
 ---@param baseY number
 ---@param baseZ number
 ---@param midX number unit midpoint position coordinates <x, y, z>
@@ -250,6 +250,10 @@ end
 ---@return number? hitY
 ---@return number? hitZ
 local function getAreaHitPosition(area, baseX, baseY, baseZ, midX, midY, midZ)
+	if not baseX then
+		return
+	end
+
 	local radius = area.range
 
 	if midY >= area.ymin and midY <= area.ymax then
@@ -316,19 +320,22 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         for j = 1, #unitsInRange do
             local unitID = unitsInRange[j]
             if not unitDamageImmunity[spGetUnitDefID(unitID)][area.resistance] and not isNewUnit[unitID] then
-                local damageTaken = unitDamageTaken[unitID]
-                if not damageTaken then
-                    damageTaken = 0
-                    count = count + 1
-                    resetNewUnit[count] = unitID
-                end
-                local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
-                if showDamageCeg then
-                    local ux, uy, uz = spGetUnitPosition(unitID)
-                    spSpawnCEG(area.damageCeg, ux, uy, uz)
-                end
-                spAddUnitDamage(unitID, damage, nil, area.owner, area.weapon)
-                unitDamageTaken[unitID] = damageTaken + damage
+                local hitX, hitY, hitZ = getAreaHitPosition(area, spGetUnitPosition(unitID, true))
+
+				if hitX then
+					local damageTaken = unitDamageTaken[unitID]
+					if not damageTaken then
+						damageTaken = 0
+						count = count + 1
+						resetNewUnit[count] = unitID
+					end
+					local damage, showDamageCeg = getLimitedDamage(area.damage, damageTaken)
+					if showDamageCeg then
+						spSpawnCEG(area.damageCeg, hitX, hitY, hitZ)
+					end
+					unitDamageTaken[unitID] = damageTaken + damage
+					spAddUnitDamage(unitID, damage, nil, area.owner, area.weapon)
+				end
             end
         end
     end
@@ -484,8 +491,9 @@ function gadget:Initialize()
     end
 
     featDamageImmunity = {}
-    for i = 1, #spGetAllFeatures() do
-        local featureID = spGetAllFeatures()[i]
+	local allFeatures = spGetAllFeatures()
+    for i = 1, #allFeatures do
+        local featureID = allFeatures[i]
         local featureDefID = spGetFeatureDefID(featureID)
         local featureDef = FeatureDefs[featureDefID]
         if featureDef.indestructible or featureDef.geoThermal then
@@ -507,20 +515,6 @@ function gadget:Initialize()
         for frame = frameNumber - 1, frameNumber + gameSpeed do
             unitDamageReset[frame] = {}
             featDamageReset[frame] = {}
-        end
-
-        isNewUnit = {}
-		local progressMax = 0.05 -- Assuming 20s build time. Any guess is fine (for /luarules reload).
-		local beingBuilt, progress, health, healthMax, framesRemaining
-        local allUnits = spGetAllUnits()
-        for i = 1, #allUnits do
-            local unitID = allUnits[i]
-            beingBuilt, progress = spGetUnitIsBeingBuilt(unitID)
-			health, healthMax = spGetUnitHealth(unitID)
-            if beingBuilt and min(progress, health / healthMax) <= progressMax then
-                framesRemaining = frameInterval * (1 - 0.5 * min(progress, health / healthMax) / progressMax)
-                isNewUnit[unitID] = frameNumber + max(1, framesRemaining)
-            end
         end
     else
         Spring.Log(gadget:GetInfo().name, LOG.INFO, "No timed areas found. Removing gadget.")
@@ -546,14 +540,14 @@ function gadget:GameFrame(frame)
     frameNumber = frame
 
     for unitID, expire in pairs(isNewUnit) do
-        if expire > frame then
+        if expire < frame then
             isNewUnit[unitID] = nil
         end
     end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-    if builderID and isFactory[builderID] then
+    if builderID and isFactory[spGetUnitDefID(builderID)] then
         isNewUnit[unitID] = frameNumber + frameWaitTime
     end
 end

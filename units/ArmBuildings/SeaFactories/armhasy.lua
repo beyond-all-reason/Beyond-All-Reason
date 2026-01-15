@@ -2,7 +2,7 @@ return {
 	armhasy = {
 		builder = true,
 		buildpic = "ARMSHLTXUW.DDS",
-		buildtime = 61400,
+		buildtime = 85000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "256 80 221",
@@ -28,8 +28,8 @@ return {
 		selfdestructas = "hugeBuildingExplosionGenericSelfd-uw",
 		sightdistance = 273,
 		terraformspeed = 3000,
-		workertime = 600,
 		waterline = 1.5,
+		workertime = 600,
 		yardmap = "weeeeeeeeeeeeew eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee weeeeeeeeeeeeew",
 		buildoptions = {
 			[1] = "armhacs",
@@ -67,7 +67,7 @@ return {
 			},
 		},
 		sfxtypes = {
- 			pieceexplosiongenerators = {
+			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",
 				[3] = "deathceg4",
