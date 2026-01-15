@@ -2691,7 +2691,7 @@ end
 
 function DrawCountry(country, posY)
     if country ~= nil and country ~= "??" and VFS.FileExists(images['imgDir'] .. "flags/"  .. string.upper(country) .. images['flagsExt']) then
-        gl_Texture(imgDir .. "flags/" .. string.upper(country) .. images['flagsExt'])
+        gl_Texture(images['imgDir'] .. "flags/" .. string.upper(country) .. images['flagsExt'])
         gl_Color(1, 1, 1, 1)
         DrawRect(m_country.posX + widgetPosX + (3*playerScale), posY + (8*playerScale) - ((images['flagHeight']/2)*playerScale), m_country.posX + widgetPosX + (17*playerScale), posY + (8*playerScale) + ((images['flagHeight']/2)*playerScale))
     end
