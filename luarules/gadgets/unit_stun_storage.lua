@@ -51,13 +51,16 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 local function restoreStorage(unitID, unitDefID, teamID)
-	if storageDefs[unitDefID].metal then
-		local _, totalStorage = spGetTeamResources(teamID, "metal")
-		spSetTeamResource(teamID, "ms", totalStorage + storageDefs[unitDefID].metal)
-	end
-	if storageDefs[unitDefID].energy then
-		local _, totalStorage = spGetTeamResources(teamID, "energy")
-		spSetTeamResource(teamID, "es", totalStorage + storageDefs[unitDefID].energy)
+	local storage = storageDefs[unitDefID]
+	if storage then
+		if storage.metal then
+			local _, totalStorage = spGetTeamResources(teamID, "metal")
+			spSetTeamResource(teamID, "ms", totalStorage + storage.metal)
+		end
+		if storage.energy then
+			local _, totalStorage = spGetTeamResources(teamID, "energy")
+			spSetTeamResource(teamID, "es", totalStorage + storage.energy)
+		end
 	end
 	paralyzedUnits[unitID] = nil
 end
