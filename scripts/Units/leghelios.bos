@@ -81,8 +81,8 @@ AimPrimary(heading, pitch)
 	
 	lastpitch = pitch;
 
-	turn turret to y-axis heading speed <180.0>;
-	turn barrel to x-axis <0.0> - pitch speed <30.0>;
+	turn turret to y-axis heading speed <425>;
+	turn barrel to x-axis <0.0> - pitch speed <90>;
 	
 	wait-for-turn turret around y-axis;
 

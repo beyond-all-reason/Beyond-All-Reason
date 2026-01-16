@@ -97,8 +97,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn mount to y-axis heading speed <300.000000>;
-	turn gun to x-axis <0.000000> - pitch speed <300.000000>;
+	turn mount to y-axis heading speed <800.000000>;
+	turn gun to x-axis <0.000000> - pitch speed <800.000000>;
 	wait-for-turn mount around y-axis;
 	wait-for-turn gun around x-axis;
 	start-script RestoreAfterDelay();
