@@ -8,7 +8,7 @@ function widget:GetInfo()
 		date	= "August 1, 2025",
 		version = "1.0",
 		license = "GNU GPL, v2 or later",
-		layer 	= -1,
+		layer 	= -1, -- won't work at layer 0 for unknown reasons
 		enabled = true
 	}
 end
