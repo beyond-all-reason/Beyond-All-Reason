@@ -1,12 +1,14 @@
+local gadget = gadget ---@class Gadget
+
 function gadget:GetInfo()
     return {
         name      = 'Legion Con Turret Metal Extractor',
         desc      = 'Allows the mex to function as a con turret by replacing it with a fake mex with a con turret attached',
         author    = 'EnderRobo',
-        version   = 'v1',
+        version   = 'v2',
         date      = 'September 2024',
         license   = 'GNU GPL, v2 or later',
-        layer     = 12,
+        layer     = 12, -- TODO: Why?
         enabled   = true
     }
 end
@@ -15,128 +17,235 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-local legmohoconDefID = UnitDefNames["legmohocon"] and UnitDefNames["legmohocon"].id
-local legmohoconctDefID = UnitDefNames["legmohoconct"] and UnitDefNames["legmohoconct"].id
-local legmohoconDefIDScav = UnitDefNames["legmohocon_scav"] and UnitDefNames["legmohocon_scav"].id
-local legmohoconctDefIDScav = UnitDefNames["legmohoconct_scav"] and UnitDefNames["legmohoconct_scav"].id
-local mexesToSwap = {}
+local mexSearchRadiusXZ = 2 * Game.squareSize * Game.footprintScale
 
-function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if unitDefID ~= legmohoconDefID and unitDefID ~= legmohoconDefIDScav then
-        return
-    end
+local spGetUnitHealth = Spring.GetUnitHealth
 
-	mexesToSwap[unitID] = {unitDefID = unitDefID, unitTeam = unitTeam, frame = Spring.GetGameFrame() + 1}
+-- TODO: do not use hardcoded unit names
+local unitDefData = {
+	legmohocon = { mex = "legmohoconin", con = "legmohoconct" },
+}
+for unitName, unitPair in pairs(unitDefData) do
+	if not unitName:find("_scav") then
+		unitDefData[unitName .. "_scav"] = {
+			mex = unitPair.mex .. "_scav",
+			con = unitPair.con .. "_scav",
+		}
+	end
 end
 
-local function swapMex(unitID, unitDefID, unitTeam)
-	local scav = ""
-	if UnitDefs[unitDefID].customParams.isscavenger or unitTeam == Spring.Utilities.GetScavTeamID() then scav = "_scav" end
-	--Spring.Echo("isScav", UnitDefs[unitDefID].customParams.isscavenger, scav)
-	local xx,yy,zz = Spring.GetUnitPosition(unitID)
-	local facing = Spring.GetUnitBuildFacing(unitID)
-	local buildTime, metalCost, energyCost = Spring.GetUnitCosts(unitID)
-	local neutral = Spring.GetUnitNeutral(unitID)
-	local health = Spring.GetUnitHealth(unitID)																-- saves location, rotation, cost and health of mex
-	local original = Spring.GetUnitNearestAlly(unitID, 32)
-	local orgExtractMetal = 0
-	if original then
-		local orgbuildTime, orgmetalCost, orgenergyCost = Spring.GetUnitCosts(original)							-- gets metal cost of thing you are building over
-		local imex_id = Spring.CreateUnit("legmohoconin" .. scav,xx,yy,zz,facing,Spring.GetUnitTeam(unitID) )			-- creates imex on where mex was
-		local extractMetal = Spring.GetUnitMetalExtraction(unitID)
+local fakeBuildDefID = {} -- combined mex + con unit model used while constructing
+local mexActualDefID = {} -- the mex, which is non-interactive, but extracts metal
+local mexTurretDefID = {} -- the con, which is interactive and shows in GUI, etc.
 
-		if Spring.GetUnitIsDead(unitID) == false then																-- if you build this over something then it doesnt remove mex, this removes and reclaims it
-			orgExtractMetal = Spring.GetUnitMetalExtraction(original)
-			Spring.DestroyUnit(unitID, false, true)
-			Spring.AddTeamResource(unitTeam, "metal", metalCost)
-			Spring.UseTeamResource(unitTeam, "metal", orgmetalCost)												-- for some reason the unit you build it over gets reclaimed twice, this removes the excess
-		end
-		Spring.UseTeamResource(unitTeam, "metal", metalCost)												-- creating imex reclaims mex, this removes the metal that would give. DestroyUnit doesnt prevent the reclaim
-		if not imex_id then																					-- check incase the imex fails to spawn, removes and refunds the unit
-			Spring.DestroyUnit(unitID, false, true)
-			Spring.AddTeamResource(unitTeam, "metal", metalCost)
-			Spring.AddTeamResource(unitTeam, "energy", energyCost)
-			return
-		end
-		Spring.SetUnitBlocking(imex_id, true, true, false)													-- makes imex non interactive
-		Spring.SetUnitNoSelect(imex_id,true)
-		local nano_id = Spring.CreateUnit("legmohoconct" .. scav,xx,yy,zz,facing,Spring.GetUnitTeam(imex_id) )		-- creates con on imex
-		--Spring.Echo('nano_id', nano_id)
-		if not nano_id then																							-- check incase the con fails to spawn, removes and refunds the unit
-			Spring.DestroyUnit(unitID, false, true)
-			Spring.DestroyUnit(imex_id, false, true)
-			Spring.AddTeamResource(unitTeam, "metal", metalCost)
-			Spring.AddTeamResource(unitTeam, "energy", energyCost)
-			return
-		end
-		if neutral then
-			Spring.SetUnitNeutral(imex_id, true)
-			Spring.SetUnitNeutral(nano_id, true)
-		end
-		Spring.UnitAttach(imex_id,nano_id,6)																-- attaches con to imex
-		Spring.SetUnitRulesParam(nano_id, "pairedUnitID", imex_id)
-		Spring.SetUnitHealth(nano_id, health)																-- sets con health to be the same as mex
+for unitName, unitPair in pairs(unitDefData) do
+	local buildDef = UnitDefNames[unitName]
+	local conDef = UnitDefNames[unitPair.mex]
+	local mexDef = UnitDefNames[unitPair.con]
 
-		if extractMetal then
-			-- moves the metal extraction from imex to turret.
-			Spring.SetUnitResourcing(nano_id, "umm", (extractMetal + orgExtractMetal))
-			Spring.SetUnitResourcing(imex_id, "umm", (-extractMetal - orgExtractMetal))
-			Spring.SetUnitStealth (nano_id, true)
-		end
-
-		mexesToSwap[unitID] = nil
+	if buildDef and conDef and mexDef then
+		fakeBuildDefID[buildDef.id] = { mex = conDef.id, con = mexDef.id }
+		mexActualDefID[mexDef.id] = true
+		mexTurretDefID[conDef.id] = unitName -- for heaps/wrecks
 	end
+end
+
+local isExtractor = {}
+for unitDefID, unitDef in ipairs(UnitDefs) do
+	if unitDef.extractsMetal > 0 then
+		isExtractor[unitDefID] = true
+	end
+end
+
+local mexesToSwap = {}
+
+local function getNearestExtractor(unitID, unitTeam)
+	local ux, uy, uz = Spring.GetUnitPosition(unitID, true)
+	local nearUnits = CallAsTeam(unitTeam, Spring.GetUnitsInCylinder, ux, uz, mexSearchRadiusXZ, -3) -- -3 := ALLIES
+	local bestID, distance = nil, math.huge
+	for _, nearID in pairs(nearUnits) do
+		if nearID ~= unitID and isExtractor[Spring.GetUnitDefID(nearID)] then
+			local fitness = math.distance3dSquared(ux, uy, uz, Spring.GetUnitPosition(nearID, true))
+			if fitness < distance then
+				bestID, distance = nearID, fitness
+			end
+		end
+	end
+	return bestID
+end
+
+local function upgradeMetalExtractor(unitID, unitTeam)
+	-- TODO: API for swapping/replacing units would have multiple uses in BAR.
+	local oldMexID = getNearestExtractor(unitID, unitTeam)
+
+	if oldMexID and isExtractor[Spring.GetUnitDefID(oldMexID)] then
+		local _, oMetalCost, oEnergyCost = Spring.GetUnitCosts(oldMexID)
+		local oTeam = Spring.GetUnitTeam(oldMexID)
+		Spring.AddTeamResource(oTeam, "m", oMetalCost)
+		Spring.AddTeamResource(oTeam, "e", oEnergyCost)
+		Spring.DestroyUnit(oldMexID, false, true)
+
+		if unitTeam ~= oTeam then
+			-- NB: No unit cap issue since we've just destroyed a unit.
+			if Spring.TransferUnit(unitID, oTeam, true) then
+				unitTeam = oTeam
+			end
+		end
+	end
+
+	return unitTeam
+end
+
+local function doSwapMex(unitID, unitTeam, unitData)
+	local Spring = Spring
+
+	local isUnitNeutral = Spring.GetUnitNeutral(unitID)
+	local unitHealth = spGetUnitHealth(unitID)
+	local unitExtraction = Spring.GetUnitMetalExtraction(unitID) or 0
+
+	local unitMetal, unitEnergy = unitData.metal, unitData.energy
+	local ux, uy, uz, unitFacing = unitData.x, unitData.y, unitData.z, unitData.facing
+
+	Spring.DestroyUnit(unitID, false, true) -- clears unitID from mexesToSwap in g:UnitDestroyed
+
+	local mexID = Spring.CreateUnit(unitData.swapDefs.mex, ux, uy, uz, unitFacing, unitTeam)
+	if not mexID then
+		Spring.AddTeamResource(unitTeam, "m", unitMetal)
+		Spring.AddTeamResource(unitTeam, "e", unitEnergy)
+		return
+	end
+	Spring.SetUnitBlocking(mexID, true, true, false)
+	Spring.SetUnitNoSelect(mexID,true)
+
+	local conID = Spring.CreateUnit(unitData.swapDefs.con, ux, uy, uz, unitFacing, unitTeam)
+	if not conID then
+		Spring.DestroyUnit(mexID, false, true)
+		Spring.AddTeamResource(unitTeam, "m", unitMetal)
+		Spring.AddTeamResource(unitTeam, "e", unitEnergy)
+		return
+	end
+	-- TODO: Get attachment piece by customparam.
+	Spring.UnitAttach(mexID, conID, 6)
+	Spring.SetUnitRulesParam(conID, "pairedUnitID", mexID)
+	Spring.SetUnitRulesParam(mexID, "pairedUnitID", conID)
+
+	Spring.SetUnitHealth(conID, unitHealth)
+	Spring.SetUnitStealth(conID, true)
+	-- TODO: Is this still needed, given the `pairedUnitID`?
+	Spring.SetUnitResourcing(conID, "umm", unitExtraction)
+	Spring.SetUnitResourcing(mexID, "umm", -unitExtraction)
+	if isUnitNeutral then
+		Spring.SetUnitNeutral(mexID, true)
+		Spring.SetUnitNeutral(conID, true)
+	end
+end
+
+---@param unitID integer newly-built unit, which is the fake unit
+---@param unitData table and its associated mex-turret unit info
+local function trySwapMex(unitID, unitData)
+	if Spring.GetUnitIsDead(unitID) ~= false then
+		return
+	end
+
+	local unitTeam = Spring.GetUnitTeam(unitID)
+
+	if not unitData.upgraded then
+		unitData.upgraded = true
+		unitTeam = upgradeMetalExtractor(unitID, unitTeam)
+	end
+
+	local unitMax, unitCount = Spring.GetTeamMaxUnits(unitTeam)
+	if not unitCount or unitMax < unitCount + 1 then
+		return
+	end
+
+	doSwapMex(unitID, unitTeam, unitData)
 end
 
 function gadget:GameFrame(frame)
 	for unitID, unitData in pairs(mexesToSwap) do
+		-- TODO: WTF:
 		if frame > unitData.frame then
-			swapMex(unitID, unitData.unitDefID, unitData.unitTeam)
+			trySwapMex(unitID, unitData)
 		end
 	end
+end
+
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	if fakeBuildDefID[unitDefID] then
+		local swapDefs = fakeBuildDefID[unitDefID]
+		local ux, uy, uz = Spring.GetUnitPosition(unitID)
+		local _, metalCost, energyCost = Spring.GetUnitCosts(unitID)
+
+		Spring.MarkerAddPoint(ux, uy, uz, "finished")
+
+		mexesToSwap[unitID] = {
+			swapDefs = swapDefs,
+			x        = ux,
+			y        = uy,
+			z        = uz,
+			facing   = Spring.GetUnitBuildFacing(unitID),
+			metal    = metalCost,
+			energy   = energyCost,
+			frame    = Spring.GetGameFrame() + 1,
+			upgraded = false,
+		}
+    end
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	if unitDefID ~= legmohoconctDefID and unitDefID ~= legmohoconctDefIDScav then 
-        return 
+	if mexTurretDefID[unitDefID] then
+		local pairedUnitID = Spring.GetUnitRulesParam(unitID, "pairedUnitID")
+		Spring.TransferUnit(pairedUnitID, newTeam)
     end
-	Spring.TransferUnit(Spring.GetUnitTransporter(unitID), newTeam)
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-
-	if unitDefID ~= legmohoconctDefID and unitDefID ~= legmohoconctDefIDScav then
-        return
-    end
-	local health,maxHealth = Spring.GetUnitHealth(unitID)
-	if health-damage < 0 then																		-- when damaged and killed
-		local xx,yy,zz = Spring.GetUnitPosition(unitID)
-		local facing = Spring.GetUnitBuildFacing(unitID)
-		local scav = ""
-		if UnitDefs[unitDefID].customParams.isscavenger or unitTeam == Spring.Utilities.GetScavTeamID() then scav = "_scav" end
-		
-		if damage < (maxHealth / 4) then
-			--Spring.Echo("Legmohocon feature created")															-- if damage is <25% of max health spawn wreck
-			local featureID = Spring.CreateFeature("legmohocon" .. scav .. "_dead" , xx, yy, zz, facing, unitTeam)
-			Spring.SetFeatureResurrect(featureID, "legmohocon" .. scav, facing, 0)
-		end
-		if damage > (maxHealth / 4) and damage < (maxHealth / 2) then								-- if damage is >25% and <50% of max health spawn heap
-			Spring.CreateFeature("legmohocon_heap", xx, yy, zz, facing, unitTeam)
-		end
+	if mexActualDefID[unitDefID] then
+		return 0, 0 -- non-interactive
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)		-- if con dies remove imex
-	
-	if unitDefID ~= legmohoconctDefID and unitDefID ~= legmohoconctDefIDScav then 
-        return 
-    end
-	if Spring.GetUnitTransporter(unitID) then
-		Spring.DestroyUnit(Spring.GetUnitTransporter(unitID), false, true)
+local function _UnitDamaged(unitID, unitTeam, damage)
+	local health, maxHealth = spGetUnitHealth(unitID)
+
+	if health - damage < 0 and damage < maxHealth * 0.5 then
+		local buildAsUnitName = mexTurretDefID[unitDefID]
+		local xx, yy, zz = Spring.GetUnitPosition(unitID)
+		local facing = Spring.GetUnitBuildFacing(unitID)
+
+		-- todo: "damage" is not "recent damage" is not "damage severity"
+		if damage < maxHealth * 0.25 then
+			local featureID = Spring.CreateFeature(buildAsUnitName .. "_dead" , xx, yy, zz, facing, unitTeam)
+			if featureID then
+				Spring.SetFeatureResurrect(featureID, buildAsUnitName, facing, 0)
+			end
+		else
+			Spring.CreateFeature(buildAsUnitName .. "_heap", xx, yy, zz, facing, unitTeam)
+		end
 	end
-	for destroyedUnitID, destroyedUnitData in pairs(mexesToSwap) do
-		if unitID == destroyedUnitID then
-			mexesToSwap[destroyedUnitID] = nil
+end
+function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+	if mexTurretDefID[unitDefID] then
+        _UnitDamaged(unitID, unitTeam, damage)
+    end
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	mexesToSwap[unitID] = nil
+
+	if mexTurretDefID[unitDefID] then
+		local pairedUnitID = Spring.GetUnitRulesParam(unitID, "pairedUnitID")
+		if pairedUnitID then
+			Spring.DestroyUnit(pairedUnitID, false, true)
+		end
+    end
+end
+
+function gadget:Initialize()
+	for _, unitID in pairs(Spring.GetAllUnits()) do
+		if not Spring.GetUnitIsBeingBuilt(unitID) then
+			gadget:UnitFinished(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
 		end
 	end
 end
