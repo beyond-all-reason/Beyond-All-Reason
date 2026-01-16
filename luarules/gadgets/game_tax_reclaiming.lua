@@ -20,10 +20,8 @@ if Spring.GetModOptions().tax_resource_sharing_amount == 0 then
 	return false
 end
 
-local sharingTax = Spring.GetModOptions().tax_resource_sharing_amount
-if Spring.GetModOptions().easytax then
-	sharingTax = 0.3 -- 30% tax for easytax modoption
-end
+local taxFunctions = VFS.Include('common/tax_functions.lua')
+local sharingTax = taxFunctions.taxModoptionRatio()
 
 -- We don't use UnitDestroyed because then we can't find out how much metal is in a partially built unit
 function gadget:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, step)
