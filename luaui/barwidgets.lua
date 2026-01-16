@@ -114,6 +114,9 @@ local flexCallIns = {
 	'ActiveCommandChanged',
 	'CameraRotationChanged',
 	'CameraPositionChanged',
+	'MiniMapRotationChanged',
+	'MiniMapStateChanged',
+	'MiniMapGeometryChanged',
 	'DefaultCommand',
 	'UnitCreated',
 	'UnitFinished',
@@ -1430,6 +1433,30 @@ function widgetHandler:CameraPositionChanged(posx, posy, posz)
 	for _,w in ipairs(self.CameraPositionChangedList) do
 		w:CameraPositionChanged(posx, posy, posz)
 	end
+	tracy.ZoneEnd()
+end
+        
+function widgetHandler:MiniMapRotationChanged(newRot, oldRot)
+	tracy.ZoneBeginN("W:MiniMapRotationChanged")
+	for _, w in ipairs(self.MiniMapRotationChangedList) do
+		w:MiniMapRotationChanged(newRot, oldRot)
+  end
+	tracy.ZoneEnd()
+end
+
+function widgetHandler:MiniMapStateChanged(isMinimized, isMaximized, isSlaved)
+	tracy.ZoneBeginN("W:MiniMapStateChanged")
+	for _, w in ipairs(self.MiniMapStateChangedList) do
+		w:MiniMapStateChanged(isMinimized, isMaximized, isSlaved)
+	end
+	tracy.ZoneEnd()
+end
+
+function widgetHandler:MiniMapGeometryChanged(newPosX, newPosY, newDimX, newDimY, oldPosX, oldPosY, oldDimX, oldDimY)
+	tracy.ZoneBeginN("W:MiniMapGeometryChanged")
+	for _, w in ipairs(self.MiniMapGeometryChangedList) do
+		w:MiniMapGeometryChanged(newPosX, newPosY, newDimX, newDimY, oldPosX, oldPosY, oldDimX, oldDimY)
+  end
 	tracy.ZoneEnd()
 end
 
