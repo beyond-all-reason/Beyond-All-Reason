@@ -17,11 +17,11 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local taxFunctions = VFS.Include('common/tax_functions.lua')
-if not (taxFunctions.reclaimTaxIsEnabled()) then
+if not (taxFunctions.reclaimLiveUnitTaxIsEnabled()) then
 	return false
 end
 
-local reclaimTax = taxFunctions.reclaimTaxRatio() or 0
+local reclaimTax = taxFunctions.reclaimLiveUnitTaxRatio() or 0
 -- We don't use UnitDestroyed because then we can't find out how much metal is in a partially built unit
 function gadget:AllowUnitBuildStep(_, builderTeam, unitID, unitDefID, step)
 	local hp,maxhp,_,_,currentBuild = Spring.GetUnitHealth(unitID)

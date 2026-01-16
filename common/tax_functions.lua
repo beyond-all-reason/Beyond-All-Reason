@@ -3,7 +3,7 @@ local function sharingTaxIsEnabled()
 end
 
 -- currently unused. left separately in case easytax or other anti-coop solutions wish for separate reclaim tax
-local function reclaimTaxIsEnabled()
+local function reclaimLiveUnitTaxIsEnabled()
 	return false
 end
 
@@ -16,9 +16,9 @@ local function sharingTaxRatio()
 	return sharingTax
 end
 
-local function reclaimTaxRatio()
+local function reclaimLiveUnitTaxRatio()
 	-- strictly speaking it is not a percentage from 0% to 100%, but a 0.0 to 1.0 float
-	-- deliberately set to zero-tax as currently no anti-coop solutions wish for a reclaim tax
+	-- deliberately set to zero tax ratio as currently no anti-coop solutions wish for a reclaim tax
 	local reclaimTax = 0
 	return reclaimTax
 end
@@ -26,7 +26,7 @@ end
 local taxFunctions = {
 	sharingTaxIsEnabled = sharingTaxIsEnabled,
 	sharingTaxRatio = sharingTaxRatio,
-	reclaimTaxIsEnabled = reclaimTaxIsEnabled,
-	reclaimTaxRatio = reclaimTaxRatio
+	reclaimLiveUnitTaxIsEnabled = reclaimLiveUnitTaxIsEnabled,
+	reclaimLiveUnitTaxRatio = reclaimLiveUnitTaxRatio
 }
 return taxFunctions
