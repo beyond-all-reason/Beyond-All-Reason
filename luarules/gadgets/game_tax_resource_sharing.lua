@@ -20,7 +20,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local taxFunctions = VFS.Include('common/tax_functions.lua')
-if (not taxFunctions.taxModoptionIsEnabled()) then 
+if (not taxFunctions.sharingTaxIsEnabled()) then
   return false 
 end
 
@@ -29,7 +29,7 @@ local spGetTeamUnitCount = Spring.GetTeamUnitCount
 
 local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 / #Spring.GetTeamList()))
 
-local sharingTax = taxFunctions.taxModoptionRatio()
+local sharingTax = taxFunctions.sharingTaxRatio()
 
 ----------------------------------------------------------------
 -- Callins

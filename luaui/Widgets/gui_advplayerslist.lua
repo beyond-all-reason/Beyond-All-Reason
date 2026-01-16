@@ -199,8 +199,11 @@ local apiAbsPosition = { 0, 0, 0, 0, 1, 1, false }
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
-local taxFunctions = VFS.Include('common/tax_functions.lua')
-local sharingTax = taxFunctions.taxModoptionRatio()
+local sharingTax = nil
+do
+    local taxFunctions = VFS.Include('common/tax_functions.lua')
+    sharingTax = taxFunctions.sharingTaxRatio()
+end
 
 --------------------------------------------------------------------------------
 -- Colors

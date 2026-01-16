@@ -38,7 +38,6 @@ local LineTypes = {
 }
 
 local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
-local taxFunctions = VFS.Include('common/tax_functions.lua')
 
 local L_DEPRECATED = LOG.DEPRECATED
 local isDevSingle = (Spring.Utilities.IsDevMode() and Spring.Utilities.Gametype.IsSinglePlayer())
