@@ -235,6 +235,34 @@ function Gadgets.UpdateCumulativeSent(springApi, teamId, resourceType, amountSen
   springApi.SetTeamRulesParam(teamId, param, current + amountSent)
 end
 
+-- Persistent state for staggered ally group updates
+local allyGroupUpdateState = {
+  allyGroups = {},       -- allyTeamId -> {teamId, teamId, ...}
+  allyTeamIds = {},      -- ordered list of allyTeamIds
+  nextGroupIndex = 1,    -- which group to update next (1-indexed)
+  initialized = false,
+}
+
+local function rebuildAllyGroups(springRepo)
+  local state = allyGroupUpdateState
+  state.allyGroups = {}
+  state.allyTeamIds = {}
+  
+  local allTeams = springRepo.GetTeamList()
+  for _, teamId in ipairs(allTeams) do
+    local allyTeamId = springRepo.GetTeamAllyTeamID(teamId)
+    if not state.allyGroups[allyTeamId] then
+      state.allyGroups[allyTeamId] = {}
+      state.allyTeamIds[#state.allyTeamIds + 1] = allyTeamId
+    end
+    local group = state.allyGroups[allyTeamId]
+    group[#group + 1] = teamId
+  end
+  
+  state.initialized = true
+  state.nextGroupIndex = 1
+end
+
 ---@param springRepo ISpring
 ---@param frame number
 ---@param lastUpdate number
@@ -246,22 +274,63 @@ function Gadgets.UpdatePolicyCache(springRepo, frame, lastUpdate, updateRate, co
     return lastUpdate
   end
 
+  local state = allyGroupUpdateState
+  if not state.initialized then
+    rebuildAllyGroups(springRepo)
+  end
+  
+  local numGroups = #state.allyTeamIds
+  if numGroups == 0 then
+    return frame
+  end
+  
   local taxRate, thresholds = SharedConfig.getTaxConfig(springRepo)
   local resultFactory = Gadgets.BuildResultFactory(taxRate, thresholds[ResourceType.METAL], thresholds[ResourceType.ENERGY])
   
-  local allTeams = springRepo.GetTeamList()
-  for _, senderID in ipairs(allTeams) do
-    for _, receiverID in ipairs(allTeams) do
-      local ctx = contextFactory.policy(senderID, receiverID)
+  -- Process half the ally groups per frame (minimum 1)
+  local groupsPerFrame = math.max(1, math.floor(numGroups / 2))
+  local groupsProcessed = 0
+  
+  while groupsProcessed < groupsPerFrame do
+    local allyTeamId = state.allyTeamIds[state.nextGroupIndex]
+    local allyGroup = state.allyGroups[allyTeamId]
+    
+    -- Within this ally group: compute full policies (allies can share)
+    for _, senderID in ipairs(allyGroup) do
+      for _, receiverID in ipairs(allyGroup) do
+        local ctx = contextFactory.policy(senderID, receiverID)
+        
+        local metalPolicy = resultFactory(ctx, ResourceType.METAL)
+        Gadgets.CachePolicyResult(springRepo, senderID, receiverID, ResourceType.METAL, metalPolicy)
+        
+        local energyPolicy = resultFactory(ctx, ResourceType.ENERGY)
+        Gadgets.CachePolicyResult(springRepo, senderID, receiverID, ResourceType.ENERGY, energyPolicy)
+      end
       
-      local metalPolicy = resultFactory(ctx, ResourceType.METAL)
-      Gadgets.CachePolicyResult(springRepo, senderID, receiverID, ResourceType.METAL, metalPolicy)
-      
-      local energyPolicy = resultFactory(ctx, ResourceType.ENERGY)
-      Gadgets.CachePolicyResult(springRepo, senderID, receiverID, ResourceType.ENERGY, energyPolicy)
+      -- Cross-alliance: cache deny policies (cheap, no context building needed)
+      for _, otherAllyTeamId in ipairs(state.allyTeamIds) do
+        if otherAllyTeamId ~= allyTeamId then
+          local enemyGroup = state.allyGroups[otherAllyTeamId]
+          for _, receiverID in ipairs(enemyGroup) do
+            local metalDeny = Shared.CreateDenyPolicy(senderID, receiverID, ResourceType.METAL, springRepo)
+            Gadgets.CachePolicyResult(springRepo, senderID, receiverID, ResourceType.METAL, metalDeny)
+            
+            local energyDeny = Shared.CreateDenyPolicy(senderID, receiverID, ResourceType.ENERGY, springRepo)
+            Gadgets.CachePolicyResult(springRepo, senderID, receiverID, ResourceType.ENERGY, energyDeny)
+          end
+        end
+      end
     end
+    
+    state.nextGroupIndex = (state.nextGroupIndex % numGroups) + 1
+    groupsProcessed = groupsProcessed + 1
   end
+  
   return frame
+end
+
+function Gadgets.InvalidateAllyGroupCache()
+  allyGroupUpdateState.initialized = false
 end
 
 ---@param springRepo ISpring
