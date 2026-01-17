@@ -59,14 +59,7 @@ local transportToFactory = {}
 local activeTransportToUnit = {}
 local transportState = {}
 local unitToDestination = {}
-
 local cachedUnitDefs = {}
-local debugLog = true
-local function log(message)
-	if debugLog then
-		Spring.Echo(message)
-	end
-end
 
 for id, def in pairs(UnitDefs) do
 	cachedUnitDefs[id] = {
@@ -81,10 +74,6 @@ for id, def in pairs(UnitDefs) do
 		transportSize       = def.transportSize,
 		xsize               = def.xsize
 	}
-end
-
-local function unitName(unitID)
-	return cachedUnitDefs[Spring.GetUnitDefID(unitID)].translatedHumanName
 end
 
 local function isFactory(unitID)
@@ -127,14 +116,12 @@ end
 
 local function tryDeactivateWait(unitID)
     if isWaiting(unitID) then
-        log("Issuing wait " .. unitID)
         Spring.GiveOrderToUnit(unitID, CMD.WAIT, {}, CMD.OPT_ALT)
     end
 end
 
 local function tryActivateWait(unitID)
     if not isWaiting(unitID) then
-        log("Issuing wait " .. unitID)
         Spring.GiveOrderToUnit(unitID, CMD.WAIT, {}, CMD.OPT_ALT)
     end
 end
@@ -160,7 +147,6 @@ function widget:Initialize()
 		local isGuarding = cmdID and cmdID == CMD.GUARD
 
 		if isGuarding and isTransport(unitID) and isFactory(targetUnitID) then
-			log("Transport " .. unitID .. " IDLE after registering")
 			registerTransport(unitID, targetUnitID)
 			transportState[unitID] = transport_states.idle
 		end
@@ -185,7 +171,6 @@ function widget:GameFrame(frame)
         -- Check if transport has loaded unit
         if not IsUnitAlive(target) and transportState[transportID] ~= transport_states.unloaded and not isTransportingUnit(transportID, target) then
             -- unit has been blown up, reset to unloaded
-            log("Transport " .. transportID .. " UNLOADED")
             transportState[transportID] = transport_states.unloaded
             activeTransportToUnit[transportID] = nil
             Spring.GiveOrderToUnit(transportID, CMD.GUARD, transportToFactory[transportID], CMD.OPT_SHIFT)  -- go back to base
@@ -204,7 +189,6 @@ function widget:GameFrame(frame)
                 if isTransportingUnit(transportID, target) then                    
                     transportState[transportID] = transport_states.loaded
                     tryDeactivateWait(target)
-                    log("Transport " .. transportID .. " LOADED")
                     Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, unitToDestination[target], CMD.OPT_RIGHT)
                 end
             end
@@ -218,7 +202,6 @@ function widget:GameFrame(frame)
             -- Check if unit has left transport
             local carriedUnits = Spring.GetUnitIsTransporting(transportID)
             if carriedUnits == nil or #carriedUnits == 0 and transportState[transportID] == transport_states.loaded then
-                log("Transport " .. transportID .. " UNLOADED")
                 transportState[transportID] = transport_states.unloaded
                 Spring.GiveOrderToUnit(transportID, CMD.GUARD, transportToFactory[transportID],  CMD.OPT_SHIFT)  -- go back to base
                 tryDeactivateWait(target)
@@ -227,7 +210,6 @@ function widget:GameFrame(frame)
             -- The transport wants to pick up the unit. If the unit is waiting, go ahead and pick it up.
             if transportState[transportID] == transport_states.approaching then
                 if isWaiting(target) then
-                    log("Transport " .. transportID .. " PICKING_UP")
                     transportState[transportID] = transport_states.picking_up
                     Spring.GiveOrderToUnit(transportID, CMD.LOAD_UNITS, target,  CMD.OPT_RIGHT) --Load Unit
                 end
@@ -270,18 +252,15 @@ local function canTransport(transportID, unitID)
 	end
 	
 	if uDefObj.xsize > tDefObj.transportSize * Game.footprintScale then
-		log("Size failed")
 		return false
 	end
 
 	local trans = Spring.GetUnitIsTransporting(transportID) -- capacity check
 	if tDefObj.transportCapacity <= #trans then
-		log("Count failed. Capacity " .. tDefObj.transportCapacity .. " count:" .. #trans)
 		return false
 	end
 	
 	if uDefObj.cantBeTransported then
-		log("Can't be transported")
 		return false
 	end
 
@@ -292,7 +271,6 @@ local function canTransport(transportID, unitID)
 	mass = mass + uDefObj.mass
 	
 	if mass > tDefObj.transportMass then
-		log("Mass: " .. mass .. " vs capacity " .. tDefObj.transportMass .. " for " .. unitName(unitID))
 		return false
 	end
 	
@@ -317,7 +295,6 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
             end
 
             if isFactory(targetUnitID) then
-                log("Transport " .. createdUnitID .. " UNLOADED after registering")
                 transportState[createdUnitID]  = transport_states.unloaded
                 activeTransportToUnit[createdUnitID] = math.huge
                 registerTransport(createdUnitID, targetUnitID)
@@ -327,7 +304,6 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
         elseif factoryToGuardingTransports[factID] and next(factoryToGuardingTransports[factID]) then
             local destination = getValidRallyCommandDestination(createdUnitID)
             if destination == nil then
-                log("Second destination not a move command")
                 return
             end
 
@@ -354,7 +330,6 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
             end
 
             if bestTransportID > -1 then
-                log("Transport " .. bestTransportID .. " APPROACHING " .. createdUnitID)
                 transportState[bestTransportID]       = transport_states.approaching
 
                 local unitWaitDestination               = {Spring.GetUnitPosition(createdUnitID)}
@@ -395,14 +370,12 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
                 -- This is because of timing issues with CommandNotify/UnitCommand
                 local carriedUnits = Spring.GetUnitIsTransporting(orderedUnit)
                 if carriedUnits and #carriedUnits > 0 then
-                    log("Transport " .. orderedUnit .. " PICKING_UP after registering")
                     local x, _, z = Spring.GetUnitPosition(orderedUnit)
 
                     transportState[orderedUnit]        = transport_states.picking_up
                     activeTransportToUnit[orderedUnit] = carriedUnits[1]
                     unitToDestination[carriedUnits[1]] = {x, Spring.GetGroundHeight(x, z), z}
                 else
-                    log("Transport " .. orderedUnit .. " IDLE after registering with " .. targetUnitID)
                     transportState[orderedUnit] = transport_states.idle
                 end
             end
