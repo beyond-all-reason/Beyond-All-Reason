@@ -104,8 +104,6 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	end
 end
 
----@param unitID integer newly-built unit, which is the fake unit
----@param unitData table and its associated mex-turret unit info
 local function trySwapMex(unitID, unitData)
 	if Spring.GetUnitIsDead(unitID) ~= false then
 		return
