@@ -151,7 +151,12 @@ function gadget:PlayerAdded(playerID)
 	local _, _, _, teamID = springRepo.GetPlayerInfo(playerID, false)
 	if teamID then
 		InitializeNewTeam(teamID)
+		ResourceTransfer.InvalidateAllyGroupCache()
 	end
+end
+
+function gadget:TeamDied(teamID)
+	ResourceTransfer.InvalidateAllyGroupCache()
 end
 
 --------------------------------------------------------------------------------
