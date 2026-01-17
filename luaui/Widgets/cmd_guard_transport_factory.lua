@@ -46,7 +46,6 @@ local PICKUP_TIME_THRESHOLD = 3 -- If the transport is far away from the unit to
 local FACTORY_CLEARANCE_DISTANCE = 50 -- Distance considered "far from factory" for pickup readiness
 
 -- =================GLOBAL VARIABLES==============
-local myTeam            = Spring.GetLocalTeamID()
 local transport_states = {
 	idle = 0,
 	approaching = 1,
@@ -142,7 +141,7 @@ function widget:Initialize()
 		return
 	end
 	
-	for _, unitID in ipairs(Spring.GetTeamUnits(myTeam)) do
+	for _, unitID in ipairs(Spring.GetTeamUnits(Spring.GetLocalTeamID())) do
 		local cmdID, _, _, targetUnitID = Spring.GetUnitCurrentCommand(unitID, 1)
 		local isGuarding = cmdID and cmdID == CMD.GUARD
 
@@ -286,7 +285,7 @@ end
 
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
     local createdUnitID = unitID
-    if unitTeam == myTeam then
+    if unitTeam == Spring.GetLocalTeamID() then
         if isTransport(createdUnitID) then
             -- Handle case where transport is rallied to another lab
             local cmdID, _, _, targetUnitID = Spring.GetUnitCurrentCommand(createdUnitID, 1)
