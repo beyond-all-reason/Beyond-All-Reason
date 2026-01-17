@@ -9,7 +9,7 @@ function gadget:GetInfo()
         date      = 'September 2024',
         license   = 'GNU GPL, v2 or later',
         layer     = 12, -- TODO: Why?
-        enabled   = true
+        enabled   = true, -- auto-disables
     }
 end
 
@@ -55,6 +55,10 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.extractsMetal > 0 then
 		isExtractor[unitDefID] = true
 	end
+end
+
+if not next(fakeBuildDefID) or not next(isExtractor) then
+	return false
 end
 
 local mexesToSwap = {}
