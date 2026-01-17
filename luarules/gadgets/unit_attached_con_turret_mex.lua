@@ -134,8 +134,6 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		local ux, uy, uz = Spring.GetUnitPosition(unitID)
 		local _, metalCost, energyCost = Spring.GetUnitCosts(unitID)
 
-		Spring.MarkerAddPoint(ux, uy, uz, "finished")
-
 		mexesToSwap[unitID] = {
 			swapDefs = swapDefs,
 			x        = ux,
