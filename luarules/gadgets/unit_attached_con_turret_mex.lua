@@ -17,8 +17,6 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-local mexSearchRadiusXZ = 2 * Game.squareSize * Game.footprintScale
-
 local spGetUnitHealth = Spring.GetUnitHealth
 
 -- TODO: do not use hardcoded unit names
@@ -63,43 +61,6 @@ end
 
 local mexesToSwap = {}
 
-local function getNearestExtractor(unitID, unitTeam)
-	local ux, uy, uz = Spring.GetUnitPosition(unitID, true)
-	local nearUnits = CallAsTeam(unitTeam, Spring.GetUnitsInCylinder, ux, uz, mexSearchRadiusXZ, -3) -- -3 := ALLIES
-	local bestID, distance = nil, math.huge
-	for _, nearID in pairs(nearUnits) do
-		if nearID ~= unitID and isExtractor[Spring.GetUnitDefID(nearID)] then
-			local fitness = math.distance3dSquared(ux, uy, uz, Spring.GetUnitPosition(nearID, true))
-			if fitness < distance then
-				bestID, distance = nearID, fitness
-			end
-		end
-	end
-	return bestID
-end
-
-local function upgradeMetalExtractor(unitID, unitTeam)
-	-- TODO: API for swapping/replacing units would have multiple uses in BAR.
-	local oldMexID = getNearestExtractor(unitID, unitTeam)
-
-	if oldMexID and isExtractor[Spring.GetUnitDefID(oldMexID)] then
-		local _, oMetalCost, oEnergyCost = Spring.GetUnitCosts(oldMexID)
-		local oTeam = Spring.GetUnitTeam(oldMexID)
-		Spring.AddTeamResource(oTeam, "m", oMetalCost)
-		Spring.AddTeamResource(oTeam, "e", oEnergyCost)
-		Spring.DestroyUnit(oldMexID, false, true)
-
-		if unitTeam ~= oTeam then
-			-- NB: No unit cap issue since we've just destroyed a unit.
-			if Spring.TransferUnit(unitID, oTeam, true) then
-				unitTeam = oTeam
-			end
-		end
-	end
-
-	return unitTeam
-end
-
 local function doSwapMex(unitID, unitTeam, unitData)
 	local Spring = Spring
 
@@ -107,15 +68,14 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	local unitHealth = spGetUnitHealth(unitID)
 	local unitExtraction = Spring.GetUnitMetalExtraction(unitID) or 0
 
-	local unitMetal, unitEnergy = unitData.metal, unitData.energy
-	local ux, uy, uz, unitFacing = unitData.x, unitData.y, unitData.z, unitData.facing
-
 	Spring.DestroyUnit(unitID, false, true) -- clears unitID from mexesToSwap in g:UnitDestroyed
+
+	local ux, uy, uz, unitFacing = unitData.x, unitData.y, unitData.z, unitData.facing
 
 	local mexID = Spring.CreateUnit(unitData.swapDefs.mex, ux, uy, uz, unitFacing, unitTeam)
 	if not mexID then
-		Spring.AddTeamResource(unitTeam, "m", unitMetal)
-		Spring.AddTeamResource(unitTeam, "e", unitEnergy)
+		Spring.AddTeamResource(unitTeam, "m", unitData.metal)
+		Spring.AddTeamResource(unitTeam, "e", unitData.energy)
 		return
 	end
 	Spring.SetUnitBlocking(mexID, true, true, false)
@@ -124,8 +84,8 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	local conID = Spring.CreateUnit(unitData.swapDefs.con, ux, uy, uz, unitFacing, unitTeam)
 	if not conID then
 		Spring.DestroyUnit(mexID, false, true)
-		Spring.AddTeamResource(unitTeam, "m", unitMetal)
-		Spring.AddTeamResource(unitTeam, "e", unitEnergy)
+		Spring.AddTeamResource(unitTeam, "m", unitData.metal)
+		Spring.AddTeamResource(unitTeam, "e", unitData.energy)
 		return
 	end
 	-- TODO: Get attachment piece by customparam.
@@ -152,13 +112,8 @@ local function trySwapMex(unitID, unitData)
 	end
 
 	local unitTeam = Spring.GetUnitTeam(unitID)
-
-	if not unitData.upgraded then
-		unitData.upgraded = true
-		unitTeam = upgradeMetalExtractor(unitID, unitTeam)
-	end
-
 	local unitMax, unitCount = Spring.GetTeamMaxUnits(unitTeam)
+
 	if not unitCount or unitMax < unitCount + 1 then
 		return
 	end
@@ -192,7 +147,6 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			metal    = metalCost,
 			energy   = energyCost,
 			frame    = Spring.GetGameFrame() + 1,
-			upgraded = false,
 		}
     end
 end
