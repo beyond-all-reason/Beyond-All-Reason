@@ -110,11 +110,13 @@ local function timeToTarget(start, endpoint, speed)
 	return dist / speed
 end
 
-local function getSecondMoveCommandDestination(unitID)
+local function getValidRallyCommandDestination(unitID)
     local cmdID, options, tag, targetX, targetY, targetZ = Spring.GetUnitCurrentCommand(unitID, 2)
-    if cmdID == nil or cmdID ~= CMD.MOVE then
+    local cmdValid = cmdID == CMD.MOVE or cmdID < 0
+    if cmdID == nil or not cmdValid then
         return nil
     end
+
     return { targetX, targetY, targetZ }
 end
 
@@ -309,7 +311,7 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
     if unitTeam == myTeam then
         if isTransport(createdUnitID) then
             -- Handle case where transport is rallied to another lab
-            local cmdID, options, tag, targetUnitID = Spring.GetUnitCurrentCommand(createdUnitID, 1)
+            local cmdID, _, _, targetUnitID = Spring.GetUnitCurrentCommand(createdUnitID, 1)
             if cmdID == nil or cmdID ~= CMD.GUARD then
                 return
             end
@@ -323,7 +325,7 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 
             return
         elseif factoryToGuardingTransports[factID] and next(factoryToGuardingTransports[factID]) then
-            local destination = getSecondMoveCommandDestination(createdUnitID)
+            local destination = getValidRallyCommandDestination(createdUnitID)
             if destination == nil then
                 log("Second destination not a move command")
                 return
@@ -356,12 +358,11 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
                 transportState[bestTransportID]       = transport_states.approaching
 
                 local unitWaitDestination               = {Spring.GetUnitPosition(createdUnitID)}
-                -- local unitWaitDestination               = getFirstMoveCommandDestination(createdUnitID)
                 Spring.GiveOrderToUnit(bestTransportID, CMD.MOVE,  unitWaitDestination, CMD.OPT_RIGHT)
                 Spring.GiveOrderToUnit(bestTransportID, CMD.GUARD, factID,              CMD.OPT_SHIFT)
 
                 activeTransportToUnit[bestTransportID] = createdUnitID
-                unitToDestination[createdUnitID] = getSecondMoveCommandDestination(createdUnitID)
+                unitToDestination[createdUnitID] = getValidRallyCommandDestination(createdUnitID)
             end
 
             -- The fab issues an inital move command to every unit to make sure it clears the factory.
@@ -395,7 +396,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
                 local carriedUnits = Spring.GetUnitIsTransporting(orderedUnit)
                 if carriedUnits and #carriedUnits > 0 then
                     log("Transport " .. orderedUnit .. " PICKING_UP after registering")
-                    local x, y, z = Spring.GetUnitPosition(orderedUnit)
+                    local x, _, z = Spring.GetUnitPosition(orderedUnit)
 
                     transportState[orderedUnit]        = transport_states.picking_up
                     activeTransportToUnit[orderedUnit] = carriedUnits[1]
