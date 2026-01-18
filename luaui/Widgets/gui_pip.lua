@@ -189,6 +189,9 @@ local interactionState = {
 	lastMapDrawZ = nil,
 	clickHandledInPanMode = false,
 	isMouseOverPip = false,
+	lastHoverCheckTime = 0,
+	lastHoverCheckX = 0,
+	lastHoverCheckY = 0,
 }
 
 -- Consolidated misc state
@@ -2355,7 +2358,7 @@ local function GetUnitsInBox(x1, y1, x2, y2)
 
 	-- Get all units in the world rectangle
 	local unitsInRect = spGetUnitsInRectangle(minWx, minWz, maxWx, maxWz)
-
+	
 	-- Reuse pool table to avoid allocations
 	local selectableUnits = selectableUnitsPool
 	local count = 0
@@ -5586,8 +5589,14 @@ local function DrawTrackingIndicators()
 end
 
 -- Helper function to handle hover and cursor updates
+local lastHoverCursorCheckTime = 0
 local function HandleHoverAndCursor(mx, my)
 	if interactionState.arePanning then
+		return
+	end
+
+	-- Skip during active zoom for better performance
+	if interactionState.areIncreasingZoom or interactionState.areDecreasingZoom then
 		return
 	end
 
@@ -5597,6 +5606,13 @@ local function HandleHoverAndCursor(mx, my)
 		end
 		return
 	end
+
+	-- Throttle expensive GetUnitAtPoint calls for performance
+	local currentTime = os.clock()
+	if (currentTime - lastHoverCursorCheckTime) < 0.1 then
+		return
+	end
+	lastHoverCursorCheckTime = currentTime
 
 	-- Update info widget with custom hover
 	if WG['info'] and WG['info'].setCustomHover then
@@ -5617,13 +5633,14 @@ local function HandleHoverAndCursor(mx, my)
 	-- Handle cursor
 	local _, activeCmdID = Spring.GetActiveCommand()
 	if not activeCmdID then
-		local wx, wz = PipToWorldCoords(mx, my)
 		local defaultCmd = Spring.GetDefaultCommand()
 
 		if not defaultCmd or defaultCmd == 0 then
 			local selectedUnits = Spring.GetSelectedUnits()
 			if selectedUnits and #selectedUnits > 0 then
 				-- Check if we have a transport and are hovering over a transportable unit
+				-- (already throttled above, reuse world coords)
+				local wx, wz = PipToWorldCoords(mx, my)
 				local uID = GetUnitAtPoint(wx, wz)
 				if uID and Spring.IsUnitAllied(uID) then
 					-- Check if any transport in selection can load this unit
@@ -6102,8 +6119,22 @@ function widget:Update(dt)
 	local wasMouseOver = interactionState.isMouseOverPip
 	interactionState.isMouseOverPip = (mx >= dim.l and mx <= dim.r and my >= dim.b and my <= dim.t and not uiState.inMinMode)
 
-	-- Update hovered unit for icon highlighting (only when there's an active command that can target units)
-	if interactionState.isMouseOverPip then
+	-- Update hovered unit for icon highlighting (throttled for performance with many units)
+	-- Only check every 0.1 seconds or when mouse moves significantly
+	-- Skip entirely during active zoom for better performance
+	local currentTime = os.clock()
+	local mouseMoveThreshold = 10  -- pixels
+	local hoverCheckInterval = 0.1  -- seconds
+	local mouseMovedSignificantly = math.abs(mx - interactionState.lastHoverCheckX) > mouseMoveThreshold or 
+	                                 math.abs(my - interactionState.lastHoverCheckY) > mouseMoveThreshold
+	local shouldCheckHover = (currentTime - interactionState.lastHoverCheckTime) > hoverCheckInterval or mouseMovedSignificantly
+	local isZooming = interactionState.areIncreasingZoom or interactionState.areDecreasingZoom
+
+	if interactionState.isMouseOverPip and shouldCheckHover and not isZooming then
+		interactionState.lastHoverCheckTime = currentTime
+		interactionState.lastHoverCheckX = mx
+		interactionState.lastHoverCheckY = my
+
 		local _, cmdID = Spring.GetActiveCommand()
 		local wx, wz = PipToWorldCoords(mx, my)
 		local unitID = GetUnitAtPoint(wx, wz)
@@ -6149,6 +6180,9 @@ function widget:Update(dt)
 		else
 			drawData.hoveredUnitID = nil
 		end
+	elseif isZooming then
+		-- Clear hover during zoom to avoid stale highlights
+		drawData.hoveredUnitID = nil
 	else
 		drawData.hoveredUnitID = nil
 	end	-- If hover state changed, update frame buttons
@@ -6250,10 +6284,11 @@ function widget:Update(dt)
 	local zoomNeedsUpdate = math.abs(zoom - cameraState.targetZoom) > 0.001
 	local centerNeedsUpdate = math.abs(cameraState.wcx - cameraState.targetWcx) > 0.1 or math.abs(cameraState.wcz - cameraState.targetWcz) > 0.1
 
-	-- Mark PIP as needing update if zoom or position changed
-	if zoomNeedsUpdate or centerNeedsUpdate then
-		pipR2T.contentNeedsUpdate = true
-	end
+	-- Don't force immediate updates during zoom/pan - let dynamic update rate handle it for better performance
+	-- Only mark for update on significant changes (tracked player switching, etc.)
+	-- if zoomNeedsUpdate or centerNeedsUpdate then
+	-- 	pipR2T.contentNeedsUpdate = true
+	-- end
 
 	-- If zoom-to-cursor is active, continuously recalculate target center to keep world position under cursor
 	-- Disable this when tracking units - we want to keep the camera centered on tracked units
@@ -6353,8 +6388,7 @@ function widget:Update(dt)
 		cameraState.targetWcx = math.min(math.max(cameraState.targetWcx, targetMinWcx), targetMaxWcx)
 		cameraState.targetWcz = math.min(math.max(cameraState.targetWcz, targetMinWcz), targetMaxWcz)
 
-		RecalculateWorldCoordinates()
-		RecalculateGroundTextureCoordinates()
+		-- Don't recalculate here - will be done below in the main zoom/center update block
 	elseif interactionState.areDecreasingZoom then
 		cameraState.targetZoom = math.max(cameraState.targetZoom / zoomRate ^ dt, zoomMin)
 
@@ -6391,8 +6425,7 @@ function widget:Update(dt)
 		cameraState.targetWcx = math.min(math.max(cameraState.targetWcx, targetMinWcx), targetMaxWcx)
 		cameraState.targetWcz = math.min(math.max(cameraState.targetWcz, targetMinWcz), targetMaxWcz)
 
-		RecalculateWorldCoordinates()
-		RecalculateGroundTextureCoordinates()
+		-- Don't recalculate here - will be done below in the main zoom/center update block
 	end
 
 	if not gameHasStarted then
