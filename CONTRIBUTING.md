@@ -25,8 +25,7 @@ work than any human. That isn't the world we live in today, and in most cases
 it's generating slop.
 
 When using AI assistance, we expect contributors to understand the code
-that is produced and be able to answer critical questions about it. It
-isn't a maintainer's job to review a PR so broken that it requires
-significant rework to be acceptable.
+that is produced and be able to answer critical questions about it. In the
+end, you are responsible for all code you submit.
 
 Please be respectful to maintainers and disclose AI assistance.
