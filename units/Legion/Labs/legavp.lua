@@ -67,7 +67,7 @@ return {
 			"legavantinuke",
 			"legavjam",
 			"legavrad",
-			"legafcv"
+			"legafcv",
 		},
 		customparams = {
 			usebuildinggrounddecal = false,
