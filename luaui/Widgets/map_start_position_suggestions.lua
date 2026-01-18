@@ -60,6 +60,8 @@ local config = {
 	tutorialMaxWidthChars = 100,
 }
 
+local CIRCLE_RADIUS_SQUARED = config.circleRadius * config.circleRadius
+
 local vsx, vsy = spGetViewGeometry()
 local resMult = vsy/1440
 
@@ -185,10 +187,27 @@ local function selectModoptionConfigForPlayers(modoptionData, allyTeamCount, pla
 	return nil
 end
 
+local DEBUG_TEST_MODE = true
+
 local function loadStartPositions()
 	local modoptionDataRaw = Spring.GetModOptions().mapmetadata_startpos
 
 	if modoptionDataRaw == nil or string.len(modoptionDataRaw) == 0 then
+		if DEBUG_TEST_MODE then
+			Spring.Log(widget:GetInfo().name, LOG.INFO, "Using debug test positions")
+			local mapX = Game.mapSizeX
+			local mapZ = Game.mapSizeZ
+			return {
+				[0] = {
+					{ spawnPoint = { x = mapX * 0.15, z = mapZ * 0.15 }, baseCenter = { x = mapX * 0.25, z = mapZ * 0.25 }, role = "air" },
+					{ spawnPoint = { x = mapX * 0.15, z = mapZ * 0.5 }, role = "front" },
+				},
+				[1] = {
+					{ spawnPoint = { x = mapX * 0.85, z = mapZ * 0.85 }, baseCenter = { x = mapX * 0.75, z = mapZ * 0.75 }, role = "air" },
+					{ spawnPoint = { x = mapX * 0.85, z = mapZ * 0.5 }, role = "front" },
+				},
+			}
+		end
 		Spring.Log(widget:GetInfo().name, LOG.WARNING, "No modoption start position data found")
 		return
 	end
@@ -229,6 +248,9 @@ local tooltipKey = nil
 local tooltipStartTime = 0
 
 local placedCommanders = {}
+local captionsCache = {}
+local wrappedDescriptionCache = {}
+local cachedTutorialText = nil
 
 local vsx, vsy = spGetViewGeometry()
 
@@ -473,6 +495,10 @@ local drawAllStartLocationsCircles = glListCache(function()
 end)
 
 local function getCaptions(role)
+	if captionsCache[role] then
+		return captionsCache[role]
+	end
+
 	local title, description
 	local roles = role:split("/")
 
@@ -489,7 +515,8 @@ local function getCaptions(role)
 		description = Spring.I18N("ui.startPositionSuggestions.multiRole.description", { role1 = description1, role2 = description2})
 	end
 
-	return { title = title, description = description }
+	captionsCache[role] = { title = title, description = description }
+	return captionsCache[role]
 end
 
 local function drawAllStartLocationsText()
@@ -599,13 +626,17 @@ local function drawTooltip()
 		return
 	end
 
+	if not wrappedDescriptionCache[tooltipKey] then
+		wrappedDescriptionCache[tooltipKey] = wrapText(
+			getCaptions(tooltipKey).description,
+			config.tooltipMaxWidthChars
+		)
+	end
+
 	local xOffset, yOffset = 20, -12
 	WG["tooltip"].ShowTooltip(
 		"startPositionTooltip",
-		wrapText(
-			getCaptions(tooltipKey).description,
-			config.tooltipMaxWidthChars
-		),
+		wrappedDescriptionCache[tooltipKey],
 		x + xOffset,
 		y + yOffset,
 		getCaptions(tooltipKey).title
@@ -617,13 +648,17 @@ local function drawTutorial()
 		return
 	end
 
+	if not cachedTutorialText then
+		cachedTutorialText = wrapText(
+			Spring.I18N("ui.startPositionSuggestions.tutorial"),
+			config.tutorialMaxWidthChars
+		)
+	end
+
 	fontTutorial:SetOutlineColor(0,0,0,1)
 	fontTutorial:SetTextColor(0.9, 0.9, 0.9, 1)
 	fontTutorial:Print(
-		wrapText(
-			Spring.I18N("ui.startPositionSuggestions.tutorial"),
-			config.tutorialMaxWidthChars
-		),
+		cachedTutorialText,
 		vsx * 0.5,
 		vsy * 0.75,
 		config.tutorialTextSize*resMult,
@@ -695,9 +730,9 @@ local function checkTooltips()
 	for allyTeamID, teamStartPosition in pairs(startPositions) do
 		for i, position in ipairs(teamStartPosition) do
 			local newKey
-			if math.diag(mwx - position.spawnPoint.x, mwz - position.spawnPoint.z) < config.circleRadius then
+			if math.distance2dSquared(mwx, mwz, position.spawnPoint.x, position.spawnPoint.z) < CIRCLE_RADIUS_SQUARED then
 				newKey = position.role
-			elseif position.baseCenter and math.diag(mwx - position.baseCenter.x, mwz - position.baseCenter.z) < config.circleRadius then
+			elseif position.baseCenter and math.distance2dSquared(mwx, mwz, position.baseCenter.x, position.baseCenter.z) < CIRCLE_RADIUS_SQUARED then
 				newKey = "baseCenter"
 			end
 
@@ -730,8 +765,20 @@ local function getPlacedCommanders()
 	end
 
 	local modified = false
-	if table.toString(placedCommanders) ~= table.toString(newPlacedCommanders) then
+	if #placedCommanders ~= #newPlacedCommanders then
 		modified = true
+	else
+		for i = 1, #newPlacedCommanders do
+			local old = placedCommanders[i]
+			local new = newPlacedCommanders[i]
+			if old.teamID ~= new.teamID or
+			   old.position[1] ~= new.position[1] or
+			   old.position[2] ~= new.position[2] or
+			   old.position[3] ~= new.position[3] then
+				modified = true
+				break
+			end
+		end
 	end
 
 	return newPlacedCommanders, modified
@@ -745,13 +792,13 @@ local function checkPlacedCommanders()
 	end
 end
 
-local t = 0
-function widget:Update(dt)
-	checkTooltips()
-	t = t + dt
-	if t > 0.5 then
+local timer = 0
+function widget:Update(deltaTime)
+	timer = timer + deltaTime
+	if timer > 0.25 then
+		checkTooltips()
 		checkPlacedCommanders()
-		t = 0
+		commanderTimer = 0
 	end
 end
 
