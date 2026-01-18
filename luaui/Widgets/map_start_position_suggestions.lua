@@ -192,27 +192,10 @@ local function selectModoptionConfigForPlayers(modoptionData, allyTeamCount, pla
 	return nil
 end
 
-local DEBUG_TEST_MODE = true
-
 local function loadStartPositions()
 	local modoptionDataRaw = Spring.GetModOptions().mapmetadata_startpos
 
 	if modoptionDataRaw == nil or string.len(modoptionDataRaw) == 0 then
-		if DEBUG_TEST_MODE then
-			Spring.Log(widget:GetInfo().name, LOG.INFO, "Using debug test positions")
-			local mapX = Game.mapSizeX
-			local mapZ = Game.mapSizeZ
-			return {
-				[0] = {
-					{ spawnPoint = { x = mapX * 0.15, z = mapZ * 0.15 }, baseCenter = { x = mapX * 0.25, z = mapZ * 0.25 }, role = "air" },
-					{ spawnPoint = { x = mapX * 0.15, z = mapZ * 0.5 }, role = "front" },
-				},
-				[1] = {
-					{ spawnPoint = { x = mapX * 0.85, z = mapZ * 0.85 }, baseCenter = { x = mapX * 0.75, z = mapZ * 0.75 }, role = "air" },
-					{ spawnPoint = { x = mapX * 0.85, z = mapZ * 0.5 }, role = "front" },
-				},
-			}
-		end
 		Spring.Log(widget:GetInfo().name, LOG.WARNING, "No modoption start position data found")
 		return
 	end
