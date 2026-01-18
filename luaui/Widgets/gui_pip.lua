@@ -49,7 +49,7 @@ local zoomProjectileDetail = 0.2 -- Zoom level threshold for drawing expensive p
 local zoomExplosionDetail = 0.1 -- Zoom level threshold for drawing expensive projectile effects (projectiles, beams, shatters). Explosions always shown.
 
 local showLosOverlay = true -- Toggle LOS darkening overlay on/off
-local losOverlayOpacity = 0.57 -- Opacity of LOS darkening (0.0 = no darkening, 1.0 = maximum darkening)
+local losOverlayOpacity = 0.6 -- Opacity of LOS darkening (0.0 = no darkening, 1.0 = maximum darkening)
 local showPipFps = false -- Show PIP content FPS counter in top-left corner
 
 local iconRadius = 40
@@ -805,9 +805,84 @@ local function UpdateTracking()
 	end
 end
 
+-- Helper function to get player skill/rating
+local function GetPlayerSkill(playerID)
+	local customtable = select(11, Spring.GetPlayerInfo(playerID))
+	if type(customtable) == 'table' and customtable.skill then
+		local tsMu = customtable.skill
+		local skill = tsMu and tonumber(tsMu:match("-?%d+%.?%d*"))
+		return skill or 0
+	end
+	return 0
+end
+
+-- Helper function to find the next best player on the same team
+local function FindNextBestTeamPlayer(excludePlayerID)
+	-- Get the team and allyteam of the excluded player
+	local _, _, _, excludeTeamID = Spring.GetPlayerInfo(excludePlayerID, false)
+	if not excludeTeamID then
+		return nil
+	end
+
+	local _, _, _, _, _, excludeAllyTeamID = Spring.GetTeamInfo(excludeTeamID, false)
+	if not excludeAllyTeamID then
+		return nil
+	end
+
+	-- Find all active players on the same allyteam
+	local playerList = Spring.GetPlayerList()
+	local candidatePlayers = {}
+
+	for _, playerID in ipairs(playerList) do
+		if playerID ~= excludePlayerID then
+			local _, active, isSpec, playerTeamID = Spring.GetPlayerInfo(playerID, false)
+			if active and not isSpec and playerTeamID then
+				local _, _, _, _, _, playerAllyTeamID = Spring.GetTeamInfo(playerTeamID, false)
+				if playerAllyTeamID == excludeAllyTeamID then
+					-- This player is on the same allyteam
+					local skill = GetPlayerSkill(playerID)
+					table.insert(candidatePlayers, {playerID = playerID, skill = skill})
+				end
+			end
+		end
+	end
+
+	-- Sort by skill (highest first)
+	if #candidatePlayers > 0 then
+		table.sort(candidatePlayers, function(a, b)
+			return a.skill > b.skill
+		end)
+		return candidatePlayers[1].playerID
+	end
+
+	return nil
+end
+
 local function UpdatePlayerTracking()
 	if not interactionState.trackingPlayerID then
 		return
+	end
+
+	-- Check if the tracked player has become a spectator or left
+	local playerName, active, isSpec = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+	if not playerName then
+		-- Player left the game, try to find next best player on the same team
+		local nextPlayerID = FindNextBestTeamPlayer(interactionState.trackingPlayerID)
+		interactionState.trackingPlayerID = nextPlayerID
+		pipR2T.frameNeedsUpdate = true
+		if not nextPlayerID then
+			return
+		end
+		-- Continue tracking the new player
+	elseif isSpec then
+		-- Player became a spectator (died), try to find next best player on the same team
+		local nextPlayerID = FindNextBestTeamPlayer(interactionState.trackingPlayerID)
+		interactionState.trackingPlayerID = nextPlayerID
+		pipR2T.frameNeedsUpdate = true
+		if not nextPlayerID then
+			return
+		end
+		-- Continue tracking the new player
 	end
 
 	-- Get player camera state from lockcamera widget's stored broadcasts
@@ -816,14 +891,7 @@ local function UpdatePlayerTracking()
 		local playerCamState = WG.lockcamera.GetPlayerCameraState(interactionState.trackingPlayerID)
 
 		if not playerCamState then
-			-- Player stopped broadcasting - check if they still exist
-			local playerName = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
-			if not playerName then
-				-- Player left the game, stop tracking
-				interactionState.trackingPlayerID = nil
-				pipR2T.frameNeedsUpdate = true
-			end
-			-- If player still exists but no camera state, keep tracking and use last known position
+			-- Player stopped broadcasting - if player still exists but no camera state, keep tracking and use last known position
 			return
 		end
 
@@ -987,7 +1055,7 @@ end
 
 local function DrawUnit(uID)
 	local uDefID = spGetUnitDefID(uID)
-	if not uDefID then return end
+	-- Don't return early if uDefID is nil - unit might be radar-only
 
 	local uTeam = spGetUnitTeam(uID)
 	local ux, uy, uz = spGetUnitBasePosition(uID)
@@ -1017,6 +1085,16 @@ local function DrawUnit(uID)
 		checkAllyTeamID = myAllyTeamID
 		local _, _, _, _, _, unitAllyTeamID = spGetTeamInfo(uTeam, false)
 		isEnemyUnit = (unitAllyTeamID ~= myAllyTeamID)
+	elseif cameraState.mySpecState then
+		-- Spectating without tracking a player - check if we have limited view
+		local _, fullview = Spring.GetSpectatingState()
+		if not fullview then
+			-- Spectating without fullview - check visibility for current allyteam
+			local myAllyTeam = Spring.GetMyAllyTeamID()
+			checkAllyTeamID = myAllyTeam
+			local _, _, _, _, _, unitAllyTeamID = spGetTeamInfo(uTeam, false)
+			isEnemyUnit = (unitAllyTeamID ~= myAllyTeam)
+		end
 	end
 	-- else: spectator with full view not tracking anyone - skip all visibility checks
 
@@ -1054,6 +1132,11 @@ local function DrawUnit(uID)
 			-- Not in LOS and not in radar - don't draw
 			return
 		end
+	end
+
+	-- If uDefID is nil at this point, unit shouldn't be drawn as icon (already handled as radar blob or not visible)
+	if not uDefID then
+		return
 	end
 
 	glPushMatrix()
@@ -1897,12 +1980,16 @@ local function DrawIconShatters()
 			local fragCount = #fragments
 			for j = 1, fragCount do
 				local frag = fragments[j]
-				-- Update fragment position with deceleration that increases towards end
-				frag.x = frag.x + frag.vx * decel * 0.016
-				frag.z = frag.z + frag.vz * decel * 0.016
+				-- Update fragment world position with deceleration that increases towards end
+				frag.wx = frag.wx + frag.vx * decel * 0.016
+				frag.wz = frag.wz + frag.vz * decel * 0.016
 				frag.vx = frag.vx * velocityDamping
 				frag.vz = frag.vz * velocityDamping
 				frag.rot = frag.rot + frag.rotSpeed * decel
+
+				-- Convert world coordinates to PiP-local coordinates
+				local pipX = frag.wx - wcx_cached
+				local pipZ = wcz_cached - frag.wz
 
 				-- Calculate current size with scale, compensating for the glScale(zoom) in the matrix
 				local currentSize = frag.size * scale * zoomInv
@@ -1911,8 +1998,8 @@ local function DrawIconShatters()
 				-- Add to batch for this texture (use counter instead of #texGroup)
 				texGroupSize = texGroupSize + 1
 				texGroup[texGroupSize] = {
-					x = frag.x,
-					z = frag.z,
+					x = pipX,
+					z = pipZ,
 					rot = frag.rot,
 					halfSize = halfSize,
 					uvx1 = frag.uvx1,
@@ -3155,6 +3242,25 @@ function widget:PlayerChanged(playerID)
 
 	-- Update spec state
 	cameraState.mySpecState = Spring.GetSpectatingState()
+
+	-- Check if we're tracking a player and if we can still access their view
+	if interactionState.trackingPlayerID then
+		local mySpec, fullview = Spring.GetSpectatingState()
+		local myAllyTeam = Spring.GetMyAllyTeamID()
+
+		if mySpec and not fullview then
+			-- We're spectating without fullview - check if tracked player is on the same allyteam we're viewing
+			local _, _, _, trackedTeamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
+			if trackedTeamID then
+				local trackedAllyTeam = Spring.GetTeamAllyTeamID(trackedTeamID)
+				if trackedAllyTeam and trackedAllyTeam ~= myAllyTeam then
+					-- We switched to viewing a different allyteam without fullview, stop tracking
+					interactionState.trackingPlayerID = nil
+					pipR2T.frameNeedsUpdate = true
+				end
+			end
+		end
+	end
 end
 
 function widget:Shutdown()
@@ -4266,7 +4372,7 @@ local function DrawUnitsAndFeatures()
 
 	-- Use larger margin for units and features to account for their radius
 	-- Features especially can be quite large (up to ~200 units radius for big wrecks)
-	local margin = 250
+	local margin = 220
 
 	-- When spectating and tracking a player, get ALL units and we'll filter by visibility in DrawUnit
 	-- Otherwise, GetUnitsInRectangle returns units visible to our team
@@ -4611,14 +4717,24 @@ end
 -- Helper function to determine if LOS overlay should be shown and which allyteam to use
 local function ShouldShowLOS()
 	local myAllyTeam = Spring.GetMyAllyTeamID()
-	local mySpec = Spring.GetSpectatingState()
+	local mySpec, fullview = Spring.GetSpectatingState()
 
 	-- If tracking a player's camera, use their allyteam
 	if interactionState.trackingPlayerID then
 		local _, _, isSpec, teamID = Spring.GetPlayerInfo(interactionState.trackingPlayerID, false)
 		if teamID then
 			local allyTeamID = Spring.GetTeamAllyTeamID(teamID)
-			return true, allyTeamID
+			-- Check if we're spectating without fullview and the tracked player is from a different allyteam
+			if mySpec and not fullview and allyTeamID ~= myAllyTeam then
+				-- We're viewing a different allyteam than the tracked player without fullview
+				-- Stop tracking since we don't have access to their LOS
+				interactionState.trackingPlayerID = nil
+				pipR2T.frameNeedsUpdate = true
+				-- Fall through to check if we should show LOS for current view
+			else
+				-- Valid allyteam for tracking (either same team or fullview enabled)
+				return true, allyTeamID
+			end
 		end
 	end
 
@@ -4627,16 +4743,32 @@ local function ShouldShowLOS()
 		return true, myAllyTeam
 	end
 
-	-- Don't show LOS for spectators (unless tracking a player)
+	-- Spectators without fullview should see LOS for their current view
+	if mySpec and not fullview then
+		return true, myAllyTeam
+	end
+
+	-- Spectators with fullview don't need LOS overlay
 	return false, nil
 end
 
 local function RenderPipContents()
 	if uiState.drawingGround then
-		glColor(0.9, 0.9, 0.9, 1)
+		-- Draw base grass texture
+		glColor(0.92, 0.92, 0.92, 1)
 		glTexture('$grass')
 		glBeginEnd(GL_QUADS, GroundTextureVertices)
 		glTexture(false)
+
+		-- Overlay SSMF normal map for additional detail
+		-- This adds subtle terrain detail similar to the main view
+		--gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		-- glColor(1, 1, 1, 0.15)  -- Low opacity overlay for subtle detail
+		-- glTexture('$ssmf_normals')
+		-- glBeginEnd(GL_QUADS, GroundTextureVertices)
+		-- glTexture(false)
+
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)  -- Restore default blending
 
 		-- Draw LOS darkening overlay
 		local shouldShowLOS, losAllyTeam = ShouldShowLOS()
@@ -5341,6 +5473,11 @@ local function UpdateLOSTexture(currentTime)
 		return
 	end
 
+	-- Validate losAllyTeam before proceeding
+	if not losAllyTeam or losAllyTeam < 0 then
+		return
+	end
+
 	-- Calculate LOS texture dimensions
 	local losTexWidth = math.max(1, math.floor(mapSizeX / pipR2T.losTexScale))
 	local losTexHeight = math.max(1, math.floor(mapSizeZ / pipR2T.losTexScale))
@@ -5533,23 +5670,23 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 
 	-- Bottom-left buttons hover
 	local selectedUnits = Spring.GetSelectedUnits()
-	if #selectedUnits > 0 or interactionState.areTracking or interactionState.trackingPlayerID then
-		local visibleButtons = {}
-		for i = 1, #buttons do
-			if buttons[i].command == 'pip_track' then
-				if #selectedUnits > 0 or interactionState.areTracking then
-					visibleButtons[#visibleButtons + 1] = buttons[i]
-				end
-			elseif buttons[i].command == 'pip_trackplayer' then
-				local _, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-				if interactionState.trackingPlayerID or spec then
-					visibleButtons[#visibleButtons + 1] = buttons[i]
-				end
-			else
+	local visibleButtons = {}
+	for i = 1, #buttons do
+		if buttons[i].command == 'pip_track' then
+			if #selectedUnits > 0 or interactionState.areTracking then
 				visibleButtons[#visibleButtons + 1] = buttons[i]
 			end
+		elseif buttons[i].command == 'pip_trackplayer' then
+			local _, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+			if interactionState.trackingPlayerID or spec then
+				visibleButtons[#visibleButtons + 1] = buttons[i]
+			end
+		else
+			visibleButtons[#visibleButtons + 1] = buttons[i]
 		end
+	end
 
+	if #visibleButtons > 0 then
 		-- Draw base buttons when showing on hover
 		if showButtonsOnHoverOnly and interactionState.isMouseOverPip then
 			glColor(panelBorderColorDark)
@@ -5573,7 +5710,7 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 			glTexture(false)
 		end
 
-		-- Button hover interactions
+		-- Button hover interactions (always check for hover, not just when showing on hover)
 		local bx = dim.l
 		for i = 1, #visibleButtons do
 			if mx >= bx and mx <= bx + usedButtonSize and my >= dim.b and my <= dim.b + usedButtonSize then
@@ -6376,10 +6513,6 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	-- Icon is rendered at 2*iconSize (from -iconSize to +iconSize), so fragments need to match
 	local fragSize = (iconSize * 2) / grid
 
-	-- Convert world coords to PiP-local coords (center of icon)
-	local pipX = ux - cameraState.wcx
-	local pipZ = cameraState.wcz - uz
-
 	-- Get team color
 	local teamColor = teamColors[unitTeam]
 	if not teamColor then return end
@@ -6404,9 +6537,9 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 			local speed = ((25 + math.random() * 15) * (math.sqrt(iconSize) / 6.3) * 3.4 * speedVariation) / zoom
 
 			table.insert(fragments, {
-				-- Start all fragments at icon center
-				x = pipX,
-				z = pipZ,
+				-- Store world coordinates (not PiP-local)
+				wx = ux,
+				wz = uz,
 				vx = math.cos(angle) * speed,
 				vz = math.sin(angle) * speed,
 				-- UV coordinates map each fragment to its portion of the texture
